@@ -68,7 +68,16 @@ export interface BrainOptions {
   isMobile: () => boolean;
   /** Rezerva hore a dole v px (horný pás; lišta + pilulka) — mozog sa centruje do zvyšku. */
   insets: () => { top: number; bottom: number };
-  describe: (role: BrainRole, wi: number, oi: number) => BrainTip | null;
+  /** `zo` = poradie zrna v okruhu (len pri `z`) — zvitok `<svet>-O<oi+1>-<zo+1>`. */
+  describe: (role: BrainRole, wi: number, oi: number, zo?: number) => BrainTip | null;
+  /** SKUTOČNÉ POČTY ZVITKOV NA OKRUH (8. 10. 2026). Svet, ktorý už má zvitky v DB, dá
+   *  pole dĺžky `circles`; inak `null` a zrná sa rozdelia rovnomerne z registra.
+   *  Do 8. 10. mal svet 1 v mozgu ~13 zŕn na okruh, hoci okruhy majú 9 až 21 zvitkov. */
+  circleSizes?: (wi: number) => number[] | null;
+  /** Klik na ZRNO = otvor ten zvitok (Matej 8. 10.: „po kliknutí sa otvorí daný scroll"). */
+  onScroll?: (wi: number, oi: number, zo: number) => void;
+  /** Klik na OKRUH — zoznam skočí na jeho prvý neprečítaný zvitok. */
+  onCircle?: (wi: number, oi: number) => void;
   /** STAV UČENIA zrna `zi`: 0 nedotknuté · 1 videné · 2 prečítané.
    *  🔴 Engine si ho NEVYMÝŠĽA. Kto ktorý zvitok prečítal, dnes nikde neležé —
    *     `/pack` to neukladá — takže atrapu podáva volajúci a je na jednom mieste
@@ -89,6 +98,8 @@ export interface BrainHandle {
   resize: () => void;
   /** Prepočíta stav zŕn z `o.progress` (postup člena sa načíta až po postavení mozgu). */
   refresh: () => void;
+  /** Práve čítaný zvitok — zrno pulzuje, kamera ide na jeho okruh (len pri zmene okruhu). */
+  follow: (wi: number, oi: number, zo: number) => void;
   destroy: () => void;
 }
 
@@ -184,6 +195,10 @@ export function mountBrain(o: BrainOptions): BrainHandle {
      (na mobile priblížené). Posun je povolený nad `baseK`, teda aj na mobilnom štarte. */
   let HOLD: Node | null = null, down = false, baseK = 1, baseY = 0, homeK = 1;
   let HOV: Node | null = null, HOVE: [Node, Node] | null = null;
+  /* PRÁVE ČÍTANÝ ZVITOK (8. 10. 2026) — zrno pulzuje, kým človek roluje DOGSCROLL.
+     `CURO` = okruh, na ktorý sa kamera naposledy presunula: posun sa robí len pri
+     ZMENE okruhu, inak by mozog pri každej karte poskočil. */
+  let CUR: Node | null = null, CURO: Node | null = null;
   let raf = 0, alive = true;
   const touches = new Map<number, { x: number; y: number }>();
   let pinch0 = 0, pinchK = 1;
@@ -205,7 +220,8 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     const span = (w.scrolls / total) * TAU, ac = a0 + span / 2;
     const wn = mk(Math.cos(ac) * RBASE * C.w, Math.sin(ac) * RBASE * C.w, 'w', wi, 26);
     N.push(wn); E.push([root, wn]);
-    const per = split(w.scrolls, w.circles);
+    const real = o.circleSizes?.(wi);
+    const per = real && real.length === w.circles ? real : split(w.scrolls, w.circles);
     for (let oi = 0; oi < w.circles; oi++) {
       const t = (oi + 0.5) / w.circles;
       const orad = RBASE * (0.20 + C.spread * Math.sqrt(t));
@@ -342,6 +358,16 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       }
     });
     ctx.shadowBlur = 0;
+    /* PULZ PRÁVE ČÍTANÉHO ZRNA — dva prstence vo farbe sveta, vonkajší dýcha. */
+    if (CUR) {
+      const cc = worldRGB(o.worlds[CUR.wi]);
+      const kz = Math.min(2.2, Math.max(0.5, view.k));
+      const ph = (Math.sin(TL * 3.2) + 1) / 2;
+      ctx.fillStyle = `rgba(${cc},1)`; ctx.shadowBlur = 22; ctx.shadowColor = `rgba(${cc},.95)`;
+      ctx.beginPath(); ctx.arc(CUR.sx, CUR.sy, CUR.sz * kz * 1.9, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+      ctx.lineWidth = 1.6; ctx.strokeStyle = `rgba(${cc},${(0.95 - ph * 0.6).toFixed(2)})`;
+      ctx.beginPath(); ctx.arc(CUR.sx, CUR.sy, CUR.sz * kz * 2.6 + 4 + ph * 10, 0, TAU); ctx.stroke();
+    }
 
     // 4 · MENÁ — najprv sa ZMERAJÚ nápisy svetov (tie majú prednosť), potom okruhy.
     //     Okruh, ktorého nápis by vliezol do iného nápisu, sa vynechá — pri priblížení
@@ -494,7 +520,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     HOV = hitNode(); HOVE = HOV ? null : hitEdge();
     if (HOV) {
       /* ⚠️ SVET NEMÁ BUBLINU S TEXTOM — meno si nesie sám, svietiace vedľa uzla. */
-      showTip(HOV.role === 'w' ? null : o.describe(HOV.role, HOV.wi, HOV.oi), HOV.sx, HOV.sy);
+      showTip(HOV.role === 'w' ? null : o.describe(HOV.role, HOV.wi, HOV.oi, HOV.zo), HOV.sx, HOV.sy);
       cv.style.cursor = 'pointer';
     } else if (HOVE) {
       showTip(o.describe(HOVE[1].role, HOVE[1].wi, HOVE[1].oi), (HOVE[0].sx + HOVE[1].sx) / 2, (HOVE[0].sy + HOVE[1].sy) / 2);
@@ -563,6 +589,23 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     if (p.role === 'root') { home(); return; }
     focus(p);
     if (p.role === 'w') o.onWorld(p.wi);
+    if (p.role === 'o') { CURO = p; o.onCircle?.(p.wi, p.oi); }
+    if (p.role === 'z') { CUR = p; CURO = p.nb.find((q) => q.role === 'o') ?? CURO; o.onScroll?.(p.wi, p.oi, p.zo ?? 0); }
+  }
+  /* MOZOG IDE S ČLOVEKOM (Matej 8. 10.: „pri tom ako sa človek pohybuje… aby sa pohybovali
+     aj bublinky mozgu"). Zrno pulzuje vždy; kamera sa presunie len pri zmene okruhu
+     a nikdy nepriblíži menej, než človek sám priblížil. */
+  function follow(wi: number, oi: number, zo: number) {
+    const z = N.find((p) => p.role === 'z' && p.wi === wi && p.oi === oi && p.zo === zo) ?? null;
+    CUR = z;
+    if (!z) return;
+    const on = z.nb.find((q) => q.role === 'o') ?? null;
+    if (!on || on === CURO || down) return;
+    CURO = on;
+    const ins = o.insets();
+    vt.k = Math.max(vt.k, homeK * 2.2);
+    vt.x = -(on.x + on.dx);
+    vt.y = -(on.y + on.dy) + (ins.top - ins.bottom) / 2 / vt.k;
   }
 
   const onMove = (e: PointerEvent) => {
@@ -652,6 +695,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     zoomBy: (k) => zoomTo(vt.k * k),
     reset,
     resize: () => { size(); reset(); },
+    follow,
     refresh: () => { if (o.progress) for (const p of N) if (p.role === 'z') p.st = o.progress(p.zi, p.wi, p.oi, p.zo ?? 0); },
     destroy: () => {
       alive = false; cancelAnimationFrame(raf);

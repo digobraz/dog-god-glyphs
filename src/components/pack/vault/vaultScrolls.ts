@@ -117,6 +117,8 @@ const LOCAL = 'vault-reads';
 let uid: string | null = null;
 let reads: Record<string, ReadRow> = {};
 let snap = { state: {} as StateMap, liked: [] as string[], saved: [] as string[] };
+/** Postup je načítaný (DB alebo prehliadač) — DOGSCROLL podľa neho raz určí, kde začína. */
+let readsReady = false;
 const subs = new Set<() => void>();
 const derive = () => {
   const state: StateMap = {};
@@ -213,6 +215,7 @@ function startReads() {
     uid = data.session?.user?.id ?? null;
     if (!uid) {
       try { reads = JSON.parse(localStorage.getItem(LOCAL) || '{}'); } catch { reads = {}; }
+      readsReady = true;
       try { evSum = JSON.parse(localStorage.getItem(EKEY) || '{}'); earned = JSON.parse(localStorage.getItem(BKEY) || '{}'); } catch { evSum = {}; earned = {}; }
       derive(); enotify();
       badgesReady = true; void awardBadges();
@@ -220,6 +223,7 @@ function startReads() {
     }
     const { data: rows } = await db.from('vault_reads').select('*');
     reads = Object.fromEntries(((rows || []) as ReadRow[]).map((r) => [r.scroll_id, r]));
+    readsReady = true;
     derive();
     void loadCounts();
     await loadEvents().catch((e) => console.warn('[vault] načítanie denníka', e));
@@ -268,6 +272,7 @@ export function toggleSaved(id: string) {
   bump(id, 'saves', on); write(id, { saved: on }); logEvent(id, on ? 'save' : 'unsave');
 }
 
+export function useReadsReady(): boolean { startReads(); return useSyncExternalStore(sub, () => readsReady, () => readsReady); }
 export function useScrollState(): StateMap { startReads(); return useSyncExternalStore(sub, () => snap.state, () => snap.state); }
 export function useLiked(): string[] { startReads(); return useSyncExternalStore(sub, () => snap.liked, () => snap.liked); }
 export function useSaved(): string[] { startReads(); return useSyncExternalStore(sub, () => snap.saved, () => snap.saved); }

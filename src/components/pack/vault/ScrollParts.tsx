@@ -450,7 +450,7 @@ export function ScrollCard({ z, lang, worldName, onOpen, onShare }: {
     return () => { io.disconnect(); window.clearTimeout(t); };
   }, [z.id, s]);
   return (
-    <article ref={ref} className="akv-zv">
+    <article ref={ref} className="akv-zv" data-zid={z.id} style={aiWorld(z.world)}>
       <div className="akv-zvimg">
         {z.img && <img src={z.img} alt="" loading="lazy" onClick={() => onOpen(z.id)} />}
         <ScrollActions id={z.id} lang={lang} onShare={() => onShare(z.id)} onTalk={() => onOpen(z.id, 'talk')} />
@@ -548,8 +548,10 @@ const REQ_LANGS: [string, string][] = [
 const POD_TAG: Record<string, string> = { sk: 'SK', en: 'EN', cs: 'CZ' };
 
 /** PODCAST — prehrávač s výberom jazyka, prepisom a žiadosťou o nový jazyk (Matej 4. 10.). */
-function PodcastBox({ z, lang, onDone, boxRef }: {
+function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd }: {
   z: DemoScroll; lang: string; onDone: () => void; boxRef: React.RefObject<HTMLDivElement>;
+  /** POČÚVAJ ZA SEBOU (8. 10. 2026) — podcast sa spustí sám a po dohraní pustí ďalší zvitok. */
+  autoPlay?: boolean; onEnd?: () => void;
 }) {
   const u = scrollUI(lang);
   const [want, setWant] = useState<string | undefined>();
@@ -619,10 +621,10 @@ function PodcastBox({ z, lang, onDone, boxRef }: {
         </span>
       </small>
       <audio key={pod.src} ref={audio} preload="metadata" src={pod.src}
-        onLoadedMetadata={(e) => { const a = e.currentTarget; if (resumeAt > 5 && resumeAt < a.duration * 0.9) { a.currentTime = resumeAt; setT(resumeAt); lastSave.current = resumeAt; } }}
+        onLoadedMetadata={(e) => { const a = e.currentTarget; if (resumeAt > 5 && resumeAt < a.duration * 0.9) { a.currentTime = resumeAt; setT(resumeAt); lastSave.current = resumeAt; } if (autoPlay) void a.play().catch(() => undefined); }}
         onTimeUpdate={(e) => { onTime(e); setT(e.currentTarget.currentTime); }}
         onPlay={() => { setPlaying(true); playedFrom.current = Date.now(); }} onPause={(e) => { setPlaying(false); flushListen(); keep(e.currentTarget.currentTime, true); }}
-        onEnded={(e) => { setPlaying(false); flushListen(); keep(e.currentTarget.currentTime, true); onDone(); }} />
+        onEnded={(e) => { setPlaying(false); flushListen(); keep(e.currentTarget.currentTime, true); onDone(); onEnd?.(); }} />
       <div className="zv-player">
         <button type="button" className="zv-pbtn" aria-label={playing ? 'Pause' : 'Play'}
           onClick={() => { const a = audio.current; if (!a) return; if (a.paused) void a.play(); else a.pause(); }}>
@@ -699,9 +701,11 @@ function Gallery({ list, start, label, onClose }: { list: { src: string; cap: st
 }
 
 /** Článok zvitku — vrstva nad VAULTOM s vlastnou adresou. */
-export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShare }: {
+export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShare, queue, onNext }: {
   z: DemoScroll; all: DemoScroll[]; lang: string; focus?: string | null;
   onClose: () => void; onOpen: (id: string) => void; onUse: () => void; onShare: (id: string) => void;
+  /** POČÚVAJ ZA SEBOU — podcast hrá sám a po konci otvorí ďalší (`onNext`). */
+  queue?: boolean; onNext?: () => void;
 }) {
   const u = scrollUI(lang);
   const x = pickText(z, lang);
@@ -776,7 +780,8 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
               <p className="zv-v">{x.v}</p>
               {x.vz && <div className="zv-take" style={{ alignSelf: 'stretch' }}>{x.vz}</div>}
             </div>
-            <PodcastBox z={z} lang={lang} boxRef={podRef} onDone={() => markScroll(z.id, 2, 'listen')} />
+            <PodcastBox z={z} lang={lang} boxRef={podRef} onDone={() => markScroll(z.id, 2, 'listen')}
+              autoPlay={queue} onEnd={queue ? onNext : undefined} />
           </div>
         </div>
 
