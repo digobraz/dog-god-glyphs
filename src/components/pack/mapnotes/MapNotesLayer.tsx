@@ -198,9 +198,31 @@ export type MapNotesLayerProps = {
    * zmena ticho zahodila.
    */
   interactive?: boolean;
+  /**
+   * Odsadenie bubliny od okraja mapy [hore, dole] v px. Predvolené 170/110 platí pre
+   * celoobrazovkovú mapu pod lištami. Mapa v ČLÁNKU výletu je karta ~430 px bez líšt —
+   * s 280 px okrajov sa bublina nezmestila, ostala orezaná a autopan odhodil mapu inam
+   * (Matej 8. 10. 2026, parkovisko Belga: „divno zobrazuje ak na neho kliknem").
+   */
+  popupPad?: [number, number];
+  /** Bublina po otvorení do STREDU mapy, celá viditeľná (Matej 8. 10. 2026: „malo by to
+   *  centrovať do stredu a byť cely viditelny odkaz"). Pre malú mapu v článku. */
+  centerPopup?: boolean;
 };
 
-export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showThreats = true, interactive = true }: MapNotesLayerProps) {
+// Odkaz vložený do textu zápisu (Daniela dala Google Maps URL) — holý reťazec sa nezalomil
+// a pretiekol bublinu. Kreslí sa ako krátky odkaz s menom domény.
+const URL_RE = /(https?:\/\/[^\s]+)/g;
+function bodyWithLinks(body: string) {
+  return body.split(URL_RE).map((part, i) => {
+    if (i % 2 === 0) return part;
+    let label = part;
+    try { label = new URL(part).hostname.replace(/^www\./, ''); } catch { /* nechaj celý */ }
+    return <a key={i} className="mn-bubble-link" href={part} target="_blank" rel="noopener noreferrer">{label}</a>;
+  });
+}
+
+export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showThreats = true, interactive = true, popupPad, centerPopup = false }: MapNotesLayerProps) {
   const t = useT();
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
@@ -215,7 +237,19 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
   //    klik na 🅿️ v článku výletu). Rovnaký zámok ako v `geo/PoiLayer.tsx`.
   const popupOpen = useRef(false);
   const onMoveEnd = useCallback(() => { if (!popupOpen.current) setMoveTick((n) => n + 1); }, []);
-  const onPopupOpen = useCallback(() => { popupOpen.current = true; }, []);
+  const onPopupOpen = useCallback((e: L.PopupEvent) => {
+    popupOpen.current = true;
+    if (!centerPopup) return;
+    // Stred mapy = stred BUBLINY, nie značky: značka sa posunie o polovicu výšky bubliny nižšie.
+    // Výška sa meria až po vykreslení obsahu (rAF), inak je 0.
+    requestAnimationFrame(() => {
+      const el = e.popup.getElement();
+      const h = el ? el.offsetHeight : 0;
+      const at = map.latLngToContainerPoint(e.popup.getLatLng()!);
+      const bubbleMid = at.subtract(L.point(0, h / 2 + 12));
+      map.panBy(bubbleMid.subtract(map.getSize().divideBy(2)), { animate: true });
+    });
+  }, [centerPopup, map]);
   const onPopupClose = useCallback(() => { popupOpen.current = false; setMoveTick((n) => n + 1); }, []);
   useMapEvent('moveend', onMoveEnd);
   useMapEvent('popupopen', onPopupOpen);
@@ -299,8 +333,9 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
            hornou lištou. Odsadenie hore musí pokryť lištu + filtre (Matej
            2026-08-22: „popupy sa zobrazujú zle cez okraj obrazovky"), dole
            spodnú navigáciu. `keepInView` drží bublinu vnútri aj pri posune mapy. */
-        autoPanPaddingTopLeft={[24, POPUP_PAD_TOP]}
-        autoPanPaddingBottomRight={[24, POPUP_PAD_BOTTOM]}
+        autoPan={!centerPopup}
+        autoPanPaddingTopLeft={[24, popupPad?.[0] ?? POPUP_PAD_TOP]}
+        autoPanPaddingBottomRight={[24, popupPad?.[1] ?? POPUP_PAD_BOTTOM]}
         keepInView
       >
         <div className="mn-bubble">
@@ -327,7 +362,7 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
             {n.isStale && <span className="mn-bubble-stale">{t('pack.mapNotes.unconfirmed')}</span>}
           </div>
 
-          {!!n.body && <p className="mn-bubble-body">{n.body}</p>}
+          {!!n.body && <p className="mn-bubble-body">{bodyWithLinks(n.body)}</p>}
 
           {/* Dátum svieti vždy — Matej 2026-08-20: „poznámka neumiera svieti tam dátum". */}
           {!dataset && (
@@ -529,7 +564,8 @@ ${CIRCLE_MARK_CSS}
 .mn-bubble-kind{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;}
 .mn-bubble-tag{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkWarm};border:1px solid ${T.border};border-radius:999px;padding:4px 8px;}
 .mn-bubble-stale{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkWarm};}
-.mn-bubble-body{margin:0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.inkStrong};white-space:pre-wrap;word-break:break-word;}
+.mn-bubble-body{margin:0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.inkStrong};white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;}
+.mn-bubble-link{color:${T.inkStrong};text-decoration:underline;}
 
 /* ── AUTOR: FOTKA + MENO ───────────────────────────────────────────────────
    align-items:center, nie baseline — s fotkou v riadku by baseline zarovnal

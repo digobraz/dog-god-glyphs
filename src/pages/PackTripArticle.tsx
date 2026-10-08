@@ -1938,7 +1938,7 @@ export default function PackTripArticle() {
               {/* ⚠️ `notesForTripMap`, nie holé `mapNotes.notes` — pravidlo „výlet má jedno
                   parkovisko" platí aj na značky, inak by nad zoznamom s jedným 🅿️ stáli
                   na štarte dve na sebe. */}
-              <MapNotesLayer notes={notesForTripMap(mapNotes.notes, trail)} locale={dateLocale} />
+              <MapNotesLayer notes={notesForTripMap(mapNotes.notes, trail)} locale={dateLocale} popupPad={[16, 16]} centerPopup />
               {/* Rozpracovaný zápis. Patrí DOVNÚTRA MapContainer (na rozdiel od panela) —
                   viď hlavičku AddMapNote.tsx. */}
               {noteDraft && (
