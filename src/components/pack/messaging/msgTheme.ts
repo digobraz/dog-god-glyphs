@@ -80,7 +80,7 @@ export const MSG_SKIN_CSS = `
 /* ── ŠAT: SVETLÝ (východiskový) ─────────────────────────────────────────── */
 .msg-skin{
   --msg-page:${PAPER_BG};
-  --msg-wall:url('/images/bg-light.webp');
+  --msg-wall:var(--bg-light);
   --msg-veil:radial-gradient(ellipse at 52% 58%, rgba(223,196,144,0.62) 0%, rgba(238,221,186,0.34) 52%, rgba(255,252,244,0.10) 100%),
              linear-gradient(135deg, rgba(250,243,225,0.35) 0%, rgba(244,231,199,0.40) 50%, rgba(236,218,175,0.45) 100%);
   --msg-bar:${T.panelGrad};

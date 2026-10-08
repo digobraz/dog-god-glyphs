@@ -625,7 +625,7 @@ export const PAPER_PAGE_CSS = `
    odtieň nedal stlmiť bez toho, aby zbledli aj glyfy.
    position:fixed (nie absolute): pri scrollovaní článku má tapeta stáť, inak pláva s obsahom. */
 .pk-paper::before{content:'';position:fixed;top:0;left:0;width:100vw;height:100lvh;
-  background-image:url('/images/bg-light.webp');background-size:cover;background-position:center;
+  background-image:var(--bg-light);background-size:cover;background-position:center;
   background-repeat:no-repeat;filter:blur(4px);pointer-events:none;}
 /* Multiply-ová logika bledej vinjety z WALL: v strede sýty papyrus, na okrajoch takmer
    čistý — aby sa okraje strácali do SVETLA, nie do tmy. Na tmavom webe to robila čierna

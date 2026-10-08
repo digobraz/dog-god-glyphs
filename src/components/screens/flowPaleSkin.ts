@@ -98,7 +98,7 @@ const SPEAK = { sub: 14 } as const;
 
 /** Spodná vrstva steny — kresba glyfov. */
 export const FLOW_WALL_IMAGE = `
-  background-image: url('/images/bg-light.webp');
+  background-image: var(--bg-light);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

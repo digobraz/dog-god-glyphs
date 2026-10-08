@@ -24,6 +24,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Bledá tapeta (papyrus s glyfmi) — 8. 10. 2026, rýchlosť. Na mobile stačí 640 px
+   (53 kB namiesto 111 kB): leží pod blur(4px) a závojom, rozdiel oko nevidí. Používa sa
+   cez var(--bg-light) v packTheme.ts, flowPaleSkin.ts a msgTheme.ts — nový povrch s tapetou
+   berie tú istú premennú, nie priamu cestu k súboru. Hranica 720 px = breakpoint /pack. */
+:root { --bg-light: url('/images/bg-light.webp'); }
+@media (max-width: 720px) { :root { --bg-light: url('/images/bg-light-640.webp'); } }
+
 @layer base {
   html {
     scroll-behavior: smooth;

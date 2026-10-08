@@ -10,8 +10,13 @@
  * záznamy prehliadača spätne (`buffered`). Eventy čakajú vo fronte analytics.ts, kým sa
  * PostHog nezapne. Cesta ide cez `maskPath`-like orez: len prvé dva segmenty, nech
  * sa do analytiky nedostane token ani meno psa.
+ *
+ * 🔴 LCP 5–40 ms nie je chyba merania: je to `nav: 'back-forward-cache'` — návrat tlačidlom
+ * Späť, stránka sa obnoví z pamäte a web-vitals ju rátajú ako novú návštevu (overené
+ * v PostHogu 8. 10. 2026, všetky hodnoty pod 50 ms mali tento `nav`). Pri vyhodnotení
+ * ber `nav = 'navigate'`, bfcache ukazuj zvlášť.
  */
-import { track } from './analytics';
+import { trackVital } from './analytics';
 
 export function startRum(prerendered: boolean) {
   import('web-vitals/attribution').then(({ onLCP, onFCP, onCLS, onINP, onTTFB }) => {
@@ -19,7 +24,7 @@ export function startRum(prerendered: boolean) {
     const conn = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection?.effectiveType;
     const send = (m: { name: string; value: number; rating: string; navigationType: string; attribution?: unknown }) => {
       const a = m.attribution as Record<string, unknown> | undefined;
-      track('web_vital', {
+      trackVital({
         metric: m.name,
         // CLS je bez jednotky, ostatné v ms.
         value: m.name === 'CLS' ? Math.round(m.value * 1000) / 1000 : Math.round(m.value),

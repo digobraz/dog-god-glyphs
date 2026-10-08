@@ -44,6 +44,7 @@ export const initAnalytics = (scrub: (ev: any) => any) => {
     });
     posthog = ph;
     queue.splice(0).forEach((fn) => { try { fn(ph); } catch { /* ignore */ } });
+    vitals.splice(0).forEach(({ props, timestamp }) => { try { ph.capture('web_vital', props, { timestamp }); } catch { /* ignore */ } });
   }).catch(() => { queue.length = 0; });
 };
 
@@ -52,6 +53,39 @@ export const initAnalytics = (scrub: (ev: any) => any) => {
 // pod súhlasom — bridge len dodá eventy, gating rieši GTM. dataLayer vždy existuje (index.html).
 const toDataLayer = (event: string, props?: Record<string, unknown>) => {
   try { (window as any).dataLayer?.push({ event, ...props }); } catch { /* ignore */ }
+};
+
+// MERANIE RÝCHLOSTI (lib/rum.ts) — 8. 10. 2026. LCP, CLS aj INP hlási prehliadač až keď
+// človek stránku OPÚŠŤA (skryje kartu, zatvorí ju). Bežný `track` ich v tej chvíli len
+// zaradí: PostHog posiela v dávkach á pár sekúnd a pred `initAnalytics` (load + ~2,5 s)
+// ešte vôbec nežije. Prvé dni RUM to bolo vidieť — na `/` 25× FCP, ale len 7× LCP.
+// Preto: PostHog beží ⇒ hneď a cez sendBeacon; nebeží a stránka sa skrýva ⇒ vlastný
+// beacon na ten istý endpoint (formát ako posthog-js: data=base64 JSON).
+const vitals: Array<{ props: Record<string, unknown>; timestamp: Date }> = [];
+let vitalId = '';
+const beaconVitals = () => {
+  if (posthog || !vitals.length || !POSTHOG_KEY || !navigator.sendBeacon) return;
+  vitalId ||= 'rum-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  const batch = vitals.splice(0).map(({ props, timestamp }) => ({
+    event: 'web_vital',
+    timestamp: timestamp.toISOString(),
+    properties: { ...props, token: POSTHOG_KEY, distinct_id: vitalId, $process_person_profile: false, $lib: 'rum-beacon' },
+  }));
+  try {
+    const json = JSON.stringify(batch);
+    const b64 = btoa(encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16))));
+    navigator.sendBeacon(`${POSTHOG_HOST}/e/?compression=base64`, new Blob(['data=' + encodeURIComponent(b64)], { type: 'application/x-www-form-urlencoded' }));
+  } catch { /* meranie nesmie zhodiť stránku */ }
+};
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') beaconVitals(); });
+  window.addEventListener('pagehide', beaconVitals);
+}
+export const trackVital = (props: Record<string, unknown>) => {
+  const p = { lang: currentLang, ...props }; const timestamp = new Date();
+  if (posthog) { try { posthog.capture('web_vital', p, { timestamp, send_instantly: true, transport: 'sendBeacon' }); } catch { /* ignore */ } return; }
+  if (POSTHOG_KEY && vitals.length < MAX_QUEUE) vitals.push({ props: p, timestamp });
+  if (document.visibilityState === 'hidden') beaconVitals();
 };
 
 export const track = (event: string, props?: Record<string, unknown>) => {

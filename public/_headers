@@ -7,9 +7,16 @@
 # direktíva, aby sa nezlomili skripty/štýly/connect appky. Over v `vystupy/dashboard`:
 # žiadny `<iframe src="…dogypt.com…">` tam dogypt.com naživo nevkladá (iframe-y tam majú
 # vlastné dashboard/embeds nástroje, nie hlavnú appku) — `self` teda nič legitímne nezabije.
+#
+# Plná CSP beží od 8. 10. 2026 LEN V REŽIME HLÁSENIA (Report-Only) — nič neblokuje, iba
+# posiela porušenia do PostHogu (event `$csp_violation`, endpoint /report/ s lomítkom NA
+# KONCI). Zoznam domén je z grepu kódu; čo appka ťahá za behu (GTM → pixely, PostHog
+# assety, mapy), doplnia práve tie hlásenia. Ostrú `Content-Security-Policy` z nej sprav,
+# až keď bude týždeň ticho. 'unsafe-inline' v script-src drží opona v index.html.
 /*
   X-Frame-Options: SAMEORIGIN
   Content-Security-Policy: frame-ancestors 'self'
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.posthog.com https://*.google-analytics.com https://connect.facebook.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://res.cloudinary.com https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://api.cloudinary.com https://res.cloudinary.com https://api.mapy.com https://*.mapy.com https://tiles.openfreemap.org https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://cloudflareinsights.com; frame-src https://www.youtube-nocookie.com https://www.youtube.com https://www.googletagmanager.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; report-uri https://eu.i.posthog.com/report/?token=phc_uz2yLbgP6oxs5CapQsj4jyLwDegrbjB5ueAcTvLc4coM&v=1
 
 # Hashované assety (názov nesie hash obsahu) — dlhá cache, 6. 10. 2026 (audit /onepage 🟠6).
 # index.html a ostatné súbory mimo /assets/ ostávajú bez dlhej cache.
