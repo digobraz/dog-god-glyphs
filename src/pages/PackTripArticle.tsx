@@ -1836,7 +1836,7 @@ export default function PackTripArticle() {
         <div ref={reviewsRef}>
         <TripComments
           tripId={trail.id}
-          tripName={trail.name}
+          tripName={tripName(trail, lang)}
           walked={walkedIds.has(trail.id)}
           onMarkWalked={() => setWalkedIds((prev) => (prev.has(trail.id) ? prev : new Set(prev).add(trail.id)))}
           onRequestWalk={() => setWalkedPopupOpen(true)}
@@ -1925,7 +1925,7 @@ export default function PackTripArticle() {
                 icon={tripPillIcon({
                   km: trail.km,
                   diff: trail.diff,
-                  label: trail.name,
+                  label: tripName(trail, lang),
                   water: isWaterTrail(trail),
                   hasRoute: hasRouteMetrics(trail),
                 })}
@@ -2125,7 +2125,7 @@ export default function PackTripArticle() {
       {/* ── ÚPRAVA VÝLETU (len autor) ── */}
       {unwalkOpen && (
         <UnwalkConfirm
-          name={trail.name}
+          name={tripName(trail, lang)}
           points={walkPointsFor(trail)}
           km={trail.km}
           onConfirm={() => { if (walkedIds.has(trail.id)) toggleWalked(trail.id); }}
@@ -2145,7 +2145,7 @@ export default function PackTripArticle() {
       {/* ── KOMUNITNÉ modaly (rovnaké ako PackMap) ── */}
       {walkedPopupOpen && (
         <WalkedPopup
-          trailName={trail.name}
+          trailName={tripName(trail, lang)}
           initial={votes[trail.id] ? { rating: votes[trail.id].rating, difficulty: votes[trail.id].difficulty, crowd: votes[trail.id].crowd, comment: votes[trail.id].comment, when: votes[trail.id].when, hazards: votes[trail.id].hazards } : null}
           onSubmit={submitWalked}
           onClose={closeWalkedPopup}
@@ -2195,7 +2195,7 @@ export default function PackTripArticle() {
           /* Odkaz z článku sa pripína k TOMUTO výletu — na rozdiel od celkovej mapy,
              kde sa najbližší výlet len odhaduje geometriou. */
           pinnedSlug={trail.id}
-          pinnedName={trail.name}
+          pinnedName={tripName(trail, lang)}
           onSubmit={async (n) => { await mapNotes.add(n); setNoteDraft(null); }}
           onCancel={() => setNoteDraft(null)}
         />
