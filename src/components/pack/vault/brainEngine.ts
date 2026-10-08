@@ -601,13 +601,17 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     if (!z) return;
     const on = z.nb.find((q) => q.role === 'o') ?? null;
     if (!on || on === CURO || down) return;
+    /* 🔄 Matej 8. 10. (2. kolo): „pri scrolovaní sa vždy zoomne… ak dám zoom out, vždy sa to
+       snapne". Mierku nastaví záber LEN RAZ (pri načítaní); pri zmene okruhu kamera iba
+       PRESUNIE stred a priblíženie ostáva také, aké si človek nechal. */
+    const prvy = !CURO;
     CURO = on;
-    fitCircle(on);
+    fitCircle(on, !prvy);
   }
   /* OKRUH CELÝ V ZÁBERE (Matej 8. 10.: „priblíži sa tak, aby bol ten okruh celý viditeľný
      aj všetky jeho bublinky… pri zmene okruhu sa zas centruje"). Mierka = rovnica nad
      obálkou okruhu a jeho zŕn proti voľnej ploche medzi pásmi, nie pevné číslo. */
-  function fitCircle(on: Node) {
+  function fitCircle(on: Node, keepZoom = false) {
     const pts = [on, ...on.nb.filter((q) => q.role === 'z')];
     let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
     pts.forEach((p) => { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y); });
@@ -615,9 +619,9 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     /* rezerva na meno okruhu a dýchanie zŕn: 60 px vodorovne, 40 zvislo */
     const aw = Math.max(80, W - 2 * 60), ah = Math.max(80, H - ins.top - ins.bottom - 2 * 40);
     const k = Math.max(0.35, Math.min(4.5, Math.min(aw / Math.max(20, x1 - x0), ah / Math.max(20, y1 - y0))));
-    vt.k = k;
+    if (!keepZoom) vt.k = k;
     vt.x = -(x0 + x1) / 2;
-    vt.y = -(y0 + y1) / 2 + (ins.top - ins.bottom) / 2 / k;
+    vt.y = -(y0 + y1) / 2 + (ins.top - ins.bottom) / 2 / vt.k;
   }
   const onMove = (e: PointerEvent) => {
     if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
