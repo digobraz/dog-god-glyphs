@@ -52,7 +52,6 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FlagCircle } from '@/components/pack/FlagCircle';
 import { PackCalendar } from '@/components/pack/calendar/PackCalendar';
 import { DiaryEntry } from '@/components/pack/diary/DiaryEntry';
-import { DiaryList } from '@/components/pack/diary/DiaryList';
 import ainubisBadge from '@/assets/ainubis-badge.webp';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK } from '@/components/pack/navGoldSkin';
@@ -63,9 +62,7 @@ import { storedSpecials } from '@/components/pack/natureQuiz';
 import { readLatestForDogs, onDogEventsChange, hasValue, type LatestValue } from '@/lib/dogEvents';
 import { dogLifeLine } from '@/lib/dogAge';
 import { countryISO2 } from '@/lib/countryGeo';
-import { supabase } from '@/integrations/supabase/client';
-import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
-import { getAccessibleDogIds } from '@/lib/dogRights';
+import { loadPackDogs } from '@/lib/packDogsList';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
 import { RightGate } from '@/components/pack/RightGate';
@@ -525,9 +522,6 @@ export default function PackDogs() {
   // človek práve díva). Držať si ho musí STRÁNKA, nie dlaždica ani kalendár — dve
   // inštancie toho istého formulára = dva rôzne rozpísané texty.
   const [diary, setDiary] = useState<{ day?: string; mode: 'write' | 'photo' } | null>(null);
-  // ČITATEĽ denníka — dlaždica DENNÍK otvára zoznam zápisov, formulár sa otvára NAD ním
-  // (8. 10. 2026: testerka nevedela nájsť svoj zápis, dlaždica vedela len písať).
-  const [diaryList, setDiaryList] = useState(false);
   const [latest, setLatest] = useState<Latest>({});
   // Kým progres nie je načítaný, kvízový blok sa NEVYKRESLÍ ani v jednom stave —
   // inak by majiteľovi s hotovým kvízom najprv bliklo veľké hero a až potom by
@@ -537,27 +531,11 @@ export default function PackDogs() {
   // Vlastný dotaz namiesto `usePackIdentity().dogs` — ten vracia len id/meno/foto,
   // a hub potrebuje aj poradové číslo, krajinu (vlajka), heroglyf a dátum narodenia
   // zo `selections` (pilulka „dni"; `birth_year` je len ROK, na dni nestačí).
+  // Dotaz žije v `lib/packDogsList.ts` — ten istý číta KRONIKA (8. 10. 2026).
   useEffect(() => {
     let alive = true;
-    (async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      const uid = auth?.user?.id;
-      // Bez session: v deve s `VITE_PACK_NOAUTH=1` mock svorka (inak by tu aj pri
-      // zapnutom NOAUTH stál prázdny stav — `getUser()` cez ten flag nejde),
-      // v produkcii prázdne pole.
-      if (!uid) { if (alive) setDogs(DEV_NOAUTH ? (DEV_MOCK_DOGS as HubDog[]) : []); return; }
-      // B3c: zoznam ide z práv (`my_dog_rights()`), nie z vlastníctva. Majiteľovi
-      // vráti tú istú množinu; pri `null` (RPC zlyhala) ostáva dnešný filter.
-      const accessIds = await getAccessibleDogIds();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let dogsQuery = (supabase as any)
-        .from('dogs')
-        .select('id, dog_name, cloudinary_main_url, heroglyph_png_url, pack_number, country, life_status, death_date, birth_year, selections, created_at, breed')
-        .eq('payment_status', 'paid');
-      dogsQuery = accessIds ? dogsQuery.in('id', accessIds) : dogsQuery.eq('user_id', uid);
-      const { data } = await dogsQuery.order('created_at', { ascending: true });
-      if (alive) setDogs((data as unknown as HubDog[]) ?? []);
-    })();
+    loadPackDogs<HubDog>('id, dog_name, cloudinary_main_url, heroglyph_png_url, pack_number, country, life_status, death_date, birth_year, selections, created_at, breed')
+      .then((rows) => { if (alive) setDogs(rows); });
     return () => { alive = false; };
   }, []);
 
@@ -664,31 +642,8 @@ export default function PackDogs() {
           ))}
         </div>
 
-        {/* GALÉRIA + DENNÍK — TLMENÝ riadok mimo mriežky polí pasu.
-            Nie sú to polia pasu a nemajú progres, ktorý sa dá „dokončiť" —
-            béžová pilulka im klamala stav (Matej 6.8.). Ten zámer platí ďalej,
-            len sa od 8. 9. nesie TLMENÍM, nie čiernou. Rozdiel voči poliam pasu
-            drží úroveň v matrici — `PACK_BOX.row` (plochá výplň, slabý rám)
-            proti `PACK_BOX.subblock` (gradient, plný zlatý rám) dlaždíc vyššie.
-            ⚠️ Čierna je vyhradená pre `subblockDark` a siaha sa po nej za VÝZNAM
-            (jediný prípad: ZÁVET na DOG ID), nie za „ešte to nejde". */}
-        {/* 🟢 DENNÍK OŽIL 21. 9. 2026 (KROK 5) — má pisateľa (`components/pack/diary/`),
-            takže mu odchádza štítok SOON a stáva sa z neho vchod.
-            ⚠️ GALÉRIA OSTÁVA SOON A JE TO ROZHODNUTIE, nie zabudnutie: fotka je
-            PRÍLOHA zápisu do denníka, nie priečinok (§4 zadania). Dlaždica menom
-            GALÉRIA, za ktorou by bol zápis do denníka, by zopakovala presne tú lož,
-            ktorú appka už raz má — `DogGallery.tsx` sa volá galéria a je to accordion
-            psej karty. Galéria sa otvorí, keď bude čo listovať. */}
-        <div className="hub-media" style={{ marginTop: PACK_SPACE.md }}>
-          {QUIZ_SECTIONS.filter((s) => s.kind === 'gallery' || s.kind === 'journal').map((s) => (
-            <MediaTile
-              key={s.key}
-              section={s}
-              tx={tx}
-              onOpen={s.kind === 'journal' ? () => setDiaryList(true) : undefined}
-            />
-          ))}
-        </div>
+        {/* GALÉRIA + DENNÍK odišli 8. 10. 2026 z karty DOG ID do bloku KRONIKA pod ňou
+            (Matej nad nákresom `plany/nakres-dogs-konsolidacia-2026-10-08.html`). */}
 
         {/* KVÍZ (hero) — VŽDY, nezmizne po absolvovaní.
             Do 21. 8. sa po dokončení scvrkol na úzky riadok POD šiestimi dlaždicami
@@ -704,6 +659,11 @@ export default function PackDogs() {
           </div>
         )}
       </section>
+
+      {/* ── KRONIKA — JEDEN RIADOK VÝZVY (Matej 8. 10. 2026: „v bloku je zbytočne veľa
+           info… len výzva k príbehu… na jeden riadok, ikonka a CTA, čo otvorí dashboard").
+           Zápisy, filtre psov a fotky žijú na `/pack/dogs/chronicle`, nie tu. */}
+      <ChronicleTeaser tx={tx} />
 
       {/* ── 5 · AINUBIS — VÝSTUP, nie vstup ────────────────────────────────── */}
       <div style={{ marginTop: PACK_SPACE.md }}>
@@ -728,14 +688,6 @@ export default function PackDogs() {
           akcia nikdy neodnesie človeka preč z miesta, kde je.
           Prekreslenie po zápise nesie `onDogEventsChange` (hub aj kalendár ho počúvajú),
           preto tu `onSaved` nič neprepočítava — signál pošle sám pisateľ. */}
-      {diaryList && (
-        <DiaryList
-          dogs={dogs.map((d) => ({ id: d.id, name: d.dog_name ?? '—' }))}
-          onWrite={() => setDiary({ mode: 'write' })}
-          onClose={() => setDiaryList(false)}
-          tx={tx}
-        />
-      )}
       {diary && (
         <DiaryEntry
           dogs={dogs.map((d) => ({ id: d.id, name: d.dog_name ?? '—' }))}
@@ -1473,55 +1425,41 @@ function ActionTile({
   );
 }
 
-// ── 4 · galéria / denník — tmavá dlaždica, bez progresu ──────────────────────
-// Nemajú vlastný flow (hromadný vstup s tagovaním psov). Dlaždica sa zobrazuje,
-// ale nikam nevedie — inak by z mapy funkcií zmizli a nikto by si nevšimol, že chýbajú.
-// ⚠️ Tmavá vetva ZANIKLA 12. 9. 2026. Dlaždica stála na podklade STRÁNKY, ktorý sa
-// prepína, takže mala dva šaty; odkedy sedí vnútri papyrusovej karty DOG ID, je pod ňou
-// papyrus v OBOCH polohách prepínača a tmavý variant by na piesku kreslil bledý text
-// na bledom. Rozhoduje podklad pod prvkom, nie poloha prepínača (CLAUDE.md 11. 9.).
-/** GALÉRIA a DENNÍK. `onOpen` = dlaždica má vchod, teda je to TLAČIDLO a štítok SOON
- *  jej odchádza. Bez `onOpen` ostáva čo bola: oznam, že to raz bude.
- *  ⚠️ Štítok a klikateľnosť sú JEDNO rozhodnutie. Klikateľná dlaždica so SOON hovorí
- *     dve veci naraz a človek uverí tej horšej. */
-function MediaTile({ section, tx, onOpen }: { section: QuizSection; tx: Tx; onOpen?: () => void }) {
-  const Tag = onOpen ? 'button' : 'div';
+// ── KRONIKA — jeden riadok výzvy (8. 10. 2026) ───────────────────────────────
+// Nahradila dlaždice GALÉRIA + DENNÍK v karte DOG ID. Matej: *„len výzva k príbehu —
+// niečo v zmysle ulož si vaše spomienky, čo ste dnes zažili… výzva na jeden riadok,
+// ikonka a CTA, čo otvorí dashboard"*. Žiadne náhľady zápisov — tie sú na obrazovke
+// kroniky; blok na `/dogs` má len pozvať.
+// Emoji je to isté, aké mal denník (`QUIZ_SECTIONS` journal) — nová značka nevzniká.
+const JOURNAL_EMOJI = QUIZ_SECTIONS.find((s) => s.kind === 'journal')?.emoji ?? '';
+function ChronicleTeaser({ tx }: { tx: Tx }) {
   return (
-    <Tag
+    <section
       className="flex items-center gap-3"
-      {...(onOpen ? { type: 'button' as const, onClick: onOpen } : {})}
-      style={{
-        ...PACK_BOX.row,
-        padding: PACK_SPACE.lg,
-        ...(onOpen ? { textAlign: 'left' as const, cursor: 'pointer', width: '100%' } : {}),
-      }}
+      style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.md, padding: PACK_SPACE.lg }}
     >
-      <div style={{ fontSize: 24, lineHeight: 1, flex: '0 0 auto' }}>{section.emoji}</div>
-      <div style={{ minWidth: 0 }}>
-        <h4
-          style={{
-            fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.14em',
-            textTransform: 'uppercase', color: T.inkStrong, margin: '0 0 4px',
-          }}
-        >
-          {tx(section.i18n, section.labelEN)}
+      <div style={{ fontSize: PACK_TEXT.h1, lineHeight: 1, flex: '0 0 auto' }} aria-hidden>{JOURNAL_EMOJI}</div>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <h4 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: PACK_TEXT.label, letterSpacing: '0.14em',
+          textTransform: 'uppercase', color: T.inkStrong, margin: `0 0 ${PACK_SPACE.xs}px` }}>
+          {tx('pack.chronicle.title', 'Chronicle')}
         </h4>
         <p style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.label, color: T.inkWarm, margin: 0, lineHeight: 1.45 }}>
-          {tx(section.subI18n, section.subEN)}
+          {tx('pack.chronicle.prompt', 'What did you two live through today? Keep it.')}
         </p>
-        <span
-          style={{
-            display: 'inline-block', marginTop: PACK_SPACE.sm, fontFamily: FONT_UI, fontSize: PACK_TEXT.micro,
-            letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: PACK_R.pill, padding: '4px 8px',
-            background: onOpen ? LAPIS.fill : 'rgba(201,154,63,0.10)',
-            border: `1px solid ${onOpen ? LAPIS.edge : T.border}`,
-            color: onOpen ? PICK_INK.lapis : T.inkWarm,
-          }}
-        >
-          {onOpen ? tx('pack.hub.open', 'Open') : tx('pack.hub.soon', 'Soon')}
-        </span>
       </div>
-    </Tag>
+      <Link
+        to="/pack/dogs/chronicle"
+        style={{
+          flex: '0 0 auto', borderRadius: PACK_R.field, padding: `${PACK_SPACE.sm}px ${PACK_SPACE.md}px`,
+          fontFamily: FONT_TITLE, fontSize: PACK_TEXT.label, fontWeight: 700, letterSpacing: '0.14em',
+          textTransform: 'uppercase', whiteSpace: 'nowrap', textDecoration: 'none',
+          background: LAPIS.grad, border: `1px solid ${GOLD_BTN.edge}`, color: LAPIS.ink, boxShadow: LAPIS_BTN_SHADOW,
+        }}
+      >
+        {tx('pack.hub.open', 'Open')}
+      </Link>
+    </section>
   );
 }
 

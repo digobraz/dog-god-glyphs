@@ -174,6 +174,7 @@ const PackDogs = lazyPack(() => import("./pages/PackDogs.tsx"));
 const PackBuddy = lazyPack(() => import("./pages/PackBuddy.tsx")); // SNIFFER (interne BUDDY) — `/pack/sniffer`, krok 3 (zadanie-assnif §10)
 const PackAinubis = lazyPack(() => import("./pages/PackAinubis.tsx")); // kostra AINUBISA — `/pack/ainubis` (rozhodnutia 4A+5A, 21. 9. 2026)
 const PackDogQuiz = lazyPack(() => import("./pages/PackDogQuiz.tsx")); // fullscreen kvíz (zadanie-mypack-petpas-2026-08-06 §6)
+const PackChronicle = lazyPack(() => import("./pages/PackChronicle.tsx")); // KRONIKA = denník + galéria (8. 10. 2026)
 const PackNatureQuiz = lazyPack(() => import("./pages/PackNatureQuiz.tsx")); // osobnostný kvíz element+úloha (zadanie-osobnostny-kviz-2026-08-06)
 const Login = lazyPack(() => import("./pages/Login.tsx"));
 const Admin = lazyPack(() => import("./pages/Admin.tsx"));
@@ -562,6 +563,8 @@ const App = () => (
               {/* Kvíz = fullscreen route, nie modal (zadanie-mypack-petpas-2026-08-06 §6). `?dog=<id>`
                   predfiltruje na jedného psa (deep-link „✎" z karty psa), `?field=` skočí na krok.
                   Štyri segmenty → nekoliduje s `/pack/dogs/:id` vyššie. */}
+              {/* KRONIKA — kôš 2 (čítanie, lišta ostáva). Statický segment vyhráva nad `/pack/dogs/:id`. */}
+              <Route path="/pack/dogs/chronicle" element={DEV_FULL ? <PackChronicle /> : <Navigate to="/pack" replace />} />
               <Route path="/pack/dogs/quiz/:key" element={DEV_FULL ? <PackDogQuiz /> : <Navigate to="/pack" replace />} />
               {/* Osobnostný kvíz (element + úloha v svorke). Cesta je `/pack/nature` zámerne:
                   `/pack/dogs/quiz/nature` by zachytil `:key` vyššie a `/pack/dogs/nature` zjedol `:id`. */}
