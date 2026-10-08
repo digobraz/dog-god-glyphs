@@ -4180,7 +4180,7 @@ export const sk: Partial<Dict> = {
   'pack.ainubis.pos.circles': "Okruhy",
   'pack.ainubis.pos.more': "Ďalšie svety",
   'pack.ainubis.pos.fold': "{n} prečítaných · ukáž",
-  'pack.ainubis.listen': "Počúvaj za sebou",
+  'pack.ainubis.listen': "Počúvaj podcast",
   'pack.ainubis.tip.open': "Klikni a otvor",
   'pack.ainubis.soon': "čoskoro",
   'pack.ainubis.tip.home': "Späť na celý mozog",

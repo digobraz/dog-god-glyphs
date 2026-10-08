@@ -411,26 +411,25 @@ ${STAGE_CSS}
    Na akom svete a v akom okruhu človek je, kde v ňom stojí, a dvere späť k prečítaným
    a do zoznamu okruhov. Lepí sa na vrch zoznamu, karty pod ním odchádzajú — preto plný
    podklad. Farbu nesie svet (--ai-w), nie AINUBIS. */
-/* ⚠️ top = MÍNUS horné odsadenie zoznamu: sticky sa drží vnútri odsadenia scrollport-u,
-   pri top:0 nad pruhom ostal 16 px pás, cez ktorý presvitala odchádzajúca karta. */
-.akv-pos{position:sticky;top:-${PACK_SPACE.lg}px;z-index:4;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;
-  padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:${AINUBIS.bg};
-  border:1px solid ${AI_WORLD.edge};box-shadow:${AI_WORLD.float};}
-.akv-pos-l1{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;min-width:0;font-size:${PACK_TEXT.label}px;color:${AINUBIS.inkDim};}
-.akv-pos-ic{width:20px;height:20px;flex:0 0 auto;background:rgb(var(--ai-w,${AINUBIS.cyanRGB}));
+.akv-pos{position:relative;display:flex;align-items:center;gap:${PACK_SPACE.sm}px;min-width:0;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.xs}px ${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
+  background:${AINUBIS.surface};border:1px solid ${AI_WORLD.edge};box-shadow:${AI_WORLD.float};
+  font-size:${PACK_TEXT.label}px;color:${AINUBIS.inkDim};}
+.akv-pos-ic{width:16px;height:16px;flex:0 0 auto;background:rgb(var(--ai-w,${AINUBIS.cyanRGB}));
   -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;}
 .akv-pos-w{flex:0 0 auto;font-size:${PACK_TEXT.micro}px;font-weight:600;letter-spacing:${PACK_HEAD.section.letterSpacing};
   text-transform:uppercase;color:rgb(var(--ai-w,${AINUBIS.cyanRGB}));}
-.akv-pos-c{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${AINUBIS.ink};font-weight:500;}
-.akv-pos-n{margin-left:auto;flex:0 0 auto;font-weight:600;color:${AINUBIS.ink};}
-/* Progres = recept .pk-progress, jeden na okruh (šírka podľa počtu zvitkov) — vidno, v ktorom okruhu človek je. */
-.akv-pos-bar{display:flex;gap:2px;}
-.akv-pos-bar .pk-progress{height:4px;background:rgba(var(--ai-w,${AINUBIS.cyanRGB}),0.22);}
+.akv-pos-c{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${AINUBIS.ink};font-weight:500;}
+.akv-pos-n{flex:0 0 auto;font-weight:600;color:${AINUBIS.ink};}
+/* Progres = recept .pk-progress, jeden na okruh (šírka podľa počtu zvitkov), ležia na SPODNEJ
+   HRANE riadku — všetko v jednom riadku (Matej 8. 10.: „konsolidácia čo najužšie"). */
+.akv-pos-bar{position:absolute;left:${PACK_SPACE.lg}px;right:${PACK_SPACE.lg}px;bottom:${PACK_SPACE.xs}px;display:flex;gap:2px;pointer-events:none;}
+.akv-pos-bar .pk-progress{height:2px;background:rgba(var(--ai-w,${AINUBIS.cyanRGB}),0.22);}
 .akv-pos-bar .pk-progress.is-cur{background:rgba(var(--ai-w,${AINUBIS.cyanRGB}),0.40);}
 .akv-pos-bar .pk-progress__fill{background:rgb(var(--ai-w,${AINUBIS.cyanRGB}));}
-.akv-pos-acts{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
+.akv-pos-acts{flex:0 0 auto;display:flex;gap:${PACK_SPACE.xs}px;}
 .akv-pos-b{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;cursor:pointer;white-space:nowrap;
-  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${AINUBIS.edge};
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;border:1px solid ${AINUBIS.edge};
   background:transparent;color:${AINUBIS.inkDim};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;}
 .akv-pos-b:hover{border-color:${AINUBIS.edgeStrong};color:${AINUBIS.ink};}
 .akv-pos-b[aria-expanded="true"],.akv-pos-b[aria-pressed="true"]{color:rgb(var(--ai-w,${AINUBIS.cyanRGB}));
@@ -438,7 +437,7 @@ ${STAGE_CSS}
 .akv-pos-b .akv-chev{display:inline-flex;transform:rotate(-90deg);}
 .akv-pos-b .akv-up{display:inline-flex;transform:rotate(90deg);}
 .akv-pos-b i{width:12px;height:12px;background:currentColor;-webkit-mask:url(/icons/pack/play.svg) center/contain no-repeat;mask:url(/icons/pack/play.svg) center/contain no-repeat;}
-.akv-pos-dd{position:absolute;left:0;right:0;top:calc(100% + ${PACK_SPACE.xs}px);max-height:min(60vh,480px);overflow-y:auto;
+.akv-pos-dd{position:absolute;z-index:9;left:0;right:0;top:calc(100% + ${PACK_SPACE.xs}px);max-height:min(60vh,480px);overflow-y:auto;
   display:flex;flex-direction:column;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.tile}px;
   background:${AINUBIS.bg};border:1px solid ${AINUBIS.edgeStrong};box-shadow:${AINUBIS.panelShadow};}
 .akv-pos-dd button{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;width:100%;text-align:left;cursor:pointer;
@@ -470,8 +469,13 @@ ${STAGE_CSS}
 .akv-listen:hover{background:rgba(${AINUBIS.cyanRGB},0.16);}
 .akv-listen i{width:12px;height:12px;background:currentColor;-webkit-mask:url(/icons/pack/play.svg) center/contain no-repeat;mask:url(/icons/pack/play.svg) center/contain no-repeat;}
 .akv-listen em{font-style:normal;font-weight:400;opacity:0.75;}
-.akv-pos-listen{display:none;}
-@media (max-width:${PC_MIN - 1}px){ .akv-pos-listen{display:inline-flex;} }
+.akv-pos--t,.akv-listen--m{display:none;}
+@media (max-width:${PC_MIN - 1}px){
+  .akv-root[data-view="scroll"] .akv-pos--t{display:flex;}
+  /* Na 390 px by meno okruhu ostalo na „Odkiaľ…" — svet nesie ikonka a farba, meno sveta ustúpi. */
+  .akv-pos--t .akv-pos-w{display:none;}
+  .akv-listen--m{display:inline-flex;align-self:center;}
+}
 
 /* ── POHĽAD DOLE — pilulka nad lištou (lock §1.3.1, geometria .trp-mactions) ──
    ⚠️ Číslo je OPÍSANÉ z PackMap.tsx, lebo register spodného pásu (nástenka r-pas)
@@ -728,7 +732,6 @@ export default function PackAinubis() {
   /* POČÚVAJ ZA SEBOU — článok sa otvára s podcastom, ktorý hrá sám a po konci pustí ďalší. */
   const [queue, setQueue] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
-  const posRef = useRef<HTMLDivElement>(null);
   const [flash, setFlash] = useState<string | null>(null);
   /* Filter SVET: -1 = všetky. Roletka otvorená: kľúč alebo null. */
   const [wf, setWf] = useState(-1);
@@ -863,7 +866,8 @@ export default function PackAinubis() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, sizesKey]);
 
-  /* KTORÝ ZVITOK ČLOVEK PRÁVE ČÍTA — prvá karta, ktorej spodok je pod pruhom polohy.
+  /* KTORÝ ZVITOK ČLOVEK PRÁVE ČÍTA — karta, ktorá prechádza čiarou v TRETINE zoznamu.
+     (Pri čiare tesne pod vrchom sa za „práve čítanú" rátala karta, z ktorej trčal len spodok.)
      Rovnica nad rozmermi, nie IntersectionObserver: ten by pri rýchlom rolovaní hlásil
      viac kariet naraz a pruh by blikal. */
   useEffect(() => {
@@ -872,7 +876,7 @@ export default function PackAinubis() {
     let raf = 0;
     const measure = () => {
       raf = 0;
-      const top = el.getBoundingClientRect().top + (posRef.current?.offsetHeight ?? 0) + PACK_SPACE.xl;
+      const top = el.getBoundingClientRect().top + el.clientHeight * 0.33;
       const cards = el.querySelectorAll<HTMLElement>('[data-zid]');
       for (const c of cards) {
         if (c.getBoundingClientRect().bottom > top) { setCurId(c.dataset.zid || null); return; }
@@ -1033,8 +1037,7 @@ export default function PackAinubis() {
     const go = (tries: number) => {
       const el = listRef.current, card = el?.querySelector<HTMLElement>(`[data-zid="${id}"]`);
       if (!el || !card) { if (tries > 0) window.setTimeout(() => go(tries - 1), 60); return; }
-      const off = card.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop
-        - (posRef.current?.offsetHeight ?? 0) - PACK_SPACE.lg;
+      const off = card.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - PACK_SPACE.lg;
       el.scrollTo({ top: Math.max(0, off), behavior: 'smooth' });
     };
     requestAnimationFrame(() => go(10));
@@ -1051,18 +1054,31 @@ export default function PackAinubis() {
     const nx = feed.slice(i + 1).find((z) => !isRead(z) && Object.keys(z.pod || {}).length > 0);
     if (nx) openScroll(nx.id, 'pod'); else setQueue(false);
   };
+  /* Číslo = poradie podcastu, ktorý sa pustí, z celkového počtu (Matej 8. 10.: „Listen podcast XY/100"). */
+  const pods = feed.filter((z) => Object.keys(z.pod || {}).length > 0);
   const listenBtn = (cls: string) => listenQ.length > 0 && (
     <button type="button" className={cls} onClick={startListen}>
-      <i aria-hidden />{tx('pack.ainubis.listen', 'Listen in a row')} <em>· {listenQ.length}</em>
+      <i aria-hidden />{tx('pack.ainubis.listen', 'Listen to podcast')} <em>{pods.indexOf(listenQ[0]) + 1}/{pods.length}</em>
     </button>
   );
-  const posBar = curZ && (
-    <div className="akv-pos" ref={posRef} style={aiWorld(curZ.world)}>
-      <div className="akv-pos-l1">
-        <span className="akv-pos-ic" aria-hidden style={mask(VAULT_WORLDS[curW].ic)} />
-        <span className="akv-pos-w">{names[curW]}</span>
-        <span className="akv-pos-c">O{curZ.okruh} · {scrollCircle(curZ, lang)}</span>
-        <span className="akv-pos-n">{inWorld.indexOf(curZ) + 1} / {inWorld.length}</span>
+  const posBar = (cls: string) => curZ && (
+    <div className={`akv-pos ${cls}`} style={aiWorld(curZ.world)}>
+      <span className="akv-pos-ic" aria-hidden style={mask(VAULT_WORLDS[curW].ic)} />
+      <span className="akv-pos-w">{names[curW]}</span>
+      <span className="akv-pos-c" title={scrollCircle(curZ, lang)}>O{curZ.okruh} · {scrollCircle(curZ, lang)}</span>
+      <span className="akv-pos-n">{inWorld.indexOf(curZ) + 1}/{inWorld.length}</span>
+      <div className="akv-pos-acts">
+        {!filtering && startIdx > 0 && (
+          <button type="button" className="akv-pos-b" aria-pressed={showRead}
+            title={showRead ? tx('pack.ainubis.pos.hideRead', 'Hide read') : tx('pack.ainubis.pos.read', 'Read')}
+            onClick={() => (showRead ? setShowRead(false) : jumpTo(feedShown[0].id))}>
+            <span className="akv-up" aria-hidden><HandArrowLeft size={12} /></span>{startIdx}
+          </button>
+        )}
+        <button type="button" className="akv-pos-b" aria-haspopup="listbox" aria-expanded={posDd}
+          onClick={(e) => { e.stopPropagation(); setPosDd((v) => !v); }}>
+          {tx('pack.ainubis.pos.circles', 'Circles')}<span className="akv-chev" aria-hidden><HandArrowLeft size={12} /></span>
+        </button>
       </div>
       <div className="akv-pos-bar" aria-hidden>
         {circlesOf.map((list, i) => (
@@ -1070,20 +1086,6 @@ export default function PackAinubis() {
             <div className="pk-progress__fill" style={fillPct(list.length ? list.filter(isRead).length / list.length : 0)} />
           </div>
         ))}
-      </div>
-      <div className="akv-pos-acts">
-        {!filtering && startIdx > 0 && (
-          <button type="button" className="akv-pos-b" aria-pressed={showRead}
-            onClick={() => (showRead ? setShowRead(false) : jumpTo(feedShown[0].id))}>
-            <span className="akv-up" aria-hidden><HandArrowLeft size={12} /></span>
-            {showRead ? tx('pack.ainubis.pos.hideRead', 'Hide read') : `${tx('pack.ainubis.pos.read', 'Read')} (${startIdx})`}
-          </button>
-        )}
-        <button type="button" className="akv-pos-b" aria-haspopup="listbox" aria-expanded={posDd}
-          onClick={(e) => { e.stopPropagation(); setPosDd((v) => !v); }}>
-          {tx('pack.ainubis.pos.circles', 'Circles')}<span className="akv-chev" aria-hidden><HandArrowLeft size={12} /></span>
-        </button>
-        {listenBtn('akv-pos-b akv-pos-listen')}
       </div>
       {posDd && (
         <>
@@ -1229,18 +1231,13 @@ export default function PackAinubis() {
             {SCROLL_DEMO && listenBtn('akv-listen')}
           </div>
           {planes('akv-planes-l')}
+          {SCROLL_DEMO && posBar('akv-pos--l')}
         </header>
 
         <div className="akv-list" ref={listRef}>
         <div className="akv-col">
-          {SCROLL_DEMO && posBar}
+          {SCROLL_DEMO && listenBtn('akv-listen akv-listen--m')}
           {shown.length === 0 && feedShown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
-          {SCROLL_DEMO && hiddenN > 0 && curZ && (
-            <button type="button" className="akv-fold" style={aiWorld(curZ.world)} onClick={() => jumpTo(feedShown[0].id)}>
-              <span className="akv-chev" aria-hidden><HandArrowLeft size={12} /></span>
-              {tx('pack.ainubis.pos.fold', '{n} read · show').replace('{n}', String(hiddenN))}
-            </button>
-          )}
           {SCROLL_DEMO && visible.map(z => (
             <ScrollCard key={z.id} z={z} lang={lang} worldName={names[wIdx(z.world)]} onOpen={openScroll} onShare={shareScroll} />
           ))}
@@ -1312,6 +1309,7 @@ export default function PackAinubis() {
           </button>
         </div>
         <div className="akv-toprow">{planes('akv-planes-t')}</div>
+        {SCROLL_DEMO && posBar('akv-pos--t')}
       </div>
 
       {/* ŠUPLÍK FILTROV (mobil) — vzor .trp-msheet: všetky filtre na jednom mieste. */}

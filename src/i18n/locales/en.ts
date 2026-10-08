@@ -1951,7 +1951,7 @@ export const en = {
   'pack.ainubis.pos.circles': "Circles",
   'pack.ainubis.pos.more': "More worlds",
   'pack.ainubis.pos.fold': "{n} read · show",
-  'pack.ainubis.listen': "Listen in a row",
+  'pack.ainubis.listen': "Listen to podcast",
   'pack.ainubis.tip.open': "Click to open",
   'pack.ainubis.soon': "soon",
   'pack.ainubis.tip.home': "Back to the whole brain",

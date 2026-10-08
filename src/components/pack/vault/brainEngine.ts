@@ -601,17 +601,24 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     if (!z) return;
     const on = z.nb.find((q) => q.role === 'o') ?? null;
     if (!on || on === CURO || down) return;
-    /* PRVÉ hlásenie po načítaní kameru NEPOHNE — úvod ukazuje celý mozog (Matej 22. 9.);
-       kamera ide až pri prechode do ďalšieho okruhu. */
-    const prvy = !CURO;
     CURO = on;
-    if (prvy) return;
-    const ins = o.insets();
-    vt.k = Math.max(vt.k, homeK * 2.2);
-    vt.x = -(on.x + on.dx);
-    vt.y = -(on.y + on.dy) + (ins.top - ins.bottom) / 2 / vt.k;
+    fitCircle(on);
   }
-
+  /* OKRUH CELÝ V ZÁBERE (Matej 8. 10.: „priblíži sa tak, aby bol ten okruh celý viditeľný
+     aj všetky jeho bublinky… pri zmene okruhu sa zas centruje"). Mierka = rovnica nad
+     obálkou okruhu a jeho zŕn proti voľnej ploche medzi pásmi, nie pevné číslo. */
+  function fitCircle(on: Node) {
+    const pts = [on, ...on.nb.filter((q) => q.role === 'z')];
+    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    pts.forEach((p) => { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y); });
+    const ins = o.insets();
+    /* rezerva na meno okruhu a dýchanie zŕn: 60 px vodorovne, 40 zvislo */
+    const aw = Math.max(80, W - 2 * 60), ah = Math.max(80, H - ins.top - ins.bottom - 2 * 40);
+    const k = Math.max(0.35, Math.min(4.5, Math.min(aw / Math.max(20, x1 - x0), ah / Math.max(20, y1 - y0))));
+    vt.k = k;
+    vt.x = -(x0 + x1) / 2;
+    vt.y = -(y0 + y1) / 2 + (ins.top - ins.bottom) / 2 / k;
+  }
   const onMove = (e: PointerEvent) => {
     if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (touches.size === 2) {
