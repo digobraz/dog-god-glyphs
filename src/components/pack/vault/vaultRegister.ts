@@ -9,7 +9,7 @@
 /** Okruhy a zvitky na svet — spočítané z rozpadu, nie odhadnuté. */
 export const VAULT_COUNTS: Record<string, { circles: number; scrolls: number }> = {
   dogsPath: { circles: 8, scrolls: 108 },
-  understanding: { circles: 6, scrolls: 68 },
+  understanding: { circles: 6, scrolls: 69 },
   anatomy: { circles: 7, scrolls: 67 },
   nutrition: { circles: 7, scrolls: 101 },
   prevention: { circles: 5, scrolls: 47 },
