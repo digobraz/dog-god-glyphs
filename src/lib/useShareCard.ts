@@ -17,21 +17,23 @@ export type ShareCardResult = 'native' | 'download';
 export type ShareDogResult = 'native' | 'copied';
 export type ShareChannel = 'native' | 'facebook' | 'whatsapp' | 'copy' | 'download';
 
-function safeFileName(dogName: string): string {
+function safeFileName(dogName: string, ext = 'png'): string {
   const base = (dogName || 'dog')
     .toLowerCase()
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
-  return `dogypt-${base || 'dog'}.png`;
+  return `dogypt-${base || 'dog'}.${ext}`;
 }
 
 async function fetchAsFile(imageUrl: string, dogName: string): Promise<File> {
   const res = await fetch(imageUrl);
   if (!res.ok) throw new Error(`share card fetch failed: ${res.status}`);
   const blob = await res.blob();
-  return new File([blob], safeFileName(dogName), { type: blob.type || 'image/png' });
+  // Karta je od 8. 10. 2026 JPEG (generate-pdfs), staršie PNG — prípona podľa obsahu.
+  const ext = blob.type === 'image/jpeg' ? 'jpg' : 'png';
+  return new File([blob], safeFileName(dogName, ext), { type: blob.type || 'image/png' });
 }
 
 export async function downloadCard({ imageUrl, dogName }: { imageUrl: string; dogName: string }): Promise<void> {
