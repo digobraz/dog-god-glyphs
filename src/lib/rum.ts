@@ -30,6 +30,10 @@ export function startRum(prerendered: boolean) {
         value: m.name === 'CLS' ? Math.round(m.value * 1000) / 1000 : Math.round(m.value),
         rating: m.rating,
         path,
+        // `path` = kde návšteva ZAČALA. CLS/INP/LCP sa ale hlásia až pri odchode a v appke
+        // sa medzitým chodí po routách: 8. 10. tri „CLS 0,38 na /login" boli v skutočnosti
+        // skoky v /pack/dogs a /pack/ainubis po prihlásení. `at` = kde bol človek pri hlásení.
+        at: location.pathname.split('/').slice(0, 3).join('/') || '/',
         prerender: prerendered,
         nav: m.navigationType,
         conn,
