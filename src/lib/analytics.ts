@@ -63,8 +63,11 @@ const toDataLayer = (event: string, props?: Record<string, unknown>) => {
 // beacon na ten istý endpoint (formát ako posthog-js: data=base64 JSON).
 const vitals: Array<{ props: Record<string, unknown>; timestamp: Date }> = [];
 let vitalId = '';
+// 🔴 Roboty von: posthog-js ich odfiltruje sám (headless, Lighthouse), vlastný beacon nie —
+// bez tejto vetvy by RUM plnil Lighthouse, Googlebot a NÁŠ prerender pri každom builde.
+const isBot = () => navigator.webdriver || /bot|crawl|spider|headless|lighthouse|pagespeed|prerender|slurp|facebookexternalhit/i.test(navigator.userAgent);
 const beaconVitals = () => {
-  if (posthog || !vitals.length || !POSTHOG_KEY || !navigator.sendBeacon) return;
+  if (posthog || !vitals.length || !POSTHOG_KEY || !navigator.sendBeacon || isBot()) return;
   vitalId ||= 'rum-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
   const batch = vitals.splice(0).map(({ props, timestamp }) => ({
     event: 'web_vital',
