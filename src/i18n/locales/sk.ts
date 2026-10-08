@@ -206,6 +206,8 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.dogs.missing': 'Ešte mu niečo chýba',
   'heroglyph.flow.dogs.photoOf': 'Fotka psa',
   'heroglyph.flow.dogs.add': 'Pridať ďalšieho psa',
+  'heroglyph.flow.dogs.continueOne': 'Pokračovať s jedným psom',
+  'heroglyph.flow.dogs.laterNote': 'Ďalších psov pridáš kedykoľvek neskôr vo svorke.',
   'heroglyph.flow.dogs.unnamed': 'Ďalší pes',
   'heroglyph.flow.dogs.namePlaceholder': 'Meno psa',
   'heroglyph.flow.dogs.editAria': 'Stav a dátumy',

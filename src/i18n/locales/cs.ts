@@ -5340,6 +5340,8 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.dogs.missing': 'Ještě mu něco chybí',
   'heroglyph.flow.dogs.photoOf': 'Fotka psa',
   'heroglyph.flow.dogs.add': 'Přidat dalšího psa',
+  'heroglyph.flow.dogs.continueOne': 'Pokračovat s jedním psem',
+  'heroglyph.flow.dogs.laterNote': 'Další psy přidáš kdykoli později ve smečce.',
   'heroglyph.flow.dogs.unnamed': 'Další pes',
   'heroglyph.flow.dogs.namePlaceholder': 'Jméno psa',
   'heroglyph.flow.dogs.editAria': 'Stav a data',

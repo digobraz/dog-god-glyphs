@@ -265,6 +265,8 @@ export const en = {
   'heroglyph.flow.dogs.missing': 'Something is still missing',
   'heroglyph.flow.dogs.photoOf': 'Dog photo',
   'heroglyph.flow.dogs.add': 'Add another dog',
+  'heroglyph.flow.dogs.continueOne': 'Continue with one dog',
+  'heroglyph.flow.dogs.laterNote': 'You can add more dogs to your pack any time later.',
   'heroglyph.flow.dogs.unnamed': 'Another dog',
   'heroglyph.flow.dogs.namePlaceholder': "Dog's name",
   'heroglyph.flow.dogs.editAria': 'Status and dates',

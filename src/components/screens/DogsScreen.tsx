@@ -420,7 +420,9 @@ export function DogsScreen() {
                   presne túto triedu). */}
               <p className="hf-qlabel">
                 {t('heroglyph.flow.dogs.orderLabel')}
-                <span className="hint">{t('heroglyph.flow.dogs.orderHint')}</span>
+                {/* S jedným psom nie je čo ťahať — návod by tvrdil, že tu treba niečo robiť
+                    (8. 10. 2026: človek z IG tu 23 s nič nestlačil a odišiel). */}
+                {rows.length > 1 && <span className="hint">{t('heroglyph.flow.dogs.orderHint')}</span>}
               </p>
 
               {/* Plocha psov má STROP a scrolluje — bez neho šiesty pes odsunul
@@ -503,9 +505,15 @@ export function DogsScreen() {
 
               {/* Zámok vysvetľujú pilulky a farba riadkov vyššie — veta pod
                   tlačidlom by hovorila to isté tretíkrát. */}
+              {/* JEDEN PES = povedz nahlas, že to stačí (Matej 8. 10. 2026: *„stačilo by pri
+                  tom kroku dať že pridať psa neskôr"*). Otázka „máš aj ďalšieho psa?" bez
+                  zjavnej odpovede NIE zastavila jediného človeka, ktorý sem z IG došiel. */}
               <button type="button" className="hf-cta" onClick={handleContinue} disabled={!allDone}>
-                {t('heroglyph.flow.name.continue')}
+                {rows.length > 1 ? t('heroglyph.flow.name.continue') : t('heroglyph.flow.dogs.continueOne')}
               </button>
+              {rows.length === 1 && (
+                <p className="hf-ordnote" style={{ textAlign: 'center', flex: 'none' }}>{t('heroglyph.flow.dogs.laterNote')}</p>
+              )}
             </div>
           </motion.div>
 
