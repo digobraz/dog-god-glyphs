@@ -164,7 +164,7 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
   return createPortal((
     <div className="dia-bg" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{PF_FIELD_CSS}{PILL_CSS}{PHOTO_CSS}{DIARY_CSS}</style>
-      <div className="dia-pop" role="dialog" aria-modal="true" aria-label={tx('pack.diary.title', 'To the diary')}>
+      <div className="dia-pop dia-pop--write" role="dialog" aria-modal="true" aria-label={tx('pack.diary.title', 'To the diary')}>
         <h4>{tx('pack.diary.title', 'To the diary')}</h4>
 
         {/* KTORÉHO PSA. Jeden pes = žiadny výber; dva a viac = pilulky.
@@ -245,7 +245,7 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
             <textarea
               id="dia-text"
               className="pf-field dia-inp dia-area"
-              rows={3}
+              rows={8}
               placeholder={tx(chip.hintKey, chip.hintFallback)}
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -343,13 +343,20 @@ const pickStyle: CSSProperties = {
 /** Rozmery sú z matríc `PACK_R` / `PACK_SPACE` / `PACK_TEXT` — číslo mimo stupnice
  *  je bug, nie štýl, a zhodí `npm run check:pack`. */
 export const DIARY_CSS = `
-.dia-bg{position:fixed;inset:0;background:rgba(20,12,4,.55);display:flex;align-items:center;
-  justify-content:center;padding:${PACK_SPACE.lg}px;z-index:70;overflow-y:auto;
+.dia-bg{position:fixed;inset:0;background:rgba(20,12,4,.55);display:flex;
+  padding:${PACK_SPACE.lg}px;z-index:70;overflow-y:auto;
   padding-bottom:calc(${PACK_SPACE.lg}px + var(--consent-h, 0px))}
 .dia-pop{background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};
   border-radius:${PACK_BOX.panel.borderRadius}px;box-shadow:${PACK_BOX.panel.boxShadow};
-  padding:${PACK_SPACE.lg}px;max-width:420px;width:100%;max-height:calc(100vh - ${PACK_SPACE.xxl}px - var(--consent-h, 0px));
+  padding:${PACK_SPACE.lg}px;max-width:420px;width:100%;margin:auto;max-height:calc(100vh - ${PACK_SPACE.xxl}px - var(--consent-h, 0px));
   overflow-y:auto}
+/* 🔴 CENTRUJE margin:auto NA DIEŤATI, nie align-items:center na rodičovi s overflow-y:auto
+   (CLAUDE.md, PAGE_AIR): pretečenie by sa rozdelilo na obe strany a hornú časť by sa nedalo
+   odrolovať. Zmenené 8. 10. 2026 pri roztiahnutí okna písania.
+   ✍️ OKNO PÍSANIA = 640 px a vysoké pole (Matej 8. 10.: „popup na písanie centrovať a roztiahnuť,
+   nech je veľký priestor"). 640 je šírka FORMULÁRA PÍSANIA z locku stĺpca (pack-dizajn-system). */
+.dia-pop--write{max-width:640px}
+.dia-pop--write .dia-area{min-height:40vh}
 .dia-pop h4{font-family:${FONT_TITLE};font-size:${PACK_HEAD.card.fontSize}px;font-weight:700;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;
   margin:0 0 ${PACK_SPACE.md}px;color:${T.inkStrong}}

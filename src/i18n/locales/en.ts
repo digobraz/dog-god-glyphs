@@ -4746,7 +4746,6 @@ export const en = {
   'pack.chronicle.kindAll': "Everything",
   'pack.chronicle.kindPhoto': "Photos",
   'pack.chronicle.write': "Write",
-  'pack.chronicle.photo': "Photo",
   'pack.chronicle.noPhotos': "No photos yet. Add one to an entry and it will show up here.",
   'pack.cal.set.pre': "Before you",
   'pack.cal.set.preAll': "breeder, shelter, street",

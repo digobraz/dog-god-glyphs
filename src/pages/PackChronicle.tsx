@@ -11,6 +11,8 @@
 //    hore šípka späť. Písanie je formulár `DiaryEntry` NAD stránkou (prekryv), takže
 //    zápis človeka z kroniky neodnesie (§4.2).
 // ⚠️ ŽIADNE NOVÉ ÚLOŽISKO — `dog_events` cez `useDiaryRows`. Galéria = zápisy s fotkou.
+// ✍️ JEDINÉ CTA = NAPÍSAŤ (Matej 8. 10.: „bez CTA photo — iba write"). Fotka je príloha
+//    vo formulári zápisu. Formulár je široký 640 px (`.dia-pop--write`).
 // 🟡 HLASOVKA S PREPISOM je schválená, ale je to DRUHÝ krok (úložisko zvuku + prepis
 //    sa platí za minútu — cena sa Matejovi ukáže pred stavbou). Filter „Hlasovky"
 //    preto ešte nie je: filter bez jediného možného zápisu by klamal.
@@ -25,6 +27,7 @@ import {
 } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { DiaryEntry } from '@/components/pack/diary/DiaryEntry';
+import { ChronicleBook } from '@/components/pack/diary/ChronicleBook';
 import { DiaryItem, DIARY_LIST_CSS, useDiaryRows, type DiaryRow } from '@/components/pack/diary/DiaryList';
 import { loadPackDogs } from '@/lib/packDogsList';
 import { useT } from '@/i18n/LanguageContext';
@@ -42,7 +45,7 @@ export default function PackChronicle() {
   const [dogs, setDogs] = useState<ChronDog[] | null>(null);
   const [dogSel, setDogSel] = useState<string>('all');
   const [kind, setKind] = useState<Kind>('all');
-  const [write, setWrite] = useState<'write' | 'photo' | null>(null);
+  const [write, setWrite] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -70,7 +73,7 @@ export default function PackChronicle() {
   const back = () => { if (window.history.length > 1) navigate(-1); else navigate('/pack/dogs'); };
 
   const cta: CSSProperties = {
-    flex: 1, borderRadius: PACK_R.field, padding: `${PACK_SPACE.md}px ${PACK_SPACE.lg}px`, fontFamily: FONT_TITLE,
+    width: '100%', maxWidth: 320, borderRadius: PACK_R.field, padding: `${PACK_SPACE.md}px ${PACK_SPACE.lg}px`, fontFamily: FONT_TITLE,
     fontSize: PACK_TEXT.label, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase',
     cursor: 'pointer', whiteSpace: 'nowrap', background: LAPIS.grad, border: `1px solid ${GOLD_BTN.edge}`,
     color: LAPIS.ink, boxShadow: LAPIS_BTN_SHADOW,
@@ -83,6 +86,14 @@ export default function PackChronicle() {
         <div className="chr-head">
           <BackButton tone="pale" onClick={back} label={tx('pack.chronicle.back', 'Back')} />
           <h1 style={{ ...PACK_HEAD.card, color: PALE.deep, margin: 0 }}>{tx('pack.chronicle.title', 'Chronicle')}</h1>
+        </div>
+
+        {/* HERO — kniha s packou + jediné CTA NAPÍSAŤ (Matej 8. 10.: „bez CTA photo, iba write").
+            Fotka sa pridáva VO formulári zápisu, takže samostatné tlačidlo by bol druhý vchod
+            do toho istého okna. */}
+        <div className="chr-hero">
+          <ChronicleBook size={128} />
+          <button type="button" style={cta} onClick={() => setWrite(true)}>{tx('pack.chronicle.write', 'Write')}</button>
         </div>
 
         {many && (
@@ -105,12 +116,6 @@ export default function PackChronicle() {
           ))}
         </div>
 
-        {/* NOVÝ ZÁPIS — hore, nie na konci dlhého zoznamu: kronika, ktorá rastie, by ho odsunula. */}
-        <div className="chr-new">
-          <button type="button" style={cta} onClick={() => setWrite('write')}>{tx('pack.chronicle.write', 'Write')}</button>
-          <button type="button" style={cta} onClick={() => setWrite('photo')}>{tx('pack.chronicle.photo', 'Photo')}</button>
-        </div>
-
         {rows === null && <p className="chr-hint">{tx('pack.diary.loading', 'Loading…')}</p>}
         {rows !== null && months.length === 0 && (
           <p className="chr-hint">{kind === 'photo'
@@ -130,8 +135,8 @@ export default function PackChronicle() {
       {write && dogs && (
         <DiaryEntry
           dogs={dogs.map((d) => ({ id: d.id, name: d.dog_name ?? '—' }))}
-          mode={write}
-          onClose={() => setWrite(null)}
+          mode="write"
+          onClose={() => setWrite(false)}
           tx={tx}
         />
       )}
@@ -141,10 +146,10 @@ export default function PackChronicle() {
 
 const CSS = `
 .chr-head{display:flex;align-items:center;gap:${PACK_SPACE.md}px;margin-bottom:${PACK_SPACE.lg}px}
-.chr-pills{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;margin-bottom:${PACK_SPACE.sm}px}
+.chr-pills{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;margin-bottom:${PACK_SPACE.lg}px}
 .chr-pill{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase}
 .chr-pill.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
-.chr-new{display:flex;gap:${PACK_SPACE.sm}px;margin:${PACK_SPACE.lg}px 0 ${PACK_SPACE.xl}px}
+.chr-hero{display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.lg}px;margin:${PACK_SPACE.sm}px 0 ${PACK_SPACE.xl}px}
 .chr-hint{font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkWarm};margin:0}
 .chr-month{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;margin-bottom:${PACK_SPACE.xl}px}
 `;

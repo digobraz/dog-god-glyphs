@@ -4437,7 +4437,6 @@ export const sk: Partial<Dict> = {
   'pack.chronicle.kindAll': "Všetko",
   'pack.chronicle.kindPhoto': "Fotky",
   'pack.chronicle.write': "Napísať",
-  'pack.chronicle.photo': "Fotka",
   'pack.chronicle.noPhotos': "Zatiaľ žiadne fotky. Pridaj ju k zápisu a objaví sa tu.",
   'pack.cal.set.pre': "Pred vami",
   'pack.cal.set.preAll': "chovateľ, útulok, ulica",
