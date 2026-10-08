@@ -25,7 +25,7 @@ import {
   PACK_THEME, PACK_BOX, PACK_HEAD, PACK_SPACE, PACK_TEXT, PACK_R, GOLD_BTN,
   FONT_TITLE, FONT_UI, PILL_CSS, PHOTO_CSS,
 } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { DiaryEntry } from '@/components/pack/diary/DiaryEntry';
 import { ChronicleBook } from '@/components/pack/diary/ChronicleBook';
 import { DiaryItem, DIARY_LIST_CSS, useDiaryRows, type DiaryRow } from '@/components/pack/diary/DiaryList';
@@ -83,7 +83,7 @@ export default function PackChronicle() {
       <section style={{ ...PACK_BOX.card, padding: PACK_SPACE.xl }}>
         <div className="chr-head">
           <BackButton tone="pale" onClick={back} label={tx('pack.chronicle.back', 'Back')} />
-          <h1 style={{ ...PACK_HEAD.card, color: PALE.deep, margin: 0 }}>{tx('pack.chronicle.title', 'Chronicle')}</h1>
+          <h1 style={{ ...PACK_HEAD.card, color: T.inkStrong, margin: 0 }}>{tx('pack.chronicle.title', 'Chronicle')}</h1>
         </div>
 
         {/* HERO — kniha s packou + jediné CTA NAPÍSAŤ (Matej 8. 10.: „bez CTA photo, iba write").

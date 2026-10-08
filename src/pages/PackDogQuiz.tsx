@@ -72,6 +72,8 @@ const QUIZ_CSS = `
    a krytie na ňom takmer nič neurobí (to isté zistenie ako pri prezliekaní na bledé).
    Stlmí sa preto INKOUST a rám, výplň ostáva. */
 .qz-pill.is-capped{ cursor:not-allowed; color:rgba(42,22,8,.34); border-color:rgba(179,130,45,.22); }
+/* Pole kvizu stoji vzdy na papyrusovej karte: natívny kalendar musi byt svetly. */
+.qz-card .pf-field{ color-scheme:light; }
 .qz-cap-note{ font-family:'Space Grotesk',sans-serif; font-size:12px; color:${T.inkWarm}; margin:2px 0 0; }
 /* PÁS SEKCIÍ ZÁKLADU (8. 10. 2026). Text, nie pilulky — je to mapa polohy, nie výber;
    pilulky by vedľa odpovedí (tiež pilulky) súperili o pozornosť. */
@@ -714,6 +716,7 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose?: () 
 function Card({ children }: { children: React.ReactNode }) {
   return (
     <div
+      className="qz-card"
       style={{
         background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
         boxShadow: T.cardShadow, padding: '24px 24px', color: T.ink,

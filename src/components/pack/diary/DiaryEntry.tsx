@@ -366,7 +366,9 @@ export const DIARY_CSS = `
   letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${T.inkWarm};
   margin:${PACK_SPACE.lg}px 0 ${PACK_SPACE.xs}px}
 .dia-inp{width:100%;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.field}px;
-  color:${T.inkStrong};font-family:${FONT_UI};font-size:${PACK_TEXT.body}px}
+  color:${T.inkStrong};font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color-scheme:light}
+/* color-scheme:light: bez neho kreslil prehliadac ikonku kalendara v datumovom poli BIELU
+   na papyruse (Matej 8. 10.). Ten isty recept ako .tl-dateinput v triliste. */
 .dia-area{resize:vertical;min-height:72px;line-height:1.5}
 .dia-hint{font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;line-height:1.55;
   color:${T.inkFaint};margin:${PACK_SPACE.xs}px 0 0}
