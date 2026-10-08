@@ -61,6 +61,14 @@ export interface VaultSource {
    * NEBERIEME a prečo. Zdroj bez háčika ho nemá.
    */
   caveat?: string;
+  /**
+   * 🔴 KDE SA AUTOR ROZCHÁDZA S DÔKAZMI (Matej 8. 10. 2026: *„musíme byť
+   * transparentní… s nadhľadom povedať aj to, s čím sa veda nezhoduje — ako
+   * tvrdenie autora, ktoré nie je overené, ale väčšina vedeckých poznatkov je
+   * proti"*). Nemlčíme o tom, čo sme NEVZALI. Pár: čo tvrdí autor · čo hovoria
+   * dôkazy. Zdroj overenia: `plany/ainubis/eli-health/index.html`.
+   */
+  disputed?: { claim: string; evidence: string }[];
   /** Kategória zoznamu (Matej 24. 9.: „knihy, iné publikácie, videá"). */
   group: 'books' | 'other' | 'video' | 'own';
   /**
@@ -260,14 +268,36 @@ export const VAULT_SOURCES: VaultSource[] = [
     addedBy: 'Matej', pending: true, waiting: 0,
   },
   {
-    key: 'pending-eli', title: 'Velký průvodce ke zdraví domácích mazlíčků', author: 'Eli Health',
+    key: 'eli', title: 'Velký průvodce ke zdraví domácích mazlíčků', author: 'Eliška Sluková (EliHealth)',
     kind: 'e-book', scrolls: 0,
     tags: ['nutrition', 'prevention'],
-    split: { consensus: 0, traditional: 0, author: 0 },
+    /* 🔴 SPLIT TU NIE SÚ CHUNKY, ALE TVRDENIA — zvitky z knihy ešte nestoja.
+       Kritické čítanie 8. 10. 2026: 65 tvrdení · 20 konsenzus · 45 autorský
+       postoj (22 sporných + 19 proti dôkazom + 4 neoveriteľné). Keď pribudnú
+       zvitky, prepočítať z ich `status`. */
+    split: { consensus: 20, traditional: 0, author: 45 },
     pages: 95, group: 'other',
-    about: 'Long-term health of dogs and cats: why pets fall ill early, kibble against natural food, prevention.',
-    caveat: 'An unconventional author with contested views — each claim goes through analysis before it reaches a scroll; recipes and observations that hold up are kept.',
-    addedBy: 'Matej', pending: true, waiting: 0,
+    about: 'Feeding dogs and cats real food — switching from kibble, what to buy, how to prepare it, and what to do when the bowl stays full.',
+    caveat: 'We take the kitchen craft: switching to fresh food, eggshell calcium, safe thawing, ticks, a pantry for emergencies. We do not take the medicine. The author writes from her own animals and from Ray Peat’s “pro-metabolic” school, not from veterinary training — and on vaccines, fats and drugs the book goes against most of the evidence. Below is where, so you can judge for yourself.',
+    disputed: [
+      { claim: 'Kibble of any kind is a main cause of disease and early death.',
+        evidence: 'Untested rather than disproven: no long-term study compares the lifespan of dogs on kibble and on fresh food. We lean her way — but it is a conviction, not a measurement.' },
+      { claim: 'Omega-3 and omega-6 fats are toxic and not essential.',
+        evidence: 'Linoleic acid (omega-6) is an essential nutrient for dogs and cats. Fish oil has trial evidence in canine arthritis and kidney disease. What is true: oil that has gone rancid does harm.' },
+      { claim: 'Vaccines protect against nothing.',
+        evidence: 'Core vaccines (distemper, parvovirus, hepatitis) protect for years. Vets’ own guidelines (WSAVA) say boost them no more than every three years, or test antibodies instead. Rabies vaccination is required by law.' },
+      { claim: 'Raw meat carries no real risk; stomach acid handles it.',
+        evidence: 'Raw-fed dogs shed Salmonella many times more often — the risk sits mostly with the people at home. Raw can be done well, with kitchen hygiene.' },
+      { claim: 'Herbs and essential oils instead of antibiotics or chemotherapy.',
+        evidence: 'Two plant medicines hold up in dog studies (crofelemer for diarrhoea, a Turkey Tail extract for one cancer). Neither replaces treatment. Essential oils by mouth can poison cats.' },
+      { claim: 'Good food keeps FIV, FeLV and FIP away.',
+        evidence: 'Infection does not depend on diet. FIP, once fatal, is now treated with an antiviral.' },
+      { claim: 'Tap water, Wi-Fi and microchips make pets ill.',
+        evidence: 'No evidence found. Microchips are required by law in much of Europe — and bring lost dogs home.' },
+      { claim: 'Genes hardly matter; diet decides.',
+        evidence: 'Some breed diseases are purely genetic — collies missing the MDR1 gene can die from a common dewormer, whatever they eat.' },
+    ],
+    addedBy: 'Matej',
   },
 ];
 

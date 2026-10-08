@@ -670,6 +670,10 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;color:${AINUBIS.cyan};}
 .akw-open .akw-chev{display:inline-flex;transform:rotate(-90deg);}
 .akw-open[aria-expanded="true"] .akw-chev{transform:rotate(90deg);}
+/* Rozpor s dôkazmi — tvrdenie autora kurzívou, pod ním čo hovoria dôkazy. */
+.akw-disp p{margin:0 0 ${PACK_SPACE.sm}px;}
+.akw-disp ul{margin:0;padding:0;list-style:none;display:grid;gap:${PACK_SPACE.sm}px;}
+.akw-disp i{display:block;font-style:italic;color:${AINUBIS.ink};}
 /* Päta zoznamu — veta o zdroji, ktorý v ňom nie je. */
 .akw-foot-note{font-size:${PACK_TEXT.label}px;line-height:1.55;color:${AINUBIS.inkFaint};}
 /* ODKAZ NA ORIGINÁL — klauzula hovorí „autori urobili prácu, my na ňu ukazujeme",
@@ -981,7 +985,8 @@ function SourceCard({ s }: { s: VaultSource }) {
             <i className="a" style={{ width: seg(s.split.author) }} />
           </div>
           <div className="akw-mt">
-            <span><b>{s.scrolls}</b> scrolls</span>
+            {/* 0 zvitkov pri prijatom zdroji = prečítaný, zvitky sa ešte píšu. */}
+            {s.scrolls > 0 ? <span><b>{s.scrolls}</b> scrolls</span> : <span>scrolls in progress</span>}
             {pct != null && <span><s>{pct} %</s> settled</span>}
             <span>{s.tags.join(' · ')}</span>
             {s.addedBy && <span>added by {s.addedBy}</span>}
@@ -995,6 +1000,16 @@ function SourceCard({ s }: { s: VaultSource }) {
                 {open ? 'Less' : 'What we take from it'}{chev}
               </button>
               {open && <div className="akw-caveat"><b>The catch</b>{s.caveat}</div>}
+              {/* KDE SA AUTOR ROZCHÁDZA S DÔKAZMI — nemlčíme o tom, čo sme nevzali. */}
+              {open && s.disputed && (
+                <div className="akw-caveat akw-disp">
+                  <b>Where the evidence disagrees</b>
+                  <p>These are the author’s claims, not confirmed. For most of them the research points the other way; where nobody has measured it yet, we say so.</p>
+                  <ul>{s.disputed.map((d) => (
+                    <li key={d.claim}><i>{d.claim}</i>{d.evidence}</li>
+                  ))}</ul>
+                </div>
+              )}
             </>
           )}
         </>
