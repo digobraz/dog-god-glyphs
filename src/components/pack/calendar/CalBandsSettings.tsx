@@ -39,6 +39,9 @@ export type CalBands = { life?: YearSpan; target?: YearSpan };
 export const CAL_BANDS_FIELD = 'calendar.bands';
 /** Červená z brandu — tá istá, akou DOG ID značí „ešte nie je hotové" (`.dogblk-fill`). */
 export const PRE_RED = '#B25640';
+/** Výplň týždňa PRED VAMI v mriežke (Matej 8. 10.: „na oranžovo"). Tint, nie plná plocha —
+ *  musí ostať tichší než tmavý týždeň so zápisom. */
+export const PRE_ORANGE = 'rgba(217,130,43,.55)';
 
 /** Prečíta `calendar.bands` z `latest`. Neplatné rozpätie sa zahodí, nie opraví. */
 export function asCalBands(v: unknown): CalBands {
@@ -64,13 +67,15 @@ export type CalBandsSettingsProps = {
   ourTarget: YearSpan;
   /** Odkiaľ je náš odhad priemeru — veta z `bandText` kalendára. */
   ourLifeBasis: string;
+  /** „Pred vami (z ulice)" — to isté meno, aké nesie legenda a bublina mriežky. */
+  preName: string;
   saved: CalBands;
   onClose: () => void;
   tx: Tx;
 };
 
 export function CalBandsSettings({
-  dogId, dogName, birthLabel, since, ourLife, ourTarget, ourLifeBasis, saved, onClose, tx,
+  dogId, dogName, birthLabel, since, ourLife, ourTarget, ourLifeBasis, preName, saved, onClose, tx,
 }: CalBandsSettingsProps) {
   const [sinceVal, setSinceVal] = useState(since);
   const [life, setLife] = useState<YearSpan>(saved.life ?? ourLife);
@@ -169,7 +174,7 @@ export function CalBandsSettings({
 
         {/* 🟥 PRED VAMI */}
         <div className="cbs-sec" style={{ borderColor: PRE_RED }}>
-          <div className="cbs-t" style={{ color: PRE_RED }}>{tx('pack.cal.set.pre', 'Before you')}</div>
+          <div className="cbs-t" style={{ color: PRE_RED }}>{preName}</div>
           <p className="dia-hint">{tx('pack.cal.set.preSub', 'From birth to the day they came to you — from a breeder, a shelter or the street.')}</p>
           <label className="dia-lbl" htmlFor="cbs-since">{tx('pack.cal.set.since', 'Together since')}</label>
           <input id="cbs-since" className="pf-field dia-inp" type="date" value={sinceVal}

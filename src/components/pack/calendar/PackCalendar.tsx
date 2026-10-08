@@ -62,7 +62,7 @@ import {
   type CalDog, type CalEntry, type LogKind, type MoonPhase, type ProtWindow,
 } from './calendarModel';
 import { estimateLife, SIZE_NAME_SK, type LifeEstimate } from '@/data/breedLifespan';
-import { CalBandsSettings, asCalBands, CAL_BANDS_FIELD, PRE_RED } from './CalBandsSettings';
+import { CalBandsSettings, asCalBands, CAL_BANDS_FIELD, PRE_RED, PRE_ORANGE } from './CalBandsSettings';
 
 const T = PACK_THEME;
 const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
@@ -1136,14 +1136,18 @@ function LifeGrid({
   const tgtLast = Math.min(userBands.target?.high ?? ourTgt.high, gridYears - 1);
   // 🟥 PRED VAMI — roky od narodenia po prevzatie (Matej 8. 10. 2026: „od kedy sú spolu,
   // prevzatie od chovateľa alebo z útulku, kde mohla byť kľudne aj 5 rokov… červeným
-  // rámikom ako je zlatý a zelený"). Rámik sa kreslí, až keď je rozdiel aspoň POL ROKA:
-  // šteňa od chovateľa v 8. týždni by inak dostalo červený rok 0, hoci ten rok je
-  // takmer celý spoločný. Na rokoch, kde už leží zlatý alebo zelený rámik, ustúpi —
-  // dva rámiky na jednom čísle by nepovedali, kam ten rok patrí.
+  // rámikom ako je zlatý a zelený").
+  // ⚠️ ŽIADNY PRAH (Matej 8. 10. nad hárkom): rámik dostane aj šteňa prevzaté v 8. týždni
+  // a týždne pred prevzatím sa navyše vyfarbia oranžovo (`.pre`) s bublinou „v tomto čase
+  // ste ešte neboli spolu". Pôvodný prah ½ roka zamietnutý.
+  // 🔴 ČERVENÝ MÁ PREDNOSŤ (Matej: „podstatná info pre nás, koľko sme spolu"). Pes
+  // prevzatý v 11 rokoch má červené 0–11; zlatý aj zelený začnú až za ním. Dva rámiky
+  // na jednom čísle by nepovedali, kam ten rok patrí — ustupuje odhad, nie fakt.
   const preFirst = 0;
-  const preLastRaw = sinceWeek !== null && sinceWeek >= WEEKS_PER_YEAR / 2
-    ? Math.floor((sinceWeek - 1) / WEEKS_PER_YEAR) : -1;
-  const preLast = Math.min(preLastRaw, bandFirst - 1, tgtFirst >= 0 ? tgtFirst - 1 : preLastRaw);
+  const preLast = sinceWeek !== null && sinceWeek > 0
+    ? Math.min(Math.floor((sinceWeek - 1) / WEEKS_PER_YEAR), gridYears - 1) : -1;
+  const bandDrawFirst = Math.max(bandFirst, preLast + 1);
+  const tgtDrawFirst = tgtFirst >= 0 ? Math.max(tgtFirst, preLast + 1) : -1;
   // Popis pásma má JEDNO znenie pre dve miesta: bublinu nad blokom a `title`
   // rámika pri číslach rokov. Dva ručne opísané texty by sa rozišli pri prvej
   // úprave zdroja odhadu.
@@ -1157,6 +1161,15 @@ function LifeGrid({
         : est.size
           ? ` · ${tx('pack.cal.life.srcWeight', 'odhad podľa hmotnosti')} (${tx(`pack.cal.life.size.${est.size}`, SIZE_NAME_SK[est.size])}, ${tx(`pack.cal.life.kg.${est.size}`, band.kgSK)})`
           : '');
+  // Do panelu ide ZÁKLAD ODHADU BEZ ČÍSLA — panel ho predsadí vlastným „Náš odhad: 10–13".
+  // Celé `bandText` tam stálo dvakrát to isté číslo (Matej 8. 10.: „zlúčiť do 1 vety").
+  const bandWhy = est.basis === 'default'
+    ? bandText
+    : est.labelSK + (band.fromBreed
+      ? ` · ${tx('pack.cal.life.srcBreed', 'publikovaný údaj plemena')}`
+      : est.size
+        ? ` · ${tx('pack.cal.life.srcWeight', 'odhad podľa hmotnosti')} (${tx(`pack.cal.life.size.${est.size}`, SIZE_NAME_SK[est.size])}, ${tx(`pack.cal.life.kg.${est.size}`, band.kgSK)})`
+        : '');
   // ⚠️ ODKIAĽ SA ČÍSLO BERIE, MUSÍ BYŤ V POPISKU (Matej 13. 9. 2026: „aj
   // s odkazom, odkiaľ sa čerpá! wikipedia napr."). Wikipédia to ale NIE JE
   // a napísať ju by bolo nepresné: `BREED_LIFESPAN` stojí na publikovaných
@@ -1180,13 +1193,23 @@ function LifeGrid({
     'Hrubý odhad, nie sľub. Zmerané je z toho zatiaľ jedno: samotná štíhlosť pridala '
     + 'labradorom 1,8 roka (Purina Life Span Study, JAVMA 2002).')}`;
 
+  // „Pred vami (z ulice)" — pôvod z DOG ID (`basics.origin`), slovo z tých istých
+  // kľúčov, aké ukazuje doklad. Bez pôvodu (alebo „iné") zátvorka vymenuje, čo sa tým
+  // myslí (Matej 8. 10.: „dať do zátvorky tieto možnosti, čo sa tým myslí").
+  const originRaw = latest[row.id]?.['basics.origin']?.value;
+  const originKey = typeof originRaw === 'string' && originRaw !== 'other' ? `pack.dogCard.opt.${originRaw}` : null;
+  const originWord = originKey ? tx(originKey, '') : '';
+  const preName = `${tx('pack.cal.set.pre', 'Pred vami')} (${originWord
+    ? originWord.charAt(0).toLocaleLowerCase(loc) + originWord.slice(1)
+    : tx('pack.cal.set.preAll', 'chovateľ, útulok, ulica')})`;
   const preTitle = sinceDate
-    ? `${tx('pack.cal.set.pre', 'Pred vami')}: ${fmtDay(birth, loc)} – ${fmtDay(new Date(sinceDate.y, sinceDate.m - 1, sinceDate.d), loc)}`
+    ? `${preName}: ${fmtDay(birth, loc)} – ${fmtDay(new Date(sinceDate.y, sinceDate.m - 1, sinceDate.d), loc)}`
     : '';
 
   const hoverYear = hover === null ? -1 : Math.floor(hover.wi / WEEKS_PER_YEAR);
-  const hoverInBand = hoverYear >= bandFirst && hoverYear <= bandLast;
-  const hoverInTarget = tgtFirst >= 0 && hoverYear >= tgtFirst && hoverYear <= tgtLast;
+  const hoverInBand = hoverYear >= bandDrawFirst && hoverYear <= bandLast;
+  const hoverInTarget = tgtDrawFirst >= 0 && hoverYear >= tgtDrawFirst && hoverYear <= tgtLast;
+  const hoverBeforeYou = hover !== null && sinceWeek !== null && hover.wi < sinceWeek;
 
   // Popis dňa v týždni na popisky — „14. 4. – 20. 4. 2019".
   const weekLabel = (wi: number): string => {
@@ -1252,7 +1275,7 @@ function LifeGrid({
         )}
       </div>
       <div className="cal-lgcol">
-        <LifeLegend tx={tx} />
+        <LifeLegend tx={tx} pre={preLast >= 0 ? preName : null} />
         {/* ⚙️ NASTAVENIE RÁMIKOV — pilulka, nie ikonka: ozubené koliesko v kite nie je. */}
         {!deceased && (
           <button type="button" className="cal-bandsbtn" onClick={() => setBandsOpen(true)}>
@@ -1269,7 +1292,8 @@ function LifeGrid({
           since={sinceDate ? `${sinceDate.y}-${String(sinceDate.m).padStart(2, '0')}-${String(sinceDate.d).padStart(2, '0')}` : ''}
           ourLife={ourBand}
           ourTarget={ourTgt}
-          ourLifeBasis={bandText}
+          ourLifeBasis={bandWhy}
+          preName={preName}
           saved={userBands}
           onClose={() => setBandsOpen(false)}
           tx={tx}
@@ -1303,8 +1327,8 @@ function LifeGrid({
             // predpoveď nakreslená do jeho vlastných dát. V ľavom stĺpci
             // je to tá istá informácia, ale mimo mriežky: rámik povie
             // „týchto rokov sa to týka" a života sa nedotkne.
-            const inBand = yr >= bandFirst && yr <= bandLast;
-            const inTgt = tgtFirst >= 0 && yr >= tgtFirst && yr <= tgtLast;
+            const inBand = yr >= bandDrawFirst && yr <= bandLast;
+            const inTgt = tgtDrawFirst >= 0 && yr >= tgtDrawFirst && yr <= tgtLast;
             const inPre = preLast >= 0 && yr >= preFirst && yr <= preLast;
             return (
               <Fragment key={yr}>
@@ -1313,9 +1337,9 @@ function LifeGrid({
                     v ktorom roku života leží konkrétny tmavý týždeň — človek
                     musel počítať riadky od najbližšej päťky. */}
                 <div className={`cal-lifeyr${past ? ' faded' : ''}`
-                  + (inBand ? ' inband' : '') + (yr === bandFirst ? ' bandtop' : '')
+                  + (inBand ? ' inband' : '') + (yr === bandDrawFirst ? ' bandtop' : '')
                   + (yr === bandLast ? ' bandbot' : '')
-                  + (inTgt ? ' intgt' : '') + (yr === tgtFirst ? ' tgttop' : '')
+                  + (inTgt ? ' intgt' : '') + (yr === tgtDrawFirst ? ' tgttop' : '')
                   + (yr === tgtLast ? ' tgtbot' : '')
                   + (inPre ? ' inpre' : '') + (inPre && yr === preFirst ? ' pretop' : '')
                   + (inPre && yr === preLast ? ' prebot' : '')}
@@ -1341,6 +1365,9 @@ function LifeGrid({
                     // v budúcnosti tam vyzeral ako prežitý týždeň o rok dopredu.
                     // Plán ďalej vidno v pohľadoch ROK a MESIAC, kde je doma.
                     const cls = lived ? (hits ? 'dark' : 'lived') : 'empty';
+                    // 🟧 Týždne PRED VAMI (Matej 8. 10.): prežitý týždeň bez zápisu
+                    // sa vyfarbí oranžovo — zápis (tmavá) má prednosť, je to fakt.
+                    const pre = lived && !hits && sinceWeek !== null && wi < sinceWeek ? ' pre' : '';
                     // ⚠️ DVE UDALOSTI SÚ STAVY, NIE OKAMIHY (Matej 13. 9. 2026:
                     // „dolná zelená čiarka bude od týždňa, čo sú spolu, na každom
                     // bloku, nie len na jednom — a to isté aj Dogypt"). Jediná
@@ -1354,7 +1381,7 @@ function LifeGrid({
                     return (
                       <span
                         key={w}
-                        className={`cal-lifecell ${cls}${mark}${wi === livedWeeks ? ' now' : ''}`}
+                        className={`cal-lifecell ${cls}${pre}${mark}${wi === livedWeeks ? ' now' : ''}`}
                         onMouseEnter={(ev) => setHover({ wi, x: ev.clientX, y: ev.clientY })}
                         onMouseMove={(ev) => setHover({ wi, x: ev.clientX, y: ev.clientY })}
                         onClick={() => { if (hits && lived) setOpenWeek(wi); }}
@@ -1559,6 +1586,9 @@ function LifeGrid({
             </span>
           )}
           {hoverInTarget && <span className="wrap tgt">{tgtText}</span>}
+          {hoverBeforeYou && (
+            <span className="wrap pre">{preName} · {tx('pack.cal.life.preTip', 'v tomto čase ste ešte neboli spolu')}</span>
+          )}
         </div>
       )}
 
@@ -1667,8 +1697,10 @@ function WeekPopup({
 // odčervenie a neskôr denník), takže to po prvé nemá byť v jednej vete odbavené
 // a po druhé sa to slovom „výlet" nedá pomenovať správne.
 // Jeho swatch má blok — je to výplň bunky, nie značka na nej.
-function LifeLegend({ tx }: { tx: Tx }) {
+function LifeLegend({ tx, pre }: { tx: Tx; pre: string | null }) {
   const items: { cls: string; b: string; t: string }[] = [
+    // 🟥 PRED VAMI — len keď ho pes naozaj má (Matej 8. 10.: „áno, 5. položka").
+    ...(pre ? [{ cls: 'presw', b: pre, t: tx('pack.cal.life.lgPreSub', 'ešte ste neboli spolu') }] : []),
     { cls: 'dark', b: tx('pack.cal.life.lgDark', 'Aktivita'), t: tx('pack.cal.life.lgDarkSub', 'výlet, váženie, zápis') },
     { cls: 'sincesw', b: tx('pack.cal.life.lgSince', 'Spoločný život'), t: tx('pack.cal.life.lgSinceSub', 'z DOG ID') },
     { cls: 'nowsw', b: tx('pack.cal.life.lgNow', 'Tento týždeň'), t: tx('pack.cal.life.lgNowSub', 'práve tu ste') },
@@ -1952,6 +1984,8 @@ const CAL_CSS = `
 /* Prežitý čas = bledá modrá. Je to ten istý lapis, akým appka hovorí „moje" —
    len stiahnutý na tapetu, lebo ubehnutý čas nie je akcia. */
 .cal-lifecell.lived{background:rgba(46,95,208,.30);box-shadow:none}
+/* 🟧 Týždeň PRED VAMI (8. 10. 2026) — prežitý, ale ešte nie spolu. */
+.cal-lifecell.lived.pre{background:${PRE_ORANGE}}
 /* Tmavá = boli ste spolu vonku. Plná, neškálovaná — jeden zápis stačí. */
 .cal-lifecell.dark{background:#14243F;box-shadow:none;cursor:pointer}
 .cal-lifecell.dark:hover{background:${LAPIS.edge};transform:scale(1.55);border-radius:2px;position:relative;z-index:2}
@@ -2017,6 +2051,8 @@ const CAL_CSS = `
 /* Aktivita je VÝPLŇ bunky, nie značka na nej — jej swatch má teda blok. */
 .cal-sw.cal-lifecell.dark{width:17px;height:17px;border-radius:2px;background:#14243F}
 .cal-sw.cal-lifecell.sincesw{height:3px;border-radius:2px;background:${T.growGreen}}
+.cal-sw.cal-lifecell.presw{width:17px;height:17px;border-radius:2px;background:${PRE_ORANGE};
+  box-shadow:inset 0 0 0 1px ${PRE_RED}}
 .cal-sw.cal-lifecell.joinsw{height:3px;border-radius:2px;background:${LAPIS.edge}}
 .cal-sw.cal-lifecell.nowsw{background:transparent}
 .cal-sw.cal-lifecell.nowsw::after{content:'';width:7px;height:7px;border-radius:50%;background:${T.growGreen};
@@ -2033,6 +2069,7 @@ const CAL_CSS = `
 .cal-lifetip span.dim{color:${T.inkFaint};font-size:10px;margin-top:4px}
 /* Cieľ je zelený aj v bubline — tá istá farba ako jeho rámik, inak si človek
    nespojí, ktorý z dvoch rámikov práve číta. */
+.cal-lifetip span.pre{color:${PRE_RED};font-size:10px;margin-top:4px}
 .cal-lifetip span.tgt{color:${T.growGreen};font-size:10px;margin-top:4px}
 
 /* ── REKORDY a RADY ─────────────────────────────────────────────────────── */
