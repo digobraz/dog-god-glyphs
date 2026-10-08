@@ -46,7 +46,7 @@ import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog, RENAMED_TRIP_IDS, tripPath,
-  tripShareText, tripText, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing, coverPos, isGhostJourney, usePackWalked } from '@/components/pack/tripShared';
+  tripShareText, tripText, tripName, tripIdFromUrl, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing, coverPos, isGhostJourney, usePackWalked } from '@/components/pack/tripShared';
 import { GhostJourneyNote } from '@/components/pack/trip/GhostJourneyNote';
 import { TripGoPanel, TripGoButtons } from '@/components/pack/trip/TripGoPanel';
 import {
@@ -629,7 +629,7 @@ export default function PackTripArticle() {
   }, [noteMap]);
   const dateLocale = intlLocale(lang);
   const navigate = useNavigate();
-  const { slug, country, n: storyN } = useParams<{ slug: string; country?: string; n?: string }>();
+  const { slug: urlSlug, country, n: storyN } = useParams<{ slug: string; country?: string; n?: string }>();
   const id = usePackIdentity();
   const memorialTrips = useMemorialTrips();
   const { toast } = useToast();
@@ -638,6 +638,9 @@ export default function PackTripArticle() {
   // sessionStorage mirror ADD-flow tripov z PackMap (jeden-krát na mount stačí — táto
   // stránka je detail jedného tripu, nepotrebuje živú reaktivitu na iný tab/mount).
   const allTrails = useMemo(() => [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
+  // Adresa nesie id ALEBO čitateľný `urlSlug` (8. 10. 2026) — ďalej v súbore je `slug` vždy id,
+  // lebo ním kľúčujú prejdenia, hlasy a partie.
+  const slug = useMemo(() => tripIdFromUrl(urlSlug, allTrails), [urlSlug, allTrails]);
   const baseTrail = useMemo(() => allTrails.find((x) => x.id === slug) ?? null, [allTrails, slug]);
   /**
    * ── ÚPRAVA VÝLETU AUTOROM (Matej 2026-08-25) ────────────────────────────────────────────
@@ -707,9 +710,10 @@ export default function PackTripArticle() {
 
   // Odkaz bez krajiny (`/pack/map/:slug`, tvar spred 3.8.2026) → doplň segment a prepíš URL.
   // `replace`, aby sa späť tlačidlo nezasekalo na starom tvare.
+  // Od 8. 10. 2026 aj starý odkaz cez id → čitateľná adresa, keď ju výlet má (príbeh `/pribeh/:n` nechá tak).
   useEffect(() => {
-    if (trail && !country) navigate(tripPath(trail), { replace: true });
-  }, [trail, country, navigate]);
+    if (trail && (!country || (!storyN && trail.urlSlug && urlSlug !== trail.urlSlug))) navigate(tripPath(trail), { replace: true });
+  }, [trail, country, storyN, urlSlug, navigate]);
 
   // #41 — KTO TENTO VÝLET VYPÍSAL. Na desktope to rieši inline detail v PackMap, ale
   // MOBIL sem naviguje na celú routu (`/pack/map/:slug`), takže bez tohto by na
@@ -1247,7 +1251,7 @@ export default function PackTripArticle() {
   const shareStory = async (story: TripStory) => {
     if (!trail) return;
     const url = `${window.location.origin}${tripPath(trail)}/pribeh/${story.rank}`;
-    const title = `${story.ownerFirst} — ${trail.name}`;
+    const title = `${story.ownerFirst} — ${tripName(trail, lang)}`;
     if (typeof navigator.share === 'function') {
       try { await navigator.share({ title, text: story.body.slice(0, 160), url }); return; } catch { /* cancelled */ }
     }
@@ -1262,7 +1266,7 @@ export default function PackTripArticle() {
   const handleShare = async () => {
     if (!trail) return;
     const url = `${window.location.origin}${tripPath(trail)}`;
-    const shareData = { title: trail.name, text: tripShareText(trail, lang), url };
+    const shareData = { title: tripName(trail, lang), text: tripShareText(trail, lang), url };
     if (typeof navigator.share === 'function') {
       try { await navigator.share(shareData); return; } catch { /* cancelled */ }
     }
@@ -1627,7 +1631,7 @@ export default function PackTripArticle() {
               a makroregión sa k nemu dopočíta cez `REGION_OF`. */}
           <span>{locLine(trail, t)}</span>
         </div>
-        <div className="pta-title">{trail.name}</div>
+        <div className="pta-title">{tripName(trail, lang)}</div>
         {/* bod 4 (iterácia 13): samostatný DiffMark+diff riadok pod titulom ZMAZANÝ —
             difficulty ostáva len v stat tabuľke nižšie (bolo 2×, teraz 1×). */}
         {/* ── HODNOTENIE HORE VEDĽA AUTORA (Matej 2026-08-25) ────────────────────────────

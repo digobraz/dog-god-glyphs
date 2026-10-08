@@ -182,11 +182,12 @@ export const diffMarkShape = (diff: string): 'circle' | 'square' | 'triangle' =>
 // Vodná plocha nemá km ani diff (viď isWaterTrail vyššie) — chýbajúce časti sa vynechajú, nie
 // fabrikuje sa „undefined" ani holé „ km".
 // `lang` (26. 9. 2026): km v jazyku rozhrania, rovnako ako na mape („11,3 km" v SK).
-export function tripShareText(tr: { name: string; km: string; diff?: string }, lang = 'en'): string {
+export function tripShareText(tr: { name: string; nameEN?: string; km: string; diff?: string }, lang = 'en'): string {
   const parts: string[] = [];
   if (tr.km && tr.km.trim()) parts.push(`${fmtNum(tr.km, lang)} km`);
   if (tr.diff) parts.push(tr.diff);
-  return parts.length ? `${tr.name} — ${parts.join(', ')}` : tr.name;
+  const name = tripName(tr, lang);
+  return parts.length ? `${name} — ${parts.join(', ')}` : name;
 }
 
 export function DiffMark({ diff }: { diff: string }) {
@@ -589,8 +590,35 @@ export const currentTripId = (id: string): string => RENAMED_TRIP_IDS[id] ?? id;
 // a slug ostane krátky. V ceste je ISO3 (`svk`), lebo ISO2 `sk` sa v URL číta ako jazyk.
 // Dataset drží krajinu v ISO2 — preklad robí iso2ToISO3(), aby konvencia žila na jednom mieste.
 // VŽDY stavať URL cez tento helper; ručne skladané `/pack/map/${id}` stratí krajinu.
-export function tripPath(t: { id: string; country?: string | null; path?: readonly (readonly number[])[] }): string {
-  return `/pack/map/${iso2ToISO3(trailCountry(t)).toLowerCase()}/${t.id}`;
+export function tripPath(t: { id: string; urlSlug?: string; country?: string | null; path?: readonly (readonly number[])[] }): string {
+  return `/pack/map/${iso2ToISO3(trailCountry(t)).toLowerCase()}/${t.urlSlug || t.id}`;
+}
+
+// ČITATEĽNÁ ADRESA ČLENSKÉHO VÝLETU (8. 10. 2026). Matej: „nebolo by lepšie keby sme to
+// prekladali aj do url? je to predsa len ENG projekt". Adresa nesie MIESTO a neprekladá sa —
+// meno miesta je rovnaké v každom jazyku a pri úprave názvu sa adresa nerozbije.
+// ⚠️ `id` (local-<čas>) sa NEMENÍ: kľúčujú ním prejdenia, hlasy, psie výlety aj Cloudinary
+// priečinok fotiek. `urlSlug` je len druhé meno; článok hľadá výlet podľa oboch (staré odkazy žijú).
+/** Výlet podľa segmentu z adresy — najprv id, potom čitateľný slug. */
+export function tripIdFromUrl(urlSlug: string | undefined, trails: readonly { id: string; urlSlug?: string }[]): string | undefined {
+  if (!urlSlug) return urlSlug;
+  if (trails.some((t) => t.id === urlSlug)) return urlSlug;
+  return trails.find((t) => t.urlSlug === urlSlug)?.id ?? urlSlug;
+}
+
+/** Slug z názvu: časť pred dvojbodkou alebo pomlčkou s medzerami („Melchsee-Frutt: Naše piate…"
+ *  → melchsee-frutt, „Vtáčí vŕštek - tajný klenot" → vtaci-vrstek), bez diakritiky a emoji,
+ *  najviac 6 slov. Obsadený slug (aj id datasetu) dostane -2, -3… */
+export function makeTripUrlSlug(name: string, taken: readonly { id: string; urlSlug?: string }[]): string | undefined {
+  const head = name.split(/:| [-–—] /)[0];
+  const base = head.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+    .split('-').slice(0, 6).join('-');
+  if (base.length < 3) return undefined;
+  const used = new Set(taken.flatMap((t) => [t.id, t.urlSlug].filter(Boolean) as string[]));
+  let slug = base;
+  for (let i = 2; used.has(slug); i++) slug = `${base}-${i}`;
+  return slug;
 }
 
 // Verzia pre miesta, kde je po ruke len id (callbacky typu `onOpenTrip(tid)`). Zoznam trás sa
@@ -758,6 +786,17 @@ export function translateLocalTrailDesc(id: string, onDone?: () => void, text?: 
   });
 }
 
+/** EN PREKLAD NÁZVU (8. 10. 2026) — tá istá Edge Function ako popis, rovnaká poistka:
+ *  zapíše len keď sa názov medzitým nezmenil. Bez prekladu ostáva SK názov (fallback v `tripName`). */
+export function translateLocalTrailName(id: string, onDone?: () => void, text?: string): void {
+  const src = text ?? readLocalTrails().find((t) => t.id === id)?.name ?? '';
+  void translateTripDesc(src).then((en) => {
+    if (!en) return;
+    if ((readLocalTrails().find((t) => t.id === id)?.name ?? '') !== src) return;
+    if (updateLocalTrail(id, { nameEN: en.replace(/\.$/, '') })) onDone?.();
+  });
+}
+
 const readStringSet = readSet;
 export const readFavIds = () => readStringSet(FAV_IDS_KEY);
 // Zápis ide cez packStore: lokálne hneď + do Supabase (fronta, ak nie je sieť).
@@ -856,6 +895,12 @@ export const ensureWalkedSeeded = scheduleFounderSeed;
 // ⚠️ PSIA POZNÁMKA ZANIKLA 13. 9. 2026. Sprievodca pri nahadzovaní pole `dogNote` nikdy nemal
 //    (PackMap.tsx zapisuje dogNote: '' vždy), takže bolo živé len na 12 kurátorovaných výletoch
 //    a ich texty sa prilepili k `desc`. `field` preto už nie je dvojica — ostal jeden údaj.
+/** Názov výletu v jazyku rozhrania — to isté pravidlo ako `tripText` (SK/CS originál, inak EN). */
+export function tripName(trail: { name: string; nameEN?: string }, lang: string): string {
+  if (lang === 'sk' || lang === 'cs') return trail.name;
+  return (trail.nameEN ?? '').trim() || trail.name;
+}
+
 export function tripText(
   trail: { desc?: string; descEN?: string },
   field: 'desc',

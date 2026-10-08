@@ -27,12 +27,12 @@ import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { JOIN_REQUIRED_STEPS } from '@/components/pack/dogQuiz';
 import { hasValue, readLatestForDogs, onDogEventsChange } from '@/lib/dogEvents';
 import { useMyDogRights } from '@/lib/dogRights';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, PACK_TOPROW_PAD, GOLD_BTN, PACK_SHADOW, PACK_SPACE, HIT_CSS, VEIL_CSS } from '@/components/pack/packTheme';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
-import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, visibleLocalTrails, tripDraftMissing, memberTrailIds, coverPos } from '@/components/pack/tripShared';
+import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, tripName, visibleLocalTrails, tripDraftMissing, memberTrailIds, coverPos } from '@/components/pack/tripShared';
 import { closeMyTripEvents, readLocalTrailMeta, readJson, writeJson, PACK_KEYS } from '@/lib/packStore';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 // Tvary počítaného mena (1 výlet · 2–4 výlety · 5+ výletov) — jeden zdroj pre celý /pack.
@@ -464,6 +464,7 @@ const UNKNOWN_MEMBER: PartyMember = {
 
 export default function PackTriplist() {
   const t = useT();
+  const { lang } = useLang();
   const navigate = useNavigate();
   const id = usePackIdentity();
 
@@ -906,7 +907,7 @@ export default function PackTriplist() {
             ) : null}
           </div>
           <div className="tl-block-info">
-            <div className="tl-block-name">{trail.name}</div>
+            <div className="tl-block-name">{tripName(trail, lang)}</div>
             {mod === 'pending' && <div className="tl-block-pendhint">{t('pack.triplist.pendingHint')}</div>}
             {PLANNING_LIVE && <div className="tl-block-foot">
               {entry.date ? (
@@ -1225,7 +1226,7 @@ export default function PackTriplist() {
                       <span className="tl-block-badge looking">{c.joiners > 0 ? t('pack.triplist.lookingWithJoiners', { n: c.joiners }) : t('pack.triplist.statusLookingForPack')}</span>
                     </div>
                     <div className="tl-block-info">
-                      <div className="tl-block-name">{c.trail.name}</div>
+                      <div className="tl-block-name">{tripName(c.trail, lang)}</div>
                       <div className="tl-block-sub">{c.trail.region} · {WCE_LABEL[trailWCE(c.trail)]}</div>
                       <div className="tl-block-foot">
                         {c.date ? <span className="tl-datepill">{c.date}</span> : <span className="tl-date">{t('pack.triplist.noDateYet')}</span>}

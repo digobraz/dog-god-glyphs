@@ -97,7 +97,7 @@ import { useMyEventCount } from '@/components/pack/events/eventStore';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DiffMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
   DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, coverPos, hasRouteMetrics, tripShareText, pluralKey,
-  readLocalTrails, writeLocalTrails, updateLocalTrail, translateLocalTrailDesc, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog,
+  readLocalTrails, writeLocalTrails, updateLocalTrail, translateLocalTrailDesc, translateLocalTrailName, makeTripUrlSlug, tripName, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
   tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds, isOdyssey, isGhostJourney, usePackWalked, GHOST_SABER_LAYERS, CLAIMABLE_JOURNEY_IDS } from '@/components/pack/tripShared';
 import {
@@ -4521,7 +4521,7 @@ export default function PackMap() {
     const tr = trailsById(tid);
     if (!tr) return;
     const url = `${window.location.origin}${tripPath(tr)}`;
-    const shareData = { title: tr.name, text: tripShareText(tr, lang), url };
+    const shareData = { title: tripName(tr, lang), text: tripShareText(tr, lang), url };
     if (typeof navigator.share === 'function') {
       try { await navigator.share(shareData); return; } catch { /* cancelled */ }
     }
@@ -5283,11 +5283,21 @@ export default function PackMap() {
       // neprekladá znova (zbytočné volanie a chvíľa na SK fallbacku).
       const descChanged = (readLocalTrails().find((tr) => tr.id === finishId)?.desc ?? '') !== patch.desc;
       if (descChanged) patch.descEN = undefined;
+      // Ten istý princíp pre názov (8. 10. 2026). Adresa (`urlSlug`) sa pri premenovaní NEMENÍ —
+      // zdieľaný odkaz by inak prestal fungovať.
+      const prevTrail = readLocalTrails().find((tr) => tr.id === finishId);
+      const nameChanged = (prevTrail?.name ?? '') !== patch.name;
+      if (nameChanged) patch.nameEN = undefined;
+      if (!prevTrail?.urlSlug && patch.name) {
+        const slug = makeTripUrlSlug(patch.name, [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS]);
+        if (slug) patch.urlSlug = slug;
+      }
       if (!updateLocalTrail(finishId, patch)) {
         reportAddError(t('pack.map.errorPhotosStorage'));
         return false;
       }
       if (descChanged) translateLocalTrailDesc(finishId, () => setLocalTrails(readLocalTrails()));
+      if (nameChanged) translateLocalTrailName(finishId, () => setLocalTrails(readLocalTrails()));
         // POSÁDKA JE ROZHODNUTIE, NIE ODHAD (B20): dopísaný koncept smie psa aj ODOBRAŤ,
       // preto `setDogTripCrew` (prepisuje), nie `attributeDogTrips` (dopĺňa).
       setDogTripCrew(finishId, crewDogIds(draft.crew));
@@ -5421,8 +5431,10 @@ export default function PackMap() {
       const line = geo.path;
       const km = (totalDistanceM(line) / 1000).toFixed(1);
       const tid = `local-${Date.now()}-${Math.round(totalDistanceM(line))}`;
+      const urlSlug = makeTripUrlSlug(draft.name.trim(), [...localTrails, ...HERO_JOURNEYS, ...HERO_TRAILS]);
       const newTrail: HeroTrail = {
         id: tid,
+        ...(urlSlug ? { urlSlug } : {}),
         name: draft.name.trim(),
         region: draft.region ?? '',
         country: draft.country,
@@ -5481,6 +5493,7 @@ export default function PackMap() {
       reportAddError(photosDropped ? t('pack.map.errorPhotosDropped') : '');
       setLocalTrails(next);
       translateLocalTrailDesc(tid, () => setLocalTrails(readLocalTrails()));
+      translateLocalTrailName(tid, () => setLocalTrails(readLocalTrails()));
       setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
       // PSIE KM (B20): sprievodca ako jediný vie, KTORÝ pes išiel — jeho slovo prebíja
       // odhad triggeru nad `trip_walked`.
@@ -6069,7 +6082,7 @@ export default function PackMap() {
                 </span>
               </div>
             )}
-            <div className="trp-bigcard-name">{tr.name}</div>
+            <div className="trp-bigcard-name">{tripName(tr, lang)}</div>
           </div>
           {/* PODPISOVÝ RIADOK (Matej 2026-08-26): „rozdelíme to na 2 riadky — prvý riadok názov,
               treba zväčšiť text, druhý riadok fotka a meno autora a vedľa hodnotenie, malým
@@ -6241,7 +6254,7 @@ export default function PackMap() {
                 <div className="trp-inldet-main">
                   <div className="trp-inldet-info">
                     <div className="trp-inldet-loc">{dt.region}{REGION_OF[dt.region] ? ` · ${t(`pack.map.macroRegion.${REGION_OF[dt.region]}`)}` : ''}</div>
-                    <div className="trp-inldet-name">{dt.name}</div>
+                    <div className="trp-inldet-name">{tripName(dt, lang)}</div>
                     {/* ── AKO SA TAM IDE (2026-08-26) ──────────────────────────────
                         Doprava · odkiaľ · voľné miesta. Zdroj je INZERÁT (`events`), nie
                         výlet: Matej 26. 8. — „doprava sa nikde inde nezapisuje, je to len

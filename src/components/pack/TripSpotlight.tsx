@@ -22,7 +22,7 @@ import { PLANNING_LIVE } from '@/lib/packFlags';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds, tripPath, pluralKey, visibleLocalTrails, RatingPaws, coverPos } from './tripShared';
+import { readLocalTrails, readWalkedIds, tripPath, tripName, pluralKey, visibleLocalTrails, RatingPaws, coverPos } from './tripShared';
 import { readTriplist } from './triplist/triplist';
 import { parsePlanDate, planDateLabel, planStart } from './addtrip/planDate';
 import { planPhase } from './planReminder';
@@ -507,7 +507,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
           </p>
 
           <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 24, lineHeight: 1.08, letterSpacing: '0.02em', textTransform: 'uppercase', color: T.cardSoft, margin: 0, textShadow: '0 4px 26px rgba(0,0,0,0.9)' }}>
-            {trail.name}
+            {tripName(trail, lang)}
           </h3>
 
           <div className="flex flex-wrap gap-2" style={{ marginTop: 12 }}>

@@ -12,6 +12,10 @@ export type HeroTrail = {
    *  ich pri čítaní zhodil. Nový výlet ho nedostane. */
   dogNote?: string;
   descEN?: string; dogNoteEN?: string;   // EN preklad popisu (SK je zdroj)
+  // NÁZOV V EN + ČITATEĽNÁ ADRESA (8. 10. 2026) — len ADD-flow výlety. nameEN = preklad názvu
+  // (rovnaká cesta ako descEN). urlSlug = miesto v adrese namiesto local-<čas>; id sa NEMENÍ,
+  // drží prejdenia, hlasy aj fotky — urlSlug je len druhé meno, článok hľadá výlet podľa oboch.
+  nameEN?: string; urlSlug?: string;
   acts?: string[]; surface?: string[]; crowd?: string; tags?: string[];
   ascentM?: number;   // prevýšenie z DEM eudem25m (m), kalibrované na SNP=29403
   elev?: number[];    // výškový profil (m), downsamplovaný na ~50 bodov rovnomerne po km trasy

@@ -15,11 +15,11 @@ import { Link } from 'react-router-dom';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds, tripPath, visibleLocalTrails } from './tripShared';
+import { readLocalTrails, readWalkedIds, tripPath, tripName, visibleLocalTrails } from './tripShared';
 import { readTriplist } from './triplist/triplist';
 import { PACK_THEME, PACK_BOX, FONT_UI, GOLD_BTN } from './packTheme';
 import { BrandIcon } from './BrandIcon';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 const DAY_MS = 86400000;
@@ -49,6 +49,7 @@ function countdownLabel(days: number, t: ReturnType<typeof useT>): string {
 
 export function NextTripCard() {
   const t = useT();
+  const { lang } = useLang();
   const next = useMemo(() => {
     const nowMs = Date.now();
     const allTrails: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];
@@ -173,7 +174,7 @@ export function NextTripCard() {
             overflow: 'hidden',
           }}
         >
-          {trail.name}
+          {tripName(trail, lang)}
         </span>
         <span style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, color: T.cardEdge }}>
           {countdownLabel(days, t)}
