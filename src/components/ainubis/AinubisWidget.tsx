@@ -156,6 +156,18 @@ interface AinubisPollResponse {
   messages: AinubisWireMessage[];
   takeover: boolean;
   status?: string;
+  /** Matejove odpovede, ktoré človek ešte NEVIDEL (server, `seen_by_user`). */
+  unread?: number;
+}
+
+// Odkaz z mailu „máš odpoveď" (`notify-ainubis-reply`, 9. 10. 2026) nesie
+// `?ainubis=<conversation_id>.<session_token>` — rozhovor sa otvorí aj na inom
+// zariadení, než kde začal (dovtedy žil len v localStorage jedného prehliadača).
+function conversationFromUrl(): { id: string; tok: string } | null {
+  if (typeof window === 'undefined') return null;
+  const raw = new URLSearchParams(window.location.search).get('ainubis') ?? '';
+  const m = /^([0-9a-f-]{36})\.([A-Za-z0-9_-]{16,})$/i.exec(raw);
+  return m ? { id: m[1], tok: m[2] } : null;
 }
 
 interface AinubisErrorBody {
@@ -407,9 +419,20 @@ function AinubisWidgetInner() {
   // Medzi obrazovkami ostáva otvorený — rozhovor ide s človekom ďalej. `LS_OPEN` sa
   // ďalej zapisuje, ale pri štarte sa nečíta: otvorený panel prežil reload a na PC
   // prekrýval obsah (test po FLIPe — odpovede kvízu, ADD A PACK MEMBER).
-  const [open, setOpen] = useState(false);
-  const [conversationId, setConversationId] = useState<string | null>(() => safeLocalStorageGet(LS_CONV));
-  const [sessionToken, setSessionToken] = useState<string | null>(() => safeLocalStorageGet(LS_TOK));
+  const fromMail = useState(() => conversationFromUrl())[0];
+  const [open, setOpen] = useState(() => fromMail !== null);
+  const [conversationId, setConversationId] = useState<string | null>(() => {
+    if (fromMail) { safeLocalStorageSet(LS_CONV, fromMail.id); safeLocalStorageSet(LS_TOK, fromMail.tok); return fromMail.id; }
+    return safeLocalStorageGet(LS_CONV);
+  });
+  const [sessionToken, setSessionToken] = useState<string | null>(() => fromMail?.tok ?? safeLocalStorageGet(LS_TOK));
+  // Token z mailu nenecháme v adresnom riadku (zdieľanie odkazu, história).
+  useEffect(() => {
+    if (!fromMail) return;
+    const u = new URL(window.location.href);
+    u.searchParams.delete('ainubis');
+    window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash);
+  }, [fromMail]);
   /**
    * Vybraná vetva. `null` = človek ešte neklikol ⇒ ukážu sa dvere a NEPOŠLE sa
    * nič; server by pri chýbajúcej vetve poskladal plný prompt, takže „zatiaľ
@@ -796,6 +819,10 @@ function AinubisWidgetInner() {
 
   function applyPollResult(res: AinubisPollResponse) {
     setTakeoverActive(res.takeover);
+    // Odznak drží SERVER (`seen_by_user`), nie počítadlo od načítania stránky —
+    // inak Matejova odpoveď z noci po reloade zmizne bez stopy.
+    const serverUnread = typeof res.unread === 'number' ? res.unread : null;
+    if (serverUnread !== null && !openRef.current) setUnreadCount(serverUnread);
     if (!res.messages || res.messages.length === 0) return;
     let additions: AinubisWireMessage[] = [];
     setMessages((prev) => {
@@ -820,7 +847,7 @@ function AinubisWidgetInner() {
     if (openRef.current) {
       const last = fromGuardian[fromGuardian.length - 1];
       startTypewriter(last.id, last.content);
-    } else {
+    } else if (serverUnread === null) {
       setUnreadCount((c) => c + fromGuardian.length);
     }
   }
@@ -836,7 +863,8 @@ function AinubisWidgetInner() {
       try {
         const after = initialFetchDone ? latestKnownAt(messagesRef.current) : undefined;
         const { data, error } = await supabase.functions.invoke('ainubis-poll', {
-          body: { conversation_id: conversationId, session_token: sessionToken, after },
+          // `seen` = panel je otvorený, človek odpovede práve vidí → server ich označí.
+          body: { conversation_id: conversationId, session_token: sessionToken, after, seen: openRef.current },
         });
         initialFetchDone = true;
         if (cancelled) return;
