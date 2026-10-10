@@ -1370,7 +1370,7 @@ export const jpn: Partial<Dict> = {
   "heroglyph.flow.checkoutNew.free": "€0",
   "heroglyph.flow.checkoutNew.itemLabel": "品目：",
   "heroglyph.flow.checkoutNew.itemTitle": "Heroglyphの持ち主：",
-  "heroglyph.flow.checkoutNew.memberLine": "+ メンバーシップ（{year}）",
+  "heroglyph.flow.checkoutNew.memberLine": "+ メンバーシップ",
   "heroglyph.flow.checkoutNew.name": "名前",
   "heroglyph.flow.checkoutNew.needEmail": "メールアドレスを入力してください — そこへHEROGLYPHをお送りします。",
   "heroglyph.flow.checkoutNew.pay": "{sum}を支払う",

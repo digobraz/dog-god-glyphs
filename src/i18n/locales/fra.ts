@@ -1559,7 +1559,7 @@ export const fra: Partial<Dict> = {
   "heroglyph.flow.checkoutNew.free": "€0",
   "heroglyph.flow.checkoutNew.itemLabel": "Article :",
   "heroglyph.flow.checkoutNew.itemTitle": "Heroglyph pour :",
-  "heroglyph.flow.checkoutNew.memberLine": "+ Adhésion ({year})",
+  "heroglyph.flow.checkoutNew.memberLine": "+ Adhésion",
   "heroglyph.flow.checkoutNew.name": "Nom",
   "heroglyph.flow.checkoutNew.needEmail": "Ajoute ton e-mail — on t’y enverra ton HEROGLYPH.",
   "heroglyph.flow.checkoutNew.pay": "Payer {sum}",

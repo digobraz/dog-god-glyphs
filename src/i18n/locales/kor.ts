@@ -1373,7 +1373,7 @@ export const kor: Partial<Dict> = {
   "heroglyph.flow.checkoutNew.free": "€0",
   "heroglyph.flow.checkoutNew.itemLabel": "항목:",
   "heroglyph.flow.checkoutNew.itemTitle": "Heroglyph 주인:",
-  "heroglyph.flow.checkoutNew.memberLine": "+ 멤버십 ({year})",
+  "heroglyph.flow.checkoutNew.memberLine": "+ 멤버십",
   "heroglyph.flow.checkoutNew.name": "이름",
   "heroglyph.flow.checkoutNew.needEmail": "이메일을 입력해 주세요 — 그곳으로 HEROGLYPH를 보내 드려요.",
   "heroglyph.flow.checkoutNew.pay": "{sum} 결제하기",

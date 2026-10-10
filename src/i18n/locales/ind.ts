@@ -1374,7 +1374,7 @@ export const ind: Partial<Dict> = {
   "heroglyph.flow.checkoutNew.free": "€0",
   "heroglyph.flow.checkoutNew.itemLabel": "आइटम:",
   "heroglyph.flow.checkoutNew.itemTitle": "Heroglyph — इनके लिए:",
-  "heroglyph.flow.checkoutNew.memberLine": "+ सदस्यता ({year})",
+  "heroglyph.flow.checkoutNew.memberLine": "+ सदस्यता",
   "heroglyph.flow.checkoutNew.name": "नाम",
   "heroglyph.flow.checkoutNew.needEmail": "अपना ई-मेल जोड़ें — हम आपका HEROGLYPH वहीं भेजेंगे।",
   "heroglyph.flow.checkoutNew.pay": "{sum} चुकाएँ",

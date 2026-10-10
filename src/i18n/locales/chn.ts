@@ -1370,7 +1370,7 @@ export const chn: Partial<Dict> = {
   "heroglyph.flow.checkoutNew.free": "€0",
   "heroglyph.flow.checkoutNew.itemLabel": "项目：",
   "heroglyph.flow.checkoutNew.itemTitle": "Heroglyph 属于：",
-  "heroglyph.flow.checkoutNew.memberLine": "+ 会员资格（{year}）",
+  "heroglyph.flow.checkoutNew.memberLine": "+ 会员资格",
   "heroglyph.flow.checkoutNew.name": "名字",
   "heroglyph.flow.checkoutNew.needEmail": "填写你的邮箱——我们会把你的 HEROGLYPH 发到那里。",
   "heroglyph.flow.checkoutNew.pay": "支付 {sum}",

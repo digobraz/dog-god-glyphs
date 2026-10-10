@@ -374,7 +374,7 @@ export function FlowCheckoutScreen() {
                 <div className="co-bill-row">
                   <button type="button" className="co-member-link" onClick={() => setPanel('get')}>
                     {/* Matej 26. 9.: *„tu daj Členstvo v DOGYPTE (2026)"* — rok = rok nákupu. */}
-                    {t('heroglyph.flow.checkoutNew.memberLine', { year: new Date().getFullYear() })}
+                    {t('heroglyph.flow.checkoutNew.memberLine')}
                   </button>
                   <span className="co-free">{t('heroglyph.flow.checkoutNew.free')}</span>
                 </div>

@@ -1370,7 +1370,7 @@ export const ara: Partial<Dict> = {
   "heroglyph.flow.checkoutNew.free": "€0",
   "heroglyph.flow.checkoutNew.itemLabel": "العنصر:",
   "heroglyph.flow.checkoutNew.itemTitle": "صاحب Heroglyph:",
-  "heroglyph.flow.checkoutNew.memberLine": "+ العضوية ({year})",
+  "heroglyph.flow.checkoutNew.memberLine": "+ العضوية",
   "heroglyph.flow.checkoutNew.name": "الاسم",
   "heroglyph.flow.checkoutNew.needEmail": "أضف بريدك الإلكتروني — سنرسل إليه HEROGLYPH الخاص بك.",
   "heroglyph.flow.checkoutNew.pay": "ادفع {sum}",

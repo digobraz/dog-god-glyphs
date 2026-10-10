@@ -541,7 +541,7 @@ export const en = {
   'heroglyph.flow.checkoutNew.itemLabel': "Item:",
   'heroglyph.flow.checkoutNew.itemTitle': "Heroglyph for:",
   'heroglyph.flow.checkoutNew.whatYouBuy': "What you buy",
-  'heroglyph.flow.checkoutNew.memberLine': "+ Membership ({year})",
+  'heroglyph.flow.checkoutNew.memberLine': "+ Membership",
   'heroglyph.flow.checkoutNew.free': "€0",
   'heroglyph.flow.checkoutNew.needEmail': 'Add your e-mail — we will send your HEROGLYPH there.',
   'heroglyph.flow.checkoutNew.whatMember': 'What membership includes',

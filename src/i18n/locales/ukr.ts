@@ -1558,7 +1558,7 @@ export const ukr: Partial<Dict> = {
   "heroglyph.flow.checkoutNew.free": "€0",
   "heroglyph.flow.checkoutNew.itemLabel": "Позиція:",
   "heroglyph.flow.checkoutNew.itemTitle": "Heroglyph для:",
-  "heroglyph.flow.checkoutNew.memberLine": "+ Членство ({year})",
+  "heroglyph.flow.checkoutNew.memberLine": "+ Членство",
   "heroglyph.flow.checkoutNew.name": "Ім'я",
   "heroglyph.flow.checkoutNew.needEmail": "Додай e-mail — ми надішлемо туди твій HEROGLYPH.",
   "heroglyph.flow.checkoutNew.pay": "Оплатити {sum}",

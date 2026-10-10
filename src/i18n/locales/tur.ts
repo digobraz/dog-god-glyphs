@@ -1373,7 +1373,7 @@ export const tur: Partial<Dict> = {
   "heroglyph.flow.checkoutNew.free": "€0",
   "heroglyph.flow.checkoutNew.itemLabel": "Ürün:",
   "heroglyph.flow.checkoutNew.itemTitle": "Heroglyph sahibi:",
-  "heroglyph.flow.checkoutNew.memberLine": "+ Üyelik ({year})",
+  "heroglyph.flow.checkoutNew.memberLine": "+ Üyelik",
   "heroglyph.flow.checkoutNew.name": "Ad",
   "heroglyph.flow.checkoutNew.needEmail": "E-postanı ekle — HEROGLYPH’ini oraya göndereceğiz.",
   "heroglyph.flow.checkoutNew.pay": "{sum} öde",

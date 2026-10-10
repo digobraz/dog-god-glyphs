@@ -345,7 +345,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.checkoutNew.itemLabel': "Položka:",
   'heroglyph.flow.checkoutNew.itemTitle': "Heroglyph pro:",
   'heroglyph.flow.checkoutNew.whatYouBuy': "Co kupuješ",
-  'heroglyph.flow.checkoutNew.memberLine': "+ Členství ({year})",
+  'heroglyph.flow.checkoutNew.memberLine': "+ Členství",
   'heroglyph.flow.checkoutNew.free': "€0",
   'heroglyph.flow.checkoutNew.needEmail': 'Doplň e-mail — pošleme na něj tvůj HEROGLYPH.',
   'heroglyph.flow.checkoutNew.whatMember': 'Co zahrnuje členství',
