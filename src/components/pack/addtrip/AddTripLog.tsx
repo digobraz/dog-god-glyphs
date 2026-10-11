@@ -27,7 +27,6 @@ import { voteMemorialTrips } from '@/components/pack/memorialTrips';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { estimateTripMinutes } from '@/lib/tripTime';
 import { createPortal } from 'react-dom';
 import type { MutableRefObject } from 'react';
 import L from 'leaflet';
@@ -634,13 +633,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
   // živé km/prevýšenie zapisujeme do draftu LEN PRI SUBMITE (kontrakt §2 „nie priebežne" — inak
   // by autosave/re-render bežal na každý klik pri kreslení).
   const metricsRef = useRef<{ km: number; ascentM: number | null; minutes: number | null; points: number }>({ km: 0, ascentM: null, minutes: null, points: 0 });
-  // RUČNÉ KM A PREVÝŠENIE (Matej 11. 10. 2026): `metricsRef` je ref (bez prekreslenia), preto
-  // sa jeho hodnoty zrkadlia aj do stavu — polia ich predvyplnia a doplnia, keď výpočet dobehne.
-  // `null` = človek pole ešte nemenil → platí vypočítaná hodnota; text = jeho ruka, tá VYHRÁVA.
-  const [liveKm, setLiveKm] = useState(0);
-  const [liveAscent, setLiveAscent] = useState<number | null>(null);
-  const [kmInput, setKmInput] = useState<string | null>(null);
-  const [ascInput, setAscInput] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   // NAJPRV MAPA, POTOM FORMULÁR (Matej 2026-08-22, rozvinuté 23. 8. do krokov): po výbere
@@ -1216,8 +1208,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
   // NAJMENŠÍ ZÁPIS — náhľad musí hovoriť to isté, čo mapa. Plná čiara v rámiku by tvrdila
   // trasu, ktorú človek práve odmietol nakresliť.
   const isMinimalGeo = geometry.kind === 'route' && !!geometry.minimal;
-  // Ručné km/↑ majú zmysel len pri túre s trasou — návšteva km nemá, najmenší zápis ich nehlási.
-  const isRouteLog = activity === 'hike' && geometry.kind === 'route' && !isMinimalGeo;
   // ⚠️ Viacdňovosť je ODPOVEĎ z kroku 1, nie dôsledok dátumu (viď `multiDay` vyššie).
   const isMultiDay = activity === 'hike' && multiDay;
   /**
@@ -1573,34 +1563,17 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
     return missingElevationCount(sampled) < sampled.length ? calibratedAscent(path, elevAt) : null;
   };
 
-  /** Ručné číslo z poľa: nezmysel (mimo medzí, nečíslo) = null → platí vypočítané. */
-  const parseManual = (raw: string | null, max: number, decimals: number): number | null => {
-    if (raw == null || raw.trim() === '') return null;
-    const n = parseFloat(raw.replace(',', '.'));
-    if (!Number.isFinite(n) || n <= 0 || n > max) return null;
-    return Number(n.toFixed(decimals));
-  };
-
   const doSubmit = async () => {
     setSubmitError('');
     setSaving(true);
-    const manualKm = isRouteLog ? parseManual(kmInput, 200, 1) : null;
-    const manualAsc = isRouteLog ? parseManual(ascInput, 9000, 0) : null;
-    // Ručné prevýšenie nepotrebuje čakať na výšky.
-    const ascentM = manualAsc ?? await resolveAscent();
+    const ascentM = await resolveAscent();
     setSaving(false);
-    const kmFinal = manualKm ?? (metricsRef.current.km > 0 ? Number(metricsRef.current.km.toFixed(1)) : undefined);
-    // Čas sa odvodzuje z km a stúpania; pri ručnom čísle sa prepočíta (klesanie metrika
-    // nenesie, berie sa ako stúpanie — okruh). Bez ručného zásahu ostáva hodnota z pickera.
-    const minutesFinal = (manualKm != null || manualAsc != null) && kmFinal
-      ? (estimateTripMinutes(kmFinal, ascentM, ascentM) ?? undefined)
-      : (metricsRef.current.minutes ?? undefined);
     const finalDraft: AddTripDraft = {
       ...draft,
       approval: finalApproval,
-      km: kmFinal,
+      km: metricsRef.current.km > 0 ? Number(metricsRef.current.km.toFixed(1)) : undefined,
       ascentM: ascentM ?? undefined,
-      minutes: minutesFinal,
+      minutes: metricsRef.current.minutes ?? undefined,
     };
     const ok = onSubmit(finalDraft);
     if (!ok) { setSubmitError("Couldn't save — storage might be full. Remove something and try again."); return; }
@@ -2434,38 +2407,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
       {/* Magistrálu si nikto nekreslí po bodoch — 750 km Cesty hrdinov SNP leží hotových
           v `HERO_JOURNEYS`. Do 27. 8. sa zoznam otváral SÁM (aktivita „Putovanie"); dnes je
           to odkaz, aby človeku, ktorý má trasu rozkreslenú, nezmizla pod zoznamom. */}
-      {isRouteLog && geoDone && (
-        <div className="atl-daymanual">
-          <label className="atl-daymanual-f">
-            <span className="atl-daymode-ask">{t('pack.addTrip.manual.km')}</span>
-            <input
-              className="atl-input"
-              type="number"
-              inputMode="decimal"
-              min={0}
-              max={200}
-              step={0.1}
-              value={kmInput ?? (liveKm > 0 ? String(liveKm) : '')}
-              placeholder="km"
-              onChange={(e) => setKmInput(e.target.value)}
-            />
-          </label>
-          <label className="atl-daymanual-f">
-            <span className="atl-daymode-ask">{t('pack.addTrip.manual.ascent')}</span>
-            <input
-              className="atl-input"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={9000}
-              step={1}
-              value={ascInput ?? (liveAscent != null && liveKm > 0 ? String(liveAscent) : '')}
-              placeholder="…"
-              onChange={(e) => setAscInput(e.target.value)}
-            />
-          </label>
-        </div>
-      )}
       {multiDay && !journeyPick && (
         <button type="button" className="atl-daymode-link" onClick={() => setJourneyPick(true)}>
           {t('pack.addTrip.step.pickJourney')}
@@ -3044,12 +2985,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                     // čase (Matej 25. 8. 2026).
                     mode={isPlan ? 'plan' : 'log'}
                     allTrails={allTrails}
-                    onMetrics={(m) => {
-                      metricsRef.current = m;
-                      const k = m.km > 0 ? Number(m.km.toFixed(1)) : 0;
-                      setLiveKm((prev) => (prev === k ? prev : k));
-                      setLiveAscent((prev) => (prev === m.ascentM ? prev : m.ascentM));
-                    }}
+                    onMetrics={(m) => { metricsRef.current = m; }}
                     mapRef={mapRef}
                     mirrorRef={mirrorRef}
                     snapAllRef={snapAllRef}
@@ -4585,8 +4521,6 @@ const LOG_CSS = `
    rozostup a popiska. Žiadny vlastný podklad — druhá plocha vnútri panela by z jedného
    ovládania spravila dve. */
 .atl-daymode{display:flex;flex-direction:column;gap:7px;}
-.atl-daymanual{display:flex;gap:8px;}
-.atl-daymanual-f{display:flex;flex-direction:column;gap:4px;flex:1 1 0;min-width:0;}
 .atl-daymode-ask{font-family:${FONT_UI};font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${T.onDarkDim};}
 /* Odkaz, nie tretie tlačidlo: výber z magistrál je vedľajšia cesta k tej istej trase a
    v rade s dvoma prepínačmi by vyzeral ako tretia odpoveď na otázku o dĺžke výletu. */
