@@ -55,12 +55,28 @@ const snapInFlight = new Map<string, Promise<SnapResult>>();
  */
 const elevInFlight = new Map<string, Promise<void>>();
 
+/**
+ * ⚠️ PO 429 SA STÍŠ (11. 10. 2026, Daniela #42) ───────────────────────────────────────────
+ * Server jej za hodinu zaznamenal 10 162 volaní: limit sa minul za dve minúty kreslenia
+ * a potom každý klik + `healLegs` + prepočet výšok pýtal znova, všetko 429, a každé 429
+ * sa započítalo do okna — blokáda sa sama udržiavala až do konca hodiny. Odteraz prvé 429
+ * zatvorí sieť na `COOLDOWN_MS`: úseky idú rovno, výšky čakajú a nikto sa nepýta.
+ */
+const COOLDOWN_MS = 60_000;
+let coolUntil = 0;
+const cooling = () => Date.now() < coolUntil;
+const startCooldown = () => { coolUntil = Date.now() + COOLDOWN_MS; };
+/** Koľko ms ešte trvá stíšenie po 429 (0 = sieť je voľná). Prepočet výšok podľa toho plánuje opakovanie. */
+export function mapProxyCooldownMs(): number {
+  return Math.max(0, coolUntil - Date.now());
+}
+
 function segKey(from: LatLngTuple, to: LatLngTuple): string {
   return `${elevCacheKey(from[0], from[1])}|${elevCacheKey(to[0], to[1])}`;
 }
 
 // ── auth hlavičky ───────────────────────────────────────────────────────────────────────
-// Prihlásený člen → jeho JWT (proxy podľa neho ráta per-user rate limit 150/h, 600/deň).
+// Prihlásený člen → jeho JWT (proxy podľa neho ráta per-user rate limit 300/h, 1200/deň zvlášť pre trasu a výšky).
 // Bez session (dev DEV_NOAUTH, alebo odhlásený) → anon key; proxy padne na rate limit podľa IP.
 async function authHeaders(): Promise<Record<string, string>> {
   let token = SUPABASE_ANON_KEY;
@@ -103,6 +119,8 @@ export async function snapSegment(
     reason,
   });
 
+  if (cooling()) return straightFallback('ratelimited');
+
   const task = (async (): Promise<SnapResult> => {
     try {
       const res = await fetch(ROUTE_URL, {
@@ -113,7 +131,7 @@ export async function snapSegment(
       });
 
       // 429 = per-user rate limit. Žiadny retry — volajúci ukáže „slow down" a kreslí rovno.
-      if (res.status === 429) return straightFallback('ratelimited');
+      if (res.status === 429) { startCooldown(); return straightFallback('ratelimited'); }
       if (!res.ok) return straightFallback('error');
 
       const d = await res.json();
@@ -173,7 +191,7 @@ export async function ensureElevations(points: LatLngTuple[], signal?: AbortSign
   try {
     const entries = [...wanted.entries()];
     for (let i = 0; i < entries.length; i += ELEVATION_BATCH) {
-      if (signal?.aborted) return;
+      if (signal?.aborted || cooling()) return;
       const chunk = entries.slice(i, i + ELEVATION_BATCH);
       try {
         const res = await fetch(ELEVATION_URL, {
@@ -182,6 +200,7 @@ export async function ensureElevations(points: LatLngTuple[], signal?: AbortSign
           body: JSON.stringify({ points: chunk.map(([, p]) => p) }),
           signal,
         });
+        if (res.status === 429) { startCooldown(); return; }
         if (res.ok) {
           const d = await res.json();
           const elevations: Array<number | null> = Array.isArray(d?.elevations) ? d.elevations : [];

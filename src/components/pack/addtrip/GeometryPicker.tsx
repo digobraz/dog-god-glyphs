@@ -45,6 +45,7 @@ import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circ
 import {
   ensureElevations,
   elevAt,
+  mapProxyCooldownMs,
   missingElevationCount,
   snapSegment,
   type SnapReason,
@@ -454,7 +455,7 @@ export function GeometryPicker({
   // KRITICKÉ: prevýšenie sa NESMIE sčítavať po segmentoch. Batch skript (compute-ascent.py)
   // prevzorkuje celú stopu na 100 m a až potom počíta stúpanie; ak by sme pripočítavali každý
   // nový úsek k predošlému súčtu, dostaneme iné číslo než dataset a tripy sa rozídu.
-  const recomputeAscent = useCallback(async (path: LatLngTuple[]) => {
+  const recomputeAscent = useCallback(async (path: LatLngTuple[], attempt = 0) => {
     if (path.length < 2) { setAscent(null); setDescent(null); setElevPending(false); return; }
     const run = ++runRef.current;
     const sampled = interp(path, SPACING);
@@ -469,9 +470,21 @@ export function GeometryPicker({
       if (run !== runRef.current) return; // medzitým prišiel novší klik
       setAscent(calibratedAscent(path, elevAt));
       setDescent(calibratedDescent(path, elevAt));
-      setElevPending(missingElevationCount(sampled) > 0);
+      const still = missingElevationCount(sampled) > 0;
+      setElevPending(still);
+      // ⚠️ VÝŠKY SA DOPÝTAJÚ SAMY (11. 10. 2026, Daniela #42: „↑ …" viselo naveky). Prepočet
+      //    dovtedy spúšťal len ďalší klik — po dokreslení trasy (alebo po 429) už žiadny nepríde.
+      //    Opakuje sa po stíšení proxy, najviac 5× s rastúcim odstupom; novší klik ho zruší cez `run`.
+      if (still && attempt < 5) {
+        const wait = Math.max(mapProxyCooldownMs(), 5_000 * 2 ** attempt);
+        setTimeout(() => {
+          if (run === runRef.current) void recomputeAscentRef.current(path, attempt + 1);
+        }, wait);
+      }
     }
   }, []);
+  const recomputeAscentRef = useRef(recomputeAscent);
+  recomputeAscentRef.current = recomputeAscent;
 
   // ── zloženie stopy z kotiev + legs ────────────────────────────────────────────────────
   const buildSnapPath = useCallback((anchors: LatLngTuple[]): LatLngTuple[] => {
@@ -584,6 +597,9 @@ export function GeometryPicker({
       if (!leg || leg.length !== 2 || hav(anchors[i], anchors[i + 1]) < 40) continue;
       const r = await snapSegment(anchors[i], anchors[i + 1]);
       if (!samePt(pathRef.current[i + 1], anchors[i + 1])) return; // trasa sa medzitým zmenila
+      // limit alebo porucha = ďalšie úseky by dopadli rovnako; dotiahne ich až ďalší klik
+      // (11. 10. 2026: bez tejto brzdy pýtal každý klik VŠETKY rovné úseky znova → 10 162 volaní/h)
+      if (r.reason === 'ratelimited' || r.reason === 'error') break;
       if (r.snapped && legsRef.current[i]?.length === 2) { legsRef.current[i] = r.geometry; changed = true; }
     }
     if (!changed || !samePt(pathRef.current[anchors.length - 1], anchors[anchors.length - 1])) return;
