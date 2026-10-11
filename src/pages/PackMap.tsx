@@ -156,6 +156,7 @@ import { DeleteButton, DELETE_BUTTON_CSS } from '@/components/pack/DeleteButton'
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import { EVENT_RIM, TRIP_TARGET_EMOJI, eventEmoji, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
+import { gradeTrail, gradeRank } from '@/lib/tripGrade';
 import { useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
 import { MapPlaceCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
 import { nearestTrailId, canAddParkingAt } from '@/components/pack/mapnotes/mapNotesGeo';
@@ -5899,6 +5900,13 @@ export default function PackMap() {
     for (const { tr } of visibleHeroTrails) crowdRankById.set(tr.id, crowdRank(crowdAggregate(tr, votes[tr.id]).crowd));
   }
 
+  // Známka výletu A/B/C (11. 10. 2026, `lib/tripGrade.ts`) — písmeno sa verejne nezobrazuje,
+  // prejaví sa LEN poradím. Rátané RAZ za render (gradeTrail volá geometriu značiek), nie v komparátore.
+  const gradeRankById = new Map<string, number>();
+  for (const { tr } of visibleHeroTrails) gradeRankById.set(tr.id, gradeRank(gradeTrail(tr, mapNotes.notes).grade));
+  const gradeDiff = (a: { tr: { id: string } }, b: { tr: { id: string } }) =>
+    (gradeRankById.get(a.tr.id) ?? 2) - (gradeRankById.get(b.tr.id) ?? 2);
+
   const sortTrips = (arr: typeof visibleHeroTrails) => [...arr].sort((a, b) => {
     // ⚠️ V PRIEHRADKE ODYSEA ROZHODUJE NÁROČNOSŤ (Matej 2026-08-27, §12.4: „ODYSEA ukáže
     // všetky viacdňové zoradené podľa náročnosti"). Je to jediná priehradka, kde sú všetky
@@ -5906,22 +5914,30 @@ export default function PackMap() {
     if (heroDiff === 'Odyssey') {
       const d = diffRank(a.tr.diff) - diffRank(b.tr.diff);
       if (d !== 0) return d;
+      const g = gradeDiff(a, b);
+      if (g !== 0) return g;
       return b.tr.stars - a.tr.stars;
     }
     const ja = a.tr.acts?.includes('journey') ? 1 : 0;
     const jb = b.tr.acts?.includes('journey') ? 1 : 0;
     if (ja !== jb) return ja - jb;
-    if (mobileSort === 'easiest') return diffRank(a.tr.diff) - diffRank(b.tr.diff);
-    if (mobileSort === 'hardest') return diffRank(b.tr.diff) - diffRank(a.tr.diff);
+    if (mobileSort === 'easiest' || mobileSort === 'hardest') {
+      const d = mobileSort === 'easiest' ? diffRank(a.tr.diff) - diffRank(b.tr.diff) : diffRank(b.tr.diff) - diffRank(a.tr.diff);
+      if (d !== 0) return d;
+      const g = gradeDiff(a, b);
+      return g !== 0 ? g : b.tr.stars - a.tr.stars;
+    }
     // „Od najkľudnejšieho" (Matej 2026-08-22) — filter ruchu tu bol od 24. 7., zoradenie nie.
     // Pri rovnakom ruchu rozhoduje hodnotenie, nech poradie v skupine nie je náhodné.
     if (mobileSort === 'calmest') {
       const ca = crowdRankById.get(a.tr.id) ?? 4;
       const cb = crowdRankById.get(b.tr.id) ?? 4;
       if (ca !== cb) return ca - cb;
-      return b.tr.stars - a.tr.stars;
+      const g = gradeDiff(a, b);
+      return g !== 0 ? g : b.tr.stars - a.tr.stars;
     }
-    return b.tr.stars - a.tr.stars; // 'top'
+    const g = gradeDiff(a, b); // 'top' — najprv známka, potom hviezdy
+    return g !== 0 ? g : b.tr.stars - a.tr.stars;
   });
 
   // Viewport-driven zoznam (Matej 2026-07-27) — MÄKKO, nie orezanie ako Google Maps: čo je vo
