@@ -364,6 +364,14 @@ export function GeometryPicker({
 
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  // Limit máp (429): červený text nahradil hlas AINUBISA v bubline (Matej 11. 10. 2026).
+  // Zhasne sám po stíšení klienta (`mapProxyCooldownMs`) alebo hneď pri ďalšom úspešnom snape.
+  const [slowed, setSlowed] = useState(false);
+  useEffect(() => {
+    if (!slowed) return;
+    const id = window.setTimeout(() => setSlowed(false), mapProxyCooldownMs() + 500);
+    return () => window.clearTimeout(id);
+  }, [slowed]);
   const [ascent, setAscent] = useState<number | null>(null);
   // Klesanie sa počíta z tej istej stopy a tých istých výšok ako stúpanie — je to len druhé
   // znamienko, takže nemá vlastné načítavanie ani vlastný `pending`.
@@ -500,7 +508,8 @@ export function GeometryPicker({
 
   const noticeFor = (reason: SnapReason): string | null => {
     if (reason === 'paused') return t('pack.addTrip.geo.noticePaused');
-    if (reason === 'ratelimited') return t('pack.addTrip.geo.noticeRatelimited');
+    // S bublinou AINUBISA (drawBar) hovorí on; bez nej ostáva text pod mapou, ale tiež jeho hlasom.
+    if (reason === 'ratelimited') return drawBar ? null : t('pack.addTrip.ainubis.ratelimited');
     if (reason === 'straight' || reason === 'error') return t('pack.addTrip.geo.noticeStraight');
     return null;
   };
@@ -568,6 +577,7 @@ export function GeometryPicker({
     const res = await snapSegment(anchors[anchors.length - 2], p);
     setBusy(false);
     setNotice(noticeFor(res.reason));
+    setSlowed(res.reason === 'ratelimited');
 
     legsRef.current[anchors.length - 2] = res.geometry;
     const cur = pathRef.current;
@@ -599,6 +609,7 @@ export function GeometryPicker({
       if (!samePt(pathRef.current[i + 1], anchors[i + 1])) return; // trasa sa medzitým zmenila
       // limit alebo porucha = ďalšie úseky by dopadli rovnako; dotiahne ich až ďalší klik
       // (11. 10. 2026: bez tejto brzdy pýtal každý klik VŠETKY rovné úseky znova → 10 162 volaní/h)
+      if (r.reason === 'ratelimited') setSlowed(true);
       if (r.reason === 'ratelimited' || r.reason === 'error') break;
       if (r.snapped && legsRef.current[i]?.length === 2) { legsRef.current[i] = r.geometry; changed = true; }
     }
@@ -1284,7 +1295,9 @@ export function GeometryPicker({
         : isArea && value.center
           ? t('pack.addTrip.geo.areaSetSize')
           : null;
-  const drawHint = drawBar?.hint !== undefined ? drawBar.hint : ownHint;
+  const drawHint = slowed && value.kind === 'route'
+    ? t('pack.addTrip.ainubis.ratelimited')
+    : drawBar?.hint !== undefined ? drawBar.hint : ownHint;
 
   // ── ČÍTANIE: JEDEN ZDROJ PRE PANEL AJ LIŠTU ───────────────────────────────────────────
   // Kým bol readout napísaný priamo v JSX panela, lišta by si ho musela opísať — a po prvej

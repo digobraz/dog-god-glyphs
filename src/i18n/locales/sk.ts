@@ -3393,6 +3393,9 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.step.askMoreOrNext': "Zapísané. Chceš pridať ešte niečo, alebo ideme ďalej?",
   'pack.addTrip.step.oneDay': "Jeden deň",
   'pack.addTrip.step.moreDays': "Viac dní",
+  'pack.addTrip.manual.km': "Kilometre",
+  'pack.addTrip.manual.ascent': "Prevýšenie ↑ m",
+  'pack.addTrip.ainubis.ratelimited': "Mapy ma na chvíľu pribrzdili. Kresli ďalej — chodníky aj prevýšenie dotiahnem sám, keď sa uvoľnia.",
   'pack.addTrip.step.pickJourney': "Idem po magistrále — vybrať zo zoznamu",
   // Dni a noci sa POČÍTAJÚ z dvoch dátumov (krok 3), nikde sa neukladajú.
   'pack.addTrip.step.daysOne': "{n} deň",
@@ -4230,6 +4233,7 @@ export const sk: Partial<Dict> = {
   'pack.trip.addToTriplistPlus': "+ Pridať do triplistu",
   'pack.trip.removeWalked': "✕ Zrušiť prejdené",
   'pack.trip.markWalked': "Označiť ako prejdené",
+  'pack.trip.markWalkedShort': "Prešli sme",
   'pack.trip.share': "Zdieľať",
   'pack.triplist.statusDone': "Hotovo",
   'pack.trip.pending': "Čaká na schválenie",
