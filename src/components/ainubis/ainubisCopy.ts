@@ -29,6 +29,9 @@ export interface AinubisCopy {
   micDenied: string;
   /** Dve bubliny, nie jedna — viď 04-copy-a-vizual.md §1. */
   welcome: string[];
+  /** JEDNA veta navyše do prvej uvítacej bubliny — LEN pre prihláseného člena s aspoň
+   *  jedným zaplateným psom (zadanie ainubis-dog-id, test č. 13). `one` dostane meno psa. */
+  welcomeDogs: { one: (dog: string) => string; many: string };
   /** Uvítanie na verejnom /onepage (Matej 5. 10. 2026): projekt, chyby, pomoc, pridať sa. */
   welcomePublic: string[];
   /** Témy verejného chatu (/onepage): voľba človeka + AINUBISOVA otázka k nej. */
@@ -118,6 +121,10 @@ const sk: AinubisCopy = {
     'Ahoj, som AInubis, tvoj osobný sprievodca v DOGYPTE. Keďže sa na stránke stále maká, práve tu mi môžeš nahlásiť svoj postreh — chyby, nápady, čokoľvek. Posuniem to ďalej a vyriešime to rýchlejšie, než si myslíš!',
     'Stlač toto a urob mi snímku obrazovky priamo do chatu :)',
   ],
+  welcomeDogs: {
+    one: (dog) => `${dog} už poznám z DOG ID — nemusíš mi ho predstavovať.`,
+    many: 'Tvojich psov už poznám z ich DOG ID — nemusíš mi ich predstavovať.',
+  },
   // JEDNA bublina (Matej 5. 10. 2026: „uvítanie len v jednej bublinke").
   welcomePublic: [
     'Haf! Som AINUBIS — strážca DOGYPTU a jeho AI agent. Všetko, čo mi tu napíšeš, ide rovno Matejovi, zakladateľovi. Čo ťa sem privádza?',
@@ -194,6 +201,10 @@ const en: AinubisCopy = {
     "Hi, I'm AInubis, your personal guide in DOGYPT. The site is still being built, so this is the place to report anything you notice — bugs, ideas, whatever. I'll pass it on and it gets fixed faster than you think!",
     'Press this and send me a screenshot straight into the chat :)',
   ],
+  welcomeDogs: {
+    one: (dog) => `I already know ${dog} from the DOG ID — no need to introduce them.`,
+    many: 'I already know your dogs from their DOG ID — no need to introduce them.',
+  },
   // ONE bubble (Matej 5. 10. 2026: „uvítanie len v jednej bublinke").
   welcomePublic: [
     "Woof! I'm AINUBIS — guardian of DOGYPT and its AI agent. Everything you write here goes straight to Matthew, the founder. What brings you here?",

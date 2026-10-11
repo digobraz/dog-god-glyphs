@@ -366,6 +366,45 @@ function useOptionalMemberEmail(): string | null {
   return email;
 }
 
+/** Mená zaplatených psov prihláseného člena (`user_id = auth.uid()`, `paid`) — pre
+ *  vetu „poznám tvojich psov z DOG ID" v uvítaní. Dotaz beží LEN keď je niekto
+ *  prihlásený (verejné stránky ho nespustia). FAIL-CLOSED: chyba / žiadny pes /
+ *  panel už otvorený (uvítanie by sa prehrávalo s inou kópiou) = prázdne pole.
+ *  Klient hľadá užšie než server (user_id), takže čo nájde klient, nájde aj server. */
+function useMemberDogNames(email: string | null, openNowRef: { current: boolean }): string[] {
+  const [names, setNames] = useState<string[]>([]);
+  useEffect(() => {
+    let mounted = true;
+    if (!email) {
+      setNames([]);
+      return;
+    }
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await (supabase as any)
+          .from('dogs')
+          .select('dog_name, life_status')
+          .eq('user_id', user.id)
+          .eq('payment_status', 'paid')
+          .order('pack_number', { ascending: true }) as {
+            data: { dog_name: string | null; life_status: string | null }[] | null; error: unknown;
+          };
+        if (!mounted || error || !data || openNowRef.current) return;
+        // Mŕtvy pes sa menom neoslovuje („Arga už poznám" by bolelo) — prázdne meno
+        // prepne vetu na množnú, ktorá nikoho nemenuje.
+        setNames(data.map((d) => (d.life_status === 'deceased' ? '' : (d.dog_name ?? '').trim())));
+      } catch {
+        /* fail-closed: bez vety */
+      }
+    })();
+    return () => { mounted = false; };
+  }, [email, openNowRef]);
+  return names;
+}
+
 // AVATAR — finálny badge (KIE render `b6-trojstvrt`, zlatá verzia), orezaný na
 // obsah a zmenšený na 160 px (`assets/ainubis-badge.webp`). Nahradil dočasné SVG
 // oko. Blink trieda na wrapperi tlačidla zostáva, len sa na rastri neprejaví.
@@ -405,13 +444,21 @@ function AinubisWidgetInner() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const onPublicRoute = PUBLIC_ROUTES.includes(pathname);
-  // Verejné uvítanie: o projekte, chybách a pomoci — nie technická podpora appky.
-  const copy = useMemo(() => {
-    const c = getAinubisCopy(lang);
-    return onPublicRoute ? { ...c, welcome: c.welcomePublic } : c;
-  }, [lang, onPublicRoute]);
   const reducedMotion = useReducedMotion();
   const memberEmail = useOptionalMemberEmail();
+  const openNowRef = useRef(false);
+  const dogNames = useMemberDogNames(memberEmail, openNowRef);
+  // Verejné uvítanie: o projekte, chybách a pomoci — nie technická podpora appky.
+  // Člen s aspoň jedným zaplateným psom dostane do prvej bubliny vetu o DOG ID.
+  const copy = useMemo(() => {
+    const c = getAinubisCopy(lang);
+    if (onPublicRoute) return { ...c, welcome: c.welcomePublic };
+    if (dogNames.length === 0) return c;
+    const line = dogNames.length === 1 && dogNames[0]
+      ? c.welcomeDogs.one(dogNames[0])
+      : c.welcomeDogs.many;
+    return { ...c, welcome: [`${c.welcome[0]} ${line}`, ...c.welcome.slice(1)] };
+  }, [lang, onPublicRoute, dogNames]);
   // pack_number zámerne NEposielame: jediná typovaná tabuľka je `pack_members`
   // (email+pack_number), ale nie je isté, že je to živý zdroj pravdy pre
   // aktuálne prihláseného člena (ten beží cez `dogs`, netypované v generated
@@ -425,6 +472,7 @@ function AinubisWidgetInner() {
   // prekrýval obsah (test po FLIPe — odpovede kvízu, ADD A PACK MEMBER).
   const fromMail = useState(() => conversationFromUrl())[0];
   const [open, setOpen] = useState(() => fromMail !== null);
+  openNowRef.current = open;
   const [conversationId, setConversationId] = useState<string | null>(() => {
     if (fromMail) { safeLocalStorageSet(LS_CONV, fromMail.id); safeLocalStorageSet(LS_TOK, fromMail.tok); return fromMail.id; }
     return safeLocalStorageGet(LS_CONV);
