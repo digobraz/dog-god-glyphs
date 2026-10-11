@@ -31,7 +31,7 @@ export interface AinubisCopy {
   welcome: string[];
   /** JEDNA veta navyše do prvej uvítacej bubliny — LEN pre prihláseného člena s aspoň
    *  jedným zaplateným psom (zadanie ainubis-dog-id, test č. 13). `one` dostane meno psa. */
-  welcomeDogs: { one: (dog: string) => string; many: string };
+  welcomeDogs: Record<'data' | 'none' | 'off', { one: (dog: string) => string; many: string }>;
   /** Uvítanie na verejnom /onepage (Matej 5. 10. 2026): projekt, chyby, pomoc, pridať sa. */
   welcomePublic: string[];
   /** Témy verejného chatu (/onepage): voľba človeka + AINUBISOVA otázka k nej. */
@@ -122,8 +122,18 @@ const sk: AinubisCopy = {
     'Stlač toto a urob mi snímku obrazovky priamo do chatu :)',
   ],
   welcomeDogs: {
-    one: (dog) => `${dog} už poznám z DOG ID — nemusíš mi ho predstavovať.`,
-    many: 'Tvojich psov už poznám z ich DOG ID — nemusíš mi ich predstavovať.',
+    data: {
+      one: (dog) => `${dog} už poznám z DOG ID — nemusíš mi ho predstavovať.`,
+      many: 'Tvojich psov už poznám z ich DOG ID — nemusíš mi ich predstavovať.',
+    },
+    none: {
+      one: (dog) => `${dog} už poznám — keď mu doplníš DOG ID, budem vedieť poradiť presnejšie.`,
+      many: 'Tvojich psov už poznám — keď im doplníš DOG ID, budem vedieť poradiť presnejšie.',
+    },
+    off: {
+      one: (dog) => `${dog} už poznám.`,
+      many: 'Tvojich psov už poznám.',
+    },
   },
   // JEDNA bublina (Matej 5. 10. 2026: „uvítanie len v jednej bublinke").
   welcomePublic: [
@@ -202,8 +212,18 @@ const en: AinubisCopy = {
     'Press this and send me a screenshot straight into the chat :)',
   ],
   welcomeDogs: {
-    one: (dog) => `I already know ${dog} from the DOG ID — no need to introduce them.`,
-    many: 'I already know your dogs from their DOG ID — no need to introduce them.',
+    data: {
+      one: (dog) => `I already know ${dog} from the DOG ID — no need to introduce them.`,
+      many: 'I already know your dogs from their DOG ID — no need to introduce them.',
+    },
+    none: {
+      one: (dog) => `I already know ${dog} — fill in the DOG ID and my advice gets sharper.`,
+      many: 'I already know your dogs — fill in their DOG ID and my advice gets sharper.',
+    },
+    off: {
+      one: (dog) => `I already know ${dog}.`,
+      many: 'I already know your dogs.',
+    },
   },
   // ONE bubble (Matej 5. 10. 2026: „uvítanie len v jednej bublinke").
   welcomePublic: [

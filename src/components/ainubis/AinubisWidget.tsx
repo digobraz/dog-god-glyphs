@@ -366,17 +366,29 @@ function useOptionalMemberEmail(): string | null {
   return email;
 }
 
-/** Mená zaplatených psov prihláseného člena (`user_id = auth.uid()`, `paid`) — pre
- *  vetu „poznám tvojich psov z DOG ID" v uvítaní. Dotaz beží LEN keď je niekto
+/** Polia DOG ID, ktoré sa rátajú ako „vyplnené" (`diary.*`, `will.*` a ostatné nie). */
+const DOG_ID_FIELD_PREFIXES = ['basics', 'howWorks', 'social', 'temperament', 'food', 'nature', 'health'];
+
+/** Čo o DOG ID povie uvítacia veta: `data` = aspoň jeden živý pes má DOG ID dáta,
+ *  `none` = žiadny nemá, `off` = člen DOG ID AINUBISOVI vypol (`ainubis.dogId === false`)
+ *  — vtedy sa o DOG ID nehovorí vôbec. */
+type DogIdMode = 'data' | 'none' | 'off';
+type MemberDogs = { names: string[]; mode: DogIdMode };
+const NO_DOGS: MemberDogs = { names: [], mode: 'none' };
+
+/** Mená zaplatených psov prihláseného člena (`user_id = auth.uid()`, `paid`) + či majú
+ *  DOG ID dáta — pre vetu o psoch v uvítaní. Dotaz beží LEN keď je niekto
  *  prihlásený (verejné stránky ho nespustia). FAIL-CLOSED: chyba / žiadny pes /
- *  panel už otvorený (uvítanie by sa prehrávalo s inou kópiou) = prázdne pole.
+ *  panel už otvorený (uvítanie by sa prehrávalo s inou kópiou) = bez vety.
+ *  „Má DOG ID dáta" = v `dog_events` (RLS `dog_events_read_own`: user_id = auth.uid())
+ *  je pre psa aspoň jedno NEprázdne najnovšie pole z `DOG_ID_FIELD_PREFIXES`.
  *  Klient hľadá užšie než server (user_id), takže čo nájde klient, nájde aj server. */
-function useMemberDogNames(email: string | null, openNowRef: { current: boolean }): string[] {
-  const [names, setNames] = useState<string[]>([]);
+function useMemberDogNames(email: string | null, openNowRef: { current: boolean }): MemberDogs {
+  const [res, setRes] = useState<MemberDogs>(NO_DOGS);
   useEffect(() => {
     let mounted = true;
     if (!email) {
-      setNames([]);
+      setRes(NO_DOGS);
       return;
     }
     (async () => {
@@ -386,11 +398,11 @@ function useMemberDogNames(email: string | null, openNowRef: { current: boolean 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await (supabase as any)
           .from('dogs')
-          .select('dog_name, life_status')
+          .select('id, dog_name, life_status')
           .eq('user_id', user.id)
           .eq('payment_status', 'paid')
           .order('pack_number', { ascending: true }) as {
-            data: { dog_name: string | null; life_status: string | null }[] | null; error: unknown;
+            data: { id: string; dog_name: string | null; life_status: string | null }[] | null; error: unknown;
           };
         if (!mounted || error || !data || openNowRef.current) return;
         // Člen si môže AINUBISOVI psov vypnúť (`pack_profiles.human.ainubis.dogs`,
@@ -402,14 +414,39 @@ function useMemberDogNames(email: string | null, openNowRef: { current: boolean 
         if (!mounted || profErr || prof?.human?.ainubis?.dogs === false || openNowRef.current) return;
         // Mŕtvy pes sa menom neoslovuje („Arga už poznám" by bolelo) — prázdne meno
         // prepne vetu na množnú, ktorá nikoho nemenuje.
-        setNames(data.map((d) => (d.life_status === 'deceased' ? '' : (d.dog_name ?? '').trim())));
+        const names = data.map((d) => (d.life_status === 'deceased' ? '' : (d.dog_name ?? '').trim()));
+        let mode: DogIdMode = 'off';
+        if (prof?.human?.ainubis?.dogId !== false) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: ev, error: evErr } = await (supabase as any)
+            .from('dog_events')
+            .select('dog_id, field, value, recorded_at')
+            .eq('user_id', user.id)
+            .or(DOG_ID_FIELD_PREFIXES.map((x) => `field.like.${x}.%`).join(','))
+            .order('recorded_at', { ascending: false }) as {
+              data: { dog_id: string; field: string; value: unknown }[] | null; error: unknown;
+            };
+          if (!mounted || evErr || !ev || openNowRef.current) return;
+          // Najnovší zápis poľa vyhráva (append-only; `null` = majiteľ pole vyprázdnil).
+          const seen = new Set<string>();
+          const withData = new Set<string>();
+          for (const e of ev) {
+            const k = `${e.dog_id}|${e.field}`;
+            if (seen.has(k)) continue;
+            seen.add(k);
+            if (e.value !== null && e.value !== undefined && e.value !== '') withData.add(e.dog_id);
+          }
+          const living = data.filter((d) => d.life_status !== 'deceased');
+          mode = (living.length ? living : data).some((d) => withData.has(d.id)) ? 'data' : 'none';
+        }
+        setRes({ names, mode });
       } catch {
         /* fail-closed: bez vety */
       }
     })();
     return () => { mounted = false; };
   }, [email, openNowRef]);
-  return names;
+  return res;
 }
 
 // AVATAR — finálny badge (KIE render `b6-trojstvrt`, zlatá verzia), orezaný na
@@ -454,18 +491,17 @@ function AinubisWidgetInner() {
   const reducedMotion = useReducedMotion();
   const memberEmail = useOptionalMemberEmail();
   const openNowRef = useRef(false);
-  const dogNames = useMemberDogNames(memberEmail, openNowRef);
+  const { names: dogNames, mode: dogIdMode } = useMemberDogNames(memberEmail, openNowRef);
   // Verejné uvítanie: o projekte, chybách a pomoci — nie technická podpora appky.
   // Člen s aspoň jedným zaplateným psom dostane do prvej bubliny vetu o DOG ID.
   const copy = useMemo(() => {
     const c = getAinubisCopy(lang);
     if (onPublicRoute) return { ...c, welcome: c.welcomePublic };
     if (dogNames.length === 0) return c;
-    const line = dogNames.length === 1 && dogNames[0]
-      ? c.welcomeDogs.one(dogNames[0])
-      : c.welcomeDogs.many;
+    const w = c.welcomeDogs[dogIdMode];
+    const line = dogNames.length === 1 && dogNames[0] ? w.one(dogNames[0]) : w.many;
     return { ...c, welcome: [`${c.welcome[0]} ${line}`, ...c.welcome.slice(1)] };
-  }, [lang, onPublicRoute, dogNames]);
+  }, [lang, onPublicRoute, dogNames, dogIdMode]);
   // pack_number zámerne NEposielame: jediná typovaná tabuľka je `pack_members`
   // (email+pack_number), ale nie je isté, že je to živý zdroj pravdy pre
   // aktuálne prihláseného člena (ten beží cez `dogs`, netypované v generated
