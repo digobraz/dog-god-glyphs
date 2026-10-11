@@ -3251,6 +3251,8 @@ export const sk: Partial<Dict> = {
   'pack.trip.edit.desc': "Popis",
   'pack.trip.edit.name': "Názov výletu",
   'pack.trip.edit.nameHint': "Meníš len zobrazený názov. Odkaz na výlet ostáva rovnaký.",
+  'pack.trip.edit.route': "Upraviť trasu / typ",
+  'pack.trip.edit.routeHint': "Prekreslíš trasu alebo zmeníš, čo si tam robil. Názov ostáva — ten schvaľujeme my.",
   'pack.trip.ghost.body': "Túto magistrálu som predvytvoril podľa oficiálnych údajov o trase — nikto zo svorky ju zatiaľ neprešiel. Prešiel si ju? Zapíš ju ako prvý a bude tvoja. Trasa je už nakreslená.",
   'pack.trip.ghost.cta': "Zapísať ako prvý",
   // ── VYRAZIŤ NA MIESTO (2026-09-13) ────────────────────────────────────────────────────

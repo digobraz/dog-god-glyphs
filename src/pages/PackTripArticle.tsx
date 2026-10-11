@@ -2131,6 +2131,7 @@ export default function PackTripArticle() {
           plan={planEdit}
           onSaved={(patch) => setEdits((prev) => ({ ...(prev ?? {}), ...patch }))}
           onPlanSaved={savePlanEdit}
+          onReroute={() => { setEditOpen(false); navigate(`/pack/map?reroute=${encodeURIComponent(trail.id)}`); }}
           onClose={() => setEditOpen(false)}
         />
       )}

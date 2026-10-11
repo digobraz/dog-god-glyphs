@@ -3536,6 +3536,8 @@ export const en = {
   'pack.trip.edit.desc': "Description",
   'pack.trip.edit.name': "Trip name",
   'pack.trip.edit.nameHint': "Only the displayed name changes. The trip link stays the same.",
+  'pack.trip.edit.route': "Edit route / type",
+  'pack.trip.edit.routeHint': "Redraw the route or change what you did there. The title stays — we approve titles.",
   'pack.trip.ghost.body': "I pre-built this route from the official trail data — nobody from the pack has walked it yet. Have you? Log it first and it's yours. The route is already drawn.",
   'pack.trip.ghost.cta': "Log it first",
   // ── GET THERE (2026-09-13) ────────────────────────────────────────────────────────────

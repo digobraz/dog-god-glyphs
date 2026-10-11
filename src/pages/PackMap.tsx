@@ -3951,6 +3951,9 @@ export default function PackMap() {
   const [finishTrailId, setFinishTrailId] = useState<string | null>(null);
   /** true = `finishTrailId` je PREJDENÝ PLÁN, nie dopĺňaný koncept (viď `openWalkPlan`). */
   const [finishFromPlan, setFinishFromPlan] = useState(false);
+  /** true = `finishTrailId` je ÚPRAVA TRASY/TYPU už zapísaného (aj schváleného) výletu — slug ostáva,
+   *  názov sa nemení, nič sa neodmeňuje (viď `reroute` v AddTripLog a vetvu `finishReroute` v submitAddTripDraft). */
+  const [finishReroute, setFinishReroute] = useState(false);
   /** Magistrála na PREVZATIE otvorená v sprievodcovi (trasa hotová, človek len vypĺňa). */
   const [claimJourneyId, setClaimJourneyId] = useState<string | null>(null);
   useEffect(() => { writeLocalTrails(localTrails); }, [localTrails]);
@@ -3987,6 +3990,19 @@ export default function PackMap() {
       setClaimJourneyId(claim);
       setAddFlow('walked');
       return;
+    }
+    // `?reroute=<tripId>` — „Upraviť trasu / typ" z panela úpravy výletu (TripEditPanel). Neexistujúce id
+    // (cudzí výlet, dataset) sa ticho ignoruje, rovnako ako pri `?walk`.
+    const reroute = searchParams.get('reroute');
+    if (reroute) {
+      setSearchParams({}, { replace: true });
+      if (localTrails.some((tr) => tr.id === reroute)) {
+        setFinishReroute(true);
+        setFinishFromPlan(false);
+        setFinishTrailId(reroute);
+        setAddFlow('walked');
+        return;
+      }
     }
     const walk = searchParams.get('walk');
     if (walk) {
@@ -4887,6 +4903,7 @@ export default function PackMap() {
     setAddEntryOpen(false);
     setAddMapPhase('off');
     setFinishFromPlan(false);
+    setFinishReroute(false);
     setFinishTrailId(tripId);
     setAddFlow('walked');
   };
@@ -4909,6 +4926,7 @@ export default function PackMap() {
     setAddEntryOpen(false);
     setAddMapPhase('off');
     setFinishFromPlan(true);
+    setFinishReroute(false);
     setFinishTrailId(tripId);
     setAddFlow('walked');
   };
@@ -4920,6 +4938,7 @@ export default function PackMap() {
     setAddMapPhase('off');
     setFinishTrailId(null);
     setFinishFromPlan(false);
+    setFinishReroute(false);
     setClaimJourneyId(tripId);
     setAddFlow('walked');
   };
@@ -4929,6 +4948,7 @@ export default function PackMap() {
     setClaimJourneyId(null);
     setFinishTrailId(null);
     setFinishFromPlan(false);
+    setFinishReroute(false);
     setAddMapPhase('off');
     setNotePlacing(null);
     setTripNotesState([]);
@@ -5251,8 +5271,10 @@ export default function PackMap() {
     // druhý reveal by za tú istú prácu sľuboval druhú odmenu.
     const finishId = (draft as AddTripDraft & { finishTripId?: string }).finishTripId;
     if (finishId) {
+      const isReroute = !!(draft as AddTripDraft & { finishReroute?: boolean }).finishReroute;
       const patch: Partial<HeroTrail> = {
-        name: draft.name.trim(),
+        // ÚPRAVA TRASY/TYPU (11. 10. 2026): názov po schválení autor nemení — ostáva ten, čo schválil DOGYPT.
+        ...(isReroute ? {} : { name: draft.name.trim() }),
         stars: draft.paws ?? 0,
         surface: draft.surface ?? [],
         crowd: draft.crowd ?? '',
@@ -5290,11 +5312,32 @@ export default function PackMap() {
       // Ten istý princíp pre názov (8. 10. 2026). Adresa (`urlSlug`) sa pri premenovaní NEMENÍ —
       // zdieľaný odkaz by inak prestal fungovať.
       const prevTrail = readLocalTrails().find((tr) => tr.id === finishId);
-      const nameChanged = (prevTrail?.name ?? '') !== patch.name;
+      const nameChanged = !isReroute && (prevTrail?.name ?? '') !== patch.name;
       if (nameChanged) patch.nameEN = undefined;
-      if (!prevTrail?.urlSlug && patch.name) {
+      if (!isReroute && !prevTrail?.urlSlug && patch.name) {
         const slug = makeTripUrlSlug(patch.name, [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS]);
         if (slug) patch.urlSlug = slug;
+      }
+      // ── ÚPRAVA TRASY / TYPU (reroute) ───────────────────────────────────────────────
+      // Autor smie prekresliť trasu a zmeniť, čo na výlete robil, sám (nám príde žlté „zmena").
+      // Ide TÝM ISTÝM ZÁPISOM ako nový výlet (`savedGeometry` → path/areaR/km, `resolveAscent` → ascentM,
+      // `acts` = kategória + chipy), slug a názov ostávajú. `areaR`/`ascentM`/`ownAct` sa posielajú VŽDY,
+      // aj ako `undefined` — kto prekreslil návštevu na trasu, musí o starý okruh prísť.
+      if (isReroute) {
+        const geo = savedGeometry(draft.geometry);
+        const drawn = draft.geometry.kind === 'route' ? geo.path.length >= 2 : geo.path.length === 1;
+        if (!drawn) { reportAddError(t('pack.map.errorPhotosStorage')); return false; }
+        Object.assign(patch, {
+          path: geo.path,
+          areaR: geo.areaR,
+          km: (totalDistanceM(geo.path) / 1000).toFixed(1),
+          ascentM: typeof draft.ascentM === 'number' && draft.ascentM > 0 ? Math.round(draft.ascentM) : undefined,
+          acts: [ACT_DATA_ID[draft.activity] ?? draft.activity, ...(draft.chips ?? [])],
+          ownAct: draft.ownAct || undefined,
+          ...(draft.region ? { region: draft.region } : {}),
+          ...(draft.country ? { country: draft.country } : {}),
+          planPath: draft.geometry.kind === 'route' && draft.geometry.path.length ? draft.geometry.path : undefined,
+        });
       }
       if (!updateLocalTrail(finishId, patch)) {
         reportAddError(t('pack.map.errorPhotosStorage'));
@@ -5377,6 +5420,7 @@ export default function PackMap() {
         return true;
       }
       setFinishTrailId(null);
+      setFinishReroute(false);
       closeAdd();
       return true;
     }
@@ -6953,6 +6997,7 @@ export default function PackMap() {
               <AddTripLog
                 finishTrail={finishTrailId ? (localTrails.find((tr) => tr.id === finishTrailId) ?? null) : null}
                 fromPlan={finishFromPlan}
+                reroute={finishReroute}
                 presetJourneyId={claimJourneyId ?? undefined}
                 allTrails={allTrails}
                 authorName={firstName}

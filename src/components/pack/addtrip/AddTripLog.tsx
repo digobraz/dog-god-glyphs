@@ -101,7 +101,7 @@ const PICK = T.growGreen;
 // nový HeroTrail (viď submitAddTripDraft tam), len označiť existujúci trip ako prejdený.
 // `finishTripId` = dopĺňa sa UŽ ULOŽENÝ výlet. Volajúci podľa neho záznam PREPÍŠE namiesto
 // toho, aby založil druhý — bez toho by dopísanie náročnosti vyrobilo dvojča tej istej trasy.
-type LogDraft = AddTripDraft & { existingTripId?: string; finishTripId?: string; finishFromPlan?: boolean };
+type LogDraft = AddTripDraft & { existingTripId?: string; finishTripId?: string; finishFromPlan?: boolean; finishReroute?: boolean };
 
 export type AddTripLogProps = {
   /** Pre GeometryPicker — duchovia existujúcich trás + kontrola duplicity (§5.3) a submit-time
@@ -125,6 +125,14 @@ export type AddTripLogProps = {
    * sobotu a šlo sa v nedeľu.
    */
   fromPlan?: boolean;
+  /**
+   * ── ÚPRAVA TRASY / TYPU (Matej 11. 10. 2026) ──────────────────────────────────────────
+   * Autor už zapísaného (aj schváleného) výletu si ho prekreslí sám — napr. návštevu na prechádzku
+   * s trasou. Ide o ten istý `finishTrail`, ale: kroky 1–2 sú ODOMKNUTÉ (trasa aj typ sa smú meniť),
+   * dátum ostáva pôvodný (nie dnešok), plán sa nepýta „sedelo to?" a NÁZOV je zamknutý
+   * (po schválení ho mení len DOGYPT). Zápis robí PackMap vetvou `finishReroute`, slug ostáva.
+   */
+  reroute?: boolean;
   onClose: () => void;
   /**
    * NÁVRAT ZO ŠÍPKY NA PRVEJ OBRAZOVKE = O KROK SPÄŤ, NIE VON (Matej 2026-08-28:
@@ -502,7 +510,7 @@ function SoloCompanionAdd({ dog, selected, onChange }: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubmit, onClose, onBackToEntry, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail, fromPlan, presetJourneyId }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubmit, onClose, onBackToEntry, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail, fromPlan, reroute, presetJourneyId }: AddTripLogProps) {
   const paleChrome = useIsPaleChrome();
   // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
@@ -1140,7 +1148,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
    *    pichajú teraz, tlačidlo zapisuje. Zamknúť tu kroky 1–2 by odobralo presne to, kvôli
    *    čomu sa formulár otvára.
    */
-  const finishingDraft = finishing && !fromPlan;
+  const finishingDraft = finishing && !fromPlan && !reroute;
   const minStep = finishingDraft ? 3 : 1;
   const filledRef = useRef(false);
   useEffect(() => {
@@ -1194,7 +1202,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
             // ⚠️ PRI PLÁNE IDÚ DO `path` KOTVY, nie stopa. `finishTrail.path` je prichytená
             // čiara (stovky bodov po chodníkoch) — ako kotvy by dala stovky uzlov a trasa by
             // sa nedala rozumne opraviť. `planPath` drží kliky, ktoré ju vyrobili.
-            path: (fromPlan ? finishTrail.planPath : undefined) ?? finishTrail.path ?? [],
+            path: ((fromPlan || reroute) ? finishTrail.planPath : undefined) ?? finishTrail.path ?? [],
             snapPath: finishTrail.path ?? [],
             snapped: true,
           },
@@ -1220,8 +1228,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
     if (finishTrail.stars) setPaws(finishTrail.stars);
     if (finishTrail.desc) setNote(finishTrail.desc);
     if (finishTrail.photos?.length) setPhotos(finishTrail.photos);
-    if (fromPlan) {
-      // Prejdený plán ide sprievodcom OD ZAČIATKU: trasu smie opraviť, značky pichá teraz.
+    if (fromPlan || reroute) {
+      // Prejdený plán (a úprava trasy/typu) ide sprievodcom OD ZAČIATKU: trasu smie opraviť, značky pichá teraz.
       // Číselník sa preto NEotvára celý — človek tie kroky naozaj prechádza, nedopisuje ich.
       /**
        * ── ZAČÍNA SA PRVÝM KROKOM V PORADÍ, NIE JEDNOTKOU (Matej odklepol 2. 9. 2026) ─────
@@ -1242,7 +1250,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
        * mapou v režime kreslenia a pýta sa na trasu. Pri chip-first toku sa preto nespúšťa
        * hneď, ale až keď človek na mapu naozaj príde (efekt nižšie).
        */
-      setPlanAskPending(true);
+      if (fromPlan) setPlanAskPending(true);
     } else {
       setStep(3);
       // Číselník sa otvára celý: kto dopĺňa, má kroky 3–5 splnené alebo rozpracované a musí
@@ -1252,7 +1260,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
       //    v poradí. Otvára sa CELÝ číselník, nech je jeho poradie akékoľvek.
       setMaxPos(STEP_SEQ.length - 1);
     }
-  }, [finishTrail, fromPlan]);
+  }, [finishTrail, fromPlan, reroute]);
 
   // Trasa je hotová = dá sa z nej nakresliť čiara (2 kotvy), resp. bod/oblasť má stred.
   const geoDone = geometry.kind === 'route' ? geometry.path.length >= 2 : !!geometry.center;
@@ -1480,6 +1488,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
       // za prejdený, zruš plán). Volajúci sa nemá ako spýtať formulára — nesie sa to draftom,
       // rovnakou cestou ako `finishTripId`.
       finishFromPlan: fromPlan || undefined,
+      finishReroute: reroute || undefined,
       state: isPlan ? 'planned' : 'walked',
       // Plán nejde cez schvaľovaciu frontu (§4.3 platí len pre walked) — objaví sa hneď.
       // Pri zápise je to placeholder, finálna hodnota sa dorátava pri submite (missingFields).
@@ -1539,7 +1548,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
       step,
       sourceGpx: geometry.kind === 'route' && geometry.path.length > 0 ? sourceGpx : undefined,
     };
-  }, [sourceGpx, name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, chips, ownAct, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step, finishTrail, fromPlan, travelMode, travelFrom, pickup, pickupSeats]);
+  }, [sourceGpx, name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, chips, ownAct, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step, finishTrail, fromPlan, reroute, travelMode, travelFrom, pickup, pickupSeats]);
 
   // §4.3: toSubmit blokuje odoslanie úplne; toApprove (len walked) rozhoduje draft vs pending.
   const missing = missingFields(draft);
@@ -3212,11 +3221,11 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
 
                 <div className={`atl-field${missClass(3, !!name.trim())}`}>
                   <label>{t('pack.addTrip.log.name')}</label>
-                  <input className="atl-input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('pack.addTrip.step.namePlaceholder')} />
+                  <input className="atl-input" value={name} readOnly={reroute} onChange={(e) => setName(e.target.value)} placeholder={t('pack.addTrip.step.namePlaceholder')} />
                   {/* RADA + 3 NÁVRHY (Matej 11. 10. 2026): názov bez miesta člen v zozname
                       nenájde. Najprv lokalita, potom pohľad autora. */}
-                  <p className="atl-field-hint atl-name-tip">{t('pack.addTrip.name.tip')}</p>
-                  {(nameSugsBusy || nameSugs.length > 0) && (
+                  {!reroute && <p className="atl-field-hint atl-name-tip">{t('pack.addTrip.name.tip')}</p>}
+                  {!reroute && (nameSugsBusy || nameSugs.length > 0) && (
                     <div className="atl-name-sugs">
                       {nameSugsBusy && !nameSugs.length
                         ? <span className="atl-field-hint">{t('pack.addTrip.name.sugsLoading')}</span>
@@ -3992,7 +4001,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                         stlačí druhýkrát. */}
                     {saving
                       ? t('pack.mapNotes.add.saving')
-                      : t(finishingDraft ? 'pack.addTrip.log.submitFinish' : isPlan ? 'pack.addTrip.log.submitPlan' : 'pack.addTrip.log.submit')}
+                      : t(reroute ? 'pack.trip.edit.save' : finishingDraft ? 'pack.addTrip.log.submitFinish' : isPlan ? 'pack.addTrip.log.submitPlan' : 'pack.addTrip.log.submit')}
                   </button>
                 </div>
                 {!canSubmit && missing.toSubmit.length > 0 && <p className="atl-log-hint">{t('pack.addTrip.log.missing', { fields: missingTx(missing.toSubmit) })}</p>}

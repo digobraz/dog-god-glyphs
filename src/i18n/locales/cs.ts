@@ -2874,6 +2874,8 @@ export const cs: Partial<Dict> = {
   'pack.trip.edit.desc': 'Popis',
   'pack.trip.edit.name': 'Název výletu',
   'pack.trip.edit.nameHint': 'Mění se jen zobrazený název. Odkaz na výlet zůstává stejný.',
+  'pack.trip.edit.route': 'Upravit trasu / typ',
+  'pack.trip.edit.routeHint': 'Překreslíš trasu nebo změníš, co jsi tam dělal. Název zůstává — ten schvalujeme my.',
   'pack.trip.ghost.body': "Tuto magistrálu jsem předpřipravil podle oficiálních dat o trase — nikdo ze smečky ji zatím neprošel. Prošel jsi ji? Zapiš ji jako první a bude tvoje. Trasa už je nakreslená.",
   'pack.trip.ghost.cta': "Zapsat jako první",
   'pack.trip.edit.open': 'Upravit',

@@ -25,6 +25,10 @@
 //    a spol.), v Supabase (`user_trips`, `trip_requests`, `trip_events`) a v ceste k fotkám na
 //    Cloudinary. Premenovanie má vlastný postup (`RENAMED_TRIP_IDS` + migračný skript), nie je to
 //    úprava textu. Matej: „názov zostane".
+//  · 🔴 NÁZOV PO SCHVÁLENÍ (Matej 11. 10. 2026): „názov určujeme/schvaľujeme my, nedá sa zmeniť
+//    bez nás, ak sme ju už raz schválili". Pole názvu sa preto ukazuje LEN pred schválením
+//    (pending/rejected); pri schválenom výlete ho panel nevykreslí a RPC `update_own_trip` ho
+//    nepustí. Ostatné (fotky, popis, trasa, typ) autor mení sám a nám príde žlté „zmena".
 //  · ZMAZANIE výletu — Matej 2026-08-25: „nemaže sa".
 //  · TRASA, km, PREVÝŠENIE — sú odmerané, nie napísané. Prekreslenie trasy mení geometriu aj
 //    prevýšenie a patrí do sprievodcu, nie do panela na text.
@@ -45,7 +49,7 @@ import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/comp
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { readLocalTrails, updateLocalTrail, translateLocalTrailName } from '@/components/pack/tripShared';
-import { readTrailOverrides, saveTrailOverride, translateTripDesc } from '@/lib/packStore';
+import { readTrailOverrides, saveTrailOverride, translateTripDesc, readLocalTrailMeta } from '@/lib/packStore';
 import { MAX_PHOTOS, optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
 import { TRAVEL_MODES, type TravelMode, type TravelInfo } from '@/components/pack/addtrip/addTripModel';
@@ -125,7 +129,7 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
 .tep-seats b{color:${T.inkStrong};font-size:14px;min-width:14px;text-align:center;}
 `;
 
-export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
+export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onReroute, onClose }: {
   trail: HeroTrail;
   /**
    * Aktuálny stav PLÁNU, alebo `undefined` pri prejdenom výlete. Rozhoduje o tvári panela.
@@ -137,9 +141,16 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
   onSaved: (patch: Partial<HeroTrail>) => void;
   /** Uloží dátum/viditeľnosť/dopravu naraz do plánu aj do inzerátu — viď hlavičku súboru. */
   onPlanSaved?: (p: PlanEdit) => void;
+  /** „Upraviť trasu / typ" — otvorí sprievodcu s predvyplneným výletom (len vlastný výlet, nie plán). */
+  onReroute?: () => void;
   onClose: () => void;
 }) {
   const t = useT();
+  // Názov je meniteľný len PRED schválením. Stav nesie meta výletu (plní ho hydratácia z DB): chýbajúca
+  // meta = výlet ešte nie je v DB (alebo sa beží offline), teda nie je schválený. Dataset (nie je v
+  // `localTrails`) názov nemení nikdy — ten rieši zakladateľ.
+  const nameEditable = readLocalTrails().some((x) => x.id === trail.id) && readLocalTrailMeta()[trail.id]?.status !== 'approved';
+  const canReroute = !plan && readLocalTrails().some((x) => x.id === trail.id);
   const [name, setName] = useState(trail.name ?? '');
   const [desc, setDesc] = useState(trail.desc ?? '');
   const [stars, setStars] = useState(trail.stars ?? 0);
@@ -200,7 +211,7 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
     // NÁZOV (D3, 11. 10. 2026): zmena zahodí `nameEN` (starý preklad by klamal) a dorobí sa v pozadí.
     // `urlSlug` sa NEDOTÝKA — zdieľané odkazy musia ďalej fungovať. Prázdny názov sa nepíše.
     const newName = name.trim();
-    const nameChanged = !!newName && newName !== (trail.name ?? '');
+    const nameChanged = nameEditable && !!newName && newName !== (trail.name ?? '');
     const patch: Partial<HeroTrail> = {
       ...(nameChanged ? { name: newName, nameEN: undefined } : {}),
       desc: desc.trim(),
@@ -277,11 +288,13 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
             a pri pláne je to jeden stĺpec ako doteraz. */}
         <div className={`tep-body${isPlan ? '' : ' tep-body--trip'}`}>
         <div className="tep-col">
+        {nameEditable && (
         <div className="tep-field">
           <label className="tep-label">{t('pack.trip.edit.name')}</label>
           <input className="tep-input" type="text" value={name} maxLength={120} onChange={(e) => setName(e.target.value)} />
           <p className="tep-hint" style={{ marginTop: 6 }}>{t('pack.trip.edit.nameHint')}</p>
         </div>
+        )}
         {!isPlan && (
         <div
           className={`tep-field tep-photo-drop${photoDrag ? ' drag' : ''}`}
@@ -463,6 +476,15 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
           <div className="tep-field" style={{ textAlign: 'center' }}>
             <label className="tep-label">{t('pack.trip.edit.rating')}</label>
             <div className="tep-pawpick"><PawRating value={stars} onChange={setStars} size={30} /></div>
+          </div>
+        )}
+
+        {/* TRASA A TYP (11. 10. 2026): autor ju mení sám, bez schvaľovania — nám príde len žlté „zmena".
+            Otvára sprievodcu s predvyplneným výletom (slug ostáva), nie druhý formulár v tomto paneli. */}
+        {canReroute && onReroute && (
+          <div className="tep-field">
+            <button type="button" className="tep-opt" style={{ width: '100%' }} onClick={onReroute}>{t('pack.trip.edit.route')}</button>
+            <p className="tep-hint" style={{ marginTop: 6 }}>{t('pack.trip.edit.routeHint')}</p>
           </div>
         )}
 
