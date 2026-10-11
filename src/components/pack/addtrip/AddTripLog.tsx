@@ -2691,20 +2691,16 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                     zobraziť trasu, nie body!"). Renata zapísala 2 krátke túry pre starých psov,
                     hlavné tlačidlo bolo „Zapísať ako návštevu" a `switchToVisit` jej trasu
                     nahradil kruhom. Krátka trasa je legitímna (senior, šteňa) — hlavná voľba
-                    ju preto zapíše TAK, AKO JE; návšteva je až vedľajšia, vedomá voľba. */}
+                    ju preto zapíše TAK, AKO JE; návšteva je až vedľajšia, vedomá voľba.
+                    ⚠️ PREKONANÉ 11. 10. popoludní: hlavná voľba = PRECHÁDZKA (čiara ostáva), viď nižšie. */}
                 <h2>{t('pack.addTrip.nature.title')}</h2>
                 <p>{t('pack.addTrip.nature.short', { km: natureAsk.km.toFixed(1), min: HIKE_MIN_KM })}</p>
                 <div className="atl-abort-btns">
-                  <button
-                    type="button"
-                    className="atl-abort-cta"
-                    onClick={() => { natureOkRef.current = true; setNatureAsk(null); setStep(stepAfter(1)); }}
-                  >
-                    {t('pack.addTrip.nature.keepRoute')}
-                  </button>
-                  {/* PRECHÁDZKA, NIE NÁVŠTEVA (Matej 11. 10. 2026) — čiara ostáva, mení sa kategória.
-                      Plán ju smie tiež: prechádzka je aktivita, nie návšteva. */}
-                  <button type="button" className="atl-abort-ghost" onClick={switchToWalk}>
+                  {/* 🔴 LEN DVE VOĽBY (Matej 11. 10. 2026 popoludní: „ak nakreslí hike menej ako 5 km
+                      je 1. možnosť aj tak zapísať? ved to je hlúposť, má byť len prepíš na
+                      prechádzku alebo uprav"). „Zapísať trasu" (ponechať turistikou) zaniklo — jeho
+                      dôvod bol, že jediná alternatíva (návšteva) čiaru zahodila. Prechádzka ju drží. */}
+                  <button type="button" className="atl-abort-cta" onClick={switchToWalk}>
                     {t('pack.addTrip.nature.toWalk')}
                   </button>
                 </div>
