@@ -2229,6 +2229,8 @@ export const ara: Partial<Dict> = {
   "pack.cal.life.rec.tobykeith.breed": "تشيهواهوا",
   "pack.cal.life.rec.tobykeith.country": "الولايات المتحدة",
   "pack.cal.life.rec.tobykeith.exact": "23 سنة و112 يومًا",
+  "pack.cal.life.rec.harajuku.breed": "تشيهواهوا",
+  "pack.cal.life.rec.harajuku.country": "الولايات المتحدة",
   "pack.cal.life.rec.pebbles.breed": "توي فوكس تيرير",
   "pack.cal.life.rec.pebbles.country": "الولايات المتحدة",
   "pack.cal.life.rec.pebbles.exact": "22 سنة و189 يومًا",

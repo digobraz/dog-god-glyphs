@@ -2401,6 +2401,8 @@ export const pol: Partial<Dict> = {
   "pack.cal.life.rec.tobykeith.breed": "Chihuahua",
   "pack.cal.life.rec.tobykeith.country": "USA",
   "pack.cal.life.rec.tobykeith.exact": "23 lata 112 dni",
+  "pack.cal.life.rec.harajuku.breed": "Chihuahua",
+  "pack.cal.life.rec.harajuku.country": "USA",
   "pack.cal.life.rec.pebbles.breed": "Toy fox terrier",
   "pack.cal.life.rec.pebbles.country": "USA",
   "pack.cal.life.rec.pebbles.exact": "22 lata 189 dni",

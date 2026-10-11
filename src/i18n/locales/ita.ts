@@ -2417,6 +2417,8 @@ export const ita: Partial<Dict> = {
   "pack.cal.life.rec.tobykeith.breed": "Chihuahua",
   "pack.cal.life.rec.tobykeith.country": "USA",
   "pack.cal.life.rec.tobykeith.exact": "23 anni 112 giorni",
+  "pack.cal.life.rec.harajuku.breed": "Chihuahua",
+  "pack.cal.life.rec.harajuku.country": "USA",
   "pack.cal.life.rec.pebbles.breed": "Toy Fox Terrier",
   "pack.cal.life.rec.pebbles.country": "USA",
   "pack.cal.life.rec.pebbles.exact": "22 anni 189 giorni",

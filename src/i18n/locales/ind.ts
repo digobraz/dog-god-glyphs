@@ -2233,6 +2233,8 @@ export const ind: Partial<Dict> = {
   "pack.cal.life.rec.tobykeith.breed": "Chihuahua",
   "pack.cal.life.rec.tobykeith.country": "अमेरिका",
   "pack.cal.life.rec.tobykeith.exact": "23 साल 112 दिन",
+  "pack.cal.life.rec.harajuku.breed": "Chihuahua",
+  "pack.cal.life.rec.harajuku.country": "अमेरिका",
   "pack.cal.life.rec.pebbles.breed": "Toy Fox Terrier",
   "pack.cal.life.rec.pebbles.country": "अमेरिका",
   "pack.cal.life.rec.pebbles.exact": "22 साल 189 दिन",

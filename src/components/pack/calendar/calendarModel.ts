@@ -610,6 +610,11 @@ export const LIFE_RECORDS: LifeRecord[] = [
     born: 1978, died: 2003, countrySK: 'Veľká Británia', verified: false, patron: '09-01' },
   { name: 'TobyKeith', years: 23.3, exactSK: '23 rokov 112 dní', breedSK: 'Čivava',
     born: 2001, died: 2024, countrySK: 'USA', verified: true, patron: '03-01' },
+  // Matej 11. 10. 2026: „a je tam pes Paris Hilton? … pridaj ju“. Vek 23 stojí len na Hiltoninom
+  // vyhlásení na Instagrame (máj 2023), nikto ho nepotvrdil ⇒ verified: false. Plné meno psa je
+  // vulgárne (Harajuku B**ch) — v appke ostáva len „Harajuku“. Voľná fotka neexistuje (Commons 11. 10.).
+  { name: 'Harajuku', years: 23, exactSK: '', breedSK: 'Čivava',
+    born: 2000, died: 2023, countrySK: 'USA', verified: false, patron: '03-01' },
   { name: 'Pebbles', years: 22.5, exactSK: '22 rokov 189 dní', breedSK: 'Toy foxteriér',
     born: 2000, died: 2022, countrySK: 'USA', verified: true, patron: '03-04' },
 ];

@@ -4681,6 +4681,8 @@ export const sk: Partial<Dict> = {
   'pack.cal.life.rec.tobykeith.breed': "Čivava",
   'pack.cal.life.rec.tobykeith.country': "USA",
   'pack.cal.life.rec.tobykeith.exact': "23 rokov 112 dní",
+  'pack.cal.life.rec.harajuku.breed': "Čivava",
+  'pack.cal.life.rec.harajuku.country': "USA",
   'pack.cal.life.rec.pebbles.breed': "Toy foxteriér",
   'pack.cal.life.rec.pebbles.country': "USA",
   'pack.cal.life.rec.pebbles.exact': "22 rokov 189 dní",

@@ -2229,6 +2229,8 @@ export const jpn: Partial<Dict> = {
   "pack.cal.life.rec.tobykeith.breed": "チワワ",
   "pack.cal.life.rec.tobykeith.country": "アメリカ",
   "pack.cal.life.rec.tobykeith.exact": "23年112日",
+  "pack.cal.life.rec.harajuku.breed": "チワワ",
+  "pack.cal.life.rec.harajuku.country": "アメリカ",
   "pack.cal.life.rec.pebbles.breed": "トイ・フォックス・テリア",
   "pack.cal.life.rec.pebbles.country": "アメリカ",
   "pack.cal.life.rec.pebbles.exact": "22年189日",

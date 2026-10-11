@@ -2417,6 +2417,8 @@ export const ukr: Partial<Dict> = {
   "pack.cal.life.rec.tobykeith.breed": "Чихуахуа",
   "pack.cal.life.rec.tobykeith.country": "США",
   "pack.cal.life.rec.tobykeith.exact": "23 роки 112 днів",
+  "pack.cal.life.rec.harajuku.breed": "Чихуахуа",
+  "pack.cal.life.rec.harajuku.country": "США",
   "pack.cal.life.rec.pebbles.breed": "Той фокстер'єр",
   "pack.cal.life.rec.pebbles.country": "США",
   "pack.cal.life.rec.pebbles.exact": "22 роки 189 днів",

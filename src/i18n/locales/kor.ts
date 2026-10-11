@@ -2232,6 +2232,8 @@ export const kor: Partial<Dict> = {
   "pack.cal.life.rec.tobykeith.breed": "치와와",
   "pack.cal.life.rec.tobykeith.country": "미국",
   "pack.cal.life.rec.tobykeith.exact": "23년 112일",
+  "pack.cal.life.rec.harajuku.breed": "치와와",
+  "pack.cal.life.rec.harajuku.country": "미국",
   "pack.cal.life.rec.pebbles.breed": "토이 폭스 테리어",
   "pack.cal.life.rec.pebbles.country": "미국",
   "pack.cal.life.rec.pebbles.exact": "22년 189일",

@@ -2232,6 +2232,8 @@ export const tur: Partial<Dict> = {
   "pack.cal.life.rec.tobykeith.breed": "Chihuahua",
   "pack.cal.life.rec.tobykeith.country": "ABD",
   "pack.cal.life.rec.tobykeith.exact": "23 yıl 112 gün",
+  "pack.cal.life.rec.harajuku.breed": "Chihuahua",
+  "pack.cal.life.rec.harajuku.country": "ABD",
   "pack.cal.life.rec.pebbles.breed": "Toy Fox Terrier",
   "pack.cal.life.rec.pebbles.country": "ABD",
   "pack.cal.life.rec.pebbles.exact": "22 yıl 189 gün",

@@ -2232,6 +2232,8 @@ export const nld: Partial<Dict> = {
   "pack.cal.life.rec.tobykeith.breed": "Chihuahua",
   "pack.cal.life.rec.tobykeith.country": "VS",
   "pack.cal.life.rec.tobykeith.exact": "23 jaar 112 dagen",
+  "pack.cal.life.rec.harajuku.breed": "Chihuahua",
+  "pack.cal.life.rec.harajuku.country": "VS",
   "pack.cal.life.rec.pebbles.breed": "Toy Fox Terriër",
   "pack.cal.life.rec.pebbles.country": "VS",
   "pack.cal.life.rec.pebbles.exact": "22 jaar 189 dagen",
