@@ -393,6 +393,13 @@ function useMemberDogNames(email: string | null, openNowRef: { current: boolean 
             data: { dog_name: string | null; life_status: string | null }[] | null; error: unknown;
           };
         if (!mounted || error || !data || openNowRef.current) return;
+        // Člen si môže AINUBISOVI psov vypnúť (`pack_profiles.human.ainubis.dogs`,
+        // server to číta v `ainubis-dog-context.ts`) — vtedy veta nesmie sľubovať.
+        // Chyba čítania = bez vety (fail-closed, rovnako ako server).
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: prof, error: profErr } = await (supabase as any)
+          .from('pack_profiles').select('human').eq('user_id', user.id).maybeSingle();
+        if (!mounted || profErr || prof?.human?.ainubis?.dogs === false || openNowRef.current) return;
         // Mŕtvy pes sa menom neoslovuje („Arga už poznám" by bolelo) — prázdne meno
         // prepne vetu na množnú, ktorá nikoho nemenuje.
         setNames(data.map((d) => (d.life_status === 'deceased' ? '' : (d.dog_name ?? '').trim())));
