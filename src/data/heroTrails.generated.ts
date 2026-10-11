@@ -61,6 +61,8 @@ export type HeroTrail = {
   // len ADD-flow výlety. Sprievodca mal posuvník od 29. 7., ale hodnota cestou do výletu
   // zanikala (Matej: "nedá sa mi nastaviť výrez na titulnú foto"). Chýba = stred.
   coverY?: number;
+  // „Iné" z kroku Čo (Matej 11. 10. 2026) — vlastná činnosť/miesto, posúdi schvaľovanie.
+  ownAct?: string;
 };
 
 export const HERO_TRAILS: HeroTrail[] = [

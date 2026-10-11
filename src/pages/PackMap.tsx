@@ -5278,6 +5278,7 @@ export default function PackMap() {
         ...(draft.chips?.length
           ? { acts: [ACT_DATA_ID[draft.activity] ?? draft.activity, ...draft.chips] }
           : {}),
+        ...(draft.ownAct ? { ownAct: draft.ownAct } : {}),
       };
       // Zmenený popis = starý EN preklad je lož; zahodí sa a dorobí v pozadí. Nezmenený sa
       // neprekladá znova (zbytočné volanie a chvíľa na SK fallbacku).
@@ -5453,6 +5454,7 @@ export default function PackMap() {
         // rovnocenná hodnota `acts` — filter, karta aj článok ho čítajú tou istou cestou
         // ako kategóriu, takže túra s táboriskom sa nájde pod VISIT bez druhého poľa.
         acts: [ACT_DATA_ID[draft.activity] ?? draft.activity, ...(draft.chips ?? [])],
+        ...(draft.ownAct ? { ownAct: draft.ownAct } : {}),
         surface: draft.surface ?? [],
         crowd: draft.crowd ?? '',
         tags: draft.tags ?? [],

@@ -71,7 +71,7 @@ import {
   type TravelMode, TRAVEL_MODES,
   readAddDraft, writeAddDraft, clearAddDraft, clearTripNotes,
 } from './addTripModel';
-import { TRIP_CATEGORIES, chipsForCategory, chipsOf, otherChips, geometryForCategory, type TripChip } from '@/components/pack/tripCategories';
+import { TRIP_CATEGORIES, OWN_CHIP, chipsForCategory, chipsOf, otherChips, geometryForCategory, type TripChip } from '@/components/pack/tripCategories';
 
 const GOLD = T.cardEdge;
 
@@ -326,6 +326,43 @@ const COUNTRY_OPTIONS = ['sk', 'cz', 'at', 'hu', 'pl', 'de', 'ch', 'it', 'si', '
 // z ACTIVITY_GEOMETRY (nie najvoľnejší ako pri pláne — §5: log = „čo si skutočne prešiel").
 // ⚠️ `chip` = hlavný chip kroku „Čo sme robili". Pri AKTIVITE ním určuje tvar bicykel (trasa),
 // beh (trasa) a SUP (okruh) — Matej 1. 9. 2026. Bez neho platí tvar kategórie.
+/**
+ * ── DLAŽDICE „ČO ZAPISUJEŠ?" — ŠTÍTKY A KRESBA (Matej 11. 10. 2026) ───────────────────────
+ * Nákres `plany/nakres-zapis-typ-a-ine-2026-10-11.html`. Štítok je kľúč `tileTag.*`, kresba
+ * ukazuje tvar z `tripCategories.ts` (hike = trasa · activity = trasa/okruh · visit = okruh).
+ */
+const TILE_TAGS: Record<string, string[]> = {
+  hike: ['km', 'noCity'],
+  activity: ['nature', 'city', 'anyLen'],
+  visit: ['nature', 'city', 'onePlace'],
+};
+const SK_P = T.tripPurple;
+const SK_DOT = { fill: '#FFF', stroke: SK_P, strokeWidth: 2 } as const;
+const SK_LINE = { fill: 'none', stroke: SK_P, strokeWidth: 2, strokeDasharray: '4 3' } as const;
+const SK_AREA = { fill: `rgba(${T.tripPurpleRGB},0.12)`, stroke: SK_P, strokeWidth: 2, strokeDasharray: '4 3' } as const;
+const TILE_SKETCH: Record<string, JSX.Element> = {
+  hike: (
+    <svg width="72" height="48" viewBox="0 0 72 48">
+      <path d="M6 40 L22 18 L40 28 L54 8 L66 22" {...SK_LINE} />
+      {[[6, 40], [22, 18], [40, 28], [54, 8], [66, 22]].map(([x, y]) => <circle key={x} cx={x} cy={y} r={3.5} {...SK_DOT} />)}
+    </svg>
+  ),
+  activity: (
+    <svg width="72" height="48" viewBox="0 0 72 48">
+      <path d="M5 38 L15 20 L29 30" {...SK_LINE} />
+      {[[5, 38], [15, 20], [29, 30]].map(([x, y]) => <circle key={x} cx={x} cy={y} r={3} {...SK_DOT} />)}
+      <circle cx={56} cy={24} r={13} {...SK_AREA} />
+      <circle cx={56} cy={24} r={3} fill={SK_P} />
+    </svg>
+  ),
+  visit: (
+    <svg width="72" height="48" viewBox="0 0 72 48">
+      <circle cx={36} cy={24} r={19} {...SK_AREA} />
+      <circle cx={36} cy={24} r={3.5} fill={SK_P} />
+    </svg>
+  ),
+};
+
 function emptyGeometryFor(activity: string, multiDay = false, chip?: string): TripGeometry {
   const kind = defaultKindFor(activity, 'log', multiDay, chip);
   if (kind === 'point') return { kind: 'point', center: undefined as unknown as LatLngTuple };
@@ -578,6 +615,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
    *    (`effMainChip` nižšie) z poradia vlastných chipov kategórie.
    */
   const [mainChip, setMainChip] = useState<string>('');
+  /** Text k chipu „Iné" (`OWN_CHIP`, Matej 11. 10. 2026) — bez neho krok „Čo" nepustí ďalej. */
+  const [ownAct, setOwnAct] = useState('');
   /**
    * Ktorý chip z DRUHÉHO radu človek práve zapol — pod ním stojí tichá ponuka „vieš, kde to
    * bolo?". Nie je to výber, je to POSLEDNÝ DOTYK: ponuka sa nesmie zjaviť pri každom
@@ -762,6 +801,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
    */
   const ownChips = useMemo(() => chipsForCategory(activity), [activity]);
   const moreChips = useMemo(() => otherChips(activity), [activity]);
+  /** Krok „Čo": vlastné chipy kategórie + „Iné" na konci. Len tu — viď `OWN_CHIP`. */
+  const pickChips = useMemo(() => [...ownChips, OWN_CHIP], [ownChips]);
   /**
    * Hlavné miesto po obnove konceptu: `mainChip` v stave nie je, ale chip v `chips` áno —
    * berie sa PRVÝ vlastný chip kategórie v poradí zoznamu. Kým `mainChip` platí (je stále
@@ -770,7 +811,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
    */
   const effMainChip = (mainChip && chips.has(mainChip))
     ? mainChip
-    : (ownChips.find((c) => chips.has(c.id))?.id ?? '');
+    : (pickChips.find((c) => chips.has(c.id))?.id ?? '');
   /**
    * Voľba hlavného miesta (krok „Čo"). Je to JEDEN výber: predošlé hlavné sa vypína, aby
    * v `acts` nezostal chip, ktorý človek prekliknutím opustil. Ostatné miesta si vie pridať
@@ -1060,6 +1101,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
     // Chipy prežijú reload rovnako ako tagy. Druhý rad sa pritom NEROZBALÍ sám: obnovený
     // výlet už tú voľbu má a rozbalený zoznam by pri návrate vyzeral ako nová otázka.
     if (restored.chips?.length) setChips(new Set(restored.chips));
+    if (restored.ownAct) setOwnAct(restored.ownAct);
     if (restored.crew) setCrew(restored.crew);
     if (restored.paws) setPaws(restored.paws);
     if (restored.note) setNote(restored.note);
@@ -1475,6 +1517,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
       // CHIPY — na pláne rovnako ako na zápise. „Ideme piknikovať" je legitímny plán a chip
       // je jediné miesto, kde sa to dá povedať; náročnosť a ruch sú správy Z CESTY, chip nie.
       chips: chips.size > 0 ? Array.from(chips) : undefined,
+      ownAct: chips.has(OWN_CHIP.id) && ownAct.trim() ? ownAct.trim() : undefined,
       // ⚠️ `hazards` sa z formulára UŽ NEPLNÍ (Matej 23. 8.). Nebezpečenstvo sa od kroku 2
       // zapichuje na mapu — tam, kde naozaj je. Chip bez polohy je horší údaj (svorke
       // nepovie kde) a tá istá informácia na dvoch miestach sa rozíde pri prvej úprave.
@@ -1496,7 +1539,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
       step,
       sourceGpx: geometry.kind === 'route' && geometry.path.length > 0 ? sourceGpx : undefined,
     };
-  }, [sourceGpx, name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, chips, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step, finishTrail, fromPlan, travelMode, travelFrom, pickup, pickupSeats]);
+  }, [sourceGpx, name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, chips, ownAct, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step, finishTrail, fromPlan, travelMode, travelFrom, pickup, pickupSeats]);
 
   // §4.3: toSubmit blokuje odoslanie úplne; toApprove (len walked) rozhoduje draft vs pending.
   const missing = missingFields(draft);
@@ -1672,7 +1715,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
   // ⚠️ CHIP PRI NÁVŠTEVE JE POVINNÝ (Matej 1. 9. 2026: „povinný"). Bez neho by odmena po
   // zápise („👀 NÁVŠTEVA · 🌳 PARK · ZÁPAD") skončila polovičná — a mapa by nemala čo
   // o mieste povedať, keďže návšteva nemá ani náročnosť, ani povrch.
-  const nextBlocked = (step === 1 && !geoDone) || (step === 7 && !effMainChip);
+  const ownActMissing = effMainChip === OWN_CHIP.id && !ownAct.trim();
+  const nextBlocked = (step === 1 && !geoDone) || (step === 7 && (!effMainChip || ownActMissing));
 
   /**
    * ── PLÁN MÁ TRI KROKY, ZÁPIS PÄŤ (Matej 2026-08-25, rozšírené 26. 8.) ─────────────────
@@ -2172,8 +2216,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
      *    MIESTO, pri aktivite ČINNOSŤ. Jeden spoločný text by na jednej z dvoch obrazoviek
      *    posielal človeka hľadať pole, ktoré tam pod tým menom nestojí.
      */
-    7: effMainChip ? [] : [activity === 'activity' ? 'pack.addTrip.field.doing' : 'pack.addTrip.field.place'],
-  }), [geoDone, placedCount, name, dontRemember, date, isPlan, isChipFirst, isHikeLike, diff, terrain, crowd, tags, paws, effMainChip, activity]);
+    7: effMainChip && !(effMainChip === OWN_CHIP.id && !ownAct.trim()) ? [] : [activity === 'activity' ? 'pack.addTrip.field.doing' : 'pack.addTrip.field.place'],
+  }), [geoDone, placedCount, name, dontRemember, date, isPlan, isChipFirst, isHikeLike, diff, terrain, crowd, tags, paws, effMainChip, ownAct, activity]);
 
   /**
    * ČERVENÁ SA ZAPÍNA AŽ PO NÁVRATE, NIE PRI PRVOM PRÍCHODE.
@@ -2481,8 +2525,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
      */
     contextPill: isChipFirst && effMainChip ? (
       <span className="atl-ctxpill">
-        <span style={{ fontFamily: FONT_EMOJI }}>{ownChips.find((c) => c.id === effMainChip)?.emoji}</span>
-        <span>{chipTx(effMainChip, ownChips.find((c) => c.id === effMainChip)?.label ?? '')}</span>
+        <span style={{ fontFamily: FONT_EMOJI }}>{pickChips.find((c) => c.id === effMainChip)?.emoji}</span>
+        <span>{effMainChip === OWN_CHIP.id && ownAct.trim() ? ownAct.trim() : chipTx(effMainChip, pickChips.find((c) => c.id === effMainChip)?.label ?? '')}</span>
       </span>
     ) : undefined,
     onDone: () => {
@@ -2888,7 +2932,18 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                   <span className="atl-tile-txt">
                     <span className="atl-tile-label">{t(`pack.map.activityLabel.${a.id}`)}</span>
                     <span className="atl-tile-note">{t(`pack.addTrip.log.activityNote.${a.id}`)}</span>
+                    {/* ŠTÍTKY = POPIS, NIE OVLÁDAČ (Matej 11. 10. 2026: „do hike by som pridal chipy
+                        +5 km a žiadne mesto"). Podmienku stráže turistiky človek dovtedy zistil až
+                        po nakreslení. Tiché zlaté pilulky bez tlačidlového rámu, aby na ne neťukal. */}
+                    {TILE_TAGS[a.id] && (
+                      <span className="atl-tile-tags">
+                        {TILE_TAGS[a.id].map((k) => <span key={k} className="atl-tile-tag">{t(`pack.addTrip.log.tileTag.${k}`, { min: HIKE_MIN_KM })}</span>)}
+                      </span>
+                    )}
                   </span>
+                  {/* Kresba tvaru, ktorý človek potom kreslí na mape — body s prerušovanou čiarou
+                      (trasa) alebo okruh. Fialová = výlety (jediný odtieň, `tripPurple`). */}
+                  {TILE_SKETCH[a.id] && <span className="atl-tile-sketch" aria-hidden="true">{TILE_SKETCH[a.id]}</span>}
                   {/* Šípka sľubuje rozbalenie — pri NÁVŠTEVE sa nič nerozbalí, tak tam nie je. */}
                   {!noFork && <span className="atl-tile-caret" aria-hidden="true">{open ? '⌃' : '⌄'}</span>}
                 </button>
@@ -3065,19 +3120,35 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                   role="radiogroup"
                   aria-label={t(isVisit ? 'pack.addTrip.log.whatPlace' : 'pack.addTrip.log.whatDid')}
                 >
-                  {ownChips.map((ch) => (
+                  {pickChips.map((ch) => (
                     <button
                       key={ch.id}
                       type="button"
                       role="radio"
                       aria-checked={effMainChip === ch.id}
-                      className={`atl-chip${effMainChip === ch.id ? ' on' : ''}`}
+                      className={`atl-chip${ch.id === OWN_CHIP.id ? ' atl-chip--own' : ''}${effMainChip === ch.id ? ' on' : ''}`}
                       onClick={() => pickMainChip(ch.id)}
                     >
                       <span className="atl-chip-emoji" style={{ fontFamily: FONT_EMOJI }}>{ch.emoji}</span>
                       <span className="atl-chip-label">{chipTx(ch.id, ch.label)}</span>
                     </button>
                   ))}
+                  {/* „INÉ" (Matej 11. 10. 2026): vlastné slovo, ktoré posúdi schvaľovanie výletu —
+                      nový chip, alebo presun pod existujúci. Pole stojí cez obe kolóny mriežky. */}
+                  {effMainChip === OWN_CHIP.id && (
+                    <div className="atl-own">
+                      <input
+                        className="atl-input"
+                        value={ownAct}
+                        maxLength={40}
+                        autoFocus
+                        onChange={(e) => setOwnAct(e.target.value)}
+                        placeholder={t(isVisit ? 'pack.addTrip.log.ownPlacePh' : 'pack.addTrip.log.ownActPh')}
+                        aria-label={t('pack.map.chipLabel.other')}
+                      />
+                      <p className="atl-field-hint">{t('pack.addTrip.log.ownHint')}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -3863,7 +3934,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                 obrazovke (jeden v päte panela, druhý v doku) je otázka, ktorý z nich platí. */}
             {!isLastStep && !drawingStep && !notesInBar && (
               <div className="atl-nav">
-                <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>
+                {/* Krok „Čo" má späť šípkou hore — druhé Späť dole bolo navyše (Matej 11. 10. 2026). */}
+                {step !== 7 && <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>}
                 <button type="button" className="btn-gold" onClick={goNext} disabled={nextBlocked}>
                   {t('pack.addTrip.step.next')}
                 </button>
@@ -3876,7 +3948,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                 sedmička nie — a keďže chip je povinný (`nextBlocked`), človek stál pred sivým
                 tlačidlom bez jediného vodidla. Tá istá trieda aj miesto ako pri mape. */}
             {step === 7 && nextBlocked && (
-              <p className="atl-log-hint">{t('pack.addTrip.step.needChip')}</p>
+              <p className="atl-log-hint">{t(ownActMissing ? 'pack.addTrip.step.needOwn' : 'pack.addTrip.step.needChip')}</p>
             )}
 
             {isLastStep && (
@@ -4355,6 +4427,11 @@ const LOG_CSS = `
 .atl-tile-txt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:5px;}
 .atl-tile-note{font-family:${FONT_UI};font-weight:400;font-size:12px;line-height:1.4;letter-spacing:0;text-transform:none;color:${T.onDarkDim};}
 .atl-tile-caret{flex:0 0 auto;font-family:${FONT_UI};font-size:16px;line-height:1;color:${T.onDarkDim};}
+.atl-tile-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.atl-tile-tag{font-family:${FONT_UI};font-weight:500;font-size:10px;line-height:1;letter-spacing:0.02em;text-transform:none;padding:4px 8px;border-radius:999px;border:1px solid ${T.border};background:rgba(201,154,63,0.10);color:${GOLD};white-space:nowrap;}
+.atl-tile-sketch{flex:0 0 auto;display:flex;}
+.atl-own{grid-column:1/-1;display:flex;flex-direction:column;gap:4px;}
+.atl-chip--own{border-style:dashed;}
 /* ── OTVORENÁ DLAŽDICA = JEDEN TMAVÝ BLOK (Matej 2026-08-27) ─────────────────────────────
    „treba skúsiť iné otváranie — blok stmavne a priamo v tom istom bloku budú 2 možnosti."
    Predtým to boli DVA prvky pod sebou (svetlá dlaždica + prilepený pásik s vlastným rámom),
@@ -4807,6 +4884,7 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-tile-label{color:${P_INK};}
   .atl-tile-note{color:${P_DIM};}
   .atl-tile-caret{color:${P_DIM};}
+  .atl-tile-tag{color:${P_DEEP};border-color:${P_BORDER};background:rgba(201,154,63,0.12);}
   /* ⚠️ OTVORENÁ DLAŽDICA SA V BLEDOM SKINE NEPREFARBUJE — je LAPISOVÁ zámerne (viď STEP_CSS).
      Do 27. 8. tu stáli tri svetlé prepisy (dlaždica, pásik, tlačidlá); po zmene by z lapisového
      bloku spravili papyrusový a stav by prestal byť vidieť. */

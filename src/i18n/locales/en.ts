@@ -3178,10 +3178,10 @@ export const en = {
   // vysvetlivka"). Nie je to ozdoba — voľba aktivity rozhoduje o tom, ČO sa bude na mape
   // kresliť (trasa vs. jeden bod vs. vodná plocha), a to sa človek dovtedy dozvedel až
   // v kroku 1, keď už mapu videl.
-  'pack.addTrip.log.activityNote.hike': "A walk along a route \u2014 one day or several.",
+  'pack.addTrip.log.activityNote.hike': "A hike in nature. Mark points — they join into a route.",
   'pack.addTrip.log.activityNote.chill': "Picnic, barbecue, a night out \u2014 staying in one place.",
   'pack.addTrip.log.activityNote.sport': "Skating, paddleboard, swimming.",
-  'pack.addTrip.log.activityNote.activity': "Picnic, camping, swimming, skating \u2014 what you did.",
+  'pack.addTrip.log.activityNote.activity': "Picnic, camping, SUP, cycling… A route or an area — whatever fits what you did.",
   'pack.addTrip.log.activityNote.hiking': "Draw your walk together in 3 minutes.",
   'pack.addTrip.log.activityNote.journey': "Pick this if you are logging a trek over several days.",
   'pack.addTrip.log.activityNote.picnic': "Mark the spot on the map.",
@@ -3189,7 +3189,7 @@ export const en = {
   'pack.addTrip.log.activityNote.skating': "Mark a place with an asphalt path.",
   'pack.addTrip.log.activityNote.paddleboard': "Pick the body of water.",
   'pack.addTrip.log.activityNote.explore': "Anything else \u2014 a castle, a landmark, a park\u2026",
-  'pack.addTrip.log.activityNote.visit': "A park, a landmark, a lake, a meadow \u2014 where you went.",
+  'pack.addTrip.log.activityNote.visit': "A place without a set route — a park, a castle, a lake. You mark it with a circle.",
   // Dva rady chipov v kroku 4. Prvý = vlastná kategória, druhý = ostatné, zbalený.
   'pack.addTrip.log.chipsOwn': "What we did there",
   'pack.addTrip.log.chipsMore': "Was there anything else to do?",
@@ -3604,6 +3604,16 @@ export const en = {
   'pack.addTrip.step.needRoute': "Draw the route first — or pick start and finish only.",
   'pack.addTrip.step.needPlace': "Mark the place on the map first — tap where you were.",
   'pack.addTrip.step.needChip': "Pick one first — the rest of the form depends on it.",
+  'pack.addTrip.step.needOwn': "Write what it was — a word or two is enough.",
+  'pack.addTrip.log.ownActPh': "Write what you did — e.g. canicross",
+  'pack.addTrip.log.ownPlacePh': "Write what kind of place it was",
+  'pack.addTrip.log.ownHint': "We'll review it and add it to the list.",
+  'pack.addTrip.log.tileTag.km': "{min}+ km",
+  'pack.addTrip.log.tileTag.noCity': "outside towns",
+  'pack.addTrip.log.tileTag.nature': "nature",
+  'pack.addTrip.log.tileTag.city': "town",
+  'pack.addTrip.log.tileTag.anyLen': "any length",
+  'pack.addTrip.log.tileTag.onePlace': "one place",
   // ⚠️ KĽÚČ CHÝBAL ÚPLNE (nájdené 2026-08-26 pri prechode toku na PC). AInubis ho hlási po
   // NÁVRATE na nedokončený krok — teda presne vtedy, keď má človek niečo doplniť — a namiesto
   // vety mu ukazoval `pack.addTrip.step.stillMissing trasa na mape`. Volajúci je
@@ -4267,7 +4277,7 @@ export const en = {
   // ── CHIPY KROKU 4 (2026-08-31) — „čo sme tam robili" ───────────────────────────────────
   // Zdroj id + anglický fallback: `components/pack/tripCategories.ts`. Tieto kľúče ho len
   // prekladajú; nový chip musí pribudnúť TAM, inak sa preklad nemá k čomu prilepiť.
-  'pack.map.chipLabel.park': "Park",
+  'pack.map.chipLabel.park': "Park / woods",
   'pack.map.chipLabel.sight': "Landmark",
   'pack.map.chipLabel.zoo': "Zoo / farm",
   'pack.map.chipLabel.water': "Water",
@@ -4277,6 +4287,8 @@ export const en = {
   'pack.map.chipLabel.picnic': "Picnic",
   'pack.map.chipLabel.camping': "Camping",
   'pack.map.chipLabel.mushrooms': "Mushrooms",
+  'pack.map.chipLabel.walk': "Walk",
+  'pack.map.chipLabel.other': "Other",
   'pack.map.chipLabel.camp': "Campsite",
   'pack.map.chipLabel.skate': "Skating",
   'pack.map.chipLabel.run': "Running",

@@ -265,6 +265,8 @@ export type AddTripDraft = {
    * túra smela niesť piknik bez toho, aby sa piknik ponúkal tam, kde nedáva zmysel.
    */
   chips?: string[];
+  /** Vlastný text pri chipe „Iné" (`OWN_CHIP`) — posúdi ho schvaľovanie (Matej 11. 10. 2026). */
+  ownAct?: string;
   hazards?: string[];             // vrátane custom (§7 — text sa zobrazí, nefiltruje kým ho Matej neschváli)
   paws?: number;                  // 1–5, bez polovičných
   photos?: string[];

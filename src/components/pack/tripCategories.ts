@@ -139,7 +139,21 @@ const ACTIVITY_CHIPS: TripChip[] = [
   { id: 'run', emoji: '🏃', label: 'Running' },            // Matej 26. 8.
   { id: 'bike', emoji: '🚲', label: 'Cycling' },
   { id: 'mushrooms', emoji: '🍄', label: 'Mushrooms' },    // Matej 1. 9., vlastný zápis v matrici
+  // Matej 11. 10. 2026 („ok pridaj") — prechádzka so psom nemala domov: pod 5 km nie je
+  // turistika, návšteva je kruh, nie trasa. Trasa prvá, okruh alternatíva (ako beh).
+  { id: 'walk', emoji: '🐕', label: 'Walk' },
 ];
+
+/**
+ * ── „INÉ" — VLASTNÁ ČINNOSŤ / MIESTO (Matej 11. 10. 2026) ──────────────────────────────────
+ * „pri kliku by človek mohol napísať vlastnú aktivitu — pri schválení by sme posúdili
+ *  relevantnosť a chip pridali alebo ho presunuli pod existujúci."
+ * 🔑 NIE JE V `chips` ŽIADNEJ KATEGÓRIE zámerne: inak by ho dostal filter na mape aj zbalený
+ *    rad ZÁKLADU, kde k nemu nie je pole na text. Ponúka ho len krok „Čo" (AddTripLog).
+ *    Text nesie `HeroTrail.ownAct`; v `acts` ostane `other`, ktorý `chipsOf` nepozná, takže
+ *    ho karta neukáže — o osude rozhoduje schvaľovanie výletu.
+ */
+export const OWN_CHIP: TripChip = { id: 'other', emoji: '✍️', label: 'Other' };
 
 /**
  * ── TVAR VÝLETU URČUJE CHIP, NIE KATEGÓRIA (Matej 1. 9. 2026) ─────────────────────────────
@@ -174,6 +188,7 @@ const CHIP_GEOMETRY: Record<string, GeometryKind[]> = {
   picnic: ['area'],
   camping: ['area'],
   mushrooms: ['area'],
+  walk: ['route', 'area'],     // prechádzka: 1. trasa · alt okruh (Matej 11. 10.)
 };
 
 /** kategória bez chipov — HIKE nesie náročnosť a príznak viacdňovosti (odysea), to stačí */
