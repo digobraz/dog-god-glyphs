@@ -3697,8 +3697,6 @@ export const en = {
   'pack.addTrip.ainubis.error': "The maps aren't answering right now. Keep drawing wherever you walked — I'll snap it to the trails when you hit DONE.",
   'pack.addTrip.ainubis.paused': "Snapping is switched off for now. Click out the route wherever you walked — it will be saved just as you draw it.",
   'pack.addTrip.ainubis.denseClicks': "No need to click so densely 🐾 The route snaps to the trail by itself — and if not right away, then when you hit DONE.",
-  'pack.addTrip.manual.km': "Kilometres",
-  'pack.addTrip.manual.ascent': "Elevation gain ↑ m",
   'pack.addTrip.ainubis.snapping': "Snapping the route to the trails…",
   'pack.addTrip.nature.askTitle': "How was it?",
   'pack.addTrip.nature.askUrban': "I sniff that this route runs more between houses than through nature — but I may be wrong.",

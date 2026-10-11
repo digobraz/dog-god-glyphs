@@ -3377,8 +3377,6 @@ export const cs: Partial<Dict> = {
   'pack.addTrip.ainubis.error': 'Mapy mi právě neodpovídají. Kresli dál, kudy jste šli — na cestu to přilepím při HOTOVO.',
   'pack.addTrip.ainubis.paused': 'Přilepování je teď vypnuté. Naklikej trasu, kudy jste šli, uloží se tak, jak ji nakreslíš.',
   'pack.addTrip.ainubis.denseClicks': "Nemusíš klikat nahusto 🐾 Trasa se na cestu přilepí sama — a když ne hned, tak při HOTOVO.",
-  'pack.addTrip.manual.km': 'Kilometry',
-  'pack.addTrip.manual.ascent': 'Převýšení ↑ m',
   'pack.addTrip.ainubis.snapping': 'Přilepuji trasu na cesty…',
   'pack.addTrip.nature.askTitle': 'Jak to bylo?',
   'pack.addTrip.nature.askUrban': 'Čichám, že tato trasa vede víc mezi domy než přírodou — ale můžu se mýlit.',
