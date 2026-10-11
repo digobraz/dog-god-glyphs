@@ -604,6 +604,45 @@ body.has-pack-nav {
 }
 
 /* Oddanosť ostáva ZLATÁ zámerne — je to odmena z brandu, nie systémový výpis. */
+.ainubis-msg__link {
+  color: var(--ainubis-cyan);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+
+/* Schvaľovanie výletu: Schváliť / Namietnuť pod správou od Mateja. CTA = zlato-oranžové
+   (jeho brand), tvar 8px; druhé tlačidlo je obrys v cyane. */
+.ainubis-review { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.ainubis-review__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.ainubis-review__btn {
+  height: 40px; padding: 0 16px;
+  border-radius: 8px; cursor: pointer;
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.55);
+  background: transparent; color: var(--ainubis-cyan);
+  font: 700 12px/1 'Cinzel', serif; letter-spacing: .14em; text-transform: uppercase;
+}
+.ainubis-review__btn--cta {
+  border: 0;
+  background: linear-gradient(var(--ainubis-cta-a), var(--ainubis-cta-b));
+  color: var(--ainubis-cta-ink);
+}
+.ainubis-review__btn:disabled { opacity: .5; cursor: default; }
+.ainubis-review__field {
+  width: 100%; box-sizing: border-box; padding: 8px 12px;
+  border-radius: 8px; resize: vertical;
+  border: 1px solid rgba(230, 250, 255, 0.22);
+  background: rgba(0, 0, 0, 0.35); color: #E6FAFF;
+  font: 400 14px/1.4 'Space Grotesk', sans-serif;
+}
+.ainubis-review__field:focus { outline: none; border-color: rgba(var(--ainubis-cyan-rgb), 0.7); }
+.ainubis-review__err { font: 400 12px/1.4 'Space Grotesk', sans-serif; color: #F0A08C; }
+.ainubis-review__state {
+  margin-top: 8px;
+  font: 700 12px/1 'Cinzel', serif; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ainubis-cyan);
+}
+
 .ainubis-msg__devotion {
   margin-top: 6px;
   font-family: 'Cinzel', serif;

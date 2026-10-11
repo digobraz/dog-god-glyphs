@@ -797,6 +797,29 @@ export function translateLocalTrailName(id: string, onDone?: () => void, text?: 
   });
 }
 
+/**
+ * DOPLNENIE CHÝBAJÚCEHO EN PREKLADU (11. 10. 2026). Preklad po zápise beží len v pamäti tabu:
+ * keď sa tab zavrie / uspí skôr, než odpovie Edge Function (Danielin Fälensee a Dreilindenpark
+ * v `pack_trips` ostali bez `nameEN`/`descEN`), alebo ho prebije `pull` z DB (starší snímok),
+ * nikto ho už nezopakuje. Preto sa pri otvorení mapy prejdú VLASTNÉ čakajúce výlety a čo chýba,
+ * sa preloží znova. Raz za reláciu na výlet (nech neplytvá limitom 20/h, keď preklad zlyháva).
+ */
+const backfillTried = new Set<string>();
+export function backfillLocalTrailTranslations(onDone?: () => void): void {
+  const meta = readLocalTrailMeta();
+  for (const tr of readLocalTrails()) {
+    const m = meta[tr.id];
+    if (m && (m.mine === false || m.status !== 'pending')) continue; // cudzí / už schválený: UPDATE by RLS zahodila
+    if (backfillTried.has(tr.id)) continue;
+    const needName = !!tr.name?.trim() && !tr.nameEN?.trim();
+    const needDesc = !!tr.desc?.trim() && !tr.descEN?.trim();
+    if (!needName && !needDesc) continue;
+    backfillTried.add(tr.id);
+    if (needName) translateLocalTrailName(tr.id, onDone);
+    if (needDesc) translateLocalTrailDesc(tr.id, onDone);
+  }
+}
+
 const readStringSet = readSet;
 export const readFavIds = () => readStringSet(FAV_IDS_KEY);
 // Zápis ide cez packStore: lokálne hneď + do Supabase (fronta, ak nie je sieť).

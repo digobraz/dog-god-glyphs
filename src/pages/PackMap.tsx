@@ -98,7 +98,7 @@ import { useMyEventCount } from '@/components/pack/events/eventStore';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DiffMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
   DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, coverPos, hasRouteMetrics, tripShareText, pluralKey,
-  readLocalTrails, writeLocalTrails, updateLocalTrail, translateLocalTrailDesc, translateLocalTrailName, makeTripUrlSlug, tripName, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog,
+  readLocalTrails, writeLocalTrails, updateLocalTrail, translateLocalTrailDesc, translateLocalTrailName, backfillLocalTrailTranslations, makeTripUrlSlug, tripName, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
   tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds, isOdyssey, isGhostJourney, usePackWalked, GHOST_SABER_LAYERS, CLAIMABLE_JOURNEY_IDS } from '@/components/pack/tripShared';
 import {
@@ -4101,6 +4101,7 @@ export default function PackMap() {
      * čo odoslať (`tripsBlocked` = fronta SyncOp alebo nedokončený upload fotiek).
      */
     setLocalTrails(readLocalTrails());
+    backfillLocalTrailTranslations(() => setLocalTrails(readLocalTrails()));
   }, [storeEpoch]);
 
   // flow modal (design §A): ponuka hodnotenia po ✓. Zámer wishlistu a inzerát na parťáka

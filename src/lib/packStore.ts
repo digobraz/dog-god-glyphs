@@ -520,6 +520,11 @@ async function processTripUploadQueue(): Promise<void> {
       const slug = pending[0];
       const trail = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).find((t) => t.id === slug);
       if (!trail) { pending = pending.slice(1); writeTripPending(pending); continue; } // zmazaný lokálne medzitým
+      // 🔴 Slug sa vyberie z fronty PRED nahrávaním (11. 10. 2026). `writeTripPending` robí Set,
+      //    takže EN preklad, ktorý dobehol počas uploadu (`updateLocalTrail` → `queueLocalTripUpload`),
+      //    sa zlial s práve spracúvaným slugom a koncové `slice(1)` ho zahodilo — v `pack_trips`
+      //    ostal riadok bez `nameEN`/`descEN`. Teraz sa re-queue počas uploadu vráti do fronty.
+      writeTripPending(pending.slice(1));
       try {
         const photos = await uploadTrailPhotos(slug);
         const fresh = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).find((t) => t.id === slug) ?? trail;
@@ -534,10 +539,10 @@ async function processTripUploadQueue(): Promise<void> {
           },
         }]);
       } catch {
+        writeTripPending([slug, ...readTripPending()]); // vrátiť na začiatok
         break; // sieť padla uprostred uploadu — necháme frontu, skúsi sa znova (online event / ďalšia hydratácia)
       }
-      pending = readTripPending().slice(1);
-      writeTripPending(pending);
+      pending = readTripPending();
     }
   } finally { tripProcessing = false; }
 }

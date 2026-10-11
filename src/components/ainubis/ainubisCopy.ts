@@ -66,6 +66,17 @@ export interface AinubisCopy {
   removeImage: string;
   imagePreviewAlt: string;
   devotionGranted: (n: number) => string;
+  /** Schvaľovanie výletu: správa od Mateja s úpravou → Schváliť / Namietnuť. */
+  review: {
+    approve: string;
+    object: string;
+    objectPlaceholder: string;
+    objectSend: string;
+    objectCancel: string;
+    approved: string;
+    objected: string;
+    failed: string;
+  };
   errors: {
     generic: string;
     offline: string;
@@ -141,6 +152,16 @@ const sk: AinubisCopy = {
   removeImage: 'Odstrániť obrázok',
   imagePreviewAlt: 'Náhľad priloženého obrázku',
   devotionGranted: (n) => `+${n} ODDANOSŤ — strážil si chrám so mnou.`,
+  review: {
+    approve: 'Schváliť',
+    object: 'Namietnuť',
+    objectPlaceholder: 'Napíš, ako to má znieť…',
+    objectSend: 'Odoslať námietku',
+    objectCancel: 'Zrušiť',
+    approved: 'Schválené ✓',
+    objected: 'Námietka odoslaná',
+    failed: 'Nepodarilo sa uložiť. Skús to ešte raz.',
+  },
   errors: {
     generic: 'Spojenie s chrámom sa pretrhlo. Skús to ešte raz.',
     offline: 'Strážca práve obchádza hradby. Skús o chvíľu — alebo napíš na woof@dogypt.com.',
@@ -207,6 +228,16 @@ const en: AinubisCopy = {
   removeImage: 'Remove image',
   imagePreviewAlt: 'Preview of attached image',
   devotionGranted: (n) => `+${n} devotion points granted.`,
+  review: {
+    approve: 'Approve',
+    object: 'Object',
+    objectPlaceholder: 'Write how it should read…',
+    objectSend: 'Send objection',
+    objectCancel: 'Cancel',
+    approved: 'Approved ✓',
+    objected: 'Objection sent',
+    failed: 'Could not save. Please try again.',
+  },
   errors: {
     generic: 'Something broke on my side of the tomb. Please try again.',
     offline: 'Lost connection to DOGYPT. Check your internet and try again.',

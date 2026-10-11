@@ -87,6 +87,11 @@ export const uploadDogDiaryPhoto = (blob: Blob, dogId: string, stamp: string) =>
 export const uploadTripStoryPhoto = (blob: Blob, slug: string, stamp: string) =>
   uploadBlob(blob, `trip-stories/${slug}`, stamp);
 
+// Fotka priložená k RECENZII výletu (11. 10. 2026) — `trip-reviews/<slug>/<stamp>`.
+// Vlastný priečinok: `trip-stories/` nesie príbehy, `pack-trips/` fotky samotného výletu.
+export const uploadTripReviewPhoto = (blob: Blob, slug: string, stamp: string) =>
+  uploadBlob(blob, `trip-reviews/${slug}`, stamp);
+
 // Fotka v DISKUSII ZVITKU VAULTU (6. 10. 2026) — `vault-talk/<id zvitku>/<stamp>`.
 // Čas v `public_id` z toho istého dôvodu ako príbehy: k jednému zvitku píše veľa ľudí.
 export const uploadVaultTalkPhoto = (blob: Blob, scrollId: string, stamp: string) =>

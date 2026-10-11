@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { linkify } from './ainubisLinkify';
 import { X, Move } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLang } from '@/i18n/LanguageContext';
@@ -123,6 +124,8 @@ interface AinubisMeta {
   severity?: 'low' | 'medium' | 'high';
   devotion?: number;
   needs_matej?: boolean;
+  /** Správa o úprave výletu (Horská chata). `autor`: undefined/'pending' = čaká na autora. */
+  review?: { druh?: string; zmena?: boolean; autor?: string; objection?: string };
 }
 
 interface AinubisMessage {
@@ -400,6 +403,7 @@ function readStoredPanelPos(): PanelPos | null {
 function AinubisWidgetInner() {
   const { lang } = useLang();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const onPublicRoute = PUBLIC_ROUTES.includes(pathname);
   // Verejné uvítanie: o projekte, chybách a pomoci — nie technická podpora appky.
   const copy = useMemo(() => {
@@ -458,6 +462,8 @@ function AinubisWidgetInner() {
   // text po znakoch, ako keby AINUBIS naozaj sedel na druhej strane.
   // Rozdelenie na viac bublín je zámer (04-copy-a-vizual.md §1).
   const [messages, setMessages] = useState<AinubisMessage[]>([]);
+  // Námietka k úprave výletu: rozpísaný text je len pri jednej správe naraz.
+  const [objecting, setObjecting] = useState<{ id: string; text: string; busy: boolean; err: boolean; mode?: 'field' } | null>(null);
   /**
    * HISTÓRIA PRED UVÍTANÍM (11. 10. 2026, Daniela: „správy miznú, nenačítajú sa, preblikuje").
    * Rozhovor je JEDEN a pokračuje — kto už s AINUBISom písal, po otvorení vidí celé vlákno,
@@ -1095,6 +1101,74 @@ function AinubisWidgetInner() {
     }
   }
 
+  // Schváliť / Namietnuť úpravu výletu → edge `ainubis-review` (overí autora; RLS sa neobchádza).
+  async function sendReview(m: AinubisMessage, action: 'ok' | 'objected', text?: string) {
+    if (!conversationId || !sessionToken) return;
+    setObjecting({ id: m.id, text: text ?? '', busy: true, err: false, mode: action === 'objected' ? 'field' : undefined });
+    try {
+      const { error } = await supabase.functions.invoke('ainubis-review', {
+        body: { conversation_id: conversationId, session_token: sessionToken, message_id: m.id, action, text },
+      });
+      if (error) throw error;
+      setMessages((prev) =>
+        prev.map((x) =>
+          x.id === m.id
+            ? { ...x, meta: { ...x.meta, review: { ...x.meta?.review, autor: action, objection: action === 'objected' ? text : undefined } } }
+            : x,
+        ),
+      );
+      setObjecting(null);
+    } catch {
+      setObjecting({ id: m.id, text: text ?? '', busy: false, err: true, mode: action === 'objected' ? 'field' : undefined });
+    }
+  }
+
+  function renderReview(m: AinubisMessage) {
+    const rv = m.meta?.review;
+    if (!rv || rv.druh !== 'ok' || rv.zmena === false) return null;
+    if (rv.autor === 'ok') return <div className="ainubis-review__state">{copy.review.approved}</div>;
+    if (rv.autor === 'objected') return <div className="ainubis-review__state">{copy.review.objected}</div>;
+    const o = objecting?.id === m.id ? objecting : null;
+    if (o && (o.mode === 'field')) {
+      return (
+        <div className="ainubis-review">
+          <textarea
+            className="ainubis-review__field"
+            rows={3}
+            maxLength={2000}
+            placeholder={copy.review.objectPlaceholder}
+            value={o.text}
+            disabled={o.busy}
+            onChange={(e) => setObjecting({ ...o, text: e.target.value, err: false })}
+          />
+          {o.err && <div className="ainubis-review__err">{copy.review.failed}</div>}
+          <div className="ainubis-review__row">
+            <button type="button" className="ainubis-review__btn ainubis-review__btn--cta" disabled={o.busy || !o.text.trim()}
+              onClick={() => void sendReview(m, 'objected', o.text.trim())}>{copy.review.objectSend}</button>
+            <button type="button" className="ainubis-review__btn" disabled={o.busy} onClick={() => setObjecting(null)}>{copy.review.objectCancel}</button>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="ainubis-review">
+        {o?.err && <div className="ainubis-review__err">{copy.review.failed}</div>}
+        <div className="ainubis-review__row">
+          <button type="button" className="ainubis-review__btn ainubis-review__btn--cta" disabled={o?.busy}
+            onClick={() => void sendReview(m, 'ok')}>{copy.review.approve}</button>
+          <button type="button" className="ainubis-review__btn" disabled={o?.busy}
+            onClick={() => setObjecting({ id: m.id, text: '', busy: false, err: false, mode: 'field' })}>{copy.review.object}</button>
+        </div>
+      </div>
+    );
+  }
+
+  function openInternalLink(path: string) {
+    navigate(path);
+    setOpen(false);
+    safeLocalStorageSet(LS_OPEN, '0');
+  }
+
   function handleToggleOpen() {
     setOpen((prev) => {
       const next = !prev;
@@ -1438,7 +1512,8 @@ function AinubisWidgetInner() {
                       <span className="ainubis-target-ico" aria-hidden />
                     </button>
                   )}
-                  {shownContent}
+                  {isUser ? shownContent : linkify(shownContent, openInternalLink)}
+                  {!isUser && renderReview(m)}
                   {/* Pozor na `&&` s číslom: pri devotion === 0 vracia `0`, a React
                       nulu vykreslí — na konci odpovede potom visela holá „0".
                       Preto explicitné porovnanie, nie truthy test. */}

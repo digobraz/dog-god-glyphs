@@ -44,7 +44,7 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
-import { readLocalTrails, updateLocalTrail } from '@/components/pack/tripShared';
+import { readLocalTrails, updateLocalTrail, translateLocalTrailName } from '@/components/pack/tripShared';
 import { readTrailOverrides, saveTrailOverride, translateTripDesc } from '@/lib/packStore';
 import { MAX_PHOTOS, optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
@@ -140,6 +140,7 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
   onClose: () => void;
 }) {
   const t = useT();
+  const [name, setName] = useState(trail.name ?? '');
   const [desc, setDesc] = useState(trail.desc ?? '');
   const [stars, setStars] = useState(trail.stars ?? 0);
   const [photos, setPhotos] = useState<string[]>(trail.photos ?? []);
@@ -196,7 +197,12 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
     // ⚠️ `stars`/`photos` sa pri PLÁNE neposielajú vôbec (nie ako 0 a prázdne pole): panel
     //    ich nezobrazuje, takže by zapisoval hodnotu, ktorú nikto nevidel — a keby plán
     //    nejakú niesol z minulosti, prepísal by ju na prázdno.
+    // NÁZOV (D3, 11. 10. 2026): zmena zahodí `nameEN` (starý preklad by klamal) a dorobí sa v pozadí.
+    // `urlSlug` sa NEDOTÝKA — zdieľané odkazy musia ďalej fungovať. Prázdny názov sa nepíše.
+    const newName = name.trim();
+    const nameChanged = !!newName && newName !== (trail.name ?? '');
     const patch: Partial<HeroTrail> = {
+      ...(nameChanged ? { name: newName, nameEN: undefined } : {}),
       desc: desc.trim(),
       descEN: undefined,
       dogNote: undefined,
@@ -211,9 +217,10 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
     const isLocal = readLocalTrails().some((x) => x.id === trail.id);
     const ok = isLocal
       ? updateLocalTrail(trail.id, patch)
-      : saveTrailOverride(trail.id, { ...patch, descEN: '', dogNote: '', dogNoteEN: '' });
+      : saveTrailOverride(trail.id, { ...patch, descEN: '', dogNote: '', dogNoteEN: '', ...(nameChanged ? { nameEN: '' } : {}) });
     if (!ok) { setErr(t('pack.trip.edit.saveFailed')); return; }
     onSaved(patch);
+    if (nameChanged && isLocal) translateLocalTrailName(trail.id, () => { const en = readLocalTrails().find((x) => x.id === trail.id)?.nameEN; if (en) onSaved({ nameEN: en }); });
     // EN preklad sa dorobí v pozadí (panel sa medzitým zavrie). Zapíše sa LEN keď popis
     // medzitým nikto neprepísal — inak by pomalý preklad starého textu prebil nový.
     const src = patch.desc ?? '';
@@ -255,8 +262,6 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
         <div className="tep-head">
           <div>
             <div className="tep-title">{t(isPlan ? 'pack.trip.edit.planTitle' : 'pack.trip.edit.title')}</div>
-            {/* Názov je tu ako POPIS, nie ako pole — nedá sa meniť a človek má hneď vidieť,
-                ktorý výlet upravuje. */}
             <div className="tep-sub">{trail.name}</div>
           </div>
           {/* KRÍŽIK ZANIKOL (lock 2026-08-28: „nedávajme tie krížiky na bloky"). Von sa ide
@@ -272,6 +277,11 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
             a pri pláne je to jeden stĺpec ako doteraz. */}
         <div className={`tep-body${isPlan ? '' : ' tep-body--trip'}`}>
         <div className="tep-col">
+        <div className="tep-field">
+          <label className="tep-label">{t('pack.trip.edit.name')}</label>
+          <input className="tep-input" type="text" value={name} maxLength={120} onChange={(e) => setName(e.target.value)} />
+          <p className="tep-hint" style={{ marginTop: 6 }}>{t('pack.trip.edit.nameHint')}</p>
+        </div>
         {!isPlan && (
         <div
           className={`tep-field tep-photo-drop${photoDrag ? ' drag' : ''}`}

@@ -33,6 +33,8 @@ export interface RealReview {
   body: string | null;
   createdAt: string;
   updatedAt: string;
+  /** 0–3 https URL z Cloudinary (`trip_reviews.photos`) */
+  photos: string[];
 }
 
 export interface RealQuestion {
@@ -53,6 +55,7 @@ interface ReviewRow {
   body: string | null;
   created_at: string;
   updated_at: string;
+  photos?: string[] | null;
 }
 
 interface QuestionRow {
@@ -74,6 +77,7 @@ function fromReviewRow(r: ReviewRow): RealReview {
     body: r.body,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    photos: r.photos ?? [],
   };
 }
 
@@ -114,13 +118,15 @@ export async function fetchTripQuestions(tripSlug: string): Promise<RealQuestion
 
 /** Založí/upraví moju recenziu. Zámerne NEoptimistické — pri odmietnutí (RLS)
  *  hodí, volajúci nesmie správu vykresliť ako uloženú (viď TripComments.tsx). */
-export async function upsertMyReview(tripSlug: string, paws: number, body?: string): Promise<void> {
+export async function upsertMyReview(tripSlug: string, paws: number, body?: string, photos?: string[]): Promise<void> {
   const uid = await getAuthedUserId();
   if (!uid) throw new Error('[tripCommentsData] upsertMyReview: not signed in');
   const { error } = await db
     .from('trip_reviews')
     .upsert(
-      { trip_slug: tripSlug, user_id: uid, paws, body: body?.trim() || null },
+      { trip_slug: tripSlug, user_id: uid, paws, body: body?.trim() || null,
+        // undefined = stĺpec sa nepošle (reviewFromWalk nesmie zmazať fotky)
+        ...(photos ? { photos: photos.slice(0, 3) } : {}) },
       { onConflict: 'trip_slug,user_id' },
     );
   if (error) throw new Error(`[tripCommentsData] review neodišlo: ${error.message ?? 'unknown'}`);

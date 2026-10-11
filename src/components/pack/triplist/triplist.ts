@@ -29,13 +29,16 @@ export interface TriplistTrip {
 }
 
 // ── WCE lokalita — Západ/Stred/Východ SR odvodené zo zemepisnej dĺžky prvého bodu trasy
-// (dataset nemá WCE pole). Prahy: BA ~17.1° · BB ~19.1° · KE ~21.3°. ──
+// (dataset nemá WCE pole). Prahy: BA ~17.1° · BB ~19.1° · KE ~21.3°.
+// 11. 10. 2026: východný prah 20.3 → 20.0. Pri 20.3 padli Smokovce (20.22) a Štrbské Pleso (20.06)
+// do STREDU, hoci Vysoké Tatry sú Prešovský kraj (Renatine výlety → „Stredné Slovensko“).
+// 20.0 drží Nízke Tatry (Kráľova hoľa 19.97) v strede. ──
 export type WCE = 'W' | 'C' | 'E';
 export function trailWCE(trail: HeroTrail): WCE {
   const lng = trail.path?.[0]?.[1];
   if (typeof lng !== 'number') return 'C';
   if (lng < 18.8) return 'W';
-  if (lng < 20.3) return 'C';
+  if (lng < 20.0) return 'C';
   return 'E';
 }
 export const WCE_LABEL: Record<WCE, string> = { W: 'West Slovakia', C: 'Central Slovakia', E: 'East Slovakia' };

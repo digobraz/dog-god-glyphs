@@ -40,6 +40,7 @@ import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, PALE } from '@/componen
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
 import { useToast } from '@/hooks/use-toast';
+import { TripStoryButton } from '@/components/pack/trip/TripStoryCard';
 import { ToastAction } from '@/components/ui/toast';
 import { hasOnlyDeceasedDogs, useMemorialTrips } from '@/components/pack/memorialTrips';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
@@ -1065,7 +1066,11 @@ export default function PackTripArticle() {
   //
   // 💡 Na CELKOVEJ mape (`/pack/map`) žiadna takáto brána nie je a ani byť nemôže —
   // tam sa nedá vedieť, ktorej trasy sa zápis týka. Platí len v článku.
-  const noteGate: 'none' | 'rate' | 'open' = !walkedIds.has(String(slug))
+  // D4 (11. 10. 2026): AUTOR výletu pridáva miesta (parkovisko, lanovka, cieľ) vždy — tlačidlo
+  // mu nesmie čakať na „prešiel + ohodnotil", testerka ho nenašla („možno taká možnosť je…").
+  const noteGate: 'none' | 'rate' | 'open' = canEdit
+    ? 'open'
+    : !walkedIds.has(String(slug))
     ? 'none'
     : (votes[String(slug)]?.rating ?? 0) > 0 ? 'open' : 'rate';
   // Hodnotí PRETO, že chcel písať → po odoslaní sa paleta otvorí sama. Bez tohto
@@ -1433,11 +1438,17 @@ export default function PackTripArticle() {
   // to dva rôzne údaje a zlúčiť ich do jedného slova by znamenalo jeden z nich zahodiť.
   // `chipsOf()` prepustí LEN skutočné chipy: staré `picnic`/`overnight` do kategórie patria,
   // ale chipom nikdy neboli a nemajú vlastný preklad — tie ostávajú len v kategórii.
-  const tripChips = [
-    ...categoriesOf(trail.acts).map((c) => ({ key: `a:${c}`, label: actTx(c), emoji: ACT_EMOJI[c] ?? '' })),
-    ...chipsOf(trail.acts).map((ch) => ({ key: `c:${ch.id}`, label: chipTx(ch.id, ch.label), emoji: ch.emoji })),
-    ...(trail.tags ?? []).map((tg) => ({ key: `t:${tg}`, label: tagTx(tg), emoji: TAG_EMOJI[tg] ?? '' })),
-  ];
+  // D5 (11. 10. 2026): rovnaký VÝZNAM = jeden chip. Aktivita `meadow` aj štítok `Meadow` sa
+  // preložia na to isté slovo („Lúka") a stáli vedľa seba 2×; prvý (kategória/chip) vyhráva.
+  const tripChips = (() => {
+    const all = [
+      ...categoriesOf(trail.acts).map((c) => ({ key: `a:${c}`, label: actTx(c), emoji: ACT_EMOJI[c] ?? '' })),
+      ...chipsOf(trail.acts).map((ch) => ({ key: `c:${ch.id}`, label: chipTx(ch.id, ch.label), emoji: ch.emoji })),
+      ...(trail.tags ?? []).map((tg) => ({ key: `t:${tg}`, label: tagTx(tg), emoji: TAG_EMOJI[tg] ?? '' })),
+    ];
+    const seen = new Set<string>();
+    return all.filter((c) => { const k = c.label.trim().toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
+  })();
 
   // Akčný rad ako premenná — na mobile ho po odscrollovaní fotky renderujeme PORTÁLOM do
   // document.body (nie na mieste). Dôvod: rodičovský .pk-glass má backdrop-filter, ktorý robí
@@ -1560,6 +1571,10 @@ export default function PackTripArticle() {
             <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
             <span className="pta-actbtn-label">{t('pack.trip.share')}</span>
           </button>
+          <TripStoryButton
+            data={{ name: tripName(trail, lang), km: trail.km, diff: trail.diff, photoUrl: trail.photos[0],
+                    url: `${window.location.host}${tripPath(trail)}` }}
+            shareText={tripShareText(trail, lang)} />
         </div>
   );
 
@@ -1951,7 +1966,7 @@ export default function PackTripArticle() {
               className="pta-mapadd"
               onClick={() => { if (passNoteGate()) setNotePick(true); }}
             >
-              <b>+</b>{t('pack.mapNotes.map.add')}
+              <b>+</b>{t(canEdit ? 'pack.mapNotes.map.addPlace' : 'pack.mapNotes.map.add')}
             </button>
           )}
           {/* Výzva „priblíž si mapu" v mieste kliku — patrí do pozicovaného obalu

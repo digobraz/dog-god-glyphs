@@ -30,6 +30,7 @@ import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN, VEIL_CSS 
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
+import { ReviewPhotoPicker, ReviewPhotoStrip } from '@/components/pack/trip/ReviewPhotos';
 import {
   getAuthedUserId,
   fetchTripReviews,
@@ -215,13 +216,14 @@ function Pager({ page, totalPages, onPrev, onNext }: { page: number; totalPages:
 // (packCommunityUI.tsx): dark glass overlay + card, gold title, gold submit. Deliberately
 // lighter than WalkedPopup's full form (no difficulty/vibe/hazards) — this is a rating+opinion,
 // not a walk log. ──
-function ReviewPopup({ trailName, initial, canWrite, saving, error, onSubmit, onDelete, onClose }: {
-  trailName: string; initial?: RealReview | null; canWrite: boolean; saving: boolean; error: string | null;
-  onSubmit: (v: { paws: number; text?: string }) => void; onDelete?: () => void; onClose: () => void;
+function ReviewPopup({ slug, trailName, initial, canWrite, saving, error, onSubmit, onDelete, onClose }: {
+  slug: string; trailName: string; initial?: RealReview | null; canWrite: boolean; saving: boolean; error: string | null;
+  onSubmit: (v: { paws: number; text?: string; photos: string[] }) => void; onDelete?: () => void; onClose: () => void;
 }) {
   const t = useT();
   const [paws, setPaws] = useState(initial?.paws ?? 0);
   const [text, setText] = useState(initial?.body ?? '');
+  const [photos, setPhotos] = useState<string[]>(initial?.photos ?? []);
   const canSubmit = paws > 0 && canWrite && !saving;
   return (
     <div className="pk-veil pk-veil--modal tcm-overlay" onClick={onClose}>
@@ -241,7 +243,11 @@ function ReviewPopup({ trailName, initial, canWrite, saving, error, onSubmit, on
           <label className="tcm-label">{t('pack.trip.cm.sayMore')}</label>
           <textarea className="tcm-textarea" value={text} onChange={(e) => setText(e.target.value)} placeholder={t('pack.trip.cm.sayMorePlaceholder')} />
         </div>
-        <button type="button" className="tcm-submit" disabled={!canSubmit} onClick={() => canSubmit && onSubmit({ paws, text: text.trim() || undefined })}>
+        <div className="tcm-field">
+          <label className="tcm-label">{t('pack.trip.cm.photos')}</label>
+          <ReviewPhotoPicker slug={slug} photos={photos} onChange={setPhotos} />
+        </div>
+        <button type="button" className="tcm-submit" disabled={!canSubmit} onClick={() => canSubmit && onSubmit({ paws, text: text.trim() || undefined, photos })}>
           {saving ? 'Saving…' : initial ? t('pack.trip.cm.update') : t('pack.trip.cm.post')}
         </button>
         {initial && onDelete && (
@@ -422,11 +428,12 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   useEffect(() => { if (page > reviewPages) setPage(reviewPages); }, [reviewPages, page]);
   useEffect(() => { if (page > advicePages) setPage(advicePages); }, [advicePages, page]);
 
-  const saveReview = async (v: { paws: number; text?: string }) => {
+  const saveReview = async (v: { paws: number; text?: string; photos: string[] }) => {
     setReviewError(null);
     setReviewSaving(true);
     try {
-      await upsertMyReview(tripId, v.paws, v.text);
+      // fotky sa posielajú len keď nejaké sú / boli — bez nich zápis nezávisí od migrácie `photos`
+      await upsertMyReview(tripId, v.paws, v.text, v.photos.length > 0 || (myReview?.photos.length ?? 0) > 0 ? v.photos : undefined);
       await refreshReviews();
       onMarkWalked?.(); // reviewing implies (and guarantees) the trip is marked walked
       setReviewPopupOpen(false);
@@ -596,6 +603,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                           </div>
                           <Paws rating={r.paws} />
                           {r.body && <div className="tcm-review-text">{r.body}</div>}
+                          <ReviewPhotoStrip photos={r.photos} />
                         </div>
                       </div>
                     );
@@ -613,6 +621,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                           </div>
                           <Paws rating={r.paws} />
                           {r.body && <div className="tcm-review-text">{r.body}</div>}
+                          <ReviewPhotoStrip photos={r.photos} />
                           {canWrite && (
                             <div className="tcm-review-footer">
                               <button type="button" className="tcm-reportlink" onClick={() => openReport(r.id)}>{t('pack.trip.cm.report')}</button>
@@ -685,6 +694,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
 
       {reviewPopupOpen && (
         <ReviewPopup
+          slug={tripId}
           trailName={tripName ?? 'this trip'}
           initial={myReview}
           canWrite={canWrite}
