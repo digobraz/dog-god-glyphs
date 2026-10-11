@@ -2459,7 +2459,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
               min={0}
               max={9000}
               step={1}
-              value={ascInput ?? (liveAscent != null ? String(liveAscent) : '')}
+              value={ascInput ?? (liveAscent != null && liveKm > 0 ? String(liveAscent) : '')}
               placeholder="…"
               onChange={(e) => setAscInput(e.target.value)}
             />
