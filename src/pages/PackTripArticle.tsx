@@ -634,8 +634,24 @@ export default function PackTripArticle() {
   const allTrails = useMemo(() => [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
   // Adresa nesie id ALEBO čitateľný `urlSlug` (8. 10. 2026) — ďalej v súbore je `slug` vždy id,
   // lebo ním kľúčujú prejdenia, hlasy a partie.
-  const slug = useMemo(() => tripIdFromUrl(urlSlug, allTrails), [urlSlug, allTrails]);
-  const baseTrail = useMemo(() => allTrails.find((x) => x.id === slug) ?? null, [allTrails, slug]);
+  // ── NÁHĽAD 1:1 PRE HORSKÚ CHATU (Matej 11. 10. 2026) ──────────────────────────────────
+  // „mockup naľavo musí vyzerať tak, ako to bude vyzerať pri publikácii". Chata v DOGYPTLANDE
+  // (127.0.0.1:8790) vloží tento článok do iframe s `?nahlad=1` a pošle mu upravený payload
+  // čakajúceho výletu. LEN v lokálnom builde na ostrých dátach (`--mode livedb`, :8081) —
+  // v produkčnom builde je podmienka konštanta false a cudzí origin sa ignoruje.
+  const [nahlad, setNahlad] = useState<HeroTrail | null>(null);
+  useEffect(() => {
+    if (import.meta.env.MODE !== 'livedb' || !new URLSearchParams(window.location.search).has('nahlad')) return;
+    const on = (e: MessageEvent) => {
+      if (!/^http:\/\/(127\.0\.0\.1|localhost):8790$/.test(e.origin) || e.data?.type !== 'dogypt-nahlad') return;
+      setNahlad(e.data.trail as HeroTrail);
+    };
+    window.addEventListener('message', on);
+    window.parent.postMessage({ type: 'dogypt-nahlad-ready' }, '*');
+    return () => window.removeEventListener('message', on);
+  }, []);
+  const slug = useMemo(() => nahlad?.id ?? tripIdFromUrl(urlSlug, allTrails), [nahlad, urlSlug, allTrails]);
+  const baseTrail = useMemo(() => nahlad ?? allTrails.find((x) => x.id === slug) ?? null, [nahlad, allTrails, slug]);
   /**
    * ── ÚPRAVA VÝLETU AUTOROM (Matej 2026-08-25) ────────────────────────────────────────────
    * „ako autor by som do toho vedel vstúpiť a prepísať text vymeniť fotky" — názov ostáva,
@@ -707,8 +723,9 @@ export default function PackTripArticle() {
   // `replace`, aby sa späť tlačidlo nezasekalo na starom tvare.
   // Od 8. 10. 2026 aj starý odkaz cez id → čitateľná adresa, keď ju výlet má (príbeh `/pribeh/:n` nechá tak).
   useEffect(() => {
-    if (trail && (!country || (!storyN && trail.urlSlug && urlSlug !== trail.urlSlug))) navigate(tripPath(trail), { replace: true });
-  }, [trail, country, storyN, urlSlug, navigate]);
+    // náhľad chaty adresu nemení — názov (a s ním urlSlug) sa v chate prepisuje pri každom písmene
+    if (trail && !nahlad && (!country || (!storyN && trail.urlSlug && urlSlug !== trail.urlSlug))) navigate(tripPath(trail), { replace: true });
+  }, [trail, nahlad, country, storyN, urlSlug, navigate]);
 
   // #41 — KTO TENTO VÝLET VYPÍSAL. Na desktope to rieši inline detail v PackMap, ale
   // MOBIL sem naviguje na celú routu (`/pack/map/:slug`), takže bez tohto by na
