@@ -15,6 +15,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PLANNING_LIVE } from '@/lib/packFlags';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
+import { gradeTrail, GRADE_POINTS, type GradePoint, type TripGrade } from '@/lib/tripGrade';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
@@ -251,6 +253,16 @@ const CSS = `
 .tl-block-badge.with{background:#F0E6D2;color:#1a1305;border:1px solid ${T.border};}
 .tl-block-badge.looking{background:${GOLD_BTN.grad};color:#3d1f00;}
 .tl-block-info{padding:8px 12px 12px;}
+.tl-grade{display:flex;align-items:center;gap:8px;width:100%;margin-top:8px;padding:0;background:none;border:0;cursor:pointer;text-align:left;font-family:${FONT_UI};}
+.tl-grade-medal{width:24px;height:24px;border-radius:999px;display:grid;place-items:center;flex:none;font-family:${FONT_TITLE};font-weight:700;font-size:12px;color:#fff;box-shadow:${PACK_SHADOW.lift};}
+.tl-grade-medal--big{width:48px;height:48px;font-size:24px;}
+.tl-grade-miss{font-size:10px;line-height:1.3;color:${P.dim};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.tl-grade:hover .tl-grade-miss{color:${P.deep};text-decoration:underline;}
+.tl-grade-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;}
+.tl-grade-list li{display:flex;align-items:center;gap:8px;padding:8px;border-radius:12px;font-size:14px;color:${P.ink};}
+.tl-grade-list li.n{background:${T.alertRedSoft};border:1px dashed ${T.alertRed};}
+.tl-grade-dot{width:16px;height:16px;border-radius:999px;flex:none;background:${T.growGreen};}
+.tl-grade-list li.n .tl-grade-dot{background:transparent;border:2px solid ${T.alertRed};}
 .tl-block-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;line-height:1.25;color:${P.ink};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px;}
 .tl-block-sub{font-size:10px;color:${P.dim};margin-top:3px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .tl-block-avatar{flex-shrink:0;width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:10px;color:${INK};}
@@ -416,6 +428,12 @@ function sortMyTrips(rows: MyTripRow[], nowMs: number): MyTripRow[] {
   });
 }
 
+// Medailón známky — farby zo schváleného nákresu (A zelená · B zlatá · C hlina), ako TripGradeCard.
+const GRADE_MEDAL: Record<TripGrade, string> = {
+  A: 'linear-gradient(180deg,#4F9463,#2E5E3B)',
+  B: 'linear-gradient(135deg,#C99A3F 0%,#A3782B 100%)',
+  C: 'linear-gradient(180deg,#C46A52,#8E3F2C)',
+};
 type MyTripRow = { entry: TriplistTrip; trail: HeroTrail; placeholder?: boolean; done?: boolean };
 
 // Jedna karta v OPEN TRIPS — vždy reálny inzerát z DB (`user_trips` cez useOpenTrips).
@@ -551,6 +569,13 @@ export default function PackTriplist() {
   const PUBLIC_PER_PAGE = 9;
 
   const walkedSet = useMemo(() => readWalkedIds(), [allTrails, storeEpoch]);
+  // ── ZNÁMKA VÝLETU A/B/C (Matej 11. 10. 2026) ────────────────────────────────────────────
+  // „známku ukáž v tripliste — pri prejdených výletoch autorovi, aby vedel kde môže vylepšiť."
+  // Počíta ju `gradeTrail` (jediný zdroj), tu sa len ukazuje. LEN vlastné členské výlety
+  // (`local-` + `meta.mine`); kurátorské ani cudzie nie. Kým sa značky nenačítajú, nekreslí sa
+  // nič — bez nich by parkovisko a tip chýbali a medailón by blikol nesprávnym C.
+  const { notes: gradeNotes, loading: gradeNotesLoading } = useMapNotes(true);
+  const [gradeTripId, setGradeTripId] = useState<string | null>(null);
   // Stav členom nahodeného výletu v moderácii. `readLocalTrailMeta` existovalo od #32, ale
   // nikde sa nerenderovalo — autor teda videl „Hľadám partiu" na výlete, ktorý pack NEVIDÍ
   // (RLS pustí cudzí trip až po `approved`), a nemal ako zistiť, že sa čaká na schválenie.
@@ -680,15 +705,16 @@ export default function PackTriplist() {
   // byť Esc, inak by odchod z panela závisel od toho, či človek trafí vedľa.
   // JEDEN listener na oba panely: dva by museli riešiť, ktorý z nich klávesu zje.
   useEffect(() => {
-    if (!dateTripId && !visTripId) return;
+    if (!dateTripId && !visTripId && !gradeTripId) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       setDateTripId(null);
       setVisTripId(null);
+      setGradeTripId(null);
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [dateTripId, visTripId]);
+  }, [dateTripId, visTripId, gradeTripId]);
 
 
   // ── TRIPWISH (Matej 27. 9. 2026: „riadok tripwish … to nahradí looking for") ──────
@@ -867,6 +893,8 @@ export default function PackTriplist() {
         // stav v moderácii — len pre členom nahodené výlety, generovaný dataset ho nemá
         const mod = trailMeta[entry.tripId]?.status;
         const showBadge = PLANNING_LIVE || done || !!mod;
+        const gradeRes = done && !placeholder && !gradeNotesLoading && entry.tripId.startsWith('local-') && (trailMeta[entry.tripId]?.mine ?? true)
+          ? gradeTrail(trail, gradeNotes) : null;
         return (
         <div key={entry.tripId} className="tl-mycard">
           {PLANNING_LIVE && dleft !== null && dleft >= 0 && (
@@ -909,6 +937,19 @@ export default function PackTriplist() {
           <div className="tl-block-info">
             <div className="tl-block-name">{tripName(trail, lang)}</div>
             {mod === 'pending' && <div className="tl-block-pendhint">{t('pack.triplist.pendingHint')}</div>}
+            {gradeRes && (
+              <button
+                type="button"
+                className="tl-grade"
+                aria-label={t('pack.addTrip.grade.aria', { grade: gradeRes.grade })}
+                onClick={(e) => { e.stopPropagation(); setGradeTripId(entry.tripId); }}
+              >
+                <span className="tl-grade-medal" style={{ background: GRADE_MEDAL[gradeRes.grade] }}>{gradeRes.grade}</span>
+                {gradeRes.grade !== 'A' && (
+                  <span className="tl-grade-miss">{t('pack.triplist.grade.toA', { list: gradeRes.missing.map((p) => t(`pack.addTrip.grade.point.${p}`).toLowerCase()).join(' · ') })}</span>
+                )}
+              </button>
+            )}
             {PLANNING_LIVE && <div className="tl-block-foot">
               {entry.date ? (
                 <button type="button" className="tl-datebtn" onClick={(e) => { e.stopPropagation(); openAddDate(entry.tripId, entry.date); }}>
@@ -1295,6 +1336,40 @@ export default function PackTriplist() {
           </div>
         </div>
       )}
+
+      {/* ZNÁMKA VÝLETU — checklist chýbajúcich bodov + vstup do úpravy (len autor, 11. 10. 2026) */}
+      {gradeTripId && (() => {
+        const trail = allTrails.find((tr) => tr.id === gradeTripId);
+        if (!trail) return null;
+        const res = gradeTrail(trail, gradeNotes);
+        return (
+          <div className="pk-veil pk-veil--modal tl-overlay" onClick={() => setGradeTripId(null)}>
+            <div className="tl-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="tl-modal-head">
+                <span className="tl-grade-medal tl-grade-medal--big" style={{ background: GRADE_MEDAL[res.grade] }}>{res.grade}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="tl-modal-title">{t('pack.triplist.grade.sheetTitle')} · {res.score} / 5</div>
+                  <div className="tl-sub" style={{ textAlign: 'left', marginTop: 4 }}>{tripName(trail, lang)}</div>
+                </div>
+              </div>
+              <ul className="tl-grade-list">
+                {GRADE_POINTS.map((p: GradePoint) => (
+                  <li key={p} className={res.missing.includes(p) ? 'n' : 'y'}>
+                    <span className="tl-grade-dot" aria-hidden="true" />
+                    <span>{t(`pack.addTrip.grade.point.${p}`)}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="tl-sub" style={{ textAlign: 'left', marginTop: 12 }}>{t('pack.triplist.grade.private')}</div>
+              {res.grade !== 'A' && (
+                <button type="button" className="tl-modal-submit" onClick={() => navigate(`${tripPath(trail)}?edit=1`)}>
+                  {t('pack.triplist.grade.edit')}
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* #42 — KTO VIDÍ TENTO VÝLET. Text hovorí presne to, čo appka reálne vydá
           (`user_trips_read_open` + `get_trip_party`): trasa, dátum, pes. Matejovo rozhodnutie

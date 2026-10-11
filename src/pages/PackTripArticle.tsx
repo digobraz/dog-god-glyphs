@@ -12,7 +12,7 @@ import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { PLANNING_LIVE } from '@/lib/packFlags';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Polyline, Circle, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css'; // KRITICKÉ: bez neho .leaflet-tile stratí position:absolute a
@@ -688,6 +688,16 @@ export default function PackTripArticle() {
     if (readMyClaims().includes(slug)) return true;
     return isFounder && [...HERO_JOURNEYS, ...HERO_TRAILS].some((t) => t.id === slug);
   }, [slug, isFounder]);
+  // `?edit=1` — vstup z TRIPLISTU (známka výletu, 11. 10. 2026): autor klikne „Upraviť výlet"
+  // pri chýbajúcom bode a panel úpravy sa otvorí rovno. Cudzí výlet (`canEdit` false) ho ignoruje.
+  const [editParams, setEditParams] = useSearchParams();
+  useEffect(() => {
+    if (editParams.get('edit') !== '1' || !canEdit) return;
+    setEditOpen(true);
+    const next = new URLSearchParams(editParams);
+    next.delete('edit');
+    setEditParams(next, { replace: true });
+  }, [editParams, canEdit, setEditParams]);
   // PRESNÁ STOPA (26. 9. 2026). Dataset nesie čiaru zriedenú na 10 m; článok ukazuje trasu
   // zblízka a posiela ju von (GPX, Mapy.com), preto si dotiahne plnú (src/data/trailPaths.ts).
   // Vlastná úprava čiary (`edits.path`, len lokálne výlety) má prednosť.
