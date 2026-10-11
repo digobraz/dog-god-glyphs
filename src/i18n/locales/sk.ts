@@ -3339,6 +3339,7 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.nature.visitHint': "Zapíš ju ako NÁVŠTEVU — stačí označiť miesto.",
   'pack.addTrip.nature.planHint': "Nakresli dlhšiu trasu, ktorá vedie von z mesta.",
   'pack.addTrip.nature.toVisit': "Zapísať ako návštevu",
+  'pack.addTrip.nature.toWalk': "Zapísať ako prechádzku",
   'pack.addTrip.nature.editRoute': "Upraviť trasu",
   'pack.addTrip.nature.keepRoute': "Zapísať trasu",
   'pack.addTrip.step.notesLead': "Poskytni cenné rady komunite a buď odmenený!",
@@ -3416,6 +3417,7 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.nature.askUrban': "Ňuchám, že táto trasa ide viac pomedzi domy než prírodou — ale môžem sa mýliť.",
   'pack.addTrip.nature.isNature': "Je to v prírode",
   'pack.addTrip.nature.notNature': "Nie je, zapíš ako návštevu",
+  'pack.addTrip.nature.notNatureWalk': "Nie je, zapíš ako prechádzku",
   'pack.addTrip.step.pickJourney': "Idem po magistrále — vybrať zo zoznamu",
   // Dni a noci sa POČÍTAJÚ z dvoch dátumov (krok 3), nikde sa neukladajú.
   'pack.addTrip.step.daysOne': "{n} deň",

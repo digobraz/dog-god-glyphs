@@ -50,8 +50,8 @@ import { pluralKey } from '@/components/pack/tripShared';
 import { DiffMark, DIFF_MARK_CSS } from '@/components/pack/tripShared';
 import { dockFitPadding, dockPadX } from '@/components/pack/mapDockShape';
 import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
-import { GeometryPicker, defaultKindFor, findDuplicate, TRIP_HOLD_MIN_ZOOM, AREA_DEFAULT_M, AREA_MIN_M, AREA_MAX_M } from './GeometryPicker';
-import { builtUpShare, lineLengthM, areaAround, HIKE_MIN_KM, BUILT_UP_MAX } from './builtUpCheck';
+import { GeometryPicker, defaultKindFor, findDuplicate, TRIP_HOLD_MIN_ZOOM, AREA_DEFAULT_M } from './GeometryPicker';
+import { builtUpShare, lineLengthM, HIKE_MIN_KM, BUILT_UP_MAX } from './builtUpCheck';
 import { MAX_PHOTOS, optimizePhoto } from './photoOptimize';
 import { SPACING, interp, calibratedAscent } from './addTripGeo';
 import { buildPlanDate, parsePlanDate, type PlanPrecision } from './planDate';
@@ -2504,16 +2504,23 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
     if (share != null && share > BUILT_UP_MAX) { setNatureAsk({ km, share, line }); return; }
     setStep(stepAfter(1));
   };
-  /** Prepnutie na NÁVŠTEVU: okruh okolo nakreslenej trasy, ide sa na krok „Čo to bolo". */
-  const switchToVisit = (line: LatLngTuple[]) => {
-    const { center, radiusM } = areaAround(line, AREA_MIN_M, AREA_MAX_M);
+  /**
+   * Prepnutie na PRECHÁDZKU (Matej 11. 10. 2026: „oprav to okno pri krátkej trase do prechádzky,
+   * nie návšteva"). Krátka alebo mestská trasa ostáva TRASOU — mení sa len kategória na AKTIVITU
+   * s chipom `walk`, ktorý trasu povoľuje (`CHIP_GEOMETRY`), takže efekt tvaru čiaru nezahodí.
+   * Krok „Čo" sa preskakuje — odpoveď je tá prechádzka. `stepAfter(1)` je v oboch poradiach
+   * ten istý krok (2 pri zápise, 3 pri pláne), preto smie bežať ešte nad starým poradím.
+   */
+  const switchToWalk = () => {
     setNatureAsk(null);
     setMultiDay(false);
     setDiff('');
-    setActivity('visit');
-    setGeometry({ kind: 'area', center, radiusM });
+    setActivity('activity');
+    setChips((prev) => new Set([...prev, 'walk']));
+    setMainChip('walk');
+    natureOkRef.current = true;
     openRouteAskedRef.current = false;
-    setStep(7);
+    setStep(stepAfter(1));
   };
 
   const drawBar = {
@@ -2695,12 +2702,11 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                   >
                     {t('pack.addTrip.nature.keepRoute')}
                   </button>
-                  {/* ⚠️ PLÁN NEMÁ NÁVŠTEVU (Matej 1. 9. 2026: návšteva = iba zápis). */}
-                  {!isPlan && (
-                    <button type="button" className="atl-abort-ghost" onClick={() => switchToVisit(natureAsk.line)}>
-                      {t('pack.addTrip.nature.toVisit')}
-                    </button>
-                  )}
+                  {/* PRECHÁDZKA, NIE NÁVŠTEVA (Matej 11. 10. 2026) — čiara ostáva, mení sa kategória.
+                      Plán ju smie tiež: prechádzka je aktivita, nie návšteva. */}
+                  <button type="button" className="atl-abort-ghost" onClick={switchToWalk}>
+                    {t('pack.addTrip.nature.toWalk')}
+                  </button>
                 </div>
                 <button type="button" className="atl-daymode-link" onClick={() => setNatureAsk(null)}>
                   {t('pack.addTrip.nature.editRoute')}
@@ -2722,11 +2728,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                   >
                     {t('pack.addTrip.nature.isNature')}
                   </button>
-                  {!isPlan && (
-                    <button type="button" className="atl-abort-ghost" onClick={() => switchToVisit(natureAsk.line)}>
-                      {t('pack.addTrip.nature.notNature')}
-                    </button>
-                  )}
+                  <button type="button" className="atl-abort-ghost" onClick={switchToWalk}>
+                    {t('pack.addTrip.nature.notNatureWalk')}
+                  </button>
                 </div>
                 <button type="button" className="atl-daymode-link" onClick={() => setNatureAsk(null)}>
                   {t('pack.addTrip.nature.editRoute')}
