@@ -74,6 +74,7 @@ import { PackNotifications } from '@/components/pack/PackNotifications';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { useToast } from '@/hooks/use-toast';
 import { useMyDogRights } from '@/lib/dogRights';
 import { ToastAction } from '@/components/ui/toast';
@@ -4478,7 +4479,8 @@ export default function PackMap() {
       </div>
     );
   }
-  if (!id.session) return null;
+  // Náhľad Horskej chaty (lokálny build `--mode livedb`, `?nahlad=1`) ukáže mapu bez prihlásenia — lib/chataNahlad.ts.
+  if (!id.session && !CHATA_NAHLAD) return null;
 
   // greeting meno — z Supabase user_metadata (full_name/name), fallback e-mail local-part,
   // rovnaký vzor ako firstNameFrom() v Pack.tsx (header greeting). Presunuté sem (pred
