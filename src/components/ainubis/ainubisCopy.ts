@@ -123,15 +123,16 @@ const sk: AinubisCopy = {
   ],
   welcomeDogs: {
     data: {
-      one: (dog) => `${dog} už poznám z DOG ID — nemusíš mi ho predstavovať.`,
+      // Meno ostáva v 1. páde („Psa menom Žofka“) — skloňovať ho nevieme a rod psa nepoznáme.
+      one: (dog) => `Psa menom ${dog} už poznám z DOG ID — nemusíš mi ho predstavovať.`,
       many: 'Tvojich psov už poznám z ich DOG ID — nemusíš mi ich predstavovať.',
     },
     none: {
-      one: (dog) => `${dog} už poznám — keď mu doplníš DOG ID, budem vedieť poradiť presnejšie.`,
-      many: 'Tvojich psov už poznám — keď im doplníš DOG ID, budem vedieť poradiť presnejšie.',
+      one: (dog) => `Psa menom ${dog} už poznám — keď doplníš jeho DOG ID, budem vedieť poradiť presnejšie.`,
+      many: 'Tvojich psov už poznám — keď doplníš ich DOG ID, budem vedieť poradiť presnejšie.',
     },
     off: {
-      one: (dog) => `${dog} už poznám.`,
+      one: (dog) => `Psa menom ${dog} už poznám.`,
       many: 'Tvojich psov už poznám.',
     },
   },
