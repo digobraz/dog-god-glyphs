@@ -3098,6 +3098,11 @@ export const cs: Partial<Dict> = {
   'pack.triplist.tabTriplist': 'Triplist',
   'pack.triplist.tabTripstats': 'Statistiky',
   'pack.triplist.whoCanSee': 'Kdo vidí tenhle výlet',
+  'pack.triplist.grade.toA': 'Do A chybí: {list}',
+  'pack.triplist.grade.perfect': 'Známka A',
+  'pack.triplist.grade.sheetTitle': 'Známka výletu',
+  'pack.triplist.grade.private': 'Tuhle známku vidíš jen ty. Rozhoduje, jak vysoko se tvůj výlet ukáže, když smečka hledá.',
+  'pack.triplist.grade.edit': 'Upravit výlet',
 
   // ══ 2026-09-16 — preklad /pack zo SK (328 kľúčov) ══
   // ── pack.addTrip ──
