@@ -301,7 +301,13 @@ const CSS = `
   .pta-acts.collapsed .pta-actbtn,.pta-acts.collapsed .pta-actbtn--gold,.pta-acts.collapsed .pta-actbtn--blue{flex:0 0 auto;padding:0;}
   /* v raile je rad pri pravom okraji → menu sa musí otvárať doľava, nie pod tlačidlo */
   .pta-acts.collapsed .pta-actmenu{left:auto;right:calc(100% + 8px);top:0;}
+  /* Neprejdený výlet: hlavná akcia v raile je PILULKA S TEXTOM, nie holý kruh (testerka 11. 10. 2026
+     nenašla, ako výlet odškrtnúť). Ostatné akcie ostávajú kruhy. Dlhý label skrytý, krátky ukázaný. */
+  .pta-acts.collapsed .pta-actbtn--lapis{width:auto;padding:0 ${PACK_SPACE.lg}px;border-radius:999px;gap:${PACK_SPACE.xs}px;white-space:nowrap;}
+  .pta-acts.collapsed .pta-actbtn--lapis .pta-actbtn-label{display:none;}
+  .pta-acts.collapsed .pta-actbtn--lapis .pta-actbtn-label-short{display:inline;}
 }
+.pta-actbtn-label-short{display:none;}
 /* bod 3 (iterácia 14): fotky v galérii klikacie → lightbox (fullscreen popup) */
 .pta-lightbox{position:fixed;inset:0;z-index:200;background:rgba(5,5,5,0.94);display:flex;align-items:center;justify-content:center;padding:24px;}
 .pta-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:12px;}
@@ -1201,6 +1207,17 @@ export default function PackTripArticle() {
     // ukáže samotný popup, takže toast by len zdvojoval to isté číslo.
     setWalkedPopupOpen(true);
   };
+  // Jedna cesta pre hlavné tlačidlo aj CTA v recenziách (stráže v toggleWalked ostávajú).
+  // Už prejdený výlet NEODŠKRTÁVA — otvorí popup na hodnotenie/úpravu.
+  const requestWalk = () => {
+    if (!trail) return;
+    if (walkedIds.has(trail.id)) { setWalkedPopupOpen(true); return; }
+    if (trail.id.startsWith('plan-') && canEdit) {
+      navigate(`/pack/map?walk=${encodeURIComponent(trail.id)}`);
+      return;
+    }
+    toggleWalked(trail.id);
+  };
   const closeWalkedPopup = () => {
     setWalkedPopupOpen(false);
     setWalkedReward(null);
@@ -1556,16 +1573,11 @@ export default function PackTripArticle() {
                * ⚠️ Vlastníctvo sa testuje ÚLOŽISKOM (`canEdit`), nie menom autora — viď
                * zdôvodnenie pri `canEdit` vyššie.
                */
-              onClick={() => {
-                if (trail.id.startsWith('plan-') && canEdit && !walkedIds.has(trail.id)) {
-                  navigate(`/pack/map?walk=${encodeURIComponent(trail.id)}`);
-                  return;
-                }
-                toggleWalked(trail.id);
-              }}
+              onClick={requestWalk}
             >
               <span className="pta-actbtn-icon">🐾</span>
               <span className="pta-actbtn-label">{t('pack.trip.markWalked')}</span>
+              <span className="pta-actbtn-label-short">{t('pack.trip.markWalkedShort')}</span>
               {/* Skutočné body za TÚTO trasu (5 + km + stúpanie / pevná cena magistrály) —
                   paušálne „+5" by klamalo, viď walkPointsFor. Objavenia (nové pohorie/NP)
                   tu ZÁMERNE nie sú: tlačidlo je sľub pred akciou a ten musí platiť vždy,
@@ -1839,7 +1851,7 @@ export default function PackTripArticle() {
           tripName={tripName(trail, lang)}
           walked={walkedIds.has(trail.id)}
           onMarkWalked={() => setWalkedIds((prev) => (prev.has(trail.id) ? prev : new Set(prev).add(trail.id)))}
-          onRequestWalk={() => setWalkedPopupOpen(true)}
+          onRequestWalk={requestWalk}
           authorRating={authorRating}
           authorName={authorOf(trail)}
           onCountChange={setRatingCount}
