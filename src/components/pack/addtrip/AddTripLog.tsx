@@ -2666,21 +2666,31 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
             <img className="atl-abort-face" src={ainubisFace} alt="" aria-hidden="true" />
             {natureAsk.share == null ? (
               <>
+                {/* 🔴 ČIARA OSTÁVA (Matej 11. 10. 2026: „ak vyberie hike a nakliká trasu, musí
+                    zobraziť trasu, nie body!"). Renata zapísala 2 krátke túry pre starých psov,
+                    hlavné tlačidlo bolo „Zapísať ako návštevu" a `switchToVisit` jej trasu
+                    nahradil kruhom. Krátka trasa je legitímna (senior, šteňa) — hlavná voľba
+                    ju preto zapíše TAK, AKO JE; návšteva je až vedľajšia, vedomá voľba. */}
                 <h2>{t('pack.addTrip.nature.title')}</h2>
                 <p>{t('pack.addTrip.nature.short', { km: natureAsk.km.toFixed(1), min: HIKE_MIN_KM })}</p>
-                {/* ⚠️ PLÁN NEMÁ NÁVŠTEVU (Matej 1. 9. 2026: návšteva = iba zápis), takže pri pláne
-                    ostáva len úprava trasy. */}
-                <p>{t(isPlan ? 'pack.addTrip.nature.planHint' : 'pack.addTrip.nature.visitHint')}</p>
                 <div className="atl-abort-btns">
+                  <button
+                    type="button"
+                    className="atl-abort-cta"
+                    onClick={() => { natureOkRef.current = true; setNatureAsk(null); setStep(stepAfter(1)); }}
+                  >
+                    {t('pack.addTrip.nature.keepRoute')}
+                  </button>
+                  {/* ⚠️ PLÁN NEMÁ NÁVŠTEVU (Matej 1. 9. 2026: návšteva = iba zápis). */}
                   {!isPlan && (
-                    <button type="button" className="atl-abort-cta" onClick={() => switchToVisit(natureAsk.line)}>
+                    <button type="button" className="atl-abort-ghost" onClick={() => switchToVisit(natureAsk.line)}>
                       {t('pack.addTrip.nature.toVisit')}
                     </button>
                   )}
-                  <button type="button" className={isPlan ? 'atl-abort-cta' : 'atl-abort-ghost'} onClick={() => setNatureAsk(null)}>
-                    {t('pack.addTrip.nature.editRoute')}
-                  </button>
                 </div>
+                <button type="button" className="atl-daymode-link" onClick={() => setNatureAsk(null)}>
+                  {t('pack.addTrip.nature.editRoute')}
+                </button>
               </>
             ) : (
               <>

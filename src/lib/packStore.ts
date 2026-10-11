@@ -626,7 +626,11 @@ export async function translateTripDesc(text: string): Promise<string | null> {
   try {
     const { data, error } = await (supabase as any).functions.invoke('translate-trip', { body: { text } });
     if (error || typeof data?.en !== 'string' || !data.en.trim()) return null;
-    return data.en.trim();
+    const en = data.en.trim();
+    // Poistka aj tu (11. 10. 2026): odpoveď modelu namiesto prekladu („I don't see the Slovak
+    // text…") skončila v `nameEN`. Preklad nebýva trikrát dlhší než originál.
+    if (en.length > text.trim().length * 3 + 60) return null;
+    return en;
   } catch { return null; }
 }
 
