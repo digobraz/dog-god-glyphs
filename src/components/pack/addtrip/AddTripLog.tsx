@@ -57,6 +57,8 @@ import { SPACING, interp, calibratedAscent } from './addTripGeo';
 import { buildPlanDate, parsePlanDate, type PlanPrecision } from './planDate';
 import { ensureElevations, elevAt, missingElevationCount } from './mapProxyClient';
 import { PawRating } from './PawRating';
+import { TripGradeCard } from './TripGradeCard';
+import { gradeFromInputs, type GradePoint } from '@/lib/tripGrade';
 import { CROWDS, CROWD_EMOJI, type Crowd } from '@/components/pack/packCommunity';
 import { MARK_EMOJI, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { POINTS, NOTE_POINTS_TRIP_CAP } from '@/lib/tripPoints';
@@ -1576,6 +1578,29 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
   const noDog = !isPlan && !crew.some((c) => c.key.startsWith('dog-'));
   const [memorialVote, setMemorialVote] = useState<'idle' | 'busy' | 'done'>('idle');
   const canSubmit = missing.toSubmit.length === 0 && !multiDayIssue && !noDog;
+  // ZNÁMKA VÝLETU — vstupy zo stavu sprievodcu; počíta ju LEN `gradeFromInputs` (lib/tripGrade.ts).
+  // Parkovisko = položená značka skupiny parking, tip = warning alebo comment (krok 2).
+  const gradeResult = useMemo(() => {
+    const kinds = new Set((placedNotes ?? []).map((n) => groupOf(n.kind as NoteKind)));
+    return gradeFromInputs({
+      desc: note,
+      photos: photos.length,
+      route: geoDone,
+      parking: kinds.has('parking'),
+      tip: kinds.has('warning') || kinds.has('comment'),
+    });
+  }, [note, photos.length, geoDone, placedNotes]);
+  /** „Doplniť →": popis = krok 3, fotky = krok 5 (ten istý, kde stojí karta), trasa = 1, parkovisko a tip = 2. */
+  const gradeGo = (p: GradePoint) => {
+    if (p === 'photos') {
+      document.querySelector('.atl-photo-drop')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return;
+    }
+    if (p === 'desc') { setStep(3); return; }
+    if (p === 'route') { setStep(1); return; }
+    setNoteAsk(p === 'parking' ? 0 : 1);
+    setStep(2);
+  };
   const finalApproval: ApprovalStatus = missing.toApprove.length === 0 ? 'pending' : 'draft';
 
   // §5.3 poistka — pýta sa, nezablokuje. `onPickExisting` (živí duchovia počas kreslenia) tu nie
@@ -4006,6 +4031,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                     <p>{t('pack.addTrip.step.willBeDraft', { fields: missingTx(missing.toApprove) })}</p>
                   </div>
                 )}
+                {!isPlan && <TripGradeCard result={gradeResult} photoCount={photos.length} onGo={gradeGo} t={t} />}
                 <div className="atl-nav">
                   <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>
                   <button type="button" className="btn-gold" disabled={!canSubmit || saving} onClick={handleSubmit}>
