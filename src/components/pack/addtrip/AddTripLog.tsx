@@ -707,6 +707,14 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
     setExistingTripId(undefined);
     setDrawManually(false);
     setJourneyFilter('');
+    // ÚPRAVA TRASY / TYPU: ten istý typ = nakreslené miesto aj chipy ostávajú (geometriu
+    // predvyplnil `finishTrail`). Iný typ = kreslí sa nanovo a chipy starého typu (jazero,
+    // kemp…) by k turistike nepatrili, preto preč.
+    if (reroute) {
+      if (id === rerouteActRef.current) return;
+      setChips(new Set());
+      setOwnAct('');
+    }
     // ZASIATY VÝLET (rez C): bod spod prsta je prvá kotva a ide sa rovno kresliť.
     // `emptyGeometryFor` by ho zahodilo, preto je táto vetva PRED ním, nie za.
     const empty = emptyGeometryFor(id);
@@ -1151,6 +1159,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
   const finishingDraft = finishing && !fromPlan && !reroute;
   const minStep = finishingDraft ? 3 : 1;
   const filledRef = useRef(false);
+  const rerouteActRef = useRef<string | null>(null);
   useEffect(() => {
     if (!finishTrail || filledRef.current) return;
     filledRef.current = true;
@@ -1162,7 +1171,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
     setName(finishTrail.name ?? '');
     // acts nesú DATA id (hike/journey/…), formulár pracuje s id aktivity (hiking/journey/…).
     const act = ACTIVITIES.find((a) => (finishTrail.acts ?? []).includes(a.dataId));
-    if (act) setActivity(act.id);
+    // ÚPRAVA TRASY / TYPU (11. 10. 2026, Danka pri Melchsee: „nejde mi tam dať turistika ani
+    // prechádzka… je tam len jazero, park, zoo…"). Typ sa NEpredvyplní — sprievodca sa otvorí
+    // výberom typu, inak by návšteva ostala návštevou a dalo by sa len posúvať kruh.
+    // Pôvodný typ si drží `rerouteActRef`: keď ho človek vyberie znova, trasa aj chipy ostanú.
+    rerouteActRef.current = act?.id ?? null;
+    if (act && !reroute) setActivity(act.id);
     /**
      * ── CHIPY SA MUSIA VRÁTIŤ SPOLU S KATEGÓRIOU (2026-09-02) ──────────────────────────
      * `acts` nesie kategóriu AJ chipy v jednom poli, ale sem sa dosiaľ čítala len kategória.
@@ -2915,7 +2929,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
              */
             // PLÁNOVANIE V SKLADE (24. 9. 2026, `PLANNING_LIVE`) — bez neho vidlica nemá
             // druhú vetvu, takže každá dlaždica vedie rovno do zápisu ako návšteva.
-            const noFork = a.id === 'visit' || !PLANNING_LIVE;
+            // Úprava trasy/typu je vždy zápis toho, čo sa STALO — plán tu nemá zmysel.
+            const noFork = a.id === 'visit' || !PLANNING_LIVE || !!reroute;
             return (
               /* ⚠️ OBAL, NIE HOLÉ TLAČIDLO. Rozbaľovač nesie dve ďalšie tlačidlá a tlačidlo
                  vnorené v tlačidle je neplatné HTML — prehliadač ho vytrhne von z rodiča a

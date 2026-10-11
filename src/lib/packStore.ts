@@ -530,7 +530,15 @@ async function processTripUploadQueue(): Promise<void> {
         const fresh = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).find((t) => t.id === slug) ?? trail;
         // SCHVÁLENÝ výlet: RLS pustí člena len na `pending`, preto ide cez RPC `update_own_trip`
         // (bezpečné polia: fotky, popis, názov). Chyba DB sa zahodí s hláškou, sieť sa opakuje.
-        const st = readJson<Record<string, { status?: string }>>(PACK_KEYS.localTrailsMeta, {})[slug]?.status;
+        // 🔴 STAV SA PÝTA SERVERA, NIE PAMÄTE (11. 10. 2026, Danka: „posledná zmena sa neuložila"
+        //    pri fotkách k Dreilindenparku aj pri Fälensee). Meta je snímka z otvorenia appky —
+        //    výlet, ktorý sme schválili, kým mala appku otvorenú, v nej stál ako `pending`, šiel
+        //    cez upsert a RLS (`update_own_pending`) ho odmietla (42501). Jeden riadok navyše
+        //    na uloženie; zlyhanie siete padne do `catch` a fronta sa zopakuje ako pri uploade.
+        const { data: srv, error: stErr } = await (supabase as any).from('pack_trips').select('status').eq('slug', slug).maybeSingle();
+        if (stErr && !(stErr as { code?: string }).code) throw stErr;
+        const st = (srv as { status?: string } | null)?.status
+          ?? readJson<Record<string, { status?: string }>>(PACK_KEYS.localTrailsMeta, {})[slug]?.status;
         if (st === 'approved') {
           const { error } = await (supabase as any).rpc('update_own_trip', { p_slug: slug, p_payload: { ...fresh, photos } });
           if (error) {
