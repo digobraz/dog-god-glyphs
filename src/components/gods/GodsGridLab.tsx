@@ -314,7 +314,7 @@ function planetTileUrl(rawUrl: string | null): string {
   // 📱 Mobil: dlaždica na guli má ~45 CSS px (guľa ×0,57), teda ~120 px aj pri hustote 2,6.
   // 160 px tam bolo o 78 % bajtov navyše — a guľa (≈100 dlaždíc) čaká s nadpisom (perf 7. 10. 2026).
   const px = typeof window !== 'undefined' && window.innerWidth <= 768 ? 120 : 160;
-  return publicId ? gridTileUrl(publicId, px) : url;
+  return publicId ? sizedTile(publicId, px) : url;
 }
 
 // Fotka do panela detailu na guli. Dlaždicových 160 px je v ňom viditeľne
@@ -325,7 +325,7 @@ function planetDetailUrl(rawUrl: string | null): string {
   const publicId = cloudinaryPublicId(url);
   // Hektor: 320 px namiesto 800 px originálu — tá istá mierka ako Cloudinary vetva (perf 7. 10. 2026).
   if (!publicId && url === '/images/hektor-grid.webp') return '/images/hektor-grid-320.webp';
-  return publicId ? gridTileUrl(publicId, 320) : url;
+  return publicId ? sizedTile(publicId, 320) : url;
 }
 
 // Dlaždicová URL pre WALL kartu — sanitizovaná (safeUrl) + Cloudinary transform (w/h/q auto)
@@ -334,7 +334,20 @@ function tileImageUrl(rawUrl: string | null): string {
   const url = safeUrl(rawUrl || '');
   if (!url) return '';
   const publicId = cloudinaryPublicId(url);
-  return publicId ? gridTileUrl(publicId, TILE_SIZE) : url;
+  return publicId ? sizedTile(publicId, TILE_SIZE) : url;
+}
+
+// Uložená URL môže už niesť transformáciu (`c_fill,g_auto,w_1200,h_1200,…/v…/tmp/…/main`).
+// Cloudinary reťazí segmenty ZĽAVA DOPRAVA: naša zmenšenina PRED ňou fotku zmenšila
+// a uložená ju potom ZVÄČŠILA späť na 1200 px (merané 11. 10. 2026 na /wall: 5 psov
+// po ~60 kB namiesto ~15 kB). Uložená preto ide prvá — drží výrez `g_auto` — a naša za ňou.
+const CLD_TRANSFORM_SEG = /^[a-z]{1,3}_[^/]*$/;
+function sizedTile(publicId: string, px: number): string {
+  const segs = publicId.split('/');
+  const pre: string[] = [];
+  while (segs.length > 1 && CLD_TRANSFORM_SEG.test(segs[0])) pre.push(segs.shift()!);
+  if (!pre.length) return gridTileUrl(publicId, px);
+  return gridTileUrl(segs.join('/'), px).replace('/image/upload/', `/image/upload/${pre.join('/')}/`);
 }
 
 function getPos(filename: string): string {
@@ -1552,10 +1565,14 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     }
 
     function updateCells() {
-      const c0 = Math.floor(-ox / GX) - 2;
-      const c1 = c0 + Math.ceil(vw / GX) + 4;
-      const r0 = Math.floor(-oy / GY) - 2;
-      const r1 = r0 + Math.ceil(vh / GY) + 4;
+      // Rezerva JEDNA bunka okolo okna. Pri dvoch stena na PC 1477×724 postavila 79 kariet
+      // a vidno z nich 19 — 3/4 fotiek a heroglyfov sa sťahovali naprázdno a /wall rástol
+      // s každým psom (merané 11. 10. 2026: 4,95 MB). Jedna bunka (~300 px) stačí, aby
+      // ťahanie neodhalilo prázdno: karty sa dostavajú v tom istom rAF ako posun.
+      const c0 = Math.floor(-ox / GX) - 1;
+      const c1 = c0 + Math.ceil(vw / GX) + 2;
+      const r0 = Math.floor(-oy / GY) - 1;
+      const r1 = r0 + Math.ceil(vh / GY) + 2;
 
       for (const [key, el] of cells) {
         const [c, r] = key.split(',').map(Number);
