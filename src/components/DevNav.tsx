@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { List } from "lucide-react";
 import {
   DropdownMenu,
@@ -82,6 +83,7 @@ export function DevNav() {
 
   // Never on headless render targets — would bleed into the generated PDF / share card PNG.
   if (pathname.startsWith("/cert-render") || pathname.startsWith("/share-render")) return null;
+  if (CHATA_NAHLAD) return null; // náhľad 1:1 v Horskej chate — člen tento pás nevidí
   // ONEPAGE sa ladí ako HOTOVÝ web, aj na telefóne cez tunel (Matej 27. 8. 2026:
   // „odstráň pomocné dev menu aj TEXT1/2“). Vývojárske ovládanie v rohu tam kazí
   // dojem z návrhu a na mobile prekrýva spodnú lištu. Na ostatných dev cestách

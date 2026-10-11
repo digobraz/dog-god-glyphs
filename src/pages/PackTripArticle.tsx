@@ -10,6 +10,7 @@
 // tej istej browser session (žiadna Supabase perzistencia, tá je mimo rozsahu).
 import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { PLANNING_LIVE } from '@/lib/packFlags';
 import { useNavigate, useParams } from 'react-router-dom';
 import L from 'leaflet';
@@ -641,7 +642,7 @@ export default function PackTripArticle() {
   // v produkčnom builde je podmienka konštanta false a cudzí origin sa ignoruje.
   const [nahlad, setNahlad] = useState<HeroTrail | null>(null);
   useEffect(() => {
-    if (import.meta.env.MODE !== 'livedb' || !new URLSearchParams(window.location.search).has('nahlad')) return;
+    if (!CHATA_NAHLAD) return;
     const on = (e: MessageEvent) => {
       if (!/^http:\/\/(127\.0\.0\.1|localhost):8790$/.test(e.origin) || e.data?.type !== 'dogypt-nahlad') return;
       setNahlad(e.data.trail as HeroTrail);
@@ -1325,7 +1326,7 @@ export default function PackTripArticle() {
       </div>
     );
   }
-  if (!id.session) return null;
+  if (!id.session && !CHATA_NAHLAD) return null;
 
   if (!trail) {
     return (

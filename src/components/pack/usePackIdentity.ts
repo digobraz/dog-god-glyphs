@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getMyAffiliate, getPackStats } from '@/lib/sharedFetch';
 import { hydratePackStore } from '@/lib/packStore';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
+import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 
 export interface PackDog {
@@ -194,7 +195,7 @@ export function usePackIdentity(): PackIdentity {
       }
       setSession(s);
       setLoading(false);
-      if (!s) {
+      if (!s && !CHATA_NAHLAD) {
         const ret = encodeURIComponent(location.pathname + location.search);
         navigate(`/login?return=${ret}`, { replace: true });
       }
@@ -204,7 +205,7 @@ export function usePackIdentity(): PackIdentity {
       // INITIAL_SESSION duplikuje ensureSession() vyššie — bez tohto guardu sa
       // pri mounte bez session zavolal navigate('/login') dvakrát.
       if (event === 'INITIAL_SESSION') return;
-      if (!s && DEV_NOAUTH) return;
+      if (!s && (DEV_NOAUTH || CHATA_NAHLAD)) return;
       setSession(s);
       if (!s) {
         const ret = encodeURIComponent(location.pathname + location.search);

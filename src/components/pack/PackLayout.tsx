@@ -1,4 +1,5 @@
 import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
+import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BonesCoin } from './BonesCoin';
@@ -84,7 +85,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel }: Pac
     );
   }
 
-  if (!session) return null;
+  if (!session && !CHATA_NAHLAD) return null;   // náhľad chaty číta článok bez prihlásenia (lib/chataNahlad.ts)
 
   return (
     <div

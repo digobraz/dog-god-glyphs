@@ -5,6 +5,7 @@
  * Reopen: window event 'dogypt:open-consent' (volá Footer „Cookie settings").
  */
 import { useEffect, useRef, useState } from 'react';
+import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { useLocation } from 'react-router-dom';
 import { HandArrowLeftIcon as HandArrowLeft } from '@/components/pack/handArrowLeft';
 import { useT } from '@/i18n/LanguageContext';
@@ -124,7 +125,7 @@ export function ConsentBanner() {
     return () => document.removeEventListener('mousedown', onDown);
   }, [menuOpen]);
 
-  if (isRenderRoute || !visible || !armed) return null;
+  if (isRenderRoute || !visible || !armed || CHATA_NAHLAD) return null;   // náhľad chaty = pohľad člena, ktorý už súhlasil
 
   const handleAcceptAll = () => {
     saveConsent({ analytics: true, marketing: true });
