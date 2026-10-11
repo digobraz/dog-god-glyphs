@@ -2364,6 +2364,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
   // Zrkadlenie vie spraviť len picker (legs + snapPath + prevýšenie sú jeho vnútro),
   // tak si sem podá spúšťač. Viď `mirrorRef` v GeometryPicker.
   const mirrorRef = useRef<(() => void) | null>(null);
+  // Prichytenie rovných úsekov v dávke pri HOTOVO (prepínač „Prilepiť až na konci", strop volaní).
+  const snapAllRef = useRef<(() => Promise<LatLngTuple[] | null>) | null>(null);
+  // „Je to v prírode" — AINUBIS sa na túto trasu pri tomto drafte už nepýta znova.
+  const natureOkRef = useRef(false);
   // Spýta sa RAZ za výlet. Kto povie „áno, končím tu", nemá počuť to isté pri každom HOTOVO.
   const openRouteAskedRef = useRef(false);
 
@@ -2478,6 +2482,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
     if (!guarded) { setStep(stepAfter(1)); return; }
     const km = lineLengthM(line) / 1000;
     if (km < HIKE_MIN_KM) { setNatureAsk({ km, share: null, line }); return; }
+    if (natureOkRef.current) { setStep(stepAfter(1)); return; }
     setNatureChecking(true);
     const share = await builtUpShare(line);
     setNatureChecking(false);
@@ -2511,8 +2516,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
       </span>
     ) : undefined,
     onDone: () => {
-      if (routeIsOpen && !openRouteAskedRef.current) { setOpenRouteAsk(true); return; }
-      void leaveRouteStep(routeLine());
+      // Najprv prichytenie rovných úsekov (ak nejaké ostali), až potom otvorená trasa, stráž
+      // prírody a uloženie — tie musia vidieť konečnú stopu.
+      void (async () => {
+        const snapped = await snapAllRef.current?.();
+        if (routeIsOpen && !openRouteAskedRef.current) { setOpenRouteAsk(true); return; }
+        void leaveRouteStep(snapped ?? routeLine());
+      })();
     },
     // ⚠️ V KROKU 1 JE TO ODCHOD, NIE NÁVRAT O KROK (Matej 24. 8. 2026: „dole späť na aktivitu
     // môžme dať skôr späť na mapy - odísť"). Pod bublinou AInubisa je len × na zahodenie;
@@ -2654,25 +2664,51 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
           {/* Hovorí AINUBIS — ten istý šat ako „Nešiel si naspäť?" o pár riadkov nižšie. */}
           <div className="atl-abort atl-abort--ainubis" onClick={(e) => e.stopPropagation()}>
             <img className="atl-abort-face" src={ainubisFace} alt="" aria-hidden="true" />
-            <h2>{t('pack.addTrip.nature.title')}</h2>
-            <p>
-              {natureAsk.share == null
-                ? t('pack.addTrip.nature.short', { km: natureAsk.km.toFixed(1), min: HIKE_MIN_KM })
-                : t('pack.addTrip.nature.urban', { pct: Math.round(natureAsk.share * 100) })}
-            </p>
-            {/* ⚠️ PLÁN NEMÁ NÁVŠTEVU (Matej 1. 9. 2026: návšteva = iba zápis), takže pri pláne
-                ostáva len úprava trasy. */}
-            <p>{t(isPlan ? 'pack.addTrip.nature.planHint' : 'pack.addTrip.nature.visitHint')}</p>
-            <div className="atl-abort-btns">
-              {!isPlan && (
-                <button type="button" className="atl-abort-cta" onClick={() => switchToVisit(natureAsk.line)}>
-                  {t('pack.addTrip.nature.toVisit')}
+            {natureAsk.share == null ? (
+              <>
+                <h2>{t('pack.addTrip.nature.title')}</h2>
+                <p>{t('pack.addTrip.nature.short', { km: natureAsk.km.toFixed(1), min: HIKE_MIN_KM })}</p>
+                {/* ⚠️ PLÁN NEMÁ NÁVŠTEVU (Matej 1. 9. 2026: návšteva = iba zápis), takže pri pláne
+                    ostáva len úprava trasy. */}
+                <p>{t(isPlan ? 'pack.addTrip.nature.planHint' : 'pack.addTrip.nature.visitHint')}</p>
+                <div className="atl-abort-btns">
+                  {!isPlan && (
+                    <button type="button" className="atl-abort-cta" onClick={() => switchToVisit(natureAsk.line)}>
+                      {t('pack.addTrip.nature.toVisit')}
+                    </button>
+                  )}
+                  <button type="button" className={isPlan ? 'atl-abort-cta' : 'atl-abort-ghost'} onClick={() => setNatureAsk(null)}>
+                    {t('pack.addTrip.nature.editRoute')}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* ⚠️ OTÁZKA, NIE ZAMIETNUTIE (Matej 11. 10. 2026): „ainubis by tam nedal zamietavé
+                    stanovisko, skôr otázku — ňuchám, že tento výlet nejde cez prírodu, ale cez
+                    zastavanú časť, ale môžem sa mýliť… sám si odpovie človek". Percento sa do
+                    textu nedáva; meranie je len podozrenie, rozhoduje človek. */}
+                <h2>{t('pack.addTrip.nature.askTitle')}</h2>
+                <p>{t('pack.addTrip.nature.askUrban')}</p>
+                <div className="atl-abort-btns">
+                  <button
+                    type="button"
+                    className="atl-abort-cta"
+                    onClick={() => { natureOkRef.current = true; setNatureAsk(null); setStep(stepAfter(1)); }}
+                  >
+                    {t('pack.addTrip.nature.isNature')}
+                  </button>
+                  {!isPlan && (
+                    <button type="button" className="atl-abort-ghost" onClick={() => switchToVisit(natureAsk.line)}>
+                      {t('pack.addTrip.nature.notNature')}
+                    </button>
+                  )}
+                </div>
+                <button type="button" className="atl-daymode-link" onClick={() => setNatureAsk(null)}>
+                  {t('pack.addTrip.nature.editRoute')}
                 </button>
-              )}
-              <button type="button" className={isPlan ? 'atl-abort-cta' : 'atl-abort-ghost'} onClick={() => setNatureAsk(null)}>
-                {t('pack.addTrip.nature.editRoute')}
-              </button>
-            </div>
+              </>
+            )}
           </div>
         </div>,
         document.body,
@@ -3006,6 +3042,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                     }}
                     mapRef={mapRef}
                     mirrorRef={mirrorRef}
+                    snapAllRef={snapAllRef}
                     /* GPX: dátum zo stopy vyplní pole dátumu, len keď je prázdne a ide o zápis —
                        plán má dátum v budúcnosti a vyplnené pole je človekova voľba. */
                     onGpx={(m) => {

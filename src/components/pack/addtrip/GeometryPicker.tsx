@@ -164,6 +164,13 @@ export type GeometryPickerProps = {
    */
   mirrorRef?: React.MutableRefObject<(() => void) | null>;
   /**
+   * DOKONČENIE PRICHYTENIA PRI HOTOVO (11. 10. 2026) — picker sem podá funkciu, ktorá v dávke
+   * prichytí úseky, čo ostali rovné (prepínač „Prilepiť až na konci" alebo strop volaní za
+   * minútu). Vráti novú stopu, alebo `null`, keď nebolo čo meniť. Rovnaký vzor ako `mirrorRef`:
+   * legs, `buildSnapPath` aj prevýšenie sú vnútro pickera, hore ide len spúšťač.
+   */
+  snapAllRef?: React.MutableRefObject<(() => Promise<LatLngTuple[] | null>) | null>;
+  /**
    * GPX IMPORT (27. 9. 2026) — trasa prišla zo súboru, nie z klikania. Hore ide len to, čo
    * picker nevlastní: dátum zo stopy (predvyplní pole dátumu) a odkiaľ súbor je (`sourceGpx`).
    */
@@ -339,6 +346,7 @@ export function GeometryPicker({
   onMetrics,
   mapRef,
   mirrorRef,
+  snapAllRef,
   onGpx,
   drawBar,
 }: GeometryPickerProps) {
@@ -367,6 +375,44 @@ export function GeometryPicker({
   // Limit máp (429): červený text nahradil hlas AINUBISA v bubline (Matej 11. 10. 2026).
   // Zhasne sám po stíšení klienta (`mapProxyCooldownMs`) alebo hneď pri ďalšom úspešnom snape.
   const [slowed, setSlowed] = useState(false);
+  // ── POISTKA PROTI HUSTÉMU KLIKANIU (11. 10. 2026) ───────────────────────────────────────
+  // Testerka klikala body každých pár desiatok metrov a každý klik = sieťové volanie → 10 162
+  // volaní za hodinu. Tri vrstvy: (1) AINUBIS povie, že netreba klikať nahusto, (2) prepínač
+  // „Prilepiť až na konci" (zapamätaný) nevolá sieť počas kreslenia vôbec, (3) tvrdý strop
+  // `SNAP_PER_MIN` z pickera — nad ním ostane úsek rovný a doťahuje sa pri HOTOVO.
+  const [deferSnap, setDeferSnap] = useState<boolean>(() => {
+    try { return localStorage.getItem(DEFER_SNAP_KEY) === '1'; } catch { return false; }
+  });
+  const deferRef = useRef(deferSnap);
+  deferRef.current = deferSnap;
+  const [deferMsg, setDeferMsg] = useState(false);
+  const [dense, setDense] = useState(false);
+  const [finishing, setFinishing] = useState(false);
+  const denseRun = useRef(0);
+  const denseAt = useRef(0);
+  const snapTimes = useRef<number[]>([]);
+  const snapBudgetOk = () => {
+    const now = Date.now();
+    snapTimes.current = snapTimes.current.filter((x) => now - x < 60_000);
+    return snapTimes.current.length < SNAP_PER_MIN;
+  };
+  const snapCounted = (a: LatLngTuple, b: LatLngTuple) => { snapTimes.current.push(Date.now()); return snapSegment(a, b); };
+  useEffect(() => {
+    if (!dense) return;
+    const id = window.setTimeout(() => setDense(false), 8000);
+    return () => window.clearTimeout(id);
+  }, [dense]);
+  useEffect(() => {
+    if (!deferMsg) return;
+    const id = window.setTimeout(() => setDeferMsg(false), 6000);
+    return () => window.clearTimeout(id);
+  }, [deferMsg]);
+  const toggleDefer = () => {
+    const next = !deferSnap;
+    setDeferSnap(next);
+    setDeferMsg(next);
+    try { localStorage.setItem(DEFER_SNAP_KEY, next ? '1' : '0'); } catch { /* privátny režim */ }
+  };
   useEffect(() => {
     if (!slowed) return;
     const id = window.setTimeout(() => setSlowed(false), mapProxyCooldownMs() + 500);
@@ -573,8 +619,24 @@ export function GeometryPicker({
     legsRef.current[anchors.length - 2] = [anchors[anchors.length - 2], p];
     setRoute({ path: anchors, snapPath: buildSnapPath(anchors) });
 
+    // Hustý klik: tri kotvy po sebe, každá bližšie než DENSE_M od predošlej (len pri prichytávaní).
+    if (!deferRef.current) {
+      if (hav(anchors[anchors.length - 2], p) < DENSE_M) denseRun.current += 1; else { denseRun.current = 0; setDense(false); }
+      if (denseRun.current >= 3 && Date.now() - denseAt.current > 30_000) {
+        denseAt.current = Date.now();
+        setDense(true);
+      }
+    }
+
+    // Prichytávanie až na konci, alebo vyčerpaný strop volaní → úsek ostáva rovný (dotiahne ho HOTOVO).
+    if (deferRef.current || !snapBudgetOk()) {
+      if (!deferRef.current) setSlowed(true);
+      void recomputeAscent(buildSnapPath(anchors));
+      return;
+    }
+
     setBusy(true);
-    const res = await snapSegment(anchors[anchors.length - 2], p);
+    const res = await snapCounted(anchors[anchors.length - 2], p);
     setBusy(false);
     setNotice(noticeFor(res.reason));
     setSlowed(res.reason === 'ratelimited');
@@ -600,12 +662,14 @@ export function GeometryPicker({
    * VEDOME zamietla (klik mimo chodníka, obchádzka), je v `snapCache` a vráti sa bez siete.
    */
   const healLegs = async (): Promise<void> => {
+    if (deferRef.current) return;
     const anchors = pathRef.current;
     let changed = false;
     for (let i = 0; i < anchors.length - 1; i++) {
       const leg = legsRef.current[i];
       if (!leg || leg.length !== 2 || hav(anchors[i], anchors[i + 1]) < 40) continue;
-      const r = await snapSegment(anchors[i], anchors[i + 1]);
+      if (!snapBudgetOk()) break;
+      const r = await snapCounted(anchors[i], anchors[i + 1]);
       if (!samePt(pathRef.current[i + 1], anchors[i + 1])) return; // trasa sa medzitým zmenila
       // limit alebo porucha = ďalšie úseky by dopadli rovnako; dotiahne ich až ďalší klik
       // (11. 10. 2026: bez tejto brzdy pýtal každý klik VŠETKY rovné úseky znova → 10 162 volaní/h)
@@ -619,6 +683,52 @@ export function GeometryPicker({
     setRoute({ path: live, snapPath, snapped: true });
     void recomputeAscent(snapPath);
   };
+
+  /**
+   * ── PRICHYTENIE V DÁVKE PRI HOTOVO ───────────────────────────────────────────────────
+   * Sekvenčne každý úsek, ktorý ostal rovný a má aspoň `BATCH_MIN_M` (kratšie kotvy sa
+   * preskočia — volanie by nestálo za to). Pri `ratelimited` (alebo poruche) sa zastaví:
+   * zvyšok ostane rovný a nič nepadne. Strop za minútu sa tu NEUPLATŇUJE — je to jediná
+   * dávka a človek na ňu čaká; bráni jej až server a stíšenie klienta.
+   */
+  const snapAll = async (): Promise<LatLngTuple[] | null> => {
+    if (value.kind !== 'route' || isMinimal) return null;
+    const anchors = pathRef.current;
+    if (anchors.length < 2) return null;
+    ensureLegs(anchors, value.snapPath);
+    const todo: number[] = [];
+    for (let i = 0; i < anchors.length - 1; i++) {
+      const leg = legsRef.current[i];
+      if ((!leg || leg.length === 2) && hav(anchors[i], anchors[i + 1]) >= BATCH_MIN_M) todo.push(i);
+    }
+    if (!todo.length) return null;
+    setFinishing(true);
+    setBusy(true);
+    let changed = false;
+    try {
+      for (const i of todo) {
+        const r = await snapCounted(anchors[i], anchors[i + 1]);
+        if (r.reason === 'ratelimited') { setSlowed(true); break; }
+        if (r.reason === 'error') break;
+        if (r.snapped) { legsRef.current[i] = r.geometry; changed = true; }
+      }
+    } finally {
+      setBusy(false);
+      setFinishing(false);
+    }
+    if (!changed) return null;
+    const snapPath = buildSnapPath(anchors);
+    setRoute({ path: anchors, snapPath, snapped: true });
+    await recomputeAscent(snapPath);
+    return snapPath;
+  };
+  const snapAllRefFn = useRef(snapAll);
+  snapAllRefFn.current = snapAll;
+  useEffect(() => {
+    if (!snapAllRef) return;
+    snapAllRef.current = () => snapAllRefFn.current();
+    return () => { snapAllRef.current = null; };
+  }, [snapAllRef]);
 
   /**
    * OZNAČENIE CIEĽA 🎯 (Matej 2026-08-23: „po 2 km by sa pri kurzore mohla objaviť hláška:
@@ -1295,8 +1405,11 @@ export function GeometryPicker({
         : isArea && value.center
           ? t('pack.addTrip.geo.areaSetSize')
           : null;
-  const drawHint = slowed && value.kind === 'route'
-    ? t('pack.addTrip.ainubis.ratelimited')
+  // Poradie: limit > prilepovanie pri HOTOVO > hustý klik > potvrdenie prepínača > bežná hláška.
+  const drawHint = value.kind === 'route' && slowed ? t('pack.addTrip.ainubis.ratelimited')
+    : value.kind === 'route' && finishing ? t('pack.addTrip.ainubis.snapping')
+    : value.kind === 'route' && dense && !deferSnap ? t('pack.addTrip.ainubis.denseClicks')
+    : value.kind === 'route' && deferSnap && deferMsg ? t('pack.addTrip.ainubis.deferOn')
     : drawBar?.hint !== undefined ? drawBar.hint : ownHint;
 
   // ── ČÍTANIE: JEDEN ZDROJ PRE PANEL AJ LIŠTU ───────────────────────────────────────────
@@ -1902,8 +2015,8 @@ export function GeometryPicker({
                 type="button"
                 className="trp-dbar-done trp-dbar-done--hero"
                 onClick={drawBar.onDone}
-                disabled={!!drawBar.doneDisabled}
-                style={drawBar.doneDisabled ? { opacity: 0.42, boxShadow: 'none', cursor: 'default' } : undefined}
+                disabled={!!drawBar.doneDisabled || finishing}
+                style={drawBar.doneDisabled || finishing ? { opacity: 0.42, boxShadow: 'none', cursor: 'default' } : undefined}
               >
                 {drawBar.doneLabel ?? t('pack.addTrip.geo.done')}
               </button>
@@ -1912,8 +2025,21 @@ export function GeometryPicker({
             // pridávali kotvy do hotovej trasy.
             // `above` stojí nad HOTOVOM v OBOCH fázach — otázka o viacdňovosti sa nesmie
             // objaviť až vtedy, keď je trasa hotová: odpoveď mení povolenú geometriu.
+            // Prepínač prichytávania — len pri trase; v pauze (krok 2) sa trasa už nekreslí.
+            const deferRow = !paused && value.kind === 'route' && !isMinimal && (
+              <div className="trp-dbar-row trp-dbar-row--minor">
+                <button
+                  type="button"
+                  className={`trp-dbar-btn trp-dbar-defer${deferSnap ? ' on' : ''}`}
+                  aria-pressed={deferSnap}
+                  onClick={toggleDefer}
+                >
+                  {t('pack.addTrip.geo.deferSnap')}
+                </button>
+              </div>
+            );
             if (paused) return <>{drawBar.above}{done}</>;
-            return doneReady ? <>{drawBar.above}{done}{tools}</> : <>{drawBar.above}{tools}</>;
+            return doneReady ? <>{drawBar.above}{done}{tools}{deferRow}</> : <>{drawBar.above}{tools}{deferRow}</>;
           })()}
 
           {/* ── NAJMENŠÍ MOŽNÝ ZÁPIS — PONUKA ZRUŠENÁ 24. 8. 2026 ────────────────────────
@@ -1950,6 +2076,14 @@ export function GeometryPicker({
  * Zlyhanie úložiska (privátny režim) berieme ako „ešte nevidel" — radšej ju ukázať zbytočne
  * než ju stratiť tým, že sa nedá zapísať.
  */
+const DEFER_SNAP_KEY = 'dogypt.geo.deferSnap';
+/** Tvrdý strop sieťových volaní prichytávania z pickera za minútu (10 162/h incident, 11. 10. 2026). */
+const SNAP_PER_MIN = 40;
+/** Kotvy bližšie než toto (m) pri sebe = hustý klik. */
+const DENSE_M = 120;
+/** Úsek kratší než toto (m) sa pri dávke nepýta — volanie by nestálo za to. */
+const BATCH_MIN_M = 40;
+
 const miniBtn: React.CSSProperties = {
   padding: '4px 12px',
   borderRadius: 8,
@@ -2213,6 +2347,7 @@ const DRAW_BAR_CSS = `
 .trp-dbar-row--minor .trp-dbar-btn:hover:not(:disabled){color:${GOLD};}
 .trp-dbar-btn:hover:not(:disabled){border-color:${GOLD};color:${GOLD};}
 .trp-dbar-btn:disabled{cursor:default;}
+.trp-dbar-row--minor .trp-dbar-defer.on{border-color:${GOLD};color:${GOLD};}
 .trp-dbar-wide{flex:1 1 100%;}
 /* ── JAZDEC VEĽKOSTI OKRUHU (Matej 1. 9. 2026) ────────────────────────────────────────
    Berie miesto po dvojici − / + , teda DVA diely radu (flex:2 1 0) proti jednému, aký
