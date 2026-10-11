@@ -528,6 +528,19 @@ async function processTripUploadQueue(): Promise<void> {
       try {
         const photos = await uploadTrailPhotos(slug);
         const fresh = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).find((t) => t.id === slug) ?? trail;
+        // SCHVÁLENÝ výlet: RLS pustí člena len na `pending`, preto ide cez RPC `update_own_trip`
+        // (bezpečné polia: fotky, popis, názov). Chyba DB sa zahodí s hláškou, sieť sa opakuje.
+        const st = readJson<Record<string, { status?: string }>>(PACK_KEYS.localTrailsMeta, {})[slug]?.status;
+        if (st === 'approved') {
+          const { error } = await (supabase as any).rpc('update_own_trip', { p_slug: slug, p_payload: { ...fresh, photos } });
+          if (error) {
+            if (!(error as { code?: string }).code) throw error;
+            console.warn('[packStore] update_own_trip odmietnutý:', error.message);
+            announceRejected();
+          }
+          pending = readTripPending();
+          continue;
+        }
         enqueue([{
           kind: 'upsert', tbl: 'pack_trips', onConflict: 'slug', own: 'author_id',
           row: {

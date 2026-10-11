@@ -5446,6 +5446,9 @@ export default function PackMap() {
         // draft.diff je undefined, nefabrikuje sa 'Moderate' (rovnaký bug ako v generátore).
         ...(draft.diff ? { diff: draft.diff } : {}),
         km,
+        // PREVÝŠENIE (11. 10. 2026): draft ho nesie (`resolveAscent`), ale do výletu sa nikdy neprepísalo
+        // → `pack_trips.payload.ascentM` a `ascent` ostávali prázdne aj pri trase s ↑839 m.
+        ...(typeof draft.ascentM === 'number' && draft.ascentM > 0 ? { ascentM: Math.round(draft.ascentM) } : {}),
         stars: draft.paws ?? 0,
         path: line,
         ...(geo.areaR ? { areaR: geo.areaR } : {}),
