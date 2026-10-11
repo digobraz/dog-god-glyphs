@@ -5,7 +5,7 @@
 // AINUBIS veta stojí nad kartou; chýbajúci bod vedie späť do kroku cez `onGo`.
 import { useState } from 'react';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
-import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_BOX, PACK_SHADOW, BRAND_GOLD_BTN, PROGRESS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { GRADE_POINTS, type GradePoint, type GradeResult, type TripGrade } from '@/lib/tripGrade';
 
@@ -14,7 +14,7 @@ const MEDAL: Record<TripGrade, string> = {
   B: 'linear-gradient(135deg,#C99A3F 0%,#A3782B 100%)',
   C: 'linear-gradient(180deg,#C46A52,#8E3F2C)',
 };
-const BAR: Record<TripGrade, string> = { A: T.growGreen, B: T.accentGold, C: T.alertRed };
+const BAR: Record<TripGrade, string> = { A: ' pk-progress__fill--done', B: '', C: ' pk-progress__fill--low' };
 
 type Tx = (key: string, params?: Record<string, string | number>) => string;
 
@@ -26,6 +26,7 @@ export function TripGradeCard({ result, photoCount, onGo, t }: {
   t: Tx;
 }) {
   const { grade, score, missing } = result;
+  const fillW = `${score * 20}%`;
   const [open, setOpen] = useState(grade !== 'A');
   const first = missing[0];
   const lead = grade === 'A'
@@ -33,7 +34,7 @@ export function TripGradeCard({ result, photoCount, onGo, t }: {
     : t('pack.addTrip.grade.lead', { grade, hint: t(`pack.addTrip.grade.hint.${first}`) });
   return (
     <div className="tgc-wrap">
-      <style>{TRIP_GRADE_CSS}</style>
+      <style>{PROGRESS_CSS}{TRIP_GRADE_CSS}</style>
       <AinubisBubble role="status"><p className="tgc-lead">{lead}</p></AinubisBubble>
       <div className="tgc-card" style={{ ...PACK_BOX.card }}>
         <button type="button" className="tgc-head" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
@@ -41,7 +42,7 @@ export function TripGradeCard({ result, photoCount, onGo, t }: {
           <span className="tgc-meta">
             <span className="tgc-score">{score} / 5</span>
             <span className="tgc-sub">{grade === 'A' ? t('pack.addTrip.grade.subA') : t('pack.addTrip.grade.subMissing', { n: missing.length })}</span>
-            <span className="tgc-bar"><i style={{ width: `${score * 20}%`, background: BAR[grade] }} /></span>
+            <span className="pk-progress"><span className={`pk-progress__fill${BAR[grade]}`} style={{ display: 'block', width: fillW, ...(grade === 'B' ? { background: BRAND_GOLD_BTN.grad } : null) }} /></span>
           </span>
           <span className={`tgc-chev${open ? ' open' : ''}`} aria-hidden="true" />
         </button>
@@ -76,12 +77,10 @@ const TRIP_GRADE_CSS = `
 .tgc-lead{margin:0;font-size:14px;line-height:1.5;}
 .tgc-card{padding:16px;color:${T.ink};font-family:${FONT_UI};}
 .tgc-head{display:flex;align-items:center;gap:12px;width:100%;background:none;border:0;padding:0;cursor:pointer;text-align:left;color:inherit;font-family:inherit;}
-.tgc-medal{width:48px;height:48px;border-radius:999px;display:grid;place-items:center;flex:none;font-family:${FONT_TITLE};font-weight:700;font-size:24px;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.35),0 3px 8px -3px rgba(0,0,0,0.5);}
+.tgc-medal{width:48px;height:48px;border-radius:999px;display:grid;place-items:center;flex:none;font-family:${FONT_TITLE};font-weight:700;font-size:24px;color:#fff;box-shadow:${PACK_SHADOW.lift};}
 .tgc-meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;}
 .tgc-score{font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:.14em;color:${T.inkStrong};}
 .tgc-sub{font-size:12px;color:${T.inkDim};}
-.tgc-bar{display:block;height:8px;border-radius:999px;background:${T.hairline};overflow:hidden;}
-.tgc-bar i{display:block;height:100%;border-radius:999px;}
 .tgc-chev{width:8px;height:8px;flex:none;border-right:2px solid ${T.inkDim};border-bottom:2px solid ${T.inkDim};transform:rotate(45deg);margin:0 8px 4px 0;transition:transform .15s;}
 .tgc-chev.open{transform:rotate(-135deg);margin:4px 8px 0 0;}
 .tgc-list{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;}
