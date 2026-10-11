@@ -634,6 +634,26 @@ export async function translateTripDesc(text: string): Promise<string | null> {
   } catch { return null; }
 }
 
+/**
+ * 3 NÁVRHY NÁZVU S LOKALITOU (Matej 11. 10. 2026: „odbremení to človeka od rozmýšľania").
+ * Edge Function `suggest-trip-name` zistí z bodov miesto (Mapy.com) a zloží názvy
+ * „Lokalita: pohľad autora". Bodov ide max ~300 (riedenie) — miesto stačí odhadnúť.
+ * `null` = nepodarilo sa; pole s názvom funguje ďalej bez návrhov.
+ */
+export async function suggestTripNames(
+  path: readonly (readonly number[])[], draft: string, dogs: string[], lang: string,
+): Promise<string[] | null> {
+  if (!path.length) return null;
+  const step = Math.max(1, Math.ceil(path.length / 300));
+  const pts = path.filter((_, i) => i % step === 0 || i === path.length - 1);
+  try {
+    const { data, error } = await (supabase as any).functions.invoke('suggest-trip-name', { body: { path: pts, draft, dogs, lang } });
+    if (error || !Array.isArray(data?.titles)) return null;
+    const titles = data.titles.filter((s: unknown) => typeof s === 'string' && s.trim()) as string[];
+    return titles.length ? titles : null;
+  } catch { return null; }
+}
+
 let ovrProcessing = false;
 async function processOverrideQueue(): Promise<void> {
   if (ovrProcessing) return;

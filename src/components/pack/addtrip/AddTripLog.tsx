@@ -27,6 +27,7 @@ import { voteMemorialTrips } from '@/components/pack/memorialTrips';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { suggestTripNames } from '@/lib/packStore';
 import { createPortal } from 'react-dom';
 import type { MutableRefObject } from 'react';
 import L from 'leaflet';
@@ -588,6 +589,14 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
   const [moreChipsOpen, setMoreChipsOpen] = useState(false);
   const [note, setNote] = useState('');
   const [crew, setCrew] = useState<Companion[]>([]);
+  /**
+   * NÁVRHY NÁZVU (Matej 11. 10. 2026). Pri poli „Názov" sa raz na trasu dotiahnu 3 názvy
+   * s lokalitou; ťuk ich vloží do poľa. Kľúč = prvý bod + počet bodov, takže úprava trasy
+   * vyrobí nové návrhy, písanie do poľa nie (to robí až „Iné návrhy").
+   */
+  const [nameSugs, setNameSugs] = useState<string[]>([]);
+  const [nameSugsBusy, setNameSugsBusy] = useState(false);
+  const nameSugKeyRef = useRef('');
   /** §4.5 — príbeh výletu na celú obrazovku. Stav je LEN o tom, kde sa text píše; hodnota
       je stále `note`, takže sa nedá rozísť s poľom v paneli. */
   const [storyFull, setStoryFull] = useState(false);
@@ -2415,6 +2424,26 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
     </div>
   ) : null;
 
+  const namePts: LatLngTuple[] = geometry.kind === 'route'
+    ? (geometry.snapPath?.length ? geometry.snapPath : geometry.path)
+    : (geometry.center ? [geometry.center] : []);
+  const loadNameSugs = async () => {
+    if (!namePts.length) return;
+    setNameSugsBusy(true);
+    const dogs = crew.filter((c) => !c.key.startsWith(HUMAN_KEY_PREFIX)).map((c) => c.name);
+    const r = await suggestTripNames(namePts, name, dogs, lang);
+    setNameSugsBusy(false);
+    if (r) setNameSugs(r);
+  };
+  useEffect(() => {
+    if (step !== 3 || !namePts.length) return;
+    const k = `${namePts[0].join(',')}|${namePts.length}`;
+    if (nameSugKeyRef.current === k) return;
+    nameSugKeyRef.current = k;
+    void loadNameSugs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, namePts]);
+
   const routeLine = (): LatLngTuple[] =>
     geometry.kind === 'route' ? (geometry.snapPath?.length ? geometry.snapPath : geometry.path) : [];
   /** Odchod z kroku 1 cez stráž „túra v prírode" — viď `natureAsk`. */
@@ -3113,6 +3142,28 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                 <div className={`atl-field${missClass(3, !!name.trim())}`}>
                   <label>{t('pack.addTrip.log.name')}</label>
                   <input className="atl-input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('pack.addTrip.step.namePlaceholder')} />
+                  {/* RADA + 3 NÁVRHY (Matej 11. 10. 2026): názov bez miesta člen v zozname
+                      nenájde. Najprv lokalita, potom pohľad autora. */}
+                  <p className="atl-field-hint atl-name-tip">{t('pack.addTrip.name.tip')}</p>
+                  {(nameSugsBusy || nameSugs.length > 0) && (
+                    <div className="atl-name-sugs">
+                      {nameSugsBusy && !nameSugs.length
+                        ? <span className="atl-field-hint">{t('pack.addTrip.name.sugsLoading')}</span>
+                        : nameSugs.map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            className={`atl-chip atl-name-sug${name === s ? ' on' : ''}`}
+                            onClick={() => setName(s)}
+                          >{s}</button>
+                        ))}
+                      {nameSugs.length > 0 && (
+                        <button type="button" className="atl-daymode-link" disabled={nameSugsBusy} onClick={() => void loadNameSugs()}>
+                          {t(nameSugsBusy ? 'pack.addTrip.name.sugsLoading' : 'pack.addTrip.name.sugsMore')}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {!isPlan && (
@@ -4559,6 +4610,9 @@ const LOG_CSS = `
 .atl-journey-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.02em;color:${T.onDark};}
 .atl-journey-meta{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.02em;color:${T.onDarkDim};}
 .atl-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.atl-name-tip{display:block;margin-top:4px;}
+.atl-name-sugs{display:flex;flex-direction:column;align-items:stretch;gap:4px;margin-top:8px;}
+.atl-name-sugs .atl-name-sug{height:auto;min-height:32px;padding:4px 12px;text-align:left;white-space:normal;}
 /* ── MRIEŽKA VÝBERU HLAVNÉHO MIESTA (krok „Čo", 1. 9. 2026) ───────────────────────────
    Je to TEN ISTÝ chip, len v dvoch stĺpcoch a vyšší — nie nová značka. Vlastná trieda
    tlačidla by obišla prezliekanie na papyrus (PALE_LOG_CSS mieri na .atl-chip) a na
