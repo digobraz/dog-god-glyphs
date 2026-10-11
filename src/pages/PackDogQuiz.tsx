@@ -565,6 +565,14 @@ function AnswerControl({
 
   if (step.kind === 'chips') {
     const suggestions = step.suggestions ?? [];
+    // ⚠️ Strop (`capped`) platí aj tu — vlastný text je tá istá položka zoznamu.
+    const commitCustom = () => {
+      const v = custom.trim();
+      if (!v) return;
+      setCustom('');
+      if (capped || list.includes(v)) return;
+      onChange([...list, v]);
+    };
     // Vlastné hodnoty (mimo návrhov) sa musia vykresliť tiež — inak by po uložení
     // zmizli z obrazovky a vyzeralo by to, že sa neuložili.
     const extras = list.filter((v) => !suggestions.includes(v));
@@ -592,19 +600,31 @@ function AnswerControl({
             className="pf-field"
             value={custom}
             disabled={capped}
+            enterKeyHint="done"
             onChange={(e) => setCustom(e.target.value)}
             placeholder={tx('pack.quiz.addOwn', 'Add your own…')}
             style={fieldStyle}
+            // ⚠️ Vlastný text sa uloží aj BEZ Enteru — na Android klávesnici („Hotovo"/„Ďalej")
+            //    Enter často nepríde a testerke sa povely napísané do poľa pri DALEJ stratili
+            //    (11. 10. 2026). Preto aj blur a tlačidlo „+" — blur prebehne PRED klikom na DALEJ.
+            onBlur={commitCustom}
             onKeyDown={(e) => {
-              if (e.key !== 'Enter' || !custom.trim()) return;
+              if (e.key !== 'Enter' && e.key !== ',') return;
               e.preventDefault();
-              // ⚠️ Aj tu, nie len na pilulkách — vlastný text je tá istá položka zoznamu
-              //    a bez brzdy by strop obišiel každý, kto ho napíše ručne.
-              if (capped) return;
-              onChange([...list, custom.trim()]);
-              setCustom('');
+              commitCustom();
             }}
           />
+          <button
+            type="button"
+            className="qz-ghost"
+            disabled={capped || !custom.trim()}
+            // mousedown nesmie zhodiť focus (blur by pridal text a klik by už nemal čo)
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={commitCustom}
+            aria-label={tx('pack.quiz.addOwn', 'Add your own…')}
+          >
+            +
+          </button>
         </div>
         {capNote}
       </div>
