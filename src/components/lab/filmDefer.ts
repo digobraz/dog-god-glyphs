@@ -10,6 +10,9 @@
  * Potom `releaseFilm()` prepne všetky na `eager` — film ich dotiahne v pozadí naraz,
  * aby pri rolovaní nič nedobiehalo (lazy samo by ich ťahalo až tesne pred oknom).
  * CSS pozadia sa gatujú triedou `html.film-eager`.
+ *
+ * ⚠️ 11. 10. 2026 Matej znova potvrdil: NEMENIŤ na lazy pri scrolle („A“). Ušetrilo by ~1,3 MB
+ * tým, čo odídu skôr, ale vrátilo by „niekde nevidím obrázky“ na pomalom 4G. LCP to nebrzdí.
  */
 import { useEffect, useState } from 'react';
 
