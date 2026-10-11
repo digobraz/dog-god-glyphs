@@ -44,7 +44,18 @@ export async function captureViewport(mark: TargetMark): Promise<File> {
   const ratio = Math.min(2, window.devicePixelRatio || 1);
   const bg = getComputedStyle(document.body).backgroundColor || '#000';
 
-  const canvas = await toCanvas(document.documentElement, {
+  // ⚠️ VSTUPNÉ ANIMÁCIE VYPNÚŤ (11. 10. 2026, príčina snímky bez obsahu na DOG ID): karty majú
+  //    `animation: did-in … both` s `from{opacity:0}`. Kópia stránky sa kreslí ako statický obrázok
+  //    a animácia v ňom stojí na čase 0 = priehľadná, takže ostala len tapeta a pevná lišta.
+  //    Kým ide kópia, živému DOM-u animácie vypneme (stav `to` = to, čo človek vidí).
+  const freeze = document.createElement('style');
+  freeze.textContent = '*,*::before,*::after{animation:none!important;transition:none!important;}';
+  document.head.appendChild(freeze);
+  await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+
+  let canvas: HTMLCanvasElement;
+  try {
+    canvas = await toCanvas(document.documentElement, {
     width: w,
     height: h,
     pixelRatio: ratio,
@@ -57,7 +68,10 @@ export async function captureViewport(mark: TargetMark): Promise<File> {
       !(node instanceof HTMLElement &&
         (node.tagName === 'NOSCRIPT' || SKIP_CLASSES.some((c) => node.classList.contains(c)) ||
           belowFold(node, h))),
-  });
+    });
+  } finally {
+    freeze.remove();
+  }
 
   // KRÚŽOK NA MIESTE, KAM ČLOVEK ŤUKOL — AINUBISOVA zlatá, s tmavým lemom, aby bol vidno
   // na bledom papyruse aj na čiernej.
