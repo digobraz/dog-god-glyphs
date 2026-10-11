@@ -4089,6 +4089,20 @@ export default function PackMap() {
   useEffect(() => { writeVotes(votes); }, [votes]);
   useEffect(() => { writePlans(plans); }, [plans]);
   useEffect(() => { writeEvents(events); }, [events]);
+  /**
+   * ZÁPIS HNEĎ, NIE AŽ PO PREKRESLENÍ (11. 10. 2026, Danka: „keď ho pridám, dá mi to do
+   * ‚chcem ísť'"). Efekty vyššie zapisujú stav do úložiska až po renderi. Sprievodca otvorený
+   * zo zoznamu výletov (`?from=triplist`) sa však po uložení vráti späť (`backToOrigin`) a mapa
+   * sa ODMOUNTUJE v tom istom kroku — efekt už nikdy nebeží. Výlet aj riadok v zozname sa
+   * zapísali (tie idú priamo), ale „prejdené" a hodnotenie labkami prepadli: výlet skončil
+   * v „Chcem ísť" bez labiek (Dreilindenpark, Zugersee, oba Renatine).
+   * Preto zápis zo sprievodcu ide cez tieto pomocníky: úložisko hneď, stav pre obrazovku tiež.
+   * Efekt potom zapíše tú istú hodnotu ešte raz — diff je prázdny, nič sa nezdvojí.
+   */
+  const setWalkedNow = (fn: (prev: Set<string>) => Set<string>) => { const n = fn(readWalkedIds()); writeWalkedIds(n); setWalkedIds(n); };
+  const setVotesNow = (fn: (prev: Record<string, TripVote>) => Record<string, TripVote>) => { const n = fn(readVotes()); writeVotes(n); setVotes(n); };
+  const setPlansNow = (fn: (prev: TripPlan[]) => TripPlan[]) => { const n = fn(readPlans()); writePlans(n); setPlans(n); };
+  const setEventsNow = (fn: (prev: PartnerEvent[]) => PartnerEvent[]) => { const n = fn(readEvents()); writeEvents(n); setEvents(n); };
   // Po dobehnutí hydratácie z DB (issue #32) prečítať znova — inicializátory vyššie bežali
   // pred ňou. `epoch` 0 = ešte nebola, preto guard (bez neho by sa pri mounte prepísal
   // rozrobený stav tým istým obsahom a zbytočne to preblikne).
@@ -4658,7 +4672,7 @@ export default function PackMap() {
     setWalkedReward(null);
   };
   const addPlan = (tid: string, intent: 'solo' | 'partner', date = '') =>
-    setPlans((prev) => [{ tripId: tid, intent, date, at: nowMs }, ...prev.filter((p) => p.tripId !== tid)]);
+    setPlansNow((prev) => [{ tripId: tid, intent, date, at: nowMs }, ...prev.filter((p) => p.tripId !== tid)]);
   // ★ ukladá VŽDY solo/closed. `choosePartner` + `submitPartnerAd` (druhá cesta k inzerátu:
   // 2–3 návrhy termínov + socializácia) sú ZMAZANÉ 2026-08-05 — po zlúčení vstupov ich nemal
   // kto zavolať (jediným volajúcim bol WishlistIntentPopup, ktorý ★ už neotvára). Verejný
@@ -5354,7 +5368,7 @@ export default function PackMap() {
       // Hlas nesie náročnosť a ruch pre celý pack — dopísané hodnoty musia dôjsť aj sem,
       // inak by karta výletu tvrdila niečo iné než filtre nad tými istými dátami.
       if ((draft.paws ?? 0) > 0) {
-        setVotes((prev) => ({ ...prev, [finishId]: {
+        setVotesNow((prev) => ({ ...prev, [finishId]: {
           ...(prev[finishId] ?? { tripId: finishId, comment: '', hazards: [] as Hazard[] }),
           tripId: finishId, rating: draft.paws ?? 0,
           difficulty: (draft.diff ?? prev[finishId]?.difficulty ?? 'Moderate') as TripVote['difficulty'],
@@ -5389,9 +5403,9 @@ export default function PackMap() {
           setLocalTrails(readLocalTrails());
         }
         // 2. PREJDENÝ. Bez toho ostane na mape 🎯 (`isUnwalkedPlan` sa pýta presne na toto).
-        setWalkedIds((prev) => { const n = new Set(prev); n.add(finishId); return n; });
+        setWalkedNow((prev) => { const n = new Set(prev); n.add(finishId); return n; });
         // 3. UŽ NIE JE V PLÁNE.
-        setPlans((prev) => prev.filter((pl) => pl.tripId !== finishId));
+        setPlansNow((prev) => prev.filter((pl) => pl.tripId !== finishId));
         /**
          * ⚠️ UŽ SA NEODSTRAŇUJE Z TRIPLISTU, LEN PRESTÁVA BYŤ PLÁNOM (2026-08-26).
          * `removeMyTrip` tu stálo preto, aby ho `seedTriplistFromPlans()` pri ďalšom mounte
@@ -5409,7 +5423,7 @@ export default function PackMap() {
         });
         // 4. POZVÁNKA SKONČILA. Inzerát „hľadám svorku" na výlet, ktorý sa už odohral, by
         //    volal ľudí na termín v minulosti.
-        setEvents((prev) => prev.filter((e) => e.tripId !== finishId));
+        setEventsNow((prev) => prev.filter((e) => e.tripId !== finishId));
         // 5. ODMENA. Plán bol za nula bodov (Matejovo rozhodnutie 25. 8.) — zapísanie je prvá
         //    chvíľa, kedy si za tento výlet niečo zaslúži, takže reveal sa TU otvára.
         const walkedTrail = readLocalTrails().find((tr) => tr.id === finishId);
@@ -5432,9 +5446,9 @@ export default function PackMap() {
       const existingTripId = (draft as AddTripDraft & { existingTripId?: string }).existingTripId;
       if (existingTripId) {
         const tid = existingTripId;
-        setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
+        setWalkedNow((prev) => { const n = new Set(prev); n.add(tid); return n; });
         if ((draft.paws ?? 0) > 0) {
-          setVotes((prev) => ({ ...prev, [tid]: {
+          setVotesNow((prev) => ({ ...prev, [tid]: {
             tripId: tid, rating: draft.paws ?? 0,
             difficulty: (draft.diff ?? 'Moderate') as TripVote['difficulty'],
             crowd: seedCrowd({ crowd: draft.crowd } as HeroTrail) ?? 'Calm',
@@ -5546,7 +5560,7 @@ export default function PackMap() {
       setLocalTrails(next);
       translateLocalTrailDesc(tid, () => setLocalTrails(readLocalTrails()));
       translateLocalTrailName(tid, () => setLocalTrails(readLocalTrails()));
-      setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
+      setWalkedNow((prev) => { const n = new Set(prev); n.add(tid); return n; });
       // PSIE KM (B20): sprievodca ako jediný vie, KTORÝ pes išiel — jeho slovo prebíja
       // odhad triggeru nad `trip_walked`.
       setDogTripCrew(tid, crewDogIds(draft.crew));
@@ -5573,7 +5587,7 @@ export default function PackMap() {
       });
       if ((draft.paws ?? 0) > 0) {
         // seedCrowd() prekladá SK hodnotu z nahadzovača (newTrail.crowd) na EN Crowd.
-        setVotes((prev) => ({ ...prev, [tid]: {
+        setVotesNow((prev) => ({ ...prev, [tid]: {
           tripId: tid, rating: draft.paws ?? 0,
           difficulty: (draft.diff ?? 'Moderate') as TripVote['difficulty'],
           crowd: seedCrowd(newTrail) ?? 'Calm',
@@ -5615,7 +5629,8 @@ export default function PackMap() {
       // a človek smie trasu opraviť — bez kotiev by ju musel nakresliť odznova.
       ...(draft.geometry.kind === 'route' && draft.geometry.path.length ? { planPath: draft.geometry.path } : {}),
     };
-    setLocalTrails((prev) => [planTrail, ...prev]);
+    // Hneď do úložiska (viď `setWalkedNow`): plán spustený zo zoznamu výletov by inak zmizol celý.
+    { const nextTrails = [planTrail, ...readLocalTrails()]; writeLocalTrails(nextTrails); setLocalTrails(nextTrails); }
     translateLocalTrailDesc(tid, () => setLocalTrails(readLocalTrails()), planTrail.desc);
     const dateStr = draft.dateKind === 'flexible' ? '' : (draft.date ?? '');
     // #42 — konzervatívny default: draft.visibility chýba len na starých draftoch (autosave
@@ -5642,7 +5657,7 @@ export default function PackMap() {
             } }
           : {}),
       };
-      setEvents((prev) => [ev, ...prev]);
+      setEventsNow((prev) => [ev, ...prev]);
     }
     // ODOZVA. Naplánovanie do 31. 8. 2026 nemalo žiadnu — sprievodca sa len zavrel.
     // ⚠️ PRED `closeAdd()`, rovnako ako pri zápise: zatvorenie sprievodcu zhasína jeho stav
