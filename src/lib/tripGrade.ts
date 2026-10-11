@@ -17,8 +17,12 @@ import { notesForTrail, parkingForTrail } from '@/components/pack/mapnotes/mapNo
 
 export type TripGrade = 'A' | 'B' | 'C';
 export type GradePoint = 'desc' | 'photos' | 'route' | 'parking' | 'tip';
-/** Poradie bodov = poradie riadkov v checkliste. */
-export const GRADE_POINTS: readonly GradePoint[] = ['desc', 'photos', 'route', 'parking', 'tip'];
+/** Poradie bodov = poradie riadkov v checkliste.
+ *  ⚠️ PSÍ TIP VYPADOL (Matej 11. 10. 2026 večer: „ten tip vyhoďme z podmienok pre zisk A známky… (zatiaľ)").
+ *  Vstup `tip` sa ďalej ráta, len sa do známky nepočíta — na návrat stačí vrátiť ho sem. */
+export const GRADE_POINTS: readonly GradePoint[] = ['desc', 'photos', 'route', 'parking'];
+/** Plný počet bodov (dnes 4). Nikde nepíš „/ 5" ani „/ 4" natvrdo — ber toto číslo. */
+export const GRADE_MAX = GRADE_POINTS.length;
 
 /** Popis „2–3 vety": aspoň 2 vety A aspoň 120 znakov (jedna dlhá veta ani tri slová nestačia). */
 export const DESC_MIN_SENTENCES = 2;
@@ -38,7 +42,7 @@ export interface GradeInputs {
 
 export interface GradeResult {
   grade: TripGrade;
-  /** 0–5 */
+  /** 0–GRADE_MAX */
   score: number;
   /** splnené body */
   met: GradePoint[];
@@ -56,7 +60,7 @@ export function descOk(text: string): boolean {
 }
 
 /**
- * A = 5/5 · B = 4/5 a sú v tom popis AJ fotky · C = všetko ostatné.
+ * A = plný počet · B = o 1 menej a sú v tom popis AJ fotky · C = všetko ostatné.
  * (Popis a fotky sú to, čo vie dodať iba autor — bez nich výlet nemôže byť B, nech má čokoľvek.)
  */
 export function gradeFromInputs(i: GradeInputs): GradeResult {
@@ -70,7 +74,7 @@ export function gradeFromInputs(i: GradeInputs): GradeResult {
   const met = GRADE_POINTS.filter((p) => ok[p]);
   const missing = GRADE_POINTS.filter((p) => !ok[p]);
   const score = met.length;
-  const grade: TripGrade = score === 5 ? 'A' : score === 4 && ok.desc && ok.photos ? 'B' : 'C';
+  const grade: TripGrade = score === GRADE_MAX ? 'A' : score === GRADE_MAX - 1 && ok.desc && ok.photos ? 'B' : 'C';
   return { grade, score, met, missing };
 }
 

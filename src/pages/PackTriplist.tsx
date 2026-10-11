@@ -16,7 +16,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { PLANNING_LIVE } from '@/lib/packFlags';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
-import { gradeTrail, GRADE_POINTS, type GradePoint, type TripGrade } from '@/lib/tripGrade';
+import { gradeTrail, GRADE_MAX, GRADE_POINTS, type GradePoint, type TripGrade } from '@/lib/tripGrade';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
@@ -1348,7 +1348,7 @@ export default function PackTriplist() {
               <div className="tl-modal-head">
                 <span className="tl-grade-medal tl-grade-medal--big" style={{ background: GRADE_MEDAL[res.grade] }}>{res.grade}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="tl-modal-title">{t('pack.triplist.grade.sheetTitle')} · {res.score} / 5</div>
+                  <div className="tl-modal-title">{t('pack.triplist.grade.sheetTitle')} · {res.score} / {GRADE_MAX}</div>
                   <div className="tl-sub" style={{ textAlign: 'left', marginTop: 4 }}>{tripName(trail, lang)}</div>
                 </div>
               </div>

@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { PACK_THEME as T, PACK_BOX, PACK_SHADOW, BRAND_GOLD_BTN, PROGRESS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
-import { GRADE_POINTS, type GradePoint, type GradeResult, type TripGrade } from '@/lib/tripGrade';
+import { GRADE_MAX, GRADE_POINTS, type GradePoint, type GradeResult, type TripGrade } from '@/lib/tripGrade';
 
 const MEDAL: Record<TripGrade, string> = {
   A: 'linear-gradient(180deg,#4F9463,#2E5E3B)',
@@ -40,7 +40,7 @@ export function TripGradeCard({ result, photoCount, onGo, t }: {
         <button type="button" className="tgc-head" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
           <span className="tgc-medal" style={{ background: MEDAL[grade] }} aria-label={t('pack.addTrip.grade.aria', { grade })}>{grade}</span>
           <span className="tgc-meta">
-            <span className="tgc-score">{score} / 5</span>
+            <span className="tgc-score">{score} / {GRADE_MAX}</span>
             <span className="tgc-sub">{grade === 'A' ? t('pack.addTrip.grade.subA') : t('pack.addTrip.grade.subMissing', { n: missing.length })}</span>
             <span className="pk-progress"><span className={`pk-progress__fill${BAR[grade]}`} style={{ display: 'block', width: fillW, ...(grade === 'B' ? { background: BRAND_GOLD_BTN.grad } : null) }} /></span>
           </span>
