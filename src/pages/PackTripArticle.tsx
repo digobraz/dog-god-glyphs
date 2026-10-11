@@ -10,7 +10,6 @@
 // tej istej browser session (žiadna Supabase perzistencia, tá je mimo rozsahu).
 import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { PLANNING_LIVE } from '@/lib/packFlags';
 import { useNavigate, useParams } from 'react-router-dom';
 import L from 'leaflet';
@@ -245,10 +244,8 @@ const CSS = `
 /* iterácia 15 (Matej 2026-07-27): akčný rad je VON z hero fotky — sedí v glass paneli NAD
    stat tabuľkou (km/prevýšenie). Dôvod: ghost tlačidlá na fotke boli „slabo viditeľné a biedne",
    plné farby na tmavom paneli čítajú lepšie a fotka ostáva čistá.
-   Mobile: IntersectionObserver na .pta-hero → .collapsed trieda, keď fotka vyscrolluje z
-   viewportu — rad sa "odtrhne" a prilepí ako zvislý icon-only rail vpravo (position:fixed).
-   .pta-acts-slot drží výšku v toku, aby obsah pod ním neposkočil hore, keď rad odíde do railu.
-   Desktop bez collapse (.collapsed nemá na ≥761px žiadny efekt). */
+   ⚠️ Mobilný „rail" (rad sa po odscrollovaní fotky prilepil ako zvislé kruhy vpravo) ZRUŠENÝ
+   11. 10. 2026 — Matej: „pilulky na pravom kraji na mobile… daj to preč". Rad ostáva v článku. */
 .pta-acts-slot{margin-top:18px;}
 .pta-acts{display:flex;gap:9px;}
 .pta-acts .pta-actbtn{display:flex;align-items:center;justify-content:center;gap:6px;}
@@ -293,21 +290,7 @@ const CSS = `
   .pta-acts .pta-actbtn-label{letter-spacing:0.02em;min-width:0;overflow:hidden;text-overflow:ellipsis;}
   .pta-acts .pta-actbtn--gold .pta-actbtn-label,.pta-acts .pta-actbtn--blue .pta-actbtn-label{display:none;}
   .pta-acts .pta-actbtn--ghost,.pta-acts .pta-actbtn--green{flex:1 1 auto;min-width:0;overflow:hidden;}
-  .pta-acts.collapsed{position:fixed;left:auto;right:14px;bottom:auto;top:50%;transform:translateY(-50%);flex-direction:column;padding:0;gap:10px;z-index:45;}
-  .pta-acts.collapsed .pta-actwrap{flex:0 0 auto;}
-  .pta-acts.collapsed .pta-actbtn{flex:0 0 auto;width:42px;height:42px;padding:0;border-radius:50%;box-shadow:${PACK_SHADOW.panel};}
-  /* Rail = kruhové ikonky pri okraji → text, šípka aj pilulka bodov idú preč (kruh má 42 px). */
-  .pta-acts.collapsed .pta-actbtn-label,.pta-acts.collapsed .pta-caret,.pta-acts.collapsed .pts-pill{display:none;}
-  .pta-acts.collapsed .pta-actbtn,.pta-acts.collapsed .pta-actbtn--gold,.pta-acts.collapsed .pta-actbtn--blue{flex:0 0 auto;padding:0;}
-  /* v raile je rad pri pravom okraji → menu sa musí otvárať doľava, nie pod tlačidlo */
-  .pta-acts.collapsed .pta-actmenu{left:auto;right:calc(100% + 8px);top:0;}
-  /* Neprejdený výlet: hlavná akcia v raile je PILULKA S TEXTOM, nie holý kruh (testerka 11. 10. 2026
-     nenašla, ako výlet odškrtnúť). Ostatné akcie ostávajú kruhy. Dlhý label skrytý, krátky ukázaný. */
-  .pta-acts.collapsed .pta-actbtn--lapis{width:auto;padding:0 ${PACK_SPACE.lg}px;border-radius:999px;gap:${PACK_SPACE.xs}px;white-space:nowrap;}
-  .pta-acts.collapsed .pta-actbtn--lapis .pta-actbtn-label{display:none;}
-  .pta-acts.collapsed .pta-actbtn--lapis .pta-actbtn-label-short{display:inline;}
 }
-.pta-actbtn-label-short{display:none;}
 /* bod 3 (iterácia 14): fotky v galérii klikacie → lightbox (fullscreen popup) */
 .pta-lightbox{position:fixed;inset:0;z-index:200;background:rgba(5,5,5,0.94);display:flex;align-items:center;justify-content:center;padding:24px;}
 .pta-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:12px;}
@@ -1095,38 +1078,6 @@ export default function PackTripArticle() {
   const [unwalkOpen, setUnwalkOpen] = useState(false);
   const walkedMenuRef = useRef<HTMLDivElement | null>(null);
 
-  // bod 1 (iterácia 14): mobile sticky icon-only rail — keď .pta-hero vyscrolluje z viewportu
-  // (IntersectionObserver), akčné tlačidlá sa "odtrhnú" z fotky a prilepia napravo (viď CSS
-  // .pta-acts.collapsed, scoped len ≤760px). Effect musí bežať aj po tom, čo `trail`
-  // prejde z null→nájdený (heroRef sa naplní až vtedy), preto dep [trail?.id] nie [].
-  // ⚠️ `id.loading` v depoch (fix 2026-07-27): kým identita načítava, komponent vracia loading
-  // obrazovku → .pta-hero ešte NEEXISTUJE a heroRef.current je null. Bez tejto závislosti sa
-  // effect po dobehnutí identity už nespustil a rail bol ticho mŕtvy.
-  const heroRef = useRef<HTMLDivElement | null>(null);
-  const [heroCollapsed, setHeroCollapsed] = useState(false);
-  useEffect(() => {
-    const el = heroRef.current;
-    if (!el || typeof IntersectionObserver === 'undefined') return;
-    const obs = new IntersectionObserver(([entry]) => setHeroCollapsed(!entry.isIntersecting), { threshold: 0 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [trail?.id, id.loading]);
-
-  // Rail je MOBILE-only. Predtým to riešila len CSS media query, ale s portálom (nižšie) musí
-  // o šírke vedieť aj JS — inak by sa rad na desktope prehodil do document.body a vyzeral by
-  // ako voľne plávajúci pruh mimo článku.
-  const [isNarrow, setIsNarrow] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(max-width:760px)').matches,
-  );
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(max-width:760px)');
-    const onChange = () => setIsNarrow(mq.matches);
-    onChange();
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-  const railed = isNarrow && heroCollapsed;
 
   // WALKED dropdown: klik mimo / Escape zatvorí. Hook MUSÍ byť nad podmienenými returnmi nižšie
   // (Rules of Hooks) — inak biela stránka pri `trip not found`.
@@ -1475,7 +1426,7 @@ export default function PackTripArticle() {
   // containing block pre position:fixed — rail by sa inak ukotvil o glass panel a plával
   // uprostred článku namiesto viewportu. Rovnaký vzor ako HeroBadges.tsx.
   const actsRow = (
-        <div className={`pta-acts${railed ? ' collapsed' : ''}`}>
+        <div className="pta-acts">
           {!walkedIds.has(trail.id) && (
             <button
               type="button"
@@ -1577,7 +1528,6 @@ export default function PackTripArticle() {
             >
               <span className="pta-actbtn-icon">🐾</span>
               <span className="pta-actbtn-label">{t('pack.trip.markWalked')}</span>
-              <span className="pta-actbtn-label-short">{t('pack.trip.markWalkedShort')}</span>
               {/* Skutočné body za TÚTO trasu (5 + km + stúpanie / pevná cena magistrály) —
                   paušálne „+5" by klamalo, viď walkPointsFor. Objavenia (nové pohorie/NP)
                   tu ZÁMERNE nie sú: tlačidlo je sľub pred akciou a ten musí platiť vždy,
@@ -1621,7 +1571,7 @@ export default function PackTripArticle() {
           nevkladá. Volať oboje naraz = dve tapety cez seba. */}
 
       <div className="pta-shell">
-      <div className="pta-hero" ref={heroRef} style={cover ? { backgroundImage: `url('${sizedUrl(cover, heroPx())}')`, backgroundPosition: coverPos(trail) } : undefined}>
+      <div className="pta-hero" style={cover ? { backgroundImage: `url('${sizedUrl(cover, heroPx())}')`, backgroundPosition: coverPos(trail) } : undefined}>
         <div className="pta-hero-grad" />
         {(trail as { photoCredit?: string }).photoCredit && (
           <div className="pta-hero-credit">{(trail as { photoCredit?: string }).photoCredit}</div>
@@ -1685,7 +1635,7 @@ export default function PackTripArticle() {
                            opakovať — / Remove walked) · SHARE
             SHARE je VŽDY viditeľný a modrý: má vyzývať na zdieľanie, nie sa stratiť. */}
         <div className="pta-acts-slot">
-          {railed ? null : actsRow}
+          {actsRow}
           {isGhostJourney(trail, packWalked) && (
             <GhostJourneyNote onClaim={() => navigate(`/pack/map?claim=${encodeURIComponent(trail.id)}`)} />
           )}
@@ -2131,8 +2081,6 @@ export default function PackTripArticle() {
         </div>
       )}
 
-      {/* Mobilný rail — ten istý actsRow, len portálom mimo .pk-glass (viď komentár pri actsRow). */}
-      {railed && createPortal(actsRow, document.body)}
 
       {/* ── ÚPRAVA VÝLETU (len autor) ── */}
       {unwalkOpen && (
