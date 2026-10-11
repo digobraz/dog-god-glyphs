@@ -98,6 +98,10 @@ const GROUPS: Group[] = [
         path: '/heroglyph/essence',
         state: 'done',
       },
+      // 11. 10. 2026 — zmeny 6.–10. 10. (Svorka „Pokračovať s jedným psom" 85b37711, pokladňa
+      // „+ Členstvo" bez roku c0f0f3c7 + tester €3 c8282959, /heroglyph → /#heroglyph 09d97e6c,
+      // PostHog po súhlase 4b590e7f) ⇒ stavy bez zmeny. Headless 390×844 + 1477×724: Svorka,
+      // Pokladňa, Zadržanie, Hotovo nezaplatený, Vitaj — vykreslené, bez pretečenia do šírky.
       // 4. 10. 2026 — `Heroglyph.tsx` (1474f377: bublina krajnej dlaždice ku kraju, 390 px bez
       // pretečenia) je PREDAJNÁ stránka `/heroglyph`, nie krok tohto zoznamu ⇒ stavy sa nemenia.
       // 3. 10. 2026 — podstata/patrón/majiteľ ostávajú `done` po drobnostiach: SE 375×553
