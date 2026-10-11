@@ -458,6 +458,15 @@ function AinubisWidgetInner() {
   // text po znakoch, ako keby AINUBIS naozaj sedel na druhej strane.
   // Rozdelenie na viac bublín je zámer (04-copy-a-vizual.md §1).
   const [messages, setMessages] = useState<AinubisMessage[]>([]);
+  /**
+   * HISTÓRIA PRED UVÍTANÍM (11. 10. 2026, Daniela: „správy miznú, nenačítajú sa, preblikuje").
+   * Rozhovor je JEDEN a pokračuje — kto už s AINUBISom písal, po otvorení vidí celé vlákno,
+   * nie uvítanie prilepené pod staré správy. Uvítanie sa preto prehrá AŽ keď je jasné, že
+   * história je prázdna (nové vlákno, alebo sa nedala dotiahnuť — prázdny panel nesmie ostať).
+   */
+  const [historyReady, setHistoryReady] = useState(() => !safeLocalStorageGet(LS_CONV) && conversationFromUrl() === null);
+  /** Okamžitý tik pollu — pri otvorení panela sa nečaká 20 s na zavretý interval. */
+  const pollNowRef = useRef<(() => void) | null>(null);
   /** Beží uvítacia sekvencia — drží indikátor „…píše" medzi bublinami. */
   const [welcomeTyping, setWelcomeTyping] = useState(false);
   /** Aby sa uvítanie neprehralo druhýkrát pri zavretí a znovuotvorení panela. */
@@ -533,6 +542,7 @@ function AinubisWidgetInner() {
 
   useEffect(() => {
     openRef.current = open;
+    if (open) pollNowRef.current?.();
   }, [open]);
 
   // ── Presúvanie panelu ─────────────────────────────────────────────────
@@ -714,8 +724,9 @@ function AinubisWidgetInner() {
     // bolo v počiatočnom stave. Preskočiť ho podľa uloženého `conversationId`
     // sa neosvedčilo: keď sa história nedotiahne (stará alebo zmazaná
     // konverzácia), panel ostane úplne prázdny.
-    if (!open || welcomePlayedRef.current) return;
+    if (!open || welcomePlayedRef.current || !historyReady) return;
     welcomePlayedRef.current = true;
+    if (messagesRef.current.some((m) => !isLocalId(m.id))) return;
 
     const pushWelcome = (i: number) => {
       const id = `welcome-${i}`;
@@ -764,7 +775,7 @@ function AinubisWidgetInner() {
       timers.forEach((t) => window.clearTimeout(t));
       setWelcomeTyping(false);
     };
-  }, [open, copy.welcome, reducedMotion]);
+  }, [open, copy.welcome, reducedMotion, historyReady]);
 
   // ── Typewriter — 14 ms/znak, klik kdekoľvek do panelu preskočí (skipTypewriter).
   useEffect(() => {
@@ -817,7 +828,7 @@ function AinubisWidgetInner() {
     }
   }
 
-  function applyPollResult(res: AinubisPollResponse) {
+  function applyPollResult(res: AinubisPollResponse, initial = false) {
     setTakeoverActive(res.takeover);
     // Odznak drží SERVER (`seen_by_user`), nie počítadlo od načítania stránky —
     // inak Matejova odpoveď z noci po reloade zmizne bez stopy.
@@ -843,7 +854,9 @@ function AinubisWidgetInner() {
       );
     });
     const fromGuardian = additions.filter((m) => m.role === 'assistant' || m.role === 'matej');
-    if (fromGuardian.length === 0) return;
+    // História sa vykreslí naraz — prepisovať poslednú starú správu po znakoch pri každom
+    // otvorení vyzeralo ako blikanie a ako keby prišla nová odpoveď.
+    if (initial || fromGuardian.length === 0) return;
     if (openRef.current) {
       const last = fromGuardian[fromGuardian.length - 1];
       startTypewriter(last.id, last.content);
@@ -858,24 +871,34 @@ function AinubisWidgetInner() {
     let cancelled = false;
     let timer: number | undefined;
     let initialFetchDone = false;
+    let inFlight = false;
 
     async function poll() {
       try {
-        const after = initialFetchDone ? latestKnownAt(messagesRef.current) : undefined;
+        const initial = !initialFetchDone;
+        const after = initial ? undefined : latestKnownAt(messagesRef.current);
         const { data, error } = await supabase.functions.invoke('ainubis-poll', {
           // `seen` = panel je otvorený, človek odpovede práve vidí → server ich označí.
           body: { conversation_id: conversationId, session_token: sessionToken, after, seen: openRef.current },
         });
-        initialFetchDone = true;
         if (cancelled) return;
         if (error) {
           const { status } = await readFunctionsErrorStatus(error);
-          if (status === 403) resetSession();
+          if (status !== 403) {
+            // Výpadok: históriu skúsi znova ďalší tik (`after` ostane prázdny), ale panel
+            // nesmie zatiaľ ostať prázdny — uvítanie sa môže prehrať.
+            setHistoryReady(true);
+            return;
+          }
+          resetSession();
         } else if (data) {
-          applyPollResult(data as AinubisPollResponse);
+          applyPollResult(data as AinubisPollResponse, initial);
         }
+        initialFetchDone = true;
+        setHistoryReady(true);
       } catch {
         /* sieťový výpadok — skús pri ďalšom tiku, netreba desivú hlášku */
+        if (!cancelled) setHistoryReady(true);
       }
     }
 
@@ -890,7 +913,9 @@ function AinubisWidgetInner() {
 
     async function runOnce() {
       timer = undefined;
-      await poll();
+      if (inFlight) return;
+      inFlight = true;
+      try { await poll(); } finally { inFlight = false; }
       scheduleNext();
     }
 
@@ -898,11 +923,20 @@ function AinubisWidgetInner() {
       if (!document.hidden && timer === undefined && !cancelled) runOnce();
     }
 
+    pollNowRef.current = () => {
+      if (cancelled || inFlight || document.hidden) return;
+      if (timer !== undefined) window.clearTimeout(timer);
+      timer = undefined;
+      inFlight = true;
+      void poll().finally(() => { inFlight = false; scheduleNext(); });
+    };
+
     document.addEventListener('visibilitychange', onVisibility);
     if (!document.hidden) runOnce();
 
     return () => {
       cancelled = true;
+      pollNowRef.current = null;
       document.removeEventListener('visibilitychange', onVisibility);
       if (timer !== undefined) window.clearTimeout(timer);
     };
