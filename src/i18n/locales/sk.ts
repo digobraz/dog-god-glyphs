@@ -3396,6 +3396,8 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.manual.km': "Kilometre",
   'pack.addTrip.manual.ascent': "Prevýšenie ↑ m",
   'pack.addTrip.ainubis.ratelimited': "Mapy ma na chvíľu pribrzdili. Kresli ďalej — chodníky aj prevýšenie dotiahnem sám, keď sa uvoľnia.",
+  'pack.addTrip.ainubis.error': "Mapy mi práve neodpovedajú. Kresli ďalej, kadiaľ ste šli — na chodník to prilepím pri HOTOVO.",
+  'pack.addTrip.ainubis.paused': "Prilepovanie je teraz vypnuté. Naklikaj trasu kadiaľ ste šli, uloží sa tak, ako ju nakreslíš.",
   'pack.addTrip.ainubis.denseClicks': "Nemusíš klikať nahusto 🐾 Klikni ďalej po chodníku — trasa sa na značku prilepí sama.",
   'pack.addTrip.ainubis.deferOn': "Dobre — klikaj kadiaľ ste šli, na chodník to prilepím, keď dáš HOTOVO.",
   'pack.addTrip.ainubis.snapping': "Prilepujem trasu na chodníky…",

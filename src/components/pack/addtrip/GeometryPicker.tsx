@@ -375,6 +375,14 @@ export function GeometryPicker({
   // Limit máp (429): červený text nahradil hlas AINUBISA v bubline (Matej 11. 10. 2026).
   // Zhasne sám po stíšení klienta (`mapProxyCooldownMs`) alebo hneď pri ďalšom úspešnom snape.
   const [slowed, setSlowed] = useState(false);
+  // Výpadok máp (11. 10. 2026): 'error' = sieť/proxy padla, 'paused' = mesačný kill-switch Mapy.com.
+  // Hovorí AINUBIS v bubline; zhasne ďalším vydareným snapom, alebo po OUTAGE_MS.
+  const [outage, setOutage] = useState<null | 'error' | 'paused'>(null);
+  useEffect(() => {
+    if (!outage) return;
+    const id = window.setTimeout(() => setOutage(null), OUTAGE_MS);
+    return () => window.clearTimeout(id);
+  }, [outage]);
   // ── POISTKA PROTI HUSTÉMU KLIKANIU (11. 10. 2026) ───────────────────────────────────────
   // Testerka klikala body každých pár desiatok metrov a každý klik = sieťové volanie → 10 162
   // volaní za hodinu. Tri vrstvy: (1) AINUBIS povie, že netreba klikať nahusto, (2) prepínač
@@ -553,10 +561,12 @@ export function GeometryPicker({
   }, []);
 
   const noticeFor = (reason: SnapReason): string | null => {
-    if (reason === 'paused') return t('pack.addTrip.geo.noticePaused');
+    // S bublinou AINUBISA (drawBar) hovorí on (výpadok = `outage`); bez nej ostáva text pod mapou.
+    if (reason === 'paused') return drawBar ? null : t('pack.addTrip.geo.noticePaused');
     // S bublinou AINUBISA (drawBar) hovorí on; bez nej ostáva text pod mapou, ale tiež jeho hlasom.
     if (reason === 'ratelimited') return drawBar ? null : t('pack.addTrip.ainubis.ratelimited');
-    if (reason === 'straight' || reason === 'error') return t('pack.addTrip.geo.noticeStraight');
+    if (reason === 'error') return drawBar ? null : t('pack.addTrip.geo.noticeStraight');
+    if (reason === 'straight') return t('pack.addTrip.geo.noticeStraight');
     return null;
   };
 
@@ -640,6 +650,7 @@ export function GeometryPicker({
     setBusy(false);
     setNotice(noticeFor(res.reason));
     setSlowed(res.reason === 'ratelimited');
+    setOutage(res.reason === 'paused' || res.reason === 'error' ? res.reason : null);
 
     legsRef.current[anchors.length - 2] = res.geometry;
     const cur = pathRef.current;
@@ -674,7 +685,8 @@ export function GeometryPicker({
       // limit alebo porucha = ďalšie úseky by dopadli rovnako; dotiahne ich až ďalší klik
       // (11. 10. 2026: bez tejto brzdy pýtal každý klik VŠETKY rovné úseky znova → 10 162 volaní/h)
       if (r.reason === 'ratelimited') setSlowed(true);
-      if (r.reason === 'ratelimited' || r.reason === 'error') break;
+      if (r.reason === 'paused' || r.reason === 'error') setOutage(r.reason);
+      if (r.reason === 'ratelimited' || r.reason === 'error' || r.reason === 'paused') break;
       if (r.snapped && legsRef.current[i]?.length === 2) { legsRef.current[i] = r.geometry; changed = true; }
     }
     if (!changed || !samePt(pathRef.current[anchors.length - 1], anchors[anchors.length - 1])) return;
@@ -709,7 +721,8 @@ export function GeometryPicker({
       for (const i of todo) {
         const r = await snapCounted(anchors[i], anchors[i + 1]);
         if (r.reason === 'ratelimited') { setSlowed(true); break; }
-        if (r.reason === 'error') break;
+        // Kill-switch alebo porucha: server by odpovedal znova rovnako — dávka končí, zvyšok ostane rovný.
+        if (r.reason === 'paused' || r.reason === 'error') { setOutage(r.reason); break; }
         if (r.snapped) { legsRef.current[i] = r.geometry; changed = true; }
       }
     } finally {
@@ -1405,8 +1418,12 @@ export function GeometryPicker({
         : isArea && value.center
           ? t('pack.addTrip.geo.areaSetSize')
           : null;
-  // Poradie: limit > prilepovanie pri HOTOVO > hustý klik > potvrdenie prepínača > bežná hláška.
-  const drawHint = value.kind === 'route' && slowed ? t('pack.addTrip.ainubis.ratelimited')
+  // Poradie: paused > limit > error > prilepovanie pri HOTOVO > hustý klik > potvrdenie prepínača > bežná hláška.
+  // Hláška o limite/výpadku platí len kým sa kreslí — v ďalších krokoch picker hovorí sprievodca.
+  const geoLive = value.kind === 'route' && !drawBar?.paused;
+  const drawHint = geoLive && outage === 'paused' ? t('pack.addTrip.ainubis.paused')
+    : geoLive && slowed ? t('pack.addTrip.ainubis.ratelimited')
+    : geoLive && outage === 'error' ? t('pack.addTrip.ainubis.error')
     : value.kind === 'route' && finishing ? t('pack.addTrip.ainubis.snapping')
     : value.kind === 'route' && dense && !deferSnap ? t('pack.addTrip.ainubis.denseClicks')
     : value.kind === 'route' && deferSnap && deferMsg ? t('pack.addTrip.ainubis.deferOn')
@@ -2076,6 +2093,8 @@ export function GeometryPicker({
  * Zlyhanie úložiska (privátny režim) berieme ako „ešte nevidel" — radšej ju ukázať zbytočne
  * než ju stratiť tým, že sa nedá zapísať.
  */
+/** Ako dlho drží hláška o výpadku máp, ak sa medzitým nepodarí žiadny snap (ms). */
+const OUTAGE_MS = 45_000;
 const DEFER_SNAP_KEY = 'dogypt.geo.deferSnap';
 /** Tvrdý strop sieťových volaní prichytávania z pickera za minútu (10 162/h incident, 11. 10. 2026). */
 const SNAP_PER_MIN = 40;
