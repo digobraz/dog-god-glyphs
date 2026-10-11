@@ -17,6 +17,10 @@
  *    30 % je to zanedbateľné.
  */
 
+import type { LatLngTuple } from 'leaflet';
+import { SPACING, interp } from './addTripGeo';
+import { elevAt } from './mapProxyClient';
+
 export type LL = readonly number[];
 
 export const HIKE_MIN_KM = 5;
@@ -75,6 +79,28 @@ const Z = 14;
 const URBAN = new Set(['residential', 'commercial', 'industrial', 'retail']);
 const TIMEOUT_MS = 8000;
 const NEAR_BUILDING_M = 60;
+/**
+ * ── HORY ÁNO, MESTÁ NIE (Matej 11. 10. 2026) ─────────────────────────────────────────────
+ * „chceme sa vyhnúť najmä mestám, nie horám… chaty sa nepočítajú, ale cesty, diaľnice,
+ *  budovy, obchody atď." Spúšťač: Daniela #42, Fälensee (Alpstein) 31 % → zamietnutá túra.
+ * Dovtedy stačila JEDNA budova do 60 m — každá chata, salaš, senník. Na 63 kurátorovaných
+ * túrach to zamietlo 4 (Seealpsee 40 %, Háluzická tiesňava 82 %).
+ * Odteraz je zástavba vzorka, ktorá je:
+ *   · vnútri plochy `landuse` residential/commercial/industrial/retail (ako doteraz), ALEBO
+ *   · pri ZHLUKU budov (≥ `BUILDING_CLUSTER` do `NEAR_BUILDING_M`) — osamelá chata nie, ulica áno, ALEBO
+ *   · pri veľkej ceste (`MAJOR_ROADS` do `NEAR_ROAD_M`) — chôdza popri ceste/diaľnici, ALEBO
+ *   · pri obchode (`SHOP_POI` do `NEAR_SHOP_M`) — reštaurácie nie, tie majú aj chaty.
+ * Nad `MOUNTAIN_M` n. m. budovy ani obchody neplatia (horské osady, chaty, lanovky);
+ * mesto v horách chytí `landuse` a cesta.
+ */
+// 5 zmerané 11. 10. na skúšobni: 3–4 púšťa zamietnuť dedinský park (Budmerice 31–33 %),
+// 6 už nechytí sídlisko bez `landuse` (Petržalka 32 %); pri 5: Petržalka 39 %, Budmerice 29 %.
+const BUILDING_CLUSTER = 5;
+const NEAR_ROAD_M = 25;
+const NEAR_SHOP_M = 40;
+const MOUNTAIN_M = 1000;
+const MAJOR_ROADS = new Set(['motorway', 'trunk', 'primary', 'secondary']);
+const SHOP_POI = new Set(['shop', 'grocery', 'supermarket', 'clothing_store', 'department_store', 'mall', 'car', 'hardware', 'furniture', 'electronics', 'mobile_phone', 'jewelry', 'shoes', 'bakery', 'butcher']);
 
 let tileUrlP: Promise<string | null> | null = null;
 function tileUrl(signal?: AbortSignal): Promise<string | null> {
@@ -95,7 +121,14 @@ function tileUrl(signal?: AbortSignal): Promise<string | null> {
  * ⚠️ Trieda `suburb` sa NEBERIE: je to hranica celej mestskej časti, a tá v sebe nesie aj
  *    lesy (Nové Mesto má celý Kamzík).
  */
-type TileRings = { extent: number; rings: [number, number][][]; bldg: [number, number, number, number][] };
+type TileRings = {
+  extent: number;
+  rings: [number, number][][];
+  bldg: [number, number, number, number][];
+  /** veľké cesty ako úsečky [x0,y0,x1,y1] */
+  roads: [number, number, number, number][];
+  shops: [number, number][];
+};
 const tileCache = new Map<string, Promise<TileRings | null>>();
 
 function loadTile(tpl: string, x: number, y: number, signal?: AbortSignal): Promise<TileRings | null> {
@@ -108,7 +141,7 @@ function loadTile(tpl: string, x: number, y: number, signal?: AbortSignal): Prom
         const [{ VectorTile }, { default: Pbf }] = await Promise.all([import('@mapbox/vector-tile'), import('pbf')]);
         const vt = new VectorTile(new Pbf(await r.arrayBuffer()));
         const layer = vt.layers.landuse;
-        const out: TileRings = { extent: layer?.extent ?? 4096, rings: [], bldg: [] };
+        const out: TileRings = { extent: layer?.extent ?? 4096, rings: [], bldg: [], roads: [], shops: [] };
         if (layer) {
           for (let i = 0; i < layer.length; i++) {
             const f = layer.feature(i);
@@ -129,6 +162,26 @@ function loadTile(tpl: string, x: number, y: number, signal?: AbortSignal): Prom
               }
               out.bldg.push([x0 * k, y0 * k, x1 * k, y1 * k]);
             }
+          }
+        }
+        const tr = vt.layers.transportation;
+        if (tr) {
+          const k = out.extent / tr.extent;
+          for (let i = 0; i < tr.length; i++) {
+            const f = tr.feature(i);
+            if (f.type !== 2 || !MAJOR_ROADS.has(String(f.properties.class))) continue;
+            for (const ln of f.loadGeometry()) {
+              for (let j = 1; j < ln.length; j++) out.roads.push([ln[j - 1].x * k, ln[j - 1].y * k, ln[j].x * k, ln[j].y * k]);
+            }
+          }
+        }
+        const poi = vt.layers.poi;
+        if (poi) {
+          const k = out.extent / poi.extent;
+          for (let i = 0; i < poi.length; i++) {
+            const f = poi.feature(i);
+            if (f.type !== 1 || !SHOP_POI.has(String(f.properties.class))) continue;
+            for (const pts of f.loadGeometry()) for (const pt of pts) out.shops.push([pt.x * k, pt.y * k]);
           }
         }
         return out;
@@ -164,14 +217,24 @@ function inRing(px: number, py: number, ring: [number, number][]): boolean {
  * Podiel dĺžky trasy (0–1) v zastavanej oblasti; `null` = nepodarilo sa zmerať
  * (výpadok, časový limit) — volajúci vtedy človeka PUSTÍ.
  */
-export async function builtUpShare(line: readonly LL[]): Promise<number | null> {
+export async function builtUpShare(
+  line: readonly LL[],
+  /** nadmorská výška bodu, ak ju volajúci má (cache výšok z kreslenia); bez nej sa hory neodlišujú */
+  altOf?: (p: LL) => number | null | undefined,
+): Promise<number | null> {
   if (line.length < 2) return null;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
     const tpl = await tileUrl(ctrl.signal);
     if (!tpl) return null;
-    const pts = sample(line, SAMPLE_M).map(toTile);
+    const raw = sample(line, SAMPLE_M);
+    const pts = raw.map(toTile);
+    // Výšky už ležia v cache z kreslenia: prepočet prevýšenia vzorkuje tú istú čiaru po `SPACING`
+    // (100 m), naše vzorky sú po 50 m ⇒ i-ta vzorka ≈ (i·50/100)-ty bod. Chýbajúca = nevieme.
+    const alt100 = altOf ? null : interp(line as LatLngTuple[], SPACING).map((p) => elevAt(p));
+    const altAt = (i: number): number | null | undefined =>
+      altOf ? altOf(raw[i]) : alt100?.[Math.min(alt100.length - 1, Math.round((i * SAMPLE_M) / SPACING))];
     const keys = [...new Set(pts.map((p) => `${p.x}/${p.y}`))];
     const tiles = new Map<string, TileRings | null>();
     await Promise.all(keys.map(async (k) => {
@@ -183,14 +246,25 @@ export async function builtUpShare(line: readonly LL[]): Promise<number | null> 
     // Metrov na jednotku dlaždice (Mercator — závisí od zemepisnej šírky).
     const lat0 = line[0][0] * Math.PI / 180;
     let inside = 0;
-    for (const p of pts) {
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
       const t = tiles.get(`${p.x}/${p.y}`)!;
       const px = p.fx * t.extent;
       const py = p.fy * t.extent;
-      const near = NEAR_BUILDING_M / ((40075016 * Math.cos(lat0)) / 2 ** Z / t.extent);
-      const hit = t.rings.some((r) => inRing(px, py, r))
-        || t.bldg.some(([x0, y0, x1, y1]) => px > x0 - near && px < x1 + near && py > y0 - near && py < y1 + near);
-      if (hit) inside++;
+      const mPerU = (40075016 * Math.cos(lat0)) / 2 ** Z / t.extent;
+      if (t.rings.some((r) => inRing(px, py, r))) { inside++; continue; }
+      const road = NEAR_ROAD_M / mPerU;
+      if (t.roads.some(([x0, y0, x1, y1]) => segDist(px, py, x0, y0, x1, y1) < road)) { inside++; continue; }
+      const alt = altAt(i);
+      if (alt != null && alt >= MOUNTAIN_M) continue;
+      const shop = NEAR_SHOP_M / mPerU;
+      if (t.shops.some(([x, y]) => Math.hypot(px - x, py - y) < shop)) { inside++; continue; }
+      const near = NEAR_BUILDING_M / mPerU;
+      let n = 0;
+      for (const [x0, y0, x1, y1] of t.bldg) {
+        if (px > x0 - near && px < x1 + near && py > y0 - near && py < y1 + near && ++n >= BUILDING_CLUSTER) break;
+      }
+      if (n >= BUILDING_CLUSTER) inside++;
     }
     return pts.length ? inside / pts.length : null;
   } catch {
@@ -198,6 +272,14 @@ export async function builtUpShare(line: readonly LL[]): Promise<number | null> 
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** Vzdialenosť bodu od úsečky (v jednotkách dlaždice). */
+function segDist(px: number, py: number, x0: number, y0: number, x1: number, y1: number): number {
+  const dx = x1 - x0, dy = y1 - y0;
+  const L = dx * dx + dy * dy;
+  const u = L ? Math.max(0, Math.min(1, ((px - x0) * dx + (py - y0) * dy) / L)) : 0;
+  return Math.hypot(px - (x0 + u * dx), py - (y0 + u * dy));
 }
 
 /** Stred a polomer okruhu, ktorý obsiahne celú trasu — na prepnutie túry na NÁVŠTEVU. */
