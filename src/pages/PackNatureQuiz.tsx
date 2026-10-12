@@ -26,7 +26,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { PackTopRow } from '@/components/pack/PackTopRow';
-import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, VEIL_CSS, usePaperRoute, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
+import { BackButton } from '@/components/pack/BackButton';
+import { useMagnetPreview } from '@/components/pack/magnetPreview';
+import { MagnetLeadGate } from '@/components/pack/magnetLeadGate';
+import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, VEIL_CSS, usePaperRoute, PACK_TOPROW_PAD, PACK_TOPROW } from '@/components/pack/packTheme';
 import {
   ELEMENT_QUESTIONS, ROLE_QUESTIONS, BALANCE_ITEMS, BALANCE_VET_NOTE,
   NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
@@ -1352,6 +1355,9 @@ function LeaveConfirm({ onStay, onLeave, tx }: {
 function Shell({ children, onClose, fill, overlay }: {
   children: React.ReactNode; onClose: () => void; fill?: boolean; overlay?: React.ReactNode;
 }) {
+  // NÁHĽAD NA `/magnet/kviz`: horný rad je len šípka späť (AINUBIS panel tu nežije) a
+  // spodok nesmie zakryť lišta s CTA (~72 px + safe-area).
+  const mg = useMagnetPreview();
   // Karty kvízu su papyrusové v oboch šatoch — tmavá ostala len TAPETA za nimi, takže
   // pri zapnutom bledom šate si z papyrusového hubu prepadol do čiernej. Recept bledej
   // plochy je `pk-paper` + `PAPER_PAGE_CSS`, ten istý ako v `PackLayout`.
@@ -1379,12 +1385,16 @@ function Shell({ children, onClose, fill, overlay }: {
       <style>{NQ_CSS}</style>
       <div
         className={`relative z-10 mx-auto w-full px-4 sm:px-6 flex flex-col ${fill ? 'flex-1 pb-6' : 'pb-24'}`}
-        style={{ maxWidth: PACK_COL.wide, paddingTop: PACK_TOPROW_PAD }}
+        style={{ maxWidth: PACK_COL.wide, paddingTop: PACK_TOPROW_PAD, ...(mg ? { paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))' } : null) }}
       >
         {/* × → ŠÍPKA SPÄŤ v spoločnom rade (Matej 27. 9. 2026: „pri kvízoch je nutný ten
             krížik? nemáme ho nikde"). Robí to isté, čo krížik (`onClose`) — rozpracovaný kvíz
             sa pred odchodom ešte opýta cez `requestClose`. Ľavý roh pripadol AINUBISOVI. */}
-        <PackTopRow onBack={onClose} backLabel={t('pack.quiz.back')} />
+        {mg ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: PACK_TOPROW.h, marginBottom: PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h }}>
+            <BackButton tone="pale" onClick={onClose} label={t('pack.quiz.back')} />
+          </div>
+        ) : <PackTopRow onBack={onClose} backLabel={t('pack.quiz.back')} />}
         {fill ? <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>{children}</div> : children}
       </div>
       {/* Dialóg žije TU, nie vedľa Shellu — NQ_CSS (a s ním `.nq-scrim`) sa vkladá
@@ -1832,13 +1842,17 @@ function ResultDoc({ dog, r, b, tx }: {
  * `element` a `role` majú zhodné vykreslenie — líšia sa len zoznamom otázok.
  * Preto ich obsluhuje jedna vetva, nie dve kópie, ktoré sa časom rozídu.
  */
-type Phase = 'intro' | 'element' | 'balance' | 'role' | 'special' | 'result';
+type Phase = 'intro' | 'element' | 'balance' | 'role' | 'special' | 'gate' | 'result';
 
 export default function PackNatureQuiz() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const t = useT();
   const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
+  // NÁHĽAD (`/magnet/kviz`): návštevník je anonym bez psa. Kvíz beží celý, ale bez výberu
+  // psa, bez zápisu do DB (jediný zápis je `magnet_lead` v bráne) a bez ciest do `/pack`.
+  const mg = useMagnetPreview();
+  const GUEST_ID = 'magnet-guest';
 
   // `?dog=` je FILTER, nie podmienka (rovnako ako v DOG ID kvíze). Predtým to bol
   // jediný zdroj cieľového psa — a `PackDogs` ho pri viacerých psoch zámerne
@@ -1849,14 +1863,16 @@ export default function PackNatureQuiz() {
    *  Do 21. 8. 2026 tento parameter nikto nečítal — odkaz „Read the results" na
    *  `/pack/dogs` teda vysypal človeka na úvod kvízu a výsledok sa po odchode
    *  z obrazovky nedal pozrieť už NIKDY. */
-  const wantStored = params.get('view') === 'result';
+  const wantStored = !mg && params.get('view') === 'result';
   /** Odkiaľ sa prišlo. Dnes jediná hodnota: `id` = z DOG ID konkrétneho psa. */
   const cameFrom = params.get('from');
   /** JEDNO miesto, kam vedie odchod. Lock z 18. 8. platí ďalej — päť rozsypaných
    *  `navigate()` sa raz už rozišlo, preto sa cieľ počíta tu a nikde inde. */
-  const exitTo = exitFor(cameFrom, onlyDogId) ?? QUIZ_EXIT;
+  const exitTo = mg ? '/magnet' : (exitFor(cameFrom, onlyDogId) ?? QUIZ_EXIT);
 
-  const [dogs, setDogs] = useState<QuizDog[] | null>(null);
+  const [dogs, setDogs] = useState<QuizDog[] | null>(
+    mg ? [{ id: GUEST_ID, dog_name: tx('magnet.pv.quiz.dog', 'your dog'), cloudinary_main_url: '/images/magnet/kviz.webp', /* freska zrkadla z bloku /magnet namiesto iniciály „Y“ */ heroglyph_png_url: null }] : null,
+  );
   /** `null` = ešte sa načítava, `[]` = niet čo čítať (→ spadne to na kvíz). */
   const [stored, setStored] = useState<{ dog: QuizDog; r: NatureResult; b: BalanceResult }[] | null>(null);
   const [reading, setReading] = useState(wantStored);
@@ -1893,6 +1909,7 @@ export default function PackNatureQuiz() {
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }); }, [phase, idx]);
 
   useEffect(() => {
+    if (mg) return;   // náhľad: hosť, nič sa nenačítava
     let alive = true;
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
@@ -2033,6 +2050,7 @@ export default function PackNatureQuiz() {
       const picked = balance[dog.id] ?? [];
       inputs.push({ dogId: dog.id, field: 'nature.balance', value: picked, source: 'quiz' });
     }
+    if (mg) return;   // náhľad: nič sa nezapisuje
     try {
       await appendDogEvents(inputs);
       setSaved(true);
@@ -2508,6 +2526,7 @@ export default function PackNatureQuiz() {
                     r: scoreNature(answers[d.id] ?? {}, specials[d.id] ?? {}),
                     b: scoreBalance(balance[d.id] ?? []),
                   }));
+                  if (mg) { setPhase('gate'); return; }   // náhľad: najprv e-mail, potom výsledok
                   setPhase('result');
                   void finish(rs);
                 }}
@@ -2522,7 +2541,25 @@ export default function PackNatureQuiz() {
     );
   }
 
+  /* — náhľad: e-mailová brána pred výsledkom — */
+  if (phase === 'gate' && mg) {
+    const gid = list[0]?.id ?? GUEST_ID;
+    const sp = specials[gid] ?? {};
+    const flat: Record<string, string> = { ...(answers[gid] ?? {}) };
+    for (const k of Object.keys(sp)) flat[`sp_${k}`] = String(sp[k as SpecialKey]);
+    return (
+      <Shell onClose={() => setPhase('special')}>
+        <MagnetLeadGate
+          answers={flat}
+          result={scoreNature(answers[gid] ?? {}, sp)}
+          onDone={() => setPhase('result')}
+        />
+      </Shell>
+    );
+  }
+
   /* — výsledok: jeden na psa — */
+  if (phase === 'gate') return null;
   if (results.length === 0) return null;
   return (
     <Shell onClose={() => navigate(exitTo)}>
@@ -2540,10 +2577,19 @@ export default function PackNatureQuiz() {
         <button type="button" className="nq-ghost is-ondark" onClick={restart}>
           <HandCycle size={14} /> {tx('pack.nature.result.again', 'Take it again')}
         </button>
-        <button type="button" className="nq-gold is-ondark" onClick={() => navigate(exitTo)}>
-          {tx('pack.nature.result.done', 'Done')}
-        </button>
+        {!mg && (
+          <button type="button" className="nq-gold is-ondark" onClick={() => navigate(exitTo)}>
+            {tx('pack.nature.result.done', 'Done')}
+          </button>
+        )}
       </div>
+      {mg && (
+        <div style={{ ...PACK_BOX.subblock, padding: '12px 16px', marginTop: 18 }}>
+          <p style={{ fontFamily: FONT_UI, fontSize: 14, lineHeight: 1.55, color: T.inkStrong, margin: 0 }}>
+            {tx('magnet.pv.quiz.p', 'As a Dogyptian you save the full reading — food, what to watch, advice from AINUBIS — to your dog’s DOG ID.')}
+          </p>
+        </div>
+      )}
       {saveErr && !saved && (
         <p role="alert" style={{ fontFamily: FONT_UI, fontSize: 12, color: '#E08A70', marginTop: 12, textAlign: 'center' }}>
           {tx('pack.diary.saveFailed', 'The entry could not be saved. Try again.')}

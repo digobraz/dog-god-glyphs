@@ -52,7 +52,7 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { usePublishPilgrimLevel } from '@/components/pack/usePilgrimStats';
 import { trackPack } from '@/lib/packAnalytics';
 import { Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Polyline, Polygon, Circle, Marker, ScaleControl, useMap, useMapEvent } from 'react-leaflet';
 import L from 'leaflet';
 import type { LatLngTuple } from 'leaflet';
@@ -73,7 +73,9 @@ import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/
 import { PackNotifications } from '@/components/pack/PackNotifications';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
-import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
+import { useMagnetPreview, usePackNavigate, isFreeTrip } from '@/components/pack/magnetPreview';
+import { HandLock } from '@/components/pack/HandIcons';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { useToast } from '@/hooks/use-toast';
 import { useMyDogRights } from '@/lib/dogRights';
@@ -88,7 +90,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale, fmtNum } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PoiLayer } from '@/components/geo/PoiLayer';
-import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_TOPROW, PAGE_AIR } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_TOPROW, PAGE_AIR } from '@/components/pack/packTheme';
 import { BackIcon, ExpandIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { goldFrameCSS, goldPlateCSS, pickTintCSS, PICK_INK, SLAB, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, NAV_R, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
@@ -551,18 +553,20 @@ const pointTypeClass = (p: MapPoint): string => (p.journey ? '--journey' : p.wat
 // počítala s vycentrovaním, ktoré sa nedialo. `transform` percentá berie z VLASTNEJ veľkosti
 // prvku, takže na rodičovi nezávisí. Pri pridávaní :hover so `scale` nezabudni translate
 // zopakovať — `transform` sa neskladá, prepisuje sa.
-const pointIcon = (p: MapPoint, hot: boolean, zoom: number, lang: string) => {
+// Zámok na značke výletu, ktorý v náhľade /magnet nie je zdarma (hand-drawn `lock.svg`, bielený CSS-kou).
+const LOCK_MARK = `<span class="trp-lockmark"><img src="${ICON('lock')}" alt="" draggable="false"/></span>`;
+const pointIcon = (p: MapPoint, hot: boolean, zoom: number, lang: string, locked = false) => {
   const type = pointTypeClass(p);
   if (pointIsPill(p, zoom)) {
     const label = pillLabel(p, lang);
     return L.divIcon({
       className: 'trp-pinwrap',
-      html: `<div class="trp-pill${type ? ` trp-pill${type}` : ''}${p.ghost ? ' trp-ghost' : ''}${hot ? ' hot' : ''}">${pointPicto(p)}<span>${label}</span></div>`,
+      html: `<div class="trp-pill${type ? ` trp-pill${type}` : ''}${p.ghost ? ' trp-ghost' : ''}${hot ? ' hot' : ''}">${pointPicto(p)}<span>${label}</span>${locked ? LOCK_MARK : ''}</div>`,
     });
   }
   return L.divIcon({
     className: 'trp-pinwrap',
-    html: `<div class="trp-dot${type ? ` trp-dot${type}` : ''}${p.ghost ? ' trp-ghost' : ''}${hot ? ' hot' : ''}">${pointPicto(p)}</div>`,
+    html: `<div class="trp-dot${type ? ` trp-dot${type}` : ''}${p.ghost ? ' trp-ghost' : ''}${hot ? ' hot' : ''}">${pointPicto(p)}${locked ? LOCK_MARK : ''}</div>`,
   });
 };
 // zhluk (zadanie 2.4) — veľkosť bubliny rastie s počtom bodov v nej.
@@ -945,6 +949,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
 }) {
   const map = useMap();
   const { lang } = useLang();
+  const mg = useMagnetPreview();
   const [zoom, setZoom] = useState(() => map.getZoom());
   const [moveTick, setMoveTick] = useState(0);
   // 2026-07-27: handler MUSÍ mať stabilnú referenciu (useCallback), inak useMapEvent pri KAŽDOM
@@ -1108,7 +1113,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
         <Marker
           key={it.p.id}
           position={[it.p.lat, it.p.lon]}
-          icon={pointIcon(it.p, hoverId === it.p.id || inlineDetailId === it.p.id, zoom, lang)}
+          icon={pointIcon(it.p, hoverId === it.p.id || inlineDetailId === it.p.id, zoom, lang, !!mg && !isFreeTrip(it.p.id))}
           // pilulka nesie konkrétny údaj (km / názov plochy) a nehýbe sa, tak nech je aspoň
           // navrchu — prekryv s bublinou sa síce rieši ustúpením v bode 3, ale keď sa ustúpiť
           // nedá (NUDGE_MAX), nesmie skončiť tak, že číslo prekrojí polovica pilulky.
@@ -1868,6 +1873,14 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 .trp-pill--water{background:${WATER_COLOR};color:#fff;border-color:rgba(255,255,255,0.55);}
 .trp-pill--water.hot{background:${WATER_COLOR};color:#fff;border-color:#fff;box-shadow:0 0 0 3px rgba(46,111,214,0.35),0 4px 12px rgba(0,0,0,0.6);}
 /* bodka (z<=9, zadanie 2.3) — 17px kruh, rovnaký glass+zlatý lem ako pilulka, len piktogram. */
+.trp-lockmark{position:absolute;right:-6px;top:-7px;width:12px;height:12px;padding:2px;box-sizing:content-box;border-radius:50%;background:rgba(11,9,6,.94);border:1px solid rgba(201,154,63,0.7);pointer-events:none;}
+.trp-lockmark img{display:block;width:100%;height:100%;filter:brightness(0) invert(1);}
+.trp-mginfo{margin:0 0 8px;padding:16px;display:flex;flex-direction:column;gap:8px;}
+.trp-mginfo-h{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
+.trp-mginfo-p{margin:0;font-family:${FONT_UI};font-weight:400;font-size:12px;line-height:1.5;color:${T.inkWarm};}
+.trp-mginfo-row{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border-radius:12px;background:${T.tileBg};border:1px solid ${T.border};cursor:pointer;text-align:left;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${T.inkStrong};}
+.trp-mginfo-row img{width:20px;height:20px;flex-shrink:0;}
+.trp-lockbadge{position:absolute;top:8px;left:40px;z-index:2;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(11,9,6,.88);border:1.5px solid rgba(201,154,63,0.7);color:#F6F1E4;box-shadow:0 2px 6px rgba(0,0,0,0.4);pointer-events:none;}
 .trp-dot{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
 .trp-dot.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);border-color:rgba(${PACK_THEME.tripPurpleRGB},0.6);box-shadow:0 0 0 2px rgba(179,107,255,0.3),0 2px 6px rgba(0,0,0,0.4);}
 .trp-dot--journey{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:rgba(201,154,63,0.5);}
@@ -3459,18 +3472,52 @@ function TripPickDropdown({ label, value, options, onPick, anyLabel, anyIcon, pl
   );
 }
 
+/**
+ * INFO BLOK NA VRCHU ZOZNAMU V NÁHĽADE /magnet — povie, čo je otvorené, čo nie a čo dá členstvo.
+ * Jeden PODBLOK z katalógu (`PACK_BOX.subblock`), nič vlastné; text cez `tx()` s EN rezervou.
+ */
+function MagnetTripsInfo({ locked, onSniffer }: { locked: number; onSniffer: () => void }) {
+  const t = useT();
+  const tx = (k: string, fb: string, p?: Record<string, string | number>) => {
+    const v = t(k, p); return v === k ? fb.replace(/\{(\w+)\}/g, (_, n) => String(p?.[n] ?? '')) : v;
+  };
+  return (
+    <div className="trp-mginfo" style={PACK_BOX.subblock}>
+      <h3 className="trp-mginfo-h">{tx('magnet.pv.trips.h', '10 trips are open for you')}</h3>
+      <p className="trp-mginfo-p">
+        {tx('magnet.pv.trips.p', 'You can see the other {n}; they open for Dogyptians. As a member you log your own trips, collect kilometres and points and climb the pilgrim ranking.', { n: locked })}
+      </p>
+      <button type="button" className="trp-mginfo-row" onClick={onSniffer}>
+        <img src="/icons/sniffer/sniffer-logo.svg" alt="" />
+        <span>{tx('magnet.pv.sniffer', 'Who with? Sniffer finds you a dog for a shared trip.')}</span>
+      </button>
+    </div>
+  );
+}
+
+/** Identita anonyma v náhľade `/magnet` — bez session, bez psov, bez štatistík svorky. */
+const MAGNET_ANON_IDENTITY: PackIdentity = {
+  session: null, loading: false, sessionReady: true, dogs: [], devotion: 0, bones: 0,
+  avatarUrl: null, avatarInitial: '', packTotal: null, packToday: null,
+};
+
 export default function PackMap() {
   const t = useT();
   // Práva pawmata (B6/F4) — mapa má dva zápisy bez prvku: dlhé podržanie (značka)
   // a kreslenie trasy. Obidva sa pýtajú tu, `<RightGate>` obaľuje len tlačidlá.
   const dogRights = useMyDogRights();
   const { lang } = useLang();   // popisy výletov nesú DÁTA, nie i18n kľúče (viď tripText)
-  const navigate = useNavigate();
+  const navigate = usePackNavigate();
+  // NÁHĽAD PRE /magnet (12. 10. 2026) — `null` = bežná appka, nič z toho dole sa nespustí.
+  const mg = useMagnetPreview();
   const [searchParams, setSearchParams] = useSearchParams();
   // issue #35: `/pack/add/trip` mountuje TÚ ISTÚ stránku ako `/pack/map` — ADD flow je overlay nad
   // živou mapou, nie samostatná obrazovka. Pathname rozhoduje, či sa formulár otvorí pri mounte.
   const onAddRoute = useLocation().pathname.startsWith('/pack/add');
-  const id = usePackIdentity();
+  // V náhľade je návštevník ANONYM: `usePackIdentity` by ho poslal na /login, preto sa nevolá.
+  // `mg` je za celý život komponentu konštantné (daje ho obal routy), takže poradie hookov sa nemení.
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const id: PackIdentity = mg ? MAGNET_ANON_IDENTITY : usePackIdentity();
   const [levelPanelOpen, setLevelPanelOpen] = useState(false);
 
   /**
@@ -4160,6 +4207,7 @@ export default function PackMap() {
   const eventsHintTimer = useRef<number | null>(null);
   useEffect(() => () => { if (eventsHintTimer.current) window.clearTimeout(eventsHintTimer.current); }, []);
   const pickEvents = () => {
+    if (mg) { mg.lock('action'); return; }
     if (EVENTS_LIVE) { setActiveCat('events'); return; }
     // Veta visí POD pilulkami (nie toast hore na obrazovke) — Matej 21. 9. 2026.
     setEventsHint(true);
@@ -4510,7 +4558,7 @@ export default function PackMap() {
     );
   }
   // Náhľad Horskej chaty (lokálny build `--mode livedb`, `?nahlad=1`) ukáže mapu bez prihlásenia — lib/chataNahlad.ts.
-  if (!id.session && !CHATA_NAHLAD) return null;
+  if (!id.session && !CHATA_NAHLAD && !mg) return null;
 
   // greeting meno — z Supabase user_metadata (full_name/name), fallback e-mail local-part,
   // rovnaký vzor ako firstNameFrom() v Pack.tsx (header greeting). Presunuté sem (pred
@@ -4526,6 +4574,8 @@ export default function PackMap() {
   // slug anymore. Mobile nemá inline-detail panel (bod 5 i11 ho skrýva celý), tak tam ostáva
   // priama navigácia rovno na článok (jediné miesto, kde sa klik na kartu líši podľa šírky).
   const selectTrail = (tr: HeroTrail) => {
+    // NÁHĽAD /magnet: detail otvorí len výlet zdarma, ostatné sú vidno, ale zamknuté.
+    if (mg && !isFreeTrip(tr.id)) { mg.lock('trip'); return; }
     if (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP) {
       saveReturnView(leafletMapRef.current);
       navigate(tripPath(tr));
@@ -4570,6 +4620,7 @@ export default function PackMap() {
   // zverejnenie a dátum rieši Triplist, kde na to modal „Kto vidí tento výlet" už existuje
   // (`PackTriplist.setVisibility`). Toast na to miesto rovno ukáže cestu, ale nevynucuje ju. ──
   const toggleFav = (tid: string) => {
+    if (mg) { mg.lock('action'); return; }
     if (favIds.has(tid)) {
       setFavIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setPlans((prev) => prev.filter((p) => p.tripId !== tid));
@@ -4592,6 +4643,7 @@ export default function PackMap() {
   // nezruší nič, prejdenie je už zapísané. Od 2026-08-06 sa ponúka pri KAŽDOM prejdení, bez
   // tichého obdobia — dôvod a čo robiť namiesto neho pri dávke: packCommunity.ts. ──
   const toggleWalked = (tid: string) => {
+    if (mg) { mg.lock('action'); return; }
     // 🔒 Zápis prejdenej trasy = `trips.log` (§5). Kontrola je TU, nie v `<RightGate>`:
     // tú istú funkciu volajú štyri rôzne prvky (karta, menu, popup, sprievodca)
     // a štyri obaly by sa pri prvej zmene rozišli.
@@ -4911,6 +4963,7 @@ export default function PackMap() {
    * sa to pri medzičasom zmazanom výlete aj v DEV náhľade revealu.
    */
   const openFinishTrip = (tripId: string) => {
+    if (mg) { mg.lock('action'); return; }
     if (!localTrails.some((tr) => tr.id === tripId)) return;
     setInlineDetailId(null);
     setAddEntryOpen(false);
@@ -4934,6 +4987,7 @@ export default function PackMap() {
    * fotkách ani príbehu nevie.
    */
   const openWalkPlan = (tripId: string) => {
+    if (mg) { mg.lock('action'); return; }
     if (!localTrails.some((tr) => tr.id === tripId)) return;
     setInlineDetailId(null);
     setAddEntryOpen(false);
@@ -4946,6 +5000,7 @@ export default function PackMap() {
 
   /** Sivá magistrála: „prešiel som" = zápis s hotovou trasou, ktorý ju zároveň prevezme. */
   const openClaimJourney = (tripId: string) => {
+    if (mg) { mg.lock('action'); return; }
     setInlineDetailId(null);
     setAddEntryOpen(false);
     setAddMapPhase('off');
@@ -5695,7 +5750,8 @@ export default function PackMap() {
   // Bublina `title=` s rozpisom bodov zanikla — na dotykovom telefóne sa nedala vyvolať vôbec
   // a rozpad v nej bol zlepený do jedného riadku (Matej: „zvačši popup tak aby sa nemuselo
   // scrolovať a info boli vidno").
-  const renderIdentity = () => (
+  // V náhľade /magnet nie je čia identita (PÚTNIK, prstenec, km) — anonym ju nemá.
+  const renderIdentity = () => mg ? null : (
     <button
       type="button"
       className="trp-midentity"
@@ -5805,7 +5861,7 @@ export default function PackMap() {
     </>
   );
 
-  const renderHeaderRight = (dark = true) => (
+  const renderHeaderRight = (dark = true) => mg ? null : (
     <div className="trp-headright">
       {/* KAPSULA ako na každej inej stránke /pack (Matej 3. 10. 2026: *„správy a upozornenia sú
           na mobile klasicky v spoločnom chipe… nech je to všade také isté"*). Do vtedy tu boli
@@ -5975,6 +6031,12 @@ export default function PackMap() {
 
   const renderTripList = (withRef: boolean) => (
     <>
+      {mg && (
+        <MagnetTripsInfo
+          locked={allTrails.filter((tr) => !tr.id.startsWith('plan-') && !isFreeTrip(tr.id)).length}
+          onSniffer={() => mg.lock('action')}
+        />
+      )}
       {sortedVisibleHeroTrails.length === 0 && (
         <div className="trp-listempty">
           <p>{emptyByFilters ? t('pack.map.noneMatchFilters') : t('pack.map.noneHere')}</p>
@@ -6051,6 +6113,7 @@ export default function PackMap() {
         <div className="trp-bigcard-photo">
           {photo && <img className="trp-bigcard-img" src={photo} alt="" loading="lazy" decoding="async" draggable={false} style={{ objectPosition: coverPos(tr, idx) }} />}
           <img className="trp-cardflag" src={flagUrl(trailCountry(tr))} alt="" loading="lazy" draggable={false} />
+          {mg && !isFreeTrip(tr.id) && <span className="trp-lockbadge"><HandLock size={12} /></span>}
           {tr.photos.length > 1 && (
             <div className="trp-bigcard-photonav">
               <button
@@ -6177,7 +6240,7 @@ export default function PackMap() {
               <button
                 type="button"
                 className="trp-bigcard-author trp-authorbtn"
-                onClick={(e) => { e.stopPropagation(); setCreatorTrail(tr); }}
+                onClick={(e) => { e.stopPropagation(); if (mg) { mg.lock('action'); return; } setCreatorTrail(tr); }}
               >{t('pack.map.byAuthor', { author: authorOf(tr) })}{others > 0 ? ` · ${t('pack.map.plusDogyptians' + pluralKey(others), { n: others })}` : ''}</button>
             </div>
             {/* Plán = žiadne hodnotenie (výlet sa neodohral).
@@ -6366,7 +6429,7 @@ export default function PackMap() {
                       <button
                         type="button"
                         className="trp-inldet-author trp-authorbtn"
-                        onClick={(e) => { e.stopPropagation(); setCreatorTrail(dt); }}
+                        onClick={(e) => { e.stopPropagation(); if (mg) { mg.lock('action'); return; } setCreatorTrail(dt); }}
                       >{t('pack.map.byAuthor', { author: authorOf(dt) })}{dtAgg.dogyptianCount - founderDogyptians(dt) > 0 ? ` · ${t('pack.map.plusDogyptians' + pluralKey(dtAgg.dogyptianCount - founderDogyptians(dt)), { n: dtAgg.dogyptianCount - founderDogyptians(dt) })}` : ''}</button>
                     </div>}
                   </div>
@@ -6505,10 +6568,12 @@ export default function PackMap() {
           {/* bod 2 (Matej 2026-07-22): pozdrav + filter ikonka (sliders) v pravom rohu — otvára
               sort popover (Top rated/Easiest/Hardest/Calmest), rovnaká ikonka ako mobilný filter. */}
           <div className="trp-greet-row">
+            {mg ? <div /> : (
             <div>
               <div className="trp-greet-hi">{t('pack.map.greetHi', { name: firstName })}</div>
               <div className="trp-greet-sub">{t('pack.map.greetSub')}</div>
             </div>
+            )}
             {/* DVA OVLÁDACIE PRVKY V ROHU (Matej 2026-08-26: „vedľa filtru hore dajme ešte
                 druhý filter, resp. vlajku"). Krajina bola do teraz prvým z troch rozbaľovačiek
                 v rade pod kategóriami, kde si brala tretinu šírky na dva znaky — a rad tým

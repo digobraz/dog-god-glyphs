@@ -36,10 +36,11 @@
 // 🚩 OTVORENÉ: chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania).
 // ════════════════════════════════════════════════════════════════════════════
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
-import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
+import { useMagnetPreview, usePackNavigate, isFreeScrollCode } from '@/components/pack/magnetPreview';
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_TOPROW, PAGE_AIR,
 } from '@/components/pack/packTheme';
@@ -49,7 +50,7 @@ import {
 import { VaultChat, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
 import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
 import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
-import { SCROLL_DEMO, useDemoScrolls, useScrollState, useReadsReady, useReads, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
+import { SCROLL_DEMO, useDemoScrolls, usePublicScrolls, useScrollState, useReadsReady, useReads, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import { VaultKnowledge, KNOW_CSS } from '@/components/pack/vault/VaultKnowledge';
 import { ScrollCard, ScrollView, SCROLL_CSS, scrollUI, circleName as scrollCircle } from '@/components/pack/vault/ScrollParts';
 import { openAinubis } from '@/lib/ainubisBus';
@@ -543,6 +544,9 @@ ${STAGE_CSS}
 `;
 
 type View = 'brain' | 'scroll';
+/* Náhľad `/magnet`: postup člena sa nezobrazuje (stabilná prázdna hodnota, nie nový objekt pri každom renderi). */
+const NO_STATE: ReturnType<typeof useScrollState> = {};
+const NO_ROWS: ReturnType<typeof useReads> = {};
 /** Šírka výplne PROGRESU (recept `.pk-progress`) — podiel 0…1, rovnako ako VaultKnowledge. */
 const fillPct = (part: number) => {
   const w = `${Math.round(Math.min(1, Math.max(0, part)) * 100)}%`;
@@ -598,13 +602,37 @@ const demoProgress = (zi: number): 0 | 1 | 2 =>
   (zi % 7 === 0 ? 2 : zi % 13 === 5 ? 1 : 0);
 void demoProgress; // 4. 10. 2026 nahradená skutočným postupom (`vault_reads`) — ostáva ako záznam, čím mozog svietil dovtedy
 
+/* ── NÁHĽAD `/magnet` (12. 10. 2026) ─────────────────────────────────────────
+   Matej: *„darčeky zdarma musia byť 1:1 s /pack (bez navu) … pri podcastoch to isté: bude
+   vidno a dať sa scrolovať, ale detail uvidí len 10"*. Montuje sa TÁ ISTÁ obrazovka
+   (`MagnetPreview kind="ainubis"`), len s tromi rozdielmi — nič sa nekopíruje:
+   · zdroj zvitkov = `usePublicScrolls` (návštevník je anonym, `vault_scrolls` je len pre členov);
+     zvitok zdarma (`isFreeScrollCode`) sa otvorí 1:1, ostatné sú viditeľné so zámkom;
+   · identita sa NEČÍTA (`usePackIdentity` by anonyma presmerovalo na /login) a hlavička s ňou
+     zaniká, rovnako ako postup (`vault_reads`), CHAT, NÁSTENKA, ZDROJE a spodný nav;
+   · akcie (srdiečko, uložiť, komentár, zdieľať, hlava AINUBISA) nič nezapíšu, otvoria popup.
+   ⚠️ Mimo náhľadu (`pv === null`) je správanie bajt po bajte to, čo bolo. */
+const PV_IDENTITY: PackIdentity = {
+  session: null, loading: false, sessionReady: true, dogs: [], devotion: 0, bones: 0,
+  avatarUrl: null, avatarInitial: '', packTotal: null, packToday: null,
+};
+
 export default function PackAinubis() {
+  const pv = useMagnetPreview();
+  return pv ? <AinubisScreen id={PV_IDENTITY} pv={pv} /> : <AinubisApp />;
+}
+
+function AinubisApp() {
+  const id = usePackIdentity();
+  return <AinubisScreen id={id} pv={null} />;
+}
+
+function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof useMagnetPreview> }) {
   const t = useT();
   const tx = (key: string, fallback: string) => {
     const v = t(key);
     return v === key ? fallback : v;
   };
-  const id = usePackIdentity();
   const { lang } = useLang();
   const [view, setView] = useState<View>('brain');
   /* ROVINA — VAULT alebo CHAT (maketa). 🔴 LEN V DEVE: v produkčnom builde CHAT
@@ -626,30 +654,40 @@ export default function PackAinubis() {
      ⚠️ Parameter sa pridáva DO EXISTUJÚCICH, nie namiesto nich — `setSearchParams({…})`
         by zmazal všetko ostatné, čo na adrese je. */
   const [sp, setSp] = useSearchParams();
-  const navigate = useNavigate();
+  const navigate = usePackNavigate();
+  /* Popup pre Dogypťanov: ref, lebo plátno mozgu sa mountuje raz a uzavrelo by si prvú hodnotu. */
+  const lockRef = useRef<((w?: 'trip' | 'scroll' | 'action') => void) | null>(pv?.lock ?? null);
+  lockRef.current = pv?.lock ?? null;
+  const lockAction = () => lockRef.current?.('action');
   // ZVITKY (DEV ukážka, 3. 10. 2026) — článok zvitku žije na vlastnej adrese
   // `/pack/ainubis/zvitok/:id` (modal-as-route ako článok výletu, kôš 2).
-  const scrolls = useDemoScrolls();
+  const memberScrolls = useDemoScrolls();
+  const publicScrolls = usePublicScrolls();
+  const scrolls = pv ? publicScrolls : memberScrolls;
   const loc = useLocation();
   const sub = useParams()['*'] || '';
   const zid = sub.match(/^zvitok\/([^/]+)/)?.[1];
   /* MOJE ZNALOSTI (4. 10. 2026) — štatistiky po kliku na fotku v hlavičke, vlastná adresa ako TRIPSTATS. */
-  const knowOpen = /^knowledge\/?$/.test(sub);
-  const zstate = useScrollState();
+  const knowOpen = !pv && /^knowledge\/?$/.test(sub);
+  const zstateRaw = useScrollState();
+  const zstate = pv ? NO_STATE : zstateRaw;
   /* VYPOČUTÉ ≠ PREČÍTANÉ (Matej 8. 10.: „označil som zvitok ako prečítaný, ale nevypočul
      som si podcast… a hore svieti, ako keby som ho vypočul"). Stav zvitku (2) zlučuje oboje;
      počítadlo podcastov číta LEN `listened_at`. */
-  const readRows = useReads();
+  const readRowsRaw = useReads();
+  const readRows = pv ? NO_ROWS : readRowsRaw;
   const [scrollFocus, setScrollFocus] = useState<string | null>(null);
   const [zvToast, setZvToast] = useState('');
   const openScroll = (id: string, focus?: 'pod' | 'src' | 'talk') => {
+    /* Náhľad: otvorí sa len zvitok zdarma; ostatné = popup (zámok je vidno už v zozname). */
+    if (pv && !isFreeScrollCode(scrolls.find((z) => z.id === id)?.code)) { pv.lock('scroll'); return; }
     setScrollFocus(focus || null);
     // návrat tam, odkiaľ prišiel (zoznam alebo Moje znalosti) — nie vždy na zoznam
     navigate(`/pack/ainubis/zvitok/${id}`, { state: { back: zid ? (loc.state as { back?: string } | null)?.back : loc.pathname + loc.search } });
   };
   const closeScroll = () => { setQueue(false); navigate((loc.state as { back?: string } | null)?.back || '/pack/ainubis'); };
   /** PRISPEJ v článku zvitku → chat s AINUBISOM (➕ Použiť Matej 3. 10. vyradil). */
-  const askAinubis = () => (CHAT_MOCK ? navigate('/pack/ainubis?plane=chat') : openAinubis());
+  const askAinubis = () => (pv ? lockAction() : CHAT_MOCK ? navigate('/pack/ainubis?plane=chat') : openAinubis());
   const shareScroll = (id: string) => {
     const url = `${window.location.origin}/pack/ainubis/zvitok/${id}`;
     const done = () => { setZvToast(scrollUI(lang).copied); window.setTimeout(() => setZvToast(''), 2000); };
@@ -659,7 +697,7 @@ export default function PackAinubis() {
   const openZ = zid ? scrolls.find(z => z.id === zid) : undefined;
   const planeParam = sp.get('plane');
   const [plane2, setPlane2] = useState<'vault' | 'chat' | 'wall'>(
-    planeParam === 'wall' && WALL_MOCK ? 'wall'
+    pv ? 'vault' : planeParam === 'wall' && WALL_MOCK ? 'wall'
       : planeParam === 'chat' && CHAT_MOCK ? 'chat'
         : 'vault',
   );
@@ -676,6 +714,7 @@ export default function PackAinubis() {
     setSp(q, { replace: true });
   };
   const goPlane = (next: 'vault' | 'chat' | 'wall') => {
+    if (pv && next !== 'vault') { lockAction(); return; }
     setPlane2(next);
     /* 🐛 8. 10. 2026: po ZDROJOCH viedol čip FÓRUM znova do zdrojov — stav záložky ostal
        'lib', hoci adresa ho zmazala. Rovina sa vždy otvára na svojej prvej záložke. */
@@ -712,6 +751,7 @@ export default function PackAinubis() {
   };
   /** Vchod do KNIŽNICE z chatu aj z päty VAULTU — jedno miesto, tri dvere. */
   const openLibrary = () => {
+    if (pv) { lockAction(); return; }
     setPlane2('wall');
     setWallTab('lib');
     setQuery({ plane: 'wall', tab: 'lib' });
@@ -767,7 +807,7 @@ export default function PackAinubis() {
   const tipRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const brain = useRef<BrainHandle | null>(null);
-  const ready = !id.loading && !!id.session;
+  const ready = !!pv || (!id.loading && !!id.session);
 
   const names = useMemo(
     () => VAULT_WORLDS.map((w) => tx(`pack.ainubis.world.${w.key}`, w.en)),
@@ -848,7 +888,7 @@ export default function PackAinubis() {
         };
       },
       onWorld: (wi) => openWorldRef.current(wi),
-      onRoot: openAinubis,
+      onRoot: () => (lockRef.current ? lockRef.current('action') : openAinubis()),
       circleSizes: (wi) => {
         const key = VAULT_WORLDS[wi].key, list = live.current.feed.filter((z) => z.world === key);
         if (!list.length) return null;
@@ -934,17 +974,17 @@ export default function PackAinubis() {
       {/* 🔒 Matej 8. 10. 2026: na LIVE funguje LEN ZVITKY — chat, fórum aj zdroje sú
           vyblednuté („čoskoro"), kým ich neupraceme; naplno žijú len na DEVE. */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'chat' ? 'page' : undefined}
-        disabled={!CHAT_MOCK} title={CHAT_MOCK ? undefined : soon}
+        disabled={!CHAT_MOCK && !pv} title={CHAT_MOCK || pv ? undefined : soon}
         onClick={() => goPlane('chat')}>{plane('chat', 'Chat')}</button>
       {/* „čoskoro" len v tooltipe — v SK „NÁSTENKA ČOSKORO" pretiekla z pilulky (390 px aj PC 40 %). */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'wall' && wallTab !== 'lib' ? 'page' : undefined}
-        disabled={!WALL_MOCK} title={WALL_MOCK ? undefined : soon}
+        disabled={!WALL_MOCK && !pv} title={WALL_MOCK || pv ? undefined : soon}
         onClick={() => goPlane('wall')}>{plane('wall', 'Forum')}</button>
       {/* ZDROJE = štvrtá rovina (Matej 8. 10. 2026). Dovtedy záložka KNIŽNICA vnútri fóra;
           obrazovka je tá istá (`?plane=wall&tab=lib`), čip len skracuje cestu.
           Zamknutá rovnako ako fórum — zoznam je zatiaľ maketa s opísanými číslami. */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'wall' && wallTab === 'lib' ? 'page' : undefined}
-        disabled={!SOURCES_MOCK} title={SOURCES_MOCK ? undefined : soon}
+        disabled={!SOURCES_MOCK && !pv} title={SOURCES_MOCK || pv ? undefined : soon}
         onClick={openLibrary}>{plane('sources', 'Sources')}</button>
     </nav>
   );
@@ -1060,15 +1100,17 @@ export default function PackAinubis() {
      (prehrávač pokračuje sám). */
   const hasPod = (z: DemoScroll) => Object.keys(z.pod || {}).length > 0;
   const isHeard = (z: DemoScroll) => !!readRows[z.id]?.listened_at;
-  const listenQ = feed.filter((z) => hasPod(z) && !isHeard(z));
+  /* V náhľade sa počúva len podcast zvitku zdarma. */
+  const playable = (z: DemoScroll) => !pv || isFreeScrollCode(z.code);
+  const listenQ = feed.filter((z) => hasPod(z) && playable(z) && !isHeard(z));
   const startListen = () => { if (listenQ[0]) { setQueue(true); openScroll(listenQ[0].id, 'pod'); } };
   const nextListen = () => {
     const i = openZ ? feed.indexOf(openZ) : -1;
-    const nx = feed.slice(i + 1).find((z) => hasPod(z) && !isHeard(z));
+    const nx = feed.slice(i + 1).find((z) => hasPod(z) && playable(z) && !isHeard(z));
     if (nx) openScroll(nx.id, 'pod'); else setQueue(false);
   };
   /* Číslo = poradie podcastu, ktorý sa pustí, z celkového počtu (Matej 8. 10.: „Listen podcast XY/100"). */
-  const pods = feed.filter(hasPod);
+  const pods = feed.filter((z) => hasPod(z) && playable(z));
   const listenBtn = (cls: string) => listenQ.length > 0 && (
     <button type="button" className={cls} onClick={startListen}>
       <i aria-hidden />{tx('pack.ainubis.listen', 'Listen to podcast')} <em>{pods.indexOf(listenQ[0]) + 1}/{pods.length}</em>
@@ -1251,8 +1293,16 @@ export default function PackAinubis() {
         <div className="akv-col">
           {SCROLL_DEMO && listenBtn('akv-listen akv-listen--m')}
           {shown.length === 0 && feedShown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
+          {pv && feed.length > 0 && (
+            /* JEDEN info blok v AI-PALUBA šate (karta `.akv-world`) — žiadny vlastný tvar. */
+            <section className="akv-world akv-pvinfo">
+              <h2 className="akv-wname">{tx('magnet.pv.ai.h', 'The first circle is open')}</h2>
+              <p className="akv-wtease">{tx('magnet.pv.ai.p', '10 scrolls with a podcast about where the dog came from. You can see the other {n}; they open for Dogyptians. As a member you save scrolls and AINUBIS remembers what you’ve already heard.').replace('{n}', String(feed.filter((z) => !isFreeScrollCode(z.code)).length))}</p>
+            </section>
+          )}
           {SCROLL_DEMO && visible.map(z => (
-            <ScrollCard key={z.id} z={z} lang={lang} worldName={names[wIdx(z.world)]} onOpen={openScroll} onShare={shareScroll} />
+            <ScrollCard key={z.id} z={z} lang={lang} worldName={names[wIdx(z.world)]} onOpen={openScroll} onShare={shareScroll}
+              lock={pv ? lockAction : undefined} locked={!!pv && !isFreeScrollCode(z.code)} />
           ))}
           {/* Upútavky ostávajú len svetom, ktoré ešte nemajú ani jeden zvitok. */}
           {shown.filter(({ w }) => !feed.some((z) => z.world === w.key)).map(({ w, i }) => (
@@ -1269,7 +1319,7 @@ export default function PackAinubis() {
               <span className="akv-wsoon">{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</span>
             </section>
           ))}
-          {SOURCES_MOCK && (
+          {SOURCES_MOCK && !pv && (
             <button type="button" className="akv-entry" onClick={openLibrary}>
               {tx('pack.ainubis.sources.entry', 'What this brain stands on')}
               <b>{VAULT_SOURCE_TOTALS.documents} {tx('pack.ainubis.sources.entryN', 'documents')}{chev}</b>
@@ -1282,7 +1332,7 @@ export default function PackAinubis() {
 
       {/* ── HORE: IDENTITA + OZNAM, POD TÝM ROVINA (Matej 22. 9.) ─────────────── */}
       <div className="akv-top" ref={topRef}>
-        <PackIdentityBar
+        {!pv && <PackIdentityBar
           id={id}
           primary={vaultPrimary}
           stats={vaultStats}
@@ -1296,7 +1346,7 @@ export default function PackAinubis() {
             { v: `${pct} %`, l: tx('pack.ainubis.stat.read', 'read') },
           ]}
           onMe={() => navigate('/pack/ainubis/knowledge')}
-        />
+        />}
         {/* PC: hľadanie a filtre POD hlavičkou nad mozgom, ako na /map (Matej 22. 9.). */}
         <div className="akv-ptools">
           {search}
@@ -1377,13 +1427,13 @@ export default function PackAinubis() {
       {/* 5. 10. 2026 (test po FLIPe): MOJE ZNALOSTI sú podobrazovka so šípkou späť — lišta
           v polohe AINUBIS splitu tam na PC ležala cez zoznam svetov. To isté otvorený ZVITOK
           (2. kolo testu: lišta cez text článku) — zatvára ho šípka `.zv-back`. */}
-      {plane2 === 'vault' && !knowOpen && !openZ && (
+      {plane2 === 'vault' && !pv && !knowOpen && !openZ && (
         <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
       )}
       {SCROLL_DEMO && openZ && (
         <ScrollView z={openZ} all={scrolls} lang={lang} focus={scrollFocus}
           onClose={closeScroll} onOpen={(i) => openScroll(i)} onUse={askAinubis} onShare={shareScroll}
-          queue={queue} onNext={nextListen} />
+          queue={queue} onNext={nextListen} lock={pv ? lockAction : undefined} />
       )}
       {SCROLL_DEMO && knowOpen && !openZ && (
         <VaultKnowledge scrolls={scrolls} lang={lang} avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial}
@@ -1392,7 +1442,7 @@ export default function PackAinubis() {
           onClose={() => navigate('/pack/ainubis')} onOpen={(i) => openScroll(i)} />
       )}
       {zvToast && <div className="zv-toast" role="status">{zvToast}</div>}
-      <MessagingOverlayHost />
+      {!pv && <MessagingOverlayHost />}
     </div>
   );
 }

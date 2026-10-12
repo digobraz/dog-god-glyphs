@@ -25,7 +25,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, BRAIN_STATE, aiWorld } from '@/components/pack/ainubisSkin';
-import { HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft, HandHeart, HandTrash } from '@/components/pack/HandIcons';
+import { HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft, HandHeart, HandTrash, HandLock } from '@/components/pack/HandIcons';
 
 /** Kresba z kitu `/icons/pack/` cez masku (ten istý zápis ako v PackAinubis). */
 const Ic = ({ ic }: { ic: string }) => (
@@ -156,6 +156,11 @@ ${STAGE_CSS}
 .zv-badge{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
   background:var(--zv-read);color:#03140A;font:700 ${PACK_TEXT.label}px ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;
   outline:3px solid rgba(${BRAIN_STATE.read},0.28);outline-offset:2px;}
+/* NÁHĽAD /magnet — zvitok mimo darčeka: viditeľný, stlmený, so zámkom z kitu. */
+.akv-zv--locked .akv-zvimg img{filter:saturate(.55) brightness(.7);}
+.akv-zv--locked .zv-read{border-style:dashed;color:${AINUBIS.inkDim};}
+.zv-lockbadge{position:absolute;top:${PACK_SPACE.sm}px;left:${PACK_SPACE.sm}px;z-index:2;display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:${PACK_R.pill}px;background:${AINUBIS.surfaceBase};border:1px solid ${AINUBIS.ctaEdge};color:${AINUBIS.ctaA};}
 /* ČIARA POD NADPISOM — zlatá niť AINUBISA, ktorá doznie do tmy (Matej: „chýba vizuál… pod nadpisom línia"). */
 .zv-rule{display:block;height:2px;width:100%;max-width:160px;border-radius:${PACK_R.pill}px;
   background:linear-gradient(90deg, ${AINUBIS.ctaA} 0%, ${AINUBIS.ctaB} 40%, transparent 100%);}
@@ -393,8 +398,10 @@ export function EvidenceBadge({ sd, lang, corner = false }: { sd: number; lang: 
   );
 }
 
-export function ScrollActions({ id, lang, onShare, onTalk }: {
+export function ScrollActions({ id, lang, onShare, onTalk, lock }: {
   id: string; lang: string; onShare: () => void; onTalk: () => void;
+  /** NÁHĽAD /magnet (12. 10. 2026): akcie nič nezapisujú, každá otvorí popup pre Dogypťanov. */
+  lock?: () => void;
 }) {
   const u = scrollUI(lang);
   const saved = useSaved().includes(id);
@@ -411,15 +418,15 @@ export function ScrollActions({ id, lang, onShare, onTalk }: {
   // POČTY pri páči sa a uložení (Matej 3. 10.: „počty musia byť pri likeoch a uloženiach").
   return (
     <div className="zv-acts">
-      <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={() => toggleLiked(id)} aria-label={u.like}>
+      <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={lock ?? (() => toggleLiked(id))} aria-label={u.like}>
         <HandHeart size={20} on={liked} />{/* srdiečko, nie labka — lock §4.2 ❤️, labka = nav + RatingPaws (Matej 4. 10.: „dajme srdiečko“) */}<span className="zv-n">{likes}</span>
       </button>
-      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={() => toggleSaved(id)} aria-label={u.save}><HandStar size={20} filled={saved} /><span className="zv-n">{saves}</span></button>
-      <button type="button" data-k="talk" className={`zv-act${talk > 0 ? ' is-on' : ''}`} onClick={onTalk} aria-label={u.talk}>
+      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={lock ?? (() => toggleSaved(id))} aria-label={u.save}><HandStar size={20} filled={saved} /><span className="zv-n">{saves}</span></button>
+      <button type="button" data-k="talk" className={`zv-act${talk > 0 ? ' is-on' : ''}`} onClick={lock ?? onTalk} aria-label={u.talk}>
         <Ic ic={talk > 0 ? 'chat-right-full' : 'chat'} /><span className="zv-n">{talk}</span>
       </button>
       <button type="button" data-k="share" className={`zv-act${sent ? ' is-on' : ''}`}
-        onClick={() => { onShare(); setSent(true); window.setTimeout(() => setSent(false), 1500); }} aria-label={u.share}>
+        onClick={lock ?? (() => { onShare(); setSent(true); window.setTimeout(() => setSent(false), 1500); })} aria-label={u.share}>
         <HandForward size={20} filled={sent} />
       </button>
     </div>
@@ -427,8 +434,12 @@ export function ScrollActions({ id, lang, onShare, onTalk }: {
 }
 
 /** Karta zvitku v zozname. Videné = karta aspoň 2 s z polovice na obrazovke. */
-export function ScrollCard({ z, lang, worldName, onOpen, onShare }: {
+export function ScrollCard({ z, lang, worldName, onOpen, onShare, lock, locked }: {
   z: DemoScroll; lang: string;
+  /** NÁHĽAD /magnet: akcie otvoria popup, karta nezapisuje videné. */
+  lock?: () => void;
+  /** NÁHĽAD /magnet: zvitok mimo darčeka — viditeľný so zámkom, ťuk otvorí popup (cez onOpen). */
+  locked?: boolean;
   /** Meno sveta z i18n — farbí sa `WORLD_TINT` (Matej 6. 10.: „z karty nie je jasné, aký je to svet“). */
   worldName?: string;
   onOpen: (id: string, focus?: 'pod' | 'src' | 'talk') => void; onShare: (id: string) => void;
@@ -440,7 +451,7 @@ export function ScrollCard({ z, lang, worldName, onOpen, onShare }: {
   const u = scrollUI(lang);
   useEffect(() => {
     const el = ref.current;
-    if (!el || s >= 1) return;
+    if (!el || s >= 1 || lock || locked) return;
     let t = 0;
     const io = new IntersectionObserver(([e]) => {
       window.clearTimeout(t);
@@ -448,12 +459,14 @@ export function ScrollCard({ z, lang, worldName, onOpen, onShare }: {
     }, { threshold: 0.5 });
     io.observe(el);
     return () => { io.disconnect(); window.clearTimeout(t); };
-  }, [z.id, s]);
+  }, [z.id, s, lock, locked]);
   return (
-    <article ref={ref} className="akv-zv" data-zid={z.id} style={aiWorld(z.world)}>
+    <article ref={ref} className={`akv-zv${locked ? ' akv-zv--locked' : ''}`} data-zid={z.id} style={aiWorld(z.world)}>
       <div className="akv-zvimg">
         {z.img && <img src={z.img} alt="" loading="lazy" onClick={() => onOpen(z.id)} />}
-        <ScrollActions id={z.id} lang={lang} onShare={() => onShare(z.id)} onTalk={() => onOpen(z.id, 'talk')} />
+        {locked
+          ? <span className="zv-lockbadge" aria-hidden><HandLock size={20} /></span>
+          : <ScrollActions id={z.id} lang={lang} onShare={() => onShare(z.id)} onTalk={() => onOpen(z.id, 'talk')} lock={lock} />}
       </div>
       <div className="akv-zvt">
         {/* ZNÁMKA V ROHU TEXTOVÉHO BLOKU, NIE KARTY (Matej 5. 10. 2026: *„relevantnosť nesmie byť
@@ -470,15 +483,15 @@ export function ScrollCard({ z, lang, worldName, onOpen, onShare }: {
             pridaj text nad blok, len dve CTA — zdroje budú v detaile“). */}
         <div className="zv-mid">
           <p className="akv-zvv">{x.v}</p>
-          {x.vz && <div className="zv-take">{x.vz}</div>}
+          {x.vz && !locked && <div className="zv-take">{x.vz}</div>}
         </div>
         <div className="zv-ctas">
           {/* STAV JE V CTA (Matej 3. 10.: krúžok s ✓ „aplikovať priamo do CTA… zo začiatku sivé,
               po vypočutí/prečítaní sa označí farebne ako pri tripoch (prejdené)") — zelený tint. */}
           <button type="button" className={`zv-read${s === 2 ? ' is-done' : ''}`} onClick={() => onOpen(z.id)}>
-            {s === 2 && <HandCheck size={14} />}{s === 2 ? u.readDone : u.read}
+            {locked && <HandLock size={14} />}{s === 2 && <HandCheck size={14} />}{s === 2 ? u.readDone : u.read}
           </button>
-          {pod && <button type="button" className="akv-zvsec" onClick={() => onOpen(z.id, 'pod')}><Ic ic="play" />{u.listen} · {fmtSec(pod.sec)}</button>}
+          {pod && !locked && <button type="button" className="akv-zvsec" onClick={() => onOpen(z.id, 'pod')}><Ic ic="play" />{u.listen} · {fmtSec(pod.sec)}</button>}
         </div>
       </div>
     </article>
@@ -548,10 +561,12 @@ const REQ_LANGS: [string, string][] = [
 const POD_TAG: Record<string, string> = { sk: 'SK', en: 'EN', cs: 'CZ' };
 
 /** PODCAST — prehrávač s výberom jazyka, prepisom a žiadosťou o nový jazyk (Matej 4. 10.). */
-function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd }: {
+function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd, lock }: {
   z: DemoScroll; lang: string; onDone: () => void; boxRef: React.RefObject<HTMLDivElement>;
   /** POČÚVAJ ZA SEBOU (8. 10. 2026) — podcast sa spustí sám a po dohraní pustí ďalší zvitok. */
   autoPlay?: boolean; onEnd?: () => void;
+  /** NÁHĽAD /magnet: podcast sa len prehrá, nezapisuje postup ani denník; žiadosť o jazyk otvorí popup. */
+  lock?: () => void;
 }) {
   const u = scrollUI(lang);
   const [want, setWant] = useState<string | undefined>();
@@ -575,7 +590,7 @@ function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd }: {
   const langRef = useRef(pl);
   langRef.current = pl;
   const flushListen = () => {
-    if (playedFrom.current == null) return;
+    if (playedFrom.current == null || lock) return;
     const sec = Math.round((Date.now() - playedFrom.current) / 1000);
     playedFrom.current = null;
     if (sec >= 3) logEvent(z.id, 'listen', { sec, lang: langRef.current, at: Math.round(audio.current?.currentTime || 0) });
@@ -587,6 +602,7 @@ function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd }: {
   if (!pod || !pl) return null;
   // Kam došiel — do postupu najviac raz za 15 s (+ pri pauze a konci), nie pri každom ticku.
   const keep = (sec: number, force = false) => {
+    if (lock) return;
     if (!force && sec - lastSave.current < 15) return;
     lastSave.current = sec;
     saveListen(z.id, sec, pl);
@@ -652,7 +668,7 @@ function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd }: {
               <select value={req} onChange={(e) => setReq(e.target.value)} aria-label={u.other}>
                 {REQ_LANGS.map(([k, n]) => <option key={k} value={k}>{n}</option>)}
               </select>
-              <button type="button" onClick={() => { requestLang(z.id, req); setReqSent(true); }}>{u.reqBtn}</button>
+              <button type="button" onClick={() => { if (lock) { lock(); return; } requestLang(z.id, req); setReqSent(true); }}>{u.reqBtn}</button>
             </div>
           )}
         </div>
@@ -701,11 +717,14 @@ function Gallery({ list, start, label, onClose }: { list: { src: string; cap: st
 }
 
 /** Článok zvitku — vrstva nad VAULTOM s vlastnou adresou. */
-export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShare, queue, onNext }: {
+export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShare, queue, onNext, lock }: {
   z: DemoScroll; all: DemoScroll[]; lang: string; focus?: string | null;
   onClose: () => void; onOpen: (id: string) => void; onUse: () => void; onShare: (id: string) => void;
   /** POČÚVAJ ZA SEBOU — podcast hrá sám a po konci otvorí ďalší (`onNext`). */
   queue?: boolean; onNext?: () => void;
+  /** NÁHĽAD /magnet (12. 10. 2026): článok je len na čítanie a počúvanie, bez postupu, denníka,
+   *  srdiečka, uloženia, návrhu aj diskusie. Akcie otvoria popup pre Dogypťanov. */
+  lock?: () => void;
 }) {
   const u = scrollUI(lang);
   const x = pickText(z, lang);
@@ -727,7 +746,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
   const gallery = galleryOf(z, x.d);
 
   // Otvorenie článku = videné. Telo pod vrstvou nescrolluje (kôš 2, ako StoryView).
-  useEffect(() => { markScroll(z.id, 1); logEvent(z.id, 'open'); }, [z.id]);
+  useEffect(() => { if (lock) return; markScroll(z.id, 1); logEvent(z.id, 'open'); }, [z.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -738,7 +757,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = endRef.current;
-    if (!el || s === 2) return;
+    if (!el || s === 2 || lock) return;
     const opened = Date.now();
     let t = 0;
     const io = new IntersectionObserver(([e]) => {
@@ -765,7 +784,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
         <div className="zv-top">
           <div className="zv-hero">
             {z.img && <img src={z.img} alt="" onClick={() => setGal(0)} />}
-            <ScrollActions id={z.id} lang={lang} onShare={() => onShare(z.id)} onTalk={() => talkRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+            <ScrollActions id={z.id} lang={lang} onShare={() => onShare(z.id)} onTalk={() => talkRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} lock={lock} />
           </div>
           <div className="zv-head">
             {/* Známka v rohu bloku ako na karte (Matej 4. 10.: „v detaile dať známku na kraj ako pri náhľade“). */}
@@ -781,7 +800,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
               {x.vz && <div className="zv-take" style={{ alignSelf: 'stretch' }}>{x.vz}</div>}
             </div>
             <PodcastBox z={z} lang={lang} boxRef={podRef} onDone={() => markScroll(z.id, 2, 'listen')}
-              autoPlay={queue} onEnd={queue ? onNext : undefined} />
+              autoPlay={queue} onEnd={queue ? onNext : undefined} lock={lock} />
           </div>
         </div>
 
@@ -821,7 +840,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
             </div>
           </section>}
 
-          <section className="zv-box zv-box--you">
+          {!lock && <section className="zv-box zv-box--you">
           <h3 className="zv-sec">{u.contrib}</h3>
           {/* Z troch tlačidiel jedno (Matej 3. 10.): NAVRHNÚŤ ZMENU → druh návrhu + text → AINUBIS posúdi. */}
           <button type="button" className={`zv-prop${propOpen ? ' is-open' : ''}`} onClick={() => { setPropOpen(v => !v); setPropSent(false); }}>
@@ -841,17 +860,17 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
             </form>
           )}
           {propSent && <div className="zv-ok">{u.propOk}</div>}
-          </section>
+          </section>}
 
-          <button type="button" className={`zv-done${s === 2 ? ' is-done' : ''}`} onClick={() => markScroll(z.id, 2)}>
+          {!lock && <button type="button" className={`zv-done${s === 2 ? ' is-done' : ''}`} onClick={() => markScroll(z.id, 2)}>
             <b>{s === 2 && <HandCheck size={12} />} {s === 2 ? u.doneOk : u.done}</b>
             {s !== 2 && <small>{u.doneSub}</small>}
-          </button>
+          </button>}
 
           {/* DISKUSIA — komentáre k celému článku, „ako také fórum" (Matej 3. 10.).
               Od 6. 10. 2026 v DB: príspevok v `posts` so ŠTÍTKOM `vault` (lock /pack §4.3),
               vidia ho všetci členovia — `vaultScrolls.ts` § diskusia. */}
-          <section className="zv-box zv-box--talk" ref={talkRef}>
+          {!lock && <section className="zv-box zv-box--talk" ref={talkRef}>
             <h3 className="zv-sec">{u.talk}{talkList.length > 0 && ` · ${talkList.length}`}</h3>
             {talkList.length === 0 && <div className="zv-add">{u.talkNone}</div>}
             {talkList.map((c, i) => (
@@ -894,7 +913,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
                 <button type="submit" className="zv-chip" disabled={sending || (!draft.trim() && !pic)}>{u.talkSend}</button>
               </div>
             </form>
-          </section>
+          </section>}
         </div>
       </div>
     </div>

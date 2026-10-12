@@ -1,4 +1,5 @@
 import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
+import { useMagnetPreview } from './magnetPreview';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
@@ -309,7 +310,13 @@ function NavGrain({ radius, opacity = 0.3, inset = 0 }: { radius: number | strin
 // tab-switching feels identical everywhere). DEV_FULL-gated — LIVE pack stays
 // trimmed (nav hidden). Dogs (svorka) + Messages moved off the bar: Dogs lives
 // in the avatar menu, Messages moved to the global PackTopRight hub.
-export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: string | null; avatarInitial?: string; dogs?: PackDog[] } = {}) {
+/** V náhľade `/magnet/*` lišta NIE JE — miesto nej stojí lišta s CTA z `magnetPreview.tsx`
+ *  (Matej 12. 10.: *„1:1 s /pack (bez navu)"*). Obal, aby háčiky lišty bežali vždy rovnako. */
+export function PackBottomNav(props: { avatarUrl?: string | null; avatarInitial?: string; dogs?: PackDog[] } = {}) {
+  return useMagnetPreview() ? null : <PackBottomNavBar {...props} />;
+}
+
+function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: string | null; avatarInitial?: string; dogs?: PackDog[] } = {}) {
   const t = useT();
   const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
   const navigate = useNavigate();
