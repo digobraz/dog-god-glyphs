@@ -162,6 +162,8 @@ const lazyPack = <T extends ComponentType<any>>(f: () => Promise<{ default: T }>
 const MapGate = lazyPack(() => import("@/components/pack/MapGate").then((m) => ({ default: m.MapGate })));
 const Terms = lazy(() => import("./pages/Terms.tsx"));
 const Privacy = lazy(() => import("./pages/Privacy.tsx"));
+// /magnet — predajná stránka len cez odkaz (12. 10. 2026): noindex, nikde neprelinkovaná.
+const Magnet = lazy(() => import("./pages/Magnet.tsx"));
 const Pack = lazyPack(() => import("./pages/Pack.tsx"));
 const PackDogDetail = lazyPack(() => import("./pages/PackDogDetail.tsx"));
 const PackProfile = lazyPack(() => import("./pages/PackProfile.tsx"));
@@ -509,6 +511,7 @@ const App = () => (
               )}
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/magnet" element={<Magnet />} />
 
               {/* Pack backoffice auth — magic link callback */}
               <Route path="/login" element={<Login />} />

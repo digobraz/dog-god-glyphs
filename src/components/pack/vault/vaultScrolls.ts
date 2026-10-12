@@ -107,6 +107,28 @@ export function useDemoScrolls(): DemoScroll[] {
   return list;
 }
 
+/** VEREJNÉ ZVITKY pre `/magnet` (12. 10. 2026) — bez prihlásenia, cez funkciu
+ *  `magnet_scrolls()` (migrácia 20261026). Tabuľka ostáva len pre členov. */
+let pubCache: DemoScroll[] | null = null;
+export function usePublicScrolls(): DemoScroll[] {
+  const [list, setList] = useState<DemoScroll[]>(pubCache || []);
+  useEffect(() => {
+    if (pubCache) return;
+    let on = true;
+    void (async () => {
+      const { data, error } = await db.rpc('magnet_scrolls');
+      let l: DemoScroll[] = !error && data?.length ? data.map(fromRow) : [];
+      if (!l.length && import.meta.env.DEV) {
+        l = await fetch('/vault-demo/zvitky.json').then((r) => (r.ok ? r.json() : [])).then((j) => j.map(fromDemo)).catch(() => []);
+      }
+      pubCache = l;
+      if (on) setList(l);
+    })();
+    return () => { on = false; };
+  }, []);
+  return list;
+}
+
 // ── POSTUP ČLENA (`vault_reads`) ─────────────────────────────────────────────
 export type ReadRow = {
   scroll_id: string; seen_at: string | null; read_at: string | null; listened_at: string | null;

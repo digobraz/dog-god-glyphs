@@ -58,6 +58,7 @@ import { LAPIS } from '@/components/pack/navGoldSkin';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
 import Iphone15Pro, { IPHONE_H, IPHONE_W } from '@/components/ui/iphone-15-pro';
 import { filmDefer } from './filmDefer';
+import { APP_CHIPS, APPS_TYPE_CSS } from './filmAppsType';
 
 type AppFeature = {
   id: string;
@@ -95,15 +96,6 @@ const POP_CHIPS: Record<string, { labelKey: string; name: string; href: string; 
   ainubis: { labelKey: 'onepage.apps.claude', name: 'Claude', href: 'https://claude.ai', icon: 'claude' },
 };
 
-const APP_CHIPS: { name: string; icon?: string }[] = [
-  { name: 'Google', icon: 'google' },
-  { name: 'Instagram', icon: 'instagram' },
-  { name: 'Facebook', icon: 'facebook' },
-  { name: 'Tinder', icon: 'tinder' },
-  { name: 'Tripadvisor', icon: 'tripadvisor' },
-  { name: 'AllTrails', icon: 'alltrails' },
-  { name: 'Skool' },
-];
 
 const bn = (id: string, n = 4) => Array.from({ length: n }, (_, i) => `onepage.apps.${id}.b${i + 1}`);
 
@@ -600,66 +592,16 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           opacity: calc(var(--r, 0) * (1 - var(--sx, 0)));
           transform: translateY(calc((1 - var(--r, 0)) * 32px - var(--sx, 0) * 24px));
         }
-        .op-apps-lead {
-          margin: 16px auto 0; max-width: 640px;
-          font: 500 14px/1.4 'Space Grotesk', sans-serif; color: rgba(35,22,8,.7);
-        }
-        .op-apps-tail { margin-top: 8px; }
-        /* PILULKA — štítok (PACK_BLOCKS): zlatý obrys = konštrukcia, nie akcia; text, nie logo. */
-        .op-apps-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 12px auto 0; padding: 0; list-style: none; max-width: 640px; }
-        .op-apps-chips li {
-          padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(201,154,63,.6); background: rgba(255,255,255,.55);
-          font: 600 12px/1 'Space Grotesk', sans-serif; letter-spacing: .02em; color: ${LAB.ink};
-          display: inline-flex; align-items: center; gap: 6px;
-        }
-        .op-apps-chips li i {
-          width: 14px; height: 14px; flex: 0 0 auto; background: currentColor;
-          -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat;
-        }
-        .op-apps-clone { display: none !important; }
-        .op-apps-chips li.op-apps-chip-more { border-style: dashed; background: transparent; font-weight: 500; font-style: italic; }
+${APPS_TYPE_CSS}
         /* PC sa nemení (Matej ladí mobil) — pilulky a „klikni“ len do 767 px. */
         /* PC = TO ISTÉ, ČO MOBIL (Matej 6. 10. 2026: *„chipy daj aj na PC… obsah, ktorý sme doplnili,
            by mal byť aj na PC"*): veta „Jedna appka…", pilulky a „— pre svet priateľský k psom".
            Veta sub1 ustupuje ako na mobile (nesie ju veta nad pilulkami). „klikni“ ostáva len mobilu —
            na PC je pri funkcii tlačidlo DETAIL. */
         .op-apps-hint, .op-apps-sub { display: none; }
-        @media (min-width: 768px) {
-          .op-apps-lead { font-size: 16px; }
-          .op-apps-marq {
-            width: min(1040px, 92vw); margin: 12px auto 0; overflow: hidden;
-            -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-            mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-          }
-          .op-apps-chips {
-            flex-wrap: nowrap; justify-content: flex-start; width: max-content; max-width: none; margin: 0;
-            padding: 0 8px 0 0; animation: opAppsMarq 38s linear infinite;
-          }
-          .op-apps-chips li { flex: none; white-space: nowrap; }
-          .op-apps-chips li.op-apps-clone { display: inline-flex !important; }
-          .op-apps-marq:hover .op-apps-chips { animation-play-state: paused; }
-          @keyframes opAppsMarq { to { transform: translateX(-50%); } }
-          @media (prefers-reduced-motion: reduce) { .op-apps-chips { animation: none; } }
-          .op-apps-chips li { padding: 6px 16px; font-size: 14px; }
-          .op-apps-chips li i { width: 16px; height: 16px; }
-        }
         .op-apps-sub {
           margin: 16px auto 0; max-width: 640px;
           font: 400 clamp(14px, 1.4vw, 20px)/1.5 'Space Grotesk', sans-serif; color: ${LAB.ink};
-        }
-        /* Zlatá čiara pod nadpisom — tá istá ako pod VÍZIOU (.vhero-h2::after,
-           Matej 27. 9.: *„pod nadpis dať čiaru ako je pod víziou"*). */
-        .op-apps-h2::after, .op-apps-name::after {
-          content: ''; position: absolute; bottom: 0; height: 2px;
-          background: linear-gradient(90deg, rgba(201,154,63,0) 0%, rgba(201,154,63,.85) 22%, rgba(201,154,63,.85) 78%, rgba(201,154,63,0) 100%);
-        }
-        .op-apps-h2::after { left: 50%; transform: translateX(-50%); width: min(220px, 60%); }
-        .op-apps-h2 {
-          position: relative; padding-bottom: 16px;
-          margin: 0; text-align: center;
-          font: 700 clamp(24px, 4.2vw, 56px)/1.1 'Cinzel', serif; letter-spacing: .06em; text-transform: uppercase;
-          background: linear-gradient(90deg, #8A6420, #C99A3F 30%, #E8C35A 50%, #C99A3F 70%, #8A6420);
-          -webkit-background-clip: text; background-clip: text; color: transparent;
         }
         /* Súprava: bod (0,0) = stred predného telefónu; polohu píše réžia. */
         .op-apps-rig {
@@ -728,19 +670,6 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           transition: opacity .7s ease-in-out, visibility .7s;
         }
         .op-apps-txt.is-on { opacity: 1; visibility: visible; pointer-events: auto; }
-        .op-apps-eye {
-          margin: 0 0 8px; font: 500 11px/1.4 'Space Grotesk', sans-serif; letter-spacing: .22em;
-          text-transform: uppercase; color: rgba(35,22,8,.6);
-        }
-        /* Pri nadpise zarovnanom doľava čiara vychádza z plnej zlatej a doznieva. */
-        .op-apps-name::after {
-          left: 0; width: min(200px, 70%);
-          background: linear-gradient(90deg, rgba(201,154,63,.9) 0%, rgba(201,154,63,.85) 55%, rgba(201,154,63,0) 100%);
-        }
-        .op-apps-name {
-          position: relative; padding-bottom: 16px;
-          margin: 0 0 8px; white-space: nowrap; font: 700 clamp(24px, 3vw, 40px)/1.1 'Cinzel', serif; letter-spacing: .06em; color: #8A6420;
-        }
         /* ODRÁŽKY = RIADKY (Matej 27. 9.: *„zatraktívni… urob tam riadky,
            pulzujúce odrážky, skrátka nejak to oživiť"*). Deliace čiary ako vo
            VÍZII, bod = lapisová bodka s vlnou (hotspot DOGTRIXu), riadky
