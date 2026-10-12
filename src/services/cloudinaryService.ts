@@ -66,8 +66,12 @@ export const uploadPackDogPhoto = (blob: Blob, sessionId: string, dogId: string)
 // `payload.photos` v DB nesmie niesť base64 — sem idú predtým, než sa riadok upsertne.
 // Cesta zámerne `pack-trips/<slug>/...`, NIE `trails/<slug>/...` — ten priečinok už nesie fotky
 // 77 kurátorovaných tripov (slug tam nemožno premenovať, viď CLAUDE.md), kolízia by ich prepísala.
+// 🔴 `public_id` = index + ČAS, nie holý index (12. 10. 2026, Danka #42 Dreilindenpark).
+//    Nová fotka posunutá na titulku dostala index 0 = adresu `00`, ktorú už mala pôvodná
+//    titulka. Unsigned preset neprepisuje: Cloudinary vrátil URL STAREJ fotky (rovnaká
+//    `v…` verzia), nová sa nikam neuložila a v `photos` stála stará titulka dvakrát.
 export const uploadPackTripPhoto = (blob: Blob, slug: string, index: number) =>
-  uploadBlob(blob, `pack-trips/${slug}`, String(index).padStart(2, '0'));
+  uploadBlob(blob, `pack-trips/${slug}`, `${String(index).padStart(2, '0')}-${Date.now().toString(36)}`);
 
 // Fotka priložená k zápisu do denníka psa (KROK 5, `components/pack/diary/`).
 // ⚠️ Priečinok je `dog-diary/<dogId>`, NIE `dogs/<...>` — `dogs/` nesie profilové fotky
