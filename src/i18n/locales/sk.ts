@@ -1010,7 +1010,7 @@ export const sk: Partial<Dict> = {
   'onepage.need.misGoal': 'obrovská sila komunity, ktorá koná dobro.',
   'onepage.need.goal': 'Náš cieľ',
   'onepage.cue.next': 'Ďalej',
-  'onepage.seo.title': 'DOGYPT — Tvoj pes je tu bohom',
+  'onepage.seo.title': 'DOGYPT — Tvoj pes tu je bohom',
   'onepage.seo.desc': 'Každý pes na Zemi tu má svoje miesto. Je už ten tvoj na planéte?',
   'onepage.cue.more': 'Posuň nižšie pre viac info',
   'onepage.cue.story': 'Prescroluj príbeh',
