@@ -34,6 +34,7 @@ import { track } from '@/lib/analytics';
 import { gridTileUrl } from '@/services/cloudinaryService';
 import { Seo } from '@/components/Seo';
 import { DogPlanetLab, type PlanetDog } from './DogPlanetLab';
+import { heroLineFactor, addLabelFactor } from './heroLineEm';
 import { DogCardBody, DOG_CARD_CSS, type DogCardData } from './DogCard';
 import { PORTAL_CSS, PORTAL_REDUCE_MOTION, buildPortal, createSparks } from './dogPortal';
 import { openPhotoConfirm } from './photoConfirm';
@@ -1226,7 +1227,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       // patrí GULI (DogPlanetLab.tsx), stena ostáva na 0.94. Nechávam to zapísané,
       // lebo meranie platí: pri 1.034 klesol vzduch k susednej fotke z 30 na 15 px
       // (PC) a zo 17 na 7 px (mobil), teda strop je tu, nie vyššie.
-      el.style.setProperty('--hero-fs', ((GX / LAB_CARD_SCALE) * 0.94 / 7.25).toFixed(2) + 'px');
+      // Jazyk s dlhším riadkom než EN delí väčším číslom (heroLineEm.ts, 12. 10. 2026).
+      el.style.setProperty('--hero-fs', ((GX / LAB_CARD_SCALE) * 0.94 / (7.25 * heroLineFactor(langRef.current))).toFixed(2) + 'px');
       const btn = el.querySelector('[data-join]');
       btn?.addEventListener('click', (e) => {
         e.preventDefault();  // keep SPA nav; href="/heroglyph/name" exists purely so Googlebot can crawl to it
@@ -1484,7 +1486,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       // a odklepnutá (27. 8., lab), mení sa výhradne stena.
       portal.el.style.setProperty('--ph-rimw', '6px');
       portal.el.style.setProperty('--ph-icok', '0.185');
-      portal.el.style.setProperty('--ph-lblk', '0.072');
+      portal.el.style.setProperty('--ph-lblk', (0.072 / addLabelFactor(langRef.current)).toFixed(4));  // dlhší preklad = menšie (heroLineEm.ts)
       // ── VETA O FOTKE = JEDEN RIADOK (Matej 27. 8. 2026: „you can change photo
       //    daj do jedného riadku"). Odmerané: pri 13 px písme potrebuje 217 px,
       //    strop `.ph-mark` je 0,86 × 260 = 224 px — vošla by, ale s 3 % rezervou.
@@ -2012,15 +2014,24 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     if (!dogsReady) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    // ⚠️ Nadpis ani tagline hera sa tu NEPREPISUJÚ — od 27. 8. 2026 sú to dve
-    // anglické vety natvrdo, presne ako na guli (viď makeHeroCard). Zanikli tým
-    // aj prepisy .hero-tagline, .hero-count-total a .hero-count-dogs; motto,
-    // logo a pilulka s počtom už v hero karte nie sú.
+    // Nadpis hera je od 27. 8. 2026 preložený (wall.hero.l1/l2), takže sa pri
+    // zmene jazyka prepisuje aj s veľkosťou — dlhší preklad = menšie písmo
+    // (heroLineEm.ts). Dovtedy tu ostával nadpis v starom jazyku. Motto, logo
+    // a pilulka s počtom už v hero karte nie sú.
+    const lines = canvas.querySelectorAll<HTMLElement>('.hero-h1 .hero-hl');
+    if (lines.length === 2) {
+      lines[0].innerHTML = goldHtml(t('wall.hero.l1'));
+      lines[1].innerHTML = goldHtml(t('wall.hero.l2'));
+    }
+    const heroCard = lines[0]?.closest('.hero-h1')?.parentElement as HTMLElement | null | undefined;
+    heroCard?.style.setProperty('--hero-fs', ((GX / LAB_CARD_SCALE) * 0.94 / (7.25 * heroLineFactor(lang))).toFixed(2) + 'px');
+    const lead = canvas.querySelector('.hero-lead');
+    if (lead) lead.textContent = t('wall.hero.missingFace');
     const joinBtn = canvas.querySelector('.join-btn');
     if (joinBtn) joinBtn.textContent = t('wall.hero.cta');
     const hektorMsg = canvas.querySelector('.hektor-card .card-open-msg');
     if (hektorMsg) hektorMsg.textContent = t('wall.hektor.msg');
-  }, [t, dogsReady]);
+  }, [t, lang, dogsReady]);
 
   return (
     <>

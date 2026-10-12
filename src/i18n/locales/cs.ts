@@ -5703,8 +5703,8 @@ export const cs: Partial<Dict> = {
   'dogPage.bonesForDog': 'Přidej se přes tuhle stránku a {dog} dostane 20 BONES.',
   'dogPage.bonesNote': 'BONES jsou měna DOGYPTU — připíšou se na účet majitele.',
   // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
-  'wall.hero.l1': "Tvůj *pes* je",
-  'wall.hero.l2': "tady *bohem*.",
+  'wall.hero.l1': "Tvůj *pes* tu",
+  'wall.hero.l2': "je *bohem*.",
   'wall.hero.addPhoto': "Přidej foto<br>svého boha",
 
   // ── stena: popup fotky + hero (6. 10. 2026) ──

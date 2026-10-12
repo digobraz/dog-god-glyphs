@@ -20,7 +20,8 @@
 // na guľu ~2×.
 // ════════════════════════════════════════════════════════════════════════════
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { heroLineFactor, addLabelFactor } from './heroLineEm';
 import {
   NAV_GRAIN, NAV_MOTTLE, NAV_GRAIN_SCREEN_CSS,
 } from '@/components/pack/navGoldSkin';
@@ -372,6 +373,9 @@ export function DogPlanetLab({
   pick?: { n: number; seq: number } | null;
 }) {
   const t = useT();
+  const { lang } = useLang();
+  // Dlhší preklad nadpisu než EN = menšie písmo na mobile (heroLineEm.ts).
+  const heroFactor = heroLineFactor(lang);
   const navigate = useNavigate();
 
   // ── FOTKA PSA ROVNO Z PRVEJ OBRAZOVKY (Matej 26. 8. 2026) ────────────────
@@ -491,6 +495,9 @@ export function DogPlanetLab({
       // `facesKey`) a uzáver by navždy držal prvú hodnotu, teda `null`.
       onPick: () => (photoRef.current ? showConfirm(photoRef.current) : openFirstPicker()),
     });
+    // Dlhší preklad popisku než EN = menšie písmo, inak ho jadro oreže (heroLineEm.ts).
+    const lf = addLabelFactor(lang);
+    if (lf > 1) p.el.style.setProperty('--ph-lblk', (0.10 / lf).toFixed(4));
     host.appendChild(p.el);
     portalApi.current = p;
     portalRef.current = p.el;
@@ -502,7 +509,7 @@ export function DogPlanetLab({
       sparksRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [facesKey, addLabel]);
+  }, [facesKey, addLabel, lang]);
 
   // Fotka sa prepisuje IMPERATÍVNE — jadro sa prekreslí, plátno iskier ostáva.
   useEffect(() => { portalApi.current?.setPhoto(photo); }, [photo]);
@@ -2164,7 +2171,10 @@ export function DogPlanetLab({
               najprv čo tu jeho pes JE, až potom čo od neho chceme.
               ⚠️ Veľké písmená robí CSS (text-transform), nie tento zápis —
               v zdroji ostáva veta čitateľná. */}
-          <h1 className="ph-h1">
+          <h1
+            className="ph-h1"
+            style={heroFactor > 1 ? ({ '--ph-em': (7.5 * heroFactor).toFixed(2) } as React.CSSProperties) : undefined}
+          >
             {/* Matej 27. 8. 2026: *„nadpis daj do 2 riadkoch your dog is-"*,
                 po prvom pokuse *„na mobile to je v 3 riadkoch! (musí to byť na
                 2 max)"*.

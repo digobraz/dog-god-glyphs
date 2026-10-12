@@ -5731,8 +5731,8 @@ export const sk: Partial<Dict> = {
   'pack.nature.nutritionDisclaimer': 'Toto je konštitučný sklon, nie liečebný plán. Ak je tvoj pes na diéte predpísanej veterinárom, tá platí prvá — vždy.',
   // ⟦nature-sk:end⟧
   // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
-  'wall.hero.l1': "Tvoj *pes* je",
-  'wall.hero.l2': "tu *bohom*.",
+  'wall.hero.l1': "Tvoj *pes* tu",
+  'wall.hero.l2': "je *bohom*.",
   'wall.hero.addPhoto': "Pridaj foto<br>svojho boha",
 
   // ── stena: popup fotky + hero (6. 10. 2026) ──
