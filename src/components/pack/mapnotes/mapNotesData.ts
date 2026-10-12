@@ -30,7 +30,7 @@ import { DEV_NOAUTH, devAddNote, devLikeNote, devListNotes, devRemoveNote, devVo
 const db = supabase as any;
 
 /** Druhy zápisov — hodnoty stĺpca `kind`, teda aj CHECK v migrácii. */
-export const NOTE_KINDS = ['parking', 'hazard', 'note', 'water', 'viewpoint', 'wildlife', 'ticks', 'viper', 'bear', 'sheepdog', 'noentry', 'ladders', 'algae'] as const;
+export const NOTE_KINDS = ['parking', 'hazard', 'note', 'water', 'viewpoint', 'wildlife', 'ticks', 'viper', 'bear', 'sheepdog', 'noentry', 'ladders', 'algae', 'cablecar'] as const;
 export type NoteKind = (typeof NOTE_KINDS)[number];
 
 // ── PALETA: TRI SKUPINY, NIE SEDEM TLAČIDIEL (Matej 2026-08-20) ─────────────
@@ -69,7 +69,11 @@ export type NoteGroup = (typeof NOTE_GROUPS)[number];
 export const GROUP_KINDS: Record<NoteGroup, NoteKind[]> = {
   parking: ['parking'],
   warning: ['ticks', 'wildlife', 'viper', 'bear', 'sheepdog', 'ladders', 'algae', 'noentry', 'hazard'],
-  comment: ['note'],
+  // Lanovka je DRUHÝ podtyp TIPU, nie chip aktivity výletu (Matej 2026-10-12: „do chipu, kde
+  // sú všetky veci, by bol zbytočný, netýka sa to 95 % výletov… ako je tip, tak by tam bol
+  // chip lanovka"). Prvý je predvolený, takže TIP ostáva TIPom.
+  // 🔴 Nový podtyp = migrácia CHECKu: `20261025_map_notes_cablecar.sql`.
+  comment: ['note', 'cablecar'],
 };
 
 const WARNING_KINDS = new Set<NoteKind>(GROUP_KINDS.warning);

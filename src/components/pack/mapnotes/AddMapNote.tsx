@@ -521,7 +521,7 @@ export function AddMapNotePanel({
         <button type="button" className="mna-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}><BackIcon /></button>
         <span className="mna-title" style={{ color: GROUP_TINT[group] }}>
           {t(`pack.mapNotes.group.${group}`)}
-          {subKinds.length > 1 && <b className="mna-title-kind">{t(`pack.mapNotes.kind.${kind}`)}</b>}
+          {subKinds.length > 1 && t(`pack.mapNotes.kind.${kind}`) !== t(`pack.mapNotes.group.${group}`) && <b className="mna-title-kind">{t(`pack.mapNotes.kind.${kind}`)}</b>}
         </span>
       </div>
 

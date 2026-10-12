@@ -57,6 +57,8 @@ export const MARK_EMOJI: Record<NoteKind, string> = {
   noentry: '🚫',
   hazard: '⚠️',
   note: '🐶',
+  // 2. podtyp TIPU (Matej 12. 10. 2026) — kruh so zeleným lemom ako TIP, len emoji lanovky.
+  cablecar: '🚡',
   // datasetové body z `heroTrails.generated.ts` (customPoi) — v palete nie sú
   water: '💧',
   viewpoint: '👁️',
