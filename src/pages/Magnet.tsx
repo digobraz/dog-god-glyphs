@@ -28,7 +28,6 @@ import type { LatLngTuple } from 'leaflet';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { Seo } from '@/components/Seo';
 import { PageTopBar } from '@/components/PageTopBar';
-import Iphone15Pro from '@/components/ui/iphone-15-pro';
 import { LAB } from '@/lib/labTheme';
 import { APPS_TYPE_CSS } from '@/components/lab/filmAppsType';
 import { LAPIS, LAPIS_BTN_SHADOW, goldFrameCSS, pickTintCSS } from '@/components/pack/navGoldSkin';
@@ -69,7 +68,6 @@ const TRIP_IDS = [
   'gaderska-dolina-velka-fatra', 'chtelnica-rajska-zahrada-male-karpaty', 'seealpsee', 'sivy-vrch-zapadne-tatry',
   'majdan-klasicky-okruh-male-karpaty', 'velky-choc-chocske-vrchy', 'vintgar-radovna-tiesnava',
 ];
-const APP_IMG = (f: string) => `/images/onepage/apps/${f}.webp?v=10`;
 const QUIZ = [...ELEMENT_QUESTIONS, ...ROLE_QUESTIONS];
 /** FRESKY z Hektorovej knihy (Matej 12. 10.: *„vymyslime nejaku egyptsku fresku ako mame
  *  v hektorovom pribehu"*). Žiadny nový obraz — každý blok dostal výrez z kapitoly, ktorá
@@ -90,11 +88,30 @@ function Bold({ text }: { text: string }) {
   return <>{text.split(/\*\*/).map((p, i) => (i % 2 ? <b key={i}>{p}</b> : <Fragment key={i}>{p}</Fragment>))}</>;
 }
 
+/** PRÍKLADY — skutočné výlety a skutočné zvitky, nič vymyslené. Ťuknutie na príklad
+ *  otvorí presne ten výlet na mape alebo ten zvitok (Matej 12. 10.: *„potrebujeme to
+ *  vysvetliť na príkladoch"*). Kód zvitku = `vault_scrolls.code` (premerané na LIVE). */
+const TRIP_ASK = [
+  { k: 'short', id: 'majdan-klasicky-okruh-male-karpaty' },
+  { k: 'water', id: 'sutovsky-vodopad-buchta-mala-fatra' },
+  { k: 'tatry', id: 'bielovodska-dolina-vysoke-tatry' },
+  { k: 'abroad', id: 'seealpsee' },
+];
+const AI_ASK = [
+  { k: 'castr', code: 'O6-10' },
+  { k: 'year', code: 'O7-1' },
+  { k: 'alone', code: 'O4-10' },
+  { k: 'cost', code: 'O2-3' },
+  { k: 'lost', code: 'O4-7' },
+];
+
 export default function Magnet() {
   const t = useT();
   const { lang } = useLang();
   const tx = (k: string, fb: string) => { const v = t(k); return v === k ? fb : v; };
   const [dogs, setDogs] = useState<number | null>(null);
+  const [trip, setTrip] = useState<number | null>(null);
+  const [scroll, setScroll] = useState<string | null>(null);
   const scrolls = usePublicScrolls();
   useEffect(() => {
     let on = true;
@@ -103,129 +120,125 @@ export default function Magnet() {
   }, []);
   const join = () => openPhotoInvite();
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const back = <button type="button" className="pk-pill pk-pill--tap mg-up" onClick={() => go('mg-q')}>{t('magnet.back')}</button>;
+  const askScroll = (code: string) => { const z = scrolls.find((q) => q.code === code); if (z) setScroll(z.id); };
+  const askTrip = (id: string) => { setTrip(TRIP_IDS.indexOf(id)); go('mg-mapa'); };
 
-  const top = () => go('mg-links');
-  const back = <button type="button" className="pk-pill pk-pill--tap mg-up" onClick={top}>{t('magnet.back')}</button>;
-  const links = [
-    { id: 'mg-dogtrip', img: 'k2-kresba', pos: '50% 50%', name: <>{t('heroglyph.flow.more.dogtrip.t')}</>, sub: t('magnet.link.trip') },
-    { id: 'mg-ainubis', img: 'k4-kresba', pos: '50% 14%', name: <><span className="mg-ai">AI</span>NUBIS</>, sub: t('magnet.link.ai') },
-    { id: 'mg-dogid', img: 'k0-zrkadlo', pos: '50% 45%', name: <>{t('heroglyph.flow.more.dogid.t')}</>, sub: t('magnet.link.dogid') },
-    { id: 'mg-idea', img: 'k1-kresba', pos: '50% 62%', name: <>{t('magnet.feat.dogypt.t')}</>, sub: t('magnet.link.idea') },
-    { id: 'mg-next', img: 'k4-kresba', pos: '50% 80%', name: <>{t('magnet.link.next.t')}</>, sub: t('magnet.link.next') },
-  ];
+  const qs = [
+    { id: 'mg-dogtrip', img: 'k2-kresba', pos: '50% 50%', n: HERO_TRAILS.length, unit: t('magnet.q.trip.unit') },
+    { id: 'mg-ainubis', img: 'k4-kresba', pos: '50% 14%', n: scrolls.length || 108, unit: t('magnet.q.ai.unit') },
+    { id: 'mg-dogid', img: 'k0-zrkadlo', pos: '50% 45%', n: QUIZ.length, unit: t('magnet.q.dogid.unit') },
+    { id: 'mg-help', img: 'k1-kresba', pos: '50% 62%', n: dogs ?? '—', unit: t('magnet.q.help.unit') },
+  ].map((q, i) => ({ ...q, key: ['trip', 'ai', 'dogid', 'help'][i] }));
+  const sample = { el: NATURE_ELEMENTS.fire, ro: NATURE_ROLES.companion };
 
   return (
     <main className="mg-root">
-      <Seo title="DOGYPT — life with your dog in one place" description={t('magnet.hero.lead')} path="/magnet" noindex />
+      <Seo title="DOGYPT — if dogs had a country" description={t('magnet.hero.lead')} path="/magnet" noindex />
       <style>{CSS}</style>
       <div className="mg-top"><PageTopBar /></div>
 
-      {/* ═══ 1 · PROFIL + ROZCESTNÍK — „link in bio" (Matej 12. 10.: výslovne na mobil,
-           nadpis, krátky text, bloky; obsah sekcií až pod nimi) ═══ */}
-      <section className="mg-sec mg-hero" id="mg-links">
+      {/* ═══ ÚVOD — štát psov (Matej 12. 10.: *„AK by mali psy štát, volal by sa DOGYPT…
+           skrátka ak máš psa, musíš tu byť"*) ═══ */}
+      <section className="mg-sec mg-hero">
         <figure className="mg-cover"><img src={FRESCO('k5-kresba')} alt="Hekthor" /></figure>
-        <p className="mg-eye">{t('magnet.hero.eye')}</p>
         <h1 className="mg-h1">{t('magnet.hero.h')}</h1>
-        <p className="mg-lead">{t('magnet.hero.lead')}</p>
-        <div className="mg-stats">
-          <div><b>{dogs ?? '—'}</b><span>{t('magnet.stat.dogs')}</span></div>
-          <div><b>{HERO_TRAILS.length}</b><span>{t('magnet.stat.trips')}</span></div>
-          <div><b>{scrolls.length || '—'}</b><span>{t('magnet.stat.scrolls')}</span></div>
+        <div className="mg-names">
+          {['a', 'b', 'c'].map((k) => <span key={k} className="pk-pill">{t(`magnet.hero.name.${k}`)}</span>)}
         </div>
-        <Band />
+        <p className="mg-lead">{t('magnet.hero.lead')}</p>
+        <p className="mg-punch">{t('magnet.hero.punch')}</p>
+      </section>
+
+      {/* ═══ ŠTYRI OTÁZKY — bloky ako odkazy v IG profile ═══ */}
+      <section className="mg-sec mg-qs" id="mg-q">
+        <p className="mg-eye">{t('magnet.q.eye')}</p>
+        <h2 className="op-apps-h2">{t('magnet.q.h')}</h2>
         <nav className="mg-links">
-          {links.map((l, i) => (
-            <button type="button" key={l.id} className="mg-link" style={PACK_BOX.card} onClick={() => go(l.id)}>
-              <span className="mg-fresco"><img src={FRESCO(l.img)} alt="" style={{ objectPosition: l.pos }} loading={i < 2 ? 'eager' : 'lazy'} /></span>
-              <span className="mg-link-t"><b>{l.name}</b><small>{l.sub}</small></span>
+          {qs.map((q) => (
+            <button type="button" key={q.id} className="mg-link" style={PACK_BOX.card} onClick={() => go(q.id)}>
+              <span className="mg-fresco"><img src={FRESCO(q.img)} alt="" style={{ objectPosition: q.pos }} /></span>
+              <span className="mg-link-t">
+                <b>{t(`magnet.q.${q.key}`)}</b>
+                <small>{t(`magnet.q.${q.key}.eg`)}</small>
+                <em><strong>{q.n}</strong> {q.unit}</em>
+              </span>
             </button>
           ))}
-          <button type="button" className="mg-cta mg-cta--full" onClick={join}>{t('magnet.cta')} · 11 €</button>
         </nav>
       </section>
 
-      <div className="mg-sec mg-sep"><Band /></div>
-      {/* ═══ 3 · DOGTRIP ═══ */}
+      {/* ═══ 1 · KAM NA VÝLET? ═══ */}
       <section className="mg-sec" id="mg-dogtrip">
-        <p className="mg-eye">{t('magnet.trip.eye')}</p>
-        <h2 className="op-apps-h2">{t('magnet.trip.h')}</h2>
+        <p className="mg-num">01</p>
+        <h2 className="op-apps-h2">{t('magnet.q.trip')}</h2>
         <p className="mg-lead">{t('magnet.trip.lead', { n: HERO_TRAILS.length })}</p>
-        <TripMap lang={lang} t={t} />
-        <div className="mg-pair">
-          <div className="mg-ph1"><Iphone15Pro src={APP_IMG('dogtrip-odznaky')} imgProps={{ loading: 'lazy' }} /></div>
-          <div className="mg-ph1"><Iphone15Pro src={APP_IMG('dogtrip-stats')} imgProps={{ loading: 'lazy' }} /></div>
-          <ul className="mg-ul">
-            {[1, 2, 3, 4].map((i) => <li key={i}><i aria-hidden />{t(`onepage.apps.dogtrip.b${i}`)}</li>)}
-          </ul>
-        </div>
+        <Asks label={t('magnet.eg')} items={TRIP_ASK.map((a) => ({ q: t(`magnet.trip.ask.${a.k}`), on: () => askTrip(a.id) }))} />
+        <div id="mg-mapa"><TripMap lang={lang} t={t} pick={trip} setPick={setTrip} /></div>
+        <ul className="mg-ul">
+          {[1, 2, 3, 4].map((i) => <li key={i}><i aria-hidden />{t(`onepage.apps.dogtrip.b${i}`)}</li>)}
+        </ul>
         {back}
       </section>
 
-      {/* ═══ 4 · AINUBIS ═══ */}
+      {/* ═══ 2 · ČO JE PRE PSA SPRÁVNE? ═══ */}
       <section className="mg-ai-band" id="mg-ainubis">
         <div className="mg-ai-bg" aria-hidden />
         <div className="mg-sec mg-sec--ai">
-          <p className="mg-eye mg-eye--ai"><span className="mg-ai">AI</span>NUBIS · {t('magnet.ai.eye').split('·')[1]?.trim()}</p>
-          <h2 className="op-apps-h2">{t('magnet.ai.h')}</h2>
+          <p className="mg-num mg-num--ai">02</p>
+          <h2 className="op-apps-h2">{t('magnet.q.ai')}</h2>
           <p className="mg-lead mg-lead--ai">{t('magnet.ai.lead')}</p>
+          <Asks dark label={t('magnet.eg')} items={AI_ASK.map((a) => ({ q: t(`magnet.ai.ask.${a.k}`), on: () => askScroll(a.code) }))} />
           <p className="mg-free">{t('magnet.ai.free')}</p>
-          <AinubisDeck scrolls={scrolls} lang={lang} t={t} tx={tx} onJoin={join} />
+          <AinubisDeck scrolls={scrolls} lang={lang} t={t} tx={tx} onJoin={join} open={scroll} setOpen={setScroll} />
           {back}
         </div>
       </section>
 
-      <div className="mg-sec mg-sep"><Band /></div>
-      {/* ═══ 5 · DOG ID KVÍZ ═══ */}
+      {/* ═══ 3 · KTO JE MÔJ PES? ═══ */}
       <section className="mg-sec" id="mg-dogid">
-        <p className="mg-eye">{t('magnet.quiz.eye')}</p>
-        <h2 className="op-apps-h2">{t('magnet.quiz.h')}</h2>
+        <p className="mg-num">03</p>
+        <h2 className="op-apps-h2">{t('magnet.q.dogid')}</h2>
         <p className="mg-lead">{t('magnet.quiz.lead', { n: QUIZ.length })}</p>
-        <div className="mg-quizrow">
-          <NatureQuiz t={t} lang={lang} onJoin={join} />
-          <ul className="mg-ul">
-            {[1, 2, 3, 4].map((i) => <li key={i}><i aria-hidden />{t(`onepage.apps.dogid.b${i}`)}</li>)}
-          </ul>
-        </div>
-        {back}
-      </section>
-
-      <div className="mg-sec mg-sep"><Band /></div>
-      {/* ═══ 6 · MYŠLIENKA ═══ */}
-      <section className="mg-sec" id="mg-idea">
-        <div className="mg-idea">
-          <div className="mg-idea-ph">
-            <span className="pk-photo pk-photo--card"><img src="/images/about-hekthor.webp" alt="Hekthor" loading="lazy" /></span>
-            <img className="mg-idea-gl" src="/images/hekthor-heroglyph.webp" alt="" loading="lazy" />
-          </div>
-          <div>
-            <p className="mg-eye mg-left">{t('magnet.idea.eye')}</p>
-            <h2 className="op-apps-name mg-wrap">{t('magnet.idea.h')}</h2>
-            <p className="mg-p">{t('magnet.idea.p1')}</p>
-            <p className="mg-p"><b>{t('magnet.idea.p2')}</b></p>
-            <div className="mg-split" style={PACK_BOX.subblock}>
-              <div className="mg-split-bar">
-                {TRANSPARENCY_SPLIT.map((s) => (
-                  <span key={s.labelKey} style={{ flex: s.share, background: s.color }}>{s.share} €</span>
-                ))}
-              </div>
-              <div className="mg-split-l">
-                {TRANSPARENCY_SPLIT.map((s) => <span key={s.labelKey}><i style={{ background: s.color }} aria-hidden />{s.share} € · {t(s.labelKey)}</span>)}
-              </div>
-              <p>{t('magnet.idea.split')}</p>
+        <div className="mg-sample" style={PACK_BOX.subblock}>
+          <p className="mg-eye mg-left">{t('magnet.quiz.sample')}</p>
+          <div className="mg-sample-row">
+            <span className="pk-photo"><img src={sample.ro.art} alt="" loading="lazy" /></span>
+            <div>
+              <h3>{t(sample.ro.i18n)} {t(`${sample.el.i18n}.of`)}</h3>
+              <p><Bold text={t(`${sample.el.i18n}.summary`)} /></p>
             </div>
           </div>
         </div>
+        <div className="mg-quizrow">
+          <NatureQuiz t={t} lang={lang} onJoin={join} />
+        </div>
         {back}
       </section>
 
-      <div className="mg-sec mg-sep"><Band /></div>
-      {/* ═══ 7 · KOMUNITA ═══ */}
-      <section className="mg-sec" id="mg-next">
-        <p className="mg-eye">{t('magnet.next.eye')}</p>
-        <h2 className="op-apps-h2">{t('magnet.next.h')}</h2>
-        <p className="mg-lead">{t('magnet.next.lead')}</p>
-        <div className="mg-next">
-          {['app', 'vet', 'longevity', 'eternal'].map((k) => <span key={k} className="pk-pill">{t(`magnet.next.${k}`)}</span>)}
+      {/* ═══ 4 · AKO POMÔCŤ PSOM? ═══ */}
+      <section className="mg-sec" id="mg-help">
+        <p className="mg-num">04</p>
+        <h2 className="op-apps-h2">{t('magnet.q.help')}</h2>
+        <p className="mg-lead">{t('magnet.help.lead')}</p>
+        <div className="mg-ways">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="mg-way" style={PACK_BOX.subblock}>
+              <b>{t(`magnet.help.w${i}.t`)}</b>
+              <p>{t(`magnet.help.w${i}`)}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mg-split" style={PACK_BOX.subblock}>
+          <div className="mg-split-bar">
+            {TRANSPARENCY_SPLIT.map((sp) => (
+              <span key={sp.labelKey} style={{ flex: sp.share, background: sp.color }}>{sp.share} €</span>
+            ))}
+          </div>
+          <div className="mg-split-l">
+            {TRANSPARENCY_SPLIT.map((sp) => <span key={sp.labelKey}><i style={{ background: sp.color }} aria-hidden />{sp.share} € · {t(sp.labelKey)}</span>)}
+          </div>
+          <p>{t('magnet.idea.split')}</p>
         </div>
         <figure className="mg-quote" style={PACK_BOX.card}>
           <span aria-hidden>“</span>
@@ -235,16 +248,27 @@ export default function Magnet() {
         {back}
       </section>
 
-      <div className="mg-sec mg-sep"><Band /></div>
-      {/* ═══ 8 · CTA ═══ */}
+      {/* ═══ ZÁVER — občianstvo ═══ */}
       <section className="mg-sec mg-end">
-        <h2 className="op-apps-h2">{t('magnet.end.h')}</h2>
+        <Band />
+        <h2 className="op-apps-h2 mg-endh">{t('magnet.end.h')}</h2>
+        <p className="mg-p mg-center">{t('magnet.idea.p2')}</p>
         <p className="mg-price">11 €</p>
         <p className="mg-pricesub">{t('magnet.end.sub')}</p>
         <button type="button" className="mg-cta" onClick={join}>{t('magnet.cta')}</button>
         <p className="mg-motto">{t('legal.motto')}</p>
       </section>
     </main>
+  );
+}
+
+/** „Napríklad:" — otázky ako bubliny; ťuk = otvorí odpoveď. */
+function Asks({ label, items, dark }: { label: string; items: { q: string; on: () => void }[]; dark?: boolean }) {
+  return (
+    <div className={`mg-asks${dark ? ' mg-asks--dark' : ''}`}>
+      <p className="mg-asks-l">{label}</p>
+      {items.map((it) => <button type="button" key={it.q} className="mg-ask" onClick={it.on}>{it.q}</button>)}
+    </div>
   );
 }
 
@@ -270,12 +294,11 @@ function FitAll({ paths, ids, pick }: { paths: LatLngTuple[][]; ids: string[]; p
   return null;
 }
 
-function TripMap({ lang, t }: { lang: string; t: TFn }) {
+function TripMap({ lang, t, pick, setPick }: { lang: string; t: TFn; pick: number | null; setPick: (i: number) => void }) {
   useEffect(() => { ensureTrailLineCss(); }, []);
   const trips = useMemo(() => TRIP_IDS.map((id) => HERO_TRAILS.find((x) => x.id === id)).filter(Boolean) as HeroTrail[], []);
   const ids = useMemo(() => trips.map((x) => x.id), [trips]);
   const paths = useMemo(() => trips.map((x) => x.path as LatLngTuple[]), [trips]);
-  const [pick, setPick] = useState<number | null>(null);
   const cur = pick == null ? null : trips[pick];
   const name = (x: HeroTrail) => (lang === 'sk' || lang === 'cs' ? x.name : x.nameEN || x.name);
   return (
@@ -328,14 +351,14 @@ function TripMap({ lang, t }: { lang: string; t: TFn }) {
 // ══════════════════════════════════════════════════════════════════════════
 // AINUBIS — AI-PALUBA: vľavo zvitky (ScrollCard z /pack), vpravo mozog
 // ══════════════════════════════════════════════════════════════════════════
-function AinubisDeck({ scrolls, lang, t, tx, onJoin }: {
+function AinubisDeck({ scrolls, lang, t, tx, onJoin, open, setOpen }: {
   scrolls: DemoScroll[]; lang: string; t: TFn; tx: (k: string, fb: string) => string; onJoin: () => void;
+  open: string | null; setOpen: (id: string | null) => void;
 }) {
   const cvRef = useRef<HTMLCanvasElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const brain = useRef<BrainHandle | null>(null);
-  const [open, setOpen] = useState<string | null>(null);
   const [world, setWorld] = useState<string | null>(null);
   const names = VAULT_WORLDS.map((w) => tx(`pack.ainubis.world.${w.key}`, w.en));
   const live = useRef({ scrolls, names, lang });
@@ -586,15 +609,52 @@ ${MAP_ATTR_CSS}
 .mg-sep{padding-top:0;padding-bottom:0;}
 .mg-sep .mg-band{margin:0;}
 
-/* ROZCESTNÍK — KARTA s freskou navrchu a menom pod ňou; akcia = jediné lapis CTA. */
-.mg-links{display:flex;flex-direction:column;gap:${S.lg}px;margin-top:${S.xl}px;}
-.mg-link{display:block;padding:${S.sm}px;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:transform .15s ease;}
+/* ÚVOD — tri mená DOGYPTU ako štítky, pointa tmavým atramentom. */
+.mg-hero .mg-h1{font-size:${PACK_TEXT.h1}px;}
+.mg-names{display:flex;flex-wrap:wrap;justify-content:center;gap:${S.sm}px;margin-top:${S.lg}px;}
+.mg-punch{margin:${S.lg}px 0 0;font:700 ${PACK_TEXT.h2}px/1.3 ${FONT_TITLE};letter-spacing:.06em;color:${FRESCO_RED};}
+.mg-center{text-align:center;}
+
+/* OTÁZKY — KARTA: freska vľavo, otázka + príklad + počet vpravo. */
+.mg-qs{padding-top:${S.lg}px;}
+.mg-links{display:flex;flex-direction:column;gap:${S.md}px;margin-top:${S.xl}px;}
+.mg-link{display:grid;grid-template-columns:112px 1fr;gap:${S.md}px;align-items:stretch;padding:${S.sm}px;cursor:pointer;
+  text-align:left;font:inherit;color:inherit;transition:transform .15s ease;}
 .mg-link:hover{transform:translateY(-2px);}
-.mg-fresco{position:relative;display:block;aspect-ratio:12/5;border-radius:${PACK_R.tile}px;overflow:hidden;}
-.mg-link-t{display:block;padding:${S.md}px ${S.sm}px ${S.sm}px;}
-.mg-link b{display:block;font:700 ${PACK_TEXT.h2}px/1.2 ${FONT_TITLE};letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
-.mg-link small{display:block;margin-top:${S.xs}px;font:400 ${PACK_TEXT.body}px/1.4 ${FONT_UI};color:${T.inkWarm};}
-.mg-links .mg-cta--full{margin-top:${S.sm}px;}
+.mg-fresco{position:relative;display:block;min-height:112px;border-radius:${PACK_R.tile}px;overflow:hidden;}
+.mg-link-t{display:flex;flex-direction:column;justify-content:center;gap:${S.xs}px;padding:${S.xs}px ${S.xs}px ${S.xs}px 0;}
+.mg-link b{font:700 ${PACK_TEXT.lead}px/1.2 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
+.mg-link small{font:400 ${PACK_TEXT.label}px/1.4 ${FONT_UI};color:${T.inkWarm};}
+.mg-link em{font:500 ${PACK_TEXT.micro}px/1.3 ${FONT_UI};font-style:normal;letter-spacing:.22em;text-transform:uppercase;color:${LAB.inkSoft};}
+.mg-link em strong{font:700 ${PACK_TEXT.body}px/1 ${FONT_TITLE};letter-spacing:0;color:${FRESCO_RED};}
+
+/* SEKCIA — poradové číslo otázky nad nadpisom. */
+.mg-num{margin:0 0 ${S.sm}px;font:700 ${PACK_TEXT.h1}px/1 ${FONT_TITLE};color:${FRESCO_RED};}
+.mg-num--ai{color:${AINUBIS.ctaA};}
+
+/* NAPRÍKLAD — otázky ako bubliny správ; ťuk otvorí odpoveď. */
+.mg-asks{display:flex;flex-direction:column;align-items:flex-start;gap:${S.sm}px;margin:${S.xl}px 0 ${S.lg}px;text-align:left;}
+.mg-asks-l{margin:0;font:500 ${PACK_TEXT.micro}px/1.4 ${FONT_UI};letter-spacing:.26em;text-transform:uppercase;color:${LAB.goldInk};}
+.mg-ask{max-width:88%;padding:${S.sm}px ${S.md}px;border-radius:${PACK_R.card}px ${PACK_R.card}px ${PACK_R.card}px ${S.xs}px;cursor:pointer;
+  text-align:left;font:500 ${PACK_TEXT.body}px/1.4 ${FONT_UI};color:${LAPIS.ink};background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};border:0;
+  transition:transform .15s ease;}
+.mg-ask:hover{transform:translateY(-1px);}
+.mg-asks--dark .mg-asks-l{color:${AINUBIS.inkDim};}
+.mg-asks--dark .mg-ask{background:rgba(${AINUBIS.cyanRGB},0.14);border:1px solid ${AINUBIS.edgeStrong};color:${AINUBIS.ink};box-shadow:none;}
+
+/* UKÁŽKA VÝSLEDKU KVÍZU. */
+.mg-sample{margin-top:${S.xl}px;padding:${S.lg}px;text-align:left;}
+.mg-sample-row{display:grid;grid-template-columns:96px 1fr;gap:${S.md}px;align-items:center;}
+.mg-sample .pk-photo{aspect-ratio:2/3;}
+.mg-sample h3{margin:0;font:700 ${PACK_TEXT.lead}px/1.2 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
+.mg-sample p{margin:${S.xs}px 0 0;font:400 ${PACK_TEXT.label}px/1.5 ${FONT_UI};color:${LAB.inkBody};}
+
+/* AKO POMÔCŤ — tri cesty ako PODBLOKY. */
+.mg-ways{display:flex;flex-direction:column;gap:${S.sm}px;margin-top:${S.xl}px;text-align:left;}
+.mg-way{padding:${S.md}px ${S.lg}px;}
+.mg-way b{font:700 ${PACK_TEXT.body}px/1.2 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
+.mg-way p{margin:${S.xs}px 0 0;font:400 ${PACK_TEXT.label}px/1.5 ${FONT_UI};color:${LAB.inkBody};}
+.mg-endh{margin-top:${S.xl}px !important;}
 
 /* DOGTRIP — mapa v D-BLOKU, zoznam = RIADKY, detail = PODBLOK. */
 .mg-map{display:grid;grid-template-columns:1fr;gap:${S.md}px;margin-top:${S.xl}px;text-align:left;}
