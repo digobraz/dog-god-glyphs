@@ -97,6 +97,12 @@ const EMOJI_ZOOM = 13;
 // `noteIcons.ts` ostáva knižnicou kresieb pre iné povrchy, len ho už nevolá mapa.
 
 /** Značka pre daný druh ako HTML string — zdieľa ju vrstva aj ťahateľná značka v AddMapNote. */
+/** Trieda šírky bubliny podľa dĺžky textu: do 120 znakov úzka, do 320 stredná, nad tým široká. */
+function bubbleSize(body?: string | null): string {
+  const n = (body ?? '').length;
+  return n > 320 ? ' mn-popup--l' : n > 120 ? ' mn-popup--m' : '';
+}
+
 export function noteMarkHtml(kind: NoteKind, extra = '', dataset = false, disease: TickDisease | null = null): string {
   // ── KRÚŽOK PATRÍ ĽUĎOM, NIE OSM (Matej 2026-08-22) ───────────────────────
   // „datasetové body ktore su načítané z OSM budu bez krúžku a s krúžkom budú
@@ -326,7 +332,10 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
     return (
     <Marker key={n.id} position={[n.lat, n.lon]} icon={noteIcon(n, n.isStale)}>
       <Popup
-        className="mn-popup"
+        /* ŠÍRKA PODĽA DĹŽKY TEXTU (Matej 12. 10. 2026: „tipy sú zbytočne úzke na mape … urob
+           z toho čitateľnú a peknú bublinku = rozšír to … a vždy prispôsob dĺžke"). Krátka
+           poznámka ostáva úzka, dlhý tip dostane širší stĺpec a väčšie písmo. */
+        className={`mn-popup${bubbleSize(n.body)}`}
         closeButton={false}
         /* ⚠️ NIE `autoPanPadding={[24,24]}` — mapa je full-bleed POD plávajúcimi
            panelmi, takže „24 px od okraja kontajnera" znamená schovaný pod
@@ -549,6 +558,9 @@ ${CIRCLE_MARK_CSS}
    takže bez explicitného prebitia by pod bublinou visel biely zub. */
 .mn-popup .leaflet-popup-content-wrapper{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:${PACK_BOX.panel.borderRadius}px;box-shadow:${T.panelShadow};padding:0;}
 .mn-popup .leaflet-popup-content{margin:0;padding:12px 16px;width:auto!important;min-width:190px;max-width:260px;}
+.mn-popup--m .leaflet-popup-content{min-width:min(300px,calc(100vw - 64px));max-width:min(340px,calc(100vw - 64px));padding:16px;}
+.mn-popup--l .leaflet-popup-content{min-width:min(400px,calc(100vw - 64px));max-width:min(440px,calc(100vw - 64px));padding:16px 24px;}
+.mn-popup--m .mn-bubble-body,.mn-popup--l .mn-bubble-body{font-size:14px;line-height:1.55;}
 /* Zub dedí len plnú farbu — gradient by v ňom vyzeral ako iný odtieň než telo.
    T.card je PLNÁ papyrusová farba (nie gradient), presne na toto. */
 .mn-popup .leaflet-popup-tip{background:${T.card};border:1.5px solid ${T.cardEdge};box-shadow:none;}
