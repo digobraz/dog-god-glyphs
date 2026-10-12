@@ -1875,6 +1875,8 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 /* bodka (z<=9, zadanie 2.3) — 17px kruh, rovnaký glass+zlatý lem ako pilulka, len piktogram. */
 .trp-lockmark{position:absolute;right:-6px;top:-7px;width:12px;height:12px;padding:2px;box-sizing:content-box;border-radius:50%;background:rgba(11,9,6,.94);border:1px solid rgba(201,154,63,0.7);pointer-events:none;}
 .trp-lockmark img{display:block;width:100%;height:100%;filter:brightness(0) invert(1);}
+.trp-root--mg .trp-status-row,.trp-root--mg .trp-mheader-status{display:none;}
+.trp-root--mg .trp-cards-scroll{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));}
 .trp-mginfo{margin:0 0 8px;padding:16px;display:flex;flex-direction:column;gap:8px;}
 .trp-mginfo-h{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .trp-mginfo-p{margin:0;font-family:${FONT_UI};font-weight:400;font-size:12px;line-height:1.5;color:${T.inkWarm};}
@@ -4578,7 +4580,8 @@ export default function PackMap() {
     if (mg && !isFreeTrip(tr.id)) { mg.lock('trip'); return; }
     if (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP) {
       saveReturnView(leafletMapRef.current);
-      navigate(tripPath(tr));
+      // V náhľade bez segmentu krajiny — `usePackNavigate` pozná len dvojpísmenový (`/pack/map/sk/…`), nie ISO3.
+      navigate(mg ? `/pack/map/${tr.id}` : tripPath(tr));
       return;
     }
     // Výrez sa pamätá len pri PRVOM otvorení — preklik z výletu na výlet by si inak zapamätal
@@ -4595,7 +4598,7 @@ export default function PackMap() {
     const v = viewBeforeDetailRef.current;
     if (v) { try { sessionStorage.setItem(RETURN_VIEW_KEY, JSON.stringify(v)); } catch { /* nič */ } }
     else saveReturnView(leafletMapRef.current);
-    navigate(tripPathById(tid, allTrails));
+    navigate(mg ? `/pack/map/${tid}` : tripPathById(tid, allTrails));
   };
   // #55 — prázdna partia pod vlastným inzerátom potrebuje akciu. Odkaz na výlet je jediná vec,
   // ktorú s tým člen môže spraviť sám (rovnaký postup ako zdieľanie v článku výletu).
@@ -6253,7 +6256,7 @@ export default function PackMap() {
   };
 
   return (
-    <div className={`trp-root${mobileView === 'list' ? ' mlist-active' : ''}`}>
+    <div className={`trp-root${mobileView === 'list' ? ' mlist-active' : ''}${mg ? ' trp-root--mg' : ''}`}>
       <style>{CSS}</style>
       {unwalk && (
         <UnwalkConfirm
@@ -6456,7 +6459,7 @@ export default function PackMap() {
                     Karta je zámerne chudobná — o cudzom človeku appka vie len meno, psa,
                     fotku a poradové číslo (viď PartyMemberCard.tsx). Klik na ikonku rozbalí
                     TripProfileCard toho istého člena (majiteľ + pes, žiadna druhá karta). */}
-                {(openHostsBySlug.get(dt.id) ?? []).length > 0 && (
+                {!mg && (openHostsBySlug.get(dt.id) ?? []).length > 0 && (
                   <div className="trp-inldet-section">
                     <h4>{t('pack.map.openTripFromPack')}</h4>
                     {(openHostsBySlug.get(dt.id) ?? []).map((h) => {
@@ -6531,7 +6534,7 @@ export default function PackMap() {
                     tripName={dt.name}
                     walked={walkedIds.has(dt.id)}
                     onMarkWalked={() => markWalked(dt.id)}
-                    onRequestWalk={() => setWalkedPopupId(dt.id)}
+                    onRequestWalk={() => { if (mg) { mg.lock('action'); return; } setWalkedPopupId(dt.id); }}
                     authorRating={dt.diff === 'Odyssey' ? 0 : (dt.stars ?? 0)}
                     authorName={authorOf(dt)}
                   />

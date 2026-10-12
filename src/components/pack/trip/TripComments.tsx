@@ -26,6 +26,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useT } from '@/i18n/LanguageContext';
+import { useMagnetPreview } from '@/components/pack/magnetPreview';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN, VEIL_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -351,6 +352,8 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   onCountChange?: (n: number) => void;
 }) {
   const t = useT();
+  // Náhľad /magnet: čítať sa dá, písať a nahlasovať nie (ťuk = popup „Ďalej idú len Dogypťania").
+  const mg = useMagnetPreview();
   const dogRights = useMyDogRights();
   const [tab, setTab] = useState<'reviews' | 'advice'>('reviews');
   const [page, setPage] = useState(1);
@@ -481,7 +484,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
     }
   };
 
-  const openReport = (ref: string) => { setReportRef(ref); setReportSent(false); setReportError(null); };
+  const openReport = (ref: string) => { if (mg) { mg.lock('action'); return; } setReportRef(ref); setReportSent(false); setReportError(null); };
   const closeReport = () => setReportRef(null);
   const sendReport = async (reason: ReportReason, note?: string) => {
     if (!reportRef) return;
@@ -644,6 +647,8 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                 className="tcm-textarea"
                 value={askText}
                 onChange={(e) => setAskText(e.target.value)}
+                readOnly={!!mg}
+                onClick={mg ? () => mg.lock('action') : undefined}
                 placeholder={t('pack.trip.cm.askPlaceholder')}
               />
               <div className="tcm-ask-actions">
@@ -651,7 +656,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                   {questionPosting ? t('pack.trip.cm.postQuestion') + '…' : t('pack.trip.cm.postQuestion')}
                 </button>
               </div>
-              {!canWrite && <div className="tcm-gatehint">{t('pack.trip.cm.signInAsk')}</div>}
+              {!canWrite && !mg && <div className="tcm-gatehint">{t('pack.trip.cm.signInAsk')}</div>}
               {questionError && <div className="tcm-gatehint" style={{ color: '#E0796D' }}>{questionError}</div>}
             </div>
 

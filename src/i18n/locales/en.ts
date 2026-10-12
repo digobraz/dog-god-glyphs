@@ -1483,6 +1483,8 @@ export const en = {
   'magnet.name.pilgrim': "The pilgrim ranking",
   'magnet.name.global': "A global community of dog people",
   'magnet.name.help': "Help for dogs in need",
+  'magnet.pv.ai.h': "The first circle is open",
+  'magnet.pv.ai.p': "10 scrolls with a podcast about where the dog came from. You can see the other {n}; they open for Dogyptians. As a member you save scrolls and AINUBIS remembers what you’ve already heard.",
   'magnet.pv.quiz.p': "As a Dogyptian you save the full reading — food, what to watch, advice from AINUBIS — to your dog’s DOG ID.",
   'magnet.pv.quiz.dog': "your dog",
   'magnet.trip.ask.short': 'A short afternoon loop',

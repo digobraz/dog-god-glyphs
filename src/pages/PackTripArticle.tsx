@@ -12,7 +12,7 @@ import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { PLANNING_LIVE } from '@/lib/packFlags';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Polyline, Circle, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css'; // KRITICKÉ: bez neho .leaflet-tile stratí position:absolute a
@@ -28,7 +28,8 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import { useTrailPaths } from '@/data/trailPaths';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/pack/PackLayout';
-import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
+import { useMagnetPreview, usePackNavigate, isFreeTrip } from '@/components/pack/magnetPreview';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, HIT_CSS, PACK_SPACE, PACK_SHADOW, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
@@ -230,6 +231,7 @@ const CSS = `
    matrice PACK_BOX.card (cardGrad · 1.5px cardEdge · r16 · cardShadow). Zapísané ako CSS,
    nie style={{...PACK_BOX.card}}, lebo .pta-shell potrebuje ešte overflow, z-index
    a media query — hodnoty sú však TIE ISTÉ a menia sa v matrici, nie tu. */
+.pta-root--mg{padding-bottom:calc(${PACK_SPACE.xxxl}px + 52px + env(safe-area-inset-bottom,0px));}
 .pta-shell{${PACK_COL_FIT}margin:22px auto 0;position:relative;z-index:2;overflow:hidden;
   background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:16px;box-shadow:${T.cardShadow};}
 .pta-hero{position:relative;width:100%;height:34vh;min-height:230px;max-height:360px;overflow:hidden;background-size:cover;background-position:center;background-color:#111;}
@@ -579,6 +581,12 @@ function locLine(trail: HeroTrail, t: ReturnType<typeof useT>): string {
   return parts.join(' · ');
 }
 
+/** Identita anonyma v náhľade `/magnet` — bez session, bez psov. */
+const MAGNET_ANON_IDENTITY: PackIdentity = {
+  session: null, loading: false, sessionReady: true, dogs: [], devotion: 0, bones: 0,
+  avatarUrl: null, avatarInitial: '', packTotal: null, packToday: null,
+};
+
 export default function PackTripArticle() {
   const t = useT();
   // Práva pawmata (B6/F4) — článok výletu zapisuje prejdenie aj hodnotenie.
@@ -624,9 +632,13 @@ export default function PackTripArticle() {
     return () => { noteMap.off('zoomend', sync); };
   }, [noteMap]);
   const dateLocale = intlLocale(lang);
-  const navigate = useNavigate();
+  const navigate = usePackNavigate();
+  // NÁHĽAD PRE /magnet (12. 10. 2026) — `null` = bežná appka. Návštevník je ANONYM: `usePackIdentity`
+  // by ho poslal na /login, preto sa tam nevolá (`mg` je za celý život komponentu konštantné).
+  const mg = useMagnetPreview();
   const { slug: urlSlug, country, n: storyN } = useParams<{ slug: string; country?: string; n?: string }>();
-  const id = usePackIdentity();
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const id: PackIdentity = mg ? MAGNET_ANON_IDENTITY : usePackIdentity();
   const { toast } = useToast();
 
   // bod 5 side-effect (viď súborový komentár hore): allTrails = statické HERO_TRAILS +
@@ -723,8 +735,8 @@ export default function PackTripArticle() {
   // Starý (premenovaný) slug → redirect na nový, nech zdieľané odkazy nehádžu „trip not found".
   const renamedTo = !trail && slug ? RENAMED_TRIP_IDS[slug] : undefined;
   useEffect(() => {
-    if (renamedTo) navigate(`/pack/map/svk/${renamedTo}`, { replace: true });
-  }, [renamedTo, navigate]);
+    if (renamedTo && !mg) navigate(`/pack/map/svk/${renamedTo}`, { replace: true });
+  }, [renamedTo, navigate, mg]);
   // Dosvit fialového meča žije v `TRAIL_LINE_CSS`, ktorý si PackMap vlieva do vlastného
   // <style>. Článok je vlastná routa, takže bez tohto by mu trieda `trp-saber-glow`
   // ticho nič nerobila. Idempotentné — štýl sa vloží raz na dokument.
@@ -735,8 +747,17 @@ export default function PackTripArticle() {
   // Od 8. 10. 2026 aj starý odkaz cez id → čitateľná adresa, keď ju výlet má (príbeh `/pribeh/:n` nechá tak).
   useEffect(() => {
     // náhľad chaty adresu nemení — názov (a s ním urlSlug) sa v chate prepisuje pri každom písmene
-    if (trail && !nahlad && (!country || (!storyN && trail.urlSlug && urlSlug !== trail.urlSlug))) navigate(tripPath(trail), { replace: true });
-  }, [trail, nahlad, country, storyN, urlSlug, navigate]);
+    // V náhľade /magnet adresu nepreklápame: obe tvary (`/magnet/vylety/:slug` aj s krajinou) sú platné.
+    if (trail && !nahlad && !mg && (!country || (!storyN && trail.urlSlug && urlSlug !== trail.urlSlug))) navigate(tripPath(trail), { replace: true });
+  }, [trail, nahlad, mg, country, storyN, urlSlug, navigate]);
+
+  // NÁHĽAD /magnet: detail otvorí len výlet zdarma. Iný odkaz → popup „Ďalej idú len Dogypťania" a späť na zoznam.
+  const lockedInPreview = !!mg && !(slug && isFreeTrip(slug));
+  useEffect(() => {
+    if (!lockedInPreview) return;
+    mg?.lock('trip');
+    navigate('/pack/map', { replace: true });
+  }, [lockedInPreview, mg, navigate]);
 
   // #41 — KTO TENTO VÝLET VYPÍSAL. Na desktope to rieši inline detail v PackMap, ale
   // MOBIL sem naviguje na celú routu (`/pack/map/:slug`), takže bez tohto by na
@@ -1136,6 +1157,7 @@ export default function PackTripArticle() {
   // zverejnenie sú ponuka v toaste, nie podmienka. Odznačenie = priame odobratie (aj hlas/plán).
   // Rovnaká logika ako PackMap — dôvody sú popísané tam pri `toggleFav`/`toggleWalked`.
   const toggleFav = (tid: string) => {
+    if (mg) { mg.lock('action'); return; }
     if (favIds.has(tid)) {
       setFavIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setPlans((prev) => prev.filter((p) => p.tripId !== tid));
@@ -1152,6 +1174,7 @@ export default function PackTripArticle() {
     });
   };
   const toggleWalked = (tid: string) => {
+    if (mg) { mg.lock('action'); return; }
     // 🔒 `trips.log` (§5) — rovnaká kontrola ako v `PackMap.tsx`; tú istú funkciu
     // volá aj menu aj hlavné tlačidlo článku.
     if (!dogRights.canAny('trips.log')) {
@@ -1269,6 +1292,8 @@ export default function PackTripArticle() {
 
   const handleShare = async () => {
     if (!trail) return;
+    // Odkaz vedie do `/pack` (len členovia) — v náhľade sa nezdieľa.
+    if (mg) { mg.lock('action'); return; }
     const url = `${window.location.origin}${tripPath(trail)}`;
     const shareData = { title: tripName(trail, lang), text: tripShareText(trail, lang), url };
     if (typeof navigator.share === 'function') {
@@ -1338,7 +1363,9 @@ export default function PackTripArticle() {
       </div>
     );
   }
-  if (!id.session && !CHATA_NAHLAD) return null;
+  if (!id.session && !CHATA_NAHLAD && !mg) return null;
+  // Výlet mimo darčeka: efekt vyššie už otvoril popup a vracia na zoznam — nekresli nič.
+  if (lockedInPreview) return null;
 
   if (!trail) {
     return (
@@ -1489,7 +1516,7 @@ export default function PackTripArticle() {
             <button
               type="button"
               className="pta-actbtn pta-actbtn--blue"
-              onClick={() => { setMemorialWrite(true); setWriteOpen(true); }}
+              onClick={() => { if (mg) { mg.lock('action'); return; } setMemorialWrite(true); setWriteOpen(true); }}
               aria-label={t('pack.trip.memorialStory')}
             >
               <span className="pta-actbtn-icon">🕊</span>
@@ -1522,7 +1549,7 @@ export default function PackTripArticle() {
                     <button
                       type="button"
                       role="menuitem"
-                      onClick={() => { setWalkedMenuOpen(false); setWriteOpen(true); }}
+                      onClick={() => { setWalkedMenuOpen(false); if (mg) { mg.lock('action'); return; } setWriteOpen(true); }}
                     >
                       {t('pack.trip.stories.write.entry')}
                     </button>
@@ -1580,15 +1607,15 @@ export default function PackTripArticle() {
             <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
             <span className="pta-actbtn-label">{t('pack.trip.share')}</span>
           </button>
-          <TripStoryButton
+          {!mg && <TripStoryButton
             data={{ name: tripName(trail, lang), km: trail.km, diff: trail.diff, photoUrl: trail.photos[0],
                     url: `${window.location.host}${tripPath(trail)}` }}
-            shareText={tripShareText(trail, lang)} />
+            shareText={tripShareText(trail, lang)} />}
         </div>
   );
 
   return (
-    <div className="pk-paper pta-root">
+    <div className={`pk-paper pta-root${mg ? ' pta-root--mg' : ''}`}>
       <style>{PAPER_PAGE_CSS}{HIT_CSS}</style>
       <style>{CSS}</style>
       <style>{COMMUNITY_CSS}</style>
@@ -1969,7 +1996,7 @@ export default function PackTripArticle() {
           {/* Vstup do zápisu priamo na mape. Kreslí sa len tomu, kto trasu prešiel;
               ak ju ešte neohodnotil, klik otvorí najprv hodnotenie (viď `noteGate`).
               Počas rozrobeného zápisu mizne — inak by prekrýval vlastnú paletu. */}
-          {trail.path.length > 0 && noteGate !== 'none' && !noteBusy && !notePlacing && (
+          {!mg && trail.path.length > 0 && noteGate !== 'none' && !noteBusy && !notePlacing && (
             <button
               type="button"
               className="pta-mapadd"
@@ -1994,7 +2021,7 @@ export default function PackTripArticle() {
             datasetu), ale reálny člen, ktorý má trasu ako otvorený výlet v DB.
             Nad profilom prevýšenia, lebo „s kým" je pri otvorenom výlete dôležitejšie
             než „koľko metrov". */}
-        {hosts.length > 0 && (
+        {!mg && hosts.length > 0 && (
           <div className="pta-section">
             <h3>{t('pack.trip.openFromPack')}</h3>
             {hosts.map((h) => (
@@ -2068,7 +2095,7 @@ export default function PackTripArticle() {
         <button
           type="button"
           className="pta-problem"
-          onClick={() => { setProblemOpen(true); setProblemSent(false); setProblemError(null); }}
+          onClick={() => { if (mg) { mg.lock('action'); return; } setProblemOpen(true); setProblemSent(false); setProblemError(null); }}
         >{t('pack.trip.problem.cta')}</button>
         </div>
       </div>

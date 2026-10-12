@@ -1259,6 +1259,8 @@ export const sk: Partial<Dict> = {
   'magnet.name.pilgrim': "Rebríček pútnikov",
   'magnet.name.global': "Globálna komunita psíčkarov",
   'magnet.name.help': "Pomoc psom v núdzi",
+  'magnet.pv.ai.h': "Prvý okruh máš otvorený celý",
+  'magnet.pv.ai.p': "10 zvitkov s podcastom o tom, odkiaľ pes prišiel. Ostatných {n} vidíš, otvoria sa Dogypťanom. Ako člen si zvitky odkladáš a AINUBIS si pamätá, čo si už počul.",
   'magnet.pv.quiz.p': "Ako Dogypťan si celé čítanie — strava, na čo dávať pozor, rady AINUBISa — uložíš psovi do DOG ID.",
   'magnet.pv.quiz.dog': "tvoj pes",
   'magnet.trip.ask.short': 'Krátky okruh na poobedie',

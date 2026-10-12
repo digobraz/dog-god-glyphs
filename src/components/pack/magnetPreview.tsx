@@ -21,7 +21,8 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { useNavigate, type NavigateOptions } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { openPhotoInvite } from '@/lib/photoInvite';
-import { PACK_BOX, PACK_THEME as T, PACK_SHADOW, FONT_TITLE, FONT_UI, VEIL_CSS } from './packTheme';
+import { PACK_BOX, PACK_THEME as T, PACK_SHADOW, FONT_TITLE, FONT_UI, VEIL_CSS, GOLD_BTN } from './packTheme';
+import { AINUBIS } from './ainubisSkin';
 import { LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { BackIcon } from './BackButton';
 
@@ -91,6 +92,10 @@ ${VEIL_CSS}
   border-radius:8px;background:${LAPIS.grad};border:1px solid ${LAPIS.edge};color:${T.onDark};font-family:${FONT_TITLE};
   font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;box-shadow:${LAPIS_BTN_SHADOW};}
 .mgp-cta:active,.mgp-back:active{transform:scale(.98);}
+/* 🌗 Rozhoduje PODKLAD POD LIŠTOU (brand lock CTA): mapa = svetlá → lapis · kvíz stojí na
+   čiernom → zlaté GOLD_BTN · AINUBIS má vlastný brand → jeho zlato-oranžové CTA. */
+.mgp-bar--quiz .mgp-cta{background:${GOLD_BTN.grad};border-color:${GOLD_BTN.edge};color:${T.inkStrong};box-shadow:${GOLD_BTN.glow};}
+.mgp-bar--ainubis .mgp-cta{background:${AINUBIS.ctaGrad};border-color:${AINUBIS.ctaEdge};color:${AINUBIS.ctaInk};box-shadow:${AINUBIS.ctaShadow};}
 .mgp-card{width:100%;max-width:400px;padding:32px 24px 24px;text-align:center;}
 .mgp-eye{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};}
 .mgp-h{font-family:${FONT_TITLE};font-weight:700;font-size:24px;line-height:1.2;letter-spacing:.02em;text-transform:uppercase;color:${T.inkStrong};margin:12px 0 0;}
@@ -132,7 +137,7 @@ export function MagnetPreview({ kind, children }: { kind: MagnetKind; children: 
     <MagnetCtx.Provider value={ctx}>
       <style>{CSS}</style>
       {children}
-      <div className="mgp-bar">
+      <div className={`mgp-bar mgp-bar--${kind}`}>
         <div className="mgp-bar-in">
           <button type="button" className="mgp-back" onClick={() => nav('/magnet')} aria-label={tx('magnet.back', 'Back')}><BackIcon /></button>
           <button type="button" className="mgp-cta" onClick={() => openPhotoInvite()}>{tx('magnet.cta.price', 'Become Dogyptian · €11')}</button>
