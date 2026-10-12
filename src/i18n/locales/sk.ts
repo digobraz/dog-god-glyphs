@@ -3321,6 +3321,9 @@ export const sk: Partial<Dict> = {
   'pack.trip.memorial.cta': "Mám záujem",
   'pack.trip.memorial.thanks': "Ďakujeme, zapísané.",
   'pack.trip.memorial.failed': "Nepodarilo sa to zapísať. Skús znova.",
+  'pack.trip.memorial.ask': "{name} je už v psom nebi. Chystáš sa nakresliť spomienkovú túru?",
+  'pack.trip.memorial.yes': "Áno",
+  'pack.trip.memorial.back': "Späť",
 
   'pack.addTrip.step.back': "Späť",
   'pack.addTrip.step.next': "Ďalej",

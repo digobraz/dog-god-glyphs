@@ -3611,6 +3611,9 @@ export const en = {
   'pack.trip.memorial.cta': "I'm interested",
   'pack.trip.memorial.thanks': "Thank you, noted.",
   'pack.trip.memorial.failed': "Couldn't save that. Try again.",
+  'pack.trip.memorial.ask': "{name} is already in dog heaven. Are you about to draw a memorial trip?",
+  'pack.trip.memorial.yes': "Yes",
+  'pack.trip.memorial.back': "Back",
 
   'pack.addTrip.step.back': "Back",
   'pack.addTrip.step.next': "Next",

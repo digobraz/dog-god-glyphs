@@ -42,11 +42,11 @@ import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
 import { useToast } from '@/hooks/use-toast';
 import { TripStoryButton } from '@/components/pack/trip/TripStoryCard';
 import { ToastAction } from '@/components/ui/toast';
-import { hasOnlyDeceasedDogs, useMemorialTrips } from '@/components/pack/memorialTrips';
+import { hasOnlyDeceasedDogs } from '@/components/pack/memorialTrips';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
-  readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog, RENAMED_TRIP_IDS, tripPath,
+  readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
   tripShareText, tripText, tripName, tripIdFromUrl, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing, coverPos, isGhostJourney, usePackWalked } from '@/components/pack/tripShared';
 import { GhostJourneyNote } from '@/components/pack/trip/GhostJourneyNote';
 import { TripGoPanel, TripGoButtons } from '@/components/pack/trip/TripGoPanel';
@@ -627,7 +627,6 @@ export default function PackTripArticle() {
   const navigate = useNavigate();
   const { slug: urlSlug, country, n: storyN } = useParams<{ slug: string; country?: string; n?: string }>();
   const id = usePackIdentity();
-  const memorialTrips = useMemorialTrips();
   const { toast } = useToast();
 
   // bod 5 side-effect (viď súborový komentár hore): allTrails = statické HERO_TRAILS +
@@ -1165,11 +1164,9 @@ export default function PackTripArticle() {
       navigate(`/pack/map?claim=${encodeURIComponent(tid)}`);
       return;
     }
-    // 🐕 Bez živého psa sa výlet nezapíše — dôvod pri toggleWalked v PackMap.tsx.
-    if (!walkedIds.has(tid) && !id.loading && id.session && !hasLiveDog(id.dogs)) {
-      // Pes odišiel → nie „pridaj psa", ale ponuka MÁM ZÁUJEM o spätný zápis (memorialTrips.tsx).
-      if (hasOnlyDeceasedDogs(id.dogs)) memorialTrips.show();
-      else toast({ title: t('pack.addTrip.step.needDogTitle'), description: t('pack.addTrip.step.needDog') });
+    // 🐕 Bez psa sa výlet nezapíše — dôvod pri toggleWalked v PackMap.tsx (zosnulý pes stačí).
+    if (!walkedIds.has(tid) && !id.loading && id.session && id.dogs.length === 0) {
+      toast({ title: t('pack.addTrip.step.needDogTitle'), description: t('pack.addTrip.step.needDog') });
       return;
     }
     if (walkedIds.has(tid)) {
@@ -2074,7 +2071,6 @@ export default function PackTripArticle() {
         </div>
       </div>
 
-      {memorialTrips.element}
       {problemOpen && (
         <ReportSheet
           reasons={TRIP_PROBLEM_REASONS}
