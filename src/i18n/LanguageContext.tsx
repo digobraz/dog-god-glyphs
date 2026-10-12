@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 const getSupabase = () => afterLoad().then(() => import('@/integrations/supabase/client')).then((m) => m.supabase);
 import enCore from 'virtual:i18n/en/core';
 import { afterLoad } from '@/lib/afterLoad';
+import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import type { en } from './locales/en';
 
 /**
@@ -126,6 +127,8 @@ function detectBrowserLang(): LangCode {
 
 function readStoredLang(): LangCode {
   if (typeof window === 'undefined') return 'en';
+  // Mockup v DOGYPTLANDE je vždy SK (Matej 12. 10.) — uložená voľba lokálu (bola `cs`) ho nesmie prepnúť
+  if (CHATA_NAHLAD) return 'sk';
   try {
     return window.localStorage.getItem(STORAGE_KEY) || detectBrowserLang();
   } catch {
