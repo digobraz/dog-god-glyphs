@@ -356,8 +356,10 @@ export function DogPassport({
 
           <dl
             style={{
-              display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px 14px',
-              alignItems: 'baseline', margin: 0,
+              // minmax(0,1fr) + anywhere: dlhý e-mail v Závete roztiahol stĺpec
+              // a celý odkaz pretiekol z karty (Daniela 12. 10. 2026, mobil 400 px).
+              display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', gap: '6px 14px',
+              alignItems: 'baseline', margin: 0, overflowWrap: 'anywhere',
             }}
           >
             {/* Read-only riadky navrch — plemeno, narodenie, pohlavie. Stoja PRED
