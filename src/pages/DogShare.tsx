@@ -493,7 +493,7 @@ export default function DogShare() {
                   packNumber={dog.pack_number}
                   dogName={dogName}
                   photoUrl={withTransform(dog.cloudinary_main_url || '', `c_fill,w_${dogPhotoW()},h_${dogPhotoW()},g_auto,f_auto,q_auto`)}
-                  heroglyphUrl={dog.heroglyph_png_url || ''}
+                  heroglyphUrl={withTransform(dog.heroglyph_png_url || '', 'c_fit,w_1200,f_auto,q_auto')}
                 />
               ) : ogImage && (
                 <img src={cardImg} alt={`${dogName} — DOGYPT`} className="ds-media" style={{ objectFit: 'cover' }} />
