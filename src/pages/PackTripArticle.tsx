@@ -1361,7 +1361,9 @@ export default function PackTripArticle() {
   // crowd agregát (design §A) — konzistentné s kartami v PackMap
   const agg = crowdAggregate(trail, votes[trail.id]);
   // Náročnosť: voda nikdy, okruh bez čiary tiež (dôvody pri dlaždici nižšie).
-  const showDiffStat = !isWaterTrail(trail) && hasRouteMetrics(trail);
+  // ⚠️ `agg.difficulty` je pri aktivite/návšteve prázdna (náročnosť sa pýta len pri turistike) —
+  // bez tejto podmienky riadok vypísal surový kľúč `pack.map.diff.undefined` (Danka #42, 12. 10. 2026).
+  const showDiffStat = !isWaterTrail(trail) && hasRouteMetrics(trail) && !!agg.difficulty;
   /**
    * ── POČET HODNOTENÍ MÁ JEDEN ZDROJ (Matej 2026-08-25, Záruby 1: „pri hodnotení je zátvorka 2
    *    ale dolu je pri hodnotení 0 = tu treba správny údaj") ────────────────────────────────
