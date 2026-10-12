@@ -161,6 +161,7 @@ export async function flushQueue(): Promise<number> {
   flushing = true;
   let sent = 0;
   let rejected = 0;
+  let lastRej: { tbl: string; msg: string } = { tbl: '?', msg: '' };
   try {
     let q = readQueue();
     while (q.length) {
@@ -187,6 +188,7 @@ export async function flushQueue(): Promise<number> {
           // Odmietla to DB, nie sieť → opakovanie nepomôže, operáciu zahodíme.
           console.warn('[packStore] zápis odmietnutý, zahodené:', op.tbl, (e as Error).message);
           rejected += 1;
+          lastRej = { tbl: op.tbl, msg: (e as Error).message };
           q = readQueue().slice(1);
           writeQueue(q);
           continue;
@@ -195,7 +197,7 @@ export async function flushQueue(): Promise<number> {
       }
     }
   } finally { flushing = false; }
-  if (rejected) announceRejected();
+  if (rejected) announceRejected(lastRej.tbl, lastRej.msg);
   return sent;
 }
 
@@ -211,7 +213,10 @@ const REJECTED_MSG: Record<string, string> = {
   sk: 'Posledná zmena sa neuložila — vrátili sme posledný uložený stav.',
   cs: 'Poslední změna se neuložila — vrátili jsme poslední uložený stav.',
 };
-function announceRejected(): void {
+function announceRejected(tbl = '?', msg = ''): void {
+  // Aj MY sa to dozvieme (12. 10. 2026): `update_own_trip` padal 400 a vedela o tom len testerka.
+  // Stráž ho číta z PostHogu (`scripts/ops/analytics-watchdog.mjs`, kontrola pack_write_rejected).
+  trackPack('pack_write_rejected', { tbl, msg: String(msg).slice(0, 200) });
   if (typeof window === 'undefined') return;
   let lang = 'en';
   try { lang = (window.localStorage.getItem('dogypt_lang') || navigator.language || 'en').slice(0, 2).toLowerCase(); } catch { /* private mode */ }
@@ -544,7 +549,7 @@ async function processTripUploadQueue(): Promise<void> {
           if (error) {
             if (!(error as { code?: string }).code) throw error;
             console.warn('[packStore] update_own_trip odmietnutý:', error.message);
-            announceRejected();
+            announceRejected('rpc:update_own_trip', error.message);
           }
           pending = readTripPending();
           continue;

@@ -23,7 +23,6 @@
 // zaznač, až potom vyplň." Poradie krokov je jeho, doslova:
 //   1 TRASA · 2 ODKAZY NA TRASU · 3 ZÁKLAD · 4 O TRASE · 5 OSTATNÉ
 // Zadanie: `plany/zadanie-mapa-kroky-2026-08-23.md`
-import { voteMemorialTrips } from '@/components/pack/memorialTrips';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -111,9 +110,8 @@ export type AddTripLogProps = {
   allTrails: HeroTrail[];
   /** firstName z usePackIdentity — zapisuje sa do draftu (`authorName`). */
   authorName: string;
-  myDogs: { id: string; name: string; photo?: string | null }[];
+  myDogs: { id: string; name: string; photo?: string | null; deceased?: boolean }[];
   /** Účet má len ZOSNULÝCH psov (t-bezpsa) — namiesto „pridaj psa" ponuka MÁM ZÁUJEM. */
-  memorialOnly?: boolean;
   /** false = zlyhal zápis (napr. plná kvóta) — formulár zostane otvorený, ukáže chybu. */
   onSubmit: (draft: AddTripDraft) => boolean;
   /**
@@ -403,12 +401,13 @@ function emptyGeometryFor(activity: string, multiDay = false, chip?: string): Tr
  * takže sa nesmie tváriť ako kompaktný variant. Podmienka je preto presne `=== 1`.
  */
 function CompanionAvatarsOnly(props: {
-  myDogs: { id: string; name: string; photo?: string | null }[];
+  myDogs: { id: string; name: string; photo?: string | null; deceased?: boolean }[];
   selected: Companion[];
   onChange: (next: Companion[]) => void;
 }) {
   const { myDogs, selected, onChange } = props;
-  if (myDogs.length === 1) {
+  // Zosnulý pes sa tu neschováva — ako jediný vo výbere musí byť vidno a dať sa označiť.
+  if (myDogs.length === 1 && !myDogs[0].deceased) {
     return (
       <div className="atl-companions">
         <style>{COMPANION_CSS}</style>
@@ -512,7 +511,7 @@ function SoloCompanionAdd({ dog, selected, onChange }: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubmit, onClose, onBackToEntry, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail, fromPlan, reroute, presetJourneyId }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, onBackToEntry, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail, fromPlan, reroute, presetJourneyId }: AddTripLogProps) {
   const paleChrome = useIsPaleChrome();
   // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
@@ -1061,7 +1060,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
   useEffect(() => {
     if (crewSeededRef.current) return;
     if (restored) return;
-    const first = myDogs?.[0];
+    // Zosnulý pes sa nepredvypĺňa — označí ho človek sám (a AINUBIS sa opýta).
+    const first = myDogs?.find((d) => !d.deceased);
     if (!first) return;
     crewSeededRef.current = true;
     setCrew((prev) => (prev.length ? prev : [{
@@ -1576,7 +1576,20 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
   // minimálne dvoch. Plán sa nepýta — posádka sa určuje až pri zápise po prejdení.
   // Kľúč `dog-<id>` je ten istý, aký používa `CompanionPicker` (viď `crewSeededRef`).
   const noDog = !isPlan && !crew.some((c) => c.key.startsWith('dog-'));
-  const [memorialVote, setMemorialVote] = useState<'idle' | 'busy' | 'done'>('idle');
+  // SPOMIENKOVÝ VÝLET (Matej 12. 10. 2026): zosnulý pes je vo výbere ako každý iný, bez označenia.
+  // Pri jeho OZNAČENÍ sa AINUBIS opýta raz za zápis; SPÄŤ ho odznačí. Výlet nenesie nijaký štítok.
+  const [memorialAsk, setMemorialAsk] = useState<{ key: string; name: string } | null>(null);
+  const memorialAskedRef = useRef<Set<string>>(new Set());
+  const deceasedKeys = new Map((myDogs ?? []).filter((d) => d.deceased).map((d) => [`dog-${d.id}`, d.name]));
+  const changeCrew = (next: Companion[]) => {
+    const had = new Set(crew.map((c) => c.key));
+    const fresh = next.find((c) => !had.has(c.key) && deceasedKeys.has(c.key) && !memorialAskedRef.current.has(c.key));
+    setCrew(next);
+    if (fresh) {
+      memorialAskedRef.current.add(fresh.key);
+      setMemorialAsk({ key: fresh.key, name: deceasedKeys.get(fresh.key) || fresh.name });
+    }
+  };
   const canSubmit = missing.toSubmit.length === 0 && !multiDayIssue && !noDog;
   // ZNÁMKA VÝLETU — vstupy zo stavu sprievodcu; počíta ju LEN `gradeFromInputs` (lib/tripGrade.ts).
   // Parkovisko = položená značka skupiny parking, tip = warning alebo comment (krok 2).
@@ -3704,33 +3717,34 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                       výlete tam musí byť Kto bol s tebou na výlete?"). „Svorka na výlete" je
                       názov údaja; človek v tej chvíli potrebuje otázku, na ktorú odpovie. */}
                   <label>{t('pack.addTrip.step.whoWasWithYou')}</label>
-                  <CompanionAvatarsOnly myDogs={myDogs} selected={crew} onChange={setCrew} />
-                  {noDog && (memorialOnly ? (
-                    // Oznam appky = hlas AINUBISA (Matej 21. 9. 2026), nie papyrusové varovanie.
+                  <CompanionAvatarsOnly myDogs={myDogs} selected={crew} onChange={changeCrew} />
+                  {memorialAsk && crew.some((c) => c.key === memorialAsk.key) && (
+                    // Oznam appky = hlas AINUBISA. Meno psa sa neskloňuje — stojí ako podmet.
                     <div style={{ marginTop: 8 }}>
                       <AinubisBubble role="alert">
-                        <div>{t('pack.trip.memorial.body')}</div>
-                        {memorialVote === 'done' ? (
-                          <div style={{ marginTop: 8, color: AINUBIS.ink }}>{t('pack.trip.memorial.thanks')}</div>
-                        ) : (
+                        <div>{t('pack.trip.memorial.ask', { name: memorialAsk.name })}</div>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          <button type="button" className="ain-cta" onClick={() => setMemorialAsk(null)}>{t('pack.trip.memorial.yes')}</button>
                           <button
                             type="button"
                             className="ain-cta"
-                            disabled={memorialVote === 'busy'}
+                            style={{ background: 'none', color: AINUBIS.inkDim, border: `1px solid ${AINUBIS.edgeStrong}`, boxShadow: 'none' }}
                             onClick={() => {
-                              setMemorialVote('busy');
-                              void voteMemorialTrips().then((ok) => setMemorialVote(ok ? 'done' : 'idle'));
+                              memorialAskedRef.current.delete(memorialAsk.key);
+                              setCrew((prev) => prev.filter((c) => c.key !== memorialAsk.key));
+                              setMemorialAsk(null);
                             }}
-                          >{t('pack.trip.memorial.cta')}</button>
-                        )}
+                          >{t('pack.trip.memorial.back')}</button>
+                        </div>
                       </AinubisBubble>
                     </div>
-                  ) : (
+                  )}
+                  {noDog && !memorialAsk && (
                     <div className="atl-draftwarn" role="alert" style={{ marginTop: 8 }}>
                       <b>{t('pack.addTrip.step.needDogTitle')}</b>
                       <p>{t('pack.addTrip.step.needDog')}</p>
                     </div>
-                  ))}
+                  )}
                 </div>
 
                 {!isPlan && (

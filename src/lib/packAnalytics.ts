@@ -35,6 +35,7 @@ export type PackEvent =
   | 'pack_wish_done'       // splnené prianie (D1 s LOGom / D3 bez)
   | 'pack_message_sent'    // odoslaná správa
   | 'pack_ainubis_open'    // otvorený AINUBIS
+  | 'pack_write_rejected' // DB odmietla zápis člena (props: tbl, msg) — číta ho analytics-watchdog
   | 'pack_lock_click';     // klik na zamknutú vec (prop: lock)
 
 export const trackPack = (event: PackEvent, props?: Record<string, unknown>) => track(event, props);
