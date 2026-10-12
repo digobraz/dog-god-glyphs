@@ -56,8 +56,15 @@ const LIVE_POSTHOG_KEY = 'phc_uz2yLbgP6oxs5CapQsj4jyLwDegrbjB5ueAcTvLc4coM';
 // `main.tsx` nezavolá posthog.init() = `enabled()` je false = všetky track()
 // volania sú bezpečný no-op. dataLayer beží ďalej, takže GTM sa v deve ladiť dá.
 // Debug proti LIVE projektu: dopíš VITE_POSTHOG_KEY do .env.development.
+// ⚠️ PROD build nie je vždy dogypt.com (12. 10. 2026): náhľad na ostrej DB (:8081,
+// `vite preview`), roboty check:live/live-oko a náhľad na workers.dev bežia ako PROD —
+// analytics-watchdog ich chytil 381 udalostí za 24 h v produkčnom projekte. Preto
+// rozhoduje aj ADRESA: mimo verejnej domény sa nemeria.
+const NEMERANY_HOST =
+  typeof window !== 'undefined' &&
+  /^(localhost|127\.0\.0\.1|\[::1\]|.*\.workers\.dev|.*\.local)$/.test(window.location.hostname);
 export const POSTHOG_KEY = import.meta.env.PROD
-  ? LIVE_POSTHOG_KEY
+  ? (NEMERANY_HOST ? '' : LIVE_POSTHOG_KEY)
   : ((import.meta.env.VITE_POSTHOG_KEY as string) || '');
 export const POSTHOG_HOST = 'https://eu.i.posthog.com';
 
