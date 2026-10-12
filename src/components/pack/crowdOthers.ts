@@ -17,6 +17,7 @@
 // ============================================================================
 import { useSyncExternalStore } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { hasSession } from '@/lib/hasSession';
 import type { Crowd, Difficulty, Hazard } from './packCommunity';
 
 export interface CrowdOthers {
@@ -42,6 +43,7 @@ export const crowdOthersFor = (slug: string): CrowdOthers | undefined => bySlug.
 export function refreshCrowdOthers(): Promise<void> {
   loading = (async () => {
     try {
+      if (!(await hasSession())) return; // anonym: RPC je len pre členov (hasSession.ts)
       const { data, error } = await db.rpc('trip_crowd');
       if (error || !Array.isArray(data)) return;
       const next = new Map<string, CrowdOthers>();

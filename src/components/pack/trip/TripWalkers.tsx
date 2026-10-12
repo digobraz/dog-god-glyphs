@@ -13,6 +13,7 @@
 // ============================================================================
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { hasSession } from '@/lib/hasSession';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, PACK_R, PACK_SPACE, PACK_TEXT, PILL_CSS } from '@/components/pack/packTheme';
 
@@ -46,6 +47,7 @@ export function TripWalkers({ tripSlug, reloadKey }: { tripSlug: string; reloadK
     let live = true;
     (async () => {
       try {
+        if (!(await hasSession())) return; // anonym: RPC je len pre členov (hasSession.ts)
         const { data, error } = await db.rpc('trip_walkers', { p_trip_slug: tripSlug });
         if (!live || error || !Array.isArray(data)) return;
         setRows(data.map((r: { is_mine: boolean; owner_first: string | null; dogs: { name: string; n: number | null }[] }) => ({

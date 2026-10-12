@@ -28,6 +28,7 @@
 // ============================================================================
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { hasSession } from '@/lib/hasSession';
 import { DEV_NOAUTH } from '@/lib/devMockDogs';
 import { PAWMATE_RIGHTS, type PawmateRight, type PawmateRights } from '@/lib/pawmateRights';
 
@@ -103,6 +104,7 @@ async function load(): Promise<DogRightsRow[]> {
       rights: Object.fromEntries(PAWMATE_RIGHTS.map((k) => [k, true])) as PawmateRights,
     }));
   }
+  if (!(await hasSession())) return []; // anonym: RPC je len pre členov (hasSession.ts)
   const { data, error } = await (supabase as any).rpc('my_dog_rights');
   if (error) {
     // Tichý neúspech je tu ZÁMER: gate je vysvetlenie, nie ochrana. Keby sa pri

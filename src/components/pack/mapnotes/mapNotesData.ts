@@ -24,6 +24,7 @@
 // — rovnaký dôvod pre `supabase as any` ako v `packMessaging.ts`.
 import { trackPack } from '@/lib/packAnalytics';
 import { supabase } from '@/integrations/supabase/client';
+import { hasSession } from '@/lib/hasSession';
 import { DEV_NOAUTH, devAddNote, devLikeNote, devListNotes, devRemoveNote, devVoteNote } from './devMockNotes';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -277,6 +278,7 @@ function fromRow(r: NoteRow): MapNote {
  */
 export async function fetchMapNotes(): Promise<MapNote[]> {
   if (DEV_NOAUTH) return devListNotes();
+  if (!(await hasSession())) return []; // anonym: RPC je len pre členov (hasSession.ts)
   const { data, error } = await db.rpc('list_map_notes');
   if (error) throw error;
   return ((data ?? []) as NoteRow[]).map(fromRow);

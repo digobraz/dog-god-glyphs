@@ -12,6 +12,7 @@
 // ============================================================================
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { hasSession } from '@/lib/hasSession';
 import { WISHES_LIVE } from '@/lib/packFlags';
 import { countryISO2 } from '@/lib/countryGeo';
 import { distM } from '@/components/pack/addtrip/builtUpCheck';
@@ -130,6 +131,7 @@ function mockAdd(n: NewWish): string {
 // ── API ───────────────────────────────────────────────────────────────────────
 export async function fetchWishPins(): Promise<WishPin[]> {
   if (DEV_NOAUTH) return mockRead();
+  if (!(await hasSession())) return []; // anonym: RPC je len pre členov (hasSession.ts)
   const { data, error } = await db.rpc('list_wish_pins');
   if (error) throw error;
   return ((data ?? []) as Row[]).map(fromRow);
@@ -304,6 +306,7 @@ async function loadWishCount(): Promise<number> {
   if (countCache != null) return countCache;
   if (!countInflight) {
     countInflight = (async () => {
+      if (!(await hasSession())) return 0;
       const { data, error } = await db.rpc('my_wish_points');
       return error ? 0 : Number(data) || 0;
     })()

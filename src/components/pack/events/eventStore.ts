@@ -12,6 +12,7 @@
 // Supabase premenné prostredia sa tu nečítajú (tech-stack lock) — klient si ich berie sám cez `@/lib/env`.
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { hasSession } from '@/lib/hasSession';
 import { EVENTS_LIVE } from '@/lib/packFlags';
 import type { AddEventDraft, EventKind, EventOrigin } from './eventModel';
 
@@ -112,6 +113,7 @@ function toItem(r: EditionRow): EventItem {
 }
 
 export async function fetchEvents(archive: boolean): Promise<EventItem[]> {
+  if (!(await hasSession())) return []; // anonym: RPC je len pre členov (hasSession.ts)
   const { data, error } = await db.rpc('list_event_editions', { p_archive: archive });
   if (error) throw new Error(error.message);
   return ((data ?? []) as EditionRow[]).map(toItem);
@@ -267,6 +269,7 @@ async function loadEventCount(): Promise<number> {
   if (pointsCache != null) return pointsCache;
   if (!pointsInflight) {
     pointsInflight = (async () => {
+      if (!(await hasSession())) return 0;
       const { data, error } = await db.rpc('my_event_points');
       return error ? 0 : Number(data) || 0;
     })()
