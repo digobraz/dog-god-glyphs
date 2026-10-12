@@ -55,6 +55,13 @@ import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { openPhotoInvite } from '@/lib/photoInvite';
 import { gridFetch, GRID_URL_MEMBERS } from '@/lib/earlyFetch';
 import { supabase } from '@/integrations/supabase/client';
+import symDog from '@/assets/chinese/CHINESE_SIGN-DOG.svg';
+import symLover from '@/assets/character/CHARACTER-LOVER.svg';
+import symPlayer from '@/assets/character/CHARACTER-PLAYER.svg';
+import symGuardian from '@/assets/character/CHARACTER-GUARDIAN.svg';
+import symGourmet from '@/assets/character/CHARACTER-GOURMET.svg';
+import symWater from '@/assets/character/CHARACTER-WATERLOVER.svg';
+import symChiller from '@/assets/character/CHARACTER-CHILLER.svg';
 
 /** Desať výletov na ochutnanie — výber z nákresu 12. 10. (5 regiónov SR + 3 krajiny). */
 const TRIP_IDS = [
@@ -64,6 +71,16 @@ const TRIP_IDS = [
 ];
 const APP_IMG = (f: string) => `/images/onepage/apps/${f}.webp?v=10`;
 const QUIZ = [...ELEMENT_QUESTIONS, ...ROLE_QUESTIONS];
+/** FRESKY z Hektorovej knihy (Matej 12. 10.: *„vymyslime nejaku egyptsku fresku ako mame
+ *  v hektorovom pribehu"*). Žiadny nový obraz — každý blok dostal výrez z kapitoly, ktorá
+ *  hovorí to isté: zrkadlo = kto je môj pes, krabica šteniat = útulok, túra = výlety,
+ *  učenie od psa = znalosti, glóbus so svorkou = komunita. `pos` = object-position výrezu. */
+const FRESCO = (f: string) => `/images/hektor-kniha/${f}.webp`;
+/** Pás symbolov heroglyfu v lapise s egyptským rámom — ten istý ako dole v knihe (`.hb-band`). */
+const BAND = [symDog, symLover, symPlayer, symGuardian, symGourmet, symWater, symChiller];
+function Band() {
+  return <div className="mg-band" aria-hidden>{BAND.map((src, i) => <img key={i} src={src} alt="" />)}</div>;
+}
 /** Stĺpec telefónu — stránka je VÝSLOVNE mobilná (Matej 12. 10.: „link in bio" ako na IG).
  *  Na PC sa neroztiahne; ostane úzky stĺpec v strede papyrusu. */
 const COL = 480;
@@ -90,11 +107,11 @@ export default function Magnet() {
   const top = () => go('mg-links');
   const back = <button type="button" className="pk-pill pk-pill--tap mg-up" onClick={top}>{t('magnet.back')}</button>;
   const links = [
-    { id: 'mg-dogtrip', ic: 'map', name: <>{t('heroglyph.flow.more.dogtrip.t')}</>, sub: t('magnet.link.trip') },
-    { id: 'mg-ainubis', ic: 'idea', name: <><span className="mg-ai">AI</span>NUBIS</>, sub: t('magnet.link.ai') },
-    { id: 'mg-dogid', ic: 'document', name: <>{t('heroglyph.flow.more.dogid.t')}</>, sub: t('magnet.link.dogid') },
-    { id: 'mg-idea', ic: 'heartpaw', name: <>{t('magnet.feat.dogypt.t')}</>, sub: t('magnet.link.idea') },
-    { id: 'mg-next', ic: 'people', name: <>{t('magnet.link.next.t')}</>, sub: t('magnet.link.next') },
+    { id: 'mg-dogtrip', img: 'k2-kresba', pos: '50% 50%', name: <>{t('heroglyph.flow.more.dogtrip.t')}</>, sub: t('magnet.link.trip') },
+    { id: 'mg-ainubis', img: 'k4-kresba', pos: '50% 14%', name: <><span className="mg-ai">AI</span>NUBIS</>, sub: t('magnet.link.ai') },
+    { id: 'mg-dogid', img: 'k0-zrkadlo', pos: '50% 45%', name: <>{t('heroglyph.flow.more.dogid.t')}</>, sub: t('magnet.link.dogid') },
+    { id: 'mg-idea', img: 'k1-kresba', pos: '50% 62%', name: <>{t('magnet.feat.dogypt.t')}</>, sub: t('magnet.link.idea') },
+    { id: 'mg-next', img: 'k4-kresba', pos: '50% 80%', name: <>{t('magnet.link.next.t')}</>, sub: t('magnet.link.next') },
   ];
 
   return (
@@ -106,25 +123,28 @@ export default function Magnet() {
       {/* ═══ 1 · PROFIL + ROZCESTNÍK — „link in bio" (Matej 12. 10.: výslovne na mobil,
            nadpis, krátky text, bloky; obsah sekcií až pod nimi) ═══ */}
       <section className="mg-sec mg-hero" id="mg-links">
-        <span className="pk-medallion pk-medallion--lg mg-avatar"><img src="/images/about-hekthor.webp" alt="Hekthor" /></span>
-        <h1 className="op-apps-h2">{t('magnet.hero.h')}</h1>
+        <figure className="mg-cover"><img src={FRESCO('k5-kresba')} alt="Hekthor" /></figure>
+        <p className="mg-eye">{t('magnet.hero.eye')}</p>
+        <h1 className="mg-h1">{t('magnet.hero.h')}</h1>
         <p className="mg-lead">{t('magnet.hero.lead')}</p>
         <div className="mg-stats">
           <div><b>{dogs ?? '—'}</b><span>{t('magnet.stat.dogs')}</span></div>
           <div><b>{HERO_TRAILS.length}</b><span>{t('magnet.stat.trips')}</span></div>
           <div><b>{scrolls.length || '—'}</b><span>{t('magnet.stat.scrolls')}</span></div>
         </div>
+        <Band />
         <nav className="mg-links">
-          {links.map((l) => (
-            <button type="button" key={l.id} className="mg-link" onClick={() => go(l.id)}>
-              <img src={`/icons/pack/${l.ic}.svg`} alt="" />
-              <span><b>{l.name}</b><small>{l.sub}</small></span>
+          {links.map((l, i) => (
+            <button type="button" key={l.id} className="mg-link" style={PACK_BOX.card} onClick={() => go(l.id)}>
+              <span className="mg-fresco"><img src={FRESCO(l.img)} alt="" style={{ objectPosition: l.pos }} loading={i < 2 ? 'eager' : 'lazy'} /></span>
+              <span className="mg-link-t"><b>{l.name}</b><small>{l.sub}</small></span>
             </button>
           ))}
           <button type="button" className="mg-cta mg-cta--full" onClick={join}>{t('magnet.cta')} · 11 €</button>
         </nav>
       </section>
 
+      <div className="mg-sec mg-sep"><Band /></div>
       {/* ═══ 3 · DOGTRIP ═══ */}
       <section className="mg-sec" id="mg-dogtrip">
         <p className="mg-eye">{t('magnet.trip.eye')}</p>
@@ -154,6 +174,7 @@ export default function Magnet() {
         </div>
       </section>
 
+      <div className="mg-sec mg-sep"><Band /></div>
       {/* ═══ 5 · DOG ID KVÍZ ═══ */}
       <section className="mg-sec" id="mg-dogid">
         <p className="mg-eye">{t('magnet.quiz.eye')}</p>
@@ -168,6 +189,7 @@ export default function Magnet() {
         {back}
       </section>
 
+      <div className="mg-sec mg-sep"><Band /></div>
       {/* ═══ 6 · MYŠLIENKA ═══ */}
       <section className="mg-sec" id="mg-idea">
         <div className="mg-idea">
@@ -196,6 +218,7 @@ export default function Magnet() {
         {back}
       </section>
 
+      <div className="mg-sec mg-sep"><Band /></div>
       {/* ═══ 7 · KOMUNITA ═══ */}
       <section className="mg-sec" id="mg-next">
         <p className="mg-eye">{t('magnet.next.eye')}</p>
@@ -212,6 +235,7 @@ export default function Magnet() {
         {back}
       </section>
 
+      <div className="mg-sec mg-sep"><Band /></div>
       {/* ═══ 8 · CTA ═══ */}
       <section className="mg-sec mg-end">
         <h2 className="op-apps-h2">{t('magnet.end.h')}</h2>
@@ -496,6 +520,8 @@ function NatureQuiz({ t, lang, onJoin }: { t: TFn; lang: string; onJoin: () => v
 // CSS — iba tokeny a recepty. Žiadna farba ani číslo mimo stupníc.
 // ══════════════════════════════════════════════════════════════════════════
 const S = PACK_SPACE;
+/** Červená hlinka z rámu fresiek a knihy (`.hb-band`, `#A8432A`). */
+const FRESCO_RED = '#A8432A';
 const CSS = `
 ${APPS_TYPE_CSS}
 ${PILL_CSS}
@@ -531,25 +557,43 @@ ${MAP_ATTR_CSS}
 .mg-cta:disabled{opacity:.6;cursor:wait;}
 .mg-cta--full{width:100%;margin-top:${S.md}px;}
 
-/* PROFIL — medailón, nadpis, počty ako riadok profilu na IG (bez rámikov). */
-.mg-avatar{margin:0 auto ${S.md}px;}
 /* Film má nadpis plynulý podľa OKNA (vw) — v stĺpci telefónu by na PC narástol na 56 px.
-   Stránka je mobilná, takže nadpis drží mobilný stupeň aj na PC. */
-.mg-root .op-apps-h2,.mg-root .op-apps-name{font-size:${PACK_TEXT.h1}px;}
+   Stránka je mobilná, takže nadpis drží mobilný stupeň aj na PC. Na papyruse TMAVÝ atrament:
+   zlatý gradient na bledom „nie je výrazný" (Matej 12. 10.). V AINUBIS páse ostáva svetlý. */
+.mg-root .op-apps-h2,.mg-root .op-apps-name{font-size:${PACK_TEXT.h1}px;background:none;color:${T.inkStrong};-webkit-text-fill-color:currentColor;}
+.mg-root .mg-ai-band .op-apps-h2{color:${AINUBIS.ink};}
+
+/* EGYPTSKÝ RÁM z Hektorovej knihy — zlatá · červená hlinka · zlatá (.hb-band). */
+.mg-fresco,.mg-band{box-shadow:inset 0 0 0 2px ${LAB.goldSolid},inset 0 0 0 5px ${FRESCO_RED},inset 0 0 0 7px ${LAB.goldSolid};}
+
+/* PROFIL — freska ako titulka profilu, nadpis TMAVÝM atramentom. */
+.mg-cover{position:relative;margin:0 0 ${S.xl}px;aspect-ratio:3/2;border-radius:${PACK_R.card}px;overflow:hidden;isolation:isolate;
+  box-shadow:inset 0 0 0 2px ${LAB.goldSolid},inset 0 0 0 5px ${FRESCO_RED},inset 0 0 0 7px ${LAB.goldSolid},${LAB.shadow};}
+.mg-cover img,.mg-fresco img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;}
+.mg-cover img{object-position:50% 88%;}
+.mg-fresco{isolation:isolate;}
+.mg-h1{margin:0;font:700 ${PACK_TEXT.h1}px/1.15 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
 .mg-hero .mg-lead{margin-top:${S.md}px;font-size:${PACK_TEXT.body}px;}
 .mg-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:${S.sm}px;margin-top:${S.lg}px;}
 .mg-stats div{display:flex;flex-direction:column;gap:${S.xs}px;}
-.mg-stats b{font:700 ${PACK_TEXT.h2}px/1 ${FONT_TITLE};background:${LAB.goldText};-webkit-background-clip:text;background-clip:text;color:transparent;}
+.mg-stats b{font:700 ${PACK_TEXT.h1}px/1 ${FONT_TITLE};color:${FRESCO_RED};}
 .mg-stats span{font:500 ${PACK_TEXT.micro}px/1.3 ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;color:${LAB.inkSoft};}
 
-/* ROZCESTNÍK — bloky odkazov = D-BLOK (zlato = poloha, „kam idem"); akcia = jediné lapis CTA. */
-.mg-links{display:flex;flex-direction:column;gap:${S.md}px;margin-top:${S.xl}px;}
-.mg-link{display:grid;grid-template-columns:40px 1fr;gap:${S.md}px;align-items:center;padding:${S.md}px ${S.lg}px;
-  cursor:pointer;text-align:left;font:inherit;color:inherit;transition:transform .15s ease;${goldFrameCSS()}}
-.mg-link:hover{transform:translateY(-1px);}
-.mg-link img{width:40px;height:40px;filter:${GOLD_ICON_FILTER};}
-.mg-link b{display:block;font:700 ${PACK_TEXT.lead}px/1.2 ${FONT_TITLE};letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
-.mg-link small{display:block;margin-top:${S.xs}px;font:400 ${PACK_TEXT.label}px/1.4 ${FONT_UI};color:${T.inkWarm};}
+/* Pás symbolov — lapis s rámom, ako dole v knihe. */
+.mg-band{display:flex;align-items:center;justify-content:space-around;height:40px;margin-top:${S.xl}px;
+  border-radius:${PACK_R.field}px;background:${LAPIS.grad};}
+.mg-band img{height:20px;width:auto;filter:invert(.92) sepia(.6) saturate(2) hue-rotate(5deg);}
+.mg-sep{padding-top:0;padding-bottom:0;}
+.mg-sep .mg-band{margin:0;}
+
+/* ROZCESTNÍK — KARTA s freskou navrchu a menom pod ňou; akcia = jediné lapis CTA. */
+.mg-links{display:flex;flex-direction:column;gap:${S.lg}px;margin-top:${S.xl}px;}
+.mg-link{display:block;padding:${S.sm}px;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:transform .15s ease;}
+.mg-link:hover{transform:translateY(-2px);}
+.mg-fresco{position:relative;display:block;aspect-ratio:12/5;border-radius:${PACK_R.tile}px;overflow:hidden;}
+.mg-link-t{display:block;padding:${S.md}px ${S.sm}px ${S.sm}px;}
+.mg-link b{display:block;font:700 ${PACK_TEXT.h2}px/1.2 ${FONT_TITLE};letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
+.mg-link small{display:block;margin-top:${S.xs}px;font:400 ${PACK_TEXT.body}px/1.4 ${FONT_UI};color:${T.inkWarm};}
 .mg-links .mg-cta--full{margin-top:${S.sm}px;}
 
 /* DOGTRIP — mapa v D-BLOKU, zoznam = RIADKY, detail = PODBLOK. */
