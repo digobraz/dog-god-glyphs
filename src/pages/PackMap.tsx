@@ -1873,8 +1873,8 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 .trp-pill--water{background:${WATER_COLOR};color:#fff;border-color:rgba(255,255,255,0.55);}
 .trp-pill--water.hot{background:${WATER_COLOR};color:#fff;border-color:#fff;box-shadow:0 0 0 3px rgba(46,111,214,0.35),0 4px 12px rgba(0,0,0,0.6);}
 /* bodka (z<=9, zadanie 2.3) — 17px kruh, rovnaký glass+zlatý lem ako pilulka, len piktogram. */
-.trp-lockmark{position:absolute;right:-6px;top:-7px;width:12px;height:12px;padding:2px;box-sizing:content-box;border-radius:50%;background:rgba(11,9,6,.94);border:1px solid rgba(201,154,63,0.7);pointer-events:none;}
-.trp-lockmark img{display:block;width:100%;height:100%;filter:brightness(0) invert(1);}
+.trp-lockmark{position:absolute;right:-6px;top:-7px;box-sizing:border-box;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(11,9,6,.94);border:1px solid ${T.cardEdge};pointer-events:none;}
+.trp-lockmark img{display:block;width:9px;height:9px;filter:brightness(0) invert(1);}
 .trp-root--mg .trp-status-row,.trp-root--mg .trp-mheader-status{display:none;}
 .trp-root--mg .trp-cards-scroll{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));}
 .trp-mginfo{margin:0 0 8px;padding:16px;display:flex;flex-direction:column;gap:8px;}
@@ -1882,7 +1882,7 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 .trp-mginfo-p{margin:0;font-family:${FONT_UI};font-weight:400;font-size:12px;line-height:1.5;color:${T.inkWarm};}
 .trp-mginfo-row{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border-radius:12px;background:${T.tileBg};border:1px solid ${T.border};cursor:pointer;text-align:left;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${T.inkStrong};}
 .trp-mginfo-row img{width:20px;height:20px;flex-shrink:0;}
-.trp-lockbadge{position:absolute;top:8px;left:40px;z-index:2;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(11,9,6,.88);border:1.5px solid rgba(201,154,63,0.7);color:#F6F1E4;box-shadow:0 2px 6px rgba(0,0,0,0.4);pointer-events:none;}
+.trp-lockbadge{position:absolute;top:8px;left:40px;z-index:2;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(11,9,6,.88);border:1.5px solid ${T.cardEdge};color:#F6F1E4;pointer-events:none;}
 .trp-dot{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
 .trp-dot.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);border-color:rgba(${PACK_THEME.tripPurpleRGB},0.6);box-shadow:0 0 0 2px rgba(179,107,255,0.3),0 2px 6px rgba(0,0,0,0.4);}
 .trp-dot--journey{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:rgba(201,154,63,0.5);}

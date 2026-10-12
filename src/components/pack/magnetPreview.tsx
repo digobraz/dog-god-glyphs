@@ -57,7 +57,7 @@ export function magnetPath(p: string): string | null {
   const tail = cut < 0 ? '' : p.slice(cut);
   if (path.startsWith('/magnet')) return p;
   if (path === '/pack/map' || path === '/pack/map/') return '/magnet/vylety' + tail;
-  const trip = path.match(/^\/pack\/map\/(?:([a-z]{2})\/)?([^/]+)(\/.*)?$/);
+  const trip = path.match(/^\/pack\/map\/(?:([a-z]{2,3})\/)?([^/]+)(\/.*)?$/);
   if (trip && trip[2] !== 'triplist') {
     if (!isFreeTrip(trip[2])) return null;
     return `/magnet/vylety/${trip[1] ? trip[1] + '/' : ''}${trip[2]}${trip[3] ?? ''}${tail}`;
