@@ -15,10 +15,11 @@
  *    · mapa = Mapy.com outdoor + svetelný meč (`TRAIL_SABER_LAYERS`) ako na /map;
  *    · kvíz = otázky a vyhodnotenie z `natureQuiz.ts` (ten istý kvíz ako /pack/nature).
  *
- * Sekcie (Matej 12. 10.): hero „život so psom na jednom mieste" → funkcie →
- * DOGTRIP s mapou (10 výletov) → AINUBIS ľavý + pravý panel, všetko otvorené →
- * DOG ID kvíz, výsledok za e-mail → myšlienka (pes z útulku, heroglyf) →
- * komunita rozhoduje → CTA.
+ * Tvar (Matej 12. 10. večer): VÝSLOVNE MOBIL, „link in bio" ako odkazy tvorcov na IG —
+ * medailón, nadpis, krátky text, počty, BLOKY ODKAZOV (D-BLOK) + lapis CTA; obsah sekcií
+ * je až POD blokmi a každá sekcia končí pilulkou späť na odkazy. Na PC ostáva stĺpec `COL`.
+ * Sekcie: DOGTRIP s mapou (10 výletov) → AINUBIS (mozog nad zoznamom, všetko otvorené) →
+ * DOG ID kvíz, výsledok za e-mail → myšlienka (pes z útulku, heroglyf) → svorka → CTA.
  */
 import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { MapContainer, TileLayer, Polyline, CircleMarker, useMap } from 'react-leaflet';
@@ -29,11 +30,11 @@ import { Seo } from '@/components/Seo';
 import { PageTopBar } from '@/components/PageTopBar';
 import Iphone15Pro from '@/components/ui/iphone-15-pro';
 import { LAB } from '@/lib/labTheme';
-import { APP_CHIPS, APPS_TYPE_CSS } from '@/components/lab/filmAppsType';
+import { APPS_TYPE_CSS } from '@/components/lab/filmAppsType';
 import { LAPIS, LAPIS_BTN_SHADOW, goldFrameCSS, pickTintCSS } from '@/components/pack/navGoldSkin';
 import {
   PACK_BOX, PACK_THEME as T, PACK_SPACE, PACK_R, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
-  PILL_CSS, PF_FIELD_CSS, PROGRESS_CSS, PHOTO_CSS, PACK_COL_INNER,
+  PILL_CSS, PF_FIELD_CSS, PROGRESS_CSS, PHOTO_CSS, MEDALLION_CSS,
 } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
@@ -63,8 +64,9 @@ const TRIP_IDS = [
 ];
 const APP_IMG = (f: string) => `/images/onepage/apps/${f}.webp?v=10`;
 const QUIZ = [...ELEMENT_QUESTIONS, ...ROLE_QUESTIONS];
-/** Jedna hranica s /pack/ainubis — pod ňou mozog nad zoznamom, nie vedľa. */
-const PC_MIN = 1024;
+/** Stĺpec telefónu — stránka je VÝSLOVNE mobilná (Matej 12. 10.: „link in bio" ako na IG).
+ *  Na PC sa neroztiahne; ostane úzky stĺpec v strede papyrusu. */
+const COL = 480;
 
 /** `**tučné**` z datasetu kvízu → <b>. */
 function Bold({ text }: { text: string }) {
@@ -85,71 +87,42 @@ export default function Magnet() {
   const join = () => openPhotoInvite();
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+  const top = () => go('mg-links');
+  const back = <button type="button" className="pk-pill pk-pill--tap mg-up" onClick={top}>{t('magnet.back')}</button>;
+  const links = [
+    { id: 'mg-dogtrip', ic: 'map', name: <>{t('heroglyph.flow.more.dogtrip.t')}</>, sub: t('magnet.link.trip') },
+    { id: 'mg-ainubis', ic: 'idea', name: <><span className="mg-ai">AI</span>NUBIS</>, sub: t('magnet.link.ai') },
+    { id: 'mg-dogid', ic: 'document', name: <>{t('heroglyph.flow.more.dogid.t')}</>, sub: t('magnet.link.dogid') },
+    { id: 'mg-idea', ic: 'heartpaw', name: <>{t('magnet.feat.dogypt.t')}</>, sub: t('magnet.link.idea') },
+    { id: 'mg-next', ic: 'people', name: <>{t('magnet.link.next.t')}</>, sub: t('magnet.link.next') },
+  ];
+
   return (
     <main className="mg-root">
       <Seo title="DOGYPT — life with your dog in one place" description={t('magnet.hero.lead')} path="/magnet" noindex />
       <style>{CSS}</style>
       <div className="mg-top"><PageTopBar /></div>
 
-      {/* ═══ 1 · HERO ═══ */}
-      <section className="mg-sec mg-hero">
-        <p className="mg-eye">{t('magnet.hero.eye')}</p>
+      {/* ═══ 1 · PROFIL + ROZCESTNÍK — „link in bio" (Matej 12. 10.: výslovne na mobil,
+           nadpis, krátky text, bloky; obsah sekcií až pod nimi) ═══ */}
+      <section className="mg-sec mg-hero" id="mg-links">
+        <span className="pk-medallion pk-medallion--lg mg-avatar"><img src="/images/about-hekthor.webp" alt="Hekthor" /></span>
         <h1 className="op-apps-h2">{t('magnet.hero.h')}</h1>
         <p className="mg-lead">{t('magnet.hero.lead')}</p>
-        <p className="op-apps-lead">{t('onepage.apps.chips.lead')}</p>
-        <div className="op-apps-marq">
-          <ul className="op-apps-chips">
-            {[0, 1].map((copy) => (
-              <Fragment key={copy}>
-                {APP_CHIPS.map((c) => (
-                  <li key={c.name} className={copy ? 'op-apps-clone' : undefined} aria-hidden={copy ? true : undefined}>
-                    {c.icon && <i style={{ ['--m' as string]: `url(/icons/brands/${c.icon}.svg)` }} aria-hidden />}
-                    {c.name}
-                  </li>
-                ))}
-                <li className={`op-apps-chip-more${copy ? ' op-apps-clone' : ''}`} aria-hidden={copy ? true : undefined}>{t('onepage.apps.chips.more')}</li>
-              </Fragment>
-            ))}
-          </ul>
-        </div>
-        <p className="op-apps-lead op-apps-tail">{t('onepage.apps.chips.tail')}</p>
-        <div className="mg-ctarow">
-          <button type="button" className="mg-cta" onClick={join}>{t('magnet.cta')}</button>
-          <button type="button" className="pk-pill pk-pill--tap" onClick={() => go('mg-funkcie')}>{t('magnet.cta.more')}</button>
-        </div>
-        <div className="mg-fan" aria-hidden>
-          <div className="mg-ph mg-ph--l"><Iphone15Pro src={APP_IMG('ainubis-vault-bez-oznamu')} /></div>
-          <div className="mg-ph mg-ph--c"><Iphone15Pro src={APP_IMG('dogid-profil')} /></div>
-          <div className="mg-ph mg-ph--r"><Iphone15Pro src={APP_IMG('dogtrip-swiss')} /></div>
-        </div>
         <div className="mg-stats">
-          <div style={PACK_BOX.subblock}><b>{dogs ?? '—'}</b><span>{t('magnet.stat.dogs')}</span></div>
-          <div style={PACK_BOX.subblock}><b>{HERO_TRAILS.length}</b><span>{t('magnet.stat.trips')}</span></div>
-          <div style={PACK_BOX.subblock}><b>{scrolls.length || '—'}</b><span>{t('magnet.stat.scrolls')}</span></div>
-          <div style={PACK_BOX.subblock}><b>11 €</b><span>{t('magnet.stat.price')}</span></div>
+          <div><b>{dogs ?? '—'}</b><span>{t('magnet.stat.dogs')}</span></div>
+          <div><b>{HERO_TRAILS.length}</b><span>{t('magnet.stat.trips')}</span></div>
+          <div><b>{scrolls.length || '—'}</b><span>{t('magnet.stat.scrolls')}</span></div>
         </div>
-      </section>
-
-      {/* ═══ 2 · FUNKCIE ═══ */}
-      <section className="mg-sec" id="mg-funkcie">
-        <p className="mg-eye">{t('magnet.feat.eye')}</p>
-        <h2 className="op-apps-h2">{t('magnet.feat.h')}</h2>
-        <p className="mg-lead">{t('magnet.feat.lead')}</p>
-        <div className="mg-feats">
-          {[
-            { id: 'mg-dogtrip', ic: 'map', name: <>{t('heroglyph.flow.more.dogtrip.t')}</>, text: t('magnet.feat.trip') },
-            { id: 'mg-ainubis', ic: 'idea', name: <><span className="mg-ai">AI</span>NUBIS</>, text: t('magnet.feat.ainubis') },
-            { id: 'mg-dogid', ic: 'document', name: <>{t('heroglyph.flow.more.dogid.t')}</>, text: t('magnet.feat.dogid') },
-            { id: 'mg-idea', ic: 'heartpaw', name: <>{t('magnet.feat.dogypt.t')}</>, text: t('magnet.feat.dogypt') },
-          ].map((f) => (
-            <button type="button" key={f.id} className="mg-feat" style={PACK_BOX.card} onClick={() => go(f.id)}>
-              <img src={`/icons/pack/${f.ic}.svg`} alt="" />
-              <h3>{f.name}</h3>
-              <p>{f.text}</p>
-              <span className="pk-pill">{t('magnet.feat.go')}</span>
+        <nav className="mg-links">
+          {links.map((l) => (
+            <button type="button" key={l.id} className="mg-link" onClick={() => go(l.id)}>
+              <img src={`/icons/pack/${l.ic}.svg`} alt="" />
+              <span><b>{l.name}</b><small>{l.sub}</small></span>
             </button>
           ))}
-        </div>
+          <button type="button" className="mg-cta mg-cta--full" onClick={join}>{t('magnet.cta')} · 11 €</button>
+        </nav>
       </section>
 
       {/* ═══ 3 · DOGTRIP ═══ */}
@@ -165,6 +138,7 @@ export default function Magnet() {
             {[1, 2, 3, 4].map((i) => <li key={i}><i aria-hidden />{t(`onepage.apps.dogtrip.b${i}`)}</li>)}
           </ul>
         </div>
+        {back}
       </section>
 
       {/* ═══ 4 · AINUBIS ═══ */}
@@ -176,6 +150,7 @@ export default function Magnet() {
           <p className="mg-lead mg-lead--ai">{t('magnet.ai.lead')}</p>
           <p className="mg-free">{t('magnet.ai.free')}</p>
           <AinubisDeck scrolls={scrolls} lang={lang} t={t} tx={tx} onJoin={join} />
+          {back}
         </div>
       </section>
 
@@ -186,13 +161,11 @@ export default function Magnet() {
         <p className="mg-lead">{t('magnet.quiz.lead', { n: QUIZ.length })}</p>
         <div className="mg-quizrow">
           <NatureQuiz t={t} lang={lang} onJoin={join} />
-          <div className="mg-quizside">
-            <div className="mg-ph1"><Iphone15Pro src={APP_IMG('dogid-kviz')} imgProps={{ loading: 'lazy' }} /></div>
-            <ul className="mg-ul">
-              {[1, 2, 3, 4].map((i) => <li key={i}><i aria-hidden />{t(`onepage.apps.dogid.b${i}`)}</li>)}
-            </ul>
-          </div>
+          <ul className="mg-ul">
+            {[1, 2, 3, 4].map((i) => <li key={i}><i aria-hidden />{t(`onepage.apps.dogid.b${i}`)}</li>)}
+          </ul>
         </div>
+        {back}
       </section>
 
       {/* ═══ 6 · MYŠLIENKA ═══ */}
@@ -214,16 +187,17 @@ export default function Magnet() {
                 ))}
               </div>
               <div className="mg-split-l">
-                {TRANSPARENCY_SPLIT.map((s) => <span key={s.labelKey} style={{ flex: s.share }}>{t(s.labelKey)}</span>)}
+                {TRANSPARENCY_SPLIT.map((s) => <span key={s.labelKey}><i style={{ background: s.color }} aria-hidden />{s.share} € · {t(s.labelKey)}</span>)}
               </div>
               <p>{t('magnet.idea.split')}</p>
             </div>
           </div>
         </div>
+        {back}
       </section>
 
       {/* ═══ 7 · KOMUNITA ═══ */}
-      <section className="mg-sec">
+      <section className="mg-sec" id="mg-next">
         <p className="mg-eye">{t('magnet.next.eye')}</p>
         <h2 className="op-apps-h2">{t('magnet.next.h')}</h2>
         <p className="mg-lead">{t('magnet.next.lead')}</p>
@@ -235,6 +209,7 @@ export default function Magnet() {
           <blockquote>Aplikácia je perfektná a chybičky sa doladia postupne. Dnes by som chcela nahrať ďalší výlet. Baví ma to asi tak, ako niekoho jeho obľúbená hra.</blockquote>
           <figcaption>— DANKA</figcaption>
         </figure>
+        {back}
       </section>
 
       {/* ═══ 8 · CTA ═══ */}
@@ -356,7 +331,7 @@ function AinubisDeck({ scrolls, lang, t, tx, onJoin }: {
     };
     brain.current = mountBrain({
       canvas: cv, tip, worlds: VAULT_WORLDS, head: ainubisHead,
-      isMobile: () => window.innerWidth < PC_MIN,
+      isMobile: () => true,
       worldName: (wi) => live.current.names[wi],
       circleName: circle,
       insets: () => ({ top: PACK_SPACE.lg, bottom: PACK_SPACE.lg }),
@@ -527,14 +502,16 @@ ${PILL_CSS}
 ${PF_FIELD_CSS}
 ${PROGRESS_CSS}
 ${PHOTO_CSS}
+${MEDALLION_CSS}
 ${SCROLL_CSS}
 ${MAP_ATTR_CSS}
 .mg-root{min-height:100vh;background:${LAB.pageBg};background-image:${LAB.pageBackdrop};
   color:${LAB.ink};font-family:${FONT_UI};overflow-x:hidden;}
 /* Logo na bledom podklade je TMAVÉ (brand lock 3. 10. 2026) — ten istý filter ako .pk-paper. */
 .mg-top img{filter:brightness(.34) sepia(1) saturate(2.2) hue-rotate(-12deg);}
-.mg-sec{max-width:${PACK_COL_INNER}px;margin:0 auto;padding:${S.xxxl}px ${S.lg}px;text-align:center;}
-.mg-hero{padding-top:${S.xl}px;}
+.mg-sec{max-width:${COL}px;margin:0 auto;padding:${S.xxl}px ${S.lg}px;text-align:center;scroll-margin-top:${S.lg}px;}
+.mg-hero{padding-top:${S.md}px;}
+.mg-up{margin-top:${S.xl}px;}
 .mg-eye{margin:0 0 ${S.md}px;font:500 ${PACK_TEXT.micro}px/1.4 ${FONT_UI};letter-spacing:.26em;text-transform:uppercase;color:${LAB.goldInk};}
 .mg-left{text-align:left;}
 .mg-lead{margin:${S.lg}px auto 0;max-width:640px;font:400 ${PACK_TEXT.lead}px/1.55 ${FONT_UI};color:${LAB.inkBody};}
@@ -554,33 +531,30 @@ ${MAP_ATTR_CSS}
 .mg-cta:disabled{opacity:.6;cursor:wait;}
 .mg-cta--full{width:100%;margin-top:${S.md}px;}
 
-/* Telefóny — rám Iphone15Pro z filmu; bočné ×0,9 za stredným ako karusel Členstva. */
-.mg-fan{position:relative;height:clamp(360px,62vw,600px);margin:${S.xxl}px auto 0;max-width:640px;}
-.mg-ph{position:absolute;top:0;left:50%;width:clamp(170px,30vw,280px);}
-.mg-ph--c{transform:translateX(-50%);z-index:2;}
-.mg-ph--l{transform:translateX(-50%) translateX(-62%) scale(.9);transform-origin:top center;z-index:1;}
-.mg-ph--r{transform:translateX(-50%) translateX(62%) scale(.9);transform-origin:top center;z-index:1;}
-.mg-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:${S.md}px;margin-top:${S.xl}px;}
-.mg-stats div{padding:${S.lg}px ${S.sm}px;display:flex;flex-direction:column;gap:${S.xs}px;}
-.mg-stats b{font:700 ${PACK_TEXT.h1}px/1 ${FONT_TITLE};background:${LAB.goldText};-webkit-background-clip:text;background-clip:text;color:transparent;}
+/* PROFIL — medailón, nadpis, počty ako riadok profilu na IG (bez rámikov). */
+.mg-avatar{margin:0 auto ${S.md}px;}
+/* Film má nadpis plynulý podľa OKNA (vw) — v stĺpci telefónu by na PC narástol na 56 px.
+   Stránka je mobilná, takže nadpis drží mobilný stupeň aj na PC. */
+.mg-root .op-apps-h2,.mg-root .op-apps-name{font-size:${PACK_TEXT.h1}px;}
+.mg-hero .mg-lead{margin-top:${S.md}px;font-size:${PACK_TEXT.body}px;}
+.mg-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:${S.sm}px;margin-top:${S.lg}px;}
+.mg-stats div{display:flex;flex-direction:column;gap:${S.xs}px;}
+.mg-stats b{font:700 ${PACK_TEXT.h2}px/1 ${FONT_TITLE};background:${LAB.goldText};-webkit-background-clip:text;background-clip:text;color:transparent;}
 .mg-stats span{font:500 ${PACK_TEXT.micro}px/1.3 ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;color:${LAB.inkSoft};}
-@media (max-width:640px){.mg-stats{grid-template-columns:repeat(2,1fr);}}
 
-/* Funkcie — štyri KARTY. */
-.mg-feats{display:grid;grid-template-columns:1fr 1fr;gap:${S.lg}px;margin-top:${S.xl}px;text-align:left;}
-@media (max-width:640px){.mg-feats{grid-template-columns:1fr;}}
-.mg-feat{display:flex;flex-direction:column;align-items:flex-start;gap:${S.sm}px;padding:${S.xl}px;cursor:pointer;
-  text-align:left;font:inherit;color:inherit;transition:transform .15s ease;}
-.mg-feat:hover{transform:translateY(-2px);}
-.mg-feat img{width:40px;height:40px;filter:${GOLD_ICON_FILTER};}
-.mg-feat h3{margin:0;font:700 ${PACK_HEAD.card.fontSize}px/1.2 ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${T.inkStrong};}
-.mg-feat p{margin:0;flex:1;font:400 ${PACK_TEXT.body}px/1.55 ${FONT_UI};color:${T.inkWarm};}
+/* ROZCESTNÍK — bloky odkazov = D-BLOK (zlato = poloha, „kam idem"); akcia = jediné lapis CTA. */
+.mg-links{display:flex;flex-direction:column;gap:${S.md}px;margin-top:${S.xl}px;}
+.mg-link{display:grid;grid-template-columns:40px 1fr;gap:${S.md}px;align-items:center;padding:${S.md}px ${S.lg}px;
+  cursor:pointer;text-align:left;font:inherit;color:inherit;transition:transform .15s ease;${goldFrameCSS()}}
+.mg-link:hover{transform:translateY(-1px);}
+.mg-link img{width:40px;height:40px;filter:${GOLD_ICON_FILTER};}
+.mg-link b{display:block;font:700 ${PACK_TEXT.lead}px/1.2 ${FONT_TITLE};letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
+.mg-link small{display:block;margin-top:${S.xs}px;font:400 ${PACK_TEXT.label}px/1.4 ${FONT_UI};color:${T.inkWarm};}
+.mg-links .mg-cta--full{margin-top:${S.sm}px;}
 
 /* DOGTRIP — mapa v D-BLOKU, zoznam = RIADKY, detail = PODBLOK. */
 .mg-map{display:grid;grid-template-columns:1fr;gap:${S.md}px;margin-top:${S.xl}px;text-align:left;}
-@media (min-width:768px){.mg-map{grid-template-columns:280px 1fr;grid-template-rows:480px auto;}}
 .mg-tlist{display:flex;gap:${S.sm}px;overflow-x:auto;padding-bottom:${S.xs}px;}
-@media (min-width:768px){.mg-tlist{flex-direction:column;overflow-x:hidden;overflow-y:auto;padding:0 ${S.xs}px 0 0;}}
 .mg-trow{display:grid;grid-template-columns:48px 1fr;gap:${S.md}px;align-items:center;padding:${S.sm}px;min-width:240px;cursor:pointer;
   text-align:left;font:inherit;color:inherit;}
 .mg-trow .pk-photo{width:48px;height:48px;}
@@ -588,18 +562,15 @@ ${MAP_ATTR_CSS}
 .mg-trow small{font:400 ${PACK_TEXT.label}px/1.3 ${FONT_UI};color:${T.inkWarm};}
 .mg-trow.is-on{${pickTintCSS(LAPIS.edge, LAPIS.deep)}}
 .mg-mapbox{position:relative;height:360px;overflow:hidden;${goldFrameCSS()}}
-@media (min-width:768px){.mg-mapbox{height:auto;}}
 .mg-mapbox .leaflet-container{border-radius:${PACK_R.tile}px;background:${T.tileBg};}
-.mg-tcard{grid-column:1/-1;display:grid;grid-template-columns:120px 1fr;gap:${S.lg}px;padding:${S.lg}px;align-items:start;}
-.mg-tcard .pk-photo{width:120px;height:120px;}
+.mg-tcard{display:grid;grid-template-columns:96px 1fr;gap:${S.md}px;padding:${S.md}px;align-items:start;}
+.mg-tcard .pk-photo{width:96px;height:96px;}
 .mg-tcard h3{margin:0;font:700 ${PACK_TEXT.h2}px/1.2 ${FONT_TITLE};letter-spacing:.02em;color:${T.inkStrong};}
 .mg-meta{margin:${S.xs}px 0;font:400 ${PACK_TEXT.label}px/1.4 ${FONT_UI};color:${T.inkWarm};}
 .mg-desc{margin:${S.sm}px 0 0;font:400 ${PACK_TEXT.body}px/1.55 ${FONT_UI};color:${LAB.inkBody};}
 .mg-pair{display:grid;grid-template-columns:1fr 1fr;gap:${S.lg}px;margin-top:${S.xxl}px;align-items:center;}
-@media (min-width:768px){.mg-pair{grid-template-columns:200px 200px 1fr;}}
 .mg-ph1{width:100%;max-width:220px;margin:0 auto;}
 .mg-ul{grid-column:1/-1;list-style:none;margin:0;padding:0;text-align:left;}
-@media (min-width:768px){.mg-pair .mg-ul{grid-column:auto;}}
 .mg-ul li{display:flex;align-items:center;gap:${S.md}px;padding:${S.md}px 0;border-bottom:1px solid ${LAB.hairline};
   font:400 ${PACK_TEXT.lead}px/1.4 ${FONT_UI};color:${LAB.ink};}
 .mg-ul li i{width:8px;height:8px;flex:0 0 auto;border-radius:${PACK_R.pill}px;background:${LAB.goldSolid};}
@@ -617,9 +588,7 @@ ${MAP_ATTR_CSS}
   font:500 ${PACK_TEXT.label}px/1.4 ${FONT_UI};letter-spacing:.14em;text-transform:uppercase;}
 .mg-deck{display:grid;grid-template-columns:1fr;margin-top:${S.xl}px;text-align:left;border-radius:${PACK_R.card}px;overflow:hidden;
   background:${AINUBIS.surface};border:1px solid ${AINUBIS.edgeStrong};box-shadow:${AINUBIS.panelShadow};}
-@media (min-width:${PC_MIN}px){.mg-deck{grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:680px;}}
 .mg-deck-l{display:flex;flex-direction:column;min-height:0;order:2;}
-@media (min-width:${PC_MIN}px){.mg-deck-l{order:0;border-right:1px solid ${AINUBIS.edge};}}
 .mg-deck-h{padding:${S.lg}px;border-bottom:1px solid ${AINUBIS.edge};}
 .mg-deck-h h3{margin:0;font:700 ${PACK_TEXT.h2}px/1.2 ${FONT_TITLE};letter-spacing:.14em;text-transform:uppercase;color:${AINUBIS.ink};}
 .mg-deck-h p{margin:${S.xs}px 0 0;font:400 ${PACK_TEXT.label}px/1.4 ${FONT_UI};color:${AINUBIS.inkDim};}
@@ -629,9 +598,7 @@ ${MAP_ATTR_CSS}
 .mg-wchip em{font-style:normal;color:${AINUBIS.inkFaint};margin-left:${S.xs}px;}
 .mg-wchip.is-on{background:rgba(${AINUBIS.cyanRGB},0.14);border-color:${AINUBIS.edgeStrong};color:${AINUBIS.ink};}
 .mg-deck-list{flex:1;min-height:0;max-height:70vh;overflow-y:auto;padding:${S.md}px;display:flex;flex-direction:column;gap:${S.md}px;}
-@media (min-width:${PC_MIN}px){.mg-deck-list{max-height:none;}}
-.mg-deck-r{position:relative;height:420px;order:1;}
-@media (min-width:${PC_MIN}px){.mg-deck-r{height:auto;order:0;}}
+.mg-deck-r{position:relative;height:360px;order:1;}
 .mg-deck-r canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
 .mg-tip{position:absolute;z-index:5;pointer-events:none;opacity:0;transition:opacity 120ms ease;
   transform:translate(-50%,calc(-100% - ${S.md}px));max-width:260px;padding:${S.sm}px ${S.md}px;border-radius:${PACK_R.tile}px;
@@ -640,9 +607,7 @@ ${MAP_ATTR_CSS}
 
 /* KVÍZ — KARTA, PROGRES, RIADKY, POLE. */
 .mg-quizrow{display:grid;grid-template-columns:1fr;gap:${S.xl}px;margin-top:${S.xl}px;align-items:start;text-align:left;}
-@media (min-width:768px){.mg-quizrow{grid-template-columns:1fr 240px;}}
 .mg-quiz{padding:${S.xl}px ${S.lg}px;display:flex;flex-direction:column;}
-@media (min-width:768px){.mg-quiz{padding:${S.xxl}px;}}
 .mg-qtop{display:flex;align-items:center;gap:${S.md}px;}
 .mg-qtop span{font:500 ${PACK_TEXT.label}px/1 ${FONT_UI};color:${T.inkWarm};white-space:nowrap;}
 .mg-q{margin:${S.lg}px 0 ${S.md}px;font:700 ${PACK_TEXT.h2}px/1.3 ${FONT_TITLE};letter-spacing:.02em;color:${T.inkStrong};}
@@ -658,19 +623,19 @@ ${MAP_ATTR_CSS}
   background:${LAB.goldText};-webkit-background-clip:text;background-clip:text;color:transparent;}
 .mg-res{display:grid;grid-template-columns:1fr 1fr;gap:${S.md}px;margin-top:${S.lg}px;}
 .mg-res .pk-photo{aspect-ratio:2/3;}
-.mg-quizside{display:flex;flex-direction:column;gap:${S.lg}px;}
 
 /* Myšlienka — FOTKA v ráme KARTY, heroglyf v rohu. */
 .mg-idea{display:grid;grid-template-columns:1fr;gap:${S.xxl}px;align-items:center;text-align:left;}
-@media (min-width:768px){.mg-idea{grid-template-columns:300px 1fr;}}
 .mg-idea-ph{position:relative;max-width:300px;margin:0 auto;}
 .mg-idea-ph .pk-photo{aspect-ratio:663/773;border:1.5px solid ${T.cardEdge};box-shadow:${LAB.shadow};}
 .mg-idea-gl{position:absolute;right:-${S.lg}px;bottom:-${S.lg}px;width:150px;}
 .mg-split{margin-top:${S.xl}px;padding:${S.lg}px;}
 .mg-split-bar{display:flex;height:40px;border-radius:${PACK_R.field}px;overflow:hidden;}
 .mg-split-bar span{display:grid;place-items:center;font:700 ${PACK_TEXT.body}px/1 ${FONT_TITLE};color:${T.inkStrong};}
-.mg-split-l{display:flex;margin-top:${S.xs}px;}
-.mg-split-l span{font:400 ${PACK_TEXT.label}px/1.3 ${FONT_UI};color:${T.inkWarm};text-align:center;}
+/* Legenda pod pásom — na stĺpci telefónu sa popisky pod 1 € nezmestia, preto 2 × 2 s bodkou. */
+.mg-split-l{display:grid;grid-template-columns:1fr 1fr;gap:${S.xs}px ${S.md}px;margin-top:${S.md}px;}
+.mg-split-l span{display:flex;align-items:center;gap:${S.sm}px;font:400 ${PACK_TEXT.label}px/1.3 ${FONT_UI};color:${T.inkWarm};text-align:left;}
+.mg-split-l i{width:8px;height:8px;flex:0 0 auto;border-radius:${PACK_R.pill}px;}
 .mg-split p{margin:${S.md}px 0 0;font:400 ${PACK_TEXT.body}px/1.5 ${FONT_UI};color:${LAB.inkBody};}
 
 /* Komunita — PILULKY ako štítky (neinteraktívne), citát v KARTE. */
