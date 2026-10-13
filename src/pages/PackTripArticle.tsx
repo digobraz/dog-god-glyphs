@@ -57,7 +57,7 @@ import {
   type TripVote, type TripPlan, type PartnerEvent, type CrowdSlice,
 } from '@/components/pack/packCommunity';
 import { TripWalkers } from '@/components/pack/trip/TripWalkers';
-import { readLocalTrailMeta, readTrailOverrides, readMyClaims } from '@/lib/packStore';
+import { readLocalTrailMeta, readTrailOverrides, readMyClaims, onPackStoreHydrated, isPackStoreHydrated } from '@/lib/packStore';
 import { useCrowdOthers, refreshCrowdOthers } from '@/components/pack/crowdOthers';
 import {
   COMMUNITY_CSS, WalkedPopup,
@@ -644,7 +644,19 @@ export default function PackTripArticle() {
   // bod 5 side-effect (viď súborový komentár hore): allTrails = statické HERO_TRAILS +
   // sessionStorage mirror ADD-flow tripov z PackMap (jeden-krát na mount stačí — táto
   // stránka je detail jedného tripu, nepotrebuje živú reaktivitu na iný tab/mount).
-  const allTrails = useMemo(() => [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
+  // 🔴 13. 10. 2026: „raz na mount" nestačí. Odkaz z mailu na čistom zariadení otvorí článok
+  // SKÔR, než hydratácia stiahne členské výlety z DB ⇒ „Výlet sa nenašiel" (Pilatus, Danka).
+  // Po hydratácii sa zoznam prečíta znova.
+  const [hydVer, setHydVer] = useState(0);
+  // Čakanie má strop 8 s: hydratácia pri chybe siete neohlási koniec a „nič" by ostalo navždy.
+  const [hydWait, setHydWait] = useState(() => !isPackStoreHydrated());
+  useEffect(() => {
+    const off = onPackStoreHydrated(() => { setHydVer((v) => v + 1); setHydWait(false); });
+    const tm = window.setTimeout(() => setHydWait(false), 8000);
+    return () => { off(); window.clearTimeout(tm); };
+  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const allTrails = useMemo(() => [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS], [hydVer]);
   // Adresa nesie id ALEBO čitateľný `urlSlug` (8. 10. 2026) — ďalej v súbore je `slug` vždy id,
   // lebo ním kľúčujú prejdenia, hlasy a partie.
   // ── NÁHĽAD 1:1 PRE HORSKÚ CHATU (Matej 11. 10. 2026) ──────────────────────────────────
@@ -1367,6 +1379,8 @@ export default function PackTripArticle() {
   // Výlet mimo darčeka: efekt vyššie už otvoril popup a vracia na zoznam — nekresli nič.
   if (lockedInPreview) return null;
 
+  // Kým hydratácia nedobehla, „nenašiel sa" by klamal — výlet môže práve prísť z DB.
+  if (!trail && hydWait && id.session) return null;
   if (!trail) {
     return (
       <div className="pta-notfound" style={{ backgroundColor: T.pageBg }}>
