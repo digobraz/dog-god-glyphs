@@ -114,7 +114,9 @@ export default function Pack() {
       if (DEV_NOAUTH) {
         if (!mounted) return;
         setUser({ ...DEV_MOCK_USER });
-        setDogs(DEV_MOCK_DOGS.map((d) => ({
+        const devOrder = await readDogOrder();
+        if (!mounted) return;
+        setDogs(applyDogOrder(DEV_MOCK_DOGS.map((d) => ({
           id: d.id,
           dog_name: d.dog_name,
           owner_name: DEV_MOCK_USER.fullName,
@@ -124,7 +126,7 @@ export default function Pack() {
           created_at: new Date().toISOString(),
           pack_number: d.pack_number,
           owner_gender: (d.selections as { ownerGender?: string } | null)?.ownerGender ?? null,
-        })));
+        })), devOrder));
         return;
       }
 

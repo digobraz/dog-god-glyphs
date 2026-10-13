@@ -60,6 +60,23 @@ export const DEV_MOCK_DOGS: DevMockDog[] = [
       mixBreed1: 'Labrador Retriever', mixBreed2: 'German Shepherd',
     },
   },
+  // Viacčlenná svorka LEN na požiadanie: `VITE_PACK_MOCK_PACK=4` (13. 10. 2026, test
+  // pilulky PORADIE — tá sa ukáže až pri 2+ psoch). Bez flagu ostáva jediný Hekthor
+  // (Matej 29. 7.: „nechaj len hektora").
+  ...(import.meta.env.VITE_PACK_MOCK_PACK === '4'
+    ? (['Belga', 'Alba', 'Ada'] as const).map((n, i) => ({
+        id: `dev-mock-dog-${n.toLowerCase()}`,
+        dog_name: n,
+        cloudinary_main_url: '/images/hektor-grid.webp',
+        heroglyph_png_url: '/images/hekthor-heroglyph.webp',
+        pack_number: 42 + i,
+        country: 'SVK',
+        life_status: 'alive',
+        death_date: null,
+        birth_year: 2019,
+        selections: { birthdayYear: '2019', birthdayMonth: '5', birthdayDay: '1', breed: 'Mixed', breedType: 'mix' },
+      }))
+    : []),
 ];
 
 // ── Majiteľ pre homepage `/pack` (doplnené 24. 8. 2026) ─────────────────────

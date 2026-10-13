@@ -14,8 +14,8 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import { Reorder, useDragControls } from 'framer-motion';
-import { PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_THEME } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
+import { PACK_BOX, PACK_R, PACK_SHADOW, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_THEME } from '@/components/pack/packTheme';
+import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK } from '@/components/pack/navGoldSkin';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { saveDogOrder } from '@/lib/dogOrder';
 
@@ -28,12 +28,16 @@ export interface OrderDog {
   pack_number: number | null;
 }
 
+// Pilulka stojí na TAPETE stránky, ktorá je podľa šatu čierna aj bledá — lapisový tint
+// (`pickTintCSS`) je stavaný na papyrus a na čiernom zanikol. Preto výplň `.pk-pill`
+// (papyrus, PILL_CSS) a lapis nesie len rám a písmo: akcia, čitateľná na oboch šatoch.
 export const DOG_ORDER_CSS = `
 .dor-bar{ display:flex; justify-content:flex-end; margin-bottom:-${PACK_SPACE.xs}px; }
 .dor-pill{ display:inline-flex; align-items:center; justify-content:center; padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
   border-radius:${PACK_R.pill}px; border:1px solid; cursor:pointer; white-space:nowrap;
   font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.label}px; letter-spacing:0.14em; text-transform:uppercase;
-  ${pickTintCSS(LAPIS.edge, PICK_INK.lapis)} transition:transform .12s ease; }
+  background:linear-gradient(180deg,#FFFDF7 0%,#EFDDAE 100%); border-color:${LAPIS.edge}; color:${PICK_INK.lapis};
+  transition:transform .12s ease; }
 .dor-pill:hover{ transform:translateY(-1px); }
 .dor-card{ padding:${PACK_SPACE.lg}px; width:100%; max-width:640px; margin:0 auto; }
 .dor-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:${PACK_SPACE.sm}px; }
@@ -76,7 +80,7 @@ function DogOrderRow<T extends OrderDog>({ dog }: { dog: T }) {
       dragControls={controls}
       className="dor-row"
       style={{ ...PACK_BOX.row }}
-      whileDrag={{ scale: 1.02, boxShadow: '0 8px 16px rgba(22,48,122,0.30)', zIndex: 2 }}
+      whileDrag={{ scale: 1.02, boxShadow: PACK_SHADOW.panel, zIndex: 2 }}
     >
       {dog.cloudinary_main_url
         ? <img className="dor-photo" src={sizedUrl(dog.cloudinary_main_url, 96)} alt="" draggable={false} />
