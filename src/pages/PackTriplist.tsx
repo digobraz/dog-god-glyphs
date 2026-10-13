@@ -21,7 +21,7 @@ import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
-import { useMagnetPreview, usePackNavigate, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetInfoBubble } from '@/components/pack/magnetPreview';
+import { useMagnetPreview, usePackNavigate, MAGNET_MEMBER_TRAILS, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetInfoBubble } from '@/components/pack/magnetPreview';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 // #70 — podmienka pridať sa na cudzí výlet. ⚠️ NIE `PROGRESS_STEPS` (37 polí,
 // percento celého dokladu na `/pack/dogs` a `DogPassport.tsx`), ale
@@ -508,7 +508,7 @@ export default function PackTriplist() {
    * chýbal, hoci `dogypt.triplist.v1` ho mal. Presne to audit odmeral: 11 záznamov
    * v úložisku, 5 zobrazených kariet.
    */
-  const allTrails = useMemo(() => [...visibleLocalTrails(readLocalTrails(), { withMissedPlans: true }), ...HERO_JOURNEYS, ...HERO_TRAILS], [storeEpoch]);
+  const allTrails = useMemo(() => [...(mg ? MAGNET_MEMBER_TRAILS : []), ...visibleLocalTrails(readLocalTrails(), { withMissedPlans: true }), ...HERO_JOURNEYS, ...HERO_TRAILS], [storeEpoch, mg]);
   // Founder walked seed (Matej 2026-07-24): nahodené = prejdené + z červených len SNP/Poloniny.
   // Seedne raz za session aj keď sa na vysvedčenie príde priamo (mimo PackMap mapy).
   useMemo(() => !mg && ensureWalkedSeeded([

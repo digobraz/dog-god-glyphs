@@ -75,7 +75,7 @@ import { PackNotifications } from '@/components/pack/PackNotifications';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
-import { useMagnetPreview, usePackNavigate, isFreeTrip, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetAinubisBlock } from '@/components/pack/magnetPreview';
+import { useMagnetPreview, usePackNavigate, isFreeTrip, MAGNET_MEMBER_TRAILS, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetAinubisBlock } from '@/components/pack/magnetPreview';
 import { HandLock } from '@/components/pack/HandIcons';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { useToast } from '@/hooks/use-toast';
@@ -4299,7 +4299,7 @@ export default function PackMap() {
     setWishAsk({ id: wid, kind: ask });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
-  const allTrails = useMemo(() => [...visibleLocalTrails(localTrails), ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails]);
+  const allTrails = useMemo(() => [...(mg ? MAGNET_MEMBER_TRAILS : []), ...visibleLocalTrails(localTrails), ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails, mg]);
   // Magistrály na prevzatie sú čiernobiele, kým ich niekto zo svorky neprejde (`isGhostJourney`).
   const packWalked = usePackWalked(walkedIds);
   // Množina členských id — raz za zmenu zoznamu, nie pri každej karte (inak by sa

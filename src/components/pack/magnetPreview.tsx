@@ -26,14 +26,29 @@ import { AINUBIS } from './ainubisSkin';
 import { VAULT_SOURCE_TOTALS } from './vault/vaultSources';
 import ainubisFace from '@/assets/ainubis-head.webp';
 import type { PackIdentity } from './usePackIdentity';
+import type { HeroTrail } from '@/data/heroTrails.generated';
+import memberTrails from '@/data/magnetMemberTrails.json';
 
-/** Desať výletov zdarma — výber z nákresu 12. 10. (5 regiónov SR + 3 krajiny). */
+/**
+ * VÝLETY ČLENOV vo výklade (Matej 13. 10. 2026: *„do zadarmo by som dal aj dankinu Fälensee,
+ * tú 13 km túru, namiesto nejakej našej"*). Anonym `pack_trips` nevidí (RLS), preto SNÍMKA
+ * payloadu z LIVE k 13. 10. — ten istý tvar, aký appka drží v `trp-local-trails`.
+ * Úprava výletu autorkou sa sem sama NEPREPÍŠE; pri väčšej zmene snímku obnov.
+ */
+export const MAGNET_MEMBER_TRAILS = memberTrails as unknown as HeroTrail[];
+
+/** Desať výletov zdarma — výber z nákresu 12. 10.; 13. 10. Chtelnica → Dankin Fälensee
+ *  (Malé Karpaty ostávajú cez Majdán). */
 export const MAGNET_FREE_TRIPS = [
   'sulovske-skaly-strazovske-vrchy', 'bielovodska-dolina-vysoke-tatry', 'sutovsky-vodopad-buchta-mala-fatra',
-  'gaderska-dolina-velka-fatra', 'chtelnica-rajska-zahrada-male-karpaty', 'seealpsee', 'sivy-vrch-zapadne-tatry',
+  'gaderska-dolina-velka-fatra', 'local-1791717315327-13795', 'seealpsee', 'sivy-vrch-zapadne-tatry',
   'majdan-klasicky-okruh-male-karpaty', 'velky-choc-chocske-vrchy', 'vintgar-radovna-tiesnava',
 ];
-const FREE_TRIPS = new Set(MAGNET_FREE_TRIPS);
+/** Id aj čitateľný slug — adresa členského výletu nesie `urlSlug`, nie `local-…` id. */
+const FREE_TRIPS = new Set<string>([
+  ...MAGNET_FREE_TRIPS,
+  ...MAGNET_MEMBER_TRAILS.filter((t) => MAGNET_FREE_TRIPS.includes(t.id)).flatMap((t) => (t.urlSlug ? [t.urlSlug] : [])),
+]);
 
 /**
  * VÝKLAD = MATEJOVE SKUTOČNÉ VÝLETY (Matej 13. 10. 2026: *„daj tam moje meno/iniciály aj údaje
