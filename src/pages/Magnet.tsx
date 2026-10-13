@@ -218,7 +218,7 @@ export default function Magnet() {
               <button key={sp.labelKey} type="button" role="tab" aria-selected={money === k}
                 className={money === k ? 'on' : ''} style={{ ['--c' as string]: sp.color }}
                 onClick={() => setMoney(money === k ? null : k)}>
-                <i aria-hidden /><b>{sp.share} €</b><span>{t(SPLIT_LABEL[sp.labelKey] ?? sp.labelKey)}</span>
+                <i aria-hidden /><span>{t(SPLIT_LABEL[sp.labelKey] ?? sp.labelKey)}</span>
               </button>
             ))}
           </div>
@@ -227,9 +227,8 @@ export default function Magnet() {
               {t(TRANSPARENCY_SPLIT[money].noteKey)}
             </div>
           )}
-          <p>{t('magnet.about.help')}</p>
         </div>
-        <p className="mg-motto">{t('legal.motto')}</p>
+        <a className="mg-motto" href="/">{t('magnet.home')}</a>
       </section>
     </main>
   );
@@ -373,16 +372,17 @@ ${PILL_CSS}
 .mg-split-bar span{display:grid;place-items:center;font:700 ${PACK_TEXT.body}px/1 ${FONT_TITLE};color:${T.inkStrong};}
 .mg-split-h{margin:0 0 ${S.md}px;text-align:center;font:700 ${PACK_TEXT.h2}px/1.2 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
 .mg-split-l{display:grid;grid-template-columns:repeat(4,1fr);gap:${S.sm}px;margin-top:${S.md}px;}
-.mg-split-l button{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.xs}px;cursor:pointer;
+.mg-split-l button{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:${S.xs}px;padding:${S.sm}px ${S.xs}px;cursor:pointer;
   border-radius:${PACK_R.tile}px;border:1px solid ${LAB.edge};background:transparent;color:${T.inkWarm};}
 .mg-split-l button.on{border-color:var(--c);background:color-mix(in srgb, var(--c) 14%, transparent);}
-.mg-split-l i{width:10px;height:10px;border-radius:${PACK_R.pill}px;background:var(--c);}
-.mg-split-l b{font:700 ${PACK_TEXT.lead}px/1 ${FONT_TITLE};color:${T.inkStrong};}
+.mg-split-l i{flex:none;width:10px;height:10px;border-radius:${PACK_R.pill}px;background:var(--c);}
 .mg-split-l span{font:400 ${PACK_TEXT.label}px/1.2 ${FONT_UI};text-align:center;}
 .mg-split-card{margin-top:${S.sm}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid var(--c);
   background:color-mix(in srgb, var(--c) 8%, transparent);font:400 ${PACK_TEXT.body}px/1.5 ${FONT_UI};color:${LAB.inkBody};}
-.mg-split p{margin:${S.md}px 0 0;font:400 ${PACK_TEXT.body}px/1.5 ${FONT_UI};color:${LAB.inkBody};}
 .mg-goal{margin:0;}
+/* MÄKČEŇ NAD Ť/Č — zlato je background-clip:text a pozadie končí na hrane riadku (lh 1.1),
+   diakritika nad verzálkou bola priehľadná. Ten istý liek ako .op-nxt-h2 na /onepage. */
+.mg-blocks-h,.mg-goal{padding-top:.2em;margin-top:-.2em;}
 .mg-goalsec .mg-cta{margin-top:${S.xl}px;}
 .mg-pricesub{margin:${S.md}px 0 0;font:500 ${PACK_TEXT.label}px/1.4 ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;color:${LAB.inkSoft};}
 /* CTA — LAPIS, geometria .btn-gold (radius 8), presne ako .op-nxt-cta na /onepage. */
@@ -391,7 +391,7 @@ ${PILL_CSS}
   background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};color:${LAPIS.ink};
   font:700 ${PACK_TEXT.lead}px/1 ${FONT_TITLE};letter-spacing:.14em;text-transform:uppercase;transition:transform .15s ease;}
 .mg-cta:hover{background:${LAPIS.gradHover};transform:translateY(-1px);}
-.mg-motto{margin:${S.xxl}px 0 0;font:500 ${PACK_TEXT.micro}px/1 ${FONT_UI};letter-spacing:.26em;text-transform:uppercase;color:${LAB.inkMuted};}
+.mg-motto{display:inline-block;text-decoration:underline;text-underline-offset:4px;margin:${S.xxl}px 0 0;font:500 ${PACK_TEXT.micro}px/1 ${FONT_UI};letter-spacing:.26em;text-transform:uppercase;color:${LAB.inkMuted};}
 /* PC: bloky vedľa seba, freska hore (šírka obsahu 832). */
 @media (min-width:768px){
   .mg-links{display:grid;grid-template-columns:repeat(3,1fr);}
