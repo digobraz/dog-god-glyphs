@@ -1148,7 +1148,11 @@ export const sk: Partial<Dict> = {
   'onepage.apps.mapy': 'Mapy poháňa',
   // ── /magnet — predajná stránka (12. 10. 2026), neindexovaná, len cez odkaz ──
   'magnet.hero.eye': 'DOGYPT · appka pre psíčkarov',
-  'magnet.hero.h': 'Keby mali psy vlastný štát, volal by sa DOGYPT',
+  'magnet.hero.h': 'Keby mali psy štát:',
+  'magnet.hero.promise': 'Kam so psom. Čo je preňho správne. Kto naozaj je.',
+  'magnet.hero.price': '11 € raz a navždy · časť ide psom v núdzi',
+  'magnet.pill.trip': 'Výlety',
+  'magnet.pill.dogid': 'DOG ID',
   'magnet.hero.lead': 'Všetko, čo život so psom potrebuje, na jednom mieste — výlety, odpovede, profil tvojho psa a ľudia, ktorí to majú rovnako.',
   'magnet.cta': 'Become Dogyptian',
   'magnet.cta.more': 'Čo v nej nájdeš',

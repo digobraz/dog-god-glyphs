@@ -10,8 +10,9 @@
  * v8 (12. 10. noc) — Matej: *„stránka bude short, iba 3 sekcie hero/bloky/about — každý
  * blok bude mať svoju stránku"* + *„obrázok (psí štát) · chipy · text · výzva (potrebujeme
  * ťa) · 3 bloky · about · výzva CTA"*:
- *   · ÚVOD — nová freska „štát psov", mená DOGYPTU v dvoch riadkoch, ktoré idú dokola
- *     proti sebe, text, pointa, výzva;
+ *   · ÚVOD — od v9 (13. 10.) obraz „námestie" cez celú šírku bez horného loga, nadpis
+ *     s Logom 2026, tri sľuby, cena, tri pilulky (verdikt Roast Room 4 : 0). Pás mien
+ *     a pointa „Ak máš psa, patríš sem." z v8 zanikli spolu s ním;
  *   · BLOKY — len nadpis a jedna veta, vedú na `/magnet/vylety|ainubis|kviz`. Tie montujú
  *     SKUTOČNÉ obrazovky `/pack` v režime náhľadu (`components/pack/magnetPreview.tsx`),
  *     žiadna kópia — preto tu už nie je ani mapa, ani zvitky, ani kvíz;
@@ -23,7 +24,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { Seo } from '@/components/Seo';
-import { PageTopBar } from '@/components/PageTopBar';
 import { LAB } from '@/lib/labTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PACK_BOX, PACK_THEME as T, PACK_SPACE, PACK_R, PACK_TEXT, FONT_TITLE, FONT_UI, PILL_CSS } from '@/components/pack/packTheme';
@@ -34,13 +34,6 @@ import { gridFetch, GRID_URL_MEMBERS } from '@/lib/earlyFetch';
 const IMG = (f: string) => `/images/magnet/${f}.webp`;
 /** Stĺpec telefónu — stránka je VÝSLOVNE mobilná; na PC ostane úzky stĺpec v strede. */
 const COL = 480;
-
-/** Mená DOGYPTU — Matejove tri z v7 + jeho „digitálny člen svorky, psí zápisník" + „psie
- *  náboženstvo, globálna komunita psíčkarov, psia kultúra" (12. 10. noc). Dva riadky po osem. */
-const NAMES = [
-  ['member', 'journal', 'school', 'idcard', 'chronicle', 'glyph', 'religion', 'culture'],
-  ['eco', 'social', 'map', 'buddy', 'library', 'pilgrim', 'global', 'help'],
-];
 
 const BLOCKS = [
   { to: '/magnet/vylety', img: 'vylety', h: 'magnet.q.trip', p: 'magnet.b.trip' },
@@ -62,27 +55,22 @@ export default function Magnet() {
     <main className="mg-root">
       <Seo title="DOGYPT — if dogs had a country" description={t('magnet.hero.lead')} path="/magnet" noindex />
       <style>{CSS}</style>
-      <div className="mg-top"><PageTopBar /></div>
-
-      {/* ═══ 1 · ÚVOD — štát psov ═══ */}
-      <section className="mg-sec mg-hero">
-        <figure className="mg-cover mg-frame"><img src={IMG('statpsov')} alt="" fetchPriority="high" /></figure>
-        <h1 className="mg-h1">{t('magnet.hero.h')}</h1>
-      </section>
-      <div className="mg-names" aria-label={NAMES.flat().map((k) => t(`magnet.name.${k}`)).join(' · ')}>
-        {NAMES.map((row, r) => (
-          <div key={r} className={`mg-marquee${r ? ' mg-marquee--rev' : ''}`} aria-hidden>
-            {/* Obsah dvakrát za sebou — posun o polovicu = bezšvová slučka. */}
-            <div className="mg-track">
-              {[...row, ...row].map((k, i) => <span key={i} className="pk-pill">{t(`magnet.name.${k}`)}</span>)}
-            </div>
-          </div>
-        ))}
-      </div>
-      <section className="mg-sec mg-intro">
-        <p className="mg-lead">{t('magnet.hero.lead')}</p>
-        <p className="mg-punch">{t('magnet.hero.punch')}</p>
-        <p className="mg-call">{t('magnet.call')}</p>
+      {/* ═══ 1 · ÚVOD — v9 (13. 10.): obraz cez celú šírku, ktorý sa stráca do papyrusu,
+           BEZ horného loga; nadpis nesie LOGO 2026 (tmavý atrament, hlavné logo A).
+           Text = verdikt rady (Roast Room 13. 10., 4 : 0): tri sľuby, cena hneď pod nimi,
+           tri pilulky = tri bloky nižšie. ═══ */}
+      <section className="mg-hero">
+        <img className="mg-hero-bg" src={IMG('hero-namestie')} alt="" fetchPriority="high" />
+        <div className="mg-hero-in">
+          <h1 className="mg-h1">{t('magnet.hero.h')}<span className="mg-logo" role="img" aria-label="DOGYPT" /></h1>
+          <p className="mg-lead">{t('magnet.hero.promise')}</p>
+          <p className="mg-offer">{t('magnet.hero.price')}</p>
+          <nav className="mg-pills">
+            <Link to="/magnet/vylety" className="pk-pill">{t('magnet.pill.trip')}</Link>
+            <Link to="/magnet/ainubis" className="pk-pill"><span><span>AI</span>NUBIS</span></Link>
+            <Link to="/magnet/kviz" className="pk-pill">{t('magnet.pill.dogid')}</Link>
+          </nav>
+        </div>
       </section>
 
       {/* ═══ 2 · BLOKY — každý vedie na vlastnú stránku (darček 1:1 s /pack) ═══ */}
@@ -138,10 +126,23 @@ const CSS = `
 ${PILL_CSS}
 .mg-root{min-height:100vh;background:${LAB.pageBg};background-image:${LAB.pageBackdrop};
   color:${LAB.ink};font-family:${FONT_UI};overflow-x:hidden;}
-/* Logo na bledom podklade je TMAVÉ (brand lock 3. 10. 2026) — ten istý filter ako .pk-paper. */
-.mg-top img{filter:brightness(.34) sepia(1) saturate(2.2) hue-rotate(-12deg);}
 .mg-sec{max-width:${COL}px;margin:0 auto;padding:${S.xxl}px ${S.lg}px;text-align:center;}
-.mg-hero{padding-top:${S.md}px;padding-bottom:${S.lg}px;}
+.mg-hero{position:relative;--mg-hero-h:480px;}
+@media (min-width:768px){.mg-hero{--mg-hero-h:520px;}}
+/* Obraz sa stráca MASKOU, nie farebným prechodom — pod ním je radiálny papyrus LAB,
+   ktorý nemá v tej výške jednu farbu, prechod do jedného odtieňa by na PC robil pás. */
+.mg-hero-bg{position:absolute;top:0;left:0;width:100%;height:var(--mg-hero-h);object-fit:cover;object-position:center 22%;
+  -webkit-mask-image:linear-gradient(180deg,#000 55%,rgba(0,0,0,.35) 82%,transparent);
+  mask-image:linear-gradient(180deg,#000 55%,rgba(0,0,0,.35) 82%,transparent);}
+.mg-hero-in{position:relative;max-width:${COL}px;margin:0 auto;padding:calc(var(--mg-hero-h) - 80px) ${S.lg}px ${S.lg}px;text-align:center;}
+/* LOGO 2026 (vektor z Affinity, 13. 10.) — kartuša DOG|YPT, farba = atrament cez masku. */
+.mg-logo{display:block;width:210px;aspect-ratio:1830/503;margin:${S.sm}px auto 0;background:${T.inkStrong};
+  -webkit-mask:url(/images/magnet/logo-2026-kartusa.svg) center/contain no-repeat;
+  mask:url(/images/magnet/logo-2026-kartusa.svg) center/contain no-repeat;}
+.mg-hero .mg-lead{margin-top:${S.lg}px;max-width:340px;}
+.mg-offer{margin:${S.sm}px 0 0;font:700 ${PACK_TEXT.body}px/1.3 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${LAPIS.edge};}
+.mg-pills{display:flex;flex-wrap:wrap;gap:${S.sm}px;justify-content:center;margin-top:${S.lg}px;}
+.mg-pills .pk-pill{text-decoration:none;color:inherit;}
 .mg-eye{margin:0 0 ${S.md}px;font:500 ${PACK_TEXT.micro}px/1.4 ${FONT_UI};letter-spacing:.26em;text-transform:uppercase;color:${LAB.goldInk};}
 .mg-lead{margin:0 auto;max-width:640px;font:400 ${PACK_TEXT.body}px/1.55 ${FONT_UI};color:${LAB.inkBody};}
 
@@ -149,29 +150,9 @@ ${PILL_CSS}
 .mg-frame{position:relative;overflow:hidden;isolation:isolate;
   box-shadow:inset 0 0 0 2px ${LAB.goldSolid},inset 0 0 0 5px ${FRESCO_RED},inset 0 0 0 7px ${LAB.goldSolid};}
 .mg-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;}
-.mg-cover{margin:0 0 ${S.xl}px;aspect-ratio:4/3;border-radius:${PACK_R.card}px;
-  box-shadow:inset 0 0 0 2px ${LAB.goldSolid},inset 0 0 0 5px ${FRESCO_RED},inset 0 0 0 7px ${LAB.goldSolid},${LAB.shadow};}
 .mg-h1{margin:0;font:700 ${PACK_TEXT.h1}px/1.15 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
 .mg-h2{margin:0;font:700 ${PACK_TEXT.h1}px/1.2 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
 
-/* MENÁ — dva riadky PILULIEK, idú dokola proti sebe. Pás je širší ako stĺpec, kraje sa
-   strácajú v maske. Kto nechce pohyb, dostane ich zalomené a bez opakovania. */
-.mg-names{display:flex;flex-direction:column;gap:${S.sm}px;max-width:${COL + 2 * S.xxl}px;margin:0 auto;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
-  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);}
-.mg-marquee{overflow:hidden;padding:${S.xs}px 0;}
-.mg-track{display:flex;gap:${S.sm}px;width:max-content;animation:mg-roll 48s linear infinite;}
-.mg-marquee--rev .mg-track{animation-direction:reverse;animation-duration:56s;}
-.mg-track .pk-pill{flex:0 0 auto;white-space:nowrap;}
-@keyframes mg-roll{from{transform:translateX(0)}to{transform:translateX(calc(-50% - ${S.sm / 2}px))}}
-@media (prefers-reduced-motion:reduce){
-  .mg-names{-webkit-mask-image:none;mask-image:none;padding:0 ${S.lg}px;}
-  .mg-track{animation:none;width:auto;flex-wrap:wrap;justify-content:center;}
-  .mg-track .pk-pill:nth-child(n+9){display:none;}
-}
-
-.mg-intro{padding-top:${S.xl}px;padding-bottom:${S.lg}px;}
-.mg-punch{margin:${S.lg}px 0 0;font:700 ${PACK_TEXT.h2}px/1.3 ${FONT_TITLE};letter-spacing:.06em;color:${FRESCO_RED};}
 .mg-call{margin:${S.lg}px 0 0;font:700 ${PACK_TEXT.lead}px/1.4 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
 
 /* BLOKY — KARTA: freska vľavo, nadpis + jedna veta vpravo. */

@@ -1372,7 +1372,11 @@ export const en = {
   'onepage.apps.mapy': 'Maps powered by',
   // ── /magnet — predajná stránka (12. 10. 2026), neindexovaná, len cez odkaz ──
   'magnet.hero.eye': 'DOGYPT · the app for dog people',
-  'magnet.hero.h': 'If dogs had a country, it would be called DOGYPT',
+  'magnet.hero.h': 'If dogs had a country:',
+  'magnet.hero.promise': 'Where to go with your dog. What is right for them. Who they really are.',
+  'magnet.hero.price': '€11 once and forever · part goes to dogs in need',
+  'magnet.pill.trip': 'Trips',
+  'magnet.pill.dogid': 'DOG ID',
   'magnet.hero.lead': 'Everything life with a dog needs, in one place — trips, answers, your dog’s profile and people who live the same way.',
   'magnet.cta': 'Become Dogyptian',
   'magnet.cta.more': 'What’s inside',
