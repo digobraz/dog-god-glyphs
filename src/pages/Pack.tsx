@@ -170,8 +170,13 @@ export default function Pack() {
         .select('id, dog_name, owner_name, cloudinary_main_url, share_card_url, country, pack_number, created_at, owner_gender:selections->>ownerGender')
         .eq('payment_status', 'paid');
       dogsQuery = accessIds ? dogsQuery.in('id', accessIds) : dogsQuery.eq('user_id', u.id);
+      // Poradie = psie číslo vzostupne (13. 10. 2026, Danka #42: „pri mojom profile
+      // nech je Belga“ — mala pri sebe Adu #45, lebo sa radilo podľa pridania).
+      // Sedí s identitou majiteľa: nesieš svoje NAJNIŽŠIE psie číslo, takže pes
+      // vedľa človeka je ten, ktorého číslo človek nesie.
       const { data } = await dogsQuery
-        .order('created_at', { ascending: false }) as { data: DogRow[] | null };
+        .order('pack_number', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: true }) as { data: DogRow[] | null };
 
       if (!mounted) return;
       // pack_number is stored directly on dogs row (seal_pack_number at payment time).
