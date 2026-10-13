@@ -144,7 +144,8 @@ export default function Magnet() {
                 <img src="/images/hektor-kniha/k1-f1.webp" alt="" loading="lazy" />
               </picture>
             ) : <img src={IMG('hekthor-krabica')} alt="" loading="lazy" />}
-            <span className="pk-pill mg-photo-tag">{t(real ? 'magnet.idea.photoReal' : 'magnet.idea.photoTap')}</span>
+            {/* Nenápadný chip s okom (ikonka z brandu `icons/pack/eye.svg`) — žiadne tlačidlo. */}
+            <span className="mg-photo-eye" role="img" aria-label={t(real ? 'magnet.idea.photoReal' : 'magnet.idea.photoTap')} />
           </button>
           <figcaption>{t('magnet.idea.photo')}</figcaption>
         </figure>
@@ -267,10 +268,16 @@ ${PILL_CSS}
 .mg-photo{margin:${S.xl}px auto 0;}
 .mg-photo-btn{display:block;width:100%;padding:0;border:0;cursor:pointer;background:none;}
 .mg-photo-btn picture{display:contents;}
-.mg-photo-tag{position:absolute;right:${S.md}px;bottom:${S.md}px;}
+.mg-photo-eye{position:absolute;right:${S.md}px;bottom:${S.md}px;width:32px;height:32px;border-radius:${PACK_R.pill}px;
+  background:rgba(243,228,196,0.55);border:1px solid ${LAB.edge};-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+.mg-photo-eye::before{content:'';position:absolute;inset:7px;background:${T.inkStrong};
+  -webkit-mask:url(/icons/pack/eye.svg) center/contain no-repeat;mask:url(/icons/pack/eye.svg) center/contain no-repeat;}
+/* Skutočná fotka = voľba → lapisový TINT (zlato = poloha, lapis = moja voľba). */
+.is-real .mg-photo-eye{background:rgba(22,48,122,0.18);border-color:rgba(22,48,122,0.62);}
+.is-real .mg-photo-eye::before{background:${LAPIS.edge};}
 .mg-photo .mg-frame{display:block;aspect-ratio:1;border-radius:${PACK_R.card}px;box-shadow:inset 0 0 0 2px ${LAB.goldSolid},inset 0 0 0 5px ${FRESCO_RED},inset 0 0 0 7px ${LAB.goldSolid},${LAB.shadow};}
 @media (min-width:768px){.mg-photo .mg-frame{aspect-ratio:16/9;}}
-.mg-photo figcaption{margin-top:${S.md}px;font:700 ${PACK_TEXT.lead}px/1.3 ${FONT_TITLE};letter-spacing:.06em;color:${T.inkStrong};}
+.mg-photo figcaption{margin-top:${S.sm}px;font:400 ${PACK_TEXT.label}px/1.4 ${FONT_UI};color:${T.inkWarm};}
 
 /* PÁS SVORKY — statický prvý obraz pásu z /onepage (.op-nxt-*): drážka, lapisová výplň,
    Hekthor #1 na začiatku, posledný pes na hlave, medzi nimi rovnomerný výber svorky. */
