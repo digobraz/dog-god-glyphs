@@ -93,3 +93,10 @@ export const MAPY_BASE = import.meta.env.DEV ? '/mapyapi' : 'https://api.mapy.co
 
 export const mapyTiles = (style: string = 'outdoor') =>
   `${MAPY_BASE}/v1/maptiles/${style}/256/{z}/{x}/{y}?apikey=${MAPY_API_KEY}`;
+
+// Cloudinary (13. 10. 2026): názov účtu aj unsigned preset sú VEREJNÉ (idú v každej URL fotky
+// a v každom uploade z prehliadača), preto sú tu napevno ako PostHog. Dovtedy ich niesol len
+// `.env`, ktorý existoval iba na Aire — build z Pro vyrobil `res.cloudinary.com/undefined/…`
+// a na dogypt.com zmizli všetky fotky psov aj nahrávanie. Premenná z `.env` má prednosť.
+export const CLOUDINARY_CLOUD = (import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string) || 'dz8lolmod';
+export const CLOUDINARY_PRESET = (import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET as string) || 'dogypt_unsigned';

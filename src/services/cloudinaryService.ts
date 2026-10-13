@@ -1,7 +1,7 @@
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/env';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, CLOUDINARY_CLOUD, CLOUDINARY_PRESET } from '@/lib/env';
 
-const CLOUD = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string;
-const PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET as string;
+const CLOUD = CLOUDINARY_CLOUD;
+const PRESET = CLOUDINARY_PRESET;
 const BASE_URL = `https://res.cloudinary.com/${CLOUD}/image/upload`;
 const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`;
 const RAW_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD}/raw/upload`;
