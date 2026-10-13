@@ -362,21 +362,23 @@ ${packColCSS('.pta-shell')}
    dve sa rozdelia na polovice, tri na tretiny. */
 /* 13. 10. 2026 (Matej: „bez blokov, iba na pozadí a rozdelené zvislými čiarami“): tri údaje
    sú jeden pás s linkami hore a dole, bunky oddeľuje hairline. Nákres tri-udaje.html. */
-.pta-statrow{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:24px;background:linear-gradient(90deg,rgba(201,154,63,.06),rgba(201,154,63,.02),rgba(201,154,63,.06));border-top:1px solid ${T.cardEdge};border-bottom:1px solid ${T.cardEdge};}
+.pta-statrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:24px;background:linear-gradient(90deg,rgba(201,154,63,.06),rgba(201,154,63,.02),rgba(201,154,63,.06));}
 /* RIADOK 1 = trasa cez celú šírku, RIADOK 2 = náročnosť + ruch (Matej 21. 9. 2026:
    „kilometre výškové a diaľka by som dal do jedného riadku do jedného bloku a náročnosť
    a rušnosť do druhého riadku do dvoch… vadí mi to voľné miesto vedľa rušnosti").
    Osamelý blok v riadku sa natiahne tiež — voľné miesto vedľa neho je presne to, čo vadilo. */
-.pta-stat--full{grid-column:1 / -1;}
-/* zvislá čiara medzi bunkami; prvá bunka riadku za plnou šírkou čiaru nemá */
+/* zvislé čiary medzi tromi údajmi (Matej 13. 10.: „zvislé čiarky 2 ktoré rozdelia 3 časti“, bez vodorovných) */
 .pta-stat + .pta-stat{border-left:1px solid ${T.hairline};}
-.pta-stat--full + .pta-stat{border-left:0;}
+/* trasa: km a prevýšenie pod sebou, aby sa vošla do tretiny šírky */
+.pta-route{flex-direction:column;gap:2px;}
+.pta-route i{display:none;}
 /* ⚠️ Ten rozpis 1 + 2 je LEN MOBIL (Matej 21. 9. 2026 večer: „na PC majú byť tie bloky 3
    vedľa seba, menili sme dnes len mobil"). Od 761 px (tá istá hranica ako isMobile vyššie)
    stoja všetky dlaždice v JEDNOM riadku a delia sa rovnakým dielom — 1, 2 aj 3 bez diery. */
 @media (min-width:761px){
   .pta-statrow{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:1fr;}
-  .pta-stat--full{grid-column:auto;}
+  .pta-route{flex-direction:row;gap:8px;}
+  .pta-route i{display:block;}
 }
 .pta-stat{padding:16px 8px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:5px;
   background:none;border:0;box-shadow:none;}
