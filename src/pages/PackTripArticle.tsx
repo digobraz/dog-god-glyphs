@@ -41,7 +41,7 @@ import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, PALE } from '@/componen
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
 import { useToast } from '@/hooks/use-toast';
-import { TripStoryButton } from '@/components/pack/trip/TripStoryCard';
+import { TripShareButton } from '@/components/pack/trip/TripShareSheet';
 import { ToastAction } from '@/components/ui/toast';
 import { hasOnlyDeceasedDogs } from '@/components/pack/memorialTrips';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
@@ -123,6 +123,8 @@ const T = PACK_THEME;
 // ⚠️ `tr.acts[]` nesie DATASETOVÉ id (`hike`), slovník kľúčuje na kategórii (`hiking`) —
 // preklad medzi nimi robí `ACT_ID_TO_UI` nižšie, nie tretia sada názvov.
 const ACT_EMOJI: Record<string, string> = ACT_TAG_EMOJI;
+/** Náročnosť na karte ZDIEĽAJ VÝLET (canvas nevie vykresliť `DiffMark`) — farby ako v nákrese. */
+const SHARE_DIFF_EMOJI: Record<string, string> = { Easy: '🟩', Moderate: '🟧', Hard: '🟥', Odyssey: '🟪' };
 // Dataset nesie `hike`, slovník kľúč `hiking` (ten používa filter aj formulár) — jeden riadok
 // prekladu medzi nimi je lacnejší než tretí názov tej istej aktivity.
 // Dátová hodnota `acts` → kľúč do slovníka. Staré hodnoty ('picnic', 'skating'…) ležia
@@ -1508,6 +1510,23 @@ export default function PackTripArticle() {
     return all.filter((c) => { const k = c.label.trim().toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
   })();
 
+  /* Údaje na karte ZDIEĽAJ VÝLET — tie isté, čo ukazuje článok (dlaždice + labky), v jeho
+     podmienkach: okruh bez čiary nemá km, voda nemá náročnosť, labky len keď niekto hodnotil. */
+  const shareChips: [string, string][] = (() => {
+    const out: [string, string][] = [];
+    const comma = (n: number) => (lang === 'en' ? n.toFixed(1) : n.toFixed(1).replace('.', ','));
+    const km = parseFloat(trail.km);
+    const asc = (trail as { ascentM?: number }).ascentM;
+    if (hasRouteMetrics(trail) && km > 0) out.push(['↔️', `${comma(km)} km`]);
+    if (hasRouteMetrics(trail) && asc != null && asc > 0) out.push(['↗️', `${asc} m`]);
+    if (showDiffStat) out.push([SHARE_DIFF_EMOJI[agg.difficulty] ?? '⛰️', t(`pack.map.diff.${agg.difficulty}`)]);
+    const cat = categoriesOf(trail.acts)[0];
+    if (cat) out.push([ACT_EMOJI[cat] ?? '🐾', actTx(cat)]);
+    if (agg.crowd) out.push([CROWD_EMOJI[agg.crowd], t(`pack.map.crowdKind.${agg.crowd}`)]);
+    if (shownRating > 0) out.push(['🐾', comma(shownRating)]);
+    return out;
+  })();
+
   // Akčný rad ako premenná — na mobile ho po odscrollovaní fotky renderujeme PORTÁLOM do
   // document.body (nie na mieste). Dôvod: rodičovský .pk-glass má backdrop-filter, ktorý robí
   // containing block pre position:fixed — rail by sa inak ukotvil o glass panel a plával
@@ -1629,10 +1648,16 @@ export default function PackTripArticle() {
             <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
             <span className="pta-actbtn-label">{t('pack.trip.share')}</span>
           </button>
-          {!mg && <TripStoryButton
-            data={{ name: tripName(trail, lang), km: trail.km, diff: trail.diff, photoUrl: trail.photos[0],
-                    url: `${window.location.host}${tripPath(trail)}` }}
-            shareText={tripShareText(trail, lang)} />}
+          {/* STORY → okno ZDIEĽAJ VÝLET (IG príbeh / FB, vlastná fotka, odkaz do schránky) —
+              nákres `plany/nakres-zdielanie-2026-10-11`, Matej 11. 10.: „berieme bledá verzia". */}
+          {!mg && <TripShareButton data={{
+            name: tripName(trail, lang),
+            url: `${window.location.origin}${tripPath(trail)}`,
+            photos: trail.photos,
+            fallbackPhoto: cover,
+            country: trailCountry(trail),
+            chips: shareChips,
+          }} />}
         </div>
   );
 
