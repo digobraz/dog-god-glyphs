@@ -1424,7 +1424,7 @@ export const en = {
   'magnet.quiz.again': 'Start again',
   'magnet.idea.eye': 'Vision',
   'magnet.idea.h': 'Dog people are a special kind',
-  'magnet.idea.p1': 'Nobody understands a dog person like a dog person, so we should stick together — one community, one way of life. A place that will change the history of dogs and people is being built right now.',
+  'magnet.idea.p1': 'Nobody understands a dog person like a dog person, so we should stick together — one community, one way of life.',
   'magnet.idea.p2': 'Create your dog’s heroglyph and you’re in. Every dog gets its number and a place on the wall — for good.',
   'magnet.idea.split': 'Where every one of your 11 € goes — the treasury is public.',
   'magnet.next.eye': 'What comes next',

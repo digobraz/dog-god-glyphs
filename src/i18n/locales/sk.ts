@@ -1200,7 +1200,7 @@ export const sk: Partial<Dict> = {
   'magnet.quiz.again': 'Odznova',
   'magnet.idea.eye': 'Vízia',
   'magnet.idea.h': 'Psíčkari sú špeciálny druh',
-  'magnet.idea.p1': 'Nikto nechápe psíčkara tak ako psíčkar, a preto by sme mali držať spolu — jedna komunita, jeden životný štýl. Práve vzniká miesto, ktoré zmení dejiny psov a ľudí.',
+  'magnet.idea.p1': 'Nikto nechápe psíčkara tak ako psíčkar, a preto by sme mali držať spolu — jedna komunita, jeden životný štýl.',
   'magnet.idea.p2': 'Stačí vytvoriť heroglyf tvojho psa a si vo vnútri. Každý pes dostane poradové číslo a miesto na stene — navždy.',
   'magnet.idea.split': 'Kam ide každé z tvojich 11 € — pokladnica je verejná.',
   'magnet.next.eye': 'Čo bude ďalej',

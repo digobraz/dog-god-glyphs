@@ -136,7 +136,14 @@ export default function Magnet() {
             šteniat v krabici z Hektorovej knihy (Matej 13. 10.). */}
         <figure className="mg-photo">
           <button type="button" className={`mg-frame mg-photo-btn${real ? ' is-real' : ''}`} onClick={() => setReal((r) => !r)}>
-            <img src={real ? '/images/hektor-kniha/k1-f1.webp' : IMG('hekthor-krabica')} alt="" loading="lazy" />
+            {/* Mobil: obe fotky 1:1 (skutočná sa oreže). PC: obe na šírku — skutočná je na výšku,
+                preto je pre PC OTOČENÁ o 90° (Matej 13. 10.). */}
+            {real ? (
+              <picture>
+                <source media="(min-width:768px)" srcSet={IMG('hekthor-krabica-real-wide')} />
+                <img src="/images/hektor-kniha/k1-f1.webp" alt="" loading="lazy" />
+              </picture>
+            ) : <img src={IMG('hekthor-krabica')} alt="" loading="lazy" />}
             <span className="pk-pill mg-photo-tag">{t(real ? 'magnet.idea.photoReal' : 'magnet.idea.photoTap')}</span>
           </button>
           <figcaption>{t('magnet.idea.photo')}</figcaption>
@@ -259,9 +266,10 @@ ${PILL_CSS}
 .mg-vision{margin-top:${S.lg}px;}
 .mg-photo{margin:${S.xl}px auto 0;}
 .mg-photo-btn{display:block;width:100%;padding:0;border:0;cursor:pointer;background:none;}
-.mg-photo .mg-photo-btn.is-real{aspect-ratio:4/5;max-width:320px;margin:0 auto;}
+.mg-photo-btn picture{display:contents;}
 .mg-photo-tag{position:absolute;right:${S.md}px;bottom:${S.md}px;}
-.mg-photo .mg-frame{display:block;aspect-ratio:16/9;border-radius:${PACK_R.card}px;box-shadow:inset 0 0 0 2px ${LAB.goldSolid},inset 0 0 0 5px ${FRESCO_RED},inset 0 0 0 7px ${LAB.goldSolid},${LAB.shadow};}
+.mg-photo .mg-frame{display:block;aspect-ratio:1;border-radius:${PACK_R.card}px;box-shadow:inset 0 0 0 2px ${LAB.goldSolid},inset 0 0 0 5px ${FRESCO_RED},inset 0 0 0 7px ${LAB.goldSolid},${LAB.shadow};}
+@media (min-width:768px){.mg-photo .mg-frame{aspect-ratio:16/9;}}
 .mg-photo figcaption{margin-top:${S.md}px;font:700 ${PACK_TEXT.lead}px/1.3 ${FONT_TITLE};letter-spacing:.06em;color:${T.inkStrong};}
 
 /* PÁS SVORKY — statický prvý obraz pásu z /onepage (.op-nxt-*): drážka, lapisová výplň,
