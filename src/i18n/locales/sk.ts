@@ -1242,7 +1242,7 @@ export const sk: Partial<Dict> = {
   'magnet.eg': 'Napríklad:',
   'magnet.call': "Potrebujeme ťa. Štát bez občanov je len mapa.",
   'magnet.end.call': 'Milión psov v sieti',
-  'magnet.cta.price': "Become Dogyptian · 11 €",
+  'magnet.cta.price': 'Staň sa Dogypťanom · 11 €',
   'magnet.b.trip': 'Inšpiruj sa alebo pridaj svoj!',
   'magnet.b.ai': 'AINUBIS poradí práve tebe!',
   'magnet.b.dogid': "Kvíz povahy: živel a rola tvojho psa.",
