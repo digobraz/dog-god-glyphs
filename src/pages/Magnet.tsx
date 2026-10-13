@@ -66,6 +66,7 @@ export default function Magnet() {
   const t = useT();
   const [dogs, setDogs] = useState<number | null>(null);
   const [pack, setPack] = useState<Dog[]>([]);
+  const [real, setReal] = useState(false);
   useEffect(() => {
     let on = true;
     gridFetch(GRID_URL_MEMBERS).then((d) => {
@@ -131,8 +132,13 @@ export default function Magnet() {
         <p className="mg-eye">{t('magnet.idea.eye')}</p>
         <h2 className="mg-h2">{t('magnet.idea.h')}</h2>
         <p className="mg-lead mg-vision">{t('magnet.idea.p1')}</p>
+        {/* Hlavná = ilustrácia HEKY KRABICA (vizuálna identita), ťuk ukáže SKUTOČNÚ fotku
+            šteniat v krabici z Hektorovej knihy (Matej 13. 10.). */}
         <figure className="mg-photo">
-          <span className="mg-frame"><img src="/images/hektor-kniha/k1-f1.webp" alt="" loading="lazy" /></span>
+          <button type="button" className={`mg-frame mg-photo-btn${real ? ' is-real' : ''}`} onClick={() => setReal((r) => !r)}>
+            <img src={real ? '/images/hektor-kniha/k1-f1.webp' : IMG('hekthor-krabica')} alt="" loading="lazy" />
+            <span className="pk-pill mg-photo-tag">{t(real ? 'magnet.idea.photoReal' : 'magnet.idea.photoTap')}</span>
+          </button>
           <figcaption>{t('magnet.idea.photo')}</figcaption>
         </figure>
       </section>
@@ -161,9 +167,8 @@ export default function Magnet() {
           )}
         </div>
         <p className="mg-call">{t('magnet.end.call')}</p>
-        <p className="mg-price">11 €</p>
-        <p className="mg-pricesub">{t('magnet.end.sub')}</p>
         <button type="button" className="mg-cta" onClick={join}>{t('magnet.cta')}</button>
+        <p className="mg-pricesub">{t('magnet.end.sub')}</p>
       </section>
 
       {/* ═══ 5 · KAM IDE 11 € — úplne na konci (Matej 13. 10.) ═══ */}
@@ -252,8 +257,11 @@ ${PILL_CSS}
 
 /* VÍZIA — text + fotka šteniat v krabici z Hektorovej knihy v ráme fresiek. */
 .mg-vision{margin-top:${S.lg}px;}
-.mg-photo{margin:${S.xl}px auto 0;max-width:320px;}
-.mg-photo .mg-frame{display:block;aspect-ratio:4/5;border-radius:${PACK_R.card}px;box-shadow:inset 0 0 0 2px ${LAB.goldSolid},inset 0 0 0 5px ${FRESCO_RED},inset 0 0 0 7px ${LAB.goldSolid},${LAB.shadow};}
+.mg-photo{margin:${S.xl}px auto 0;}
+.mg-photo-btn{display:block;width:100%;padding:0;border:0;cursor:pointer;background:none;}
+.mg-photo .mg-photo-btn.is-real{aspect-ratio:4/5;max-width:320px;margin:0 auto;}
+.mg-photo-tag{position:absolute;right:${S.md}px;bottom:${S.md}px;}
+.mg-photo .mg-frame{display:block;aspect-ratio:16/9;border-radius:${PACK_R.card}px;box-shadow:inset 0 0 0 2px ${LAB.goldSolid},inset 0 0 0 5px ${FRESCO_RED},inset 0 0 0 7px ${LAB.goldSolid},${LAB.shadow};}
 .mg-photo figcaption{margin-top:${S.md}px;font:700 ${PACK_TEXT.lead}px/1.3 ${FONT_TITLE};letter-spacing:.06em;color:${T.inkStrong};}
 
 /* PÁS SVORKY — statický prvý obraz pásu z /onepage (.op-nxt-*): drážka, lapisová výplň,
@@ -293,8 +301,8 @@ ${PILL_CSS}
 .mg-split-l i{width:8px;height:8px;flex:0 0 auto;border-radius:${PACK_R.pill}px;}
 .mg-split p{margin:${S.md}px 0 0;font:400 ${PACK_TEXT.body}px/1.5 ${FONT_UI};color:${LAB.inkBody};}
 .mg-goal{margin:${S.xl}px 0 0;font:700 ${PACK_TEXT.h2}px/1.3 ${FONT_TITLE};letter-spacing:.06em;color:${FRESCO_RED};}
-.mg-price{margin:${S.xl}px 0 0;font:700 48px/1 ${FONT_TITLE};background:${LAB.goldText};-webkit-background-clip:text;background-clip:text;color:transparent;}
-.mg-pricesub{margin:${S.sm}px 0 ${S.xl}px;font:500 ${PACK_TEXT.label}px/1.4 ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;color:${LAB.inkSoft};}
+.mg-goalsec .mg-cta{margin-top:${S.xl}px;}
+.mg-pricesub{margin:${S.md}px 0 0;font:500 ${PACK_TEXT.label}px/1.4 ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;color:${LAB.inkSoft};}
 /* CTA — LAPIS, geometria .btn-gold (radius 8), presne ako .op-nxt-cta na /onepage. */
 .mg-cta{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
   border:1.5px solid rgba(250,244,236,0.30);border-radius:${PACK_R.field}px;padding:${S.lg}px ${S.xl}px;
