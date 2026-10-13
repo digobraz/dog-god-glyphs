@@ -23,6 +23,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { openPhotoInvite } from '@/lib/photoInvite';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, VEIL_CSS } from './packTheme';
 import { AINUBIS } from './ainubisSkin';
+import { VAULT_SOURCE_TOTALS } from './vault/vaultSources';
 import ainubisFace from '@/assets/ainubis-head.webp';
 import type { PackIdentity } from './usePackIdentity';
 
@@ -101,7 +102,14 @@ export const isFreeTrip = (id?: string | null) => !!id && FREE_TRIPS.has(id);
 export const isFreeScrollCode = (code?: string | null) => !!code && /^O1-\d+$/.test(code);
 
 export type MagnetKind = 'trips' | 'ainubis' | 'quiz';
-export type LockWhat = 'trip' | 'scroll' | 'action' | 'save';
+/** VYSVETLIVKA, nie stráž (Matej 13. 10. 2026: *„pri kliknutí na podujatia alebo sniffer by som
+ *  dal popupy, že čo to tam je… aj na upozornenia a správy… pri tripwish a chcem ísť bublinka…
+ *  pri ainubisovi chat, fórum, zdroje — všade by mali byť vysvetlivky, nie stráž"*).
+ *  Stráž „Only Paws" ostáva len na obsahu mimo darčeka (výlet/zvitok mimo 10). */
+export type InfoKey = 'events' | 'sniffer' | 'notif' | 'msgs' | 'wish' | 'want' | 'chat' | 'forum' | 'sources';
+const INFO_KEYS = new Set<string>(['events', 'sniffer', 'notif', 'msgs', 'wish', 'want', 'chat', 'forum', 'sources']);
+export const isInfoKey = (k?: string | null): k is InfoKey => !!k && INFO_KEYS.has(k);
+export type LockWhat = 'trip' | 'scroll' | 'action' | 'save' | InfoKey;
 type Ctx = { kind: MagnetKind; lock: (what?: LockWhat) => void };
 const MagnetCtx = createContext<Ctx | null>(null);
 
@@ -140,7 +148,10 @@ export function usePackNavigate() {
     if (typeof to === 'number') { nav(to); return; }
     if (!mg) { nav(to, opts); return; }
     const m = magnetPath(to);
-    if (m) nav(m, opts); else mg.lock(to.startsWith('/pack/map/') ? 'trip' : 'action');
+    if (m) { nav(m, opts); return; }
+    if (to.startsWith('/pack/sniffer')) { mg.lock('sniffer'); return; }
+    if (/^\/pack\/(messages|inbox|dm)/.test(to)) { mg.lock('msgs'); return; }
+    mg.lock(to.startsWith('/pack/map/') ? 'trip' : 'action');
   }, [nav, mg]);
 }
 
@@ -197,6 +208,8 @@ ${VEIL_CSS}
 .mgp-card--ai .mgp-h{color:${AINUBIS.ink};}
 .mgp-card--ai .mgp-p{color:${AINUBIS.inkDim};}
 .mgp-card--ai .mgp-ghost{border-color:${AINUBIS.edge};color:${AINUBIS.ink};}
+.mgp-q{display:inline-flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;margin-left:8px;padding:0;border-radius:999px;cursor:pointer;
+  vertical-align:middle;background:${AINUBIS.surface};border:1px solid ${AINUBIS.edgeStrong};color:${AINUBIS.cyan};font-family:${FONT_UI};font-weight:600;font-size:12px;line-height:1;}
 .mgp-card{width:100%;max-width:400px;padding:32px 24px 24px;text-align:center;}
 .mgp-eye{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};}
 .mgp-h{font-family:${FONT_TITLE};font-weight:700;font-size:24px;line-height:1.2;letter-spacing:.02em;text-transform:uppercase;color:${T.inkStrong};margin:12px 0 0;}
@@ -218,7 +231,11 @@ function LockPopup({ what, onClose }: { what: LockWhat; onClose: () => void }) {
       <div className="mgp-card mgp-card--ai" onClick={(e) => e.stopPropagation()}>
         <img className="mgp-face" src={ainubisFace} alt="" aria-hidden="true" />
         <div className="mgp-who"><span>AI</span>NUBIS</div>
-        {what === 'save' ? (<>
+        {isInfoKey(what) ? (<>
+          <div className="mgp-eye">{tx('magnet.info.eye', 'What lives here')}</div>
+          <h2 className="mgp-h">{tx(`magnet.info.${what}.h`, what)}</h2>
+          <p className="mgp-p">{tx(`magnet.info.${what}.p`, '').replace('{n}', String(VAULT_SOURCE_TOTALS.documents))}</p>
+        </>) : what === 'save' ? (<>
           <div className="mgp-eye">{tx('magnet.lock.eye.save', 'Logging a trip')}</div>
           <h2 className="mgp-h">{tx('magnet.lock.save.h', 'Save it as a Dogyptian')}</h2>
           <p className="mgp-p">{tx('magnet.lock.save.p', 'This was a test run — the trip was not saved. Dogyptians keep their trips in the triplist, collect kilometres and points and the pack sees where they went.')}</p>
@@ -234,10 +251,24 @@ function LockPopup({ what, onClose }: { what: LockWhat; onClose: () => void }) {
           {what === 'save' && (
             <a className="mgp-ghost" href="/login">{tx('magnet.lock.login', 'I am a Dogyptian — log in')}</a>
           )}
-          <button type="button" className="mgp-ghost" onClick={onClose}>{tx('magnet.lock.ai.stay', 'I’ll keep sniffing for free')}</button>
+          <button type="button" className="mgp-ghost" onClick={onClose}>
+            {isInfoKey(what) ? tx('magnet.info.ok', 'Got it') : tx('magnet.lock.ai.stay', 'I’ll keep sniffing for free')}
+          </button>
         </div>
       </div>
     </div>
+  );
+}
+
+/** BUBLINKA „?" pri nadpise sekcie — v náhľade vysvetlí, čo sekcia je. Mimo náhľadu nič. */
+export function MagnetInfoBubble({ k }: { k: InfoKey }) {
+  const mg = useMagnetPreview();
+  const t = useT();
+  if (!mg) return null;
+  const label = t('magnet.info.ask');
+  return (
+    <button type="button" className="mgp-q" aria-label={label === 'magnet.info.ask' ? 'What is this?' : label}
+      onClick={(e) => { e.stopPropagation(); mg.lock(k); }}>?</button>
   );
 }
 

@@ -4247,7 +4247,7 @@ export default function PackMap() {
   const eventsHintTimer = useRef<number | null>(null);
   useEffect(() => () => { if (eventsHintTimer.current) window.clearTimeout(eventsHintTimer.current); }, []);
   const pickEvents = () => {
-    if (mg) { mg.lock('action'); return; }
+    if (mg) { mg.lock('events'); return; }
     if (EVENTS_LIVE) { setActiveCat('events'); return; }
     // Veta visí POD pilulkami (nie toast hore na obrazovke) — Matej 21. 9. 2026.
     setEventsHint(true);
@@ -4661,7 +4661,7 @@ export default function PackMap() {
   // zverejnenie a dátum rieši Triplist, kde na to modal „Kto vidí tento výlet" už existuje
   // (`PackTriplist.setVisibility`). Toast na to miesto rovno ukáže cestu, ale nevynucuje ju. ──
   const toggleFav = (tid: string) => {
-    if (mg) { mg.lock('action'); return; }
+    if (mg) { mg.lock('want'); return; }
     if (favIds.has(tid)) {
       setFavIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setPlans((prev) => prev.filter((p) => p.tripId !== tid));
@@ -4783,13 +4783,13 @@ export default function PackMap() {
     upsertMyTrip(tid, { status: 'solo', openness: 'closed', date: '' });
   };
   const joinEvent = (eid: string) => {
-    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
+    if (mg) { mg.lock('events'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     setEvents((prev) => prev.map((e) => (e.id === eid ? { ...e, joinedByMe: !e.joinedByMe } : e)));
   };
   // Zavrieť/otvoriť skupinu — inzerát ostáva pre pack viditeľný, len sa nedá pridať
   // (Matej 2026-07-25). Prepína ho ktokoľvek zo skupiny, gating je v EventsView.
   const toggleEventClosed = (eid: string) => {
-    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
+    if (mg) { mg.lock('events'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     setEvents((prev) => prev.map((e) => (e.id === eid ? { ...e, closed: !e.closed } : e)));
   };
   // ── MAZANIE (2026-08-22) ────────────────────────────────────────────────────────────────
@@ -4806,7 +4806,7 @@ export default function PackMap() {
    *  nie plán. Riadok v `trip_events` zmaže sám sync: `packStore.ts` porovnáva predošlý
    *  a nový zoznam a na chýbajúce id vyrobí delete op. */
   const deleteListing = (eid: string) => {
-    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
+    if (mg) { mg.lock('events'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     setEvents((prev) => prev.filter((e) => e.id !== eid));
   };
 
@@ -5925,7 +5925,12 @@ export default function PackMap() {
   const renderHeaderRight = (dark = true) => (
     <div
       className="trp-headright"
-      onClickCapture={mg ? (e) => { e.preventDefault(); e.stopPropagation(); mg.lock('action'); } : undefined}
+      onClickCapture={mg ? (e) => {
+        e.preventDefault(); e.stopPropagation();
+        // Vysvetlivka podľa tlačidla v kapsule (`data-mg` v PackNotifications), nie stráž.
+        const k = (e.target as Element).closest('[data-mg]')?.getAttribute('data-mg');
+        mg.lock(k === 'msgs' || k === 'notif' ? k : 'action');
+      } : undefined}
     >
       {/* KAPSULA ako na každej inej stránke /pack (Matej 3. 10. 2026: *„správy a upozornenia sú
           na mobile klasicky v spoločnom chipe… nech je to všade také isté"*). Do vtedy tu boli

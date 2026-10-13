@@ -238,6 +238,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
         <button
           type="button"
           onClick={() => emitOpenInbox()}
+          data-mg="msgs"
           aria-label={t('pack.notif.messages')}
           title={t('pack.notif.messages')}
           className="relative inline-flex items-center justify-center"
@@ -286,6 +287,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
         <button
           type="button"
           disabled
+          data-mg="msgs"
           aria-label={t('pack.notif.ariaMessages')}
           title={t('pack.notif.ariaMessages')}
           className="relative inline-flex items-center justify-center"
@@ -338,6 +340,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           return next;
         })}
         aria-label={t('pack.notif.ariaNotifications')}
+        data-mg="notif"
         className="relative inline-flex items-center justify-center"
         style={capsule ? capBtn(open) : {
           width: 38,

@@ -29,7 +29,7 @@ import { useTrailPaths } from '@/data/trailPaths';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
-import { useMagnetPreview, usePackNavigate, isFreeTrip } from '@/components/pack/magnetPreview';
+import { useMagnetPreview, usePackNavigate, isFreeTrip, magnetPath } from '@/components/pack/magnetPreview';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, HIT_CSS, PACK_SPACE, PACK_SHADOW, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
@@ -1172,7 +1172,7 @@ export default function PackTripArticle() {
   // zverejnenie sú ponuka v toaste, nie podmienka. Odznačenie = priame odobratie (aj hlas/plán).
   // Rovnaká logika ako PackMap — dôvody sú popísané tam pri `toggleFav`/`toggleWalked`.
   const toggleFav = (tid: string) => {
-    if (mg) { mg.lock('action'); return; }
+    if (mg) { mg.lock('want'); return; }
     if (favIds.has(tid)) {
       setFavIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setPlans((prev) => prev.filter((p) => p.tripId !== tid));
@@ -1257,7 +1257,7 @@ export default function PackTripArticle() {
     if (noteAfterRating) { setNoteAfterRating(false); setNotePick(true); }
   };
   const addPlan = (intent: 'solo' | 'partner', date = '') => {
-    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
+    if (mg) { mg.lock('want'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!trail) return;
     setPlans((prev) => [{ tripId: trail.id, intent, date, at: nowMs }, ...prev.filter((p) => p.tripId !== trail.id)]);
   };
@@ -1266,7 +1266,7 @@ export default function PackTripArticle() {
   // inzerát vzniká v AddTripLog („Looking for pack") a zverejniť uložený výlet sa dá
   // v Triplistе. Rovnaká zmena ako v PackMap.tsx.
   const chooseSolo = () => {
-    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
+    if (mg) { mg.lock('want'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!trail) return;
     setFavIds((prev) => { const n = new Set(prev); n.add(trail.id); return n; });
     addPlan('solo');
@@ -1312,11 +1312,13 @@ export default function PackTripArticle() {
     }
   };
 
+  /* Zdieľanie žije aj v náhľade /magnet (Matej 13. 10. 2026: *„nové zdieľanie cez story…
+     nech funguje, zdieľať môžu"*). Odkaz vtedy vedie na verejné `/magnet/vylety/…` — do `/pack`
+     by návštevník bez účtu nevošiel. Do článku sa v náhľade dostane len výlet zdarma. */
+  const shareUrl = trail ? `${window.location.origin}${(mg && magnetPath(tripPath(trail))) || tripPath(trail)}` : '';
   const handleShare = async () => {
     if (!trail) return;
-    // Odkaz vedie do `/pack` (len členovia) — v náhľade sa nezdieľa.
-    if (mg) { mg.lock('action'); return; }
-    const url = `${window.location.origin}${tripPath(trail)}`;
+    const url = shareUrl;
     const shareData = { title: tripName(trail, lang), text: tripShareText(trail, lang), url };
     if (typeof navigator.share === 'function') {
       try { await navigator.share(shareData); return; } catch { /* cancelled */ }
@@ -1650,14 +1652,14 @@ export default function PackTripArticle() {
           </button>
           {/* STORY → okno ZDIEĽAJ VÝLET (IG príbeh / FB, vlastná fotka, odkaz do schránky) —
               nákres `plany/nakres-zdielanie-2026-10-11`, Matej 11. 10.: „berieme bledá verzia". */}
-          {!mg && <TripShareButton data={{
+          <TripShareButton data={{
             name: tripName(trail, lang),
-            url: `${window.location.origin}${tripPath(trail)}`,
+            url: shareUrl,
             photos: trail.photos,
             fallbackPhoto: cover,
             country: trailCountry(trail),
             chips: shareChips,
-          }} />}
+          }} />
         </div>
   );
 

@@ -21,7 +21,7 @@ import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
-import { useMagnetPreview, usePackNavigate, MAGNET_FOUNDER, MAGNET_IDENTITY } from '@/components/pack/magnetPreview';
+import { useMagnetPreview, usePackNavigate, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetInfoBubble } from '@/components/pack/magnetPreview';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 // #70 — podmienka pridať sa na cudzí výlet. ⚠️ NIE `PROGRESS_STEPS` (37 polí,
 // percento celého dokladu na `/pack/dogs` a `DogPassport.tsx`), ale
@@ -756,7 +756,7 @@ export default function PackTriplist() {
       .catch(() => { if (alive) setWishes([]); });
     return () => { alive = false; };
   }, [storeEpoch]);
-  const addWish = () => { if (mg) { mg.lock('action'); return; } navigate(withOrigin('/pack/map', '/pack/map/triplist')); emitCreate({ id: 'wish' }); };
+  const addWish = () => { if (mg) { mg.lock('wish'); return; } navigate(withOrigin('/pack/map', '/pack/map/triplist')); emitCreate({ id: 'wish' }); };
 
   const [closeOffer, setCloseOffer] = useState<{ slug: string; who: string | null } | null>(null);
   const incoming = useIncomingRequests(reqEpoch);
@@ -819,12 +819,12 @@ export default function PackTriplist() {
   const setRegion = (k: WCE | 'all') => { setPublicWCE(k); setPublicPage(0); };
 
   const openAddDate = (tripId: string, current?: string) => {
-    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
+    if (mg) { mg.lock('want'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     setDateValue(current ?? '');
     setDateTripId(tripId);
   };
   const saveDate = () => {
-    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
+    if (mg) { mg.lock('want'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!dateTripId) return;
     const next = upsertMyTrip(dateTripId, { date: dateValue || undefined });
     setTriplist((prev) => ({ ...prev, [dateTripId]: next }));
@@ -866,7 +866,7 @@ export default function PackTriplist() {
   // #42 — zmena viditeľnosti výletu. `private` pri výlete, na ktorý už niekto ide, NESMIE
   // zhodiť status na 'solo' — tým by sa stratilo, že partia existuje. Preto 'going'.
   const setVisibility = (tripId: string, open: boolean) => {
-    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
+    if (mg) { mg.lock('want'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     const hasJoiners = (parties[tripId]?.joiners.length ?? 0) > 0;
     const next = open
       ? { status: 'looking' as TripStatus, openness: 'open' as const }
@@ -1126,7 +1126,7 @@ export default function PackTriplist() {
               ⚠️ Delí sa podľa `done`, NIE podľa dátumu: výlet bez dátumu je stále PLÁN. */}
           <div className="tl-section" id={WIZ.tlWant}>
             <div className="tl-sechead">
-              <h3>{PLANNING_LIVE ? t('pack.triplist.myTripsUpcoming') : t('pack.triplist.myTripsWant')}</h3>
+              <h3>{PLANNING_LIVE ? t('pack.triplist.myTripsUpcoming') : t('pack.triplist.myTripsWant')}<MagnetInfoBubble k="want" /></h3>
               {upcomingTrips.length > 0 && (
                 <span className="tl-sechint">
                   {t(`pack.triplist.myTripsCount${pluralKey(upcomingTrips.length)}`, { n: upcomingTrips.length })}
@@ -1165,7 +1165,7 @@ export default function PackTriplist() {
           {WISHES_LIVE && wishes && (
             <div className="tl-section" id={WIZ.tlWish}>
               <div className="tl-sechead">
-                <h3>TRIPWISH</h3>
+                <h3>TRIPWISH<MagnetInfoBubble k="wish" /></h3>
                 <button type="button" className="tl-seeall pk-hit" onClick={addWish}>+ {t('pack.triplist.wishAdd')}</button>
               </div>
               {wishes.length === 0 ? (
@@ -1175,7 +1175,7 @@ export default function PackTriplist() {
                   {wishes.map((w) => {
                     const trail = w.trailId ? allTrails.find((tr) => tr.id === w.trailId) : undefined;
                     const cover = trail?.photos[0] ?? '';
-                    const open = () => mg ? mg.lock('action') : navigate(`/pack/map?wish=${w.id}&ask=${w.status === 'missed' ? 'wish_missed' : 'wish_ask'}`);
+                    const open = () => mg ? mg.lock('wish') : navigate(`/pack/map?wish=${w.id}&ask=${w.status === 'missed' ? 'wish_missed' : 'wish_ask'}`);
                     return (
                       <div key={w.id} className="tl-mycard">
                         <div

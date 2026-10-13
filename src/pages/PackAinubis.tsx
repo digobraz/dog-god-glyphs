@@ -40,7 +40,7 @@ import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
-import { useMagnetPreview, usePackNavigate, isFreeScrollCode, MagnetAinubisBlock } from '@/components/pack/magnetPreview';
+import { useMagnetPreview, usePackNavigate, isFreeScrollCode, MagnetAinubisBlock, type LockWhat } from '@/components/pack/magnetPreview';
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_TOPROW, PAGE_AIR,
 } from '@/components/pack/packTheme';
@@ -662,9 +662,9 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   const [sp, setSp] = useSearchParams();
   const navigate = usePackNavigate();
   /* Popup pre Dogypťanov: ref, lebo plátno mozgu sa mountuje raz a uzavrelo by si prvú hodnotu. */
-  const lockRef = useRef<((w?: 'trip' | 'scroll' | 'action') => void) | null>(pv?.lock ?? null);
+  const lockRef = useRef<((w?: LockWhat) => void) | null>(pv?.lock ?? null);
   lockRef.current = pv?.lock ?? null;
-  const lockAction = () => lockRef.current?.('action');
+  const lockAction = (w: LockWhat = 'action') => lockRef.current?.(w);
   // ZVITKY (DEV ukážka, 3. 10. 2026) — článok zvitku žije na vlastnej adrese
   // `/pack/ainubis/zvitok/:id` (modal-as-route ako článok výletu, kôš 2).
   const memberScrolls = useDemoScrolls();
@@ -693,7 +693,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   };
   const closeScroll = () => { setQueue(false); navigate((loc.state as { back?: string } | null)?.back || '/pack/ainubis'); };
   /** PRISPEJ v článku zvitku → chat s AINUBISOM (➕ Použiť Matej 3. 10. vyradil). */
-  const askAinubis = () => (pv ? lockAction() : CHAT_MOCK ? navigate('/pack/ainubis?plane=chat') : openAinubis());
+  const askAinubis = () => (pv ? lockAction('chat') : CHAT_MOCK ? navigate('/pack/ainubis?plane=chat') : openAinubis());
   const shareScroll = (id: string) => {
     const url = `${window.location.origin}/pack/ainubis/zvitok/${id}`;
     const done = () => { setZvToast(scrollUI(lang).copied); window.setTimeout(() => setZvToast(''), 2000); };
@@ -720,7 +720,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
     setSp(q, { replace: true });
   };
   const goPlane = (next: 'vault' | 'chat' | 'wall') => {
-    if (pv && next !== 'vault') { lockAction(); return; }
+    if (pv && next !== 'vault') { lockAction(next === 'chat' ? 'chat' : 'forum'); return; }
     setPlane2(next);
     /* 🐛 8. 10. 2026: po ZDROJOCH viedol čip FÓRUM znova do zdrojov — stav záložky ostal
        'lib', hoci adresa ho zmazala. Rovina sa vždy otvára na svojej prvej záložke. */
@@ -757,7 +757,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   };
   /** Vchod do KNIŽNICE z chatu aj z päty VAULTU — jedno miesto, tri dvere. */
   const openLibrary = () => {
-    if (pv) { lockAction(); return; }
+    if (pv) { lockAction('sources'); return; }
     setPlane2('wall');
     setWallTab('lib');
     setQuery({ plane: 'wall', tab: 'lib' });
@@ -1310,7 +1310,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           )}
           {SCROLL_DEMO && visible.map(z => (
             <ScrollCard key={z.id} z={z} lang={lang} worldName={names[wIdx(z.world)]} onOpen={openScroll} onShare={shareScroll}
-              lock={pv ? lockAction : undefined} locked={!!pv && !isFreeScrollCode(z.code)} />
+              lock={pv ? () => lockAction() : undefined} locked={!!pv && !isFreeScrollCode(z.code)} />
           ))}
           {/* Upútavky ostávajú len svetom, ktoré ešte nemajú ani jeden zvitok. */}
           {shown.filter(({ w }) => !feed.some((z) => z.world === w.key)).map(({ w, i }) => (
@@ -1441,7 +1441,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
       {SCROLL_DEMO && openZ && (
         <ScrollView z={openZ} all={scrolls} lang={lang} focus={scrollFocus}
           onClose={closeScroll} onOpen={(i) => openScroll(i)} onUse={askAinubis} onShare={shareScroll}
-          queue={queue} onNext={nextListen} lock={pv ? lockAction : undefined} />
+          queue={queue} onNext={nextListen} lock={pv ? () => lockAction() : undefined} />
       )}
       {SCROLL_DEMO && knowOpen && !openZ && (
         <VaultKnowledge scrolls={scrolls} lang={lang} avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial}

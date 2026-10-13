@@ -105,9 +105,10 @@ export default function Magnet() {
       <section className="mg-hero">
         <img className="mg-hero-bg" src={IMG('hero-namestie')} alt="" fetchPriority="high" />
         <div className="mg-hero-in">
+          {/* Poradie nadpis → veta → logo (Matej 13. 10. večer: „v úvode nadpis, texting a potom logo"). */}
           <h1 className="mg-h1">{goldWords(t('magnet.hero.h'))}</h1>
-          <span className="mg-logo" role="img" aria-label="DOGYPT" />
           <p className="mg-lead">{t('magnet.hero.promise')}</p>
+          <span className="mg-logo" role="img" aria-label="DOGYPT" />
         </div>
         {/* Šesť mien DOGYPTU v JEDNOM riadku, ktorý ide dokola (Matej 13. 10.). */}
         <div className={`mg-names${pillTone ? ` mg-names--${pillTone}` : ''}`} aria-label={CHIPS.map((k) => t(`magnet.chip.${k}`)).join(' · ')}>
@@ -254,7 +255,8 @@ ${PILL_CSS}
 .mg-logo{display:block;width:210px;aspect-ratio:1830/503;margin:${S.sm}px auto 0;background:${T.inkStrong};
   -webkit-mask:url(/images/magnet/logo-2026-kartusa.svg) center/contain no-repeat;
   mask:url(/images/magnet/logo-2026-kartusa.svg) center/contain no-repeat;}
-.mg-hero .mg-lead{margin-top:${S.lg}px;}
+.mg-hero .mg-lead{margin-top:${S.md}px;}
+.mg-hero .mg-logo{margin-top:${S.lg}px;}
 .mg-hero-in{padding-bottom:0;}
 /* MENÁ — jeden riadok PILULIEK dokola; kraje sa strácajú v maske. Kto nechce pohyb,
    dostane ich zalomené na stred. */
