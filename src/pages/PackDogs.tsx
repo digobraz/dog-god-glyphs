@@ -67,6 +67,7 @@ import { readLatestForDogs, onDogEventsChange, hasValue, type LatestValue } from
 import { dogLifeLine } from '@/lib/dogAge';
 import { countryISO2 } from '@/lib/countryGeo';
 import { loadPackDogs } from '@/lib/packDogsList';
+import { DogOrderEditor, DogOrderPill, DOG_ORDER_CSS } from '@/components/pack/DogOrderEditor';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
 import { RightGate } from '@/components/pack/RightGate';
@@ -501,6 +502,8 @@ export default function PackDogs() {
   // inak by majiteľovi s hotovým kvízom najprv bliklo veľké hero a až potom by
   // sa zmenšilo na prúžok pod dlaždicami (skok celej stránky).
   const [latestLoaded, setLatestLoaded] = useState(false);
+  // PORADIE PSOV (13. 10. 2026) — pilulka nad psami, klik ich vymení za editor.
+  const [ordering, setOrdering] = useState(false);
 
   // Vlastný dotaz namiesto `usePackIdentity().dogs` — ten vracia len id/meno/foto,
   // a hub potrebuje aj poradové číslo, krajinu (vlajka), heroglyf a dátum narodenia
@@ -539,23 +542,30 @@ export default function PackDogs() {
 
   return (
     <PackLayout>
-      <style>{HUB_CSS}{PROGRESS_CSS}</style>
+      <style>{HUB_CSS}{PROGRESS_CSS}{DOG_ORDER_CSS}</style>
 
       {/* ── 1 · PSY — každý pes VLASTNÝ gradientový blok ──────────────────────
              Bez nadpisu „My pack", bez počtu psov a bez „+ pridať psa"
              (Matej 6.8.: „ten sa pridáva na homepage"). */}
-      <div className="flex flex-col gap-3">
-        {dogs.map((dog) => (
-          <DogBlock
-            key={dog.id}
-            dog={dog}
-            latest={latest[dog.id]}
-            total={totalSteps}
-            t={t}
-            tx={tx}
-          />
-        ))}
-      </div>
+      {/* PORADIE — len pri 2+ psoch; editor nahradí bloky, kým nedá človek HOTOVO.
+             Nákres plany/nakres-poradie-psov-2026-10-13/ (Matej: „ok A"). */}
+      {ordering ? (
+        <DogOrderEditor dogs={dogs} tx={tx} onDone={(next) => { setDogs(next); setOrdering(false); }} />
+      ) : (
+        <div className="flex flex-col gap-3">
+          {dogs.length >= 2 && <DogOrderPill onClick={() => setOrdering(true)} tx={tx} />}
+          {dogs.map((dog) => (
+            <DogBlock
+              key={dog.id}
+              dog={dog}
+              latest={latest[dog.id]}
+              total={totalSteps}
+              t={t}
+              tx={tx}
+            />
+          ))}
+        </div>
+      )}
 
       {/* ── 2 · DOG ID — MODULY (Matej 8. 10. 2026, lock dogs-dogid §REVÍZIA) ────
              Karta sa skrátila na odrážky + VYPLNIŤ; 6 dlaždíc a hero kvízu odišli na

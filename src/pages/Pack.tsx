@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME, PACK_BOX } from '@/components/pack/packTheme';
 import { HeroCard } from '@/components/pack/HeroCard';
+import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
 import { Navigate, useLocation } from 'react-router-dom';
 import { GlobePulse } from '@/components/pack/GlobePulse';
 import { FounderInvite } from '@/components/pack/FounderInvite';
@@ -174,14 +175,19 @@ export default function Pack() {
       // nech je Belga“ — mala pri sebe Adu #45, lebo sa radilo podľa pridania).
       // Sedí s identitou majiteľa: nesieš svoje NAJNIŽŠIE psie číslo, takže pes
       // vedľa človeka je ten, ktorého číslo človek nesie.
-      const { data } = await dogsQuery
-        .order('pack_number', { ascending: true, nullsFirst: false })
-        .order('created_at', { ascending: true }) as { data: DogRow[] | null };
+      // Vlastné poradie (pilulka PORADIE na `/pack/dogs`, 13. 10. 2026) ho prebije —
+      // `lib/dogOrder.ts`, to isté, čo číta `/pack/dogs` aj KRONIKA.
+      const [{ data }, order] = await Promise.all([
+        dogsQuery
+          .order('pack_number', { ascending: true, nullsFirst: false })
+          .order('created_at', { ascending: true }) as Promise<{ data: DogRow[] | null }>,
+        readDogOrder(),
+      ]);
 
       if (!mounted) return;
       // pack_number is stored directly on dogs row (seal_pack_number at payment time).
       // No pack_members lookup needed.
-      setDogs((data ?? []) as DogRow[]);
+      setDogs(applyDogOrder((data ?? []) as DogRow[], order));
     }
 
     async function loadStats() {

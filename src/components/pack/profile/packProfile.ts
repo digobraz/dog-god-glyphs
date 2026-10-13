@@ -80,6 +80,10 @@ export interface HumanProfile {
    *  Prázdne = krstné meno majiteľa. Žiadna migrácia: svorka 1. typu JE ten človek,
    *  takže meno patrí k nemu a nie do vlastnej tabuľky. */
   packName?: string;
+  /** Vlastné PORADIE PSOV (id psov) — domov, `/pack/dogs`, KRONIKA (13. 10. 2026, Danka #42).
+   *  Prázdne = psie číslo vzostupne. Pes, ktorý v zozname nie je (nový), ide na koniec.
+   *  Číta a zapisuje `lib/dogOrder.ts`, nikde inde. */
+  dogOrder?: string[];
   displayAs?: 'name' | 'nickname'; // ktorá verzia sa ukazuje navonok, default 'name'
   nationality?: string;     // country code z NATIONALITY_OPTIONS, default 'SK' (nezapisuje sa kým user nevyberie)
   relationship?: RelationshipStatus;

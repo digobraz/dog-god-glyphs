@@ -9,9 +9,11 @@
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
+import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
 
 /**
- * Psy, ku ktorým má prihlásený človek prístup, v poradí vstupu do svorky.
+ * Psy, ku ktorým má prihlásený človek prístup — v JEHO poradí (`lib/dogOrder.ts`),
+ * bez nastavenia podľa psieho čísla vzostupne (do 13. 10. 2026 podľa `created_at`).
  * Bez session: v deve s `VITE_PACK_NOAUTH=1` mock svorka, inak prázdne pole.
  */
 export async function loadPackDogs<T>(select: string): Promise<T[]> {
@@ -24,6 +26,9 @@ export async function loadPackDogs<T>(select: string): Promise<T[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let q = (supabase as any).from('dogs').select(select).eq('payment_status', 'paid');
   q = accessIds ? q.in('id', accessIds) : q.eq('user_id', uid);
-  const { data } = await q.order('created_at', { ascending: true });
-  return (data as T[]) ?? [];
+  const [{ data }, order] = await Promise.all([
+    q.order('pack_number', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+    readDogOrder(),
+  ]);
+  return applyDogOrder(((data as T[]) ?? []) as (T & { id: string })[], order);
 }
