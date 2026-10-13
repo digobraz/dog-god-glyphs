@@ -35,6 +35,9 @@ const IMG = (f: string) => `/images/magnet/${f}.webp`;
 /** Stĺpec telefónu — stránka je VÝSLOVNE mobilná; na PC ostane úzky stĺpec v strede. */
 const COL = 480;
 
+/** Matejových šesť mien pod úvodom (13. 10.) — jeden riadok dokola. */
+const CHIPS = ['eco', 'journal', 'social', 'school', 'community', 'meaning'];
+
 const BLOCKS = [
   { to: '/magnet/vylety', img: 'vylety', h: 'magnet.q.trip', p: 'magnet.b.trip' },
   { to: '/magnet/ainubis', img: 'ainubis', h: 'magnet.q.ai', p: 'magnet.b.ai' },
@@ -56,21 +59,25 @@ export default function Magnet() {
       <Seo title="DOGYPT — if dogs had a country" description={t('magnet.hero.lead')} path="/magnet" noindex />
       <style>{CSS}</style>
       {/* ═══ 1 · ÚVOD — v9 (13. 10.): obraz cez celú šírku, ktorý sa stráca do papyrusu,
-           BEZ horného loga; nadpis nesie LOGO 2026 (tmavý atrament, hlavné logo A).
-           Text = verdikt rady (Roast Room 13. 10., 4 : 0): tri sľuby, cena hneď pod nimi,
-           tri pilulky = tri bloky nižšie. ═══ */}
+           BEZ horného loga; Matejov návrh 1: nadpis + celý znak LOGO 2026 (tmavý atrament,
+           hlavné logo A) + tri otázky z verdiktu rady + šesť jeho mien v jednom riadku dokola.
+           Cenu a 3 pilulky z verdiktu Matej nevzal. ═══ */}
       <section className="mg-hero">
         <img className="mg-hero-bg" src={IMG('hero-namestie')} alt="" fetchPriority="high" />
         <div className="mg-hero-in">
           <h1 className="mg-h1">{t('magnet.hero.h')}<span className="mg-logo" role="img" aria-label="DOGYPT" /></h1>
           <p className="mg-lead">{t('magnet.hero.promise')}</p>
-          <p className="mg-offer">{t('magnet.hero.price')}</p>
-          <nav className="mg-pills">
-            <Link to="/magnet/vylety" className="pk-pill">{t('magnet.pill.trip')}</Link>
-            <Link to="/magnet/ainubis" className="pk-pill"><span><span>AI</span>NUBIS</span></Link>
-            <Link to="/magnet/kviz" className="pk-pill">{t('magnet.pill.dogid')}</Link>
-          </nav>
         </div>
+        {/* Šesť mien DOGYPTU v JEDNOM riadku, ktorý ide dokola (Matej 13. 10.). */}
+        <div className="mg-names" aria-label={CHIPS.map((k) => t(`magnet.chip.${k}`)).join(' · ')}>
+          <div className="mg-marquee" aria-hidden>
+            {/* Obsah dvakrát za sebou — posun o polovicu = bezšvová slučka. */}
+            <div className="mg-track">
+              {[...CHIPS, ...CHIPS].map((k, i) => <span key={i} className="pk-pill">{t(`magnet.chip.${k}`)}</span>)}
+            </div>
+          </div>
+        </div>
+        <p className="mg-sub">{t('magnet.chip.sub')}</p>
       </section>
 
       {/* ═══ 2 · BLOKY — každý vedie na vlastnú stránku (darček 1:1 s /pack) ═══ */}
@@ -135,14 +142,27 @@ ${PILL_CSS}
   -webkit-mask-image:linear-gradient(180deg,#000 55%,rgba(0,0,0,.35) 82%,transparent);
   mask-image:linear-gradient(180deg,#000 55%,rgba(0,0,0,.35) 82%,transparent);}
 .mg-hero-in{position:relative;max-width:${COL}px;margin:0 auto;padding:calc(var(--mg-hero-h) - 80px) ${S.lg}px ${S.lg}px;text-align:center;}
-/* LOGO 2026 (vektor z Affinity, 13. 10.) — kartuša DOG|YPT, farba = atrament cez masku. */
-.mg-logo{display:block;width:210px;aspect-ratio:1830/503;margin:${S.sm}px auto 0;background:${T.inkStrong};
-  -webkit-mask:url(/images/magnet/logo-2026-kartusa.svg) center/contain no-repeat;
-  mask:url(/images/magnet/logo-2026-kartusa.svg) center/contain no-repeat;}
+/* LOGO 2026 (vektor z Affinity, 13. 10.) — celý znak: pes na pyramíde + kartuša, farba = atrament cez masku. */
+.mg-logo{display:block;width:128px;aspect-ratio:1920/2060;margin:${S.sm}px auto 0;background:${T.inkStrong};
+  -webkit-mask:url(/images/magnet/logo-2026-znak.svg) center/contain no-repeat;
+  mask:url(/images/magnet/logo-2026-znak.svg) center/contain no-repeat;}
 .mg-hero .mg-lead{margin-top:${S.lg}px;max-width:340px;}
-.mg-offer{margin:${S.sm}px 0 0;font:700 ${PACK_TEXT.body}px/1.3 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${LAPIS.edge};}
-.mg-pills{display:flex;flex-wrap:wrap;gap:${S.sm}px;justify-content:center;margin-top:${S.lg}px;}
-.mg-pills .pk-pill{text-decoration:none;color:inherit;}
+.mg-hero-in{padding-bottom:0;}
+/* MENÁ — jeden riadok PILULIEK dokola; kraje sa strácajú v maske. Kto nechce pohyb,
+   dostane ich zalomené na stred. */
+.mg-names{position:relative;max-width:${COL + 2 * S.xxl}px;margin:${S.lg}px auto 0;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);}
+.mg-marquee{overflow:hidden;padding:${S.xs}px 0;}
+.mg-track{display:flex;gap:${S.sm}px;width:max-content;animation:mg-roll 32s linear infinite;}
+.mg-track .pk-pill{flex:0 0 auto;white-space:nowrap;}
+@keyframes mg-roll{from{transform:translateX(0)}to{transform:translateX(calc(-50% - ${S.sm / 2}px))}}
+@media (prefers-reduced-motion:reduce){
+  .mg-names{-webkit-mask-image:none;mask-image:none;padding:0 ${S.lg}px;}
+  .mg-track{animation:none;width:auto;flex-wrap:wrap;justify-content:center;}
+  .mg-track .pk-pill:nth-child(n+7){display:none;}
+}
+.mg-sub{position:relative;margin:${S.sm}px 0 0;text-align:center;font:500 ${PACK_TEXT.micro}px/1.4 ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .mg-eye{margin:0 0 ${S.md}px;font:500 ${PACK_TEXT.micro}px/1.4 ${FONT_UI};letter-spacing:.26em;text-transform:uppercase;color:${LAB.goldInk};}
 .mg-lead{margin:0 auto;max-width:640px;font:400 ${PACK_TEXT.body}px/1.55 ${FONT_UI};color:${LAB.inkBody};}
 
