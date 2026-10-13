@@ -236,36 +236,42 @@ const CSS = `
 .tsh-head h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .tsh-x{width:32px;height:32px;border-radius:999px;border:1px solid ${T.border};background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;color:${T.inkWarm};}
 .tsh-ic{display:inline-block;width:16px;height:16px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;flex-shrink:0;}
-.tsh-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;}
+/* MOBIL = náhľad VEDĽA volieb, akcie pod nimi cez celú šírku (Matej 13. 10.: „náhľadový obrázok
+   na jednej strane a obsah na druhej, lebo je to na scroll… vyzerá to nesúrodo“). */
+.tsh-grid{display:grid;grid-template-columns:132px minmax(0,1fr);gap:16px;align-items:start;}
 /* canvas má atribút width 1080 — bez min-width:0 roztiahne stĺpec za okraj okna */
 .tsh-grid > *{min-width:0;}
-.tsh-prev{display:flex;justify-content:center;}
-.tsh-prev canvas{height:min(36dvh,360px);width:auto;max-width:100%;border-radius:12px;box-shadow:${PACK_SHADOW.panel};background:${T.bg};}
+.tsh-acts{grid-column:1 / -1;}
+.tsh-prev canvas{display:block;width:100%;height:auto;border-radius:12px;box-shadow:${PACK_SHADOW.panel};background:${T.bg};}
 .tsh-lbl{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};margin:0 0 8px;}
 .tsh-sec + .tsh-sec{margin-top:16px;}
-.tsh-pills{display:flex;gap:8px;}
+.tsh-pills{display:flex;flex-direction:column;gap:8px;}
 .tsh-pill{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid ${T.border};background:transparent;color:${T.inkStrong};border-radius:999px;padding:8px 12px;font-family:${FONT_UI};font-weight:500;font-size:14px;cursor:pointer;}
 .tsh-pill.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
-.tsh-photos{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
-.tsh-ph{flex:0 0 56px;height:56px;border-radius:12px;border:2px solid transparent;overflow:hidden;cursor:pointer;padding:0;background:${T.bg};}
+.tsh-photos{display:grid;grid-template-columns:repeat(2,minmax(0,72px));gap:8px;}
+.tsh-ph{aspect-ratio:1;border-radius:12px;border:2px solid transparent;overflow:hidden;cursor:pointer;padding:0;background:${T.bg};}
 .tsh-ph img{width:100%;height:100%;object-fit:cover;display:block;}
 .tsh-ph.on{border-color:${LAPIS.edge};}
-.tsh-own{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;width:100%;border:1px dashed ${T.cardEdge};border-radius:12px;background:none;padding:12px;font-family:${FONT_UI};font-weight:500;font-size:14px;color:${T.inkWarm};cursor:pointer;}
-.tsh-own.on{border-style:solid;border-color:${LAPIS.edge};color:${PICK_INK.lapis};}
+.tsh-own{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px dashed ${T.cardEdge};background:none;font-family:${FONT_UI};font-weight:500;font-size:10px;line-height:1.2;color:${T.inkWarm};text-align:center;}
+.tsh-own .tsh-ic{width:24px;height:24px;}
 .tsh-range{width:100%;accent-color:${LAPIS.edge};}
 .tsh-cta{width:100%;border:0;border-radius:8px;padding:16px;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:${LAPIS.ink};background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
 .tsh-cta:hover:not(:disabled){background:${LAPIS.gradHover};}
 .tsh-cta:disabled{opacity:.6;cursor:default;}
 .tsh-link{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:8px;border:1px solid ${T.border};border-radius:8px;padding:12px;background:transparent;font-family:${FONT_UI};font-weight:500;font-size:14px;color:${T.inkStrong};cursor:pointer;}
-.tsh-steps{margin:16px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;}
+.tsh-steps{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;}
 .tsh-steps li{display:flex;gap:12px;align-items:flex-start;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.inkStrong};}
 .tsh-steps b{flex:0 0 24px;height:24px;border-radius:999px;background:${LAPIS.edge};color:${T.card};display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;}
 @media(min-width:721px){
   .tsh-veil{align-items:center;padding:24px;}
   .tsh-panel{border-radius:16px;padding:24px;max-height:calc(100dvh - 48px);}
   .tsh-grip{display:none;}
-  .tsh-grid{grid-template-columns:auto minmax(0,1fr);gap:24px;align-items:start;}
-  .tsh-prev canvas{height:min(calc(100dvh - 160px),560px);}
+  .tsh-grid{grid-template-columns:auto minmax(0,1fr);gap:16px 24px;}
+  .tsh-prev{grid-row:1 / span 2;}
+  .tsh-acts{grid-column:2;}
+  .tsh-prev canvas{width:auto;height:min(calc(100dvh - 160px),560px);}
+  .tsh-pills{flex-direction:row;}
+  .tsh-photos{grid-template-columns:repeat(2,96px);}
 }
 `;
 
@@ -276,7 +282,9 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
   const fileRef = useRef<HTMLInputElement>(null);
   const blobRef = useRef<Blob | null>(null);
   const [fmt, setFmt] = useState<ShareFmt>('ig');
-  const [pick, setPick] = useState(0);
+  // Fotky výletu sa nevyberajú — hlavná + vlastná (Matej 13. 10.: „každý bude chcieť pridať vlastnú“).
+  const [useOwn, setUseOwn] = useState(false);
+  const [ownSrc, setOwnSrc] = useState<string | null>(null);
   const [own, setOwn] = useState<HTMLImageElement | null>(null);
   const [off, setOff] = useState(0.5);
   const [photo, setPhoto] = useState<HTMLImageElement | null>(null);
@@ -306,14 +314,14 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
 
   // vybraná fotka výletu → obrázok (vlastná fotka má prednosť)
   useEffect(() => {
-    if (own) { setPhoto(own); return; }
-    const src = photos[pick];
+    if (useOwn && own) { setPhoto(own); return; }
+    const src = photos[0];
     if (!src) { setPhoto(null); return; }
     let live = true;
     loadImg(cld(src, 1400)).then((i) => { if (live) setPhoto(i); });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [own, pick, photosKey]);
+  }, [own, useOwn, photosKey]);
 
   // náhľad (s rámikom) + hotový obrázok na odoslanie (bez rámika) — vopred, kvôli gestu na iOS
   useEffect(() => {
@@ -368,8 +376,10 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
     e.target.value = '';
     if (!f) return;
     const i = new Image();
-    i.onload = () => { setOwn(i); setOff(0.5); };
-    i.src = URL.createObjectURL(f);
+    i.onload = () => { setOwn(i); setUseOwn(true); setOff(0.5); };
+    const u = URL.createObjectURL(f);
+    setOwnSrc(u);
+    i.src = u;
   };
 
   // PC: hárok Macu/Windowsu IG neponúka ⇒ tlačidlo sa volá podľa toho, čo naozaj urobí (Matej 13. 10.:
@@ -410,20 +420,25 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
               </div>
               <div className="tsh-sec">
                 <div className="tsh-lbl">{t('pack.trip.sharePhoto')}</div>
-                {photos.length > 1 && (
-                  <div className="tsh-photos">
-                    {photos.map((u, i) => (
-                      <button key={u} type="button" className={`tsh-ph${!own && pick === i ? ' on' : ''}`}
-                        onClick={() => { setOwn(null); setPick(i); setOff(0.5); }}>
-                        <img src={cld(u, 160)} alt="" loading="lazy" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <button type="button" className={`tsh-own${own ? ' on' : ''}`} onClick={() => fileRef.current?.click()}>
-                  <span className="tsh-ic" style={{ '--ic': `url(${ICON('camera')})` } as React.CSSProperties} />
-                  {t(own ? 'pack.trip.shareOwnOn' : 'pack.trip.shareOwn')}
-                </button>
+                <div className="tsh-photos">
+                  {photos[0] && (
+                    <button type="button" className={`tsh-ph${!useOwn ? ' on' : ''}`} aria-label={t('pack.trip.sharePhotoTrip')}
+                      onClick={() => { setUseOwn(false); setOff(0.5); }}>
+                      <img src={cld(photos[0], 200)} alt="" />
+                    </button>
+                  )}
+                  {own && ownSrc ? (
+                    <button type="button" className={`tsh-ph${useOwn ? ' on' : ''}`} aria-label={t('pack.trip.shareOwnOn')}
+                      onClick={() => { if (useOwn) fileRef.current?.click(); else { setUseOwn(true); setOff(0.5); } }}>
+                      <img src={ownSrc} alt="" />
+                    </button>
+                  ) : (
+                    <button type="button" className="tsh-ph tsh-own" onClick={() => fileRef.current?.click()}>
+                      <span className="tsh-ic" style={{ '--ic': `url(${ICON('camera')})` } as React.CSSProperties} />
+                      {t('pack.trip.shareOwnTile')}
+                    </button>
+                  )}
+                </div>
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={onOwn} />
               </div>
               <div className="tsh-sec">
@@ -431,18 +446,18 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
                 <input className="tsh-range" type="range" min={0} max={100} value={Math.round(off * 100)}
                   onChange={(e) => setOff(Number(e.target.value) / 100)} />
               </div>
-              <div className="tsh-sec">
-                <button type="button" className="tsh-cta" onClick={share} disabled={!ready}>
-                  {t(pc ? 'pack.trip.shareCtaDownload' : fmt === 'ig' ? 'pack.trip.shareCtaIg' : 'pack.trip.shareCtaFb')}
-                </button>
-                <button type="button" className="tsh-link" onClick={copyOnly}>
-                  <span className="tsh-ic" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
-                  {t('pack.trip.shareCopy')}
-                </button>
-                <ol className="tsh-steps">
-                  {steps.map((s, i) => <li key={i}><b>{i + 1}</b><span>{s}</span></li>)}
-                </ol>
-              </div>
+            </div>
+            <div className="tsh-acts">
+              <button type="button" className="tsh-cta" onClick={share} disabled={!ready}>
+                {t(pc ? 'pack.trip.shareCtaDownload' : fmt === 'ig' ? 'pack.trip.shareCtaIg' : 'pack.trip.shareCtaFb')}
+              </button>
+              <button type="button" className="tsh-link" onClick={copyOnly}>
+                <span className="tsh-ic" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
+                {t('pack.trip.shareCopy')}
+              </button>
+              <ol className="tsh-steps">
+                {steps.map((s, i) => <li key={i}><b>{i + 1}</b><span>{s}</span></li>)}
+              </ol>
             </div>
           </div>
         </div>

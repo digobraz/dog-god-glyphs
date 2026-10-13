@@ -4478,6 +4478,8 @@ export const sk: Partial<Dict> = {
   'pack.trip.sharePhoto': "Fotka",
   'pack.trip.shareOwn': "Nahraj vlastnú fotku",
   'pack.trip.shareOwnOn': "Tvoja fotka · zmeniť",
+  'pack.trip.shareOwnTile': "Tvoja fotka",
+  'pack.trip.sharePhotoTrip': "Fotka výletu",
   'pack.trip.shareShift': "Posun fotky",
   'pack.trip.shareCtaIg': "Zdieľať do IG príbehu",
   'pack.trip.shareCtaFb': "Zdieľať na Facebook",

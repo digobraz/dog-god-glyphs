@@ -4776,6 +4776,8 @@ export const en = {
   'pack.trip.sharePhoto': "Photo",
   'pack.trip.shareOwn': "Upload your own photo",
   'pack.trip.shareOwnOn': "Your photo · change",
+  'pack.trip.shareOwnTile': "Your photo",
+  'pack.trip.sharePhotoTrip': "Trip photo",
   'pack.trip.shareShift': "Move photo",
   'pack.trip.shareCtaIg': "Share to IG story",
   'pack.trip.shareCtaFb': "Share to Facebook",
