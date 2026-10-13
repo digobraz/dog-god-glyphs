@@ -26,7 +26,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { Seo } from '@/components/Seo';
 import { LAB } from '@/lib/labTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
-import { PACK_BOX, PACK_THEME as T, PACK_SPACE, PACK_R, PACK_TEXT, FONT_TITLE, FONT_UI, PILL_CSS } from '@/components/pack/packTheme';
+import { PACK_BOX, PACK_THEME as T, PACK_SPACE, PACK_R, PACK_TEXT, FONT_TITLE, FONT_UI, PILL_CSS, PACK_COL_INNER } from '@/components/pack/packTheme';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { openPhotoInvite } from '@/lib/photoInvite';
 import { gridFetch, GRID_URL_MEMBERS } from '@/lib/earlyFetch';
@@ -43,8 +43,10 @@ const STRIP_MID = 9;
 type Dog = { n: number; name: string; u: string };
 
 const IMG = (f: string) => `/images/magnet/${f}.webp`;
-/** Stĺpec telefónu — stránka je VÝSLOVNE mobilná; na PC ostane úzky stĺpec v strede. */
-const COL = 480;
+/** Šírka obsahu = PACK_COL_INNER (832) ako všade inde na PC (Matej 13. 10.: „na PC
+ *  širší obsah, toto je moc úzke"). Bežný text drží užší riadok TEXT_COL. */
+const COL = PACK_COL_INNER;
+const TEXT_COL = 640;
 
 /** Matejových päť mien (13. 10.: Zápisník von, Vyšší zmysel → Dobročinnosť) pod úvodom (13. 10.) — jeden riadok dokola. */
 const CHIPS = ['eco', 'social', 'school', 'community', 'meaning'];
@@ -67,8 +69,8 @@ export default function Magnet() {
   const [dogs, setDogs] = useState<number | null>(null);
   const [pack, setPack] = useState<Dog[]>([]);
   const [real, setReal] = useState(false);
-  /** Porovnanie farby pilulek (Matej 13. 10.): `?pill=lapis|zlato`, bez parametra papyrus. */
-  const pillTone = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('pill') : null;
+  /** Farba pilulek = ZLATO (Matej 13. 10.: „daj zlaté“); `?pill=lapis|papyrus` len na porovnanie. */
+  const pillTone = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('pill') : null) ?? 'zlato';
   useEffect(() => {
     let on = true;
     gridFetch(GRID_URL_MEMBERS).then((d) => {
@@ -228,7 +230,7 @@ ${PILL_CSS}
 .mg-logo{display:block;width:210px;aspect-ratio:1830/503;margin:${S.sm}px auto 0;background:${T.inkStrong};
   -webkit-mask:url(/images/magnet/logo-2026-kartusa.svg) center/contain no-repeat;
   mask:url(/images/magnet/logo-2026-kartusa.svg) center/contain no-repeat;}
-.mg-hero .mg-lead{margin-top:${S.lg}px;max-width:340px;}
+.mg-hero .mg-lead{margin-top:${S.lg}px;}
 .mg-hero-in{padding-bottom:0;}
 /* MENÁ — jeden riadok PILULIEK dokola; kraje sa strácajú v maske. Kto nechce pohyb,
    dostane ich zalomené na stred. */
@@ -272,6 +274,7 @@ ${PILL_CSS}
 /* PREDEĽ — zlatá čiara T.rule (vyblednutá do strán, 2 px): dlhá nad sekciou, krátka pod nadpisom. */
 .mg-rule{border:0;height:2px;margin:0 auto ${S.xl}px;width:100%;background:${T.rule};}
 .mg-rule--short{width:96px;margin:${S.md}px auto ${S.xl}px;}
+.mg-sec .mg-lead,.mg-split{max-width:${TEXT_COL}px;margin-left:auto;margin-right:auto;}
 .mg-links{display:flex;flex-direction:column;gap:${S.md}px;}
 .mg-link{display:grid;grid-template-columns:112px 1fr;gap:${S.md}px;align-items:center;padding:${S.sm}px;
   text-align:left;color:inherit;text-decoration:none;transition:transform .15s ease;}
@@ -343,4 +346,12 @@ ${PILL_CSS}
   font:700 ${PACK_TEXT.lead}px/1 ${FONT_TITLE};letter-spacing:.14em;text-transform:uppercase;transition:transform .15s ease;}
 .mg-cta:hover{background:${LAPIS.gradHover};transform:translateY(-1px);}
 .mg-motto{margin:${S.xxl}px 0 0;font:500 ${PACK_TEXT.micro}px/1 ${FONT_UI};letter-spacing:.26em;text-transform:uppercase;color:${LAB.inkMuted};}
+/* PC: bloky vedľa seba, freska hore (šírka obsahu 832). */
+@media (min-width:768px){
+  .mg-links{display:grid;grid-template-columns:repeat(3,1fr);}
+  .mg-link{grid-template-columns:1fr;text-align:center;align-content:start;}
+  .mg-fresco{width:100%;}
+  .mg-link-t{padding:0 ${S.sm}px ${S.sm}px;}
+  .mg-photo{max-width:${TEXT_COL}px;}
+}
 `;
