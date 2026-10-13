@@ -40,7 +40,7 @@ import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
-import { useMagnetPreview, usePackNavigate, isFreeScrollCode, MagnetDockActions } from '@/components/pack/magnetPreview';
+import { useMagnetPreview, usePackNavigate, isFreeScrollCode, MagnetAinubisBlock } from '@/components/pack/magnetPreview';
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_TOPROW, PAGE_AIR,
 } from '@/components/pack/packTheme';
@@ -319,14 +319,11 @@ ${STAGE_CSS}
    kto nosí starý materiál. Ten istý odliatok, ten istý dosvit sveta.
    ⚠️ --ai-w nesie karta zo zoznamu svetov, takže polica dostane sedem odtieňov
       a dá sa čítať farbou pri rolovaní. */
-.akv-world.akv-pvdock{display:none;}
+.akv-pvinfo{margin-bottom:${PACK_SPACE.md}px;}
+.akv-pvdock{display:none;}
 @media (min-width:${PC_MIN}px){
   .akv-pvinfo{display:none;}
-  .akv-world.akv-pvdock{display:grid;box-sizing:border-box;width:auto;max-width:none;grid-template-columns:auto 1fr;gap:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;align-items:center;text-align:left;
-    position:absolute;z-index:6;left:calc(var(--akv-panel) + ${PACK_SPACE.xl}px);right:${PACK_SPACE.xl}px;bottom:${PACK_SPACE.xl}px;margin:0;}
-  .akv-pvdock .akv-wname,.akv-pvdock .akv-wtease{text-align:left;margin-left:0;margin-right:0;}
-  .akv-pvface{width:64px;height:64px;border-radius:${PACK_R.pill}px;background:${AINUBIS.faceBg};box-shadow:${AINUBIS.faceRing};}
-  .akv-pvcta{grid-column:1 / -1;}
+  .akv-pvdock{display:block;position:absolute;z-index:6;left:calc(var(--akv-panel) + ${PACK_SPACE.xl}px);right:${PACK_SPACE.xl}px;bottom:${PACK_SPACE.xl}px;}
 }
 .akv-world{position:relative;text-align:center;scroll-margin-top:${PACK_SPACE.lg}px;
   padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;
@@ -1110,6 +1107,9 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   const hasPod = (z: DemoScroll) => Object.keys(z.pod || {}).length > 0;
   const isHeard = (z: DemoScroll) => !!readRows[z.id]?.listened_at;
   /* V náhľade sa počúva len podcast zvitku zdarma. */
+  // Text bloku AINUBISa v náhľade /magnet (13. 10. 2026) — počet zamknutých zvitkov z feedu.
+  const pvH = tx('magnet.ai.vault.h', 'The first circle is all yours');
+  const pvP = tx('magnet.ai.vault.p', '10 scrolls with a podcast. The other {n} are guarded by a dog.').replace('{n}', String(feed.filter((z) => !isFreeScrollCode(z.code)).length));
   const playable = (z: DemoScroll) => !pv || isFreeScrollCode(z.code);
   const listenQ = feed.filter((z) => hasPod(z) && playable(z) && !isHeard(z));
   const startListen = () => { if (listenQ[0]) { setQueue(true); openScroll(listenQ[0].id, 'pod'); } };
@@ -1303,11 +1303,10 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           {SCROLL_DEMO && listenBtn('akv-listen akv-listen--m')}
           {shown.length === 0 && feedShown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
           {pv && feed.length > 0 && (
-            /* JEDEN info blok v AI-PALUBA šate (karta `.akv-world`) — žiadny vlastný tvar. */
-            <section className="akv-world akv-pvinfo">
-              <h2 className="akv-wname">{tx('magnet.pv.ai.h', 'The first circle is open')}</h2>
-              <p className="akv-wtease">{tx('magnet.pv.ai.p', '10 scrolls with a podcast about where the dog came from. You can see the other {n}; they open for Dogyptians. As a member you save scrolls and AINUBIS remembers what you’ve already heard.').replace('{n}', String(feed.filter((z) => !isFreeScrollCode(z.code)).length))}</p>
-            </section>
+            /* BLOK AINUBISA (mobil) — ten istý komponent na každej stránke náhľadu. */
+            <div className="akv-pvinfo">
+              <MagnetAinubisBlock where="list" h={pvH} p={pvP} />
+            </div>
           )}
           {SCROLL_DEMO && visible.map(z => (
             <ScrollCard key={z.id} z={z} lang={lang} worldName={names[wIdx(z.world)]} onOpen={openScroll} onShare={shareScroll}
@@ -1453,14 +1452,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
       {/* NÁHĽAD /magnet — ten istý blok DOLE v pravej časti s CTA vo vnútri (Matej 13. 10.:
           *„tú istú logiku aplikuj na ainubisa… nedávaj profil"*). Len PC; mobil ho má v zozname. */}
       {pv && feed.length > 0 && !openZ && (
-        <section className="akv-world akv-pvdock">
-          <img className="akv-pvface" src={ainubisHead} alt="" aria-hidden="true" />
-          <div className="akv-pvtxt">
-            <h2 className="akv-wname">{tx('magnet.pv.ai.h', 'The first circle is open')}</h2>
-            <p className="akv-wtease">{tx('magnet.pv.ai.p', '10 scrolls with a podcast about where the dog came from. You can see the other {n}; they open for Dogyptians. As a member you save scrolls and AINUBIS remembers what you’ve already heard.').replace('{n}', String(feed.filter((z) => !isFreeScrollCode(z.code)).length))}</p>
-          </div>
-          <div className="akv-pvcta"><MagnetDockActions /></div>
-        </section>
+        <div className="akv-pvdock"><MagnetAinubisBlock where="dock" h={pvH} p={pvP} /></div>
       )}
       {zvToast && <div className="zv-toast" role="status">{zvToast}</div>}
       {!pv && <MessagingOverlayHost />}

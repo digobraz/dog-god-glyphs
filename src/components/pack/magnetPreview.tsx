@@ -18,12 +18,11 @@
  * s podcastom). Body sa sľubujú LEN pri výletoch (PÚTNIK) — zvitky body nemajú.
  */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
-import { useNavigate, type NavigateOptions } from 'react-router-dom';
+import { useNavigate, useLocation, type NavigateOptions } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { openPhotoInvite } from '@/lib/photoInvite';
-import { PACK_THEME as T, PACK_SHADOW, FONT_TITLE, FONT_UI, VEIL_CSS } from './packTheme';
+import { PACK_THEME as T, FONT_TITLE, FONT_UI, VEIL_CSS } from './packTheme';
 import { AINUBIS } from './ainubisSkin';
-import { BackIcon } from './BackButton';
 import ainubisFace from '@/assets/ainubis-head.webp';
 import type { PackIdentity } from './usePackIdentity';
 
@@ -148,26 +147,44 @@ export function usePackNavigate() {
 const CSS = `
 ${VEIL_CSS}
 .mgp-bar{position:fixed;left:0;right:0;bottom:0;z-index:150;display:flex;justify-content:center;
-  padding:12px 16px calc(12px + env(safe-area-inset-bottom));pointer-events:none;}
-.mgp-bar-in{pointer-events:auto;display:flex;gap:8px;width:100%;max-width:480px;}
-.mgp-back{flex:0 0 48px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;
-  background:${T.cardGrad};border:1px solid ${T.cardEdge};color:${T.inkStrong};cursor:pointer;box-shadow:${PACK_SHADOW.panel};}
-.mgp-back svg{width:20px;height:20px;}
+  padding:8px 12px calc(8px + env(safe-area-inset-bottom));pointer-events:none;}
+.mgp-bar-in{pointer-events:auto;display:flex;align-items:center;gap:12px;width:100%;max-width:832px;box-sizing:border-box;
+  padding:8px 12px;border-radius:16px;background:${AINUBIS.surface};border:1px solid ${AINUBIS.edgeStrong};box-shadow:${AINUBIS.panelShadow};}
+.mgp-bar-txt{display:none;flex:1;min-width:0;flex-direction:column;gap:4px;color:${AINUBIS.inkDim};font-family:${FONT_UI};font-size:12px;line-height:1.4;}
+.mgp-bar-txt b{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:${AINUBIS.ink};}
+.mgp-bar-acts{flex:1;display:flex;flex-direction:column;align-items:stretch;gap:4px;}
+.mgp-bar-acts .mgp-cta{flex:none;}
+@media (min-width:768px){ .mgp-bar-txt{display:flex;} .mgp-bar-acts{flex:0 0 280px;} }
+/* BLOK AINUBISA — AI-PALUBA šat (tmavá doska, cyan lem), tvár, meno, vtipný nadpis a veta. */
+.mgp-ai{display:grid;grid-template-columns:auto 1fr;gap:12px 16px;align-items:center;box-sizing:border-box;padding:16px;
+  border-radius:16px;background:${AINUBIS.surface};border:1px solid ${AINUBIS.edgeStrong};box-shadow:${AINUBIS.panelShadow};color:${AINUBIS.ink};text-align:left;}
+.mgp-ai-face{flex:none;width:48px;height:48px;border-radius:999px;background:${AINUBIS.faceBg};box-shadow:${AINUBIS.faceRing};}
+.mgp-ai--dock .mgp-ai-face{width:64px;height:64px;}
+.mgp-ai-txt{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.mgp-ai-who{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.14em;color:${AINUBIS.ink};}
+.mgp-ai-who span{color:${AINUBIS.aiInk};text-shadow:${AINUBIS.aiShadow};}
+.mgp-ai-h{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:16px;line-height:1.25;letter-spacing:.14em;text-transform:uppercase;color:${AINUBIS.ink};}
+.mgp-ai-p{margin:0;font-family:${FONT_UI};font-weight:400;font-size:14px;line-height:1.5;color:${AINUBIS.inkDim};}
+.mgp-ai-extra{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:8px;}
+.mgp-ai-cta{grid-column:1 / -1;}
+.mgp-ai-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;cursor:pointer;
+  background:${AINUBIS.raised};border:1px solid ${AINUBIS.edge};color:${AINUBIS.ink};font-family:${FONT_UI};font-weight:600;font-size:12px;text-align:left;}
+.mgp-ai-chip:hover{border-color:${AINUBIS.edgeStrong};}
+.mgp-ai-chip img{width:20px;height:20px;flex:none;}
+.mgp-ai-chip img.mgp-ink{filter:brightness(0) invert(1);opacity:.9;}
 .mgp-cta{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 16px;
   border-radius:8px;background:${AINUBIS.ctaGrad};border:1px solid ${AINUBIS.ctaEdge};color:${AINUBIS.ctaInk};font-family:${FONT_TITLE};
   font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;box-shadow:${AINUBIS.ctaShadow};}
 .mgp-cta:hover{background:${AINUBIS.ctaGradHover};}
-.mgp-cta:active,.mgp-back:active{transform:scale(.98);}
+.mgp-cta:active{transform:scale(.98);}
 /* 13. 10. 2026: CTA náhľadu je VŠADE v brande AINUBISa (Matej: *„daj ho všade ainubis a staň sa
-   dogypťanom"*) — varianty lapis/zlato podľa podkladu zanikli. Šípka späť = tmavá doska AINUBISa. */
-.mgp-back{background:${AINUBIS.surface};border-color:${AINUBIS.edgeStrong};color:${AINUBIS.ink};}
+   dogypťanom"*) — varianty lapis/zlato podľa podkladu zanikli; šípku späť nahradilo malé „Späť" pod CTA. */
 /* CTA V BLOKU (Matej 13. 10.: *„to cta dolu daj do bloku… nie mimo — vyzerá to divne a pod cta
    malý späť"*). Na PC nesie CTA info blok obrazovky a samostatná lišta zmizne; mobil ju má ďalej. */
 .mgp-dockacts{display:flex;flex-direction:column;align-items:stretch;gap:8px;}
 .mgp-dockacts .mgp-cta{flex:none;width:100%;}
 .mgp-backlink{align-self:center;background:none;border:0;padding:4px 8px;cursor:pointer;font-family:${FONT_UI};font-weight:500;
-  font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px;color:${T.inkWarm};}
-.mgp-dock--ainubis .mgp-backlink{color:${AINUBIS.inkDim};}
+  font-size:10px;letter-spacing:.22em;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px;color:${AINUBIS.inkDim};}
 @media (min-width:1024px){ body:has(.mgp-dockacts) .mgp-bar{display:none;} }
 /* POPUP AINUBISA (Matej 13. 10.: *„popup s ainubisom s jeho logom a brandom aj novým textingom"*). */
 .mgp-card--ai{background:${AINUBIS.surface};border:1px solid ${AINUBIS.edgeStrong};border-radius:16px;box-shadow:${AINUBIS.panelShadow};color:${AINUBIS.ink};}
@@ -222,18 +239,49 @@ function LockPopup({ what, onClose }: { what: LockWhat; onClose: () => void }) {
   );
 }
 
-/** CTA + malé „Späť" VNÚTRI info bloku obrazovky (PC). Lišta `.mgp-bar` sa na PC vtedy skryje. */
+/** CTA + malé „Späť" VNÚTRI bloku AINUBISa. */
 export function MagnetDockActions() {
   const t = useT();
   const tx = (k: string, fb: string) => { const v = t(k); return v === k ? fb : v; };
   const nav = useNavigate();
-  const mg = useMagnetPreview();
   return (
-    <div className={`mgp-dockacts mgp-dock--${mg?.kind ?? 'trips'}`}>
+    <div className="mgp-dockacts">
       <button type="button" className="mgp-cta" onClick={() => openPhotoInvite()}>{tx('magnet.cta.price', 'Become Dogyptian · €11')}</button>
       <button type="button" className="mgp-backlink" onClick={() => nav('/magnet')}>{tx('magnet.backShort', 'Back')}</button>
     </div>
   );
+}
+
+/**
+ * BLOK AINUBISA — JEDEN pre každú stránku náhľadu (Matej 13. 10. 2026: *„nemyslel som len cta
+ * brand ainubis, ale celý blok aj s jeho logom a satirickým nápisom, vtipným všade na každej
+ * stránke"*). Tvár + meno + vtipný nadpis a veta k TEJ stránke + CTA a malé „Späť".
+ * `dock` = PC, dole v pravej časti obrazovky · `list` = mobil, vo vrchu zoznamu (bez CTA —
+ * to nesie spodná lišta) · `extra` = akcie stránky (napr. „Skús pridať výlet").
+ */
+export function MagnetAinubisBlock({ h, p, where, extra }: { h: string; p: string; where: 'dock' | 'list'; extra?: ReactNode }) {
+  return (
+    <section className={`mgp-ai mgp-ai--${where}`}>
+      <img className="mgp-ai-face" src={ainubisFace} alt="" aria-hidden="true" />
+      <div className="mgp-ai-txt">
+        <div className="mgp-ai-who"><span>AI</span>NUBIS</div>
+        <h3 className="mgp-ai-h">{h}</h3>
+        <p className="mgp-ai-p">{p}</p>
+      </div>
+      {extra && <div className="mgp-ai-extra">{extra}</div>}
+      {where === 'dock' && <div className="mgp-ai-cta"><MagnetDockActions /></div>}
+    </section>
+  );
+}
+
+/** Ktorá veta AINUBISa patrí stránke — podľa cesty (obrazovky samy nič nehlásia). */
+function barNoteKey(path: string): string {
+  if (path.startsWith('/magnet/vylety/triplist')) return 'stats';
+  if (path.startsWith('/magnet/vylety/')) return 'article';
+  if (path.startsWith('/magnet/vylety')) return 'trips';
+  if (path.startsWith('/magnet/ainubis')) return 'vault';
+  if (path.startsWith('/magnet/kviz')) return 'quiz';
+  return 'default';
 }
 
 /** Obal podstránky `/magnet/*`: kontext + lišta s CTA namiesto spodného navu + popup. */
@@ -241,16 +289,26 @@ export function MagnetPreview({ kind, children }: { kind: MagnetKind; children: 
   const t = useT();
   const tx = (k: string, fb: string) => { const v = t(k); return v === k ? fb : v; };
   const nav = useNavigate();
+  const note = barNoteKey(useLocation().pathname);
   const [lockOpen, setLockOpen] = useState<LockWhat | null>(null);
   const ctx = useMemo<Ctx>(() => ({ kind, lock: (w = 'action') => setLockOpen(w) }), [kind]);
   return (
     <MagnetCtx.Provider value={ctx}>
       <style>{CSS}</style>
       {children}
+      {/* LIŠTA = tá istá doska AINUBISa v malom: tvár + veta k stránke (od 768 px) + CTA a „Späť".
+          Na PC ju skryje blok stránky, ak ho stránka má (`:has(.mgp-dockacts)`). */}
       <div className={`mgp-bar mgp-bar--${kind}`}>
         <div className="mgp-bar-in">
-          <button type="button" className="mgp-back" onClick={() => nav('/magnet')} aria-label={tx('magnet.back', 'Back')}><BackIcon /></button>
-          <button type="button" className="mgp-cta" onClick={() => openPhotoInvite()}>{tx('magnet.cta.price', 'Become Dogyptian · €11')}</button>
+          <img className="mgp-ai-face" src={ainubisFace} alt="" aria-hidden="true" />
+          <div className="mgp-bar-txt">
+            <b>{tx(`magnet.ai.${note}.h`, 'A taste')}</b>
+            <span>{tx(`magnet.ai.${note}.bar`, 'The full menu is for Dogyptians.')}</span>
+          </div>
+          <div className="mgp-bar-acts">
+            <button type="button" className="mgp-cta" onClick={() => openPhotoInvite()}>{tx('magnet.cta.price', 'Become Dogyptian · €11')}</button>
+            <button type="button" className="mgp-backlink" onClick={() => nav('/magnet')}>{tx('magnet.backShort', 'Back')}</button>
+          </div>
         </div>
       </div>
       {lockOpen && <LockPopup what={lockOpen} onClose={() => setLockOpen(null)} />}

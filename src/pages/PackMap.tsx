@@ -74,7 +74,7 @@ import { PackNotifications } from '@/components/pack/PackNotifications';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
-import { useMagnetPreview, usePackNavigate, isFreeTrip, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetDockActions } from '@/components/pack/magnetPreview';
+import { useMagnetPreview, usePackNavigate, isFreeTrip, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetAinubisBlock } from '@/components/pack/magnetPreview';
 import { HandLock } from '@/components/pack/HandIcons';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { useToast } from '@/hooks/use-toast';
@@ -1876,31 +1876,15 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 .trp-lockmark{position:absolute;right:-6px;top:-7px;box-sizing:border-box;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(11,9,6,.94);border:1px solid ${T.cardEdge};pointer-events:none;}
 .trp-lockmark img{display:block;width:9px;height:9px;filter:brightness(0) invert(1);}
 .trp-root--mg .trp-cards-scroll{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));}
-/* NÁHĽAD /magnet — ČERVENEJŠÍ blok (Matej 13. 10.): papyrus s tónom T.alertRed, ikonka zámku. */
-.trp-mginfo{margin:0 0 8px;padding:16px;display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:start;
-  border-radius:${PACK_R.tile}px;border:1px solid color-mix(in srgb, ${T.alertRed} 55%, transparent);
-  background:linear-gradient(135deg, color-mix(in srgb, ${T.alertRed} 10%, #FBF3E4), color-mix(in srgb, ${T.alertRed} 20%, #F3E3C6));
-  box-shadow:${PACK_SHADOW.panel};}
-.trp-mginfo-ico{width:40px;height:40px;border-radius:${PACK_R.pill}px;display:flex;align-items:center;justify-content:center;
-  background:${T.alertRed};color:#FBF3E4;}
-.trp-mginfo-txt{display:flex;flex-direction:column;gap:4px;min-width:0;}
-.trp-mginfo-acts{grid-column:1 / -1;display:flex;flex-direction:column;gap:8px;}
-.trp-mginfo-h{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
-.trp-mginfo-p{margin:0;font-family:${FONT_UI};font-weight:400;font-size:12px;line-height:1.5;color:${T.inkWarm};}
-.trp-mginfo-row{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border-radius:${PACK_R.tile}px;background:${T.tileBg};border:1px solid ${T.border};cursor:pointer;text-align:left;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${T.inkStrong};}
-.trp-mginfo-row img{width:20px;height:20px;flex-shrink:0;}
+/* NÁHĽAD /magnet — obal BLOKU AINUBISA (MagnetAinubisBlock), tvar a farby nesie on sám. */
+.trp-mginfo{margin:0 0 8px;}
 .trp-mginfo--dock{display:none;}
-/* PC: pravá časť = od panela po okraj, presne ako horná lišta (.trp-topbar). Pod blokom lišta
-   s CTA (MagnetPreview) natiahnutá na TÚ ISTÚ šírku — „celá šírka pravej časti". */
 @media (min-width:1024px){
   .trp-mginfo--list{display:none;}
-  .trp-mginfo--dock{display:grid;position:absolute;z-index:700;margin:0;
-    left:${MAP_EDGE + DOCK_COL_W + MAP_EDGE}px;right:${MAP_EDGE}px;bottom:${MAP_EDGE + 48 + 12}px;
-    grid-template-columns:auto 1fr auto;align-items:center;}
-  .trp-mginfo--dock .trp-mginfo-acts{grid-column:auto;flex-direction:row;}
-  .trp-mginfo--dock .trp-mginfo-row{width:auto;white-space:nowrap;}
-  .trp-mginfo--dock .trp-mginfo-cta{grid-column:1 / -1;}
-  .trp-mginfo--dock{bottom:${MAP_EDGE}px;}
+  .trp-mginfo--dock{display:block;position:absolute;z-index:700;margin:0;
+    left:${MAP_EDGE + DOCK_COL_W + MAP_EDGE}px;right:${MAP_EDGE}px;bottom:${MAP_EDGE}px;}
+  .trp-mginfo--dock .mgp-ai{grid-template-columns:auto 1fr auto;}
+  .trp-mginfo--dock .mgp-ai-extra{grid-column:auto;flex-direction:column;}
   .trp-root--mg .leaflet-bottom{bottom:calc(var(--mg-dock-h, 0px) + ${MAP_EDGE + 8}px);}
 }
 @media (min-width:1024px) and (max-width:1400px){
@@ -3525,24 +3509,21 @@ function MagnetTripsInfo({ locked, onSniffer, onTryAdd, where }: {
   }, [where]);
   return (
     <div ref={ref} className={`trp-mginfo trp-mginfo--${where}`}>
-      <span className="trp-mginfo-ico" aria-hidden><HandLock size={20} /></span>
-      <div className="trp-mginfo-txt">
-        <h3 className="trp-mginfo-h">{tx('magnet.pv.trips.h', '10 trips are open for you')}</h3>
-        <p className="trp-mginfo-p">
-          {tx('magnet.pv.trips.p', 'You can see the other {n}; they open for Dogyptians. As a member you log your own trips, collect kilometres and points and climb the pilgrim ranking.', { n: locked })}
-        </p>
-      </div>
-      <div className="trp-mginfo-acts">
-        <button type="button" className="trp-mginfo-row" onClick={onTryAdd}>
-          <img src={ICON('plus')} alt="" />
-          <span>{tx('magnet.pv.tryAdd', 'Try adding a trip')}</span>
-        </button>
-        <button type="button" className="trp-mginfo-row" onClick={onSniffer}>
-          <img src="/icons/sniffer/sniffer-logo.svg" alt="" />
-          <span>{tx('magnet.pv.sniffer', 'Who with? Sniffer finds you a dog for a shared trip.')}</span>
-        </button>
-      </div>
-      {where === 'dock' && <div className="trp-mginfo-cta"><MagnetDockActions /></div>}
+      <MagnetAinubisBlock
+        where={where}
+        h={tx('magnet.ai.trips.h', '10 trips to taste')}
+        p={tx('magnet.ai.trips.p', 'You can see the other {n}, but you can’t go in.', { n: locked })}
+        extra={<>
+          <button type="button" className="mgp-ai-chip" onClick={onTryAdd}>
+            <img className="mgp-ink" src={ICON('plus')} alt="" />
+            <span>{tx('magnet.pv.tryAdd', 'Try adding a trip')}</span>
+          </button>
+          <button type="button" className="mgp-ai-chip" onClick={onSniffer}>
+            <img src="/icons/sniffer/sniffer-logo-light.svg" alt="" />
+            <span>{tx('magnet.pv.sniffer', 'Who with? Sniffer finds you a dog for a shared trip.')}</span>
+          </button>
+        </>}
+      />
     </div>
   );
 }
@@ -3794,7 +3775,16 @@ export default function PackMap() {
   // nedotknutý — používajú ho GeometryPicker/AddEvent imperatívne.
   const dateLocale = intlLocale(lang);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
-  const mapNotes = useMapNotes(true);
+  const mapNotesLive = useMapNotes(true);
+  // NÁHĽAD /magnet = MAKETA: značky sa len čítajú. Pridanie dostane lokálne id (zhrnutie v skúšobnom
+  // zápise), mazanie a hlasovanie sú naprázdno — do DB z náhľadu nejde nič (Matej 13. 10. 2026:
+  // *„uisti sa, že je to len maketa a prototyp — nie naše živé dáta"*).
+  const mapNotes = useMemo(() => (mg ? {
+    ...mapNotesLive,
+    add: async () => `mg-${Date.now()}`,
+    remove: async () => {},
+    vote: async () => {},
+  } as unknown as typeof mapNotesLive : mapNotesLive), [mapNotesLive, mg]);
   // PRIANIA (BUDDY krok 2) — načítané raz, po každom zápise znova (vzor useMapNotes).
   const [wishes, setWishes] = useState<WishPin[]>([]);
   const reloadWishes = useCallback(() => {
@@ -3866,6 +3856,7 @@ export default function PackMap() {
    * miesto, ktoré nevidí.
    */
   const placeNote = (group: NoteGroup, lat: number, lon: number, kindOverride?: NoteKind | null) => {
+    if (mg && !addFlow) { mg.lock('action'); return; } // značka mimo skúšobného zápisu = len pre členov
     const kind = kindOverride ?? GROUP_KINDS[group][0];
     setNoteTooFar(null);
     setNotePlacing(null);
@@ -4764,10 +4755,12 @@ export default function PackMap() {
   // 2026-07-23): posting a review implies the trip is walked, so submit calls this instead of
   // toggleWalked (which would UN-mark an already-walked trip on a second call).
   const markWalked = (tid: string) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     setWalkedIds((prev) => (prev.has(tid) ? prev : new Set(prev).add(tid)));
   };
   // ── komunitné submit handlery ──
   const submitWalked = (v: WalkedInput) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!walkedPopupId) return;
     const tid = walkedPopupId;
     setVotes((prev) => ({ ...prev, [tid]: { tripId: tid, ...v, at: nowMs } }));
@@ -4776,25 +4769,32 @@ export default function PackMap() {
     setWalkedPopupId(null);
     setWalkedReward(null);
   };
-  const addPlan = (tid: string, intent: 'solo' | 'partner', date = '') =>
+  const addPlan = (tid: string, intent: 'solo' | 'partner', date = '') => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     setPlansNow((prev) => [{ tripId: tid, intent, date, at: nowMs }, ...prev.filter((p) => p.tripId !== tid)]);
+  };
   // ★ ukladá VŽDY solo/closed. `choosePartner` + `submitPartnerAd` (druhá cesta k inzerátu:
   // 2–3 návrhy termínov + socializácia) sú ZMAZANÉ 2026-08-05 — po zlúčení vstupov ich nemal
   // kto zavolať (jediným volajúcim bol WishlistIntentPopup, ktorý ★ už neotvára). Verejný
   // inzerát dnes vzniká v AddTripLog („Looking for pack" → user_trips + trip_events) a
   // zverejniť uložený výlet sa dá v Triplistе („Who can see this trip").
   const chooseSolo = (tid: string) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     setFavIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
     addPlan(tid, 'solo');
     // TRIPLIST (Slice A): rename wishlist → triplist, star popup navyše upsertne triplist entry.
     upsertMyTrip(tid, { status: 'solo', openness: 'closed', date: '' });
   };
-  const joinEvent = (eid: string) =>
+  const joinEvent = (eid: string) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     setEvents((prev) => prev.map((e) => (e.id === eid ? { ...e, joinedByMe: !e.joinedByMe } : e)));
+  };
   // Zavrieť/otvoriť skupinu — inzerát ostáva pre pack viditeľný, len sa nedá pridať
   // (Matej 2026-07-25). Prepína ho ktokoľvek zo skupiny, gating je v EventsView.
-  const toggleEventClosed = (eid: string) =>
+  const toggleEventClosed = (eid: string) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     setEvents((prev) => prev.map((e) => (e.id === eid ? { ...e, closed: !e.closed } : e)));
+  };
   // ── MAZANIE (2026-08-22) ────────────────────────────────────────────────────────────────
   // Do tejto chvíle sa v celom /pack nedala zmazať ANI JEDNA z troch vecí, ktoré človek na
   // mape vytvorí. `removePlan()` tu síce od 24. 7. stálo, ale NIKTO ho nevolal (mŕtvy kód)
@@ -4808,7 +4808,10 @@ export default function PackMap() {
   /** INZERÁT „hľadám partiu" (PartnerEvent). Výlet v triplistе OSTÁVA — ruší sa pozvánka,
    *  nie plán. Riadok v `trip_events` zmaže sám sync: `packStore.ts` porovnáva predošlý
    *  a nový zoznam a na chýbajúce id vyrobí delete op. */
-  const deleteListing = (eid: string) => setEvents((prev) => prev.filter((e) => e.id !== eid));
+  const deleteListing = (eid: string) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
+    setEvents((prev) => prev.filter((e) => e.id !== eid));
+  };
 
   /** PLÁNOVANÝ VÝLET — to, čo na mape kreslí 🎯. Zaniká celý, so všetkým, čo na ňom visí.
    *
@@ -4841,6 +4844,7 @@ export default function PackMap() {
    * zmiznúť aj bez siete. Preto `catch` a ideme ďalej.
    */
   const notifyPlanCancelled = async (tid: string) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     const organizerId = id.session?.user?.id ?? null;
     if (!organizerId) return;
     const trail = localTrails.find((tr) => tr.id === tid);
@@ -4866,6 +4870,7 @@ export default function PackMap() {
   };
 
   const deletePlannedTrip = async (tid: string) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     await notifyPlanCancelled(tid);
     setLocalTrails((prev) => prev.filter((tr) => tr.id !== tid));
     // ⚠️ 5. krok, bez ktorého sú ostatné štyri zbytočné: hydratácia PREPISUJE `trp-local-trails`
@@ -5091,6 +5096,7 @@ export default function PackMap() {
   // AddEventDraft → DB (`save_event`). Formulár zostane otvorený pri chybe a povie prečo;
   // pri úspechu sa zoznam načíta znova a nové podujatie sa rovno otvorí v paneli.
   const submitAddEventDraft = async (draft: AddEventDraft, existingId?: string): Promise<AddEventOutcome> => {
+    if (mg) { mg.lock('action'); return { ok: false, errorKey: 'magnet.lock.h' }; }
     const r = await saveEvent(draft, existingId);
     if (!r.ok) {
       // bez strictNullChecks sa únia cez `ok` nezúži — pretypovanie
@@ -6060,13 +6066,18 @@ export default function PackMap() {
   // trasy priblíži mapu na ňu → tvrdý filter by panel takmer vyprázdnil), ale poradie sa reálne
   // premiešava podľa toho, kam sa člen na mape pozerá. Dropdown filtre (krajina/región/aktivita/
   // tagy) bežia PRED tým, vo visibleHeroTrails — viewport ich nenahrádza, len dopĺňa.
-  const inViewTrails = viewBox
+  // NÁHĽAD /magnet: 10 výletov zdarma NA ZAČIATOK zoznamu, hneď za sebou, potom ostatné
+  // (Matej 13. 10. 2026). Bez delenia „v tomto výreze / inde" — inak by sa desiatka roztrhla.
+  const mgFreeFirst = (arr: typeof visibleHeroTrails) => [
+    ...arr.filter(({ tr }) => isFreeTrip(tr.id)), ...arr.filter(({ tr }) => !isFreeTrip(tr.id)),
+  ];
+  const inViewTrails = mg ? mgFreeFirst(sortTrips(visibleHeroTrails)) : viewBox
     ? sortTrips(visibleHeroTrails.filter(({ tr }) => {
         const box = trailBox.get(tr.id);
         return !box || boxIntersects(box, viewBox);
       }))
     : sortTrips(visibleHeroTrails);
-  const elsewhereTrails = viewBox
+  const elsewhereTrails = mg ? [] : viewBox
     ? sortTrips(visibleHeroTrails.filter(({ tr }) => {
         const box = trailBox.get(tr.id);
         return !!box && !boxIntersects(box, viewBox);
@@ -6229,6 +6240,7 @@ export default function PackMap() {
                         plán sa má otvoriť ako zápis s predvyplnenou trasou. Odznačiť (`on`)
                         ostáva na `toggleWalked` — to je návrat, nie zápis. */
                         if (isUnwalkedPlan && isMine) { openWalkPlan(tr.id); return; }
+                  if (mg) { mg.lock('action'); return; } // „Prejdené" v náhľade nič neruší
                   if (walkedIds.has(tr.id)) { setUnwalk(tr); return; }
                   toggleWalked(tr.id);
                 }}
@@ -6427,6 +6439,7 @@ export default function PackMap() {
                         onClick={() => {
                           // Rovnaká vidlica ako na karte — viď komentár tam.
                           if (isUnwalkedPlan && isMine) { openWalkPlan(dt.id); return; }
+                          if (mg) { mg.lock('action'); return; } // „Prejdené" v náhľade nič neruší
                           if (walkedIds.has(dt.id)) { setUnwalk(dt); return; }
                           toggleWalked(dt.id);
                         }}
@@ -7514,7 +7527,7 @@ export default function PackMap() {
               {!isCleanMode && (
                 <MapNotesLayer
                   notes={mapNotes.notes}
-                  onVote={(id, v) => { void mapNotes.vote(id, v); }}
+                  onVote={(id, v) => { if (mg) { mg.lock('action'); return; } void mapNotes.vote(id, v); }}
                   onDelete={(id) => {
                     // ⚠️ ZMAZANÁ ZNAČKA MUSÍ ZMIZNÚŤ AJ ZO ZOZNAMU V SPRIEVODCOVI (Matej
                     // 24. 8. 2026: „dal som parkovisko a potom som ho zmazal a v dolnom paneli
@@ -7549,7 +7562,7 @@ export default function PackMap() {
               )}
               {/* PRIANIA 🎯 — nad odkazmi, vidno na každom priblížení (WishLayer.tsx). */}
               {!isCleanMode && overlayOn.wish && (
-                <WishLayer wishes={wishes} onChanged={reloadWishes} interactive={!mapDrawing && !wishFlow} />
+                <WishLayer wishes={wishes} onChanged={reloadWishes} interactive={!mg && !mapDrawing && !wishFlow} />
               )}
               {wishDraft && <Marker position={[wishDraft.lat, wishDraft.lon]} icon={WISH_DRAFT_ICON} interactive={false} />}
               {noteDraft && (
@@ -7816,7 +7829,7 @@ export default function PackMap() {
           dock={!!addFlow}
           onSubmit={async (n) => {
             // V náhľade /magnet sa značka do DB nezapíše — dostane len lokálne id pre zhrnutie kroku 2.
-            const id = mg ? `mg-${Date.now()}` : await mapNotes.add(n);
+            const id = await mapNotes.add(n);
             // Krok 2 sprievodcu: druh si odloží formulár, aby ho krok 4 vedel ZHRNÚŤ.
             // Väzba na výlet sa neukladá — odvodzuje sa zo súradnice (mapNotesGeo.ts).
             // `n.kind` (čo sa naozaj uložilo), nie `noteDraft.kind` z uzáveru — panel vie druh

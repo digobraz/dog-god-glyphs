@@ -819,10 +819,12 @@ export default function PackTriplist() {
   const setRegion = (k: WCE | 'all') => { setPublicWCE(k); setPublicPage(0); };
 
   const openAddDate = (tripId: string, current?: string) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     setDateValue(current ?? '');
     setDateTripId(tripId);
   };
   const saveDate = () => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!dateTripId) return;
     const next = upsertMyTrip(dateTripId, { date: dateValue || undefined });
     setTriplist((prev) => ({ ...prev, [dateTripId]: next }));
@@ -832,6 +834,7 @@ export default function PackTriplist() {
   // #41 — požiadať o pridanie na cudzí otvorený výlet. `from_user_id` sa neposiela
   // odtiaľto: doplní ho tripRequests.ts zo session a RLS ho aj tak zamyká na auth.uid().
   const onRequestJoin = async (real: { slug: string; organizerId: string }) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     const k = requestKey(real.slug, real.organizerId);
     setReqBusy(k);
     const err = await requestToJoin(real.slug, real.organizerId);
@@ -847,6 +850,7 @@ export default function PackTriplist() {
   // môže hľadať ďalších. Bez toho ostane `looking` navždy a žiadosti chodia aj do plnej
   // partie (Matej: „ak sa dohodnu dvaja na rande, nebudú chcieť tretiu osobu").
   const onDecide = async (id: string, status: 'accepted' | 'declined', slug?: string, who?: string | null) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     setReqBusy(id);
     const err = await decideRequest(id, status);
     setReqBusy(null);
@@ -862,6 +866,7 @@ export default function PackTriplist() {
   // #42 — zmena viditeľnosti výletu. `private` pri výlete, na ktorý už niekto ide, NESMIE
   // zhodiť status na 'solo' — tým by sa stratilo, že partia existuje. Preto 'going'.
   const setVisibility = (tripId: string, open: boolean) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     const hasJoiners = (parties[tripId]?.joiners.length ?? 0) > 0;
     const next = open
       ? { status: 'looking' as TripStatus, openness: 'open' as const }

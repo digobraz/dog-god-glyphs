@@ -1042,6 +1042,7 @@ export default function PackTripArticle() {
    *    v žiadostiach, nie táto zmena.
    */
   const savePlanEdit = (pe: PlanEdit) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!trail) return;
     const tid = trail.id;
     setPlans((prev) => {
@@ -1226,6 +1227,7 @@ export default function PackTripArticle() {
   // Jedna cesta pre hlavné tlačidlo aj CTA v recenziách (stráže v toggleWalked ostávajú).
   // Už prejdený výlet NEODŠKRTÁVA — otvorí popup na hodnotenie/úpravu.
   const requestWalk = () => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!trail) return;
     if (walkedIds.has(trail.id)) { setWalkedPopupOpen(true); return; }
     if (trail.id.startsWith('plan-') && canEdit) {
@@ -1241,6 +1243,7 @@ export default function PackTripArticle() {
     setNoteAfterRating(false);
   };
   const submitWalked = (v: WalkedInput) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!trail) return;
     setVotes((prev) => ({ ...prev, [trail.id]: { tripId: trail.id, ...v, at: nowMs } }));
     void reviewFromWalk(trail.id, v.rating, v.comment); // komentár = verejná recenzia (Matej 6. 10.)
@@ -1252,6 +1255,7 @@ export default function PackTripArticle() {
     if (noteAfterRating) { setNoteAfterRating(false); setNotePick(true); }
   };
   const addPlan = (intent: 'solo' | 'partner', date = '') => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!trail) return;
     setPlans((prev) => [{ tripId: trail.id, intent, date, at: nowMs }, ...prev.filter((p) => p.tripId !== trail.id)]);
   };
@@ -1260,6 +1264,7 @@ export default function PackTripArticle() {
   // inzerát vzniká v AddTripLog („Looking for pack") a zverejniť uložený výlet sa dá
   // v Triplistе. Rovnaká zmena ako v PackMap.tsx.
   const chooseSolo = () => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!trail) return;
     setFavIds((prev) => { const n = new Set(prev); n.add(trail.id); return n; });
     addPlan('solo');
@@ -1269,6 +1274,7 @@ export default function PackTripArticle() {
 
   /* Znacka z vrstvy pribehu. Optimisticky, rovnako ako v kronike — akcia nesmie „cakat“. */
   const markStory = (story: TripStory, kind: 'like' | 'save') => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     const on = kind === 'like' ? !story.liked : !story.saved;
     setStories((prev) => prev.map((x) => (x.id !== story.id ? x : kind === 'like'
       ? { ...x, liked: on, likes: Math.max(0, x.likes + (on ? 1 : -1)) }
@@ -1280,6 +1286,7 @@ export default function PackTripArticle() {
      🔴 Nie toggle — akcia na cudzom príbehu nesmie človeku trasu ODOBRAŤ, keď ju už má.
      Ostáva na mieste, presne ako lock žiada: len toast, žiadna navigácia. */
   const useTrailFromStory = () => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!trail) return;
     if (favIds.has(trail.id)) { toast({ description: t('pack.trip.inTriplist') }); return; }
     toggleFav(trail.id);
@@ -1288,6 +1295,7 @@ export default function PackTripArticle() {
   /* ↗ „poslať" — zdieľa sa PRÍBEH na jeho vlastnej adrese, nie článok trasy.
      Adresa je `modal-as-route`, takže odkaz prežije obnovenie aj cudzí prehliadač. */
   const shareStory = async (story: TripStory) => {
+    if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!trail) return;
     const url = `${window.location.origin}${tripPath(trail)}/pribeh/${story.rank}`;
     const title = `${story.ownerFirst} — ${tripName(trail, lang)}`;
@@ -2239,7 +2247,7 @@ export default function PackTripArticle() {
              kde sa najbližší výlet len odhaduje geometriou. */
           pinnedSlug={trail.id}
           pinnedName={tripName(trail, lang)}
-          onSubmit={async (n) => { await mapNotes.add(n); setNoteDraft(null); }}
+          onSubmit={async (n) => { if (mg) { mg.lock('action'); return; } await mapNotes.add(n); setNoteDraft(null); }}
           onCancel={() => setNoteDraft(null)}
         />
       )}
