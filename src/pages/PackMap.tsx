@@ -61,6 +61,7 @@ import { mapyTiles, MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { useTrailPaths, fullPathOf } from '@/data/trailPaths';
+import { TripGoPanel, TripGoButtons } from '@/components/pack/trip/TripGoPanel';
 import { metersPerPixel } from '@/components/geo/geoMath';
 import { FogLayer } from '@/components/geo/FogLayer';
 import { useFogSource } from '@/components/geo/useFogSource';
@@ -3841,6 +3842,8 @@ export default function PackMap() {
   // PRESNÁ STOPA (26. 9. 2026) — mapa sa otvára so zriedenou čiarou (10 m); od priblíženia 13,
   // kde je 10 m už ~1 px, a pri vybranom výlete sa dotiahne plná. Viď src/data/trailPaths.ts.
   const trailPaths = useTrailPaths(noteZoom >= 13 || !!inlineDetailId);
+  // NÁHĽAD /magnet: otvorený panel „Vyraziť na miesto" z detailu výletu zdarma.
+  const [mgGoId, setMgGoId] = useState<string | null>(null);
 
   /**
    * Položí značku a odpanuje mapu tak, aby ostala NAD panelom.
@@ -6579,6 +6582,13 @@ export default function PackMap() {
 
                 {tripText(dt, 'desc', lang) && <p className="trp-inldet-desc">{tripText(dt, 'desc', lang)}</p>}
 
+                {/* NÁHĽAD /magnet — pri 10 výletoch zdarma aj VYRAZIŤ NA MIESTO + TRASA V MAPY.COM
+                    (Matej 13. 10. 2026: *„pri tripoch nevidím cta ísť na miesto a mapy cz… doplň pre
+                    tých 10"*). Ten istý prvok ako v článku; ponuka až s plnou stopou (`trailPaths`). */}
+                {mg && isFreeTrip(dt.id) && dt.path.length > 0 && trailPaths && (
+                  <TripGoButtons trail={{ ...dt, path: fullPathOf(dt, trailPaths) }} onDrive={() => setMgGoId(dt.id)} />
+                )}
+
                 {(dt as { elev?: number[] }).elev && (
                   <div className="trp-inldet-section">
                     <h4>{t('pack.map.elevationProfile')}</h4>
@@ -6813,6 +6823,11 @@ export default function PackMap() {
         </>
         )}
       </aside>
+
+      {mg && mgGoId && (() => {
+        const tr = allTrails.find((x) => x.id === mgGoId);
+        return tr ? <TripGoPanel trail={{ ...tr, path: fullPathOf(tr, trailPaths) }} onClose={() => setMgGoId(null)} /> : null;
+      })()}
 
       {/* NÁHĽAD /magnet — červený blok dole v pravej časti (len PC, mobil ho má vo vrchu zoznamu). */}
       {mg && !addFlow && (
