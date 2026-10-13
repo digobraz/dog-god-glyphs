@@ -224,7 +224,11 @@
                   var d = dogs[i], u = d && d.cloudinary_main_url;
                   if (!u || !(d.pack_number >= 2) || u.indexOf('/image/upload/') < 0) continue;
                   var p = u.split('/image/upload/'), id = p[1].replace(/^v\d+\//, '').replace(/\.[a-zA-Z0-9]+$/, '');
-                  if (id) pre(p[0] + '/image/upload/c_fill,w_' + px + ',h_' + px + ',f_auto,q_auto/' + id);
+                  // Uložená transformácia (`c_fill,g_auto,w_1200,…`) ide PRED zmenšeninu ako v `sizedTile`
+                  // (11. 10. 2026) — opačné poradie zväčší fotku späť na 1200 px (73 kB namiesto ~5 kB).
+                  var s = id.split('/'), q = [];
+                  while (s.length > 1 && /^[a-z]{1,3}_[^\/]*$/.test(s[0])) q.push(s.shift());
+                  if (id) pre(p[0] + '/image/upload/' + (q.length ? q.join('/') + '/' : '') + 'c_fill,w_' + px + ',h_' + px + ',f_auto,q_auto/' + s.join('/'));
                 }
               });
             } catch (e) {}
