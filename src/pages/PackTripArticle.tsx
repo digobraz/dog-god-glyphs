@@ -367,8 +367,12 @@ ${packColCSS('.pta-shell')}
    „kilometre výškové a diaľka by som dal do jedného riadku do jedného bloku a náročnosť
    a rušnosť do druhého riadku do dvoch… vadí mi to voľné miesto vedľa rušnosti").
    Osamelý blok v riadku sa natiahne tiež — voľné miesto vedľa neho je presne to, čo vadilo. */
-/* zvislé čiary medzi tromi údajmi (Matej 13. 10.: „zvislé čiarky 2 ktoré rozdelia 3 časti“, bez vodorovných) */
-.pta-stat + .pta-stat{border-left:1px solid ${T.hairline};}
+/* zvislé čiary medzi tromi údajmi (Matej 13. 10.: „zvislé čiarky 2 ktoré rozdelia 3 časti“, bez vodorovných).
+   Vreteno: na krajoch do nuly, v strede najhrubšie (clip-path dá tvar, gradient dá vyblednutie). */
+.pta-stat + .pta-stat{position:relative;}
+.pta-stat + .pta-stat::before{content:"";position:absolute;left:-2px;top:14%;bottom:14%;width:4px;
+  background:linear-gradient(to bottom,transparent,${T.cardEdge} 50%,transparent);
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);}
 /* trasa: km a prevýšenie pod sebou, aby sa vošla do tretiny šírky */
 .pta-route{flex-direction:column;gap:2px;}
 .pta-route i{display:none;}
