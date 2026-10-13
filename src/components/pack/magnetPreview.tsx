@@ -21,9 +21,8 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { useNavigate, type NavigateOptions } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { openPhotoInvite } from '@/lib/photoInvite';
-import { PACK_BOX, PACK_THEME as T, PACK_SHADOW, FONT_TITLE, FONT_UI, VEIL_CSS, GOLD_BTN } from './packTheme';
+import { PACK_THEME as T, PACK_SHADOW, FONT_TITLE, FONT_UI, VEIL_CSS } from './packTheme';
 import { AINUBIS } from './ainubisSkin';
-import { LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { BackIcon } from './BackButton';
 import ainubisFace from '@/assets/ainubis-head.webp';
 import type { PackIdentity } from './usePackIdentity';
@@ -155,20 +154,19 @@ ${VEIL_CSS}
   background:${T.cardGrad};border:1px solid ${T.cardEdge};color:${T.inkStrong};cursor:pointer;box-shadow:${PACK_SHADOW.panel};}
 .mgp-back svg{width:20px;height:20px;}
 .mgp-cta{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 16px;
-  border-radius:8px;background:${LAPIS.grad};border:1px solid ${LAPIS.edge};color:${T.onDark};font-family:${FONT_TITLE};
-  font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;box-shadow:${LAPIS_BTN_SHADOW};}
+  border-radius:8px;background:${AINUBIS.ctaGrad};border:1px solid ${AINUBIS.ctaEdge};color:${AINUBIS.ctaInk};font-family:${FONT_TITLE};
+  font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;box-shadow:${AINUBIS.ctaShadow};}
+.mgp-cta:hover{background:${AINUBIS.ctaGradHover};}
 .mgp-cta:active,.mgp-back:active{transform:scale(.98);}
-/* 🌗 Rozhoduje PODKLAD POD LIŠTOU (brand lock CTA): mapa = svetlá → lapis · kvíz stojí na
-   čiernom → zlaté GOLD_BTN · AINUBIS má vlastný brand → jeho zlato-oranžové CTA. */
-.mgp-bar--quiz .mgp-cta{background:${GOLD_BTN.grad};border-color:${GOLD_BTN.edge};color:${T.inkStrong};box-shadow:${GOLD_BTN.glow};}
-.mgp-bar--ainubis .mgp-cta{background:${AINUBIS.ctaGrad};border-color:${AINUBIS.ctaEdge};color:${AINUBIS.ctaInk};box-shadow:${AINUBIS.ctaShadow};}
+/* 13. 10. 2026: CTA náhľadu je VŠADE v brande AINUBISa (Matej: *„daj ho všade ainubis a staň sa
+   dogypťanom"*) — varianty lapis/zlato podľa podkladu zanikli. Šípka späť = tmavá doska AINUBISa. */
+.mgp-back{background:${AINUBIS.surface};border-color:${AINUBIS.edgeStrong};color:${AINUBIS.ink};}
 /* CTA V BLOKU (Matej 13. 10.: *„to cta dolu daj do bloku… nie mimo — vyzerá to divne a pod cta
    malý späť"*). Na PC nesie CTA info blok obrazovky a samostatná lišta zmizne; mobil ju má ďalej. */
 .mgp-dockacts{display:flex;flex-direction:column;align-items:stretch;gap:8px;}
 .mgp-dockacts .mgp-cta{flex:none;width:100%;}
 .mgp-backlink{align-self:center;background:none;border:0;padding:4px 8px;cursor:pointer;font-family:${FONT_UI};font-weight:500;
   font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px;color:${T.inkWarm};}
-.mgp-dock--ainubis .mgp-cta{background:${AINUBIS.ctaGrad};border-color:${AINUBIS.ctaEdge};color:${AINUBIS.ctaInk};box-shadow:${AINUBIS.ctaShadow};}
 .mgp-dock--ainubis .mgp-backlink{color:${AINUBIS.inkDim};}
 @media (min-width:1024px){ body:has(.mgp-dockacts) .mgp-bar{display:none;} }
 /* POPUP AINUBISA (Matej 13. 10.: *„popup s ainubisom s jeho logom a brandom aj novým textingom"*). */
@@ -179,7 +177,6 @@ ${VEIL_CSS}
 .mgp-card--ai .mgp-eye{color:${AINUBIS.cyan};margin-top:4px;}
 .mgp-card--ai .mgp-h{color:${AINUBIS.ink};}
 .mgp-card--ai .mgp-p{color:${AINUBIS.inkDim};}
-.mgp-card--ai .mgp-cta{background:${AINUBIS.ctaGrad};border-color:${AINUBIS.ctaEdge};color:${AINUBIS.ctaInk};box-shadow:${AINUBIS.ctaShadow};}
 .mgp-card--ai .mgp-ghost{border-color:${AINUBIS.edge};color:${AINUBIS.ink};}
 .mgp-card{width:100%;max-width:400px;padding:32px 24px 24px;text-align:center;}
 .mgp-eye{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};}
@@ -191,36 +188,25 @@ ${VEIL_CSS}
 `;
 
 /** Popup „Ďalej idú len Dogypťania" — jeden pre všetky tri darčeky. */
-function LockPopup({ what, kind, onClose }: { what: LockWhat; kind: MagnetKind; onClose: () => void }) {
+function LockPopup({ what, onClose }: { what: LockWhat; onClose: () => void }) {
+  // 13. 10. 2026 Matej: *„ten oznam o exkluzívnom obsahu daj všade, nie len na ainubis stránke…
+  // daj ho všade ainubis a staň sa dogypťanom"* — JEDEN popup v brande AINUBISa pre všetky
+  // tri darčeky. Skúšobný zápis výletu (`save`) má vlastné znenie a prihlásenie.
   const t = useT();
   const tx = (k: string, fb: string) => { const v = t(k); return v === k ? fb : v; };
-  if (kind === 'ainubis') return (
+  return (
     <div className="pk-veil pk-veil--modal" style={{ zIndex: 400 }} onClick={onClose} role="dialog" aria-modal="true">
       <div className="mgp-card mgp-card--ai" onClick={(e) => e.stopPropagation()}>
         <img className="mgp-face" src={ainubisFace} alt="" aria-hidden="true" />
         <div className="mgp-who"><span>AI</span>NUBIS</div>
-        <div className="mgp-eye">{tx('magnet.lock.ai.eye', 'Exclusive content')}</div>
-        <h2 className="mgp-h">{tx('magnet.lock.ai.h', 'Only Paws')}</h2>
-        <p className="mgp-p">{tx('magnet.lock.ai.p', 'Yes, we have exclusive content too. Ours is about dogs, so you don’t have to hide it from anyone. €11 once, for good — less than one café visit. This time, take your dog. He won’t touch the coffee, but he’ll love this app.')}</p>
-        <div className="mgp-acts">
-          <button type="button" className="mgp-cta" onClick={() => { onClose(); openPhotoInvite(); }}>
-            {tx('magnet.cta', 'Become Dogyptian')}
-          </button>
-          <button type="button" className="mgp-ghost" onClick={onClose}>{tx('magnet.lock.ai.stay', 'I’ll stick to the free sniff')}</button>
-        </div>
-      </div>
-    </div>
-  );
-  return (
-    <div className="pk-veil pk-veil--modal" style={{ zIndex: 400 }} onClick={onClose} role="dialog" aria-modal="true">
-      <div className="mgp-card" style={PACK_BOX.card} onClick={(e) => e.stopPropagation()}>
-        <div className="mgp-eye">{tx(`magnet.lock.eye.${what}`, 'For Dogyptians')}</div>
         {what === 'save' ? (<>
+          <div className="mgp-eye">{tx('magnet.lock.eye.save', 'Logging a trip')}</div>
           <h2 className="mgp-h">{tx('magnet.lock.save.h', 'Save it as a Dogyptian')}</h2>
           <p className="mgp-p">{tx('magnet.lock.save.p', 'This was a test run — the trip was not saved. Dogyptians keep their trips in the triplist, collect kilometres and points and the pack sees where they went.')}</p>
         </>) : (<>
-          <h2 className="mgp-h">{tx('magnet.lock.h', 'Dogyptians only beyond this point')}</h2>
-          <p className="mgp-p">{tx('magnet.lock.p', 'The key is your dog’s heroglyph — €11 once, for good: every trip, every scroll with a podcast and AINUBIS.')}</p>
+          <div className="mgp-eye">{tx('magnet.lock.ai.eye', 'Exclusive content')}</div>
+          <h2 className="mgp-h">{tx('magnet.lock.ai.h', 'Only Paws')}</h2>
+          <p className="mgp-p">{tx('magnet.lock.ai.p', 'Yes, we have exclusive content too. Ours is about dogs, so you don’t have to hide it from anyone. €11 once, for good — less than one café visit. This time, take your dog. He won’t touch the coffee, but he’ll love this app.')}</p>
         </>)}
         <div className="mgp-acts">
           <button type="button" className="mgp-cta" onClick={() => { onClose(); openPhotoInvite(); }}>
@@ -229,7 +215,7 @@ function LockPopup({ what, kind, onClose }: { what: LockWhat; kind: MagnetKind; 
           {what === 'save' && (
             <a className="mgp-ghost" href="/login">{tx('magnet.lock.login', 'I am a Dogyptian — log in')}</a>
           )}
-          <button type="button" className="mgp-ghost" onClick={onClose}>{tx('magnet.lock.stay', 'Keep looking around')}</button>
+          <button type="button" className="mgp-ghost" onClick={onClose}>{tx('magnet.lock.ai.stay', 'I’ll keep sniffing for free')}</button>
         </div>
       </div>
     </div>
@@ -267,7 +253,7 @@ export function MagnetPreview({ kind, children }: { kind: MagnetKind; children: 
           <button type="button" className="mgp-cta" onClick={() => openPhotoInvite()}>{tx('magnet.cta.price', 'Become Dogyptian · €11')}</button>
         </div>
       </div>
-      {lockOpen && <LockPopup what={lockOpen} kind={kind} onClose={() => setLockOpen(null)} />}
+      {lockOpen && <LockPopup what={lockOpen} onClose={() => setLockOpen(null)} />}
     </MagnetCtx.Provider>
   );
 }
