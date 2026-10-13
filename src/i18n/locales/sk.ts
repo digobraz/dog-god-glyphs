@@ -1284,7 +1284,7 @@ export const sk: Partial<Dict> = {
   "magnet.info.forum.h": "Fórum",
   "magnet.info.forum.p": "Nástenka svorky — otázky, skúsenosti a tipy od psíčkarov pre psíčkarov. Práve ho dokončujeme, Dogypťania budú pri tom prví.",
   "magnet.info.sources.h": "Zdroje",
-  "magnet.info.sources.p": "Na čom stojí mozog AINUBISa: {n} kníh a odborných dokumentov. Žiadne „počul som od suseda\" — pri každom zvitku vidíš, odkiaľ to vie.",
+  "magnet.info.sources.p": "Na čom stojí mozog AINUBISa: vyše 12 000 strán A4 — 5,5 milióna slov z 332 rozhovorov, knihy, 151 vedeckých štúdií, 894 videí a 264 článkov. Žiadne „počul som od suseda\" — pri každom zvitku vidíš, odkiaľ to vie. A svoj zdroj môže pridať každý Dogypťan.",
   'magnet.ai.trips.h': "10 výletov máš na ochutnanie",
   'magnet.ai.trips.p': "Ostatných {n} vidíš, ale nevojdeš — ako pes pred mäsiarstvom. Dogypťania si zapisujú vlastné výlety, zbierajú kilometre a body. Ja im to počítam a nikdy sa nepomýlim. Takmer.",
   'magnet.ai.trips.bar': "Ostatné výlety vidíš, ale nevojdeš — ako pes pred mäsiarstvom.",

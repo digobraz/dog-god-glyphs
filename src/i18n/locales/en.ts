@@ -1508,7 +1508,7 @@ export const en = {
   "magnet.info.forum.h": "Forum",
   "magnet.info.forum.p": "The pack’s board — questions, experience and tips from dog people for dog people. We’re finishing it now, and Dogyptians will be first in.",
   "magnet.info.sources.h": "Sources",
-  "magnet.info.sources.p": "What AINUBIS’s brain stands on: {n} books and expert documents. No “my neighbour said” — every scroll shows where it comes from.",
+  "magnet.info.sources.p": "What AINUBIS’s brain stands on: over 12,000 A4 pages — 5.5 million words from 332 interviews, books, 151 scientific studies, 894 videos and 264 articles. No “my neighbour said” — every scroll shows where it comes from. And any Dogyptian can add their own source.",
   'magnet.ai.trips.h': "10 trips to taste",
   'magnet.ai.trips.p': "You can see the other {n}, but you can't go in — like a dog outside a butcher's. Dogyptians log their own trips, collect kilometres and points. I keep count and I never get it wrong. Almost.",
   'magnet.ai.trips.bar': "You can see the other trips, but you can't go in — like a dog outside a butcher's.",
