@@ -3464,11 +3464,17 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         }
 
         /* ── Bottom bar: filter + center (+ flag on mobile), centered as a row ── */
+        /* Celá šírka okna + margin auto, NIE left:50% + translateX(-50%) — fixovaný
+           prvok s left:50% má k dispozícii len pravú polovicu okna a pri úzkej šírke
+           sa zmrští (lock /onepage nav, 28. 8. 2026). Lišta je sama odliatok, preto
+           fit-content, nie pás. */
         .gods-bottom-bar {
           position: fixed;
           bottom: 16px;
-          left: 50%;
-          transform: translateX(-50%);
+          left: 0;
+          right: 0;
+          width: fit-content;
+          margin-inline: auto;
           z-index: 50;
           display: flex;
           align-items: center;
