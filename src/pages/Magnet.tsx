@@ -114,6 +114,9 @@ export default function Magnet() {
 
       {/* ═══ 2 · BLOKY — každý vedie na vlastnú stránku (darček 1:1 s /pack) ═══ */}
       <section className="mg-sec mg-blocks">
+        {/* Kontext nad blokmi (Matej 13. 10.: „nahliadni, čo nájdeš vnútri… malá ochutnávka členstva"). */}
+        <p className="mg-eye">{t('magnet.blocks.eye')}</p>
+        <h2 className="mg-blocks-h">{t('magnet.blocks.h')}</h2>
         <nav className="mg-links">
           {BLOCKS.map((b) => (
             <Link key={b.to} to={b.to} className="mg-link" style={PACK_BOX.card}>
@@ -254,6 +257,7 @@ ${PILL_CSS}
 
 /* BLOKY — KARTA: freska vľavo, nadpis + jedna veta vpravo. */
 .mg-blocks{padding-top:${S.lg}px;}
+.mg-blocks-h{margin:0 0 ${S.xl}px;font:700 ${PACK_TEXT.h2}px/1.3 ${FONT_TITLE};letter-spacing:.06em;color:${FRESCO_RED};}
 .mg-links{display:flex;flex-direction:column;gap:${S.md}px;}
 .mg-link{display:grid;grid-template-columns:112px 1fr;gap:${S.md}px;align-items:center;padding:${S.sm}px;
   text-align:left;color:inherit;text-decoration:none;transition:transform .15s ease;}

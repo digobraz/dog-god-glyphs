@@ -1374,6 +1374,8 @@ export const en = {
   'magnet.hero.eye': 'DOGYPT · the app for dog people',
   'magnet.hero.h': '*Dogs* and *us*',
   'magnet.hero.promise': 'Life with a dog in one app',
+  'magnet.blocks.eye': 'A small taste of membership',
+  'magnet.blocks.h': 'Take a look inside',
   'magnet.idea.photo': 'The dog who started it all',
   'magnet.idea.photoReal': 'the real photo',
   'magnet.idea.photoTap': 'tap the photo',

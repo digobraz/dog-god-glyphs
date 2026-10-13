@@ -1150,6 +1150,8 @@ export const sk: Partial<Dict> = {
   'magnet.hero.eye': 'DOGYPT · appka pre psíčkarov',
   'magnet.hero.h': '*Psy* a *my*',
   'magnet.hero.promise': 'Život so psom v jednej appke',
+  'magnet.blocks.eye': 'Malá ochutnávka členstva',
+  'magnet.blocks.h': 'Nahliadni, čo nájdeš vnútri',
   'magnet.idea.photo': 'Pes, ktorý to všetko začal',
   'magnet.idea.photoReal': 'skutočná fotka',
   'magnet.idea.photoTap': 'ťukni na fotku',
