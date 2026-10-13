@@ -296,6 +296,12 @@ const CSS = `
   .pta-acts .pta-actbtn-label{letter-spacing:0.02em;min-width:0;overflow:hidden;text-overflow:ellipsis;}
   .pta-acts .pta-actbtn--gold .pta-actbtn-label,.pta-acts .pta-actbtn--blue .pta-actbtn-label{display:none;}
   .pta-acts .pta-actbtn--ghost,.pta-acts .pta-actbtn--green{flex:1 1 auto;min-width:0;overflow:hidden;}
+  /* 13. 10. 2026 (LIVE): hlavné „Prejdené“ malo min-content = text + pilulka, nedalo sa zmrštiť,
+     tlačil riadok doprava a ZDIEĽAŤ IG/FB odišlo za okraj (ikonka zmizla). Teraz sa zmrští
+     a pilulka bodov sedí na HRANE tlačidla (polovica von), nie v texte. */
+  .pta-acts .pta-actbtn--lapis{flex:1 1 0;min-width:0;position:relative;overflow:visible;}
+  .pta-acts .pta-actbtn--lapis .pts-pill{position:absolute;top:-9px;right:-6px;}
+  .pta-acts .pta-actbtn--blue{flex-shrink:0;}
 }
 /* bod 3 (iterácia 14): fotky v galérii klikacie → lightbox (fullscreen popup) */
 .pta-lightbox{position:fixed;inset:0;z-index:200;background:rgba(5,5,5,0.94);display:flex;align-items:center;justify-content:center;padding:24px;}
