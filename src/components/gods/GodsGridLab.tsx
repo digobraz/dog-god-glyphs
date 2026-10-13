@@ -517,7 +517,6 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   const t = useT();
   const appRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [infoOpen, setInfoOpen] = useState(false);
   const [showWhatNext, setShowWhatNext] = useState(false);
   const whatNextShownRef = useRef(false);
   const { toast } = useToast();
@@ -2073,78 +2072,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
            (jedna kópia baru v projekte). Zlatý odliatok si aj tak obe strany
            ťahajú z components/pack/navGoldSkin.ts. */
 
-        .info-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 100;
-          background: rgba(8,8,8,0.96);
-          backdrop-filter: blur(24px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 300ms ease;
-        }
-        .info-overlay.open { opacity: 1; pointer-events: all; }
-        .info-close {
-          position: absolute;
-          top: 20px; right: 20px;
-          width: 40px; height: 40px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.1);
-          border: none;
-          cursor: pointer;
-          color: white;
-          font-size: 20px;
-          display: flex; align-items: center; justify-content: center;
-          transition: background 150ms;
-        }
-        .info-close:hover { background: rgba(255,255,255,0.2); }
-        .info-content {
-          max-width: 680px;
-          width: 90%;
-          display: flex;
-          flex-direction: column;
-          gap: 28px;
-        }
-        .info-content h2 {
-          font-size: clamp(2rem, 6vw, 3.5rem);
-          font-weight: 700;
-          color: white;
-          letter-spacing: -0.04em;
-          line-height: 1;
-        }
-        .info-content p {
-          font-size: 1rem;
-          line-height: 1.65;
-          color: rgba(255,255,255,0.55);
-          max-width: 520px;
-        }
 
-        .center-btn {
-          position: fixed;
-          bottom: 16px;
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 50;
-          height: 40px;
-          padding: 0 16px;
-          border-radius: 999px;
-          background: rgba(163,163,163,0.8);
-          backdrop-filter: blur(12px);
-          color: white;
-          display: flex; align-items: center; gap: 8px;
-          border: none;
-          cursor: pointer;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-          font-size: 0.875rem;
-          font-weight: 500;
-          font-family: inherit;
-          letter-spacing: -0.02em;
-          white-space: nowrap;
-        }
-        .center-btn:hover { opacity: 0.85; }
 
         #gods-canvas {
           position: absolute;
@@ -3926,11 +3854,6 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
            Override je preto zrušený: platí základná .join-btn so zlatou žiarou
            aj joinBtnPulse. Nič sa nekopíruje, len sa nič neprebíja. */
         /* Info overlay — papyrus namiesto čiernej */
-        .theme-light .info-overlay { background: rgba(250,243,225,0.96); }
-        .theme-light .info-content h2 { color: #2a1608; }
-        .theme-light .info-content p { color: rgba(42,22,8,0.68); }
-        .theme-light .info-close { background: rgba(42,22,8,0.10); color: #2a1608; }
-        .theme-light .info-close:hover { background: rgba(42,22,8,0.20); }
 
       `}</style>
 
@@ -3972,13 +3895,6 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         {/* LOGIN — kruh vpravo hore. Tiež odišiel do rámu: patrí k chrome, ktoré
             je na každej stránke rovnaké, nie k stene. */}
 
-        <div className={`info-overlay ${infoOpen ? 'open' : ''}`} onClick={(e) => { if (e.target === e.currentTarget) setInfoOpen(false); }}>
-          <button className="info-close" onClick={() => setInfoOpen(false)}>✕</button>
-          <div className="info-content">
-            <h2 dangerouslySetInnerHTML={{ __html: t('wall.info.title') }} />
-            <p>{t('wall.info.body')}</p>
-          </div>
-        </div>
 
         {/* Spodná lišta. `portalDock` ju posiela do <body> — dôvod v props. */}
         {portalDock && dockHostId && !dockHost

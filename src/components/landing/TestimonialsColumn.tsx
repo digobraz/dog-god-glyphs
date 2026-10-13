@@ -77,7 +77,7 @@ export const TestimonialsColumn = (props: {
               >
                 <div
                   className="text-sm leading-relaxed"
-                  style={{ color: skin.quote, fontFamily: "'Cormorant Garamond', serif" }}
+                  style={{ color: skin.quote, fontFamily: "'Space Grotesk', sans-serif" }}
                 >
                   "{text}"
                 </div>

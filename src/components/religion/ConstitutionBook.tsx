@@ -292,7 +292,7 @@ export default function ConstitutionBook({ belowBook, openOnMount = false }: { b
             aria-label={page === 0 ? t('religion.book.close') : t('religion.book.prevPage')}
             title={page === 0 ? t('religion.book.close') : t('religion.book.prevPage')}
           >
-            {page === 0 ? '✕' : '‹'}
+            ‹
           </button>
           <button type="button" className="cb-arrow" onClick={() => flip('next')} disabled={page >= 4} aria-label={t('religion.book.nextPage')}>›</button>
         </div>
