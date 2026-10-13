@@ -287,6 +287,10 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
   const walkerCount = fH + oH;
   const dogyptianCount = fH + fD + oH + oD;
   const sCrowd = seedCrowd(trail);
+  // Náročnosť pod prahom = seed, a keď seed chýba, najčastejší hlas. AKTIVITA so stopou sa
+  // náročnosti v zápise nepýta (`hasDifficulty: false`), ale článok aj `WalkedPopup` ju pri trase
+  // chcú — bez tohto fallbacku sa vypísal holý kľúč `pack.map.diff.undefined` (Daniela 12. 10. 2026).
+  const sDiff = (trail.diff as Difficulty | undefined) ?? breakdown(diffs, DIFFICULTIES)[0]?.value;
   if (walkedCount === 0) {
     // Poctivý prázdny agregát — žiadny hlas, nič na agregáciu (a delenie walkedCount by dalo
     // NaN/Infinity).
@@ -321,8 +325,8 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     return {
       walkedCount, walkerCount, dogyptianCount, belowThreshold: true,
       rating: trail.stars,
-      difficulty: trail.diff as Difficulty,
-      difficultyBreakdown: [{ value: trail.diff as Difficulty, pct: 100, count: walkedCount }],
+      difficulty: sDiff as Difficulty,
+      difficultyBreakdown: sDiff ? [{ value: sDiff, pct: 100, count: walkedCount }] : [],
       crowd: sCrowd,
       crowdBreakdown: sCrowd ? [{ value: sCrowd, pct: 100, count: walkedCount }] : [],
       hazardBreakdown: hB,

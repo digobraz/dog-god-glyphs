@@ -1746,7 +1746,7 @@ export default function PackTripArticle() {
               ⚠️ DVE PODMIENKY, NIE JEDNA. Okruh náročnosť nemá tiež (`needsDifficulty()` ju má
               od 31. 8. len pri HIKE), ale `hasRouteMetrics` sám by nestačil: paddleboard je
               voda SO stopou, teda by mu náročnosť prepustil. */}
-          {showDiffStat && (
+          {showDiffStat && agg.difficulty && (
             <div
               className={`${agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}${agg.crowd ? '' : ' pta-stat--full'}`}
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.difficultyBreakdown)}
@@ -1756,7 +1756,7 @@ export default function PackTripArticle() {
           )}
           {agg.crowd && (
             <div
-              className={`${agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}${showDiffStat ? '' : ' pta-stat--full'}`}
+              className={`${agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}${showDiffStat && agg.difficulty ? '' : ' pta-stat--full'}`}
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.crowdBreakdown)}
             >
               <b>{CROWD_EMOJI[agg.crowd]} {t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span>
