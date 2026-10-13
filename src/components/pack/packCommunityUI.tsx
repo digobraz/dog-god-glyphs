@@ -770,10 +770,13 @@ ${VEIL_CSS}
 .comm-chero-in{position:relative;z-index:1;width:100%;}
 .comm-chero-name{font-family:${FONT_TITLE};font-weight:700;font-size:24px;line-height:1;letter-spacing:0.02em;text-transform:uppercase;color:${T.card};text-shadow:0 2px 14px rgba(0,0,0,0.7);}
 .comm-chero-sub{font-family:${FONT_UI};font-weight:500;font-size:12px;color:rgba(245,240,228,0.85);margin-top:7px;}
-.comm-chero-goal{margin-top:11px;max-width:340px;}
+.comm-chero-goal{position:relative;margin-top:11px;max-width:340px;}
 .comm-chero-goaltxt{display:flex;align-items:center;gap:8px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:rgba(245,240,228,0.8);margin-bottom:5px;}
 /* ⓘ pri titule krajiny — na FOTKE, takže svetlý obrys a tmavé sklo, nie inkoust ako v profile. */
-.comm-rankinfo{position:relative;display:inline-flex;flex-shrink:0;}
+/* Popup sa kotví na CELÝ cieľ (.comm-chero-goal), nie na ⓘ: na mobile sa text cieľa zalomí
+   a ⓘ ostane pri pravom okraji, takže left:0 od tlačidla posunul 290 px popup mimo obrazovky
+   (Danka #42, 400 px Android, 13. 10. 2026). */
+.comm-rankinfo{position:static;display:inline-flex;flex-shrink:0;}
 .comm-rankinfo-btn{width:19px;height:19px;border-radius:50%;border:1px solid ${T.onDarkDim};background:rgba(3,2,1,0.45);color:${T.card};font-family:${FONT_UI};font-weight:600;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;}
 .comm-rankinfo-btn:hover,.comm-rankinfo-btn.on{background:${GOLD};border-color:${GOLD};color:#241a06;}
 /* Otvára sa NAHOR (bottom:100%): titul sedí na spodku hera, smerom dole by popup prekryl

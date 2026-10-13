@@ -37,6 +37,37 @@ function belowFold(node: HTMLElement, viewH: number): boolean {
   return r.height > 0 && r.top > viewH;
 }
 
+/**
+ * POSUNUTÉ PÁSY → POSUN DETÍ. Vráti funkciu, ktorá všetko vráti späť.
+ *
+ * ⚠️ PREČO (13. 10. 2026, testerka na Android Chrome): v Tripliste odsunula riadok PREJDENÉ
+ *    na Zugersee, ťukla naň a snímka ukázala Fälensee. `html-to-image` (1.11.13) kopíruje DOM
+ *    bez `scrollLeft`/`scrollTop` vnútorných kontajnerov, takže každý vodorovný pás
+ *    (`.tl-hscroll` a pod.) vyjde na snímke od začiatku — a krúžok ukazuje na inú kartu.
+ *    Posun kontajnera = posun jeho detí opačným smerom: kontajner vrátime na 0 a deťom dáme
+ *    `translate` o ten istý kus. Človek nevidí zmenu a kópia nesie posun v štýle.
+ */
+function bakeScroll(): () => void {
+  const undo: Array<() => void> = [];
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>('body *'))) {
+    const sl = el.scrollLeft;
+    const st = el.scrollTop;
+    if (!sl && !st) continue;
+    if (SKIP_CLASSES.some((c) => el.closest(`.${c}`))) continue;
+    const kids = Array.from(el.children).filter((k): k is HTMLElement => k instanceof HTMLElement);
+    const prev = kids.map((k) => k.style.translate);
+    el.scrollLeft = 0;
+    el.scrollTop = 0;
+    kids.forEach((k) => { k.style.translate = `${-sl}px ${-st}px`; });
+    undo.push(() => {
+      kids.forEach((k, i) => { k.style.translate = prev[i]; });
+      el.scrollLeft = sl;
+      el.scrollTop = st;
+    });
+  }
+  return () => undo.reverse().forEach((f) => f());
+}
+
 export async function captureViewport(mark: TargetMark): Promise<File> {
   const { toCanvas } = await import('html-to-image');
   const w = window.innerWidth;
@@ -49,11 +80,13 @@ export async function captureViewport(mark: TargetMark): Promise<File> {
   //    a animácia v ňom stojí na čase 0 = priehľadná, takže ostala len tapeta a pevná lišta.
   //    Kým ide kópia, živému DOM-u animácie vypneme (stav `to` = to, čo človek vidí).
   const freeze = document.createElement('style');
-  freeze.textContent = '*,*::before,*::after{animation:none!important;transition:none!important;}';
+  //    `scroll-behavior:auto` — inak by návrat pásov na pôvodné miesto (bakeScroll) išiel plynulo.
+  freeze.textContent = '*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important;}';
   document.head.appendChild(freeze);
   await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
 
   let canvas: HTMLCanvasElement;
+  const unbake = bakeScroll();
   try {
     canvas = await toCanvas(document.documentElement, {
     width: w,
@@ -70,6 +103,7 @@ export async function captureViewport(mark: TargetMark): Promise<File> {
           belowFold(node, h))),
     });
   } finally {
+    unbake();
     freeze.remove();
   }
 
