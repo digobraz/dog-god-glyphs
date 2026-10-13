@@ -59,15 +59,14 @@ export default function Magnet() {
       <Seo title="DOGYPT — if dogs had a country" description={t('magnet.hero.lead')} path="/magnet" noindex />
       <style>{CSS}</style>
       {/* ═══ 1 · ÚVOD — v9 (13. 10.): obraz cez celú šírku, ktorý sa stráca do papyrusu,
-           BEZ horného loga; variant VERDIKT RADY (prvý v hárku B): nadpis + kartuša LOGO 2026
-           (tmavý atrament, hlavné logo A) + tri otázky + cena; namiesto 3 pilulek Matejových
-           šesť mien v JEDNOM riadku dokola (13. 10.). ═══ */}
+           BEZ horného loga; nadpis „Iba psy a my" (Matej 13. 10.) + kartuša LOGO 2026
+           (tmavý atrament, hlavné logo A) + tri otázky + šesť mien v JEDNOM riadku dokola.
+           Cena 11 € z úvodu VON (Matej 13. 10., proti verdiktu rady). ═══ */}
       <section className="mg-hero">
         <img className="mg-hero-bg" src={IMG('hero-namestie')} alt="" fetchPriority="high" />
         <div className="mg-hero-in">
           <h1 className="mg-h1">{t('magnet.hero.h')}<span className="mg-logo" role="img" aria-label="DOGYPT" /></h1>
           <p className="mg-lead">{t('magnet.hero.promise')}</p>
-          <p className="mg-offer">{t('magnet.hero.price')}</p>
         </div>
         {/* Šesť mien DOGYPTU v JEDNOM riadku, ktorý ide dokola (Matej 13. 10.). */}
         <div className="mg-names" aria-label={CHIPS.map((k) => t(`magnet.chip.${k}`)).join(' · ')}>
@@ -149,7 +148,6 @@ ${PILL_CSS}
   mask:url(/images/magnet/logo-2026-kartusa.svg) center/contain no-repeat;}
 .mg-hero .mg-lead{margin-top:${S.lg}px;max-width:340px;}
 .mg-hero-in{padding-bottom:0;}
-.mg-offer{margin:${S.sm}px 0 0;font:700 ${PACK_TEXT.body}px/1.3 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${LAPIS.edge};}
 /* MENÁ — jeden riadok PILULIEK dokola; kraje sa strácajú v maske. Kto nechce pohyb,
    dostane ich zalomené na stred. */
 .mg-names{position:relative;max-width:${COL + 2 * S.xxl}px;margin:${S.lg}px auto 0;
