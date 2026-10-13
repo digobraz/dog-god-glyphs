@@ -38,8 +38,10 @@ const goldWords = (s: string) => s.split('*').map((p, i) => (i % 2 ? <span class
 const cldThumb = (u: string) => u.replace('/upload/', '/upload/c_fill,g_auto,w_180,h_180,q_auto,f_auto/');
 /** Pás zblízka = prvý obraz pásu na /onepage: os má ~100 psov, takže dnešná svorka
  *  vyplní väčšinu a číslo neklame. Psy medzi koncami sú vybraté ROVNOMERNE. */
-const STRIP_DOM = 100;
-const STRIP_MID = 9;
+const STRIP_MID = 14;
+/** Obraz pásu = KONEČNÝ záber z /onepage (Matej 13. 10.: „na kope a 1M cieľ v krúžku"):
+ *  os je milión, svorka je pri nej kôpka psov hneď pri Hekthorovi. */
+
 type Dog = { n: number; name: string; u: string };
 
 const IMG = (f: string) => `/images/magnet/${f}.webp`;
@@ -87,7 +89,9 @@ export default function Magnet() {
   const head = pack[pack.length - 1];
   const mids = pack.length < 3 ? [] : Array.from({ length: STRIP_MID }, (_, i) =>
     pack[Math.round(1 + ((i + 1) * (pack.length - 2)) / (STRIP_MID + 1))]);
-  const fill = Math.min(1, (dogs ?? 0) / STRIP_DOM);
+  /** Koniec kôpky (px) — na mobile hustejšie (var --step), nech sa hlava nebije so štítkom 1M. */
+  const pileEnd = `calc(40px + ${STRIP_MID} * var(--step))`;
+  const [money, setMoney] = useState<number | null>(null);
   const join = () => openPhotoInvite();
 
   return (
@@ -167,10 +171,10 @@ export default function Magnet() {
         <hr className="mg-rule" />
         <p className="mg-goal">{t('magnet.about.goal')}</p>
         <hr className="mg-rule mg-rule--short" />
-        <div className="mg-strip" style={{ ['--fill' as string]: fill }} aria-label={`${dogs ?? ''} / 1 000 000`}>
+        <div className="mg-strip" style={{ ['--pile' as string]: pileEnd }} aria-label={`${dogs ?? ''} / 1 000 000`}>
           <div className="mg-groove"><span className="mg-fill" /></div>
           {mids.map((d, i) => (
-            <span key={i} className="mg-dog mg-dog--mid" style={{ left: `${(((i + 1) / (STRIP_MID + 1)) * fill) * 100}%` }}>
+            <span key={i} className="mg-dog mg-dog--mid" style={{ left: `calc(24px + ${i} * var(--step))` }}>
               <img src={d.u} alt="" loading="lazy" />
             </span>
           ))}
@@ -180,12 +184,19 @@ export default function Magnet() {
             <span className="mg-pill"><em>Hekthor</em><b>#1</b></span>
           </span>
           {head && (
-            <span className="mg-dog mg-dog--head" style={{ left: `${fill * 100}%` }}>
+            <span className="mg-dog mg-dog--head" style={{ left: pileEnd }}>
               <img src={head.u} alt="" loading="lazy" />
               <i className="mg-tie" />
               <span className="mg-pill"><em>{head.name}</em><b>#{head.n}</b></span>
             </span>
           )}
+          {/* CIEĽ v ručne ťahanom ovále + pulzujúca bodka na konci osi (ten istý prvok ako .op-nxt-goal). */}
+          <span className="mg-goalmark"><b>1M</b><em>{t('onepage.need.goal')}</em>
+            <svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true">
+              <path pathLength={1} d="M150 8 C 110 0, 30 2, 10 22 C -6 40, 40 58, 104 56 C 170 54, 204 40, 192 20 C 184 8, 150 4, 118 6" />
+            </svg>
+          </span>
+          <span className="mg-goaldot" aria-hidden />
         </div>
         <button type="button" className="mg-cta" onClick={join}>{t('magnet.cta')}</button>
         <p className="mg-pricesub">{t('magnet.end.sub')}</p>
@@ -194,14 +205,28 @@ export default function Magnet() {
       {/* ═══ 5 · KAM IDE 11 € — úplne na konci (Matej 13. 10.) ═══ */}
       <section className="mg-sec mg-money">
         <div className="mg-split" style={PACK_BOX.subblock}>
+          <h3 className="mg-split-h">{t('magnet.split.h')}</h3>
           <div className="mg-split-bar">
             {TRANSPARENCY_SPLIT.map((sp) => (
               <span key={sp.labelKey} style={{ flex: sp.share, background: sp.color }}>{sp.share} €</span>
             ))}
           </div>
-          <div className="mg-split-l">
-            {TRANSPARENCY_SPLIT.map((sp) => <span key={sp.labelKey}><i style={{ background: sp.color }} aria-hidden />{sp.share} € · {t(SPLIT_LABEL[sp.labelKey] ?? sp.labelKey)}</span>)}
+          {/* Legenda v RADE; ťuk otvorí pod ňou kartu s vysvetlením (ten istý text ako v heroflowe,
+              flowMoreInfo „mi-money" — Matej 26. 9.: „na rozklik a dropdown s vysvetlením"). */}
+          <div className="mg-split-l" role="tablist">
+            {TRANSPARENCY_SPLIT.map((sp, k) => (
+              <button key={sp.labelKey} type="button" role="tab" aria-selected={money === k}
+                className={money === k ? 'on' : ''} style={{ ['--c' as string]: sp.color }}
+                onClick={() => setMoney(money === k ? null : k)}>
+                <i aria-hidden /><b>{sp.share} €</b><span>{t(SPLIT_LABEL[sp.labelKey] ?? sp.labelKey)}</span>
+              </button>
+            ))}
           </div>
+          {money !== null && (
+            <div className="mg-split-card" style={{ ['--c' as string]: TRANSPARENCY_SPLIT[money].color }}>
+              {t(TRANSPARENCY_SPLIT[money].noteKey)}
+            </div>
+          )}
           <p>{t('magnet.about.help')}</p>
         </div>
         <p className="mg-motto">{t('legal.motto')}</p>
@@ -222,7 +247,7 @@ ${PILL_CSS}
 @media (min-width:768px){.mg-hero{--mg-hero-h:520px;}}
 /* Obraz sa stráca MASKOU, nie farebným prechodom — pod ním je radiálny papyrus LAB,
    ktorý nemá v tej výške jednu farbu, prechod do jedného odtieňa by na PC robil pás. */
-.mg-hero-bg{position:absolute;top:0;left:0;width:100%;height:var(--mg-hero-h);object-fit:cover;object-position:center 22%;
+.mg-hero-bg{position:absolute;top:0;left:0;width:100%;height:var(--mg-hero-h);object-fit:cover;object-position:center top;
   -webkit-mask-image:linear-gradient(180deg,#000 55%,rgba(0,0,0,.35) 82%,transparent);
   mask-image:linear-gradient(180deg,#000 55%,rgba(0,0,0,.35) 82%,transparent);}
 .mg-hero-in{position:relative;max-width:${COL}px;margin:0 auto;padding:calc(var(--mg-hero-h) - 80px) ${S.lg}px ${S.lg}px;text-align:center;}
@@ -249,7 +274,8 @@ ${PILL_CSS}
   .mg-track .pk-pill:nth-child(n+7){display:none;}
 }
 .mg-eye{margin:0 0 ${S.md}px;font:500 ${PACK_TEXT.micro}px/1.4 ${FONT_UI};letter-spacing:.26em;text-transform:uppercase;color:${LAB.goldInk};}
-.mg-lead{margin:0 auto;max-width:640px;font:400 ${PACK_TEXT.body}px/1.55 ${FONT_UI};color:${LAB.inkBody};}
+.mg-lead{margin:0 auto;max-width:640px;font:400 ${PACK_TEXT.lead}px/1.55 ${FONT_UI};color:${LAB.inkBody};}
+@media (min-width:768px){.mg-lead{font-size:${PACK_TEXT.h2}px;}}
 
 /* EGYPTSKÝ RÁM z Hektorovej knihy — zlatá · červená hlinka · zlatá (.hb-band). */
 .mg-frame{position:relative;overflow:hidden;isolation:isolate;
@@ -259,16 +285,18 @@ ${PILL_CSS}
 /* PSY A MY — recept nadpisu z úvodu webu (DogPlanetLab .ph-h1): Cinzel, tmavý atrament,
    zlaté slová Cinzel Decorative 900 #6E4A12 s papyrusovým halo. Dominantný: veľkosť
    z ŠÍRKY okna, jeden riadok (Matej 13. 10.: „veľké cez celú šírku, dominantný text"). */
-.mg-hero .mg-h1{white-space:nowrap;text-wrap:nowrap;margin-inline:calc(50% - 50vw);font-size:min(calc((100vw - 32px) / 6.3), 160px);line-height:1;letter-spacing:.005em;color:#23150a;
+.mg-hero .mg-h1{white-space:nowrap;text-wrap:nowrap;margin-inline:calc(50% - 50vw);font-size:min(calc((100vw - 32px) / 6.3), 81px);line-height:1;letter-spacing:.005em;color:#23150a;
   text-shadow:0 0 6px ${LAB.pageBg},0 0 14px ${LAB.pageBg},0 0 28px ${LAB.pageBg};}
-.mg-hero .mg-h1 .mg-g{text-wrap:nowrap;color:#6E4A12;font-family:'Cinzel Decorative','Cinzel',serif;font-weight:900;}
-.mg-h2{margin:0;font:700 ${PACK_TEXT.h1}px/1.2 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
+.mg-hero .mg-h1 .mg-g{text-wrap:nowrap;background:${LAB.goldText};-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;font-family:'Cinzel Decorative','Cinzel',serif;font-weight:900;}
+.mg-h2{margin:0;color:${T.inkStrong};}
+/* NADPISY SEKCIÍ = mierka /onepage (h2 56 px na PC, ~32 na mobile, Cinzel 700, verzálky). */
+.mg-h2,.mg-blocks-h,.mg-goal{font:700 clamp(28px, 7vw, 56px)/1.1 ${FONT_TITLE};letter-spacing:.04em;text-transform:uppercase;}
 
 .mg-call{margin:${S.lg}px 0 0;font:700 ${PACK_TEXT.lead}px/1.4 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
 
 /* BLOKY — KARTA: freska vľavo, nadpis + jedna veta vpravo. */
 .mg-blocks{padding-top:${S.lg}px;}
-.mg-blocks-h{margin:0;font:700 ${PACK_TEXT.h2}px/1.3 ${FONT_TITLE};letter-spacing:.06em;}
+.mg-blocks-h{margin:0;}
 /* Farebné nadpisy = ZLATO z brandu (LAB.goldText), nie červená hlinka (Matej 13. 10.). */
 .mg-blocks-h,.mg-goal{background:${LAB.goldText};-webkit-background-clip:text;background-clip:text;color:transparent;}
 /* PREDEĽ — zlatá čiara T.rule (vyblednutá do strán, 2 px): dlhá nad sekciou, krátka pod nadpisom. */
@@ -303,15 +331,16 @@ ${PILL_CSS}
 /* PÁS SVORKY — statický prvý obraz pásu z /onepage (.op-nxt-*): drážka, lapisová výplň,
    Hekthor #1 na začiatku, posledný pes na hlave, medzi nimi rovnomerný výber svorky. */
 .mg-goalsec{padding-top:${S.lg}px;}
-.mg-strip{position:relative;height:14px;margin:${S.xxxl + S.lg}px ${S.xl}px ${S.xxxl + S.lg}px;}
+.mg-strip{--step:6px;position:relative;height:14px;margin:${S.xxxl + S.lg}px ${S.xl}px ${S.xxxl + S.lg}px;}
 .mg-groove{position:absolute;left:0;right:0;top:2px;height:9px;border-radius:${PACK_R.pill}px;overflow:hidden;
   background:rgba(122,90,42,0.16);border:1px solid ${LAB.edge};
   box-shadow:inset 0 2px 5px rgba(90,58,12,0.42),inset 0 -1.5px 0 rgba(255,255,255,0.70);}
-.mg-fill{position:absolute;left:0;top:0;bottom:0;width:calc(var(--fill) * 100%);background:linear-gradient(180deg,${LAPIS.lite},${LAPIS.deep});}
+.mg-fill{position:absolute;left:0;top:0;bottom:0;width:var(--pile);background:linear-gradient(180deg,${LAPIS.lite},${LAPIS.deep});}
 .mg-dog{position:absolute;top:50%;width:0;}
 .mg-dog img{position:absolute;left:0;top:0;transform:translate(-50%,-50%);width:var(--d,44px);height:var(--d,44px);max-width:none;
   border-radius:${PACK_R.pill}px;object-fit:cover;border:2.5px solid ${LAB.goldSolid};box-shadow:0 4px 14px rgba(60,40,10,0.35);background:${LAB.pageBg};}
 .mg-dog--mid{--d:28px;}
+.mg-dog--mid img{box-shadow:0 1px 4px rgba(60,40,10,0.35);}
 .mg-dog--mid img{border-width:2px;box-shadow:0 2px 8px rgba(60,40,10,0.3);}
 .mg-dog--anchor{z-index:2;}
 .mg-dog--head{z-index:3;}
@@ -327,16 +356,33 @@ ${PILL_CSS}
 .mg-tie{position:absolute;left:0;transform:translateX(-50%);width:2px;background:rgba(22,48,122,0.5);top:20px;height:10px;}
 .mg-dog--head .mg-tie{top:auto;bottom:20px;}
 
+@media (min-width:768px){.mg-strip{--step:10px;}}
+/* CIEĽ 1M — štítok nad koncom osi, natočený, v ovále (.op-nxt-goal), bodka pulzuje. */
+.mg-goalmark{position:absolute;right:${S.sm}px;bottom:30px;display:flex;align-items:baseline;gap:${S.xs}px;white-space:nowrap;transform:rotate(-6deg);transform-origin:100% 100%;}
+.mg-goalmark b{font:700 ${PACK_TEXT.h1}px/1 ${FONT_TITLE};color:${LAPIS.edge};}
+.mg-goalmark em{font:500 ${PACK_TEXT.label}px/1 ${FONT_UI};font-style:normal;letter-spacing:.2em;text-transform:uppercase;color:${LAPIS.edge};}
+.mg-goalmark svg{position:absolute;left:-18%;top:-50%;width:136%;height:200%;overflow:visible;pointer-events:none;}
+.mg-goalmark path{fill:none;stroke:${LAPIS.edge};stroke-width:3;stroke-linecap:round;vector-effect:non-scaling-stroke;}
+.mg-goaldot{position:absolute;right:-5px;top:2px;width:10px;height:10px;border-radius:${PACK_R.pill}px;background:${LAPIS.edge};animation:mgPulse 1.8s ease-out infinite;}
+@keyframes mgPulse{0%{box-shadow:0 0 0 0 rgba(22,48,122,0.55)}70%{box-shadow:0 0 0 10px rgba(22,48,122,0)}100%{box-shadow:0 0 0 0 rgba(22,48,122,0)}}
+
 /* KAM IDE 11 € — úplne na konci. */
 .mg-money{padding-top:0;padding-bottom:${S.xxxl * 2}px;}
 .mg-split{margin-top:${S.xl}px;padding:${S.lg}px;text-align:left;}
 .mg-split-bar{display:flex;height:40px;border-radius:${PACK_R.field}px;overflow:hidden;}
 .mg-split-bar span{display:grid;place-items:center;font:700 ${PACK_TEXT.body}px/1 ${FONT_TITLE};color:${T.inkStrong};}
-.mg-split-l{display:grid;grid-template-columns:1fr 1fr;gap:${S.xs}px ${S.md}px;margin-top:${S.md}px;}
-.mg-split-l span{display:flex;align-items:center;gap:${S.sm}px;font:400 ${PACK_TEXT.label}px/1.3 ${FONT_UI};color:${T.inkWarm};}
-.mg-split-l i{width:8px;height:8px;flex:0 0 auto;border-radius:${PACK_R.pill}px;}
+.mg-split-h{margin:0 0 ${S.md}px;text-align:center;font:700 ${PACK_TEXT.h2}px/1.2 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
+.mg-split-l{display:grid;grid-template-columns:repeat(4,1fr);gap:${S.sm}px;margin-top:${S.md}px;}
+.mg-split-l button{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.xs}px;cursor:pointer;
+  border-radius:${PACK_R.tile}px;border:1px solid ${LAB.edge};background:transparent;color:${T.inkWarm};}
+.mg-split-l button.on{border-color:var(--c);background:color-mix(in srgb, var(--c) 14%, transparent);}
+.mg-split-l i{width:10px;height:10px;border-radius:${PACK_R.pill}px;background:var(--c);}
+.mg-split-l b{font:700 ${PACK_TEXT.lead}px/1 ${FONT_TITLE};color:${T.inkStrong};}
+.mg-split-l span{font:400 ${PACK_TEXT.label}px/1.2 ${FONT_UI};text-align:center;}
+.mg-split-card{margin-top:${S.sm}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid var(--c);
+  background:color-mix(in srgb, var(--c) 8%, transparent);font:400 ${PACK_TEXT.body}px/1.5 ${FONT_UI};color:${LAB.inkBody};}
 .mg-split p{margin:${S.md}px 0 0;font:400 ${PACK_TEXT.body}px/1.5 ${FONT_UI};color:${LAB.inkBody};}
-.mg-goal{margin:0;font:700 ${PACK_TEXT.h2}px/1.3 ${FONT_TITLE};letter-spacing:.06em;}
+.mg-goal{margin:0;}
 .mg-goalsec .mg-cta{margin-top:${S.xl}px;}
 .mg-pricesub{margin:${S.md}px 0 0;font:500 ${PACK_TEXT.label}px/1.4 ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;color:${LAB.inkSoft};}
 /* CTA — LAPIS, geometria .btn-gold (radius 8), presne ako .op-nxt-cta na /onepage. */

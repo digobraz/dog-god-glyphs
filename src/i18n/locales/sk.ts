@@ -1156,6 +1156,7 @@ export const sk: Partial<Dict> = {
   'magnet.idea.photoReal': 'skutočná fotka',
   'magnet.idea.photoTap': 'ťukni na fotku',
   'magnet.split.help': 'Útulky',
+  'magnet.split.h': 'Symbolický príspevok',
   'magnet.split.bowl': 'Hekthor',
   'magnet.chip.eco': 'Ekosystém',
   'magnet.chip.social': 'Sociálna sieť',

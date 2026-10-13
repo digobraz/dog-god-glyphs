@@ -1380,6 +1380,7 @@ export const en = {
   'magnet.idea.photoReal': 'the real photo',
   'magnet.idea.photoTap': 'tap the photo',
   'magnet.split.help': 'Shelters',
+  'magnet.split.h': 'A symbolic contribution',
   'magnet.split.bowl': 'Hekthor',
   'magnet.chip.eco': 'Ecosystem',
   'magnet.chip.social': 'Social network',
