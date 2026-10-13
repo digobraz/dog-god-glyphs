@@ -4486,7 +4486,7 @@ export const sk: Partial<Dict> = {
   'pack.trip.inTriplistRemove': "✓ V tripliste — odobrať",
   'pack.trip.addToTriplistPlus': "+ Pridať do triplistu",
   'pack.trip.removeWalked': "✕ Zrušiť prejdené",
-  'pack.trip.markWalked': "Označiť ako prejdené",
+  'pack.trip.markWalked': "Prešli sme",
   'pack.trip.share': "Zdieľať",
   'pack.trip.story': "Story",
   'pack.trip.storySaved': "Karta sa stiahla. Nahraj ju do stories.",

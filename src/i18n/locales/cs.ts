@@ -2926,7 +2926,7 @@ export const cs: Partial<Dict> = {
   'pack.trip.host': 'Organizátor',
   'pack.trip.inTriplist': 'V triplistu',
   'pack.trip.inTriplistRemove': '✓ V triplistu — odebrat',
-  'pack.trip.markWalked': 'Označit jako zdolané',
+  'pack.trip.markWalked': "Prošli jsme",
   'pack.trip.notFound': 'Výlet se nenašel',
   'pack.trip.notFoundBackToTrips': '← Zpět na výlety',
   'pack.trip.openFromPack': 'Otevřený výlet od smečky',

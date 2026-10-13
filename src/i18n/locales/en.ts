@@ -4784,7 +4784,7 @@ export const en = {
   'pack.trip.inTriplistRemove': "✓ In triplist — remove",
   'pack.trip.addToTriplistPlus': "+ Add to triplist",
   'pack.trip.removeWalked': "✕ Remove walked",
-  'pack.trip.markWalked': "Mark walked",
+  'pack.trip.markWalked': "We walked it",
   'pack.trip.share': "Share",
   'pack.trip.story': "Story",
   'pack.trip.storySaved': "Card saved. Upload it to your story.",

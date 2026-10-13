@@ -48,7 +48,7 @@ import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
-  tripShareText, tripText, tripName, tripIdFromUrl, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing, coverPos, isGhostJourney, usePackWalked } from '@/components/pack/tripShared';
+  tripText, tripName, tripIdFromUrl, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing, coverPos, isGhostJourney, usePackWalked } from '@/components/pack/tripShared';
 import { GhostJourneyNote } from '@/components/pack/trip/GhostJourneyNote';
 import { TripGoPanel, TripGoButtons } from '@/components/pack/trip/TripGoPanel';
 import {
@@ -1316,20 +1316,6 @@ export default function PackTripArticle() {
      nech funguje, zdieľať môžu"*). Odkaz vtedy vedie na verejné `/magnet/vylety/…` — do `/pack`
      by návštevník bez účtu nevošiel. Do článku sa v náhľade dostane len výlet zdarma. */
   const shareUrl = trail ? `${window.location.origin}${(mg && magnetPath(tripPath(trail))) || tripPath(trail)}` : '';
-  const handleShare = async () => {
-    if (!trail) return;
-    const url = shareUrl;
-    const shareData = { title: tripName(trail, lang), text: tripShareText(trail, lang), url };
-    if (typeof navigator.share === 'function') {
-      try { await navigator.share(shareData); return; } catch { /* cancelled */ }
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      toast({ description: t('pack.trip.toastLinkCopied') });
-    } catch {
-      toast({ description: url });
-    }
-  };
 
   /**
    * ⚠️ TIETO DVA HOOKY MUSIA STÁŤ NAD `if (id.loading)` / `if (!id.session)` / `if (!trail)`
@@ -1634,7 +1620,8 @@ export default function PackTripArticle() {
                */
               onClick={requestWalk}
             >
-              <span className="pta-actbtn-icon">🐾</span>
+              {/* Bez packy a kratšie (Matej 13. 10. 2026: *„skrátiť na prešli sme… packy nie sú
+                  vidno, daj ich preč"*) — na 390 px riadok pretekal a IG/FB bolo odrezané. */}
               <span className="pta-actbtn-label">{t('pack.trip.markWalked')}</span>
               {/* Skutočné body za TÚTO trasu (5 + km + stúpanie / pevná cena magistrály) —
                   paušálne „+5" by klamalo, viď walkPointsFor. Objavenia (nové pohorie/NP)
@@ -1643,13 +1630,8 @@ export default function PackTripArticle() {
               <PointsPill value={walkPointsFor(trail)} />
             </button>
           )}
-          <button type="button" className="pta-actbtn pta-actbtn--blue" onClick={handleShare} aria-label={t('pack.trip.share')}>
-            {/* Ikonka reťaze bola prebielená na modré tlačidlo (`invert(1)`). SHARE je od
-                1. 9. papyrusový outline s tmavým inkoustom — biela ikonka by na ňom zmizla,
-                takže sa maskuje na farbu textu ako ikonka v TRIPLIST tlačidle vedľa. */}
-            <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
-            <span className="pta-actbtn-label">{t('pack.trip.share')}</span>
-          </button>
+          {/* ZDIEĽAŤ (reťaz) ZLÚČENÉ do okna IG/FB (Matej 13. 10. 2026: „zlúčené") — „Skopírovať
+              odkaz na výlet" je v tom okne, samostatné tlačidlo by na mobile vytlačilo IG/FB z riadku. */}
           {/* STORY → okno ZDIEĽAJ VÝLET (IG príbeh / FB, vlastná fotka, odkaz do schránky) —
               nákres `plany/nakres-zdielanie-2026-10-11`, Matej 11. 10.: „berieme bledá verzia". */}
           <TripShareButton data={{
