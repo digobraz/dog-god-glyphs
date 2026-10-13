@@ -31,12 +31,30 @@ import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { openPhotoInvite } from '@/lib/photoInvite';
 import { gridFetch, GRID_URL_MEMBERS } from '@/lib/earlyFetch';
 
+/** Hviezdičkou označené slová nadpisu = zlaté Cinzel Decorative (ten istý zápis ako
+ *  `wall.hero.l1` na úvode webu, `goldWords` v DogPlanetLab). */
+const goldWords = (s: string) => s.split('*').map((p, i) => (i % 2 ? <span className="mg-g" key={i}>{p}</span> : p));
+/** Náhľad fotky psa do pásu (ten istý výrez ako pás na /onepage). */
+const cldThumb = (u: string) => u.replace('/upload/', '/upload/c_fill,g_auto,w_180,h_180,q_auto,f_auto/');
+/** Pás zblízka = prvý obraz pásu na /onepage: os má ~100 psov, takže dnešná svorka
+ *  vyplní väčšinu a číslo neklame. Psy medzi koncami sú vybraté ROVNOMERNE. */
+const STRIP_DOM = 100;
+const STRIP_MID = 9;
+type Dog = { n: number; name: string; u: string };
+
 const IMG = (f: string) => `/images/magnet/${f}.webp`;
 /** Stĺpec telefónu — stránka je VÝSLOVNE mobilná; na PC ostane úzky stĺpec v strede. */
 const COL = 480;
 
-/** Matejových šesť mien pod úvodom (13. 10.) — jeden riadok dokola. */
-const CHIPS = ['eco', 'journal', 'social', 'school', 'community', 'meaning'];
+/** Matejových päť mien (13. 10.: Zápisník von, Vyšší zmysel → Dobročinnosť) pod úvodom (13. 10.) — jeden riadok dokola. */
+const CHIPS = ['eco', 'social', 'school', 'community', 'meaning'];
+
+/** Menovky rozpadu len pre /magnet (Matej 13. 10.: „Útulky", „Hekthor"). Zvyšok webu
+ *  drží `transparency.part.*` — či zmeniť všade, čaká na Mateja. */
+const SPLIT_LABEL: Record<string, string> = {
+  'transparency.part.directHelp': 'magnet.split.help',
+  'transparency.part.hekthorBowl': 'magnet.split.bowl',
+};
 
 const BLOCKS = [
   { to: '/magnet/vylety', img: 'vylety', h: 'magnet.q.trip', p: 'magnet.b.trip' },
@@ -47,11 +65,24 @@ const BLOCKS = [
 export default function Magnet() {
   const t = useT();
   const [dogs, setDogs] = useState<number | null>(null);
+  const [pack, setPack] = useState<Dog[]>([]);
   useEffect(() => {
     let on = true;
-    gridFetch(GRID_URL_MEMBERS).then((d) => { if (on && Array.isArray(d)) setDogs(d.length); }).catch(() => {});
+    gridFetch(GRID_URL_MEMBERS).then((d) => {
+      if (!on || !Array.isArray(d)) return;
+      setDogs(d.length);
+      type Row = { pack_number?: number; dog_name?: string; cloudinary_main_url?: string | null };
+      setPack((d as Row[])
+        .filter((r) => typeof r.cloudinary_main_url === 'string' && r.cloudinary_main_url)
+        .map((r) => ({ n: r.pack_number ?? 0, name: r.dog_name ?? '', u: cldThumb(r.cloudinary_main_url as string) }))
+        .sort((a, b) => a.n - b.n));
+    }).catch(() => {});
     return () => { on = false; };
   }, []);
+  const head = pack[pack.length - 1];
+  const mids = pack.length < 3 ? [] : Array.from({ length: STRIP_MID }, (_, i) =>
+    pack[Math.round(1 + ((i + 1) * (pack.length - 2)) / (STRIP_MID + 1))]);
+  const fill = Math.min(1, (dogs ?? 0) / STRIP_DOM);
   const join = () => openPhotoInvite();
 
   return (
@@ -65,7 +96,8 @@ export default function Magnet() {
       <section className="mg-hero">
         <img className="mg-hero-bg" src={IMG('hero-namestie')} alt="" fetchPriority="high" />
         <div className="mg-hero-in">
-          <h1 className="mg-h1">{t('magnet.hero.h')}<span className="mg-logo" role="img" aria-label="DOGYPT" /></h1>
+          <h1 className="mg-h1">{goldWords(t('magnet.hero.h'))}</h1>
+          <span className="mg-logo" role="img" aria-label="DOGYPT" />
           <p className="mg-lead">{t('magnet.hero.promise')}</p>
         </div>
         {/* Šesť mien DOGYPTU v JEDNOM riadku, ktorý ide dokola (Matej 13. 10.). */}
@@ -77,7 +109,6 @@ export default function Magnet() {
             </div>
           </div>
         </div>
-        <p className="mg-sub">{t('magnet.chip.sub')}</p>
       </section>
 
       {/* ═══ 2 · BLOKY — každý vedie na vlastnú stránku (darček 1:1 s /pack) ═══ */}
@@ -95,15 +126,48 @@ export default function Magnet() {
         </nav>
       </section>
 
-      {/* ═══ 3 · ABOUT — pes z útulku → svorka → psy v núdzi → milión ═══ */}
+      {/* ═══ 3 · VÍZIA — psíčkari spolu + pes, ktorý to začal (Matej 13. 10.) ═══ */}
       <section className="mg-sec mg-about">
         <p className="mg-eye">{t('magnet.idea.eye')}</p>
         <h2 className="mg-h2">{t('magnet.idea.h')}</h2>
-        <ol className="mg-story">
-          <li>{t('magnet.idea.p1')}</li>
-          <li>{t('magnet.about.snp')}</li>
-          <li>{t('magnet.about.pack', { n: dogs ?? '—' })}</li>
-        </ol>
+        <p className="mg-lead mg-vision">{t('magnet.idea.p1')}</p>
+        <figure className="mg-photo">
+          <span className="mg-frame"><img src="/images/hektor-kniha/k1-f1.webp" alt="" loading="lazy" /></span>
+          <figcaption>{t('magnet.idea.photo')}</figcaption>
+        </figure>
+      </section>
+
+      {/* ═══ 4 · CIEĽ — pás svorky z /onepage (prvý obraz, zblízka) + CTA ═══ */}
+      <section className="mg-sec mg-goalsec">
+        <p className="mg-goal">{t('magnet.about.goal')}</p>
+        <div className="mg-strip" style={{ ['--fill' as string]: fill }} aria-label={`${dogs ?? ''} / 1 000 000`}>
+          <div className="mg-groove"><span className="mg-fill" /></div>
+          {mids.map((d, i) => (
+            <span key={i} className="mg-dog mg-dog--mid" style={{ left: `${(((i + 1) / (STRIP_MID + 1)) * fill) * 100}%` }}>
+              <img src={d.u} alt="" loading="lazy" />
+            </span>
+          ))}
+          <span className="mg-dog mg-dog--anchor" style={{ left: 0 }}>
+            <img src="/images/hektor-grid.webp" alt="" loading="lazy" />
+            <i className="mg-tie" />
+            <span className="mg-pill"><em>Hekthor</em><b>#1</b></span>
+          </span>
+          {head && (
+            <span className="mg-dog mg-dog--head" style={{ left: `${fill * 100}%` }}>
+              <img src={head.u} alt="" loading="lazy" />
+              <i className="mg-tie" />
+              <span className="mg-pill"><em>{head.name}</em><b>#{head.n}</b></span>
+            </span>
+          )}
+        </div>
+        <p className="mg-call">{t('magnet.end.call')}</p>
+        <p className="mg-price">11 €</p>
+        <p className="mg-pricesub">{t('magnet.end.sub')}</p>
+        <button type="button" className="mg-cta" onClick={join}>{t('magnet.cta')}</button>
+      </section>
+
+      {/* ═══ 5 · KAM IDE 11 € — úplne na konci (Matej 13. 10.) ═══ */}
+      <section className="mg-sec mg-money">
         <div className="mg-split" style={PACK_BOX.subblock}>
           <div className="mg-split-bar">
             {TRANSPARENCY_SPLIT.map((sp) => (
@@ -111,15 +175,10 @@ export default function Magnet() {
             ))}
           </div>
           <div className="mg-split-l">
-            {TRANSPARENCY_SPLIT.map((sp) => <span key={sp.labelKey}><i style={{ background: sp.color }} aria-hidden />{sp.share} € · {t(sp.labelKey)}</span>)}
+            {TRANSPARENCY_SPLIT.map((sp) => <span key={sp.labelKey}><i style={{ background: sp.color }} aria-hidden />{sp.share} € · {t(SPLIT_LABEL[sp.labelKey] ?? sp.labelKey)}</span>)}
           </div>
           <p>{t('magnet.about.help')}</p>
         </div>
-        <p className="mg-goal">{t('magnet.about.goal')}</p>
-        <p className="mg-call">{t('magnet.end.call')}</p>
-        <p className="mg-price">11 €</p>
-        <p className="mg-pricesub">{t('magnet.end.sub')}</p>
-        <button type="button" className="mg-cta" onClick={join}>{t('magnet.cta')}</button>
         <p className="mg-motto">{t('legal.motto')}</p>
       </section>
     </main>
@@ -162,7 +221,6 @@ ${PILL_CSS}
   .mg-track{animation:none;width:auto;flex-wrap:wrap;justify-content:center;}
   .mg-track .pk-pill:nth-child(n+7){display:none;}
 }
-.mg-sub{position:relative;margin:${S.sm}px 0 0;text-align:center;font:500 ${PACK_TEXT.micro}px/1.4 ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .mg-eye{margin:0 0 ${S.md}px;font:500 ${PACK_TEXT.micro}px/1.4 ${FONT_UI};letter-spacing:.26em;text-transform:uppercase;color:${LAB.goldInk};}
 .mg-lead{margin:0 auto;max-width:640px;font:400 ${PACK_TEXT.body}px/1.55 ${FONT_UI};color:${LAB.inkBody};}
 
@@ -171,6 +229,12 @@ ${PILL_CSS}
   box-shadow:inset 0 0 0 2px ${LAB.goldSolid},inset 0 0 0 5px ${FRESCO_RED},inset 0 0 0 7px ${LAB.goldSolid};}
 .mg-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;}
 .mg-h1{margin:0;font:700 ${PACK_TEXT.h1}px/1.15 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
+/* PSY A MY — recept nadpisu z úvodu webu (DogPlanetLab .ph-h1): Cinzel, tmavý atrament,
+   zlaté slová Cinzel Decorative 900 #6E4A12 s papyrusovým halo. Dominantný: veľkosť
+   z ŠÍRKY okna, jeden riadok (Matej 13. 10.: „veľké cez celú šírku, dominantný text"). */
+.mg-hero .mg-h1{white-space:nowrap;text-wrap:nowrap;margin-inline:calc(50% - 50vw);font-size:min(calc((100vw - 32px) / 6.3), 160px);line-height:1;letter-spacing:.005em;color:#23150a;
+  text-shadow:0 0 6px ${LAB.pageBg},0 0 14px ${LAB.pageBg},0 0 28px ${LAB.pageBg};}
+.mg-hero .mg-h1 .mg-g{text-wrap:nowrap;color:#6E4A12;font-family:'Cinzel Decorative','Cinzel',serif;font-weight:900;}
 .mg-h2{margin:0;font:700 ${PACK_TEXT.h1}px/1.2 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
 
 .mg-call{margin:${S.lg}px 0 0;font:700 ${PACK_TEXT.lead}px/1.4 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
@@ -186,10 +250,41 @@ ${PILL_CSS}
 .mg-link b{font:700 ${PACK_TEXT.lead}px/1.2 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
 .mg-link small{font:400 ${PACK_TEXT.label}px/1.45 ${FONT_UI};color:${T.inkWarm};}
 
-/* ABOUT — príbeh v troch krokoch, kam ide 11 €, cieľ, CTA. */
-.mg-story{list-style:none;margin:${S.xl}px 0 0;padding:0;display:flex;flex-direction:column;gap:${S.md}px;text-align:left;}
-.mg-story li{position:relative;padding-left:${S.lg}px;font:400 ${PACK_TEXT.body}px/1.55 ${FONT_UI};color:${LAB.inkBody};}
-.mg-story li::before{content:'';position:absolute;left:0;top:8px;width:8px;height:8px;border-radius:${PACK_R.pill}px;background:${LAB.goldSolid};}
+/* VÍZIA — text + fotka šteniat v krabici z Hektorovej knihy v ráme fresiek. */
+.mg-vision{margin-top:${S.lg}px;}
+.mg-photo{margin:${S.xl}px auto 0;max-width:320px;}
+.mg-photo .mg-frame{display:block;aspect-ratio:4/5;border-radius:${PACK_R.card}px;box-shadow:inset 0 0 0 2px ${LAB.goldSolid},inset 0 0 0 5px ${FRESCO_RED},inset 0 0 0 7px ${LAB.goldSolid},${LAB.shadow};}
+.mg-photo figcaption{margin-top:${S.md}px;font:700 ${PACK_TEXT.lead}px/1.3 ${FONT_TITLE};letter-spacing:.06em;color:${T.inkStrong};}
+
+/* PÁS SVORKY — statický prvý obraz pásu z /onepage (.op-nxt-*): drážka, lapisová výplň,
+   Hekthor #1 na začiatku, posledný pes na hlave, medzi nimi rovnomerný výber svorky. */
+.mg-goalsec{padding-top:${S.lg}px;}
+.mg-strip{position:relative;height:14px;margin:${S.xxxl + S.lg}px ${S.xl}px ${S.xxxl + S.lg}px;}
+.mg-groove{position:absolute;left:0;right:0;top:2px;height:9px;border-radius:${PACK_R.pill}px;overflow:hidden;
+  background:rgba(122,90,42,0.16);border:1px solid ${LAB.edge};
+  box-shadow:inset 0 2px 5px rgba(90,58,12,0.42),inset 0 -1.5px 0 rgba(255,255,255,0.70);}
+.mg-fill{position:absolute;left:0;top:0;bottom:0;width:calc(var(--fill) * 100%);background:linear-gradient(180deg,${LAPIS.lite},${LAPIS.deep});}
+.mg-dog{position:absolute;top:50%;width:0;}
+.mg-dog img{position:absolute;left:0;top:0;transform:translate(-50%,-50%);width:var(--d,44px);height:var(--d,44px);max-width:none;
+  border-radius:${PACK_R.pill}px;object-fit:cover;border:2.5px solid ${LAB.goldSolid};box-shadow:0 4px 14px rgba(60,40,10,0.35);background:${LAB.pageBg};}
+.mg-dog--mid{--d:28px;}
+.mg-dog--mid img{border-width:2px;box-shadow:0 2px 8px rgba(60,40,10,0.3);}
+.mg-dog--anchor{z-index:2;}
+.mg-dog--head{z-index:3;}
+.mg-pill{position:absolute;left:0;transform:translateX(-50%);top:30px;display:inline-flex;align-items:baseline;gap:${S.xs}px;white-space:nowrap;
+  padding:${S.xs}px ${S.md}px;border-radius:${PACK_R.pill}px;background:rgba(22,48,122,0.13);border:1.5px solid rgba(22,48,122,0.62);}
+.mg-dog--head .mg-pill{top:auto;bottom:30px;}
+/* Menovky pri krajoch pásu nesmú vyjsť z okna: Hekthor visí doprava od kotvy,
+   posledný pes doľava (na /onepage to rieši réžia cez --pdx). */
+.mg-dog--anchor .mg-pill{transform:translateX(-16px);}
+.mg-dog--head .mg-pill{transform:translateX(calc(-100% + 16px));}
+.mg-pill em{font:700 ${PACK_TEXT.body}px/1 'Cinzel Decorative','Cinzel',serif;font-style:normal;color:${LAPIS.deep};}
+.mg-pill b{font:700 ${PACK_TEXT.lead}px/1 ${FONT_TITLE};color:${LAPIS.edge};}
+.mg-tie{position:absolute;left:0;transform:translateX(-50%);width:2px;background:rgba(22,48,122,0.5);top:20px;height:10px;}
+.mg-dog--head .mg-tie{top:auto;bottom:20px;}
+
+/* KAM IDE 11 € — úplne na konci. */
+.mg-money{padding-top:0;padding-bottom:${S.xxxl * 2}px;}
 .mg-split{margin-top:${S.xl}px;padding:${S.lg}px;text-align:left;}
 .mg-split-bar{display:flex;height:40px;border-radius:${PACK_R.field}px;overflow:hidden;}
 .mg-split-bar span{display:grid;place-items:center;font:700 ${PACK_TEXT.body}px/1 ${FONT_TITLE};color:${T.inkStrong};}
@@ -198,7 +293,6 @@ ${PILL_CSS}
 .mg-split-l i{width:8px;height:8px;flex:0 0 auto;border-radius:${PACK_R.pill}px;}
 .mg-split p{margin:${S.md}px 0 0;font:400 ${PACK_TEXT.body}px/1.5 ${FONT_UI};color:${LAB.inkBody};}
 .mg-goal{margin:${S.xl}px 0 0;font:700 ${PACK_TEXT.h2}px/1.3 ${FONT_TITLE};letter-spacing:.06em;color:${FRESCO_RED};}
-.mg-about{padding-bottom:${S.xxxl * 2}px;}
 .mg-price{margin:${S.xl}px 0 0;font:700 48px/1 ${FONT_TITLE};background:${LAB.goldText};-webkit-background-clip:text;background-clip:text;color:transparent;}
 .mg-pricesub{margin:${S.sm}px 0 ${S.xl}px;font:500 ${PACK_TEXT.label}px/1.4 ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;color:${LAB.inkSoft};}
 /* CTA — LAPIS, geometria .btn-gold (radius 8), presne ako .op-nxt-cta na /onepage. */
