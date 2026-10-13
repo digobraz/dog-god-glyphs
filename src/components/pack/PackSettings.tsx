@@ -3,7 +3,8 @@ import { BackButton } from './BackButton';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 // `Loader2`, `Check` ostávajú lucide — systémové ovládače (spinner, potvrdiť). Zavrieť je od 27. 9. 2026 šípka späť.
-import { HandExit, HandKey } from './HandIcons';
+import { HandExit, HandKey, HandTrash } from './HandIcons';
+import { DeleteAccountButton } from './AccountDeletion';
 import { BrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS, PF_FIELD_CSS } from './packTheme';
@@ -249,6 +250,10 @@ export function PackSettings() {
             </button>
           ))}
         </div>
+      </Field>
+      <Field icon={<HandTrash size={16} />} label={tx('pack.settings.deleteRow', 'Deletion')}>
+        {/* Zmazanie účtu — Apple 5.1.1(v), GDPR (13. 10. 2026). 30 dní na rozmyslenie, pes ostáva. */}
+        <DeleteAccountButton />
       </Field>
       <Field icon={<HandExit size={16} />} label={t('pack.settings.signOut')} last>
         <button

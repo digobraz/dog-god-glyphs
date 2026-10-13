@@ -408,6 +408,10 @@ export default function Login() {
                 <>
                   <h1 className="lg-title">{copy.title}</h1>
                   <p className="lg-body">{copy.body}</p>
+                  {/* Po žiadosti o zmazanie účtu (AccountDeletion.tsx, 13. 10. 2026) — dátum a cesta späť. */}
+                  {params.get('deleted') === '1' && (
+                    <p className="lg-done">{t('login.deleted').replace('{date}', (() => { try { return sessionStorage.getItem('dogypt-deleted-on') ?? ''; } catch { return ''; } })())}</p>
+                  )}
                 </>
               )}
 

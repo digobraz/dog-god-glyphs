@@ -159,6 +159,8 @@ const WelcomeScreen = lazy(() =>
 const lazyPack = <T extends ComponentType<any>>(f: () => Promise<{ default: T }>) =>
   lazy<T>(() => Promise.all([f(), ensurePackDict()]).then(([m]) => m));
 // Brána mapy číta session zo Supabase — lazy, aby klient nesedel v hlavnom balíku (perf 7. 10. 2026).
+// Brána zmazania účtu (13. 10. 2026): kto sa vráti počas 30-dňovej lehoty, môže zmazanie zrušiť.
+const AccountDeletionGate = lazy(() => import("@/components/pack/AccountDeletion").then((m) => ({ default: m.AccountDeletionGate })));
 const MapGate = lazyPack(() => import("@/components/pack/MapGate").then((m) => ({ default: m.MapGate })));
 const Terms = lazy(() => import("./pages/Terms.tsx"));
 const Privacy = lazy(() => import("./pages/Privacy.tsx"));
@@ -287,6 +289,12 @@ function OnFlowPaths({ children }: { children: ReactNode }) {
   return /^\/(heroglyph|checkout|payment|welcome|lab)(\/|$)/.test(pathname) ? <>{children}</> : null;
 }
 
+/** Brána zmazania účtu len na /pack — inde (film, heroflow) sa Supabase klient nesťahuje. */
+function OnPackDeletionGate() {
+  const { pathname } = useLocation();
+  return /^\/pack(\/|$)/.test(pathname) ? <Suspense fallback={null}><AccountDeletionGate /></Suspense> : null;
+}
+
 function RefCapture() {
   const location = useLocation();
   const { lang } = useLang();
@@ -316,6 +324,7 @@ const App = () => (
       </Suspense>
       <BrowserRouter>
         <RefCapture />
+        <OnPackDeletionGate />
         <Suspense fallback={null}>
           <ConsentBanner />
         </Suspense>
