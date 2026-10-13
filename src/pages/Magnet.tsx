@@ -20,17 +20,19 @@
  * Fresky sú NOVÉ (Matej: *„fresky egyptské ako sú teraz, len vytvor nové, štýl zachovaj"*),
  * `public/images/magnet/*.webp`, generované cez Kie s freskami knihy ako predlohou.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { Seo } from '@/components/Seo';
 import { LAB } from '@/lib/labTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
-import { PACK_BOX, PACK_THEME as T, PACK_SPACE, PACK_R, PACK_TEXT, FONT_TITLE, FONT_UI, PILL_CSS, PACK_COL_INNER } from '@/components/pack/packTheme';
+import { PACK_BOX, PACK_THEME as T, PACK_SPACE, PACK_R, PACK_TEXT, FONT_TITLE, FONT_UI, PILL_CSS, PACK_COL_INNER, PAGE_AIR } from '@/components/pack/packTheme';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { openPhotoInvite } from '@/lib/photoInvite';
 import { gridFetch, GRID_URL_MEMBERS } from '@/lib/earlyFetch';
 
+/** Strop nadpisu úvodu = h1 /onepage (81 px), ten istý v CSS nižšie. */
+const HERO_H1_MAX = 81;
 /** Hviezdičkou označené slová nadpisu = zlaté Cinzel Decorative (ten istý zápis ako
  *  `wall.hero.l1` na úvode webu, `goldWords` v DogPlanetLab). */
 const goldWords = (s: string) => s.split('*').map((p, i) => (i % 2 ? <span className="mg-g" key={i}>{p}</span> : p));
@@ -93,6 +95,28 @@ export default function Magnet() {
   const pileEnd = `calc(40px + ${STRIP_MID} * var(--step))`;
   const [money, setMoney] = useState<number | null>(null);
   const join = () => openPhotoInvite();
+  /** Nadpis úvodu = JEDEN riadok cez celú šírku, ale dĺžka sa líši jazykom: EN „Dogs and us"
+   *  je o polovicu širší než SK „Psy a my", takže veľkosť z okna (CSS nižšie) EN na mobile
+   *  orezala na oboch krajoch (LIVE 13. 10.: 450 px textu na 390 px). Jeden prepočet
+   *  z prirodzenej šírky pri 100 px — nie meranie po vykreslení dokola. */
+  const h1Ref = useRef<HTMLHeadingElement>(null);
+  const heroH = t('magnet.hero.h');
+  useLayoutEffect(() => {
+    const h = h1Ref.current;
+    if (!h) return;
+    const fit = () => {
+      h.style.fontSize = '100px';
+      const r = document.createRange();
+      r.selectNodeContents(h);
+      const w = r.getBoundingClientRect().width;
+      const avail = window.innerWidth - 2 * PAGE_AIR.side;
+      if (w > 0) h.style.fontSize = `${Math.min(HERO_H1_MAX, (100 * avail) / w)}px`;
+    };
+    fit();
+    document.fonts?.ready.then(fit).catch(() => {});
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, [heroH]);
 
   return (
     <main className="mg-root">
@@ -106,7 +130,7 @@ export default function Magnet() {
         <img className="mg-hero-bg" src={IMG('hero-namestie')} alt="" fetchPriority="high" />
         <div className="mg-hero-in">
           {/* Poradie nadpis → veta → logo (Matej 13. 10. večer: „v úvode nadpis, texting a potom logo"). */}
-          <h1 className="mg-h1">{goldWords(t('magnet.hero.h'))}</h1>
+          <h1 className="mg-h1" ref={h1Ref}>{goldWords(heroH)}</h1>
           <p className="mg-lead">{t('magnet.hero.promise')}</p>
           <span className="mg-logo" role="img" aria-label="DOGYPT" />
         </div>
@@ -286,7 +310,7 @@ ${PILL_CSS}
 /* PSY A MY — recept nadpisu z úvodu webu (DogPlanetLab .ph-h1): Cinzel, tmavý atrament,
    zlaté slová Cinzel Decorative 900 #6E4A12 s papyrusovým halo. Dominantný: veľkosť
    z ŠÍRKY okna, jeden riadok (Matej 13. 10.: „veľké cez celú šírku, dominantný text"). */
-.mg-hero .mg-h1{white-space:nowrap;text-wrap:nowrap;margin-inline:calc(50% - 50vw);font-size:min(calc((100vw - 32px) / 6.3), 81px);line-height:1;letter-spacing:.005em;color:#23150a;
+.mg-hero .mg-h1{white-space:nowrap;text-wrap:nowrap;margin-inline:calc(50% - 50vw);font-size:min(calc((100vw - 32px) / 6.3), ${HERO_H1_MAX}px);line-height:1;letter-spacing:.005em;color:#23150a;
   text-shadow:0 0 6px ${LAB.pageBg},0 0 14px ${LAB.pageBg},0 0 28px ${LAB.pageBg};}
 .mg-hero .mg-h1 .mg-g{text-wrap:nowrap;background:${LAB.goldText};-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;font-family:'Cinzel Decorative','Cinzel',serif;font-weight:900;}
 .mg-h2{margin:0;color:${T.inkStrong};}
