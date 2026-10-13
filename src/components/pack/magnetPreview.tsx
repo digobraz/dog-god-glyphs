@@ -14,6 +14,12 @@
  *    (3) cesty `/pack/*` prekladá `usePackNavigate()` — mimo darčeka vedú do popupu,
  *    nie na `/login`.
  *
+ * 🔴 PRAVIDLO (Matej 13. 10. 2026: *„čokoľvek zmeníme na live, sa prejaví aj tu"*): úprava
+ *    obrazovky `/pack` sa do `/magnet` dostane SAMA, lebo je to tá istá obrazovka. Preto sa
+ *    vo výklade NEROBÍ vlastná verzia prvku — v náhľade sa len zamyká zápis (`mg.lock`),
+ *    nikdy sa nekreslí iný vzhľad. Výnimky, ktoré sa sami NEOBNOVIA (snímky dát, lebo anonym
+ *    ich z DB nevidí): `MAGNET_FOUNDER` a `MAGNET_MEMBER_TRAILS` — pri zmene zdroja obnov.
+ *
  * Zdarma: 10 výletov (`MAGNET_FREE_TRIPS`) a okruh 1 Cesty psa (`O1-*`, 10 zvitkov
  * s podcastom). Body sa sľubujú LEN pri výletoch (PÚTNIK) — zvitky body nemajú.
  */
