@@ -67,6 +67,8 @@ export default function Magnet() {
   const [dogs, setDogs] = useState<number | null>(null);
   const [pack, setPack] = useState<Dog[]>([]);
   const [real, setReal] = useState(false);
+  /** Porovnanie farby pilulek (Matej 13. 10.): `?pill=lapis|zlato`, bez parametra papyrus. */
+  const pillTone = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('pill') : null;
   useEffect(() => {
     let on = true;
     gridFetch(GRID_URL_MEMBERS).then((d) => {
@@ -102,7 +104,7 @@ export default function Magnet() {
           <p className="mg-lead">{t('magnet.hero.promise')}</p>
         </div>
         {/* Šesť mien DOGYPTU v JEDNOM riadku, ktorý ide dokola (Matej 13. 10.). */}
-        <div className="mg-names" aria-label={CHIPS.map((k) => t(`magnet.chip.${k}`)).join(' · ')}>
+        <div className={`mg-names${pillTone ? ` mg-names--${pillTone}` : ''}`} aria-label={CHIPS.map((k) => t(`magnet.chip.${k}`)).join(' · ')}>
           <div className="mg-marquee" aria-hidden>
             {/* Obsah dvakrát za sebou — posun o polovicu = bezšvová slučka. */}
             <div className="mg-track">
@@ -115,8 +117,10 @@ export default function Magnet() {
       {/* ═══ 2 · BLOKY — každý vedie na vlastnú stránku (darček 1:1 s /pack) ═══ */}
       <section className="mg-sec mg-blocks">
         {/* Kontext nad blokmi (Matej 13. 10.: „nahliadni, čo nájdeš vnútri… malá ochutnávka členstva"). */}
+        <hr className="mg-rule" />
         <p className="mg-eye">{t('magnet.blocks.eye')}</p>
         <h2 className="mg-blocks-h">{t('magnet.blocks.h')}</h2>
+        <hr className="mg-rule mg-rule--short" />
         <nav className="mg-links">
           {BLOCKS.map((b) => (
             <Link key={b.to} to={b.to} className="mg-link" style={PACK_BOX.card}>
@@ -132,8 +136,10 @@ export default function Magnet() {
 
       {/* ═══ 3 · VÍZIA — psíčkari spolu + pes, ktorý to začal (Matej 13. 10.) ═══ */}
       <section className="mg-sec mg-about">
+        <hr className="mg-rule" />
         <p className="mg-eye">{t('magnet.idea.eye')}</p>
         <h2 className="mg-h2">{t('magnet.idea.h')}</h2>
+        <hr className="mg-rule mg-rule--short" />
         <p className="mg-lead mg-vision">{t('magnet.idea.p1')}</p>
         {/* Hlavná = ilustrácia HEKY KRABICA (vizuálna identita), ťuk ukáže SKUTOČNÚ fotku
             šteniat v krabici z Hektorovej knihy (Matej 13. 10.). */}
@@ -156,7 +162,9 @@ export default function Magnet() {
 
       {/* ═══ 4 · CIEĽ — pás svorky z /onepage (prvý obraz, zblízka) + CTA ═══ */}
       <section className="mg-sec mg-goalsec">
+        <hr className="mg-rule" />
         <p className="mg-goal">{t('magnet.about.goal')}</p>
+        <hr className="mg-rule mg-rule--short" />
         <div className="mg-strip" style={{ ['--fill' as string]: fill }} aria-label={`${dogs ?? ''} / 1 000 000`}>
           <div className="mg-groove"><span className="mg-fill" /></div>
           {mids.map((d, i) => (
@@ -177,7 +185,6 @@ export default function Magnet() {
             </span>
           )}
         </div>
-        <p className="mg-call">{t('magnet.end.call')}</p>
         <button type="button" className="mg-cta" onClick={join}>{t('magnet.cta')}</button>
         <p className="mg-pricesub">{t('magnet.end.sub')}</p>
       </section>
@@ -229,9 +236,11 @@ ${PILL_CSS}
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
   mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);}
 .mg-marquee{overflow:hidden;padding:${S.xs}px 0;}
-.mg-track{display:flex;gap:${S.sm}px;width:max-content;animation:mg-roll 32s linear infinite;}
+.mg-track{display:flex;gap:${S.lg}px;width:max-content;animation:mg-roll 32s linear infinite;}
 .mg-track .pk-pill{flex:0 0 auto;white-space:nowrap;}
-@keyframes mg-roll{from{transform:translateX(0)}to{transform:translateX(calc(-50% - ${S.sm / 2}px))}}
+.mg-names--lapis .pk-pill{background:rgba(22,48,122,0.13);border-color:rgba(22,48,122,0.62);color:${LAPIS.deep};}
+.mg-names--zlato .pk-pill{background:rgba(201,154,63,0.18);border-color:${LAB.goldSolid};color:${LAB.goldInk};}
+@keyframes mg-roll{from{transform:translateX(0)}to{transform:translateX(calc(-50% - ${S.lg / 2}px))}}
 @media (prefers-reduced-motion:reduce){
   .mg-names{-webkit-mask-image:none;mask-image:none;padding:0 ${S.lg}px;}
   .mg-track{animation:none;width:auto;flex-wrap:wrap;justify-content:center;}
@@ -257,7 +266,12 @@ ${PILL_CSS}
 
 /* BLOKY — KARTA: freska vľavo, nadpis + jedna veta vpravo. */
 .mg-blocks{padding-top:${S.lg}px;}
-.mg-blocks-h{margin:0 0 ${S.xl}px;font:700 ${PACK_TEXT.h2}px/1.3 ${FONT_TITLE};letter-spacing:.06em;color:${FRESCO_RED};}
+.mg-blocks-h{margin:0;font:700 ${PACK_TEXT.h2}px/1.3 ${FONT_TITLE};letter-spacing:.06em;}
+/* Farebné nadpisy = ZLATO z brandu (LAB.goldText), nie červená hlinka (Matej 13. 10.). */
+.mg-blocks-h,.mg-goal{background:${LAB.goldText};-webkit-background-clip:text;background-clip:text;color:transparent;}
+/* PREDEĽ — zlatá čiara T.rule (vyblednutá do strán, 2 px): dlhá nad sekciou, krátka pod nadpisom. */
+.mg-rule{border:0;height:2px;margin:0 auto ${S.xl}px;width:100%;background:${T.rule};}
+.mg-rule--short{width:96px;margin:${S.md}px auto ${S.xl}px;}
 .mg-links{display:flex;flex-direction:column;gap:${S.md}px;}
 .mg-link{display:grid;grid-template-columns:112px 1fr;gap:${S.md}px;align-items:center;padding:${S.sm}px;
   text-align:left;color:inherit;text-decoration:none;transition:transform .15s ease;}
@@ -319,7 +333,7 @@ ${PILL_CSS}
 .mg-split-l span{display:flex;align-items:center;gap:${S.sm}px;font:400 ${PACK_TEXT.label}px/1.3 ${FONT_UI};color:${T.inkWarm};}
 .mg-split-l i{width:8px;height:8px;flex:0 0 auto;border-radius:${PACK_R.pill}px;}
 .mg-split p{margin:${S.md}px 0 0;font:400 ${PACK_TEXT.body}px/1.5 ${FONT_UI};color:${LAB.inkBody};}
-.mg-goal{margin:${S.xl}px 0 0;font:700 ${PACK_TEXT.h2}px/1.3 ${FONT_TITLE};letter-spacing:.06em;color:${FRESCO_RED};}
+.mg-goal{margin:0;font:700 ${PACK_TEXT.h2}px/1.3 ${FONT_TITLE};letter-spacing:.06em;}
 .mg-goalsec .mg-cta{margin-top:${S.xl}px;}
 .mg-pricesub{margin:${S.md}px 0 0;font:500 ${PACK_TEXT.label}px/1.4 ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;color:${LAB.inkSoft};}
 /* CTA — LAPIS, geometria .btn-gold (radius 8), presne ako .op-nxt-cta na /onepage. */

@@ -1247,7 +1247,7 @@ export const sk: Partial<Dict> = {
   'magnet.b.ai': 'AINUBIS poradí práve tebe!',
   'magnet.b.dogid': "Kvíz povahy: živel a rola tvojho psa.",
   'magnet.about.help': 'Symbolický príspevok slúži predovšetkým na rozvoj projektu, no ujde sa aj psíkom v útulku.',
-  'magnet.about.goal': 'Pridaj sa k misii',
+  'magnet.about.goal': 'Pridaj sa k misii spojiť milión psov z celého sveta!',
   'magnet.lock.eye.trip': "Výlet pre Dogypťanov",
   'magnet.lock.eye.scroll': "Zvitok pre Dogypťanov",
   'magnet.lock.eye.action': "Pre Dogypťanov",

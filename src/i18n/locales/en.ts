@@ -1471,7 +1471,7 @@ export const en = {
   'magnet.b.ai': 'AINUBIS advises you personally!',
   'magnet.b.dogid': "A nature quiz: your dog’s element and role.",
   'magnet.about.help': 'The symbolic contribution goes mainly to building the project, but dogs in shelters get their share too.',
-  'magnet.about.goal': 'Join the mission',
+  'magnet.about.goal': 'Join the mission to unite a million dogs from all over the world!',
   'magnet.lock.eye.trip': "A trip for Dogyptians",
   'magnet.lock.eye.scroll': "A scroll for Dogyptians",
   'magnet.lock.eye.action': "For Dogyptians",
