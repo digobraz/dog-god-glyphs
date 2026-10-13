@@ -27,6 +27,7 @@ import {
   type SlovakiaCompletion, type MockPerson, type GeoCategory, type DiscoveryBonus,
 } from '@/components/pack/packCommunity';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { useMagnetPreview, MAGNET_FOUNDER, MAGNET_IDENTITY } from '@/components/pack/magnetPreview';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { dogTripStats } from '@/lib/dogTripStats';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
@@ -1616,10 +1617,13 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   // hooku sú neškodné (rovnaká Supabase session, žiadny side-effect navyše mimo duplicitného
   // fetchu), ale drží TripStatsPanel samostatne použiteľný bez toho, aby identitu musel dostávať
   // cez props.
-  const id = usePackIdentity();
+  // NÁHĽAD /magnet: výklad Matejovho účtu bez session (inak by usePackIdentity poslal na /login).
+  const mg = useMagnetPreview();
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const id = mg ? MAGNET_IDENTITY : usePackIdentity();
   const authMeta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
   const authFullName = (authMeta.full_name || authMeta.name) as string | undefined;
-  const ownerName = id.session?.user?.email
+  const ownerName = mg ? MAGNET_FOUNDER.name : id.session?.user?.email
     ? firstNameFrom(id.session.user.email, authFullName)
     : id.avatarInitial;
   const dogNames = id.dogs.map((d) => d.dog_name).filter((n): n is string => !!n);

@@ -14,13 +14,14 @@
 // Bloky = štvorcové karty v 3-stĺpcovom gride (MY TRIPS + OPEN TRIPS zdieľajú .tl-grid/.tl-block).
 import { useEffect, useMemo, useState } from 'react';
 import { PLANNING_LIVE } from '@/lib/packFlags';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { gradeTrail, GRADE_MAX, GRADE_POINTS, type GradePoint, type TripGrade } from '@/lib/tripGrade';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
-import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
+import { useMagnetPreview, usePackNavigate, MAGNET_FOUNDER, MAGNET_IDENTITY } from '@/components/pack/magnetPreview';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 // #70 — podmienka pridať sa na cudzí výlet. ⚠️ NIE `PROGRESS_STEPS` (37 polí,
 // percento celého dokladu na `/pack/dogs` a `DogPassport.tsx`), ale
@@ -480,11 +481,18 @@ const UNKNOWN_MEMBER: PartyMember = {
   role: 'requested', ownerFirst: null, dogName: null, dogPhoto: null, packNumber: null, at: null,
 };
 
+
 export default function PackTriplist() {
   const t = useT();
   const { lang } = useLang();
-  const navigate = useNavigate();
-  const id = usePackIdentity();
+  // NÁHĽAD /magnet (13. 10. 2026): tá istá obrazovka nad Matejovými výletmi, bez session,
+  // bez spodného navu a BEZ ZÁPISU do úložiska návštevníka. Cesty prekladá usePackNavigate.
+  const mg = useMagnetPreview();
+  const navigate = usePackNavigate();
+  // `mg` je za život komponentu konštantné (daje ho obal routy) — poradie hookov sa nemení.
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const id: PackIdentity = mg ? MAGNET_IDENTITY : usePackIdentity();
+  const readWalked = (): Set<string> => (mg ? new Set(MAGNET_FOUNDER.walked) : readWalkedIds());
 
   // Hydratácia z DB (issue #32) dobehne po mounte → epoch prečíta walked/triplist znova.
   const storeEpoch = usePackStoreEpoch();
@@ -503,7 +511,7 @@ export default function PackTriplist() {
   const allTrails = useMemo(() => [...visibleLocalTrails(readLocalTrails(), { withMissedPlans: true }), ...HERO_JOURNEYS, ...HERO_TRAILS], [storeEpoch]);
   // Founder walked seed (Matej 2026-07-24): nahodené = prejdené + z červených len SNP/Poloniny.
   // Seedne raz za session aj keď sa na vysvedčenie príde priamo (mimo PackMap mapy).
-  useMemo(() => ensureWalkedSeeded([
+  useMemo(() => !mg && ensureWalkedSeeded([
     ...HERO_TRAILS.map((t) => t.id),
     ...FOUNDER_WALKED_JOURNEY_IDS.filter((id) => [...HERO_JOURNEYS, ...HERO_TRAILS].some((t) => t.id === id)),
   ]), []);
@@ -525,14 +533,26 @@ export default function PackTriplist() {
 
   // TRIPSTATS dáta — prejdené (walked) tripy + km, rovnaký zdroj ako bývalý „Trippin'" dashboard.
   const walkedTrails = useMemo(() => {
-    const walked = readWalkedIds();
+    const walked = readWalked();
     return allTrails.filter((tr) => walked.has(tr.id));
   }, [allTrails, storeEpoch]);
   // tr.km je STRING (HeroTrail.km: string) → coerce na number, inak reduce reťazí stringy a walkedKm.toFixed spadne
   const walkedKm = useMemo(() => walkedTrails.reduce((s, tr) => s + (Number(tr.km) || 0), 0), [walkedTrails]);
 
-  const [triplist, setTriplist] = useState<Record<string, TriplistTrip>>(() => readTriplist());
-  useEffect(() => { if (storeEpoch) setTriplist(readTriplist()); }, [storeEpoch]);
+  const [triplist, setTriplist] = useState<Record<string, TriplistTrip>>(() => (mg
+    // Náhľad: riadok za každý Matejov prejdený výlet, v pamäti — presne to, čo by appke
+    // založil `seedTriplistFromWalked`, len bez zápisu.
+    ? Object.fromEntries([
+        ...MAGNET_FOUNDER.walked.map((tid, i) => [tid, {
+          tripId: tid, status: 'solo', openness: 'closed', joiners: [], requests: [], addedAt: i,
+        } satisfies TriplistTrip] as const),
+        ...MAGNET_FOUNDER.want.map((w, i) => [w.tripId, {
+          tripId: w.tripId, status: w.status, openness: w.status === 'looking' ? 'open' : 'closed',
+          joiners: [], requests: [], addedAt: 1000 + i,
+        } satisfies TriplistTrip] as const),
+      ])
+    : readTriplist()));
+  useEffect(() => { if (storeEpoch && !mg) setTriplist(readTriplist()); }, [storeEpoch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // migrácia existujúcich wishlist plánov → triplist entries, idempotentné (viď triplist.ts).
   //
@@ -543,6 +563,7 @@ export default function PackTriplist() {
   //     Čo tu pribudlo, ostávalo do najbližšieho epochu neviditeľné — zoznam vyzeral prázdny
   //     aj vtedy, keď riadok v úložisku už stál. Preto sa po seede číta znova.
   useEffect(() => {
+    if (mg) return;
     let changed = seedTriplistFromPlans(readPlans());
     // ⚠️ A PREJDENÉ VÝLETY TIEŽ. Do 26. 8. 2026 sa vlastný zápis do triplistu nedostal vôbec
     // (Matej: „po zápise výlet nevidím v tripliste") a do 16. 9. 2026 doňho nezapisovalo ani
@@ -568,7 +589,7 @@ export default function PackTriplist() {
   const [publicPage, setPublicPage] = useState(0);                // OPEN TRIPS stránkovanie (9/stránku)
   const PUBLIC_PER_PAGE = 9;
 
-  const walkedSet = useMemo(() => readWalkedIds(), [allTrails, storeEpoch]);
+  const walkedSet = useMemo(() => readWalked(), [allTrails, storeEpoch]); // eslint-disable-line react-hooks/exhaustive-deps
   // ── ZNÁMKA VÝLETU A/B/C (Matej 11. 10. 2026) ────────────────────────────────────────────
   // „známku ukáž v tripliste — pri prejdených výletoch autorovi, aby vedel kde môže vylepšiť."
   // Počíta ju `gradeTrail` (jediný zdroj), tu sa len ukazuje. LEN vlastné členské výlety
@@ -723,13 +744,19 @@ export default function PackTriplist() {
   const [wishes, setWishes] = useState<MyWish[] | null>(null);
   useEffect(() => {
     if (!WISHES_LIVE) return;
+    if (mg) {
+      setWishes(MAGNET_FOUNDER.wishes.map((w) => ({
+        ...w, trailId: null, whenYear: null, status: 'live', expiresAt: null, postponed: 0, createdAt: '', others: 0,
+      })));
+      return;
+    }
     let alive = true;
     fetchMyWishes()
       .then((w) => { if (alive) setWishes(w.filter((x) => x.status === 'live' || x.status === 'missed')); })
       .catch(() => { if (alive) setWishes([]); });
     return () => { alive = false; };
   }, [storeEpoch]);
-  const addWish = () => { navigate(withOrigin('/pack/map', '/pack/map/triplist')); emitCreate({ id: 'wish' }); };
+  const addWish = () => { if (mg) { mg.lock('action'); return; } navigate(withOrigin('/pack/map', '/pack/map/triplist')); emitCreate({ id: 'wish' }); };
 
   const [closeOffer, setCloseOffer] = useState<{ slug: string; who: string | null } | null>(null);
   const incoming = useIncomingRequests(reqEpoch);
@@ -864,7 +891,7 @@ export default function PackTriplist() {
       </div>
     );
   }
-  if (!id.session) return null;
+  if (!id.session && !mg) return null;
 
   // ── #43: JEDNA KARTA MOJICH VÝLETOV, DVE MIESTA (18. 9. 2026) ──────────────
   // Kartu kreslia odteraz dve sekcie (nadchádzajúce + prejdené). Skopírovať tých osemdesiat
@@ -1143,7 +1170,7 @@ export default function PackTriplist() {
                   {wishes.map((w) => {
                     const trail = w.trailId ? allTrails.find((tr) => tr.id === w.trailId) : undefined;
                     const cover = trail?.photos[0] ?? '';
-                    const open = () => navigate(`/pack/map?wish=${w.id}&ask=${w.status === 'missed' ? 'wish_missed' : 'wish_ask'}`);
+                    const open = () => mg ? mg.lock('action') : navigate(`/pack/map?wish=${w.id}&ask=${w.status === 'missed' ? 'wish_missed' : 'wish_ask'}`);
                     return (
                       <div key={w.id} className="tl-mycard">
                         <div
@@ -1422,7 +1449,7 @@ export default function PackTriplist() {
       {/* Identita PATRÍ K VOLAJÚCEMU. Bez props padá nav na literál 'D'
           (PackLayout.tsx) a Matejovi svietil cudzí iniciál v tripliste aj
           v článku výletu. Vzor je PackMap.tsx:7184 — tá istá trojica props. */}
-      <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
+      {!mg && <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />}
       {/* Táto stránka nemountuje <PackLayout> (má vlastnú hlavičku aj nav), takže jej chýbal
           hostiteľ overlayu — a emitOpenThread() z PartyMemberCard nemal kto odchytiť.
           Dôsledok pred 15. 9. 2026: klik na „Message" v schránke žiadostí zavolal start_dm

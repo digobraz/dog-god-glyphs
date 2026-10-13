@@ -74,7 +74,7 @@ import { PackNotifications } from '@/components/pack/PackNotifications';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
-import { useMagnetPreview, usePackNavigate, isFreeTrip } from '@/components/pack/magnetPreview';
+import { useMagnetPreview, usePackNavigate, isFreeTrip, MAGNET_FOUNDER, MAGNET_IDENTITY } from '@/components/pack/magnetPreview';
 import { HandLock } from '@/components/pack/HandIcons';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { useToast } from '@/hooks/use-toast';
@@ -90,7 +90,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale, fmtNum } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PoiLayer } from '@/components/geo/PoiLayer';
-import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_TOPROW, PAGE_AIR } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_TOPROW, PAGE_AIR, PACK_R, PACK_SHADOW } from '@/components/pack/packTheme';
 import { BackIcon, ExpandIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { goldFrameCSS, goldPlateCSS, pickTintCSS, PICK_INK, SLAB, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, NAV_R, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
@@ -1875,13 +1875,37 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 /* bodka (z<=9, zadanie 2.3) — 17px kruh, rovnaký glass+zlatý lem ako pilulka, len piktogram. */
 .trp-lockmark{position:absolute;right:-6px;top:-7px;box-sizing:border-box;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(11,9,6,.94);border:1px solid ${T.cardEdge};pointer-events:none;}
 .trp-lockmark img{display:block;width:9px;height:9px;filter:brightness(0) invert(1);}
-.trp-root--mg .trp-status-row,.trp-root--mg .trp-mheader-status{display:none;}
 .trp-root--mg .trp-cards-scroll{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));}
-.trp-mginfo{margin:0 0 8px;padding:16px;display:flex;flex-direction:column;gap:8px;}
+/* NÁHĽAD /magnet — ČERVENEJŠÍ blok (Matej 13. 10.): papyrus s tónom T.alertRed, ikonka zámku. */
+.trp-mginfo{margin:0 0 8px;padding:16px;display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:start;
+  border-radius:${PACK_R.tile}px;border:1px solid color-mix(in srgb, ${T.alertRed} 55%, transparent);
+  background:linear-gradient(135deg, color-mix(in srgb, ${T.alertRed} 10%, #FBF3E4), color-mix(in srgb, ${T.alertRed} 20%, #F3E3C6));
+  box-shadow:${PACK_SHADOW.panel};}
+.trp-mginfo-ico{width:40px;height:40px;border-radius:${PACK_R.pill}px;display:flex;align-items:center;justify-content:center;
+  background:${T.alertRed};color:#FBF3E4;}
+.trp-mginfo-txt{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.trp-mginfo-acts{grid-column:1 / -1;display:flex;flex-direction:column;gap:8px;}
 .trp-mginfo-h{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .trp-mginfo-p{margin:0;font-family:${FONT_UI};font-weight:400;font-size:12px;line-height:1.5;color:${T.inkWarm};}
-.trp-mginfo-row{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border-radius:12px;background:${T.tileBg};border:1px solid ${T.border};cursor:pointer;text-align:left;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${T.inkStrong};}
+.trp-mginfo-row{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border-radius:${PACK_R.tile}px;background:${T.tileBg};border:1px solid ${T.border};cursor:pointer;text-align:left;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${T.inkStrong};}
 .trp-mginfo-row img{width:20px;height:20px;flex-shrink:0;}
+.trp-mginfo--dock{display:none;}
+/* PC: pravá časť = od panela po okraj, presne ako horná lišta (.trp-topbar). Pod blokom lišta
+   s CTA (MagnetPreview) natiahnutá na TÚ ISTÚ šírku — „celá šírka pravej časti". */
+@media (min-width:1024px){
+  .trp-mginfo--list{display:none;}
+  .trp-mginfo--dock{display:grid;position:absolute;z-index:700;margin:0;
+    left:${MAP_EDGE + DOCK_COL_W + MAP_EDGE}px;right:${MAP_EDGE}px;bottom:${MAP_EDGE + 48 + 12}px;
+    grid-template-columns:auto 1fr auto;align-items:center;}
+  .trp-mginfo--dock .trp-mginfo-acts{grid-column:auto;flex-direction:row;}
+  .trp-mginfo--dock .trp-mginfo-row{width:auto;white-space:nowrap;}
+  .mgp-bar.mgp-bar--trips{left:${MAP_EDGE + DOCK_COL_W + MAP_EDGE}px;right:${MAP_EDGE}px;padding:0 0 ${MAP_EDGE}px;}
+  .mgp-bar.mgp-bar--trips .mgp-bar-in{max-width:none;}
+  .trp-root--mg .leaflet-bottom{bottom:${MAP_EDGE + 48 + 12}px;}
+}
+@media (min-width:1024px) and (max-width:1400px){
+  .trp-mginfo--dock,.mgp-bar.mgp-bar--trips{left:400px;}
+}
 .trp-lockbadge{position:absolute;top:8px;left:40px;z-index:2;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(11,9,6,.88);border:1.5px solid ${T.cardEdge};color:#F6F1E4;pointer-events:none;}
 .trp-dot{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
 .trp-dot.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);border-color:rgba(${PACK_THEME.tripPurpleRGB},0.6);box-shadow:0 0 0 2px rgba(179,107,255,0.3),0 2px 6px rgba(0,0,0,0.4);}
@@ -3475,33 +3499,43 @@ function TripPickDropdown({ label, value, options, onPick, anyLabel, anyIcon, pl
 }
 
 /**
- * INFO BLOK NA VRCHU ZOZNAMU V NÁHĽADE /magnet — povie, čo je otvorené, čo nie a čo dá členstvo.
- * Jeden PODBLOK z katalógu (`PACK_BOX.subblock`), nič vlastné; text cez `tx()` s EN rezervou.
+ * INFO BLOK NÁHĽADU /magnet — povie, čo je otvorené, čo nie a čo dá členstvo.
+ * Matej 13. 10. 2026: *„info o 10 výletoch by som premiestnil dolu na pravú časť do červenejšieho
+ * bloku… na šírku horných blokov a navu = celá šírka pravej časti a kľudne tam daj ikonku"*.
+ * PC = `--dock` (dole nad lištou s CTA, šírka hornej lišty) · mobil = `--list` (vrch zoznamu,
+ * na mobile pravá časť neexistuje). Jeden komponent, rozhoduje CSS.
+ * Navyše „Skús pridať výlet" — sprievodca sa prejde celý, uloženie zastaví popup.
  */
-function MagnetTripsInfo({ locked, onSniffer }: { locked: number; onSniffer: () => void }) {
+function MagnetTripsInfo({ locked, onSniffer, onTryAdd, where }: {
+  locked: number; onSniffer: () => void; onTryAdd: () => void; where: 'dock' | 'list';
+}) {
   const t = useT();
   const tx = (k: string, fb: string, p?: Record<string, string | number>) => {
     const v = t(k, p); return v === k ? fb.replace(/\{(\w+)\}/g, (_, n) => String(p?.[n] ?? '')) : v;
   };
   return (
-    <div className="trp-mginfo" style={PACK_BOX.subblock}>
-      <h3 className="trp-mginfo-h">{tx('magnet.pv.trips.h', '10 trips are open for you')}</h3>
-      <p className="trp-mginfo-p">
-        {tx('magnet.pv.trips.p', 'You can see the other {n}; they open for Dogyptians. As a member you log your own trips, collect kilometres and points and climb the pilgrim ranking.', { n: locked })}
-      </p>
-      <button type="button" className="trp-mginfo-row" onClick={onSniffer}>
-        <img src="/icons/sniffer/sniffer-logo.svg" alt="" />
-        <span>{tx('magnet.pv.sniffer', 'Who with? Sniffer finds you a dog for a shared trip.')}</span>
-      </button>
+    <div className={`trp-mginfo trp-mginfo--${where}`}>
+      <span className="trp-mginfo-ico" aria-hidden><HandLock size={20} /></span>
+      <div className="trp-mginfo-txt">
+        <h3 className="trp-mginfo-h">{tx('magnet.pv.trips.h', '10 trips are open for you')}</h3>
+        <p className="trp-mginfo-p">
+          {tx('magnet.pv.trips.p', 'You can see the other {n}; they open for Dogyptians. As a member you log your own trips, collect kilometres and points and climb the pilgrim ranking.', { n: locked })}
+        </p>
+      </div>
+      <div className="trp-mginfo-acts">
+        <button type="button" className="trp-mginfo-row" onClick={onTryAdd}>
+          <img src={ICON('plus')} alt="" />
+          <span>{tx('magnet.pv.tryAdd', 'Try adding a trip')}</span>
+        </button>
+        <button type="button" className="trp-mginfo-row" onClick={onSniffer}>
+          <img src="/icons/sniffer/sniffer-logo.svg" alt="" />
+          <span>{tx('magnet.pv.sniffer', 'Who with? Sniffer finds you a dog for a shared trip.')}</span>
+        </button>
+      </div>
     </div>
   );
 }
 
-/** Identita anonyma v náhľade `/magnet` — bez session, bez psov, bez štatistík svorky. */
-const MAGNET_ANON_IDENTITY: PackIdentity = {
-  session: null, loading: false, sessionReady: true, dogs: [], devotion: 0, bones: 0,
-  avatarUrl: null, avatarInitial: '', packTotal: null, packToday: null,
-};
 
 export default function PackMap() {
   const t = useT();
@@ -3519,7 +3553,7 @@ export default function PackMap() {
   // V náhľade je návštevník ANONYM: `usePackIdentity` by ho poslal na /login, preto sa nevolá.
   // `mg` je za celý život komponentu konštantné (daje ho obal routy), takže poradie hookov sa nemení.
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const id: PackIdentity = mg ? MAGNET_ANON_IDENTITY : usePackIdentity();
+  const id: PackIdentity = mg ? MAGNET_IDENTITY : usePackIdentity();
   const [levelPanelOpen, setLevelPanelOpen] = useState(false);
 
   /**
@@ -3634,12 +3668,17 @@ export default function PackMap() {
   // komponent (navigate na PackTripArticle), tak fav/walked musí prežiť mount/unmount v
   // rámci tej istej browser session (žiadna Supabase perzistencia, viď tripShared komentár).
   const [favIds, setFavIds] = useState<Set<string>>(() => readFavIds());
-  const [walkedIds, setWalkedIds] = useState<Set<string>>(() => { ensureWalkedSeeded(DEFAULT_WALKED_IDS); return readWalkedIds(); });
+  // V náhľade /magnet = Matejove skutočné výlety (snímka), nie úložisko návštevníka.
+  const [walkedIds, setWalkedIds] = useState<Set<string>>(() => {
+    if (mg) return new Set(MAGNET_FOUNDER.walked);
+    ensureWalkedSeeded(DEFAULT_WALKED_IDS); return readWalkedIds();
+  });
   // Prejdený výlet sa ruší až po otázke (UnwalkConfirm, Matej 5. 10. 2026) — pilulka na karte
   // aj v detaile ho predtým zhodila jedným klikom aj s bodmi a km.
   const [unwalk, setUnwalk] = useState<HeroTrail | null>(null);
   useEffect(() => { writeFavIds(favIds); }, [favIds]);
-  useEffect(() => { writeWalkedIds(walkedIds); }, [walkedIds]);
+  // V náhľade sa výklad do úložiska návštevníka NEZAPISUJE (inak by si odniesol Matejove výlety).
+  useEffect(() => { if (!mg) writeWalkedIds(walkedIds); }, [walkedIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ✓ NA TRASE ZALOŽÍ AJ RIADOK V MY TRIPS (2026-09-16). Zápis prejdenej trasy prešiel
   // (`trip_walked` → 201), hlavička PÚTNIK aj ŠTATISTIKY reagovali — ale zoznam MY TRIPS
@@ -3656,7 +3695,7 @@ export default function PackMap() {
   useEffect(() => {
     const prev = prevWalkedRef.current;
     prevWalkedRef.current = new Set(walkedIds);
-    if (!prev) return;
+    if (!prev || mg) return;
     for (const tid of walkedIds) if (!prev.has(tid)) ensureMyTrip(tid);
   }, [walkedIds]);
 
@@ -4158,7 +4197,7 @@ export default function PackMap() {
   useEffect(() => {
     if (!storeEpoch) return;
     setFavIds(readFavIds());
-    setWalkedIds(readWalkedIds());
+    if (!mg) setWalkedIds(readWalkedIds());
     votesFromStoreRef.current = true;
     setVotes(readVotes());
     setPlans(readPlans());
@@ -4567,7 +4606,7 @@ export default function PackMap() {
   // ostatné handlery) — submitAdd (bod 6) potrebuje firstName ako author novej ADD-flow karty.
   const authMeta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
   const authFullName = (authMeta.full_name || authMeta.name) as string | undefined;
-  const firstName = firstNameFrom(id.session?.user?.email ?? '', authFullName);
+  const firstName = mg ? MAGNET_FOUNDER.name : firstNameFrom(id.session?.user?.email ?? '', authFullName);
 
 
   // bod 4: klik na kartu/pin → inline DETAIL v paneli (desktop) namiesto priamej navigácie;
@@ -5336,6 +5375,9 @@ export default function PackMap() {
     (crew ?? []).filter((c) => c.key.startsWith('dog-')).map((c) => c.key.slice(4));
 
   const submitAddTripDraft = (draft: AddTripDraft): boolean => {
+    // NÁHĽAD /magnet: sprievodca sa dá prejsť celý, ale na konci sa NIČ neuloží — popup
+    // povie prečo (Matej 13. 10.: *„človek by pridal, ale na záver by to chcelo prihlásenie"*).
+    if (mg) { mg.lock('save'); return false; }
     // ── DOPĹŇANIE KONCEPTU ──────────────────────────────────────────────────────────────
     // Existujúci záznam sa PREPÍŠE. Nový `HeroTrail` tu nevzniká, `walkedIds` sa nedotýkame
     // (výlet je prejdený od prvého uloženia) a reveal sa NEOTVÁRA: body boli pripísané vtedy,
@@ -5753,8 +5795,9 @@ export default function PackMap() {
   // Bublina `title=` s rozpisom bodov zanikla — na dotykovom telefóne sa nedala vyvolať vôbec
   // a rozpad v nej bol zlepený do jedného riadku (Matej: „zvačši popup tak aby sa nemuselo
   // scrolovať a info boli vidno").
-  // V náhľade /magnet nie je čia identita (PÚTNIK, prstenec, km) — anonym ju nemá.
-  const renderIdentity = () => mg ? null : (
+  // V náhľade /magnet = VÝKLAD Matejovej identity (13. 10. 2026: *„ponechal to 1:1 ako to máme
+  // vo vnútri… moje meno/iniciály aj údaje s výletov"*). Klik vedie do ŠTATISTÍK náhľadu.
+  const renderIdentity = () => (
     <button
       type="button"
       className="trp-midentity"
@@ -5864,8 +5907,12 @@ export default function PackMap() {
     </>
   );
 
-  const renderHeaderRight = (dark = true) => mg ? null : (
-    <div className="trp-headright">
+  // V náhľade 1:1, ale bez funkcie — ťuk na správy či upozornenia otvorí popup Dogypťanov.
+  const renderHeaderRight = (dark = true) => (
+    <div
+      className="trp-headright"
+      onClickCapture={mg ? (e) => { e.preventDefault(); e.stopPropagation(); mg.lock('action'); } : undefined}
+    >
       {/* KAPSULA ako na každej inej stránke /pack (Matej 3. 10. 2026: *„správy a upozornenia sú
           na mobile klasicky v spoločnom chipe… nech je to všade také isté"*). Do vtedy tu boli
           dve samostatné tmavé kolieska („obrátená pilulka" z 26. 8.) a na papyruse zanikali. */}
@@ -6032,12 +6079,25 @@ export default function PackMap() {
   const emptyByFilters = heroDiff !== '' || heroCrowd !== '' || selectedCountry !== ''
     || heroMacroRegion !== '' || heroAct !== '' || heroTags.size > 0;
 
+  // NÁHĽAD /magnet — počet zamknutých výletov a „Skús pridať výlet" (sprievodca bez uloženia).
+  const mgLockedCount = allTrails.filter((tr) => !tr.id.startsWith('plan-') && !isFreeTrip(tr.id)).length;
+  const mgTryAdd = () => {
+    setInlineDetailId(null);
+    setMobileView('map');
+    setAddEntryOpen(false);
+    setAddMapPhase('off');
+    setFinishTrailId(null);
+    setAddFlow('walked');
+  };
+
   const renderTripList = (withRef: boolean) => (
     <>
       {mg && (
         <MagnetTripsInfo
-          locked={allTrails.filter((tr) => !tr.id.startsWith('plan-') && !isFreeTrip(tr.id)).length}
+          where="list"
+          locked={mgLockedCount}
           onSniffer={() => mg.lock('action')}
+          onTryAdd={mgTryAdd}
         />
       )}
       {sortedVisibleHeroTrails.length === 0 && (
@@ -6571,12 +6631,10 @@ export default function PackMap() {
           {/* bod 2 (Matej 2026-07-22): pozdrav + filter ikonka (sliders) v pravom rohu — otvára
               sort popover (Top rated/Easiest/Hardest/Calmest), rovnaká ikonka ako mobilný filter. */}
           <div className="trp-greet-row">
-            {mg ? <div /> : (
             <div>
               <div className="trp-greet-hi">{t('pack.map.greetHi', { name: firstName })}</div>
               <div className="trp-greet-sub">{t('pack.map.greetSub')}</div>
             </div>
-            )}
             {/* DVA OVLÁDACIE PRVKY V ROHU (Matej 2026-08-26: „vedľa filtru hore dajme ešte
                 druhý filter, resp. vlajku"). Krajina bola do teraz prvým z troch rozbaľovačiek
                 v rade pod kategóriami, kde si brala tretinu šírky na dva znaky — a rad tým
@@ -6738,6 +6796,11 @@ export default function PackMap() {
         </>
         )}
       </aside>
+
+      {/* NÁHĽAD /magnet — červený blok dole v pravej časti (len PC, mobil ho má vo vrchu zoznamu). */}
+      {mg && !addFlow && (
+        <MagnetTripsInfo where="dock" locked={mgLockedCount} onSniffer={() => mg.lock('action')} onTryAdd={mgTryAdd} />
+      )}
 
       {/* mobile-only liquid-glass header (bod 5 i11, bod 7 i12, bod 1 i13/i15) — 2 riadky:
           (1) status = avatar + renderStatusRight() pilulky (rovnaká "ako desktop
@@ -7741,7 +7804,8 @@ export default function PackMap() {
           pinnedName={allTrails.find((tr) => tr.id === noteDraft.pinnedSlug)?.name ?? null}
           dock={!!addFlow}
           onSubmit={async (n) => {
-            const id = await mapNotes.add(n);
+            // V náhľade /magnet sa značka do DB nezapíše — dostane len lokálne id pre zhrnutie kroku 2.
+            const id = mg ? `mg-${Date.now()}` : await mapNotes.add(n);
             // Krok 2 sprievodcu: druh si odloží formulár, aby ho krok 4 vedel ZHRNÚŤ.
             // Väzba na výlet sa neukladá — odvodzuje sa zo súradnice (mapNotesGeo.ts).
             // `n.kind` (čo sa naozaj uložilo), nie `noteDraft.kind` z uzáveru — panel vie druh

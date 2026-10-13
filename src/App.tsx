@@ -515,6 +515,7 @@ const App = () => (
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/magnet" element={<Magnet />} />
               <Route path="/magnet/vylety" element={<MagnetPreview kind="trips"><PackMap /></MagnetPreview>} />
+              <Route path="/magnet/vylety/triplist" element={<MagnetPreview kind="trips"><PackTriplist /></MagnetPreview>} />
               <Route path="/magnet/vylety/:country/:slug" element={<MagnetPreview kind="trips"><PackTripArticle /></MagnetPreview>} />
               <Route path="/magnet/vylety/:slug" element={<MagnetPreview kind="trips"><PackTripArticle /></MagnetPreview>} />
               <Route path="/magnet/ainubis/*" element={<MagnetPreview kind="ainubis"><PackAinubis /></MagnetPreview>} />
