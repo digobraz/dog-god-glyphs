@@ -74,7 +74,7 @@ import { PackNotifications } from '@/components/pack/PackNotifications';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
-import { useMagnetPreview, usePackNavigate, isFreeTrip, MAGNET_FOUNDER, MAGNET_IDENTITY } from '@/components/pack/magnetPreview';
+import { useMagnetPreview, usePackNavigate, isFreeTrip, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetDockActions } from '@/components/pack/magnetPreview';
 import { HandLock } from '@/components/pack/HandIcons';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { useToast } from '@/hooks/use-toast';
@@ -1899,12 +1899,12 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
     grid-template-columns:auto 1fr auto;align-items:center;}
   .trp-mginfo--dock .trp-mginfo-acts{grid-column:auto;flex-direction:row;}
   .trp-mginfo--dock .trp-mginfo-row{width:auto;white-space:nowrap;}
-  .mgp-bar.mgp-bar--trips{left:${MAP_EDGE + DOCK_COL_W + MAP_EDGE}px;right:${MAP_EDGE}px;padding:0 0 ${MAP_EDGE}px;}
-  .mgp-bar.mgp-bar--trips .mgp-bar-in{max-width:none;}
-  .trp-root--mg .leaflet-bottom{bottom:${MAP_EDGE + 48 + 12}px;}
+  .trp-mginfo--dock .trp-mginfo-cta{grid-column:1 / -1;}
+  .trp-mginfo--dock{bottom:${MAP_EDGE}px;}
+  .trp-root--mg .leaflet-bottom{bottom:calc(var(--mg-dock-h, 0px) + ${MAP_EDGE + 8}px);}
 }
 @media (min-width:1024px) and (max-width:1400px){
-  .trp-mginfo--dock,.mgp-bar.mgp-bar--trips{left:400px;}
+  .trp-mginfo--dock{left:400px;}
 }
 .trp-lockbadge{position:absolute;top:8px;left:40px;z-index:2;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(11,9,6,.88);border:1.5px solid ${T.cardEdge};color:#F6F1E4;pointer-events:none;}
 .trp-dot{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
@@ -3513,8 +3513,18 @@ function MagnetTripsInfo({ locked, onSniffer, onTryAdd, where }: {
   const tx = (k: string, fb: string, p?: Record<string, string | number>) => {
     const v = t(k, p); return v === k ? fb.replace(/\{(\w+)\}/g, (_, n) => String(p?.[n] ?? '')) : v;
   };
+  // Výška bloku na PC → `--mg-dock-h`: o toľko sa zdvihnú ovládacie prvky a podpis mapy
+  // (Mapy.com logo musí ostať vidno — licencia), inak by ich blok prekryl.
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current; if (!el || where !== 'dock' || typeof ResizeObserver === 'undefined') return;
+    const root = el.closest('.trp-root') as HTMLElement | null; if (!root) return;
+    const ro = new ResizeObserver(() => root.style.setProperty('--mg-dock-h', `${el.offsetHeight}px`));
+    ro.observe(el);
+    return () => { ro.disconnect(); root.style.removeProperty('--mg-dock-h'); };
+  }, [where]);
   return (
-    <div className={`trp-mginfo trp-mginfo--${where}`}>
+    <div ref={ref} className={`trp-mginfo trp-mginfo--${where}`}>
       <span className="trp-mginfo-ico" aria-hidden><HandLock size={20} /></span>
       <div className="trp-mginfo-txt">
         <h3 className="trp-mginfo-h">{tx('magnet.pv.trips.h', '10 trips are open for you')}</h3>
@@ -3532,6 +3542,7 @@ function MagnetTripsInfo({ locked, onSniffer, onTryAdd, where }: {
           <span>{tx('magnet.pv.sniffer', 'Who with? Sniffer finds you a dog for a shared trip.')}</span>
         </button>
       </div>
+      {where === 'dock' && <div className="trp-mginfo-cta"><MagnetDockActions /></div>}
     </div>
   );
 }
