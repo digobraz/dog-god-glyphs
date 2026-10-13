@@ -165,9 +165,11 @@ ${VEIL_CSS}
 .mgp-ai-who span{color:${AINUBIS.aiInk};text-shadow:${AINUBIS.aiShadow};}
 .mgp-ai-h{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:16px;line-height:1.25;letter-spacing:.14em;text-transform:uppercase;color:${AINUBIS.ink};}
 .mgp-ai-p{margin:0;font-family:${FONT_UI};font-weight:400;font-size:14px;line-height:1.5;color:${AINUBIS.inkDim};}
-.mgp-ai-extra{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:8px;}
-.mgp-ai-cta{grid-column:1 / -1;}
-.mgp-ai-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;cursor:pointer;
+.mgp-ai-side{grid-column:1 / -1;display:flex;flex-direction:column;align-items:stretch;gap:8px;}
+.mgp-ai--dock{grid-template-columns:auto 1fr 280px;}
+.mgp-ai--dock .mgp-ai-side{grid-column:auto;}
+.mgp-ai--dock .mgp-ai-p{font-size:12px;}
+.mgp-ai-chip{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;border-radius:12px;cursor:pointer;
   background:${AINUBIS.raised};border:1px solid ${AINUBIS.edge};color:${AINUBIS.ink};font-family:${FONT_UI};font-weight:600;font-size:12px;text-align:left;}
 .mgp-ai-chip:hover{border-color:${AINUBIS.edgeStrong};}
 .mgp-ai-chip img{width:20px;height:20px;flex:none;}
@@ -268,8 +270,14 @@ export function MagnetAinubisBlock({ h, p, where, extra }: { h: string; p: strin
         <h3 className="mgp-ai-h">{h}</h3>
         <p className="mgp-ai-p">{p}</p>
       </div>
-      {extra && <div className="mgp-ai-extra">{extra}</div>}
-      {where === 'dock' && <div className="mgp-ai-cta"><MagnetDockActions /></div>}
+      {/* Pravý stĺpec (Matej 13. 10.: *„blok je príliš vysoký… cta presuň na pravú stranu: pridaj
+          výlet, cta a späť = 3 pod sebou"*). Na mobile (`list`) len akcie stránky, CTA nesie lišta. */}
+      {(extra || where === 'dock') && (
+        <div className="mgp-ai-side">
+          {extra}
+          {where === 'dock' && <MagnetDockActions />}
+        </div>
+      )}
     </section>
   );
 }

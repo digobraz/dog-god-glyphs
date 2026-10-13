@@ -1883,8 +1883,6 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
   .trp-mginfo--list{display:none;}
   .trp-mginfo--dock{display:block;position:absolute;z-index:700;margin:0;
     left:${MAP_EDGE + DOCK_COL_W + MAP_EDGE}px;right:${MAP_EDGE}px;bottom:${MAP_EDGE}px;}
-  .trp-mginfo--dock .mgp-ai{grid-template-columns:auto 1fr auto;}
-  .trp-mginfo--dock .mgp-ai-extra{grid-column:auto;flex-direction:column;}
   .trp-root--mg .leaflet-bottom{bottom:calc(var(--mg-dock-h, 0px) + ${MAP_EDGE + 8}px);}
 }
 @media (min-width:1024px) and (max-width:1400px){
@@ -3490,8 +3488,8 @@ function TripPickDropdown({ label, value, options, onPick, anyLabel, anyIcon, pl
  * na mobile pravá časť neexistuje). Jeden komponent, rozhoduje CSS.
  * Navyše „Skús pridať výlet" — sprievodca sa prejde celý, uloženie zastaví popup.
  */
-function MagnetTripsInfo({ locked, onSniffer, onTryAdd, where }: {
-  locked: number; onSniffer: () => void; onTryAdd: () => void; where: 'dock' | 'list';
+function MagnetTripsInfo({ locked, onTryAdd, where }: {
+  locked: number; onTryAdd: () => void; where: 'dock' | 'list';
 }) {
   const t = useT();
   const tx = (k: string, fb: string, p?: Record<string, string | number>) => {
@@ -3517,10 +3515,6 @@ function MagnetTripsInfo({ locked, onSniffer, onTryAdd, where }: {
           <button type="button" className="mgp-ai-chip" onClick={onTryAdd}>
             <img className="mgp-ink" src={ICON('plus')} alt="" />
             <span>{tx('magnet.pv.tryAdd', 'Try adding a trip')}</span>
-          </button>
-          <button type="button" className="mgp-ai-chip" onClick={onSniffer}>
-            <img src="/icons/sniffer/sniffer-logo-light.svg" alt="" />
-            <span>{tx('magnet.pv.sniffer', 'Who with? Sniffer finds you a dog for a shared trip.')}</span>
           </button>
         </>}
       />
@@ -6118,7 +6112,6 @@ export default function PackMap() {
         <MagnetTripsInfo
           where="list"
           locked={mgLockedCount}
-          onSniffer={() => mg.lock('action')}
           onTryAdd={mgTryAdd}
         />
       )}
@@ -6823,7 +6816,7 @@ export default function PackMap() {
 
       {/* NÁHĽAD /magnet — červený blok dole v pravej časti (len PC, mobil ho má vo vrchu zoznamu). */}
       {mg && !addFlow && (
-        <MagnetTripsInfo where="dock" locked={mgLockedCount} onSniffer={() => mg.lock('action')} onTryAdd={mgTryAdd} />
+        <MagnetTripsInfo where="dock" locked={mgLockedCount} onTryAdd={mgTryAdd} />
       )}
 
       {/* mobile-only liquid-glass header (bod 5 i11, bod 7 i12, bod 1 i13/i15) — 2 riadky:
