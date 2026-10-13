@@ -13,6 +13,7 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { HandCamera } from '@/components/pack/HandIcons';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 
 
 function useSessionData(sessionId: string | null, fallbackStore: { dogName: string; ownerName: string; email: string; selections: Record<string, string>; dogPhotoUrl: string; patronSvg: string; patronSvg2: string }) {
@@ -380,7 +381,7 @@ export function WelcomeScreen() {
           {/* Congrats + dog name */}
           <div className="flex flex-col items-center gap-0.5 text-center w-full">
             <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#888' }}>
-              {t('welcome.congratsPrefix')}<strong style={{ color: '#555' }}>{t('welcome.congratsName', { name: ownerFirstName })}</strong>
+              {t('welcome.congratsPrefix')}<strong style={{ color: '#555', fontWeight: 600 }}>{t('welcome.congratsName', { name: ownerFirstName })}</strong>
             </span>
 
             <div style={{ width: '100%', height: 1, background: 'linear-gradient(90deg, transparent, hsl(45 80% 60% / 0.4), transparent)', margin: '4px 0' }} />
@@ -418,12 +419,15 @@ export function WelcomeScreen() {
             <motion.button
               onClick={handleEnterPack}
               disabled={!canEnter}
-              className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+              className="relative w-full py-3.5 text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+              /* Hlavné CTA na papyruse = LAPIS r8 (brand manuál v4.1 · Buttons). Do 13. 10. 2026
+                 tu bolo zlato s radius 12 — jediné také tlačidlo v celom vstupe. */
               style={{
                 fontFamily: "'Cinzel', serif",
-                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                color: '#000',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
+                borderRadius: 8,
+                background: LAPIS.grad,
+                color: LAPIS.ink,
+                boxShadow: LAPIS_BTN_SHADOW,
               }}
               animate={canEnter ? { scale: [1, 1.025, 1] } : {}}
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
