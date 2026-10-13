@@ -1374,6 +1374,7 @@ export const en = {
   'magnet.hero.eye': 'DOGYPT · the app for dog people',
   'magnet.hero.h': 'If dogs had a country:',
   'magnet.hero.promise': 'Where to go with your dog. What is right for them. Who they really are.',
+  'magnet.hero.price': '€11 once and forever · part goes to dogs in need',
   'magnet.chip.eco': 'Ecosystem',
   'magnet.chip.journal': 'Journal',
   'magnet.chip.social': 'Social network',

@@ -59,14 +59,15 @@ export default function Magnet() {
       <Seo title="DOGYPT — if dogs had a country" description={t('magnet.hero.lead')} path="/magnet" noindex />
       <style>{CSS}</style>
       {/* ═══ 1 · ÚVOD — v9 (13. 10.): obraz cez celú šírku, ktorý sa stráca do papyrusu,
-           BEZ horného loga; Matejov návrh 1: nadpis + celý znak LOGO 2026 (tmavý atrament,
-           hlavné logo A) + tri otázky z verdiktu rady + šesť jeho mien v jednom riadku dokola.
-           Cenu a 3 pilulky z verdiktu Matej nevzal. ═══ */}
+           BEZ horného loga; variant VERDIKT RADY (prvý v hárku B): nadpis + kartuša LOGO 2026
+           (tmavý atrament, hlavné logo A) + tri otázky + cena; namiesto 3 pilulek Matejových
+           šesť mien v JEDNOM riadku dokola (13. 10.). ═══ */}
       <section className="mg-hero">
         <img className="mg-hero-bg" src={IMG('hero-namestie')} alt="" fetchPriority="high" />
         <div className="mg-hero-in">
           <h1 className="mg-h1">{t('magnet.hero.h')}<span className="mg-logo" role="img" aria-label="DOGYPT" /></h1>
           <p className="mg-lead">{t('magnet.hero.promise')}</p>
+          <p className="mg-offer">{t('magnet.hero.price')}</p>
         </div>
         {/* Šesť mien DOGYPTU v JEDNOM riadku, ktorý ide dokola (Matej 13. 10.). */}
         <div className="mg-names" aria-label={CHIPS.map((k) => t(`magnet.chip.${k}`)).join(' · ')}>
@@ -142,12 +143,13 @@ ${PILL_CSS}
   -webkit-mask-image:linear-gradient(180deg,#000 55%,rgba(0,0,0,.35) 82%,transparent);
   mask-image:linear-gradient(180deg,#000 55%,rgba(0,0,0,.35) 82%,transparent);}
 .mg-hero-in{position:relative;max-width:${COL}px;margin:0 auto;padding:calc(var(--mg-hero-h) - 80px) ${S.lg}px ${S.lg}px;text-align:center;}
-/* LOGO 2026 (vektor z Affinity, 13. 10.) — celý znak: pes na pyramíde + kartuša, farba = atrament cez masku. */
-.mg-logo{display:block;width:128px;aspect-ratio:1920/2060;margin:${S.sm}px auto 0;background:${T.inkStrong};
-  -webkit-mask:url(/images/magnet/logo-2026-znak.svg) center/contain no-repeat;
-  mask:url(/images/magnet/logo-2026-znak.svg) center/contain no-repeat;}
+/* LOGO 2026 (vektor z Affinity, 13. 10.) — kartuša DOG|YPT, farba = atrament cez masku. */
+.mg-logo{display:block;width:210px;aspect-ratio:1830/503;margin:${S.sm}px auto 0;background:${T.inkStrong};
+  -webkit-mask:url(/images/magnet/logo-2026-kartusa.svg) center/contain no-repeat;
+  mask:url(/images/magnet/logo-2026-kartusa.svg) center/contain no-repeat;}
 .mg-hero .mg-lead{margin-top:${S.lg}px;max-width:340px;}
 .mg-hero-in{padding-bottom:0;}
+.mg-offer{margin:${S.sm}px 0 0;font:700 ${PACK_TEXT.body}px/1.3 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${LAPIS.edge};}
 /* MENÁ — jeden riadok PILULIEK dokola; kraje sa strácajú v maske. Kto nechce pohyb,
    dostane ich zalomené na stred. */
 .mg-names{position:relative;max-width:${COL + 2 * S.xxl}px;margin:${S.lg}px auto 0;
