@@ -4481,6 +4481,8 @@ export const sk: Partial<Dict> = {
   'pack.trip.shareShift': "Posun fotky",
   'pack.trip.shareCtaIg': "Zdieľať do IG príbehu",
   'pack.trip.shareCtaFb': "Zdieľať na Facebook",
+  'pack.trip.shareCtaDownload': "Stiahnuť obrázok",
+  'pack.trip.shareStepPc2': "Stiahni obrázok — odkaz sa sám skopíruje. Pošli si ho do mobilu.",
   'pack.trip.shareCopy': "Skopírovať odkaz na výlet",
   'pack.trip.shareSlot': "sem nálepku ODKAZ",
   'pack.trip.shareFbLine': "celý výlet na dogypt.com",

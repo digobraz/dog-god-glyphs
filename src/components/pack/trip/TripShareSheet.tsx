@@ -223,6 +223,8 @@ function slug(name: string): string {
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'trip';
 }
 const isTouch = () => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
+/** Logá sietí (monochróm Simple Icons, `icons/brands/`) — Matej 13. 10.: „dal by som tam dve ikonky IG a FB logo namiesto nášho“. */
+const NET_ICON: Record<ShareFmt, string> = { ig: '/icons/brands/instagram.svg', fb: '/icons/brands/facebook.svg' };
 const cld = (u: string, px: number) => (u.includes('/upload/') ? sizedUrl(u, px) : u);
 
 const CSS = `
@@ -242,7 +244,7 @@ const CSS = `
 .tsh-lbl{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};margin:0 0 8px;}
 .tsh-sec + .tsh-sec{margin-top:16px;}
 .tsh-pills{display:flex;gap:8px;}
-.tsh-pill{flex:1;border:1px solid ${T.border};background:transparent;color:${T.inkStrong};border-radius:999px;padding:8px 12px;font-family:${FONT_UI};font-weight:500;font-size:14px;cursor:pointer;}
+.tsh-pill{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid ${T.border};background:transparent;color:${T.inkStrong};border-radius:999px;padding:8px 12px;font-family:${FONT_UI};font-weight:500;font-size:14px;cursor:pointer;}
 .tsh-pill.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
 .tsh-photos{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
 .tsh-ph{flex:0 0 56px;height:56px;border-radius:12px;border:2px solid transparent;overflow:hidden;cursor:pointer;padding:0;background:${T.bg};}
@@ -370,7 +372,12 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
     i.src = URL.createObjectURL(f);
   };
 
-  const steps = fmt === 'ig'
+  // PC: hárok Macu/Windowsu IG neponúka ⇒ tlačidlo sa volá podľa toho, čo naozaj urobí (Matej 13. 10.:
+  // „CTA je zdieľať na IG FB, ale po kliku sa fotka stiahne… nemalo by tam byť stiahnuť fotku?“)
+  const pc = !isTouch();
+  const steps = pc
+    ? [t('pack.trip.shareStep1'), t('pack.trip.shareStepPc2'), t(fmt === 'ig' ? 'pack.trip.shareStepIg3' : 'pack.trip.shareStepFb3')]
+    : fmt === 'ig'
     ? [t('pack.trip.shareStep1'), t('pack.trip.shareStepIg2'), t('pack.trip.shareStepIg3')]
     : [t('pack.trip.shareStep1'), t('pack.trip.shareStepFb2'), t('pack.trip.shareStepFb3')];
 
@@ -395,6 +402,7 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
                 <div className="tsh-pills">
                   {(['ig', 'fb'] as ShareFmt[]).map((f) => (
                     <button key={f} type="button" className={`tsh-pill${fmt === f ? ' on' : ''}`} onClick={() => setFmt(f)}>
+                      <span className="tsh-ic" style={{ '--ic': `url(${NET_ICON[f]})` } as React.CSSProperties} />
                       {t(f === 'ig' ? 'pack.trip.shareIg' : 'pack.trip.shareFb')}
                     </button>
                   ))}
@@ -425,7 +433,7 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
               </div>
               <div className="tsh-sec">
                 <button type="button" className="tsh-cta" onClick={share} disabled={!ready}>
-                  {t(fmt === 'ig' ? 'pack.trip.shareCtaIg' : 'pack.trip.shareCtaFb')}
+                  {t(pc ? 'pack.trip.shareCtaDownload' : fmt === 'ig' ? 'pack.trip.shareCtaIg' : 'pack.trip.shareCtaFb')}
                 </button>
                 <button type="button" className="tsh-link" onClick={copyOnly}>
                   <span className="tsh-ic" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
@@ -450,7 +458,8 @@ export function TripShareButton({ data }: { data: TripShareData }) {
   return (
     <>
       <button type="button" className="pta-actbtn pta-actbtn--blue" onClick={() => setOpen(true)} aria-label={t('pack.trip.story')}>
-        <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('camera')})` } as React.CSSProperties} />
+        <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${NET_ICON.ig})` } as React.CSSProperties} />
+        <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${NET_ICON.fb})` } as React.CSSProperties} />
         <span className="pta-actbtn-label">{t('pack.trip.story')}</span>
       </button>
       {open && <TripShareSheet data={data} onClose={() => setOpen(false)} />}

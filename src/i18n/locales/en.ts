@@ -4779,6 +4779,8 @@ export const en = {
   'pack.trip.shareShift': "Move photo",
   'pack.trip.shareCtaIg': "Share to IG story",
   'pack.trip.shareCtaFb': "Share to Facebook",
+  'pack.trip.shareCtaDownload': "Download image",
+  'pack.trip.shareStepPc2': "Download the image — the link is copied for you. Send it to your phone.",
   'pack.trip.shareCopy': "Copy trip link",
   'pack.trip.shareSlot': "LINK sticker here",
   'pack.trip.shareFbLine': "full trip on dogypt.com",
