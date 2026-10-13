@@ -600,10 +600,15 @@ export function tripPath(t: { id: string; urlSlug?: string; country?: string | n
 // ⚠️ `id` (local-<čas>) sa NEMENÍ: kľúčujú ním prejdenia, hlasy, psie výlety aj Cloudinary
 // priečinok fotiek. `urlSlug` je len druhé meno; článok hľadá výlet podľa oboch (staré odkazy žijú).
 /** Výlet podľa segmentu z adresy — najprv id, potom čitateľný slug. */
-export function tripIdFromUrl(urlSlug: string | undefined, trails: readonly { id: string; urlSlug?: string }[]): string | undefined {
+export function tripIdFromUrl(urlSlug: string | undefined, trails: readonly { id: string; urlSlug?: string; urlSlugsOld?: readonly string[] }[]): string | undefined {
   if (!urlSlug) return urlSlug;
   if (trails.some((t) => t.id === urlSlug)) return urlSlug;
-  return trails.find((t) => t.urlSlug === urlSlug)?.id ?? urlSlug;
+  // 13. 10. 2026: chata pri schvaľovaní/premenovaní mení `urlSlug` podľa názvu — Danke odišiel mail
+  // s `pilatus-kulm-…`, Matej potom „Kulm" zmazal a odkaz z mailu viedol do prázdna. Staré adresy
+  // si výlet nesie v `urlSlugsOld` (dopĺňa chata), takže každý raz rozoslaný odkaz žije ďalej.
+  return trails.find((t) => t.urlSlug === urlSlug)?.id
+    ?? trails.find((t) => t.urlSlugsOld?.includes(urlSlug))?.id
+    ?? urlSlug;
 }
 
 /** Slug z názvu: časť pred dvojbodkou alebo pomlčkou s medzerami („Melchsee-Frutt: Naše piate…"
