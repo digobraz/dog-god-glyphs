@@ -362,7 +362,12 @@ ${packColCSS('.pta-shell')}
    dve sa rozdelia na polovice, tri na tretiny. */
 /* 13. 10. 2026 (Matej: „bez blokov, iba na pozadí a rozdelené zvislými čiarami“): tri údaje
    sú jeden pás s linkami hore a dole, bunky oddeľuje hairline. Nákres tri-udaje.html. */
-.pta-statrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:24px;background:linear-gradient(90deg,rgba(201,154,63,.06),rgba(201,154,63,.02),rgba(201,154,63,.06));}
+.pta-statrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin-top:24px;background:linear-gradient(90deg,rgba(201,154,63,.06),rgba(201,154,63,.02),rgba(201,154,63,.06));}
+/* MOBIL = 1 + 2 (Matej 14. 10. 2026: „dĺžka a výška do jedného riadku vedľa seba a pod to do dvoch
+   náročnosť a návštevnosť"): km │ m je plná šírka, pod ňou dve dlaždice vedľa seba. Plná dlaždica
+   sa natiahne cez oba stĺpce; čiara pred jej nasledovníkom v prvom stĺpci by visela do prázdna. */
+.pta-stat--full{grid-column:1 / -1;}
+.pta-stat--full + .pta-stat::before{display:none;}
 /* RIADOK 1 = trasa cez celú šírku, RIADOK 2 = náročnosť + ruch (Matej 21. 9. 2026:
    „kilometre výškové a diaľka by som dal do jedného riadku do jedného bloku a náročnosť
    a rušnosť do druhého riadku do dvoch… vadí mi to voľné miesto vedľa rušnosti").
@@ -373,16 +378,13 @@ ${packColCSS('.pta-shell')}
 .pta-stat + .pta-stat::before{content:"";position:absolute;left:-2px;top:14%;bottom:14%;width:4px;
   background:linear-gradient(to bottom,transparent,${T.cardEdge} 50%,transparent);
   clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);}
-/* trasa: km a prevýšenie pod sebou, aby sa vošla do tretiny šírky */
-.pta-route{flex-direction:column;gap:2px;}
-.pta-route i{display:none;}
 /* ⚠️ Ten rozpis 1 + 2 je LEN MOBIL (Matej 21. 9. 2026 večer: „na PC majú byť tie bloky 3
    vedľa seba, menili sme dnes len mobil"). Od 761 px (tá istá hranica ako isMobile vyššie)
    stoja všetky dlaždice v JEDNOM riadku a delia sa rovnakým dielom — 1, 2 aj 3 bez diery. */
 @media (min-width:761px){
   .pta-statrow{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:1fr;}
-  .pta-route{flex-direction:row;gap:8px;}
-  .pta-route i{display:block;}
+  .pta-stat--full{grid-column:auto;}
+  .pta-stat--full + .pta-stat::before{display:block;}
 }
 .pta-stat{padding:16px 8px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:5px;
   background:none;border:0;box-shadow:none;}
