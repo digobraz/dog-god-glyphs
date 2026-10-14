@@ -3917,6 +3917,8 @@ export const en = {
   'pack.addTrip.step.removePhoto': "Remove photo",
   'pack.addTrip.step.coverCrop': "Cover photo vertical position",
   'pack.addTrip.step.coverPick': "Tap a photo to make it the cover.",
+  'pack.addTrip.step.photoMoveLeft': "Move photo earlier",
+  'pack.addTrip.step.photoMoveRight': "Move photo later",
   'pack.addTrip.step.dupWarn': "This route looks similar to an existing trip — {name}. Log it anyway?",
   'pack.addTrip.step.cancel': "Cancel",
   'pack.addTrip.step.logAnyway': "Log it anyway",

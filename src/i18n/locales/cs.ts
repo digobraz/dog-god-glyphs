@@ -3435,6 +3435,8 @@ export const cs: Partial<Dict> = {
   'pack.addTrip.step.coverCrop': 'Svislý výřez titulní fotky',
   'pack.addTrip.step.coverPhoto': 'Nastavit jako titulní fotku',
   'pack.addTrip.step.coverPick': 'Klepni na fotku — bude titulní.',
+  'pack.addTrip.step.photoMoveLeft': 'Posunout fotku dopředu',
+  'pack.addTrip.step.photoMoveRight': 'Posunout fotku dozadu',
   'pack.addTrip.step.dateEnd': 'Konec',
   'pack.addTrip.step.dayModeAsk': 'Jak dlouho jste byli na cestě?',
   'pack.addTrip.step.dayModeAsk.plan': 'Jak dlouho budete na cestě?',

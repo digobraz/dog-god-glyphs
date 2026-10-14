@@ -1489,6 +1489,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     if (picked.length > imgs.length) notes.push(`${picked.length - imgs.length} skipped (not an image)`);
     setPhotoNote(notes.join(' · '));
   };
+  // Poradie fotiek (Daniela, 14. 10. 2026): šípky ← → na fotke. Titulka sa drží fotky, nie pozície.
+  const movePhoto = (i: number, d: -1 | 1) => {
+    const j = i + d;
+    if (j < 0 || j >= photos.length) return;
+    setPhotos((prev) => { const n = [...prev]; [n[i], n[j]] = [n[j], n[i]]; return n; });
+    setCoverIndex((prev) => (prev === i ? j : prev === j ? i : prev));
+  };
   const removePhoto = (i: number) => {
     setPhotos((prev) => prev.filter((_, idx) => idx !== i));
     setCoverIndex((prev) => (i === prev ? 0 : i < prev ? prev - 1 : prev));
@@ -3798,6 +3805,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                               aria-label={t('pack.addTrip.step.coverPhoto')}
                             >
                               {i === effCoverIndex && <span className="atl-photo-cover-badge">{t('pack.addTrip.step.cover')}</span>}
+                              {i > 0 && <button type="button" className="atl-photo-mv atl-photo-mv--l" onClick={(e) => { e.stopPropagation(); movePhoto(i, -1); }} aria-label={t('pack.addTrip.step.photoMoveLeft')}><i /></button>}
+                              {i < photos.length - 1 && <button type="button" className="atl-photo-mv atl-photo-mv--r" onClick={(e) => { e.stopPropagation(); movePhoto(i, 1); }} aria-label={t('pack.addTrip.step.photoMoveRight')}><i /></button>}
                               <button type="button" onClick={(e) => { e.stopPropagation(); removePhoto(i); }} aria-label={t('pack.addTrip.step.removePhoto')}>×</button>
                             </div>
                           ))}
@@ -4843,6 +4852,12 @@ const LOG_CSS = `
 .atl-photo-thumb{position:relative;aspect-ratio:1;border-radius:8px;background-size:cover;background-position:center;border:1px solid ${T.onDarkBorder};cursor:pointer;}
 .atl-photo-thumb.cover{border:2px solid ${GOLD};box-shadow:0 0 0 1px ${T.border};}
 .atl-photo-thumb button{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.7);border:0;color:${T.onDark};cursor:pointer;font-size:12px;line-height:1;}
+.atl-photo-thumb .atl-photo-mv{top:auto;bottom:auto;right:auto;left:auto;width:22px;height:22px;top:50%;margin-top:-11px;display:flex;align-items:center;justify-content:center;padding:0;}
+.atl-photo-mv--l{left:3px !important;}
+.atl-photo-mv--r{right:3px !important;}
+.atl-photo-mv i{display:block;width:6px;height:6px;border:solid ${T.onDark};border-width:0 0 2px 2px;}
+.atl-photo-mv--l i{transform:rotate(45deg);margin-left:3px;}
+.atl-photo-mv--r i{transform:rotate(-135deg);margin-right:3px;}
 .atl-photo-cover-badge{position:absolute;left:0;right:0;bottom:0;text-align:center;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;color:#000;background:${GOLD};padding:4px 0;border-radius:0 0 8px 8px;}
 .atl-cover-crop{margin-top:10px;display:flex;flex-direction:column;gap:5px;}
 /* Náhľad titulnej fotky priamo nad posuvníkom. Pomer 16:9 = ten istý tvar, v akom fotka

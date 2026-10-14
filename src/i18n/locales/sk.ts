@@ -3619,6 +3619,8 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.step.removePhoto': "Odstrániť fotku",
   'pack.addTrip.step.coverCrop': "Zvislý výrez titulnej fotky",
   'pack.addTrip.step.coverPick': "Ťukni na fotku — bude titulná.",
+  'pack.addTrip.step.photoMoveLeft': "Posunúť fotku dopredu",
+  'pack.addTrip.step.photoMoveRight': "Posunúť fotku dozadu",
   'pack.addTrip.step.dupWarn': "Táto trasa sa podobá na existujúci výlet — {name}. Zapísať aj tak?",
   'pack.addTrip.step.cancel': "Zrušiť",
   'pack.addTrip.step.logAnyway': "Zapísať aj tak",

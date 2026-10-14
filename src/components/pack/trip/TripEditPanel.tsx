@@ -88,6 +88,13 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
 /* Krížik je nad fotkou, nie vedľa nej: pri ôsmich fotkách sa vedľajšie tlačidlo nedá trafiť.
    Sedí na FOTKE, nie na papyruse — preto ostáva tmavý. */
 .tep-photo-x{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(10,6,2,0.78);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.tep-photo-mv{position:absolute;top:50%;margin-top:-11px;width:22px;height:22px;border-radius:50%;background:rgba(10,6,2,0.78);border:1px solid ${T.onDarkBorder};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+.tep-photo-mv--l{left:4px;}
+.tep-photo-mv--r{right:4px;}
+.tep-photo-mv i{display:block;width:6px;height:6px;border:solid ${T.onDark};border-width:0 0 2px 2px;}
+.tep-photo-mv--l i{transform:rotate(45deg);margin-left:3px;}
+.tep-photo-mv--r i{transform:rotate(-135deg);margin-right:3px;}
+.tep-photo-mv:hover{border-color:${LAPIS.ink};}
 .tep-photo-x:hover{border-color:${LAPIS.ink};color:${LAPIS.ink};}
 .tep-addphoto{height:70px;border-radius:8px;border:1px dashed ${T.border};background:${PALE.field};color:${T.inkWarm};font-family:${FONT_UI};font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .tep-addphoto:hover{border-color:${LAPIS.edge};color:${LAPIS.edge};}
@@ -198,6 +205,14 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onReroute, on
     if (i === 0) return;
     setPhotos((prev) => [prev[i], ...prev.filter((_, k) => k !== i)]);
     setCoverY(50);
+  };
+
+  // Poradie fotiek (Daniela, 14. 10. 2026): šípky ← → na fotke; fotka na mieste 0 je titulka.
+  const movePhoto = (i: number, d: -1 | 1) => {
+    const j = i + d;
+    if (j < 0 || j >= photos.length) return;
+    setPhotos((prev) => { const n = [...prev]; [n[i], n[j]] = [n[j], n[i]]; return n; });
+    if (i === 0 || j === 0) setCoverY(50);
   };
 
   const save = () => {
@@ -318,6 +333,8 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onReroute, on
               >
                 <img src={sizedUrl(p, 240)} alt="" loading="lazy" decoding="async" />
                 {i === 0 && photos.length > 1 && <span className="tep-photo-cover">{t('pack.addTrip.step.cover')}</span>}
+                {i > 0 && <button type="button" className="tep-photo-mv tep-photo-mv--l" aria-label={t('pack.addTrip.step.photoMoveLeft')} onClick={(e) => { e.stopPropagation(); movePhoto(i, -1); }}><i /></button>}
+                {i < photos.length - 1 && <button type="button" className="tep-photo-mv tep-photo-mv--r" aria-label={t('pack.addTrip.step.photoMoveRight')} onClick={(e) => { e.stopPropagation(); movePhoto(i, 1); }}><i /></button>}
                 <button
                   type="button"
                   className="tep-photo-x"
