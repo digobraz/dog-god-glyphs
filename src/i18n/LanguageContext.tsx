@@ -246,6 +246,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const value = dict[key] ?? DICTS.en[key];
     // Kľúč appky bez natiahnutého kusu ⇒ dotiahni ho (po príchode prekreslí listener nižšie).
     if (value === undefined && key.startsWith('pack.') && !loaded.has(`${lang}:pack`)) void ensurePackDict();
+    // ⚥ = tvar podľa pohlavia „muž|žena|neuvedené“ (14. 10. 2026, Alenka: „Slobodný“ pre ženu).
+    // Volajúci pošle `{ rod: human.gender }`; bez neho ide tvar „Slobodný/á“, nikdy surový text.
+    if (value?.startsWith('⚥')) {
+      const [m, f, x] = value.slice(1).split('|');
+      const g = vars?.rod;
+      return interpolate(g === 'male' ? m : g === 'female' ? (f ?? m) : (x ?? m), vars);
+    }
     return interpolate(value ?? key, vars);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- dictsTick force-refreshes `t` identity once a lazy locale chunk lands
   }, [lang, dictsTick]);

@@ -941,7 +941,7 @@ export default function PackProfile() {
                 „PERSONALITY". Kým to bola samostatná karta, čítal sa ako pod-
                 nadpis; pod eyebrow „What you're like" je to to isté dvakrát. */}
             <div style={{ marginBottom: 12 }}>
-              <Eyebrow>{tx('pack.profile.whatYoureLike', 'What you’re like')}</Eyebrow>
+              <Eyebrow>{t('pack.profile.whatYoureLike', { rod: human?.gender ?? '' })}</Eyebrow>
             </div>
             <PersonalityConcentrate human={human} patchHuman={patchHuman} center hideLabel />
           </Column>
@@ -1034,7 +1034,9 @@ function ProfilePill<V extends string>({
   onClick: () => void;
 }) {
   const t = useT();
-  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  // Štítky o človeku v jeho rode (⚥ v slovníku) — profil je vlastný, rod berieme z neho.
+  const rodG = useProfile().profile?.human?.gender ?? '';
+  const tx = (key: string, fallback: string) => { const v = t(key, { rod: rodG }); return v === key ? fallback : v; };
   return (
     <button
       type="button"
@@ -1216,7 +1218,9 @@ function LifestyleSelect<V extends string>({
   onChange: (v: V | undefined) => void;
 }) {
   const t = useT();
-  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  // Štítky o človeku v jeho rode (⚥ v slovníku) — profil je vlastný, rod berieme z neho.
+  const rodG = useProfile().profile?.human?.gender ?? '';
+  const tx = (key: string, fallback: string) => { const v = t(key, { rod: rodG }); return v === key ? fallback : v; };
   return (
     <select
       value={value ?? ''}
@@ -1595,7 +1599,9 @@ function StatusSelect({
   onChange: (v: RelationshipStatus | undefined) => void;
 }) {
   const t = useT();
-  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  // Štítky o človeku v jeho rode (⚥ v slovníku) — profil je vlastný, rod berieme z neho.
+  const rodG = useProfile().profile?.human?.gender ?? '';
+  const tx = (key: string, fallback: string) => { const v = t(key, { rod: rodG }); return v === key ? fallback : v; };
   return (
     <select
       value={value ?? ''}

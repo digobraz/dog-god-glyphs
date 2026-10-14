@@ -321,7 +321,7 @@ export function SnifferProfile({
 
   const photos = (human?.buddyPhotos?.length ? human.buddyPhotos : human?.buddyPhoto ? [human.buddyPhoto] : []);
   const opt = (v?: string | null) => (v ? tx(`pack.dogCard.opt.${v}`, v) : '');
-  const tag = <V extends string>(o: TaxonomyOption<V>) => tx(`pack.profileTag.${o.value}`, o.labelEN);
+  const tag = <V extends string>(o: TaxonomyOption<V>) => tx(`pack.profileTag.${o.value}`, o.labelEN, { rod: human?.gender ?? '' });
   const personality = human?.personality ?? [];
   const traitsTotal = personality.length + (human?.customPersonality ? 1 : 0);
 
@@ -410,7 +410,7 @@ export function SnifferProfile({
               value={human?.work} label={tag} onChange={(v) => void saveHuman({ work: v })} />
           </div>
 
-          <span className="sp-sec">{tx('pack.profile.whatYoureLike', 'What you’re like')} <b>{traitsTotal}/{MAX_PERSONALITY}</b></span>
+          <span className="sp-sec">{tx('pack.profile.whatYoureLike', 'What you’re like', { rod: human?.gender ?? '' })} <b>{traitsTotal}/{MAX_PERSONALITY}</b></span>
           {/* Vybrané ako lapisové chipy; celá paleta až na ťuk — inak by 20 pilulek vytlačilo kartu z okna. */}
           {allTraits ? (
             <Pills

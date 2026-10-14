@@ -158,7 +158,7 @@ export function SnifferFullProfile({ card, tx, actions }: { card: SnifferCardDat
           {((card.personality?.length ?? 0) > 0 || card.customPersonality) && (
             <div className="sfp-pills">
               {PERSONALITY_OPTIONS.filter((o) => card.personality?.includes(o.value)).map((o) => (
-                <span key={o.value} className="pk-pill">{tx(`pack.profileTag.${o.value}`, o.labelEN)}</span>
+                <span key={o.value} className="pk-pill">{tx(`pack.profileTag.${o.value}`, o.labelEN, { rod: info.gender ?? '' })}</span>
               ))}
               {card.customPersonality && <span className="pk-pill">{card.customPersonality}</span>}
             </div>
