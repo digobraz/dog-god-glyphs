@@ -3555,7 +3555,7 @@ export const cs: Partial<Dict> = {
   'pack.addTrip.grade.point.route': 'Trasa',
   'pack.addTrip.grade.point.parking': 'Parkoviště',
   'pack.addTrip.grade.point.tip': 'Psí tip',
-  'pack.addTrip.grade.hint.desc': 'Přidej 2–3 věty o trase a uvidí ho víc lidí.',
+  'pack.addTrip.grade.hint.desc': 'Přidej 3 a více vět o trase a uvidí ho víc lidí.',
   'pack.addTrip.grade.hint.photos': 'Přidej ještě pár fotek a uvidí ho víc lidí.',
   'pack.addTrip.grade.hint.route': 'Nakresli trasu a uvidí ho víc lidí.',
   'pack.addTrip.grade.hint.parking': 'Přidej parkoviště a uvidí ho víc lidí.',

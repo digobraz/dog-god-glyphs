@@ -3668,7 +3668,7 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.grade.point.route': "Trasa",
   'pack.addTrip.grade.point.parking': "Parkovisko",
   'pack.addTrip.grade.point.tip': "Psí tip",
-  'pack.addTrip.grade.hint.desc': "Pridaj 2–3 vety o trase a uvidí ho viac ľudí.",
+  'pack.addTrip.grade.hint.desc': "Pridaj 3 a viac viet o trase a uvidí ho viac ľudí.",
   'pack.addTrip.grade.hint.photos': "Pridaj ešte zopár fotiek a uvidí ho viac ľudí.",
   'pack.addTrip.grade.hint.route': "Nakresli trasu a uvidí ho viac ľudí.",
   'pack.addTrip.grade.hint.parking': "Pridaj parkovisko a uvidí ho viac ľudí.",

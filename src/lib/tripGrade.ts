@@ -24,8 +24,8 @@ export const GRADE_POINTS: readonly GradePoint[] = ['desc', 'photos', 'route', '
 /** Plný počet bodov (dnes 4). Nikde nepíš „/ 5" ani „/ 4" natvrdo — ber toto číslo. */
 export const GRADE_MAX = GRADE_POINTS.length;
 
-/** Popis „2–3 vety": aspoň 2 vety A aspoň 120 znakov (jedna dlhá veta ani tri slová nestačia). */
-export const DESC_MIN_SENTENCES = 2;
+/** Popis „3 a viac viet" (Matej 14. 10. 2026): aspoň 3 vety A aspoň 120 znakov (tri krátke slová nestačia). */
+export const DESC_MIN_SENTENCES = 3;
 export const DESC_MIN_CHARS = 120;
 export const PHOTOS_MIN = 3;
 
@@ -60,8 +60,8 @@ export function descOk(text: string): boolean {
 }
 
 /**
- * A = plný počet · B = o 1 menej a sú v tom popis AJ fotky · C = všetko ostatné.
- * (Popis a fotky sú to, čo vie dodať iba autor — bez nich výlet nemôže byť B, nech má čokoľvek.)
+ * A = plný počet · B = o 1 menej (ktorýkoľvek bod) · C = všetko ostatné.
+ * Popis nie je brána: výlet s jednou vetou dostane len menej bodov, nie zamietnutie.
  */
 export function gradeFromInputs(i: GradeInputs): GradeResult {
   const ok: Record<GradePoint, boolean> = {
@@ -74,7 +74,7 @@ export function gradeFromInputs(i: GradeInputs): GradeResult {
   const met = GRADE_POINTS.filter((p) => ok[p]);
   const missing = GRADE_POINTS.filter((p) => !ok[p]);
   const score = met.length;
-  const grade: TripGrade = score === GRADE_MAX ? 'A' : score === GRADE_MAX - 1 && ok.desc && ok.photos ? 'B' : 'C';
+  const grade: TripGrade = score === GRADE_MAX ? 'A' : score === GRADE_MAX - 1 ? 'B' : 'C';
   return { grade, score, met, missing };
 }
 
