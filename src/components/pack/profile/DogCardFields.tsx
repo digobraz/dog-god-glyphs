@@ -514,6 +514,9 @@ export function OpenQuestion({
       {editable && (
         <>
           <input
+            // Vlastné slovo (vôdzka) klávesnica prepisovala na „vodičku“ — Alenka 14. 10. 2026.
+            autoCorrect="off"
+            spellCheck={false}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {

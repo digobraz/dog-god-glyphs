@@ -1152,6 +1152,9 @@ function PersonalityConcentrate({
           </button>
         ) : adding ? (
           <input
+            // Vlastné slovo (vôdzka) klávesnica prepisovala na „vodičku“ — Alenka 14. 10. 2026.
+            autoCorrect="off"
+            spellCheck={false}
             autoFocus
             value={draft}
             maxLength={24}

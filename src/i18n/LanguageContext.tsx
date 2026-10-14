@@ -153,13 +153,21 @@ function interpolate(template: string, vars?: Record<string, string | number>): 
   return template.replace(/\{(\w+)\}/g, (m, name) => (name in vars ? String(vars[name]) : m));
 }
 
+// Interný kód jazyka → ISO 639-1 pre `<html lang>` (a Intl, ktorý ho odtiaľ číta).
+const HTML_LANG: Record<string, string> = {
+  ara: 'ar', chn: 'zh', deu: 'de', esp: 'es', fra: 'fr', ind: 'id', ita: 'it', jpn: 'ja',
+  kor: 'ko', nld: 'nl', pol: 'pl', prt: 'pt', rus: 'ru', tur: 'tr', ukr: 'uk',
+};
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<LangCode>(readStoredLang);
 
   // Aplikuj jazyk na <html> (lang + dir) pri každej zmene.
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    document.documentElement.lang = lang;
+    // ISO kód, nie náš interný (`ukr`, `chn`…): neznámy kód = Chrome na Androide
+    // hádal jazyk a ponúkal/robil vlastný preklad (Alenka, Belga — 14. 10. 2026).
+    document.documentElement.lang = HTML_LANG[lang] ?? lang;
     document.documentElement.dir = RTL_LANGS.has(lang) ? 'rtl' : 'ltr';
   }, [lang]);
 
