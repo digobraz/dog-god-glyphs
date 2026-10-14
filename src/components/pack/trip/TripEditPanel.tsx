@@ -88,7 +88,7 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
 /* Krížik je nad fotkou, nie vedľa nej: pri ôsmich fotkách sa vedľajšie tlačidlo nedá trafiť.
    Sedí na FOTKE, nie na papyruse — preto ostáva tmavý. */
 .tep-photo-x{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(10,6,2,0.78);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.tep-photo-mv{position:absolute;top:50%;margin-top:-11px;width:22px;height:22px;border-radius:50%;background:rgba(10,6,2,0.78);border:1px solid ${T.onDarkBorder};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+.tep-photo-mv{position:absolute;bottom:4px;width:22px;height:22px;border-radius:50%;background:rgba(10,6,2,0.78);border:1px solid ${T.onDarkBorder};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
 .tep-photo-mv--l{left:4px;}
 .tep-photo-mv--r{right:4px;}
 .tep-photo-mv i{display:block;width:6px;height:6px;border:solid ${T.onDark};border-width:0 0 2px 2px;}

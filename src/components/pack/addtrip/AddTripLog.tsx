@@ -4852,9 +4852,10 @@ const LOG_CSS = `
 .atl-photo-thumb{position:relative;aspect-ratio:1;border-radius:8px;background-size:cover;background-position:center;border:1px solid ${T.onDarkBorder};cursor:pointer;}
 .atl-photo-thumb.cover{border:2px solid ${GOLD};box-shadow:0 0 0 1px ${T.border};}
 .atl-photo-thumb button{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.7);border:0;color:${T.onDark};cursor:pointer;font-size:12px;line-height:1;}
-.atl-photo-thumb .atl-photo-mv{top:auto;bottom:auto;right:auto;left:auto;width:22px;height:22px;top:50%;margin-top:-11px;display:flex;align-items:center;justify-content:center;padding:0;}
-.atl-photo-mv--l{left:3px !important;}
-.atl-photo-mv--r{right:3px !important;}
+.atl-photo-thumb .atl-photo-mv{top:auto;bottom:4px;right:auto;left:auto;width:22px;height:22px;display:flex;align-items:center;justify-content:center;padding:0;}
+.atl-photo-thumb.cover .atl-photo-mv{bottom:28px;}
+.atl-photo-mv--l{left:4px !important;}
+.atl-photo-mv--r{right:4px !important;}
 .atl-photo-mv i{display:block;width:6px;height:6px;border:solid ${T.onDark};border-width:0 0 2px 2px;}
 .atl-photo-mv--l i{transform:rotate(45deg);margin-left:3px;}
 .atl-photo-mv--r i{transform:rotate(-135deg);margin-right:3px;}
