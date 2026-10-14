@@ -334,7 +334,8 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onReroute, on
                 <img src={sizedUrl(p, 240)} alt="" loading="lazy" decoding="async" />
                 {i === 0 && photos.length > 1 && <span className="tep-photo-cover">{t('pack.addTrip.step.cover')}</span>}
                 {i > 0 && <button type="button" className="tep-photo-mv tep-photo-mv--l" aria-label={t('pack.addTrip.step.photoMoveLeft')} onClick={(e) => { e.stopPropagation(); movePhoto(i, -1); }}><i /></button>}
-                {i < photos.length - 1 && <button type="button" className="tep-photo-mv tep-photo-mv--r" aria-label={t('pack.addTrip.step.photoMoveRight')} onClick={(e) => { e.stopPropagation(); movePhoto(i, 1); }}><i /></button>}
+                {/* Titulka nemá → (kríži sa so štítkom TITULNÁ na 64 px dlaždici); titulku mení ťuk alebo ← na druhej fotke. */}
+                {i > 0 && i < photos.length - 1 && <button type="button" className="tep-photo-mv tep-photo-mv--r" aria-label={t('pack.addTrip.step.photoMoveRight')} onClick={(e) => { e.stopPropagation(); movePhoto(i, 1); }}><i /></button>}
                 <button
                   type="button"
                   className="tep-photo-x"
