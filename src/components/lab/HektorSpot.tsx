@@ -30,8 +30,9 @@
 //    TÚ ISTÚ triedu .codex-hektor, takže LOCKED geometria (scale 1.08, origin
 //    bottom right, mobilná vetva 1.352) platí naň bez prepočtu.
 // ════════════════════════════════════════════════════════════════════════════
-import { useCallback, useState } from 'react';
-import HektorBook from './HektorBook';
+import { Suspense, lazy, useCallback, useState } from 'react';
+// Kniha o Hektorovi sa otvára až klikom — vlastný chunk (r-perf, 14. 10. 2026), nesedí v chunku filmu.
+const HektorBook = lazy(() => import('./HektorBook'));
 import { useT } from '@/i18n/LanguageContext';
 
 /** Fotka, ktorou sa maskuje lesk. Musí to byť TÁ ISTÁ, čo kreslí ReligionLab. */
@@ -265,7 +266,7 @@ export default function HektorSpot() {
         </g>
       </svg>
 
-      {bookOpen && <HektorBook onClose={close} />}
+      {bookOpen && <Suspense fallback={null}><HektorBook onClose={close} /></Suspense>}
     </>
   );
 }
