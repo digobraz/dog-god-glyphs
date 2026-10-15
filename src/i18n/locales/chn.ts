@@ -1437,6 +1437,8 @@ export const chn: Partial<Dict> = {
   "heroglyph.flow.welcomeNew.l2": "…… 正在生成证书",
   "heroglyph.flow.welcomeNew.l3": "完成！一切都已发到你的邮箱！",
   "heroglyph.flow.welcomeNew.l4": "谢谢！我们离目标又近了一根胡须！",
+  "heroglyph.flow.welcomeNew.mail": "进入应用的链接已发到你的邮箱",
+  "heroglyph.flow.welcomeNew.mailBtn": "按钮「打开我的主页」",
   "heroglyph.flow.listSep": "、",
 
   // ── /pack a zvyšok appky — preklad 4. 10. 2026 (plany/preklad-pack-2026-10-04) ──

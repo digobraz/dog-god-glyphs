@@ -603,6 +603,8 @@ export const en = {
   'heroglyph.flow.welcomeNew.l2': '… generating the certificate',
   'heroglyph.flow.welcomeNew.l3': 'Done! Everything is in your inbox!',
   'heroglyph.flow.welcomeNew.l4': 'Thank you! We are a whisker closer to our goal!',
+  'heroglyph.flow.welcomeNew.mail': 'Your key to the app is in your email',
+  'heroglyph.flow.welcomeNew.mailBtn': 'button “Open My Profile”',
   'heroglyph.flow.welcomeNew.goal': '{n} of 1,000,000 dogs',
   'heroglyph.flow.welcomeNew.cta': 'View the wall',
   'heroglyph.flow.welcomeNew.ctaWait': 'Finishing your certificate…',

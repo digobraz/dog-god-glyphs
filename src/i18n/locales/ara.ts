@@ -1437,6 +1437,8 @@ export const ara: Partial<Dict> = {
   "heroglyph.flow.welcomeNew.l2": "… جارٍ إصدار الشهادة",
   "heroglyph.flow.welcomeNew.l3": "تم! كل شيء في بريدك!",
   "heroglyph.flow.welcomeNew.l4": "شكرًا! صرنا أقرب إلى هدفنا بشعرة!",
+  "heroglyph.flow.welcomeNew.mail": "رابط الدخول إلى التطبيق في بريدك",
+  "heroglyph.flow.welcomeNew.mailBtn": "زر «فتح ملفي الشخصي»",
   "heroglyph.flow.listSep": "، ",
 
   // ── /pack a zvyšok appky — preklad 4. 10. 2026 (plany/preklad-pack-2026-10-04) ──

@@ -1625,6 +1625,8 @@ export const ukr: Partial<Dict> = {
   "heroglyph.flow.welcomeNew.l2": "… готуємо сертифікат",
   "heroglyph.flow.welcomeNew.l3": "Готово! Усе вже у твоїй пошті!",
   "heroglyph.flow.welcomeNew.l4": "Дякуємо! Ми на волосинку ближче до мети!",
+  "heroglyph.flow.welcomeNew.mail": "Посилання для входу в застосунок — у твоїй пошті",
+  "heroglyph.flow.welcomeNew.mailBtn": "кнопка «Відкрити мій профіль»",
   "heroglyph.flow.listSep": ", ",
 
   // ── /pack a zvyšok appky — preklad 4. 10. 2026 (plany/preklad-pack-2026-10-04) ──

@@ -1441,6 +1441,8 @@ export const ind: Partial<Dict> = {
   "heroglyph.flow.welcomeNew.l2": "… सर्टिफ़िकेट तैयार हो रहा है",
   "heroglyph.flow.welcomeNew.l3": "हो गया! सब कुछ आपके इनबॉक्स में है!",
   "heroglyph.flow.welcomeNew.l4": "शुक्रिया! हम अपने लक्ष्य के एक बाल भर और क़रीब हैं!",
+  "heroglyph.flow.welcomeNew.mail": "ऐप का प्रवेश लिंक आपके ईमेल में है",
+  "heroglyph.flow.welcomeNew.mailBtn": "बटन “Buka profil saya”",
   "heroglyph.flow.listSep": ", ",
 
   // ── /pack a zvyšok appky — preklad 4. 10. 2026 (plany/preklad-pack-2026-10-04) ──

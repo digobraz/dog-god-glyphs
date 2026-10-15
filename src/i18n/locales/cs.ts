@@ -407,6 +407,8 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.welcomeNew.l2': '… generuje se certifikát',
   'heroglyph.flow.welcomeNew.l3': 'Hotovo! Všechno máš v mailu!',
   'heroglyph.flow.welcomeNew.l4': 'Děkujeme! Jsme o chlup blíž k našemu cíli!',
+  'heroglyph.flow.welcomeNew.mail': 'Vstupní odkaz do appky máš v mailu',
+  'heroglyph.flow.welcomeNew.mailBtn': 'tlačítko „Otevřít můj profil“',
   'heroglyph.flow.welcomeNew.goal': '{n} z 1 000 000 psů',
   'heroglyph.flow.welcomeNew.cta': 'Prohlédnout zeď',
   'heroglyph.flow.welcomeNew.ctaWait': 'Dokončuji certifikát…',

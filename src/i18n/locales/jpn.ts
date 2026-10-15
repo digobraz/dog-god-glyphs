@@ -1437,6 +1437,8 @@ export const jpn: Partial<Dict> = {
   "heroglyph.flow.welcomeNew.l2": "… 証明書を発行中",
   "heroglyph.flow.welcomeNew.l3": "完了！すべてメールに届いています！",
   "heroglyph.flow.welcomeNew.l4": "ありがとうございます！目標にひげ一本分近づきました！",
+  "heroglyph.flow.welcomeNew.mail": "アプリへの入場リンクはメールに届いています",
+  "heroglyph.flow.welcomeNew.mailBtn": "ボタン「プロフィールを開く」",
   "heroglyph.flow.listSep": "、",
 
   // ── /pack a zvyšok appky — preklad 4. 10. 2026 (plany/preklad-pack-2026-10-04) ──

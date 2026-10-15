@@ -538,7 +538,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     // /wall = film otvorený rovno na stene (FLIP 7. 10. 2026).
     if (window.location.pathname === '/wall') return false;
     const q = new URLSearchParams(window.location.search);
-    return !q.get('dog') && !q.get('focus');
+    // Zápis psa po platbe (`?reveal`) patrí na STENU — pod guľou ho nebolo vidno (16. 10. 2026).
+    return !q.get('dog') && !q.get('focus') && !q.get('reveal');
   });
   const [planetDogs, setPlanetDogs] = useState<PlanetDog[]>([]);
   // 🔴 STENA SA STAVIA AŽ KEĎ JU NIEKTO POTREBUJE (6. 10. 2026, perf /onepage): pod guľou
@@ -780,7 +781,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     const t2 = setTimeout(() => setRevealStep(3), 4200);
     const t3 = setTimeout(() => {
       setRevealStep(4);
-      window.history.replaceState(null, '', '/');
+      // Zápis je na STENE — adresa ostane `/wall`, aby obnovenie nehodilo kupca na guľu.
+      window.history.replaceState(null, '', window.location.pathname === '/wall' ? '/wall' : '/');
     }, 5800);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [revealData.active, revealData.heroglyphUrl, dogsReady]);
@@ -913,7 +915,14 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   // WHAT NEXT? popup — len pre nového člena (revealData.active), raz, po dobehnutí
   // reveal animácie (step 4). Spustí sa 2s po dokončení, ALEBO hneď pri prvom
   // pohybe myšou / dotyku po reveale — podľa toho čo nastane skôr.
+  // 🔴 VYPNUTÉ 16. 10. 2026 (Matej: *„tie karty vypnúť… treba v tom urobiť poriadok"*).
+  //    Päť slajdov po zápise a jediná úloha (otvor e-mail) až na 4/5 bez tlačidla —
+  //    Lucia po platbe nevedela, čo robiť. Úlohu nesie obrazovka po platbe
+  //    (`FlowWelcomeScreen` `.wl-mail`) a vstupný odkaz mail. Popup ostáva v kóde,
+  //    kým sa nerozhodne, či ho zmazať.
+  const WHAT_NEXT_ON = false;
   useEffect(() => {
+    if (!WHAT_NEXT_ON) return;
     if (revealStep !== 4 || !revealData.active) return;
     if (whatNextShownRef.current) return;
 

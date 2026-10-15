@@ -1607,6 +1607,8 @@ export const rus: Partial<Dict> = {
   "heroglyph.flow.welcomeNew.l2": "… готовим сертификат",
   "heroglyph.flow.welcomeNew.l3": "Готово! Всё уже у тебя в почте!",
   "heroglyph.flow.welcomeNew.l4": "Спасибо! Мы на волосок ближе к цели!",
+  "heroglyph.flow.welcomeNew.mail": "Ссылка для входа в приложение — у тебя в почте",
+  "heroglyph.flow.welcomeNew.mailBtn": "кнопка «Открыть мой профиль»",
   "heroglyph.flow.listSep": ", ",
 
   // ── /pack a zvyšok appky — preklad 4. 10. 2026 (plany/preklad-pack-2026-10-04) ──

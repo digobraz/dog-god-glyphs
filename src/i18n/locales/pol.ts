@@ -1609,6 +1609,8 @@ export const pol: Partial<Dict> = {
   "heroglyph.flow.welcomeNew.l2": "… generujemy certyfikat",
   "heroglyph.flow.welcomeNew.l3": "Gotowe! Wszystko masz w skrzynce!",
   "heroglyph.flow.welcomeNew.l4": "Dziękujemy! Jesteśmy o włos bliżej celu!",
+  "heroglyph.flow.welcomeNew.mail": "Link do aplikacji masz w mailu",
+  "heroglyph.flow.welcomeNew.mailBtn": "przycisk „Otwórz mój profil”",
   "heroglyph.flow.listSep": ", ",
 
   // ── /pack a zvyšok appky — preklad 4. 10. 2026 (plany/preklad-pack-2026-10-04) ──

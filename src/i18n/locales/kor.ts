@@ -1440,6 +1440,8 @@ export const kor: Partial<Dict> = {
   "heroglyph.flow.welcomeNew.l2": "… 인증서를 생성하는 중",
   "heroglyph.flow.welcomeNew.l3": "완료! 모든 게 메일함에 도착했어요!",
   "heroglyph.flow.welcomeNew.l4": "감사해요! 목표에 수염 한 가닥만큼 더 가까워졌어요!",
+  "heroglyph.flow.welcomeNew.mail": "앱 입장 링크는 메일함에 있어요",
+  "heroglyph.flow.welcomeNew.mailBtn": "‘내 프로필 열기’ 버튼",
   "heroglyph.flow.listSep": ", ",
 
   // ── /pack a zvyšok appky — preklad 4. 10. 2026 (plany/preklad-pack-2026-10-04) ──

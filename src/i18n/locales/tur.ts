@@ -1440,6 +1440,8 @@ export const tur: Partial<Dict> = {
   "heroglyph.flow.welcomeNew.l2": "… sertifika hazırlanıyor",
   "heroglyph.flow.welcomeNew.l3": "Tamamdır! Her şey e-posta kutunda!",
   "heroglyph.flow.welcomeNew.l4": "Teşekkürler! Hedefimize bir tüy daha yaklaştık!",
+  "heroglyph.flow.welcomeNew.mail": "Uygulamaya giriş bağlantın e-postanda",
+  "heroglyph.flow.welcomeNew.mailBtn": "“Profilimi aç” düğmesi",
   "heroglyph.flow.listSep": ", ",
 
   // ── /pack a zvyšok appky — preklad 4. 10. 2026 (plany/preklad-pack-2026-10-04) ──

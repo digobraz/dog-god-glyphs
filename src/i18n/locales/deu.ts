@@ -1626,6 +1626,8 @@ export const deu: Partial<Dict> = {
   "heroglyph.flow.welcomeNew.l2": "… das Zertifikat wird generiert",
   "heroglyph.flow.welcomeNew.l3": "Fertig! Alles liegt in deinem Postfach!",
   "heroglyph.flow.welcomeNew.l4": "Danke! Wir sind unserem Ziel eine Schnauzenlänge näher!",
+  "heroglyph.flow.welcomeNew.mail": "Dein Zugangslink zur App ist in deinem Postfach",
+  "heroglyph.flow.welcomeNew.mailBtn": "Button „Mein Profil öffnen“",
   "heroglyph.flow.listSep": ", ",
 
   // ── /pack a zvyšok appky — preklad 4. 10. 2026 (plany/preklad-pack-2026-10-04) ──

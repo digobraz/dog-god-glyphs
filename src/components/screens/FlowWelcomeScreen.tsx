@@ -287,7 +287,9 @@ export function FlowWelcomeScreen() {
     if (!joined) return;
     const ready = [true, profileDone, certDone, true][line] ?? true;
     if (line >= 4 || !ready) return;
-    const id = window.setTimeout(() => setLine((l) => l + 1), line === 0 ? 200 : LINE_MIN);
+    // Po certifikáte rovno na poďakovanie — „Hotovo! Všetko máš v maile!" (riadok 3)
+    // nahradil trvalý riadok o vstupnom odkaze (Matej 16. 10. 2026: *„urobiť poriadok"*).
+    const id = window.setTimeout(() => setLine((l) => (l === 2 ? 4 : l + 1)), line === 0 ? 200 : LINE_MIN);
     return () => window.clearTimeout(id);
   }, [joined, line, profileDone, certDone]);
 
@@ -309,7 +311,9 @@ export function FlowWelcomeScreen() {
     if (g) q.set('heroglyphUrl', g);
     // Viac psov: stena ich zapečatí postupne (GodsGrid číta `queue`).
     if (rest.length) q.set('queue', JSON.stringify(rest.map((d) => ({ n: d.n ?? 0, name: d.name, photo: d.photo, glyph: glyphs[d.id] || d.glyph }))));
-    navigate(`/?${q.toString()}`);
+    // Na STENU (`/wall`), nie na `/` — od FLIPu 7. 10. je `/` film otvorený guľou
+    // a zápis psa bežal pod ňou (DEV nákup 15. 10.: kupec videl návštevnícky pútač).
+    navigate(`/wall?${q.toString()}`);
   };
 
   // CTA HNEĎ PO ZARADENÍ (Matej 27. 9., audit 26. 9.: finále trvalo 12–14 s do
@@ -416,11 +420,6 @@ export function FlowWelcomeScreen() {
                           {t('heroglyph.flow.welcomeNew.l2')}{dogs.length > 1 && runJobs ? ` ${Math.min(job + 1, dogs.length)}/${dogs.length}` : ''}
                         </motion.p>
                       )}
-                      {line === 3 && (
-                        <motion.p className="wl-line is-done" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-                          {t('heroglyph.flow.welcomeNew.l3')}
-                        </motion.p>
-                      )}
                       {line >= 4 && (
                         <motion.p className="wl-thanks" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                           {t('heroglyph.flow.welcomeNew.l4')}
@@ -448,6 +447,17 @@ export function FlowWelcomeScreen() {
                       <span className="wl-motto">{t('religion.book.trust')}</span>
                     </motion.div>
 
+                    {/* JEDINÁ ÚLOHA PO PLATBE (Matej 16. 10. 2026, podnet Lucia 14. 10.):
+                        dvere do appky sú LEN v maile (magic link) — povedať to tu, s adresou,
+                        na ktorú šiel, a s menom tlačidla presne ako v maile (`send-certificate`
+                        `openMyProfile`). Slajdy „Čo ďalej? 1/5" na stene sú preto vypnuté. */}
+                    {joined && (
+                      <motion.p className="wl-mail" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }}>
+                        <b>{t('heroglyph.flow.welcomeNew.mail')}</b>
+                        {email && <span className="wl-mail-addr">{email}</span>}
+                        <span>{t('heroglyph.flow.welcomeNew.mailBtn')}</span>
+                      </motion.p>
+                    )}
                     <motion.button
                       type="button"
                       className="hf-cta wl-cta"
@@ -655,6 +665,9 @@ const WELCOME_CSS = `
 .wl-line { margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 16px; line-height: 1.35; color: ${LAB.inkBody}; text-align: center; }
 .wl-line.is-done { color: #3D7A4E; font-weight: 600; font-size: 20px; }
 .wl-thanks { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; line-height: 1.3; letter-spacing: .04em; color: ${LAB.ink}; text-align: center; text-wrap: balance; }
+.wl-mail { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.4; color: ${LAB.inkBody}; text-align: center; }
+.wl-mail b { font-weight: 600; font-size: 16px; color: ${LAB.ink}; }
+.wl-mail-addr { font-weight: 600; overflow-wrap: anywhere; }
 .wl-goal { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .wl-bar { width: 100%; height: 12px; border-radius: ${PACK_R.pill}px; background: rgba(22, 48, 122, 0.16); overflow: hidden; }
 .wl-bar > span { display: block; height: 100%; border-radius: inherit; background: ${LAPIS.grad}; }

@@ -1440,6 +1440,8 @@ export const nld: Partial<Dict> = {
   "heroglyph.flow.welcomeNew.l2": "… het certificaat wordt gemaakt",
   "heroglyph.flow.welcomeNew.l3": "Klaar! Alles staat in je inbox!",
   "heroglyph.flow.welcomeNew.l4": "Bedankt! We zijn ons doel een snorhaar dichterbij!",
+  "heroglyph.flow.welcomeNew.mail": "Je toegangslink tot de app staat in je inbox",
+  "heroglyph.flow.welcomeNew.mailBtn": "knop ‘Mijn profiel openen’",
   "heroglyph.flow.listSep": ", ",
 
   // ── /pack a zvyšok appky — preklad 4. 10. 2026 (plany/preklad-pack-2026-10-04) ──
