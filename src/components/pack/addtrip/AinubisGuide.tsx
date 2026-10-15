@@ -21,6 +21,8 @@ import ainubisFace from '@/assets/ainubis-head.webp';
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { HandExit } from '@/components/pack/HandIcons';
+import { openAinubis } from '@/lib/ainubisBus';
+import { useT } from '@/i18n/LanguageContext';
 
 /** ms na znak — 22 je rýchlosť, pri ktorej sa veta stihne prečítať skôr, než dopíše. */
 const CHAR_MS = 22;
@@ -58,6 +60,12 @@ export function AinubisGuide({
    */
   edgeLeft?: boolean;
 }) {
+  // TVÁR JE VSTUP DO CHATU VŽDY (15. 10. 2026) — Janka aj Danka 14. 10.: „nemôže napísať
+  // ainubisovi". Počas zápisu výletu a značky je guľa skrytá a tvár bola len obrázok,
+  // takže človek, ktorý sa zasekol, nemal koho sa opýtať. Volajúci smie podať vlastné `onFace`.
+  const t = useT();
+  const face = onFace ?? (() => openAinubis());
+  const label = faceLabel ?? t('pack.addTrip.grade.askAinubis');
   const [shown, setShown] = useState('');
   const [typing, setTyping] = useState(false);
   const timer = useRef<number | undefined>(undefined);
@@ -87,19 +95,15 @@ export function AinubisGuide({
     <div className={`ang-wrap${edgeLeft ? ' ang-wrap--edge' : ''}`}>
       <style>{AINUBIS_GUIDE_CSS}</style>
       <div className="ang-bar">
-        {onFace ? (
-          <button
-            type="button"
-            className={`ang-face-btn${pulse ? ' ang-face-btn--pulse' : ''}`}
-            onClick={onFace}
-            aria-label={faceLabel}
-            title={faceLabel}
-          >
-            <img className="ang-face" src={ainubisFace} alt="" aria-hidden="true" />
-          </button>
-        ) : (
+        <button
+          type="button"
+          className={`ang-face-btn${pulse ? ' ang-face-btn--pulse' : ''}`}
+          onClick={face}
+          aria-label={label}
+          title={label}
+        >
           <img className="ang-face" src={ainubisFace} alt="" aria-hidden="true" />
-        )}
+        </button>
         {/* aria-live: pokyn sa mení bez toho, aby sa čokoľvek prekliklo — bez tohto by
             o ňom čítačka obrazovky nevedela. Číta sa CELÁ veta (text), nie rozpísaná. */}
         <p className="ang-text" aria-live="polite">
@@ -134,6 +138,9 @@ export function AinubisGuide({
 }
 
 export const AINUBIS_GUIDE_CSS = `
+/* Chat otvorený z tváre musí ležať NAD sprievodcom (15. 10. 2026). Panel má z 61, bublina
+   1202 a dok zápisu nad ním — na telefóne prekryli tlačidlo zavrieť aj pole na písanie. */
+body:has(.ang-wrap) .ainubis-panel{z-index:1300 !important;}
 /* Pás je nad mapou a MUSÍ prepúšťať ťuky mimo seba — inak vznikne hore pruh, kde sa nedá
    kresliť (tá istá príčina, akú mal pôvodný .trp-dtop). */
 /* ⚠️ NELEPIŤ NA HORNÚ HRANU (Matej 24. 8. 2026: „pri prvom kroku je ainubis moc pri hornom
