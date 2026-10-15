@@ -29,6 +29,9 @@ const CSS = `
   width:min(${PACK_COL_INNER}px, calc(100vw - ${2 * PACK_COL_PAD.mobile}px));margin-left:50%;translate:-50% 0;
   pointer-events:none;}
 @media (min-width:640px){.pk-toprow{width:min(${PACK_COL_INNER}px, calc(100vw - ${2 * PACK_COL_PAD.desktop}px));}}
+/* Arabčina (dir=rtl): margin-left:50% + translate:-50% v RTL ujde o ~93 px za ľavý okraj
+   a stránka dostane vodorovný scroll (UI audit jazykov 15. 10. 2026) — zrkadlový tvar. */
+[dir=rtl] .pk-toprow{margin-left:0;margin-right:50%;translate:50% 0;}
 .pk-toprow > *{pointer-events:auto;}
 .pk-toprow-l{justify-self:start;display:flex;}
 .pk-toprow-r{justify-self:end;display:flex;align-items:center;}

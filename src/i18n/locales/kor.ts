@@ -4936,7 +4936,7 @@ export const kor: Partial<Dict> = {
   "onepage.apps.lang.a": "heroglyph는 만국 공통의 언어예요.",
   "onepage.apps.lang.b": "앱은 그중 18개를 말해요.",
   "onepage.apps.more": "자세히",
-  "onepage.apps.tap": "눌러 보세요",
+  "onepage.apps.tap": "탭",
   "onepage.apps.prev": "이전",
   "onepage.apps.next": "다음",
   "onepage.fin.photoAlt": "Matej와 Hektor",

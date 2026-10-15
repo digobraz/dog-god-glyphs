@@ -1602,7 +1602,7 @@ export const tur: Partial<Dict> = {
   "pack.addTrip.entry.event.own.text": "Bunu sen düzenliyorsun — tarihi, yeri ve ayrıntıları ayarla.",
   "pack.addTrip.entry.event.tip.title": "BİR BAĞLANTIDAN",
   "pack.addTrip.entry.event.tip.text": "Paylaşmaya değer bir şey mi buldun? Bağlantıyı ve birkaç bilgiyi ekle.",
-  "pack.addTrip.entry.eventPts": "+{n} gerçekleştiğinde",
+  "pack.addTrip.entry.eventPts": "+{n} sonra",
   "pack.addTrip.plan.activities.hike": "Yürüyüş",
   "pack.addTrip.plan.activities.chill": "Keyif",
   "pack.addTrip.plan.activities.sport": "Spor",
