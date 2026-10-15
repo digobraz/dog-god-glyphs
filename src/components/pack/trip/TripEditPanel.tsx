@@ -45,12 +45,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_BOX, PACK_SHADOW, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { readLocalTrails, updateLocalTrail, translateLocalTrailName } from '@/components/pack/tripShared';
 import { readTrailOverrides, saveTrailOverride, translateTripDesc, readLocalTrailMeta, readDogTrips, setDogTripCrew } from '@/lib/packStore';
 import { MAX_PHOTOS, optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
+import { PhotoSortGrid } from '@/components/pack/addtrip/PhotoSortGrid';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
 import { TRAVEL_MODES, type TravelMode, type TravelInfo } from '@/components/pack/addtrip/addTripModel';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
@@ -79,25 +80,18 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
 .tep-textarea:focus,.tep-input:focus{border-color:${LAPIS.edge};box-shadow:0 0 0 3px ${LAPIS.halo};}
 /* Fotky: mriežka s pevnou výškou — rôzne pomery strán by inak rozhádzali riadky a „vymeniť
    fotku" by sa menilo na hľadanie, ktorá je ktorá. */
-.tep-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;}
-.tep-photo{position:relative;height:70px;border-radius:8px;overflow:hidden;background:${T.tileBg};border:1px solid ${T.border};cursor:pointer;padding:0;}
-.tep-photo img{width:100%;height:100%;object-fit:cover;display:block;}
-/* TITULNÁ = prvá fotka (článok, karty aj stena berú photos[0]). Ťuk na inú ju posunie dopredu.
-   Rám je LAPIS, lebo je to MOJA VOĽBA, nie konštrukcia. */
-.tep-photo.cover{border-color:${LAPIS.edge};box-shadow:0 0 0 2px ${LAPIS.edge};}
-.tep-photo-cover{position:absolute;left:4px;bottom:4px;padding:4px 8px;border-radius:999px;background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;line-height:1;}
-/* Krížik je nad fotkou, nie vedľa nej: pri ôsmich fotkách sa vedľajšie tlačidlo nedá trafiť.
-   Sedí na FOTKE, nie na papyruse — preto ostáva tmavý. */
-.tep-photo-x{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(10,6,2,0.78);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.tep-photo-mv{position:absolute;bottom:4px;width:22px;height:22px;border-radius:50%;background:rgba(10,6,2,0.78);border:1px solid ${T.onDarkBorder};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
-.tep-photo-mv--l{left:4px;}
-.tep-photo-mv--r{right:4px;}
-.tep-photo-mv i{display:block;width:6px;height:6px;border:solid ${T.onDark};border-width:0 0 2px 2px;}
-.tep-photo-mv--l i{transform:rotate(45deg);margin-left:3px;}
-.tep-photo-mv--r i{transform:rotate(-135deg);margin-right:3px;}
-.tep-photo-mv:hover{border-color:${LAPIS.ink};}
-.tep-photo-x:hover{border-color:${LAPIS.ink};color:${LAPIS.ink};}
-.tep-addphoto{height:70px;border-radius:8px;border:1px dashed ${T.border};background:${PALE.field};color:${T.inkWarm};font-family:${FONT_UI};font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+/* Mriežka = PhotoSortGrid (triedy atl-* zo sprievodcu), tu len šat bledého panela.
+   TITULNÁ = prvá fotka, rám LAPIS (moja voľba). Krížik sedí na FOTKE — preto tmavý. */
+.tep-modal .atl-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;}
+.tep-modal .atl-photo-thumb{position:relative;aspect-ratio:1;border-radius:8px;background-size:cover;background-position:center;background-color:${T.tileBg};border:1px solid ${T.border};cursor:grab;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+.tep-modal .atl-photo-thumb.cover{border-color:${LAPIS.edge};box-shadow:0 0 0 2px ${LAPIS.edge};}
+.tep-modal .atl-photo-thumb.dragging{opacity:.35;outline:2px dashed ${LAPIS.edge};outline-offset:-2px;}
+.tep-modal .atl-photo-grid.sorting .atl-photo-thumb{cursor:grabbing;}
+.tep-modal .atl-photo-thumb button{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(10,6,2,0.78);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+.tep-modal .atl-photo-thumb button:hover{border-color:${LAPIS.ink};color:${LAPIS.ink};}
+.tep-modal .atl-photo-cover-badge{position:absolute;left:4px;bottom:4px;padding:4px 8px;border-radius:999px;background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;line-height:1;}
+.atl-photo-ghost{position:fixed;z-index:9999;width:72px;height:72px;transform:translate(-50%,-50%) scale(1.06);border-radius:8px;background-size:cover;background-position:center;border:2px solid ${LAPIS.edge};box-shadow:${PACK_SHADOW.lift};pointer-events:none;}
+.tep-addphoto{height:48px;border-radius:8px;border:1px dashed ${T.border};background:${PALE.field};color:${T.inkWarm};font-family:${FONT_UI};font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .tep-addphoto:hover{border-color:${LAPIS.edge};color:${LAPIS.edge};}
 .tep-addphoto:disabled{opacity:.35;cursor:default;}
 .tep-photo-drop.drag .tep-addphoto{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}border-style:dashed;}
@@ -111,8 +105,7 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
   .tep-body--trip{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin-bottom:16px;}
   .tep-body--trip .tep-photo-drop{margin-bottom:0;}
   .tep-desc--trip .tep-textarea{min-height:120px;}
-  .tep-body--trip .tep-photos{grid-template-columns:repeat(5,1fr);}
-  .tep-body--trip .tep-photo,.tep-body--trip .tep-addphoto{height:64px;}
+  .tep-body--trip .atl-photo-grid{grid-template-columns:repeat(5,1fr);}
   .tep-body--trip .tep-crop{margin:0;}
 }
 /* CTA = LAPIS, geometria locknutého .btn-gold (radius 8, nie pilulka). */
@@ -218,14 +211,6 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
     if (i === 0) return;
     setPhotos((prev) => [prev[i], ...prev.filter((_, k) => k !== i)]);
     setCoverY(50);
-  };
-
-  // Poradie fotiek (Daniela, 14. 10. 2026): šípky ← → na fotke; fotka na mieste 0 je titulka.
-  const movePhoto = (i: number, d: -1 | 1) => {
-    const j = i + d;
-    if (j < 0 || j >= photos.length) return;
-    setPhotos((prev) => { const n = [...prev]; [n[i], n[j]] = [n[j], n[i]]; return n; });
-    if (i === 0 || j === 0) setCoverY(50);
   };
 
   const save = () => {
@@ -335,41 +320,28 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
           <label className="tep-label">
             {t('pack.trip.edit.photos')} <span className="tep-hint">· {photos.length}/{MAX_PHOTOS}</span>
           </label>
-          <div className="tep-photos">
-            {photos.map((p, i) => (
-              <div
-                className={`tep-photo${i === 0 ? ' cover' : ''}`}
-                key={`${i}-${p.slice(-24)}`}
-                role="button"
-                tabIndex={0}
-                aria-label={t('pack.addTrip.step.coverPhoto')}
-                onClick={() => makeCover(i)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); makeCover(i); } }}
-              >
-                <img src={sizedUrl(p, 240)} alt="" loading="lazy" decoding="async" />
-                {i === 0 && photos.length > 1 && <span className="tep-photo-cover">{t('pack.addTrip.step.cover')}</span>}
-                {i > 0 && <button type="button" className="tep-photo-mv tep-photo-mv--l" aria-label={t('pack.addTrip.step.photoMoveLeft')} onClick={(e) => { e.stopPropagation(); movePhoto(i, -1); }}><i /></button>}
-                {/* Titulka nemá → (kríži sa so štítkom TITULNÁ na 64 px dlaždici); titulku mení ťuk alebo ← na druhej fotke. */}
-                {i > 0 && i < photos.length - 1 && <button type="button" className="tep-photo-mv tep-photo-mv--r" aria-label={t('pack.addTrip.step.photoMoveRight')} onClick={(e) => { e.stopPropagation(); movePhoto(i, 1); }}><i /></button>}
-                <button
-                  type="button"
-                  className="tep-photo-x"
-                  aria-label={t('pack.trip.edit.removePhoto')}
-                  onClick={(e) => { e.stopPropagation(); setPhotos((prev) => prev.filter((_, k) => k !== i)); }}
-                >×</button>
-              </div>
-            ))}
-            {/* Pri plnom počte `+` zmizne — neaktívna dlaždica by založila 4. rad (5×3 = 15). */}
-            {photos.length < MAX_PHOTOS && (
+          {/* ŤAHAJ A PUSTI (Matej 15. 10. 2026: „presúvanie sme si povedali, že bude drag and drop") —
+              ten istý PhotoSortGrid ako sprievodca zápisu; šípky ← → zanikli. Ťuk = titulná. */}
+          {photos.length > 0 && (
+            <PhotoSortGrid
+              photos={photos}
+              onMove={(from, to) => { setPhotos((prev) => { const n = [...prev]; const [x] = n.splice(from, 1); n.splice(to, 0, x); return n; }); if (from === 0 || to === 0) setCoverY(50); }}
+              onCover={(i) => makeCover(i)}
+              onRemove={(i) => { setPhotos((prev) => prev.filter((_, k) => k !== i)); if (i === 0) setCoverY(50); }}
+              t={t}
+            />
+          )}
+          {/* Pri plnom počte `+` zmizne. */}
+          {photos.length < MAX_PHOTOS && (
             <button
               type="button"
               className="tep-addphoto"
+              style={{ marginTop: 8, width: '100%' }}
               disabled={busy}
               onClick={() => fileRef.current?.click()}
               aria-label={t('pack.trip.edit.addPhoto')}
             >+</button>
-            )}
-          </div>
+          )}
           {photos.length > 1 && <p className="tep-hint" style={{ marginTop: 8 }}>{t('pack.addTrip.step.coverPick')}</p>}
           <input
             ref={fileRef}
