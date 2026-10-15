@@ -3466,27 +3466,21 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                     {!reroute && <span className="atl-label-ex">{t('pack.addTrip.log.nameExPre')} <b>{t('pack.addTrip.log.nameEx')}</b></span>}
                   </label>
                   <input className="atl-input" value={name} readOnly={reroute} onChange={(e) => setName(e.target.value)} placeholder={t('pack.addTrip.step.namePlaceholder')} />
-                  {/* RADA + 3 NÁVRHY (Matej 11. 10. 2026): názov bez miesta člen v zozname
-                      nenájde. Najprv lokalita, potom pohľad autora. */}
-                  {!reroute && <p className="atl-field-hint atl-name-tip">{t('pack.addTrip.name.tip')}</p>}
-                  {!reroute && (nameSugsBusy || nameSugs.length > 0) && (
-                    <div className="atl-name-sugs">
-                      {nameSugsBusy && !nameSugs.length
-                        ? <span className="atl-field-hint">{t('pack.addTrip.name.sugsLoading')}</span>
-                        : nameSugs.map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            className={`atl-chip atl-name-sug${name === s ? ' on' : ''}`}
-                            onClick={() => setName(s)}
-                          >{s}</button>
-                        ))}
-                      {nameSugs.length > 0 && (
-                        <button type="button" className="atl-daymode-link" disabled={nameSugsBusy} onClick={() => void loadNameSugs()}>
-                          {t(nameSugsBusy ? 'pack.addTrip.name.sugsLoading' : 'pack.addTrip.name.sugsMore')}
-                        </button>
+                  {/* RADA + NÁVRH (Matej 11. 10. 2026): názov bez miesta člen v zozname
+                      nenájde. Najprv lokalita, potom pohľad autora.
+                      15. 10. 2026: *„daj len jeden nie 3 … ako text za tým mini textom …
+                      len to bude bold a podčiarknuté"* — návrh je pokračovanie rady,
+                      ťuk ho vloží do poľa. */}
+                  {!reroute && (
+                    <p className="atl-field-hint atl-name-tip">
+                      {t('pack.addTrip.name.tip')}
+                      {nameSugsBusy && !nameSugs.length && <> {t('pack.addTrip.name.sugsLoading')}</>}
+                      {nameSugs[0] && (
+                        <> {t('pack.addTrip.name.sugPre')}{' '}
+                          <button type="button" className="atl-name-sug" onClick={() => setName(nameSugs[0])}>{nameSugs[0]}</button>
+                        </>
                       )}
-                    </div>
+                    </p>
                   )}
                 </div>
 
@@ -4980,8 +4974,8 @@ const LOG_CSS = `
 .atl-journey-meta{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.02em;color:${T.onDarkDim};}
 .atl-chips{display:flex;flex-wrap:wrap;gap:6px;}
 .atl-name-tip{display:block;margin-top:4px;}
-.atl-name-sugs{display:flex;flex-direction:column;align-items:stretch;gap:4px;margin-top:8px;}
-.atl-name-sugs .atl-name-sug{height:auto;min-height:32px;padding:4px 12px;text-align:left;white-space:normal;}
+.atl-name-sug{all:unset;cursor:pointer;font-weight:600;text-decoration:underline;text-underline-offset:2px;color:inherit;}
+.atl-name-sug:focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:8px;}
 /* ── MRIEŽKA VÝBERU HLAVNÉHO MIESTA (krok „Čo", 1. 9. 2026) ───────────────────────────
    Je to TEN ISTÝ chip, len v dvoch stĺpcoch a vyšší — nie nová značka. Vlastná trieda
    tlačidla by obišla prezliekanie na papyrus (PALE_LOG_CSS mieri na .atl-chip) a na
