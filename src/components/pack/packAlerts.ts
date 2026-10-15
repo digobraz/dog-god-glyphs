@@ -54,7 +54,8 @@ export type EventAlertKind = 'event_rsvp' | 'event_changed' | 'event_cancelled' 
 // „ešte platí?" · C4 „ušlo ti" · C5 „neodkladaj to". Odkaz vedie na mapu, kde otázku položí
 // AINUBIS (`WishAsk.tsx`) — upozornenie len zavolá, odpovedá sa tam, kde je pin.
 export type WishAlertKind = 'wish_me_too' | 'wish_ask' | 'wish_missed' | 'wish_nudge';
-export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | EventAlertKind | WishAlertKind;
+// `walk_invite` (15. 10. 2026): člen ma označil na výlete — potvrdím alebo odmietnem priamo v NOS.
+export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | EventAlertKind | WishAlertKind;
 
 /**
  * Dataset trás — LAZY, rovnaký dôvod ako v `messaging/tripLabel.ts`: `heroTrails.generated.ts`
@@ -96,6 +97,8 @@ export interface PackAlert {
   at: string;
   /** B3: kto chce tiež — krstné meno + pes (ako na pine). Pri ostatných druhoch prázdne. */
   who?: string;
+  /** `walk_invite`: id pozvánky pre `respond_walk_invite` */
+  inviteId?: string;
 }
 
 // ── prečítanosť ────────────────────────────────────────────────────────────────────────────
@@ -135,6 +138,14 @@ interface RequestRow {
 interface WalkedRow {
   trip_slug: string;
   walkers: number;
+  at: string;
+}
+
+interface WalkInviteRow {
+  id: string;
+  trip_slug: string;
+  trip_name: string;
+  who: string;
   at: string;
 }
 
@@ -180,7 +191,7 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
   const uid = sess.session?.user?.id;
   if (!uid) return []; // odhlásený / DEV_NOAUTH — RLS by aj tak nevydala nič
 
-  const [incoming, mine, walked, events, wishes] = await Promise.all([
+  const [incoming, mine, walked, events, wishes, invites] = await Promise.all([
     db.from('trip_requests').select('trip_slug,created_at,decided_at')
       .eq('organizer_id', uid).eq('status', 'requested') as
       Promise<{ data: RequestRow[] | null }>,
@@ -196,6 +207,8 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
     (EVENTS_LIVE ? db.rpc('get_event_alerts') : Promise.resolve({ data: [] })) as Promise<{ data: EventAlertRow[] | null }>,
     // Priania rovnako — na LIVE do FLIPu funkcia neexistuje.
     (WISHES_LIVE ? db.rpc('get_wish_alerts') : Promise.resolve({ data: [] })) as Promise<{ data: WishAlertRow[] | null }>,
+    // Pozvánky „bol si so mnou" — chyba (migrácia ešte nie je na LIVE) padne na prázdno.
+    db.rpc('get_walk_invite_alerts') as Promise<{ data: WalkInviteRow[] | null }>,
   ]);
 
   const trails = await loadTrails();
@@ -242,6 +255,11 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
   for (const w of wishes.data ?? []) {
     const who = [w.who_first, w.who_dog].filter(Boolean).join(' + ');
     out.push({ id: `${w.kind}|${w.wish_id}|${w.at}`, kind: w.kind, tripSlug: '', tripName: w.place, tripPath: `/pack/map?wish=${w.wish_id}&ask=${w.kind}`, count: 1, at: w.at, who });
+  }
+
+  // POZVÁNKY — názov z DB (výlet môže čakať na schválenie a v datasete ešte nie je).
+  for (const v of invites.data ?? []) {
+    out.push({ id: `inv|${v.id}`, kind: 'walk_invite', tripSlug: v.trip_slug, tripName: v.trip_name || nameOf(v.trip_slug), tripPath: pathOf(v.trip_slug), count: 1, at: v.at, who: v.who, inviteId: v.id });
   }
 
   return out.sort((a, b) => (a.at < b.at ? 1 : -1));

@@ -3419,6 +3419,9 @@ export const cs: Partial<Dict> = {
   'pack.addTrip.plan.whoOpen': 'Hledám někoho',
   'pack.addTrip.plan.whoSolo': 'Jdu sám',
   'pack.addTrip.step.anyoneElse': 'Byl s tebou ještě někdo?',
+  'pack.addTrip.step.memberSuggest': 'Členové DOGYPTu',
+  'pack.addTrip.step.findMember': 'Označ člena DOGYPTu — jméno nebo pes',
+  'pack.addTrip.step.inviteNote': '{names} dostane v appce žádost. Výlet se započítá po potvrzení.',
   'pack.addTrip.step.askHowTo': 'Klepni na to, co označuješ, a ukaž místo na mapě.',
   'pack.addTrip.step.askMoreOrNext': 'Zapsáno. Chceš přidat ještě něco, nebo jdeme dál?',
   'pack.addTrip.step.askParking': 'Kde jsi parkoval?',
@@ -3434,7 +3437,7 @@ export const cs: Partial<Dict> = {
   'pack.addTrip.step.cover': 'TITULNÍ',
   'pack.addTrip.step.coverCrop': 'Svislý výřez titulní fotky',
   'pack.addTrip.step.coverPhoto': 'Nastavit jako titulní fotku',
-  'pack.addTrip.step.coverPick': 'Klepni na fotku — bude titulní.',
+  'pack.addTrip.step.coverPick': 'Klepni na fotku — bude titulní a skočí na začátek. Pořadí změníš tažením (na mobilu fotku nejdřív podrž).',
   'pack.addTrip.step.photoMoveLeft': 'Posunout fotku dopředu',
   'pack.addTrip.step.photoMoveRight': 'Posunout fotku dozadu',
   'pack.addTrip.step.dateEnd': 'Konec',
@@ -4048,6 +4051,9 @@ export const cs: Partial<Dict> = {
   'pack.alerts.requestOne': '{count} Dogypťan se chce přidat',
   'pack.alerts.title': 'Čeká na tebe',
   'pack.alerts.walked': 'Prošli jste ho spolu — zapiš si výlet i ty',
+  'pack.alerts.walkInvite': '{who} píše, že jste tento výlet prošli spolu',
+  'pack.alerts.walkInviteYes': 'Ano, šli jsme spolu',
+  'pack.alerts.walkInviteNo': 'Ne, to nejsem já',
 
   // ── pack.community ──
   'pack.community.browseTrips': 'Projdi si výlety',

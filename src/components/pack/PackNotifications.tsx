@@ -14,6 +14,10 @@ import ainubisFace from '@/assets/ainubis-badge.webp';
 // s bielym textom… červená zo sniffer“). Jedna červená v appke, nie nový odtieň.
 import { SNIFFER_HEART } from './buddy/SnifferLogo';
 import { DEV_FULL } from '@/lib/packFlags';
+import { LAPIS } from './navGoldSkin';
+// Lazy, rovnaký dôvod ako pri `packAlerts`: `packHumans` ťahá `packStore`.
+const respondWalkInviteLazy = (id: string, accept: boolean) =>
+  import('@/lib/packHumans').then((m) => m.respondWalkInvite(id, accept));
 // `import type` (nie runtime import) — packMessaging.ts ťahá pri module-load
 // HERO_TRAILS (1,5 MB) a HERO_JOURNEYS; esbuild/Vite `import type` úplne vytrasí (isolatedModules),
 // takže tento riadok sa do bundlu nedostane. Runtime funkcie (getMe/unreadCount/…) sa nahrádzajú
@@ -141,6 +145,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   const navigate = useNavigate();
   const [alertsMod, setAlertsMod] = useState<PackAlertsModule | null>(null);
   const [alerts, setAlerts] = useState<PackAlert[]>([]);
+  const [answering, setAnswering] = useState<string | null>(null);
   useEffect(() => {
     if (!DEV_FULL) return;
     let cancelled = false;
@@ -417,7 +422,46 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                 {t('pack.alerts.title')}
               </div>
               <ul className="flex flex-col gap-2 mb-3">
-                {alerts.slice(0, 6).map((al) => (
+                {alerts.slice(0, 6).map((al) => al.kind === 'walk_invite' ? (
+                  // POZVÁNKA „bol si so mnou" (15. 10. 2026) — rozhoduje sa TU, nie na výlete:
+                  // výlet môže ešte čakať na schválenie a pozvaný by ho nevedel otvoriť.
+                  <li key={al.id} className="flex items-start gap-2">
+                    <HandTail size={14} style={{ flexShrink: 0, marginTop: 2, color: T.accentGold }} />
+                    <span style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ display: 'block', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.35, color: c.ink }}>
+                        {t('pack.alerts.walkInvite', { who: al.who || t('pack.triplist.fallbackDogyptian') })}
+                      </span>
+                      <span style={{ display: 'block', fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 10, letterSpacing: '0.02em', textTransform: 'uppercase', color: T.accentGold, marginTop: 1 }}>
+                        {al.tripName}
+                      </span>
+                      <span className="flex gap-2" style={{ marginTop: 8 }}>
+                        {([true, false] as const).map((yes) => (
+                          <button
+                            key={String(yes)}
+                            type="button"
+                            disabled={!!answering}
+                            onClick={async () => {
+                              if (!al.inviteId || !alertsMod) return;
+                              setAnswering(al.id);
+                              const ok = await respondWalkInviteLazy(al.inviteId, yes);
+                              setAnswering(null);
+                              if (ok) setAlerts((prev) => prev.filter((x) => x.id !== al.id));
+                            }}
+                            style={{
+                              fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, fontWeight: 600,
+                              padding: '4px 12px', borderRadius: 8, cursor: 'pointer',
+                              ...(yes
+                                ? { background: LAPIS.grad, color: '#fff', border: `1px solid ${LAPIS.edge}` }
+                                : { background: 'none', color: c.inkDim, border: `1px solid ${c.hairline}` }),
+                            }}
+                          >
+                            {t(yes ? 'pack.alerts.walkInviteYes' : 'pack.alerts.walkInviteNo')}
+                          </button>
+                        ))}
+                      </span>
+                    </span>
+                  </li>
+                ) : (
                   <li key={al.id}>
                     <button
                       type="button"

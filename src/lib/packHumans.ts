@@ -51,3 +51,54 @@ export async function tagWalked(slug: string, userIds: string[]): Promise<boolea
   }
   return false;
 }
+
+// ============================================================================
+// ČLEN MIMO SVORKY — POZVÁNKA S JEHO SÚHLASOM (15. 10. 2026)
+//
+// Server: `vystupy/supabase/migrations/20261015_vylet_oznacenie_clena.sql`
+// Matej: *„bola tu so mnou kamoška Alenka s Ellie… dá sa tu označiť?"* → *„ok postavme to"*.
+// Pawtnera (`human-`) označím rovno; ktoréhokoľvek iného člena (`invite-`) len POZVEM —
+// výlet sa mu zapíše až keď v NOS potvrdí „áno, bol som tam". Kľúč `member-` (napísané
+// meno bez účtu) ostáva len textom.
+// ============================================================================
+
+export const INVITE_KEY_PREFIX = 'invite-';
+
+export interface TripCompanionHit { userId: string; name: string; avatarUrl: string | null; dogNames: string[]; packNumber: number | null }
+
+export async function searchTripCompanions(q: string): Promise<TripCompanionHit[]> {
+  if (q.trim().length < 2) return [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- RPC nie je v generovaných typoch
+  const { data, error } = await (supabase as any).rpc('search_trip_companions', { p_q: q.trim() });
+  if (error || !Array.isArray(data)) return [];
+  return data.map((r: { user_id: string; name: string | null; avatar_url: string | null; dog_names: string[] | null; pack_number: number | null }) => ({
+    userId: r.user_id, name: r.name || '', avatarUrl: r.avatar_url, dogNames: r.dog_names ?? [], packNumber: r.pack_number,
+  }));
+}
+
+export const crewInviteIds = (crew?: { key: string }[]): string[] =>
+  (crew ?? []).filter((c) => c.key.startsWith(INVITE_KEY_PREFIX)).map((c) => c.key.slice(INVITE_KEY_PREFIX.length));
+
+/** Pozve ľudí na výlet, ktorý som práve zapísal. Ten istý dôvod na frontu a opakovanie ako `tagWalked`. */
+export async function inviteWalked(slug: string, userIds: string[]): Promise<boolean> {
+  if (userIds.length === 0) return true;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await flushQueue();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- RPC nie je v generovaných typoch
+    const { error } = await (supabase as any).rpc('invite_walked', { p_trip_slug: slug, p_users: userIds });
+    if (!error) return true;
+    if (!/not_walked/.test(error.message ?? '')) {
+      console.warn('[inviteWalked]', error.message);
+      return false;
+    }
+    await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+  }
+  return false;
+}
+
+export async function respondWalkInvite(id: string, accept: boolean): Promise<boolean> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- RPC nie je v generovaných typoch
+  const { error } = await (supabase as any).rpc('respond_walk_invite', { p_id: id, p_accept: accept });
+  if (error) console.warn('[respondWalkInvite]', error.message);
+  return !error;
+}

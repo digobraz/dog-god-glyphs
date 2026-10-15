@@ -2425,6 +2425,9 @@ export const en = {
   'pack.alerts.requestMany': "{count} Dogyptians want to join",
   'pack.alerts.accepted': "You're in the party",
   'pack.alerts.walked': "You walked this one together — log it too",
+  'pack.alerts.walkInvite': '{who} says you walked this together',
+  'pack.alerts.walkInviteYes': 'Yes, I was there',
+  'pack.alerts.walkInviteNo': 'Not me',
   // pack.notif
   'pack.notif.ariaMessages': "Messages — coming soon",
   'pack.notif.ariaNotifications': "Notifications",
@@ -3903,6 +3906,9 @@ export const en = {
   // Jeden pes = žiadny výber (kompaktný variant kroku 5, Matej 1. 9. 2026 „pri edite je udaje
   // o psovi… by som dal preč"). Otázka na ĎALŠIEHO človeka, pes sa zapíše ticho sám.
   'pack.addTrip.step.anyoneElse': "Was anyone else with you?",
+  'pack.addTrip.step.memberSuggest': 'DOGYPT members',
+  'pack.addTrip.step.findMember': 'Tag a DOGYPT member — name or dog',
+  'pack.addTrip.step.inviteNote': '{names} will get a request in the app. The trip counts for them once they confirm.',
   'pack.addTrip.step.storyPlaceholder': "Tell the story of your adventure — or pass on tips and advice that could help others.",
   // §4.5 — príbeh výletu sa dá otvoriť na celú obrazovku (Matej 2026-08-26)
   'pack.addTrip.step.expandEditor': "Open full screen",
@@ -3917,7 +3923,7 @@ export const en = {
   'pack.addTrip.step.cover': "COVER",
   'pack.addTrip.step.removePhoto': "Remove photo",
   'pack.addTrip.step.coverCrop': "Cover photo vertical position",
-  'pack.addTrip.step.coverPick': "Tap a photo to make it the cover.",
+  'pack.addTrip.step.coverPick': "Tap a photo to make it the cover — it moves to the front. Drag to reorder (on a phone, hold it first).",
   'pack.addTrip.step.photoMoveLeft': "Move photo earlier",
   'pack.addTrip.step.photoMoveRight': "Move photo later",
   'pack.addTrip.step.dupWarn': "This route looks similar to an existing trip — {name}. Log it anyway?",

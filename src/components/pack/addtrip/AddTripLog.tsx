@@ -37,6 +37,8 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 import { sizedUrl, heroPx } from '@/services/cloudinaryService';
+import { searchTripCompanions, INVITE_KEY_PREFIX, type TripCompanionHit } from '@/lib/packHumans';
+import { PhotoSortGrid } from './PhotoSortGrid';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW, PLATE_TILE_R, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useIsPaleChrome } from '@/components/pack/usePaleChrome';
@@ -421,8 +423,95 @@ function CompanionAvatarsOnly(props: {
     <div className="atl-companions">
       <style>{COMPANION_CSS}</style>
       <CompanionPicker myDogs={myDogs} selected={selected} onChange={onChange} />
+      <MemberSearchRow selected={selected} onChange={onChange} />
     </div>
   );
+}
+
+/** Pri viacerých psoch má `CompanionPicker` vlastné pole na meno; člen sa hľadá vo vlastnom riadku. */
+function MemberSearchRow({ selected, onChange }: { selected: Companion[]; onChange: (next: Companion[]) => void }) {
+  const t = useT();
+  const [q, setQ] = useState('');
+  const invited = selected.filter((c) => c.key.startsWith(INVITE_KEY_PREFIX));
+  return (
+    <div style={{ marginTop: 12 }}>
+      {invited.length > 0 && (
+        <div className="comm-comp-selected" style={{ marginBottom: 8 }}>
+          {invited.map((c) => (
+            // Ťuknutie na čip ho odoberie — bez znaku ×, ktorý v brande nie je (stráž `check:ikony`).
+            <button key={c.key} type="button" className="comm-comp-chip" onClick={() => onChange(selected.filter((x) => x.key !== c.key))} aria-label={t('pack.companions.remove', { name: c.name })}>
+              <span className={`comm-comp-chip-av${c.photo ? '' : ' ph'}`} style={c.photo ? { backgroundImage: `url('${sizedUrl(c.photo, 96)}')` } : undefined}>
+                {c.photo ? '' : c.name.charAt(0).toUpperCase()}
+              </span>
+              <b>{c.name}</b>
+            </button>
+          ))}
+        </div>
+      )}
+      <input className="atl-input comm-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('pack.addTrip.step.findMember')} />
+      <MemberSuggest q={q} selected={selected} onPick={(c) => { onChange([...selected, c]); setQ(''); }} />
+      <InviteNote selected={selected} />
+    </div>
+  );
+}
+
+/**
+ * ── ČLEN DOGYPTU V POLI „KTO BOL S TEBOU" (Matej 15. 10. 2026) ────────────────────────────
+ * „bola tu so mnou kamoška Alenka s Ellie, je jedna z prvých v DOGYPTe… dá sa tu označiť?"
+ * Písanie mena (alebo mena psa) od dvoch znakov ponúkne členov. Vybraný člen je POZVÁNKA
+ * (`invite-<uuid>`): výlet sa mu zapíše, až keď ho sám v NOS potvrdí. Enter bez výberu
+ * ostáva ako doteraz — meno bez účtu, len text.
+ */
+function MemberSuggest({ q, selected, onPick }: {
+  q: string;
+  selected: Companion[];
+  onPick: (c: Companion) => void;
+}) {
+  const t = useT();
+  const [hits, setHits] = useState<TripCompanionHit[]>([]);
+  useEffect(() => {
+    const term = q.trim();
+    if (term.length < 2) { setHits([]); return; }
+    let alive = true;
+    const id = window.setTimeout(() => {
+      void searchTripCompanions(term).then((h) => { if (alive) setHits(h); });
+    }, 250);
+    return () => { alive = false; window.clearTimeout(id); };
+  }, [q]);
+  const taken = new Set(selected.map((c) => c.key));
+  const shown = hits.filter((h) => !taken.has(`${INVITE_KEY_PREFIX}${h.userId}`) && !taken.has(`${HUMAN_KEY_PREFIX}${h.userId}`));
+  if (shown.length === 0) return null;
+  return (
+    <ul className="atl-msug" role="listbox" aria-label={t('pack.addTrip.step.memberSuggest')}>
+      {shown.map((h) => {
+        const name = h.name || t('pack.triplist.fallbackDogyptian');
+        return (
+          <li key={h.userId}>
+            <button
+              type="button"
+              role="option"
+              aria-selected={false}
+              onClick={() => onPick({ key: `${INVITE_KEY_PREFIX}${h.userId}`, name, sub: h.dogNames.join(', '), photo: h.avatarUrl })}
+            >
+              <span className={`atl-msug-av${h.avatarUrl ? '' : ' ph'}`} style={h.avatarUrl ? { backgroundImage: `url('${sizedUrl(h.avatarUrl, 96)}')` } : undefined}>
+                {h.avatarUrl ? '' : name.charAt(0).toUpperCase()}
+              </span>
+              <span className="atl-msug-txt"><b>{name}</b>{h.dogNames.length > 0 && <> · {h.dogNames.join(', ')}</>}</span>
+              {h.packNumber != null && <span className="atl-msug-num">#{h.packNumber}</span>}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** Pod výberom: pozvaný člen musí vedieť, že ešte nič nemá — a autor, že čaká na neho. */
+function InviteNote({ selected }: { selected: Companion[] }) {
+  const t = useT();
+  const names = selected.filter((c) => c.key.startsWith(INVITE_KEY_PREFIX)).map((c) => c.name);
+  if (names.length === 0) return null;
+  return <p className="atl-field-hint" style={{ marginTop: 8 }}>{t('pack.addTrip.step.inviteNote', { names: names.join(', ') })}</p>;
 }
 
 // Kompaktný variant kroku 5 pre jedného psa — chipy pridaných ľudí (rovnaký vzor ako
@@ -508,6 +597,8 @@ function SoloCompanionAdd({ dog, selected, onChange }: {
         </div>
       </div>
       </div>
+      <MemberSuggest q={q} selected={selected} onPick={(c) => { onChange([...selected, c]); setQ(''); }} />
+      <InviteNote selected={selected} />
       <div style={{ marginTop: 12 }}><PackHumansRow selected={selected} onChange={onChange} /></div>
     </>
   );
@@ -1492,16 +1583,29 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     setPhotoNote(notes.join(' · '));
   };
   // Poradie fotiek (Daniela, 14. 10. 2026): šípky ← → na fotke. Titulka sa drží fotky, nie pozície.
-  const movePhoto = (i: number, d: -1 | 1) => {
-    const j = i + d;
-    if (j < 0 || j >= photos.length) return;
-    setPhotos((prev) => { const n = [...prev]; [n[i], n[j]] = [n[j], n[i]]; return n; });
-    setCoverIndex((prev) => (prev === i ? j : prev === j ? i : prev));
+  // TITULNÁ = PRVÁ (15. 10. 2026). Ťuknutie na fotku ju presunie na začiatok a ťah mení
+  // poradie (`PhotoSortGrid`); `coverIndex` ostáva len kvôli konceptom uloženým predtým.
+  const movePhoto = (from: number, to: number) => {
+    setPhotos((prev) => { const n = [...prev]; const [x] = n.splice(from, 1); n.splice(to, 0, x); return n; });
+    setCoverIndex(0);
   };
   const removePhoto = (i: number) => {
     setPhotos((prev) => prev.filter((_, idx) => idx !== i));
-    setCoverIndex((prev) => (i === prev ? 0 : i < prev ? prev - 1 : prev));
+    setCoverIndex(0);
   };
+  // Koncept spred 15. 10. môže niesť titulnú inde než na prvom mieste — dorovnať raz pri obnove.
+  useEffect(() => {
+    if (coverIndex > 0 && coverIndex < photos.length) movePhoto(coverIndex, 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coverIndex, photos.length]);
+  /**
+   * ── KROK 5 MÁ DVE KARTY (Matej 15. 10. 2026) ───────────────────────────────────────────
+   * „Krok 5 by mohol mať dve karty, aby tie foto neboli na scroll: 1/2 bude kto a hodnotenie
+   *  a 2/2 budú foto" · „na PC to chcem tiež, lebo je tam scroll na tom paneli".
+   * ⚠️ Nie je to nový krok v číselníku — číslo kroku nesie koncept aj známka (`gradeGo`),
+   *    a deviata bodka by posunula všetko za ňou. Karta je stav VNÚTRI kroku 5.
+   */
+  const [photoCard, setPhotoCard] = useState(false);
 
   const draft = useMemo<LogDraft>(() => {
     const now = Date.now();
@@ -1616,6 +1720,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   const gradeGo = (p: GradePoint) => {
     // Fotky stoja v kroku 5 a známka má od 15. 10. vlastný krok — najprv tam, potom k poľu.
     if (p === 'photos') {
+      setPhotoCard(true);
       setStep(5);
       window.setTimeout(() => {
         document.querySelector('.atl-photo-drop')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -1877,9 +1982,18 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     setStep(back ?? STEP_SEQ[0]);
   }, [STEP_SEQ, step]);
 
-  const goNext = () => { if (!nextBlocked) setStep(stepAfter(step)); };
+  const goNext = () => {
+    if (nextBlocked) return;
+    if (step === 5 && !isPlan && !photoCard) { setPhotoCard(true); return; }
+    const next = stepAfter(step);
+    if (next === 5) setPhotoCard(false);
+    setStep(next);
+  };
   const goPrev = () => {
+    if (step === 5 && photoCard) { setPhotoCard(false); return; }
     const prev = seqPos > 0 ? STEP_SEQ[seqPos - 1] : null;
+    // Zo známky späť = na fotky (2/2), lebo z nich človek prišiel.
+    if (prev === 5) setPhotoCard(true);
     if (prev != null && seqPos - 1 >= minPos) { setStep(prev); return; }
     if (finishing) { onClose(); return; }
     setActivity('');
@@ -2331,7 +2445,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
           role="tab"
           aria-selected={step === n}
           className={`atl-step${step === n ? ' on' : ''}${step !== n && maxPos >= i ? ' done' : ''}${maxPos >= i && stepMissing[n]?.length === 0 ? ' ok' : ''}`}
-          onClick={() => { if (n !== step && i <= maxPos && i >= minPos) setStep(n); }}
+          onClick={() => { if (n !== step && i <= maxPos && i >= minPos) { if (n === 5) setPhotoCard(false); setStep(n); } }}
           disabled={i > maxPos || i < minPos}
           /* ⚠️ ZAMKNUTÝ KROK MUSÍ POVEDAŤ PREČO (Matej 2026-08-26: „tak som sa vrátil a označil
              hodnotenie, no už som sa nevedel vrátiť na 1-2, neflagujem len sa pýtam či je to ok").
@@ -2345,7 +2459,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
           <b>{i + 1}</b>
           {/* Krok 1 a 4 nesú tvar výletu v názve, takže sa pri oblasti volajú inak
               („Miesto" / „O mieste"). Ostatné štyri sú neutrálne a kľúč sa im nemení. */}
-          <span>{t(`pack.addTrip.step.name.${stepNameKey(STEP_KEYS[n - 1])}`)}</span>
+          <span>
+            {t(`pack.addTrip.step.name.${stepNameKey(STEP_KEYS[n - 1])}`)}
+            {n === 5 && step === 5 && !isPlan && ` ${photoCard ? 2 : 1}/2`}
+          </span>
         </button>
       ))}
     </div>
@@ -3743,7 +3860,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
             )}
 
             {/* ══ KROK 5 — OSTATNÉ ════════════════════════════════════════════════════ */}
-            {step === 5 && (
+            {step === 5 && !photoCard && (
               <>
                 {/* Pri NÁVŠTEVE je krok 5 DOJEM: ruch prišiel zo zaniknutej štvorky a stojí
                     ako prvý — je to jediná vec, ktorú človek hodnotí o mieste, zvyšok kroku
@@ -3798,7 +3915,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                     </div>
                   </div>
                 )}
+              </>
+            )}
 
+            {/* ══ KROK 5 · KARTA 2/2 — FOTKY (15. 10. 2026) ══ */}
+            {step === 5 && photoCard && (
+              <>
                 {!isPlan && (
                   <div className={`atl-field atl-photo-drop${photoDrag ? ' drag' : ''}`} {...photoDropProps}>
                     <label>{t('pack.addTrip.step.photos')} <span className="atl-field-hint">· {photos.length}/{MAX_PHOTOS}</span></label>
@@ -3823,24 +3945,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                     {photoNote && <p className="atl-field-hint" style={{ marginTop: 4 }}>{photoNote}</p>}
                     {photos.length > 0 && (
                       <>
-                        <div className="atl-photo-grid">
-                          {photos.map((ph, i) => (
-                            <div
-                              key={i}
-                              className={`atl-photo-thumb${i === effCoverIndex ? ' cover' : ''}`}
-                              style={{ backgroundImage: `url('${sizedUrl(ph, 240)}')` }}
-                              onClick={() => setCoverIndex(i)}
-                              role="button"
-                              tabIndex={0}
-                              aria-label={t('pack.addTrip.step.coverPhoto')}
-                            >
-                              {i === effCoverIndex && <span className="atl-photo-cover-badge">{t('pack.addTrip.step.cover')}</span>}
-                              {i > 0 && <button type="button" className="atl-photo-mv atl-photo-mv--l" onClick={(e) => { e.stopPropagation(); movePhoto(i, -1); }} aria-label={t('pack.addTrip.step.photoMoveLeft')}><i /></button>}
-                              {i < photos.length - 1 && <button type="button" className="atl-photo-mv atl-photo-mv--r" onClick={(e) => { e.stopPropagation(); movePhoto(i, 1); }} aria-label={t('pack.addTrip.step.photoMoveRight')}><i /></button>}
-                              <button type="button" onClick={(e) => { e.stopPropagation(); removePhoto(i); }} aria-label={t('pack.addTrip.step.removePhoto')}>×</button>
-                            </div>
-                          ))}
-                        </div>
+                        <PhotoSortGrid
+                          photos={photos}
+                          onMove={movePhoto}
+                          onCover={(i) => movePhoto(i, 0)}
+                          onRemove={removePhoto}
+                          t={t}
+                        />
                         {/* ⚠️ POSUVNÍK MUSÍ MAŤ ČO POSÚVAŤ (Matej 2026-08-25, po reálnom zápise:
                             „v závere je úprava zvislej foto posuvník, ale neviem či to fungovalo,
                             zmiatlo ma to — tam by to chcelo viac vysvetliť, otvoriť náhľad").
@@ -4433,6 +4544,14 @@ const COMPANION_CSS = `
 .atl-companions .comm-comp-selected{gap:8px;}
 /* Jeden pes: avatar a pole na človeka v JEDNOM riadku (24. 9. 2026). */
 .atl-companions .atl-solo-row{display:flex;align-items:center;gap:8px;}
+/* Návrhy členov pod poľom (15. 10. 2026) — RIADOK v zozname, voľba je akcia ⇒ lapisový tint pri hoveri. */
+.atl-msug{list-style:none;margin:8px 0 0;padding:4px;display:flex;flex-direction:column;gap:4px;border:1px solid ${T.onDarkBorder};border-radius:12px;background:rgba(6,5,3,0.6);}
+.atl-msug button{display:flex;align-items:center;gap:8px;width:100%;padding:4px 8px;border:0;border-radius:8px;background:none;color:${T.onDark};font-family:${FONT_UI};font-size:14px;text-align:left;cursor:pointer;}
+.atl-msug button:hover,.atl-msug button:focus-visible{background:rgba(22,48,122,0.16);outline:0;}
+.atl-msug-av{width:28px;height:28px;border-radius:50%;flex-shrink:0;background-size:cover;background-position:center;background-color:rgba(245,240,228,0.1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;}
+.atl-msug-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.atl-msug-txt b{font-weight:600;}
+.atl-msug-num{font-size:12px;opacity:.7;}
 .atl-companions .atl-solo-row .comm-comp-searchwrap{flex:1;min-width:0;}
 .atl-companions .comm-comp-chip{padding:4px;gap:4px;position:relative;}
 .atl-companions .comm-comp-chip b{
@@ -4906,14 +5025,11 @@ const LOG_CSS = `
 .atl-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin-top:8px;}
 .atl-photo-thumb{position:relative;aspect-ratio:1;border-radius:8px;background-size:cover;background-position:center;border:1px solid ${T.onDarkBorder};cursor:pointer;}
 .atl-photo-thumb.cover{border:2px solid ${GOLD};box-shadow:0 0 0 1px ${T.border};}
-.atl-photo-thumb button{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.7);border:0;color:${T.onDark};cursor:pointer;font-size:12px;line-height:1;}
-.atl-photo-thumb .atl-photo-mv{top:auto;bottom:4px;right:auto;left:auto;width:22px;height:22px;display:flex;align-items:center;justify-content:center;padding:0;}
-.atl-photo-thumb.cover .atl-photo-mv{bottom:28px;}
-.atl-photo-mv--l{left:4px !important;}
-.atl-photo-mv--r{right:4px !important;}
-.atl-photo-mv i{display:block;width:6px;height:6px;border:solid ${T.onDark};border-width:0 0 2px 2px;}
-.atl-photo-mv--l i{transform:rotate(45deg);margin-left:3px;}
-.atl-photo-mv--r i{transform:rotate(-135deg);margin-right:3px;}
+.atl-photo-thumb button{position:absolute;top:4px;right:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;padding:0;border-radius:50%;background:rgba(0,0,0,0.7);border:0;color:${T.onDark};cursor:pointer;font-size:12px;line-height:1;}
+.atl-photo-thumb{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:transform .15s ease;}
+.atl-photo-grid.sorting .atl-photo-thumb{cursor:grabbing;}
+.atl-photo-thumb.dragging{opacity:.35;outline:2px dashed ${LAPIS.edge};outline-offset:-2px;}
+.atl-photo-ghost{position:fixed;z-index:9999;width:72px;height:72px;transform:translate(-50%,-50%) scale(1.06);border-radius:8px;background-size:cover;background-position:center;border:2px solid ${LAPIS.edge};box-shadow:${PACK_SHADOW.lift};pointer-events:none;}
 .atl-photo-cover-badge{position:absolute;left:0;right:0;bottom:0;text-align:center;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;color:#000;background:${GOLD};padding:4px 0;border-radius:0 0 8px 8px;}
 .atl-cover-crop{margin-top:10px;display:flex;flex-direction:column;gap:5px;}
 /* Náhľad titulnej fotky priamo nad posuvníkom. Pomer 16:9 = ten istý tvar, v akom fotka
@@ -5034,6 +5150,10 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-ask{color:${P_INK};}
   .atl-ask-sub{color:${P_DIM};}
   .atl-field-hint{color:${P_DIM};}
+  /* Predpona .atl-companions: COMPANION_CSS sa vkladá NESKÔR v DOM, rovnaká váha by prehrala. */
+  .atl-companions .atl-msug{background:${P_FIELD};border-color:${P_BORDER};}
+  .atl-companions .atl-msug button{color:${P_INK};}
+  .atl-companions .atl-msug-av{background-color:${P_SOFT};color:${P_INK};}
   .atl-input,.atl-textarea{background:${P_FIELD};border-color:${P_BORDER};color:${P_INK};}
   .atl-input:focus{border-color:${P_EDGE};}
   .atl-input::placeholder{color:${P_DIM};opacity:.7;}
