@@ -18,11 +18,13 @@ const BAR: Record<TripGrade, string> = { A: ' pk-progress__fill--done', B: '', C
 
 type Tx = (key: string, params?: Record<string, string | number>) => string;
 
-export function TripGradeCard({ result, photoCount, onGo, t }: {
+export function TripGradeCard({ result, photoCount, onGo, onAsk, t }: {
   result: GradeResult;
   photoCount: number;
   /** Skok na krok, kde sa bod dopĺňa (rieši rodič — číslo kroku pozná on). */
   onGo: (p: GradePoint) => void;
+  /** Logo AINUBISA v bubline = chatová guľa; klik otvorí chat (rieši rodič). */
+  onAsk?: () => void;
   t: Tx;
 }) {
   const { grade, score, missing } = result;
@@ -35,7 +37,7 @@ export function TripGradeCard({ result, photoCount, onGo, t }: {
   return (
     <div className="tgc-wrap">
       <style>{PROGRESS_CSS}{TRIP_GRADE_CSS}</style>
-      <AinubisBubble role="status"><p className="tgc-lead">{lead}</p></AinubisBubble>
+      <AinubisBubble role="status" onOpen={onAsk} pulse={grade !== 'A'}><p className="tgc-lead">{lead}</p></AinubisBubble>
       <div className="tgc-card" style={{ ...PACK_BOX.card }}>
         <button type="button" className="tgc-head" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
           <span className="tgc-medal" style={{ background: MEDAL[grade] }} aria-label={t('pack.addTrip.grade.aria', { grade })}>{grade}</span>

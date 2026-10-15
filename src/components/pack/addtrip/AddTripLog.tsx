@@ -24,6 +24,7 @@
 //   1 TRASA · 2 ODKAZY NA TRASU · 3 ZÁKLAD · 4 O TRASE · 5 OSTATNÉ
 // Zadanie: `plany/zadanie-mapa-kroky-2026-08-23.md`
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
+import { openAinubis } from '@/lib/ainubisBus';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { suggestTripNames } from '@/lib/packStore';
@@ -4054,7 +4055,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                     <p>{t('pack.addTrip.step.willBeDraft', { fields: missingTx(missing.toApprove) })}</p>
                   </div>
                 )}
-                {!isPlan && <TripGradeCard result={gradeResult} photoCount={photos.length} onGo={gradeGo} t={t} />}
+                {!isPlan && <TripGradeCard result={gradeResult} photoCount={photos.length} onGo={gradeGo} onAsk={() => openAinubis()} t={t} />}
                 <div className="atl-nav">
                   <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>
                   <button type="button" className="btn-gold" disabled={!canSubmit || saving} onClick={handleSubmit}>

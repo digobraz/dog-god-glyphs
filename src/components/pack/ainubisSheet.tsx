@@ -82,16 +82,26 @@ export function AinubisSheet({ onClose, children }: { onClose: () => void; child
 export const AINUBIS_BUBBLE_CSS = `
 .ain-bubble{display:flex;gap:10px;align-items:flex-start;background:${A.surface};border:1px solid ${A.edgeStrong};border-radius:12px;box-shadow:${A.panelShadow};padding:12px;color:${A.inkDim};font-family:${FONT_UI};font-size:12px;line-height:1.5;}
 .ain-bubble img{flex:0 0 auto;width:32px;height:32px;object-fit:contain;border-radius:50%;background:${A.faceBg};box-shadow:${A.faceRing};}
+.ain-face-btn{flex:0 0 auto;width:32px;height:32px;padding:0;margin:0;border:0;border-radius:50%;background:none;cursor:pointer;line-height:0;}
+.ain-face-btn:focus-visible{outline:2px solid ${A.edgeStrong};outline-offset:3px;}
+.ain-face-btn img{display:block;}
+.ain-face-btn--pulse{animation:ain-face-pulse 2.4s ease-in-out infinite;}
+@keyframes ain-face-pulse{0%,100%{box-shadow:0 0 0 0 rgba(91,224,240,0);}50%{box-shadow:0 0 0 5px rgba(91,224,240,0.22);}}
+@media (prefers-reduced-motion: reduce){.ain-face-btn--pulse{animation:none;}}
 .ain-bubble b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:${A.ink};margin-bottom:4px;}
 .ain-bubble .ain-cta{margin-top:12px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:8px 16px;border-radius:8px;background:${A.ctaGrad};color:${A.ctaInk};border:1px solid ${GOLD_BTN.edge};box-shadow:${A.ctaShadow};cursor:pointer;}
 .ain-bubble .ain-cta:disabled{opacity:.6;cursor:default;}
 `;
 
-export function AinubisBubble({ children, className, role }: { children: ReactNode; className?: string; role?: string }) {
+/** `onOpen` = logo AINUBISA je zároveň chatová guľa (klik otvorí chat). `pulse` = jemný pulz, keď je pre človeka niečo na vyriešenie. */
+export function AinubisBubble({ children, className, role, onOpen, pulse }: { children: ReactNode; className?: string; role?: string; onOpen?: () => void; pulse?: boolean }) {
+  const face = <img src={ainubisFace} alt="" aria-hidden="true" />;
   return (
     <div className={`ain-bubble${className ? ` ${className}` : ''}`} role={role}>
       <style>{AINUBIS_BUBBLE_CSS}</style>
-      <img src={ainubisFace} alt="" aria-hidden="true" />
+      {onOpen ? (
+        <button type="button" className={`ain-face-btn${pulse ? ' ain-face-btn--pulse' : ''}`} aria-label="Opýtať sa AINUBISA" onClick={onOpen}>{face}</button>
+      ) : face}
       <div>
         <b><span style={{ color: A.aiInk, textShadow: A.aiShadow }}>AI</span>NUBIS</b>
         {children}
