@@ -4624,6 +4624,11 @@ export default function PackMap() {
   const selectTrail = (tr: HeroTrail) => {
     // NÁHĽAD /magnet: detail otvorí len výlet zdarma, ostatné sú vidno, ale zamknuté.
     if (mg && !isFreeTrip(tr.id)) { mg.lock('trip'); return; }
+    // ⚠️ POČAS ZÁPISU VÝLETU ALEBO KLADENIA ZNAČKY SA VÝLET NEOTVÁRA (15. 10. 2026). Matej v kroku 2
+    //    úpravy Naháča klikol na parkovisko pri štarte — trafil pilulku „7,9 km" vlastného výletu,
+    //    `setAddFlow(null)` zahodil sprievodcu a ostala visieť len bublina „Parkovisko — klikni…",
+    //    na ktorú už nič nereagovalo. Parkovisko sa kladie práve pri štarte, teda na tie pilulky.
+    if (addFlow || notePlacing) return;
     if (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP) {
       saveReturnView(leafletMapRef.current);
       // V náhľade bez segmentu krajiny — `usePackNavigate` pozná len dvojpísmenový (`/pack/map/sk/…`), nie ISO3.

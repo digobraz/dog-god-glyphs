@@ -220,6 +220,9 @@ export const LONG_PRESS_CSS = `
    tu na mieste (na rozdiel od stavu vyššie): mapa v tej chvíli neposúva, ale
    MIERI. */
 .leaflet-container.mn-placing{cursor:crosshair;}
+/* Pri mierení sú vrstvy PRIECHODNÉ (15. 10. 2026): pilulka „7,9 km", štart výletu aj čiara
+   klik zhltli a parkovisko — ktoré sa kladie práve pri štarte — sa nedalo položiť. */
+.leaflet-container.mn-placing .leaflet-interactive{pointer-events:none !important;}
 `;
 
 /**

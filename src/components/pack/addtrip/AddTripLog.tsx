@@ -55,6 +55,7 @@ import { dockFitPadding, dockPadX } from '@/components/pack/mapDockShape';
 import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
 import { GeometryPicker, defaultKindFor, findDuplicate, TRIP_HOLD_MIN_ZOOM, AREA_DEFAULT_M } from './GeometryPicker';
 import { builtUpShare, lineLengthM, HIKE_MIN_KM, BUILT_UP_MAX } from './builtUpCheck';
+import { decimateAnchors } from './gpxImport';
 import { MAX_PHOTOS, optimizePhoto } from './photoOptimize';
 import { SPACING, interp, calibratedAscent } from './addTripGeo';
 import { buildPlanDate, parsePlanDate, type PlanPrecision } from './planDate';
@@ -1341,7 +1342,14 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
             // ⚠️ PRI PLÁNE IDÚ DO `path` KOTVY, nie stopa. `finishTrail.path` je prichytená
             // čiara (stovky bodov po chodníkoch) — ako kotvy by dala stovky uzlov a trasa by
             // sa nedala rozumne opraviť. `planPath` drží kliky, ktoré ju vyrobili.
-            path: ((fromPlan || reroute) ? finishTrail.planPath : undefined) ?? finishTrail.path ?? [],
+            // ⚠️ ÚPRAVA TRASY BEZ `planPath` (15. 10. 2026, Matej na Naháči + Danka „nejde to"):
+            //    výlet zapísaný bez uložených klikov mal ako kotvy CELÚ stopu — 333 korálok, nedalo
+            //    sa nič pridať a HOTOVO prichytávalo každý úsek zvlášť (38 dotazov, ~20 s). Kotvy
+            //    sa preto zriedia tak isto ako pri GPX importe (20–40, podmnožina stopy, takže
+            //    `ensureLegs` ich nájde presne a úseky ostanú prichytené).
+            path: ((fromPlan || reroute) ? finishTrail.planPath : undefined)
+              ?? (reroute ? decimateAnchors(finishTrail.path ?? []) : finishTrail.path)
+              ?? [],
             snapPath: finishTrail.path ?? [],
             snapped: true,
           },
