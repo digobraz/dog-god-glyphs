@@ -47,6 +47,7 @@ import { BrandIcon } from '../pack/BrandIcon';
 // Lapis = „moja voľba a moja akcia" (navGoldSkin.ts). Berie sa TOKEN, nie literál —
 // stena je vanilla DOM, ale farba je tá istá ako všade inde.
 import { LAPIS } from '../pack/navGoldSkin';
+import { LAB } from '@/lib/labTheme';
 import './WhatNextPopup.css';
 
 // LAB: stena ťahá SKUTOČNÝCH členov z produkcie (read-only, verejný endpoint) —
@@ -3111,17 +3112,34 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         }
 
         /* ── Reveal sequence overlay ── */
+        /* BLEDÉ ODHALENIE (Matej 16. 10. 2026: *„nemala by byť animácia bledá s tmavým
+           heroglyfom… bol predtým tmavý povrch, teraz to nepasuje"* + *„za reveal by mala
+           byť vidno aj foto"*). Stena je od FLIPu papyrus — čierna plocha s bielym
+           (invertovaným) heroglyfom bola zvyšok tmavého GodsGridu. Teraz: papyrus LAB,
+           fotka psa v medailóne a pod ňou heroglyf v PÔVODNOM tmavom atramente. */
         .rev-overlay {
           position: fixed;
           inset: 0;
           z-index: 100;
           display: flex;
+          flex-direction: column;
+          gap: 24px;
           align-items: center;
           justify-content: center;
-          background: #080808;
+          background: ${LAB.pageBg};
+          background-image: ${LAB.pageBackdrop};
           pointer-events: none;
           transition: none;
         }
+        .rev-photo {
+          width: min(52vw, 220px); aspect-ratio: 1; border-radius: 50%; object-fit: cover;
+          border: 3px solid #C99A3F;
+          box-shadow: 0 0 0 6px rgba(201,154,63,0.18), 0 12px 36px rgba(110,71,16,0.26);
+          animation: rev-photo-in 900ms cubic-bezier(0.34,1.3,0.64,1) both;
+        }
+        @keyframes rev-photo-in { 0% { opacity: 0; transform: scale(0.6); } 100% { opacity: 1; transform: scale(1); } }
+        .rev-overlay.step-2 .rev-photo,
+        .rev-overlay.step-3 .rev-photo { opacity: 0; transition: opacity 400ms ease; animation: none; }
         .rev-overlay.step-2 { background: transparent; }
         .rev-overlay.step-3 { background: transparent; }
 
@@ -3130,7 +3148,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           top: 50%; left: 50%;
           width: 360px; height: 360px;
           transform: translate(-50%, -50%);
-          box-shadow: 0 0 0 9999px #080808;
+          box-shadow: 0 0 0 9999px rgba(243,228,196,0.92);
           pointer-events: none;
           opacity: 0;
           border-radius: 12px;
@@ -3145,7 +3163,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         }
 
         .rev-big-symbol {
-          width: 420px;
+          width: min(86vw, 420px);
           height: auto;
           object-fit: contain;
           pointer-events: none;
@@ -3501,30 +3519,15 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           .hektor-card:not(.is-open):hover { transform: none !important; }
         }
 
+        /* Heroglyf sa VYPAĽUJE do papyrusu v tmavom atramente (bez invert) so zlatou žiarou. */
         @keyframes symbol-burn {
-          0%   { opacity: 0;
-                 filter: invert(1) brightness(0.2) blur(20px);
-                 transform: scale(0.15); }
-          12%  { opacity: 0.4;
-                 filter: invert(1) brightness(0.6) blur(6px);
-                 transform: scale(0.55); }
-          28%  { opacity: 1;
-                 filter: invert(1) brightness(4)
-                   drop-shadow(0 0 50px #FFF)
-                   drop-shadow(0 0 100px #FFD700)
-                   drop-shadow(0 0 200px rgba(196,155,66,0.9));
-                 transform: scale(1.25); }
-          48%  { filter: invert(1) brightness(2.5)
-                   drop-shadow(0 0 35px rgba(255,210,60,0.9))
-                   drop-shadow(0 0 90px rgba(196,155,66,0.6));
-                 transform: scale(0.9); }
-          70%  { transform: scale(1.05); }
-          85%  { transform: scale(0.98); }
-          100% { opacity: 1;
-                 filter: invert(1) brightness(1.4)
-                   drop-shadow(0 0 25px rgba(196,155,66,0.8))
-                   drop-shadow(0 0 70px rgba(196,155,66,0.4));
-                 transform: scale(1); }
+          0%   { opacity: 0; filter: blur(16px); transform: scale(0.4); }
+          30%  { opacity: 1; filter: blur(0)
+                   drop-shadow(0 0 28px rgba(255,214,120,0.95))
+                   drop-shadow(0 0 60px rgba(201,154,63,0.7));
+                 transform: scale(1.08); }
+          60%  { transform: scale(0.97); }
+          100% { opacity: 1; filter: drop-shadow(0 0 14px rgba(201,154,63,0.55)); transform: scale(1); }
         }
 
         /* ════════════════════════════════════════════════════════════════
@@ -4164,6 +4167,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         {revealData.active && revealStep > 0 && revealStep < 4 && (
           <div className={`rev-overlay step-${revealStep}`}>
             <div className="rev-spotlight" />
+            {revealData.photoUrl && <img className="rev-photo" src={revealData.photoUrl} alt="" />}
             <img className="rev-big-symbol" src={revealSymbol} alt={revealData.dogName} />
           </div>
         )}
