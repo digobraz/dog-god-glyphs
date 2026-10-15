@@ -49,6 +49,9 @@ export const packStorage: Storage = (() => {
 
 export const PACK_KEYS = {
   walked: 'trp-walked-ids',
+  // Kedy som výlet prešiel (`trip_walked.walked_at`, ms) — len na poradie PREJDENÝCH v tripliste
+  // (Matej 15. 10. 2026: „prejdené výlety sa posledné ukazovali naľavo").
+  walkedAt: 'trp-walked-at-v1',
   fav: 'trp-fav-ids',
   localTrails: 'trp-local-trails',
   // Sprievodné údaje k `localTrails`, ktoré sa NEZMESTIA do `HeroTrail` (payload je obsah
@@ -264,6 +267,8 @@ function persistSetDiff(key: string, tbl: string, next: Set<string>, extra: Reco
   enqueue(ops);
 }
 
+/** Kedy som výlet prešiel (ms). Chýba = ešte nesynchronizované, teda práve teraz. */
+export const readWalkedAt = (): Record<string, number> => readJson<Record<string, number>>(PACK_KEYS.walkedAt, {});
 export const persistWalked = (next: Set<string>) => persistSetDiff(PACK_KEYS.walked, 'trip_walked', next);
 export const persistFav = (next: Set<string>) => persistSetDiff(PACK_KEYS.fav, 'trip_fav', next);
 
@@ -837,7 +842,7 @@ export function hydratePackStore(): Promise<boolean> {
     const blocked = pendingTables();
     try {
       const [walked, fav, trips, votes, events, packTrips, heroEarned, dogTrips] = await Promise.all([
-        (supabase as any).from('trip_walked').select('trip_slug'),
+        (supabase as any).from('trip_walked').select('trip_slug,walked_at'),
         (supabase as any).from('trip_fav').select('trip_slug'),
         (supabase as any).from('user_trips').select('trip_slug,trip_date,status,openness,added_at').eq('user_id', uid),
         (supabase as any).from('trip_votes').select('*'),
@@ -851,6 +856,9 @@ export function hydratePackStore(): Promise<boolean> {
 
       if (!blocked.has('trip_walked') && !walked.error && walked.data) {
         writeStringSet(PACK_KEYS.walked, new Set(walked.data.map((r: any) => r.trip_slug)));
+        const at: Record<string, number> = {};
+        for (const r of walked.data as any[]) { const ms = Date.parse(r.walked_at); if (Number.isFinite(ms)) at[r.trip_slug] = ms; }
+        writeJson(PACK_KEYS.walkedAt, at);
       }
       if (!blocked.has('dog_trips') && !dogTrips.error && dogTrips.data) {
         // Celý obsah, nie zlúčenie: `dog_trips` je odvodená tabuľka, takže DB je tu

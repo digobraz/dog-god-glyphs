@@ -36,7 +36,7 @@ import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, P
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
 import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, tripName, visibleLocalTrails, tripDraftMissing, memberTrailIds, coverPos } from '@/components/pack/tripShared';
-import { closeMyTripEvents, readLocalTrailMeta, readJson, writeJson, PACK_KEYS } from '@/lib/packStore';
+import { closeMyTripEvents, readLocalTrailMeta, readJson, writeJson, readWalkedAt, PACK_KEYS } from '@/lib/packStore';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 // Tvary počítaného mena (1 výlet · 2–4 výlety · 5+ výletov) — jeden zdroj pre celý /pack.
 import { pluralKey } from '@/lib/plural';
@@ -413,7 +413,11 @@ function countdownLabel(t: ReturnType<typeof useT>, days: number): string {
   return t('pack.triplist.countdownDaysLeft', { n: days });
 }
 // Poradie MY TRIPS (Matej 2026-07-23): blížiace sa PRVÉ (najbližší dátum), potom bez dátumu, DONE POSLEDNÉ.
-function sortMyTrips(rows: MyTripRow[], nowMs: number): MyTripRow[] {
+// PREJDENÉ: naposledy prejdený NAĽAVO (Matej 15. 10. 2026: „prejdené výlety sa posledné ukazovali
+// naľavo… teraz je tam Kvačianska dolina"). Rozhoduje `trip_walked.walked_at`, nie dátum výletu —
+// zápis bez dátumu („Nepamätám si") inak padal na koniec. Chýbajúci čas = prejdené práve teraz
+// (ešte sa nesynchronizovalo), teda prvé.
+function sortMyTrips(rows: MyTripRow[], nowMs: number, walkedAt: Record<string, number> = {}): MyTripRow[] {
   const rank = (r: MyTripRow) => {
     if (r.done) return 2;
     const d = daysFromNow(r.entry.date, nowMs);
@@ -424,7 +428,11 @@ function sortMyTrips(rows: MyTripRow[], nowMs: number): MyTripRow[] {
     if (ra !== rb) return ra - rb;
     const da = daysFromNow(a.entry.date, nowMs), db = daysFromNow(b.entry.date, nowMs);
     if (ra === 0) return (da ?? 9e9) - (db ?? 9e9);       // upcoming: najbližší prvý
-    if (ra === 2) return (db ?? -9e9) - (da ?? -9e9);      // done: najnovší minulý prvý
+    if (ra === 2) {                                        // done: naposledy prejdený prvý
+      const wa = walkedAt[a.entry.tripId] ?? Infinity, wb = walkedAt[b.entry.tripId] ?? Infinity;
+      if (wa !== wb) return wb > wa ? 1 : -1;
+      return (db ?? -9e9) - (da ?? -9e9);
+    }
     return b.entry.addedAt - a.entry.addedAt;
   });
 }
@@ -613,8 +621,8 @@ export default function PackTriplist() {
   }, [triplist, allTrails, walkedSet]);
 
   const myTrips = useMemo(
-    () => sortMyTrips(realMyTrips, nowMs),
-    [realMyTrips, nowMs],
+    () => sortMyTrips(realMyTrips, nowMs, mg ? {} : readWalkedAt()),
+    [realMyTrips, nowMs, storeEpoch], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   // ── #43: MOJE VÝLETY SÚ DVE SEKCIE, NIE JEDEN PÁS (18. 9. 2026) ─────────────
