@@ -24,6 +24,7 @@
 //   1 TRASA · 2 ODKAZY NA TRASU · 3 ZÁKLAD · 4 O TRASE · 5 OSTATNÉ
 // Zadanie: `plany/zadanie-mapa-kroky-2026-08-23.md`
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
+import { AinubisGuide } from './AinubisGuide';
 import { openAinubis } from '@/lib/ainubisBus';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -1613,8 +1614,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   }, [note, photos.length, geoDone, placedNotes]);
   /** „Doplniť →": popis = krok 3, fotky = krok 5 (ten istý, kde stojí karta), trasa = 1, parkovisko a tip = 2. */
   const gradeGo = (p: GradePoint) => {
+    // Fotky stoja v kroku 5 a známka má od 15. 10. vlastný krok — najprv tam, potom k poľu.
     if (p === 'photos') {
-      document.querySelector('.atl-photo-drop')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      setStep(5);
+      window.setTimeout(() => {
+        document.querySelector('.atl-photo-drop')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }, 80);
       return;
     }
     if (p === 'desc') { setStep(3); return; }
@@ -1723,7 +1728,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   // ⚠️ SIEDMY KĽÚČ PATRÍ LEN NÁVŠTEVE (1. 9. 2026) — „Čo to bolo za miesto". Ide na KONIEC
   // z toho istého dôvodu ako šiesty: pole je indexované ČÍSLOM kroku, nie poradím, takže
   // vsunutie medzi ostatné by prečíslovalo kroky v uložených konceptoch.
-  const STEP_KEYS = ['route', 'notes', 'basics', 'about', 'rest', 'departure', 'what'] as const;
+  // ⚠️ ÔSMY KĽÚČ = ZNÁMKA (Matej 15. 10. 2026: „to známkovanie by mohlo byť až úplne v závere =
+  // krok číslo 6"). Na KONIEC z toho istého dôvodu ako šiesty a siedmy; na obrazovke je to
+  // šiesta bodka zápisu (číslo bodky = pozícia v poradí, nie číslo kroku). Plán ho nemá.
+  const STEP_KEYS = ['route', 'notes', 'basics', 'about', 'rest', 'departure', 'what', 'grade'] as const;
   const stepKey = STEP_KEYS[step - 1] ?? 'route';
 
   // MAGISTRÁLA sa nekreslí, VYBERÁ sa zo zoznamu (§1/§2 zadania journey-pick) — v tom prípade
@@ -1828,7 +1836,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    *    obnovil na inom kroku, než na ktorom človek skončil.
    */
   const STEP_SEQ = useMemo<readonly number[]>(
-    () => (isPlan ? [1, 3, 6] : isChipFirst ? [7, 1, 2, 3, 5] : [1, 2, 3, 4, 5]),
+    () => (isPlan ? [1, 3, 6] : isChipFirst ? [7, 1, 2, 3, 5, 8] : [1, 2, 3, 4, 5, 8]),
     [isPlan, isChipFirst],
   );
   const seqPos = Math.max(0, STEP_SEQ.indexOf(step));
@@ -2699,9 +2707,30 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   };
 
   return (
-    /* `--intro` = obrazovka výberu aktivity. Bez príznaku by mobilné pravidlá (šípka mimo toku,
+    <>
+    {/* ── AINUBIS NAD ZLATÝM RÁMOM, NIE V ŇOM (Matej 15. 10. 2026) ──────────────────────────
+        „ainubis pri tripflow má svoje miesto nad dblokom ako je to napr pri kroku 1… pri kroku
+         5 je vnútri dbloku… a to je chyba… vždy má byť hore". Je to TEN ISTÝ `AinubisGuide`,
+        aký hovorí v krokoch 1–2 (veľká tvár, rovnaké písmo) — nie druhá bublina. Stojí ako
+        súrodenec `.atl-log` v hostiteľovi; na PC si rám preberie `.atl-log` a hostiteľ ostane
+        len stĺpcom (PALE_ADD_CSS v PackMap.tsx, `:has(> .atl-guide)`). Na telefóne je
+        hostiteľ celá obrazovka bez rámu, takže stojí jednoducho navrchu.
+        Tvár = vstup do chatu, pulzuje, kým známka nie je A. */}
+    {step === 8 && !isPlan && activity && (
+      <div className="atl-guide">
+        <AinubisGuide
+          text={gradeResult.grade === 'A'
+            ? t('pack.addTrip.grade.leadA')
+            : t('pack.addTrip.grade.lead', { grade: gradeResult.grade, hint: t(`pack.addTrip.grade.hint.${gradeResult.missing[0]}`) })}
+          onFace={() => openAinubis()}
+          faceLabel={t('pack.addTrip.grade.askAinubis')}
+          pulse={gradeResult.grade !== 'A'}
+        />
+      </div>
+    )}
+    {/* `--intro` = obrazovka výberu aktivity. Bez príznaku by mobilné pravidlá (šípka mimo toku,
        centrovaná dvojica nadpis + zoznam) platili aj na kroky formulára, kde je hlavička úzka
-       a miesto patrí poliam. */
+       a miesto patrí poliam. */}
     <div className={`atl-log${!activity ? ' atl-log--intro' : ''}`}>
       <style>{LOG_CSS}</style>
       {/* PORTÁL NA <body> — panel, v ktorom sprievodca žije, je počas kreslenia skrytý
@@ -3998,32 +4027,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                 )}
               </>
             )}
-          </div>
-
-          <div className="atl-log-foot">
-            {/* V KROKU 1 NAVIGÁCIU VLASTNÍ LIŠTA (HOTOVO nad mapou) — dve tlačidlá s tým istým
-                účinkom na jednej obrazovke je presne ten zmätok, kvôli ktorému kroky vznikli. */}
-            {/* KROK 2 MÁ SVOJE POKRAČOVANIE V LIŠTE NAD MAPOU — dva „ďalej" na jednej
-                obrazovke (jeden v päte panela, druhý v doku) je otázka, ktorý z nich platí. */}
-            {!isLastStep && !drawingStep && !notesInBar && (
-              <div className="atl-nav">
-                {/* Krok „Čo" má späť šípkou hore — druhé Späť dole bolo navyše (Matej 11. 10. 2026). */}
-                {step !== 7 && <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>}
-                <button type="button" className="btn-gold" onClick={goNext} disabled={nextBlocked}>
-                  {t('pack.addTrip.step.next')}
-                </button>
-              </div>
-            )}
-            {step === 1 && !drawingStep && nextBlocked && (
-              <p className="atl-log-hint">{t(isPlaceTrip ? 'pack.addTrip.step.needPlace' : 'pack.addTrip.step.needRoute')}</p>
-            )}
-            {/* ⚠️ VYPNUTÉ ĎALEJ MUSÍ POVEDAŤ PREČO (2026-09-02). Krok 1 to hovoril od začiatku,
-                sedmička nie — a keďže chip je povinný (`nextBlocked`), človek stál pred sivým
-                tlačidlom bez jediného vodidla. Tá istá trieda aj miesto ako pri mape. */}
-            {step === 7 && nextBlocked && (
-              <p className="atl-log-hint">{t(ownActMissing ? 'pack.addTrip.step.needOwn' : 'pack.addTrip.step.needChip')}</p>
-            )}
-
             {isLastStep && (
               <>
                 {showDupWarning && dup && (
@@ -4055,7 +4058,16 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                     <p>{t('pack.addTrip.step.willBeDraft', { fields: missingTx(missing.toApprove) })}</p>
                   </div>
                 )}
-                {!isPlan && <TripGradeCard result={gradeResult} photoCount={photos.length} onGo={gradeGo} onAsk={() => openAinubis()} t={t} />}
+                {!isPlan && <TripGradeCard result={gradeResult} photoCount={photos.length} onGo={gradeGo} t={t} />}
+              </>
+            )}
+          </div>
+
+          <div className="atl-log-foot">
+            {/* POSLEDNÝ KROK: tlačidlá stoja v PÄTE ako NEXT v ostatných krokoch — obsah
+                (upozornenia, známka) roluje v tele nad nimi (15. 10. 2026). */}
+            {isLastStep && (
+              <>
                 <div className="atl-nav">
                   <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>
                   <button type="button" className="btn-gold" disabled={!canSubmit || saving} onClick={handleSubmit}>
@@ -4078,10 +4090,34 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                 {submitError && <p className="atl-log-error">{submitError}</p>}
               </>
             )}
+            {/* V KROKU 1 NAVIGÁCIU VLASTNÍ LIŠTA (HOTOVO nad mapou) — dve tlačidlá s tým istým
+                účinkom na jednej obrazovke je presne ten zmätok, kvôli ktorému kroky vznikli. */}
+            {/* KROK 2 MÁ SVOJE POKRAČOVANIE V LIŠTE NAD MAPOU — dva „ďalej" na jednej
+                obrazovke (jeden v päte panela, druhý v doku) je otázka, ktorý z nich platí. */}
+            {!isLastStep && !drawingStep && !notesInBar && (
+              <div className="atl-nav">
+                {/* Krok „Čo" má späť šípkou hore — druhé Späť dole bolo navyše (Matej 11. 10. 2026). */}
+                {step !== 7 && <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>}
+                <button type="button" className="btn-gold" onClick={goNext} disabled={nextBlocked}>
+                  {t('pack.addTrip.step.next')}
+                </button>
+              </div>
+            )}
+            {step === 1 && !drawingStep && nextBlocked && (
+              <p className="atl-log-hint">{t(isPlaceTrip ? 'pack.addTrip.step.needPlace' : 'pack.addTrip.step.needRoute')}</p>
+            )}
+            {/* ⚠️ VYPNUTÉ ĎALEJ MUSÍ POVEDAŤ PREČO (2026-09-02). Krok 1 to hovoril od začiatku,
+                sedmička nie — a keďže chip je povinný (`nextBlocked`), človek stál pred sivým
+                tlačidlom bez jediného vodidla. Tá istá trieda aj miesto ako pri mape. */}
+            {step === 7 && nextBlocked && (
+              <p className="atl-log-hint">{t(ownActMissing ? 'pack.addTrip.step.needOwn' : 'pack.addTrip.step.needChip')}</p>
+            )}
+
           </div>
         </>
       )}
     </div>
+    </>
   );
 }
 
@@ -4169,6 +4205,15 @@ const STEP_CSS = `
    teda bez hrán, o ktoré by sa dalo zakopnúť. */
 .atl-steps:not(.atl-steps--onmap){padding:8px 24px 12px;}
 .atl-steps:not(.atl-steps--onmap)::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:${T.rule};}
+/* ŠESŤ KROKOV NA ÚZKOM TELEFÓNE (15. 10. 2026, krok ZNÁMKA). SK názvy pri 360 px pretiekli
+   o 24 px a pri 390 px sa „O TRASE" zalomilo na dva riadky. Okraj ide na PAGE_AIR mobilu (16)
+   a medzera na 4 — názov sa nezalamuje, takže výška krokovníka ostáva na každom kroku rovnaká. */
+@media (max-width:479px){
+  .atl-steps:not(.atl-steps--onmap){padding-left:16px;padding-right:16px;gap:4px;}
+  .atl-steps:not(.atl-steps--onmap) .atl-step span{white-space:nowrap;}
+  /* Bočný vzduch si nechá len AKTÍVNY krok — ten jediný má okolo seba rámik. */
+  .atl-steps:not(.atl-steps--onmap) .atl-step:not(.on){padding-left:0;padding-right:0;}
+}
 /* Veta o zámku stojí POD krokovníkom, teda mimo neho — v ňom by si delila riadok
    s piatimi bodkami a rozhodila by ich rovnaké diely. */
 .atl-steps-lock{margin:-2px 20px 8px;font-family:${FONT_UI};font-size:10px;line-height:1.45;color:${T.onDarkDim};}
@@ -4430,7 +4475,16 @@ const COMPANION_CSS = `
 // DogShare.tsx, About.tsx — „canonical, scoped locally"). Gradient/border/shadow 1:1 zo
 // SpiralLanding.css, tmavý povrch varianta.
 const LOG_CSS = `
-.atl-log{display:flex;flex-direction:column;height:100%;min-height:0;}
+.atl-log{display:flex;flex-direction:column;height:100%;min-height:0;flex:1 1 auto;}
+/* AINUBIS NAD RÁMOM (krok ZNÁMKA, 15. 10. 2026). Sprievodca je inde pripnutý k oknu
+   (.ang-wrap fixed) — tu stojí v toku hostiteľa, tak ako v ľavom stĺpci krokov 1–2
+   (.trp-dock--pc .ang-wrap). Šírku drží stĺpec, nie bublina. */
+.atl-guide{flex:0 0 auto;}
+.atl-guide .ang-wrap{position:static;left:auto;right:auto;top:auto;padding:0;background:none;z-index:auto;pointer-events:auto;}
+.atl-guide .ang-bar{max-width:none;}
+@media (max-width:${PALE_PC_MIN - 1}px){
+  .atl-guide{padding:12px 16px 0;}
+}
 .atl-log-head{display:flex;align-items:center;gap:10px;padding:12px 24px 8px;flex-shrink:0;}
 .atl-log-back{display:inline-flex;align-items:center;justify-content:center;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;line-height:1;}
 .atl-log-back:hover{border-color:${GOLD};color:${GOLD};}

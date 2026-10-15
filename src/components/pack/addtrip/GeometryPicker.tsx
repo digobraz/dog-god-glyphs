@@ -1699,6 +1699,71 @@ export function GeometryPicker({
     </button>
   ) : null;
 
+  /**
+   * ── NÁSTROJE KRESLENIA (SPÄŤ O BOD · VYMAZAŤ) — NA PC DOLE NA MAPE (Matej 15. 10. 2026) ──
+   * „na PC ani 1. krok sa nemestí do viewpointu! nebolo by lepšie dať clear a undo priamo do
+   *  mapy dolu ako keby spodný nav? (pc)" — stĺpec vľavo nesie AINUBISa, prevýšenie, pilulku
+   * aj panel a na nízkom okne pretiekol. Nástroje sú gestá NAD MAPOU (ruší sa nimi to, čo človek
+   * práve naklikal do mapy), takže na PC stoja v lište pri spodnej hrane mapy, nie v paneli.
+   * Na telefóne ostávajú v paneli — tam JE panel tá spodná lišta.
+   * JEDEN uzol pre obe miesta (`minor` = tichší tvar, keď v paneli vedľa stojí HOTOVO).
+   */
+  const drawTools = (minor: boolean) => !paused && (
+    <div className={`trp-dbar-row${minor ? ' trp-dbar-row--minor' : ''}`}>
+      {/* ⚠️ OBLASŤ NEMÁ BOD, KTORÝ BY SA DAL VRÁTIŤ (Matej 2026-08-31: „späť o bod
+          tam nemá čo robiť"). `undo` má prvým riadkom `if (value.kind !== 'route')
+          return;`, takže tlačidlo stálo v lište plne kontrastné a po stlačení sa
+          nestalo nič — mŕtvy ovládač, nie zašednutý. Jeho miesto berie to, čo pri
+          okruhu naozaj treba: ZMENŠIŤ a ZVÄČŠIŤ. */}
+      {/* ── VEĽKOSŤ OKRUHU JE JAZDEC, NIE DVE TLAČIDLÁ (Matej 1. 9. 2026) ────────
+          „zväčšiť a zmenšiť okruh by som dal na slider, nech sa nemusí klikať
+           toľko… pri veľkých priehradách napr., ale aj celkovo."
+          Dvojica − / + z 31. 8. dala cestu z 50 na 500 m za 18 ťuknutí; jazdec
+          je jedno potiahnutie a zároveň UKAZUJE, kde v rozpätí človek stojí —
+          tlačidlá o rozpätí nehovoria nič a koniec oznámia až zašednutím.
+          ⚠️ Číslo si NEKRESLÍ: polomer stojí nad mapou v `.trp-dread` a mení sa
+          ťahom, takže druhý výpis by bol ten istý údaj dvakrát na jednej doske.
+          ⚠️ Jazdec beží po INDEXE zastávok (AREA_STOPS hore v súbore), nie po
+          metroch — dôvod je pri jeho definícii. Klávesnica (šípky) sa tým vezie
+          s ním a preskočí presne na susednú zastávku. */}
+      {isArea ? (
+        <input
+          type="range"
+          className="trp-dbar-range"
+          min={0}
+          max={AREA_STOPS.length - 1}
+          step={1}
+          value={areaIdx(value.radiusM)}
+          disabled={busy || !hasSomething}
+          style={{ opacity: hasSomething ? 1 : 0.4 }}
+          aria-label={t('pack.addTrip.geo.areaRadius', { r: formatRadius(value.radiusM, intlLocale(lang)) })}
+          onChange={(e) => setRadius(AREA_STOPS[Number(e.target.value)])}
+        />
+      ) : (
+      <button
+        type="button"
+        className="trp-dbar-btn"
+        onClick={undo}
+        disabled={busy || !hasSomething}
+        style={{ opacity: hasSomething ? 1 : 0.4 }}
+      >
+        <BackLinkIcon />
+        {t('pack.addTrip.geo.undoPoint')}
+      </button>
+      )}
+      <button
+        type="button"
+        className="trp-dbar-btn"
+        onClick={clear}
+        disabled={busy || !hasSomething}
+        style={{ opacity: hasSomething ? 1 : 0.4 }}
+      >
+        <HandTrash size={14} />
+        {t('pack.addTrip.geo.clear')}
+      </button>
+    </div>
+  );
+
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       {/* ⚠️ V PANELI LEN VTEDY, KEĎ NESTOJÍ LIŠTA. Odkedy ten istý prepínač žije aj v doku
@@ -1952,61 +2017,8 @@ export function GeometryPicker({
               Ikonky sú z hand-drawn setu (CLAUDE.md) a dedia farbu textu — `HandIcons` je
               práve ten kanál, ktorý to vie. */}
           {(() => {
-            const tools = !paused && (
-              <div className={`trp-dbar-row${doneReady ? ' trp-dbar-row--minor' : ''}`}>
-                {/* ⚠️ OBLASŤ NEMÁ BOD, KTORÝ BY SA DAL VRÁTIŤ (Matej 2026-08-31: „späť o bod
-                    tam nemá čo robiť"). `undo` má prvým riadkom `if (value.kind !== 'route')
-                    return;`, takže tlačidlo stálo v lište plne kontrastné a po stlačení sa
-                    nestalo nič — mŕtvy ovládač, nie zašednutý. Jeho miesto berie to, čo pri
-                    okruhu naozaj treba: ZMENŠIŤ a ZVÄČŠIŤ. */}
-                {/* ── VEĽKOSŤ OKRUHU JE JAZDEC, NIE DVE TLAČIDLÁ (Matej 1. 9. 2026) ────────
-                    „zväčšiť a zmenšiť okruh by som dal na slider, nech sa nemusí klikať
-                     toľko… pri veľkých priehradách napr., ale aj celkovo."
-                    Dvojica − / + z 31. 8. dala cestu z 50 na 500 m za 18 ťuknutí; jazdec
-                    je jedno potiahnutie a zároveň UKAZUJE, kde v rozpätí človek stojí —
-                    tlačidlá o rozpätí nehovoria nič a koniec oznámia až zašednutím.
-                    ⚠️ Číslo si NEKRESLÍ: polomer stojí nad mapou v `.trp-dread` a mení sa
-                    ťahom, takže druhý výpis by bol ten istý údaj dvakrát na jednej doske.
-                    ⚠️ Jazdec beží po INDEXE zastávok (AREA_STOPS hore v súbore), nie po
-                    metroch — dôvod je pri jeho definícii. Klávesnica (šípky) sa tým vezie
-                    s ním a preskočí presne na susednú zastávku. */}
-                {isArea ? (
-                  <input
-                    type="range"
-                    className="trp-dbar-range"
-                    min={0}
-                    max={AREA_STOPS.length - 1}
-                    step={1}
-                    value={areaIdx(value.radiusM)}
-                    disabled={busy || !hasSomething}
-                    style={{ opacity: hasSomething ? 1 : 0.4 }}
-                    aria-label={t('pack.addTrip.geo.areaRadius', { r: formatRadius(value.radiusM, intlLocale(lang)) })}
-                    onChange={(e) => setRadius(AREA_STOPS[Number(e.target.value)])}
-                  />
-                ) : (
-                <button
-                  type="button"
-                  className="trp-dbar-btn"
-                  onClick={undo}
-                  disabled={busy || !hasSomething}
-                  style={{ opacity: hasSomething ? 1 : 0.4 }}
-                >
-                  <BackLinkIcon />
-                  {t('pack.addTrip.geo.undoPoint')}
-                </button>
-                )}
-                <button
-                  type="button"
-                  className="trp-dbar-btn"
-                  onClick={clear}
-                  disabled={busy || !hasSomething}
-                  style={{ opacity: hasSomething ? 1 : 0.4 }}
-                >
-                  <HandTrash size={14} />
-                  {t('pack.addTrip.geo.clear')}
-                </button>
-              </div>
-            );
+            // PC: nástroje stoja v lište dole na mape (`.trp-dtoolbar`), nie v paneli — viď `drawTools`.
+            const tools = isPC ? null : drawTools(doneReady);
             const done = (
               <button
                 type="button"
@@ -2047,6 +2059,12 @@ export function GeometryPicker({
         ) : null}
 
         </div>
+        {/* PC: SPÄŤ O BOD · VYMAZAŤ dole na mape (Matej 15. 10. 2026) — viď `drawTools`. */}
+        {isPC && stage === 2 && !drawBar.panel && !paused && (
+          <div className="trp-dtoolbar">
+            <div className="trp-dtoolbar-in trp-dockpanel">{drawTools(false)}</div>
+          </div>
+        )}
         </>,
         document.body,
       )}
@@ -2433,6 +2451,13 @@ const DRAW_BAR_CSS = `
   .trp-dock--pc .trp-dreadrow .trp-dread{width:100%;text-align:center;box-sizing:border-box;}
   /* Panel nesmie stlačiť obsah pod svoju prirodzenú výšku, keď stĺpec skroluje. */
   .trp-dock--pc .trp-dockpanel{flex:0 0 auto;}
+  /* ── LIŠTA NÁSTROJOV DOLE NA MAPE (Matej 15. 10. 2026: „dať clear a undo priamo do mapy
+     dolu ako keby spodný nav? (pc)") ─────────────────────────────────────────────────────
+     Vodorovne na stred MAPY, nie okna — mapa začína za stĺpcom (20 + šírka + 20) a vpravo
+     drží 74 px pre ovládanie mapy (to isté číslo ako čítanie km a .trp-topbar). Materiál
+     je .trp-dockpanel, teda ten istý D-BLOK ako panel vľavo — iný tvar by bol druhý dok. */
+  .trp-dtoolbar{position:fixed;bottom:20px;left:${40 + DOCK_COL_W}px;right:74px;z-index:1200;display:flex;justify-content:center;pointer-events:none;}
+  .trp-dtoolbar .trp-dtoolbar-in{pointer-events:auto;width:min(440px,100%);padding:12px;}
   /* ── KROKY 1–5 V DOLNOM BLOKU, S NÁZVAMI ──────────────────────────────────────────────
      Nad mapou sú bodky pilulkou s tmavým podkladom a bez popiskov (päť názvov sa na telefón
      nezmestí). V paneli je podklad aj rám navyše — škatuľa v škatuli — a miesto na názvy tam
@@ -2459,6 +2484,7 @@ const DRAW_BAR_CSS = `
 /* Kompaktný desktop — tá istá hranica a to isté číslo, aké má .trp-sidebar v PackMap.tsx. */
 @media (min-width:1024px) and (max-width:1400px){
   .trp-dock{width:${360 + GLOW_PAD * 2}px;}
+  .trp-dtoolbar{left:400px;}
 }
 ${MAP_SKIN !== 'pale' ? '' : `
 /* ══ BLEDÝ SKIN (2026-08-26, mobil doplnený 2026-08-28) ══════════════════════════════════

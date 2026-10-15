@@ -2843,6 +2843,14 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
    je to len zjedený riadok na oboch stranách. */
 @media (min-width:${PALE_PC_MIN}px){
   .trp-addhost{${goldFrameCSS({ radius: SLAB.radius, rim: SLAB.rim })}backdrop-filter:none;-webkit-backdrop-filter:none;}
+  /* ── AINUBIS NAD RÁMOM (Matej 15. 10. 2026: „ainubis pri tripflow má svoje miesto nad
+     dblokom ako je to napr pri kroku 1") ─────────────────────────────────────────────────
+     Keď formulár postaví sprievodcu (.atl-guide, krok ZNÁMKA), hostiteľ prestane byť blokom
+     a ostane STĹPCOM — presne ako .trp-dock--pc v krokoch 1–2: AINUBIS hore, pod ním blok.
+     Rám sa NEOPISUJE: je to to isté volanie goldFrameCSS s tými istými parametrami, len
+     o úroveň nižšie. overflow:visible, aby sa dosvit bubliny neodrezal o hranu stĺpca. */
+  .trp-addhost:has(> .atl-guide){border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;gap:12px;}
+  .trp-addhost:has(> .atl-guide) > .atl-log{${goldFrameCSS({ radius: SLAB.radius, rim: SLAB.rim })}overflow:hidden;}
 }
 @media (max-width:${PALE_PC_MIN - 1}px){
   .trp-addhost{${goldPlateCSS({ radius: 0 })}box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;}

@@ -19,6 +19,7 @@ import { useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import ainubisFace from '@/assets/ainubis-head.webp';
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { HandExit } from '@/components/pack/HandIcons';
 
 /** ms na znak — 22 je rýchlosť, pri ktorej sa veta stihne prečítať skôr, než dopíše. */
@@ -30,11 +31,22 @@ export function AinubisGuide({
   abortLabel,
   below,
   edgeLeft,
+  onFace,
+  faceLabel,
+  pulse,
 }: {
   /** celá veta; pri zmene sa prepíše nanovo (to je tá „reakcia") */
   text: string;
   onAbort?: () => void;
   abortLabel?: string;
+  /**
+   * TVÁR = VSTUP DO CHATU (Matej 15. 10. 2026, krok ZNÁMKA). Keď je podané, tvár je tlačidlo
+   * a otvorí rozhovor s AINUBISom — sprievodca sám ostáva bez siete (viď hlavičku súboru).
+   */
+  onFace?: () => void;
+  faceLabel?: string;
+  /** Jemný pulz tváre, keď má človek čo doplniť (známka nie je A). */
+  pulse?: boolean;
 
   /** bodky 1–5 — stoja POD bublinou, nie v paneli (Matej 24. 8. 2026) */
   below?: React.ReactNode;
@@ -75,7 +87,19 @@ export function AinubisGuide({
     <div className={`ang-wrap${edgeLeft ? ' ang-wrap--edge' : ''}`}>
       <style>{AINUBIS_GUIDE_CSS}</style>
       <div className="ang-bar">
-        <img className="ang-face" src={ainubisFace} alt="" aria-hidden="true" />
+        {onFace ? (
+          <button
+            type="button"
+            className={`ang-face-btn${pulse ? ' ang-face-btn--pulse' : ''}`}
+            onClick={onFace}
+            aria-label={faceLabel}
+            title={faceLabel}
+          >
+            <img className="ang-face" src={ainubisFace} alt="" aria-hidden="true" />
+          </button>
+        ) : (
+          <img className="ang-face" src={ainubisFace} alt="" aria-hidden="true" />
+        )}
         {/* aria-live: pokyn sa mení bez toho, aby sa čokoľvek prekliklo — bez tohto by
             o ňom čítačka obrazovky nevedela. Číta sa CELÁ veta (text), nie rozpísaná. */}
         <p className="ang-text" aria-live="polite">
@@ -140,6 +164,15 @@ export const AINUBIS_GUIDE_CSS = `
    Obrázok je 800×940 (vyšší než širší), takže 'object-fit:contain' ho v kruhu nechá dýchať
    — 'cover' by mu odrezal uši. */
 .ang-face{flex:0 0 auto;width:48px;height:48px;object-fit:contain;border-radius:50%;background:radial-gradient(circle at 35% 28%,#12233a 0%,#01050A 74%);box-shadow:0 0 0 1.5px rgba(91,224,240,0.45),0 0 16px rgba(59,158,255,0.38);}
+/* Tvár ako tlačidlo do chatu — ten istý kruh, len klikateľný. Pulz je prstenec okolo neho,
+   nie zmena veľkosti: tvár ostáva tam, kde ju človek pozná z kroku 1. */
+/* ⚠️ Pulz aj fokus idú cez OUTLINE, nie box-shadow: tvár už nesie svoj prstenec v box-shadow
+   (.ang-face) a druhý tieň by ho prepísal. Farby sú tokeny AINUBISA, nie opísané čísla. */
+.ang-face-btn{flex:0 0 auto;display:block;padding:0;margin:0;border:0;background:none;border-radius:50%;cursor:pointer;line-height:0;outline:2px solid transparent;outline-offset:0;transition:transform .15s ease;}
+.ang-face-btn:hover{transform:scale(1.06);}
+.ang-face-btn:focus-visible{outline-color:${AINUBIS.cyan};outline-offset:4px;}
+.ang-face-btn--pulse{animation:ang-face-pulse 2.4s ease-in-out infinite;}
+@keyframes ang-face-pulse{0%,100%{outline-color:transparent;outline-offset:0;}50%{outline-color:${AINUBIS.edgeStrong};outline-offset:5px;}}
 .ang-text{flex:1 1 auto;min-width:0;margin:0;font-family:${FONT_UI};font-size:14px;font-weight:500;line-height:1.35;color:#E6FAFF;}
 /* Kurzor bliká LEN kým sa píše — blikanie nad dopísanou vetou by tvrdilo, že ešte príde
    pokračovanie. */
@@ -155,6 +188,7 @@ export const AINUBIS_GUIDE_CSS = `
 @media (prefers-reduced-motion: reduce){
   .ang-caret{animation:none;}
   .ang-bar{animation:none;}
+  .ang-face-btn--pulse{animation:none;}
 }
 /* PC — dok je ľavý stĺpec, takže sprievodca stojí nad MAPOU vpravo od neho, nie cez celú
    šírku okna. Čísla sú tie isté, aké drží .trp-dtop, aby sa pásy neprekrývali. */
