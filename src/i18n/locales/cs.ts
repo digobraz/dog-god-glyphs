@@ -2909,6 +2909,8 @@ export const cs: Partial<Dict> = {
   'pack.trip.edit.planTitle': 'Upravit plán',
   'pack.trip.edit.planVisibility': 'Kdo jde',
   'pack.trip.edit.rating': 'Tvoje hodnocení',
+  'pack.trip.edit.dogs': "Psi na výletě",
+  'pack.trip.edit.dogsMin': "Alespoň jeden pes musí zůstat — jinak se nic nezmění.",
   'pack.trip.edit.removePhoto': 'Odebrat fotku',
   'pack.trip.edit.save': 'Uložit změny',
   'pack.trip.edit.saveFailed': 'Nepodařilo se uložit — úložiště může být plné. Odeber fotku a zkus to znovu.',

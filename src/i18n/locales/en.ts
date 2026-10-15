@@ -3780,6 +3780,8 @@ export const en = {
   'pack.trip.go.mapyTrail': "Open the area in Mapy.com",
   'pack.trip.go.mapyTrailSub': "Trail markings around the start. Our route is in the GPX above.",
   'pack.trip.edit.rating': "Your rating",
+  'pack.trip.edit.dogs': "Dogs on this trip",
+  'pack.trip.edit.dogsMin': "Keep at least one dog — otherwise nothing changes.",
   'pack.trip.edit.planTitle': "Edit plan",
   'pack.trip.edit.planDate': "Date",
   'pack.trip.edit.planDateHint': "Leave empty if you don't know the date yet.",

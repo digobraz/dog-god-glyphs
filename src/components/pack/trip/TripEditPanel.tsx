@@ -49,7 +49,7 @@ import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/comp
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { readLocalTrails, updateLocalTrail, translateLocalTrailName } from '@/components/pack/tripShared';
-import { readTrailOverrides, saveTrailOverride, translateTripDesc, readLocalTrailMeta } from '@/lib/packStore';
+import { readTrailOverrides, saveTrailOverride, translateTripDesc, readLocalTrailMeta, readDogTrips, setDogTripCrew } from '@/lib/packStore';
 import { MAX_PHOTOS, optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
 import { TRAVEL_MODES, type TravelMode, type TravelInfo } from '@/components/pack/addtrip/addTripModel';
@@ -130,14 +130,22 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
 .tep-travel b{font-size:16px;line-height:1;}
 .tep-check{display:flex;align-items:center;gap:8px;width:100%;padding:12px;color:${T.inkStrong};text-align:left;}
 .tep-check b{width:16px;flex-shrink:0;font-size:12px;}
+.tep-dogs{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+.tep-dog-ph{width:24px;height:24px;border-radius:999px;object-fit:cover;flex-shrink:0;}
 .tep-opt.on,.tep-travel button.on,.tep-check.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
 .tep-seats{display:flex;align-items:center;gap:8px;margin-top:8px;font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};}
 .tep-seats button{width:28px;height:28px;border-radius:8px;border:1px solid ${T.border};background:${PALE.field};color:${T.inkStrong};font-size:14px;line-height:1;cursor:pointer;}
 .tep-seats b{color:${T.inkStrong};font-size:14px;min-width:14px;text-align:center;}
 `;
 
-export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onReroute, onClose }: {
+export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onReroute, onClose }: {
   trail: HeroTrail;
+  /**
+   * PSI NA VÝLETE (Daniela 15. 10. 2026: „ako sem pridám, že som prešla výlet s viacerými psami — ide
+   * o úpravu, nie vytvorenie"). Dá ho volajúci LEN pri výlete, ktorý som prešiel — posádku prepíše
+   * `setDogTripCrew`, ten istý zápis ako sprievodca. Chýba = sekcia sa nevykreslí.
+   */
+  myDogs?: { id: string; name: string; photo?: string | null }[];
   /**
    * Aktuálny stav PLÁNU, alebo `undefined` pri prejdenom výlete. Rozhoduje o tvári panela.
    * Nepočíta sa tu: či je výlet prejdený, vie len volajúci (`walkedIds`), a hádať to
@@ -165,6 +173,10 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onReroute, on
   // Výrez TITULNEJ fotky (zvislé ťažisko v %). Mení sa s ňou: nová titulka začína v strede.
   const [coverY, setCoverY] = useState<number>(trail.coverY ?? 50);
   const [busy, setBusy] = useState(false);
+  // Posádka = psy, pri ktorých je výlet dnes zapísaný (lokálna kópia `dog_trips`).
+  const crew0 = (myDogs ?? []).filter((d) => (readDogTrips()[d.id] ?? []).includes(trail.id)).map((d) => d.id);
+  const [crew, setCrew] = useState<string[]>(crew0);
+  const toggleCrew = (dogId: string) => setCrew((prev) => prev.includes(dogId) ? prev.filter((x) => x !== dogId) : [...prev, dogId]);
   const [err, setErr] = useState('');
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -245,6 +257,8 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onReroute, on
       ? updateLocalTrail(trail.id, patch)
       : saveTrailOverride(trail.id, { ...patch, descEN: '', dogNote: '', dogNoteEN: '', ...(nameChanged ? { nameEN: '' } : {}) });
     if (!ok) { setErr(t('pack.trip.edit.saveFailed')); return; }
+    // Posádka sa prepíše len keď sa zmenila a nie je prázdna — výlet bez psa by psom zobral zásluhu potichu.
+    if (myDogs?.length && crew.length && (crew.length !== crew0.length || crew.some((x) => !crew0.includes(x)))) setDogTripCrew(trail.id, crew);
     onSaved(patch);
     if (nameChanged && isLocal) translateLocalTrailName(trail.id, () => { const en = readLocalTrails().find((x) => x.id === trail.id)?.nameEN; if (en) onSaved({ nameEN: en }); });
     // EN preklad sa dorobí v pozadí (panel sa medzitým zavrie). Zapíše sa LEN keď popis
@@ -490,6 +504,21 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onReroute, on
         </div>
 
         {!isPlan && descField}
+        {!isPlan && !!myDogs?.length && myDogs.length > 0 && (
+          <div className="tep-field">
+            <label className="tep-label">{t('pack.trip.edit.dogs')}</label>
+            <div className="tep-dogs">
+              {myDogs.map((d) => (
+                <button key={d.id} type="button" aria-pressed={crew.includes(d.id)} className={`tep-check${crew.includes(d.id) ? ' on' : ''}`} onClick={() => toggleCrew(d.id)}>
+                  <b>{crew.includes(d.id) ? '✓' : ''}</b>
+                  {d.photo && <img src={sizedUrl(d.photo, 64)} alt="" className="tep-dog-ph" />}
+                  <span>{d.name}</span>
+                </button>
+              ))}
+            </div>
+            {!crew.length && <p className="tep-hint" style={{ marginTop: 6 }}>{t('pack.trip.edit.dogsMin')}</p>}
+          </div>
+        )}
         {!isPlan && (
           <div className="tep-field" style={{ textAlign: 'center' }}>
             <label className="tep-label">{t('pack.trip.edit.rating')}</label>

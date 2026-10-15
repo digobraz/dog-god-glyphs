@@ -3490,6 +3490,8 @@ export const sk: Partial<Dict> = {
   'pack.trip.go.mapyTrail': "Otvoriť okolie v Mapy.com",
   'pack.trip.go.mapyTrailSub': "Turistické značky okolo štartu. Našu trasu nesie GPX vyššie.",
   'pack.trip.edit.rating': "Tvoje hodnotenie",
+  'pack.trip.edit.dogs': "Psi na výlete",
+  'pack.trip.edit.dogsMin': "Aspoň jeden pes musí ostať — inak sa nič nezmení.",
   'pack.trip.edit.planTitle': "Upraviť plán",
   'pack.trip.edit.planDate': "Dátum",
   'pack.trip.edit.planDateHint': "Nechaj prázdne, ak ešte nevieš kedy.",

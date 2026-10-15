@@ -57,7 +57,7 @@ import {
   type TripVote, type TripPlan, type PartnerEvent, type CrowdSlice,
 } from '@/components/pack/packCommunity';
 import { TripWalkers } from '@/components/pack/trip/TripWalkers';
-import { readLocalTrailMeta, readTrailOverrides, readMyClaims, onPackStoreHydrated, isPackStoreHydrated } from '@/lib/packStore';
+import { readLocalTrailMeta, readTrailOverrides, readMyClaims, readDogTrips, onPackStoreHydrated, isPackStoreHydrated } from '@/lib/packStore';
 import { useCrowdOthers, refreshCrowdOthers } from '@/components/pack/crowdOthers';
 import {
   COMMUNITY_CSS, WalkedPopup,
@@ -716,6 +716,8 @@ export default function PackTripArticle() {
    */
   const [edits, setEdits] = useState<Partial<HeroTrail> | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  // Po zmene psov v úprave sa „Prešli“ načíta znova — zápis ide cez frontu, preto s odstupom.
+  const [crewTick, setCrewTick] = useState(0);
   // ── ZAKLADATEĽ UPRAVÍ AJ VÝLET Z DATASETU (Matej 5. 10. 2026) ──────────────────────────
   // „daj mi možnosť upravovať všetky tripy, lebo ja som autor" — 81 výletov datasetu je jeho.
   // Úprava ide do prepisu (`saveTrailOverride` v packStore), nie do datasetu, takže výhrada
@@ -2155,7 +2157,7 @@ export default function PackTripArticle() {
             <h3>{t(`pack.trip.walkedBy.${pluralKey(agg.dogyptianCount).toLowerCase()}`, { n: agg.dogyptianCount })}</h3>
           )}
           {/* KTO TADIAĽ PREŠIEL (Matej 21. 9. 2026) — mená a psy z `trip_walked` + `dog_trips`. */}
-          <TripWalkers tripSlug={trail.id} reloadKey={agg.walkerCount} />
+          <TripWalkers tripSlug={trail.id} reloadKey={`${agg.walkerCount}-${crewTick}`} />
         </div>
         {/* Tiché tlačidlo v päte, nie CTA — CTA pod výletom sú už tri. */}
         <button
@@ -2230,7 +2232,8 @@ export default function PackTripArticle() {
         <TripEditPanel
           trail={trail}
           plan={planEdit}
-          onSaved={(patch) => setEdits((prev) => ({ ...(prev ?? {}), ...patch }))}
+          myDogs={!planEdit && walkedIds.has(trail.id) ? id.dogs.filter((d) => d.life_status !== 'deceased' || (readDogTrips()[d.id] ?? []).includes(trail.id)).map((d) => ({ id: d.id, name: d.dog_name ?? t('pack.map.myDogFallback'), photo: d.cloudinary_main_url })) : undefined}
+          onSaved={(patch) => { setEdits((prev) => ({ ...(prev ?? {}), ...patch })); window.setTimeout(() => setCrewTick((n) => n + 1), 2500); }}
           onPlanSaved={savePlanEdit}
           onReroute={() => { setEditOpen(false); navigate(`/pack/map?reroute=${encodeURIComponent(trail.id)}`); }}
           onClose={() => setEditOpen(false)}
