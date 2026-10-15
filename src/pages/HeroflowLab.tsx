@@ -150,6 +150,7 @@ const GROUPS: Group[] = [
       // 26. 9. neskoro: bez loga, pečať + motto, ústup pri pretečení (1–6 psov cez
       // „Koľko psov“) a certifikát pre KAŽDÉHO psa (pipeline po psoch, overené
       // platbou na DEV). V dielni pipeline nebeží — heroglyf na stene je Hektorov.
+      // 15. 10. 2026 prezreté: WelcomeScreen 2512666f (CTA lapis r8, pozdrav bez fake bold) — stav sa nemení.
       { name: '11 · Vitaj → Poradie → NA STENU', path: '/heroglyph/welcome', state: 'done' },
     ],
   },
