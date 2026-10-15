@@ -36,7 +36,8 @@ import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, P
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
 import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, tripName, visibleLocalTrails, tripDraftMissing, memberTrailIds, coverPos } from '@/components/pack/tripShared';
-import { closeMyTripEvents, readLocalTrailMeta, readJson, writeJson, readWalkedAt, PACK_KEYS } from '@/lib/packStore';
+import { closeMyTripEvents, readLocalTrailMeta, readJson, writeJson, readWalkedAt, readMyClaims, PACK_KEYS } from '@/lib/packStore';
+import { isFounderEmail } from '@/lib/founder';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 // Tvary počítaného mena (1 výlet · 2–4 výlety · 5+ výletov) — jeden zdroj pre celý /pack.
 import { pluralKey } from '@/lib/plural';
@@ -443,6 +444,7 @@ const GRADE_MEDAL: Record<TripGrade, string> = {
   B: 'linear-gradient(135deg,#C99A3F 0%,#A3782B 100%)',
   C: 'linear-gradient(180deg,#C46A52,#8E3F2C)',
 };
+const DATASET_IDS = new Set([...HERO_JOURNEYS, ...HERO_TRAILS].map((t) => t.id));
 type MyTripRow = { entry: TriplistTrip; trail: HeroTrail; placeholder?: boolean; done?: boolean };
 
 // Jedna karta v OPEN TRIPS — vždy reálny inzerát z DB (`user_trips` cez useOpenTrips).
@@ -611,6 +613,17 @@ export default function PackTriplist() {
   // ⚠️ Prázdna mapa NEZNAMENÁ „nič nie je schválené" — znamená „ešte sa nehydratovalo"
   // (viď packStore.ts). Preto sa značka kreslí LEN pri explicitnom pending/rejected.
   const trailMeta = useMemo(() => readLocalTrailMeta(), [storeEpoch]);
+  // ZNÁMKA AJ PRI ĎALŠÍCH VÝLETOCH (Matej 15. 10. 2026: „pridaj mi známku aj pri ďalších výletoch,
+  // nech si to viem opraviť"). Pravidlo je TO ISTÉ ako `canEdit` v PackTripArticle — známka bez
+  // možnosti opravy by bola výčitka: vlastný zápis · prevzatá magistrála · zakladateľ nad datasetom.
+  const isFounder = isFounderEmail(id.session?.user?.email);
+  const myClaims = useMemo(() => new Set(readMyClaims()), [storeEpoch]);
+  const canFixTrail = (tripId: string) => {
+    if (mg) return tripId.startsWith('local-');
+    if (tripId.startsWith('local-')) return trailMeta[tripId]?.mine ?? true;
+    if (myClaims.has(tripId)) return true;
+    return isFounder && DATASET_IDS.has(tripId);
+  };
 
   const realMyTrips = useMemo<MyTripRow[]>(() => {
     return Object.values(triplist)
@@ -933,7 +946,7 @@ export default function PackTriplist() {
         // stav v moderácii — len pre členom nahodené výlety, generovaný dataset ho nemá
         const mod = trailMeta[entry.tripId]?.status;
         const showBadge = PLANNING_LIVE || done || !!mod;
-        const gradeRes = done && !placeholder && !gradeNotesLoading && entry.tripId.startsWith('local-') && (trailMeta[entry.tripId]?.mine ?? true)
+        const gradeRes = done && !placeholder && !gradeNotesLoading && canFixTrail(entry.tripId)
           ? gradeTrail(trail, gradeNotes) : null;
         return (
         <div key={entry.tripId} className="tl-mycard">
