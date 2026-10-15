@@ -1765,7 +1765,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
       }, 80);
       return;
     }
-    if (p === 'desc') { setStep(3); return; }
+    if (p === 'desc') { setPhotoCard(false); setStep(5); return; }
     if (p === 'route') { setStep(1); return; }
     setNoteAsk(p === 'parking' ? 0 : 1);
     setStep(2);
@@ -2404,6 +2404,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
       // sa aj vypĺňajú. (Tá istá lekcia ako s labkami 26. 8.: pole hlásené na susednom kroku
       // sa nedá doplniť, lebo tam nie je.)
       ...(!isChipFirst || tags.size ? [] : ['pack.addTrip.field.tags']),
+      // Ruch pri NÁVŠTEVE a AKTIVITE stojí od 15. 10. 2026 v ZÁKLADE (predtým v DOJME).
+      ...(isPlan || !isChipFirst || crowd ? [] : ['pack.addTrip.field.crowd']),
     ],
     4: isPlan ? [] : [
       ...(!isHikeLike || diff ? [] : ['pack.addTrip.field.diff']),
@@ -2428,9 +2430,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
      * Svorka a príbeh ostávajú dobrovoľné.
      */
     5: isPlan ? [] : [
-      // Pri NÁVŠTEVE a AKTIVITE sem prišiel ruch zo zaniknutej štvorky — hlásiť ho na kroku,
-      // ktorý sa nezobrazuje, by bola oranžová bodka za pole, ktoré nikde nie je.
-      ...(!isChipFirst || crowd ? [] : ['pack.addTrip.field.crowd']),
       ...(paws > 0 ? [] : ['pack.addTrip.field.paws']),
     ],
     /**
@@ -3621,8 +3620,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                     a ruch sám o sebe obrazovku neuživí (sadol si k hodnoteniu do DOJMU).
                     ⚠️ Hlavné miesto sa z prvého radu VYPÚŠŤA — človek ho práve vybral
                     a ponúkať mu ho znova by bola tá istá otázka druhýkrát. */}
-                {/* ⚠️ STOJÍ NAD PRÍBEHOM. `atl-field--grow` (príbeh) zaberá zvyšok stĺpca a musí
-                    byť POSLEDNÝ — pod ním sa nové bloky prekryli s jeho textovým poľom. */}
+                {/* ⚠️ Príbeh odtiaľto 15. 10. 2026 odišiel do DOJMU 1/2 (viď krok 5) — `--grow`
+                    v ZÁKLADE už nie je, poradie polí tu nič nekryje. */}
                 {isChipFirst && (
                   <>
                     {/* 🔴 „ČO TAM EŠTE BOLO" ZANIKLO (Matej 1. 9. 2026: „daj celkom preč").
@@ -3663,19 +3662,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                     </div>
                   </>
                 )}
-                {!isPlan && (
-                  <div className="atl-field atl-field--grow">
-                    {/* Nadpis má celý riadok; „na celú obrazovku" odišiel POD pole (Matej 15. 10. 2026). */}
-                    <label>{t('pack.addTrip.log.story')}</label>
-                    <textarea className="atl-input atl-textarea" rows={4} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('pack.addTrip.step.storyPlaceholder')} />
-                    <div className="atl-storyfoot">
-                      <StoryMeter text={note} />
-                      <button type="button" className="atl-expand" onClick={() => setStoryFull(true)}>
-                        {t('pack.addTrip.step.expandEditor')}
-                      </button>
-                    </div>
-                  </div>
-                )}
+                {/* RUCH sem prišiel z DOJMU (Matej 15. 10. 2026: „text dáme do 5. (1/2) ako prvý
+                    a ruch dáme do 4"). Je to vlastnosť MIESTA — sedí k podmienkam, nie k dojmu.
+                    Turistika má ruch vo vlastnom kroku O TRASE, preto len NÁVŠTEVA a AKTIVITA. */}
+                {isChipFirst && !isPlan && crowdField(3)}
 
                 {/* ── ČO JE V PLÁNE (Matej 2026-08-25, presunuté 26. 8.) ────────────────
                     Detaily plánu sú DRUHÝ krok („meno, miesto a detaily"), preto ostali tu.
@@ -3903,10 +3893,21 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
             {/* ══ KROK 5 — OSTATNÉ ════════════════════════════════════════════════════ */}
             {step === 5 && !photoCard && (
               <>
-                {/* Pri NÁVŠTEVE je krok 5 DOJEM: ruch prišiel zo zaniknutej štvorky a stojí
-                    ako prvý — je to jediná vec, ktorú človek hodnotí o mieste, zvyšok kroku
-                    je o výlete (svorka, labky, fotky). */}
-                {isChipFirst && crowdField(5)}
+                {/* PRÍBEH JE PRVÝ V DOJME (Matej 15. 10. 2026, nad snímkami LIVE: „na 4. je veľa
+                    obsahu, na 5. 1/2 menej a na 5. 2/2 najmenej… text dáme do 5. (1/2) ako prvý").
+                    Platí pre všetky druhy výletu; ZÁKLAD tým odľahol. Nadpis má celý riadok,
+                    „na celú obrazovku" je POD poľom. Bez `--grow`: ten natiahne pole na zvyšok
+                    výšky, čo platilo, kým stálo POSLEDNÉ — tu by päta príbehu vliezla do ďalšieho poľa. */}
+                <div className="atl-field">
+                  <label>{t('pack.addTrip.log.story')}</label>
+                  <textarea className="atl-input atl-textarea" rows={4} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('pack.addTrip.step.storyPlaceholder')} />
+                  <div className="atl-storyfoot">
+                    <StoryMeter text={note} />
+                    <button type="button" className="atl-expand" onClick={() => setStoryFull(true)}>
+                      {t('pack.addTrip.step.expandEditor')}
+                    </button>
+                  </div>
+                </div>
                 <div className="atl-field">
                   {/* Nadpis sa pýta, nepomenúva (Matej 2026-08-25: „namiesto svorka na
                       výlete tam musí byť Kto bol s tebou na výlete?"). „Svorka na výlete" je
