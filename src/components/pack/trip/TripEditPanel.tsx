@@ -54,6 +54,7 @@ import { MAX_PHOTOS, optimizePhoto } from '@/components/pack/addtrip/photoOptimi
 import { PawRating } from '@/components/pack/addtrip/PawRating';
 import { TRAVEL_MODES, type TravelMode, type TravelInfo } from '@/components/pack/addtrip/addTripModel';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 /** Čo sa dá na PLÁNE prestaviť. `date` prázdny = „ešte neviem kedy" (flexibilný termín). */
 export type PlanEdit = { date: string; visibility: 'open' | 'private'; travel?: TravelInfo };
@@ -510,7 +511,7 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
             <div className="tep-dogs">
               {myDogs.map((d) => (
                 <button key={d.id} type="button" aria-pressed={crew.includes(d.id)} className={`tep-check${crew.includes(d.id) ? ' on' : ''}`} onClick={() => toggleCrew(d.id)}>
-                  <b>{crew.includes(d.id) ? '✓' : ''}</b>
+                  <b>{crew.includes(d.id) && <HandCheck size={14} />}</b>
                   {d.photo && <img src={sizedUrl(d.photo, 64)} alt="" className="tep-dog-ph" />}
                   <span>{d.name}</span>
                 </button>
