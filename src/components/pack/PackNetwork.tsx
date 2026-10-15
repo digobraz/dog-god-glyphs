@@ -787,7 +787,9 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
             className="flex items-center justify-center gap-1.5"
             style={{ marginTop: 7, fontFamily: FONT_UI, fontSize: 12, color: T.inkFaint }}
           >
-            <span className="truncate" style={{ minWidth: 0 }}>
+            {/* Tri bodky patria URL, nie vete — chybová veta sa v DE/PL/UA a pod. orezala
+                na „Dein Einladungslink konnte nic…" (UI audit jazykov 15. 10. 2026). */}
+            <span className={codeState === 'failed' ? undefined : 'truncate'} style={{ minWidth: 0, textAlign: 'center' }}>
               {/* ⚠️ Predtým sa tu čítal `loading` z `get_my_network` — ten dobehol skôr než
                   affiliate, takže pri chýbajúcom kóde tu ostal PRÁZDNY riadok pod bledým
                   tlačidlom a nič nepovedalo, čo sa deje. Teraz sa riadok riadi stavom kódu. */}
