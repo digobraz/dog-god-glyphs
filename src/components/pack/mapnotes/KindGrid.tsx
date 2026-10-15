@@ -12,9 +12,11 @@
 // ťuknutím do mapy, panel zápisu ich ponúka PO ňom. Sú to dva okamihy tej istej voľby — keby
 // mal každý vlastnú mriežku, rozišli by sa pri prvom pridanom druhu (a druhy pribúdajú, viď
 // `GROUP_KINDS`).
-import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, FONT_UI, PACK_SHADOW } from '@/components/pack/packTheme';
 import { MAP_SKIN, PALE, tintRGBA } from '@/components/pack/navGoldSkin';
+import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import type { NoteKind } from './mapNotesData';
 import { FONT_EMOJI, threatEmoji } from './markEmoji';
 
@@ -41,10 +43,34 @@ export function KindGrid({
    * značiek na mape drží mriežku ďalej.
    */
   row?: boolean;
+  /**
+   * ── JEDEN RIADOK NA SCROLL SO ŠÍPKAMI (Matej 15. 10. 2026, mobil, krok 2) ─────────────
+   * „je veľa obsahu na scroll = dajme ich do jedného riadku na scroll aj so šípkami, aby
+   *  človek vedel, že si môže vybrať".
+   * ⚠️ PREBÍJA zalomenie z 28. 8. („daj to do dvoch — 4 a 4"). Vodorovný scroll padol 23. 8.
+   *    preto, že „možnosti musia byť ihneď viditeľné, nie schované" — šípky na okrajoch sú
+   *    presne tá viditeľnosť: hovoria, že rad pokračuje. Šípka zmizne, keď na jej strane nič nie je.
+   */
+  scroll?: boolean;
 }) {
   const t = useT();
-  return (
-    <div className={row ? 'mnk-grid mnk-grid--row' : 'mnk-grid'}>
+  const railRef = useRef<HTMLDivElement>(null);
+  const [edge, setEdge] = useState({ l: false, r: false });
+  useEffect(() => {
+    const el = railRef.current;
+    if (!scroll || !el) return;
+    const upd = () => setEdge({ l: el.scrollLeft > 4, r: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 });
+    upd();
+    el.addEventListener('scroll', upd, { passive: true });
+    window.addEventListener('resize', upd);
+    return () => { el.removeEventListener('scroll', upd); window.removeEventListener('resize', upd); };
+  }, [scroll, kinds.length]);
+  const nudge = (dir: 1 | -1) => {
+    const el = railRef.current;
+    if (el) el.scrollBy({ left: dir * el.clientWidth * 0.7, behavior: 'smooth' });
+  };
+  const grid = (
+    <div ref={scroll ? railRef : undefined} className={scroll ? 'mnk-grid mnk-grid--row mnk-grid--rail' : row ? 'mnk-grid mnk-grid--row' : 'mnk-grid'}>
       <style>{KIND_GRID_CSS}</style>
       {kinds.map((k) => (
         <button
@@ -64,6 +90,14 @@ export function KindGrid({
           <em>{t(`pack.mapNotes.kind.${k}`)}</em>
         </button>
       ))}
+    </div>
+  );
+  if (!scroll) return grid;
+  return (
+    <div className="mnk-railwrap">
+      {grid}
+      {edge.l && <button type="button" className="mnk-arw mnk-arw--l" onClick={() => nudge(-1)} aria-label={t('pack.addTrip.step.scrollLeft')}><HandArrowLeft size={14} /></button>}
+      {edge.r && <button type="button" className="mnk-arw mnk-arw--r" onClick={() => nudge(1)} aria-label={t('pack.addTrip.step.scrollRight')}><HandArrowLeft size={14} /></button>}
     </div>
   );
 }
@@ -92,6 +126,15 @@ export const KIND_GRID_CSS = `
    a zaberajú cenný priestor v dolnom paneli, kde sa to nezmestí"). V mriežke bolo emoji NAD
    názvom, lebo stĺpec je úzky; v rade sa smie ísť VEDĽA SEBA a dlaždica tým klesne z ~58 px
    na ~34 px. Ušetrené dva riadky sú presne to, čo v paneli chýbalo. */
+/* Jeden riadok na scroll (15. 10. 2026) — pás bez posuvníka, šípky ležia nad okrajmi. */
+.mnk-railwrap{position:relative;}
+.mnk-grid--rail{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;padding:0 4px;}
+.mnk-grid--rail::-webkit-scrollbar{display:none;}
+.mnk-grid--rail .mnk-tile{scroll-snap-align:start;}
+.mnk-arw{position:absolute;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;background:${T.card};border:1px solid ${T.border};color:${T.inkStrong};box-shadow:${PACK_SHADOW.card};z-index:2;}
+.mnk-arw--l{left:-4px;}
+.mnk-arw--r{right:-4px;}
+.mnk-arw--r svg{transform:scaleX(-1);}
 .mnk-grid--row .mnk-tile{flex:0 0 auto;flex-direction:row;gap:5px;padding:8px 8px;border-radius:999px;white-space:nowrap;}
 .mnk-grid--row .mnk-tile i{font-size:14px;}
 .mnk-grid--row .mnk-tile em{font-size:10px;}

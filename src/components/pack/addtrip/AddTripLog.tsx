@@ -61,7 +61,7 @@ import { buildPlanDate, parsePlanDate, type PlanPrecision } from './planDate';
 import { ensureElevations, elevAt, missingElevationCount } from './mapProxyClient';
 import { PawRating } from './PawRating';
 import { TripGradeCard } from './TripGradeCard';
-import { gradeFromInputs, type GradePoint } from '@/lib/tripGrade';
+import { gradeFromInputs, type GradePoint, descOk, DESC_MIN_CHARS } from '@/lib/tripGrade';
 import { CROWDS, CROWD_EMOJI, type Crowd } from '@/components/pack/packCommunity';
 import { MARK_EMOJI, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { POINTS, NOTE_POINTS_TRIP_CAP } from '@/lib/tripPoints';
@@ -324,6 +324,7 @@ const TAG_OPTIONS: Array<{ id: string; label: string; emoji: string }> = [
 const COND_TAG_IDS = new Set(['sunset', 'shade', 'noshade']);
 const SCENE_TAGS = TAG_OPTIONS.filter((x) => !COND_TAG_IDS.has(x.id));
 const COND_TAGS = TAG_OPTIONS.filter((x) => COND_TAG_IDS.has(x.id));
+const TAG_IDS = new Set(TAG_OPTIONS.map((x) => x.id));
 
 // State (krajina) — lokálna kópia ADD_COUNTRY_OPTIONS/ISO2_LABEL (PackMap.tsx:117-121),
 // needituje sa a nič z neho nie je exportované, rovnaká duplikačná konvencia ako vyššie.
@@ -425,6 +426,29 @@ function CompanionAvatarsOnly(props: {
       <CompanionPicker myDogs={myDogs} selected={selected} onChange={onChange} />
       <MemberSearchRow selected={selected} onChange={onChange} />
     </div>
+  );
+}
+
+/**
+ * ── UKAZOVATEĽ PRÍBEHU (Matej 15. 10. 2026) ────────────────────────────────────────────
+ * „počítadlo znakov… ak napíše málo, text červený a výzva napíš viac, nech je tvoj výlet
+ *  užitočnejší pre komunitu, potom oranžová pridaj ešte niečo… a potom super, máš pochvalu
+ *  za snahu, komunita bude vďačná!"
+ * Zelená = ten istý prah, aký dáva bod za popis v známke (`descOk`: 120 znakov a 3 vety) —
+ * dve rôzne „dosť" by si odporovali o krok ďalej.
+ */
+const STORY_LOW = 60;
+// Oranžová stupňa „ešte kúsok" — medzi `alertRed` a zlatou; v `PACK_THEME` oranžová nie je.
+const STORY_MID_INK = '#B7701F';
+function StoryMeter({ text }: { text: string }) {
+  const t = useT();
+  const n = text.trim().length;
+  const level = descOk(text) ? 'ok' : n < STORY_LOW ? 'low' : 'mid';
+  const color = level === 'ok' ? T.growGreen : level === 'low' ? T.alertRed : STORY_MID_INK;
+  return (
+    <p className="atl-storymeter" style={{ color }} aria-live="polite">
+      <b>{level === 'ok' ? n : `${n}/${DESC_MIN_CHARS}`}</b> · {t(`pack.addTrip.step.storyMeter.${level}`)}
+    </p>
   );
 }
 
@@ -911,6 +935,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    */
   const ownChips = useMemo(() => chipsForCategory(activity), [activity]);
   const moreChips = useMemo(() => otherChips(activity), [activity]);
+  /**
+   * BEZ DUPLICÍT SO ŠTÍTKAMI (Matej 15. 10. 2026: „pri 4 sú duplicity… lúka a jazero… nemôžu
+   * byť duplicity — oprav to"). Chipy návštevy `lake` a `meadow` majú TO ISTÉ id ako štítky
+   * scenérie a v kroku 4 stoja pod nimi. Štítok vyhráva: filter mapy ho číta z `tags`.
+   */
+  const moreChipsNoTag = useMemo(() => moreChips.filter((ch) => !TAG_IDS.has(ch.id)), [moreChips]);
   /** Krok „Čo": vlastné chipy kategórie + „Iné" na konci. Len tu — viď `OWN_CHIP`. */
   const pickChips = useMemo(() => [...ownChips, OWN_CHIP], [ownChips]);
   /**
@@ -2260,6 +2290,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
           {askKinds.length > 1 && (
             <KindGrid
               row
+              scroll
               kinds={askKinds}
               selected={null}
               tint={GROUP_TINT[askGroup]}
@@ -3037,6 +3068,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
               onChange={(e) => setNote(e.target.value)}
               placeholder={t('pack.addTrip.step.storyPlaceholder')}
             />
+            <StoryMeter text={note} />
             <button type="button" className="btn-gold atl-editor-done" onClick={() => setStoryFull(false)}>
               {t('pack.addTrip.step.editorDone')}
             </button>
@@ -3427,7 +3459,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                 )}
 
                 <div className={`atl-field${missClass(3, !!name.trim())}`}>
-                  <label>{t('pack.addTrip.log.name')}</label>
+                  {/* PRÍKLAD PRI NADPISE (Matej 15. 10. 2026: „dal by som k nadpisu aj príklad
+                      boldom: Rysy – náročný výstup… nech to človek vidí, ako to myslíme"). */}
+                  <label>
+                    {t('pack.addTrip.log.name')}
+                    {!reroute && <span className="atl-label-ex">{t('pack.addTrip.log.nameExPre')} <b>{t('pack.addTrip.log.nameEx')}</b></span>}
+                  </label>
                   <input className="atl-input" value={name} readOnly={reroute} onChange={(e) => setName(e.target.value)} placeholder={t('pack.addTrip.step.namePlaceholder')} />
                   {/* RADA + 3 NÁVRHY (Matej 11. 10. 2026): názov bez miesta člen v zozname
                       nenájde. Najprv lokalita, potom pohľad autora. */}
@@ -3626,13 +3663,15 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                 )}
                 {!isPlan && (
                   <div className="atl-field atl-field--grow">
-                    <div className="atl-fieldhead">
-                      <label>{t('pack.addTrip.log.story')}</label>
+                    {/* Nadpis má celý riadok; „na celú obrazovku" odišiel POD pole (Matej 15. 10. 2026). */}
+                    <label>{t('pack.addTrip.log.story')}</label>
+                    <textarea className="atl-input atl-textarea" rows={4} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('pack.addTrip.step.storyPlaceholder')} />
+                    <div className="atl-storyfoot">
+                      <StoryMeter text={note} />
                       <button type="button" className="atl-expand" onClick={() => setStoryFull(true)}>
                         {t('pack.addTrip.step.expandEditor')}
                       </button>
                     </div>
-                    <textarea className="atl-input atl-textarea" rows={4} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('pack.addTrip.step.storyPlaceholder')} />
                   </div>
                 )}
 
@@ -3793,7 +3832,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
 
                     ⚠️ CHIPY IDÚ DO `acts`, SPOLU S KATEGÓRIOU (§2.3). Jedno pole, jeden
                     mechanizmus — filter aj karta ich čítajú tou istou cestou ako kategóriu. */}
-                {(ownChips.length > 0 || moreChips.length > 0) && (
+                {(ownChips.length > 0 || moreChipsNoTag.length > 0) && (
                   <div className="atl-field">
                     {ownChips.length > 0 && (
                       <>
@@ -3802,7 +3841,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                       </>
                     )}
 
-                    {moreChips.length > 0 && (
+                    {moreChipsNoTag.length > 0 && (
                       <div className={ownChips.length > 0 ? 'atl-more' : undefined}>
                         <button
                           type="button"
@@ -3815,7 +3854,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                         </button>
                         {moreChipsOpen && (
                           <div className="atl-more-body">
-                            <div className="atl-chips">{moreChips.map((ch) => chipBtn(ch, true))}</div>
+                            <div className="atl-chips">{moreChipsNoTag.map((ch) => chipBtn(ch, true))}</div>
                             {/* ── TICHÁ PONUKA MIESTA (§3 zadania, Matej 2026-08-31) ──────────
                                 „lenže človek to nie vždy chce a vie priznať, nevie kde na mape
                                  to bolo… keby to mal klikať, neurobí to lebo je náročné nájsť"
@@ -4483,6 +4522,12 @@ const STEP_CSS = `
    Odkaz „otvoriť na celú obrazovku" patrí k poľu, nie nad formulár — preto stojí v jeho
    riadku a nie vo vlastnom, ktorý by krok natiahol. */
 .atl-fieldhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.atl-label-ex{margin-left:8px;text-transform:none;letter-spacing:0;font-size:12px;font-weight:400;}
+.atl-label-ex b{font-weight:600;}
+.atl-storyfoot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:8px;}
+.atl-storymeter{margin:0;flex:1;min-width:0;font-family:${FONT_UI};font-size:12px;line-height:1.35;}
+.atl-storymeter b{font-weight:600;font-variant-numeric:tabular-nums;}
+.atl-editor .atl-storymeter{margin-top:8px;flex:none;}
 .atl-fieldhead > label{margin:0;}
 .atl-expand{flex:0 0 auto;background:none;border:0;padding:0;color:${GOLD};font-family:${FONT_UI};font-size:12px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
 .atl-expand:hover{color:#F5C73D;}

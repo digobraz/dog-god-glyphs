@@ -3909,6 +3909,13 @@ export const en = {
   'pack.addTrip.step.memberSuggest': 'DOGYPT members',
   'pack.addTrip.step.findMember': 'Tag a DOGYPT member — name or dog',
   'pack.addTrip.step.inviteNote': '{names} will get a request in the app. The trip counts for them once they confirm.',
+  'pack.addTrip.log.nameExPre': 'e.g.',
+  'pack.addTrip.log.nameEx': 'Rysy – a tough climb',
+  'pack.addTrip.step.storyMeter.low': 'Write more — it makes your trip more useful to the pack.',
+  'pack.addTrip.step.storyMeter.mid': 'Add a little more — where to park, where there’s water for the dog…',
+  'pack.addTrip.step.storyMeter.ok': 'Great — thanks for the effort, the pack will be grateful!',
+  'pack.addTrip.step.scrollLeft': 'Show previous',
+  'pack.addTrip.step.scrollRight': 'Show more',
   'pack.addTrip.step.storyPlaceholder': "Tell the story of your adventure — or pass on tips and advice that could help others.",
   // §4.5 — príbeh výletu sa dá otvoriť na celú obrazovku (Matej 2026-08-26)
   'pack.addTrip.step.expandEditor': "Open full screen",
