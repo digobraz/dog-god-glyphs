@@ -721,9 +721,9 @@ ${APPS_TYPE_CSS}
         .op-apps-pop .op-apps-name { white-space: normal; text-wrap: balance; min-width: 0; }
         /* Jedno slovo dlhšie než stĺpec (DE „GEMEINSCHAFTS-") sa nezalomí — písmo sa preto
            ráta ROVNICOU zo šírky stĺpca (cqi) a dĺžky najdlhšieho slova (--n, z textu, nie meraním):
-           Cinzel 700 verzálky + .04em ≈ .8 em na znak. Krátke mená ostávajú na 40 px. */
+           Cinzel 700 verzálky + .04em ≈ .88 em na znak (široké M/U/W — FR COMMUNAUTÉ pri .8 pretieklo o 3 px). Krátke mená ostávajú na 40 px. */
         .op-apps-pop-txt { container-type: inline-size; }
-        .op-alba .op-apps-pop .op-apps-name { font-size: min(40px, calc(100cqi / (var(--n, 1) * .8))); }
+        .op-alba .op-apps-pop .op-apps-name { font-size: min(40px, calc(100cqi / (var(--n, 1) * .88))); }
         /* Odrážka v popupe sa smie zalomiť — „jeden riadok" platí pre slajdy karuselu, nie pre detail. */
         .op-apps-pop .op-apps-ul li { white-space: normal; }
         .op-apps-mapy {
@@ -851,7 +851,7 @@ ${APPS_TYPE_CSS}
           /* Snímky švihom a bodkami — sivé šípky pri telefóne by sa bili so zlatými na kraji. */
           .op-apps-pop .op-apps-sl-btn { display: none; }
           .op-apps-pop-txt { flex: none; }
-          .op-alba .op-apps-pop .op-apps-name { font-size: min(20px, calc(100cqi / (var(--n, 1) * .8))); padding-bottom: 12px; }
+          .op-alba .op-apps-pop .op-apps-name { font-size: min(20px, calc(100cqi / (var(--n, 1) * .88))); padding-bottom: 12px; }
           .op-apps-pop-txt { min-width: 0; width: 100%; }
           .op-apps-pop .op-apps-lede { margin-bottom: 12px; font-size: 14px; line-height: 1.45; }
           .op-apps-pop .op-apps-ul li { padding: 6px 0; font-size: 14px; }

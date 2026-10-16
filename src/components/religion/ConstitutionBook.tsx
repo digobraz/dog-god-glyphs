@@ -1,10 +1,13 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback, type CSSProperties } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { Link } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { markConstitutionOpened } from '@/lib/constitutionRead';
 import dogyptSeal from '@/assets/dogypt-seal.webp';
 import { SACRED_INDEX } from '@/data/sacredIndex.generated';
+
+/** Najdlhšie slovo nadpisu obálky — vstup do rovnice veľkosti písma (`--n`, .cb-title). */
+const longestWord = (str: string) => Math.max(1, ...str.split(/\s+/).map((w) => w.length));
 
 // ════════════════════════════════════════════════════════════════════════
 // 🔒 DESKTOP / PC LAYOUT LOCKED 2026-06-03 (Matej OK).
@@ -218,7 +221,7 @@ export default function ConstitutionBook({ belowBook, openOnMount = false }: { b
             {/* 1 — TITLE (right) */}
             <div className="cb-page cb-right">
               <div className="cb-content cb-title-page">
-                <h2 className="cb-title">
+                <h2 className="cb-title" style={{ ['--n' as string]: Math.max(longestWord(t('religion.book.titleThe')), longestWord(t('religion.book.titleConstitution')), longestWord(t('religion.book.titleBrand')) * 1.5) } as CSSProperties}>
                   <span>{t('religion.book.titleThe')}</span>
                   <span className="cb-title-brand">{t('religion.book.titleBrand')}</span>
                   <span>{t('religion.book.titleConstitution')}</span>
@@ -385,7 +388,12 @@ const CSS = `
 /* ── strana 1: nadpis + motto + body, centrované v zóne + nudge k chrbtu (vľavo) ── */
 .cb-right .cb-title-page{padding:11% 28% 11% 8%;transform:translateX(-16px);}
 .cb-title-page{align-items:center;justify-content:center;text-align:center;gap:5%;}
-.cb-title{display:flex;flex-direction:column;gap:1px;margin:0;font-weight:700;line-height:1.1;font-size:clamp(15px,2.05vw,29px);}
+.cb-title{display:flex;flex-direction:column;gap:1px;margin:0;font-weight:700;line-height:1.1;font-size:min(clamp(15px,2.05vw,29px),calc(100cqi / (var(--n,1) * .7)));}
+/* TEXT OSTÁVA V ZÓNE STRANY (16. 10. 2026, stráž check:popupy): flex s align-items:center dal
+   motto a podnadpis na max-content — v ES/FR/EN siahali do ozdobného okraja strany. Riadky sa
+   teraz zalomia v zóne a nadpis sa zmenší ROVNICOU zo šírky zóny (cqi) a najdlhšieho slova (--n). */
+.cb-title-page{container-type:inline-size;}
+.cb-title-page > *{max-width:100%;}
 .cb-title em{font-style:italic;color:#9a6a16;}
 .cb-title-brand{font-size:1.5em;line-height:1;color:#9a6a16;letter-spacing:.01em;}
 .cb-trust{margin:0;font-size:clamp(10px,1.15vw,14px);letter-spacing:.22em;text-transform:uppercase;color:#7a531a;}
@@ -444,7 +452,7 @@ const CSS = `
   .cb-stage{transform:translateY(-60px);}
   .cb-hint{position:absolute;left:50%;top:calc(50% - 60px + var(--cb-h)/2 + 12px);transform:translateX(-50%);}
   /* Mobile (2026-06-03): TITLE strana — nadpis −15% −10% (20px → 15.3px) */
-  .cb-title{font-size:15.3px;}
+  .cb-title{font-size:min(15.3px,calc(100cqi / (var(--n,1) * .7)));}
   /* Mobile (2026-06-03): 2. dvojstrana (kapitoly) — obsah −15% −10% (scale 0.765) */
   .cb-chapters{transform:scale(0.765);}
   /* Mobile (2026-06-03): 3. dvojstrana (CTA) — obsah −15% (translateX nudge zachovaný) */

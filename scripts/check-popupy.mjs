@@ -167,7 +167,9 @@ const IN_PAGE = (vynimky) => {
           // Obsahová plocha rodiča (bez rámu a paddingu) — text, čo vyjde do paddingu karty, už
           // vylieza zo stĺpca (16. 10.: „SILA KOMUNITY" 30 px cez stĺpec, pod šípkou, rám karty ešte nie).
           if (!col && n !== e.ownerDocument.body && !['inline', 'contents'].includes(c.display) && rc.width > 4 && rc.width < vw - 1) {
-            const l = rc.left + parseFloat(c.borderLeftWidth) + parseFloat(c.paddingLeft), r = rc.right - parseFloat(c.borderRightWidth) - parseFloat(c.paddingRight);
+            // Padding je v lokálnych px, rect v px obrazovky — pod transform: scale (kniha Ústavy) ich treba zladiť.
+            const k = n.offsetWidth ? rc.width / n.offsetWidth : 1;
+            const l = rc.left + k * (parseFloat(c.borderLeftWidth) + parseFloat(c.paddingLeft)), r = rc.right - k * (parseFloat(c.borderRightWidth) + parseFloat(c.paddingRight));
             if (L < l - 2 || R > r + 2) col = { l, r, cls: cls(n) };
           }
           if (box) break;
