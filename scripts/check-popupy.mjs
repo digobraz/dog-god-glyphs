@@ -20,6 +20,7 @@
  *          pilulky alebo tlačidla
  *        · OREZANÝ   — text je čiastočne odrezaný rodičom s overflow:hidden/clip
  *        · MIMO OKNA — text siaha za ľavý/pravý okraj okna
+ *        · VYŠIEL ZO STĹPCA — text vyšiel z obsahovej plochy rodiča (do paddingu karty, pod šípku)
  *      Text celý mimo orezu (skrytý slajd karuselu) sa nemeria — to je zámer, nie chyba.
  *      Zámerne orezané pásy (bežiaci marquee) nesú `data-presah-ok` alebo sú v VYNIMKY.
  *
@@ -52,8 +53,10 @@ const SIZES = process.env.POPUPY_SIZE ? [process.env.POPUPY_SIZE.split('x').map(
 // Povrchy, kde žijú popupy. Heroflow kroky bez stavu môžu presmerovať — vtedy sa zmeria, kam dopadli.
 const ROUTES = arg('--len') ? [arg('--len')] : [
   '/', '/magnet', '/terms', // /wall = ten istý OnePage ako /
-  '/heroglyph/name', '/heroglyph/photo', '/heroglyph/dogs', '/heroglyph/essence', '/heroglyph/breed',
-  '/heroglyph/owner-info', '/heroglyph/dog-character', '/heroglyph/message', '/checkout',
+  // heroflow (NEW_HEROFLOW): poradie vstupu; stav dodá dev seed nižšie
+  '/heroglyph/name', '/heroglyph/photo', '/heroglyph/dogs', '/heroglyph/email', '/heroglyph/essence',
+  '/heroglyph/breed', '/heroglyph/owner-info', '/heroglyph/dog-character', '/heroglyph/crop',
+  '/heroglyph/reveal', '/heroglyph/message', '/checkout', '/heroglyph/stay',
   '/pack', '/pack/dogs', '/pack/dogs/dogid', '/pack/profile', '/pack/map', '/pack/map/triplist',
   '/pack/ainubis', '/pack/sniffer', '/pack/nature',
 ];
@@ -64,7 +67,10 @@ const NEKLIKAJ = /sign ?out|log ?out|odhl|delete|zmaž|vymaž|smaž|remove accou
 const VYNIMKY = [
   '[data-presah-ok]',
   '.op-apps-marq', // bežiaci pás appiek (marquee) — orezávanie na krajoch je jeho podstata
+  '.leaflet-marker-pane', // značka pri okraji mapy je orezaná výrezom mapy (posunie sa ťahom); značky majú vlastný lock
 ];
+
+const SEED_PHOTO = '/dogs/' + (await import('node:fs')).readdirSync(path.join(WEB, 'public/dogs')).find(f => /\.(jpe?g|png|webp)$/i.test(f));
 
 // ─── server ────────────────────────────────────────────────────────────────
 let server = null;
@@ -150,7 +156,7 @@ const IN_PAGE = (vynimky) => {
         const rs = [...rg.getClientRects()].filter(x => x.width > 1 && x.height > 1);
         if (!rs.length) continue;
         const L = Math.min(...rs.map(x => x.left)), R = Math.max(...rs.map(x => x.right));
-        let cl = 0, cr = vw, box = null, scrollable = false;
+        let cl = 0, cr = vw, box = null, col = null, scrollable = false;
         for (let n = e; n && n !== document.documentElement; n = n.parentElement) {
           const c = getComputedStyle(n), rc = n.getBoundingClientRect();
           if (c.overflowX !== 'visible') {
@@ -158,14 +164,22 @@ const IN_PAGE = (vynimky) => {
             cl = Math.max(cl, rc.left); cr = Math.min(cr, rc.right);
           }
           if (!box && isBox(c) && rc.width < vw - 1 && rc.width > 4) box = { l: rc.left, r: rc.right, cls: cls(n) };
+          // Obsahová plocha rodiča (bez rámu a paddingu) — text, čo vyjde do paddingu karty, už
+          // vylieza zo stĺpca (16. 10.: „SILA KOMUNITY" 30 px cez stĺpec, pod šípkou, rám karty ešte nie).
+          if (!col && n !== e.ownerDocument.body && !['inline', 'contents'].includes(c.display) && rc.width > 4 && rc.width < vw - 1) {
+            const l = rc.left + parseFloat(c.borderLeftWidth) + parseFloat(c.paddingLeft), r = rc.right - parseFloat(c.borderRightWidth) - parseFloat(c.paddingRight);
+            if (L < l - 2 || R > r + 2) col = { l, r, cls: cls(n) };
+          }
+          if (box) break;
         }
         if (R <= cl + 1 || L >= cr - 1) continue; // celé mimo orezu = skrytý slajd, zámer
         const txt = t.textContent.trim().replace(/\s+/g, ' ').slice(0, 50);
         const where = `.${cls(e)}`;
         const T = 2;
-        if (!scrollable && (L < cl - T || R > cr + T)) { seen.add(e); out.push({ druh: 'OREZANÝ', txt, where, o: Math.round(Math.max(cl - L, R - cr)) }); }
+        if (!scrollable && (L < cl - T || R > cr + T)) { seen.add(e); const chain = []; for (let n = e; n && chain.length < 4; n = n.parentElement) chain.push(cls(n)); out.push({ druh: 'OREZANÝ', txt, where: chain.join(' < '), o: Math.round(Math.max(cl - L, R - cr)) }); }
         else if (L < -T || R > vw + T) { seen.add(e); out.push({ druh: 'MIMO OKNA', txt, where, o: Math.round(Math.max(-L, R - vw)) }); }
         else if (box && (L < box.l - T || R > box.r + T)) { seen.add(e); out.push({ druh: 'PREČNIEVA', txt, where: `${where} z .${box.cls}`, o: Math.round(Math.max(box.l - L, R - box.r)) }); }
+        else if (col) { seen.add(e); out.push({ druh: 'VYŠIEL ZO STĹPCA', txt, where: `${where} z .${col.cls}`, o: Math.round(Math.max(col.l - L, R - col.r)) }); }
       }
       return out;
     },
@@ -178,6 +192,9 @@ async function newCtx(browser, lang, w, h) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
   await ctx.addInitScript(l => { try { localStorage.setItem('dogypt_lang', l); localStorage.setItem('dogypt_consent', 'denied'); } catch {} }, lang);
   await ctx.addInitScript(IN_PAGE, VYNIMKY);
+  // Heroflow bez stavu presmeruje na prvý krok — dev seed z /lab/heroflow (lib/devSeed.ts, len v DEV)
+  // ho postaví do polohy „pes HEKTHOR s fotkou", takže každý krok sa otvorí aj so svojimi popupmi.
+  await ctx.addInitScript((photo) => { try { localStorage.setItem('dogypt-dev-seed', JSON.stringify({ dogName: 'HEKTHOR', email: 'straz@dogypt.com', packNumber: 73, lifeStatus: 'alive', extraDogs: 1, photoUrl: photo, photoLabel: 'stráž', popup: null, ts: Date.now() })); } catch {} }, SEED_PHOTO);
   await ctx.route('**/*', (route) => {
     const u = route.request().url(), m = route.request().method();
     if (/posthog|stripe\.com|resend\.com|api\.cloudinary\.com|\/functions\/v1\//.test(u)) return route.abort();
@@ -209,20 +226,28 @@ async function merajVrstvu(p, info, nalezy, inner) {
     let nove = false;
     for (const x of r) {
       if (podpisy.has(x.pod)) continue; podpisy.add(x.pod); nove = true;
+      if (process.env.POPUPY_DEBUG) console.log(`    meriam „${x.pod.slice(0, 50)}" (${x.n.length})`);
       for (const n of x.n) nalezy.push({ ...info, ...n, popup: x.pod.slice(0, 40) });
     }
     return { nove, pod: r.map(x => x.pod).join('|') };
   };
   const prvy = await zmeraj();
+  // Vnútorné tlačidlo, ktoré ukáže nový obsah, sa kliká ZNOVA, kým nový obsah prináša (šípka
+  // „ďalší" v popupe členstva prejde všetkých 5 kariet; jeden klik videl len druhú).
   const list = inner ?? (await p.evaluate(() => { const v = window.__popupy.nove()[0]; return v ? window.__popupy.spustace(v).filter(s => s.vis) : []; }).catch(() => []))
-    .filter(s => !NEKLIKAJ.test(s.label)).slice(0, 14).map(s => s.path);
+    .filter(s => !NEKLIKAJ.test(s.label)).slice(0, 14).map(s => ({ key: s.path, n: 12 }));
   const uzitocne = [];
-  for (const key of list) {
-    const ok = await p.evaluate(k => window.__popupy.klik(k, true), key).catch(() => false);
-    if (!ok) continue;
-    await wait(420);
-    if (!(await p.evaluate(() => window.__popupy.nove().length).catch(() => 0))) break; // tlačidlo popup zavrelo
-    if ((await zmeraj()).nove) uzitocne.push(key);
+  for (const { key, n } of list) {
+    let k = 0;
+    for (let i = 0; i < n; i++) {
+      const ok = await p.evaluate(kk => window.__popupy.klik(kk, true), key).catch(() => false);
+      if (!ok) break;
+      await wait(420);
+      if (!(await p.evaluate(() => window.__popupy.nove().length).catch(() => 0))) return { pod: prvy.pod, inner: uzitocne }; // popup zavrelo
+      if (!(await zmeraj()).nove) break;
+      k = i + 1;
+    }
+    if (k) uzitocne.push({ key, n: k });
   }
   return { pod: prvy.pod, inner: uzitocne };
 }
@@ -285,7 +310,7 @@ for (const n of nalezy) {
 }
 if (g.size) {
   console.log(`\n✗ ${g.size} presah(ov) textu v popupoch (${popupov} popupov, ${LANGS.length} jazykov, ${min} min):`);
-  for (const x of g.values()) console.log(`  · ${x.druh} ${x.max}px · ${x.route} · popup „${x.popup}" · ${x.where} · „${[...x.txts].slice(0, 2).join('" / „')}" · ${[...x.langs].join(',')} · ${[...x.okna].join(',')}`);
+  for (const x of g.values()) console.log(`  · ${x.druh} ${x.max}px · ${x.route} · popup „${x.popup}" · spúšťač „${x.spustac}" · ${x.where} · „${[...x.txts].slice(0, 2).join('" / „')}" · ${[...x.langs].join(',')} · ${[...x.okna].join(',')}`);
   process.exit(1);
 }
 console.log(`\n✓ žiadny text nevylieza z popupu — ${popupov} popupov, ${ROUTES.length} rout, ${LANGS.length} jazykov, ${SIZES.length} okná (${min} min)`);
