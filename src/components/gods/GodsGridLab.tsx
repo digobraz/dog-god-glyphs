@@ -780,21 +780,30 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   // ODHALENIE = verzia B (Matej 16. 10. 2026: *„daj B"*; A s DOGTRIX dažďom zamietnutá):
   //  glyph 0 → vanish 2,8 s (glyf zmizne, fotka naplno) → zoom 3,5 s (stena z priblíženia
   //  na kartu) → 5,6 s hotovo. Fáza nesie VZHĽAD overlayu, krok (`revealStep`) stav steny.
-  const [revPhase, setRevPhase] = useState<'glyph' | 'vanish' | 'zoom'>('glyph');
+  const [revPhase, setRevPhase] = useState<'wait' | 'glyph' | 'vanish' | 'zoom'>('glyph');
   useEffect(() => {
     if (!revealData.active) return;
     if (!revealData.heroglyphUrl && !dogsReady) return;
+    // Opona načítania (`#op-boot` v index.html) čaká na guľu, ktorá pri odhalení nepríde —
+    // pri priamom otvorení / obnovení `/wall?reveal=` by do 9 s ležala cez heroglyf
+    // (smoke test LIVE 16. 10. 2026). Odhalenie ju zdvihne samo a počká, kým odíde.
+    // Bežný tok po platbe (navigate z /heroglyph/welcome) oponu nemá ⇒ d = 0.
+    const boot = document.getElementById('op-boot');
+    const d = boot && !boot.classList.contains('out') ? 1000 : 0;
+    if (d) window.dispatchEvent(new Event('dogypt:planet-ready'));
+    // Papyrus hneď (stena nesmie presvitnúť pod odchádzajúcou oponou), glyf až po nej.
     setRevealStep(1);
-    setRevPhase('glyph');
+    setRevPhase(d ? 'wait' : 'glyph');
     const ts = [
-      setTimeout(() => setRevPhase('vanish'), 2800),
-      setTimeout(() => { setRevPhase('zoom'); setRevealStep(2); }, 3500),
-      setTimeout(() => setRevealStep(3), 3600),
+      setTimeout(() => setRevPhase('glyph'), d),
+      setTimeout(() => setRevPhase('vanish'), d + 2800),
+      setTimeout(() => { setRevPhase('zoom'); setRevealStep(2); }, d + 3500),
+      setTimeout(() => setRevealStep(3), d + 3600),
       setTimeout(() => {
         setRevealStep(4);
         // Zápis je na STENE — adresa ostane `/wall`, aby obnovenie nehodilo kupca na guľu.
         window.history.replaceState(null, '', window.location.pathname === '/wall' ? '/wall' : '/');
-      }, 5600),
+      }, d + 5600),
     ];
     return () => ts.forEach(clearTimeout);
   }, [revealData.active, revealData.heroglyphUrl, dogsReady]);
@@ -3153,6 +3162,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           transition: none;
         }
         .rev-overlay.ph-zoom { opacity: 0; transition: opacity 450ms ease; }
+        .rev-overlay.ph-wait > * { visibility: hidden; animation: none !important; }
 
         .rev-glow {
           position: absolute;
