@@ -1599,7 +1599,7 @@ export const rus: Partial<Dict> = {
   "heroglyph.flow.stay.titleSuffix": "?",
   "heroglyph.flow.stay.titleWord": "А ты",
   "heroglyph.flow.welcomeNew.and": " и ",
-  "heroglyph.flow.welcomeNew.cta": "Посмотреть стену",
+  "heroglyph.flow.welcomeNew.cta": "Записать на стену",
   "heroglyph.flow.welcomeNew.ctaWait": "Завершаем сертификат…",
   "heroglyph.flow.welcomeNew.goal": "{n} из 1 000 000 собак",
   "heroglyph.flow.welcomeNew.hi": "Добро пожаловать в DOGYPT,",

@@ -410,7 +410,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.welcomeNew.mail': 'Vstupní odkaz do appky máš v mailu',
   'heroglyph.flow.welcomeNew.mailBtn': 'tlačítko „Otevřít můj profil“',
   'heroglyph.flow.welcomeNew.goal': '{n} z 1 000 000 psů',
-  'heroglyph.flow.welcomeNew.cta': 'Prohlédnout zeď',
+  'heroglyph.flow.welcomeNew.cta': 'Zapsat na zeď',
   'heroglyph.flow.welcomeNew.ctaWait': 'Dokončuji certifikát…',
   'heroglyph.flow.stay.thanks.l1': 'Heroglyf je uložený v databázi',
   'heroglyph.flow.stay.thanks.l2': 'Fotka je na zdi (v psím vidění)',

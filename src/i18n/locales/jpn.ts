@@ -1429,7 +1429,7 @@ export const jpn: Partial<Dict> = {
   "heroglyph.flow.stay.titleSuffix": "？",
   "heroglyph.flow.stay.titleWord": "あなたは",
   "heroglyph.flow.welcomeNew.and": "と",
-  "heroglyph.flow.welcomeNew.cta": "WALLを見る",
+  "heroglyph.flow.welcomeNew.cta": "WALLに刻む",
   "heroglyph.flow.welcomeNew.ctaWait": "証明書を仕上げています…",
   "heroglyph.flow.welcomeNew.goal": "{n} / 1,000,000匹",
   "heroglyph.flow.welcomeNew.hi": "DOGYPTへようこそ、",

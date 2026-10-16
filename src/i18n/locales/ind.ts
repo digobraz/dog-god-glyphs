@@ -1433,7 +1433,7 @@ export const ind: Partial<Dict> = {
   "heroglyph.flow.stay.titleSuffix": "?",
   "heroglyph.flow.stay.titleWord": "और आप",
   "heroglyph.flow.welcomeNew.and": " और ",
-  "heroglyph.flow.welcomeNew.cta": "दीवार देखें",
+  "heroglyph.flow.welcomeNew.cta": "दीवार पर लिखें",
   "heroglyph.flow.welcomeNew.ctaWait": "आपका सर्टिफ़िकेट तैयार हो रहा है…",
   "heroglyph.flow.welcomeNew.goal": "10 लाख में से {n} कुत्ते",
   "heroglyph.flow.welcomeNew.hi": "DOGYPT में स्वागत है,",

@@ -1432,7 +1432,7 @@ export const tur: Partial<Dict> = {
   "heroglyph.flow.stay.titleSuffix": "?",
   "heroglyph.flow.stay.titleWord": "Ya sen",
   "heroglyph.flow.welcomeNew.and": " ve ",
-  "heroglyph.flow.welcomeNew.cta": "Duvara bak",
+  "heroglyph.flow.welcomeNew.cta": "Beni duvara yaz",
   "heroglyph.flow.welcomeNew.ctaWait": "Sertifikan hazırlanıyor…",
   "heroglyph.flow.welcomeNew.goal": "{n} / 1.000.000 köpek",
   "heroglyph.flow.welcomeNew.hi": "DOGYPT’e hoş geldiniz,",

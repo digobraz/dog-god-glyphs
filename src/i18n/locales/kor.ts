@@ -1432,7 +1432,7 @@ export const kor: Partial<Dict> = {
   "heroglyph.flow.stay.titleSuffix": "요?",
   "heroglyph.flow.stay.titleWord": "그럼 당신은",
   "heroglyph.flow.welcomeNew.and": " 그리고 ",
-  "heroglyph.flow.welcomeNew.cta": "WALL 보기",
+  "heroglyph.flow.welcomeNew.cta": "WALL에 새기기",
   "heroglyph.flow.welcomeNew.ctaWait": "인증서를 마무리하는 중…",
   "heroglyph.flow.welcomeNew.goal": "{n} / 1,000,000마리",
   "heroglyph.flow.welcomeNew.hi": "DOGYPT에 오신 걸 환영해요,",

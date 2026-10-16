@@ -1601,7 +1601,7 @@ export const pol: Partial<Dict> = {
   "heroglyph.flow.stay.titleSuffix": "?",
   "heroglyph.flow.stay.titleWord": "A ty",
   "heroglyph.flow.welcomeNew.and": " i ",
-  "heroglyph.flow.welcomeNew.cta": "Zobacz ścianę",
+  "heroglyph.flow.welcomeNew.cta": "Zapisz mnie na ścianie",
   "heroglyph.flow.welcomeNew.ctaWait": "Kończymy twój certyfikat…",
   "heroglyph.flow.welcomeNew.goal": "{n} z 1 000 000 psów",
   "heroglyph.flow.welcomeNew.hi": "Witajcie w DOGYPT,",

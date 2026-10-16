@@ -1429,7 +1429,7 @@ export const chn: Partial<Dict> = {
   "heroglyph.flow.stay.titleSuffix": "？",
   "heroglyph.flow.stay.titleWord": "那你呢",
   "heroglyph.flow.welcomeNew.and": "和",
-  "heroglyph.flow.welcomeNew.cta": "查看 WALL",
+  "heroglyph.flow.welcomeNew.cta": "写上 WALL",
   "heroglyph.flow.welcomeNew.ctaWait": "正在完成你的证书……",
   "heroglyph.flow.welcomeNew.goal": "{n} / 1,000,000 只狗",
   "heroglyph.flow.welcomeNew.hi": "欢迎来到 DOGYPT，",

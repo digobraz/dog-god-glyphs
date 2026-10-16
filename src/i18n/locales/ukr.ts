@@ -1617,7 +1617,7 @@ export const ukr: Partial<Dict> = {
   "heroglyph.flow.stay.titleSuffix": "?",
   "heroglyph.flow.stay.titleWord": "А ти",
   "heroglyph.flow.welcomeNew.and": " і ",
-  "heroglyph.flow.welcomeNew.cta": "Переглянути стіну",
+  "heroglyph.flow.welcomeNew.cta": "Записати на стіну",
   "heroglyph.flow.welcomeNew.ctaWait": "Завершуємо сертифікат…",
   "heroglyph.flow.welcomeNew.goal": "{n} з 1 000 000 псів",
   "heroglyph.flow.welcomeNew.hi": "Ласкаво просимо до DOGYPT,",

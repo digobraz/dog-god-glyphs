@@ -1429,7 +1429,7 @@ export const ara: Partial<Dict> = {
   "heroglyph.flow.stay.titleSuffix": "؟",
   "heroglyph.flow.stay.titleWord": "وأنت",
   "heroglyph.flow.welcomeNew.and": " و",
-  "heroglyph.flow.welcomeNew.cta": "شاهد الجدار",
+  "heroglyph.flow.welcomeNew.cta": "اكتبني على الجدار",
   "heroglyph.flow.welcomeNew.ctaWait": "جارٍ إنهاء شهادتك…",
   "heroglyph.flow.welcomeNew.goal": "{n} من 1,000,000 كلب",
   "heroglyph.flow.welcomeNew.hi": "أهلًا بكم في DOGYPT،",

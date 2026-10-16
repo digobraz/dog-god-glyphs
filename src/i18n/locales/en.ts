@@ -606,7 +606,7 @@ export const en = {
   'heroglyph.flow.welcomeNew.mail': 'Your key to the app is in your email',
   'heroglyph.flow.welcomeNew.mailBtn': 'button “Open My Profile”',
   'heroglyph.flow.welcomeNew.goal': '{n} of 1,000,000 dogs',
-  'heroglyph.flow.welcomeNew.cta': 'View the wall',
+  'heroglyph.flow.welcomeNew.cta': 'Write me on the wall',
   'heroglyph.flow.welcomeNew.ctaWait': 'Finishing your certificate…',
   'heroglyph.flow.stay.thanks.l1': 'Your heroglyph is saved in our database',
   'heroglyph.flow.stay.thanks.l2': 'The photo is on the wall (in dog vision)',

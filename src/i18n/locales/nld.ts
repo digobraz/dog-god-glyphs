@@ -1432,7 +1432,7 @@ export const nld: Partial<Dict> = {
   "heroglyph.flow.stay.titleSuffix": "?",
   "heroglyph.flow.stay.titleWord": "En jij",
   "heroglyph.flow.welcomeNew.and": " en ",
-  "heroglyph.flow.welcomeNew.cta": "Bekijk de muur",
+  "heroglyph.flow.welcomeNew.cta": "Schrijf me op de muur",
   "heroglyph.flow.welcomeNew.ctaWait": "Je certificaat wordt afgerond…",
   "heroglyph.flow.welcomeNew.goal": "{n} van 1.000.000 honden",
   "heroglyph.flow.welcomeNew.hi": "Welkom bij DOGYPT,",
