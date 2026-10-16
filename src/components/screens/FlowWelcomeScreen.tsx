@@ -245,6 +245,8 @@ export function FlowWelcomeScreen() {
   // Na ďalšieho psa sa ide, keď sú PDF uložené, alebo po 25 s (zvyšok dorobí
   // DOG ID v /pack na požiadanie, ako doteraz).
   const [glyphs, setGlyphs] = useState<Record<string, string>>({});
+  // Zvislé heroglyfy pre odhalenie na stene (16. 10. 2026) — len v pamäti, do DB nejdú.
+  const [glyphsV, setGlyphsV] = useState<Record<string, string>>({});
   const [job, setJob] = useState(0);
   const sel = (session?.selections as Record<string, string>) || {};
   // Skryté rámy majiteľa čítajú store — po platbe na inom zariadení by bol prázdny.
@@ -309,6 +311,8 @@ export function FlowWelcomeScreen() {
     // na test poslúži Hektorov (Matej 26. 9.: *„nevidím zápis animáciu na wall"*).
     const g = glyphs[first.id] || first.glyph || (import.meta.env.DEV && !sessionId ? '/images/hekthor-heroglyph.webp' : '');
     if (g) q.set('heroglyphUrl', g);
+    const gv = glyphsV[first.id] || (import.meta.env.DEV && !sessionId ? '/heroglyph/dogtrix/glyphs/01.png' : '');
+    if (gv) q.set('heroglyphVUrl', gv);
     // Viac psov: stena ich zapečatí postupne (GodsGrid číta `queue`).
     if (rest.length) q.set('queue', JSON.stringify(rest.map((d) => ({ n: d.n ?? 0, name: d.name, photo: d.photo, glyph: glyphs[d.id] || d.glyph }))));
     // Na STENU (`/wall`), nie na `/` — od FLIPu 7. 10. je `/` film otvorený guľou
@@ -489,6 +493,7 @@ export function FlowWelcomeScreen() {
           fallbackSelections={sel}
           fallbackPatron={String(session?.patronSvg || '')}
           onGlyph={(url) => setGlyphs((g) => ({ ...g, [jobDog.id]: url }))}
+          onGlyphV={(url) => setGlyphsV((g) => ({ ...g, [jobDog.id]: url }))}
           // Posun len vtedy, ak je tento pes ešte na rade — pipeline, ktorá dobehne
           // po 25 s limite, nesmie preskočiť ďalšieho psa.
           onDone={() => { const id = jobDog.id; setJob((j) => (dogs[j]?.id === id ? j + 1 : j)); }}
@@ -504,7 +509,7 @@ export function FlowWelcomeScreen() {
  * v `send-certificate` na tohto psa (svorka má spoločné `stripe_session_id`).
  * translate="no" je NOSNÉ (auto-preklad by prepísal meno psa pred snímkou, #42 16. 7.).
  */
-function DogCertJob({ dog, sessionId, email, owner, fallbackSelections, fallbackPatron, onGlyph, onDone }: {
+function DogCertJob({ dog, sessionId, email, owner, fallbackSelections, fallbackPatron, onGlyph, onGlyphV, onDone }: {
   dog: NewDog;
   sessionId: string;
   email: string;
@@ -512,6 +517,7 @@ function DogCertJob({ dog, sessionId, email, owner, fallbackSelections, fallback
   fallbackSelections: Record<string, string>;
   fallbackPatron: string;
   onGlyph: (url: string) => void;
+  onGlyphV: (url: string) => void;
   onDone: () => void;
 }) {
   const certRef = useRef<HTMLDivElement>(null);
@@ -532,6 +538,7 @@ function DogCertJob({ dog, sessionId, email, owner, fallbackSelections, fallback
     certRef, verticalRef, horizontalRef, shareRef,
     dogId: realId,
     onHeroglyphReady: (url) => { setGlyph(url); onGlyph(url); },
+    onHeroglyphVReady: onGlyphV,
     onDone: () => onDone(),
   });
   return (

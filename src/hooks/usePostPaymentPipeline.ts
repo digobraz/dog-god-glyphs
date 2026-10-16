@@ -107,6 +107,8 @@ interface PipelineArgs {
   horizontalRef: RefObject<HTMLDivElement>;
   shareRef: RefObject<HTMLDivElement>;
   onHeroglyphReady?: (url: string) => void;
+  /** Zvislý heroglyf (PNG) pre odhalenie na stene — nepovinný, do DB sa nezapisuje. */
+  onHeroglyphVReady?: (url: string) => void;
   /**
    * 🐕 SVORKA (26. 9. 2026): ktorému psovi z platby zápis patrí. Bez neho
    * `send-certificate` zapíše všetkým psom tej istej session (majú spoločné
@@ -119,7 +121,7 @@ interface PipelineArgs {
 }
 
 export function usePostPaymentPipeline(args: PipelineArgs) {
-  const { email, dogName, ownerName, dogPhotoUrl, sessionId, packNumber, certRef, verticalRef, horizontalRef, shareRef, onHeroglyphReady, dogId, onDone } = args;
+  const { email, dogName, ownerName, dogPhotoUrl, sessionId, packNumber, certRef, verticalRef, horizontalRef, shareRef, onHeroglyphReady, onHeroglyphVReady, dogId, onDone } = args;
   const fired = useRef(false);
 
   useEffect(() => {
@@ -225,6 +227,27 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
             heroglyphPngUrl = await captureHeroglyph();
           } catch (e2) {
             console.warn('[postPayment] heroglyph PNG capture failed on retry:', e2);
+          }
+        }
+        // ZVISLÝ heroglyf pre odhalenie na stene (Matej 16. 10. 2026: *„heroglyf sa zobrazí
+        // vertikálny"*). Rám je v A4 viewBoxe so širokými okrajmi — na snímku sa viewBox
+        // dočasne zúži na rám (x 794–1685, y 371–3132) a hneď vráti, lebo z toho istého
+        // prvku sa potom robí PDF. Zlyhanie nič nezastaví: stena spáli horizontálny.
+        if (onHeroglyphVReady) {
+          const vSvg = verticalRef.current?.querySelector('svg');
+          const vbOld = vSvg?.getAttribute('viewBox');
+          if (vSvg && vbOld) {
+            try {
+              vSvg.setAttribute('viewBox', '784 361 911 2781');
+              const vData = await toPng(vSvg as unknown as HTMLElement, { cacheBust: true, pixelRatio: 1, backgroundColor: undefined });
+              const vBlob = await (await fetch(vData)).blob();
+              const vRes = await uploadHeroglyphPng(vBlob, `${key}-v`);
+              if (vRes.secureUrl) onHeroglyphVReady(vRes.secureUrl);
+            } catch (e) {
+              console.warn('[postPayment] vertical heroglyph PNG failed (wall falls back to horizontal):', e);
+            } finally {
+              vSvg.setAttribute('viewBox', vbOld);
+            }
           }
         }
         if (heroglyphPngUrl) {
