@@ -60,6 +60,19 @@ async function pushSeenToAccount(s: Set<string>) {
   } catch { /* lokálny stav stačí */ }
 }
 
+/** `wiz_off` už pri PRVOM vykreslení — z uloženej session, aby privítanie robotovi ani neblyslo. */
+function wizOffLocal(): boolean {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i) || '';
+      if (!/^sb-.*-auth-token$/.test(k)) continue;
+      const j = JSON.parse(localStorage.getItem(k) || 'null');
+      if (j?.user?.user_metadata?.wiz_off === true) return true;
+    }
+  } catch { /* */ }
+  return false;
+}
+
 /** Znovuspustenie prehliadky obrazovky (nastavenia, „ukáž mi to znova"). */
 export function startWizard(screenKey = 'home') {
   const s = readSeenLocal();
@@ -69,6 +82,26 @@ export function startWizard(screenKey = 'home') {
   writeSeenLocal(s);
   void pushSeenToAccount(s);
   window.dispatchEvent(new CustomEvent('dogypt:wizard'));
+}
+
+// ─── Denník prehliadky (Matej 16. 10. 2026: „kto si wizarda pozrel a kto preskočil") ──────
+// Každý okamih = riadok v `wizard_events` (migrácia 20261029). Stav „videné" ostáva v
+// `wiz_seen`; denník je len história — bez neho sa „ďalej" a „preskočil" nedajú rozlíšiť.
+// Zlyhanie zápisu prehliadku nikdy nezastaví.
+type WizAction = 'shown' | 'next' | 'skip' | 'missing' | 'chat' | 'later';
+const loggedShown = new Set<string>();
+function logWiz(screen: string, stepId: string, action: WizAction) {
+  if (action === 'shown') { if (loggedShown.has(stepId)) return; loggedShown.add(stepId); }
+  void (async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) return;
+      const viewport = `${window.innerWidth}x${window.innerHeight}`;
+      // Tabuľka nie je v generovaných typoch — zápis je jednosmerný, typ netreba.
+      await (supabase as unknown as { from: (t: string) => { insert: (r: object) => Promise<unknown> } })
+        .from('wizard_events').insert({ screen, step_id: stepId, action, viewport });
+    } catch { /* denník je bonus, nie podmienka */ }
+  })();
 }
 
 // ─── Odmena za dokončenie prvého prihlásenia ─────────────────────────────────
@@ -106,6 +139,7 @@ const WIZ_CSS = `
   50%{box-shadow:0 0 0 9999px ${DIM},0 0 0 3px ${AINUBIS.cyan},0 0 44px rgba(${AINUBIS.cyanRGB},0.75);}
 }
 .wzc-dim{position:fixed;inset:0;background:${DIM};}
+.wzc .mcoach-bubble{animation:wzc-in .3s ease;}
 .wzc .mcoach-txt b span{color:${AINUBIS.cyan};}
 .wzc-dots{grid-column:1 / -1;display:flex;gap:${PACK_SPACE.xs}px;justify-content:center;}
 .wzc-dots i{display:block;width:6px;height:4px;border-radius:${PACK_R.pill}px;background:rgba(${AINUBIS.cyanRGB},0.20);transition:width .3s;}
@@ -123,6 +157,11 @@ const WIZ_CSS = `
 .wzc-welcome .mcoach-mute{margin-top:${PACK_SPACE.lg}px;}
 @keyframes wzc-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
 `;
+
+/** Posledná poloha výrezu. Medzi krokmi sa nový prvok ešte hľadá (~120 ms) — tma musí OSTAŤ
+ *  a výrez sa z tejto polohy presunie na nový prvok. Bez toho stránka pri každom ĎALEJ blikla
+ *  naplno (video prvého prihlásenia 16. 10. 2026: jas 20 → 111 na 2–3 snímky). */
+let lastHole: { top: number; left: number; w: number; h: number } | null = null;
 
 const hasSize = (n: Element) => { const r = n.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
 /** Viditeľný cieľ kotvy. Keď je obal bez rozmeru (kotúč `+` je absolútne polohovaný a obal
@@ -147,6 +186,9 @@ export function PackWizard({ dogName, hasDog }: { dogName: string | null; hasDog
   const { pathname, search } = useLocation();
   const screen = useMemo(() => screenFor(pathname), [pathname]);
   const [seen, setSeen] = useState<Set<string>>(readSeenLocal);
+  /** `user_metadata.wiz_off` = účet bez prehliadky (roboty a stráže na `hekthorsk` a
+   *  `hekthorsk+straz` — inak by im tma zakryla obrazovku a stráž by hlásila poplach). */
+  const [off, setOff] = useState(wizOffLocal);
   /** Kroky, ktorých kotva v tejto návšteve obrazovky chýbala — preskočené, nie videné. */
   const [missing, setMissing] = useState<Set<string>>(new Set());
 
@@ -156,6 +198,7 @@ export function PackWizard({ dogName, hasDog }: { dogName: string | null; hasDog
     // DEV `?wiz=1` = náhľad odznova; stav z účtu by ho hneď prebil.
     if (import.meta.env.DEV && /[?&]wiz(preview)?=/.test(window.location.search)) off = true;
     void supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user?.user_metadata?.wiz_off === true) setOff(true);
       const remote = data.session?.user?.user_metadata?.wiz_seen;
       if (off || !Array.isArray(remote)) return;
       setSeen((cur) => {
@@ -170,8 +213,8 @@ export function PackWizard({ dogName, hasDog }: { dogName: string | null; hasDog
     return () => { off = true; window.removeEventListener('dogypt:wizard', sync); };
   }, []);
 
-  // Nová obrazovka = nové pokusy o kotvy.
-  useEffect(() => { setMissing(new Set()); }, [pathname]);
+  // Nová obrazovka = nové pokusy o kotvy (a výrez začína odznova, nie na mieste z inej stránky).
+  useEffect(() => { setMissing(new Set()); lastHole = null; }, [pathname]);
 
   // DEV náhľad: `?wiz=1` pustí kroky TEJTO obrazovky odznova. Vo `vite build` je vetva mŕtva.
   useEffect(() => {
@@ -209,19 +252,30 @@ export function PackWizard({ dogName, hasDog }: { dogName: string | null; hasDog
     });
   }, []);
 
-  const next = useCallback(() => {
+  const screenKey = screen?.key ?? '?';
+  const next = useCallback((action: WizAction = 'next') => {
     if (!step) return;
+    logWiz(screenKey, step.id, action);
     mark([step.id]);
     if (step.handoff) void grantFirstSteps();
-  }, [step, mark]);
+  }, [step, mark, screenKey]);
   // „Preskočiť" zavrie celú obrazovku — aj kroky, ktoré ešte len prídu.
-  const skipAll = useCallback(() => mark(pending.map((s) => s.id)), [pending, mark]);
+  const skipAll = useCallback(() => {
+    if (step) logWiz(screenKey, step.id, 'skip');
+    mark(pending.map((s) => s.id));
+  }, [step, pending, mark, screenKey]);
 
-  if (!step || !consentDone) return null;
+  // Privítanie je na obrazovke hneď; výrez až keď nájde prvok (`onShown` v Spot).
+  useEffect(() => {
+    if (step && consentDone && !off && step.anchor === 'welcome') logWiz(screenKey, step.id, 'shown');
+  }, [step, consentDone, off, screenKey]);
+
+  if (!step || !consentDone || off) return null;
 
   const body = t(hasDog || !step.textNoDog ? step.text : step.textNoDog, { dog: dogName || t('pack.wizard.myDog') });
 
   if (step.anchor === 'welcome') {
+    lastHole = null;
     return createPortal(
       <div className="wzc-welcome" role="dialog" aria-modal="true">
         <style>{MAP_COACH_CSS}{WIZ_CSS}</style>
@@ -230,7 +284,7 @@ export function PackWizard({ dogName, hasDog }: { dogName: string | null; hasDog
           <div className="wm"><span>AI</span>NUBIS</div>
           <h2>{t('pack.wizard.welcome.title')}</h2>
           <p>{body}</p>
-          <button type="button" className="mcoach-ok" onClick={next}>{t('pack.wizard.welcome.cta')}</button>
+          <button type="button" className="mcoach-ok" onClick={() => next()}>{t('pack.wizard.welcome.cta')}</button>
           <button type="button" className="mcoach-mute" onClick={skipAll}>{t('pack.wizard.skipForNow')}</button>
         </div>
       </div>,
@@ -247,20 +301,23 @@ export function PackWizard({ dogName, hasDog }: { dogName: string | null; hasDog
       dots={spots.length > 1 ? { n: spots.length, at: spots.findIndex((s) => s.id === step.id) } : null}
       onNext={next}
       onSkip={skipAll}
-      onMissing={() => setMissing((m) => new Set(m).add(step.id))}
+      onShown={() => logWiz(screenKey, step.id, 'shown')}
+      onMissing={() => { logWiz(screenKey, step.id, 'missing'); setMissing((m) => new Set(m).add(step.id)); }}
     />
   );
 }
 
 // ─── Výrez + bublina ─────────────────────────────────────────────────────────
-function Spot({ step, body, dots, onNext, onSkip, onMissing }: {
+function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing }: {
   step: WizStep; body: string; dots: { n: number; at: number } | null;
-  onNext: () => void; onSkip: () => void; onMissing: () => void;
+  onNext: (action?: WizAction) => void; onSkip: () => void; onShown: () => void; onMissing: () => void;
 }) {
   const t = useT();
   const [box, setBox] = useState<DOMRect | null>(null);
   const missRef = useRef(onMissing);
   useEffect(() => { missRef.current = onMissing; }, [onMissing]);
+  const shownRef = useRef(onShown);
+  useEffect(() => { shownRef.current = onShown; }, [onShown]);
   const anchor = step.anchor as string;
 
   // Kotva sa hľadá v kolách (dáta psov dobehnú o chvíľu neskôr); ~1,5 s a nikde → krok sa
@@ -284,13 +341,25 @@ function Spot({ step, body, dots, onNext, onSkip, onMissing }: {
         const r = el.getBoundingClientRect();
         const offscreen = r.top < 0 || r.bottom > window.innerHeight;
         if (offscreen && !WIZ_ROUND.includes(anchor)) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        shownRef.current();
         follow();
       } else if (++tries > 12) { clearInterval(iv); missRef.current(); }
     }, 120);
     return () => { alive = false; clearInterval(iv); cancelAnimationFrame(raf); };
   }, [anchor]);
 
-  if (!box) return null;
+  if (!box) {
+    // Prvok sa ešte hľadá: tma ostáva (výrez stojí na predošlom mieste), bublina zatiaľ nie.
+    return createPortal(
+      <div className="wzc" role="dialog" aria-modal="true">
+        <style>{MAP_COACH_CSS}{WIZ_CSS}</style>
+        {lastHole
+          ? <div className="wzc-hole" style={{ top: lastHole.top, left: lastHole.left, width: lastHole.w, height: lastHole.h }} />
+          : <div className="wzc-dim" />}
+      </div>,
+      document.body,
+    );
+  }
 
   const vw = window.innerWidth; const vh = window.innerHeight;
   // Výrez sa orezáva oknom — vysoký blok (planéta) by inak mal dieru mimo obrazovky.
@@ -299,6 +368,7 @@ function Spot({ step, body, dots, onNext, onSkip, onMissing }: {
   const left = Math.max(PACK_SPACE.xs, box.left - PAD);
   const w = Math.min(vw - PACK_SPACE.xs, box.right + PAD) - left;
   const h = Math.max(0, bottom - top);
+  lastHole = { top, left, w, h };
   // Bublina ide na stranu s väčším miestom; keď nie je miesto nikde, sadne na spodok výrezu.
   const below = vh - bottom >= top;
   const bw = Math.min(430, vw - 24);
@@ -320,13 +390,13 @@ function Spot({ step, body, dots, onNext, onSkip, onMissing }: {
         <div className="mcoach-foot">
           {step.handoff ? (
             <>
-              <button type="button" className="mcoach-mute" onClick={onNext}>{t('pack.wizard.handoff.later')}</button>
-              <button type="button" className="mcoach-ok" onClick={() => { onNext(); openAinubis(); }}>{t('pack.wizard.handoff.cta')}</button>
+              <button type="button" className="mcoach-mute" onClick={() => onNext('later')}>{t('pack.wizard.handoff.later')}</button>
+              <button type="button" className="mcoach-ok" onClick={() => { onNext('chat'); openAinubis(); }}>{t('pack.wizard.handoff.cta')}</button>
             </>
           ) : (
             <>
               <button type="button" className="mcoach-mute" onClick={onSkip}>{t('pack.wizard.skip')}</button>
-              <button type="button" className="mcoach-ok" onClick={onNext}>{t('pack.wizard.next')}</button>
+              <button type="button" className="mcoach-ok" onClick={() => onNext()}>{t('pack.wizard.next')}</button>
             </>
           )}
         </div>

@@ -194,6 +194,13 @@ export function ConsentBanner() {
           font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
           font-size: 12px; cursor: pointer; white-space: nowrap;
         }
+        /* TLAČIDLÁ SA ZALAMUJÚ (16. 10. 2026, stráž check:popupy): nowrap v karte 420 px pustil
+           „Len nevyhnutné" cez okraj tlačidla v SK (3 px) aj DE (12 px) — vo flexe s min-width: 0
+           ho nič nezastavilo. Dlhší jazyk dostane 2 riadky, nie orez ani trojbodku. */
+        .consent-actions { align-items: stretch; }
+        .consent-actions .consent-btn-primary, .consent-actions .consent-btn-secondary, .consent-actions .consent-split-main {
+          white-space: normal; text-wrap: balance; line-height: 1.2; overflow-wrap: anywhere;
+        }
         .consent-btn-primary {
           background: ${LAPIS.grad}; color: ${LAPIS.ink};
           border: 1px solid ${LAPIS.deep}; border-radius: 8px; box-shadow: ${LAPIS_BTN_SHADOW};
@@ -272,7 +279,6 @@ export function ConsentBanner() {
              orezalo na 390 px (náhľad 22. 9.), lokálne nie. Väčší diel riadku. */
           .consent-split { flex: 1.5 1 0; }
           .consent-menu { left: 0; right: 0; }
-          .consent-split-main { overflow: hidden; text-overflow: ellipsis; }
         }
         /* ── PC: KARTA VPRAVO DOLE, NIE PÁS (Matej 22. 9. 2026: „nebolo by lepšie dať tú
            správu na PC iba na pravý bok od kraja po kraj spodného nav?") ─────────────

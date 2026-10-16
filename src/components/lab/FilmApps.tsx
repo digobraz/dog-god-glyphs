@@ -112,6 +112,9 @@ const img = (f: string) => `/images/onepage/apps/${f}.webp?v=10`;
 /* DETAIL = hlavná snímka z telefónu + výber z nákresu `plany/nakres-clenstvo-screeny-2026-10-05/`
    (Matej 5. 10. 2026: *„máš to vybraté — aplikuj to"*). Komunita na OSTRÝCH číslach z LIVE,
    SNIFFER s fiktívnymi ľuďmi (Eva…) a správami len na snímke. */
+/** Dĺžka najdlhšieho nedeliteľného kusa nadpisu (medzera a mäkký spojovník delia; +1 za spojovník). */
+const longestWord = (s: string) => Math.max(1, ...s.split(/\s+/).map(w => { const p = w.split('\u00AD'); return Math.max(...p.map((x, i) => x.length + (i < p.length - 1 ? 1 : 0))); }));
+
 const APPS: AppFeature[] = [
   /* 🔁 PORADIE 5. 10. 2026 — Matej: *„na úvodnom mockupe musia byť tie najkrajšie = DOG ID
      v strede, sprava DOGTRIP, zľava AINUBIS"*. Sprava stojí nasledujúci, zľava posledný. */
@@ -530,7 +533,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
               {/* Šípky funkcií sedia v riadku NADPISU (Matej 6. 10. 2026: *„šípky daj nižšie do úrovne
                   nadpisu, menšie a lapisom"*). Na PC ostávajú absolútne na kraji karty (rodič nie je positioned). */}
               <div className="op-apps-pop-head">
-                <h2 className="op-apps-name">{t(cur.nameKey)}</h2>
+                <h2 className="op-apps-name" style={{ ['--n' as string]: longestWord(t(cur.nameKey)) } as CSSProperties}>{t(cur.nameKey)}</h2>
                 <span className="op-apps-pop-navs">
                   <button type="button" className="op-apps-pop-nav is-l" aria-label={t(APPS[(open! - 1 + n) % n].nameKey)} onClick={() => moveApp(-1)}>
                     <HandArrowLeft size={20} />
@@ -716,6 +719,13 @@ ${APPS_TYPE_CSS}
            daj nadpis do 2 riadkov"*). Textový stĺpec má na PC ~342 px a nowrap z karuselu
            pustil 40px „SILA KOMUNITY" cez okraj karty — v 13 z 18 jazykov. */
         .op-apps-pop .op-apps-name { white-space: normal; text-wrap: balance; min-width: 0; }
+        /* Jedno slovo dlhšie než stĺpec (DE „GEMEINSCHAFTS-") sa nezalomí — písmo sa preto
+           ráta ROVNICOU zo šírky stĺpca (cqi) a dĺžky najdlhšieho slova (--n, z textu, nie meraním):
+           Cinzel 700 verzálky + .04em ≈ .8 em na znak. Krátke mená ostávajú na 40 px. */
+        .op-apps-pop-txt { container-type: inline-size; }
+        .op-root .op-apps-pop .op-apps-name { font-size: min(40px, calc(100cqi / (var(--n, 1) * .8))); }
+        /* Odrážka v popupe sa smie zalomiť — „jeden riadok" platí pre slajdy karuselu, nie pre detail. */
+        .op-apps-pop .op-apps-ul li { white-space: normal; }
         .op-apps-mapy {
           display: inline-flex; align-items: center; gap: 8px; margin: -8px 0 24px; padding: 4px 12px 4px 12px;
           border-radius: 999px; border: 1px solid rgba(201,154,63,.6); background: rgba(255,255,255,.55);
@@ -841,7 +851,7 @@ ${APPS_TYPE_CSS}
           /* Snímky švihom a bodkami — sivé šípky pri telefóne by sa bili so zlatými na kraji. */
           .op-apps-pop .op-apps-sl-btn { display: none; }
           .op-apps-pop-txt { flex: none; }
-          .op-apps-pop .op-apps-name { font-size: 20px; padding-bottom: 12px; }
+          .op-root .op-apps-pop .op-apps-name { font-size: min(20px, calc(100cqi / (var(--n, 1) * .8))); padding-bottom: 12px; }
           .op-apps-pop-txt { min-width: 0; width: 100%; }
           .op-apps-pop .op-apps-lede { margin-bottom: 12px; font-size: 14px; line-height: 1.45; }
           .op-apps-pop .op-apps-ul li { padding: 6px 0; font-size: 14px; }

@@ -46,8 +46,8 @@ const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const ALL_LANGS = ['sk', 'en', 'cs', 'pol', 'ukr', 'deu', 'esp', 'fra', 'prt', 'rus', 'ita', 'chn', 'jpn', 'ind', 'kor', 'ara', 'tur', 'nld'];
 // Rýchly beh berie jazyky s NAJDLHŠÍMI slovami (DE, NL, FR, ES) + tie, ktoré vidí Matej.
-const LANGS = RYCHLE ? ['sk', 'en', 'deu', 'fra', 'nld', 'esp'] : ALL_LANGS;
-const SIZES = RYCHLE ? [[1477, 724], [390, 844]] : [[1477, 724], [1920, 1080], [390, 844], [360, 640]];
+const LANGS = process.env.POPUPY_LANGS ? process.env.POPUPY_LANGS.split(',') : RYCHLE ? ['sk', 'en', 'deu', 'fra', 'nld', 'esp'] : ALL_LANGS;
+const SIZES = process.env.POPUPY_SIZE ? [process.env.POPUPY_SIZE.split('x').map(Number)] : RYCHLE ? [[1477, 724], [390, 844]] : [[1477, 724], [1920, 1080], [390, 844], [360, 640]];
 
 // Povrchy, kde žijú popupy. Heroflow kroky bez stavu môžu presmerovať — vtedy sa zmeria, kam dopadli.
 const ROUTES = arg('--len') ? [arg('--len')] : [
@@ -101,14 +101,6 @@ const IN_PAGE = (vynimky) => {
     || ['Top', 'Right', 'Bottom', 'Left'].some(s => parseFloat(c['border' + s + 'Width']) > 0 && alpha(c['border' + s + 'Color']) > 0.05)
     || c.boxShadow !== 'none';
   const label = (e) => (e.getAttribute('aria-label') || e.innerText || e.title || '').trim().replace(/\s+/g, ' ').slice(0, 40);
-  const cssPath = (e) => {
-    const parts = [];
-    for (let n = e; n && n !== document.body && n.nodeType === 1; n = n.parentElement) {
-      let i = 1; for (let s = n.previousElementSibling; s; s = s.previousElementSibling) if (s.tagName === n.tagName) i++;
-      parts.unshift(`${n.tagName.toLowerCase()}:nth-of-type(${i})`);
-    }
-    return 'body > ' + parts.join(' > ');
-  };
   const cls = (e) => (typeof e.className === 'string' && e.className.trim().split(/\s+/)[0]) || e.tagName.toLowerCase();
 
   window.__popupy = {
@@ -127,15 +119,23 @@ const IN_PAGE = (vynimky) => {
     },
     oznac() { this.vrstvy().forEach(e => e.setAttribute('data-popupy-pred', '1')); },
     nove() { return this.vrstvy().filter(e => !e.hasAttribute('data-popupy-pred') && !e.closest('[data-popupy-pred]')); },
-    spustace(root) {
+    // Kľúč spúšťača = značka + triedy + poradie medzi rovnakými. Nezávisí od jazyka ani od
+    // toho, či film medzitým dorenderoval ďalšie sekcie (cesta nth-of-type sa rozpadla po 8 klikoch).
+    _cands(root) {
       const sel = 'button, [role="button"], [role="tab"], summary, [tabindex="0"]';
       const els = [...(root || document).querySelectorAll(sel)];
       if (!root) document.querySelectorAll('div, span, li, img, a:not([href]), a[href^="#"]').forEach(e => { if (getComputedStyle(e).cursor === 'pointer' && !e.closest(sel)) els.push(e); });
-      return els.filter(e => !e.closest('[data-popupy-pred]') || root)
-        .filter(e => !e.disabled && !/^(true)$/.test(e.getAttribute('aria-disabled') || ''))
-        .map(e => ({ path: cssPath(e), label: label(e), vis: vis(e) }));
+      const cnt = {};
+      return els.filter(e => root || !e.closest('[data-popupy-pred]'))
+        .filter(e => !e.disabled && e.getAttribute('aria-disabled') !== 'true')
+        .map(e => { const b = e.tagName.toLowerCase() + '.' + [...e.classList].sort().join('.'); cnt[b] = (cnt[b] || 0) + 1; return { e, key: b + '#' + cnt[b] }; });
     },
-    klik(p) { const e = document.querySelector(p); if (!e) return false; e.click(); return true; },
+    spustace(root) { return this._cands(root).map(({ e, key }) => ({ path: key, label: label(e), vis: vis(e), inner: !!root })); },
+    klik(key, inner) {
+      const root = inner ? this.nove()[0] : null;
+      const hit = this._cands(root).find(c => c.key === key);
+      if (!hit) return false; hit.e.click(); return true;
+    },
     podpis(e) { return (e.innerText || '').replace(/\s+/g, ' ').slice(0, 200); },
     meraj(root) {
       const vw = innerWidth, out = [];
@@ -200,73 +200,62 @@ async function zavri(p, url) {
   if ((await p.evaluate(() => window.__popupy.nove().length).catch(() => 1)) > 0 || p.url() !== url) await load(p, url);
 }
 
-// Zmeria otvorenú vrstvu + prejde jej vnútorné tlačidlá (1 úroveň, kým vrstva ostáva otvorená).
-async function merajVrstvu(p, ctxInfo, nalezy) {
+// Zmeria otvorenú vrstvu a prejde jej vnútorné tlačidlá (1 úroveň, kým vrstva ostáva otvorená).
+// inner = null → OBJAV (skúsi všetky, vráti tie, čo ukázali nový obsah) · pole → PREHRAJ len tie.
+async function merajVrstvu(p, info, nalezy, inner) {
   const podpisy = new Set();
   const zmeraj = async () => {
-    const r = await p.evaluate(() => { const v = window.__popupy.nove(); return v.map(e => ({ pod: window.__popupy.podpis(e), n: window.__popupy.meraj(e) })); });
+    const r = await p.evaluate(() => window.__popupy.nove().map(e => ({ pod: window.__popupy.podpis(e), n: window.__popupy.meraj(e) }))).catch(() => []);
+    let nove = false;
     for (const x of r) {
-      if (podpisy.has(x.pod)) continue; podpisy.add(x.pod);
-      for (const n of x.n) nalezy.push({ ...ctxInfo, ...n, popup: x.pod.slice(0, 40) });
+      if (podpisy.has(x.pod)) continue; podpisy.add(x.pod); nove = true;
+      for (const n of x.n) nalezy.push({ ...info, ...n, popup: x.pod.slice(0, 40) });
     }
+    return { nove, pod: r.map(x => x.pod).join('|') };
   };
-  await zmeraj();
-  const vnutorne = await p.evaluate(() => { const v = window.__popupy.nove()[0]; return v ? window.__popupy.spustace(v).filter(s => s.vis) : []; });
-  let n = 0;
-  for (const s of vnutorne) {
-    if (n >= 12 || NEKLIKAJ.test(s.label)) continue;
-    const ok = await p.evaluate(pth => window.__popupy.klik(pth), s.path).catch(() => false);
-    if (!ok) continue; n++;
-    await wait(550);
-    const open = await p.evaluate(() => window.__popupy.nove().length).catch(() => 0);
-    if (!open) return; // tlačidlo popup zavrelo — ďalšie vnútorné už nie sú
-    await zmeraj();
+  const prvy = await zmeraj();
+  const list = inner ?? (await p.evaluate(() => { const v = window.__popupy.nove()[0]; return v ? window.__popupy.spustace(v).filter(s => s.vis) : []; }).catch(() => []))
+    .filter(s => !NEKLIKAJ.test(s.label)).slice(0, 14).map(s => s.path);
+  const uzitocne = [];
+  for (const key of list) {
+    const ok = await p.evaluate(k => window.__popupy.klik(k, true), key).catch(() => false);
+    if (!ok) continue;
+    await wait(420);
+    if (!(await p.evaluate(() => window.__popupy.nove().length).catch(() => 0))) break; // tlačidlo popup zavrelo
+    if ((await zmeraj()).nove) uzitocne.push(key);
   }
+  return { pod: prvy.pod, inner: uzitocne };
 }
 
-async function objav(browser, base, route, w, h) {
-  const { ctx, p } = await newCtx(browser, 'sk', w, h);
-  const url = base + route;
-  const found = [];
-  try {
-    await load(p, url);
-    const finalUrl = p.url();
-    await p.evaluate(() => window.__popupy.oznac());
-    const cands = (await p.evaluate(() => window.__popupy.spustace())).slice(0, 140);
-    for (const c of cands) {
-      if (NEKLIKAJ.test(c.label)) continue;
-      const ok = await p.evaluate(pth => window.__popupy.klik(pth), c.path).catch(() => false);
-      if (!ok) continue;
-      await wait(600);
-      if (p.url().split('#')[0] !== finalUrl.split('#')[0]) { await load(p, url); await p.evaluate(() => window.__popupy.oznac()); continue; }
-      const nove = await p.evaluate(() => window.__popupy.nove().length).catch(() => 0);
-      if (nove) { found.push(c); await zavri(p, finalUrl); await p.evaluate(() => window.__popupy.oznac()).catch(() => {}); }
-    }
-  } catch (e) { console.log(`  ⚠️ objav ${route} ${w}px: ${e.message.split('\n')[0]}`); }
-  await ctx.close();
-  return found;
-}
-
-async function prehraj(browser, base, route, triggers, lang, w, h, nalezy) {
-  if (!triggers.length) return;
+// Jeden priechod routy v jednom jazyku a okne. triggers = null → objav (len SK), inak prehraj.
+async function priechod(browser, base, route, lang, w, h, nalezy, triggers) {
   const { ctx, p } = await newCtx(browser, lang, w, h);
-  const url = base + route;
+  const url = base + route, okno = `${w}×${h}`;
+  const found = [], videne = new Set();
   try {
     await load(p, url);
     const finalUrl = p.url();
     await p.evaluate(() => window.__popupy.oznac());
-    for (const t of triggers) {
-      const ok = await p.evaluate(pth => window.__popupy.klik(pth), t.path).catch(() => false);
+    const list = triggers ?? (await p.evaluate(() => window.__popupy.spustace())).filter(c => !NEKLIKAJ.test(c.label)).slice(0, 160);
+    for (const t of list) {
+      const ok = await p.evaluate(k => window.__popupy.klik(k), t.path).catch(() => false);
       if (!ok) continue;
-      await wait(650);
+      await wait(550);
+      if (p.url().split('#')[0] !== finalUrl.split('#')[0]) { await load(p, url); await p.evaluate(() => window.__popupy.oznac()).catch(() => {}); continue; }
       if (!(await p.evaluate(() => window.__popupy.nove().length).catch(() => 0))) continue;
-      await merajVrstvu(p, { route, lang, okno: `${w}×${h}`, spustac: t.label }, nalezy);
+      const r = await merajVrstvu(p, { route, lang, okno, spustac: t.label }, nalezy, triggers ? t.inner : null);
+      if (!triggers && !videne.has(r.pod)) { videne.add(r.pod); found.push({ ...t, inner: r.inner }); }
       await zavri(p, finalUrl);
       await p.evaluate(() => window.__popupy.oznac()).catch(() => {});
     }
   } catch (e) { console.log(`  ⚠️ ${route} ${lang} ${w}px: ${e.message.split('\n')[0]}`); }
-  await ctx.close();
+  await ctx.close().catch(() => {});
+  return found;
 }
+
+// Jazyky paralelne — 4 kontexty naraz (viac dusí vite a film nestihne naskočiť).
+async function pool(items, n, fn) { const q = [...items]; await Promise.all(Array.from({ length: n }, async () => { while (q.length) await fn(q.shift()); })); }
+const PARALEL = +(process.env.POPUPY_PARALEL || 4);
 
 const t0 = Date.now();
 let base;
@@ -276,10 +265,10 @@ const nalezy = [];
 let popupov = 0;
 for (const [w, h] of SIZES) {
   for (const route of ROUTES) {
-    const trig = await objav(browser, base, route, w, h);
+    const trig = await priechod(browser, base, route, LANGS[0], w, h, nalezy, null);
     popupov += trig.length;
-    console.log(`· ${route} ${w}px — ${trig.length} spúšťačov popupu${trig.length ? ': ' + trig.map(t => t.label || '?').slice(0, 6).join(' | ') : ''}`);
-    for (const lang of LANGS) await prehraj(browser, base, route, trig, lang, w, h, nalezy);
+    console.log(`· ${route} ${w}px — ${trig.length} popupov${trig.length ? ': ' + trig.map(t => t.label || '?').slice(0, 6).join(' | ') : ''}`);
+    if (trig.length) await pool(LANGS.slice(1), PARALEL, lang => priechod(browser, base, route, lang, w, h, nalezy, trig));
   }
 }
 await browser.close();

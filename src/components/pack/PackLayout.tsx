@@ -573,10 +573,9 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
     </div>
     {/* PREHLIADKA (AINUBIS) — žije s lištou: kde je lišta (kôš 1 a 2), tam smie byť wizard;
         v koši 3 (úloha) lišta nie je, takže ani on. ČO ukáže, rozhoduje register `wizSteps.ts`.
-        Stále len DEV — na LIVE pôjde s Matejovým OK nad hárkom `plany/nakres-wizard-2026-10-06.html`. */}
-    {import.meta.env.DEV && (
-      <PackWizard hasDog={(dogs ?? []).length > 0} dogName={dogs?.[0]?.dog_name ?? null} />
-    )}
+        LIVE od 16. 10. 2026 (Matej: „sprav! … chcem aby sme si vedeli pozrieť kto si wizarda pozrel
+        a kto preskočil") — každý krok sa zapisuje do denníka `wizard_events`. */}
+    <PackWizard hasDog={(dogs ?? []).length > 0} dogName={dogs?.[0]?.dog_name ?? null} />
     {/* ── PANEL `+` JE SÚRODENEC PÁSU, NIE JEHO POTOMOK ─────────────────────────────────
         🔴 DVA DÔVODY, OBA MERATEĽNÉ:
         1. VRSTVENIE. Pás je `fixed z-40`, teda VLASTNÝ stacking kontext — čokoľvek v ňom

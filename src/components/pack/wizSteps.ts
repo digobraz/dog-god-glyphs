@@ -94,6 +94,8 @@ export const WIZ_SCREENS: WizScreen[] = [
     { id: 'dogs.calendar', anchor: '.cal-head', text: 'pack.wizard.dogs.calendar', since: '2026-10-06' },
   ] },
   { key: 'dogId', routes: ['/pack/dogs/:id'], basket: 2, status: 'caka', steps: [] },
+  { key: 'chronicle', routes: ['/pack/dogs/chronicle'], basket: 2, status: 'caka', steps: [] },
+  { key: 'dogIdModules', routes: ['/pack/dogs/dogid'], basket: 2, status: 'caka', steps: [] },
   { key: 'ainubis', routes: ['/pack/ainubis/*'], basket: 1, status: 'kroky', steps: [
     // Matej 7. 10.: prvý krok = AINUBIS vo všeobecnosti, výrez na jeho ikonke v lište.
     { id: 'ainubis.intro', anchor: WIZ.navAinubis, text: 'pack.wizard.ainubis.intro', since: '2026-10-07' },
