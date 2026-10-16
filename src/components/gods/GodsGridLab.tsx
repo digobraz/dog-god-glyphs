@@ -816,6 +816,13 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     return Math.max(window.innerWidth, window.innerHeight) / W;
   }, []);
   const revZoomOn = revealData.active && revealStep >= 1 && revealStep < 3;
+  // Mobil = ZVISLÝ heroglyf, PC = HORIZONTÁLNY (Matej 16. 10. 2026: *„na mobile vertikálny
+  // a na pc horizontálny"*). Rozhoduje tvar okna: na výšku zvislý, na šírku horizontálny.
+  // Bez zvislého PNG (starší odkaz, zlyhaná snímka) vždy horizontálny.
+  const revVertical = useMemo(
+    () => !!revealData.heroglyphVUrl && typeof window !== 'undefined' && window.innerHeight >= window.innerWidth,
+    [revealData.heroglyphVUrl],
+  );
 
   // Prepnutie gula ⇄ stena ohlas von. Vo filme je stena samostatna stranka a
   // scroll sa pod nou musi zamknut — dovod je pri prope `onWallChange`.
@@ -3210,8 +3217,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           animation: symbol-burn 2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
           will-change: transform, opacity, filter;
         }
-        /* Chýba zvislý glyf (starší odkaz bez heroglyphVUrl) ⇒ horizontálny na šírku. */
-        .rev-big-symbol.is-h { height: auto; width: min(86vw, 420px); }
+        /* Horizontálny (PC, alebo chýba zvislý): cez šírku okna, nie známka v strede. */
+        .rev-big-symbol.is-h { height: auto; width: min(82vw, 1100px); max-height: 60vh; }
         .rev-overlay.ph-vanish .rev-big-symbol {
           animation: rev-vanish 650ms ease-in forwards;
         }
@@ -4234,8 +4241,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
             )}
             <div className="rev-glow" />
             <img
-              className={`rev-big-symbol${revealData.heroglyphVUrl ? '' : ' is-h'}`}
-              src={revealData.heroglyphVUrl || revealSymbol}
+              className={`rev-big-symbol${revVertical ? '' : ' is-h'}`}
+              src={revVertical ? revealData.heroglyphVUrl : revealSymbol}
               alt={revealData.dogName}
             />
           </div>,
