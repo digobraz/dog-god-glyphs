@@ -754,6 +754,10 @@ function AinubisWidgetInner() {
   // ⚠️ VÝNIMKA: keď svietia dvere vetiev, ostať hore znamená, že jediná vec,
   // ktorá sa v chate dá spraviť (a ktorá zároveň odomyká písanie), je pod
   // ohybom a nie je po nej ani stopy. Vtedy sa dolu ísť MUSÍ.
+  //
+  // `open` v závislostiach: telo panela existuje len pri otvorenom paneli. Správy
+  // dotiahnuté pri zavretom paneli (odznak) bez toho ostali pri otvorení na
+  // scrollTop 0 — človek pristál na začiatku vlákna (Danka 13. 10.).
   useEffect(() => {
     const body = bodyRef.current;
     if (!body) return;
@@ -765,7 +769,7 @@ function AinubisWidgetInner() {
       return;
     }
     body.scrollTo({ top: body.scrollHeight });
-  }, [messages, typewriter?.shown, branch, copy.welcome.length]);
+  }, [open, messages, typewriter?.shown, branch, copy.welcome.length]);
 
   // Pole rastie s textom (po strop z CSS `max-height`). Bez toho sa nadiktovaná
   // veta schová do jedného riadku a človek nevidí, čo vlastne pošle.
