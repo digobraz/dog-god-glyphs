@@ -239,7 +239,11 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
           if (vSvg && vbOld) {
             try {
               vSvg.setAttribute('viewBox', '784 361 911 2781');
-              const vData = await toPng(vSvg as unknown as HTMLElement, { cacheBust: true, pixelRatio: 1, backgroundColor: undefined });
+              // Strop 6 s: zvislý glyf je ozdoba odhalenia, nesmie zdržať zápis heroglyfu.
+              const vData = await Promise.race([
+                toPng(vSvg as unknown as HTMLElement, { cacheBust: true, pixelRatio: 1, backgroundColor: undefined }),
+                new Promise<never>((_, rej) => setTimeout(() => rej(new Error('vertical capture timeout')), 6000)),
+              ]);
               const vBlob = await (await fetch(vData)).blob();
               const vRes = await uploadHeroglyphPng(vBlob, `${key}-v`);
               if (vRes.secureUrl) onHeroglyphVReady(vRes.secureUrl);

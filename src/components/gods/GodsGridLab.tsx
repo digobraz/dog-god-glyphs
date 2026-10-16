@@ -48,7 +48,6 @@ import { BrandIcon } from '../pack/BrandIcon';
 // stena je vanilla DOM, ale farba je tá istá ako všade inde.
 import { LAPIS } from '../pack/navGoldSkin';
 import { LAB } from '@/lib/labTheme';
-import { preloadRevealRain, startRevealRain } from './revealRain';
 import './WhatNextPopup.css';
 
 // LAB: stena ťahá SKUTOČNÝCH členov z produkcie (read-only, verejný endpoint) —
@@ -655,9 +654,6 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       // Zvislý heroglyf (pipeline po platbe ho od 16. 10. 2026 fotí zvlášť). Chýba ⇒
       // odhalenie spáli horizontálny ako doteraz.
       heroglyphVUrl: params.get('heroglyphVUrl') || '',
-      // Dve verzie na výber (Matej 16. 10. 2026) — A: DOGTRIX dážď, glyf padne, fotka
-      // na stene · B: slabá fotka za glyfom, potom zoom out na stenu. Platí, kým nevyberie.
-      variant: (params.get('rev') === 'b' ? 'b' : 'a') as 'a' | 'b',
     };
   }, []);
 
@@ -781,56 +777,36 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   // step 3: grid appears around dog (+2s after photo)
   // step 4: done, overlay removed
   // If heroglyphUrl is in URL params we start immediately; otherwise wait for DB load.
-  // Fáza nesie VZHĽAD overlayu, krok (`revealStep`) nesie stav steny (2 = karta svieti,
-  // 4 = hotovo → „Čo ďalej“). Dve verzie, dva časové plány:
-  //  A  glyph 0 → rain 2,4 s → fall 3,2 s → card 4,3 s (otvor v maske) → open 6,1 s → 7,6 s
-  //  B  glyph 0 → vanish 2,8 s → zoom 3,5 s (stena z priblíženia na kartu) → 5,6 s
-  const [revPhase, setRevPhase] = useState<'glyph' | 'rain' | 'fall' | 'card' | 'open' | 'vanish' | 'zoom'>('glyph');
+  // ODHALENIE = verzia B (Matej 16. 10. 2026: *„daj B"*; A s DOGTRIX dažďom zamietnutá):
+  //  glyph 0 → vanish 2,8 s (glyf zmizne, fotka naplno) → zoom 3,5 s (stena z priblíženia
+  //  na kartu) → 5,6 s hotovo. Fáza nesie VZHĽAD overlayu, krok (`revealStep`) stav steny.
+  const [revPhase, setRevPhase] = useState<'glyph' | 'vanish' | 'zoom'>('glyph');
   useEffect(() => {
     if (!revealData.active) return;
     if (!revealData.heroglyphUrl && !dogsReady) return;
-    if (revealData.variant === 'a') preloadRevealRain();
     setRevealStep(1);
     setRevPhase('glyph');
-    const at = (ms: number, fn: () => void) => setTimeout(fn, ms);
-    const done = () => {
-      setRevealStep(4);
-      // Zápis je na STENE — adresa ostane `/wall`, aby obnovenie nehodilo kupca na guľu.
-      window.history.replaceState(null, '', window.location.pathname === '/wall' ? '/wall' : '/');
-    };
-    const ts = revealData.variant === 'a'
-      ? [
-          at(2400, () => setRevPhase('rain')),
-          at(3200, () => setRevPhase('fall')),
-          at(4300, () => { setRevPhase('card'); setRevealStep(2); }),
-          at(6100, () => { setRevPhase('open'); setRevealStep(3); }),
-          at(7600, done),
-        ]
-      : [
-          at(2800, () => setRevPhase('vanish')),
-          at(3500, () => { setRevPhase('zoom'); setRevealStep(2); }),
-          at(3600, () => setRevealStep(3)),
-          at(5600, done),
-        ];
+    const ts = [
+      setTimeout(() => setRevPhase('vanish'), 2800),
+      setTimeout(() => { setRevPhase('zoom'); setRevealStep(2); }, 3500),
+      setTimeout(() => setRevealStep(3), 3600),
+      setTimeout(() => {
+        setRevealStep(4);
+        // Zápis je na STENE — adresa ostane `/wall`, aby obnovenie nehodilo kupca na guľu.
+        window.history.replaceState(null, '', window.location.pathname === '/wall' ? '/wall' : '/');
+      }, 5600),
+    ];
     return () => ts.forEach(clearTimeout);
-  }, [revealData.active, revealData.heroglyphUrl, revealData.variant, dogsReady]);
+  }, [revealData.active, revealData.heroglyphUrl, dogsReady]);
 
-  // Dážď DOGTRIX (verzia A) beží od fázy `rain` po `card`.
-  const revRainRef = useRef<HTMLCanvasElement>(null);
-  const rainOn = revealData.variant === 'a' && (revPhase === 'rain' || revPhase === 'fall');
-  useEffect(() => {
-    if (!rainOn || !revRainRef.current) return;
-    return startRevealRain(revRainRef.current);
-  }, [rainOn]);
-
-  // Verzia B: stena štartuje PRIBLÍŽENÁ tak, že karta psa pokryje celé okno (tá istá
-  // fotka ako slabé pozadie za glyfom) a odíde na mierku 1. Karta je v strede okna,
-  // takže stred transformácie = stred okna.
+  // Stena štartuje PRIBLÍŽENÁ tak, že karta psa pokryje celé okno (tá istá fotka ako
+  // slabé pozadie za glyfom) a odíde na mierku 1. Karta je v strede okna, takže stred
+  // transformácie = stred okna.
   const revZoomScale = useMemo(() => {
     if (typeof window === 'undefined') return 1;
     return Math.max(window.innerWidth, window.innerHeight) / W;
   }, []);
-  const revZoomOn = revealData.active && revealData.variant === 'b' && revealStep >= 1 && revealStep < 3;
+  const revZoomOn = revealData.active && revealStep >= 1 && revealStep < 3;
 
   // Prepnutie gula ⇄ stena ohlas von. Vo filme je stena samostatna stranka a
   // scroll sa pod nou musi zamknut — dovod je pri prope `onWallChange`.
@@ -951,12 +927,12 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   }, [filterOpen]);
 
   useEffect(() => {
-    // B: fotka na karte musí byť hotová hneď — stena sa odhalí priblížená práve na ňu.
-    if (revealStep === 2 || (revealData.variant === 'b' && revealStep === 1)) {
+    // Fotka na karte musí byť hotová hneď — stena sa odhalí priblížená práve na ňu.
+    if (revealStep >= 1) {
       const card = document.querySelector('.reveal-card');
       card?.classList.add('reveal-active');
     }
-  }, [revealStep, revealData.variant]);
+  }, [revealStep]);
 
   // WHAT NEXT? popup — len pre nového člena (revealData.active), raz, po dobehnutí
   // reveal animácie (step 4). Spustí sa 2s po dokončení, ALEBO hneď pri prvom
@@ -3157,14 +3133,11 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         }
 
         /* ── Reveal sequence overlay ── */
-        /* ODHALENIE PO PLATBE — dve verzie na výber (Matej 16. 10. 2026, po videu
-           po-platbe-mob-bledy.mp4: kruhová fotka nad horizontálnym glyfom preč).
-           Spoločné: papyrus LAB, ZVISLÝ heroglyf cez celú výšku telefónu v tmavom
-           atramente a zlatá žiara, ktorá sa rozleje po celom okne.
-           A: za glyfom začne DOGTRIX dážď, glyf padne dolu s ním, v maske sa ukáže
-              štvorcová karta psa na stene a maska zmizne.
-           B: za glyfom je veľmi slabo fotka psa cez celé okno; glyf zmizne, fotka
-              nabehne naplno a stena sa z nej odzoomuje (fotka = karta na stene). */
+        /* ODHALENIE PO PLATBE (Matej 16. 10. 2026 po videu po-platbe-mob-bledy.mp4,
+           vybral verziu B): papyrus LAB, ZVISLÝ heroglyf cez celú výšku telefónu
+           v tmavom atramente, zlatá žiara po celom okne a za ním veľmi slabo fotka psa
+           cez celé okno. Glyf zmizne, fotka nabehne naplno a stena sa z nej odzoomuje
+           (fotka = karta na stene). Kruhová fotka zrušená. */
         .rev-overlay {
           position: fixed;
           inset: 0;
@@ -3179,7 +3152,6 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           pointer-events: none;
           transition: none;
         }
-        .rev-overlay.ph-card, .rev-overlay.ph-open { background: transparent; }
         .rev-overlay.ph-zoom { opacity: 0; transition: opacity 450ms ease; }
 
         .rev-glow {
@@ -3192,32 +3164,18 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           opacity: 0;
           animation: rev-glow 2400ms cubic-bezier(0.25,0.46,0.45,0.94) forwards;
         }
+        /* Žiara po vzplanutí odíde skoro celá, inak by zakryla slabú fotku. */
         @keyframes rev-glow {
-          0%   { opacity: 0; transform: scale(0.15); }
-          38%  { opacity: 1; transform: scale(1); }
-          100% { opacity: 0.55; transform: scale(1.08); }
-        }
-        /* B: žiara po vzplanutí odíde skoro celá, inak by zakryla slabú fotku. */
-        .rev-overlay.v-b .rev-glow { animation-name: rev-glow-b; }
-        @keyframes rev-glow-b {
           0%   { opacity: 0; transform: scale(0.15); }
           35%  { opacity: 0.85; transform: scale(1); }
           100% { opacity: 0.12; transform: scale(1.08); }
         }
-        .rev-overlay.ph-rain .rev-glow, .rev-overlay.ph-fall .rev-glow,
         .rev-overlay.ph-vanish .rev-glow {
           opacity: 0; transition: opacity 700ms ease; animation: none;
         }
-        .rev-overlay.ph-card .rev-glow, .rev-overlay.ph-open .rev-glow,
         .rev-overlay.ph-zoom .rev-glow { display: none; }
 
-        .rev-rain {
-          position: absolute; inset: 0; width: 100%; height: 100%;
-          opacity: 0; transition: opacity 700ms ease;
-        }
-        .rev-overlay.ph-rain .rev-rain, .rev-overlay.ph-fall .rev-rain { opacity: 1; }
-
-        /* B: fotka psa za glyfom. Štvorec 100vmax so stredom v strede okna = presne
+        /* Fotka psa za glyfom. Štvorec 100vmax so stredom v strede okna = presne
            karta na stene pri priblížení max(okno)/W, aby prechod na stenu nepreskočil. */
         .rev-bgphoto {
           position: absolute;
@@ -3232,19 +3190,6 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         }
         .rev-overlay.ph-vanish .rev-bgphoto, .rev-overlay.ph-zoom .rev-bgphoto { opacity: 1; filter: none; }
 
-        .rev-spotlight {
-          position: absolute;
-          top: 50%; left: 50%;
-          width: ${W + 40}px; height: ${H + 40}px;
-          transform: translate(-50%, -50%);
-          box-shadow: 0 0 0 9999px rgba(243,228,196,0.92);
-          pointer-events: none;
-          opacity: 0;
-          border-radius: 16px;
-        }
-        .rev-overlay.ph-card .rev-spotlight { opacity: 1; transition: none; }
-        .rev-overlay.ph-open .rev-spotlight { opacity: 0; transition: opacity 1400ms ease; }
-
         .rev-big-symbol {
           position: relative;
           height: min(88vh, 88dvh);
@@ -3257,17 +3202,6 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         }
         /* Chýba zvislý glyf (starší odkaz bez heroglyphVUrl) ⇒ horizontálny na šírku. */
         .rev-big-symbol.is-h { height: auto; width: min(86vw, 420px); }
-        /* A: rám je vnútri priehľadný — bez výplne by cezeň pretekal dážď. V B ostáva
-           priehľadný zámerne, fotka má presvitať celou plochou. Polomer = zaoblenie
-           vonkajšieho rámu (43 z 911 × 2781). */
-        .rev-overlay.v-a .rev-big-symbol:not(.is-h) { background: ${LAB.pageBg}; border-radius: 4.7% / 1.55%; }
-        .rev-overlay.ph-fall .rev-big-symbol {
-          animation: rev-fall 1050ms cubic-bezier(0.55,0,0.85,0.4) forwards;
-        }
-        @keyframes rev-fall {
-          0%   { opacity: 1; transform: translateY(0) scale(1); filter: drop-shadow(0 0 14px rgba(201,154,63,0.55)); }
-          100% { opacity: 0.85; transform: translateY(115vh) scale(0.55); filter: drop-shadow(0 0 4px rgba(201,154,63,0.3)); }
-        }
         .rev-overlay.ph-vanish .rev-big-symbol {
           animation: rev-vanish 650ms ease-in forwards;
         }
@@ -3275,21 +3209,20 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           0%   { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 14px rgba(201,154,63,0.55)); }
           100% { opacity: 0; transform: scale(1.12); filter: blur(6px) drop-shadow(0 0 40px rgba(255,214,120,0.9)); }
         }
-        .rev-overlay.ph-card .rev-big-symbol, .rev-overlay.ph-open .rev-big-symbol,
         .rev-overlay.ph-zoom .rev-big-symbol { display: none; }
 
-        /* B: stena z priblíženia na kartu. Popisy karty (meno, číslo, vlajka) by pri
+        /* Stena z priblíženia na kartu. Popisy karty (meno, číslo, vlajka) by pri
            päťnásobku boli obrie — prídu, až keď stena dobehne. */
-        .rev-b-wall { transition: transform 2000ms cubic-bezier(0.65,0,0.35,1); transform-origin: 50% 50%; }
-        .rev-b-wall.rev-zoom { transition: none; }
-        .rev-b-wall .reveal-card .card-name-block,
-        .rev-b-wall .reveal-card .card-rank-top,
-        .rev-b-wall .reveal-card .card-flag { transition: opacity 600ms ease 1500ms; }
-        .rev-b-wall.rev-zoom .reveal-card .card-name-block,
-        .rev-b-wall.rev-zoom .reveal-card .card-rank-top,
-        .rev-b-wall.rev-zoom .reveal-card .card-flag { opacity: 0; transition: none; }
-        .rev-b-wall .reveal-card .reveal-card-inner { transition: none; }
-        .rev-b-wall .reveal-card.reveal-active { animation: card-glow-loop 4s ease-in-out 2s infinite; }
+        .rev-wall { transition: transform 2000ms cubic-bezier(0.65,0,0.35,1); transform-origin: 50% 50%; }
+        .rev-wall.rev-zoom { transition: none; }
+        .rev-wall .reveal-card .card-name-block,
+        .rev-wall .reveal-card .card-rank-top,
+        .rev-wall .reveal-card .card-flag { transition: opacity 600ms ease 1500ms; }
+        .rev-wall.rev-zoom .reveal-card .card-name-block,
+        .rev-wall.rev-zoom .reveal-card .card-rank-top,
+        .rev-wall.rev-zoom .reveal-card .card-flag { opacity: 0; transition: none; }
+        .rev-wall .reveal-card .reveal-card-inner { transition: none; }
+        .rev-wall .reveal-card.reveal-active { animation: card-glow-loop 4s ease-in-out 2s infinite; }
 
         /* ── Filter / find dog by number ── */
         .filter-btn {
@@ -4277,7 +4210,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         <div
           ref={appRef}
           role="application"
-          className={revealData.active && revealData.variant === 'b' && revealStep < 4 ? `rev-b-wall${revZoomOn ? ' rev-zoom' : ''}` : undefined}
+          className={revealData.active && revealStep < 4 ? `rev-wall${revZoomOn ? ' rev-zoom' : ''}` : undefined}
           style={{ position: 'fixed', inset: 0, overflow: 'hidden', transform: revZoomOn ? `scale(${revZoomScale})` : undefined }}
         >
           <div ref={canvasRef} id="gods-canvas" />
@@ -4285,13 +4218,11 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
 
         {/* Do `body`: v ráme by overlay ostal pod horným navom a spodnou lištou. */}
         {revealData.active && revealStep > 0 && revealStep < 4 && createPortal(
-          <div className={`rev-overlay step-${revealStep} ph-${revPhase} v-${revealData.variant}`}>
-            {revealData.variant === 'b' && revealData.photoUrl && (
+          <div className={`rev-overlay step-${revealStep} ph-${revPhase}`}>
+            {revealData.photoUrl && (
               <div className="rev-bgphoto" style={{ backgroundImage: `url("${safeUrl(revealData.photoUrl)}")` }} />
             )}
             <div className="rev-glow" />
-            {revealData.variant === 'a' && <canvas ref={revRainRef} className="rev-rain" aria-hidden="true" />}
-            {revealData.variant === 'a' && <div className="rev-spotlight" />}
             <img
               className={`rev-big-symbol${revealData.heroglyphVUrl ? '' : ' is-h'}`}
               src={revealData.heroglyphVUrl || revealSymbol}
