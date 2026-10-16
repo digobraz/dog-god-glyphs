@@ -51,7 +51,7 @@ const SIZES = process.env.POPUPY_SIZE ? [process.env.POPUPY_SIZE.split('x').map(
 
 // Povrchy, kde žijú popupy. Heroflow kroky bez stavu môžu presmerovať — vtedy sa zmeria, kam dopadli.
 const ROUTES = arg('--len') ? [arg('--len')] : [
-  '/', '/wall', '/magnet', '/terms',
+  '/', '/magnet', '/terms', // /wall = ten istý OnePage ako /
   '/heroglyph/name', '/heroglyph/photo', '/heroglyph/dogs', '/heroglyph/essence', '/heroglyph/breed',
   '/heroglyph/owner-info', '/heroglyph/dog-character', '/heroglyph/message', '/checkout',
   '/pack', '/pack/dogs', '/pack/dogs/dogid', '/pack/profile', '/pack/map', '/pack/map/triplist',
