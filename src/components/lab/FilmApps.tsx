@@ -712,6 +712,10 @@ ${APPS_TYPE_CSS}
         .op-apps-pop-txt { grid-column: 2; grid-row: 1; }
         .op-apps-pop .op-apps-sl-view { width: min(300px, calc((100dvh - 250px) * ${(IPHONE_W / IPHONE_H).toFixed(4)})); }
         .op-apps-pop .op-apps-ul { margin: 0; }
+        /* NADPIS POPUPU SA ZALAMUJE (Matej 16. 10. 2026: *„vybehuje sk text pri sila komunity…
+           daj nadpis do 2 riadkov"*). Textový stĺpec má na PC ~342 px a nowrap z karuselu
+           pustil 40px „SILA KOMUNITY" cez okraj karty — v 13 z 18 jazykov. */
+        .op-apps-pop .op-apps-name { white-space: normal; text-wrap: balance; min-width: 0; }
         .op-apps-mapy {
           display: inline-flex; align-items: center; gap: 8px; margin: -8px 0 24px; padding: 4px 12px 4px 12px;
           border-radius: 999px; border: 1px solid rgba(201,154,63,.6); background: rgba(255,255,255,.55);

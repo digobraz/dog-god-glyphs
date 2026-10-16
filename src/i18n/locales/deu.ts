@@ -5113,7 +5113,7 @@ export const deu: Partial<Dict> = {
   "onepage.apps.dogid.lede": "Jedes Detail über deinen Hund an einem Ort — der Schlüssel zu persönlicher Betreuung durch deine Tierärztin, deinen Tierarzt und AINUBIS.",
   "onepage.apps.dogtrip.lede": "Entdecke geprüfte hundefreundliche Routen und trag eigene ein. Sammle Punkte und Abzeichen für euer aktives Leben zu zweit.",
   "onepage.apps.sniffer.lede": "Eine hundefreundliche Partnerbörse. Finde Kumpel, Crew oder Partner, mit denen du die Welt erkundest — als ein Rudel.",
-  "onepage.apps.cause.name": "GEMEINSCHAFTSPOWER",
+  "onepage.apps.cause.name": "GEMEINSCHAFTS\u00ADPOWER",
   "onepage.apps.cause.lede": "Wir bauen DOGYPT gemeinsam aus Liebe zu Hunden — 100 % transparent. Jedes Mitglied sieht alle Einnahmen und Ausgaben.",
   "onepage.apps.ainubis.lede": "Unser persönlicher KI-Mentor, der deinen Hund in- und auswendig kennt — gestützt auf geprüfte Bücher, Texte und kurze Podcasts.",
   "onepage.apps.head": "Mitgliedschaft",
