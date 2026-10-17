@@ -325,6 +325,9 @@ export default function LanguagePicker({ variant = 'nav' }: { variant?: 'nav' | 
           border-radius: 14px;
           padding: 16px;
           box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+          /* left:50% dáva fixovanému prvku len POLOVICU okna — bez max-content mal modal
+             na 360 px šírku 180 a kódy ENG/CHN vyliezali zo stĺpca (stráž popupov 17. 10. 2026). */
+          width: max-content;
           max-width: min(420px, 88vw);
           max-height: 84dvh;
           overflow-y: auto;

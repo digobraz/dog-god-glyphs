@@ -913,5 +913,10 @@ const NAME_TOPIC_CSS = `
 .nm-who-facts div { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: ${PACK_R.tile}px; border: 1px solid ${LAB.hairline}; }
 .nm-who-facts dt { font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: ${LAB.inkMuted}; text-align: center; }
 .nm-who-facts dd { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; color: ${LAB.ink}; text-align: center; }
+/* Úzky mobil: tretina karty (79 px) nestačí na „GEADOPTEERD" — dva údaje vedľa seba, miesto pod nimi. */
+@media (max-width: 400px) {
+  .nm-who-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nm-who-facts div:last-child { grid-column: 1 / -1; }
+}
 .nm-next.is-done { background: transparent; border-color: ${PACK_THEME.growGreen}; color: ${PACK_THEME.growGreen}; }
 `;
