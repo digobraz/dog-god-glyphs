@@ -1135,7 +1135,8 @@ function PackRoles() {
       </span>
       {/* Vysvetlivku má LEN PAWMATE (Matej 26. 9.) — pes a pawtner sa vysvetľujú sami. */}
       {sub && (
-        <span style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.4, color: T.inkWarm }}>
+        // hyphens: DE „Rudelmitglied" je jedno slovo širšie než stĺpec na 360 px (<html lang> nesie jazyk).
+        <span style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.4, color: T.inkWarm, hyphens: 'auto', overflowWrap: 'break-word' }}>
           {sub}
         </span>
       )}
@@ -1147,7 +1148,8 @@ function PackRoles() {
         {t('pack.hero.rolePack')}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) auto minmax(0, 1fr)', alignItems: 'center', gap: 8 }}>
-        <div style={{ ...PACK_BOX.subblock, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 4, padding: '12px 8px', alignItems: 'start' }}>
+        <div style={{ ...PACK_BOX.subblock, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 0, padding: '12px 4px', alignItems: 'start' }}>
+          {/* Na 360 px mal stĺpec 53 px a PAWTNER 59 — gap 0 a bok 4 mu vrátia 8 px (stráž popupov 17. 10. 2026). */}
           {role('dogsphinx', t('pack.hero.roleDog'), true)}
           {/* Plus sedí v strede kruhov (56 / 2 = 28), nie v strede stĺpca s menom. */}
           <HandPlus size={16} style={{ color: T.cardEdge, marginTop: 20 }} />
