@@ -10,9 +10,11 @@ export function DogMessage({ n, text, className, toggle = true }: { n: number | 
   const { text: tr, translated } = useDogMessage(n, text);
   const [orig, setOrig] = useState(false);
   if (!text) return null;
+  // Prepínač stojí ZA odsekom, nie v ňom — odsek býva orezaný na N riadkov
+  // (`-webkit-line-clamp`) a tlačidlo vnútri by orez schoval.
   return (
-    <p className={className}>
-      {translated && !orig ? tr : text}
+    <>
+      <p className={className}>{translated && !orig ? tr : text}</p>
       {translated && toggle && (
         <button
           type="button"
@@ -22,16 +24,16 @@ export function DogMessage({ n, text, className, toggle = true }: { n: number | 
           {t(orig ? 'wall.msg.showTr' : 'wall.msg.showOrig')}
         </button>
       )}
-    </p>
+    </>
   );
 }
 
-/** Štýl prepínača — tichý odkaz pod textom, farbu berie z textu odkazu. */
+/** Štýl prepínača — tichý odkaz pod textom, atrament ako stavový riadok karty (.pp-status). */
 export const DOG_MESSAGE_CSS = `
   .dm-toggle {
     display: block; margin: 4px auto 0; padding: 0; border: 0; background: none;
     font: 500 12px/1.4 'Space Grotesk', sans-serif; font-style: normal;
-    color: inherit; opacity: .6; text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+    color: rgba(42,22,8,0.62); text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
   }
-  .dm-toggle:hover { opacity: .9; }
+  .dm-toggle:hover { color: rgba(42,22,8,0.9); }
 `;
