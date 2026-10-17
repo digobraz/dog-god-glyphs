@@ -4908,6 +4908,8 @@ export const kor: Partial<Dict> = {
   "wall.status.supporter": "당신은 이 개를 개들이 보는 그대로 보고 있어요. DOGYPT에서는 아직 사람이 없어요.",
   "wall.status.guest": "당신은 이 개를 개들이 보는 그대로 보고 있어요. DOGYPT에서는 아직 사람이 없어요.",
   "wall.status.pending": "AINUBIS가 아직 사진을 확인하고 있어요",
+  "wall.msg.showOrig": "원문 보기",
+  "wall.msg.showTr": "번역 보기",
   "welcome.photoMissing.title": "아직 얼굴이 없어요",
   "welcome.photoMissing.sub": "DOG ID에서 사진을 추가하세요 — 그걸 바탕으로 인증서와 공유 카드를 다시 만들어드릴게요.",
   // ── /onepage film (preklad 6. 10. 2026, 192 kľúčov; zdroj plany/preklad-onepage-2026-10-06/) ──

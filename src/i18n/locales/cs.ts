@@ -902,6 +902,8 @@ export const cs: Partial<Dict> = {
   'wall.status.supporter': 'Tohoto psa vidíš tak, jak ho vidí psi. V DOGYPTU je zatím bez člověka.',
   'wall.status.guest': 'Tohoto psa vidíš tak, jak ho vidí psi. V DOGYPTU je zatím bez člověka.',
   'wall.status.pending': 'AINUBIS si ještě prohlíží fotku',
+  'wall.msg.showOrig': 'Zobrazit originál',
+  'wall.msg.showTr': 'Zobrazit překlad',
   'wall.guestLine.1': 'Můj člověk to ještě nepochopil. Pracuju na něm.',
   'wall.guestLine.2': 'Já jsem uvnitř. Můj člověk ještě stojí na prahu.',
   'wall.guestLine.3': 'Můj člověk zatím neviděl vizi. Já ano.',

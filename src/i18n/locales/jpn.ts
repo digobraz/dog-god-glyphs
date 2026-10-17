@@ -4905,6 +4905,8 @@ export const jpn: Partial<Dict> = {
   "wall.status.supporter": "あなたはこの犬を、犬たちが見る姿のまま見ています。DOGYPTではまだ人間がついていません。",
   "wall.status.guest": "あなたはこの犬を、犬たちが見る姿のまま見ています。DOGYPTではまだ人間がついていません。",
   "wall.status.pending": "AINUBISがまだ写真を確認しています",
+  "wall.msg.showOrig": "原文を表示",
+  "wall.msg.showTr": "翻訳を表示",
   "welcome.photoMissing.title": "顔がまだありません",
   "welcome.photoMissing.sub": "DOG IDで写真を追加してください — それをもとに証明書とシェアカードを作り直します。",
   // ── /onepage film (preklad 6. 10. 2026, 192 kľúčov; zdroj plany/preklad-onepage-2026-10-06/) ──

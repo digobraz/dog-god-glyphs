@@ -4908,6 +4908,8 @@ export const tur: Partial<Dict> = {
   "wall.status.supporter": "Bu köpeği köpeklerin gördüğü gibi görüyorsun. DOGYPT'te henüz bir insanı yok.",
   "wall.status.guest": "Bu köpeği köpeklerin gördüğü gibi görüyorsun. DOGYPT'te henüz bir insanı yok.",
   "wall.status.pending": "AINUBIS hâlâ fotoğrafa bakıyor",
+  "wall.msg.showOrig": "Orijinali göster",
+  "wall.msg.showTr": "Çeviriyi göster",
   "welcome.photoMissing.title": "Yüz hâlâ eksik",
   "welcome.photoMissing.sub": "Fotoğrafı DOG ID'de ekle — sertifikayı ve paylaşım kartını ondan yeniden oluşturacağız.",
   // ── /onepage film (preklad 6. 10. 2026, 192 kľúčov; zdroj plany/preklad-onepage-2026-10-06/) ──

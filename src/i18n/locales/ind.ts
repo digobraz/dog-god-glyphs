@@ -4909,6 +4909,8 @@ export const ind: Partial<Dict> = {
   "wall.status.supporter": "आप इस कुत्ते को वैसे देख रहे हैं जैसे कुत्ते देखते हैं। DOGYPT में इसका अभी कोई इंसान नहीं है।",
   "wall.status.guest": "आप इस कुत्ते को वैसे देख रहे हैं जैसे कुत्ते देखते हैं। DOGYPT में इसका अभी कोई इंसान नहीं है।",
   "wall.status.pending": "AINUBIS अभी भी फ़ोटो देख रहा है",
+  "wall.msg.showOrig": "मूल देखें",
+  "wall.msg.showTr": "अनुवाद देखें",
   "welcome.photoMissing.title": "चेहरा अभी भी गायब है",
   "welcome.photoMissing.sub": "DOG ID में फ़ोटो जोड़ें — हम उससे प्रमाणपत्र और शेयर कार्ड फिर से बनाएंगे।",
   // ── /onepage film (preklad 6. 10. 2026, 192 kľúčov; zdroj plany/preklad-onepage-2026-10-06/) ──

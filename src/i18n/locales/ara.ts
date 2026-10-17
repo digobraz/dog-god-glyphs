@@ -4905,6 +4905,8 @@ export const ara: Partial<Dict> = {
   "wall.status.supporter": "ترى هذا الكلب كما تراه الكلاب. في DOGYPT لا يملك إنسانًا بعد.",
   "wall.status.guest": "ترى هذا الكلب كما تراه الكلاب. في DOGYPT لا يملك إنسانًا بعد.",
   "wall.status.pending": "لا يزال AINUBIS يفحص الصورة",
+  "wall.msg.showOrig": "عرض النص الأصلي",
+  "wall.msg.showTr": "عرض الترجمة",
   "welcome.photoMissing.title": "الوجه لا يزال ناقصًا",
   "welcome.photoMissing.sub": "أضف الصورة في DOG ID — سنعيد بناء الشهادة وبطاقة المشاركة منها.",
   // ── /onepage film (preklad 6. 10. 2026, 192 kľúčov; zdroj plany/preklad-onepage-2026-10-06/) ──

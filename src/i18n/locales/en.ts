@@ -1697,6 +1697,8 @@ export const en = {
   'wall.status.supporter': 'You see this dog the way dogs see it. In DOGYPT it has no human yet.',
   'wall.status.guest': 'You see this dog the way dogs see it. In DOGYPT it has no human yet.',
   'wall.status.pending': 'AINUBIS is still looking at the photo',
+  'wall.msg.showOrig': 'Show original',
+  'wall.msg.showTr': 'Show translation',
   'wall.guestLine.1': "My human hasn't got it yet. I'm working on them.",
   'wall.guestLine.2': "I'm in. My human is still standing at the door.",
   'wall.guestLine.3': "My human hasn't seen the vision yet. I have.",

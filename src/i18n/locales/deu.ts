@@ -5094,6 +5094,8 @@ export const deu: Partial<Dict> = {
   "wall.status.supporter": "Du siehst diesen Hund so, wie Hunde ihn sehen. In DOGYPT hat er noch keinen Menschen.",
   "wall.status.guest": "Du siehst diesen Hund so, wie Hunde ihn sehen. In DOGYPT hat er noch keinen Menschen.",
   "wall.status.pending": "AINUBIS schaut sich das Foto noch an",
+  "wall.msg.showOrig": "Original anzeigen",
+  "wall.msg.showTr": "Übersetzung anzeigen",
   "welcome.photoMissing.title": "Das Gesicht fehlt noch",
   "welcome.photoMissing.sub": "Füg das Foto im DOG ID hinzu — wir bauen das Zertifikat und die Share-Karte danach neu auf.",
   // ── /onepage film (preklad 6. 10. 2026, 192 kľúčov; zdroj plany/preklad-onepage-2026-10-06/) ──

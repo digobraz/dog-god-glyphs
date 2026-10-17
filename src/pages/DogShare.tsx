@@ -8,6 +8,8 @@ import { dogPagePath, packFromSlug } from '@/lib/dogSlug';
 import { captureDogPageRef } from '@/lib/refCapture';
 import { countryISO2, flagUrl, iso2ToISO3 } from '@/lib/countryGeo';
 import { useT } from '@/i18n/LanguageContext';
+import { useDogMessage } from '@/lib/dogMessages';
+import { DOG_MESSAGE_CSS } from '@/components/gods/DogMessage';
 import legendIconUrl from '@/assets/legend-icon.svg';
 import angelIconUrl from '@/assets/angel-icon.svg';
 import { withTransform } from '@/services/cloudinaryService';
@@ -375,6 +377,9 @@ export default function DogShare() {
   const daysInPack = dog ? computeDaysInPack(dog.joined_at) : null;
   const alphaName = dog?.owner_first_name?.trim() || null;
   const ownerMessage = dog?.owner_message?.trim() || '';
+  // Odkaz v jazyku stránky + prepínač na originál (Matej 18. 10. 2026).
+  const msgTr = useDogMessage(dog?.pack_number, ownerMessage);
+  const [msgOrig, setMsgOrig] = useState(false);
   // Living Legend (alive) vs Dog Angel (deceased) — same source of truth as PACK
   // (PackDogDetail): dog.life_status === 'deceased'. Missing/unknown → alive.
   const isDeceased = dog?.life_status === 'deceased';
@@ -399,7 +404,7 @@ export default function DogShare() {
           Hore štvorcová share karta (meno, heroglyf, #číslo, web sú na nej),
           pod ňou život, údaje, odkaz majiteľa a pozvánka. PRIDAJ SA = lapis
           v karte pod textom (na bledom je zlaté CTA mimo brandu). */}
-      <style>{FLOW_PALE_CSS + `
+      <style>{FLOW_PALE_CSS + DOG_MESSAGE_CSS + `
         .ds-main {
           flex: 1 1 auto; display: flex; flex-direction: column; align-items: center;
           padding: 8px 16px 24px;
@@ -574,7 +579,12 @@ export default function DogShare() {
 
                 {ownerMessage && (
                   <div>
-                    <p className="ds-msg">&ldquo;{ownerMessage}&rdquo;</p>
+                    <p className="ds-msg">&ldquo;{msgTr.translated && !msgOrig ? msgTr.text : ownerMessage}&rdquo;</p>
+                    {msgTr.translated && (
+                      <button type="button" className="dm-toggle" onClick={() => setMsgOrig((o) => !o)}>
+                        {t(msgOrig ? 'wall.msg.showTr' : 'wall.msg.showOrig')}
+                      </button>
+                    )}
                     <p className="ds-msg-by">— {alphaName || dogName}</p>
                   </div>
                 )}

@@ -10,6 +10,7 @@ import { dogShareLink } from '@/lib/useShareCard';
 import { ensureDogVisionFilter } from '@/lib/dogVision';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { HandShare } from '@/components/pack/HandIcons';
+import { DogMessage, DOG_MESSAGE_CSS } from './DogMessage';
 
 // ════════════════════════════════════════════════════════════════════════════
 // KARTA PSA — JEDNA PRE PLANÉTU AJ STENU (3. 10. 2026)
@@ -159,7 +160,8 @@ export function DogCardBody({ dog, where, edgeBase, anonKey }: Props) {
       )}
       <div className="pp-rule" />
       {dog.heroglyph && <img className="pp-glyph" src={dog.heroglyph} alt="" draggable={false} />}
-      {dog.message && <p className="pp-msg">{dog.message}</p>}
+      {/* Odkaz v jazyku stránky + prepínač na originál (18. 10. 2026). */}
+      <DogMessage n={dog.n} text={dog.message} className="pp-msg" />
       {dog.status && <p className="pp-status">{dog.status}</p>}
 
       {dog.guest && joinOpen ? (
@@ -275,6 +277,7 @@ export const DOG_CARD_CSS = `
   pointer-events: none;
   filter: brightness(0) drop-shadow(0 2px 8px rgba(80,55,15,0.18));
 }
+${DOG_MESSAGE_CSS}
 .pp-msg {
   margin: 0;
   font-family: 'Space Grotesk', sans-serif;

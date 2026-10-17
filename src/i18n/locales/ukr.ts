@@ -5093,6 +5093,8 @@ export const ukr: Partial<Dict> = {
   "wall.status.supporter": "Ти бачиш цього пса так, як його бачать собаки. У DOGYPT у нього ще немає людини.",
   "wall.status.guest": "Ти бачиш цього пса так, як його бачать собаки. У DOGYPT у нього ще немає людини.",
   "wall.status.pending": "AINUBIS ще дивиться на фото",
+  "wall.msg.showOrig": "Показати оригінал",
+  "wall.msg.showTr": "Показати переклад",
   "welcome.photoMissing.title": "Обличчя ще бракує",
   "welcome.photoMissing.sub": "Додай фото в DOG ID — за ним ми заново створимо сертифікат і картку для поширення.",
   // ── /onepage film (preklad 6. 10. 2026, 192 kľúčov; zdroj plany/preklad-onepage-2026-10-06/) ──

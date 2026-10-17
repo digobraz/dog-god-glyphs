@@ -42,6 +42,7 @@ const LAPIS_CHIP_SHADOW = '0 2px 6px -2px rgba(5,15,48,0.55), inset 0 1px 0 rgba
 
 import { track } from '@/lib/analytics';
 import { DogCardBody, DOG_CARD_CSS } from './DogCard';
+import { DogMessage } from './DogMessage';
 
 export interface PlanetDog {
   id: string;
@@ -2346,7 +2347,7 @@ export function DogPlanetLab({
                 <img className="pnote-glyph" src={n.dog.heroglyph} alt="" draggable={false} />
               )}
             </div>
-            <p className="pnote-msg">{n.dog.message || (n.dog.n === 1 ? t('wall.hektor.msg') : '')}</p>
+            <DogMessage n={n.dog.n} text={n.dog.message || (n.dog.n === 1 ? t('wall.hektor.msg') : '')} className="pnote-msg" toggle={false} />
           </div>
         </div>
       ))}

@@ -4908,6 +4908,8 @@ export const nld: Partial<Dict> = {
   "wall.status.supporter": "Je ziet deze hond zoals honden hem zien. In DOGYPT heeft hij nog geen mens.",
   "wall.status.guest": "Je ziet deze hond zoals honden hem zien. In DOGYPT heeft hij nog geen mens.",
   "wall.status.pending": "AINUBIS bekijkt de foto nog",
+  "wall.msg.showOrig": "Origineel tonen",
+  "wall.msg.showTr": "Vertaling tonen",
   "welcome.photoMissing.title": "Het gezicht ontbreekt nog",
   "welcome.photoMissing.sub": "Voeg de foto toe in DOG ID — we bouwen het certificaat en de deelkaart er opnieuw mee op.",
   // ── /onepage film (preklad 6. 10. 2026, 192 kľúčov; zdroj plany/preklad-onepage-2026-10-06/) ──

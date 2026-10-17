@@ -1452,6 +1452,8 @@ export const sk: Partial<Dict> = {
   'wall.status.supporter': 'Tohto psa vidíš tak, ako ho vidia psy. V DOGYPTE je zatiaľ bez človeka.',
   'wall.status.guest': 'Tohto psa vidíš tak, ako ho vidia psy. V DOGYPTE je zatiaľ bez človeka.',
   'wall.status.pending': 'AINUBIS ešte pozerá fotku',
+  'wall.msg.showOrig': 'Zobraziť originál',
+  'wall.msg.showTr': 'Zobraziť preklad',
   'wall.guestLine.1': 'Môj človek to ešte nepochopil. Pracujem na ňom.',
   'wall.guestLine.2': 'Ja som dnu. Môj človek ešte stojí na prahu.',
   'wall.guestLine.3': 'Môj človek zatiaľ nevidel víziu. Ja áno.',

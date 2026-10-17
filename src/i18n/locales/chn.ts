@@ -4905,6 +4905,8 @@ export const chn: Partial<Dict> = {
   "wall.status.supporter": "你正以狗看世界的方式看着这只狗。在 DOGYPT 中，它目前还没有人类。",
   "wall.status.guest": "你正以狗看世界的方式看着这只狗。在 DOGYPT 中，它目前还没有人类。",
   "wall.status.pending": "AINUBIS 还在查看这张照片",
+  "wall.msg.showOrig": "查看原文",
+  "wall.msg.showTr": "查看译文",
   "welcome.photoMissing.title": "脸还没有照片",
   "welcome.photoMissing.sub": "在 DOG ID 中添加照片——我们会据此为你重新制作证书和分享卡片。",
   // ── /onepage film (preklad 6. 10. 2026, 192 kľúčov; zdroj plany/preklad-onepage-2026-10-06/) ──
