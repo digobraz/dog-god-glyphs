@@ -4977,7 +4977,7 @@ export const nld: Partial<Dict> = {
   "onepage.dgx.hint.hover": "Beweeg over een symbool — het vertelt je wat het betekent.",
   "onepage.dgx.hint.touch": "Tik op een symbool om het te lezen.",
   "onepage.cue.next": "Volgende",
-  "onepage.cue.more": "Scroll omlaag voor meer info",
+  "onepage.cue.more": "Meer info",
   "onepage.cue.top": "Terug naar boven",
   "onepage.alba.head": "Maak kennis met",
   "onepage.alba.eye": "Dezelfde naam — andere hond — uniek symbool",

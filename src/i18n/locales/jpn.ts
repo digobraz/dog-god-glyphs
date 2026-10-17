@@ -4974,7 +4974,7 @@ export const jpn: Partial<Dict> = {
   "onepage.dgx.hint.hover": "シンボルにカーソルを。意味を教えてくれます。",
   "onepage.dgx.hint.touch": "シンボルをタッチして読もう。",
   "onepage.cue.next": "次へ",
-  "onepage.cue.more": "下にスクロールして続きを",
+  "onepage.cue.more": "詳しく",
   "onepage.cue.top": "トップへ戻る",
   "onepage.alba.head": "こちらは",
   "onepage.alba.eye": "同じ名前、違う犬、唯一のシンボル",

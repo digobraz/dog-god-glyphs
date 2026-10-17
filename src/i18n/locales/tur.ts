@@ -4977,7 +4977,7 @@ export const tur: Partial<Dict> = {
   "onepage.dgx.hint.hover": "Bir sembolün üzerine gel — ne anlama geldiğini söyler.",
   "onepage.dgx.hint.touch": "Okumak için bir sembole dokun.",
   "onepage.cue.next": "Sonraki",
-  "onepage.cue.more": "Daha fazla bilgi için aşağı kaydır",
+  "onepage.cue.more": "Daha fazla bilgi",
   "onepage.cue.top": "Başa dön",
   "onepage.alba.head": "Tanış:",
   "onepage.alba.eye": "Aynı isim — farklı köpek — eşsiz sembol",

@@ -4974,7 +4974,7 @@ export const ara: Partial<Dict> = {
   "onepage.dgx.hint.hover": "مرّر المؤشر فوق رمز — وسيخبرك بمعناه.",
   "onepage.dgx.hint.touch": "المس رمزاً لتقرأه.",
   "onepage.cue.next": "التالي",
-  "onepage.cue.more": "مرّر للأسفل لمزيد من المعلومات",
+  "onepage.cue.more": "المزيد",
   "onepage.cue.top": "العودة إلى الأعلى",
   "onepage.alba.head": "تعرّف على",
   "onepage.alba.eye": "الاسم نفسه — كلب مختلف — رمز فريد",

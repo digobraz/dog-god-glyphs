@@ -5585,7 +5585,7 @@ export const cs: Partial<Dict> = {
   'onepage.cue.next': 'Dál',
   'onepage.seo.title': 'DOGYPT — Tvůj pes tu je bohem',
   'onepage.seo.desc': 'Každý pes na Zemi tu má své místo. Je už ten tvůj na planetě?',
-  'onepage.cue.more': 'Posuň níž pro víc info',
+  'onepage.cue.more': 'Víc info',
   'onepage.cue.story': 'Projeď příběh',
   'onepage.cue.top': 'Zpět na začátek',
   'onepage.dogma.back': 'Zpět',

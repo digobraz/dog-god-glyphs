@@ -376,6 +376,10 @@ export function DogPlanetLab({
   const { lang } = useLang();
   // Dlhší preklad nadpisu než EN = menšie písmo na mobile (heroLineEm.ts).
   const heroFactor = heroLineFactor(lang);
+  // Počet = najvyššie poradové číslo na guli (to isté pravidlo ako číslo
+  // nového psa v popupe fotky nižšie: max n + 1). Pred načítaním 0 = riadok sa neukáže.
+  const dogCount = useMemo(() => dogs.reduce((m, d) => Math.max(m, d.n ?? 0), 0), [dogs]);
+  const countLabel = <><b>{dogCount}</b> / {t('wall.hero.total')} {t('wall.hero.dogs')}</>;
   const navigate = useNavigate();
 
   // ── FOTKA PSA ROVNO Z PRVEJ OBRAZOVKY (Matej 26. 8. 2026) ────────────────
@@ -1415,6 +1419,33 @@ export function DogPlanetLab({
             0 0 150px rgba(253,248,236,0.9);
         }
 
+        /* ── POČET PSOV „84 / 1 000 000 PSOV" (Matej 17. 10. 2026) ──────────
+           *„na homepage mi chýba údaj o počte psov — musím si to pozrieť na
+           wall"* → vybral variant B z hárku: *„na mobile sa mi páči B, na PC
+           asi tiež hore nad nadpis"*. Štítok (PACK_HEAD.label, .26em), nie
+           pilulka — pilulka „71 / 1,000,000 DOGS" tu už raz bola a zanikla
+           (27. 8.), lebo ležala na fotkách.
+           Dva prvky, jeden text: na PC sedí v hero nad nadpisom, na mobile
+           nad guľou vo voľnom páse pod logom (v hero by padol na fotky). */
+        .ph-count {
+          margin: 0;
+          position: relative;
+          z-index: 2;
+          white-space: nowrap;
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 600;
+          font-size: 16px;
+          letter-spacing: .26em;
+          text-transform: uppercase;
+          color: ${LAB.ink};
+          text-shadow:
+            0 0 5px rgba(253,248,236,1),
+            0 0 12px rgba(253,248,236,1),
+            0 0 26px rgba(253,248,236,1);
+        }
+        .ph-count b { font-weight: 600; color: ${LAB.goldSolid}; }
+        .ph-count--mob { display: none; }
+
         /* ── PORTÁL = CTA ────────────────────────────────────────────────────
            Tvar aj iskry žijú v components/gods/dogPortal.ts — TÚ ISTÚ dlaždicu
            kreslí aj stena (GodsGridLab), ktorá je vanilla DOM. Dve kópie by sa
@@ -1483,6 +1514,19 @@ export function DogPlanetLab({
             max-width: 24ch;
             /* VIDITEĽNE clamp(0.627rem, 2.523vw, 0.75rem) — pôvodok × 1,10 */
             font-size: calc(clamp(0.627rem, 2.523vw, 0.75rem) / var(--ball-k, 0.57));
+          }
+          /* Počet psov: nad guľou, nie v hero. Sedí v .planet-stage (zmenšenej
+             na --ball-k), preto sú čísla VIDITEĽNÉ a delené mierkou. Odstup od
+             gule je 48 px, na nízkom okne (667 px) ustúpi až na 12 px, aby
+             nevošiel pod medailón v hornej lište. */
+          .ph-count--pc { display: none; }
+          .ph-count--mob {
+            display: block;
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + min(48px, max(12px, 50dvh - 50vw - 130px)) / var(--ball-k, 0.57));
+            transform: translateX(-50%);
+            font-size: calc(14px / var(--ball-k, 0.57));
           }
           /* ⚠️ ŠÍRKA MUSÍ RÁSŤ S PÍSMOM, INAK SA REZERVA ZJE. Nadpis je nowrap,
              takže jediné, čo ho drží v obrazovke, je rezerva medzi šírkou riadka
@@ -2140,6 +2184,7 @@ export function DogPlanetLab({
           hore v konštantách DESIGN / BG / TARGET. */}
 
       <div className={`planet-stage${ballIn ? ' ball-in' : ''}${bootRef.current ? ' no-intro' : ''}`}>
+        {dogCount > 0 && <p className="ph-count ph-count--mob">{countLabel}</p>}
         <div
           className="planet-ball"
           ref={ballRef}
@@ -2171,6 +2216,7 @@ export function DogPlanetLab({
               najprv čo tu jeho pes JE, až potom čo od neho chceme.
               ⚠️ Veľké písmená robí CSS (text-transform), nie tento zápis —
               v zdroji ostáva veta čitateľná. */}
+          {dogCount > 0 && <p className="ph-count ph-count--pc">{countLabel}</p>}
           <h1
             className="ph-h1"
             style={heroFactor > 1 ? ({ '--ph-em': (7.5 * heroFactor).toFixed(2) } as React.CSSProperties) : undefined}

@@ -5163,7 +5163,7 @@ export const esp: Partial<Dict> = {
   "onepage.dgx.hint.hover": "Pasa el cursor por un símbolo: te dice qué significa.",
   "onepage.dgx.hint.touch": "Toca un símbolo para leerlo.",
   "onepage.cue.next": "Siguiente",
-  "onepage.cue.more": "Desliza hacia abajo para ver más",
+  "onepage.cue.more": "Más info",
   "onepage.cue.top": "Volver arriba",
   "onepage.alba.head": "Conoce a",
   "onepage.alba.eye": "El mismo nombre, otro perro, un símbolo único",

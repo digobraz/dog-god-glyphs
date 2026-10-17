@@ -4978,7 +4978,7 @@ export const ind: Partial<Dict> = {
   "onepage.dgx.hint.hover": "किसी प्रतीक पर कर्सर ले जाएँ — वह बताएगा कि उसका क्या अर्थ है।",
   "onepage.dgx.hint.touch": "पढ़ने के लिए किसी प्रतीक को छुएँ।",
   "onepage.cue.next": "अगला",
-  "onepage.cue.more": "और जानकारी के लिए नीचे स्क्रॉल करें",
+  "onepage.cue.more": "और जानकारी",
   "onepage.cue.top": "ऊपर वापस",
   "onepage.alba.head": "मिलिए",
   "onepage.alba.eye": "वही नाम — अलग कुत्ता — अनूठा प्रतीक",

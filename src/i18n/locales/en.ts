@@ -1238,7 +1238,7 @@ export const en = {
   'onepage.cue.next': 'Next',
   'onepage.seo.title': 'DOGYPT — Your Dog Is God Here',
   'onepage.seo.desc': 'Every dog on Earth has a place here. Is yours on the planet yet?',
-  'onepage.cue.more': 'Scroll down for more info',
+  'onepage.cue.more': 'More info',
   'onepage.cue.story': 'Scroll through the story',
   'onepage.cue.top': 'Back to top',
   'onepage.dogma.back': 'Back',

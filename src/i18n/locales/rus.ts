@@ -5144,7 +5144,7 @@ export const rus: Partial<Dict> = {
   "onepage.dgx.hint.hover": "Наведи на символ — он расскажет, что значит.",
   "onepage.dgx.hint.touch": "Коснись символа, чтобы прочитать его.",
   "onepage.cue.next": "Дальше",
-  "onepage.cue.more": "Прокрути вниз — там больше инфо",
+  "onepage.cue.more": "Подробнее",
   "onepage.cue.top": "Наверх",
   "onepage.alba.head": "Знакомься:",
   "onepage.alba.eye": "То же имя — другая собака — уникальный символ",

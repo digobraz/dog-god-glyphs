@@ -5162,7 +5162,7 @@ export const ita: Partial<Dict> = {
   "onepage.dgx.hint.hover": "Passa sopra un simbolo — ti dice cosa significa.",
   "onepage.dgx.hint.touch": "Tocca un simbolo per leggerlo.",
   "onepage.cue.next": "Avanti",
-  "onepage.cue.more": "Scorri per saperne di più",
+  "onepage.cue.more": "Più info",
   "onepage.cue.top": "Torna su",
   "onepage.alba.head": "Ecco",
   "onepage.alba.eye": "Stesso nome — cane diverso — simbolo unico",

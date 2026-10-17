@@ -5163,7 +5163,7 @@ export const fra: Partial<Dict> = {
   "onepage.dgx.hint.hover": "Survole un symbole — il te dit ce qu’il signifie.",
   "onepage.dgx.hint.touch": "Touche un symbole pour le lire.",
   "onepage.cue.next": "Suivant",
-  "onepage.cue.more": "Fais défiler pour en savoir plus",
+  "onepage.cue.more": "En savoir plus",
   "onepage.cue.top": "Retour en haut",
   "onepage.alba.head": "Voici",
   "onepage.alba.eye": "Même nom — chien différent — symbole unique",

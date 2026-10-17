@@ -53,7 +53,10 @@ export default function FilmCue({ moving, onNext, label, hint, big, apps, chip }
       {sc.map((s, i) => (
         <span key={i} className="op-cue-arr" style={{ marginTop: i ? CUE.space : 0 }}><Chevron i={i} scale={s} /></span>
       ))}
-      {big && chip && <span className="dgx-example op-cue-chip">{chip}</span>}
+      {/* Šípka + „Viac info" (Matej 17. 10. 2026: *„ten spodný chip by som dal len
+          šípku dolu a viac info"*). Šípka je SVG, nie znak „↓" (holé textové znaky
+          sú mimo brandu, stráž check:ikony). */}
+      {big && chip && <span className="dgx-example op-cue-chip"><svg className="op-cue-chip-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>{chip}</span>}
     </button>
   );
 }
@@ -119,7 +122,9 @@ export const FILM_CUE_CSS = `
     .op-cue.is-big .op-cue-chip {
       display: inline-flex; margin: 0; padding: 6px 12px; line-height: 1.3;
       font-size: 10px; letter-spacing: .14em; white-space: nowrap;
+      align-items: center; gap: 4px;
     }
+    .op-cue.is-big .op-cue-chip .op-cue-chip-ico { width: 12px; height: 12px; flex: none; }
     .op-cue.is-big.is-moving { transform: translateX(-50%); }
   }
   /* ČLENSTVO — šípky VŽDY V STREDE (Matej 28. 9. 2026: *„táto obrazovka má

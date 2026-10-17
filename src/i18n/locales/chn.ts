@@ -4974,7 +4974,7 @@ export const chn: Partial<Dict> = {
   "onepage.dgx.hint.hover": "把鼠标放在符号上——它会告诉你含义。",
   "onepage.dgx.hint.touch": "点按符号来阅读。",
   "onepage.cue.next": "下一个",
-  "onepage.cue.more": "向下滚动了解更多",
+  "onepage.cue.more": "更多信息",
   "onepage.cue.top": "回到顶部",
   "onepage.alba.head": "认识一下",
   "onepage.alba.eye": "同一个名字——不同的狗——独一无二的符号",

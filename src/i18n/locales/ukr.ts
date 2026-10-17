@@ -5162,7 +5162,7 @@ export const ukr: Partial<Dict> = {
   "onepage.dgx.hint.hover": "Наведи на символ — він розкаже, що означає.",
   "onepage.dgx.hint.touch": "Торкнись символу, щоб прочитати його.",
   "onepage.cue.next": "Далі",
-  "onepage.cue.more": "Прокрути вниз, щоб дізнатися більше",
+  "onepage.cue.more": "Детальніше",
   "onepage.cue.top": "Нагору",
   "onepage.alba.head": "Знайомся:",
   "onepage.alba.eye": "Те саме ім'я — інший пес — унікальний символ",

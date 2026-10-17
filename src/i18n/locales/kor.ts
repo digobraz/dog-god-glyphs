@@ -4977,7 +4977,7 @@ export const kor: Partial<Dict> = {
   "onepage.dgx.hint.hover": "상징 위에 올려 보세요. 무슨 뜻인지 알려 줘요.",
   "onepage.dgx.hint.touch": "상징을 눌러서 읽어 보세요.",
   "onepage.cue.next": "다음",
-  "onepage.cue.more": "아래로 스크롤해서 더 보기",
+  "onepage.cue.more": "더 보기",
   "onepage.cue.top": "맨 위로",
   "onepage.alba.head": "이쪽은",
   "onepage.alba.eye": "같은 이름, 다른 개, 유일한 상징",
