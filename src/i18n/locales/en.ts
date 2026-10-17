@@ -578,7 +578,7 @@ export const en = {
   'heroglyph.flow.stay.f.sniffer': 'SNIFFER',
   'heroglyph.flow.stay.f.design': 'Access to the design',
   'heroglyph.flow.stay.f.packHead': 'Members’ section',
-  'heroglyph.flow.stay.have': 'Heroglyph + photo + message on the web',
+  'heroglyph.flow.stay.have': 'Heroglyph + number + photo + message on the web',
   'heroglyph.flow.stay.haveNote': '(in dog vision)',
   'heroglyph.flow.stay.miss2': "Membership",
   'heroglyph.flow.stay.member': 'Full access',

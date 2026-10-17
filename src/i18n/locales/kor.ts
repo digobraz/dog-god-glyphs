@@ -1412,7 +1412,7 @@ export const kor: Partial<Dict> = {
   "heroglyph.flow.stay.errSave": "저장하지 못했어요. 다시 시도해 주세요.",
   "heroglyph.flow.stay.f.num": "일련번호와 heroglyph 디자인",
   "heroglyph.flow.stay.free": "무료로 계속하기",
-  "heroglyph.flow.stay.have": "웹에 Heroglyph + 사진 + 메시지",
+  "heroglyph.flow.stay.have": "웹에 Heroglyph + 번호 + 사진 + 메시지",
   "heroglyph.flow.stay.haveNote": "(강아지의 눈으로)",
   "heroglyph.flow.stay.member": "전체 이용",
   "heroglyph.flow.stay.miss2": "멤버십",

@@ -1581,7 +1581,7 @@ export const pol: Partial<Dict> = {
   "heroglyph.flow.stay.errSave": "Nie udało się zapisać. Spróbuj ponownie.",
   "heroglyph.flow.stay.f.num": "Numer członkowski i projekt heroglyphu",
   "heroglyph.flow.stay.free": "Kontynuuj za darmo",
-  "heroglyph.flow.stay.have": "Heroglyph + zdjęcie + wiadomość w sieci",
+  "heroglyph.flow.stay.have": "Heroglyph + numer + zdjęcie + wiadomość w sieci",
   "heroglyph.flow.stay.haveNote": "(oczami psa)",
   "heroglyph.flow.stay.member": "Pełny dostęp",
   "heroglyph.flow.stay.miss2": "Członkostwo",

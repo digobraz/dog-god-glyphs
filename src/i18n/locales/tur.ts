@@ -1412,7 +1412,7 @@ export const tur: Partial<Dict> = {
   "heroglyph.flow.stay.errSave": "Kaydedemedik. Lütfen tekrar dene.",
   "heroglyph.flow.stay.f.num": "Sıra numarası ve heroglyph tasarımı",
   "heroglyph.flow.stay.free": "Ücretsiz devam et",
-  "heroglyph.flow.stay.have": "Heroglyph + fotoğraf + mesaj web’de",
+  "heroglyph.flow.stay.have": "Heroglyph + numara + fotoğraf + mesaj web’de",
   "heroglyph.flow.stay.haveNote": "(köpek gözüyle)",
   "heroglyph.flow.stay.member": "Tam erişim",
   "heroglyph.flow.stay.miss2": "Üyelik",

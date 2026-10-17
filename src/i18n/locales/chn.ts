@@ -1409,7 +1409,7 @@ export const chn: Partial<Dict> = {
   "heroglyph.flow.stay.errSave": "保存失败，请再试一次。",
   "heroglyph.flow.stay.f.num": "序号和 heroglyph 设计",
   "heroglyph.flow.stay.free": "免费继续",
-  "heroglyph.flow.stay.have": "Heroglyph + 照片 + 留言展示在网站上",
+  "heroglyph.flow.stay.have": "Heroglyph + 编号 + 照片 + 留言展示在网站上",
   "heroglyph.flow.stay.haveNote": "（狗狗视角）",
   "heroglyph.flow.stay.member": "完整权限",
   "heroglyph.flow.stay.miss2": "会员资格",

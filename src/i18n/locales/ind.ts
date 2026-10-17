@@ -1413,7 +1413,7 @@ export const ind: Partial<Dict> = {
   "heroglyph.flow.stay.errSave": "सेव नहीं हो सका। कृपया फिर कोशिश करें।",
   "heroglyph.flow.stay.f.num": "क्रम संख्या और heroglyph का डिज़ाइन",
   "heroglyph.flow.stay.free": "मुफ़्त में जारी रखें",
-  "heroglyph.flow.stay.have": "Heroglyph + फ़ोटो + वेब पर संदेश",
+  "heroglyph.flow.stay.have": "Heroglyph + नंबर + फ़ोटो + वेब पर संदेश",
   "heroglyph.flow.stay.haveNote": "(कुत्ते की नज़र से)",
   "heroglyph.flow.stay.member": "पूरी पहुँच",
   "heroglyph.flow.stay.miss2": "सदस्यता",

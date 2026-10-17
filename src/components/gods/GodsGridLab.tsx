@@ -409,9 +409,10 @@ function toCardData(dog: RealDog, t: (k: string) => string): DogCardData {
   return {
     // ⚠️ Verejný feed (`get-grid-dogs`) `id` psa NEVRACIA — kľúč je číslo člena
     //    alebo id hosťa. S `dog.id` mali všetci psi ten istý kľúč `undefined`.
-    key: hektor ? 'hektor' : member ? `n:${dog.pack_number}` : `g:${dog.wall_id}`,
+    // Číslo má od 17. 10. 2026 aj schválený hosť — kľúč aj odznak idú podľa čísla.
+    key: hektor ? 'hektor' : dog.pack_number != null ? `n:${dog.pack_number}` : `g:${dog.wall_id}`,
     name: (dog.dog_name || 'DOGYPTIAN').toUpperCase(),
-    n: member ? dog.pack_number : null,
+    n: dog.pack_number ?? null,
     wallId: member ? null : (dog.wall_id || null),
     photo: planetDetailUrl(dog.cloudinary_main_url),
     heroglyph: safeUrl(dog.heroglyph_png_url || ''),
@@ -684,6 +685,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           const maxN = dogs.reduce((m, d) => Math.max(m, d.pack_number ?? 0), 0);
           const positions = generatePackPositions(maxN + 5, enrollRef.current ? 1 : 0);
           const map = new Map<string, RealDog>();
+          // Bunky podľa id psa pre `/?dog=<id>` (odkaz z mailu hosťa) — aj pre hosťa s číslom.
+          const guestCells = new Map<string, { col: number; row: number }>();
           for (const dog of dogs) {
             const n = dog.pack_number;
             if (!n || n < 2) continue; // #1 = Hektor founder, mimo špirály na (0,-1)
@@ -691,15 +694,17 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
             const idx = n - 2;
             if (idx < positions.length) {
               map.set(`${positions[idx].col},${positions[idx].row}`, dog);
+              if (dog.wall_id) guestCells.set(dog.wall_id, { col: positions[idx].col, row: positions[idx].row });
             }
           }
           // €0 nemajú číslo ⇒ miesto v špirále HNEĎ ZA posledným členom, v poradí
           // príchodu (feed ich tak radí) — ten istý recept ako GodsGrid. Duplikátmi
           // stenu nevypĺňajú — výplň ostáva psom s číslom.
-          const wallRest = dogs.filter(d => d.wall_tier === 'supporter' || d.wall_tier === 'guest');
+          // Od 17. 10. 2026 má schválený hosť číslo a sedí v špirále podľa neho
+          // (cyklus vyššie) — sem ide už len nečlen BEZ čísla (fotku ešte posudzuje AINUBIS).
+          const wallRest = dogs.filter(d => (d.wall_tier === 'supporter' || d.wall_tier === 'guest') && d.pack_number == null);
           const restBase = Math.max(0, maxN - 1);
           const restPositions = generatePackPositions(restBase + wallRest.length, enrollRef.current ? 1 : 0);
-          const guestCells = new Map<string, { col: number; row: number }>();
           wallRest.forEach((dog, i) => {
             const pos = restPositions[restBase + i];
             if (!pos) return;
@@ -736,7 +741,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
               .map(d => ({
                 key: d.wall_id || d.id,
                 name: (d.dog_name || '').toUpperCase(),
-                n: d.wall_tier && d.wall_tier !== 'member' ? null : d.pack_number,
+                n: d.pack_number ?? null,
                 wallId: d.wall_id || null,
                 photo: planetTileUrl(d.cloudinary_main_url),
                 country: iso2ToISO3(countryISO2(d.country) || '') || '',
@@ -1408,7 +1413,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         : '';
       el.innerHTML = `
         <div class="card-img" style="background-image:url('${tileSrc}');background-position:50% 30%"></div>
-        ${member ? `<div class="card-rank-top">#${packNum}</div>` : ''}
+        ${dog.pack_number != null ? `<div class="card-rank-top">#${packNum}</div>` : ''}
         ${cc ? `<img class="card-flag" src="${flagUrl(cc)}" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
         ${overlayHeroSrc ? `
         <div class="dog-heroglyph-wrap">
@@ -1934,9 +1939,10 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       const cur = wallPickRef.current;
       if (!cur) return;
       const placed = [...realDogMapRef.current.values()];
-      const members = placed.filter(d => !d.wall_tier || d.wall_tier === 'member')
+      // Poradie listovania = poradie čísel (od 17. 10. 2026 aj hostia), potom psy bez čísla.
+      const members = placed.filter(d => d.pack_number != null)
         .sort((a, b) => (a.pack_number ?? 0) - (b.pack_number ?? 0));
-      const rest = placed.filter(d => d.wall_tier && d.wall_tier !== 'member');
+      const rest = placed.filter(d => d.pack_number == null);
       const list = [HEKTHOR_FILL, ...members, ...rest];
       const keyOf = (d: RealDog) => toCardData(d, tRef.current).key;
       const i = list.findIndex(d => keyOf(d) === cur.key);
@@ -1970,7 +1976,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     if (focusPackNumber !== null && !revealData.active) {
       navigateTo(focusPackNumber);
       const dog = focusPackNumber === 1 ? HEKTHOR_FILL
-        : [...realDogMapRef.current.values()].find(d => d.pack_number === focusPackNumber && (!d.wall_tier || d.wall_tier === 'member'));
+        : [...realDogMapRef.current.values()].find(d => d.pack_number === focusPackNumber);
       openAfterPan(dog, cellOfPack(focusPackNumber));
     }
     // Hosť: nájdi jeho bunku podľa id, dojdi na ňu a otvor kartu.

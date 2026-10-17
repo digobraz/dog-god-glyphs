@@ -119,7 +119,8 @@ function usePrevDogs(firstN: number | null, count: number, demoFill = false) {
   useEffect(() => {
     if (firstN == null) return;
     let alive = true;
-    fetch(`${EDGE_BASE}/get-grid-dogs`)
+    // `?tiers=all` — číslo má od 17. 10. 2026 aj schválený hosť; bez neho by v rade boli diery.
+    fetch(`${EDGE_BASE}/get-grid-dogs?tiers=all`)
       .then((r) => (r.ok ? r.json() : []))
       .then((rows: Array<{ pack_number: number | null; dog_name: string | null; cloudinary_main_url: string | null }>) => {
         if (!alive) return;

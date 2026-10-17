@@ -1409,7 +1409,7 @@ export const jpn: Partial<Dict> = {
   "heroglyph.flow.stay.errSave": "保存できませんでした。もう一度お試しください。",
   "heroglyph.flow.stay.f.num": "通し番号とheroglyphのデザイン",
   "heroglyph.flow.stay.free": "無料で続ける",
-  "heroglyph.flow.stay.have": "Heroglyph + 写真 + メッセージをウェブに掲載",
+  "heroglyph.flow.stay.have": "Heroglyph + 番号 + 写真 + メッセージをウェブに掲載",
   "heroglyph.flow.stay.haveNote": "（犬の視界で）",
   "heroglyph.flow.stay.member": "フルアクセス",
   "heroglyph.flow.stay.miss2": "メンバーシップ",

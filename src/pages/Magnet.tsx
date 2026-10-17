@@ -29,7 +29,7 @@ import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PACK_BOX, PACK_THEME as T, PACK_SPACE, PACK_R, PACK_TEXT, FONT_TITLE, FONT_UI, PILL_CSS, PACK_COL_INNER, PAGE_AIR } from '@/components/pack/packTheme';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { openPhotoInvite } from '@/lib/photoInvite';
-import { gridFetch, GRID_URL_MEMBERS } from '@/lib/earlyFetch';
+import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 
 /** Strop nadpisu úvodu = h1 /onepage (81 px), ten istý v CSS nižšie. */
 const HERO_H1_MAX = 81;
@@ -77,11 +77,13 @@ export default function Magnet() {
   const pillTone = (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('pill') : null) ?? 'zlato';
   useEffect(() => {
     let on = true;
-    gridFetch(GRID_URL_MEMBERS).then((d) => {
+    // Číslo má od 17. 10. 2026 aj schválený hosť ⇒ počet = najvyššie číslo zo všetkých psov.
+    gridFetch(GRID_URL_ALL).then((d) => {
       if (!on || !Array.isArray(d)) return;
-      setDogs(d.length);
-      type Row = { pack_number?: number; dog_name?: string; cloudinary_main_url?: string | null };
-      setPack((d as Row[])
+      type Row = { pack_number?: number | null; dog_name?: string; cloudinary_main_url?: string | null };
+      const numbered = (d as Row[]).filter((r) => (r.pack_number ?? 0) > 0);
+      setDogs(numbered.reduce((m, r) => Math.max(m, r.pack_number ?? 0), 0));
+      setPack(numbered
         .filter((r) => typeof r.cloudinary_main_url === 'string' && r.cloudinary_main_url)
         .map((r) => ({ n: r.pack_number ?? 0, name: r.dog_name ?? '', u: cldThumb(r.cloudinary_main_url as string) }))
         .sort((a, b) => a.n - b.n));

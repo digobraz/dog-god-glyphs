@@ -254,9 +254,11 @@ export function FlowStayChoice({ done, onDone, onMember, onMore }: {
               <Mark yes />
               <span><b>{t('heroglyph.flow.stay.have')}</b> <small>{t('heroglyph.flow.stay.haveNote')}</small></span>
             </li>
+            {/* Poradové číslo má od 17. 10. 2026 aj hosť (Matej: *„to číslo je pre psa
+                a jeho heroglyf“*) — presunulo sa do riadku „máš“ (`stay.have`). */}
             <li className="st-row no">
               <Mark yes={false} />
-              <b>{t('heroglyph.flow.stay.f.num')}</b>
+              <b>{t('heroglyph.flow.stay.f.design')}</b>
             </li>
             <li className="st-row no">
               <Mark yes={false} />
@@ -370,7 +372,8 @@ function GuestBoard({ onJoin }: { onJoin: () => void }) {
   // Stena zamieri na PRVÉHO psa zápisu (3. 10. 2026). Holé `/` ukázalo stred
   // steny — Matej: *„neukázalo toho psa, ale vycentrovalo na stred webu"*.
   const firstGuest = useDogyptStore((s) => Object.values(s.guestIds)[0]);
-  const tags = [t('heroglyph.flow.stay.thanks.tagNum'), 'DOG ID', 'AINUBIS', 'DOGTRIP', 'SNIFFER'];
+  // Číslo už hosť má (17. 10. 2026) — medzi tým, čo dostane členstvom, nie je.
+  const tags = ['DOG ID', 'AINUBIS', 'DOGTRIP', 'SNIFFER'];
   const Ok = () => (
     <svg className="gt-ok" viewBox="0 0 24 24" fill="none" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M4 12.5 L9.5 18 L20 6" />

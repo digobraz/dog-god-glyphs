@@ -299,7 +299,8 @@ export default function DogShare() {
     // Feed už mohol vypýtať index.html (stránka psa, perf 7. 10. 2026) — len keď mieri na LIVE.
     const early = DOG_FEED_BASE === LIVE_EDGE_BASE ? (window as Window & { __dogFeed?: Promise<GridDog[]> }).__dogFeed : undefined;
     (window as Window & { __dogFeed?: Promise<GridDog[]> }).__dogFeed = undefined;
-    (early ?? fetch(`${DOG_FEED_BASE}/get-grid-dogs`).then((r) => (r.ok ? r.json() : [])))
+    // `?tiers=all` — číslo má od 17. 10. 2026 aj schválený hosť (index.html a worker pýtajú to isté).
+    (early ?? fetch(`${DOG_FEED_BASE}/get-grid-dogs?tiers=all`).then((r) => (r.ok ? r.json() : [])))
       .then((dogs: GridDog[]) => {
         if (!alive) return;
         const found = dogs.find((d) => d.pack_number === packNum);

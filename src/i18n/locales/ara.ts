@@ -1409,7 +1409,7 @@ export const ara: Partial<Dict> = {
   "heroglyph.flow.stay.errSave": "تعذّر الحفظ. حاول مرة أخرى.",
   "heroglyph.flow.stay.f.num": "الرقم التسلسلي وتصميم heroglyph",
   "heroglyph.flow.stay.free": "المتابعة مجانًا",
-  "heroglyph.flow.stay.have": "Heroglyph + صورة + رسالة على الموقع",
+  "heroglyph.flow.stay.have": "Heroglyph + رقم + صورة + رسالة على الموقع",
   "heroglyph.flow.stay.haveNote": "(بعين الكلب)",
   "heroglyph.flow.stay.member": "وصول كامل",
   "heroglyph.flow.stay.miss2": "العضوية",

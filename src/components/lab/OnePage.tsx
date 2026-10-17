@@ -33,7 +33,7 @@ import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '@/components/LanguagePicker';
 import { HandHouseHeart } from '@/components/pack/HandIcons';
 import { LAB } from '@/lib/labTheme';
-import { takeEarly, gridFetch, GRID_URL_MEMBERS } from '@/lib/earlyFetch';
+import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 import { Seo } from '@/components/Seo';
 import { GodsGridLab } from '@/components/gods/GodsGridLab';
 import ReligionLab from '@/pages/ReligionLab';
@@ -4002,18 +4002,25 @@ export default function OnePage() {
   // číslo pod CTA a počet kariet na stene sa nesmú rozísť.
   useEffect(() => {
     let alive = true;
-    (takeEarly<unknown>(GRID_URL_MEMBERS) ?? gridFetch(GRID_URL_MEMBERS))
+    // 🔢 ČÍSLO PATRÍ PSOVI, NIE PLATBE (Matej 17. 10. 2026): číslo má aj schválený
+    // hosť, takže počet = NAJVYŠŠIE ČÍSLO vo feede všetkých psov, nie dĺžka zoznamu
+    // členov („tvoj pes bude #122“, nie #85). Dĺžka by klamala aj pri dierach.
+    // ⚠️ Zámerne `gridFetch`, nie `takeEarly(GRID_URL_ALL)` — ranný sľub je
+    // jednorazový a patrí stene (GodsGridLab); toto ide z cache /api/dogs.
+    gridFetch(GRID_URL_ALL)
       .then((d: unknown[]) => {
         if (!alive || !Array.isArray(d)) return;
-        setDogCount(d.length);
         type Row = {
-          pack_number?: number; dog_name?: string; cloudinary_main_url?: string | null;
+          pack_number?: number | null; dog_name?: string; cloudinary_main_url?: string | null;
         };
+        const numbered = (d as Row[]).filter((r) => (r.pack_number ?? 0) > 0)
+          .sort((a, b) => (a.pack_number ?? 0) - (b.pack_number ?? 0));
+        setDogCount(numbered.reduce((m, r) => Math.max(m, r.pack_number ?? 0), 0));
         // Pás: psy s fotkou, v poradí, aké dáva feed (podľa pack_number).
         // Číslo si každý nesie svoje — keby niekomu chýbala fotka, poradie
         // ostane pravdivé, len ho na páse nevidno.
         // Pás je ďaleko pod guľou — jeho ~27 náhľadov (180 kB) sa púšťa až po guli (filmDefer.ts).
-        const rows = d as Row[];
+        const rows = numbered;
         onFilmRelease(() => alive && setPack(rows
           .filter((r) => typeof r.cloudinary_main_url === 'string' && r.cloudinary_main_url)
           .map((r) => ({

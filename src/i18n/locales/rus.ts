@@ -1579,7 +1579,7 @@ export const rus: Partial<Dict> = {
   "heroglyph.flow.stay.errSave": "Не получилось сохранить. Попробуй ещё раз.",
   "heroglyph.flow.stay.f.num": "Порядковый номер и дизайн heroglyph",
   "heroglyph.flow.stay.free": "Продолжить бесплатно",
-  "heroglyph.flow.stay.have": "Heroglyph + фото + послание на сайте",
+  "heroglyph.flow.stay.have": "Heroglyph + номер + фото + послание на сайте",
   "heroglyph.flow.stay.haveNote": "(глазами собаки)",
   "heroglyph.flow.stay.member": "Полный доступ",
   "heroglyph.flow.stay.miss2": "Членство",

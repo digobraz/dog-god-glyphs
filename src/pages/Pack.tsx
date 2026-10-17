@@ -65,6 +65,8 @@ interface DogRow {
 
 interface PackStats {
   total: number;
+  /** Všetky psy s číslom (členovia + schválení hostia, 17. 10. 2026); `total` = len členovia. */
+  dogs?: number;
   last24h: number;
   last30d: number;
   topCountries: { country: string; count: number }[];
@@ -280,7 +282,7 @@ export default function Pack() {
                 genderPlaceholder={ownerGender}
                 devotion={user.devotion}
                 bones={user.bones}
-                stats={stats ? { last24h: stats.last24h, last30d: stats.last30d, total: stats.total } : null}
+                stats={stats ? { last24h: stats.last24h, last30d: stats.last30d, total: stats.dogs ?? stats.total } : null}
                 dogs={dogs === null ? null : treeDogs}
                 packName={profile?.human.packName ?? null}
               />
@@ -328,7 +330,7 @@ export default function Pack() {
 
         {/* ── KTO SME — planéta + míľniky + TOP krajiny + POKLADNICA ── */}
         <div id={WIZ.globe}>
-          <GlobePulse total={stats?.total ?? 0} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} ownerCountry={ownerCountry} />
+          <GlobePulse total={stats?.dogs ?? stats?.total ?? 0} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} ownerCountry={ownerCountry} />
         </div>
 
         {/* ── ŠÍR TO ĎALEJ — JEDEN blok o dvoch poloviciach (Matej 12.8.: „rozdel tento

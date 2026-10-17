@@ -468,7 +468,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.stay.f.sniffer': 'SNIFFER',
   'heroglyph.flow.stay.f.design': 'Prístup k dizajnu',
   'heroglyph.flow.stay.f.packHead': 'Členská sekcia',
-  'heroglyph.flow.stay.have': 'Heroglyf + fotka + odkaz na webe',
+  'heroglyph.flow.stay.have': 'Heroglyf + číslo + fotka + odkaz na webe',
   'heroglyph.flow.stay.haveNote': '(v psej optike)',
   'heroglyph.flow.stay.miss2': "Členstvo",
   'heroglyph.flow.stay.member': 'Plný prístup',

@@ -66,14 +66,14 @@
         window.__dogPhotoW = w;
         // Cez Cloudflare `/api/dogs` (cache + záloha, 7. 10. 2026); mimo dogypt.com alebo pri chybe priamo Supabase.
         var sb = function () {
-          return fetch('https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-grid-dogs')
+          return fetch('https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-grid-dogs?tiers=all')
             .then(function (r) { return r.ok ? r.json() : []; })
             .catch(function () { return []; });
         };
         var hn = location.hostname;
         // Cloudflare Worker už vložil psa priamo do HTML (scripts/cloudflare/worker.js, dogPage) ⇒ bez čakania.
         window.__dogFeed = window.__dogInline ? Promise.resolve(window.__dogInline) : (hn === 'dogypt.com' || hn === 'www.dogypt.com' || /\.workers\.dev$/.test(hn))
-          ? fetch('/api/dogs').then(function (r) { return r.ok ? r.json() : []; })
+          ? fetch('/api/dogs?tiers=all').then(function (r) { return r.ok ? r.json() : []; })
               .then(function (j) { return j && j.length ? j : sb(); }, sb)
           : sb();
         window.__dogFeed.then(function (dogs) {

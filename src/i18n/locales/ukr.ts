@@ -1597,7 +1597,7 @@ export const ukr: Partial<Dict> = {
   "heroglyph.flow.stay.errSave": "Не вдалося зберегти. Спробуй ще раз.",
   "heroglyph.flow.stay.f.num": "Порядковий номер і дизайн heroglyph",
   "heroglyph.flow.stay.free": "Продовжити безкоштовно",
-  "heroglyph.flow.stay.have": "Heroglyph + фото + послання на сайті",
+  "heroglyph.flow.stay.have": "Heroglyph + номер + фото + послання на сайті",
   "heroglyph.flow.stay.haveNote": "(очима пса)",
   "heroglyph.flow.stay.member": "Повний доступ",
   "heroglyph.flow.stay.miss2": "Членство",

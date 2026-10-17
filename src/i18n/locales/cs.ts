@@ -382,7 +382,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.stay.f.sniffer': 'SNIFFER',
   'heroglyph.flow.stay.f.design': 'Přístup k designu',
   'heroglyph.flow.stay.f.packHead': 'Členská sekce',
-  'heroglyph.flow.stay.have': 'Heroglyf + fotka + vzkaz na webu',
+  'heroglyph.flow.stay.have': 'Heroglyf + číslo + fotka + vzkaz na webu',
   'heroglyph.flow.stay.haveNote': '(v psí optice)',
   'heroglyph.flow.stay.miss2': "Členství",
   'heroglyph.flow.stay.member': 'Plný přístup',

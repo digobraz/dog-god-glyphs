@@ -1598,7 +1598,7 @@ export const esp: Partial<Dict> = {
   "heroglyph.flow.stay.errSave": "No pudimos guardarlo. Inténtalo de nuevo.",
   "heroglyph.flow.stay.f.num": "Número de orden y diseño del heroglyph",
   "heroglyph.flow.stay.free": "Seguir gratis",
-  "heroglyph.flow.stay.have": "Heroglyph + foto + mensaje en la web",
+  "heroglyph.flow.stay.have": "Heroglyph + número + foto + mensaje en la web",
   "heroglyph.flow.stay.haveNote": "(en visión perruna)",
   "heroglyph.flow.stay.member": "Acceso completo",
   "heroglyph.flow.stay.miss2": "Membresía",

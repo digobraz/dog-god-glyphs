@@ -63,10 +63,12 @@ export function usePackIdentity(): PackIdentity {
   // Empire stats — identical header on every tab so the member always sees live state.
   useEffect(() => {
     let alive = true;
-    getPackStats<{ total?: number; last24h?: number }>()
+    getPackStats<{ total?: number; dogs?: number; last24h?: number }>()
       .then((j) => {
         if (!alive) return;
-        setPackTotal(typeof j?.total === 'number' ? j.total : null);
+        // Počet psov v DOGYPTE = všetky psy s číslom (aj hostia, 17. 10. 2026); `total` sú len členovia.
+        const n = typeof j?.dogs === 'number' ? j.dogs : j?.total;
+        setPackTotal(typeof n === 'number' ? n : null);
         setPackToday(typeof j?.last24h === 'number' ? j.last24h : null);
       })
       .catch(() => { /* best-effort */ });

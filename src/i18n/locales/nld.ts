@@ -1412,7 +1412,7 @@ export const nld: Partial<Dict> = {
   "heroglyph.flow.stay.errSave": "Opslaan is niet gelukt. Probeer het opnieuw.",
   "heroglyph.flow.stay.f.num": "Volgnummer en het heroglyph-ontwerp",
   "heroglyph.flow.stay.free": "Gratis verder",
-  "heroglyph.flow.stay.have": "Heroglyph + foto + bericht op het web",
+  "heroglyph.flow.stay.have": "Heroglyph + nummer + foto + bericht op het web",
   "heroglyph.flow.stay.haveNote": "(door hondenogen)",
   "heroglyph.flow.stay.member": "Volledige toegang",
   "heroglyph.flow.stay.miss2": "Lidmaatschap",
