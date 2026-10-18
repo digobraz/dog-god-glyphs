@@ -152,8 +152,11 @@ function BreedField({
 
   // 18. 10. 2026: plemeno je pri čistokrvnom povinné — kto ho v 380 plemenách nenájde,
   // musí ho vedieť zapísať sám, inak by sa vo flowe zasekol.
+  // Ponuka „Zapísať …" NIE JE v plávajúcej ponuke, ale riadok pod poľom v toku dosky
+  // (Matej 18. 10.: *„ten blok zapísať zakrýva niečo, čo je pod tým"*) — text pod ním
+  // ustúpi nadol a dlhý názov sa zalomí, neoreže.
   const vlastne = !value && q.trim().length >= 2 && matches.length === 0 ? q.trim() : '';
-  const riadkov = matches.length || (vlastne ? 1 : 0);
+  const riadkov = matches.length;
   const [box, setBox] = useState<{ left: number; top: number; width: number; maxHeight: number } | null>(null);
   useEffect(() => {
     if (!open || riadkov === 0) { setBox(null); return; }
@@ -263,17 +266,18 @@ function BreedField({
               <img src={patronUrl(m.patron)} alt="" />
             </button>
           ))}
-          {vlastne && (
-            <button
-              type="button"
-              onMouseDown={(e) => { e.preventDefault(); pick(vlastne, ''); }}
-              onTouchStart={() => pick(vlastne, '')}
-            >
-              <span className="nm">{t('heroglyph.flow.breed.own', { name: vlastne })}</span>
-            </button>
-          )}
         </div>,
         document.body,
+      )}
+      {vlastne && (
+        <button
+          type="button"
+          className="pt-own"
+          onMouseDown={(e) => { e.preventDefault(); pick(vlastne, ''); }}
+          onTouchStart={() => pick(vlastne, '')}
+        >
+          {t('heroglyph.flow.breed.own', { name: vlastne })}
+        </button>
       )}
       {/* Nápoveda pre jazyky, kde zoznam plemien preložený nie je (`enHint` je
           v EN prázdny, takže riadok tam ani nevznikne). */}
@@ -748,6 +752,16 @@ const PATRON_CSS = `
 .pt-menu button:hover { background: rgba(201, 154, 63, .16); }
 .pt-menu button .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pt-menu button img { flex: none; width: 24px; height: 24px; object-fit: contain; opacity: .9; }
+/* „Zapísať …" — riadok v toku pod poľom, nie nad obsahom (18. 10. 2026). Materiál
+   ponuky, ale bez tieňa (neleží NAD doskou) a s zalomením namiesto trojbodky. */
+.pt-own {
+  display: block; width: 100%; margin-top: 4px; padding: 8px 12px; text-align: left; cursor: pointer;
+  background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
+  border: 1.5px solid ${LAB.goldSolid}; border-radius: ${PACK_R.tile}px;
+  font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.35; color: ${LAB.ink};
+  overflow-wrap: anywhere;
+}
+.pt-own:hover { background: rgba(201, 154, 63, .16); }
 
 /* ── RÁM ──────────────────────────────────────────────────────────────────
    Tá istá šírka ako na PODSTATE: 78 % od 560 px, 100 % pod tým. Na telefóne je
