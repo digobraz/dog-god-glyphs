@@ -109,6 +109,8 @@ const GROUPS: Group[] = [
       // z okna plemena preč veta duplikujúca podnadpis (1833c5ce). Overené headless.
       // 27. 9. 2026 — stav overený po audite (CTA 8 · FLOW_TITLE · Hektor v bublinách · texty · (i) Egypt na MAJITEĽOVI):
       // podstata/patrón/povaha/majiteľ ostávajú `done`, zadržanie a finále tiež. Snímky TEL+PC v scratchpade session.
+      // 18. 10. 2026 — Patrón: plemeno povinné pri čistokrvnom (kríženec nie) + vlastné plemeno mimo zoznamu,
+      // LIVE (web 27e09803 + preklady 3c9b5a26). Ostáva `done`; snímky plany/plemeno-povinne/.
       {
         name: '6 · Patrón',
         path: '/heroglyph/breed',
