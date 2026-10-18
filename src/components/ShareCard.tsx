@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { countryISO2, flagUrl } from '@/lib/countryGeo';
 
 // Share card — 1080×1080 social share image.
 //
@@ -21,6 +22,8 @@ export interface ShareCardProps {
   dogName: string;
   photoUrl: string;
   heroglyphUrl: string;
+  /** Krajina psa (ISO3/ISO2/názov) — kruh s vlajkou v pravom hornom rohu (A3, 18. 10. 2026). */
+  country?: string | null;
   // Fires once the gold-recolored heroglyph data URI is ready and painted.
   // ShareRender.tsx waits on this before signaling data-render-ready.
   onHeroglyphReady?: () => void;
@@ -29,9 +32,6 @@ export interface ShareCardProps {
 const IVORY = '#FBF0D8';
 const INK = '#1a1a1a';
 const BROWN = '#6E4E18';
-// Lapis = číslo člena naprieč appkou (stena, karta psa) — hodnoty z navGoldSkin LAPIS.
-const LAPIS_GRAD = 'linear-gradient(180deg, #16307A, #0A1A4A)';
-const LAPIS_INK = '#EFD79A';
 
 // Auto-fit: name width must land ~880px (== heroglyph display width) so the
 // two elements visually align. We measure at BASE_FONT_SIZE (the max) via a
@@ -46,7 +46,8 @@ const TARGET_WIDTH = 800;
 
 const NAME_FONT_FAMILY = "'Cinzel Decorative', serif";
 
-export function ShareCard({ packNumber, dogName, photoUrl, heroglyphUrl, onHeroglyphReady }: ShareCardProps) {
+export function ShareCard({ packNumber, dogName, photoUrl, heroglyphUrl, country, onHeroglyphReady }: ShareCardProps) {
+  const iso2 = countryISO2(country) || '';
   const measureRef = useRef<HTMLSpanElement>(null);
   const [fontSize, setFontSize] = useState<number | null>(null);
   const [glyphUri, setGlyphUri] = useState<string | null>(null);
@@ -185,17 +186,27 @@ export function ShareCard({ packNumber, dogName, photoUrl, heroglyphUrl, onHerog
         )}
       </div>
 
-      {/* Prechod do slonoviny — spodných 58 % (hárok kolo 2). */}
+      {/* Prechod do slonoviny — 18. 10. 2026 (A3) Matej: *„pod JENNY v obrázku nemôže byť vidno
+          prechod gradientu"*. Dlhší a mäkší (viac zastávok), aby nebolo vidno, kde fotka končí. */}
       <div
         style={{
           position: 'absolute',
           left: 0,
           right: 0,
           bottom: 0,
-          height: '58%',
-          background: `linear-gradient(180deg, rgba(251,240,216,0) 0%, rgba(251,240,216,0.86) 34%, ${IVORY} 70%)`,
+          height: '72%',
+          background: `linear-gradient(180deg, rgba(251,240,216,0) 0%, rgba(251,240,216,0.18) 18%, rgba(251,240,216,0.5) 36%, rgba(251,240,216,0.82) 54%, rgba(251,240,216,0.96) 68%, ${IVORY} 80%)`,
         }}
       />
+
+      {/* Vlajka krajiny — kruh vpravo hore, tvar ako .card-flag na stene (A3). Neznáma krajina = žiadna. */}
+      {iso2 && (
+        <img
+          src={flagUrl(iso2, 160)}
+          alt=""
+          style={{ position: 'absolute', top: 48, right: 48, width: 88, height: 88, borderRadius: '50%', objectFit: 'cover', border: '4px solid rgba(255,255,255,0.9)', boxShadow: '0 4px 16px rgba(0,0,0,0.45)', zIndex: 5 }}
+        />
+      )}
 
       {/* Zlatý lem — konštrukcia, nie ozdoba (zlato = rám). */}
       <div style={{ position: 'absolute', inset: 0, boxShadow: 'inset 0 0 0 4px rgba(201,154,63,0.85)', zIndex: 4 }} />
@@ -235,23 +246,12 @@ export function ShareCard({ packNumber, dogName, photoUrl, heroglyphUrl, onHerog
           <img src={glyphUri} alt={upperName} style={{ width: 800, height: 'auto' }} />
         )}
 
-        {/* Číslo + web — brand konštanty, EN natvrdo, neprekladá sa. */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 32, fontFamily: "'Cinzel', serif", whiteSpace: 'nowrap' }}>
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: 50,
-              lineHeight: 1.1,
-              letterSpacing: '0.04em',
-              color: LAPIS_INK,
-              background: LAPIS_GRAD,
-              borderRadius: 999,
-              padding: '6px 32px',
-            }}
-          >
-            #{packNumber}
-          </span>
-          <span style={{ fontWeight: 700, fontSize: 34, letterSpacing: '0.2em', color: BROWN }}>DOGYPT.COM</span>
+        {/* Číslo + web — A3 (18. 10. 2026): len text, bez pilulky, „N / 1 000 000 │ DOGYPT.COM",
+            najviac na šírku heroglyfu (800). Pilulka #N je už len na stránke pri mene. */}
+        <div style={{ maxWidth: 800, display: 'flex', alignItems: 'center', gap: 28, fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 30, letterSpacing: '0.14em', color: BROWN, whiteSpace: 'nowrap' }}>
+          <span>{packNumber} / 1 000 000</span>
+          <span aria-hidden="true" style={{ width: 2, height: 32, background: 'rgba(110,78,24,0.45)' }} />
+          <span>DOGYPT.COM</span>
         </div>
       </div>
     </div>

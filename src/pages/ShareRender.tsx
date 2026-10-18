@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { countryISO2, flagUrl } from '@/lib/countryGeo';
 import { ShareCard } from '@/components/ShareCard';
 import { decodeRenderData } from '@/lib/renderData';
 
@@ -27,6 +28,7 @@ interface ShareRenderData {
   dogName: string;
   photoUrl: string;
   heroglyphUrl: string;
+  country?: string | null;
 }
 
 export default function ShareRender() {
@@ -55,6 +57,8 @@ export default function ShareRender() {
       try {
         await Promise.all([
           preload(data.photoUrl),
+          // vlajka v rohu (A3) — inak by ju screenshot mohol zachytiť nenačítanú
+          preload(countryISO2(data.country) ? flagUrl(countryISO2(data.country), 160) : ''),
           (document as Document & { fonts?: { ready?: Promise<unknown> } }).fonts?.ready ?? Promise.resolve(),
         ]);
       } catch {
@@ -96,6 +100,7 @@ export default function ShareRender() {
           dogName={data.dogName}
           photoUrl={data.photoUrl}
           heroglyphUrl={data.heroglyphUrl}
+          country={data.country}
           onHeroglyphReady={() => setHeroglyphGoldReady(true)}
         />
       </div>
