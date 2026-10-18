@@ -138,7 +138,7 @@ function computeDogAge(
  *    `wall-healer` na LIVE neprepečie, obrázok by sa bil s bledou stránkou.
  *    PNG ostáva pre og:image (náhľad odkazu) a stiahnutie.
  */
-function LiveShareCard(props: { packNumber: number; dogName: string; photoUrl: string; heroglyphUrl: string }) {
+function LiveShareCard(props: { packNumber: number; dogName: string; photoUrl: string; heroglyphUrl: string; country?: string | null }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0);
   useLayoutEffect(() => {
@@ -385,6 +385,7 @@ export default function DogShare() {
                   dogName={dogName}
                   photoUrl={withTransform(dog.cloudinary_main_url || '', `c_fill,w_${dogPhotoW()},h_${dogPhotoW()},g_auto,f_auto,q_auto`)}
                   heroglyphUrl={withTransform(dog.heroglyph_png_url || '', 'c_fit,w_1200,f_auto,q_auto')}
+                  country={dog.country}
                 />
               ) : ogImage && (
                 <img src={cardImg} alt={`${dogName} — DOGYPT`} className="ds-media" style={{ objectFit: 'cover' }} />
