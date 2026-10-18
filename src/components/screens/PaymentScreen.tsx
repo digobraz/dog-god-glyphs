@@ -10,6 +10,7 @@ import { getStoredRef } from '@/lib/refCapture';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
+import { SplitDetail } from '@/components/SplitDetail';
 import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { getAttribution } from '@/lib/attribution';
@@ -637,7 +638,7 @@ export function PaymentScreen() {
                       margin: 0,
                     }}
                   >
-                    {t(TRANSPARENCY_SPLIT[openTooltip].noteKey)}
+                    <SplitDetail item={TRANSPARENCY_SPLIT[openTooltip]} />
                   </p>
                 </motion.div>
               )}

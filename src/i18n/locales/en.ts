@@ -548,7 +548,7 @@ export const en = {
   'heroglyph.flow.checkoutNew.needEmail': 'Add your e-mail — we will send your HEROGLYPH there.',
   'heroglyph.flow.checkoutNew.whatMember': 'What membership includes',
   'heroglyph.flow.more.money.t': 'WHERE THE MONEY GOES',
-  'heroglyph.flow.more.money.d': 'Of every €11, €5 goes to development, €3 to the community, €2 to rescuing dogs and €1 to Hekthor’s bowl. Every expense will be documented and public.',
+  'heroglyph.flow.more.money.d': 'Of every €11, €8 goes to community growth, €2 straight to dogs in need and €1 into Hekthor\'s bowl. Every expense will be documented and public.',
   'heroglyph.flow.checkoutNew.get.glyph': 'Heroglyph',
   'heroglyph.flow.checkoutNew.get.dogid': 'DOG ID',
   'heroglyph.flow.checkoutNew.get.number': 'Pack number',
@@ -1786,8 +1786,10 @@ export const en = {
   // ── Transparency model part labels (shared: PaymentScreen + FounderInvite) ──
   'transparency.part.development': 'Development',
   'transparency.part.affiliate': 'Community',
-  'transparency.part.directHelp': 'Rescue',
+  'transparency.part.directHelp': 'Direct help',
   'transparency.part.hekthorBowl': "Hekthor's bowl",
+  'transparency.part.community': 'Community growth',
+  'transparency.part.community.note': 'The engine of the movement: €5 goes to building DOGYPT, €3 to the people who spread the faith.',
   // ── Transparency model part notes (pill tooltips: PaymentScreen + FounderInvite) ──
   'transparency.part.development.note': 'Building the nation and funding everything it runs on — the people who keep DOGYPT moving, the services, tools and servers behind them. This is the engine of the movement, and every single expense will be documented and published openly.',
   'transparency.part.affiliate.note': 'Not ads — people. This goes straight into the accounts of Dogyptians who spread the faith, paid in BONES: spend them later inside DOGYPT or donate them to dogs in need. We invest in the pack, never in expensive marketing — the pack carries the word far better.',

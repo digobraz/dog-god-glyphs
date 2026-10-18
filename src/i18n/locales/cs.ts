@@ -352,7 +352,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.checkoutNew.needEmail': 'Doplň e-mail — pošleme na něj tvůj HEROGLYPH.',
   'heroglyph.flow.checkoutNew.whatMember': 'Co zahrnuje členství',
   'heroglyph.flow.more.money.t': 'KAM JDOU PENÍZE',
-  'heroglyph.flow.more.money.d': 'Z každých €11 jde €5 na rozvoj, €3 komunitě, €2 na záchranu psů a €1 do Hekthorovy misky. Každý výdaj bude zdokumentovaný a veřejný.',
+  'heroglyph.flow.more.money.d': 'Z každých €11 jde €8 na rozvoj komunity, €2 přímo psům v nouzi a €1 do Hekthorovy misky. Každý výdaj bude zdokumentovaný a veřejný.',
   'heroglyph.flow.checkoutNew.get.glyph': 'Heroglyph',
   'heroglyph.flow.checkoutNew.get.dogid': 'DOG ID',
   'heroglyph.flow.checkoutNew.get.number': 'Číslo ve smečce',
@@ -982,8 +982,10 @@ export const cs: Partial<Dict> = {
   // ── Transparency model part labels (shared: PaymentScreen + FounderInvite) ──
   'transparency.part.development': 'Rozvoj',
   'transparency.part.affiliate': 'Komunita',
-  'transparency.part.directHelp': 'Záchrana',
+  'transparency.part.directHelp': 'Přímá pomoc',
   'transparency.part.hekthorBowl': 'Hekthorova miska',
+  'transparency.part.community': 'Rozvoj komunity',
+  'transparency.part.community.note': 'Motor hnutí: 5 € jde na rozvoj DOGYPTU, 3 € lidem, kteří šíří víru.',
   'transparency.part.development.note':
     'Budujeme národ a financujeme všechno, na čem stojí — lidi, kteří DOGYPT ženou kupředu, i služby, nástroje a servery za nimi. To je motor celého hnutí a každý jednotlivý výdaj bude doložený a zveřejněný úplně otevřeně.',
   'transparency.part.affiliate.note':

@@ -7,6 +7,7 @@ import { LAPIS } from '@/components/pack/navGoldSkin';
 import { LAB } from '@/lib/labTheme';
 import { readSvorka } from '@/lib/flowSvorka';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
+import { SplitDetail } from '@/components/SplitDetail';
 
 // ════════════════════════════════════════════════════════════════════════════
 // VIAC INFO — karusel „Čo dostaneš" v doske pokladne (26. 9. 2026)
@@ -51,8 +52,8 @@ const SLIDES: Slide[] = [
   { key: 'money', bg: '#FBF5E6', pos: { pc: { z: 1, x: 0, y: 0 }, ph: { z: 1, x: 0, y: 0 } } },
 ];
 
-/** Kresby štyroch podielov — v poradí `TRANSPARENCY_SPLIT`. */
-const MONEY_ICON = ['/icons/pack/layers.svg', '/icons/pack/link.svg', '/icons/mission/doghome.svg', '/icons/pack/food.svg'];
+/** Kresby troch podielov — v poradí `TRANSPARENCY_SPLIT` (od 18. 10. 2026 8 · 2 · 1). */
+const MONEY_ICON = ['/icons/pack/layers.svg', '/icons/mission/doghome.svg', '/icons/pack/food.svg'];
 
 const posCss = (p: Pos) => `translate(calc(-50% + ${p.x}%), calc(-50% + ${p.y}%)) scale(${p.z})`;
 
@@ -144,7 +145,7 @@ export function FlowMoreInfo({ onClose }: { onClose: () => void }) {
                         <b>€{m.share}</b>
                         <svg className="mi-chev" viewBox="0 0 12 12" aria-hidden><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
                       </button>
-                      {openMoney === k && <p>{t(m.noteKey)}</p>}
+                      {openMoney === k && <p><SplitDetail item={m} /></p>}
                     </li>
                   ))}
                 </ul>

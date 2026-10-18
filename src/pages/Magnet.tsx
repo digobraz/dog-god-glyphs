@@ -28,6 +28,7 @@ import { LAB } from '@/lib/labTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PACK_BOX, PACK_THEME as T, PACK_SPACE, PACK_R, PACK_TEXT, FONT_TITLE, FONT_UI, PILL_CSS, PACK_COL_INNER, PAGE_AIR } from '@/components/pack/packTheme';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
+import { SplitDetail } from '@/components/SplitDetail';
 import { openPhotoInvite } from '@/lib/photoInvite';
 import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 
@@ -55,12 +56,6 @@ const TEXT_COL = 640;
 /** Matejových päť mien (13. 10.: Zápisník von, Vyšší zmysel → Dobročinnosť) pod úvodom (13. 10.) — jeden riadok dokola. */
 const CHIPS = ['eco', 'social', 'school', 'community', 'meaning'];
 
-/** Menovky rozpadu len pre /magnet (Matej 13. 10.: „Útulky", „Hekthor"). Zvyšok webu
- *  drží `transparency.part.*` — či zmeniť všade, čaká na Mateja. */
-const SPLIT_LABEL: Record<string, string> = {
-  'transparency.part.directHelp': 'magnet.split.help',
-  'transparency.part.hekthorBowl': 'magnet.split.bowl',
-};
 
 const BLOCKS = [
   { to: '/magnet/vylety', img: 'vylety', h: 'magnet.q.trip', p: 'magnet.b.trip' },
@@ -245,13 +240,13 @@ export default function Magnet() {
               <button key={sp.labelKey} type="button" role="tab" aria-selected={money === k}
                 className={money === k ? 'on' : ''} style={{ ['--c' as string]: sp.color }}
                 onClick={() => setMoney(money === k ? null : k)}>
-                <i aria-hidden /><span>{t(SPLIT_LABEL[sp.labelKey] ?? sp.labelKey)}</span>
+                <i aria-hidden /><span>{t(sp.labelKey)}</span>
               </button>
             ))}
           </div>
           {money !== null && (
             <div className="mg-split-card" style={{ ['--c' as string]: TRANSPARENCY_SPLIT[money].color }}>
-              {t(TRANSPARENCY_SPLIT[money].noteKey)}
+              <SplitDetail item={TRANSPARENCY_SPLIT[money]} />
             </div>
           )}
         </div>
@@ -399,7 +394,7 @@ ${PILL_CSS}
 .mg-split-bar{display:flex;height:40px;border-radius:${PACK_R.field}px;overflow:hidden;}
 .mg-split-bar span{display:grid;place-items:center;font:700 ${PACK_TEXT.body}px/1 ${FONT_TITLE};color:${T.inkStrong};}
 .mg-split-h{margin:0 0 ${S.md}px;text-align:center;font:700 ${PACK_TEXT.h2}px/1.2 ${FONT_TITLE};letter-spacing:.06em;text-transform:uppercase;color:${T.inkStrong};}
-.mg-split-l{display:grid;grid-template-columns:repeat(4,1fr);gap:${S.sm}px;margin-top:${S.md}px;}
+.mg-split-l{display:grid;grid-template-columns:repeat(3,1fr);gap:${S.sm}px;margin-top:${S.md}px;}
 .mg-split-l button{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:${S.xs}px;padding:${S.sm}px ${S.xs}px;cursor:pointer;
   border-radius:${PACK_R.tile}px;border:1px solid ${LAB.edge};background:transparent;color:${T.inkWarm};}
 .mg-split-l button.on{border-color:var(--c);background:color-mix(in srgb, var(--c) 14%, transparent);}

@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PACK_THEME, FONT_TITLE, FONT_UI, VEIL_CSS } from './packTheme';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
+import { SplitDetail } from '@/components/SplitDetail';
 import { EDGE_BASE } from '@/lib/env';
 import { intlLocale } from '@/i18n/bcp47';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -18,27 +19,18 @@ const PRICE = '€11';
 // HQ dashboard: both read the SAME edge fn (get-dashboard-stats), so a member
 // sees the real treasury state 1:1 with what we see internally.
 //
-// €11 heroglyph splits 5 development · 3 affiliate · 2 direct help · 1 Hekthor.
+// €11 heroglyph splits 8 community growth (5 development + 3 affiliate) · 2 direct help · 1 Hekthor.
 // Discounted/tester payments (€1 promo) go ENTIRELY into Hekthor's bowl — the
 // server does the split (incl. that exception); we just render treasuries.*.
 // ─────────────────────────────────────────────────────────────────────────
 
-// field = kľúč v API `treasuries{}`, labelKey = popiska dlaždice. Podiel (×5/×3/×2/×1),
-// farba aj poznámka „kam to ide" prichádzajú z `TRANSPARENCY_SPLIT` — jediný zdroj pravdy
-// (zdieľaný s `PaymentScreen`). Poradie MUSÍ sedieť: dev · affiliate · help · Hekthor.
-const FIELDS = [
-  { key: 'dev',  field: 'dev',       labelKey: 'pack.stats.development' },
-  { key: 'mkt',  field: 'affiliate', labelKey: 'pack.stats.affiliate'   },
-  { key: 'help', field: 'help',      labelKey: 'pack.stats.directHelp'  },
-  { key: 'hek',  field: 'hektor',    labelKey: 'pack.stats.hekthorBowl' },
-] as const;
+// Dlaždice = podiely z `TRANSPARENCY_SPLIT` (jediný zdroj pravdy, zdieľaný s `PaymentScreen`).
+// Server ďalej vedie ŠTYRI šuflíky (dev · affiliate · help · hektor); od 18. 10. 2026 sa
+// ukazujú TRI — Rozvoj komunity = dev + affiliate (Matej: *„skonsolidujeme sekcie na 3 ale
+// zachováme aj bones"*). Poradie `fields` MUSÍ sedieť s poradím v `TRANSPARENCY_SPLIT`.
+const FIELDS: readonly (readonly (keyof Treasuries)[])[] = [['dev', 'affiliate'], ['help'], ['hektor']];
 
-const ALLOC = FIELDS.map((f, i) => ({
-  ...f,
-  share: TRANSPARENCY_SPLIT[i].share,
-  color: TRANSPARENCY_SPLIT[i].color,
-  noteKey: TRANSPARENCY_SPLIT[i].noteKey,
-}));
+const ALLOC = TRANSPARENCY_SPLIT.map((item, i) => ({ item, fields: FIELDS[i] }));
 
 type Treasuries = { dev: number; affiliate: number; help: number; hektor: number };
 type Stats = { dogyptians: number; revenue_total: number; treasuries: Treasuries };
@@ -164,7 +156,7 @@ export function TransparentStats() {
       </p>
 
       <div className="flex w-full gap-[3px]" style={{ marginBottom: 12 }}>
-        {ALLOC.flatMap((a, ai) =>
+        {ALLOC.flatMap(({ item: a }, ai) =>
           Array.from({ length: a.share }).map((_, i) => (
             <span
               key={`${ai}-${i}`}
@@ -182,13 +174,15 @@ export function TransparentStats() {
           dlaždica jemný nádych SVOJEJ farby (rovnaká farba ako prúžok aj badge ×N),
           suma je väčšia a v `T.inkStrong`. */}
       <div className="grid grid-cols-2 gap-2.5">
-        {ALLOC.map((a, ai) => (
+        {ALLOC.map(({ item: a, fields }, ai) => (
           <button
-            key={a.key}
+            key={a.labelKey}
             type="button"
             onClick={() => setOpenTile(ai)}
             className="text-left"
             style={{
+              // Rozvoj komunity (€8, zlúčené šuflíky) cez celý riadok, pod ním 2 + 1.
+              gridColumn: a.parts.length ? '1 / -1' : undefined,
               background: `linear-gradient(180deg, ${a.color}1A 0%, ${a.color}08 46%, ${T.tileBg} 100%)`,
               border: `1px solid ${a.color}59`,
               borderRadius: 8,
@@ -244,7 +238,7 @@ export function TransparentStats() {
                 color: T.inkStrong,
               }}
             >
-              {money(treasuries[a.field], lang)}
+              {money(fields.reduce((sum, f) => sum + (treasuries[f] ?? 0), 0), lang)}
             </div>
           </button>
         ))}
@@ -331,7 +325,7 @@ export function TransparentStats() {
                 width: '100%',
                 maxWidth: 320,
                 background: T.panelGrad,
-                border: `1.5px solid ${ALLOC[openTile].color}`,
+                border: `1.5px solid ${ALLOC[openTile].item.color}`,
                 borderRadius: 14,
                 padding: '16px 16px 16px',
                 boxShadow: T.panelShadow,
@@ -341,10 +335,10 @@ export function TransparentStats() {
               <BackButton tone="pale" onClick={() => setOpenTile(null)} label={t('pack.invite.close')} style={{ marginBottom: 8 }} />
 
               <span className="flex gap-[5px]" style={{ marginBottom: 10 }}>
-                {Array.from({ length: ALLOC[openTile].share }).map((_, i) => (
+                {Array.from({ length: ALLOC[openTile].item.share }).map((_, i) => (
                   <span
                     key={i}
-                    style={{ width: 8, height: 8, borderRadius: 999, background: ALLOC[openTile].color }}
+                    style={{ width: 8, height: 8, borderRadius: 999, background: ALLOC[openTile].item.color }}
                   />
                 ))}
               </span>
@@ -355,10 +349,10 @@ export function TransparentStats() {
                   fontSize: 24,
                   fontWeight: 700,
                   lineHeight: 1,
-                  color: ALLOC[openTile].color,
+                  color: ALLOC[openTile].item.color,
                 }}
               >
-                {ALLOC[openTile].share}
+                {ALLOC[openTile].item.share}
                 <span style={{ fontSize: '0.42em', opacity: 0.65 }}>/11</span>
               </div>
               <div
@@ -372,7 +366,7 @@ export function TransparentStats() {
                   margin: '6px 0 9px',
                 }}
               >
-                {t(ALLOC[openTile].labelKey)}
+                {t(ALLOC[openTile].item.labelKey)}
               </div>
               <p
                 style={{
@@ -383,7 +377,7 @@ export function TransparentStats() {
                   margin: 0,
                 }}
               >
-                {t(ALLOC[openTile].noteKey)}
+                <SplitDetail item={ALLOC[openTile].item} />
               </p>
             </motion.div>
           </motion.div>
