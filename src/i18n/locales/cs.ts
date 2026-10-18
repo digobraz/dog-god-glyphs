@@ -248,6 +248,8 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.breed.one.placeholder': 'Hledat plemeno',
   'heroglyph.flow.breed.popTitle': 'Jaké plemeno je {name}?',
   'heroglyph.flow.breed.pick': 'Vybrat plemeno',
+  'heroglyph.flow.breed.required': 'Vyber plemeno nebo označ křížence',
+  'heroglyph.flow.breed.own': 'Zapsat „{name}“',
   'heroglyph.flow.breed.popNote': 'Výběr plemene ti ukáže doporučenou siluetu, ale výběr tvaru je na tobě.',
   'heroglyph.flow.breed.statsNote': 'Tvůj výběr nám také pomáhá tvořit celosvětovou statistiku psů!',
   'heroglyph.flow.breed.mix.placeholder1': 'První plemeno',

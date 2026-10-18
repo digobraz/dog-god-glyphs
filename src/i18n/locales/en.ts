@@ -441,6 +441,8 @@ export const en = {
   'heroglyph.flow.breed.one.placeholder': 'Search breed',
   'heroglyph.flow.breed.popTitle': 'What breed is {name}?',
   'heroglyph.flow.breed.pick': 'Choose breed',
+  'heroglyph.flow.breed.required': 'Choose a breed or mark a mix',
+  'heroglyph.flow.breed.own': 'Use “{name}”',
   'heroglyph.flow.breed.popNote': 'The breed shows you a recommended silhouette, but the shape is your choice.',
   'heroglyph.flow.breed.statsNote': 'Your choice also helps us build a worldwide statistic of dogs!',
   'heroglyph.flow.breed.mix.placeholder1': 'First breed',

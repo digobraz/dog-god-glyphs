@@ -330,6 +330,8 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.breed.one.placeholder': 'Hľadať plemeno',
   'heroglyph.flow.breed.popTitle': 'Aké plemeno je {name}?',
   'heroglyph.flow.breed.pick': 'Vybrať plemeno',
+  'heroglyph.flow.breed.required': 'Vyber plemeno alebo označ kríženca',
+  'heroglyph.flow.breed.own': 'Zapísať „{name}“',
   'heroglyph.flow.breed.popNote': 'Výber plemena ti ukáže odporúčanú siluetu, ale výber tvaru je na tebe.',
   'heroglyph.flow.breed.statsNote': 'Tvoj výber nám takisto pomáha tvoriť celosvetovú štatistiku psov!',
   'heroglyph.flow.breed.mix.placeholder1': 'Prvé plemeno',

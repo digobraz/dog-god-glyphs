@@ -150,9 +150,13 @@ function BreedField({
       .slice(0, MATCH_LIMIT);
   }, [q, value, lang]);
 
+  // 18. 10. 2026: plemeno je pri čistokrvnom povinné — kto ho v 380 plemenách nenájde,
+  // musí ho vedieť zapísať sám, inak by sa vo flowe zasekol.
+  const vlastne = !value && q.trim().length >= 2 && matches.length === 0 ? q.trim() : '';
+  const riadkov = matches.length || (vlastne ? 1 : 0);
   const [box, setBox] = useState<{ left: number; top: number; width: number; maxHeight: number } | null>(null);
   useEffect(() => {
-    if (!open || matches.length === 0) { setBox(null); return; }
+    if (!open || riadkov === 0) { setBox(null); return; }
     const place = () => {
       const el = wrapRef.current;
       if (!el) return;
@@ -162,7 +166,7 @@ function BreedField({
       const vBottom = vTop + (vv ? vv.height : window.innerHeight);
       const gap = 5;
       const margin = 10;
-      const wanted = matches.length * 42 + 10;
+      const wanted = riadkov * 42 + 10;
       const below = vBottom - r.bottom - gap - margin;
       const above = r.top - vTop - gap - margin;
       const up = below < wanted && above > below;
@@ -186,7 +190,7 @@ function BreedField({
       vv?.removeEventListener('resize', place);
       vv?.removeEventListener('scroll', place);
     };
-  }, [open, matches.length]);
+  }, [open, riadkov]);
 
   // Klik mimo zavrie ponuku. `mousedown` a nie `click`: voľba v ponuke beží na
   // `mousedown`, aby ju nepredbehol blur poľa.
@@ -239,7 +243,7 @@ function BreedField({
           : null}
       </div>
 
-      {open && matches.length > 0 && box && createPortal(
+      {open && riadkov > 0 && box && createPortal(
         <div
           ref={menuRef}
           className="pt-menu"
@@ -259,6 +263,15 @@ function BreedField({
               <img src={patronUrl(m.patron)} alt="" />
             </button>
           ))}
+          {vlastne && (
+            <button
+              type="button"
+              onMouseDown={(e) => { e.preventDefault(); pick(vlastne, ''); }}
+              onTouchStart={() => pick(vlastne, '')}
+            >
+              <span className="nm">{t('heroglyph.flow.breed.own', { name: vlastne })}</span>
+            </button>
+          )}
         </div>,
         document.body,
       )}
@@ -344,7 +357,7 @@ export function PatronScreen() {
     put(mix ? 'mixBreed1' : 'breed', name);
     if (mix) put('breed', 'Mixed');
     const found = ALL_BREEDS.find((b) => b.name === name && b.cat === group);
-    setCat(group);
+    if (group) setCat(group);   // vlastné plemeno (mimo zoznamu) kategóriu nemá
     if (found && !patronSvg) choose(found.patron, group);
   };
 
@@ -353,9 +366,14 @@ export function PatronScreen() {
   const { lang } = useLang();
   const breedShown = [breed1, mix ? breed2 : ''].filter(Boolean).map((b) => localizeBreed(b, lang)).join(' × ');
 
-  const canGo = !!patronSvg;
-  /** Prvý pes bez patróna. -1 = hotoví sú všetci. */
-  const missing = dogs.findIndex((d) => !(dogEssence[d.id] || {}).patronSvg);
+  /** 🔴 18. 10. 2026 — Matej: *„ak dá človek čistokrvný = povinne, ak dá kríženec nepovinne"*.
+   *  Dovtedy stačila silueta a pes bez plemena sa zapísal ako „purebred" s prázdnym
+   *  menom (19 psov, z toho 17 hostí). Kríženec plemená vypĺňať nemusí. */
+  const hotovy = (e: Record<string, string>) => !!e.patronSvg && (e.breedType === 'mix' || !!e.breed);
+  const chybaPlemeno = !!patronSvg && !mix && !breed1;
+  const canGo = hotovy(ess);
+  /** Prvý pes, ktorému chýba patrón alebo (pri čistokrvnom) plemeno. -1 = hotoví sú všetci. */
+  const missing = dogs.findIndex((d) => !hotovy(dogEssence[d.id] || {}));
   /**
    * 🔴 CTA MÁ DVE POLOHY, NIE AUTOMATICKÝ SKOK. Kým nemá patróna každý pes,
    * tlačidlo znie ĎALŠÍ PES a prepne na prvého nehotového; keď majú všetci,
@@ -586,6 +604,11 @@ export function PatronScreen() {
                   odporúčanú siluetu, ale výber tvaru je na tebe"*) a doska bola
                   takmer v dotyku so spodným okrajom. Kľúč pickHint ostáva v i18n. */}
 
+              {chybaPlemeno && (
+                <button type="button" className="pt-need" onClick={() => setBreedOpen(true)}>
+                  {t('heroglyph.flow.breed.required')}
+                </button>
+              )}
               <button type="button" className="hf-cta" disabled={!canGo} onClick={go}>
                 {handover ? t('heroglyph.flow.multi.nextDog') : t('heroglyph.flow.breed.continue')}
               </button>
@@ -634,6 +657,7 @@ const PATRON_CSS = `
   background: #FFFDF7; color: ${LAB.ink};
   font-family: 'Space Grotesk', sans-serif; font-size: 14px;
 }
+.pt-need { display: block; margin: 0 auto 8px; padding: 0; border: 0; background: none; font: 500 12px 'Space Grotesk', sans-serif; color: ${LAPIS.edge}; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .pt-breedchip .tx { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pt-breedchip .ic { flex: none; color: ${LAB.inkMuted}; }
 .pt-breedchip .ok { flex: none; color: #2E5C3B; }
