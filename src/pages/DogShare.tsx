@@ -6,16 +6,16 @@ import { EDGE_BASE, LIVE_EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { dogPagePath, packFromSlug } from '@/lib/dogSlug';
 import { captureDogPageRef } from '@/lib/refCapture';
-import { countryISO2, flagUrl, iso2ToISO3 } from '@/lib/countryGeo';
-import { useT } from '@/i18n/LanguageContext';
+import { countryISO2, countryName } from '@/lib/countryGeo';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { intlLocale } from '@/i18n/bcp47';
 import { useDogMessage } from '@/lib/dogMessages';
 import { DOG_MESSAGE_CSS } from '@/components/gods/DogMessage';
-import legendIconUrl from '@/assets/legend-icon.svg';
-import angelIconUrl from '@/assets/angel-icon.svg';
 import { withTransform } from '@/services/cloudinaryService';
 import { ShareCard } from '@/components/ShareCard';
 import { FLOW_PALE_CSS } from '@/components/screens/flowPaleSkin';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { PACK_BOX } from '@/components/pack/packTheme';
 
 /**
  * Public share landing — `/d/:pack` (legacy) and `/dog/:slug` (canonical,
@@ -74,6 +74,8 @@ interface GridDog {
   joined_at?: string | null;
   life_status?: string | null;
   death_date?: string | null;
+  /** 'member' | 'guest' | 'supporter' — len s `?tiers=all` (stránka ho pýta vždy). */
+  wall_tier?: string | null;
 }
 
 const DEFAULT_OG = 'https://dogypt.com/og-image.jpg';
@@ -127,129 +129,6 @@ function computeDogAge(
   const totalDays = Math.floor((asOf.getTime() - birth.getTime()) / 86_400_000);
   const humanYears = Math.max(1, Math.round((totalDays / 365.25) * 7));
   return { years, months, days, totalDays, humanYears };
-}
-
-// death_date → today, whole days ("in angel form" counter). Mirrors PACK AngelBadge.
-function computeAngelDays(deathDate: string | null | undefined): number | null {
-  if (!deathDate) return null;
-  const d = new Date(deathDate);
-  if (Number.isNaN(d.getTime())) return null;
-  const days = Math.floor((Date.now() - d.getTime()) / 86_400_000);
-  return days >= 0 ? days : null;
-}
-
-function formatDeathDate(deathDate: string | null | undefined): string | null {
-  if (!deathDate) return null;
-  const d = new Date(deathDate);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-// today − joined_at, in whole days.
-function computeDaysInPack(joinedAt: string | null | undefined): number | null {
-  if (!joinedAt) return null;
-  const joined = new Date(joinedAt);
-  if (Number.isNaN(joined.getTime())) return null;
-  const days = Math.floor((Date.now() - joined.getTime()) / 86_400_000);
-  return days >= 0 ? days : null;
-}
-
-function daysInPackLabel(days: number): string {
-  if (days === 0) return 'today';
-  if (days === 1) return '1 day';
-  return `${days} days`;
-}
-
-// Same pill + hover/tap tooltip as PACK's BestLifeBadge (PackDogDetail.tsx) —
-// days as the headline pill, exact years/months/days/human-years on hover.
-function DogAgePill({ age }: { age: DogAge }) {
-  const t = useT();
-  const [open, setOpen] = useState(false);
-  return (
-    <div
-      className="relative inline-flex flex-col items-center"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label={t('pack.dog.ariaShowAgeDetail')}
-        style={{
-          padding: '5px 14px',
-          borderRadius: 999,
-          // Pilulka dní = LAPIS naprieč appkou (lock 12. 9. 2026, DAYS_PILL).
-          background: LAPIS.grad,
-          color: LAPIS.ink,
-          fontFamily: "'Cinzel', serif",
-          fontSize: 14,
-          fontWeight: 700,
-          letterSpacing: '0.02em',
-          cursor: 'pointer',
-          boxShadow: LAPIS_BTN_SHADOW,
-          lineHeight: 1.1,
-          whiteSpace: 'nowrap',
-          border: 'none',
-        }}
-      >
-        {t('dogPage.daysCount', { days: age.totalDays.toLocaleString('en-US') })}
-      </button>
-      {open && (
-        <div
-          className="absolute"
-          style={{
-            top: 'calc(100% + 9px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            whiteSpace: 'nowrap',
-            padding: '9px 15px',
-            borderRadius: 10,
-            background: '#1a1a1a',
-            color: '#FAF4EC',
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 12.5,
-            fontWeight: 500,
-            boxShadow: '0 10px 28px rgba(10,10,10,0.28)',
-            zIndex: 5,
-          }}
-        >
-          {t('pack.dog.ageDetail', {
-            years: String(age.years),
-            months: String(age.months),
-            days: String(age.days),
-            humanYears: String(age.humanYears),
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Silver "in angel form" pill — days since death. Mirror of PACK's AngelBadge,
-// styled to sit on the papyrus (silver, dark ink). Native title = "Since <date>".
-function AngelDaysPill({ days, sinceLabel }: { days: number; sinceLabel: string | null }) {
-  const t = useT();
-  return (
-    <span
-      title={sinceLabel ? t('pack.dog.angelSince', { date: sinceLabel }) : undefined}
-      style={{
-        padding: '5px 14px',
-        borderRadius: 999,
-        background: 'linear-gradient(180deg, #C3C9D6 0%, #9098AB 100%)',
-        color: '#2b3040',
-        fontFamily: "'Cinzel', serif",
-        fontSize: 14,
-        fontWeight: 700,
-        letterSpacing: '0.02em',
-        boxShadow: '0 6px 16px -6px rgba(110,118,136,0.6)',
-        lineHeight: 1.1,
-        whiteSpace: 'nowrap',
-        cursor: sinceLabel ? 'help' : 'default',
-      }}
-    >
-      {t('dogPage.daysCount', { days: days.toLocaleString('en-US') })}
-    </span>
-  );
 }
 
 /**
@@ -373,8 +252,15 @@ export default function DogShare() {
   };
 
   const flagIso = dog ? countryISO2(dog.country) : null;
+  const { lang } = useLang();
+  // Štát celým menom v jazyku stránky; neznámy jazyk/kód → anglický názov.
+  const countryLabel = (() => {
+    if (!flagIso) return '';
+    try { return new Intl.DisplayNames([intlLocale(lang)], { type: 'region' }).of(flagIso.toUpperCase()) || countryName(flagIso); }
+    catch { return countryName(flagIso); }
+  })();
+  const isGuest = dog?.wall_tier === 'guest';
   const age = dog ? computeDogAge(dog.birth_date, dog.life_status, dog.death_date) : null;
-  const daysInPack = dog ? computeDaysInPack(dog.joined_at) : null;
   const alphaName = dog?.owner_first_name?.trim() || null;
   const ownerMessage = dog?.owner_message?.trim() || '';
   // Odkaz v jazyku stránky + prepínač na originál (Matej 18. 10. 2026).
@@ -385,8 +271,6 @@ export default function DogShare() {
   const isDeceased = dog?.life_status === 'deceased';
   // Memorial counters (mirror PACK): "lived my best life" is frozen in `age`
   // above (asOf = death_date); "in angel form" counts death_date → today.
-  const angelDays = dog ? computeAngelDays(dog.death_date) : null;
-  const deathLabel = dog ? formatDeathDate(dog.death_date) : null;
 
   return (
     <div className="hf-pale dogshare-page min-h-screen flex flex-col">
@@ -407,55 +291,56 @@ export default function DogShare() {
       <style>{FLOW_PALE_CSS + DOG_MESSAGE_CSS + `
         .ds-main {
           flex: 1 1 auto; display: flex; flex-direction: column; align-items: center;
-          padding: 8px 16px 24px;
+          padding: 8px 16px calc(24px + var(--consent-h, 0px));
         }
         .ds-main > * { margin-top: auto; }
         .ds-main > :last-child { margin-bottom: auto; }
         .ds-card {
           width: 100%; max-width: 400px;
-          display: flex; flex-direction: column; gap: 12px;
-          padding: 12px 12px 16px; border-radius: 16px;
-          color: #2a1608;
-          background: linear-gradient(160deg, #FFFEFA 0%, #FFF9EC 52%, #FBF0D8 100%);
-          border: 1.5px solid #C99A3F;
-          box-shadow: 0 0 0 5px rgba(201,154,63,0.16), 0 28px 62px -18px rgba(70,46,12,0.55), inset 0 1px 0 #FFFFFF;
+          display: flex; flex-direction: column; gap: 16px;
+          padding: 16px; color: #2a1608;
         }
         .ds-media {
           position: relative; width: 100%; aspect-ratio: 1 / 1; flex: none;
           border-radius: 12px; overflow: hidden;
           box-shadow: 0 12px 28px -14px rgba(58,38,8,0.5);
         }
-        .ds-body { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+        .ds-body { display: flex; flex-direction: column; align-items: center; gap: 24px; text-align: center; }
+        .ds-body > * { width: 100%; }
         @media (min-width: 768px) {
-          .ds-card { max-width: 832px; flex-direction: row; align-items: stretch; gap: 24px; padding: 16px; }
-          .ds-media { width: min(400px, calc(100dvh - 210px)); }
-          .ds-body { flex: 1 1 auto; justify-content: center; padding: 8px 8px 8px 0; }
+          .ds-card { max-width: 832px; display: grid; grid-template-columns: 400px 1fr; gap: 24px; padding: 24px; align-items: center; }
+          .ds-body { padding: 8px 8px 8px 0; }
         }
-        .ds-life { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
-        .ds-life-lbl {
-          font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px;
-          letter-spacing: 0.14em; text-transform: uppercase; color: #8C6014; white-space: nowrap;
+        .ds-head { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .ds-name { margin: 0; font-family: 'Cinzel Decorative', serif; font-weight: 900; font-size: 24px; line-height: 1.15; letter-spacing: 0.04em; color: #1a1a1a; overflow-wrap: anywhere; }
+        .ds-num {
+          display: inline-flex; align-items: center; padding: 4px 16px; border-radius: 999px;
+          background: ${LAPIS.grad}; color: ${LAPIS.ink}; box-shadow: ${LAPIS_BTN_SHADOW};
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; line-height: 1.1;
         }
-        .ds-facts { display: flex; align-items: flex-end; justify-content: center; gap: 24px; flex-wrap: wrap; }
-        .ds-fact { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 40px; justify-content: flex-end; }
-        .dogshare-label {
-          font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px;
-          letter-spacing: 0.14em; text-transform: uppercase; color: #8C6014;
+        .ds-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .ds-fact { padding: 12px 16px; text-align: center; min-width: 0; }
+        .ds-fact i {
+          display: block; font-family: 'Space Grotesk', sans-serif; font-style: normal; font-weight: 500;
+          font-size: 10px; line-height: 1.3; letter-spacing: 0.22em; text-transform: uppercase; color: #8C6014;
         }
-        .dogshare-value { font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: #1a1a1a; font-weight: 600; }
-        .ds-rule { align-self: stretch; height: 1px; background: rgba(201,154,63,0.45); flex: none; }
+        .ds-fact b {
+          display: block; margin-top: 4px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px;
+          line-height: 1.2; color: #1a1a1a; text-transform: uppercase; overflow-wrap: anywhere;
+        }
+        .ds-quote { padding: 12px 16px; }
         .ds-msg {
-          margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 300; font-style: italic;
-          font-size: 14px; line-height: 1.55; color: rgba(26,26,26,0.72);
+          margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 400; font-style: italic;
+          font-size: 14px; line-height: 1.5; color: rgba(26,26,26,0.72);
           display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; overflow: hidden;
         }
         .ds-msg-by { margin: 4px 0 0; font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: rgba(42,22,8,0.55); }
         .dogshare-invite {
-          margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
-          letter-spacing: 0.12em; text-transform: uppercase; color: #6E4E18;
+          margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; line-height: 1.3;
+          letter-spacing: 0.14em; text-transform: uppercase; color: #6E4E18;
         }
         .ds-cta {
-          align-self: stretch; min-height: 48px; display: flex; align-items: center; justify-content: center;
+          align-self: stretch; min-height: 56px; display: flex; align-items: center; justify-content: center;
           border-radius: 8px; text-decoration: none;
           background: ${LAPIS.grad}; color: ${LAPIS.ink}; border: 1px solid ${LAPIS.edge};
           box-shadow: ${LAPIS_BTN_SHADOW};
@@ -491,7 +376,7 @@ export default function DogShare() {
 
         {status === 'found' && dog && (
           <>
-            <article className="ds-card">
+            <article className="ds-card" style={PACK_BOX.card}>
               {/* Meno je na obrázku — pre čítačky a vyhľadávače ostáva nadpis. */}
               <h1 className="ds-sr">{dogName}</h1>
               {dog.pack_number !== null ? (
@@ -506,79 +391,33 @@ export default function DogShare() {
               )}
 
               <div className="ds-body">
-                {isDeceased && age ? (
-                  /* Memorial: „Lived My Best Life" (zamrznuté dni) + „In Angel Form". */
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="ds-life">
-                      <span className="ds-life-lbl">{t('dogPage.livedBestLife')}</span>
-                      <DogAgePill age={age} />
-                    </div>
-                    {angelDays !== null && (
-                      <div className="ds-life">
-                        <span className="ds-life-lbl" style={{ color: '#6E7688' }}>{t('pack.dog.inAngelForm')}</span>
-                        <AngelDaysPill days={angelDays} sinceLabel={deathLabel} />
-                      </div>
-                    )}
-                  </div>
-                ) : age ? (
-                  <div className="ds-life">
-                    <span className="ds-life-lbl">✦ {t('pack.dog.livingBestLife')}</span>
-                    <DogAgePill age={age} />
-                  </div>
-                ) : (
-                  <span className="ds-life-lbl">{t('dogPage.foundingDogyptian')}</span>
-                )}
+                <div className="ds-head">
+                  <h2 className="ds-name">{dogName}</h2>
+                  {dog.pack_number !== null && <span className="ds-num">#{dog.pack_number}</span>}
+                </div>
 
-                {/* Krajina · Living Legend / Dog Angel · Pawtner */}
-                <div className="ds-facts">
-                  {flagIso && (
-                    <div className="ds-fact">
-                      <img
-                        src={flagUrl(flagIso, 40)}
-                        alt={dog.country || ''}
-                        title={dog.country || ''}
-                        style={{ width: 22, height: 'auto', borderRadius: 3, boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}
-                      />
-                      <span className="dogshare-value">{iso2ToISO3(flagIso)}</span>
-                    </div>
-                  )}
-                  <div className="ds-fact">
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        display: 'block',
-                        width: 22,
-                        height: 22,
-                        backgroundColor: isDeceased ? '#6E7688' : '#1a1a1a',
-                        // Quoted url("...") is mandatory: the prod build inlines these
-                        // SVGs as data: URIs containing raw single quotes (Vite's
-                        // svgToDataURL), which make an unquoted url() token invalid
-                        // CSS — the mask silently drops and only the backgroundColor
-                        // square renders (black square bug, INGO #31 2026-07-10).
-                        WebkitMaskImage: `url("${isDeceased ? angelIconUrl : legendIconUrl}")`,
-                        maskImage: `url("${isDeceased ? angelIconUrl : legendIconUrl}")`,
-                        WebkitMaskRepeat: 'no-repeat',
-                        maskRepeat: 'no-repeat',
-                        WebkitMaskPosition: 'center',
-                        maskPosition: 'center',
-                        WebkitMaskSize: 'contain',
-                        maskSize: 'contain',
-                      }}
-                    />
-                    <span className="dogshare-label" style={isDeceased ? { color: '#6E7688' } : undefined}>
-                      {isDeceased ? t('dogPage.dogAngel') : t('dogPage.livingLegend')}
-                    </span>
+                {/* Mriežka 2×2 (nákres A3): dni · status · stav · štát. */}
+                <div className="ds-grid">
+                  <div className="ds-fact" style={PACK_BOX.subblock}>
+                    <i>{isDeceased ? t('dogPage.livedBestLife') : t('pack.dog.livingBestLife')}</i>
+                    <b>{age ? t('dogPage.daysCount', { days: age.totalDays.toLocaleString('en-US') }) : '—'}</b>
                   </div>
-                  {alphaName && (
-                    <div className="ds-fact">
-                      <span className="dogshare-label">{t('dogPage.pawtner')}</span>
-                      <span className="dogshare-value">{alphaName.toUpperCase()}</span>
-                    </div>
-                  )}
+                  <div className="ds-fact" style={PACK_BOX.subblock}>
+                    <i>{t('dogPage.statusLbl')}</i>
+                    <b>{isDeceased ? t('dogPage.dogAngel') : t('dogPage.livingLegend')}</b>
+                  </div>
+                  <div className="ds-fact" style={PACK_BOX.subblock}>
+                    <i>{t('dogPage.stateLbl')}</i>
+                    <b>{isGuest ? t('dogPage.stateGuest') : t('dogPage.stateMember')}</b>
+                  </div>
+                  <div className="ds-fact" style={PACK_BOX.subblock}>
+                    <i>{t('dogPage.countryLbl')}</i>
+                    <b>{countryLabel || '—'}</b>
+                  </div>
                 </div>
 
                 {ownerMessage && (
-                  <div>
+                  <div className="ds-quote" style={PACK_BOX.row}>
                     <p className="ds-msg">&ldquo;{msgTr.translated && !msgOrig ? msgTr.text : ownerMessage}&rdquo;</p>
                     {msgTr.translated && (
                       <button type="button" className="dm-toggle" onClick={() => setMsgOrig((o) => !o)}>
@@ -589,31 +428,26 @@ export default function DogShare() {
                   </div>
                 )}
 
-                <div className="ds-rule" />
-
-                {/* ── POZVÁNKA — dogpage je náborová stránka majiteľa (Matej 12.8.2026:
-                    „mal by tam byť CTA 'meno ťa pozýva do dogyptu' = KLIK = flow =
-                    registrácia = úspešný regruting"). Hovorí ju ČLOVEK, nie značka —
-                    preto krstné meno majiteľa; verejný feed `get-grid-dogs` iné ani
-                    nevydáva (`owner_first_name`, plné meno neopúšťa DB). */}
+                {/* ── POZVÁNKA — dogpage je náborová stránka majiteľa (Matej 12.8.2026).
+                    Hovorí ju ČLOVEK + pes; verejný feed vydáva len krstné meno majiteľa. */}
                 <p className="dogshare-invite">
                   {alphaName
-                    ? t('dogPage.invitedBy', { name: alphaName.toUpperCase() })
+                    ? t('dogPage.invitedByDog', { name: alphaName.toUpperCase(), dog: dogName.toUpperCase() })
                     : t('dogPage.invitedByFallback')}
                 </p>
                 <a href="/heroglyph/name" className="ds-cta" onClick={handleJoin}>
                   {t('dogPage.joinUs')}
                 </a>
-                {/* ── +20 KOSTÍ PRE PSA (Matej 12.8.). ⚠️ Druhý riadok je povinný:
-                    kosti reálne pristanú na účte MAJITEĽA (10 BONES = 1 €) —
-                    transparentnosť je pilier misie. Nesmie znieť, že návštevník
-                    platí navyše — platí to systém. */}
-                <div className="dogshare-bones">
-                  <span className="dogshare-bones-main">
-                    {t('dogPage.bonesForDog', { dog: dogName.toUpperCase() })}
-                  </span>
-                  <span className="dogshare-bones-note">{t('dogPage.bonesNote')}</span>
-                </div>
+                {/* ── +20 KOSTÍ — LEN pri členovi (hosť nemá profil). ⚠️ Druhý riadok je povinný:
+                    kosti pristanú na účte MAJITEĽA (10 BONES = 1 €), transparentnosť je pilier misie. */}
+                {!isGuest && (
+                  <div className="dogshare-bones">
+                    <span className="dogshare-bones-main">
+                      {t('dogPage.bonesForDog', { dog: dogName.toUpperCase() })}
+                    </span>
+                    <span className="dogshare-bones-note">{t('dogPage.bonesNote')}</span>
+                  </div>
+                )}
               </div>
             </article>
             <Link to="/" className="dogshare-back-link">{t('dogPage.backToWall')}</Link>

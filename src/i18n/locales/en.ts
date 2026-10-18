@@ -1708,6 +1708,12 @@ export const en = {
   'wall.guestLine.5': 'My human refused to pay. I forgive them. I am a dog.',
 
   // ── public dog page (/dog/<slug>) ──
+  'dogPage.statusLbl': 'Status',
+  'dogPage.stateLbl': 'State',
+  'dogPage.stateGuest': 'Guest',
+  'dogPage.stateMember': 'Member',
+  'dogPage.countryLbl': 'Country',
+  'dogPage.invitedByDog': '{name} and {dog} invite you to DOGYPT',
   'dogPage.livingLegend': 'Living Legend',
   'dogPage.dogAngel': 'Dog Angel',
   'dogPage.livedBestLife': 'Lived my best life',
