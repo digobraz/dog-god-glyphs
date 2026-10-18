@@ -217,8 +217,9 @@ const MORE_INFO_CSS = `
 .mi-fit { display: flex; align-items: center; justify-content: center; }
 .mi-fit .mi-glyph { width: 92% !important; height: auto; }
 .mi-sniff { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 16px 24px; text-align: center; }
-.mi-sniff img { width: min(70%, 320px); height: auto; }
-.mi-sniff p { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.4; color: ${LAB.ink}; max-width: 320px; }
+/* Logo ustúpi výške rámu, text nie — inak sa na nízkom mobile oreže veta. */
+.mi-sniff img { width: min(70%, 320px); height: auto; flex: 0 1 auto; min-height: 0; max-height: 100%; object-fit: contain; }
+.mi-sniff p { flex: none; margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.4; color: ${LAB.ink}; max-width: 320px; }
 .mi-money { position: absolute; inset: 0; margin: 0; padding: 12px; list-style: none; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
 .mi-money li { border-radius: 12px; border: 2px solid; background: rgba(255, 253, 247, .7); flex: none; }
 .mi-money li button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: none; border: 0; cursor: pointer; text-align: left; }
@@ -253,6 +254,8 @@ const MORE_INFO_CSS = `
   .mi-text h3 { font-size: 16px; }
   .mi-text p { font-size: 12px; }
   .mi-ar { width: 32px; height: 32px; top: calc(50% - 16px); }
+  .mi-sniff { gap: 8px; padding: 12px 16px; }
+  .mi-sniff p { font-size: 12px; }
   .mi-money { padding: 8px; gap: 4px; }
   .mi-money img { width: 20px; height: 20px; }
   .mi-money b { font-size: 16px; }
