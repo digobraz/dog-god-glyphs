@@ -5121,6 +5121,14 @@ export const chn: Partial<Dict> = {
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': '',
+  'heroglyph.flow.breed.required': "选择品种或标记为混血",
+  'heroglyph.flow.breed.own': "使用“{name}”",
+  'dogPage.statusLbl': "状态",
+  'dogPage.stateLbl': "身份",
+  'dogPage.stateGuest': "访客",
+  'dogPage.stateMember': "成员",
+  'dogPage.countryLbl': "国家",
+  'dogPage.invitedByDog': "{name} 和 {dog} 邀请你加入 DOGYPT",
   "heroglyph.flow.dogs.continueOne": "先带一只狗继续",
   "heroglyph.flow.dogs.laterNote": "以后随时可以把更多狗加进你的犬群。",
   "heroglyph.invite.title": "你家狗狗的脸",

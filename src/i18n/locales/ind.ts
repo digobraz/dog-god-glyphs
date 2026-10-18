@@ -5125,6 +5125,14 @@ export const ind: Partial<Dict> = {
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': '',
+  'heroglyph.flow.breed.required': "Pilih ras atau tandai campuran",
+  'heroglyph.flow.breed.own': "Gunakan “{name}”",
+  'dogPage.statusLbl': "Status",
+  'dogPage.stateLbl': "Keadaan",
+  'dogPage.stateGuest': "Tamu",
+  'dogPage.stateMember': "Anggota",
+  'dogPage.countryLbl': "Negara",
+  'dogPage.invitedByDog': "{name} dan {dog} mengundangmu ke DOGYPT",
   "heroglyph.flow.dogs.continueOne": "एक कुत्ते के साथ आगे बढ़ें",
   "heroglyph.flow.dogs.laterNote": "आप बाद में कभी भी अपने झुंड में और कुत्ते जोड़ सकते हैं।",
   "heroglyph.invite.title": "आपके कुत्ते का चेहरा",

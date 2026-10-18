@@ -5310,6 +5310,14 @@ export const fra: Partial<Dict> = {
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': '',
+  'heroglyph.flow.breed.required': "Choisis une race ou indique croisé",
+  'heroglyph.flow.breed.own': "Utiliser « {name} »",
+  'dogPage.statusLbl': "Statut",
+  'dogPage.stateLbl': "État",
+  'dogPage.stateGuest': "Invité",
+  'dogPage.stateMember': "Membre",
+  'dogPage.countryLbl': "Pays",
+  'dogPage.invitedByDog': "{name} et {dog} t’invitent dans DOGYPT",
   "heroglyph.flow.dogs.continueOne": "Continuer avec un seul chien",
   "heroglyph.flow.dogs.laterNote": "Tu pourras ajouter d’autres chiens à ta meute quand tu veux.",
   "heroglyph.invite.title": "Le visage de ton chien",

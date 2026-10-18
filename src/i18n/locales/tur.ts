@@ -5124,6 +5124,14 @@ export const tur: Partial<Dict> = {
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': '',
+  'heroglyph.flow.breed.required': "Bir ırk seç veya melez olarak işaretle",
+  'heroglyph.flow.breed.own': "“{name}” kullan",
+  'dogPage.statusLbl': "Durum",
+  'dogPage.stateLbl': "Konum",
+  'dogPage.stateGuest': "Misafir",
+  'dogPage.stateMember': "Üye",
+  'dogPage.countryLbl': "Ülke",
+  'dogPage.invitedByDog': "{name} ve {dog} seni DOGYPT’e davet ediyor",
   "heroglyph.flow.dogs.continueOne": "Tek köpekle devam et",
   "heroglyph.flow.dogs.laterNote": "Sürüne istediğin zaman başka köpekler de ekleyebilirsin.",
   "heroglyph.invite.title": "Köpeğinin yüzü",

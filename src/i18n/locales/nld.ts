@@ -5124,6 +5124,14 @@ export const nld: Partial<Dict> = {
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': '',
+  'heroglyph.flow.breed.required': "Kies een ras of markeer kruising",
+  'heroglyph.flow.breed.own': "„{name}” gebruiken",
+  'dogPage.statusLbl': "Status",
+  'dogPage.stateLbl': "Stand",
+  'dogPage.stateGuest': "Gast",
+  'dogPage.stateMember': "Lid",
+  'dogPage.countryLbl': "Land",
+  'dogPage.invitedByDog': "{name} en {dog} nodigen je uit voor DOGYPT",
   "heroglyph.flow.dogs.continueOne": "Doorgaan met één hond",
   "heroglyph.flow.dogs.laterNote": "Je kunt later altijd meer honden aan je roedel toevoegen.",
   "heroglyph.invite.title": "Het gezicht van je hond",

@@ -5293,6 +5293,14 @@ export const pol: Partial<Dict> = {
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': '',
+  'heroglyph.flow.breed.required': "Wybierz rasę lub zaznacz mieszańca",
+  'heroglyph.flow.breed.own': "Użyj „{name}”",
+  'dogPage.statusLbl': "Status",
+  'dogPage.stateLbl': "Stan",
+  'dogPage.stateGuest': "Gość",
+  'dogPage.stateMember': "Członek",
+  'dogPage.countryLbl': "Kraj",
+  'dogPage.invitedByDog': "{name} i {dog} zapraszają cię do DOGYPT",
   "heroglyph.flow.dogs.continueOne": "Dalej z jednym psem",
   "heroglyph.flow.dogs.laterNote": "Kolejne psy możesz dodać do swojej sfory w każdej chwili później.",
   "heroglyph.invite.title": "Twarz twojego psa",

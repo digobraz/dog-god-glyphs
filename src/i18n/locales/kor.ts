@@ -5124,6 +5124,14 @@ export const kor: Partial<Dict> = {
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': '',
+  'heroglyph.flow.breed.required': "견종을 선택하거나 믹스로 표시하세요",
+  'heroglyph.flow.breed.own': "“{name}” 사용",
+  'dogPage.statusLbl': "상태",
+  'dogPage.stateLbl': "구분",
+  'dogPage.stateGuest': "게스트",
+  'dogPage.stateMember': "멤버",
+  'dogPage.countryLbl': "국가",
+  'dogPage.invitedByDog': "{name}와 {dog}가 당신을 DOGYPT에 초대합니다",
   "heroglyph.flow.dogs.continueOne": "한 마리로 계속하기",
   "heroglyph.flow.dogs.laterNote": "무리에는 나중에 언제든 개를 더 추가할 수 있어요.",
   "heroglyph.invite.title": "내 개의 얼굴",

@@ -5309,6 +5309,14 @@ export const ukr: Partial<Dict> = {
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': '',
+  'heroglyph.flow.breed.required': "Обери породу або познач метиса",
+  'heroglyph.flow.breed.own': "Використати «{name}»",
+  'dogPage.statusLbl': "Статус",
+  'dogPage.stateLbl': "Стан",
+  'dogPage.stateGuest': "Гість",
+  'dogPage.stateMember': "Учасник",
+  'dogPage.countryLbl': "Країна",
+  'dogPage.invitedByDog': "{name} і {dog} запрошують тебе до DOGYPT",
   "heroglyph.flow.dogs.continueOne": "Продовжити з одним псом",
   "heroglyph.flow.dogs.laterNote": "Інших псів можеш додати до своєї зграї будь-коли пізніше.",
   "heroglyph.invite.title": "Обличчя твого пса",

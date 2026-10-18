@@ -5121,6 +5121,14 @@ export const jpn: Partial<Dict> = {
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': '',
+  'heroglyph.flow.breed.required': "犬種を選ぶか、ミックスを選択してください",
+  'heroglyph.flow.breed.own': "「{name}」を使う",
+  'dogPage.statusLbl': "ステータス",
+  'dogPage.stateLbl': "区分",
+  'dogPage.stateGuest': "ゲスト",
+  'dogPage.stateMember': "メンバー",
+  'dogPage.countryLbl': "国",
+  'dogPage.invitedByDog': "{name}と{dog}があなたをDOGYPTに招待しています",
   "heroglyph.flow.dogs.continueOne": "1匹で続ける",
   "heroglyph.flow.dogs.laterNote": "群れには、あとからいつでも犬を追加できます。",
   "heroglyph.invite.title": "あなたの犬の顔",

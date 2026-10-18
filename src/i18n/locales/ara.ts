@@ -5121,6 +5121,14 @@ export const ara: Partial<Dict> = {
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': '',
+  'heroglyph.flow.breed.required': "اختر سلالة أو حدّد أنه هجين",
+  'heroglyph.flow.breed.own': "استخدم «{name}»",
+  'dogPage.statusLbl': "الحالة",
+  'dogPage.stateLbl': "الوضع",
+  'dogPage.stateGuest': "ضيف",
+  'dogPage.stateMember': "عضو",
+  'dogPage.countryLbl': "البلد",
+  'dogPage.invitedByDog': "{name} و{dog} يدعوانك إلى DOGYPT",
   "heroglyph.flow.dogs.continueOne": "تابع بكلب واحد",
   "heroglyph.flow.dogs.laterNote": "يمكنك إضافة كلاب أخرى إلى قطيعك في أي وقت لاحقًا.",
   "heroglyph.invite.title": "وجه كلبك",
