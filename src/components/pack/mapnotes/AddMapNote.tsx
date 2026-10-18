@@ -503,7 +503,11 @@ export function AddMapNotePanel({
         pinnedSlug: pinnedSlug ?? null,
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('pack.mapNotes.error'));
+      // Chyba z `db.rpc` je holý objekt { message }, nie `Error` — bez tohto sa v deve
+      // nedalo zistiť, prečo zápis padol. Na LIVE ostáva ľudská hláška.
+      if (import.meta.env.DEV) console.error('[add_map_note]', e);
+      const raw = (e as { message?: string } | null)?.message;
+      setError(import.meta.env.DEV && raw ? raw : e instanceof Error ? e.message : t('pack.mapNotes.error'));
       setBusy(false);
     }
   };
