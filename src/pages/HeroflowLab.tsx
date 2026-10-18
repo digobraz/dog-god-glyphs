@@ -98,6 +98,9 @@ const GROUPS: Group[] = [
         path: '/heroglyph/essence',
         state: 'done',
       },
+      // 18. 10. 2026 — prezreté s Matejom po zmenách 16.–18. 10.: 2 Meno (popupy 360 px) ✅ · 6 Patrón
+      // („Zapísať …" vlastné plemeno, presunuté pod pole 572456d2) ✅ · 10 Pokladňa (rozpad 8·2·1
+      // 0963732f, SNIFFER) ✅ · 10a/10b + 11 (číslo patrí psovi) „inak ok myslím" ⇒ stavy bez zmeny.
       // 11. 10. 2026 — zmeny 6.–10. 10. (Svorka „Pokračovať s jedným psom" 85b37711, pokladňa
       // „+ Členstvo" bez roku c0f0f3c7 + tester €3 c8282959, /heroglyph → /#heroglyph 09d97e6c,
       // PostHog po súhlase 4b590e7f) ⇒ stavy bez zmeny. Headless 390×844 + 1477×724: Svorka,
