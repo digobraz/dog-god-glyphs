@@ -5,6 +5,17 @@
     <!-- Appka hovorí 18 jazykmi sama — prekladač prehliadača (Android Chrome) ju len kazil. 14. 10. 2026 -->
     <meta name="google" content="notranslate" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- APPKA (Capacitor, 19. 10. 2026): appka = len /pack pre členov. Natívny obal otvára `/`,
+         čo je na webe stena — v appke ide hneď na /pack (a odtiaľ bez session na /login nižšie).
+         `window.Capacitor` vloží natívna strana pred skriptmi stránky; na webe neexistuje. -->
+    <script>
+      (function () {
+        try {
+          var C = window.Capacitor;
+          if (C && C.isNativePlatform && C.isNativePlatform() && /^\/?$/.test(location.pathname)) history.replaceState(null, '', '/pack');
+        } catch (e) {}
+      })();
+    </script>
     <!-- /pack bez prihlásenia → /login HNEĎ (7. 10. 2026, rýchlosť fáza 3). Tú istú vetvu má App.tsx
          (`hasStoredSessionOrAuthReturn`), tam ale až po stiahnutí hlavného balíka — tu je to pred ním.
          Len produkčný build: v deve smie /pack bežať bez prihlásenia (VITE_PACK_NOAUTH). -->
