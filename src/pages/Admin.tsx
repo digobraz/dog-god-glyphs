@@ -23,6 +23,7 @@ import iconBusiness from '@/assets/icons/council-business.svg';
 // Tá istá kontrola úplnosti, akú používa sprievodca — dve kópie pravidla by znamenali, že
 // admin schvaľuje podľa iného zoznamu polí, než ktorý appka od človeka pýta.
 import { missingOnTrail } from '@/components/pack/addtrip/addTripModel';
+import { sizedUrl } from '@/services/cloudinaryService';
 
 // Admin e-maily — kto sa smie prihlásiť. Drží sa to v synchronizácii s RLS
 // policy "Admin read all" v Supabase (gated na rovnaký e-mail). Pridať admina
@@ -484,7 +485,7 @@ export default function Admin() {
           {dogs.filter((d) => d.cloudinary_main_url).map((d) => (
             <a key={d.id} href={d.cloudinary_main_url!} target="_blank" rel="noreferrer"
               style={{ display: 'block', border: '1px solid rgba(201,154,63,0.2)', borderRadius: 10, overflow: 'hidden', background: '#0e0e0e' }}>
-              <img src={d.cloudinary_main_url!} alt={d.dog_name ?? ''} loading="lazy"
+              <img src={sizedUrl(d.cloudinary_main_url!, 400)} alt={d.dog_name ?? ''} loading="lazy"
                 style={{ width: '100%', height: 130, objectFit: 'cover', display: 'block' }} />
               <div style={{ padding: '7px 9px', fontSize: 12 }}>
                 {d.dog_name ?? '—'}

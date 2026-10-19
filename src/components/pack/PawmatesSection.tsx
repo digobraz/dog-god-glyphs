@@ -35,6 +35,7 @@ import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packT
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from './navGoldSkin';
 import { HandKey, HandTrash } from './HandIcons';
 import { useT, useLang } from '@/i18n/LanguageContext';
+import { sizedUrl } from '@/services/cloudinaryService';
 import {
   PAWMATE_RIGHTS, PAWMATE_PRESETS, RIGHT_LABEL, ROLE_LABEL, matchPreset,
   listMyPawmates, addPawmateDog, setPawmateAccess, revokePawmate, revokeDogInvite,
@@ -360,7 +361,7 @@ export function PawmatesSection() {
                 className="shrink-0 flex items-center justify-center"
                 style={{
                   width: 30, height: 30, borderRadius: '50%', border: `1.5px solid ${T.cardEdge}`,
-                  background: d.photo ? `center/cover url('${d.photo}')` : T.tileBg,
+                  background: d.photo ? `center/cover url('${sizedUrl(d.photo, 96)}')` : T.tileBg,
                   fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, color: T.inkStrong,
                 }}
               >
@@ -640,7 +641,7 @@ function Avatar({ url, label, dim = false }: { url: string | null; label: string
       style={{
         width: 34, height: 34, borderRadius: '50%',
         border: `1.5px ${dim ? 'dashed' : 'solid'} ${dim ? T.border : T.cardEdge}`,
-        background: url ? `center/cover url('${url}')` : T.tileBg,
+        background: url ? `center/cover url('${sizedUrl(url, 102)}')` : T.tileBg,
         fontFamily: FONT_UI, fontWeight: 600, fontSize: 12, color: T.inkWarm,
       }}
     >

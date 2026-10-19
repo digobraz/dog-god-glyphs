@@ -15,6 +15,7 @@
 // ⚠️ Km sa čítajú z textu ich stránky; Mapy.com píšu medzi číslo a jednotku NEZALOMITEĽNÚ
 // medzeru (U+00A0). Bez jej nahradenia regex nenájde nič a všetko vyzerá ako chyba.
 
+import { setriCloudinary } from './setri-cloudinary.mjs';
 import { build } from 'esbuild';
 import { writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -50,7 +51,7 @@ await build({
 });
 const trails = (await import(pathToFileURL(bundle).href)).default;
 
-const browser = await chromium.launch();
+const browser = setriCloudinary(await chromium.launch());
 const res = [];
 const inBand = (r) => r != null && r <= MAX && r >= MIN;
 async function kmOf(url) {

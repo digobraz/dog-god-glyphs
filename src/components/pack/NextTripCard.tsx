@@ -20,6 +20,7 @@ import { readTriplist } from './triplist/triplist';
 import { PACK_THEME, PACK_BOX, FONT_UI, GOLD_BTN } from './packTheme';
 import { BrandIcon } from './BrandIcon';
 import { useT, useLang } from '@/i18n/LanguageContext';
+import { sizedUrl } from '@/services/cloudinaryService';
 
 const T = PACK_THEME;
 const DAY_MS = 86400000;
@@ -142,7 +143,7 @@ export function NextTripCard() {
           width: 92,
           height: 92,
           borderRadius: 10,
-          backgroundImage: trail.photos[0] ? `url('${trail.photos[0]}')` : undefined,
+          backgroundImage: trail.photos[0] ? `url('${sizedUrl(trail.photos[0], 276)}')` : undefined,
           backgroundColor: '#1a1a1a',
           backgroundSize: 'cover',
           backgroundPosition: 'center',

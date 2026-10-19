@@ -39,6 +39,7 @@ import {
   type AccessRow, type PawmateRight, type PawmateRights, type PawmateRole,
 } from '@/lib/pawmateRights';
 import type { HeroDog } from './HeroCard';
+import { sizedUrl } from '@/services/cloudinaryService';
 
 const T = PACK_THEME;
 
@@ -245,7 +246,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
             className="shrink-0 flex items-center justify-center"
             style={{
               width: 34, height: 34, borderRadius: '50%', border: `1.5px solid ${T.cardEdge}`,
-              background: d.cloudinary_main_url ? `center/cover url('${d.cloudinary_main_url}')` : T.tileBg,
+              background: d.cloudinary_main_url ? `center/cover url('${sizedUrl(d.cloudinary_main_url, 102)}')` : T.tileBg,
               fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, color: T.inkStrong,
             }}
           >
@@ -542,7 +543,7 @@ function Avatar({ url, label, dim = false }: { url: string | null; label: string
       style={{
         width: 34, height: 34, borderRadius: '50%',
         border: `1.5px ${dim ? 'dashed' : 'solid'} ${dim ? T.border : T.cardEdge}`,
-        background: url ? `center/cover url('${url}')` : T.tileBg,
+        background: url ? `center/cover url('${sizedUrl(url, 102)}')` : T.tileBg,
         fontFamily: FONT_UI, fontWeight: 600, fontSize: 12, color: T.inkWarm,
       }}
     >

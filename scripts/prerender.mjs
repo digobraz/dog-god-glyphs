@@ -26,6 +26,7 @@
  * ⚠️ Texty sa NEPÍŠU sem — berú sa z vykreslenej appky, takže zmena v i18n sa prejaví
  *    pri ďalšom builde sama.
  */
+import { setriCloudinary } from './setri-cloudinary.mjs';
 import { spawn } from 'node:child_process';
 import { readFileSync, writeFileSync, rmSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -257,7 +258,7 @@ async function main() {
   if (!base.includes('<div id="root"></div>')) throw new Error('dist/index.html nemá <div id="root"></div>');
   const fontsCss = readFileSync(resolve(DIST, 'fonts/g/fonts-v1.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
   await waitForServer();
-  const browser = await chromium.launch();
+  const browser = setriCloudinary(await chromium.launch());
   const t0 = Date.now();
   try {
     for (const page of PAGES.filter((p) => !p.dog)) {

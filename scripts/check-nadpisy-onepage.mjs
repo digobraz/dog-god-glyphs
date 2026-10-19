@@ -14,12 +14,13 @@
  *
  * Beh: dev server na 127.0.0.1:8080 · `npm run check:nadpisy`
  */
+import { setriCloudinary } from './setri-cloudinary.mjs';
 import { chromium } from 'playwright';
 const URL = process.env.ONEPAGE_URL || 'http://127.0.0.1:8080/onepage';
 const GOLD = 'rgb(110, 74, 18) 0%, rgb(163, 120, 43) 30%, rgb(216, 169, 63) 50%';
 const SKIP = /^(ph-l|line|sw-|op-nxt-cta|cb-|ph-no)/;
 const runs = [['sk', 1477, 724], ['en', 1477, 724], ['sk', 390, 844]];
-const b = await chromium.launch();
+const b = setriCloudinary(await chromium.launch());
 const bad = new Map();
 for (const [lang, w, h] of runs) {
   const ctx = await b.newContext({ viewport: { width: w, height: h } });

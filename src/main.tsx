@@ -9,6 +9,8 @@ import { scrubSecrets } from "./lib/packAnalytics";
 // sa vykreslí prvá obrazovka — obrazovky flow si store kopírujú do lokálneho
 // stavu pri prvom renderi. Telo modulu je celé za `import.meta.env.DEV`.
 import "./lib/devSeedApply";
+// Robot v DEVe (webdriver) dostane fotky z Cloudinary zmenšené — telo za `import.meta.env.DEV`.
+import "./lib/devUsporneFoto";
 
 // Opona v index.html sa podľa tohto času rozhoduje, či film zlyhal (poistka „film nie je 6 s po štarte“).
 (window as Window & { __appBooted?: number }).__appBooted = Date.now();

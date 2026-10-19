@@ -35,6 +35,7 @@
  *       STRAZ_SKUSKA=1                     do popupu členstva vráti nowrap — stráž MUSÍ zasvietiť
  * Výstup: 0 = čisté · 1 = nález (vypíše routu, jazyk, okno, popup, text) · 2 = stráž nebežala
  */
+import { setriCloudinary } from './setri-cloudinary.mjs';
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -289,7 +290,7 @@ const PARALEL = +(process.env.POPUPY_PARALEL || 4);
 const t0 = Date.now();
 let base;
 try { base = await ensureServer(); } catch (e) { console.log('✗ stráž nebežala: ' + e.message); process.exit(2); }
-const browser = await chromium.launch();
+const browser = setriCloudinary(await chromium.launch());
 const nalezy = [];
 let popupov = 0;
 for (const [w, h] of SIZES) {

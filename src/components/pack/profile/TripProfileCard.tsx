@@ -18,6 +18,7 @@ import {
   SMOKE_OPTIONS,
 } from './packProfile';
 import { useMemberProfile, memberToCentralProfile, memberDisplayName, memberAvatarUrl } from './memberProfile';
+import { sizedUrl } from '@/services/cloudinaryService';
 
 // ── Reálny člen partie (whitelist z get_trip_party — meno, pes, fotka, číslo) → props, ktoré
 // táto karta žiada (issue #41: „prepoužiť TripProfileCard, nestavať druhú").
@@ -166,7 +167,7 @@ export function TripProfileCard({
           }}
         >
           {hasAvatar ? (
-            <img src={effAvatar!} alt={effName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={sizedUrl(effAvatar!, 144)} alt={effName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             <span style={{ fontFamily: "'Cinzel', serif", fontSize: 18, fontWeight: 700, color: T.inkDim }}>
               {initial}
