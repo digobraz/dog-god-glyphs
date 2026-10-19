@@ -77,7 +77,7 @@ export function PageTopBar({
     return (
       <div
         className="flex-shrink-0 relative flex flex-col items-center justify-center gap-1 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[15px] md:pt-[25px]"
-        style={{ zIndex: 2 }}
+        style={{ zIndex: 2, marginTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <Link to="/" aria-label="WALL" className="flex-shrink-0 md:mb-1">
           {logo}
@@ -88,7 +88,9 @@ export function PageTopBar({
   }
 
   return (
-    <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-[25px]">
+    // Výrez telefónu (appka, PWA na ploche): MARGIN, nie padding — šípka a jazyk sú `absolute`
+    // od hornej hrany paddingu, padding by ich nechal pod hodinami. V prehliadači je inset 0.
+    <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-[25px]" style={{ marginTop: 'env(safe-area-inset-top, 0px)' }}>
       {onBack && (
         <button
           type="button"

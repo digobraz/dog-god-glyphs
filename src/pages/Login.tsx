@@ -8,6 +8,7 @@ import { FLOW_PALE_CSS } from "@/components/screens/flowPaleSkin";
 import { LAPIS, goldFrameCSS } from "@/components/pack/navGoldSkin";
 import { PACK_HEAD, PACK_SPACE, PACK_TEXT } from "@/components/pack/packTheme";
 import { LAB } from "@/lib/labTheme";
+import { IS_APP } from "@/lib/isApp";
 import { AINUBIS } from "@/components/pack/ainubisSkin";
 import ainubisEmblem from "@/assets/ainubis-head.webp";
 
@@ -585,7 +586,8 @@ export default function Login() {
           {/* Brána pre každého, kto sem príde bez heroglyfu (26. 9. 2026). Rovnaká
               pre všetkých — obrazovka nesmie prezradiť, či adresa u nás je; DOGS
               dostanú rozdiel mailom (`auth-no-account`, karta `no-account-dogs`). */}
-          {status === "missing" && !dogIdPresent && (
+          {/* Appka: nákup len na webe (Apple 3.1.1), odkaz na heroflow sa v nej neukazuje. */}
+          {status === "missing" && !dogIdPresent && !IS_APP && (
             <p className="lg-gate">
               {t('login.gate.line')}{' '}
               <Link to="/heroglyph/name">{t('login.gate.cta')}</Link>

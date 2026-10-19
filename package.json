@@ -20,10 +20,12 @@
     "check:nadpisy": "node scripts/check-nadpisy-onepage.mjs",
     "check:popupy": "node scripts/check-popupy.mjs",
     "app:sync": "npm run build && npx cap sync",
-    "app:android": "cd android && JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ./gradlew assembleDebug"
+    "app:android": "cd android && JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ./gradlew assembleDebug",
+    "app:ios": "cd ios/App && xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -derivedDataPath build CODE_SIGNING_ALLOWED=NO build"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
+    "@capacitor/browser": "^8.0.5",
     "@capacitor/core": "^8.5.3",
     "@capacitor/ios": "^8.5.3",
     "@mapbox/vector-tile": "^2.0.5",

@@ -12,7 +12,9 @@
       (function () {
         try {
           var C = window.Capacitor;
-          if (C && C.isNativePlatform && C.isNativePlatform() && /^\/?$/.test(location.pathname)) history.replaceState(null, '', '/pack');
+          if (!C || !C.isNativePlatform || !C.isNativePlatform()) return;
+          document.documentElement.classList.add('is-app'); // CSS: odkazy na nákup v appke skryté (index.css)
+          if (/^\/?$/.test(location.pathname)) history.replaceState(null, '', '/pack');
         } catch (e) {}
       })();
     </script>

@@ -26,6 +26,7 @@ import { NEW_HEROFLOW } from "@/lib/flowMode";
 // toast ani lišta nečakajú — len neblokujú.
 const Sonner = lazy(() => import("@/components/ui/sonner").then((m) => ({ default: m.Toaster })));
 const Toaster = lazy(() => import("@/components/ui/toaster").then((m) => ({ default: m.Toaster })));
+import { AppRouteGuard } from "@/components/AppRouteGuard";
 const ConsentBanner = lazy(() => import("@/components/ConsentBanner").then((m) => ({ default: m.ConsentBanner })));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 // DevNav (celé Radix menu) sa na dogypt.com nikdy neukáže — kúsok sa stiahne len tam, kde sa
@@ -324,6 +325,7 @@ const App = () => (
       </Suspense>
       <BrowserRouter>
         <RefCapture />
+        <AppRouteGuard />
         <OnPackDeletionGate />
         <Suspense fallback={null}>
           <ConsentBanner />

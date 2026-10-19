@@ -389,3 +389,8 @@ body {
   filter: drop-shadow(0 0 18px rgba(201, 154, 63, 0.45))
           drop-shadow(0 0 40px rgba(229, 193, 110, 0.25));
 }
+
+/* APPKA (Capacitor, 19. 10. 2026): v appke sa NEKUPUJE (Apple 3.1.1). Každý odkaz na nákup
+   zmizne jedným pravidlom, nie výnimkou na každom mieste. Triedu `is-app` dáva index.html,
+   programové navigácie chytá `AppRouteGuard.tsx`. */
+html.is-app a[href^="/heroglyph"] { display: none !important; }

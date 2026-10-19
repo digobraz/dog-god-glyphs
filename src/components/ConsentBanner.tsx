@@ -6,6 +6,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
+import { IS_APP } from '@/lib/isApp';
 import { useLocation } from 'react-router-dom';
 import { HandArrowLeftIcon as HandArrowLeft } from '@/components/pack/handArrowLeft';
 import { useT } from '@/i18n/LanguageContext';
@@ -125,7 +126,8 @@ export function ConsentBanner() {
     return () => document.removeEventListener('mousedown', onDown);
   }, [menuOpen]);
 
-  if (isRenderRoute || !visible || !armed || CHATA_NAHLAD) return null;   // náhľad chaty = pohľad člena, ktorý už súhlasil
+  // Appka: lišta sa neukazuje, súhlas ostáva „denied“ (žiadne sledovanie ⇒ ani Apple ATT) — 19. 10. 2026.
+  if (isRenderRoute || !visible || !armed || CHATA_NAHLAD || IS_APP) return null;   // náhľad chaty = pohľad člena, ktorý už súhlasil
 
   const handleAcceptAll = () => {
     saveConsent({ analytics: true, marketing: true });
