@@ -98,6 +98,8 @@ export function DevNav() {
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
     const isDev = import.meta.env.DEV;
+    // Natívna appka (Capacitor) beží na `localhost` — bez tejto vetvy by člen v appke videl Dev nav.
+    if ((window as Window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.()) return null;
     const isLovable = host.endsWith("lovable.app") || host === "localhost" || host === "127.0.0.1";
     if (!isDev && !isLovable) return null;
   }
