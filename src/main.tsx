@@ -6,6 +6,9 @@ import { initAnalytics } from "./lib/analytics";
 import { startEarlyGridDogs } from "./lib/earlyFetch";
 import { scrubSecrets } from "./lib/packAnalytics";
 import { startAppUpdate } from "./lib/appUpdate";
+import { startAppLinks } from "./lib/appLinks";
+import { restoreAppSession } from "./lib/appSession";
+import { startAppPush } from "./lib/appPush";
 // Testovacie dáta z dielne vstupu (`/lab/heroflow`) musia byť v store SKÔR, než
 // sa vykreslí prvá obrazovka — obrazovky flow si store kopírujú do lokálneho
 // stavu pri prvom renderi. Telo modulu je celé za `import.meta.env.DEV`.
@@ -18,6 +21,12 @@ import "./lib/devUsporneFoto";
 
 // Appka si stiahne verziu, ktorá je práve na dogypt.com (lib/appUpdate.ts). Na webe nič.
 startAppUpdate();
+
+// Odkazy mimo /pack (stena, DOGMA, externé URL) idú v appke do systémového prehliadača (lib/appLinks.ts). Na webe nič.
+startAppLinks();
+
+// Push: po prihlásení uloží token zariadenia (lib/appPush.ts), ak člen povolil upozornenia. Na webe nič.
+startAppPush();
 
 // ── STARÁ ZÁLOŽKA PO DEPLOYI (5. 10. 2026, test po FLIPe) ─────────────────────
 // Každý deploy zmení hashe chunkov. Záložka otvorená pred deployom pri lazy navigácii
@@ -82,6 +91,7 @@ document.querySelectorAll<HTMLLinkElement>('link[data-late-fonts]').forEach((l) 
 // Pád chunku nesmie zhodiť appku — vtedy ide render hneď a `t()` padne na EN.
 // Texty appky (pack.*) sú vlastný kus — v appke ich treba hneď, nech sa ťahajú súbežne s kódom.
 if (/^\/(pack|login|admin)(\/|$)/.test(location.pathname)) void ensurePackDict();
-preloadActiveLang().catch(() => {}).finally(() => {
+// V appke sa session z natívneho úložiska vráti do localStorage PRED renderom (lib/appSession.ts); na webe hneď.
+Promise.all([preloadActiveLang().catch(() => {}), restoreAppSession()]).finally(() => {
   createRoot(document.getElementById("root")!).render(<App />);
 });

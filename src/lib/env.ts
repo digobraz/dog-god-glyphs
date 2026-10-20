@@ -22,6 +22,8 @@
 // SUPABASE_ANON_KEY from here instead. `scripts/go-live.sh` fails the preflight
 // if a new direct reader shows up.
 
+import { IS_APP } from './isApp';
+
 const LIVE_SUPABASE_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co';
 const LIVE_SUPABASE_ANON_KEY =
   'sb_publishable_2EpGAhvdqN36MrQkXqAxEg_nXG4Rs3r';
@@ -88,7 +90,7 @@ export const MAPY_API_KEY = 'GoBI7Tac9Hjr0cCbkAiUl28bZyrPYz_ZHb90sFkTCG0';
 /**
  * ZÁKLAD VOLANÍ MAPY.COM — v prehliadači sa NEPÍŠE natvrdo, berie sa odtiaľto.
  *
- * Prod: priamo `https://api.mapy.com` (referrer = dogypt.com, teda vo whiteliste).
+ * Appka: `https://dogypt.com/mapyapi` (Worker dosadí Referer). Prod web: priamo `https://api.mapy.com` (referrer = dogypt.com, teda vo whiteliste).
  * Dev:  vlastný pôvod `/mapyapi`, kde Vite proxy dosadí `Referer: https://dogypt.com/`
  *       (vite.config.ts). Bez toho dostane 403 každý dev náhľad mimo localhostu —
  *       mobil cez cloudflared tunel aj telefón na LAN IP — a mapa ostane prázdna.
@@ -96,7 +98,10 @@ export const MAPY_API_KEY = 'GoBI7Tac9Hjr0cCbkAiUl28bZyrPYz_ZHb90sFkTCG0';
  * ⚠️ Nové volanie na api.mapy.com píš cez `MAPY_BASE`, nie reťazcom. Natvrdo napísaná
  * adresa funguje na tvojom localhoste a padne až na Matejovom telefóne.
  */
-export const MAPY_BASE = import.meta.env.DEV ? '/mapyapi' : 'https://api.mapy.com';
+export const MAPY_BASE = import.meta.env.DEV
+  ? '/mapyapi'
+  // Appka beží na capacitor://localhost, mimo referrer-locku kľúča ⇒ cez proxy Workera (scripts/cloudflare/worker.js).
+  : IS_APP ? 'https://dogypt.com/mapyapi' : 'https://api.mapy.com';
 
 export const mapyTiles = (style: string = 'outdoor') =>
   `${MAPY_BASE}/v1/maptiles/${style}/256/{z}/{x}/{y}?apikey=${MAPY_API_KEY}`;
