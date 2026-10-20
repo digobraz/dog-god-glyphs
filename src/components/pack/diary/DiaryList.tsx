@@ -116,6 +116,10 @@ export const DIARY_LIST_CSS = `
 .dl-dog{font-family:${FONT_UI};font-weight:500;color:${T.inkWarm}}
 .dl-text{white-space:pre-wrap;overflow-wrap:anywhere;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;
   line-height:1.55;color:${T.inkStrong};margin:${PACK_SPACE.sm}px 0 0}
-/* Fotka na PC nesmie byť plagát cez 832 px stĺpec — strop 560, na mobile celá šírka. */
-.dl-photo{margin-top:${PACK_SPACE.md}px;width:100%;max-width:560px;aspect-ratio:4/3}
+/* Fotka na PC nesmie byť plagát cez 832 px stĺpec — strop 560, na mobile celá šírka.
+   POMER FOTKY, NIE RÁMU (20. 10. 2026): rám 4:3 + cover nechal z fotky na výšku len pás
+   v strede — Alenka: „ukazuje ich odrezané". Výška má strop, aby fotka na výšku
+   nezabrala celé okno; obraz sa vtedy zúži, neoreže. */
+.dl-photo{margin-top:${PACK_SPACE.md}px;width:fit-content;max-width:min(100%, 560px)}
+.pk-photo.dl-photo > img{width:auto;max-width:100%;height:auto;max-height:min(70vh, 560px);object-fit:contain}
 `;
