@@ -1,0 +1,22 @@
+{
+	"appId": "com.dogypt.app",
+	"appName": "DOGYPT",
+	"webDir": "dist-appdev",
+	"android": {
+		"allowMixedContent": false
+	},
+	"plugins": {
+		"CapacitorUpdater": {
+			"autoUpdate": false,
+			"updateUrl": "",
+			"statsUrl": "",
+			"channelUrl": "",
+			"appReadyTimeout": 10000,
+			"resetWhenUpdate": true
+		}
+	},
+	"packageClassList": [
+		"CAPBrowserPlugin",
+		"CapacitorUpdaterPlugin"
+	]
+}

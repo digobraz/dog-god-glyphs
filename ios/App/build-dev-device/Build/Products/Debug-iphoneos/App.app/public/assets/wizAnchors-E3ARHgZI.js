@@ -1,0 +1,1 @@
+const a={hero:"wiz-hero",dogsRow:"wiz-dogs-row",gateways:"wiz-gateways",globe:"wiz-globe",navMap:"wiz-nav-map",navAdd:"wiz-nav-add",navAinubis:"wiz-nav-ainubis",navMe:"wiz-nav-me",tlWant:"wiz-tl-want",tlWish:"wiz-tl-wish"},n=[a.navMap,a.navAdd,a.navAinubis,a.navMe];export{a as W,n as a};

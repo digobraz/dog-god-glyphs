@@ -1,0 +1,114 @@
+import{u as ge,f as ue,l as xe,r as n,m as ye,g as ne,h as be,j as t,k as ee,L as ve,E as ae}from"./index-B-BQrD2y.js";import{c as ke,a as Ne}from"./flowPaleSkin-DiO04FM5.js";import{F as je,a as Se}from"./flowMedallion-C0D5Rshd.js";import{F as Ee,a as te,R as V,L as ie}from"./flowIntro-DAI6pBiQ.js";import{L as M}from"./labTheme-p7t_6k9Y.js";import{h as ze}from"./hekthorFaces-myd4lVXL.js";import{r as Ae}from"./flowSvorka-DPpnj6B8.js";import{f as Ce}from"./cloudinaryService-BTfH_t1m.js";import{C as Re}from"./CertificateCard-C8xgx-fG.js";import{b as Me}from"./heroglyphCode-DgTlYZEU.js";import{V as $e}from"./VerticalHeroglyphFrame-DrrTm4Vo.js";import{H as Le}from"./HeroglyphFrame-DJBThHMB.js";import{S as Pe}from"./ShareCard-jVQIXiXn.js";import{u as Te}from"./usePostPaymentPipeline-CDhg0RqV.js";import{A as _e}from"./index-C2vp2UEa.js";import{m as b}from"./proxy-wes7Zgjy.js";import"./initialLetter-CIe-_dtl.js";import"./breeds-DONRU28-.js";import"./CHARACTER-CHILLER-UcQ8Gv72.js";import"./CHARACTER-ENERGIZER-e0LiHRfk.js";import"./CHARACTER-GOURMET-D0Ns93ty.js";import"./CHARACTER-GUARDIAN-DUFYOjrr.js";import"./CHARACTER-LOVER-PeZ6v7_e.js";import"./CHARACTER-MAVERICK-DaKNfp4i.js";import"./CHARACTER-PLAYER-Cv1vUfcU.js";import"./CHARACTER-RFO-w_ZC5-nn.js";import"./CHARACTER-WATERLOVER-B6ix-Wlz.js";import"./GENDER-MALE-DcyfdHIN.js";import"./GENDER-FEMALE-Bbyjxaoq.js";import"./FATE-RAISED-m5ZO38w0.js";import"./FATE-RESCUED-D0h9ByAq.js";import"./BLOODLINE-ARISTOCRAT-_Uucp9f9.js";import"./BLOODLINE-MUTT-DfoS7KKB.js";import"./COLOUR-BRIGHT-DvaA4eCm.js";import"./COLOUR-DARK-BlAZbDm2.js";import"./COLOUR-MIX-WuPNuPYD.js";import"./OWNER_GENDER-MAN-B9duPXmd.js";import"./OWNER_GENDER-WOMAN-z3EQ9N_g.js";import"./ZODIAC-ARIES-C9pY2Rx3.js";import"./ZODIAC-TAURUS-wdwvU9TU.js";import"./ZODIAC-GEMINI-CeW_zldN.js";import"./ZODIAC-CANCER-BMg4qQVW.js";import"./ZODIAC-LEO-BrvZ2Hjv.js";import"./ZODIAC-VIRGO-DWSZHfWD.js";import"./ZODIAC-LIBRA-BgVebAYs.js";import"./ZODIAC-SCORPIO-C2amOb2J.js";import"./ZODIAC-SAGITTARIUS-CEWZMcV8.js";import"./ZODIAC-CAPRICORN-Br8jlJqq.js";import"./ZODIAC-AQUARIUS-BRjMHGux.js";import"./ZODIAC-PISCES-CVyT2dT_.js";import"./CHINESE_SIGN-SNAKE-C_ppGPED.js";import"./CHINESE_SIGN-DOG-BLwMUyg_.js";import"./CHINESE_SIGN-TIGER-CM4HzC0V.js";import"./CHINESE_SIGN-HORN-C1WFGP88.js";import"./CHINESE_SIGN-DRAGON-BEc5T1Vw.js";import"./CHINESE_SIGN-ROASTER-BwTdB0ja.js";import"./CHINESE_SIGN-PIG-quF3LJWH.js";import"./CHINESE_SIGN-HORSE-CBI88jZ7.js";import"./CHINESE_SIGN-RAT-_J568EOC.js";import"./CHINESE_SIGN-RABBIT-BxNFX4U8.js";import"./CHINESE_SIGN-APE-ACZWgzNY.js";import"./CHINESE_SIGN-GOAT-lVxgLA4O.js";import"./NAME_-A-CxCBvfll.js";import"./NAME_-B-DWBBi8k1.js";import"./NAME_-C-BzOSvku6.js";import"./NAME_-D-PVbH8kR0.js";import"./NAME_-E-BelzD26R.js";import"./NAME_-F-BOKzGx8e.js";import"./NAME_-G-CWRIGcR1.js";import"./NAME_-H-Ca6CDV1_.js";import"./NAME_-I-DeuCMfiF.js";import"./NAME_-J-rFyWiX9b.js";import"./NAME_-K-BPXs4vaM.js";import"./NAME_-L-DlsvF78H.js";import"./NAME_-M-D67o1OWP.js";import"./NAME_-N-ChbzOf7p.js";import"./NAME_-O-31CuF2mF.js";import"./NAME_-P-CqKuakQj.js";import"./NAME-Q-DE-SnzNJ.js";import"./NAME_-R-B1xiJjUT.js";import"./NAME-S-BlJoS2lw.js";import"./NAME-T-CjbJs43h.js";import"./NAME-U-CKD4QISs.js";import"./NAME-V-CB3zjSTX.js";import"./NAME-W-DgkLP-j9.js";import"./NAME-X-Bs7a9JdW.js";import"./NAME-Y-CuVYsfBq.js";import"./NAME-Z-CLALdEIT.js";import"./NUMBER-11-BoEzuCvn.js";import"./countryGeo-BaPfaSrG.js";import"./flagUrl-B21iQI9I.js";import"./index-xVp0PEHv.js";const De=1400;function Oe(i){const h=ne(),A=n.useMemo(()=>Ae().map((k,m)=>({id:k.flowId,name:k.dogName||"",photo:k.photo||"",n:i?null:73+m,glyph:""})),[]),[f,a]=n.useState(A),[j,v]=n.useState(h.ownerName||""),[s,l]=n.useState(h.email||""),[S,g]=n.useState(null),[z,d]=n.useState(!1);return n.useEffect(()=>{if(!i)return;let c=!0;const k=[1e3,2e3,4e3,8e3,15e3],m=async u=>{try{const E=await fetch(`${ae}/get-session-data?session_id=${i}`);if(!E.ok)throw new Error(`HTTP ${E.status}`);const w=await E.json();if(!w.dogName)throw new Error("empty session data");if(!c)return;g(w),v(w.ownerName||""),l(w.email||"");const C=Array.isArray(w.dogs)&&w.dogs.length?w.dogs.map(r=>({id:String(r.id),name:String(r.dogName||""),photo:String(r.dogPhotoUrl||""),n:typeof r.packNumber=="number"?r.packNumber:null,glyph:String(r.heroglyphPngUrl||""),selections:r.selections||void 0,patronSvg:String(r.patronSvg||"")})):[{id:"main",name:w.dogName,photo:w.dogPhotoUrl||"",n:typeof w.packNumber=="number"?w.packNumber:null,glyph:""}];a(C),C.some(r=>r.n==null)&&u<k.length?setTimeout(()=>{c&&m(u+1)},k[u]):d(!0)}catch(E){if(!c)return;u<k.length?setTimeout(()=>{c&&m(u+1)},k[u]):(console.error("[flow-welcome] get-session-data failed:",E),d(!0))}};return m(0),()=>{c=!1}},[i]),{dogs:f,owner:j,email:s,session:S,settled:z}}function Fe(i,h,A=!1){const[f,a]=n.useState(null);return n.useEffect(()=>{if(i==null)return;let j=!0;return fetch(`${ae}/get-grid-dogs?tiers=all`).then(v=>v.ok?v.json():[]).then(v=>{if(!j)return;const s=v.filter(l=>l.pack_number!=null&&l.pack_number<i).sort((l,S)=>l.pack_number-S.pack_number).slice(-h).map(l=>({n:l.pack_number,name:l.dog_name||"",photo:l.cloudinary_main_url||""}));if(s.length<h&&!s.some(l=>l.n===1)&&s.unshift({n:1,name:"HEKTHOR",photo:"/images/hektor-grid.webp"}),A&&s.length<h){const l=["BRUNO","LUNA","MAX","BELLA","ROCKY","NELA","ARGO","KIRA","BOBO","DAISY","RÉX","MIA"],S=new Set(s.map(d=>d.n)),g=[];for(let d=i-1;d>1&&g.length+s.length<h;d--)S.has(d)||g.unshift({n:d,name:l[d%l.length],photo:""});const z=[...s,...g].sort((d,c)=>d.n-c.n).slice(-h);a(z);return}a(s)}).catch(()=>{j&&a([])}),()=>{j=!1}},[i,h,A]),f}const Ue=i=>i?Ce(i,96,96)||i:"",oe=({src:i})=>t.jsx("span",{className:"wl-ph",children:i&&t.jsx("img",{src:Ue(i),alt:"",onError:h=>{h.currentTarget.style.display="none"}})});function zi(){var Q;const i=ge(),h=ue(),[A]=xe(),f=A.get("session_id"),{dogs:a,owner:j,email:v,session:s,settled:l}=Oe(f),S=typeof window<"u"&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,[g,z]=n.useState(S?"rank":"hero"),c=[(j||"").trim().split(/\s+/)[0]||"",...a.map(e=>e.name)].filter(Boolean),k=i("heroglyph.flow.welcomeNew.and"),m=i("heroglyph.flow.welcomeNew.hi"),u=(c.length>1?`${c.slice(0,-1).join(i("heroglyph.flow.listSep"))}${k}${c[c.length-1]}`:c[0]||"")+"!",E=Math.min(4200,Math.round((V+(m+u).length*ie+1.6)*1e3));n.useEffect(()=>{if(g!=="hero")return;const e=window.setTimeout(()=>z("rank"),E);return()=>window.clearTimeout(e)},[g,E]);const w=n.useMemo(()=>{if(typeof window>"u")return 240;const e=Math.min(window.innerWidth,640)*.72,o=window.innerHeight*.4;return Math.round(Math.max(148,Math.min(320,Math.min(e,o))))},[]),C=((Q=a[0])==null?void 0:Q.n)??null,r=Fe(C,12,!1),re=n.useMemo(()=>{if(typeof window>"u")return 4;const e=window.innerWidth<=600,o=e?56:64,p=(a.length>=4?e?56:60:e?64:72)*a.length;return Math.max(1,Math.min(10,Math.floor((window.innerHeight*.5-p)/o)))},[a.length]),G=n.useRef(null),[se,T]=n.useState(0),[_,D]=n.useState(0),P=Math.max(0,Math.min((r==null?void 0:r.length)??0,re)-se);n.useLayoutEffect(()=>{if(g!=="rank"||r==null)return;const e=G.current;!e||e.scrollHeight-e.clientHeight<=1||(P>1?T(o=>o+1):_<2?D(o=>o+1):P>0?T(o=>o+1):_<3&&D(3))}),n.useEffect(()=>{const e=()=>{T(0),D(0)};return window.addEventListener("resize",e),()=>window.removeEventListener("resize",e)},[]);const[J,le]=n.useState(!1),[N,pe]=n.useState(!1);n.useEffect(()=>{if(g!=="rank"||r==null)return;const e=window.setTimeout(()=>le(!0),400+r.length*180),o=window.setTimeout(()=>pe(!0),400+r.length*180+1500);return()=>{window.clearTimeout(e),window.clearTimeout(o)}},[g,r]);const[O,ce]=n.useState({}),[me,he]=n.useState({}),[F,U]=n.useState(0),K=(s==null?void 0:s.selections)||{};n.useEffect(()=>{if(!s)return;ye();const e=ne.getState(),o=s;o.dogName&&e.dogName!==o.dogName&&e.setDogName(o.dogName),o.ownerName&&e.ownerName!==o.ownerName&&e.setOwnerName(o.ownerName),o.dogPhotoUrl&&e.dogPhotoUrl!==o.dogPhotoUrl&&e.setDogPhotoUrl(o.dogPhotoUrl),o.patronSvg&&e.patronSvg!==o.patronSvg&&e.setPatronSvg(o.patronSvg),Object.entries(K).forEach(([p,R])=>{typeof R=="string"&&e.setSelection(p,R)})},[s]);const H=!!f&&(!!s&&a.every(e=>e.n!=null)||l),x=H?a[F]:void 0;n.useEffect(()=>{x&&x.n==null&&U(e=>e+1)},[x]),n.useEffect(()=>{if(!x)return;const e=x.id,o=window.setTimeout(()=>U(p=>{var R;return((R=a[p])==null?void 0:R.id)===e?p+1:p}),25e3);return()=>window.clearTimeout(o)},[x]),a[0]&&O[a[0].id];const q=C!=null||l,I=!f||H&&F>=a.length,[y,de]=n.useState(0);n.useEffect(()=>{if(!N)return;const e=[!0,q,I,!0][y]??!0;if(y>=4||!e)return;const o=window.setTimeout(()=>de(p=>p===2?4:p+1),y===0?200:De);return()=>window.clearTimeout(o)},[N,y,q,I]);const Y=n.useRef(!1);n.useEffect(()=>{Y.current||!f||C==null||(Y.current=!0,be("purchase_completed",{pack_number:C,dogs:a.length}))},[f,C,a.length]);const X=()=>{const[e,...o]=a;if(!e)return h("/");const p=new URLSearchParams({reveal:"true",dogName:e.name,packNumber:String(e.n??0)});e.photo&&p.set("photoUrl",e.photo);const R=O[e.id]||e.glyph||"";R&&p.set("heroglyphUrl",R);const Z=me[e.id]||"";Z&&p.set("heroglyphVUrl",Z),o.length&&p.set("queue",JSON.stringify(o.map(L=>({n:L.n??0,name:L.name,photo:L.photo,glyph:O[L.id]||L.glyph})))),h(`/wall?${p.toString()}`)},[$,we]=n.useState(!1),W=I;n.useEffect(()=>{$&&W&&X()},[$,W]);const B=a.reduce((e,o)=>Math.max(e,o.n??0),0),fe=Math.max(2,Math.min(100,B/1e6*100));return t.jsxs("div",{className:"hf-pale flex flex-col h-[100dvh] overflow-hidden",children:[t.jsxs("style",{children:[ke,Ne,je,Ee,Ie]}),t.jsx("div",{className:`hf-stage wl-page wl-tight-${_}`,ref:G,children:t.jsx("div",{className:"w-full max-w-xl flex flex-col items-center",children:t.jsx(_e,{mode:"wait",children:g==="hero"?t.jsxs(b.button,{type:"button",className:"wl-hero",onClick:()=>z("rank"),initial:{opacity:0,y:8},animate:{opacity:1,y:0},exit:{opacity:0,scale:.96,y:-16},transition:{duration:.4},children:[t.jsx("span",{className:"hf-medin",children:t.jsx(Se,{src:ze("welcome"),size:w,className:"hf-medal"})}),t.jsxs("span",{className:"wl-hero-h",children:[t.jsx(te,{text:m,from:V}),t.jsx("span",{className:"wl-br","aria-hidden":!0}),t.jsx(te,{text:u,from:V+m.length*ie,bold:!0})]})]},"hero"):t.jsxs(b.div,{className:"hf-block hf-carved wl-stack",initial:{opacity:0,y:16},animate:{opacity:1,y:0},transition:{duration:.4},children:[t.jsx("span",{className:"hf-carved-rim","aria-hidden":!0}),t.jsxs("div",{className:"hf-plate",children:[t.jsxs("div",{className:"wl-rank",children:[t.jsx("div",{className:"wl-prev",children:(r??[]).slice(r&&P?-P:(r==null?void 0:r.length)??0).map((e,o)=>t.jsxs(b.div,{className:`wl-row is-prev${J?" is-blur":""}`,initial:{opacity:0,y:64},animate:{opacity:1,y:0},transition:{delay:.15+o*.18,duration:.45,ease:"easeOut"},children:[t.jsx(oe,{src:e.photo}),t.jsx("span",{className:"wl-name",children:e.name}),t.jsxs("span",{className:"wl-num",children:["#",e.n]})]},`p${e.n}`))}),J&&a.map((e,o)=>t.jsxs(b.div,{className:`wl-row is-new${N?" is-joined":""}${a.length>=4?" is-many":""}`,initial:{opacity:0,scale:1.18,y:24},animate:N?{opacity:1,scale:1,y:0}:{opacity:1,scale:1.12,y:0},transition:{delay:N?0:o*.35,duration:.6,ease:[.2,.8,.3,1]},children:[t.jsx(oe,{src:e.photo}),t.jsx("span",{className:"wl-name",children:e.name}),t.jsx("span",{className:"wl-num",children:e.n!=null?`#${e.n}`:"#…"})]},`n${e.id}`))]}),t.jsxs("div",{className:"wl-foot",children:[t.jsxs("div",{className:"wl-foot-top",children:[t.jsxs("div",{className:"wl-lines","aria-live":"polite",children:[y>=1&&y<3&&t.jsx(b.p,{className:"wl-line",initial:{opacity:0,y:6},animate:{opacity:1,y:0},children:i("heroglyph.flow.welcomeNew.l1")}),y===2&&t.jsxs(b.p,{className:"wl-line",initial:{opacity:0,y:6},animate:{opacity:1,y:0},children:[i("heroglyph.flow.welcomeNew.l2"),a.length>1&&H?` ${Math.min(F+1,a.length)}/${a.length}`:""]}),y>=4&&t.jsx(b.p,{className:"wl-thanks",initial:{opacity:0,y:6},animate:{opacity:1,y:0},transition:{duration:.5},children:i("heroglyph.flow.welcomeNew.l4")})]}),t.jsxs(b.div,{className:"wl-goal",initial:!1,animate:{opacity:y>=4?1:0},transition:{delay:.4},children:[t.jsx("div",{className:"wl-bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":1e6,"aria-valuenow":B,children:t.jsx(b.span,{initial:{width:0},animate:{width:y>=4?`${fe}%`:0},transition:{delay:.6,duration:1.2,ease:"easeOut"}})}),t.jsx("span",{className:"wl-goal-t",children:i("heroglyph.flow.welcomeNew.goal",{n:B.toLocaleString("sk-SK")})})]})]}),t.jsx(b.p,{className:"hf-legend wl-rule","aria-hidden":!0,initial:!1,animate:{opacity:y>=4?1:0},transition:{delay:.9,duration:.5}}),t.jsxs(b.div,{className:"wl-seal",initial:!1,animate:{opacity:y>=4?1:0,scale:y>=4?1:.9},transition:{delay:1.1,duration:.5},children:[t.jsx("img",{src:"/images/peciat-dogypt-360.webp",alt:"","aria-hidden":!0}),t.jsx("span",{className:"wl-motto",children:i("religion.book.trust")})]}),N&&t.jsxs(b.p,{className:"wl-mail",initial:{opacity:0,y:6},animate:{opacity:1,y:0},transition:{delay:.3,duration:.4},children:[t.jsx("b",{children:i("heroglyph.flow.welcomeNew.mail")}),v&&t.jsx("span",{className:"wl-mail-addr",children:v}),t.jsx("span",{children:i("heroglyph.flow.welcomeNew.mailBtn")})]}),t.jsx(b.button,{type:"button",className:"hf-cta wl-cta",onClick:()=>W?X():we(!0),disabled:!N||$,"aria-busy":$,initial:!1,animate:{opacity:N?1:0,y:N?0:8},transition:{delay:N?.3:0,duration:.4},style:{visibility:N?"visible":"hidden"},children:i($?"heroglyph.flow.welcomeNew.ctaWait":"heroglyph.flow.welcomeNew.cta")})]})]})]},"rank")})})}),x&&x.n!=null&&t.jsx(He,{dog:x,sessionId:f,email:v,owner:j,fallbackSelections:K,fallbackPatron:String((s==null?void 0:s.patronSvg)||""),onGlyph:e=>ce(o=>({...o,[x.id]:e})),onGlyphV:e=>he(o=>({...o,[x.id]:e})),onDone:()=>{const e=x.id;U(o=>{var p;return((p=a[o])==null?void 0:p.id)===e?o+1:o})}},x.id)]})}function He({dog:i,sessionId:h,email:A,owner:f,fallbackSelections:a,fallbackPatron:j,onGlyph:v,onGlyphV:s,onDone:l}){const S=n.useRef(null),g=n.useRef(null),z=n.useRef(null),d=n.useRef(null),[c,k]=n.useState(""),m=i.selections&&Object.keys(i.selections).length?i.selections:a,u=i.patronSvg||j,E=/^[0-9a-f-]{36}$/i.test(i.id)?i.id:void 0;return Te({email:A,dogName:i.name,ownerName:f,dogPhotoUrl:i.photo,sessionId:h,packNumber:i.n,certRef:S,verticalRef:g,horizontalRef:z,shareRef:d,dogId:E,onHeroglyphReady:w=>{k(w),v(w)},onHeroglyphVReady:s,onDone:()=>l()}),t.jsxs("div",{"aria-hidden":"true",translate:"no",className:"notranslate",style:{position:"fixed",left:-1e4,top:0,pointerEvents:"none",opacity:1},children:[t.jsx("div",{ref:S,children:t.jsx(Re,{dogName:i.name,ownerName:f,photoUrl:i.photo,heroglyphCode:Me({dogName:i.name,ownerName:f,patronSvg:u,breed:m.breed,patronCategory:m.patronCategory,country:m.country||m.ownerCountry,selections:m}),certNumber:i.n!=null?`#${i.n}`:"",issuedDate:new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})})}),t.jsx("div",{ref:g,style:{width:800,height:1131,background:"transparent",color:"#000"},children:t.jsx($e,{data:{selections:m,ownerName:f,patronSvg:u}})}),t.jsx("div",{ref:z,style:{width:1200,height:321,background:"transparent",color:"#000"},children:t.jsx(Le,{showOwner:!0,dogValues:{...m,patronSvg:u}})}),t.jsx("div",{ref:d,children:c&&i.n!=null&&t.jsx(Pe,{packNumber:i.n,dogName:i.name,photoUrl:i.photo,heroglyphUrl:c})})]})}const Ie=`
+/* ── HEKTOR — veľká bublina ako príchod ODHALENIA ── */
+.wl-hero {
+  width: 100%; container-type: inline-size; cursor: pointer; border: none;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  padding: 32px 16px; border-radius: 16px; text-align: center;
+  background: var(--brand-gradient); color: #FAF4EC;
+}
+.wl-hero-h { font-family: 'Cinzel', serif; font-weight: 700; line-height: 1.25; font-size: clamp(20px, min(7cqw, 4.4dvh), 32px); }
+.wl-br { display: block; height: 0; }
+
+/* ── PORADIE — doska na celú výšku, poradie berie zvyšok ── */
+.wl-stack { width: 100%; margin-top: 0; display: flex; flex-direction: column; min-height: min(calc(100dvh - 32px), 900px); }
+@media (min-width: 768px) { .wl-stack { min-height: min(calc(100dvh - 48px), 900px); } }
+.wl-stack .hf-plate { gap: 16px; flex: 1; min-height: 0; }
+.wl-rank {
+  flex: none;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 0 4px 12px;
+}
+.wl-prev {
+  overflow: hidden;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding-top: 8px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 56px);
+          mask-image: linear-gradient(to bottom, transparent 0, #000 56px);
+}
+.wl-row { flex: none; }
+.wl-foot { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 16px; }
+.wl-foot-top { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.wl-rule { gap: 0; }
+.wl-seal { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.wl-seal img { width: clamp(72px, 18dvh, 160px); height: auto; aspect-ratio: 1; object-fit: contain; transform: rotate(-5deg); filter: drop-shadow(0 6px 12px rgba(60, 40, 10, 0.35)); }
+.wl-motto { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; color: ${M.goldInk}; }
+.wl-row {
+  display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 12px;
+  height: 56px; padding: 0 16px 0 8px; border-radius: ${ee.pill}px;
+  border: 1.5px solid rgba(120, 86, 26, 0.45); background: rgba(255, 250, 238, 0.55);
+  font-family: 'Space Grotesk', sans-serif; color: ${M.ink};
+  transition: filter .6s ease, opacity .6s ease;
+}
+.wl-row.is-prev.is-blur { filter: blur(1.6px); opacity: .5; }
+.wl-ph { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: rgba(120, 86, 26, 0.18); }
+.wl-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wl-name { font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wl-num { font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; letter-spacing: .04em; }
+/* NOVÝ PES: zažiari, zapulzuje, zaradí sa — a ŽIARI ĎALEJ, kým sa neťukne na CTA
+   (Matej 26. 9.: *„musí mať krajšiu a výraznejšiu animáciu… aj v kľudnom stave"*).
+   Tri vrstvy: pulzujúca zlatá žiara (box-shadow) · lesk, ktorý prebehne blokom ·
+   rám, ktorý dýcha medzi brandovou zlatou a svetlou. */
+.wl-row.is-new {
+  position: relative; overflow: hidden;
+  height: 64px; grid-template-columns: 48px 1fr auto;
+  background: #FFFBF1; border: 2px solid #C99A3F;
+  animation: wl-pulse 1s ease-in-out infinite;
+}
+.wl-row.is-new::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 244, 205, 0.95) 50%, transparent 62%);
+  background-size: 260% 100%; background-position: 130% 0;
+  animation: wl-sheen 2.6s ease-in-out infinite;
+}
+.wl-row.is-new > * { position: relative; z-index: 1; }
+.wl-row.is-new .wl-ph { width: 48px; height: 48px; box-shadow: 0 0 0 2px #C99A3F; }
+.wl-row.is-new .wl-name { font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 700; font-size: 20px; }
+.wl-row.is-new .wl-num { font-size: 20px; color: ${M.goldInk}; }
+.wl-row.is-new.is-joined { animation: wl-glow 2.2s ease-in-out infinite; }
+/* Ústup pri pretečení (wl-tight-N na javisku, N rastie). */
+.wl-tight-1 .wl-seal img, .wl-tight-2 .wl-seal img { width: clamp(48px, 8dvh, 72px); }
+.wl-tight-2 .wl-row, .wl-tight-3 .wl-row { height: 44px; }
+.wl-tight-2 .wl-row.is-new, .wl-tight-3 .wl-row.is-new { height: 48px; }
+.wl-tight-2 .hf-plate, .wl-tight-3 .hf-plate { gap: 12px; }
+.wl-tight-2 .wl-foot, .wl-tight-3 .wl-foot { gap: 8px; }
+.wl-tight-3 .wl-seal img { display: none; }
+/* 4+ psov: riadky ustúpia, aby sa svorka zmestila bez scrollu. */
+.wl-row.is-new.is-many { height: 56px; grid-template-columns: 40px 1fr auto; }
+.wl-row.is-new.is-many .wl-ph { width: 40px; height: 40px; }
+.wl-row.is-new.is-many .wl-name, .wl-row.is-new.is-many .wl-num { font-size: 16px; }
+@keyframes wl-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 154, 63, 0.35), 0 0 24px 6px rgba(255, 206, 100, 0.6); }
+  50% { box-shadow: 0 0 0 10px rgba(201, 154, 63, 0), 0 0 56px 18px rgba(255, 206, 100, 0.95); }
+}
+@keyframes wl-glow {
+  0%, 100% { border-color: #C99A3F; box-shadow: 0 0 0 0 rgba(201, 154, 63, 0.45), 0 0 20px 4px rgba(255, 206, 100, 0.55); }
+  50% { border-color: #F2CF7A; box-shadow: 0 0 0 6px rgba(201, 154, 63, 0), 0 0 44px 14px rgba(255, 206, 100, 0.9); }
+}
+@keyframes wl-sheen { 0% { background-position: 130% 0; } 55%, 100% { background-position: -30% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .wl-row.is-new, .wl-row.is-new.is-joined { animation: none; box-shadow: 0 0 28px 6px rgba(255, 206, 100, 0.7); }
+  .wl-row.is-new::after { animation: none; opacity: 0; }
+}
+
+/* ── VETY — groteskom (Matej 26. 9.) ── */
+.wl-lines { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 60px; }
+.wl-line { margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 16px; line-height: 1.35; color: ${M.inkBody}; text-align: center; }
+.wl-line.is-done { color: #3D7A4E; font-weight: 600; font-size: 20px; }
+.wl-thanks { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; line-height: 1.3; letter-spacing: .04em; color: ${M.ink}; text-align: center; text-wrap: balance; }
+.wl-mail { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.4; color: ${M.inkBody}; text-align: center; }
+.wl-mail b { font-weight: 600; font-size: 16px; color: ${M.ink}; }
+.wl-mail-addr { font-weight: 600; overflow-wrap: anywhere; }
+.wl-goal { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.wl-bar { width: 100%; height: 12px; border-radius: ${ee.pill}px; background: rgba(22, 48, 122, 0.16); overflow: hidden; }
+.wl-bar > span { display: block; height: 100%; border-radius: inherit; background: ${ve.grad}; }
+.wl-goal-t { font-family: 'Space Grotesk', sans-serif; font-size: 12px; letter-spacing: .08em; color: ${M.inkBody}; }
+.wl-cta { width: 100%; }
+@media (max-width: 600px) {
+  .wl-row { height: 48px; } .wl-row.is-new { height: 56px; } .wl-row.is-new.is-many { height: 48px; }
+  .wl-name { font-size: 14px; } .wl-row.is-new .wl-name, .wl-row.is-new .wl-num { font-size: 16px; }
+  .wl-line { font-size: 14px; } .wl-line.is-done, .wl-thanks { font-size: 16px; }
+}
+@media (max-height: 700px) {
+  .wl-rank { gap: 6px; } .wl-row { height: 44px; } .wl-row.is-new { height: 52px; }
+  .wl-stack .hf-plate { gap: 12px; }
+  .wl-foot { gap: 8px; } .wl-lines { min-height: 48px; }
+}
+`;export{zi as FlowWelcomeScreen};

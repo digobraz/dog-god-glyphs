@@ -1,0 +1,1 @@
+import{r as o}from"./index-B-BQrD2y.js";function c(t){o.useEffect(()=>{const e=t.current;if(!e)return;const r=n=>{n.inputType==="insertReplacementText"&&n.preventDefault()};return e.addEventListener("beforeinput",r),()=>e.removeEventListener("beforeinput",r)},[t])}export{c as u};

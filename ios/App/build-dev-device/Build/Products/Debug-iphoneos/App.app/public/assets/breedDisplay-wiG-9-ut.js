@@ -1,0 +1,1 @@
+import{b as o}from"./breeds-DONRU28-.js";const s=o.breeds,i=Object.fromEntries(s.map(e=>[e.en.trim().toLowerCase(),e.sk])),m={mixed:"Kríženec",unknown:"Neznáme",other:"Iné"};function a(e,t){return e?t!=="sk"?e:e.split(",").map(r=>{const n=r.trim().toLowerCase();return n?m[n]??i[n]??r.trim():r}).join(", "):""}export{a as l};
