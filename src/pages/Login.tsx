@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { DEV_FULL, isFullPackEmail } from "@/lib/packFlags";
@@ -117,7 +117,20 @@ const OTP_TYPES: OtpType[] = ["magiclink", "email", "recovery", "signup", "invit
 const isExpired = (msg: string) =>
   /expired|otp_expired|invalid_token|token has expired/i.test(msg);
 
+// ── APPKA (20. 10. 2026) ── v natívnej appke má vstup vlastný tok (brána → číslo psa → kód),
+// `components/app/AppEntry.tsx`. Na webe ho ukáže `/login?app=1` (náhľad). Návrat z odkazu
+// v maili (token v adrese) ide vždy cez webový login nižšie — ten vie session dokončiť.
+const AUTH_RETURN = /[?&#](token_hash|token|access_token|type)=/;
+const AppEntry = lazy(() => import("@/components/app/AppEntry"));
+
 export default function Login() {
+  const [params] = useSearchParams();
+  const appMode = (IS_APP || params.get("app") === "1") && !AUTH_RETURN.test(window.location.search + window.location.hash);
+  if (appMode) return <Suspense fallback={null}><AppEntry /></Suspense>;
+  return <WebLogin />;
+}
+
+function WebLogin() {
   const t = useT();
   const { lang } = useLang();
   const [params] = useSearchParams();

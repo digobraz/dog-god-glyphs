@@ -221,12 +221,44 @@ export function Deco() {
   );
 }
 
-export default function NavMedallion({ onClick }: { onClick?: () => void }) {
+/** Voľby pre medailón MIMO lišty (brána appky, 20. 10. 2026). Na /onepage sa nepoužíva
+ *  ani jedna — tam ostáva `<a href="/">` s PNG logom presne ako doteraz, `MEDAL` sa nemení.
+ *  - `face`  — vlastná kresba namiesto PNG loga (brána kladie Logo 2026 SVG v lapise),
+ *  - `flat`  — bez horného lesku obruče (`inset 0 1.5px`): na papyruse dverí vyskočí
+ *              ako biela čiara (Matej, kolo 8 hárku `nakres-appka-prve-otvorenie-v2`),
+ *  - `still` — `<span>` namiesto odkazu: medailón je ozdoba, nie navigácia. */
+type NavMedallionProps = { onClick?: () => void; face?: JSX.Element; flat?: boolean; still?: boolean };
+
+export default function NavMedallion({ onClick, face, flat, still }: NavMedallionProps) {
   const m = MEDAL;
+  const inner = (
+    <>
+      <span className="nav-medal-rim">
+        <span className="nav-medal-face">
+          {face ?? (
+            <img
+              src={m.logo === 'fullBlack' ? LOGO_FULL_BLACK : logoSilhouette}
+              alt=""
+              style={{
+                width: `${m.logoW}%`,
+                transform: m.logoY ? `translateY(${m.logoY}px)` : undefined,
+                filter: LOGO_TINT[m.logoTint],
+              }}
+            />
+          )}
+          <span className="nav-medal-grain" />
+          <span className="nav-medal-gloss" />
+        </span>
+      </span>
+      <Deco />
+    </>
+  );
+  const cls = `nav-medal${flat ? ' nav-medal--flat' : ''}`;
+  if (still) return <span className={cls} aria-hidden>{inner}</span>;
   return (
     <a
       href="/"
-      className="nav-medal"
+      className={cls}
       aria-label="DOGYPT"
       onClick={(e) => {
         if (!onClick) return;
@@ -234,22 +266,7 @@ export default function NavMedallion({ onClick }: { onClick?: () => void }) {
         onClick();
       }}
     >
-      <span className="nav-medal-rim">
-        <span className="nav-medal-face">
-          <img
-            src={m.logo === 'fullBlack' ? LOGO_FULL_BLACK : logoSilhouette}
-            alt=""
-            style={{
-              width: `${m.logoW}%`,
-              transform: m.logoY ? `translateY(${m.logoY}px)` : undefined,
-              filter: LOGO_TINT[m.logoTint],
-            }}
-          />
-          <span className="nav-medal-grain" />
-          <span className="nav-medal-gloss" />
-        </span>
-      </span>
-      <Deco />
+      {inner}
     </a>
   );
 }
@@ -279,6 +296,13 @@ export const NAV_MEDALLION_CSS = `
     inset 0 -2px 3px rgba(84,56,14,0.55);
 }
 .nav-medal.nav-medal:hover { opacity: 1; }
+/* Bez horného lesku obruče — ten istý tieň, len bez riadku inset 0 1.5px (voľba flat). */
+.nav-medal.nav-medal.nav-medal--flat {
+  box-shadow:
+    0 ${(6 + MEDAL.shadow * 14).toFixed(0)}px ${(14 + MEDAL.shadow * 30).toFixed(0)}px -6px rgba(0,0,0,${(MEDAL.shadow * 0.95).toFixed(2)}),
+    0 3px 0 -1px rgba(70,46,12,${(MEDAL.shadow * 0.6).toFixed(2)}),
+    inset 0 -2px 3px rgba(84,56,14,0.55);
+}
 .nav-medal-rim {
   display: block; width: 100%; height: 100%; border-radius: 50%;
   padding: ${MEDAL.iw}px;
