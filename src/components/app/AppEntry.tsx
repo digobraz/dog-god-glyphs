@@ -542,7 +542,8 @@ const APP_ENTRY_CSS = `
 .ae-ib img { width: 22px; height: 22px; display: block; }
 .ae-dot { position: absolute; right: -${PACK_SPACE.xs}px; min-width: 16px; height: 16px; padding: 0 ${PACK_SPACE.xs}px; border-radius: ${PACK_R.pill}px;
   font: 600 ${PACK_TEXT.micro}px/13px ${FONT_UI}; font-style: normal; text-align: center; color: ${PACK_THEME.card}; border: 1.5px solid ${PACK_THEME.card}; }
-.ae-dot--b { top: -${PACK_SPACE.xs}px; background: ${LAPIS.edge}; }
+/* Hore CYAN (systémové oznámenia = AINUBIS, Matej 20. 10.: „modra bublinka cyan“), dole sociálna červená. */
+.ae-dot--b { top: -${PACK_SPACE.xs}px; background: ${AINUBIS.cyan}; color: ${AINUBIS.bgDeep}; }
 .ae-dot--r { bottom: -${PACK_SPACE.xs}px; background: ${SNIFFER_HEART}; }
 .ae-sw { position: relative; flex: 0 0 auto; width: ${PACK_SPACE.xxxl + PACK_SPACE.xs}px; height: ${PACK_SPACE.xl + PACK_SPACE.sm}px; border-radius: ${PACK_R.pill}px;
   border: 1px solid ${PACK_THEME.border}; background: ${PACK_THEME.hairline}; cursor: pointer; padding: 0; transition: background .2s ease; }
