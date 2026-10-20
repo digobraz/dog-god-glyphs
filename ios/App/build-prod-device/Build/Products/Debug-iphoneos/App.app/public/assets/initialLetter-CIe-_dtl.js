@@ -1,0 +1,1 @@
+const c={Ł:"L",Ø:"O",Æ:"A",Œ:"O",Đ:"D",Ð:"D",Þ:"T",ß:"S",Ħ:"H",Ŋ:"N",Ŧ:"T",Ə:"E"};function e(o){const t=o.toUpperCase(),r=t.normalize("NFD").replace(/[\u0300-\u036f]/g,""),n=c[r]??c[t]??r.charAt(0);return/^[A-Z]$/.test(n)?n:null}function i(o){const t=(o??"").trim();if(t)for(const r of[...t]){const n=e(r);if(n)return n}}export{i};

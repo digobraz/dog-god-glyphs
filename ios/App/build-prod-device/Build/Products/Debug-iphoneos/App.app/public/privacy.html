@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="en" translate="no">
+  <head><script>window.__preDefer=1</script><style> @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/g/cinzel-1-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/g/cinzel-2-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 700; font-display: swap; src: url(/fonts/g/cinzel-1-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 700; font-display: swap; src: url(/fonts/g/cinzel-2-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 900; font-display: swap; src: url(/fonts/g/cinzel-1-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 900; font-display: swap; src: url(/fonts/g/cinzel-2-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Cinzel Decorative'; font-style: normal; font-weight: 700; font-display: swap; src: url(/fonts/g/cinzeldecorative-3-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Cinzel Decorative'; font-style: normal; font-weight: 700; font-display: swap; src: url(/fonts/g/cinzeldecorative-4-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Cinzel Decorative'; font-style: normal; font-weight: 900; font-display: swap; src: url(/fonts/g/cinzeldecorative-5-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Cinzel Decorative'; font-style: normal; font-weight: 900; font-display: swap; src: url(/fonts/g/cinzeldecorative-6-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 300; font-display: swap; src: url(/fonts/g/spacegrotesk-7-v1.woff2) format('woff2'); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 300; font-display: swap; src: url(/fonts/g/spacegrotesk-8-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 300; font-display: swap; src: url(/fonts/g/spacegrotesk-9-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/g/spacegrotesk-7-v1.woff2) format('woff2'); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/g/spacegrotesk-8-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/g/spacegrotesk-9-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 500; font-display: swap; src: url(/fonts/g/spacegrotesk-7-v1.woff2) format('woff2'); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 500; font-display: swap; src: url(/fonts/g/spacegrotesk-8-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 500; font-display: swap; src: url(/fonts/g/spacegrotesk-9-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 600; font-display: swap; src: url(/fonts/g/spacegrotesk-7-v1.woff2) format('woff2'); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 600; font-display: swap; src: url(/fonts/g/spacegrotesk-8-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 600; font-display: swap; src: url(/fonts/g/spacegrotesk-9-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }</style>
+    <meta charset="UTF-8" />
+    <!-- Appka hovorí 18 jazykmi sama — prekladač prehliadača (Android Chrome) ju len kazil. 14. 10. 2026 -->
+    <meta name="google" content="notranslate" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- APPKA (Capacitor, 19. 10. 2026): appka = len /pack pre členov. Natívny obal otvára `/`,
+         čo je na webe stena — v appke ide hneď na /pack (a odtiaľ bez session na /login nižšie).
+         `window.Capacitor` vloží natívna strana pred skriptmi stránky; na webe neexistuje. -->
+    <script>
+      (function () {
+        try {
+          var C = window.Capacitor;
+          if (!C || !C.isNativePlatform || !C.isNativePlatform()) return;
+          document.documentElement.classList.add('is-app'); // CSS: odkazy na nákup v appke skryté (index.css)
+          if (/^\/?$/.test(location.pathname)) history.replaceState(null, '', '/pack');
+        } catch (e) {}
+      })();
+    </script>
+    <!-- /pack bez prihlásenia → /login HNEĎ (7. 10. 2026, rýchlosť fáza 3). Tú istú vetvu má App.tsx
+         (`hasStoredSessionOrAuthReturn`), tam ale až po stiahnutí hlavného balíka — tu je to pred ním.
+         Len produkčný build: v deve smie /pack bežať bez prihlásenia (VITE_PACK_NOAUTH). -->
+    <script>
+      (function () {
+        if ('production' !== 'production' || !/^\/pack\/?$/.test(location.pathname)) return;
+        try {
+          if (/access_token|refresh_token|token_hash|[?&#]code=|error_description/.test(location.hash + location.search)) return;
+          for (var i = 0; i < localStorage.length; i++) if (/^sb-.*-auth-token$/.test(localStorage.key(i) || '')) return;
+          location.replace('/login?return=' + encodeURIComponent('/pack' + location.search));
+        } catch (e) {}
+      })();
+    </script>
+    <!-- Consent Mode v2 defaults — MUSIA byť pred GTM snippetom (Vlna C).
+         Všetko denied; consent.ts po voľbe v banneri (Vlna B) pošle gtag('consent','update').
+         Vracajúcemu userovi obnovíme uloženú voľbu synchronne z localStorage PRED GTM tagmi,
+         nech GA4/Pixel nečakajú na React mount. Kľúč `dogypt_consent` = zhodný s consent.ts. -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        wait_for_update: 500
+      });
+      try {
+        var _c = JSON.parse(localStorage.getItem('dogypt_consent') || 'null');
+        if (_c) gtag('consent', 'update', {
+          analytics_storage: _c.analytics ? 'granted' : 'denied',
+          ad_storage:        _c.marketing ? 'granted' : 'denied',
+          ad_user_data:      _c.marketing ? 'granted' : 'denied',
+          ad_personalization:_c.marketing ? 'granted' : 'denied'
+        });
+      } catch (e) {}
+    </script>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});
+    // Samotný gtm.js sa vkladá až po štarte (main.tsx volá __loadGtm) — dataLayer je plný od začiatku.
+    w.__loadGtm=function(){if(w.__gtmOn)return;w.__gtmOn=1;var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);};
+    w.setTimeout(function(){w.__loadGtm()},8000);
+    })(window,document,'script','dataLayer','GTM-PXB5MV3L');</script>
+    <!-- End Google Tag Manager -->
+    <!-- 🔴 STRÁNKA PSA: DÁTA A FOTKA UŽ Z HTML (perf mobil 7. 10. 2026). /dog/<meno>-<číslo>
+         ukazuje fotku psa (LCP), no jej adresu pozná až `get-grid-dogs` — a ten sa predtým pýtal
+         až po celom JavaScripte (~5 s na mobile). Tu sa feed pýta hneď a fotka sa predstiahne
+         v rovnakej adrese, akú potom kreslí DogShare.tsx (`dogPhotoUrl` — pri zmene meň OBE). -->
+    <script>
+      (function () {
+        var m = location.pathname.match(/^\/(?:dog|d)\/[^\/]*?(\d+)\/?$/);
+        if (!m) return;
+        var n = +m[1];
+        var css = Math.min(window.innerWidth || 400, 400);
+        var w = Math.min(1080, Math.ceil(css * (window.devicePixelRatio || 1) / 120) * 120);
+        window.__dogPhotoW = w;
+        // Cez Cloudflare `/api/dogs` (cache + záloha, 7. 10. 2026); mimo dogypt.com alebo pri chybe priamo Supabase.
+        var sb = function () {
+          return fetch('https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-grid-dogs?tiers=all')
+            .then(function (r) { return r.ok ? r.json() : []; })
+            .catch(function () { return []; });
+        };
+        var hn = location.hostname;
+        // Cloudflare Worker už vložil psa priamo do HTML (scripts/cloudflare/worker.js, dogPage) ⇒ bez čakania.
+        window.__dogFeed = window.__dogInline ? Promise.resolve(window.__dogInline) : (hn === 'dogypt.com' || hn === 'www.dogypt.com' || /\.workers\.dev$/.test(hn))
+          ? fetch('/api/dogs?tiers=all').then(function (r) { return r.ok ? r.json() : []; })
+              .then(function (j) { return j && j.length ? j : sb(); }, sb)
+          : sb();
+        window.__dogFeed.then(function (dogs) {
+          for (var i = 0; i < dogs.length; i++) {
+            var d = dogs[i], u = d && d.pack_number === n && d.cloudinary_main_url;
+            if (!u) continue;
+            if (u.indexOf('/image/upload/') < 0) return;
+            var p = u.split('/image/upload/'), first = p[1].split('/')[0];
+            if (!/(^|,)(c_|w_|h_|f_auto|q_auto|dpr_)/.test(first)) u = p[0] + '/image/upload/c_fill,w_' + w + ',h_' + w + ',g_auto,f_auto,q_auto/' + p[1];
+            var l = document.createElement('link');
+            l.rel = 'preload'; l.as = 'image'; l.href = u; l.setAttribute('fetchpriority', 'high');
+            document.head.appendChild(l);
+            return;
+          }
+        });
+      })();
+    </script>
+    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="color-scheme" content="dark" />
+    <title>DOGYPT — Your Dog Is God Here</title>
+    <!-- og:* + twitter:* + description pre HOMEPAGE (2026-10-07, FLIP: / = film OnePage): statické v bloku `data-static-seo` pri konci <head>. Crawlery (WhatsApp, FB) JS nespúšťajú, takže rozhoduje toto. Text = i18n `onepage.seo.*` (en.ts), obrázok = public/og-planet-2026-10.jpg (planétka + nadpis, 1200x630) — pri zmene daj NOVÉ meno súboru (cache crawlerov) a zmeň aj `ogImage` v <Seo> v OnePage.tsx. Za behu `Seo.tsx` tieto meta vymaže a nahradí per-route hodnotou (DogShare /d/:pack má vlastný ogImage; fallback pre ostatné = Seo.tsx DEFAULT_OG). -->
+    <meta name="author" content="DOGYPT" />
+
+
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@dogyptcom" />
+    <!-- canonical + og:url zámerne NIE statické: rieši ich per-route <Seo> (react-helmet-async), inak by statická home hodnota kolidovala s per-route canonical (Google by mohol canonicalizovať sub-stránky na home). Home sa self-canonicalizuje. -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://lnzurwmdgvzlqhsbhrvi.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Google Fonts moved here from src/index.css @import (was render-blocking the whole
+         stylesheet parse). Only the families/weights actually used across the app
+         (Cinzel, Cinzel Decorative, Inter, Space Grotesk, JetBrains Mono).
+         media="print" + onload swap = non-blocking load (PageSpeed 2026-07-08: 1750ms
+         "žiadosti o blokovanie vykreslenia"); text still shows via display=swap fallback
+         font in the meantime, no CLS since app already renders CLS=0. -->
+    <!-- 🔤 Cinzel, Cinzel Decorative a Space Grotesk (prvá obrazovka) idú z VLASTNÉHO pôvodu
+         od 7. 10. 2026 (plán s Fable 5) — public/fonts/g/fonts-v1.css. Žiadne cudzie spojenie
+         pred guľou. Google ostáva len pre Inter a JetBrains Mono (vnútro appky). -->
+    <link rel="stylesheet" href="/fonts/g/fonts-v1.css" media="print" data-late-fonts />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+      media="print"
+      data-late-fonts
+    />
+    <!-- 🔴 PÍSMA SA ZAPÍNAJÚ AŽ V main.tsx (perf 7. 10. 2026). Pôvodné onload="this.media='all'"
+         ich občas zaplo ešte pred logom opony; prehliadač potom ťahal woff2 a PageSpeed ich
+         zarátal do prvého vykreslenia (FCP 0,9 ↔ 2,5 s podľa náhody). Štýl sa stiahne hneď
+         (media=print = nízka priorita, neblokuje), použije sa pri štarte appky. -->
+    <noscript>
+      <link rel="stylesheet" href="/fonts/g/fonts-v1.css" />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+      />
+    </noscript>
+    <!-- NOTE: /spiral/img/* preloads removed (2026-07 perf pass) — spirála je archívna /spiral
+         stránka, homepage je GodsGrid a nepoužíva tieto assety. -->
+    <!-- Preload LCP obrázkov tmavého gridu (logo + hektor-grid) zanikol s gridom pri FLIPe 7. 10. 2026. -->
+  <meta property="og:site_name" content="DOGYPT" />
+  <meta property="og:locale" content="en_US" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://dogypt.com/#organization",
+        "name": "DOGYPT",
+        "alternateName": "Dogyptism",
+        "url": "https://dogypt.com",
+        "description": "DOGYPT is a movement for dog lovers. Every dog gets a unique Heroglyph — their permanent place in the global pack.",
+        "logo": "https://dogypt.com/social/social-1778165377850-LOGO_DOGYPT_FINAL_web.webp",
+        "sameAs": ["https://twitter.com/dogyptcom"]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://dogypt.com/#website",
+        "name": "DOGYPT",
+        "url": "https://dogypt.com",
+        "publisher": { "@id": "https://dogypt.com/#organization" }
+      }
+    ]
+  }
+  </script>
+  <meta data-static-seo property="og:title" content="DOGYPT — Your Dog Is God Here">
+  <meta data-static-seo name="twitter:title" content="DOGYPT — Your Dog Is God Here">
+  <meta data-static-seo name="description" content="Every dog on Earth has a place here. Is yours on the planet yet?">
+  <meta data-static-seo property="og:description" content="Every dog on Earth has a place here. Is yours on the planet yet?">
+  <meta data-static-seo name="twitter:description" content="Every dog on Earth has a place here. Is yours on the planet yet?">
+  <meta data-static-seo property="og:image" content="https://dogypt.com/og-planet-2026-10.jpg">
+  <meta data-static-seo property="og:image:width" content="1200">
+  <meta data-static-seo property="og:image:height" content="630">
+  <meta data-static-seo name="twitter:image" content="https://dogypt.com/og-planet-2026-10.jpg">
+  <script>(function(){var go=function(){if(window.__appGo)return;window.__appGo=1;var s=document.createElement('script');s.type='module';s.crossOrigin='';s.src="/assets/index-7PctGTam.js";document.head.appendChild(s);var R=[["^/(wall|onepage|vision|religion|about|spiral|grid|betavision)?/?$",["/assets/OnePage-CfyT7-yj.js","/assets/LanguagePicker--v1cJQg6.js","/assets/flagUrl-B21iQI9I.js","/assets/HandIcons-Dh9PgzA0.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/labTheme-p7t_6k9Y.js","/assets/Seo-B-e2lU-9.js","/assets/AboutLab-ugcmgbm0.js","/assets/godsData-kTA2EY6K.js","/assets/countryGeo-BaPfaSrG.js","/assets/cloudinaryService-DFfDUqVM.js","/assets/photoConfirm-lfyly4ep.js","/assets/photoIntake-cTohUk5s.js","/assets/dogSlug-CB23gDR2.js","/assets/constitutionRead-6hPB31zu.js","/assets/DogMessage-DIBP3WES.js","/assets/sparkles-C-OUu7N_.js","/assets/createLucideIcon-Di02PK5p.js","/assets/use-toast-CpgRElRJ.js","/assets/BrandIcon-C4Fdumu_.js","/assets/dogypt-logo-gold-D67FOL39.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/useBodyScrollLock--CJIKtfn.js","/assets/proxy-B4ZTxIpr.js","/assets/council-business-BPTub_bd.js","/assets/breeds-DONRU28-.js","/assets/NavMedallion-DadZHC2q.js","/assets/ainubisSkin-B7Z96MPq.js","/assets/ainubisBus-BMRzmB2O.js","/assets/ainubis-head-g4iOYlxZ.js","/assets/chevron-down-Dxby7Czj.js"],0],["^/terms/?$",["/assets/Terms-D3NFWMqO.js","/assets/LegalPage-Dt6NK7yJ.js","/assets/PageTopBar-DlESgG9R.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogypt-logo-gold-D67FOL39.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/useBodyScrollLock--CJIKtfn.js","/assets/createLucideIcon-Di02PK5p.js","/assets/LanguagePicker--v1cJQg6.js","/assets/flagUrl-B21iQI9I.js","/assets/labTheme-p7t_6k9Y.js"],0],["^/privacy/?$",["/assets/Privacy-DvhdlSaD.js","/assets/LegalPage-Dt6NK7yJ.js","/assets/PageTopBar-DlESgG9R.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogypt-logo-gold-D67FOL39.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/useBodyScrollLock--CJIKtfn.js","/assets/createLucideIcon-Di02PK5p.js","/assets/LanguagePicker--v1cJQg6.js","/assets/flagUrl-B21iQI9I.js","/assets/labTheme-p7t_6k9Y.js"],0],["^/login/?$",["/assets/Login-wg7i6wR-.js","/assets/PageTopBar-DlESgG9R.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogypt-logo-gold-D67FOL39.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/useBodyScrollLock--CJIKtfn.js","/assets/createLucideIcon-Di02PK5p.js","/assets/LanguagePicker--v1cJQg6.js","/assets/flagUrl-B21iQI9I.js","/assets/flowPaleSkin-DMjCjOr3.js","/assets/labTheme-p7t_6k9Y.js","/assets/ainubisSkin-B7Z96MPq.js","/assets/ainubis-head-g4iOYlxZ.js"],1],["^/pack/?$",["/assets/Pack-DwtDAAGK.js","/assets/PackLayout-DbvN9q62.js","/assets/magnetPreview-DhLqLXgw.js","/assets/ainubisSkin-B7Z96MPq.js","/assets/ainubis-head-g4iOYlxZ.js","/assets/chataNahlad-BvQ_JlDS.js","/assets/cloudinaryService-DFfDUqVM.js","/assets/dogRights-BxAmrGwt.js","/assets/BrandIcon-C4Fdumu_.js","/assets/HandIcons-Dh9PgzA0.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogEvents-DNw7GPsn.js","/assets/ainubisBus-BMRzmB2O.js","/assets/ainubis-badge-BGb27Nxy.js","/assets/SnifferLogo-Dyn0GD-G.js","/assets/BackButton-DiG140MZ.js","/assets/devMockDogs-BzGWz4qV.js","/assets/pawmateRights-DJDDFQlT.js","/assets/tripShared-DJ5J49O6.js","/assets/countryGeo-BaPfaSrG.js","/assets/packStore-C-dKFjs1.js","/assets/addTripModel-BuQrZHBF.js","/assets/wizAnchors-E3ARHgZI.js","/assets/consent-28X3-hgX.js","/assets/Gateways-Da9vsj45.js","/assets/index-CD01Zl6c.js","/assets/constitutionRead-6hPB31zu.js","/assets/dogSlug-CB23gDR2.js","/assets/packProfile-DFxYPxfm.js","/assets/devotion-CV1C8KkJ.js","/assets/SplitDetail-BkNPVXrK.js","/assets/index-DkOuwl1M.js","/assets/proxy-B4ZTxIpr.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/breedDisplay-wiG-9-ut.js","/assets/breeds-DONRU28-.js","/assets/chevron-left-DjegRQmo.js","/assets/createLucideIcon-Di02PK5p.js","/assets/chevron-right-CK2btJGW.js","/assets/dogOrder-NAHNyfSe.js"],1],["^/pack/map(/triplist)?/?$",["/assets/MapGate-DttsMrly.js","/assets/PageTopBar-DlESgG9R.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogypt-logo-gold-D67FOL39.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/useBodyScrollLock--CJIKtfn.js","/assets/createLucideIcon-Di02PK5p.js","/assets/LanguagePicker--v1cJQg6.js","/assets/flagUrl-B21iQI9I.js"],1],["^/pack/dogs/?$",["/assets/PackDogs-Ch4FEFdn.js","/assets/cloudinaryService-DFfDUqVM.js","/assets/PackLayout-DbvN9q62.js","/assets/magnetPreview-DhLqLXgw.js","/assets/ainubisSkin-B7Z96MPq.js","/assets/ainubis-head-g4iOYlxZ.js","/assets/chataNahlad-BvQ_JlDS.js","/assets/dogRights-BxAmrGwt.js","/assets/BrandIcon-C4Fdumu_.js","/assets/HandIcons-Dh9PgzA0.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogEvents-DNw7GPsn.js","/assets/ainubisBus-BMRzmB2O.js","/assets/ainubis-badge-BGb27Nxy.js","/assets/SnifferLogo-Dyn0GD-G.js","/assets/BackButton-DiG140MZ.js","/assets/devMockDogs-BzGWz4qV.js","/assets/pawmateRights-DJDDFQlT.js","/assets/tripShared-DJ5J49O6.js","/assets/countryGeo-BaPfaSrG.js","/assets/packStore-C-dKFjs1.js","/assets/addTripModel-BuQrZHBF.js","/assets/wizAnchors-E3ARHgZI.js","/assets/consent-28X3-hgX.js","/assets/DiaryList-CYn_PiBc.js","/assets/DiaryEntry-BnFxGXZB.js","/assets/photoIntake-cTohUk5s.js","/assets/FlagCircle-D0VQxthA.js","/assets/flagUrl-B21iQI9I.js","/assets/triplist-C4SNPPZY.js","/assets/dogAge-qL9nwVXc.js","/assets/dogQuiz-CHLLe1WL.js","/assets/packProfile-DFxYPxfm.js","/assets/natureQuiz-BjVOn8Uc.js","/assets/dogIdModules-BDNgSFzm.js","/assets/packDogsList-CdNepPcH.js","/assets/dogOrder-NAHNyfSe.js","/assets/Item-C9cGL6tJ.js","/assets/proxy-B4ZTxIpr.js","/assets/RightGate-D9upYetj.js","/assets/use-toast-CpgRElRJ.js"],1],["^/(dog|d)/[^/]+/?$",["/assets/DogShare-ChkHaICn.js","/assets/PageTopBar-DlESgG9R.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogypt-logo-gold-D67FOL39.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/useBodyScrollLock--CJIKtfn.js","/assets/createLucideIcon-Di02PK5p.js","/assets/LanguagePicker--v1cJQg6.js","/assets/flagUrl-B21iQI9I.js","/assets/Seo-B-e2lU-9.js","/assets/dogSlug-CB23gDR2.js","/assets/countryGeo-BaPfaSrG.js","/assets/DogMessage-DIBP3WES.js","/assets/cloudinaryService-DFfDUqVM.js","/assets/ShareCard-BTQQXhkS.js","/assets/flowPaleSkin-DMjCjOr3.js","/assets/labTheme-p7t_6k9Y.js"],0]],C={"sk":"/assets/core-CljG-F5J.js","cs":"/assets/core-BLXq-B6P.js","pol":"/assets/core-D7dHjZqc.js","ukr":"/assets/core-CmgrGa6B.js","deu":"/assets/core-Cs2neyBL.js","esp":"/assets/core-AWLeSg_w.js","fra":"/assets/core-EhGhoX1c.js","prt":"/assets/core-CZHbUiqD.js","rus":"/assets/core-B2FmmMip.js","ita":"/assets/core-Cy28p1at.js","chn":"/assets/core-BCer5cKh.js","jpn":"/assets/core-BiTDBxEz.js","ind":"/assets/core-QuAPlZnM.js","ara":"/assets/core-_u-WfDG7.js","kor":"/assets/core-YiWz7kJH.js","nld":"/assets/core-CVDji7w_.js","tur":"/assets/core-BQlQMXb8.js"},P={"en":"/assets/pack-C5-Kl1Hk.js","sk":"/assets/pack-jpT6MVXj.js","cs":"/assets/pack-D87O-DEj.js","pol":"/assets/pack-zMIUDK_e.js","ukr":"/assets/pack-D1B4xnhy.js","deu":"/assets/pack-DkA52VFp.js","esp":"/assets/pack-DZOYL5Hw.js","fra":"/assets/pack-BxjmQeRO.js","prt":"/assets/pack-MJv1Dnme.js","rus":"/assets/pack-D6T_mADC.js","ita":"/assets/pack-Cr56qjI7.js","chn":"/assets/pack-BtvdlXe0.js","jpn":"/assets/pack-3eZJqI4h.js","ind":"/assets/pack-5EnmXZF0.js","ara":"/assets/pack-mkNhs5s7.js","kor":"/assets/pack-CLIoM2sK.js","nld":"/assets/pack-DV2IKE6X.js","tur":"/assets/pack-Tzt-Gq4H.js"},L={"en":"en","sk":"sk","cs":"cs","pl":"pol","uk":"ukr","de":"deu","es":"esp","fr":"fra","pt":"prt","ru":"rus","it":"ita","zh":"chn","ja":"jpn","hi":"ind","ar":"ara","ko":"kor","nl":"nld","tr":"tur"},F=[],pk=0,g=null,i;var pth=location.pathname,sess=0;try{for(i=0;i<localStorage.length;i++)if(/^sb-.*-auth-token$/.test(localStorage.key(i)))sess=1}catch(e){}if(/^\/pack/.test(pth)&&!sess)pth='/login';for(i=0;i<R.length;i++)if(new RegExp(R[i][0]).test(pth)){F=R[i][1].slice();pk=R[i][2];break}try{g=localStorage.getItem('dogypt_lang')}catch(e){}if(!g){var n=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];for(i=0;i<n.length&&!g;i++)g=n[i]&&L[n[i].toLowerCase().split('-')[0]]||null}g=g||'en';if(C[g])F.push(C[g]);if(pk&&P[g])F.push(P[g]);if(pk&&P.en&&g!=='en')F.push(P.en);F.forEach(function(h){var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';l.href=h;document.head.appendChild(l);});document.querySelectorAll('link[data-late-fonts][href^="/fonts/"]').forEach(function(l){l.media='all'});};window.__startApp=go;setTimeout(go,1200);})();</script>
+  <link rel="stylesheet" crossorigin href="/assets/index-BceXV8_0.css">
+</head>
+  <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PXB5MV3L"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <!-- 🔴 ÚVODNÁ OPONA /onepage (Matej 28. 9. 2026: *„úvodné načítanie planéty je
+         divne roztiahnuté… nevyzerá to profi — loader?"*). Zmerané: ~3 s čierna (JS
+         sa ešte nestiahol), potom prázdny papyrus s lištou a šípkami a až potom guľa.
+         Opona je v HTML, takže sa vykreslí s prvým bajtom — nečaká na React. Zdvihne
+         ju udalosť `dogypt:planet-ready` (DogPlanetLab, keď je predná pologuľa
+         načítaná) a guľa sa pod ňou práve vynára. Strop 9 s pre prípad chyby.
+         🐾 LABKY PO KRUHU (Matej 5. 10. 2026: „daj 4“, nákres
+         plany/nakres-loader-onepage-2026-10-05.html). 8 stôp z kitu okolo loga + %.
+         Labky nesvietia podľa časovača, ale podľa 4 ZMERANÝCH zastávok (podiel z 8):
+         15 opona stojí · 40 JS sa vykonal (DOMContentLoaded) · 70 film je v DOM
+         (.op-root) · 100 planéta hotová. Číslo % bolo v prvej verzii — Matej
+         5. 10.: „daj to bez %“. -->
+    <script>
+      (function () {
+        // Film = homepage (FLIP 7. 10. 2026); staré adresy sa do neho presmerujú, opona patrí aj im.
+        // Bez opony appka štartuje hneď (window.__startApp vkladá produkčný build, viď vite.config.ts).
+        // Výnimka: stránka s hotovým HTML (scripts/prerender.mjs nastaví __preDefer) — tú spustí
+        // výberový skript za #root až PO prvom vykreslení, nech JS nestojí pred textom.
+        if (['/', '/wall', '/onepage', '/vision', '/religion', '/about', '/spiral', '/grid', '/betavision'].indexOf(location.pathname) < 0) { if (window.__startApp && !window.__preDefer) window.__startApp(); return; }
+        // 🔴 ZOZNAM PSOV PRE GUĽU SA PÝTA UŽ TERAZ (7. 10. 2026, plán s Fable 5) — nie až po
+        // stiahnutí a vykonaní hlavného balíka. Cloudflare `/api/dogs` odpovie z cache (~50 ms).
+        // Preberá ho src/lib/earlyFetch.ts; mimo dogypt.com a pri ?focus/?dog (čerstvo zaplatený
+        // pes) sa nepýta — tam ide earlyFetch priamo na Supabase.
+        (function () {
+          var h = location.hostname;
+          if ((h === 'dogypt.com' || h === 'www.dogypt.com' || /\.workers\.dev$/.test(h)) && !/[?&](focus|dog)=/.test(location.search)) {
+            try {
+              window.__gridEarly = fetch('/api/dogs?tiers=all', { priority: 'high' })
+                .then(function (r) { return r.ok ? r.json() : []; })
+                .catch(function () { return []; });
+              // 🔴 FOTKY GULE SA SŤAHUJÚ HNEĎ, ako príde zoznam — nie až keď React nakreslí guľu.
+              // Merané 7. 10. na pomalom 4G: dlaždice štartovali o 9,5 s (po celom JS filmu)
+              // a opona zišla nad 0 z 200 fotiek. Adresa MUSÍ sedieť s `planetTileUrl`
+              // (GodsGridLab.tsx) + `gridTileUrl` (cloudinaryService.ts), inak sa fotka stiahne
+              // dvakrát — pri zmene meň všetky tri. Na guli sú Hektor + členovia od #2.
+              window.__gridEarly.then(function (dogs) {
+                var px = window.innerWidth <= 768 ? 120 : 160, seen = {};
+                var pre = function (u) { if (seen[u]) return; seen[u] = 1; var im = new Image(); im.decoding = 'async'; im.src = u; };
+                pre('/images/hektor-grid-tile.webp');
+                for (var i = 0; i < dogs.length; i++) {
+                  var d = dogs[i], u = d && d.cloudinary_main_url;
+                  if (!u || !(d.pack_number >= 2) || u.indexOf('/image/upload/') < 0) continue;
+                  var p = u.split('/image/upload/'), id = p[1].replace(/^v\d+\//, '').replace(/\.[a-zA-Z0-9]+$/, '');
+                  // Uložená transformácia (`c_fill,g_auto,w_1200,…`) ide PRED zmenšeninu ako v `sizedTile`
+                  // (11. 10. 2026) — opačné poradie zväčší fotku späť na 1200 px (73 kB namiesto ~5 kB).
+                  var s = id.split('/'), q = [];
+                  while (s.length > 1 && /^[a-z]{1,3}_[^\/]*$/.test(s[0])) q.push(s.shift());
+                  if (id) pre(p[0] + '/image/upload/' + (q.length ? q.join('/') + '/' : '') + 'c_fill,w_' + px + ',h_' + px + ',f_auto,q_auto/' + s.join('/'));
+                }
+              });
+            } catch (e) {}
+          }
+        })();
+        var css = document.createElement('style');
+        css.textContent =
+          '#op-boot{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;'
+          + 'background:radial-gradient(58% 52% at 50% 46%,#FFF9EA 0%,#F6EACB 42%,#E6CF9C 100%);'
+          + 'transition:opacity .9s cubic-bezier(.65,0,.35,1),visibility 0s linear .9s}'
+          + '#op-boot .b{display:flex;flex-direction:column;align-items:center;gap:28px;'
+          + 'animation:opBootIn 1s cubic-bezier(.2,.8,.2,1) both}'
+          + '#op-boot .l{position:relative;width:132px;height:132px}'
+          + '#op-boot .l img{width:100%;height:100%;object-fit:contain;display:block;'
+          /* TMAVÉ LOGO NA PAPYRUSE (Matej 3. 10. 2026: „zlatá na bielom zaniká — aj pri loaderi
+             /onepage musí byť logo tmavé"). Ten istý filter ako lišta heroflowu (flowPaleSkin.ts). */
+          + 'filter:brightness(.34) sepia(1) saturate(2.2) hue-rotate(-12deg) drop-shadow(0 10px 24px rgba(122,90,42,.22))}'
+          /* Zlatý odlesk prechádza CEZ kresbu loga (maska = logo), nie cez štvorec. */
+          + '#op-boot .l::after{content:"";position:absolute;inset:0;'
+          + 'background:linear-gradient(105deg,transparent 35%,rgba(255,244,210,.95) 50%,transparent 65%) no-repeat;'
+          + 'background-size:250% 100%;animation:opBootShine 2.6s cubic-bezier(.45,0,.2,1) infinite .4s;'
+          + '-webkit-mask:url(/images/dogypt-gold-logo.webp) center/contain no-repeat;mask:url(/images/dogypt-gold-logo.webp) center/contain no-repeat}'
+          /* Obežná dráha: logo v strede, 8 labiek na kružnici. Labka = paw-full.svg z kitu (maska). */
+          + '#op-boot .o{position:relative;width:224px;height:224px;display:grid;place-items:center}'
+          + '#op-boot .o .l{width:112px;height:112px}'
+          + '#op-boot .p{position:absolute;left:50%;top:50%;width:20px;height:21px;margin:-10px 0 0 -10px;'
+          + 'background:#7A5A2A;opacity:.12;transition:opacity .35s ease,background-color .35s ease;'
+          + '-webkit-mask:url(/icons/pack/paw-full.svg) center/contain no-repeat;mask:url(/icons/pack/paw-full.svg) center/contain no-repeat}'
+          + '#op-boot .p.on{opacity:.85;background:#A3782B;animation:opBootPaw .45s cubic-bezier(.2,.8,.2,1)}'
+          + '#op-boot.out{opacity:0;visibility:hidden}'
+          + '#op-boot.out .b{opacity:0;transform:scale(1.08);filter:blur(4px);'
+          + 'transition:opacity .6s ease,transform .9s cubic-bezier(.65,0,.35,1),filter .6s ease}'
+          + '@keyframes opBootIn{from{opacity:.15;transform:scale(.96)}to{opacity:1;transform:none}}'
+          + '@keyframes opBootShine{from{background-position:150% 0}to{background-position:-50% 0}}'
+          + '@keyframes opBootPaw{from{filter:brightness(1.7);transform:var(--r) scale(.7)}to{transform:var(--r)}}'
+          + '@media (prefers-reduced-motion:reduce){#op-boot .l::after,#op-boot .p.on{animation:none}}';
+        document.head.appendChild(css);
+        var el = document.createElement('div');
+        el.id = 'op-boot'; el.setAttribute('aria-hidden', 'true');
+        // Kým opona stojí, nadpis gule je pod ňou BEZ hala (DogPlanetLab: html.op-booting).
+        // Halo (text-shadow do 240 px) mu v meraní LCP zväčší plochu ~9×, takže by PageSpeed
+        // čakal na guľu namiesto loga opony, ktoré človek naozaj vidí prvé (perf 7. 10. 2026).
+        // Trieda padne v lift() — opona je vtedy ešte plne krycia (odchod až o ≥550 ms).
+        document.documentElement.classList.add('op-booting');
+        var paws = '';
+        for (var i = 0; i < 8; i++) {
+          // Kráča v smere hodinových ručičiek; striedavo ľavá/pravá (±12°), aby to bola chôdza, nie ozubené koleso.
+          var r = 'rotate(' + (i * 45) + 'deg) translateY(-96px) rotate(' + (90 + (i % 2 ? 12 : -12)) + 'deg)';
+          paws += '<span class="p" style="--r:' + r + ';transform:' + r + '"></span>';
+        }
+        el.innerHTML = '<div class="b"><div class="o">' + paws
+          + '<div class="l"><img src="/images/dogypt-gold-logo.webp" alt="" fetchpriority="high"></div></div></div>';
+        var t0 = Date.now(), gone = false, pct = 0;
+        var pawEls = el.querySelectorAll('.p');
+        // Postup ide len DOPREDU; labky sa rozsvietia podľa podielu z 8.
+        var stage = function (p) {
+          if (p <= pct) return;
+          pct = p;
+          for (var k = 0; k < pawEls.length; k++) if (k < Math.round(p / 100 * 8)) pawEls[k].classList.add('on');
+        };
+        stage(15);
+        document.addEventListener('DOMContentLoaded', function () { stage(40); });
+        var mo = new MutationObserver(function () {
+          if (document.querySelector('.op-root')) { stage(70); mo.disconnect(); }
+        });
+        mo.observe(document.documentElement, { childList: true, subtree: true });
+        var lift = function () {
+          if (gone) return; gone = true; mo.disconnect();
+          // Halo až o 300 ms (7. 10. 2026): na rýchlej sieti sa nadpis gule PRVÝKRÁT vykreslil až
+          // v okamihu zapnutia hala ⇒ Chrome ho zarátal s halom (184 000 px² > logo 62 000) a
+          // PageSpeed hlásil LCP 10 s v 1–2 z 3 behov. Opona je do ≥ 550 ms plne krycia.
+          setTimeout(function () { document.documentElement.classList.remove('op-booting'); }, 300);
+          stage(100);
+          // Posledné labky musí oko stihnúť vidieť, inak opona odíde s neúplným kruhom.
+          setTimeout(function () {
+            el.classList.add('out');
+            setTimeout(function () { el.remove(); }, 1000);
+          }, Math.max(550, 900 - (Date.now() - t0)));
+        };
+        window.addEventListener('dogypt:planet-ready', lift);
+        // Strop 9 s zdvihne oponu, len keď film UŽ JE (guľa má aspoň rozmazané náhľady);
+        // inak čaká poistka nižšie, najdlhšie 20 s (7. 10. 2026 — predtým odhalil prázdny papyrus).
+        setTimeout(function cap() { if (document.querySelector('.op-root')) lift(); else if (Date.now() - t0 < 20000) setTimeout(cap, 400); else lift(); }, 9000);
+        // Film sa nevykreslil (produkcia bez preview tokenu, chyba) — opona nesmie
+        // visieť nad prázdnou stránkou. Po `load` sa pozrie, či film existuje.
+        // 🔴 Poistka sa viaže na ŠTART APPKY (main.tsx: window.__appBooted), nie na `load`
+        // (7. 10. 2026). `load` na pomalej sieti padne skôr, než sa JS filmu stiahne a vykoná —
+        // opona potom zišla nad prázdnym papyrusom (merané: 3,0 s, 0 dlaždíc). Teraz: film
+        // nie je 6 s po štarte appky ⇒ chyba ⇒ zdvihni. Kým appka neštartovala, drží strop 20 s.
+        var safety = function () {
+          if (gone || document.querySelector('.op-root')) return;
+          if (window.__appBooted && Date.now() - window.__appBooted > 6000) lift();
+          else setTimeout(safety, 400);
+        };
+        window.addEventListener('load', function () { setTimeout(safety, 1500); });
+        document.body.appendChild(el);
+        // 🔴 NAJPRV LOGO, POTOM JAVASCRIPT (perf mobil 7. 10. 2026). Appka (~900 kB) sa začne
+        // sťahovať až keď je logo opony na obrazovke — inak mu na pomalej sieti berie linku
+        // a PageSpeed čaká na celý balík. Strop 1,2 s drží window.__startApp sám.
+        // Signál „logo je naozaj na obrazovke" dáva prehliadač sám (záznam LCP pre <img> loga);
+        // Safari ho nepozná → tam štart po načítaní loga a dvoch snímkach.
+        var lg = el.querySelector('img');
+        var start = function () { if (window.__startApp) window.__startApp(); };
+        var lcpOk = false;
+        try { lcpOk = PerformanceObserver.supportedEntryTypes.indexOf('largest-contentful-paint') >= 0; } catch (e) {}
+        if (lcpOk) {
+          new PerformanceObserver(function (l) {
+            var es = l.getEntries();
+            for (var q = 0; q < es.length; q++) if (es[q].element === lg) { start(); return; }
+          }).observe({ type: 'largest-contentful-paint', buffered: true });
+          lg.addEventListener('error', start);
+        } else {
+          var kick = function () { requestAnimationFrame(function () { requestAnimationFrame(start); }); };
+          if (lg.complete) kick(); else { lg.addEventListener('load', kick); lg.addEventListener('error', kick); }
+        }
+      })();
+    </script>
+    <style>html.pre-wait #pre,html.pre-wait #pre-consent,#pre .ds-life{visibility:hidden}html.pre #root{position:fixed;inset:0;visibility:hidden;overflow:hidden;pointer-events:none;z-index:-1}</style><div id="pre"></div><template id="pre-css"><style>
+        /* Picker je STATIC — panel sa pozične viaže na .nav-left (position:fixed),
+           čím sa šírka panelu = šírka pill nav-baru. */
+        .lang-picker {
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .lang-trigger {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          color: #000;
+          font-size: 0.78rem;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+        }
+        .lang-trigger:hover { opacity: 0.55; }
+        .lang-trigger__chev {
+          transition: transform 180ms ease;
+          color: rgba(0,0,0,0.55);
+        }
+        .lang-trigger__chev.is-open { transform: rotate(180deg); }
+
+        /* Flag stack — vertical-slice composite. Viaceré vlajky = úzke pruhy vedľa seba
+           (každý cropped na stred PNG cez background-size:cover + center). Single flag = full aspect. */
+        .lang-flag-stack {
+          display: inline-flex;
+          vertical-align: middle;
+          height: 1.05em;
+          border-radius: 2px;
+          overflow: hidden;
+          border: 1px solid rgba(0,0,0,0.18);
+          background: rgba(0,0,0,0.06); /* fallback pred loadnutím PNG */
+          flex-shrink: 0;
+        }
+        .lang-flag-stack__item {
+          display: block;
+          height: 100%;
+          width: 0.55em;            /* slice width pre multi-flag */
+          background-size: cover;
+          background-position: center center;
+          background-repeat: no-repeat;
+        }
+        .lang-flag-stack__item:only-child {
+          width: 1.55em;             /* single flag = normálny 3:2 aspect */
+        }
+
+        /* Panel: position:absolute voči pozicovanému predkovi v nave.
+           🔴 ŠÍRKU DIKTUJE OBSAH, NIE RODIČ (oprava 27. 8. 2026). Pôvodné
+           left:0 + right:0 znamenalo „presne šírka pill" a fungovalo, kým bol
+           predkom široký nav. V nave na /onepage je predkom UŽ LEN TRIGGER
+           (64 px), takže panel spadol na 118 px a z dvoch stĺpcov ostalo
+           „SV / CZ / D / N" — texty sa orezali, hoci jazykov bolo správnych 18.
+           ⚠️ min-width 100 % drží starý vzhľad tam, kde je predok širší než
+           obsah (produkčná stena): panel sa nezúži pod šírku pilulky. Rozšíri sa
+           len tam, kde by inak rezal text.
+           ⚠️ Kotva je PRAVÁ hrana — panel je posledný prvok vpravo v nave,
+           takže musí padať doľava, inak vytečie z obrazovky. */
+        .lang-panel {
+          position: absolute;
+          top: calc(100% + 10px);
+          left: auto;
+          right: 0;
+          width: max-content;
+          min-width: 100%;
+          z-index: 110;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201,154,63,0.55);
+          border-radius: 12px;
+          padding: 8px;
+          box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+          animation: langPanelFade 180ms ease-out;
+          max-height: calc(100dvh - 80px);
+          overflow-y: auto;
+        }
+        @keyframes langPanelFade {
+          from { opacity: 0; transform: translateY(-4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .lang-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-rows: repeat(9, auto);
+          grid-auto-flow: column;
+          gap: 4px;
+        }
+
+        .lang-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: transparent;
+          border: 1px solid transparent;
+          border-radius: 8px;
+          padding: 6px 8px;
+          cursor: pointer;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          color: #000;
+          font-size: 0.72rem;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          transition: background 150ms ease, border-color 150ms ease, opacity 150ms ease;
+          min-width: 0;
+        }
+        .lang-btn:hover:not(.is-disabled) {
+          background: rgba(201,154,63,0.18);
+          border-color: rgba(201,154,63,0.45);
+        }
+        .lang-btn.is-active {
+          background: rgba(201,154,63,0.28);
+          border-color: rgba(201,154,63,0.65);
+        }
+        .lang-btn.is-disabled {
+          opacity: 0.38;
+          cursor: not-allowed;
+        }
+        .lang-btn__code { flex-shrink: 0; }
+
+        /* FLOW variant — dark-bg heroglyph flow. Papyrus-cream trigger (+ tap padding)
+           and a centered MODAL popup with dark scrim (portaled to <body>). */
+        .lang-picker--flow .lang-trigger { color: rgba(250,244,236,0.92); padding: 4px; }
+        .lang-picker--flow .lang-trigger:hover { opacity: 0.7; }
+        .lang-picker--flow .lang-trigger__chev { color: rgba(250,244,236,0.7); }
+        .lang-picker--flow .lang-flag-stack { border-color: rgba(250,244,236,0.35); }
+
+        /* SETTINGS variant — light papyrus /pack account row. Dark ink trigger with
+           flag + 3-letter code; reuses the centered modal (portaled) so it never clips
+           inside the narrow settings field. */
+        .lang-picker--settings .lang-trigger {
+          color: #1f1a0e;
+          gap: 7px;
+          /* Zlatý rám matrice /pack (T.border), nie neutrálna šedá. Prepínač stojí
+             v tom istom stĺpci ako NASTAVIŤ/ZMENIŤ a ODHLÁSIŤ SA — tie tri majú
+             odteraz jeden rám. (13. 8. 2026, zjednotenie DNA.) */
+          border: 1px solid rgba(201,154,63,0.45);
+          border-radius: 8px;
+          padding: 6px 12px;
+          font-size: 0.72rem;
+          letter-spacing: 0.22em;
+        }
+        .lang-picker--settings .lang-trigger:hover { opacity: 1; background: rgba(201,154,63,0.10); }
+        .lang-picker--settings .lang-trigger__code { font-weight: 700; }
+        .lang-picker--settings .lang-trigger__chev { color: rgba(31,26,14,0.5); }
+        .lang-picker--settings .lang-flag-stack { border-color: rgba(31,26,14,0.2); }
+
+        .lang-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 2000;
+          background: rgba(0, 0, 0, 0.72);
+          -webkit-backdrop-filter: blur(2px);
+          backdrop-filter: blur(2px);
+          animation: langModalFade 160ms ease-out;
+        }
+        .lang-modal {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 2001;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201, 154, 63, 0.55);
+          border-radius: 14px;
+          padding: 16px;
+          box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+          /* left:50% dáva fixovanému prvku len POLOVICU okna — bez max-content mal modal
+             na 360 px šírku 180 a kódy ENG/CHN vyliezali zo stĺpca (stráž popupov 17. 10. 2026). */
+          width: max-content;
+          max-width: min(420px, 88vw);
+          max-height: 84dvh;
+          overflow-y: auto;
+          animation: langModalPop 200ms cubic-bezier(0.2, 0.8, 0.3, 1.15);
+        }
+        @keyframes langModalFade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes langModalPop {
+          from { opacity: 0; transform: translate(-50%, -46%) scale(0.96); }
+          to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+      </style><style>
+        .lg-root { min-height: 100vh; background: #F3E4C4; position: relative; color: #1F1A0E; }
+        .lg-root::before { content: ''; position: fixed; inset: 0; background: radial-gradient(125% 100% at 50% 38%, #FDF8EC 0%, #F8EDD6 34%, #F1E1BE 64%, #E6D2A6 100%); pointer-events: none; }
+        .lg-root > * { position: relative; }
+        .lg-main { width: min(760px, 100%); margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 16px; }
+
+        .lg-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .lg-tab {
+          height: 40px; padding: 0 16px; border-radius: 999px; display: inline-flex; align-items: center;
+          border: 1px solid rgba(201, 154, 63, 0.45); background: rgba(251,245,230,.6); color: #7a5a2a;
+          font: 500 12px/1 'Space Grotesk', sans-serif; letter-spacing: .14em; text-transform: uppercase;
+          text-decoration: none; cursor: pointer; transition: border-color .2s ease, color .2s ease;
+        }
+        .lg-tab:hover { border-color: #C99A3F; color: #2a1608; }
+        .lg-tab.is-on { background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%); border-color: #C99A3F; color: #2a1608; box-shadow: 0 1px 3px rgba(122,90,42,.18); }
+
+        .lg-card { padding: 48px; }
+        .lg-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .lg-eyebrow { margin: 0; color: #C99A3F; }
+        .lg-h1 { margin: 0; color: #2a1608; line-height: 1.25; position: relative; padding-bottom: 16px; }
+        .lg-h1::after { content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 160px; height: 2px; background: linear-gradient(90deg, transparent, #C99A3F, transparent); }
+        .lg-meta { margin: 8px 0 0; font: 500 12px/1.4 'Space Grotesk', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: rgba(31, 26, 14, 0.62); }
+        .lg-note { margin: 0; font: 400 12px/1.5 'Space Grotesk', sans-serif; font-style: italic; color: rgba(31, 26, 14, 0.42); max-width: 520px; }
+
+        .lg-toc { list-style: none; margin: 32px 0; padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+        .lg-toc button {
+          width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px; border: 0; border-radius: 8px;
+          background: none; cursor: pointer; text-align: left; color: #2a1608;
+          font: 400 14px/1.3 'Space Grotesk', sans-serif; transition: background .2s ease, color .2s ease;
+        }
+        .lg-toc button:hover { background: rgba(22,48,122,0.12); color: #16307A; }
+        .lg-toc i, .lg-sec h2 i {
+          flex: 0 0 auto; width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center;
+          font: 700 12px/1 'Cinzel', serif; font-style: normal; color: #16307A; border: 1.5px solid #16307A;
+        }
+
+        .lg-sections { display: flex; flex-direction: column; gap: 32px; }
+        .lg-sec { scroll-margin-top: 24px; }
+        .lg-sec h2 {
+          margin: 0 0 8px; display: flex; align-items: center; gap: 12px; color: #2a1608;
+          font: 700 16px/1.3 'Cinzel', serif; letter-spacing: .04em; text-transform: uppercase;
+        }
+        .lg-sec p { margin: 0; padding-left: 36px; font: 400 16px/1.7 'Space Grotesk', sans-serif; color: rgba(35,22,8,0.90); white-space: pre-line; }
+
+        .lg-foot {
+          margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(201, 154, 63, 0.30);
+          display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+        }
+        .lg-motto { margin: 0; color: rgba(31, 26, 14, 0.62); }
+        .lg-other {
+          color: #16307A; text-decoration: none; font: 700 14px/1 'Cinzel', serif; letter-spacing: .14em; text-transform: uppercase;
+          border-bottom: 1.5px solid rgba(22,48,122,0.22); padding-bottom: 4px; transition: border-color .2s ease;
+        }
+        .lg-other:hover { border-color: #16307A; }
+        .lg-copy { margin: 0; text-align: center; font: 400 12px/1 'Space Grotesk', sans-serif; color: rgba(31, 26, 14, 0.42); }
+
+        @media (max-width: 768px) {
+          .lg-main { padding: 16px 16px 32px; }
+          .lg-card { padding: 24px 16px; }
+          .lg-toc { grid-template-columns: 1fr; margin: 24px 0; padding: 8px; }
+          .lg-sections { gap: 24px; }
+          .lg-sec p { padding-left: 0; font-size: 14px; }
+        }
+      </style><style>
+        /* PAPYRUS = matrica PACK_BOX.panel (Matej 3. 10. 2026: *„cookie lišta nie je
+           v brande, je v takej divnej farbe"*). Dovtedy plochá #F5EEDF so šedým
+           inkoustom — bledý blok podľa locku je papyrusový gradient v zlatom ráme. */
+        .consent-banner {
+          position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+          background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%); border-top: 1.5px solid #C99A3F;
+          box-shadow: 0 -8px 28px rgba(0,0,0,0.35), 0 -3px 0 rgba(201,154,63,0.15);
+          padding: 12px 24px;
+        }
+        .consent-inner {
+          max-width: 1100px; margin: 0 auto;
+          display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 24px;
+        }
+        .consent-body {
+          font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.45;
+          color: #7a5a2a; margin: 0; max-width: 640px;
+        }
+        .consent-body b {
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
+          letter-spacing: 0.14em; text-transform: uppercase; color: #2a1608; margin-right: 4px;
+        }
+        .consent-bone { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-right: 8px; }
+        .consent-actions { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0; }
+        .consent-btn-primary, .consent-btn-secondary, .consent-split-main, .consent-split-arrow {
+          font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+          font-size: 12px; cursor: pointer; white-space: nowrap;
+        }
+        /* TLAČIDLÁ SA ZALAMUJÚ (16. 10. 2026, stráž check:popupy): nowrap v karte 420 px pustil
+           „Len nevyhnutné" cez okraj tlačidla v SK (3 px) aj DE (12 px) — vo flexe s min-width: 0
+           ho nič nezastavilo. Dlhší jazyk dostane 2 riadky, nie orez ani trojbodku. */
+        .consent-actions { align-items: stretch; }
+        .consent-actions .consent-btn-primary, .consent-actions .consent-btn-secondary, .consent-actions .consent-split-main {
+          white-space: normal; text-wrap: balance; line-height: 1.2; overflow-wrap: anywhere;
+        }
+        .consent-btn-primary {
+          background: linear-gradient(180deg,#16307A,#0A1A4A); color: #EFD79A;
+          border: 1px solid #0A1A4A; border-radius: 8px; box-shadow: 0 4px 13px -3px rgba(5,15,48,0.6), inset 0 1px 0 rgba(201,154,63,0.30);
+          padding: 12px 24px;
+        }
+        .consent-btn-primary:hover { background: linear-gradient(180deg,#1E3C90,#0F2560); }
+        .consent-btn-secondary {
+          background: rgba(201, 154, 63, 0.06); border: 1px solid rgba(201, 154, 63, 0.45);
+          border-radius: 8px; color: #2a1608; padding: 12px 24px;
+        }
+        .consent-btn-secondary:hover { background: rgba(201,154,63,0.14); }
+        /* DELENÉ TLAČIDLO — hlavná plocha = len nevyhnutné, šípka = rozbaľovačka */
+        .consent-split { position: relative; display: flex; }
+        .consent-split-main {
+          background: rgba(201, 154, 63, 0.06); color: #2a1608; padding: 12px 16px;
+          border: 1px solid rgba(201, 154, 63, 0.45); border-right: none; border-radius: 8px 0 0 8px;
+        }
+        .consent-split-arrow {
+          display: flex; align-items: center; justify-content: center; padding: 0 8px;
+          background: rgba(201, 154, 63, 0.06); color: #2a1608;
+          border: 1px solid rgba(201, 154, 63, 0.45); border-radius: 0 8px 8px 0;
+        }
+        .consent-split-main:hover, .consent-split-arrow:hover { background: rgba(201,154,63,0.14); }
+        .consent-arrow-ic { display: flex; transform: rotate(-90deg); transition: transform .15s ease; }
+        .consent-split-arrow[aria-expanded="true"] .consent-arrow-ic { transform: rotate(90deg); }
+        .consent-menu {
+          position: absolute; right: 0; bottom: calc(100% + 8px); min-width: 100%;
+          background: #FBF5E6; border: 1px solid #C99A3F; border-radius: 8px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.22); padding: 4px; z-index: 1;
+        }
+        .consent-menu button {
+          display: block; width: 100%; text-align: left; background: none; border: none; cursor: pointer;
+          padding: 8px 12px; border-radius: 8px;
+          font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: #2a1608;
+        }
+        .consent-menu button:hover { background: rgba(22,48,122,0.12); }
+        .consent-settings {
+          display: flex; flex-direction: column; gap: 12px;
+          margin-top: 12px; padding-top: 12px;
+          border-top: 1px solid rgba(201, 154, 63, 0.30);
+        }
+        .consent-toggle-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+        .consent-toggle-label {
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
+          letter-spacing: 0.06em; color: #2a1608; margin: 0 0 4px;
+        }
+        .consent-toggle-desc {
+          font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.5;
+          color: #7a5a2a; margin: 0; max-width: 460px;
+        }
+        .consent-switch {
+          position: relative; flex-shrink: 0; width: 44px; height: 24px;
+          border-radius: 999px; border: 1px solid rgba(201, 154, 63, 0.45);
+          background: rgba(201,154,63,0.18); cursor: pointer;
+        }
+        .consent-switch[data-on="true"] { background: #16307A; border-color: #0A1A4A; }
+        .consent-switch-knob {
+          position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+          border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.35);
+          transition: transform .15s ease;
+        }
+        .consent-switch[data-on="true"] .consent-switch-knob { transform: translateX(20px); }
+
+        /* MOBIL: text nad tlačidlami, obe tlačidlá v JEDNOM riadku 50/50. */
+        @media (max-width: 759px) {
+          /* 3. 10. 2026 nižšia: 133 → ~110 px (zakrývala spodok úvodu /onepage). */
+          .consent-banner { padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px)); }
+          .consent-inner { flex-direction: column; align-items: stretch; gap: 8px; }
+          .consent-body { font-size: 12px; line-height: 1.35; }
+          .consent-bone { width: 16px; height: 16px; vertical-align: -3px; margin-right: 4px; }
+          .consent-actions > * { flex: 1 1 0; min-width: 0; }
+          .consent-btn-primary, .consent-btn-secondary { padding: 12px 8px; letter-spacing: 0.02em; }
+          .consent-split-main { flex: 1 1 auto; min-width: 0; padding: 12px 8px; letter-spacing: 0.02em; }
+          .consent-split-arrow { flex: 0 0 auto; }
+          /* ONLY NECESSARY je o polovicu dlhšie než ALLOW ALL — na ostrom builde sa pri 50/50
+             orezalo na 390 px (náhľad 22. 9.), lokálne nie. Väčší diel riadku. */
+          .consent-split { flex: 1.5 1 0; }
+          .consent-menu { left: 0; right: 0; }
+        }
+        /* ── PC: KARTA VPRAVO DOLE, NIE PÁS (Matej 22. 9. 2026: „nebolo by lepšie dať tú
+           správu na PC iba na pravý bok od kraja po kraj spodného nav?") ─────────────
+           Spodok sedí so spodkom navu (16 px), šírka sa ráta z miesta VPRAVO OD NAVU:
+           nav stojí v strede okna a publikuje --pack-nav-half (PackLayout), takže jeho
+           pravý kraj je 50vw + polovica. Karta tam nikdy nezasiahne; bez navu (web,
+           heroflow) je premenná preč a karta má svojich 420 px. */
+        @media (min-width: 1024px) {
+          .consent-banner {
+            left: auto; right: 24px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+            width: min(420px, calc(50vw - var(--pack-nav-half, 0px) - 48px));
+            padding: 16px; border: 1.5px solid #C99A3F; border-radius: 16px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15);
+          }
+          /* /map a AINUBIS majú nav v strede PLOCHY vpravo (5. 10. 2026) — vedľa neho ostáva
+             ~250 px a tlačidlá sa v karte prekrývali. Tam karta stojí NAD radom navu
+             v plnej šírke, nie vedľa neho. */
+          body:has(.trp-root) .consent-banner, body:has(.akv-root) .consent-banner {
+            width: 420px;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 16px + var(--pack-nav-h, 64px) + 12px);
+          }
+          /* Panel PLUS vychádza z toho istého navu do tej istej výšky — kým je otvorený, karta
+             ustúpi (ako AINUBIS, rozhodnutie 3. 10.) a po zavretí sa vráti. */
+          body:has(.trp-root):has(.att-entry-backdrop) .consent-banner,
+          body:has(.akv-root):has(.att-entry-backdrop) .consent-banner { display: none; }
+          .consent-inner { flex-direction: column; align-items: stretch; gap: 12px; }
+          .consent-actions > * { flex: 1 1 0; min-width: 0; }
+          .consent-btn-primary, .consent-btn-secondary { padding: 12px 8px; }
+          .consent-split-main { flex: 1 1 auto; min-width: 0; padding: 12px 8px; }
+          .consent-menu { left: 0; right: 0; }
+        }
+        /* Úzke PC (1024–1199): vpravo od navu ostáva ~310 px, ONLY NECESSARY v .12em sa orezalo. */
+        @media (min-width: 1024px) and (max-width: 1199px) {
+          .consent-btn-primary, .consent-btn-secondary, .consent-split-main { letter-spacing: 0.02em; }
+          .consent-split-main { padding: 12px 4px; }
+          .consent-split-arrow { padding: 0 4px; }
+          /* ONLY NECESSARY je o polovicu dlhšie než ALLOW ALL — dostane väčší diel riadku. */
+          .consent-split { flex: 1.7 1 0; }
+        }
+        /* Pod 380 px sa ONLY NECESSARY v 12 px vedľa šípky do polovice riadku nezmestí
+           a nowrap by roztiahol celú stránku do šírky (snímka 360 px, 22. 9.). */
+        @media (max-width: 379px) {
+          .consent-btn-primary, .consent-btn-secondary, .consent-split-main { font-size: 10px; letter-spacing: 0.04em; }
+          .consent-split-arrow { padding: 0 4px; }
+          .consent-split-main { padding: 12px 4px; letter-spacing: 0; }
+        }
+      </style></template><script type="application/json" id="pre-data">[]</script><template data-pre="en" data-title="DOGYPT — Your Dog Is God Here"><div class="lg-root"><div class="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-[25px]" style="margin-top: env(safe-area-inset-top, 0px);"><button type="button" aria-label="Back" class="absolute left-4 top-[12px] md:top-[20px] flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-[rgba(201,154,63,0.14)]" style="border: 1.5px solid rgba(120, 86, 26, 0.55); color: rgb(60, 42, 14);"><svg viewBox="0 0 462.85 462.851" width="20" height="20" fill="currentColor" focusable="false" aria-hidden="true"><path d="M380.44,70.332c-0.376-4.936-3.362-9.46-7.663-12.781c-20.216-15.615-39.745-32.078-58.676-49.234
+			c-4.764-7.814-15.884-12.126-24.359-3.79C222.106,71.022,162.894,145.963,88.677,205.589c-2.034,1.632-3.405,3.427-4.258,5.278
+			c-4.248,5.583-5.319,13.649,0.794,20.251c69.221,74.753,133.554,153.913,204.528,227.062c4.809,4.961,10.547,5.561,15.463,3.702
+			c2.828-0.36,5.682-1.488,8.333-3.702c21.018-17.61,41.223-36.125,60.666-55.467c8.363-8.322,4.22-19.296-3.488-24.136
+			c-40.654-48.362-87.067-96.258-127.666-144.666c46.053-46.261,90.439-98.67,134.623-146.655
+			C382.628,81.869,382.816,75.526,380.44,70.332z M215.21,217.72c-2.356,2.311-3.656,4.837-4.248,7.373
+			c-3.786,5.578-4.674,13.348,0.78,19.883c41.018,49.13,87.979,97.63,129.222,146.561c-12.446,11.999-25.288,23.572-38.364,34.901
+			c-63.521-66.445-122.15-137.318-184.153-205.15C184.958,166.153,239.8,99.116,300.466,37.898
+			c14.833,13.089,30.042,25.692,45.564,37.948C303.879,122.922,260.412,173.422,215.21,217.72z"></path></svg></button><img src="/assets/dogypt-logo-mobile-DGloGiaa.webp" alt="DOGYPT" class="h-10 object-contain md:hidden"><img src="/assets/dogypt-logo-gold-BbkQXDdp.webp" alt="DOGYPT" class="hidden md:block md:h-12 object-contain"><div class="absolute right-5 top-[12px] md:top-[20px]"><div class="lang-picker lang-picker--flow"><button type="button" class="lang-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Language: ENG"><span class="lang-flag-stack" aria-hidden="true"><span class="lang-flag-stack__item" style="background-image: url(&quot;https://flagcdn.com/w80/gb.png&quot;);"></span><span class="lang-flag-stack__item" style="background-image: url(&quot;https://flagcdn.com/w80/us.png&quot;);"></span><span class="lang-flag-stack__item" style="background-image: url(&quot;https://flagcdn.com/w80/ca.png&quot;);"></span></span><svg class="lang-trigger__chev" width="9" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1 L5 5 L9 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div></div></div><main class="lg-main"><nav class="lg-tabs" aria-label="Legal"><a class="lg-tab is-on" aria-current="page" href="/privacy">Privacy Policy</a><a class="lg-tab" href="/terms">Terms of Service</a><button type="button" class="lg-tab">Cookie settings</button></nav><article class="lg-card" style="background: linear-gradient(160deg, rgb(251, 245, 230) 0%, rgb(243, 228, 196) 55%, rgb(234, 214, 166) 100%); border: 1.5px solid rgb(201, 154, 63); border-radius: 16px; box-shadow: rgba(0, 0, 0, 0.55) 0px 14px 44px, rgba(201, 154, 63, 0.12) 0px 0px 0px 4px, rgba(255, 255, 255, 0.5) 0px 1px 0px inset;"><header class="lg-head"><p class="lg-eyebrow" style="font-family: &quot;Space Grotesk&quot;, sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase;">DOGYPT · Legal</p><h1 class="lg-h1" style="font-family: Cinzel, serif; font-weight: 700; font-size: 24px; letter-spacing: 0.14em; text-transform: uppercase;">Privacy Policy</h1><p class="lg-meta">Last updated: 11 October 2026 · v1.3</p><p class="lg-note">This document is provided in multiple languages for convenience. If the versions differ, the English version prevails.</p></header><ol class="lg-toc" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><li><button type="button"><i>1</i><span>Who We Are</span></button></li><li><button type="button"><i>2</i><span>Data We Collect</span></button></li><li><button type="button"><i>3</i><span>How We Use It</span></button></li><li><button type="button"><i>4</i><span>Legal Basis (GDPR)</span></button></li><li><button type="button"><i>5</i><span>Sharing &amp; Sub-processors</span></button></li><li><button type="button"><i>6</i><span>Cookies &amp; Tracking</span></button></li><li><button type="button"><i>7</i><span>Retention</span></button></li><li><button type="button"><i>8</i><span>Your Rights</span></button></li><li><button type="button"><i>9</i><span>International Transfers</span></button></li><li><button type="button"><i>10</i><span>Changes to This Policy</span></button></li><li><button type="button"><i>11</i><span>Contact</span></button></li><li><button type="button"><i>12</i><span>Inside the Pack: What Other Members See</span></button></li><li><button type="button"><i>13</i><span>Messages &amp; Reports</span></button></li><li><button type="button"><i>14</i><span>AINUBIS, Our AI Guide</span></button></li></ol><div class="lg-sections"><section id="privacy-1" class="lg-sec"><h2><i>1</i>Who We Are</h2><p>DOGYPT s.r.o., a Slovak limited liability company (IČO 54 444 594), registered seat Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovakia. We are the controller of the personal data described below. For any privacy-related question write to woof@dogypt.com. We have not appointed a Data Protection Officer because our processing does not meet the GDPR Art. 37 thresholds. Effective date: 4 May 2026.</p></section><section id="privacy-2" class="lg-sec"><h2><i>2</i>Data We Collect</h2><p>When you use the HEROGLYPH flow we collect: your email address, your dog’s name, the photo of your dog you upload (stored on Cloudinary), the symbolic answers you select (gender, colour, fate, bloodline, character, your zodiac, your initial), and your dog’s birth date if provided. Stripe collects your payment details directly — we receive only a payment confirmation, the last 4 digits of the card, and country. Our servers automatically log technical data (IP address, user-agent, request time) for security and abuse prevention. We also collect usage data about how you move through the site (pages viewed, clicks, device and browser type) — anonymised by default, and tied to you only if you consent to analytics or recordings. If you are a Pack member we also store what you create inside the Pack: your profile answers, your dog’s profile, the trips you log or announce (route, location, date, and any photos you upload), your ratings, comments and questions, your messages with other Members, and any reports you send.</p></section><section id="privacy-3" class="lg-sec"><h2><i>3</i>How We Use It</h2><p>We use your data to: generate and deliver your HEROGLYPH certificate; send you the certificate email and a small number of follow-up Pack messages; display your dog’s entry in the public GodsGrid (only the dog’s name, photo, and HEROGLYPH symbol appear publicly — never your email, your name, or your private code); operate, secure, and improve the Service; comply with legal obligations such as accounting and consumer protection.</p></section><section id="privacy-4" class="lg-sec"><h2><i>4</i>Legal Basis (GDPR)</h2><p>We rely on Art. 6(1)(b) GDPR (performance of a contract) for the HEROGLYPH delivery and Pack membership; Art. 6(1)(a) (consent) for marketing email beyond service messages, for session recordings and identified analytics, and for advertising cookies — you can withdraw any of these at any time; Art. 6(1)(f) (legitimate interest) for security logging, abuse prevention, and anonymous aggregate analytics; and Art. 6(1)(c) (legal obligation) for tax and accounting records.</p></section><section id="privacy-5" class="lg-sec"><h2><i>5</i>Sharing &amp; Sub-processors</h2><p>We do not sell your data. We share it only with sub-processors that help us run the Service: Stripe Payments Europe, Ltd. (payments) · Cloudinary Ltd. (photo storage and delivery) · Resend, Inc. (transactional email) · Supabase, Inc. (database and authentication) · Anthropic, PBC (the Claude model behind the AINUBIS chat, see Section 14) · Cloudflare, Inc. (hosting of dogypt.com and DNS) · WebSupport s.r.o. (hosting of subdomains, domain) · Telegram (internal notifications to the founder about AINUBIS conversations and reports) · GitHub, Inc. (deployment pipeline) · PostHog (EU-hosted product analytics). Only if you give marketing consent do we also engage Google Ireland Ltd. (Google Analytics 4) and Meta Platforms Ireland Ltd. (Meta Pixel) to measure campaigns and build advertising audiences. Each sub-processor is bound by its own data processing agreement.</p></section><section id="privacy-6" class="lg-sec"><h2><i>6</i>Cookies &amp; Tracking</h2><p>We keep cookies and local storage to the minimum needed to make the Service work — session, language, and your in-progress HEROGLYPH selections. For product analytics we use PostHog, hosted in the EU. By default it runs in a cookieless, anonymised mode — no cross-site tracking and no advertising, the Plausible-style model — on the basis of our legitimate interest in finding and fixing what breaks. Only if you consent do we enable identified analytics and session recordings; and, separately, advertising cookies such as Google Analytics 4 and the Meta Pixel, which measure campaigns and build marketing audiences. You can grant or withdraw either of these at any time through “Cookie settings” in the footer. All analytics data is processed on EU servers.</p></section><section id="privacy-7" class="lg-sec"><h2><i>7</i>Retention</h2><p>Your HEROGLYPH and Pack profile are kept for as long as your account exists, because the GodsGrid is the lifetime registry of every member of the Pack. Transactional email logs are kept for 12 months for support and fraud prevention. Accounting records are kept for 10 years as required by Slovak law (Act 431/2002 Coll.). When you ask us to delete your account, we remove personal identifiers within 30 days and keep only the legally required minimum. Messages are kept while the conversation exists and go with your account when you delete it, except for the copy in the other participant’s thread. Reports and the moderation record are kept while the reporting account exists, so we can recognise repeat behaviour.</p></section><section id="privacy-8" class="lg-sec"><h2><i>8</i>Your Rights</h2><p>Under GDPR you have the right to access your data, to correct it, to have it erased, to restrict or object to processing, to data portability, and to withdraw consent at any time. You can also lodge a complaint with the Slovak supervisory authority — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. To exercise any of these rights write to woof@dogypt.com — we reply within 30 days.</p></section><section id="privacy-9" class="lg-sec"><h2><i>9</i>International Transfers</h2><p>Some of our sub-processors (Stripe, Cloudinary, Resend, Supabase, Anthropic, Cloudflare, Telegram, GitHub, and — with marketing consent — Google and Meta) operate servers outside the EU/EEA, mostly in the United States. PostHog processes our analytics on EU servers. Where personal data leaves the EU/EEA we rely on the European Commission’s Standard Contractual Clauses, the EU–US Data Privacy Framework, and additional safeguards required by GDPR Chapter V.</p></section><section id="privacy-10" class="lg-sec"><h2><i>10</i>Changes to This Policy</h2><p>We will tell you about material changes by email at least 30 days before they take effect. Minor edits — typos, sub-processor name updates, new contact addresses — take effect on publication. The current version and date are always at the top of this page; older versions are available on request.</p></section><section id="privacy-11" class="lg-sec"><h2><i>11</i>Contact</h2><p>woof@dogypt.com · Postal: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovakia.</p></section><section id="privacy-12" class="lg-sec"><h2><i>12</i>Inside the Pack: What Other Members See</h2><p>Section 3 describes the public GodsGrid. Inside the Pack — the member-only area — other signed-in Members see more: your first name, your Dogyptian number, your dog’s name and photo, the attributes you filled in about your dog, the trips you logged or announced, your ratings and comments, and whatever you wrote on your profile. They do not see your email address, your postal address, your payment data, or your messages with anyone else. When you announce a trip as open, the trail, the date and your dog become visible to every Member so they can ask to join — that is what announcing it means. A trip you keep private is visible only to you and to the people already going. You choose which of the two it is, and you can change it at any time.</p></section><section id="privacy-13" class="lg-sec"><h2><i>13</i>Messages &amp; Reports</h2><p>Private messages between Members are stored in our database (Supabase) so conversations survive between sessions. Legal basis: Art. 6(1)(b) GDPR — they are part of the membership you paid for. We do not read them routinely and never use them for advertising or profiling. We open a conversation only when it is reported, when we investigate a specific abuse or security incident, or when the law requires it. A report stores the reason you picked, your optional note, and a reference to what you reported — not a separate copy of it. Blocking is stored as a pair of member identifiers. If you delete your account your messages go with it; the copy in the other person’s thread stays, shown as coming from a removed member, because that conversation is also theirs.</p></section><section id="privacy-14" class="lg-sec"><h2><i>14</i>AINUBIS, Our AI Guide</h2><p>AINUBIS is the AI guide inside DOGYPT. Its answers are generated by Claude, a model made by Anthropic, PBC, which acts as our sub-processor. When you are signed in, every message you send to AINUBIS goes to Anthropic together with: the name on your profile, the names and basic details of your dogs, their DOG ID details (character, health, feeding), the latest entries in their diary, and a short summary of your earlier conversations with AINUBIS. AINUBIS never receives your dog’s will or the contacts of other people you entered in the DOG ID (vet, backup contact, heir). Anthropic receives this data only to generate the reply and does not use it to train its models. If you are not signed in, AINUBIS knows only what you type in the chat and any screenshot you attach.
+
+You will be able to switch off each part — dogs, DOG ID, diary and memory — in the AINUBIS settings. AINUBIS then works only with what you tell it in the conversation.
+
+Your conversations with AINUBIS, including attached screenshots, are stored in our database (Supabase) as ordinary history. Hiding or clearing a conversation in the chat removes it from your view, not from our records; the history is deleted when you ask us to delete your account. Unlike messages between Members (Section 13), AINUBIS conversations are not closed to us: the founder, Matej Stacho, reads them and can reply in them himself. Legal basis: Art. 6(1)(b) GDPR for Members — AINUBIS is part of the membership; for visitors who are not signed in, our legitimate interest in answering their question (Art. 6(1)(f)).</p></section></div><footer class="lg-foot"><p class="lg-motto" style="font-family: &quot;Space Grotesk&quot;, sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase;">DOGYPT · In DOG We Trust</p><a class="lg-other" href="/terms">Terms of Service →</a></footer></article><p class="lg-copy">© 2026 DOGYPT</p></main></div></template><template data-pre-consent="en"><div class="consent-banner" role="dialog" aria-live="polite" aria-label="Human duties"><div class="consent-inner"><div><p class="consent-body"><img class="consent-bone" src="/icons/pack/bone.svg" alt="" aria-hidden="true"><b>Human duties</b>The only cookies we recommend aren’t for eating — they help us improve our website. Thank you.</p></div><div class="consent-actions"><div class="consent-split"><button type="button" class="consent-split-main">Only necessary</button><button type="button" class="consent-split-arrow" aria-haspopup="menu" aria-expanded="false" aria-label="Choose"><span class="consent-arrow-ic" aria-hidden="true"><svg viewBox="0 0 462.85 462.851" width="16" height="16" fill="currentColor" focusable="false" aria-hidden="true"><path d="M380.44,70.332c-0.376-4.936-3.362-9.46-7.663-12.781c-20.216-15.615-39.745-32.078-58.676-49.234
+			c-4.764-7.814-15.884-12.126-24.359-3.79C222.106,71.022,162.894,145.963,88.677,205.589c-2.034,1.632-3.405,3.427-4.258,5.278
+			c-4.248,5.583-5.319,13.649,0.794,20.251c69.221,74.753,133.554,153.913,204.528,227.062c4.809,4.961,10.547,5.561,15.463,3.702
+			c2.828-0.36,5.682-1.488,8.333-3.702c21.018-17.61,41.223-36.125,60.666-55.467c8.363-8.322,4.22-19.296-3.488-24.136
+			c-40.654-48.362-87.067-96.258-127.666-144.666c46.053-46.261,90.439-98.67,134.623-146.655
+			C382.628,81.869,382.816,75.526,380.44,70.332z M215.21,217.72c-2.356,2.311-3.656,4.837-4.248,7.373
+			c-3.786,5.578-4.674,13.348,0.78,19.883c41.018,49.13,87.979,97.63,129.222,146.561c-12.446,11.999-25.288,23.572-38.364,34.901
+			c-63.521-66.445-122.15-137.318-184.153-205.15C184.958,166.153,239.8,99.116,300.466,37.898
+			c14.833,13.089,30.042,25.692,45.564,37.948C303.879,122.922,260.412,173.422,215.21,217.72z"></path></svg></span></button></div><button type="button" class="consent-btn-primary">Allow all</button></div></div></div></template><template data-pre="sk" data-title="DOGYPT — Your Dog Is God Here"><div class="lg-root"><div class="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-[25px]" style="margin-top: env(safe-area-inset-top, 0px);"><button type="button" aria-label="Späť" class="absolute left-4 top-[12px] md:top-[20px] flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-[rgba(201,154,63,0.14)]" style="border: 1.5px solid rgba(120, 86, 26, 0.55); color: rgb(60, 42, 14);"><svg viewBox="0 0 462.85 462.851" width="20" height="20" fill="currentColor" focusable="false" aria-hidden="true"><path d="M380.44,70.332c-0.376-4.936-3.362-9.46-7.663-12.781c-20.216-15.615-39.745-32.078-58.676-49.234
+			c-4.764-7.814-15.884-12.126-24.359-3.79C222.106,71.022,162.894,145.963,88.677,205.589c-2.034,1.632-3.405,3.427-4.258,5.278
+			c-4.248,5.583-5.319,13.649,0.794,20.251c69.221,74.753,133.554,153.913,204.528,227.062c4.809,4.961,10.547,5.561,15.463,3.702
+			c2.828-0.36,5.682-1.488,8.333-3.702c21.018-17.61,41.223-36.125,60.666-55.467c8.363-8.322,4.22-19.296-3.488-24.136
+			c-40.654-48.362-87.067-96.258-127.666-144.666c46.053-46.261,90.439-98.67,134.623-146.655
+			C382.628,81.869,382.816,75.526,380.44,70.332z M215.21,217.72c-2.356,2.311-3.656,4.837-4.248,7.373
+			c-3.786,5.578-4.674,13.348,0.78,19.883c41.018,49.13,87.979,97.63,129.222,146.561c-12.446,11.999-25.288,23.572-38.364,34.901
+			c-63.521-66.445-122.15-137.318-184.153-205.15C184.958,166.153,239.8,99.116,300.466,37.898
+			c14.833,13.089,30.042,25.692,45.564,37.948C303.879,122.922,260.412,173.422,215.21,217.72z"></path></svg></button><img src="/assets/dogypt-logo-mobile-DGloGiaa.webp" alt="DOGYPT" class="h-10 object-contain md:hidden"><img src="/assets/dogypt-logo-gold-BbkQXDdp.webp" alt="DOGYPT" class="hidden md:block md:h-12 object-contain"><div class="absolute right-5 top-[12px] md:top-[20px]"><div class="lang-picker lang-picker--flow"><button type="button" class="lang-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Language: SVK"><span class="lang-flag-stack" aria-hidden="true"><span class="lang-flag-stack__item" style="background-image: url(&quot;https://flagcdn.com/w80/sk.png&quot;);"></span></span><svg class="lang-trigger__chev" width="9" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1 L5 5 L9 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div></div></div><main class="lg-main"><nav class="lg-tabs" aria-label="Legal"><a class="lg-tab is-on" aria-current="page" href="/privacy">Zásady ochrany súkromia</a><a class="lg-tab" href="/terms">Podmienky používania</a><button type="button" class="lg-tab">Nastavenia cookies</button></nav><article class="lg-card" style="background: linear-gradient(160deg, rgb(251, 245, 230) 0%, rgb(243, 228, 196) 55%, rgb(234, 214, 166) 100%); border: 1.5px solid rgb(201, 154, 63); border-radius: 16px; box-shadow: rgba(0, 0, 0, 0.55) 0px 14px 44px, rgba(201, 154, 63, 0.12) 0px 0px 0px 4px, rgba(255, 255, 255, 0.5) 0px 1px 0px inset;"><header class="lg-head"><p class="lg-eyebrow" style="font-family: &quot;Space Grotesk&quot;, sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase;">DOGYPT · Právne</p><h1 class="lg-h1" style="font-family: Cinzel, serif; font-weight: 700; font-size: 24px; letter-spacing: 0.14em; text-transform: uppercase;">Zásady ochrany súkromia</h1><p class="lg-meta">Posledná aktualizácia: 11. októbra 2026 · v1.3</p><p class="lg-note">Tento dokument poskytujeme vo viacerých jazykoch pre pohodlie. V prípade rozdielov medzi verziami má prednosť anglické znenie.</p></header><ol class="lg-toc" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><li><button type="button"><i>1</i><span>Kto sme</span></button></li><li><button type="button"><i>2</i><span>Aké údaje zbierame</span></button></li><li><button type="button"><i>3</i><span>Ako ich používame</span></button></li><li><button type="button"><i>4</i><span>Právny základ (GDPR)</span></button></li><li><button type="button"><i>5</i><span>Zdieľanie a sprostredkovatelia</span></button></li><li><button type="button"><i>6</i><span>Cookies a sledovanie</span></button></li><li><button type="button"><i>7</i><span>Uchovávanie údajov</span></button></li><li><button type="button"><i>8</i><span>Vaše práva</span></button></li><li><button type="button"><i>9</i><span>Medzinárodné prenosy</span></button></li><li><button type="button"><i>10</i><span>Zmeny týchto zásad</span></button></li><li><button type="button"><i>11</i><span>Kontakt</span></button></li><li><button type="button"><i>12</i><span>Vo vnútri svorky: čo vidia ostatní členovia</span></button></li><li><button type="button"><i>13</i><span>Správy a nahlásenia</span></button></li><li><button type="button"><i>14</i><span>AINUBIS, náš AI sprievodca</span></button></li></ol><div class="lg-sections"><section id="privacy-1" class="lg-sec"><h2><i>1</i>Kto sme</h2><p>DOGYPT s.r.o., slovenská spoločnosť s ručením obmedzeným (IČO 54 444 594), sídlo Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko. Sme prevádzkovateľom osobných údajov opísaných nižšie. S akoukoľvek otázkou o súkromí nám píšte na woof@dogypt.com. Zodpovednú osobu (DPO) sme nevymenovali, pretože naše spracúvanie nedosahuje prahové hodnoty čl. 37 GDPR. Dátum účinnosti: 4. mája 2026.</p></section><section id="privacy-2" class="lg-sec"><h2><i>2</i>Aké údaje zbierame</h2><p>Pri používaní HEROGLYPH procesu zbierame: vašu e-mailovú adresu, meno psa, nahranú fotografiu psa (uloženú na Cloudinary), symbolické odpovede, ktoré vyberiete (pohlavie, farba, osud, pokrvná línia, charakter, váš horoskop, vaša iniciála), a dátum narodenia psa, ak ho uvediete. Platobné údaje zbiera priamo Stripe — my dostávame len potvrdenie platby, posledné 4 číslice karty a krajinu. Naše servery automaticky zaznamenávajú technické údaje (IP adresa, user-agent, čas požiadavky) na účely bezpečnosti a prevencie zneužitia. Zbierame aj údaje o používaní o tom, ako sa pohybujete po stránke (zobrazené stránky, kliknutia, typ zariadenia a prehliadača) — predvolene anonymizované a priradené k vám len vtedy, ak udelíte súhlas s analytikou alebo nahrávaniami. Ak ste členom svorky, ukladáme aj to, čo vo svorke vytvoríte: odpovede vo vašom profile, profil vášho psa, výlety, ktoré zaznamenáte alebo ohlásite (trasa, miesto, dátum a fotografie, ktoré nahráte), vaše hodnotenia, komentáre a otázky, vaše správy s ostatnými Členmi a nahlásenia, ktoré nám pošlete.</p></section><section id="privacy-3" class="lg-sec"><h2><i>3</i>Ako ich používame</h2><p>Vaše údaje používame na: vygenerovanie a doručenie HEROGLYPH certifikátu; odoslanie e-mailu s certifikátom a malého počtu nadväzujúcich správ svorky; zobrazenie záznamu vášho psa vo verejnom GodsGrid (verejne sa zobrazuje len meno psa, fotografia a HEROGLYPH symbol — nikdy nie váš e-mail, vaše meno ani súkromný kód); prevádzku, zabezpečenie a zlepšovanie Služby; plnenie zákonných povinností, ako sú účtovníctvo a ochrana spotrebiteľa.</p></section><section id="privacy-4" class="lg-sec"><h2><i>4</i>Právny základ (GDPR)</h2><p>Opierame sa o čl. 6 ods. 1 písm. b) GDPR (plnenie zmluvy) pri dodaní HEROGLYPHu a členstve vo svorke; čl. 6 ods. 1 písm. a) (súhlas) pri marketingových e-mailoch nad rámec servisných správ, pri nahrávaní relácií a identifikovanej analytike a pri reklamných cookies — ktorýkoľvek z nich môžete kedykoľvek odvolať; čl. 6 ods. 1 písm. f) (oprávnený záujem) pri bezpečnostnom logovaní, prevencii zneužitia a anonymnej agregovanej analytike; a čl. 6 ods. 1 písm. c) (zákonná povinnosť) pri daňových a účtovných záznamoch.</p></section><section id="privacy-5" class="lg-sec"><h2><i>5</i>Zdieľanie a sprostredkovatelia</h2><p>Vaše údaje nepredávame. Zdieľame ich len so sprostredkovateľmi, ktorí nám pomáhajú prevádzkovať Službu: Stripe Payments Europe, Ltd. (platby) · Cloudinary Ltd. (ukladanie a doručovanie fotografií) · Resend, Inc. (transakčné e-maily) · Supabase, Inc. (databáza a autentifikácia) · Anthropic, PBC (model Claude, na ktorom beží chat AINUBIS, pozri článok 14) · Cloudflare, Inc. (hosting dogypt.com a DNS) · WebSupport s.r.o. (hosting subdomén, doména) · Telegram (interné upozornenia zakladateľovi o rozhovoroch s AINUBISOM a hláseniach) · GitHub, Inc. (nasadzovanie) · PostHog (produktová analytika hostovaná v EÚ). Len ak udelíte marketingový súhlas, zapojíme aj Google Ireland Ltd. (Google Analytics 4) a Meta Platforms Ireland Ltd. (Meta Pixel) na meranie kampaní a budovanie reklamných publík. Každý sprostredkovateľ je viazaný vlastnou zmluvou o spracúvaní údajov.</p></section><section id="privacy-6" class="lg-sec"><h2><i>6</i>Cookies a sledovanie</h2><p>Cookies a lokálne úložisko udržiavame na minime potrebnom na fungovanie Služby — relácia, jazyk a rozpracované HEROGLYPH voľby. Na produktovú analytiku používame PostHog, hostovaný v EÚ. Predvolene beží v režime bez cookies a anonymizovane — bez sledovania naprieč stránkami a bez reklamy, model v štýle Plausible — na základe nášho oprávneného záujmu nájsť a opraviť to, čo nefunguje. Len ak udelíte súhlas, zapneme identifikovanú analytiku a nahrávanie relácií; a samostatne reklamné cookies, ako sú Google Analytics 4 a Meta Pixel, ktoré merajú kampane a budujú marketingové publiká. Ktorýkoľvek z týchto súhlasov môžete kedykoľvek udeliť alebo odvolať cez „Nastavenia cookies" v pätičke. Všetky analytické údaje sa spracúvajú na serveroch v EÚ.</p></section><section id="privacy-7" class="lg-sec"><h2><i>7</i>Uchovávanie údajov</h2><p>Váš HEROGLYPH a profil svorky uchovávame, kým existuje váš účet, pretože GodsGrid je doživotný register každého člena svorky. Záznamy o transakčných e-mailoch uchovávame 12 mesiacov na účely podpory a prevencie podvodov. Účtovné záznamy uchovávame 10 rokov, ako vyžaduje slovenské právo (zákon č. 431/2002 Z. z.). Keď požiadate o vymazanie účtu, osobné identifikátory odstránime do 30 dní a ponecháme len zákonom vyžadované minimum. Správy uchovávame, kým existuje konverzácia, a pri zmazaní účtu odídú s ním, okrem kópie vo vlákne druhého účastníka. Nahlásenia a záznam o moderovaní uchovávame, kým existuje účet nahlasovateľa, aby sme vedeli rozpoznať opakované správanie.</p></section><section id="privacy-8" class="lg-sec"><h2><i>8</i>Vaše práva</h2><p>Podľa GDPR máte právo na prístup k svojim údajom, ich opravu, vymazanie, obmedzenie spracúvania alebo námietku proti nemu, prenosnosť údajov a kedykoľvek odvolať súhlas. Sťažnosť môžete podať aj slovenskému dozornému orgánu — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. Na uplatnenie ktoréhokoľvek z týchto práv napíšte na woof@dogypt.com — odpovieme do 30 dní.</p></section><section id="privacy-9" class="lg-sec"><h2><i>9</i>Medzinárodné prenosy</h2><p>Niektorí naši sprostredkovatelia (Stripe, Cloudinary, Resend, Supabase, Anthropic, Cloudflare, Telegram, GitHub a — pri marketingovom súhlase — Google a Meta) prevádzkujú servery mimo EÚ/EHP, väčšinou v USA. PostHog spracúva našu analytiku na serveroch v EÚ. Tam, kde osobné údaje opúšťajú EÚ/EHP, sa opierame o štandardné zmluvné doložky Európskej komisie, rámec EÚ–USA Data Privacy Framework a dodatočné záruky podľa kapitoly V GDPR.</p></section><section id="privacy-10" class="lg-sec"><h2><i>10</i>Zmeny týchto zásad</h2><p>O podstatných zmenách vás budeme informovať e-mailom najmenej 30 dní pred nadobudnutím účinnosti. Drobné úpravy — preklepy, zmeny názvov sprostredkovateľov, nové kontaktné adresy — nadobúdajú účinnosť zverejnením. Aktuálna verzia a dátum sú vždy v hornej časti tejto stránky; staršie verzie sú dostupné na požiadanie.</p></section><section id="privacy-11" class="lg-sec"><h2><i>11</i>Kontakt</h2><p>woof@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.</p></section><section id="privacy-12" class="lg-sec"><h2><i>12</i>Vo vnútri svorky: čo vidia ostatní členovia</h2><p>Článok 3 opisuje verejný GodsGrid. Vo vnútri svorky — v členskej zóne — vidia ostatní prihlásení Členovia viac: vaše krstné meno, vaše dogyptské poradové číslo, meno a fotografiu vášho psa, atribúty, ktoré ste o psovi vyplnili, výlety, ktoré ste zaznamenali alebo ohlásili, vaše hodnotenia a komentáre a čokoľvek ste napísali na svoj profil. Nevidia vašu e-mailovú adresu, poštovú adresu, platobné údaje ani vaše správy s kýmkoľvek iným. Keď ohlásite výlet ako otvorený, trasa, dátum a váš pes sa stanú viditeľnými pre každého Člena, aby mohol požiadať o pridanie — to ohlásenie znamená. Výlet, ktorý si necháte súkromný, vidíte len vy a ľudia, ktorí už idú. Ktorá z tých dvoch možností to bude, si vyberáte vy a môžete to kedykoľvek zmeniť.</p></section><section id="privacy-13" class="lg-sec"><h2><i>13</i>Správy a nahlásenia</h2><p>Súkromné správy medzi Členmi sa ukladajú v našej databáze (Supabase), aby konverzácie prežili medzi reláciami. Právny základ: čl. 6 ods. 1 písm. b) GDPR — sú súčasťou členstva, ktoré ste si zaplatili. Bežne ich nečítame a nikdy ich nepoužívame na reklamu ani profilovanie. Konverzáciu otvoríme len vtedy, keď je nahlásená, keď vyšetrujeme konkrétne zneužitie alebo bezpečnostný incident, alebo keď to vyžaduje zákon. Nahlásenie ukladá dôvod, ktorý ste vybrali, vašu voliteľnú poznámku a odkaz na to, čo ste nahlásili — nie samostatnú kópiu. Blokovanie sa ukladá ako dvojica identifikátorov členov. Ak si zmažete účet, vaše správy odídú s ním; kópia vo vlákne druhej osoby ostáva, zobrazená ako od odstráneného člena, pretože tá konverzácia je aj jej.</p></section><section id="privacy-14" class="lg-sec"><h2><i>14</i>AINUBIS, náš AI sprievodca</h2><p>AINUBIS je AI sprievodca vo vnútri DOGYPTu. Jeho odpovede generuje Claude, model spoločnosti Anthropic, PBC, ktorá je naším sprostredkovateľom. Keď ste prihlásení, s každou vašou správou pre AINUBISA odchádza do Anthropicu aj: meno z vášho profilu, mená a základné údaje vašich psov, údaje z ich DOG ID (povaha, zdravie, kŕmenie), posledné zápisy z ich denníka a krátky výťah z vašich predošlých rozhovorov s AINUBISOM. AINUBIS nikdy nedostane závet vášho psa ani kontakty iných ľudí, ktoré ste zapísali do DOG ID (veterinár, záložný kontakt, dedič). Anthropic tieto údaje dostáva len na vygenerovanie odpovede a nepoužíva ich na trénovanie svojich modelov. Ak prihlásení nie ste, AINUBIS vie len to, čo mu napíšete do chatu, a snímku obrazovky, ak ju priložíte.
+
+Každú z týchto častí — psy, DOG ID, denník a pamäť — si budete môcť vypnúť v nastaveniach AINUBISA. AINUBIS potom pracuje len s tým, čo mu poviete v rozhovore.
+
+Rozhovory s AINUBISOM vrátane priložených snímok uchovávame v našej databáze (Supabase) ako bežnú históriu. Keď si rozhovor v chate skryjete alebo vymažete, zmizne z vášho pohľadu, nie z našich záznamov; históriu zmažeme, keď nás požiadate o zrušenie účtu. Na rozdiel od správ medzi Členmi (článok 13) nie sú rozhovory s AINUBISOM pred nami zatvorené: zakladateľ Matej Stacho ich číta a môže do nich sám odpovedať. Právny základ: pri Členoch čl. 6 ods. 1 písm. b) GDPR — AINUBIS je súčasťou členstva; pri neprihlásených návštevníkoch náš oprávnený záujem odpovedať na ich otázku (čl. 6 ods. 1 písm. f)).</p></section></div><footer class="lg-foot"><p class="lg-motto" style="font-family: &quot;Space Grotesk&quot;, sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase;">DOGYPT · Veríme v psa</p><a class="lg-other" href="/terms">Podmienky používania →</a></footer></article><p class="lg-copy">© 2026 DOGYPT</p></main></div></template><template data-pre-consent="sk"><div class="consent-banner" role="dialog" aria-live="polite" aria-label="Ľudské povinnosti"><div class="consent-inner"><div><p class="consent-body"><img class="consent-bone" src="/icons/pack/bone.svg" alt="" aria-hidden="true"><b>Ľudské povinnosti</b>Jediné cookies, ktoré odporúčame, nie sú na jedenie — pomáhajú nám vylepšovať web. Ďakujeme.</p></div><div class="consent-actions"><div class="consent-split"><button type="button" class="consent-split-main">Len nevyhnutné</button><button type="button" class="consent-split-arrow" aria-haspopup="menu" aria-expanded="false" aria-label="Vybrať si"><span class="consent-arrow-ic" aria-hidden="true"><svg viewBox="0 0 462.85 462.851" width="16" height="16" fill="currentColor" focusable="false" aria-hidden="true"><path d="M380.44,70.332c-0.376-4.936-3.362-9.46-7.663-12.781c-20.216-15.615-39.745-32.078-58.676-49.234
+			c-4.764-7.814-15.884-12.126-24.359-3.79C222.106,71.022,162.894,145.963,88.677,205.589c-2.034,1.632-3.405,3.427-4.258,5.278
+			c-4.248,5.583-5.319,13.649,0.794,20.251c69.221,74.753,133.554,153.913,204.528,227.062c4.809,4.961,10.547,5.561,15.463,3.702
+			c2.828-0.36,5.682-1.488,8.333-3.702c21.018-17.61,41.223-36.125,60.666-55.467c8.363-8.322,4.22-19.296-3.488-24.136
+			c-40.654-48.362-87.067-96.258-127.666-144.666c46.053-46.261,90.439-98.67,134.623-146.655
+			C382.628,81.869,382.816,75.526,380.44,70.332z M215.21,217.72c-2.356,2.311-3.656,4.837-4.248,7.373
+			c-3.786,5.578-4.674,13.348,0.78,19.883c41.018,49.13,87.979,97.63,129.222,146.561c-12.446,11.999-25.288,23.572-38.364,34.901
+			c-63.521-66.445-122.15-137.318-184.153-205.15C184.958,166.153,239.8,99.116,300.466,37.898
+			c14.833,13.089,30.042,25.692,45.564,37.948C303.879,122.922,260.412,173.422,215.21,217.72z"></path></svg></span></button></div><button type="button" class="consent-btn-primary">Povoliť všetko</button></div></div></div></template><template data-pre="cs" data-title="DOGYPT — Your Dog Is God Here"><div class="lg-root"><div class="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-[25px]" style="margin-top: env(safe-area-inset-top, 0px);"><button type="button" aria-label="Zpět" class="absolute left-4 top-[12px] md:top-[20px] flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-[rgba(201,154,63,0.14)]" style="border: 1.5px solid rgba(120, 86, 26, 0.55); color: rgb(60, 42, 14);"><svg viewBox="0 0 462.85 462.851" width="20" height="20" fill="currentColor" focusable="false" aria-hidden="true"><path d="M380.44,70.332c-0.376-4.936-3.362-9.46-7.663-12.781c-20.216-15.615-39.745-32.078-58.676-49.234
+			c-4.764-7.814-15.884-12.126-24.359-3.79C222.106,71.022,162.894,145.963,88.677,205.589c-2.034,1.632-3.405,3.427-4.258,5.278
+			c-4.248,5.583-5.319,13.649,0.794,20.251c69.221,74.753,133.554,153.913,204.528,227.062c4.809,4.961,10.547,5.561,15.463,3.702
+			c2.828-0.36,5.682-1.488,8.333-3.702c21.018-17.61,41.223-36.125,60.666-55.467c8.363-8.322,4.22-19.296-3.488-24.136
+			c-40.654-48.362-87.067-96.258-127.666-144.666c46.053-46.261,90.439-98.67,134.623-146.655
+			C382.628,81.869,382.816,75.526,380.44,70.332z M215.21,217.72c-2.356,2.311-3.656,4.837-4.248,7.373
+			c-3.786,5.578-4.674,13.348,0.78,19.883c41.018,49.13,87.979,97.63,129.222,146.561c-12.446,11.999-25.288,23.572-38.364,34.901
+			c-63.521-66.445-122.15-137.318-184.153-205.15C184.958,166.153,239.8,99.116,300.466,37.898
+			c14.833,13.089,30.042,25.692,45.564,37.948C303.879,122.922,260.412,173.422,215.21,217.72z"></path></svg></button><img src="/assets/dogypt-logo-mobile-DGloGiaa.webp" alt="DOGYPT" class="h-10 object-contain md:hidden"><img src="/assets/dogypt-logo-gold-BbkQXDdp.webp" alt="DOGYPT" class="hidden md:block md:h-12 object-contain"><div class="absolute right-5 top-[12px] md:top-[20px]"><div class="lang-picker lang-picker--flow"><button type="button" class="lang-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Language: CZE"><span class="lang-flag-stack" aria-hidden="true"><span class="lang-flag-stack__item" style="background-image: url(&quot;https://flagcdn.com/w80/cz.png&quot;);"></span></span><svg class="lang-trigger__chev" width="9" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1 L5 5 L9 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div></div></div><main class="lg-main"><nav class="lg-tabs" aria-label="Legal"><a class="lg-tab is-on" aria-current="page" href="/privacy">Zásady ochrany soukromí</a><a class="lg-tab" href="/terms">Podmínky používání</a><button type="button" class="lg-tab">Nastavení cookies</button></nav><article class="lg-card" style="background: linear-gradient(160deg, rgb(251, 245, 230) 0%, rgb(243, 228, 196) 55%, rgb(234, 214, 166) 100%); border: 1.5px solid rgb(201, 154, 63); border-radius: 16px; box-shadow: rgba(0, 0, 0, 0.55) 0px 14px 44px, rgba(201, 154, 63, 0.12) 0px 0px 0px 4px, rgba(255, 255, 255, 0.5) 0px 1px 0px inset;"><header class="lg-head"><p class="lg-eyebrow" style="font-family: &quot;Space Grotesk&quot;, sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase;">DOGYPT · Právní</p><h1 class="lg-h1" style="font-family: Cinzel, serif; font-weight: 700; font-size: 24px; letter-spacing: 0.14em; text-transform: uppercase;">Zásady ochrany soukromí</h1><p class="lg-meta">Poslední aktualizace: 11. října 2026 · v1.3</p><p class="lg-note">Tento dokument poskytujeme ve více jazycích pro pohodlí. V případě rozdílů mezi verzemi má přednost anglické znění.</p></header><ol class="lg-toc" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><li><button type="button"><i>1</i><span>Kdo jsme</span></button></li><li><button type="button"><i>2</i><span>Jaké údaje sbíráme</span></button></li><li><button type="button"><i>3</i><span>Jak je používáme</span></button></li><li><button type="button"><i>4</i><span>Právní základ (GDPR)</span></button></li><li><button type="button"><i>5</i><span>Sdílení a zpracovatelé</span></button></li><li><button type="button"><i>6</i><span>Cookies a sledování</span></button></li><li><button type="button"><i>7</i><span>Uchovávání údajů</span></button></li><li><button type="button"><i>8</i><span>Vaše práva</span></button></li><li><button type="button"><i>9</i><span>Mezinárodní přenosy</span></button></li><li><button type="button"><i>10</i><span>Změny těchto zásad</span></button></li><li><button type="button"><i>11</i><span>Kontakt</span></button></li><li><button type="button"><i>12</i><span>Uvnitř smečky: co vidí ostatní Členové</span></button></li><li><button type="button"><i>13</i><span>Zprávy a nahlášení</span></button></li><li><button type="button"><i>14</i><span>AINUBIS, náš AI průvodce</span></button></li></ol><div class="lg-sections"><section id="privacy-1" class="lg-sec"><h2><i>1</i>Kdo jsme</h2><p>DOGYPT s.r.o., slovenská společnost s ručením omezeným (IČO 54 444 594), sídlo Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko. Jsme správcem osobních údajů popsaných níže. S jakýmkoli dotazem ohledně soukromí nám pište na woof@dogypt.com. Pověřence pro ochranu osobních údajů (DPO) jsme nejmenovali, protože naše zpracování nedosahuje prahových hodnot čl. 37 GDPR. Datum účinnosti: 4. května 2026.</p></section><section id="privacy-2" class="lg-sec"><h2><i>2</i>Jaké údaje sbíráme</h2><p>Při používání HEROGLYPH procesu sbíráme: vaši e-mailovou adresu, jméno psa, nahranou fotografii psa (uloženou na Cloudinary), symbolické odpovědi, které vyberete (pohlaví, barva, osud, pokrevní linie, charakter, váš horoskop, vaše iniciála), a datum narození psa, pokud jej uvedete. Platební údaje sbírá přímo Stripe — my dostáváme jen potvrzení platby, poslední 4 číslice karty a zemi. Naše servery automaticky zaznamenávají technické údaje (IP adresa, user-agent, čas požadavku) pro účely bezpečnosti a prevence zneužití. Sbíráme také údaje o používání o tom, jak se pohybujete po webu (zobrazené stránky, kliknutí, typ zařízení a prohlížeče) — ve výchozím nastavení anonymizované a přiřazené k vám jen tehdy, pokud udělíte souhlas s analytikou nebo nahráváním.</p></section><section id="privacy-3" class="lg-sec"><h2><i>3</i>Jak je používáme</h2><p>Vaše údaje používáme k: vygenerování a doručení HEROGLYPH certifikátu; odeslání e-mailu s certifikátem a malého počtu navazujících zpráv smečky; zobrazení záznamu vašeho psa ve veřejném GodsGrid (veřejně se zobrazuje jen jméno psa, fotografie a HEROGLYPH symbol — nikdy ne váš e-mail, vaše jméno ani soukromý kód); provozu, zabezpečení a zlepšování Služby; plnění zákonných povinností, jako jsou účetnictví a ochrana spotřebitele.</p></section><section id="privacy-4" class="lg-sec"><h2><i>4</i>Právní základ (GDPR)</h2><p>Opíráme se o čl. 6 odst. 1 písm. b) GDPR (plnění smlouvy) při dodání HEROGLYPHu a členství ve smečce; čl. 6 odst. 1 písm. a) (souhlas) u marketingových e-mailů nad rámec servisních zpráv, u nahrávání relací a identifikované analytiky a u reklamních cookies — kterýkoli z nich můžete kdykoli odvolat; čl. 6 odst. 1 písm. f) (oprávněný zájem) u bezpečnostního logování, prevence zneužití a anonymní agregované analytiky; a čl. 6 odst. 1 písm. c) (zákonná povinnost) u daňových a účetních záznamů.</p></section><section id="privacy-5" class="lg-sec"><h2><i>5</i>Sdílení a zpracovatelé</h2><p>Vaše údaje neprodáváme. Sdílíme je jen se zpracovateli, kteří nám pomáhají provozovat Službu: Stripe Payments Europe, Ltd. (platby) · Cloudinary Ltd. (ukládání a doručování fotografií) · Resend, Inc. (transakční e-maily) · Supabase, Inc. (databáze a autentizace) · Anthropic, PBC (model Claude, na kterém běží chat AINUBIS, viz článek 14) · Cloudflare, Inc. (hosting dogypt.com a DNS) · WebSupport s.r.o. (hosting subdomén, doména) · Telegram (interní upozornění zakladateli o rozhovorech s AINUBISEM a hlášeních) · GitHub, Inc. (nasazování) · PostHog (produktová analytika hostovaná v EU). Pouze pokud udělíte marketingový souhlas, zapojíme také Google Ireland Ltd. (Google Analytics 4) a Meta Platforms Ireland Ltd. (Meta Pixel) k měření kampaní a budování reklamních publik. Každý zpracovatel je vázán vlastní smlouvou o zpracování údajů.</p></section><section id="privacy-6" class="lg-sec"><h2><i>6</i>Cookies a sledování</h2><p>Cookies a lokální úložiště udržujeme na minimu potřebném k fungování Služby — relace, jazyk a rozpracované HEROGLYPH volby. K produktové analytice používáme PostHog, hostovaný v EU. Ve výchozím nastavení běží v režimu bez cookies a anonymizovaně — bez sledování napříč weby a bez reklamy, model ve stylu Plausible — na základě našeho oprávněného zájmu najít a opravit to, co nefunguje. Pouze pokud udělíte souhlas, zapneme identifikovanou analytiku a nahrávání relací; a samostatně reklamní cookies, jako jsou Google Analytics 4 a Meta Pixel, které měří kampaně a budují marketingová publika. Kterýkoli z těchto souhlasů můžete kdykoli udělit nebo odvolat přes „Nastavení cookies" v patičce. Všechna analytická data se zpracovávají na serverech v EU.</p></section><section id="privacy-7" class="lg-sec"><h2><i>7</i>Uchovávání údajů</h2><p>Váš HEROGLYPH a profil smečky uchováváme, dokud existuje váš účet, protože GodsGrid je doživotní registr každého člena smečky. Záznamy o transakčních e-mailech uchováváme 12 měsíců pro účely podpory a prevence podvodů. Účetní záznamy uchováváme 10 let, jak vyžaduje slovenské právo (zákon č. 431/2002 Z. z.). Když požádáte o smazání účtu, osobní identifikátory odstraníme do 30 dnů a ponecháme jen zákonem vyžadované minimum.</p></section><section id="privacy-8" class="lg-sec"><h2><i>8</i>Vaše práva</h2><p>Podle GDPR máte právo na přístup ke svým údajům, jejich opravu, výmaz, omezení zpracování nebo námitku proti němu, přenositelnost údajů a kdykoli odvolat souhlas. Stížnost můžete podat také slovenskému dozorovému orgánu — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. K uplatnění kteréhokoli z těchto práv pište na woof@dogypt.com — odpovíme do 30 dnů.</p></section><section id="privacy-9" class="lg-sec"><h2><i>9</i>Mezinárodní přenosy</h2><p>Někteří naši zpracovatelé (Stripe, Cloudinary, Resend, Supabase, Anthropic, Cloudflare, Telegram, GitHub a — při marketingovém souhlasu — Google a Meta) provozují servery mimo EU/EHP, většinou v USA. PostHog zpracovává naši analytiku na serverech v EU. Tam, kde osobní údaje opouštějí EU/EHP, se opíráme o standardní smluvní doložky Evropské komise, rámec EU–USA Data Privacy Framework a dodatečné záruky podle kapitoly V GDPR.</p></section><section id="privacy-10" class="lg-sec"><h2><i>10</i>Změny těchto zásad</h2><p>O podstatných změnách vás budeme informovat e-mailem nejméně 30 dní před nabytím účinnosti. Drobné úpravy — překlepy, změny názvů zpracovatelů, nové kontaktní adresy — nabývají účinnosti zveřejněním. Aktuální verze a datum jsou vždy v horní části této stránky; starší verze jsou k dispozici na vyžádání.</p></section><section id="privacy-11" class="lg-sec"><h2><i>11</i>Kontakt</h2><p>woof@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.</p></section><section id="privacy-12" class="lg-sec"><h2><i>12</i>Uvnitř smečky: co vidí ostatní Členové</h2><p>Článek 3 popisuje veřejný GodsGrid. Uvnitř smečky — v členské zóně — vidí ostatní přihlášení Členové více: vaše křestní jméno, vaše dogyptské pořadové číslo, jméno a fotografii vašeho psa, atributy, které jste o psovi vyplnili, výlety, které jste zaznamenali nebo ohlásili, vaše hodnocení a komentáře a cokoli jste napsali na svůj profil. Nevidí vaši e-mailovou adresu, poštovní adresu, platební údaje ani vaše zprávy s kýmkoli jiným. Když ohlásíte výlet jako otevřený, trasa, datum a váš pes se stanou viditelnými pro každého Člena, aby mohl požádat o přidání — to ohlášení znamená. Výlet, který si necháte soukromý, vidíte jen vy a lidé, kteří už jdou. Která z těch dvou možností to bude, si vybíráte vy a můžete to kdykoli změnit.</p></section><section id="privacy-13" class="lg-sec"><h2><i>13</i>Zprávy a nahlášení</h2><p>Soukromé zprávy mezi Členy se ukládají v naší databázi (Supabase), aby konverzace přežily mezi relacemi. Právní základ: čl. 6 odst. 1 písm. b) GDPR — jsou součástí členství, které jste si zaplatili. Běžně je nečteme a nikdy je nepoužíváme k reklamě ani profilování. Konverzaci otevřeme jen tehdy, když je nahlášená, když vyšetřujeme konkrétní zneužití nebo bezpečnostní incident, nebo když to vyžaduje zákon. Nahlášení ukládá důvod, který jste vybrali, vaši nepovinnou poznámku a odkaz na to, co jste nahlásili — nikoli samostatnou kopii. Blokování se ukládá jako dvojice identifikátorů členů. Pokud si smažete účet, vaše zprávy odejdou s ním; kopie ve vlákně druhé osoby zůstává, zobrazená jako od odstraněného člena, protože ta konverzace je i jeho.</p></section><section id="privacy-14" class="lg-sec"><h2><i>14</i>AINUBIS, náš AI průvodce</h2><p>AINUBIS je AI průvodce uvnitř DOGYPTu. Jeho odpovědi generuje Claude, model společnosti Anthropic, PBC, která je naším zpracovatelem. Když jste přihlášení, s každou vaší zprávou pro AINUBISE odchází do Anthropicu také: jméno z vašeho profilu, jména a základní údaje vašich psů, údaje z jejich DOG ID (povaha, zdraví, krmení), poslední zápisy z jejich deníku a krátký výtah z vašich předchozích rozhovorů s AINUBISEM. AINUBIS nikdy nedostane závěť vašeho psa ani kontakty jiných lidí, které jste zapsali do DOG ID (veterinář, záložní kontakt, dědic). Anthropic tyto údaje dostává jen k vygenerování odpovědi a nepoužívá je k trénování svých modelů. Pokud přihlášení nejste, AINUBIS ví jen to, co mu napíšete do chatu, a snímek obrazovky, pokud ho přiložíte.
+
+Každou z těchto částí — psy, DOG ID, deník a paměť — si budete moci vypnout v nastavení AINUBISE. AINUBIS pak pracuje jen s tím, co mu řeknete v rozhovoru.
+
+Rozhovory s AINUBISEM včetně přiložených snímků uchováváme v naší databázi (Supabase) jako běžnou historii. Když si rozhovor v chatu skryjete nebo smažete, zmizí z vašeho pohledu, ne z našich záznamů; historii smažeme, když nás požádáte o zrušení účtu. Na rozdíl od zpráv mezi Členy (článek 13) nejsou rozhovory s AINUBISEM před námi uzavřené: zakladatel Matej Stacho je čte a může do nich sám odpovídat. Právní základ: u Členů čl. 6 odst. 1 písm. b) GDPR — AINUBIS je součástí členství; u nepřihlášených návštěvníků náš oprávněný zájem odpovědět na jejich otázku (čl. 6 odst. 1 písm. f)).</p></section></div><footer class="lg-foot"><p class="lg-motto" style="font-family: &quot;Space Grotesk&quot;, sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase;">DOGYPT · Věříme ve psa</p><a class="lg-other" href="/terms">Podmínky používání →</a></footer></article><p class="lg-copy">© 2026 DOGYPT</p></main></div></template><template data-pre-consent="cs"><div class="consent-banner" role="dialog" aria-live="polite" aria-label="Lidské povinnosti"><div class="consent-inner"><div><p class="consent-body"><img class="consent-bone" src="/icons/pack/bone.svg" alt="" aria-hidden="true"><b>Lidské povinnosti</b>Jediné cookies, které doporučujeme, nejsou k jídlu — pomáhají nám vylepšovat web. Děkujeme.</p></div><div class="consent-actions"><div class="consent-split"><button type="button" class="consent-split-main">Jen nezbytné</button><button type="button" class="consent-split-arrow" aria-haspopup="menu" aria-expanded="false" aria-label="Vybrat si"><span class="consent-arrow-ic" aria-hidden="true"><svg viewBox="0 0 462.85 462.851" width="16" height="16" fill="currentColor" focusable="false" aria-hidden="true"><path d="M380.44,70.332c-0.376-4.936-3.362-9.46-7.663-12.781c-20.216-15.615-39.745-32.078-58.676-49.234
+			c-4.764-7.814-15.884-12.126-24.359-3.79C222.106,71.022,162.894,145.963,88.677,205.589c-2.034,1.632-3.405,3.427-4.258,5.278
+			c-4.248,5.583-5.319,13.649,0.794,20.251c69.221,74.753,133.554,153.913,204.528,227.062c4.809,4.961,10.547,5.561,15.463,3.702
+			c2.828-0.36,5.682-1.488,8.333-3.702c21.018-17.61,41.223-36.125,60.666-55.467c8.363-8.322,4.22-19.296-3.488-24.136
+			c-40.654-48.362-87.067-96.258-127.666-144.666c46.053-46.261,90.439-98.67,134.623-146.655
+			C382.628,81.869,382.816,75.526,380.44,70.332z M215.21,217.72c-2.356,2.311-3.656,4.837-4.248,7.373
+			c-3.786,5.578-4.674,13.348,0.78,19.883c41.018,49.13,87.979,97.63,129.222,146.561c-12.446,11.999-25.288,23.572-38.364,34.901
+			c-63.521-66.445-122.15-137.318-184.153-205.15C184.958,166.153,239.8,99.116,300.466,37.898
+			c14.833,13.089,30.042,25.692,45.564,37.948C303.879,122.922,260.412,173.422,215.21,217.72z"></path></svg></span></button></div><button type="button" class="consent-btn-primary">Povolit vše</button></div></div></div></template><div id="root"></div><script>(function(){
+var start=function(){if(window.__startApp)window.__startApp();};
+var pre=document.getElementById('pre');if(!pre)return start();
+function drop(){pre.remove();document.documentElement.classList.remove('pre','pre-wait');}
+function skip(){drop();start();}
+try{
+
+var lang=localStorage.getItem('dogypt_lang');
+if(!lang){var c=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];lang='en';
+for(var j=0;j<c.length;j++){var k=String(c[j]||'').toLowerCase().split('-')[0];if(["en","sk","cs","pl","uk","de","es","fr","pt","ru","it","zh","ja","hi","ar","ko","nl","tr"].indexOf(k)>=0){lang=k;break;}}}
+var tp=document.querySelector('template[data-pre="'+lang+'"]');if(!tp)return skip();
+pre.appendChild(document.getElementById('pre-css').content.cloneNode(true));
+// Veľké data: URI (prefarbený heroglyf) sú v šablónach len ako značka — ležia raz v #pre-data.
+var D=[];try{D=JSON.parse(document.getElementById('pre-data').textContent);}catch(e){}
+var h=tp.innerHTML.replace(/__PRE_D([0-9]+)__/g,function(m,i){return D[+i]||'';});
+
+pre.insertAdjacentHTML('beforeend',h);if(tp.dataset.title)document.title=tp.dataset.title;
+
+document.documentElement.classList.add('pre','pre-wait');window.__preUsed=1;
+document.querySelectorAll('link[data-late-fonts]').forEach(function(l){l.media='all';});
+}catch(e){return skip();}
+// JS až po prvom vykreslení textu (snímka → setTimeout). Skrytá karta rAF nespustí — strop 1,2 s drží __startApp sám.
+// Cookie lišta pre toho, kto ešte nezvolil — vlastný obal, žije do chvíle, keď ju vykreslí appka
+// (môže to byť skôr aj neskôr než stránka). Výšku publikuje rovnako ako ConsentBanner (--consent-h).
+try{var ct=document.querySelector('template[data-pre-consent="'+lang+'"]');
+if(ct&&!localStorage.getItem('dogypt_consent')){var pc=document.createElement('div');pc.id='pre-consent';
+pc.appendChild(ct.content.cloneNode(true));document.body.appendChild(pc);
+var cb=pc.querySelector('.consent-banner');if(cb)document.documentElement.style.setProperty('--consent-h',Math.ceil(cb.getBoundingClientRect().height)+'px');
+var rt=document.getElementById('root');
+var mc=new MutationObserver(function(){if(!rt.querySelector('.consent-banner')&&!localStorage.getItem('dogypt_consent'))return;mc.disconnect();pc.remove();});
+mc.observe(rt,{childList:true,subtree:true});}}catch(e){}
+// waitFonts (právne stránky, LCP = text): hotový text je skrytý, kým nedobehnú písma, ktoré si vypýtal (strop 800 ms) — viď fontsCss.
+// Až potom JS: na pomalej linke by inak bojoval s písmami o tú istú linku.
+var shown=0;function show(){if(shown)return;shown=1;document.documentElement.classList.remove('pre-wait');
+// Dva snímky: v prvom sa text len odkryje, JS ide až keď je naozaj vykreslený (inak ho PageSpeed ráta do LCP).
+requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(start,0);});});}
+try{pre.offsetHeight;document.fonts.ready.then(show);}catch(e){show();}
+setTimeout(show,800);
+var root=document.getElementById('root'),sel="#root .lg-root .lg-card";
+var mo=new MutationObserver(function(){if(!document.querySelector(sel))return;mo.disconnect();
+var a=pre.querySelectorAll('input'),b=root.querySelectorAll('input');
+for(var n=0;n<a.length&&n<b.length;n++){if(a[n].value&&a[n].type===b[n].type&&!b[n].value){var s=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;s.call(b[n],a[n].value);b[n].dispatchEvent(new Event('input',{bubbles:true}));}}
+var f=document.activeElement&&pre.contains(document.activeElement)?[].indexOf.call(a,document.activeElement):-1;
+drop();if(f>=0&&b[f])b[f].focus();});
+mo.observe(root,{childList:true,subtree:true});
+})();</script>
+  </body>
+</html>

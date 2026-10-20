@@ -1,0 +1,1 @@
+const o={dogGender:"king",dogColour:"dark",dogFate:"rescued",dogBloodline:"mutt",patronSvg:"08-06.svg",dogCharacter1:"rfo",dogCharacter2:"waterlover",ownerGender:"man",ownerChineseZodiac:"Rooster",ownerZodiac:"Leo",ownerInitial:"M",ranking:"1"};export{o as H};

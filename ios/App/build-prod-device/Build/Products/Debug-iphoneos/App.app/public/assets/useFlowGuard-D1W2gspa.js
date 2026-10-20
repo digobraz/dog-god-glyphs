@@ -1,0 +1,1 @@
+import{i as a,k as s,r as u}from"./index-7PctGTam.js";import{F as i}from"./flowMode-B6eboter.js";function m(t=!0){const e=a(),r=s(o=>o.dogName);return u.useEffect(()=>{t&&!r&&e(i,{replace:!0})},[t,r,e]),t?!!r:!0}export{m as u};

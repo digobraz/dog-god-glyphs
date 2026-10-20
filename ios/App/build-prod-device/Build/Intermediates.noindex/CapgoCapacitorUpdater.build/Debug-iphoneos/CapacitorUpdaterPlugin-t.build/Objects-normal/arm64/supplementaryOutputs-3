@@ -1,0 +1,23 @@
+{
+  "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/CapgoSemanticVersion.swift" : {
+    "const-values" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CapgoSemanticVersion.swiftconstvalues",
+    "dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CapgoSemanticVersion.d",
+    "diagnostics" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CapgoSemanticVersion.dia",
+    "object" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CapgoSemanticVersion.o",
+    "swift-dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CapgoSemanticVersion.swiftdeps"
+  },
+  "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/CapgoUpdater.swift" : {
+    "const-values" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CapgoUpdater.swiftconstvalues",
+    "dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CapgoUpdater.d",
+    "diagnostics" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CapgoUpdater.dia",
+    "object" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CapgoUpdater.o",
+    "swift-dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CapgoUpdater.swiftdeps"
+  },
+  "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capgo/capacitor-updater/ios/Sources/CapacitorUpdaterPlugin/CryptoCipher.swift" : {
+    "const-values" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CryptoCipher.swiftconstvalues",
+    "dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CryptoCipher.d",
+    "diagnostics" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CryptoCipher.dia",
+    "object" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CryptoCipher.o",
+    "swift-dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapgoCapacitorUpdater.build/Debug-iphoneos/CapacitorUpdaterPlugin-t.build/Objects-normal/arm64/CryptoCipher.swiftdeps"
+  }
+}

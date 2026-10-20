@@ -1,0 +1,1682 @@
+<!doctype html>
+<html lang="en" translate="no">
+  <head><script>window.__preDefer=1</script><style> @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/g/cinzel-1-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/g/cinzel-2-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 700; font-display: swap; src: url(/fonts/g/cinzel-1-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 700; font-display: swap; src: url(/fonts/g/cinzel-2-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 900; font-display: swap; src: url(/fonts/g/cinzel-1-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 900; font-display: swap; src: url(/fonts/g/cinzel-2-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Cinzel Decorative'; font-style: normal; font-weight: 700; font-display: swap; src: url(/fonts/g/cinzeldecorative-3-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Cinzel Decorative'; font-style: normal; font-weight: 700; font-display: swap; src: url(/fonts/g/cinzeldecorative-4-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Cinzel Decorative'; font-style: normal; font-weight: 900; font-display: swap; src: url(/fonts/g/cinzeldecorative-5-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Cinzel Decorative'; font-style: normal; font-weight: 900; font-display: swap; src: url(/fonts/g/cinzeldecorative-6-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 300; font-display: swap; src: url(/fonts/g/spacegrotesk-7-v1.woff2) format('woff2'); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 300; font-display: swap; src: url(/fonts/g/spacegrotesk-8-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 300; font-display: swap; src: url(/fonts/g/spacegrotesk-9-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/g/spacegrotesk-7-v1.woff2) format('woff2'); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/g/spacegrotesk-8-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/g/spacegrotesk-9-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 500; font-display: swap; src: url(/fonts/g/spacegrotesk-7-v1.woff2) format('woff2'); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 500; font-display: swap; src: url(/fonts/g/spacegrotesk-8-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 500; font-display: swap; src: url(/fonts/g/spacegrotesk-9-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 600; font-display: swap; src: url(/fonts/g/spacegrotesk-7-v1.woff2) format('woff2'); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 600; font-display: swap; src: url(/fonts/g/spacegrotesk-8-v1.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; } @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 600; font-display: swap; src: url(/fonts/g/spacegrotesk-9-v1.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }</style>
+    <meta charset="UTF-8" />
+    <!-- Appka hovorí 18 jazykmi sama — prekladač prehliadača (Android Chrome) ju len kazil. 14. 10. 2026 -->
+    <meta name="google" content="notranslate" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- APPKA (Capacitor, 19. 10. 2026): appka = len /pack pre členov. Natívny obal otvára `/`,
+         čo je na webe stena — v appke ide hneď na /pack (a odtiaľ bez session na /login nižšie).
+         `window.Capacitor` vloží natívna strana pred skriptmi stránky; na webe neexistuje. -->
+    <script>
+      (function () {
+        try {
+          var C = window.Capacitor;
+          if (!C || !C.isNativePlatform || !C.isNativePlatform()) return;
+          document.documentElement.classList.add('is-app'); // CSS: odkazy na nákup v appke skryté (index.css)
+          if (/^\/?$/.test(location.pathname)) history.replaceState(null, '', '/pack');
+        } catch (e) {}
+      })();
+    </script>
+    <!-- /pack bez prihlásenia → /login HNEĎ (7. 10. 2026, rýchlosť fáza 3). Tú istú vetvu má App.tsx
+         (`hasStoredSessionOrAuthReturn`), tam ale až po stiahnutí hlavného balíka — tu je to pred ním.
+         Len produkčný build: v deve smie /pack bežať bez prihlásenia (VITE_PACK_NOAUTH). -->
+    <script>
+      (function () {
+        if ('production' !== 'production' || !/^\/pack\/?$/.test(location.pathname)) return;
+        try {
+          if (/access_token|refresh_token|token_hash|[?&#]code=|error_description/.test(location.hash + location.search)) return;
+          for (var i = 0; i < localStorage.length; i++) if (/^sb-.*-auth-token$/.test(localStorage.key(i) || '')) return;
+          location.replace('/login?return=' + encodeURIComponent('/pack' + location.search));
+        } catch (e) {}
+      })();
+    </script>
+    <!-- Consent Mode v2 defaults — MUSIA byť pred GTM snippetom (Vlna C).
+         Všetko denied; consent.ts po voľbe v banneri (Vlna B) pošle gtag('consent','update').
+         Vracajúcemu userovi obnovíme uloženú voľbu synchronne z localStorage PRED GTM tagmi,
+         nech GA4/Pixel nečakajú na React mount. Kľúč `dogypt_consent` = zhodný s consent.ts. -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        wait_for_update: 500
+      });
+      try {
+        var _c = JSON.parse(localStorage.getItem('dogypt_consent') || 'null');
+        if (_c) gtag('consent', 'update', {
+          analytics_storage: _c.analytics ? 'granted' : 'denied',
+          ad_storage:        _c.marketing ? 'granted' : 'denied',
+          ad_user_data:      _c.marketing ? 'granted' : 'denied',
+          ad_personalization:_c.marketing ? 'granted' : 'denied'
+        });
+      } catch (e) {}
+    </script>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});
+    // Samotný gtm.js sa vkladá až po štarte (main.tsx volá __loadGtm) — dataLayer je plný od začiatku.
+    w.__loadGtm=function(){if(w.__gtmOn)return;w.__gtmOn=1;var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);};
+    w.setTimeout(function(){w.__loadGtm()},8000);
+    })(window,document,'script','dataLayer','GTM-PXB5MV3L');</script>
+    <!-- End Google Tag Manager -->
+    <!-- 🔴 STRÁNKA PSA: DÁTA A FOTKA UŽ Z HTML (perf mobil 7. 10. 2026). /dog/<meno>-<číslo>
+         ukazuje fotku psa (LCP), no jej adresu pozná až `get-grid-dogs` — a ten sa predtým pýtal
+         až po celom JavaScripte (~5 s na mobile). Tu sa feed pýta hneď a fotka sa predstiahne
+         v rovnakej adrese, akú potom kreslí DogShare.tsx (`dogPhotoUrl` — pri zmene meň OBE). -->
+    <script>
+      (function () {
+        var m = location.pathname.match(/^\/(?:dog|d)\/[^\/]*?(\d+)\/?$/);
+        if (!m) return;
+        var n = +m[1];
+        var css = Math.min(window.innerWidth || 400, 400);
+        var w = Math.min(1080, Math.ceil(css * (window.devicePixelRatio || 1) / 120) * 120);
+        window.__dogPhotoW = w;
+        // Cez Cloudflare `/api/dogs` (cache + záloha, 7. 10. 2026); mimo dogypt.com alebo pri chybe priamo Supabase.
+        var sb = function () {
+          return fetch('https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-grid-dogs?tiers=all')
+            .then(function (r) { return r.ok ? r.json() : []; })
+            .catch(function () { return []; });
+        };
+        var hn = location.hostname;
+        // Cloudflare Worker už vložil psa priamo do HTML (scripts/cloudflare/worker.js, dogPage) ⇒ bez čakania.
+        window.__dogFeed = window.__dogInline ? Promise.resolve(window.__dogInline) : (hn === 'dogypt.com' || hn === 'www.dogypt.com' || /\.workers\.dev$/.test(hn))
+          ? fetch('/api/dogs?tiers=all').then(function (r) { return r.ok ? r.json() : []; })
+              .then(function (j) { return j && j.length ? j : sb(); }, sb)
+          : sb();
+        window.__dogFeed.then(function (dogs) {
+          for (var i = 0; i < dogs.length; i++) {
+            var d = dogs[i], u = d && d.pack_number === n && d.cloudinary_main_url;
+            if (!u) continue;
+            if (u.indexOf('/image/upload/') < 0) return;
+            var p = u.split('/image/upload/'), first = p[1].split('/')[0];
+            if (!/(^|,)(c_|w_|h_|f_auto|q_auto|dpr_)/.test(first)) u = p[0] + '/image/upload/c_fill,w_' + w + ',h_' + w + ',g_auto,f_auto,q_auto/' + p[1];
+            var l = document.createElement('link');
+            l.rel = 'preload'; l.as = 'image'; l.href = u; l.setAttribute('fetchpriority', 'high');
+            document.head.appendChild(l);
+            return;
+          }
+        });
+      })();
+    </script>
+    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="color-scheme" content="dark" />
+    <title>DOGYPT — Your Dog Is God Here</title>
+    <!-- og:* + twitter:* + description pre HOMEPAGE (2026-10-07, FLIP: / = film OnePage): statické v bloku `data-static-seo` pri konci <head>. Crawlery (WhatsApp, FB) JS nespúšťajú, takže rozhoduje toto. Text = i18n `onepage.seo.*` (en.ts), obrázok = public/og-planet-2026-10.jpg (planétka + nadpis, 1200x630) — pri zmene daj NOVÉ meno súboru (cache crawlerov) a zmeň aj `ogImage` v <Seo> v OnePage.tsx. Za behu `Seo.tsx` tieto meta vymaže a nahradí per-route hodnotou (DogShare /d/:pack má vlastný ogImage; fallback pre ostatné = Seo.tsx DEFAULT_OG). -->
+    <meta name="author" content="DOGYPT" />
+
+
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@dogyptcom" />
+    <!-- canonical + og:url zámerne NIE statické: rieši ich per-route <Seo> (react-helmet-async), inak by statická home hodnota kolidovala s per-route canonical (Google by mohol canonicalizovať sub-stránky na home). Home sa self-canonicalizuje. -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://lnzurwmdgvzlqhsbhrvi.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Google Fonts moved here from src/index.css @import (was render-blocking the whole
+         stylesheet parse). Only the families/weights actually used across the app
+         (Cinzel, Cinzel Decorative, Inter, Space Grotesk, JetBrains Mono).
+         media="print" + onload swap = non-blocking load (PageSpeed 2026-07-08: 1750ms
+         "žiadosti o blokovanie vykreslenia"); text still shows via display=swap fallback
+         font in the meantime, no CLS since app already renders CLS=0. -->
+    <!-- 🔤 Cinzel, Cinzel Decorative a Space Grotesk (prvá obrazovka) idú z VLASTNÉHO pôvodu
+         od 7. 10. 2026 (plán s Fable 5) — public/fonts/g/fonts-v1.css. Žiadne cudzie spojenie
+         pred guľou. Google ostáva len pre Inter a JetBrains Mono (vnútro appky). -->
+    <link rel="stylesheet" href="/fonts/g/fonts-v1.css" media="print" data-late-fonts />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+      media="print"
+      data-late-fonts
+    />
+    <!-- 🔴 PÍSMA SA ZAPÍNAJÚ AŽ V main.tsx (perf 7. 10. 2026). Pôvodné onload="this.media='all'"
+         ich občas zaplo ešte pred logom opony; prehliadač potom ťahal woff2 a PageSpeed ich
+         zarátal do prvého vykreslenia (FCP 0,9 ↔ 2,5 s podľa náhody). Štýl sa stiahne hneď
+         (media=print = nízka priorita, neblokuje), použije sa pri štarte appky. -->
+    <noscript>
+      <link rel="stylesheet" href="/fonts/g/fonts-v1.css" />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+      />
+    </noscript>
+    <!-- NOTE: /spiral/img/* preloads removed (2026-07 perf pass) — spirála je archívna /spiral
+         stránka, homepage je GodsGrid a nepoužíva tieto assety. -->
+    <!-- Preload LCP obrázkov tmavého gridu (logo + hektor-grid) zanikol s gridom pri FLIPe 7. 10. 2026. -->
+  <meta property="og:site_name" content="DOGYPT" />
+  <meta property="og:locale" content="en_US" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://dogypt.com/#organization",
+        "name": "DOGYPT",
+        "alternateName": "Dogyptism",
+        "url": "https://dogypt.com",
+        "description": "DOGYPT is a movement for dog lovers. Every dog gets a unique Heroglyph — their permanent place in the global pack.",
+        "logo": "https://dogypt.com/social/social-1778165377850-LOGO_DOGYPT_FINAL_web.webp",
+        "sameAs": ["https://twitter.com/dogyptcom"]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://dogypt.com/#website",
+        "name": "DOGYPT",
+        "url": "https://dogypt.com",
+        "publisher": { "@id": "https://dogypt.com/#organization" }
+      }
+    ]
+  }
+  </script>
+  <meta data-static-seo property="og:title" content="DOGYPT — Your Dog Is God Here">
+  <meta data-static-seo name="twitter:title" content="DOGYPT — Your Dog Is God Here">
+  <meta data-static-seo name="description" content="Every dog on Earth has a place here. Is yours on the planet yet?">
+  <meta data-static-seo property="og:description" content="Every dog on Earth has a place here. Is yours on the planet yet?">
+  <meta data-static-seo name="twitter:description" content="Every dog on Earth has a place here. Is yours on the planet yet?">
+  <meta data-static-seo property="og:image" content="https://dogypt.com/og-planet-2026-10.jpg">
+  <meta data-static-seo property="og:image:width" content="1200">
+  <meta data-static-seo property="og:image:height" content="630">
+  <meta data-static-seo name="twitter:image" content="https://dogypt.com/og-planet-2026-10.jpg">
+  <script>(function(){var go=function(){if(window.__appGo)return;window.__appGo=1;var s=document.createElement('script');s.type='module';s.crossOrigin='';s.src="/assets/index-7PctGTam.js";document.head.appendChild(s);var R=[["^/(wall|onepage|vision|religion|about|spiral|grid|betavision)?/?$",["/assets/OnePage-CfyT7-yj.js","/assets/LanguagePicker--v1cJQg6.js","/assets/flagUrl-B21iQI9I.js","/assets/HandIcons-Dh9PgzA0.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/labTheme-p7t_6k9Y.js","/assets/Seo-B-e2lU-9.js","/assets/AboutLab-ugcmgbm0.js","/assets/godsData-kTA2EY6K.js","/assets/countryGeo-BaPfaSrG.js","/assets/cloudinaryService-DFfDUqVM.js","/assets/photoConfirm-lfyly4ep.js","/assets/photoIntake-cTohUk5s.js","/assets/dogSlug-CB23gDR2.js","/assets/constitutionRead-6hPB31zu.js","/assets/DogMessage-DIBP3WES.js","/assets/sparkles-C-OUu7N_.js","/assets/createLucideIcon-Di02PK5p.js","/assets/use-toast-CpgRElRJ.js","/assets/BrandIcon-C4Fdumu_.js","/assets/dogypt-logo-gold-D67FOL39.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/useBodyScrollLock--CJIKtfn.js","/assets/proxy-B4ZTxIpr.js","/assets/council-business-BPTub_bd.js","/assets/breeds-DONRU28-.js","/assets/NavMedallion-DadZHC2q.js","/assets/ainubisSkin-B7Z96MPq.js","/assets/ainubisBus-BMRzmB2O.js","/assets/ainubis-head-g4iOYlxZ.js","/assets/chevron-down-Dxby7Czj.js"],0],["^/terms/?$",["/assets/Terms-D3NFWMqO.js","/assets/LegalPage-Dt6NK7yJ.js","/assets/PageTopBar-DlESgG9R.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogypt-logo-gold-D67FOL39.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/useBodyScrollLock--CJIKtfn.js","/assets/createLucideIcon-Di02PK5p.js","/assets/LanguagePicker--v1cJQg6.js","/assets/flagUrl-B21iQI9I.js","/assets/labTheme-p7t_6k9Y.js"],0],["^/privacy/?$",["/assets/Privacy-DvhdlSaD.js","/assets/LegalPage-Dt6NK7yJ.js","/assets/PageTopBar-DlESgG9R.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogypt-logo-gold-D67FOL39.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/useBodyScrollLock--CJIKtfn.js","/assets/createLucideIcon-Di02PK5p.js","/assets/LanguagePicker--v1cJQg6.js","/assets/flagUrl-B21iQI9I.js","/assets/labTheme-p7t_6k9Y.js"],0],["^/login/?$",["/assets/Login-wg7i6wR-.js","/assets/PageTopBar-DlESgG9R.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogypt-logo-gold-D67FOL39.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/useBodyScrollLock--CJIKtfn.js","/assets/createLucideIcon-Di02PK5p.js","/assets/LanguagePicker--v1cJQg6.js","/assets/flagUrl-B21iQI9I.js","/assets/flowPaleSkin-DMjCjOr3.js","/assets/labTheme-p7t_6k9Y.js","/assets/ainubisSkin-B7Z96MPq.js","/assets/ainubis-head-g4iOYlxZ.js"],1],["^/pack/?$",["/assets/Pack-DwtDAAGK.js","/assets/PackLayout-DbvN9q62.js","/assets/magnetPreview-DhLqLXgw.js","/assets/ainubisSkin-B7Z96MPq.js","/assets/ainubis-head-g4iOYlxZ.js","/assets/chataNahlad-BvQ_JlDS.js","/assets/cloudinaryService-DFfDUqVM.js","/assets/dogRights-BxAmrGwt.js","/assets/BrandIcon-C4Fdumu_.js","/assets/HandIcons-Dh9PgzA0.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogEvents-DNw7GPsn.js","/assets/ainubisBus-BMRzmB2O.js","/assets/ainubis-badge-BGb27Nxy.js","/assets/SnifferLogo-Dyn0GD-G.js","/assets/BackButton-DiG140MZ.js","/assets/devMockDogs-BzGWz4qV.js","/assets/pawmateRights-DJDDFQlT.js","/assets/tripShared-DJ5J49O6.js","/assets/countryGeo-BaPfaSrG.js","/assets/packStore-C-dKFjs1.js","/assets/addTripModel-BuQrZHBF.js","/assets/wizAnchors-E3ARHgZI.js","/assets/consent-28X3-hgX.js","/assets/Gateways-Da9vsj45.js","/assets/index-CD01Zl6c.js","/assets/constitutionRead-6hPB31zu.js","/assets/dogSlug-CB23gDR2.js","/assets/packProfile-DFxYPxfm.js","/assets/devotion-CV1C8KkJ.js","/assets/SplitDetail-BkNPVXrK.js","/assets/index-DkOuwl1M.js","/assets/proxy-B4ZTxIpr.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/breedDisplay-wiG-9-ut.js","/assets/breeds-DONRU28-.js","/assets/chevron-left-DjegRQmo.js","/assets/createLucideIcon-Di02PK5p.js","/assets/chevron-right-CK2btJGW.js","/assets/dogOrder-NAHNyfSe.js"],1],["^/pack/map(/triplist)?/?$",["/assets/MapGate-DttsMrly.js","/assets/PageTopBar-DlESgG9R.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogypt-logo-gold-D67FOL39.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/useBodyScrollLock--CJIKtfn.js","/assets/createLucideIcon-Di02PK5p.js","/assets/LanguagePicker--v1cJQg6.js","/assets/flagUrl-B21iQI9I.js"],1],["^/pack/dogs/?$",["/assets/PackDogs-Ch4FEFdn.js","/assets/cloudinaryService-DFfDUqVM.js","/assets/PackLayout-DbvN9q62.js","/assets/magnetPreview-DhLqLXgw.js","/assets/ainubisSkin-B7Z96MPq.js","/assets/ainubis-head-g4iOYlxZ.js","/assets/chataNahlad-BvQ_JlDS.js","/assets/dogRights-BxAmrGwt.js","/assets/BrandIcon-C4Fdumu_.js","/assets/HandIcons-Dh9PgzA0.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogEvents-DNw7GPsn.js","/assets/ainubisBus-BMRzmB2O.js","/assets/ainubis-badge-BGb27Nxy.js","/assets/SnifferLogo-Dyn0GD-G.js","/assets/BackButton-DiG140MZ.js","/assets/devMockDogs-BzGWz4qV.js","/assets/pawmateRights-DJDDFQlT.js","/assets/tripShared-DJ5J49O6.js","/assets/countryGeo-BaPfaSrG.js","/assets/packStore-C-dKFjs1.js","/assets/addTripModel-BuQrZHBF.js","/assets/wizAnchors-E3ARHgZI.js","/assets/consent-28X3-hgX.js","/assets/DiaryList-CYn_PiBc.js","/assets/DiaryEntry-BnFxGXZB.js","/assets/photoIntake-cTohUk5s.js","/assets/FlagCircle-D0VQxthA.js","/assets/flagUrl-B21iQI9I.js","/assets/triplist-C4SNPPZY.js","/assets/dogAge-qL9nwVXc.js","/assets/dogQuiz-CHLLe1WL.js","/assets/packProfile-DFxYPxfm.js","/assets/natureQuiz-BjVOn8Uc.js","/assets/dogIdModules-BDNgSFzm.js","/assets/packDogsList-CdNepPcH.js","/assets/dogOrder-NAHNyfSe.js","/assets/Item-C9cGL6tJ.js","/assets/proxy-B4ZTxIpr.js","/assets/RightGate-D9upYetj.js","/assets/use-toast-CpgRElRJ.js"],1],["^/(dog|d)/[^/]+/?$",["/assets/DogShare-ChkHaICn.js","/assets/PageTopBar-DlESgG9R.js","/assets/handArrowLeft-BUyUUYuC.js","/assets/dogypt-logo-gold-D67FOL39.js","/assets/dogypt-logo-mobile-B7sCn4Sq.js","/assets/useBodyScrollLock--CJIKtfn.js","/assets/createLucideIcon-Di02PK5p.js","/assets/LanguagePicker--v1cJQg6.js","/assets/flagUrl-B21iQI9I.js","/assets/Seo-B-e2lU-9.js","/assets/dogSlug-CB23gDR2.js","/assets/countryGeo-BaPfaSrG.js","/assets/DogMessage-DIBP3WES.js","/assets/cloudinaryService-DFfDUqVM.js","/assets/ShareCard-BTQQXhkS.js","/assets/flowPaleSkin-DMjCjOr3.js","/assets/labTheme-p7t_6k9Y.js"],0]],C={"sk":"/assets/core-CljG-F5J.js","cs":"/assets/core-BLXq-B6P.js","pol":"/assets/core-D7dHjZqc.js","ukr":"/assets/core-CmgrGa6B.js","deu":"/assets/core-Cs2neyBL.js","esp":"/assets/core-AWLeSg_w.js","fra":"/assets/core-EhGhoX1c.js","prt":"/assets/core-CZHbUiqD.js","rus":"/assets/core-B2FmmMip.js","ita":"/assets/core-Cy28p1at.js","chn":"/assets/core-BCer5cKh.js","jpn":"/assets/core-BiTDBxEz.js","ind":"/assets/core-QuAPlZnM.js","ara":"/assets/core-_u-WfDG7.js","kor":"/assets/core-YiWz7kJH.js","nld":"/assets/core-CVDji7w_.js","tur":"/assets/core-BQlQMXb8.js"},P={"en":"/assets/pack-C5-Kl1Hk.js","sk":"/assets/pack-jpT6MVXj.js","cs":"/assets/pack-D87O-DEj.js","pol":"/assets/pack-zMIUDK_e.js","ukr":"/assets/pack-D1B4xnhy.js","deu":"/assets/pack-DkA52VFp.js","esp":"/assets/pack-DZOYL5Hw.js","fra":"/assets/pack-BxjmQeRO.js","prt":"/assets/pack-MJv1Dnme.js","rus":"/assets/pack-D6T_mADC.js","ita":"/assets/pack-Cr56qjI7.js","chn":"/assets/pack-BtvdlXe0.js","jpn":"/assets/pack-3eZJqI4h.js","ind":"/assets/pack-5EnmXZF0.js","ara":"/assets/pack-mkNhs5s7.js","kor":"/assets/pack-CLIoM2sK.js","nld":"/assets/pack-DV2IKE6X.js","tur":"/assets/pack-Tzt-Gq4H.js"},L={"en":"en","sk":"sk","cs":"cs","pl":"pol","uk":"ukr","de":"deu","es":"esp","fr":"fra","pt":"prt","ru":"rus","it":"ita","zh":"chn","ja":"jpn","hi":"ind","ar":"ara","ko":"kor","nl":"nld","tr":"tur"},F=[],pk=0,g=null,i;var pth=location.pathname,sess=0;try{for(i=0;i<localStorage.length;i++)if(/^sb-.*-auth-token$/.test(localStorage.key(i)))sess=1}catch(e){}if(/^\/pack/.test(pth)&&!sess)pth='/login';for(i=0;i<R.length;i++)if(new RegExp(R[i][0]).test(pth)){F=R[i][1].slice();pk=R[i][2];break}try{g=localStorage.getItem('dogypt_lang')}catch(e){}if(!g){var n=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];for(i=0;i<n.length&&!g;i++)g=n[i]&&L[n[i].toLowerCase().split('-')[0]]||null}g=g||'en';if(C[g])F.push(C[g]);if(pk&&P[g])F.push(P[g]);if(pk&&P.en&&g!=='en')F.push(P.en);F.forEach(function(h){var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';l.href=h;document.head.appendChild(l);});document.querySelectorAll('link[data-late-fonts][href^="/fonts/"]').forEach(function(l){l.media='all'});};window.__startApp=go;setTimeout(go,1200);})();</script>
+  <link rel="stylesheet" crossorigin href="/assets/index-BceXV8_0.css">
+</head>
+  <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PXB5MV3L"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <!-- 🔴 ÚVODNÁ OPONA /onepage (Matej 28. 9. 2026: *„úvodné načítanie planéty je
+         divne roztiahnuté… nevyzerá to profi — loader?"*). Zmerané: ~3 s čierna (JS
+         sa ešte nestiahol), potom prázdny papyrus s lištou a šípkami a až potom guľa.
+         Opona je v HTML, takže sa vykreslí s prvým bajtom — nečaká na React. Zdvihne
+         ju udalosť `dogypt:planet-ready` (DogPlanetLab, keď je predná pologuľa
+         načítaná) a guľa sa pod ňou práve vynára. Strop 9 s pre prípad chyby.
+         🐾 LABKY PO KRUHU (Matej 5. 10. 2026: „daj 4“, nákres
+         plany/nakres-loader-onepage-2026-10-05.html). 8 stôp z kitu okolo loga + %.
+         Labky nesvietia podľa časovača, ale podľa 4 ZMERANÝCH zastávok (podiel z 8):
+         15 opona stojí · 40 JS sa vykonal (DOMContentLoaded) · 70 film je v DOM
+         (.op-root) · 100 planéta hotová. Číslo % bolo v prvej verzii — Matej
+         5. 10.: „daj to bez %“. -->
+    <script>
+      (function () {
+        // Film = homepage (FLIP 7. 10. 2026); staré adresy sa do neho presmerujú, opona patrí aj im.
+        // Bez opony appka štartuje hneď (window.__startApp vkladá produkčný build, viď vite.config.ts).
+        // Výnimka: stránka s hotovým HTML (scripts/prerender.mjs nastaví __preDefer) — tú spustí
+        // výberový skript za #root až PO prvom vykreslení, nech JS nestojí pred textom.
+        if (['/', '/wall', '/onepage', '/vision', '/religion', '/about', '/spiral', '/grid', '/betavision'].indexOf(location.pathname) < 0) { if (window.__startApp && !window.__preDefer) window.__startApp(); return; }
+        // 🔴 ZOZNAM PSOV PRE GUĽU SA PÝTA UŽ TERAZ (7. 10. 2026, plán s Fable 5) — nie až po
+        // stiahnutí a vykonaní hlavného balíka. Cloudflare `/api/dogs` odpovie z cache (~50 ms).
+        // Preberá ho src/lib/earlyFetch.ts; mimo dogypt.com a pri ?focus/?dog (čerstvo zaplatený
+        // pes) sa nepýta — tam ide earlyFetch priamo na Supabase.
+        (function () {
+          var h = location.hostname;
+          if ((h === 'dogypt.com' || h === 'www.dogypt.com' || /\.workers\.dev$/.test(h)) && !/[?&](focus|dog)=/.test(location.search)) {
+            try {
+              window.__gridEarly = fetch('/api/dogs?tiers=all', { priority: 'high' })
+                .then(function (r) { return r.ok ? r.json() : []; })
+                .catch(function () { return []; });
+              // 🔴 FOTKY GULE SA SŤAHUJÚ HNEĎ, ako príde zoznam — nie až keď React nakreslí guľu.
+              // Merané 7. 10. na pomalom 4G: dlaždice štartovali o 9,5 s (po celom JS filmu)
+              // a opona zišla nad 0 z 200 fotiek. Adresa MUSÍ sedieť s `planetTileUrl`
+              // (GodsGridLab.tsx) + `gridTileUrl` (cloudinaryService.ts), inak sa fotka stiahne
+              // dvakrát — pri zmene meň všetky tri. Na guli sú Hektor + členovia od #2.
+              window.__gridEarly.then(function (dogs) {
+                var px = window.innerWidth <= 768 ? 120 : 160, seen = {};
+                var pre = function (u) { if (seen[u]) return; seen[u] = 1; var im = new Image(); im.decoding = 'async'; im.src = u; };
+                pre('/images/hektor-grid-tile.webp');
+                for (var i = 0; i < dogs.length; i++) {
+                  var d = dogs[i], u = d && d.cloudinary_main_url;
+                  if (!u || !(d.pack_number >= 2) || u.indexOf('/image/upload/') < 0) continue;
+                  var p = u.split('/image/upload/'), id = p[1].replace(/^v\d+\//, '').replace(/\.[a-zA-Z0-9]+$/, '');
+                  // Uložená transformácia (`c_fill,g_auto,w_1200,…`) ide PRED zmenšeninu ako v `sizedTile`
+                  // (11. 10. 2026) — opačné poradie zväčší fotku späť na 1200 px (73 kB namiesto ~5 kB).
+                  var s = id.split('/'), q = [];
+                  while (s.length > 1 && /^[a-z]{1,3}_[^\/]*$/.test(s[0])) q.push(s.shift());
+                  if (id) pre(p[0] + '/image/upload/' + (q.length ? q.join('/') + '/' : '') + 'c_fill,w_' + px + ',h_' + px + ',f_auto,q_auto/' + s.join('/'));
+                }
+              });
+            } catch (e) {}
+          }
+        })();
+        var css = document.createElement('style');
+        css.textContent =
+          '#op-boot{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;'
+          + 'background:radial-gradient(58% 52% at 50% 46%,#FFF9EA 0%,#F6EACB 42%,#E6CF9C 100%);'
+          + 'transition:opacity .9s cubic-bezier(.65,0,.35,1),visibility 0s linear .9s}'
+          + '#op-boot .b{display:flex;flex-direction:column;align-items:center;gap:28px;'
+          + 'animation:opBootIn 1s cubic-bezier(.2,.8,.2,1) both}'
+          + '#op-boot .l{position:relative;width:132px;height:132px}'
+          + '#op-boot .l img{width:100%;height:100%;object-fit:contain;display:block;'
+          /* TMAVÉ LOGO NA PAPYRUSE (Matej 3. 10. 2026: „zlatá na bielom zaniká — aj pri loaderi
+             /onepage musí byť logo tmavé"). Ten istý filter ako lišta heroflowu (flowPaleSkin.ts). */
+          + 'filter:brightness(.34) sepia(1) saturate(2.2) hue-rotate(-12deg) drop-shadow(0 10px 24px rgba(122,90,42,.22))}'
+          /* Zlatý odlesk prechádza CEZ kresbu loga (maska = logo), nie cez štvorec. */
+          + '#op-boot .l::after{content:"";position:absolute;inset:0;'
+          + 'background:linear-gradient(105deg,transparent 35%,rgba(255,244,210,.95) 50%,transparent 65%) no-repeat;'
+          + 'background-size:250% 100%;animation:opBootShine 2.6s cubic-bezier(.45,0,.2,1) infinite .4s;'
+          + '-webkit-mask:url(/images/dogypt-gold-logo.webp) center/contain no-repeat;mask:url(/images/dogypt-gold-logo.webp) center/contain no-repeat}'
+          /* Obežná dráha: logo v strede, 8 labiek na kružnici. Labka = paw-full.svg z kitu (maska). */
+          + '#op-boot .o{position:relative;width:224px;height:224px;display:grid;place-items:center}'
+          + '#op-boot .o .l{width:112px;height:112px}'
+          + '#op-boot .p{position:absolute;left:50%;top:50%;width:20px;height:21px;margin:-10px 0 0 -10px;'
+          + 'background:#7A5A2A;opacity:.12;transition:opacity .35s ease,background-color .35s ease;'
+          + '-webkit-mask:url(/icons/pack/paw-full.svg) center/contain no-repeat;mask:url(/icons/pack/paw-full.svg) center/contain no-repeat}'
+          + '#op-boot .p.on{opacity:.85;background:#A3782B;animation:opBootPaw .45s cubic-bezier(.2,.8,.2,1)}'
+          + '#op-boot.out{opacity:0;visibility:hidden}'
+          + '#op-boot.out .b{opacity:0;transform:scale(1.08);filter:blur(4px);'
+          + 'transition:opacity .6s ease,transform .9s cubic-bezier(.65,0,.35,1),filter .6s ease}'
+          + '@keyframes opBootIn{from{opacity:.15;transform:scale(.96)}to{opacity:1;transform:none}}'
+          + '@keyframes opBootShine{from{background-position:150% 0}to{background-position:-50% 0}}'
+          + '@keyframes opBootPaw{from{filter:brightness(1.7);transform:var(--r) scale(.7)}to{transform:var(--r)}}'
+          + '@media (prefers-reduced-motion:reduce){#op-boot .l::after,#op-boot .p.on{animation:none}}';
+        document.head.appendChild(css);
+        var el = document.createElement('div');
+        el.id = 'op-boot'; el.setAttribute('aria-hidden', 'true');
+        // Kým opona stojí, nadpis gule je pod ňou BEZ hala (DogPlanetLab: html.op-booting).
+        // Halo (text-shadow do 240 px) mu v meraní LCP zväčší plochu ~9×, takže by PageSpeed
+        // čakal na guľu namiesto loga opony, ktoré človek naozaj vidí prvé (perf 7. 10. 2026).
+        // Trieda padne v lift() — opona je vtedy ešte plne krycia (odchod až o ≥550 ms).
+        document.documentElement.classList.add('op-booting');
+        var paws = '';
+        for (var i = 0; i < 8; i++) {
+          // Kráča v smere hodinových ručičiek; striedavo ľavá/pravá (±12°), aby to bola chôdza, nie ozubené koleso.
+          var r = 'rotate(' + (i * 45) + 'deg) translateY(-96px) rotate(' + (90 + (i % 2 ? 12 : -12)) + 'deg)';
+          paws += '<span class="p" style="--r:' + r + ';transform:' + r + '"></span>';
+        }
+        el.innerHTML = '<div class="b"><div class="o">' + paws
+          + '<div class="l"><img src="/images/dogypt-gold-logo.webp" alt="" fetchpriority="high"></div></div></div>';
+        var t0 = Date.now(), gone = false, pct = 0;
+        var pawEls = el.querySelectorAll('.p');
+        // Postup ide len DOPREDU; labky sa rozsvietia podľa podielu z 8.
+        var stage = function (p) {
+          if (p <= pct) return;
+          pct = p;
+          for (var k = 0; k < pawEls.length; k++) if (k < Math.round(p / 100 * 8)) pawEls[k].classList.add('on');
+        };
+        stage(15);
+        document.addEventListener('DOMContentLoaded', function () { stage(40); });
+        var mo = new MutationObserver(function () {
+          if (document.querySelector('.op-root')) { stage(70); mo.disconnect(); }
+        });
+        mo.observe(document.documentElement, { childList: true, subtree: true });
+        var lift = function () {
+          if (gone) return; gone = true; mo.disconnect();
+          // Halo až o 300 ms (7. 10. 2026): na rýchlej sieti sa nadpis gule PRVÝKRÁT vykreslil až
+          // v okamihu zapnutia hala ⇒ Chrome ho zarátal s halom (184 000 px² > logo 62 000) a
+          // PageSpeed hlásil LCP 10 s v 1–2 z 3 behov. Opona je do ≥ 550 ms plne krycia.
+          setTimeout(function () { document.documentElement.classList.remove('op-booting'); }, 300);
+          stage(100);
+          // Posledné labky musí oko stihnúť vidieť, inak opona odíde s neúplným kruhom.
+          setTimeout(function () {
+            el.classList.add('out');
+            setTimeout(function () { el.remove(); }, 1000);
+          }, Math.max(550, 900 - (Date.now() - t0)));
+        };
+        window.addEventListener('dogypt:planet-ready', lift);
+        // Strop 9 s zdvihne oponu, len keď film UŽ JE (guľa má aspoň rozmazané náhľady);
+        // inak čaká poistka nižšie, najdlhšie 20 s (7. 10. 2026 — predtým odhalil prázdny papyrus).
+        setTimeout(function cap() { if (document.querySelector('.op-root')) lift(); else if (Date.now() - t0 < 20000) setTimeout(cap, 400); else lift(); }, 9000);
+        // Film sa nevykreslil (produkcia bez preview tokenu, chyba) — opona nesmie
+        // visieť nad prázdnou stránkou. Po `load` sa pozrie, či film existuje.
+        // 🔴 Poistka sa viaže na ŠTART APPKY (main.tsx: window.__appBooted), nie na `load`
+        // (7. 10. 2026). `load` na pomalej sieti padne skôr, než sa JS filmu stiahne a vykoná —
+        // opona potom zišla nad prázdnym papyrusom (merané: 3,0 s, 0 dlaždíc). Teraz: film
+        // nie je 6 s po štarte appky ⇒ chyba ⇒ zdvihni. Kým appka neštartovala, drží strop 20 s.
+        var safety = function () {
+          if (gone || document.querySelector('.op-root')) return;
+          if (window.__appBooted && Date.now() - window.__appBooted > 6000) lift();
+          else setTimeout(safety, 400);
+        };
+        window.addEventListener('load', function () { setTimeout(safety, 1500); });
+        document.body.appendChild(el);
+        // 🔴 NAJPRV LOGO, POTOM JAVASCRIPT (perf mobil 7. 10. 2026). Appka (~900 kB) sa začne
+        // sťahovať až keď je logo opony na obrazovke — inak mu na pomalej sieti berie linku
+        // a PageSpeed čaká na celý balík. Strop 1,2 s drží window.__startApp sám.
+        // Signál „logo je naozaj na obrazovke" dáva prehliadač sám (záznam LCP pre <img> loga);
+        // Safari ho nepozná → tam štart po načítaní loga a dvoch snímkach.
+        var lg = el.querySelector('img');
+        var start = function () { if (window.__startApp) window.__startApp(); };
+        var lcpOk = false;
+        try { lcpOk = PerformanceObserver.supportedEntryTypes.indexOf('largest-contentful-paint') >= 0; } catch (e) {}
+        if (lcpOk) {
+          new PerformanceObserver(function (l) {
+            var es = l.getEntries();
+            for (var q = 0; q < es.length; q++) if (es[q].element === lg) { start(); return; }
+          }).observe({ type: 'largest-contentful-paint', buffered: true });
+          lg.addEventListener('error', start);
+        } else {
+          var kick = function () { requestAnimationFrame(function () { requestAnimationFrame(start); }); };
+          if (lg.complete) kick(); else { lg.addEventListener('load', kick); lg.addEventListener('error', kick); }
+        }
+      })();
+    </script>
+    <style>html.pre-wait #pre,html.pre-wait #pre-consent,#pre .ds-life{visibility:hidden}html.pre #root{position:fixed;inset:0;visibility:hidden;overflow:hidden;pointer-events:none;z-index:-1}</style><div id="pre"></div><template id="pre-css"><style>
+.hf-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 16px;
+}
+@media (min-width: 768px) {
+  .hf-stage { padding-top: 24px; padding-bottom: 24px; }
+}
+/* 🔴 TOTO nahrádza `justify-content: center` — viď pascu vyššie. */
+.hf-stage > * { margin-top: auto; margin-bottom: auto; }
+
+/* ── ŠÍPKA SPÄŤ = ĽAVÝ KRAJ STĹPCA OBSAHU, NIE OKNA (26. 9. 2026) ──────────
+   Matej 26. 9.: *„daj ju na horný kraj obsahu pod ním, nie na kraj stránky,
+   vyzerá to divne… obsah dávame na stred aj čo sa týka headra!"*
+   Stĺpec obsahu je `max-w-xl` (576 px) v strede okna; šípka má `p-2` (8 px),
+   takže kresba sedí presne na hrane stĺpca. Na mobile je hrana stĺpca odsadenie
+   javiska (16 px) — tam to vychádza na `max(8px, …)`.
+   ⚠️ Háčik je obal `.hf-topbar`, ktorý nesie každý krok vstupu. `PageTopBar`
+   je LOCKED a nosí ho aj ostrý web, preto zásah zvonku, nie v komponente.
+   🔴 28. 9. 2026 — Matej: *„šípka späť nie je zarovnaná s hranicou obsahu
+      (blokov), ale je viac ku kraju"*. Rátalo sa s holou šípkou v `p-2`, lenže
+      `brandBack` kreslí KRUH s obrysom — a jeho hrana stála na 8 px, kým bloky
+      začínajú na 16. Hranu kruhu kladieme na hranu stĺpca: 16 px na mobile,
+      `50% − 288` (polovica `max-w-xl`) na širokom okne. */
+.hf-topbar > div > button.absolute { left: max(16px, calc(50% - 288px)); }
+
+.hf-pale {
+  position: relative;
+  background: #F3E4C4;
+}
+.hf-pale::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  
+  background-image: var(--bg-light);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(4px);
+  opacity: 1;
+
+}
+.hf-pale::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  
+  background:
+    radial-gradient(ellipse at 52% 46%, rgba(243,228,196,0.72) 0%, rgba(243,228,196,0.52) 48%, rgba(252,247,236,0.30) 100%),
+    radial-gradient(ellipse at center, rgba(255,255,255,0.30) 0%, rgba(201,154,63,0.08) 62%, rgba(138,90,20,0.16) 100%);
+
+}
+.hf-pale > * { position: relative; z-index: 1; }
+
+/* ── HORNÁ LIŠTA ──────────────────────────────────────────────────────────
+   `PageTopBar` je LOCKED a bledý variant nemá. Logo je zlatá kresba na
+   priehľadnom pozadí — na papyruse svieti a stráca sa, preto ten istý filter,
+   ktorým si ju sfarbuje LAB. Zásah je zvonku, komponent ostáva nedotknutý.
+   ⚠️ Háčik je vlastný obal `.hf-topbar`, NIE tailwindová trieda z komponentu —
+   tá sa pri prvej úprave `PageTopBar` zmení a šat ticho odpadne. */
+.hf-topbar img[alt="DOGYPT"] {
+  filter: brightness(.34) sepia(1) saturate(2.2) hue-rotate(-12deg);
+}
+.hf-topbar button { color: #8a5a14; }
+
+/* ── PÁS FÁZ (31. 8. 2026) ────────────────────────────────────────────────
+   PES -> TY -> SYMBOL -> HOTOVO. Spoločný prvok CELÉHO vstupu, markup nesie
+   'FlowPhases.tsx'; tu je len šat, aby si ho každá obrazovka nepísala znova.
+
+   Prečo fázy a nie percentá ani číslo kroku (Matej 31. 8.: "ok nie percenta"):
+   na tejto obrazovke by percento svietilo na 5 % — teda "nemáš za sebou nič"
+   presne v momente, keď má človek povedať áno. Kroky navyše nie sú rovnako
+   dlhé (výber farby 3 s, výrez fotky 30 s), takže 40 % by neznamenalo 40 %
+   času. A číslo kroku sa mení pri každom reze flow, fáza nie.
+
+   ⚠️ Pás fáz NIE JE dopĺňajúci sa heroglyf. Plátno (heroglyf, ktorý sa vypĺňa
+   pred očami) príde až za checkoutom a je to dramaturgia. Bar hovorí KDE SOM,
+   plátno ČO VZNIKÁ — keby bol bar tiež heroglyf, je to jedna vec dvakrát a
+   plátno stratí prekvapenie.
+
+   Aktívna fáza berie LAPIS (moja poloha v akcii), zvyšok vyblednuté zlato —
+   tá istá deliaca čiara ako inde: zlato = konštrukcia, lapis = ja. */
+.hf-phases { display: flex; gap: 6px; width: 100%; padding: 4px 2px 0; }
+.hf-phase { flex: 1; min-width: 0; text-align: center; }
+.hf-phase i {
+  display: block; height: 3px; border-radius: 2px; margin-bottom: 5px;
+  background: rgba(163,120,43,.28);
+}
+.hf-phase span {
+  display: block; font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  color: rgba(60,40,12,0.52);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hf-phase.on i { background: #16307A; }
+.hf-phase.on span { color: #16307A; font-weight: 600; }
+
+/* ── BUBLINA (tmavá, jediný tmavý prvok obrazovky) ────────────────────── */
+.hf-bubble {
+  width: 100%;
+  border-radius: 16px;
+  background: var(--brand-gradient);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.hf-bubble h2 {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: clamp(20px, 4.6cqw, 24px);
+  line-height: 1.3;
+  color: #FAF4EC;
+}
+.hf-bubble p {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgba(250, 244, 236, 0.72);
+}
+
+/* ── ZLATÝ BLOK ───────────────────────────────────────────────────────── */
+.hf-block {
+  width: 100%;
+  margin-top: 12px;
+  border:6px solid transparent;border-radius:14px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0.504 0 0 0 -0.182'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E") 37px 23px / 180px 180px padding-box,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0.648 0 0 0 -0.234'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 180px 180px padding-box,radial-gradient(495px 57px at 22% 3px, rgba(255,252,236,0.60), transparent 62%) padding-box,radial-gradient(140% 100% at 50% 50%, transparent 48%, rgba(112,76,20,0.07) 100%) padding-box,linear-gradient(180deg, #FBF3E0 0px, #F4E7C6 18px, #EDDCB2 32px, #E4D0A0 44px) padding-box,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0.324 0 0 0 -0.117'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 180px 180px border-box,linear-gradient(180deg, #FCF0C2 0px, #EDCE7C 11px, #D8B052 28px, #C09636 44px, #AA8129 56px) border-box;background-blend-mode:screen,multiply,normal,normal,normal,multiply,normal;box-shadow:inset 0 0 0 1px #6E4E18,inset 0 2px 5px rgba(96,64,16,0.42), inset 0 -1px 0 rgba(255,252,240,0.45),0 0 0 1px #6E4E18,0 12px 26px -8px rgba(0,0,0,0.72), 0 3px 0 -1px rgba(70,46,12,0.5);
+}
+.hf-plate {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 22px;
+}
+
+/* ── NAPÄTIE A SĽUB OKOLO TLAČIDLA (krok 2) ───────────────────────────────
+   Červená hovorí, čo je zlé (meno samo nestačí) — token `alertRed` z
+   `packTheme.ts`, kalibrovaný na papyrus.
+   🔴 **Sľub UŽ NIE JE ZELENÝ (Matej 31. 8.):** *„dajme to čiernym resp tmavým
+   písmom — nie zeleným"*. Zmenil sa mu zmysel: odkedy má CTA hviezdičku, nie je
+   to samostatný odkaz, ale VYSVETLIVKA k tlačidlu — a vysvetlivka je poznámka
+   pod čiarou, nie druhý farebný signál. Zelená navyše stála oproti červenej
+   o dva riadky vyššie a robila z dosky semafor.
+   ⚠️ Farba textu je jediná zmena; lapisový kánon CTA sa ničoho z toho netýka. */
+.hf-alert   { margin: 0; text-align: center; font-size: 12px; line-height: 1.4; font-weight: 500;
+              font-family: 'Space Grotesk', sans-serif; color: #B25640; }
+/* Matej 31. 8., druhé kolo: *„skús to dať inou farbou viac ako keby šedou, nie
+   sýtou čiernou ale skôr nenápadnejšou, hnedou, tmavou"* ⇒ `inkSoft`
+   (rgba(60,40,12,0.62)) — tá istá tlmená hneď, akou hovoria popisky na papyruse
+   inde v šate. Poznámka pod čiarou sa nemá čítať skôr než tlačidlo nad ňou. */
+.hf-promise { margin: 0; text-align: center; font-size: 12px; line-height: 1.4; font-weight: 500;
+              font-family: 'Space Grotesk', sans-serif; color: rgba(60,40,12,0.62); }
+/* Hviezdička visí tesne pri texte a nesie zlatú — je to značka odkazu na CTA,
+   nie prvé písmeno vety. */
+.hf-promise .star { color: #8a5a14; font-weight: 700; margin-right: 4px; }
+
+/* ── DVOJICA, KTORÁ PATRÍ K SEBE ──────────────────────────────────────────
+   Prvok + veta, ktorá o ňom hovorí. Bez toho ich doska rozostupuje rovnako ako
+   všetko ostatné a štyri prvky sa čítajú ako štyri samostatné veci. */
+.hf-group { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+
+.hf-qlabel {
+  margin: 0; text-align: center; font-family: 'Cinzel', serif; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: rgba(35,22,8,0.90);
+}
+/* Návod k prvku (ťahaj ⋮⋮ · ťukni na číslo) je POZNÁMKA, nie druhý nadpis:
+   malé bezpätkové písmo bez rozstrelenia, na vlastnom riadku. */
+.hf-qlabel .hint {
+  display: block; margin-top: 2px; font-family: 'Space Grotesk', sans-serif;
+  font-weight: 400; font-size: 10px; letter-spacing: 0; text-transform: none;
+  color: rgba(60,40,12,0.62);
+}
+
+/* ── ZOZNAM PSOV (krok 3) ─────────────────────────────────────────────────
+   Matej 28. 8.: *„tu tie bloky takmer neviditeľné ((psy) žiadne rozlíšenie…)"* —
+   riadok mal 8 % zlatý nádych a vyblednutý 1px rám, čo je na papyrusovej doske
+   to isté, ako keby tam nebol.
+   🔑 **Recept nie je vymyslený — je to PODBLOK z matrice** (`PACK_BOX.subblock`
+   v `packTheme.ts`): papyrusový gradient + PLNÝ zlatý rám + lift a inset
+   highlight. Presne ten, ktorý Matej dvakrát vypýtal namiesto plochého
+   `tileBg` (*„je to suché bez šťavy"*, *„majú slabé okraje"*). Polomer drží
+   `PLATE_TILE_R` (12) — dlaždica na doske, nie tretí polomer.
+   ⚠️ Hodnoty sú opísané a nie importované zámerne: `PACK_BOX` je objekt pre
+   `style={{}}`, toto je CSS reťazec. Keď sa matrica zmení, mení sa aj tu. */
+.hf-dogrow {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 9px 11px; border-radius: 12px; cursor: pointer;
+  background: linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);
+  border: 1px solid #A3782B;
+  box-shadow: 0 1px 3px rgba(122,90,42,0.10), inset 0 1px 0 rgba(255,255,255,0.40);
+  transition: transform .15s, box-shadow .15s, border-color .15s;
+}
+.hf-dogrow:hover {
+  transform: translateY(-1px); border-color: #C99A3F;
+  box-shadow: 0 4px 10px rgba(122,90,42,0.20), inset 0 1px 0 rgba(255,255,255,0.55);
+}
+.hf-dogrow .pic {
+  width: 42px; height: 42px; border-radius: 50%; flex: 0 0 auto; overflow: hidden;
+  border: 2px solid #A3782B; background: rgba(201,154,63,.14);
+  display: grid; place-items: center;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 17px; color: #8a5a14;
+}
+.hf-dogrow .pic img { width: 100%; height: 100%; object-fit: cover; }
+/* JEDEN riadok (31. 8.): meno stojí vycentrované na fotku. Druhý riadok so stavom
+   a rokom zanikol — pilulky vpravo hovoria to isté a presnejšie. */
+.hf-dogrow .txt { flex: 1; min-width: 0; display: flex; align-items: center; }
+.hf-dogrow .nm {
+  min-width: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px;
+  letter-spacing: .05em; color: rgba(35,22,8,0.90);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hf-dogrow.is-empty .nm { color: rgba(60,40,12,0.52); }
+/* Ikonka stavu je ZNAČKA, nie tlačidlo — klikateľný je CELÝ riadok (Matej 28. 8.:
+   „pri kliknutí na MENO psa je možnosť živúca legenda / psí anjel"). Tlačidlo
+   vnorené v tlačidle je navyše neplatné HTML. */
+.hf-dogrow .st {
+  flex: 0 0 auto; width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1.5px solid rgba(201,154,63,.5); background: rgba(255,255,255,.55);
+}
+/* Ikonky sú čierne kresby na priehľadnom — na papyruse ostávajú čierne. */
+.hf-dogrow .st img { width: 19px; height: 19px; object-fit: contain; filter: brightness(0); }
+
+/* ── STAV PSA V RIADKU — PILULKY (31. 8. 2026) ────────────────────────────
+   Matej 31. 8.: *„na pravej strane psieho bloku musia byť pils s požadovanými
+   info ktoré budú svietiť na červeno/zeleno podľa toho či sú alebo nie sú
+   vyplnené — vrátane ikonky legendy/anjela, aby človek hneď videl stav čo mu
+   chýba"*. Nahradili jedinú ikonku stavu (`.st`), ktorá hovorila len o jednom
+   z troch údajov a mlčala o tom, čo psovi chýba.
+   🔑 **Rad zozelenie = pes je hotový.** Tlačidlo POKRAČOVAŤ sa odomkne presne
+   vtedy, keď je zelený každý pes — pilulky sú teda vysvetlenie zámku, nie
+   ozdoba. Preto zelenú nesie aj stav, hoci ten hodnotu má vždy: inak by sa
+   rad nikdy nezložil do jednej odpovede.
+   ⚠️ Farby sú tie isté brandové tokeny ako `.hf-alert` / `.hf-promise`
+   (`alertRed` / `growGreen` z `packTheme.ts`), nie voľná červená a zelená.
+   ⚠️ Nie je to VÝBER — pilulka je neinteraktívna menovka stavu, takže sa jej
+   netýka lock „výber je priesvitný tint" (26. 8.). Čitateľnosť napriek tomu
+   nesie TMAVÝ inkoust a plný farebný rám, nie krytie výplne. */
+.hf-dogpills {
+  /* 192 px = štyri pilulky anjela (narodenie · odchod · vlajka · stav) v JEDNOM
+     riadku aj na 390 px. Pri 148 px sa štvrtá zalomila pod ne a riadok anjela bol
+     o 15 px vyšší než riadok živého psa — dva rôzne riadky pre to isté.
+     Zalomenie ostáva ako poistka pre dlhšie hodnoty; meno pri ňom ustúpi (má
+     `min-width: 0` a orezanie textom). */
+  flex: 0 0 auto; display: flex; flex-wrap: wrap; justify-content: flex-end;
+  align-items: center; gap: 5px; max-width: 192px;
+}
+.hf-dpill {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  height: 26px; padding: 0 8px; border-radius: 999px; border: 1.5px solid;
+  font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 500;
+  line-height: 1; white-space: nowrap;
+}
+.hf-dpill.ok   { border-color: #3D7A4E; background: rgba(61,122,78,.12);  color: #2E5C3B; }
+.hf-dpill.miss { border-color: #B25640; background: rgba(178,86,64,.12);  color: #8E3F2C; }
+/* Ikonka legendy/anjela je čierna kresba — na oboch výplniach drží kontrast. */
+.hf-dpill img { width: 15px; height: 15px; object-fit: contain; filter: brightness(0); }
+/* Emoji (vlajka, torta) nesmie dediť font okolia — na Windows/Androide by sadol
+   čiernobiely textový variant. Ten istý dôvod aj stack ako `FONT_EMOJI` na mape. */
+.hf-dpill .em {
+  font-size: 13px; line-height: 1;
+  font-family: 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Twemoji Mozilla',sans-serif;
+}
+/* Pilulka bez textu (stav, vlajka) má byť KRUH, nie krátka kapsula. */
+.hf-dpill.solo { width: 26px; padding: 0; }
+
+/* ── BUBLINA NA ŠÍRKU — KROK 3 (23. 9. 2026) ──────────────────────────────
+   Matej: *„horný blok gradient bude menší — fotka bude naľavo a napravo bude
+   text"*. Zvislá bublina (.hf-bubble) je POZDRAV: veľká tvár, veta na stred.
+   Od kroku 3 je Hektor sprievodca, nie hostiteľ — text nesie hlavnú váhu a
+   zoznam psov pod ním musí ostať nad ohybom aj na 390 px.
+   ⚠️ Tvar sa nekopíruje z .hf-bubble — spoločné je len pozadie a polomer.
+      Zarovnanie je VĽAVO: na stred centrovaný text vedľa okrúhlej fotky sa
+      opticky rozpadne na dve nesúvisiace veci. */
+.hf-speak {
+  width: 100%; display: flex; align-items: center; gap: 14px;
+  padding: 12px 16px; border-radius: 16px;
+  background: var(--brand-gradient); text-align: left;
+}
+/* Veľmi nízke okno: bublina ustúpi výplňou pre VŠETKY kroky naraz — je to úvod
+   k doske, nie odpoveď, takže sa zmenšuje pred obsahom, do ktorého sa ťuká. */
+@media (max-height: 640px) { .hf-speak { padding: 8px 12px; gap: 10px; } }
+.hf-speak .say { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.hf-speak h2 {
+  margin: 0; font-family: 'Cinzel', serif; font-weight: 700;
+  font-size: clamp(20px, 4.6cqw, 24px); line-height: 1.25; color: #FAF4EC;
+  /* Dva riadky = rovnomerne (Matej 26. 9.: *„ak je to na 2 riadky, nech sa to
+     rozdelí rovnomerne, nie aby v hornom bolo o mnoho viac textu"*). */
+  text-wrap: balance;
+}
+/* 🔆 ZVÝRAZNENÉ SLOVO V BUBLINE = ŽLTÁ `HF_HIGHLIGHT` — pravidlo pre KAŽDÚ
+   bublinu vstupu (Matej 25. 9. 2026: *„je ty takmer neviditeľné… treba dať
+   v každom tomto bloku pravidlo, že zvýraznený text bude žltej farby"* — vzor
+   je „HEKTHOR" na kroku 2). Obrazovky si farbu slova NEPREPISUJÚ: zlatý inkoust
+   papyrusu (`LAB.goldInk`) na lapisovo-zlatom gradiente zanikol. */
+.hf-speak b, .hf-speak strong { color: #FCD34D; font-weight: 700; }
+/* ⚠️ JEDNA VETA (Matej 24. 9.: *„do podnadpisu daj len prvú vetu… nie druhú"*).
+   Druhý riadok („Nezabudni na žiadneho psa…") tu ráno bol a odišiel: pri nadpise
+   24 px robil z pásu štvorriadkový odsek a otázka, na ktorú sa má odpovedať,
+   prestala byť prvá. Kľúč heroglyph.flow.dogs.sub ostáva nepoužitý — text má,
+   ale povrch preň dnes nie je. */
+.hf-speak p {
+  margin: 0; font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; line-height: 1.45; color: rgba(250, 244, 236, 0.72);
+  text-wrap: balance;
+}
+
+/* ── ZOZNAM SVORKY — ŤAHANIE A PORADIE (23. 9. 2026) ──────────────────────
+   Matej: *„psy sa budú dať medzi sebou prehodiť ako je v nákrese podľa poradia
+   (to poradie sa predvyplní už aj v heroglyfe)"*.
+   🔑 Poradie je vlastnosť ZOZNAMU (ťahanie), fotka je vlastnosť RIADKA. */
+.hf-doglist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.hf-doglist li { list-style: none; }
+
+/* ── MANTINEL PLOCHY (24. 9. 2026) ────────────────────────────────────────
+   Matej: *„pri 6 psoch sa celá stránka roztiahne a je zle"* — šiesty pes
+   odsunul POKRAČOVAŤ pod ohyb. Strop drží ROVNICA v `DogsScreen.tsx`
+   (`LIST`), sem chodí ako inline `max-height`; CSS ho neprepisuje, inak by
+   sa režim riadka a skutočná výška rozišli.
+   🔴 25. 9. 2026 TU BOL POKUS NATIAHNUŤ PLOCHU NA ZVYŠOK DOSKY (`flex: 1`) —
+      Matej ho nad snímkou VRÁTIL: *„tu svorku vráť ako bola, je to zle"*. Pri
+      jednom psovi vznikla v ploche diera cez pol obrazovky, lebo zoznam dostal
+      výšku, ktorú nemal čím naplniť. Strop z rovnice ostáva.
+   ⚠️ Vodorovný scroll musí ostať viditeľný obsah — riadok pri ťahaní vystupuje
+      z toku, takže `overflow-x` NIE JE hidden, len `clip` by ho orezal.
+   Okraje plochy majú náznak, že text pokračuje: jemný tieň zhora aj zdola. */
+.hf-dogscroll {
+  width: 100%; overflow-y: auto; overflow-x: visible;
+  /* Miesto pre lift riadka pri hoveri (`translateY(-1px)`) a pre jeho tieň. */
+  padding: 2px 2px 3px;
+  margin: -2px -2px -3px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201,154,63,.55) transparent;
+}
+.hf-dogscroll::-webkit-scrollbar { width: 6px; }
+.hf-dogscroll::-webkit-scrollbar-thumb { background: rgba(201,154,63,.55); border-radius: 999px; }
+.hf-dogscroll::-webkit-scrollbar-track { background: transparent; }
+
+/* ── POISTKA PROTI PRETEČENIU — `.hf-dogfit` (25. 9. 2026) ─────────────────
+   🔴 NIE JE TO VRÁTENÝ POKUS O NATIAHNUTIE. Ten Matej zamietol nad snímkou
+      (*„tu svorku vráť ako bola, je to zle"*), lebo zoznam dostal výšku, ktorú
+      pri jednom psovi nemal čím naplniť — diera cez pol obrazovky.
+   🔑 ROZDIEL JE V JEDNOM SLOVE: `flex: 0 1 auto` = smie sa len ZMENŠIŤ, nikdy
+      nerastie. Pri jednom psovi je teda zoznam presne taký vysoký ako jeho
+      obsah (obrazovka vyzerá ako predtým), pri piatich sa zmenší a roluje
+      VNÚTRI — stránka sa nehýbe.
+   ⚠️ Inline `max-height` z rovnice (`LIST`) ostáva: on rozhoduje, kedy riadok
+      prejde do úzkeho režimu. Toto je len strop, cez ktorý sa už nedá pretiecť.
+   ⚠️ `min-height: 0` musí byť na CELEJ reťazi (stĺpec → blok → doska), inak
+      flexový potomok neklesne pod výšku obsahu a strop neplatí. */
+.hf-stage > .hf-dogfit { max-height: 100%; min-height: 0; }
+.hf-dogfit > .hf-block { min-height: 0; display: flex; }
+.hf-dogfit > .hf-block > .hf-plate { min-height: 0; width: 100%; }
+.hf-dogfit .hf-dogscroll { flex: 0 1 auto; min-height: 0; }
+
+/* ── ÚZKY RIADOK — číslo · meno · značka (24. 9. 2026) ────────────────────
+   Matej: *„keď ich bude 4/5, riadok by sa mohol zmenšiť len na číslo, meno
+   a checkmark a plocha kde sú psy bude scrolovateľná"*.
+   🔑 Nie je to iný komponent, je to TEN ISTÝ riadok bez dvoch prvkov (fotka,
+      pilulky). Druhý komponent by sa pri prvej úprave rozišiel s plným.
+   ⚠️ Zelená/červená ostáva na celom bloku — úzky riadok teda hovorí dvakrát
+      (rám aj značka) a to je zámer: pri siedmich riadkoch sa farba číta ako
+      pás, značka ako odpoveď na konkrétneho psa. */
+.hf-dogrow.is-slim { padding: 6px 10px; gap: 10px; }
+.hf-dogrow.is-slim .hf-dogmid { flex-direction: row; align-items: center; gap: 8px; }
+.hf-dogrow.is-slim .nm { font-size: 14px; }
+.hf-dogmark {
+  flex: 0 0 auto; width: 22px; height: 22px; border-radius: 999px;
+  display: grid; place-items: center; border: 1.5px solid;
+  font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; /* 700 = fake bold, Grotesk je načítaný len 300–600 */ line-height: 1;
+}
+.hf-dogmark svg { width: 13px; height: 13px; }
+.hf-dogmark.ok   { border-color: #3D7A4E; background: rgba(61,122,78,.14);  color: #2E5C3B; }
+.hf-dogmark.miss { border-color: #B25640; background: rgba(178,86,64,.14);  color: #8E3F2C; }
+/* Úchyt je jediné miesto, kde sa ťahá — riadok samotný sa klikom OTVÁRA.
+   touch-action:none je povinné: bez neho si prehliadač na dotykovom
+   zariadení zoberie gesto pre scroll a riadok sa nepohne. */
+.hf-grip {
+  flex: 0 0 auto; width: 16px; align-self: stretch; display: grid; place-items: center;
+  cursor: grab; touch-action: none; user-select: none;
+  color: #8a5a14; font-size: 13px; line-height: 1;
+}
+.hf-grip:active { cursor: grabbing; }
+/* Číslo = poradie v ŽIVOTE. Pri PRVOM riadku je to tlačidlo (lapis = moja voľba),
+   pri ostatných tichá menovka — odvodené číslo sa nemá tváriť ako ponuka.
+   Lock: zlato = konštrukcia a poloha, lapis = akcia. */
+.hf-ord {
+  flex: 0 0 auto; width: 26px; height: 26px; border-radius: 999px;
+  display: grid; place-items: center; border: 1.5px solid;
+  font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600; line-height: 1;
+}
+.hf-ord.set {
+  cursor: pointer; border-color: #16307A; background: linear-gradient(180deg,#16307A,#0A1A4A); color: #F2F6FF;
+}
+.hf-ord.derived {
+  border-color: rgba(201,154,63,.45); background: rgba(255,255,255,.5); color: rgba(60,40,12,0.62);
+}
+/* Stred riadka: meno a pod ním rad pilulek.
+   ⚠️ 31. 8. stálo meno vycentrované na fotku v JEDNOM riadku — vtedy pred ním
+      neboli ani úchyt, ani číslo. Tie dva prvky vzali 48 px a na 390 px ostalo
+      menu 14 px. Pilulky preto idú pod meno; hovoria to isté, len v druhom rade. */
+.hf-dogmid { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px;
+             align-items: flex-start; text-align: left; background: none; border: 0; padding: 0;
+             cursor: pointer; }
+.hf-dogmid .hf-dogpills { justify-content: flex-start; max-width: none; }
+/* Fotka chýba = prerušovaný červený kruh s plusom. Je to ZÁROVEŇ tlačidlo
+   („daj mi fotku") aj chýbajúci údaj - samostatná pilulka na fotku by rad
+   predĺžila na päť a na telefóne zalomila. */
+.hf-pic {
+  width: 42px; height: 42px; border-radius: 50%; flex: 0 0 auto; overflow: hidden;
+  border: 2px solid #A3782B; background: rgba(201,154,63,.14); padding: 0;
+  display: grid; place-items: center; cursor: pointer;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 17px; color: #8a5a14;
+}
+.hf-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hf-pic.add { border-style: dashed; border-color: #B25640; background: rgba(178,86,64,.10); color: #B25640; }
+/* ZELENÝ BLOK = PES JE HOTOVÝ (Matej 23. 9.: „celý blok so psom bude na zeleno
+   ak bude celý vyplnený"). Doteraz to hovorili len pilulky — štyri malé značky
+   namiesto jednej odpovede. Zámok tlačidla POKRAČOVAŤ je presne súčet zelených
+   riadkov. Zelená je brandová #3D7A4E, kalibrovaná na papyrus. */
+.hf-dogrow.is-done {
+  border-color: #3D7A4E;
+  background: linear-gradient(135deg, #F3F8EE 0%, #E4EFD9 100%);
+  box-shadow: 0 1px 3px rgba(61,122,78,0.14), inset 0 1px 0 rgba(255,255,255,0.45);
+}
+.hf-dogrow.is-done:hover { border-color: #3D7A4E; box-shadow: 0 4px 10px rgba(61,122,78,0.22), inset 0 1px 0 rgba(255,255,255,0.55); }
+/* Riadok je odteraz OBAL, nie tlačidlo — nesie tri samostatné ovládače
+   (úchyt, číslo, fotka) a tlačidlo v tlačidle je neplatné HTML. */
+.hf-dogrow.as-row { cursor: default; }
+
+/* Ťuknutie na číslo prvého psa — jedna otázka, jedno pole.
+   ⚠️ Nesmie sa pýtať pri každom psovi zvlášť: odpovede by si protirečili.
+      Editovateľné je JEDNO číslo a zvyšok je odvodený. */
+.hf-ordedit { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+              padding-top: 10px; border-top: 1px dashed rgba(201,154,63,.45); }
+.hf-ordedit p { margin: 0; flex: 1 1 140px; min-width: 0;
+                font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.4; color: rgba(35,22,8,0.90); }
+.hf-ordedit p b { font-family: 'Cinzel', serif; letter-spacing: .04em; }
+.hf-ordedit input {
+  width: 68px; height: 36px; border-radius: 10px; text-align: center;
+  border: 2px solid #16307A; background: #FFFDF7; color: rgba(35,22,8,0.90);
+  font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; outline: none;
+}
+.hf-ordnote { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 11px;
+              line-height: 1.4; color: rgba(60,40,12,0.62); flex: 1 1 100%; }
+
+.hf-addrow {
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+  padding: 9px; border-radius: 12px; cursor: pointer; background: none;
+  border: 2px dashed rgba(201,154,63,.45);
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
+  letter-spacing: .08em; text-transform: uppercase; color: rgba(60,40,12,0.62);
+}
+.hf-addrow b { font-size: 17px; line-height: 1; color: #8a5a14; }
+
+/* ── NÁRODNOSŤ — JEDEN RIADOK ─────────────────────────────────────────────
+   Matej 28. 8.: *„národnosť v úvode zmenši a daj do jedného riadku aj výber aj
+   checkmark, nerozťahujme to"*. Boli to štyri prvky pod sebou (nadpis · výber ·
+   veta o IP · políčko) — štyri riadky na jednu odpoveď.
+   ⚠️ Zanikla aj veta „Vyplnené podľa tvojho pripojenia": predvyplnenie podľa IP
+   NIE JE zapojené (hosting krajinu v hlavičke nedáva), takže riadok tvrdil niečo,
+   čo sa nedeje. Vráti sa v deň, keď predvyplnenie naozaj bude. */
+.hf-natline { display: flex; align-items: center; gap: 8px; width: 100%; }
+.hf-natline .hf-field, .hf-natline .hf-natrow { height: 40px; flex: 1 1 auto; min-width: 0; }
+.hf-natrow { display: flex; align-items: center; gap: 8px; padding: 0 10px; }
+.hf-natrow .flag { font-size: 17px; line-height: 1; flex: 0 0 auto; }
+.hf-natrow .val {
+  flex: 1; min-width: 0; font-family: 'Space Grotesk', sans-serif; font-size: 14px;
+  color: rgba(35,22,8,0.90); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ── VÝBER KRAJINY S HĽADANÍM (`CountryPick.tsx`) ─────────────────────────
+   Pole vyzerá ako `.hf-field`, ale je to obal: vlajka + vstup. Ponuka visí POD
+   ním v toku bloku — `position: absolute`, aby netlačila obsah dosky nadol.
+   ⚠️ Obal má `position: relative` a vyššie `z-index`, inak ponuku prekryje CTA
+   pod ňou (obe sú v tom istom stacking contexte dosky). */
+.hf-cpick { position: relative; flex: 1 1 auto; min-width: 0; z-index: 3; }
+.hf-cpick-field { display: flex; align-items: center; gap: 8px; padding: 0 10px; }
+.hf-cpick-field .flag { font-size: 17px; line-height: 1; flex: 0 0 auto; }
+.hf-cpick-field input {
+  flex: 1; min-width: 0; height: 100%; border: none; background: none; outline: none;
+  font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: rgba(35,22,8,0.90);
+}
+.hf-cpick-field input::placeholder { color: rgba(60,40,12,0.52); }
+.hf-cpick-menu {
+  position: absolute; left: 0; right: 0; top: calc(100% + 5px); z-index: 5;
+  overflow-y: auto; padding: 5px;
+  display: flex; flex-direction: column; gap: 2px;
+  background: linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);
+  border: 1.5px solid #A3782B; border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(60,40,10,.28);
+}
+/* Nahor, keď pod poľom nie je miesto — výšku doplní komponent podľa merania. */
+.hf-cpick-menu.up { top: auto; bottom: calc(100% + 5px); }
+.hf-cpick-item {
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+  padding: 8px 9px; border: none; border-radius: 8px; background: none; cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: rgba(35,22,8,0.90);
+}
+.hf-cpick-item:hover { background: rgba(201,154,63,.16); }
+.hf-cpick-item.on { background:rgba(22,48,122,0.16);border-color:#16307A;color:#0F2560;box-shadow:inset 0 0 0 1px rgba(22,48,122,0.45); }
+.hf-cpick-item .flag { font-size: 17px; line-height: 1; flex: 0 0 auto; }
+.hf-cpick-item .lbl { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hf-cpick-empty {
+  margin: 0; padding: 10px; text-align: center;
+  font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: rgba(60,40,12,0.52);
+}
+
+/* Zaškrtnuté políčko je PRIESVITNÝ TINT + plný lapisový rám (lock 26. 8.) —
+   plná farebná plocha ostáva jedinému CTA na obrazovke. */
+.hf-chk {
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+  padding: 8px 10px; border-radius: 10px; cursor: pointer;
+  border: 1px solid rgba(201,154,63,.45); background: rgba(201,154,63,.05);
+}
+.hf-chk .box {
+  flex: 0 0 auto; width: 19px; height: 19px; border-radius: 5px;
+  border: 2px solid rgba(179,130,45,.55); background: rgba(255,255,255,.5);
+  display: grid; place-items: center; transition: .15s;
+}
+.hf-chk.on .box { border-color: #16307A; background: rgba(22,48,122,0.12); }
+.hf-chk .box svg { width: 12px; height: 12px; opacity: 0; transition: .15s; }
+.hf-chk.on .box svg { opacity: 1; }
+.hf-chk .lbl { flex: 1; min-width: 0; font-family: 'Space Grotesk', sans-serif;
+               font-size: 12px; line-height: 1.35; color: rgba(35,22,8,0.90); }
+/* Variant do riadku s výberom krajiny — nerastie, drží výšku poľa, text nezalamuje. */
+.hf-chk--inline { width: auto; flex: 0 0 auto; height: 40px; padding: 0 11px; white-space: nowrap; }
+.hf-chk--inline .lbl { flex: 0 0 auto; font-size: 12px; }
+
+/* ── VÝBER ŽIVÝ / ZA MOSTOM ─────────────────────────────────────────────
+   Matej 28. 8.: „zmenši a daj do jedného riadku… nerozťahujme to." Dlaždica
+   preto NEJE stĺpec (ikona nad textom), ale riadok vysoký ako pole formulára —
+   panel tým prestal byť dvoma plagátmi a zmestí sa doň aj národnosť. */
+.hf-picks { display: flex; gap: 8px; width: 100%; }
+/* 🔴 SAMOTNÁ DLAŽDICA `.hf-pick` JE ODTERAZ LEN V `FLOW_CARVE_CSS` (24. 9. 2026).
+   Tu stála jej druhá definícia pod tým istým menom — dva rôzne vzhľady jednej
+   veci, presne ten rozchod, pred ktorým varuje CLAUDE.md. Rušila sa novšia,
+   nie staršia: rytá verzia má jamku pod ikonkou, papyrusový gradient a lift,
+   a tvar RIADKA (ikonka vedľa textu) si nechala — to bola Matejova voľba z
+   28. 8. (*„zmenši a daj do jedného riadku… nerozťahujme to"*) a platí ďalej.
+   ⚠️ Kto sem tú definíciu vráti, musí najprv zmazať tú druhú. Markup je
+      `<span class="well"><img></span><span class="tx">…</span>`. */
+
+/* ── PANEL LEGENDY — bez krížika (lock 28. 8.), von klikom mimo alebo Esc ── */
+/* ⚠️ ROLUJE OBAL, NIE PANEL. Ponuka krajín v paneli je absolútna (`.hf-cpick-menu`)
+   a `overflow-y` na paneli by ju odrezal na jeho hrane — pritom `place()` v
+   `CountryPick` meria miesto voči OKNU, nie voči panelu. Obal je cez celé okno,
+   takže odrezať nemá čo; `margin:auto` centruje a pri vysokom obsahu (anjel + dva
+   dátumy + vlastná krajina) nechá panel odrolovať, nie vypadnúť hore z okna. */
+.hf-legwrap {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: flex-start; justify-content: center; padding: 18px;
+  overflow-y: auto;
+}
+.hf-legveil { position: absolute; inset: 0; background: rgba(10,26,74,.55); backdrop-filter: blur(2px); }
+.hf-legpanel {
+  position: relative; width: 100%; max-width: 330px; padding: 16px;
+  display: flex; flex-direction: column; gap: 11px;
+  background: linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);
+  border: 1.5px solid #A3782B; border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.45), 0 0 0 3px rgba(201,154,63,.15);
+  margin: auto 0;
+}
+.hf-legpanel .who {
+  margin: 0; text-align: center; font-family: 'Cinzel', serif; font-weight: 700;
+  font-size: 15px; letter-spacing: .06em; color: rgba(35,22,8,0.90);
+}
+/* Hlavička panela (24. 9.): fotka nad menom. V úzkom režime je to JEDINÉ miesto,
+   kde sa fotka dá pridať — v riadku vtedy nie je. */
+.hf-legtop { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.hf-pic.lg { width: 72px; height: 72px; font-size: 26px; }
+
+/* ── DÔKAZ: NADPIS, DVA PÁSY, POPISKY (31. 8. 2026) ───────────────────────
+   Obrazovka netvrdí, že je pes unikát — ukazuje to. Traja SKUTOČNÍ psi menom
+   ALBA z našej steny (#43, #59, #61): najprv tri psy, pod nimi ich tri znaky.
+   Čítanie ide zhora ("toto sú tri Alby" -> "toto sú ich tri znaky"), takže
+   rozdiel netreba hľadať očami hore-dole.
+
+   ⚠️ Zanikla '.hf-glyphdemo' — tmavá doska pod JEDNÝM heroglyfom. Bola tam
+   preto, že ZLATÁ kresba na zlatej doske zanikne. Tieto glyfy sú ČIERNE
+   (kánon počas života psa, DOGMA 8.3), takže idú priamo na papyrus a tmavý
+   podklad by z troch dôkazov urobil tri fotografie v ráme. Keď sa niekde vo
+   flow objaví zlatý heroglyf, tmavú dosku si vypýta znova — ale nech si ju
+   vypýta ten povrch, nie mŕtve pravidlo tu. */
+.hf-head {
+  margin: 0; text-align: center;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 18px; line-height: 1.25;
+  color: rgba(35,22,8,0.90);
+}
+/* Druhá veta nesie zlatú — je to tá polovica, ktorú tri ALBY pod ňou dokazujú,
+   takže hierarchia vedie oko rovno na dôkaz. */
+.hf-head em { font-style: normal; color: #8a5a14; }
+.hf-lead {
+  margin: 0; text-align: center;
+  font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.5;
+  color: rgba(60,40,12,0.62);
+}
+/* Matej 31. 8.: *„Toto je alba daj boldom"* — tučná je PRVÁ polovica po dvojbodku,
+   teda predstavenie; druhá polovica je vysvetlenie a tučná byť nemá, inak veta
+   začne konkurovať nadpisu nad sebou.
+   ⚠️ 600, NIE 700: Space Grotesk je načítaný len vo váhach 300–600, sedmička by
+   bola fake bold (lock v CLAUDE.md). Inkoust ide o stupeň tmavšie, lebo samotná
+   váha na papyruse rozdiel neurobí. */
+.hf-lead strong { font-weight: 600; color: rgba(35,22,8,0.90); }
+
+/* ── TRI STĹPCE (Matej 31. 8., druhé kolo) ────────────────────────────────
+   *„skúsme urobiť namiesto 2 blokov 3 stlpce = pod nadpisom bude veta Toto je
+   alba: totožné meno celkom iné psy. 3 stlpce meno + hero a pod nimi text"*.
+
+   Zanikli tým dva orámované pásy (tri psy zvlášť, tri znaky zvlášť). Rozdiel
+   proti nim: pes a jeho znak stoja v JEDNOM stĺpci, takže dvojica sa neskladá
+   očami hore-dole — a meno medzi nimi je to, čo je na všetkých troch zhodné,
+   teda presne ten kontrast, o ktorom obe vety hovoria.
+   Rámy odišli s pásmi: bez nich stoja tri stĺpce priamo na doske a text nad
+   nimi aj pod nimi ich drží ako jednu myšlienku. */
+.hf-albs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+.hf-alb { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+/* Matej 31. 8.: *„fotky by som dal o 15% menšie"*. Šírka stĺpca ostáva, ustupuje
+   len fotka — inak by sa zúžil aj heroglyf, ktorý je tu dôkazom.
+   ⚠️ 79 %, nie 85 %: tých 15 % je oproti tomu, čo Matej VIDEL, teda fotke v dvoch
+   pásoch (87 px na 390 px okna) ⇒ cieľ 74 px. Stĺpec je tu 94 px široký, takže
+   85 % by dalo 80 px a ubralo by len 8 %. Percento sa počíta z toho, čo sa mení,
+   nie z nového rodiča. */
+.hf-alb .pic {
+  width: 100%; aspect-ratio: 1; border-radius: 50%; object-fit: cover; display: block;
+  border: 2px solid #A3782B; background: rgba(201,154,63,.14);
+}
+/* ── ČÍSLO NA FOTKE, MENO POD ŇOU ZANIKLO (Matej 31. 8.) ──────────────────
+   *„pod fotkami daj preč meno alba a chipy s # daj na foto ako som ti dal
+   v pôvodnom nákrese a ako je to aj v dog id alebo inde na webe"*.
+
+   🔑 Recept NIE JE nový — je to odliatok `.dogblk-num` z `pages/PackDogs.tsx`
+   (zlatá pilulka na spodnom oblúku kruhu, Cinzel 700, ink #3d1f00, papyrusový
+   lem). Tá istá pilulka nesie číslo aj na DOG ID, takže človek ju pozná skôr,
+   než sem príde. Zmenšené sú len rozmery: fotka je tu 66–132 px, nie 152.
+   ⚠️ Číslo si pýta `position: relative` na OBALE fotky, nie na stĺpci — inak
+   by pilulka sadla na spodok celého stĺpca, teda pod heroglyf. */
+.hf-alb .pw { position: relative; width: 79%; display: block; }
+.hf-alb .num {
+  position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px;
+  letter-spacing: .02em; line-height: 1; white-space: nowrap;
+  padding: 3px 7px; border-radius: 999px;
+  background: linear-gradient(180deg,#F5C73D,#E69E1A); color: #3d1f00;
+  border: 1px solid rgba(250,244,236,0.55);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.28);
+}
+/* Heroglyf potrebuje pod pilulkou vzduch, inak sa mu lepí na hornú hranu. */
+.hf-alb .glyf { width: 100%; display: block; margin-top: 3px; }
+/* Veta pod stĺpcami — uzatvára dôkaz, preto je bližšie k nemu než k tlačidlu. */
+.hf-albnote {
+  margin: 0; text-align: center;
+  font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.45;
+  color: rgba(60,40,12,0.62);
+}
+
+/* ── POLE NA PÍSANIE ──────────────────────────────────────────────────────
+   Zaostrené a vyplnené berie LAPIS — ale ako TINT s plným rámom, nie plnú
+   výplň: tá patrí CTA.
+   ⚠️ **BIELE, nie papyrusové** (Matej 28. 8.: „text area ktorá bude biela —
+   výrazná"). Papyrusové pole (`.pf-field--flat`, #FBF5E6) je kánon vnútri
+   TMAVEJ karty `/pack`; tu stojí na papyrusovej doske v zlatom bloku, teda
+   papyrus na papyruse — na snímku sa pole strácalo v doske. Biela je jediná
+   plocha obrazovky, ktorá pýta zásah, a musí to byť vidno. */
+.hf-field {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  border: 2px solid rgba(179, 130, 45, 0.55);
+  background: #FFFDF7;
+  padding: 0 14px;
+  text-align: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  color: rgba(35,22,8,0.90);
+  outline: none;
+  transition: border-color .18s, background .18s, box-shadow .18s;
+}
+.hf-field::placeholder { color: rgba(60,40,12,0.52); }
+.hf-field:focus {
+  border-color: #16307A;
+  box-shadow: 0 0 0 3px rgba(22,48,122,0.22);
+}
+/* Vyplnené pole ostáva BIELE — lapis je len tint NAD bielou, nie namiesto nej.
+   Samotný `LAPIS.fill` je 12 % priehľadná modrá, takže cez ňu presvitala zlatá
+   doska a z bieleho poľa bolo zrazu sivé. */
+.hf-field.is-valid {
+  border-color: #16307A;
+  background: linear-gradient(rgba(22,48,122,0.12), rgba(22,48,122,0.12)), #FFFDF7;
+}
+
+/* ── OBIEHAJÚCE MODRÉ SVETLO OKOLO POĽA ───────────────────────────────────
+   Matej 28. 8.: *„okolo bude prúdiť modrá čiara ako je to v pôvodnom flowe
+   alebo aj pri zadávaní miesta na mape"* a po prvom kole *„tá utekajúca modrá
+   žiara okolo text area vôbec nie je vidno a výrazná - nepúta pozornosť čo by
+   mala!"*.
+   ⚠️ **Prečo prvé kolo nebolo vidno:** hodnoty prebraté 1:1 z `.trp-ps.is-attn`
+   (`addtrip/PlaceSearch.tsx`) sú kalibrované na TMAVÝ dok — 2 px stopa a 1 px
+   rozostrenie. Tu to isté svetlo beží po ZLATEJ doske v bledom šate, kde má
+   proti sebe svetlý podklad, takže sa stratilo. Zosilnené je preto trojako:
+   hrubšia stopa (3 px), jasnejší vrchol oblúka (takmer biela) a **modrý rám
+   a halo na samotnom prázdnom poli**, ktoré pulzuje — pohyb tak nesie celé
+   pole, nie len vlas okolo neho.
+   → [[feedback_svetlo_na_svetlom_zosilnis_farbou_nie_polomerom]]
+   ⚠️ Svetlo beží, KÝM je pole prázdne. Po vyplnení zhasne a rám drží statické
+   lapisové zvýraznenie (`.hf-field.is-valid`) — pole už nič nepýta. */
+@property --hf-ring-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+.hf-ring { position: relative; border-radius: 12px;
+           animation: hfRingPulse 2.6s ease-in-out infinite; }
+.hf-ring > * { position: relative; z-index: 1; }
+/* Prázdne pole samo drží modrý rám — bez neho by svetlo obiehalo okolo zlatého
+   poľa a bolo by to svetlo „na ničom". */
+.hf-ring .hf-field { border-color: rgba(47, 107, 255, 0.55); }
+.hf-ring::before {
+  content: ''; position: absolute; inset: -3px; z-index: 0;
+  border-radius: 15px; pointer-events: none; padding: 3px;
+  background: conic-gradient(from var(--hf-ring-ang),
+    rgba(47,107,255,0.10) 0deg, rgba(47,107,255,0.10) 200deg,
+    rgba(47,107,255,0.75) 280deg, rgba(214,232,255,1) 330deg,
+    rgba(47,107,255,0.75) 350deg, rgba(47,107,255,0.10) 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  filter: blur(1.5px);
+  animation: hfRingSpin 2.6s linear infinite;
+}
+@keyframes hfRingSpin { to { --hf-ring-ang: 360deg; } }
+@keyframes hfRingPulse {
+  0%, 100% { box-shadow: 0 0 10px 1px rgba(47, 107, 255, 0.28); }
+  50%      { box-shadow: 0 0 22px 5px rgba(47, 107, 255, 0.50); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hf-ring::before { animation: none; }
+  .hf-ring { animation: none; box-shadow: 0 0 14px 2px rgba(47, 107, 255, 0.35); }
+}
+.hf-ring.is-filled { animation: none; box-shadow: none; }
+.hf-ring.is-filled::before { animation: none; opacity: 0; }
+
+/* ── ČERVENÁ A ZELENÁ SA OBJAVIA AŽ PO DOPÍSANÍ ───────────────────────────
+   Matej 28. 8.: *„až po dopísaní mena sa zjaví červený text nie pri začiatku
+   písania…ak človek dopíše!"* — preto `hfPop`, aby to naozaj VYBEHLO a nebolo
+   to len ticho pribudnutý riadok. Kedy je meno „dopísané", rieši obrazovka
+   (`settled` v `NameScreen.tsx`), nie CSS. */
+@keyframes hfPop {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+.hf-alert, .hf-promise { animation: hfPop .26s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .hf-alert, .hf-promise { animation: none; } }
+
+/* ── HLAVNÉ CTA ───────────────────────────────────────────────────────── */
+.hf-cta {
+  width: 100%;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(180deg,#16307A,#0A1A4A);
+  color: #EFD79A;
+  box-shadow: 0 4px 13px -3px rgba(5,15,48,0.6), inset 0 1px 0 rgba(201,154,63,0.30);
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .18s, transform .18s, opacity .18s;
+}
+.hf-cta:hover:not(:disabled) { background: linear-gradient(180deg,#1E3C90,#0F2560); transform: scale(1.02); }
+/* NEAKTÍVNE = vzhľad z E-MAILU na KAŽDOM kroku (Matej 27. 9. 2026: *„ujasni vzhľad
+   neaktívneho tlačidla tak ako je na emaile"*). Nahrádza bledý papyrus, ktorý mali
+   PATRÓN/POVAHA/MAJITEĽ po 31. 8. 2026 (*„šedé tlačítko a tieň presvitá"*) — novší
+   pokyn prebíja; tieň sa pri neaktívnom preto vypína, aby nepresvital. */
+.hf-cta:disabled, .hf-cta.is-off { opacity: .4; cursor: default; box-shadow: none; }
+
+/* ── PRESKOČENIE — dostupné, nie ponúkané ─────────────────────────────── */
+.hf-skip {
+  align-self: center;
+  background: none;
+  border: none;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: #8a5a14;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
+}
+.hf-note {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  color: rgba(60,40,12,0.62);
+}
+.hf-hint {
+  background: none;
+  border: none;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: #8a5a14;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
+}
+
+  .dm-toggle {
+    display: block; margin: 4px auto 0; padding: 0; border: 0; background: none;
+    font: 500 12px/1.4 'Space Grotesk', sans-serif; font-style: normal;
+    color: rgba(42,22,8,0.62); text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+  }
+  .dm-toggle:hover { color: rgba(42,22,8,0.9); }
+
+        .ds-main {
+          flex: 1 1 auto; display: flex; flex-direction: column; align-items: center;
+          padding: 8px 16px calc(24px + var(--consent-h, 0px));
+        }
+        .ds-main > * { margin-top: auto; }
+        .ds-main > :last-child { margin-bottom: auto; }
+        .ds-card {
+          width: 100%; max-width: 400px;
+          display: flex; flex-direction: column; gap: 16px;
+          padding: 16px; color: #2a1608;
+        }
+        .ds-media {
+          position: relative; width: 100%; aspect-ratio: 1 / 1; flex: none;
+          border-radius: 12px; overflow: hidden;
+          box-shadow: 0 12px 28px -14px rgba(58,38,8,0.5);
+        }
+        .ds-body { display: flex; flex-direction: column; align-items: center; gap: 24px; text-align: center; }
+        .ds-body > * { width: 100%; }
+        @media (min-width: 768px) {
+          .ds-card { max-width: 832px; display: grid; grid-template-columns: 400px 1fr; gap: 24px; padding: 24px; align-items: center; }
+          .ds-body { padding: 8px 8px 8px 0; }
+        }
+        .ds-head { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .ds-name { margin: 0; font-family: 'Cinzel Decorative', serif; font-weight: 900; font-size: 24px; line-height: 1.15; letter-spacing: 0.04em; color: #1a1a1a; overflow-wrap: anywhere; }
+        .ds-num {
+          display: inline-flex; align-items: center; padding: 4px 16px; border-radius: 999px;
+          background: linear-gradient(180deg,#16307A,#0A1A4A); color: #EFD79A; box-shadow: 0 4px 13px -3px rgba(5,15,48,0.6), inset 0 1px 0 rgba(201,154,63,0.30);
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; line-height: 1.1;
+        }
+        .ds-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .ds-fact { padding: 12px 16px; text-align: center; min-width: 0; }
+        .ds-fact i {
+          display: block; font-family: 'Space Grotesk', sans-serif; font-style: normal; font-weight: 500;
+          font-size: 10px; line-height: 1.3; letter-spacing: 0.22em; text-transform: uppercase; color: #8C6014;
+        }
+        .ds-fact b {
+          display: block; margin-top: 4px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px;
+          line-height: 1.2; color: #1a1a1a; text-transform: uppercase; overflow-wrap: anywhere;
+        }
+        .ds-quote { padding: 12px 16px; }
+        .ds-msg {
+          margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 400; font-style: italic;
+          font-size: 14px; line-height: 1.5; color: rgba(26,26,26,0.72);
+          display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; overflow: hidden;
+        }
+        .ds-msg-by { margin: 4px 0 0; font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: rgba(42,22,8,0.55); }
+        .dogshare-invite {
+          margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; line-height: 1.3;
+          letter-spacing: 0.14em; text-transform: uppercase; color: #6E4E18;
+        }
+        .ds-cta {
+          align-self: stretch; min-height: 56px; display: flex; align-items: center; justify-content: center;
+          border-radius: 8px; text-decoration: none;
+          background: linear-gradient(180deg,#16307A,#0A1A4A); color: #EFD79A; border: 1px solid #16307A;
+          box-shadow: 0 4px 13px -3px rgba(5,15,48,0.6), inset 0 1px 0 rgba(201,154,63,0.30);
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase;
+          transition: background 200ms ease;
+        }
+        .ds-cta:hover { background: linear-gradient(180deg,#1E3C90,#0F2560); }
+        .dogshare-bones { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .dogshare-bones-main { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; line-height: 1.4; color: #2a1608; }
+        .dogshare-bones-note { font-family: 'Space Grotesk', sans-serif; font-size: 10px; line-height: 1.4; color: rgba(42,22,8,0.55); }
+        .dogshare-back-link {
+          margin-top: 16px; font-family: 'Space Grotesk', sans-serif; font-size: 12px;
+          color: rgba(42,22,8,0.6); text-decoration: none;
+        }
+        .dogshare-back-link:hover { color: #16307A; }
+        .ds-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+      </style><style>
+        /* Picker je STATIC — panel sa pozične viaže na .nav-left (position:fixed),
+           čím sa šírka panelu = šírka pill nav-baru. */
+        .lang-picker {
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .lang-trigger {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          color: #000;
+          font-size: 0.78rem;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+        }
+        .lang-trigger:hover { opacity: 0.55; }
+        .lang-trigger__chev {
+          transition: transform 180ms ease;
+          color: rgba(0,0,0,0.55);
+        }
+        .lang-trigger__chev.is-open { transform: rotate(180deg); }
+
+        /* Flag stack — vertical-slice composite. Viaceré vlajky = úzke pruhy vedľa seba
+           (každý cropped na stred PNG cez background-size:cover + center). Single flag = full aspect. */
+        .lang-flag-stack {
+          display: inline-flex;
+          vertical-align: middle;
+          height: 1.05em;
+          border-radius: 2px;
+          overflow: hidden;
+          border: 1px solid rgba(0,0,0,0.18);
+          background: rgba(0,0,0,0.06); /* fallback pred loadnutím PNG */
+          flex-shrink: 0;
+        }
+        .lang-flag-stack__item {
+          display: block;
+          height: 100%;
+          width: 0.55em;            /* slice width pre multi-flag */
+          background-size: cover;
+          background-position: center center;
+          background-repeat: no-repeat;
+        }
+        .lang-flag-stack__item:only-child {
+          width: 1.55em;             /* single flag = normálny 3:2 aspect */
+        }
+
+        /* Panel: position:absolute voči pozicovanému predkovi v nave.
+           🔴 ŠÍRKU DIKTUJE OBSAH, NIE RODIČ (oprava 27. 8. 2026). Pôvodné
+           left:0 + right:0 znamenalo „presne šírka pill" a fungovalo, kým bol
+           predkom široký nav. V nave na /onepage je predkom UŽ LEN TRIGGER
+           (64 px), takže panel spadol na 118 px a z dvoch stĺpcov ostalo
+           „SV / CZ / D / N" — texty sa orezali, hoci jazykov bolo správnych 18.
+           ⚠️ min-width 100 % drží starý vzhľad tam, kde je predok širší než
+           obsah (produkčná stena): panel sa nezúži pod šírku pilulky. Rozšíri sa
+           len tam, kde by inak rezal text.
+           ⚠️ Kotva je PRAVÁ hrana — panel je posledný prvok vpravo v nave,
+           takže musí padať doľava, inak vytečie z obrazovky. */
+        .lang-panel {
+          position: absolute;
+          top: calc(100% + 10px);
+          left: auto;
+          right: 0;
+          width: max-content;
+          min-width: 100%;
+          z-index: 110;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201,154,63,0.55);
+          border-radius: 12px;
+          padding: 8px;
+          box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+          animation: langPanelFade 180ms ease-out;
+          max-height: calc(100dvh - 80px);
+          overflow-y: auto;
+        }
+        @keyframes langPanelFade {
+          from { opacity: 0; transform: translateY(-4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .lang-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-rows: repeat(9, auto);
+          grid-auto-flow: column;
+          gap: 4px;
+        }
+
+        .lang-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: transparent;
+          border: 1px solid transparent;
+          border-radius: 8px;
+          padding: 6px 8px;
+          cursor: pointer;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          color: #000;
+          font-size: 0.72rem;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          transition: background 150ms ease, border-color 150ms ease, opacity 150ms ease;
+          min-width: 0;
+        }
+        .lang-btn:hover:not(.is-disabled) {
+          background: rgba(201,154,63,0.18);
+          border-color: rgba(201,154,63,0.45);
+        }
+        .lang-btn.is-active {
+          background: rgba(201,154,63,0.28);
+          border-color: rgba(201,154,63,0.65);
+        }
+        .lang-btn.is-disabled {
+          opacity: 0.38;
+          cursor: not-allowed;
+        }
+        .lang-btn__code { flex-shrink: 0; }
+
+        /* FLOW variant — dark-bg heroglyph flow. Papyrus-cream trigger (+ tap padding)
+           and a centered MODAL popup with dark scrim (portaled to <body>). */
+        .lang-picker--flow .lang-trigger { color: rgba(250,244,236,0.92); padding: 4px; }
+        .lang-picker--flow .lang-trigger:hover { opacity: 0.7; }
+        .lang-picker--flow .lang-trigger__chev { color: rgba(250,244,236,0.7); }
+        .lang-picker--flow .lang-flag-stack { border-color: rgba(250,244,236,0.35); }
+
+        /* SETTINGS variant — light papyrus /pack account row. Dark ink trigger with
+           flag + 3-letter code; reuses the centered modal (portaled) so it never clips
+           inside the narrow settings field. */
+        .lang-picker--settings .lang-trigger {
+          color: #1f1a0e;
+          gap: 7px;
+          /* Zlatý rám matrice /pack (T.border), nie neutrálna šedá. Prepínač stojí
+             v tom istom stĺpci ako NASTAVIŤ/ZMENIŤ a ODHLÁSIŤ SA — tie tri majú
+             odteraz jeden rám. (13. 8. 2026, zjednotenie DNA.) */
+          border: 1px solid rgba(201,154,63,0.45);
+          border-radius: 8px;
+          padding: 6px 12px;
+          font-size: 0.72rem;
+          letter-spacing: 0.22em;
+        }
+        .lang-picker--settings .lang-trigger:hover { opacity: 1; background: rgba(201,154,63,0.10); }
+        .lang-picker--settings .lang-trigger__code { font-weight: 700; }
+        .lang-picker--settings .lang-trigger__chev { color: rgba(31,26,14,0.5); }
+        .lang-picker--settings .lang-flag-stack { border-color: rgba(31,26,14,0.2); }
+
+        .lang-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 2000;
+          background: rgba(0, 0, 0, 0.72);
+          -webkit-backdrop-filter: blur(2px);
+          backdrop-filter: blur(2px);
+          animation: langModalFade 160ms ease-out;
+        }
+        .lang-modal {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 2001;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201, 154, 63, 0.55);
+          border-radius: 14px;
+          padding: 16px;
+          box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+          /* left:50% dáva fixovanému prvku len POLOVICU okna — bez max-content mal modal
+             na 360 px šírku 180 a kódy ENG/CHN vyliezali zo stĺpca (stráž popupov 17. 10. 2026). */
+          width: max-content;
+          max-width: min(420px, 88vw);
+          max-height: 84dvh;
+          overflow-y: auto;
+          animation: langModalPop 200ms cubic-bezier(0.2, 0.8, 0.3, 1.15);
+        }
+        @keyframes langModalFade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes langModalPop {
+          from { opacity: 0; transform: translate(-50%, -46%) scale(0.96); }
+          to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+      </style><style>
+        /* PAPYRUS = matrica PACK_BOX.panel (Matej 3. 10. 2026: *„cookie lišta nie je
+           v brande, je v takej divnej farbe"*). Dovtedy plochá #F5EEDF so šedým
+           inkoustom — bledý blok podľa locku je papyrusový gradient v zlatom ráme. */
+        .consent-banner {
+          position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+          background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%); border-top: 1.5px solid #C99A3F;
+          box-shadow: 0 -8px 28px rgba(0,0,0,0.35), 0 -3px 0 rgba(201,154,63,0.15);
+          padding: 12px 24px;
+        }
+        .consent-inner {
+          max-width: 1100px; margin: 0 auto;
+          display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 24px;
+        }
+        .consent-body {
+          font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.45;
+          color: #7a5a2a; margin: 0; max-width: 640px;
+        }
+        .consent-body b {
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
+          letter-spacing: 0.14em; text-transform: uppercase; color: #2a1608; margin-right: 4px;
+        }
+        .consent-bone { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-right: 8px; }
+        .consent-actions { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0; }
+        .consent-btn-primary, .consent-btn-secondary, .consent-split-main, .consent-split-arrow {
+          font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+          font-size: 12px; cursor: pointer; white-space: nowrap;
+        }
+        /* TLAČIDLÁ SA ZALAMUJÚ (16. 10. 2026, stráž check:popupy): nowrap v karte 420 px pustil
+           „Len nevyhnutné" cez okraj tlačidla v SK (3 px) aj DE (12 px) — vo flexe s min-width: 0
+           ho nič nezastavilo. Dlhší jazyk dostane 2 riadky, nie orez ani trojbodku. */
+        .consent-actions { align-items: stretch; }
+        .consent-actions .consent-btn-primary, .consent-actions .consent-btn-secondary, .consent-actions .consent-split-main {
+          white-space: normal; text-wrap: balance; line-height: 1.2; overflow-wrap: anywhere;
+        }
+        .consent-btn-primary {
+          background: linear-gradient(180deg,#16307A,#0A1A4A); color: #EFD79A;
+          border: 1px solid #0A1A4A; border-radius: 8px; box-shadow: 0 4px 13px -3px rgba(5,15,48,0.6), inset 0 1px 0 rgba(201,154,63,0.30);
+          padding: 12px 24px;
+        }
+        .consent-btn-primary:hover { background: linear-gradient(180deg,#1E3C90,#0F2560); }
+        .consent-btn-secondary {
+          background: rgba(201, 154, 63, 0.06); border: 1px solid rgba(201, 154, 63, 0.45);
+          border-radius: 8px; color: #2a1608; padding: 12px 24px;
+        }
+        .consent-btn-secondary:hover { background: rgba(201,154,63,0.14); }
+        /* DELENÉ TLAČIDLO — hlavná plocha = len nevyhnutné, šípka = rozbaľovačka */
+        .consent-split { position: relative; display: flex; }
+        .consent-split-main {
+          background: rgba(201, 154, 63, 0.06); color: #2a1608; padding: 12px 16px;
+          border: 1px solid rgba(201, 154, 63, 0.45); border-right: none; border-radius: 8px 0 0 8px;
+        }
+        .consent-split-arrow {
+          display: flex; align-items: center; justify-content: center; padding: 0 8px;
+          background: rgba(201, 154, 63, 0.06); color: #2a1608;
+          border: 1px solid rgba(201, 154, 63, 0.45); border-radius: 0 8px 8px 0;
+        }
+        .consent-split-main:hover, .consent-split-arrow:hover { background: rgba(201,154,63,0.14); }
+        .consent-arrow-ic { display: flex; transform: rotate(-90deg); transition: transform .15s ease; }
+        .consent-split-arrow[aria-expanded="true"] .consent-arrow-ic { transform: rotate(90deg); }
+        .consent-menu {
+          position: absolute; right: 0; bottom: calc(100% + 8px); min-width: 100%;
+          background: #FBF5E6; border: 1px solid #C99A3F; border-radius: 8px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.22); padding: 4px; z-index: 1;
+        }
+        .consent-menu button {
+          display: block; width: 100%; text-align: left; background: none; border: none; cursor: pointer;
+          padding: 8px 12px; border-radius: 8px;
+          font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: #2a1608;
+        }
+        .consent-menu button:hover { background: rgba(22,48,122,0.12); }
+        .consent-settings {
+          display: flex; flex-direction: column; gap: 12px;
+          margin-top: 12px; padding-top: 12px;
+          border-top: 1px solid rgba(201, 154, 63, 0.30);
+        }
+        .consent-toggle-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+        .consent-toggle-label {
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
+          letter-spacing: 0.06em; color: #2a1608; margin: 0 0 4px;
+        }
+        .consent-toggle-desc {
+          font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.5;
+          color: #7a5a2a; margin: 0; max-width: 460px;
+        }
+        .consent-switch {
+          position: relative; flex-shrink: 0; width: 44px; height: 24px;
+          border-radius: 999px; border: 1px solid rgba(201, 154, 63, 0.45);
+          background: rgba(201,154,63,0.18); cursor: pointer;
+        }
+        .consent-switch[data-on="true"] { background: #16307A; border-color: #0A1A4A; }
+        .consent-switch-knob {
+          position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+          border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.35);
+          transition: transform .15s ease;
+        }
+        .consent-switch[data-on="true"] .consent-switch-knob { transform: translateX(20px); }
+
+        /* MOBIL: text nad tlačidlami, obe tlačidlá v JEDNOM riadku 50/50. */
+        @media (max-width: 759px) {
+          /* 3. 10. 2026 nižšia: 133 → ~110 px (zakrývala spodok úvodu /onepage). */
+          .consent-banner { padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px)); }
+          .consent-inner { flex-direction: column; align-items: stretch; gap: 8px; }
+          .consent-body { font-size: 12px; line-height: 1.35; }
+          .consent-bone { width: 16px; height: 16px; vertical-align: -3px; margin-right: 4px; }
+          .consent-actions > * { flex: 1 1 0; min-width: 0; }
+          .consent-btn-primary, .consent-btn-secondary { padding: 12px 8px; letter-spacing: 0.02em; }
+          .consent-split-main { flex: 1 1 auto; min-width: 0; padding: 12px 8px; letter-spacing: 0.02em; }
+          .consent-split-arrow { flex: 0 0 auto; }
+          /* ONLY NECESSARY je o polovicu dlhšie než ALLOW ALL — na ostrom builde sa pri 50/50
+             orezalo na 390 px (náhľad 22. 9.), lokálne nie. Väčší diel riadku. */
+          .consent-split { flex: 1.5 1 0; }
+          .consent-menu { left: 0; right: 0; }
+        }
+        /* ── PC: KARTA VPRAVO DOLE, NIE PÁS (Matej 22. 9. 2026: „nebolo by lepšie dať tú
+           správu na PC iba na pravý bok od kraja po kraj spodného nav?") ─────────────
+           Spodok sedí so spodkom navu (16 px), šírka sa ráta z miesta VPRAVO OD NAVU:
+           nav stojí v strede okna a publikuje --pack-nav-half (PackLayout), takže jeho
+           pravý kraj je 50vw + polovica. Karta tam nikdy nezasiahne; bez navu (web,
+           heroflow) je premenná preč a karta má svojich 420 px. */
+        @media (min-width: 1024px) {
+          .consent-banner {
+            left: auto; right: 24px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+            width: min(420px, calc(50vw - var(--pack-nav-half, 0px) - 48px));
+            padding: 16px; border: 1.5px solid #C99A3F; border-radius: 16px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15);
+          }
+          /* /map a AINUBIS majú nav v strede PLOCHY vpravo (5. 10. 2026) — vedľa neho ostáva
+             ~250 px a tlačidlá sa v karte prekrývali. Tam karta stojí NAD radom navu
+             v plnej šírke, nie vedľa neho. */
+          body:has(.trp-root) .consent-banner, body:has(.akv-root) .consent-banner {
+            width: 420px;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 16px + var(--pack-nav-h, 64px) + 12px);
+          }
+          /* Panel PLUS vychádza z toho istého navu do tej istej výšky — kým je otvorený, karta
+             ustúpi (ako AINUBIS, rozhodnutie 3. 10.) a po zavretí sa vráti. */
+          body:has(.trp-root):has(.att-entry-backdrop) .consent-banner,
+          body:has(.akv-root):has(.att-entry-backdrop) .consent-banner { display: none; }
+          .consent-inner { flex-direction: column; align-items: stretch; gap: 12px; }
+          .consent-actions > * { flex: 1 1 0; min-width: 0; }
+          .consent-btn-primary, .consent-btn-secondary { padding: 12px 8px; }
+          .consent-split-main { flex: 1 1 auto; min-width: 0; padding: 12px 8px; }
+          .consent-menu { left: 0; right: 0; }
+        }
+        /* Úzke PC (1024–1199): vpravo od navu ostáva ~310 px, ONLY NECESSARY v .12em sa orezalo. */
+        @media (min-width: 1024px) and (max-width: 1199px) {
+          .consent-btn-primary, .consent-btn-secondary, .consent-split-main { letter-spacing: 0.02em; }
+          .consent-split-main { padding: 12px 4px; }
+          .consent-split-arrow { padding: 0 4px; }
+          /* ONLY NECESSARY je o polovicu dlhšie než ALLOW ALL — dostane väčší diel riadku. */
+          .consent-split { flex: 1.7 1 0; }
+        }
+        /* Pod 380 px sa ONLY NECESSARY v 12 px vedľa šípky do polovice riadku nezmestí
+           a nowrap by roztiahol celú stránku do šírky (snímka 360 px, 22. 9.). */
+        @media (max-width: 379px) {
+          .consent-btn-primary, .consent-btn-secondary, .consent-split-main { font-size: 10px; letter-spacing: 0.04em; }
+          .consent-split-arrow { padding: 0 4px; }
+          .consent-split-main { padding: 12px 4px; letter-spacing: 0; }
+        }
+      </style></template><script type="application/json" id="pre-data">[""]</script><template data-pre="en" data-title="ATOS — DOGYPT"><div class="hf-pale dogshare-page min-h-screen flex flex-col"><div class="hf-topbar"><div class="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-[25px]" style="margin-top: env(safe-area-inset-top, 0px);"><img src="/assets/dogypt-logo-mobile-DGloGiaa.webp" alt="DOGYPT" class="h-10 object-contain md:hidden"><img src="/assets/dogypt-logo-gold-BbkQXDdp.webp" alt="DOGYPT" class="hidden md:block md:h-12 object-contain"><div class="absolute right-5 top-[12px] md:top-[20px]"><div class="lang-picker lang-picker--flow"><button type="button" class="lang-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Language: ENG"><span class="lang-flag-stack" aria-hidden="true"><span class="lang-flag-stack__item" style="background-image: url(&quot;https://flagcdn.com/w80/gb.png&quot;);"></span><span class="lang-flag-stack__item" style="background-image: url(&quot;https://flagcdn.com/w80/us.png&quot;);"></span><span class="lang-flag-stack__item" style="background-image: url(&quot;https://flagcdn.com/w80/ca.png&quot;);"></span></span><svg class="lang-trigger__chev" width="9" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1 L5 5 L9 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div></div></div></div><main class="ds-main"><article class="ds-card" style="background: linear-gradient(160deg, rgb(251, 245, 230) 0%, rgb(243, 228, 196) 55%, rgb(234, 214, 166) 100%); border: 1.5px solid rgb(201, 154, 63); border-radius: 16px; box-shadow: rgba(0, 0, 0, 0.55) 0px 14px 44px, rgba(201, 154, 63, 0.12) 0px 0px 0px 4px, rgba(255, 255, 255, 0.5) 0px 1px 0px inset;"><h1 class="ds-sr">ATOS</h1><div class="ds-media"><div style="position: absolute; top: 0px; left: 0px; transform: scale(0.32037); transform-origin: 0px 0px; visibility: visible;"><div id="share-card-root" data-testid="share-card-root" translate="no" class="notranslate" style="position: relative; width: 1080px; height: 1080px; background: rgb(251, 240, 216); overflow: hidden; font-family: &quot;Space Grotesk&quot;, sans-serif;"><span aria-hidden="true" style="position: fixed; top: -9999px; left: -9999px; visibility: hidden; white-space: nowrap; font-family: &quot;Cinzel Decorative&quot;, serif; font-weight: 700; font-size: 108px; letter-spacing: 0.02em; text-transform: uppercase;">ATOS</span><div style="position: absolute; inset: 0px; background-image: url(&quot;https://res.cloudinary.com/dz8lolmod/image/upload/c_fill,w_480,h_480,g_auto,f_auto,q_auto/v1784316667/tmp/98f624d4-05c5-4635-9aa6-ac438aa46022/main_crop.webp&quot;); background-size: cover; background-position: 50% 30%;"></div><div style="position: absolute; left: 0px; right: 0px; bottom: 0px; height: 72%; background: linear-gradient(rgba(251, 240, 216, 0) 0%, rgba(251, 240, 216, 0.18) 18%, rgba(251, 240, 216, 0.5) 36%, rgba(251, 240, 216, 0.82) 54%, rgba(251, 240, 216, 0.96) 68%, rgb(251, 240, 216) 80%);"></div><img src="https://flagcdn.com/w160/sk.png" alt="" style="position: absolute; top: 48px; right: 48px; width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255, 255, 255, 0.9); box-shadow: rgba(0, 0, 0, 0.45) 0px 4px 16px; z-index: 5;"><div style="position: absolute; inset: 0px; box-shadow: rgba(201, 154, 63, 0.85) 0px 0px 0px 4px inset; z-index: 4;"></div><div style="position: absolute; left: 0px; right: 0px; bottom: 0px; padding: 0px 64px 48px; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 24px;"><div style="font-family: &quot;Cinzel Decorative&quot;, serif; font-weight: 700; font-size: 108px; line-height: 1; letter-spacing: 0.02em; text-transform: uppercase; color: rgb(26, 26, 26); white-space: nowrap;">ATOS</div><img fetchpriority="low" src="/pre/dog/46-0.webp" alt="ATOS" style="width: 800px; height: auto;"><div style="max-width: 800px; display: flex; align-items: center; gap: 28px; font-family: Cinzel, serif; font-weight: 700; font-size: 30px; letter-spacing: 0.14em; color: rgb(110, 78, 24); white-space: nowrap;"><span>46 / 1 000 000</span><span aria-hidden="true" style="width: 2px; height: 32px; background: rgba(110, 78, 24, 0.45);"></span><span>DOGYPT.COM</span></div></div></div></div></div><div class="ds-body"><div class="ds-head"><h2 class="ds-name">ATOS</h2><span class="ds-num">#46</span></div><div class="ds-grid"><div class="ds-fact" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><i>Living my best life</i><b>2,736 days</b></div><div class="ds-fact" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><i>Status</i><b>Living Legend</b></div><div class="ds-fact" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><i>State</i><b>Member</b></div><div class="ds-fact" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><i>Country</i><b>Slovakia</b></div></div><div class="ds-quote" style="background: rgba(201, 154, 63, 0.06); border: 1px solid rgba(201, 154, 63, 0.45); border-radius: 12px;"><p class="ds-msg">“My firstborn...you will always be that special puppy to me, the one who came into my life and filled it with enormous love. Thank you for being you.”</p><button type="button" class="dm-toggle">Show original</button><p class="ds-msg-by">— NIKOLA</p></div><p class="dogshare-invite">NIKOLA and ATOS invite you to DOGYPT</p><a href="/heroglyph/name" class="ds-cta">Join Us</a><div class="dogshare-bones"><span class="dogshare-bones-main">Join through this page and ATOS gets 20 bones.</span><span class="dogshare-bones-note">Bones are the currency of DOGYPT — they land in the owner's account.</span></div></div></article><a class="dogshare-back-link" href="/">Back to WALL →</a></main></div></template><template data-pre-consent="en"><div class="consent-banner" role="dialog" aria-live="polite" aria-label="Human duties"><div class="consent-inner"><div><p class="consent-body"><img class="consent-bone" src="/icons/pack/bone.svg" alt="" aria-hidden="true"><b>Human duties</b>The only cookies we recommend aren’t for eating — they help us improve our website. Thank you.</p></div><div class="consent-actions"><div class="consent-split"><button type="button" class="consent-split-main">Only necessary</button><button type="button" class="consent-split-arrow" aria-haspopup="menu" aria-expanded="false" aria-label="Choose"><span class="consent-arrow-ic" aria-hidden="true"><svg viewBox="0 0 462.85 462.851" width="16" height="16" fill="currentColor" focusable="false" aria-hidden="true"><path d="M380.44,70.332c-0.376-4.936-3.362-9.46-7.663-12.781c-20.216-15.615-39.745-32.078-58.676-49.234
+			c-4.764-7.814-15.884-12.126-24.359-3.79C222.106,71.022,162.894,145.963,88.677,205.589c-2.034,1.632-3.405,3.427-4.258,5.278
+			c-4.248,5.583-5.319,13.649,0.794,20.251c69.221,74.753,133.554,153.913,204.528,227.062c4.809,4.961,10.547,5.561,15.463,3.702
+			c2.828-0.36,5.682-1.488,8.333-3.702c21.018-17.61,41.223-36.125,60.666-55.467c8.363-8.322,4.22-19.296-3.488-24.136
+			c-40.654-48.362-87.067-96.258-127.666-144.666c46.053-46.261,90.439-98.67,134.623-146.655
+			C382.628,81.869,382.816,75.526,380.44,70.332z M215.21,217.72c-2.356,2.311-3.656,4.837-4.248,7.373
+			c-3.786,5.578-4.674,13.348,0.78,19.883c41.018,49.13,87.979,97.63,129.222,146.561c-12.446,11.999-25.288,23.572-38.364,34.901
+			c-63.521-66.445-122.15-137.318-184.153-205.15C184.958,166.153,239.8,99.116,300.466,37.898
+			c14.833,13.089,30.042,25.692,45.564,37.948C303.879,122.922,260.412,173.422,215.21,217.72z"></path></svg></span></button></div><button type="button" class="consent-btn-primary">Allow all</button></div></div></div></template><template data-pre="sk" data-title="ATOS — DOGYPT"><div class="hf-pale dogshare-page min-h-screen flex flex-col"><div class="hf-topbar"><div class="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-[25px]" style="margin-top: env(safe-area-inset-top, 0px);"><img src="/assets/dogypt-logo-mobile-DGloGiaa.webp" alt="DOGYPT" class="h-10 object-contain md:hidden"><img src="/assets/dogypt-logo-gold-BbkQXDdp.webp" alt="DOGYPT" class="hidden md:block md:h-12 object-contain"><div class="absolute right-5 top-[12px] md:top-[20px]"><div class="lang-picker lang-picker--flow"><button type="button" class="lang-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Language: SVK"><span class="lang-flag-stack" aria-hidden="true"><span class="lang-flag-stack__item" style="background-image: url(&quot;https://flagcdn.com/w80/sk.png&quot;);"></span></span><svg class="lang-trigger__chev" width="9" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1 L5 5 L9 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div></div></div></div><main class="ds-main"><article class="ds-card" style="background: linear-gradient(160deg, rgb(251, 245, 230) 0%, rgb(243, 228, 196) 55%, rgb(234, 214, 166) 100%); border: 1.5px solid rgb(201, 154, 63); border-radius: 16px; box-shadow: rgba(0, 0, 0, 0.55) 0px 14px 44px, rgba(201, 154, 63, 0.12) 0px 0px 0px 4px, rgba(255, 255, 255, 0.5) 0px 1px 0px inset;"><h1 class="ds-sr">ATOS</h1><div class="ds-media"><div style="position: absolute; top: 0px; left: 0px; transform: scale(0.32037); transform-origin: 0px 0px; visibility: visible;"><div id="share-card-root" data-testid="share-card-root" translate="no" class="notranslate" style="position: relative; width: 1080px; height: 1080px; background: rgb(251, 240, 216); overflow: hidden; font-family: &quot;Space Grotesk&quot;, sans-serif;"><span aria-hidden="true" style="position: fixed; top: -9999px; left: -9999px; visibility: hidden; white-space: nowrap; font-family: &quot;Cinzel Decorative&quot;, serif; font-weight: 700; font-size: 108px; letter-spacing: 0.02em; text-transform: uppercase;">ATOS</span><div style="position: absolute; inset: 0px; background-image: url(&quot;https://res.cloudinary.com/dz8lolmod/image/upload/c_fill,w_480,h_480,g_auto,f_auto,q_auto/v1784316667/tmp/98f624d4-05c5-4635-9aa6-ac438aa46022/main_crop.webp&quot;); background-size: cover; background-position: 50% 30%;"></div><div style="position: absolute; left: 0px; right: 0px; bottom: 0px; height: 72%; background: linear-gradient(rgba(251, 240, 216, 0) 0%, rgba(251, 240, 216, 0.18) 18%, rgba(251, 240, 216, 0.5) 36%, rgba(251, 240, 216, 0.82) 54%, rgba(251, 240, 216, 0.96) 68%, rgb(251, 240, 216) 80%);"></div><img src="https://flagcdn.com/w160/sk.png" alt="" style="position: absolute; top: 48px; right: 48px; width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255, 255, 255, 0.9); box-shadow: rgba(0, 0, 0, 0.45) 0px 4px 16px; z-index: 5;"><div style="position: absolute; inset: 0px; box-shadow: rgba(201, 154, 63, 0.85) 0px 0px 0px 4px inset; z-index: 4;"></div><div style="position: absolute; left: 0px; right: 0px; bottom: 0px; padding: 0px 64px 48px; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 24px;"><div style="font-family: &quot;Cinzel Decorative&quot;, serif; font-weight: 700; font-size: 108px; line-height: 1; letter-spacing: 0.02em; text-transform: uppercase; color: rgb(26, 26, 26); white-space: nowrap;">ATOS</div><img fetchpriority="low" src="/pre/dog/46-0.webp" alt="ATOS" style="width: 800px; height: auto;"><div style="max-width: 800px; display: flex; align-items: center; gap: 28px; font-family: Cinzel, serif; font-weight: 700; font-size: 30px; letter-spacing: 0.14em; color: rgb(110, 78, 24); white-space: nowrap;"><span>46 / 1 000 000</span><span aria-hidden="true" style="width: 2px; height: 32px; background: rgba(110, 78, 24, 0.45);"></span><span>DOGYPT.COM</span></div></div></div></div></div><div class="ds-body"><div class="ds-head"><h2 class="ds-name">ATOS</h2><span class="ds-num">#46</span></div><div class="ds-grid"><div class="ds-fact" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><i>Žijem naplno</i><b>2,736 dní</b></div><div class="ds-fact" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><i>Status</i><b>Živá legenda</b></div><div class="ds-fact" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><i>Stav</i><b>Člen</b></div><div class="ds-fact" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><i>Štát</i><b>Slovensko</b></div></div><div class="ds-quote" style="background: rgba(201, 154, 63, 0.06); border: 1px solid rgba(201, 154, 63, 0.45); border-radius: 12px;"><p class="ds-msg">“Môj prvorodený...vždy budeš pre mňa to výnimočné šteniatko, ktoré mi prišlo do života a vnieslo do neho obrovskú lásku. Ďakujem za to, že si.”</p><p class="ds-msg-by">— NIKOLA</p></div><p class="dogshare-invite">NIKOLA a ATOS ťa pozývajú do DOGYPTU</p><a href="/heroglyph/name" class="ds-cta">Pridaj sa</a><div class="dogshare-bones"><span class="dogshare-bones-main">Pridaj sa cez túto stránku a ATOS dostane 20 BONES.</span><span class="dogshare-bones-note">BONES sú mena DOGYPTU — pripíšu sa na účet majiteľa.</span></div></div></article><a class="dogshare-back-link" href="/">Späť na WALL →</a></main></div></template><template data-pre-consent="sk"><div class="consent-banner" role="dialog" aria-live="polite" aria-label="Ľudské povinnosti"><div class="consent-inner"><div><p class="consent-body"><img class="consent-bone" src="/icons/pack/bone.svg" alt="" aria-hidden="true"><b>Ľudské povinnosti</b>Jediné cookies, ktoré odporúčame, nie sú na jedenie — pomáhajú nám vylepšovať web. Ďakujeme.</p></div><div class="consent-actions"><div class="consent-split"><button type="button" class="consent-split-main">Len nevyhnutné</button><button type="button" class="consent-split-arrow" aria-haspopup="menu" aria-expanded="false" aria-label="Vybrať si"><span class="consent-arrow-ic" aria-hidden="true"><svg viewBox="0 0 462.85 462.851" width="16" height="16" fill="currentColor" focusable="false" aria-hidden="true"><path d="M380.44,70.332c-0.376-4.936-3.362-9.46-7.663-12.781c-20.216-15.615-39.745-32.078-58.676-49.234
+			c-4.764-7.814-15.884-12.126-24.359-3.79C222.106,71.022,162.894,145.963,88.677,205.589c-2.034,1.632-3.405,3.427-4.258,5.278
+			c-4.248,5.583-5.319,13.649,0.794,20.251c69.221,74.753,133.554,153.913,204.528,227.062c4.809,4.961,10.547,5.561,15.463,3.702
+			c2.828-0.36,5.682-1.488,8.333-3.702c21.018-17.61,41.223-36.125,60.666-55.467c8.363-8.322,4.22-19.296-3.488-24.136
+			c-40.654-48.362-87.067-96.258-127.666-144.666c46.053-46.261,90.439-98.67,134.623-146.655
+			C382.628,81.869,382.816,75.526,380.44,70.332z M215.21,217.72c-2.356,2.311-3.656,4.837-4.248,7.373
+			c-3.786,5.578-4.674,13.348,0.78,19.883c41.018,49.13,87.979,97.63,129.222,146.561c-12.446,11.999-25.288,23.572-38.364,34.901
+			c-63.521-66.445-122.15-137.318-184.153-205.15C184.958,166.153,239.8,99.116,300.466,37.898
+			c14.833,13.089,30.042,25.692,45.564,37.948C303.879,122.922,260.412,173.422,215.21,217.72z"></path></svg></span></button></div><button type="button" class="consent-btn-primary">Povoliť všetko</button></div></div></div></template><template data-pre="cs" data-title="ATOS — DOGYPT"><div class="hf-pale dogshare-page min-h-screen flex flex-col"><div class="hf-topbar"><div class="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-[25px]" style="margin-top: env(safe-area-inset-top, 0px);"><img src="/assets/dogypt-logo-mobile-DGloGiaa.webp" alt="DOGYPT" class="h-10 object-contain md:hidden"><img src="/assets/dogypt-logo-gold-BbkQXDdp.webp" alt="DOGYPT" class="hidden md:block md:h-12 object-contain"><div class="absolute right-5 top-[12px] md:top-[20px]"><div class="lang-picker lang-picker--flow"><button type="button" class="lang-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Language: CZE"><span class="lang-flag-stack" aria-hidden="true"><span class="lang-flag-stack__item" style="background-image: url(&quot;https://flagcdn.com/w80/cz.png&quot;);"></span></span><svg class="lang-trigger__chev" width="9" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1 L5 5 L9 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div></div></div></div><main class="ds-main"><article class="ds-card" style="background: linear-gradient(160deg, rgb(251, 245, 230) 0%, rgb(243, 228, 196) 55%, rgb(234, 214, 166) 100%); border: 1.5px solid rgb(201, 154, 63); border-radius: 16px; box-shadow: rgba(0, 0, 0, 0.55) 0px 14px 44px, rgba(201, 154, 63, 0.12) 0px 0px 0px 4px, rgba(255, 255, 255, 0.5) 0px 1px 0px inset;"><h1 class="ds-sr">ATOS</h1><div class="ds-media"><div style="position: absolute; top: 0px; left: 0px; transform: scale(0.32037); transform-origin: 0px 0px; visibility: visible;"><div id="share-card-root" data-testid="share-card-root" translate="no" class="notranslate" style="position: relative; width: 1080px; height: 1080px; background: rgb(251, 240, 216); overflow: hidden; font-family: &quot;Space Grotesk&quot;, sans-serif;"><span aria-hidden="true" style="position: fixed; top: -9999px; left: -9999px; visibility: hidden; white-space: nowrap; font-family: &quot;Cinzel Decorative&quot;, serif; font-weight: 700; font-size: 108px; letter-spacing: 0.02em; text-transform: uppercase;">ATOS</span><div style="position: absolute; inset: 0px; background-image: url(&quot;https://res.cloudinary.com/dz8lolmod/image/upload/c_fill,w_480,h_480,g_auto,f_auto,q_auto/v1784316667/tmp/98f624d4-05c5-4635-9aa6-ac438aa46022/main_crop.webp&quot;); background-size: cover; background-position: 50% 30%;"></div><div style="position: absolute; left: 0px; right: 0px; bottom: 0px; height: 72%; background: linear-gradient(rgba(251, 240, 216, 0) 0%, rgba(251, 240, 216, 0.18) 18%, rgba(251, 240, 216, 0.5) 36%, rgba(251, 240, 216, 0.82) 54%, rgba(251, 240, 216, 0.96) 68%, rgb(251, 240, 216) 80%);"></div><img src="https://flagcdn.com/w160/sk.png" alt="" style="position: absolute; top: 48px; right: 48px; width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255, 255, 255, 0.9); box-shadow: rgba(0, 0, 0, 0.45) 0px 4px 16px; z-index: 5;"><div style="position: absolute; inset: 0px; box-shadow: rgba(201, 154, 63, 0.85) 0px 0px 0px 4px inset; z-index: 4;"></div><div style="position: absolute; left: 0px; right: 0px; bottom: 0px; padding: 0px 64px 48px; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 24px;"><div style="font-family: &quot;Cinzel Decorative&quot;, serif; font-weight: 700; font-size: 108px; line-height: 1; letter-spacing: 0.02em; text-transform: uppercase; color: rgb(26, 26, 26); white-space: nowrap;">ATOS</div><img fetchpriority="low" src="/pre/dog/46-0.webp" alt="ATOS" style="width: 800px; height: auto;"><div style="max-width: 800px; display: flex; align-items: center; gap: 28px; font-family: Cinzel, serif; font-weight: 700; font-size: 30px; letter-spacing: 0.14em; color: rgb(110, 78, 24); white-space: nowrap;"><span>46 / 1 000 000</span><span aria-hidden="true" style="width: 2px; height: 32px; background: rgba(110, 78, 24, 0.45);"></span><span>DOGYPT.COM</span></div></div></div></div></div><div class="ds-body"><div class="ds-head"><h2 class="ds-name">ATOS</h2><span class="ds-num">#46</span></div><div class="ds-grid"><div class="ds-fact" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><i>Žiju si svůj nejlepší život</i><b>2,736 dní</b></div><div class="ds-fact" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><i>Status</i><b>Žijící legenda</b></div><div class="ds-fact" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><i>Stav</i><b>Člen</b></div><div class="ds-fact" style="background: linear-gradient(135deg, rgb(251, 245, 230) 0%, rgb(242, 226, 189) 100%); border: 1px solid rgb(201, 154, 63); border-radius: 12px; box-shadow: rgba(122, 90, 42, 0.1) 0px 1px 3px, rgba(255, 255, 255, 0.4) 0px 1px 0px inset;"><i>Stát</i><b>Slovensko</b></div></div><div class="ds-quote" style="background: rgba(201, 154, 63, 0.06); border: 1px solid rgba(201, 154, 63, 0.45); border-radius: 12px;"><p class="ds-msg">“Můj prvorozený...vždycky pro mě budeš to výjimečné štěňátko, které mi přišlo do života a vneslo do něj obrovskou lásku. Děkuju za to, že jsi.”</p><button type="button" class="dm-toggle">Zobrazit originál</button><p class="ds-msg-by">— NIKOLA</p></div><p class="dogshare-invite">NIKOLA a ATOS tě zvou do DOGYPTU</p><a href="/heroglyph/name" class="ds-cta">Připoj se k nám</a><div class="dogshare-bones"><span class="dogshare-bones-main">Přidej se přes tuhle stránku a ATOS dostane 20 BONES.</span><span class="dogshare-bones-note">BONES jsou měna DOGYPTU — připíšou se na účet majitele.</span></div></div></article><a class="dogshare-back-link" href="/">Zpět na WALL →</a></main></div></template><template data-pre-consent="cs"><div class="consent-banner" role="dialog" aria-live="polite" aria-label="Lidské povinnosti"><div class="consent-inner"><div><p class="consent-body"><img class="consent-bone" src="/icons/pack/bone.svg" alt="" aria-hidden="true"><b>Lidské povinnosti</b>Jediné cookies, které doporučujeme, nejsou k jídlu — pomáhají nám vylepšovat web. Děkujeme.</p></div><div class="consent-actions"><div class="consent-split"><button type="button" class="consent-split-main">Jen nezbytné</button><button type="button" class="consent-split-arrow" aria-haspopup="menu" aria-expanded="false" aria-label="Vybrat si"><span class="consent-arrow-ic" aria-hidden="true"><svg viewBox="0 0 462.85 462.851" width="16" height="16" fill="currentColor" focusable="false" aria-hidden="true"><path d="M380.44,70.332c-0.376-4.936-3.362-9.46-7.663-12.781c-20.216-15.615-39.745-32.078-58.676-49.234
+			c-4.764-7.814-15.884-12.126-24.359-3.79C222.106,71.022,162.894,145.963,88.677,205.589c-2.034,1.632-3.405,3.427-4.258,5.278
+			c-4.248,5.583-5.319,13.649,0.794,20.251c69.221,74.753,133.554,153.913,204.528,227.062c4.809,4.961,10.547,5.561,15.463,3.702
+			c2.828-0.36,5.682-1.488,8.333-3.702c21.018-17.61,41.223-36.125,60.666-55.467c8.363-8.322,4.22-19.296-3.488-24.136
+			c-40.654-48.362-87.067-96.258-127.666-144.666c46.053-46.261,90.439-98.67,134.623-146.655
+			C382.628,81.869,382.816,75.526,380.44,70.332z M215.21,217.72c-2.356,2.311-3.656,4.837-4.248,7.373
+			c-3.786,5.578-4.674,13.348,0.78,19.883c41.018,49.13,87.979,97.63,129.222,146.561c-12.446,11.999-25.288,23.572-38.364,34.901
+			c-63.521-66.445-122.15-137.318-184.153-205.15C184.958,166.153,239.8,99.116,300.466,37.898
+			c14.833,13.089,30.042,25.692,45.564,37.948C303.879,122.922,260.412,173.422,215.21,217.72z"></path></svg></span></button></div><button type="button" class="consent-btn-primary">Povolit vše</button></div></div></div></template><div id="root"></div><script>(function(){
+var start=function(){if(window.__startApp)window.__startApp();};
+var pre=document.getElementById('pre');if(!pre)return start();
+function drop(){pre.remove();document.documentElement.classList.remove('pre','pre-wait');}
+function skip(){drop();start();}
+try{
+
+var lang=localStorage.getItem('dogypt_lang');
+if(!lang){var c=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];lang='en';
+for(var j=0;j<c.length;j++){var k=String(c[j]||'').toLowerCase().split('-')[0];if(["en","sk","cs","pl","uk","de","es","fr","pt","ru","it","zh","ja","hi","ar","ko","nl","tr"].indexOf(k)>=0){lang=k;break;}}}
+var tp=document.querySelector('template[data-pre="'+lang+'"]');if(!tp)return skip();
+pre.appendChild(document.getElementById('pre-css').content.cloneNode(true));
+// Veľké data: URI (prefarbený heroglyf) sú v šablónach len ako značka — ležia raz v #pre-data.
+var D=[];try{D=JSON.parse(document.getElementById('pre-data').textContent);}catch(e){}
+var h=tp.innerHTML.replace(/__PRE_D([0-9]+)__/g,function(m,i){return D[+i]||'';});
+var W=window.__dogPhotoW||480;h=h.split('c_fill,w_480,h_480,').join('c_fill,w_'+W+',h_'+W+',');
+pre.insertAdjacentHTML('beforeend',h);if(tp.dataset.title)document.title=tp.dataset.title;
+// Karta psa (1080 px) sa škáluje na šírku obalu — snímka mala mierku pre 412 px.
+pre.querySelectorAll('.ds-media').forEach(function(m){var c=m.firstElementChild;if(c)c.style.transform='scale('+(m.clientWidth/1080)+')';});
+document.documentElement.classList.add('pre');window.__preUsed=1;
+document.querySelectorAll('link[data-late-fonts]').forEach(function(l){l.media='all';});
+}catch(e){return skip();}
+// JS až po prvom vykreslení textu (snímka → setTimeout). Skrytá karta rAF nespustí — strop 1,2 s drží __startApp sám.
+// Cookie lišta pre toho, kto ešte nezvolil — vlastný obal, žije do chvíle, keď ju vykreslí appka
+// (môže to byť skôr aj neskôr než stránka). Výšku publikuje rovnako ako ConsentBanner (--consent-h).
+try{var ct=document.querySelector('template[data-pre-consent="'+lang+'"]');
+if(ct&&!localStorage.getItem('dogypt_consent')){var pc=document.createElement('div');pc.id='pre-consent';
+pc.appendChild(ct.content.cloneNode(true));document.body.appendChild(pc);
+var cb=pc.querySelector('.consent-banner');if(cb)document.documentElement.style.setProperty('--consent-h',Math.ceil(cb.getBoundingClientRect().height)+'px');
+var rt=document.getElementById('root');
+var mc=new MutationObserver(function(){if(!rt.querySelector('.consent-banner')&&!localStorage.getItem('dogypt_consent'))return;mc.disconnect();pc.remove();});
+mc.observe(rt,{childList:true,subtree:true});}}catch(e){}
+// waitFonts (právne stránky, LCP = text): hotový text je skrytý, kým nedobehnú písma, ktoré si vypýtal (strop 800 ms) — viď fontsCss.
+// Až potom JS: na pomalej linke by inak bojoval s písmami o tú istú linku.
+var shown=0;function show(){if(shown)return;shown=1;document.documentElement.classList.remove('pre-wait');
+// Dva snímky: v prvom sa text len odkryje, JS ide až keď je naozaj vykreslený (inak ho PageSpeed ráta do LCP).
+// Stránka psa: LCP je fotka — JS až keď je stiahnutá (index.html ju predsťahuje), strop 1,5 s.
+var go=0;function st(){if(go)return;go=1;start();}
+try{var u=null;[].some.call(pre.querySelectorAll('.ds-media [style*="background-image"]'),function(e){u=e.style.backgroundImage.match(/url\(["']?(https?:[^"')]+)/);return !!u;});
+if(u){var im=new Image();im.onload=im.onerror=function(){requestAnimationFrame(function(){requestAnimationFrame(st);});};im.src=u[1];}else st();}catch(e){st();}
+setTimeout(st,1500);}
+show();
+var root=document.getElementById('root'),sel="#root .ds-media > div[style*=\"visible\"]";
+var mo=new MutationObserver(function(){if(!document.querySelector(sel))return;mo.disconnect();
+var a=pre.querySelectorAll('input'),b=root.querySelectorAll('input');
+for(var n=0;n<a.length&&n<b.length;n++){if(a[n].value&&a[n].type===b[n].type&&!b[n].value){var s=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;s.call(b[n],a[n].value);b[n].dispatchEvent(new Event('input',{bubbles:true}));}}
+var f=document.activeElement&&pre.contains(document.activeElement)?[].indexOf.call(a,document.activeElement):-1;
+drop();if(f>=0&&b[f])b[f].focus();});
+mo.observe(root,{childList:true,subtree:true});
+})();</script>
+  </body>
+</html>
