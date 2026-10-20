@@ -26,11 +26,18 @@ const LIVE_SUPABASE_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co';
 const LIVE_SUPABASE_ANON_KEY =
   'sb_publishable_2EpGAhvdqN36MrQkXqAxEg_nXG4Rs3r';
 
-export const SUPABASE_URL = import.meta.env.PROD
+// APPKA „DOGYPT DEV" (20. 10. 2026): `vite build --mode appdev` je produkčný build
+// (minifikovaný, ako v obchode), ale namierený na DEV projekt z `.env.appdev` — aby sa
+// nové veci skúšali v telefóne bez dotyku členských dát. Ide do `dist-appdev/`, nikdy
+// do `dist/`, ktorý nasadzuje go-live. Dogypt.com tento režim nepozná.
+export const APP_DEV = import.meta.env.MODE === 'appdev';
+const PINNED = import.meta.env.PROD && !APP_DEV;
+
+export const SUPABASE_URL = PINNED
   ? LIVE_SUPABASE_URL
   : ((import.meta.env.VITE_SUPABASE_URL as string) || LIVE_SUPABASE_URL);
 
-export const SUPABASE_ANON_KEY = import.meta.env.PROD
+export const SUPABASE_ANON_KEY = PINNED
   ? LIVE_SUPABASE_ANON_KEY
   : ((import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) || LIVE_SUPABASE_ANON_KEY);
 

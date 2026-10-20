@@ -50,3 +50,5 @@ dist-ssr
 
 # Ukážkové obrazy zvitkov VAULTU len pre lokálny dev (3. 10. 2026) — ostré obrazy pôjdu cez Cloudinary.
 public/vault-demo/
+.env.appdev
+dist-appdev

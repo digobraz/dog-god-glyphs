@@ -43,3 +43,10 @@
   Cache-Control: public, max-age=3600, stale-while-revalidate=2592000
 /fonts/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
+
+# Zoznam súborov pre aktualizáciu appky (scripts/app-manifest.mjs, 20. 10. 2026) — appka sa ho
+# pýta pri každom štarte a musí dostať ten z POSLEDNÉHO nasadenia, nie hodinu starý.
+/app-update.json
+  Cache-Control: no-store
+/app-version.json
+  Cache-Control: no-store

@@ -5,6 +5,7 @@ import { preloadActiveLang, ensurePackDict } from "./i18n/LanguageContext";
 import { initAnalytics } from "./lib/analytics";
 import { startEarlyGridDogs } from "./lib/earlyFetch";
 import { scrubSecrets } from "./lib/packAnalytics";
+import { startAppUpdate } from "./lib/appUpdate";
 // Testovacie dáta z dielne vstupu (`/lab/heroflow`) musia byť v store SKÔR, než
 // sa vykreslí prvá obrazovka — obrazovky flow si store kopírujú do lokálneho
 // stavu pri prvom renderi. Telo modulu je celé za `import.meta.env.DEV`.
@@ -14,6 +15,9 @@ import "./lib/devUsporneFoto";
 
 // Opona v index.html sa podľa tohto času rozhoduje, či film zlyhal (poistka „film nie je 6 s po štarte“).
 (window as Window & { __appBooted?: number }).__appBooted = Date.now();
+
+// Appka si stiahne verziu, ktorá je práve na dogypt.com (lib/appUpdate.ts). Na webe nič.
+startAppUpdate();
 
 // ── STARÁ ZÁLOŽKA PO DEPLOYI (5. 10. 2026, test po FLIPe) ─────────────────────
 // Každý deploy zmení hashe chunkov. Záložka otvorená pred deployom pri lazy navigácii
