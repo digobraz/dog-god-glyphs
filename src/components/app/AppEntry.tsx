@@ -46,6 +46,25 @@ const PERM_KEY = 'dogypt_app_perm_v1';
 const permAsked = () => { try { return localStorage.getItem(PERM_KEY) === '1'; } catch { return false; } };
 const markPermAsked = () => { try { localStorage.setItem(PERM_KEY, '1'); } catch { /* súkromné okno */ } };
 
+/** ROZPRACOVANÝ KÓD PREŽIJE ODCHOD DO MAILU (Matej 20. 10.: „vždy keď odídem zo safari a prídem,
+ *  tak stratím postup a kód tam nedokážem dať"). Človek MUSÍ odísť do schránky — a keď sa medzitým
+ *  stránka či WebView načíta znova, krok KÓD sa vráti sám. Platí hodinu (dlhšie kód aj tak neplatí).
+ *  Ukladá sa len zamaskovaný mail a verejné psy; pri ceste mailom aj zadaný mail — ten je človekov. */
+const PENDING_KEY = 'dogypt_app_pending_v1';
+const PENDING_MS = 60 * 60_000;
+const savePending = (s: Sent | null) => {
+  try {
+    if (s) localStorage.setItem(PENDING_KEY, JSON.stringify({ s, at: Date.now() }));
+    else localStorage.removeItem(PENDING_KEY);
+  } catch { /* súkromné okno */ }
+};
+const readPending = (): Sent | null => {
+  try {
+    const j = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null') as { s: Sent; at: number } | null;
+    return j && Date.now() - j.at < PENDING_MS ? j.s : null;
+  } catch { return null; }
+};
+
 /** Dvere = obraz 9:16, prikrytý na celú obrazovku (cover). Stred a polomer medailónu sú
  *  zlomky ŠÍRKY obrazu — odmerané v hárku (variant 4 VITRÁŽ · PSY: cx .5 · cy .44 · r .29).
  *  Geometria je ROVNICA z rozmeru okna, nie meranie vykresleného obrazu. */
@@ -234,7 +253,7 @@ function Dogs({ dogs, me }: { dogs: PubDog[]; me?: number }) {
   );
 }
 
-function CodeStep({ sent, onIn }: { sent: Sent; onIn: () => void }) {
+function CodeStep({ sent, onIn, onOther }: { sent: Sent; onIn: () => void; onOther: () => void }) {
   const t = useT();
   const { lang } = useLang();
   const [code, setCode] = useState('');
@@ -300,6 +319,8 @@ function CodeStep({ sent, onIn }: { sent: Sent; onIn: () => void }) {
         <button type="button" className="ae-link" onClick={resend} disabled={again}>
           {again ? t('appEntry.code.sent') : t('appEntry.code.again')}
         </button>
+        {/* Krok sa po návrate z mailu otvorí sám — bez tohto by preklep v čísle zamkol človeka na hodinu. */}
+        <button type="button" className="ae-link ae-link--quiet" onClick={onOther}>{t('appEntry.code.other')}</button>
       </form>
     </div>
   );
@@ -365,8 +386,8 @@ function PermStep({ onDone }: { onDone: () => void }) {
 // ── RIADENIE ─────────────────────────────────────────────────────────────────
 export default function AppEntry() {
   const [params] = useSearchParams();
-  const [step, setStep] = useState<Step>('gate');
-  const [sent, setSent] = useState<Sent | null>(null);
+  const [sent, setSent] = useState<Sent | null>(readPending);
+  const [step, setStep] = useState<Step>(() => (readPending() ? 'code' : 'gate'));
 
   const nextParam = params.get('next') ?? params.get('return');
   const target = nextParam && nextParam.startsWith('/pack') ? nextParam : '/pack';
@@ -390,6 +411,7 @@ export default function AppEntry() {
   const goTouch = useCallback(() => setStep('touch'), []);
   const goNumber = useCallback(() => setStep('number'), []);
   const signedIn = useCallback(() => {
+    savePending(null);
     if (permAsked()) goHome();
     else setStep('perm');
   }, [goHome]);
@@ -400,8 +422,8 @@ export default function AppEntry() {
       {/* Pod bránou už čaká papyrus — krídla odchádzajú do neho, nie do čierna. */}
       {step === 'gate' && <Gate onDone={goTouch} />}
       {step === 'touch' && <Touch onDone={goNumber} />}
-      {step === 'number' && <NumberStep onSent={(s) => { setSent(s); setStep('code'); }} />}
-      {step === 'code' && sent && <CodeStep sent={sent} onIn={signedIn} />}
+      {step === 'number' && <NumberStep onSent={(s) => { savePending(s); setSent(s); setStep('code'); }} />}
+      {step === 'code' && sent && <CodeStep sent={sent} onIn={signedIn} onOther={() => { savePending(null); setSent(null); setStep('number'); }} />}
       {step === 'perm' && <PermStep onDone={goHome} />}
     </div>
   );
@@ -493,6 +515,7 @@ const APP_ENTRY_CSS = `
 .ae-link { margin-top: ${PACK_SPACE.lg}px; border: 0; background: none; padding: ${PACK_SPACE.xs}px; cursor: pointer;
   font-family: ${FONT_UI}; font-size: ${PACK_TEXT.label}px; color: ${LAB.inkSoft}; }
 .ae-link:disabled { cursor: default; }
+.ae-link--quiet { margin-top: ${PACK_SPACE.xs}px; color: ${LAB.inkMuted}; }
 
 /* šuplík zdola */
 .ae-veil { position: absolute; inset: 0; z-index: 10; background: ${PACK_VEIL.modal}; display: flex; align-items: flex-end; }
