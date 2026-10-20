@@ -1,0 +1,63 @@
+// ── PUSH V APPKE — KOSTRA (20. 10. 2026, plán appky Fáza 5) ─────────────────────
+// Po prihlásení, ak člen pri prvom otvorení povolil upozornenia (`user_metadata.app_perm.push`),
+// appka si vypýta token od OS a uloží ho cez RPC `register_push_token` do `push_tokens`.
+// Posiela JEDINÁ edge funkcia `send-push`; kľúče (Firebase / APNs) zatiaľ nie sú, takže
+// token sa zbiera, ale nič nechodí.
+//
+// 🔴 JEDEN VYPÍNAČ: „zapnúť/vypnúť upozornenia" v JA (`pack_profiles.human.notifications_enabled`)
+//    platí pre maily aj push. Appka ho tu NEČÍTA — `send-push` ho kontroluje na serveri rovnako
+//    ako `notify-messages`. Druhý príznak v appke nevzniká.
+// Na webe nič (IS_APP); plugin sa sťahuje dynamicky.
+import { supabase } from '@/integrations/supabase/client';
+import { IS_APP, APP_PLATFORM } from '@/lib/isApp';
+import { APP_DEV } from '@/lib/env';
+
+// `push_tokens` a `register_push_token` ešte nie sú v generovaných typoch (types.ts sa nepíše ručne).
+const db = supabase as unknown as {
+  rpc: (fn: string, args: Record<string, unknown>) => Promise<{ error: unknown }>;
+  from: (t: string) => { delete: () => { eq: (c: string, v: string) => Promise<unknown> } };
+};
+
+const TOKEN_KEY = 'dogypt_push_token';
+let started = false;
+
+const appId = () => (APP_DEV ? 'com.dogypt.app.dev' : 'com.dogypt.app');
+
+async function register() {
+  const { PushNotifications } = await import('@capacitor/push-notifications');
+  await PushNotifications.removeAllListeners();
+  await PushNotifications.addListener('registration', async ({ value }) => {
+    try {
+      const { error } = await db.rpc('register_push_token', {
+        p_token: value, p_platform: APP_PLATFORM, p_app_id: appId(),
+      });
+      if (!error) localStorage.setItem(TOKEN_KEY, value);
+    } catch { /* ďalší štart skúsi znova */ }
+  });
+  await PushNotifications.addListener('registrationError', () => { /* bez kľúčov (FCM/APNs) je to očakávané */ });
+  const perm = await PushNotifications.checkPermissions();
+  const granted = perm.receive === 'granted' || (await PushNotifications.requestPermissions()).receive === 'granted';
+  if (granted) await PushNotifications.register();
+}
+
+/** Na štarte: po prihlásení zaregistruje zariadenie, ak člen povolil upozornenia. */
+export function startAppPush() {
+  if (!IS_APP || started) return;
+  started = true;
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event !== 'INITIAL_SESSION' && event !== 'SIGNED_IN') return;
+    const perm = (session?.user?.user_metadata as { app_perm?: { push?: boolean } } | undefined)?.app_perm;
+    if (perm?.push === true) void register().catch(() => {});
+  });
+}
+
+/** Pred odhlásením: zariadenie prestane dostávať upozornenia tohto človeka. */
+export async function forgetPushToken() {
+  if (!IS_APP) return;
+  try {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return;
+    await db.from('push_tokens').delete().eq('token', token);
+    localStorage.removeItem(TOKEN_KEY);
+  } catch { /* token zmaže send-push, keď ho APNs/FCM odmietne */ }
+}

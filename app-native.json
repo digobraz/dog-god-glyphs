@@ -1,4 +1,4 @@
 {
   "_": "Najnižšia verzia appky z obchodu, ktorá zvládne dnešný web. Zvýš, keď web začne volať nový natívny plugin alebo povolenie; to isté číslo daj appke (iOS MARKETING_VERSION, Android versionName). Číta scripts/app-manifest.mjs.",
-  "minNative": "1.0"
+  "minNative": "1.1"
 }

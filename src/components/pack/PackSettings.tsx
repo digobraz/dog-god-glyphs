@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { forgetPushToken } from '@/lib/appPush';
 import { BackButton } from './BackButton';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
@@ -128,6 +129,7 @@ export function PackSettings() {
     if (signingOut) return;
     setSigningOut(true);
     try {
+      await forgetPushToken();
       await supabase.auth.signOut();
       navigate('/login');
     } catch {
