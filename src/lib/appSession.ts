@@ -12,7 +12,9 @@
 // a plugin sa sťahuje dynamicky.
 import { IS_APP } from '@/lib/isApp';
 
-const loadPrefs = () => import('@capacitor/preferences').then((m) => m.Preferences);
+// 🔴 Plugin NIKDY nevracaj z async/then priamo: je to Proxy a `await` by na ňom zavolal `.then()`
+//    („Preferences.then() is not implemented") — preto je zabalený v objekte.
+const loadPrefs = () => import('@capacitor/preferences').then((m) => ({ P: m.Preferences }));
 const AUTH_KEY = /^sb-.*-auth-token/;
 
 const ls = {
@@ -25,18 +27,18 @@ const ls = {
 export const appAuthStorage = {
   async getItem(key: string): Promise<string | null> {
     try {
-      const { value } = await (await loadPrefs()).get({ key });
+      const { value } = await (await loadPrefs()).P.get({ key });
       if (value != null) return value;
     } catch { /* plugin nedostupný — padne na localStorage */ }
     return ls.get(key); // session z čias pred pluginom sa pri najbližšom zápise presunie
   },
   async setItem(key: string, value: string): Promise<void> {
     ls.set(key, value);
-    try { await (await loadPrefs()).set({ key, value }); } catch { /* localStorage stačí */ }
+    try { await (await loadPrefs()).P.set({ key, value }); } catch { /* localStorage stačí */ }
   },
   async removeItem(key: string): Promise<void> {
     ls.del(key);
-    try { await (await loadPrefs()).remove({ key }); } catch { /* */ }
+    try { await (await loadPrefs()).P.remove({ key }); } catch { /* */ }
   },
 };
 
@@ -44,7 +46,7 @@ export const appAuthStorage = {
 export async function restoreAppSession(): Promise<void> {
   if (!IS_APP) return;
   try {
-    const P = await loadPrefs();
+    const { P } = await loadPrefs();
     const { keys } = await P.keys();
     for (const key of keys.filter((k) => AUTH_KEY.test(k))) {
       if (ls.get(key) != null) continue;

@@ -23,7 +23,12 @@ let started = false;
 
 const appId = () => (APP_DEV ? 'com.dogypt.app.dev' : 'com.dogypt.app');
 
+/** Android bez `google-services.json` (Firebase) pri `register()` natívne spadne — prepnúť na true
+ *  až v builde, ktorý súbor má (a zvýšiť `minNative`). iOS ide cez APNs a Firebase nepotrebuje. */
+const ANDROID_PUSH_READY = false;
+
 async function register() {
+  if (APP_PLATFORM === 'android' && !ANDROID_PUSH_READY) return;
   const { PushNotifications } = await import('@capacitor/push-notifications');
   await PushNotifications.removeAllListeners();
   await PushNotifications.addListener('registration', async ({ value }) => {
