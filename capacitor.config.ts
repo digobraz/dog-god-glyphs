@@ -3,6 +3,8 @@ import type { CapacitorConfig } from '@capacitor/cli';
 // ── APPKA DOGYPT (Capacitor, 19. 10. 2026) ──────────────────────────────────────
 // Appka = len /pack pre členov, v appke sa NEKUPUJE (plány/appka-store-plan-2026-10-05.md).
 // 🔴 appId sa po prvom nahratí do obchodu NEDÁ zmeniť (Matej 19. 10.: „ok“ na com.dogypt.app).
+// ⚠️ iPhone ostrá appka má bundle **com.dogypt.ios** (project.pbxproj) — com.dogypt.app zabral 20. 10.
+//    bezplatný osobný Apple tím pri teste v telefóne; Matej 20. 10.: „daj to ios“. Android ostáva com.dogypt.app.
 // Obsah sa balí z `dist/` (`npm run app:sync`), neťahá sa naživo z dogypt.com.
 //
 // DVE APPKY (20. 10. 2026): `CAP_TARGET=dev` = „DOGYPT DEV" na DEV Supabase, obsah z

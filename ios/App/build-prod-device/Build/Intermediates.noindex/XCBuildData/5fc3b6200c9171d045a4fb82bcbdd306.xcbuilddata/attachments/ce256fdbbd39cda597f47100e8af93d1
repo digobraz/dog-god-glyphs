@@ -1,0 +1,29 @@
+{
+  "" : {
+    "diagnostics" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin-primary.dia",
+    "emit-module-dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin-primary-emit-module.dia",
+    "pch" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin-primary.swiftdeps"
+  },
+  "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/preferences/ios/Sources/PreferencesPlugin/Preferences.swift" : {
+    "const-values" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/Preferences.swiftconstvalues",
+    "dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/Preferences.d",
+    "diagnostics" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/Preferences.dia",
+    "index-unit-output-path" : "/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/Preferences.o",
+    "llvm-bc" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/Preferences.bc",
+    "object" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/Preferences.o",
+    "swift-dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/Preferences.swiftdeps",
+    "swiftmodule" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/Preferences~partial.swiftmodule"
+  },
+  "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/preferences/ios/Sources/PreferencesPlugin/PreferencesPlugin.swift" : {
+    "const-values" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin.swiftconstvalues",
+    "dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin.d",
+    "diagnostics" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin.dia",
+    "index-unit-output-path" : "/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin.o",
+    "llvm-bc" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin.bc",
+    "object" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin.o",
+    "swift-dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin.swiftdeps",
+    "swiftmodule" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/Build/Intermediates.noindex/CapacitorPreferences.build/Debug-iphoneos/PreferencesPlugin-t.build/Objects-normal/arm64/PreferencesPlugin~partial.swiftmodule"
+  }
+}

@@ -1,0 +1,4 @@
+module CapacitorUpdaterPlugin {
+header "CapacitorUpdaterPlugin-Swift.h"
+export *
+}

@@ -1,0 +1,139 @@
+{
+  "object" : {
+    "artifacts" : [
+      {
+        "kind" : {
+          "xcframework" : {
+
+          }
+        },
+        "packageRef" : {
+          "identity" : "capacitor-swift-pm",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/ionic-team/capacitor-swift-pm.git",
+          "name" : "capacitor-swift-pm"
+        },
+        "path" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/SourcePackages/artifacts/capacitor-swift-pm/Cordova/Cordova.xcframework",
+        "source" : {
+          "checksum" : "bdcd8eab2d62a077efd76c3c8b9629e65ae7043c1462289a1e55de9be19bbf1f",
+          "type" : "remote",
+          "url" : "https://github.com/ionic-team/capacitor-swift-pm/releases/download/8.5.3/Cordova.xcframework.zip"
+        },
+        "targetName" : "Cordova"
+      },
+      {
+        "kind" : {
+          "xcframework" : {
+
+          }
+        },
+        "packageRef" : {
+          "identity" : "capacitor-swift-pm",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/ionic-team/capacitor-swift-pm.git",
+          "name" : "capacitor-swift-pm"
+        },
+        "path" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-prod-device/SourcePackages/artifacts/capacitor-swift-pm/Capacitor/Capacitor.xcframework",
+        "source" : {
+          "checksum" : "9316f568444411d362dcb4d1946e7572d4aef5d690c122ff6f1cb8a44a920c9f",
+          "type" : "remote",
+          "url" : "https://github.com/ionic-team/capacitor-swift-pm/releases/download/8.5.3/Capacitor.xcframework.zip"
+        },
+        "targetName" : "Capacitor"
+      }
+    ],
+    "dependencies" : [
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "browser",
+          "kind" : "fileSystem",
+          "location" : "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/browser",
+          "name" : "browser"
+        },
+        "state" : {
+          "name" : "fileSystem",
+          "path" : "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/browser"
+        },
+        "subpath" : "browser"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "capacitor-swift-pm",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/ionic-team/capacitor-swift-pm.git",
+          "name" : "capacitor-swift-pm"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "4c7f346d16196e21fbe23d4a7a6fc7af62af6742",
+            "version" : "8.5.3"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "capacitor-swift-pm"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "capacitor-updater",
+          "kind" : "fileSystem",
+          "location" : "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capgo/capacitor-updater",
+          "name" : "capacitor-updater"
+        },
+        "state" : {
+          "name" : "fileSystem",
+          "path" : "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capgo/capacitor-updater"
+        },
+        "subpath" : "capacitor-updater"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "capapp-spm",
+          "kind" : "fileSystem",
+          "location" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/CapApp-SPM",
+          "name" : "CapApp-SPM"
+        },
+        "state" : {
+          "name" : "fileSystem",
+          "path" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/CapApp-SPM"
+        },
+        "subpath" : "capapp-spm"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "preferences",
+          "kind" : "fileSystem",
+          "location" : "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/preferences",
+          "name" : "preferences"
+        },
+        "state" : {
+          "name" : "fileSystem",
+          "path" : "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/preferences"
+        },
+        "subpath" : "preferences"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "push-notifications",
+          "kind" : "fileSystem",
+          "location" : "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/push-notifications",
+          "name" : "push-notifications"
+        },
+        "state" : {
+          "name" : "fileSystem",
+          "path" : "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/push-notifications"
+        },
+        "subpath" : "push-notifications"
+      }
+    ],
+    "prebuilts" : [
+
+    ]
+  },
+  "version" : 7
+}

@@ -21,7 +21,8 @@ const db = supabase as unknown as {
 const TOKEN_KEY = 'dogypt_push_token';
 let started = false;
 
-const appId = () => (APP_DEV ? 'com.dogypt.app.dev' : 'com.dogypt.app');
+// iPhone ostrá appka = com.dogypt.ios (com.dogypt.app zabral 20. 10. osobný Apple tím); APNs topic = bundle ID.
+const appId = () => (APP_DEV ? 'com.dogypt.app.dev' : APP_PLATFORM === 'ios' ? 'com.dogypt.ios' : 'com.dogypt.app');
 
 /** Android bez `google-services.json` (Firebase) pri `register()` natívne spadne — prepnúť na true
  *  až v builde, ktorý súbor má (a zvýšiť `minNative`). iOS ide cez APNs a Firebase nepotrebuje. */
