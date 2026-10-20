@@ -5629,6 +5629,7 @@ export const ind: Partial<Dict> = {
   'appEntry.code.sub': "मैंने इसे {mail} पर भेजा है",
   'appEntry.code.enter': "प्रवेश करें",
   'appEntry.code.again': "फिर से भेजें",
+  'appEntry.code.paste': "कोड पेस्ट करें",
   'appEntry.code.other': "दूसरा कुत्ते का नंबर",
   'appEntry.code.sent': "भेज दिया। अपना इनबॉक्स देखें।",
   'appEntry.err.notFound': "यह नंबर दीवार पर नहीं है।",

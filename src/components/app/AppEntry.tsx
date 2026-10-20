@@ -284,6 +284,16 @@ function CodeStep({ sent, onIn, onOther }: { sent: Sent; onIn: () => void; onOth
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `who` je odvodené zo `sent`, ktoré sa na tomto kroku nemení
   }, [N, busy, onIn, t, sent]);
 
+  // iOS nad neviditeľným poľom neponúkne „Vložiť“ — kód zo schránky preto berie tlačidlo.
+  const paste = async () => {
+    try {
+      const c = (await navigator.clipboard.readText()).replace(/\D/g, '').slice(0, N);
+      if (!c) return;
+      setCode(c);
+      if (c.length === N) void submit(c);
+    } catch { inputRef.current?.focus(); }
+  };
+
   const resend = async () => {
     setErr('');
     try {
@@ -316,6 +326,7 @@ function CodeStep({ sent, onIn, onOther }: { sent: Sent; onIn: () => void; onOth
         </label>
         {err && <p className="ae-err" role="alert">{err}</p>}
         <button type="submit" className="ae-cta" disabled={code.length !== N || busy}>{t('appEntry.code.enter')}</button>
+        <button type="button" className="ae-link" onClick={paste}>{t('appEntry.code.paste')}</button>
         <button type="button" className="ae-link" onClick={resend} disabled={again}>
           {again ? t('appEntry.code.sent') : t('appEntry.code.again')}
         </button>
@@ -550,7 +561,7 @@ const APP_ENTRY_CSS = `
   font-size: ${PACK_TEXT.h2}px; color: ${LAB.ink}; }
 .ae-code i.is-half { margin-right: ${PACK_SPACE.sm}px; }
 .ae-code i.is-cur { border-color: ${LAPIS.edge}; box-shadow: 0 0 0 3px ${LAPIS.halo}; }
-.ae-code-input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; border: 0; font-size: ${PACK_TEXT.lead}px; color: transparent; caret-color: transparent; }
+.ae-code-input { position: absolute; inset: 0; opacity: .01; width: 100%; height: 100%; border: 0; font-size: ${PACK_TEXT.lead}px; color: transparent; caret-color: transparent; }
 
 /* ── povolenia: ikonka · nadpis · prepínač (recept .bd-sw zo SNIFFERa) ─── */
 .ae-perm { width: 100%; display: grid; grid-template-columns: 36px minmax(0,1fr) auto; align-items: center; column-gap: ${PACK_SPACE.sm}px;

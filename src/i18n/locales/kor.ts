@@ -5628,6 +5628,7 @@ export const kor: Partial<Dict> = {
   'appEntry.code.sub': "{mail}(으)로 보냈어요",
   'appEntry.code.enter': "들어가기",
   'appEntry.code.again': "다시 보내기",
+  'appEntry.code.paste': "코드 붙여넣기",
   'appEntry.code.other': "다른 강아지 번호",
   'appEntry.code.sent': "보냈어요. 받은편지함을 확인하세요.",
   'appEntry.err.notFound': "이 번호는 벽에 없어요.",

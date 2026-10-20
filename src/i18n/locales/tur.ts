@@ -5628,6 +5628,7 @@ export const tur: Partial<Dict> = {
   'appEntry.code.sub': "{mail} adresine gönderdim",
   'appEntry.code.enter': "GİR",
   'appEntry.code.again': "Tekrar gönder",
+  'appEntry.code.paste': "Kodu yapıştır",
   'appEntry.code.other': "Başka köpek numarası",
   'appEntry.code.sent': "Gönderildi. Gelen kutuna bak.",
   'appEntry.err.notFound': "Bu numara duvarda yok.",

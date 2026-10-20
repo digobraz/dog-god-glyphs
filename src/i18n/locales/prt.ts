@@ -5817,6 +5817,7 @@ export const prt: Partial<Dict> = {
   'appEntry.code.sub': "Enviei-o para {mail}",
   'appEntry.code.enter': "ENTRAR",
   'appEntry.code.again': "Enviar de novo",
+  'appEntry.code.paste': "Colar código",
   'appEntry.code.other': "Outro número de cão",
   'appEntry.code.sent': "Enviado. Vê a tua caixa de correio.",
   'appEntry.err.notFound': "Este número não está no muro.",

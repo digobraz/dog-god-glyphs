@@ -5625,6 +5625,7 @@ export const jpn: Partial<Dict> = {
   'appEntry.code.sub': "{mail} に送りました",
   'appEntry.code.enter': "入る",
   'appEntry.code.again': "もう一度送る",
+  'appEntry.code.paste': "コードを貼り付け",
   'appEntry.code.other': "別の犬の番号",
   'appEntry.code.sent': "送りました。受信箱を確認してください。",
   'appEntry.err.notFound': "この番号は壁にありません。",

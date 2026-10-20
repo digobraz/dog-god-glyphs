@@ -5797,6 +5797,7 @@ export const pol: Partial<Dict> = {
   'appEntry.code.sub': "Wysłałem go na {mail}",
   'appEntry.code.enter': "WEJDŹ",
   'appEntry.code.again': "Wyślij ponownie",
+  'appEntry.code.paste': "Wklej kod",
   'appEntry.code.other': "Inny numer psa",
   'appEntry.code.sent': "Wysłane. Sprawdź skrzynkę.",
   'appEntry.err.notFound': "Tego numeru nie ma na ścianie.",

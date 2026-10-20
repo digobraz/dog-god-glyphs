@@ -5795,6 +5795,7 @@ export const rus: Partial<Dict> = {
   'appEntry.code.sub': "Я отправил его на {mail}",
   'appEntry.code.enter': "ВОЙТИ",
   'appEntry.code.again': "Отправить снова",
+  'appEntry.code.paste': "Вставить код",
   'appEntry.code.other': "Другой номер собаки",
   'appEntry.code.sent': "Отправлено. Проверь почту.",
   'appEntry.err.notFound': "Этого номера нет на стене.",

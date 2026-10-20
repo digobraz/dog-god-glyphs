@@ -5625,6 +5625,7 @@ export const ara: Partial<Dict> = {
   'appEntry.code.sub': "أرسلته إلى {mail}",
   'appEntry.code.enter': "ادخل",
   'appEntry.code.again': "إرسال مرة أخرى",
+  'appEntry.code.paste': "لصق الرمز",
   'appEntry.code.other': "رقم كلب آخر",
   'appEntry.code.sent': "تم الإرسال. تحقّق من بريدك.",
   'appEntry.err.notFound': "هذا الرقم غير موجود على الجدار.",

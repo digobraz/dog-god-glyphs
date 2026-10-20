@@ -6004,6 +6004,7 @@ export const cs: Partial<Dict> = {
   'appEntry.code.sub': "Poslal jsem ho na {mail}",
   'appEntry.code.enter': "VSTOUPIT",
   'appEntry.code.again': "Poslat znovu",
+  'appEntry.code.paste': "Vložit kód",
   'appEntry.code.other': "Jiné číslo psa",
   'appEntry.code.sent': "Odesláno. Podívej se do schránky.",
   'appEntry.err.notFound': "Toto číslo na zdi není.",

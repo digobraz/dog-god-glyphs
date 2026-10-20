@@ -5625,6 +5625,7 @@ export const chn: Partial<Dict> = {
   'appEntry.code.sub': "已发送到 {mail}",
   'appEntry.code.enter': "进入",
   'appEntry.code.again': "重新发送",
+  'appEntry.code.paste': "粘贴验证码",
   'appEntry.code.other': "其他狗狗编号",
   'appEntry.code.sent': "已发送。请查看收件箱。",
   'appEntry.err.notFound': "墙上没有这个编号。",

@@ -5813,6 +5813,7 @@ export const ukr: Partial<Dict> = {
   'appEntry.code.sub': "Я надіслав його на {mail}",
   'appEntry.code.enter': "УВІЙТИ",
   'appEntry.code.again': "Надіслати ще раз",
+  'appEntry.code.paste': "Вставити код",
   'appEntry.code.other': "Інший номер собаки",
   'appEntry.code.sent': "Надіслано. Перевір пошту.",
   'appEntry.err.notFound': "Цього номера немає на стіні.",

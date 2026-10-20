@@ -5814,6 +5814,7 @@ export const esp: Partial<Dict> = {
   'appEntry.code.sub': "Lo envié a {mail}",
   'appEntry.code.enter': "ENTRAR",
   'appEntry.code.again': "Enviar de nuevo",
+  'appEntry.code.paste': "Pegar código",
   'appEntry.code.other': "Otro número de perro",
   'appEntry.code.sent': "Enviado. Revisa tu bandeja.",
   'appEntry.err.notFound': "Este número no está en el muro.",

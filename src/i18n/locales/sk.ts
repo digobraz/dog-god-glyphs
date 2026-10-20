@@ -6031,6 +6031,7 @@ export const sk: Partial<Dict> = {
   'appEntry.code.sub': "Poslal som ho na {mail}",
   'appEntry.code.enter': "VSTÚPIŤ",
   'appEntry.code.again': "Poslať znova",
+  'appEntry.code.paste': "Vložiť kód",
   'appEntry.code.other': "Iné číslo psa",
   'appEntry.code.sent': "Poslané. Pozri schránku.",
   'appEntry.err.notFound': "Toto číslo na stene nie je.",

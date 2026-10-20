@@ -5628,6 +5628,7 @@ export const nld: Partial<Dict> = {
   'appEntry.code.sub': "Ik heb hem naar {mail} gestuurd",
   'appEntry.code.enter': "BINNENGAAN",
   'appEntry.code.again': "Opnieuw sturen",
+  'appEntry.code.paste': "Code plakken",
   'appEntry.code.other': "Ander hondennummer",
   'appEntry.code.sent': "Verstuurd. Kijk in je inbox.",
   'appEntry.err.notFound': "Dit nummer staat niet op de muur.",

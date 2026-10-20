@@ -5813,6 +5813,7 @@ export const ita: Partial<Dict> = {
   'appEntry.code.sub': "L’ho inviato a {mail}",
   'appEntry.code.enter': "ENTRA",
   'appEntry.code.again': "Invia di nuovo",
+  'appEntry.code.paste': "Incolla il codice",
   'appEntry.code.other': "Altro numero di cane",
   'appEntry.code.sent': "Inviato. Controlla la casella.",
   'appEntry.err.notFound': "Questo numero non è sul muro.",

@@ -6341,6 +6341,7 @@ export const en = {
   'appEntry.code.sub': "I sent it to {mail}",
   'appEntry.code.enter': "ENTER",
   'appEntry.code.again': "Send again",
+  'appEntry.code.paste': "Paste code",
   'appEntry.code.other': "Different dog number",
   'appEntry.code.sent': "Sent. Check your inbox.",
   'appEntry.err.notFound': "This number is not on the wall.",
