@@ -1,12 +1,12 @@
 import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BrandIcon } from './BrandIcon';
 import { HandTail } from './HandIcons';
-import { PACK_THEME, PACK_SHADOW } from './packTheme';
+import { NotifSheet } from './NotifSheet';
+import { PACK_THEME } from './packTheme';
 import { pluralKey } from '@/lib/plural';
-import { useT, useLang } from '@/i18n/LanguageContext';
-import { intlLocale } from '@/i18n/bcp47';
+import { useT } from '@/i18n/LanguageContext';
 import { openAinubis, getAinubisUnread, onAinubisUnread } from '@/lib/ainubisBus';
 import { AINUBIS } from './ainubisSkin';
 import ainubisFace from '@/assets/ainubis-badge.webp';
@@ -97,8 +97,12 @@ interface PackNotificationsProps {
 export function PackNotifications({ last24h, last30d, total, dark = false, className, layout = 'overlay', capsule = false }: PackNotificationsProps) {
   const inline = layout === 'inline';
   const t = useT();
-  const { lang } = useLang();
   const [open, setOpen] = useState(false);
+  const closeSheet = useCallback(() => setOpen(false), []);
+  // CHVOST SA ZAVRTÍ (21. 10. 2026, Matej: „po kliknutí na chvost by bolo dobré urobiť mini
+  // animáciu, ako sa zavrtí"). Panel sa vysunie až o chvíľu, aby bolo zavrtenie vidno —
+  // na mobile ho panel cez celú stranu inak hneď prekryje. Zavrtí sa aj chvost v hlavičke panela.
+  const [wag, setWag] = useState(0);
   const wrapRef = useRef<HTMLDivElement>(null);
   // Dropdown is portaled to <body> (fixed, viewport-anchored) — ancestors like
   // .trp-status-row use backdrop-filter, which creates its own stacking context and
@@ -106,7 +110,6 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   // painted over this panel regardless of zIndex (recurring bug class, see
   // BreedPatronScreen's dropRect for the same fix pattern).
   const panelRef = useRef<HTMLDivElement>(null);
-  const [panelPos, setPanelPos] = useState<{ top: number; right: number } | null>(null);
   // Color tokens — light (original, on papyrus card) vs dark (global chrome, on pageBg).
   // Dark variant's trigger buttons get a T.glass backing (not transparent) — this hub also
   // mounts on PackMap's full-bleed light map (not just the black hieroglyph bg), so a
@@ -200,33 +203,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
     return () => document.removeEventListener('mousedown', onDown);
   }, [open]);
 
-  // Anchor the portaled panel to the trigger's viewport position; recompute on
-  // resize/scroll so it tracks the bell button instead of drifting.
-  useEffect(() => {
-    if (!open) { setPanelPos(null); return; }
-    const compute = () => {
-      const el = wrapRef.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      setPanelPos({ top: r.bottom + 8, right: window.innerWidth - r.right });
-    };
-    compute();
-    window.addEventListener('resize', compute);
-    window.addEventListener('scroll', compute, true);
-    return () => {
-      window.removeEventListener('resize', compute);
-      window.removeEventListener('scroll', compute, true);
-    };
-  }, [open]);
 
-  // Degrade gracefully — global mount (dark) only has last24h/total at hand (from
-  // usePackIdentity, already fetched by the parent page), no last30d breakdown; skip
-  // whichever stat wasn't passed in rather than showing a bogus 0.
-  const items = [
-    ...(last24h != null ? [{ iconNode: <BrandIcon name="add-user" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: last24h > 0 ? t(last24h === 1 ? 'pack.notif.newMemberToday' : 'pack.notif.newMembersToday', { count: last24h }) : t('pack.notif.noNewMembersToday') }] : []),
-    ...(last30d != null ? [{ iconNode: <BrandIcon name="add-user" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: t('pack.notif.joinedLast30d', { count: last30d }) }] : []),
-    ...(total != null ? [{ iconNode: <BrandIcon name="globe" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: t('pack.notif.totalWorldwide', { count: total.toLocaleString(intlLocale(lang)) }) }] : []),
-  ];
   // Odznak NOSA = neprečítané upozornenia + dnešný prírastok svorky. Správy sa sem
   // ZÁMERNE nepočítajú — má ich obálka vedľa a dve rovnaké čísla vedľa seba nič nehovoria.
   const bellCount = (last24h ?? 0) + freshAlerts.length;
@@ -334,7 +311,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
       {/* NOS — upozornenia, napravo od obálky na všetkých povrchoch (Matej 2026-07-26) */}
       <button
         type="button"
-        onClick={() => setOpen((p) => {
+        onClick={() => { setWag((w) => w + 1); window.setTimeout(() => setOpen((p) => {
           const next = !p;
           // Otvorenie = prečítanie. Označujeme presne to, čo bolo v tej chvíli na zozname —
           // nie „všetko", inak by žiadosť, ktorá dorazí o sekundu neskôr, zhasla nevidená.
@@ -343,7 +320,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
             setSeenEpoch((e) => e + 1);
           }
           return next;
-        })}
+        }), open ? 0 : 260); }}
         aria-label={t('pack.notif.ariaNotifications')}
         data-mg="notif"
         className="relative inline-flex items-center justify-center"
@@ -363,7 +340,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           cursor: 'pointer',
         }}
       >
-        <HandTail size={capsule ? 22 : 17} />
+        <HandTail key={wag} size={capsule ? 22 : 17} className={wag ? 'ntf-wag' : undefined} />
+        <style>{WAG_CSS}</style>
         {bellCount > 0 && (
           <span
             style={{
@@ -391,32 +369,18 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
         )}
       </button>
 
-      {/* Dropdown — portaled to <body>, fixed + viewport-anchored (see panelPos effect
-          above). Do NOT go back to position:absolute inside wrapRef: any ancestor here
-          (e.g. .trp-status-row) uses backdrop-filter, which creates its own stacking
-          context and silently traps the panel behind later siblings no matter its zIndex. */}
-      {open && panelPos && createPortal(
-        <div
-          ref={panelRef}
-          style={{
-            position: 'fixed',
-            top: panelPos.top,
-            right: panelPos.right,
-            width: DEV_FULL && unreadConvs.length > 0 ? 268 : 244,
-            background: c.panelBg,
-            border: `1px solid ${dark ? c.border : c.hairline}`,
-            borderRadius: 14,
-            boxShadow: PACK_SHADOW.panel,
-            padding: 12,
-            zIndex: 2100,
-          }}
-        >
+      {/* PANEL CEZ CELÚ STRANU (21. 10. 2026) — `NotifSheet.tsx`. Predtým tu bol malý priesvitný
+          dropdown pod chvostom (Matej: „je priehľadný a nie čitateľný"). Riadky upozornení ostali
+          tie isté, len stoja v papyrusovom skle pod blokom DOGYPT STATS. „Tep svorky" (prírastok
+          dnes / za 30 dní / spolu) odišiel do bloku STATS. */}
+      {open && createPortal(
+        <NotifSheet ref={panelRef} onClose={closeSheet} hasReal={DEV_FULL && (alerts.length > 0 || unreadConvs.length > 0)}>
           {DEV_FULL && alerts.length > 0 && (
             <>
               <div
                 style={{
                   fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.26em',
-                  textTransform: 'uppercase', color: c.inkDim, marginBottom: 8,
+                  textTransform: 'uppercase', color: T.inkDim, marginBottom: 8,
                 }}
               >
                 {t('pack.alerts.title')}
@@ -428,7 +392,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                   <li key={al.id} className="flex items-start gap-2">
                     <HandTail size={14} style={{ flexShrink: 0, marginTop: 2, color: T.accentGold }} />
                     <span style={{ minWidth: 0, flex: 1 }}>
-                      <span style={{ display: 'block', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.35, color: c.ink }}>
+                      <span style={{ display: 'block', fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, lineHeight: 1.35, color: T.inkStrong }}>
                         {t('pack.alerts.walkInvite', { who: al.who || t('pack.triplist.fallbackDogyptian') })}
                       </span>
                       <span style={{ display: 'block', fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 10, letterSpacing: '0.02em', textTransform: 'uppercase', color: T.accentGold, marginTop: 1 }}>
@@ -452,7 +416,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                               padding: '4px 12px', borderRadius: 8, cursor: 'pointer',
                               ...(yes
                                 ? { background: LAPIS.grad, color: '#fff', border: `1px solid ${LAPIS.edge}` }
-                                : { background: 'none', color: c.inkDim, border: `1px solid ${c.hairline}` }),
+                                : { background: 'none', color: T.inkDim, border: `1px solid ${T.hairline}` }),
                             }}
                           >
                             {t(yes ? 'pack.alerts.walkInviteYes' : 'pack.alerts.walkInviteNo')}
@@ -480,7 +444,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                         <span
                           style={{
                             display: 'block', fontFamily: "'Space Grotesk', sans-serif",
-                            fontSize: 12, lineHeight: 1.35, color: c.ink,
+                            fontSize: 14, lineHeight: 1.35, color: T.inkStrong,
                           }}
                         >
                           {al.kind.startsWith('wish_')
@@ -515,15 +479,14 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                   </li>
                 ))}
               </ul>
-              <div style={{ borderTop: `1px solid ${c.hairline}`, marginBottom: 10 }} />
-            </>
+                          </>
           )}
           {DEV_FULL && unreadConvs.length > 0 && (
             <>
               <div
                 style={{
                   fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.26em',
-                  textTransform: 'uppercase', color: c.inkDim, marginBottom: 8,
+                  textTransform: 'uppercase', color: T.inkDim, marginBottom: 8,
                 }}
               >
                 Messages
@@ -555,7 +518,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                         </span>
                         <span style={{ minWidth: 0, flex: 1 }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, fontWeight: 600, color: c.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, fontWeight: 600, color: T.inkStrong, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {name}
                             </span>
                             <span style={{ flexShrink: 0, width: 6, height: 6, borderRadius: '50%', background: T.accentGold }} />
@@ -566,7 +529,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                             </span>
                           )}
                           {last && (
-                            <span style={{ display: 'block', fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: c.inkDim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <span style={{ display: 'block', fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkDim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {last.text}
                             </span>
                           )}
@@ -576,58 +539,9 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                   );
                 })}
               </ul>
-              <div style={{ borderTop: `1px solid ${c.hairline}`, marginBottom: 10 }} />
-            </>
+                          </>
           )}
-          <div
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 10,
-              letterSpacing: '0.26em',
-              textTransform: 'uppercase',
-              color: c.inkDim,
-              marginBottom: 10,
-            }}
-          >
-            {t('pack.notif.dropdownTitle')}
-          </div>
-          <ul className="flex flex-col gap-2.5">
-            {items.map((it, i) => (
-              <li key={i} className="flex items-start gap-2.5">
-                {it.iconNode}
-                <span
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: 12,
-                    lineHeight: 1.4,
-                    color: c.ink,
-                  }}
-                >
-                  {it.text}
-                </span>
-              </li>
-            ))}
-          </ul>
-          {/* „Osobné upozornenia už čoskoro" — pätička z čias, keď NOS hlásil len prírastok
-              svorky. Odkedy vie o žiadostiach a prijatiach (26. 8. 2026), by nad vlastným
-              zoznamom osobných upozornení tvrdila, že ešte neexistujú. Ostáva len pre toho,
-              kto žiadne nemá — tam je to stále pravda o zvyšku. */}
-          {!(DEV_FULL && alerts.length > 0) && (
-            <div
-              style={{
-                marginTop: 12,
-                paddingTop: 8,
-                borderTop: `1px solid ${c.hairline}`,
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 10,
-                color: c.inkDim,
-                textAlign: 'center',
-              }}
-            >
-              {t('pack.notif.personalComingSoon')}
-            </div>
-          )}
-        </div>,
+        </NotifSheet>,
         document.body,
       )}
     </div>
@@ -646,6 +560,13 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
 // (PACK_COL.wide 880 / 2 − 24 px odsadenie = 416). Zvýšená špecificita (`.has-pack-nav`)
 // prebíja pravidlo widgetu, ktoré panel centruje nad lištu. Ručne presunutý panel
 // (inline `left/top` z ťahania) má prednosť — to je voľba človeka.
+// Zavrtenie chvosta — krátke, do strán, okolo koreňa chvosta (ľavý dolný roh kresby).
+export const WAG_CSS = `
+.ntf-wag{transform-origin:30% 95%;animation:ntf-wag .6s cubic-bezier(.36,.07,.19,.97) both;}
+@keyframes ntf-wag{0%{transform:rotate(0)}15%{transform:rotate(-18deg)}35%{transform:rotate(14deg)}55%{transform:rotate(-10deg)}75%{transform:rotate(6deg)}100%{transform:rotate(0)}}
+@media (prefers-reduced-motion:reduce){.ntf-wag{animation:none;}}
+`;
+
 const HUB_AINUBIS_CSS = `
 body.has-hub-ainubis .ainubis-launcher { visibility: hidden; }
 /* Od 27. 9. 2026 stojí koliesko v spoločnom rade (PackTopRow) aj na obrazovkách BEZ spodnej
