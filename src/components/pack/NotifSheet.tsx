@@ -27,7 +27,7 @@ import { IS_APP } from '@/lib/isApp';
 import { BUDDY_LIVE } from '@/lib/packFlags';
 import { supabase } from '@/integrations/supabase/client';
 import ainubisHead from '@/assets/ainubis-head.webp';
-import logo2026 from '@/assets/app/logo-2026.svg';
+import dogSilhouette from '@/assets/dogypt-logo-mobile.webp';
 import { FRESH_NEWS } from '@/data/freshNews';
 
 const GlobePulse = lazy(() => import('./GlobePulse').then((m) => ({ default: m.GlobePulse })));
@@ -135,7 +135,11 @@ const CSS = `
 .ntf-stats{position:relative;display:block;flex:0 0 auto;overflow:hidden;container-type:inline-size;
   margin:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px 0;
   height:25dvh;min-height:176px;width:calc(100% - ${PACK_SPACE.xxl}px);cursor:pointer;text-align:left;font:inherit;color:inherit;
-  background:rgba(255,255,255,0.40);border:1px solid ${T.hairline};border-radius:${PACK_R.card}px;box-shadow:${PACK_SHADOW.card};transition:transform .15s ease;}
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(16,52,166,0.16) 0%, rgba(16,52,166,0) 55%),
+    radial-gradient(90% 80% at 0% 100%, rgba(201,154,63,0.30) 0%, rgba(201,154,63,0) 60%),
+    rgba(255,255,255,0.40);
+  border:1px solid ${T.hairline};border-radius:${PACK_R.card}px;box-shadow:${PACK_SHADOW.card};transition:transform .15s ease;}
 .ntf-stats:active{transform:scale(0.98);}
 /* GLÓBUS ZREZANÝ OKRAJOM (Matej 21. 10.: „zväčšiť tak, že bude zrezaná a bude smerovať za okraje
    ľavej aj spodnej strany, vrch bude vidno a bude tesne pod horným okrajom" → „ešte zväčši").
@@ -149,10 +153,10 @@ const CSS = `
    podľa POČTU ZNAKOV (--ntf-len), takže aj „1 000 000" sa zmestí na 360 px. Obe čísla
    dostanú dĺžku dlhšieho, aby boli rovnako veľké. */
 .ntf-num{display:flex;align-items:baseline;gap:${PACK_SPACE.sm}px;}
-.ntf-num b{font-family:'Cinzel',serif;font-weight:700;font-size:min(48px, calc(64cqw / var(--ntf-len, 3)));letter-spacing:.02em;line-height:1;white-space:nowrap;}
+.ntf-num b{background:linear-gradient(135deg,#1034A6 0%,#16307A 45%,#C99A3F 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:'Cinzel',serif;font-weight:700;font-size:min(48px, calc(64cqw / var(--ntf-len, 3)));letter-spacing:.02em;line-height:1;white-space:nowrap;}
 .ntf-num span{font-size:${PACK_TEXT.label}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
-.ntf-logo{position:absolute;left:34%;top:10%;width:50%;height:50%;z-index:1;border-radius:${PACK_R.pill}px;background:radial-gradient(circle,rgba(251,245,230,0.92) 58%,rgba(251,245,230,0) 72%);display:grid;place-items:center;pointer-events:none;}
-.ntf-logo img{width:86%;height:86%;}
+.ntf-logo{position:absolute;left:30%;top:8%;width:56%;height:56%;z-index:1;display:grid;place-items:center;pointer-events:none;}
+.ntf-logo img{width:100%;height:auto;opacity:0.16;filter:grayscale(1) brightness(0);}
 .ntf-tick{position:absolute;z-index:3;left:0;right:0;bottom:${PACK_SPACE.md}px;display:block;overflow:hidden;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 ${PACK_SPACE.lg}px,#000 calc(100% - ${PACK_SPACE.lg}px),transparent);
   mask-image:linear-gradient(90deg,transparent,#000 ${PACK_SPACE.lg}px,#000 calc(100% - ${PACK_SPACE.lg}px),transparent);}
@@ -161,6 +165,13 @@ const CSS = `
 .ntf-pill{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;height:28px;padding:0 ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
   font-size:${PACK_TEXT.label}px;white-space:nowrap;border:1px solid ${T.hairline};background:rgba(251,245,230,0.78);color:inherit;font-family:inherit;}
 .ntf-pill b{font-weight:600;}
+.ntf-pill--up{background:rgba(61,122,78,0.12);border-color:rgba(61,122,78,0.35);}
+.ntf-pill--up b{color:${T.growGreen};}
+.ntf-pill--lapis{background:${LAPIS.fill};border-color:rgba(22,48,122,0.30);}
+.ntf-pill--lapis b{color:${LAPIS.edge};}
+.ntf-pill--gold{background:rgba(201,154,63,0.16);border-color:rgba(201,154,63,0.45);}
+.ntf-pill--gold b{color:#8A6420;}
+.ntf-pill--news{background:rgba(91,224,240,0.12);border-color:rgba(91,224,240,0.45);}
 .ntf-pill--news{cursor:pointer;}
 .ntf-pill--news i{width:8px;height:8px;border-radius:${PACK_R.pill}px;background:${AINUBIS.cyan};box-shadow:0 0 6px ${AINUBIS.cyan};}
 @keyframes ntf-tick{from{transform:translateX(0);}to{transform:translateX(-50%);}}
@@ -218,11 +229,11 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
         <i aria-hidden />{n.text[lk] ?? n.text.en}
       </button>
     )),
-    <span key="m" className="ntf-pill"><b style={{ color: T.growGreen }}>+{fmt(stats.last30d)}</b>{t('pack.notif.perMonth')}</span>,
-    <span key="c" className="ntf-pill"><b>{fmt(stats.topCountries.length)}</b>{t('pack.notif.countries')}</span>,
-    ...(stats.last24h > 0 ? [<span key="d" className="ntf-pill"><b style={{ color: T.growGreen }}>+{fmt(stats.last24h)}</b>{t('pack.notif.today')}</span>] : []),
-    <span key="k" className="ntf-pill"><b>{(dogs / 10_000).toLocaleString(intlLocale(lang), { maximumFractionDigits: 2 })} %</b>{t('pack.notif.toMillion')}</span>,
-    ...(stats.topCountries[0] ? [<span key="t" className="ntf-pill"><b>{fmt(stats.topCountries[0].count)}</b>{stats.topCountries[0].country}</span>] : []),
+    <span key="m" className="ntf-pill ntf-pill--up"><b>+{fmt(stats.last30d)}</b>{t('pack.notif.perMonth')}</span>,
+    <span key="c" className="ntf-pill ntf-pill--lapis"><b>{fmt(stats.topCountries.length)}</b>{t('pack.notif.countries')}</span>,
+    ...(stats.last24h > 0 ? [<span key="d" className="ntf-pill ntf-pill--up"><b>+{fmt(stats.last24h)}</b>{t('pack.notif.today')}</span>] : []),
+    <span key="k" className="ntf-pill ntf-pill--gold"><b>{(dogs / 10_000).toLocaleString(intlLocale(lang), { maximumFractionDigits: 2 })} %</b>{t('pack.notif.toMillion')}</span>,
+    ...(stats.topCountries[0] ? [<span key="t" className="ntf-pill ntf-pill--lapis"><b>{fmt(stats.topCountries[0].count)}</b>{stats.topCountries[0].country}</span>] : []),
   ] : [];
 
   return (
@@ -254,8 +265,9 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
               onClick={() => setView('stats')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setView('stats'); }}>
               <span className="ntf-globe">
                 <Suspense fallback={null}><PackGlobe topCountries={stats?.topCountries ?? []} /></Suspense>
-                {/* Logo DOGYPTU na glóbe (Matej 21. 10.) — tmavé na papyruse, brand LOGO 2026. */}
-                <span className="ntf-logo"><img src={logo2026} alt="" /></span>
+                {/* Silueta DOGYPTU na glóbe — priehľadný vodoznak bez nápisu, ten istý ako v D-BLOKU
+                  KOMUNITA na homepage (Matej 21. 10.: „logo daj priehľadné ako je teraz v dbloku komunita"). */}
+                <span className="ntf-logo"><img src={dogSilhouette} alt="" /></span>
               </span>
               {/* Spodok glóbu sa rozplynie (Matej 21. 10.: „spodnú časť rozmaž nejak takto"). */}
               <span className="pk-blurfade" aria-hidden />
