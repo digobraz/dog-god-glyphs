@@ -175,10 +175,11 @@ const CSS = `
 .ntf-dog{position:absolute;left:-10cqw;top:${PACK_SPACE.sm}px;width:50cqw;height:50cqw;border-radius:${PACK_R.pill}px;overflow:hidden;
   border:2px solid ${T.cardEdge};box-shadow:${PACK_SHADOW.card};background:${T.tileBg};cursor:pointer;padding:0;touch-action:pan-y;}
 .ntf-dog img{width:100%;height:100%;object-fit:cover;display:block;animation:ntf-fade .3s ease both;}
-.ntf-cap{position:absolute;z-index:2;left:${PACK_SPACE.md}px;bottom:48px;max-width:44cqw;display:flex;align-items:center;gap:${PACK_SPACE.sm}px;pointer-events:none;}
+.ntf-cap{position:absolute;z-index:2;left:${PACK_SPACE.md}px;bottom:48px;max-width:46cqw;display:flex;align-items:flex-end;gap:${PACK_SPACE.sm}px;pointer-events:none;}
 .ntf-cap-num{flex:0 0 auto;font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.02em;line-height:1;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;
   background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${PACK_SHADOW.lift};}
-.ntf-cap-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
+/* Trojbodka NEEXISTUJE (brand v4.1) — meno psa sa radšej zalomí na dva riadky. */
+.ntf-cap-name{min-width:0;overflow-wrap:anywhere;line-height:1.15;font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 .ntf-arr{position:absolute;z-index:3;width:32px;height:32px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;padding:0;border:none;cursor:pointer;
   background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${PACK_SHADOW.lift};font-size:${PACK_TEXT.h2}px;line-height:1;top:calc(${PACK_SPACE.sm}px + 25cqw - 16px);}
 .ntf-arr:disabled{opacity:.35;cursor:default;}
