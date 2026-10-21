@@ -183,7 +183,8 @@ export default function PublicProfile() {
   // `fullName` (user_metadata), lebo vlastný profil sa nečíta cez RPC.
   const displayName = member
     ? (memberDisplayName(member) || 'A Dogyptian')
-    : ((human?.displayAs === 'nickname' && human?.nickname) || fullName || 'A Dogyptian');
+    : ((human?.displayAs === 'nickname' && human?.nickname)
+      || (human?.displayAs === 'packName' && human?.packName) || fullName || 'A Dogyptian');
   const headerAvatar = member ? memberAvatarUrl(member) : avatarUrl;
   const packNumber = member ? member.memberNumber : (dogs[0]?.pack_number ?? null);
   // Národnosť je VŽDY viditeľná — nedá sa skryť (Matej 2026-07-25: „nechaj viditeľné furt").

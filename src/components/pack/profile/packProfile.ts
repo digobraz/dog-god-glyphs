@@ -84,7 +84,7 @@ export interface HumanProfile {
    *  Prázdne = psie číslo vzostupne. Pes, ktorý v zozname nie je (nový), ide na koniec.
    *  Číta a zapisuje `lib/dogOrder.ts`, nikde inde. */
   dogOrder?: string[];
-  displayAs?: 'name' | 'nickname'; // ktorá verzia sa ukazuje navonok, default 'name'
+  displayAs?: 'name' | 'nickname' | 'packName'; // ktorá verzia sa ukazuje navonok, default 'name'
   nationality?: string;     // country code z NATIONALITY_OPTIONS, default 'SK' (nezapisuje sa kým user nevyberie)
   relationship?: RelationshipStatus;
   dogVoiceBio?: string;      // „What my dog says about me" — ≤150 slov, HERO (zobrazuje sa prvý)

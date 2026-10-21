@@ -79,7 +79,9 @@ interface Member {
   owner_name: string | null;
   created_at: string;
   points: number;
-  // 🔴 TIETO TRI RPC NEVRACIA. `get_my_network()` posiela len štyri polia vyššie
+  // `avatar` a `dog_no` RPC vracia od 21. 10. 2026 (migrácia 20261021_network_avatars.sql,
+  // fotka psa = tá istá, čo je verejne na stene). `email` ostáva súkromný.
+  // 🔴 PÔVODNE ICH RPC NEVRACALO. `get_my_network()` posielalo len štyri polia vyššie
   // (migrácia 20260609_affiliate_two_level.sql, „Email stays private"). Sú tu
   // kvôli ukážkovej línii nižšie a kvôli tomu, aby popup vedel, ako bude
   // vyzerať s plnými dátami. Na reálnych členoch ostanú `undefined` a popup
@@ -1568,8 +1570,9 @@ function Avatar({ src, name, size }: { src?: string; name?: string | null; size:
   }
   return (
     <img
-      src={src}
+      src={sizedUrl(src, size * 3)}
       alt=""
+      loading="lazy"
       onError={() => setFailed(true)}
       className="shrink-0"
       style={{

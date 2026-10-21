@@ -246,6 +246,8 @@ export function useMemberProfile(packNumber?: number | null): MemberProfile | nu
 export function memberDisplayName(m: MemberProfile | null | undefined, fallback?: string | null): string {
   const nick = m?.human.nickname?.trim();
   if (m?.human.displayAs === 'nickname' && nick) return nick;
+  const packName = m?.human.packName?.trim();
+  if (m?.human.displayAs === 'packName' && packName) return packName;
   return m?.displayName?.trim() || m?.ownerFirst?.trim() || fallback?.trim() || '';
 }
 
