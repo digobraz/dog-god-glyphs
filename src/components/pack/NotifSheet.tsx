@@ -16,7 +16,7 @@ import type React from 'react';
 import { forwardRef, lazy, Suspense, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HandTail } from './HandIcons';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, STAGE_CSS } from './packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, STAGE_CSS, BLURFADE_CSS } from './packTheme';
 import { LAPIS } from './navGoldSkin';
 import { AINUBIS } from './ainubisSkin';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -132,22 +132,25 @@ const CSS = `
 .ntf-back{width:32px;height:32px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;border:1.5px solid ${T.hairline};background:none;color:${LAPIS.edge};cursor:pointer;font-size:${PACK_TEXT.lead}px;line-height:1;}
 .ntf-ttl{flex:1;font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.14em;text-transform:uppercase;}
 .ntf-tail{width:40px;height:40px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};}
-.ntf-stats{position:relative;display:block;overflow:hidden;container-type:inline-size;margin:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px 0;
-  min-height:max(236px, calc(25dvh - ${PACK_SPACE.xl}px));width:calc(100% - ${PACK_SPACE.xxl}px);cursor:pointer;text-align:left;font:inherit;color:inherit;
+.ntf-stats{position:relative;display:block;flex:0 0 auto;overflow:hidden;container-type:inline-size;
+  margin:0 ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.lg}px);
+  height:25dvh;min-height:176px;width:calc(100% - ${PACK_SPACE.xxl}px);cursor:pointer;text-align:left;font:inherit;color:inherit;
   background:rgba(255,255,255,0.40);border:1px solid ${T.hairline};border-radius:${PACK_R.card}px;box-shadow:${PACK_SHADOW.card};transition:transform .15s ease;}
 .ntf-stats:active{transform:scale(0.98);}
 /* GLÓBUS ZREZANÝ OKRAJOM (Matej 21. 10.: „zväčšiť tak, že bude zrezaná a bude smerovať za okraje
-   ľavej aj spodnej strany, vrch bude vidno a bude tesne pod horným okrajom"). Rozmer z ŠÍRKY
-   BLOKU (cqw), nie z okna — lock pack-dizajn-system §plynulý stupeň. */
-.ntf-globe{position:absolute;left:-16cqw;top:${PACK_SPACE.md}px;width:72cqw;height:72cqw;}
-.ntf-nums{position:relative;z-index:1;margin-left:auto;width:44cqw;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px 56px 0;}
+   ľavej aj spodnej strany, vrch bude vidno a bude tesne pod horným okrajom" → „ešte zväčši").
+   Rozmer zo ŠÍRKY BLOKU (cqw), nie z okna — lock pack-dizajn-system §plynulý stupeň. */
+.ntf-globe{position:absolute;left:-24cqw;top:-7cqw;width:96cqw;height:96cqw;}
+.ntf-stats .pk-blurfade{height:46%;z-index:1;}
+.ntf-nums{position:absolute;z-index:2;right:${PACK_SPACE.lg}px;top:${PACK_SPACE.lg}px;display:flex;flex-direction:column;align-items:flex-end;gap:${PACK_SPACE.xs}px;}
 /* Počítadlo nad stupnicou PACK_TEXT — ten istý precedens ako počítadlo glóbu na homepage
-   (GlobePulse, clamp 40–58 px). Matej: „psy a ľudia budú pod sebou a max veľkosti". */
-.ntf-num b{display:block;font-family:'Cinzel',serif;font-weight:700;font-size:clamp(32px,14cqw,52px);letter-spacing:.02em;line-height:1;}
-.ntf-num span{display:block;margin-top:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.label}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
-.ntf-logo{position:absolute;inset:29%;z-index:1;border-radius:${PACK_R.pill}px;background:radial-gradient(circle,rgba(251,245,230,0.92) 58%,rgba(251,245,230,0) 72%);display:grid;place-items:center;pointer-events:none;}
+   (GlobePulse, clamp 40–58 px). Matej: „psy a ľudia… max veľkosti", slovo VEDĽA čísla. */
+.ntf-num{display:flex;align-items:baseline;gap:${PACK_SPACE.sm}px;}
+.ntf-num b{font-family:'Cinzel',serif;font-weight:700;font-size:clamp(32px,13cqw,48px);letter-spacing:.02em;line-height:1;}
+.ntf-num span{font-size:${PACK_TEXT.label}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
+.ntf-logo{position:absolute;left:33%;top:14%;width:34%;height:34%;z-index:1;border-radius:${PACK_R.pill}px;background:radial-gradient(circle,rgba(251,245,230,0.92) 58%,rgba(251,245,230,0) 72%);display:grid;place-items:center;pointer-events:none;}
 .ntf-logo img{width:86%;height:86%;}
-.ntf-tick{position:absolute;z-index:2;left:0;right:0;bottom:${PACK_SPACE.md}px;display:block;overflow:hidden;
+.ntf-tick{position:absolute;z-index:3;left:0;right:0;bottom:${PACK_SPACE.md}px;display:block;overflow:hidden;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 ${PACK_SPACE.lg}px,#000 calc(100% - ${PACK_SPACE.lg}px),transparent);
   mask-image:linear-gradient(90deg,transparent,#000 ${PACK_SPACE.lg}px,#000 calc(100% - ${PACK_SPACE.lg}px),transparent);}
 .ntf-tick-track{display:flex;gap:${PACK_SPACE.sm}px;padding-right:${PACK_SPACE.sm}px;width:max-content;animation:ntf-tick var(--ntf-tick-s,24s) linear infinite;}
@@ -159,8 +162,8 @@ const CSS = `
 .ntf-pill--news i{width:8px;height:8px;border-radius:${PACK_R.pill}px;background:${AINUBIS.cyan};box-shadow:0 0 6px ${AINUBIS.cyan};}
 @keyframes ntf-tick{from{transform:translateX(0);}to{transform:translateX(-50%);}}
 @media (prefers-reduced-motion:reduce){.ntf-tick-track{animation:none;flex-wrap:wrap;width:auto;}.ntf-tick-track [aria-hidden]{display:none;}}
-.ntf-chev{position:absolute;z-index:1;top:${PACK_SPACE.sm}px;right:${PACK_SPACE.md}px;color:${LAPIS.edge};font-size:${PACK_TEXT.h2}px;}
-.ntf-list{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.xl}px);display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+.ntf-chev{position:absolute;z-index:2;top:${PACK_SPACE.sm}px;right:${PACK_SPACE.md}px;color:${LAPIS.edge};font-size:${PACK_TEXT.h2}px;}
+.ntf-list{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .ntf-sec{font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};margin-top:${PACK_SPACE.sm}px;}
 .ntf-row{display:flex;gap:${PACK_SPACE.md}px;align-items:center;padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:rgba(251,245,230,0.78);border:1px solid ${T.hairline};}
 .ntf-real{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
@@ -175,7 +178,7 @@ const CSS = `
 .ntf-cta{flex:0 0 auto;font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.field}px;background:${LAPIS.grad};color:${LAPIS.ink};border:none;cursor:pointer;white-space:nowrap;}
 .ntf-empty{font-size:${PACK_TEXT.label}px;color:${T.inkDim};text-align:center;padding:${PACK_SPACE.sm}px;}
 .ntf-all{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.xl}px);}
-${STAGE_CSS}`;
+${STAGE_CSS}${BLURFADE_CSS}`;
 
 type Props = { onClose: () => void; children?: React.ReactNode; hasReal: boolean };
 
@@ -238,31 +241,6 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
           </div>
         ) : (
           <>
-            {/* BLOK = dvere do všetkých štatistík. Pás pod ním je SÚČASŤ bloku, ale oznam v ňom
-                vedie na vlastný príspevok — preto blok nie je <button> (tlačidlo v tlačidle). */}
-            <div className="ntf-stats" role="button" tabIndex={0} aria-label={t('pack.notif.allStats')}
-              onClick={() => setView('stats')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setView('stats'); }}>
-              <span className="ntf-globe">
-                <Suspense fallback={null}><PackGlobe topCountries={stats?.topCountries ?? []} /></Suspense>
-                {/* Logo DOGYPTU na glóbe (Matej 21. 10.) — tmavé na papyruse, brand LOGO 2026. */}
-                <span className="ntf-logo"><img src={logo2026} alt="" /></span>
-              </span>
-              {/* Najvýraznejšie: psy a ľudia, pod sebou (Matej 21. 10.). */}
-              <span className="ntf-nums">
-                <span className="ntf-num"><b>{stats ? fmt(dogs) : '—'}</b><span>{t('pack.notif.dogsWord')}</span></span>
-                <span className="ntf-num"><b>{stats ? fmt(stats.total) : '—'}</b><span>{t('pack.notif.peopleWord')}</span></span>
-              </span>
-              <span className="ntf-chev" aria-hidden>&#8250;</span>
-              {pills.length > 0 && (
-                <span className="ntf-tick" style={{ ['--ntf-tick-s' as string]: `${Math.max(16, pills.length * 5)}s` }}>
-                  {/* Dve kópie za sebou — posun o -50 % je presne jedna kópia, takže slučka nemá švík. */}
-                  <span className="ntf-tick-track">
-                    {pills}
-                    <span aria-hidden style={{ display: 'contents' }}>{pills}</span>
-                  </span>
-                </span>
-              )}
-            </div>
 
             <div className="ntf-list">
               {hasReal && <div className="ntf-real">{children}</div>}
@@ -278,6 +256,37 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                 </div>
               ))}
               {!hasReal && tips.length === 0 && <div className="ntf-empty">{t('pack.notif.allClear')}</div>}
+            </div>
+            {/* ŠTATISTIKY DOLE, UPOZORNENIA HORE (21. 10. 2026). Matej: „nebolo by lepšie dať to
+                dolu a hore upozornenia? povedz ty" → áno: kvôli upozorneniam človek na chvost
+                ťukol, štatistika je kulisa; dole je bližšie k palcu a glóbus vychádza z hrany
+                obrazovky ako planéta nad obzorom. Max 1/4 výšky (Matej). */}
+            {/* BLOK = dvere do všetkých štatistík. Pás pod ním je SÚČASŤ bloku, ale oznam v ňom
+                vedie na vlastný príspevok — preto blok nie je <button> (tlačidlo v tlačidle). */}
+            <div className="ntf-stats" role="button" tabIndex={0} aria-label={t('pack.notif.allStats')}
+              onClick={() => setView('stats')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setView('stats'); }}>
+              <span className="ntf-globe">
+                <Suspense fallback={null}><PackGlobe topCountries={stats?.topCountries ?? []} /></Suspense>
+                {/* Logo DOGYPTU na glóbe (Matej 21. 10.) — tmavé na papyruse, brand LOGO 2026. */}
+                <span className="ntf-logo"><img src={logo2026} alt="" /></span>
+              </span>
+              {/* Spodok glóbu sa rozplynie (Matej 21. 10.: „spodnú časť rozmaž nejak takto"). */}
+              <span className="pk-blurfade" aria-hidden />
+              {/* Najvýraznejšie: psy a ľudia, pod sebou (Matej 21. 10.). */}
+              <span className="ntf-nums">
+                <span className="ntf-num"><b>{stats ? fmt(dogs) : '—'}</b><span>{t('pack.notif.dogsWord')}</span></span>
+                <span className="ntf-num"><b>{stats ? fmt(stats.total) : '—'}</b><span>{t('pack.notif.peopleWord')}</span></span>
+              </span>
+              <span className="ntf-chev" aria-hidden>&#8250;</span>
+              {pills.length > 0 && (
+                <span className="ntf-tick" style={{ ['--ntf-tick-s' as string]: `${Math.max(16, pills.length * 5)}s` }}>
+                  {/* Dve kópie za sebou — posun o -50 % je presne jedna kópia, takže slučka nemá švík. */}
+                  <span className="ntf-tick-track">
+                    {pills}
+                    <span aria-hidden style={{ display: 'contents' }}>{pills}</span>
+                  </span>
+                </span>
+              )}
             </div>
           </>
         )}

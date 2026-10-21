@@ -477,6 +477,18 @@ export const PACK_BLOCKS = {
       + 'papyruse zmizne. Farbu nesie povrch (`--pk-stage` / `--pk-stage-edge`), '
       + 'rozmery volajúci; tvar a rozostrenie tento recept.',
   },
+  // ── PRIBUDLO 21. 10. 2026 ───────────────────────────────────────────────
+  // Matej (panel chvosta, nad predlohou fotky s rozmazaným spodkom): „spodnú časť
+  // rozmaž nejak takto".
+  'ROZPLYNUTIE': {
+    recept: 'BLURFADE_CSS — .pk-blurfade',
+    polomer: null,
+    kedy: 'Spodok obrazu (glóbus, fotka) sa POSTUPNE rozmaže do podkladu — hore ostro, '
+      + 'dole rozmazané a doladené farbou povrchu. Na ňom môže stáť text alebo pás pilulek.',
+    lock: '⚠️ NIE JE TO ZÁVOJ FOTO: ten len stmavuje spádom, nerozmazáva. Ani SKLENENÁ '
+      + 'DOSKA: tá je rovnomerná plocha pod obsahom. Výšku dáva volajúci, odtieň povrch '
+      + '(`--pk-blurfade`), rozostrenie a priebeh masky tento recept.',
+  },
 } as const;
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1297,6 +1309,19 @@ export const VEIL_CSS = `
 // povrch podľa svojho šatu (správy to robia v `msgTheme.ts` pre svetlý aj tmavý).
 // Bez nich platí papyrusové východisko. Rozmery (šírka, odsadenie) patria volajúcemu —
 // tá istá deliaca čiara ako pri `BackButton` a `mapDockShape`.
+// ── ROZPLYNUTIE (2026-10-21, Matej) — spodok obrazu sa postupne rozmaže do podkladu.
+// Leží VNÚTRI prvku (absolute, dole); výšku nastaví volajúci (`height`), odtieň `--pk-blurfade`.
+export const BLURFADE_CSS = `
+.pk-blurfade{
+  position:absolute; left:0; right:0; bottom:0; pointer-events:none;
+  background:linear-gradient(180deg, transparent 0%, var(--pk-blurfade, rgba(242,229,197,0.72)) 100%);
+  -webkit-backdrop-filter:blur(14px) saturate(120%);
+  backdrop-filter:blur(14px) saturate(120%);
+  -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 55%);
+  mask-image:linear-gradient(180deg, transparent 0%, #000 55%);
+}
+`;
+
 export const STAGE_CSS = `
 .pk-stage{
   background:var(--pk-stage, linear-gradient(180deg,rgba(251,245,230,0.58) 0%,rgba(242,229,197,0.42) 100%));
