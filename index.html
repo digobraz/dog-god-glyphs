@@ -17,6 +17,12 @@
           // RÁM APPKY (21. 10. 2026): iPhone a Android majú iný spodok okna — `index.css` §RÁM APPKY.
           var P = C.getPlatform && C.getPlatform();
           if (P === 'ios' || P === 'android') document.documentElement.classList.add('is-' + P);
+          // BEZ ZOOMU (21. 10. 2026). Matej: „keď otvorím klávesnicu alebo pri nejakých pohyboch
+          // sa appka zoomne a nejde mi oddialiť… appka musí byť neustále konzistentná vo veľkosti".
+          // iOS priblíži stránku pri ťuknutí do poľa s písmom < 16 px a dovolí štipnutie celej
+          // stránky — natívna appka nič z toho nerobí. LEN v appke: web si zoom necháva (prístupnosť).
+          var V = document.querySelector('meta[name=viewport]');
+          if (V) V.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
           if (/^\/?$/.test(location.pathname)) history.replaceState(null, '', '/pack');
         } catch (e) {}
       })();
