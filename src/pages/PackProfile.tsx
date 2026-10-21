@@ -17,6 +17,8 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
 import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import { DEV_FULL, PAWMATE_LIVE } from '@/lib/packFlags';
+import { appWebVersion } from '@/lib/appUpdate';
+import { APP_PLATFORM } from '@/lib/isApp';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
@@ -357,6 +359,8 @@ export default function PackProfile() {
   // Šat stránky — ten istý zdroj, aký prepína shell (`PackLayout`, `RouteFallback`).
   // Potrebuje ho VŠETKO, čo stojí mimo papyrusovej karty, teda priamo na podklade.
   const paperPage = usePaperRoute(location.pathname);
+  const [appVer, setAppVer] = useState('');
+  useEffect(() => { appWebVersion().then(setAppVer).catch(() => {}); }, []);
   const { toast } = useToast();
   const { dogs, loading: dogsLoading } = usePackUser(session?.user?.id ?? null);
   // Central profile (bio/basics/pills) — read here for BLOK 1 (identity+bio card);
@@ -976,6 +980,14 @@ export default function PackProfile() {
         {/* Account info + password modal — vlastná karta ZMAZANÁ 2026-08-12 (bola duplikát
             `PackSettings`, ktorý robí presne to isté a je už plne preložený). */}
         <PackSettings />
+
+        {/* ČÍSLO VERZIE — LEN V APPKE (21. 10. 2026). Matej pri teste nevedel, či mu telefón
+            stiahol posledný go-live. Rovnaké číslo ako `version` v dogypt.com/app-update.json. */}
+        {appVer && (
+          <div style={{ textAlign: 'center', fontSize: PACK_TEXT.micro, letterSpacing: '0.22em', color: paperPage ? T.inkDim : T.accentGold, opacity: 0.6 }}>
+            DOGYPT · {APP_PLATFORM} · {appVer}
+          </div>
+        )}
 
         <div style={{ height: 24 }} />
       </div>

@@ -61,10 +61,14 @@ async function check() {
   if (m.version === mine) return;
   if (!nativeOk(cur.native, m.minNative)) return;
 
-  // Už stiahnutá (napr. minulý štart) — len ju naplánuj; chybnú zahoď a skús znova.
+  // Už stiahnutá minulý štart → ZAPNI HNEĎ, teraz je appka len otvorená a nikto nepíše.
+  // ⚠️ `next()` sa zapne až pri odchode na plochu a späť. Kto appku ZABIJE švihom
+  // z prepínača (Matej 21. 10. 2026), ten prechod nikdy nespraví — a tu sa stiahnutá verzia
+  // v stave `pending` predtým zahodila a sťahovala znova, takže aktualizácia neprišla nikdy.
+  // Overené v simulátore: kill → štart = stará verzia; plocha → späť = nová.
   const { bundles } = await CapacitorUpdater.list();
   const have = bundles.find((b) => b.version === m.version);
-  if (have && have.status === 'success') { await CapacitorUpdater.next({ id: have.id }); return; }
+  if (have && (have.status === 'success' || have.status === 'pending')) { await CapacitorUpdater.set({ id: have.id }); return; }
   if (have) await CapacitorUpdater.delete({ id: have.id }).catch(() => {});
 
   const bundle = await CapacitorUpdater.download({ url: `${LIVE}/app-update.json`, version: m.version, manifest: m.files });
@@ -76,6 +80,14 @@ async function check() {
       await CapacitorUpdater.delete({ id: b.id }).catch(() => {});
     }
   }
+}
+
+/** Verzia webu, na ktorej appka práve beží (prvých 8 znakov `/app-version.json`) — na stránke JA,
+ *  aby sa pri testovaní dalo VIDIEŤ, či telefón dostal posledný go-live (Matej 21. 10. 2026).
+ *  Rovnaké číslo ako `version` v https://dogypt.com/app-update.json. Na webe ''. */
+export async function appWebVersion(): Promise<string> {
+  if (!IS_APP) return '';
+  return (await ownVersion()).slice(0, 8);
 }
 
 /** Zavolaj raz pri štarte (main.tsx). Na webe nerobí nič. */
