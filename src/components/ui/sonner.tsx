@@ -10,6 +10,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      // HLÁŠKY DOLE NAD NAVOM (21. 10. 2026) — rovnaké miesto ako `.pk-toast-viewport` (index.css §RÁM APPKY).
+      offset={{ bottom: 'var(--pk-toast-b)' }}
+      mobileOffset={{ bottom: 'var(--pk-toast-b)' }}
       toastOptions={{
         classNames: {
           toast:

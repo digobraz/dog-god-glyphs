@@ -411,3 +411,12 @@ html.is-app a[href^="/heroglyph"] { display: none !important; }
      Bez okraja (Android s tlačidlami, starý iPhone) aspoň 12 px. */
 :root { --pack-dock-b: calc(env(safe-area-inset-bottom, 0px) + 16px); }
 html.is-app { --pack-dock-b: max(12px, calc(env(safe-area-inset-bottom, 0px) - 4px)); }
+
+/* HLÁŠKY (toast) — DOLE NAD SPODNÝM NAVOM, NIE HORE (21. 10. 2026).
+   Matej: „ak si napíšem niečo do mena a idem ďalej, automaticky sa to ukladá a tá hláška je mimo
+   displej hore, nie je celá vidno — vymysli to inak a uprav to všade". Radix toast stál na mobile
+   `top-0`, teda v appke pod hodinami a výrezom. Teraz obe rodiny (radix `toast.tsx` aj sonner)
+   stoja tam, kde ich má Instagram: tesne nad spodnou lištou. Bez navu (`--pack-nav-h` chýba) nad
+   spodným okrajom. Jedno číslo → žiadna hláška sa nemôže vrátiť pod výrez. */
+:root { --pk-toast-b: calc(var(--pack-dock-b) + var(--pack-nav-h, 0px) + 12px); }
+.pk-toast-viewport { bottom: var(--pk-toast-b); top: auto; }
