@@ -1066,6 +1066,8 @@ export const nld: Partial<Dict> = {
   "pack.notif.sheetTitle": "Meldingen",
   "pack.notif.back": "Terug",
   "pack.notif.allStats": "Alle statistieken",
+  "pack.notif.newerDog": "Nieuwere hond",
+  "pack.notif.olderDog": "Oudere hond",
   "pack.notif.perMonth": "deze maand",
   "pack.notif.members": "leden",
   "pack.notif.countries": "landen",

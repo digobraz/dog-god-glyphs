@@ -1066,6 +1066,8 @@ export const tur: Partial<Dict> = {
   "pack.notif.sheetTitle": "Bildirimler",
   "pack.notif.back": "Geri",
   "pack.notif.allStats": "Tüm istatistikler",
+  "pack.notif.newerDog": "Daha yeni köpek",
+  "pack.notif.olderDog": "Önceki köpek",
   "pack.notif.perMonth": "bu ay",
   "pack.notif.members": "üye",
   "pack.notif.countries": "ülke",

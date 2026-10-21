@@ -1063,6 +1063,8 @@ export const jpn: Partial<Dict> = {
   "pack.notif.sheetTitle": "お知らせ",
   "pack.notif.back": "戻る",
   "pack.notif.allStats": "すべての統計",
+  "pack.notif.newerDog": "新しい犬",
+  "pack.notif.olderDog": "前の犬",
   "pack.notif.perMonth": "今月",
   "pack.notif.members": "メンバー",
   "pack.notif.countries": "か国",

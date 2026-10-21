@@ -1233,6 +1233,8 @@ export const rus: Partial<Dict> = {
   "pack.notif.sheetTitle": "Уведомления",
   "pack.notif.back": "Назад",
   "pack.notif.allStats": "Вся статистика",
+  "pack.notif.newerDog": "Более новый пёс",
+  "pack.notif.olderDog": "Предыдущий пёс",
   "pack.notif.perMonth": "за месяц",
   "pack.notif.members": "участников",
   "pack.notif.countries": "стран",

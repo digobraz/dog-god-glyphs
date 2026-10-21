@@ -1063,6 +1063,8 @@ export const ara: Partial<Dict> = {
   "pack.notif.sheetTitle": "الإشعارات",
   "pack.notif.back": "رجوع",
   "pack.notif.allStats": "كل الإحصاءات",
+  "pack.notif.newerDog": "كلب أحدث",
+  "pack.notif.olderDog": "كلب أقدم",
   "pack.notif.perMonth": "هذا الشهر",
   "pack.notif.members": "عضو",
   "pack.notif.countries": "دولة",

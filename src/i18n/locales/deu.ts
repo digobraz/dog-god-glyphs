@@ -1260,6 +1260,8 @@ export const deu: Partial<Dict> = {
   "pack.notif.sheetTitle": "Benachrichtigungen",
   "pack.notif.back": "Zurück",
   "pack.notif.allStats": "Alle Statistiken",
+  "pack.notif.newerDog": "Neuerer Hund",
+  "pack.notif.olderDog": "Älterer Hund",
   "pack.notif.perMonth": "diesen Monat",
   "pack.notif.members": "Mitglieder",
   "pack.notif.countries": "Länder",

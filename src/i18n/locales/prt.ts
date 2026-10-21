@@ -1255,6 +1255,8 @@ export const prt: Partial<Dict> = {
   "pack.notif.sheetTitle": "Notificações",
   "pack.notif.back": "Voltar",
   "pack.notif.allStats": "Todas as estatísticas",
+  "pack.notif.newerDog": "Cão mais recente",
+  "pack.notif.olderDog": "Cão anterior",
   "pack.notif.perMonth": "este mês",
   "pack.notif.members": "membros",
   "pack.notif.countries": "países",

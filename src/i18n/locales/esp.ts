@@ -1252,6 +1252,8 @@ export const esp: Partial<Dict> = {
   "pack.notif.sheetTitle": "Notificaciones",
   "pack.notif.back": "Atrás",
   "pack.notif.allStats": "Todas las estadísticas",
+  "pack.notif.newerDog": "Perro más reciente",
+  "pack.notif.olderDog": "Perro anterior",
   "pack.notif.perMonth": "este mes",
   "pack.notif.members": "miembros",
   "pack.notif.countries": "países",

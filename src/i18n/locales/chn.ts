@@ -1063,6 +1063,8 @@ export const chn: Partial<Dict> = {
   "pack.notif.sheetTitle": "通知",
   "pack.notif.back": "返回",
   "pack.notif.allStats": "全部统计",
+  "pack.notif.newerDog": "更新的狗狗",
+  "pack.notif.olderDog": "更早的狗狗",
   "pack.notif.perMonth": "本月",
   "pack.notif.members": "位成员",
   "pack.notif.countries": "个国家",

@@ -1067,6 +1067,8 @@ export const ind: Partial<Dict> = {
   "pack.notif.sheetTitle": "सूचनाएँ",
   "pack.notif.back": "वापस",
   "pack.notif.allStats": "सभी आँकड़े",
+  "pack.notif.newerDog": "Anjing lebih baru",
+  "pack.notif.olderDog": "Anjing sebelumnya",
   "pack.notif.perMonth": "इस महीने",
   "pack.notif.members": "सदस्य",
   "pack.notif.countries": "देश",

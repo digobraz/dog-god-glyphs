@@ -1252,6 +1252,8 @@ export const fra: Partial<Dict> = {
   "pack.notif.sheetTitle": "Notifications",
   "pack.notif.back": "Retour",
   "pack.notif.allStats": "Toutes les stats",
+  "pack.notif.newerDog": "Chien plus récent",
+  "pack.notif.olderDog": "Chien plus ancien",
   "pack.notif.perMonth": "ce mois-ci",
   "pack.notif.members": "membres",
   "pack.notif.countries": "pays",

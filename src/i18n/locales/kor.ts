@@ -1066,6 +1066,8 @@ export const kor: Partial<Dict> = {
   "pack.notif.sheetTitle": "알림",
   "pack.notif.back": "뒤로",
   "pack.notif.allStats": "전체 통계",
+  "pack.notif.newerDog": "더 최근 강아지",
+  "pack.notif.olderDog": "이전 강아지",
   "pack.notif.perMonth": "이번 달",
   "pack.notif.members": "회원",
   "pack.notif.countries": "개국",

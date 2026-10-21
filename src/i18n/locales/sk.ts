@@ -2183,6 +2183,8 @@ export const sk: Partial<Dict> = {
   "pack.notif.sheetTitle": "Upozornenia",
   "pack.notif.back": "Späť",
   "pack.notif.allStats": "Všetky štatistiky",
+  "pack.notif.newerDog": "Novší pes",
+  "pack.notif.olderDog": "Starší pes",
   "pack.notif.perMonth": "za mesiac",
   "pack.notif.members": "členov",
   "pack.notif.countries": "krajín",

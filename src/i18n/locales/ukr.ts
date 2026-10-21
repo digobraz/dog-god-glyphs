@@ -1251,6 +1251,8 @@ export const ukr: Partial<Dict> = {
   "pack.notif.sheetTitle": "Сповіщення",
   "pack.notif.back": "Назад",
   "pack.notif.allStats": "Уся статистика",
+  "pack.notif.newerDog": "Новіший пес",
+  "pack.notif.olderDog": "Попередній пес",
   "pack.notif.perMonth": "цього місяця",
   "pack.notif.members": "учасників",
   "pack.notif.countries": "країн",
