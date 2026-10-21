@@ -405,7 +405,9 @@ html.is-app a[href^="/heroglyph"] { display: none !important; }
    od spodku okna.
    · WEB: bezpečný okraj + 16 px — Safari má dole vlastnú lištu, nav nad ňou dýcha.
    · APPKA: dole je len domovský indikátor (stojí v spodných ~13 px z 34 px okraja), lišta
-     prehliadača tam nie je. Nav ide o 26 px nižšie, nad indikátorom ostáva ~11 px vzduchu.
+     prehliadača tam nie je. Nav sedí 12 px od spodku (iPhone: 50 → 12 px), spodok baru
+     na úrovni indikátora ako tab bar Instagramu. Matej 21. 10.: 24 px „pomerne vysoko… kľudne
+     o polovicu“ (prvý krok bol okraj − 10 = 24 px).
      Bez okraja (Android s tlačidlami, starý iPhone) aspoň 12 px. */
 :root { --pack-dock-b: calc(env(safe-area-inset-bottom, 0px) + 16px); }
-html.is-app { --pack-dock-b: max(12px, calc(env(safe-area-inset-bottom, 0px) - 10px)); }
+html.is-app { --pack-dock-b: max(12px, calc(env(safe-area-inset-bottom, 0px) - 22px)); }
