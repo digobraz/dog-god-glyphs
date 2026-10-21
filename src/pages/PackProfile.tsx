@@ -9,7 +9,7 @@ import { PackSettings } from '@/components/pack/PackSettings';
 import { PawmatesSection } from '@/components/pack/PawmatesSection';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { PACK_THEME, PACK_BOX, PACK_TEXT, PACK_SPACE, PF_FIELD_CSS, FONT_TITLE, FONT_UI, usePaperRoute } from '@/components/pack/packTheme';
-import { GOLD_BLOCK_CSS } from '@/components/pack/navGoldSkin';
+import { GOLD_BLOCK_CSS, LAPIS } from '@/components/pack/navGoldSkin';
 import { tierVars } from '@/lib/packTiers';
 import { uploadAvatarPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
@@ -64,6 +64,32 @@ const T = PACK_THEME;
 // Vzhľad riadku je kópiou `.ts-rank` z karty homepage (`TripSpotlight.tsx`) — ten istý
 // údaj má naprieč appkou ten istý tvar. Nesedí tu preto v `PF_FIELD_CSS`: tá je zdieľaná
 // s psou kartou a read-profilom, a tie tento riadok nemajú.
+// ── RIADKY PROFILU (21. 10. 2026) ── štítok vľavo · hodnota vpravo · tenká čiara, ako úprava
+// profilu na Instagrame. Ovládače ostávajú `.pf-field` (pilulky, selecty), tu im padá rám aj výplň.
+const ROWS_CSS = `
+.pf-rows{display:flex;flex-direction:column;}
+.pf-row{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;min-height:44px;border-bottom:1px solid ${T.hairline};color:inherit;}
+.pf-rows > .pf-row:last-child,.pf-rows > :last-child > .pf-row{border-bottom:none;}
+.pf-row-lbl{flex:0 0 auto;font-family:'Cinzel',serif;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
+.pf-row.is-shown .pf-row-lbl{color:${LAPIS.edge};font-weight:700;}
+.pf-row > :not(.pf-row-lbl){flex:1 1 auto;min-width:0;display:flex;justify-content:flex-end;}
+.pf-row-txt{align-items:center;gap:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.body}px;color:${T.ink};}
+.pf-rows .pf-field{background:none !important;border-color:transparent !important;box-shadow:none !important;text-align:right;text-align-last:right;font-size:${PACK_TEXT.body}px !important;padding-right:0 !important;}
+.pf-rows .pf-field input{text-align:right;font-size:${PACK_TEXT.body}px !important;}
+.pf-rows .pf-field:focus,.pf-rows .pf-field:focus-within{box-shadow:inset 0 -2px 0 ${LAPIS.edge} !important;}
+.pf-rows .pf-field:not(.pf-selchip) > span[aria-hidden]{display:none;}
+.pf-row--toggle .pf-row-lbl{text-align:left;}
+.pf-rows .pf-field{justify-content:flex-end;}
+.pf-rows .pf-field input{width:100% !important;}
+/* Tri voľby sa vedľa štítku na mobile nezmestia — prepínač ide pod štítok cez celú šírku. */
+.pf-row--toggle{flex-direction:column;align-items:stretch;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.md}px 0;}
+.pf-row--toggle > .pf-toggle{justify-content:stretch;width:100%;}
+.pf-row--toggle .pf-toggle__opt{flex:1 1 0;}
+.pf-rows-ttl{display:flex;align-items:center;justify-content:space-between;margin-top:${PACK_SPACE.lg}px;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
+.pf-rows-ttl:first-child{margin-top:0;}
+.pf-rows-ttl i{font-style:normal;letter-spacing:.02em;text-transform:none;}
+`;
+
 const PILGRIM_CSS = `
 .pf-pilgrim{ transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
 .pf-pilgrim:hover{
@@ -581,6 +607,7 @@ export default function PackProfile() {
             presne ako `GLASS_CSS`. Render raz na stránke. */}
         <style>{PF_FIELD_CSS}</style>
         <style>{PILGRIM_CSS}</style>
+        <style>{ROWS_CSS}</style>
 
         {/* SEKCIA 1+2 VRÁTENÉ SPÄŤ POD SEBA (Matej 2026-07-26, tretí pokus:
             „toto rozloženie je zlé vráť to... na 2 bloky pod sebou"). Vedľa
@@ -688,9 +715,12 @@ export default function PackProfile() {
                 širokosti NAJDLHŠIEHO z nich a polia majú zhodnú šírku aj zvislú os —
                 predtým si každý riadok počítal svoju šírku sám a PREZÝVKA (63px) si
                 ukrojila z poľa vedľa. Recept `.pf-inline-grid` žije v `packTheme.ts`. */}
-            <div className="flex-1 min-w-0 pf-inline-grid">
-              <div className={`pf-inline${(human?.displayAs ?? 'name') === 'name' ? ' is-shown' : ''}`}>
-                <span className="pf-inline-lbl">{tx('pack.profile.name', 'Name')}</span>
+            {/* RIADKY AKO NA INSTAGRAME (Matej 21. 10. 2026: „meno, prezývka aj názov svorky nedaj do
+                bloku, skôr len riadok, ako je to aj na IG"). Štítok vľavo, hodnota vpravo, tenká čiara.
+                Recept `.pf-rows` je v `ROWS_CSS` nižšie; ovládače sú tie isté, len bez rámu. */}
+            <div className="flex-1 min-w-0 pf-rows">
+              <div className={`pf-row${(human?.displayAs ?? 'name') === 'name' ? ' is-shown' : ''}`}>
+                <span className="pf-row-lbl">{tx('pack.profile.name', 'Name')}</span>
                 <input
                   type="text"
                   value={fullName}
@@ -718,8 +748,8 @@ export default function PackProfile() {
                 />
               </div>
 
-              <div className={`pf-inline${human?.displayAs === 'nickname' ? ' is-shown' : ''}`}>
-                <span className="pf-inline-lbl">{tx('pack.profile.nickname', 'Nickname')}</span>
+              <div className={`pf-row${human?.displayAs === 'nickname' ? ' is-shown' : ''}`}>
+                <span className="pf-row-lbl">{tx('pack.profile.nickname', 'Nickname')}</span>
                 <AutoSaveTextInput
                   value={human?.nickname ?? ''}
                   onSave={(v) => patchHuman({ nickname: v || undefined })}
@@ -733,8 +763,8 @@ export default function PackProfile() {
                   DOMÁCNOSTI (svorka 1. typu), nie o komunitu — tú appka od 12. 9. volá
                   DOGYPT / Dogypťania. Ukladá sa do `pack_profiles.human.packName`,
                   žiadna migrácia. */}
-              <div className="pf-inline">
-                <span className="pf-inline-lbl">{tx('pack.profile.packName', 'Pack name')}</span>
+              <div className={`pf-row${human?.displayAs === 'packName' ? ' is-shown' : ''}`}>
+                <span className="pf-row-lbl">{tx('pack.profile.packName', 'Pack name')}</span>
                 <AutoSaveTextInput
                   value={human?.packName ?? ''}
                   onSave={(v) => patchHuman({ packName: v || undefined })}
@@ -743,8 +773,8 @@ export default function PackProfile() {
                 />
               </div>
 
-              <div className="pf-inline pf-inline--toggle">
-                <span className="pf-inline-lbl">{tx('pack.profile.showAs', 'Show as')}</span>
+              <div className="pf-row pf-row--toggle">
+                <span className="pf-row-lbl">{tx('pack.profile.showAs', 'Show as')}</span>
                 <DisplayAsToggle
                   value={human?.displayAs ?? 'name'}
                   onChange={(v) => patchHuman({ displayAs: v })}
@@ -852,84 +882,71 @@ export default function PackProfile() {
               25.7., bráni `Column`, nie zarovnanie zľava. */}
           <GoldRule width="100%" my={18} />
           <Column max={640}>
-          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 10 }}>
-          <SubBlock label={tx('pack.profile.basics', 'The basics')} center>
-            <div className="flex flex-wrap items-center justify-center gap-1.5">
-              <HideWrap hidden={isHidden(profile, 'age')}>
+          {/* ZÁKLAD a ŽIVOTNÝ ŠTÝL = RIADKY, nie dva bloky (Matej 21. 10. 2026: „základ a životný štýl
+              asi by som to nedával do blokov, je to nejaké moc všetko preblokované"). Ovládače sú tie
+              isté ako v pilulkách; `.pf-rows` im zoberie rám a hodnotu zarovná doprava. */}
+          <div className="pf-rows pf-rows--sec">
+            <div className="pf-rows-ttl">
+              <span>{tx('pack.profile.basics', 'The basics')}</span>
+              <IdentityVisibilityEye profile={profile} patchHuman={patchHuman} />
+            </div>
+            <HideWrap hidden={isHidden(profile, 'age')}>
+              <div className="pf-row">
+                <span className="pf-row-lbl">{tx('pack.profile.agePlaceholder', 'Age')}</span>
                 <MiniChipInput
                   emoji="🎂"
                   type="number"
                   value={human?.age}
-                  placeholder={tx('pack.profile.agePlaceholder', 'Age')}
-                  width={32}
+                  placeholder="—"
+                  width={40}
                   onSave={(v) => patchHuman({ age: v === '' ? undefined : Number(v) })}
                 />
-              </HideWrap>
-              <Link to="/pack/dogs" className="pf-tap inline-flex items-center" style={{ textDecoration: 'none', cursor: 'pointer' }}>
-                <MiniChip>
-                  <span aria-hidden>🐶</span>
-                  <span style={{ color: dogs.length ? T.inkDim : T.inkFaint }}>
-                    {dogs.length} {dogs.length === 1
-                      ? tx('pack.profile.dogOne', 'dog')
-                      : tx('pack.profile.dogMany', 'dogs')}
-                  </span>
-                </MiniChip>
-              </Link>
+              </div>
+            </HideWrap>
+            <Link to="/pack/dogs" className="pf-row pf-tap" style={{ textDecoration: 'none' }}>
+              <span className="pf-row-lbl">{tx('pack.profile.dogMany', 'dogs')}</span>
+              <span className="pf-row-txt">🐶 {dogs.length} <ChevronRight className="h-4 w-4" style={{ color: T.cardEdge }} /></span>
+            </Link>
+            <div className="pf-row">
+              <span className="pf-row-lbl">{tx('pack.profile.nationality', 'Nationality')}</span>
               {/* Národnosť oko NEMÁ — vždy viditeľná (Matej 2026-07-25). */}
               <NationalitySelect
                 value={human?.nationality ?? 'SK'}
                 onChange={(v) => patchHuman({ nationality: v })}
               />
-              <HideWrap hidden={isHidden(profile, 'region')}>
-                {/* Matej 2026-07-26: „jaslovske bohunice nie su cele viditelne" —
-                    76px zobrazí len ~9 znakov, dlhšie mestá (Jaslovské Bohunice,
-                    18 znakov) sa orežú. 128px pokryje bežné SK mestá aj s
-                    diakritikou bez toho, aby riadok pills prerástol na mobile. */}
+            </div>
+            <HideWrap hidden={isHidden(profile, 'region')}>
+              <div className="pf-row">
+                <span className="pf-row-lbl">{tx('pack.profile.cityPlaceholder', 'City')}</span>
                 <MiniChipInput
                   emoji="📍"
                   value={human?.region ?? ''}
-                  placeholder={tx('pack.profile.cityPlaceholder', 'City')}
-                  width={128}
+                  placeholder="—"
+                  width={150}
                   onSave={(v) => patchHuman({ region: v || undefined })}
                 />
-              </HideWrap>
-              {/* Jedno oko na celý riadok — dropdown s výberom, čo skryť (Matej
-                  2026-07-25: „nie oko pri každej"). Druhý riadok oko nemá: je
-                  dobrovoľný, kto ho nechce ukázať, nevyplní ho. */}
-              <IdentityVisibilityEye profile={profile} patchHuman={patchHuman} />
+              </div>
+            </HideWrap>
+            <div className="pf-rows-ttl">
+              <span>{tx('pack.profile.lifestyle', 'Lifestyle')}</span>
+              <i>{tx('pack.profile.optional', 'Optional')}</i>
             </div>
-          </SubBlock>
-          <SubBlock label={tx('pack.profile.lifestyle', 'Lifestyle')} hint={tx('pack.profile.optional', 'Optional')} center>
-            {/* MRIEŽKA 2 × 2 (Matej 28. 9. 2026 nad hárkom plany/nakres-profil-zivotny-styl-2026-09-28: „ok").
-                Dovtedy flex-wrap: každý výber inak široký, na mobile sa lámali 2 + 1 + 1. */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: PACK_SPACE.sm, width: '100%', maxWidth: 340, margin: '0 auto' }}>
-              <StatusSelect
-                value={human?.relationship}
-                onChange={(v) => patchHuman({ relationship: v })}
-              />
-              <LifestyleSelect
-                emoji="🚬"
-                placeholder={tx('pack.profile.smokePlaceholder', 'Smoke')}
-                options={SMOKE_OPTIONS}
-                value={human?.smoke}
-                onChange={(v) => patchHuman({ smoke: v })}
-              />
-              <LifestyleSelect
-                emoji="🥗"
-                placeholder={tx('pack.profile.dietPlaceholder', 'Diet')}
-                options={DIET_OPTIONS}
-                value={human?.diet}
-                onChange={(v) => patchHuman({ diet: v })}
-              />
-              <LifestyleSelect
-                emoji="💼"
-                placeholder={tx('pack.profile.workPlaceholder', 'Work')}
-                options={WORK_OPTIONS}
-                value={human?.work}
-                onChange={(v) => patchHuman({ work: v })}
-              />
+            <div className="pf-row">
+              <span className="pf-row-lbl">{tx('pack.profile.statusPlaceholder', 'Status')}</span>
+              <StatusSelect value={human?.relationship} onChange={(v) => patchHuman({ relationship: v })} />
             </div>
-          </SubBlock>
+            <div className="pf-row">
+              <span className="pf-row-lbl">{tx('pack.profile.smokePlaceholder', 'Smoke')}</span>
+              <LifestyleSelect emoji="" placeholder="—" options={SMOKE_OPTIONS} value={human?.smoke} onChange={(v) => patchHuman({ smoke: v })} />
+            </div>
+            <div className="pf-row">
+              <span className="pf-row-lbl">{tx('pack.profile.dietPlaceholder', 'Diet')}</span>
+              <LifestyleSelect emoji="" placeholder="—" options={DIET_OPTIONS} value={human?.diet} onChange={(v) => patchHuman({ diet: v })} />
+            </div>
+            <div className="pf-row">
+              <span className="pf-row-lbl">{tx('pack.profile.workPlaceholder', 'Work')}</span>
+              <LifestyleSelect emoji="" placeholder="—" options={WORK_OPTIONS} value={human?.work} onChange={(v) => patchHuman({ work: v })} />
+            </div>
           </div>
           </Column>
 
@@ -1247,7 +1264,7 @@ function LifestyleSelect<V extends string>({
         cursor: 'pointer',
       }}
     >
-      <option value="">{emoji} {placeholder}</option>
+      <option value="">{emoji ? `${emoji} ` : ''}{placeholder}</option>
       {options.map((opt) => (
         <option key={opt.value} value={opt.value}>{opt.emoji ? `${opt.emoji} ` : ''}{tx(`pack.profileTag.${opt.value}`, opt.labelEN)}</option>
       ))}
@@ -1628,7 +1645,7 @@ function StatusSelect({
         cursor: 'pointer',
       }}
     >
-      <option value="">{tx('pack.profile.statusPlaceholder', 'Status')}</option>
+      <option value="">—</option>
       {RELATIONSHIP_OPTIONS.map((opt) => (
         <option key={opt.value} value={opt.value}>{opt.emoji} {tx(`pack.profileTag.${opt.value}`, opt.labelEN)}</option>
       ))}
@@ -1679,14 +1696,16 @@ function DisplayAsToggle({
   value,
   onChange,
 }: {
-  value: 'name' | 'nickname';
-  onChange: (v: 'name' | 'nickname') => void;
+  value: 'name' | 'nickname' | 'packName';
+  onChange: (v: 'name' | 'nickname' | 'packName') => void;
 }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
-  const opts: Array<{ key: 'name' | 'nickname'; label: string }> = [
+  // NÁZOV SVORKY ako tretia voľba (Matej 21. 10. 2026: „pri zobraziť by som dal aj názov svorky").
+  const opts: Array<{ key: 'name' | 'nickname' | 'packName'; label: string }> = [
     { key: 'name', label: tx('pack.profile.name', 'Name') },
     { key: 'nickname', label: tx('pack.profile.nickname', 'Nickname') },
+    { key: 'packName', label: tx('pack.profile.packName', 'Pack name') },
   ];
   /* Matej 2026-08-13: „zobraziť meno/prezývky urob o trošku výraznejšie je to takmer
      neviditeľné a tá pils okolo tú nezarovnaj až po koniec textarea nad ňou".

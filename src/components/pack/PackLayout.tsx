@@ -700,13 +700,16 @@ function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: 
               (≤1023px) musí preskočiť .trp-mtoggle LIST/MAP pilulku (bottom 78px + výška),
               inak ju prekrýva a schová druhú položku menu pod ňou (Matej 2026-07-27 bug report). */}
           <style>{`
-            .pack-avatar-menu{bottom:calc(100% + 10px);}
+            .pack-avatar-menu{bottom:calc(100% + 24px);}
             /* ⚠️ Tá istá rezerva ako u dvojice ZOZNAM/PRIDAŤ (.trp-mactions v PackMap):
                menu ju musí preskočiť, inak mu spodnú položku prekryje — dvojica má
                z-index 900, menu žije v nave na z-40. Preto obe strany berú kotúč
                AINUBISA z jedného zdroja (--pack-medal-rise), nie z dvoch čísel, ktoré
                sa rozišli pri prvej úprave (stalo sa 4. 9. 2026, prekryv 4 px). */
-            @media (max-width:1023px){.pack-avatar-menu{bottom:calc(100% + 76px + var(--pack-medal-rise, 0px) + 4px);}}
+            /* 21. 10. 2026: rezerva platí LEN na mape (.trp-root). Dovtedy platila na mobile
+               všade a menu na DOMOV/JA viselo 76 px nad navom (Matej: „vysúva sa príliš ďaleko
+               od navu… má sa vysunúť spod navu, priamo z neho"). */
+            @media (max-width:1023px){.trp-root .pack-avatar-menu{bottom:calc(100% + 76px + var(--pack-medal-rise, 0px) + 4px);}}
           `}</style>
           <AvatarMenuItem
             label={t('pack.layout.navProfile')}
