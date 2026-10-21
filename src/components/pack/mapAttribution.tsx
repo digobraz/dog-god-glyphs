@@ -71,7 +71,7 @@ export const MAP_ATTR_CSS = `
 export const mapAttrLiftCSS = (maxWidth: number) => `
 @media (max-width:${maxWidth}px){
   .leaflet-control-scale{
-    bottom:calc(env(safe-area-inset-bottom, 0px) + 16px + var(--pack-nav-h, 0px) + 10px);}
+    bottom:calc(var(--pack-dock-b) + var(--pack-nav-h, 0px) + 10px);}
   body.has-map-actions .leaflet-control-scale{
     bottom:calc(var(--trp-mactions-h, 149px) + 10px);}
   body.trp-draw-lock .leaflet-control-scale{

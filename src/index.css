@@ -394,3 +394,18 @@ body {
    zmizne jedným pravidlom, nie výnimkou na každom mieste. Triedu `is-app` dáva index.html,
    programové navigácie chytá `AppRouteGuard.tsx`. */
 html.is-app a[href^="/heroglyph"] { display: none !important; }
+
+/* ── RÁM APPKY (21. 10. 2026) — appka a prehliadač majú iný RÁM, nie iný obsah ──────────
+   Matej: „v appke je nav moc vysoko… ak ho posuniem dolu, v Safari bude na úrovni URL lišty".
+   Rozdiely appka vs. web žijú TU ako premenné; komponent si číslo berie odtiaľ, výnimku
+   „ak appka" si na mieste nepíše. Register rozdielov a prečo → `plany/locky/appka-ram.md`.
+   `is-app` / `is-ios` / `is-android` dáva index.html pred prvým vykreslením.
+
+   --pack-dock-b = odstup spodného navu (a všetkého, čo sa naň viaže: AINUBIS, cookie, mapa)
+   od spodku okna.
+   · WEB: bezpečný okraj + 16 px — Safari má dole vlastnú lištu, nav nad ňou dýcha.
+   · APPKA: dole je len domovský indikátor (stojí v spodných ~13 px z 34 px okraja), lišta
+     prehliadača tam nie je. Nav ide o 26 px nižšie, nad indikátorom ostáva ~11 px vzduchu.
+     Bez okraja (Android s tlačidlami, starý iPhone) aspoň 12 px. */
+:root { --pack-dock-b: calc(env(safe-area-inset-bottom, 0px) + 16px); }
+html.is-app { --pack-dock-b: max(12px, calc(env(safe-area-inset-bottom, 0px) - 10px)); }

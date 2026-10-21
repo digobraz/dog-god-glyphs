@@ -445,7 +445,7 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
            a nav ležal celý pod ňou). ZRUŠENÉ: Cookie lišta od 22. 9. 2026 obsah PREKRÝVA, neposúva ho (Matej: „radšej keby zakryli obsah na mobile než ho vytlačiť“) — lišta má 112 px a zmizne na jedno ťuknutie.
            Nav sa NEPOSÚVA; kým človek nevyberie, lišta ho zakryje. */
         left: 0, right: 0,
-        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+        bottom: 'var(--pack-dock-b)',
         display: 'flex', justifyContent: 'center',
         // Pás je cez celé okno — bez tohto by prekryl obsah stránky po oboch stranách baru.
         pointerEvents: 'none',

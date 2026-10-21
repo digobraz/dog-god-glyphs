@@ -663,7 +663,7 @@ body.has-hub-ainubis .ainubis-launcher { visibility: hidden; }
   }
 }
 @media (max-width: 767px) {
-  body.has-hub-ainubis .ainubis-panel { bottom: var(--ainubis-dock-b, calc(env(safe-area-inset-bottom, 0px) + 16px)); }
+  body.has-hub-ainubis .ainubis-panel { bottom: var(--ainubis-dock-b, var(--pack-dock-b)); }
 }`;
 
 export function HubAinubis() {
