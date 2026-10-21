@@ -169,22 +169,28 @@ const CSS = `
     rgba(255,255,255,0.40);
   border:1px solid ${T.hairline};border-radius:${PACK_R.card}px;box-shadow:${PACK_SHADOW.card};transition:transform .15s ease;}
 .ntf-stats:active{transform:scale(0.98);}
-/* FOTKA NAJNOVŠIEHO PSA v mieste glóbu: kruh zrezaný ľavým a spodným okrajom, vrch tesne pod
-   horným okrajom (geometria glóbu z 21. 10.). Je menšia než glóbus — vpravo stoja čísla a fotka
-   pod textom by ho zjedla. Rozmer zo ŠÍRKY BLOKU (cqw) — lock pack-dizajn-system §plynulý stupeň. */
-.ntf-dog{position:absolute;left:-10cqw;top:${PACK_SPACE.sm}px;width:50cqw;height:50cqw;border-radius:${PACK_R.pill}px;overflow:hidden;
+/* FOTKA NAJNOVŠIEHO PSA — CELÁ v kruhu (Matej 21. 10.: „daj tu foto celú nie len kúsok, to sme
+   dávali len ako planéta… v rámci fotky aj číslo ako je to teraz aj na HomePage").
+   Stĺpec vľavo: kruh + meno pod ním. Priemer berie menšie z dvoch: miesto vedľa čísel psy/ľudia
+   (šírka bloku − ich stĺpec) a výška bloku nad bežiacim pásom (− miesto na meno). */
+.ntf-dogcol{position:absolute;z-index:2;left:${PACK_SPACE.sm}px;top:${PACK_SPACE.sm}px;bottom:44px;
+  --ntf-d:min(calc(100cqw - 230px), calc(max(176px, 25dvh) - 96px));
+  width:calc(var(--ntf-d) + ${PACK_SPACE.xxl}px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;}
+.ntf-dogwrap{position:relative;width:var(--ntf-d);height:var(--ntf-d);flex:0 0 auto;}
+.ntf-dog{display:block;width:100%;height:100%;border-radius:${PACK_R.pill}px;overflow:hidden;
   border:2px solid ${T.cardEdge};box-shadow:${PACK_SHADOW.card};background:${T.tileBg};cursor:pointer;padding:0;touch-action:pan-y;}
 .ntf-dog img{width:100%;height:100%;object-fit:cover;display:block;animation:ntf-fade .3s ease both;}
-.ntf-cap{position:absolute;z-index:2;left:${PACK_SPACE.md}px;bottom:48px;max-width:46cqw;display:flex;align-items:flex-end;gap:${PACK_SPACE.sm}px;pointer-events:none;}
-.ntf-cap-num{flex:0 0 auto;font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.02em;line-height:1;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;
-  background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${PACK_SHADOW.lift};}
-/* Trojbodka NEEXISTUJE (brand v4.1) — meno psa sa radšej zalomí na dva riadky. */
-.ntf-cap-name{min-width:0;overflow-wrap:anywhere;line-height:1.15;font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
-.ntf-arr{position:absolute;z-index:3;width:32px;height:32px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;padding:0;border:none;cursor:pointer;
-  background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${PACK_SHADOW.lift};font-size:${PACK_TEXT.h2}px;line-height:1;top:calc(${PACK_SPACE.sm}px + 25cqw - 16px);}
+/* Odznak čísla NA FOTKE — ten istý ako na homepage (HeroCard): lapis, spodný okraj kruhu, svetlý lem. */
+.ntf-dog-num{position:absolute;left:50%;bottom:-${PACK_SPACE.xs}px;transform:translateX(-50%);pointer-events:none;white-space:nowrap;
+  font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.02em;line-height:1;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;
+  background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${T.hairline};box-shadow:${PACK_SHADOW.lift};}
+/* Trojbodka NEEXISTUJE (brand v4.1) — meno psa sa radšej zalomí. */
+.ntf-dog-name{max-width:100%;text-align:center;overflow-wrap:anywhere;line-height:1.15;font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.label}px;color:${T.inkStrong};pointer-events:none;}
+.ntf-arr{position:absolute;z-index:3;top:50%;width:28px;height:28px;margin-top:-14px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;padding:0;border:none;cursor:pointer;
+  background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${PACK_SHADOW.lift};font-size:${PACK_TEXT.lead}px;line-height:1;}
 .ntf-arr:disabled{opacity:.35;cursor:default;}
-.ntf-arr--prev{left:${PACK_SPACE.xs}px;}
-.ntf-arr--next{left:calc(40cqw - 16px);}
+.ntf-arr--prev{left:-${PACK_SPACE.md}px;}
+.ntf-arr--next{right:-${PACK_SPACE.md}px;}
 .ntf-stats .pk-blurfade{height:46%;z-index:1;}
 .ntf-nums{position:absolute;z-index:2;right:${PACK_SPACE.xxl}px;top:${PACK_SPACE.sm}px;bottom:52px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:${PACK_SPACE.xs}px;}
 /* Počítadlo nad stupnicou PACK_TEXT — ten istý precedens ako počítadlo glóbu na homepage
@@ -310,33 +316,31 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                 vedie na vlastný príspevok — preto blok nie je <button> (tlačidlo v tlačidle). */}
             <div className="ntf-stats" role="button" tabIndex={0} aria-label={t('pack.notif.allStats')}
               onClick={() => setView('stats')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setView('stats'); }}>
+              {/* Spodok bloku sa rozplynie pod bežiacim pásom (Matej 21. 10.: „spodnú časť rozmaž nejak takto"). */}
+              <span className="pk-blurfade" aria-hidden />
               {/* Ťuk na fotku = karta psa, ťuk na zvyšok bloku = všetky štatistiky. Švih = ďalší pes. */}
               {cur && (
-                <button type="button" className="ntf-dog" aria-label={`#${cur.n} ${cur.name}`}
-                  onClick={(e) => { e.stopPropagation(); onClose(); navigate(dogPagePath(cur.name, cur.n)); }}
-                  onTouchStart={(e) => setTouchX(e.touches[0].clientX)}
-                  onTouchEnd={(e) => {
-                    if (touchX === null) return;
-                    const dx = e.changedTouches[0].clientX - touchX;
-                    setTouchX(null);
-                    if (Math.abs(dx) > 40) { e.preventDefault(); step(dx < 0 ? 1 : -1); }
-                  }}>
-                  <img key={cur.n} src={sizedUrl(cur.photo, 400)} alt="" />
-                </button>
-              )}
-              {/* Spodok fotky sa rozplynie (Matej 21. 10.: „spodnú časť rozmaž nejak takto"). */}
-              <span className="pk-blurfade" aria-hidden />
-              {cur && (
-                <>
-                  <button type="button" className="ntf-arr ntf-arr--prev" aria-label={t('pack.notif.newerDog')}
-                    disabled={di === 0} onClick={(e) => { e.stopPropagation(); step(-1); }}>&#8249;</button>
-                  <button type="button" className="ntf-arr ntf-arr--next" aria-label={t('pack.notif.olderDog')}
-                    disabled={di >= newest.length - 1} onClick={(e) => { e.stopPropagation(); step(1); }}>&#8250;</button>
-                  <span className="ntf-cap">
-                    <span className="ntf-cap-num">#{cur.n}</span>
-                    <span className="ntf-cap-name">{cur.name}</span>
+                <span className="ntf-dogcol">
+                  <span className="ntf-dogwrap">
+                    <button type="button" className="ntf-dog" aria-label={`#${cur.n} ${cur.name}`}
+                      onClick={(e) => { e.stopPropagation(); onClose(); navigate(dogPagePath(cur.name, cur.n)); }}
+                      onTouchStart={(e) => setTouchX(e.touches[0].clientX)}
+                      onTouchEnd={(e) => {
+                        if (touchX === null) return;
+                        const dx = e.changedTouches[0].clientX - touchX;
+                        setTouchX(null);
+                        if (Math.abs(dx) > 40) { e.preventDefault(); step(dx < 0 ? 1 : -1); }
+                      }}>
+                      <img key={cur.n} src={sizedUrl(cur.photo, 400)} alt="" />
+                    </button>
+                    <span className="ntf-dog-num">#{cur.n}</span>
+                    <button type="button" className="ntf-arr ntf-arr--prev" aria-label={t('pack.notif.newerDog')}
+                      disabled={di === 0} onClick={(e) => { e.stopPropagation(); step(-1); }}>&#8249;</button>
+                    <button type="button" className="ntf-arr ntf-arr--next" aria-label={t('pack.notif.olderDog')}
+                      disabled={di >= newest.length - 1} onClick={(e) => { e.stopPropagation(); step(1); }}>&#8250;</button>
                   </span>
-                </>
+                  <span className="ntf-dog-name">{cur.name}</span>
+                </span>
               )}
               {/* Najvýraznejšie: psy a ľudia, pod sebou (Matej 21. 10.). */}
               <span className="ntf-nums" style={{ ['--ntf-len' as string]: numLen }}>
