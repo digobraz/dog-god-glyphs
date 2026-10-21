@@ -78,7 +78,7 @@ const INIT_PHI = 4.7; // Europe / Africa faces front (owner region) at rest
 const THETA = 0.28;
 const SPIN = 0.0016; // rad/frame ≈ one slow rotation per ~65s
 
-function PackGlobe({
+export function PackGlobe({
   topCountries,
   ownerCountry,
 }: {
