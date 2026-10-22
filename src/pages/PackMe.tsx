@@ -62,7 +62,12 @@ const COVER_H = { m: 250, pc: 300 };
 const OWN = { m: 126, pc: 158 };
 const OWN_X = { m: 10, pc: 16 };
 const OWN_DROP = 13;
-const SAT = 56;
+const SAT = { m: 56, pc: 70 };
+/* Satelit je zo 3/4 VONKU z fotky majiteľa a len 1/4 v nej (Matej 23. 10.) — jeho spodok
+ * visí 3/4 priemeru pod spodkom fotky. Medzera pod fotkou z toho istého čísla, aby satelit
+ * nenarazil do čísel (rezerva S.sm nad nimi, čísla majú vlastný margin S.md). */
+const SAT_DROP = { m: SAT.m * 3 / 4, pc: Math.round(SAT.pc * 3 / 4) };
+const GAP = { m: OWN_DROP + SAT_DROP.m + PACK_SPACE.sm - PACK_SPACE.md, pc: PACK_SPACE.lg + SAT_DROP.pc + PACK_SPACE.sm - PACK_SPACE.md };
 /* Fotka psa v šuplíku stojí v OSI fotky majiteľa (Matej 22. 10.) — odsadenie z rovnice. */
 const DOG_D = { m: 60, pc: 96 };
 const DOG_X = { m: OWN_X.m + OWN.m / 2 - DOG_D.m / 2, pc: OWN_X.pc + OWN.pc / 2 - DOG_D.pc / 2 };
@@ -99,9 +104,9 @@ const ME_CSS = `
 .me-own > button:first-child{ display:block; width:100%; height:100%; padding:0; border:0; border-radius:${PACK_R.pill}px; overflow:hidden; cursor:pointer; background:${T.card}; }
 .me-own > button:first-child img{ width:100%; height:100%; object-fit:cover; object-position:50% 14%; display:block; border-radius:${PACK_R.pill}px; border:4px solid ${T.card}; }
 .me-own .ini{ display:grid; place-items:center; width:100%; height:100%; font-family:${FONT_TITLE}; font-size:${TX.h1}px; color:${T.inkWarm}; }
-.me-sat{ position:absolute; left:50%; transform:translateX(-50%); bottom:-${OWN_DROP}px; display:flex; align-items:center;
+.me-sat{ position:absolute; left:50%; transform:translateX(-50%); bottom:-${SAT_DROP.m}px; display:flex; align-items:center;
   padding:0; border:0; background:none; cursor:pointer; }
-.me-sat .s{ width:${SAT}px; height:${SAT}px; border-radius:${PACK_R.pill}px; padding:${S.xs}px; background:${RING}; margin-left:-18px;
+.me-sat .s{ width:${SAT.m}px; height:${SAT.m}px; border-radius:${PACK_R.pill}px; padding:${S.xs}px; background:${RING}; margin-left:-18px;
   box-shadow:0 0 0 2px ${T.card}, ${T.panelShadow}; }
 .me-sat .s:first-child{ margin-left:0; }
 .me-sat .s img{ width:100%; height:100%; border-radius:${PACK_R.pill}px; object-fit:cover; display:block; border:2px solid ${T.card}; }
@@ -140,7 +145,7 @@ const ME_CSS = `
 .me-drow.flip .me-dinfo{ max-height:240px; opacity:1; }
 .me-dinfo p{ margin:${S.xs}px 0 0; font-family:${FONT_UI}; font-size:${TX.label}px; line-height:1.45; color:${T.ink};
   display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
-.me-gap{ height:${S.xl}px; }
+.me-gap{ height:${GAP.m}px; }
 .me-card.open .me-gap{ height:0; }
 
 .me-stats{ display:grid; grid-template-columns:repeat(5,1fr); margin:${S.md}px 0 0; padding:${S.sm}px 0; }
@@ -199,9 +204,9 @@ const ME_CSS = `
   .me-lv{ flex-direction:row; align-items:center; gap:6px; }
   .me-under{ padding:0 ${S.xl}px ${S.xl}px; }
   .me-own{ left:${OWN_X.pc}px; top:-${OWN.pc - S.lg}px; width:${OWN.pc}px; height:${OWN.pc}px; }
-  /* satelit na PC o 20 px nižšie (Matej 23. 10.) — len zavretý stav */
-  .me-sat{ bottom:-${S.sm + 20}px; }
-  .me-sat .s{ width:70px; height:70px; }
+  .me-sat{ bottom:-${SAT_DROP.pc}px; }
+  .me-sat .s{ width:${SAT.pc}px; height:${SAT.pc}px; }
+  .me-gap{ height:${GAP.pc}px; }
   .me-drawer{ margin:0 -${S.xl}px; }
   .me-drow{ padding-left:${DOG_X.pc}px; gap:${S.lg}px; }
   .me-drow:first-child{ padding-top:${S.xxxl}px; }
