@@ -199,7 +199,8 @@ const ME_CSS = `
   .me-lv{ flex-direction:row; align-items:center; gap:6px; }
   .me-under{ padding:0 ${S.xl}px ${S.xl}px; }
   .me-own{ left:${OWN_X.pc}px; top:-${OWN.pc - S.lg}px; width:${OWN.pc}px; height:${OWN.pc}px; }
-  .me-sat{ bottom:-${S.sm}px; }
+  /* satelit na PC o 20 px nižšie (Matej 23. 10.) — len zavretý stav */
+  .me-sat{ bottom:-${S.sm + 20}px; }
   .me-sat .s{ width:70px; height:70px; }
   .me-drawer{ margin:0 -${S.xl}px; }
   .me-drow{ padding-left:${DOG_X.pc}px; gap:${S.lg}px; }
