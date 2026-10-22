@@ -119,7 +119,7 @@ const ME_CSS = `
 .me-trip b{ display:block; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.body}px; color:${T.inkStrong}; }
 .me-trip span{ font-family:${FONT_UI}; font-size:${TX.label}px; color:${T.inkWarm}; }
 .me-empty{ padding:${S.xl}px ${S.lg}px; text-align:center; font-family:${FONT_UI}; font-size:${TX.body}px; color:${T.inkWarm}; }
-.me-veil{ position:fixed; inset:0; z-index:80; background:rgba(5,5,5,0.55); display:flex; align-items:flex-end; justify-content:center; }
+.me-veil{ position:fixed; inset:0; z-index:1000; background:rgba(5,5,5,0.55); display:flex; align-items:flex-end; justify-content:center; }
 .me-sheet{ width:100%; max-width:480px; border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0; border:1.5px solid ${T.cardEdge}; border-bottom:0;
   background:${T.cardGrad}; box-shadow:${T.cardShadow}; padding:${S.sm}px ${S.lg}px calc(env(safe-area-inset-bottom, 0px) + ${S.xl}px); }
 .me-sheet .grab{ width:40px; height:4px; border-radius:${PACK_R.pill}px; background:${T.hairline}; margin:0 auto ${S.lg}px; }
