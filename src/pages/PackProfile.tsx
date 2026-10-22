@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronDown, ChevronRight, Eye, EyeOff, Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -382,6 +382,7 @@ export default function PackProfile() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const navigate = useNavigate();
   // Šat stránky — ten istý zdroj, aký prepína shell (`PackLayout`, `RouteFallback`).
   // Potrebuje ho VŠETKO, čo stojí mimo papyrusovej karty, teda priamo na podklade.
   const paperPage = usePaperRoute(location.pathname);
@@ -571,7 +572,8 @@ export default function PackProfile() {
   }, [session, fullName, myNotePoints, myEventCount, myWishCount]);
 
   return (
-    <PackLayout>
+    // UPRAVIŤ (profil JA v6, 21. 10. 2026) — editor sa vracia na môj profil, nie na homepage.
+    <PackLayout onBack={() => navigate('/pack/profile')} backLabel={tx('pack.me.title', 'Profile')}>
       <div className="flex flex-col gap-5">
         {/* ŠÍPKA ← SVORKA SA KRESLÍ LEN TAM, KDE NIE JE SPODNÝ NAV (Matej 2026-09-12:
             „tá šípka dozadu na SVORKA je zbytočná, daj to preč, veď ani pri /dogs nie je

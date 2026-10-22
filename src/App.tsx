@@ -172,6 +172,7 @@ const MagnetPreview = lazyPack(() => import("@/components/pack/magnetPreview").t
 const Pack = lazyPack(() => import("./pages/Pack.tsx"));
 const PackDogDetail = lazyPack(() => import("./pages/PackDogDetail.tsx"));
 const PackProfile = lazyPack(() => import("./pages/PackProfile.tsx"));
+const PackMe = lazyPack(() => import("./pages/PackMe.tsx")); // profil JA v6 (21. 10. 2026) — editor odišiel na /pack/profile/edit
 const PublicProfile = lazyPack(() => import("./pages/PublicProfile.tsx")); // read-profil /pack/u/:id (zadanie-profil-read-dog-2026-07-25)
 const PackJoin = lazyPack(() => import("./pages/PackJoin.tsx")); // /pack/join/:token — prijatie pozvánky pawmata
 const PackMap = lazyPack(() => import("./pages/PackMap.tsx"));
@@ -550,7 +551,11 @@ const App = () => (
                   Podmienka pre ceruzku v HeroCard — homepage je odteraz read-only a JEDINÉ miesto,
                   kde sa mení fotka a meno, je tu. Gate sa vrátiť nesmie bez vrátenia editácie
                   do HeroCard, inak si člen fotku nezmení vôbec. */}
-              <Route path="/pack/profile" element={<PackProfile />} />
+              {/* Profil JA v6 (21. 10. 2026): `/pack/profile` = MÔJ PROFIL (kliky a čísla),
+                  editor = UPRAVIŤ na `/pack/profile/edit`. Staré kotvy `#network`/`#pawmates`
+                  a `?welcome`/`?edit` PackMe sám presmeruje do editora. */}
+              <Route path="/pack/profile" element={<PackMe />} />
+              <Route path="/pack/profile/edit" element={<PackProfile />} />
               {/* Read-profil majiteľa — /pack/u/:id (zadanie-profil-read-dog-2026-07-25 §3). Funguje
                   self; cudzí člen = graceful fallback („profile isn't public yet"), žiaden crash.
                   Fabrikovaní členovia zmazaní 2026-08-03. */}
