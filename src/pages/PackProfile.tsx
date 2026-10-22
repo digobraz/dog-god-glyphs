@@ -1,32 +1,22 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronDown, ChevronRight, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { ChevronDown, Eye, EyeOff, Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { PackLayout } from '@/components/pack/PackLayout';
-import { PackNetwork } from '@/components/pack/PackNetwork';
 import { PackSettings } from '@/components/pack/PackSettings';
 import { PawmatesSection } from '@/components/pack/PawmatesSection';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
-import { PACK_THEME, PACK_BOX, PACK_TEXT, PACK_SPACE, PF_FIELD_CSS, FONT_TITLE, FONT_UI, usePaperRoute } from '@/components/pack/packTheme';
-import { GOLD_BLOCK_CSS, LAPIS } from '@/components/pack/navGoldSkin';
-import { tierVars } from '@/lib/packTiers';
-import { uploadAvatarPhoto, sizedUrl } from '@/services/cloudinaryService';
+import { PACK_THEME, PACK_BOX, PACK_TEXT, PACK_SPACE, PACK_R, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { BrandIcon } from '@/components/pack/BrandIcon';
+import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
 import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
-import { DEV_FULL, PAWMATE_LIVE } from '@/lib/packFlags';
+import { PAWMATE_LIVE } from '@/lib/packFlags';
 import { appWebVersion } from '@/lib/appUpdate';
 import { APP_PLATFORM } from '@/lib/isApp';
-import type { HeroTrail } from '@/data/heroTrails.generated';
-import { HERO_TRAILS } from '@/data/heroTrails.generated';
-import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds, pluralKey, visibleLocalTrails } from '@/components/pack/tripShared';
-import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
-import { useMyEventCount } from '@/components/pack/events/eventStore';
-import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
-import { profileLevelFor, readVotes } from '@/components/pack/packCommunity';
 import {
   useProfile,
   saveHuman,
@@ -54,16 +44,10 @@ import {
   humanProfileCompletion,
   type ProfileFieldKey,
 } from '@/components/pack/profile/packProfile';
-import { useDogyptStore } from '@/store/dogyptStore';
 import { HandCamera } from '@/components/pack/HandIcons';
-import { BackLinkIcon } from '@/components/pack/BackButton';
 
 const T = PACK_THEME;
 
-// ── TURISTICKÝ PROFIL V PROFILE (2026-09-12) ────────────────────────────────
-// Vzhľad riadku je kópiou `.ts-rank` z karty homepage (`TripSpotlight.tsx`) — ten istý
-// údaj má naprieč appkou ten istý tvar. Nesedí tu preto v `PF_FIELD_CSS`: tá je zdieľaná
-// s psou kartou a read-profilom, a tie tento riadok nemajú.
 // ── RIADKY PROFILU (21. 10. 2026) ── štítok vľavo · hodnota vpravo · tenká čiara, ako úprava
 // profilu na Instagrame. Ovládače ostávajú `.pf-field` (pilulky, selecty), tu im padá rám aj výplň.
 const ROWS_CSS = `
@@ -90,327 +74,105 @@ const ROWS_CSS = `
 .pf-rows-ttl i{font-style:normal;letter-spacing:.02em;text-transform:none;}
 `;
 
-const PILGRIM_CSS = `
-.pf-pilgrim{ transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
-.pf-pilgrim:hover{
-  border-color: ${PACK_THEME.cardEdge};
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(122,90,42,0.24), inset 0 1px 0 rgba(255,255,255,0.45);
-}
-/* FARBA PÁSMA — gradient a inkoust vešia premenné --tier-a / --tier-b / --tier-ink
-   (tierVars(level)); fallback drží pôvodnú zlatú. Tá istá pilulka ako v hlavičke mapy. */
-.pf-pilgrim-num{
-  display:inline-flex; align-items:center; padding:4px 12px 4px; border-radius:999px;
-  background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));
-  color:var(--tier-ink,${T.ink});
-  font-family:${FONT_UI}; font-weight:600; font-size:14px; line-height:1;
-  box-shadow:0 2px 8px var(--tier-glow,rgba(245,199,61,0.28));
-}
-.pf-pilgrim-stats span{ display:inline-flex; align-items:baseline; gap:4px; white-space:nowrap; }
-/* Číslo = DÁTA → Space Grotesk. ⚠️ Váha STROP 600 (font je načítaný len 300–600). */
-.pf-pilgrim-stats b{ font-family:${FONT_UI}; font-weight:600; font-size:16px; line-height:1; color:${PACK_THEME.inkStrong}; }
-.pf-pilgrim-stats i{
-  font-family:${FONT_UI}; font-style:normal; font-weight:500; font-size:10px;
-  letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkWarm};
-}
-/* ⚠️ POD 460px SA RIADOK LÁME NA DVA (2026-09-12). PÚTNIK + pilulka (112px) a dvojica
-   čísel (~150px) sa aj so šípkou do 262px vnútra karty nezmestia — spany majú nowrap,
-   takže sa nezmenšia a text pretiekol cez pravý okraj papyrusového rámu.
-   Zmenšovaním písma sa to dá natlačiť na 255px, ale za cenu 9px popiskov; dva riadky
-   sú čitateľnejšie aj na 320px. Prvý riadok nesie identitu (rang + level) a šípku,
-   druhý čísla. Ten istý prah ako pri prepínači MENO/PREZÝVKA — obe veci sa lámu
-   z toho istého dôvodu (stĺpec vedľa avatara je pod ním priúzky). */
-@media (max-width:459px){
-  .pf-pilgrim{ flex-wrap:wrap; row-gap:8px; }
-  .pf-pilgrim-stats{ order:3; flex:0 0 100%; gap:14px; }
-  .pf-pilgrim-stats b{ font-size:14px; }
+// ── UPRAVIŤ PROFIL PO RIADKOCH (profil JA v8, 23. 10. 2026) ─────────────────────────────
+// Matej: *„vytvoríme inú stránku, kde všetko po riadkoch prepíšeme … ako je to aj na IG …
+// nemusí to byť v D-bloku … musí to byť prehľadnejšie"* → nákres
+// `plany/nakres-editprofile-bones-2026-10-23.html` → *„stavaj"*.
+//
+// KÔŠ 3 (úloha): hore ‹ + nadpis + DONE, bez spodnej lišty — preto bez `PackLayout`.
+// Hlava = titulka a fotka (ťuk = zmeniť), pod ňou ZOZNAM RIADKOV. Ťuk na riadok otvorí
+// JEDNO pole na celú obrazovku a ‹ / DONE vráti späť. Všetko sa ukladá samo (blur / ťuk),
+// DONE nič neukladá — len zatvára.
+// 🔴 Psy sa tu NEUPRAVUJÚ: riadok psa vedie do DOG ID (bio a povaha psa majú jeden zdroj).
+// 🔴 BONES a línia tu UŽ NIE SÚ — odišli do šuplíka MISIA na profile (`BonesSheet`,
+//    Matej 23. 10.: *„po kliknutí na bones by sa otvoril tiež popup so stats ohľadom misie"*).
+//    Staré odkazy `/pack/profile/edit#network` sa preto vracajú na profil s otvoreným šuplíkom.
+type EditField = 'name' | 'bio' | 'pills' | 'about' | 'account';
+
+const EDIT_CSS = `
+.pe-root{min-height:100dvh;background:${T.cardGrad};color:${T.inkStrong};font-family:${FONT_UI};}
+.pe-top{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:44px 1fr 64px;align-items:center;
+  height:52px;padding:env(safe-area-inset-top,0px) ${PACK_SPACE.lg}px 0;box-sizing:content-box;
+  background:${T.card};border-bottom:1px solid ${T.hairline};}
+.pe-top b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;text-align:center;}
+.pe-back{width:36px;height:36px;display:grid;place-items:center;border:0;background:none;cursor:pointer;padding:0;}
+.pe-done{justify-self:end;border:0;background:none;cursor:pointer;padding:${PACK_SPACE.sm}px 0;font-family:${FONT_TITLE};font-weight:700;
+  font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;color:${LAPIS.edge};}
+.pe-col{max-width:640px;margin:0 auto;padding:0 ${PACK_SPACE.lg}px ${PACK_SPACE.xxxl}px;}
+.pe-head{position:relative;margin-top:${PACK_SPACE.lg}px;}
+.pe-cover{display:block;width:100%;height:120px;border:0;padding:0;cursor:pointer;border-radius:${PACK_R.tile}px;
+  background:${T.ink} center 35%/cover no-repeat;background-image:var(--pe-cover,none);position:relative;}
+.pe-av{position:absolute;left:${PACK_SPACE.lg}px;top:64px;width:96px;height:96px;border-radius:${PACK_R.pill}px;padding:4px;border:0;cursor:pointer;
+  background:conic-gradient(from 200deg,${LAPIS.edge},${LAPIS.deep},${T.cardEdge},#A3782B,${LAPIS.edge});}
+.pe-av > span{display:grid;place-items:center;width:100%;height:100%;border-radius:${PACK_R.pill}px;overflow:hidden;background:${T.card};
+  border:3px solid ${T.card};box-sizing:border-box;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;color:${T.inkDim};}
+.pe-av img{width:100%;height:100%;object-fit:cover;object-position:50% 14%;}
+.pe-cam{position:absolute;width:30px;height:30px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;
+  background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};border:2px solid ${T.card};color:${LAPIS.ink};}
+.pe-cover .pe-cam{right:${PACK_SPACE.sm}px;top:${PACK_SPACE.sm}px;}
+.pe-av .pe-cam{right:-2px;bottom:-2px;}
+/* Odkazy stoja vpravo od fotky: x = okraj fotky + priemer + okraj (mobil 16+96+16, PC 16+124+16). */
+.pe-col{--pe-links-x:128px;}
+.pe-links{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.md}px;align-items:center;min-height:40px;margin-top:${PACK_SPACE.sm}px;padding-left:var(--pe-links-x);}
+.pe-links button{border:0;background:none;padding:0;cursor:pointer;font-size:${PACK_TEXT.label}px;font-weight:500;color:${LAPIS.edge};}
+.pe-sec{font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};margin:${PACK_SPACE.xl}px 0 ${PACK_SPACE.xs}px;}
+.pe-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:${PACK_SPACE.md}px;width:100%;min-height:48px;
+  border:0;border-bottom:1px solid ${T.hairline};background:none;padding:0;cursor:pointer;text-align:left;color:inherit;font:inherit;}
+.pe-row:hover{background:rgba(201,154,63,0.08);}
+.pe-row > span{font-size:${PACK_TEXT.body}px;color:${T.inkStrong};white-space:nowrap;}
+.pe-row > em{font-style:normal;font-size:${PACK_TEXT.label}px;color:${T.inkDim};text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pe-row > i{display:flex;transform:scaleX(-1);opacity:.55;}
+.pe-row.dog{grid-template-columns:auto auto minmax(0,1fr) auto;}
+.pe-row.dog > img,.pe-row.dog > .ph{width:36px;height:36px;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};background:${T.card};}
+.pe-row.dog b{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.body}px;}
+.pe-num{display:inline-flex;align-items:center;margin-left:${PACK_SPACE.xs}px;background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_TITLE};font-weight:700;
+  font-size:${PACK_TEXT.micro}px;letter-spacing:.02em;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;vertical-align:middle;line-height:1;}
+.pe-hint{font-size:${PACK_TEXT.micro}px;color:${T.inkDim};margin:${PACK_SPACE.xs}px 0 0;line-height:1.4;}
+.pe-field{padding-top:${PACK_SPACE.lg}px;}
+.pe-lbl{display:block;font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};margin:0 0 ${PACK_SPACE.sm}px;}
+.pe-field .pf-field{font-size:${PACK_TEXT.body}px !important;}
+.pe-ver{text-align:center;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;color:${T.inkDim};margin-top:${PACK_SPACE.lg}px;}
+@media (min-width:768px){
+  .pe-cover{height:180px;}
+  .pe-av{top:112px;width:124px;height:124px;}
+  .pe-col{--pe-links-x:156px;}
 }
 `;
 
-// ── PAPYRUS PRIMITÍVY (lock 2026-07-26) ──────────────────────────────────────
-// Matej: „dizajn bledých blokov sme si lockli na základe toho aký je v /entry"
-// + „je to všetko moc na sebe — oddeliť okrajmi vizuálne ale aj rozdeliť
-// logicky". Preto profil UŽ NIE JE jedna karta s dvoma stĺpcami (ten layout
-// vyrábal prázdny pravý stĺpec, ktorý Matej zamietol 25.7.), ale stack
-// samostatných papyrusových kariet s medzerami — každá = jedna téma.
-// `gold` = BLOK V ZLATOM RÁME (Matej 2026-09-12: „1. blok daj do dbloku"). Ten istý
-// recept ako JA+SVORKA a KOMUNITA na homepage — `.pk-goldblock` z `navGoldSkin.ts`,
-// nie druhá kópia rámu. ⚠️ Trieda nesie výplň, rám, polomer aj tieň, takže inline
-// `background`/`border`/`borderRadius`/`boxShadow` sa v tejto vetve NESMÚ objaviť —
-// inline štýl triedu prebije a rám ostane neviditeľný pod papyrusovou kartou.
-function PapyrusCard({
-  children,
-  id,
-  pad = 26,
-  gold = false,
-}: {
-  children: React.ReactNode;
-  id?: string;
-  pad?: number;
-  gold?: boolean;
-}) {
-  return (
-    <section
-      id={id}
-      className={gold ? 'pk-goldblock' : undefined}
-      style={gold
-        ? { padding: pad, scrollMarginTop: 90 }
-        : {
-            // Úroveň 1 MATRICE (`PACK_BOX.card`) — matrica dáva výplň/rám/radius/tieň,
-            // komponent len rozostupy.
-            ...PACK_BOX.card,
-            padding: pad,
-            scrollMarginTop: 90,
-          }}
-    >
-      {gold && <style>{GOLD_BLOCK_CSS}</style>}
-      {children}
-    </section>
-  );
-}
-
-/** Zlatá deliaca čiara vyblednutá do strán (`.religion-rule` z /entry). */
-function GoldRule({ width = 54, my = 12 }: { width?: number | string; my?: number }) {
-  return (
-    <div
-      aria-hidden
-      style={{ width, height: 2, margin: `${my}px 0`, background: T.rule, border: 'none' }}
-    />
-  );
-}
-
-// Pod-blok VNÚTRI papyrusovej karty — `.crit-tile` z /entry (zlatá výplň 6 %,
-// zlatý okraj 35 %, radius 10). Matej 2026-07-26: „je to všetko moc na sebe —
-// oddeliť okrajmi vizuálne ale aj rozdeliť logicky." Každý pod-blok = jedna
-// otázka, ktorú profil kladie, takže okraj nie je dekorácia, ale hranica témy.
-// `center` (Matej 2026-07-26: „všetko centrované v 1. bloku") — pri centrovaní
-// label a hint NEMÔŽU zostať na opačných koncoch riadku (`justify-between`),
-// inak label sedí vľavo a stred blku je prázdny. Preto sa zlepia do jedného
-// centrovaného riadku a hint stráca `textAlign: right`.
-function SubBlock({
-  label,
-  children,
-  hint,
-  center = false,
-}: {
-  label: string;
-  children: React.ReactNode;
-  hint?: string;
-  center?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        // Úroveň 2 MATRICE (`PACK_BOX.subblock`) — tá istá DNA ako kroky 1–3 v druhom bloku.
-        // Do 13. 8. tu bola plochá `tileBg` so slabým rámom a kroky mali papyrusový gradient
-        // s plným zlatým rámom: dva bloky rovnakej úrovne, dva rôzne recepty
-        // (Matej: „základ a životný štýl majú slabé okraje a potom dolu v druhom bloku sú
-        // zas iné výraznejšie... vyzerá to neprofesionálne").
-        ...PACK_BOX.subblock,
-        // Matej 2026-07-26: „obidva bloky maju male okraje zhora a dola" —
-        // 11/13px hore/dole zväčšené na 17/19px, bočný padding nedotknutý.
-        padding: '16px 12px 16px',
-      }}
-    >
-      <div
-        className={`flex items-baseline ${center ? 'justify-center' : 'justify-between'}`}
-        style={{ gap: center ? 7 : 10, marginBottom: 9 }}
-      >
-        <span
-          style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: 10,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: T.inkDim,
-          }}
-        >
-          {label}
-        </span>
-        {hint && (
-          <span
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 10,
-              color: T.inkFaint,
-              textAlign: center ? 'center' : 'right',
-            }}
-          >
-            {center ? `· ${hint.toLowerCase()}` : hint}
-          </span>
-        )}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-// Centrovaný stĺpec vnútri karty. Bez obmedzenej šírky by centrovanie dopadlo
-// presne ako pri pills 25.7. — obsah plávajúci v prázdnej šírke karty. Preto
-// centrovanie = úzka os, nie `text-align: center` na plnú šírku.
-function Column({
-  children,
-  max = 520,
-  mt,
-}: {
-  children: React.ReactNode;
-  max?: number;
-  mt?: number;
-}) {
-  return (
-    <div style={{ maxWidth: max, margin: '0 auto', marginTop: mt, textAlign: 'center' }}>
-      {children}
-    </div>
-  );
-}
-
-/** Malý eyebrow nadpis sekcie — Space Grotesk, zlatý, wide tracking. */
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      style={{
-        fontFamily: "'Space Grotesk', sans-serif",
-        fontSize: 10,
-        fontWeight: 500,
-        letterSpacing: '0.26em',
-        textTransform: 'uppercase',
-        color: T.cardEdge,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-// Stav vyplnenia profilu — zlatý bar v hlavičke sekcie. Pri 100 % sa mení na
-// potvrdenie, inak menuje PRVÉ chýbajúce pole (konkrétna výzva > „doplň profil").
-function ProfileProgress({
-  pct,
-  filled,
-  total,
-  missing,
-}: {
-  pct: number;
-  filled: number;
-  total: number;
-  missing: { labelEN: string }[];
-}) {
-  const done = pct === 100;
-  return (
-    <div style={{ minWidth: 0, width: '100%', maxWidth: 340, margin: '0 auto' }}>
-      <div className="flex items-baseline justify-between" style={{ gap: 10, marginBottom: 6 }}>
-        <span
-          style={{
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 12,
-            color: T.inkWarm,
-            minWidth: 0,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {done ? 'Your scroll is complete.' : `Next: add your ${missing[0]?.labelEN.toLowerCase()}`}
-        </span>
-        <span
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 12,
-            fontWeight: 700,
-            color: done ? T.growGreen : T.cardEdge,
-            flexShrink: 0,
-          }}
-        >
-          {filled}/{total}
-        </span>
-      </div>
-      <div
-        role="progressbar"
-        aria-valuenow={pct}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label="Profile completion"
-        style={{
-          height: 6,
-          borderRadius: 999,
-          background: 'rgba(201,154,63,0.16)',
-          border: `1px solid ${T.hairline}`,
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            width: `${pct}%`,
-            height: '100%',
-            borderRadius: 999,
-            background: done
-              ? T.growGreen
-              : 'linear-gradient(90deg, #E6B450 0%, #C99A3F 100%)',
-            transition: 'width 420ms cubic-bezier(0.22, 1, 0.36, 1)',
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
-// Krstné meno z `user_metadata`, fallback na local-part e-mailu — ŠTVRTÁ lokálna kópia
-// (`Pack.tsx:89`, `PackMap.tsx`, `packCommunityUI.tsx:47`). Kopíruje sa zámerne: `usePackIdentity`
-// meno neexponuje a všetky štyri povrchy musia z rovnakého vstupu dostať rovnaký reťazec, inak sa
-// rozíde level (viď komentár pri `pilgrim` nižšie). Pri zmene meniť VŠETKY štyri.
-function firstNameFrom(email: string, fullName?: string): string {
-  if (fullName && fullName.trim()) return fullName.trim().split(' ')[0];
-  if (!email) return 'Dogyptian';
-  const local = email.split('@')[0] || '';
-  const base = local.split('+')[0].replace(/[._-]/g, ' ').replace(/\d+/g, '').trim();
-  if (!base) return 'Dogyptian';
-  return base.charAt(0).toUpperCase() + base.slice(1);
-}
-
 export default function PackProfile() {
-  // issue #34: člen s heroglyfom obchádza `/entry` (verejná conviction gate) a ide rovno do tvorby.
-  // Reset flow storu, aby druhý pes nezdedil meno/dátum/tier prvého v tej istej SPA session.
-  const resetFlow = useDogyptStore((s) => s.reset);
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const [session, setSession] = useState<Session | null>(null);
+  const [sessionChecked, setSessionChecked] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [fullName, setFullName] = useState('');
   const [nameDirty, setNameDirty] = useState(false);
   const [nameSaving, setNameSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
-  // Šat stránky — ten istý zdroj, aký prepína shell (`PackLayout`, `RouteFallback`).
-  // Potrebuje ho VŠETKO, čo stojí mimo papyrusovej karty, teda priamo na podklade.
-  const paperPage = usePaperRoute(location.pathname);
   const [appVer, setAppVer] = useState('');
   useEffect(() => { appWebVersion().then(setAppVer).catch(() => {}); }, []);
   const { toast } = useToast();
-  const { dogs, loading: dogsLoading } = usePackUser(session?.user?.id ?? null);
-  // Central profile (bio/basics/pills) — read here for BLOK 1 (identity+bio card);
-  // ProfileEditor below reads its own copy for BLOK 2 (merged pills card). Same
-  // localStorage-backed store, kept in sync via useProfile()'s listener.
+  const { dogs } = usePackUser(session?.user?.id ?? null);
   const { profile } = useProfile();
   const human = profile?.human;
   const patchHuman = (p: Partial<HumanProfile>) => { saveHuman(p); };
+  // `?welcome=1` (po platbe) = nastav si heslo → rovno účet, `PackSettings` to vie sám.
+  const [field, setField] = useState<EditField | null>(searchParams.has('welcome') ? 'account' : null);
 
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       setSession(data.session);
+      setSessionChecked(true);
       const meta = (data.session?.user.user_metadata ?? {}) as Record<string, string | undefined>;
-      // DEV-ONLY: NOAUTH guest nemá session, takže avatar aj meno by boli prázdne
-      // a stránka by sa v deve nedala vizuálne posúdiť (Matej 2026-07-26: „nech
-      // vidíme preview"). Nikdy sa nedostane na produkciu (import.meta.env.DEV).
-      // NECOMMITOVAŤ — revert pred pushom, spolu s dev seedom v usePackUser.ts.
-      // Pozor: NIE `&& !data.session` — v deve často JE session (testovací účet)
-      // s prázdnym full_name/avatar_url, takže fallback by sa nikdy nechytil a
-      // avatar by ostal prázdny krúžok s iniciálou z e-mailu. Zrkadlí to
-      // usePackUser.ts, ktorý psov preseeduje pri DEV_NOAUTH bez ohľadu na session.
+      // DEV-ONLY: NOAUTH guest nemá session — fallback, aby sa stránka dala posúdiť (nikdy na produkcii).
       const devNoAuth = import.meta.env.DEV && import.meta.env.VITE_PACK_NOAUTH === '1';
       setAvatarUrl(meta.avatar_url || meta.avatar || (devNoAuth ? '/images/about-matej.png' : null));
       setFullName(meta.full_name || meta.name || (devNoAuth ? 'Matej Stacho' : ''));
@@ -420,7 +182,7 @@ export default function PackProfile() {
     };
   }, []);
 
-  // Auto-open file picker when ?edit=avatar
+  // ?edit=avatar (ťuk na fotku na profile) → hneď výber súboru.
   useEffect(() => {
     if (searchParams.get('edit') === 'avatar') {
       const timeoutId = setTimeout(() => fileInputRef.current?.click(), 200);
@@ -428,49 +190,15 @@ export default function PackProfile() {
     }
   }, [searchParams]);
 
-  // Welcome deep-link (?welcome=1) invites password setup → handled inside <PackSettings/> itself.
+  // Nové pole začína hore — zoznam mohol byť odrolovaný.
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [field]);
 
-  // Hash deep-link scroll — client-side nav does NOT auto-scroll to a hash like a full page
-  // load does, so scroll it into view manually once the target section is on screen.
-  // ⚠️ Jeden pokus nestačí: sekcie NAD cieľom (avatar, bio, chipy) sa dorenderujú až po ňom,
-  // takže v čase scrollu leží cieľ pár desiatok px pod vrchom a stránka ostane stáť tam, kým sa
-  // cieľ odsunie nižšie (Matej 2026-08-06 — „nejde mi otvoriť my pack", pôvodne pre `#my-gods`).
-  // Preto scrollujeme opakovane, kým sa pozícia cieľa medzi dvoma meraniami neustáli. `instant`
-  // je zámerne: CSS má `scroll-behavior: smooth`, a rozbehnutú smooth animáciu by každá ďalšia
-  // korekcia aj tak zrušila.
-  // ⚠️ `#my-gods` (psia sekcia) ZANIKLO 6.8.2026 spolu so sekciou „OH, MY DOG!" — jediný živý
-  // cieľ je `#network` (blok BONES/sieť), homepage `/pack` naň posiela z pilulky „ZOBRAZIŤ
-  // SIEŤ" (Matej 12.8.2026: zoznam siete má byť na JEDNOM mieste). Nové kotvy pridávaj do
-  // `HASH_TARGETS`, nie novým efektom.
-  useEffect(() => {
-    const HASH_TARGETS = ['#network'];
-    if (!HASH_TARGETS.includes(location.hash)) return;
-    const targetId = location.hash.slice(1);
-    let lastTop = -1;
-    let tries = 0;
-    let timer = 0;
-    const tick = () => {
-      const el = document.getElementById(targetId);
-      // ⚠️ Cieľ ešte nemusí byť v DOM (blok sa dorenderuje po dátach) — vtedy sa NESMIE
-      // vzdať, inak deep-link `#network` z homepage skončí na vrchu stránky (overené).
-      if (!el) {
-        if (++tries > 12) return;
-        timer = window.setTimeout(tick, 100);
-        return;
-      }
-      const top = Math.round(el.getBoundingClientRect().top + window.scrollY);
-      el.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'start' });
-      if (top === lastTop || ++tries > 12) return; // ustálené, alebo strop ~1,3 s
-      lastTop = top;
-      timer = window.setTimeout(tick, 100);
-    };
-    timer = window.setTimeout(tick, 100);
-    return () => clearTimeout(timer);
-  }, [location.hash, dogsLoading]);
-
-  const email = session?.user?.email ?? '—';
-
-  const handleAvatarClick = () => fileInputRef.current?.click();
+  // Staré odkazy: BONES a línia žijú v šuplíku na profile, nie tu.
+  if (location.hash === '#network') return <Navigate to="/pack/profile#network" replace />;
+  const noAuthDev = import.meta.env.DEV && import.meta.env.VITE_PACK_NOAUTH === '1';
+  if (sessionChecked && !session && !noAuthDev) {
+    return <Navigate to={`/login?return=${encodeURIComponent('/pack/profile/edit')}`} replace />;
+  }
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -483,8 +211,7 @@ export default function PackProfile() {
         data: { avatar_url: result.secureUrl },
       });
       if (upErr) throw new Error(upErr.message);
-      // Aj do `pack_profiles` — do `user_metadata` CUDZIEHO účtu sa iný člen nedostane,
-      // takže bez tejto kópie by na cudzom profile nebola fotka človeka nikdy (2026-08-26).
+      // Aj do `pack_profiles` — do `user_metadata` CUDZIEHO účtu sa iný člen nedostane (2026-08-26).
       await saveAvatarUrl(result.secureUrl);
       setAvatarUrl(result.secureUrl);
       toast({ title: tx('pack.profile.toastPhotoUpdated', 'Photo updated') });
@@ -499,6 +226,28 @@ export default function PackProfile() {
     }
   };
 
+  // TITULKA = vlastné pole `human.coverPhoto`. 🔴 NIE `buddyPhoto` — to je fotka „spolu"
+  // pre bránu SNIFFERA a zmena titulky by ju ticho prepísala.
+  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !session?.user) return;
+    setCoverUploading(true);
+    try {
+      const result = await uploadCoverPhoto(file, session.user.id);
+      await saveHuman({ coverPhoto: result.secureUrl }, { throwOnError: true });
+      toast({ title: tx('pack.profile.toastPhotoUpdated', 'Photo updated') });
+    } catch (err) {
+      toast({
+        title: tx('pack.profile.toastUploadFailed', 'Upload failed'),
+        description: err instanceof Error ? err.message : tx('pack.profile.toastUnknownError', 'Unknown error'),
+        variant: 'destructive',
+      });
+    } finally {
+      setCoverUploading(false);
+    }
+  };
+
   const handleSaveName = async () => {
     if (!nameDirty || nameSaving) return;
     setNameSaving(true);
@@ -507,8 +256,7 @@ export default function PackProfile() {
         data: { full_name: fullName.trim() || null },
       });
       if (upErr) throw new Error(upErr.message);
-      // Aj do `pack_profiles` — inak by meno nastavené tu videl len jeho majiteľ
-      // a ostatným by naďalej svietilo meno z objednávky (2026-08-26).
+      // Aj do `pack_profiles` — inak by meno videl len jeho majiteľ (2026-08-26).
       await saveDisplayName(fullName);
       setNameDirty(false);
       toast({ title: tx('pack.profile.toastNameUpdated', 'Name updated') });
@@ -523,371 +271,189 @@ export default function PackProfile() {
     }
   };
 
+  const email = session?.user?.email ?? '—';
   // Meno z objednávky — východisko, keď si človek v profile žiadne nevypísal.
   const orderName = dogs.map((d) => d.owner_name?.trim()).find(Boolean) ?? '';
   const initial = (fullName?.[0] || orderName?.[0] || email?.[0] || 'D').toUpperCase();
-  const hasAvatar = !!avatarUrl;
+  const shownName = (() => {
+    if (human?.displayAs === 'nickname' && human.nickname?.trim()) return human.nickname.trim();
+    if (human?.displayAs === 'packName' && human.packName?.trim()) return human.packName.trim();
+    return fullName.trim() || orderName;
+  })();
+  const firstDog = dogs.find((d) => d.pack_number != null) ?? dogs[0] ?? null;
+  const coverSrc = human?.coverPhoto || human?.buddyPhoto || firstDog?.cloudinary_main_url || null;
+  const bio = human?.dogVoiceBio?.trim() || '';
+  const pillEmoji = (human?.personality ?? [])
+    .map((v) => PERSONALITY_OPTIONS.find((o) => o.value === v)?.emoji)
+    .filter(Boolean) as string[];
+  const pillCount = pillEmoji.length + (human?.customPersonality ? 1 : 0);
+  const aboutFilled = [human?.age, human?.region, human?.relationship, human?.smoke, human?.diet, human?.work].filter((v) => v != null && v !== '').length;
+  const add = tx('pack.edit.empty', 'Add');
 
-  // Stav vyplnenia — VYPNUTÝ (Matej 2026-07-26: „ten progres nemá zmysel - vypni ho").
-  // `humanProfileCompletion()`/`ProfileProgress` zostávajú v kóde pre budúcu bránu
-  // („100 % profil = smieš na výlet") — výpočet sa spúšťa až vtedy, keď sa bar vráti.
+  const TITLES: Record<EditField, string> = {
+    name: tx('pack.profile.name', 'Name'),
+    bio: tx('pack.edit.bio', 'Bio'),
+    pills: tx('pack.profile.personality', 'Personality'),
+    about: tx('pack.edit.aboutMe', 'About me'),
+    account: tx('pack.edit.secAccount', 'Account & app'),
+  };
+  const back = () => (field ? setField(null) : navigate('/pack/profile'));
+  const done = () => {
+    if (field === 'name') handleSaveName();
+    back();
+  };
 
-  // PÚTNIK riadok — hodnosť + level, tichý riadok pod hlavičkou (nie tripstats karta, tá
-  // ostáva jediný zdroj pravdy na mape). Za `DEV_FULL` z rovnakého dôvodu ako `TripSpotlight`
-  // na homepage (`Pack.tsx:269–273`): `/pack/map` ešte nie je pre členov, takže bez brány by
-  // riadok linkoval do zamknutej routy. Výpočet je `profileLevelFor` — jediný zdroj pravdy
-  // zdieľaný s hlavičkou mapy (packCommunity.ts:678), vlastný výpočet by dal iné číslo.
-  // Body za odkazy — spoločný zdroj so zvyškom povrchov, ktoré ukazujú level.
-  const myNotePoints = useMyNotePoints();
-  const myEventCount = useMyEventCount();
-  const myWishCount = useMyWishCount();
-  const pilgrim = useMemo(() => {
-    if (!DEV_FULL) return null;
-    // Jedno čítanie localStorage, nie dve — `readLocalTrails()` parsuje JSON pri každom volaní.
-    const localTrails = readLocalTrails();
-    const allTrails: HeroTrail[] = [...visibleLocalTrails(localTrails), ...HERO_JOURNEYS, ...HERO_TRAILS];
-    const walked = readWalkedIds();
-    const walkedTrails = allTrails.filter((tr) => walked.has(tr.id));
-    if (walkedTrails.length === 0) return null;
-    const walkedKm = walkedTrails.reduce((sum, tr) => {
-      const n = parseFloat(String(tr.km ?? '').replace(',', '.'));
-      return sum + (Number.isFinite(n) ? n : 0);
-    }, 0);
-    const { level } = profileLevelFor({
-      walkedTrails,
-      localTrailIds: localTrails.map((tr) => tr.id),
-      votes: readVotes(),
-      notePoints: myNotePoints,
-      eventsHeld: myEventCount,
-      wishesDone: myWishCount,
-      email: session?.user?.email ?? '',
-      // ⚠️ MUSÍ to byť `firstNameFrom`, nie `fullName.split(' ')[0]`. Pri prázdnom
-      // `full_name` (bežný stav — user_metadata býva prázdne) by holý split vrátil `''`,
-      // kým mapa aj homepage odvodia meno z e-mailu → `addedByMeIds` by tu spárovalo
-      // menej výletov a profil by ukazoval NIŽŠÍ level než mapa. Presne ten rozchod
-      // popisuje komentár v `packCommunity.ts:678`.
-      ownerName: firstNameFrom(session?.user?.email ?? '', fullName),
-    });
-    return { level: level.level, count: walkedTrails.length, km: Math.round(walkedKm) };
-  }, [session, fullName, myNotePoints, myEventCount, myWishCount]);
+  const row = (label: string, value: React.ReactNode, onClick: () => void) => (
+    <button type="button" className="pe-row" onClick={onClick}>
+      <span>{label}</span>
+      <em>{value}</em>
+      <i aria-hidden><BrandIcon name="back" size={14} tint="dark" /></i>
+    </button>
+  );
 
   return (
-    // UPRAVIŤ (profil JA v6, 21. 10. 2026) — editor sa vracia na môj profil, nie na homepage.
-    <PackLayout onBack={() => navigate('/pack/profile')} backLabel={tx('pack.me.title', 'Profile')}>
-      <div className="flex flex-col gap-5">
-        {/* ŠÍPKA ← SVORKA SA KRESLÍ LEN TAM, KDE NIE JE SPODNÝ NAV (Matej 2026-09-12:
-            „tá šípka dozadu na SVORKA je zbytočná, daj to preč, veď ani pri /dogs nie je
-            šípka späť, dá sa ísť preč cez spodný nav"). Podmienka nesie PRESNE jeho dôvod:
-            `PackBottomNav` je `DEV_FULL`-gated, takže na LIVE spodný nav NIE JE — a
-            `/pack/profile` je na LIVE od 6. 8. 2026 bez gate. Plošné zmazanie by tam
-            členovi nenechalo jedinú cestu naspäť [[feedback_flag_nesmie_nechat_dieru]].
-            Keď nav pôjde na LIVE, šípka zmizne aj tam sama a tento blok sa môže zmazať.
-            ⚠️ Odkaz stojí MIMO karty, teda na podklade STRÁNKY — a ten sa prepína
-            (`packSkin.ts`, východisko `dark`). `T.inkDim` je tmavohnedá; na čiernom
-            pozadí bola neviditeľná (Matej 2026-09-12: „na tmavom podklade nie je vidno
-            šípka naspať"). Rozhoduje ten istý hook, aký prepína celý shell — vlastná
-            podmienka by sa s ním rozišla. */}
-        {!DEV_FULL && (
-          <Link
-            to="/pack"
-            className="pf-tap inline-flex items-center gap-2"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              letterSpacing: '0.22em',
-              fontSize: 10,
-              textTransform: 'uppercase',
-              color: paperPage ? T.inkDim : T.accentGold,
-              textDecoration: 'none',
-            }}
-          >
-            <BackLinkIcon />
-            {tx('pack.profile.back', 'Pack')}
-          </Link>
-        )}
-        {/* `.pf-field`/`.pf-pill` — zdieľané s DogGallery.tsx/DogCardFields.tsx
-            (psia karta), definícia žije v `packTheme.ts` (`PF_FIELD_CSS`),
-            presne ako `GLASS_CSS`. Render raz na stránke. */}
-        <style>{PF_FIELD_CSS}</style>
-        <style>{PILGRIM_CSS}</style>
-        <style>{ROWS_CSS}</style>
+    <div className="pe-root">
+      <style>{PF_FIELD_CSS}</style>
+      <style>{ROWS_CSS}</style>
+      <style>{EDIT_CSS}</style>
+      <header className="pe-top">
+        <button type="button" className="pe-back" onClick={back} aria-label={tx('pack.edit.back', 'Back')}>
+          <BrandIcon name="back" size={18} tint="dark" />
+        </button>
+        <b>{field ? TITLES[field] : tx('pack.me.editProfile', 'Edit profile')}</b>
+        <button type="button" className="pe-done" onClick={done}>{tx('pack.edit.done', 'Done')}</button>
+      </header>
 
-        {/* SEKCIA 1+2 VRÁTENÉ SPÄŤ POD SEBA (Matej 2026-07-26, tretí pokus:
-            „toto rozloženie je zlé vráť to... na 2 bloky pod sebou"). Vedľa
-            seba (lg:grid-cols-[3fr_2fr]) vydržalo len jedno kolo — pôvodný
-            komentár k tomuto pokusu je v git histórii, netreba ho tu naťahovať. */}
-        {/* ── SEKCIA 1 — WHO YOU ARE (človek) ─────────────────────────────
-            Nadnadpis „Who you are" je PREČ (Matej 2026-07-26: „zbytočne fill
-            slova preč!") — bola to eyebrow bez informačnej hodnoty, karta je
-            zjavne majiteľ len z obsahu. Hlavný hrdina profilu je pes („OH, MY
-            DOG!" vpravo), majiteľ nepotrebuje vlastný label na to, aby to bolo
-            jasné. Zrkadlí brand princíp: majiteľ je vnútri rámiku psa. */}
-        <PapyrusCard gold>
-          {/* Bar stavu vyplnenia je VYPNUTÝ (Matej 2026-07-26: „ten progres nemá
-              zmysel - vypni ho"). Komponent `ProfileProgress` aj
-              `humanProfileCompletion()` zostávajú v kóde — zapnutie = vrátiť
-              tieto štyri props do hlavičky karty. */}
-          {/* HLAVIČKA BLOKU 1 — FOTO vľavo | MENÁ vpravo (Matej 2026-07-29:
-              „skonsolidovať prvú časť — fotku daj na ľavo a name, nickname na
-              pravo aj na mobile"). Predtým bola os čisto vertikálna (foto NAD
-              menami), čo z hlavičky robilo dve obrazovky na mobile. Zvyšok
-              bloku (BIO → basics/lifestyle → what you're like) ostáva
-              centrovaný — mení sa len táto hlavička. */}
-          <Column max={640}>
-          <div className="pf-head">
-            {/* Avatar — vľavo, menší než v centrovanej verzii: vedľa neho teraz
-                sedia polia, takže `clamp` má nižší strop aj nižšie dno (na
-                390px mobile ostane ~94px a zvyšok riadku patrí menám).
-                `aspectRatio` drží kruh bez druhej clamp hodnoty. */}
-            <button
-              type="button"
-              onClick={handleAvatarClick}
-              disabled={uploading}
-              aria-label={tx('pack.profile.changeAvatarAria', 'Change avatar')}
-              className="pf-head-av relative shrink-0 group"
-              style={{
-                aspectRatio: '1 / 1',
-                borderRadius: '50%',
-                // 1px šedý hairline z 88px krúžku sa pri 176px stratí a fotka
-                // splynie s papyrusom. Zlatý ring + halo = ten istý jazyk ako
-                // rám karty (brand lock), o vrstvu menší.
-                border: hasAvatar ? `2px solid ${T.cardEdge}` : `2px dashed ${T.border}`,
-                boxShadow: hasAvatar ? '0 0 0 5px rgba(201,154,63,0.14)' : 'none',
-                background: hasAvatar
-                  ? 'transparent'
-                  : 'linear-gradient(135deg, #F0E3C4 0%, #F5EDD8 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-                cursor: uploading ? 'progress' : 'pointer',
-                padding: 0,
-              }}
-            >
-              {hasAvatar ? (
-                <img
-                  src={sizedUrl(avatarUrl, 360)}
-                  alt={tx('pack.profile.avatarAlt', 'Avatar')}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                <span
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    // Škáluje s kruhom — fixných 58px pretieklo z 88px avatara.
-                    fontSize: 'clamp(34px, 9vw, 58px)',
-                    fontWeight: 700,
-                    color: T.inkDim,
-                  }}
-                >
-                  {initial}
-                </span>
-              )}
-              <span
-                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ background: 'rgba(10,10,10,0.55)', color: T.card, borderRadius: '50%' }}
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
+      <input ref={coverInputRef} type="file" accept="image/*" onChange={handleCoverChange} style={{ display: 'none' }} />
+
+      <div className="pe-col">
+        {field === null && (
+          <>
+            {/* HLAVA — titulka a fotka, ťuk = zmeniť */}
+            <div className="pe-head">
+              <button
+                type="button"
+                className="pe-cover"
+                onClick={() => coverInputRef.current?.click()}
+                disabled={coverUploading}
+                aria-label={tx('pack.edit.changeCover', 'Change cover')}
+                style={coverSrc ? ({ '--pe-cover': `url(${sizedUrl(coverSrc, 1200)})` } as React.CSSProperties) : undefined}
               >
-                {uploading ? <Loader2 className="h-7 w-7 animate-spin" /> : <HandCamera size={28} />}
-              </span>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarChange}
-              style={{ display: 'none' }}
-            />
+                <span className="pe-cam">{coverUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}</span>
+              </button>
+              <button
+                type="button"
+                className="pe-av"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                aria-label={tx('pack.profile.changeAvatarAria', 'Change avatar')}
+              >
+                <span>{avatarUrl ? <img src={sizedUrl(avatarUrl, 320)} alt="" /> : initial}</span>
+                <span className="pe-cam">{uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}</span>
+              </button>
+            </div>
+            <div className="pe-links">
+              <button type="button" onClick={() => fileInputRef.current?.click()}>{tx('pack.edit.changePhoto', 'Change photo')}</button>
+              <button type="button" onClick={() => coverInputRef.current?.click()}>{tx('pack.edit.changeCover', 'Change cover')}</button>
+            </div>
 
-            {/* MENÁ — vpravo od fotky, `flex-1 min-w-0` (bez `min-w-0` by grid
-                s inputmi odmietol zmenšiť a vytlačil by riadok zo šírky karty).
-                Na mobile Name/Nickname POD SEBOU: vedľa fotky ostane ~230px, čo
-                by pri 2 stĺpcoch dalo ~105px na pole a placeholdery by sa
-                orezali. Od `sm` (640px) sa vracajú vedľa seba — 2-col z
-                zadanie-profil-shrink-2026-07-24 tak platí všade, kde sa vojde.
-                Vonkajší `Column max={640}` drží rovnakú hranicu šírky ako
-                basics+lifestyle nižšie (Matej 2026-07-26). */}
-            {/* Popisok sedí VEDĽA poľa, nie nad ním (Matej 2026-08-12: „placeholder
-                name a nick name budu vedla nie nad = zmensi sa text area ale bude
-                stale dostatocne velky blok na vpisanie mena"). Tým padnú dva riadky
-                výšky a obe polia sa vojdú pod seba aj vedľa fotky. Predtým stáli
-                vedľa seba v `sm:grid-cols-2` a čítali sa ako dva rovnocenné údaje —
-                hlavička pôsobila ako formulár. Text v poli je zarovnaný VĽAVO:
-                pri popisku vľavo by centrovaný text plával medzi ním a okrajom. */}
-            {/* JEDNA MRIEŽKA na všetky tri riadky (Matej 2026-09-12: „polia by mali byť
-                rovnaké… nadpisy zarovnané napravo"). Popisky tak zdieľajú jeden stĺpec
-                širokosti NAJDLHŠIEHO z nich a polia majú zhodnú šírku aj zvislú os —
-                predtým si každý riadok počítal svoju šírku sám a PREZÝVKA (63px) si
-                ukrojila z poľa vedľa. Recept `.pf-inline-grid` žije v `packTheme.ts`. */}
-            {/* RIADKY AKO NA INSTAGRAME (Matej 21. 10. 2026: „meno, prezývka aj názov svorky nedaj do
-                bloku, skôr len riadok, ako je to aj na IG"). Štítok vľavo, hodnota vpravo, tenká čiara.
-                Recept `.pf-rows` je v `ROWS_CSS` nižšie; ovládače sú tie isté, len bez rámu. */}
-            <div className="flex-1 min-w-0 pf-rows">
-              <div className={`pf-row${(human?.displayAs ?? 'name') === 'name' ? ' is-shown' : ''}`}>
-                <span className="pf-row-lbl">{tx('pack.profile.name', 'Name')}</span>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => {
-                    setFullName(e.target.value);
-                    setNameDirty(true);
-                  }}
-                  onBlur={() => { handleSaveName(); }}
-                  /* Prázdne pole NEZNAMENÁ, že ťa nikto nevidí pod menom — vtedy platí
-                     meno z OBJEDNÁVKY (Matej 2026-08-26: „štandardne to bude to čo zadal
-                     pri objednávke"). Ukazujeme ho ako predlohu, aby bolo vidno, čo o tebe
-                     vidia ostatní. Needituje sa a neukladá — je to len placeholder. */
-                  placeholder={orderName || tx('pack.profile.namePlaceholder', 'Your name')}
-                  className="pf-field pf-field--flat"
-                  style={{
-                    width: '100%',
-                    minWidth: 0,
-                    borderRadius: 8,
-                    padding: '8px 12px',
-                    color: T.ink,
-                    fontFamily: FONT_UI,
-                    fontSize: 12,
-                    textAlign: 'left',
-                  }}
-                />
-              </div>
+            <div className="pe-sec">{tx('pack.edit.secProfile', 'Profile')}</div>
+            {row(TITLES.name, shownName || add, () => setField('name'))}
+            {row(TITLES.bio, bio || add, () => setField('bio'))}
+            {row(TITLES.pills, pillCount ? <>{pillEmoji.slice(0, 4).join(' ')}{pillCount > 4 ? ` +${pillCount - 4}` : ''}{!pillEmoji.length ? `${pillCount}` : ''}</> : add, () => setField('pills'))}
 
-              <div className={`pf-row${human?.displayAs === 'nickname' ? ' is-shown' : ''}`}>
-                <span className="pf-row-lbl">{tx('pack.profile.nickname', 'Nickname')}</span>
-                <AutoSaveTextInput
-                  value={human?.nickname ?? ''}
-                  onSave={(v) => patchHuman({ nickname: v || undefined })}
-                  placeholder={tx('pack.profile.nicknamePlaceholder', 'Pack calls you')}
-                  align="left"
-                />
-              </div>
+            {dogs.length > 0 && (
+              <>
+                <div className="pe-sec">{tx('pack.edit.secDogs', 'My dogs')}</div>
+                {dogs.map((d) => (
+                  <button key={d.id} type="button" className="pe-row dog" onClick={() => navigate(`/pack/dogs/${d.id}`)}>
+                    {d.cloudinary_main_url ? <img src={sizedUrl(d.cloudinary_main_url, 120)} alt="" /> : <span className="ph" />}
+                    <span>
+                      <b>{d.dog_name}</b>
+                      {d.pack_number != null && <span className="pe-num">#{d.pack_number}</span>}
+                    </span>
+                    <em>DOG ID</em>
+                    <i aria-hidden><BrandIcon name="back" size={14} tint="dark" /></i>
+                  </button>
+                ))}
+                <p className="pe-hint">{tx('pack.edit.dogHint', 'Bio and character of the dog live in DOG ID.')}</p>
+              </>
+            )}
 
-              {/* MENO SVORKY — stojí na zlatom ráme v bloku 1 na `/pack` (F0b, 12. 9. 2026).
-                  Prázdne pole nie je chyba: vtedy rám nesie krstné meno. Ide o meno
-                  DOMÁCNOSTI (svorka 1. typu), nie o komunitu — tú appka od 12. 9. volá
-                  DOGYPT / Dogypťania. Ukladá sa do `pack_profiles.human.packName`,
-                  žiadna migrácia. */}
-              <div className={`pf-row${human?.displayAs === 'packName' ? ' is-shown' : ''}`}>
-                <span className="pf-row-lbl">{tx('pack.profile.packName', 'Pack name')}</span>
-                <AutoSaveTextInput
-                  value={human?.packName ?? ''}
-                  onSave={(v) => patchHuman({ packName: v || undefined })}
-                  placeholder={tx('pack.profile.packNamePlaceholder', 'Your household')}
-                  align="left"
-                />
-              </div>
+            <div className="pe-sec">{TITLES.about}</div>
+            {row(tx('pack.edit.aboutSub', 'Age, home, lifestyle'), aboutFilled ? `${aboutFilled} / 6` : add, () => setField('about'))}
 
-              <div className="pf-row pf-row--toggle">
-                <span className="pf-row-lbl">{tx('pack.profile.showAs', 'Show as')}</span>
-                <DisplayAsToggle
-                  value={human?.displayAs ?? 'name'}
-                  onChange={(v) => patchHuman({ displayAs: v })}
-                />
-              </div>
+            <div className="pe-sec">{TITLES.account}</div>
+            {row(tx('pack.settings.account', 'Account'), email, () => setField('account'))}
+
+            {/* PAWMATES — správa svorky z pohľadu človeka; `PAWMATE_LIVE` je dnes `false`. */}
+            {PAWMATE_LIVE && <div style={{ marginTop: PACK_SPACE.xl }}><PawmatesSection /></div>}
+          </>
+        )}
+
+        {field === 'name' && (
+          <div className="pe-field pf-rows">
+            <div className={`pf-row${(human?.displayAs ?? 'name') === 'name' ? ' is-shown' : ''}`}>
+              <span className="pf-row-lbl">{tx('pack.profile.name', 'Name')}</span>
+              <input
+                type="text"
+                value={fullName}
+                autoFocus
+                onChange={(e) => { setFullName(e.target.value); setNameDirty(true); }}
+                onBlur={() => { handleSaveName(); }}
+                /* Prázdne = platí meno z OBJEDNÁVKY (Matej 2026-08-26) — ukážeme ho ako predlohu. */
+                placeholder={orderName || tx('pack.profile.namePlaceholder', 'Your name')}
+                className="pf-field pf-field--flat"
+                style={{ width: '100%', minWidth: 0, borderRadius: PACK_R.field, padding: '8px 12px', color: T.ink, fontFamily: FONT_UI }}
+              />
+            </div>
+            <div className={`pf-row${human?.displayAs === 'nickname' ? ' is-shown' : ''}`}>
+              <span className="pf-row-lbl">{tx('pack.profile.nickname', 'Nickname')}</span>
+              <AutoSaveTextInput
+                value={human?.nickname ?? ''}
+                onSave={(v) => patchHuman({ nickname: v || undefined })}
+                placeholder={tx('pack.profile.nicknamePlaceholder', 'Pack calls you')}
+                align="left"
+              />
+            </div>
+            <div className={`pf-row${human?.displayAs === 'packName' ? ' is-shown' : ''}`}>
+              <span className="pf-row-lbl">{tx('pack.profile.packName', 'Pack name')}</span>
+              <AutoSaveTextInput
+                value={human?.packName ?? ''}
+                onSave={(v) => patchHuman({ packName: v || undefined })}
+                placeholder={tx('pack.profile.packNamePlaceholder', 'Your household')}
+                align="left"
+              />
+            </div>
+            <div className="pf-row pf-row--toggle">
+              <span className="pf-row-lbl">{tx('pack.profile.showAs', 'Show as')}</span>
+              <DisplayAsToggle value={human?.displayAs ?? 'name'} onChange={(v) => patchHuman({ displayAs: v })} />
             </div>
           </div>
-          </Column>
+        )}
 
-          {/* PÚTNIK riadok — TURISTICKÝ PROFIL NA PAPYRUSE (Matej 2026-09-12: „ten čierny
-              rámik s turistickým profilom… nesmie byť čierny, vymyslime ako tam ten turistický
-              profil zachovať aj s tými stats ale nie v aktuálnom dizajne").
-              Tým padlo tmavé sklo z 13. 8. („skús dať ten blok pútnika v liquid tmavom glasse").
-              Náhrada sa NEVYMÝŠĽA: je to ten istý riadok, aký si Matej odklepol deň predtým na
-              karte homepage (`.ts-rank` v `TripSpotlight.tsx`) — vľavo PÚTNIK + level, vpravo
-              km a výlety, tie isté i18n kľúče (`pack.map.statKm`, `pack.map.statTrips*`), takže
-              sa tri povrchy nemôžu rozísť v čísle ani v skloňovaní.
-              ⚠️ Pilulka levelu berie farbu PÁSMA z `tierVars(level)` — rovnako ako hlavička mapy
-              a karta homepage. Natvrdo zapísaná zlatá (do 12. 9. tu bola) hovorila pri leveli 19
-              inú farbu než tie isté dva povrchy.
-              Za `DEV_FULL`, viď komentár pri výpočte `pilgrim` vyššie. Nula prejdených výletov =
-              riadok sa vôbec nerenderuje (prázdna vitrína je horšia než žiadna). */}
-          {pilgrim && (
-            <Column max={640} mt={14}>
-              <Link
-                to="/pack/map/triplist?tab=stats"
-                className="pf-tap pf-pilgrim flex items-center justify-between"
-                style={{
-                  ...PACK_BOX.subblock,
-                  padding: '12px 16px',
-                  textDecoration: 'none',
-                  gap: 12,
-                }}
-              >
-                <span className="flex items-center shrink-0" style={{ gap: 9, minWidth: 0 }}>
-                  <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkStrong }}>
-                    {t('pack.map.rankPilgrim')}
-                  </span>
-                  {/* Level = pilulka s holým číslom, rovnako ako v hlavičke mapy a na karte
-                      homepage. Popisok „Lvl" Matej 3. 8. zrušil („to LVL ma ruší") — rang vedľa
-                      povie, čo to číslo je. Číslo je Space Grotesk (dáta), nie Cinzel. */}
-                  <span
-                    className="pf-pilgrim-num"
-                    style={tierVars(pilgrim.level)}
-                    aria-label={t('pack.map.levelAriaLabel', { level: pilgrim.level })}
-                  >
-                    {pilgrim.level}
-                  </span>
-                </span>
-
-                {/* Čísla vpravo — to isté poradie ako hlavička /map a karta homepage:
-                    najprv km, potom výlety. */}
-                <span className="pf-pilgrim-stats flex items-baseline" style={{ gap: 13, minWidth: 0 }}>
-                  <span><b>{pilgrim.km}</b><i>{t('pack.map.statKm')}</i></span>
-                  <span>
-                    <b>{pilgrim.count}</b>
-                    <i>{t('pack.map.statTrips' + pluralKey(pilgrim.count))}</i>
-                  </span>
-                </span>
-
-                {/* Šípka nesie „vedie to inam". Text pri nej sa na mobile skrýva — riadok už
-                    aj tak nesie dve čísla a nadpis by ho zlomil. */}
-                <span className="flex items-center shrink-0" style={{ gap: 3 }}>
-                  <span className="hidden sm:inline" style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkDim }}>
-                    {tx('pack.profile.pilgrimCta', 'Hiking profile')}
-                  </span>
-                  <ChevronRight className="h-4 w-4" style={{ color: T.cardEdge }} />
-                </span>
-              </Link>
-            </Column>
-          )}
-
-          {/* BIO — hneď pod menom (Matej 2026-07-26: „pod to bio, pod to basic a
-              lifestyle"). Predtým bolo AŽ pod pills, čiže hook profilu čítal
-              človek po vyplnenom formulári. Je to hlas psa o majiteľovi, takže
-              centrovaný ho číta ako citát, nie ako tretí riadok formulára. */}
-          <GoldRule width="100%" my={18} />
-          <Column max={640}>
-            {/* BIO heading — one bold, oversized line. It's the funny/unique hook
-                of the profile, so it should pop (Matej 2026-07-24). */}
-            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 16, fontWeight: 600, lineHeight: 1.2, color: T.inkStrong, marginBottom: 10 }}>
-              {tx('pack.profile.bioHeading', 'BIO: What my dog would probably say about me')}
-            </div>
+        {field === 'bio' && (
+          <div className="pe-field">
+            <span className="pe-lbl">{tx('pack.profile.bioHeading', 'BIO: What my dog would probably say about me')}</span>
             <WordLimitTextarea
               value={human?.dogVoiceBio ?? ''}
               onSave={(v) => patchHuman({ dogVoiceBio: v })}
               placeholder={tx('pack.profile.bioPlaceholder', 'My human wakes up at 6 just to walk me. Slightly obsessed. Would recommend. — 🐾')}
-              rows={2}
-              align="center"
+              rows={9}
               white
             />
-          </Column>
+          </div>
+        )}
 
-          {/* identity pills — ONE row: gender (read-only) · age · status
-              (relationship, single pill dropdown) · nationality (flag+abbr
-              dropdown, default SVK) · city. Languages removed from UI (field
-              kept in data, just not shown). Folds in what used to be "The
-              basics" section (zadanie-profil-konsolidacia-2026-07-24); order +
-              status/nationality collapsed to single dropdowns per
-              zadanie-profil-shrink-2026-07-24. */}
-          {/* Dva pod-bloky s okrajmi namiesto dvoch riadkov pills nalepených na
-              seba. ZÁKLAD je povinná časť identity, LIFESTYLE je dobrovoľná —
-              preto sú to dve témy, nie jeden zlepenec. Pills SÚ centrované
-              (Matej 2026-07-26) — plávaniu v prázdnej šírke, ktoré to spôsobilo
-              25.7., bráni `Column`, nie zarovnanie zľava. */}
-          <GoldRule width="100%" my={18} />
-          <Column max={640}>
-          {/* ZÁKLAD a ŽIVOTNÝ ŠTÝL = RIADKY, nie dva bloky (Matej 21. 10. 2026: „základ a životný štýl
-              asi by som to nedával do blokov, je to nejaké moc všetko preblokované"). Ovládače sú tie
-              isté ako v pilulkách; `.pf-rows` im zoberie rám a hodnotu zarovná doprava. */}
-          <div className="pf-rows pf-rows--sec">
+        {field === 'pills' && (
+          <div className="pe-field">
+            <PersonalityConcentrate human={human} patchHuman={patchHuman} />
+          </div>
+        )}
+
+        {field === 'about' && (
+          <div className="pe-field pf-rows pf-rows--sec">
             <div className="pf-rows-ttl">
               <span>{tx('pack.profile.basics', 'The basics')}</span>
               <IdentityVisibilityEye profile={profile} patchHuman={patchHuman} />
@@ -895,38 +461,19 @@ export default function PackProfile() {
             <HideWrap hidden={isHidden(profile, 'age')}>
               <div className="pf-row">
                 <span className="pf-row-lbl">{tx('pack.profile.agePlaceholder', 'Age')}</span>
-                <MiniChipInput
-                  emoji="🎂"
-                  type="number"
-                  value={human?.age}
-                  placeholder="—"
-                  width={40}
-                  onSave={(v) => patchHuman({ age: v === '' ? undefined : Number(v) })}
-                />
+                <MiniChipInput emoji="🎂" type="number" value={human?.age} placeholder="—" width={40}
+                  onSave={(v) => patchHuman({ age: v === '' ? undefined : Number(v) })} />
               </div>
             </HideWrap>
-            <Link to="/pack/dogs" className="pf-row pf-tap" style={{ textDecoration: 'none' }}>
-              <span className="pf-row-lbl">{tx('pack.profile.dogMany', 'dogs')}</span>
-              <span className="pf-row-txt">🐶 {dogs.length} <ChevronRight className="h-4 w-4" style={{ color: T.cardEdge }} /></span>
-            </Link>
             <div className="pf-row">
               <span className="pf-row-lbl">{tx('pack.profile.nationality', 'Nationality')}</span>
-              {/* Národnosť oko NEMÁ — vždy viditeľná (Matej 2026-07-25). */}
-              <NationalitySelect
-                value={human?.nationality ?? 'SK'}
-                onChange={(v) => patchHuman({ nationality: v })}
-              />
+              <NationalitySelect value={human?.nationality ?? 'SK'} onChange={(v) => patchHuman({ nationality: v })} />
             </div>
             <HideWrap hidden={isHidden(profile, 'region')}>
               <div className="pf-row">
                 <span className="pf-row-lbl">{tx('pack.profile.cityPlaceholder', 'City')}</span>
-                <MiniChipInput
-                  emoji="📍"
-                  value={human?.region ?? ''}
-                  placeholder="—"
-                  width={150}
-                  onSave={(v) => patchHuman({ region: v || undefined })}
-                />
+                <MiniChipInput emoji="📍" value={human?.region ?? ''} placeholder="—" width={150}
+                  onSave={(v) => patchHuman({ region: v || undefined })} />
               </div>
             </HideWrap>
             <div className="pf-rows-ttl">
@@ -950,67 +497,17 @@ export default function PackProfile() {
               <LifestyleSelect emoji="" placeholder="—" options={WORK_OPTIONS} value={human?.work} onChange={(v) => patchHuman({ work: v })} />
             </div>
           </div>
-          </Column>
-
-          {/* WHAT YOU'RE LIKE — vtiahnuté DO bloku 1 (Matej 2026-07-26: „a what
-              you like všetko centrované v 1. bloku"). Bola to samostatná karta
-              (SEKCIA 3) pod psami; teraz je celý človek — foto, meno, bio,
-              základ, lifestyle, osobnosť — v jednej karte a psy sú ten druhý,
-              samostatný hrdina. Vrátenie = vytiahnuť tieto tri riadky späť do
-              vlastnej `<PapyrusCard>`. */}
-          <GoldRule width="100%" my={18} />
-          <Column max={640}>
-            {/* `hideLabel` — vnútri PersonalityConcentrate je vlastný label
-                „PERSONALITY". Kým to bola samostatná karta, čítal sa ako pod-
-                nadpis; pod eyebrow „What you're like" je to to isté dvakrát. */}
-            <div style={{ marginBottom: 12 }}>
-              <Eyebrow>{t('pack.profile.whatYoureLike', { rod: human?.gender ?? '' })}</Eyebrow>
-            </div>
-            <PersonalityConcentrate human={human} patchHuman={patchHuman} center hideLabel />
-          </Column>
-
-        </PapyrusCard>
-
-        {/* SEKCIA „OH, MY DOG!" (profily psov) ZRUŠENÁ 2026-08-06 — Matej: „týmto
-            rozhodnutím vlastne v /profile rušíme 2. blok, kde boli predtým profily psov…
-            zostane to len pre majiteľa." Profil je odteraz VÝHRADNE o majiteľovi
-            (fotka, meno, účet, heslo, jazyk, notifikácie).
-
-            Všetko psie sa presunulo: VSTUP → MY PACK (`/pack/dogs`, dlaždice kvízov),
-            VÝSTUP → karta psa (`/pack/dogs/:id`, pet pas).
-            ⚠️ Polia a taxonómie v `components/pack/profile/packProfile.ts` NEZANIKLI —
-            len sa pýtajú inde. `DogGallery.tsx` / `DogCardFields.tsx` ostávajú v repe
-            (používa ich read-profil `/pack/u/:id`), tu sa už nemountujú. */}
-
-        {/* PAWMATES — správa svorky z pohľadu ČLOVEKA (B6b, Matej 13. 9. 2026:
-            „tieto nastavenia musia byť v profile — tam bude PAWMATES s možnosťou
-            pridať/ubrať psa"). Dvere v rázcestí „+" na homepage sem vedú
-            (`/pack/profile#pawmates`).
-            🔒 `PAWMATE_LIVE` je dnes `false` — sekcia sa stavia za zamknutými
-            dverami a odomkne ju až beh B8 po teste F7.
-            ⚠️ POLOHA (Matej 13. 9. 2026): HNEĎ pod prvým blokom (karta človeka) a NAD
-            blokom POTREBUJEME ŤA (`PackNetwork`). Svorka je bližšie k identite človeka
-            než odmeny za pozývanie — nepresúvať späť pod sieť. */}
-        {PAWMATE_LIVE && <PawmatesSection />}
-
-        {/* Bones + your network — split two-column block */}
-        <PackNetwork avatarUrl={avatarUrl} initial={initial} />
-
-        {/* Account info + password modal — vlastná karta ZMAZANÁ 2026-08-12 (bola duplikát
-            `PackSettings`, ktorý robí presne to isté a je už plne preložený). */}
-        <PackSettings />
-
-        {/* ČÍSLO VERZIE — LEN V APPKE (21. 10. 2026). Matej pri teste nevedel, či mu telefón
-            stiahol posledný go-live. Rovnaké číslo ako `version` v dogypt.com/app-update.json. */}
-        {appVer && (
-          <div style={{ textAlign: 'center', fontSize: PACK_TEXT.micro, letterSpacing: '0.22em', color: paperPage ? T.inkDim : T.accentGold, opacity: 0.6 }}>
-            DOGYPT · {APP_PLATFORM} · {appVer}
-          </div>
         )}
 
-        <div style={{ height: 24 }} />
+        {field === 'account' && (
+          <div className="pe-field">
+            <PackSettings />
+            {/* ČÍSLO VERZIE — LEN V APPKE (21. 10. 2026), rovnaké ako `version` v dogypt.com/app-update.json. */}
+            {appVer && <div className="pe-ver">DOGYPT · {APP_PLATFORM} · {appVer}</div>}
+          </div>
+        )}
       </div>
-    </PackLayout>
+    </div>
   );
 }
 

@@ -50,6 +50,10 @@ export const uploadExtraPhoto = (blob: Blob, sessionId: string, index: number) =
 export const uploadAvatarPhoto = (blob: Blob, userId: string) =>
   uploadBlob(blob, `avatars/${userId}`, `avatar-${Date.now()}`);
 
+// TITULKA profilu (23. 10. 2026) — ten istý trvalý priečinok ako profilovka, iný názov.
+export const uploadCoverPhoto = (blob: Blob, userId: string) =>
+  uploadBlob(blob, `avatars/${userId}`, `cover-${Date.now()}`);
+
 export const uploadBuddyPhoto = (blob: Blob, userId: string, stamp: number) =>
   uploadBlob(blob, `buddy/${userId}`, String(stamp));
 

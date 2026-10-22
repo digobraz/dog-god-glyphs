@@ -30,6 +30,7 @@ import { readLocalTrails, readWalkedIds, visibleLocalTrails, tripPath } from '@/
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PILL_CSS, FONT_TITLE, FONT_UI, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { BonesSheet } from '@/components/pack/BonesSheet';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { shareDog } from '@/lib/useShareCard';
 import { useToast } from '@/hooks/use-toast';
@@ -45,8 +46,9 @@ const TOTAL_SCROLLS = VAULT_WORLDS.reduce((s, w) => s + w.scrolls, 0);
 const db = supabase as any;
 
 // Staré odkazy mierili do editora (kotvy a parametre) — pošleme ich tam, kam patria,
-// inak by `#network` z homepage alebo `?welcome=1` po platbe pristáli na nesprávnej obrazovke.
-const EDITOR_HASHES = ['#network', '#pawmates'];
+// inak by `?welcome=1` po platbe pristálo na nesprávnej obrazovke.
+// `#network` (BONES a línia) od 23. 10. 2026 NEJDE do editora — otvorí tu šuplík MISIA.
+const EDITOR_HASHES = ['#pawmates'];
 const EDITOR_PARAMS = ['welcome', 'edit'];
 
 // KARTY nad mriežkou (Matej 22. 10.: prvá = všetko, potom príbehy, albumy, výlety; súkromné
@@ -304,6 +306,13 @@ export default function PackMe() {
   const [posts, setPosts] = useState<PostTile[] | null>(null);
   const [brought, setBrought] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
+  const [bonesOpen, setBonesOpen] = useState(location.hash === '#network');
+  // Odkaz `#network` zvonku (homepage, pozvánka zakladateľa) aj keď už profil stojí.
+  useEffect(() => { if (location.hash === '#network') setBonesOpen(true); }, [location.hash]);
+  const closeBones = () => {
+    setBonesOpen(false);
+    if (location.hash === '#network') navigate('/pack/profile', { replace: true });
+  };
   const [bioFull, setBioFull] = useState(false);
   const [bioLong, setBioLong] = useState(false);
   const bioRef = useRef<HTMLParagraphElement>(null);
@@ -392,8 +401,8 @@ export default function PackMe() {
 
   const dash = <b className="na" aria-label={tx('pack.me.notYet', 'not yet')}>—</b>;
   const photo = avatarUrl ? sizedUrl(avatarUrl, 320) : null;
-  // Titulka = fotka človeka so psom (SNIFFER), inak hlavná fotka prvého psa; bez fotky ostane čierna.
-  const coverSrc = human?.buddyPhoto || firstDog?.cloudinary_main_url || null;
+  // Titulka = vlastná (UPRAVIŤ PROFIL), inak fotka človeka so psom (SNIFFER), inak hlavná fotka prvého psa; bez fotky ostane čierna.
+  const coverSrc = human?.coverPhoto || human?.buddyPhoto || firstDog?.cloudinary_main_url || null;
   const cover = coverSrc ? sizedUrl(coverSrc, 1200) : null;
   const pills = humanPills(human?.personality, human?.customPersonality, t);
 
@@ -413,7 +422,7 @@ export default function PackMe() {
         {/* TITULKA — BONES · pozvi · meno · DEVOTION · PÚTNIK */}
         <div className="me-cover" style={cover ? ({ '--me-cover': `url(${cover})` } as CSSProperties) : undefined}>
           <div className="me-tbar">
-            <button type="button" className="me-bones" onClick={() => navigate('/pack/profile/edit#network')} aria-label={`${bones} BONES`}>
+            <button type="button" className="me-bones" onClick={() => setBonesOpen(true)} aria-label={`${bones} BONES`}>
               <BrandIcon name="bone" size={16} tint="dark" />
               {fmt(bones)}
             </button>
@@ -476,7 +485,7 @@ export default function PackMe() {
             <button type="button" onClick={() => soon(tx('pack.me.following', 'following'))}>
               {dash}<span>{tx('pack.me.following', 'following')}</span>
             </button>
-            <button type="button" onClick={() => navigate('/pack/profile/edit#network')}>
+            <button type="button" onClick={() => setBonesOpen(true)}>
               <b>{brought == null ? '·' : fmt(brought)}</b>
               <span>{tx('pack.me.brought', 'brought in')}</span>
             </button>
@@ -573,6 +582,7 @@ export default function PackMe() {
           )}
         </div>
       </section>
+      {bonesOpen && <BonesSheet bones={bones} avatarUrl={avatarUrl} initial={avatarInitial} onClose={closeBones} />}
     </PackLayout>
   );
 }

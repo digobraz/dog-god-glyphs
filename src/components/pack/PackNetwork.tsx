@@ -270,7 +270,9 @@ const NET_CSS = `
 }
 `;
 
-export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null; initial?: string }) {
+// `bare` = bez vlastnej karty — blok žije v šuplíku MISIA na profile (`BonesSheet`, 23. 10. 2026),
+// ktorý papyrus a rám nesie sám. Karta v karte by bol druhý rám okolo toho istého.
+export function PackNetwork({ avatarUrl, initial, bare = false }: { avatarUrl?: string | null; initial?: string; bare?: boolean }) {
   const t = useT();
   const { lang } = useLang();
   const tx: Tx = (key, fallback, vars) => {
@@ -422,7 +424,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
   return (
     <section
       id="network"
-      style={{
+      style={bare ? undefined : {
         background: T.cardGrad,
         border: `1.5px solid ${T.cardEdge}`,
         borderRadius: 16,
