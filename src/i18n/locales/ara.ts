@@ -5708,5 +5708,6 @@ export const ara: Partial<Dict> = {
   'pack.me.diaryEmpty': "يومياتك تأتي مع FEED. أنت فقط تراها.",
   'pack.me.openDogs': "إظهار الكلاب",
   'pack.me.closeDogs': "إخفاء الكلاب",
+  'pack.me.dogBioEmpty': "لا توجد نبذة بعد. اكتبها في DOG ID.",
 
 };

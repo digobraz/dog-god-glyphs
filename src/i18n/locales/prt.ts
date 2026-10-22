@@ -5900,5 +5900,6 @@ export const prt: Partial<Dict> = {
   'pack.me.diaryEmpty': "O teu diário chega com o FEED. Só tu vês.",
   'pack.me.openDogs': "Mostrar cães",
   'pack.me.closeDogs': "Ocultar cães",
+  'pack.me.dogBioEmpty': "Ainda sem bio. Escreve-a no DOG ID.",
 
 };

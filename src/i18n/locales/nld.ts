@@ -5711,5 +5711,6 @@ export const nld: Partial<Dict> = {
   'pack.me.diaryEmpty': "Je dagboek komt met de FEED. Alleen jij ziet het.",
   'pack.me.openDogs': "Honden tonen",
   'pack.me.closeDogs': "Honden verbergen",
+  'pack.me.dogBioEmpty': "Nog geen bio. Schrijf hem in DOG ID.",
 
 };

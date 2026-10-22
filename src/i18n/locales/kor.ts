@@ -5711,5 +5711,6 @@ export const kor: Partial<Dict> = {
   'pack.me.diaryEmpty': "일기는 FEED와 함께 옵니다. 나만 볼 수 있어요.",
   'pack.me.openDogs': "강아지 보기",
   'pack.me.closeDogs': "강아지 숨기기",
+  'pack.me.dogBioEmpty': "아직 소개가 없어요. DOG ID에서 작성하세요.",
 
 };

@@ -5712,5 +5712,6 @@ export const ind: Partial<Dict> = {
   'pack.me.diaryEmpty': "Buku harianmu hadir bersama FEED. Hanya kamu yang melihatnya.",
   'pack.me.openDogs': "Tampilkan anjing",
   'pack.me.closeDogs': "Sembunyikan anjing",
+  'pack.me.dogBioEmpty': "Belum ada bio. Tulis di DOG ID.",
 
 };

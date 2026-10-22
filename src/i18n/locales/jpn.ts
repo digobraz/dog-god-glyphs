@@ -5708,5 +5708,6 @@ export const jpn: Partial<Dict> = {
   'pack.me.diaryEmpty': "日記はFEEDと一緒に届きます。見られるのはあなただけです。",
   'pack.me.openDogs': "犬を表示",
   'pack.me.closeDogs': "犬を隠す",
+  'pack.me.dogBioEmpty': "まだ紹介文がありません。DOG IDで書いてください。",
 
 };

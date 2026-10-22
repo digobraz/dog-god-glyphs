@@ -6115,4 +6115,5 @@ export const sk: Partial<Dict> = {
   'pack.me.diaryEmpty': "Denník príde s FEEDom. Vidíš ho len ty.",
   'pack.me.openDogs': "Ukázať psov",
   'pack.me.closeDogs': "Skryť psov",
+  'pack.me.dogBioEmpty': "Zatiaľ bez bia. Napíš ho v DOG ID.",
 };

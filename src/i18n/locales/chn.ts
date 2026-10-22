@@ -5708,5 +5708,6 @@ export const chn: Partial<Dict> = {
   'pack.me.diaryEmpty': "日记将随 FEED 推出。只有你能看到。",
   'pack.me.openDogs': "显示狗狗",
   'pack.me.closeDogs': "隐藏狗狗",
+  'pack.me.dogBioEmpty': "还没有简介。在 DOG ID 中填写。",
 
 };

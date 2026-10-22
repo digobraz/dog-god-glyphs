@@ -6424,5 +6424,6 @@ export const en = {
   'pack.me.diaryEmpty': "Your diary arrives with the FEED. Only you can see it.",
   'pack.me.openDogs': "Show dogs",
   'pack.me.closeDogs': "Hide dogs",
+  'pack.me.dogBioEmpty': "No bio yet. Write it in DOG ID.",
 
 } as const;

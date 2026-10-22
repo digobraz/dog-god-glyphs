@@ -5878,5 +5878,6 @@ export const rus: Partial<Dict> = {
   'pack.me.diaryEmpty': "Дневник появится вместе с FEED. Видишь только ты.",
   'pack.me.openDogs': "Показать собак",
   'pack.me.closeDogs': "Скрыть собак",
+  'pack.me.dogBioEmpty': "Пока без описания. Напиши его в DOG ID.",
 
 };

@@ -5896,5 +5896,6 @@ export const ukr: Partial<Dict> = {
   'pack.me.diaryEmpty': "Щоденник з'явиться разом із FEED. Бачиш лише ти.",
   'pack.me.openDogs': "Показати собак",
   'pack.me.closeDogs': "Сховати собак",
+  'pack.me.dogBioEmpty': "Поки без опису. Напиши його в DOG ID.",
 
 };

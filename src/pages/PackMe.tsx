@@ -143,6 +143,7 @@ const ME_CSS = `
 .me-drow.flip .me-hg .ba{ opacity:1; transform:none; }
 .me-dinfo{ flex-basis:100%; max-height:0; opacity:0; overflow:hidden; transition:max-height .45s ease, opacity .3s ease; }
 .me-drow.flip .me-dinfo{ max-height:240px; opacity:1; }
+.me-dinfo .none{ color:${T.inkFaint}; font-style:italic; cursor:pointer; }
 .me-dinfo p{ margin:${S.xs}px 0 0; font-family:${FONT_UI}; font-size:${TX.label}px; line-height:1.45; color:${T.ink};
   display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
 .me-gap{ height:${GAP.m}px; }
@@ -217,9 +218,9 @@ const ME_CSS = `
   .me-hg .fa, .me-hg .ba{ position:static; opacity:1; transform:none; height:100%; }
   .me-hg .ba b{ font-size:${TX.h1}px; }
   .me-drow.flip .me-hg .fa{ opacity:1; transform:none; }
-  .me-dinfo{ padding-left:${DOG_D.pc + S.lg}px; }
+  /* PC: rozbalený šuplík = ako mobil po ťuku — bio a pilulky psa hneď (Matej 23. 10.). */
+  .me-dinfo{ padding-left:${DOG_D.pc + S.lg}px; max-height:240px; opacity:1; }
   .me-strip{ margin-right:0; padding-right:0; }
-  .me-btns{ max-width:420px; }
   .me-bio{ max-width:560px; }
   .me-grid{ grid-template-columns:repeat(5,1fr); }
 }
@@ -239,10 +240,11 @@ function humanPills(personality: string[] | undefined, custom: string | undefine
 }
 
 /** Riadok psa v šuplíku. Bio a povaha sú tie isté polia ako v DOG ID (`profile.dogs[id]`). */
-function DogRow({ dog, attrs, onClose, tx }: {
+function DogRow({ dog, attrs, onClose, onDogId, tx }: {
   dog: PackDogFull;
   attrs: DogProfileAttrs | undefined;
   onClose: () => void;
+  onDogId: () => void;
   tx: (key: string, fallback: string) => string;
 }) {
   const [flip, setFlip] = useState(false);
@@ -262,16 +264,16 @@ function DogRow({ dog, attrs, onClose, tx }: {
         </span>
         <span className="ba"><b>{name}</b>{num}</span>
       </button>
-      {(bio || tags.length > 0) && (
-        <div className="me-dinfo">
-          {bio && <p>{bio}</p>}
+      <div className="me-dinfo">
+          {bio ? <p>{bio}</p> : (
+            <p className="none" onClick={onDogId}>{tx('pack.me.dogBioEmpty', 'No bio yet. Write it in DOG ID.')}</p>
+          )}
           {tags.length > 0 && (
             <div className="me-strip">
               {tags.map((g) => <span key={g} className="pk-pill">{tx(`pack.dogTag.${g}`, g)}</span>)}
             </div>
           )}
-        </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -459,7 +461,7 @@ export default function PackMe() {
 
           <div className="me-drawer" aria-hidden={!open}>
             {dogs.map((d) => (
-              <DogRow key={d.id} dog={d} attrs={profile?.dogs?.[d.id]} onClose={() => setOpen(false)} tx={tx} />
+              <DogRow key={d.id} dog={d} attrs={profile?.dogs?.[d.id]} onClose={() => setOpen(false)} onDogId={() => navigate(`/pack/dogs/${d.id}`)} tx={tx} />
             ))}
           </div>
           <div className="me-gap" />

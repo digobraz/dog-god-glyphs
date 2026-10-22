@@ -5897,5 +5897,6 @@ export const esp: Partial<Dict> = {
   'pack.me.diaryEmpty': "Tu diario llega con el FEED. Solo tú lo ves.",
   'pack.me.openDogs': "Mostrar perros",
   'pack.me.closeDogs': "Ocultar perros",
+  'pack.me.dogBioEmpty': "Aún sin bio. Escríbela en DOG ID.",
 
 };
