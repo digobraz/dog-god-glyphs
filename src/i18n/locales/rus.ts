@@ -5879,5 +5879,6 @@ export const rus: Partial<Dict> = {
   'pack.me.openDogs': "Показать собак",
   'pack.me.closeDogs': "Скрыть собак",
   'pack.me.dogBioEmpty': "Пока без описания. Напиши его в DOG ID.",
+  'pack.me.editDog': "Изменить DOG ID",
 
 };

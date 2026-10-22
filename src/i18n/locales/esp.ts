@@ -5898,5 +5898,6 @@ export const esp: Partial<Dict> = {
   'pack.me.openDogs': "Mostrar perros",
   'pack.me.closeDogs': "Ocultar perros",
   'pack.me.dogBioEmpty': "Aún sin bio. Escríbela en DOG ID.",
+  'pack.me.editDog': "Editar DOG ID",
 
 };

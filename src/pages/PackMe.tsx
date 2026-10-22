@@ -87,8 +87,6 @@ const ME_CSS = `
 .me-bones{ display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.md}px; border-radius:${PACK_R.pill}px; cursor:pointer;
   background:${BRAND_GOLD_BTN.grad}; border:1px solid ${BRAND_GOLD_BTN.edge}; color:${BRAND_GOLD_BTN.ink}; box-shadow:${BRAND_GOLD_BTN.glow};
   font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.label}px; letter-spacing:.02em; }
-.me-glass{ width:36px; height:36px; border-radius:${PACK_R.pill}px; display:grid; place-items:center; cursor:pointer; padding:0;
-  background:${T.glassSoft}; border:1px solid ${T.border}; }
 .me-foot{ position:absolute; left:${OWN_X.m + OWN.m + S.sm}px; right:${S.md}px; bottom:-${OWN_DROP}px; }
 .me-nm{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.h2}px; letter-spacing:.14em; color:${T.inkStrong};
   text-transform:uppercase; white-space:nowrap; overflow:hidden; }
@@ -143,6 +141,10 @@ const ME_CSS = `
 .me-drow.flip .me-hg .ba{ opacity:1; transform:none; }
 .me-dinfo{ flex-basis:100%; max-height:0; opacity:0; overflow:hidden; transition:max-height .45s ease, opacity .3s ease; }
 .me-drow.flip .me-dinfo{ max-height:240px; opacity:1; }
+.me-dedit{ display:inline-flex; align-items:center; gap:${S.xs}px; margin-top:${S.sm}px; padding:${S.xs}px ${S.md}px; border-radius:${PACK_R.pill}px;
+  background:transparent; border:1.5px solid ${LAPIS.edge}; color:${LAPIS.edge}; cursor:pointer;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; letter-spacing:.14em; text-transform:uppercase; }
+.me-dedit:hover{ background:${LAPIS.fill}; }
 .me-dinfo .none{ color:${T.inkFaint}; font-style:italic; cursor:pointer; }
 .me-dinfo p{ margin:${S.xs}px 0 0; font-family:${FONT_UI}; font-size:${TX.label}px; line-height:1.45; color:${T.ink};
   display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
@@ -273,6 +275,11 @@ function DogRow({ dog, attrs, onClose, onDogId, tx }: {
               {tags.map((g) => <span key={g} className="pk-pill">{tx(`pack.dogTag.${g}`, g)}</span>)}
             </div>
           )}
+          {/* Môj pes → úprava v DOG ID (Matej 23. 10.: „možnosť upraviť a klikom sa preniesť do /dogs"). */}
+          <button type="button" className="me-dedit" onClick={onDogId}>
+            <BrandIcon name="pencil" size={12} tint="violet" />
+            {tx('pack.me.editDog', 'Edit DOG ID')}
+          </button>
       </div>
     </div>
   );
@@ -357,8 +364,6 @@ export default function PackMe() {
   }, [bio, bioFull]);
 
   const firstDog = dogs.find((d) => d.pack_number != null) ?? dogs[0] ?? null;
-  // Číslo majiteľa = najnižšie číslo jeho psov (CLAUDE.md §Identita).
-  const myNumber = dogs.map((d) => d.pack_number).filter((n): n is number => n != null).sort((a, b) => a - b)[0] ?? null;
   const fmt = (n: number) => n.toLocaleString(lang === 'sk' ? 'sk-SK' : 'en-US');
 
   // Staré odkazy do editora — presmerovať skôr, než sa čokoľvek vykreslí.
@@ -411,9 +416,6 @@ export default function PackMe() {
             <button type="button" className="me-bones" onClick={() => navigate('/pack/profile/edit#network')} aria-label={`${bones} BONES`}>
               <BrandIcon name="bone" size={16} tint="dark" />
               {fmt(bones)}
-            </button>
-            <button type="button" className="me-glass" onClick={invite} aria-label={tx('pack.me.invite', 'Invite')}>
-              <BrandIcon name="send" size={16} tint="white" />
             </button>
           </div>
           <div className="me-foot">
@@ -490,7 +492,9 @@ export default function PackMe() {
 
           <div className="me-btns">
             <button type="button" className="me-cta" onClick={() => navigate('/pack/profile/edit')}>{tx('pack.me.editProfile', 'Edit profile')}</button>
-            <button type="button" className="me-out" onClick={() => myNumber != null && navigate(`/pack/u/${myNumber}`)}>{tx('pack.me.asOthers', 'As others see me')}</button>
+            {/* „Ako ma vidia" zrušené (Matej 23. 10.: „ako ma vidia je teda hlúposť") — na jeho mieste
+                POZVI: zdieľa kartu psa, z ktorej rastie číslo „brought in". */}
+            <button type="button" className="me-out" onClick={invite}>{tx('pack.me.invite', 'Invite')}</button>
           </div>
 
           <div className="me-role"><span className="pk-pill">Pawtner</span></div>

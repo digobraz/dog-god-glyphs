@@ -5897,5 +5897,6 @@ export const ukr: Partial<Dict> = {
   'pack.me.openDogs': "Показати собак",
   'pack.me.closeDogs': "Сховати собак",
   'pack.me.dogBioEmpty': "Поки без опису. Напиши його в DOG ID.",
+  'pack.me.editDog': "Змінити DOG ID",
 
 };

@@ -5709,5 +5709,6 @@ export const chn: Partial<Dict> = {
   'pack.me.openDogs': "显示狗狗",
   'pack.me.closeDogs': "隐藏狗狗",
   'pack.me.dogBioEmpty': "还没有简介。在 DOG ID 中填写。",
+  'pack.me.editDog': "编辑 DOG ID",
 
 };

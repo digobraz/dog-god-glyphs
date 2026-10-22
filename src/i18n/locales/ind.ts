@@ -5713,5 +5713,6 @@ export const ind: Partial<Dict> = {
   'pack.me.openDogs': "Tampilkan anjing",
   'pack.me.closeDogs': "Sembunyikan anjing",
   'pack.me.dogBioEmpty': "Belum ada bio. Tulis di DOG ID.",
+  'pack.me.editDog': "Edit DOG ID",
 
 };

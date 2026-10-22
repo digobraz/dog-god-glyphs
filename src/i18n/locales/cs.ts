@@ -6088,5 +6088,6 @@ export const cs: Partial<Dict> = {
   'pack.me.openDogs': "Ukázat psy",
   'pack.me.closeDogs': "Skrýt psy",
   'pack.me.dogBioEmpty': "Zatím bez bia. Napiš ho v DOG ID.",
+  'pack.me.editDog': "Upravit DOG ID",
 
 };

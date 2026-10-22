@@ -5712,5 +5712,6 @@ export const tur: Partial<Dict> = {
   'pack.me.openDogs': "Köpekleri göster",
   'pack.me.closeDogs': "Köpekleri gizle",
   'pack.me.dogBioEmpty': "Henüz biyografi yok. DOG ID'de yaz.",
+  'pack.me.editDog': "DOG ID'yi düzenle",
 
 };

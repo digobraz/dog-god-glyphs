@@ -5709,5 +5709,6 @@ export const ara: Partial<Dict> = {
   'pack.me.openDogs': "إظهار الكلاب",
   'pack.me.closeDogs': "إخفاء الكلاب",
   'pack.me.dogBioEmpty': "لا توجد نبذة بعد. اكتبها في DOG ID.",
+  'pack.me.editDog': "تعديل DOG ID",
 
 };

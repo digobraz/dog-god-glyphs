@@ -6425,5 +6425,6 @@ export const en = {
   'pack.me.openDogs': "Show dogs",
   'pack.me.closeDogs': "Hide dogs",
   'pack.me.dogBioEmpty': "No bio yet. Write it in DOG ID.",
+  'pack.me.editDog': "Edit DOG ID",
 
 } as const;

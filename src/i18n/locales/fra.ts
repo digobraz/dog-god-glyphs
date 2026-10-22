@@ -5898,5 +5898,6 @@ export const fra: Partial<Dict> = {
   'pack.me.openDogs': "Afficher les chiens",
   'pack.me.closeDogs': "Masquer les chiens",
   'pack.me.dogBioEmpty': "Pas encore de bio. Écris-la dans DOG ID.",
+  'pack.me.editDog': "Modifier DOG ID",
 
 };
