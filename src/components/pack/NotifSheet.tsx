@@ -199,7 +199,7 @@ const CSS = `
 /* Celá hlava psa aj s nosom (Matej 23. 10.: „daj to logo nižšie, nech je vidno celá tvár aj nos“). */
 .ntf-logo-clip{position:absolute;inset:0;z-index:1;overflow:hidden;border-radius:${PACK_R.card}px;pointer-events:none;}
 /* +50 px doľava a +15 px nižšie, aby bol vidno celý nos ako na novej ikonke appky (Matej 23. 10.). */
-.ntf-logo{position:absolute;z-index:1;right:calc(-14% + 50px);top:calc(-6% - 5px);width:calc(84% * 1.15);aspect-ratio:1;pointer-events:none;background:${T.inkStrong};opacity:.07;
+.ntf-logo{position:absolute;z-index:1;right:calc(-14% + 35px);top:calc(-6% - 15px);width:calc(84% * 1.15);aspect-ratio:1;pointer-events:none;background:${T.inkStrong};opacity:.07;
   -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;}
 .ntf-nums{position:absolute;z-index:2;right:${PACK_SPACE.xxl}px;top:${PACK_SPACE.md}px;bottom:${PACK_SPACE.md}px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:${PACK_SPACE.xs}px;}
 /* Počítadlo — písmo sa zmenšuje podľa POČTU ZNAKOV (--ntf-len), aby sa zmestilo aj „1 000 000".
