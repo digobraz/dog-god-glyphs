@@ -5984,4 +5984,6 @@ export const pol: Partial<Dict> = {
   'pack.dvinfo.soon': "wkrótce",
   'pack.dvinfo.note': "Wartości „wkrótce” są właśnie ustalane. Każdy kolejny stopień wymaga więcej ☥.",
   'pack.me.novicePreview': "Podgląd: zupełnie nowy członek · wróć do mojego konta",
+  'pack.cover.note2': "Przesuń zdjęcie w tle palcem bezpośrednio na nim.",
+  'pack.cover.pick': "Stuknij zdjęcie, aby zostało w tle.",
 };

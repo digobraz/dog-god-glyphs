@@ -6213,4 +6213,6 @@ export const cs: Partial<Dict> = {
   'pack.dvinfo.soon': "brzy",
   'pack.dvinfo.note': "Hodnoty s „brzy“ se právě nastavují. Každý další stupeň chce víc ☥ než ten předchozí.",
   'pack.me.novicePreview': "Náhled: úplně nový člen · zpět na můj účet",
+  'pack.cover.note2': "Polohu titulky posuneš tažením prstem přímo na ní.",
+  'pack.cover.pick': "Ťukni na fotku a zůstane jako titulka.",
 };

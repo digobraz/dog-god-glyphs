@@ -5812,4 +5812,6 @@ export const jpn: Partial<Dict> = {
   'pack.dvinfo.soon': "近日",
   'pack.dvinfo.note': "「近日」の値は現在決定中です。段階が上がるほど多くの ☥ が必要です。",
   'pack.me.novicePreview': "プレビュー：新しいメンバー · 自分のアカウントに戻る",
+  'pack.cover.note2': "カバーをドラッグして上下に動かせます。",
+  'pack.cover.pick': "写真をタップするとカバーに固定されます。",
 };

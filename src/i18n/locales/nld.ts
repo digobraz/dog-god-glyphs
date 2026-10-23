@@ -5815,4 +5815,6 @@ export const nld: Partial<Dict> = {
   'pack.dvinfo.soon': "binnenkort",
   'pack.dvinfo.note': "Waarden met „binnenkort” worden nu vastgelegd. Elke trede vraagt meer ☥ dan de vorige.",
   'pack.me.novicePreview': "Voorbeeld: gloednieuw lid · terug naar mijn account",
+  'pack.cover.note2': "Sleep de omslag om hem omhoog of omlaag te schuiven.",
+  'pack.cover.pick': "Tik op een foto om hem als omslag te houden.",
 };

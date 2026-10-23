@@ -6000,4 +6000,6 @@ export const ita: Partial<Dict> = {
   'pack.dvinfo.soon': "presto",
   'pack.dvinfo.note': "I valori «presto» sono in definizione. Ogni gradino chiede più ☥ del precedente.",
   'pack.me.novicePreview': "Anteprima: membro nuovo · torna al mio account",
+  'pack.cover.note2': "Trascina la copertina per spostarla su o giù.",
+  'pack.cover.pick': "Tocca una foto per tenerla come copertina.",
 };

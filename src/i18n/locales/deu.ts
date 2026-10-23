@@ -6001,4 +6001,6 @@ export const deu: Partial<Dict> = {
   'pack.dvinfo.soon': "bald",
   'pack.dvinfo.note': "Werte mit „bald“ werden gerade festgelegt. Jede Stufe braucht mehr ☥ als die vorige.",
   'pack.me.novicePreview': "Vorschau: ganz neues Mitglied · zurück zu meinem Konto",
+  'pack.cover.note2': "Ziehe das Titelbild direkt auf der Karte nach oben oder unten.",
+  'pack.cover.pick': "Tippe auf ein Foto, um es als Titelbild zu behalten.",
 };

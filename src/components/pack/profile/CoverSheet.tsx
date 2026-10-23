@@ -186,7 +186,7 @@ export function CoverSheet({ uid, human, onClose }: {
               </button>
             ))}
           </div>
-          <p className="cs-note">{tx('pack.cover.note', 'Tap a photo to keep it as your cover. Move it up or down in Edit profile.')}</p>
+          <p className="cs-note">{tx('pack.cover.pick', 'Tap a photo to keep it as your cover.')} {tx('pack.cover.note2', 'Drag the cover on the card to move it up or down.')}</p>
         </div>
       </div>
     </div>,

@@ -5816,4 +5816,6 @@ export const ind: Partial<Dict> = {
   'pack.dvinfo.soon': "segera",
   'pack.dvinfo.note': "Nilai bertanda “segera” sedang ditetapkan. Setiap tingkat butuh ☥ lebih banyak dari sebelumnya.",
   'pack.me.novicePreview': "Pratinjau: anggota baru · kembali ke akunku",
+  'pack.cover.note2': "Seret sampul untuk menggesernya ke atas atau bawah.",
+  'pack.cover.pick': "Ketuk foto agar tetap jadi sampul.",
 };

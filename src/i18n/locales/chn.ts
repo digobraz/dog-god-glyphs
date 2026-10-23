@@ -5812,4 +5812,6 @@ export const chn: Partial<Dict> = {
   'pack.dvinfo.soon': "即将推出",
   'pack.dvinfo.note': "标为「即将推出」的数值正在制定。每一级都比上一级需要更多 ☥。",
   'pack.me.novicePreview': "预览：全新成员 · 返回我的账户",
+  'pack.cover.note2': "直接拖动封面即可上下调整位置。",
+  'pack.cover.pick': "点一张照片即可设为封面。",
 };

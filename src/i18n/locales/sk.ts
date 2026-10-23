@@ -6299,4 +6299,6 @@ export const sk: Partial<Dict> = {
   'pack.dvinfo.soon': "čoskoro",
   'pack.dvinfo.note': "Hodnoty s „čoskoro“ sa práve nastavujú. Každý ďalší stupeň chce viac ☥ ako ten predošlý.",
   'pack.me.novicePreview': "Náhľad: úplne nový člen · späť na môj účet",
+  'pack.cover.note2': "Polohu titulky posunieš potiahnutím prstom priamo na nej.",
+  'pack.cover.pick': "Ťukni na fotku a ostane ako titulka.",
 };

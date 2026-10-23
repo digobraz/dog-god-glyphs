@@ -5815,4 +5815,6 @@ export const tur: Partial<Dict> = {
   'pack.dvinfo.soon': "yakında",
   'pack.dvinfo.note': "“Yakında” olan değerler belirleniyor. Her basamak öncekinden daha fazla ☥ ister.",
   'pack.me.novicePreview': "Önizleme: yepyeni üye · hesabıma dön",
+  'pack.cover.note2': "Kapağı yukarı veya aşağı kaydırmak için sürükle.",
+  'pack.cover.pick': "Kapak olarak kalması için bir fotoğrafa dokun.",
 };

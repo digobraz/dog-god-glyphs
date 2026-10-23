@@ -5815,4 +5815,6 @@ export const kor: Partial<Dict> = {
   'pack.dvinfo.soon': "곧",
   'pack.dvinfo.note': "'곧'으로 표시된 값은 정하는 중입니다. 단계가 오를수록 더 많은 ☥ 가 필요해요.",
   'pack.me.novicePreview': "미리보기: 새 멤버 · 내 계정으로 돌아가기",
+  'pack.cover.note2': "커버를 끌어서 위아래로 옮길 수 있어요.",
+  'pack.cover.pick': "사진을 누르면 커버로 고정됩니다.",
 };

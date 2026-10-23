@@ -5812,4 +5812,6 @@ export const ara: Partial<Dict> = {
   'pack.dvinfo.soon': "قريبًا",
   'pack.dvinfo.note': "القيم المعلّمة بـ«قريبًا» قيد التحديد. كل درجة تحتاج ☥ أكثر من سابقتها.",
   'pack.me.novicePreview': "معاينة: عضو جديد تمامًا · العودة إلى حسابي",
+  'pack.cover.note2': "اسحب الغلاف لتحريكه للأعلى أو للأسفل.",
+  'pack.cover.pick': "اضغط على صورة لتبقى غلافًا.",
 };

@@ -6609,4 +6609,6 @@ export const en = {
   'pack.dvinfo.soon': "soon",
   'pack.dvinfo.note': "Values marked “soon” are being set. Every step of the ladder needs more ☥ than the one before.",
   'pack.me.novicePreview': "Preview: a brand-new member · back to my account",
+  'pack.cover.note2': "Drag the cover on the card to move it up or down.",
+  'pack.cover.pick': "Tap a photo to keep it as your cover.",
 } as const;

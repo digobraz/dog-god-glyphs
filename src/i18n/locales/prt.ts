@@ -6004,4 +6004,6 @@ export const prt: Partial<Dict> = {
   'pack.dvinfo.soon': "em breve",
   'pack.dvinfo.note': "Os valores «em breve» estão a ser definidos. Cada degrau pede mais ☥ do que o anterior.",
   'pack.me.novicePreview': "Pré-visualização: membro novo · voltar à minha conta",
+  'pack.cover.note2': "Arrasta a capa para a mover para cima ou para baixo.",
+  'pack.cover.pick': "Toca numa foto para a manter como capa.",
 };
