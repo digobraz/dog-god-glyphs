@@ -190,6 +190,18 @@ const EDIT_CSS = `
 .pe-pick{display:grid;grid-template-columns:1fr;gap:${S.sm}px;}
 .pe-steps{margin:${S.xs}px 0 0;padding-left:${S.lg}px;list-style:decimal;display:flex;flex-direction:column;gap:${S.xs}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.5;color:${T.ink};}
 .pe-steps li::marker{color:${LAPIS.edge};font-weight:600;}
+.pe-ghb{display:flex;align-items:center;justify-content:space-between;width:100%;gap:${S.sm}px;margin:0 0 ${S.md}px;padding:0;border:0;background:none;color:${T.inkDim};cursor:pointer;text-align:left;}
+.pe-ghb > span{display:inline-flex;align-items:center;gap:${S.sm}px;}
+.pe-ghb .chev{display:inline-flex;transition:transform .25s ease;}
+.pe-grp:not(.shut) .pe-ghb .chev{transform:rotate(180deg);}
+@media (max-width:767px){
+  .pe-grp.shut > :not(.pe-ghb){display:none !important;}
+  .pe-grp.shut .pe-ghb{margin-bottom:0;}
+}
+@media (min-width:768px){
+  .pe-ghb{cursor:default;pointer-events:none;}
+  .pe-ghb .chev{display:none;}
+}
 .pe-explain{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.5;color:${T.ink};}
 .pe-addbar{display:flex;align-items:center;gap:${S.sm}px;margin-top:${S.sm}px;padding:${S.sm}px;border-radius:${PACK_R.tile}px;background:${T.tileBg};border:1px solid ${T.hairline};}
 .pe-plus{flex:none;width:40px;height:40px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};}
@@ -247,6 +259,10 @@ export default function PackProfile() {
   const { toast } = useToast();
   const { devotion } = usePackIdentity();
   const [mateOpen, setMateOpen] = useState(false);
+  // SKUPINY NA MOBILE ZBALENÉ (Matej 23. 10.: „sekcie by mohli byť colapsnuté na dropdown na mobile, otvorená
+  // len prvá, svorka aj účet blok zavretý — len nadpis a ikonka"). Na PC ich CSS drží otvorené vždy.
+  const [shut, setShut] = useState<Set<string>>(() => new Set(['pack', 'acc']));
+  const toggleGrp = (k: string) => setShut((prev) => { const n = new Set(prev); if (n.has(k)) n.delete(k); else n.add(k); return n; });
   const [rank, setRank] = useState<'dev' | 'pt' | null>(null);
   const [mates, setMates] = useState<MyPawmates | null>(null);
   const [wills, setWills] = useState<WillRow[]>([]);
@@ -290,6 +306,7 @@ export default function PackProfile() {
   // `?welcome=1` (po platbe) = nastav si heslo → zroluj na ÚČET, `PackSettings` to vie sám.
   useEffect(() => {
     if (!searchParams.has('welcome') || !sessionChecked) return;
+    setShut((prev) => { const n = new Set(prev); n.delete('acc'); return n; });
     const id = setTimeout(() => accountRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
     return () => clearTimeout(id);
   }, [searchParams, sessionChecked]);
@@ -440,10 +457,8 @@ export default function PackProfile() {
           {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} onStats={() => navigate('/pack/map/triplist?tab=stats')} tx={tx} />}
 
           {/* ── 1 · O MNE — jediný nadpis skupiny. Poradie (Matej 23. 10.): mená · bio · fakty · povaha. ── */}
-          <div className="pe-grp" style={{ ...PACK_BOX.subblock }}>
-            <div className="pe-gh">
-              <span style={{ ...PACK_HEAD.section }}>{tx('pack.edit.aboutMe', 'About me')}</span>
-            </div>
+          <div className={`pe-grp${shut.has('me') ? ' shut' : ''}`} style={{ ...PACK_BOX.subblock }}>
+            <GroupHead icon="person" label={tx('pack.edit.aboutMe', 'About me')} open={!shut.has('me')} onToggle={() => toggleGrp('me')} />
 
             {/* Na PC mená a bio VEDĽA SEBA (pri menách ostávalo vpravo prázdno), na mobile pod sebou. */}
             <div className="pe-duo">
@@ -527,10 +542,8 @@ export default function PackProfile() {
           {/* ── 2 · MOJA SVORKA — podľa Matejovej skice 23. 10.: v rámiku KAŽDÝ ČLEN = vlastný riadok
               s rozklikom (JA · psy · pawmati pod sebou), pod nimi lišta „+ PES / MATE", pod rámikom veta.
               Zosnulí psy stoja v tom istom zozname ako anjeli. Bez popupu. ── */}
-          <div className="pe-grp" style={{ ...PACK_BOX.subblock }}>
-            <div className="pe-gh">
-              <span style={{ ...PACK_HEAD.section }}>{tx('pack.edit.mySvorka', 'My pack')}</span>
-            </div>
+          <div className={`pe-grp${shut.has('pack') ? ' shut' : ''}`} style={{ ...PACK_BOX.subblock }}>
+            <GroupHead icon="people" label={tx('pack.edit.mySvorka', 'My pack')} open={!shut.has('pack')} onToggle={() => toggleGrp('pack')} />
             <div className="pe-core">
               <MemberRow
                 photo={avatarUrl ? sizedUrl(avatarUrl, 140) : null}
@@ -566,10 +579,8 @@ export default function PackProfile() {
           </div>
 
           {/* ── 3 · ÚČET A APPKA ── */}
-          <div className="pe-grp" ref={accountRef} style={{ ...PACK_BOX.subblock, scrollMarginTop: 96 }}>
-            <div className="pe-gh">
-              <span style={{ ...PACK_HEAD.section }}>{tx('pack.edit.secAccount', 'Account & app')}</span>
-            </div>
+          <div className={`pe-grp${shut.has('acc') ? ' shut' : ''}`} ref={accountRef} style={{ ...PACK_BOX.subblock, scrollMarginTop: 96 }}>
+            <GroupHead icon="sliders" label={tx('pack.edit.secAccount', 'Account & app')} open={!shut.has('acc')} onToggle={() => toggleGrp('acc')} />
             <PackSettings bare />
             {/* PODPORA — AINUBIS rieši hlásenia a otázky (brand: AINUBIS = bezpečnosť a hlásenia), mail je záloha. */}
             <div className="pe-sup">
@@ -1369,6 +1380,16 @@ function MateForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; o
       </button>
       {kind === 'account' ? <AccountForm dogs={dogs} onDone={onDone} /> : <WillForm dogs={dogs} lang={lang} onDone={onDone} />}
     </div>
+  );
+}
+
+/** Hlavička skupiny — na mobile rozbaľovač (ikonka · nadpis · šípka), na PC len nadpis. */
+function GroupHead({ icon, label, open, onToggle }: { icon: string; label: string; open: boolean; onToggle: () => void }) {
+  return (
+    <button type="button" className="pe-ghb" onClick={onToggle} aria-expanded={open}>
+      <span><BrandIcon name={icon} size={16} tint="dim" /><span style={{ ...PACK_HEAD.section }}>{label}</span></span>
+      <span className="chev" aria-hidden><ChevronDown className="h-4 w-4" /></span>
+    </button>
   );
 }
 
