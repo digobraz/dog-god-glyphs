@@ -31,6 +31,10 @@ export async function patchHuman(patch: Human): Promise<Human> {
 /** Vypnuté druhy notifikácií (id z `notifRegister.ts`). */
 export const notifOff = (h: Human): string[] => (Array.isArray(h.notif_off) ? (h.notif_off as string[]) : []);
 
-/** Čas večernej pripomienky, 'HH:MM' v Bratislave. Chýba ⇒ 20:00 (ten istý default ako DB). */
-export const devotionTime = (h: Human): string =>
-  typeof h.devotion_time === 'string' && /^\d{2}:\d{2}$/.test(h.devotion_time) ? h.devotion_time : '20:00';
+/** Časy pripomienok, 'HH:MM' v Bratislave — DVE denne (Matej 23. 10.: „15:00 a 19:00 2x za deň").
+ *  Chýba ⇒ 15:00 a 19:00 (ten istý default ako DB `pending_devotion_reminders`). */
+export const DEVOTION_TIMES_DEFAULT: [string, string] = ['15:00', '19:00'];
+export const devotionTimes = (h: Human): [string, string] => {
+  const v = Array.isArray(h.devotion_times) ? (h.devotion_times as unknown[]).filter((x): x is string => typeof x === 'string' && /^\d{2}:\d{2}$/.test(x)) : [];
+  return [v[0] ?? DEVOTION_TIMES_DEFAULT[0], v[1] ?? DEVOTION_TIMES_DEFAULT[1]];
+};

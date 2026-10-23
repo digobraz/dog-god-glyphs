@@ -37,7 +37,7 @@ export interface NotifKind {
 
 export const NOTIF_KINDS: NotifKind[] = [
   { id: 'devotion_evening', sk: 'AINUBIS: „Ako bolo dnes s psom?“', en: 'AINUBIS: evening devotion question', channels: ['push'],
-    when: 'denne v čase, ktorý si člen nastaví (predvolené 20:00); nie keď už dnes zapísal · hovorí AINUBIS', source: 'devotion-reminder (cron á 15 min)',
+    when: '2× denne, predvolené 15:00 a 19:00 (člen si posunie); nie keď už dnes zapísal · hovorí AINUBIS', source: 'devotion-reminder (cron á 15 min)',
     optOut: 'own', live: false, userToggle: true },
   { id: 'messages', sk: 'Nová správa', en: 'New message', channels: ['mail'],
     when: 'do 5 min po neprečítanej správe', source: 'notify-messages (cron á 5 min)', optOut: 'master', live: true, userToggle: false },

@@ -20,7 +20,7 @@ import { DEVOTION_DAILY, DEVOTION_FEED, type DevotionDailyKind } from '@/lib/dev
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { grantDevotion } from '@/lib/devotionGrant';
-import { readHuman, patchHuman, notifOff, devotionTime } from '@/lib/humanPrefs';
+import { readHuman, patchHuman, notifOff, devotionTimes } from '@/lib/humanPrefs';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { toast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
@@ -117,7 +117,7 @@ const CSS = `
 .dvt-claim b{display:inline-block;font-size:${TX.h2}px;letter-spacing:.02em;}
 .dvt-claim.bump b{animation:dvt-bump .3s ease;}
 .dvt-claim.boom{animation:dvt-boom .6s ease;}
-.dvt-rem{display:flex;align-items:center;justify-content:center;gap:${S.sm}px;margin:${S.sm}px 0 0;font-size:${TX.label}px;color:${A.inkDim};}
+.dvt-rem{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:${S.sm}px;margin:${S.sm}px 0 0;font-size:${TX.label}px;color:${A.inkDim};}
 .dvt-time{padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.field}px;border:1px solid ${A.edge};background:${A.bgDeep};color:${A.ink};font:inherit;font-size:${TX.label}px;color-scheme:dark;}
 .dvt-time:disabled{opacity:.4;}
 .dvt-sw{appearance:none;position:relative;width:40px;height:22px;padding:0;border-radius:${PACK_R.pill}px;border:1px solid ${A.edge};background:${A.raised};cursor:pointer;}
@@ -229,7 +229,7 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
   const [bump, setBump] = useState<string | null>(null);
   const [boom, setBoom] = useState(false);
   const [remOn, setRemOn] = useState(true);
-  const [remTime, setRemTime] = useState('20:00');
+  const [remTime, setRemTime] = useState<[string, string]>(['15:00', '19:00']);
   const flyId = useRef(0);
 
   const load = useCallback(async () => {
@@ -244,7 +244,7 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     void readHuman().then(({ human }) => {
       setRemOn(!notifOff(human).includes('devotion_evening'));
-      setRemTime(devotionTime(human));
+      setRemTime(devotionTimes(human));
     });
   }, []);
   useEffect(() => {
@@ -297,13 +297,13 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const saveRem = async (on: boolean, time: string) => {
+  const saveRem = async (on: boolean, time: [string, string]) => {
     const prev = { on: remOn, time: remTime };
     setRemOn(on); setRemTime(time);
     try {
       const { human } = await readHuman();
       const off = notifOff(human).filter((x) => x !== 'devotion_evening');
-      await patchHuman({ devotion_time: time, notif_off: on ? off : [...off, 'devotion_evening'] });
+      await patchHuman({ devotion_times: time, notif_off: on ? off : [...off, 'devotion_evening'] });
     } catch {
       setRemOn(prev.on); setRemTime(prev.time);
       toast({ title: tx('pack.settings.notifErr', 'Could not save') });
@@ -424,10 +424,15 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
             </button>
           )}
           <div className="dvt-rem">
-            <span>{tx('pack.dvtoday.remShort', 'AINUBIS reminds you at')}</span>
-            <input className="dvt-time" type="time" step={900} value={remTime} disabled={!remOn}
-              onChange={(e) => { if (/^\d{2}:\d{2}$/.test(e.target.value)) void saveRem(remOn, e.target.value); }}
-              aria-label={tx('pack.dvtoday.remWhen', 'Every day at')} />
+            <span>{tx('pack.dvtoday.remShort', "I'll remind you at")}</span>
+            {[0, 1].map((i) => (
+              <input key={i} className="dvt-time" type="time" step={900} value={remTime[i]} disabled={!remOn}
+                onChange={(e) => {
+                  if (!/^\d{2}:\d{2}$/.test(e.target.value)) return;
+                  const next: [string, string] = [remTime[0], remTime[1]]; next[i] = e.target.value; void saveRem(remOn, next);
+                }}
+                aria-label={tx('pack.dvtoday.remWhen', 'Every day at')} />
+            ))}
             <button type="button" className={`dvt-sw${remOn ? ' on' : ''}`} role="switch" aria-checked={remOn}
               aria-label={tx('pack.dvtoday.reminder', 'Evening reminder')} onClick={() => void saveRem(!remOn, remTime)} />
           </div>

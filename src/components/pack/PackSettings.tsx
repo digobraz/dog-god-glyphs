@@ -1,4 +1,4 @@
-import { readHuman, patchHuman, notifOff, devotionTime } from '@/lib/humanPrefs';
+import { readHuman, patchHuman, notifOff, devotionTimes } from '@/lib/humanPrefs';
 import { useEffect, useState } from 'react';
 import { forgetPushToken } from '@/lib/appPush';
 import { BackButton } from './BackButton';
@@ -105,20 +105,20 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
 
   // Večerná pripomienka — čas a vypnutie v `pack_profiles.human` (lib/humanPrefs.ts).
   const [remOn, setRemOn] = useState(true);
-  const [remTime, setRemTime] = useState('20:00');
+  const [remTime, setRemTime] = useState<[string, string]>(['15:00', '19:00']);
   useEffect(() => {
     void readHuman().then(({ human }) => {
       setRemOn(!notifOff(human).includes('devotion_evening'));
-      setRemTime(devotionTime(human));
+      setRemTime(devotionTimes(human));
     });
   }, []);
-  const ulozPripomienku = async (on: boolean, time: string) => {
+  const ulozPripomienku = async (on: boolean, time: [string, string]) => {
     const predtym = { on: remOn, time: remTime };
     setRemOn(on); setRemTime(time);
     try {
       const { human } = await readHuman();
       const off = notifOff(human).filter((x) => x !== 'devotion_evening');
-      await patchHuman({ devotion_time: time, notif_off: on ? off : [...off, 'devotion_evening'] });
+      await patchHuman({ devotion_times: time, notif_off: on ? off : [...off, 'devotion_evening'] });
     } catch {
       setRemOn(predtym.on); setRemTime(predtym.time);
       toast({ title: tx('pack.settings.notifErr', 'Could not save'), description: tx('pack.settings.notifErrDesc', 'Try again in a moment.') });
@@ -280,15 +280,20 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
         </div>
       </Field>
       {/* VEČERNÁ PRIPOMIENKA ODDANOSTI (23. 10. 2026) — prvý druh s vlastným prepínačom z registra
-          `lib/notifRegister.ts`. Žije v `human.notif_off` + `human.devotion_time`; ten istý
+          `lib/notifRegister.ts`. Žije v `human.notif_off` + `human.devotion_times` (2× denne); ten istý
           prepínač je aj v paneli „Dnešok". Pod hlavným vypínačom: keď je pošta vypnutá, nechodí nič. */}
       {notifOn && (
         <Field icon={<BrandIcon name="sun" size={16} tint="gold" />} label={tx('pack.dvtoday.reminder', 'Evening reminder')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <input type="time" step={900} value={remTime} disabled={!remOn} className="pf-field"
-              aria-label={tx('pack.dvtoday.remWhen', 'Every day at')}
-              style={{ width: 'auto', opacity: remOn ? 1 : 0.4 }}
-              onChange={(e) => { if (/^\d{2}:\d{2}$/.test(e.target.value)) void ulozPripomienku(remOn, e.target.value); }} />
+            {[0, 1].map((i) => (
+              <input key={i} type="time" step={900} value={remTime[i]} disabled={!remOn} className="pf-field"
+                aria-label={tx('pack.dvtoday.remWhen', 'Every day at')}
+                style={{ width: 'auto', opacity: remOn ? 1 : 0.4 }}
+                onChange={(e) => {
+                  if (!/^\d{2}:\d{2}$/.test(e.target.value)) return;
+                  const next: [string, string] = [remTime[0], remTime[1]]; next[i] = e.target.value; void ulozPripomienku(remOn, next);
+                }} />
+            ))}
             <div className="pf-toggle">
               {([
                 { key: true, label: tx('pack.settings.notifOn', 'On') },
