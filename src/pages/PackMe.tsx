@@ -245,15 +245,17 @@ export default function PackMe() {
   const soon = (what: string) => toast({ title: what, description: tx('pack.me.soonFeed', 'Arrives with the FEED.') });
 
   // POZVI = okno ZDIEĽAJ KARTU PSA — ten istý mechanizmus ako zdieľanie výletu (IG príbeh / FB,
-  // karta psa alebo vlastná fotka, odkaz sa skopíruje na nálepku). Matej 23. 10. 2026. To isté okno
+  // čistá fotka psa alebo vlastná, meno + heroglyf, odkaz sa skopíruje na nálepku). Matej 23. 10. 2026. To isté okno
   // otvára ZDIEĽAJ ODKAZ v šuplíku BONES — karta ZDIEĽAJ KARTU z DOMOVA tým odišla.
   const shareData: TripShareData | null = firstDog?.pack_number ? {
     name: firstDog.dog_name ?? 'Dogyptian',
     url: dogShareLink(firstDog.pack_number, 'story', firstDog.dog_name),
-    card: firstDog.share_card_url ?? undefined,
+    // ČISTÁ fotka psa — nie hotová karta (tá má v sebe heroglyf, meno aj web; Matej 23. 10.)
     photos: firstDog.cloudinary_main_url ? [firstDog.cloudinary_main_url] : [],
     country: firstDog.country ?? undefined,
-    chips: [['', `#${firstDog.pack_number} / 1 000 000`]],
+    glyph: firstDog.heroglyph_png_url ?? undefined,
+    decorative: true,
+    chips: [],
   } : null;
   const invite = () => { if (shareData) setShareOpen(true); };
 
@@ -489,7 +491,7 @@ export default function PackMe() {
         <StoryViewer items={viewing.items} start={viewing.start} name={shownName} avatar={avatarUrl} dogs={dogs}
           mine={!!viewing.del} lang={lang} onClose={() => setViewing(null)} />
       )}
-      {bonesOpen && <BonesSheet bones={bones} avatarUrl={avatarUrl} initial={avatarInitial} onClose={closeBones} onShare={shareData ? invite : undefined} />}
+      {bonesOpen && <BonesSheet bones={bones} avatarUrl={avatarUrl} initial={avatarInitial} onClose={closeBones} onShare={shareData ? invite : undefined} shareLink={shareData?.url} />}
       {shareOpen && shareData && <TripShareSheet kind="dog" data={shareData} onClose={() => setShareOpen(false)} />}
     </PackLayout>
   );

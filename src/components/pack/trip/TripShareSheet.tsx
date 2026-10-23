@@ -43,8 +43,10 @@ export interface TripShareData {
   country?: string;
   /** údaje pod názvom: [emoji, text] */
   chips: [string, string][];
-  /** Karta psa (`dogs.share_card_url`) — prvá voľba fotky; kreslí sa CELÁ (contain), nie orezaná a rozplynutá. */
-  card?: string;
+  /** Heroglyf psa (`dogs.heroglyph_png_url`) — sedí POD menom; v okne sa dá vypnúť (predvolene zapnutý). */
+  glyph?: string;
+  /** Meno v Cinzel Decorative — mená psov na oficiálnych povrchoch (brand lock). */
+  decorative?: boolean;
 }
 
 /** Čo sa zdieľa — mení len texty okna. Pes = karta psa z profilu JA a šuplíka BONES (23. 10. 2026,
@@ -62,7 +64,7 @@ const WARM = T.inkWarm;
 const SLOT_INK = '#9A7430';
 
 interface Texts { slot: string; fbLine: string; motto: string }
-interface RenderOpts { fmt: ShareFmt; photo: HTMLImageElement | null; off: number; exportMode: boolean; contain?: boolean }
+interface RenderOpts { fmt: ShareFmt; photo: HTMLImageElement | null; off: number; exportMode: boolean; glyph?: HTMLImageElement | null }
 
 const imgCache = new Map<string, Promise<HTMLImageElement | null>>();
 function loadImg(src: string): Promise<HTMLImageElement | null> {
@@ -96,10 +98,10 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number): string
   return lines;
 }
 /** Názov: najväčšie písmo, pri ktorom sa zmestí do dvoch riadkov. Vracia spodok. */
-function title(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, big: number, dry: boolean): number {
+function title(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, big: number, dry: boolean, family = 'Cinzel'): number {
   let size = big, lines: string[] = [];
   for (; size >= 48; size -= 4) {
-    ctx.font = `700 ${size}px Cinzel`; lines = wrap(ctx, text.toUpperCase(), 960);
+    ctx.font = `700 ${size}px ${family}`; lines = wrap(ctx, text.toUpperCase(), 960);
     if (lines.length <= 2) break;
   }
   if (lines.length > 2) { lines = lines.slice(0, 2); lines[1] = `${lines[1].replace(/\s*\S*$/, '')}…`; }
@@ -163,8 +165,12 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
   const lY = mY - 20 - lgH;                           // logo nad mottom
   const slotH = 150, sY = lY - 36 - slotH;            // miesto na nálepku ODKAZ
   const end = ig ? sY - 44 : lY - 92;                 // FB: nad logom riadok s dogypt.com
-  // karta psa nesie meno aj číslo sama ⇒ nadpis a čipy pod ňou by boli duplikát
-  const measure = o.contain ? 0 : title(ctx, d.name, cx, 0, big, true) + 60 + chipRow(ctx, d.chips, cx, 0, fs, true);
+  const fam = d.decorative ? '"Cinzel Decorative"' : 'Cinzel';
+  // heroglyf pod menom (pes) — výška podľa pomeru strán PNG, šírka strop 640
+  const gW = o.glyph ? Math.min(640, (ig ? 300 : 230) * o.glyph.width / o.glyph.height) : 0;
+  const gH = o.glyph ? gW * o.glyph.height / o.glyph.width : 0;
+  const below = o.glyph ? 48 + gH : 60 + chipRow(ctx, d.chips, cx, 0, fs, true);
+  const measure = title(ctx, d.name, cx, 0, big, true, fam) + below;
   const top = end - measure;
 
   // papyrus = `PACK_THEME.cardGrad` (~160°)
@@ -176,16 +182,7 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
   const phH = Math.max(200, top + 40), off = document.createElement('canvas');
   off.width = W; off.height = phH;
   const oc = off.getContext('2d');
-  if (oc && o.contain && o.photo) {
-    // karta psa sa NEOREZÁVA — sedí celá na papyruse so zlatým rámom a tieňom
-    const pad = 72, aw = W - pad * 2, ah = phH - pad - 40;
-    const s = Math.min(aw / o.photo.width, ah / o.photo.height), iw = o.photo.width * s, ih = o.photo.height * s;
-    const ix = (W - iw) / 2, iy = pad + (ah - ih) / 2;
-    ctx.save(); ctx.shadowColor = 'rgba(31,26,14,.35)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 18;
-    rr(ctx, ix, iy, iw, ih, 24); ctx.fillStyle = T.card; ctx.fill(); ctx.restore();
-    ctx.save(); rr(ctx, ix, iy, iw, ih, 24); ctx.clip(); ctx.drawImage(o.photo, ix, iy, iw, ih); ctx.restore();
-    ctx.lineWidth = 4; ctx.strokeStyle = GOLD; rr(ctx, ix, iy, iw, ih, 24); ctx.stroke();
-  } else if (oc) {
+  if (oc) {
     cover(oc, o.photo, 0, 0, W, phH, o.off);
     const m = oc.createLinearGradient(0, phH * 0.5, 0, phH);
     m.addColorStop(0, 'rgba(0,0,0,1)'); m.addColorStop(1, 'rgba(0,0,0,0)');
@@ -194,8 +191,7 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
   }
 
   // vlajka = papyrusový krúžok so zlatým okrajom vpravo dole na fotke, tesne nad názvom
-  // (karta psa nesie vlajku sama ⇒ druhá by bola duplikát)
-  if (fl && !o.contain) {
+  if (fl) {
     const r = ig ? 64 : 52, fx = W - 64 - r, fy = top - 36 - r;
     ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 16;
     ctx.beginPath(); ctx.arc(fx, fy, r, 0, Math.PI * 2); ctx.fillStyle = T.card; ctx.fill(); ctx.restore();
@@ -207,11 +203,10 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
     ctx.lineWidth = 4; ctx.strokeStyle = GOLD; ctx.beginPath(); ctx.arc(fx, fy, r, 0, Math.PI * 2); ctx.stroke();
   }
 
-  if (!o.contain) {
-    const ty = title(ctx, d.name, cx, top, big, false);
-    rule(ctx, cx, ty + 22, 640);
-    chipRow(ctx, d.chips, cx, ty + 60, fs, false);
-  }
+  const ty = title(ctx, d.name, cx, top, big, false, fam);
+  rule(ctx, cx, ty + 22, 640);
+  if (o.glyph) ctx.drawImage(o.glyph, cx - gW / 2, ty + 48, gW, gH);
+  else chipRow(ctx, d.chips, cx, ty + 60, fs, false);
 
   if (ig) {
     if (!o.exportMode) {
@@ -316,8 +311,16 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
   const [ready, setReady] = useState(false);
   const [fontsOk, setFontsOk] = useState(false);
 
-  const photos = data.card ? [data.card, ...data.photos] : data.photos.length ? data.photos : (data.fallbackPhoto ? [data.fallbackPhoto] : []);
-  const contain = !!data.card && !useOwn;
+  const photos = data.photos.length ? data.photos : (data.fallbackPhoto ? [data.fallbackPhoto] : []);
+  const [withGlyph, setWithGlyph] = useState(true);
+  const [glyphImg, setGlyphImg] = useState<HTMLImageElement | null>(null);
+  useEffect(() => {
+    if (!data.glyph) { setGlyphImg(null); return; }
+    let live = true;
+    loadImg(cld(data.glyph, 800)).then((i) => { if (live) setGlyphImg(i); });
+    return () => { live = false; };
+  }, [data.glyph]);
+  const glyph = withGlyph ? glyphImg : null;
   const tx: Texts = {
     slot: t('pack.trip.shareSlot'),
     fbLine: t(K.fbLine),
@@ -329,7 +332,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
   const dataKey = JSON.stringify(data);
 
   useEffect(() => {
-    Promise.all([document.fonts.load('700 80px Cinzel'), document.fonts.load('500 38px "Space Grotesk"')])
+    Promise.all([document.fonts.load('700 80px Cinzel'), document.fonts.load('700 80px "Cinzel Decorative"'), document.fonts.load('500 38px "Space Grotesk"')])
       .catch(() => undefined).finally(() => setFontsOk(true));
   }, []);
   useEffect(() => {
@@ -355,7 +358,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
     if (!fontsOk || !cv) return;
     let live = true;
     setReady(false);
-    const o = { fmt, photo, off, contain };
+    const o = { fmt, photo, off, glyph };
     void render(cv, data, tx, { ...o, exportMode: false }).then(async () => {
       if (!live) return;
       const c = document.createElement('canvas');
@@ -364,7 +367,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
     });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fontsOk, fmt, photo, off, contain, dataKey, txKey]);
+  }, [fontsOk, fmt, photo, off, glyph, dataKey, txKey]);
 
   const fname = `dogypt-${slug(data.name)}-${fmt}.png`;
   const copyLink = useCallback(async () => {
@@ -467,11 +470,23 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
                 </div>
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={onOwn} />
               </div>
-              {!contain && <div className="tsh-sec">
+              {data.glyph && (
+                <div className="tsh-sec">
+                  <div className="tsh-lbl">{t('pack.dogShare.glyph')}</div>
+                  <div className="tsh-pills">
+                    {[true, false].map((on) => (
+                      <button key={String(on)} type="button" className={`tsh-pill${withGlyph === on ? ' on' : ''}`} onClick={() => setWithGlyph(on)}>
+                        {t(on ? 'pack.dogShare.glyphOn' : 'pack.dogShare.glyphOff')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="tsh-sec">
                 <div className="tsh-lbl">{t('pack.trip.shareShift')}</div>
                 <input className="tsh-range" type="range" min={0} max={100} value={Math.round(off * 100)}
                   onChange={(e) => setOff(Number(e.target.value) / 100)} />
-              </div>}
+              </div>
             </div>
             <div className="tsh-acts">
               <button type="button" className="tsh-cta" onClick={share} disabled={!ready}>

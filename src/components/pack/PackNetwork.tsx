@@ -287,7 +287,7 @@ const NET_CSS = `
 
 // `bare` = bez vlastnej karty — blok žije v šuplíku MISIA na profile (`BonesSheet`, 23. 10. 2026),
 // ktorý papyrus a rám nesie sám. Karta v karte by bol druhý rám okolo toho istého.
-export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare }: {
+export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare, shareLink }: {
   avatarUrl?: string | null;
   initial?: string;
   bare?: boolean;
@@ -295,6 +295,8 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
   mission?: ReactNode;
   /** ZDIEĽAJ ODKAZ otvorí okno ZDIEĽAJ KARTU PSA (šuplík BONES, 23. 10. 2026) namiesto holého odkazu. */
   onShare?: () => void;
+  /** Odkaz na stránku psa (`dogShareLink`) — jedna adresa s oknom ZDIEĽAJ KARTU PSA (Matej 23. 10.: „daj odkaz psa“). */
+  shareLink?: string;
 }) {
   const t = useT();
   const { lang } = useLang();
@@ -409,7 +411,8 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
   // V ukážke musí sedieť aj zostatok — inak by karta ukazovala 62 ľudí v línii
   // a pomlčku namiesto BONES, čo je stav, ktorý v realite nikdy nenastane.
   const shownBones = demo ? recent.reduce((s, r) => s + r.m.points, 0) : bones;
-  const link = code ? `${APP_ORIGIN}/?ref=${code}` : '';
+  const link = shareLink || (code ? `${APP_ORIGIN}/?ref=${code}` : '');
+  const linkState = shareLink ? 'ready' : codeState;
 
   const handleCopy = async () => {
     if (!link) return;
@@ -506,14 +509,14 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
       </button>
       <div className="flex items-center justify-center gap-1.5" style={{ marginTop: 8, fontFamily: FONT_UI, fontSize: 12, color: T.inkFaint }}>
         {/* Tri bodky patria URL, nie vete — chybová veta sa v DE/PL/UA orezávala (audit 15. 10.). */}
-        <span className={codeState === 'failed' ? undefined : 'truncate'} style={{ minWidth: 0, textAlign: 'center' }}>
-          {codeState === 'loading'
+        <span className={linkState === 'failed' ? undefined : 'truncate'} style={{ minWidth: 0, textAlign: 'center' }}>
+          {linkState === 'loading'
             ? tx('pack.network.generatingLink', 'Generating your link…')
-            : codeState === 'failed'
+            : linkState === 'failed'
               ? tx('pack.network.linkFailed', 'Could not load your invite link.')
-              : link.replace(/^https?:\/\//, '')}
+              : link.replace(/^https?:\/\//, '').replace(/\?.*$/, '')}
         </span>
-        {codeState === 'failed' ? (
+        {linkState === 'failed' ? (
           <button type="button" onClick={() => { loadCode().catch(() => setCodeState('failed')); }} className="pf-hit shrink-0"
             style={{ background: 'none', border: `1px solid ${BONES.edge}`, borderRadius: 999, padding: '4px 8px', fontFamily: FONT_UI,
               fontWeight: 600, fontSize: 10, color: T.inkStrong, cursor: 'pointer', whiteSpace: 'nowrap' }}>
