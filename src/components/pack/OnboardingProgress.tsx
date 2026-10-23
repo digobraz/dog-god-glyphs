@@ -176,7 +176,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
               ) : (
                 <>
                   {t('pack.steps.rewardPending')}{' '}
-                  <strong style={{ fontWeight: 800 }}>+10 ☥ Devotion</strong> {t('pack.steps.rewardPendingSuffix')}
+                  <strong style={{ fontWeight: 800 }}>+10 <BrandIcon name="heartpaw" size={12} tint="gold" /> Devotion</strong> {t('pack.steps.rewardPendingSuffix')}
                 </>
               )}
             </span>

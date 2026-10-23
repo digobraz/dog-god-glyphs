@@ -1,4 +1,5 @@
 import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
+import { BrandIcon as PackBrandIcon } from '@/components/pack/BrandIcon';
 import { useMagnetPreview } from './magnetPreview';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { sizedUrl } from '@/services/cloudinaryService';
@@ -904,7 +905,7 @@ function DevotionBarCompact({ devotion }: { devotion: number }) {
         textShadow: '0 1px 3px rgba(0,0,0,0.6)',
       }}>
         {Math.round(devotion).toLocaleString(intlLocale(lang))}
-        <i style={{ fontStyle: 'normal', fontSize: 10 }}>☥</i>
+        <PackBrandIcon name="heartpaw" size={10} tint="white" />
       </span>
     </div>
   );

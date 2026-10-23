@@ -1,6 +1,7 @@
 import { devotionLevel } from '@/lib/devotion';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME } from './packTheme';
+import { BrandIcon } from './BrandIcon';
 
 const T = PACK_THEME;
 
@@ -109,7 +110,7 @@ export function DevotionPanel({ devotion }: { devotion: number }) {
               textShadow: '0 1px 2px rgba(250,244,236,0.5)',
             }}
           >
-            ☥
+            <BrandIcon name="heartpaw" size={14} tint="dark" />
           </span>
         </div>
       </div>

@@ -132,6 +132,13 @@ export const ME_CSS = `
 .me-lv > .me-pt{ flex:none; min-width:52px; padding:${S.xs}px ${S.md}px; }
 .me-rk p.me-rk-q{ font-style:italic; color:var(--rk-dim); }
 .me-rk-sc span{ display:inline-flex; align-items:center; gap:${S.xs}px; }
+.me-rk-py{ display:flex; flex-direction:column; align-items:center; gap:2px; margin-top:${S.md}px; }
+.me-rk-py span{ display:flex; align-items:center; justify-content:center; height:14px; border-radius:${PACK_R.pill}px; overflow:hidden; white-space:nowrap;
+  border:1px solid var(--rk-edge); background:var(--rk-track); color:var(--rk-dim); opacity:.55;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; line-height:1; letter-spacing:.02em; text-transform:uppercase; }
+.me-rk-py span.done{ opacity:1; background:var(--dv-dot); border-color:var(--dv-glow); color:var(--dv-icon-ink); }
+.me-rk-py span.on{ opacity:1; height:24px; background:var(--dv-dot); border-color:var(--dv-glow); color:var(--dv-icon-ink); box-shadow:0 0 14px var(--dv-glow); }
+.me-rk-py span.gold,.me-rk-py span.sun{ opacity:.85; background:var(--dv-bg); border-color:var(--dv-edge); color:var(--dv-ink); }
 .me-rk-sc span i{ display:grid; place-items:center; width:18px; height:18px; font-style:normal; border-radius:${PACK_R.pill}px; background:var(--dv-dot); }
 .me-rk-sc span i b{ font-family:${FONT_TITLE}; font-weight:700; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.micro}px; }
 .me-pt{ background:var(--tier-bg); border:1px solid var(--tier-b); color:var(--tier-ink); cursor:pointer; }
@@ -539,7 +546,6 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
   onClose?: () => void;
   tx: (key: string, fallback: string) => string;
 }) {
-  const scRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!onClose) return;
@@ -552,10 +558,6 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
     return () => document.removeEventListener('pointerdown', down);
   }, [onClose]);
   const dev = devotionLevel(devotion);
-  useEffect(() => {
-    const cur = scRef.current?.querySelector('.cur') as HTMLElement | null;
-    if (cur && scRef.current) scRef.current.scrollLeft = cur.offsetLeft - scRef.current.clientWidth / 2 + cur.clientWidth / 2;
-  }, [kind]);
   const vars = rankVars(kind, pilgrim.level.level, dev.index);
   const fmtN = (n: number) => Math.round(n).toLocaleString('sk-SK');
   if (kind === 'study') {
@@ -603,10 +605,20 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
         ) : (
           <RankBar pct={100} center={tx('pack.rank.devTop', 'You stand at the top of the ladder.')} label={tx('pack.rank.devTop', 'You stand at the top of the ladder.')} />
         )}
-        <div className="me-rk-sc" ref={scRef}>
-          {DEVOTION_LEVELS.map((l, i) => (
-            <span key={l.key} className={i + 1 === dev.index ? 'cur' : i + 1 < dev.index ? 'done' : ''} style={devotionVars(i + 1)}><i><b>{i + 1}</b></i>{tx(`pack.ladder.${l.key}`, l.name)}</span>
-          ))}
+        {/* PYRAMÍDA (Matej 24. 10. 2026 nad nákresom devotion-flow: 5B) — 22 vrstiev, Nováčik dole najširší,
+            postavené vrstvy vo farbe svojho stupňa, moja vrstva s lemom, nad ňou tma, vrchol Faraón (zlato) a Polboh (slnko). */}
+        <div className="me-rk-py" aria-label={tx('pack.rank.devPyramid', 'The pyramid of devotion')}>
+          {DEVOTION_LEVELS.map((_, i) => i).reverse().map((i) => {
+            const l = DEVOTION_LEVELS[i];
+            const w = 100 - 78 * (i / (DEVOTION_LEVELS.length - 1));
+            const pw = `${w}%`;   // šírka vrstvy pyramídy (nie progres)
+            const cls = i + 1 === dev.index ? 'on' : i + 1 < dev.index ? 'done' : i === 20 ? 'gold' : i === 21 ? 'sun' : '';
+            return (
+              <span key={l.key} className={cls} style={{ width: pw, ...devotionVars(i + 1) }}>
+                {i + 1}{(w > 44 || i + 1 === dev.index || i >= 20) && <> · {tx(`pack.ladder.${l.key}`, l.name)}</>}
+              </span>
+            );
+          })}
         </div>
       </div>
     );
