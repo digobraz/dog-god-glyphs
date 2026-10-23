@@ -11,7 +11,7 @@ export async function grantDevotion(body: { kind: string; dog_ids?: string[]; sc
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_ANON_KEY },
     body: JSON.stringify(body),
   });
-  const j = await res.json().catch(() => ({})) as { points?: number; total?: number; error?: string };
+  const j = await res.json().catch(() => ({})) as { points?: number; total?: number; error?: string; capped?: boolean; good_deed?: { approved: boolean; reason?: string } | null };
   if (!res.ok) throw new Error(j.error ?? String(res.status));
   if (typeof j.total === 'number') window.dispatchEvent(new CustomEvent('dogypt:devotion', { detail: { total: j.total } }));
   return j;

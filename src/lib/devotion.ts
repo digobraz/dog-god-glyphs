@@ -11,7 +11,7 @@
 export const DEVOTION_LEVELS = [
   { key: 'novice',   name: 'Novice', at: 0 },          // new member starts here
   { key: 'wanderer', name: 'Wanderer', at: 200 },
-  { key: 'follower', name: 'Follower', at: 500 },
+  { key: 'follower', name: 'Follower', at: 400 },   // 500 → 400 (23. 10. 2026): stupeň po 1. týždni
   { key: 'believer', name: 'Believer', at: 1000 },
   { key: 'servant',  name: 'Servant', at: 2000 },
   { key: 'aspirant', name: 'Aspirant', at: 3500 },
@@ -58,7 +58,8 @@ export function devotionLevel(d: number): DevotionLevel {
 }
 
 // ============================================================================
-// ZA ČO SA DOSTÁVA ☥ — schválené Matejom 23. 10. 2026 (plany/zadanie-devotion-odmrazenie-2026-10-23.md).
+// ZA ČO SA DOSTÁVA ☥ — finálne hodnoty Matej 23. 10. 2026 (plany/zadanie-devotion-finalizacia-2026-10-24.md §6,
+// kalkulačka `node scripts/devotion-kalk.mjs`).
 // 🔴 ZRKADLO servera: body pripisuje `grant-devotion` (DAILY/ONCE), krst trigger a krmenie
 //    pg_cron (migrácia 20261101_devotion_v2.sql). Tu sú len na ZOBRAZENIE — zmena hodnoty
 //    = zmena na serveri AJ tu, inak panel sľúbi iné číslo, než sa pripíše.
@@ -67,20 +68,31 @@ export function devotionLevel(d: number): DevotionLevel {
 export const DEVOTION_START = 100;
 
 export const DEVOTION_DAILY = {
-  walk_short: { points: 3, perDay: 5 },   // krátke venčenie < 20 min
+  walk_short: { points: 2, perDay: 3 },   // krátke venčenie < 20 min — povinnosť, nie skutok
   walk:       { points: 10, perDay: 1 },  // prechádzka 20–120 min
-  trip_day:   { points: 50, perDay: 1 },  // celodenný výlet nad 120 min
-  presence:   { points: 30, perDay: 1 },  // modlitba prítomnosti — 10 min so psom
-  care:       { points: 5, perDay: 1 },   // PROVIZÓRNE — modlitba starostlivosti, Matej doladí
-  deed:       { points: 0, perDay: 3 },   // iné / dobrý skutok — body neskôr posúdi AINUBIS
+  presence:   { points: 10, perDay: 1 },  // modlitba prítomnosti — 10 min so psom (Matej 23. 10.: „kľudne 10")
+  deed:       { points: 0, perDay: 3 },   // „Iné" — kronika / dobrý skutok, NA ČLOVEKA (DEVOTION_DEED)
 } as const;
 export type DevotionDailyKind = keyof typeof DEVOTION_DAILY;
 
+/** „Iné": kronika hneď, dobrý skutok až po schválení AINUBISom (najviac 1× za deň). */
+export const DEVOTION_DEED = { chronicle: 10, good_deed: 30 } as const;
+
+/** Celodenný výlet — LEN cez „Zapíš výlet" (záznam = dôkaz), za každého živého psa, ktorý išiel.
+ *  Pripisuje DB trigger na `dog_trips`, nie ťuknutie. Matej 23. 10.: *„výlet teda dajme len za ten, čo zapíše"*. */
+export const DEVOTION_TRIP = 50;
+
+/** Strop denného ťukania + krmenia na človeka. Dobrý skutok, výlet, krst a DOG ID idú MIMO. */
+export const DEVOTION_DAY_CAP = 150;
+
+/** Séria — míľniky dní po sebe (raz za každú sériu). */
+export const DEVOTION_STREAK = { 7: 50, 30: 200, 100: 500, 365: 1000 } as const;
+
 export const DEVOTION_ONCE = {
-  baptism: 50,      // krst heroglyfom — za každého zaplateného psa
+  baptism: 50,      // krst heroglyfom — za každého zaplateného psa (aj spätne)
   dogid_full: 30,   // DOG ID na 100 % — raz za psa
-  scroll_read: 20,  // prečítaný zvitok VAULTU — raz za zvitok
+  scroll_read: 20,  // prečítaný zvitok VAULTU — raz za zvitok, najviac 3 za deň
 } as const;
 
 /** Krmenie — pripisuje sa SAMO každý deň podľa stravy psa (`dogs.diet`). */
-export const DEVOTION_FEED = { kibble: 5, barf: 20 } as const;
+export const DEVOTION_FEED = { kibble: 3, barf: 10 } as const;   // Matej 23. 10.: granule 3 · BARF 10

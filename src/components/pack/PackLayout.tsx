@@ -33,6 +33,7 @@ import type { AddChoice } from './addtrip/AddTripEntry';
 import { placeForRoute, withOrigin, type CreateObject } from './createRegistry';
 import { emitCreate, type CreateIntent } from '@/lib/createBus';
 import { openAinubis } from '@/lib/ainubisBus';
+import { patchHuman } from '@/lib/humanPrefs';
 import { onOpenCompose, type ComposeMode } from './profile/mePosts';
 
 // Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: HERO_TRAILS 1,5 MB,
@@ -337,6 +338,15 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
   // TVORBA (príspevok · story · album) — otvára ju panel `+` aj `+` na fotke v profile JA.
   const [compose, setCompose] = useState<ComposeMode | null>(null);
   useEffect(() => onOpenCompose((m) => { setCreateOpen(false); setCompose(m); }), []);
+  // BOL DNES V APPKE — raz za deň `human.seen_day`. Popoludňajšia pripomienka AINUBISA príde len tomu,
+  // kto dnes ešte nebol (Matej 23. 10. 2026: *„ok AK V APKE NEBOL"*, `pending_devotion_reminders`).
+  useEffect(() => {
+    const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Bratislava' }).format(new Date());
+    try { if (localStorage.getItem('dogypt_seen_day') === day) return; } catch { /* súkromné okno */ }
+    void patchHuman({ seen_day: day })
+      .then(() => { try { localStorage.setItem('dogypt_seen_day', day); } catch { /* súkromné okno */ } })
+      .catch(() => { /* hosť / offline — skúsi sa pri ďalšom otvorení */ });
+  }, []);
   // Panel „+" potichu dotiahni, keď prehliadač nemá čo robiť — prvé ťuknutie potom nečaká.
   useEffect(() => {
     const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };

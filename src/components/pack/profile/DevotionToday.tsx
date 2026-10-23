@@ -16,7 +16,8 @@ import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
-import { DEVOTION_DAILY, DEVOTION_FEED, type DevotionDailyKind } from '@/lib/devotion';
+import { DEVOTION_DAILY, DEVOTION_FEED, DEVOTION_DEED, DEVOTION_TRIP, DEVOTION_DAY_CAP, type DevotionDailyKind } from '@/lib/devotion';
+import { useNavigate } from 'react-router-dom';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { grantDevotion } from '@/lib/devotionGrant';
@@ -35,25 +36,25 @@ interface TodayDog { id: string; name: string | null; photo: string | null; diet
 interface Today { day: string; dogs: TodayDog[]; total: number; streak: number }
 
 type TileKind = Exclude<DevotionDailyKind, 'deed'>;
+// Finalizácia 23. 10. 2026: starostlivosť zrušená, celodenný výlet sa NEŤUKÁ — vedie na „Zapíš výlet"
+// (+50 pripíše DB trigger zo záznamu). Krátke venčenie 2×3, modlitba 10.
 const TILES: Array<{ kind: TileKind; icon: string; label: [string, string]; sub: [string, string] }> = [
   { kind: 'walk_short', icon: 'paw',      label: ['pack.dvtoday.walkShort', 'Short walk'],        sub: ['pack.dvtoday.walkShortSub2', 'under 20 min'] },
   { kind: 'walk',       icon: 'walk',     label: ['pack.dvtoday.walk', 'Walk'],                   sub: ['pack.dvtoday.walkSub', '20 min – 2 hours'] },
-  { kind: 'trip_day',   icon: 'mountain', label: ['pack.dvtoday.trip', 'Day trip'],               sub: ['pack.dvtoday.tripSub', 'more than 2 hours'] },
   { kind: 'presence',   icon: 'sun',      label: ['pack.dvtoday.presence', 'Prayer of presence'], sub: ['pack.dvtoday.presenceSub', '10 minutes only with your dog'] },
-  { kind: 'care',       icon: 'heart',    label: ['pack.dvtoday.care', 'Care'],                   sub: ['pack.dvtoday.careSub', 'brushing, bath, claws'] },
 ];
 
 // „Iné" = DVE možnosti (Matej 23. 10.: *„zbytočne sú tam 4 možnosti — daj len zápis do kroniky
 // (pekná chvíľka, zážitok) +5b alebo dobrý skutok (podpora…)"*). Body zrkadlí `DEED_POINTS` v grant-devotion.
 type DeedType = 'chronicle' | 'good_deed';
 const DEED_TYPES: Array<{ id: DeedType; icon: string; points: number | null; label: [string, string]; sub: [string, string]; ph: [string, string] }> = [
-  { id: 'chronicle', icon: 'feather',     points: 5,    label: ['pack.dvtoday.dtChron', 'Note in the chronicle'], sub: ['pack.dvtoday.dtChronSub', 'a lovely moment, an experience'],
+  { id: 'chronicle', icon: 'feather',     points: DEVOTION_DEED.chronicle,    label: ['pack.dvtoday.dtChron', 'Note in the chronicle'], sub: ['pack.dvtoday.dtChronSub', 'a lovely moment, an experience'],
     ph: ['pack.dvtoday.dtChronPh', 'What did you live through together today?'] },
   { id: 'good_deed', icon: 'house-heart', points: null, label: ['pack.dvtoday.dtGood', 'Good deed'],             sub: ['pack.dvtoday.dtGoodSub', 'support, help for a dog or a person'],
     ph: ['pack.dvtoday.dtGoodPh', 'What did you do for a dog or a person?'] },
 ];
 /** Body za zápis „Iné" — NA ČLOVEKA, nie na psa (Matej: *„bez ohľadu — hodnotíme záujem podeliť sa s príhodou"*).
- *  Dobrý skutok = null (posúdi AINUBIS). */
+ *  Dobrý skutok = null: +30 (DEVOTION_DEED.good_deed) až keď ho AINUBIS uzná, do VYZDVIHNI sa nerátá. */
 const deedPts = (t: DeedType | null) => DEED_TYPES.find((d) => d.id === t)?.points ?? null;
 
 const CSS = `
@@ -80,6 +81,7 @@ const CSS = `
 .dvt-dog:active{transform:scale(.94);}
 .dvt-line{height:2px;margin:${S.lg}px 0;border:0;border-radius:${PACK_R.pill}px;background:linear-gradient(90deg,transparent,${A.cyan},transparent);opacity:.8;}
 .dvt-grid{display:grid;grid-template-columns:1fr 1fr;gap:${S.md}px;}
+.dvt-tile--wide{grid-column:1/-1;}
 .dvt-tile{appearance:none;position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:${S.xs}px;min-height:96px;padding:${S.md}px;
   border-radius:${PACK_R.tile}px;border:1px solid ${A.edge};background:${A.raised};color:${A.ink};font:inherit;text-align:left;cursor:pointer;
   transition:border-color .15s,background .15s,transform .12s;-webkit-tap-highlight-color:transparent;}
@@ -215,6 +217,7 @@ function DeedSheet({ initialType, initialText, tx, onClose, onSave }: {
 const buzz = () => { try { navigator.vibrate?.(12); } catch { /* iOS web nevie — appka dostane haptiku neskôr */ } };
 
 export function DevotionToday({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const [today, setToday] = useState<Today | null>(null);
@@ -289,7 +292,12 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
       setBoom(true); setTimeout(() => setBoom(false), 650); buzz();
       setTap({}); setDeed(''); setDeedType(null); setDeedOpen(false);
       await load();
-      setSaid(tx('pack.dvtoday.claimed', '+{n} devotion added. See you tomorrow.').replace('{n}', String(j.points ?? 0)));
+      const parts = [tx('pack.dvtoday.claimed', '+{n} devotion added. See you tomorrow.').replace('{n}', String(j.points ?? 0))];
+      if (j.good_deed) parts.push(j.good_deed.approved
+        ? tx('pack.dvtoday.goodOk', 'AINUBIS approved your good deed: +{n}.').replace('{n}', String(DEVOTION_DEED.good_deed))
+        : tx('pack.dvtoday.goodNo', 'AINUBIS did not count this as a good deed: {r}').replace('{r}', j.good_deed.reason ?? ''));
+      if (j.capped) parts.push(tx('pack.dvtoday.capped', "Today's limit of {n} is full — trips and good deeds still count.").replace('{n}', String(DEVOTION_DAY_CAP)));
+      setSaid(parts.join(' '));
     } catch {
       toast({ title: tx('pack.dog.toastCouldntLog', 'Could not save'), variant: 'destructive' });
     } finally {
@@ -381,8 +389,15 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
                     </button>
                   );
                 })}
+                {/* Celodenný výlet sa neťuká — vedie na „Zapíš výlet"; body pripíše záznam (DB trigger). */}
+                <button type="button" className="dvt-tile" onClick={() => { onClose(); navigate('/pack/add'); }}>
+                  <span className="ic"><BrandIcon name="mountain" size={16} /></span>
+                  <b>{tx('pack.dvtoday.trip', 'Day trip')}</b>
+                  <small>{tx('pack.dvtoday.tripSub', 'log it on the map')}</small>
+                  <span className="dvt-cnt dim">+{DEVOTION_TRIP}</span>
+                </button>
                 {/* Krmenie sa neklikne — pripisuje sa samo podľa stravy v DOG ID. */}
-                <div className="dvt-tile got">
+                <div className="dvt-tile got dvt-tile--wide">
                   <span className="ic"><BrandIcon name="food" size={16} /></span>
                   <b>{tx('pack.dvtoday.feed', 'Feeding')}</b>
                   <small>{feedOn ? tx('pack.dvtoday.feedAutoShort', 'adds itself every day') : tx('pack.dvtoday.feedSoonShort', 'soon in DOG ID')}</small>

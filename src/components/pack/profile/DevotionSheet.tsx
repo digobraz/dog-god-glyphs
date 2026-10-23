@@ -10,7 +10,7 @@ import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS, GOLD_BTN } from '@/components/pack/packTheme';
 import { NIGHT, NIGHT_EDGE, NIGHT_INK, DEVOTION_TIERS, devotionVars } from '@/lib/devotionTiers';
-import { DEVOTION_LEVELS, DEVOTION_DAILY, DEVOTION_ONCE, DEVOTION_FEED, devotionLevel } from '@/lib/devotion';
+import { DEVOTION_LEVELS, DEVOTION_DAILY, DEVOTION_ONCE, DEVOTION_FEED, DEVOTION_DEED, DEVOTION_TRIP, DEVOTION_DAY_CAP, DEVOTION_STREAK, devotionLevel } from '@/lib/devotion';
 import { DevotionToday } from '@/components/pack/profile/DevotionToday';
 import { DevotionMark } from '@/components/pack/profile/meHead';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -91,11 +91,10 @@ export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClos
     ['walk', tx('pack.dvinfo.daily', 'Every day with your dog'), [
       [tx('pack.dvinfo.walkShort2', 'Short walk under 20 min (up to 5× a day)'), plus(DEVOTION_DAILY.walk_short.points)],
       [tx('pack.dvinfo.walk2', 'Walk 20 min – 2 hours'), plus(DEVOTION_DAILY.walk.points)],
-      [tx('pack.dvinfo.trip2', 'Day trip over 2 hours'), plus(DEVOTION_DAILY.trip_day.points)],
+      [tx('pack.dvinfo.trip2', 'Day trip — when you log it (for each dog who came)'), plus(DEVOTION_TRIP)],
     ]],
     ['sun', tx('pack.dvinfo.prayers', 'Prayers'), [
       [tx('pack.dvinfo.presence2', 'Prayer of presence — 10 min only with your dog'), plus(DEVOTION_DAILY.presence.points)],
-      [tx('pack.dvinfo.care', 'Prayer of care'), plus(DEVOTION_DAILY.care.points)],
     ]],
     ['food', tx('pack.dvinfo.feeding', 'Feeding — adds itself every day'), [
       [tx('pack.dvinfo.kibble', 'Kibble'), plus(DEVOTION_FEED.kibble)],
@@ -108,7 +107,10 @@ export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClos
     ]],
     ['trophy', tx('pack.dvinfo.honours', 'Recognitions'), [
       [tx('pack.dvinfo.dogid', 'DOG ID at 100 % (once per dog)'), plus(DEVOTION_ONCE.dogid_full)],
-      [tx('pack.dvinfo.scroll', 'A scroll read in the VAULT'), plus(DEVOTION_ONCE.scroll_read)],
+      [tx('pack.dvinfo.scroll', 'A scroll read in the VAULT (up to 3 a day)'), plus(DEVOTION_ONCE.scroll_read)],
+      [tx('pack.dvinfo.chronicle', 'Note in the chronicle (up to 3× a day)'), plus(DEVOTION_DEED.chronicle)],
+      [tx('pack.dvinfo.goodDeed', 'Good deed (approved by AINUBIS, once a day)'), plus(DEVOTION_DEED.good_deed)],
+      [tx('pack.dvinfo.streak', 'Streak of 7 · 30 · 100 · 365 days'), pts(Object.values(DEVOTION_STREAK).map((n) => `+${n}`).join(' · '))],
       [tx('pack.dvinfo.charity', 'Helping dogs in need'), null],
       [tx('pack.dvinfo.helping', 'Helping another Dogyptian'), null],
     ]],
@@ -162,6 +164,7 @@ export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClos
             </div>
           ))}
           <p className="dvs-note">{tx('pack.dvinfo.note2', 'Devotion is counted for every living dog. Values marked “soon” are being set.')}</p>
+          <p className="dvs-note">{tx('pack.dvinfo.cap', 'Daily limit for walks, prayers, feeding and notes: {n}').replace('{n}', String(DEVOTION_DAY_CAP))}</p>
         </div>
       </div>
       {todayOpen && <DevotionToday onClose={() => setTodayOpen(false)} />}
