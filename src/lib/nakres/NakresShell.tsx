@@ -36,6 +36,8 @@ type Zmena = {
   id: string; druh: Druh; trasa: string; zariadenie: Zariadenie; prvok: Popis | null;
   dx?: number; dy?: number; w?: number; h?: number;
   pred?: string; po?: string; poznamka?: string; o?: number; vedla?: string; typ?: Novy;
+  /** PRIDAŤ: za vybraný prvok · položený na miesto · voľne v strede. */
+  poloha?: 'za' | 'na' | 'volne'; x?: number; y?: number;
 };
 
 type NakresWin = Window & { __nakresSnap?: (pixelRatio: number) => Promise<string> };
@@ -78,6 +80,11 @@ const jeElement = (n: unknown): n is HTMLElement => !!n && (n as Node).nodeType 
 const novyTyp = (el: Element | null) => ((el as HTMLElement | null)?.dataset?.nakresNovy as Novy | undefined);
 const menoPrvku = (el: Element) => { const t = novyTyp(el); return t ? `nový ${NOVY_MENO[t].toLowerCase()}` : menoKomponentu(el); };
 
+/** Voľne položený blok nemá rodiča, od ktorého by vzal šírku — dostane šírku obsahu stránky. */
+function sirkaVolne(el: HTMLElement, typ: Novy, sirkaOkna: number) {
+  if (typ === 'blok' || typ === 'karta') el.style.width = `${Math.min(sirkaOkna - 32, 560)}px`;
+}
+
 function vyrobPrvok(doc: Document, typ: Novy): HTMLElement {
   if (!doc.getElementById('nakres-pill-css')) {
     const st = doc.createElement('style');
@@ -104,9 +111,14 @@ function NakresShell() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const [zariadenie, setZariadenie] = useState<Zariadenie>('mobil');
-  const [rezim, setRezim] = useState<Rezim>('upravit');
+  // Bez prepínača POZERAŤ/UPRAVOVAŤ (Matej 23. 10.: „ak kliknem na nákres = hneď upravovať,
+  // pozerať je keď na to nekliknem“). Prezerá sa v appke, editor je vždy úprava.
+  const rezim = 'upravit' as Rezim;
   const [trasa, setTrasa] = useState('');
-  const [scale, setScale] = useState(1);
+  // Mierka = FIT (celý telefón v okne) × ZOOM. Mobil štartuje priblížený, oddialiť sa dá po FIT.
+  const [fit, setFit] = useState(1);
+  const [zoom, setZoom] = useState(1.5);
+  const scale = fit * zoom;
   const [, setTick] = useState(0);
   const [poznamka, setPoznamka] = useState('');
   const [nazov, setNazov] = useState('');
@@ -133,6 +145,10 @@ function NakresShell() {
   trasaRef.current = trasa;
 
   const prekresli = useCallback(() => setTick((t) => t + 1), []);
+  const ZOOM_MAX = 3;
+  const zoomBy = (f: number) => setZoom((z) => Math.min(ZOOM_MAX, Math.max(1, z * f)));
+  const zoomRef = useRef(zoomBy);
+  zoomRef.current = zoomBy;
 
   // ── záznam zmien ───────────────────────────────────────────────────────────
   const najdi = (el: Element, druh: Druh) => {
@@ -251,6 +267,7 @@ function NakresShell() {
     if (kotva) kotva.after(el);
     else {
       Object.assign(el.style, { position: 'fixed', zIndex: '2147483000', left: '0px', top: '0px' });
+      sirkaVolne(el, typ, doc.defaultView!.innerWidth);
       doc.body.appendChild(el);
       const r = el.getBoundingClientRect();
       const w = doc.defaultView!;
@@ -260,10 +277,87 @@ function NakresShell() {
     const r = el.getBoundingClientRect();
     zaloz(el, 'pridat', () => el.remove(), kotva ? popis(kotva) : popis(el), {
       typ, w: Math.round(r.width), h: Math.round(r.height), po: el.innerText || undefined,
-      vedla: kotva ? kratkyText(kotva, 40) : undefined,
+      vedla: kotva ? kratkyText(kotva, 40) : undefined, poloha: kotva ? 'za' : 'volne',
     });
     selRef.current = el;
     prekresli();
+  };
+
+  /** Prvok dotiahnutý z ponuky — leží presne tam, kde ho Matej pustil; kotva = čo je pod ním. */
+  const polozNa = (typ: Novy, x: number, y: number) => {
+    const doc = iframeRef.current?.contentDocument;
+    const win = doc?.defaultView;
+    if (!doc || !win) return;
+    const pod = doc.elementFromPoint(x, y);
+    const kotva = pod && pod.tagName !== 'BODY' && pod.tagName !== 'HTML' ? pod : null;
+    const el = vyrobPrvok(doc, typ);
+    Object.assign(el.style, { position: 'absolute', zIndex: '2147483000', left: '0px', top: '0px' });
+    sirkaVolne(el, typ, win.innerWidth);
+    doc.body.appendChild(el);
+    const r0 = el.getBoundingClientRect();
+    el.style.left = `${snap(x - r0.width / 2 + win.scrollX)}px`;
+    el.style.top = `${snap(y - r0.height / 2 + win.scrollY)}px`;
+    const r = el.getBoundingClientRect();
+    zaloz(el, 'pridat', () => el.remove(), kotva ? popis(kotva) : popis(el), {
+      typ, w: Math.round(r.width), h: Math.round(r.height), po: el.innerText || undefined,
+      vedla: kotva ? kratkyText(kotva, 40) : undefined, poloha: 'na', x: Math.round(r.left), y: Math.round(r.top),
+    });
+    selRef.current = el;
+    prekresli();
+  };
+
+  /** Ťah z ponuky: duch ide za myšou v hornom dokumente (capture), pustenie nad telefónom = položenie.
+   *  Krátky klik bez ťahu = pridať za vybraný prvok (bez výberu do stredu). */
+  const zacniVklad = (e: RPointerEvent, typ: Novy) => {
+    e.preventDefault();
+    const dlazdica = e.currentTarget as HTMLElement;
+    dlazdica.setPointerCapture(e.pointerId);
+    const sx = e.clientX, sy = e.clientY;
+    const m = scale;
+    const dz = ZARIADENIA[zariadenieRef.current];
+    let duch: HTMLElement | null = null;
+    const bod = (cx: number, cy: number) => {
+      const f = iframeRef.current;
+      if (!f) return null;
+      const r = f.getBoundingClientRect();
+      const x = (cx - r.left) / m, y = (cy - r.top) / m;
+      return x >= 0 && y >= 0 && x <= dz.w && y <= dz.h ? { x, y } : null;
+    };
+    const pohyb = (ev: PointerEvent) => {
+      if (!duch) {
+        if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 4) return;
+        duch = vyrobPrvok(document, typ);
+        sirkaVolne(duch, typ, dz.w);
+        Object.assign(duch.style, { position: 'fixed', zIndex: '2147483600', pointerEvents: 'none', opacity: '0.85', transform: `scale(${m}) translate(-50%, -50%)`, transformOrigin: '0 0' });
+        document.body.appendChild(duch);
+      }
+      duch.style.left = `${ev.clientX}px`;
+      duch.style.top = `${ev.clientY}px`;
+      const b = bod(ev.clientX, ev.clientY);
+      hoverRef.current = b ? iframeRef.current?.contentDocument?.elementFromPoint(b.x, b.y) ?? null : null;
+      prekresli();
+    };
+    const koniec = (ev: PointerEvent) => {
+      dlazdica.removeEventListener('pointermove', pohyb);
+      dlazdica.removeEventListener('pointerup', koniec);
+      hoverRef.current = null;
+      if (!duch) { pridaj(typ); return; }
+      duch.remove();
+      const b = bod(ev.clientX, ev.clientY);
+      if (b) polozNa(typ, b.x, b.y);
+      else prekresli();
+    };
+    dlazdica.addEventListener('pointermove', pohyb);
+    dlazdica.addEventListener('pointerup', koniec);
+  };
+
+  /** Náhľad prvku v ponuke = ten istý prvok, aký pribudne v appke. */
+  const nahlad = (typ: Novy) => (n: HTMLDivElement | null) => {
+    if (!n || n.firstChild) return;
+    const el = vyrobPrvok(document, typ);
+    if (typ === 'blok' || typ === 'karta') Object.assign(el.style, { width: '160px', minHeight: '56px', padding: '0' });
+    if (typ === 'tvar') Object.assign(el.style, { width: '120px', height: '56px' });
+    n.appendChild(el);
   };
 
   const pripniPoznamku = () => {
@@ -288,7 +382,6 @@ function NakresShell() {
       if (posledna) { e.preventDefault(); vrat(posledna.id); }
       return;
     }
-    if (e.key === 'e' || e.key === 'E') { setRezim((r) => (r === 'upravit' ? 'pozriet' : 'upravit')); e.preventDefault(); return; }
     if (rezimRef.current !== 'upravit') return;
     const sel = selRef.current as HTMLElement | null;
     if (e.key === 'Escape') { selRef.current = null; prekresli(); e.preventDefault(); return; }
@@ -379,6 +472,11 @@ function NakresShell() {
     }
     doc.addEventListener('keydown', klaves, true);
     win.addEventListener('scroll', prekresli, true);
+    win.addEventListener('wheel', (e) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      zoomRef.current(e.deltaY < 0 ? 1.1 : 1 / 1.1);
+    }, { passive: false, capture: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [klaves, prekresli]);
 
@@ -441,13 +539,26 @@ function NakresShell() {
     const d = ZARIADENIA[zariadenie];
     const prepocitaj = () => {
       const PAD = 48;
-      setScale(Math.min(1, (s.clientWidth - PAD) / d.w, (s.clientHeight - PAD) / d.h));
+      setFit(Math.min(1, (s.clientWidth - PAD) / d.w, (s.clientHeight - PAD) / d.h));
     };
+    setZoom(zariadenie === 'mobil' ? 1.5 : 1);
+    const koliesko = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      zoomRef.current(e.deltaY < 0 ? 1.1 : 1 / 1.1);
+    };
+    s.addEventListener('wheel', koliesko, { passive: false });
     prepocitaj();
     const ro = new ResizeObserver(prepocitaj);
     ro.observe(s);
-    return () => ro.disconnect();
+    return () => { ro.disconnect(); s.removeEventListener('wheel', koliesko); };
   }, [zariadenie]);
+
+  // Priblížený telefón ostane vodorovne v strede.
+  useEffect(() => {
+    const s = stageRef.current;
+    if (s) s.scrollLeft = (s.scrollWidth - s.clientWidth) / 2;
+  }, [scale]);
 
   // ── zmena veľkosti (úchyty v hornom dokumente) ─────────────────────────────
   const zacniVelkost = (e: RPointerEvent, os: 'w' | 'h' | 'wh') => {
@@ -551,67 +662,46 @@ function NakresShell() {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 2147483000, display: 'flex', background: C.stage, fontFamily: FONT, color: C.ink }}>
-      <div ref={stageRef} style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <div style={{ width: d.w * scale, height: d.h * scale, position: 'relative', flex: 'none' }}>
-          <div style={{ width: d.w, height: d.h, transform: `scale(${scale})`, transformOrigin: '0 0', position: 'absolute', inset: 0, borderRadius: zariadenie === 'mobil' ? 16 : 8, overflow: 'hidden', boxShadow: '0 12px 48px rgba(0,0,0,0.5)', background: '#000' }}>
-            <iframe ref={iframeRef} src={src} title="Appka" style={{ width: d.w, height: d.h, border: 0, display: 'block' }} />
-            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-              {/* Kde prvok BOL pred posunom — prerušovaný obrys. */}
-              {rezim === 'upravit' && zmeny.filter((z) => z.druh === 'presun' && z.trasa === trasa).map((z) => {
-                const r = rect(prvky.current.get(z.id) ?? null);
-                if (!r) return null;
-                return <div key={z.id} style={{ position: 'absolute', left: r.left - (z.dx ?? 0), top: r.top - (z.dy ?? 0), width: r.width, height: r.height, outline: `${inv}px dashed ${C.gold}`, opacity: 0.7 }} />;
-              })}
-              {hr && <div style={{ position: 'absolute', left: hr.left, top: hr.top, width: hr.width, height: hr.height, outline: `${inv}px solid ${LAPIS.edge}`, background: 'rgba(22,48,122,0.08)' }} />}
-              {sr && (
-                <div style={{ position: 'absolute', left: sr.left, top: sr.top, width: sr.width, height: sr.height, outline: `${2 * inv}px solid ${C.gold}` }}>
-                  <div style={{ position: 'absolute', left: -1 * inv, bottom: '100%', transform: `scale(${inv})`, transformOrigin: '0 100%', whiteSpace: 'nowrap', background: C.gold, color: C.ink, fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 4 }}>
-                    {menoPrvku(sel!)} · {Math.round(sr.width)}x{Math.round(sr.height)}
-                  </div>
-                  {(['w', 'h', 'wh'] as const).map((os) => (
-                    <div
-                      key={os}
-                      onPointerDown={(e) => zacniVelkost(e, os)}
-                      style={{
-                        position: 'absolute', pointerEvents: 'auto', width: 12 * inv, height: 12 * inv, background: C.papyrus, border: `${2 * inv}px solid ${C.gold}`, borderRadius: 2 * inv,
-                        right: os === 'h' ? '50%' : -6 * inv, bottom: os === 'w' ? '50%' : -6 * inv,
-                        cursor: os === 'w' ? 'ew-resize' : os === 'h' ? 'ns-resize' : 'nwse-resize',
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-              {/* Pripnuté poznámky — číslo = poradie v zozname. */}
-              {zmeny.map((z, i) => {
-                if (z.druh !== 'poznamka' || z.trasa !== trasa) return null;
-                const r = rect(prvky.current.get(z.id) ?? null);
-                if (!r) return null;
-                return (
-                  <div key={z.id} title={z.poznamka} style={{ position: 'absolute', left: r.right - 10 * inv, top: r.top - 10 * inv, width: 22 * inv, height: 22 * inv, borderRadius: 999, background: LAPIS.edge, color: LAPIS.ink, fontSize: 12 * inv, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.35)' }}>
-                    {i + 1}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <aside style={{ width: 320, flex: 'none', background: C.papyrus, borderLeft: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <aside style={{ width: 320, flex: 'none', background: C.papyrus, borderRight: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: 16, borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 20, letterSpacing: '.14em' }}>NÁKRES</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 20, letterSpacing: '.14em' }}>NÁKRES</div>
+            <Tlacidlo onClick={() => {
+              const w = iframeRef.current?.contentWindow;
+              window.location.href = w ? w.location.pathname + w.location.search + w.location.hash : '/';
+            }}>ZAVRIEŤ</Tlacidlo>
+          </div>
           <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 4 }}>{trasa || '…'} · do kódu sa nezapíše nič</div>
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
             <Prepinac moznosti={[['mobil', 'MOBIL'], ['pc', 'PC']]} hodnota={zariadenie} zmen={(v) => setZariadenie(v as Zariadenie)} />
-            <Prepinac moznosti={[['pozriet', 'POZERAŤ'], ['upravit', 'UPRAVOVAŤ']]} hodnota={rezim} zmen={(v) => setRezim(v as Rezim)} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Tlacidlo onClick={() => zoomBy(1 / 1.25)}>-</Tlacidlo>
+              <span style={{ fontSize: 10, fontWeight: 600, minWidth: 40, textAlign: 'center' }}>{Math.round(scale * 100)} %</span>
+              <Tlacidlo onClick={() => zoomBy(1.25)}>+</Tlacidlo>
+              <Tlacidlo onClick={() => setZoom(1)}>CELÝ</Tlacidlo>
+            </div>
           </div>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {rezim === 'pozriet' ? (
-            <Napoveda riadky={['Appka funguje normálne — preklikaj sa na obrazovku, ktorú chceš zmeniť.', 'Potom UPRAVOVAŤ (alebo kláves E).']} />
-          ) : !selPopis ? (
-            <Napoveda riadky={['Klik = vyber prvok', 'Ťahaj = posuň (po 4 px)', 'Šípky = jemne, so Shiftom po 16', 'Dvojklik = prepíš text', 'P = vyber rodiča · Del = skry', 'Rohy výberu = veľkosť', 'Cmd+Z = vráť poslednú zmenu']} />
+          <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <Stitok>PRVKY — DOTIAHNI NA TELEFÓN</Stitok>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {NOVE.map(([t, m]) => (
+                <div
+                  key={t}
+                  onPointerDown={(e) => zacniVklad(e, t)}
+                  title={sel ? 'Ťahaj na telefón · klik = hneď za vybraný prvok' : 'Ťahaj na telefón · klik = do stredu'}
+                  style={{ height: 88, borderRadius: 12, border: `1px solid ${C.border}`, background: '#FFFBF3', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'grab', userSelect: 'none', touchAction: 'none', overflow: 'hidden' }}
+                >
+                  <div ref={nahlad(t)} style={{ pointerEvents: 'none', transform: 'scale(0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 48 }} />
+                  <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', color: C.inkSoft }}>{m}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+          {!selPopis ? (
+            <Napoveda riadky={['Prvok z ponuky dotiahni na telefón', 'Klik = vyber prvok', 'Ťahaj = posuň (po 4 px)', 'Šípky = jemne, so Shiftom po 16', 'Dvojklik = prepíš text', 'P = vyber rodiča · Del = skry', 'Rohy výberu = veľkosť', 'Cmd+Z = vráť poslednú zmenu']} />
           ) : (
             <section style={{ background: C.papyrusTmavy, borderRadius: 12, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ fontSize: 14, fontWeight: 600 }}>{menoPrvku(sel!)} <span style={{ color: C.inkSoft, fontWeight: 400 }}>&lt;{selPopis.tag}&gt; {selPopis.rect.w}x{selPopis.rect.h}</span></div>
@@ -628,15 +718,6 @@ function NakresShell() {
             </section>
           )}
 
-          {rezim === 'upravit' && (
-            <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <Stitok>PRIDAŤ PRVOK</Stitok>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {NOVE.map(([t, m]) => <Tlacidlo key={t} onClick={() => pridaj(t)}>{m}</Tlacidlo>)}
-              </div>
-              <div style={{ fontSize: 10, color: C.inkSoft }}>{sel ? 'Pribudne hneď za vybraný prvok.' : 'Pribudne doprostred obrazovky.'} Potom ho ťahaj, zmeň veľkosť, dvojklikom prepíš text.</div>
-            </section>
-          )}
 
           <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <Stitok>{sel ? 'POZNÁMKA K PRVKU' : 'POZNÁMKA K OBRAZOVKE'}</Stitok>
@@ -690,6 +771,54 @@ function NakresShell() {
           {stav && <div style={{ fontSize: 12, color: C.inkSoft, wordBreak: 'break-word' }}>{stav}</div>}
         </div>
       </aside>
+
+      {/* Rolovateľná scéna; telefón centruje margin:auto, nie justify-center (s overflow by sa horná časť nedala odrolovať). */}
+      <div ref={stageRef} style={{ flex: 1, minWidth: 0, display: 'flex', overflow: 'auto', padding: 24 }}>
+        <div style={{ width: d.w * scale, height: d.h * scale, position: 'relative', flex: 'none', margin: 'auto' }}>
+          <div style={{ width: d.w, height: d.h, transform: `scale(${scale})`, transformOrigin: '0 0', position: 'absolute', inset: 0, borderRadius: zariadenie === 'mobil' ? 16 : 8, overflow: 'hidden', boxShadow: '0 12px 48px rgba(0,0,0,0.5)', background: '#000' }}>
+            <iframe ref={iframeRef} src={src} title="Appka" style={{ width: d.w, height: d.h, border: 0, display: 'block' }} />
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+              {/* Kde prvok BOL pred posunom — prerušovaný obrys. */}
+              {rezim === 'upravit' && zmeny.filter((z) => z.druh === 'presun' && z.trasa === trasa).map((z) => {
+                const r = rect(prvky.current.get(z.id) ?? null);
+                if (!r) return null;
+                return <div key={z.id} style={{ position: 'absolute', left: r.left - (z.dx ?? 0), top: r.top - (z.dy ?? 0), width: r.width, height: r.height, outline: `${inv}px dashed ${C.gold}`, opacity: 0.7 }} />;
+              })}
+              {hr && <div style={{ position: 'absolute', left: hr.left, top: hr.top, width: hr.width, height: hr.height, outline: `${inv}px solid ${LAPIS.edge}`, background: 'rgba(22,48,122,0.08)' }} />}
+              {sr && (
+                <div style={{ position: 'absolute', left: sr.left, top: sr.top, width: sr.width, height: sr.height, outline: `${2 * inv}px solid ${C.gold}` }}>
+                  <div style={{ position: 'absolute', left: -1 * inv, bottom: '100%', transform: `scale(${inv})`, transformOrigin: '0 100%', whiteSpace: 'nowrap', background: C.gold, color: C.ink, fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 4 }}>
+                    {menoPrvku(sel!)} · {Math.round(sr.width)}x{Math.round(sr.height)}
+                  </div>
+                  {(['w', 'h', 'wh'] as const).map((os) => (
+                    <div
+                      key={os}
+                      onPointerDown={(e) => zacniVelkost(e, os)}
+                      style={{
+                        position: 'absolute', pointerEvents: 'auto', width: 12 * inv, height: 12 * inv, background: C.papyrus, border: `${2 * inv}px solid ${C.gold}`, borderRadius: 2 * inv,
+                        right: os === 'h' ? '50%' : -6 * inv, bottom: os === 'w' ? '50%' : -6 * inv,
+                        cursor: os === 'w' ? 'ew-resize' : os === 'h' ? 'ns-resize' : 'nwse-resize',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+              {/* Pripnuté poznámky — číslo = poradie v zozname. */}
+              {zmeny.map((z, i) => {
+                if (z.druh !== 'poznamka' || z.trasa !== trasa) return null;
+                const r = rect(prvky.current.get(z.id) ?? null);
+                if (!r) return null;
+                return (
+                  <div key={z.id} title={z.poznamka} style={{ position: 'absolute', left: r.right - 10 * inv, top: r.top - 10 * inv, width: 22 * inv, height: 22 * inv, borderRadius: 999, background: LAPIS.edge, color: LAPIS.ink, fontSize: 12 * inv, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.35)' }}>
+                    {i + 1}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

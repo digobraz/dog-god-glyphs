@@ -22,6 +22,7 @@ type Zmena = {
   trasa: string; zariadenie: string; prvok: Popis | null;
   dx?: number; dy?: number; w?: number; h?: number;
   pred?: string; po?: string; poznamka?: string; o?: number; vedla?: string; typ?: string;
+  poloha?: "za" | "na" | "volne"; x?: number; y?: number;
 };
 type Nakres = {
   id: string; vytvorene: string; nazov?: string; zmeny: Zmena[];
@@ -43,8 +44,10 @@ function smer(dx = 0, dy = 0) {
 
 function riadok(z: Zmena, i: number) {
   const p = z.prvok;
-  const kde = z.druh === "pridat"
-    ? (z.vedla && p ? `hneď ZA \`${p.zdroj ?? "zdroj neznámy"}\` · ${p.komponenty.join(" ← ") || "—"} · <${p.tag}> „${z.vedla}“` : "voľne na obrazovke (nie je za žiadnym prvkom)")
+  const kde = z.druh === "pridat" && z.poloha === "na"
+    ? (z.vedla !== undefined && p ? `POLOŽENÝ NA \`${p.zdroj ?? "zdroj neznámy"}\` · ${p.komponenty.join(" ← ") || "—"} · <${p.tag}>${z.vedla ? ` „${z.vedla}“` : ""} · ľavý horný roh ${z.x},${z.y}` : `položený voľne na ${z.x},${z.y}`)
+    : z.druh === "pridat"
+    ? (z.vedla !== undefined && p ? `hneď ZA \`${p.zdroj ?? "zdroj neznámy"}\` · ${p.komponenty.join(" ← ") || "—"} · <${p.tag}>${z.vedla ? ` „${z.vedla}“` : ""}` : "voľne na obrazovke (nie je za žiadnym prvkom)")
     : p
     ? `\`${p.zdroj ?? "zdroj neznámy"}\` · ${p.komponenty.join(" ← ") || "—"} · <${p.tag}>${p.text ? ` „${p.text}“` : ""} · pôvodne ${p.rect.w}x${p.rect.h} na ${p.rect.x},${p.rect.y}`
     : "celá obrazovka";

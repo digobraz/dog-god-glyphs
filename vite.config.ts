@@ -52,7 +52,9 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    hmr: {
+    // Server pre nákres (`npm run nakres`, DOGYPT_NAKRES=1) beží BEZ HMR: keď iná session uloží
+    // súbor, Vite by obnovil celú stránku a Matejov neuložený nákres by zmizol (23. 10. 2026).
+    hmr: process.env.DOGYPT_NAKRES === "1" ? false : {
       overlay: false,
     },
   },
