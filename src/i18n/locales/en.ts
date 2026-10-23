@@ -6588,7 +6588,7 @@ export const en = {
   'pack.create.album.title': "Album",
   // DEVOTION: za čo sa dostáva ☥ · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.title': "How you earn devotion",
-  'pack.dvinfo.intro': "Devotion ☥ grows with what you do for your dog and the pack — prayers, sacraments and recognitions. It cannot be bought.",
+  'pack.dvinfo.intro': "Devotion grows with what you do for your dog and the pack — prayers, sacraments and recognitions. It cannot be bought.",
   'pack.dvinfo.prayers': "Prayers",
   'pack.dvinfo.presence': "Prayer of presence",
   'pack.dvinfo.care': "Prayer of care",
@@ -6607,7 +6607,7 @@ export const en = {
   'pack.dvinfo.learning': "Learning in the VAULT",
   'pack.dvinfo.helping': "Helping another Dogyptian",
   'pack.dvinfo.soon': "soon",
-  'pack.dvinfo.note': "Values marked “soon” are being set. Every step of the ladder needs more ☥ than the one before.",
+  'pack.dvinfo.note': "Values marked “soon” are being set. Every step of the ladder needs more devotion than the one before.",
   'pack.me.novicePreview': "Preview: a brand-new member · back to my account",
   'pack.cover.note2': "Drag the cover on the card to move it up or down.",
   'pack.cover.pick': "Tap a photo to keep it as your cover.",

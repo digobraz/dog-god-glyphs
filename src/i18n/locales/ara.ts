@@ -5791,7 +5791,7 @@ export const ara: Partial<Dict> = {
   'pack.create.album.title': "ألبوم",
   // DEVOTION: za čo sa dostáva ☥ · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.title': "كيف تكسب الإخلاص",
-  'pack.dvinfo.intro': "ينمو الإخلاص ☥ بما تفعله لكلبك وللقطيع — صلوات وأسرار وتكريمات. لا يُشترى.",
+  'pack.dvinfo.intro': "ينمو الإخلاص بما تفعله لكلبك وللقطيع — صلوات وأسرار وتكريمات. لا يُشترى.",
   'pack.dvinfo.prayers': "الصلوات",
   'pack.dvinfo.presence': "صلاة الحضور",
   'pack.dvinfo.care': "صلاة الرعاية",
@@ -5810,7 +5810,7 @@ export const ara: Partial<Dict> = {
   'pack.dvinfo.learning': "التعلّم في VAULT",
   'pack.dvinfo.helping': "مساعدة دوجيبتي آخر",
   'pack.dvinfo.soon': "قريبًا",
-  'pack.dvinfo.note': "القيم المعلّمة بـ«قريبًا» قيد التحديد. كل درجة تحتاج ☥ أكثر من سابقتها.",
+  'pack.dvinfo.note': "القيم المعلّمة بـ«قريبًا» قيد التحديد. كل درجة تحتاج أكثر من سابقتها.",
   'pack.me.novicePreview': "معاينة: عضو جديد تمامًا · العودة إلى حسابي",
   'pack.cover.note2': "اسحب الغلاف لتحريكه للأعلى أو للأسفل.",
   'pack.cover.pick': "اضغط على صورة لتبقى غلافًا.",

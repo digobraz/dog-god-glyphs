@@ -5794,7 +5794,7 @@ export const nld: Partial<Dict> = {
   'pack.create.album.title': "Album",
   // DEVOTION: za čo sa dostáva ☥ · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.title': "Waarvoor je toewijding krijgt",
-  'pack.dvinfo.intro': "Toewijding ☥ groeit met wat je voor je hond en de roedel doet — gebeden, sacramenten en erkenningen. Je kunt het niet kopen.",
+  'pack.dvinfo.intro': "Toewijding groeit met wat je voor je hond en de roedel doet — gebeden, sacramenten en erkenningen. Je kunt het niet kopen.",
   'pack.dvinfo.prayers': "Gebeden",
   'pack.dvinfo.presence': "Gebed van aanwezigheid",
   'pack.dvinfo.care': "Gebed van zorg",
@@ -5813,7 +5813,7 @@ export const nld: Partial<Dict> = {
   'pack.dvinfo.learning': "Leren in de VAULT",
   'pack.dvinfo.helping': "Een andere Dogyptiaan helpen",
   'pack.dvinfo.soon': "binnenkort",
-  'pack.dvinfo.note': "Waarden met „binnenkort” worden nu vastgelegd. Elke trede vraagt meer ☥ dan de vorige.",
+  'pack.dvinfo.note': "Waarden met „binnenkort” worden nu vastgelegd. Elke trede vraagt meer dan de vorige.",
   'pack.me.novicePreview': "Voorbeeld: gloednieuw lid · terug naar mijn account",
   'pack.cover.note2': "Sleep de omslag om hem omhoog of omlaag te schuiven.",
   'pack.cover.pick': "Tik op een foto om hem als omslag te houden.",

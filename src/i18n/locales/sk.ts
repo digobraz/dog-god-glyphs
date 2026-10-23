@@ -6278,7 +6278,7 @@ export const sk: Partial<Dict> = {
   'pack.create.album.title': "Album",
   // DEVOTION: za čo sa dostáva ☥ · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.title': "Za čo dostávaš oddanosť",
-  'pack.dvinfo.intro': "Oddanosť ☥ rastie z toho, čo robíš pre svojho psa a svorku — modlitby, sviatosti a ocenenia. Kúpiť sa nedá.",
+  'pack.dvinfo.intro': "Oddanosť rastie z toho, čo robíš pre svojho psa a svorku — modlitby, sviatosti a ocenenia. Kúpiť sa nedá.",
   'pack.dvinfo.prayers': "Modlitby",
   'pack.dvinfo.presence': "Modlitba prítomnosti",
   'pack.dvinfo.care': "Modlitba starostlivosti",
@@ -6297,7 +6297,7 @@ export const sk: Partial<Dict> = {
   'pack.dvinfo.learning': "Štúdium vo VAULTe",
   'pack.dvinfo.helping': "Pomoc inému DOGYPŤANOVI",
   'pack.dvinfo.soon': "čoskoro",
-  'pack.dvinfo.note': "Hodnoty s „čoskoro“ sa práve nastavujú. Každý ďalší stupeň chce viac ☥ ako ten predošlý.",
+  'pack.dvinfo.note': "Hodnoty s „čoskoro“ sa práve nastavujú. Každý ďalší stupeň chce viac oddanosti ako ten predošlý.",
   'pack.me.novicePreview': "Náhľad: úplne nový člen · späť na môj účet",
   'pack.cover.note2': "Polohu titulky posunieš potiahnutím prstom priamo na nej.",
   'pack.cover.pick': "Ťukni na fotku a ostane ako titulka.",

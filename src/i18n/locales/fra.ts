@@ -5980,7 +5980,7 @@ export const fra: Partial<Dict> = {
   'pack.create.album.title': "Album",
   // DEVOTION: za čo sa dostáva ☥ · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.title': "Comment gagner la dévotion",
-  'pack.dvinfo.intro': "La dévotion ☥ grandit avec ce que tu fais pour ton chien et la meute — prières, sacrements et distinctions. Elle ne s’achète pas.",
+  'pack.dvinfo.intro': "La dévotion grandit avec ce que tu fais pour ton chien et la meute — prières, sacrements et distinctions. Elle ne s’achète pas.",
   'pack.dvinfo.prayers': "Prières",
   'pack.dvinfo.presence': "Prière de présence",
   'pack.dvinfo.care': "Prière de soin",
@@ -5999,7 +5999,7 @@ export const fra: Partial<Dict> = {
   'pack.dvinfo.learning': "Apprendre dans le VAULT",
   'pack.dvinfo.helping': "Aider un autre Dogyptien",
   'pack.dvinfo.soon': "bientôt",
-  'pack.dvinfo.note': "Les valeurs « bientôt » sont en cours de fixation. Chaque marche demande plus de ☥ que la précédente.",
+  'pack.dvinfo.note': "Les valeurs « bientôt » sont en cours de fixation. Chaque marche demande plus de que la précédente.",
   'pack.me.novicePreview': "Aperçu : tout nouveau membre · retour à mon compte",
   'pack.cover.note2': "Fais glisser la couverture pour la déplacer vers le haut ou le bas.",
   'pack.cover.pick': "Touche une photo pour la garder en couverture.",

@@ -5794,7 +5794,7 @@ export const tur: Partial<Dict> = {
   'pack.create.album.title': "Albüm",
   // DEVOTION: za čo sa dostáva ☥ · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.title': "Bağlılığı neyle kazanırsın",
-  'pack.dvinfo.intro': "Bağlılık ☥ köpeğin ve sürü için yaptıklarınla büyür — dualar, kutsal törenler ve takdirler. Satın alınamaz.",
+  'pack.dvinfo.intro': "Bağlılık köpeğin ve sürü için yaptıklarınla büyür — dualar, kutsal törenler ve takdirler. Satın alınamaz.",
   'pack.dvinfo.prayers': "Dualar",
   'pack.dvinfo.presence': "Varlık duası",
   'pack.dvinfo.care': "Özen duası",
@@ -5813,7 +5813,7 @@ export const tur: Partial<Dict> = {
   'pack.dvinfo.learning': "VAULT’ta öğrenmek",
   'pack.dvinfo.helping': "Başka bir Dogyptiana yardım",
   'pack.dvinfo.soon': "yakında",
-  'pack.dvinfo.note': "“Yakında” olan değerler belirleniyor. Her basamak öncekinden daha fazla ☥ ister.",
+  'pack.dvinfo.note': "“Yakında” olan değerler belirleniyor. Her basamak öncekinden daha fazla ister.",
   'pack.me.novicePreview': "Önizleme: yepyeni üye · hesabıma dön",
   'pack.cover.note2': "Kapağı yukarı veya aşağı kaydırmak için sürükle.",
   'pack.cover.pick': "Kapak olarak kalması için bir fotoğrafa dokun.",

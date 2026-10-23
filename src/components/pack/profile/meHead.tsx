@@ -75,19 +75,37 @@ export const ME_CSS = `
    text a pás berú farby z premenných --rk-ink / --rk-dim, ktoré nastaví MeRank. */
 .me-rk{ margin:0 0 ${S.md}px; padding:${S.md}px ${S.lg}px; border-radius:${PACK_R.tile}px; background:var(--rk-bg); border:1px solid var(--rk-edge);
   box-shadow:${T.panelShadow}; color:var(--rk-ink); }
-.me-rk h3{ margin:0 0 ${S.md}px; padding-bottom:${S.md}px; border-bottom:1px solid var(--rk-edge); align-items:center !important; display:flex; justify-content:space-between; align-items:baseline; gap:${S.sm}px; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.body}px; letter-spacing:.14em; text-transform:uppercase; color:var(--rk-ink); }
-.me-rk h3 .nm{ display:inline-flex; align-items:center; gap:${S.sm}px; min-width:0; }
-/* Ikona stupňa v hlavičke bloku — tá istá gulička ako v pilulke, len väčšia (Matej 23. 10.: „v bloku chýba ikona levelu"). */
-.me-rk h3 .ic{ flex:none; display:grid; place-items:center; width:28px; height:28px; border-radius:${PACK_R.pill}px; background:var(--dv-dot); box-shadow:0 0 12px var(--dv-glow); }
-.me-rk h3 .ic i{ display:block; width:17px; height:17px; background:var(--dv-icon-ink); -webkit-mask:var(--dv-icon) center/contain no-repeat; mask:var(--dv-icon) center/contain no-repeat; }
-.me-rk h3 .ic.pt{ background:var(--rk-fill); box-shadow:none; }
-.me-rk h3 button.ab{ border:0; background:none; padding:0; cursor:pointer; display:inline-flex; align-items:center; gap:${S.xs}px; text-decoration:underline; text-underline-offset:3px; }
-/* PROGRES S TEXTOM VNÚTRI (Matej 23. 10.: „progres bar musí byť zjavný… body koľko zostáva dajme do progresbaru").
-   Text je dvakrát: svetlý nad prázdnou koľajou a tmavý orezaný na šírku výplne — čitateľný na oboch. */
-.me-rk-bar{ position:relative; height:24px; border-radius:${PACK_R.pill}px; background:var(--rk-track); overflow:hidden; }
-.me-rk-bar > b{ position:absolute; left:0; top:0; bottom:0; border-radius:${PACK_R.pill}px; background:var(--rk-fill); box-shadow:0 0 10px var(--rk-fill); transition:width .6s ease; }
+.me-rk h3{ margin:0; display:flex; justify-content:space-between; align-items:baseline; gap:${S.sm}px; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.body}px; letter-spacing:.14em; text-transform:uppercase; color:var(--rk-ink); }
+/* HLAVIČKA: ikona stupňa · názov + definícia pod ním · vpravo hore ☥ (ťuk = vysvetlenie). */
+.me-rk-hd{ display:flex; align-items:flex-start; gap:${S.md}px; }
+.me-rk-hd .tx{ flex:1; min-width:0; }
+.me-rk-hd .tx p.me-rk-q{ margin:${S.xs}px 0 0; font-size:${TX.label}px; }
+.me-rk-hd .ic{ flex:none; display:grid; place-items:center; width:32px; height:32px; border-radius:${PACK_R.pill}px; background:var(--dv-dot); box-shadow:0 0 14px var(--dv-glow); }
+.me-rk-hd .ic i{ display:block; width:19px; height:19px; background:var(--dv-icon-ink); -webkit-mask:var(--dv-icon) center/contain no-repeat; mask:var(--dv-icon) center/contain no-repeat; }
+.me-rk-hd .ic.pt{ background:var(--rk-fill); box-shadow:none; }
+.me-rk-hd .ab{ flex:none; display:inline-flex; align-items:center; gap:${S.xs}px; border:0; background:none; padding:${S.xs}px 0; color:var(--rk-ink);
+  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.label}px; letter-spacing:.02em; white-space:nowrap; }
+.me-rk-hd button.ab{ cursor:pointer; }
+.me-rk-hd button.ab:disabled{ cursor:default; }
+/* Deliaca čiara DO STRATENA (Matej 23. 10.) — zo stredu sa rozplynie do oboch strán. */
+.me-rk-line{ height:1px; border:0; margin:${S.md}px 0; background:linear-gradient(90deg, transparent, var(--rk-edge) 50%, transparent); opacity:.85; }
+/* PROGRES: koľaj + žiariaca výplň s pomalým leskom, napravo ďalší stupeň. */
+.me-rk-row{ display:flex; align-items:center; gap:${S.md}px; }
+.me-rk-nx{ flex:none; display:inline-flex; align-items:center; gap:${S.xs}px; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--rk-ink); white-space:nowrap; }
+.me-rk-nx .g{ display:grid; place-items:center; width:18px; height:18px; border-radius:${PACK_R.pill}px; background:var(--dv-dot); box-shadow:0 0 8px var(--dv-glow); }
+.me-rk-nx .g i{ display:block; width:11px; height:11px; background:var(--dv-icon-ink); -webkit-mask:var(--dv-icon) center/contain no-repeat; mask:var(--dv-icon) center/contain no-repeat; }
+.me-rk-nx b{ font-family:${FONT_TITLE}; font-size:${TX.label}px; }
+.me-rk-bar{ position:relative; flex:1; min-width:0; height:24px; border-radius:${PACK_R.pill}px; background:var(--rk-track); overflow:hidden; }
+.me-rk-bar > b{ position:absolute; left:0; top:0; bottom:0; border-radius:${PACK_R.pill}px; overflow:hidden; transition:width .8s cubic-bezier(.2,.8,.2,1);
+  background:linear-gradient(90deg, color-mix(in srgb, var(--rk-fill) 55%, transparent), var(--rk-fill));
+  box-shadow:0 0 14px var(--rk-fill), 0 0 4px var(--rk-fill); }
+.me-rk-bar > b::after{ content:''; position:absolute; inset:0; background:linear-gradient(100deg, transparent 30%, rgba(255,255,255,.45) 50%, transparent 70%);
+  transform:translateX(-100%); animation:me-shine 3.2s ease-in-out infinite; }
+@keyframes me-shine{ 0%{ transform:translateX(-100%); } 60%,100%{ transform:translateX(100%); } }
+@media (prefers-reduced-motion:reduce){ .me-rk-bar > b::after{ animation:none; } }
 .me-rk-bar > span{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:0 ${S.sm}px; white-space:nowrap; overflow:hidden;
-  font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.02em; color:var(--rk-ink); }
+  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; letter-spacing:.02em; color:var(--rk-ink); }
 .me-rk-bar > span.in{ color:var(--rk-bg-ink); }
 .me-rk h3 small{ font-family:${FONT_UI}; font-weight:500; font-size:${TX.micro}px; letter-spacing:.02em; text-transform:none; color:var(--rk-dim); }
 .me-rk p{ margin:${S.sm}px 0 0; font-family:${FONT_UI}; font-size:${TX.label}px; line-height:1.45; color:var(--rk-ink); }
@@ -135,6 +153,10 @@ export const ME_CSS = `
 @media (prefers-reduced-motion:reduce){ .me-own.st-live, .me-own.st-live::before{ animation:none; } }
 /* + pridať story — lapisový kotúč vpravo dole na fotke (len môj profil). */
 .me-add{ position:absolute; z-index:2; right:0; bottom:${S.sm}px; width:32px; height:32px; padding:0; border-radius:${PACK_R.pill}px; display:grid; place-items:center; cursor:pointer;
+  background:${LAPIS.grad}; border:2px solid ${T.card}; box-shadow:${LAPIS_BTN_SHADOW}; }
+.me-sdog{ position:relative; border:0; cursor:pointer; }
+.me-sdog:disabled{ cursor:default; opacity:.7; }
+.me-sdog .cam{ position:absolute; right:-${S.xs}px; bottom:-${S.xs}px; width:22px; height:22px; border-radius:${PACK_R.pill}px; display:grid; place-items:center;
   background:${LAPIS.grad}; border:2px solid ${T.card}; box-shadow:${LAPIS_BTN_SHADOW}; }
 .me-own .ini{ display:grid; place-items:center; width:100%; height:100%; font-family:${FONT_TITLE}; font-size:${TX.h1}px; color:${T.inkWarm}; }
 .me-sat{ position:absolute; left:50%; transform:translateX(-50%); bottom:-${SAT_DROP.m}px; display:flex; align-items:center;
@@ -380,7 +402,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
 }
 
 /** FOTKA MAJITEĽA + SATELIT PSOV. Bez `onToggle` je satelit len obraz (náhľad v UPRAVIŤ). */
-export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, photoLabel, toggleLabel, badge, story, onAdd, addLabel }: {
+export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, photoLabel, toggleLabel, badge, story, onAdd, addLabel, onDogPhoto, dogBusy, dogPhotoLabel }: {
   photo: string | null;
   initial: string;
   dogs: PackDogFull[];
@@ -395,7 +417,31 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
   /** `+` na fotke = nová story (len môj profil). */
   onAdd?: () => void;
   addLabel?: string;
+  /** UPRAVIŤ PROFIL: ťuk na psa v satelite = nová hlavná fotka psa (Matej 23. 10.: *„fotka psa aj majiteľa
+   *  sa mení v edit profile na ich fotkách"*). Každý pes dostane foťák ako fotka majiteľa. */
+  onDogPhoto?: (dog: PackDogFull) => void;
+  dogBusy?: string | null;
+  dogPhotoLabel?: string;
 }) {
+  if (onDogPhoto && dogs.length > 0) {
+    return (
+      <div className={`me-own${story ? ` st-${story}` : ''}`}>
+        <button type="button" onClick={onPhoto} aria-label={photoLabel}>
+          {photo ? <img src={sizedUrl(photo, 320)} alt="" /> : <span className="ini">{initial}</span>}
+        </button>
+        {badge}
+        <span className="me-sat">
+          {dogs.slice(0, 3).map((d) => (
+            <button key={d.id} type="button" className="s me-sdog" onClick={() => onDogPhoto(d)} disabled={dogBusy === d.id}
+              aria-label={`${dogPhotoLabel ?? ''} ${d.dog_name ?? ''}`.trim()}>
+              {d.cloudinary_main_url && <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" />}
+              <span className="cam">{dogBusy === d.id ? <BrandIcon name="cycle" size={11} tint="white" /> : <BrandIcon name="camera" size={11} tint="white" />}</span>
+            </button>
+          ))}
+        </span>
+      </div>
+    );
+  }
   const sat = open ? (
     <span className="up"><BrandIcon name="back" size={13} tint="white" /></span>
   ) : (
@@ -432,16 +478,27 @@ const tierStyle = (t: PackTier) => ({ '--tier-bg': tierGradient(t), '--tier-b': 
 const inkIsLight = (ink: string) => parseInt(ink.slice(1, 3), 16) > 0x80;
 
 
-/** Progres s textom vnútri — jeden prvok pre DEVOTION aj PÚTNIKA. */
-function RankBar({ pct, label }: { pct: number; label: string }) {
+/** PROGRES HODNOSTI (Matej 23. 10.: *„progresbar žiari, urob to krajšie… názov ďalšieho levelu daj napravo
+ *  a do stredu xxx/yyy"*). Pás žiari farbou hodnosti, v strede body v tomto stupni / koľko stupeň chce,
+ *  napravo ďalší stupeň. Text v strede je dvakrát — svetlý nad koľajou, tmavý orezaný na šírku výplne. */
+function RankBar({ pct, center, next, label }: { pct: number; center: string; next?: ReactNode; label: string }) {
   const w = Math.max(0, Math.min(100, pct));
+  const fill = `max(${w}%, 26px)`;
   return (
-    <div className="me-rk-bar" role="progressbar" aria-valuenow={Math.round(w)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
-      <b style={{ width: `max(${w}%, 24px)` }} />
-      <span>{label}</span>
-      <span className="in" style={{ clipPath: `inset(0 calc(100% - max(${w}%, 24px)) 0 0)` }}>{label}</span>
+    <div className="me-rk-row">
+      <div className="me-rk-bar" role="progressbar" aria-valuenow={Math.round(w)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+        <b style={{ width: fill }} />
+        <span>{center}</span>
+        <span className="in" style={{ clipPath: `inset(0 calc(100% - ${fill}) 0 0)` }}>{center}</span>
+      </div>
+      {next && <span className="me-rk-nx">{next}</span>}
     </div>
   );
+}
+
+/** Oddanosť nesie SRDCE S LABKOU, nie ankh (Matej 23. 10.). */
+export function DevotionMark({ size = 14, tint = 'gold' as const }: { size?: number; tint?: 'gold' | 'white' | 'dark' }) {
+  return <BrandIcon name="heartpaw" size={size} tint={tint} style={{ verticalAlign: '-2px' }} />;
 }
 
 export interface StudyStats { read: number; total: number; pct: number; liked: number; saved: number }
@@ -485,15 +542,18 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
     if (cur && scRef.current) scRef.current.scrollLeft = cur.offsetLeft - scRef.current.clientWidth / 2 + cur.clientWidth / 2;
   }, [kind]);
   const vars = rankVars(kind, pilgrim.level.level, dev.index);
+  const fmtN = (n: number) => Math.round(n).toLocaleString('sk-SK');
   if (kind === 'study') {
     const st = study ?? { read: 0, total: 0, pct: 0, liked: 0, saved: 0 };
     return (
       <div className="me-rk" style={vars}>
-        <h3>
-          <span className="nm"><span className="ic pt"><BrandIcon name="graduate" size={16} tint="dark" /></span>{tx('pack.me.studying', 'Study')}</span>
-          <small>{st.pct} %</small>
-        </h3>
-        <RankBar pct={st.pct} label={tx('pack.rank.studyRead', '{n} of {total} scrolls read').replace('{n}', String(st.read)).replace('{total}', String(st.total))} />
+        <div className="me-rk-hd">
+          <span className="ic pt"><BrandIcon name="graduate" size={16} tint="dark" /></span>
+          <div className="tx"><h3>{tx('pack.me.studying', 'Study')}</h3></div>
+        </div>
+        <hr className="me-rk-line" />
+        <RankBar pct={st.pct} center={`${st.read} / ${st.total}`} next={<b>{st.pct} %</b>}
+          label={tx('pack.rank.studyRead', '{n} of {total} scrolls read').replace('{n}', String(st.read)).replace('{total}', String(st.total))} />
         <div className="me-rk-nums">
           <div><b>{st.read}</b><span>{tx('pack.rank.scrolls', 'scrolls')}</span></div>
           <div><b>{st.liked}</b><span>{tx('pack.rank.liked', 'liked')}</span></div>
@@ -506,20 +566,28 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
     );
   }
   if (kind === 'dev') {
-    const nextName = dev.next ? tx(`pack.ladder.${dev.next.key}`, dev.next.name) : '';
+    const cur = DEVOTION_LEVELS[dev.index - 1];
+    const span = dev.next ? dev.next.at - cur.at : 0;
     return (
       <div className="me-rk" style={vars}>
-        <h3>
-          <span className="nm"><span className="ic"><i /></span>{tx(`pack.ladder.${dev.key}`, dev.name)} {dev.index}</span>
-          <small>{onAbout ? (
-            <button type="button" className="ab" onClick={onAbout}>{tx('pack.devotion.heading', 'Devotion')} · {devotion.toLocaleString('sk-SK')} ☥<BrandIcon name="question" size={12} tint="white" /></button>
-          ) : <>{tx('pack.devotion.heading', 'Devotion')} · {devotion.toLocaleString('sk-SK')} ☥</>}</small>
-        </h3>
-        <RankBar pct={dev.next ? dev.pct : 100} label={dev.next
-          ? tx('pack.rank.devToNext', '{n} ☥ to the {name} step').replace('{n}', dev.toNext.toLocaleString('sk-SK')).replace('{name}', nextName)
-          : tx('pack.rank.devTop', 'You stand at the top of the ladder.')} />
-        <p className="me-rk-q">{tx(`pack.ladder.desc.${dev.key}`, devotionTier(dev.index).desc)}</p>
-        <p>{tx('pack.rank.devAbout', 'Devotion is your path in DOGYPT — {n} steps from Novice to Demigod.').replace('{n}', String(DEVOTION_LEVELS.length))}</p>
+        <div className="me-rk-hd">
+          <span className="ic"><i /></span>
+          <div className="tx">
+            <h3>{tx(`pack.ladder.${dev.key}`, dev.name)} {dev.index}</h3>
+            <p className="me-rk-q">{tx(`pack.ladder.desc.${dev.key}`, devotionTier(dev.index).desc)}</p>
+          </div>
+          <button type="button" className="ab" onClick={onAbout} disabled={!onAbout} aria-label={tx('pack.dvinfo.title', 'How you earn devotion')}>
+            <DevotionMark size={16} />{fmtN(devotion)}{onAbout && <BrandIcon name="question" size={12} tint="white" />}
+          </button>
+        </div>
+        <hr className="me-rk-line" />
+        {dev.next ? (
+          <RankBar pct={dev.pct} center={`${fmtN(devotion - cur.at)} / ${fmtN(span)}`}
+            label={tx('pack.rank.devToNext', '{n} to the {name} step').replace('{n}', fmtN(dev.toNext)).replace('{name}', tx(`pack.ladder.${dev.next.key}`, dev.next.name))}
+            next={<><span className="g" style={devotionVars(dev.index + 1)}><i /></span>{tx(`pack.ladder.${dev.next.key}`, dev.next.name)} {dev.index + 1}</>} />
+        ) : (
+          <RankBar pct={100} center={tx('pack.rank.devTop', 'You stand at the top of the ladder.')} label={tx('pack.rank.devTop', 'You stand at the top of the ladder.')} />
+        )}
         <div className="me-rk-sc" ref={scRef}>
           {DEVOTION_LEVELS.map((l, i) => (
             <span key={l.key} className={i + 1 === dev.index ? 'cur' : i + 1 < dev.index ? 'done' : ''} style={devotionVars(i + 1)}><i><b /></i>{i + 1} · {tx(`pack.ladder.${l.key}`, l.name)}</span>
@@ -531,11 +599,16 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
   const lv = pilgrim.level;
   return (
     <div className="me-rk" style={vars}>
-      <h3>
-        <span className="nm"><span className="ic pt"><BrandIcon name="world-grid" size={16} tint={inkIsLight(tierOfLevel(lv.level).ink) ? 'dark' : 'white'} /></span>{tx('pack.map.rankPilgrim', 'Pilgrim')} {lv.level}</span>
-        <small>{lv.points.toLocaleString('sk-SK')} {tx('pack.rank.pts', 'pts')}</small>
-      </h3>
-      <RankBar pct={lv.pct} label={tx('pack.tier.toNext', '{n} points to level {level}').replace('{n}', lv.toNext.toLocaleString('sk-SK')).replace('{level}', String(lv.level + 1))} />
+      <div className="me-rk-hd">
+        {/* Kotúč ikonky má výplň papyrusu (`--rk-fill` = T.card) ⇒ ikonka vždy tmavá. */}
+        <span className="ic pt"><BrandIcon name="world-grid" size={16} tint="dark" /></span>
+        <div className="tx"><h3>{tx('pack.map.rankPilgrim', 'Pilgrim')} {lv.level}</h3></div>
+        <span className="ab">{fmtN(lv.points)} {tx('pack.rank.pts', 'pts')}</span>
+      </div>
+      <hr className="me-rk-line" />
+      <RankBar pct={lv.pct} center={`${fmtN(lv.points - lv.floorPoints)} / ${fmtN(lv.nextPoints - lv.floorPoints)}`}
+        label={tx('pack.tier.toNext', '{n} points to level {level}').replace('{n}', fmtN(lv.toNext)).replace('{level}', String(lv.level + 1))}
+        next={<><BrandIcon name="world-grid" size={12} tint={inkIsLight(tierOfLevel(lv.level).ink) ? 'white' : 'dark'} />{tx('pack.map.rankPilgrim', 'Pilgrim')} {lv.level + 1}</>} />
       <div className="me-rk-nums">
         <div><b>{pilgrim.count}</b><span>{tx('pack.rank.trips', 'trips')}</span></div>
         <div><b>{pilgrim.km}</b><span>km</span></div>

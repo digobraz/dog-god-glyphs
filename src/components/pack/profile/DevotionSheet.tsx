@@ -9,6 +9,8 @@ import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
 import { NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
+import { DEVOTION_LEVELS } from '@/lib/devotion';
+import { DevotionMark } from '@/components/pack/profile/meHead';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -28,7 +30,7 @@ const CSS = `
 .dvs-grp{margin:0 0 ${S.lg}px;}
 .dvs-grp h3{margin:0 0 ${S.sm}px;padding-bottom:${S.sm}px;border-bottom:1px solid ${T.onDarkBorder};font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${NIGHT_EDGE};}
 .dvs-row{display:flex;justify-content:space-between;align-items:baseline;gap:${S.md}px;padding:${S.xs}px 0;font-size:${TX.body}px;}
-.dvs-row b{flex:none;font-family:${FONT_TITLE};font-weight:700;color:${NIGHT_EDGE};white-space:nowrap;}
+.dvs-row b{flex:none;display:inline-flex;align-items:center;gap:4px;font-family:${FONT_TITLE};font-weight:700;color:${NIGHT_EDGE};white-space:nowrap;}
 .dvs-row b.soon{font-family:${FONT_UI};font-weight:500;font-size:${TX.label}px;color:${T.onDarkDim};}
 .dvs-note{margin:0;font-size:${TX.label}px;line-height:1.5;color:${T.onDarkDim};}
 @media (min-width:768px){
@@ -57,16 +59,16 @@ export function DevotionSheet({ onClose }: { onClose: () => void }) {
   const soon = <b className="soon">{tx('pack.dvinfo.soon', 'soon')}</b>;
   const groups: Array<[string, Array<[string, JSX.Element]>]> = [
     [tx('pack.dvinfo.prayers', 'Prayers'), [
-      [tx('pack.dvinfo.presence', 'Prayer of presence'), <b>+3 ☥</b>],
+      [tx('pack.dvinfo.presence', 'Prayer of presence'), <b>+3<DevotionMark /></b>],
       [tx('pack.dvinfo.care', 'Prayer of care'), soon],
     ]],
     [tx('pack.dvinfo.walks', 'Walks and trips'), [
-      [tx('pack.dvinfo.walkShort', 'A walk under an hour'), <b>+0,5 ☥</b>],
-      [tx('pack.dvinfo.walkLong', 'Every hour on the way'), <b>+1 ☥</b>],
-      [tx('pack.dvinfo.walkCap', 'Most from one walk'), <b>5 ☥</b>],
+      [tx('pack.dvinfo.walkShort', 'A walk under an hour'), <b>+0,5<DevotionMark /></b>],
+      [tx('pack.dvinfo.walkLong', 'Every hour on the way'), <b>+1<DevotionMark /></b>],
+      [tx('pack.dvinfo.walkCap', 'Most from one walk'), <b>5<DevotionMark /></b>],
     ]],
     [tx('pack.dvinfo.firsts', 'First steps'), [
-      [tx('pack.dvinfo.firstSteps', 'Finish your first steps in DOGYPT (once)'), <b>+10 ☥</b>],
+      [tx('pack.dvinfo.firstSteps', 'Finish your first steps in DOGYPT (once)'), <b>+10<DevotionMark /></b>],
     ]],
     [tx('pack.dvinfo.sacraments', 'Sacraments'), [
       [tx('pack.dvinfo.baptism', 'Baptism with a heroglyph'), soon],
@@ -92,14 +94,16 @@ export function DevotionSheet({ onClose }: { onClose: () => void }) {
           <h2>{tx('pack.dvinfo.title', 'How you earn devotion')}</h2>
         </div>
         <div className="dvs-body">
-          <p>{tx('pack.dvinfo.intro', 'Devotion ☥ grows with what you do for your dog and the pack — prayers, sacraments and recognitions. It cannot be bought.')}</p>
+          <p>{tx('pack.dvinfo.intro', 'Devotion grows with what you do for your dog and the pack — prayers, sacraments and recognitions. It cannot be bought.')}</p>
+          {/* Veta o rebríčku sa presťahovala z bloku sem (Matej 23. 10.: „daj preč, kľudne do popupu oddanosti"). */}
+          <p>{tx('pack.rank.devAbout', 'Devotion is your path in DOGYPT — {n} steps from Novice to Demigod.').replace('{n}', String(DEVOTION_LEVELS.length))}</p>
           {groups.map(([head, rows]) => (
             <div key={head} className="dvs-grp">
               <h3>{head}</h3>
               {rows.map(([label, val]) => <div key={label} className="dvs-row"><span>{label}</span>{val}</div>)}
             </div>
           ))}
-          <p className="dvs-note">{tx('pack.dvinfo.note', 'Values marked “soon” are being set. Every step of the ladder needs more ☥ than the one before.')}</p>
+          <p className="dvs-note">{tx('pack.dvinfo.note', 'Values marked “soon” are being set. Every step of the ladder needs more devotion than the one before.')}</p>
         </div>
       </div>
     </div>,

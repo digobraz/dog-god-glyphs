@@ -5980,7 +5980,7 @@ export const deu: Partial<Dict> = {
   'pack.create.album.title': "Album",
   // DEVOTION: za čo sa dostáva ☥ · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.title': "Wofür du Hingabe bekommst",
-  'pack.dvinfo.intro': "Hingabe ☥ wächst mit dem, was du für deinen Hund und das Rudel tust — Gebete, Sakramente und Auszeichnungen. Kaufen kann man sie nicht.",
+  'pack.dvinfo.intro': "Hingabe wächst mit dem, was du für deinen Hund und das Rudel tust — Gebete, Sakramente und Auszeichnungen. Kaufen kann man sie nicht.",
   'pack.dvinfo.prayers': "Gebete",
   'pack.dvinfo.presence': "Gebet der Gegenwart",
   'pack.dvinfo.care': "Gebet der Fürsorge",
@@ -5999,7 +5999,7 @@ export const deu: Partial<Dict> = {
   'pack.dvinfo.learning': "Lernen im VAULT",
   'pack.dvinfo.helping': "Einem anderen Dogyptian helfen",
   'pack.dvinfo.soon': "bald",
-  'pack.dvinfo.note': "Werte mit „bald“ werden gerade festgelegt. Jede Stufe braucht mehr ☥ als die vorige.",
+  'pack.dvinfo.note': "Werte mit „bald“ werden gerade festgelegt. Jede Stufe braucht mehr als die vorige.",
   'pack.me.novicePreview': "Vorschau: ganz neues Mitglied · zurück zu meinem Konto",
   'pack.cover.note2': "Ziehe das Titelbild direkt auf der Karte nach oben oder unten.",
   'pack.cover.pick': "Tippe auf ein Foto, um es als Titelbild zu behalten.",

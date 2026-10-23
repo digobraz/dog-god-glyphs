@@ -5980,7 +5980,7 @@ export const esp: Partial<Dict> = {
   'pack.create.album.title': "Álbum",
   // DEVOTION: za čo sa dostáva ☥ · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.title': "Cómo ganas devoción",
-  'pack.dvinfo.intro': "La devoción ☥ crece con lo que haces por tu perro y la manada — oraciones, sacramentos y reconocimientos. No se puede comprar.",
+  'pack.dvinfo.intro': "La devoción crece con lo que haces por tu perro y la manada — oraciones, sacramentos y reconocimientos. No se puede comprar.",
   'pack.dvinfo.prayers': "Oraciones",
   'pack.dvinfo.presence': "Oración de presencia",
   'pack.dvinfo.care': "Oración de cuidado",
@@ -5999,7 +5999,7 @@ export const esp: Partial<Dict> = {
   'pack.dvinfo.learning': "Aprender en el VAULT",
   'pack.dvinfo.helping': "Ayudar a otro dogipciano",
   'pack.dvinfo.soon': "pronto",
-  'pack.dvinfo.note': "Los valores «pronto» se están definiendo. Cada escalón pide más ☥ que el anterior.",
+  'pack.dvinfo.note': "Los valores «pronto» se están definiendo. Cada escalón pide más que el anterior.",
   'pack.me.novicePreview': "Vista previa: miembro nuevo · volver a mi cuenta",
   'pack.cover.note2': "Arrastra la portada para moverla arriba o abajo.",
   'pack.cover.pick': "Toca una foto para dejarla de portada.",

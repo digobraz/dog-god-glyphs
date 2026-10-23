@@ -5791,7 +5791,7 @@ export const chn: Partial<Dict> = {
   'pack.create.album.title': "相册",
   // DEVOTION: za čo sa dostáva ☥ · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.title': "如何获得虔诚",
-  'pack.dvinfo.intro': "虔诚 ☥ 来自你为狗狗和狗群所做的事——祈祷、圣礼和嘉奖。它无法购买。",
+  'pack.dvinfo.intro': "虔诚 来自你为狗狗和狗群所做的事——祈祷、圣礼和嘉奖。它无法购买。",
   'pack.dvinfo.prayers': "祈祷",
   'pack.dvinfo.presence': "陪伴之祷",
   'pack.dvinfo.care': "照料之祷",
@@ -5810,7 +5810,7 @@ export const chn: Partial<Dict> = {
   'pack.dvinfo.learning': "在 VAULT 学习",
   'pack.dvinfo.helping': "帮助另一位 Dogyptian",
   'pack.dvinfo.soon': "即将推出",
-  'pack.dvinfo.note': "标为「即将推出」的数值正在制定。每一级都比上一级需要更多 ☥。",
+  'pack.dvinfo.note': "标为「即将推出」的数值正在制定。每一级都比上一级需要更多。",
   'pack.me.novicePreview': "预览：全新成员 · 返回我的账户",
   'pack.cover.note2': "直接拖动封面即可上下调整位置。",
   'pack.cover.pick': "点一张照片即可设为封面。",

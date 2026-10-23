@@ -5791,7 +5791,7 @@ export const jpn: Partial<Dict> = {
   'pack.create.album.title': "アルバム",
   // DEVOTION: za čo sa dostáva ☥ · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.title': "献身の得かた",
-  'pack.dvinfo.intro': "献身 ☥ は、犬と群れのためにしたことで育ちます——祈り・秘跡・表彰。お金では買えません。",
+  'pack.dvinfo.intro': "献身 は、犬と群れのためにしたことで育ちます——祈り・秘跡・表彰。お金では買えません。",
   'pack.dvinfo.prayers': "祈り",
   'pack.dvinfo.presence': "寄り添いの祈り",
   'pack.dvinfo.care': "いたわりの祈り",
@@ -5810,7 +5810,7 @@ export const jpn: Partial<Dict> = {
   'pack.dvinfo.learning': "VAULTで学ぶ",
   'pack.dvinfo.helping': "ほかのDogyptianを助ける",
   'pack.dvinfo.soon': "近日",
-  'pack.dvinfo.note': "「近日」の値は現在決定中です。段階が上がるほど多くの ☥ が必要です。",
+  'pack.dvinfo.note': "「近日」の値は現在決定中です。段階が上がるほど多くの が必要です。",
   'pack.me.novicePreview': "プレビュー：新しいメンバー · 自分のアカウントに戻る",
   'pack.cover.note2': "カバーをドラッグして上下に動かせます。",
   'pack.cover.pick': "写真をタップするとカバーに固定されます。",

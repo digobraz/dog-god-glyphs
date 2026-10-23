@@ -5795,7 +5795,7 @@ export const ind: Partial<Dict> = {
   'pack.create.album.title': "Album",
   // DEVOTION: za čo sa dostáva ☥ · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.title': "Cara mendapat devosi",
-  'pack.dvinfo.intro': "Devosi ☥ tumbuh dari apa yang kamu lakukan untuk anjing dan kawanan — doa, sakramen, dan penghargaan. Tidak bisa dibeli.",
+  'pack.dvinfo.intro': "Devosi tumbuh dari apa yang kamu lakukan untuk anjing dan kawanan — doa, sakramen, dan penghargaan. Tidak bisa dibeli.",
   'pack.dvinfo.prayers': "Doa",
   'pack.dvinfo.presence': "Doa kehadiran",
   'pack.dvinfo.care': "Doa kepedulian",
@@ -5814,7 +5814,7 @@ export const ind: Partial<Dict> = {
   'pack.dvinfo.learning': "Belajar di VAULT",
   'pack.dvinfo.helping': "Membantu Dogyptian lain",
   'pack.dvinfo.soon': "segera",
-  'pack.dvinfo.note': "Nilai bertanda “segera” sedang ditetapkan. Setiap tingkat butuh ☥ lebih banyak dari sebelumnya.",
+  'pack.dvinfo.note': "Nilai bertanda “segera” sedang ditetapkan. Setiap tingkat butuh lebih banyak dari sebelumnya.",
   'pack.me.novicePreview': "Pratinjau: anggota baru · kembali ke akunku",
   'pack.cover.note2': "Seret sampul untuk menggesernya ke atas atau bawah.",
   'pack.cover.pick': "Ketuk foto agar tetap jadi sampul.",

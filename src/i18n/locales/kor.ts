@@ -5794,7 +5794,7 @@ export const kor: Partial<Dict> = {
   'pack.create.album.title': "앨범",
   // DEVOTION: za čo sa dostáva ☥ · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.title': "헌신을 얻는 방법",
-  'pack.dvinfo.intro': "헌신 ☥ 은 강아지와 무리를 위해 한 일로 자랍니다 — 기도, 성사, 표창. 돈으로 살 수 없어요.",
+  'pack.dvinfo.intro': "헌신 은 강아지와 무리를 위해 한 일로 자랍니다 — 기도, 성사, 표창. 돈으로 살 수 없어요.",
   'pack.dvinfo.prayers': "기도",
   'pack.dvinfo.presence': "함께함의 기도",
   'pack.dvinfo.care': "돌봄의 기도",
@@ -5813,7 +5813,7 @@ export const kor: Partial<Dict> = {
   'pack.dvinfo.learning': "VAULT에서 배우기",
   'pack.dvinfo.helping': "다른 Dogyptian 돕기",
   'pack.dvinfo.soon': "곧",
-  'pack.dvinfo.note': "'곧'으로 표시된 값은 정하는 중입니다. 단계가 오를수록 더 많은 ☥ 가 필요해요.",
+  'pack.dvinfo.note': "'곧'으로 표시된 값은 정하는 중입니다. 단계가 오를수록 더 많은 가 필요해요.",
   'pack.me.novicePreview': "미리보기: 새 멤버 · 내 계정으로 돌아가기",
   'pack.cover.note2': "커버를 끌어서 위아래로 옮길 수 있어요.",
   'pack.cover.pick': "사진을 누르면 커버로 고정됩니다.",

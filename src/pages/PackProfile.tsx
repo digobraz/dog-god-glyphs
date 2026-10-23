@@ -192,10 +192,6 @@ const EDIT_CSS = `
 .pe-dog.open .pe-dog-h > i{transform:rotate(180deg);}
 .pe-dog-b{padding:0 0 ${S.md}px;display:flex;flex-direction:column;gap:${S.sm}px;}
 .pe-dog-tags{display:flex;flex-wrap:wrap;gap:6px;}
-.pe-dphoto{display:flex;align-items:center;gap:${S.md}px;width:100%;margin-bottom:${S.md}px;padding:0;border:0;background:none;cursor:pointer;text-align:left;}
-.pe-dphoto .c{flex:none;width:72px;height:72px;border-radius:${PACK_R.pill}px;padding:${S.xs}px;background:${RING};}
-.pe-dphoto .c img{width:100%;height:100%;border-radius:${PACK_R.pill}px;object-fit:cover;display:block;border:2px solid ${T.card};}
-.pe-dphoto .t{display:inline-flex;align-items:center;gap:${S.xs}px;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;color:${LAPIS.edge};}
 .pe-link{align-self:flex-start;display:inline-flex;align-items:center;gap:${S.xs}px;border:0;background:none;padding:${S.xs}px 0;cursor:pointer;
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;color:${LAPIS.edge};}
 .pe-roles{display:flex;flex-direction:column;}
@@ -290,7 +286,13 @@ export default function PackProfile() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { reloadMates(); }, []);
   const resetFlow = useDogyptStore((st) => st.reset);
-  const { dogs } = usePackUser(session?.user?.id ?? null);
+  const { dogs: loadedDogs } = usePackUser(session?.user?.id ?? null);
+  // Práve vymenené fotky psov — kým sa `usePackUser` nenačíta nanovo (hlava aj SVORKA ich ukážu hneď).
+  const [dogPhoto, setDogPhoto] = useState<Record<string, string>>({});
+  const [dogBusy, setDogBusy] = useState<string | null>(null);
+  const dogs = loadedDogs.map((d) => (dogPhoto[d.id] ? { ...d, cloudinary_main_url: dogPhoto[d.id] } : d));
+  const dogFileRef = useRef<HTMLInputElement | null>(null);
+  const dogPick = useRef<PackDogFull | null>(null);
   const { profile } = useProfile();
   const human = profile?.human;
   const patchHuman = (p: Partial<HumanProfile>) => { saveHuman(p); };
@@ -435,6 +437,19 @@ export default function PackProfile() {
       <style>{EDIT_CSS}</style>
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
       <input ref={coverInputRef} type="file" accept="image/*" onChange={handleCoverChange} style={{ display: 'none' }} />
+      <input ref={dogFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+        const f = e.target.files?.[0]; e.target.value = '';
+        const d = dogPick.current;
+        if (!f || !d) return;
+        setDogBusy(d.id);
+        try {
+          const url = await changeDogMainPhoto(d.id, f);
+          setDogPhoto((m) => ({ ...m, [d.id]: url }));
+          toast({ title: tx('pack.me.dogPhotoDone', 'New photo of {dog}').replace('{dog}', d.dog_name ?? '') });
+        } catch (err) {
+          toast({ title: tx('pack.profile.toastUploadFailed', 'Upload failed'), description: err instanceof Error ? err.message : '', variant: 'destructive' });
+        } finally { setDogBusy(null); }
+      }} />
 
       <section className="me-card pe-card">
         {/* NÁHĽAD 1:1 — tá istá hlava ako profil. Titulka sa ťahá, foťák ju mení. */}
@@ -470,6 +485,9 @@ export default function PackProfile() {
             dogs={dogs}
             onPhoto={() => fileInputRef.current?.click()}
             photoLabel={tx('pack.profile.changeAvatarAria', 'Change avatar')}
+            onDogPhoto={(d) => { dogPick.current = d; dogFileRef.current?.click(); }}
+            dogBusy={dogBusy}
+            dogPhotoLabel={tx('pack.me.dogPhoto', 'Change dog photo')}
             badge={
               <span className="pe-cam pe-own-cam" aria-hidden>
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}
@@ -1287,37 +1305,18 @@ function DogEditRow({ dog, attrs, onDogId }: { dog: PackDogFull; attrs: DogProfi
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const angel = dog.life_status === 'deceased';
   const tags = attrs?.tags?.temperament ?? [];
-  // FOTKA PSA (Matej 23. 10.: *„fotku psa som myslel v edit profile"*) — prvá vec v rozbaľovači psa.
-  const { toast } = useToast();
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [photo, setPhoto] = useState<string | null>(dog.cloudinary_main_url ?? null);
-  const [busy, setBusy] = useState(false);
-  const pickPhoto = async (file: File) => {
-    setBusy(true);
-    try {
-      setPhoto(await changeDogMainPhoto(dog.id, file));
-      toast({ title: tx('pack.me.dogPhotoDone', 'New photo of {dog}').replace('{dog}', dog.dog_name ?? '') });
-    } catch (err) {
-      toast({ title: tx('pack.profile.toastUploadFailed', 'Upload failed'), description: err instanceof Error ? err.message : '', variant: 'destructive' });
-    } finally { setBusy(false); }
-  };
   const toggleTag = (g: DogTemperamentTag) => {
     const next = tags.includes(g) ? tags.filter((x) => x !== g) : [...tags, g];
     saveDogAttrs(dog.id, { tags: { temperament: next, trail: attrs?.tags?.trail ?? [] } });
   };
   return (
     <MemberRow
-      photo={photo ? sizedUrl(photo, 140) : null}
+      photo={dog.cloudinary_main_url ? sizedUrl(dog.cloudinary_main_url, 140) : null}
       name={dog.dog_name ?? ''}
       num={dog.pack_number}
       sub={angel ? tx('pack.tree.angel', 'Angel') : undefined}
       angel={angel}
     >
-      <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) pickPhoto(f); }} />
-      <button type="button" className="pe-dphoto" onClick={() => fileRef.current?.click()} disabled={busy}>
-        <span className="c">{photo && <img src={sizedUrl(photo, 200)} alt="" />}</span>
-        <span className="t">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}{tx('pack.me.dogPhoto', 'Change dog photo')}</span>
-      </button>
       <WordLimitTextarea
         value={attrs?.bio ?? ''}
         onSave={(v) => saveDogAttrs(dog.id, { bio: v.trim().slice(0, 200) })}
