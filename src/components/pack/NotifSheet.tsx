@@ -188,8 +188,10 @@ const CSS = `
 /* Šípky = brandový kruh návratu na fotke (backCircleCSS scrim + BackIcon). Dozadu sedí na ĽAVOM
    okraji (Matej 23. 10.: „šípku čo je v strede daj na ľavú časť hranu a daj ju v brande"); dopredu sa
    objaví vpravo na fotke, až keď je kam. */
-.ntf-arr{position:absolute;z-index:3;top:50%;transform:translateY(-50%);${backCircleCSS('scrim')}}
-.ntf-arr:hover{${backHoverCSS('scrim')}}
+/* Menšie a BLEDÉ, nech nekričia (Matej 23. 10.) — papyrusový kruh návratu, 28 px namiesto 38. */
+.ntf-arr{position:absolute;z-index:3;top:50%;transform:translateY(-50%);${backCircleCSS('pale')}width:28px;height:28px;}
+.ntf-arr:hover{${backHoverCSS('pale')}}
+.ntf-arr svg{width:12px;height:12px;}
 /* Šípky na HRANICIACH, nie vo fotke (Matej 23. 10.): dozadu napoly cez ľavý okraj bloku,
    dopredu na konci prechodu, kde fotka končí v bloku — nie vo fotke. */
 .ntf-arr--prev{left:0;transform:translate(-50%,-50%);}
