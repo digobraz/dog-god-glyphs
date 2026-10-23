@@ -92,6 +92,16 @@ document.querySelectorAll<HTMLLinkElement>('link[data-late-fonts]').forEach((l) 
 // Texty appky (pack.*) sú vlastný kus — v appke ich treba hneď, nech sa ťahajú súbežne s kódom.
 if (/^\/(pack|login|admin)(\/|$)/.test(location.pathname)) void ensurePackDict();
 // V appke sa session z natívneho úložiska vráti do localStorage PRED renderom (lib/appSession.ts); na webe hneď.
-Promise.all([preloadActiveLang().catch(() => {}), restoreAppSession()]).finally(() => {
-  createRoot(document.getElementById("root")!).render(<App />);
-});
+// NÁKRES (23. 10. 2026): `?nakres=1` na dev serveri otvorí editor nákresu (src/lib/nakres/) —
+// appka v ňom beží v iframe a Matej v nej ťahá a prepisuje prvky; zapíše sa len záznam, nie kód.
+// Iframe dostane `__nakresSnap`, aby si editor vypýtal snímku obrazovky z jej vlastného okna.
+if (import.meta.env.DEV && window.top !== window) {
+  (window as Window & { __nakresSnap?: (pr: number) => Promise<string> }).__nakresSnap = (pr) => import("./lib/nakres/nakresSnimka").then((m) => m.snimka(pr));
+}
+if (import.meta.env.DEV && window.top === window && new URLSearchParams(location.search).has("nakres")) {
+  void import("./lib/nakres/NakresShell").then((m) => m.mountNakres());
+} else {
+  Promise.all([preloadActiveLang().catch(() => {}), restoreAppSession()]).finally(() => {
+    createRoot(document.getElementById("root")!).render(<App />);
+  });
+}

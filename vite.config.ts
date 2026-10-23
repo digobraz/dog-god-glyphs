@@ -5,6 +5,7 @@ import { componentTagger } from "lovable-tagger";
 import fs from "fs";
 import { i18nSplit } from "./vite-plugin-i18n-split";
 import { gridSnapshot } from "./vite-plugin-grid-snapshot";
+import { nakresPlugin } from "./vite-plugin-nakres";
 
 // https://vitejs.dev/config/
 // 🔴 KAŽDÝ DEV SERVER MÁ VLASTNÚ CACHE PREDBALENÝCH ZÁVISLOSTÍ (8. 10. 2026).
@@ -125,7 +126,7 @@ export default defineConfig(({ mode }) => ({
     name: "strip-dev-only-public",
     apply: "build" as const,
     closeBundle() { fs.rmSync(path.resolve(__dirname, "dist/vault-demo"), { recursive: true, force: true }); },
-  }, react(), mode === "development" && componentTagger(), mode === "development" && saveTripPlugin(), mode === "development" && gpxDownloadPlugin()].filter(Boolean),
+  }, react(), mode === "development" && componentTagger(), mode === "development" && saveTripPlugin(), mode === "development" && gpxDownloadPlugin(), mode === "development" && nakresPlugin()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

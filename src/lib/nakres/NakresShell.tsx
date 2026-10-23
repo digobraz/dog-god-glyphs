@@ -1,0 +1,667 @@
+// EDITOR NÁKRESU — Matej ukazuje zmenu na živej appke namiesto Canvy (23. 10. 2026).
+//
+// Matej: „často ti vysvetlujem moju predstavu o nákrese appky a kreslím to v Canve… je to
+// nepraktické". Otvorí `?nakres=1` na dev serveri, appka beží v rámci mobilu (základ) alebo
+// PC, a v režime UPRAVOVAŤ ťahá, prehadzuje, mení veľkosť, prepisuje text a pripína poznámky.
+//
+// 🔴 DO KÓDU SA NEZAPÍŠE NIČ. Zmeny sú len inline štýly na živom DOM-e a po obnovení zmiznú.
+//    ULOŽIŤ NÁKRES pošle ZÁZNAM do `plany/nakresy/<id>/` (vite-plugin-nakres.ts) — každá zmena
+//    nesie súbor:riadok komponentu (nakresPopis.ts), takže „sprav podľa nákresu" nehádá prvok.
+// ⚠️ Posun sa prichytáva na 4 px (dno stupnice PACK_SPACE). Px na jednej šírke nie je zámer —
+//    pri prepise do kódu sa prekladá na odsadenie, poradie alebo zarovnanie.
+// ⚠️ PORADIE presúva DOM uzly pod Reactom. Na nákres to stačí; keď appka ten blok prekreslí,
+//    môže spadnúť — ⌘R a záznam ostáva v zozname len do uloženia, preto ukladaj priebežne.
+import { createRoot } from 'react-dom/client';
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode, type PointerEvent as RPointerEvent } from 'react';
+import { popis, kratkyText, menoKomponentu, type Popis } from './nakresPopis';
+import { LAPIS } from '@/components/pack/navGoldSkin';
+
+const ZARIADENIA = {
+  mobil: { w: 390, h: 844, meno: 'MOBIL' },
+  // Matejovo okno (CLAUDE.md, PAGE_AIR) — na ňom sa veci lámu ako prvé.
+  pc: { w: 1477, h: 724, meno: 'PC' },
+} as const;
+type Zariadenie = keyof typeof ZARIADENIA;
+type Rezim = 'pozriet' | 'upravit';
+type Druh = 'presun' | 'velkost' | 'text' | 'skryt' | 'poradie' | 'poznamka';
+
+type Zmena = {
+  id: string; druh: Druh; trasa: string; zariadenie: Zariadenie; prvok: Popis | null;
+  dx?: number; dy?: number; w?: number; h?: number;
+  pred?: string; po?: string; poznamka?: string; o?: number; vedla?: string;
+};
+
+type NakresWin = Window & { __nakresSnap?: (pixelRatio: number) => Promise<string> };
+
+const KROK = 4;
+const snap = (v: number) => Math.round(v / KROK) * KROK;
+const novyId = () => Math.random().toString(36).slice(2, 8);
+
+const C = {
+  papyrus: '#F4ECDC', papyrusTmavy: '#E9DCC3', ink: '#2B2116', inkSoft: '#6B5A45',
+  gold: '#C99A3F', stage: '#24201B', border: 'rgba(43,33,22,0.18)',
+};
+const FONT = "'Space Grotesk', system-ui, sans-serif";
+
+const DRUH_MENO: Record<Druh, string> = {
+  presun: 'PRESUN', velkost: 'VEĽKOSŤ', text: 'TEXT', skryt: 'SKRYŤ', poradie: 'PORADIE', poznamka: 'POZNÁMKA',
+};
+
+function popisZmeny(z: Zmena) {
+  if (z.druh === 'presun') {
+    const c: string[] = [];
+    if (z.dy) c.push(`${z.dy > 0 ? 'dole' : 'hore'} ${Math.abs(z.dy)}`);
+    if (z.dx) c.push(`${z.dx > 0 ? 'vpravo' : 'vľavo'} ${Math.abs(z.dx)}`);
+    return c.length ? c.join(', ') + ' px' : 'bez posunu';
+  }
+  if (z.druh === 'velkost') return `${z.prvok?.rect.w}x${z.prvok?.rect.h} na ${z.w}x${z.h}`;
+  if (z.druh === 'text') return `„${z.po}“`;
+  if (z.druh === 'poradie') return `o ${Math.abs(z.o ?? 0)} ${(z.o ?? 0) < 0 ? 'skôr' : 'neskôr'}`;
+  if (z.druh === 'poznamka') return `„${z.poznamka}“`;
+  return 'preč';
+}
+
+const maText = (el: Element) =>
+  Array.prototype.some.call(el.childNodes, (n: Node) => n.nodeType === 3 && (n.textContent ?? '').trim() !== '');
+
+const jeElement = (n: unknown): n is HTMLElement => !!n && (n as Node).nodeType === 1;
+
+function NakresShell() {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [zariadenie, setZariadenie] = useState<Zariadenie>('mobil');
+  const [rezim, setRezim] = useState<Rezim>('upravit');
+  const [trasa, setTrasa] = useState('');
+  const [scale, setScale] = useState(1);
+  const [, setTick] = useState(0);
+  const [poznamka, setPoznamka] = useState('');
+  const [nazov, setNazov] = useState('');
+  const [stav, setStav] = useState('');
+
+  // Zdroj pravdy sú REFY — počúvadlá v iframe žijú mimo Reactu a potrebujú vždy čerstvé hodnoty.
+  const zmenyRef = useRef<Zmena[]>([]);
+  const navrat = useRef(new Map<string, () => void>());
+  const prvky = useRef(new Map<string, Element>());
+  const zaznam = useRef(new WeakMap<Element, Partial<Record<Druh, string>>>());
+  const rezimRef = useRef(rezim);
+  const zariadenieRef = useRef(zariadenie);
+  const trasaRef = useRef(trasa);
+  const hoverRef = useRef<Element | null>(null);
+  const selRef = useRef<Element | null>(null);
+  const editRef = useRef<{ el: HTMLElement; pred: string; html: string; popis: Popis } | null>(null);
+  const dragRef = useRef<{ el: HTMLElement; sx: number; sy: number; bx: number; by: number; aktivny: boolean; id: string } | null>(null);
+  const snimky = useRef<Record<string, { pred?: string; po?: string }>>({});
+  const nakresId = useRef<string | null>(null);
+  const neulozene = useRef(false);
+
+  rezimRef.current = rezim;
+  zariadenieRef.current = zariadenie;
+  trasaRef.current = trasa;
+
+  const prekresli = useCallback(() => setTick((t) => t + 1), []);
+
+  // ── záznam zmien ───────────────────────────────────────────────────────────
+  const najdi = (el: Element, druh: Druh) => {
+    const id = zaznam.current.get(el)?.[druh];
+    return id ? zmenyRef.current.find((z) => z.id === id) : undefined;
+  };
+
+  /** Zmena daného druhu pre prvok — prvý dotyk ju založí (s popisom PRED zásahom), ďalšie ju len menia. */
+  const zaloz = (el: Element | null, druh: Druh, revert: () => void, pred?: Popis, extra?: Partial<Zmena>) => {
+    if (el && druh !== 'poznamka') {
+      const z = najdi(el, druh);
+      if (z) return z.id;
+    }
+    const id = novyId();
+    zmenyRef.current = [...zmenyRef.current, {
+      id, druh, trasa: trasaRef.current, zariadenie: zariadenieRef.current, prvok: el ? (pred ?? popis(el)) : null, ...extra,
+    }];
+    navrat.current.set(id, revert);
+    if (el) {
+      prvky.current.set(id, el);
+      zaznam.current.set(el, { ...zaznam.current.get(el), [druh]: id });
+    }
+    neulozene.current = true;
+    prekresli();
+    return id;
+  };
+
+  const uprav = (id: string, patch: Partial<Zmena>) => {
+    zmenyRef.current = zmenyRef.current.map((z) => (z.id === id ? { ...z, ...patch } : z));
+    neulozene.current = true;
+    prekresli();
+  };
+
+  const vrat = (id: string) => {
+    const z = zmenyRef.current.find((x) => x.id === id);
+    if (!z) return;
+    try { navrat.current.get(id)?.(); } catch { /* uzol už React zahodil — nie je čo vracať */ }
+    const el = prvky.current.get(id);
+    if (el) {
+      const m = { ...zaznam.current.get(el) };
+      delete m[z.druh];
+      zaznam.current.set(el, m);
+    }
+    navrat.current.delete(id);
+    prvky.current.delete(id);
+    zmenyRef.current = zmenyRef.current.filter((x) => x.id !== id);
+    prekresli();
+  };
+
+  // ── úkony nad prvkom ──────────────────────────────────────────────────────
+  const posun = (el: HTMLElement, dx: number, dy: number) => {
+    const z = najdi(el, 'presun');
+    const povodny = el.style.translate;
+    const id = z?.id ?? zaloz(el, 'presun', () => { el.style.translate = povodny; });
+    const nx = (z?.dx ?? 0) + dx, ny = (z?.dy ?? 0) + dy;
+    el.style.translate = `${nx}px ${ny}px`;
+    uprav(id, { dx: nx, dy: ny });
+  };
+
+  const skry = (el: HTMLElement) => {
+    const povodny = el.style.display;
+    zaloz(el, 'skryt', () => { el.style.display = povodny; });
+    el.style.display = 'none';
+    selRef.current = null;
+  };
+
+  const poradie = (el: HTMLElement, smer: -1 | 1) => {
+    const p = el.parentElement;
+    const sused = smer < 0 ? el.previousElementSibling : el.nextElementSibling;
+    if (!p || !sused) { setStav(smer < 0 ? 'Prvok je už prvý.' : 'Prvok je už posledný.'); return; }
+    const z = najdi(el, 'poradie');
+    const index = Array.prototype.indexOf.call(p.children, el);
+    const id = z?.id ?? zaloz(el, 'poradie', () => {
+      const ostatne = Array.prototype.filter.call(p.children, (c: Element) => c !== el) as Element[];
+      p.insertBefore(el, ostatne[index] ?? null);
+    });
+    if (smer < 0) p.insertBefore(el, sused); else p.insertBefore(sused, el);
+    uprav(id, { o: (z?.o ?? 0) + smer, vedla: kratkyText(sused, 40) });
+  };
+
+  const zacniText = (el: HTMLElement) => {
+    if (editRef.current) koniecText(true);
+    editRef.current = { el, pred: el.innerText, html: el.innerHTML, popis: popis(el) };
+    el.contentEditable = 'true';
+    el.focus();
+    el.ownerDocument.getSelection()?.selectAllChildren(el);
+    el.addEventListener('blur', () => koniecText(true), { once: true });
+  };
+
+  const koniecText = (ulozit: boolean) => {
+    const e = editRef.current;
+    if (!e) return;
+    editRef.current = null;
+    e.el.removeAttribute('contenteditable');
+    if (!ulozit) { e.el.innerHTML = e.html; return; }
+    const po = e.el.innerText;
+    if (po === e.pred && !najdi(e.el, 'text')) return;
+    const id = zaloz(e.el, 'text', () => { e.el.innerHTML = e.html; }, e.popis, { pred: e.pred });
+    uprav(id, { po });
+  };
+
+  const pripniPoznamku = () => {
+    const t = poznamka.trim();
+    if (!t) return;
+    zaloz(selRef.current, 'poznamka', () => {}, undefined, { poznamka: t });
+    setPoznamka('');
+  };
+
+  // ── počúvadlá v iframe ────────────────────────────────────────────────────
+  const klaves = useCallback((e: KeyboardEvent) => {
+    const t = e.target as HTMLElement | null;
+    const pise = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+    if (editRef.current) {
+      if (e.key === 'Escape') { e.preventDefault(); koniecText(false); }
+      else if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); editRef.current.el.blur(); }
+      return;
+    }
+    if (pise) return;
+    if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+      const posledna = zmenyRef.current[zmenyRef.current.length - 1];
+      if (posledna) { e.preventDefault(); vrat(posledna.id); }
+      return;
+    }
+    if (e.key === 'e' || e.key === 'E') { setRezim((r) => (r === 'upravit' ? 'pozriet' : 'upravit')); e.preventDefault(); return; }
+    if (rezimRef.current !== 'upravit') return;
+    const sel = selRef.current as HTMLElement | null;
+    if (e.key === 'Escape') { selRef.current = null; prekresli(); e.preventDefault(); return; }
+    if (!sel) return;
+    const k = e.shiftKey ? 16 : KROK;
+    const sipky: Record<string, [number, number]> = { ArrowLeft: [-k, 0], ArrowRight: [k, 0], ArrowUp: [0, -k], ArrowDown: [0, k] };
+    if (sipky[e.key]) { posun(sel, ...sipky[e.key]); e.preventDefault(); e.stopPropagation(); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace') { skry(sel); prekresli(); e.preventDefault(); return; }
+    if (e.key === 'p' || e.key === 'P') {
+      if (sel.parentElement && sel.parentElement.tagName !== 'BODY') { selRef.current = sel.parentElement; prekresli(); }
+      e.preventDefault();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const pripoj = useCallback((win: Window) => {
+    const doc = win.document;
+    const vEdite = (t: EventTarget | null) => !!editRef.current && !!t && editRef.current.el.contains(t as Node);
+    const ciel = (e: Event): HTMLElement | null => {
+      let t = e.target as Node | null;
+      if (t && t.nodeType === 3) t = t.parentNode;
+      return jeElement(t) && t.tagName !== 'HTML' && t.tagName !== 'BODY' ? t : null;
+    };
+    const zastav = (e: Event) => {
+      if (rezimRef.current !== 'upravit' || vEdite(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    const pohyb = (e: PointerEvent) => {
+      if (rezimRef.current !== 'upravit') { if (hoverRef.current) { hoverRef.current = null; prekresli(); } return; }
+      const d = dragRef.current;
+      if (d) {
+        const dx0 = e.clientX - d.sx, dy0 = e.clientY - d.sy;
+        if (!d.aktivny) {
+          if (Math.hypot(dx0, dy0) < 4) return;
+          d.aktivny = true;
+          const povodny = d.el.style.translate;
+          const el = d.el;
+          d.id = d.id || zaloz(el, 'presun', () => { el.style.translate = povodny; });
+        }
+        const dx = snap(d.bx + dx0), dy = snap(d.by + dy0);
+        d.el.style.translate = `${dx}px ${dy}px`;
+        uprav(d.id, { dx, dy });
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      if (vEdite(e.target)) return;
+      const t = ciel(e);
+      if (t !== hoverRef.current) { hoverRef.current = t; prekresli(); }
+    };
+    const dole = (e: PointerEvent) => {
+      if (rezimRef.current !== 'upravit' || vEdite(e.target)) return;
+      zastav(e);
+      if (editRef.current) koniecText(true);
+      const t = ciel(e);
+      if (!t) return;
+      const sel = selRef.current as HTMLElement | null;
+      const el = sel && sel.contains(t) ? sel : t;
+      selRef.current = el;
+      const z = najdi(el, 'presun');
+      dragRef.current = { el, sx: e.clientX, sy: e.clientY, bx: z?.dx ?? 0, by: z?.dy ?? 0, aktivny: false, id: z?.id ?? '' };
+      prekresli();
+    };
+    const hore = (e: PointerEvent) => {
+      if (dragRef.current) { dragRef.current = null; zastav(e); }
+    };
+    const dvojklik = (e: MouseEvent) => {
+      if (rezimRef.current !== 'upravit' || vEdite(e.target)) return;
+      zastav(e);
+      let t = ciel(e);
+      // Dvojklik na obal textu (napr. tlačidlo s ikonkou) — hľadá sa prvé dieťa, ktoré text nesie.
+      while (t && !maText(t)) {
+        const dieta = Array.prototype.find.call(t.children, (c: Element) => (c.textContent ?? '').trim() !== '') as HTMLElement | undefined;
+        t = dieta ?? null;
+      }
+      if (!t) { setStav('Tu nie je text na prepísanie.'); return; }
+      selRef.current = t;
+      zacniText(t);
+      prekresli();
+    };
+    doc.addEventListener('pointermove', pohyb, true);
+    doc.addEventListener('pointerdown', dole, true);
+    doc.addEventListener('pointerup', hore, true);
+    doc.addEventListener('dblclick', dvojklik, true);
+    for (const ev of ['click', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'contextmenu', 'submit', 'dragstart']) {
+      doc.addEventListener(ev, zastav, true);
+    }
+    doc.addEventListener('keydown', klaves, true);
+    win.addEventListener('scroll', prekresli, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [klaves, prekresli]);
+
+  const snimaj = useCallback(async (kluc: 'pred' | 'po') => {
+    const win = iframeRef.current?.contentWindow as NakresWin | null;
+    if (!win?.__nakresSnap) return;
+    const t = trasaRef.current;
+    if (kluc === 'pred' && snimky.current[t]?.pred) return;
+    try {
+      const png = await win.__nakresSnap(zariadenieRef.current === 'mobil' ? 2 : 1);
+      snimky.current[t] = { ...snimky.current[t], [kluc]: png };
+    } catch { /* snímka je pomôcka, záznam ide aj bez nej */ }
+  }, []);
+
+  // Iframe: po každom načítaní pripoj počúvadlá; SPA navigáciu sleduj podľa adresy.
+  useEffect(() => {
+    const f = iframeRef.current;
+    if (!f) return;
+    const nacitane = () => { if (f.contentWindow) pripoj(f.contentWindow); };
+    f.addEventListener('load', nacitane);
+    const t = window.setInterval(() => {
+      const p = f.contentWindow?.location.pathname;
+      if (p && p !== trasaRef.current) {
+        trasaRef.current = p;
+        setTrasa(p);
+        selRef.current = null;
+        hoverRef.current = null;
+        // Snímka PRED až keď sa nová obrazovka vykreslí — prvá zmena by ju inak predbehla.
+        window.setTimeout(() => { if (rezimRef.current === 'upravit' && !zmenyRef.current.some((z) => z.trasa === p)) void snimaj('pred'); }, 1500);
+      }
+    }, 400);
+    return () => { f.removeEventListener('load', nacitane); window.clearInterval(t); };
+  }, [pripoj, snimaj]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', klaves);
+    const odist = (e: BeforeUnloadEvent) => { if (neulozene.current && zmenyRef.current.length) e.preventDefault(); };
+    window.addEventListener('beforeunload', odist);
+    return () => { window.removeEventListener('keydown', klaves); window.removeEventListener('beforeunload', odist); };
+  }, [klaves]);
+
+  useEffect(() => {
+    if (rezim === 'upravit') void snimaj('pred');
+    else { hoverRef.current = null; prekresli(); }
+  }, [rezim, snimaj, prekresli]);
+
+  // Rámy výberu sledujú prvok aj počas animácií a rolovania v appke.
+  useEffect(() => {
+    if (rezim !== 'upravit') return;
+    let r = 0;
+    const slucka = () => { prekresli(); r = requestAnimationFrame(slucka); };
+    r = requestAnimationFrame(slucka);
+    return () => cancelAnimationFrame(r);
+  }, [rezim, prekresli]);
+
+  // Mierka rámu podľa voľného miesta.
+  useEffect(() => {
+    const s = stageRef.current;
+    if (!s) return;
+    const d = ZARIADENIA[zariadenie];
+    const prepocitaj = () => {
+      const PAD = 48;
+      setScale(Math.min(1, (s.clientWidth - PAD) / d.w, (s.clientHeight - PAD) / d.h));
+    };
+    prepocitaj();
+    const ro = new ResizeObserver(prepocitaj);
+    ro.observe(s);
+    return () => ro.disconnect();
+  }, [zariadenie]);
+
+  // ── zmena veľkosti (úchyty v hornom dokumente) ─────────────────────────────
+  const zacniVelkost = (e: RPointerEvent, os: 'w' | 'h' | 'wh') => {
+    const el = selRef.current as HTMLElement | null;
+    if (!el) return;
+    e.preventDefault();
+    e.stopPropagation();
+    // Bez capture by pohyb nad rámom odišiel do dokumentu iframu a úchyt by nič nedostal.
+    const uchyt = e.currentTarget as HTMLElement;
+    uchyt.setPointerCapture(e.pointerId);
+    const r = el.getBoundingClientRect();
+    const st = { w: el.style.width, h: el.style.height, d: el.style.display, b: el.style.boxSizing, mw: el.style.maxWidth };
+    const sx = e.clientX, sy = e.clientY;
+    let id = '';
+    const pohyb = (ev: PointerEvent) => {
+      if (!id) {
+        id = zaloz(el, 'velkost', () => {
+          el.style.width = st.w; el.style.height = st.h; el.style.display = st.d; el.style.boxSizing = st.b; el.style.maxWidth = st.mw;
+        });
+        if (getComputedStyle(el).display === 'inline') el.style.display = 'inline-block';
+        el.style.boxSizing = 'border-box';
+        el.style.maxWidth = 'none';
+      }
+      const w = snap(r.width + (os !== 'h' ? (ev.clientX - sx) / scale : 0));
+      const h = snap(r.height + (os !== 'w' ? (ev.clientY - sy) / scale : 0));
+      if (os !== 'h') el.style.width = `${w}px`;
+      if (os !== 'w') el.style.height = `${h}px`;
+      const nr = el.getBoundingClientRect();
+      uprav(id, { w: Math.round(nr.width), h: Math.round(nr.height) });
+    };
+    const koniec = () => { uchyt.removeEventListener('pointermove', pohyb); uchyt.removeEventListener('pointerup', koniec); };
+    uchyt.addEventListener('pointermove', pohyb);
+    uchyt.addEventListener('pointerup', koniec);
+  };
+
+  // ── uloženie ──────────────────────────────────────────────────────────────
+  const ulozit = async () => {
+    if (!zmenyRef.current.length) { setStav('Zatiaľ žiadna zmena.'); return; }
+    setStav('Ukladám…');
+    const sel = selRef.current;
+    selRef.current = null;
+    prekresli();
+    await snimaj('po');
+    selRef.current = sel;
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    if (!nakresId.current) {
+      const t = (zmenyRef.current[0]?.trasa || trasaRef.current).replace(/^\/+|\/+$/g, '').replace(/[^a-zA-Z0-9]+/g, '-') || 'domov';
+      nakresId.current = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}-${t}`;
+    }
+    try {
+      const r = await fetch('/__nakres', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: nakresId.current,
+          nazov: nazov.trim() || undefined,
+          vytvorene: d.toLocaleString('sk-SK'),
+          zmeny: zmenyRef.current,
+          snimky: snimky.current,
+        }),
+      });
+      const j = await r.json() as { ok: boolean; kam?: string; error?: string };
+      if (!j.ok) throw new Error(j.error);
+      neulozene.current = false;
+      setStav(`Uložené: ${j.kam}. Povedz Claudovi „sprav podľa nákresu“.`);
+    } catch (e) {
+      setStav(`Neuložilo sa: ${String(e)}`);
+    }
+  };
+
+  const odznova = () => {
+    if (zmenyRef.current.length && neulozene.current && !window.confirm('Zahodiť neuložené zmeny?')) return;
+    zmenyRef.current = [];
+    navrat.current.clear();
+    prvky.current.clear();
+    zaznam.current = new WeakMap();
+    snimky.current = {};
+    nakresId.current = null;
+    selRef.current = null;
+    neulozene.current = false;
+    setStav('');
+    iframeRef.current?.contentWindow?.location.reload();
+  };
+
+  // ── vykreslenie ───────────────────────────────────────────────────────────
+  const d = ZARIADENIA[zariadenie];
+  const rect = (el: Element | null) => (el && el.isConnected ? el.getBoundingClientRect() : null);
+  const hr = rezim === 'upravit' && hoverRef.current !== selRef.current ? rect(hoverRef.current) : null;
+  const sr = rezim === 'upravit' ? rect(selRef.current) : null;
+  const inv = 1 / scale;
+  const sel = selRef.current;
+  const selPopis = sel && sel.isConnected ? popis(sel) : null;
+  const zmeny = zmenyRef.current;
+
+  const src = (() => {
+    const u = new URL(window.location.href);
+    u.searchParams.delete('nakres');
+    return u.pathname + u.search + u.hash;
+  })();
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 2147483000, display: 'flex', background: C.stage, fontFamily: FONT, color: C.ink }}>
+      <div ref={stageRef} style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <div style={{ width: d.w * scale, height: d.h * scale, position: 'relative', flex: 'none' }}>
+          <div style={{ width: d.w, height: d.h, transform: `scale(${scale})`, transformOrigin: '0 0', position: 'absolute', inset: 0, borderRadius: zariadenie === 'mobil' ? 16 : 8, overflow: 'hidden', boxShadow: '0 12px 48px rgba(0,0,0,0.5)', background: '#000' }}>
+            <iframe ref={iframeRef} src={src} title="Appka" style={{ width: d.w, height: d.h, border: 0, display: 'block' }} />
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+              {/* Kde prvok BOL pred posunom — prerušovaný obrys. */}
+              {rezim === 'upravit' && zmeny.filter((z) => z.druh === 'presun' && z.trasa === trasa).map((z) => {
+                const r = rect(prvky.current.get(z.id) ?? null);
+                if (!r) return null;
+                return <div key={z.id} style={{ position: 'absolute', left: r.left - (z.dx ?? 0), top: r.top - (z.dy ?? 0), width: r.width, height: r.height, outline: `${inv}px dashed ${C.gold}`, opacity: 0.7 }} />;
+              })}
+              {hr && <div style={{ position: 'absolute', left: hr.left, top: hr.top, width: hr.width, height: hr.height, outline: `${inv}px solid ${LAPIS.edge}`, background: 'rgba(22,48,122,0.08)' }} />}
+              {sr && (
+                <div style={{ position: 'absolute', left: sr.left, top: sr.top, width: sr.width, height: sr.height, outline: `${2 * inv}px solid ${C.gold}` }}>
+                  <div style={{ position: 'absolute', left: -1 * inv, bottom: '100%', transform: `scale(${inv})`, transformOrigin: '0 100%', whiteSpace: 'nowrap', background: C.gold, color: C.ink, fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 4 }}>
+                    {menoKomponentu(sel!)} · {Math.round(sr.width)}x{Math.round(sr.height)}
+                  </div>
+                  {(['w', 'h', 'wh'] as const).map((os) => (
+                    <div
+                      key={os}
+                      onPointerDown={(e) => zacniVelkost(e, os)}
+                      style={{
+                        position: 'absolute', pointerEvents: 'auto', width: 12 * inv, height: 12 * inv, background: C.papyrus, border: `${2 * inv}px solid ${C.gold}`, borderRadius: 2 * inv,
+                        right: os === 'h' ? '50%' : -6 * inv, bottom: os === 'w' ? '50%' : -6 * inv,
+                        cursor: os === 'w' ? 'ew-resize' : os === 'h' ? 'ns-resize' : 'nwse-resize',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+              {/* Pripnuté poznámky — číslo = poradie v zozname. */}
+              {zmeny.map((z, i) => {
+                if (z.druh !== 'poznamka' || z.trasa !== trasa) return null;
+                const r = rect(prvky.current.get(z.id) ?? null);
+                if (!r) return null;
+                return (
+                  <div key={z.id} title={z.poznamka} style={{ position: 'absolute', left: r.right - 10 * inv, top: r.top - 10 * inv, width: 22 * inv, height: 22 * inv, borderRadius: 999, background: LAPIS.edge, color: LAPIS.ink, fontSize: 12 * inv, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.35)' }}>
+                    {i + 1}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside style={{ width: 320, flex: 'none', background: C.papyrus, borderLeft: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ padding: 16, borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 20, letterSpacing: '.14em' }}>NÁKRES</div>
+          <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 4 }}>{trasa || '…'} · do kódu sa nezapíše nič</div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <Prepinac moznosti={[['mobil', 'MOBIL'], ['pc', 'PC']]} hodnota={zariadenie} zmen={(v) => setZariadenie(v as Zariadenie)} />
+            <Prepinac moznosti={[['pozriet', 'POZERAŤ'], ['upravit', 'UPRAVOVAŤ']]} hodnota={rezim} zmen={(v) => setRezim(v as Rezim)} />
+          </div>
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {rezim === 'pozriet' ? (
+            <Napoveda riadky={['Appka funguje normálne — preklikaj sa na obrazovku, ktorú chceš zmeniť.', 'Potom UPRAVOVAŤ (alebo kláves E).']} />
+          ) : !selPopis ? (
+            <Napoveda riadky={['Klik = vyber prvok', 'Ťahaj = posuň (po 4 px)', 'Šípky = jemne, so Shiftom po 16', 'Dvojklik = prepíš text', 'P = vyber rodiča · Del = skry', 'Rohy výberu = veľkosť', 'Cmd+Z = vráť poslednú zmenu']} />
+          ) : (
+            <section style={{ background: C.papyrusTmavy, borderRadius: 12, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>{menoKomponentu(sel!)} <span style={{ color: C.inkSoft, fontWeight: 400 }}>&lt;{selPopis.tag}&gt; {selPopis.rect.w}x{selPopis.rect.h}</span></div>
+              {selPopis.text && <div style={{ fontSize: 12, color: C.inkSoft }}>„{selPopis.text}“</div>}
+              <div style={{ fontSize: 10, color: C.inkSoft, wordBreak: 'break-all' }}>{selPopis.zdroj ?? 'zdroj neznámy'}</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                <Tlacidlo onClick={() => { if (sel?.parentElement && sel.parentElement.tagName !== 'BODY') { selRef.current = sel.parentElement; prekresli(); } }}>RODIČ</Tlacidlo>
+                <Tlacidlo onClick={() => poradie(sel as HTMLElement, -1)}>SKÔR</Tlacidlo>
+                <Tlacidlo onClick={() => poradie(sel as HTMLElement, 1)}>NESKÔR</Tlacidlo>
+                <Tlacidlo onClick={() => zacniText(sel as HTMLElement)}>TEXT</Tlacidlo>
+                <Tlacidlo onClick={() => { skry(sel as HTMLElement); prekresli(); }}>SKRYŤ</Tlacidlo>
+                <Tlacidlo onClick={() => { selRef.current = null; prekresli(); }}>ZRUŠIŤ VÝBER</Tlacidlo>
+              </div>
+            </section>
+          )}
+
+          <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <Stitok>{sel ? 'POZNÁMKA K PRVKU' : 'POZNÁMKA K OBRAZOVKE'}</Stitok>
+            <textarea
+              value={poznamka}
+              onChange={(e) => setPoznamka(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) pripniPoznamku(); }}
+              placeholder="napr. toto zlaté a menšie"
+              rows={2}
+              style={{ fontFamily: FONT, fontSize: 14, padding: 8, borderRadius: 8, border: `1px solid ${C.border}`, background: '#FFFBF3', color: C.ink, resize: 'vertical' }}
+            />
+            <Tlacidlo onClick={pripniPoznamku}>PRIPNÚŤ POZNÁMKU</Tlacidlo>
+          </section>
+
+          <section style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Stitok>ZMENY ({zmeny.length})</Stitok>
+            {!zmeny.length && <div style={{ fontSize: 12, color: C.inkSoft }}>Zatiaľ nič.</div>}
+            {zmeny.map((z, i) => (
+              <div
+                key={z.id}
+                onMouseEnter={() => { const el = prvky.current.get(z.id); if (el?.isConnected) { hoverRef.current = el; prekresli(); } }}
+                style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12, padding: '8px 0', borderBottom: `1px solid ${C.border}` }}
+              >
+                <span style={{ fontWeight: 700, minWidth: 16 }}>{i + 1}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <b>{DRUH_MENO[z.druh]}</b> {popisZmeny(z)}
+                  <span style={{ display: 'block', color: C.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {z.trasa} · {z.prvok ? (z.prvok.text || `<${z.prvok.tag}>`) : 'celá obrazovka'}
+                  </span>
+                </span>
+                <button onClick={() => vrat(z.id)} style={{ ...MALE_TL, padding: '2px 8px' }}>VRÁTIŤ</button>
+              </div>
+            ))}
+          </section>
+        </div>
+
+        <div style={{ padding: 16, borderTop: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <input
+            value={nazov}
+            onChange={(e) => setNazov(e.target.value)}
+            placeholder="Názov nákresu (nepovinné)"
+            style={{ fontFamily: FONT, fontSize: 14, padding: 8, borderRadius: 8, border: `1px solid ${C.border}`, background: '#FFFBF3', color: C.ink }}
+          />
+          <button
+            onClick={ulozit}
+            style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 14, letterSpacing: '.14em', padding: '12px 16px', borderRadius: 8, border: `1px solid ${LAPIS.edge}`, background: LAPIS.grad, color: LAPIS.ink, cursor: 'pointer' }}
+          >
+            ULOŽIŤ NÁKRES
+          </button>
+          <button onClick={odznova} style={{ ...MALE_TL, alignSelf: 'center' }}>ZAČAŤ ODZNOVA</button>
+          {stav && <div style={{ fontSize: 12, color: C.inkSoft, wordBreak: 'break-word' }}>{stav}</div>}
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+const MALE_TL: CSSProperties = {
+  fontFamily: FONT, fontSize: 10, fontWeight: 600, letterSpacing: '.08em', padding: '4px 8px', borderRadius: 999,
+  border: `1px solid ${C.border}`, background: 'transparent', color: C.ink, cursor: 'pointer',
+};
+
+function Tlacidlo({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+  return <button onClick={onClick} style={MALE_TL}>{children}</button>;
+}
+
+function Stitok({ children }: { children: ReactNode }) {
+  return <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '.22em', color: C.inkSoft }}>{children}</div>;
+}
+
+function Napoveda({ riadky }: { riadky: string[] }) {
+  return (
+    <div style={{ fontSize: 12, lineHeight: 1.6, color: C.inkSoft }}>
+      {riadky.map((r) => <div key={r}>{r}</div>)}
+    </div>
+  );
+}
+
+function Prepinac({ moznosti, hodnota, zmen }: { moznosti: [string, string][]; hodnota: string; zmen: (v: string) => void }) {
+  return (
+    <div style={{ display: 'flex', border: `1px solid ${C.border}`, borderRadius: 999, overflow: 'hidden' }}>
+      {moznosti.map(([v, m]) => (
+        <button
+          key={v}
+          onClick={() => zmen(v)}
+          style={{
+            fontFamily: FONT, fontSize: 10, fontWeight: 600, letterSpacing: '.08em', padding: '4px 12px', border: 0, cursor: 'pointer',
+            background: hodnota === v ? LAPIS.fill : 'transparent', color: hodnota === v ? LAPIS.edge : C.ink,
+          }}
+        >
+          {m}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function mountNakres() {
+  document.title = 'NÁKRES · DOGYPT';
+  document.body.style.overflow = 'hidden';
+  const host = document.createElement('div');
+  document.body.appendChild(host);
+  createRoot(host).render(<NakresShell />);
+}
