@@ -300,7 +300,7 @@ export default function PackMe() {
           cover={coverSrc}
           coverY={human?.coverY}
           name={shownName}
-          devLabel={`${tx(`pack.ladder.${dev.key}`, dev.name)} ${dev.index}`}
+          devLabel={tx(`pack.ladder.${dev.key}`, dev.name)}
           devLevel={dev.index}
           pilgrimLabel={String(pilgrim.level.level)}
           pilgrimLevel={pilgrim.level.level}

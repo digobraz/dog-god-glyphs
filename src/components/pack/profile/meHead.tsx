@@ -81,7 +81,7 @@ export const ME_CSS = `
 .me-rk-hd .tx{ flex:1; min-width:0; }
 .me-rk-hd .tx p.me-rk-q{ margin:${S.xs}px 0 0; font-size:${TX.label}px; }
 .me-rk-hd .ic{ flex:none; display:grid; place-items:center; width:32px; height:32px; border-radius:${PACK_R.pill}px; background:var(--dv-dot); box-shadow:0 0 14px var(--dv-glow); }
-.me-rk-hd .ic i{ display:block; width:19px; height:19px; background:var(--dv-icon-ink); -webkit-mask:var(--dv-icon) center/contain no-repeat; mask:var(--dv-icon) center/contain no-repeat; }
+.me-rk-hd .ic b{ font-family:${FONT_TITLE}; font-weight:700; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.lead}px; }
 .me-rk-hd .ic.pt{ background:var(--rk-fill); box-shadow:none; }
 .me-rk-hd .ab{ flex:none; display:inline-flex; align-items:center; gap:${S.xs}px; border:0; background:none; padding:${S.xs}px 0; color:var(--rk-ink);
   font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.label}px; letter-spacing:.02em; white-space:nowrap; }
@@ -94,7 +94,7 @@ export const ME_CSS = `
 .me-rk-nx{ flex:none; display:inline-flex; align-items:center; gap:${S.xs}px; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px;
   letter-spacing:.14em; text-transform:uppercase; color:var(--rk-ink); white-space:nowrap; }
 .me-rk-nx .g{ display:grid; place-items:center; width:18px; height:18px; border-radius:${PACK_R.pill}px; background:var(--dv-dot); box-shadow:0 0 8px var(--dv-glow); }
-.me-rk-nx .g i{ display:block; width:11px; height:11px; background:var(--dv-icon-ink); -webkit-mask:var(--dv-icon) center/contain no-repeat; mask:var(--dv-icon) center/contain no-repeat; }
+.me-rk-nx .g b{ font-family:${FONT_TITLE}; font-weight:700; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.micro}px; }
 .me-rk-nx b{ font-family:${FONT_TITLE}; font-size:${TX.label}px; }
 .me-rk-bar{ position:relative; flex:1; min-width:0; height:24px; border-radius:${PACK_R.pill}px; background:var(--rk-track); overflow:hidden; }
 .me-rk-bar > b{ position:absolute; left:0; top:0; bottom:0; border-radius:${PACK_R.pill}px; overflow:hidden; transition:width .8s cubic-bezier(.2,.8,.2,1);
@@ -125,14 +125,12 @@ export const ME_CSS = `
 /* NOC + ŽIARA (Matej 23. 10.): farbu stupňa nesie žiariaca gulička s kresbou (devotionTiers.ts). */
 .me-dvg{ flex:none; display:grid; place-items:center; width:18px; height:18px; border-radius:${PACK_R.pill}px;
   background:var(--dv-dot); box-shadow:0 0 8px var(--dv-glow); }
-.me-dvg i{ display:block; width:11px; height:11px; background:var(--dv-icon-ink);
-  -webkit-mask:var(--dv-icon) center/contain no-repeat; mask:var(--dv-icon) center/contain no-repeat; }
+.me-dvg b{ font-family:${FONT_TITLE}; font-weight:700; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.micro}px; letter-spacing:0; }
 .me-lv > .me-pt{ flex:none; }
 .me-rk p.me-rk-q{ font-style:italic; color:var(--rk-dim); }
 .me-rk-sc span{ display:inline-flex; align-items:center; gap:${S.xs}px; }
-.me-rk-sc span i{ display:grid; place-items:center; width:14px; height:14px; border-radius:${PACK_R.pill}px; background:var(--dv-dot); }
-.me-rk-sc span i b{ display:block; width:9px; height:9px; background:var(--dv-icon-ink);
-  -webkit-mask:var(--dv-icon) center/contain no-repeat; mask:var(--dv-icon) center/contain no-repeat; }
+.me-rk-sc span i{ display:grid; place-items:center; width:18px; height:18px; font-style:normal; border-radius:${PACK_R.pill}px; background:var(--dv-dot); }
+.me-rk-sc span i b{ font-family:${FONT_TITLE}; font-weight:700; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.micro}px; }
 .me-pt{ background:var(--tier-bg); border:1px solid var(--tier-b); color:var(--tier-ink); cursor:pointer; }
 
 .me-under{ position:relative; padding:0 ${S.lg}px ${S.lg}px; }
@@ -388,7 +386,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
         <h1 className="me-nm">{name}</h1>
         <div className={`me-lv${stack ? ' stack' : ''}`}>
           <button type="button" className={`me-dv${rank === 'dev' ? ' on' : ''}`} onClick={onDev} aria-expanded={rank === 'dev'} style={devotionVars(devLevel)}>
-            <span className="me-dvg"><i /></span>
+            <span className="me-dvg"><b>{devLevel}</b></span>
             {devLabel}
           </button>
           <button type="button" className={`me-pt${rank === 'pt' ? ' on' : ''}`} onClick={onPilgrim} aria-expanded={rank === 'pt'} style={tierStyle(pilgrimTier)}>
@@ -571,9 +569,9 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
     return (
       <div className="me-rk" style={vars}>
         <div className="me-rk-hd">
-          <span className="ic"><i /></span>
+          <span className="ic"><b>{dev.index}</b></span>
           <div className="tx">
-            <h3>{tx(`pack.ladder.${dev.key}`, dev.name)} {dev.index}</h3>
+            <h3>{tx(`pack.ladder.${dev.key}`, dev.name)}</h3>
             <p className="me-rk-q">{tx(`pack.ladder.desc.${dev.key}`, devotionTier(dev.index).desc)}</p>
           </div>
           <button type="button" className="ab" onClick={onAbout} disabled={!onAbout} aria-label={tx('pack.dvinfo.title', 'How you earn devotion')}>
@@ -584,13 +582,13 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
         {dev.next ? (
           <RankBar pct={dev.pct} center={`${fmtN(devotion - cur.at)} / ${fmtN(span)}`}
             label={tx('pack.rank.devToNext', '{n} to the {name} step').replace('{n}', fmtN(dev.toNext)).replace('{name}', tx(`pack.ladder.${dev.next.key}`, dev.next.name))}
-            next={<><span className="g" style={devotionVars(dev.index + 1)}><i /></span>{tx(`pack.ladder.${dev.next.key}`, dev.next.name)} {dev.index + 1}</>} />
+            next={<><span className="g" style={devotionVars(dev.index + 1)}><b>{dev.index + 1}</b></span>{tx(`pack.ladder.${dev.next.key}`, dev.next.name)}</>} />
         ) : (
           <RankBar pct={100} center={tx('pack.rank.devTop', 'You stand at the top of the ladder.')} label={tx('pack.rank.devTop', 'You stand at the top of the ladder.')} />
         )}
         <div className="me-rk-sc" ref={scRef}>
           {DEVOTION_LEVELS.map((l, i) => (
-            <span key={l.key} className={i + 1 === dev.index ? 'cur' : i + 1 < dev.index ? 'done' : ''} style={devotionVars(i + 1)}><i><b /></i>{i + 1} · {tx(`pack.ladder.${l.key}`, l.name)}</span>
+            <span key={l.key} className={i + 1 === dev.index ? 'cur' : i + 1 < dev.index ? 'done' : ''} style={devotionVars(i + 1)}><i><b>{i + 1}</b></i>{tx(`pack.ladder.${l.key}`, l.name)}</span>
           ))}
         </div>
       </div>
