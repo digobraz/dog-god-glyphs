@@ -41,6 +41,7 @@ import { dogShareLink } from '@/lib/useShareCard';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { ME_CSS, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
 import { StoryViewer } from '@/components/pack/profile/StoryViewer';
+import { DevotionToday } from '@/components/pack/profile/DevotionToday';
 import { DevotionSheet } from '@/components/pack/profile/DevotionSheet';
 import { levelProgress } from '@/lib/tripPoints';
 import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbum, isLive, isTripStory, type MePost } from '@/components/pack/profile/mePosts';
@@ -158,6 +159,8 @@ export default function PackMe() {
   const devotion = novice ? 0 : realDevotion;
   const bones = novice ? 0 : realBones;
   const [aboutDev, setAboutDev] = useState(false);
+  // `?dnes=1` = ťuk na večernú pripomienku → panel dennej aktivity (DEVOTION, 23. 10. 2026).
+  const [todayOpen, setTodayOpen] = useState(() => new URLSearchParams(location.search).get('dnes') === '1');
   const uid = session?.user?.id ?? null;
   const { dogs } = usePackUser(uid);
   const { profile } = useProfile();
@@ -488,6 +491,7 @@ export default function PackMe() {
         </div>
       </section>
       {aboutDev && <DevotionSheet devotion={devotion} onClose={() => setAboutDev(false)} />}
+      {todayOpen && <DevotionToday onClose={() => setTodayOpen(false)} />}
       {viewing && (
         <StoryViewer items={viewing.items} start={viewing.start} name={shownName} avatar={avatarUrl} dogs={dogs}
           mine={!!viewing.del} lang={lang} onClose={() => setViewing(null)} />

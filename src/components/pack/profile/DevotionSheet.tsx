@@ -1,15 +1,17 @@
 // ZA ČO SA DOSTÁVA ☥ — ťuk na „Oddanosť · N ☥" v bloku DEVOTION (Matej 23. 10. 2026: *„kliknutím na
 // oddanosť vpravo hore v bloku sa otvorí popup s vysvetlením za čo sa oddanosť dostáva"*).
 //
-// 🔴 ČÍSLA LEN TIE, KTORÉ SÚ V KÓDE (`grant-devotion`, zadanie `plany/zadanie-devotion-odmrazenie-2026-10-23.md`).
-//    Kde hodnota ešte nie je schválená (sviatosti, ocenenia, modlitba starostlivosti), stojí „čoskoro" —
+// 🔴 ČÍSLA LEN TIE, KTORÉ SÚ V KÓDE — čítajú sa z `DEVOTION_DAILY/ONCE/FEED` (lib/devotion.ts), zrkadla
+//    `grant-devotion`; schválené Matejom 23. 10. (zadanie `plany/zadanie-devotion-odmrazenie-2026-10-23.md`).
+//    Kde hodnota ešte nie je schválená (privítanie šteňaťa, memorial, modlitba starostlivosti), stojí „čoskoro" —
 //    nie vymyslené číslo. Zdroje ☥ = DOGMA 4.3.1: modlitby · sviatosti · ocenenia.
-import { useEffect, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS, GOLD_BTN } from '@/components/pack/packTheme';
 import { NIGHT, NIGHT_EDGE, NIGHT_INK, DEVOTION_TIERS, devotionVars } from '@/lib/devotionTiers';
-import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
+import { DEVOTION_LEVELS, DEVOTION_DAILY, DEVOTION_ONCE, DEVOTION_FEED, devotionLevel } from '@/lib/devotion';
+import { DevotionToday } from '@/components/pack/profile/DevotionToday';
 import { DevotionMark } from '@/components/pack/profile/meHead';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { useT } from '@/i18n/LanguageContext';
@@ -54,6 +56,9 @@ const CSS = `
 .dvs-v{flex:none;display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;white-space:nowrap;
   font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;color:#140D07;background:linear-gradient(180deg,#F1D58C,${NIGHT_EDGE});filter:drop-shadow(0 0 6px rgba(201,154,63,.35));}
 .dvs-v.soon{font-family:${FONT_UI};font-weight:500;color:${T.onDarkDim};background:none;filter:none;border:1px dashed ${T.onDarkBorder};}
+.dvs-cta{display:block;width:100%;margin:0 0 ${S.lg}px;padding:${S.md}px;border:1px solid ${GOLD_BTN.edge};border-radius:${PACK_R.field}px;cursor:pointer;
+  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;letter-spacing:.14em;text-transform:uppercase;
+  background:${GOLD_BTN.grad};color:#140D07;box-shadow:${GOLD_BTN.glow};}
 .dvs-note{margin:${S.sm}px 0 0;font-size:${TX.micro}px;line-height:1.5;color:${T.onDarkDim};text-align:center;}
 @media (min-width:768px){
   .dvs-root.pk-veil{align-items:center;padding:${S.xl}px;}
@@ -70,6 +75,7 @@ const CSS = `
 export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClose: () => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  const [todayOpen, setTodayOpen] = useState(false);
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -80,27 +86,30 @@ export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClos
 
   const soon = <b className="dvs-v soon">{tx('pack.dvinfo.soon', 'soon')}</b>;
   const pts = (v: string) => <b className="dvs-v">{v}<DevotionMark size={12} tint="dark" /></b>;
+  const plus = (n: number) => pts(`+${n}`);
   const groups: Array<[string, string, Array<[string, JSX.Element | null]>]> = [
+    ['walk', tx('pack.dvinfo.daily', 'Every day with your dog'), [
+      [tx('pack.dvinfo.walkShort2', 'Short walk under 20 min (up to 5× a day)'), plus(DEVOTION_DAILY.walk_short.points)],
+      [tx('pack.dvinfo.walk2', 'Walk 20 min – 2 hours'), plus(DEVOTION_DAILY.walk.points)],
+      [tx('pack.dvinfo.trip2', 'Day trip over 2 hours'), plus(DEVOTION_DAILY.trip_day.points)],
+    ]],
     ['sun', tx('pack.dvinfo.prayers', 'Prayers'), [
-      [tx('pack.dvinfo.presence', 'Prayer of presence'), pts('+3')],
+      [tx('pack.dvinfo.presence2', 'Prayer of presence — 10 min only with your dog'), plus(DEVOTION_DAILY.presence.points)],
       [tx('pack.dvinfo.care', 'Prayer of care'), null],
     ]],
-    ['walk', tx('pack.dvinfo.walks', 'Walks and trips'), [
-      [tx('pack.dvinfo.walkShort', 'A walk under an hour'), pts('+0,5')],
-      [tx('pack.dvinfo.walkLong', 'Every hour on the way'), pts('+1')],
-      [tx('pack.dvinfo.walkCap', 'Most from one walk'), pts('5')],
-    ]],
-    ['paw', tx('pack.dvinfo.firsts', 'First steps'), [
-      [tx('pack.dvinfo.firstSteps', 'Finish your first steps in DOGYPT (once)'), pts('+10')],
+    ['food', tx('pack.dvinfo.feeding', 'Feeding — adds itself every day'), [
+      [tx('pack.dvinfo.kibble', 'Kibble'), plus(DEVOTION_FEED.kibble)],
+      [tx('pack.dvinfo.barf', 'BARF'), plus(DEVOTION_FEED.barf)],
     ]],
     ['ankh', tx('pack.dvinfo.sacraments', 'Sacraments'), [
-      [tx('pack.dvinfo.baptism', 'Baptism with a heroglyph'), null],
+      [tx('pack.dvinfo.baptism', 'Baptism with a heroglyph'), plus(DEVOTION_ONCE.baptism)],
       [tx('pack.dvinfo.puppy', 'Welcoming a puppy'), null],
       [tx('pack.dvinfo.memorial', 'Memorial for a dog who left'), null],
     ]],
     ['trophy', tx('pack.dvinfo.honours', 'Recognitions'), [
+      [tx('pack.dvinfo.dogid', 'DOG ID at 100 % (once per dog)'), plus(DEVOTION_ONCE.dogid_full)],
+      [tx('pack.dvinfo.scroll', 'A scroll read in the VAULT'), plus(DEVOTION_ONCE.scroll_read)],
       [tx('pack.dvinfo.charity', 'Helping dogs in need'), null],
-      [tx('pack.dvinfo.learning', 'Learning in the VAULT'), null],
       [tx('pack.dvinfo.helping', 'Helping another Dogyptian'), null],
     ]],
   ];
@@ -145,15 +154,17 @@ export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClos
             </div>
           )}
           <p className="dvs-intro">{tx('pack.dvinfo.intro', 'Devotion grows with what you do for your dog and the pack — prayers, sacraments and recognitions. It cannot be bought.')}</p>
+          <button type="button" className="dvs-cta" onClick={() => setTodayOpen(true)}>{tx('pack.dvinfo.logToday', 'Log today')}</button>
           {groups.map(([icon, head, rows]) => (
             <div key={head} className="dvs-grp">
               <h4><span><BrandIcon name={icon} size={14} /></span>{head}</h4>
               {rows.map(([label, val]) => <div key={label} className={`dvs-row${val ? '' : ' off'}`}><span>{label}</span>{val ?? soon}</div>)}
             </div>
           ))}
-          <p className="dvs-note">{tx('pack.dvinfo.note', 'Values marked “soon” are being set. Every step of the ladder needs more devotion than the one before.')}</p>
+          <p className="dvs-note">{tx('pack.dvinfo.note2', 'Devotion is counted for every living dog. Values marked “soon” are being set.')}</p>
         </div>
       </div>
+      {todayOpen && <DevotionToday onClose={() => setTodayOpen(false)} />}
     </div>,
     document.body,
   );

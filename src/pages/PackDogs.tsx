@@ -71,6 +71,7 @@ import { DogOrderEditor, DogOrderPill, DOG_ORDER_CSS } from '@/components/pack/D
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
 import { RightGate } from '@/components/pack/RightGate';
+import { grantDogIdFull } from '@/lib/devotionGrant';
 
 const T = PACK_THEME;
 
@@ -534,6 +535,13 @@ export default function PackDogs() {
 
   // Je DOG ID hotové u VŠETKÝCH psov? Rozhoduje, či karta DOG ID stojí hore, alebo na konci.
   const dogIdAllDone = dogs !== null && dogs.length > 0 && dogs.every((d) => dogIdDone(latest[d.id]));
+
+  // DOG ID na 100 % = +30 ☥ raz za psa (Matej 23. 10.: „vyplnenie profilu" = „DOGID!").
+  // Server pustí len vlastného, zaplateného a živého psa; ostatných ticho preskočí.
+  useEffect(() => {
+    if (!latestLoaded || !dogs) return;
+    grantDogIdFull(dogs.filter((d) => dogIdDone(latest[d.id])).map((d) => d.id));
+  }, [latestLoaded, dogs, latest]);
 
   // `wide` = rovnaká šírka stĺpca ako `/pack/profile` (max-w-5xl). Bez neho bol hub
   // v úzkom stĺpci (max-w-2xl) a vedľa profilu vyzeral ako iná stránka (Matej 6.8.).

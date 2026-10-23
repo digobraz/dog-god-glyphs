@@ -56,3 +56,29 @@ export function devotionLevel(d: number): DevotionLevel {
   const toNext = next && isFinite(next.at) ? Math.max(0, next.at - d) : 0;
   return { index: i + 1, key: cur.key, name: cur.name, next, pct, toNext };
 }
+
+// ============================================================================
+// ZA ČO SA DOSTÁVA ☥ — schválené Matejom 23. 10. 2026 (plany/zadanie-devotion-odmrazenie-2026-10-23.md).
+// 🔴 ZRKADLO servera: body pripisuje `grant-devotion` (DAILY/ONCE), krst trigger a krmenie
+//    pg_cron (migrácia 20261101_devotion_v2.sql). Tu sú len na ZOBRAZENIE — zmena hodnoty
+//    = zmena na serveri AJ tu, inak panel sľúbi iné číslo, než sa pripíše.
+// Body sa rátajú NA ŽIVÉHO PSA (Matej: „na živých psov… nie na mŕtvych").
+// ============================================================================
+export const DEVOTION_START = 100;
+
+export const DEVOTION_DAILY = {
+  walk_short: { points: 3, perDay: 5 },   // krátke venčenie < 20 min
+  walk:       { points: 10, perDay: 1 },  // prechádzka 20–120 min
+  trip_day:   { points: 50, perDay: 1 },  // celodenný výlet nad 120 min
+  presence:   { points: 30, perDay: 1 },  // modlitba prítomnosti — 10 min so psom
+} as const;
+export type DevotionDailyKind = keyof typeof DEVOTION_DAILY;
+
+export const DEVOTION_ONCE = {
+  baptism: 50,      // krst heroglyfom — za každého zaplateného psa
+  dogid_full: 30,   // DOG ID na 100 % — raz za psa
+  scroll_read: 20,  // prečítaný zvitok VAULTU — raz za zvitok
+} as const;
+
+/** Krmenie — pripisuje sa SAMO každý deň podľa stravy psa (`dogs.diet`). */
+export const DEVOTION_FEED = { kibble: 5, barf: 20 } as const;
