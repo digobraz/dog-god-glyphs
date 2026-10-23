@@ -6,7 +6,7 @@
 // Server = edge funkcia `will` (hint · open · claim · decline). Od 23. 10. (kolo 3) BEZ HESLA: odkaz otvorí
 // závet po kontrolnej otázke a pawtner dostane upozornenie. Pole `answer` ostáva pre závety s heslom.
 // 🔴 Rovnako ako `/pack/join` stojí MIMO `/pack` a mimo členstva: dedič účet nemá a mať nemusí.
-// ⚠️ PREVZIAŤ PSA nič neprepíše — je to hlásenie, ktoré overí človek (smrť sa nedá potvrdiť klikom).
+// ⚠️ PREVZIAŤ PSA tu nie je — pri dôvode ÚMRTIE rozhoduje DOGYPT ručne (správa na AINUBIS + mail pawtnerovi).
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
@@ -34,19 +34,17 @@ export default function PackWill() {
   const [phase, setPhase] = useState<Phase>({ k: 'loading' });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [ask, setAsk] = useState(false);
 
   useEffect(() => {
     willHint(token).then((r) => setPhase(r.ok ? { k: 'ask', h: r.data } : { k: 'dead' }));
   }, [token]);
 
-  const act = async (action: 'open' | 'claim', reason: WillReason) => {
+  const act = async (action: 'open', reason: WillReason) => {
     if (phase.k === 'loading' || phase.k === 'dead' || busy) return;
     setBusy(true);
     setErr(null);
     const r = await willAct(token, action, reason);
     setBusy(false);
-    setAsk(false);
     if (r.ok) { setPhase({ k: 'open', h: phase.h, w: r.data }); return; }
     if (r.code === 'not_found') { setPhase({ k: 'dead' }); return; }
     setErr(r.code === 'locked' ? tx('will.locked', 'Too many tries. Try again in an hour.') : tx('will.error', 'Something went wrong. Try again in a moment.'));
@@ -133,19 +131,10 @@ export default function PackWill() {
                 </div>
               ))}
 
-              {/* PREVZIAŤ PSA len pri dôvode ÚMRTIE. Odmietnuť sa nedá (Matej 23. 10., kolo 4). */}
-              {phase.w.claimAt ? (
-                <p style={{ ...sub, marginTop: S.lg, color: T.inkStrong }}>{tx('will.claimedNote', 'Your request to take over the dog was received. We will verify it and write to you by e-mail.')}</p>
-              ) : phase.w.reason !== 'death' ? null : ask ? (
-                <div style={{ marginTop: S.lg }}>
-                  <Line>{tx('will.claimAsk', 'Taking over the dog means the pawtner is no longer alive. We verify it before anything is transferred, and the pawtner gets an e-mail too.')}</Line>
-                  <button type="button" style={cta(busy)} disabled={busy} onClick={() => act('claim', 'death')}>{tx('will.claimYes', 'Yes, send the request')}</button>
-                  <button type="button" style={ghost} onClick={() => setAsk(false)}>{tx('pack.mate.cancel', 'Cancel')}</button>
-                </div>
-              ) : (
-                <div style={{ marginTop: S.lg }}>
-                  <button type="button" style={cta(false)} onClick={() => setAsk(true)}>{tx('will.claim', 'Take over the dog')}</button>
-                </div>
+              {/* PREVZIAŤ PSA tu NIE JE (Matej 23. 10.: „prevziať psa tam nebude, o tom rozhodneme my ručne,
+                  ak človek napíše úmrtie"). Pri úmrtí dostane len vetu, že sa mu ozveme. */}
+              {phase.w.reason === 'death' && (
+                <p style={{ ...sub, marginTop: S.lg, color: T.inkStrong }}>{tx('will.deathNote', 'Thank you for letting us know. We will contact you by e-mail about the dog.')}</p>
               )}
               {err && <p style={{ ...sub, color: T.alertRed, marginTop: S.sm }}>{err}</p>}
             </>

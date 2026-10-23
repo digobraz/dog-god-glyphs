@@ -21,7 +21,8 @@ const T = PACK_THEME;
 // Zdieľané: spodok homepage (/pack, LIVE) aj frozen profil (DEV_FULL).
 /** `bare` = bez vlastnej karty a nadpisu — v UPRAVIŤ PROFIL sedí v podbloku ÚČET (23. 10. 2026),
  *  karta v karte by bola dvojitý rám. */
-export function PackSettings({ bare = false }: { bare?: boolean } = {}) {
+/** `after` = ďalšie riadky pod ODHLÁSIŤ SA v tom istom tvare (UPRAVIŤ PROFIL: PODPORA, 23. 10. 2026). */
+export function PackSettings({ bare = false, after }: { bare?: boolean; after?: React.ReactNode } = {}) {
   const [email, setEmail] = useState('—');
   const [pwModalOpen, setPwModalOpen] = useState(false);
   const [pwValue, setPwValue] = useState('');
@@ -259,7 +260,7 @@ export function PackSettings({ bare = false }: { bare?: boolean } = {}) {
         {/* Zmazanie účtu — Apple 5.1.1(v), GDPR (13. 10. 2026). 30 dní na rozmyslenie, pes ostáva. */}
         <DeleteAccountButton />
       </Field>
-      <Field icon={<HandExit size={16} />} label={t('pack.settings.signOut')} last>
+      <Field icon={<HandExit size={16} />} label={t('pack.settings.signOut')} last={!after}>
         <button
           type="button"
           className="pf-tap"
@@ -288,6 +289,7 @@ export function PackSettings({ bare = false }: { bare?: boolean } = {}) {
           {t('pack.settings.signOut')}
         </button>
       </Field>
+      {after}
 
       {/* Password modal */}
       {pwModalOpen && (
@@ -363,7 +365,7 @@ export function PackSettings({ bare = false }: { bare?: boolean } = {}) {
   );
 }
 
-function Field({ icon, label, children, last }: { icon: React.ReactNode; label: string; children: React.ReactNode; last?: boolean }) {
+export function Field({ icon, label, children, last }: { icon: React.ReactNode; label: string; children: React.ReactNode; last?: boolean }) {
   return (
     <div
       className="flex items-center justify-between gap-4 py-3.5"

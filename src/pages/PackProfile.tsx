@@ -5,7 +5,7 @@ import { ChevronDown, Eye, EyeOff, Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { PackSettings } from '@/components/pack/PackSettings';
+import { PackSettings, Field } from '@/components/pack/PackSettings';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
@@ -60,6 +60,11 @@ import { HandCamera } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
+/** Tlačidlo v riadku ÚČTU — ten istý tvar ako ODHLÁSIŤ SA v `PackSettings`. */
+const ROW_BTN: React.CSSProperties = {
+  background: 'none', border: `1px solid ${T.border}`, borderRadius: PACK_R.field, padding: `${S.sm}px ${S.lg}px`,
+  fontFamily: FONT_TITLE, fontSize: PACK_TEXT.micro, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim, cursor: 'pointer',
+};
 
 // ── RIADKY PROFILU (21. 10. 2026) ── štítok vľavo · hodnota vpravo · tenká čiara, ako úprava
 // profilu na Instagrame. Ovládače ostávajú `.pf-field` (pilulky, selecty), tu im padá rám aj výplň.
@@ -581,15 +586,16 @@ export default function PackProfile() {
           {/* ── 3 · ÚČET A APPKA ── */}
           <div className={`pe-grp${shut.has('acc') ? ' shut' : ''}`} ref={accountRef} style={{ ...PACK_BOX.subblock, scrollMarginTop: 96 }}>
             <GroupHead icon="sliders" label={tx('pack.edit.secAccount', 'Account & app')} open={!shut.has('acc')} onToggle={() => toggleGrp('acc')} />
-            <PackSettings bare />
-            {/* PODPORA — AINUBIS rieši hlásenia a otázky (brand: AINUBIS = bezpečnosť a hlásenia), mail je záloha. */}
-            <div className="pe-sup">
-              <span className="pe-lbl" style={{ margin: 0 }}>{tx('pack.edit.support', 'Support')}</span>
-              <span className="pe-sup-b">
-                <button type="button" className="pe-show" onClick={() => navigate('/pack/ainubis')}>{tx('pack.edit.supportAi', 'Ask AINUBIS')}</button>
-                <a className="pe-mail" href="mailto:woof@dogypt.com">woof@dogypt.com</a>
-              </span>
-            </div>
+            {/* PODPORA = ďalšie riadky toho istého zoznamu (Matej 23. 10.: „urob to normálne, ako keby to len
+                pokračovalo, nie ako niečo úplne iné"). Tlačidlo má tvar ODHLÁSIŤ SA, e-mail tvar riadku E-MAIL. */}
+            <PackSettings bare after={<>
+              <Field icon={<BrandIcon name="question" size={16} tint="dim" />} label={tx('pack.edit.support', 'Support')}>
+                <button type="button" className="pf-tap" onClick={() => navigate('/pack/ainubis')} style={ROW_BTN}>{tx('pack.edit.supportAi', 'Ask AINUBIS')}</button>
+              </Field>
+              <Field icon={<BrandIcon name="envelope" size={16} tint="dim" />} label={tx('pack.edit.supportMail', 'Write to us')} last>
+                <a href="mailto:woof@dogypt.com" style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.body, color: T.ink }}>woof@dogypt.com</a>
+              </Field>
+            </>} />
             {/* ČÍSLO VERZIE — LEN V APPKE (21. 10. 2026), rovnaké ako `version` v dogypt.com/app-update.json. */}
             {appVer && <div className="pe-ver">DOGYPT · {APP_PLATFORM} · {appVer}</div>}
           </div>
