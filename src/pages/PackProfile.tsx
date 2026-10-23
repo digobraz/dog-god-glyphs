@@ -188,7 +188,7 @@ const EDIT_CSS = `
 .pe-roles .pe-role{align-self:flex-start;cursor:pointer;}
 .pe-check input:disabled{opacity:.4;cursor:default;}
 .pe-pick{display:grid;grid-template-columns:1fr;gap:${S.sm}px;}
-.pe-steps{margin:${S.xs}px 0 0;padding-left:${S.lg}px;display:flex;flex-direction:column;gap:${S.xs}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.5;color:${T.ink};}
+.pe-steps{margin:${S.xs}px 0 0;padding-left:${S.lg}px;list-style:decimal;display:flex;flex-direction:column;gap:${S.xs}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.5;color:${T.ink};}
 .pe-steps li::marker{color:${LAPIS.edge};font-weight:600;}
 .pe-explain{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.5;color:${T.ink};}
 .pe-addbar{display:flex;align-items:center;gap:${S.sm}px;margin-top:${S.sm}px;padding:${S.sm}px;border-radius:${PACK_R.tile}px;background:${T.tileBg};border:1px solid ${T.hairline};}

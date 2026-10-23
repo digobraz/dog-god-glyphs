@@ -376,7 +376,7 @@ export function MeRank({ kind, devotion, pilgrim, onStats, tx }: {
         <style>{PROGRESS_CSS}</style>
         <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(dev.pct) }} /></div>
         <p>{dev.next
-          ? tx('pack.hero.devotionToNext', '{toNext} ☥ to {nextName}').replace('{toNext}', dev.toNext.toLocaleString('sk-SK')).replace('{nextName}', nextName)
+          ? tx('pack.rank.devToNext', '{n} ☥ to the {name} step').replace('{n}', dev.toNext.toLocaleString('sk-SK')).replace('{name}', nextName)
           : tx('pack.rank.devTop', 'You stand at the top of the ladder.')}</p>
         <p>{tx('pack.rank.devAbout', 'Devotion is your path in DOGYPT — {n} steps from Novice to Demigod.').replace('{n}', String(DEVOTION_LEVELS.length))}</p>
         <div className="me-rk-sc" ref={scRef}>
