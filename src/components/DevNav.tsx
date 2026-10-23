@@ -105,7 +105,23 @@ export function DevNav() {
     if (!isDev && !isLovable) return null;
   }
 
+  // NÁKRES (23. 10. 2026, Matej: „DEV tlačítko … dolava dolu a po kliku by sa otvorila stránka
+  // editora"). Editor zapisuje cez dev server (vite-plugin-nakres.ts), preto len v deve —
+  // a nie vo vnútri samotného editora (appka tam beží v iframe).
+  const nakres = import.meta.env.DEV && typeof window !== "undefined" && window.top === window;
+  const nakresHref = `${pathname}${window.location.search ? `${window.location.search}&` : "?"}nakres=1`;
+
   return (
+    <>
+    {nakres && (
+      <a
+        href={nakresHref}
+        className="fixed bottom-3 left-3 z-[9999] flex items-center gap-1.5 rounded-md bg-black/70 px-2.5 py-1.5 text-xs font-mono text-white shadow-lg backdrop-blur hover:bg-black/85"
+        aria-label="Otvoriť editor nákresu"
+      >
+        Nákres
+      </a>
+    )}
     <div className="fixed bottom-3 right-3 z-[9999]">
       <DropdownMenu>
         <DropdownMenuTrigger
@@ -147,5 +163,6 @@ export function DevNav() {
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+    </>
   );
 }

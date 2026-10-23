@@ -15,6 +15,7 @@ import { createRoot } from 'react-dom/client';
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode, type PointerEvent as RPointerEvent } from 'react';
 import { popis, kratkyText, menoKomponentu, type Popis } from './nakresPopis';
 import { LAPIS } from '@/components/pack/navGoldSkin';
+import { PACK_BOX, PILL_CSS, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 
 const ZARIADENIA = {
   mobil: { w: 390, h: 844, meno: 'MOBIL' },
@@ -23,12 +24,18 @@ const ZARIADENIA = {
 } as const;
 type Zariadenie = keyof typeof ZARIADENIA;
 type Rezim = 'pozriet' | 'upravit';
-type Druh = 'presun' | 'velkost' | 'text' | 'skryt' | 'poradie' | 'poznamka';
+type Druh = 'presun' | 'velkost' | 'text' | 'skryt' | 'poradie' | 'poznamka' | 'pridat';
+// Nový prvok len z katalógu brandu (PACK_BLOCKS) — vymyslený tvar by nákres posunul mimo brand.
+type Novy = 'pilulka' | 'blok' | 'karta' | 'cta-lapis' | 'cta-zlate' | 'tvar';
+const NOVE: [Novy, string][] = [
+  ['pilulka', 'PILULKA'], ['blok', 'BLOK'], ['karta', 'KARTA'], ['cta-lapis', 'CTA LAPIS'], ['cta-zlate', 'CTA ZLATÉ'], ['tvar', 'TVAR'],
+];
+const NOVY_MENO = Object.fromEntries(NOVE) as Record<Novy, string>;
 
 type Zmena = {
   id: string; druh: Druh; trasa: string; zariadenie: Zariadenie; prvok: Popis | null;
   dx?: number; dy?: number; w?: number; h?: number;
-  pred?: string; po?: string; poznamka?: string; o?: number; vedla?: string;
+  pred?: string; po?: string; poznamka?: string; o?: number; vedla?: string; typ?: Novy;
 };
 
 type NakresWin = Window & { __nakresSnap?: (pixelRatio: number) => Promise<string> };
@@ -44,7 +51,7 @@ const C = {
 const FONT = "'Space Grotesk', system-ui, sans-serif";
 
 const DRUH_MENO: Record<Druh, string> = {
-  presun: 'PRESUN', velkost: 'VEĽKOSŤ', text: 'TEXT', skryt: 'SKRYŤ', poradie: 'PORADIE', poznamka: 'POZNÁMKA',
+  presun: 'PRESUN', velkost: 'VEĽKOSŤ', text: 'TEXT', skryt: 'SKRYŤ', poradie: 'PORADIE', poznamka: 'POZNÁMKA', pridat: 'NOVÝ',
 };
 
 function popisZmeny(z: Zmena) {
@@ -58,6 +65,7 @@ function popisZmeny(z: Zmena) {
   if (z.druh === 'text') return `„${z.po}“`;
   if (z.druh === 'poradie') return `o ${Math.abs(z.o ?? 0)} ${(z.o ?? 0) < 0 ? 'skôr' : 'neskôr'}`;
   if (z.druh === 'poznamka') return `„${z.poznamka}“`;
+  if (z.druh === 'pridat') return `${NOVY_MENO[z.typ!]}${z.po ? ` „${z.po}“` : ''}`;
   return 'preč';
 }
 
@@ -65,6 +73,32 @@ const maText = (el: Element) =>
   Array.prototype.some.call(el.childNodes, (n: Node) => n.nodeType === 3 && (n.textContent ?? '').trim() !== '');
 
 const jeElement = (n: unknown): n is HTMLElement => !!n && (n as Node).nodeType === 1;
+
+/** Nový prvok z nákresu nesie typ v data-atribúte — nemá zdroj v kóde. */
+const novyTyp = (el: Element | null) => ((el as HTMLElement | null)?.dataset?.nakresNovy as Novy | undefined);
+const menoPrvku = (el: Element) => { const t = novyTyp(el); return t ? `nový ${NOVY_MENO[t].toLowerCase()}` : menoKomponentu(el); };
+
+function vyrobPrvok(doc: Document, typ: Novy): HTMLElement {
+  if (!doc.getElementById('nakres-pill-css')) {
+    const st = doc.createElement('style');
+    st.id = 'nakres-pill-css';
+    st.textContent = PILL_CSS;
+    doc.head.appendChild(st);
+  }
+  const el = doc.createElement(typ.startsWith('cta') ? 'button' : 'div');
+  el.dataset.nakresNovy = typ;
+  const cta: Partial<CSSStyleDeclaration> = {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '12px 24px', borderRadius: '8px',
+    fontFamily: "'Cinzel', serif", fontWeight: '700', fontSize: '14px', letterSpacing: '.14em', textTransform: 'uppercase',
+  };
+  if (typ === 'pilulka') { el.className = 'pk-pill'; el.textContent = 'Pilulka'; Object.assign(el.style, { fontFamily: "'Cinzel', serif", fontWeight: '700', fontSize: '12px' }); }
+  if (typ === 'blok') Object.assign(el.style, PACK_BOX.subblock, { display: 'block', minHeight: '80px', padding: '16px' });
+  if (typ === 'karta') Object.assign(el.style, PACK_BOX.card, { display: 'block', minHeight: '120px', padding: '24px' });
+  if (typ === 'tvar') Object.assign(el.style, { display: 'block', width: '160px', height: '80px', border: '2px dashed #C99A3F', borderRadius: '12px', background: 'rgba(201,154,63,0.08)' });
+  if (typ === 'cta-lapis') { el.textContent = 'Tlačidlo'; Object.assign(el.style, cta, { background: LAPIS.grad, color: LAPIS.ink, border: `1px solid ${LAPIS.edge}` }); }
+  if (typ === 'cta-zlate') { el.textContent = 'Tlačidlo'; Object.assign(el.style, cta, { background: BRAND_GOLD_BTN.grad, color: BRAND_GOLD_BTN.ink, border: `1px solid ${BRAND_GOLD_BTN.edge}`, boxShadow: BRAND_GOLD_BTN.glow }); }
+  return el;
+}
 
 function NakresShell() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -111,6 +145,12 @@ function NakresShell() {
     if (el && druh !== 'poznamka') {
       const z = najdi(el, druh);
       if (z) return z.id;
+      // Posun, veľkosť a text NOVÉHO prvku patria do jeho záznamu PRIDAŤ — nemá zdroj v kóde.
+      const novy = novyTyp(el) && druh !== 'pridat' ? najdi(el, 'pridat') : undefined;
+      if (novy) {
+        zaznam.current.set(el, { ...zaznam.current.get(el), [druh]: novy.id });
+        return novy.id;
+      }
     }
     const id = novyId();
     zmenyRef.current = [...zmenyRef.current, {
@@ -159,6 +199,8 @@ function NakresShell() {
   };
 
   const skry = (el: HTMLElement) => {
+    const novy = novyTyp(el) ? najdi(el, 'pridat') : undefined;
+    if (novy) { vrat(novy.id); selRef.current = null; return; }
     const povodny = el.style.display;
     zaloz(el, 'skryt', () => { el.style.display = povodny; });
     el.style.display = 'none';
@@ -198,6 +240,30 @@ function NakresShell() {
     if (po === e.pred && !najdi(e.el, 'text')) return;
     const id = zaloz(e.el, 'text', () => { e.el.innerHTML = e.html; }, e.popis, { pred: e.pred });
     uprav(id, { po });
+  };
+
+  const pridaj = (typ: Novy) => {
+    const doc = iframeRef.current?.contentDocument;
+    if (!doc) return;
+    const el = vyrobPrvok(doc, typ);
+    const sel = selRef.current;
+    const kotva = sel && sel.isConnected && sel.parentElement && sel.tagName !== 'BODY' ? sel : null;
+    if (kotva) kotva.after(el);
+    else {
+      Object.assign(el.style, { position: 'fixed', zIndex: '2147483000', left: '0px', top: '0px' });
+      doc.body.appendChild(el);
+      const r = el.getBoundingClientRect();
+      const w = doc.defaultView!;
+      el.style.left = `${snap((w.innerWidth - r.width) / 2)}px`;
+      el.style.top = `${snap((w.innerHeight - r.height) / 2)}px`;
+    }
+    const r = el.getBoundingClientRect();
+    zaloz(el, 'pridat', () => el.remove(), kotva ? popis(kotva) : popis(el), {
+      typ, w: Math.round(r.width), h: Math.round(r.height), po: el.innerText || undefined,
+      vedla: kotva ? kratkyText(kotva, 40) : undefined,
+    });
+    selRef.current = el;
+    prekresli();
   };
 
   const pripniPoznamku = () => {
@@ -500,7 +566,7 @@ function NakresShell() {
               {sr && (
                 <div style={{ position: 'absolute', left: sr.left, top: sr.top, width: sr.width, height: sr.height, outline: `${2 * inv}px solid ${C.gold}` }}>
                   <div style={{ position: 'absolute', left: -1 * inv, bottom: '100%', transform: `scale(${inv})`, transformOrigin: '0 100%', whiteSpace: 'nowrap', background: C.gold, color: C.ink, fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 4 }}>
-                    {menoKomponentu(sel!)} · {Math.round(sr.width)}x{Math.round(sr.height)}
+                    {menoPrvku(sel!)} · {Math.round(sr.width)}x{Math.round(sr.height)}
                   </div>
                   {(['w', 'h', 'wh'] as const).map((os) => (
                     <div
@@ -548,9 +614,9 @@ function NakresShell() {
             <Napoveda riadky={['Klik = vyber prvok', 'Ťahaj = posuň (po 4 px)', 'Šípky = jemne, so Shiftom po 16', 'Dvojklik = prepíš text', 'P = vyber rodiča · Del = skry', 'Rohy výberu = veľkosť', 'Cmd+Z = vráť poslednú zmenu']} />
           ) : (
             <section style={{ background: C.papyrusTmavy, borderRadius: 12, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>{menoKomponentu(sel!)} <span style={{ color: C.inkSoft, fontWeight: 400 }}>&lt;{selPopis.tag}&gt; {selPopis.rect.w}x{selPopis.rect.h}</span></div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>{menoPrvku(sel!)} <span style={{ color: C.inkSoft, fontWeight: 400 }}>&lt;{selPopis.tag}&gt; {selPopis.rect.w}x{selPopis.rect.h}</span></div>
               {selPopis.text && <div style={{ fontSize: 12, color: C.inkSoft }}>„{selPopis.text}“</div>}
-              <div style={{ fontSize: 10, color: C.inkSoft, wordBreak: 'break-all' }}>{selPopis.zdroj ?? 'zdroj neznámy'}</div>
+              <div style={{ fontSize: 10, color: C.inkSoft, wordBreak: 'break-all' }}>{novyTyp(sel) ? 'nový prvok z nákresu' : (selPopis.zdroj ?? 'zdroj neznámy')}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                 <Tlacidlo onClick={() => { if (sel?.parentElement && sel.parentElement.tagName !== 'BODY') { selRef.current = sel.parentElement; prekresli(); } }}>RODIČ</Tlacidlo>
                 <Tlacidlo onClick={() => poradie(sel as HTMLElement, -1)}>SKÔR</Tlacidlo>
@@ -559,6 +625,16 @@ function NakresShell() {
                 <Tlacidlo onClick={() => { skry(sel as HTMLElement); prekresli(); }}>SKRYŤ</Tlacidlo>
                 <Tlacidlo onClick={() => { selRef.current = null; prekresli(); }}>ZRUŠIŤ VÝBER</Tlacidlo>
               </div>
+            </section>
+          )}
+
+          {rezim === 'upravit' && (
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Stitok>PRIDAŤ PRVOK</Stitok>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {NOVE.map(([t, m]) => <Tlacidlo key={t} onClick={() => pridaj(t)}>{m}</Tlacidlo>)}
+              </div>
+              <div style={{ fontSize: 10, color: C.inkSoft }}>{sel ? 'Pribudne hneď za vybraný prvok.' : 'Pribudne doprostred obrazovky.'} Potom ho ťahaj, zmeň veľkosť, dvojklikom prepíš text.</div>
             </section>
           )}
 

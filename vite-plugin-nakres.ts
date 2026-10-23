@@ -18,10 +18,10 @@ type Popis = {
   rect: { x: number; y: number; w: number; h: number };
 };
 type Zmena = {
-  druh: "presun" | "velkost" | "text" | "skryt" | "poradie" | "poznamka";
+  druh: "presun" | "velkost" | "text" | "skryt" | "poradie" | "poznamka" | "pridat";
   trasa: string; zariadenie: string; prvok: Popis | null;
   dx?: number; dy?: number; w?: number; h?: number;
-  pred?: string; po?: string; poznamka?: string; o?: number; vedla?: string;
+  pred?: string; po?: string; poznamka?: string; o?: number; vedla?: string; typ?: string;
 };
 type Nakres = {
   id: string; vytvorene: string; nazov?: string; zmeny: Zmena[];
@@ -29,7 +29,7 @@ type Nakres = {
 };
 
 const DRUH: Record<Zmena["druh"], string> = {
-  presun: "PRESUN", velkost: "VEĽKOSŤ", text: "TEXT", skryt: "SKRYŤ", poradie: "PORADIE", poznamka: "POZNÁMKA",
+  presun: "PRESUN", velkost: "VEĽKOSŤ", text: "TEXT", skryt: "SKRYŤ", poradie: "PORADIE", poznamka: "POZNÁMKA", pridat: "NOVÝ PRVOK",
 };
 
 const slug = (s: string) => s.replace(/^\/+|\/+$/g, "").replace(/[^a-zA-Z0-9]+/g, "-") || "domov";
@@ -43,7 +43,9 @@ function smer(dx = 0, dy = 0) {
 
 function riadok(z: Zmena, i: number) {
   const p = z.prvok;
-  const kde = p
+  const kde = z.druh === "pridat"
+    ? (z.vedla && p ? `hneď ZA \`${p.zdroj ?? "zdroj neznámy"}\` · ${p.komponenty.join(" ← ") || "—"} · <${p.tag}> „${z.vedla}“` : "voľne na obrazovke (nie je za žiadnym prvkom)")
+    : p
     ? `\`${p.zdroj ?? "zdroj neznámy"}\` · ${p.komponenty.join(" ← ") || "—"} · <${p.tag}>${p.text ? ` „${p.text}“` : ""} · pôvodne ${p.rect.w}x${p.rect.h} na ${p.rect.x},${p.rect.y}`
     : "celá obrazovka";
   let co = "";
@@ -53,6 +55,7 @@ function riadok(z: Zmena, i: number) {
   if (z.druh === "skryt") co = "preč z obrazovky";
   if (z.druh === "poradie") co = `o ${Math.abs(z.o ?? 0)} ${(z.o ?? 0) < 0 ? "vyššie/skôr" : "nižšie/neskôr"}${z.vedla ? ` (teraz vedľa „${z.vedla}“)` : ""}`;
   if (z.druh === "poznamka") co = `„${z.poznamka}“`;
+  if (z.druh === "pridat") co = `${(z.typ ?? "?").toUpperCase()} z katalógu brandu (PACK_BLOCKS), ${z.w}x${z.h}${z.po ? `, text „${z.po}“` : ""}${z.dx || z.dy ? `, posunutý ${smer(z.dx, z.dy)}` : ""}`;
   return `${i + 1}. **${DRUH[z.druh]}** \`${z.trasa}\` (${z.zariadenie}) — ${co}\n   ${kde}`;
 }
 
