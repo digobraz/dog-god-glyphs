@@ -1,4 +1,4 @@
-// /will/:token (aj /zavet/:token) — ZÁVEŤ PRE DEDIČA, bez konta (23. 10. 2026).
+// /will/:token (aj /zavet/:token) — ZÁVET PRE DEDIČA, bez konta (23. 10. 2026).
 //
 // Matej: *„človek klikne na CTA v maili, odkáže ho na url závetu s heslom, napíše heslo a otvorí sa
 // záveť s možnosťou — prevziať psa, prečítať záveť, zrušiť … do domyslíme, ale ten proces už postavme"*.
@@ -76,8 +76,14 @@ export default function PackWill() {
             <>
               <Eyebrow>{tx('will.eyebrow', 'Will')}</Eyebrow>
               <Title>{tx('will.askTitle', '{owner} left a will for you').replace('{owner}', phase.h.owner)}</Title>
-              <Line>{tx('will.askBody', 'It is locked. The password is the answer to this question:')}</Line>
-              <p style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: PACK_TEXT.lead, color: T.inkStrong, margin: `${S.md}px 0` }}>{phase.h.hint}</p>
+              {phase.h.hint ? (
+                <>
+                  <Line>{tx('will.askBody', 'It is locked. The password is the answer to this question:')}</Line>
+                  <p style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: PACK_TEXT.lead, color: T.inkStrong, margin: `${S.md}px 0` }}>{phase.h.hint}</p>
+                </>
+              ) : (
+                <p style={{ ...sub, fontSize: PACK_TEXT.body, margin: `0 0 ${S.md}px` }}>{tx('will.askBodyPass', 'It is locked. {owner} gave you the password.').replace('{owner}', phase.h.owner)}</p>
+              )}
               <form onSubmit={(e) => { e.preventDefault(); act('open'); }}>
                 <input
                   type="password"
@@ -86,8 +92,8 @@ export default function PackWill() {
                   spellCheck={false}
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
-                  placeholder={tx('will.answerPh', 'Your answer')}
-                  aria-label={tx('will.answerPh', 'Your answer')}
+                  placeholder={tx('will.answerPh', 'Password')}
+                  aria-label={tx('will.answerPh', 'Password')}
                   style={{
                     width: '100%', boxSizing: 'border-box', padding: S.md, borderRadius: PACK_R.field, border: `1px solid ${T.cardEdge}`,
                     background: T.card, color: T.inkStrong, fontFamily: FONT_UI, fontSize: PACK_TEXT.body, textAlign: 'center',

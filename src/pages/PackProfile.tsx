@@ -1210,15 +1210,15 @@ function MemberRow({ photo, initial, name, num, sub, angel = false, human = fals
   );
 }
 
-// ROLY — rozbaľovač s výberom najviac DVOCH (Matej 23. 10.). Plná sada ostáva viditeľná; po dvoch
-// sú ostatné stlmené. Odznačiť poslednú nejde — prázdne by aj tak spadlo späť na PAWTNER.
+// ROLY — rozbaľovač s výberom najviac DVOCH (Matej 23. 10.). Tretí ťuk vytlačí najstaršiu voľbu. Odznačiť poslednú nejde — prázdne by aj tak spadlo späť na PAWTNER.
 function RolePicker({ value, onChange }: { value: ProfileRole[]; onChange: (v: ProfileRole[]) => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const [open, setOpen] = useState(false);
+  // Nová voľba sa VŽDY označí; pri plnom počte vypadne najstaršia (Matej 23. 10.: „aby sa nemuselo odznačovať").
   const toggle = (r: ProfileRole) => {
     if (value.includes(r)) { if (value.length > 1) onChange(value.filter((x) => x !== r)); }
-    else if (value.length < MAX_ROLES) onChange([...value, r]);
+    else onChange([...value, r].slice(-MAX_ROLES));
   };
   return (
     <div className="pe-roles">
@@ -1232,7 +1232,7 @@ function RolePicker({ value, onChange }: { value: ProfileRole[]; onChange: (v: P
             const on = value.includes(r);
             return (
               <label key={r} className="pe-check sub">
-                <input type="checkbox" checked={on} disabled={!on && value.length >= MAX_ROLES} onChange={() => toggle(r)} />
+                <input type="checkbox" checked={on} onChange={() => toggle(r)} />
                 <span>{tx(`pack.role.${r}`, r)}</span>
               </label>
             );
@@ -1341,8 +1341,8 @@ function MateRow({ mate, onChanged }: { mate: PawmateRow; onChanged: () => void 
 
 // NOVÝ PAWMATE (Matej 23. 10., kolo 2): *„po kliknutí na +pawmate sa zobrazia len 2 možnosti — vytvoriť nové
 // konto / prístup k záveti; až po výbere sa zroluje e-mail a prístup a vysvetlenie postupu … CTA sa mení"*.
-// KONTO = pozvánka `invite-pawmate` (plný prístup alebo vybrané práva) · ZÁVEŤ = edge `will`: dedič bez konta,
-// odkaz + otázka v maili, heslo = odpoveď (`pages/PackWill.tsx`).
+// KONTO = pozvánka `invite-pawmate` (plný prístup alebo vybrané práva) · ZÁVET = edge `will`: dedič bez konta,
+// odkaz v maili, heslo mu povie pawtner (`pages/PackWill.tsx`).
 function MateForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; onDone: () => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
@@ -1435,19 +1435,17 @@ function WillForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; o
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { toast } = useToast();
-  const [name, setName] = useState('');
+  // LEN e-mail a heslo (Matej 23. 10.: *„stačí len mail a heslo … textarea je zbytočný, závet ide z dogs"*) —
+  // obsah závetu je v DOG ID, tu sa nastavuje iba PRÍSTUP. Heslo dedičovi povie pawtner sám.
   const [email, setEmail] = useState('');
-  const [hint, setHint] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [letter, setLetter] = useState('');
+  const [pass, setPass] = useState('');
+  const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
-  const norm = (v: string) => v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-  const leak = !!answer.trim() && norm(hint).includes(norm(answer));
-  const ok = !!name.trim() && /\S+@\S+\.\S+/.test(email.trim()) && hint.trim().length >= 3 && norm(answer).length >= 2 && !leak && dogs.length > 0;
+  const ok = /\S+@\S+\.\S+/.test(email.trim()) && pass.trim().length >= 4 && dogs.length > 0;
   const send = async () => {
     if (!ok || busy) return;
     setBusy(true);
-    const r = await createWill({ dogIds: dogs.map((d) => d.id), heirName: name.trim(), heirEmail: email.trim(), hint: hint.trim(), answer, letter: letter.trim(), lang });
+    const r = await createWill({ dogIds: dogs.map((d) => d.id), heirEmail: email.trim(), answer: pass, lang });
     setBusy(false);
     if (r.ok) {
       toast({ title: tx('pack.wacc.sentTo', 'The will is on its way to {email}.').replace('{email}', email.trim()) });
@@ -1458,20 +1456,21 @@ function WillForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; o
   };
   return (
     <>
-      <input className="pe-mail-in" value={name} onChange={(e) => setName(e.target.value)} placeholder={tx('pack.wacc.heirName', 'Their name')} aria-label={tx('pack.wacc.heirName', 'Their name')} />
       <input type="email" inputMode="email" autoComplete="off" className="pe-mail-in" value={email}
         onChange={(e) => setEmail(e.target.value)} placeholder={tx('pack.mate.emailPh', 'name@example.com')} aria-label={tx('pack.mate.emailLabel', 'E-mail')} />
-      <input className="pe-mail-in" value={hint} maxLength={120} onChange={(e) => setHint(e.target.value)}
-        placeholder={tx('pack.wacc.hintPh', 'Question only they can answer — e.g. my favourite colour')} aria-label={tx('pack.wacc.hint', 'Question')} />
-      <input className="pe-mail-in" value={answer} maxLength={120} autoComplete="off" spellCheck={false} onChange={(e) => setAnswer(e.target.value)}
-        placeholder={tx('pack.wacc.answerPh', 'Answer = password to the will')} aria-label={tx('pack.wacc.answer', 'Answer')} />
-      {leak && <p className="pe-min" style={{ margin: 0 }}>{tx('pack.wacc.leak', 'The answer must not be part of the question.')}</p>}
-      <WordLimitTextarea value={letter} onSave={setLetter} rows={4} white
-        placeholder={tx('pack.wacc.letterPh', 'Letter (optional) — what they should know about your dogs')} />
+      <span style={{ position: 'relative', display: 'block' }}>
+        <input type={show ? 'text' : 'password'} className="pe-mail-in" value={pass} maxLength={120} autoComplete="new-password" spellCheck={false}
+          onChange={(e) => setPass(e.target.value)} placeholder={tx('pack.wacc.passPh', 'Password to the will (min. 4 characters)')} aria-label={tx('pack.wacc.pass', 'Password')}
+          style={{ paddingRight: 32 }} />
+        <button type="button" onClick={() => setShow((v) => !v)} aria-label={tx('pack.wacc.showPass', 'Show password')}
+          style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', border: 0, background: 'none', padding: S.xs, cursor: 'pointer' }}>
+          <BrandIcon name="eye" size={16} tint={show ? 'gold' : 'dim'} />
+        </button>
+      </span>
       <Steps items={[
-        tx('pack.wacc.step1', 'A link to your will and your question arrive at this e-mail. The answer is never in the e-mail.'),
-        tx('pack.wacc.step2', 'They open the will only with the answer — capitals and accents don’t matter.'),
-        tx('pack.wacc.step3', 'They read your letter. When you are gone, they ask to take over the dog through the same link — we verify it before anything is transferred.'),
+        tx('pack.wacc.step1', 'A link to your will arrives at this e-mail. The password is never in the e-mail.'),
+        tx('pack.wacc.step2', 'You tell them the password yourself. Capitals and accents don’t matter.'),
+        tx('pack.wacc.step3', 'With the password they open the will — the one written in your dogs’ DOG ID. When you are gone, they ask to take over the dog through the same link; we verify it before anything is transferred.'),
         tx('pack.wacc.step4', 'They get no account and no access to your profile. You can cancel the will any time.'),
       ]} />
       <button type="button" className="pe-door on" disabled={!ok || busy} onClick={send} style={{ alignSelf: 'stretch', justifyContent: 'center' }}>
@@ -1481,7 +1480,7 @@ function WillForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; o
   );
 }
 
-// DEDIČ ZÁVETI v svorke — riadok ako pawmate; rozklik = psy, otázka, stav a ZRUŠIŤ.
+// DEDIČ ZÁVETU v svorke — riadok ako pawmate; rozklik = psy, otázka, stav a ZRUŠIŤ.
 function WillMateRow({ will, dogs, onChanged }: { will: WillRow; dogs: PackDogFull[]; onChanged: () => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
@@ -1497,7 +1496,7 @@ function WillMateRow({ will, dogs, onChanged }: { will: WillRow; dogs: PackDogFu
       <div className="pe-dog-tags">
         {dogs.filter((d) => will.dog_ids.includes(d.id)).map((d) => <span key={d.id} className="pk-pill">{d.dog_name}</span>)}
       </div>
-      <p className="pe-hint" style={{ marginTop: 0 }}>{will.heir_email} · {tx('pack.wacc.hint', 'Question')}: {will.hint}</p>
+      <p className="pe-hint" style={{ marginTop: 0 }}>{will.heir_email}</p>
       {ask ? (
         <div className="pe-me">
           <span className="pe-hint" style={{ margin: 0 }}>{tx('pack.wacc.revokeAsk', 'Cancel this will? The link stops working.')}</span>
