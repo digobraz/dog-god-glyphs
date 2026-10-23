@@ -250,7 +250,8 @@ export default function PackMe() {
           coverY={human?.coverY}
           name={shownName}
           devLabel={`${tx(`pack.ladder.${dev.key}`, dev.name)} ${dev.index}`}
-          pilgrimLabel={`${tx('pack.map.rankPilgrim', 'Pilgrim')} ${pilgrim.level.level}`}
+          devLevel={dev.index}
+          pilgrimLabel={String(pilgrim.level.level)}
           pilgrimLevel={pilgrim.level.level}
           bones={fmt(bones)}
           onBones={() => setBonesOpen(true)}

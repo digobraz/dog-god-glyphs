@@ -3,7 +3,7 @@
 // *„daj náhľad ako bude v realite = meno gradient atď... nech to má človek 1:1"*.
 // Úprava hlavy sa preto robí TU a prejaví sa na oboch obrazovkách naraz.
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, BRAND_GOLD_BTN, PROGRESS_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
@@ -12,6 +12,7 @@ import type { PackDogFull } from '@/hooks/usePackUser';
 import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, PACK_TIERS, type PackTier } from '@/lib/packTiers';
+import { devotionTier, devotionVars, NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
 /** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
 const BONES_TIER = PACK_TIERS.find((t) => t.key === 'turquoise') as PackTier;
 
@@ -85,7 +86,17 @@ export const ME_CSS = `
 .me-rk-nums span{ font-family:${FONT_UI}; font-size:${TX.micro}px; color:var(--rk-dim); }
 .me-rk-link{ display:inline-flex; align-items:center; gap:${S.xs}px; margin-top:${S.md}px; border:0; background:none; padding:0; cursor:pointer;
   font-family:${FONT_UI}; font-weight:600; font-size:${TX.label}px; color:var(--rk-ink); text-decoration:underline; text-underline-offset:3px; }
-.me-dv{ background:${BRAND_GOLD_BTN.grad}; border:1px solid ${BRAND_GOLD_BTN.edge}; color:${BRAND_GOLD_BTN.ink}; }
+.me-dv{ background:var(--dv-bg); border:1px solid var(--dv-edge); color:var(--dv-ink); padding-left:${S.xs}px !important; }
+/* NOC + ŽIARA (Matej 23. 10.): farbu stupňa nesie žiariaca gulička s kresbou (devotionTiers.ts). */
+.me-dvg{ flex:none; display:grid; place-items:center; width:18px; height:18px; border-radius:${PACK_R.pill}px;
+  background:var(--dv-dot); box-shadow:0 0 8px var(--dv-glow); }
+.me-dvg i{ display:block; width:11px; height:11px; background:var(--dv-icon-ink);
+  -webkit-mask:var(--dv-icon) center/contain no-repeat; mask:var(--dv-icon) center/contain no-repeat; }
+.me-lv > .me-pt{ flex:none; }
+.me-rk-sc span{ display:inline-flex; align-items:center; gap:${S.xs}px; }
+.me-rk-sc span i{ display:grid; place-items:center; width:14px; height:14px; border-radius:${PACK_R.pill}px; background:var(--dv-dot); }
+.me-rk-sc span i b{ display:block; width:9px; height:9px; background:var(--dv-icon-ink);
+  -webkit-mask:var(--dv-icon) center/contain no-repeat; mask:var(--dv-icon) center/contain no-repeat; }
 .me-pt{ background:var(--tier-bg); border:1px solid var(--tier-b); color:var(--tier-ink); cursor:pointer; }
 
 .me-under{ position:relative; padding:0 ${S.lg}px ${S.lg}px; }
@@ -229,11 +240,14 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, pilgrimLevel, bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd }: {
   cover: string | null;
   coverY?: number;
   name: string;
   devLabel: string;
+  /** Stupeň DEVOTION 1–22 — pilulka nesie jeho guličku a kresbu (`devotionTiers.ts`). */
+  devLevel: number;
+  /** Text pilulky pútnika — pod menom len číslo (Matej 23. 10.: slovo „Pútnik" až v rozklike). */
   pilgrimLabel: string;
   /** Level PÚTNIKA — pilulka nesie farbu jeho pásma (`packTiers.ts`), tú istú ako hlavička `/map`. */
   pilgrimLevel: number;
@@ -310,8 +324,8 @@ export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, pilgrimLe
       <div className="me-foot">
         <h1 className="me-nm">{name}</h1>
         <div className={`me-lv${stack ? ' stack' : ''}`}>
-          <button type="button" className={`me-dv${rank === 'dev' ? ' on' : ''}`} onClick={onDev} aria-expanded={rank === 'dev'}>
-            <BrandIcon name="ankh" size={12} tint="dark" />
+          <button type="button" className={`me-dv${rank === 'dev' ? ' on' : ''}`} onClick={onDev} aria-expanded={rank === 'dev'} style={devotionVars(devLevel)}>
+            <span className="me-dvg"><i /></span>
             {devLabel}
           </button>
           <button type="button" className={`me-pt${rank === 'pt' ? ' on' : ''}`} onClick={onPilgrim} aria-expanded={rank === 'pt'} style={tierStyle(pilgrimTier)}>
@@ -372,10 +386,12 @@ const pctW = (p: number) => `${Math.round(p)}%`;
 export interface StudyStats { read: number; total: number; pct: number; liked: number; saved: number }
 
 /** Farby bloku podľa hodnosti — premenné pre `.me-rk` (podklad, inkoust, výplň pásu). */
-function rankVars(kind: 'dev' | 'pt' | 'study', ptLevel: number): CSSProperties {
+function rankVars(kind: 'dev' | 'pt' | 'study', ptLevel: number, devIndex = 1): CSSProperties {
   if (kind === 'dev') {
-    return { '--rk-bg': BRAND_GOLD_BTN.grad, '--rk-edge': BRAND_GOLD_BTN.edge, '--rk-ink': BRAND_GOLD_BTN.ink,
-      '--rk-dim': BRAND_GOLD_BTN.ink, '--rk-fill': T.card, '--rk-bg-ink': BRAND_GOLD_BTN.ink } as CSSProperties;
+    // NOC + ŽIARA: tmavý blok so zlatým lemom, pás a aktuálny stupeň vo farbe guličky.
+    const t = devotionTier(devIndex);
+    return { '--rk-bg': NIGHT, '--rk-edge': NIGHT_EDGE, '--rk-ink': NIGHT_INK,
+      '--rk-dim': NIGHT_INK, '--rk-fill': t.dot, '--rk-bg-ink': '#140D07' } as CSSProperties;
   }
   if (kind === 'pt') {
     const t = tierOfLevel(ptLevel);
@@ -405,7 +421,7 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, tx }:
     const cur = scRef.current?.querySelector('.cur') as HTMLElement | null;
     if (cur && scRef.current) scRef.current.scrollLeft = cur.offsetLeft - scRef.current.clientWidth / 2 + cur.clientWidth / 2;
   }, [kind]);
-  const vars = rankVars(kind, pilgrim.level.level);
+  const vars = rankVars(kind, pilgrim.level.level, dev.index);
   if (kind === 'study') {
     const st = study ?? { read: 0, total: 0, pct: 0, liked: 0, saved: 0 };
     return (
@@ -438,7 +454,7 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, tx }:
         <p>{tx('pack.rank.devAbout', 'Devotion is your path in DOGYPT — {n} steps from Novice to Demigod.').replace('{n}', String(DEVOTION_LEVELS.length))}</p>
         <div className="me-rk-sc" ref={scRef}>
           {DEVOTION_LEVELS.map((l, i) => (
-            <span key={l.key} className={i + 1 === dev.index ? 'cur' : i + 1 < dev.index ? 'done' : ''}>{i + 1} · {tx(`pack.ladder.${l.key}`, l.name)}</span>
+            <span key={l.key} className={i + 1 === dev.index ? 'cur' : i + 1 < dev.index ? 'done' : ''} style={devotionVars(i + 1)}><i><b /></i>{i + 1} · {tx(`pack.ladder.${l.key}`, l.name)}</span>
           ))}
         </div>
       </div>

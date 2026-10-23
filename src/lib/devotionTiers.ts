@@ -50,9 +50,9 @@ export const DEVOTION_TIERS: DevotionTier[] = [
 ];
 
 /** Tmavé telo pilulky 1–20 a zlatý lem — spoločné pre všetky stupne pod Faraónom. */
-const NIGHT = 'linear-gradient(135deg, #2E2216, #140D07)';
-const NIGHT_EDGE = '#C99A3F';
-const NIGHT_INK = '#F3E6C8';
+export const NIGHT = 'linear-gradient(135deg, #2E2216, #140D07)';
+export const NIGHT_EDGE = '#C99A3F';
+export const NIGHT_INK = '#F3E6C8';
 /** Faraón = zlatý plech, Polboh = slnko. */
 const GOLD_LEAF = 'linear-gradient(180deg, #F8E7AE 0%, #D8A93F 46%, #A3782B 54%, #E6C46C 100%)';
 const SUN = 'radial-gradient(120% 160% at 50% 30%, #FFFFFF 0%, #FFF3CC 45%, #EFCF78 100%)';
