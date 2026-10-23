@@ -52,8 +52,9 @@ const DEED_TYPES: Array<{ id: DeedType; icon: string; points: number | null; lab
   { id: 'good_deed', icon: 'house-heart', points: null, label: ['pack.dvtoday.dtGood', 'Good deed'],             sub: ['pack.dvtoday.dtGoodSub', 'support, help for a dog or a person'],
     ph: ['pack.dvtoday.dtGoodPh', 'What did you do for a dog or a person?'] },
 ];
-/** Body za zápis „Iné" pre vybraných psov; dobrý skutok = null (posúdi AINUBIS). */
-const deedPts = (t: DeedType | null, dogs: number) => { const p = DEED_TYPES.find((d) => d.id === t)?.points; return p == null ? null : p * dogs; };
+/** Body za zápis „Iné" — NA ČLOVEKA, nie na psa (Matej: *„bez ohľadu — hodnotíme záujem podeliť sa s príhodou"*).
+ *  Dobrý skutok = null (posúdi AINUBIS). */
+const deedPts = (t: DeedType | null) => DEED_TYPES.find((d) => d.id === t)?.points ?? null;
 
 const CSS = `
 .dvt-root{position:fixed;inset:0;z-index:66;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,6,11,0.74);animation:dvt-fade .25s ease both;}
@@ -260,7 +261,7 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
   // Body za i-ty ťuk = koľko vybraných psov má na ňom ešte miesto × hodnota.
   const ptsAt = (k: TileKind, i: number) => sel.filter((g) => (g.done[k] ?? 0) + i < DEVOTION_DAILY[k].perDay).length * DEVOTION_DAILY[k].points;
   const ptsOf = (k: TileKind, n: number) => { let s = 0; for (let i = 0; i < n; i++) s += ptsAt(k, i); return s; };
-  const pending = TILES.reduce((s, r) => s + ptsOf(r.kind, tap[r.kind] ?? 0), 0) + (deed.trim() ? (deedPts(deedType, sel.length) ?? 0) : 0);
+  const pending = TILES.reduce((s, r) => s + ptsOf(r.kind, tap[r.kind] ?? 0), 0) + (deed.trim() ? (deedPts(deedType) ?? 0) : 0);
   const anyTap = TILES.some((r) => (tap[r.kind] ?? 0) > 0) || deed.trim().length > 0;
 
   const hit = (k: TileKind) => {
@@ -395,8 +396,8 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
                   <button type="button" onClick={() => setDeedOpen(true)} aria-label={tx('pack.dvtoday.deedEdit', 'Edit')}>
                     <BrandIcon name={DEED_TYPES.find((d) => d.id === deedType)?.icon ?? 'feather'} size={16} tint="gold" />
                     <span className="tx"><b>{tx(...(DEED_TYPES.find((d) => d.id === deedType)?.label ?? ['pack.dvtoday.deedOther', 'Other']))}</b><small>{deed.trim()}</small></span>
-                    {deedPts(deedType, sel.length) != null
-                      ? <span className="dvt-cnt">+{deedPts(deedType, sel.length)}</span>
+                    {deedPts(deedType) != null
+                      ? <span className="dvt-cnt">+{deedPts(deedType)}</span>
                       : <span className="dvt-cnt dim">{tx('pack.dvtoday.deedJudge', 'AINUBIS will judge')}</span>}
                   </button>
                   <button type="button" className="dvt-deed-del" onClick={() => { setDeed(''); setDeedType(null); }} aria-label={tx('pack.dvtoday.deedDel', 'Remove')}>
