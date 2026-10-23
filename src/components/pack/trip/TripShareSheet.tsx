@@ -161,7 +161,8 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
   const safeBot = ig ? H - 250 : H - 60;
   const big = ig ? 80 : 64, fs = ig ? 38 : 32;
   const lgW = ig ? 230 : 190, lgH = lg ? lgW * lg.height / lg.width : 0;
-  const mY = ig ? safeBot - 48 : H - 76;             // motto
+  // logo + motto nižšie (Matej 23. 10.) — IG: do horného okraja spodného pásu, kde IG kreslí len tenký riadok odpovede
+  const mY = ig ? safeBot + 40 : H - 64;             // motto
   const lY = mY - 20 - lgH;                           // logo nad mottom
   const slotH = 150, sY = lY - 36 - slotH;            // miesto na nálepku ODKAZ
   const end = ig ? sY - 44 : lY - 92;                 // FB: nad logom riadok s dogypt.com
@@ -233,8 +234,15 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
       ctx.drawImage(lc, cx - lgW / 2, lY, lgW, lgH);
     }
   }
-  ctx.fillStyle = WARM; ctx.font = '700 26px Cinzel'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  ctx.letterSpacing = '6px'; ctx.fillText(tx.motto.toUpperCase(), cx, mY); ctx.letterSpacing = '0px';
+  // motto NIKDY širšie ako logo (Matej 23. 10.: „motto nesmie byt širšie ako logo") — zmenšuje sa písmo aj rozstup
+  ctx.fillStyle = WARM; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const motto = tx.motto.toUpperCase();
+  let mfs = 26;
+  for (; mfs > 12; mfs -= 1) {
+    ctx.font = `700 ${mfs}px Cinzel`; ctx.letterSpacing = `${Math.round(mfs * 0.23)}px`;
+    if (ctx.measureText(motto).width <= lgW) break;
+  }
+  ctx.fillText(motto, cx, mY); ctx.letterSpacing = '0px';
 }
 
 function slug(name: string): string {

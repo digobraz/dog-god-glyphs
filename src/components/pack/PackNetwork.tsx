@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 import { BonesCoin } from '@/components/pack/BonesCoin';
 import { BONES } from '@/components/pack/bonesSkin';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 // Len pre ukážkovú líniu (`?netdemo=62`) — reálne psy z WALLu, aby simulácia
@@ -266,8 +267,9 @@ const NET_CSS = `
 .pkb-bar > i{display:block;height:100%;min-width:${S.sm}px;border-radius:${R.pill}px;background:${BONES.grad};}
 .pkb-mis p{margin:0;font-family:${FONT_UI};font-size:12px;color:${BONES.onDeepDim};}
 .pkb-cta{display:flex;align-items:center;justify-content:center;gap:${S.sm}px;width:100%;margin-top:${S.lg}px;padding:${S.md}px ${S.lg}px;border-radius:${R.btn}px;
-  background:${BONES.grad};color:${BONES.ink};border:0;box-shadow:${PACK_SHADOW.lift};cursor:pointer;
+  background:${LAPIS.grad};color:${LAPIS.ink};border:0;box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;
   font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;}
+.pkb-cta:hover:not(:disabled){background:${LAPIS.gradHover};}
 .pkb-cta:disabled{opacity:.5;cursor:default;}
 .pkb-sec{margin-top:${S.xl}px;}
 .pkb-h{display:flex;align-items:baseline;justify-content:space-between;gap:${S.sm}px;margin:0 0 ${S.sm}px;}
@@ -501,10 +503,10 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
         {mission && <div className="pkb-mis">{mission}</div>}
       </div>
 
-      {/* ② ODKAZ — hlavná akcia hneď pod stavom, nie na konci šuplíka. Tyrkysové CTA je
-          priznaná výnimka sekcie BONES (`bonesSkin.ts`); tvar ostáva `.btn-gold` (r8). */}
+      {/* ② ODKAZ — hlavná akcia hneď pod stavom, nie na konci šuplíka. LAPIS ako každé hlavné CTA
+          (Matej 23. 10.: tyrkys len pri BONES ako mene); tvar ostáva `.btn-gold` (r8). */}
       <button type="button" className="pkb-cta" onClick={onShare ?? handleShare} disabled={!onShare && !link}>
-        <BrandIcon name="link" size={16} tint="dark" />
+        <BrandIcon name="link" size={16} tint="gold" />
         {tx('pack.network.shareLink', 'Share your link')}
       </button>
       <div className="flex items-center justify-center gap-1.5" style={{ marginTop: 8, fontFamily: FONT_UI, fontSize: 12, color: T.inkFaint }}>
@@ -1308,8 +1310,9 @@ function MemberRow({ m, lvl, full, no }: { m: Member; lvl: number; full?: boolea
           fontFamily: FONT_UI,
           fontWeight: 600,
           fontSize: 10,
-          color: '#3d1f00',
-          background: 'linear-gradient(180deg, #F5C73D, #E69E1A)',
+          // +BONES = mena ⇒ tyrkys sekcie (Matej 23. 10.: „tyrkys používame len v súvislosti s BONES s menou")
+          color: BONES.ink,
+          background: BONES.grad,
           borderRadius: 999,
           padding: '4px 8px',
           gap: 4,
