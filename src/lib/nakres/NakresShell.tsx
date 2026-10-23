@@ -48,6 +48,8 @@ type Tah = {
   rezim: 'tok' | 'volne'; kopia: boolean; sx: number; sy: number; zacal: boolean;
   prvky: HTMLElement[]; originaly: HTMLElement[]; zaklad: Map<Element, { dx: number; dy: number }>;
   povodne: { el: HTMLElement; op: string; pe: string }[];
+  /** Klik bez ťahu na UŽ vybraný blok = o úroveň hlbšie (pilulky levelov v titulke, 23. 10.). */
+  ciel: Element; uzVybrany: boolean;
 };
 /** Čo práve ťahám (z appky aj z ponuky) — z toho sa ráta miesto vloženia. */
 type Ciel = { ignor: Element[]; w: number; h: number; ox: number; oy: number; volne: boolean; medzera?: boolean };
@@ -515,7 +517,9 @@ function NakresShell() {
       }
       if (vEdite(e.target)) return;
       const t = ciel(e);
-      const h = t ? A().urovenPre(t) : null;
+      // Nad vybraným blokom ukáž, čo vyberie ďalší klik (o úroveň hlbšie).
+      const S = selRef.current.length === 1 ? selRef.current[0] : null;
+      const h = t ? (S && S !== t && S.contains(t) ? dietaKu(S, t) ?? S : A().urovenPre(t)) : null;
       if (h !== hoverRef.current) { hoverRef.current = h; prekresli(); }
     };
 
@@ -535,12 +539,14 @@ function NakresShell() {
         return;
       }
       const s = selRef.current;
-      const vybrane = s.some((x) => x.contains(t)) ? s : [u];
+      const uzVybrany = s.some((x) => x.contains(t));
+      const vybrane = uzVybrany ? s : [u];
       if (vybrane !== s) A().vyber(vybrane);
       else setMenu(null);
       tahRef.current = {
         rezim: e.shiftKey ? 'volne' : 'tok', kopia: e.altKey, sx: e.clientX, sy: e.clientY, zacal: false,
         prvky: vybrane as HTMLElement[], originaly: vybrane as HTMLElement[], zaklad: new Map(), povodne: [],
+        ciel: t, uzVybrany: uzVybrany && s.length === 1,
       };
     };
 
@@ -549,6 +555,12 @@ function NakresShell() {
       tahRef.current = null;
       if (!T) return;
       zastav(e);
+      if (!T.zacal && T.uzVybrany) {
+        const S = T.prvky[0];
+        const d2 = dietaKu(S, T.ciel);
+        if (d2) { kontextRef.current = S; A().vyber([d2]); }
+        return;
+      }
       if (T.zacal && T.rezim === 'tok') {
         for (const p of T.povodne) { p.el.style.opacity = p.op; p.el.style.pointerEvents = p.pe; }
         const m = miestoRef.current;
@@ -575,21 +587,9 @@ function NakresShell() {
       zastav(e);
       const t = ciel(e);
       if (!t) return;
-      const S = selRef.current.length === 1 ? selRef.current[0] : null;
-      if (S && S.contains(t)) {
-        // Dvojklik = o úroveň dovnútra; na liste s textom rovno prepis.
-        const d2 = dietaKu(S, t);
-        if (d2) {
-          kontextRef.current = S;
-          A().vyber([d2]);
-          if (maText(d2) && !d2.children.length) A().zacniText(d2 as HTMLElement);
-          return;
-        }
-        const tx = A().textovyPrvok(S);
-        if (tx) { A().vyber([tx]); A().zacniText(tx); }
-        return;
-      }
-      A().vyber([A().urovenPre(t)]);
+      // Dvojklik = prepis textu pod kurzorom (o úroveň hlbšie už ide jeden klik na vybraný blok).
+      const tx = maText(t) ? t : A().textovyPrvok(t);
+      if (tx) { kontextRef.current = tx.parentElement; A().vyber([tx]); A().zacniText(tx); }
     };
 
     d.addEventListener('pointermove', pohyb, true);
@@ -969,7 +969,8 @@ function NakresShell() {
             </section>
           ) : (
             <Napoveda riadky={[
-              'Klik = blok · dvojklik = dovnútra / prepíš text',
+              'Klik = blok · ďalší klik = o úroveň hlbšie',
+              'Dvojklik = prepíš text',
               'Ťahaj = presuň: stred bloku = dnu, bočný kraj = vedľa, inak pred/za',
               'Shift + ťahaj = voľne · Option + ťahaj = kópia',
               'Cmd + klik = viac prvkov naraz',
