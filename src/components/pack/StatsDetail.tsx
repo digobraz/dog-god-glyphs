@@ -14,6 +14,9 @@ import { RankingBoardsModal } from './Ranking';
 import { PACK_BOX, PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI, PILL_CSS, PROGRESS_CSS } from './packTheme';
 import { LAPIS, pickTintCSS, PICK_INK } from './navGoldSkin';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
+import { pokladnica, rozvojZostatok, type PrijemMesiac } from '@/lib/pokladnica';
+import { PokladnicaSheet, DALSI_UTULOK, VYPLATA_UTULKU, MILION, type Suplik } from './PokladnicaSheet';
+import { HandArrowLeft } from './HandIcons';
 import { countryISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import { localizeBreed } from '@/lib/breedDisplay';
 import { flagUrl } from '@/lib/flagUrl';
@@ -62,9 +65,13 @@ const CSS = `${PILL_CSS}${PROGRESS_CSS}
 .sd-row span{white-space:nowrap;overflow:hidden;text-overflow:clip;}
 .sd-row b{font-weight:600;min-width:24px;text-align:right;}
 .sd-more{margin-top:${PACK_SPACE.sm}px;background:none;border:0;padding:0;cursor:pointer;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${LAPIS.edge};}
-.sd-split{display:flex;gap:2px;height:12px;border-radius:${PACK_R.pill}px;overflow:hidden;margin-top:${PACK_SPACE.md}px;}
-.sd-leg{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;margin-top:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkStrong};}
-.sd-leg span{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;min-width:0;}
+.sd-dr{display:grid;grid-template-columns:8px minmax(0,1fr) auto 12px;align-items:center;gap:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;width:100%;padding:${PACK_SPACE.md}px 0;background:none;border:0;border-top:1px solid ${T.border};cursor:pointer;text-align:left;font-family:${FONT_UI};color:${T.inkStrong};}
+.sd-dr:first-of-type{border-top:0;padding-top:${PACK_SPACE.sm}px;}
+.sd-dr .nm{font-size:${PACK_TEXT.label}px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;overflow:hidden;}
+.sd-dr .v{font-size:${PACK_TEXT.body}px;font-weight:600;white-space:nowrap;}
+.sd-dr .ch{color:${T.inkWarm};font-size:${PACK_TEXT.label}px;}
+.sd-dr .s2{grid-column:2/4;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+.sd-dr .s2 b{font-weight:600;color:${T.inkStrong};}
 .sd-dot{flex:0 0 auto;width:8px;height:8px;border-radius:${PACK_R.pill}px;}
 .sd-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:${PACK_SPACE.sm}px;}
 .sd-pills .pk-pill{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;}
@@ -78,16 +85,21 @@ export function StatsDetail({ stats }: { stats: StatsDetailData | null }) {
   const fmt = (n: number) => n.toLocaleString(loc);
   const [tab, setTab] = useState<'country' | 'breed'>('country');
   const [boardsOpen, setBoardsOpen] = useState(false);
-  const [revenue, setRevenue] = useState<number | null>(null);
+  const [kasaRaw, setKasaRaw] = useState<{ t: { dev: number; affiliate: number; help: number; hektor: number }; mesiace: PrijemMesiac[] } | null>(null);
+  const [suplik, setSuplik] = useState<Suplik | null>(null);
 
-  // Pokladnica — ten istý zdroj ako dashboard aj `TransparentStats` (get-dashboard-stats).
+  // Pokladnica — ten istý zdroj ako dashboard, DOGYPTLAND aj `TransparentStats` (get-dashboard-stats).
   useEffect(() => {
     let live = true;
     fetch(`${EDGE_BASE}/get-dashboard-stats`).then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (live && d && !d.error) setRevenue(Number(d.revenue_total) || 0); })
+      .then((d) => { if (live && d && !d.error && d.treasuries) setKasaRaw({ t: d.treasuries, mesiace: d.revenue_by_month ?? [] }); })
       .catch(() => {});
     return () => { live = false; };
   }, []);
+  // Príjem vs. náklady (lib/pokladnica.ts) — mesiace sa dopočítajú k dnešku, účet rastie sám.
+  const kasa = useMemo(() => (kasaRaw ? pokladnica(kasaRaw.mesiace) : null), [kasaRaw]);
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  const eur = (n: number) => new Intl.NumberFormat(loc, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(Math.round(n));
 
   const total = stats?.dogs ?? 0;
   const countries = useMemo(() => {
@@ -123,8 +135,11 @@ export function StatsDetail({ stats }: { stats: StatsDetailData | null }) {
   })();
   const rows = (tab === 'country' ? countries : breeds).slice(0, ROWS);
   const top = rows[0]?.count || 1;
-  // Pokladnica: 8 € komunity sa ukazuje rozdelená (5 + 3), tak ako po rozkliku dnes.
-  const split = TRANSPARENCY_SPLIT.flatMap((p) => (p.parts.length ? p.parts : [p]));
+  // Pokladnica = TRI šuplíky (Matej 23. 10.: „sú len 3 šuplíky"). Farba a meno z TRANSPARENCY_SPLIT.
+  const [pRozvoj, pPomoc, pMiska] = TRANSPARENCY_SPLIT;
+  const zostatok = kasa && kasaRaw ? rozvojZostatok(kasaRaw.t.dev, kasaRaw.t.affiliate, kasa.naklady) : 0;
+  const pomoc = kasaRaw?.t.help ?? 0;
+  const miska = kasaRaw?.t.hektor ?? 0;
 
   return (
     <div className="sd">
@@ -175,25 +190,27 @@ export function StatsDetail({ stats }: { stats: StatsDetailData | null }) {
         <button type="button" className="sd-more" onClick={() => setBoardsOpen(true)}>{t('pack.rank.allBoards')}</button>
       </div>
 
-      {/* ③ POKLADNICA — jeden pás s legendou */}
-      <div className="sd-sub" style={{ ...PACK_BOX.subblock }}>
-        <div className="sd-head">
-          <span className="sd-lbl">{t('pack.invite.transparencySubtitle', { price: '€11' })}</span>
-          {revenue !== null && (
-            <span className="sd-num" style={{ fontSize: PACK_TEXT.body }}>
-              {new Intl.NumberFormat(loc, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(revenue)}
+      {/* ③ POKLADNICA — tri šuplíky; ťuk otvorí šuplík cez celú obrazovku (PokladnicaSheet) */}
+      {kasa && kasaRaw && (
+        <div className="sd-sub" style={{ ...PACK_BOX.subblock }}>
+          <span className="sd-lbl">{tx('pack.kasa.now', 'Treasury · now {sum}').replace('{sum}', eur(zostatok + pomoc + miska))}</span>
+          <button type="button" className="sd-dr" onClick={() => setSuplik('rozvoj')}>
+            <i className="sd-dot" style={{ background: pRozvoj.color }} /><span className="nm">{t(pRozvoj.labelKey)}</span><span className="v">{eur(zostatok)}</span><span className="ch" aria-hidden><HandArrowLeft size={12} style={{ transform: 'scaleX(-1)' }} /></span>
+            <span className="s2"><span>{tx('pack.kasa.inOut', 'income {a} · costs {b}').replace('{a}', eur(kasa.prijem)).replace('{b}', eur(kasa.naklady))}</span></span>
+          </button>
+          <button type="button" className="sd-dr" onClick={() => setSuplik('pomoc')}>
+            <i className="sd-dot" style={{ background: pPomoc.color }} /><span className="nm">{t(pPomoc.labelKey)}</span><span className="v">{eur(pomoc)}</span><span className="ch" aria-hidden><HandArrowLeft size={12} style={{ transform: 'scaleX(-1)' }} /></span>
+            <span className="s2">
+              <span className="pk-progress"><span className="pk-progress__fill" style={{ ...fillW(((pomoc % VYPLATA_UTULKU) / VYPLATA_UTULKU) * 100), background: pPomoc.color }} /></span>
+              <span>{tx('pack.kasa.missing', 'missing {n} · {shelter}').replace('{n}', eur(VYPLATA_UTULKU - (pomoc % VYPLATA_UTULKU))).replace('{shelter}', `${DALSI_UTULOK.meno} ${DALSI_UTULOK.mesto}`)}</span>
             </span>
-          )}
+          </button>
+          <button type="button" className="sd-dr" onClick={() => setSuplik('miska')}>
+            <i className="sd-dot" style={{ background: pMiska.color }} /><span className="nm">{t(pMiska.labelKey)}</span><span className="v">{eur(miska)}</span><span className="ch" aria-hidden><HandArrowLeft size={12} style={{ transform: 'scaleX(-1)' }} /></span>
+            <span className="s2"><span>{tx('pack.kasa.toMillion', 'to a million {n}').replace('{n}', eur(MILION - miska))}</span></span>
+          </button>
         </div>
-        <div className="sd-split">
-          {split.map((p) => <span key={p.labelKey} style={{ flex: p.share, background: p.color }} />)}
-        </div>
-        <div className="sd-leg">
-          {split.map((p) => (
-            <span key={p.labelKey}><i className="sd-dot" style={{ background: p.color }} />{p.share} € {t(p.labelKey)}</span>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* ④ TEMPO */}
       {stats && (
@@ -202,6 +219,21 @@ export function StatsDetail({ stats }: { stats: StatsDetailData | null }) {
           <span className="pk-pill"><b>{fmt(countries.length)}</b>{t('pack.notif.countries')}</span>
           <span className="pk-pill"><b>{fmt(stats.total)}</b>{t('pack.notif.peopleWord')}</span>
         </div>
+      )}
+
+      {suplik && kasa && (
+        <PokladnicaSheet
+          suplik={suplik}
+          color={(suplik === 'rozvoj' ? pRozvoj : suplik === 'pomoc' ? pPomoc : pMiska).color}
+          title={t((suplik === 'rozvoj' ? pRozvoj : suplik === 'pomoc' ? pPomoc : pMiska).labelKey)}
+          onClose={() => setSuplik(null)}
+          eur={eur}
+          locale={loc}
+          tx={tx}
+          zostatok={zostatok}
+          kasa={kasa}
+          suma={suplik === 'pomoc' ? pomoc : miska}
+        />
       )}
 
       {boardsOpen && (

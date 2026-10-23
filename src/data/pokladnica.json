@@ -1,0 +1,107 @@
+{
+  "zdroj": "vystupy/dashboard/embeds/naklady/sluzby.js",
+  "kurzUsd": 0.92,
+  "praca": {
+    "od": "2026-01",
+    "hodinMesacne": 160,
+    "sadzba": 30
+  },
+  "sluzby": [
+    {
+      "id": "claude",
+      "nazov": "Claude Code",
+      "mena": "EUR",
+      "cena": 110.7,
+      "obd": "mes",
+      "od": "2026-01"
+    },
+    {
+      "id": "kie",
+      "nazov": "Kie.ai",
+      "mena": "USD",
+      "platby": [
+        {
+          "d": "2026-09",
+          "cena": 50
+        },
+        {
+          "d": "2026-10",
+          "cena": 50
+        }
+      ]
+    },
+    {
+      "id": "stripe",
+      "nazov": "Stripe",
+      "mena": "EUR",
+      "poplatok": {
+        "pct": 1.5,
+        "fix": 0.25
+      }
+    },
+    {
+      "id": "cloudinary",
+      "nazov": "Cloudinary",
+      "mena": "USD",
+      "cena": 29,
+      "obd": "mes",
+      "od": "2026-09"
+    },
+    {
+      "id": "mailerlite",
+      "nazov": "MailerLite",
+      "mena": "USD",
+      "cena": 11,
+      "obd": "mes",
+      "od": "2026-01"
+    },
+    {
+      "id": "websupport",
+      "nazov": "WebSupport",
+      "mena": "EUR",
+      "cena": 22,
+      "obd": "mes",
+      "od": "2026-01"
+    },
+    {
+      "id": "websupport-domena",
+      "nazov": "dogypt.com",
+      "mena": "EUR",
+      "cena": 20,
+      "obd": "rok",
+      "od": "2026-01"
+    },
+    {
+      "id": "canva",
+      "nazov": "Canva",
+      "mena": "EUR",
+      "cena": 11.99,
+      "obd": "mes",
+      "od": "2026-01"
+    },
+    {
+      "id": "backblaze",
+      "nazov": "Backblaze",
+      "mena": "USD",
+      "cena": 99,
+      "obd": "rok",
+      "od": "2026-10"
+    },
+    {
+      "id": "apple-dev",
+      "nazov": "Apple Developer",
+      "mena": "USD",
+      "cena": 99,
+      "obd": "rok",
+      "od": "2026-10"
+    },
+    {
+      "id": "google-play",
+      "nazov": "Google Play",
+      "mena": "USD",
+      "cena": 25,
+      "obd": "raz",
+      "od": "2026-10"
+    }
+  ]
+}
