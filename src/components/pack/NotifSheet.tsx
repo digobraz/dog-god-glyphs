@@ -15,8 +15,9 @@
 import type React from 'react';
 import { forwardRef, lazy, Suspense, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HandTail } from './HandIcons';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, STAGE_CSS, BLURFADE_CSS } from './packTheme';
+import { HandArrowLeft, HandForward } from './HandIcons';
+import { BackButton } from './BackButton';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, STAGE_CSS } from './packTheme';
 import { LAPIS } from './navGoldSkin';
 import { AINUBIS } from './ainubisSkin';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -157,54 +158,42 @@ const CSS = `
 @keyframes ntf-in{from{transform:translateX(100%);}to{transform:none;}}
 @keyframes ntf-fade{from{opacity:0;}to{opacity:1;}}
 .ntf-top{display:flex;align-items:center;gap:${PACK_SPACE.md}px;padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) ${PACK_SPACE.lg}px ${PACK_SPACE.sm}px;}
-.ntf-back{width:32px;height:32px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;border:1.5px solid ${T.hairline};background:none;color:${LAPIS.edge};cursor:pointer;font-size:${PACK_TEXT.lead}px;line-height:1;}
 .ntf-ttl{flex:1;font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.14em;text-transform:uppercase;}
-.ntf-tail{width:40px;height:40px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};}
 .ntf-stats{position:relative;display:block;flex:0 0 auto;overflow:hidden;container-type:inline-size;
   margin:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px 0;
-  height:25dvh;min-height:176px;width:calc(100% - ${PACK_SPACE.xxl}px);cursor:pointer;text-align:left;font:inherit;color:inherit;
-  background:
-    radial-gradient(120% 90% at 100% 0%, rgba(16,52,166,0.16) 0%, rgba(16,52,166,0) 55%),
-    radial-gradient(90% 80% at 0% 100%, rgba(201,154,63,0.30) 0%, rgba(201,154,63,0) 60%),
-    rgba(255,255,255,0.40);
+  height:clamp(176px, 25dvh, 220px);width:calc(100% - ${PACK_SPACE.xxl}px);cursor:pointer;text-align:left;font:inherit;color:inherit;
+  background:rgba(255,255,255,0.40);
   border:1px solid ${T.hairline};border-radius:${PACK_R.card}px;box-shadow:${PACK_SHADOW.card};transition:transform .15s ease;}
 .ntf-stats:active{transform:scale(0.98);}
-/* FOTKA NAJNOVŠIEHO PSA — CELÁ v kruhu (Matej 21. 10.: „daj tu foto celú nie len kúsok, to sme
-   dávali len ako planéta… v rámci fotky aj číslo ako je to teraz aj na HomePage").
-   Stĺpec vľavo: kruh + meno pod ním. Priemer berie menšie z dvoch: miesto vedľa čísel psy/ľudia
-   (šírka bloku − ich stĺpec) a výška bloku nad bežiacim pásom (− miesto na meno). */
-.ntf-dogcol{position:absolute;z-index:2;left:${PACK_SPACE.sm}px;top:${PACK_SPACE.sm}px;bottom:44px;
-  --ntf-d:min(calc(100cqw - 230px), calc(max(176px, 25dvh) - 96px));
-  width:calc(var(--ntf-d) + ${PACK_SPACE.xxl}px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;}
-.ntf-dogwrap{position:relative;width:var(--ntf-d);height:var(--ntf-d);flex:0 0 auto;}
-.ntf-dog{display:block;width:100%;height:100%;border-radius:${PACK_R.pill}px;overflow:hidden;
-  border:2px solid ${T.cardEdge};box-shadow:${PACK_SHADOW.card};background:${T.tileBg};cursor:pointer;padding:0;touch-action:pan-y;}
+/* FOTKA NAJNOVŠIEHO PSA — ŠTVOREC cez celú výšku bloku (Matej 23. 10.: „dajme štvorcovú fotku…
+   fotku zväčši cez celý blok"). Meno a číslo sedia NA fotke dole, na tmavom prechode. */
+.ntf-dogwrap{position:absolute;z-index:2;left:0;top:0;bottom:0;aspect-ratio:1;max-width:58%;}
+.ntf-dog{display:block;width:100%;height:100%;overflow:hidden;border:0;border-right:1px solid ${T.hairline};background:${T.tileBg};cursor:pointer;padding:0;touch-action:pan-y;}
 .ntf-dog img{width:100%;height:100%;object-fit:cover;display:block;animation:ntf-fade .3s ease both;}
-/* Odznak čísla NA FOTKE — ten istý ako na homepage (HeroCard): lapis, spodný okraj kruhu, svetlý lem. */
-.ntf-dog-num{position:absolute;left:50%;bottom:-${PACK_SPACE.xs}px;transform:translateX(-50%);pointer-events:none;white-space:nowrap;
-  font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.02em;line-height:1;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;
+.ntf-dog::after{content:'';position:absolute;left:0;right:0;bottom:0;height:46%;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.62));}
+/* Odznak čísla — ten istý ako na homepage (HeroCard): lapis. */
+.ntf-dog-cap{position:absolute;z-index:1;left:${PACK_SPACE.sm}px;right:${PACK_SPACE.sm}px;bottom:${PACK_SPACE.sm}px;display:flex;align-items:center;gap:${PACK_SPACE.sm}px;pointer-events:none;}
+.ntf-dog-num{flex:0 0 auto;white-space:nowrap;font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.02em;line-height:1;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;
   background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${T.hairline};box-shadow:${PACK_SHADOW.lift};}
 /* Trojbodka NEEXISTUJE (brand v4.1) — meno psa sa radšej zalomí. */
-.ntf-dog-name{max-width:100%;text-align:center;overflow-wrap:anywhere;line-height:1.15;font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.label}px;color:${T.inkStrong};pointer-events:none;}
-.ntf-arr{position:absolute;z-index:3;top:50%;width:28px;height:28px;margin-top:-14px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;padding:0;border:none;cursor:pointer;
+.ntf-dog-name{min-width:0;overflow-wrap:anywhere;line-height:1.15;font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.body}px;color:${T.card};}
+/* Šípka DOZADU vľavo (starší pes); dopredu sa objaví až keď je kam (Matej 23. 10.: „pri prvom
+   listovať sa bude dať len naspäť"). */
+.ntf-arr{position:absolute;z-index:3;top:50%;width:32px;height:32px;margin-top:-16px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;padding:0;border:none;cursor:pointer;
   background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${PACK_SHADOW.lift};font-size:${PACK_TEXT.lead}px;line-height:1;}
-.ntf-arr:disabled{opacity:.35;cursor:default;}
-.ntf-arr--prev{left:-${PACK_SPACE.md}px;}
-.ntf-arr--next{right:-${PACK_SPACE.md}px;}
-.ntf-stats .pk-blurfade{height:46%;z-index:1;}
-.ntf-nums{position:absolute;z-index:2;right:${PACK_SPACE.xxl}px;top:${PACK_SPACE.sm}px;bottom:52px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:${PACK_SPACE.xs}px;}
-/* Počítadlo nad stupnicou PACK_TEXT — ten istý precedens ako počítadlo glóbu na homepage
-   (GlobePulse, clamp 40–58 px). Matej: „psy a ľudia… max veľkosti", slovo VEDĽA čísla,
-   a „zachvíľku tam bude 1000, 10 000 až 1 000 000, prispôsob to tomu" → písmo sa zmenšuje
-   podľa POČTU ZNAKOV (--ntf-len), takže aj „1 000 000" sa zmestí na 360 px. Obe čísla
-   dostanú dĺžku dlhšieho, aby boli rovnako veľké. */
+.ntf-arr--prev{left:${PACK_SPACE.sm}px;}
+.ntf-arr--next{right:${PACK_SPACE.sm}px;}
+.ntf-nums{position:absolute;z-index:2;right:${PACK_SPACE.xxl}px;top:${PACK_SPACE.md}px;bottom:${PACK_SPACE.md}px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:${PACK_SPACE.xs}px;}
+/* Počítadlo — písmo sa zmenšuje podľa POČTU ZNAKOV (--ntf-len), aby sa zmestilo aj „1 000 000".
+   Farba = tmavý atrament papyrusu (Matej 23. 10.: lapis→zlatý gradient „nie sú v brande"). */
 .ntf-num{display:flex;align-items:baseline;gap:${PACK_SPACE.sm}px;}
-.ntf-num b{background:linear-gradient(135deg,#1034A6 0%,#16307A 45%,#C99A3F 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:'Cinzel',serif;font-weight:700;font-size:min(48px, calc(64cqw / var(--ntf-len, 3)));letter-spacing:.02em;line-height:1;white-space:nowrap;}
-.ntf-num span{font-size:${PACK_TEXT.label}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
-.ntf-tick{position:absolute;z-index:3;left:0;right:0;bottom:${PACK_SPACE.md}px;display:block;overflow:hidden;
+.ntf-num b{color:${T.inkStrong};font-family:'Cinzel',serif;font-weight:700;font-size:min(48px, calc(40cqw / var(--ntf-len, 3)));letter-spacing:.02em;line-height:1;white-space:nowrap;}
+.ntf-num span{font-size:${PACK_TEXT.label}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
+/* BEŽIACI PÁS — NAD blokom (Matej 23. 10.), nie v ňom. */
+.ntf-tick{position:relative;flex:0 0 auto;display:block;overflow:hidden;margin:${PACK_SPACE.sm}px 0 0;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 ${PACK_SPACE.lg}px,#000 calc(100% - ${PACK_SPACE.lg}px),transparent);
   mask-image:linear-gradient(90deg,transparent,#000 ${PACK_SPACE.lg}px,#000 calc(100% - ${PACK_SPACE.lg}px),transparent);}
-.ntf-tick-track{display:flex;gap:${PACK_SPACE.sm}px;padding-right:${PACK_SPACE.sm}px;width:max-content;animation:ntf-tick var(--ntf-tick-s,24s) linear infinite;}
+.ntf-tick-track{display:flex;gap:${PACK_SPACE.sm}px;padding:0 ${PACK_SPACE.sm}px 0 ${PACK_SPACE.lg}px;width:max-content;animation:ntf-tick var(--ntf-tick-s,24s) linear infinite;}
 .ntf-tick:hover .ntf-tick-track{animation-play-state:paused;}
 .ntf-pill{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;height:28px;padding:0 ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
   font-size:${PACK_TEXT.label}px;white-space:nowrap;border:1px solid ${T.hairline};background:rgba(251,245,230,0.78);color:inherit;font-family:inherit;}
@@ -236,7 +225,7 @@ const CSS = `
 .ntf-cta{flex:0 0 auto;font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.field}px;background:${LAPIS.grad};color:${LAPIS.ink};border:none;cursor:pointer;white-space:nowrap;}
 .ntf-empty{font-size:${PACK_TEXT.label}px;color:${T.inkDim};text-align:center;padding:${PACK_SPACE.sm}px;}
 .ntf-all{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.xl}px);}
-${STAGE_CSS}${BLURFADE_CSS}`;
+${STAGE_CSS}`;
 
 type Props = { onClose: () => void; children?: React.ReactNode; hasReal: boolean };
 
@@ -295,10 +284,11 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
       <div className="ntf-scrim" onClick={onClose} />
       <div ref={ref} className="ntf-sheet pk-stage">
         <div className="ntf-top">
-          <button type="button" className="ntf-back" aria-label={t('pack.notif.back')}
-            onClick={() => (view === 'stats' ? setView('list') : onClose())}>&#8592;</button>
+          {/* Brandová šípka (`BackButton`), chvost v hlavičke zanikol (Matej 23. 10.: „šípka dozadu nie je
+              v brande a ten chvost daj preč na tom paneli ho netreba"). */}
+          <BackButton tone="pale" label={t('pack.notif.back')}
+            onClick={() => (view === 'stats' ? setView('list') : onClose())} />
           <span className="ntf-ttl">{view === 'stats' ? t('pack.notif.allStats') : t('pack.notif.sheetTitle')}</span>
-          <span className="ntf-tail"><HandTail size={22} className="ntf-wag" style={{ color: T.inkStrong }} /></span>
         </div>
 
         {view === 'stats' ? (
@@ -310,36 +300,45 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
         ) : (
           <>
 
-            {/* ŠTATISTIKY HORE (21. 10. 2026) — skúšané aj dole, Matej: „vieš čo daj to predsa len
-                hore". Max 1/4 výšky (Matej). */}
-            {/* BLOK = dvere do všetkých štatistík. Pás pod ním je SÚČASŤ bloku, ale oznam v ňom
-                vedie na vlastný príspevok — preto blok nie je <button> (tlačidlo v tlačidle). */}
+            {/* BEŽIACI PÁS NAD blokom (Matej 23. 10.: „tie rotujúce pills dáme nad tento blok hore"). */}
+            {pills.length > 0 && (
+              <div className="ntf-tick" style={{ ['--ntf-tick-s' as string]: `${Math.max(16, pills.length * 5)}s` }}>
+                {/* Dve kópie za sebou — posun o -50 % je presne jedna kópia, takže slučka nemá švík. */}
+                <span className="ntf-tick-track">
+                  {pills}
+                  <span aria-hidden style={{ display: 'contents' }}>{pills}</span>
+                </span>
+              </div>
+            )}
+            {/* BLOK = dvere do všetkých štatistík. Max 1/4 výšky (Matej 21. 10.). */}
             <div className="ntf-stats" role="button" tabIndex={0} aria-label={t('pack.notif.allStats')}
               onClick={() => setView('stats')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setView('stats'); }}>
-              {/* Spodok bloku sa rozplynie pod bežiacim pásom (Matej 21. 10.: „spodnú časť rozmaž nejak takto"). */}
-              <span className="pk-blurfade" aria-hidden />
               {/* Ťuk na fotku = karta psa, ťuk na zvyšok bloku = všetky štatistiky. Švih = ďalší pes. */}
               {cur && (
-                <span className="ntf-dogcol">
-                  <span className="ntf-dogwrap">
-                    <button type="button" className="ntf-dog" aria-label={`#${cur.n} ${cur.name}`}
-                      onClick={(e) => { e.stopPropagation(); onClose(); navigate(dogPagePath(cur.name, cur.n)); }}
-                      onTouchStart={(e) => setTouchX(e.touches[0].clientX)}
-                      onTouchEnd={(e) => {
-                        if (touchX === null) return;
-                        const dx = e.changedTouches[0].clientX - touchX;
-                        setTouchX(null);
-                        if (Math.abs(dx) > 40) { e.preventDefault(); step(dx < 0 ? 1 : -1); }
-                      }}>
-                      <img key={cur.n} src={sizedUrl(cur.photo, 400)} alt="" />
-                    </button>
+                <span className="ntf-dogwrap">
+                  <button type="button" className="ntf-dog" aria-label={`#${cur.n} ${cur.name}`}
+                    onClick={(e) => { e.stopPropagation(); onClose(); navigate(dogPagePath(cur.name, cur.n)); }}
+                    onTouchStart={(e) => setTouchX(e.touches[0].clientX)}
+                    onTouchEnd={(e) => {
+                      if (touchX === null) return;
+                      const dx = e.changedTouches[0].clientX - touchX;
+                      setTouchX(null);
+                      if (Math.abs(dx) > 40) { e.preventDefault(); step(dx < 0 ? 1 : -1); }
+                    }}>
+                    <img key={cur.n} src={sizedUrl(cur.photo, 400)} alt="" />
+                  </button>
+                  <span className="ntf-dog-cap">
                     <span className="ntf-dog-num">#{cur.n}</span>
-                    <button type="button" className="ntf-arr ntf-arr--prev" aria-label={t('pack.notif.newerDog')}
-                      disabled={di === 0} onClick={(e) => { e.stopPropagation(); step(-1); }}>&#8249;</button>
-                    <button type="button" className="ntf-arr ntf-arr--next" aria-label={t('pack.notif.olderDog')}
-                      disabled={di >= newest.length - 1} onClick={(e) => { e.stopPropagation(); step(1); }}>&#8250;</button>
+                    <span className="ntf-dog-name">{cur.name}</span>
                   </span>
-                  <span className="ntf-dog-name">{cur.name}</span>
+                  {di < newest.length - 1 && (
+                    <button type="button" className="ntf-arr ntf-arr--prev" aria-label={t('pack.notif.olderDog')}
+                      onClick={(e) => { e.stopPropagation(); step(1); }}><HandArrowLeft size={16} /></button>
+                  )}
+                  {di > 0 && (
+                    <button type="button" className="ntf-arr ntf-arr--next" aria-label={t('pack.notif.newerDog')}
+                      onClick={(e) => { e.stopPropagation(); step(-1); }}><HandArrowLeft size={16} style={{ transform: 'scaleX(-1)' }} /></button>
+                  )}
                 </span>
               )}
               {/* Najvýraznejšie: psy a ľudia, pod sebou (Matej 21. 10.). */}
@@ -347,16 +346,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                 <span className="ntf-num"><b>{stats ? fmt(dogs) : '—'}</b><span>{t('pack.notif.dogsWord')}</span></span>
                 <span className="ntf-num"><b>{stats ? fmt(stats.total) : '—'}</b><span>{t('pack.notif.peopleWord')}</span></span>
               </span>
-              <span className="ntf-chev" aria-hidden>&#8250;</span>
-              {pills.length > 0 && (
-                <span className="ntf-tick" style={{ ['--ntf-tick-s' as string]: `${Math.max(16, pills.length * 5)}s` }}>
-                  {/* Dve kópie za sebou — posun o -50 % je presne jedna kópia, takže slučka nemá švík. */}
-                  <span className="ntf-tick-track">
-                    {pills}
-                    <span aria-hidden style={{ display: 'contents' }}>{pills}</span>
-                  </span>
-                </span>
-              )}
+              <span className="ntf-chev" aria-hidden><HandForward size={16} /></span>
             </div>
             <div className="ntf-list">
               {hasReal && <div className="ntf-real">{children}</div>}
