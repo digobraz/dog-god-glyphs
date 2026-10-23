@@ -57,8 +57,6 @@ export const WIZ_SCREENS: WizScreen[] = [
     key: 'home', routes: ['/pack'], basket: 1, status: 'kroky',
     steps: [
       { id: 'home.welcome', anchor: 'welcome', text: 'pack.wizard.welcome.body', since: '2026-08-24' },
-      { id: 'home.hero', anchor: WIZ.hero, text: 'pack.wizard.home.body', since: '2026-08-24' },
-      { id: 'home.dogs', anchor: WIZ.dogsRow, text: 'pack.wizard.toDogs.body', textNoDog: 'pack.wizard.toDogs.bodyNoDog', since: '2026-08-24' },
       { id: 'home.navOut', anchor: WIZ.navMap, text: 'pack.wizard.toMap.body', since: '2026-08-24' },
       { id: 'home.navAdd', anchor: WIZ.navAdd, text: 'pack.wizard.navAdd.body', since: '2026-10-06' },
       { id: 'home.navMe', anchor: WIZ.navMe, text: 'pack.wizard.navMe.body', since: '2026-10-06' },

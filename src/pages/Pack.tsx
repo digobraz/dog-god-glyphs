@@ -3,7 +3,6 @@ import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME, PACK_BOX } from '@/components/pack/packTheme';
-import { HeroCard } from '@/components/pack/HeroCard';
 import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
 import { Navigate, useLocation } from 'react-router-dom';
 import { GlobePulse } from '@/components/pack/GlobePulse';
@@ -211,35 +210,6 @@ export default function Pack() {
     };
   }, []);
 
-  const treeDogs = (dogs ?? []).map((d) => ({
-    id: d.id,
-    dog_name: d.dog_name,
-    cloudinary_main_url: d.cloudinary_main_url,
-    pack_number: d.pack_number ?? null,
-  }));
-
-  // Meno majiteľa — ZDROJ PRAVDY = `full_name` z účtu (mení sa v /pack/profile).
-  // Predtým vyhrával `dogs.owner_name` (kartuša z checkoutu) a prebíjal ho, takže
-  // zmena mena sa po reloade vrátila späť = editácia bola fakticky mŕtva.
-  // `owner_name` ostáva nedotknuté — je to kartuša na certifikáte a faktúre (doklad),
-  // slúži tu už len ako fallback pre účet bez vyplneného mena.
-  const firstName = (raw: string) =>
-    raw.split(' ')[0].charAt(0).toUpperCase() + raw.split(' ')[0].slice(1).toLowerCase();
-  const cartoucheName = (dogs ?? [])
-    .map((d) => (d.owner_name ?? '').trim())
-    .find((n) => n.length > 0);
-  // Poradie: účet (/pack/profile) → kartuša z checkoutu → meno odvodené z e-mailu.
-  const displayName = user?.fullName
-    ? firstName(user.fullName)
-    : cartoucheName
-      ? firstName(cartoucheName)
-      : (user?.name ?? 'Dogyptian');
-
-  // Faraón placeholder podľa pohlavia majiteľa (z heroglyph selections), keď chýba reálna fotka
-  const ownerGender = (dogs ?? [])
-    .map((d) => d.owner_gender)
-    .find((g): g is 'man' | 'woman' => g === 'man' || g === 'woman') ?? null;
-
   // Krajina majiteľa = country z prvého psa s vyplnenou krajinou → pin na globe.
   const ownerCountry = (dogs ?? [])
     .map((d) => (d.country ?? '').trim())
@@ -263,33 +233,10 @@ export default function Pack() {
         {/* Ambient drifting orbs */}
         <AmbientOrbs />
 
-        {/* ── JA + SVORKA — JEDEN blok (konsolidácia 2026-08-08, Matej: „ideme
-            zjednodušiť, 1 blok nie dva v riadku… nakoniec tie veci sú aj v /dogs").
-            Fialový `PackTree` sa tu už nemountuje; rad [majiteľ] [psy] [+] je vnútri
-            HeroCard. `PackTree.tsx` NEMAZAŤ — parkuje, tak ako DailyPrayers.
-            Kotva `WIZ.hero` = prvý krok prehliadky. Druhý krok svieti na rad psov
-            VNÚTRI HeroCard (`WIZ.dogsRow`) — dve kotvy na tom istom bloku by boli
-            dva kroky s tým istým spotlightom. */}
-        <div id={WIZ.hero} className="relative">
-          <div>
-            {!user ? (
-              <TreeSkeleton />
-            ) : (
-              <HeroCard
-                name={displayName}
-                email={user.email}
-                avatarUrl={user.avatarUrl}
-                genderPlaceholder={ownerGender}
-                devotion={user.devotion}
-                bones={user.bones}
-                stats={stats ? { last24h: stats.last24h, last30d: stats.last30d, total: stats.dogs ?? stats.total } : null}
-                dogs={dogs === null ? null : treeDogs}
-                packName={profile?.human.packName ?? null}
-              />
-            )}
-
-          </div>
-        </div>
+        {/* ── JA + SVORKA (`HeroCard`) z DOMOVA ODIŠLO 23. 10. 2026 — Matej: „1blok je už teraz
+            aplikovaný v /profile = vymaž ho z homepage". Meno, psy, DEVOTION a BONES nesie
+            profil JA. `HeroCard.tsx` NEMAZAŤ — parkuje ako `PackTree`/`DailyPrayers`.
+            Kroky prehliadky `home.hero` a `home.dogs` odišli s ním (`wizSteps.ts`). */}
 
         {/* MODLITBY (denný rituál) — ZATIAĽ CELKOM PREČ (Matej 6.8.2026: „tieto motlitby
             sme si povedali že sa rušia (zatial celkom preč)"). Z karty psa odišli a na homepage
@@ -431,23 +378,4 @@ function PackAnimations() {
 }
 
 
-function TreeSkeleton() {
-  return (
-    <div
-      className="animate-pulse"
-      style={{
-        // Úroveň 1 MATRICE (`PACK_BOX.card`) — matrica dáva výplň/rám/radius/tieň,
-        // komponent len rozostupy.
-        ...PACK_BOX.card,
-        padding: 26,
-      }}
-    >
-      <div
-        className="mx-auto"
-        style={{ width: 72, height: 72, borderRadius: '50%', background: T.bg }}
-      />
-      <div className="mx-auto mt-3" style={{ width: 2, height: 22, background: T.border }} />
-      <div className="mt-3" style={{ height: 76, background: T.bg, borderRadius: 18 }} />
-    </div>
-  );
-}
+
