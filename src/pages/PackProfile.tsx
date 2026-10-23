@@ -1437,13 +1437,16 @@ function WillForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; o
   const { toast } = useToast();
   // LEN E-MAIL (Matej 23. 10., kolo 3: *„dajme to bez hesla … príde mu na mail a on si to vie otvoriť hneď"*).
   // Obsah závetu je v DOG ID; poistka proti zneužitiu = pawtnerovi príde upozornenie pri otvorení.
+  // DVA e-maily — hlavný a záložný (Matej 23. 10., kolo 4: „pre istotu"). Záložný je nepovinný.
   const [email, setEmail] = useState('');
+  const [email2, setEmail2] = useState('');
   const [busy, setBusy] = useState(false);
-  const ok = /\S+@\S+\.\S+/.test(email.trim()) && dogs.length > 0;
+  const isMail = (v: string) => /\S+@\S+\.\S+/.test(v.trim());
+  const ok = isMail(email) && (!email2.trim() || (isMail(email2) && email2.trim().toLowerCase() !== email.trim().toLowerCase())) && dogs.length > 0;
   const send = async () => {
     if (!ok || busy) return;
     setBusy(true);
-    const r = await createWill({ dogIds: dogs.map((d) => d.id), heirEmail: email.trim(), lang });
+    const r = await createWill({ dogIds: dogs.map((d) => d.id), heirEmail: email.trim(), heirEmail2: email2.trim() || undefined, lang });
     setBusy(false);
     if (r.ok) {
       toast({ title: tx('pack.wacc.sentTo', 'The will is on its way to {email}.').replace('{email}', email.trim()) });
@@ -1455,7 +1458,9 @@ function WillForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; o
   return (
     <>
       <input type="email" inputMode="email" autoComplete="off" className="pe-mail-in" value={email}
-        onChange={(e) => setEmail(e.target.value)} placeholder={tx('pack.mate.emailPh', 'name@example.com')} aria-label={tx('pack.mate.emailLabel', 'E-mail')} />
+        onChange={(e) => setEmail(e.target.value)} placeholder={tx('pack.wacc.email1Ph', 'Main e-mail')} aria-label={tx('pack.wacc.email1Ph', 'Main e-mail')} />
+      <input type="email" inputMode="email" autoComplete="off" className="pe-mail-in" value={email2}
+        onChange={(e) => setEmail2(e.target.value)} placeholder={tx('pack.wacc.email2Ph', 'Backup e-mail (optional)')} aria-label={tx('pack.wacc.email2Ph', 'Backup e-mail (optional)')} />
       <Steps items={[
         tx('pack.wacc.step1', 'A link to your will arrives at this e-mail.'),
         tx('pack.wacc.step2', 'They open it with one tap — no account, no password. Before opening they confirm it is truly necessary, and you get notified.'),
@@ -1485,7 +1490,7 @@ function WillMateRow({ will, dogs, onChanged }: { will: WillRow; dogs: PackDogFu
       <div className="pe-dog-tags">
         {dogs.filter((d) => will.dog_ids.includes(d.id)).map((d) => <span key={d.id} className="pk-pill">{d.dog_name}</span>)}
       </div>
-      <p className="pe-hint" style={{ marginTop: 0 }}>{will.heir_email}</p>
+      <p className="pe-hint" style={{ marginTop: 0 }}>{[will.heir_email, will.heir_email2].filter(Boolean).join(' · ')}</p>
       {ask ? (
         <div className="pe-me">
           <span className="pe-hint" style={{ margin: 0 }}>{tx('pack.wacc.revokeAsk', 'Cancel this will? The link stops working.')}</span>

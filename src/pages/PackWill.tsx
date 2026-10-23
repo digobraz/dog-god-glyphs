@@ -11,15 +11,17 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
-import { PACK_BOX, PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT, FONT_TITLE, FONT_UI, PAPER_PAGE_CSS } from '@/components/pack/packTheme';
+import { PACK_BOX, PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { HieroglyphBg } from '@/components/pack/PackLayout';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { willAct, willHint, type WillHint, type WillOpen } from '@/lib/willAccess';
+import { willAct, willHint, type WillHint, type WillOpen, type WillReason } from '@/lib/willAccess';
 
 type Phase =
   | { k: 'loading' }
   | { k: 'dead' }
   | { k: 'ask'; h: WillHint }
+  | { k: 'why'; h: WillHint }
   | { k: 'open'; h: WillHint; w: WillOpen };
 
 const DOG_FONT = "'Cinzel Decorative', 'Cinzel', serif";
@@ -30,37 +32,41 @@ export default function PackWill() {
   const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
   const navigate = useNavigate();
   const [phase, setPhase] = useState<Phase>({ k: 'loading' });
-  const [answer, setAnswer] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [ask, setAsk] = useState<'claim' | 'decline' | null>(null);
+  const [ask, setAsk] = useState(false);
 
   useEffect(() => {
     willHint(token).then((r) => setPhase(r.ok ? { k: 'ask', h: r.data } : { k: 'dead' }));
   }, [token]);
 
-  const act = async (action: 'open' | 'claim' | 'decline') => {
+  const act = async (action: 'open' | 'claim', reason: WillReason) => {
     if (phase.k === 'loading' || phase.k === 'dead' || busy) return;
     setBusy(true);
     setErr(null);
-    const r = await willAct(token, answer, action);
+    const r = await willAct(token, action, reason);
     setBusy(false);
-    setAsk(null);
+    setAsk(false);
     if (r.ok) { setPhase({ k: 'open', h: phase.h, w: r.data }); return; }
     if (r.code === 'not_found') { setPhase({ k: 'dead' }); return; }
-    setErr(
-      r.code === 'locked' ? tx('will.locked', 'Too many wrong tries. Try again in an hour.')
-      : r.code === 'wrong' ? tx('will.wrong', 'That is not the answer. Tries left: {n}').replace('{n}', String(r.left ?? 0))
-      : tx('will.error', 'Something went wrong. Try again in a moment.'),
-    );
+    setErr(r.code === 'locked' ? tx('will.locked', 'Too many tries. Try again in an hour.') : tx('will.error', 'Something went wrong. Try again in a moment.'));
   };
 
+  // DÔVOD OTVORENIA (Matej 23. 10., kolo 4): „čo sa stalo majiteľovi? — úmrtie · nič, len potrebujem vedieť · strážim psa".
+  const REASONS: Array<[WillReason, string, string]> = [
+    ['death', 'will.rDeath', 'The owner passed away'],
+    ['info', 'will.rInfo', 'Nothing, I just need to know'],
+    ['sitting', 'will.rSitting', 'I am looking after the dog'],
+  ];
+
   return (
-    <div className="pk-paper" style={{ fontFamily: FONT_UI, display: 'flex', flexDirection: 'column' }}>
-      <style>{PAPER_PAGE_CSS}</style>
-      <PageTopBar />
+    // TMAVÝ CHRÁM (Matej 23. 10., kolo 4: „pozadie bude tmavý chrám"). Brand v4.1: temple = len pozadie,
+    // text sedí na papyrusovej karte (`PACK_BOX.card`).
+    <div className="relative" style={{ fontFamily: FONT_UI, display: 'flex', flexDirection: 'column', minHeight: '100dvh', backgroundColor: T.pageBg }}>
+      <HieroglyphBg />
+      <div className="relative" style={{ zIndex: 1 }}><PageTopBar /></div>
       {/* Karta v strede — `margin:auto` na dieťati, nie justify-center (lock PAGE_AIR). */}
-      <div style={{ width: '100%', maxWidth: 560, margin: 'auto', padding: `${S.lg}px ${S.lg}px ${S.xxl}px`, boxSizing: 'border-box' }}>
+      <div className="relative" style={{ zIndex: 1, width: '100%', maxWidth: 560, margin: 'auto', padding: `${S.lg}px ${S.lg}px ${S.xxl}px`, boxSizing: 'border-box' }}>
         <section style={{ ...PACK_BOX.card, padding: S.xl, color: T.ink, textAlign: 'center' }}>
           {phase.k === 'loading' && <Line>{tx('will.loading', 'Opening the will')}</Line>}
 
@@ -81,8 +87,20 @@ export default function PackWill() {
               <Line>{tx('will.gateQ', 'Is it truly necessary to open it now?')}</Line>
               <p style={{ ...sub, marginTop: S.sm }}>{tx('will.gateNote', '{owner} gets a notice that you opened it.').replace('{owner}', phase.h.owner)}</p>
               {err && <p style={{ ...sub, color: T.alertRed, marginTop: S.sm }}>{err}</p>}
-              <button type="button" style={cta(busy)} disabled={busy} onClick={() => act('open')}>{tx('will.gateYes', 'Yes, open the will')}</button>
+              <button type="button" style={cta(false)} onClick={() => setPhase({ k: 'why', h: phase.h })}>{tx('will.gateYes', 'Yes, open the will')}</button>
               <button type="button" style={ghost} onClick={() => navigate('/')}>{tx('will.gateNo', 'Not now')}</button>
+            </>
+          )}
+
+          {phase.k === 'why' && (
+            <>
+              <Eyebrow>{tx('will.eyebrow', 'Will')}</Eyebrow>
+              <Title>{tx('will.whyTitle', 'What happened to the owner?')}</Title>
+              <p style={{ ...sub, marginBottom: S.sm }}>{tx('will.whyNote', '{owner} will see your answer.').replace('{owner}', phase.h.owner)}</p>
+              {REASONS.map(([r, k, f]) => (
+                <button key={r} type="button" style={{ ...ghost, opacity: busy ? 0.6 : 1 }} disabled={busy} onClick={() => act('open', r)}>{tx(k, f)}</button>
+              ))}
+              {err && <p style={{ ...sub, color: T.alertRed, marginTop: S.sm }}>{err}</p>}
             </>
           )}
 
@@ -115,24 +133,18 @@ export default function PackWill() {
                 </div>
               ))}
 
-              {phase.w.status === 'declined' ? (
-                <p style={{ ...sub, marginTop: S.lg }}>{tx('will.declinedNote', 'You declined this will. The pawtner was told.')}</p>
-              ) : phase.w.claimAt ? (
+              {/* PREVZIAŤ PSA len pri dôvode ÚMRTIE. Odmietnuť sa nedá (Matej 23. 10., kolo 4). */}
+              {phase.w.claimAt ? (
                 <p style={{ ...sub, marginTop: S.lg, color: T.inkStrong }}>{tx('will.claimedNote', 'Your request to take over the dog was received. We will verify it and write to you by e-mail.')}</p>
-              ) : ask ? (
+              ) : phase.w.reason !== 'death' ? null : ask ? (
                 <div style={{ marginTop: S.lg }}>
-                  <Line>{ask === 'claim'
-                    ? tx('will.claimAsk', 'Taking over the dog means the pawtner is no longer alive. We verify it before anything is transferred, and the pawtner gets an e-mail too.')
-                    : tx('will.declineAsk', 'You can’t take care of the dog? The pawtner will be told, so they can choose someone else.')}</Line>
-                  <button type="button" style={cta(busy)} disabled={busy} onClick={() => act(ask)}>
-                    {ask === 'claim' ? tx('will.claimYes', 'Yes, send the request') : tx('will.declineYes', 'Yes, decline the will')}
-                  </button>
-                  <button type="button" style={ghost} onClick={() => setAsk(null)}>{tx('pack.mate.cancel', 'Cancel')}</button>
+                  <Line>{tx('will.claimAsk', 'Taking over the dog means the pawtner is no longer alive. We verify it before anything is transferred, and the pawtner gets an e-mail too.')}</Line>
+                  <button type="button" style={cta(busy)} disabled={busy} onClick={() => act('claim', 'death')}>{tx('will.claimYes', 'Yes, send the request')}</button>
+                  <button type="button" style={ghost} onClick={() => setAsk(false)}>{tx('pack.mate.cancel', 'Cancel')}</button>
                 </div>
               ) : (
                 <div style={{ marginTop: S.lg }}>
-                  <button type="button" style={cta(false)} onClick={() => setAsk('claim')}>{tx('will.claim', 'Take over the dog')}</button>
-                  <button type="button" style={ghost} onClick={() => setAsk('decline')}>{tx('will.decline', 'Decline the will')}</button>
+                  <button type="button" style={cta(false)} onClick={() => setAsk(true)}>{tx('will.claim', 'Take over the dog')}</button>
                 </div>
               )}
               {err && <p style={{ ...sub, color: T.alertRed, marginTop: S.sm }}>{err}</p>}

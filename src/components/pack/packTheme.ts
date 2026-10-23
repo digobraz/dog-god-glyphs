@@ -714,8 +714,6 @@ export const PAPER_ROUTES_LOCKED: readonly RegExp[] = [
   /^\/pack\/sniffer(\/|$)/,
   // Pozvánka do svorky `/pack/join/:token` — papyrus od 3. 10. 2026 (hárok rozhodnutí 6A), tmavú vetvu nemá.
   /^\/pack\/join(\/|$)/,
-  // Záveť pre dediča `/will/:token` (aj `/zavet/:token`) — papyrus od 23. 10. 2026, tmavú vetvu nemá.
-  /^\/(will|zavet)(\/|$)/,
 ];
 
 // `PAPER_ROUTES_PAGES` = povrchy prezlečené 8. 9. 2026, ktoré tmavú vetvu MAJÚ

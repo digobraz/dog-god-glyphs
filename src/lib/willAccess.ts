@@ -9,6 +9,8 @@ export interface WillRow {
   dog_ids: string[];
   heir_name: string;
   heir_email: string;
+  heir_email2: string | null;
+  open_reason: WillReason | null;
   hint: string;
   status: 'active' | 'declined';
   created_at: string;
@@ -17,7 +19,8 @@ export interface WillRow {
   declined_at: string | null;
 }
 export interface WillDog { name: string | null; number: number | null; photo: string | null; angel: boolean; letter: string }
-export interface WillOpen { owner: string; heir: string; status: 'active' | 'declined'; claimAt: string | null; dogs: WillDog[] }
+export type WillReason = 'death' | 'info' | 'sitting';
+export interface WillOpen { owner: string; heir: string; status: 'active' | 'declined'; claimAt: string | null; reason: WillReason | null; dogs: WillDog[] }
 export interface WillHint { hint: string; owner: string; heir: string; status: 'active' | 'declined'; lang: string }
 
 type Res<T> = { ok: true; data: T; code?: undefined; left?: undefined } | { ok: false; data?: undefined; code: string; left?: number };
@@ -40,11 +43,11 @@ async function call<T>(body: Record<string, unknown>, auth = false): Promise<Res
   }
 }
 
-export const createWill = (p: { dogIds: string[]; heirEmail: string; lang: string; answer?: string; heirName?: string; hint?: string }) =>
+export const createWill = (p: { dogIds: string[]; heirEmail: string; heirEmail2?: string; lang: string; answer?: string; heirName?: string; hint?: string }) =>
   call<{ ok: true; id: string }>({ action: 'create', ...p }, true);
 export const listMyWills = () => call<{ wills: WillRow[] }>({ action: 'list' }, true);
 export const revokeWill = (id: string) => call<{ ok: true }>({ action: 'revoke', id }, true);
 
 export const willHint = (token: string) => call<WillHint>({ action: 'hint', token });
-export const willAct = (token: string, answer: string, action: 'open' | 'claim' | 'decline') =>
-  call<WillOpen>({ action, token, answer });
+export const willAct = (token: string, action: 'open' | 'claim' | 'decline', reason?: WillReason, answer = '') =>
+  call<WillOpen>({ action, token, reason, answer });
