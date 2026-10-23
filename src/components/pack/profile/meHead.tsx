@@ -154,7 +154,7 @@ export const ME_CSS = `
   background:${LAPIS.grad}; border:2px solid ${T.card}; box-shadow:${LAPIS_BTN_SHADOW}; }
 .me-sdog{ position:relative; border:0; cursor:pointer; }
 .me-sdog:disabled{ cursor:default; opacity:.7; }
-.me-sdog .cam{ position:absolute; right:-${S.xs}px; bottom:-${S.xs}px; width:22px; height:22px; border-radius:${PACK_R.pill}px; display:grid; place-items:center;
+.me-sdog .cam{ position:absolute; right:-${S.sm}px; bottom:-${S.xs}px; width:28px; height:28px; border-radius:${PACK_R.pill}px; display:grid; place-items:center;
   background:${LAPIS.grad}; border:2px solid ${T.card}; box-shadow:${LAPIS_BTN_SHADOW}; }
 .me-own .ini{ display:grid; place-items:center; width:100%; height:100%; font-family:${FONT_TITLE}; font-size:${TX.h1}px; color:${T.inkWarm}; }
 .me-sat{ position:absolute; left:50%; transform:translateX(-50%); bottom:-${SAT_DROP.m}px; display:flex; align-items:center;
@@ -433,7 +433,7 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
             <button key={d.id} type="button" className="s me-sdog" onClick={() => onDogPhoto(d)} disabled={dogBusy === d.id}
               aria-label={`${dogPhotoLabel ?? ''} ${d.dog_name ?? ''}`.trim()}>
               {d.cloudinary_main_url && <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" />}
-              <span className="cam">{dogBusy === d.id ? <BrandIcon name="cycle" size={11} tint="white" /> : <BrandIcon name="camera" size={11} tint="white" />}</span>
+              <span className="cam">{dogBusy === d.id ? <BrandIcon name="cycle" size={14} tint="white" /> : <BrandIcon name="camera" size={14} tint="white" />}</span>
             </button>
           ))}
         </span>
