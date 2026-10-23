@@ -1582,6 +1582,7 @@ export const cs: Partial<Dict> = {
   "pack.notif.back": "Zpět",
   "pack.notif.allStats": "Všechny statistiky",
   'pack.notif.population': "Obyvatelé DOGYPTU",
+  'pack.notif.newest': "Nejnovější přírůstek",
   "pack.notif.newerDog": "Novější pes",
   "pack.notif.olderDog": "Starší pes",
   "pack.notif.perMonth": "za měsíc",

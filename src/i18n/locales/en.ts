@@ -2457,6 +2457,7 @@ export const en = {
   'pack.notif.back': "Back",
   'pack.notif.allStats': "All stats",
   'pack.notif.population': "Citizens of DOGYPT",
+  'pack.notif.newest': "Newest arrival",
   'pack.notif.newerDog': 'Newer dog',
   'pack.notif.olderDog': 'Older dog',
   'pack.notif.perMonth': "this month",

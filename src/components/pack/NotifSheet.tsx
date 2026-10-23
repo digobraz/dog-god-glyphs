@@ -17,7 +17,7 @@ import { forwardRef, lazy, Suspense, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HandPlay } from './HandIcons';
 import { BackButton } from './BackButton';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, STAGE_CSS } from './packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, STAGE_CSS, FONT_UI } from './packTheme';
 import { LAPIS } from './navGoldSkin';
 import { AINUBIS } from './ainubisSkin';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -181,6 +181,9 @@ const CSS = `
   background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${T.hairline};box-shadow:${PACK_SHADOW.lift};}
 /* Trojbodka NEEXISTUJE (brand v4.1) — meno psa sa radšej zalomí. */
 .ntf-dog-name{min-width:0;overflow-wrap:anywhere;line-height:1.15;font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.body}px;color:${T.card};}
+.ntf-dog-new{position:absolute;z-index:1;left:${PACK_SPACE.sm}px;top:${PACK_SPACE.sm}px;pointer-events:none;white-space:nowrap;
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;line-height:1;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;background:rgba(251,245,230,0.9);color:${T.inkStrong};border:1px solid ${T.hairline};}
 .ntf-dog-flag{flex:0 0 auto;width:16px;height:16px;border-radius:${PACK_R.pill}px;object-fit:cover;border:1px solid ${T.card};}
 /* Šípky = PLNÁ kresba (nie obrys), menšie. Dozadu sedí NA hranici fotky (Matej 23. 10.: „tú šípku daj
    cez hranicu fotky a zmenši"); dopredu sa objaví vľavo, až keď je kam. */
@@ -332,6 +335,8 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                     }}>
                     <img key={cur.n} src={sizedUrl(cur.photo, 400)} alt="" />
                   </button>
+                  {/* Štítok len pri najnovšom psovi (Matej 23. 10.: „hore na fotke psa by som dal že najnovší prírastok"). */}
+                  {di === 0 && <span className="ntf-dog-new">{t('pack.notif.newest')}</span>}
                   <span className="ntf-dog-cap">
                     <span className="ntf-dog-num">#{cur.n}</span>
                     <span className="ntf-dog-name">{cur.name}</span>
