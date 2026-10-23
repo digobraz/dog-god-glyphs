@@ -465,10 +465,10 @@ export default function PackProfile() {
                 <MiniChipInput emoji="📍" value={human?.region ?? ''} placeholder={tx('pack.profile.cityPlaceholder', 'City')} width={96}
                   onSave={(v) => patchHuman({ region: v || undefined })} />
               </HideWrap>
-              <StatusSelect value={human?.relationship} onChange={(v) => patchHuman({ relationship: v })} placeholder={`💞 ${tx('pack.profile.statusPlaceholder', 'Status')}`} />
-              <LifestyleSelect emoji="🚬" placeholder={tx('pack.profile.smokePlaceholder', 'Smoke')} options={SMOKE_OPTIONS} value={human?.smoke} onChange={(v) => patchHuman({ smoke: v })} />
-              <LifestyleSelect emoji="🥗" placeholder={tx('pack.profile.dietPlaceholder', 'Diet')} options={DIET_OPTIONS} value={human?.diet} onChange={(v) => patchHuman({ diet: v })} />
-              <LifestyleSelect emoji="💼" placeholder={tx('pack.profile.workPlaceholder', 'Work')} options={WORK_OPTIONS} value={human?.work} onChange={(v) => patchHuman({ work: v })} />
+              <StatusSelect value={human?.relationship} onChange={(v) => patchHuman({ relationship: v })} placeholder={tx('pack.profile.statusPlaceholder', 'Status')} />
+              <LifestyleSelect emoji="" placeholder={tx('pack.profile.smokePlaceholder', 'Smoke')} options={SMOKE_OPTIONS} value={human?.smoke} onChange={(v) => patchHuman({ smoke: v })} />
+              <LifestyleSelect emoji="" placeholder={tx('pack.profile.dietPlaceholder', 'Diet')} options={DIET_OPTIONS} value={human?.diet} onChange={(v) => patchHuman({ diet: v })} />
+              <LifestyleSelect emoji="" placeholder={tx('pack.profile.workPlaceholder', 'Work')} options={WORK_OPTIONS} value={human?.work} onChange={(v) => patchHuman({ work: v })} />
               <IdentityVisibilityEye profile={profile} patchHuman={patchHuman} />
             </div>
 
@@ -507,12 +507,12 @@ export default function PackProfile() {
             <div className="pe-add">
               {addOpen ? (
                 <>
-                  <Link to="/heroglyph/name" onClick={resetFlow} className="pe-door">🐕 {tx('pack.hero.roleDog', 'Dog')}</Link>
+                  <Link to="/heroglyph/name" onClick={resetFlow} className="pe-door"><BrandIcon name="paw" size={14} tint="white" />{tx('pack.hero.roleDog', 'Dog')}</Link>
                   <button type="button" className="pe-door" onClick={() => {
                     if (!PAWMATE_LIVE) { soon(); return; }
                     document.getElementById('pawmates')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     setAddOpen(false);
-                  }}>👤 {tx('pack.add.pawmate', 'Pawmate')}</button>
+                  }}><BrandIcon name="person" size={14} tint="white" />{tx('pack.add.pawmate', 'Pawmate')}</button>
                 </>
               ) : (
                 <button type="button" className="pe-show" onClick={() => setAddOpen(true)}>＋ {tx('pack.edit.addMember', 'Add to the pack')}</button>
