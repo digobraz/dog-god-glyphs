@@ -22,31 +22,33 @@ export interface DevotionTier {
   glow: string;
   /** farba guličky a jej žiary */
   dot: string;
+  /** EN fallback popisu stupňa — preklad je `pack.ladder.desc.<key>` (Matej 23. 10.: „popisy sú ok") */
+  desc: string;
 }
 
 export const DEVOTION_TIERS: DevotionTier[] = [
-  { key: 'novice',   glow: '#ECCAAC', dot: '#D8955A' },
-  { key: 'wanderer', glow: '#ECDCAC', dot: '#D8B95A' },
-  { key: 'follower', glow: '#E9ECAC', dot: '#D2D85A' },
-  { key: 'believer', glow: '#D6ECAC', dot: '#AED85A' },
-  { key: 'servant',  glow: '#C4ECAC', dot: '#89D85A' },
-  { key: 'aspirant', glow: '#B2ECAC', dot: '#65D85A' },
-  { key: 'mentor',   glow: '#ACECB9', dot: '#5AD873' },
-  { key: 'steward',  glow: '#ACECCC', dot: '#5AD898' },
-  { key: 'shepherd', glow: '#ACECDE', dot: '#5AD8BD' },
-  { key: 'sentinel', glow: '#ACE7EC', dot: '#5ACFD8' },
-  { key: 'elder',    glow: '#ACD5EC', dot: '#5AABD8' },
-  { key: 'sage',     glow: '#ACC2EC', dot: '#5A86D8' },
-  { key: 'cleric',   glow: '#ACB0EC', dot: '#5A61D8' },
-  { key: 'mystic',   glow: '#BBACEC', dot: '#775AD8' },
-  { key: 'priest',   glow: '#CDACEC', dot: '#9B5AD8' },
-  { key: 'paladin',  glow: '#E0ACEC', dot: '#C05AD8' },
-  { key: 'magus',    glow: '#ECACE5', dot: '#D85ACC' },
-  { key: 'prophet',  glow: '#ECACD3', dot: '#D85AA7' },
-  { key: 'nomarch',  glow: '#ECACC1', dot: '#D85A83' },
-  { key: 'vizier',   glow: '#ECACAE', dot: '#D85A5E' },
-  { key: 'pharaoh',  glow: '#FFF6D6', dot: '#D8A93F' },
-  { key: 'demigod',  glow: '#FFFFFF', dot: '#F3D98A' },
+  { key: 'novice',   glow: '#ECCAAC', dot: '#D8955A', desc: "First pawprint. Your dog took you in \u2014 now follow." },
+  { key: 'wanderer', glow: '#ECDCAC', dot: '#D8B95A', desc: "You take your dog out, even in the rain." },
+  { key: 'follower', glow: '#E9ECAC', dot: '#D2D85A', desc: "Your hand holds the leash, your dog picks the way." },
+  { key: 'believer', glow: '#D6ECAC', dot: '#AED85A', desc: "You believe in dog. And your dog knows it." },
+  { key: 'servant',  glow: '#C4ECAC', dot: '#89D85A', desc: "Their bowl is full before your plate is." },
+  { key: 'aspirant', glow: '#B2ECAC', dot: '#65D85A', desc: "Three laps around the block no longer do." },
+  { key: 'mentor',   glow: '#ACECB9', dot: '#5AD873', desc: "You teach your dog, yourself and those around you." },
+  { key: 'steward',  glow: '#ACECCC', dot: '#5AD898', desc: "Teeth, claws, coat, food \u2014 you hold the keys to their health." },
+  { key: 'shepherd', glow: '#ACECDE', dot: '#5AD8BD', desc: "You lead a pack, not just one dog." },
+  { key: 'sentinel', glow: '#ACE7EC', dot: '#5ACFD8', desc: "You protect dogs that are not yours." },
+  { key: 'elder',    glow: '#ACD5EC', dot: '#5AABD8', desc: "Years of devotion. The young ones come to ask you." },
+  { key: 'sage',     glow: '#ACC2EC', dot: '#5A86D8', desc: "The feather of Maat \u2014 a heart lighter than a feather." },
+  { key: 'cleric',   glow: '#ACB0EC', dot: '#5A61D8', desc: "You light the flame at the sacraments of the pack." },
+  { key: 'mystic',   glow: '#BBACEC', dot: '#775AD8', desc: "You understand your dog without words." },
+  { key: 'priest',   glow: '#CDACEC', dot: '#9B5AD8', desc: "You weigh hearts \u2014 fair to dogs and people alike." },
+  { key: 'paladin',  glow: '#E0ACEC', dot: '#C05AD8', desc: "You fight for dogs in need." },
+  { key: 'magus',    glow: '#ECACE5', dot: '#D85ACC', desc: "You change the fates of dogs nobody wanted." },
+  { key: 'prophet',  glow: '#ECACD3', dot: '#D85AA7', desc: "You see where the movement is going before anyone else." },
+  { key: 'nomarch',  glow: '#ECACC1', dot: '#D85A83', desc: "You govern a province of DOGYPT." },
+  { key: 'vizier',   glow: '#ECACAE', dot: '#D85A5E', desc: "The Pharaoh's right hand. You build pyramids." },
+  { key: 'pharaoh',  glow: '#FFF6D6', dot: '#D8A93F', desc: "Highest among humans. The dog is still higher." },
+  { key: 'demigod',  glow: '#FFFFFF', dot: '#F3D98A', desc: "Half human, half dog. Beyond this, only god." },
 ];
 
 /** Tmavé telo pilulky 1–20 a zlatý lem — spoločné pre všetky stupne pod Faraónom. */

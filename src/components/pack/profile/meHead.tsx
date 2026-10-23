@@ -93,6 +93,7 @@ export const ME_CSS = `
 .me-dvg i{ display:block; width:11px; height:11px; background:var(--dv-icon-ink);
   -webkit-mask:var(--dv-icon) center/contain no-repeat; mask:var(--dv-icon) center/contain no-repeat; }
 .me-lv > .me-pt{ flex:none; }
+.me-rk p.me-rk-q{ font-style:italic; color:var(--rk-dim); }
 .me-rk-sc span{ display:inline-flex; align-items:center; gap:${S.xs}px; }
 .me-rk-sc span i{ display:grid; place-items:center; width:14px; height:14px; border-radius:${PACK_R.pill}px; background:var(--dv-dot); }
 .me-rk-sc span i b{ display:block; width:9px; height:9px; background:var(--dv-icon-ink);
@@ -447,6 +448,7 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, tx }:
       <div className="me-rk" style={vars}>
         <h3>{tx(`pack.ladder.${dev.key}`, dev.name)} {dev.index}<small>{tx('pack.devotion.heading', 'Devotion')} · {devotion.toLocaleString('sk-SK')} ☥</small></h3>
         <style>{PROGRESS_CSS}</style>
+        <p className="me-rk-q">{tx(`pack.ladder.desc.${dev.key}`, devotionTier(dev.index).desc)}</p>
         <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(dev.pct) }} /></div>
         <p>{dev.next
           ? tx('pack.rank.devToNext', '{n} ☥ to the {name} step').replace('{n}', dev.toNext.toLocaleString('sk-SK')).replace('{name}', nextName)
