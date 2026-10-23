@@ -15,7 +15,7 @@
 import type React from 'react';
 import { forwardRef, lazy, Suspense, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HandForward } from './HandIcons';
+import { HandPlay } from './HandIcons';
 import { BackButton } from './BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, STAGE_CSS } from './packTheme';
 import { LAPIS } from './navGoldSkin';
@@ -340,11 +340,11 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                   </span>
                   {di < newest.length - 1 && (
                     <button type="button" className="ntf-arr ntf-arr--prev" aria-label={t('pack.notif.olderDog')}
-                      onClick={(e) => { e.stopPropagation(); step(1); }}><HandForward filled size={12} style={{ transform: 'scaleX(-1)' }} /></button>
+                      onClick={(e) => { e.stopPropagation(); step(1); }}><HandPlay size={10} style={{ transform: 'scaleX(-1)' }} /></button>
                   )}
                   {di > 0 && (
                     <button type="button" className="ntf-arr ntf-arr--next" aria-label={t('pack.notif.newerDog')}
-                      onClick={(e) => { e.stopPropagation(); step(-1); }}><HandForward filled size={12} /></button>
+                      onClick={(e) => { e.stopPropagation(); step(-1); }}><HandPlay size={10} /></button>
                   )}
                 </span>
               )}

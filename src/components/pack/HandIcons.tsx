@@ -581,3 +581,21 @@ export function HandHeart({ size = 16, className, style, title, on = false }: Ha
     </svg>
   );
 }
+
+/** PLNÝ trojuholník vpravo — šípka listovania (otoč `scaleX(-1)` na dozadu).
+ *  zdroj: arrow-point-hand-drawn-outline-pointing-to-right-direction-svgrepo-com — len VONKAJŠÍ obrys,
+ *  vnútorná diera vynechaná, takže kresba je vyplnená (Matej 23. 10.: „šípky vyplnil farbou, nie obrys"). */
+export function HandPlay({ size = 16, className, style, title }: HandIconProps) {
+  return (
+    <svg viewBox="0 0 460.492 460.492" className={className} style={style} {...svgProps(size)} role={title ? 'img' : undefined} aria-hidden={title ? undefined : true}>
+      {title ? <title>{title}</title> : null}
+      <path d="M349.574,139.747c-6.592-3.469-12.279-6.464-16.118-8.871c-27.894-17.491-57.863-34.698-89.062-51.146
+			c-29.234-15.417-59.913-30.356-91.175-44.412c-8.1-3.639-15.879-8.221-24.115-13.065c-13.584-7.988-27.627-16.255-43.826-20.479
+			C70.406-2.099,58.331,0.427,50.356,8.798C39.723,19.962,39.103,38.09,39.893,54.345c1.333,27.121,1.655,54.857,1.97,81.684
+			c0.152,12.901,0.308,25.796,0.559,38.682c0.478,23.737,0.731,47.469,0.983,71.196c0.66,61.388,1.34,124.857,6,187.393
+			c0.155,2.087,0.571,4.144,1.274,6.251c1.912,12.213,11.243,20.941,22.625,20.941c3.057,0,6.178-0.625,9.265-1.844
+			c59.946-23.698,120.519-58.711,185.194-107.038c27.507-20.561,55.629-43.274,83.578-67.512c5.134-4.453,11.979-9.252,19.22-14.346
+			c19.348-13.568,41.274-28.959,48.348-49.538c2.727-7.949,3.926-20.416-5.905-34.652C399.515,166.038,370.652,150.844,349.574,139.747z" />
+    </svg>
+  );
+}
