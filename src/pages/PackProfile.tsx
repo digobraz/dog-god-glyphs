@@ -439,7 +439,7 @@ export default function PackProfile() {
           onMoveEnd={(y) => { patchHuman({ coverY: y }); }}
           right={
             <span className="pe-tr">
-              {coverSrc && <span className="pe-drag"><BrandIcon name="sliders" size={12} tint="white" />{tx('pack.edit.dragCover', 'Drag')}</span>}
+              {/* Štítok „POTIAHNI“ preč — ťahá sa aj bez neho (Matej 23. 10.: „funkciu zachovaj, tlačítko vyhoď“). */}
               <button type="button" className="pe-cam" onClick={() => coverInputRef.current?.click()} disabled={coverUploading} aria-label={tx('pack.edit.changeCover', 'Change cover')}>
                 {coverUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}
               </button>
