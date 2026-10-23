@@ -21,7 +21,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Reac
 import { popis, menoKomponentu, type Popis } from './nakresPopis';
 import {
   NOVE, TYP_MENO, blokPre, dietaKu, jeRiadok, klonuj, maText, miestoVlozenia, najdiScroller, novyTyp,
-  sirkaVolne, vyrobPrvok, type Miesto, type Novy, type Typ,
+  jeAtom, rozbal, sirkaVolne, vyrobPrvok, zabal, type Miesto, type Novy, type Typ,
 } from './nakresDom';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 
@@ -32,7 +32,7 @@ const ZARIADENIA = {
 } as const;
 type Zariadenie = keyof typeof ZARIADENIA;
 type Druh = 'presun' | 'premiestnit' | 'velkost' | 'text' | 'skryt' | 'poznamka' | 'pridat';
-type Poloha = 'pred' | 'za' | 'vedla' | 'pod' | 'na' | 'volne';
+type Poloha = 'pred' | 'za' | 'dnu' | 'vedla' | 'vedla-vlavo' | 'nad' | 'pod' | 'na' | 'volne';
 
 type Zmena = {
   id: string; druh: Druh; trasa: string; zariadenie: Zariadenie; prvok: Popis | null;
@@ -50,7 +50,7 @@ type Tah = {
   povodne: { el: HTMLElement; op: string; pe: string }[];
 };
 /** Čo práve ťahám (z appky aj z ponuky) — z toho sa ráta miesto vloženia. */
-type Ciel = { ignor: Element[]; w: number; h: number; prefer: Element | null; ox: number; oy: number; volne: boolean; blok: boolean };
+type Ciel = { ignor: Element[]; w: number; h: number; ox: number; oy: number; volne: boolean };
 
 const KROK = 4;
 const snap = (v: number) => Math.round(v / KROK) * KROK;
@@ -65,7 +65,7 @@ const FONT = "'Space Grotesk', system-ui, sans-serif";
 const DRUH_MENO: Record<Druh, string> = {
   presun: 'POSUN', premiestnit: 'PRESUN', velkost: 'VEĽKOSŤ', text: 'TEXT', skryt: 'SKRYŤ', poznamka: 'POZNÁMKA', pridat: 'NOVÝ',
 };
-const POLOHA_MENO: Record<Poloha, string> = { pred: 'pred', za: 'za', vedla: 'vedľa', pod: 'pod', na: 'na', volne: 'voľne' };
+const POLOHA_MENO: Record<Poloha, string> = { pred: 'pred', za: 'za', dnu: 'do', vedla: 'vedľa', 'vedla-vlavo': 'vľavo vedľa', nad: 'nad', pod: 'pod', na: 'na', volne: 'voľne' };
 
 function popisZmeny(z: Zmena) {
   if (z.druh === 'presun') {
@@ -106,6 +106,8 @@ function NakresShell() {
   const navrat = useRef(new Map<string, () => void>());
   const prvky = useRef(new Map<string, Element>());
   const zaznam = useRef(new WeakMap<Element, Partial<Record<Druh, string>>>());
+  // Obaly (riadok/stĺpec) vzniknuté pri vkladaní VEDĽA — pri VRÁTIŤ sa rozbalia v opačnom poradí.
+  const obalyRef = useRef(new Map<string, (() => void)[]>());
   const zariadenieRef = useRef(zariadenie);
   const trasaRef = useRef(trasa);
   const hoverRef = useRef<Element | null>(null);
@@ -176,6 +178,8 @@ function NakresShell() {
     const z = zmenyRef.current.find((x) => x.id === id);
     if (!z) return;
     try { navrat.current.get(id)?.(); } catch { /* uzol už React zahodil — nie je čo vracať */ }
+    for (const f of [...(obalyRef.current.get(id) ?? [])].reverse()) { try { f(); } catch { /* obal už nie je */ } }
+    obalyRef.current.delete(id);
     const el = prvky.current.get(id);
     if (el) {
       const m = { ...zaznam.current.get(el) };
@@ -210,24 +214,55 @@ function NakresShell() {
     el.style.display = 'none';
   };
 
+  const pridajObal = (id: string, f?: () => void) => {
+    if (f) obalyRef.current.set(id, [...(obalyRef.current.get(id) ?? []), f]);
+  };
+
+  /** Vloží el na miesto m. Pri bočnom kraji zabalí kotvu spolu s el do riadku/stĺpca. */
+  const umiestni = (el: HTMLElement, m: Miesto): { poloha: Poloha; rozbalit?: () => void } => {
+    if (m.kam === 'obal-pred' || m.kam === 'obal-za') {
+      const rodicRiadok = jeRiadok(m.rodic);
+      const obal = zabal(m.kotva, !rodicRiadok);
+      if (m.kam === 'obal-pred') obal.insertBefore(el, m.kotva); else m.kotva.after(el);
+      // Pilulka/CTA vedľa veľkého bloku nemá natiahnuť celú bunku mriežky — ostane vo svojej veľkosti.
+      if (novyTyp(el) && jeAtom(el)) Object.assign(el.style, { justifySelf: 'start', alignSelf: 'center' });
+      return {
+        poloha: m.kam === 'obal-pred' ? (rodicRiadok ? 'nad' : 'vedla-vlavo') : (rodicRiadok ? 'pod' : 'vedla'),
+        rozbalit: () => rozbal(obal),
+      };
+    }
+    m.rodic.insertBefore(el, m.pred);
+    return { poloha: m.kam };
+  };
+
+  /** Ďalší prvok z toho istého ťahu ide hneď za predchádzajúci (poradie ostane, obal sa nezdvojí). */
+  const hnedZa = (el: Element): Miesto => ({ rodic: el.parentElement!, pred: el.nextElementSibling, kotva: el, kam: 'za' });
+
   /** Presun v toku — prvok sa vsunie medzi ostatné a tie mu urobia miesto. */
   const premiestni = (el: HTMLElement, m: Miesto) => {
     const kotva = popis(m.kotva);
-    const rodic = popis(m.rodic);
     const novy = novyTyp(el) ? najdi(el, 'pridat') : undefined;
     if (novy) {
-      m.rodic.insertBefore(el, m.pred);
-      uprav(novy.id, { poloha: m.kam, kotva, rodic });
+      const u = umiestni(el, m);
+      pridajObal(novy.id, u.rozbalit);
+      uprav(novy.id, { poloha: u.poloha, kotva, rodic: el.parentElement ? popis(el.parentElement) : null });
       return;
     }
     const z = najdi(el, 'premiestnit');
     const P0 = el.parentElement, N0 = el.nextSibling;
     const pred = z ? undefined : popis(el);
-    m.rodic.insertBefore(el, m.pred);
+    const u = umiestni(el, m);
     const id = z?.id ?? zaloz(el, 'premiestnit', () => {
       if (P0) P0.insertBefore(el, N0 && N0.parentNode === P0 ? N0 : null);
     }, pred);
-    uprav(id, { poloha: m.kam, kotva, rodic });
+    pridajObal(id, u.rozbalit);
+    uprav(id, { poloha: u.poloha, kotva, rodic: el.parentElement ? popis(el.parentElement) : null });
+  };
+
+  /** X pri výbere: nový prvok zmizne úplne, pôvodný sa skryje (zapíše sa SKRYŤ). */
+  const zrus = (el: Element) => {
+    skry(el as HTMLElement);
+    vyber(selRef.current.filter((x) => x !== el && x.isConnected));
   };
 
   const susedMiesto = (el: Element, smer: -1 | 1): Miesto | null => {
@@ -247,33 +282,18 @@ function NakresShell() {
   };
 
   const vlozDoMiesta = (el: HTMLElement, typ: Typ, m: Miesto, original?: Element) => {
-    m.rodic.insertBefore(el, m.pred);
-    zapisNovy(el, typ, m.kam, m.kotva, original ? { original: popis(original) } : undefined);
+    const kotva = m.kotva;
+    const u = umiestni(el, m);
+    zapisNovy(el, typ, u.poloha, kotva, original ? { original: popis(original) } : undefined, u.rozbalit);
   };
 
-  /** VEDĽA / POD vybraného: keď rodič ide tým smerom, stačí vložiť za; inak sa oba zabalia do riadku/stĺpca. */
+  /** Plus VEDĽA / POD vybraného: keď rodič ide tým smerom, stačí vložiť za; inak sa oba zabalia. */
   const pridajK = (el: HTMLElement, smer: 'vedla' | 'pod', typ: Typ) => {
-    const d = el.ownerDocument;
     const P = el.parentElement;
     if (!P) return null;
-    const novy = typ === 'kopia' ? klonuj(el) : vyrobPrvok(d, typ);
-    const riadok = smer === 'vedla';
-    let obal: HTMLElement | null = null;
-    if (jeRiadok(P) === riadok) el.after(novy);
-    else {
-      obal = d.createElement('div');
-      obal.dataset.nakresObal = '1';
-      const maly = el.getBoundingClientRect().width < P.getBoundingClientRect().width * 0.5;
-      Object.assign(obal.style, riadok
-        ? (maly ? { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' } : { display: 'grid', gridAutoFlow: 'column', gridAutoColumns: 'minmax(0,1fr)', gap: '8px' })
-        : { display: 'flex', flexDirection: 'column', alignItems: maly ? 'flex-start' : 'stretch', gap: '8px' });
-      P.insertBefore(obal, el);
-      obal.append(el, novy);
-    }
-    const o = obal;
-    zapisNovy(novy, typ, smer, el, typ === 'kopia' ? { original: popis(el) } : undefined, () => {
-      if (o && o.isConnected) { o.parentElement?.insertBefore(el, o); o.remove(); }
-    });
+    const novy = typ === 'kopia' ? klonuj(el) : vyrobPrvok(el.ownerDocument, typ);
+    const rovnakySmer = jeRiadok(P) === (smer === 'vedla');
+    vlozDoMiesta(novy, typ, { rodic: P, pred: el.nextElementSibling, kotva: el, kam: rovnakySmer ? 'za' : 'obal-za' }, typ === 'kopia' ? el : undefined);
     return novy;
   };
 
@@ -330,6 +350,9 @@ function NakresShell() {
   // ── výber ─────────────────────────────────────────────────────────────────
   /** Čo vyberie klik na t: v kontexte (po dvojkliku dovnútra) dieťa kontextu, inak celý BLOK. */
   const urovenPre = (t: Element) => {
+    // Čo Matej sám pridal, vyberá sa priamo (CTA v sekcii nemá vybrať celú kartu okolo).
+    const novy = t.closest('[data-nakres-novy]');
+    if (novy) return novy;
     const k = kontextRef.current;
     if (k && k.isConnected && k !== t && k.contains(t)) return dietaKu(k, t) ?? t;
     return blokPre(t);
@@ -339,7 +362,7 @@ function NakresShell() {
   const prepocitajMiesto = () => {
     const c = cielRef.current, b = bodRef.current, d = doc();
     if (!c || !b || !d || c.volne) { miestoRef.current = null; return; }
-    miestoRef.current = miestoVlozenia(d, b.x, b.y, c.ignor, c.w, c.h, c.prefer, c.blok);
+    miestoRef.current = miestoVlozenia(d, b.x, b.y, c.ignor);
   };
 
   useEffect(() => {
@@ -408,8 +431,8 @@ function NakresShell() {
 
   // ── počúvadlá v iframe ────────────────────────────────────────────────────
   // Funkcie sa volajú cez ref, aby počúvadlo pripojené raz videlo vždy čerstvý render.
-  const akcieRef = useRef({ urovenPre, vyber, koniecText, zacniText, nastavPosun, najdi, zapisNovy, premiestni, vlozDoMiesta, prepocitajMiesto, textovyPrvok });
-  akcieRef.current = { urovenPre, vyber, koniecText, zacniText, nastavPosun, najdi, zapisNovy, premiestni, vlozDoMiesta, prepocitajMiesto, textovyPrvok };
+  const akcieRef = useRef({ urovenPre, vyber, koniecText, zacniText, nastavPosun, najdi, zapisNovy, premiestni, vlozDoMiesta, prepocitajMiesto, textovyPrvok, hnedZa });
+  akcieRef.current = { urovenPre, vyber, koniecText, zacniText, nastavPosun, najdi, zapisNovy, premiestni, vlozDoMiesta, prepocitajMiesto, textovyPrvok, hnedZa };
 
   const pripoj = useCallback((win: Window) => {
     const d = win.document;
@@ -447,13 +470,7 @@ function NakresShell() {
         el.style.pointerEvents = 'none';
       }
       const r = T.originaly[T.originaly.length - 1].getBoundingClientRect();
-      const rodicia = new Set(T.originaly.map((o) => o.parentElement));
-      cielRef.current = {
-        ignor: T.kopia ? [] : T.prvky, w: r.width, h: r.height, volne: false,
-        blok: T.originaly.every((o) => blokPre(o) === o),
-        prefer: !T.kopia && rodicia.size === 1 ? [...rodicia][0] : null,
-        ox: T.sx - r.left, oy: T.sy - r.top,
-      };
+      cielRef.current = { ignor: T.kopia ? [] : T.prvky, w: r.width, h: r.height, volne: false, ox: T.sx - r.left, oy: T.sy - r.top };
     };
 
     const pohyb = (e: PointerEvent) => {
@@ -511,12 +528,14 @@ function NakresShell() {
         for (const p of T.povodne) { p.el.style.opacity = p.op; p.el.style.pointerEvents = p.pe; }
         const m = miestoRef.current;
         if (m) {
-          if (T.kopia) T.prvky.forEach((c, i) => A().vlozDoMiesta(c, 'kopia', m, T.originaly[i]));
-          else {
-            // Poradie v toku = poradie v stránke, nie poradie klikania.
-            const vPoradi = [...T.prvky].sort((a, b) => (a.compareDocumentPosition(b) & 4 ? -1 : 1));
-            vPoradi.forEach((el) => A().premiestni(el, m));
-          }
+          // Poradie v toku = poradie v stránke, nie poradie klikania; ďalšie idú hneď za prvý.
+          const vPoradi = T.kopia ? T.prvky : [...T.prvky].sort((a, b) => (a.compareDocumentPosition(b) & 4 ? -1 : 1));
+          let mm: Miesto = m;
+          vPoradi.forEach((el) => {
+            if (T.kopia) A().vlozDoMiesta(el, 'kopia', mm, T.originaly[T.prvky.indexOf(el)]);
+            else A().premiestni(el, mm);
+            mm = A().hnedZa(el);
+          });
           selRef.current = T.prvky;
         }
       }
@@ -731,7 +750,7 @@ function NakresShell() {
         Object.assign(duch.style, { position: 'fixed', zIndex: '2147483600', pointerEvents: 'none', opacity: '0.85', transform: `scale(${m}) translate(-50%, -50%)`, transformOrigin: '0 0' });
         document.body.appendChild(duch);
         const r = duch.getBoundingClientRect();
-        cielRef.current = { ignor: [], w: r.width / m, h: r.height / m, prefer: null, ox: 0, oy: 0, volne: false, blok: typ === 'karta' };
+        cielRef.current = { ignor: [], w: r.width / m, h: r.height / m, ox: 0, oy: 0, volne: false };
       }
       duch.style.left = `${ev.clientX}px`;
       duch.style.top = `${ev.clientY}px`;
@@ -918,11 +937,11 @@ function NakresShell() {
           ) : (
             <Napoveda riadky={[
               'Klik = blok · dvojklik = dovnútra / prepíš text',
-              'Ťahaj = presuň medzi ostatné (urobia miesto)',
+              'Ťahaj = presuň: stred bloku = dnu, bočný kraj = vedľa, inak pred/za',
               'Shift + ťahaj = voľne · Option + ťahaj = kópia',
               'Cmd + klik = viac prvkov naraz',
               'Plus vedľa / pod výberom = pridaj k nemu',
-              'Cmd+C, Cmd+V · Cmd+D = kópia · Del = skry',
+              'Cmd+C, Cmd+V · Cmd+D = kópia · X alebo Del = zrušiť',
               'Šípky = jemný posun · P = rodič · Enter = text',
               'Rohy výberu = veľkosť · Cmd+Z = späť',
             ]} />
@@ -986,7 +1005,9 @@ function NakresShell() {
         <div style={{ width: d.w * scale, height: d.h * scale, position: 'relative', flex: 'none', margin: 'auto' }}>
           <div style={{ width: d.w, height: d.h, transform: `scale(${scale})`, transformOrigin: '0 0', position: 'absolute', inset: 0, borderRadius: zariadenie === 'mobil' ? 16 : 8, overflow: 'hidden', boxShadow: '0 12px 48px rgba(0,0,0,0.5)', background: '#000' }}>
             <iframe ref={iframeRef} src={src} title="Appka" style={{ width: d.w, height: d.h, border: 0, display: 'block' }} />
-            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'visible' }}>
+          </div>
+          {/* Ovládanie je MIMO orezania telefónu (zaoblené rohy ho strihali) — plusy a X sedia aj za hranou. */}
+          <div style={{ position: 'absolute', left: 0, top: 0, width: d.w, height: d.h, transform: `scale(${scale})`, transformOrigin: '0 0', pointerEvents: 'none', clipPath: `inset(${-48 * inv}px)` }}>
               {/* Kde vybraný prvok BOL pred voľným posunom — len pri výbere, inak by obrysy zaplavili obrazovku. */}
               {zmeny.filter((z) => z.druh === 'presun' && z.trasa === trasa && sel.includes(prvky.current.get(z.id)!)).map((z) => {
                 const r = rect(prvky.current.get(z.id) ?? null);
@@ -995,8 +1016,29 @@ function NakresShell() {
               {hr && box(hr, { outline: `${inv}px solid ${LAPIS.edge}`, background: 'rgba(22,48,122,0.08)' })}
               {hrShift && box(hrShift, { outline: `${inv}px dashed ${LAPIS.edge}` })}
               {!tahaSa && sel.length > 1 && sel.map((el, i) => { const r = rect(el); return r ? box(r, { outline: `${2 * inv}px solid ${C.gold}` }, i) : null; })}
+              {/* X = zrušiť prvok (Matej: „okrem + aj x na zrušenie"). Na každom vybranom, v pravom hornom rohu. */}
+              {!tahaSa && sel.map((el, i) => {
+                const r = rect(el);
+                if (!r) return null;
+                return (
+                  <div
+                    key={`x${i}`}
+                    title="Zrušiť prvok (Del)"
+                    onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); zrus(el); }}
+                    style={{
+                      position: 'absolute', pointerEvents: 'auto', left: r.right - 12 * inv, top: r.top - 12 * inv, width: 24 * inv, height: 24 * inv, borderRadius: 999,
+                      background: '#B25640', border: `${inv}px solid #FFFBF3`, boxShadow: '0 2px 8px rgba(0,0,0,0.35)', cursor: 'pointer',
+                    }}
+                  >
+                    {[45, -45].map((u) => (
+                      <span key={u} style={{ position: 'absolute', left: '25%', top: `calc(50% - ${inv}px)`, width: '50%', height: 2 * inv, background: '#FFFBF3', transform: `rotate(${u}deg)`, borderRadius: inv }} />
+                    ))}
+                  </div>
+                );
+              })}
               {/* Kam sa vsunie: rodič prerušovane, miesto plnou lapisovou čiarou. */}
               {mi && rect(mi.rodic) && box(rect(mi.rodic)!, { outline: `${inv}px dashed ${LAPIS.edge}` })}
+              {mi?.vypln && box({ left: mi.vypln.x, top: mi.vypln.y, width: mi.vypln.w, height: mi.vypln.h }, { outline: `${2 * inv}px solid ${LAPIS.edge}`, background: 'rgba(22,48,122,0.14)' })}
               {mi?.ciara && box({ left: mi.ciara.x, top: mi.ciara.y, width: mi.ciara.w, height: mi.ciara.h }, { background: LAPIS.edge, borderRadius: 2, boxShadow: '0 0 0 1px #FFFBF3' })}
               {duchRect && box(duchRect, { outline: `${2 * inv}px dashed ${C.gold}`, background: 'rgba(201,154,63,0.12)', borderRadius: 8 })}
               {sr && (
@@ -1025,18 +1067,37 @@ function NakresShell() {
                         position: 'absolute', pointerEvents: 'auto', width: 24 * inv, height: 24 * inv, borderRadius: 999, background: LAPIS.grad, color: LAPIS.ink,
                         border: `${inv}px solid #FFFBF3`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 * inv, fontWeight: 700, cursor: 'pointer',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
-                        ...(smer === 'vedla' ? { right: -12 * inv, top: `calc(50% - ${12 * inv}px)` } : { bottom: -12 * inv, left: `calc(50% - ${12 * inv}px)` }),
+                        // Za hranou prvku, nech sa nebije s úchytmi veľkosti ani pri nízkom tlačidle.
+                        ...(smer === 'vedla' ? { right: -36 * inv, top: `calc(50% - ${12 * inv}px)` } : { bottom: -36 * inv, left: `calc(50% - ${12 * inv}px)` }),
                       }}
                     >
                       +
                     </div>
                   ))}
-                  {menu && (
+                </div>
+              )}
+              {/* Pripnuté poznámky — číslo = poradie v zozname. */}
+              {zmeny.map((z, i) => {
+                if (z.druh !== 'poznamka' || z.trasa !== trasa) return null;
+                const r = rect(prvky.current.get(z.id) ?? null);
+                if (!r) return null;
+                return (
+                  <div key={z.id} title={z.poznamka} style={{ position: 'absolute', left: r.right - 10 * inv, top: r.top - 10 * inv, width: 22 * inv, height: 22 * inv, borderRadius: 999, background: LAPIS.edge, color: LAPIS.ink, fontSize: 12 * inv, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.35)' }}>
+                    {i + 1}
+                  </div>
+                );
+              })}
+          </div>
+          {/* Ponuka pod plusom má vlastnú vrstvu bez orezania — je širšia než okraj okolo telefónu. */}
+          {sr && menu && (
+            <div style={{ position: 'absolute', left: 0, top: 0, width: d.w, height: d.h, transform: `scale(${scale})`, transformOrigin: '0 0', pointerEvents: 'none', zIndex: 3 }}>
+              <div style={{ position: 'absolute', left: sr.left, top: sr.top, width: sr.width, height: sr.height }}>
+                  {menu && jeden && (
                     <div
                       onPointerDown={(e) => e.stopPropagation()}
                       style={{
-                        position: 'absolute', pointerEvents: 'auto', transform: `scale(${inv})`, transformOrigin: menu === 'vedla' ? '100% 0' : '50% 0', zIndex: 2,
-                        ...(menu === 'vedla' ? { right: 16 * inv, top: `calc(50% + ${16 * inv}px)` } : { top: `calc(100% + ${16 * inv}px)`, left: `calc(50% - 110px)` }),
+                        position: 'absolute', pointerEvents: 'auto', transform: `scale(${inv})`, transformOrigin: '0 0', zIndex: 2,
+                        ...(menu === 'vedla' ? { left: `calc(100% + ${40 * inv}px)`, top: 0 } : { top: `calc(100% + ${40 * inv}px)`, left: `calc(50% - ${110 * inv}px)` }),
                         background: C.papyrus, borderRadius: 12, border: `1px solid ${C.border}`, boxShadow: '0 8px 24px rgba(0,0,0,0.35)', padding: 8,
                         display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, width: 220,
                       }}
@@ -1053,21 +1114,9 @@ function NakresShell() {
                       ))}
                     </div>
                   )}
-                </div>
-              )}
-              {/* Pripnuté poznámky — číslo = poradie v zozname. */}
-              {zmeny.map((z, i) => {
-                if (z.druh !== 'poznamka' || z.trasa !== trasa) return null;
-                const r = rect(prvky.current.get(z.id) ?? null);
-                if (!r) return null;
-                return (
-                  <div key={z.id} title={z.poznamka} style={{ position: 'absolute', left: r.right - 10 * inv, top: r.top - 10 * inv, width: 22 * inv, height: 22 * inv, borderRadius: 999, background: LAPIS.edge, color: LAPIS.ink, fontSize: 12 * inv, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.35)' }}>
-                    {i + 1}
-                  </div>
-                );
-              })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

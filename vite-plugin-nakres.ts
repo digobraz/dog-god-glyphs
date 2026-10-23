@@ -17,7 +17,7 @@ type Popis = {
   tag: string; text: string; zdroj: string | null; komponenty: string[];
   rect: { x: number; y: number; w: number; h: number };
 };
-type Poloha = "pred" | "za" | "vedla" | "pod" | "na" | "volne";
+type Poloha = "pred" | "za" | "dnu" | "vedla" | "vedla-vlavo" | "nad" | "pod" | "na" | "volne";
 type Zmena = {
   druh: "presun" | "premiestnit" | "velkost" | "text" | "skryt" | "poznamka" | "pridat";
   trasa: string; zariadenie: string; prvok: Popis | null;
@@ -58,7 +58,10 @@ function kam(z: Zmena) {
   switch (z.poloha) {
     case "pred": return `v toku PRED ${k}`;
     case "za": return `v toku ZA ${k}`;
-    case "vedla": return `VEDĽA ${k} (spolu v jednom riadku)`;
+    case "dnu": return `DNU do ${k}`;
+    case "vedla": return `VPRAVO VEDĽA ${k} (spolu v jednom riadku)`;
+    case "vedla-vlavo": return `VĽAVO VEDĽA ${k} (spolu v jednom riadku)`;
+    case "nad": return `NAD ${k} (spolu v jednom stĺpci)`;
     case "pod": return `POD ${k} (spolu v jednom stĺpci)`;
     case "na": return `položený voľne NA ${k}, ľavý horný roh ${z.x},${z.y} (mimo toku)`;
     default: return "voľne v strede obrazovky (mimo toku)";
@@ -77,8 +80,8 @@ function riadok(z: Zmena, i: number) {
   if (z.druh === "poznamka") co = `„${z.poznamka}“`;
   if (z.druh === "pridat") {
     co = `${TYP[z.typ ?? ""] ?? z.typ}${z.original ? ` — kópia ${kto(z.original)}` : " z katalógu brandu (PACK_BLOCKS)"}, ${z.w}x${z.h}`
-      + `${z.po ? `, text „${z.po}“` : ""}${z.dx || z.dy ? `, potom posunutý ${smer(z.dx, z.dy)}` : ""}`;
-    kde = kam(z);
+      + `${z.po ? `, text „${z.po.replace(/\s+/g, " ")}“` : ""}${z.dx || z.dy ? `, potom posunutý ${smer(z.dx, z.dy)}` : ""}`;
+    kde = `${kam(z)}${z.rodic ? `\n   rodič: ${kto(z.rodic)}` : ""}`;
   }
   return `${i + 1}. **${DRUH[z.druh]}** \`${z.trasa}\` (${z.zariadenie}) — ${co}\n   ${kde}`;
 }

@@ -87,31 +87,49 @@ export function dietaKu(S: Element, t: Element): Element | null {
 export const maText = (el: Element) =>
   Array.prototype.some.call(el.childNodes, (n: Node) => n.nodeType === 3 && (n.textContent ?? '').trim() !== '');
 
+/** pred/za = v toku · dnu = do prázdneho kontajnera · obal-* = pri bočnom kraji: spolu s kotvou do riadku/stĺpca. */
+export type Kam = 'pred' | 'za' | 'dnu' | 'obal-pred' | 'obal-za';
+type Obdl = { x: number; y: number; w: number; h: number };
 export type Miesto = {
   rodic: Element;
   pred: Element | null;
   kotva: Element;
-  kam: 'pred' | 'za';
-  ciara?: { x: number; y: number; w: number; h: number };
+  kam: Kam;
+  ciara?: Obdl;
+  vypln?: Obdl;
 };
 
 const ZAKAZANY_RODIC = (P: Element) => P.tagName === 'HTML' || P.tagName === 'BODY' || P.id === 'root';
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const ATOM = new Set(['INPUT', 'SELECT', 'TEXTAREA', 'IMG', 'VIDEO', 'CANVAS', 'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LABEL', 'PICTURE', 'IFRAME']);
+const KONTAJNER_NOVY = new Set(['blok', 'karta', 'sekcia', 'tvar']);
+
+/** Celok, do ktorého sa nevkladá (tlačidlo, text, obrázok, pilulka) — vkladá sa pred/za/vedľa neho. */
+export function jeAtom(e: Element) {
+  if (e.namespaceURI === SVG_NS) return true;
+  const n = novyTyp(e);
+  if (n && n !== 'kopia') return !KONTAJNER_NOVY.has(n);
+  const t = e.tagName.toUpperCase();
+  // Malé tlačidlo/odkaz je celok; veľká karta zabalená do <a> je kontajner.
+  if (t === 'A' || t === 'BUTTON') return e.getBoundingClientRect().height < 80;
+  if (ATOM.has(t)) return true;
+  return e.children.length === 0 && maText(e);
+}
 
 /**
- * Kam sa prvok vsunie, keď ho pustím na (x, y) v súradniciach iframu.
- * 1. Bod v MEDZERE kontajnera (medzi kartami, v okraji) → medzi jeho deti, k najbližšiemu.
- * 2. Bod NAD prvkom → pred/za ten najhlbší prvok, ktorý je aspoň o polovicu taký veľký ako ťahaný
- *    (karta sa nevsunie medzi dve pilulky). Keď ťahám medzi súrodencami, prednosť má ten istý rodič.
- * 3. Ťahám celý BLOK (`blok`) → vsúva sa pred/za BLOK pod bodom, nikdy nie do jeho vnútra.
- *    Bez toho karta pustená do stredu inej karty skončila medzi jej vrstvami (test 23. 10.).
+ * Kam sa prvok vsunie, keď ho pustím na (x, y) v súradniciach iframu. Matej: „nech viem urobiť
+ * hocičo — slúži to len ako nákres" — žiadne obmedzenie veľkosti, len tri jednoduché zóny:
+ *   • bočný kraj prvku (kolmo na smer rodiča) → VEDĽA neho (v stĺpci) / NAD-POD (v riadku);
+ *     obaja sa zabalia do nového riadku/stĺpca — tak idú dve CTA vedľa seba do sekcie
+ *   • stred kontajnera (blok, sekcia, karta) → DNU, medzi jeho deti alebo do prázdneho
+ *   • inak → PRED / ZA prvok podľa polovice
+ * Vrstva mimo toku (obrázok cez celú kartu) sa berie ako jej najbližší predok v toku, celý.
  */
-export function miestoVlozenia(
-  doc: Document, x: number, y: number, ignor: Element[], refW: number, refH: number, preferRodic: Element | null, blok = false,
-): Miesto | null {
-  // Pevne pripnuté vrstvy (cookie lišta, spodný nav) sa preskočia — pod nimi je stránka, kam sa púšťa.
-  const pod = doc.elementsFromPoint(x, y).find((e) => !vPevnej(e)) ?? null;
-  if (!pod) return null;
+export function miestoVlozenia(doc: Document, x: number, y: number, ignor: Element[]): Miesto | null {
   const mimoIgnor = (c: Element) => !ignor.some((i) => i === c || i.contains(c));
+  // Pevne pripnuté vrstvy (cookie lišta, spodný nav) sa preskočia — pod nimi je stránka, kam sa púšťa.
+  const pod = doc.elementsFromPoint(x, y).find((e) => e.tagName !== 'HTML' && !vPevnej(e) && mimoIgnor(e)) ?? null;
+  if (!pod || pod.tagName === 'BODY') return null;
   const deti = (P: Element) => Array.from(P.children).filter((c) => mimoIgnor(c) && viditelny(c) && vToku(c));
   const vRamci = (P: Element, A: Element, kam: 'pred' | 'za'): Miesto => {
     const r = A.getBoundingClientRect();
@@ -123,37 +141,63 @@ export function miestoVlozenia(
     return { rodic: P, pred: ref, kotva: A, kam, ciara };
   };
 
-  if (blok) {
-    const B = blokPre(pod);
-    if (jeVelkostBloku(B) && B.parentElement && !ZAKAZANY_RODIC(B.parentElement) && mimoIgnor(B) && !ignor.some((i) => B.contains(i))) {
-      const r = B.getBoundingClientRect();
-      const row = jeRiadok(B.parentElement);
-      return vRamci(B.parentElement, B, (row ? x < r.left + r.width / 2 : y < r.top + r.height / 2) ? 'pred' : 'za');
+  let T: Element = pod;
+  let atom = false;
+  for (let e: Element | null = pod; e && e.tagName !== 'BODY'; e = e.parentElement) if (jeAtom(e)) { T = e; atom = true; }
+  while (T.parentElement && T.tagName !== 'BODY' && (!vToku(T) || !viditelny(T))) { T = T.parentElement; atom = true; }
+  if (T.tagName === 'BODY' || T.tagName === 'HTML') return null;
+
+  const r = T.getBoundingClientRect();
+  const P = T.parentElement;
+  const maRodica = !!P && !ZAKAZANY_RODIC(P);
+  const rowP = maRodica ? jeRiadok(P!) : false;
+
+  if (maRodica) {
+    const zp = rowP ? Math.min(r.height / 4, 24) : Math.min(r.width / 4, 40);
+    const pos = rowP ? y - r.top : x - r.left;
+    const dlzka = rowP ? r.height : r.width;
+    if (pos < zp) return { rodic: P!, pred: T, kotva: T, kam: 'obal-pred', ciara: rowP ? { x: r.left, y: r.top - 2, w: r.width, h: 4 } : { x: r.left - 2, y: r.top, w: 4, h: r.height } };
+    if (pos > dlzka - zp) return { rodic: P!, pred: T.nextElementSibling, kotva: T, kam: 'obal-za', ciara: rowP ? { x: r.left, y: r.bottom - 2, w: r.width, h: 4 } : { x: r.right - 2, y: r.top, w: 4, h: r.height } };
+  }
+
+  if (!atom) {
+    const okrajZona = rowP ? Math.min(r.width / 4, 16) : Math.min(r.height / 4, 16);
+    const pos = rowP ? x - r.left : y - r.top;
+    const dlzka = rowP ? r.width : r.height;
+    if (!maRodica || (pos >= okrajZona && pos <= dlzka - okrajZona)) {
+      const d = deti(T);
+      if (!d.length) return { rodic: T, pred: null, kotva: T, kam: 'dnu', vypln: { x: r.left, y: r.top, w: r.width, h: r.height } };
+      const rowT = jeRiadok(T);
+      const za = d.find((c) => { const q = c.getBoundingClientRect(); return rowT ? x < q.left + q.width / 2 : y < q.top + q.height / 2; });
+      return za ? vRamci(T, za, 'pred') : vRamci(T, d[d.length - 1], 'za');
     }
   }
 
-  if (!ZAKAZANY_RODIC(pod) && mimoIgnor(pod)) {
-    const d = deti(pod);
-    if (d.length && !d.some((c) => obsahuje(c, x, y))) {
-      const row = jeRiadok(pod);
-      const za = d.find((c) => { const r = c.getBoundingClientRect(); return row ? x < r.left + r.width / 2 : y < r.top + r.height / 2; });
-      return za ? vRamci(pod, za, 'pred') : vRamci(pod, d[d.length - 1], 'za');
-    }
-  }
+  if (!maRodica) return null;
+  return vRamci(P!, T, (rowP ? x < r.left + r.width / 2 : y < r.top + r.height / 2) ? 'pred' : 'za');
+}
 
-  const retaz: Element[] = [];
-  for (let e: Element | null = pod; e && e.tagName !== 'BODY'; e = e.parentElement) retaz.push(e);
-  const kandidat = (A: Element) => {
-    const P = A.parentElement;
-    if (!P || ZAKAZANY_RODIC(P) || !mimoIgnor(A) || !vToku(A) || !viditelny(A)) return false;
-    const r = A.getBoundingClientRect();
-    return !(r.width < refW * 0.5 && r.height < refH * 0.5);
-  };
-  const A = (preferRodic && retaz.find((a) => a.parentElement === preferRodic && kandidat(a))) || retaz.find(kandidat);
-  if (!A) return null;
-  const r = A.getBoundingClientRect();
-  const row = jeRiadok(A.parentElement!);
-  return vRamci(A.parentElement!, A, (row ? x < r.left + r.width / 2 : y < r.top + r.height / 2) ? 'pred' : 'za');
+/** Zabalí T do nového riadku (vedľa seba) alebo stĺpca; obal sedí na jeho mieste. */
+export function zabal(T: Element, riadok: boolean): HTMLElement {
+  const d = T.ownerDocument;
+  const P = T.parentElement!;
+  const obal = d.createElement('div');
+  obal.dataset.nakresObal = '1';
+  const maly = T.getBoundingClientRect().width < P.getBoundingClientRect().width * 0.5;
+  Object.assign(obal.style, riadok
+    ? (maly ? { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' } : { display: 'grid', gridAutoFlow: 'column', gridAutoColumns: 'minmax(0,1fr)', gap: '8px' })
+    : { display: 'flex', flexDirection: 'column', alignItems: maly ? 'flex-start' : 'stretch', gap: '8px' });
+  P.insertBefore(obal, T);
+  obal.appendChild(T);
+  return obal;
+}
+
+/** Späť: deti obalu na jeho miesto, obal preč. */
+export function rozbal(obal: Element) {
+  const P = obal.parentElement;
+  if (!P) return;
+  while (obal.firstChild) P.insertBefore(obal.firstChild, obal);
+  obal.remove();
 }
 
 /** Najbližší predok, ktorý roluje — na posun stránky, keď ťahám pri okraji. */
