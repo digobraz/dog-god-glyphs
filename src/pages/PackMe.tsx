@@ -7,9 +7,9 @@
 //    JEDINÁ výnimka je `+` na fotke = nová STORY (Matej 23. 10.: *„plusko pri otvorenom profile
 //    s možnosťou pridať stories aj cez to pri /profile nie pri edit"*) — novší pokyn, platí len pre story.
 //
-// 23. 10. pribudlo: STORIES (prstenec žiari, kým žije story; ťuk na fotku = prehrávač) · ťuk na
-// TITULKU = album titulky so striedaním po dni (`CoverSheet`) · fotoaparát na fotke psa v šuplíku
-// = nová hlavná fotka psa · karty PRÍBEHY a ALBUMY čítajú `posts` so štítkami `moment` / `album`.
+// 23. 10. pribudlo: STORIES (prstenec žiari, kým žije story; ťuk na fotku = prehrávač) · karty PRÍBEHY
+// a ALBUMY čítajú `posts` so štítkami `moment` / `album`. Titulka (album + striedanie po dni) a fotka
+// psa sa menia v UPRAVIŤ PROFIL (Matej 23. 10.: *„fotku psa som myslel v edit profile nie v profile"*).
 //
 // Poradie (nákres): TITULKA (meno, DEVOTION, PÚTNIK) · fotka majiteľa so SATELITOM psov
 // (ťuk = šuplík psov; ťuk na fotku psa alebo šípku zavrie; ťuk na heroglyf = meno + bio +
@@ -38,11 +38,10 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BonesSheet } from '@/components/pack/BonesSheet';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { ME_CSS, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
-import { CoverSheet } from '@/components/pack/profile/CoverSheet';
 import { StoryViewer } from '@/components/pack/profile/StoryViewer';
+import { DevotionSheet } from '@/components/pack/profile/DevotionSheet';
+import { levelProgress } from '@/lib/tripPoints';
 import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbum, isLive, isTripStory, type MePost } from '@/components/pack/profile/mePosts';
-import { compressFile } from '@/lib/photoIntake';
-import { uploadMemberDogPhoto } from '@/services/cloudinaryService';
 import { shareDog } from '@/lib/useShareCard';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -64,6 +63,28 @@ type Private = 'saved' | 'diary';
 /** Prehrávač pustený z profilu — story, album alebo príspevok (album a príspevok = prehliadka fotiek). */
 type Viewing = { items: MePost[]; start: number; del?: boolean };
 /** Album alebo príspevok rozložený na snímky prehrávača (každá fotka = jedna snímka, text na prvej). */
+/** NÁHĽAD „NOVÁČIK" (Matej 23. 10.: *„prepni moje konto tak ako keby začínam od začiatku… nováčik"*).
+ *  🔴 Nemení účet ani DB — len to, čo profil KRESLÍ, a len mimo dogypt.com (náhľad workers.dev, lokál).
+ *  Zapne `?ako=novacik`, vypne `?ako=ja`; pamätá si to prehliadač, kým sa nevypne. */
+const NOVICE_KEY = 'dg-preview-novice';
+function useNovicePreview(search: string): [boolean, () => void] {
+  const allowed = typeof window !== 'undefined' && !/(^|\.)dogypt\.com$/.test(window.location.hostname);
+  const [on, setOn] = useState(() => {
+    if (!allowed) return false;
+    try { return localStorage.getItem(NOVICE_KEY) === '1'; } catch { return false; }
+  });
+  useEffect(() => {
+    if (!allowed) return;
+    const ako = new URLSearchParams(search).get('ako');
+    if (ako !== 'novacik' && ako !== 'ja') return;
+    const next = ako === 'novacik';
+    setOn(next);
+    try { if (next) localStorage.setItem(NOVICE_KEY, '1'); else localStorage.removeItem(NOVICE_KEY); } catch { /* bez úložiska len na túto návštevu */ }
+  }, [search, allowed]);
+  const off = () => { setOn(false); try { localStorage.removeItem(NOVICE_KEY); } catch { /* nič */ } };
+  return [on, off];
+}
+
 const asFrames = (p: MePost): MePost[] => p.photos.map((ph, k) => ({ ...p, id: `${p.id}:${k}`, photos: [ph], body: k === 0 ? p.body : '' }));
 
 /** Pilulky človeka = jeho POVAHA z editora (emoji + meno) + jedna vlastná. */
@@ -80,38 +101,25 @@ function humanPills(personality: string[] | undefined, custom: string[], t: (k: 
 }
 
 /** Riadok psa v šuplíku. Bio a povaha sú tie isté polia ako v DOG ID (`profile.dogs[id]`). */
-function DogRow({ dog, attrs, onClose, onDogId, onPhoto, photo, busy, tx }: {
+function DogRow({ dog, attrs, onClose, onDogId, tx }: {
   dog: PackDogFull;
   attrs: DogProfileAttrs | undefined;
   onClose: () => void;
   onDogId: () => void;
-  /** Nová hlavná fotka psa (súbor z výberu). */
-  onPhoto: (file: File) => void;
-  /** Práve vymenená fotka — kým sa `usePackUser` nenačíta nanovo. */
-  photo: string | null;
-  busy: boolean;
   tx: (key: string, fallback: string) => string;
 }) {
   const [flip, setFlip] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const src = photo ?? dog.cloudinary_main_url;
+  const src = dog.cloudinary_main_url;
   const name = dog.dog_name ?? '';
   const num = dog.pack_number != null ? <span className="me-no">#{dog.pack_number}</span> : null;
   const bio = attrs?.bio?.trim();
   const tags = attrs?.tags?.temperament ?? [];
   return (
     <div className={`me-drow${flip ? ' flip' : ''}`}>
-      <span className="me-dpw">
-        <button type="button" className="me-dp" onClick={onClose} aria-label={tx('pack.me.closeDogs', 'Hide dogs')}>
-          {src && <img src={sizedUrl(src, 200)} alt="" />}
-          {num}
-        </button>
-        <button type="button" className={`me-dcam${busy ? ' busy' : ''}`} disabled={busy} onClick={() => fileRef.current?.click()}
-          aria-label={tx('pack.me.dogPhoto', 'Change dog photo')}>
-          <BrandIcon name={busy ? 'cycle' : 'camera'} size={13} tint="white" />
-        </button>
-        <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onPhoto(f); }} />
-      </span>
+      <button type="button" className="me-dp" onClick={onClose} aria-label={tx('pack.me.closeDogs', 'Hide dogs')}>
+        {src && <img src={sizedUrl(src, 200)} alt="" />}
+        {num}
+      </button>
       <button type="button" className="me-hg" onClick={() => setFlip((f) => !f)} aria-expanded={flip} aria-label={name}>
         <span className="fa">
           {dog.heroglyph_png_url ? <img src={dog.heroglyph_png_url} alt="" /> : <span className="empty">{name}</span>}
@@ -144,7 +152,11 @@ export default function PackMe() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { session, devotion, bones, avatarUrl, avatarInitial } = usePackIdentity();
+  const { session, devotion: realDevotion, bones: realBones, avatarUrl, avatarInitial } = usePackIdentity();
+  const [novice, noviceOff] = useNovicePreview(location.search);
+  const devotion = novice ? 0 : realDevotion;
+  const bones = novice ? 0 : realBones;
+  const [aboutDev, setAboutDev] = useState(false);
   const uid = session?.user?.id ?? null;
   const { dogs } = usePackUser(uid);
   const { profile } = useProfile();
@@ -155,9 +167,6 @@ export default function PackMe() {
   const [priv, setPriv] = useState<Private>('saved');
   const [posts, setPosts] = useState<MePost[] | null>(null);
   const [viewing, setViewing] = useState<Viewing | null>(null);
-  const [coverOpen, setCoverOpen] = useState(false);
-  const [dogPhoto, setDogPhoto] = useState<Record<string, string>>({});
-  const [dogBusy, setDogBusy] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [brought, setBrought] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
@@ -182,9 +191,10 @@ export default function PackMe() {
   })();
 
   // ── Čísla. Každé z miesta, kde už žije — žiadny druhý výpočet.
-  const pilgrim = usePilgrimStats(session?.user?.email ?? '', fullName.split(' ')[0] ?? '');
+  const realPilgrim = usePilgrimStats(session?.user?.email ?? '', fullName.split(' ')[0] ?? '');
+  const pilgrim = novice ? { ...realPilgrim, level: levelProgress(0), count: 0, km: 0, countries: 0 } : realPilgrim;
   const zstate = useScrollState();
-  const readScrolls = Object.values(zstate).filter((v) => v === 2).length;
+  const readScrolls = novice ? 0 : Object.values(zstate).filter((v) => v === 2).length;
   // prvý prečítaný zvitok nesmie ukázať 0 % — to isté pravidlo ako hlavička AINUBISA
   const studyPct = readScrolls ? Math.max(1, Math.round((readScrolls / Math.max(1, TOTAL_SCROLLS)) * 100)) : 0;
   const dev = devotionLevel(devotion);
@@ -264,26 +274,6 @@ export default function PackMe() {
     setViewing({ items: asFrames(p), start: 0 });
   };
 
-  const changeDogPhoto = async (dog: PackDogFull, file: File) => {
-    setDogBusy(dog.id);
-    try {
-      const { blob } = await compressFile(file);
-      const { secureUrl } = await uploadMemberDogPhoto(blob, dog.id);
-      // RLS + trigger `dogs_pawtner_columns` pustí majiteľa a toho, kto má právo `dog.photo`.
-      const { error } = await supabase.from('dogs').update({ cloudinary_main_url: secureUrl }).eq('id', dog.id);
-      if (error) throw new Error(error.message);
-      setDogPhoto((m) => ({ ...m, [dog.id]: secureUrl }));
-      toast({ title: tx('pack.me.dogPhotoDone', 'New photo of {dog}').replace('{dog}', dog.dog_name ?? '') });
-    } catch (err) {
-      toast({
-        title: tx('pack.profile.toastUploadFailed', 'Upload failed'),
-        description: err instanceof Error ? err.message : tx('pack.profile.toastUnknownError', 'Unknown error'),
-        variant: 'destructive',
-      });
-    } finally {
-      setDogBusy(null);
-    }
-  };
   const pills = humanPills(human?.personality, customPills(human), t);
 
   const TABS: Array<[Tab, string, string]> = [
@@ -298,6 +288,12 @@ export default function PackMe() {
     <PackLayout>
       <style>{PILL_CSS}</style>
       <style>{ME_CSS}</style>
+      {novice && (
+        <button type="button" className="pk-pill pk-pill--tap" onClick={noviceOff}
+          style={{ display: 'flex', margin: '0 auto 8px', fontSize: 12 }}>
+          {tx('pack.me.novicePreview', 'Preview: a brand-new member · back to my account')}
+        </button>
+      )}
       <section className={`me-card${open ? ' open' : ''}`}>
         {/* TITULKA — BONES · meno · DEVOTION · PÚTNIK (spoločná s UPRAVIŤ PROFIL, `meHead.tsx`). */}
         <MeCover
@@ -313,8 +309,6 @@ export default function PackMe() {
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
           onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
           rank={rank}
-          onCover={uid ? () => setCoverOpen(true) : undefined}
-          coverLabel={tx('pack.cover.title', 'Cover photo')}
         />
 
         <div className="me-under">
@@ -337,8 +331,7 @@ export default function PackMe() {
 
           <div className="me-drawer" aria-hidden={!open}>
             {dogs.map((d) => (
-              <DogRow key={d.id} dog={d} attrs={profile?.dogs?.[d.id]} onClose={() => setOpen(false)} onDogId={() => navigate(`/pack/dogs/${d.id}`)}
-                onPhoto={(f) => changeDogPhoto(d, f)} photo={dogPhoto[d.id] ?? null} busy={dogBusy === d.id} tx={tx} />
+              <DogRow key={d.id} dog={d} attrs={profile?.dogs?.[d.id]} onClose={() => setOpen(false)} onDogId={() => navigate(`/pack/dogs/${d.id}`)} tx={tx} />
             ))}
           </div>
           <div className="me-gap" />
@@ -346,7 +339,8 @@ export default function PackMe() {
             <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} tx={tx}
               study={{ read: readScrolls, total: TOTAL_SCROLLS, pct: studyPct, liked: liked.length, saved: saved.length }}
               onStats={() => navigate('/pack/map/triplist?tab=stats')}
-              onVault={() => navigate('/pack/ainubis/knowledge')} />
+              onVault={() => navigate('/pack/ainubis/knowledge')}
+              onAbout={() => setAboutDev(true)} />
           )}
 
           {/* 5 ČÍSEL — hneď pod fotkou, bez čiar (Matej 22. 10.). */}
@@ -358,7 +352,7 @@ export default function PackMe() {
               {dash}<span>{tx('pack.me.following', 'following')}</span>
             </button>
             <button type="button" onClick={() => setBonesOpen(true)}>
-              <b>{brought == null ? '·' : fmt(brought)}</b>
+              <b>{brought == null ? '·' : fmt(novice ? 0 : brought)}</b>
               <span>{tx('pack.me.brought', 'brought in')}</span>
             </button>
             {/* KM = výlety na karte AJ blok pútnika hore (Matej 23. 10.: „ako keby pill pútnik“). */}
@@ -491,7 +485,7 @@ export default function PackMe() {
           )}
         </div>
       </section>
-      {coverOpen && uid && <CoverSheet uid={uid} human={human} onClose={() => setCoverOpen(false)} />}
+      {aboutDev && <DevotionSheet onClose={() => setAboutDev(false)} />}
       {viewing && (
         <StoryViewer items={viewing.items} start={viewing.start} name={shownName} avatar={avatarUrl} dogs={dogs}
           mine={!!viewing.del} lang={lang} onClose={() => setViewing(null)} />

@@ -3,7 +3,7 @@
 // *„daj náhľad ako bude v realite = meno gradient atď... nech to má človek 1:1"*.
 // Úprava hlavy sa preto robí TU a prejaví sa na oboch obrazovkách naraz.
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PROGRESS_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
@@ -75,7 +75,20 @@ export const ME_CSS = `
    text a pás berú farby z premenných --rk-ink / --rk-dim, ktoré nastaví MeRank. */
 .me-rk{ margin:0 0 ${S.md}px; padding:${S.md}px ${S.lg}px; border-radius:${PACK_R.tile}px; background:var(--rk-bg); border:1px solid var(--rk-edge);
   box-shadow:${T.panelShadow}; color:var(--rk-ink); }
-.me-rk h3{ margin:0; display:flex; justify-content:space-between; align-items:baseline; gap:${S.sm}px; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.body}px; letter-spacing:.14em; text-transform:uppercase; color:var(--rk-ink); }
+.me-rk h3{ margin:0 0 ${S.md}px; padding-bottom:${S.md}px; border-bottom:1px solid var(--rk-edge); align-items:center !important; display:flex; justify-content:space-between; align-items:baseline; gap:${S.sm}px; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.body}px; letter-spacing:.14em; text-transform:uppercase; color:var(--rk-ink); }
+.me-rk h3 .nm{ display:inline-flex; align-items:center; gap:${S.sm}px; min-width:0; }
+/* Ikona stupňa v hlavičke bloku — tá istá gulička ako v pilulke, len väčšia (Matej 23. 10.: „v bloku chýba ikona levelu"). */
+.me-rk h3 .ic{ flex:none; display:grid; place-items:center; width:28px; height:28px; border-radius:${PACK_R.pill}px; background:var(--dv-dot); box-shadow:0 0 12px var(--dv-glow); }
+.me-rk h3 .ic i{ display:block; width:17px; height:17px; background:var(--dv-icon-ink); -webkit-mask:var(--dv-icon) center/contain no-repeat; mask:var(--dv-icon) center/contain no-repeat; }
+.me-rk h3 .ic.pt{ background:var(--rk-fill); box-shadow:none; }
+.me-rk h3 button.ab{ border:0; background:none; padding:0; cursor:pointer; display:inline-flex; align-items:center; gap:${S.xs}px; text-decoration:underline; text-underline-offset:3px; }
+/* PROGRES S TEXTOM VNÚTRI (Matej 23. 10.: „progres bar musí byť zjavný… body koľko zostáva dajme do progresbaru").
+   Text je dvakrát: svetlý nad prázdnou koľajou a tmavý orezaný na šírku výplne — čitateľný na oboch. */
+.me-rk-bar{ position:relative; height:24px; border-radius:${PACK_R.pill}px; background:var(--rk-track); overflow:hidden; }
+.me-rk-bar > b{ position:absolute; left:0; top:0; bottom:0; border-radius:${PACK_R.pill}px; background:var(--rk-fill); box-shadow:0 0 10px var(--rk-fill); transition:width .6s ease; }
+.me-rk-bar > span{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:0 ${S.sm}px; white-space:nowrap; overflow:hidden;
+  font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.02em; color:var(--rk-ink); }
+.me-rk-bar > span.in{ color:var(--rk-bg-ink); }
 .me-rk h3 small{ font-family:${FONT_UI}; font-weight:500; font-size:${TX.micro}px; letter-spacing:.02em; text-transform:none; color:var(--rk-dim); }
 .me-rk p{ margin:${S.sm}px 0 0; font-family:${FONT_UI}; font-size:${TX.label}px; line-height:1.45; color:var(--rk-ink); }
 .me-rk .pk-progress{ margin-top:${S.sm}px; background:rgba(0,0,0,.22); }
@@ -123,11 +136,6 @@ export const ME_CSS = `
 /* + pridať story — lapisový kotúč vpravo dole na fotke (len môj profil). */
 .me-add{ position:absolute; z-index:2; right:0; bottom:${S.sm}px; width:32px; height:32px; padding:0; border-radius:${PACK_R.pill}px; display:grid; place-items:center; cursor:pointer;
   background:${LAPIS.grad}; border:2px solid ${T.card}; box-shadow:${LAPIS_BTN_SHADOW}; }
-/* Fotoaparát na fotke psa v šuplíku — vymení hlavnú fotku psa (Matej 23. 10.: „vymeniť foto psovi rovno z môjho profilu"). */
-.me-dpw{ position:relative; flex:none; }
-.me-dcam{ position:absolute; right:-${S.xs}px; top:-${S.xs}px; z-index:1; width:26px; height:26px; padding:0; border-radius:${PACK_R.pill}px; display:grid; place-items:center; cursor:pointer;
-  background:${LAPIS.grad}; border:2px solid ${T.card}; box-shadow:${LAPIS_BTN_SHADOW}; }
-.me-dcam.busy{ opacity:.6; cursor:default; }
 .me-own .ini{ display:grid; place-items:center; width:100%; height:100%; font-family:${FONT_TITLE}; font-size:${TX.h1}px; color:${T.inkWarm}; }
 .me-sat{ position:absolute; left:50%; transform:translateX(-50%); bottom:-${SAT_DROP.m}px; display:flex; align-items:center;
   padding:0; border:0; background:none; cursor:pointer; }
@@ -423,8 +431,18 @@ const tierStyle = (t: PackTier) => ({ '--tier-bg': tierGradient(t), '--tier-b': 
 /** Svetlý inkoust ⇒ biela ikonka, tmavý ⇒ tmavá (inkousty v `PACK_TIERS` sú len tieto dva druhy). */
 const inkIsLight = (ink: string) => parseInt(ink.slice(1, 3), 16) > 0x80;
 
-/** Šírka výplne `.pk-progress__fill` (recept PROGRESS_CSS). */
-const pctW = (p: number) => `${Math.round(p)}%`;
+
+/** Progres s textom vnútri — jeden prvok pre DEVOTION aj PÚTNIKA. */
+function RankBar({ pct, label }: { pct: number; label: string }) {
+  const w = Math.max(0, Math.min(100, pct));
+  return (
+    <div className="me-rk-bar" role="progressbar" aria-valuenow={Math.round(w)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+      <b style={{ width: `max(${w}%, 24px)` }} />
+      <span>{label}</span>
+      <span className="in" style={{ clipPath: `inset(0 calc(100% - max(${w}%, 24px)) 0 0)` }}>{label}</span>
+    </div>
+  );
+}
 
 export interface StudyStats { read: number; total: number; pct: number; liked: number; saved: number }
 
@@ -434,28 +452,30 @@ function rankVars(kind: 'dev' | 'pt' | 'study', ptLevel: number, devIndex = 1): 
     // NOC + ŽIARA: tmavý blok so zlatým lemom, pás a aktuálny stupeň vo farbe guličky.
     const t = devotionTier(devIndex);
     return { '--rk-bg': NIGHT, '--rk-edge': NIGHT_EDGE, '--rk-ink': NIGHT_INK,
-      '--rk-dim': NIGHT_INK, '--rk-fill': t.dot, '--rk-bg-ink': '#140D07' } as CSSProperties;
+      '--rk-dim': NIGHT_INK, '--rk-fill': t.dot, '--rk-bg-ink': '#140D07', '--rk-track': 'rgba(243,230,200,.14)', ...devotionVars(devIndex) } as CSSProperties;
   }
   if (kind === 'pt') {
     const t = tierOfLevel(ptLevel);
     return { '--rk-bg': tierGradient(t), '--rk-edge': t.b, '--rk-ink': t.ink, '--rk-dim': t.ink,
-      '--rk-fill': T.card, '--rk-bg-ink': t.ink } as CSSProperties;
+      '--rk-fill': T.card, '--rk-bg-ink': '#1F1A0E', '--rk-track': 'rgba(0,0,0,.28)' } as CSSProperties;
   }
   return { '--rk-bg': AINUBIS.surface, '--rk-edge': AINUBIS.edgeStrong, '--rk-ink': '#EAFBFF',
-    '--rk-dim': AINUBIS.cyan, '--rk-fill': AINUBIS.cyan, '--rk-bg-ink': '#06121A' } as CSSProperties;
+    '--rk-dim': AINUBIS.cyan, '--rk-fill': AINUBIS.cyan, '--rk-bg-ink': '#06121A', '--rk-track': 'rgba(234,251,255,.12)' } as CSSProperties;
 }
 
 /** ROZBAĽOVAČ HODNOSTI pod hlavou (Matej 23. 10.: *„po kliknutí na faraóna sa zroluje dropdown s infom
  *  o leveloch a stupnica … to isté pri pútnikovi — chýbajúce body do ďalšieho levelu, otvoriť tripstats"*).
  *  Rebríček je `DEVOTION_LEVELS` (jeden zdroj), PÚTNIK je `levelProgress` z `tripPoints.ts`.
  *  Tretí druh ŠTÚDIUM (23. 10. večer): ťuk na percento štúdia — základné čísla AINUBISA + odkaz do VAULTu. */
-export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, tx }: {
+export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbout, tx }: {
   kind: 'dev' | 'pt' | 'study';
   devotion: number;
   pilgrim: { level: LevelProgress; count: number; km: number; countries: number };
   study?: StudyStats;
   onStats: () => void;
   onVault?: () => void;
+  /** Ťuk na „Oddanosť · N ☥" vpravo hore = vysvetlenie, za čo sa ☥ dostáva. */
+  onAbout?: () => void;
   tx: (key: string, fallback: string) => string;
 }) {
   const scRef = useRef<HTMLDivElement>(null);
@@ -469,10 +489,11 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, tx }:
     const st = study ?? { read: 0, total: 0, pct: 0, liked: 0, saved: 0 };
     return (
       <div className="me-rk" style={vars}>
-        <h3>{tx('pack.me.studying', 'Study')}<small>{st.pct} %</small></h3>
-        <style>{PROGRESS_CSS}</style>
-        <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(st.pct) }} /></div>
-        <p>{tx('pack.rank.studyRead', '{n} of {total} scrolls read').replace('{n}', String(st.read)).replace('{total}', String(st.total))}</p>
+        <h3>
+          <span className="nm"><span className="ic pt"><BrandIcon name="graduate" size={16} tint="dark" /></span>{tx('pack.me.studying', 'Study')}</span>
+          <small>{st.pct} %</small>
+        </h3>
+        <RankBar pct={st.pct} label={tx('pack.rank.studyRead', '{n} of {total} scrolls read').replace('{n}', String(st.read)).replace('{total}', String(st.total))} />
         <div className="me-rk-nums">
           <div><b>{st.read}</b><span>{tx('pack.rank.scrolls', 'scrolls')}</span></div>
           <div><b>{st.liked}</b><span>{tx('pack.rank.liked', 'liked')}</span></div>
@@ -488,13 +509,16 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, tx }:
     const nextName = dev.next ? tx(`pack.ladder.${dev.next.key}`, dev.next.name) : '';
     return (
       <div className="me-rk" style={vars}>
-        <h3>{tx(`pack.ladder.${dev.key}`, dev.name)} {dev.index}<small>{tx('pack.devotion.heading', 'Devotion')} · {devotion.toLocaleString('sk-SK')} ☥</small></h3>
-        <style>{PROGRESS_CSS}</style>
-        <p className="me-rk-q">{tx(`pack.ladder.desc.${dev.key}`, devotionTier(dev.index).desc)}</p>
-        <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(dev.pct) }} /></div>
-        <p>{dev.next
+        <h3>
+          <span className="nm"><span className="ic"><i /></span>{tx(`pack.ladder.${dev.key}`, dev.name)} {dev.index}</span>
+          <small>{onAbout ? (
+            <button type="button" className="ab" onClick={onAbout}>{tx('pack.devotion.heading', 'Devotion')} · {devotion.toLocaleString('sk-SK')} ☥<BrandIcon name="question" size={12} tint="white" /></button>
+          ) : <>{tx('pack.devotion.heading', 'Devotion')} · {devotion.toLocaleString('sk-SK')} ☥</>}</small>
+        </h3>
+        <RankBar pct={dev.next ? dev.pct : 100} label={dev.next
           ? tx('pack.rank.devToNext', '{n} ☥ to the {name} step').replace('{n}', dev.toNext.toLocaleString('sk-SK')).replace('{name}', nextName)
-          : tx('pack.rank.devTop', 'You stand at the top of the ladder.')}</p>
+          : tx('pack.rank.devTop', 'You stand at the top of the ladder.')} />
+        <p className="me-rk-q">{tx(`pack.ladder.desc.${dev.key}`, devotionTier(dev.index).desc)}</p>
         <p>{tx('pack.rank.devAbout', 'Devotion is your path in DOGYPT — {n} steps from Novice to Demigod.').replace('{n}', String(DEVOTION_LEVELS.length))}</p>
         <div className="me-rk-sc" ref={scRef}>
           {DEVOTION_LEVELS.map((l, i) => (
@@ -507,10 +531,11 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, tx }:
   const lv = pilgrim.level;
   return (
     <div className="me-rk" style={vars}>
-      <h3>{tx('pack.map.rankPilgrim', 'Pilgrim')} {lv.level}<small>{lv.points.toLocaleString('sk-SK')} {tx('pack.rank.pts', 'pts')}</small></h3>
-      <style>{PROGRESS_CSS}</style>
-      <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(lv.pct) }} /></div>
-      <p>{tx('pack.tier.toNext', '{n} points to level {level}').replace('{n}', lv.toNext.toLocaleString('sk-SK')).replace('{level}', String(lv.level + 1))}</p>
+      <h3>
+        <span className="nm"><span className="ic pt"><BrandIcon name="world-grid" size={16} tint={inkIsLight(tierOfLevel(lv.level).ink) ? 'dark' : 'white'} /></span>{tx('pack.map.rankPilgrim', 'Pilgrim')} {lv.level}</span>
+        <small>{lv.points.toLocaleString('sk-SK')} {tx('pack.rank.pts', 'pts')}</small>
+      </h3>
+      <RankBar pct={lv.pct} label={tx('pack.tier.toNext', '{n} points to level {level}').replace('{n}', lv.toNext.toLocaleString('sk-SK')).replace('{level}', String(lv.level + 1))} />
       <div className="me-rk-nums">
         <div><b>{pilgrim.count}</b><span>{tx('pack.rank.trips', 'trips')}</span></div>
         <div><b>{pilgrim.km}</b><span>km</span></div>

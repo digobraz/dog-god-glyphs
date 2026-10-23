@@ -12,7 +12,7 @@
 //    presne ako na IG. Cudzím ju neskôr ukáže až FEED a ten si 24 h odfiltruje rovnako (`isLive`).
 import { supabase } from '@/integrations/supabase/client';
 import { compressFile } from '@/lib/photoIntake';
-import { uploadMemberPostPhoto } from '@/services/cloudinaryService';
+import { uploadMemberPostPhoto, uploadMemberDogPhoto } from '@/services/cloudinaryService';
 import type { HumanProfile } from '@/components/pack/profile/packProfile';
 
 // `posts` nie je v generovaných typoch (rovnaký únik ako `storyData.ts`).
@@ -134,4 +134,15 @@ export function onOpenCompose(fn: (mode: ComposeMode) => void): () => void {
   const h = (e: Event) => fn((e as CustomEvent<ComposeMode>).detail);
   window.addEventListener(OPEN, h);
   return () => window.removeEventListener(OPEN, h);
+}
+
+// ── HLAVNÁ FOTKA PSA (UPRAVIŤ PROFIL → SVORKA, 23. 10. 2026) ──────────────────────────────
+/** Nahrá a zapíše novú hlavnú fotku psa. RLS + trigger `dogs_pawtner_columns` pustí majiteľa
+ *  a toho, kto má právo `dog.photo`. Vráti novú adresu. */
+export async function changeDogMainPhoto(dogId: string, file: File): Promise<string> {
+  const { blob } = await compressFile(file);
+  const { secureUrl } = await uploadMemberDogPhoto(blob, dogId);
+  const { error } = await supabase.from('dogs').update({ cloudinary_main_url: secureUrl }).eq('id', dogId);
+  if (error) throw new Error(error.message);
+  return secureUrl;
 }

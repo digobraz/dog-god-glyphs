@@ -15,7 +15,9 @@ import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { ME_CSS, RING, DOG_FONT, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
-import { coverAlbumOf } from '@/components/pack/profile/mePosts';
+import { coverAlbumOf, coverOfDay, changeDogMainPhoto } from '@/components/pack/profile/mePosts';
+import { CoverSheet } from '@/components/pack/profile/CoverSheet';
+import { DevotionSheet } from '@/components/pack/profile/DevotionSheet';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
@@ -190,6 +192,10 @@ const EDIT_CSS = `
 .pe-dog.open .pe-dog-h > i{transform:rotate(180deg);}
 .pe-dog-b{padding:0 0 ${S.md}px;display:flex;flex-direction:column;gap:${S.sm}px;}
 .pe-dog-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.pe-dphoto{display:flex;align-items:center;gap:${S.md}px;width:100%;margin-bottom:${S.md}px;padding:0;border:0;background:none;cursor:pointer;text-align:left;}
+.pe-dphoto .c{flex:none;width:72px;height:72px;border-radius:${PACK_R.pill}px;padding:${S.xs}px;background:${RING};}
+.pe-dphoto .c img{width:100%;height:100%;border-radius:${PACK_R.pill}px;object-fit:cover;display:block;border:2px solid ${T.card};}
+.pe-dphoto .t{display:inline-flex;align-items:center;gap:${S.xs}px;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;color:${LAPIS.edge};}
 .pe-link{align-self:flex-start;display:inline-flex;align-items:center;gap:${S.xs}px;border:0;background:none;padding:${S.xs}px 0;cursor:pointer;
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;color:${LAPIS.edge};}
 .pe-roles{display:flex;flex-direction:column;}
@@ -256,6 +262,8 @@ export default function PackProfile() {
   const [nameSaving, setNameSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [coverSheet, setCoverSheet] = useState(false);
+  const [aboutDev, setAboutDev] = useState(false);
   const [coverY, setCoverY] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
@@ -413,7 +421,8 @@ export default function PackProfile() {
     return fullName.trim() || orderName || email.split('@')[0];
   })();
   const firstDog = dogs.find((d) => d.pack_number != null) ?? dogs[0] ?? null;
-  const coverSrc = human?.coverPhoto || human?.buddyPhoto || firstDog?.cloudinary_main_url || null;
+  // Tá istá titulka ako na profile — pri striedaní po dni dnešná (`coverOfDay`).
+  const coverSrc = coverOfDay(human) || human?.buddyPhoto || firstDog?.cloudinary_main_url || null;
   const dev = devotionLevel(devotion);
   const soon = () => toast({ title: tx('pack.edit.soon', 'Coming soon.') });
 
@@ -445,7 +454,9 @@ export default function PackProfile() {
           right={
             <span className="pe-tr">
               {/* Štítok „POTIAHNI“ preč — ťahá sa aj bez neho (Matej 23. 10.: „funkciu zachovaj, tlačítko vyhoď“). */}
-              <button type="button" className="pe-cam" onClick={() => coverInputRef.current?.click()} disabled={coverUploading} aria-label={tx('pack.edit.changeCover', 'Change cover')}>
+              {/* Foťák = ALBUM TITULKY (`CoverSheet`: viac fotiek, striedanie po dni), Matej 23. 10.:
+                  *„upraviť titulku v /edit sekcii"*. Ťahanie polohy ostáva na titulke. */}
+              <button type="button" className="pe-cam" onClick={() => setCoverSheet(true)} disabled={coverUploading} aria-label={tx('pack.edit.changeCover', 'Change cover')}>
                 {coverUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}
               </button>
             </span>
@@ -466,7 +477,8 @@ export default function PackProfile() {
             }
           />
           <div className="me-gap" />
-          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} onStats={() => navigate('/pack/map/triplist?tab=stats')} tx={tx} />}
+          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} onStats={() => navigate('/pack/map/triplist?tab=stats')} onAbout={() => setAboutDev(true)} tx={tx} />}
+          {aboutDev && <DevotionSheet onClose={() => setAboutDev(false)} />}
 
           {/* ── 1 · O MNE — jediný nadpis skupiny. Poradie (Matej 23. 10.): mená · bio · fakty · povaha. ── */}
           <div className={`pe-grp${shut.has('me') ? ' shut' : ''}`} style={{ ...PACK_BOX.subblock }}>
@@ -606,6 +618,7 @@ export default function PackProfile() {
           </div>
         </div>
       </section>
+      {coverSheet && session?.user?.id && <CoverSheet uid={session.user.id} human={human} onClose={() => setCoverSheet(false)} />}
     </PackLayout>
   );
 }
@@ -1274,18 +1287,37 @@ function DogEditRow({ dog, attrs, onDogId }: { dog: PackDogFull; attrs: DogProfi
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const angel = dog.life_status === 'deceased';
   const tags = attrs?.tags?.temperament ?? [];
+  // FOTKA PSA (Matej 23. 10.: *„fotku psa som myslel v edit profile"*) — prvá vec v rozbaľovači psa.
+  const { toast } = useToast();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [photo, setPhoto] = useState<string | null>(dog.cloudinary_main_url ?? null);
+  const [busy, setBusy] = useState(false);
+  const pickPhoto = async (file: File) => {
+    setBusy(true);
+    try {
+      setPhoto(await changeDogMainPhoto(dog.id, file));
+      toast({ title: tx('pack.me.dogPhotoDone', 'New photo of {dog}').replace('{dog}', dog.dog_name ?? '') });
+    } catch (err) {
+      toast({ title: tx('pack.profile.toastUploadFailed', 'Upload failed'), description: err instanceof Error ? err.message : '', variant: 'destructive' });
+    } finally { setBusy(false); }
+  };
   const toggleTag = (g: DogTemperamentTag) => {
     const next = tags.includes(g) ? tags.filter((x) => x !== g) : [...tags, g];
     saveDogAttrs(dog.id, { tags: { temperament: next, trail: attrs?.tags?.trail ?? [] } });
   };
   return (
     <MemberRow
-      photo={dog.cloudinary_main_url ? sizedUrl(dog.cloudinary_main_url, 140) : null}
+      photo={photo ? sizedUrl(photo, 140) : null}
       name={dog.dog_name ?? ''}
       num={dog.pack_number}
       sub={angel ? tx('pack.tree.angel', 'Angel') : undefined}
       angel={angel}
     >
+      <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) pickPhoto(f); }} />
+      <button type="button" className="pe-dphoto" onClick={() => fileRef.current?.click()} disabled={busy}>
+        <span className="c">{photo && <img src={sizedUrl(photo, 200)} alt="" />}</span>
+        <span className="t">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}{tx('pack.me.dogPhoto', 'Change dog photo')}</span>
+      </button>
       <WordLimitTextarea
         value={attrs?.bio ?? ''}
         onSave={(v) => saveDogAttrs(dog.id, { bio: v.trim().slice(0, 200) })}
