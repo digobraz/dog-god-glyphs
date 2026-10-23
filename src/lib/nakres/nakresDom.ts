@@ -10,13 +10,15 @@
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PACK_BOX, PACK_HEAD, PACK_THEME, PILL_CSS, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 
-export type Novy = 'pilulka' | 'text' | 'rozbalovac' | 'sekcia' | 'blok' | 'karta' | 'cta-lapis' | 'cta-zlate' | 'tvar';
+export type Novy = 'pilulka' | 'text' | 'rozbalovac' | 'sekcia' | 'blok' | 'karta' | 'cta-lapis' | 'cta-zlate' | 'tvar' | 'medzera';
 export type Typ = Novy | 'kopia';
 
 export const NOVE: [Novy, string][] = [
   ['pilulka', 'PILULKA'], ['text', 'TEXT'], ['rozbalovac', 'ROZBAĽOVAČ'],
   ['sekcia', 'SEKCIA'], ['blok', 'BLOK'], ['karta', 'KARTA'],
   ['cta-lapis', 'CTA LAPIS'], ['cta-zlate', 'CTA ZLATÉ'], ['tvar', 'TVAR'],
+  // Matej 23. 10.: „nedá sa mi s tým pohybovať… je to prilepené na horný prvok… dajme do prvkov aj medzeru".
+  ['medzera', 'MEDZERA'],
 ];
 export const TYP_MENO = { ...Object.fromEntries(NOVE), kopia: 'KÓPIA' } as Record<Typ, string>;
 
@@ -262,6 +264,15 @@ export function vyrobPrvok(doc: Document, typ: Novy): HTMLElement {
     pridajText('Rozbaľovač', { ...telo, fontWeight: 500 });
     // Šípka kreslená rámom, nie znakom — holý znak by bol ikonka mimo brandu.
     pridajText('', { width: 8, height: 8, borderRight: `2px solid ${BRAND_GOLD_BTN.edge}`, borderBottom: `2px solid ${BRAND_GOLD_BTN.edge}`, transform: 'rotate(45deg)', marginTop: -4, flex: 'none' });
+  }
+  if (typ === 'medzera') {
+    // Prázdne miesto medzi prvkami — šrafa je len pre oko v nákrese, výšku mení úchyt.
+    // `flex: 0 0 24px` = 24 px po smere rodiča (v stĺpci výška, v riadku šírka).
+    stylDom(el, {
+      display: 'block', height: 24, minWidth: 24, flex: '0 0 24px', alignSelf: 'stretch',
+      background: 'repeating-linear-gradient(45deg, rgba(22,48,122,0.12) 0 6px, transparent 6px 12px)',
+      outline: '1px dashed rgba(22,48,122,0.45)', outlineOffset: -1,
+    });
   }
   if (typ === 'tvar') stylDom(el, { display: 'block', width: 160, height: 80, border: '2px dashed #C99A3F', borderRadius: 12, background: 'rgba(201,154,63,0.08)' });
   if (typ === 'cta-lapis') { el.textContent = 'Tlačidlo'; stylDom(el, { ...cta, background: LAPIS.grad, color: LAPIS.ink, border: `1px solid ${LAPIS.edge}` }); }

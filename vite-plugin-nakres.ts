@@ -36,6 +36,7 @@ const DRUH: Record<Zmena["druh"], string> = {
 const TYP: Record<string, string> = {
   pilulka: "PILULKA", text: "TEXT", rozbalovac: "ROZBAĽOVAČ", sekcia: "SEKCIA (podblok s nadpisom)", blok: "BLOK (podblok)",
   karta: "KARTA", "cta-lapis": "CTA LAPIS", "cta-zlate": "CTA ZLATÉ", tvar: "TVAR", kopia: "KÓPIA",
+  medzera: "MEDZERA (prázdne miesto = odsadenie, prelož na PACK_SPACE)",
 };
 
 const slug = (s: string) => s.replace(/^\/+|\/+$/g, "").replace(/[^a-zA-Z0-9]+/g, "-") || "domov";

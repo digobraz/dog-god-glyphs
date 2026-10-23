@@ -50,7 +50,7 @@ type Tah = {
   povodne: { el: HTMLElement; op: string; pe: string }[];
 };
 /** Čo práve ťahám (z appky aj z ponuky) — z toho sa ráta miesto vloženia. */
-type Ciel = { ignor: Element[]; w: number; h: number; ox: number; oy: number; volne: boolean };
+type Ciel = { ignor: Element[]; w: number; h: number; ox: number; oy: number; volne: boolean; medzera?: boolean };
 
 const KROK = 4;
 const snap = (v: number) => Math.round(v / KROK) * KROK;
@@ -122,6 +122,8 @@ function NakresShell() {
   const snimky = useRef<Record<string, { pred?: string; po?: string }>>({});
   const nakresId = useRef<string | null>(null);
   const neulozene = useRef(false);
+  // Jeden klik prepustený do appky (rozbaliť sekciu, prepnúť záložku) — potom hneď späť úprava.
+  const prepustitRef = useRef(false);
 
   zariadenieRef.current = zariadenie;
   trasaRef.current = trasa;
@@ -359,10 +361,27 @@ function NakresShell() {
   };
 
   // ── miesto vloženia + posun stránky pri okraji ────────────────────────────
+  /** MEDZERA ide vždy MEDZI RIADKY: z riadku (vedľa seba) sa zdvihne na celý riadok, nad/pod neho. */
+  const medziRiadky = (m: Miesto, y: number): Miesto => {
+    if (m.kam === 'dnu') return m;
+    let A: Element = m.kotva;
+    let P: Element = m.rodic;
+    let kam: 'pred' | 'za' = m.kam === 'obal-pred' || m.kam === 'pred' ? 'pred' : 'za';
+    while (jeRiadok(P) && P.parentElement && P.parentElement.tagName !== 'BODY' && P.id !== 'root') {
+      A = P;
+      P = P.parentElement;
+      const r = A.getBoundingClientRect();
+      kam = y < r.top + r.height / 2 ? 'pred' : 'za';
+    }
+    const r = A.getBoundingClientRect();
+    return { rodic: P, kotva: A, kam, pred: kam === 'pred' ? A : A.nextElementSibling, ciara: { x: r.left, y: (kam === 'pred' ? r.top : r.bottom) - 2, w: r.width, h: 4 } };
+  };
+
   const prepocitajMiesto = () => {
     const c = cielRef.current, b = bodRef.current, d = doc();
     if (!c || !b || !d || c.volne) { miestoRef.current = null; return; }
-    miestoRef.current = miestoVlozenia(d, b.x, b.y, c.ignor);
+    const m = miestoVlozenia(d, b.x, b.y, c.ignor);
+    miestoRef.current = m && c.medzera ? medziRiadky(m, b.y) : m;
   };
 
   useEffect(() => {
@@ -447,8 +466,13 @@ function NakresShell() {
       if (t && t.nodeType === 3) t = t.parentNode;
       return jeElement(t) && t.tagName !== 'HTML' && t.tagName !== 'BODY' ? t : null;
     };
+    const prepusti = (e: Event) => {
+      if (!prepustitRef.current) return false;
+      if (e.type === 'click') window.setTimeout(() => { prepustitRef.current = false; prekresli(); }, 0);
+      return true;
+    };
     const zastav = (e: Event) => {
-      if (vEdite(e.target)) return;
+      if (prepusti(e) || vEdite(e.target)) return;
       e.preventDefault();
       e.stopPropagation();
     };
@@ -470,10 +494,11 @@ function NakresShell() {
         el.style.pointerEvents = 'none';
       }
       const r = T.originaly[T.originaly.length - 1].getBoundingClientRect();
-      cielRef.current = { ignor: T.kopia ? [] : T.prvky, w: r.width, h: r.height, volne: false, ox: T.sx - r.left, oy: T.sy - r.top };
+      cielRef.current = { ignor: T.kopia ? [] : T.prvky, w: r.width, h: r.height, volne: false, ox: T.sx - r.left, oy: T.sy - r.top, medzera: T.originaly.every((o) => novyTyp(o) === 'medzera') };
     };
 
     const pohyb = (e: PointerEvent) => {
+      if (prepustitRef.current) return;
       const T = tahRef.current;
       if (T) {
         const dx0 = e.clientX - T.sx, dy0 = e.clientY - T.sy;
@@ -495,7 +520,7 @@ function NakresShell() {
     };
 
     const dole = (e: PointerEvent) => {
-      if (vEdite(e.target)) return;
+      if (prepustitRef.current || vEdite(e.target)) return;
       zastav(e);
       if (editRef.current) A().koniecText(true);
       const t = ciel(e);
@@ -546,7 +571,7 @@ function NakresShell() {
     };
 
     const dvojklik = (e: MouseEvent) => {
-      if (vEdite(e.target)) return;
+      if (prepustitRef.current || vEdite(e.target)) return;
       zastav(e);
       const t = ciel(e);
       if (!t) return;
@@ -750,7 +775,7 @@ function NakresShell() {
         Object.assign(duch.style, { position: 'fixed', zIndex: '2147483600', pointerEvents: 'none', opacity: '0.85', transform: `scale(${m}) translate(-50%, -50%)`, transformOrigin: '0 0' });
         document.body.appendChild(duch);
         const r = duch.getBoundingClientRect();
-        cielRef.current = { ignor: [], w: r.width / m, h: r.height / m, ox: 0, oy: 0, volne: false };
+        cielRef.current = { ignor: [], w: r.width / m, h: r.height / m, ox: 0, oy: 0, volne: false, medzera: typ === 'medzera' };
       }
       duch.style.left = `${ev.clientX}px`;
       duch.style.top = `${ev.clientY}px`;
@@ -788,6 +813,7 @@ function NakresShell() {
     if (['blok', 'karta', 'sekcia', 'rozbalovac'].includes(typ)) Object.assign(el.style, { width: '150px' });
     if (typ === 'blok' || typ === 'karta') Object.assign(el.style, { minHeight: '56px', padding: '0' });
     if (typ === 'tvar') Object.assign(el.style, { width: '120px', height: '56px' });
+    if (typ === 'medzera') Object.assign(el.style, { width: '120px' });
     n.appendChild(el);
   };
 
@@ -881,6 +907,13 @@ function NakresShell() {
             }}>ZAVRIEŤ</Tlacidlo>
           </div>
           <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 4 }}>{trasa || '…'} · do kódu sa nezapíše nič</div>
+          <button
+            onClick={() => { prepustitRef.current = !prepustitRef.current; prekresli(); }}
+            title="Nasledujúci klik pôjde do appky (rozbaliť sekciu, prepnúť záložku), potom späť úprava"
+            style={{ ...MALE_TL, marginTop: 8, ...(prepustitRef.current ? { background: LAPIS.fill, color: LAPIS.edge, borderColor: LAPIS.edge } : {}) }}
+          >
+            {prepustitRef.current ? 'ĎALŠÍ KLIK IDE DO APPKY' : 'JEDEN KLIK DO APPKY'}
+          </button>
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
             <Prepinac moznosti={[['mobil', 'MOBIL'], ['pc', 'PC']]} hodnota={zariadenie} zmen={(v) => setZariadenie(v as Zariadenie)} />
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -943,6 +976,7 @@ function NakresShell() {
               'Plus vedľa / pod výberom = pridaj k nemu',
               'Cmd+C, Cmd+V · Cmd+D = kópia · X alebo Del = zrušiť',
               'Šípky = jemný posun · P = rodič · Enter = text',
+              'Odstup od prvku = MEDZERA z ponuky (výška úchytom)',
               'Rohy výberu = veľkosť · Cmd+Z = späť',
             ]} />
           )}
