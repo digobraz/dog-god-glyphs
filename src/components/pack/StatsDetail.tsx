@@ -48,7 +48,7 @@ const CSS = `${PILL_CSS}${PROGRESS_CSS}
 .sd-globe{flex:0 0 auto;width:96px;height:96px;}
 .sd-ladder{flex:1;min-width:0;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .sd-head{display:flex;justify-content:space-between;align-items:baseline;gap:${PACK_SPACE.sm}px;}
-.sd-step{display:grid;grid-template-columns:76px minmax(0,1fr) auto;align-items:center;gap:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+.sd-step{display:grid;grid-template-columns:76px minmax(0,1fr) 56px;align-items:center;gap:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .sd-step.on{color:${T.inkStrong};font-weight:600;}
 .sd-step b{font-weight:600;text-align:right;}
 .sd-tabs{display:flex;gap:${PACK_SPACE.sm}px;margin-bottom:${PACK_SPACE.sm}px;}
