@@ -249,6 +249,7 @@ export default function PackMe() {
           name={shownName}
           devLabel={`${tx(`pack.ladder.${dev.key}`, dev.name)} ${dev.index}`}
           pilgrimLabel={`${tx('pack.map.rankPilgrim', 'Pilgrim')} ${pilgrim.level.level}`}
+          pilgrimLevel={pilgrim.level.level}
           bones={fmt(bones)}
           onBones={() => setBonesOpen(true)}
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}

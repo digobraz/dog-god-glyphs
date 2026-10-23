@@ -10,6 +10,7 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import type { PackDogFull } from '@/hooks/usePackUser';
 import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
+import { tierOfLevel, tierGradient, type PackTier } from '@/lib/packTiers';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -77,7 +78,7 @@ export const ME_CSS = `
 .me-rk-link{ display:inline-flex; align-items:center; gap:${S.xs}px; margin-top:${S.md}px; border:0; background:none; padding:0; cursor:pointer;
   font-family:${FONT_UI}; font-weight:500; font-size:${TX.label}px; color:${LAPIS.edge}; }
 .me-dv{ background:${BRAND_GOLD_BTN.grad}; border:1px solid ${BRAND_GOLD_BTN.edge}; color:${BRAND_GOLD_BTN.ink}; }
-.me-pt{ background:${T.growGreen}; border:1px solid ${T.growGreen}; color:${T.card}; cursor:pointer; }
+.me-pt{ background:var(--tier-bg); border:1px solid var(--tier-b); color:var(--tier-ink); cursor:pointer; }
 
 .me-under{ position:relative; padding:0 ${S.lg}px ${S.lg}px; }
 .me-own{ position:absolute; z-index:3; left:${OWN_X.m}px; top:-${OWN.m - OWN_DROP}px; width:${OWN.m}px; height:${OWN.m}px;
@@ -220,12 +221,14 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd }: {
+export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, pilgrimLevel, bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd }: {
   cover: string | null;
   coverY?: number;
   name: string;
   devLabel: string;
   pilgrimLabel: string;
+  /** Level PÚTNIKA — pilulka nesie farbu jeho pásma (`packTiers.ts`), tú istú ako hlavička `/map`. */
+  pilgrimLevel: number;
   /** Bez `bones` sa pilulka nekreslí — UPRAVIŤ PROFIL ju nemá (Matej 23. 10.: BONES = šuplík na profile). */
   bones?: string;
   onBones?: () => void;
@@ -261,6 +264,7 @@ export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, bones, on
     return Math.max(0, nat.h * scale - H);
   };
   const editable = !!onMoveY && !!url;
+  const pilgrimTier = tierOfLevel(pilgrimLevel);
 
   return (
     <div
@@ -302,8 +306,8 @@ export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, bones, on
             <BrandIcon name="ankh" size={12} tint="dark" />
             {devLabel}
           </button>
-          <button type="button" className={`me-pt${rank === 'pt' ? ' on' : ''}`} onClick={onPilgrim} aria-expanded={rank === 'pt'}>
-            <BrandIcon name="walk" size={12} tint="white" />
+          <button type="button" className={`me-pt${rank === 'pt' ? ' on' : ''}`} onClick={onPilgrim} aria-expanded={rank === 'pt'} style={tierStyle(pilgrimTier)}>
+            <BrandIcon name="walk" size={12} tint={inkIsLight(pilgrimTier.ink) ? 'white' : 'dark'} />
             {pilgrimLabel}
           </button>
         </div>
@@ -349,6 +353,11 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
   );
 }
 
+/** Farby pásma PÚTNIKA ako CSS premenné — `.me-pt` aj výplň pásu v MeRank ich čítajú. */
+const tierStyle = (t: PackTier) => ({ '--tier-bg': tierGradient(t), '--tier-b': t.b, '--tier-ink': t.ink } as CSSProperties);
+/** Svetlý inkoust ⇒ biela ikonka, tmavý ⇒ tmavá (inkousty v `PACK_TIERS` sú len tieto dva druhy). */
+const inkIsLight = (ink: string) => parseInt(ink.slice(1, 3), 16) > 0x80;
+
 /** Šírka výplne `.pk-progress__fill` (recept PROGRESS_CSS). */
 const pctW = (p: number) => `${Math.round(p)}%`;
 
@@ -392,7 +401,7 @@ export function MeRank({ kind, devotion, pilgrim, onStats, tx }: {
     <div className="me-rk">
       <h3>{tx('pack.map.rankPilgrim', 'Pilgrim')} {lv.level}<small>{lv.points.toLocaleString('sk-SK')} {tx('pack.rank.pts', 'pts')}</small></h3>
       <style>{PROGRESS_CSS}</style>
-      <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(lv.pct), background: T.growGreen }} /></div>
+      <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(lv.pct), background: tierGradient(tierOfLevel(lv.level)) }} /></div>
       <p>{tx('pack.tier.toNext', '{n} points to level {level}').replace('{n}', lv.toNext.toLocaleString('sk-SK')).replace('{level}', String(lv.level + 1))}</p>
       <div className="me-rk-nums">
         <div><b>{pilgrim.count}</b><span>{tx('pack.rank.trips', 'trips')}</span></div>
