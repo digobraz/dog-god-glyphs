@@ -28,6 +28,7 @@ import { IS_APP } from '@/lib/isApp';
 import { BUDDY_LIVE } from '@/lib/packFlags';
 import { supabase } from '@/integrations/supabase/client';
 import ainubisHead from '@/assets/ainubis-head.webp';
+import logo2026 from '@/assets/app/logo-2026.svg';
 import { FRESH_NEWS } from '@/data/freshNews';
 import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 import { sizedUrl } from '@/services/cloudinaryService';
@@ -191,6 +192,8 @@ const CSS = `
   background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${PACK_SHADOW.lift};line-height:1;}
 .ntf-arr--prev{right:-12px;}
 .ntf-arr--next{left:${PACK_SPACE.sm}px;}
+.ntf-logo{position:absolute;z-index:1;right:-18%;top:-34%;width:96%;aspect-ratio:1;pointer-events:none;background:${T.inkStrong};opacity:.07;
+  -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;}
 .ntf-nums{position:absolute;z-index:2;right:${PACK_SPACE.xxl}px;top:${PACK_SPACE.md}px;bottom:${PACK_SPACE.md}px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:${PACK_SPACE.xs}px;}
 /* Počítadlo — písmo sa zmenšuje podľa POČTU ZNAKOV (--ntf-len), aby sa zmestilo aj „1 000 000".
    Farba = tmavý atrament papyrusu (Matej 23. 10.: lapis→zlatý gradient „nie sú v brande"). */
@@ -198,7 +201,6 @@ const CSS = `
 .ntf-num b{color:${T.inkStrong};font-family:'Cinzel',serif;font-weight:700;font-size:min(48px, calc(40cqw / var(--ntf-len, 3)));letter-spacing:.02em;line-height:1;white-space:nowrap;}
 .ntf-num span{font-size:${PACK_TEXT.label}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 /* BEŽIACI PÁS — NAD blokom (Matej 23. 10.), nie v ňom. */
-.ntf-head{font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};margin-bottom:${PACK_SPACE.xs}px;white-space:nowrap;}
 .ntf-tick{position:relative;flex:0 0 auto;display:block;overflow:hidden;margin:${PACK_SPACE.sm}px 0 0;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 ${PACK_SPACE.lg}px,#000 calc(100% - ${PACK_SPACE.lg}px),transparent);
   mask-image:linear-gradient(90deg,transparent,#000 ${PACK_SPACE.lg}px,#000 calc(100% - ${PACK_SPACE.lg}px),transparent);}
@@ -352,10 +354,11 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                   )}
                 </span>
               )}
+              {/* Za číslami priesvitná SILUETA loga, priblížený výrez (Matej 23. 10.: „namiesto toho daj priehľadné
+                  logo dogyptu za tie čísla… zoomni ho = nemusí byť celé, skôr detail loga"). */}
+              <span className="ntf-logo" aria-hidden style={{ WebkitMaskImage: `url(${logo2026})`, maskImage: `url(${logo2026})` }} />
               {/* Najvýraznejšie: psy a ľudia, pod sebou (Matej 21. 10.). */}
               <span className="ntf-nums" style={{ ['--ntf-len' as string]: numLen }}>
-                {/* Nápis VNÚTRI bloku nad číslami (Matej 23. 10.: „obyvatelia dogyptu som myslel dovnútra bloku"). */}
-                <span className="ntf-head">{t('pack.notif.population')}</span>
                 <span className="ntf-num"><b>{stats ? fmt(dogs) : '—'}</b><span>{t('pack.notif.dogsWord')}</span></span>
                 <span className="ntf-num"><b>{stats ? fmt(stats.total) : '—'}</b><span>{t('pack.notif.peopleWord')}</span></span>
               </span>
