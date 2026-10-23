@@ -161,7 +161,7 @@ const CSS = `
 @keyframes ntf-fade{from{opacity:0;}to{opacity:1;}}
 .ntf-top{display:flex;align-items:center;gap:${PACK_SPACE.md}px;padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) ${PACK_SPACE.lg}px ${PACK_SPACE.sm}px;}
 .ntf-ttl{flex:1;font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.14em;text-transform:uppercase;}
-.ntf-stats{position:relative;display:block;flex:0 0 auto;overflow:hidden;container-type:inline-size;
+.ntf-stats{position:relative;display:block;flex:0 0 auto;overflow:visible;container-type:inline-size;
   margin:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px 0;
   height:clamp(176px, 25dvh, 220px);width:calc(100% - ${PACK_SPACE.xxl}px);cursor:pointer;text-align:left;font:inherit;color:inherit;
   background:rgba(255,255,255,0.40);
@@ -171,7 +171,7 @@ const CSS = `
    fotku zväčši cez celý blok"). Meno a číslo sedia NA fotke dole, na tmavom prechode. */
 .ntf-dogwrap{position:absolute;z-index:2;left:0;top:0;bottom:0;aspect-ratio:1;max-width:58%;}
 /* Pravý okraj fotky sa ROZPLYNIE do bloku, nie ostrý sek (Matej 23. 10.). */
-.ntf-dog{display:block;width:100%;height:100%;overflow:hidden;border:0;background:none;cursor:pointer;padding:0;touch-action:pan-y;
+.ntf-dog{position:relative;display:block;width:100%;height:100%;overflow:hidden;border:0;border-radius:${PACK_R.card}px 0 0 ${PACK_R.card}px;background:none;cursor:pointer;padding:0;touch-action:pan-y;
   -webkit-mask-image:linear-gradient(90deg,#000 62%,transparent);mask-image:linear-gradient(90deg,#000 62%,transparent);}
 .ntf-dog img{width:100%;height:100%;object-fit:cover;display:block;animation:ntf-fade .3s ease both;}
 .ntf-dog::after{content:'';position:absolute;left:0;right:0;bottom:0;height:46%;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.62));}
@@ -190,10 +190,14 @@ const CSS = `
    objaví vpravo na fotke, až keď je kam. */
 .ntf-arr{position:absolute;z-index:3;top:50%;transform:translateY(-50%);${backCircleCSS('scrim')}}
 .ntf-arr:hover{${backHoverCSS('scrim')}}
-.ntf-arr--prev{left:${PACK_SPACE.sm}px;}
-.ntf-arr--next{right:${PACK_SPACE.xxl}px;}
+/* Šípky na HRANICIACH, nie vo fotke (Matej 23. 10.): dozadu napoly cez ľavý okraj bloku,
+   dopredu na hranici fotky a prechodu (62 % = kde začína rozplynutie). */
+.ntf-arr--prev{left:0;transform:translate(-50%,-50%);}
+.ntf-arr--next{left:62%;transform:translate(-50%,-50%);}
 /* Celá hlava psa aj s nosom (Matej 23. 10.: „daj to logo nižšie, nech je vidno celá tvár aj nos“). */
-.ntf-logo{position:absolute;z-index:1;right:-14%;top:-6%;width:84%;aspect-ratio:1;pointer-events:none;background:${T.inkStrong};opacity:.07;
+.ntf-logo-clip{position:absolute;inset:0;z-index:1;overflow:hidden;border-radius:${PACK_R.card}px;pointer-events:none;}
+/* +50 px doľava a +15 px nižšie, aby bol vidno celý nos ako na novej ikonke appky (Matej 23. 10.). */
+.ntf-logo{position:absolute;z-index:1;right:calc(-14% + 50px);top:calc(-6% + 15px);width:84%;aspect-ratio:1;pointer-events:none;background:${T.inkStrong};opacity:.07;
   -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;}
 .ntf-nums{position:absolute;z-index:2;right:${PACK_SPACE.xxl}px;top:${PACK_SPACE.md}px;bottom:${PACK_SPACE.md}px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:${PACK_SPACE.xs}px;}
 /* Počítadlo — písmo sa zmenšuje podľa POČTU ZNAKOV (--ntf-len), aby sa zmestilo aj „1 000 000".
@@ -358,7 +362,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
               )}
               {/* Za číslami priesvitná SILUETA loga, priblížený výrez (Matej 23. 10.: „namiesto toho daj priehľadné
                   logo dogyptu za tie čísla… zoomni ho = nemusí byť celé, skôr detail loga"). */}
-              <span className="ntf-logo" aria-hidden style={{ WebkitMaskImage: `url(${logo2026})`, maskImage: `url(${logo2026})` }} />
+              <span className="ntf-logo-clip" aria-hidden><span className="ntf-logo" style={{ WebkitMaskImage: `url(${logo2026})`, maskImage: `url(${logo2026})` }} /></span>
               {/* Najvýraznejšie: psy a ľudia, pod sebou (Matej 21. 10.). */}
               <span className="ntf-nums" style={{ ['--ntf-len' as string]: numLen }}>
                 <span className="ntf-num"><b>{stats ? fmt(dogs) : '—'}</b><span>{t('pack.notif.dogsWord')}</span></span>
