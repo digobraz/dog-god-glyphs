@@ -206,9 +206,10 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
     ctx.lineWidth = 4; ctx.strokeStyle = GOLD; ctx.beginPath(); ctx.arc(fx, fy, r, 0, Math.PI * 2); ctx.stroke();
   }
 
-  // pilulka misie hore — IG drží pod svojím horným pásom (~250 px), FB tesne pod okrajom
+  // pilulka misie hore pri okraji — IG aj FB rovnako (Matej 23. 10.: „pri ig je to nízko = dajme to pri horný okraj")
+  // ⚠️ IG cez horných ~150 px kreslí pásiky príbehu a meno účtu — pilulka môže pod nimi čiastočne zmiznúť
   if (d.badge) {
-    const bfs = ig ? 36 : 30, by = ig ? 270 : 56;
+    const bfs = ig ? 36 : 30, by = ig ? 64 : 56;
     // Space Grotesk, nie Cinzel — Cinzel kreslí „1“ ako „I“ (#I Z I 000 000)
     ctx.font = `600 ${bfs}px "Space Grotesk"`; ctx.letterSpacing = `${Math.round(bfs * 0.08)}px`;
     const label = d.badge.toUpperCase(), bw = ctx.measureText(label).width + bfs * 1.6, bh = bfs * 2;
