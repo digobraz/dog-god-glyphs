@@ -457,7 +457,7 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, tx }:
         <div><b>{pilgrim.countries}</b><span>{tx('pack.rank.countries', 'countries')}</span></div>
       </div>
       <button type="button" className="me-rk-link" onClick={onStats}>
-        {tx('pack.rank.openStats', 'Trip stats')}<BrandIcon name="back" size={12} tint={lv.level >= 22 ? 'white' : 'dark'} style={{ transform: 'rotate(180deg)' }} />
+        {tx('pack.rank.openStats', 'Trip stats')}<BrandIcon name="back" size={12} tint={/^#[0-3]/.test(tierOfLevel(lv.level).ink) ? 'dark' : 'white'} style={{ transform: 'rotate(180deg)' }} />
       </button>
     </div>
   );
