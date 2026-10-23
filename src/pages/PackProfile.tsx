@@ -201,7 +201,8 @@ const EDIT_CSS = `
 .pe-grp:not(.shut) .pe-ghb .chev{transform:rotate(180deg);}
 @media (max-width:767px){
   .pe-grp.shut > :not(.pe-ghb){display:none !important;}
-  .pe-grp.shut .pe-ghb{margin-bottom:0;}
+  .pe-grp.shut .pe-ghb{margin-bottom:0;min-height:${S.xxl}px;}
+  .pe-ghb{min-height:${S.xl}px;}
 }
 @media (min-width:768px){
   .pe-ghb{cursor:default;pointer-events:none;}
