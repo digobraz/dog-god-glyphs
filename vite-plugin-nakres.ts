@@ -17,12 +17,13 @@ type Popis = {
   tag: string; text: string; zdroj: string | null; komponenty: string[];
   rect: { x: number; y: number; w: number; h: number };
 };
+type Poloha = "pred" | "za" | "vedla" | "pod" | "na" | "volne";
 type Zmena = {
-  druh: "presun" | "velkost" | "text" | "skryt" | "poradie" | "poznamka" | "pridat";
+  druh: "presun" | "premiestnit" | "velkost" | "text" | "skryt" | "poznamka" | "pridat";
   trasa: string; zariadenie: string; prvok: Popis | null;
   dx?: number; dy?: number; w?: number; h?: number;
-  pred?: string; po?: string; poznamka?: string; o?: number; vedla?: string; typ?: string;
-  poloha?: "za" | "na" | "volne"; x?: number; y?: number;
+  pred?: string; po?: string; poznamka?: string;
+  typ?: string; poloha?: Poloha; kotva?: Popis | null; rodic?: Popis | null; original?: Popis | null; x?: number; y?: number;
 };
 type Nakres = {
   id: string; vytvorene: string; nazov?: string; zmeny: Zmena[];
@@ -30,7 +31,11 @@ type Nakres = {
 };
 
 const DRUH: Record<Zmena["druh"], string> = {
-  presun: "PRESUN", velkost: "VEĽKOSŤ", text: "TEXT", skryt: "SKRYŤ", poradie: "PORADIE", poznamka: "POZNÁMKA", pridat: "NOVÝ PRVOK",
+  presun: "VOĽNÝ POSUN", premiestnit: "PRESUN V TOKU", velkost: "VEĽKOSŤ", text: "TEXT", skryt: "SKRYŤ", poznamka: "POZNÁMKA", pridat: "NOVÝ PRVOK",
+};
+const TYP: Record<string, string> = {
+  pilulka: "PILULKA", text: "TEXT", rozbalovac: "ROZBAĽOVAČ", sekcia: "SEKCIA (podblok s nadpisom)", blok: "BLOK (podblok)",
+  karta: "KARTA", "cta-lapis": "CTA LAPIS", "cta-zlate": "CTA ZLATÉ", tvar: "TVAR", kopia: "KÓPIA",
 };
 
 const slug = (s: string) => s.replace(/^\/+|\/+$/g, "").replace(/[^a-zA-Z0-9]+/g, "-") || "domov";
@@ -42,23 +47,39 @@ function smer(dx = 0, dy = 0) {
   return c.join(", ") || "bez posunu";
 }
 
+/** Kto je prvok: súbor:riadok, reťaz komponentov, značka a text. */
+function kto(p?: Popis | null) {
+  if (!p) return "—";
+  return `\`${p.zdroj ?? "nový prvok z nákresu"}\` · ${p.komponenty.join(" ← ") || "—"} · <${p.tag}>${p.text ? ` „${p.text}“` : ""}`;
+}
+
+function kam(z: Zmena) {
+  const k = kto(z.kotva);
+  switch (z.poloha) {
+    case "pred": return `v toku PRED ${k}`;
+    case "za": return `v toku ZA ${k}`;
+    case "vedla": return `VEDĽA ${k} (spolu v jednom riadku)`;
+    case "pod": return `POD ${k} (spolu v jednom stĺpci)`;
+    case "na": return `položený voľne NA ${k}, ľavý horný roh ${z.x},${z.y} (mimo toku)`;
+    default: return "voľne v strede obrazovky (mimo toku)";
+  }
+}
+
 function riadok(z: Zmena, i: number) {
   const p = z.prvok;
-  const kde = z.druh === "pridat" && z.poloha === "na"
-    ? (z.vedla !== undefined && p ? `POLOŽENÝ NA \`${p.zdroj ?? "zdroj neznámy"}\` · ${p.komponenty.join(" ← ") || "—"} · <${p.tag}>${z.vedla ? ` „${z.vedla}“` : ""} · ľavý horný roh ${z.x},${z.y}` : `položený voľne na ${z.x},${z.y}`)
-    : z.druh === "pridat"
-    ? (z.vedla !== undefined && p ? `hneď ZA \`${p.zdroj ?? "zdroj neznámy"}\` · ${p.komponenty.join(" ← ") || "—"} · <${p.tag}>${z.vedla ? ` „${z.vedla}“` : ""}` : "voľne na obrazovke (nie je za žiadnym prvkom)")
-    : p
-    ? `\`${p.zdroj ?? "zdroj neznámy"}\` · ${p.komponenty.join(" ← ") || "—"} · <${p.tag}>${p.text ? ` „${p.text}“` : ""} · pôvodne ${p.rect.w}x${p.rect.h} na ${p.rect.x},${p.rect.y}`
-    : "celá obrazovka";
   let co = "";
-  if (z.druh === "presun") co = smer(z.dx, z.dy);
+  let kde = p ? `${kto(p)} · pôvodne ${p.rect.w}x${p.rect.h} na ${p.rect.x},${p.rect.y}` : "celá obrazovka";
+  if (z.druh === "presun") co = `${smer(z.dx, z.dy)} (voľne, ostatné neuhli)`;
+  if (z.druh === "premiestnit") co = `${kam(z)}${z.rodic ? ` · nový rodič ${kto(z.rodic)}` : ""}`;
   if (z.druh === "velkost") co = `${p?.rect.w}x${p?.rect.h} → ${z.w}x${z.h}`;
   if (z.druh === "text") co = `„${z.pred}“ → „${z.po}“`;
   if (z.druh === "skryt") co = "preč z obrazovky";
-  if (z.druh === "poradie") co = `o ${Math.abs(z.o ?? 0)} ${(z.o ?? 0) < 0 ? "vyššie/skôr" : "nižšie/neskôr"}${z.vedla ? ` (teraz vedľa „${z.vedla}“)` : ""}`;
   if (z.druh === "poznamka") co = `„${z.poznamka}“`;
-  if (z.druh === "pridat") co = `${(z.typ ?? "?").toUpperCase()} z katalógu brandu (PACK_BLOCKS), ${z.w}x${z.h}${z.po ? `, text „${z.po}“` : ""}${z.dx || z.dy ? `, posunutý ${smer(z.dx, z.dy)}` : ""}`;
+  if (z.druh === "pridat") {
+    co = `${TYP[z.typ ?? ""] ?? z.typ}${z.original ? ` — kópia ${kto(z.original)}` : " z katalógu brandu (PACK_BLOCKS)"}, ${z.w}x${z.h}`
+      + `${z.po ? `, text „${z.po}“` : ""}${z.dx || z.dy ? `, potom posunutý ${smer(z.dx, z.dy)}` : ""}`;
+    kde = kam(z);
+  }
   return `${i + 1}. **${DRUH[z.druh]}** \`${z.trasa}\` (${z.zariadenie}) — ${co}\n   ${kde}`;
 }
 

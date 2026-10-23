@@ -94,6 +94,8 @@ export function DevNav() {
   // tento by jej ho v rohu zdvojoval — plus by sedel presne na spodku rámu,
   // ktorý sa práve ladí. V RÁME (obrazovke vnútri) zostáva.
   if (pathname.startsWith("/lab/")) return null;
+  // Vo vnútri editora nákresu (appka v iframe) by roh prekrýval telefón, ktorý sa práve kreslí.
+  if (typeof window !== "undefined" && window.top !== window) return null;
 
   // Hide on production custom domain (dogypt.com). Show in dev + lovable.app preview/published.
   if (typeof window !== "undefined") {
