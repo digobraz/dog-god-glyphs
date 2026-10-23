@@ -116,7 +116,8 @@ export type CreateId =
   | 'diary' | 'photo'
   | 'post' | 'story' | 'album'
   | 'chat' | 'brain' | 'board'
-  | 'dm' | 'group';
+  | 'dm' | 'group'
+  | 'devotion';
 
 export type CreateObject = {
   id: CreateId;
@@ -159,6 +160,22 @@ export type CreateObject = {
 // Prepísané z §2 nákresu `nakres-pack-plus-kontext-2026-09-21.html`. Poradie v rámci miesta je
 // poradie v paneli (§3 nákresu, nakreslené telefóny).
 export const CREATE_OBJECTS: readonly CreateObject[] = [
+  // ── DEVOTION — VŠADE, prvá položka panela (Matej 23. 10. 2026: *„zapíš devotion by malo byť všade
+  //    na akčnom tlačidle — labka"*, voľba „Položka v paneli +"). `panelFor` ju dáva na čelo KAŽDÉHO
+  //    miesta; tu je jej `place` JA len preto, že register každému objektu jedno miesto pripisuje.
+  {
+    id: 'devotion',
+    labelKey: 'pack.create.devotion.title',
+    labelFallback: 'Log today',
+    icon: { kind: 'panel' },
+    place: 'JA',
+    needs: 'pes',
+    target: { kind: 'route', path: '/pack/profile?dnes=1' },
+    back: 'origin',
+    lands: 'devotion_events (grant-devotion claim) → profil JA',
+    state: 'live',
+    panel: true,
+  },
   // ── VON ───────────────────────────────────────────────────────────────────────────────────
   {
     id: 'trip',
@@ -593,7 +610,9 @@ export function createAll(place: CreatePlace): CreateObject[] {
 //    Položka, ktorá prestane byť hotová (`isReady`), z panela zmizne aj odtiaľto.
 // ⚠️ Poradie je Matejovo, nie poradie registra. Hlavičky skupín tu nie sú — štyri riadky
 //    ich nepotrebujú. Ostatné miesta (VON, JA, AINUBIS) svoj výrez nezmenili.
-export const DOMOV_PANEL: readonly CreateId[] = ['trip', 'wish', 'sniffer', 'diary'];
+// 🆕 23. 10. 2026: na čelo pribudla piata — „Zapíš dnešok" (DEVOTION), Matej: *„zapíš devotion by malo
+//    byť všade"*. Novší pokyn rozširuje „len štyri" z 26. 9.; ostatné štyri ostávajú v jeho poradí.
+export const DOMOV_PANEL: readonly CreateId[] = ['devotion', 'trip', 'wish', 'sniffer', 'diary'];
 
 export function panelFor(place: CreatePlace): Array<{ group: CreatePlace | null; items: CreateObject[] }> {
   if (place === 'DOMOV') {
@@ -603,14 +622,16 @@ export function panelFor(place: CreatePlace): Array<{ group: CreatePlace | null;
     return [{ group: null, items }];
   }
   {
-    const items = createFor(place);
+    // DEVOTION je na čele panela KAŽDÉHO miesta (viď objekt `devotion` hore).
+    const dv = CREATE_OBJECTS.find((o) => o.id === 'devotion');
+    const items = [...(dv && isReady(dv) ? [dv] : []), ...createFor(place).filter((o) => o.id !== 'devotion')];
     // 🔴 MIESTO BEZ DVOCH VLASTNÝCH POLOŽIEK UKÁŽE REPERTOÁR DOMOVA (Matej 21. 9. 2026:
     //    „alebo tam dať to, čo je na homepage (zatiaľ)"). Panel tak nikdy nie je prázdny
     //    ani jednopoložkový a NIČ SA NEVYMÝŠĽA — človek dostane zoznam, ktorý v appke už
     //    je. Keď miesto svoje dve položky dostane, fallback zhasne sám, bez zásahu sem.
     // ⚠️ Prah je DVA, nie jeden: menu s jedinou dlaždicou je krok navyše pred akciou,
     //    ktorá sa mohla stať rovno.
-    if (items.length >= 2) return [{ group: null, items }];
+    if (items.length >= 3) return [{ group: null, items }];   // 3 = devotion + dve vlastné
     return panelFor('DOMOV');
   }
 }

@@ -14,9 +14,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
-import { PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
-import { DEVOTION_DAILY, DEVOTION_FEED, DEVOTION_DEED, DEVOTION_TRIP, DEVOTION_DAY_CAP, type DevotionDailyKind } from '@/lib/devotion';
+import { DEVOTION_DAILY, DEVOTION_FEED, DEVOTION_DEED, DEVOTION_TRIP, DEVOTION_DAY_CAP, devotionLevel, type DevotionDailyKind } from '@/lib/devotion';
+import { DevotionMark } from '@/components/pack/profile/meHead';
 import { useNavigate } from 'react-router-dom';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
@@ -147,6 +148,80 @@ const CSS = `
 @media (prefers-reduced-motion:reduce){.dvt-sheet,.dvt-root,.dvt-fly,.dvt-cnt,.dvt-claim b{animation:none !important;}}
 `;
 
+/* ZÁVER PO VYZDVIHNI (Matej 23. 10. 2026: *„potrebujeme animáciu a ukončenie = popup, ako sa progres bar
+   posunul a správa, a potom to zmizne a človek je na profile"*). Tretia vrstva, šat AINUBISA. */
+const DONE_CSS = `
+.dvx-root{position:fixed;inset:0;z-index:68;display:grid;place-items:center;padding:${S.lg}px;background:rgba(2,6,11,0.82);animation:dvt-fade .25s ease both;}
+.dvx-root.out{animation:dvx-out .4s ease forwards;}
+.dvx-card{width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;gap:${S.md}px;padding:${S.xl}px ${S.lg}px;text-align:center;
+  background:${A.surface};color:${A.ink};font-family:${FONT_UI};border:1px solid ${A.edgeStrong};border-radius:${PACK_R.card}px;box-shadow:${A.panelShadow};
+  animation:dvx-pop .45s cubic-bezier(.2,.9,.25,1.2) both;}
+.dvx-face{width:72px;height:72px;border-radius:${PACK_R.pill}px;object-fit:contain;background:${A.faceBg};box-shadow:${A.faceRing};}
+.dvx-pts{display:inline-flex;align-items:center;gap:${S.sm}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h1}px;letter-spacing:.02em;color:${A.ctaA};text-shadow:${A.aiShadow};}
+.dvx-lvl{display:flex;justify-content:space-between;align-items:baseline;width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;letter-spacing:.14em;text-transform:uppercase;}
+.dvx-lvl small{font-family:${FONT_UI};font-weight:400;font-size:${TX.micro}px;letter-spacing:.02em;text-transform:none;color:${A.inkDim};}
+.dvx-root .pk-progress__fill{transition:width 1.1s cubic-bezier(.3,.8,.3,1);}
+.dvx-up{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;letter-spacing:.14em;text-transform:uppercase;color:${A.aiInk};text-shadow:${A.aiShadow};animation:dvx-pop .5s ease both;}
+.dvx-msg{margin:0;font-size:${TX.body}px;line-height:1.4;color:${A.ink};}
+.dvx-total{font-size:${TX.micro}px;color:${A.inkDim};}
+@keyframes dvx-pop{from{opacity:0;transform:scale(.86);}to{opacity:1;transform:none;}}
+@keyframes dvx-out{to{opacity:0;}}
+@media (prefers-reduced-motion:reduce){.dvx-card,.dvx-up,.dvx-root{animation:none !important;}.dvx-root .pk-progress__fill{transition:none;}}
+`;
+
+/** Šírka výplne PROGRESU (recept `.pk-progress`) — rovnaký pomocník ako v `StatsDetail` a `PackDogs`. */
+const fillW = (pct: number) => {
+  const w = `${Math.min(100, Math.max(0, pct))}%`;
+  return { display: 'block', width: w };
+};
+
+/** Záver: body napočítajú, pás sa posunie od starého súčtu k novému (cez nový stupeň, ak padol),
+ *  správa AINUBISA, po chvíli samo zmizne → panel sa zavrie a človek stojí na profile. Ťuk zavrie hneď. */
+function DevotionDone({ from, to, msg, tx, onDone }: {
+  from: number; to: number; msg: string; tx: (k: string, f: string) => string; onDone: () => void;
+}) {
+  const a = devotionLevel(from), b = devotionLevel(to);
+  const up = b.index > a.index;
+  const [phase, setPhase] = useState<'start' | 'fill' | 'next'>('start');
+  const [n, setN] = useState(0);
+  const [out, setOut] = useState(false);
+  const gain = Math.max(0, to - from);
+  const finish = useCallback(() => { setOut(true); setTimeout(onDone, 380); }, [onDone]);
+  useEffect(() => {
+    const t: number[] = [];
+    t.push(window.setTimeout(() => setPhase('fill'), 120));
+    if (up) t.push(window.setTimeout(() => setPhase('next'), 1300));
+    // počítadlo bodov — 0 → zisk za ~0,9 s
+    const t0 = performance.now();
+    let raf = 0;
+    const tick = (now: number) => { const k = Math.min(1, (now - t0) / 900); setN(Math.round(gain * (1 - Math.pow(1 - k, 3)))); if (k < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    t.push(window.setTimeout(finish, up ? 4200 : 3200));
+    return () => { t.forEach(clearTimeout); cancelAnimationFrame(raf); };
+  }, [gain, up, finish]);
+  const lv = phase === 'next' ? b : a;
+  const pct = phase === 'start' ? a.pct : phase === 'fill' ? (up ? 100 : b.pct) : b.pct;
+  const name = (l: { key: string; name: string }) => tx(`pack.ladder.${l.key}`, l.name);
+  return createPortal(
+    <div className={`dvx-root${out ? ' out' : ''}`} role="status" onClick={finish}>
+      <style>{PROGRESS_CSS + DONE_CSS}</style>
+      <div className="dvx-card">
+        <img className="dvx-face" src={ainubisFace} alt="" />
+        <div className="dvx-pts">+{n}<DevotionMark size={24} /></div>
+        {phase === 'next' && <div className="dvx-up">{tx('pack.dvtoday.levelUp', 'New rank')} · {name(b)}</div>}
+        <div className="dvx-lvl">
+          <span>{lv.index}. {name(lv)}</span>
+          {lv.next && <small>{name(lv.next)}</small>}
+        </div>
+        <div className="pk-progress pk-progress--dark"><div key={phase === 'next' ? 'n' : 'a'} className="pk-progress__fill" style={fillW(pct)} /></div>
+        <p className="dvx-msg">{msg}</p>
+        <span className="dvx-total">{Math.round(to).toLocaleString('sk-SK')} ☥</span>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 /* OKNO „INÉ" — druhá vrstva nad panelom, ten istý šat AINUBISA. */
 const DEED_CSS = `
 .dvd-root{position:fixed;inset:0;z-index:67;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,6,11,0.6);animation:dvt-fade .2s ease both;}
@@ -228,6 +303,7 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
   const [deedType, setDeedType] = useState<DeedType | null>(null);
   const [busy, setBusy] = useState(false);
   const [said, setSaid] = useState<string | null>(null);
+  const [done, setDone] = useState<{ from: number; to: number; msg: string } | null>(null);
   const [flies, setFlies] = useState<Array<{ id: number; kind: TileKind; txt: string }>>([]);
   const [bump, setBump] = useState<string | null>(null);
   const [boom, setBoom] = useState(false);
@@ -288,6 +364,7 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
     try {
       const items: Array<{ kind: string; n: number }> = TILES.filter((r) => (tap[r.kind] ?? 0) > 0).map((r) => ({ kind: r.kind, n: tap[r.kind] ?? 0 }));
       if (deed.trim()) items.push({ kind: 'deed', n: 1 });
+      const before = today?.total ?? 0;
       const j = await grantDevotion({ kind: 'claim', dog_ids: sel.map((g) => g.id), items, note: deed.trim(), deed_type: deedType ?? 'chronicle' });
       setBoom(true); setTimeout(() => setBoom(false), 650); buzz();
       setTap({}); setDeed(''); setDeedType(null); setDeedOpen(false);
@@ -298,6 +375,7 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
         : tx('pack.dvtoday.goodNo', 'AINUBIS did not count this as a good deed: {r}').replace('{r}', j.good_deed.reason ?? ''));
       if (j.capped) parts.push(tx('pack.dvtoday.capped', "Today's limit of {n} is full — trips and good deeds still count.").replace('{n}', String(DEVOTION_DAY_CAP)));
       setSaid(parts.join(' '));
+      setDone({ from: before, to: typeof j.total === 'number' ? j.total : before + (j.points ?? 0), msg: parts.join(' ') });
     } catch {
       toast({ title: tx('pack.dog.toastCouldntLog', 'Could not save'), variant: 'destructive' });
     } finally {
@@ -334,6 +412,7 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
     <div className="dvt-root" role="dialog" aria-modal="true" aria-label={tx('pack.dvtoday.title', 'Today')}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{CSS}</style>
+      {done && <DevotionDone from={done.from} to={done.to} msg={done.msg} tx={tx} onDone={() => { setDone(null); onClose(); }} />}
       <div className="dvt-sheet">
         <div className="dvt-body">
           <div className="dvt-top">

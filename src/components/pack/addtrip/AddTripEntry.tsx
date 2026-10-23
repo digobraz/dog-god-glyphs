@@ -109,7 +109,7 @@ const KINDS: KindDef[] = [
   // nikto nevie, koľko značiek človek zapíše. Povie sa to až vtedy, keď na strop naozaj narazí.
   // 🥾 → 🐾 (matrica 24. 8. 2026): topánka je AKTIVITA „Hiking" o obrazovku ďalej. Dlaždica
   // VÝLET zastrešuje aj korčule, paddleboard a hrad — labka je jediné, čo platí na všetky.
-  { kind: 'trip', emoji: '🐾', titleKey: 'pack.addTrip.entry.kind.trip.title', textKey: 'pack.addTrip.entry.kind.trip.text', points: POINTS.add, right: ['trips.log', 'trips.draw'] },
+  { kind: 'trip', emoji: '🥾', titleKey: 'pack.addTrip.entry.kind.trip.title', textKey: 'pack.addTrip.entry.kind.trip.text', points: POINTS.add, right: ['trips.log', 'trips.draw'] },
   // PRIANIE (24. 9. 2026) — bez bodov na dlaždici: body (+10 PÚTNIK) prídu až za SPLNENÉ
   // prianie s LOGom (§2.1 zadania), nie za pripnutie. Právo `social`: pin s „hľadám parťáka"
   // hovorí navonok, rovnako ako podujatie.
@@ -148,7 +148,7 @@ const KINDS: KindDef[] = [
 //    `panel3`). Do 22. 9. z panela videla len tri dlaždice mapy, ostatných desať nie.
 // ⚠️ 🖼️ PRÍSPEVOK uvoľnilo 📝, ktoré kolidovalo s čipom „poznámka" v denníku.
 const EMOJI: Record<CreateId, string> = {
-  trip: '🐾', wish: '🎯', sniffer: '👃', note: '💬', event: '📣', service: '🏥', article: '📕',
+  devotion: '🐾', trip: '🥾', wish: '🎯', sniffer: '👃', note: '💬', event: '📣', service: '🏥', article: '📕',
   diary: '✍️', photo: '📷',
   post: '🖼️', story: '✨', album: '🗂️',
   chat: '🤖', brain: '📥', board: '❓',

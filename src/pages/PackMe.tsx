@@ -161,6 +161,11 @@ export default function PackMe() {
   const [aboutDev, setAboutDev] = useState(false);
   // `?dnes=1` = ťuk na večernú pripomienku → panel dennej aktivity (DEVOTION, 23. 10. 2026).
   const [todayOpen, setTodayOpen] = useState(() => DEVOTION_TODAY_ON && new URLSearchParams(location.search).get('dnes') === '1');
+  // Položka „Zapíš dnešok" v paneli `+` vedie sem s `?dnes=1` aj vtedy, keď človek na profile UŽ STOJÍ —
+  // `location.key` sa mení pri každej navigácii, preto sa panel otvorí aj druhýkrát.
+  useEffect(() => {
+    if (DEVOTION_TODAY_ON && new URLSearchParams(location.search).get('dnes') === '1') setTodayOpen(true);
+  }, [location.key, location.search]);
   const uid = session?.user?.id ?? null;
   const { dogs } = usePackUser(uid);
   const { profile } = useProfile();
