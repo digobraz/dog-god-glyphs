@@ -294,7 +294,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
         {view === 'stats' ? (
           <div className="ntf-all">
             <Suspense fallback={null}>
-              <GlobePulse total={dogs} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} />
+              <GlobePulse bare total={dogs} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} />
             </Suspense>
           </div>
         ) : (

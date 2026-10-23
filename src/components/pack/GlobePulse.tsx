@@ -47,6 +47,9 @@ interface GlobePulseProps {
   topCountries: CountryRow[];
   topBreeds?: BreedRow[];
   ownerCountry?: string | null;
+  /** Panel upozornení (VŠETKY ŠTATISTIKY): bez zlatého odliatku a nadpisu, vždy jeden stĺpec —
+   *  Matej 23. 10.: „nie dblok a pekne upratať". Homepage ostáva D-BLOK. */
+  bare?: boolean;
 }
 
 function useCountUp(target: number, duration = 1600): number {
@@ -448,7 +451,7 @@ function MilestoneSwiper({
   );
 }
 
-export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }: GlobePulseProps) {
+export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry, bare = false }: GlobePulseProps) {
   const t = useT();
   const { lang } = useLang();
   const animated = useCountUp(total);
@@ -503,16 +506,17 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
 
   return (
     <section
-      className="pack-card-hover pk-goldblock w-full"
+      className={bare ? 'relative w-full' : 'pack-card-hover pk-goldblock w-full'}
       /* ZLATÝ RÁM ako spodný nav — druhý a posledný blok homepage, ktorý ho má
          (Matej 11. 9. 2026). Materiál nesie `.pk-goldblock`, inline len rozostupy;
          výplň/rám/polomer/tieň sem NEVRACAJ, prebili by triedu. */
       style={{
-        padding: '24px 24px',
+        padding: bare ? 0 : '24px 24px',
         overflow: 'hidden',
       }}
     >
       <style>{GOLD_BLOCK_CSS}{HIT_CSS}</style>
+      {!bare && <>
       <div
         aria-hidden
         style={{
@@ -555,8 +559,10 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
           }}
         />
       </div>
+      </>}
 
-      <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
+      {/* `md:` počúva OKNO, nie šírku bloku — v paneli (420 px) by dva stĺpce stlačili rebríčky. */}
+      <div className={bare ? 'relative grid grid-cols-1 gap-6 items-center' : 'relative grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center'}>
         {/* LEFT — rotujúca planéta + counter cez ňu */}
         <div className="flex flex-col items-center">
           <div
