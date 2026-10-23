@@ -195,7 +195,7 @@ const CSS = `
 .ntf-num b{color:${T.inkStrong};font-family:'Cinzel',serif;font-weight:700;font-size:min(48px, calc(40cqw / var(--ntf-len, 3)));letter-spacing:.02em;line-height:1;white-space:nowrap;}
 .ntf-num span{font-size:${PACK_TEXT.label}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 /* BEŽIACI PÁS — NAD blokom (Matej 23. 10.), nie v ňom. */
-.ntf-head{flex:0 0 auto;margin:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px 0;font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
+.ntf-head{font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};margin-bottom:${PACK_SPACE.xs}px;white-space:nowrap;}
 .ntf-tick{position:relative;flex:0 0 auto;display:block;overflow:hidden;margin:${PACK_SPACE.sm}px 0 0;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 ${PACK_SPACE.lg}px,#000 calc(100% - ${PACK_SPACE.lg}px),transparent);
   mask-image:linear-gradient(90deg,transparent,#000 ${PACK_SPACE.lg}px,#000 calc(100% - ${PACK_SPACE.lg}px),transparent);}
@@ -306,7 +306,6 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
           <>
 
             {/* BEŽIACI PÁS NAD blokom (Matej 23. 10.: „tie rotujúce pills dáme nad tento blok hore"). */}
-            <div className="ntf-head">{t('pack.notif.population')}</div>
             {pills.length > 0 && (
               <div className="ntf-tick" style={{ ['--ntf-tick-s' as string]: `${Math.max(16, pills.length * 5)}s` }}>
                 {/* Dve kópie za sebou — posun o -50 % je presne jedna kópia, takže slučka nemá švík. */}
@@ -350,6 +349,8 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
               )}
               {/* Najvýraznejšie: psy a ľudia, pod sebou (Matej 21. 10.). */}
               <span className="ntf-nums" style={{ ['--ntf-len' as string]: numLen }}>
+                {/* Nápis VNÚTRI bloku nad číslami (Matej 23. 10.: „obyvatelia dogyptu som myslel dovnútra bloku"). */}
+                <span className="ntf-head">{t('pack.notif.population')}</span>
                 <span className="ntf-num"><b>{stats ? fmt(dogs) : '—'}</b><span>{t('pack.notif.dogsWord')}</span></span>
                 <span className="ntf-num"><b>{stats ? fmt(stats.total) : '—'}</b><span>{t('pack.notif.peopleWord')}</span></span>
               </span>

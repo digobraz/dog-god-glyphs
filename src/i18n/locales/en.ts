@@ -2456,7 +2456,7 @@ export const en = {
   'pack.notif.sheetTitle': "Notifications",
   'pack.notif.back': "Back",
   'pack.notif.allStats': "All stats",
-  'pack.notif.population': "Population of DOGYPT",
+  'pack.notif.population': "Citizens of DOGYPT",
   'pack.notif.newerDog': 'Newer dog',
   'pack.notif.olderDog': 'Older dog',
   'pack.notif.perMonth': "this month",
