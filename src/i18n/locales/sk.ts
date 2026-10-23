@@ -6297,6 +6297,7 @@ export const sk: Partial<Dict> = {
   'pack.dvinfo.learning': "Štúdium vo VAULTe",
   'pack.dvinfo.helping': "Pomoc inému DOGYPŤANOVI",
   'pack.dvinfo.soon': "čoskoro",
+  'pack.dvinfo.toNext': "Do stupňa {name}:",
   'pack.dvinfo.note': "Hodnoty s „čoskoro“ sa práve nastavujú. Každý ďalší stupeň chce viac oddanosti ako ten predošlý.",
   'pack.me.novicePreview': "Náhľad: úplne nový člen · späť na môj účet",
   'pack.cover.note2': "Polohu titulky posunieš potiahnutím prstom priamo na nej.",

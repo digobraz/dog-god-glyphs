@@ -627,34 +627,36 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
   );
 }
 
-// Avatar entry — last item in the bottom pill (rightmost). Single click opens a small
-// glass dropdown, NO double-tap — click-away closes it (same pattern as PackNotifications'
-// bell dropdown). Matej amendment 2026-07-24: clean 2-item menu (Profile / My Pack), each
-// row carries its own small photo thumbnail — owner avatar for Profile, dog photo(s) for My
-// Pack (stacked circles when there's more than one dog). Settings does NOT live here — stays
-// a block on home (PackSettings, #pack-settings anchor).
-function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: string | null; avatarInitial?: string; dogs?: PackDog[] }) {
+// Avatar entry — last item in the bottom pill (rightmost). ŤUK = profil, DVOJŤUK = prepne
+// PROFIL ⇄ MOJA SVORKA (Matej 23. 10. 2026: „aby sa ikonka profilu v nave prepínala dvojklikom,
+// nie výberom z dropdownu — zdržuje to"). Nahradilo menu s dvoma položkami z 24. 7. 2026
+// („NO double-tap"), novší pokyn prebíja. Prvý ťuk naviguje hneď (žiadne čakanie na druhý),
+// druhý do 350 ms ho len presmeruje — jednoduchý ťuk sa tak nezdrží ani o milisekundu.
+function AvatarNavButton({ avatarUrl, avatarInitial }: { avatarUrl?: string | null; avatarInitial?: string; dogs?: PackDog[] }) {
   const t = useT();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const wrapRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onDown);
-    return () => document.removeEventListener('mousedown', onDown);
-  }, [open]);
+  const { pathname } = useLocation();
+  // Stlačený vzhľad = som v JA (profil alebo svorka) — predtým ho nieslo otvorené menu.
+  const open = pathname.startsWith('/pack/profile') || pathname.startsWith('/pack/dogs');
+  const lastTap = useRef<{ at: number; from: string } | null>(null);
+  const onTap = () => {
+    const now = Date.now();
+    const prev = lastTap.current;
+    if (prev && now - prev.at < 350) {
+      lastTap.current = null;
+      navigate(prev.from.startsWith('/pack/dogs') ? '/pack/profile' : '/pack/dogs');
+      return;
+    }
+    lastTap.current = { at: now, from: pathname };
+    if (!pathname.startsWith('/pack/profile') && !pathname.startsWith('/pack/dogs')) navigate('/pack/profile');
+  };
 
   return (
-    <div ref={wrapRef} className="relative" style={{ marginLeft: 4 }}>
+    <div className="relative" style={{ marginLeft: 4 }}>
       <button
         type="button"
-        onClick={() => setOpen((p) => !p)}
+        onClick={onTap}
         aria-label={t('pack.layout.profileAriaLabel')}
-        aria-expanded={open}
         className="flex items-center justify-center"
         style={NAV_SKIN === 'gold' ? {
           // Šírka zlatého rámu aj priemer fotky sú Matejov výber z nákresu — `DOCK`,
@@ -694,136 +696,7 @@ function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: 
         )}
       </button>
 
-      {open && (
-        <div
-          className="pack-avatar-menu"
-          style={{
-            position: 'absolute', right: 0, minWidth: 190,
-            ...(NAV_SKIN === 'gold'
-              ? { background: T.panelGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 14, boxShadow: T.panelShadow }
-              : {
-                  background: T.glass, border: `1px solid ${T.onDarkBorder}`, borderRadius: 14,
-                  backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-                  boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
-                }),
-            padding: 6, zIndex: 50,
-          }}
-        >
-          {/* .pack-avatar-menu bottom offset žije v CSS (nie inline) — na /pack/map
-              (≤1023px) musí preskočiť .trp-mtoggle LIST/MAP pilulku (bottom 78px + výška),
-              inak ju prekrýva a schová druhú položku menu pod ňou (Matej 2026-07-27 bug report). */}
-          <style>{`
-            .pack-avatar-menu{bottom:calc(100% + 24px);}
-            /* ⚠️ Tá istá rezerva ako u dvojice ZOZNAM/PRIDAŤ (.trp-mactions v PackMap):
-               menu ju musí preskočiť, inak mu spodnú položku prekryje — dvojica má
-               z-index 900, menu žije v nave na z-40. Preto obe strany berú kotúč
-               AINUBISA z jedného zdroja (--pack-medal-rise), nie z dvoch čísel, ktoré
-               sa rozišli pri prvej úprave (stalo sa 4. 9. 2026, prekryv 4 px). */
-            /* 21. 10. 2026: rezerva platí LEN na mape (.trp-root). Dovtedy platila na mobile
-               všade a menu na DOMOV/JA viselo 76 px nad navom (Matej: „vysúva sa príliš ďaleko
-               od navu… má sa vysunúť spod navu, priamo z neho"). */
-            @media (max-width:1023px){.trp-root .pack-avatar-menu{bottom:calc(100% + 76px + var(--pack-medal-rise, 0px) + 4px);}}
-          `}</style>
-          <AvatarMenuItem
-            label={t('pack.layout.navProfile')}
-            onClick={() => { setOpen(false); navigate('/pack/profile'); }}
-            thumb={<MiniAvatar avatarUrl={avatarUrl} avatarInitial={avatarInitial} />}
-          />
-          {/* ⚠️ Cieľ opravený 2026-08-06: mierilo to na `/pack/profile#my-gods` — kotvu bloku
-              „OH, MY DOG!", ktorý v ten deň z profilu ZANIKOL. Odkaz teda nespadol na 404, ale
-              ticho otvoril profil bez toho bloku a vyzeralo to, že hub neexistuje (Matej:
-              „po kliknutí na moja svorka = otvorí mi profil nevidím ten náš hub"). Mŕtva kotva
-              je horšia než mŕtvy odkaz — nič nezlyhá, len ťa to odvedie inam. */}
-          <AvatarMenuItem
-            label={t('pack.tree.title')}
-            onClick={() => { setOpen(false); navigate('/pack/dogs'); }}
-            thumb={<MiniDogStack dogs={dogs} />}
-          />
-        </div>
-      )}
     </div>
-  );
-}
-
-// Small circular owner-avatar thumbnail — Profile row.
-function MiniAvatar({ avatarUrl, avatarInitial }: { avatarUrl?: string | null; avatarInitial?: string }) {
-  return avatarUrl ? (
-    <img
-      src={sizedUrl(avatarUrl, 160)}
-      alt=""
-      style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover', display: 'block', border: '1px solid rgba(201,154,63,0.45)', flexShrink: 0 }}
-    />
-  ) : (
-    <div style={{
-      width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-      background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 10, color: '#1c160c',
-    }}>
-      {avatarInitial || 'D'}
-    </div>
-  );
-}
-
-// Stacked dog-photo thumbnails — My Pack row. 1 dog = single circle; 2+ dogs = overlapping
-// stack (AllTrails/Instagram "who's going" pattern), max 3 shown + no photo fallback (🐕 chip).
-function MiniDogStack({ dogs }: { dogs: PackDog[] }) {
-  const shown = dogs.slice(0, 3);
-  if (shown.length === 0) {
-    return (
-      <div style={{
-        width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-        background: 'rgba(201, 154, 63, 0.22)', border: `1px solid ${PACK_THEME.border}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11,
-      }}>🐕</div>
-    );
-  }
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-      {shown.map((dog, i) => (
-        <div
-          key={dog.id}
-          style={{
-            width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-            marginLeft: i === 0 ? 0 : -8,
-            border: `1px solid ${T.pageBg}`,
-            boxShadow: '0 0 0 1px rgba(201,154,63,0.45)',
-            overflow: 'hidden',
-            background: dog.cloudinary_main_url ? 'transparent' : 'rgba(201, 154, 63, 0.22)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10,
-            zIndex: shown.length - i,
-          }}
-        >
-          {dog.cloudinary_main_url ? (
-            <img src={sizedUrl(dog.cloudinary_main_url, 160)} alt={dog.dog_name || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-          ) : '🐕'}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function AvatarMenuItem({ label, onClick, thumb }: { label: string; onClick: () => void; thumb: ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex items-center"
-      style={{
-        width: '100%', textAlign: 'left', padding: '8px 12px', gap: 9,
-        borderRadius: 9, background: 'none', border: 'none', cursor: 'pointer',
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = NAV_SKIN === 'gold' ? 'rgba(201,154,63,0.18)' : 'rgba(245,240,228,0.08)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
-    >
-      {thumb}
-      <span style={{
-        fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '0.14em',
-        textTransform: 'uppercase', fontWeight: 700, color: NAV_SKIN === 'gold' ? T.inkStrong : T.onDark,
-      }}>
-        {label}
-      </span>
-    </button>
   );
 }
 

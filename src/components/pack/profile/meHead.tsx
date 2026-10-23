@@ -63,10 +63,11 @@ export const ME_CSS = `
 .me-foot{ position:absolute; left:${OWN_X.m + OWN.m + S.sm}px; right:${S.md}px; bottom:-${OWN_DROP}px; }
 .me-nm{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.h2}px; letter-spacing:.14em; color:${T.inkStrong};
   text-transform:uppercase; white-space:nowrap; overflow:hidden; }
-/* HODNOSTI VEDĽA SEBA až po pravý okraj (Matej 23. 10.); pod sebou len so „stack“ (vedľa fotky
-   pribudne pawtner/pawmate a miesto sa zúži). Ťuk = rozbaľovač MeRank pod hlavou. */
+/* HODNOSTI VEDĽA SEBA (Matej 23. 10.: „až po pravý okraj“ → v ten istý deň neskôr: „pútnika mierne
+   rozšír a faraóna zúž, aby to bolo akurát, nerozťahuj to“). Pilulka = svoj obsah + vzduch, nič sa
+   nenaťahuje; dlhý stupeň sa skráti. Pod sebou len so „stack“. Ťuk = rozbaľovač MeRank pod hlavou. */
 .me-lv{ display:flex; gap:6px; margin-top:${S.sm}px; }
-.me-lv > *{ flex:1 1 0; min-width:0; justify-content:center; display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.sm}px; border-radius:${PACK_R.pill}px; white-space:nowrap;
+.me-lv > *{ flex:0 1 auto; min-width:0; justify-content:center; display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.sm}px; border-radius:${PACK_R.pill}px; white-space:nowrap;
   font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; letter-spacing:.02em; text-transform:uppercase; cursor:pointer; }
 .me-lv.stack{ flex-direction:column; align-items:flex-start; gap:${S.xs}px; }
 .me-lv.stack > *{ flex:none; letter-spacing:.14em; }
@@ -127,7 +128,8 @@ export const ME_CSS = `
 .me-dvg{ flex:none; display:grid; place-items:center; width:18px; height:18px; border-radius:${PACK_R.pill}px;
   background:var(--dv-dot); box-shadow:0 0 8px var(--dv-glow); }
 .me-dvg b{ font-family:${FONT_TITLE}; font-weight:700; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.micro}px; letter-spacing:0; }
-.me-lv > .me-pt{ flex:none; }
+.me-lv > .me-dv{ padding-right:${S.md}px; }
+.me-lv > .me-pt{ flex:none; min-width:52px; padding:${S.xs}px ${S.md}px; }
 .me-rk p.me-rk-q{ font-style:italic; color:var(--rk-dim); }
 .me-rk-sc span{ display:inline-flex; align-items:center; gap:${S.xs}px; }
 .me-rk-sc span i{ display:grid; place-items:center; width:18px; height:18px; font-style:normal; border-radius:${PACK_R.pill}px; background:var(--dv-dot); }
@@ -386,11 +388,11 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
       <div className="me-foot">
         <h1 className="me-nm">{name}</h1>
         <div className={`me-lv${stack ? ' stack' : ''}`}>
-          <button type="button" className={`me-dv${rank === 'dev' ? ' on' : ''}`} onClick={onDev} aria-expanded={rank === 'dev'} style={devotionVars(devLevel)}>
+          <button type="button" data-rank-toggle className={`me-dv${rank === 'dev' ? ' on' : ''}`} onClick={onDev} aria-expanded={rank === 'dev'} style={devotionVars(devLevel)}>
             <span className="me-dvg"><b>{devLevel}</b></span>
             {devLabel}
           </button>
-          <button type="button" className={`me-pt${rank === 'pt' ? ' on' : ''}`} onClick={onPilgrim} aria-expanded={rank === 'pt'} style={tierStyle(pilgrimTier)}>
+          <button type="button" data-rank-toggle className={`me-pt${rank === 'pt' ? ' on' : ''}`} onClick={onPilgrim} aria-expanded={rank === 'pt'} style={tierStyle(pilgrimTier)}>
             <BrandIcon name="world-grid" size={12} tint={inkIsLight(pilgrimTier.ink) ? 'white' : 'dark'} />
             {pilgrimLabel}
           </button>
@@ -523,7 +525,7 @@ function rankVars(kind: 'dev' | 'pt' | 'study', ptLevel: number, devIndex = 1): 
  *  o leveloch a stupnica … to isté pri pútnikovi — chýbajúce body do ďalšieho levelu, otvoriť tripstats"*).
  *  Rebríček je `DEVOTION_LEVELS` (jeden zdroj), PÚTNIK je `levelProgress` z `tripPoints.ts`.
  *  Tretí druh ŠTÚDIUM (23. 10. večer): ťuk na percento štúdia — základné čísla AINUBISA + odkaz do VAULTu. */
-export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbout, tx }: {
+export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbout, onClose, tx }: {
   kind: 'dev' | 'pt' | 'study';
   devotion: number;
   pilgrim: { level: LevelProgress; count: number; km: number; countries: number };
@@ -532,9 +534,23 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
   onVault?: () => void;
   /** Ťuk na „Oddanosť · N ☥" vpravo hore = vysvetlenie, za čo sa ☥ dostáva. */
   onAbout?: () => void;
+  /** Ťuk VEDĽA bloku ho zavrie (Matej 23. 10.). Prepínače bloku nesú `data-rank-toggle` — tie si
+      ho otvárajú/zatvárajú samy, inak by ho ťuk zavrel a ten istý ťuk hneď znova otvoril. */
+  onClose?: () => void;
   tx: (key: string, fallback: string) => string;
 }) {
   const scRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!onClose) return;
+    const down = (e: PointerEvent) => {
+      const el = e.target as HTMLElement;
+      if (boxRef.current?.contains(el) || el.closest('[data-rank-toggle], [role="dialog"]')) return;
+      onClose();
+    };
+    document.addEventListener('pointerdown', down);
+    return () => document.removeEventListener('pointerdown', down);
+  }, [onClose]);
   const dev = devotionLevel(devotion);
   useEffect(() => {
     const cur = scRef.current?.querySelector('.cur') as HTMLElement | null;
@@ -545,7 +561,7 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
   if (kind === 'study') {
     const st = study ?? { read: 0, total: 0, pct: 0, liked: 0, saved: 0 };
     return (
-      <div className="me-rk" style={vars}>
+      <div className="me-rk" style={vars} ref={boxRef}>
         <div className="me-rk-hd">
           <span className="ic pt"><BrandIcon name="graduate" size={16} tint="dark" /></span>
           <div className="tx"><h3>{tx('pack.me.studying', 'Study')}</h3></div>
@@ -568,7 +584,7 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
     const cur = DEVOTION_LEVELS[dev.index - 1];
     const span = dev.next ? dev.next.at - cur.at : 0;
     return (
-      <div className="me-rk" style={vars}>
+      <div className="me-rk" style={vars} ref={boxRef}>
         <div className="me-rk-hd">
           <span className="ic"><b>{dev.index}</b></span>
           <div className="tx">
@@ -597,7 +613,7 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
   }
   const lv = pilgrim.level;
   return (
-    <div className="me-rk" style={vars}>
+    <div className="me-rk" style={vars} ref={boxRef}>
       <div className="me-rk-hd">
         {/* Kotúč ikonky má výplň papyrusu (`--rk-fill` = T.card) ⇒ ikonka vždy tmavá. */}
         <span className="ic pt"><BrandIcon name="world-grid" size={16} tint="dark" /></span>

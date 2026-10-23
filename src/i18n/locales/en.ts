@@ -6607,6 +6607,7 @@ export const en = {
   'pack.dvinfo.learning': "Learning in the VAULT",
   'pack.dvinfo.helping': "Helping another Dogyptian",
   'pack.dvinfo.soon': "soon",
+  'pack.dvinfo.toNext': "To {name}:",
   'pack.dvinfo.note': "Values marked “soon” are being set. Every step of the ladder needs more devotion than the one before.",
   'pack.me.novicePreview': "Preview: a brand-new member · back to my account",
   'pack.cover.note2': "Drag the cover on the card to move it up or down.",

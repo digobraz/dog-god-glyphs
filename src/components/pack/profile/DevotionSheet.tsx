@@ -4,13 +4,14 @@
 // 🔴 ČÍSLA LEN TIE, KTORÉ SÚ V KÓDE (`grant-devotion`, zadanie `plany/zadanie-devotion-odmrazenie-2026-10-23.md`).
 //    Kde hodnota ešte nie je schválená (sviatosti, ocenenia, modlitba starostlivosti), stojí „čoskoro" —
 //    nie vymyslené číslo. Zdroje ☥ = DOGMA 4.3.1: modlitby · sviatosti · ocenenia.
-import { useEffect } from 'react';
+import { useEffect, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
-import { NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
-import { DEVOTION_LEVELS } from '@/lib/devotion';
+import { NIGHT, NIGHT_EDGE, NIGHT_INK, DEVOTION_TIERS, devotionVars } from '@/lib/devotionTiers';
+import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import { DevotionMark } from '@/components/pack/profile/meHead';
+import { BrandIcon } from '@/components/pack/BrandIcon';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -26,13 +27,34 @@ const CSS = `
 .dvs-head{flex:none;display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.lg}px ${S.md}px;}
 .dvs-head h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;color:${NIGHT_EDGE};}
 .dvs-body{overflow-y:auto;overscroll-behavior:contain;padding:0 ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);}
-.dvs-body > p{margin:0 0 ${S.lg}px;font-size:${TX.body}px;line-height:1.5;}
-.dvs-grp{margin:0 0 ${S.lg}px;}
-.dvs-grp h3{margin:0 0 ${S.sm}px;padding-bottom:${S.sm}px;border-bottom:1px solid ${T.onDarkBorder};font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${NIGHT_EDGE};}
-.dvs-row{display:flex;justify-content:space-between;align-items:baseline;gap:${S.md}px;padding:${S.xs}px 0;font-size:${TX.body}px;}
-.dvs-row b{flex:none;display:inline-flex;align-items:center;gap:4px;font-family:${FONT_TITLE};font-weight:700;color:${NIGHT_EDGE};white-space:nowrap;}
-.dvs-row b.soon{font-family:${FONT_UI};font-weight:500;font-size:${TX.label}px;color:${T.onDarkDim};}
-.dvs-note{margin:0;font-size:${TX.label}px;line-height:1.5;color:${T.onDarkDim};}
+/* HRDINA — kde som: gulička stupňa, stav ☥, koľko chýba, a 22 guličiek cesty (Novic → Polboh). */
+.dvs-hero{position:relative;overflow:hidden;margin:0 0 ${S.md}px;padding:${S.lg}px;border-radius:${PACK_R.tile}px;border:1px solid ${NIGHT_EDGE};
+  background:radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--dv-glow) 22%, transparent), transparent 60%), rgba(0,0,0,.28);}
+.dvs-me{display:flex;align-items:center;gap:${S.md}px;}
+.dvs-orb{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:${PACK_R.pill}px;background:var(--dv-dot);filter:drop-shadow(0 0 12px var(--dv-glow));}
+.dvs-orb b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;line-height:1;color:var(--dv-icon-ink);}
+.dvs-me .tx{flex:1;min-width:0;}
+.dvs-me h3{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;color:${NIGHT_INK};}
+.dvs-me p{margin:${S.xs}px 0 0;white-space:nowrap;font-size:${TX.label}px;color:${T.onDarkDim};}
+.dvs-me p b{font-family:${FONT_TITLE};font-weight:700;color:${NIGHT_EDGE};}
+.dvs-bal{flex:none;display:inline-flex;align-items:center;gap:${S.xs}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;color:${NIGHT_EDGE};}
+.dvs-path{display:flex;justify-content:space-between;align-items:center;margin-top:${S.lg}px;}
+.dvs-path i{display:block;width:8px;height:8px;border-radius:${PACK_R.pill}px;border:1px solid ${T.onDarkBorder};}
+.dvs-path i.done{border:0;background:var(--d);}
+.dvs-path i.cur{width:12px;height:12px;border:0;background:var(--d);filter:drop-shadow(0 0 6px var(--d));}
+.dvs-ends{display:flex;justify-content:space-between;margin-top:${S.sm}px;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
+.dvs-intro{margin:0 0 ${S.lg}px;font-size:${TX.label}px;line-height:1.5;color:${T.onDarkDim};}
+/* SKUPINY = tmavé podbloky, každá s kresbou z kitu. Hodnota = žiariaca pilulka, „čoskoro“ = čiarkovaný obrys. */
+.dvs-grp{margin:0 0 ${S.md}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.onDarkBorder};background:rgba(0,0,0,.22);}
+.dvs-grp h4{display:flex;align-items:center;gap:${S.sm}px;margin:0 0 ${S.sm}px;font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${NIGHT_EDGE};}
+.dvs-grp h4 span{display:grid;place-items:center;width:24px;height:24px;border-radius:${PACK_R.pill}px;border:1px solid ${NIGHT_EDGE};}
+.dvs-row{display:flex;justify-content:space-between;align-items:center;gap:${S.md}px;padding:${S.sm}px 0;font-size:${TX.body}px;border-top:1px solid ${T.onDarkBorder};}
+.dvs-row:first-of-type{border-top:0;}
+.dvs-row.off > span{color:${T.onDarkDim};}
+.dvs-v{flex:none;display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;white-space:nowrap;
+  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;color:#140D07;background:linear-gradient(180deg,#F1D58C,${NIGHT_EDGE});filter:drop-shadow(0 0 6px rgba(201,154,63,.35));}
+.dvs-v.soon{font-family:${FONT_UI};font-weight:500;color:${T.onDarkDim};background:none;filter:none;border:1px dashed ${T.onDarkBorder};}
+.dvs-note{margin:${S.sm}px 0 0;font-size:${TX.micro}px;line-height:1.5;color:${T.onDarkDim};text-align:center;}
 @media (min-width:768px){
   .dvs-root.pk-veil{align-items:center;padding:${S.xl}px;}
   .dvs-sheet{width:560px;max-height:86dvh;border:1.5px solid ${NIGHT_EDGE};border-radius:${PACK_R.card}px;}
@@ -45,7 +67,7 @@ const CSS = `
 @media (prefers-reduced-motion:reduce){.dvs-sheet,.dvs-root.pk-veil{animation:none;}}
 `;
 
-export function DevotionSheet({ onClose }: { onClose: () => void }) {
+export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClose: () => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   useEffect(() => {
@@ -56,31 +78,34 @@ export function DevotionSheet({ onClose }: { onClose: () => void }) {
     return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
   }, [onClose]);
 
-  const soon = <b className="soon">{tx('pack.dvinfo.soon', 'soon')}</b>;
-  const groups: Array<[string, Array<[string, JSX.Element]>]> = [
-    [tx('pack.dvinfo.prayers', 'Prayers'), [
-      [tx('pack.dvinfo.presence', 'Prayer of presence'), <b>+3<DevotionMark /></b>],
-      [tx('pack.dvinfo.care', 'Prayer of care'), soon],
+  const soon = <b className="dvs-v soon">{tx('pack.dvinfo.soon', 'soon')}</b>;
+  const pts = (v: string) => <b className="dvs-v">{v}<DevotionMark size={12} tint="dark" /></b>;
+  const groups: Array<[string, string, Array<[string, JSX.Element | null]>]> = [
+    ['sun', tx('pack.dvinfo.prayers', 'Prayers'), [
+      [tx('pack.dvinfo.presence', 'Prayer of presence'), pts('+3')],
+      [tx('pack.dvinfo.care', 'Prayer of care'), null],
     ]],
-    [tx('pack.dvinfo.walks', 'Walks and trips'), [
-      [tx('pack.dvinfo.walkShort', 'A walk under an hour'), <b>+0,5<DevotionMark /></b>],
-      [tx('pack.dvinfo.walkLong', 'Every hour on the way'), <b>+1<DevotionMark /></b>],
-      [tx('pack.dvinfo.walkCap', 'Most from one walk'), <b>5<DevotionMark /></b>],
+    ['walk', tx('pack.dvinfo.walks', 'Walks and trips'), [
+      [tx('pack.dvinfo.walkShort', 'A walk under an hour'), pts('+0,5')],
+      [tx('pack.dvinfo.walkLong', 'Every hour on the way'), pts('+1')],
+      [tx('pack.dvinfo.walkCap', 'Most from one walk'), pts('5')],
     ]],
-    [tx('pack.dvinfo.firsts', 'First steps'), [
-      [tx('pack.dvinfo.firstSteps', 'Finish your first steps in DOGYPT (once)'), <b>+10<DevotionMark /></b>],
+    ['paw', tx('pack.dvinfo.firsts', 'First steps'), [
+      [tx('pack.dvinfo.firstSteps', 'Finish your first steps in DOGYPT (once)'), pts('+10')],
     ]],
-    [tx('pack.dvinfo.sacraments', 'Sacraments'), [
-      [tx('pack.dvinfo.baptism', 'Baptism with a heroglyph'), soon],
-      [tx('pack.dvinfo.puppy', 'Welcoming a puppy'), soon],
-      [tx('pack.dvinfo.memorial', 'Memorial for a dog who left'), soon],
+    ['ankh', tx('pack.dvinfo.sacraments', 'Sacraments'), [
+      [tx('pack.dvinfo.baptism', 'Baptism with a heroglyph'), null],
+      [tx('pack.dvinfo.puppy', 'Welcoming a puppy'), null],
+      [tx('pack.dvinfo.memorial', 'Memorial for a dog who left'), null],
     ]],
-    [tx('pack.dvinfo.honours', 'Recognitions'), [
-      [tx('pack.dvinfo.charity', 'Helping dogs in need'), soon],
-      [tx('pack.dvinfo.learning', 'Learning in the VAULT'), soon],
-      [tx('pack.dvinfo.helping', 'Helping another Dogyptian'), soon],
+    ['trophy', tx('pack.dvinfo.honours', 'Recognitions'), [
+      [tx('pack.dvinfo.charity', 'Helping dogs in need'), null],
+      [tx('pack.dvinfo.learning', 'Learning in the VAULT'), null],
+      [tx('pack.dvinfo.helping', 'Helping another Dogyptian'), null],
     ]],
   ];
+  const dev = devotionLevel(devotion ?? 0);
+  const fmtN = (n: number) => Math.round(n).toLocaleString('sk-SK');
 
   return createPortal(
     <div className="dvs-root pk-veil pk-veil--modal" role="dialog" aria-modal="true" aria-label={tx('pack.dvinfo.title', 'How you earn devotion')}
@@ -94,13 +119,36 @@ export function DevotionSheet({ onClose }: { onClose: () => void }) {
           <h2>{tx('pack.dvinfo.title', 'How you earn devotion')}</h2>
         </div>
         <div className="dvs-body">
-          <p>{tx('pack.dvinfo.intro', 'Devotion grows with what you do for your dog and the pack — prayers, sacraments and recognitions. It cannot be bought.')}</p>
-          {/* Veta o rebríčku sa presťahovala z bloku sem (Matej 23. 10.: „daj preč, kľudne do popupu oddanosti"). */}
-          <p>{tx('pack.rank.devAbout', 'Devotion is your path in DOGYPT — {n} steps from Novice to Demigod.').replace('{n}', String(DEVOTION_LEVELS.length))}</p>
-          {groups.map(([head, rows]) => (
+          {/* HRDINA — kde na ceste stojím (Matej 23. 10.: „urobiť krajší“). Bez `devotion` sa nekreslí. */}
+          {devotion != null && (
+            <div className="dvs-hero" style={devotionVars(dev.index)}>
+              <div className="dvs-me">
+                <span className="dvs-orb"><b>{dev.index}</b></span>
+                <div className="tx">
+                  <h3>{tx(`pack.ladder.${dev.key}`, dev.name)}</h3>
+                  {dev.next && (
+                    <p>{tx('pack.dvinfo.toNext', 'To {name}:').replace('{name}', tx(`pack.ladder.${dev.next.key}`, dev.next.name))} <b>{fmtN(dev.toNext)}</b> <DevotionMark size={12} /></p>
+                  )}
+                </div>
+                <span className="dvs-bal">{fmtN(devotion)}<DevotionMark size={18} /></span>
+              </div>
+              <div className="dvs-path" aria-label={tx('pack.rank.devAbout', 'Devotion is your path in DOGYPT — {n} steps from Novice to Demigod.').replace('{n}', String(DEVOTION_LEVELS.length))}>
+                {DEVOTION_TIERS.map((t, i) => (
+                  <i key={t.key} className={i + 1 < dev.index ? 'done' : i + 1 === dev.index ? 'cur' : ''} style={{ '--d': t.dot } as CSSProperties} />
+                ))}
+              </div>
+              <div className="dvs-ends">
+                <span>{tx('pack.ladder.novice', 'Novice')}</span>
+                <span>{DEVOTION_LEVELS.length}</span>
+                <span>{tx('pack.ladder.demigod', 'Demigod')}</span>
+              </div>
+            </div>
+          )}
+          <p className="dvs-intro">{tx('pack.dvinfo.intro', 'Devotion grows with what you do for your dog and the pack — prayers, sacraments and recognitions. It cannot be bought.')}</p>
+          {groups.map(([icon, head, rows]) => (
             <div key={head} className="dvs-grp">
-              <h3>{head}</h3>
-              {rows.map(([label, val]) => <div key={label} className="dvs-row"><span>{label}</span>{val}</div>)}
+              <h4><span><BrandIcon name={icon} size={14} /></span>{head}</h4>
+              {rows.map(([label, val]) => <div key={label} className={`dvs-row${val ? '' : ' off'}`}><span>{label}</span>{val ?? soon}</div>)}
             </div>
           ))}
           <p className="dvs-note">{tx('pack.dvinfo.note', 'Values marked “soon” are being set. Every step of the ladder needs more devotion than the one before.')}</p>

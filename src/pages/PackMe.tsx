@@ -340,7 +340,7 @@ export default function PackMe() {
               study={{ read: readScrolls, total: TOTAL_SCROLLS, pct: studyPct, liked: liked.length, saved: saved.length }}
               onStats={() => navigate('/pack/map/triplist?tab=stats')}
               onVault={() => navigate('/pack/ainubis/knowledge')}
-              onAbout={() => setAboutDev(true)} />
+              onAbout={() => setAboutDev(true)} onClose={() => setRank(null)} />
           )}
 
           {/* 5 ČÍSEL — hneď pod fotkou, bez čiar (Matej 22. 10.). */}
@@ -356,12 +356,12 @@ export default function PackMe() {
               <span>{tx('pack.me.brought', 'brought in')}</span>
             </button>
             {/* KM = výlety na karte AJ blok pútnika hore (Matej 23. 10.: „ako keby pill pútnik“). */}
-            <button type="button" onClick={() => { setTab('trips'); setRank('pt'); }}>
+            <button type="button" data-rank-toggle onClick={() => { setTab('trips'); setRank('pt'); }}>
               <b>{fmt(pilgrim.km)}</b>
               <span>km</span>
             </button>
             {/* ŠTÚDIUM = blok hore so základnými číslami AINUBISA + odkaz do VAULTu (Matej 23. 10.). */}
-            <button type="button" onClick={() => setRank((r) => (r === 'study' ? null : 'study'))}>
+            <button type="button" data-rank-toggle onClick={() => setRank((r) => (r === 'study' ? null : 'study'))}>
               <b>{studyPct} %</b>
               <span>{tx('pack.me.studying', 'studying')}</span>
             </button>
@@ -485,7 +485,7 @@ export default function PackMe() {
           )}
         </div>
       </section>
-      {aboutDev && <DevotionSheet onClose={() => setAboutDev(false)} />}
+      {aboutDev && <DevotionSheet devotion={devotion} onClose={() => setAboutDev(false)} />}
       {viewing && (
         <StoryViewer items={viewing.items} start={viewing.start} name={shownName} avatar={avatarUrl} dogs={dogs}
           mine={!!viewing.del} lang={lang} onClose={() => setViewing(null)} />

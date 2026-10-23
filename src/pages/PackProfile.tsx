@@ -495,8 +495,8 @@ export default function PackProfile() {
             }
           />
           <div className="me-gap" />
-          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} onStats={() => navigate('/pack/map/triplist?tab=stats')} onAbout={() => setAboutDev(true)} tx={tx} />}
-          {aboutDev && <DevotionSheet onClose={() => setAboutDev(false)} />}
+          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} onStats={() => navigate('/pack/map/triplist?tab=stats')} onAbout={() => setAboutDev(true)} onClose={() => setRank(null)} tx={tx} />}
+          {aboutDev && <DevotionSheet devotion={devotion} onClose={() => setAboutDev(false)} />}
 
           {/* ── 1 · O MNE — jediný nadpis skupiny. Poradie (Matej 23. 10.): mená · bio · fakty · povaha. ── */}
           <div className={`pe-grp${shut.has('me') ? ' shut' : ''}`} style={{ ...PACK_BOX.subblock }}>
