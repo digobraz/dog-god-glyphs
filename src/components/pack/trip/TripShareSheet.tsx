@@ -209,7 +209,8 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
   // pilulka misie hore — IG drží pod svojím horným pásom (~250 px), FB tesne pod okrajom
   if (d.badge) {
     const bfs = ig ? 36 : 30, by = ig ? 270 : 56;
-    ctx.font = `700 ${bfs}px Cinzel`; ctx.letterSpacing = `${Math.round(bfs * 0.1)}px`;
+    // Space Grotesk, nie Cinzel — Cinzel kreslí „1“ ako „I“ (#I Z I 000 000)
+    ctx.font = `600 ${bfs}px "Space Grotesk"`; ctx.letterSpacing = `${Math.round(bfs * 0.08)}px`;
     const label = d.badge.toUpperCase(), bw = ctx.measureText(label).width + bfs * 1.6, bh = bfs * 2;
     ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 18;
     rr(ctx, cx - bw / 2, by, bw, bh, bh / 2); ctx.fillStyle = T.card; ctx.fill(); ctx.restore();
@@ -354,7 +355,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
   const dataKey = JSON.stringify(data);
 
   useEffect(() => {
-    Promise.all([document.fonts.load('700 80px Cinzel'), document.fonts.load('700 80px "Cinzel Decorative"'), document.fonts.load('500 38px "Space Grotesk"')])
+    Promise.all([document.fonts.load('700 80px Cinzel'), document.fonts.load('700 80px "Cinzel Decorative"'), document.fonts.load('500 38px "Space Grotesk"'), document.fonts.load('600 36px "Space Grotesk"')])
       .catch(() => undefined).finally(() => setFontsOk(true));
   }, []);
   useEffect(() => {
