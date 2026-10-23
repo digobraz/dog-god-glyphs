@@ -50,11 +50,11 @@ export default function PackWill() {
     setErr(r.code === 'locked' ? tx('will.locked', 'Too many tries. Try again in an hour.') : tx('will.error', 'Something went wrong. Try again in a moment.'));
   };
 
-  // DÔVOD OTVORENIA (Matej 23. 10., kolo 4): „čo sa stalo majiteľovi? — úmrtie · nič, len potrebujem vedieť · strážim psa".
+  // DÔVOD OTVORENIA — len DVE možnosti (Matej 23. 10., kolo 6: „úmrtie alebo je na dovolenke/strážim").
+  // Server pozná aj `info`, UI ho už neponúka.
   const REASONS: Array<[WillReason, string, string]> = [
     ['death', 'will.rDeath', 'The owner passed away'],
-    ['info', 'will.rInfo', 'Nothing, I just need to know'],
-    ['sitting', 'will.rSitting', 'I am looking after the dog'],
+    ['sitting', 'will.rSitting', 'They are away, I am looking after the dog'],
   ];
 
   return (
