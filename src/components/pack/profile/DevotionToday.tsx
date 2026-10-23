@@ -43,13 +43,17 @@ const TILES: Array<{ kind: TileKind; icon: string; label: [string, string]; sub:
   { kind: 'care',       icon: 'heart',    label: ['pack.dvtoday.care', 'Care'],                   sub: ['pack.dvtoday.careSub', 'brushing, bath, claws'] },
 ];
 
-type DeedType = 'event' | 'good_deed' | 'dog_in_need' | 'experience';
-const DEED_TYPES: Array<{ id: DeedType; icon: string; label: [string, string]; ph: [string, string] }> = [
-  { id: 'event',       icon: 'star',       label: ['pack.dvtoday.dtEvent', 'Event'],           ph: ['pack.dvtoday.dtEventPh', 'A birthday, a first swim, a vet visit…'] },
-  { id: 'good_deed',   icon: 'house-heart', label: ['pack.dvtoday.dtGood', 'Good deed'],       ph: ['pack.dvtoday.dtGoodPh', 'What did you do for a dog or a person?'] },
-  { id: 'dog_in_need', icon: 'cross',      label: ['pack.dvtoday.dtNeed', 'A dog in need'],    ph: ['pack.dvtoday.dtNeedPh', 'Shelter, food, a ride, a lost dog…'] },
-  { id: 'experience',  icon: 'camera',     label: ['pack.dvtoday.dtExp', 'Experience'],        ph: ['pack.dvtoday.dtExpPh', 'Something you lived through together'] },
+// „Iné" = DVE možnosti (Matej 23. 10.: *„zbytočne sú tam 4 možnosti — daj len zápis do kroniky
+// (pekná chvíľka, zážitok) +5b alebo dobrý skutok (podpora…)"*). Body zrkadlí `DEED_POINTS` v grant-devotion.
+type DeedType = 'chronicle' | 'good_deed';
+const DEED_TYPES: Array<{ id: DeedType; icon: string; points: number | null; label: [string, string]; sub: [string, string]; ph: [string, string] }> = [
+  { id: 'chronicle', icon: 'feather',     points: 5,    label: ['pack.dvtoday.dtChron', 'Note in the chronicle'], sub: ['pack.dvtoday.dtChronSub', 'a lovely moment, an experience'],
+    ph: ['pack.dvtoday.dtChronPh', 'What did you live through together today?'] },
+  { id: 'good_deed', icon: 'house-heart', points: null, label: ['pack.dvtoday.dtGood', 'Good deed'],             sub: ['pack.dvtoday.dtGoodSub', 'support, help for a dog or a person'],
+    ph: ['pack.dvtoday.dtGoodPh', 'What did you do for a dog or a person?'] },
 ];
+/** Body za zápis „Iné" pre vybraných psov; dobrý skutok = null (posúdi AINUBIS). */
+const deedPts = (t: DeedType | null, dogs: number) => { const p = DEED_TYPES.find((d) => d.id === t)?.points; return p == null ? null : p * dogs; };
 
 const CSS = `
 .dvt-root{position:fixed;inset:0;z-index:66;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,6,11,0.74);animation:dvt-fade .25s ease both;}
@@ -148,9 +152,13 @@ const DEED_CSS = `
 .dvd-who{display:flex;align-items:center;gap:${S.md}px;margin:0 0 ${S.lg}px;}
 .dvd-who img{flex:none;width:48px;height:48px;border-radius:${PACK_R.pill}px;object-fit:contain;background:${A.faceBg};box-shadow:${A.faceRing};}
 .dvd-who p{margin:0;font-size:${TX.lead}px;line-height:1.35;}
-.dvd-types{display:grid;grid-template-columns:1fr 1fr;gap:${S.sm}px;margin:0 0 ${S.md}px;}
+.dvd-types{display:grid;grid-template-columns:1fr;gap:${S.sm}px;margin:0 0 ${S.md}px;}
 .dvd-type{appearance:none;display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${A.edge};background:${A.raised};
   color:${A.inkDim};font:inherit;font-size:${TX.body}px;text-align:left;cursor:pointer;}
+.dvd-type .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.dvd-type .tx b{font-weight:500;font-size:${TX.body}px;color:${A.ink};}
+.dvd-type .tx small{font-size:${TX.micro}px;color:${A.inkFaint};}
+.dvd-type .dvt-cnt{position:static;flex:none;}
 .dvd-type.on{border-color:${A.cyan};color:${A.ink};background:${A.glowTint};}
 .dvd-text{display:block;width:100%;min-height:96px;padding:${S.md}px;border-radius:${PACK_R.field}px;border:1px solid ${A.edge};background:${A.bgDeep};
   color:${A.ink};font:inherit;font-size:${TX.body}px;outline:0;resize:vertical;box-sizing:border-box;}
@@ -168,7 +176,7 @@ function DeedSheet({ initialType, initialText, tx, onClose, onSave }: {
   initialType: DeedType | null; initialText: string; tx: (k: string, f: string) => string;
   onClose: () => void; onSave: (type: DeedType, text: string) => void;
 }) {
-  const [type, setType] = useState<DeedType | null>(initialType);
+  const [type, setType] = useState<DeedType | null>(initialType ?? 'chronicle');
   const [text, setText] = useState(initialText);
   const ok = !!type && text.trim().length >= 3;
   const ph = DEED_TYPES.find((d) => d.id === type)?.ph ?? ['pack.dvtoday.deedPh', 'What did you do for a dog today?'];
@@ -184,12 +192,14 @@ function DeedSheet({ initialType, initialText, tx, onClose, onSave }: {
         <div className="dvd-types" role="radiogroup">
           {DEED_TYPES.map((d) => (
             <button key={d.id} type="button" role="radio" aria-checked={type === d.id} className={`dvd-type${type === d.id ? ' on' : ''}`} onClick={() => setType(d.id)}>
-              <BrandIcon name={d.icon} size={16} tint="gold" />{tx(...d.label)}
+              <BrandIcon name={d.icon} size={16} tint="gold" />
+              <span className="tx"><b>{tx(...d.label)}</b><small>{tx(...d.sub)}</small></span>
+              <span className="dvt-cnt dim">{d.points != null ? `+${d.points}` : tx('pack.dvtoday.deedJudge', 'AINUBIS will judge')}</span>
             </button>
           ))}
         </div>
         <textarea className="dvd-text" value={text} maxLength={500} onChange={(e) => setText(e.target.value)} placeholder={tx(...ph)} />
-        <p className="dvd-note">{tx('pack.dvtoday.deedNote', 'AINUBIS will read it and add devotion.')}</p>
+        {type === 'good_deed' && <p className="dvd-note">{tx('pack.dvtoday.deedNote', 'AINUBIS will read it and add devotion.')}</p>}
         <div className="dvd-row">
           <BackButton tone="ainubis" onClick={onClose} label={tx('pack.network.close', 'Close')} />
           <button type="button" className="dvt-claim" disabled={!ok} onClick={() => ok && type && onSave(type, text.trim())}>
@@ -250,7 +260,7 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
   // Body za i-ty ťuk = koľko vybraných psov má na ňom ešte miesto × hodnota.
   const ptsAt = (k: TileKind, i: number) => sel.filter((g) => (g.done[k] ?? 0) + i < DEVOTION_DAILY[k].perDay).length * DEVOTION_DAILY[k].points;
   const ptsOf = (k: TileKind, n: number) => { let s = 0; for (let i = 0; i < n; i++) s += ptsAt(k, i); return s; };
-  const pending = TILES.reduce((s, r) => s + ptsOf(r.kind, tap[r.kind] ?? 0), 0);
+  const pending = TILES.reduce((s, r) => s + ptsOf(r.kind, tap[r.kind] ?? 0), 0) + (deed.trim() ? (deedPts(deedType, sel.length) ?? 0) : 0);
   const anyTap = TILES.some((r) => (tap[r.kind] ?? 0) > 0) || deed.trim().length > 0;
 
   const hit = (k: TileKind) => {
@@ -274,7 +284,7 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
     try {
       const items: Array<{ kind: string; n: number }> = TILES.filter((r) => (tap[r.kind] ?? 0) > 0).map((r) => ({ kind: r.kind, n: tap[r.kind] ?? 0 }));
       if (deed.trim()) items.push({ kind: 'deed', n: 1 });
-      const j = await grantDevotion({ kind: 'claim', dog_ids: sel.map((g) => g.id), items, note: deed.trim(), deed_type: deedType ?? 'other' });
+      const j = await grantDevotion({ kind: 'claim', dog_ids: sel.map((g) => g.id), items, note: deed.trim(), deed_type: deedType ?? 'chronicle' });
       setBoom(true); setTimeout(() => setBoom(false), 650); buzz();
       setTap({}); setDeed(''); setDeedType(null); setDeedOpen(false);
       await load();
@@ -385,7 +395,9 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
                   <button type="button" onClick={() => setDeedOpen(true)} aria-label={tx('pack.dvtoday.deedEdit', 'Edit')}>
                     <BrandIcon name={DEED_TYPES.find((d) => d.id === deedType)?.icon ?? 'feather'} size={16} tint="gold" />
                     <span className="tx"><b>{tx(...(DEED_TYPES.find((d) => d.id === deedType)?.label ?? ['pack.dvtoday.deedOther', 'Other']))}</b><small>{deed.trim()}</small></span>
-                    <span className="dvt-cnt dim">{tx('pack.dvtoday.deedJudge', 'AINUBIS will judge')}</span>
+                    {deedPts(deedType, sel.length) != null
+                      ? <span className="dvt-cnt">+{deedPts(deedType, sel.length)}</span>
+                      : <span className="dvt-cnt dim">{tx('pack.dvtoday.deedJudge', 'AINUBIS will judge')}</span>}
                   </button>
                   <button type="button" className="dvt-deed-del" onClick={() => { setDeed(''); setDeedType(null); }} aria-label={tx('pack.dvtoday.deedDel', 'Remove')}>
                     <HandTrash size={16} />
