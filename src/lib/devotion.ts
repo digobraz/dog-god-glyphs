@@ -71,7 +71,8 @@ export const DEVOTION_START = 100;
 //    profil von teraz, DEVOTION skryť). Na LIVE chýba `devotion_today()` aj `grant-devotion` v2 — tlačidlá
 //    by nič neurobili. DEVOTION session to prepne na `true` až po LIVE migrácii + edge + cron
 //    (`plany/zadanie-devotion-finalizacia-2026-10-24.md` §LIVE).
-export const DEVOTION_TODAY_ON = import.meta.env.DEV;
+// ✅ 23. 10. 2026 noc: LIVE migrácia v2 + spätne + edge + cron NASADENÉ → panel ide na LIVE.
+export const DEVOTION_TODAY_ON = true;
 
 export const DEVOTION_DAILY = {
   walk_short: { points: 2, perDay: 3 },   // krátke venčenie < 20 min — povinnosť, nie skutok
