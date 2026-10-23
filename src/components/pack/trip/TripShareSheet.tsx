@@ -163,7 +163,8 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
   const lY = mY - 20 - lgH;                           // logo nad mottom
   const slotH = 150, sY = lY - 36 - slotH;            // miesto na nálepku ODKAZ
   const end = ig ? sY - 44 : lY - 92;                 // FB: nad logom riadok s dogypt.com
-  const measure = title(ctx, d.name, cx, 0, big, true) + 60 + chipRow(ctx, d.chips, cx, 0, fs, true);
+  // karta psa nesie meno aj číslo sama ⇒ nadpis a čipy pod ňou by boli duplikát
+  const measure = o.contain ? 0 : title(ctx, d.name, cx, 0, big, true) + 60 + chipRow(ctx, d.chips, cx, 0, fs, true);
   const top = end - measure;
 
   // papyrus = `PACK_THEME.cardGrad` (~160°)
@@ -206,9 +207,11 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
     ctx.lineWidth = 4; ctx.strokeStyle = GOLD; ctx.beginPath(); ctx.arc(fx, fy, r, 0, Math.PI * 2); ctx.stroke();
   }
 
-  const ty = title(ctx, d.name, cx, top, big, false);
-  rule(ctx, cx, ty + 22, 640);
-  chipRow(ctx, d.chips, cx, ty + 60, fs, false);
+  if (!o.contain) {
+    const ty = title(ctx, d.name, cx, top, big, false);
+    rule(ctx, cx, ty + 22, 640);
+    chipRow(ctx, d.chips, cx, ty + 60, fs, false);
+  }
 
   if (ig) {
     if (!o.exportMode) {
