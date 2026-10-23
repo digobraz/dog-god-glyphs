@@ -307,7 +307,7 @@ export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, pilgrimLe
             {devLabel}
           </button>
           <button type="button" className={`me-pt${rank === 'pt' ? ' on' : ''}`} onClick={onPilgrim} aria-expanded={rank === 'pt'} style={tierStyle(pilgrimTier)}>
-            <BrandIcon name="walk" size={12} tint={inkIsLight(pilgrimTier.ink) ? 'white' : 'dark'} />
+            <BrandIcon name="world-grid" size={12} tint={inkIsLight(pilgrimTier.ink) ? 'white' : 'dark'} />
             {pilgrimLabel}
           </button>
         </div>
