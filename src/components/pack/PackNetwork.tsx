@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { createPortal } from 'react-dom';
 import { Loader2, Copy } from 'lucide-react';
@@ -6,9 +6,9 @@ import { BackButton } from './BackButton';
 import { toast } from 'sonner';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
-import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 import { BonesCoin } from '@/components/pack/BonesCoin';
+import { BONES } from '@/components/pack/bonesSkin';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 // Len pre ukážkovú líniu (`?netdemo=62`) — reálne psy z WALLu, aby simulácia
@@ -18,6 +18,8 @@ import { photos as GOD_PHOTOS } from '@/components/gods/godsData';
 import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
+const S = PACK_SPACE;
+const R = { ...PACK_R, btn: PACK_R.field };
 
 // Rovnaký vzor ako `pages/PackDogs.tsx:1385` — `t(key)` vráti pri chýbajúcom
 // preklade samotný kľúč, takže `v === key` znamená „ešte nepreložené, použi
@@ -53,18 +55,8 @@ type Tx = (key: string, fallback: string, vars?: Record<string, string | number>
 const RED_INK = '#A04040';
 const RED_EDGE = 'rgba(160,64,64,0.45)';
 
-// LAPIS pre dlaždice BONES a LÍNIA (Matej 2026-09-12: „CTA daj lapis, ako aj bloky
-// Tvoje bones"). Predtým to bola plná brand zlatá `#C99A3F` (od 13. 8.), predtým
-// oranžovozlatá, predtým priehľadná zlatá — tri kolá toho istého sporu „dlaždica
-// vs. CTA sú rovnaká farba". Lapis ho zavrel: dlaždice a CTA sú síce rovnakého rodu,
-// ale zlato na nich už nesúperí s tlačidlom a plocha prestala byť žltá (lock 28. 8.:
-// zlatooranžová plocha sa číta ako AINUBIS, nie ako DOGYPT).
-//
-// ⚠️ Inkoust je ZLATÝ na modrom — `LAPIS.ink` (#EFD79A). Nie je to ozdoba: lapis
-// + zlato je pôvodná egyptská dvojica a bez nej je z dlaždice len tmavý obdĺžnik.
-// Tlmený popisok je tá istá farba pri 0,72 — na `#0A1A4A` to dáva 7,5 : 1 (AA s
-// rezervou). Kto stmaví gradient, musí toto číslo prepočítať.
-const LAPIS_INK_DIM = 'rgba(239,215,154,0.72)';
+// Dlaždice BONES a LÍNIA (lapis od 12. 9.) zanikli 23. 10. 2026 — číslo BONES nesie tyrkysový
+// hrdina, počet línie nadpis zoznamu (`bonesSkin.ts`).
 
 const APP_ORIGIN = 'https://dogypt.com';
 const BONES_PER_EUR = 10;
@@ -242,9 +234,9 @@ const rpc = supabase.rpc.bind(supabase) as unknown as LooseRpc;
 // tlak. `prefers-reduced-motion` ich vypína úplne.
 const NET_CSS = `
 @keyframes pknet-flow{from{background-position:0 0}to{background-position:46px 0}}
-@keyframes pknet-halo{0%,100%{box-shadow:0 0 0 4px rgba(201,154,63,.14)}50%{box-shadow:0 0 0 8px rgba(201,154,63,.26)}}
+@keyframes pknet-halo{0%,100%{box-shadow:0 0 0 4px rgba(${BONES.lightRgb},.18)}50%{box-shadow:0 0 0 8px rgba(${BONES.lightRgb},.32)}}
 @keyframes pknet-glow{0%,100%{box-shadow:0 0 0 rgba(22,48,122,0)}50%{box-shadow:${PACK_SHADOW.lift}}}
-.pknet-track{background:linear-gradient(90deg,rgba(201,154,63,.25) 0%,#F5C73D 45%,rgba(201,154,63,.25) 90%);
+.pknet-track{background:linear-gradient(90deg,rgba(${BONES.rgb},.25) 0%,${BONES.light} 45%,rgba(${BONES.rgb},.25) 90%);
   background-size:46px 100%;animation:pknet-flow 2s linear infinite}
 .pknet-me{animation:pknet-halo 3s ease-in-out infinite}
 .pknet-pill{animation:pknet-glow 3s ease-in-out infinite}
@@ -252,27 +244,56 @@ const NET_CSS = `
 @media (prefers-reduced-motion:reduce){
   .pknet-track,.pknet-me,.pknet-pill{animation:none}
 }
-/* Rozdelenie pod úvodnou vetou (Matej 2026-08-12: „naľavo bude postup 1-3 kroky
-   a napravo budú bones a línia"). ĽAVO = naratív (ako to funguje + prečo nie
-   reklama), VPRAVO = tvoje čísla a tvoja línia.
-   ⚠️ Je to CONTAINER query, nie media query — karta žije v max-w-5xl profile
-   a jej vnútorná šírka je o ~76 px menšia než okno. Rozhoduje šírka KARTY,
-   inak by sa dva stĺpce zapli aj tam, kde na ne karta nemá miesto.
-   Poradie v DOM je zámerne side → main: v stacknutom (mobilnom) stave tak
-   ostáva presne to isté poradie ako pred rozdelením (čísla → zoznam → kroky). */
-.pknet-split{display:grid;gap:16px}
-@container (min-width:600px){
-  .pknet-split{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:22px;align-items:start}
-  .pknet-split>.pknet-main{grid-column:1;grid-row:1}
-  .pknet-split>.pknet-side{grid-column:2;grid-row:1}
-  /* Vodorovná zlatá čiara delí len stĺpce POD sebou — vedľa seba ich delí medzera. */
-  .pknet-split .pknet-rule{display:none}
-}
+/* ══ ŠUPLÍK BONES v2 — TYRKYS (Matej 23. 10. 2026: „farbou tejto sekcie bude tyrkys …
+   konsolidácia, modernizácia, zatraktívnenie"). Poradie = poradie otázok človeka:
+   1 koľko mám (HRDINA + misia) → 2 čo mám urobiť (ODKAZ) → 3 koho som priviedol (LÍNIA)
+   → 4 ako to funguje (KROKY) → 5 prečo (zbalené). Farby z bonesSkin.ts, nie rukou. */
+.pkb-hero{position:relative;overflow:hidden;padding:${S.lg}px;border-radius:${R.card}px;background:${BONES.heroGrad};color:${BONES.onDeep};
+  box-shadow:${PACK_SHADOW.panel};}
+.pkb-hero::before{content:'';position:absolute;right:-48px;top:-48px;width:180px;height:180px;border-radius:${R.pill}px;
+  background:radial-gradient(circle, rgba(${BONES.lightRgb},.45), transparent 70%);pointer-events:none;}
+.pkb-top{position:relative;display:flex;align-items:center;gap:${S.md}px;}
+.pkb-top .tx{flex:1;min-width:0;}
+.pkb-top small{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${BONES.onDeepDim};}
+.pkb-top b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:24px;line-height:1.1;color:${BONES.onDeep};}
+.pkb-top b span{font-family:${FONT_UI};font-weight:500;font-size:12px;color:${BONES.onDeepDim};margin-left:${S.xs}px;}
+.pkb-wal{flex:none;display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.md}px;border-radius:${R.pill}px;cursor:pointer;
+  background:${BONES.grad};color:${BONES.ink};border:0;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.02em;}
+.pkb-mis{position:relative;margin-top:${S.lg}px;padding-top:${S.md}px;border-top:1px solid ${BONES.heroLine};}
+.pkb-mis .r{display:flex;justify-content:space-between;align-items:baseline;gap:${S.sm}px;font-family:${FONT_UI};font-size:12px;color:${BONES.onDeepDim};}
+.pkb-mis .r b{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${BONES.onDeep};}
+.pkb-bar{height:8px;margin:${S.sm}px 0;border-radius:${R.pill}px;background:rgba(0,0,0,.28);overflow:hidden;}
+.pkb-bar > i{display:block;height:100%;min-width:${S.sm}px;border-radius:${R.pill}px;background:${BONES.grad};}
+.pkb-mis p{margin:0;font-family:${FONT_UI};font-size:12px;color:${BONES.onDeepDim};}
+.pkb-cta{display:flex;align-items:center;justify-content:center;gap:${S.sm}px;width:100%;margin-top:${S.lg}px;padding:${S.md}px ${S.lg}px;border-radius:${R.btn}px;
+  background:${BONES.grad};color:${BONES.ink};border:0;box-shadow:${PACK_SHADOW.lift};cursor:pointer;
+  font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;}
+.pkb-cta:disabled{opacity:.5;cursor:default;}
+.pkb-sec{margin-top:${S.xl}px;}
+.pkb-h{display:flex;align-items:baseline;justify-content:space-between;gap:${S.sm}px;margin:0 0 ${S.sm}px;}
+.pkb-h span{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${BONES.deep};}
+.pkb-h button{border:0;background:none;padding:0;cursor:pointer;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${BONES.deep};text-decoration:underline;text-underline-offset:3px;}
+.pkb-h b{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${T.inkStrong};}
+.pkb-sub{margin:-${S.xs}px 0 ${S.sm}px;font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};}
+.pkb-steps{display:flex;flex-direction:column;gap:${S.sm}px;margin:0;padding:0;list-style:none;}
+.pkb-why{margin-top:${S.md}px;border-radius:${R.tile}px;background:${BONES.tint};border:1px solid ${BONES.edge};}
+.pkb-why summary{display:flex;align-items:center;justify-content:space-between;gap:${S.sm}px;padding:${S.md}px ${S.lg}px;cursor:pointer;list-style:none;
+  font-family:${FONT_UI};font-weight:600;font-size:12px;color:${BONES.deep};}
+.pkb-why summary::-webkit-details-marker{display:none;}
+.pkb-why summary i{font-style:normal;transition:transform .2s ease;}
+.pkb-why[open] summary i{transform:rotate(180deg);}
+.pkb-why div{padding:0 ${S.lg}px ${S.md}px;font-family:${FONT_UI};font-size:12px;line-height:1.55;color:${T.inkWarm};}
 `;
 
 // `bare` = bez vlastnej karty — blok žije v šuplíku MISIA na profile (`BonesSheet`, 23. 10. 2026),
 // ktorý papyrus a rám nesie sám. Karta v karte by bol druhý rám okolo toho istého.
-export function PackNetwork({ avatarUrl, initial, bare = false }: { avatarUrl?: string | null; initial?: string; bare?: boolean }) {
+export function PackNetwork({ avatarUrl, initial, bare = false, mission }: {
+  avatarUrl?: string | null;
+  initial?: string;
+  bare?: boolean;
+  /** Pás MISIE v tyrkysovom hrdinovi — dodá ho šuplík (`BonesSheet`), ktorý má verejné čísla. */
+  mission?: ReactNode;
+}) {
   const t = useT();
   const { lang } = useLang();
   const tx: Tx = (key, fallback, vars) => {
@@ -434,200 +455,97 @@ export function PackNetwork({ avatarUrl, initial, bare = false }: { avatarUrl?: 
     >
       <style>{NET_CSS}</style>
 
-      {/* ── Identita: prečo to robíš ─────────────────────────────────────── */}
-      <div className="flex items-start justify-between" style={{ gap: 12 }}>
-        <div style={{ minWidth: 0 }}>
-          <span
-            style={{
-              fontFamily: FONT_UI,
-              fontWeight: 500,
-              fontSize: 10,
-              letterSpacing: '0.26em',
-              textTransform: 'uppercase',
-              color: T.cardEdge,
-            }}
-          >
-            {tx('pack.network.eyebrow', 'DOGYPT grows because of you')}
-          </span>
-          <h3
-            style={{
-              fontFamily: FONT_TITLE,
-              fontWeight: 700,
-              fontSize: 'clamp(20px, 5.4vw, 27px)',
-              color: T.inkStrong,
-              margin: '6px 0 0',
-              letterSpacing: '0.02em',
-            }}
-          >
-            {tx('pack.network.weNeedYou', 'WE NEED YOU!')}
-          </h3>
-          <p
-            style={{
-              fontFamily: FONT_UI,
-              fontSize: 14,
-              lineHeight: 1.55,
-              color: T.inkWarm,
-              margin: '8px 0 0',
-            }}
-            dangerouslySetInnerHTML={{
-              __html: tx(
-                'pack.network.intro',
-                'A movement only grows when its members carry the message and bring new people in. '
-                  + 'So we’re asking you directly: <strong style="color:#2a1608;font-weight:600">invite the dog people you know</strong>. '
-                  + 'Here is exactly how it works.',
-              ),
-            }}
-          />
-        </div>
-        {/* Kruhové „i" v pravom hornom rohu ZRUŠENÉ (Matej 2026-09-12: „v 2. bloku zruš (i)
-            v pravom hornom rohu"). Blok po prepise textov vysvetľuje sám seba — kroky 1–3
-            aj červený „Prečo tento spôsob?" hovoria to, čo bolo schované za ikonkou.
-            `InfoPanel` ani `INFO.why` sa NEMAŽÚ: panel ďalej otvára peňaženka (variant
-            `bones`) a vrátenie tohto vstupu = jedno tlačidlo s `setInfo('why')`. */}
-      </div>
-
-      {/* ══ ROZDELENIE POD ÚVODNOU VETOU ══════════════════════════════════
-          Vľavo postup (kroky 1–3 + „prečo nie reklama"), vpravo BONES a línia.
-          Pri úzkej karte to spadne pod seba v pôvodnom poradí — pravidlá sú
-          v `.pknet-split` v NET_CSS.
-          🔴 `containerType` je na TOMTO wrapperi, NIE na `<section>` karty.
-          `container-type: inline-size` zapína layout containment, a ten robí
-          z prvku containing block pre `position: fixed` potomkov — na karte by
-          `fixed inset-0` vo `WalletPanel`/`InfoPanel` prestalo znamenať viewport
-          a modál by sa uväznil vnútri karty. Wrapper má rovnakú šírku ako obsah
-          karty (meria sa to isté) a modály doň nepatria.
-          ⚠️ Wrapper je NAVYŠE oproti `.pknet-split` zámerne — container query
-          štýluje POTOMKOV containera, nikdy container sám, takže `.pknet-split`
-          nemôže byť zároveň container aj to, čo sa prepína. */}
-      <div style={{ marginTop: 16, containerType: 'inline-size' }}>
-      <div className="pknet-split">
-
-      <div className="pknet-side">
-
-      {/* Ukážka MUSÍ byť označená. Keď si voľbu pamätá localStorage, dá sa na
-          ňu zabudnúť a 62 fiktívnych ľudí by sa čítalo ako skutočná línia.
-          Pásik je zároveň jediné potrebné vypínadlo — netreba pamätať URL. */}
+      {/* Ukážka MUSÍ byť označená — inak by sa 62 fiktívnych ľudí čítalo ako skutočná línia. */}
       {demo && (
-        <div
-          className="flex items-center justify-between"
-          style={{
-            gap: 10,
-            marginBottom: 10,
-            padding: '4px 8px',
-            borderRadius: 8,
-            background: 'rgba(160,64,64,0.10)',
-            border: `1px dashed ${RED_EDGE}`,
-            fontFamily: FONT_UI,
-            fontSize: 10,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: RED_INK,
-          }}
-        >
+        <div className="flex items-center justify-between" style={{
+          gap: 10, marginBottom: 10, padding: '4px 8px', borderRadius: 8,
+          background: 'rgba(160,64,64,0.10)', border: `1px dashed ${RED_EDGE}`,
+          fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: RED_INK,
+        }}>
           <span>Ukážka · {DEMO_COUNT} fiktívnych členov</span>
-          <button
-            type="button"
-            onClick={() => {
-              localStorage.removeItem(DEMO_KEY);
-              window.location.search = '';
-            }}
-            style={{
-              background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-              fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.14em',
-              textTransform: 'uppercase', color: RED_INK,
-              textDecoration: 'underline', textUnderlineOffset: 3,
-            }}
-          >
+          <button type="button" onClick={() => { localStorage.removeItem(DEMO_KEY); window.location.search = ''; }}
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: FONT_UI, fontSize: 10,
+              letterSpacing: '0.14em', textTransform: 'uppercase', color: RED_INK, textDecoration: 'underline', textUnderlineOffset: 3 }}>
             Vypnúť
           </button>
         </div>
       )}
 
-      {/* MOJE ČÍSLA HNEĎ POD NADPISOM (Matej 2026-08-12: „hlavné info o BONES
-          počet a LINE je nevidieteľné a to je to podstatné"). Predtým sedeli
-          v spodnej polovici karty ako dve tiché dlaždice — teraz sú prvé, čo
-          oko nájde po nadpise, a jediné číslice takej veľkosti na stránke. */}
-      <div className="grid grid-cols-2 gap-3">
-        <BigStat
-          /* ZLATÁ MINCA, nie bledá (Matej 2026-09-12: „v lapisovom bloku daj farebnú ikonku
-             bones ako je aj na homepage"). Bledý variant vznikol pre PLNÚ ZLATÚ dlaždicu,
-             kde by zlato na zlate zmizlo — tá dlaždica je od dnes lapisová, takže dôvod
-             zanikol spolu s ňou. Tvar nesie `BonesCoin`, nie tento súbor. */
-          icon={<BonesCoin size="m" />}
-          value={shownBones == null ? '—' : shownBones.toLocaleString(intlLocale(lang))}
-          label={tx('pack.network.bonesLabel', 'Your BONES')}
-          sub={
-            shownBones != null && shownBones > 0
-              ? `≈ €${eur(shownBones)}`
-              : tx('pack.network.bonesRate', '{n} bones = €1', { n: BONES_PER_EUR })
-          }
-          // Kým sa nepotvrdí, že peňaženkové RPC na tomto projekte existujú, dlaždica
-          // nie je klikateľná a nemá CTA — zostatok samotný je pravdivý, ostáva vidno.
-          onClick={walletReady === true ? () => setWallet(true) : undefined}
-          cta={walletReady === true ? tx('pack.network.openWallet', 'Open wallet') : undefined}
-        />
-        {/* Dlaždica LÍNIE je vstup do celého zoznamu — rovnako ako dlaždica
-            BONES je vstup do peňaženky (Matej 2026-08-12: „zobraziť všetkých
-            daj do bloku ako je aj otvoriť peňaženku"). Odkaz pod zoznamom
-            zanikol, nie je zdvojený.
-            Popis pod číslom hovorí L1/L2, nie „priamo · rozšírená" (Matej:
-            „je hlúposť") — tie isté značky nesú odznaky na riadkoch zoznamu,
-            takže sa dvakrát neučí to isté dvoma slovníkmi. */}
-        <BigStat
-          icon={<BrandIcon name="people" size={22} tint="gold" />}
-          value={loading && !demo ? '—' : String(lineCount)}
-          label={tx('pack.network.inLine', 'In your line')}
-          sub={
-            lineCount > 0
-              ? tx('pack.network.lineSplit', '{l1} in first paw · {l2} in second', {
-                  l1: demo ? l1.length : net?.level1_count ?? l1.length,
-                  l2: demo ? l2.length : net?.level2_count ?? l2.length,
-                })
-              : tx('pack.network.noOneYet', 'no one yet')
-          }
-          onClick={recent.length > 0 ? () => setListOpen(true) : undefined}
-          cta={recent.length > 0 ? tx('pack.network.showAll', 'See all {n}', { n: recent.length }) : undefined}
-        />
+      {/* ① HRDINA — koľko mám. Číslo BONES je tu JEDNO (predtým v hlavičke šuplíka AJ v lapisovej
+          dlaždici). Peňaženka = pilulka vpravo, kým jej RPC na projekte nie sú potvrdené, chýba. */}
+      <div className="pkb-hero">
+        <div className="pkb-top">
+          <BonesCoin size="m" />
+          <div className="tx">
+            <small>{tx('pack.network.bonesLabel', 'Your BONES')}</small>
+            <b>
+              {shownBones == null ? '—' : shownBones.toLocaleString(intlLocale(lang))}
+              <span>
+                {shownBones != null && shownBones > 0
+                  ? `≈ €${eur(shownBones)}`
+                  : tx('pack.network.bonesRate', '{n} bones = €1', { n: BONES_PER_EUR })}
+              </span>
+            </b>
+          </div>
+          {walletReady === true && (
+            <button type="button" className="pkb-wal" onClick={() => setWallet(true)}>
+              {tx('pack.network.openWallet', 'Open wallet')} →
+            </button>
+          )}
+        </div>
+        {mission && <div className="pkb-mis">{mission}</div>}
       </div>
 
-      {/* ── KOHO SI PRIVIEDOL DO DOGYPTU — jediné miesto so zoznamom (Matej 12.8.2026:
-          „centralizovať tieto info aby sme ich nemali na viacerých miestach"). Homepage
-          `/pack` má len rýchly stav a zdieľanie a odkazuje SEM (`/pack/profile#network`).
-
-          ⚠️ TABUĽKA STOJÍ AJ KEĎ JE PRÁZDNA (Matej 2026-09-12: „treba už vytvoriť aj keď
-          prázdnu tabuľku s poradovým číslom, nie iba prázdne miesto — vyzerá to pokazene").
-          Jedna veta („zatiaľ nikto") nepovie, čo sa tam raz objaví; tri očíslované sloty áno.
-
-          PORADIE JE VZOSTUPNÉ a číslo znamená poradie VSTUPU do tvojej línie — #1 je prvý
-          človek, ktorého si priviedol. Preto sa berie posledná päťka a NEOBRACIA sa:
-          čísla tak plynulo prechádzajú do prázdnych slotov (…#4, #5, potom #6 prázdny).
-          Pri obrátenom poradí (najnovší hore) by prázdny slot s vyšším číslom sedel POD
-          nižšími a sekvencia by čítala 5-4-3-6.
-
-          ⚠️ E-MAIL TU NIE JE — `get_my_network()` ho zámerne nevracia („Email stays private",
-          migrácia 20260609_affiliate_two_level.sql). Vracia krstné meno majiteľa, meno psa,
-          dátum a pripísané BONES. */}
-      <div style={{ marginTop: 14 }}>
-        <span
-          style={{
-            display: 'block',
-            fontFamily: FONT_UI,
-            fontWeight: 500,
-            fontSize: 10,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: T.cardEdge,
-            marginBottom: 8,
-          }}
-        >
-          {tx('pack.network.whoJoined', 'Who have you brought into DOGYPT?')}
+      {/* ② ODKAZ — hlavná akcia hneď pod stavom, nie na konci šuplíka. Tyrkysové CTA je
+          priznaná výnimka sekcie BONES (`bonesSkin.ts`); tvar ostáva `.btn-gold` (r8). */}
+      <button type="button" className="pkb-cta" onClick={handleShare} disabled={!link}>
+        <BrandIcon name="link" size={16} tint="dark" />
+        {tx('pack.network.shareLink', 'Share your link')}
+      </button>
+      <div className="flex items-center justify-center gap-1.5" style={{ marginTop: 8, fontFamily: FONT_UI, fontSize: 12, color: T.inkFaint }}>
+        {/* Tri bodky patria URL, nie vete — chybová veta sa v DE/PL/UA orezávala (audit 15. 10.). */}
+        <span className={codeState === 'failed' ? undefined : 'truncate'} style={{ minWidth: 0, textAlign: 'center' }}>
+          {codeState === 'loading'
+            ? tx('pack.network.generatingLink', 'Generating your link…')
+            : codeState === 'failed'
+              ? tx('pack.network.linkFailed', 'Could not load your invite link.')
+              : link.replace(/^https?:\/\//, '')}
         </span>
+        {codeState === 'failed' ? (
+          <button type="button" onClick={() => { loadCode().catch(() => setCodeState('failed')); }} className="pf-hit shrink-0"
+            style={{ background: 'none', border: `1px solid ${BONES.edge}`, borderRadius: 999, padding: '4px 8px', fontFamily: FONT_UI,
+              fontWeight: 600, fontSize: 10, color: T.inkStrong, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            {tx('pack.network.linkRetry', 'Try again')}
+          </button>
+        ) : (
+          <button type="button" onClick={handleCopy} disabled={!link} aria-label={tx('pack.network.copyLinkAria', 'Copy invite link')}
+            className="pf-hit inline-flex items-center shrink-0"
+            style={{ background: 'none', border: 'none', color: T.inkWarm, cursor: link ? 'pointer' : 'default', padding: 4 }}>
+            {copied ? <HandCheck size={14} /> : <Copy className="h-3.5 w-3.5" />}
+          </button>
+        )}
+      </div>
 
+      {/* ③ LÍNIA — koho som priviedol. Číslo v nadpise, rozpad L1/L2 pod ním, „všetci" vpravo.
+          Tabuľka stojí aj prázdna s poradovými číslami (Matej 12. 9.). E-mail tu nie je zámerne. */}
+      <div className="pkb-sec">
+        <div className="pkb-h">
+          <span>{tx('pack.network.whoJoined', 'Who have you brought into DOGYPT?')}</span>
+          {recent.length > 0
+            ? <button type="button" onClick={() => setListOpen(true)}>{tx('pack.network.showAll', 'See all {n}', { n: recent.length })}</button>
+            : <b>{loading && !demo ? '—' : String(lineCount)}</b>}
+        </div>
+        {lineCount > 0 && (
+          <p className="pkb-sub">{tx('pack.network.lineSplit', '{l1} in first paw · {l2} in second', {
+            l1: demo ? l1.length : net?.level1_count ?? l1.length,
+            l2: demo ? l2.length : net?.level2_count ?? l2.length,
+          })}</p>
+        )}
         {loading && !demo ? (
           <Loader2 className="h-4 w-4 animate-spin" style={{ color: T.inkFaint }} />
         ) : (
           <>
-            <div className="flex flex-col" style={{ gap: 5 }}>
+            <div className="flex flex-col" style={{ gap: 4 }}>
               {shownRows.map(({ m, lvl }, i) => (
                 <MemberRow key={`${m.created_at}-${i}`} m={m} lvl={lvl} no={firstNo + i} />
               ))}
@@ -644,86 +562,53 @@ export function PackNetwork({ avatarUrl, initial, bare = false }: { avatarUrl?: 
         )}
       </div>
 
-      </div>{/* /pknet-side */}
-
-      <div className="pknet-main">
-
-      <div aria-hidden className="pknet-rule" style={{ height: 2, margin: '2px 0 18px', background: T.rule }} />
-
-      {/* ── TRI KROKY — hlavný vysvetľovač ───────────────────────────────
-          Matej 2026-08-12: „z tohoto to moc nechápem čo to má byť musíme to
-          viac vysvetliť aby to bolo viac jasné." Predtým to niesol samotný
-          strom — pekný, ale nepovedal ČO MÁ ČLOVEK UROBIŤ. Číslované kroky
-          hovoria úlohu, odmenu aj účel v poradí, v akom sa dejú; strom sa
-          zmenšil a stal sa ilustráciou kroku 2, takže má konečne kontext. */}
-      <ol className="flex flex-col" style={{ gap: 10, margin: 0, padding: 0, listStyle: 'none' }}>
-        <Step n={1} icon="link" title={tx('pack.network.step1Title', 'Share your link')}>
-          {tx('pack.network.step1Body', 'Send it to the friends of yours who’d back a good cause. That’s the whole ask.')}
-        </Step>
-
-        <Step n={2} icon="add-user" title={tx('pack.network.step2Title', 'They join — you get BONES')}>
-          <span
-            style={{ display: 'block', marginBottom: 10 }}
-            dangerouslySetInnerHTML={{
-              /* ⚠️ Text hovorí aj to, čo dostane TEN DRUHÝ (Matej 2026-09-12: „Ak tento člen
-                 tiež niekoho privedie, on získa 20 a ty 10 BONES"). Bez toho to čítalo tak,
-                 že druhá úroveň je odmena len pre teba — a prvá otázka, ktorú človek položí,
-                 znie „a čo z toho má on". */
-              __html: tx(
-                'pack.network.step2Body',
-                'If someone forges a <strong style="color:#2a1608;font-weight:600">Heroglyph</strong> through your link, '
-                  + 'you get <strong style="color:#2a1608;font-weight:600">{l1} BONES</strong>. '
-                  + 'If that member brings someone too, they get {l1} and <strong style="color:#2a1608;font-weight:600">you get {l2} more</strong>.',
-                { l1: L1_BONES, l2: L2_BONES },
-              ),
-            }}
-          />
-          <Chain l1={l1} l2={l2} avatarUrl={avatarUrl} initial={initial} loading={loading} />
-        </Step>
-
-        <Step n={3} icon="bone" title={tx('pack.network.step3Title', 'Spend them inside DOGYPT')}>
-          {tx(
-            'pack.network.step3Body',
-            '{n} BONES = €1. The money goes back into the mission — helping dogs, merch, and paying other members for what they make.',
-            { n: BONES_PER_EUR },
-          )}
-        </Step>
-      </ol>
-
-      {/* PREČO TENTO SPÔSOB — červený blok (Matej 2026-09-12 prepísal celé znenie).
-          Pôvodný nadpis „Prečo platíme radšej vás" hovoril o NÁS; nový sa pýta otázku,
-          ktorú si kladie čitateľ. Telo je Matejovo a končí háčikom — bez neho blok
-          vysvetlí ekonomiku a nepovie, čo z toho plynie pre teba.
-          ⚠️ Zanikol riadok „€ — reklama — cudzí človek si scrolluje ďalej": bol to
-          minidiagram tej istej vety, ktorú blok teraz hovorí rovno. Kľúče
-          `pack.network.ads.wordAd` / `wordScroll` sa v i18n NEMAŽÚ (`Dict = typeof en`,
-          takže by musel padnúť zápis v 18 jazykoch) — sú len bez volajúceho. */}
-      <div
-        style={{
-          background: 'rgba(160,64,64,0.10)',
-          border: `1.5px solid ${RED_EDGE}`,
-          borderRadius: 12,
-          padding: '12px 16px',
-          marginTop: 12,
-        }}
-      >
-        <span
-          style={{
-            display: 'block',
-            fontFamily: FONT_UI,
-            fontWeight: 600,
-            fontSize: 10,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: RED_INK,
-            marginBottom: 8,
-          }}
-        >
-          {tx('pack.network.ads.header', 'Why this way?')}
-        </span>
-        <span
-          style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.55, color: RED_INK }}
+      {/* ④ AKO TO FUNGUJE — „WE NEED YOU!" + úvodná veta (Matejove texty) nad tromi krokmi. */}
+      <div className="pkb-sec">
+        <div className="pkb-h"><span>{tx('pack.network.eyebrow', 'DOGYPT grows because of you')}</span></div>
+        <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 20, color: T.inkStrong, margin: 0, letterSpacing: '0.02em' }}>
+          {tx('pack.network.weNeedYou', 'WE NEED YOU!')}
+        </h3>
+        <p
+          style={{ fontFamily: FONT_UI, fontSize: 14, lineHeight: 1.55, color: T.inkWarm, margin: '8px 0 12px' }}
           dangerouslySetInnerHTML={{
+            __html: tx(
+              'pack.network.intro',
+              'A movement only grows when its members carry the message and bring new people in. '
+                + 'So we’re asking you directly: <strong style="color:#2a1608;font-weight:600">invite the dog people you know</strong>. '
+                + 'Here is exactly how it works.',
+            ),
+          }}
+        />
+        <ol className="pkb-steps">
+          <Step n={1} icon="link" title={tx('pack.network.step1Title', 'Share your link')}>
+            {tx('pack.network.step1Body', 'Send it to the friends of yours who’d back a good cause. That’s the whole ask.')}
+          </Step>
+          <Step n={2} icon="add-user" title={tx('pack.network.step2Title', 'They join — you get BONES')}>
+            <span
+              style={{ display: 'block', marginBottom: 10 }}
+              dangerouslySetInnerHTML={{
+                /* Text hovorí aj to, čo dostane TEN DRUHÝ (Matej 12. 9.). */
+                __html: tx(
+                  'pack.network.step2Body',
+                  'If someone forges a <strong style="color:#2a1608;font-weight:600">Heroglyph</strong> through your link, '
+                    + 'you get <strong style="color:#2a1608;font-weight:600">{l1} BONES</strong>. '
+                    + 'If that member brings someone too, they get {l1} and <strong style="color:#2a1608;font-weight:600">you get {l2} more</strong>.',
+                  { l1: L1_BONES, l2: L2_BONES },
+                ),
+              }}
+            />
+            <Chain l1={l1} l2={l2} avatarUrl={avatarUrl} initial={initial} loading={loading} />
+          </Step>
+          <Step n={3} icon="bone" title={tx('pack.network.step3Title', 'Spend them inside DOGYPT')}>
+            {tx('pack.network.step3Body', '{n} BONES = €1. The money goes back into the mission — helping dogs, merch, and paying other members for what they make.', { n: BONES_PER_EUR })}
+          </Step>
+        </ol>
+
+        {/* ⑤ PREČO TAKTO — Matejov text ostáva doslova, len je zbalený (bol to najväčší blok
+            šuplíka a čítal sa ako varovanie: červená farba). */}
+        <details className="pkb-why">
+          <summary>{tx('pack.network.ads.header', 'Why this way?')}<i aria-hidden><BrandIcon name="back" size={12} tint="dim" style={{ transform: 'rotate(-90deg)' }} /></i></summary>
+          <div dangerouslySetInnerHTML={{
             __html: tx(
               'pack.network.ads.body',
               'Paid ads are a very inefficient way to find new dog people — and a way to throw our money '
@@ -731,119 +616,8 @@ export function PackNetwork({ avatarUrl, initial, bare = false }: { avatarUrl?: 
                 + 'There is one catch: <strong style="font-weight:600">it only really works if you go out and '
                 + 'tell the people around you about us</strong> :)',
             ),
-          }}
-        />
-      </div>
-
-      </div>{/* /pknet-main */}
-      </div>{/* /pknet-split */}
-      </div>{/* /container */}
-
-      <div aria-hidden style={{ height: 2, margin: '20px 0', background: T.rule }} />
-
-      {/* ── Akcia ────────────────────────────────────────────────────────── */}
-      <div>
-        <div>
-          <div
-            style={{
-              fontFamily: FONT_TITLE,
-              fontSize: 10,
-              letterSpacing: '0.26em',
-              textTransform: 'uppercase',
-              color: T.inkDim,
-              margin: '0 0 8px',
-            }}
-          >
-            {tx('pack.network.inviteLinkHeader', 'Your invite link')}
-          </div>
-
-          {/* HLAVNÉ CTA JE LAPIS (brandový kánon od 28. 8. 2026; sem nasadené 12. 9. na
-              Matejov pokyn „CTA daj lapis"). GEOMETRIU si ďalej berie z locku `.btn-gold` —
-              radius 8, NIE pilulka; zmena farby nie je povolenie na iný tvar. Podklad pod
-              tlačidlom je papyrusová karta, teda BLEDÝ povrch, a tam je hlavná akcia lapis
-              (zlatý gradient patrí na naozaj tmavý povrch). */}
-          <button
-            type="button"
-            onClick={handleShare}
-            disabled={!link}
-            className="inline-flex items-center justify-center gap-2 w-full"
-            style={{
-              background: LAPIS.grad,
-              border: `1px solid ${LAPIS.edge}`,
-              borderRadius: 8,
-              boxShadow: LAPIS_BTN_SHADOW,
-              color: LAPIS.ink,
-              padding: '12px 16px',
-              fontFamily: FONT_TITLE,
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              cursor: link ? 'pointer' : 'default',
-              opacity: link ? 1 : 0.5,
-            }}
-          >
-            <BrandIcon name="link" size={16} tint="gold" />
-            {tx('pack.network.shareLink', 'Share your link')}
-          </button>
-
-          <div
-            className="flex items-center justify-center gap-1.5"
-            style={{ marginTop: 7, fontFamily: FONT_UI, fontSize: 12, color: T.inkFaint }}
-          >
-            {/* Tri bodky patria URL, nie vete — chybová veta sa v DE/PL/UA a pod. orezala
-                na „Dein Einladungslink konnte nic…" (UI audit jazykov 15. 10. 2026). */}
-            <span className={codeState === 'failed' ? undefined : 'truncate'} style={{ minWidth: 0, textAlign: 'center' }}>
-              {/* ⚠️ Predtým sa tu čítal `loading` z `get_my_network` — ten dobehol skôr než
-                  affiliate, takže pri chýbajúcom kóde tu ostal PRÁZDNY riadok pod bledým
-                  tlačidlom a nič nepovedalo, čo sa deje. Teraz sa riadok riadi stavom kódu. */}
-              {codeState === 'loading'
-                ? tx('pack.network.generatingLink', 'Generating your link…')
-                : codeState === 'failed'
-                  ? tx('pack.network.linkFailed', 'Could not load your invite link.')
-                  : link.replace(/^https?:\/\//, '')}
-            </span>
-            {codeState === 'failed' && (
-              <button
-                type="button"
-                onClick={() => { loadCode().catch(() => setCodeState('failed')); }}
-                className="pf-hit shrink-0"
-                style={{
-                  background: 'none',
-                  border: `1px solid ${T.cardEdge}`,
-                  borderRadius: 999,
-                  padding: '4px 8px',
-                  fontFamily: FONT_UI,
-                  fontWeight: 600,
-                  fontSize: 10,
-                  color: T.inkStrong,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {tx('pack.network.linkRetry', 'Try again')}
-              </button>
-            )}
-            {codeState !== 'failed' && (
-            <button
-              type="button"
-              onClick={handleCopy}
-              disabled={!link}
-              aria-label={tx('pack.network.copyLinkAria', 'Copy invite link')}
-              className="pf-hit inline-flex items-center shrink-0"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: T.inkWarm,
-                cursor: link ? 'pointer' : 'default',
-                padding: 4,
-              }}
-            >
-              {copied ? <HandCheck size={14} /> : <Copy className="h-3.5 w-3.5" />}
-            </button>
-            )}
-          </div>
-        </div>
+          }} />
+        </details>
       </div>
 
       {wallet && (
@@ -1324,8 +1098,8 @@ function Step({
         // („je to také plané") a 13. 8. sa stal kánonom pre všetky sekcie vnútri karty —
         // hodnoty preto nie sú opísané ručne, ale ťahané z matrice.
         ...PACK_BOX.subblock,
-        padding: '16px 16px',
-        boxShadow: '0 2px 6px rgba(122,90,42,0.14), inset 0 1px 0 rgba(255,255,255,0.55)',
+        border: `1px solid ${BONES.edge}`,
+        padding: '12px 16px',
       }}
     >
       {/* Číslo nesie poradie, ikona tému — spolu povedia „krok 1 je o zdieľaní"
@@ -1339,22 +1113,18 @@ function Step({
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            /* LAPIS (Matej 2026-09-12: „kroky 1-3 aj +20 +10 v tých krokoch daj lapisom
-               nie zlatou"). Číslo kroku je malý plný disk, nie plocha — zlatý gradient
-               `.btn-gold` na ňom kričal rovnako ako CTA o pár riadkov nižšie. */
-            background: LAPIS.grad,
-            border: `1px solid ${PACK_THEME.border}`,
-            color: LAPIS.ink,
+            /* TYRKYS (23. 10. 2026) — farba sekcie BONES; predtým lapis (12. 9.). */
+            background: BONES.grad,
+            color: BONES.ink,
             fontFamily: FONT_TITLE,
             fontWeight: 700,
             fontSize: 14,
             lineHeight: 1,
-            boxShadow: `0 3px 10px rgba(5,15,48,0.35), inset 0 1px 0 ${PACK_THEME.hairline}`,
           }}
         >
           {n}
         </span>
-        <BrandIcon name={icon} size={17} tint="gold" />
+        <BrandIcon name={icon} size={16} tint="dim" />
       </span>
 
       <div style={{ minWidth: 0 }}>
@@ -1413,8 +1183,8 @@ function EmptyRow({ no }: { no: number }) {
         gap: 10,
         padding: '8px 8px',
         borderRadius: 8,
-        background: 'transparent',
-        border: `1px dashed ${T.border}`,
+        background: BONES.tint,
+        border: `1px dashed ${BONES.edge}`,
       }}
     >
       <RowNo n={no} dim />
@@ -1425,7 +1195,7 @@ function EmptyRow({ no }: { no: number }) {
           height: 30,
           borderRadius: '50%',
           flexShrink: 0,
-          border: `1px dashed ${T.border}`,
+          border: `1px dashed ${BONES.edge}`,
         }}
       />
       <span aria-hidden className="flex-1 min-w-0 flex flex-col" style={{ gap: 5 }}>
@@ -1439,7 +1209,7 @@ function EmptyRow({ no }: { no: number }) {
           fontWeight: 600,
           fontSize: 10,
           color: T.inkFaint,
-          border: `1px dashed ${T.border}`,
+          border: `1px dashed ${BONES.edge}`,
           borderRadius: 999,
           padding: '4px 8px',
           whiteSpace: 'nowrap',
@@ -1731,11 +1501,9 @@ function Link20({ pill, small }: { pill: string; small?: boolean }) {
           fontSize: small ? 10 : 11,
           letterSpacing: '0.02em',
           whiteSpace: 'nowrap',
-          /* LAPIS spolu s číslami krokov (Matej 2026-09-12). Dráha pod pilulkou ostáva
-             zlatá — je to SPOJKA medzi uzlami, teda konštrukcia, nie odmena. */
-          color: LAPIS.ink,
-          background: LAPIS.grad,
-          border: `1px solid ${PACK_THEME.border}`,
+          /* TYRKYS spolu s číslami krokov (23. 10. 2026, predtým lapis 12. 9.). */
+          color: BONES.ink,
+          background: BONES.grad,
           borderRadius: 999,
           padding: '4px 8px',
         }}
@@ -1852,103 +1620,6 @@ function Node({
 
 // Hlavné číslo karty. Zlatá výplň + 2px rám + tieň, číslo v Cinzel na 40px —
 // jediné číslice takej veľkosti v profile, takže sa nedajú prehliadnuť.
-function BigStat({
-  icon,
-  value,
-  label,
-  sub,
-  onClick,
-  cta,
-}: {
-  icon: React.ReactNode;
-  value: string;
-  label: string;
-  sub?: string;
-  onClick?: () => void;
-  cta?: string;
-}) {
-  const Tag = (onClick ? 'button' : 'div') as 'button';
-  return (
-    <Tag
-      type={onClick ? 'button' : undefined}
-      onClick={onClick}
-      className={onClick ? 'pknet-tile text-left w-full' : undefined}
-      /* LAPIS, NIE PLNÁ ZLATÁ (Matej 2026-09-12: „CTA daj lapis, ako aj bloky Tvoje bones").
-         Zlatooranžová plocha je podľa brand locku z 28. 8. AINUBISOVA — na tlačidle sa číta
-         ako svetlo, na celej ploche ako žltá. Recept je identický s `.ts-pill` na karte
-         homepage (11. 9.): lapis + zlatý vlasový rám + zlatý inkoust, čo je pôvodná
-         egyptská dvojica.
-         ⚠️ Dlaždice KLIKATEĽNÉ SÚ (peňaženka, celý zoznam), takže výnimka pre neinteraktívny
-         štítok sem nesiaha — na karte tak stoja tri plné farebné plochy vrátane CTA. Váhu
-         medzi nimi drží tieň: CTA má `LAPIS_BTN_SHADOW` (vystúpené tlačidlo), dlaždice
-         zapustený tieň. */
-      style={{
-        background: LAPIS.grad,
-        border: `1px solid ${PACK_THEME.border}`,
-        borderRadius: 14,
-        padding: '12px 16px',
-        boxShadow: 'inset 0 1px 0 rgba(201,154,63,0.22), 0 10px 24px -14px rgba(5,15,48,0.75)',
-        cursor: onClick ? 'pointer' : undefined,
-      }}
-    >
-      <div className="flex items-center" style={{ gap: 9, marginBottom: 8 }}>
-        {icon}
-        {/* `nowrap` + užšie prestrkanie (audit C2): pri 768px sa „YOUR BONES" a
-            „IN YOUR LINE" lámali na dva riadky a dlaždice vedľa seba mali rôznu
-            výšku hlavičky. Popisok je krátky, radšej doň zasiahnuť prestrkaním
-            než pustiť zalomenie. */}
-        <span
-          style={{
-            fontFamily: FONT_UI,
-            fontWeight: 600,
-            fontSize: 10,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            whiteSpace: 'nowrap',
-            color: LAPIS_INK_DIM,
-          }}
-        >
-          {label}
-        </span>
-      </div>
-      <b
-        style={{
-          display: 'block',
-          fontFamily: FONT_TITLE,
-          fontWeight: 700,
-          fontSize: 'clamp(30px, 8vw, 40px)',
-          lineHeight: 1,
-          color: LAPIS.ink,
-        }}
-      >
-        {value}
-      </b>
-      {sub && (
-        <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, color: LAPIS_INK_DIM, marginTop: 6 }}>
-          {sub}
-        </span>
-      )}
-      {cta && (
-        <span
-          className="inline-flex items-center"
-          style={{
-            gap: 5,
-            marginTop: 8,
-            fontFamily: FONT_UI,
-            fontSize: 12,
-            fontWeight: 500,
-            color: LAPIS.ink,
-            textDecoration: 'underline',
-            textUnderlineOffset: 3,
-          }}
-        >
-          {cta} →
-        </span>
-      )}
-    </Tag>
-  );
-}
-
 // `Coin()` ZANIKOL 12. 9. 2026 — minca má odteraz jediný zdroj: `BonesCoin.tsx`.
 // Bledý variant (`onGold`) padol ešte skôr, spolu s plnou zlatou dlaždicou, pre ktorú
 // vznikol. Volajúci si berú veľkosť menom (`m` = dlaždica, `l` = peňaženka), nie číslom.
