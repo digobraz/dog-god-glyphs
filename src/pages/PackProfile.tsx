@@ -176,7 +176,8 @@ const EDIT_CSS = `
 .pe-fr .pf-field input{font-size:${PACK_TEXT.body}px !important;width:100% !important;}
 .pe-fr.r1 > :nth-child(3) .pf-field input{width:100% !important;}
 /* MOJA SVORKA — rámik = úzky kruh (ja + psy), pod ním šípka k voliteľnému pawmatovi. */
-.pe-core{border:1px solid ${T.cardEdge};border-radius:${PACK_R.tile}px;padding:${S.sm}px ${S.md}px;background:color-mix(in srgb, ${T.card} 55%, transparent);}
+/* Členovia stoja ROVNO v bloku MOJA SVORKA, nie vo vnorenom rámiku (Matej 23. 10.: „moc úzky obsah“). */
+.pe-core{}
 .pe-me{display:flex;align-items:center;justify-content:space-between;gap:${S.sm}px;padding:${S.sm}px 0;}
 .pe-role{position:relative;display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.md}px;border-radius:${PACK_R.pill}px;
   background:${T.tileBg};border:1px solid ${T.cardEdge};color:${T.inkStrong};font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}

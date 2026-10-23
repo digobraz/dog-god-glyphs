@@ -6,11 +6,14 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, BRAND_GOLD_BTN, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { sizedUrl } from '@/services/cloudinaryService';
 import type { PackDogFull } from '@/hooks/usePackUser';
 import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
-import { tierOfLevel, tierGradient, type PackTier } from '@/lib/packTiers';
+import { tierOfLevel, tierGradient, PACK_TIERS, type PackTier } from '@/lib/packTiers';
+/** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
+const BONES_TIER = PACK_TIERS.find((t) => t.key === 'turquoise') as PackTier;
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -49,7 +52,7 @@ export const ME_CSS = `
 .me-cover.drag.on{ cursor:grabbing; }
 .me-tbar{ display:flex; justify-content:space-between; align-items:flex-start; padding:${S.md}px; }
 .me-bones{ display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.md}px; border-radius:${PACK_R.pill}px; cursor:pointer;
-  background:${BRAND_GOLD_BTN.grad}; border:1px solid ${BRAND_GOLD_BTN.edge}; color:${BRAND_GOLD_BTN.ink}; box-shadow:${BRAND_GOLD_BTN.glow};
+  background:${tierGradient(BONES_TIER)}; border:1px solid ${BONES_TIER.b}; color:${BONES_TIER.ink}; box-shadow:${T.panelShadow};
   font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.label}px; letter-spacing:.02em; }
 .me-foot{ position:absolute; left:${OWN_X.m + OWN.m + S.sm}px; right:${S.md}px; bottom:-${OWN_DROP}px; }
 .me-nm{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.h2}px; letter-spacing:.14em; color:${T.inkStrong};
@@ -62,21 +65,26 @@ export const ME_CSS = `
 .me-lv.stack{ flex-direction:column; align-items:flex-start; gap:${S.xs}px; }
 .me-lv.stack > *{ flex:none; letter-spacing:.14em; }
 .me-lv > .on{ box-shadow:0 0 0 2px ${T.card}, 0 0 0 3.5px ${LAPIS.edge}; }
-.me-rk{ margin:0 0 ${S.md}px; padding:${S.md}px ${S.lg}px; border-radius:${PACK_R.tile}px; background:${T.tileBg}; border:1px solid ${T.cardEdge}; }
-.me-rk h3{ margin:0; display:flex; justify-content:space-between; align-items:baseline; gap:${S.sm}px; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.body}px; letter-spacing:.14em; text-transform:uppercase; color:${T.inkStrong}; }
-.me-rk h3 small{ font-family:${FONT_UI}; font-weight:500; font-size:${TX.micro}px; letter-spacing:.02em; text-transform:none; color:${T.inkWarm}; }
-.me-rk p{ margin:${S.sm}px 0 0; font-family:${FONT_UI}; font-size:${TX.label}px; line-height:1.45; color:${T.ink}; }
-.me-rk .pk-progress{ margin-top:${S.sm}px; }
+/* FAREBNÉ BLOKY HODNOSTÍ (Matej 23. 10.: „tie bloky daj farebné, nie bledé, nech je to niečo special").
+   Podklad nesie farbu hodnosti (devotion = zlato, pútnik = pásmo z packTiers, štúdium = displej AINUBISA),
+   text a pás berú farby z premenných --rk-ink / --rk-dim, ktoré nastaví MeRank. */
+.me-rk{ margin:0 0 ${S.md}px; padding:${S.md}px ${S.lg}px; border-radius:${PACK_R.tile}px; background:var(--rk-bg); border:1px solid var(--rk-edge);
+  box-shadow:${T.panelShadow}; color:var(--rk-ink); }
+.me-rk h3{ margin:0; display:flex; justify-content:space-between; align-items:baseline; gap:${S.sm}px; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.body}px; letter-spacing:.14em; text-transform:uppercase; color:var(--rk-ink); }
+.me-rk h3 small{ font-family:${FONT_UI}; font-weight:500; font-size:${TX.micro}px; letter-spacing:.02em; text-transform:none; color:var(--rk-dim); }
+.me-rk p{ margin:${S.sm}px 0 0; font-family:${FONT_UI}; font-size:${TX.label}px; line-height:1.45; color:var(--rk-ink); }
+.me-rk .pk-progress{ margin-top:${S.sm}px; background:rgba(0,0,0,.22); }
+.me-rk .pk-progress__fill{ background:var(--rk-fill); }
 .me-rk-sc{ display:flex; gap:${S.xs}px; margin:${S.md}px -${S.lg}px 0; padding:0 ${S.lg}px ${S.xs}px; overflow-x:auto; scrollbar-width:none; }
 .me-rk-sc::-webkit-scrollbar{ display:none; }
-.me-rk-sc span{ flex:none; padding:${S.xs}px ${S.sm}px; border-radius:${PACK_R.pill}px; border:1px solid ${T.cardEdge}; font-family:${FONT_UI}; font-size:${TX.micro}px; color:${T.inkFaint}; white-space:nowrap; }
-.me-rk-sc span.done{ color:${T.inkWarm}; }
-.me-rk-sc span.cur{ background:${BRAND_GOLD_BTN.grad}; border-color:${BRAND_GOLD_BTN.edge}; color:${BRAND_GOLD_BTN.ink}; font-weight:600; }
+.me-rk-sc span{ flex:none; padding:${S.xs}px ${S.sm}px; border-radius:${PACK_R.pill}px; border:1px solid var(--rk-edge); font-family:${FONT_UI}; font-size:${TX.micro}px; color:var(--rk-dim); opacity:.7; white-space:nowrap; }
+.me-rk-sc span.done{ opacity:1; }
+.me-rk-sc span.cur{ opacity:1; background:var(--rk-fill); border-color:var(--rk-fill); color:var(--rk-bg-ink); font-weight:600; }
 .me-rk-nums{ display:grid; grid-template-columns:repeat(3,1fr); margin-top:${S.md}px; text-align:center; }
-.me-rk-nums b{ display:block; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.lead}px; color:${T.inkStrong}; }
-.me-rk-nums span{ font-family:${FONT_UI}; font-size:${TX.micro}px; color:${T.inkWarm}; }
+.me-rk-nums b{ display:block; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.lead}px; color:var(--rk-ink); }
+.me-rk-nums span{ font-family:${FONT_UI}; font-size:${TX.micro}px; color:var(--rk-dim); }
 .me-rk-link{ display:inline-flex; align-items:center; gap:${S.xs}px; margin-top:${S.md}px; border:0; background:none; padding:0; cursor:pointer;
-  font-family:${FONT_UI}; font-weight:500; font-size:${TX.label}px; color:${LAPIS.edge}; }
+  font-family:${FONT_UI}; font-weight:600; font-size:${TX.label}px; color:var(--rk-ink); text-decoration:underline; text-underline-offset:3px; }
 .me-dv{ background:${BRAND_GOLD_BTN.grad}; border:1px solid ${BRAND_GOLD_BTN.edge}; color:${BRAND_GOLD_BTN.ink}; }
 .me-pt{ background:var(--tier-bg); border:1px solid var(--tier-b); color:var(--tier-ink); cursor:pointer; }
 
@@ -235,7 +243,7 @@ export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, pilgrimLe
   onDev?: () => void;
   onPilgrim?: () => void;
   /** Ktorý rozbaľovač je otvorený — jeho pilulka dostane lem. */
-  rank?: 'dev' | 'pt' | null;
+  rank?: 'dev' | 'pt' | 'study' | null;
   /** Hodnosti pod sebou (vedľa fotky stojí viac ľudí). */
   stack?: boolean;
   right?: ReactNode;
@@ -361,14 +369,34 @@ const inkIsLight = (ink: string) => parseInt(ink.slice(1, 3), 16) > 0x80;
 /** Šírka výplne `.pk-progress__fill` (recept PROGRESS_CSS). */
 const pctW = (p: number) => `${Math.round(p)}%`;
 
+export interface StudyStats { read: number; total: number; pct: number; liked: number; saved: number }
+
+/** Farby bloku podľa hodnosti — premenné pre `.me-rk` (podklad, inkoust, výplň pásu). */
+function rankVars(kind: 'dev' | 'pt' | 'study', ptLevel: number): CSSProperties {
+  if (kind === 'dev') {
+    return { '--rk-bg': BRAND_GOLD_BTN.grad, '--rk-edge': BRAND_GOLD_BTN.edge, '--rk-ink': BRAND_GOLD_BTN.ink,
+      '--rk-dim': BRAND_GOLD_BTN.ink, '--rk-fill': T.card, '--rk-bg-ink': BRAND_GOLD_BTN.ink } as CSSProperties;
+  }
+  if (kind === 'pt') {
+    const t = tierOfLevel(ptLevel);
+    return { '--rk-bg': tierGradient(t), '--rk-edge': t.b, '--rk-ink': t.ink, '--rk-dim': t.ink,
+      '--rk-fill': T.card, '--rk-bg-ink': t.ink } as CSSProperties;
+  }
+  return { '--rk-bg': AINUBIS.surface, '--rk-edge': AINUBIS.edgeStrong, '--rk-ink': '#EAFBFF',
+    '--rk-dim': AINUBIS.cyan, '--rk-fill': AINUBIS.cyan, '--rk-bg-ink': '#06121A' } as CSSProperties;
+}
+
 /** ROZBAĽOVAČ HODNOSTI pod hlavou (Matej 23. 10.: *„po kliknutí na faraóna sa zroluje dropdown s infom
  *  o leveloch a stupnica … to isté pri pútnikovi — chýbajúce body do ďalšieho levelu, otvoriť tripstats"*).
- *  Rebríček je `DEVOTION_LEVELS` (jeden zdroj), PÚTNIK je `levelProgress` z `tripPoints.ts`. */
-export function MeRank({ kind, devotion, pilgrim, onStats, tx }: {
-  kind: 'dev' | 'pt';
+ *  Rebríček je `DEVOTION_LEVELS` (jeden zdroj), PÚTNIK je `levelProgress` z `tripPoints.ts`.
+ *  Tretí druh ŠTÚDIUM (23. 10. večer): ťuk na percento štúdia — základné čísla AINUBISA + odkaz do VAULTu. */
+export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, tx }: {
+  kind: 'dev' | 'pt' | 'study';
   devotion: number;
   pilgrim: { level: LevelProgress; count: number; km: number; countries: number };
+  study?: StudyStats;
   onStats: () => void;
+  onVault?: () => void;
   tx: (key: string, fallback: string) => string;
 }) {
   const scRef = useRef<HTMLDivElement>(null);
@@ -377,10 +405,30 @@ export function MeRank({ kind, devotion, pilgrim, onStats, tx }: {
     const cur = scRef.current?.querySelector('.cur') as HTMLElement | null;
     if (cur && scRef.current) scRef.current.scrollLeft = cur.offsetLeft - scRef.current.clientWidth / 2 + cur.clientWidth / 2;
   }, [kind]);
+  const vars = rankVars(kind, pilgrim.level.level);
+  if (kind === 'study') {
+    const st = study ?? { read: 0, total: 0, pct: 0, liked: 0, saved: 0 };
+    return (
+      <div className="me-rk" style={vars}>
+        <h3>{tx('pack.me.studying', 'Study')}<small>{st.pct} %</small></h3>
+        <style>{PROGRESS_CSS}</style>
+        <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(st.pct) }} /></div>
+        <p>{tx('pack.rank.studyRead', '{n} of {total} scrolls read').replace('{n}', String(st.read)).replace('{total}', String(st.total))}</p>
+        <div className="me-rk-nums">
+          <div><b>{st.read}</b><span>{tx('pack.rank.scrolls', 'scrolls')}</span></div>
+          <div><b>{st.liked}</b><span>{tx('pack.rank.liked', 'liked')}</span></div>
+          <div><b>{st.saved}</b><span>{tx('pack.rank.saved', 'saved')}</span></div>
+        </div>
+        <button type="button" className="me-rk-link" onClick={onVault}>
+          {tx('pack.rank.openVault', 'My knowledge in the VAULT')}<BrandIcon name="back" size={12} tint="white" style={{ transform: 'rotate(180deg)' }} />
+        </button>
+      </div>
+    );
+  }
   if (kind === 'dev') {
     const nextName = dev.next ? tx(`pack.ladder.${dev.next.key}`, dev.next.name) : '';
     return (
-      <div className="me-rk">
+      <div className="me-rk" style={vars}>
         <h3>{tx(`pack.ladder.${dev.key}`, dev.name)} {dev.index}<small>{tx('pack.devotion.heading', 'Devotion')} · {devotion.toLocaleString('sk-SK')} ☥</small></h3>
         <style>{PROGRESS_CSS}</style>
         <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(dev.pct) }} /></div>
@@ -398,10 +446,10 @@ export function MeRank({ kind, devotion, pilgrim, onStats, tx }: {
   }
   const lv = pilgrim.level;
   return (
-    <div className="me-rk">
+    <div className="me-rk" style={vars}>
       <h3>{tx('pack.map.rankPilgrim', 'Pilgrim')} {lv.level}<small>{lv.points.toLocaleString('sk-SK')} {tx('pack.rank.pts', 'pts')}</small></h3>
       <style>{PROGRESS_CSS}</style>
-      <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(lv.pct), background: tierGradient(tierOfLevel(lv.level)) }} /></div>
+      <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(lv.pct) }} /></div>
       <p>{tx('pack.tier.toNext', '{n} points to level {level}').replace('{n}', lv.toNext.toLocaleString('sk-SK')).replace('{level}', String(lv.level + 1))}</p>
       <div className="me-rk-nums">
         <div><b>{pilgrim.count}</b><span>{tx('pack.rank.trips', 'trips')}</span></div>
@@ -409,7 +457,7 @@ export function MeRank({ kind, devotion, pilgrim, onStats, tx }: {
         <div><b>{pilgrim.countries}</b><span>{tx('pack.rank.countries', 'countries')}</span></div>
       </div>
       <button type="button" className="me-rk-link" onClick={onStats}>
-        {tx('pack.rank.openStats', 'Trip stats')}<BrandIcon name="back" size={12} tint="dim" style={{ transform: 'rotate(180deg)' }} />
+        {tx('pack.rank.openStats', 'Trip stats')}<BrandIcon name="back" size={12} tint={lv.level >= 22 ? 'white' : 'dark'} style={{ transform: 'rotate(180deg)' }} />
       </button>
     </div>
   );

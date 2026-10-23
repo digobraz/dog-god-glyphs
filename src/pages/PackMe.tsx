@@ -21,7 +21,7 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
 import { useProfile, customPills, profileRoles, PERSONALITY_OPTIONS, type DogProfileAttrs } from '@/components/pack/profile/packProfile';
-import { useScrollState } from '@/components/pack/vault/vaultScrolls';
+import { useScrollState, useLiked, useSaved } from '@/components/pack/vault/vaultScrolls';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { devotionLevel } from '@/lib/devotion';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
@@ -157,7 +157,9 @@ export default function PackMe() {
   // prvý prečítaný zvitok nesmie ukázať 0 % — to isté pravidlo ako hlavička AINUBISA
   const studyPct = readScrolls ? Math.max(1, Math.round((readScrolls / Math.max(1, TOTAL_SCROLLS)) * 100)) : 0;
   const dev = devotionLevel(devotion);
-  const [rank, setRank] = useState<'dev' | 'pt' | null>(null);
+  const [rank, setRank] = useState<'dev' | 'pt' | 'study' | null>(null);
+  const liked = useLiked();
+  const saved = useSaved();
 
   useEffect(() => {
     if (!uid) return;
@@ -276,7 +278,12 @@ export default function PackMe() {
             ))}
           </div>
           <div className="me-gap" />
-          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} onStats={() => navigate('/pack/map/triplist?tab=stats')} tx={tx} />}
+          {rank && (
+            <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} tx={tx}
+              study={{ read: readScrolls, total: TOTAL_SCROLLS, pct: studyPct, liked: liked.length, saved: saved.length }}
+              onStats={() => navigate('/pack/map/triplist?tab=stats')}
+              onVault={() => navigate('/pack/ainubis/knowledge')} />
+          )}
 
           {/* 5 ČÍSEL — hneď pod fotkou, bez čiar (Matej 22. 10.). */}
           <div className="me-stats">
@@ -290,11 +297,13 @@ export default function PackMe() {
               <b>{brought == null ? '·' : fmt(brought)}</b>
               <span>{tx('pack.me.brought', 'brought in')}</span>
             </button>
-            <button type="button" onClick={() => setTab('trips')}>
+            {/* KM = výlety na karte AJ blok pútnika hore (Matej 23. 10.: „ako keby pill pútnik“). */}
+            <button type="button" onClick={() => { setTab('trips'); setRank('pt'); }}>
               <b>{fmt(pilgrim.km)}</b>
               <span>km</span>
             </button>
-            <button type="button" onClick={() => navigate('/pack/ainubis')}>
+            {/* ŠTÚDIUM = blok hore so základnými číslami AINUBISA + odkaz do VAULTu (Matej 23. 10.). */}
+            <button type="button" onClick={() => setRank((r) => (r === 'study' ? null : 'study'))}>
               <b>{studyPct} %</b>
               <span>{tx('pack.me.studying', 'studying')}</span>
             </button>
