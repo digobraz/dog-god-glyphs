@@ -71,6 +71,8 @@ export const DEVOTION_DAILY = {
   walk:       { points: 10, perDay: 1 },  // prechádzka 20–120 min
   trip_day:   { points: 50, perDay: 1 },  // celodenný výlet nad 120 min
   presence:   { points: 30, perDay: 1 },  // modlitba prítomnosti — 10 min so psom
+  care:       { points: 5, perDay: 1 },   // PROVIZÓRNE — modlitba starostlivosti, Matej doladí
+  deed:       { points: 0, perDay: 3 },   // iné / dobrý skutok — body neskôr posúdi AINUBIS
 } as const;
 export type DevotionDailyKind = keyof typeof DEVOTION_DAILY;
 

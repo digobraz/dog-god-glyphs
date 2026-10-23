@@ -95,7 +95,7 @@ export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClos
     ]],
     ['sun', tx('pack.dvinfo.prayers', 'Prayers'), [
       [tx('pack.dvinfo.presence2', 'Prayer of presence — 10 min only with your dog'), plus(DEVOTION_DAILY.presence.points)],
-      [tx('pack.dvinfo.care', 'Prayer of care'), null],
+      [tx('pack.dvinfo.care', 'Prayer of care'), plus(DEVOTION_DAILY.care.points)],
     ]],
     ['food', tx('pack.dvinfo.feeding', 'Feeding — adds itself every day'), [
       [tx('pack.dvinfo.kibble', 'Kibble'), plus(DEVOTION_FEED.kibble)],

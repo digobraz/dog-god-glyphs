@@ -1,105 +1,151 @@
-// DNEŠOK — panel dennej aktivity, kde si člen odklikne skutky so psom a pripíše ☥ (23. 10. 2026).
+// DNEŠOK — AINUBIS sa pýta, člen naťuká deň so psami a VYZDVIHNE ☥ naraz (23. 10. 2026, v2).
 //
-// Matej 23. 10.: *„notifikáciu každý deň pre ľudí — večer, kde odklikajú veci a pripíšu si body…
-// môžu si nastaviť, kedy v akom čase"*. Otvára ho ťuk na večernú pripomienku (`?dnes=1`)
-// a tlačidlo v okne „Za čo dostávaš oddanosť".
+// Matej 23. 10. nad svojím nákresom: *„urobme to, aby to fungovalo na princípe multidog
+// a jednoduchšie… v ainubis šate… návykové, aby si to pýtalo stlačiť — každé stlačenie ukáže
+// body/počet… claim points total"*. Kostra; hodnoty sa ešte doladia a prepočítajú.
 //
-// 🔴 Body sa rátajú NA ŽIVÉHO PSA — psy v čipoch sú len živí zaplatení (DB `devotion_today`).
-//    Strop a hodnoty drží server (`grant-devotion`); `DEVOTION_DAILY` je len ich zrkadlo.
-// Krmenie sa neklikne — pripisuje sa samo podľa stravy v DOG ID (pole v /dogs ešte nie je).
-// Štýl = noc + žiara, ten istý ako `DevotionSheet` (DEVOTION má vlastný tmavý svet).
-import { useCallback, useEffect, useState } from 'react';
+//   hore    AINUBIS (tvár + otázka) a kruhy psov — ťuk vyberie, s kým si bol (multidog)
+//   stred   6 dlaždíc 2×3 — každý ťuk = body letia hore, počet na dlaždici; ťuk na strope vráti nulu
+//   dole    „Iné — dobrý skutok" (text, body posúdi AINUBIS) · VYZDVIHNI +N ☥ · séria dní
+//
+// 🔴 Body sa rátajú NA ŽIVÉHO PSA (DB `devotion_today` vráti len živých zaplatených).
+//    Strop a hodnoty drží server (`grant-devotion`, kind 'claim'); `DEVOTION_DAILY` je zrkadlo.
+// Šat = AINUBIS (`ainubisSkin.ts`): oznamy appky hovoria jeho hlasom (lock brand §AINUBIS).
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
-import { NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
+import { PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { DEVOTION_DAILY, DEVOTION_FEED, type DevotionDailyKind } from '@/lib/devotion';
-import { DevotionMark } from '@/components/pack/profile/meHead';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { grantDevotion } from '@/lib/devotionGrant';
 import { readHuman, patchHuman, notifOff, devotionTime } from '@/lib/humanPrefs';
+import { sizedUrl } from '@/services/cloudinaryService';
 import { toast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
+import ainubisFace from '@/assets/ainubis-head.webp';
 
-const T = PACK_THEME;
+const A = AINUBIS;
 const S = PACK_SPACE;
 const TX = PACK_TEXT;
 
-interface TodayDog { id: string; name: string | null; diet: 'kibble' | 'barf' | null; done: Record<string, number> }
-interface Today { day: string; dogs: TodayDog[]; total: number }
+interface TodayDog { id: string; name: string | null; photo: string | null; diet: 'kibble' | 'barf' | null; done: Record<string, number> }
+interface Today { day: string; dogs: TodayDog[]; total: number; streak: number }
 
-const ROWS: Array<{ kind: DevotionDailyKind; icon: string; label: [string, string]; sub: [string, string] }> = [
-  { kind: 'walk_short', icon: 'paw',      label: ['pack.dvtoday.walkShort', 'Short walk'],        sub: ['pack.dvtoday.walkShortSub', 'under 20 min · up to 5× a day'] },
+type TileKind = Exclude<DevotionDailyKind, 'deed'>;
+const TILES: Array<{ kind: TileKind; icon: string; label: [string, string]; sub: [string, string] }> = [
+  { kind: 'walk_short', icon: 'paw',      label: ['pack.dvtoday.walkShort', 'Short walk'],        sub: ['pack.dvtoday.walkShortSub2', 'under 20 min'] },
   { kind: 'walk',       icon: 'walk',     label: ['pack.dvtoday.walk', 'Walk'],                   sub: ['pack.dvtoday.walkSub', '20 min – 2 hours'] },
   { kind: 'trip_day',   icon: 'mountain', label: ['pack.dvtoday.trip', 'Day trip'],               sub: ['pack.dvtoday.tripSub', 'more than 2 hours'] },
   { kind: 'presence',   icon: 'sun',      label: ['pack.dvtoday.presence', 'Prayer of presence'], sub: ['pack.dvtoday.presenceSub', '10 minutes only with your dog'] },
+  { kind: 'care',       icon: 'heart',    label: ['pack.dvtoday.care', 'Care'],                   sub: ['pack.dvtoday.careSub', 'brushing, bath, claws'] },
 ];
 
 const CSS = `
-.dvt-root.pk-veil{z-index:66;align-items:flex-end;padding:0;animation:dvt-fade .3s ease both;}
-.dvt-sheet{position:relative;width:100%;max-height:92dvh;display:flex;flex-direction:column;background:${NIGHT};color:${NIGHT_INK};
-  border-top:1.5px solid ${NIGHT_EDGE};border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${T.panelShadow};font-family:${FONT_UI};
-  animation:dvt-up .38s cubic-bezier(.2,.8,.2,1) both;}
-.dvt-grab{flex:none;width:44px;height:4px;border-radius:${PACK_R.pill}px;background:${T.onDarkBorder};margin:${S.sm}px auto 0;}
-.dvt-head{flex:none;display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.lg}px ${S.md}px;}
-.dvt-head h2{flex:1;margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;color:${NIGHT_EDGE};}
-.dvt-bal{flex:none;display:inline-flex;align-items:center;gap:${S.xs}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;color:${NIGHT_EDGE};}
-.dvt-body{overflow-y:auto;overscroll-behavior:contain;padding:0 ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);}
-.dvt-lbl{margin:0 0 ${S.sm}px;font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
-.dvt-dogs{display:flex;flex-wrap:wrap;gap:${S.sm}px;margin:0 0 ${S.lg}px;}
-.dvt-dog{appearance:none;cursor:pointer;padding:${S.xs}px ${S.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.onDarkBorder};background:none;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;letter-spacing:.02em;color:${T.onDarkDim};}
-.dvt-dog.on{border-color:${NIGHT_EDGE};color:${NIGHT_INK};background:rgba(201,154,63,.16);}
-.dvt-list{margin:0 0 ${S.lg}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.onDarkBorder};background:rgba(0,0,0,.22);}
-.dvt-row{appearance:none;width:100%;display:flex;align-items:center;gap:${S.md}px;padding:${S.md}px;background:none;border:0;border-top:1px solid ${T.onDarkBorder};
-  color:inherit;font:inherit;text-align:left;cursor:pointer;}
-.dvt-row:first-child{border-top:0;}
-.dvt-row:disabled{cursor:default;}
-.dvt-ic{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:${PACK_R.pill}px;border:1px solid ${NIGHT_EDGE};}
-.dvt-tx{flex:1;min-width:0;}
-.dvt-tx b{display:block;font-weight:500;font-size:${TX.body}px;color:${NIGHT_INK};}
-.dvt-tx small{display:block;margin-top:2px;font-size:${TX.micro}px;color:${T.onDarkDim};}
-.dvt-v{flex:none;display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;white-space:nowrap;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;color:${NIGHT_EDGE};border:1px solid ${NIGHT_EDGE};}
-.dvt-row:not(:disabled):active .dvt-v{transform:scale(.96);}
-.dvt-v.got{color:#140D07;border-color:transparent;background:linear-gradient(180deg,#F1D58C,${NIGHT_EDGE});filter:drop-shadow(0 0 6px rgba(201,154,63,.35));}
-.dvt-n{font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;color:${T.onDarkDim};}
-.dvt-feed{display:flex;align-items:center;gap:${S.md}px;padding:${S.md}px;border-top:1px solid ${T.onDarkBorder};}
-.dvt-rem{display:flex;align-items:center;gap:${S.md}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.onDarkBorder};}
-.dvt-time{flex:none;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.field}px;border:1px solid ${NIGHT_EDGE};background:rgba(0,0,0,.3);color:${NIGHT_INK};
-  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;color-scheme:dark;}
+.dvt-root{position:fixed;inset:0;z-index:66;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,6,11,0.74);animation:dvt-fade .25s ease both;}
+.dvt-sheet{position:relative;width:100%;max-height:94dvh;display:flex;flex-direction:column;background:${A.surface};color:${A.ink};font-family:${FONT_UI};
+  border:1px solid ${A.edgeStrong};border-bottom:0;border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${A.panelShadow};animation:dvt-up .38s cubic-bezier(.2,.8,.2,1) both;}
+.dvt-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:${S.md}px ${S.lg}px ${S.lg}px;}
+.dvt-top{display:flex;align-items:center;gap:${S.sm}px;margin:0 0 ${S.sm}px;}
+.dvt-top .sp{flex:1;}
+.dvt-streak{display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;border:1px solid ${A.ctaEdge};background:${A.ctaTint};
+  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;color:${A.ctaA};}
+.dvt-who{display:flex;align-items:center;gap:${S.md}px;}
+.dvt-face{flex:none;width:72px;height:72px;border-radius:${PACK_R.pill}px;object-fit:contain;background:${A.faceBg};box-shadow:${A.faceRing};}
+.dvt-q{flex:1;min-width:0;}
+.dvt-q b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${A.ink};margin:0 0 ${S.xs}px;}
+.dvt-q b span{color:${A.aiInk};text-shadow:${A.aiShadow};}
+.dvt-q p{margin:0 0 ${S.sm}px;font-size:${TX.body}px;line-height:1.4;color:${A.ink};}
+.dvt-dogs{display:flex;gap:${S.sm}px;flex-wrap:wrap;}
+.dvt-dog{appearance:none;display:grid;place-items:center;width:48px;height:48px;padding:0;border-radius:${PACK_R.pill}px;cursor:pointer;overflow:hidden;
+  border:2px solid ${A.edge};background:${A.raised};opacity:.45;transition:opacity .15s,border-color .15s,transform .15s;}
+.dvt-dog img{width:100%;height:100%;object-fit:cover;display:block;}
+.dvt-dog i{font-style:normal;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;color:${A.ink};}
+.dvt-dog.on{opacity:1;border-color:${A.cyan};box-shadow:${A.faceRing};}
+.dvt-dog:active{transform:scale(.94);}
+.dvt-line{height:2px;margin:${S.lg}px 0;border:0;border-radius:${PACK_R.pill}px;background:linear-gradient(90deg,transparent,${A.cyan},transparent);opacity:.8;}
+.dvt-grid{display:grid;grid-template-columns:1fr 1fr;gap:${S.md}px;}
+.dvt-tile{appearance:none;position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:${S.xs}px;min-height:96px;padding:${S.md}px;
+  border-radius:${PACK_R.tile}px;border:1px solid ${A.edge};background:${A.raised};color:${A.ink};font:inherit;text-align:left;cursor:pointer;
+  transition:border-color .15s,background .15s,transform .12s;-webkit-tap-highlight-color:transparent;}
+.dvt-tile:active:not(:disabled){transform:scale(.97);}
+.dvt-tile.on{border-color:${A.cyan};background:${A.glowTint};}
+.dvt-tile.full{border-color:${A.ctaA};}
+.dvt-tile.got{opacity:.5;cursor:default;}
+.dvt-tile b{font-weight:500;font-size:${TX.body}px;line-height:1.2;padding-right:${S.xl}px;}
+.dvt-tile small{font-size:${TX.micro}px;color:${A.inkFaint};}
+.dvt-tile .ic{display:grid;place-items:center;width:32px;height:32px;border-radius:${PACK_R.pill}px;border:1px solid ${A.edgeStrong};}
+.dvt-cnt{position:absolute;top:${S.sm}px;right:${S.sm}px;display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;
+  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;color:${A.ctaInk};background:${A.ctaGrad};}
+.dvt-cnt.dim{color:${A.inkDim};background:none;border:1px solid ${A.edge};}
+.dvt-tile.bump .dvt-cnt{animation:dvt-bump .3s ease;}
+.dvt-fly{position:absolute;left:50%;top:40%;pointer-events:none;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;color:${A.ctaA};
+  text-shadow:${A.aiShadow};animation:dvt-fly .8s ease-out forwards;}
+.dvt-deed{margin:${S.md}px 0 0;border-radius:${PACK_R.tile}px;border:1px solid ${A.ctaEdge};background:${A.ctaTint};}
+.dvt-deed > button{appearance:none;width:100%;display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;background:none;border:0;color:${A.ink};font:inherit;font-size:${TX.body}px;text-align:left;cursor:pointer;}
+.dvt-deed textarea{display:block;width:calc(100% - ${S.lg}px);margin:0 ${S.sm}px ${S.sm}px;min-height:72px;padding:${S.sm}px ${S.md}px;border-radius:${PACK_R.field}px;
+  border:1px solid ${A.edge};background:${A.bgDeep};color:${A.ink};font:inherit;font-size:${TX.body}px;outline:0;resize:vertical;box-sizing:border-box;}
+.dvt-deed textarea:focus{border-color:${A.cyan};}
+.dvt-deed small{display:block;padding:0 ${S.md}px ${S.md}px;font-size:${TX.micro}px;color:${A.inkFaint};}
+.dvt-foot{flex:none;padding:${S.md}px ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.md}px);border-top:1px solid ${A.edge};background:${A.surface};}
+.dvt-claim{display:flex;align-items:center;justify-content:center;gap:${S.sm}px;width:100%;margin:0;padding:${S.md}px;border-radius:${PACK_R.field}px;cursor:pointer;
+  border:1px solid ${GOLD_BTN.edge};background:${A.ctaGrad};color:${A.ctaInk};box-shadow:${A.ctaShadow};
+  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;}
+.dvt-claim:disabled{cursor:default;background:${A.raised};color:${A.inkFaint};border-color:${A.edge};box-shadow:none;}
+.dvt-claim b{display:inline-block;font-size:${TX.h2}px;letter-spacing:.02em;}
+.dvt-claim.bump b{animation:dvt-bump .3s ease;}
+.dvt-claim.boom{animation:dvt-boom .6s ease;}
+.dvt-rem{display:flex;align-items:center;justify-content:center;gap:${S.sm}px;margin:${S.sm}px 0 0;font-size:${TX.label}px;color:${A.inkDim};}
+.dvt-time{padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.field}px;border:1px solid ${A.edge};background:${A.bgDeep};color:${A.ink};font:inherit;font-size:${TX.label}px;color-scheme:dark;}
 .dvt-time:disabled{opacity:.4;}
-.dvt-sw{flex:none;appearance:none;position:relative;width:44px;height:24px;padding:0;border-radius:${PACK_R.pill}px;border:1px solid ${T.onDarkBorder};background:rgba(255,255,255,.08);cursor:pointer;}
-.dvt-sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:${PACK_R.pill}px;background:${T.onDarkDim};transition:transform .2s;}
-.dvt-sw.on{border-color:${NIGHT_EDGE};background:rgba(201,154,63,.28);}
-.dvt-sw.on::after{transform:translateX(20px);background:${NIGHT_EDGE};}
-.dvt-note{margin:${S.md}px 0 0;font-size:${TX.micro}px;line-height:1.5;color:${T.onDarkDim};text-align:center;}
-.dvt-empty{padding:${S.xl}px 0;text-align:center;font-size:${TX.label}px;color:${T.onDarkDim};}
+.dvt-sw{appearance:none;position:relative;width:40px;height:22px;padding:0;border-radius:${PACK_R.pill}px;border:1px solid ${A.edge};background:${A.raised};cursor:pointer;}
+.dvt-sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:${PACK_R.pill}px;background:${A.inkFaint};transition:transform .2s;}
+.dvt-sw.on{border-color:${A.cyan};}
+.dvt-sw.on::after{transform:translateX(18px);background:${A.cyan};}
+.dvt-empty{padding:${S.xl}px 0;text-align:center;font-size:${TX.label}px;color:${A.inkDim};}
 @media (min-width:768px){
-  .dvt-root.pk-veil{align-items:center;padding:${S.xl}px;}
-  .dvt-sheet{width:560px;max-height:86dvh;border:1.5px solid ${NIGHT_EDGE};border-radius:${PACK_R.card}px;}
-  .dvt-grab{display:none;}
-  .dvt-head{padding-top:${S.lg}px;}
-  .dvt-body{padding:0 ${S.xl}px ${S.xl}px;}
+  .dvt-root{align-items:center;padding:${S.lg}px;}
+  .dvt-sheet{width:520px;max-height:calc(100dvh - 48px);border-bottom:1px solid ${A.edgeStrong};border-radius:${PACK_R.card}px;}
+  .dvt-tile{min-height:72px;}
+}
+@media (max-height:760px) and (min-width:768px){
+  .dvt-face{width:56px;height:56px;}
+  .dvt-line{margin:${S.md}px 0;}
+  .dvt-tile{min-height:56px;padding:${S.sm}px ${S.md}px;flex-direction:row;align-items:center;gap:${S.sm}px;}
+  .dvt-tile small{display:none;}
+  .dvt-tile b{padding-right:${S.xxl}px;}
 }
 @keyframes dvt-up{from{transform:translateY(100%);}to{transform:none;}}
 @keyframes dvt-fade{from{opacity:0;}to{opacity:1;}}
-@media (prefers-reduced-motion:reduce){.dvt-sheet,.dvt-root.pk-veil{animation:none;}}
+@keyframes dvt-fly{0%{opacity:0;transform:translate(-50%,0) scale(.7);}20%{opacity:1;transform:translate(-50%,-12px) scale(1.1);}100%{opacity:0;transform:translate(-50%,-56px) scale(1);}}
+@keyframes dvt-bump{0%{transform:scale(1);}40%{transform:scale(1.25);}100%{transform:scale(1);}}
+@keyframes dvt-boom{0%{transform:scale(1);}30%{transform:scale(1.04);}100%{transform:scale(1);}}
+@media (prefers-reduced-motion:reduce){.dvt-sheet,.dvt-root,.dvt-fly,.dvt-cnt,.dvt-claim b{animation:none !important;}}
 `;
+
+const buzz = () => { try { navigator.vibrate?.(12); } catch { /* iOS web nevie — appka dostane haptiku neskôr */ } };
 
 export function DevotionToday({ onClose }: { onClose: () => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const [today, setToday] = useState<Today | null>(null);
   const [pick, setPick] = useState<string[]>([]);
-  const [busy, setBusy] = useState<string | null>(null);
+  const [tap, setTap] = useState<Partial<Record<TileKind, number>>>({});
+  const [deedOpen, setDeedOpen] = useState(false);
+  const [deed, setDeed] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [said, setSaid] = useState<string | null>(null);
+  const [flies, setFlies] = useState<Array<{ id: number; kind: TileKind; txt: string }>>([]);
+  const [bump, setBump] = useState<string | null>(null);
+  const [boom, setBoom] = useState(false);
   const [remOn, setRemOn] = useState(true);
   const [remTime, setRemTime] = useState('20:00');
+  const flyId = useRef(0);
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.rpc('devotion_today' as never);
-    if (error || !data) { setToday({ day: '', dogs: [], total: 0 }); return; }
+    if (error || !data) { setToday({ day: '', dogs: [], total: 0, streak: 0 }); return; }
     const d = data as unknown as Today;
     setToday(d);
     setPick((p) => (p.length ? p.filter((id) => d.dogs.some((g) => g.id === id)) : d.dogs.map((g) => g.id)));
@@ -112,7 +158,6 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
       setRemTime(devotionTime(human));
     });
   }, []);
-
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -122,20 +167,44 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   const sel = (today?.dogs ?? []).filter((g) => pick.includes(g.id));
-  // Riadok ukazuje, koľko psov ešte smie dostať body — pes na strope už nedostane nič.
-  const used = (k: DevotionDailyKind) => (sel.length ? Math.min(...sel.map((g) => g.done[k] ?? 0)) : 0);
-  const fresh = (k: DevotionDailyKind) => sel.filter((g) => (g.done[k] ?? 0) < DEVOTION_DAILY[k].perDay).length;
+  // Koľko ťukov ešte smie pribudnúť = miesto u psa, ktorý ho má NAJVIAC.
+  const room = (k: TileKind) => (sel.length ? Math.max(...sel.map((g) => DEVOTION_DAILY[k].perDay - (g.done[k] ?? 0))) : 0);
+  // Body za i-ty ťuk = koľko vybraných psov má na ňom ešte miesto × hodnota.
+  const ptsAt = (k: TileKind, i: number) => sel.filter((g) => (g.done[k] ?? 0) + i < DEVOTION_DAILY[k].perDay).length * DEVOTION_DAILY[k].points;
+  const ptsOf = (k: TileKind, n: number) => { let s = 0; for (let i = 0; i < n; i++) s += ptsAt(k, i); return s; };
+  const pending = TILES.reduce((s, r) => s + ptsOf(r.kind, tap[r.kind] ?? 0), 0);
+  const anyTap = TILES.some((r) => (tap[r.kind] ?? 0) > 0) || deed.trim().length > 0;
 
-  const grant = async (kind: DevotionDailyKind) => {
-    if (busy || fresh(kind) === 0) return;
-    setBusy(kind);
+  const hit = (k: TileKind) => {
+    const max = room(k);
+    if (max <= 0) return;
+    const n = tap[k] ?? 0;
+    if (n >= max) { setTap((p) => ({ ...p, [k]: 0 })); return; }   // ťuk na strope vráti nulu
+    const pts = ptsAt(k, n);
+    setTap((p) => ({ ...p, [k]: n + 1 }));
+    const id = ++flyId.current;
+    setFlies((f) => [...f, { id, kind: k, txt: `+${pts}` }]);
+    setTimeout(() => setFlies((f) => f.filter((x) => x.id !== id)), 850);
+    setBump(k); setTimeout(() => setBump(null), 320);
+    setSaid(null);
+    buzz();
+  };
+
+  const claim = async () => {
+    if (busy || !anyTap || !sel.length) return;
+    setBusy(true);
     try {
-      await grantDevotion({ kind, dog_ids: sel.map((g) => g.id) });
+      const items: Array<{ kind: string; n: number }> = TILES.filter((r) => (tap[r.kind] ?? 0) > 0).map((r) => ({ kind: r.kind, n: tap[r.kind] ?? 0 }));
+      if (deed.trim()) items.push({ kind: 'deed', n: 1 });
+      const j = await grantDevotion({ kind: 'claim', dog_ids: sel.map((g) => g.id), items, note: deed.trim() });
+      setBoom(true); setTimeout(() => setBoom(false), 650); buzz();
+      setTap({}); setDeed(''); setDeedOpen(false);
       await load();
+      setSaid(tx('pack.dvtoday.claimed', '+{n} devotion added. See you tomorrow.').replace('{n}', String(j.points ?? 0)));
     } catch {
       toast({ title: tx('pack.dog.toastCouldntLog', 'Could not save'), variant: 'destructive' });
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
 
@@ -152,77 +221,118 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const fmtN = (n: number) => Math.round(n).toLocaleString('sk-SK');
-  const feedDogs = (today?.dogs ?? []).filter((g) => g.diet);
+  // SK/CS: 1 deň · 2–4 dni · 5+ dní (EN: 1 day / N days) — tri kľúče, nie jeden so zlým tvarom.
+  const streakText = (n: number) => {
+    const k = n === 1 ? 'streak1' : n >= 2 && n <= 4 ? 'streak2' : 'streak5';
+    return tx(`pack.dvtoday.${k}`, n === 1 ? '{n} day in a row' : '{n} days in a row').replace('{n}', String(n));
+  };
+  const names = sel.map((g) => (g.name || '').toUpperCase()).filter(Boolean);
+  const withWhom = names.length
+    ? (names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} ${tx('pack.dvtoday.and', 'and')} ${names[names.length - 1]}`)
+    : tx('pack.dvtoday.yourDog', 'your dog');
+  const question = said ?? tx('pack.dvtoday.ask', 'How was today with {dog}? Tap what you did together.').replace('{dog}', withWhom);
+  const feedOn = (today?.dogs ?? []).some((g) => g.diet);
 
   return createPortal(
-    <div className="dvt-root pk-veil pk-veil--modal" role="dialog" aria-modal="true" aria-label={tx('pack.dvtoday.title', 'Today')}
+    <div className="dvt-root" role="dialog" aria-modal="true" aria-label={tx('pack.dvtoday.title', 'Today')}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <style>{VEIL_CSS}</style>
       <style>{CSS}</style>
       <div className="dvt-sheet">
-        <span className="dvt-grab" aria-hidden />
-        <div className="dvt-head">
-          <BackButton tone="dark" onClick={onClose} label={tx('pack.network.close', 'Close')} />
-          <h2>{tx('pack.dvtoday.title', 'Today')}</h2>
-          {today && today.total > 0 && <span className="dvt-bal">{fmtN(today.total)}<DevotionMark size={16} /></span>}
-        </div>
         <div className="dvt-body">
+          <div className="dvt-top">
+            <BackButton tone="ainubis" onClick={onClose} label={tx('pack.network.close', 'Close')} />
+            <span className="sp" />
+            {today && today.streak > 0 && (
+              <span className="dvt-streak"><BrandIcon name="bolt" size={12} tint="gold" />{streakText(today.streak)}</span>
+            )}
+          </div>
+
+          <div className="dvt-who">
+            <img className="dvt-face" src={ainubisFace} alt="" aria-hidden />
+            <div className="dvt-q">
+              <b><span>AI</span>NUBIS</b>
+              <p aria-live="polite">{question}</p>
+              {today && today.dogs.length > 0 && (
+                <div className="dvt-dogs">
+                  {today.dogs.map((g) => (
+                    <button key={g.id} type="button" className={`dvt-dog${pick.includes(g.id) ? ' on' : ''}`} aria-pressed={pick.includes(g.id)}
+                      aria-label={g.name ?? ''} onClick={() => { setPick((p) => (p.includes(g.id) ? p.filter((x) => x !== g.id) : [...p, g.id])); setTap({}); }}>
+                      {g.photo ? <img src={sizedUrl(g.photo, 120)} alt="" /> : <i>{(g.name || '?').slice(0, 1)}</i>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <hr className="dvt-line" />
+
           {today === null ? <div className="dvt-empty">…</div> : today.dogs.length === 0 ? (
             <div className="dvt-empty">{tx('pack.dvtoday.noDogs', 'Devotion is counted for living dogs in the pack.')}</div>
           ) : (
             <>
-              {today.dogs.length > 1 && (
-                <>
-                  <p className="dvt-lbl">{tx('pack.dvtoday.with', 'With whom')}</p>
-                  <div className="dvt-dogs">
-                    {today.dogs.map((g) => (
-                      <button key={g.id} type="button" className={`dvt-dog${pick.includes(g.id) ? ' on' : ''}`}
-                        onClick={() => setPick((p) => (p.includes(g.id) ? p.filter((x) => x !== g.id) : [...p, g.id]))}>
-                        {(g.name || '').toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-              <div className="dvt-list">
-                {ROWS.map((r) => {
-                  const { points, perDay } = DEVOTION_DAILY[r.kind];
-                  const can = fresh(r.kind);
-                  const got = sel.length > 0 && can === 0;
+              <div className="dvt-grid">
+                {TILES.map((r) => {
+                  const n = tap[r.kind] ?? 0;
+                  const max = room(r.kind);
+                  const got = max <= 0;
+                  const cap = DEVOTION_DAILY[r.kind].perDay;
+                  const cls = got ? ' got' : n > 0 ? (n >= max ? ' on full' : ' on') : '';
                   return (
-                    <button key={r.kind} type="button" className="dvt-row" disabled={!sel.length || got || busy !== null} onClick={() => void grant(r.kind)}>
-                      <span className="dvt-ic"><BrandIcon name={r.icon} size={18} /></span>
-                      <span className="dvt-tx"><b>{tx(...r.label)}</b><small>{tx(...r.sub)}</small></span>
-                      {perDay > 1 && <span className="dvt-n">{used(r.kind)}/{perDay}</span>}
-                      <span className={`dvt-v${got ? ' got' : ''}`}>+{points * (got ? sel.length : Math.max(1, can))}<DevotionMark size={12} tint={got ? 'dark' : 'gold'} /></span>
+                    <button key={r.kind} type="button" className={`dvt-tile${cls}${bump === r.kind ? ' bump' : ''}`} disabled={got || !sel.length} onClick={() => hit(r.kind)}>
+                      <span className="ic"><BrandIcon name={r.icon} size={16} /></span>
+                      <b>{tx(...r.label)}</b>
+                      <small>{tx(...r.sub)}</small>
+                      {got
+                        ? <span className="dvt-cnt dim">{tx('pack.dvtoday.doneToday', 'done')}</span>
+                        : n > 0
+                          ? <span className="dvt-cnt">{cap > 1 ? `${n}× ` : ''}+{ptsOf(r.kind, n)}</span>
+                          : <span className="dvt-cnt dim">+{ptsAt(r.kind, 0)}</span>}
+                      {flies.filter((f) => f.kind === r.kind).map((f) => <span key={f.id} className="dvt-fly">{f.txt}</span>)}
                     </button>
                   );
                 })}
-                <div className="dvt-feed">
-                  <span className="dvt-ic"><BrandIcon name="food" size={18} /></span>
-                  <span className="dvt-tx">
-                    <b>{tx('pack.dvtoday.feed', 'Feeding')}</b>
-                    <small>{(feedDogs.length
-                      ? tx('pack.dvtoday.feedAuto', 'added by itself every day · kibble +{k} · BARF +{b}')
-                      : tx('pack.dvtoday.feedSoon', 'soon in DOG ID — kibble +{k} · BARF +{b}, added by itself every day'))
-                      .replace('{k}', String(DEVOTION_FEED.kibble)).replace('{b}', String(DEVOTION_FEED.barf))}</small>
-                  </span>
+                {/* Krmenie sa neklikne — pripisuje sa samo podľa stravy v DOG ID. */}
+                <div className="dvt-tile got">
+                  <span className="ic"><BrandIcon name="food" size={16} /></span>
+                  <b>{tx('pack.dvtoday.feed', 'Feeding')}</b>
+                  <small>{feedOn ? tx('pack.dvtoday.feedAutoShort', 'adds itself every day') : tx('pack.dvtoday.feedSoonShort', 'soon in DOG ID')}</small>
+                  <span className="dvt-cnt dim">+{DEVOTION_FEED.kibble}–{DEVOTION_FEED.barf}</span>
                 </div>
+              </div>
+
+              <div className="dvt-deed">
+                <button type="button" onClick={() => setDeedOpen((o) => !o)} aria-expanded={deedOpen}>
+                  <BrandIcon name="feather" size={16} tint="gold" />
+                  <span>{tx('pack.dvtoday.deed', 'Other — an event, a good deed…')}</span>
+                </button>
+                {deedOpen && (
+                  <>
+                    <textarea value={deed} maxLength={500} onChange={(e) => setDeed(e.target.value)} autoFocus
+                      placeholder={tx('pack.dvtoday.deedPh', 'What did you do for a dog today?')} />
+                    <small>{tx('pack.dvtoday.deedNote', 'AINUBIS will read it and add devotion.')}</small>
+                  </>
+                )}
               </div>
             </>
           )}
-
-          <p className="dvt-lbl">{tx('pack.dvtoday.reminder', 'Evening reminder')}</p>
+        </div>
+        {/* PÄTA — VYZDVIHNI je stále na očiach (prilepené mimo rolovania), pod ním čas pripomienky. */}
+        <div className="dvt-foot">
+          {today && today.dogs.length > 0 && (
+            <button type="button" className={`dvt-claim${boom ? ' boom' : ''}${bump ? ' bump' : ''}`} disabled={!anyTap || busy || !sel.length} onClick={() => void claim()}>
+              {tx('pack.dvtoday.claim', 'Claim')} <b>+{pending}</b>
+              <BrandIcon name="heartpaw" size={18} tint={anyTap ? 'dark' : 'dim'} />
+            </button>
+          )}
           <div className="dvt-rem">
-            <span className="dvt-tx"><b>{tx('pack.dvtoday.remWhen', 'Every day at')}</b><small>{tx('pack.dvtoday.remSub', 'Not sent once you have logged today.')}</small></span>
+            <span>{tx('pack.dvtoday.remShort', 'AINUBIS reminds you at')}</span>
             <input className="dvt-time" type="time" step={900} value={remTime} disabled={!remOn}
               onChange={(e) => { if (/^\d{2}:\d{2}$/.test(e.target.value)) void saveRem(remOn, e.target.value); }}
               aria-label={tx('pack.dvtoday.remWhen', 'Every day at')} />
             <button type="button" className={`dvt-sw${remOn ? ' on' : ''}`} role="switch" aria-checked={remOn}
               aria-label={tx('pack.dvtoday.reminder', 'Evening reminder')} onClick={() => void saveRem(!remOn, remTime)} />
           </div>
-          <p className="dvt-note">{tx('pack.dvtoday.note', 'Devotion is counted for every living dog you were with.')}</p>
         </div>
       </div>
     </div>,
