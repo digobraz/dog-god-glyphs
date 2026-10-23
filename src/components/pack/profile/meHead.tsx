@@ -203,7 +203,8 @@ export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, bones, on
   name: string;
   devLabel: string;
   pilgrimLabel: string;
-  bones: string;
+  /** Bez `bones` sa pilulka nekreslí — UPRAVIŤ PROFIL ju nemá (Matej 23. 10.: BONES = šuplík na profile). */
+  bones?: string;
   onBones?: () => void;
   onPilgrim?: () => void;
   right?: ReactNode;
@@ -253,7 +254,7 @@ export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, bones, on
       onPointerCancel={editable && drag ? () => { setDrag(null); onMoveEnd?.(y); } : undefined}
     >
       <div className="me-tbar">
-        {onBones ? (
+        {bones == null ? <span /> : onBones ? (
           <button type="button" className="me-bones" onClick={onBones} aria-label={`${bones} BONES`}>
             <BrandIcon name="bone" size={16} tint="dark" />
             {bones}

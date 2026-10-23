@@ -108,6 +108,8 @@ export interface HumanProfile {
   /** Zvislá poloha titulky v % (0 = horný okraj fotky, 100 = spodný), ťahá sa prstom v UPRAVIŤ
    *  PROFIL (23. 10. 2026). Prázdne = 35 (`COVER_Y_DEFAULT` v `meHead.tsx`). */
   coverY?: number;
+  /** ROLA pri fotke v svorke (23. 10. 2026) — čo v DOGYPTe robím. Prázdne = 'pawtner'. */
+  role?: ProfileRole;
   /** Všetky fotky SNIFFER karty v poradí (Váš profil, 25. 9. 2026). `buddyPhoto` ostáva
    *  tá JEDNA, na ktorej ste spolu — z nich je a brána ju chce. Prázdne = len `buddyPhoto`. */
   buddyPhotos?: string[];
@@ -995,3 +997,8 @@ export function useProfile(): { profile: CentralProfile | null; reload: () => vo
 export function customPills(h: Pick<HumanProfile, 'customPersonality' | 'customExtra'> | null | undefined): string[] {
   return [h?.customPersonality, ...(h?.customExtra ?? [])].map((v) => v?.trim() ?? '').filter(Boolean);
 }
+
+/** ROLY človeka (Matej 23. 10. 2026: *„pills pawtner ale s možnosťou výberu … tvorca, liečiteľ,
+ *  tréner, športovec, pútnik"*). PAWTNER je východisko — status každého, kto má psa s heroglyfom. */
+export const PROFILE_ROLES = ['pawtner', 'creator', 'healer', 'trainer', 'athlete', 'pilgrim'] as const;
+export type ProfileRole = typeof PROFILE_ROLES[number];

@@ -302,7 +302,7 @@ export default function PackMe() {
             <button type="button" className="me-out" onClick={invite}>{tx('pack.me.invite', 'Invite')}</button>
           </div>
 
-          <div className="me-role"><span className="pk-pill">Pawtner</span></div>
+          <div className="me-role"><span className="pk-pill">{tx(`pack.role.${human?.role ?? 'pawtner'}`, 'Pawtner')}</span></div>
 
           <div className={`me-bio${bioFull ? ' full' : ''}${bio ? '' : ' empty'}`}>
             <p ref={bioRef}>
