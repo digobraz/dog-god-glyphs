@@ -31,7 +31,7 @@ import { PILL_CSS } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BonesSheet } from '@/components/pack/BonesSheet';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { ME_CSS, MeCover, MeOwn } from '@/components/pack/profile/meHead';
+import { ME_CSS, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
 import { shareDog } from '@/lib/useShareCard';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -157,6 +157,7 @@ export default function PackMe() {
   // prvý prečítaný zvitok nesmie ukázať 0 % — to isté pravidlo ako hlavička AINUBISA
   const studyPct = readScrolls ? Math.max(1, Math.round((readScrolls / Math.max(1, TOTAL_SCROLLS)) * 100)) : 0;
   const dev = devotionLevel(devotion);
+  const [rank, setRank] = useState<'dev' | 'pt' | null>(null);
 
   useEffect(() => {
     if (!uid) return;
@@ -250,7 +251,9 @@ export default function PackMe() {
           pilgrimLabel={`${tx('pack.map.rankPilgrim', 'Pilgrim')} ${pilgrim.level.level}`}
           bones={fmt(bones)}
           onBones={() => setBonesOpen(true)}
-          onPilgrim={() => navigate('/pack/map')}
+          onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
+          onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
+          rank={rank}
         />
 
         <div className="me-under">
@@ -272,6 +275,7 @@ export default function PackMe() {
             ))}
           </div>
           <div className="me-gap" />
+          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} onStats={() => navigate('/pack/map/triplist?tab=stats')} tx={tx} />}
 
           {/* 5 ČÍSEL — hneď pod fotkou, bez čiar (Matej 22. 10.). */}
           <div className="me-stats">

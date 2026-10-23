@@ -175,6 +175,7 @@ const PackProfile = lazyPack(() => import("./pages/PackProfile.tsx"));
 const PackMe = lazyPack(() => import("./pages/PackMe.tsx")); // profil JA v6 (21. 10. 2026) — editor odišiel na /pack/profile/edit
 const PublicProfile = lazyPack(() => import("./pages/PublicProfile.tsx")); // read-profil /pack/u/:id (zadanie-profil-read-dog-2026-07-25)
 const PackJoin = lazyPack(() => import("./pages/PackJoin.tsx")); // /pack/join/:token — prijatie pozvánky pawmata
+const PackWill = lazyPack(() => import("./pages/PackWill.tsx")); // /will/:token — záveť pre dediča bez konta (23. 10. 2026)
 const PackMap = lazyPack(() => import("./pages/PackMap.tsx"));
 const PackTripArticle = lazyPack(() => import("./pages/PackTripArticle.tsx")); // iterácia 12 bod 5 — ⤢ expand full-page article
 const PackTriplist = lazyPack(() => import("./pages/PackTriplist.tsx")); // TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md)
@@ -542,6 +543,8 @@ const App = () => (
                   vyhráva nad `/pack/dogs/:id` aj ostatnými, lebo je celý doslovný.
                   (plany/zadanie-clenovia-svorky-2026-09-12.md §5b) */}
               <Route path="/pack/join/:token" element={<PackJoin />} />
+              <Route path="/will/:token" element={<PackWill />} />
+              <Route path="/zavet/:token" element={<PackWill />} />
 
               {/* /pack — buyer backoffice (auth-gated) */}
               {/* Bez session rovno na prihlásenie — nie cez 1,4 MB appky (perf fáza 2, 7. 10. 2026). */}

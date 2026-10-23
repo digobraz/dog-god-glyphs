@@ -13,7 +13,7 @@ import { devotionLevel } from '@/lib/devotion';
 import { PACK_THEME, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE, PACK_R, PF_FIELD_CSS, PILL_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { ME_CSS, RING, DOG_FONT, MeCover, MeOwn } from '@/components/pack/profile/meHead';
+import { ME_CSS, RING, DOG_FONT, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -25,6 +25,7 @@ import {
   type MyPawmates, type PawmateRow, type PawmateRight,
 } from '@/lib/pawmateRights';
 import { appWebVersion } from '@/lib/appUpdate';
+import { createWill, listMyWills, revokeWill, type WillRow } from '@/lib/willAccess';
 import { APP_PLATFORM } from '@/lib/isApp';
 import {
   useProfile,
@@ -186,6 +187,9 @@ const EDIT_CSS = `
 .pe-roles{display:flex;flex-direction:column;}
 .pe-roles .pe-role{align-self:flex-start;cursor:pointer;}
 .pe-check input:disabled{opacity:.4;cursor:default;}
+.pe-pick{display:grid;grid-template-columns:1fr;gap:${S.sm}px;}
+.pe-steps{margin:${S.xs}px 0 0;padding-left:${S.lg}px;display:flex;flex-direction:column;gap:${S.xs}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.5;color:${T.ink};}
+.pe-steps li::marker{color:${LAPIS.edge};font-weight:600;}
 .pe-explain{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.5;color:${T.ink};}
 .pe-addbar{display:flex;align-items:center;gap:${S.sm}px;margin-top:${S.sm}px;padding:${S.sm}px;border-radius:${PACK_R.tile}px;background:${T.tileBg};border:1px solid ${T.hairline};}
 .pe-plus{flex:none;width:40px;height:40px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};}
@@ -243,8 +247,13 @@ export default function PackProfile() {
   const { toast } = useToast();
   const { devotion } = usePackIdentity();
   const [mateOpen, setMateOpen] = useState(false);
+  const [rank, setRank] = useState<'dev' | 'pt' | null>(null);
   const [mates, setMates] = useState<MyPawmates | null>(null);
-  const reloadMates = () => { if (PAWMATE_LIVE) listMyPawmates().then(setMates).catch(() => setMates(null)); };
+  const [wills, setWills] = useState<WillRow[]>([]);
+  const reloadMates = () => {
+    if (PAWMATE_LIVE) listMyPawmates().then(setMates).catch(() => setMates(null));
+    listMyWills().then((r) => { if (r.ok) setWills(r.data.wills); });
+  };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { reloadMates(); }, []);
   const resetFlow = useDogyptStore((st) => st.reset);
@@ -399,6 +408,9 @@ export default function PackProfile() {
           name={shownName}
           devLabel={`${tx(`pack.ladder.${dev.key}`, dev.name)} ${dev.index}`}
           pilgrimLabel={`${tx('pack.map.rankPilgrim', 'Pilgrim')} ${pilgrim.level.level}`}
+          onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
+          onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
+          rank={rank}
           onMoveY={setCoverY}
           onMoveEnd={(y) => { patchHuman({ coverY: y }); }}
           right={
@@ -425,6 +437,7 @@ export default function PackProfile() {
             }
           />
           <div className="me-gap" />
+          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} onStats={() => navigate('/pack/map/triplist?tab=stats')} tx={tx} />}
 
           {/* ── 1 · O MNE — jediný nadpis skupiny. Poradie (Matej 23. 10.): mená · bio · fakty · povaha. ── */}
           <div className="pe-grp" style={{ ...PACK_BOX.subblock }}>
@@ -536,6 +549,7 @@ export default function PackProfile() {
               {mates?.people.map((m) => (
                 <MateRow key={`${m.kind}-${m.user_id ?? m.email}`} mate={m} onChanged={reloadMates} />
               ))}
+              {wills.map((w) => <WillMateRow key={w.id} will={w} dogs={dogs} onChanged={reloadMates} />)}
 
               {/* LIŠTA PRIDAJ — „+" a dvoje dverí. PES = výroba heroglyfu (ten istý vchod ako „+" na homepage);
                   MATE = formulár hneď pod lištou. */}
@@ -546,7 +560,7 @@ export default function PackProfile() {
                   <BrandIcon name="add-user" size={16} tint={mateOpen ? 'white' : 'dim'} />{tx('pack.add.pawmate', 'Pawmate')}
                 </button>
               </div>
-              {mateOpen && <MateForm dogs={dogs.filter((d) => d.life_status !== 'deceased')} onDone={() => { setMateOpen(false); reloadMates(); }} />}
+              {mateOpen && <MateForm dogs={dogs.filter((d) => d.life_status !== 'deceased')} lang={lang} onDone={() => { setMateOpen(false); reloadMates(); }} />}
             </div>
             <p className="pe-hint" style={{ textAlign: 'center', marginTop: S.md }}>{tx('pack.hero.roleRule', 'Only a Pawtner can create a Pawmate.')}</p>
           </div>
@@ -1325,22 +1339,52 @@ function MateRow({ mate, onChanged }: { mate: PawmateRow; onChanged: () => void 
   );
 }
 
-// NOVÝ PAWMATE — jeden krátky formulár pod lištou (Matej 23. 10.: *„email, prístup k profilu (plný),
-// ak nie dropdown so zoznamom prázdnych a človek vykliká … alebo záveť"*).
-// Predvolené = PLNÝ prístup ku všetkým živým psom. Odškrtnutie rozbalí zoznam práv (prázdny),
-// prvé je ZÁVEŤ. Postavenie ide ako 'partner' — práva nesú význam, nie menovka.
-// ⚠️ Doručenie záveti človeku, ktorý má LEN záveť, ešte nie je vymyslené (zadanie-profil-ja-v8):
-//    dnes dostane tú istú pozvánku ako každý pawmate.
-function MateForm({ dogs, onDone }: { dogs: PackDogFull[]; onDone: () => void }) {
+// NOVÝ PAWMATE (Matej 23. 10., kolo 2): *„po kliknutí na +pawmate sa zobrazia len 2 možnosti — vytvoriť nové
+// konto / prístup k záveti; až po výbere sa zroluje e-mail a prístup a vysvetlenie postupu … CTA sa mení"*.
+// KONTO = pozvánka `invite-pawmate` (plný prístup alebo vybrané práva) · ZÁVEŤ = edge `will`: dedič bez konta,
+// odkaz + otázka v maili, heslo = odpoveď (`pages/PackWill.tsx`).
+function MateForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; onDone: () => void }) {
+  const t = useT();
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  const [kind, setKind] = useState<'account' | 'will' | null>(null);
+  if (!kind) {
+    return (
+      <div className="pe-mform">
+        <div className="pe-pick">
+          <button type="button" className="pe-door" onClick={() => setKind('account')}>
+            <BrandIcon name="add-user" size={16} tint="dim" />{tx('pack.mate.kindAccount', 'New DOGYPT account')}
+          </button>
+          <button type="button" className="pe-door" onClick={() => setKind('will')}>
+            <BrandIcon name="document" size={16} tint="dim" />{tx('pack.mate.kindWill', 'Access to the will')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="pe-mform">
+      <button type="button" className="pe-role" style={{ alignSelf: 'stretch', justifyContent: 'space-between' }} onClick={() => setKind(null)}>
+        {kind === 'account' ? tx('pack.mate.kindAccount', 'New DOGYPT account') : tx('pack.mate.kindWill', 'Access to the will')}
+        <ChevronDown aria-hidden className="h-3 w-3" style={{ transform: 'rotate(180deg)' }} />
+      </button>
+      {kind === 'account' ? <AccountForm dogs={dogs} onDone={onDone} /> : <WillForm dogs={dogs} lang={lang} onDone={onDone} />}
+    </div>
+  );
+}
+
+/** Postup v číslovaných krokoch — čo sa stane po ťuku na CTA (Matej: „aby sme im to vysvetlili"). */
+function Steps({ items }: { items: string[] }) {
+  return <ol className="pe-steps">{items.map((s) => <li key={s}>{s}</li>)}</ol>;
+}
+
+function AccountForm({ dogs, onDone }: { dogs: PackDogFull[]; onDone: () => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { toast } = useToast();
-  const [kind, setKind] = useState<'account' | 'will'>('account');
   const [email, setEmail] = useState('');
   const [full, setFull] = useState(true);
   const [picked, setPicked] = useState<PawmateRight[]>([]);
   const [busy, setBusy] = useState(false);
-  const order: PawmateRight[] = ['will', ...PAWMATE_RIGHTS.filter((r) => r !== 'will')];
   const ok = /\S+@\S+\.\S+/.test(email.trim()) && dogs.length > 0 && (full || picked.length > 0);
   const send = async () => {
     if (!ok || busy) return;
@@ -1356,30 +1400,8 @@ function MateForm({ dogs, onDone }: { dogs: PackDogFull[]; onDone: () => void })
       toast({ title: code === 'no_slots' ? tx('pack.mates.err.noSlots', 'That dog has no free place.') : tx('pack.profile.toastCouldNotSave', 'Could not save'), description: code, variant: 'destructive' });
     }
   };
-  // DVE CESTY (Matej 23. 10.): KONTO v DOGYPTe = pozvánka s právami ako doteraz · LEN ZÁVEŤ = človek bez
-  // prístupu, ktorý psa prevezme. Ako sa mu záveť doručí (mail, heslo, prihlásenie), ešte nie je
-  // rozhodnuté — preto tu stojí len vysvetlenie a tlačidlo nič neodošle.
-  const kindPick = (
-    <span className="pe-role" style={{ alignSelf: 'stretch', justifyContent: 'space-between' }}>
-      <select value={kind} onChange={(e) => setKind(e.target.value as 'account' | 'will')} aria-label={tx('pack.add.pawmate', 'Pawmate')} style={{ flex: 1 }}>
-        <option value="account">{tx('pack.mate.kindAccount', 'Create a DOGYPT account')}</option>
-        <option value="will">{tx('pack.mate.kindWill', 'Only the will')}</option>
-      </select>
-      <ChevronDown aria-hidden className="h-3 w-3" />
-    </span>
-  );
-  if (kind === 'will') {
-    return (
-      <div className="pe-mform">
-        {kindPick}
-        <p className="pe-explain">{tx('pack.mate.willExplain', 'The will names who takes care of your dogs when you are gone. That person gets no access to your profile now. Once your death is confirmed, they take over the dog, its DOG ID and its number.')}</p>
-        <button type="button" className="pe-door" disabled style={{ alignSelf: 'stretch', justifyContent: 'center' }}>{tx('pack.edit.soon', 'Coming soon.')}</button>
-      </div>
-    );
-  }
   return (
-    <div className="pe-mform">
-      {kindPick}
+    <>
       <input type="email" inputMode="email" autoComplete="off" className="pe-mail-in" value={email}
         onChange={(e) => setEmail(e.target.value)} placeholder={tx('pack.mate.emailPh', 'name@example.com')} aria-label={tx('pack.mate.emailLabel', "Pawmate's e-mail")} />
       <label className="pe-check">
@@ -1389,7 +1411,7 @@ function MateForm({ dogs, onDone }: { dogs: PackDogFull[]; onDone: () => void })
       </label>
       {!full && (
         <div className="pe-rights">
-          {order.map((r) => (
+          {PAWMATE_RIGHTS.filter((r) => r !== 'will').map((r) => (
             <label key={r} className="pe-check sub">
               <input type="checkbox" checked={picked.includes(r)} onChange={() => setPicked((p) => (p.includes(r) ? p.filter((x) => x !== r) : [...p, r]))} />
               <span>{tx(RIGHT_LABEL[r][0], RIGHT_LABEL[r][1])}</span>
@@ -1397,10 +1419,99 @@ function MateForm({ dogs, onDone }: { dogs: PackDogFull[]; onDone: () => void })
           ))}
         </div>
       )}
+      <Steps items={[
+        tx('pack.mate.stepA1', 'An invitation with a personal link arrives at this e-mail right away.'),
+        tx('pack.mate.stepA2', 'They click it and sign in without a password — the account is created on its own.'),
+        tx('pack.mate.stepA3', 'They see your dogs and can do only what you allow. The link is valid for 7 days.'),
+      ]} />
       <button type="button" className="pe-door on" disabled={!ok || busy} onClick={send} style={{ alignSelf: 'stretch', justifyContent: 'center' }}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : tx('pack.mate.send', 'Send invitation')}
       </button>
-      <p className="pe-hint" style={{ margin: 0 }}>{tx('pack.mate.sendNote', 'They get one personal link, valid for seven days.')}</p>
-    </div>
+    </>
+  );
+}
+
+function WillForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; onDone: () => void }) {
+  const t = useT();
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  const { toast } = useToast();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [hint, setHint] = useState('');
+  const [answer, setAnswer] = useState('');
+  const [letter, setLetter] = useState('');
+  const [busy, setBusy] = useState(false);
+  const norm = (v: string) => v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  const leak = !!answer.trim() && norm(hint).includes(norm(answer));
+  const ok = !!name.trim() && /\S+@\S+\.\S+/.test(email.trim()) && hint.trim().length >= 3 && norm(answer).length >= 2 && !leak && dogs.length > 0;
+  const send = async () => {
+    if (!ok || busy) return;
+    setBusy(true);
+    const r = await createWill({ dogIds: dogs.map((d) => d.id), heirName: name.trim(), heirEmail: email.trim(), hint: hint.trim(), answer, letter: letter.trim(), lang });
+    setBusy(false);
+    if (r.ok) {
+      toast({ title: tx('pack.wacc.sentTo', 'The will is on its way to {email}.').replace('{email}', email.trim()) });
+      onDone();
+    } else {
+      toast({ title: r.code === 'self' ? tx('pack.wacc.errSelf', 'Pick someone other than yourself.') : tx('pack.profile.toastCouldNotSave', 'Could not save'), description: r.code, variant: 'destructive' });
+    }
+  };
+  return (
+    <>
+      <input className="pe-mail-in" value={name} onChange={(e) => setName(e.target.value)} placeholder={tx('pack.wacc.heirName', 'Their name')} aria-label={tx('pack.wacc.heirName', 'Their name')} />
+      <input type="email" inputMode="email" autoComplete="off" className="pe-mail-in" value={email}
+        onChange={(e) => setEmail(e.target.value)} placeholder={tx('pack.mate.emailPh', 'name@example.com')} aria-label={tx('pack.mate.emailLabel', 'E-mail')} />
+      <input className="pe-mail-in" value={hint} maxLength={120} onChange={(e) => setHint(e.target.value)}
+        placeholder={tx('pack.wacc.hintPh', 'Question only they can answer — e.g. my favourite colour')} aria-label={tx('pack.wacc.hint', 'Question')} />
+      <input className="pe-mail-in" value={answer} maxLength={120} autoComplete="off" spellCheck={false} onChange={(e) => setAnswer(e.target.value)}
+        placeholder={tx('pack.wacc.answerPh', 'Answer = password to the will')} aria-label={tx('pack.wacc.answer', 'Answer')} />
+      {leak && <p className="pe-min" style={{ margin: 0 }}>{tx('pack.wacc.leak', 'The answer must not be part of the question.')}</p>}
+      <WordLimitTextarea value={letter} onSave={setLetter} rows={4} white
+        placeholder={tx('pack.wacc.letterPh', 'Letter (optional) — what they should know about your dogs')} />
+      <Steps items={[
+        tx('pack.wacc.step1', 'A link to your will and your question arrive at this e-mail. The answer is never in the e-mail.'),
+        tx('pack.wacc.step2', 'They open the will only with the answer — capitals and accents don’t matter.'),
+        tx('pack.wacc.step3', 'They read your letter. When you are gone, they ask to take over the dog through the same link — we verify it before anything is transferred.'),
+        tx('pack.wacc.step4', 'They get no account and no access to your profile. You can cancel the will any time.'),
+      ]} />
+      <button type="button" className="pe-door on" disabled={!ok || busy} onClick={send} style={{ alignSelf: 'stretch', justifyContent: 'center' }}>
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : tx('pack.wacc.send', 'Send the will')}
+      </button>
+    </>
+  );
+}
+
+// DEDIČ ZÁVETI v svorke — riadok ako pawmate; rozklik = psy, otázka, stav a ZRUŠIŤ.
+function WillMateRow({ will, dogs, onChanged }: { will: WillRow; dogs: PackDogFull[]; onChanged: () => void }) {
+  const t = useT();
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  const [ask, setAsk] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const state = will.status === 'declined' ? tx('pack.wacc.stDeclined', 'Declined')
+    : will.claim_at ? tx('pack.wacc.stClaim', 'Asked to take over')
+    : will.opened_at ? tx('pack.wacc.stOpened', 'Opened')
+    : tx('pack.wacc.stSent', 'Sent');
+  return (
+    <MemberRow initial={will.heir_name.charAt(0).toUpperCase()} name={will.heir_name} photo={null}
+      sub={`${tx('pack.wacc.title', 'Will')} · ${state}`} human dim={will.status === 'declined'}>
+      <div className="pe-dog-tags">
+        {dogs.filter((d) => will.dog_ids.includes(d.id)).map((d) => <span key={d.id} className="pk-pill">{d.dog_name}</span>)}
+      </div>
+      <p className="pe-hint" style={{ marginTop: 0 }}>{will.heir_email} · {tx('pack.wacc.hint', 'Question')}: {will.hint}</p>
+      {ask ? (
+        <div className="pe-me">
+          <span className="pe-hint" style={{ margin: 0 }}>{tx('pack.wacc.revokeAsk', 'Cancel this will? The link stops working.')}</span>
+          <span style={{ display: 'flex', gap: S.sm }}>
+            <button type="button" className="pe-show pe-danger" disabled={busy}
+              onClick={async () => { setBusy(true); await revokeWill(will.id); setBusy(false); setAsk(false); onChanged(); }}>
+              {tx('pack.wacc.revokeYes', 'Cancel it')}
+            </button>
+            <button type="button" className="pe-show" onClick={() => setAsk(false)}>{tx('pack.mate.cancel', 'Cancel')}</button>
+          </span>
+        </div>
+      ) : (
+        <div><button type="button" className="pe-show pe-danger" onClick={() => setAsk(true)}>{tx('pack.wacc.revoke', 'Cancel the will')}</button></div>
+      )}
+    </MemberRow>
   );
 }

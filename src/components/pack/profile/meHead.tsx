@@ -3,11 +3,13 @@
 // *„daj náhľad ako bude v realite = meno gradient atď... nech to má človek 1:1"*.
 // Úprava hlavy sa preto robí TU a prejaví sa na oboch obrazovkách naraz.
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, BRAND_GOLD_BTN, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { sizedUrl } from '@/services/cloudinaryService';
 import type { PackDogFull } from '@/hooks/usePackUser';
+import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
+import type { LevelProgress } from '@/lib/tripPoints';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -51,9 +53,29 @@ export const ME_CSS = `
 .me-foot{ position:absolute; left:${OWN_X.m + OWN.m + S.sm}px; right:${S.md}px; bottom:-${OWN_DROP}px; }
 .me-nm{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.h2}px; letter-spacing:.14em; color:${T.inkStrong};
   text-transform:uppercase; white-space:nowrap; overflow:hidden; }
-.me-lv{ display:flex; flex-direction:column; align-items:flex-start; gap:${S.xs}px; margin-top:${S.sm}px; }
-.me-lv > *{ display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.sm}px; border-radius:${PACK_R.pill}px; white-space:nowrap;
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; letter-spacing:.14em; text-transform:uppercase; }
+/* HODNOSTI VEDĽA SEBA až po pravý okraj (Matej 23. 10.); pod sebou len so „stack“ (vedľa fotky
+   pribudne pawtner/pawmate a miesto sa zúži). Ťuk = rozbaľovač MeRank pod hlavou. */
+.me-lv{ display:flex; gap:6px; margin-top:${S.sm}px; }
+.me-lv > *{ flex:1 1 0; min-width:0; justify-content:center; display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.sm}px; border-radius:${PACK_R.pill}px; white-space:nowrap;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; letter-spacing:.02em; text-transform:uppercase; cursor:pointer; }
+.me-lv.stack{ flex-direction:column; align-items:flex-start; gap:${S.xs}px; }
+.me-lv.stack > *{ flex:none; letter-spacing:.14em; }
+.me-lv > .on{ box-shadow:0 0 0 2px ${T.card}, 0 0 0 3.5px ${LAPIS.edge}; }
+.me-rk{ margin:0 0 ${S.md}px; padding:${S.md}px ${S.lg}px; border-radius:${PACK_R.tile}px; background:${T.tileBg}; border:1px solid ${T.cardEdge}; }
+.me-rk h3{ margin:0; display:flex; justify-content:space-between; align-items:baseline; gap:${S.sm}px; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.body}px; letter-spacing:.14em; text-transform:uppercase; color:${T.inkStrong}; }
+.me-rk h3 small{ font-family:${FONT_UI}; font-weight:500; font-size:${TX.micro}px; letter-spacing:.02em; text-transform:none; color:${T.inkWarm}; }
+.me-rk p{ margin:${S.sm}px 0 0; font-family:${FONT_UI}; font-size:${TX.label}px; line-height:1.45; color:${T.ink}; }
+.me-rk .pk-progress{ margin-top:${S.sm}px; }
+.me-rk-sc{ display:flex; gap:${S.xs}px; margin:${S.md}px -${S.lg}px 0; padding:0 ${S.lg}px ${S.xs}px; overflow-x:auto; scrollbar-width:none; }
+.me-rk-sc::-webkit-scrollbar{ display:none; }
+.me-rk-sc span{ flex:none; padding:${S.xs}px ${S.sm}px; border-radius:${PACK_R.pill}px; border:1px solid ${T.cardEdge}; font-family:${FONT_UI}; font-size:${TX.micro}px; color:${T.inkFaint}; white-space:nowrap; }
+.me-rk-sc span.done{ color:${T.inkWarm}; }
+.me-rk-sc span.cur{ background:${BRAND_GOLD_BTN.grad}; border-color:${BRAND_GOLD_BTN.edge}; color:${BRAND_GOLD_BTN.ink}; font-weight:600; }
+.me-rk-nums{ display:grid; grid-template-columns:repeat(3,1fr); margin-top:${S.md}px; text-align:center; }
+.me-rk-nums b{ display:block; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.lead}px; color:${T.inkStrong}; }
+.me-rk-nums span{ font-family:${FONT_UI}; font-size:${TX.micro}px; color:${T.inkWarm}; }
+.me-rk-link{ display:inline-flex; align-items:center; gap:${S.xs}px; margin-top:${S.md}px; border:0; background:none; padding:0; cursor:pointer;
+  font-family:${FONT_UI}; font-weight:500; font-size:${TX.label}px; color:${LAPIS.edge}; }
 .me-dv{ background:${BRAND_GOLD_BTN.grad}; border:1px solid ${BRAND_GOLD_BTN.edge}; color:${BRAND_GOLD_BTN.ink}; }
 .me-pt{ background:${T.growGreen}; border:1px solid ${T.growGreen}; color:${T.card}; cursor:pointer; }
 
@@ -165,7 +187,8 @@ export const ME_CSS = `
   .me-cover{ height:${COVER_H.pc}px; }
   .me-foot{ left:${OWN_X.pc + OWN.pc + S.lg}px; bottom:-${S.lg}px; }
   .me-nm{ font-size:${TX.h1}px; }
-  .me-lv{ flex-direction:row; align-items:center; gap:6px; }
+  .me-lv{ max-width:360px; }
+  .me-lv > *{ letter-spacing:.14em; }
   .me-under{ padding:0 ${S.xl}px ${S.xl}px; }
   .me-own{ left:${OWN_X.pc}px; top:-${OWN.pc - S.lg}px; width:${OWN.pc}px; height:${OWN.pc}px; }
   .me-sat{ bottom:-${SAT_DROP.pc}px; }
@@ -197,7 +220,7 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, bones, onBones, onPilgrim, right, onMoveY, onMoveEnd }: {
+export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd }: {
   cover: string | null;
   coverY?: number;
   name: string;
@@ -206,7 +229,12 @@ export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, bones, on
   /** Bez `bones` sa pilulka nekreslí — UPRAVIŤ PROFIL ju nemá (Matej 23. 10.: BONES = šuplík na profile). */
   bones?: string;
   onBones?: () => void;
+  onDev?: () => void;
   onPilgrim?: () => void;
+  /** Ktorý rozbaľovač je otvorený — jeho pilulka dostane lem. */
+  rank?: 'dev' | 'pt' | null;
+  /** Hodnosti pod sebou (vedľa fotky stojí viac ľudí). */
+  stack?: boolean;
   right?: ReactNode;
   onMoveY?: (y: number) => void;
   onMoveEnd?: (y: number) => void;
@@ -269,22 +297,15 @@ export function MeCover({ cover, coverY, name, devLabel, pilgrimLabel, bones, on
       </div>
       <div className="me-foot">
         <h1 className="me-nm">{name}</h1>
-        <div className="me-lv">
-          <span className="me-dv">
+        <div className={`me-lv${stack ? ' stack' : ''}`}>
+          <button type="button" className={`me-dv${rank === 'dev' ? ' on' : ''}`} onClick={onDev} aria-expanded={rank === 'dev'}>
             <BrandIcon name="ankh" size={12} tint="dark" />
             {devLabel}
-          </span>
-          {onPilgrim ? (
-            <button type="button" className="me-pt" onClick={onPilgrim}>
-              <BrandIcon name="walk" size={12} tint="white" />
-              {pilgrimLabel}
-            </button>
-          ) : (
-            <span className="me-pt">
-              <BrandIcon name="walk" size={12} tint="white" />
-              {pilgrimLabel}
-            </span>
-          )}
+          </button>
+          <button type="button" className={`me-pt${rank === 'pt' ? ' on' : ''}`} onClick={onPilgrim} aria-expanded={rank === 'pt'}>
+            <BrandIcon name="walk" size={12} tint="white" />
+            {pilgrimLabel}
+          </button>
         </div>
       </div>
     </div>
@@ -324,6 +345,63 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
       ) : (
         <span className="me-sat" aria-hidden>{sat}</span>
       ))}
+    </div>
+  );
+}
+
+/** Šírka výplne `.pk-progress__fill` (recept PROGRESS_CSS). */
+const pctW = (p: number) => `${Math.round(p)}%`;
+
+/** ROZBAĽOVAČ HODNOSTI pod hlavou (Matej 23. 10.: *„po kliknutí na faraóna sa zroluje dropdown s infom
+ *  o leveloch a stupnica … to isté pri pútnikovi — chýbajúce body do ďalšieho levelu, otvoriť tripstats"*).
+ *  Rebríček je `DEVOTION_LEVELS` (jeden zdroj), PÚTNIK je `levelProgress` z `tripPoints.ts`. */
+export function MeRank({ kind, devotion, pilgrim, onStats, tx }: {
+  kind: 'dev' | 'pt';
+  devotion: number;
+  pilgrim: { level: LevelProgress; count: number; km: number; countries: number };
+  onStats: () => void;
+  tx: (key: string, fallback: string) => string;
+}) {
+  const scRef = useRef<HTMLDivElement>(null);
+  const dev = devotionLevel(devotion);
+  useEffect(() => {
+    const cur = scRef.current?.querySelector('.cur') as HTMLElement | null;
+    if (cur && scRef.current) scRef.current.scrollLeft = cur.offsetLeft - scRef.current.clientWidth / 2 + cur.clientWidth / 2;
+  }, [kind]);
+  if (kind === 'dev') {
+    const nextName = dev.next ? tx(`pack.ladder.${dev.next.key}`, dev.next.name) : '';
+    return (
+      <div className="me-rk">
+        <h3>{tx(`pack.ladder.${dev.key}`, dev.name)} {dev.index}<small>{tx('pack.devotion.heading', 'Devotion')} · {devotion.toLocaleString('sk-SK')} ☥</small></h3>
+        <style>{PROGRESS_CSS}</style>
+        <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(dev.pct) }} /></div>
+        <p>{dev.next
+          ? tx('pack.hero.devotionToNext', '{toNext} ☥ to {nextName}').replace('{toNext}', dev.toNext.toLocaleString('sk-SK')).replace('{nextName}', nextName)
+          : tx('pack.rank.devTop', 'You stand at the top of the ladder.')}</p>
+        <p>{tx('pack.rank.devAbout', 'Devotion is your path in DOGYPT — {n} steps from Novice to Demigod.').replace('{n}', String(DEVOTION_LEVELS.length))}</p>
+        <div className="me-rk-sc" ref={scRef}>
+          {DEVOTION_LEVELS.map((l, i) => (
+            <span key={l.key} className={i + 1 === dev.index ? 'cur' : i + 1 < dev.index ? 'done' : ''}>{i + 1} · {tx(`pack.ladder.${l.key}`, l.name)}</span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  const lv = pilgrim.level;
+  return (
+    <div className="me-rk">
+      <h3>{tx('pack.map.rankPilgrim', 'Pilgrim')} {lv.level}<small>{lv.points.toLocaleString('sk-SK')} {tx('pack.rank.pts', 'pts')}</small></h3>
+      <style>{PROGRESS_CSS}</style>
+      <div className="pk-progress"><div className="pk-progress__fill" style={{ width: pctW(lv.pct), background: T.growGreen }} /></div>
+      <p>{tx('pack.tier.toNext', '{n} points to level {level}').replace('{n}', lv.toNext.toLocaleString('sk-SK')).replace('{level}', String(lv.level + 1))}</p>
+      <div className="me-rk-nums">
+        <div><b>{pilgrim.count}</b><span>{tx('pack.rank.trips', 'trips')}</span></div>
+        <div><b>{pilgrim.km}</b><span>km</span></div>
+        <div><b>{pilgrim.countries}</b><span>{tx('pack.rank.countries', 'countries')}</span></div>
+      </div>
+      <button type="button" className="me-rk-link" onClick={onStats}>
+        {tx('pack.rank.openStats', 'Trip stats')}<BrandIcon name="back" size={12} tint="dim" style={{ transform: 'rotate(180deg)' }} />
+      </button>
     </div>
   );
 }
