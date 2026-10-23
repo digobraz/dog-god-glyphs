@@ -102,6 +102,9 @@ export interface HumanProfile {
   /** TITULKA profilu JA (23. 10. 2026) — nastavuje sa v UPRAVIŤ PROFIL. Prázdne = `buddyPhoto`,
    *  inak fotka prvého psa. Vlastné pole, aby zmena titulky neprepísala fotku pre SNIFFER. */
   coverPhoto?: string;
+  /** Zvislá poloha titulky v % (0 = horný okraj fotky, 100 = spodný), ťahá sa prstom v UPRAVIŤ
+   *  PROFIL (23. 10. 2026). Prázdne = 35 (`COVER_Y_DEFAULT` v `meHead.tsx`). */
+  coverY?: number;
   /** Všetky fotky SNIFFER karty v poradí (Váš profil, 25. 9. 2026). `buddyPhoto` ostáva
    *  tá JEDNA, na ktorej ste spolu — z nich je a brána ju chce. Prázdne = len `buddyPhoto`. */
   buddyPhotos?: string[];

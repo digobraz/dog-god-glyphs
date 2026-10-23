@@ -3,15 +3,22 @@ import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-route
 import { ChevronDown, Eye, EyeOff, Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { PackLayout } from '@/components/pack/PackLayout';
 import { PackSettings } from '@/components/pack/PackSettings';
 import { PawmatesSection } from '@/components/pack/PawmatesSection';
-import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
-import { PACK_THEME, PACK_BOX, PACK_TEXT, PACK_SPACE, PACK_R, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { usePackUser } from '@/hooks/usePackUser';
+import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
+import { devotionLevel } from '@/lib/devotion';
+import { PACK_THEME, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE, PACK_R, PF_FIELD_CSS, PILL_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { ME_CSS, RING, DOG_FONT, MeCover, MeOwn } from '@/components/pack/profile/meHead';
+import { SvorkaSheet } from '@/components/pack/profile/SvorkaSheet';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
+import { intlLocale } from '@/i18n/bcp47';
 import { countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
 import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import { PAWMATE_LIVE } from '@/lib/packFlags';
@@ -20,19 +27,13 @@ import { APP_PLATFORM } from '@/lib/isApp';
 import {
   useProfile,
   saveHuman,
-  saveDogAttrs,
   saveAvatarUrl,
   saveDisplayName,
-  emptyDogAttrs,
-  emptyDogCard,
-  type DogCard,
   type HumanProfile,
   type TaxonomyOption,
   type RelationshipStatus,
   type PersonalityTag,
   type CentralProfile,
-  type DogTemperamentTag,
-  type DogTrailTag,
   RELATIONSHIP_OPTIONS,
   DIET_OPTIONS,
   SMOKE_OPTIONS,
@@ -41,12 +42,12 @@ import {
   MAX_PERSONALITY,
   HIDEABLE_IDENTITY_FIELDS,
   isHidden,
-  humanProfileCompletion,
   type ProfileFieldKey,
 } from '@/components/pack/profile/packProfile';
 import { HandCamera } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
+const S = PACK_SPACE;
 
 // ── RIADKY PROFILU (21. 10. 2026) ── štítok vľavo · hodnota vpravo · tenká čiara, ako úprava
 // profilu na Instagrame. Ovládače ostávajú `.pf-field` (pilulky, selecty), tu im padá rám aj výplň.
@@ -74,73 +75,62 @@ const ROWS_CSS = `
 .pf-rows-ttl i{font-style:normal;letter-spacing:.02em;text-transform:none;}
 `;
 
-// ── UPRAVIŤ PROFIL PO RIADKOCH (profil JA v8, 23. 10. 2026) ─────────────────────────────
-// Matej: *„vytvoríme inú stránku, kde všetko po riadkoch prepíšeme … ako je to aj na IG …
-// nemusí to byť v D-bloku … musí to byť prehľadnejšie"* → nákres
-// `plany/nakres-editprofile-bones-2026-10-23.html` → *„stavaj"*.
+// ── UPRAVIŤ PROFIL = TÁ ISTÁ KARTA AKO PROFIL (23. 10. 2026) ─────────────────────────────
+// Matej: *„nepáči sa mi to, že to je úplne iný layout = rozchádzajú sa nám štýly, majme jeden =
+// pozadie a blok nad tým v tých istých šírkach … daj náhľad ako bude v realite = meno gradient
+// atď … nech to má človek 1:1 … urobme to na sekcie: 1. o mne … hneď k dispozícii, nie schované,
+// 2. SVORKA … psy a ľudia, 2 riadky … 3. účet"*. Prebíja v8 „po riadkoch, ťuk = pole na celú
+// obrazovku" z tej istej noci.
 //
-// KÔŠ 3 (úloha): hore ‹ + nadpis + DONE, bez spodnej lišty — preto bez `PackLayout`.
-// Hlava = titulka a fotka (ťuk = zmeniť), pod ňou ZOZNAM RIADKOV. Ťuk na riadok otvorí
-// JEDNO pole na celú obrazovku a ‹ / DONE vráti späť. Všetko sa ukladá samo (blur / ťuk),
-// DONE nič neukladá — len zatvára.
-// 🔴 Psy sa tu NEUPRAVUJÚ: riadok psa vedie do DOG ID (bio a povaha psa majú jeden zdroj).
-// 🔴 BONES a línia tu UŽ NIE SÚ — odišli do šuplíka MISIA na profile (`BonesSheet`,
-//    Matej 23. 10.: *„po kliknutí na bones by sa otvoril tiež popup so stats ohľadom misie"*).
-//    Staré odkazy `/pack/profile/edit#network` sa preto vracajú na profil s otvoreným šuplíkom.
-type EditField = 'name' | 'bio' | 'pills' | 'about' | 'account';
-
+// • Tapeta + KARTA = `PackLayout` + `.me-card`, presne ako `/pack/profile` (šírka `PACK_COL`).
+// • HLAVA = `MeCover` + `MeOwn` z `meHead.tsx` — ten istý kód, aký kreslí profil. Meno sa
+//   v náhľade mení pri písaní; titulka sa ŤAHÁ prstom (`human.coverY`), ťuk na foťák = zmeniť.
+// • Tri optické skupiny = PODBLOKY (`PACK_BOX.subblock`): O MNE · SVORKA · ÚČET. Všetky polia
+//   sú otvorené — nič sa neskrýva za ďalší ťuk. Ukladá sa samo (blur / ťuk).
+// 🔴 Psy sa tu NEUPRAVUJÚ: kruh psa vedie do DOG ID (bio a povaha psa majú jeden zdroj).
+// 🔴 BONES a línia sú v šuplíku MISIA na profile (`BonesSheet`) — staré `#network` sa tam vracia.
+// ⚠️ Priehľadný kruh „osoba +" v rade ĽUDIA = miesto pre PAWTNERA. Pozvanie ďalšieho ČLOVEKA
+//    k psovi NEEXISTUJE (lock pack-blok1-nav) — kruh je bez textu a ťuk povie len „pripravujeme".
 const EDIT_CSS = `
-.pe-root{min-height:100dvh;background:${T.cardGrad};color:${T.inkStrong};font-family:${FONT_UI};}
-.pe-top{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:44px 1fr 64px;align-items:center;
-  height:52px;padding:env(safe-area-inset-top,0px) ${PACK_SPACE.lg}px 0;box-sizing:content-box;
-  background:${T.card};border-bottom:1px solid ${T.hairline};}
-.pe-top b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;text-align:center;}
-.pe-back{width:36px;height:36px;display:grid;place-items:center;border:0;background:none;cursor:pointer;padding:0;}
-.pe-done{justify-self:end;border:0;background:none;cursor:pointer;padding:${PACK_SPACE.sm}px 0;font-family:${FONT_TITLE};font-weight:700;
-  font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;color:${LAPIS.edge};}
-.pe-col{max-width:640px;margin:0 auto;padding:0 ${PACK_SPACE.lg}px ${PACK_SPACE.xxxl}px;}
-.pe-head{position:relative;margin-top:${PACK_SPACE.lg}px;}
-.pe-cover{display:block;width:100%;height:120px;border:0;padding:0;cursor:pointer;border-radius:${PACK_R.tile}px;
-  background:${T.ink} center 35%/cover no-repeat;background-image:var(--pe-cover,none);position:relative;}
-.pe-av{position:absolute;left:${PACK_SPACE.lg}px;top:64px;width:96px;height:96px;border-radius:${PACK_R.pill}px;padding:4px;border:0;cursor:pointer;
-  background:conic-gradient(from 200deg,${LAPIS.edge},${LAPIS.deep},${T.cardEdge},#A3782B,${LAPIS.edge});}
-.pe-av > span{display:grid;place-items:center;width:100%;height:100%;border-radius:${PACK_R.pill}px;overflow:hidden;background:${T.card};
-  border:3px solid ${T.card};box-sizing:border-box;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;color:${T.inkDim};}
-.pe-av img{width:100%;height:100%;object-fit:cover;object-position:50% 14%;}
-.pe-cam{position:absolute;width:30px;height:30px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;
-  background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};border:2px solid ${T.card};color:${LAPIS.ink};}
-.pe-cover .pe-cam{right:${PACK_SPACE.sm}px;top:${PACK_SPACE.sm}px;}
-.pe-av .pe-cam{right:-2px;bottom:-2px;}
-/* Odkazy stoja vpravo od fotky: x = okraj fotky + priemer + okraj (mobil 16+96+16, PC 16+124+16). */
-.pe-col{--pe-links-x:128px;}
-.pe-links{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.md}px;align-items:center;min-height:40px;margin-top:${PACK_SPACE.sm}px;padding-left:var(--pe-links-x);}
-.pe-links button{border:0;background:none;padding:0;cursor:pointer;font-size:${PACK_TEXT.label}px;font-weight:500;color:${LAPIS.edge};}
-.pe-sec{font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};margin:${PACK_SPACE.xl}px 0 ${PACK_SPACE.xs}px;}
-.pe-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:${PACK_SPACE.md}px;width:100%;min-height:48px;
-  border:0;border-bottom:1px solid ${T.hairline};background:none;padding:0;cursor:pointer;text-align:left;color:inherit;font:inherit;}
-.pe-row:hover{background:rgba(201,154,63,0.08);}
-.pe-row > span{font-size:${PACK_TEXT.body}px;color:${T.inkStrong};white-space:nowrap;}
-.pe-row > em{font-style:normal;font-size:${PACK_TEXT.label}px;color:${T.inkDim};text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pe-row > i{display:flex;transform:scaleX(-1);opacity:.55;}
-.pe-row.dog{grid-template-columns:auto auto minmax(0,1fr) auto;}
-.pe-row.dog > img,.pe-row.dog > .ph{width:36px;height:36px;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};background:${T.card};}
-.pe-row.dog b{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.body}px;}
-.pe-num{display:inline-flex;align-items:center;margin-left:${PACK_SPACE.xs}px;background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_TITLE};font-weight:700;
-  font-size:${PACK_TEXT.micro}px;letter-spacing:.02em;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;vertical-align:middle;line-height:1;}
-.pe-hint{font-size:${PACK_TEXT.micro}px;color:${T.inkDim};margin:${PACK_SPACE.xs}px 0 0;line-height:1.4;}
-.pe-field{padding-top:${PACK_SPACE.lg}px;}
-.pe-lbl{display:block;font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};margin:0 0 ${PACK_SPACE.sm}px;}
-.pe-field .pf-field{font-size:${PACK_TEXT.body}px !important;}
-.pe-ver{text-align:center;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;color:${T.inkDim};margin-top:${PACK_SPACE.lg}px;}
+.pe-card .me-under{ padding-bottom:${S.lg}px; }
+.pe-cam{display:grid;place-items:center;width:32px;height:32px;border-radius:${PACK_R.pill}px;border:2px solid ${T.card};cursor:pointer;padding:0;
+  background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};color:${LAPIS.ink};}
+.pe-tr{display:flex;align-items:center;gap:${S.sm}px;}
+.pe-drag{display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;pointer-events:none;
+  background:color-mix(in srgb, ${T.pageBg} 55%, transparent);color:${T.card};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
+.pe-own-cam{position:absolute;right:0;bottom:${S.sm}px;z-index:4;}
+.pe-grp{margin-top:${S.lg}px;padding:${S.lg}px;}
+.pe-grp:first-of-type{margin-top:${S.sm}px;}
+.pe-gh{display:flex;align-items:center;justify-content:space-between;gap:${S.sm}px;margin-bottom:${S.md}px;color:${T.inkDim};}
+.pe-gh .pk-pill{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;padding:${S.xs}px ${S.md}px;}
+.pe-lbl{display:block;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};margin:${S.lg}px 0 ${S.sm}px;}
+.pe-show{display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
+  background:transparent;border:1.5px solid ${LAPIS.edge};color:${LAPIS.edge};font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
+.pe-show:hover{background:${LAPIS.fill};}
+.pe-line{display:flex;flex-wrap:wrap;gap:${S.md}px ${S.lg}px;}
+.pe-mem{display:inline-flex;align-items:center;gap:${S.sm}px;border:0;background:none;padding:0;cursor:pointer;color:inherit;text-align:left;min-width:0;}
+.pe-mem .c{flex:none;width:48px;height:48px;border-radius:${PACK_R.pill}px;padding:${S.xs}px;background:${RING};box-shadow:${T.panelShadow};}
+.pe-mem .c img,.pe-mem .c i{width:100%;height:100%;border-radius:${PACK_R.pill}px;object-fit:cover;display:grid;place-items:center;border:2px solid ${T.card};background:${T.card};
+  font-style:normal;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;color:${T.inkWarm};}
+.pe-mem b{display:block;font-family:${DOG_FONT};font-weight:700;font-size:${PACK_TEXT.body}px;color:${T.inkStrong};white-space:nowrap;}
+.pe-mem.hu b{font-family:${FONT_TITLE};letter-spacing:.02em;}
+.pe-mem small{display:block;font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;color:${T.inkWarm};letter-spacing:.14em;text-transform:uppercase;}
+.pe-num{display:inline-flex;align-items:center;margin-left:${S.xs}px;background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_TITLE};font-weight:700;
+  font-size:${PACK_TEXT.micro}px;letter-spacing:.02em;padding:0 ${S.sm}px;border-radius:${PACK_R.pill}px;vertical-align:middle;}
+.pe-ghost .c{background:transparent;box-shadow:none;border:1.5px dashed ${LAPIS.edge};opacity:.55;display:grid;place-items:center;padding:0;}
+.pe-ghost:hover .c{opacity:.85;}
+.pe-ghost .c img{width:auto;height:auto;border:0;background:none;border-radius:0;}
+.pe-ver{text-align:center;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;color:${T.inkDim};margin-top:${S.lg}px;}
 @media (min-width:768px){
-  .pe-cover{height:180px;}
-  .pe-av{top:112px;width:124px;height:124px;}
-  .pe-col{--pe-links-x:156px;}
+  .pe-card .me-under{ padding-bottom:${S.xl}px; }
+  .pe-grp{padding:${S.lg}px ${S.xl}px;}
+  .pe-mem .c{width:56px;height:56px;}
 }
 `;
 
 export default function PackProfile() {
   const t = useT();
+  const { lang } = useLang();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const [session, setSession] = useState<Session | null>(null);
   const [sessionChecked, setSessionChecked] = useState(false);
@@ -150,20 +140,22 @@ export default function PackProfile() {
   const [nameSaving, setNameSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [coverY, setCoverY] = useState<number | null>(null);
+  const [packOpen, setPackOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
+  const accountRef = useRef<HTMLDivElement | null>(null);
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
   const [appVer, setAppVer] = useState('');
   useEffect(() => { appWebVersion().then(setAppVer).catch(() => {}); }, []);
   const { toast } = useToast();
+  const { devotion, bones } = usePackIdentity();
   const { dogs } = usePackUser(session?.user?.id ?? null);
   const { profile } = useProfile();
   const human = profile?.human;
   const patchHuman = (p: Partial<HumanProfile>) => { saveHuman(p); };
-  // `?welcome=1` (po platbe) = nastav si heslo → rovno účet, `PackSettings` to vie sám.
-  const [field, setField] = useState<EditField | null>(searchParams.has('welcome') ? 'account' : null);
 
   useEffect(() => {
     let mounted = true;
@@ -190,8 +182,17 @@ export default function PackProfile() {
     }
   }, [searchParams]);
 
-  // Nové pole začína hore — zoznam mohol byť odrolovaný.
-  useEffect(() => { window.scrollTo({ top: 0 }); }, [field]);
+  // `?welcome=1` (po platbe) = nastav si heslo → zroluj na ÚČET, `PackSettings` to vie sám.
+  useEffect(() => {
+    if (!searchParams.has('welcome') || !sessionChecked) return;
+    const id = setTimeout(() => accountRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    return () => clearTimeout(id);
+  }, [searchParams, sessionChecked]);
+
+  const email = session?.user?.email ?? '—';
+  // Meno z objednávky — východisko, keď si človek v profile žiadne nevypísal.
+  const orderName = dogs.map((d) => d.owner_name?.trim()).find(Boolean) ?? '';
+  const pilgrim = usePilgrimStats(session?.user?.email ?? '', (fullName || orderName).split(' ')[0] ?? '');
 
   // Staré odkazy: BONES a línia žijú v šuplíku na profile, nie tu.
   if (location.hash === '#network') return <Navigate to="/pack/profile#network" replace />;
@@ -227,7 +228,7 @@ export default function PackProfile() {
   };
 
   // TITULKA = vlastné pole `human.coverPhoto`. 🔴 NIE `buddyPhoto` — to je fotka „spolu"
-  // pre bránu SNIFFERA a zmena titulky by ju ticho prepísala.
+  // pre bránu SNIFFERA a zmena titulky by ju ticho prepísala. Nová fotka začína v strede.
   const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -235,7 +236,8 @@ export default function PackProfile() {
     setCoverUploading(true);
     try {
       const result = await uploadCoverPhoto(file, session.user.id);
-      await saveHuman({ coverPhoto: result.secureUrl }, { throwOnError: true });
+      await saveHuman({ coverPhoto: result.secureUrl, coverY: 50 }, { throwOnError: true });
+      setCoverY(null);
       toast({ title: tx('pack.profile.toastPhotoUpdated', 'Photo updated') });
     } catch (err) {
       toast({
@@ -271,243 +273,232 @@ export default function PackProfile() {
     }
   };
 
-  const email = session?.user?.email ?? '—';
-  // Meno z objednávky — východisko, keď si človek v profile žiadne nevypísal.
-  const orderName = dogs.map((d) => d.owner_name?.trim()).find(Boolean) ?? '';
   const initial = (fullName?.[0] || orderName?.[0] || email?.[0] || 'D').toUpperCase();
+  // Meno v náhľade = presne to, čo uvidia ostatní (`Zobraziť ako`) a mení sa už pri písaní.
   const shownName = (() => {
     if (human?.displayAs === 'nickname' && human.nickname?.trim()) return human.nickname.trim();
     if (human?.displayAs === 'packName' && human.packName?.trim()) return human.packName.trim();
-    return fullName.trim() || orderName;
+    return fullName.trim() || orderName || email.split('@')[0];
   })();
   const firstDog = dogs.find((d) => d.pack_number != null) ?? dogs[0] ?? null;
   const coverSrc = human?.coverPhoto || human?.buddyPhoto || firstDog?.cloudinary_main_url || null;
-  const bio = human?.dogVoiceBio?.trim() || '';
-  const pillEmoji = (human?.personality ?? [])
-    .map((v) => PERSONALITY_OPTIONS.find((o) => o.value === v)?.emoji)
-    .filter(Boolean) as string[];
-  const pillCount = pillEmoji.length + (human?.customPersonality ? 1 : 0);
-  const aboutFilled = [human?.age, human?.region, human?.relationship, human?.smoke, human?.diet, human?.work].filter((v) => v != null && v !== '').length;
-  const add = tx('pack.edit.empty', 'Add');
-
-  const TITLES: Record<EditField, string> = {
-    name: tx('pack.profile.name', 'Name'),
-    bio: tx('pack.edit.bio', 'Bio'),
-    pills: tx('pack.profile.personality', 'Personality'),
-    about: tx('pack.edit.aboutMe', 'About me'),
-    account: tx('pack.edit.secAccount', 'Account & app'),
-  };
-  const back = () => (field ? setField(null) : navigate('/pack/profile'));
-  const done = () => {
-    if (field === 'name') handleSaveName();
-    back();
-  };
-
-  const row = (label: string, value: React.ReactNode, onClick: () => void) => (
-    <button type="button" className="pe-row" onClick={onClick}>
-      <span>{label}</span>
-      <em>{value}</em>
-      <i aria-hidden><BrandIcon name="back" size={14} tint="dark" /></i>
-    </button>
-  );
+  const dev = devotionLevel(devotion);
+  const fmt = (n: number) => n.toLocaleString(intlLocale(lang));
+  const soon = () => toast({ title: tx('pack.edit.soon', 'Coming soon.') });
 
   return (
-    <div className="pe-root">
+    <PackLayout onBack={() => navigate('/pack/profile')} backLabel={tx('pack.edit.back', 'Back')}>
+      <style>{PILL_CSS}</style>
       <style>{PF_FIELD_CSS}</style>
       <style>{ROWS_CSS}</style>
+      <style>{ME_CSS}</style>
       <style>{EDIT_CSS}</style>
-      <header className="pe-top">
-        <button type="button" className="pe-back" onClick={back} aria-label={tx('pack.edit.back', 'Back')}>
-          <BrandIcon name="back" size={18} tint="dark" />
-        </button>
-        <b>{field ? TITLES[field] : tx('pack.me.editProfile', 'Edit profile')}</b>
-        <button type="button" className="pe-done" onClick={done}>{tx('pack.edit.done', 'Done')}</button>
-      </header>
-
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
       <input ref={coverInputRef} type="file" accept="image/*" onChange={handleCoverChange} style={{ display: 'none' }} />
 
-      <div className="pe-col">
-        {field === null && (
-          <>
-            {/* HLAVA — titulka a fotka, ťuk = zmeniť */}
-            <div className="pe-head">
-              <button
-                type="button"
-                className="pe-cover"
-                onClick={() => coverInputRef.current?.click()}
-                disabled={coverUploading}
-                aria-label={tx('pack.edit.changeCover', 'Change cover')}
-                style={coverSrc ? ({ '--pe-cover': `url(${sizedUrl(coverSrc, 1200)})` } as React.CSSProperties) : undefined}
-              >
-                <span className="pe-cam">{coverUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}</span>
+      <section className="me-card pe-card">
+        {/* NÁHĽAD 1:1 — tá istá hlava ako profil. Titulka sa ťahá, foťák ju mení. */}
+        <MeCover
+          cover={coverSrc}
+          coverY={coverY ?? human?.coverY}
+          name={shownName}
+          devLabel={`${tx(`pack.ladder.${dev.key}`, dev.name)} ${dev.index}`}
+          pilgrimLabel={`${tx('pack.map.rankPilgrim', 'Pilgrim')} ${pilgrim.level.level}`}
+          bones={fmt(bones)}
+          onMoveY={setCoverY}
+          onMoveEnd={(y) => { patchHuman({ coverY: y }); }}
+          right={
+            <span className="pe-tr">
+              {coverSrc && <span className="pe-drag"><BrandIcon name="sliders" size={12} tint="white" />{tx('pack.edit.dragCover', 'Drag')}</span>}
+              <button type="button" className="pe-cam" onClick={() => coverInputRef.current?.click()} disabled={coverUploading} aria-label={tx('pack.edit.changeCover', 'Change cover')}>
+                {coverUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}
               </button>
-              <button
-                type="button"
-                className="pe-av"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                aria-label={tx('pack.profile.changeAvatarAria', 'Change avatar')}
-              >
-                <span>{avatarUrl ? <img src={sizedUrl(avatarUrl, 320)} alt="" /> : initial}</span>
-                <span className="pe-cam">{uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}</span>
-              </button>
+            </span>
+          }
+        />
+
+        <div className="me-under">
+          <MeOwn
+            photo={avatarUrl}
+            initial={initial}
+            dogs={dogs}
+            onPhoto={() => fileInputRef.current?.click()}
+            photoLabel={tx('pack.profile.changeAvatarAria', 'Change avatar')}
+            badge={
+              <span className="pe-cam pe-own-cam" aria-hidden>
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}
+              </span>
+            }
+          />
+          <div className="me-gap" />
+
+          {/* ── 1 · O MNE — všetko otvorené, nič za ďalším ťukom ── */}
+          <div className="pe-grp" style={{ ...PACK_BOX.subblock }}>
+            <div className="pe-gh">
+              <span style={{ ...PACK_HEAD.section }}>{tx('pack.edit.aboutMe', 'About me')}</span>
+              <span className="pk-pill">Pawtner</span>
             </div>
-            <div className="pe-links">
-              <button type="button" onClick={() => fileInputRef.current?.click()}>{tx('pack.edit.changePhoto', 'Change photo')}</button>
-              <button type="button" onClick={() => coverInputRef.current?.click()}>{tx('pack.edit.changeCover', 'Change cover')}</button>
+            <div className="pf-rows">
+              <div className={`pf-row${(human?.displayAs ?? 'name') === 'name' ? ' is-shown' : ''}`}>
+                <span className="pf-row-lbl">{tx('pack.profile.name', 'Name')}</span>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => { setFullName(e.target.value); setNameDirty(true); }}
+                  onBlur={() => { handleSaveName(); }}
+                  /* Prázdne = platí meno z OBJEDNÁVKY (Matej 2026-08-26) — ukážeme ho ako predlohu. */
+                  placeholder={orderName || tx('pack.profile.namePlaceholder', 'Your name')}
+                  className="pf-field pf-field--flat"
+                  style={{ width: '100%', minWidth: 0, borderRadius: PACK_R.field, padding: '8px 12px', color: T.ink, fontFamily: FONT_UI }}
+                />
+              </div>
+              <div className={`pf-row${human?.displayAs === 'nickname' ? ' is-shown' : ''}`}>
+                <span className="pf-row-lbl">{tx('pack.profile.nickname', 'Nickname')}</span>
+                <AutoSaveTextInput
+                  value={human?.nickname ?? ''}
+                  onSave={(v) => patchHuman({ nickname: v || undefined })}
+                  placeholder={tx('pack.profile.nicknamePlaceholder', 'Pack calls you')}
+                  align="left"
+                />
+              </div>
+              <div className={`pf-row${human?.displayAs === 'packName' ? ' is-shown' : ''}`}>
+                <span className="pf-row-lbl">{tx('pack.profile.packName', 'Pack name')}</span>
+                <AutoSaveTextInput
+                  value={human?.packName ?? ''}
+                  onSave={(v) => patchHuman({ packName: v || undefined })}
+                  placeholder={tx('pack.profile.packNamePlaceholder', 'Your household')}
+                  align="left"
+                />
+              </div>
+              <div className="pf-row pf-row--toggle">
+                <span className="pf-row-lbl">{tx('pack.profile.showAs', 'Show as')}</span>
+                <DisplayAsToggle value={human?.displayAs ?? 'name'} onChange={(v) => patchHuman({ displayAs: v })} />
+              </div>
             </div>
 
-            <div className="pe-sec">{tx('pack.edit.secProfile', 'Profile')}</div>
-            {row(TITLES.name, shownName || add, () => setField('name'))}
-            {row(TITLES.bio, bio || add, () => setField('bio'))}
-            {row(TITLES.pills, pillCount ? <>{pillEmoji.slice(0, 4).join(' ')}{pillCount > 4 ? ` +${pillCount - 4}` : ''}{!pillEmoji.length ? `${pillCount}` : ''}</> : add, () => setField('pills'))}
-
-            {dogs.length > 0 && (
-              <>
-                <div className="pe-sec">{tx('pack.edit.secDogs', 'My dogs')}</div>
-                {dogs.map((d) => (
-                  <button key={d.id} type="button" className="pe-row dog" onClick={() => navigate(`/pack/dogs/${d.id}`)}>
-                    {d.cloudinary_main_url ? <img src={sizedUrl(d.cloudinary_main_url, 120)} alt="" /> : <span className="ph" />}
-                    <span>
-                      <b>{d.dog_name}</b>
-                      {d.pack_number != null && <span className="pe-num">#{d.pack_number}</span>}
-                    </span>
-                    <em>DOG ID</em>
-                    <i aria-hidden><BrandIcon name="back" size={14} tint="dark" /></i>
-                  </button>
-                ))}
-                <p className="pe-hint">{tx('pack.edit.dogHint', 'Bio and character of the dog live in DOG ID.')}</p>
-              </>
-            )}
-
-            <div className="pe-sec">{TITLES.about}</div>
-            {row(tx('pack.edit.aboutSub', 'Age, home, lifestyle'), aboutFilled ? `${aboutFilled} / 6` : add, () => setField('about'))}
-
-            <div className="pe-sec">{TITLES.account}</div>
-            {row(tx('pack.settings.account', 'Account'), email, () => setField('account'))}
-
-            {/* PAWMATES — správa svorky z pohľadu človeka; `PAWMATE_LIVE` je dnes `false`. */}
-            {PAWMATE_LIVE && <div style={{ marginTop: PACK_SPACE.xl }}><PawmatesSection /></div>}
-          </>
-        )}
-
-        {field === 'name' && (
-          <div className="pe-field pf-rows">
-            <div className={`pf-row${(human?.displayAs ?? 'name') === 'name' ? ' is-shown' : ''}`}>
-              <span className="pf-row-lbl">{tx('pack.profile.name', 'Name')}</span>
-              <input
-                type="text"
-                value={fullName}
-                autoFocus
-                onChange={(e) => { setFullName(e.target.value); setNameDirty(true); }}
-                onBlur={() => { handleSaveName(); }}
-                /* Prázdne = platí meno z OBJEDNÁVKY (Matej 2026-08-26) — ukážeme ho ako predlohu. */
-                placeholder={orderName || tx('pack.profile.namePlaceholder', 'Your name')}
-                className="pf-field pf-field--flat"
-                style={{ width: '100%', minWidth: 0, borderRadius: PACK_R.field, padding: '8px 12px', color: T.ink, fontFamily: FONT_UI }}
-              />
-            </div>
-            <div className={`pf-row${human?.displayAs === 'nickname' ? ' is-shown' : ''}`}>
-              <span className="pf-row-lbl">{tx('pack.profile.nickname', 'Nickname')}</span>
-              <AutoSaveTextInput
-                value={human?.nickname ?? ''}
-                onSave={(v) => patchHuman({ nickname: v || undefined })}
-                placeholder={tx('pack.profile.nicknamePlaceholder', 'Pack calls you')}
-                align="left"
-              />
-            </div>
-            <div className={`pf-row${human?.displayAs === 'packName' ? ' is-shown' : ''}`}>
-              <span className="pf-row-lbl">{tx('pack.profile.packName', 'Pack name')}</span>
-              <AutoSaveTextInput
-                value={human?.packName ?? ''}
-                onSave={(v) => patchHuman({ packName: v || undefined })}
-                placeholder={tx('pack.profile.packNamePlaceholder', 'Your household')}
-                align="left"
-              />
-            </div>
-            <div className="pf-row pf-row--toggle">
-              <span className="pf-row-lbl">{tx('pack.profile.showAs', 'Show as')}</span>
-              <DisplayAsToggle value={human?.displayAs ?? 'name'} onChange={(v) => patchHuman({ displayAs: v })} />
-            </div>
-          </div>
-        )}
-
-        {field === 'bio' && (
-          <div className="pe-field">
             <span className="pe-lbl">{tx('pack.profile.bioHeading', 'BIO: What my dog would probably say about me')}</span>
             <WordLimitTextarea
               value={human?.dogVoiceBio ?? ''}
               onSave={(v) => patchHuman({ dogVoiceBio: v })}
               placeholder={tx('pack.profile.bioPlaceholder', 'My human wakes up at 6 just to walk me. Slightly obsessed. Would recommend. — 🐾')}
-              rows={9}
+              rows={4}
               white
             />
-          </div>
-        )}
 
-        {field === 'pills' && (
-          <div className="pe-field">
-            <PersonalityConcentrate human={human} patchHuman={patchHuman} />
-          </div>
-        )}
-
-        {field === 'about' && (
-          <div className="pe-field pf-rows pf-rows--sec">
-            <div className="pf-rows-ttl">
-              <span>{tx('pack.profile.basics', 'The basics')}</span>
-              <IdentityVisibilityEye profile={profile} patchHuman={patchHuman} />
+            <div style={{ marginTop: S.lg }}>
+              <PersonalityConcentrate human={human} patchHuman={patchHuman} />
             </div>
-            <HideWrap hidden={isHidden(profile, 'age')}>
-              <div className="pf-row">
-                <span className="pf-row-lbl">{tx('pack.profile.agePlaceholder', 'Age')}</span>
-                <MiniChipInput emoji="🎂" type="number" value={human?.age} placeholder="—" width={40}
-                  onSave={(v) => patchHuman({ age: v === '' ? undefined : Number(v) })} />
+
+            <div className="pf-rows" style={{ marginTop: S.lg }}>
+              <div className="pf-rows-ttl">
+                <span>{tx('pack.profile.basics', 'The basics')}</span>
+                <IdentityVisibilityEye profile={profile} patchHuman={patchHuman} />
               </div>
-            </HideWrap>
-            <div className="pf-row">
-              <span className="pf-row-lbl">{tx('pack.profile.nationality', 'Nationality')}</span>
-              <NationalitySelect value={human?.nationality ?? 'SK'} onChange={(v) => patchHuman({ nationality: v })} />
-            </div>
-            <HideWrap hidden={isHidden(profile, 'region')}>
+              <HideWrap hidden={isHidden(profile, 'age')}>
+                <div className="pf-row">
+                  <span className="pf-row-lbl">{tx('pack.profile.agePlaceholder', 'Age')}</span>
+                  <MiniChipInput emoji="🎂" type="number" value={human?.age} placeholder="—" width={40}
+                    onSave={(v) => patchHuman({ age: v === '' ? undefined : Number(v) })} />
+                </div>
+              </HideWrap>
               <div className="pf-row">
-                <span className="pf-row-lbl">{tx('pack.profile.cityPlaceholder', 'City')}</span>
-                <MiniChipInput emoji="📍" value={human?.region ?? ''} placeholder="—" width={150}
-                  onSave={(v) => patchHuman({ region: v || undefined })} />
+                <span className="pf-row-lbl">{tx('pack.profile.nationality', 'Nationality')}</span>
+                <NationalitySelect value={human?.nationality ?? 'SK'} onChange={(v) => patchHuman({ nationality: v })} />
               </div>
-            </HideWrap>
-            <div className="pf-rows-ttl">
-              <span>{tx('pack.profile.lifestyle', 'Lifestyle')}</span>
-              <i>{tx('pack.profile.optional', 'Optional')}</i>
-            </div>
-            <div className="pf-row">
-              <span className="pf-row-lbl">{tx('pack.profile.statusPlaceholder', 'Status')}</span>
-              <StatusSelect value={human?.relationship} onChange={(v) => patchHuman({ relationship: v })} />
-            </div>
-            <div className="pf-row">
-              <span className="pf-row-lbl">{tx('pack.profile.smokePlaceholder', 'Smoke')}</span>
-              <LifestyleSelect emoji="" placeholder="—" options={SMOKE_OPTIONS} value={human?.smoke} onChange={(v) => patchHuman({ smoke: v })} />
-            </div>
-            <div className="pf-row">
-              <span className="pf-row-lbl">{tx('pack.profile.dietPlaceholder', 'Diet')}</span>
-              <LifestyleSelect emoji="" placeholder="—" options={DIET_OPTIONS} value={human?.diet} onChange={(v) => patchHuman({ diet: v })} />
-            </div>
-            <div className="pf-row">
-              <span className="pf-row-lbl">{tx('pack.profile.workPlaceholder', 'Work')}</span>
-              <LifestyleSelect emoji="" placeholder="—" options={WORK_OPTIONS} value={human?.work} onChange={(v) => patchHuman({ work: v })} />
+              <HideWrap hidden={isHidden(profile, 'region')}>
+                <div className="pf-row">
+                  <span className="pf-row-lbl">{tx('pack.profile.cityPlaceholder', 'City')}</span>
+                  <MiniChipInput emoji="📍" value={human?.region ?? ''} placeholder="—" width={150}
+                    onSave={(v) => patchHuman({ region: v || undefined })} />
+                </div>
+              </HideWrap>
+              <div className="pf-rows-ttl">
+                <span>{tx('pack.profile.lifestyle', 'Lifestyle')}</span>
+                <i>{tx('pack.profile.optional', 'Optional')}</i>
+              </div>
+              <div className="pf-row">
+                <span className="pf-row-lbl">{tx('pack.profile.statusPlaceholder', 'Status')}</span>
+                <StatusSelect value={human?.relationship} onChange={(v) => patchHuman({ relationship: v })} />
+              </div>
+              <div className="pf-row">
+                <span className="pf-row-lbl">{tx('pack.profile.smokePlaceholder', 'Smoke')}</span>
+                <LifestyleSelect emoji="" placeholder="—" options={SMOKE_OPTIONS} value={human?.smoke} onChange={(v) => patchHuman({ smoke: v })} />
+              </div>
+              <div className="pf-row">
+                <span className="pf-row-lbl">{tx('pack.profile.dietPlaceholder', 'Diet')}</span>
+                <LifestyleSelect emoji="" placeholder="—" options={DIET_OPTIONS} value={human?.diet} onChange={(v) => patchHuman({ diet: v })} />
+              </div>
+              <div className="pf-row">
+                <span className="pf-row-lbl">{tx('pack.profile.workPlaceholder', 'Work')}</span>
+                <LifestyleSelect emoji="" placeholder="—" options={WORK_OPTIONS} value={human?.work} onChange={(v) => patchHuman({ work: v })} />
+              </div>
             </div>
           </div>
-        )}
 
-        {field === 'account' && (
-          <div className="pe-field">
-            <PackSettings />
+          {/* ── 2 · SVORKA — rad psov, rad ľudí; celá svorka v šuplíku (HeroCard z homepage) ── */}
+          <div className="pe-grp" style={{ ...PACK_BOX.subblock }}>
+            <div className="pe-gh">
+              <span style={{ ...PACK_HEAD.section }}>{tx('pack.edit.secPack', 'Pack')}</span>
+              <button type="button" className="pe-show" onClick={() => setPackOpen(true)}>
+                <BrandIcon name="people" size={12} tint="violet" />
+                {tx('pack.edit.showPack', 'Show pack')}
+              </button>
+            </div>
+            <span className="pe-lbl" style={{ marginTop: 0 }}>{tx('pack.edit.dogs', 'Dogs')}</span>
+            <div className="pe-line">
+              {dogs.map((d) => (
+                <button key={d.id} type="button" className="pe-mem" onClick={() => navigate(`/pack/dogs/${d.id}`)}>
+                  <span className="c">{d.cloudinary_main_url ? <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" /> : <i />}</span>
+                  <span>
+                    <b>{d.dog_name}{d.pack_number != null && <span className="pe-num">#{d.pack_number}</span>}</b>
+                    <small>DOG ID</small>
+                  </span>
+                </button>
+              ))}
+            </div>
+            <span className="pe-lbl">{tx('pack.edit.people', 'People')}</span>
+            <div className="pe-line">
+              <button type="button" className="pe-mem hu" onClick={() => fileInputRef.current?.click()}>
+                <span className="c">{avatarUrl ? <img src={sizedUrl(avatarUrl, 140)} alt="" /> : <i>{initial}</i>}</span>
+                <span>
+                  <b>{shownName}</b>
+                  <small>Pawtner</small>
+                </span>
+              </button>
+              <button type="button" className="pe-mem pe-ghost" onClick={soon} aria-label={tx('pack.edit.soon', 'Coming soon.')}>
+                <span className="c"><BrandIcon name="add-user" size={20} tint="violet" /></span>
+              </button>
+            </div>
+          </div>
+
+          {/* ── 3 · ÚČET ── */}
+          <div className="pe-grp" ref={accountRef} style={{ ...PACK_BOX.subblock, scrollMarginTop: 96 }}>
+            <div className="pe-gh">
+              <span style={{ ...PACK_HEAD.section }}>{tx('pack.edit.secAccount', 'Account & app')}</span>
+            </div>
+            <PackSettings bare />
             {/* ČÍSLO VERZIE — LEN V APPKE (21. 10. 2026), rovnaké ako `version` v dogypt.com/app-update.json. */}
             {appVer && <div className="pe-ver">DOGYPT · {APP_PLATFORM} · {appVer}</div>}
           </div>
-        )}
-      </div>
-    </div>
+
+          {/* PAWMATES — správa svorky z pohľadu človeka; `PAWMATE_LIVE` je dnes `false`. */}
+          {PAWMATE_LIVE && <div style={{ marginTop: S.xl }}><PawmatesSection /></div>}
+        </div>
+      </section>
+
+      {packOpen && (
+        <SvorkaSheet
+          name={shownName}
+          email={email}
+          avatarUrl={avatarUrl}
+          devotion={devotion}
+          bones={bones}
+          dogs={dogs.map((d) => ({ id: d.id, dog_name: d.dog_name, cloudinary_main_url: d.cloudinary_main_url, pack_number: d.pack_number ?? null }))}
+          packName={human?.packName ?? null}
+          onClose={() => setPackOpen(false)}
+        />
+      )}
+    </PackLayout>
   );
 }
 

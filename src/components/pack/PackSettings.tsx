@@ -19,7 +19,9 @@ const T = PACK_THEME;
 
 // Account / settings — email, password (modal), language, notifications, sign out.
 // Zdieľané: spodok homepage (/pack, LIVE) aj frozen profil (DEV_FULL).
-export function PackSettings() {
+/** `bare` = bez vlastnej karty a nadpisu — v UPRAVIŤ PROFIL sedí v podbloku ÚČET (23. 10. 2026),
+ *  karta v karte by bola dvojitý rám. */
+export function PackSettings({ bare = false }: { bare?: boolean } = {}) {
   const [email, setEmail] = useState('—');
   const [pwModalOpen, setPwModalOpen] = useState(false);
   const [pwValue, setPwValue] = useState('');
@@ -140,7 +142,7 @@ export function PackSettings() {
   return (
     <section
       id="pack-settings"
-      style={{
+      style={bare ? undefined : {
         background: T.cardGrad,
         border: `1.5px solid ${T.cardEdge}`,
         borderRadius: 16,
@@ -156,7 +158,7 @@ export function PackSettings() {
       <style>{PILL_CSS}</style>
       {/* Prepínač šatu stojí na `.pf-toggle` — jeho recept žije v `PF_FIELD_CSS`. */}
       <style>{PF_FIELD_CSS}</style>
-      <div
+      {!bare && <div
         style={{
           fontFamily: FONT_TITLE,
           fontSize: 10,
@@ -167,7 +169,7 @@ export function PackSettings() {
         }}
       >
         {t('pack.settings.account')}
-      </div>
+      </div>}
 
       <Field icon={<BrandIcon name="envelope" size={16} tint="dim" />} label={t('pack.settings.email')}>
         <span style={{ fontFamily: FONT_UI, fontSize: 14, color: T.ink }}>
