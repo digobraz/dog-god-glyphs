@@ -253,7 +253,7 @@ export default function PackMe() {
     card: firstDog.share_card_url ?? undefined,
     photos: firstDog.cloudinary_main_url ? [firstDog.cloudinary_main_url] : [],
     country: firstDog.country ?? undefined,
-    chips: [['🐾', `#${firstDog.pack_number} / 1 000 000`]],
+    chips: [['', `#${firstDog.pack_number} / 1 000 000`]],
   } : null;
   const invite = () => { if (shareData) setShareOpen(true); };
 

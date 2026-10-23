@@ -116,7 +116,8 @@ function chipRow(ctx: CanvasRenderingContext2D, items: [string, string][], cx: n
   const font = `500 ${fs}px "Space Grotesk", ${FONT_EMOJI}`;
   ctx.font = font; ctx.textBaseline = 'middle';
   const padX = fs * 0.6, gap = fs * 0.4, h = fs * 1.9, maxW = 980;
-  const ws = items.map(([e, t]) => ctx.measureText(`${e}  ${t}`).width + padX * 2);
+  const lbl = ([e, t]: [string, string]) => (e ? `${e}  ${t}` : t);
+  const ws = items.map((it) => ctx.measureText(lbl(it)).width + padX * 2);
   const rows: number[][] = [[]]; let rw = 0;
   ws.forEach((w, i) => {
     if (rw + w > maxW && rows[rows.length - 1].length) { rows.push([]); rw = 0; }
@@ -131,7 +132,7 @@ function chipRow(ctx: CanvasRenderingContext2D, items: [string, string][], cx: n
       rr(ctx, x, yy, ws[i], h, 22); ctx.fillStyle = T.card; ctx.fill();
       ctx.lineWidth = 3; ctx.strokeStyle = GOLD; ctx.stroke();
       ctx.fillStyle = INK; ctx.textAlign = 'left'; ctx.font = font;
-      ctx.fillText(`${items[i][0]}  ${items[i][1]}`, x + padX, yy + h / 2 + 2);
+      ctx.fillText(lbl(items[i]), x + padX, yy + h / 2 + 2);
       x += ws[i] + gap;
     });
   });
