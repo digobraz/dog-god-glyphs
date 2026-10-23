@@ -40,7 +40,7 @@ async function call<T>(body: Record<string, unknown>, auth = false): Promise<Res
   }
 }
 
-export const createWill = (p: { dogIds: string[]; heirEmail: string; answer: string; lang: string; heirName?: string; hint?: string }) =>
+export const createWill = (p: { dogIds: string[]; heirEmail: string; lang: string; answer?: string; heirName?: string; hint?: string }) =>
   call<{ ok: true; id: string }>({ action: 'create', ...p }, true);
 export const listMyWills = () => call<{ wills: WillRow[] }>({ action: 'list' }, true);
 export const revokeWill = (id: string) => call<{ ok: true }>({ action: 'revoke', id }, true);

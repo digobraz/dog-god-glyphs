@@ -1435,17 +1435,15 @@ function WillForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; o
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { toast } = useToast();
-  // LEN e-mail a heslo (Matej 23. 10.: *„stačí len mail a heslo … textarea je zbytočný, závet ide z dogs"*) —
-  // obsah závetu je v DOG ID, tu sa nastavuje iba PRÍSTUP. Heslo dedičovi povie pawtner sám.
+  // LEN E-MAIL (Matej 23. 10., kolo 3: *„dajme to bez hesla … príde mu na mail a on si to vie otvoriť hneď"*).
+  // Obsah závetu je v DOG ID; poistka proti zneužitiu = pawtnerovi príde upozornenie pri otvorení.
   const [email, setEmail] = useState('');
-  const [pass, setPass] = useState('');
-  const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
-  const ok = /\S+@\S+\.\S+/.test(email.trim()) && pass.trim().length >= 4 && dogs.length > 0;
+  const ok = /\S+@\S+\.\S+/.test(email.trim()) && dogs.length > 0;
   const send = async () => {
     if (!ok || busy) return;
     setBusy(true);
-    const r = await createWill({ dogIds: dogs.map((d) => d.id), heirEmail: email.trim(), answer: pass, lang });
+    const r = await createWill({ dogIds: dogs.map((d) => d.id), heirEmail: email.trim(), lang });
     setBusy(false);
     if (r.ok) {
       toast({ title: tx('pack.wacc.sentTo', 'The will is on its way to {email}.').replace('{email}', email.trim()) });
@@ -1458,19 +1456,10 @@ function WillForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; o
     <>
       <input type="email" inputMode="email" autoComplete="off" className="pe-mail-in" value={email}
         onChange={(e) => setEmail(e.target.value)} placeholder={tx('pack.mate.emailPh', 'name@example.com')} aria-label={tx('pack.mate.emailLabel', 'E-mail')} />
-      <span style={{ position: 'relative', display: 'block' }}>
-        <input type={show ? 'text' : 'password'} className="pe-mail-in" value={pass} maxLength={120} autoComplete="new-password" spellCheck={false}
-          onChange={(e) => setPass(e.target.value)} placeholder={tx('pack.wacc.passPh', 'Password to the will (min. 4 characters)')} aria-label={tx('pack.wacc.pass', 'Password')}
-          style={{ paddingRight: 32 }} />
-        <button type="button" onClick={() => setShow((v) => !v)} aria-label={tx('pack.wacc.showPass', 'Show password')}
-          style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', border: 0, background: 'none', padding: S.xs, cursor: 'pointer' }}>
-          <BrandIcon name="eye" size={16} tint={show ? 'gold' : 'dim'} />
-        </button>
-      </span>
       <Steps items={[
-        tx('pack.wacc.step1', 'A link to your will arrives at this e-mail. The password is never in the e-mail.'),
-        tx('pack.wacc.step2', 'You tell them the password yourself. Capitals and accents don’t matter.'),
-        tx('pack.wacc.step3', 'With the password they open the will — the one written in your dogs’ DOG ID. When you are gone, they ask to take over the dog through the same link; we verify it before anything is transferred.'),
+        tx('pack.wacc.step1', 'A link to your will arrives at this e-mail.'),
+        tx('pack.wacc.step2', 'They open it with one tap — no account, no password. Before opening they confirm it is truly necessary, and you get notified.'),
+        tx('pack.wacc.step3', 'They see the will from your dogs’ DOG ID. When you are gone, they ask to take over the dog through the same link; we verify it before anything is transferred.'),
         tx('pack.wacc.step4', 'They get no account and no access to your profile. You can cancel the will any time.'),
       ]} />
       <button type="button" className="pe-door on" disabled={!ok || busy} onClick={send} style={{ alignSelf: 'stretch', justifyContent: 'center' }}>

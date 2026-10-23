@@ -3,8 +3,8 @@
 // Matej: *„človek klikne na CTA v maili, odkáže ho na url závetu s heslom, napíše heslo a otvorí sa
 // záveť s možnosťou — prevziať psa, prečítať záveť, zrušiť … do domyslíme, ale ten proces už postavme"*.
 //
-// Server = edge funkcia `will` (hint · open · claim · decline). Heslo je odpoveď na otázku z mailu;
-// stránka ho drží len v pamäti a posiela pri každej akcii — do prehliadača sa nič neukladá.
+// Server = edge funkcia `will` (hint · open · claim · decline). Od 23. 10. (kolo 3) BEZ HESLA: odkaz otvorí
+// závet po kontrolnej otázke a pawtner dostane upozornenie. Pole `answer` ostáva pre závety s heslom.
 // 🔴 Rovnako ako `/pack/join` stojí MIMO `/pack` a mimo členstva: dedič účet nemá a mať nemusí.
 // ⚠️ PREVZIAŤ PSA nič neprepíše — je to hlásenie, ktoré overí človek (smrť sa nedá potvrdiť klikom).
 import { useEffect, useState } from 'react';
@@ -74,37 +74,15 @@ export default function PackWill() {
 
           {phase.k === 'ask' && (
             <>
+              {/* KONTROLNÁ OTÁZKA namiesto hesla (Matej 23. 10., kolo 3): otvoriť sa dá hneď, ale pawtner
+                  dostane upozornenie — „nech to človek nezneužíva". */}
               <Eyebrow>{tx('will.eyebrow', 'Will')}</Eyebrow>
               <Title>{tx('will.askTitle', '{owner} left a will for you').replace('{owner}', phase.h.owner)}</Title>
-              {phase.h.hint ? (
-                <>
-                  <Line>{tx('will.askBody', 'It is locked. The password is the answer to this question:')}</Line>
-                  <p style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: PACK_TEXT.lead, color: T.inkStrong, margin: `${S.md}px 0` }}>{phase.h.hint}</p>
-                </>
-              ) : (
-                <p style={{ ...sub, fontSize: PACK_TEXT.body, margin: `0 0 ${S.md}px` }}>{tx('will.askBodyPass', 'It is locked. {owner} gave you the password.').replace('{owner}', phase.h.owner)}</p>
-              )}
-              <form onSubmit={(e) => { e.preventDefault(); act('open'); }}>
-                <input
-                  type="password"
-                  autoComplete="off"
-                  autoCapitalize="off"
-                  spellCheck={false}
-                  value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  placeholder={tx('will.answerPh', 'Password')}
-                  aria-label={tx('will.answerPh', 'Password')}
-                  style={{
-                    width: '100%', boxSizing: 'border-box', padding: S.md, borderRadius: PACK_R.field, border: `1px solid ${T.cardEdge}`,
-                    background: T.card, color: T.inkStrong, fontFamily: FONT_UI, fontSize: PACK_TEXT.body, textAlign: 'center',
-                  }}
-                />
-                <p style={{ ...sub, marginTop: S.sm }}>{tx('will.answerHint', 'Capitals and accents don’t matter.')}</p>
-                {err && <p style={{ ...sub, color: T.alertRed, marginTop: S.sm }}>{err}</p>}
-                <button type="submit" style={cta(busy || !answer.trim())} disabled={busy || !answer.trim()}>
-                  {tx('will.open', 'Open the will')}
-                </button>
-              </form>
+              <Line>{tx('will.gateQ', 'Is it truly necessary to open it now?')}</Line>
+              <p style={{ ...sub, marginTop: S.sm }}>{tx('will.gateNote', '{owner} gets a notice that you opened it.').replace('{owner}', phase.h.owner)}</p>
+              {err && <p style={{ ...sub, color: T.alertRed, marginTop: S.sm }}>{err}</p>}
+              <button type="button" style={cta(busy)} disabled={busy} onClick={() => act('open')}>{tx('will.gateYes', 'Yes, open the will')}</button>
+              <button type="button" style={ghost} onClick={() => navigate('/')}>{tx('will.gateNo', 'Not now')}</button>
             </>
           )}
 
