@@ -20,7 +20,7 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
-import { useProfile, customPills, PERSONALITY_OPTIONS, type DogProfileAttrs } from '@/components/pack/profile/packProfile';
+import { useProfile, customPills, profileRoles, PERSONALITY_OPTIONS, type DogProfileAttrs } from '@/components/pack/profile/packProfile';
 import { useScrollState } from '@/components/pack/vault/vaultScrolls';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { devotionLevel } from '@/lib/devotion';
@@ -302,7 +302,7 @@ export default function PackMe() {
             <button type="button" className="me-out" onClick={invite}>{tx('pack.me.invite', 'Invite')}</button>
           </div>
 
-          <div className="me-role"><span className="pk-pill">{tx(`pack.role.${human?.role ?? 'pawtner'}`, 'Pawtner')}</span></div>
+          <div className="me-role">{profileRoles(human).map((r) => <span key={r} className="pk-pill">{tx(`pack.role.${r}`, r)}</span>)}</div>
 
           <div className={`me-bio${bioFull ? ' full' : ''}${bio ? '' : ' empty'}`}>
             <p ref={bioRef}>

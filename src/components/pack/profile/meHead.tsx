@@ -124,7 +124,7 @@ export const ME_CSS = `
 .me-cta:hover{ background:${LAPIS.gradHover}; }
 .me-out{ background:transparent; color:${LAPIS.edge}; border:1.5px solid ${LAPIS.edge}; }
 .me-out:hover{ background:${LAPIS.fill}; }
-.me-role{ display:flex; margin-top:${S.md}px; }
+.me-role{ display:flex; flex-wrap:wrap; gap:${S.xs}px; margin-top:${S.md}px; }
 .me-role .pk-pill{ font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; letter-spacing:.14em; text-transform:uppercase; padding:${S.xs}px ${S.md}px; }
 .me-bio{ margin:${S.sm}px 0 0; }
 .me-bio p{ margin:0; font-family:${FONT_UI}; font-size:${TX.body}px; line-height:1.45; color:${T.ink};

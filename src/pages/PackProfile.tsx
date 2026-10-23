@@ -46,6 +46,8 @@ import {
   isHidden,
   customPills,
   PROFILE_ROLES,
+  MAX_ROLES,
+  profileRoles,
   saveDogAttrs,
   DOG_TEMPERAMENT_TAGS,
   type ProfileRole,
@@ -142,10 +144,10 @@ const EDIT_CSS = `
 .pe-nm.on .pe-dot{border-color:${LAPIS.edge};background:radial-gradient(circle, ${LAPIS.edge} 0 4px, transparent 5px);}
 .pe-nm.lock .pe-dot{border:0;cursor:default;}
 .pe-hint{margin:${S.xs}px 0 0;font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;color:${T.inkFaint};}
-/* POVAHA — všetky pilulky v ŠTYROCH radoch, ťahá sa do strany; vybraté a vlastné idú prvé. */
+/* POVAHA — všetky pilulky v TROCH radoch, ťahá sa do strany; vybraté a vlastné idú prvé. */
 .pe-pills-h{display:flex;justify-content:space-between;align-items:center;margin:${S.lg}px 0 ${S.sm}px;}
 .pe-min{font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;color:${T.alertRed};}
-.pe-pills{display:grid;grid-template-rows:repeat(4,auto);grid-auto-flow:column;grid-auto-columns:max-content;justify-items:start;gap:6px;
+.pe-pills{display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;grid-auto-columns:max-content;justify-items:start;gap:6px;
   overflow-x:auto;scrollbar-width:none;margin-right:-${S.lg}px;padding:0 ${S.lg}px 2px 0;}
 .pe-pills::-webkit-scrollbar{display:none;}
 .pe-pills .pf-pill,.pe-pills .pe-own{white-space:nowrap;}
@@ -158,32 +160,14 @@ const EDIT_CSS = `
 /* FAKTY — tri riadky rovnakej šírky, polia ako linky (nie pilulky). */
 .pe-facts{display:flex;flex-direction:column;gap:${S.xs}px;margin-top:${S.lg}px;}
 .pe-fr{display:grid;width:100%;align-items:end;gap:${S.md}px;}
-.pe-fr.r1{grid-template-columns:auto auto minmax(0,1fr);}
+.pe-fr.r1{grid-template-columns:auto auto minmax(0,1fr) auto;}
 .pe-fr.r2{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
-.pe-fr.r3{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;}
 .pe-fr > *{min-width:0;}
 .pe-fr .pf-field{width:100% !important;min-height:0 !important;justify-content:space-between;background:none !important;border:0 !important;border-bottom:1px solid ${T.hairline} !important;
   box-shadow:none !important;border-radius:0 !important;padding:${S.sm}px 0 !important;font-size:${PACK_TEXT.body}px !important;text-align:left !important;text-align-last:left !important;}
 .pe-fr .pf-field:focus,.pe-fr .pf-field:focus-within{border-bottom-color:${LAPIS.edge} !important;}
 .pe-fr .pf-field input{font-size:${PACK_TEXT.body}px !important;width:100% !important;}
-.pe-fr.r1 > :last-child .pf-field input{width:100% !important;}
-/* POVAHA — všetky pilulky v ŠTYROCH radoch, ťahá sa do strany; vybraté a vlastné idú prvé. */
-.pe-pills-h{display:flex;justify-content:space-between;align-items:center;margin:${S.lg}px 0 ${S.sm}px;}
-.pe-min{font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;color:${T.alertRed};}
-.pe-pills{display:grid;grid-template-rows:repeat(4,auto);grid-auto-flow:column;grid-auto-columns:max-content;justify-items:start;gap:6px;
-  overflow-x:auto;scrollbar-width:none;margin-right:-${S.lg}px;padding:0 ${S.lg}px 2px 0;}
-.pe-pills::-webkit-scrollbar{display:none;}
-.pe-pills .pf-pill,.pe-pills .pe-own{white-space:nowrap;}
-.pe-own{display:inline-flex;align-items:center;gap:${S.xs}px;border-radius:${PACK_R.pill}px;padding:${S.xs}px ${S.sm}px;cursor:pointer;
-  background:transparent;border:1px dashed ${LAPIS.edge};color:${LAPIS.edge};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;}
-.pe-own input{width:96px;border:0;outline:none;background:none;font:inherit;color:${T.ink};padding:0;}
-/* MENÁ | BIO — na PC vedľa seba. */
-.pe-duo{display:grid;grid-template-columns:minmax(0,1fr);gap:${S.md}px;}
-.pe-bio textarea{min-height:100%;}
-/* FAKTY — pilulky bez štítkov, zalomia sa do radov. */
-.pe-facts{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:${S.lg}px;}
-.pe-facts .pf-field{width:auto !important;min-height:0 !important;padding-top:${S.xs}px !important;padding-bottom:${S.xs}px !important;font-size:${PACK_TEXT.label}px !important;}
-.pe-facts select.pf-field{padding-right:${S.xl}px !important;}
+.pe-fr.r1 > :nth-child(3) .pf-field input{width:100% !important;}
 /* MOJA SVORKA — rámik = úzky kruh (ja + psy), pod ním šípka k voliteľnému pawmatovi. */
 .pe-core{border:1px solid ${T.cardEdge};border-radius:${PACK_R.tile}px;padding:${S.sm}px ${S.md}px;background:color-mix(in srgb, ${T.card} 55%, transparent);}
 .pe-me{display:flex;align-items:center;justify-content:space-between;gap:${S.sm}px;padding:${S.sm}px 0;}
@@ -197,6 +181,12 @@ const EDIT_CSS = `
 .pe-dog.open .pe-dog-h > i{transform:rotate(180deg);}
 .pe-dog-b{padding:0 0 ${S.md}px;display:flex;flex-direction:column;gap:${S.sm}px;}
 .pe-dog-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.pe-link{align-self:flex-start;display:inline-flex;align-items:center;gap:${S.xs}px;border:0;background:none;padding:${S.xs}px 0;cursor:pointer;
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;color:${LAPIS.edge};}
+.pe-roles{display:flex;flex-direction:column;}
+.pe-roles .pe-role{align-self:flex-start;cursor:pointer;}
+.pe-check input:disabled{opacity:.4;cursor:default;}
+.pe-explain{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.5;color:${T.ink};}
 .pe-addbar{display:flex;align-items:center;gap:${S.sm}px;margin-top:${S.sm}px;padding:${S.sm}px;border-radius:${PACK_R.tile}px;background:${T.tileBg};border:1px solid ${T.hairline};}
 .pe-plus{flex:none;width:40px;height:40px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};}
 .pe-door{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:${S.xs}px;padding:${S.md}px ${S.sm}px;border-radius:${PACK_R.field}px;cursor:pointer;text-decoration:none;
@@ -445,7 +435,7 @@ export default function PackProfile() {
             {/* Na PC mená a bio VEDĽA SEBA (pri menách ostávalo vpravo prázdno), na mobile pod sebou. */}
             <div className="pe-duo">
               {/* MENÁ — tri meniteľné, jedno z nich vidia ostatní (krúžok vľavo = „toto ukáž").
-                  Meno na certifikáte je doklad z objednávky a NEMENÍ sa — stojí pod nimi so zámkom. */}
+                  Riadok „Na certifikáte" zrušený (Matej 23. 10.: „na certifikáte by som dal preč"). */}
               <div className="pe-names">
                 {([
                   ['name', tx('pack.profile.name', 'Name')],
@@ -477,13 +467,6 @@ export default function PackProfile() {
                     </div>
                   );
                 })}
-                {orderName && (
-                  <div className="pe-nm lock">
-                    <span className="pe-dot" aria-hidden><BrandIcon name="lock" size={10} tint="dim" /></span>
-                    <span className="pe-nl">{tx('pack.edit.certName', 'On the certificate')}</span>
-                    <em>{orderName}</em>
-                  </div>
-                )}
                 <p className="pe-hint">{tx('pack.edit.shownHint', '● = the name others see')}</p>
               </div>
 
@@ -500,7 +483,8 @@ export default function PackProfile() {
             </div>
 
             {/* FAKTY — tri RIADKY rovnakej šírky, bez štítkov (Matej 23. 10.: „na riadky nie na pills"):
-                1 vek · národnosť · mesto (roztiahnuté) · 2 stav · fajčenie · 3 strava · práca · oko. */}
+                1 vek · národnosť · mesto (roztiahnuté) · oko · 2 stav · fajčenie · 3 strava · práca.
+                Oko je v PRVOM riadku (Matej 23. 10.: „viditeľnosť daj na prvý riadok"), riadky 2–3 sú 2×2. */}
             <div className="pe-facts">
               <div className="pe-fr r1">
                 <HideWrap hidden={isHidden(profile, 'age')}>
@@ -512,15 +496,15 @@ export default function PackProfile() {
                   <MiniChipInput emoji="📍" value={human?.region ?? ''} placeholder={tx('pack.profile.cityPlaceholder', 'City')} width={200}
                     onSave={(v) => patchHuman({ region: v || undefined })} />
                 </HideWrap>
+                <IdentityVisibilityEye profile={profile} patchHuman={patchHuman} />
               </div>
               <div className="pe-fr r2">
                 <StatusSelect value={human?.relationship} onChange={(v) => patchHuman({ relationship: v })} placeholder={tx('pack.profile.statusPlaceholder', 'Status')} />
                 <LifestyleSelect emoji="" placeholder={tx('pack.profile.smokePlaceholder', 'Smoke')} options={SMOKE_OPTIONS} value={human?.smoke} onChange={(v) => patchHuman({ smoke: v })} />
               </div>
-              <div className="pe-fr r3">
+              <div className="pe-fr r2">
                 <LifestyleSelect emoji="" placeholder={tx('pack.profile.dietPlaceholder', 'Diet')} options={DIET_OPTIONS} value={human?.diet} onChange={(v) => patchHuman({ diet: v })} />
                 <LifestyleSelect emoji="" placeholder={tx('pack.profile.workPlaceholder', 'Work')} options={WORK_OPTIONS} value={human?.work} onChange={(v) => patchHuman({ work: v })} />
-                <IdentityVisibilityEye profile={profile} patchHuman={patchHuman} />
               </div>
             </div>
 
@@ -539,19 +523,12 @@ export default function PackProfile() {
                 photo={avatarUrl ? sizedUrl(avatarUrl, 140) : null}
                 initial={initial}
                 name={shownName}
-                sub={tx(`pack.role.${human?.role ?? 'pawtner'}`, 'Pawtner')}
+                sub={profileRoles(human).map((r) => tx(`pack.role.${r}`, r)).join(' · ')}
                 human
               >
-                <div className="pe-me">
-                  <span className="pe-role">
-                    <select value={human?.role ?? 'pawtner'} onChange={(e) => patchHuman({ role: e.target.value as ProfileRole })}
-                      aria-label={tx('pack.role.pawtner', 'Pawtner')}>
-                      {PROFILE_ROLES.map((r) => <option key={r} value={r}>{tx(`pack.role.${r}`, r)}</option>)}
-                    </select>
-                    <ChevronDown aria-hidden className="h-3 w-3" />
-                  </span>
-                  <button type="button" className="pe-show" onClick={() => fileInputRef.current?.click()}>{tx('pack.edit.changePhoto', 'Change photo')}</button>
-                </div>
+                {/* Po rozkliku LEN rola (Matej 23. 10.: „zatiaľ len pawtner dropdown, zmeniť foto preč … možnosť
+                    vybrať dve"). Neskôr sem príde odkaz na biznis prevádzku (obchod, e-shop). */}
+                <RolePicker value={profileRoles(human)} onChange={(roles) => patchHuman({ roles, role: roles[0] })} />
               </MemberRow>
               {dogs.map((d) => (
                 <DogEditRow key={d.id} dog={d} attrs={profile?.dogs?.[d.id]} onDogId={() => navigate(`/pack/dogs/${d.id}`)} />
@@ -564,9 +541,9 @@ export default function PackProfile() {
                   MATE = formulár hneď pod lištou. */}
               <div className="pe-addbar">
                 <span className="pe-plus" aria-hidden><BrandIcon name="plus" size={16} tint="white" /></span>
-                <Link to="/heroglyph/name" onClick={resetFlow} className="pe-door">{tx('pack.hero.roleDog', 'Dog')}</Link>
+                <Link to="/heroglyph/name" onClick={resetFlow} className="pe-door"><BrandIcon name="dogsphinx" size={20} tint="dim" />{tx('pack.hero.roleDog', 'Dog')}</Link>
                 <button type="button" className={`pe-door${mateOpen ? ' on' : ''}`} onClick={() => (PAWMATE_LIVE ? setMateOpen((o) => !o) : soon())}>
-                  {tx('pack.add.pawmate', 'Pawmate')}
+                  <BrandIcon name="add-user" size={16} tint={mateOpen ? 'white' : 'dim'} />{tx('pack.add.pawmate', 'Pawmate')}
                 </button>
               </div>
               {mateOpen && <MateForm dogs={dogs.filter((d) => d.life_status !== 'deceased')} onDone={() => { setMateOpen(false); reloadMates(); }} />}
@@ -1195,7 +1172,7 @@ function MemberRow({ photo, initial, name, num, sub, angel = false, human = fals
   initial?: string;
   name: string;
   num?: number | null;
-  sub: string;
+  sub?: string;
   angel?: boolean;
   human?: boolean;
   dim?: boolean;
@@ -1209,12 +1186,46 @@ function MemberRow({ photo, initial, name, num, sub, angel = false, human = fals
           <span className="c">{photo ? <img src={photo} alt="" /> : <i>{initial ?? ''}</i>}</span>
           <span>
             <b>{name}{num != null && <span className="pe-num">#{num}</span>}</b>
-            <small>{sub}</small>
+            {sub && <small>{sub}</small>}
           </span>
         </span>
         <i aria-hidden><ChevronDown className="h-4 w-4" /></i>
       </button>
       {open && <div className="pe-dog-b">{children}</div>}
+    </div>
+  );
+}
+
+// ROLY — rozbaľovač s výberom najviac DVOCH (Matej 23. 10.). Plná sada ostáva viditeľná; po dvoch
+// sú ostatné stlmené. Odznačiť poslednú nejde — prázdne by aj tak spadlo späť na PAWTNER.
+function RolePicker({ value, onChange }: { value: ProfileRole[]; onChange: (v: ProfileRole[]) => void }) {
+  const t = useT();
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  const [open, setOpen] = useState(false);
+  const toggle = (r: ProfileRole) => {
+    if (value.includes(r)) { if (value.length > 1) onChange(value.filter((x) => x !== r)); }
+    else if (value.length < MAX_ROLES) onChange([...value, r]);
+  };
+  return (
+    <div className="pe-roles">
+      <button type="button" className="pe-role" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        {value.map((r) => tx(`pack.role.${r}`, r)).join(' · ')}
+        <ChevronDown aria-hidden className="h-3 w-3" style={{ transform: open ? 'rotate(180deg)' : 'none' }} />
+      </button>
+      {open && (
+        <div style={{ marginTop: S.sm }}>
+          {PROFILE_ROLES.map((r) => {
+            const on = value.includes(r);
+            return (
+              <label key={r} className="pe-check sub">
+                <input type="checkbox" checked={on} disabled={!on && value.length >= MAX_ROLES} onChange={() => toggle(r)} />
+                <span>{tx(`pack.role.${r}`, r)}</span>
+              </label>
+            );
+          })}
+          <p className="pe-hint">{tx('pack.edit.rolesMax', 'Pick up to two.')}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -1236,7 +1247,7 @@ function DogEditRow({ dog, attrs, onDogId }: { dog: PackDogFull; attrs: DogProfi
       photo={dog.cloudinary_main_url ? sizedUrl(dog.cloudinary_main_url, 140) : null}
       name={dog.dog_name ?? ''}
       num={dog.pack_number}
-      sub={angel ? tx('pack.tree.angel', 'Angel') : 'DOG ID'}
+      sub={angel ? tx('pack.tree.angel', 'Angel') : undefined}
       angel={angel}
     >
       <WordLimitTextarea
@@ -1254,7 +1265,10 @@ function DogEditRow({ dog, attrs, onDogId }: { dog: PackDogFull; attrs: DogProfi
           </button>
         ))}
       </div>
-      <div><button type="button" className="pe-show" onClick={onDogId}>{tx('pack.edit.openDogId', 'Full DOG ID')}</button></div>
+      {/* Odkaz, nie pilulka — šípka hovorí, že ide na inú stránku (Matej 23. 10.). */}
+      <button type="button" className="pe-link" onClick={onDogId}>
+        {tx('pack.edit.openDogId', 'Full DOG ID')}<BrandIcon name="back" size={12} tint="dim" style={{ transform: 'rotate(180deg)' }} />
+      </button>
     </MemberRow>
   );
 }
@@ -1321,6 +1335,7 @@ function MateForm({ dogs, onDone }: { dogs: PackDogFull[]; onDone: () => void })
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { toast } = useToast();
+  const [kind, setKind] = useState<'account' | 'will'>('account');
   const [email, setEmail] = useState('');
   const [full, setFull] = useState(true);
   const [picked, setPicked] = useState<PawmateRight[]>([]);
@@ -1341,8 +1356,30 @@ function MateForm({ dogs, onDone }: { dogs: PackDogFull[]; onDone: () => void })
       toast({ title: code === 'no_slots' ? tx('pack.mates.err.noSlots', 'That dog has no free place.') : tx('pack.profile.toastCouldNotSave', 'Could not save'), description: code, variant: 'destructive' });
     }
   };
+  // DVE CESTY (Matej 23. 10.): KONTO v DOGYPTe = pozvánka s právami ako doteraz · LEN ZÁVEŤ = človek bez
+  // prístupu, ktorý psa prevezme. Ako sa mu záveť doručí (mail, heslo, prihlásenie), ešte nie je
+  // rozhodnuté — preto tu stojí len vysvetlenie a tlačidlo nič neodošle.
+  const kindPick = (
+    <span className="pe-role" style={{ alignSelf: 'stretch', justifyContent: 'space-between' }}>
+      <select value={kind} onChange={(e) => setKind(e.target.value as 'account' | 'will')} aria-label={tx('pack.add.pawmate', 'Pawmate')} style={{ flex: 1 }}>
+        <option value="account">{tx('pack.mate.kindAccount', 'Create a DOGYPT account')}</option>
+        <option value="will">{tx('pack.mate.kindWill', 'Only the will')}</option>
+      </select>
+      <ChevronDown aria-hidden className="h-3 w-3" />
+    </span>
+  );
+  if (kind === 'will') {
+    return (
+      <div className="pe-mform">
+        {kindPick}
+        <p className="pe-explain">{tx('pack.mate.willExplain', 'The will names who takes care of your dogs when you are gone. That person gets no access to your profile now. Once your death is confirmed, they take over the dog, its DOG ID and its number.')}</p>
+        <button type="button" className="pe-door" disabled style={{ alignSelf: 'stretch', justifyContent: 'center' }}>{tx('pack.edit.soon', 'Coming soon.')}</button>
+      </div>
+    );
+  }
   return (
     <div className="pe-mform">
+      {kindPick}
       <input type="email" inputMode="email" autoComplete="off" className="pe-mail-in" value={email}
         onChange={(e) => setEmail(e.target.value)} placeholder={tx('pack.mate.emailPh', 'name@example.com')} aria-label={tx('pack.mate.emailLabel', "Pawmate's e-mail")} />
       <label className="pe-check">

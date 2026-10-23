@@ -110,6 +110,9 @@ export interface HumanProfile {
   coverY?: number;
   /** ROLA pri fotke v svorke (23. 10. 2026) — čo v DOGYPTe robím. Prázdne = 'pawtner'. */
   role?: ProfileRole;
+  /** ROLY — najviac DVE (Matej 23. 10. 2026: „druhy osôb, možnosť vybrať dve"). `role` nesie prvú
+   *  kvôli starším čítačom. Prázdne = [role] alebo ['pawtner']; čítaj cez `profileRoles()`. */
+  roles?: ProfileRole[];
   /** Všetky fotky SNIFFER karty v poradí (Váš profil, 25. 9. 2026). `buddyPhoto` ostáva
    *  tá JEDNA, na ktorej ste spolu — z nich je a brána ju chce. Prázdne = len `buddyPhoto`. */
   buddyPhotos?: string[];
@@ -1002,3 +1005,9 @@ export function customPills(h: Pick<HumanProfile, 'customPersonality' | 'customE
  *  tréner, športovec, pútnik"*). PAWTNER je východisko — status každého, kto má psa s heroglyfom. */
 export const PROFILE_ROLES = ['pawtner', 'creator', 'healer', 'trainer', 'athlete', 'pilgrim'] as const;
 export type ProfileRole = typeof PROFILE_ROLES[number];
+export const MAX_ROLES = 2;
+/** Roly človeka v poradí výberu — nikdy prázdne (východisko PAWTNER). */
+export function profileRoles(h: Pick<HumanProfile, 'role' | 'roles'> | null | undefined): ProfileRole[] {
+  const list = (h?.roles?.length ? h.roles : h?.role ? [h.role] : []).filter((r) => (PROFILE_ROLES as readonly string[]).includes(r));
+  return list.length ? list.slice(0, MAX_ROLES) : ['pawtner'];
+}
