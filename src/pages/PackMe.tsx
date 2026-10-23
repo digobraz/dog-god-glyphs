@@ -29,7 +29,7 @@ import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
 import { useProfile, customPills, profileRoles, PERSONALITY_OPTIONS, type DogProfileAttrs } from '@/components/pack/profile/packProfile';
 import { useScrollState, useLiked, useSaved } from '@/components/pack/vault/vaultScrolls';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
-import { devotionLevel } from '@/lib/devotion';
+import { devotionLevel, DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, visibleLocalTrails, tripPath } from '@/components/pack/tripShared';
@@ -160,7 +160,7 @@ export default function PackMe() {
   const bones = novice ? 0 : realBones;
   const [aboutDev, setAboutDev] = useState(false);
   // `?dnes=1` = ťuk na večernú pripomienku → panel dennej aktivity (DEVOTION, 23. 10. 2026).
-  const [todayOpen, setTodayOpen] = useState(() => new URLSearchParams(location.search).get('dnes') === '1');
+  const [todayOpen, setTodayOpen] = useState(() => DEVOTION_TODAY_ON && new URLSearchParams(location.search).get('dnes') === '1');
   const uid = session?.user?.id ?? null;
   const { dogs } = usePackUser(uid);
   const { profile } = useProfile();

@@ -1,3 +1,4 @@
+import { DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { readHuman, patchHuman, notifOff, devotionTimes } from '@/lib/humanPrefs';
 import { useEffect, useState } from 'react';
 import { forgetPushToken } from '@/lib/appPush';
@@ -282,7 +283,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
       {/* VEČERNÁ PRIPOMIENKA ODDANOSTI (23. 10. 2026) — prvý druh s vlastným prepínačom z registra
           `lib/notifRegister.ts`. Žije v `human.notif_off` + `human.devotion_times` (2× denne); ten istý
           prepínač je aj v paneli „Dnešok". Pod hlavným vypínačom: keď je pošta vypnutá, nechodí nič. */}
-      {notifOn && (
+      {notifOn && DEVOTION_TODAY_ON && (
         <Field icon={<BrandIcon name="sun" size={16} tint="gold" />} label={tx('pack.dvtoday.reminder', 'Evening reminder')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             {[0, 1].map((i) => (

@@ -10,7 +10,7 @@ import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS, GOLD_BTN } from '@/components/pack/packTheme';
 import { NIGHT, NIGHT_EDGE, NIGHT_INK, DEVOTION_TIERS, devotionVars } from '@/lib/devotionTiers';
-import { DEVOTION_LEVELS, DEVOTION_DAILY, DEVOTION_ONCE, DEVOTION_FEED, DEVOTION_DEED, DEVOTION_TRIP, DEVOTION_DAY_CAP, DEVOTION_STREAK, devotionLevel } from '@/lib/devotion';
+import { DEVOTION_LEVELS, DEVOTION_DAILY, DEVOTION_ONCE, DEVOTION_FEED, DEVOTION_DEED, DEVOTION_TRIP, DEVOTION_DAY_CAP, DEVOTION_STREAK, DEVOTION_TODAY_ON, devotionLevel } from '@/lib/devotion';
 import { DevotionToday } from '@/components/pack/profile/DevotionToday';
 import { DevotionMark } from '@/components/pack/profile/meHead';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -156,7 +156,7 @@ export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClos
             </div>
           )}
           <p className="dvs-intro">{tx('pack.dvinfo.intro', 'Devotion grows with what you do for your dog and the pack — prayers, sacraments and recognitions. It cannot be bought.')}</p>
-          <button type="button" className="dvs-cta" onClick={() => setTodayOpen(true)}>{tx('pack.dvinfo.logToday', 'Log today')}</button>
+          {DEVOTION_TODAY_ON && <button type="button" className="dvs-cta" onClick={() => setTodayOpen(true)}>{tx('pack.dvinfo.logToday', 'Log today')}</button>}
           {groups.map(([icon, head, rows]) => (
             <div key={head} className="dvs-grp">
               <h4><span><BrandIcon name={icon} size={14} /></span>{head}</h4>
