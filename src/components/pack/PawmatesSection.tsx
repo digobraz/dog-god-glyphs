@@ -145,7 +145,8 @@ function sameRights(dogs: PawmateRow['dogs']): boolean {
   return dogs.every((d) => key(d.rights) + '|' + d.role === first);
 }
 
-export function PawmatesSection() {
+/** `bare` = bez karty a nadpisu — v UPRAVIŤ PROFIL je to tretí riadok bloku MOJA SVORKA (23. 10. 2026). */
+export function PawmatesSection({ bare = false }: { bare?: boolean } = {}) {
   const t = useT();
   const { lang } = useLang();
   const tx = useCallback((k: string, f: string) => { const v = t(k); return v === k ? f : v; }, [t]);
@@ -600,6 +601,8 @@ export function PawmatesSection() {
       </div>
     );
   }
+
+  if (bare) return <div id="pawmates"><style>{PF_FIELD_CSS}{CSS}</style>{body}</div>;
 
   return (
     // Úroveň 1 MATRICE (KARTA) — sekcia stojí na stránke vedľa ostatných kariet

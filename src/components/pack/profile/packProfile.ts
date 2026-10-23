@@ -93,7 +93,10 @@ export interface HumanProfile {
   diet?: Diet;
   intents: Intent[];         // default []
   personality: PersonalityTag[]; // koncentrát osobnosti — max MAX_PERSONALITY, default []
-  customPersonality?: string;    // ONE user-written personality pill (counts toward MAX_PERSONALITY)
+  customPersonality?: string;    // PRVÁ vlastná pilulka (counts toward MAX_PERSONALITY) — SNIFFER číta len túto
+  /** ĎALŠIE vlastné pilulky (23. 10. 2026, Matej: „daj viac možností nie len jednu pridania vlastného").
+   *  Prvá ostáva v `customPersonality`, aby SNIFFER a staré profily fungovali bez zmeny. Číta `customPills()`. */
+  customExtra?: string[];
   smoke?: Smoke;             // Yes/No — nahrádza `smoking` v renderi (pole ostáva pre back-compat)
   work?: Work;
   /** Fotka ČLOVEKA A PSA spolu — podmienka BUDDY (zadanie-assnif §3.1, nákres 0c).
@@ -986,4 +989,9 @@ export function useProfile(): { profile: CentralProfile | null; reload: () => vo
   }, [reload]);
 
   return { profile, reload };
+}
+
+/** Všetky vlastné pilulky človeka v poradí (prvá = `customPersonality`, potom `customExtra`). */
+export function customPills(h: Pick<HumanProfile, 'customPersonality' | 'customExtra'> | null | undefined): string[] {
+  return [h?.customPersonality, ...(h?.customExtra ?? [])].map((v) => v?.trim() ?? '').filter(Boolean);
 }

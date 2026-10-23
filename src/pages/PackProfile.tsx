@@ -14,7 +14,6 @@ import { PACK_THEME, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE, PACK_R, PF_FIEL
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { ME_CSS, RING, DOG_FONT, MeCover, MeOwn } from '@/components/pack/profile/meHead';
-import { SvorkaSheet } from '@/components/pack/profile/SvorkaSheet';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -42,6 +41,7 @@ import {
   MAX_PERSONALITY,
   HIDEABLE_IDENTITY_FIELDS,
   isHidden,
+  customPills,
   type ProfileFieldKey,
 } from '@/components/pack/profile/packProfile';
 import { HandCamera } from '@/components/pack/HandIcons';
@@ -100,7 +100,6 @@ const EDIT_CSS = `
   background:color-mix(in srgb, ${T.pageBg} 55%, transparent);color:${T.card};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
 .pe-own-cam{position:absolute;right:0;bottom:${S.sm}px;z-index:4;}
 .pe-grp{margin-top:${S.lg}px;padding:${S.lg}px;}
-.pe-grp:first-of-type{margin-top:${S.sm}px;}
 .pe-gh{display:flex;align-items:center;justify-content:space-between;gap:${S.sm}px;margin-bottom:${S.md}px;color:${T.inkDim};}
 .pe-gh .pk-pill{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;padding:${S.xs}px ${S.md}px;}
 .pe-lbl{display:block;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};margin:${S.lg}px 0 ${S.sm}px;}
@@ -120,9 +119,55 @@ const EDIT_CSS = `
 .pe-ghost .c{background:transparent;box-shadow:none;border:1.5px dashed ${LAPIS.edge};opacity:.55;display:grid;place-items:center;padding:0;}
 .pe-ghost:hover .c{opacity:.85;}
 .pe-ghost .c img{width:auto;height:auto;border:0;background:none;border-radius:0;}
+/* MENÁ — riadok = krúžok (zobraziť) · štítok · pole bez rámu. Jemné, žiadna veľká pilulka. */
+.pe-names{display:flex;flex-direction:column;}
+.pe-nm{display:grid;grid-template-columns:18px 104px minmax(0,1fr);align-items:center;gap:${S.sm}px;min-height:40px;border-bottom:1px solid ${T.hairline};}
+.pe-nl{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};white-space:nowrap;}
+.pe-nm.on .pe-nl{color:${LAPIS.edge};}
+.pe-nm input{width:100%;min-width:0;border:0;background:none;outline:none;padding:${S.sm}px 0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
+.pe-nm input:focus{box-shadow:inset 0 -2px 0 ${LAPIS.edge};}
+.pe-nm input::placeholder{color:${T.inkFaint};}
+.pe-nm em{font-style:normal;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkDim};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pe-nm.lock{border-bottom:0;}
+.pe-dot{width:16px;height:16px;border-radius:${PACK_R.pill}px;border:1.5px solid ${T.border};background:transparent;padding:0;cursor:pointer;display:grid;place-items:center;}
+.pe-nm.on .pe-dot{border-color:${LAPIS.edge};background:radial-gradient(circle, ${LAPIS.edge} 0 4px, transparent 5px);}
+.pe-nm.lock .pe-dot{border:0;cursor:default;}
+.pe-hint{margin:${S.xs}px 0 0;font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;color:${T.inkFaint};}
+/* POVAHA — všetky pilulky v ŠTYROCH radoch, ťahá sa do strany; vybraté a vlastné idú prvé. */
+.pe-pills-h{display:flex;justify-content:space-between;align-items:center;margin:${S.lg}px 0 ${S.sm}px;}
+.pe-pills{display:grid;grid-template-rows:repeat(4,auto);grid-auto-flow:column;grid-auto-columns:max-content;justify-items:start;gap:6px;
+  overflow-x:auto;scrollbar-width:none;margin-right:-${S.lg}px;padding:0 ${S.lg}px 2px 0;}
+.pe-pills::-webkit-scrollbar{display:none;}
+.pe-pills .pf-pill,.pe-pills .pe-own{white-space:nowrap;}
+.pe-own{display:inline-flex;align-items:center;gap:${S.xs}px;border-radius:${PACK_R.pill}px;padding:${S.xs}px ${S.sm}px;cursor:pointer;
+  background:transparent;border:1px dashed ${LAPIS.edge};color:${LAPIS.edge};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;}
+.pe-own input{width:96px;border:0;outline:none;background:none;font:inherit;color:${T.ink};padding:0;}
+/* ZÁKLAD + ŠTÝL — jedna mriežka buniek (štítok nad hodnotou). */
+.pe-facts{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${S.sm}px ${S.md}px;margin-top:${S.lg}px;padding-top:${S.lg}px;border-top:1px solid ${T.hairline};}
+.pe-eye{position:absolute;right:0;top:-${S.md}px;background:${T.card};border-radius:${PACK_R.pill}px;}
+.pe-cell{display:flex;flex-direction:column;gap:${S.xs}px;min-width:0;}
+.pe-cell small{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
+.pe-cell .pf-field{width:100%;justify-content:space-between;background:none !important;border:0 !important;border-bottom:1px solid ${T.hairline} !important;
+  box-shadow:none !important;border-radius:0 !important;padding:${S.xs}px 0 !important;min-height:0;font-size:${PACK_TEXT.body}px !important;}
+.pe-cell .pf-field:focus,.pe-cell .pf-field:focus-within{border-bottom-color:${LAPIS.edge} !important;}
+.pe-cell .pf-field input{font-size:${PACK_TEXT.body}px !important;}
+/* MOJA SVORKA — rámik = úzky kruh (ja + psy), pod ním šípka k voliteľnému pawmatovi. */
+.pe-core{border:1px solid ${T.cardEdge};border-radius:${PACK_R.tile}px;padding:${S.md}px;background:color-mix(in srgb, ${T.card} 55%, transparent);}
+.pe-core .pe-lbl:first-child{margin-top:0;}
+.pe-mate{display:flex;align-items:center;gap:${S.sm}px;margin:${S.md}px 0 ${S.sm}px;}
+.pe-arrow{display:grid;place-items:center;transform:rotate(-90deg);opacity:.7;}
+.pe-mate i{font-style:normal;letter-spacing:.02em;text-transform:none;}
+.pe-mem.angel .c{background:linear-gradient(180deg, ${T.card}, ${T.hairline});}
+.pe-mem.angel .c img{filter:grayscale(1);opacity:.8;}
+.pe-sup{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:${S.sm}px;margin-top:${S.md}px;padding-top:${S.md}px;border-top:1px solid ${T.hairline};}
+.pe-sup-b{display:flex;align-items:center;gap:${S.md}px;flex-wrap:wrap;}
+.pe-mail{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${LAPIS.edge};}
 .pe-ver{text-align:center;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;color:${T.inkDim};margin-top:${S.lg}px;}
 @media (min-width:768px){
   .pe-card .me-under{ padding-bottom:${S.xl}px; }
+  .pe-facts{grid-template-columns:repeat(4,minmax(0,1fr));}
+  .pe-pills{margin-right:0;padding-right:0;}
+  .pe-nm{grid-template-columns:18px 140px minmax(0,1fr);}
   .pe-grp{padding:${S.lg}px ${S.xl}px;}
   .pe-mem .c{width:56px;height:56px;}
 }
@@ -141,7 +186,6 @@ export default function PackProfile() {
   const [uploading, setUploading] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const [coverY, setCoverY] = useState<number | null>(null);
-  const [packOpen, setPackOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const accountRef = useRef<HTMLDivElement | null>(null);
@@ -338,166 +382,173 @@ export default function PackProfile() {
               <span style={{ ...PACK_HEAD.section }}>{tx('pack.edit.aboutMe', 'About me')}</span>
               <span className="pk-pill">Pawtner</span>
             </div>
-            <div className="pf-rows">
-              <div className={`pf-row${(human?.displayAs ?? 'name') === 'name' ? ' is-shown' : ''}`}>
-                <span className="pf-row-lbl">{tx('pack.profile.name', 'Name')}</span>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => { setFullName(e.target.value); setNameDirty(true); }}
-                  onBlur={() => { handleSaveName(); }}
-                  /* Prázdne = platí meno z OBJEDNÁVKY (Matej 2026-08-26) — ukážeme ho ako predlohu. */
-                  placeholder={orderName || tx('pack.profile.namePlaceholder', 'Your name')}
-                  className="pf-field pf-field--flat"
-                  style={{ width: '100%', minWidth: 0, borderRadius: PACK_R.field, padding: '8px 12px', color: T.ink, fontFamily: FONT_UI }}
-                />
-              </div>
-              <div className={`pf-row${human?.displayAs === 'nickname' ? ' is-shown' : ''}`}>
-                <span className="pf-row-lbl">{tx('pack.profile.nickname', 'Nickname')}</span>
-                <AutoSaveTextInput
-                  value={human?.nickname ?? ''}
-                  onSave={(v) => patchHuman({ nickname: v || undefined })}
-                  placeholder={tx('pack.profile.nicknamePlaceholder', 'Pack calls you')}
-                  align="left"
-                />
-              </div>
-              <div className={`pf-row${human?.displayAs === 'packName' ? ' is-shown' : ''}`}>
-                <span className="pf-row-lbl">{tx('pack.profile.packName', 'Pack name')}</span>
-                <AutoSaveTextInput
-                  value={human?.packName ?? ''}
-                  onSave={(v) => patchHuman({ packName: v || undefined })}
-                  placeholder={tx('pack.profile.packNamePlaceholder', 'Your household')}
-                  align="left"
-                />
-              </div>
-              <div className="pf-row pf-row--toggle">
-                <span className="pf-row-lbl">{tx('pack.profile.showAs', 'Show as')}</span>
-                <DisplayAsToggle value={human?.displayAs ?? 'name'} onChange={(v) => patchHuman({ displayAs: v })} />
-              </div>
+
+            {/* MENÁ — tri meniteľné, jedno z nich vidia ostatní (krúžok vľavo = „toto ukáž").
+                Meno na certifikáte je doklad z objednávky a NEMENÍ sa — stojí pod nimi so zámkom.
+                Nahradilo veľký prepínač „Zobraziť ako" (Matej 23. 10.: „moc veľký, hrubý"). */}
+            <div className="pe-names">
+              {([
+                ['name', tx('pack.profile.name', 'Name')],
+                ['nickname', tx('pack.profile.nickname', 'Nickname')],
+                ['packName', tx('pack.profile.packName', 'Pack name')],
+              ] as const).map(([k, label]) => {
+                const on = (human?.displayAs ?? 'name') === k;
+                return (
+                  <div key={k} className={`pe-nm${on ? ' on' : ''}`}>
+                    <button type="button" className="pe-dot" aria-pressed={on} aria-label={`${tx('pack.profile.showAs', 'Show as')}: ${label}`}
+                      onClick={() => patchHuman({ displayAs: k })} />
+                    <span className="pe-nl">{label}</span>
+                    {k === 'name' ? (
+                      <input
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => { setFullName(e.target.value); setNameDirty(true); }}
+                        onBlur={() => { handleSaveName(); }}
+                        /* Prázdne = platí meno z OBJEDNÁVKY (Matej 2026-08-26) — ukážeme ho ako predlohu. */
+                        placeholder={orderName || tx('pack.profile.namePlaceholder', 'Your name')}
+                      />
+                    ) : (
+                      <LineInput
+                        value={(k === 'nickname' ? human?.nickname : human?.packName) ?? ''}
+                        onSave={(v) => patchHuman(k === 'nickname' ? { nickname: v || undefined } : { packName: v || undefined })}
+                        placeholder={k === 'nickname' ? tx('pack.profile.nicknamePlaceholder', 'Pack calls you') : tx('pack.profile.packNamePlaceholder', 'Your household')}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+              {orderName && (
+                <div className="pe-nm lock">
+                  <span className="pe-dot" aria-hidden><BrandIcon name="lock" size={10} tint="dim" /></span>
+                  <span className="pe-nl">{tx('pack.edit.certName', 'On the certificate')}</span>
+                  <em>{orderName}</em>
+                </div>
+              )}
+              <p className="pe-hint">{tx('pack.edit.shownHint', '● = the name others see')}</p>
             </div>
 
-            <span className="pe-lbl">{tx('pack.profile.bioHeading', 'BIO: What my dog would probably say about me')}</span>
-            <WordLimitTextarea
-              value={human?.dogVoiceBio ?? ''}
-              onSave={(v) => patchHuman({ dogVoiceBio: v })}
-              placeholder={tx('pack.profile.bioPlaceholder', 'My human wakes up at 6 just to walk me. Slightly obsessed. Would recommend. — 🐾')}
-              rows={4}
-              white
-            />
-
-            <div style={{ marginTop: S.lg }}>
-              <PersonalityConcentrate human={human} patchHuman={patchHuman} />
+            {/* BIO — bez nadpisu, otázka je priamo v poli (Matej 23. 10.). */}
+            <div style={{ marginTop: S.md }}>
+              <WordLimitTextarea
+                value={human?.dogVoiceBio ?? ''}
+                onSave={(v) => patchHuman({ dogVoiceBio: v })}
+                placeholder={tx('pack.profile.bioHeading', 'BIO: What my dog would probably say about me')}
+                rows={3}
+                white
+              />
             </div>
 
-            <div className="pf-rows" style={{ marginTop: S.lg }}>
-              <div className="pf-rows-ttl">
-                <span>{tx('pack.profile.basics', 'The basics')}</span>
-                <IdentityVisibilityEye profile={profile} patchHuman={patchHuman} />
-              </div>
-              <HideWrap hidden={isHidden(profile, 'age')}>
-                <div className="pf-row">
-                  <span className="pf-row-lbl">{tx('pack.profile.agePlaceholder', 'Age')}</span>
-                  <MiniChipInput emoji="🎂" type="number" value={human?.age} placeholder="—" width={40}
+            <PillPicker human={human} patchHuman={patchHuman} />
+
+            {/* ZÁKLAD + ŽIVOTNÝ ŠTÝL v jednej mriežke, bez nadpisov (Matej 23. 10.: „skonsoliduj"). */}
+            <div className="pe-facts">
+              <span className="pe-eye"><IdentityVisibilityEye profile={profile} patchHuman={patchHuman} /></span>
+              <label className="pe-cell">
+                <small>{tx('pack.profile.agePlaceholder', 'Age')}</small>
+                <HideWrap hidden={isHidden(profile, 'age')}>
+                  <MiniChipInput emoji="🎂" type="number" value={human?.age} placeholder="—" width={48}
                     onSave={(v) => patchHuman({ age: v === '' ? undefined : Number(v) })} />
-                </div>
-              </HideWrap>
-              <div className="pf-row">
-                <span className="pf-row-lbl">{tx('pack.profile.nationality', 'Nationality')}</span>
+                </HideWrap>
+              </label>
+              <label className="pe-cell">
+                <small>{tx('pack.profile.nationality', 'Nationality')}</small>
                 <NationalitySelect value={human?.nationality ?? 'SK'} onChange={(v) => patchHuman({ nationality: v })} />
-              </div>
-              <HideWrap hidden={isHidden(profile, 'region')}>
-                <div className="pf-row">
-                  <span className="pf-row-lbl">{tx('pack.profile.cityPlaceholder', 'City')}</span>
-                  <MiniChipInput emoji="📍" value={human?.region ?? ''} placeholder="—" width={150}
+              </label>
+              <label className="pe-cell">
+                <small>{tx('pack.profile.cityPlaceholder', 'City')}</small>
+                <HideWrap hidden={isHidden(profile, 'region')}>
+                  <MiniChipInput emoji="📍" value={human?.region ?? ''} placeholder="—" width={110}
                     onSave={(v) => patchHuman({ region: v || undefined })} />
-                </div>
-              </HideWrap>
-              <div className="pf-rows-ttl">
-                <span>{tx('pack.profile.lifestyle', 'Lifestyle')}</span>
-                <i>{tx('pack.profile.optional', 'Optional')}</i>
-              </div>
-              <div className="pf-row">
-                <span className="pf-row-lbl">{tx('pack.profile.statusPlaceholder', 'Status')}</span>
+                </HideWrap>
+              </label>
+              <label className="pe-cell">
+                <small>{tx('pack.profile.statusPlaceholder', 'Status')}</small>
                 <StatusSelect value={human?.relationship} onChange={(v) => patchHuman({ relationship: v })} />
-              </div>
-              <div className="pf-row">
-                <span className="pf-row-lbl">{tx('pack.profile.smokePlaceholder', 'Smoke')}</span>
+              </label>
+              <label className="pe-cell">
+                <small>{tx('pack.profile.smokePlaceholder', 'Smoke')}</small>
                 <LifestyleSelect emoji="" placeholder="—" options={SMOKE_OPTIONS} value={human?.smoke} onChange={(v) => patchHuman({ smoke: v })} />
-              </div>
-              <div className="pf-row">
-                <span className="pf-row-lbl">{tx('pack.profile.dietPlaceholder', 'Diet')}</span>
+              </label>
+              <label className="pe-cell">
+                <small>{tx('pack.profile.dietPlaceholder', 'Diet')}</small>
                 <LifestyleSelect emoji="" placeholder="—" options={DIET_OPTIONS} value={human?.diet} onChange={(v) => patchHuman({ diet: v })} />
-              </div>
-              <div className="pf-row">
-                <span className="pf-row-lbl">{tx('pack.profile.workPlaceholder', 'Work')}</span>
+              </label>
+              <label className="pe-cell">
+                <small>{tx('pack.profile.workPlaceholder', 'Work')}</small>
                 <LifestyleSelect emoji="" placeholder="—" options={WORK_OPTIONS} value={human?.work} onChange={(v) => patchHuman({ work: v })} />
-              </div>
+              </label>
             </div>
           </div>
 
-          {/* ── 2 · SVORKA — rad psov, rad ľudí; celá svorka v šuplíku (HeroCard z homepage) ── */}
+          {/* ── 2 · MOJA SVORKA — úzky kruh (JA + PSY) a voliteľný PAWMATE, bez popupu.
+              Tvar vysvetľuje sám seba: rámik = jadro svorky, šípka = pawmate sa k nemu pridáva.
+              Zosnulí psy (`life_status = 'deceased'`) stoja v tom istom rade ako anjeli. ── */}
           <div className="pe-grp" style={{ ...PACK_BOX.subblock }}>
             <div className="pe-gh">
-              <span style={{ ...PACK_HEAD.section }}>{tx('pack.edit.secPack', 'Pack')}</span>
-              <button type="button" className="pe-show" onClick={() => setPackOpen(true)}>
-                <BrandIcon name="people" size={12} tint="violet" />
-                {tx('pack.edit.showPack', 'Show pack')}
-              </button>
+              <span style={{ ...PACK_HEAD.section }}>{tx('pack.edit.mySvorka', 'My pack')}</span>
             </div>
-            <span className="pe-lbl" style={{ marginTop: 0 }}>{tx('pack.edit.dogs', 'Dogs')}</span>
-            <div className="pe-line">
-              {dogs.map((d) => (
-                <button key={d.id} type="button" className="pe-mem" onClick={() => navigate(`/pack/dogs/${d.id}`)}>
-                  <span className="c">{d.cloudinary_main_url ? <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" /> : <i />}</span>
-                  <span>
-                    <b>{d.dog_name}{d.pack_number != null && <span className="pe-num">#{d.pack_number}</span>}</b>
-                    <small>DOG ID</small>
-                  </span>
+            <div className="pe-core">
+              <span className="pe-lbl">{tx('pack.edit.me', 'Me')} · Pawtner</span>
+              <div className="pe-line">
+                <button type="button" className="pe-mem hu" onClick={() => fileInputRef.current?.click()}>
+                  <span className="c">{avatarUrl ? <img src={sizedUrl(avatarUrl, 140)} alt="" /> : <i>{initial}</i>}</span>
+                  <span><b>{shownName}</b><small>Pawtner</small></span>
                 </button>
-              ))}
+              </div>
+              <span className="pe-lbl">{tx('pack.edit.dogs', 'Dogs')}</span>
+              <div className="pe-line">
+                {dogs.map((d) => {
+                  const angel = d.life_status === 'deceased';
+                  return (
+                    <button key={d.id} type="button" className={`pe-mem${angel ? ' angel' : ''}`} onClick={() => navigate(`/pack/dogs/${d.id}`)}>
+                      <span className="c">{d.cloudinary_main_url ? <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" /> : <i />}</span>
+                      <span>
+                        <b>{d.dog_name}{d.pack_number != null && <span className="pe-num">#{d.pack_number}</span>}</b>
+                        <small>{angel ? tx('pack.tree.angel', 'Angel') : 'DOG ID'}</small>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <span className="pe-lbl">{tx('pack.edit.people', 'People')}</span>
-            <div className="pe-line">
-              <button type="button" className="pe-mem hu" onClick={() => fileInputRef.current?.click()}>
-                <span className="c">{avatarUrl ? <img src={sizedUrl(avatarUrl, 140)} alt="" /> : <i>{initial}</i>}</span>
-                <span>
-                  <b>{shownName}</b>
-                  <small>Pawtner</small>
-                </span>
-              </button>
-              <button type="button" className="pe-mem pe-ghost" onClick={soon} aria-label={tx('pack.edit.soon', 'Coming soon.')}>
-                <span className="c"><BrandIcon name="add-user" size={20} tint="violet" /></span>
-              </button>
+            <div className="pe-mate">
+              <span className="pe-arrow" aria-hidden><BrandIcon name="back" size={14} tint="dim" /></span>
+              <span className="pe-lbl" style={{ margin: 0 }}>
+                {tx('pack.add.pawmate', 'Pawmate')} · <i>{tx('pack.hero.rolePawmate', 'pack member (partner, family)')}</i>
+              </span>
             </div>
+            {PAWMATE_LIVE ? (
+              <PawmatesSection bare />
+            ) : (
+              <div className="pe-line">
+                <button type="button" className="pe-mem pe-ghost" onClick={soon}>
+                  <span className="c"><BrandIcon name="add-user" size={20} tint="violet" /></span>
+                  <span><small>{tx('pack.add.soon', 'Soon')}</small></span>
+                </button>
+              </div>
+            )}
+            <p className="pe-hint" style={{ textAlign: 'center', marginTop: S.md }}>{tx('pack.hero.roleRule', 'Only a Pawtner can create a Pawmate.')}</p>
           </div>
 
-          {/* ── 3 · ÚČET ── */}
+          {/* ── 3 · ÚČET A APPKA ── */}
           <div className="pe-grp" ref={accountRef} style={{ ...PACK_BOX.subblock, scrollMarginTop: 96 }}>
             <div className="pe-gh">
               <span style={{ ...PACK_HEAD.section }}>{tx('pack.edit.secAccount', 'Account & app')}</span>
             </div>
             <PackSettings bare />
+            {/* PODPORA — AINUBIS rieši hlásenia a otázky (brand: AINUBIS = bezpečnosť a hlásenia), mail je záloha. */}
+            <div className="pe-sup">
+              <span className="pe-lbl" style={{ margin: 0 }}>{tx('pack.edit.support', 'Support')}</span>
+              <span className="pe-sup-b">
+                <button type="button" className="pe-show" onClick={() => navigate('/pack/ainubis')}>{tx('pack.edit.supportAi', 'Ask AINUBIS')}</button>
+                <a className="pe-mail" href="mailto:woof@dogypt.com">woof@dogypt.com</a>
+              </span>
+            </div>
             {/* ČÍSLO VERZIE — LEN V APPKE (21. 10. 2026), rovnaké ako `version` v dogypt.com/app-update.json. */}
             {appVer && <div className="pe-ver">DOGYPT · {APP_PLATFORM} · {appVer}</div>}
           </div>
-
-          {/* PAWMATES — správa svorky z pohľadu človeka; `PAWMATE_LIVE` je dnes `false`. */}
-          {PAWMATE_LIVE && <div style={{ marginTop: S.xl }}><PawmatesSection /></div>}
         </div>
       </section>
-
-      {packOpen && (
-        <SvorkaSheet
-          name={shownName}
-          email={email}
-          avatarUrl={avatarUrl}
-          devotion={devotion}
-          bones={bones}
-          dogs={dogs.map((d) => ({ id: d.id, dog_name: d.dog_name, cloudinary_main_url: d.cloudinary_main_url, pack_number: d.pack_number ?? null }))}
-          packName={human?.packName ?? null}
-          onClose={() => setPackOpen(false)}
-        />
-      )}
     </PackLayout>
   );
 }
@@ -527,14 +578,6 @@ function countWords(s: string): number {
 // LANGUAGE_OPTIONS removed from BLOK 1 UI (zadanie-profil-blok1-rework-2026-07-24
 // — `human.languages` data field stays, just no longer rendered here).
 
-// Small sub-heading above a field/group.
-function SubFieldLabel({ label }: { label: string }) {
-  return (
-    <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkDim, display: 'block', marginBottom: 8 }}>
-      {label}
-    </span>
-  );
-}
 
 // Reusable pill — selected = gold fill (T.accentGold) + dark text, unselected =
 // T.bg + hairline border + inkDim text. Emoji prefix (font-native, per
@@ -580,146 +623,6 @@ function ProfilePill<V extends string>({
   );
 }
 
-// Koncentrát osobnosti — 20 pills / 5 groups (Vibe/Active/Creative/Taste/
-// Dogs), ONE shared max-10 limit + "{n}/10" counter (zadanie-profil-
-// koncentrat-2026-07-24 ČASŤ B.2). Selected pills stay clickable (unselect
-// always allowed); unselected pills disable once the cap is hit.
-function PersonalityConcentrate({
-  human,
-  patchHuman,
-  center = false,
-  hideLabel = false,
-}: {
-  human: HumanProfile | undefined;
-  patchHuman: (p: Partial<HumanProfile>) => void;
-  center?: boolean;
-  hideLabel?: boolean;
-}) {
-  const t = useT();
-  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
-  const selected = human?.personality ?? [];
-  const custom = human?.customPersonality;
-  const total = selected.length + (custom ? 1 : 0);
-  const atMax = total >= MAX_PERSONALITY;
-  const [adding, setAdding] = useState(false);
-  const [draft, setDraft] = useState('');
-
-  const toggle = (v: PersonalityTag) => {
-    if (selected.includes(v)) {
-      patchHuman({ personality: selected.filter((x) => x !== v) });
-    } else if (!atMax) {
-      patchHuman({ personality: [...selected, v] });
-    }
-  };
-
-  const saveCustom = () => {
-    const trimmed = draft.trim().slice(0, 24);
-    patchHuman({ customPersonality: trimmed || undefined });
-    setDraft('');
-    setAdding(false);
-  };
-
-  return (
-    <div>
-      <div
-        className={`flex items-center ${center ? 'justify-center' : 'justify-between'}`}
-        style={{ marginBottom: 10, gap: center ? 8 : 0 }}
-      >
-        {!hideLabel && (
-          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkDim }}>
-            {tx('pack.profile.personality', 'Personality')}
-          </span>
-        )}
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: atMax ? T.accentGold : T.inkFaint }}>
-          {total}/{MAX_PERSONALITY}
-        </span>
-      </div>
-      {/* Flat pool — no group sub-headings, tighter gaps (Matej 2026-07-24:
-          „daj preč nadpisy … tie pils sú veľké a roztiahnuté"). Last: ONE
-          user-written custom pill („pridať vlastný pill, len 1x"). */}
-      <div className={`flex flex-wrap gap-1.5 ${center ? 'justify-center' : ''}`}>
-        {PERSONALITY_OPTIONS.map((opt) => {
-          const isSelected = selected.includes(opt.value);
-          return (
-            <ProfilePill
-              key={opt.value}
-              option={opt}
-              selected={isSelected}
-              disabled={!isSelected && atMax}
-              onClick={() => toggle(opt.value)}
-            />
-          );
-        })}
-
-        {/* Custom pill — set = gold chip with ✕ to remove; unset = "+ Add your
-            own" (only when there's room). One only. */}
-        {custom ? (
-          <button
-            type="button"
-            onClick={() => patchHuman({ customPersonality: undefined })}
-            className="pf-pill is-selected inline-flex items-center gap-1"
-            style={{
-              borderRadius: 999,
-              padding: '4px 8px',
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 10,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            <span aria-hidden>✏️</span>
-            {custom}
-            <span aria-hidden style={{ opacity: 0.7 }}>✕</span>
-          </button>
-        ) : adding ? (
-          <input
-            // Vlastné slovo (vôdzka) klávesnica prepisovala na „vodičku“ — Alenka 14. 10. 2026.
-            autoCorrect="off"
-            spellCheck={false}
-            autoFocus
-            value={draft}
-            maxLength={24}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={saveCustom}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') { e.preventDefault(); saveCustom(); }
-              if (e.key === 'Escape') { setDraft(''); setAdding(false); }
-            }}
-            placeholder={tx('pack.profile.customPersonalityPlaceholder', 'Your own…')}
-            className="pf-field"
-            style={{
-              borderRadius: 999,
-              padding: '4px 12px',
-              width: 120,
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 10,
-              color: T.ink,
-            }}
-          />
-        ) : !atMax ? (
-          <button
-            type="button"
-            onClick={() => setAdding(true)}
-            className="inline-flex items-center gap-1"
-            style={{
-              background: 'transparent',
-              border: `1px dashed ${T.border}`,
-              borderRadius: 999,
-              padding: '4px 8px',
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 10,
-              fontWeight: 500,
-              color: T.inkFaint,
-              cursor: 'pointer',
-            }}
-          >
-            {tx('pack.profile.addOwnPersonality', '＋ Add your own')}
-          </button>
-        ) : null}
-      </div>
-    </div>
-  );
-}
 
 // Compact lifestyle dropdown — same rounded-pill select chrome as
 // Nationality/Status above (ČASŤ B.3). Generic over any TaxonomyOption union.
@@ -1143,20 +1046,12 @@ function StatusSelect({
   );
 }
 
-// Full-width text input with the same on-blur autosave pattern as WordLimitTextarea
-// / MiniChipInput — used for Nickname. Compact sizing (zadanie-profil-shrink-2026-07-24)
-// matches the Name input it now sits next to.
-function AutoSaveTextInput({
-  value,
-  onSave,
-  placeholder,
-  align = 'left',
-}: {
-  value: string;
-  onSave: (v: string) => void;
-  placeholder?: string;
-  align?: 'left' | 'center';
-}) {
+
+
+
+
+// Pole mena bez rámu (riadok `.pe-nm`) — ukladá sa pri opustení, ako ostatné polia profilu.
+function LineInput({ value, onSave, placeholder }: { value: string; onSave: (v: string) => void; placeholder?: string }) {
   const [local, setLocal] = useState(value);
   useEffect(() => setLocal(value), [value]);
   return (
@@ -1164,59 +1059,80 @@ function AutoSaveTextInput({
       type="text"
       value={local}
       onChange={(e) => setLocal(e.target.value)}
-      onBlur={() => { if (local !== value) onSave(local); }}
+      onBlur={() => { if (local !== value) onSave(local.trim()); }}
       placeholder={placeholder}
-      className="pf-field pf-field--flat"
-      style={{
-        width: '100%',
-        borderRadius: 8,
-        padding: '8px 12px',
-        color: T.ink,
-        fontFamily: "'Space Grotesk', sans-serif",
-        fontSize: 12,
-        textAlign: align,
-      }}
     />
   );
 }
 
-// "Show as: Name / Nickname" — 2-option segment, same visual language as
-// VisibilityToggle (dark-fill selected pill inside a hairline pill track).
-function DisplayAsToggle({
-  value,
-  onChange,
-}: {
-  value: 'name' | 'nickname' | 'packName';
-  onChange: (v: 'name' | 'nickname' | 'packName') => void;
-}) {
+// POVAHA v UPRAVIŤ PROFIL (23. 10. 2026). Matej: *„pri pridaj vlastné daj viac možností nie len
+// jednu … ušetri priestor ale zachovaj pills nech sú na 3–4 riadky"*.
+// Všetko je v JEDNOM páse so ŠTYRMI radmi, ťahá sa do strany (pretŕča cez okraj karty ako pilulky
+// na profile). Poradie: „+ vlastná" · moje vlastné · vybraté · zvyšok — čo mám, vidím bez ťahania.
+// Vlastných môže byť viac; strop ostáva spoločný `MAX_PERSONALITY`.
+function PillPicker({ human, patchHuman }: { human: HumanProfile | undefined; patchHuman: (p: Partial<HumanProfile>) => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
-  // NÁZOV SVORKY ako tretia voľba (Matej 21. 10. 2026: „pri zobraziť by som dal aj názov svorky").
-  const opts: Array<{ key: 'name' | 'nickname' | 'packName'; label: string }> = [
-    { key: 'name', label: tx('pack.profile.name', 'Name') },
-    { key: 'nickname', label: tx('pack.profile.nickname', 'Nickname') },
-    { key: 'packName', label: tx('pack.profile.packName', 'Pack name') },
-  ];
-  /* Matej 2026-08-13: „zobraziť meno/prezývky urob o trošku výraznejšie je to takmer
-     neviditeľné a tá pils okolo tú nezarovnaj až po koniec textarea nad ňou".
-     Vzhľad je CELÝ v `.pf-toggle` / `.pf-toggle__opt` (packTheme.ts) — inline štýl by
-     na mobile prebil media query, ktorá prepínač zmenšuje, aby sa vošiel do karty.
-     Modrá (`T.partHek`) tu bola do 12. 8., zrušená spolu so zvyškom modrej v bloku. */
+  const selected = human?.personality ?? [];
+  const customs = customPills(human);
+  const total = selected.length + customs.length;
+  const atMax = total >= MAX_PERSONALITY;
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState('');
+
+  const saveCustoms = (list: string[]) => patchHuman({ customPersonality: list[0] || undefined, customExtra: list.slice(1) });
+  const toggle = (v: PersonalityTag) => {
+    if (selected.includes(v)) patchHuman({ personality: selected.filter((x) => x !== v) });
+    else if (!atMax) patchHuman({ personality: [...selected, v] });
+  };
+  const commit = () => {
+    const w = draft.trim().slice(0, 24);
+    if (w && !atMax && !customs.includes(w)) saveCustoms([...customs, w]);
+    setDraft('');
+    setAdding(false);
+  };
+  const ordered = [...PERSONALITY_OPTIONS.filter((o) => selected.includes(o.value)), ...PERSONALITY_OPTIONS.filter((o) => !selected.includes(o.value))];
+
   return (
-    <div className="pf-toggle inline-flex items-center" style={{ borderRadius: 999, padding: 4, gap: 3 }}>
-      {opts.map((opt) => (
-        <button
-          key={opt.key}
-          type="button"
-          onClick={() => onChange(opt.key)}
-          aria-pressed={value === opt.key}
-          className={`pf-toggle__opt${value === opt.key ? ' is-on' : ''}`}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
+    <>
+      <div className="pe-pills-h">
+        <span style={{ ...PACK_HEAD.section, color: T.inkDim }}>{tx('pack.profile.personality', 'Personality')}</span>
+        <span style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.micro, color: atMax ? T.accentGold : T.inkFaint }}>{total}/{MAX_PERSONALITY}</span>
+      </div>
+      <div className="pe-pills">
+        {adding ? (
+          <span className="pe-own">
+            <input
+              autoFocus
+              // Vlastné slovo (vôdzka) klávesnica prepisovala na „vodičku“ — Alenka 14. 10. 2026.
+              autoCorrect="off"
+              spellCheck={false}
+              value={draft}
+              maxLength={24}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { e.preventDefault(); commit(); }
+                if (e.key === 'Escape') { setDraft(''); setAdding(false); }
+              }}
+              placeholder={tx('pack.profile.customPersonalityPlaceholder', 'Your own…')}
+            />
+          </span>
+        ) : !atMax ? (
+          <button type="button" className="pe-own" onClick={() => setAdding(true)}>{tx('pack.profile.addOwnPersonality', '＋ Add your own')}</button>
+        ) : null}
+        {customs.map((c) => (
+          <button key={`c-${c}`} type="button" className="pf-pill is-selected inline-flex items-center gap-1"
+            onClick={() => saveCustoms(customs.filter((x) => x !== c))}
+            style={{ borderRadius: PACK_R.pill, padding: '4px 8px', fontFamily: FONT_UI, fontSize: PACK_TEXT.micro, fontWeight: 600, cursor: 'pointer' }}>
+            <span aria-hidden>✏️</span>{c}<span aria-hidden style={{ opacity: 0.7 }}>✕</span>
+          </button>
+        ))}
+        {ordered.map((opt) => {
+          const on = selected.includes(opt.value);
+          return <ProfilePill key={opt.value} option={opt} selected={on} disabled={!on && atMax} onClick={() => toggle(opt.value)} />;
+        })}
+      </div>
+    </>
   );
 }
-
-

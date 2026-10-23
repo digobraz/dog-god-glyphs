@@ -20,7 +20,7 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
-import { useProfile, PERSONALITY_OPTIONS, type DogProfileAttrs } from '@/components/pack/profile/packProfile';
+import { useProfile, customPills, PERSONALITY_OPTIONS, type DogProfileAttrs } from '@/components/pack/profile/packProfile';
 import { useScrollState } from '@/components/pack/vault/vaultScrolls';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { devotionLevel } from '@/lib/devotion';
@@ -55,7 +55,7 @@ type Private = 'saved' | 'diary';
 type PostTile = { id: string; photo: string; trip: string | null };
 
 /** Pilulky človeka = jeho POVAHA z editora (emoji + meno) + jedna vlastná. */
-function humanPills(personality: string[] | undefined, custom: string | undefined, t: (k: string) => string) {
+function humanPills(personality: string[] | undefined, custom: string[], t: (k: string) => string) {
   const out = (personality ?? []).flatMap((v) => {
     const o = PERSONALITY_OPTIONS.find((x) => x.value === v);
     if (!o) return [];
@@ -63,7 +63,7 @@ function humanPills(personality: string[] | undefined, custom: string | undefine
     const label = t(key) === key ? o.labelEN : t(key);
     return [{ k: v, emoji: o.emoji ?? '', label }];
   });
-  if (custom?.trim()) out.push({ k: 'custom', emoji: '', label: custom.trim() });
+  custom.forEach((c, i) => out.push({ k: `custom${i}`, emoji: '', label: c }));
   return out;
 }
 
@@ -226,7 +226,7 @@ export default function PackMe() {
   const dash = <b className="na" aria-label={tx('pack.me.notYet', 'not yet')}>—</b>;
   // Titulka = vlastná (UPRAVIŤ PROFIL), inak fotka človeka so psom (SNIFFER), inak hlavná fotka prvého psa; bez fotky ostane čierna.
   const coverSrc = human?.coverPhoto || human?.buddyPhoto || firstDog?.cloudinary_main_url || null;
-  const pills = humanPills(human?.personality, human?.customPersonality, t);
+  const pills = humanPills(human?.personality, customPills(human), t);
 
   const TABS: Array<[Tab, string, string]> = [
     ['all', 'layers', tx('pack.me.tabAll', 'All')],
