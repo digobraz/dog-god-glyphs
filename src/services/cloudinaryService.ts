@@ -54,7 +54,16 @@ export const uploadAvatarPhoto = (blob: Blob, userId: string) =>
 export const uploadCoverPhoto = (blob: Blob, userId: string) =>
   uploadBlob(blob, `avatars/${userId}`, `cover-${Date.now()}`);
 
-export const uploadBuddyPhoto = (blob: Blob, userId: string, stamp: number) =>
+// PRÍSPEVKY ČLENA z profilu (príspevok · story · album, 23. 10. 2026) — trvalý priečinok mimo `tmp/`.
+export const uploadMemberPostPhoto = (blob: Blob, userId: string, stamp: string) =>
+  uploadBlob(blob, `posts/${userId}`, stamp);
+
+// HLAVNÁ FOTKA PSA vymenená z profilu (23. 10. 2026). 🔴 Mimo `tmp/` a s časom v názve —
+//    unsigned preset neprepisuje, rovnaká adresa by vrátila STARÚ fotku (Danka #42).
+export const uploadMemberDogPhoto = (blob: Blob, dogId: string) =>
+  uploadBlob(blob, `pack-dogs/${dogId}`, `main-${Date.now()}`);
+
+export const uploadBuddyPhoto =(blob: Blob, userId: string, stamp: number) =>
   uploadBlob(blob, `buddy/${userId}`, String(stamp));
 
 // Fotka ĎALŠIEHO PSA zo svorky (krok 3 vstupu, 23. 9. 2026).

@@ -65,6 +65,8 @@ export type CreateHandler =
   | 'diary.write'       // pisateľ `lib/dogEvents.ts` → appendDogEvents()
   | 'diary.photo'       // ten istý pisateľ, zápis s prílohou fotky
   | 'feed.post'
+  | 'feed.story'        // MeCompose mode 'moment' (profil JA, 23. 10. 2026)
+  | 'feed.album'        // MeCompose mode 'album'
   | 'ainubis.chat'      // openAinubis() z `lib/ainubisBus.ts`
   | 'ainubis.brain'
   | 'ainubis.board'
@@ -112,7 +114,7 @@ export type CreateIcon =
 export type CreateId =
   | 'trip' | 'wish' | 'sniffer' | 'note' | 'event' | 'service' | 'article'
   | 'diary' | 'photo'
-  | 'post'
+  | 'post' | 'story' | 'album'
   | 'chat' | 'brain' | 'board'
   | 'dm' | 'group';
 
@@ -299,6 +301,55 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
 
   // ── JA ────────────────────────────────────────────────────────────────────────────────────
   {
+    id: 'post',
+    labelKey: 'pack.create.post.title',
+    labelFallback: 'Post',
+    hintKey: 'pack.create.post.hint',
+    hintFallback: 'photo + text + tags',
+    icon: { kind: 'panel' },
+    place: 'JA',
+    needs: 'nic',
+    target: { kind: 'handler', id: 'feed.post' },
+    back: 'origin',
+    lands: 'posts (štítok post) → profil JA, karta VŠETKO',
+    // ✅ `live` OD 23. 10. 2026 — tvorba z profilu JA (`profile/MeCompose.tsx`). Matej: *„akčné
+    //    tlačítko = pridať príspevok, story, album, zápisku"*. FEED ich neskôr len prečíta.
+    state: 'live',
+    panel: true,
+    // ⚠️ PRÍSPEVOK NEMÁ TYP, MÁ ŠTÍTKY (lock: zbierka, inzerát, rada…). Nový feed = nový
+    //    štítok, nie nová tabuľka a nie nový riadok v tomto registri.
+    // ⚠️ 📝 je Matejov výber z registra značiek (21. 9.) a vie o druhej zrážke — to isté
+    //    emoji nesie čip „poznámka" v denníku. PRÍSPEVOK je 12/2026, takže nehorí.
+    note: 'Do 23. 10. 2026 čakal na feed (DOMOV, 12/2026). Odvtedy sa tvorí z profilu JA; FEED ho len prečíta.',
+  },
+  {
+    id: 'story',
+    labelKey: 'pack.create.story.title',
+    labelFallback: 'Story',
+    icon: { kind: 'panel' },
+    place: 'JA',
+    needs: 'nic',
+    target: { kind: 'handler', id: 'feed.story' },
+    back: 'origin',
+    lands: 'posts (štítok moment, 24 h) → prstenec na fotke v profile JA',
+    state: 'live',
+    panel: true,
+    note: 'Štítok `moment`, nie `story` — `story` je príbeh z cesty s unikátnym indexom na trasu.',
+  },
+  {
+    id: 'album',
+    labelKey: 'pack.create.album.title',
+    labelFallback: 'Album',
+    icon: { kind: 'panel' },
+    place: 'JA',
+    needs: 'nic',
+    target: { kind: 'handler', id: 'feed.album' },
+    back: 'origin',
+    lands: 'posts (štítok album) → profil JA, karta ALBUMY',
+    state: 'live',
+    panel: true,
+  },
+  {
     id: 'diary',
     labelKey: 'pack.create.diary.title',
     labelFallback: 'Diary entry',
@@ -339,7 +390,9 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     //    fotke (`DiaryEntry` s `mode='photo'`, otvorí systémový výber hneď), nie druhá
     //    obrazovka. Adresa ide do `dog_events.value.photo` a popup dňa ju kreslí.
     state: 'live',
-    panel: true,
+    // ⚠️ Z PANELA ODIŠLA 23. 10. 2026 — Matej vymenoval na JA štyri veci (príspevok, story, album,
+    //    zápiska). Fotka do denníka ostáva dostupná v samotnom zápise.
+    panel: false,
     // 🔴 §2 NÁKRESU JEJ DALO „✅ hotové" A TO JE CHYBA V PODKLADE (premerané 21. 9. 2026,
     //    Matej: „fotka? to nemáme vyriešené ešte"). Fotka psa NEMÁ KAM PRISTÁŤ:
     //      · tabuľka `dog_photos` ani `dog_gallery` v repe NEEXISTUJE
@@ -357,27 +410,6 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
   },
 
   // ── DOMOV ─────────────────────────────────────────────────────────────────────────────────
-  {
-    id: 'post',
-    labelKey: 'pack.create.post.title',
-    labelFallback: 'Post',
-    hintKey: 'pack.create.post.hint',
-    hintFallback: 'photo + text + tags',
-    icon: { kind: 'panel' },
-    place: 'DOMOV',
-    needs: 'nic',
-    target: { kind: 'handler', id: 'feed.post' },
-    back: 'origin',
-    lands: 'feed',
-    state: 'zamknute',
-    soon: '2026-12',
-    panel: true,
-    // ⚠️ PRÍSPEVOK NEMÁ TYP, MÁ ŠTÍTKY (lock: zbierka, inzerát, rada…). Nový feed = nový
-    //    štítok, nie nová tabuľka a nie nový riadok v tomto registri.
-    // ⚠️ 📝 je Matejov výber z registra značiek (21. 9.) a vie o druhej zrážke — to isté
-    //    emoji nesie čip „poznámka" v denníku. PRÍSPEVOK je 12/2026, takže nehorí.
-    note: 'Čaká na feed — dovtedy je to jediný objekt DOMOVA, takže panel na DOMOVE stojí na skupinách ostatných miest.',
-  },
 
   // ── AINUBIS ───────────────────────────────────────────────────────────────────────────────
   {

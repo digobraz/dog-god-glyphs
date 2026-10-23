@@ -49,6 +49,10 @@ export const ME_CSS = `
   background:linear-gradient(180deg, color-mix(in srgb, ${T.pageBg} 35%, transparent) 0%, transparent 25%); }
 .me-cover > *{ position:relative; z-index:1; }
 /* UPRAVIŤ PROFIL: titulka sa ťahá prstom hore/dole (poloha = human.coverY). */
+.me-cover.pick{ cursor:pointer; }
+/* Fotoaparát titulky — sklenený krúžok vpravo hore, aby bolo vidno, že sa pozadie dá vymeniť. */
+.me-cvbtn{ width:36px; height:36px; padding:0; border-radius:${PACK_R.pill}px; display:grid; place-items:center; cursor:pointer;
+  background:rgba(0,0,0,.42); border:1px solid ${T.onDarkBorder}; }
 .me-cover.drag{ cursor:grab; touch-action:none; user-select:none; }
 .me-cover.drag.on{ cursor:grabbing; }
 .me-tbar{ display:flex; justify-content:space-between; align-items:flex-start; padding:${S.md}px; }
@@ -105,6 +109,25 @@ export const ME_CSS = `
   border-radius:${PACK_R.pill}px; padding:${S.xs}px; background:${RING}; box-shadow:${T.panelShadow}; }
 .me-own > button:first-child{ display:block; width:100%; height:100%; padding:0; border:0; border-radius:${PACK_R.pill}px; overflow:hidden; cursor:pointer; background:${T.card}; }
 .me-own > button:first-child img{ width:100%; height:100%; object-fit:cover; object-position:50% 14%; display:block; border-radius:${PACK_R.pill}px; border:4px solid ${T.card}; }
+/* STORIES (23. 10. 2026, Matej: *„obruč ktorá žiari"*). Živá story = prstenec RING sa otáča a dýcha
+   zlatou žiarou; bez story = bezfarebný kruh (v6: *„bez story = bezfarebný kruh + lapis plus"*).
+   Prstenec je ::before POD fotkou (z-index -1 vnútri .me-own), aby sa točila len obruč, nie tvár. */
+.me-own.st-live, .me-own.st-none{ background:none; }
+.me-own.st-live::before, .me-own.st-none::before{ content:''; position:absolute; inset:0; z-index:-1; border-radius:${PACK_R.pill}px; }
+.me-own.st-live::before{ background:${RING}; animation:me-spin 6s linear infinite; }
+.me-own.st-live{ animation:me-glow 2.4s ease-in-out infinite; }
+.me-own.st-none::before{ background:${T.border}; }
+@keyframes me-spin{ to{ transform:rotate(360deg); } }
+@keyframes me-glow{ 0%,100%{ box-shadow:${T.panelShadow}; } 50%{ box-shadow:0 0 0 2px color-mix(in srgb, ${T.cardEdge} 35%, transparent), 0 0 24px 6px color-mix(in srgb, ${T.cardEdge} 55%, transparent); } }
+@media (prefers-reduced-motion:reduce){ .me-own.st-live, .me-own.st-live::before{ animation:none; } }
+/* + pridať story — lapisový kotúč vpravo dole na fotke (len môj profil). */
+.me-add{ position:absolute; z-index:2; right:0; bottom:${S.sm}px; width:32px; height:32px; padding:0; border-radius:${PACK_R.pill}px; display:grid; place-items:center; cursor:pointer;
+  background:${LAPIS.grad}; border:2px solid ${T.card}; box-shadow:${LAPIS_BTN_SHADOW}; }
+/* Fotoaparát na fotke psa v šuplíku — vymení hlavnú fotku psa (Matej 23. 10.: „vymeniť foto psovi rovno z môjho profilu"). */
+.me-dpw{ position:relative; flex:none; }
+.me-dcam{ position:absolute; right:-${S.xs}px; top:-${S.xs}px; z-index:1; width:26px; height:26px; padding:0; border-radius:${PACK_R.pill}px; display:grid; place-items:center; cursor:pointer;
+  background:${LAPIS.grad}; border:2px solid ${T.card}; box-shadow:${LAPIS_BTN_SHADOW}; }
+.me-dcam.busy{ opacity:.6; cursor:default; }
 .me-own .ini{ display:grid; place-items:center; width:100%; height:100%; font-family:${FONT_TITLE}; font-size:${TX.h1}px; color:${T.inkWarm}; }
 .me-sat{ position:absolute; left:50%; transform:translateX(-50%); bottom:-${SAT_DROP.m}px; display:flex; align-items:center;
   padding:0; border:0; background:none; cursor:pointer; }
@@ -201,6 +224,7 @@ export const ME_CSS = `
 .me-grid .cap{ position:absolute; left:0; right:0; bottom:0; padding:${S.lg}px ${S.sm}px ${S.sm}px; text-align:left;
   background:linear-gradient(180deg, transparent, color-mix(in srgb, ${T.pageBg} 80%, transparent));
   font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; line-height:1.2; color:${LAPIS.ink}; }
+.me-grid--story button{ aspect-ratio:9/16; }
 .me-tag{ position:absolute; left:4px; top:4px; font-family:${FONT_UI}; font-size:${TX.micro}px; letter-spacing:.14em; background:${LAPIS.grad}; color:${LAPIS.ink}; padding:0 ${S.sm}px; border-radius:${PACK_R.pill}px; }
 .me-empty{ padding:${S.xl}px ${S.lg}px; text-align:center; font-family:${FONT_UI}; font-size:${TX.body}px; color:${T.inkWarm}; }
 
@@ -241,7 +265,7 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel }: {
   cover: string | null;
   coverY?: number;
   name: string;
@@ -264,6 +288,9 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   right?: ReactNode;
   onMoveY?: (y: number) => void;
   onMoveEnd?: (y: number) => void;
+  /** Ťuk na pozadie titulky = album titulky (`CoverSheet`, 23. 10. 2026). Nie v režime ťahania. */
+  onCover?: () => void;
+  coverLabel?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
@@ -292,7 +319,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   return (
     <div
       ref={ref}
-      className={`me-cover${editable ? ' drag' : ''}${drag ? ' on' : ''}`}
+      className={`me-cover${editable ? ' drag' : onCover ? ' pick' : ''}${drag ? ' on' : ''}`}
       style={url ? ({ '--me-cover': `url(${url})`, '--me-cover-y': `${y}%` } as CSSProperties) : undefined}
       onPointerDown={editable ? (e) => {
         if ((e.target as HTMLElement).closest('button')) return;
@@ -307,6 +334,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
       } : undefined}
       onPointerUp={editable && drag ? () => { setDrag(null); onMoveEnd?.(y); } : undefined}
       onPointerCancel={editable && drag ? () => { setDrag(null); onMoveEnd?.(y); } : undefined}
+      onClick={!editable && onCover ? (e) => { if (!(e.target as HTMLElement).closest('button')) onCover(); } : undefined}
     >
       <div className="me-tbar">
         {bones == null ? <span /> : onBones ? (
@@ -320,7 +348,11 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
             {bones}
           </span>
         )}
-        {right}
+        {right ?? (onCover && (
+          <button type="button" className="me-cvbtn" onClick={onCover} aria-label={coverLabel}>
+            <BrandIcon name="camera" size={16} tint="white" />
+          </button>
+        ))}
       </div>
       <div className="me-foot">
         <h1 className="me-nm">{name}</h1>
@@ -340,7 +372,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
 }
 
 /** FOTKA MAJITEĽA + SATELIT PSOV. Bez `onToggle` je satelit len obraz (náhľad v UPRAVIŤ). */
-export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, photoLabel, toggleLabel, badge }: {
+export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, photoLabel, toggleLabel, badge, story, onAdd, addLabel }: {
   photo: string | null;
   initial: string;
   dogs: PackDogFull[];
@@ -350,6 +382,11 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
   photoLabel: string;
   toggleLabel?: string;
   badge?: ReactNode;
+  /** Stav stories — bez neho ostane stály prstenec RING (UPRAVIŤ PROFIL). */
+  story?: 'live' | 'none';
+  /** `+` na fotke = nová story (len môj profil). */
+  onAdd?: () => void;
+  addLabel?: string;
 }) {
   const sat = open ? (
     <span className="up"><BrandIcon name="back" size={13} tint="white" /></span>
@@ -362,11 +399,16 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
     </>
   );
   return (
-    <div className="me-own">
+    <div className={`me-own${story ? ` st-${story}` : ''}`}>
       <button type="button" onClick={onPhoto} aria-label={photoLabel}>
         {photo ? <img src={sizedUrl(photo, 320)} alt="" /> : <span className="ini">{initial}</span>}
       </button>
       {badge}
+      {onAdd && (
+        <button type="button" className="me-add" onClick={onAdd} aria-label={addLabel}>
+          <BrandIcon name="plus-sign" size={14} tint="white" />
+        </button>
+      )}
       {dogs.length > 0 && (onToggle ? (
         <button type="button" className="me-sat" onClick={onToggle} aria-expanded={open} aria-label={toggleLabel}>{sat}</button>
       ) : (

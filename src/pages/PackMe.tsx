@@ -3,7 +3,13 @@
 //
 // `/pack/profile` = MÔJ PROFIL (kôš 1 — lišta vždy). Texty sa píšu na samostatnej
 // obrazovke UPRAVIŤ (`/pack/profile/edit` = editor `PackProfile.tsx`) — aj pilulky a bio psa.
-// 🔴 V profile NIE JE žiadne `+` (Matej: *„všetko sa bude upravovať v edit profile okne"*).
+// 🔴 V profile NIE JE `+` na TEXTY (Matej 22. 10.: *„všetko sa bude upravovať v edit profile okne"*).
+//    JEDINÁ výnimka je `+` na fotke = nová STORY (Matej 23. 10.: *„plusko pri otvorenom profile
+//    s možnosťou pridať stories aj cez to pri /profile nie pri edit"*) — novší pokyn, platí len pre story.
+//
+// 23. 10. pribudlo: STORIES (prstenec žiari, kým žije story; ťuk na fotku = prehrávač) · ťuk na
+// TITULKU = album titulky so striedaním po dni (`CoverSheet`) · fotoaparát na fotke psa v šuplíku
+// = nová hlavná fotka psa · karty PRÍBEHY a ALBUMY čítajú `posts` so štítkami `moment` / `album`.
 //
 // Poradie (nákres): TITULKA (meno, DEVOTION, PÚTNIK) · fotka majiteľa so SATELITOM psov
 // (ťuk = šuplík psov; ťuk na fotku psa alebo šípku zavrie; ťuk na heroglyf = meno + bio +
@@ -32,14 +38,16 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BonesSheet } from '@/components/pack/BonesSheet';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { ME_CSS, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
+import { CoverSheet } from '@/components/pack/profile/CoverSheet';
+import { StoryViewer } from '@/components/pack/profile/StoryViewer';
+import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbum, isLive, isTripStory, type MePost } from '@/components/pack/profile/mePosts';
+import { compressFile } from '@/lib/photoIntake';
+import { uploadMemberDogPhoto } from '@/services/cloudinaryService';
 import { shareDog } from '@/lib/useShareCard';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 
 const TOTAL_SCROLLS = VAULT_WORLDS.reduce((s, w) => s + w.scrolls, 0);
-// `posts` nie je v generovaných typoch (tak isto `storyData.ts`).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as any;
 
 // Staré odkazy mierili do editora (kotvy a parametre) — pošleme ich tam, kam patria,
 // inak by `?welcome=1` po platbe pristálo na nesprávnej obrazovke.
@@ -52,7 +60,11 @@ const EDITOR_PARAMS = ['welcome', 'edit'];
 // SAVED = polica „uložené" v JA (lock architektura-pack §1.3 a §4.2 🔖).
 type Tab = 'all' | 'stories' | 'albums' | 'trips' | 'private';
 type Private = 'saved' | 'diary';
-type PostTile = { id: string; photo: string; trip: string | null };
+
+/** Prehrávač pustený z profilu — story, album alebo príspevok (album a príspevok = prehliadka fotiek). */
+type Viewing = { items: MePost[]; start: number; del?: boolean };
+/** Album alebo príspevok rozložený na snímky prehrávača (každá fotka = jedna snímka, text na prvej). */
+const asFrames = (p: MePost): MePost[] => p.photos.map((ph, k) => ({ ...p, id: `${p.id}:${k}`, photos: [ph], body: k === 0 ? p.body : '' }));
 
 /** Pilulky človeka = jeho POVAHA z editora (emoji + meno) + jedna vlastná. */
 function humanPills(personality: string[] | undefined, custom: string[], t: (k: string) => string) {
@@ -68,24 +80,38 @@ function humanPills(personality: string[] | undefined, custom: string[], t: (k: 
 }
 
 /** Riadok psa v šuplíku. Bio a povaha sú tie isté polia ako v DOG ID (`profile.dogs[id]`). */
-function DogRow({ dog, attrs, onClose, onDogId, tx }: {
+function DogRow({ dog, attrs, onClose, onDogId, onPhoto, photo, busy, tx }: {
   dog: PackDogFull;
   attrs: DogProfileAttrs | undefined;
   onClose: () => void;
   onDogId: () => void;
+  /** Nová hlavná fotka psa (súbor z výberu). */
+  onPhoto: (file: File) => void;
+  /** Práve vymenená fotka — kým sa `usePackUser` nenačíta nanovo. */
+  photo: string | null;
+  busy: boolean;
   tx: (key: string, fallback: string) => string;
 }) {
   const [flip, setFlip] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const src = photo ?? dog.cloudinary_main_url;
   const name = dog.dog_name ?? '';
   const num = dog.pack_number != null ? <span className="me-no">#{dog.pack_number}</span> : null;
   const bio = attrs?.bio?.trim();
   const tags = attrs?.tags?.temperament ?? [];
   return (
     <div className={`me-drow${flip ? ' flip' : ''}`}>
-      <button type="button" className="me-dp" onClick={onClose} aria-label={tx('pack.me.closeDogs', 'Hide dogs')}>
-        {dog.cloudinary_main_url && <img src={sizedUrl(dog.cloudinary_main_url, 200)} alt="" />}
-        {num}
-      </button>
+      <span className="me-dpw">
+        <button type="button" className="me-dp" onClick={onClose} aria-label={tx('pack.me.closeDogs', 'Hide dogs')}>
+          {src && <img src={sizedUrl(src, 200)} alt="" />}
+          {num}
+        </button>
+        <button type="button" className={`me-dcam${busy ? ' busy' : ''}`} disabled={busy} onClick={() => fileRef.current?.click()}
+          aria-label={tx('pack.me.dogPhoto', 'Change dog photo')}>
+          <BrandIcon name={busy ? 'cycle' : 'camera'} size={13} tint="white" />
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onPhoto(f); }} />
+      </span>
       <button type="button" className="me-hg" onClick={() => setFlip((f) => !f)} aria-expanded={flip} aria-label={name}>
         <span className="fa">
           {dog.heroglyph_png_url ? <img src={dog.heroglyph_png_url} alt="" /> : <span className="empty">{name}</span>}
@@ -127,7 +153,12 @@ export default function PackMe() {
 
   const [tab, setTab] = useState<Tab>('all');
   const [priv, setPriv] = useState<Private>('saved');
-  const [posts, setPosts] = useState<PostTile[] | null>(null);
+  const [posts, setPosts] = useState<MePost[] | null>(null);
+  const [viewing, setViewing] = useState<Viewing | null>(null);
+  const [coverOpen, setCoverOpen] = useState(false);
+  const [dogPhoto, setDogPhoto] = useState<Record<string, string>>({});
+  const [dogBusy, setDogBusy] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const [brought, setBrought] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
   const [bonesOpen, setBonesOpen] = useState(location.hash === '#network');
@@ -164,24 +195,15 @@ export default function PackMe() {
   useEffect(() => {
     if (!uid) return;
     let alive = true;
-    db.from('posts').select('id, photos, attach').eq('author_id', uid)
-      .order('created_at', { ascending: false }).limit(60)
-      .then(({ data }: { data: unknown }) => {
-        if (!alive) return;
-        const rows = (data ?? []) as Array<{ id: string; photos: unknown; attach: Record<string, unknown> | null }>;
-        setPosts(rows.flatMap((r) => {
-          const photo = Array.isArray(r.photos) ? r.photos.find((p): p is string => typeof p === 'string') : undefined;
-          if (!photo) return [];
-          const slug = typeof r.attach?.trip_slug === 'string' ? r.attach.trip_slug : null;
-          return [{ id: r.id, photo, trip: slug }];
-        }));
-      });
+    const load = () => fetchMyPosts(uid).then((rows) => { if (alive) { setPosts(rows); setNow(Date.now()); } }).catch(() => { if (alive) setPosts([]); });
+    load();
+    const off = onPostsChanged(load);
     supabase.rpc('get_my_network').then(({ data }) => {
       if (!alive) return;
       const n = (data as { level1_count?: number } | null)?.level1_count;
       setBrought(typeof n === 'number' ? n : 0);
     });
-    return () => { alive = false; };
+    return () => { alive = false; off(); };
   }, [uid]);
 
   // ── Moje výlety — tá istá množina, z ktorej ráta km PÚTNIK (jedno číslo, jeden zoznam).
@@ -228,7 +250,40 @@ export default function PackMe() {
 
   const dash = <b className="na" aria-label={tx('pack.me.notYet', 'not yet')}>—</b>;
   // Titulka = vlastná (UPRAVIŤ PROFIL), inak fotka človeka so psom (SNIFFER), inak hlavná fotka prvého psa; bez fotky ostane čierna.
-  const coverSrc = human?.coverPhoto || human?.buddyPhoto || firstDog?.cloudinary_main_url || null;
+  // Pri striedaní po dni (album titulky) vyberá dnešnú `coverOfDay`.
+  const coverSrc = coverOfDay(human) || human?.buddyPhoto || firstDog?.cloudinary_main_url || null;
+
+  // ── STORIES: živé (24 h) od najstaršej, ako ich človek pridával; archív = všetky.
+  const moments = (posts ?? []).filter(isMoment);
+  const live = moments.filter((p) => isLive(p, now)).reverse();
+  const albums = (posts ?? []).filter(isAlbum);
+  const grid = (posts ?? []).filter((p) => !isMoment(p) && p.photos.length > 0);
+  const openPost = (p: MePost) => {
+    const trip = isTripStory(p) ? p.attach.trip_slug : undefined;
+    if (trip) { navigate(`/pack/map/${trip}`); return; }
+    setViewing({ items: asFrames(p), start: 0 });
+  };
+
+  const changeDogPhoto = async (dog: PackDogFull, file: File) => {
+    setDogBusy(dog.id);
+    try {
+      const { blob } = await compressFile(file);
+      const { secureUrl } = await uploadMemberDogPhoto(blob, dog.id);
+      // RLS + trigger `dogs_pawtner_columns` pustí majiteľa a toho, kto má právo `dog.photo`.
+      const { error } = await supabase.from('dogs').update({ cloudinary_main_url: secureUrl }).eq('id', dog.id);
+      if (error) throw new Error(error.message);
+      setDogPhoto((m) => ({ ...m, [dog.id]: secureUrl }));
+      toast({ title: tx('pack.me.dogPhotoDone', 'New photo of {dog}').replace('{dog}', dog.dog_name ?? '') });
+    } catch (err) {
+      toast({
+        title: tx('pack.profile.toastUploadFailed', 'Upload failed'),
+        description: err instanceof Error ? err.message : tx('pack.profile.toastUnknownError', 'Unknown error'),
+        variant: 'destructive',
+      });
+    } finally {
+      setDogBusy(null);
+    }
+  };
   const pills = humanPills(human?.personality, customPills(human), t);
 
   const TABS: Array<[Tab, string, string]> = [
@@ -258,6 +313,8 @@ export default function PackMe() {
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
           onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
           rank={rank}
+          onCover={uid ? () => setCoverOpen(true) : undefined}
+          coverLabel={tx('pack.cover.title', 'Cover photo')}
         />
 
         <div className="me-under">
@@ -268,14 +325,20 @@ export default function PackMe() {
             dogs={dogs}
             open={open}
             onToggle={() => setOpen((o) => !o)}
-            onPhoto={() => navigate('/pack/profile/edit?edit=avatar')}
-            photoLabel={tx('pack.me.changePhoto', 'Change photo')}
+            // Ťuk na fotku: žije story → prehrávač, inak rovno nová story (ako IG). Profilovka sa
+            // mení v UPRAVIŤ PROFIL.
+            onPhoto={() => (live.length ? setViewing({ items: live, start: 0, del: true }) : openCompose('moment'))}
+            photoLabel={live.length ? tx('pack.me.stories', 'Stories') : tx('pack.compose.newStory', 'New story')}
+            story={live.length ? 'live' : 'none'}
+            onAdd={() => openCompose('moment')}
+            addLabel={tx('pack.compose.newStory', 'New story')}
             toggleLabel={open ? tx('pack.me.closeDogs', 'Hide dogs') : tx('pack.me.openDogs', 'Show dogs')}
           />
 
           <div className="me-drawer" aria-hidden={!open}>
             {dogs.map((d) => (
-              <DogRow key={d.id} dog={d} attrs={profile?.dogs?.[d.id]} onClose={() => setOpen(false)} onDogId={() => navigate(`/pack/dogs/${d.id}`)} tx={tx} />
+              <DogRow key={d.id} dog={d} attrs={profile?.dogs?.[d.id]} onClose={() => setOpen(false)} onDogId={() => navigate(`/pack/dogs/${d.id}`)}
+                onPhoto={(f) => changeDogPhoto(d, f)} photo={dogPhoto[d.id] ?? null} busy={dogBusy === d.id} tx={tx} />
             ))}
           </div>
           <div className="me-gap" />
@@ -348,21 +411,56 @@ export default function PackMe() {
           </div>
 
           {tab === 'all' && (
-            posts && posts.length > 0 ? (
+            grid.length > 0 ? (
               <div className="me-grid">
-                {posts.map((p) => (
-                  <button key={p.id} type="button" onClick={() => p.trip && navigate(`/pack/map/${p.trip}`)}>
-                    <img src={sizedUrl(p.photo, 320)} alt="" loading="lazy" />
-                    {p.trip && <span className="me-tag">{tx('pack.me.tagTrip', 'Trip')}</span>}
+                {grid.map((p) => (
+                  <button key={p.id} type="button" onClick={() => openPost(p)}>
+                    <img src={sizedUrl(p.photos[0], 320)} alt="" loading="lazy" />
+                    {isTripStory(p) && <span className="me-tag">{tx('pack.me.tagTrip', 'Trip')}</span>}
+                    {isAlbum(p) && <span className="me-tag">{tx('pack.me.tagAlbum', 'Album')}</span>}
+                    {!isAlbum(p) && p.photos.length > 1 && <span className="me-tag">{p.photos.length}</span>}
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="me-empty">{posts == null ? '·' : tx('pack.me.postsEmpty', 'No posts yet. Your trip stories will show up here.')}</div>
+              <div className="me-empty">{posts == null ? '·' : tx('pack.me.postsEmpty2', 'No posts yet. Tap + below to share the first one.')}</div>
             )
           )}
-          {tab === 'stories' && <div className="me-empty">{tx('pack.me.storiesEmpty', 'Stories arrive with the FEED.')}</div>}
-          {tab === 'albums' && <div className="me-empty">{tx('pack.me.albumsEmpty', 'Albums arrive with the FEED.')}</div>}
+          {/* PRÍBEHY = archív stories (len ja) — aj tie po 24 h, ako na IG. Ťuk = prehrávač od tej snímky. */}
+          {tab === 'stories' && (
+            moments.length > 0 ? (
+              <div className="me-grid me-grid--story">
+                {moments.map((p, k) => (
+                  <button key={p.id} type="button" onClick={() => setViewing({ items: [...moments].reverse(), start: moments.length - 1 - k, del: true })}>
+                    <img src={sizedUrl(p.photos[0], 320)} alt="" loading="lazy" />
+                    {isLive(p, now) && <span className="me-tag">24 h</span>}
+                    <span className="cap">{new Date(p.createdAt).toLocaleDateString(lang === 'sk' ? 'sk-SK' : 'en-GB', { day: 'numeric', month: 'short' })}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="me-empty">
+                {posts == null ? '·' : tx('pack.me.storiesEmpty2', 'No stories yet. Tap + on your photo.')}
+              </div>
+            )
+          )}
+          {tab === 'albums' && (
+            albums.length > 0 ? (
+              <div className="me-grid">
+                {albums.map((p) => (
+                  <button key={p.id} type="button" onClick={() => openPost(p)}>
+                    <img src={sizedUrl(p.photos[0], 320)} alt="" loading="lazy" />
+                    <span className="me-tag">{p.photos.length}</span>
+                    <span className="cap">{p.attach.title || tx('pack.me.tagAlbum', 'Album')}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="me-empty">
+                {posts == null ? '·' : tx('pack.me.albumsEmpty2', 'No albums yet. Tap + below and choose Album.')}
+              </div>
+            )
+          )}
           {tab === 'trips' && (
             myTrips.length > 0 ? (
               <div className="me-grid">
@@ -393,6 +491,11 @@ export default function PackMe() {
           )}
         </div>
       </section>
+      {coverOpen && uid && <CoverSheet uid={uid} human={human} onClose={() => setCoverOpen(false)} />}
+      {viewing && (
+        <StoryViewer items={viewing.items} start={viewing.start} name={shownName} avatar={avatarUrl} dogs={dogs}
+          mine={!!viewing.del} lang={lang} onClose={() => setViewing(null)} />
+      )}
       {bonesOpen && <BonesSheet bones={bones} avatarUrl={avatarUrl} initial={avatarInitial} onClose={closeBones} />}
     </PackLayout>
   );

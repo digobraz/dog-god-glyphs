@@ -108,6 +108,11 @@ export interface HumanProfile {
   /** Zvislá poloha titulky v % (0 = horný okraj fotky, 100 = spodný), ťahá sa prstom v UPRAVIŤ
    *  PROFIL (23. 10. 2026). Prázdne = 35 (`COVER_Y_DEFAULT` v `meHead.tsx`). */
   coverY?: number;
+  /** ALBUM TITULIEK (23. 10. 2026, Matej: *„človek si tam pridá 20 fotiek a každý deň sa mu bude
+   *  meniť... alebo nemusí — vyberie si"*). Poradie = poradie pridania. Čítaj cez `coverOfDay()`. */
+  coverAlbum?: string[];
+  /** true = titulka sa strieda po dni z `coverAlbum`; false/prázdne = stojí `coverPhoto`. */
+  coverRotate?: boolean;
   /** ROLA pri fotke v svorke (23. 10. 2026) — čo v DOGYPTe robím. Prázdne = 'pawtner'. */
   role?: ProfileRole;
   /** ROLY — najviac DVE (Matej 23. 10. 2026: „druhy osôb, možnosť vybrať dve"). `role` nesie prvú

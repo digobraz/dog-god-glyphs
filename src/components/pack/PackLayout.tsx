@@ -31,6 +31,7 @@ import type { AddChoice } from './addtrip/AddTripEntry';
 import { placeForRoute, withOrigin, type CreateObject } from './createRegistry';
 import { emitCreate, type CreateIntent } from '@/lib/createBus';
 import { openAinubis } from '@/lib/ainubisBus';
+import { onOpenCompose, type ComposeMode } from './profile/mePosts';
 
 // Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: HERO_TRAILS 1,5 MB,
 // HERO_JOURNEYS) ťahal do PackLayout chunku vždy, aj keď overlay na LIVE
@@ -43,6 +44,7 @@ import { openAinubis } from '@/lib/ainubisBus';
 const loadAddTripEntry = () => import('./addtrip/AddTripEntry');
 const AddTripEntry = lazy(() => loadAddTripEntry().then((m) => ({ default: m.AddTripEntry })));
 const DiaryEntry = lazy(() => import('./diary/DiaryEntry').then((m) => ({ default: m.DiaryEntry })));
+const MeCompose = lazy(() => import('./profile/MeCompose').then((m) => ({ default: m.MeCompose })));
 const Inbox = lazy(() => import('./messaging/Inbox').then((m) => ({ default: m.Inbox })));
 const Thread = lazy(() => import('./messaging/Thread').then((m) => ({ default: m.Thread })));
 
@@ -330,6 +332,9 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
   const place = placeForRoute(pathname);
   const [createOpen, setCreateOpen] = useState(false);
   const [diary, setDiary] = useState<{ mode: 'write' | 'photo' } | null>(null);
+  // TVORBA (príspevok · story · album) — otvára ju panel `+` aj `+` na fotke v profile JA.
+  const [compose, setCompose] = useState<ComposeMode | null>(null);
+  useEffect(() => onOpenCompose((m) => { setCreateOpen(false); setCompose(m); }), []);
   // Panel „+" potichu dotiahni, keď prehliadač nemá čo robiť — prvé ťuknutie potom nečaká.
   useEffect(() => {
     const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
@@ -362,11 +367,11 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
   };
 
   /**
-   * Objekt, ktorý mapa nevykonáva. Dnes sú to tri: denník, fotka (ten istý formulár
-   * otvorený pri fotke) a nový rozhovor s AINUBISOM.
+   * Objekt, ktorý mapa nevykonáva: denník, fotka (ten istý formulár otvorený pri fotke),
+   * nový rozhovor s AINUBISOM a od 23. 10. 2026 tvorba z profilu JA (príspevok · story · album).
    *
    * ⚠️ Ohlásené položky („čoskoro") sem NEPRÍDU — panel ich nedá kliknúť. Preto tu nie je
-   *    vetva pre `post`, `brain` ani `board`: keby tu bola, bola by to mŕtva vetva, ktorá
+   *    vetva pre `brain` ani `board`: keby tu bola, bola by to mŕtva vetva, ktorá
    *    tvrdí, že tie obrazovky existujú.
    * ⚠️ DENNÍK JE PREKRYVOVÁ VRSTVA, NIE ROUTA (lock §4.2: akcia nikdy neodnesie človeka
    *    preč z miesta, kde je). Zapíše sa a človek stojí tam, kde stál.
@@ -376,6 +381,9 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
     if (o.target.kind !== 'handler') return;
     if (o.target.id === 'diary.write') { setDiary({ mode: 'write' }); return; }
     if (o.target.id === 'diary.photo') { setDiary({ mode: 'photo' }); return; }
+    if (o.target.id === 'feed.post') { setCompose('post'); return; }
+    if (o.target.id === 'feed.story') { setCompose('moment'); return; }
+    if (o.target.id === 'feed.album') { setCompose('album'); return; }
     if (o.target.id === 'ainubis.chat') { openAinubis(); return; }
   };
 
@@ -608,6 +616,11 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
           onClose={() => setDiary(null)}
           tx={tx}
         />
+      </Suspense>
+    )}
+    {compose && (
+      <Suspense fallback={null}>
+        <MeCompose mode={compose} onClose={() => setCompose(null)} />
       </Suspense>
     )}
     </>

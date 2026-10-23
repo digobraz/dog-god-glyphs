@@ -150,7 +150,7 @@ const KINDS: KindDef[] = [
 const EMOJI: Record<CreateId, string> = {
   trip: '🐾', wish: '🎯', sniffer: '👃', note: '💬', event: '📣', service: '🏥', article: '📕',
   diary: '✍️', photo: '📷',
-  post: '🖼️',
+  post: '🖼️', story: '✨', album: '🗂️',
   chat: '🤖', brain: '📥', board: '❓',
   dm: '💌', group: '👪',
 };

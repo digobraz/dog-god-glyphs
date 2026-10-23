@@ -15,6 +15,7 @@ import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { ME_CSS, RING, DOG_FONT, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
+import { coverAlbumOf } from '@/components/pack/profile/mePosts';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
@@ -366,7 +367,8 @@ export default function PackProfile() {
     setCoverUploading(true);
     try {
       const result = await uploadCoverPhoto(file, session.user.id);
-      await saveHuman({ coverPhoto: result.secureUrl, coverY: 50 }, { throwOnError: true });
+      // Nová titulka ide aj do ALBUMU titulky (`CoverSheet` na profile), inak by sa po výmene stratila stará.
+      await saveHuman({ coverPhoto: result.secureUrl, coverY: 50, coverAlbum: [...coverAlbumOf(human), result.secureUrl] }, { throwOnError: true });
       setCoverY(null);
       toast({ title: tx('pack.profile.toastPhotoUpdated', 'Photo updated') });
     } catch (err) {
