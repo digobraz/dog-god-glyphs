@@ -5917,6 +5917,7 @@ export const ukr: Partial<Dict> = {
   'pack.edit.addMember': "Додати до зграї",
   'pack.edit.openDogId': "Увесь DOG ID",
   'pack.edit.dogBioPh': "Біо собаки — яка вона?",
+  'pack.edit.fullAccess': "Повний доступ",
   'pack.bones.sub': "твоя частина місії",
   'pack.bones.mission': "Місія",
   'pack.bones.line': "Кожен пес, якого ти приводиш, рухає цю лінію.",

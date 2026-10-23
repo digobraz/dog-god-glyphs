@@ -6136,6 +6136,7 @@ export const sk: Partial<Dict> = {
   'pack.edit.addMember': "Pridaj do svorky",
   'pack.edit.openDogId': "Celé DOG ID",
   'pack.edit.dogBioPh': "Bio psa — aký je?",
+  'pack.edit.fullAccess': "Plný prístup",
   'pack.bones.sub': "tvoj diel misie",
   'pack.bones.mission': "Misia",
   'pack.bones.line': "Každý pes, ktorého privedieš, posunie túto čiaru.",

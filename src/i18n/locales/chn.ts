@@ -5729,6 +5729,7 @@ export const chn: Partial<Dict> = {
   'pack.edit.addMember': "加入狗群",
   'pack.edit.openDogId': "完整 DOG ID",
   'pack.edit.dogBioPh': "狗狗简介——它是什么样的？",
+  'pack.edit.fullAccess': "完全访问",
   'pack.bones.sub': "你在使命中的份额",
   'pack.bones.mission': "使命",
   'pack.bones.line': "你带来的每一只狗都会推动这条线。",

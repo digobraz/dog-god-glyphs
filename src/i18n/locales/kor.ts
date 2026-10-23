@@ -5732,6 +5732,7 @@ export const kor: Partial<Dict> = {
   'pack.edit.addMember': "무리에 추가",
   'pack.edit.openDogId': "전체 DOG ID",
   'pack.edit.dogBioPh': "강아지 소개 — 어떤 아이인가요?",
+  'pack.edit.fullAccess': "전체 접근",
   'pack.bones.sub': "미션에서 너의 몫",
   'pack.bones.mission': "미션",
   'pack.bones.line': "네가 데려오는 강아지마다 이 선이 움직여요.",

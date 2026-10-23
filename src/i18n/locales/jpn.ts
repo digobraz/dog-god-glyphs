@@ -5729,6 +5729,7 @@ export const jpn: Partial<Dict> = {
   'pack.edit.addMember': "群れに加える",
   'pack.edit.openDogId': "DOG ID 全体",
   'pack.edit.dogBioPh': "犬の紹介 — どんな子？",
+  'pack.edit.fullAccess': "フルアクセス",
   'pack.bones.sub': "ミッションでのあなたの分",
   'pack.bones.mission': "ミッション",
   'pack.bones.line': "あなたが連れてくる一匹ごとに、この線が進みます。",

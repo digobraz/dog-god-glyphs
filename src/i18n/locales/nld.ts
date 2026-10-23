@@ -5732,6 +5732,7 @@ export const nld: Partial<Dict> = {
   'pack.edit.addMember': "Toevoegen aan roedel",
   'pack.edit.openDogId': "Volledige DOG ID",
   'pack.edit.dogBioPh': "Bio van de hond — hoe is hij?",
+  'pack.edit.fullAccess': "Volledige toegang",
   'pack.bones.sub': "jouw deel van de missie",
   'pack.bones.mission': "De missie",
   'pack.bones.line': "Elke hond die je meebrengt, verschuift deze lijn.",

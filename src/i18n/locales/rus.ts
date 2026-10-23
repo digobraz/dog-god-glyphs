@@ -5899,6 +5899,7 @@ export const rus: Partial<Dict> = {
   'pack.edit.addMember': "Добавить в стаю",
   'pack.edit.openDogId': "Весь DOG ID",
   'pack.edit.dogBioPh': "Био собаки — какая она?",
+  'pack.edit.fullAccess': "Полный доступ",
   'pack.bones.sub': "твоя часть миссии",
   'pack.bones.mission': "Миссия",
   'pack.bones.line': "Каждая собака, которую ты приводишь, двигает эту линию.",

@@ -5733,6 +5733,7 @@ export const ind: Partial<Dict> = {
   'pack.edit.addMember': "Tambah ke kawanan",
   'pack.edit.openDogId': "DOG ID lengkap",
   'pack.edit.dogBioPh': "Bio anjing — seperti apa dia?",
+  'pack.edit.fullAccess': "Akses penuh",
   'pack.bones.sub': "bagianmu dalam misi",
   'pack.bones.mission': "Misi",
   'pack.bones.line': "Setiap anjing yang kamu bawa menggerakkan garis ini.",

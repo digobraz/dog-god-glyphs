@@ -5917,6 +5917,7 @@ export const ita: Partial<Dict> = {
   'pack.edit.addMember': "Aggiungi al branco",
   'pack.edit.openDogId': "DOG ID completo",
   'pack.edit.dogBioPh': "Bio del cane — com'è?",
+  'pack.edit.fullAccess': "Accesso completo",
   'pack.bones.sub': "la tua parte della missione",
   'pack.bones.mission': "La missione",
   'pack.bones.line': "Ogni cane che porti sposta questa linea.",

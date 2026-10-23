@@ -5918,6 +5918,7 @@ export const fra: Partial<Dict> = {
   'pack.edit.addMember': "Ajouter à la meute",
   'pack.edit.openDogId': "DOG ID complet",
   'pack.edit.dogBioPh': "Bio du chien — comment est-il ?",
+  'pack.edit.fullAccess': "Accès complet",
   'pack.bones.sub': "ta part de la mission",
   'pack.bones.mission': "La mission",
   'pack.bones.line': "Chaque chien que tu amènes fait avancer cette ligne.",

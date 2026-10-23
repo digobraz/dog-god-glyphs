@@ -5729,6 +5729,7 @@ export const ara: Partial<Dict> = {
   'pack.edit.addMember': "أضف إلى القطيع",
   'pack.edit.openDogId': "DOG ID كاملة",
   'pack.edit.dogBioPh': "نبذة عن الكلب — كيف هو؟",
+  'pack.edit.fullAccess': "وصول كامل",
   'pack.bones.sub': "نصيبك من المهمة",
   'pack.bones.mission': "المهمة",
   'pack.bones.line': "كل كلب تجلبه يحرّك هذا الخط.",

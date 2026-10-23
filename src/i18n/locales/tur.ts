@@ -5732,6 +5732,7 @@ export const tur: Partial<Dict> = {
   'pack.edit.addMember': "Sürüye ekle",
   'pack.edit.openDogId': "Tüm DOG ID",
   'pack.edit.dogBioPh': "Köpeğin biyografisi — nasıl biri?",
+  'pack.edit.fullAccess': "Tam erişim",
   'pack.bones.sub': "misyondaki payın",
   'pack.bones.mission': "Misyon",
   'pack.bones.line': "Getirdiğin her köpek bu çizgiyi ilerletir.",

@@ -6445,6 +6445,7 @@ export const en = {
   'pack.edit.addMember': "Add to the pack",
   'pack.edit.openDogId': "Full DOG ID",
   'pack.edit.dogBioPh': "Dog's bio — what are they like?",
+  'pack.edit.fullAccess': "Full access",
   'pack.bones.sub': "your part of the mission",
   'pack.bones.mission': "The mission",
   'pack.bones.line': "Every dog you bring moves this line.",
