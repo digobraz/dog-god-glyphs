@@ -24,6 +24,7 @@ import { readHuman, patchHuman, notifOff, devotionTime } from '@/lib/humanPrefs'
 import { sizedUrl } from '@/services/cloudinaryService';
 import { toast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
+import { HandTrash } from '@/components/pack/HandIcons';
 import ainubisFace from '@/assets/ainubis-head.webp';
 
 const A = AINUBIS;
@@ -40,6 +41,14 @@ const TILES: Array<{ kind: TileKind; icon: string; label: [string, string]; sub:
   { kind: 'trip_day',   icon: 'mountain', label: ['pack.dvtoday.trip', 'Day trip'],               sub: ['pack.dvtoday.tripSub', 'more than 2 hours'] },
   { kind: 'presence',   icon: 'sun',      label: ['pack.dvtoday.presence', 'Prayer of presence'], sub: ['pack.dvtoday.presenceSub', '10 minutes only with your dog'] },
   { kind: 'care',       icon: 'heart',    label: ['pack.dvtoday.care', 'Care'],                   sub: ['pack.dvtoday.careSub', 'brushing, bath, claws'] },
+];
+
+type DeedType = 'event' | 'good_deed' | 'dog_in_need' | 'experience';
+const DEED_TYPES: Array<{ id: DeedType; icon: string; label: [string, string]; ph: [string, string] }> = [
+  { id: 'event',       icon: 'star',       label: ['pack.dvtoday.dtEvent', 'Event'],           ph: ['pack.dvtoday.dtEventPh', 'A birthday, a first swim, a vet visit…'] },
+  { id: 'good_deed',   icon: 'house-heart', label: ['pack.dvtoday.dtGood', 'Good deed'],       ph: ['pack.dvtoday.dtGoodPh', 'What did you do for a dog or a person?'] },
+  { id: 'dog_in_need', icon: 'cross',      label: ['pack.dvtoday.dtNeed', 'A dog in need'],    ph: ['pack.dvtoday.dtNeedPh', 'Shelter, food, a ride, a lost dog…'] },
+  { id: 'experience',  icon: 'camera',     label: ['pack.dvtoday.dtExp', 'Experience'],        ph: ['pack.dvtoday.dtExpPh', 'Something you lived through together'] },
 ];
 
 const CSS = `
@@ -84,6 +93,13 @@ const CSS = `
   text-shadow:${A.aiShadow};animation:dvt-fly .8s ease-out forwards;}
 .dvt-deed{margin:${S.md}px 0 0;border-radius:${PACK_R.tile}px;border:1px solid ${A.ctaEdge};background:${A.ctaTint};}
 .dvt-deed > button{appearance:none;width:100%;display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;background:none;border:0;color:${A.ink};font:inherit;font-size:${TX.body}px;text-align:left;cursor:pointer;}
+.dvt-deed--set{display:flex;align-items:stretch;}
+.dvt-deed--set > button:first-child{flex:1;min-width:0;width:auto;}
+.dvt-deed--set .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.dvt-deed--set .tx b{font-weight:500;font-size:${TX.body}px;}
+.dvt-deed--set .tx small{padding:0;font-size:${TX.label}px;color:${A.inkDim};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dvt-deed--set .dvt-cnt{position:static;flex:none;}
+.dvt-deed > .dvt-deed-del{appearance:none;flex:none;display:grid;place-items:center;width:48px;padding:0;background:none;border:0;border-left:1px solid ${A.ctaEdge};color:${A.inkDim};cursor:pointer;}
 .dvt-deed textarea{display:block;width:calc(100% - ${S.lg}px);margin:0 ${S.sm}px ${S.sm}px;min-height:72px;padding:${S.sm}px ${S.md}px;border-radius:${PACK_R.field}px;
   border:1px solid ${A.edge};background:${A.bgDeep};color:${A.ink};font:inherit;font-size:${TX.body}px;outline:0;resize:vertical;box-sizing:border-box;}
 .dvt-deed textarea:focus{border-color:${A.cyan};}
@@ -124,6 +140,67 @@ const CSS = `
 @media (prefers-reduced-motion:reduce){.dvt-sheet,.dvt-root,.dvt-fly,.dvt-cnt,.dvt-claim b{animation:none !important;}}
 `;
 
+/* OKNO „INÉ" — druhá vrstva nad panelom, ten istý šat AINUBISA. */
+const DEED_CSS = `
+.dvd-root{position:fixed;inset:0;z-index:67;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,6,11,0.6);animation:dvt-fade .2s ease both;}
+.dvd-sheet{width:100%;background:${A.surface};color:${A.ink};font-family:${FONT_UI};border:1px solid ${A.edgeStrong};border-bottom:0;
+  border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${A.panelShadow};padding:${S.lg}px ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.lg}px);animation:dvt-up .3s cubic-bezier(.2,.8,.2,1) both;}
+.dvd-who{display:flex;align-items:center;gap:${S.md}px;margin:0 0 ${S.lg}px;}
+.dvd-who img{flex:none;width:48px;height:48px;border-radius:${PACK_R.pill}px;object-fit:contain;background:${A.faceBg};box-shadow:${A.faceRing};}
+.dvd-who p{margin:0;font-size:${TX.lead}px;line-height:1.35;}
+.dvd-types{display:grid;grid-template-columns:1fr 1fr;gap:${S.sm}px;margin:0 0 ${S.md}px;}
+.dvd-type{appearance:none;display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${A.edge};background:${A.raised};
+  color:${A.inkDim};font:inherit;font-size:${TX.body}px;text-align:left;cursor:pointer;}
+.dvd-type.on{border-color:${A.cyan};color:${A.ink};background:${A.glowTint};}
+.dvd-text{display:block;width:100%;min-height:96px;padding:${S.md}px;border-radius:${PACK_R.field}px;border:1px solid ${A.edge};background:${A.bgDeep};
+  color:${A.ink};font:inherit;font-size:${TX.body}px;outline:0;resize:vertical;box-sizing:border-box;}
+.dvd-text:focus{border-color:${A.cyan};}
+.dvd-note{margin:${S.sm}px 0 0;font-size:${TX.micro}px;color:${A.inkFaint};}
+.dvd-row{display:flex;gap:${S.sm}px;margin:${S.lg}px 0 0;}
+.dvd-row .dvt-claim{flex:1;font-size:${TX.label}px;}
+@media (min-width:768px){
+  .dvd-root{align-items:center;padding:${S.lg}px;}
+  .dvd-sheet{width:480px;border-bottom:1px solid ${A.edgeStrong};border-radius:${PACK_R.card}px;}
+}
+`;
+
+function DeedSheet({ initialType, initialText, tx, onClose, onSave }: {
+  initialType: DeedType | null; initialText: string; tx: (k: string, f: string) => string;
+  onClose: () => void; onSave: (type: DeedType, text: string) => void;
+}) {
+  const [type, setType] = useState<DeedType | null>(initialType);
+  const [text, setText] = useState(initialText);
+  const ok = !!type && text.trim().length >= 3;
+  const ph = DEED_TYPES.find((d) => d.id === type)?.ph ?? ['pack.dvtoday.deedPh', 'What did you do for a dog today?'];
+  return (
+    <div className="dvd-root" role="dialog" aria-modal="true" aria-label={tx('pack.dvtoday.deed', 'Other')}
+      onClick={(e) => { e.stopPropagation(); if (e.target === e.currentTarget) onClose(); }}>
+      <style>{DEED_CSS}</style>
+      <div className="dvd-sheet">
+        <div className="dvd-who">
+          <img src={ainubisFace} alt="" aria-hidden />
+          <p>{tx('pack.dvtoday.deedAsk', 'What happened today? Tell me in a few words.')}</p>
+        </div>
+        <div className="dvd-types" role="radiogroup">
+          {DEED_TYPES.map((d) => (
+            <button key={d.id} type="button" role="radio" aria-checked={type === d.id} className={`dvd-type${type === d.id ? ' on' : ''}`} onClick={() => setType(d.id)}>
+              <BrandIcon name={d.icon} size={16} tint="gold" />{tx(...d.label)}
+            </button>
+          ))}
+        </div>
+        <textarea className="dvd-text" value={text} maxLength={500} onChange={(e) => setText(e.target.value)} placeholder={tx(...ph)} />
+        <p className="dvd-note">{tx('pack.dvtoday.deedNote', 'AINUBIS will read it and add devotion.')}</p>
+        <div className="dvd-row">
+          <BackButton tone="ainubis" onClick={onClose} label={tx('pack.network.close', 'Close')} />
+          <button type="button" className="dvt-claim" disabled={!ok} onClick={() => ok && type && onSave(type, text.trim())}>
+            {tx('pack.dvtoday.deedAdd', 'Add to today')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const buzz = () => { try { navigator.vibrate?.(12); } catch { /* iOS web nevie — appka dostane haptiku neskôr */ } };
 
 export function DevotionToday({ onClose }: { onClose: () => void }) {
@@ -134,6 +211,7 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
   const [tap, setTap] = useState<Partial<Record<TileKind, number>>>({});
   const [deedOpen, setDeedOpen] = useState(false);
   const [deed, setDeed] = useState('');
+  const [deedType, setDeedType] = useState<DeedType | null>(null);
   const [busy, setBusy] = useState(false);
   const [said, setSaid] = useState<string | null>(null);
   const [flies, setFlies] = useState<Array<{ id: number; kind: TileKind; txt: string }>>([]);
@@ -196,9 +274,9 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
     try {
       const items: Array<{ kind: string; n: number }> = TILES.filter((r) => (tap[r.kind] ?? 0) > 0).map((r) => ({ kind: r.kind, n: tap[r.kind] ?? 0 }));
       if (deed.trim()) items.push({ kind: 'deed', n: 1 });
-      const j = await grantDevotion({ kind: 'claim', dog_ids: sel.map((g) => g.id), items, note: deed.trim() });
+      const j = await grantDevotion({ kind: 'claim', dog_ids: sel.map((g) => g.id), items, note: deed.trim(), deed_type: deedType ?? 'other' });
       setBoom(true); setTimeout(() => setBoom(false), 650); buzz();
-      setTap({}); setDeed(''); setDeedOpen(false);
+      setTap({}); setDeed(''); setDeedType(null); setDeedOpen(false);
       await load();
       setSaid(tx('pack.dvtoday.claimed', '+{n} devotion added. See you tomorrow.').replace('{n}', String(j.points ?? 0)));
     } catch {
@@ -301,19 +379,26 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
 
-              <div className="dvt-deed">
-                <button type="button" onClick={() => setDeedOpen((o) => !o)} aria-expanded={deedOpen}>
-                  <BrandIcon name="feather" size={16} tint="gold" />
-                  <span>{tx('pack.dvtoday.deed', 'Other — an event, a good deed…')}</span>
-                </button>
-                {deedOpen && (
-                  <>
-                    <textarea value={deed} maxLength={500} onChange={(e) => setDeed(e.target.value)} autoFocus
-                      placeholder={tx('pack.dvtoday.deedPh', 'What did you do for a dog today?')} />
-                    <small>{tx('pack.dvtoday.deedNote', 'AINUBIS will read it and add devotion.')}</small>
-                  </>
-                )}
-              </div>
+              {/* INÉ — ťuk otvorí okno AINUBISA (druh + pár slov). Po pridaní ostane v paneli pásik so zápisom. */}
+              {deed.trim() ? (
+                <div className="dvt-deed dvt-deed--set">
+                  <button type="button" onClick={() => setDeedOpen(true)} aria-label={tx('pack.dvtoday.deedEdit', 'Edit')}>
+                    <BrandIcon name={DEED_TYPES.find((d) => d.id === deedType)?.icon ?? 'feather'} size={16} tint="gold" />
+                    <span className="tx"><b>{tx(...(DEED_TYPES.find((d) => d.id === deedType)?.label ?? ['pack.dvtoday.deedOther', 'Other']))}</b><small>{deed.trim()}</small></span>
+                    <span className="dvt-cnt dim">{tx('pack.dvtoday.deedJudge', 'AINUBIS will judge')}</span>
+                  </button>
+                  <button type="button" className="dvt-deed-del" onClick={() => { setDeed(''); setDeedType(null); }} aria-label={tx('pack.dvtoday.deedDel', 'Remove')}>
+                    <HandTrash size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div className="dvt-deed">
+                  <button type="button" onClick={() => setDeedOpen(true)}>
+                    <BrandIcon name="feather" size={16} tint="gold" />
+                    <span>{tx('pack.dvtoday.deed', 'Other — an event, a good deed…')}</span>
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -321,7 +406,7 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
         <div className="dvt-foot">
           {today && today.dogs.length > 0 && (
             <button type="button" className={`dvt-claim${boom ? ' boom' : ''}${bump ? ' bump' : ''}`} disabled={!anyTap || busy || !sel.length} onClick={() => void claim()}>
-              {tx('pack.dvtoday.claim', 'Claim')} <b>+{pending}</b>
+              {tx('pack.dvtoday.claim', 'Claim')} {pending > 0 && <b>+{pending}</b>}
               <BrandIcon name="heartpaw" size={18} tint={anyTap ? 'dark' : 'dim'} />
             </button>
           )}
@@ -335,6 +420,11 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       </div>
+      {deedOpen && (
+        <DeedSheet initialType={deedType} initialText={deed} tx={tx}
+          onClose={() => setDeedOpen(false)}
+          onSave={(type, text) => { setDeedType(type); setDeed(text); setDeedOpen(false); setSaid(null); setBump('deed'); setTimeout(() => setBump(null), 320); buzz(); }} />
+      )}
     </div>,
     document.body,
   );

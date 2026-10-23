@@ -3,7 +3,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 
-export async function grantDevotion(body: { kind: string; dog_ids?: string[]; scroll?: string; items?: Array<{ kind: string; n: number }>; note?: string }) {
+export async function grantDevotion(body: { kind: string; dog_ids?: string[]; scroll?: string; items?: Array<{ kind: string; n: number }>; note?: string; deed_type?: string }) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('no session');
   const res = await fetch(`${EDGE_BASE}/grant-devotion`, {
