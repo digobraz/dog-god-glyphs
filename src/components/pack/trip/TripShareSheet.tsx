@@ -43,7 +43,17 @@ export interface TripShareData {
   country?: string;
   /** údaje pod názvom: [emoji, text] */
   chips: [string, string][];
+  /** Karta psa (`dogs.share_card_url`) — prvá voľba fotky; kreslí sa CELÁ (contain), nie orezaná a rozplynutá. */
+  card?: string;
 }
+
+/** Čo sa zdieľa — mení len texty okna. Pes = karta psa z profilu JA a šuplíka BONES (23. 10. 2026,
+ *  Matej: „pozvi na profile po kliknutí mechanizmus ako pri výletoch a zdieľaní na ig"). */
+export type ShareKind = 'trip' | 'dog';
+const KIND_KEYS: Record<ShareKind, { title: string; copy: string; fbLine: string; step1: string; main: string; copied: string }> = {
+  trip: { title: 'pack.trip.shareTitle', copy: 'pack.trip.shareCopy', fbLine: 'pack.trip.shareFbLine', step1: 'pack.trip.shareStep1', main: 'pack.trip.sharePhotoTrip', copied: 'pack.trip.toastLinkCopied' },
+  dog: { title: 'pack.dogShare.title', copy: 'pack.dogShare.copy', fbLine: 'pack.dogShare.fbLine', step1: 'pack.dogShare.step1', main: 'pack.dogShare.photoCard', copied: 'sharecard.linkCopied' },
+};
 
 const FMT: Record<ShareFmt, { w: number; h: number }> = { ig: { w: 1080, h: 1920 }, fb: { w: 1080, h: 1350 } };
 const GOLD = T.cardEdge;
@@ -52,7 +62,7 @@ const WARM = T.inkWarm;
 const SLOT_INK = '#9A7430';
 
 interface Texts { slot: string; fbLine: string; motto: string }
-interface RenderOpts { fmt: ShareFmt; photo: HTMLImageElement | null; off: number; exportMode: boolean }
+interface RenderOpts { fmt: ShareFmt; photo: HTMLImageElement | null; off: number; exportMode: boolean; contain?: boolean }
 
 const imgCache = new Map<string, Promise<HTMLImageElement | null>>();
 function loadImg(src: string): Promise<HTMLImageElement | null> {
@@ -164,7 +174,16 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
   const phH = Math.max(200, top + 40), off = document.createElement('canvas');
   off.width = W; off.height = phH;
   const oc = off.getContext('2d');
-  if (oc) {
+  if (oc && o.contain && o.photo) {
+    // karta psa sa NEOREZÁVA — sedí celá na papyruse so zlatým rámom a tieňom
+    const pad = 72, aw = W - pad * 2, ah = phH - pad - 40;
+    const s = Math.min(aw / o.photo.width, ah / o.photo.height), iw = o.photo.width * s, ih = o.photo.height * s;
+    const ix = (W - iw) / 2, iy = pad + (ah - ih) / 2;
+    ctx.save(); ctx.shadowColor = 'rgba(31,26,14,.35)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 18;
+    rr(ctx, ix, iy, iw, ih, 24); ctx.fillStyle = T.card; ctx.fill(); ctx.restore();
+    ctx.save(); rr(ctx, ix, iy, iw, ih, 24); ctx.clip(); ctx.drawImage(o.photo, ix, iy, iw, ih); ctx.restore();
+    ctx.lineWidth = 4; ctx.strokeStyle = GOLD; rr(ctx, ix, iy, iw, ih, 24); ctx.stroke();
+  } else if (oc) {
     cover(oc, o.photo, 0, 0, W, phH, o.off);
     const m = oc.createLinearGradient(0, phH * 0.5, 0, phH);
     m.addColorStop(0, 'rgba(0,0,0,1)'); m.addColorStop(1, 'rgba(0,0,0,0)');
@@ -173,7 +192,8 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
   }
 
   // vlajka = papyrusový krúžok so zlatým okrajom vpravo dole na fotke, tesne nad názvom
-  if (fl) {
+  // (karta psa nesie vlajku sama ⇒ druhá by bola duplikát)
+  if (fl && !o.contain) {
     const r = ig ? 64 : 52, fx = W - 64 - r, fy = top - 36 - r;
     ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 16;
     ctx.beginPath(); ctx.arc(fx, fy, r, 0, Math.PI * 2); ctx.fillStyle = T.card; ctx.fill(); ctx.restore();
@@ -275,7 +295,8 @@ const CSS = `
 }
 `;
 
-export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose: () => void }) {
+export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripShareData; onClose: () => void; kind?: ShareKind }) {
+  const K = KIND_KEYS[kind];
   const t = useT();
   const { toast } = useToast();
   const cvRef = useRef<HTMLCanvasElement>(null);
@@ -291,10 +312,11 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
   const [ready, setReady] = useState(false);
   const [fontsOk, setFontsOk] = useState(false);
 
-  const photos = data.photos.length ? data.photos : (data.fallbackPhoto ? [data.fallbackPhoto] : []);
+  const photos = data.card ? [data.card, ...data.photos] : data.photos.length ? data.photos : (data.fallbackPhoto ? [data.fallbackPhoto] : []);
+  const contain = !!data.card && !useOwn;
   const tx: Texts = {
     slot: t('pack.trip.shareSlot'),
-    fbLine: t('pack.trip.shareFbLine'),
+    fbLine: t(K.fbLine),
     motto: t('whatNext.motto').replace(/\.$/, ''),
   };
   const txKey = `${tx.slot}|${tx.fbLine}|${tx.motto}`;
@@ -329,7 +351,7 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
     if (!fontsOk || !cv) return;
     let live = true;
     setReady(false);
-    const o = { fmt, photo, off };
+    const o = { fmt, photo, off, contain };
     void render(cv, data, tx, { ...o, exportMode: false }).then(async () => {
       if (!live) return;
       const c = document.createElement('canvas');
@@ -338,7 +360,7 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
     });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fontsOk, fmt, photo, off, dataKey, txKey]);
+  }, [fontsOk, fmt, photo, off, contain, dataKey, txKey]);
 
   const fname = `dogypt-${slug(data.name)}-${fmt}.png`;
   const copyLink = useCallback(async () => {
@@ -369,7 +391,7 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
     void copied.then((ok) => toast({ description: t(ok ? 'pack.trip.shareSavedCopied' : 'pack.trip.storySaved') }));
   };
   const copyOnly = async () => {
-    toast({ description: (await copyLink()) ? t('pack.trip.toastLinkCopied') : data.url });
+    toast({ description: (await copyLink()) ? t(K.copied) : data.url });
   };
   const onOwn = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -386,20 +408,20 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
   // „CTA je zdieľať na IG FB, ale po kliku sa fotka stiahne… nemalo by tam byť stiahnuť fotku?“)
   const pc = !isTouch();
   const steps = pc
-    ? [t('pack.trip.shareStep1'), t('pack.trip.shareStepPc2'), t(fmt === 'ig' ? 'pack.trip.shareStepIg3' : 'pack.trip.shareStepFb3')]
+    ? [t(K.step1), t('pack.trip.shareStepPc2'), t(fmt === 'ig' ? 'pack.trip.shareStepIg3' : 'pack.trip.shareStepFb3')]
     : fmt === 'ig'
-    ? [t('pack.trip.shareStep1'), t('pack.trip.shareStepIg2'), t('pack.trip.shareStepIg3')]
-    : [t('pack.trip.shareStep1'), t('pack.trip.shareStepFb2'), t('pack.trip.shareStepFb3')];
+    ? [t(K.step1), t('pack.trip.shareStepIg2'), t('pack.trip.shareStepIg3')]
+    : [t(K.step1), t('pack.trip.shareStepFb2'), t('pack.trip.shareStepFb3')];
 
   return createPortal((
     <>
       <style>{CSS}</style>
-      <div className="tsh-veil" role="dialog" aria-modal="true" aria-label={t('pack.trip.shareTitle')}
+      <div className="tsh-veil" role="dialog" aria-modal="true" aria-label={t(K.title)}
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
         <div className="tsh-panel" style={{ ...PACK_BOX.panel }}>
           <div className="tsh-grip" />
           <div className="tsh-head">
-            <h2>{t('pack.trip.shareTitle')}</h2>
+            <h2>{t(K.title)}</h2>
             <button type="button" className="tsh-x" onClick={onClose} aria-label={t('pack.trip.shareClose')}>
               <span className="tsh-ic" style={{ '--ic': `url(${ICON('cross')})` } as React.CSSProperties} />
             </button>
@@ -422,7 +444,7 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
                 <div className="tsh-lbl">{t('pack.trip.sharePhoto')}</div>
                 <div className="tsh-photos">
                   {photos[0] && (
-                    <button type="button" className={`tsh-ph${!useOwn ? ' on' : ''}`} aria-label={t('pack.trip.sharePhotoTrip')}
+                    <button type="button" className={`tsh-ph${!useOwn ? ' on' : ''}`} aria-label={t(K.main)}
                       onClick={() => { setUseOwn(false); setOff(0.5); }}>
                       <img src={cld(photos[0], 200)} alt="" />
                     </button>
@@ -441,11 +463,11 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
                 </div>
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={onOwn} />
               </div>
-              <div className="tsh-sec">
+              {!contain && <div className="tsh-sec">
                 <div className="tsh-lbl">{t('pack.trip.shareShift')}</div>
                 <input className="tsh-range" type="range" min={0} max={100} value={Math.round(off * 100)}
                   onChange={(e) => setOff(Number(e.target.value) / 100)} />
-              </div>
+              </div>}
             </div>
             <div className="tsh-acts">
               <button type="button" className="tsh-cta" onClick={share} disabled={!ready}>
@@ -453,7 +475,7 @@ export function TripShareSheet({ data, onClose }: { data: TripShareData; onClose
               </button>
               <button type="button" className="tsh-link" onClick={copyOnly}>
                 <span className="tsh-ic" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
-                {t('pack.trip.shareCopy')}
+                {t(K.copy)}
               </button>
               <ol className="tsh-steps">
                 {steps.map((s, i) => <li key={i}><b>{i + 1}</b><span>{s}</span></li>)}

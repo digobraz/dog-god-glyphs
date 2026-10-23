@@ -13,6 +13,8 @@ import { intlLocale } from '@/i18n/bcp47';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
 import { PackWizard } from './PackWizard';
+
+const WIZ_ON_HOST = typeof window !== 'undefined' && /^(www\.)?dogypt\.com$/.test(window.location.hostname);
 import iconHome from '@/assets/icons/nav-home.svg';
 import statBadge from '@/assets/icons/stat-badge.svg';
 import statBars from '@/assets/icons/stat-bars.svg';
@@ -583,7 +585,9 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
         v koši 3 (úloha) lišta nie je, takže ani on. ČO ukáže, rozhoduje register `wizSteps.ts`.
         LIVE od 16. 10. 2026 (Matej: „sprav! … chcem aby sme si vedeli pozrieť kto si wizarda pozrel
         a kto preskočil") — každý krok sa zapisuje do denníka `wizard_events`. */}
-    <PackWizard hasDog={(dogs ?? []).length > 0} dogName={dogs?.[0]?.dog_name ?? null} />
+    {/* PREHLIADKA len na dogypt.com — na deve a náhľade preč (Matej 23. 10. 2026: „prehliadku na teraz
+        na deve celkom ignorujme… výsledkom bude nová verzia s novou prehliadkou"). */}
+    {WIZ_ON_HOST && <PackWizard hasDog={(dogs ?? []).length > 0} dogName={dogs?.[0]?.dog_name ?? null} />}
     {/* ── PANEL `+` JE SÚRODENEC PÁSU, NIE JEHO POTOMOK ─────────────────────────────────
         🔴 DVA DÔVODY, OBA MERATEĽNÉ:
         1. VRSTVENIE. Pás je `fixed z-40`, teda VLASTNÝ stacking kontext — čokoľvek v ňom

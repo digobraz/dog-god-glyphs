@@ -6,7 +6,6 @@ import { PACK_THEME, PACK_BOX } from '@/components/pack/packTheme';
 import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
 import { Navigate, useLocation } from 'react-router-dom';
 import { GlobePulse } from '@/components/pack/GlobePulse';
-import { FounderInvite } from '@/components/pack/FounderInvite';
 import { WIZ } from '@/components/pack/wizAnchors';
 // NextTripCard parkuje (nahradený TripSpotlightom 9.8.2026) — pozri komentár pri bloku nižšie.
 // LAZY (audit 26. 9. 2026): obe karty sú za `DEV_FULL`, ale statický import ťahal do
@@ -215,12 +214,6 @@ export default function Pack() {
     .map((d) => (d.country ?? '').trim())
     .find((c) => c.length > 0) ?? null;
 
-  // Primary dog for wizard navigation (lowest pack_number, else first loaded).
-  const primaryDog = (dogs ?? []).reduce<DogRow | null>((best, d) => {
-    if (!best) return d;
-    return (d.pack_number ?? Infinity) < (best.pack_number ?? Infinity) ? d : best;
-  }, null);
-
   if (welcome) return <Navigate to="/pack/profile?welcome=1" replace />;
 
   return (
@@ -280,18 +273,9 @@ export default function Pack() {
           <GlobePulse total={stats?.dogs ?? stats?.total ?? 0} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} ownerCountry={ownerCountry} />
         </div>
 
-        {/* ── ŠÍR TO ĎALEJ — JEDEN blok o dvoch poloviciach (Matej 12.8.: „rozdel tento
-            gradient blok na 2 časti… týmto krokom zlúčime blok 7-8 do jedného").
-            Vľavo share karta psa + zdieľanie + odkaz na WALL, vpravo affiliate a rozpad
-            milodaru. Zámerne až tu (Matej 5.8.): najprv nech člen vidí, čo dostal a prečo
-            to existuje, až potom ho žiadame, aby pozval kamaráta.
-            ⚠️ `PackShareCard` sa tu UŽ NEMOUNTUJE — jeho obsah je v ľavej polovici. Súbor
-            parkuje (ako `PackTree`/`DailyPrayers`); vrátiť ho sem = zdieľanie dvakrát. */}
-        <FounderInvite
-          dogName={primaryDog?.dog_name ?? null}
-          packNumber={primaryDog?.pack_number ?? null}
-          shareCardUrl={primaryDog?.share_card_url ?? null}
-        />
+        {/* ── ŠÍR TO ĎALEJ (`FounderInvite`) z DOMOVA ODIŠLO 23. 10. 2026 — pravá polovica (BONES, línia,
+            odkaz) žije v šuplíku BONES na profile, ľavá (karta psa) je okno ZDIEĽAJ KARTU PSA
+            (POZVI na profile + ZDIEĽAJ ODKAZ v BONES). `FounderInvite.tsx` NEMAZAŤ — parkuje. */}
 
         {/* Účet / nastavenia (PackSettings) ODIŠLI do JA 5. 10. 2026 (test po FLIPe: duplikát
             + SIGN OUT na DOMOVE). `?welcome=1` z uvítacieho mailu presmeruje hore na

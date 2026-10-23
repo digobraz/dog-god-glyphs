@@ -32,6 +32,8 @@ export interface PackDogFull {
   life_status?: string | null;
   /** Krajina psa z heroflow (2. krok) — SNIFFER z nej predvolí krajinu rajónu. */
   country?: string | null;
+  /** Karta psa (PNG na Cloudinary) — okno ZDIEĽAJ KARTU PSA ju ponúka ako prvú fotku. */
+  share_card_url?: string | null;
 }
 
 export interface PackUserData {
@@ -138,7 +140,7 @@ export function usePackUser(userId: string | null): PackUserData {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let dogsQuery = (supabase as any)
         .from('dogs')
-        .select('id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url, owner_name, country, life_status')
+        .select('id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url, owner_name, country, life_status, share_card_url')
         .eq('payment_status', 'paid');
       dogsQuery = ids ? dogsQuery.in('id', ids) : dogsQuery.eq('user_id', user.id);
       const { data: dogRows } = await dogsQuery

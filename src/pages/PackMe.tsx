@@ -36,13 +36,14 @@ import { readLocalTrails, readWalkedIds, visibleLocalTrails, tripPath } from '@/
 import { PILL_CSS } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BonesSheet } from '@/components/pack/BonesSheet';
+import { TripShareSheet, type TripShareData } from '@/components/pack/trip/TripShareSheet';
+import { dogShareLink } from '@/lib/useShareCard';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { ME_CSS, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
 import { StoryViewer } from '@/components/pack/profile/StoryViewer';
 import { DevotionSheet } from '@/components/pack/profile/DevotionSheet';
 import { levelProgress } from '@/lib/tripPoints';
 import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbum, isLive, isTripStory, type MePost } from '@/components/pack/profile/mePosts';
-import { shareDog } from '@/lib/useShareCard';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 
@@ -171,6 +172,7 @@ export default function PackMe() {
   const [brought, setBrought] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
   const [bonesOpen, setBonesOpen] = useState(location.hash === '#network');
+  const [shareOpen, setShareOpen] = useState(false);
   // Odkaz `#network` zvonku (homepage, pozvánka zakladateľa) aj keď už profil stojí.
   useEffect(() => { if (location.hash === '#network') setBonesOpen(true); }, [location.hash]);
   const closeBones = () => {
@@ -242,21 +244,18 @@ export default function PackMe() {
 
   const soon = (what: string) => toast({ title: what, description: tx('pack.me.soonFeed', 'Arrives with the FEED.') });
 
-  const invite = async () => {
-    if (!firstDog?.pack_number) return;
-    const name = firstDog.dog_name ?? '';
-    try {
-      const r = await shareDog({
-        pack: firstDog.pack_number,
-        dogName: name,
-        imageUrl: firstDog.cloudinary_main_url ?? '',
-        shareText: t('share.dogVoice', { dog: name.toUpperCase() }),
-      });
-      if (r === 'copied') toast({ title: t('sharecard.linkCopied') });
-    } catch {
-      toast({ title: t('sharecard.failed') });
-    }
-  };
+  // POZVI = okno ZDIEĽAJ KARTU PSA — ten istý mechanizmus ako zdieľanie výletu (IG príbeh / FB,
+  // karta psa alebo vlastná fotka, odkaz sa skopíruje na nálepku). Matej 23. 10. 2026. To isté okno
+  // otvára ZDIEĽAJ ODKAZ v šuplíku BONES — karta ZDIEĽAJ KARTU z DOMOVA tým odišla.
+  const shareData: TripShareData | null = firstDog?.pack_number ? {
+    name: firstDog.dog_name ?? 'Dogyptian',
+    url: dogShareLink(firstDog.pack_number, 'story', firstDog.dog_name),
+    card: firstDog.share_card_url ?? undefined,
+    photos: firstDog.cloudinary_main_url ? [firstDog.cloudinary_main_url] : [],
+    country: firstDog.country ?? undefined,
+    chips: [['🐾', `#${firstDog.pack_number} / 1 000 000`]],
+  } : null;
+  const invite = () => { if (shareData) setShareOpen(true); };
 
   const dash = <b className="na" aria-label={tx('pack.me.notYet', 'not yet')}>—</b>;
   // Titulka = vlastná (UPRAVIŤ PROFIL), inak fotka človeka so psom (SNIFFER), inak hlavná fotka prvého psa; bez fotky ostane čierna.
@@ -490,7 +489,8 @@ export default function PackMe() {
         <StoryViewer items={viewing.items} start={viewing.start} name={shownName} avatar={avatarUrl} dogs={dogs}
           mine={!!viewing.del} lang={lang} onClose={() => setViewing(null)} />
       )}
-      {bonesOpen && <BonesSheet bones={bones} avatarUrl={avatarUrl} initial={avatarInitial} onClose={closeBones} />}
+      {bonesOpen && <BonesSheet bones={bones} avatarUrl={avatarUrl} initial={avatarInitial} onClose={closeBones} onShare={shareData ? invite : undefined} />}
+      {shareOpen && shareData && <TripShareSheet kind="dog" data={shareData} onClose={() => setShareOpen(false)} />}
     </PackLayout>
   );
 }

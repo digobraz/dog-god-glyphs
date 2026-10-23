@@ -287,12 +287,14 @@ const NET_CSS = `
 
 // `bare` = bez vlastnej karty — blok žije v šuplíku MISIA na profile (`BonesSheet`, 23. 10. 2026),
 // ktorý papyrus a rám nesie sám. Karta v karte by bol druhý rám okolo toho istého.
-export function PackNetwork({ avatarUrl, initial, bare = false, mission }: {
+export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare }: {
   avatarUrl?: string | null;
   initial?: string;
   bare?: boolean;
   /** Pás MISIE v tyrkysovom hrdinovi — dodá ho šuplík (`BonesSheet`), ktorý má verejné čísla. */
   mission?: ReactNode;
+  /** ZDIEĽAJ ODKAZ otvorí okno ZDIEĽAJ KARTU PSA (šuplík BONES, 23. 10. 2026) namiesto holého odkazu. */
+  onShare?: () => void;
 }) {
   const t = useT();
   const { lang } = useLang();
@@ -498,7 +500,7 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission }: {
 
       {/* ② ODKAZ — hlavná akcia hneď pod stavom, nie na konci šuplíka. Tyrkysové CTA je
           priznaná výnimka sekcie BONES (`bonesSkin.ts`); tvar ostáva `.btn-gold` (r8). */}
-      <button type="button" className="pkb-cta" onClick={handleShare} disabled={!link}>
+      <button type="button" className="pkb-cta" onClick={onShare ?? handleShare} disabled={!onShare && !link}>
         <BrandIcon name="link" size={16} tint="dark" />
         {tx('pack.network.shareLink', 'Share your link')}
       </button>

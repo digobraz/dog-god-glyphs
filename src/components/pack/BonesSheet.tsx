@@ -50,12 +50,14 @@ const CSS = `
 
 type Stats = { dogs?: number; total?: number };
 
-export function BonesSheet({ avatarUrl, initial, onClose }: {
+export function BonesSheet({ avatarUrl, initial, onClose, onShare }: {
   /** Zostatok nesie `PackNetwork` sám (živé RPC) — prop ostáva kvôli volajúcim. */
   bones: number;
   avatarUrl?: string | null;
   initial?: string;
   onClose: () => void;
+  /** ZDIEĽAJ ODKAZ → okno ZDIEĽAJ KARTU PSA (to isté, čo POZVI na profile). */
+  onShare?: () => void;
 }) {
   const t = useT();
   const { lang } = useLang();
@@ -94,7 +96,7 @@ export function BonesSheet({ avatarUrl, initial, onClose }: {
         </div>
         <div className="bs-body">
           {/* MISIA sedí v tyrkysovom hrdinovi `PackNetwork` (23. 10. 2026) — jeden blok so stavom BONES. */}
-          <PackNetwork avatarUrl={avatarUrl} initial={initial} bare mission={
+          <PackNetwork avatarUrl={avatarUrl} initial={initial} bare onShare={onShare} mission={
             <>
               <div className="r">
                 <span>{tx('pack.bones.mission', 'The mission')}</span>
