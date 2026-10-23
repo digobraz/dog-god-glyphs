@@ -6134,7 +6134,6 @@ export const sk: Partial<Dict> = {
   'pack.role.pilgrim': "Pútnik",
   'pack.edit.minPills': "Vyber aspoň 3",
   'pack.edit.addMember': "Pridaj do svorky",
-  'pack.edit.supportMail': "Napíš nám",
   'pack.edit.openDogId': "Celé DOG ID",
   'pack.mate.kindAccount': "Vytvoriť nové konto",
   'pack.mate.kindWill': "Prístup k závetu",

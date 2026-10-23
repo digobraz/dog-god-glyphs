@@ -6443,7 +6443,6 @@ export const en = {
   'pack.role.pilgrim': "Pilgrim",
   'pack.edit.minPills': "Pick at least 3",
   'pack.edit.addMember': "Add to the pack",
-  'pack.edit.supportMail': "Write to us",
   'pack.edit.openDogId': "Full DOG ID",
   'pack.mate.kindAccount': "New DOGYPT account",
   'pack.mate.kindWill': "Access to the will",

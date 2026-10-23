@@ -25,6 +25,7 @@ import {
   type MyPawmates, type PawmateRow, type PawmateRight,
 } from '@/lib/pawmateRights';
 import { appWebVersion } from '@/lib/appUpdate';
+import { openAinubis } from '@/lib/ainubisBus';
 import { createWill, listMyWills, revokeWill, type WillRow } from '@/lib/willAccess';
 import { APP_PLATFORM } from '@/lib/isApp';
 import {
@@ -590,11 +591,9 @@ export default function PackProfile() {
             {/* PODPORA = ďalšie riadky toho istého zoznamu (Matej 23. 10.: „urob to normálne, ako keby to len
                 pokračovalo, nie ako niečo úplne iné"). Tlačidlo má tvar ODHLÁSIŤ SA, e-mail tvar riadku E-MAIL. */}
             <PackSettings bare after={<>
-              <Field icon={<BrandIcon name="question" size={16} tint="dim" />} label={tx('pack.edit.support', 'Support')}>
-                <button type="button" className="pf-tap" onClick={() => navigate('/pack/ainubis')} style={ROW_BTN}>{tx('pack.edit.supportAi', 'Ask AINUBIS')}</button>
-              </Field>
-              <Field icon={<BrandIcon name="envelope" size={16} tint="dim" />} label={tx('pack.edit.supportMail', 'Write to us')} last>
-                <a href="mailto:woof@dogypt.com" style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.body, color: T.ink }}>woof@dogypt.com</a>
+              {/* Len PODPORA (Matej 23. 10.: „dole daj len podpora, nie napíš nám — podpora otvorí AINUBIS chat"). */}
+              <Field icon={<BrandIcon name="question" size={16} tint="dim" />} label={tx('pack.edit.support', 'Support')} last>
+                <button type="button" className="pf-tap" onClick={() => openAinubis()} style={ROW_BTN}>{tx('pack.edit.supportAi', 'Ask AINUBIS')}</button>
               </Field>
             </>} />
             {/* ČÍSLO VERZIE — LEN V APPKE (21. 10. 2026), rovnaké ako `version` v dogypt.com/app-update.json. */}
