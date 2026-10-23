@@ -235,9 +235,22 @@ body.has-pack-nav {
     left: 8px;
     right: 8px;
     bottom: calc(var(--ainubis-dock-b, var(--pack-dock-b)) + 68px);
-    top: 8px;
+    /* ⚠️ Pod výrez/Dynamic Island, nie 8 px od okraja okna — appka kreslí cez celú
+       obrazovku (viewport-fit=cover) a hlavička so šípkou zavrieť sedela POD výrezom
+       (Matej 24. 10. 2026: „nevidno vrch, nejde zavrieť"). */
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
     width: auto;
     height: auto;
+  }
+  /* iOS priblíži stránku pri zameraní poľa s písmom < 16 px — a appka sa potom nedá
+     oddialiť. Na telefóne preto 16 px. */
+  .ainubis-panel .ainubis-composer__textarea,
+  .ainubis-panel .ainubis-gate__input { font-size: 16px; }
+  /* Klávesnica vonku: panel sa zmestí nad ňu (hodnoty píše AinubisWidget z visualViewport).
+     `html body` + dve triedy prebije has-hub-ainubis (inline, neskôr v DOM) aj SNIFFER. */
+  html body .ainubis-panel.ainubis-panel--kb {
+    top: calc(var(--ainubis-vv-top, 0px) + env(safe-area-inset-top, 0px) + 8px);
+    bottom: calc(var(--ainubis-vv-bottom, 0px) + 8px);
   }
 }
 

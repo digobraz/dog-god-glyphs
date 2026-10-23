@@ -631,9 +631,38 @@ function AinubisWidgetInner() {
    *  aby diktovanie nezmazalo rozpísanú správu. */
   const dictationBaseRef = useRef('');
 
+  // Klávesnica na telefóne: iOS nezmenší okno, len ho prekryje — panel by sa natiahol
+  // pod klávesnicu a hlavička by ušla hore. Kým je klávesnica vonku, panel sa zmestí
+  // do VIDITEĽNEJ časti okna (visualViewport); CSS číta --ainubis-vv-top/-bottom.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    const el = panelRef.current;
+    if (!open || !vv || !el) return;
+    const sync = () => {
+      const bottom = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      const kb = bottom > 80;
+      el.classList.toggle('ainubis-panel--kb', kb);
+      el.style.setProperty('--ainubis-vv-top', `${Math.round(vv.offsetTop)}px`);
+      el.style.setProperty('--ainubis-vv-bottom', `${Math.round(bottom)}px`);
+    };
+    sync();
+    vv.addEventListener('resize', sync);
+    vv.addEventListener('scroll', sync);
+    return () => { vv.removeEventListener('resize', sync); vv.removeEventListener('scroll', sync); };
+  }, [open]);
+
   const openRef = useRef(open);
   const messagesRef = useRef(messages);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  /** Zameranie poľa SAMO OD SEBA (otvorenie, téma) len tam, kde je klávesnica fyzická.
+   *  Na dotykovom telefóne by vysunulo klávesnicu, iOS by pri písme < 16 px priblížil
+   *  stránku a klávesnica vytlačila hlavičku panela aj so šípkou zavrieť mimo obrazovku
+   *  (Matej 24. 10. 2026: „nevidno vrch, nejde zavrieť, urobí veľký zoom"). Človek si
+   *  pole ťukne sám. */
+  const focusComposerSoon = () => {
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    window.setTimeout(() => textareaRef.current?.focus(), 50);
+  };
   const bodyRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -731,14 +760,14 @@ function AinubisWidgetInner() {
       if (detail?.topic && isTopicKey(detail.topic)) setPendingTopic(detail.topic);
       if (prefill) {
         setInput(prefill);
-        window.setTimeout(() => textareaRef.current?.focus(), 50);
+        focusComposerSoon();
       }
       if (openRef.current) return;
       setOpen(true);
       setUnreadCount(0);
       safeLocalStorageSet(LS_OPEN, '1');
       safeLocalStorageSet(LS_LAST_SEEN, new Date().toISOString());
-      window.setTimeout(() => textareaRef.current?.focus(), 50);
+      focusComposerSoon();
     };
     window.addEventListener(AINUBIS_OPEN_EVENT, onOpen);
     return () => window.removeEventListener(AINUBIS_OPEN_EVENT, onOpen);
@@ -1162,7 +1191,7 @@ function AinubisWidgetInner() {
       const id = `assistant-topic-${now}`;
       setMessages((prev) => [...prev, { id, role: 'assistant', content: tp.reply, created_at: new Date().toISOString() }]);
       startTypewriter(id, tp.reply);
-      window.setTimeout(() => textareaRef.current?.focus(), 50);
+      focusComposerSoon();
     }, reducedMotion ? 0 : 650);
   }
 
@@ -1270,7 +1299,7 @@ function AinubisWidgetInner() {
       if (next) {
         setUnreadCount(0);
         safeLocalStorageSet(LS_LAST_SEEN, new Date().toISOString());
-        window.setTimeout(() => textareaRef.current?.focus(), 50);
+        focusComposerSoon();
       }
       safeLocalStorageSet(LS_OPEN, next ? '1' : '0');
       return next;
@@ -1716,7 +1745,7 @@ function AinubisWidgetInner() {
                 placeholder={copy.gate.placeholder}
                 value={gateInput}
                 onChange={(e) => { setGateInput(e.target.value); setGateError(false); }}
-                autoFocus
+                autoFocus={window.matchMedia('(hover: hover) and (pointer: fine)').matches}
               />
               <button type="submit" className="ainubis-gate__btn">{copy.gate.send}</button>
               {gateError && <div className="ainubis-gate__err">{copy.gate.invalid}</div>}
