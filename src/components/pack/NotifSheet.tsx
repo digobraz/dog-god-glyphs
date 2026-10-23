@@ -15,8 +15,7 @@
 import type React from 'react';
 import { forwardRef, lazy, Suspense, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HandPlay } from './HandIcons';
-import { BackButton } from './BackButton';
+import { BackButton, BackIcon, backCircleCSS, backHoverCSS } from './BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, STAGE_CSS, FONT_UI } from './packTheme';
 import { LAPIS } from './navGoldSkin';
 import { AINUBIS } from './ainubisSkin';
@@ -186,17 +185,16 @@ const CSS = `
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;line-height:1;
   padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;background:rgba(251,245,230,0.9);color:${T.inkStrong};border:1px solid ${T.hairline};}
 .ntf-dog-flag{flex:0 0 auto;width:16px;height:16px;border-radius:${PACK_R.pill}px;object-fit:cover;border:1px solid ${T.card};}
-/* Šípky = PLNÁ kresba (nie obrys), menšie. Dozadu sedí NA hranici fotky (Matej 23. 10.: „tú šípku daj
-   cez hranicu fotky a zmenši"); dopredu sa objaví vľavo, až keď je kam. */
-.ntf-arr{position:absolute;z-index:3;top:50%;width:24px;height:24px;margin-top:-12px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;padding:0;border:none;cursor:pointer;
-  background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${PACK_SHADOW.lift};line-height:1;}
-.ntf-arr--prev{right:-12px;}
-.ntf-arr--next{left:${PACK_SPACE.sm}px;}
-.ntf-logo{position:absolute;z-index:1;right:-18%;top:-34%;width:96%;aspect-ratio:1;pointer-events:none;background:${T.inkStrong};opacity:.07;
+/* Šípky = brandový kruh návratu na fotke (backCircleCSS scrim + BackIcon). Dozadu sedí na ĽAVOM
+   okraji (Matej 23. 10.: „šípku čo je v strede daj na ľavú časť hranu a daj ju v brande"); dopredu sa
+   objaví vpravo na fotke, až keď je kam. */
+.ntf-arr{position:absolute;z-index:3;top:50%;transform:translateY(-50%);${backCircleCSS('scrim')}}
+.ntf-arr:hover{${backHoverCSS('scrim')}}
+.ntf-arr--prev{left:${PACK_SPACE.sm}px;}
+.ntf-arr--next{right:${PACK_SPACE.xxl}px;}
+/* Celá hlava psa aj s nosom (Matej 23. 10.: „daj to logo nižšie, nech je vidno celá tvár aj nos“). */
+.ntf-logo{position:absolute;z-index:1;right:-14%;top:-6%;width:84%;aspect-ratio:1;pointer-events:none;background:${T.inkStrong};opacity:.07;
   -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;}
-.ntf-open{position:absolute;z-index:3;right:${PACK_SPACE.xxl}px;bottom:0;white-space:nowrap;pointer-events:none;
-  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px ${PACK_R.tile}px 0 0;background:rgba(251,245,230,0.95);
-  border:1px solid ${T.hairline};border-bottom:0;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .ntf-nums{position:absolute;z-index:2;right:${PACK_SPACE.xxl}px;top:${PACK_SPACE.md}px;bottom:${PACK_SPACE.md}px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:${PACK_SPACE.xs}px;}
 /* Počítadlo — písmo sa zmenšuje podľa POČTU ZNAKOV (--ntf-len), aby sa zmestilo aj „1 000 000".
    Farba = tmavý atrament papyrusu (Matej 23. 10.: lapis→zlatý gradient „nie sú v brande"). */
@@ -350,11 +348,11 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                   </span>
                   {di < newest.length - 1 && (
                     <button type="button" className="ntf-arr ntf-arr--prev" aria-label={t('pack.notif.olderDog')}
-                      onClick={(e) => { e.stopPropagation(); step(1); }}><HandPlay size={10} style={{ transform: 'scaleX(-1)' }} /></button>
+                      onClick={(e) => { e.stopPropagation(); step(1); }}><BackIcon /></button>
                   )}
                   {di > 0 && (
                     <button type="button" className="ntf-arr ntf-arr--next" aria-label={t('pack.notif.newerDog')}
-                      onClick={(e) => { e.stopPropagation(); step(-1); }}><HandPlay size={10} /></button>
+                      onClick={(e) => { e.stopPropagation(); step(-1); }}><BackIcon style={{ transform: 'scaleX(-1)' }} /></button>
                   )}
                 </span>
               )}
@@ -362,8 +360,6 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                   logo dogyptu za tie čísla… zoomni ho = nemusí byť celé, skôr detail loga"). */}
               <span className="ntf-logo" aria-hidden style={{ WebkitMaskImage: `url(${logo2026})`, maskImage: `url(${logo2026})` }} />
               {/* Najvýraznejšie: psy a ľudia, pod sebou (Matej 21. 10.). */}
-              {/* Otvorenie detailu = štítok na spodnom okraji bloku (nákres 23. 10., voľba 1). */}
-              <span className="ntf-open" aria-hidden>{t('pack.notif.allStats')}</span>
               <span className="ntf-nums" style={{ ['--ntf-len' as string]: numLen }}>
                 <span className="ntf-num"><b>{stats ? fmt(dogs) : '—'}</b><span>{t('pack.notif.dogsWord')}</span></span>
                 <span className="ntf-num"><b>{stats ? fmt(stats.total) : '—'}</b><span>{t('pack.notif.peopleWord')}</span></span>
