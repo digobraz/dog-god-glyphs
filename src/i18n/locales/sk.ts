@@ -6337,7 +6337,7 @@ export const sk: Partial<Dict> = {
   'pack.dvtoday.ask': "Ako bolo dnes s {dog}? Ťukni, čo ste spolu robili.",
   'pack.dvtoday.and': "a",
   'pack.dvtoday.yourDog': "psom",
-  'pack.dvtoday.claim': "Vyzdvihni",
+  'pack.dvtoday.claim': "Pripíš",
   'pack.dvtoday.claimed': "+{n} oddanosti pripísané. Zajtra sa ozvem.",
   'pack.dvtoday.streak': "{n} dní v rade",
   'pack.dvtoday.doneToday': "hotovo",

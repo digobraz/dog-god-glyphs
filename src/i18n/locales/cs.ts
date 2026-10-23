@@ -6251,7 +6251,7 @@ export const cs: Partial<Dict> = {
   'pack.dvtoday.ask': "Jak bylo dnes s {dog}? Ťukni, co jste spolu dělali.",
   'pack.dvtoday.and': "a",
   'pack.dvtoday.yourDog': "psem",
-  'pack.dvtoday.claim': "Vyzvedni",
+  'pack.dvtoday.claim': "Připiš",
   'pack.dvtoday.claimed': "+{n} oddanosti připsáno. Zítra se ozvu.",
   'pack.dvtoday.streak': "{n} dní v řadě",
   'pack.dvtoday.doneToday': "hotovo",
