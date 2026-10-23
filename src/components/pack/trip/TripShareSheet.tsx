@@ -47,6 +47,8 @@ export interface TripShareData {
   glyph?: string;
   /** Meno v Cinzel Decorative — mená psov na oficiálnych povrchoch (brand lock). */
   decorative?: boolean;
+  /** Pilulka úplne hore („Som #1 z 1 000 000") — miesto psa v misii (Matej 23. 10.). */
+  badge?: string;
 }
 
 /** Čo sa zdieľa — mení len texty okna. Pes = karta psa z profilu JA a šuplíka BONES (23. 10. 2026,
@@ -204,6 +206,18 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
     ctx.lineWidth = 4; ctx.strokeStyle = GOLD; ctx.beginPath(); ctx.arc(fx, fy, r, 0, Math.PI * 2); ctx.stroke();
   }
 
+  // pilulka misie hore — IG drží pod svojím horným pásom (~250 px), FB tesne pod okrajom
+  if (d.badge) {
+    const bfs = ig ? 36 : 30, by = ig ? 270 : 56;
+    ctx.font = `700 ${bfs}px Cinzel`; ctx.letterSpacing = `${Math.round(bfs * 0.1)}px`;
+    const label = d.badge.toUpperCase(), bw = ctx.measureText(label).width + bfs * 1.6, bh = bfs * 2;
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 18;
+    rr(ctx, cx - bw / 2, by, bw, bh, bh / 2); ctx.fillStyle = T.card; ctx.fill(); ctx.restore();
+    ctx.lineWidth = 3; ctx.strokeStyle = GOLD; rr(ctx, cx - bw / 2, by, bw, bh, bh / 2); ctx.stroke();
+    ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, cx, by + bh / 2 + 2); ctx.letterSpacing = '0px';
+  }
+
   const ty = title(ctx, d.name, cx, top, big, false, fam);
   rule(ctx, cx, ty + 22, 640);
   if (o.glyph) ctx.drawImage(o.glyph, cx - gW / 2, ty + 48, gW, gH);
@@ -220,7 +234,7 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
     rule(ctx, cx, sY + slotH + 16, 640);
   } else {
     ctx.fillStyle = WARM; ctx.font = `500 28px "Space Grotesk", ${FONT_EMOJI}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText(`🐾  ${tx.fbLine}`, cx, lY - 56);
+    ctx.fillText(tx.fbLine, cx, lY - 56);
     rule(ctx, cx, lY - 18, 520);
   }
 
@@ -331,7 +345,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
   const glyph = withGlyph ? glyphImg : null;
   const tx: Texts = {
     slot: t('pack.trip.shareSlot'),
-    fbLine: t(K.fbLine),
+    fbLine: kind === 'trip' ? `🐾  ${t(K.fbLine)}` : t(K.fbLine),
     motto: t('whatNext.motto').replace(/\.$/, ''),
   };
   const txKey = `${tx.slot}|${tx.fbLine}|${tx.motto}`;

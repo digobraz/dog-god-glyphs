@@ -255,6 +255,7 @@ export default function PackMe() {
     country: firstDog.country ?? undefined,
     glyph: firstDog.heroglyph_png_url ?? undefined,
     decorative: true,
+    badge: t('pack.dogShare.badge', { n: String(firstDog.pack_number) }),
     chips: [],
   } : null;
   const invite = () => { if (shareData) setShareOpen(true); };
