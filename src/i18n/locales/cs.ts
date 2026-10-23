@@ -3095,6 +3095,7 @@ export const cs: Partial<Dict> = {
   'pack.dogShare.fbLine': "www.dogypt.com",
   'pack.dogShare.step1': "Nech fotku psa nebo nahraj svou. Heroglyf můžeš vypnout.",
   'pack.dogShare.photoCard': "Fotka psa",
+  'pack.dogShare.stepFb3': "Do textu příspěvku vlož odkaz, ať psa najdou i ostatní.",
   'pack.dogShare.badge': "Jsem #{n} z 1 000 000",
   'pack.dogShare.glyphOff': "Bez heroglyfu",
   'pack.dogShare.glyphOn': "S heroglyfem",

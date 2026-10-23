@@ -4914,6 +4914,7 @@ export const en = {
   'pack.dogShare.fbLine': "www.dogypt.com",
   'pack.dogShare.step1': "Keep your dog's photo or upload your own. The heroglyph can be switched off.",
   'pack.dogShare.photoCard': "Dog photo",
+  'pack.dogShare.stepFb3': "Paste the link into the post so others can find your dog.",
   'pack.dogShare.badge': "I am #{n} of 1,000,000",
   'pack.dogShare.glyphOff': "No heroglyph",
   'pack.dogShare.glyphOn': "With heroglyph",

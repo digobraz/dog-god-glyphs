@@ -54,9 +54,9 @@ export interface TripShareData {
 /** Čo sa zdieľa — mení len texty okna. Pes = karta psa z profilu JA a šuplíka BONES (23. 10. 2026,
  *  Matej: „pozvi na profile po kliknutí mechanizmus ako pri výletoch a zdieľaní na ig"). */
 export type ShareKind = 'trip' | 'dog';
-const KIND_KEYS: Record<ShareKind, { title: string; copy: string; fbLine: string; step1: string; main: string; copied: string }> = {
-  trip: { title: 'pack.trip.shareTitle', copy: 'pack.trip.shareCopy', fbLine: 'pack.trip.shareFbLine', step1: 'pack.trip.shareStep1', main: 'pack.trip.sharePhotoTrip', copied: 'pack.trip.toastLinkCopied' },
-  dog: { title: 'pack.dogShare.title', copy: 'pack.dogShare.copy', fbLine: 'pack.dogShare.fbLine', step1: 'pack.dogShare.step1', main: 'pack.dogShare.photoCard', copied: 'sharecard.linkCopied' },
+const KIND_KEYS: Record<ShareKind, { title: string; copy: string; fbLine: string; step1: string; main: string; copied: string; fb3: string }> = {
+  trip: { title: 'pack.trip.shareTitle', copy: 'pack.trip.shareCopy', fbLine: 'pack.trip.shareFbLine', step1: 'pack.trip.shareStep1', main: 'pack.trip.sharePhotoTrip', copied: 'pack.trip.toastLinkCopied', fb3: 'pack.trip.shareStepFb3' },
+  dog: { title: 'pack.dogShare.title', copy: 'pack.dogShare.copy', fbLine: 'pack.dogShare.fbLine', step1: 'pack.dogShare.step1', main: 'pack.dogShare.photoCard', copied: 'sharecard.linkCopied', fb3: 'pack.dogShare.stepFb3' },
 };
 
 const FMT: Record<ShareFmt, { w: number; h: number }> = { ig: { w: 1080, h: 1920 }, fb: { w: 1080, h: 1350 } };
@@ -438,10 +438,10 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
   // „CTA je zdieľať na IG FB, ale po kliku sa fotka stiahne… nemalo by tam byť stiahnuť fotku?“)
   const pc = !isTouch();
   const steps = pc
-    ? [t(K.step1), t('pack.trip.shareStepPc2'), t(fmt === 'ig' ? 'pack.trip.shareStepIg3' : 'pack.trip.shareStepFb3')]
+    ? [t(K.step1), t('pack.trip.shareStepPc2'), t(fmt === 'ig' ? 'pack.trip.shareStepIg3' : K.fb3)]
     : fmt === 'ig'
     ? [t(K.step1), t('pack.trip.shareStepIg2'), t('pack.trip.shareStepIg3')]
-    : [t(K.step1), t('pack.trip.shareStepFb2'), t('pack.trip.shareStepFb3')];
+    : [t(K.step1), t('pack.trip.shareStepFb2'), t(K.fb3)];
 
   return createPortal((
     <>
