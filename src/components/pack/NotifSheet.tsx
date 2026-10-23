@@ -191,9 +191,9 @@ const CSS = `
 .ntf-arr{position:absolute;z-index:3;top:50%;transform:translateY(-50%);${backCircleCSS('scrim')}}
 .ntf-arr:hover{${backHoverCSS('scrim')}}
 /* Šípky na HRANICIACH, nie vo fotke (Matej 23. 10.): dozadu napoly cez ľavý okraj bloku,
-   dopredu na hranici fotky a prechodu (62 % = kde začína rozplynutie). */
+   dopredu na konci prechodu, kde fotka končí v bloku — nie vo fotke. */
 .ntf-arr--prev{left:0;transform:translate(-50%,-50%);}
-.ntf-arr--next{left:62%;transform:translate(-50%,-50%);}
+.ntf-arr--next{left:100%;transform:translate(-50%,-50%);}
 /* Celá hlava psa aj s nosom (Matej 23. 10.: „daj to logo nižšie, nech je vidno celá tvár aj nos“). */
 .ntf-logo-clip{position:absolute;inset:0;z-index:1;overflow:hidden;border-radius:${PACK_R.card}px;pointer-events:none;}
 /* +50 px doľava a +15 px nižšie, aby bol vidno celý nos ako na novej ikonke appky (Matej 23. 10.). */
