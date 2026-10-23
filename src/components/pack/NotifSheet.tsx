@@ -36,7 +36,7 @@ import { dogPagePath } from '@/lib/dogSlug';
 import { countryISO2 } from '@/lib/countryGeo';
 import { flagUrl } from '@/lib/flagUrl';
 
-const GlobePulse = lazy(() => import('./GlobePulse').then((m) => ({ default: m.GlobePulse })));
+const StatsDetail = lazy(() => import('./StatsDetail').then((m) => ({ default: m.StatsDetail })));
 
 const DOG_NAME_FONT = "'Cinzel Decorative','Cinzel',serif";
 
@@ -194,6 +194,9 @@ const CSS = `
 .ntf-arr--next{left:${PACK_SPACE.sm}px;}
 .ntf-logo{position:absolute;z-index:1;right:-18%;top:-34%;width:96%;aspect-ratio:1;pointer-events:none;background:${T.inkStrong};opacity:.07;
   -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;}
+.ntf-open{position:absolute;z-index:3;right:${PACK_SPACE.xxl}px;bottom:0;white-space:nowrap;pointer-events:none;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px ${PACK_R.tile}px 0 0;background:rgba(251,245,230,0.95);
+  border:1px solid ${T.hairline};border-bottom:0;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .ntf-nums{position:absolute;z-index:2;right:${PACK_SPACE.xxl}px;top:${PACK_SPACE.md}px;bottom:${PACK_SPACE.md}px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:${PACK_SPACE.xs}px;}
 /* Počítadlo — písmo sa zmenšuje podľa POČTU ZNAKOV (--ntf-len), aby sa zmestilo aj „1 000 000".
    Farba = tmavý atrament papyrusu (Matej 23. 10.: lapis→zlatý gradient „nie sú v brande"). */
@@ -303,8 +306,9 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
 
         {view === 'stats' ? (
           <div className="ntf-all">
+            {/* Jedna obrazovka bez scrollu — nákres štatistík 23. 10. (A + rebríček z B). */}
             <Suspense fallback={null}>
-              <GlobePulse bare total={dogs} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} />
+              <StatsDetail stats={stats} />
             </Suspense>
           </div>
         ) : (
@@ -358,6 +362,8 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                   logo dogyptu za tie čísla… zoomni ho = nemusí byť celé, skôr detail loga"). */}
               <span className="ntf-logo" aria-hidden style={{ WebkitMaskImage: `url(${logo2026})`, maskImage: `url(${logo2026})` }} />
               {/* Najvýraznejšie: psy a ľudia, pod sebou (Matej 21. 10.). */}
+              {/* Otvorenie detailu = štítok na spodnom okraji bloku (nákres 23. 10., voľba 1). */}
+              <span className="ntf-open" aria-hidden>{t('pack.notif.allStats')}</span>
               <span className="ntf-nums" style={{ ['--ntf-len' as string]: numLen }}>
                 <span className="ntf-num"><b>{stats ? fmt(dogs) : '—'}</b><span>{t('pack.notif.dogsWord')}</span></span>
                 <span className="ntf-num"><b>{stats ? fmt(stats.total) : '—'}</b><span>{t('pack.notif.peopleWord')}</span></span>

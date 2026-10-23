@@ -17,7 +17,7 @@ const T = PACK_THEME;
 // Severka pyramída (zdroj: plany/severka.md) — swajpovateľné míľniky pod guľou.
 // Veľké číslo členov je fixné, swajp mení len názov + cieľ + % (a prstenec sa sync-ne).
 // nameKey → `t('pack.globe.milestone<X>')` (preklad pri renderi). Prahy = kánon, nemenné.
-const MILESTONES = [
+export const MILESTONES = [
   { nameKey: 'pack.globe.milestoneFounders', target: 1_000 },
   { nameKey: 'pack.globe.milestonePack', target: 10_000 },
   { nameKey: 'pack.globe.milestoneNation', target: 100_000 },
