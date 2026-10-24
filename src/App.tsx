@@ -167,7 +167,6 @@ const Terms = lazy(() => import("./pages/Terms.tsx"));
 const Privacy = lazy(() => import("./pages/Privacy.tsx"));
 // /magnet — predajná stránka len cez odkaz (12. 10. 2026): noindex, nikde neprelinkovaná.
 const Magnet = lazy(() => import("./pages/Magnet.tsx"));
-const Carry = lazy(() => import("./pages/Carry.tsx"));
 // /magnet/* — darčeky 1:1 s /pack bez navu (v8, 12. 10. 2026): tie isté obrazovky v režime náhľadu.
 const MagnetPreview = lazyPack(() => import("@/components/pack/magnetPreview").then((m) => ({ default: m.MagnetPreview })));
 const Pack = lazyPack(() => import("./pages/Pack.tsx"));
@@ -527,7 +526,6 @@ const App = () => (
               )}
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
-              <Route path="/carry" element={<Carry />} />
               <Route path="/magnet" element={<Magnet />} />
               <Route path="/magnet/vylety" element={<MagnetPreview kind="trips"><PackMap /></MagnetPreview>} />
               <Route path="/magnet/vylety/triplist" element={<MagnetPreview kind="trips"><PackTriplist /></MagnetPreview>} />

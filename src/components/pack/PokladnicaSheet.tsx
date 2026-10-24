@@ -6,8 +6,6 @@ import { BackButton } from './BackButton';
 import { HandArrowLeft } from './HandIcons';
 import { PACK_BOX, PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI, FONT_TITLE, VEIL_CSS, PROGRESS_CSS } from './packTheme';
 import { type Mesiac, type Polozka } from '@/lib/pokladnica';
-import { LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
-import { IS_APP } from '@/lib/isApp';
 
 const T = PACK_THEME;
 export type Suplik = 'rozvoj' | 'pomoc' | 'miska';
@@ -52,9 +50,6 @@ const CSS = `${PROGRESS_CSS}
 .kp-kv b{display:block;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.h2}px;color:${T.inkStrong};}
 .kp-kv span{font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .kp-bar{margin-top:${PACK_SPACE.md}px;}
-.kp-give{display:flex;align-items:center;justify-content:center;margin-top:${PACK_SPACE.md}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.field}px;
-  border:0;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};color:${LAPIS.ink};text-decoration:none;
-  font:700 ${PACK_TEXT.label}px/1 ${FONT_TITLE};letter-spacing:.14em;text-transform:uppercase;}
 .kp-shel{padding:${PACK_SPACE.md}px;font-family:${FONT_UI};}
 .kp-shel b{display:block;font-size:${PACK_TEXT.body}px;font-weight:600;color:${T.inkStrong};}
 .kp-shel span{font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
@@ -114,8 +109,6 @@ export function PokladnicaSheet(p: Props) {
           <span>{tx('pack.kasa.work', 'Work {h} h × {r} €').replace('{h}', p.kasa.praca.hodiny.toLocaleString(p.locale)).replace('{r}', String(p.kasa.praca.sadzba))}</span>
           <b>{eur(p.kasa.praca.eur)}</b>
         </div>
-        {/* DOBROVOĽNÝ DAR (24. 10. 2026) — hlavný vstup na /carry. V appke NIE (Apple 3.1.1: platba firme mimo IAP). */}
-        {!IS_APP && <a className="kp-give" href="/carry">{tx('pack.kasa.give', 'Support with a gift')}</a>}
       </div>
       <div className="kp-mh"><span>{tx('pack.kasa.month', 'Month')}</span><span>{tx('pack.kasa.income', 'Income')}</span><span>{tx('pack.kasa.costs', 'Costs')}</span><span /></div>
       {zluc.riadky.map((m) => {

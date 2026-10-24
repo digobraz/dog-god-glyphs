@@ -1,5 +1,5 @@
 // DOBROVOĽNÝ DAR — sumy, poplatok a mesačná prevádzka (24. 10. 2026).
-// Nákres plany/nakres-milodar-2026-10-24.html · stránka /carry · server `prispevok` (+ `_shared/prispevok.ts`).
+// Nákres plany/nakres-milodar-2026-10-24.html · stránka /carry ZMAZANÁ 24. 10. (Matej: blok v /profile) · server `prispevok` (+ `_shared/prispevok.ts`).
 // Poplatok Stripe berie z tej istej `pokladnica.json` (zo `sluzby.js`) ako pokladnica — jedno číslo, nie dve.
 import DATA from '@/data/pokladnica.json';
 
