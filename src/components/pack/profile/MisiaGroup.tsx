@@ -14,7 +14,7 @@ import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactN
 import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT as TX, FONT_TITLE, FONT_UI, VEIL_CSS, GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT as TX, FONT_TITLE, FONT_UI, VEIL_CSS, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { DALSI_UTULOK, VYPLATA_UTULKU } from '@/components/pack/PokladnicaSheet';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -63,38 +63,61 @@ const GEAR = '#7A5A2A';   // T.inkWarm — fialová je LEN výlety (brand lock),
 const CSS = `${VEIL_CSS}
 .mi-lead{margin:0 0 ${S.lg}px;text-align:center;font-family:${FONT_UI};font-size:${TX.body}px;line-height:1.5;color:${T.inkStrong};}
 .mi-lead b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;}
-.mi-pipe{display:flex;flex-direction:column;}
-.mi-pipe{display:flex;flex-direction:column;max-width:560px;margin:0 auto;}
-.mi-goal,.mi-mine{max-width:560px;margin-left:auto !important;margin-right:auto !important;}
-/* BOX = jeden z troch stupňov toku (nákres Mateja 24. 10.: PRÍJEM → pokladnica → ROZVOJ · POMOC). */
-.mi-box{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;width:100%;cursor:pointer;text-align:center;color:${T.inkStrong};transition:transform .15s ease;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};}
-.mi-box:hover{transform:translateY(-2px);}
-.mi-box-h{display:flex;justify-content:center;align-items:baseline;gap:${S.sm}px;}
-.mi-box > i{font-style:normal;font-size:${TX.label}px;color:${T.inkWarm};}
-.mi-more{font-size:${TX.micro}px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:${LAPIS.edge};}
-.mi-box-h span{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
-.mi-box-h b{font-weight:600;font-size:${TX.body}px;color:${T.inkWarm};}
-.mi-rows{display:flex;flex-direction:column;gap:${S.xs}px;}
-.mi-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:${S.sm}px;width:100%;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.tile}px;border:1px solid transparent;background:none;cursor:pointer;text-align:left;font-family:${FONT_UI};color:${T.inkStrong};transition:background .15s ease;}
-.mi-row:hover{background:color-mix(in srgb, ${T.cardEdge} 10%, transparent);}
-.mi-row .ic{display:grid;place-items:center;width:32px;height:32px;border-radius:${PACK_R.pill}px;background:color-mix(in srgb, var(--c) 14%, transparent);border:1px solid var(--c);}
-.mi-row b{font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;overflow-wrap:anywhere;}
-.mi-row i{font-style:normal;font-size:${TX.label}px;font-weight:600;white-space:nowrap;}
-.mi-row.soon .ic,.mi-row.soon b{opacity:.55;}
-.mi-row.soon i{font-weight:400;font-size:${TX.micro}px;color:${T.inkDim};}
-.mi-later{margin-top:${S.md}px;padding-top:${S.sm}px;border-top:1px dashed ${T.cardEdge};}
-.mi-later > p{margin:0 0 ${S.xs}px !important;font-size:${TX.micro}px !important;text-align:center;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
-/* TOK — bodky (mince) bežia dolu. Podklad je slabá plná čiara, pohyb nesú bodky; bez peňazí len podklad. */
+.mi-tree{display:flex;flex-direction:column;max-width:640px;margin:0 auto;font-family:${FONT_UI};}
+.mi-goal,.mi-mine,.mi-shel{max-width:640px;margin-left:auto !important;margin-right:auto !important;}
+/* STROM TOKU (Matej 24. 10.: *„viac segmentovať a animovať viac segmentov … detail na iný popup“*).
+   PRÍJEM: 2 stĺpce → chrbtice na vonkajších okrajoch → zbiehajú sa do POKLADNICE → rozdelí sa do chrbtíc ROZVOJ (vľavo)
+   a POMOC (vpravo) → odbočka do každej položky. Bodky bežia len tam, kade naozaj tečú peniaze. */
+.mi-hd{display:flex;justify-content:center;align-items:baseline;gap:${S.sm}px;width:100%;margin:0 0 ${S.sm}px;padding:0;border:0;background:none;cursor:pointer;color:${T.inkStrong};}
+.mi-hd span{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.14em;text-transform:uppercase;}
+.mi-hd b{font-weight:600;font-size:${TX.label}px;color:${T.inkWarm};}
+.mi-hd i{font-style:normal;font-size:${TX.micro}px;color:${LAPIS.edge};}
+.mi-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${S.sm}px;}
+.mi-col{--c:${T.cardEdge};position:relative;display:flex;flex-direction:column;gap:${S.sm}px;min-width:0;}
+.mi-col.l{padding-left:${S.md}px;} .mi-col.r{padding-right:${S.md}px;}
+.mi-col::before{content:"";position:absolute;top:var(--sp-top,0);bottom:var(--sp-bot,0);width:2px;background:var(--c);opacity:.25;}
+.mi-col.l::before{left:4px;} .mi-col.r::before{right:4px;}
+.mi-col::after{content:"";position:absolute;top:var(--sp-top,0);bottom:var(--sp-bot,0);width:6px;}
+.mi-col.l::after{left:2px;} .mi-col.r::after{right:2px;}
+.mi-col.live::after{background:radial-gradient(circle, var(--c) 2.5px, transparent 3px) 0 0 / 6px 12px repeat-y;animation:mi-down 1.1s linear infinite;}
+.mi-cols.out .mi-col{--sp-bot:28px;}
+.mi-cols.out .mi-hd{position:relative;flex-wrap:wrap;gap:${S.xs}px;}
+.mi-hd b{white-space:nowrap;}
+@keyframes mi-down{to{background-position:0 12px}}
+/* SEGMENT = položka + odbočka z/do chrbtice. */
+.mi-seg{position:relative;display:flex;align-items:center;gap:${S.sm}px;min-width:0;min-height:56px;padding:${S.sm}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};cursor:pointer;text-align:left;font-family:${FONT_UI};color:${T.inkStrong};transition:transform .15s ease;}
+.mi-seg:hover{transform:translateY(-2px);}
+.mi-seg .ic{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:${PACK_R.pill}px;background:color-mix(in srgb, var(--c) 14%, transparent);border:1px solid var(--c);}
+.mi-seg > span:last-child{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.mi-seg b{font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;overflow-wrap:anywhere;}
+.mi-seg i{font-style:normal;font-size:${TX.micro}px;color:${T.inkDim};}
+.mi-seg.has i{font-size:${TX.label}px;font-weight:600;color:${T.inkStrong};}
+.mi-seg.soon{border-style:dashed;background:none;}
+.mi-seg.soon .ic,.mi-seg.soon b{opacity:.6;}
+.mi-seg::before{content:"";position:absolute;top:50%;height:6px;margin-top:-3px;width:${S.md}px;background:linear-gradient(var(--c),var(--c)) center / 100% 2px no-repeat;opacity:.3;}
+.mi-col.l .mi-seg::before{right:100%;} .mi-col.r .mi-seg::before{left:100%;}
+.mi-seg.has::before{opacity:1;background:radial-gradient(circle, var(--c) 2.5px, transparent 3px) 0 0 / 12px 6px repeat-x;animation:var(--anim) 1.1s linear infinite;}
+.mi-cols.in .mi-col.l, .mi-cols.out .mi-col.r{--anim:mi-left;}
+.mi-cols.in .mi-col.r, .mi-cols.out .mi-col.l{--anim:mi-right;}
+@keyframes mi-left{to{background-position:-12px 0}}
+@keyframes mi-right{to{background-position:12px 0}}
 .mi-tok{display:block;width:100%;height:40px;overflow:visible;}
 .mi-tok .bed{opacity:.25;}
 .mi-tok .run{stroke-dasharray:0 12;stroke-linecap:round;animation:mi-flow 1.1s linear infinite;}
 @keyframes mi-flow{to{stroke-dashoffset:-12}}
-.mi-outs{position:relative;padding-right:${S.lg}px;padding-bottom:${S.sm}px;}
-.mi-rail{position:absolute;top:0;right:9px;bottom:0;width:6px;}
-.mi-rail::before{content:"";position:absolute;left:2px;top:0;bottom:0;width:2px;background:${T.partHelp};opacity:.25;}
-.mi-rail.on{background:radial-gradient(circle, ${T.partHelp} 2.5px, transparent 3px) 0 0 / 6px 12px repeat-y;animation:mi-rail 1.1s linear infinite;}
-@keyframes mi-rail{to{background-position:0 12px}}
-@media (prefers-reduced-motion:reduce){.mi-tok .run,.mi-rail.on{animation:none;}}
+/* OBRÁZOK POMOCI — útulok dnes / DOGYPT centrum (vstupy/WEB/BEFORE|AFTER shelters.png), posúvač. */
+.mi-shel{margin-top:${S.lg}px;}
+.mi-shel figure{position:relative;margin:0;aspect-ratio:1/1;width:100%;border-radius:${PACK_R.tile}px;overflow:hidden;border:1px solid ${T.cardEdge};box-shadow:${T.panelShadow};touch-action:pan-y;}
+@media (min-width:721px){.mi-shel figure{aspect-ratio:16/9;}}
+.mi-shel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none;}
+.mi-shel .after{clip-path:inset(0 0 0 var(--x));}
+.mi-shel .knob{position:absolute;top:0;bottom:0;left:var(--x);width:2px;margin-left:-1px;background:#FBF5E6;box-shadow:${PACK_SHADOW.lift};pointer-events:none;}
+.mi-shel .knob::after{content:"‹ ›";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:40px;height:40px;border-radius:${PACK_R.pill}px;background:${LAPIS.grad};border:1.5px solid ${GOLD_BTN.edge};color:${LAPIS.ink};font-family:${FONT_UI};font-weight:600;font-size:${TX.body}px;letter-spacing:.14em;}
+.mi-shel input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize;}
+.mi-shel .tag{position:absolute;bottom:${S.sm}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;background:rgba(0,0,0,.55);color:#FBF5E6;font-size:${TX.micro}px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;pointer-events:none;}
+.mi-shel .tag.b{left:${S.sm}px;} .mi-shel .tag.a{right:${S.sm}px;}
+.mi-shel figcaption{margin-top:${S.sm}px;text-align:center;font-size:${TX.label}px;color:${T.inkWarm};}
+@media (prefers-reduced-motion:reduce){.mi-tok .run,.mi-col.live::after,.mi-seg.has::before{animation:none;}}
 .mi-kasa{padding:${S.md}px;border-radius:${PACK_R.tile}px;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};text-align:center;color:${LAPIS.ink};font-family:${FONT_UI};}
 .mi-kasa small{display:block;font-weight:500;font-size:${TX.micro}px;letter-spacing:.26em;text-transform:uppercase;}
 .mi-kasa b{display:block;margin-top:${S.xs}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;color:#FBF5E6;}
@@ -119,12 +142,20 @@ const CSS = `${VEIL_CSS}
 .mi-cta.wide{display:flex;width:100%;}
 .mi-links{display:flex;justify-content:center;flex-wrap:wrap;gap:${S.lg}px;margin-top:${S.md}px;}
 .mi-link{padding:0;border:0;background:none;cursor:pointer;font-family:${FONT_UI};font-size:${TX.label}px;color:${LAPIS.edge};text-decoration:underline;text-underline-offset:3px;}
-/* ŠUPLÍK — papyrus zdola (ten istý tvar ako DevotionSheet, len svetlý). */
-.mi-root.pk-veil{z-index:65;align-items:flex-end;padding:0;}
-.mi-sheet{position:relative;width:100%;max-width:640px;margin:0 auto;max-height:88dvh;display:flex;flex-direction:column;background:${T.cardGrad};color:${T.inkStrong};
-  border-top:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${T.panelShadow};font-family:${FONT_UI};animation:mi-up .32s cubic-bezier(.2,.8,.2,1) both;}
-@keyframes mi-up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
-.mi-grab{flex:none;width:44px;height:4px;border-radius:${PACK_R.pill}px;background:${T.border};margin:${S.sm}px auto 0;}
+/* POPUP — papyrus UPROSTRED okna (Matej 24. 10.: *„vadí mi, že je celý tak dolu“*), nie šuplík zdola. */
+.mi-root.pk-veil{z-index:65;align-items:center;padding:${S.md}px;}
+.mi-sheet{position:relative;width:100%;max-width:520px;margin:0 auto;max-height:min(80dvh,720px);display:flex;flex-direction:column;background:${T.cardGrad};color:${T.inkStrong};
+  border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px;box-shadow:${T.panelShadow};font-family:${FONT_UI};animation:mi-up .24s cubic-bezier(.2,.8,.2,1) both;}
+@keyframes mi-up{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
+.mi-sheet .mi-rows{display:flex;flex-direction:column;gap:${S.xs}px;margin:0 0 ${S.md}px;}
+.mi-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:${S.sm}px;width:100%;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};cursor:pointer;text-align:left;font-family:${FONT_UI};color:${T.inkStrong};}
+.mi-row .ic{display:grid;place-items:center;width:32px;height:32px;border-radius:${PACK_R.pill}px;background:color-mix(in srgb, var(--c) 14%, transparent);border:1px solid var(--c);}
+.mi-row b{font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;overflow-wrap:anywhere;}
+.mi-row i{font-style:normal;font-size:${TX.label}px;font-weight:600;white-space:nowrap;}
+.mi-row.soon{border-style:dashed;background:none;}
+.mi-row.soon .ic,.mi-row.soon b{opacity:.6;}
+.mi-row.soon i{font-weight:400;font-size:${TX.micro}px;color:${T.inkDim};}
+.mi-later > p{margin:0 0 ${S.xs}px !important;font-size:${TX.micro}px !important;text-align:center;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
 .mi-sh-head{flex:none;display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.lg}px ${S.md}px;}
 .mi-sh-head h2{margin:0;display:flex;align-items:center;gap:${S.sm}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;}
 .mi-sh-body{overflow-y:auto;overscroll-behavior:contain;padding:0 ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);}
@@ -235,14 +266,19 @@ export function MisiaBody() {
       <b>{NODE_TXT[n.k][0]}</b><i>{sub(n)}</i>
     </button>
   );
-  // KÔŠ na ploche = názov + súčet + jeden riadok obsahu; všetko ostatné až v šuplíku (rozklik).
-  const Box = ({ g }: { g: GroupKey }) => (
-    <button type="button" className="mi-box" onClick={() => setSheet({ kind: 'group', g })}>
-      <span className="mi-box-h"><span>{G_TXT[g][0]}</span>{gSum[g] != null && (gSum[g] as number) > 0 && <b>{eur(gSum[g] as number)}</b>}</span>
-      <i>{G_TXT[g][1]}</i>
-      <span className="mi-more">{tx('pack.misia.more.cta', 'more')} ›</span>
+  // SEGMENT v strome: položka s odbočkou do/z chrbtice; `has` = tečú peniaze (bodky bežia + číslo).
+  const Seg = ({ n }: { n: Node }) => (
+    <button type="button" className={`mi-seg${n.eur && n.eur > 0 ? ' has' : ''}${soon(n) ? ' soon' : ''}`} style={{ '--c': n.color } as CSSProperties} onClick={() => setSheet({ kind: 'node', node: n })}>
+      <span className="ic"><BrandIcon name={n.icon} size={14} tint="dim" /></span>
+      <span><b>{NODE_TXT[n.k][0]}</b><i>{sub(n)}</i></span>
     </button>
   );
+  const Hd = ({ g }: { g: GroupKey }) => (
+    <button type="button" className="mi-hd" onClick={() => setSheet({ kind: 'group', g })}>
+      <span>{G_TXT[g][0]}</span>{gSum[g] != null && (gSum[g] as number) > 0 && <b>{eur(gSum[g] as number)}</b>}<BrandIcon name="question" size={12} tint="dim" />
+    </button>
+  );
+  const live = (ns: Node[]) => ns.some((n) => (n.eur ?? 0) > 0);
   // Tok: `on` = tečú peniaze (bodky bežia), inak len podklad. vectorEffect drží hrúbku pri natiahnutí viewBoxu.
   const Line = ({ d, c, on }: { d: string; c: string; on: boolean }) => (
     <>
@@ -259,10 +295,16 @@ export function MisiaBody() {
         {tx('pack.misia.lead2', 'It only works if the pack carries it.')}
       </p>
 
-      <div className="mi-pipe">
-        <Box g="in" />
+      <div className="mi-tree">
+        <Hd g="in" />
+        <div className="mi-cols in">
+          <div className={`mi-col l${live(ins.slice(0, 2)) ? ' live' : ''}`}>{ins.slice(0, 2).map((n) => <Seg key={n.k} n={n} />)}</div>
+          <div className={`mi-col r${live(ins.slice(2)) ? ' live' : ''}`}>{ins.slice(2).map((n) => <Seg key={n.k} n={n} />)}</div>
+        </div>
+        {/* Chrbtice príjmu (vonkajšie okraje) sa zbiehajú do pokladnice. */}
         <svg className="mi-tok" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden>
-          <Line d="M50 0 L50 40" c={T.cardEdge} on={inTotal > 0} />
+          <Line d="M1.5 0 C1.5 30 50 10 50 40" c={T.cardEdge} on={live(ins.slice(0, 2))} />
+          <Line d="M98.5 0 C98.5 30 50 10 50 40" c={GEAR} on={live(ins.slice(2))} />
         </svg>
         {/* Bilancia = príjmy − výdavky. Záporná sa NESKRÝVA (Matej: „úprimne“) — povie, kto rozdiel nesie. */}
         <div className="mi-kasa">
@@ -271,17 +313,17 @@ export function MisiaBody() {
           <span>{balance < 0 ? tx('pack.misia.kasa.minus', 'Matej covers the gap for now') : tx('pack.misia.kasa.plus', 'left for the next step')}</span>
           <em>{tx('pack.misia.kasa.open', 'every member sees it')}</em>
         </div>
-        {/* Rozdelenie: stred ide do ROZVOJA, pravý pruh obteká rozvoj a vlieva sa do POMOCI zhora. */}
         <svg className="mi-tok" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden>
-          <Line d="M50 0 C50 20 46 20 46 40" c={T.partDev} on={(run ?? 0) > 0} />
-          <Line d="M50 0 C50 22 96 14 96 40" c={T.partHelp} on={(help ?? 0) > 0} />
+          <Line d="M50 0 C50 30 1.5 10 1.5 40" c={T.partDev} on={live(rozvoj)} />
+          <Line d="M50 0 C50 30 98.5 10 98.5 40" c={T.partHelp} on={live(pomoc)} />
         </svg>
-        <div className="mi-outs">
-          <Box g="rozvoj" />
-          <span className={`mi-rail${(help ?? 0) > 0 ? ' on' : ''}`} aria-hidden />
+        <div className="mi-cols out">
+          <div className={`mi-col l${live(rozvoj) ? ' live' : ''}`} style={{ '--c': T.partDev } as CSSProperties}><Hd g="rozvoj" />{rozvoj.map((n) => <Seg key={n.k} n={n} />)}</div>
+          <div className={`mi-col r${live(pomoc) ? ' live' : ''}`} style={{ '--c': T.partHelp } as CSSProperties}><Hd g="pomoc" />{pomoc.map((n) => <Seg key={n.k} n={n} />)}</div>
         </div>
-        <Box g="pomoc" />
       </div>
+
+      <Shelter tx={tx} />
 
       <div className="mi-goal">
         <b>{tx('pack.misia.goal.h', '{n} people at €5 a month').replace('{n}', String(goalN))}</b>
@@ -336,6 +378,24 @@ export function MisiaBody() {
 
 type Tx = (k: string, fb: string) => string;
 
+/** Útulok dnes → DOGYPT centrum. Posúvač je natívny range (klávesnica, dotyk) cez celý obrázok. */
+function Shelter({ tx }: { tx: Tx }) {
+  const [x, setX] = useState(50);
+  return (
+    <div className="mi-shel">
+      <figure style={{ '--x': `${x}%` } as CSSProperties}>
+        <img src="/images/mission/shelter-before.webp" alt={tx('pack.misia.shel.b', 'Shelter today')} loading="lazy" />
+        <img className="after" src="/images/mission/shelter-after.webp" alt={tx('pack.misia.shel.a', 'A DOGYPT centre')} loading="lazy" />
+        <span className="tag b">{tx('pack.misia.shel.b', 'Shelter today')}</span>
+        <span className="tag a">{tx('pack.misia.shel.a', 'A DOGYPT centre')}</span>
+        <span className="knob" aria-hidden />
+        <input type="range" min={0} max={100} value={x} onChange={(e) => setX(Number(e.target.value))} aria-label={tx('pack.misia.shel.cap', 'Where help goes when there are more of us')} />
+      </figure>
+      <figcaption>{tx('pack.misia.shel.cap', 'Where help goes when there are more of us')}</figcaption>
+    </div>
+  );
+}
+
 function MiSheet({ title, icon, onClose, children }: { title: string; icon: string; onClose: () => void; children: ReactNode }) {
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -348,8 +408,7 @@ function MiSheet({ title, icon, onClose, children }: { title: string; icon: stri
     <div className="mi-root pk-veil pk-veil--modal" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{CSS}</style>
       <div className="mi-sheet">
-        <span className="mi-grab" aria-hidden />
-        <div className="mi-sh-head">
+        <div className="mi-sh-head" style={{ paddingTop: S.md }}>
           <BackButton tone="pale" onClick={onClose} label={title} />
           <h2><BrandIcon name={icon} size={20} tint="dim" />{title}</h2>
         </div>
@@ -380,11 +439,12 @@ function NodeDetail({ n, tx, eur }: { n: Node; tx: Tx; eur: (n: number) => strin
   return (
     <>
       <p>{P[n.k]}</p>
-      <div className="mi-kv">
+      {n.eur == null && <p className="mi-hint">{tx('pack.misia.later', 'When there are more of us')}</p>}
+      {n.eur != null && <div className="mi-kv">
         <span>{tx('pack.misia.sofar', 'So far')}</span>
         <b>{n.eur != null && n.eur > 0 ? eur(n.eur) : tx('pack.misia.soon', 'coming')}</b>
         {n.k === 'run' && <><span>{tx('pack.misia.perMonth', 'Per month')}</span><b>{eur(run.spolu)}</b></>}
-      </div>
+      </div>}
       {/* Heroglyf: rozpad €11 na tri diely (lib/transparency.ts — 8 · 2 · 1). */}
       {n.k === 'hero' && (
         <div className="mi-split" aria-hidden>
@@ -402,7 +462,7 @@ function NodeDetail({ n, tx, eur }: { n: Node; tx: Tx; eur: (n: number) => strin
           {run.rocne >= 1 && <><span>{tx('pack.misia.run.year', 'Yearly fees (monthly share)')}</span><b>{eur(run.rocne)}</b></>}
         </div>
       )}
-      <p className="mi-note">{tx('pack.misia.live', 'The numbers come live from the treasury, nothing is typed by hand.')}</p>
+      {n.eur != null && <p className="mi-note">{tx('pack.misia.live', 'The numbers come live from the treasury, nothing is typed by hand.')}</p>}
     </>
   );
 }
