@@ -10,7 +10,7 @@
 // 🔴 V APPKE BEZ TLAČIDLA DAROVAŤ (Apple 3.1.1) — rieka a vysvetlenie áno.
 // Čísla len živé: heroglyf = `revenue_total`, dary = `gifts_by_month`, prevádzka = `pokladnica()` (sluzby.js),
 // psy v núdzi = `treasuries.help`. Čo ešte neexistuje, nesie „príde", nie vymyslené číslo.
-import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -33,9 +33,9 @@ export const MISIA_ON = MISIA_LIVE || import.meta.env.DEV;
 type Dash = { revenue_total?: number; revenue_by_month?: PrijemMesiac[]; gifts_by_month?: Record<string, number>; treasuries?: { help?: number }; givers?: number };
 type Thanks = { paid: boolean; amount: number; interval: 'month' | 'once'; next: string | null; manage: string | null };
 type NodeKey = 'hero' | 'gift' | 'merch' | 'more' | 'run' | 'app' | 'res' | 'gear' | 'help' | 'people' | 'centers' | 'vet';
-type GroupKey = 'in' | 'rozvoj' | 'pomoc';
+type Sec = 'in' | 'kasa' | 'out';
 type Node = { k: NodeKey; icon: string; color: string; eur: number | null };
-type Sheet = { kind: 'group'; g: GroupKey } | { kind: 'node'; node: Node } | { kind: 'vision' } | { kind: 'gift' } | { kind: 'thanks'; t: Thanks } | { kind: 'manage' };
+type Sheet = { kind: 'all'; sec: Sec } | { kind: 'vision' } | { kind: 'gift' } | { kind: 'thanks'; t: Thanks } | { kind: 'manage' };
 
 async function call<R>(body: Record<string, unknown>, auth?: string): Promise<R> {
   const r = await fetch(`${EDGE_BASE}/prispevok`, {
@@ -63,52 +63,72 @@ const GEAR = '#7A5A2A';   // T.inkWarm — fialová je LEN výlety (brand lock),
 const CSS = `${VEIL_CSS}
 .mi-lead{margin:0 0 ${S.lg}px;text-align:center;font-family:${FONT_UI};font-size:${TX.body}px;line-height:1.5;color:${T.inkStrong};}
 .mi-lead b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;}
-.mi-tree{display:flex;flex-direction:column;max-width:640px;margin:0 auto;font-family:${FONT_UI};}
-.mi-goal,.mi-mine,.mi-shel{max-width:640px;margin-left:auto !important;margin-right:auto !important;}
-/* STROM TOKU (Matej 24. 10.: *„viac segmentovať a animovať viac segmentov … detail na iný popup“*).
-   PRÍJEM: 2 stĺpce → chrbtice na vonkajších okrajoch → zbiehajú sa do POKLADNICE → rozdelí sa do chrbtíc ROZVOJ (vľavo)
-   a POMOC (vpravo) → odbočka do každej položky. Bodky bežia len tam, kade naozaj tečú peniaze. */
-.mi-hd{display:flex;justify-content:center;align-items:baseline;gap:${S.sm}px;width:100%;margin:0 0 ${S.sm}px;padding:0;border:0;background:none;cursor:pointer;color:${T.inkStrong};}
-.mi-hd span{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.14em;text-transform:uppercase;}
-.mi-hd b{font-weight:600;font-size:${TX.label}px;color:${T.inkWarm};}
-.mi-hd i{font-style:normal;font-size:${TX.micro}px;color:${LAPIS.edge};}
-.mi-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${S.sm}px;}
-.mi-col{--c:${T.cardEdge};position:relative;display:flex;flex-direction:column;gap:${S.sm}px;min-width:0;}
-.mi-col.l{padding-left:${S.md}px;} .mi-col.r{padding-right:${S.md}px;}
-.mi-col::before{content:"";position:absolute;top:var(--sp-top,0);bottom:var(--sp-bot,0);width:2px;background:var(--c);opacity:.25;}
-.mi-col.l::before{left:4px;} .mi-col.r::before{right:4px;}
-.mi-col::after{content:"";position:absolute;top:var(--sp-top,0);bottom:var(--sp-bot,0);width:6px;}
-.mi-col.l::after{left:2px;} .mi-col.r::after{right:2px;}
-.mi-col.live::after{background:radial-gradient(circle, var(--c) 2.5px, transparent 3px) 0 0 / 6px 12px repeat-y;animation:mi-down 1.1s linear infinite;}
-.mi-cols.out .mi-col{--sp-bot:28px;}
-.mi-cols.out .mi-hd{position:relative;flex-wrap:wrap;gap:${S.xs}px;}
-.mi-hd b{white-space:nowrap;}
-@keyframes mi-down{to{background-position:0 12px}}
-/* SEGMENT = položka + odbočka z/do chrbtice. */
-.mi-seg{position:relative;display:flex;align-items:center;gap:${S.sm}px;min-width:0;min-height:56px;padding:${S.sm}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};cursor:pointer;text-align:left;font-family:${FONT_UI};color:${T.inkStrong};transition:transform .15s ease;}
-.mi-seg:hover{transform:translateY(-2px);}
-.mi-seg .ic{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:${PACK_R.pill}px;background:color-mix(in srgb, var(--c) 14%, transparent);border:1px solid var(--c);}
-.mi-seg > span:last-child{display:flex;flex-direction:column;gap:2px;min-width:0;}
-.mi-seg b{font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;overflow-wrap:anywhere;}
-.mi-seg i{font-style:normal;font-size:${TX.micro}px;color:${T.inkDim};}
-.mi-seg.has i{font-size:${TX.label}px;font-weight:600;color:${T.inkStrong};}
-.mi-seg.soon{border-style:dashed;background:none;}
-.mi-seg.soon .ic,.mi-seg.soon b{opacity:.6;}
-.mi-seg::before{content:"";position:absolute;top:50%;height:6px;margin-top:-3px;width:${S.md}px;background:linear-gradient(var(--c),var(--c)) center / 100% 2px no-repeat;opacity:.3;}
-.mi-col.l .mi-seg::before{right:100%;} .mi-col.r .mi-seg::before{left:100%;}
-.mi-seg.has::before{opacity:1;background:radial-gradient(circle, var(--c) 2.5px, transparent 3px) 0 0 / 12px 6px repeat-x;animation:var(--anim) 1.1s linear infinite;}
-.mi-cols.in .mi-col.l, .mi-cols.out .mi-col.r{--anim:mi-left;}
-.mi-cols.in .mi-col.r, .mi-cols.out .mi-col.l{--anim:mi-right;}
-@keyframes mi-left{to{background-position:-12px 0}}
-@keyframes mi-right{to{background-position:12px 0}}
-.mi-tok{display:block;width:100%;height:40px;overflow:visible;}
-.mi-tok .bed{opacity:.25;}
-.mi-tok .run{stroke-dasharray:0 12;stroke-linecap:round;animation:mi-flow 1.1s linear infinite;}
-@keyframes mi-flow{to{stroke-dashoffset:-12}}
+.mi-fixed,.mi-mine{max-width:832px;margin-left:auto !important;margin-right:auto !important;}
+/* TRI KROKY TOKU (Matej 24. 10.: *„na PC to bolo lepšie horizontálne … animácie sú chudobné, v DOGYPTLANDe to vyzerá
+   lepšie … budú len 3, čokoľvek stlačíš, otvorí jeden popup, kde bude všetko“*). PC = rad, mobil = stĺpec.
+   Čiary sa kreslia z polohy riadkov (meria sa po vykreslení — tok nemá geometriu, ktorú by bolo treba ladiť). */
+.mi-flow3{position:relative;display:grid;grid-template-columns:1fr;gap:${S.xl}px;max-width:832px;margin:0 auto;font-family:${FONT_UI};}
+.mi-card,.mi-coinw{position:relative;z-index:1;}
+.mi-card{display:flex;flex-direction:column;gap:${S.sm}px;width:100%;padding:${S.md}px;border-radius:${PACK_R.card}px;border:1px solid ${T.cardEdge};background:${T.tileBg};box-shadow:${PACK_SHADOW.card};cursor:pointer;text-align:left;color:${T.inkStrong};font-family:${FONT_UI};transition:transform .15s ease, box-shadow .15s ease;}
+.mi-card:hover{transform:translateY(-2px);box-shadow:${PACK_SHADOW.lift};}
+.mi-card > small{font-weight:500;font-size:${TX.micro}px;letter-spacing:.26em;text-transform:uppercase;color:${T.inkWarm};text-align:center;}
+.mi-card > b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;letter-spacing:.02em;text-align:center;}
+.mi-li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:${S.sm}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.tile}px;background:color-mix(in srgb, var(--c) 8%, transparent);border:1px solid color-mix(in srgb, var(--c) 40%, transparent);}
+.mi-li .ic{display:grid;place-items:center;width:28px;height:28px;border-radius:${PACK_R.pill}px;border:1px solid var(--c);background:color-mix(in srgb, var(--c) 14%, transparent);}
+.mi-li b{font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;overflow-wrap:anywhere;}
+.mi-li i{font-style:normal;font-weight:600;font-size:${TX.label}px;white-space:nowrap;}
+.mi-li.soon{background:none;border-style:dashed;}
+.mi-li:not([data-on="1"]) i{font-weight:400;font-size:${TX.micro}px;color:${T.inkDim};}
+.mi-li.soon .ic,.mi-li.soon b{opacity:.55;} .mi-li.soon i{font-weight:400;font-size:${TX.micro}px;color:${T.inkDim};}
+.mi-more{text-align:center;font-size:${TX.micro}px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:${LAPIS.edge};}
+/* MINCA = pokladnica: rozpad €11 (8 · 2 · 1) ako točiaci sa prstenec, v strede bilancia. */
+.mi-coinw{display:flex;flex-direction:column;align-items:center;gap:${S.sm}px;padding:0;border:0;background:none;cursor:pointer;color:${T.inkStrong};font-family:${FONT_UI};}
+.mi-coin{position:relative;width:168px;height:168px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;filter:drop-shadow(0 0 16px color-mix(in srgb, ${T.cardEdge} 55%, transparent));}
+.mi-coin::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--ring);animation:mi-spin 24s linear infinite;-webkit-mask:radial-gradient(circle, transparent 62%, #000 63%);mask:radial-gradient(circle, transparent 62%, #000 63%);}
+.mi-coin::after{content:"";position:absolute;inset:-8px;border-radius:inherit;border:1px solid color-mix(in srgb, ${T.cardEdge} 60%, transparent);animation:mi-pulse 2.4s ease-out infinite;}
+@keyframes mi-spin{to{transform:rotate(360deg)}}
+@keyframes mi-pulse{from{transform:scale(.94);opacity:.9}to{transform:scale(1.12);opacity:0}}
+.mi-coin > span{display:flex;flex-direction:column;align-items:center;width:124px;height:124px;justify-content:center;border-radius:${PACK_R.pill}px;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};color:${LAPIS.ink};text-align:center;}
+.mi-coin small{font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;opacity:.8;}
+.mi-coin b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;color:#FBF5E6;}
+.mi-coinw > em{font-style:normal;font-size:${TX.label}px;color:${T.inkWarm};text-align:center;}
+/* TOK — prerušovaná žiariaca čiara ako v DOGYPTLANDe (.flow path), bez peňazí len tichá bodkovaná. */
+.mi-flowsvg{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:visible;}
+.mi-flowsvg path{fill:none;stroke-linecap:round;}
+.mi-flowsvg .on{stroke-width:3;stroke-dasharray:6 10;filter:drop-shadow(0 0 4px var(--col));animation:mi-tok 1.2s linear infinite;}
+.mi-flowsvg .off{stroke-width:2;stroke-dasharray:2 8;opacity:.4;}
+@keyframes mi-tok{to{stroke-dashoffset:-32}}
+@media (min-width:721px){
+  .mi-flow3{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:${S.xxl}px;}
+}
+/* PAUŠÁLNE VÝDAJE (Matej 24. 10.: *„tú tabuľku psov dajme že paušálne výdaje“*). */
+.mi-fixed{margin-top:${S.xl}px;padding:${S.md}px;border-radius:${PACK_R.card}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};text-align:center;}
+.mi-fixed > small{display:block;font-weight:500;font-size:${TX.micro}px;letter-spacing:.26em;text-transform:uppercase;color:${T.inkWarm};}
+.mi-fixed > b{display:block;margin-top:${S.xs}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;color:${T.inkStrong};}
+.mi-fixed > p{margin:${S.xs}px 0 ${S.md}px;font-size:${TX.label}px;color:${T.inkWarm};}
+.mi-fixgrid{color:${T.inkStrong};display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${S.xs}px ${S.md}px;text-align:left;font-size:${TX.label}px;}
+.mi-fixgrid span{display:flex;justify-content:space-between;gap:${S.sm}px;padding:${S.xs}px 0;border-bottom:1px dashed color-mix(in srgb, ${T.cardEdge} 50%, transparent);}
+.mi-fixgrid span b{font-weight:600;white-space:nowrap;}
+@media (min-width:721px){.mi-fixgrid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+/* POPUP „VŠETKO“ — tri sekcie, položka = ikonka · názov + vysvetlenie · suma. */
+.mi-sec{margin:0 0 ${S.xl}px;scroll-margin-top:${S.md}px;}
+.mi-sec > h3{display:flex;align-items:baseline;justify-content:space-between;gap:${S.sm}px;margin:0 0 ${S.sm}px;padding-bottom:${S.xs}px;border-bottom:1px solid ${T.cardEdge};font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.14em;text-transform:uppercase;}
+.mi-sec > h3 b{font-family:${FONT_UI};font-size:${TX.label}px;letter-spacing:.02em;color:${T.inkWarm};}
+.mi-sec > h4{margin:${S.md}px 0 ${S.xs}px;font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
+.mi-it{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:${S.xs}px ${S.sm}px;align-items:start;padding:${S.sm}px;margin:0 0 ${S.xs}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};}
+.mi-it .ic{display:grid;place-items:center;width:32px;height:32px;border-radius:${PACK_R.pill}px;border:1px solid var(--c);background:color-mix(in srgb, var(--c) 14%, transparent);}
+.mi-it > div b{display:block;font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;}
+.mi-it > div p{margin:${S.xs}px 0 0 !important;font-size:${TX.label}px !important;line-height:1.45;color:${T.inkWarm};}
+.mi-it > i{font-style:normal;font-weight:600;font-size:${TX.label}px;white-space:nowrap;}
+.mi-it.soon{border-style:dashed;background:none;} .mi-it.soon > i{font-weight:400;font-size:${TX.micro}px;color:${T.inkDim};}
+.mi-it .mi-split,.mi-it .mi-kv{grid-column:1 / -1;margin:${S.xs}px 0 0;}
+.mi-bal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:${S.xs}px;text-align:center;}
+.mi-bal span{padding:${S.sm}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};}
+.mi-bal span b{display:block;margin-top:${S.xs}px;font-family:${FONT_TITLE};font-size:${TX.lead}px;letter-spacing:.02em;text-transform:none;color:${T.inkStrong};}
+.mi-bal span.k{background:${LAPIS.grad};border-color:${LAPIS.edge};color:${LAPIS.ink};} .mi-bal span.k b{color:#FBF5E6;}
 /* OBRÁZOK POMOCI — útulok dnes / DOGYPT centrum (vstupy/WEB/BEFORE|AFTER shelters.png), posúvač. */
-.mi-shel{margin-top:${S.lg}px;}
-.mi-shel figure{position:relative;margin:0;aspect-ratio:1/1;width:100%;border-radius:${PACK_R.tile}px;overflow:hidden;border:1px solid ${T.cardEdge};box-shadow:${T.panelShadow};touch-action:pan-y;}
-@media (min-width:721px){.mi-shel figure{aspect-ratio:16/9;}}
+.mi-shel{margin:0 0 ${S.md}px;}
+.mi-shel figure{position:relative;margin:0;aspect-ratio:16/10;width:100%;border-radius:${PACK_R.tile}px;overflow:hidden;border:1px solid ${T.cardEdge};box-shadow:${T.panelShadow};touch-action:pan-y;}
 .mi-shel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none;}
 .mi-shel .after{clip-path:inset(0 0 0 var(--x));}
 .mi-shel .knob{position:absolute;top:0;bottom:0;left:var(--x);width:2px;margin-left:-1px;background:#FBF5E6;box-shadow:${PACK_SHADOW.lift};pointer-events:none;}
@@ -117,18 +137,7 @@ const CSS = `${VEIL_CSS}
 .mi-shel .tag{position:absolute;bottom:${S.sm}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;background:rgba(0,0,0,.55);color:#FBF5E6;font-size:${TX.micro}px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;pointer-events:none;}
 .mi-shel .tag.b{left:${S.sm}px;} .mi-shel .tag.a{right:${S.sm}px;}
 .mi-shel figcaption{margin-top:${S.sm}px;text-align:center;font-size:${TX.label}px;color:${T.inkWarm};}
-@media (prefers-reduced-motion:reduce){.mi-tok .run,.mi-col.live::after,.mi-seg.has::before{animation:none;}}
-.mi-kasa{padding:${S.md}px;border-radius:${PACK_R.tile}px;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};text-align:center;color:${LAPIS.ink};font-family:${FONT_UI};}
-.mi-kasa small{display:block;font-weight:500;font-size:${TX.micro}px;letter-spacing:.26em;text-transform:uppercase;}
-.mi-kasa b{display:block;margin-top:${S.xs}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;color:#FBF5E6;}
-.mi-kasa span{display:block;margin-top:${S.xs}px;font-size:${TX.label}px;opacity:.9;}
-.mi-kasa em{display:block;margin-top:${S.sm}px;font-style:normal;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;opacity:.6;}
-.mi-goal{margin-top:${S.lg}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};text-align:center;font-family:${FONT_UI};}
-.mi-goal > b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;color:${T.inkStrong};}
-.mi-goal p{margin:${S.xs}px 0 ${S.md}px;font-size:${TX.label}px;color:${T.inkWarm};}
-.mi-paws{display:flex;flex-wrap:wrap;justify-content:center;gap:${S.xs}px;}
-.mi-paws span{display:grid;place-items:center;width:20px;height:20px;border-radius:${PACK_R.pill}px;border:1px solid ${T.cardEdge};}
-.mi-paws span.on{background:${LAPIS.grad};border-color:${LAPIS.edge};}
+@media (prefers-reduced-motion:reduce){.mi-flowsvg .on,.mi-coin::before,.mi-coin::after{animation:none;}}
 .mi-split{display:flex;gap:2px;height:24px;margin:0 0 ${S.sm}px;border-radius:${PACK_R.pill}px;overflow:hidden;}
 .mi-split span{display:grid;place-items:center;min-width:0;overflow:hidden;white-space:nowrap;font-size:${TX.micro}px;font-weight:600;color:#FBF5E6;}
 .mi-mine{display:flex;align-items:center;justify-content:space-between;gap:${S.md}px;margin-top:${S.lg}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};}
@@ -228,14 +237,11 @@ export function MisiaBody() {
     { k: 'centers', icon: 'hut', color: T.partHelp, eur: null },
     { k: 'vet', icon: 'vet', color: T.partHelp, eur: null },
   ];
-  const GROUPS: Record<GroupKey, { nodes: Node[]; icon: string }> = { in: { nodes: ins, icon: 'money' }, rozvoj: { nodes: rozvoj, icon: 'idea' }, pomoc: { nodes: pomoc, icon: 'house-heart' } };
-  // CIEĽ: koľko ľudí po 5 € mesačne zaplatí prevádzku (čisté po poplatku Stripe) — „veľa ľudí, málo peňazí“.
-  const goalN = Math.ceil(prevadzkaMesacne().spolu / (GIFT_DEFAULT - giftFee(GIFT_DEFAULT, true)));
+  const run1 = prevadzkaMesacne();
+  // Koľko ľudí po 5 € mesačne zaplatí paušálne výdaje (čisté po poplatku Stripe) — „veľa ľudí, málo peňazí“.
+  const goalN = Math.ceil(run1.spolu / (GIFT_DEFAULT - giftFee(GIFT_DEFAULT, true)));
   const givers = Math.min(dash?.givers ?? 0, goalN);
   const balance = inTotal - outTotal;
-  // Hrúbka prúdu = podiel na celku; prúd bez peňazí je tenký a čiarkovaný (príde).
-  const w = (n: number | null, total: number) => (n && total ? Math.max(2, Math.round((n / total) * 14)) : 2);
-  const dash2 = (n: number | null) => (n ? undefined : '4 4');
 
   const NODE_TXT: Record<NodeKey, [string, string]> = {
     hero: [tx('pack.misia.hero', 'Heroglyph'), tx('pack.misia.hero.s', '€11 per dog, once')],
@@ -251,41 +257,64 @@ export function MisiaBody() {
     centers: [tx('pack.misia.centers', 'Centres'), tx('pack.misia.centers.s', 'training, adoption')],
     vet: [tx('pack.misia.vet', 'Vet care'), tx('pack.misia.vet.s', 'dogs in need')],
   };
-  const G_TXT: Record<GroupKey, [string, string, string]> = {
-    in: [tx('pack.misia.in', 'Income'), tx('pack.misia.in.s', 'heroglyph · gifts · merch'), tx('pack.misia.in.p', 'Where the money in the treasury comes from.')],
-    rozvoj: [tx('pack.misia.rozvoj', 'Growth'), tx('pack.misia.rozvoj.s', 'running · app · research · gear'), tx('pack.misia.rozvoj.p', 'So that DOGYPT runs and grows. Running costs are paid first.')],
-    pomoc: [tx('pack.misia.pomoc', 'Help'), tx('pack.misia.pomoc.s', 'shelters · people · centres'), tx('pack.misia.pomoc.p', 'What DOGYPT gives from its own to dogs in need — and what it wants to give when there are more of us.')],
-  };
-  const gSum: Record<GroupKey, number | null> = { in: dash ? inTotal : null, rozvoj: run, pomoc: help };
   const sub = (n: Node) => (n.eur != null && n.eur > 0 ? eur(n.eur) : NODE_TXT[n.k][1]);
   const soon = (n: Node) => n.eur == null;
+  const open = (sec: Sec) => setSheet({ kind: 'all', sec });
 
-  const Row = ({ n }: { n: Node }) => (
-    <button type="button" className={`mi-row${soon(n) ? ' soon' : ''}`} style={{ '--c': n.color } as CSSProperties} onClick={() => setSheet({ kind: 'node', node: n })}>
-      <span className="ic"><BrandIcon name={n.icon} size={16} tint="dim" /></span>
-      <b>{NODE_TXT[n.k][0]}</b><i>{sub(n)}</i>
-    </button>
-  );
-  // SEGMENT v strome: položka s odbočkou do/z chrbtice; `has` = tečú peniaze (bodky bežia + číslo).
-  const Seg = ({ n }: { n: Node }) => (
-    <button type="button" className={`mi-seg${n.eur && n.eur > 0 ? ' has' : ''}${soon(n) ? ' soon' : ''}`} style={{ '--c': n.color } as CSSProperties} onClick={() => setSheet({ kind: 'node', node: n })}>
-      <span className="ic"><BrandIcon name={n.icon} size={14} tint="dim" /></span>
-      <span><b>{NODE_TXT[n.k][0]}</b><i>{sub(n)}</i></span>
-    </button>
-  );
-  const Hd = ({ g }: { g: GroupKey }) => (
-    <button type="button" className="mi-hd" onClick={() => setSheet({ kind: 'group', g })}>
-      <span>{G_TXT[g][0]}</span>{gSum[g] != null && (gSum[g] as number) > 0 && <b>{eur(gSum[g] as number)}</b>}<BrandIcon name="question" size={12} tint="dim" />
-    </button>
-  );
-  const live = (ns: Node[]) => ns.some((n) => (n.eur ?? 0) > 0);
-  // Tok: `on` = tečú peniaze (bodky bežia), inak len podklad. vectorEffect drží hrúbku pri natiahnutí viewBoxu.
-  const Line = ({ d, c, on }: { d: string; c: string; on: boolean }) => (
-    <>
-      <path className="bed" d={d} stroke={c} strokeWidth={2} fill="none" vectorEffect="non-scaling-stroke" />
-      {on && <path className="run" d={d} stroke={c} strokeWidth={5} fill="none" vectorEffect="non-scaling-stroke" />}
-    </>
-  );
+  // Riadok v karte na ploche — nie je samostatné tlačidlo, klikne sa celá karta (Matej: „budú len 3“).
+  const Li = ({ n, label, eurV, icon, color }: { n?: Node; label?: string; eurV?: number | null; icon?: string; color?: string }) => {
+    const v = n ? n.eur : eurV ?? null;
+    return (
+      <span className={`mi-li${v == null ? ' soon' : ''}`} data-flow={n?.k ?? label} data-on={v && v > 0 ? '1' : ''} style={{ '--c': n?.color ?? color } as CSSProperties}>
+        <span className="ic"><BrandIcon name={n?.icon ?? icon ?? 'paw'} size={14} tint="dim" /></span>
+        <b>{n ? NODE_TXT[n.k][0] : label}</b><i>{n ? sub(n) : v != null && v > 0 ? eur(v) : '—'}</i>
+      </span>
+    );
+  };
+
+  // TOK: z každého riadku príjmu do mince, z mince do každého riadku výdaja. PC zboku, mobil zhora/zdola.
+  const flowRef = useRef<HTMLDivElement>(null);
+  const [paths, setPaths] = useState<{ d: string; c: string; on: boolean }[]>([]);
+  useLayoutEffect(() => {
+    const box = flowRef.current; if (!box) return;
+    const draw = () => {
+      const R0 = box.getBoundingClientRect();
+      const row = window.matchMedia('(min-width: 721px)').matches;
+      const coin = box.querySelector('.mi-coin'); if (!coin) return;
+      const C = coin.getBoundingClientRect();
+      const P = (r: DOMRect, side: 'l' | 'r' | 't' | 'b') => [
+        side === 'l' ? r.left - R0.left : side === 'r' ? r.right - R0.left : r.left - R0.left + r.width / 2,
+        side === 't' ? r.top - R0.top : side === 'b' ? r.bottom - R0.top : r.top - R0.top + r.height / 2,
+      ];
+      const curve = ([x1, y1]: number[], [x2, y2]: number[]) => (row
+        ? `M${x1},${y1} C${(x1 + x2) / 2},${y1} ${(x1 + x2) / 2},${y2} ${x2},${y2}`
+        : `M${x1},${y1} C${x1},${(y1 + y2) / 2} ${x2},${(y1 + y2) / 2} ${x2},${y2}`);
+      const out: { d: string; c: string; on: boolean }[] = [];
+      // Na mobile riadky ležia pod sebou (rovnaký stred) — konce čiar sa preto rozložia po šírke karty a mince.
+      const spread = (r: DOMRect, i: number, n: number, y: number) => [r.left - R0.left + (r.width * (i + 1)) / (n + 1), y];
+      const W = box.querySelector('.mi-coinw')!.getBoundingClientRect();
+      const colOf = (el: HTMLElement) => getComputedStyle(el).getPropertyValue('--c').trim() || T.cardEdge;
+      const inRows = [...box.querySelectorAll<HTMLElement>('.mi-card.in .mi-li')];
+      const inCard = box.querySelector('.mi-card.in')!.getBoundingClientRect();
+      inRows.forEach((el, i) => {
+        const r = el.getBoundingClientRect();
+        out.push({ d: curve(row ? P(r, 'r') : spread(inCard, i, inRows.length, inCard.bottom - R0.top), row ? P(C, 'l') : spread(C, i, inRows.length, C.top - R0.top + 12)), c: colOf(el), on: el.dataset.on === '1' });
+      });
+      const outRows = [...box.querySelectorAll<HTMLElement>('.mi-card.out .mi-li')];
+      const outCard = box.querySelector('.mi-card.out')!.getBoundingClientRect();
+      outRows.forEach((el, i) => {
+        const r = el.getBoundingClientRect();
+        out.push({ d: curve(row ? P(C, 'r') : spread(C, i, outRows.length, W.bottom - R0.top), row ? P(r, 'l') : spread(outCard, i, outRows.length, outCard.top - R0.top)), c: colOf(el), on: el.dataset.on === '1' });
+      });
+      setPaths(out);
+    };
+    draw();
+    const ro = new ResizeObserver(draw); ro.observe(box);
+    return () => ro.disconnect();
+  }, [dash]);
+
+  // Kruh mince = rozpad €11 (lib/transparency.ts — 8 rozvoj · 2 pomoc · 1 Hekthorova miska).
+  const ring = `conic-gradient(${T.cardEdge} 0deg ${(8 / 11) * 360}deg, ${T.partHelp} ${(8 / 11) * 360}deg ${(10 / 11) * 360}deg, ${T.inkWarm} ${(10 / 11) * 360}deg 360deg)`;
 
   return (
     <>
@@ -295,41 +324,42 @@ export function MisiaBody() {
         {tx('pack.misia.lead2', 'It only works if the pack carries it.')}
       </p>
 
-      <div className="mi-tree">
-        <Hd g="in" />
-        <div className="mi-cols in">
-          <div className={`mi-col l${live(ins.slice(0, 2)) ? ' live' : ''}`}>{ins.slice(0, 2).map((n) => <Seg key={n.k} n={n} />)}</div>
-          <div className={`mi-col r${live(ins.slice(2)) ? ' live' : ''}`}>{ins.slice(2).map((n) => <Seg key={n.k} n={n} />)}</div>
-        </div>
-        {/* Chrbtice príjmu (vonkajšie okraje) sa zbiehajú do pokladnice. */}
-        <svg className="mi-tok" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden>
-          <Line d="M1.5 0 C1.5 30 50 10 50 40" c={T.cardEdge} on={live(ins.slice(0, 2))} />
-          <Line d="M98.5 0 C98.5 30 50 10 50 40" c={GEAR} on={live(ins.slice(2))} />
+      <div className="mi-flow3" ref={flowRef}>
+        <svg className="mi-flowsvg" aria-hidden>
+          {paths.map((q, i) => <path key={i} d={q.d} stroke={q.c} className={q.on ? 'on' : 'off'} style={{ '--col': q.c } as CSSProperties} />)}
         </svg>
-        {/* Bilancia = príjmy − výdavky. Záporná sa NESKRÝVA (Matej: „úprimne“) — povie, kto rozdiel nesie. */}
-        <div className="mi-kasa">
-          <small>{tx('pack.misia.kasa', "The pack's treasury")}</small>
-          <b>{dash ? `${balance < 0 ? '−' : '+'}${eur(Math.abs(balance))}` : '…'}</b>
-          <span>{balance < 0 ? tx('pack.misia.kasa.minus', 'Matej covers the gap for now') : tx('pack.misia.kasa.plus', 'left for the next step')}</span>
-          <em>{tx('pack.misia.kasa.open', 'every member sees it')}</em>
-        </div>
-        <svg className="mi-tok" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden>
-          <Line d="M50 0 C50 30 1.5 10 1.5 40" c={T.partDev} on={live(rozvoj)} />
-          <Line d="M50 0 C50 30 98.5 10 98.5 40" c={T.partHelp} on={live(pomoc)} />
-        </svg>
-        <div className="mi-cols out">
-          <div className={`mi-col l${live(rozvoj) ? ' live' : ''}`} style={{ '--c': T.partDev } as CSSProperties}><Hd g="rozvoj" />{rozvoj.map((n) => <Seg key={n.k} n={n} />)}</div>
-          <div className={`mi-col r${live(pomoc) ? ' live' : ''}`} style={{ '--c': T.partHelp } as CSSProperties}><Hd g="pomoc" />{pomoc.map((n) => <Seg key={n.k} n={n} />)}</div>
-        </div>
+        <button type="button" className="mi-card in" onClick={() => open('in')}>
+          <small>{tx('pack.misia.in', 'Income')}</small>
+          <b>{dash ? eur(inTotal) : '…'}</b>
+          {ins.slice(0, 3).map((n) => <Li key={n.k} n={n} />)}
+          <span className="mi-more">{tx('pack.misia.more.cta', 'more')} ›</span>
+        </button>
+        <button type="button" className="mi-coinw" onClick={() => open('kasa')}>
+          <span className="mi-coin" style={{ '--ring': ring } as CSSProperties}>
+            <span>
+              <small>{tx('pack.misia.kasa', "The pack's treasury")}</small>
+              {/* Bilancia = príjmy − výdavky. Záporná sa NESKRÝVA (Matej: „úprimne“). */}
+              <b>{dash ? `${balance < 0 ? '−' : '+'}${eur(Math.abs(balance))}` : '…'}</b>
+            </span>
+          </span>
+          <em>{balance < 0 ? tx('pack.misia.kasa.minus', 'Matej covers the gap for now') : tx('pack.misia.kasa.plus', 'left for the next step')}</em>
+        </button>
+        <button type="button" className="mi-card out" onClick={() => open('out')}>
+          <small>{tx('pack.misia.out', 'Spending')}</small>
+          <b>{dash ? eur(outTotal) : '…'}</b>
+          <Li label={tx('pack.misia.rozvoj', 'Growth')} eurV={run} icon="idea" color={T.partDev} />
+          <Li label={tx('pack.misia.pomoc', 'Help')} eurV={help} icon="house-heart" color={T.partHelp} />
+          <span className="mi-more">{tx('pack.misia.more.cta', 'more')} ›</span>
+        </button>
       </div>
 
-      <Shelter tx={tx} />
-
-      <div className="mi-goal">
-        <b>{tx('pack.misia.goal.h', '{n} people at €5 a month').replace('{n}', String(goalN))}</b>
-        <p>{tx('pack.misia.goal.p', "and DOGYPT's running costs are paid. Today there are {g}.").replace('{g}', String(givers))}</p>
-        <div className="mi-paws" aria-hidden>
-          {Array.from({ length: goalN }, (_, i) => <span key={i} className={i < givers ? 'on' : ''}><BrandIcon name="paw" size={12} tint={i < givers ? 'white' : 'dim'} /></span>)}
+      <div className="mi-fixed">
+        <small>{tx('pack.misia.fixed', 'Fixed costs')}</small>
+        <b>{tx('pack.misia.fixed.m', '{e} a month').replace('{e}', eur(run1.spolu))}</b>
+        <p>{tx('pack.misia.fixed.p', 'That is one month of DOGYPT. {n} people at €5 cover it — today there are {g}.').replace('{n}', String(goalN)).replace('{g}', String(givers))}</p>
+        <div className="mi-fixgrid">
+          {run1.mesacne.filter((q) => q.eur >= 1).map((q) => <span key={q.id}>{q.nazov}<b>{eur(q.eur)}</b></span>)}
+          {run1.rocne >= 1 && <span>{tx('pack.misia.run.year', 'Yearly fees (monthly share)')}<b>{eur(run1.rocne)}</b></span>}
         </div>
       </div>
 
@@ -346,26 +376,17 @@ export function MisiaBody() {
       </div>
 
       {sheet && (
-        <MiSheet onClose={() => setSheet(null)} title={
-          sheet.kind === 'group' ? G_TXT[sheet.g][0] : sheet.kind === 'node' ? NODE_TXT[sheet.node.k][0]
+        <MiSheet wide={sheet.kind === 'all'} onClose={() => setSheet(null)} title={
+          sheet.kind === 'all' ? tx('pack.misia.kasa', "The pack's treasury")
             : sheet.kind === 'vision' ? tx('pack.misia.vision', 'Our idea')
               : sheet.kind === 'thanks' ? tx('carry.thanks.h', 'Thank you')
                 : sheet.kind === 'manage' ? tx('carry.thanks.manage', 'Change or cancel')
                   : tx('pack.misia.giftTitle', 'Gift')
-        } icon={sheet.kind === 'group' ? GROUPS[sheet.g].icon : sheet.kind === 'node' ? sheet.node.icon : sheet.kind === 'vision' ? 'ankh' : 'heartpaw'}>
-          {sheet.kind === 'group' && (
-            <>
-              <p>{G_TXT[sheet.g][2]}</p>
-              {GROUPS[sheet.g].nodes.some((n) => !soon(n)) && <div className="mi-rows">{GROUPS[sheet.g].nodes.filter((n) => !soon(n)).map((n) => <Row key={n.k} n={n} />)}</div>}
-              {GROUPS[sheet.g].nodes.some(soon) && (
-                <div className="mi-later">
-                  <p>{tx('pack.misia.later', 'When there are more of us')}</p>
-                  <div className="mi-rows">{GROUPS[sheet.g].nodes.filter(soon).map((n) => <Row key={n.k} n={n} />)}</div>
-                </div>
-              )}
-            </>
+        } icon={sheet.kind === 'all' ? 'money' : sheet.kind === 'vision' ? 'ankh' : 'heartpaw'}>
+          {sheet.kind === 'all' && (
+            <AllBody sec={sheet.sec} tx={tx} eur={eur} ins={ins} rozvoj={rozvoj} pomoc={pomoc} NODE_TXT={NODE_TXT}
+              inTotal={inTotal} outTotal={outTotal} balance={balance} hasData={!!dash} onGive={IS_APP ? undefined : () => setSheet({ kind: 'gift' })} />
           )}
-          {sheet.kind === 'node' && <NodeDetail n={sheet.node} tx={tx} eur={eur} />}
           {sheet.kind === 'vision' && <Vision tx={tx} />}
           {sheet.kind === 'gift' && <GiftForm tx={tx} gl={gl} loc={loc} onManage={() => setSheet({ kind: 'manage' })} />}
           {sheet.kind === 'thanks' && <ThanksBody t={sheet.t} tx={tx} loc={loc} />}
@@ -396,7 +417,7 @@ function Shelter({ tx }: { tx: Tx }) {
   );
 }
 
-function MiSheet({ title, icon, onClose, children }: { title: string; icon: string; onClose: () => void; children: ReactNode }) {
+function MiSheet({ title, icon, onClose, children, wide }: { title: string; icon: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -407,7 +428,7 @@ function MiSheet({ title, icon, onClose, children }: { title: string; icon: stri
   return createPortal(
     <div className="mi-root pk-veil pk-veil--modal" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{CSS}</style>
-      <div className="mi-sheet">
+      <div className="mi-sheet" style={wide ? { maxWidth: 720 } : undefined}>
         <div className="mi-sh-head" style={{ paddingTop: S.md }}>
           <BackButton tone="pale" onClick={onClose} label={title} />
           <h2><BrandIcon name={icon} size={20} tint="dim" />{title}</h2>
@@ -419,7 +440,14 @@ function MiSheet({ title, icon, onClose, children }: { title: string; icon: stri
   );
 }
 
-function NodeDetail({ n, tx, eur }: { n: Node; tx: Tx; eur: (n: number) => string }) {
+/** JEDEN POPUP SO VŠETKÝM (Matej 24. 10.): PRÍJEM · POKLADNICA · VÝDAJ, každá položka s vysvetlením; otvorí sa na
+ *  sekcii, ktorú človek stlačil. Obrázok útulku žije vo VÝDAJI pri POMOCI. */
+function AllBody({ sec, tx, eur, ins, rozvoj, pomoc, NODE_TXT, inTotal, outTotal, balance, hasData, onGive }: {
+  sec: Sec; tx: Tx; eur: (n: number) => string; ins: Node[]; rozvoj: Node[]; pomoc: Node[]; NODE_TXT: Record<NodeKey, [string, string]>;
+  inTotal: number; outTotal: number; balance: number; hasData: boolean; onGive?: () => void;
+}) {
+  const refs = { in: useRef<HTMLElement>(null), kasa: useRef<HTMLElement>(null), out: useRef<HTMLElement>(null) };
+  useEffect(() => { if (sec !== 'in') refs[sec].current?.scrollIntoView({ block: 'start' }); }, [sec]); // eslint-disable-line react-hooks/exhaustive-deps
   const run = prevadzkaMesacne();
   const P: Record<NodeKey, string> = {
     hero: tx('pack.misia.hero.p', 'Each €11 heroglyph is split: €8 to growing the community, €2 to dogs in need, €1 to Hekthor\'s bowl. It makes you a Dogyptian.'),
@@ -436,16 +464,11 @@ function NodeDetail({ n, tx, eur }: { n: Node; tx: Tx; eur: (n: number) => strin
     help: tx('pack.misia.help.p', '€2 of every heroglyph goes to dogs in need. Every {n} goes out to the next shelter — now {shelter}.')
       .replace('{n}', eur(VYPLATA_UTULKU)).replace('{shelter}', `${DALSI_UTULOK.meno}, ${DALSI_UTULOK.mesto}`),
   };
-  return (
-    <>
-      <p>{P[n.k]}</p>
-      {n.eur == null && <p className="mi-hint">{tx('pack.misia.later', 'When there are more of us')}</p>}
-      {n.eur != null && <div className="mi-kv">
-        <span>{tx('pack.misia.sofar', 'So far')}</span>
-        <b>{n.eur != null && n.eur > 0 ? eur(n.eur) : tx('pack.misia.soon', 'coming')}</b>
-        {n.k === 'run' && <><span>{tx('pack.misia.perMonth', 'Per month')}</span><b>{eur(run.spolu)}</b></>}
-      </div>}
-      {/* Heroglyf: rozpad €11 na tri diely (lib/transparency.ts — 8 · 2 · 1). */}
+  const It = ({ n }: { n: Node }) => (
+    <div className={`mi-it${n.eur == null ? ' soon' : ''}`} style={{ '--c': n.color } as CSSProperties}>
+      <span className="ic"><BrandIcon name={n.icon} size={16} tint="dim" /></span>
+      <div><b>{NODE_TXT[n.k][0]}</b><p>{P[n.k]}</p></div>
+      <i>{n.eur != null && n.eur > 0 ? eur(n.eur) : n.eur == null ? tx('pack.misia.later', 'When there are more of us') : '0 €'}</i>
       {n.k === 'hero' && (
         <div className="mi-split" aria-hidden>
           <span style={{ flex: 8, background: T.cardEdge }}>8 € · {tx('pack.misia.hero.dev', 'Growing the community')}</span>
@@ -453,16 +476,44 @@ function NodeDetail({ n, tx, eur }: { n: Node; tx: Tx; eur: (n: number) => strin
           <span style={{ flex: 1, background: T.inkWarm }}>1 €</span>
         </div>
       )}
-      {n.k === 'hero' && <p className="mi-note">2 € · {tx('pack.misia.help', 'Dogs in need')} · 1 € · {tx('pack.misia.hero.bowl', "Hekthor's bowl")}</p>}
-      {/* Prevádzka: čo konkrétne platíme každý mesiac — z tej istej pokladnica.json ako celá pokladnica. */}
       {n.k === 'run' && (
         <div className="mi-kv">
-          <span style={{ gridColumn: '1 / -1', fontWeight: 600 }}>{tx('pack.misia.run.list', 'What we pay each month')}</span>
+          <span>{tx('pack.misia.perMonth', 'Per month')}</span><b>{eur(run.spolu)}</b>
           {run.mesacne.filter((q) => q.eur >= 1).map((q) => <Fragment key={q.id}><span>{q.nazov}</span><b>{eur(q.eur)}</b></Fragment>)}
           {run.rocne >= 1 && <><span>{tx('pack.misia.run.year', 'Yearly fees (monthly share)')}</span><b>{eur(run.rocne)}</b></>}
         </div>
       )}
-      {n.eur != null && <p className="mi-note">{tx('pack.misia.live', 'The numbers come live from the treasury, nothing is typed by hand.')}</p>}
+    </div>
+  );
+  const sum = (ns: Node[]) => ns.reduce((a, n) => a + (n.eur ?? 0), 0);
+  return (
+    <>
+      <section className="mi-sec" ref={refs.in}>
+        <h3>{tx('pack.misia.in', 'Income')}{hasData && <b>{eur(inTotal)}</b>}</h3>
+        <p>{tx('pack.misia.in.p', 'Where the money in the treasury comes from.')}</p>
+        {ins.map((n) => <It key={n.k} n={n} />)}
+      </section>
+      <section className="mi-sec" ref={refs.kasa}>
+        <h3>{tx('pack.misia.kasa', "The pack's treasury")}</h3>
+        <div className="mi-bal">
+          <span>{tx('pack.misia.kasa.in', 'in')}<b>{hasData ? eur(inTotal) : '…'}</b></span>
+          <span>{tx('pack.misia.kasa.out', 'out')}<b>{hasData ? eur(outTotal) : '…'}</b></span>
+          <span className="k">{tx('pack.misia.kasa.bal', 'balance')}<b>{hasData ? `${balance < 0 ? '−' : '+'}${eur(Math.abs(balance))}` : '…'}</b></span>
+        </div>
+        <p style={{ marginTop: S.md }}>{balance < 0 ? tx('pack.misia.kasa.minus', 'Matej covers the gap for now') : tx('pack.misia.kasa.plus', 'left for the next step')} · {tx('pack.misia.kasa.open', 'every member sees it')}</p>
+        {onGive && <button type="button" className="mi-cta wide" onClick={onGive}>{tx('pack.misia.give', 'Give')}</button>}
+      </section>
+      <section className="mi-sec" ref={refs.out}>
+        <h3>{tx('pack.misia.out', 'Spending')}{hasData && <b>{eur(outTotal)}</b>}</h3>
+        <h4>{tx('pack.misia.rozvoj', 'Growth')} · {eur(sum(rozvoj))}</h4>
+        <p>{tx('pack.misia.rozvoj.p', 'So that DOGYPT runs and grows. Running costs are paid first.')}</p>
+        {rozvoj.map((n) => <It key={n.k} n={n} />)}
+        <h4>{tx('pack.misia.pomoc', 'Help')} · {eur(sum(pomoc))}</h4>
+        <p>{tx('pack.misia.pomoc.p', 'What DOGYPT gives from its own to dogs in need — and what it wants to give when there are more of us.')}</p>
+        <Shelter tx={tx} />
+        {pomoc.map((n) => <It key={n.k} n={n} />)}
+      </section>
+      <p className="mi-note">{tx('pack.misia.live', 'The numbers come live from the treasury, nothing is typed by hand.')}</p>
     </>
   );
 }
