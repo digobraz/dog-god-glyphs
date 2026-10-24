@@ -292,6 +292,16 @@ function OnFlowPaths({ children }: { children: ReactNode }) {
   return /^\/(heroglyph|checkout|payment|welcome|lab)(\/|$)/.test(pathname) ? <>{children}</> : null;
 }
 
+/** /pack bez session rovno na prihlásenie — nie cez 1,4 MB appky (perf fáza 2, 7. 10. 2026).
+ *  🔴 MUSÍ to byť komponent, nie výraz v `element={…}`: `App` sa vykreslí RAZ, takže výraz
+ *  zamrzol v stave pri načítaní stránky. Kto prišiel neprihlásený (zo Stripe, z /wall) a prihlásil
+ *  sa až potom, toho /pack posielal na /login a /login späť — slučka ~12×/s (PostHog 12.–23. 10.,
+ *  10 členov, Janka 394 kôl). Komponent sa vyhodnotí pri každom vstupe na /pack. */
+function PackGate() {
+  if (NOAUTH_DEV || hasStoredSessionOrAuthReturn()) return <Pack />;
+  return <Navigate to={`/login?return=${encodeURIComponent("/pack" + window.location.search)}`} replace />;
+}
+
 /** Brána zmazania účtu len na /pack — inde (film, heroflow) sa Supabase klient nesťahuje. */
 function OnPackDeletionGate() {
   const { pathname } = useLocation();
@@ -547,8 +557,7 @@ const App = () => (
               <Route path="/zavet/:token" element={<PackWill />} />
 
               {/* /pack — buyer backoffice (auth-gated) */}
-              {/* Bez session rovno na prihlásenie — nie cez 1,4 MB appky (perf fáza 2, 7. 10. 2026). */}
-              <Route path="/pack" element={NOAUTH_DEV || hasStoredSessionOrAuthReturn() ? <Pack /> : <Navigate to={`/login?return=${encodeURIComponent("/pack" + window.location.search)}`} replace />} />
+              <Route path="/pack" element={<PackGate />} />
               <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
               {/* Profil je na LIVE od 2026-08-06 (Matej: „profil sa bude upravovať v /profile").
                   Podmienka pre ceruzku v HeroCard — homepage je odteraz read-only a JEDINÉ miesto,
