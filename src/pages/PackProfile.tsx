@@ -61,6 +61,7 @@ import {
   type ProfileFieldKey,
 } from '@/components/pack/profile/packProfile';
 import { HandCamera } from '@/components/pack/HandIcons';
+import { MisiaBody, MISIA_ON } from '@/components/pack/profile/MisiaGroup';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -274,7 +275,10 @@ export default function PackProfile() {
   const [mateOpen, setMateOpen] = useState(false);
   // SKUPINY NA MOBILE ZBALENÉ (Matej 23. 10.: „sekcie by mohli byť colapsnuté na dropdown na mobile, otvorená
   // len prvá, svorka aj účet blok zavretý — len nadpis a ikonka"). Na PC ich CSS drží otvorené vždy.
-  const [shut, setShut] = useState<Set<string>>(() => new Set(['pack', 'acc']));
+  const [shut, setShut] = useState<Set<string>>(() => {
+    const q = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    return new Set(q && (q.has('dakujeme') || q.has('zrusene') || q.has('odkaz')) ? ['pack', 'acc'] : ['pack', 'misia', 'acc']);
+  });
   const toggleGrp = (k: string) => setShut((prev) => { const n = new Set(prev); if (n.has(k)) n.delete(k); else n.add(k); return n; });
   const [rank, setRank] = useState<'dev' | 'pt' | null>(null);
   const [mates, setMates] = useState<MyPawmates | null>(null);
@@ -620,7 +624,14 @@ export default function PackProfile() {
             <p className="pe-hint" style={{ textAlign: 'center', marginTop: S.md }}>{tx('pack.hero.roleRule', 'Only a Pawtner can create a Pawmate.')}</p>
           </div>
 
-          {/* ── 3 · ÚČET A APPKA ── */}
+          {/* ── 3 · MISIA — pokladnica svorky a dar (Matej 24. 10. 2026: „sekcia v /profile … o mne · svorka · toto
+              (misia) · účet“). Nákres plany/nakres-profil-misia-2026-10-24.html, telo v MisiaGroup.tsx. ── */}
+          {MISIA_ON && <div className={`pe-grp${shut.has('misia') ? ' shut' : ''}`} id="misia" style={{ ...PACK_BOX.subblock, scrollMarginTop: 96 }}>
+            <GroupHead icon="ankh" label={tx('pack.misia.title', 'Mission')} open={!shut.has('misia')} onToggle={() => toggleGrp('misia')} />
+            <MisiaBody />
+          </div>}
+
+          {/* ── 4 · ÚČET A APPKA ── */}
           <div className={`pe-grp${shut.has('acc') ? ' shut' : ''}`} ref={accountRef} style={{ ...PACK_BOX.subblock, scrollMarginTop: 96 }}>
             <GroupHead icon="sliders" label={tx('pack.edit.secAccount', 'Account & app')} open={!shut.has('acc')} onToggle={() => toggleGrp('acc')} />
             {/* PODPORA = ďalšie riadky toho istého zoznamu (Matej 23. 10.: „urob to normálne, ako keby to len
