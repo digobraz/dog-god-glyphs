@@ -57,11 +57,14 @@ function bmpHex(b: Buffer): string | null {
 }
 
 export function gridSnapshot() {
+  // Kam ide build — `dist/`, ale aj `dist-appdev/` a `dist-apptest/` (appky), nie natvrdo dist.
+  let outDir = path.resolve(__dirname, "dist");
   return {
     name: "grid-snapshot",
     apply: "build" as const,
+    configResolved(c: { build: { outDir: string }; root: string }) { outDir = path.resolve(c.root, c.build.outDir); },
     async closeBundle() {
-      const out = path.resolve(__dirname, "dist/data");
+      const out = path.join(outDir, "data");
       fs.mkdirSync(out, { recursive: true });
       const [members, all] = await Promise.all([getJson(FEED), getJson(`${FEED}?tiers=all`)]);
       if (members) fs.writeFileSync(path.join(out, "grid-dogs.json"), JSON.stringify(members));

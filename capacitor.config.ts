@@ -12,11 +12,15 @@ import type { CapacitorConfig } from '@capacitor/cli';
 // strana — Android flavor `dev`, iOS build setting pri `app:ios:dev` — tu sa mení len to,
 // odkiaľ sa berie web.
 const DEV = process.env.CAP_TARGET === 'dev';
+// TESTOVACIA APPKA (24. 10. 2026): `CAP_TARGET=test` = ostrá appka (com.dogypt.ios), ale web z
+// `dist-apptest/` a aktualizácie z `appka-dogypt.dogypt.workers.dev`, nie z dogypt.com
+// (`scripts/appka/test.sh`). 🔴 Do obchodu ide len build BEZ tohto (vydaj.sh bez APPKA_WEB=test).
+const TEST = process.env.CAP_TARGET === 'test';
 
 const config: CapacitorConfig = {
   appId: 'com.dogypt.app',
   appName: 'DOGYPT',
-  webDir: DEV ? 'dist-appdev' : 'dist',
+  webDir: DEV ? 'dist-appdev' : TEST ? 'dist-apptest' : 'dist',
   android: {
     // Mapa, fotky a Supabase idú cez https; zmiešaný obsah netreba.
     allowMixedContent: false,

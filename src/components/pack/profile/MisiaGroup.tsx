@@ -19,16 +19,16 @@ import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pac
 import { DALSI_UTULOK, VYPLATA_UTULKU } from '@/components/pack/PokladnicaSheet';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { IS_APP } from '@/lib/isApp';
-import { EDGE_BASE, LIVE_EDGE_BASE } from '@/lib/env';
+import { EDGE_BASE, LIVE_EDGE_BASE, TEST_BUILD } from '@/lib/env';
 import { supabase } from '@/integrations/supabase/client';
 import { pokladnica, type PrijemMesiac } from '@/lib/pokladnica';
 import { GIFT_TIERS, GIFT_DEFAULT, GIFT_MIN, GIFT_MAX, giftFee, prevadzkaMesacne } from '@/lib/prispevok';
 
 /** 🔴 LIVE LEN NA MATEJOVO VÝSLOVNÉ „OK" (24. 10. 2026: *„nabudúce to takto nerob bez výslovného súhlasu a návrhu
- *  na live web"*). Kým je `false`, blok vidno len v `vite` deve — go-live inej session ho nevyvezie.
+ *  na live web"*). Kým je `false`, blok vidno len v `vite` deve a v testovacej appke (`TEST_BUILD`) — go-live inej session ho nevyvezie.
  *  Pred prepnutím: LIVE migrácia `20261103_prispevky.sql` + `deploy-edge.sh live prispevok prispevok-webhook` + `scripts/prispevok/setup.sh live`. */
 export const MISIA_LIVE = false;
-export const MISIA_ON = MISIA_LIVE || import.meta.env.DEV;
+export const MISIA_ON = MISIA_LIVE || TEST_BUILD;
 
 type Dash = { revenue_total?: number; revenue_by_month?: PrijemMesiac[]; gifts_by_month?: Record<string, number>; treasuries?: { dev?: number; help?: number; hektor?: number }; givers?: number;
   sources?: { hero: { eur: number; n: number }; rest: { eur: number; n: number } }; payments?: number };

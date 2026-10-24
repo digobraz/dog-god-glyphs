@@ -31,6 +31,7 @@ import { appWebVersion } from '@/lib/appUpdate';
 import { openAinubis } from '@/lib/ainubisBus';
 import { createWill, listMyWills, revokeWill, type WillRow } from '@/lib/willAccess';
 import { APP_PLATFORM } from '@/lib/isApp';
+import { TEST_BUILD } from '@/lib/env';
 import {
   useProfile,
   saveHuman,
@@ -643,7 +644,7 @@ export default function PackProfile() {
               </Field>
             </>} />
             {/* ČÍSLO VERZIE — LEN V APPKE (21. 10. 2026), rovnaké ako `version` v dogypt.com/app-update.json. */}
-            {appVer && <div className="pe-ver">DOGYPT · {APP_PLATFORM} · {appVer}</div>}
+            {appVer && <div className="pe-ver">DOGYPT · {APP_PLATFORM} · {appVer}{TEST_BUILD ? ' · TEST' : ''}</div>}
           </div>
         </div>
       </section>

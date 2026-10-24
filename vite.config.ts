@@ -19,6 +19,8 @@ const devPort = (() => {
   return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : "8080";
 })();
 
+let stripOut = path.resolve(__dirname, "dist");
+
 export default defineConfig(({ mode }) => ({
   cacheDir: path.resolve(__dirname, `node_modules/.vite-p${devPort}`),
   server: {
@@ -127,7 +129,9 @@ export default defineConfig(({ mode }) => ({
   }, {
     name: "strip-dev-only-public",
     apply: "build" as const,
-    closeBundle() { fs.rmSync(path.resolve(__dirname, "dist/vault-demo"), { recursive: true, force: true }); },
+    // outDir z configu — appky buildia aj do dist-appdev / dist-apptest.
+    configResolved(c) { stripOut = path.resolve(c.root, c.build.outDir); },
+    closeBundle() { fs.rmSync(path.join(stripOut, "vault-demo"), { recursive: true, force: true }); },
   }, react(), mode === "development" && componentTagger(), mode === "development" && saveTripPlugin(), mode === "development" && gpxDownloadPlugin(), mode === "development" && nakresPlugin()].filter(Boolean),
   resolve: {
     alias: {

@@ -33,6 +33,13 @@ const LIVE_SUPABASE_ANON_KEY =
 // nové veci skúšali v telefóne bez dotyku členských dát. Ide do `dist-appdev/`, nikdy
 // do `dist/`, ktorý nasadzuje go-live. Dogypt.com tento režim nepozná.
 export const APP_DEV = import.meta.env.MODE === 'appdev';
+
+// TESTOVACIA APPKA (24. 10. 2026): Matej *„nič nepôjde live pre našich členov, všetko ide iba do apky,
+// aby som to na telefóne vedel používať a testovať"*. `bash scripts/appka/test.sh` buildí s
+// `VITE_TEST_BUILD=1` do `dist-apptest/` a nahrá ho na `appka-dogypt.dogypt.workers.dev` — odtiaľ sa
+// TestFlight appka aktualizuje. Ostré dáta, ale dogypt.com tento build nikdy nevidí.
+// Rozostavaná vec v /pack sa zapína `|| TEST_BUILD` (nie `|| IS_APP` — to by ju po vydaní do obchodu videli členovia).
+export const TEST_BUILD = import.meta.env.DEV || import.meta.env.VITE_TEST_BUILD === '1';
 const PINNED = import.meta.env.PROD && !APP_DEV;
 
 export const SUPABASE_URL = PINNED
