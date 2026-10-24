@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { DEVOTION_START, DEVOTION_TODAY_ON } from '@/lib/devotion';
 import type { Session } from '@supabase/supabase-js';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -79,7 +80,7 @@ export function usePackIdentity(): PackIdentity {
   useEffect(() => {
     function handler(e: Event) {
       const total = (e as CustomEvent<{ total: number }>).detail?.total;
-      if (typeof total === 'number') setDevotion(total);
+      if (typeof total === 'number' && DEVOTION_TODAY_ON) setDevotion(total);
     }
     window.addEventListener('dogypt:devotion', handler);
     return () => { window.removeEventListener('dogypt:devotion', handler); };
@@ -179,7 +180,7 @@ export function usePackIdentity(): PackIdentity {
         if (!mounted) return;
         const meta = (s.user.user_metadata ?? {}) as Record<string, unknown>;
         if (mounted) {
-          setDevotion(Number(meta.devotion) || 100);
+          setDevotion(DEVOTION_TODAY_ON ? Number(meta.devotion) || DEVOTION_START : DEVOTION_START);
           setAvatarUrl((meta.avatar_url || meta.avatar || null) as string | null);
         }
         // BONES = affiliate currency (affiliates.points). Single source of truth

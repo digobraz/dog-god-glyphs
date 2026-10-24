@@ -21,7 +21,7 @@ import { zodiacMap, chineseMap } from '@/components/HeroglyphFrame';
 import type { SnifferCardData, SnifferDistanceBand } from './snifferDeck';
 import { loadMyCard, pilgrimFromTrips } from './snifferDeck';
 import { pilgrimLevelOf } from './pilgrimOf';
-import { devotionLevel } from '@/lib/devotion';
+import { devotionLevel, DEVOTION_START, DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { tierOfLevel, tierGradient } from '@/lib/packTiers';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 
@@ -157,7 +157,7 @@ export const plural = (n: number) => (n === 1 ? 'one' : n >= 2 && n <= 4 ? 'few'
  *  o cudzom človeku nevieme — kontrakt koordinátora 26. 9. večer).
  *  Chýbajúci PÚTNIK = 0 prejdených výletov; neukazuje sa nič, nie vymyslená jednotka. */
 export function SnifferLevels({ card, tx }: { card: SnifferCardData; tx: Tx }) {
-  const dev = card.devotion != null ? devotionLevel(Number(card.devotion)) : null;
+  const dev = card.devotion != null ? devotionLevel(DEVOTION_TODAY_ON ? Number(card.devotion) : DEVOTION_START) : null;
   const pilgrimLevel = card.pilgrimLevel ?? pilgrimLevelOf(card.trips ?? []);
   if (!pilgrimLevel && !dev) return null;
   return (

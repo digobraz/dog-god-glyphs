@@ -17,6 +17,7 @@
 //    jediný dôvod, prečo `+` smie byť kontextový (§3 nákresu, „VÝSLEDOK MERANIA"). Objekt,
 //    ktorý by patril dvom miestam naraz, ten dôkaz ruší — vtedy sa vracia rozhodnutie, nie
 //    sa dopisuje riadok.
+import { DEVOTION_TODAY_ON } from '@/lib/devotion';
 
 // ── MIESTA ──────────────────────────────────────────────────────────────────────────────────
 // Štyri miesta chrbtice, ktoré majú lištu, + GLOBÁL. GLOBÁL nie je tab a nikdy ním nebude
@@ -173,7 +174,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     target: { kind: 'route', path: '/pack/profile?dnes=1' },
     back: 'origin',
     lands: 'devotion_events (grant-devotion claim) → profil JA',
-    state: 'live',
+    state: DEVOTION_TODAY_ON ? 'live' : 'pripravene',   // ⛔ 24. 10. stiahnuté do appky (lib/devotion.ts)
     panel: true,
   },
   // ── VON ───────────────────────────────────────────────────────────────────────────────────

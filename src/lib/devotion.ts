@@ -72,7 +72,11 @@ export const DEVOTION_START = 100;
 //    by nič neurobili. DEVOTION session to prepne na `true` až po LIVE migrácii + edge + cron
 //    (`plany/zadanie-devotion-finalizacia-2026-10-24.md` §LIVE).
 // ✅ 23. 10. 2026 noc: LIVE migrácia v2 + spätne + edge + cron NASADENÉ → panel ide na LIVE.
-export const DEVOTION_TODAY_ON = true;
+// ⛔ 24. 10. 2026 STIAHNUTÉ (Matej: *„ešte to live nedajme, pôjde to von až s appkou… kým nepovieme,
+//    že je to ok, stiahni to“*). Hodnoty a farmenie sa ešte simulujú. `false` = panel Dnešok, položka
+//    v paneli +, nastavenie pripomienok preč a každý vidí DEVOTION zamrznutú na DEVOTION_START
+//    (vlastný profil aj karta v Sniffri). Kniha `devotion_events` sa nemaže, len sa neukazuje.
+export const DEVOTION_TODAY_ON = false;
 
 export const DEVOTION_DAILY = {
   walk_short: { points: 2, perDay: 3 },   // krátke venčenie < 20 min — povinnosť, nie skutok

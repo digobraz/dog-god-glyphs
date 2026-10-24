@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { DEVOTION_START, DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { supabase } from '@/integrations/supabase/client';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 
@@ -101,7 +102,7 @@ export function usePackUser(userId: string | null): PackUserData {
       }
 
       const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
-      const devotion = Number(meta.devotion) || 100;
+      const devotion = DEVOTION_TODAY_ON ? Number(meta.devotion) || DEVOTION_START : DEVOTION_START;
       const bones = Number(meta.bones) || 0;
       const avatarUrl = (meta.avatar_url || meta.avatar || null) as string | null;
 
