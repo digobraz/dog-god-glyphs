@@ -32,9 +32,10 @@ export const MISIA_ON = MISIA_LIVE || import.meta.env.DEV;
 
 type Dash = { revenue_total?: number; revenue_by_month?: PrijemMesiac[]; gifts_by_month?: Record<string, number>; treasuries?: { help?: number }; givers?: number };
 type Thanks = { paid: boolean; amount: number; interval: 'month' | 'once'; next: string | null; manage: string | null };
-type NodeKey = 'hero' | 'gift' | 'merch' | 'more' | 'run' | 'app' | 'res' | 'gear' | 'help';
+type NodeKey = 'hero' | 'gift' | 'merch' | 'more' | 'run' | 'app' | 'res' | 'gear' | 'help' | 'people' | 'centers' | 'vet';
+type GroupKey = 'in' | 'rozvoj' | 'pomoc';
 type Node = { k: NodeKey; icon: string; color: string; eur: number | null };
-type Sheet = { kind: 'node'; node: Node } | { kind: 'vision' } | { kind: 'gift' } | { kind: 'thanks'; t: Thanks } | { kind: 'manage' };
+type Sheet = { kind: 'group'; g: GroupKey } | { kind: 'node'; node: Node } | { kind: 'vision' } | { kind: 'gift' } | { kind: 'thanks'; t: Thanks } | { kind: 'manage' };
 
 async function call<R>(body: Record<string, unknown>, auth?: string): Promise<R> {
   const r = await fetch(`${EDGE_BASE}/prispevok`, {
@@ -63,27 +64,42 @@ const CSS = `${VEIL_CSS}
 .mi-lead{margin:0 0 ${S.lg}px;text-align:center;font-family:${FONT_UI};font-size:${TX.body}px;line-height:1.5;color:${T.inkStrong};}
 .mi-lead b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;}
 .mi-pipe{display:flex;flex-direction:column;}
-.mi-hd{display:flex;justify-content:center;align-items:baseline;gap:${S.sm}px;margin:0 0 ${S.sm}px;font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.26em;text-transform:uppercase;color:${T.inkWarm};}
-.mi-hd b{font-weight:600;letter-spacing:.02em;font-size:${TX.label}px;color:${T.inkStrong};text-transform:none;}
-.mi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${S.sm}px;}
-.mi-grid.out{grid-template-columns:repeat(3,minmax(0,1fr));}
-.mi-node{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;min-width:0;padding:${S.sm}px ${S.xs}px;border-radius:${PACK_R.tile}px;
-  border:1px solid ${T.cardEdge};background:${T.tileBg};cursor:pointer;text-align:center;font-family:${FONT_UI};color:${T.inkStrong};transition:transform .15s ease;}
-.mi-node:hover{transform:translateY(-2px);}
-.mi-node .ic{display:grid;place-items:center;width:32px;height:32px;border-radius:${PACK_R.pill}px;background:color-mix(in srgb, var(--c) 14%, transparent);border:1px solid var(--c);}
-.mi-node > span:last-child{display:flex;flex-direction:column;align-items:inherit;gap:2px;min-width:0;}
-.mi-node b{font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;overflow-wrap:anywhere;}
-.mi-node i{font-style:normal;font-size:${TX.micro}px;color:${T.inkDim};}
-.mi-node.soon{border-style:dashed;background:none;}
-.mi-node.soon .ic,.mi-node.soon b{opacity:.6;}
-.mi-flow{display:block;width:100%;height:40px;}
+.mi-pipe{display:flex;flex-direction:column;max-width:560px;margin:0 auto;}
+.mi-goal,.mi-mine{max-width:560px;margin-left:auto !important;margin-right:auto !important;}
+/* BOX = jeden z troch stupňov toku (nákres Mateja 24. 10.: PRÍJEM → pokladnica → ROZVOJ · POMOC). */
+.mi-box{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;width:100%;cursor:pointer;text-align:center;color:${T.inkStrong};transition:transform .15s ease;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};}
+.mi-box:hover{transform:translateY(-2px);}
+.mi-box-h{display:flex;justify-content:center;align-items:baseline;gap:${S.sm}px;}
+.mi-box > i{font-style:normal;font-size:${TX.label}px;color:${T.inkWarm};}
+.mi-more{font-size:${TX.micro}px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:${LAPIS.edge};}
+.mi-box-h span{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
+.mi-box-h b{font-weight:600;font-size:${TX.body}px;color:${T.inkWarm};}
+.mi-rows{display:flex;flex-direction:column;gap:${S.xs}px;}
+.mi-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:${S.sm}px;width:100%;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.tile}px;border:1px solid transparent;background:none;cursor:pointer;text-align:left;font-family:${FONT_UI};color:${T.inkStrong};transition:background .15s ease;}
+.mi-row:hover{background:color-mix(in srgb, ${T.cardEdge} 10%, transparent);}
+.mi-row .ic{display:grid;place-items:center;width:32px;height:32px;border-radius:${PACK_R.pill}px;background:color-mix(in srgb, var(--c) 14%, transparent);border:1px solid var(--c);}
+.mi-row b{font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;overflow-wrap:anywhere;}
+.mi-row i{font-style:normal;font-size:${TX.label}px;font-weight:600;white-space:nowrap;}
+.mi-row.soon .ic,.mi-row.soon b{opacity:.55;}
+.mi-row.soon i{font-weight:400;font-size:${TX.micro}px;color:${T.inkDim};}
+.mi-later{margin-top:${S.md}px;padding-top:${S.sm}px;border-top:1px dashed ${T.cardEdge};}
+.mi-later > p{margin:0 0 ${S.xs}px !important;font-size:${TX.micro}px !important;text-align:center;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
+/* TOK — bodky (mince) bežia dolu. Podklad je slabá plná čiara, pohyb nesú bodky; bez peňazí len podklad. */
+.mi-tok{display:block;width:100%;height:40px;overflow:visible;}
+.mi-tok .bed{opacity:.25;}
+.mi-tok .run{stroke-dasharray:0 12;stroke-linecap:round;animation:mi-flow 1.1s linear infinite;}
+@keyframes mi-flow{to{stroke-dashoffset:-12}}
+.mi-outs{position:relative;padding-right:${S.lg}px;padding-bottom:${S.sm}px;}
+.mi-rail{position:absolute;top:0;right:9px;bottom:0;width:6px;}
+.mi-rail::before{content:"";position:absolute;left:2px;top:0;bottom:0;width:2px;background:${T.partHelp};opacity:.25;}
+.mi-rail.on{background:radial-gradient(circle, ${T.partHelp} 2.5px, transparent 3px) 0 0 / 6px 12px repeat-y;animation:mi-rail 1.1s linear infinite;}
+@keyframes mi-rail{to{background-position:0 12px}}
+@media (prefers-reduced-motion:reduce){.mi-tok .run,.mi-rail.on{animation:none;}}
 .mi-kasa{padding:${S.md}px;border-radius:${PACK_R.tile}px;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};text-align:center;color:${LAPIS.ink};font-family:${FONT_UI};}
 .mi-kasa small{display:block;font-weight:500;font-size:${TX.micro}px;letter-spacing:.26em;text-transform:uppercase;}
 .mi-kasa b{display:block;margin-top:${S.xs}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;color:#FBF5E6;}
 .mi-kasa span{display:block;margin-top:${S.xs}px;font-size:${TX.label}px;opacity:.9;}
 .mi-kasa em{display:block;margin-top:${S.sm}px;font-style:normal;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;opacity:.6;}
-.mi-sub{margin:${S.md}px 0 ${S.xs}px;text-align:center;font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
-.mi-sub:first-of-type{margin-top:0;}
 .mi-goal{margin-top:${S.lg}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};text-align:center;font-family:${FONT_UI};}
 .mi-goal > b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;color:${T.inkStrong};}
 .mi-goal p{margin:${S.xs}px 0 ${S.md}px;font-size:${TX.label}px;color:${T.inkWarm};}
@@ -103,19 +119,6 @@ const CSS = `${VEIL_CSS}
 .mi-cta.wide{display:flex;width:100%;}
 .mi-links{display:flex;justify-content:center;flex-wrap:wrap;gap:${S.lg}px;margin-top:${S.md}px;}
 .mi-link{padding:0;border:0;background:none;cursor:pointer;font-family:${FONT_UI};font-size:${TX.label}px;color:${LAPIS.edge};text-decoration:underline;text-underline-offset:3px;}
-@media (min-width:721px){
-  .mi-pipe{display:grid;grid-template-columns:minmax(0,1fr) 48px 168px 48px minmax(0,1.5fr);align-items:center;}
-  .mi-grid{grid-template-columns:1fr;}
-  .mi-grid.now{grid-template-columns:repeat(2,minmax(0,1fr));}
-  .mi-grid.out{grid-template-columns:repeat(3,minmax(0,1fr));}
-  .mi-grid.out .mi-node{flex-direction:column;justify-content:center;text-align:center;}
-  .mi-grid.out .mi-node > span:last-child{align-items:center;}
-  .mi-node{flex-direction:row;justify-content:flex-start;gap:${S.sm}px;padding:${S.sm}px;text-align:left;}
-  .mi-node > span:last-child{align-items:flex-start;}
-  .mi-flow.v{display:none;}
-  .mi-flow.h{display:block;height:200px;}
-}
-@media (max-width:720px){ .mi-flow.h{display:none;} }
 /* ŠUPLÍK — papyrus zdola (ten istý tvar ako DevotionSheet, len svetlý). */
 .mi-root.pk-veil{z-index:65;align-items:flex-end;padding:0;}
 .mi-sheet{position:relative;width:100%;max-width:640px;margin:0 auto;max-height:88dvh;display:flex;flex-direction:column;background:${T.cardGrad};color:${T.inkStrong};
@@ -179,17 +182,22 @@ export function MisiaBody() {
     { k: 'merch', icon: 'badge', color: GEAR, eur: null },
     { k: 'more', icon: 'plus', color: GEAR, eur: null },
   ];
-  // VÝDAVKY v dvoch radoch: DNES (už sa platí, má číslo) · KEĎ NÁS BUDE VIAC (čiarkované, bez čísla) — šesť
-  // rovnakých dlaždíc tvrdilo, že appka či výskum už peniaze dostávajú. „Ďalej?“ zaniklo: patrí do Našej predstavy.
-  const outsNow: Node[] = [
+  // Dva výdavkové koše (Matej 24. 10.: *„schovajme to všetko … do rozvoja po rozkliku … a do pomoci dajme toho
+  // viac"*). Na ploche je len súčet, položky v šuplíku koša. Bez čísla = „keď nás bude viac", nič vymyslené.
+  // 🔴 Pomoc je to, čo DOGYPT dáva ZO SVOJHO — nikde „zbierame pre útulky" (verejná zbierka smie len o.z.).
+  const rozvoj: Node[] = [
     { k: 'run', icon: 'cycle', color: T.partDev, eur: run },
-    { k: 'help', icon: 'house-heart', color: T.partHelp, eur: help },
-  ];
-  const outsLater: Node[] = [
     { k: 'app', icon: 'idea', color: T.partHek, eur: null },
     { k: 'res', icon: 'chemical', color: T.partMkt, eur: null },
     { k: 'gear', icon: 'locate', color: GEAR, eur: null },
   ];
+  const pomoc: Node[] = [
+    { k: 'help', icon: 'house-heart', color: T.partHelp, eur: help },
+    { k: 'people', icon: 'graduate', color: T.partHelp, eur: null },
+    { k: 'centers', icon: 'hut', color: T.partHelp, eur: null },
+    { k: 'vet', icon: 'vet', color: T.partHelp, eur: null },
+  ];
+  const GROUPS: Record<GroupKey, { nodes: Node[]; icon: string }> = { in: { nodes: ins, icon: 'money' }, rozvoj: { nodes: rozvoj, icon: 'idea' }, pomoc: { nodes: pomoc, icon: 'house-heart' } };
   // CIEĽ: koľko ľudí po 5 € mesačne zaplatí prevádzku (čisté po poplatku Stripe) — „veľa ľudí, málo peňazí“.
   const goalN = Math.ceil(prevadzkaMesacne().spolu / (GIFT_DEFAULT - giftFee(GIFT_DEFAULT, true)));
   const givers = Math.min(dash?.givers ?? 0, goalN);
@@ -207,16 +215,40 @@ export function MisiaBody() {
     app: [tx('pack.misia.app', 'App'), tx('pack.misia.app.s', 'development, people')],
     res: [tx('pack.misia.res', 'Research'), tx('pack.misia.res.s', 'health, longevity')],
     gear: [tx('pack.misia.gear', 'Gear'), tx('pack.misia.gear.s', 'GPS collar…')],
-    help: [tx('pack.misia.help', 'Dogs in need'), tx('pack.misia.help.s', 'shelters')],
+    help: [tx('pack.misia.help', 'Shelters'), tx('pack.misia.help.s', 'direct help')],
+    people: [tx('pack.misia.people', 'People'), tx('pack.misia.people.s', 'trainers, behaviourists')],
+    centers: [tx('pack.misia.centers', 'Centres'), tx('pack.misia.centers.s', 'training, adoption')],
+    vet: [tx('pack.misia.vet', 'Vet care'), tx('pack.misia.vet.s', 'dogs in need')],
   };
+  const G_TXT: Record<GroupKey, [string, string, string]> = {
+    in: [tx('pack.misia.in', 'Income'), tx('pack.misia.in.s', 'heroglyph · gifts · merch'), tx('pack.misia.in.p', 'Where the money in the treasury comes from.')],
+    rozvoj: [tx('pack.misia.rozvoj', 'Growth'), tx('pack.misia.rozvoj.s', 'running · app · research · gear'), tx('pack.misia.rozvoj.p', 'So that DOGYPT runs and grows. Running costs are paid first.')],
+    pomoc: [tx('pack.misia.pomoc', 'Help'), tx('pack.misia.pomoc.s', 'shelters · people · centres'), tx('pack.misia.pomoc.p', 'What DOGYPT gives from its own to dogs in need — and what it wants to give when there are more of us.')],
+  };
+  const gSum: Record<GroupKey, number | null> = { in: dash ? inTotal : null, rozvoj: run, pomoc: help };
   const sub = (n: Node) => (n.eur != null && n.eur > 0 ? eur(n.eur) : NODE_TXT[n.k][1]);
   const soon = (n: Node) => n.eur == null;
 
-  const NodeBtn = ({ n }: { n: Node }) => (
-    <button type="button" className={`mi-node${soon(n) ? ' soon' : ''}`} style={{ '--c': n.color } as CSSProperties} onClick={() => setSheet({ kind: 'node', node: n })}>
+  const Row = ({ n }: { n: Node }) => (
+    <button type="button" className={`mi-row${soon(n) ? ' soon' : ''}`} style={{ '--c': n.color } as CSSProperties} onClick={() => setSheet({ kind: 'node', node: n })}>
       <span className="ic"><BrandIcon name={n.icon} size={16} tint="dim" /></span>
-      <span><b>{NODE_TXT[n.k][0]}</b><i>{sub(n)}</i></span>
+      <b>{NODE_TXT[n.k][0]}</b><i>{sub(n)}</i>
     </button>
+  );
+  // KÔŠ na ploche = názov + súčet + jeden riadok obsahu; všetko ostatné až v šuplíku (rozklik).
+  const Box = ({ g }: { g: GroupKey }) => (
+    <button type="button" className="mi-box" onClick={() => setSheet({ kind: 'group', g })}>
+      <span className="mi-box-h"><span>{G_TXT[g][0]}</span>{gSum[g] != null && (gSum[g] as number) > 0 && <b>{eur(gSum[g] as number)}</b>}</span>
+      <i>{G_TXT[g][1]}</i>
+      <span className="mi-more">{tx('pack.misia.more.cta', 'more')} ›</span>
+    </button>
+  );
+  // Tok: `on` = tečú peniaze (bodky bežia), inak len podklad. vectorEffect drží hrúbku pri natiahnutí viewBoxu.
+  const Line = ({ d, c, on }: { d: string; c: string; on: boolean }) => (
+    <>
+      <path className="bed" d={d} stroke={c} strokeWidth={2} fill="none" vectorEffect="non-scaling-stroke" />
+      {on && <path className="run" d={d} stroke={c} strokeWidth={5} fill="none" vectorEffect="non-scaling-stroke" />}
+    </>
   );
 
   return (
@@ -228,19 +260,9 @@ export function MisiaBody() {
       </p>
 
       <div className="mi-pipe">
-        <div>
-          <p className="mi-hd">{tx('pack.misia.in', 'Income')}{dash && <b>{eur(inTotal)}</b>}</p>
-          <div className="mi-grid">{ins.map((n) => <NodeBtn key={n.k} n={n} />)}</div>
-        </div>
-        <svg className="mi-flow v" viewBox="0 0 340 40" preserveAspectRatio="none" aria-hidden>
-          <path d="M85 0 C85 26 170 14 170 40" stroke={T.cardEdge} strokeWidth={w(hero, inTotal)} strokeDasharray={dash2(hero)} fill="none" opacity=".8" />
-          <path d="M255 0 C255 26 170 14 170 40" stroke={LAPIS.edge} strokeWidth={w(gifts, inTotal)} strokeDasharray={dash2(gifts)} fill="none" opacity=".75" />
-        </svg>
-        <svg className="mi-flow h" viewBox="0 0 48 200" preserveAspectRatio="none" aria-hidden>
-          <path d="M0 25 C30 25 20 100 48 100" stroke={T.cardEdge} strokeWidth={w(hero, inTotal)} strokeDasharray={dash2(hero)} fill="none" opacity=".8" />
-          <path d="M0 75 C30 75 20 100 48 100" stroke={LAPIS.edge} strokeWidth={w(gifts, inTotal)} strokeDasharray={dash2(gifts)} fill="none" opacity=".75" />
-          <path d="M0 125 C30 125 20 100 48 100" stroke={GEAR} strokeWidth={1.5} strokeDasharray="4 4" fill="none" opacity=".5" />
-          <path d="M0 175 C30 175 20 100 48 100" stroke={GEAR} strokeWidth={1.5} strokeDasharray="4 4" fill="none" opacity=".5" />
+        <Box g="in" />
+        <svg className="mi-tok" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden>
+          <Line d="M50 0 L50 40" c={T.cardEdge} on={inTotal > 0} />
         </svg>
         {/* Bilancia = príjmy − výdavky. Záporná sa NESKRÝVA (Matej: „úprimne“) — povie, kto rozdiel nesie. */}
         <div className="mi-kasa">
@@ -249,22 +271,16 @@ export function MisiaBody() {
           <span>{balance < 0 ? tx('pack.misia.kasa.minus', 'Matej covers the gap for now') : tx('pack.misia.kasa.plus', 'left for the next step')}</span>
           <em>{tx('pack.misia.kasa.open', 'every member sees it')}</em>
         </div>
-        <svg className="mi-flow v" viewBox="0 0 340 40" preserveAspectRatio="none" aria-hidden>
-          <path d="M170 0 C170 26 85 14 85 40" stroke={T.partDev} strokeWidth={w(run, outTotal)} strokeDasharray={dash2(run)} fill="none" opacity=".8" />
-          <path d="M170 0 C170 26 255 14 255 40" stroke={T.partHelp} strokeWidth={w(help, outTotal)} strokeDasharray={dash2(help)} fill="none" opacity=".8" />
+        {/* Rozdelenie: stred ide do ROZVOJA, pravý pruh obteká rozvoj a vlieva sa do POMOCI zhora. */}
+        <svg className="mi-tok" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden>
+          <Line d="M50 0 C50 20 46 20 46 40" c={T.partDev} on={(run ?? 0) > 0} />
+          <Line d="M50 0 C50 22 96 14 96 40" c={T.partHelp} on={(help ?? 0) > 0} />
         </svg>
-        <svg className="mi-flow h" viewBox="0 0 48 200" preserveAspectRatio="none" aria-hidden>
-          <path d="M0 100 C28 100 20 62 48 62" stroke={T.partDev} strokeWidth={w(run, outTotal)} strokeDasharray={dash2(run)} fill="none" opacity=".8" />
-          <path d="M0 100 C28 100 20 70 48 70" stroke={T.partHelp} strokeWidth={w(help, outTotal)} strokeDasharray={dash2(help)} fill="none" opacity=".8" />
-          <path d="M0 100 C28 100 20 160 48 160" stroke={T.cardEdge} strokeWidth={1.5} strokeDasharray="4 4" fill="none" opacity=".55" />
-        </svg>
-        <div>
-          <p className="mi-hd">{tx('pack.misia.out', 'Spending')}{dash && <b>{eur(outTotal)}</b>}</p>
-          <p className="mi-sub">{tx('pack.misia.now', 'Today')}</p>
-          <div className="mi-grid now">{outsNow.map((n) => <NodeBtn key={n.k} n={n} />)}</div>
-          <p className="mi-sub">{tx('pack.misia.later', 'When there are more of us')}</p>
-          <div className="mi-grid out">{outsLater.map((n) => <NodeBtn key={n.k} n={n} />)}</div>
+        <div className="mi-outs">
+          <Box g="rozvoj" />
+          <span className={`mi-rail${(help ?? 0) > 0 ? ' on' : ''}`} aria-hidden />
         </div>
+        <Box g="pomoc" />
       </div>
 
       <div className="mi-goal">
@@ -289,12 +305,24 @@ export function MisiaBody() {
 
       {sheet && (
         <MiSheet onClose={() => setSheet(null)} title={
-          sheet.kind === 'node' ? NODE_TXT[sheet.node.k][0]
+          sheet.kind === 'group' ? G_TXT[sheet.g][0] : sheet.kind === 'node' ? NODE_TXT[sheet.node.k][0]
             : sheet.kind === 'vision' ? tx('pack.misia.vision', 'Our idea')
               : sheet.kind === 'thanks' ? tx('carry.thanks.h', 'Thank you')
                 : sheet.kind === 'manage' ? tx('carry.thanks.manage', 'Change or cancel')
                   : tx('pack.misia.giftTitle', 'Gift')
-        } icon={sheet.kind === 'node' ? sheet.node.icon : sheet.kind === 'vision' ? 'ankh' : 'heartpaw'}>
+        } icon={sheet.kind === 'group' ? GROUPS[sheet.g].icon : sheet.kind === 'node' ? sheet.node.icon : sheet.kind === 'vision' ? 'ankh' : 'heartpaw'}>
+          {sheet.kind === 'group' && (
+            <>
+              <p>{G_TXT[sheet.g][2]}</p>
+              {GROUPS[sheet.g].nodes.some((n) => !soon(n)) && <div className="mi-rows">{GROUPS[sheet.g].nodes.filter((n) => !soon(n)).map((n) => <Row key={n.k} n={n} />)}</div>}
+              {GROUPS[sheet.g].nodes.some(soon) && (
+                <div className="mi-later">
+                  <p>{tx('pack.misia.later', 'When there are more of us')}</p>
+                  <div className="mi-rows">{GROUPS[sheet.g].nodes.filter(soon).map((n) => <Row key={n.k} n={n} />)}</div>
+                </div>
+              )}
+            </>
+          )}
           {sheet.kind === 'node' && <NodeDetail n={sheet.node} tx={tx} eur={eur} />}
           {sheet.kind === 'vision' && <Vision tx={tx} />}
           {sheet.kind === 'gift' && <GiftForm tx={tx} gl={gl} loc={loc} onManage={() => setSheet({ kind: 'manage' })} />}
@@ -343,6 +371,9 @@ function NodeDetail({ n, tx, eur }: { n: Node; tx: Tx; eur: (n: number) => strin
     app: tx('pack.misia.app.p', 'Building the app: software, hardware, people and services. Today Matej builds it alone and unpaid.'),
     res: tx('pack.misia.res.p', 'How to live longer and healthier with your dog: the longevity protocol, the AI vet, supplements that make sense.'),
     gear: tx('pack.misia.gear.p', 'Our own gear for dogs and their people, for example a GPS collar.'),
+    people: tx('pack.misia.people.p', 'Paying the people who help dogs: trainers, behaviourists, people working in shelters.'),
+    centers: tx('pack.misia.centers.p', 'Building places for dogs: training, adoption and rehabilitation centres.'),
+    vet: tx('pack.misia.vet.p', 'Treatment and operations for dogs nobody else would pay for.'),
     help: tx('pack.misia.help.p', '€2 of every heroglyph goes to dogs in need. Every {n} goes out to the next shelter — now {shelter}.')
       .replace('{n}', eur(VYPLATA_UTULKU)).replace('{shelter}', `${DALSI_UTULOK.meno}, ${DALSI_UTULOK.mesto}`),
   };
