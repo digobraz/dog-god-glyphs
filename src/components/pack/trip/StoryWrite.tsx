@@ -33,7 +33,8 @@ export const STORY_WRITE_CSS = `
 ${PF_FIELD_CSS}
 /* Kôš 3 — vrstva prekrýva aj spodnú lištu (tá je z-index 40), preto 140. */
 .psw-veil{ position:fixed; inset:0; z-index:140; overflow-y:auto; background:${T.pageBg}; }
-.psw-wrap{ max-width:640px; margin:0 auto; padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px ${PACK_SPACE.xxxl}px; }
+/* APPKA 24. 10. 2026: vrch pod hodinami (safe-area; na webe 0). */
+.psw-wrap{ max-width:640px; margin:0 auto; padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) ${PACK_SPACE.lg}px ${PACK_SPACE.xxxl}px; }
 .psw-card{ padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px; font-family:${FONT_UI}; color:${T.inkStrong}; }
 .psw-head{ display:flex; align-items:center; justify-content:flex-start; gap:${PACK_SPACE.md}px; margin-bottom:${PACK_SPACE.lg}px; }
 .psw-title{ font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.h2}px; letter-spacing:0.14em; text-transform:uppercase; }

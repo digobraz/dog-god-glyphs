@@ -195,12 +195,13 @@ ${STAGE_CSS}
              radial-gradient(55vw 55vw at 10% 95%,rgba(${AINUBIS.glowRGB},0.12),transparent 62%);}
 /* ŠÍRKA = článok výletu (Matej 4. 10.: „detail zvitku by mal byť takej istej šírky ako je trip blog") —
    ten istý stĺpec PACK_COL_FIT + packColCSS ako .pta-shell, nie vlastných 880. */
-.zv-wrap{position:relative;z-index:1;${PACK_COL_FIT}margin:${PACK_SPACE.lg}px auto calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.xl}px);
+/* APPKA 24. 10. 2026: vrch dosky pod hodinami (Matej: „pri zvitku nevidím šípku naspäť, je až za hranou obrazovky“). Web: safe-area 0. */
+.zv-wrap{position:relative;z-index:1;${PACK_COL_FIT}margin:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) auto calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.xl}px);
   padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px ${PACK_SPACE.xl}px;box-shadow:${AINUBIS.panelShadow};
   --pk-stage:linear-gradient(180deg,rgba(${AINUBIS.cyanRGB},0.07) 0%,rgba(4,8,14,0.55) 22%,rgba(4,8,14,0.62) 100%);
   --pk-stage-edge:${AINUBIS.edge};}
 ${packColCSS('.zv-wrap')}
-@media (max-width:767px){.zv-wrap{margin-top:${PACK_SPACE.md}px;margin-bottom:calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.lg}px);padding:${PACK_SPACE.md}px;}}
+@media (max-width:767px){.zv-wrap{margin-top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px);margin-bottom:calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.lg}px);padding:${PACK_SPACE.md}px;}}
 @media (min-width:768px){.zv-wrap{padding:${PACK_SPACE.xl}px;}}
 .zv-back{margin-bottom:${PACK_SPACE.md}px;}
 .zv-top{display:grid;grid-template-columns:1fr;gap:${PACK_SPACE.lg}px;}
@@ -272,7 +273,7 @@ ${packColCSS('.zv-wrap')}
 .zv-gnav{flex:none;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:${PACK_R.pill}px;cursor:pointer;
   background:${AINUBIS.raised};border:1px solid ${AINUBIS.edgeStrong};color:${AINUBIS.cyan};}
 .zv-gnav:disabled{opacity:.3;cursor:default;}
-.zv-gback{position:absolute;top:${PACK_SPACE.lg}px;left:${PACK_SPACE.lg}px;}
+.zv-gback{position:absolute;top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px);left:${PACK_SPACE.lg}px;}
 @media (max-width:767px){.zv-gal{padding:${PACK_SPACE.xxxl}px ${PACK_SPACE.sm}px;}.zv-gnav{position:absolute;bottom:${PACK_SPACE.lg}px;}
   .zv-gnav--prev{left:calc(50% - 56px);}.zv-gnav--next{right:calc(50% - 56px);}}
 .zv-tr{margin-top:${PACK_SPACE.md}px;max-height:360px;overflow-y:auto;padding-right:${PACK_SPACE.sm}px;

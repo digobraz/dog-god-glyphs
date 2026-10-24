@@ -234,18 +234,20 @@ const CSS = `
    nie style={{...PACK_BOX.card}}, lebo .pta-shell potrebuje ešte overflow, z-index
    a media query — hodnoty sú však TIE ISTÉ a menia sa v matrici, nie tu. */
 .pta-root--mg{padding-bottom:calc(${PACK_SPACE.xxxl}px + 52px + env(safe-area-inset-bottom,0px));}
-.pta-shell{${PACK_COL_FIT}margin:22px auto 0;position:relative;z-index:2;overflow:hidden;
+.pta-shell{${PACK_COL_FIT}margin:calc(env(safe-area-inset-top,0px) + 22px) auto 0;position:relative;z-index:2;overflow:hidden;
   background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:16px;box-shadow:${T.cardShadow};}
 .pta-hero{position:relative;width:100%;height:34vh;min-height:230px;max-height:360px;overflow:hidden;background-size:cover;background-position:center;background-color:#111;}
 .pta-hero-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.30) 0%,rgba(0,0,0,0) 34%,rgba(0,0,0,0.55) 100%);}
 /* CC atribúcia cover fotky (Wikimedia Commons, CC BY-SA — legálne nutná viditeľnosť) */
 .pta-hero-credit{position:absolute;top:8px;right:10px;z-index:4;font-family:system-ui,sans-serif;font-size:10px;letter-spacing:.02em;line-height:1.25;color:rgba(255,255,255,0.72);background:rgba(0,0,0,0.34);padding:4px 8px;border-radius:8px;max-width:62%;text-align:right;pointer-events:none;}
-/* Vzhľad kruhu ide z BackButton.tsx (tone pale — od 27. 9. 2026 bledá aj na fotke, Matej: „zjednoťme to a daj ju tiež bledú") — tu ostáva len POLOHA nad hero fotkou. */
-.pta-back{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:18px;z-index:5;}
+/* APPKA 24. 10. 2026: odstup od hodín nesie RÁMIK (.pta-shell, Matej: „okraj fotky výletu ide až do časti, kde sú hodiny“),
+   šípka stojí 18 px od vrchu fotky. Na webe je safe-area 0 ⇒ bez zmeny.
+   Vzhľad kruhu ide z BackButton.tsx (tone pale — od 27. 9. 2026 bledá aj na fotke, Matej: „zjednoťme to a daj ju tiež bledú") — tu ostáva len POLOHA nad hero fotkou. */
+.pta-back{position:absolute;top:18px;left:18px;z-index:5;}
 /* Zrkadlo .pta-back — rovnaká výška aj tvar, aby hero mal dva rovnocenné rohy a nie jeden
    ovládač a jednu ozdobu. Zlatý inkoust hovorí „toto je tvoje", nie „pozor". */
 /* 27. 9. 2026 bledá spolu so šípkou (tá istá plocha ako backCircleCSS pale), inkoust ostáva zlatý. */
-.pta-edit{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);right:18px;z-index:5;${backCircleCSS('pale')}color:${PALE.deep};font-size:16px;}
+.pta-edit{position:absolute;top:18px;right:18px;z-index:5;${backCircleCSS('pale')}color:${PALE.deep};font-size:16px;}
 .pta-edit:hover{${backHoverCSS('pale')}}
 /* iterácia 15 (Matej 2026-07-27): akčný rad je VON z hero fotky — sedí v glass paneli NAD
    stat tabuľkou (km/prevýšenie). Dôvod: ghost tlačidlá na fotke boli „slabo viditeľné a biedne",
