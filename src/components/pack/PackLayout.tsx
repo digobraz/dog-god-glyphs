@@ -647,12 +647,21 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
 // nie výberom z dropdownu — zdržuje to"). Nahradilo menu s dvoma položkami z 24. 7. 2026
 // („NO double-tap"), novší pokyn prebíja. Prvý ťuk naviguje hneď (žiadne čakanie na druhý),
 // druhý do 350 ms ho len presmeruje — jednoduchý ťuk sa tak nezdrží ani o milisekundu.
-function AvatarNavButton({ avatarUrl, avatarInitial }: { avatarUrl?: string | null; avatarInitial?: string; dogs?: PackDog[] }) {
+function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarUrl?: string | null; avatarInitial?: string; dogs?: PackDog[] }) {
   const t = useT();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   // Stlačený vzhľad = som v JA (profil alebo svorka) — predtým ho nieslo otvorené menu.
   const open = pathname.startsWith('/pack/profile') || pathname.startsWith('/pack/dogs');
+  // V MOJEJ SVORKE nesie tlačidlo fotku PSA, nie moju (Matej 24. 10. 2026: „po prepnutí sa
+  // tam prepne aj fotka psa"). Na detaile psa jeho fotka, na zozname prvý živý pes s fotkou.
+  const dogId = pathname.match(/^\/pack\/dogs\/([^/]+)/)?.[1];
+  const dogUrl = pathname.startsWith('/pack/dogs')
+    ? (dogs?.find((d) => d.id === dogId)?.cloudinary_main_url
+      ?? dogs?.find((d) => d.cloudinary_main_url && (d.life_status ?? 'alive') === 'alive')?.cloudinary_main_url
+      ?? dogs?.find((d) => d.cloudinary_main_url)?.cloudinary_main_url)
+    : null;
+  const avatarUrl = dogUrl || ownerUrl;
   const lastTap = useRef<{ at: number; from: string } | null>(null);
   const onTap = () => {
     const now = Date.now();
@@ -694,14 +703,14 @@ function AvatarNavButton({ avatarUrl, avatarInitial }: { avatarUrl?: string | nu
             alt=""
             style={{
               width: DOCK.avPhoto, height: DOCK.avPhoto, borderRadius: '50%', objectFit: 'cover', display: 'block',
-              border: NAV_SKIN === 'gold' ? '1.5px solid rgba(150,105,30,0.7)' : '1.5px solid rgba(201,154,63,0.45)',
+              border: NAV_SKIN === 'gold' ? '1px solid rgba(150,105,30,0.55)' : '1px solid rgba(201,154,63,0.45)',
             }}
           />
         ) : (
           <div style={{
             width: DOCK.avPhoto, height: DOCK.avPhoto, borderRadius: '50%',
             background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
-            border: NAV_SKIN === 'gold' ? '1.5px solid rgba(150,105,30,0.7)' : 'none',
+            border: NAV_SKIN === 'gold' ? '1px solid rgba(150,105,30,0.55)' : 'none',
             boxSizing: 'border-box',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 12, color: '#1c160c',

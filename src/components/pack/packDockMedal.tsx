@@ -110,8 +110,8 @@ export const DOCK: {
   grain: 0.18,
   shadow: 0.6,
   halo: 0.45,
-  avRing: 3,
-  avPhoto: 25,
+  avRing: 1.5,
+  avPhoto: 28,
 };
 
 const goldRing = 'conic-gradient(from 59deg,#FCF0C2,#EDCE7C 8%,#D8B052 22%,#AA8129 34%,#C09636 46%,#F7E4A8 58%,#D8B052 72%,#A97F27 86%,#FCF0C2 100%)';
