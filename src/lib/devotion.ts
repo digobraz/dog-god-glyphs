@@ -6,6 +6,7 @@
 // Path 1 of 3 (Devotion). Thresholds 1–20 are sim canon; Pharaoh (★) and Demigod
 // (☼) are symbolic in the sim — kept at 1M / 2M so the level math has numbers.
 // ============================================================================
+import { IS_APP } from '@/lib/isApp';
 // `key` = stabilný i18n kľúč (`pack.ladder.<key>`). `name` = EN fallback / kánon.
 // Komponenty rendrujú `t('pack.ladder.' + lv.key)` — názov sa prekladá, prahy nie.
 export const DEVOTION_LEVELS = [
@@ -76,7 +77,10 @@ export const DEVOTION_START = 100;
 //    že je to ok, stiahni to“*). Hodnoty a farmenie sa ešte simulujú. `false` = panel Dnešok, položka
 //    v paneli +, nastavenie pripomienok preč a každý vidí DEVOTION zamrznutú na DEVOTION_START
 //    (vlastný profil aj karta v Sniffri). Kniha `devotion_events` sa nemaže, len sa neukazuje.
-export const DEVOTION_TODAY_ON = false;
+// ✅ V APPKE OSTÁVA (Matej 24. 10.: *„samozrejme v appke to nechaj, tam to budeme testovať… bavíme sa
+//    o tom, čo vidia členovia“*). Appku majú dnes len testeri (TestFlight).
+// 🔴 PRED VYDANÍM APPKY DO OBCHODU: buď DEVOTION schválená, alebo sem `false` — inak ju uvidia členovia.
+export const DEVOTION_TODAY_ON: boolean = IS_APP;
 
 export const DEVOTION_DAILY = {
   walk_short: { points: 2, perDay: 3 },   // krátke venčenie < 20 min — povinnosť, nie skutok
