@@ -10,7 +10,7 @@
 // 🔴 V APPKE BEZ TLAČIDLA DAROVAŤ (Apple 3.1.1) — rieka a vysvetlenie áno.
 // Čísla len živé: heroglyf = `revenue_total`, dary = `gifts_by_month`, prevádzka = `pokladnica()` (sluzby.js),
 // psy v núdzi = `treasuries.help`. Čo ešte neexistuje, nesie „príde", nie vymyslené číslo.
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -30,9 +30,9 @@ import { GIFT_TIERS, GIFT_DEFAULT, GIFT_MIN, GIFT_MAX, giftFee, prevadzkaMesacne
 export const MISIA_LIVE = false;
 export const MISIA_ON = MISIA_LIVE || import.meta.env.DEV;
 
-type Dash = { revenue_total?: number; revenue_by_month?: PrijemMesiac[]; gifts_by_month?: Record<string, number>; treasuries?: { help?: number } };
+type Dash = { revenue_total?: number; revenue_by_month?: PrijemMesiac[]; gifts_by_month?: Record<string, number>; treasuries?: { help?: number }; givers?: number };
 type Thanks = { paid: boolean; amount: number; interval: 'month' | 'once'; next: string | null; manage: string | null };
-type NodeKey = 'hero' | 'gift' | 'merch' | 'more' | 'run' | 'app' | 'res' | 'gear' | 'help' | 'next';
+type NodeKey = 'hero' | 'gift' | 'merch' | 'more' | 'run' | 'app' | 'res' | 'gear' | 'help';
 type Node = { k: NodeKey; icon: string; color: string; eur: number | null };
 type Sheet = { kind: 'node'; node: Node } | { kind: 'vision' } | { kind: 'gift' } | { kind: 'thanks'; t: Thanks } | { kind: 'manage' };
 
@@ -80,7 +80,18 @@ const CSS = `${VEIL_CSS}
 .mi-kasa{padding:${S.md}px;border-radius:${PACK_R.tile}px;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};text-align:center;color:${LAPIS.ink};font-family:${FONT_UI};}
 .mi-kasa small{display:block;font-weight:500;font-size:${TX.micro}px;letter-spacing:.26em;text-transform:uppercase;}
 .mi-kasa b{display:block;margin-top:${S.xs}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;color:#FBF5E6;}
-.mi-kasa span{display:block;margin-top:${S.xs}px;font-size:${TX.micro}px;opacity:.85;}
+.mi-kasa span{display:block;margin-top:${S.xs}px;font-size:${TX.label}px;opacity:.9;}
+.mi-kasa em{display:block;margin-top:${S.sm}px;font-style:normal;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;opacity:.6;}
+.mi-sub{margin:${S.md}px 0 ${S.xs}px;text-align:center;font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
+.mi-sub:first-of-type{margin-top:0;}
+.mi-goal{margin-top:${S.lg}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};text-align:center;font-family:${FONT_UI};}
+.mi-goal > b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;color:${T.inkStrong};}
+.mi-goal p{margin:${S.xs}px 0 ${S.md}px;font-size:${TX.label}px;color:${T.inkWarm};}
+.mi-paws{display:flex;flex-wrap:wrap;justify-content:center;gap:${S.xs}px;}
+.mi-paws span{display:grid;place-items:center;width:20px;height:20px;border-radius:${PACK_R.pill}px;border:1px solid ${T.cardEdge};}
+.mi-paws span.on{background:${LAPIS.grad};border-color:${LAPIS.edge};}
+.mi-split{display:flex;gap:2px;height:24px;margin:0 0 ${S.sm}px;border-radius:${PACK_R.pill}px;overflow:hidden;}
+.mi-split span{display:grid;place-items:center;min-width:0;overflow:hidden;white-space:nowrap;font-size:${TX.micro}px;font-weight:600;color:#FBF5E6;}
 .mi-mine{display:flex;align-items:center;justify-content:space-between;gap:${S.md}px;margin-top:${S.lg}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};}
 .mi-mine span{display:block;font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .mi-mine p{margin:${S.xs}px 0 0;font-size:${TX.label}px;color:${T.inkStrong};}
@@ -95,7 +106,10 @@ const CSS = `${VEIL_CSS}
 @media (min-width:721px){
   .mi-pipe{display:grid;grid-template-columns:minmax(0,1fr) 48px 168px 48px minmax(0,1.5fr);align-items:center;}
   .mi-grid{grid-template-columns:1fr;}
-  .mi-grid.out{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .mi-grid.now{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .mi-grid.out{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .mi-grid.out .mi-node{flex-direction:column;justify-content:center;text-align:center;}
+  .mi-grid.out .mi-node > span:last-child{align-items:center;}
   .mi-node{flex-direction:row;justify-content:flex-start;gap:${S.sm}px;padding:${S.sm}px;text-align:left;}
   .mi-node > span:last-child{align-items:flex-start;}
   .mi-flow.v{display:none;}
@@ -165,14 +179,21 @@ export function MisiaBody() {
     { k: 'merch', icon: 'badge', color: GEAR, eur: null },
     { k: 'more', icon: 'plus', color: GEAR, eur: null },
   ];
-  const outs: Node[] = [
+  // VÝDAVKY v dvoch radoch: DNES (už sa platí, má číslo) · KEĎ NÁS BUDE VIAC (čiarkované, bez čísla) — šesť
+  // rovnakých dlaždíc tvrdilo, že appka či výskum už peniaze dostávajú. „Ďalej?“ zaniklo: patrí do Našej predstavy.
+  const outsNow: Node[] = [
     { k: 'run', icon: 'cycle', color: T.partDev, eur: run },
+    { k: 'help', icon: 'house-heart', color: T.partHelp, eur: help },
+  ];
+  const outsLater: Node[] = [
     { k: 'app', icon: 'idea', color: T.partHek, eur: null },
     { k: 'res', icon: 'chemical', color: T.partMkt, eur: null },
     { k: 'gear', icon: 'locate', color: GEAR, eur: null },
-    { k: 'help', icon: 'house-heart', color: T.partHelp, eur: help },
-    { k: 'next', icon: 'paw', color: T.cardEdge, eur: null },
   ];
+  // CIEĽ: koľko ľudí po 5 € mesačne zaplatí prevádzku (čisté po poplatku Stripe) — „veľa ľudí, málo peňazí“.
+  const goalN = Math.ceil(prevadzkaMesacne().spolu / (GIFT_DEFAULT - giftFee(GIFT_DEFAULT, true)));
+  const givers = Math.min(dash?.givers ?? 0, goalN);
+  const balance = inTotal - outTotal;
   // Hrúbka prúdu = podiel na celku; prúd bez peňazí je tenký a čiarkovaný (príde).
   const w = (n: number | null, total: number) => (n && total ? Math.max(2, Math.round((n / total) * 14)) : 2);
   const dash2 = (n: number | null) => (n ? undefined : '4 4');
@@ -187,10 +208,9 @@ export function MisiaBody() {
     res: [tx('pack.misia.res', 'Research'), tx('pack.misia.res.s', 'health, longevity')],
     gear: [tx('pack.misia.gear', 'Gear'), tx('pack.misia.gear.s', 'GPS collar…')],
     help: [tx('pack.misia.help', 'Dogs in need'), tx('pack.misia.help.s', 'shelters')],
-    next: [tx('pack.misia.next', 'What next?'), tx('pack.misia.next.s', 'we decide together')],
   };
   const sub = (n: Node) => (n.eur != null && n.eur > 0 ? eur(n.eur) : NODE_TXT[n.k][1]);
-  const soon = (n: Node) => n.k === 'merch' || n.k === 'more';
+  const soon = (n: Node) => n.eur == null;
 
   const NodeBtn = ({ n }: { n: Node }) => (
     <button type="button" className={`mi-node${soon(n) ? ' soon' : ''}`} style={{ '--c': n.color } as CSSProperties} onClick={() => setSheet({ kind: 'node', node: n })}>
@@ -222,25 +242,36 @@ export function MisiaBody() {
           <path d="M0 125 C30 125 20 100 48 100" stroke={GEAR} strokeWidth={1.5} strokeDasharray="4 4" fill="none" opacity=".5" />
           <path d="M0 175 C30 175 20 100 48 100" stroke={GEAR} strokeWidth={1.5} strokeDasharray="4 4" fill="none" opacity=".5" />
         </svg>
+        {/* Bilancia = príjmy − výdavky. Záporná sa NESKRÝVA (Matej: „úprimne“) — povie, kto rozdiel nesie. */}
         <div className="mi-kasa">
           <small>{tx('pack.misia.kasa', "The pack's treasury")}</small>
-          <b>{tx('pack.misia.kasa.b', 'every member sees it')}</b>
-          <span>{tx('pack.misia.kasa.s', 'every euro in and out')}</span>
+          <b>{dash ? `${balance < 0 ? '−' : '+'}${eur(Math.abs(balance))}` : '…'}</b>
+          <span>{balance < 0 ? tx('pack.misia.kasa.minus', 'Matej covers the gap for now') : tx('pack.misia.kasa.plus', 'left for the next step')}</span>
+          <em>{tx('pack.misia.kasa.open', 'every member sees it')}</em>
         </div>
         <svg className="mi-flow v" viewBox="0 0 340 40" preserveAspectRatio="none" aria-hidden>
-          <path d="M170 0 C170 26 57 14 57 40" stroke={T.partDev} strokeWidth={w(run, outTotal)} strokeDasharray={dash2(run)} fill="none" opacity=".8" />
-          <path d="M170 0 L170 40" stroke={T.partHek} strokeWidth={1.5} strokeDasharray="4 4" fill="none" opacity=".7" />
-          <path d="M170 0 C170 26 283 14 283 40" stroke={T.partMkt} strokeWidth={1.5} strokeDasharray="4 4" fill="none" opacity=".7" />
+          <path d="M170 0 C170 26 85 14 85 40" stroke={T.partDev} strokeWidth={w(run, outTotal)} strokeDasharray={dash2(run)} fill="none" opacity=".8" />
+          <path d="M170 0 C170 26 255 14 255 40" stroke={T.partHelp} strokeWidth={w(help, outTotal)} strokeDasharray={dash2(help)} fill="none" opacity=".8" />
         </svg>
         <svg className="mi-flow h" viewBox="0 0 48 200" preserveAspectRatio="none" aria-hidden>
-          <path d="M0 100 C28 100 20 20 48 20" stroke={T.partDev} strokeWidth={w(run, outTotal)} strokeDasharray={dash2(run)} fill="none" opacity=".8" />
-          <path d="M0 100 C28 100 20 80 48 80" stroke={T.partMkt} strokeWidth={1.5} strokeDasharray="4 4" fill="none" opacity=".7" />
-          <path d="M0 100 C28 100 20 140 48 140" stroke={T.partHelp} strokeWidth={w(help, outTotal)} strokeDasharray={dash2(help)} fill="none" opacity=".8" />
-          <path d="M0 100 C28 100 20 185 48 185" stroke={T.cardEdge} strokeWidth={1.5} strokeDasharray="4 4" fill="none" opacity=".6" />
+          <path d="M0 100 C28 100 20 62 48 62" stroke={T.partDev} strokeWidth={w(run, outTotal)} strokeDasharray={dash2(run)} fill="none" opacity=".8" />
+          <path d="M0 100 C28 100 20 70 48 70" stroke={T.partHelp} strokeWidth={w(help, outTotal)} strokeDasharray={dash2(help)} fill="none" opacity=".8" />
+          <path d="M0 100 C28 100 20 160 48 160" stroke={T.cardEdge} strokeWidth={1.5} strokeDasharray="4 4" fill="none" opacity=".55" />
         </svg>
         <div>
           <p className="mi-hd">{tx('pack.misia.out', 'Spending')}{dash && <b>{eur(outTotal)}</b>}</p>
-          <div className="mi-grid out">{outs.map((n) => <NodeBtn key={n.k} n={n} />)}</div>
+          <p className="mi-sub">{tx('pack.misia.now', 'Today')}</p>
+          <div className="mi-grid now">{outsNow.map((n) => <NodeBtn key={n.k} n={n} />)}</div>
+          <p className="mi-sub">{tx('pack.misia.later', 'When there are more of us')}</p>
+          <div className="mi-grid out">{outsLater.map((n) => <NodeBtn key={n.k} n={n} />)}</div>
+        </div>
+      </div>
+
+      <div className="mi-goal">
+        <b>{tx('pack.misia.goal.h', '{n} people at €5 a month').replace('{n}', String(goalN))}</b>
+        <p>{tx('pack.misia.goal.p', "and DOGYPT's running costs are paid. Today there are {g}.").replace('{g}', String(givers))}</p>
+        <div className="mi-paws" aria-hidden>
+          {Array.from({ length: goalN }, (_, i) => <span key={i} className={i < givers ? 'on' : ''}><BrandIcon name="paw" size={12} tint={i < givers ? 'white' : 'dim'} /></span>)}
         </div>
       </div>
 
@@ -254,7 +285,6 @@ export function MisiaBody() {
       </div>
       <div className="mi-links">
         <button type="button" className="mi-link" onClick={() => setSheet({ kind: 'vision' })}>{tx('pack.misia.vision', 'Our idea')}</button>
-        {!IS_APP && <button type="button" className="mi-link" onClick={() => setSheet({ kind: 'manage' })}>{tx('carry.manage.q', 'Already giving monthly? Change or cancel')}</button>}
       </div>
 
       {sheet && (
@@ -267,7 +297,7 @@ export function MisiaBody() {
         } icon={sheet.kind === 'node' ? sheet.node.icon : sheet.kind === 'vision' ? 'ankh' : 'heartpaw'}>
           {sheet.kind === 'node' && <NodeDetail n={sheet.node} tx={tx} eur={eur} />}
           {sheet.kind === 'vision' && <Vision tx={tx} />}
-          {sheet.kind === 'gift' && <GiftForm tx={tx} gl={gl} loc={loc} />}
+          {sheet.kind === 'gift' && <GiftForm tx={tx} gl={gl} loc={loc} onManage={() => setSheet({ kind: 'manage' })} />}
           {sheet.kind === 'thanks' && <ThanksBody t={sheet.t} tx={tx} loc={loc} />}
           {sheet.kind === 'manage' && <ManageForm tx={tx} gl={gl} bad={params.has('odkaz')} />}
         </MiSheet>
@@ -315,7 +345,6 @@ function NodeDetail({ n, tx, eur }: { n: Node; tx: Tx; eur: (n: number) => strin
     gear: tx('pack.misia.gear.p', 'Our own gear for dogs and their people, for example a GPS collar.'),
     help: tx('pack.misia.help.p', '€2 of every heroglyph goes to dogs in need. Every {n} goes out to the next shelter — now {shelter}.')
       .replace('{n}', eur(VYPLATA_UTULKU)).replace('{shelter}', `${DALSI_UTULOK.meno}, ${DALSI_UTULOK.mesto}`),
-    next: tx('pack.misia.next.p', 'Where what is left will go, we will decide together with the pack.'),
   };
   return (
     <>
@@ -325,6 +354,23 @@ function NodeDetail({ n, tx, eur }: { n: Node; tx: Tx; eur: (n: number) => strin
         <b>{n.eur != null && n.eur > 0 ? eur(n.eur) : tx('pack.misia.soon', 'coming')}</b>
         {n.k === 'run' && <><span>{tx('pack.misia.perMonth', 'Per month')}</span><b>{eur(run.spolu)}</b></>}
       </div>
+      {/* Heroglyf: rozpad €11 na tri diely (lib/transparency.ts — 8 · 2 · 1). */}
+      {n.k === 'hero' && (
+        <div className="mi-split" aria-hidden>
+          <span style={{ flex: 8, background: T.cardEdge }}>8 € · {tx('pack.misia.hero.dev', 'Growing the community')}</span>
+          <span style={{ flex: 2, background: T.partHelp }}>2 €</span>
+          <span style={{ flex: 1, background: T.inkWarm }}>1 €</span>
+        </div>
+      )}
+      {n.k === 'hero' && <p className="mi-note">2 € · {tx('pack.misia.help', 'Dogs in need')} · 1 € · {tx('pack.misia.hero.bowl', "Hekthor's bowl")}</p>}
+      {/* Prevádzka: čo konkrétne platíme každý mesiac — z tej istej pokladnica.json ako celá pokladnica. */}
+      {n.k === 'run' && (
+        <div className="mi-kv">
+          <span style={{ gridColumn: '1 / -1', fontWeight: 600 }}>{tx('pack.misia.run.list', 'What we pay each month')}</span>
+          {run.mesacne.filter((q) => q.eur >= 1).map((q) => <Fragment key={q.id}><span>{q.nazov}</span><b>{eur(q.eur)}</b></Fragment>)}
+          {run.rocne >= 1 && <><span>{tx('pack.misia.run.year', 'Yearly fees (monthly share)')}</span><b>{eur(run.rocne)}</b></>}
+        </div>
+      )}
       <p className="mi-note">{tx('pack.misia.live', 'The numbers come live from the treasury, nothing is typed by hand.')}</p>
     </>
   );
@@ -349,7 +395,7 @@ function Vision({ tx }: { tx: Tx }) {
   );
 }
 
-function GiftForm({ tx, gl, loc }: { tx: Tx; gl: string; loc: string }) {
+function GiftForm({ tx, gl, loc, onManage }: { tx: Tx; gl: string; loc: string; onManage: () => void }) {
   const [monthly, setMonthly] = useState(true);
   const [amount, setAmount] = useState<number>(GIFT_DEFAULT);
   const [own, setOwn] = useState('');
@@ -392,6 +438,8 @@ function GiftForm({ tx, gl, loc }: { tx: Tx; gl: string; loc: string }) {
       </button>
       <p className="mi-hint">{tx('carry.hint', 'nothing in return · cancel any time · not a membership')}</p>
       {err && <p className="mi-err">{err}</p>}
+      {/* Zmena / zrušenie mesačného daru — patrí k daru, nie na hlavnú plochu (tam ho nepotrebuje 99 % ľudí). */}
+      <button type="button" className="mi-link" style={{ display: 'block', margin: `${S.lg}px auto 0` }} onClick={onManage}>{tx('carry.manage.q', 'Already giving monthly? Change or cancel')}</button>
       <p className="mi-note" style={{ marginTop: S.lg, textAlign: 'center' }}>{tx('carry.legal', 'Recipient: DOGYPT s. r. o., ID 54444594. A gift with nothing in return.')}</p>
     </>
   );
