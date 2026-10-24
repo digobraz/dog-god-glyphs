@@ -751,6 +751,12 @@ export const PAPER_ROUTES_PAGES: readonly RegExp[] = [
   /^\/pack\/u(\/|$)/,
 ];
 
+// `PAPER_ROUTES_EXTRA` = povrchy, ktoré papyrus dostávajú ZA PRÍZNAKOM a zapisuje ich ten, kto príznak pozná
+// (`pages/Pack.tsx` pri TEST_BUILD: DOMOV je feed na papyruse bez ohľadu na prepínač šatu).
+// ⚠️ Prečo nie `import { TEST_BUILD } from '@/lib/env'` priamo sem: tento súbor bundlujú aj node skripty
+//    (`gen-nakres-brand.mjs`), kde `import.meta.env` neexistuje a `env.ts` by tam spadol.
+export const PAPER_ROUTES_EXTRA: RegExp[] = [];
+
 /** Spolu — na výpis/diagnostiku. Rozhoduje `isPaperRoute`, nie tento zoznam. */
 export const PAPER_ROUTES: readonly RegExp[] = [...PAPER_ROUTES_LOCKED, ...PAPER_ROUTES_PAGES];
 
@@ -767,6 +773,7 @@ export const PAPER_ROUTES: readonly RegExp[] = [...PAPER_ROUTES_LOCKED, ...PAPER
  */
 export const isPaperRoute = (pathname: string): boolean =>
   PAPER_ROUTES_LOCKED.some((r) => r.test(pathname)) ||
+  PAPER_ROUTES_EXTRA.some((r) => r.test(pathname)) ||
   (getPackSkin() === 'paper' && PAPER_ROUTES_PAGES.some((r) => r.test(pathname)));
 
 /** To isté, ale prihlásené na prepnutie šatu — pre komponenty. */
@@ -774,6 +781,7 @@ export function usePaperRoute(pathname: string): boolean {
   const skin = usePackSkin();
   return (
     PAPER_ROUTES_LOCKED.some((r) => r.test(pathname)) ||
+    PAPER_ROUTES_EXTRA.some((r) => r.test(pathname)) ||
     (skin === 'paper' && PAPER_ROUTES_PAGES.some((r) => r.test(pathname)))
   );
 }

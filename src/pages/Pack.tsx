@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { PACK_THEME, PACK_BOX } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PAPER_ROUTES_EXTRA } from '@/components/pack/packTheme';
 import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
 import { Navigate, useLocation } from 'react-router-dom';
 import { GlobePulse } from '@/components/pack/GlobePulse';
@@ -21,6 +21,12 @@ import { DEV_FULL, PLANNING_LIVE } from '@/lib/packFlags';
 import { DEV_NOAUTH, DEV_MOCK_DOGS, DEV_MOCK_USER } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { getMyAffiliate, getPackStats } from '@/lib/sharedFetch';
+import { TEST_BUILD } from '@/lib/env';
+// FEED 1.0 (24. 10. 2026) — len za TEST_BUILD, viď `Pack()` nižšie. Lazy: členovia ho nikdy nestiahnu.
+const PackFeed = lazy(() => import('@/components/pack/feed/PackFeed').then((m) => ({ default: m.PackFeed })));
+// DOMOV je v testovacej appke feed na papyruse bez ohľadu na prepínač šatu (zápis pri načítaní modulu,
+// ešte pred prvým vykreslením — `PackLayout` aj `PackTopRight` sa pýtajú `usePaperRoute`).
+if (TEST_BUILD) PAPER_ROUTES_EXTRA.push(/^\/pack$/);
 
 const T = PACK_THEME;
 
@@ -91,7 +97,25 @@ function firstNameFrom(email: string, fullName?: string): string {
   return base.charAt(0).toUpperCase() + base.slice(1);
 }
 
+/**
+ * DOMOV `/pack`. Pri TEST_BUILD (vite dev + testovacia appka) je to FEED (Matej 24. 10. 2026: *„postav to
+ * zatiaľ do appky, lepšie než nič… budeme to ladiť postupne"*). Bez príznaku (dogypt.com, členovia) ostáva
+ * dnešný DOMOV bajt po bajte — `PackLegacy` je pôvodný komponent, len premenovaný.
+ * ⚠️ `?welcome=1` z uvítacieho mailu ide ďalej do `PackLegacy`, ktorý ho presmeruje na profil.
+ */
 export default function Pack() {
+  const { search } = useLocation();
+  if (TEST_BUILD && new URLSearchParams(search).get('welcome') !== '1') {
+    return (
+      <PackLayout>
+        <Suspense fallback={null}><PackFeed /></Suspense>
+      </PackLayout>
+    );
+  }
+  return <PackLegacy />;
+}
+
+function PackLegacy() {
   const t = useT();
   // Uvítací mail po platbe (`send-certificate`, aj tie už odoslané) vedie na `/pack?welcome=1`.
   // Účet (heslo, odhlásenie) žije od FLIPu 5. 10. 2026 len v JA — tam ide aj odkaz.

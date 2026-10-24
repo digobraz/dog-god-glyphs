@@ -18,6 +18,7 @@
 //    ktorý by patril dvom miestam naraz, ten dôkaz ruší — vtedy sa vracia rozhodnutie, nie
 //    sa dopisuje riadok.
 import { DEVOTION_TODAY_ON } from '@/lib/devotion';
+import { TEST_BUILD } from '@/lib/env';
 
 // ── MIESTA ──────────────────────────────────────────────────────────────────────────────────
 // Štyri miesta chrbtice, ktoré majú lištu, + GLOBÁL. GLOBÁL nie je tab a nikdy ním nebude
@@ -613,7 +614,14 @@ export function createAll(place: CreatePlace): CreateObject[] {
 //    ich nepotrebujú. Ostatné miesta (VON, JA, AINUBIS) svoj výrez nezmenili.
 // 🆕 23. 10. 2026: na čelo pribudla piata — „Zapíš dnešok" (DEVOTION), Matej: *„zapíš devotion by malo
 //    byť všade"*. Novší pokyn rozširuje „len štyri" z 26. 9.; ostatné štyri ostávajú v jeho poradí.
-export const DOMOV_PANEL: readonly CreateId[] = ['devotion', 'trip', 'wish', 'sniffer', 'diary'];
+// 🆕 24. 10. 2026 (TEST_BUILD, FEED 1.0): Matej OK → DOMOV = Príspevok · Story · Zapíš výlet · Do denníka.
+//    TRIPWISH a Sniffuj z DOMOVA odišli — žijú v paneli VON (`place: 'VON'`), kam patria odjakživa.
+//    „Zapíš dnešok" ostáva na čele (23. 10. „zapíš devotion by malo byť všade") — Matej ho v zozname z 24. 10.
+//    nespomenul, takže ho NEZRUŠUJEM potichu; ak ho tam nechce, stačí vyhodiť 'devotion' z poľa nižšie.
+//    Mimo TEST_BUILD (členovia, dogypt.com) ostáva zoznam z 23. 10. bajt po bajte.
+export const DOMOV_PANEL: readonly CreateId[] = TEST_BUILD
+  ? ['devotion', 'post', 'story', 'trip', 'diary']
+  : ['devotion', 'trip', 'wish', 'sniffer', 'diary'];
 
 export function panelFor(place: CreatePlace): Array<{ group: CreatePlace | null; items: CreateObject[] }> {
   if (place === 'DOMOV') {
