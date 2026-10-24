@@ -174,7 +174,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     target: { kind: 'route', path: '/pack/profile?dnes=1' },
     back: 'origin',
     lands: 'devotion_events (grant-devotion claim) → profil JA',
-    state: DEVOTION_TODAY_ON ? 'live' : 'pripravene',   // ⛔ 24. 10. stiahnuté do appky (lib/devotion.ts)
+    state: DEVOTION_TODAY_ON ? 'live' : 'pripravene',   // 24. 10. stiahnuté do appky (lib/devotion.ts)
     panel: true,
   },
   // ── VON ───────────────────────────────────────────────────────────────────────────────────
