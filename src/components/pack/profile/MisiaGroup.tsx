@@ -19,7 +19,7 @@ import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pac
 import { DALSI_UTULOK, VYPLATA_UTULKU } from '@/components/pack/PokladnicaSheet';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { IS_APP } from '@/lib/isApp';
-import { EDGE_BASE } from '@/lib/env';
+import { EDGE_BASE, LIVE_EDGE_BASE } from '@/lib/env';
 import { supabase } from '@/integrations/supabase/client';
 import { pokladnica, type PrijemMesiac } from '@/lib/pokladnica';
 import { GIFT_TIERS, GIFT_DEFAULT, GIFT_MIN, GIFT_MAX, giftFee, prevadzkaMesacne } from '@/lib/prispevok';
@@ -30,9 +30,10 @@ import { GIFT_TIERS, GIFT_DEFAULT, GIFT_MIN, GIFT_MAX, giftFee, prevadzkaMesacne
 export const MISIA_LIVE = false;
 export const MISIA_ON = MISIA_LIVE || import.meta.env.DEV;
 
-type Dash = { revenue_total?: number; revenue_by_month?: PrijemMesiac[]; gifts_by_month?: Record<string, number>; treasuries?: { help?: number }; givers?: number };
+type Dash = { revenue_total?: number; revenue_by_month?: PrijemMesiac[]; gifts_by_month?: Record<string, number>; treasuries?: { dev?: number; help?: number; hektor?: number }; givers?: number;
+  sources?: { hero: { eur: number; n: number }; rest: { eur: number; n: number } }; payments?: number };
 type Thanks = { paid: boolean; amount: number; interval: 'month' | 'once'; next: string | null; manage: string | null };
-type NodeKey = 'hero' | 'gift' | 'merch' | 'more' | 'run' | 'app' | 'res' | 'gear' | 'help' | 'people' | 'centers' | 'vet';
+type NodeKey = 'hero' | 'rest' | 'gift' | 'merch' | 'more' | 'run' | 'app' | 'res' | 'gear' | 'help' | 'people' | 'centers' | 'vet';
 type Sec = 'in' | 'kasa' | 'out';
 type Node = { k: NodeKey; icon: string; color: string; eur: number | null };
 type Sheet = { kind: 'all'; sec: Sec } | { kind: 'vision' } | { kind: 'gift' } | { kind: 'thanks'; t: Thanks } | { kind: 'manage' };
@@ -59,7 +60,6 @@ async function sessionToken(): Promise<string | undefined> {
   } catch { return undefined; }
 }
 
-const GEAR = '#7A5A2A';   // T.inkWarm — fialová je LEN výlety (brand lock), gear nesie zemitú
 const CSS = `${VEIL_CSS}
 .mi-lead{margin:0 0 ${S.lg}px;text-align:center;font-family:${FONT_UI};font-size:${TX.body}px;line-height:1.5;color:${T.inkStrong};}
 .mi-lead b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;}
@@ -84,10 +84,10 @@ const CSS = `${VEIL_CSS}
 /* MINCA = pokladnica: rozpad €11 (8 · 2 · 1) ako točiaci sa prstenec, v strede bilancia. */
 .mi-coinw{display:flex;flex-direction:column;align-items:center;gap:${S.sm}px;padding:0;border:0;background:none;cursor:pointer;color:${T.inkStrong};font-family:${FONT_UI};}
 .mi-coin{position:relative;width:168px;height:168px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;filter:drop-shadow(0 0 16px color-mix(in srgb, ${T.cardEdge} 55%, transparent));}
-.mi-coin::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--ring);animation:mi-spin 24s linear infinite;-webkit-mask:radial-gradient(circle, transparent 62%, #000 63%);mask:radial-gradient(circle, transparent 62%, #000 63%);}
-.mi-coin::after{content:"";position:absolute;inset:-8px;border-radius:inherit;border:1px solid color-mix(in srgb, ${T.cardEdge} 60%, transparent);animation:mi-pulse 2.4s ease-out infinite;}
+.mi-coin::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--ring);animation:mi-spin 40s linear infinite;-webkit-mask:radial-gradient(circle, transparent 62%, #000 63%);mask:radial-gradient(circle, transparent 62%, #000 63%);}
+.mi-coin::after{content:"";position:absolute;inset:-8px;border-radius:inherit;border:1px solid color-mix(in srgb, ${T.cardEdge} 60%, transparent);animation:mi-pulse 3.2s cubic-bezier(.2,.6,.3,1) infinite;}
 @keyframes mi-spin{to{transform:rotate(360deg)}}
-@keyframes mi-pulse{from{transform:scale(.94);opacity:.9}to{transform:scale(1.12);opacity:0}}
+@keyframes mi-pulse{0%{transform:scale(.96);opacity:.7}100%{transform:scale(1.14);opacity:0}}
 .mi-coin > span{display:flex;flex-direction:column;align-items:center;width:124px;height:124px;justify-content:center;border-radius:${PACK_R.pill}px;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};color:${LAPIS.ink};text-align:center;}
 .mi-coin small{font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;opacity:.8;}
 .mi-coin b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;color:#FBF5E6;}
@@ -95,13 +95,25 @@ const CSS = `${VEIL_CSS}
 /* TOK — prerušovaná žiariaca čiara ako v DOGYPTLANDe (.flow path), bez peňazí len tichá bodkovaná. */
 .mi-flowsvg{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:visible;}
 .mi-flowsvg path{fill:none;stroke-linecap:round;}
-.mi-flowsvg .on{stroke-width:3;stroke-dasharray:6 10;filter:drop-shadow(0 0 4px var(--col));animation:mi-tok 1.2s linear infinite;}
-.mi-flowsvg .off{stroke-width:2;stroke-dasharray:2 8;opacity:.4;}
-@keyframes mi-tok{to{stroke-dashoffset:-32}}
+.mi-flowsvg .on{stroke-width:2.5;opacity:.45;}
+.mi-flowsvg .off{stroke-width:1.5;stroke-dasharray:2 8;opacity:.35;}
 @media (min-width:721px){
   .mi-flow3{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:${S.xxl}px;}
 }
-/* PAUŠÁLNE VÝDAJE (Matej 24. 10.: *„tú tabuľku psov dajme že paušálne výdaje“*). */
+/* PÁS TRANSPARENTNOSTI. */
+.mi-transp{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:${S.sm}px ${S.lg}px;max-width:832px;margin:0 auto ${S.xl}px;padding:${S.sm}px ${S.md}px;border-radius:${PACK_R.card}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};}
+.mi-transp span{display:inline-flex;align-items:baseline;gap:${S.xs}px;}
+.mi-transp b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;text-transform:none;color:${T.inkStrong};}
+.mi-transp .t{align-items:center;color:${T.inkStrong};font-weight:600;letter-spacing:.22em;}
+/* AKTUÁLNE MESAČNÉ NÁKLADY — mriežka labiek (53 × 5 €), rozpis služieb na rozklik (Matej 24. 10.: „schovaj a urob mriežku paciek“). */
+.mi-paws{display:flex;flex-wrap:wrap;justify-content:center;gap:${S.xs}px;max-width:560px;margin:0 auto;}
+.mi-paws span{display:grid;place-items:center;width:20px;height:20px;border-radius:${PACK_R.pill}px;border:1px solid ${T.cardEdge};animation:mi-paw 3.6s ease-in-out infinite;}
+.mi-paws span.on{background:${LAPIS.grad};border-color:${LAPIS.edge};animation:none;}
+@keyframes mi-paw{0%,100%{opacity:.55}50%{opacity:1}}
+.mi-fixd{margin-top:${S.md}px;text-align:left;}
+.mi-fixd summary{cursor:pointer;text-align:center;list-style:none;font-size:${TX.micro}px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:${LAPIS.edge};}
+.mi-fixd summary::-webkit-details-marker{display:none;}
+.mi-fixd[open] summary{margin-bottom:${S.sm}px;}
 .mi-fixed{margin-top:${S.xl}px;padding:${S.md}px;border-radius:${PACK_R.card}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};text-align:center;}
 .mi-fixed > small{display:block;font-weight:500;font-size:${TX.micro}px;letter-spacing:.26em;text-transform:uppercase;color:${T.inkWarm};}
 .mi-fixed > b{display:block;margin-top:${S.xs}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;color:${T.inkStrong};}
@@ -137,7 +149,7 @@ const CSS = `${VEIL_CSS}
 .mi-shel .tag{position:absolute;bottom:${S.sm}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;background:rgba(0,0,0,.55);color:#FBF5E6;font-size:${TX.micro}px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;pointer-events:none;}
 .mi-shel .tag.b{left:${S.sm}px;} .mi-shel .tag.a{right:${S.sm}px;}
 .mi-shel figcaption{margin-top:${S.sm}px;text-align:center;font-size:${TX.label}px;color:${T.inkWarm};}
-@media (prefers-reduced-motion:reduce){.mi-flowsvg .on,.mi-coin::before,.mi-coin::after{animation:none;}}
+@media (prefers-reduced-motion:reduce){.mi-coin::before,.mi-coin::after,.mi-paws span{animation:none;}}
 .mi-split{display:flex;gap:2px;height:24px;margin:0 0 ${S.sm}px;border-radius:${PACK_R.pill}px;overflow:hidden;}
 .mi-split span{display:grid;place-items:center;min-width:0;overflow:hidden;white-space:nowrap;font-size:${TX.micro}px;font-weight:600;color:#FBF5E6;}
 .mi-mine{display:flex;align-items:center;justify-content:space-between;gap:${S.md}px;margin-top:${S.lg}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};}
@@ -202,7 +214,8 @@ export function MisiaBody() {
   const [notice, setNotice] = useState<string | null>(params.get('zrusene') ? tx('carry.canceled', 'Payment cancelled. Nothing was charged.') : null);
 
   useEffect(() => {
-    fetch(`${EDGE_BASE}/get-dashboard-stats`).then((r) => r.json()).then(setDash).catch(() => {});
+    // Čísla VŽDY z ostrej pokladnice (Matej 24. 10.: *„použime reálne a live dáta“*) — aj v deve; verejný GET, nič nezapisuje.
+    fetch(`${LIVE_EDGE_BASE}/get-dashboard-stats`).then((r) => r.json()).then(setDash).catch(() => {});
     const sid = params.get('dakujeme');
     if (sid) call<Thanks>({ action: 'session', session_id: sid }).then((th) => setSheet({ kind: 'thanks', t: th })).catch(() => {});
     if (params.has('odkaz')) setSheet({ kind: 'manage' });
@@ -216,20 +229,27 @@ export function MisiaBody() {
   const inTotal = (hero ?? 0) + (gifts ?? 0);
   const outTotal = (run ?? 0) + (help ?? 0);
 
+  // Rozpad príjmu: plné heroglyfy €11 vs. zľavnené (testeri, psí anjeli). Kým LIVE nemá `sources`, odvodí sa
+  // z podielu rozvoja (dev = 5/11 z plných platieb) — to isté číslo ako v DOGYPTLANDe (€594 = 54 × €11).
+  const heroFull = dash?.sources?.hero.eur ?? (dash?.treasuries?.dev != null ? Math.round((dash.treasuries.dev * 11) / 5 / 11) * 11 : hero);
+  const restEur = dash?.sources?.rest.eur ?? (hero != null && heroFull != null ? hero - heroFull : null);
+  const payN = dash?.payments ?? dash?.revenue_by_month?.reduce((a, m) => a + m.n, 0) ?? null;
+  // Farby košov sa nesmú zliať (Matej 24. 10.: *„hnedá a zlatá splývajú“*): príjem zlato/lapis, rozvoj tyrkys, pomoc červená.
   const ins: Node[] = [
-    { k: 'hero', icon: 'ankh', color: T.cardEdge, eur: hero },
-    { k: 'gift', icon: 'heartpaw', color: LAPIS.edge, eur: gifts },
-    { k: 'merch', icon: 'badge', color: GEAR, eur: null },
-    { k: 'more', icon: 'plus', color: GEAR, eur: null },
+    { k: 'hero', icon: 'ankh', color: T.cardEdge, eur: heroFull },
+    { k: 'rest', icon: 'heart', color: T.partHelp, eur: restEur },
+    { k: 'gift', icon: 'heartpaw', color: T.partHek, eur: gifts },
+    { k: 'merch', icon: 'badge', color: T.inkDim, eur: null },
+    { k: 'more', icon: 'plus', color: T.inkDim, eur: null },
   ];
   // Dva výdavkové koše (Matej 24. 10.: *„schovajme to všetko … do rozvoja po rozkliku … a do pomoci dajme toho
   // viac"*). Na ploche je len súčet, položky v šuplíku koša. Bez čísla = „keď nás bude viac", nič vymyslené.
   // 🔴 Pomoc je to, čo DOGYPT dáva ZO SVOJHO — nikde „zbierame pre útulky" (verejná zbierka smie len o.z.).
   const rozvoj: Node[] = [
-    { k: 'run', icon: 'cycle', color: T.partDev, eur: run },
-    { k: 'app', icon: 'idea', color: T.partHek, eur: null },
+    { k: 'run', icon: 'cycle', color: T.partMkt, eur: run },
+    { k: 'app', icon: 'idea', color: T.partMkt, eur: null },
     { k: 'res', icon: 'chemical', color: T.partMkt, eur: null },
-    { k: 'gear', icon: 'locate', color: GEAR, eur: null },
+    { k: 'gear', icon: 'locate', color: T.partMkt, eur: null },
   ];
   const pomoc: Node[] = [
     { k: 'help', icon: 'house-heart', color: T.partHelp, eur: help },
@@ -245,6 +265,7 @@ export function MisiaBody() {
 
   const NODE_TXT: Record<NodeKey, [string, string]> = {
     hero: [tx('pack.misia.hero', 'Heroglyph'), tx('pack.misia.hero.s', '€11 per dog, once')],
+    rest: [tx('pack.misia.rest', 'Testers & dog angels'), tx('pack.misia.rest.s', '€1 / €3')],
     gift: [tx('pack.misia.gift', 'Gifts'), tx('pack.misia.gift.s', 'voluntary, from €3')],
     merch: [tx('pack.misia.merch', 'Merch'), tx('pack.misia.soon', 'coming')],
     more: [tx('pack.misia.more', 'More sources'), tx('pack.misia.soon', 'coming')],
@@ -274,6 +295,7 @@ export function MisiaBody() {
 
   // TOK: z každého riadku príjmu do mince, z mince do každého riadku výdaja. PC zboku, mobil zhora/zdola.
   const flowRef = useRef<HTMLDivElement>(null);
+  const still = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const [paths, setPaths] = useState<{ d: string; c: string; on: boolean }[]>([]);
   useLayoutEffect(() => {
     const box = flowRef.current; if (!box) return;
@@ -314,7 +336,7 @@ export function MisiaBody() {
   }, [dash]);
 
   // Kruh mince = rozpad €11 (lib/transparency.ts — 8 rozvoj · 2 pomoc · 1 Hekthorova miska).
-  const ring = `conic-gradient(${T.cardEdge} 0deg ${(8 / 11) * 360}deg, ${T.partHelp} ${(8 / 11) * 360}deg ${(10 / 11) * 360}deg, ${T.inkWarm} ${(10 / 11) * 360}deg 360deg)`;
+  const ring = `conic-gradient(from -90deg, ${T.partMkt} 0deg ${(8 / 11) * 360}deg, ${T.partHelp} ${(8 / 11) * 360}deg ${(10 / 11) * 360}deg, ${T.cardEdge} ${(10 / 11) * 360}deg 360deg)`;
 
   return (
     <>
@@ -324,9 +346,24 @@ export function MisiaBody() {
         {tx('pack.misia.lead2', 'It only works if the pack carries it.')}
       </p>
 
+      {/* 100 % TRANSPARENTNOSŤ — ten istý pás ako pokladnica v DOGYPTLANDe, čísla živé. */}
+      <div className="mi-transp">
+        <span className="t"><BrandIcon name="eye" size={16} tint="dim" /><b>100 %</b>{tx('pack.misia.transp', 'transparency')}</span>
+        <span><b>{hero != null ? eur(hero) : '…'}</b>{tx('pack.misia.transp.in', 'received')}</span>
+        <span><b>{payN ?? '…'}</b>{tx('pack.misia.transp.n', 'payments')}</span>
+      </div>
+
       <div className="mi-flow3" ref={flowRef}>
         <svg className="mi-flowsvg" aria-hidden>
-          {paths.map((q, i) => <path key={i} d={q.d} stroke={q.c} className={q.on ? 'on' : 'off'} style={{ '--col': q.c } as CSSProperties} />)}
+          <defs><filter id="mi-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.5" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter></defs>
+          {paths.map((q, i) => <path key={i} d={q.d} stroke={q.c} className={q.on ? 'on' : 'off'} />)}
+          {/* MINCE — plynulý pohyb po krivke (animateMotion, spomalenie na konci), tri s odstupom; bez peňazí žiadne. */}
+          {!still && paths.map((q, i) => q.on && [0, 1, 2].map((j) => (
+            <circle key={`${i}-${j}`} r={3.5} fill={q.c} filter="url(#mi-glow)" opacity={0}>
+              <animateMotion dur="2.8s" begin={`${j * 0.93 + i * 0.21}s`} repeatCount="indefinite" path={q.d} calcMode="spline" keyTimes="0;1" keySplines="0.45 0 0.55 1" />
+              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.12;0.85;1" dur="2.8s" begin={`${j * 0.93 + i * 0.21}s`} repeatCount="indefinite" />
+            </circle>
+          )))}
         </svg>
         <button type="button" className="mi-card in" onClick={() => open('in')}>
           <small>{tx('pack.misia.in', 'Income')}</small>
@@ -347,20 +384,26 @@ export function MisiaBody() {
         <button type="button" className="mi-card out" onClick={() => open('out')}>
           <small>{tx('pack.misia.out', 'Spending')}</small>
           <b>{dash ? eur(outTotal) : '…'}</b>
-          <Li label={tx('pack.misia.rozvoj', 'Growth')} eurV={run} icon="idea" color={T.partDev} />
+          <Li label={tx('pack.misia.rozvoj', 'Growth')} eurV={run} icon="idea" color={T.partMkt} />
           <Li label={tx('pack.misia.pomoc', 'Help')} eurV={help} icon="house-heart" color={T.partHelp} />
           <span className="mi-more">{tx('pack.misia.more.cta', 'more')} ›</span>
         </button>
       </div>
 
       <div className="mi-fixed">
-        <small>{tx('pack.misia.fixed', 'Fixed costs')}</small>
-        <b>{tx('pack.misia.fixed.m', '{e} a month').replace('{e}', eur(run1.spolu))}</b>
-        <p>{tx('pack.misia.fixed.p', 'That is one month of DOGYPT. {n} people at €5 cover it — today there are {g}.').replace('{n}', String(goalN)).replace('{g}', String(givers))}</p>
-        <div className="mi-fixgrid">
-          {run1.mesacne.filter((q) => q.eur >= 1).map((q) => <span key={q.id}>{q.nazov}<b>{eur(q.eur)}</b></span>)}
-          {run1.rocne >= 1 && <span>{tx('pack.misia.run.year', 'Yearly fees (monthly share)')}<b>{eur(run1.rocne)}</b></span>}
+        <small>{tx('pack.misia.fixed', 'Current monthly costs')}</small>
+        <b>{eur(run1.spolu)}</b>
+        <p>{tx('pack.misia.fixed.p', '{n} people at €5 a month cover them — today there are {g}.').replace('{n}', String(goalN)).replace('{g}', String(givers))}</p>
+        <div className="mi-paws" aria-hidden>
+          {Array.from({ length: goalN }, (_, i) => <span key={i} className={i < givers ? 'on' : ''} style={{ animationDelay: `${(i % 11) * 0.12}s` }}><BrandIcon name="paw" size={12} tint={i < givers ? 'white' : 'dim'} /></span>)}
         </div>
+        <details className="mi-fixd">
+          <summary>{tx('pack.misia.fixed.list', 'What we pay')}</summary>
+          <div className="mi-fixgrid">
+            {run1.mesacne.filter((q) => q.eur >= 1).map((q) => <span key={q.id}>{q.nazov}<b>{eur(q.eur)}</b></span>)}
+            {run1.rocne >= 1 && <span>{tx('pack.misia.run.year', 'Yearly fees (monthly share)')}<b>{eur(run1.rocne)}</b></span>}
+          </div>
+        </details>
       </div>
 
       {notice && <p className="mi-hint">{notice}</p>}
@@ -450,6 +493,7 @@ function AllBody({ sec, tx, eur, ins, rozvoj, pomoc, NODE_TXT, inTotal, outTotal
   useEffect(() => { if (sec !== 'in') refs[sec].current?.scrollIntoView({ block: 'start' }); }, [sec]); // eslint-disable-line react-hooks/exhaustive-deps
   const run = prevadzkaMesacne();
   const P: Record<NodeKey, string> = {
+    rest: tx('pack.misia.rest.p', 'Discounted entries — testers and dog angels. The whole amount goes to Hekthor\'s bowl; a tester\'s €3 = €1 bowl + €2 help.'),
     hero: tx('pack.misia.hero.p', 'Each €11 heroglyph is split: €8 to growing the community, €2 to dogs in need, €1 to Hekthor\'s bowl. It makes you a Dogyptian.'),
     gift: tx('pack.misia.gift.p', 'A voluntary gift, monthly or once. It unlocks nothing — that is why it is a gift, not a membership. After the Stripe fee all of it goes to growing DOGYPT.'),
     merch: tx('pack.misia.merch.p', 'Shirts, patches and things for dogs. What they earn goes to the treasury.'),
@@ -471,9 +515,9 @@ function AllBody({ sec, tx, eur, ins, rozvoj, pomoc, NODE_TXT, inTotal, outTotal
       <i>{n.eur != null && n.eur > 0 ? eur(n.eur) : n.eur == null ? tx('pack.misia.later', 'When there are more of us') : '0 €'}</i>
       {n.k === 'hero' && (
         <div className="mi-split" aria-hidden>
-          <span style={{ flex: 8, background: T.cardEdge }}>8 € · {tx('pack.misia.hero.dev', 'Growing the community')}</span>
+          <span style={{ flex: 8, background: T.partMkt }}>8 € · {tx('pack.misia.hero.dev', 'Growing the community')}</span>
           <span style={{ flex: 2, background: T.partHelp }}>2 €</span>
-          <span style={{ flex: 1, background: T.inkWarm }}>1 €</span>
+          <span style={{ flex: 1, background: T.cardEdge }}>1 €</span>
         </div>
       )}
       {n.k === 'run' && (
