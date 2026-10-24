@@ -216,7 +216,15 @@ const REJECTED_MSG: Record<string, string> = {
   sk: 'Posledná zmena sa neuložila — vrátili sme posledný uložený stav.',
   cs: 'Poslední změna se neuložila — vrátili jsme poslední uložený stav.',
 };
+// 🔴 POISTKA PROTI SLUČKE (24. 10. 2026): hláška + nové stiahnutie najviac raz za minútu.
+// `user_trips.trip_date` bol `date` a plán „2027-08" DB odmietla; stiahnutie upozornilo
+// obrazovku, tá triplist zapísala znova a ten istý odmietnutý zápis šiel späť — ~100×
+// za sekundu a červená hláška naveky. Každá budúca odmietnutá vec by spravila to isté.
+let lastRejectedAt = 0;
 function announceRejected(tbl = '?', msg = ''): void {
+  const now = Date.now();
+  if (now - lastRejectedAt < 60_000) return;
+  lastRejectedAt = now;
   // Aj MY sa to dozvieme (12. 10. 2026): `update_own_trip` padal 400 a vedela o tom len testerka.
   // Stráž ho číta z PostHogu (`scripts/ops/analytics-watchdog.mjs`, kontrola pack_write_rejected).
   trackPack('pack_write_rejected', { tbl, msg: String(msg).slice(0, 200) });
