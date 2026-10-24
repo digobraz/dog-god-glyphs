@@ -213,13 +213,17 @@ export const PAGE_AIR = {
 //    — rad je chrome, nie obsah, preto stred. Medzera pod radom je tým 24 (= PACK_SPACE.xl).
 // 🔴 Čísla sa neopisujú: rad kreslí `PackTopRow`, odsadenie stĺpca nesie `PACK_TOPROW_PAD`.
 //    Obrazovka bez radu (mapa, článok, VAULT) ho nemá — AINUBIS tam ostáva dole.
+// 🔁 NIŽŠÍ RAD 24. 10. 2026 — Matej: *„výška horného headra… v porovnaní s IG je o polovicu
+//    vyšší = menej miesta na obsah"* → nákres `plany/nakres-header-vyska-2026-10-24.html`,
+//    variant *„V2 · len ikonky"*: obálka a chvost bez kapsuly, koliesko 40. Obsah 98 → 60
+//    (IG 44). Medzera pod radom 12 (= PACK_SPACE.md), nad ním 8 (= PACK_SPACE.sm).
 export const PACK_TOPROW = {
-  /** Vrch radu od safe-area. Kompromis medzi PAGE_AIR.min (16) a PAGE_AIR.md (24). */
-  top: 20,
+  /** Vrch radu od safe-area. */
+  top: 8,
   /** Výška radu = priemer kolieska AINUBISA. */
-  h: 54,
-  /** Začiatok obsahu od safe-area (20 + 54 + PACK_SPACE.xl). */
-  content: 98,
+  h: 40,
+  /** Začiatok obsahu od safe-area (8 + 40 + PACK_SPACE.md). */
+  content: 60,
 } as const;
 /** `padding-top` stĺpca, v ktorom rad stojí. */
 export const PACK_TOPROW_PAD = `calc(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.top}px)`;

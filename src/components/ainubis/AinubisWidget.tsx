@@ -488,6 +488,10 @@ function AinubisWidgetInner() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const onPublicRoute = PUBLIC_ROUTES.includes(pathname);
+  // ŠUPLÍK SPRAVA v /pack (Matej 24. 10. 2026: „súhlasím so šuflíkom“, nákres
+  // `plany/nakres-ainubis-labka-2026-10-24.html` O1): celá výška, vľavo pás so závojom, ťuk naň
+  // zavrie. Šuplík má pevné miesto, takže sa v /pack nepresúva (`canMove` tam neplatí).
+  const sheet = pathname.startsWith('/pack');
   const reducedMotion = useReducedMotion();
   const memberEmail = useOptionalMemberEmail();
   const openNowRef = useRef(false);
@@ -1494,10 +1498,13 @@ function AinubisWidgetInner() {
         )}
       </button>
 
+      {open && sheet && target === 'off' && (
+        <div className="ainubis-veil" aria-hidden onClick={handleToggleOpen} />
+      )}
       {open && (
         <div
           ref={panelRef}
-          className={`ainubis-panel${onPublicRoute ? ' ainubis-panel--left' : ''}${target !== 'off' ? ' ainubis-panel--away' : ''}${dragging ? ' ainubis-panel--dragging' : ''}${
+          className={`ainubis-panel${sheet ? ' ainubis-panel--sheet' : ''}${onPublicRoute ? ' ainubis-panel--left' : ''}${target !== 'off' ? ' ainubis-panel--away' : ''}${dragging ? ' ainubis-panel--dragging' : ''}${
             branch === 'personal' ? ' ainubis-panel--personal' : ''
           }`}
           /* ⚠️ Inline `left/top` MUSÍ vypnúť aj `right/bottom` — základné pravidlo
@@ -1505,7 +1512,7 @@ function AinubisWidgetInner() {
              Pod hranicou `MOVE_MIN_WIDTH` sa pozícia ignoruje: tam vládne
              fullscreen sheet z CSS. */
           style={
-            canMove && panelPos
+            canMove && !sheet && panelPos
               ? { left: panelPos.x, top: panelPos.y, right: 'auto', bottom: 'auto' }
               : undefined
           }
@@ -1536,7 +1543,7 @@ function AinubisWidgetInner() {
                 preto, že sa ťahá ZA KRÍŽ a nie za hlavičku, nehrozí, že netrafený klik na
                 krížik odsunie okno; to bol jediný dôvod pre pôvodný dvojstavový režim.
                 Dvojklik vráti panel do rohu. Na mobile sa nevykresľuje — tam je fullscreen sheet. */}
-            {canMove && (
+            {canMove && !sheet && (
               <button
                 type="button"
                 className={`ainubis-panel__move${dragging ? ' ainubis-panel__move--on' : ''}`}

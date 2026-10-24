@@ -41,16 +41,26 @@ const CAPSULE: React.CSSProperties = {
   border: `1.5px solid ${T.cardEdge}`,
   boxShadow: T.panelShadow,
 };
-const CAP_DIVIDER: React.CSSProperties = { width: 1, height: 24, background: T.cardEdge, opacity: 0.4 };
-const capBtn = (active: boolean): React.CSSProperties => ({
+// LEN IKONKY (24. 10. 2026, Matej: *„skúsme to bez bubliniek a pils — len ikonky"*,
+// nákres `plany/nakres-header-vyska-2026-10-24.html`). Obálka a chvost stoja holé v rade, ktorý
+// má 40 px; tlačidlo ostáva 44 (dotyk), takže o 2 px presahuje rad hore aj dole — nevidno to.
+// Kapsula ostala LEN kolieska AINUBISA (`HubAinubis` nižšie) — to je jeho podobizeň, nie ikonka.
+// Farba podľa PODKLADU: na tmavom zlato, na papyruse tmavý atrament (zlato na zlatom zanikne).
+const ICON_ROW: React.CSSProperties = { zIndex: 12, gap: 4 };
+const capBtn = (active: boolean, dark: boolean): React.CSSProperties => ({
   width: 44,
   height: 44,
   borderRadius: 999,
   border: 'none',
   background: active ? 'rgba(201,154,63,0.18)' : 'transparent',
-  color: T.cardEdge,
+  color: dark ? T.cardEdge : T.inkStrong,
   cursor: 'pointer',
 });
+// Odznak bez kapsuly = BODKA, nie číslo (Matej 24. 10.: „áno daj to tak“). Červená = sociálne.
+const CAP_DOT: React.CSSProperties = {
+  position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 999,
+  background: SNIFFER_HEART, boxShadow: `0 0 0 1.5px ${T.pageBg}`,
+};
 
 type PackMessagingModule = typeof import('./messaging/packMessaging');
 type PackAlertsModule = typeof import('./packAlerts');
@@ -212,7 +222,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
     <div
       ref={wrapRef}
       className={`${capsule ? 'relative ml-auto' : inline ? 'relative w-full justify-end' : dark ? 'fixed' : 'absolute'} flex items-center${capsule ? '' : ' gap-1.5'}${className ? ` ${className}` : ''}`}
-      style={capsule ? CAPSULE : inline ? { zIndex: 12 } : { top: 16, right: 16, zIndex: dark ? 45 : 12 }}
+      style={capsule ? ICON_ROW : inline ? { zIndex: 12 } : { top: 16, right: 16, zIndex: dark ? 45 : 12 }}
     >
       {/* Messages — LIVE za DEV_FULL (opens Inbox overlay); LIVE build (bez DEV_FULL) ostáva
           presne ako predtým, "coming soon" disabled (§8.4 zadania — bez regresie). */}
@@ -224,7 +234,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           aria-label={t('pack.notif.messages')}
           title={t('pack.notif.messages')}
           className="relative inline-flex items-center justify-center"
-          style={capsule ? capBtn(false) : {
+          style={capsule ? capBtn(false, dark) : {
             width: 38,
             height: 38,
             borderRadius: 999,
@@ -238,8 +248,9 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           {/* Na tmavom skle je zlata spravna; na papyrusovom kotuci je zlata na zlatom
               a obalka zanikne rovnako, ako zanikalo cele tlacidlo. `dark` (#5A3F12) je
               ten isty tint, akym sa kreslia ikonky na zlatych plochach. */}
-          <BrandIcon name="envelope" size={capsule ? 22 : 16} tint={dark || capsule ? 'gold' : 'dark'} />
-          {msgCount > 0 && (
+          <BrandIcon name="envelope" size={capsule ? 24 : 16} tint={dark ? 'gold' : 'dark'} />
+          {msgCount > 0 && capsule && <span aria-hidden style={CAP_DOT} />}
+          {msgCount > 0 && !capsule && (
             <span
               style={{
                 position: 'absolute',
@@ -307,7 +318,6 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
         </button>
       )}
 
-      {capsule && <span aria-hidden style={CAP_DIVIDER} />}
       {/* NOS — upozornenia, napravo od obálky na všetkých povrchoch (Matej 2026-07-26) */}
       <button
         type="button"
@@ -324,7 +334,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
         aria-label={t('pack.notif.ariaNotifications')}
         data-mg="notif"
         className="relative inline-flex items-center justify-center"
-        style={capsule ? capBtn(open) : {
+        style={capsule ? capBtn(open, dark) : {
           width: 38,
           height: 38,
           borderRadius: 999,
@@ -340,9 +350,10 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           cursor: 'pointer',
         }}
       >
-        <HandTail key={wag} size={capsule ? 22 : 17} className={wag ? 'ntf-wag' : undefined} />
+        <HandTail key={wag} size={capsule ? 24 : 17} className={wag ? 'ntf-wag' : undefined} />
         <style>{WAG_CSS}</style>
-        {bellCount > 0 && (
+        {bellCount > 0 && capsule && <span aria-hidden style={CAP_DOT} />}
+        {bellCount > 0 && !capsule && (
           <span
             style={{
               position: 'absolute',
@@ -618,13 +629,13 @@ export function HubAinubis() {
         onClick={() => openAinubis()}
         aria-label="AINUBIS"
         className="pk-hub-ainubis relative inline-flex items-center justify-center"
-        style={{ ...CAPSULE, width: 54, height: 54, padding: 0, cursor: 'pointer' }}
+        style={{ ...CAPSULE, width: 40, height: 40, padding: 0, cursor: 'pointer' }}
       >
         <img
           src={ainubisFace}
           alt=""
           aria-hidden
-          style={{ width: 44, height: 44, borderRadius: 999, border: `1.5px solid ${AINUBIS.edgeStrong}`, objectFit: 'cover', background: T.pageBg }}
+          style={{ width: 32, height: 32, borderRadius: 999, border: `1.5px solid ${AINUBIS.edgeStrong}`, objectFit: 'cover', background: T.pageBg }}
         />
         {unread > 0 && (
           // Odznak AINUBISA ostáva jeho vlastný (tyrkysový, `.ainubis-badge` z AinubisWidget.css) —

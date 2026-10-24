@@ -1260,3 +1260,60 @@ body:has(.ainubis-panel--away) .ainubis-launcher { visibility: hidden; }
   .ainubis-launcher { transition: box-shadow 0.2s ease, transform 0.2s ease, opacity .2s ease; }
   .ainubis-launcher.ainubis-launcher--scrolling { opacity: 0; pointer-events: none; }
 }
+
+/* ── ŠUPLÍK SPRAVA v /pack (24. 10. 2026) ────────────────────────────────────
+   Matej: „pri otvorení chatovacieho okna by nemusel zaberať celú stránku, ale kúsok na ľavej
+   strane po výške by mohol byť prázdny a pozadie tmavé" → nákres
+   `plany/nakres-ainubis-labka-2026-10-24.html` O1 → „súhlasím so šuflíkom".
+   Celá výška, prilepený k pravému okraju; vľavo ostáva pás so ZÁVOJOM (PACK_VEIL.modal + blur),
+   ťuk naň zavrie. Mobil aj PC — na PC je šuplík 420 px (šírka panela, viď vyššie).
+   ⚠️ Trojitá trieda je zámerná: prebíja `body.has-hub-ainubis .ainubis-panel.ainubis-panel`
+      (PackNotifications.tsx, 0-3-1) aj SNIFFER (`body:has(.bd-col) .ainubis-panel`), ktoré
+      kotvili plávajúci panel pod koliesko / nad lištu. Šuplík má jedno miesto. */
+.ainubis-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(24, 14, 4, 0.72);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  animation: ainubis-veil-in 0.2s ease-out;
+}
+html body .ainubis-panel.ainubis-panel--sheet.ainubis-panel--sheet.ainubis-panel--sheet {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: auto;
+  width: min(420px, calc(100vw - 48px));
+  height: auto;
+  border-right: 0;
+  border-radius: 16px 0 0 16px;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
+  animation: ainubis-sheet-in 0.22s ease-out;
+}
+/* Klávesnica vonku: šuplík sa zmestí nad ňu (hodnoty píše AinubisWidget z visualViewport). */
+html body .ainubis-panel.ainubis-panel--sheet.ainubis-panel--sheet.ainubis-panel--sheet.ainubis-panel--kb {
+  top: var(--ainubis-vv-top, 0px);
+  bottom: var(--ainubis-vv-bottom, 0px);
+  padding-bottom: 0;
+}
+@keyframes ainubis-sheet-in {
+  from { opacity: 0; transform: translateX(32px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes ainubis-veil-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ainubis-veil,
+  html body .ainubis-panel.ainubis-panel--sheet.ainubis-panel--sheet.ainubis-panel--sheet { animation: none; }
+}
+
+/* ── GUĽA V /pack VĽAVO DOLE (24. 10. 2026) ──────────────────────────────────
+   Matej: „tie obrazovky, kde je vpravo dolu — dajme ho doľava, nech je na každej obrazovke
+   vľavo, aj hore aj dolu". Guľa žije len tam, kde nie je horný rad s kolieskom (mapa, článok
+   výletu, VAULT) — inde ju skryje `has-hub-ainubis`. */
+body.has-pack-nav .ainubis-launcher { left: 16px; right: auto; }
