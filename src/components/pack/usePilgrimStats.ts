@@ -63,7 +63,8 @@ export function usePublishProfileStats(next: Omit<NonNullable<HumanProfile['stat
   const { profile } = useProfile();
   const cur = profile?.human?.stats;
   const same = !!cur && !!next && cur.km === next.km && cur.pilgrimPct === next.pilgrimPct
-    && cur.brought === next.brought && cur.study === next.study && cur.servantYears === next.servantYears;
+    && cur.brought === next.brought && cur.study === next.study && cur.servantYears === next.servantYears
+    && cur.points === next.points && cur.trips === next.trips && cur.countries === next.countries;
   const key = next ? JSON.stringify(next) : '';
   useEffect(() => {
     if (!profile || !next || same) return;

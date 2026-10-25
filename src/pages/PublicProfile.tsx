@@ -36,7 +36,9 @@ import type { PackDogFull } from '@/hooks/usePackUser';
 import { customPills, profileRoles, humanPills } from '@/components/pack/profile/packProfile';
 import { fetchMemberProfiles, memberAvatarUrl, memberDisplayName, type MemberProfile } from '@/components/pack/profile/memberProfile';
 import { coverOfDay } from '@/components/pack/profile/mePosts';
-import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeDogRow, MeFlag } from '@/components/pack/profile/meHead';
+import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeRank, MeDogRow, MeFlag } from '@/components/pack/profile/meHead';
+import { levelProgress } from '@/lib/tripPoints';
+import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { TEST_BUILD } from '@/lib/env';
 import { useToast } from '@/hooks/use-toast';
 
@@ -75,6 +77,8 @@ export default function PublicProfile() {
   const [bioFull, setBioFull] = useState(false);
   const [bioLong, setBioLong] = useState(false);
   const [open, setOpen] = useState(false);
+  const [rank, setRank] = useState<'pt' | null>(null);
+  const [dmBusy, setDmBusy] = useState(false);
 
   // Cudzí člen — adresovaný poradovým číslom. `undefined` = ešte sa načítava,
   // `null` = také číslo nič nevrátilo. Rozdiel je dôležitý: bez neho by stránka
@@ -173,8 +177,8 @@ export default function PublicProfile() {
   // heroglyf a jeho bio, veď tak to má Instagram"*. Hlava, šuplík psov aj čísla sú TIE ISTÉ komponenty
   // ako `/pack/profile` (`meHead.tsx`). Čísla zverejňuje majiteľova appka (`human.pilgrim`, `human.stats`,
   // `usePublishProfileStats`) — kým profil neotvorí v novej verzii, svieti „·“.
-  //  • Namiesto UPRAVIŤ + POZVI: SLEDOVAŤ + NAPÍSAŤ. Sledovanie príde s FEEDom; správa z profilu potrebuje
-  //    novú serverovú funkciu (dnes `start_dm` pustí len nad spoločným výletom) — obe zatiaľ povedia, kedy prídu.
+  //  • Namiesto UPRAVIŤ + POZVI: SLEDOVAŤ + NAPÍSAŤ. Sledovanie príde s FEEDom (zatiaľ povie kedy);
+  //    NAPÍSAŤ otvorí rozhovor cez `start_member_dm` (migrácia 20261025_member_dm.sql).
   //  • DEVOTION cudzieho človeka appka nemá → v starom šate sa jeho pilulka nekreslí (prázdny `devLabel`).
   // Súkromné polia odstráni už server (`get_member_profiles`), preto tu žiadne `getTier()`.
   const human = member.human;
@@ -187,6 +191,11 @@ export default function PublicProfile() {
   const pills = humanPills(human.personality, customPills(human), t);
   const st = human.stats;
   const pilgrimLevel = human.pilgrim?.level ?? 1;
+  // PÚTNIK do panela: body → level a postup tou istou funkciou ako môj profil. Bez zverejnených bodov
+  // (člen ešte neotvoril profil v novej appke) panel nie je — ťuk by ukázal vymyslené nuly.
+  const pilgrimPanel = st?.points != null
+    ? { level: levelProgress(st.points), count: st.trips ?? 0, km: st.km, countries: st.countries ?? 0 }
+    : null;
   const fmt = (n: number) => n.toLocaleString(lang === 'sk' ? 'sk-SK' : 'en-US');
   const num = (n: number | undefined, suffix = '') => <b>{n == null ? '·' : `${fmt(n)}${suffix}`}</b>;
   const dash = <b className="na" aria-label={tx('pack.me.notYet', 'not yet')}>—</b>;
@@ -194,6 +203,23 @@ export default function PublicProfile() {
   // `MeOwn` kreslí psov z `PackDogFull` — potrebuje len id, fotku a meno.
   const ownDogs = member.dogs.map((d) => ({ id: d.dogId, cloudinary_main_url: d.photo, dog_name: d.name, pack_number: d.packNumber, heroglyph_png_url: d.heroglyphUrl }) as unknown as PackDogFull);
   const soon = (title: string, description: string) => toast({ title, description });
+  // NAPÍSAŤ = rozhovor s človekom (Matej 25. 10.: *„áno, môže sa písať každému“*). Server nájde majiteľa
+  // podľa čísla psa — cudzí `user_id` appka ani teraz nemá. Existujúci rozhovor sa len otvorí.
+  const writeTo = async () => {
+    if (dmBusy || member.memberNumber == null) return;
+    setDmBusy(true);
+    try {
+      // dynamický import — packMessaging ťahá pri načítaní celý katalóg trás (ako PartyMemberCard)
+      const m = await import('@/components/pack/messaging/packMessaging');
+      const convId = await m.startMemberDM(member.memberNumber);
+      if (convId) emitOpenThread(convId);
+      else toast({ title: tx('pack.publicProfile.msgFail', "Couldn't open the conversation. Try again in a moment.") });
+    } catch {
+      toast({ title: tx('pack.publicProfile.msgFail', "Couldn't open the conversation. Try again in a moment.") });
+    } finally {
+      setDmBusy(false);
+    }
+  };
 
 
   return (
@@ -216,6 +242,10 @@ export default function PublicProfile() {
           servantLabel={tx('pack.ladder.servant', 'Servant')}
           pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
           right={<MeFlag code={nationality} label={nationalityLabel || nationality} />}
+          // Ťuk len na PÚTNIKA (Matej 25. 10.: *„po kliknutí na tieto levely sa nič neukáže na cudzom profile, možno
+          // iba pútnik — level, body, výlety, km a krajiny“*). SLUŽOBNÍK na cudzom profile nereaguje.
+          onPilgrim={pilgrimPanel ? () => setRank((r) => (r === 'pt' ? null : 'pt')) : undefined}
+          rank={rank}
         />
 
         <div className="me-under">
@@ -237,6 +267,9 @@ export default function PublicProfile() {
             ))}
           </div>
           <div className="me-gap" />
+          {rank === 'pt' && pilgrimPanel && (
+            <MeRank kind="pt" devotion={0} pilgrim={pilgrimPanel} onClose={() => setRank(null)} tx={tx} />
+          )}
 
           {/* 5 ČÍSEL — tie isté ako na mojom profile, zverejnené majiteľom (`human.stats`). */}
           <div className="me-stats">
@@ -251,7 +284,7 @@ export default function PublicProfile() {
             <button type="button" className="me-cta" onClick={() => soon(tx('pack.publicProfile.follow', 'Follow'), tx('pack.me.soonFeed', 'Arrives with the FEED.'))}>
               {tx('pack.publicProfile.follow', 'Follow')}
             </button>
-            <button type="button" className="me-out" onClick={() => soon(tx('pack.publicProfile.message', 'Message'), tx('pack.publicProfile.msgSoon', 'Writing from the profile is on its way. For now, write over a shared trip.'))}>
+            <button type="button" className="me-out" onClick={writeTo} disabled={dmBusy || member.memberNumber == null}>
               {tx('pack.publicProfile.message', 'Message')}
             </button>
           </div>

@@ -47,6 +47,12 @@ const fillWidth = (pct: number) => `calc(var(--s) * .48 + (100% - var(--s) * .48
 
 export const RANK_BADGE_CSS = `
 .rk{ --s:46px; display:inline-flex; align-items:center; flex:none; padding:0; border:0; background:none; cursor:pointer; }
+/* Bez hranatého rámu po ťuku (Matej 25. 10.: *„pri kliknutí na odznaky sa mi vykreslí hranatý obdĺžnik … nechcem to
+   tak"*). Rám bol lem pilulky DEVOTION („.me-lv > .on“) — odznak je obdĺžnik, tak z neho vyšla krabica. Aktívny
+   odznak nesie biely lem kapsuly („.rk.on .cp“). */
+.rk{ -webkit-tap-highlight-color:transparent; }
+.me-lv > .rk.on{ box-shadow:none; }
+.rk:focus{ outline:none; }
 .rk .ic{ width:var(--s); height:var(--s); flex:0 0 auto; position:relative; z-index:2; }
 /* Stránka má img{max-width:100%} — bez none sa obrázok nezväčší. */
 .rk .ic img{ position:absolute; left:50%; top:50%; width:calc(var(--s) * var(--k, 1.4)); height:auto; max-width:none; max-height:none;
@@ -318,7 +324,8 @@ export function ServantPanel({ years, onDogId, tx }: { years: number | null; onD
 /** PÚTNIK po rozkliku: level + obrázok stupňa, pás v prechode farieb stupňa, čísla, rebrík 9 odznakov. */
 export function PilgrimPanel({ level, pct, points, floor, nextAt, trips, km, countries, onStats, tx }: {
   level: number; pct: number; points: number; floor: number; nextAt: number;
-  trips: number; km: number; countries: number; onStats: () => void; tx: Tx;
+  /** Bez `onStats` (cudzí profil) sa tlačidlo „Štatistiky výletov“ nekreslí — sú to moje štatistiky. */
+  trips: number; km: number; countries: number; onStats?: () => void; tx: Tx;
 }) {
   const t = stepOf(P_FROM, level);
   const c = P_COL[t];
@@ -359,7 +366,7 @@ export function PilgrimPanel({ level, pct, points, floor, nextAt, trips, km, cou
         ))}
       </div>
       <p className="rkp-cap">{tx('pack.rank.ladderLevels', 'level')}</p>
-      <button type="button" className="rkp-act" onClick={onStats}>{tx('pack.rank.openStats', 'Trip stats')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>
+      {onStats && <button type="button" className="rkp-act" onClick={onStats}>{tx('pack.rank.openStats', 'Trip stats')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>}
     </>
   );
 }

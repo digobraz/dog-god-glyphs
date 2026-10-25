@@ -4695,7 +4695,7 @@ export const cs: Partial<Dict> = {
   'pack.publicProfile.noBio': 'Zatím žádné bio.',
   'pack.publicProfile.follow': 'Sledovat',
   'pack.publicProfile.message': 'Napsat',
-  'pack.publicProfile.msgSoon': 'Psaní z profilu se chystá. Zatím se dá psát nad společným výletem.',
+  'pack.publicProfile.msgFail': 'Rozhovor se nepodařilo otevřít. Zkus to za chvíli.',
   'pack.publicProfile.notPublic': 'Profil tohohle Dogypťana ještě není veřejný.',
   'pack.publicProfile.title': 'Profil',
   'pack.publicProfile.walkedSection': 'Kudy šli',

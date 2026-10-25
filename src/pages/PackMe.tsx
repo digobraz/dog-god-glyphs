@@ -162,6 +162,7 @@ export default function PackMe() {
   usePublishPilgrimLevel(novice ? null : pilgrim.level.level);
   usePublishProfileStats(novice || brought == null ? null : {
     km: pilgrim.km, pilgrimPct: pilgrim.level.pct, brought, study: studyPct, servantYears,
+    points: pilgrim.level.points, trips: pilgrim.count, countries: pilgrim.countries,
   });
   const dev = devotionLevel(devotion);
   const [rank, setRank] = useState<'dev' | 'pt' | 'study' | null>(null);

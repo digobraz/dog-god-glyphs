@@ -674,7 +674,7 @@ export function MeRank({ kind, devotion, pilgrim, study, servantYears, onDogId, 
   devotion: number;
   pilgrim: { level: LevelProgress; count: number; km: number; countries: number };
   study?: StudyStats;
-  onStats: () => void;
+  onStats?: () => void;
   onVault?: () => void;
   /** Ťuk na „Oddanosť · N ☥" vpravo hore = vysvetlenie, za čo sa ☥ dostáva. */
   onAbout?: () => void;
@@ -793,9 +793,11 @@ export function MeRank({ kind, devotion, pilgrim, study, servantYears, onDogId, 
         <div><b>{pilgrim.km}</b><span>km</span></div>
         <div><b>{pilgrim.countries}</b><span>{tx('pack.rank.countries', 'countries')}</span></div>
       </div>
-      <button type="button" className="me-rk-link" onClick={onStats}>
-        {tx('pack.rank.openStats', 'Trip stats')}<BrandIcon name="back" size={12} tint={/^#[0-3]/.test(tierOfLevel(lv.level).ink) ? 'dark' : 'white'} style={{ transform: 'rotate(180deg)' }} />
-      </button>
+      {onStats && (
+        <button type="button" className="me-rk-link" onClick={onStats}>
+          {tx('pack.rank.openStats', 'Trip stats')}<BrandIcon name="back" size={12} tint={/^#[0-3]/.test(tierOfLevel(lv.level).ink) ? 'dark' : 'white'} style={{ transform: 'rotate(180deg)' }} />
+        </button>
+      )}
     </div>
   );
 }

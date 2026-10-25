@@ -138,7 +138,9 @@ export interface HumanProfile {
    *  ranky aj 5 stĺpcov … veď tak to má Instagram"*). Zapisuje ich majiteľova appka pri otvorení profilu
    *  (`usePublishProfileStats`) — tá istá cesta ako `pilgrim`, žiadna druhá definícia na serveri.
    *  ⚠️ Kým človek profil neotvorí, ostatní vidia posledné zverejnené čísla (alebo nič). */
-  stats?: { km: number; pilgrimPct: number; brought: number; study: number; servantYears: number | null; at: string };
+  stats?: { km: number; pilgrimPct: number; brought: number; study: number; servantYears: number | null;
+    /** PÚTNIK do panela na cudzom profile (Matej 25. 10.: *„iba pútnik — level, body, výlety, km a krajiny“*). */
+    points?: number; trips?: number; countries?: number; at: string };
   /** Orientácia — osobitná kategória údajov (GDPR čl. 9). Nepovinná; von ide LEN keď
    *  `orientationPublic` je true (predvolene skrytá). */
   orientation?: Orientation;

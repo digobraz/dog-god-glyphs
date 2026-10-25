@@ -474,6 +474,21 @@ export async function startWishDM(wishId: string): Promise<string | null> {
   return data;
 }
 
+/**
+ * NAPÍSAŤ z cudzieho profilu `/pack/u/:id` (25. 10. 2026, Matej: *„áno, môže sa písať každému"*).
+ * Tretí súrodenec `startTripDM` a `startWishDM`: klient pošle len poradové číslo psa, majiteľa nájde
+ * server (`start_member_dm`, migrácia 20261025_member_dm.sql). `null` = blok, sám sebe, nečlen.
+ */
+export async function startMemberDM(packNumber: number): Promise<string | null> {
+  const me = await ensureMe();
+  if (me.id === 'me') return null;
+  const { data, error } = await db.rpc('start_member_dm', { p_pack_number: packNumber }) as { data: string | null; error: unknown };
+  if (error || !data) return null;
+  await refreshDMs();
+  startRealtime();
+  return data;
+}
+
 // ── CRUD ──
 // Accessory vracajú vždy NOVÚ referenciu (shallow clone), nie objekt z cache.
 // Inak by React `setConv(sameRef)` zahodil cez Object.is → Thread by sa neprekreslil
