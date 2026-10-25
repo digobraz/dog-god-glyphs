@@ -14,7 +14,7 @@ import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, PACK_TIERS, type PackTier } from '@/lib/packTiers';
 import { devotionTier, devotionVars, NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
-import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, STORY_RING_CSS, RING_V1, ARC_MAX, arcDogs, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, useActiveDays } from '@/components/pack/profile/rankBadge';
+import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, STORY_RING_CSS, RING_V1, ARC_MAX, ARC_BELOW, arcDogs, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, useActiveDays } from '@/components/pack/profile/rankBadge';
 /** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
 const BONES_TIER = PACK_TIERS.find((t) => t.key === 'turquoise') as PackTier;
 
@@ -34,7 +34,12 @@ const SAT = { m: 56, pc: 70 };
  * visí 3/4 priemeru pod spodkom fotky. Medzera pod fotkou z toho istého čísla, aby satelit
  * nenarazil do čísel (rezerva S.sm nad nimi, čísla majú vlastný margin S.md). */
 const SAT_DROP = { m: SAT.m * 3 / 4, pc: Math.round(SAT.pc * 3 / 4) };
-const GAP = { m: OWN_DROP + SAT_DROP.m + PACK_SPACE.sm - PACK_SPACE.md, pc: PACK_SPACE.lg + SAT_DROP.pc + PACK_SPACE.sm - PACK_SPACE.md };
+/* Psy po OBLÚKU (RANK_BADGE_ON) visia inak než satelit: medzera = presne po spodok najnižšieho psa, takže
+ * nad číslami ostane tá istá vzdušnosť ako pod nimi k tlačidlám (margin S.md + padding S.sm na oboch stranách).
+ * Matej 25. 10.: *„štatistiky posuň hore tak, aby nad nimi bola taká istá medzera ako pod nimi"*. */
+const GAP = RANK_BADGE_ON
+  ? { m: OWN_DROP + Math.round(OWN.m * ARC_BELOW), pc: PACK_SPACE.lg + Math.round(OWN.pc * ARC_BELOW) }
+  : { m: OWN_DROP + SAT_DROP.m + PACK_SPACE.sm - PACK_SPACE.md, pc: PACK_SPACE.lg + SAT_DROP.pc + PACK_SPACE.sm - PACK_SPACE.md };
 /* Fotka psa v šuplíku stojí v OSI fotky majiteľa (Matej 22. 10.) — odsadenie z rovnice. */
 const DOG_D = { m: 60, pc: 96 };
 const DOG_X = { m: OWN_X.m + OWN.m / 2 - DOG_D.m / 2, pc: OWN_X.pc + OWN.pc / 2 - DOG_D.pc / 2 };
@@ -228,7 +233,8 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
 .me-stats b.na{ color:${T.alertRed}; }
 .me-stats span{ display:block; font-family:${FONT_UI}; font-size:${TX.micro}px; color:${T.inkWarm}; white-space:nowrap; }
 .me-btns{ display:grid; grid-template-columns:1fr 1fr; gap:${S.sm}px; margin-top:${S.md}px; }
-.me-btns button{ font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
+/* Tlačidlá v Grotesku, meno ostáva Cinzel (Matej 25. 10.: *„meno cinzel a tlačidlá skús grotesk“*). */
+.me-btns button{ font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
   padding:${S.md}px ${S.sm}px; border-radius:${PACK_R.field}px; cursor:pointer; }
 .me-cta{ background:${LAPIS.grad}; color:${LAPIS.ink}; border:1px solid ${LAPIS.deep}; box-shadow:${LAPIS_BTN_SHADOW}; }
 .me-cta:hover{ background:${LAPIS.gradHover}; }
@@ -319,11 +325,6 @@ const FLAT_TALL = 20;
  * a lícuje — teraz sú vyššie"*). Stred radu odznakov (46 px) = stred spodného psa na obruči, ktorý sedí
  * 3 px (mobil) / 4 px (PC) nad spodkom fotky majiteľa: klesnutie = 46/2 − 3, resp. 46/2 − 4 (zmerané 25. 10.). */
 const BADGE_SINK = { m: 20, pc: 19 };
-/* UPRAVIŤ PROFIL kreslí psa STARÝM satelitom (s fotoaparátom) — visí `SAT_DROP` pod fotkou, teda nižšie než pes
- * na obruči. Matej 25. 10.: *„pri edit profile nie sú odznaky v tej istej pozícii ako pri profile"*. Stred radu
- * (46 px) = stred satelitu: spodok fotky + SAT_DROP − SAT/2, rad visí o polovicu výšky nižšie. */
-const RK_HALF = 23;
-const EDIT_FOOT = { m: OWN_DROP + SAT_DROP.m - SAT.m / 2 + RK_HALF, pc: S.lg + SAT_DROP.pc - SAT.pc / 2 + RK_HALF };
 /* Bez rámu karty meria vzduch od okraja OKNA — fotka majiteľa na `PAGE_AIR` (16), šuplík v jej osi. */
 const FLAT_X = S.lg;
 export const ME_FLAT_CSS = `
@@ -341,12 +342,10 @@ export const ME_FLAT_CSS = `
 .me-flat .me-own{ left:${FLAT_X}px; }
 .me-flat .me-foot{ left:${FLAT_X + OWN.m + S.sm}px; right:${FLAT_X}px; bottom:-${OWN_DROP + BADGE_SINK.m}px; }
 .me-flat .me-drow{ padding-left:${FLAT_X + OWN.m / 2 - DOG_D.m / 2}px; }
-.pe-card.me-flat .me-foot{ bottom:-${EDIT_FOOT.m}px; }
 @media (min-width:640px){ .me-card.me-flat{ margin:calc(-1 * ${TOP}) -${S.xl}px 0; } }
 @media (min-width:768px){
   .me-flat .me-cover{ height:calc(${COVER_H.pc + FLAT_TALL}px + ${TOP}); }
   .me-flat .me-tbar{ padding-left:${S.xl}px; padding-right:${S.xl}px; }
-  .pe-card.me-flat .me-foot{ bottom:-${EDIT_FOOT.pc}px; }
   .me-flat .me-own{ left:${S.xl}px; }
   .me-flat .me-foot{ left:${S.xl + OWN.pc + S.lg}px; right:${S.xl}px; bottom:-${S.lg + BADGE_SINK.pc}px; }
   .me-flat .me-drow{ padding-left:${S.xl + OWN.pc / 2 - DOG_D.pc / 2}px; }
@@ -517,6 +516,31 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
   dogBusy?: string | null;
   dogPhotoLabel?: string;
 }) {
+  // UPRAVIŤ PROFIL s oblúkom: psy stoja tam, kde na profile — len každý nesie foťák (Matej 25. 10.: *„fotka psa
+  // je inak ako v edite, daj ju podľa /profile"*). Satelit nižšie ostáva pre starý build bez oblúka.
+  if (onDogPhoto && dogs.length > 0 && RANK_BADGE_ON) {
+    const shown = dogs.slice(0, ARC_MAX);
+    return (
+      <div className={`me-own${story ? ` st-${story}` : ''}`}>
+        <button type="button" onClick={onPhoto} aria-label={photoLabel}>
+          {photo ? <img src={sizedUrl(photo, 320)} alt="" /> : <span className="ini">{initial}</span>}
+        </button>
+        {badge}
+        <span className="me-arc">
+          {arcDogs(shown.length).map((p, k) => {
+            const d = shown[k];
+            return (
+              <button key={d.id} type="button" className="ad me-sdog" style={p} onClick={() => onDogPhoto(d)} disabled={dogBusy === d.id}
+                aria-label={`${dogPhotoLabel ?? ''} ${d.dog_name ?? ''}`.trim()}>
+                {d.cloudinary_main_url && <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" />}
+                <span className="cam">{dogBusy === d.id ? <BrandIcon name="cycle" size={14} tint="white" /> : <HandCamera size={15} />}</span>
+              </button>
+            );
+          })}
+        </span>
+      </div>
+    );
+  }
   if (onDogPhoto && dogs.length > 0) {
     return (
       <div className={`me-own${story ? ` st-${story}` : ''}`}>

@@ -16,7 +16,7 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { ME_CSS, ME_FLAT_CSS, RING, DOG_FONT, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
 import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBadge';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
-import { coverAlbumOf, coverOfDay, changeDogMainPhoto } from '@/components/pack/profile/mePosts';
+import { coverAlbumOf, coverOfDay, changeDogMainPhoto, fetchMyPosts, isMoment, isLive } from '@/components/pack/profile/mePosts';
 import { CoverSheet } from '@/components/pack/profile/CoverSheet';
 import { DevotionSheet } from '@/components/pack/profile/DevotionSheet';
 import { useToast } from '@/hooks/use-toast';
@@ -298,6 +298,15 @@ export default function PackProfile() {
   const [dogPhoto, setDogPhoto] = useState<Record<string, string>>({});
   const [dogBusy, setDogBusy] = useState<string | null>(null);
   const dogs = loadedDogs.map((d) => (dogPhoto[d.id] ? { ...d, cloudinary_main_url: dogPhoto[d.id] } : d));
+  // Obruč 1:1 s profilom: živá story = farebná obruč, inak neutrálny pás (bez `story` padala úprava vždy na farebnú).
+  const [storyLive, setStoryLive] = useState(false);
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) return;
+    let alive = true;
+    fetchMyPosts(uid).then((rows) => { if (alive) setStoryLive(rows.filter(isMoment).some((p) => isLive(p, Date.now()))); }).catch(() => {});
+    return () => { alive = false; };
+  }, [session?.user?.id]);
   const dogFileRef = useRef<HTMLInputElement | null>(null);
   const dogPick = useRef<PackDogFull | null>(null);
   const { profile } = useProfile();
@@ -492,6 +501,7 @@ export default function PackProfile() {
 
         <div className="me-under">
           <MeOwn
+            story={storyLive ? 'live' : 'none'}
             photo={avatarUrl}
             initial={initial}
             dogs={dogs}
@@ -635,7 +645,7 @@ export default function PackProfile() {
           {/* ── 3 · MISIA — pokladnica svorky a dar (Matej 24. 10. 2026: „sekcia v /profile … o mne · svorka · toto
               (misia) · účet“). Nákres plany/nakres-profil-misia-2026-10-24.html, telo v MisiaGroup.tsx. ── */}
           {MISIA_ON && <div className={`pe-grp${shut.has('misia') ? ' shut' : ''}`} id="misia" style={{ ...PACK_BOX.subblock, scrollMarginTop: 96 }}>
-            <GroupHead icon="ankh" label={tx('pack.misia.title', 'Mission')} open={!shut.has('misia')} onToggle={() => toggleGrp('misia')} />
+            <GroupHead icon="heartpaw" label={tx('pack.misia.title', 'Mission')} open={!shut.has('misia')} onToggle={() => toggleGrp('misia')} />
             <MisiaBody />
           </div>}
 
@@ -1446,9 +1456,11 @@ function MateForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; o
 
 /** Hlavička skupiny — na mobile rozbaľovač (ikonka · nadpis · šípka), na PC len nadpis. */
 function GroupHead({ icon, label, open, onToggle }: { icon: string; label: string; open: boolean; onToggle: () => void }) {
+  // Zbalená skupina je na mobile CELÝ obsah bloku — nadpis musí niesť riadok sám (Matej 25. 10.: *„ak sú
+  // colapsnuté, prijal by som výraznejšie písmo a ikonku"*). Tvar sekcie (.22em, verzálky) ostáva, len silnejší.
   return (
     <button type="button" className="pe-ghb" onClick={onToggle} aria-expanded={open}>
-      <span><BrandIcon name={icon} size={16} tint="dim" /><span style={{ ...PACK_HEAD.section }}>{label}</span></span>
+      <span><BrandIcon name={icon} size={22} tint="dark" /><span style={{ ...PACK_HEAD.section, fontSize: PACK_TEXT.label, fontWeight: 600, color: T.inkStrong }}>{label}</span></span>
       <span className="chev" aria-hidden><ChevronDown className="h-4 w-4" /></span>
     </button>
   );

@@ -1088,7 +1088,7 @@
     "tien": 0,
     "pismenka": 0,
     "odsadenie": 0,
-    "cinzel": 3,
+    "cinzel": 2,
     "tucny": 0
   },
   "components/pack/profile/rankBadge.tsx": {

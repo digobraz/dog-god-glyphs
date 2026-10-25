@@ -379,7 +379,9 @@ export const STORY_RING_CSS = `
   background:linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,.22));
   -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5.5px));
           mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5.5px)); }
-.me-own.st-none::before{ background:${PACK_THEME.card}; box-shadow:inset 0 0 0 1.5px ${PACK_THEME.border}; }
+/* Bez story = ten istý pás 6 px, len BEZ FARBY story (Matej 25. 10.: *„hrúbka je ok a mala by byť aj
+   v /profile, ale nemá byť ako keby má storku"*). Krémová linka splývala s rámom fotky do 10 px valca. */
+.me-own.st-none::before{ background:${PACK_THEME.border}; }
 /* + story ustúpi hore doprava — dolný oblúk patrí psom. */
 .me-own .me-add{ bottom:auto; top:${PACK_SPACE.xs}px; }
 /* PSY PO SPODNOM OBLÚKU: stred psa leží na obruči, rad súmerne okolo spodku. Polohy a priemer v % z fotky
@@ -397,10 +399,14 @@ export const STORY_RING_CSS = `
    Viac než 5 psov: prvé 4 + krúžok „+N". */
 export const ARC_MAX = 5;
 const ARC_D = [0, .444, .365, .317, .286, .254];
+const ARC_R = .475;
+/** O koľko (podiel fotky majiteľa) siaha najnižší pes pod spodok fotky — najhlbšie visí jediný pes (najväčší, v osi).
+ *  Z toho meHead ráta medzeru nad číslami (rovnica, nie meranie). */
+export const ARC_BELOW = ARC_R + ARC_D[1] / 2 - .5;
 export function arcDogs(count: number): CSSProperties[] {
   const n = Math.min(count, ARC_MAX);
   const d = ARC_D[n];
-  const r = .475;
+  const r = ARC_R;
   const step = 2 * Math.asin(Math.min(1, (d * .9) / (2 * r)));
   return Array.from({ length: n }, (_, k) => {
     const a = Math.PI / 2 - (k - (n - 1) / 2) * step;
