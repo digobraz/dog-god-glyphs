@@ -52,9 +52,29 @@ const RECEPT = [
   'components/pack/navGoldSkin.ts', // D-BLOK
 ];
 
-const inScope = (rel) =>
-  (rel.startsWith('pages/Pack') || rel.startsWith('components/pack/')) &&
-  /\.(tsx?|css)$/.test(rel) && !SKIP.some((s) => rel.startsWith(s));
+const inPack = (rel) =>
+  (rel.startsWith('pages/Pack') || rel.startsWith('components/pack/')) && /\.(tsx?|css)$/.test(rel);
+const inScope = (rel) => inPack(rel) && !SKIP.some((s) => rel.startsWith(s));
+
+/* ── PÍSMO (25. 10. 2026) ────────────────────────────────────────────────────
+ * Matej: *„pri bones detaile sú tiež fonty zlé a čísla sú cinzelom… prečo sa to rozchádza?
+ * veď máme nejaký brand!"* Pravidlo (brand.md: Cinzel = nadpis, meno, CTA; čísla, pilulky,
+ * štítky = Space Grotesk) existovalo od 26. 7., ale stráž merala len VEĽKOSŤ písma, nie
+ * RODINU ani VÁHU — preto si 119 súborov bralo Cinzel „pre istotu" a 25. 10. sa prepisovalo
+ * ~220 miest naraz.
+ *   cinzel = každý Cinzel (FONT_TITLE / 'Cinzel'), ktorý NIE JE vedome označený. Stráž nevie,
+ *            či ide o nadpis alebo číslo — preto nový Cinzel prejde len s poznámkou na tom
+ *            istom riadku — komentár „písmo: nadpis“ / „písmo: cta“ / „písmo: meno“. Bez nej
+ *            build padne. Meno psa (Cinzel Decorative, DOG_FONT) sa nepočíta.
+ *   tucny  = Space Grotesk s váhou 700+ — načítaný je len 300–600, 700 je falošný bold.
+ * Merajú sa aj súbory zo SKIP (ich výnimka je o polomeroch a rámoch, nie o písme) — okrem
+ * plôch, ktoré sa kreslia do OBRÁZKA (canvas, share karta). */
+const PISMO_SKIP = [
+  'components/pack/PackShareCard.tsx',
+  'components/pack/NatureShareCard.tsx',
+  'components/pack/trip/TripShareSheet.tsx',
+  'components/pack/vault/brainEngine.ts',
+];
 
 function walk(dir) {
   const out = [];
@@ -67,13 +87,29 @@ function walk(dir) {
 }
 
 /* ── MERANIE ──────────────────────────────────────────────────────────────── */
-const KEYS = ['radius', 'font', 'zavoj', 'progres', 'ram', 'tien', 'pismenka', 'odsadenie'];
+const KEYS = ['radius', 'font', 'zavoj', 'progres', 'ram', 'tien', 'pismenka', 'odsadenie', 'cinzel', 'tucny'];
 const found = {};   // súbor → { radius: [hodnoty], font: [hodnoty], … }
 for (const abs of walk(SRC)) {
   const rel = relative(SRC, abs);
-  if (!inScope(rel)) continue;
+  if (!inPack(rel)) continue;
   const src = readFileSync(abs, 'utf8');
   const bad = Object.fromEntries(KEYS.map((k) => [k, []]));
+
+  if (!PISMO_SKIP.some((s) => rel.startsWith(s))) {
+    for (const ln of src.split('\n')) {
+      const t = ln.trim();
+      if (/^(import\b|\/\/|\*|\/\*)/.test(t)) continue;           // import, komentár
+      if (/Cinzel Decorative|DOG_FONT|NAME_FONT/.test(ln)) continue;  // meno psa
+      if (/písmo:/.test(ln)) continue;                               // vedomý Cinzel
+      for (const m of ln.matchAll(/\bFONT_TITLE\b|\bCinzel\b/g)) bad.cinzel.push(m[0]);
+    }
+    // `${X}` najprv zložiť, inak by jeho zátvorky rozsekali pravidlo na kusy.
+    // Komentáre preč (vety o pravidle by sa rátali ako porušenie), potom `${X}` zložiť.
+    const flat = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\$\{([^{}]*)\}/g, '§$1§');
+    for (const seg of flat.split(/[{}]/))
+      if (/FONT_UI|Space Grotesk/.test(seg) && /font-?[Ww]eight\s*:\s*['"]?[789]00/.test(seg)) bad.tucny.push(seg.trim().slice(0, 60));
+  }
+  if (!inScope(rel)) { if (KEYS.some((k) => bad[k].length)) found[rel] = bad; continue; }
 
   for (const m of src.matchAll(/borderRadius\s*:\s*['"]?(-?[\d.]+)(?:px)?['"]?/g))
     if (!R_OK.has(+m[1])) bad.radius.push(+m[1]);
@@ -174,6 +210,8 @@ const NAZOV = {
   tien: 'ručný TIEŇ — sú TRI výšky: PACK_SHADOW.card · .panel · .lift',
   pismenka: 'letterSpacing mimo dvoch tvarov PACK_HEAD (.14em karta · .22em sekcia)',
   odsadenie: 'odsadenie mimo PACK_SPACE',
+  cinzel: 'Cinzel BEZ označenia — nadpis/meno/CTA označ `/* písmo: nadpis */` na tom istom riadku, inak FONT_UI',
+  tucny: 'Space Grotesk 700+ = falošný bold (načítané 300–600) — daj 600',
 };
 const CISELNE = new Set(['radius', 'font', 'pismenka', 'odsadenie']);
 const grew = [], shrank = [];
@@ -232,6 +270,12 @@ if (grew.length) {
   if (grew.some((g) => g.k === 'odsadenie')) {
     console.error(`\n  Povolené odsadenia: ${[...S_OK].sort((a, b) => a - b).join(' · ')}   (PACK_SPACE)`);
     console.error('  ⚠️ Medzery MRIEŽKY (gap 1–3 px) sú mimo rebríka zámerne a nemerajú sa.');
+  }
+  if (grew.some((g) => g.k === 'cinzel' || g.k === 'tucny')) {
+    console.error('\n  PÍSMO (brand.md, lock 25. 10. 2026):');
+    console.error('    Cinzel (FONT_TITLE) LEN nadpis · meno človeka/výletu · CTA tlačidlo → pridaj `/* písmo: nadpis */`');
+    console.error('    čísla · pilulky · štítky · eyebrow · iniciály → FONT_UI (Space Grotesk), váha najviac 600');
+    console.error('    meno psa → Cinzel Decorative (DOG_FONT), stráž ho nepočíta');
   }
   console.error('\n  Nový tvar patrí do katalógu `PACK_BLOCKS`, nie do komponentu.\n');
   process.exit(1);

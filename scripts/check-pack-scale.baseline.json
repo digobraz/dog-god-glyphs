@@ -1,4 +1,16 @@
 {
+  "components/pack/AccountDeletion.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
   "components/pack/BonesCoin.tsx": {
     "radius": 0,
     "font": 0,
@@ -7,7 +19,21 @@
     "ram": 1,
     "tien": 1,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 0,
+    "tucny": 0
+  },
+  "components/pack/BonesSheet.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
   },
   "components/pack/BuildNotice.tsx": {
     "radius": 0,
@@ -17,7 +43,9 @@
     "ram": 1,
     "tien": 1,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/ConstitutionCard.tsx": {
     "radius": 0,
@@ -27,7 +55,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 3
+    "odsadenie": 3,
+    "cinzel": 1,
+    "tucny": 0
   },
   "components/pack/DailyPrayers.tsx": {
     "radius": 0,
@@ -37,7 +67,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 1
+    "odsadenie": 1,
+    "cinzel": 7,
+    "tucny": 0
   },
   "components/pack/DeleteButton.tsx": {
     "radius": 1,
@@ -47,7 +79,9 @@
     "ram": 1,
     "tien": 0,
     "pismenka": 2,
-    "odsadenie": 4
+    "odsadenie": 4,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/DevotionPanel.tsx": {
     "radius": 0,
@@ -57,7 +91,21 @@
     "ram": 1,
     "tien": 1,
     "pismenka": 2,
-    "odsadenie": 1
+    "odsadenie": 1,
+    "cinzel": 1,
+    "tucny": 0
+  },
+  "components/pack/DogOrderEditor.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/DogPassport.tsx": {
     "radius": 0,
@@ -67,7 +115,21 @@
     "ram": 1,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
+  },
+  "components/pack/DogStats.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/FeatureSurveyCard.tsx": {
     "radius": 0,
@@ -77,7 +139,9 @@
     "ram": 1,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/FlagCircle.tsx": {
     "radius": 0,
@@ -87,7 +151,9 @@
     "ram": 1,
     "tien": 1,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/FounderInvite.tsx": {
     "radius": 0,
@@ -97,7 +163,9 @@
     "ram": 5,
     "tien": 1,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/Gateways.tsx": {
     "radius": 0,
@@ -107,7 +175,9 @@
     "ram": 1,
     "tien": 3,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/GlobePulse.tsx": {
     "radius": 0,
@@ -117,7 +187,9 @@
     "ram": 1,
     "tien": 1,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/HeroCard.tsx": {
     "radius": 0,
@@ -127,7 +199,9 @@
     "ram": 3,
     "tien": 4,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 11,
+    "tucny": 0
   },
   "components/pack/MapCoach.tsx": {
     "radius": 0,
@@ -137,7 +211,33 @@
     "ram": 2,
     "tien": 4,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/MapLocked.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/MemorialControl.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 3,
+    "tucny": 0
   },
   "components/pack/MiniOverview.tsx": {
     "radius": 1,
@@ -147,7 +247,9 @@
     "ram": 0,
     "tien": 1,
     "pismenka": 0,
-    "odsadenie": 3
+    "odsadenie": 3,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/NatureShareCard.tsx": {
     "radius": 0,
@@ -157,7 +259,9 @@
     "ram": 0,
     "tien": 1,
     "pismenka": 1,
-    "odsadenie": 2
+    "odsadenie": 2,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/NextTripCard.tsx": {
     "radius": 1,
@@ -167,7 +271,21 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 1,
-    "odsadenie": 3
+    "odsadenie": 3,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/NotifSheet.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/OnboardingProgress.tsx": {
     "radius": 2,
@@ -177,17 +295,33 @@
     "ram": 0,
     "tien": 2,
     "pismenka": 2,
-    "odsadenie": 2
+    "odsadenie": 2,
+    "cinzel": 1,
+    "tucny": 0
+  },
+  "components/pack/PackIdentityBar.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
   },
   "components/pack/PackLayout.tsx": {
-    "radius": 1,
-    "font": 9,
-    "zavoj": 3,
+    "radius": 0,
+    "font": 7,
+    "zavoj": 2,
     "progres": 1,
-    "ram": 4,
-    "tien": 4,
+    "ram": 3,
+    "tien": 2,
     "pismenka": 0,
-    "odsadenie": 1
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
   },
   "components/pack/PackNetwork.tsx": {
     "radius": 0,
@@ -195,9 +329,23 @@
     "zavoj": 0,
     "progres": 0,
     "ram": 2,
-    "tien": 7,
+    "tien": 4,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 6,
+    "tucny": 0
+  },
+  "components/pack/PackNotifications.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 3,
+    "tucny": 0
   },
   "components/pack/PackSettings.tsx": {
     "radius": 1,
@@ -207,7 +355,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 2
+    "odsadenie": 2,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/PackTree.tsx": {
     "radius": 3,
@@ -217,7 +367,9 @@
     "ram": 4,
     "tien": 3,
     "pismenka": 10,
-    "odsadenie": 17
+    "odsadenie": 17,
+    "cinzel": 5,
+    "tucny": 0
   },
   "components/pack/PackWizard.tsx": {
     "radius": 0,
@@ -227,7 +379,33 @@
     "ram": 0,
     "tien": 3,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/PawmatePanel.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 4,
+    "tucny": 0
+  },
+  "components/pack/PawmatesSection.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 8,
+    "tucny": 0
   },
   "components/pack/PlanAskCard.tsx": {
     "radius": 1,
@@ -237,7 +415,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 1
+    "odsadenie": 1,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/PointsPill.tsx": {
     "radius": 0,
@@ -247,7 +427,21 @@
     "ram": 1,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 0,
+    "tucny": 0
+  },
+  "components/pack/PokladnicaSheet.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
   },
   "components/pack/QuickTiles.tsx": {
     "radius": 0,
@@ -257,7 +451,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 5
+    "odsadenie": 5,
+    "cinzel": 1,
+    "tucny": 0
   },
   "components/pack/Ranking.tsx": {
     "radius": 0,
@@ -267,7 +463,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/RightGate.tsx": {
     "radius": 0,
@@ -277,7 +475,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 2
+    "odsadenie": 2,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/TrailMarks.tsx": {
     "radius": 0,
@@ -287,7 +487,9 @@
     "ram": 1,
     "tien": 0,
     "pismenka": 1,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/TransparentStats.tsx": {
     "radius": 0,
@@ -297,7 +499,9 @@
     "ram": 0,
     "tien": 1,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 4,
+    "tucny": 0
   },
   "components/pack/TripSpotlight.tsx": {
     "radius": 0,
@@ -307,7 +511,45 @@
     "ram": 0,
     "tien": 3,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 5,
+    "tucny": 0
+  },
+  "components/pack/VerseOfTheDay.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/WillPanel.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
+  },
+  "components/pack/addtrip/AddTripEntry.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
   },
   "components/pack/addtrip/AddTripLog.tsx": {
     "radius": 0,
@@ -317,7 +559,9 @@
     "ram": 7,
     "tien": 9,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 13,
+    "tucny": 0
   },
   "components/pack/addtrip/AinubisGuide.tsx": {
     "radius": 0,
@@ -327,7 +571,9 @@
     "ram": 1,
     "tien": 4,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/addtrip/GeometryPicker.tsx": {
     "radius": 0,
@@ -337,7 +583,9 @@
     "ram": 2,
     "tien": 11,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/addtrip/PlaceSearch.tsx": {
     "radius": 0,
@@ -347,7 +595,93 @@
     "ram": 1,
     "tien": 2,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 0,
+    "tucny": 0
+  },
+  "components/pack/ainubisSheet.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 4,
+    "tucny": 0
+  },
+  "components/pack/buddy/SnifferCard.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 4,
+    "tucny": 0
+  },
+  "components/pack/buddy/SnifferHome.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/buddy/SnifferMatchReveal.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
+  },
+  "components/pack/buddy/SnifferProfile.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/buddy/SnifferSearch.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/calendar/CalBandsSettings.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 3,
+    "tucny": 0
   },
   "components/pack/calendar/PackCalendar.tsx": {
     "radius": 0,
@@ -357,7 +691,33 @@
     "ram": 3,
     "tien": 12,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 12,
+    "tucny": 0
+  },
+  "components/pack/diary/DiaryEntry.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 3,
+    "tucny": 0
+  },
+  "components/pack/diary/DiaryList.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
   },
   "components/pack/events/AddEvent.tsx": {
     "radius": 0,
@@ -367,7 +727,45 @@
     "ram": 0,
     "tien": 2,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/events/EventCard.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/events/EventsPanel.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
+  },
+  "components/pack/feed/PackFeed.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 7,
+    "tucny": 0
   },
   "components/pack/level/LevelPanel.tsx": {
     "radius": 0,
@@ -377,7 +775,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
   },
   "components/pack/level/LevelPill.tsx": {
     "radius": 0,
@@ -387,7 +787,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 4
+    "odsadenie": 4,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/level/PointsBreakdown.tsx": {
     "radius": 1,
@@ -397,7 +799,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 2
+    "odsadenie": 2,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/level/TierScale.tsx": {
     "radius": 1,
@@ -407,7 +811,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 2,
-    "odsadenie": 3
+    "odsadenie": 3,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/level/TripReveal.tsx": {
     "radius": 0,
@@ -417,7 +823,45 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 0,
+    "tucny": 0
+  },
+  "components/pack/level/revealCss.ts": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 7,
+    "tucny": 0
+  },
+  "components/pack/magnetLeadGate.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/magnetPreview.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 6,
+    "tucny": 0
   },
   "components/pack/mapnotes/AddMapNote.tsx": {
     "radius": 0,
@@ -427,7 +871,9 @@
     "ram": 4,
     "tien": 12,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 3,
+    "tucny": 0
   },
   "components/pack/mapnotes/KindGrid.tsx": {
     "radius": 0,
@@ -437,7 +883,9 @@
     "ram": 0,
     "tien": 2,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/mapnotes/MapNotesLayer.tsx": {
     "radius": 0,
@@ -447,7 +895,9 @@
     "ram": 1,
     "tien": 2,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/mapnotes/MapNotesSection.tsx": {
     "radius": 0,
@@ -457,7 +907,21 @@
     "ram": 1,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/messaging/Inbox.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/messaging/Thread.tsx": {
     "radius": 0,
@@ -467,7 +931,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 1
+    "odsadenie": 1,
+    "cinzel": 3,
+    "tucny": 0
   },
   "components/pack/messaging/msgTheme.ts": {
     "radius": 0,
@@ -477,7 +943,9 @@
     "ram": 1,
     "tien": 1,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/packCommunityUI.tsx": {
     "radius": 0,
@@ -487,7 +955,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 14,
+    "tucny": 0
   },
   "components/pack/packDockMedal.tsx": {
     "radius": 0,
@@ -497,7 +967,9 @@
     "ram": 0,
     "tien": 4,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 0,
+    "tucny": 0
   },
   "components/pack/packTheme.ts": {
     "radius": 1,
@@ -507,7 +979,45 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 7,
+    "tucny": 0
+  },
+  "components/pack/profile/CoverSheet.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
+  },
+  "components/pack/profile/DevotionSheet.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 3,
+    "tucny": 0
+  },
+  "components/pack/profile/DevotionToday.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 4,
+    "tucny": 0
   },
   "components/pack/profile/DogGallery.tsx": {
     "radius": 0,
@@ -517,7 +1027,45 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 3,
+    "tucny": 0
+  },
+  "components/pack/profile/MeCompose.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/profile/MisiaGroup.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 5,
+    "tucny": 0
+  },
+  "components/pack/profile/StoryViewer.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
   },
   "components/pack/profile/TripProfileCard.tsx": {
     "radius": 0,
@@ -527,7 +1075,153 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 2
+    "odsadenie": 2,
+    "cinzel": 0,
+    "tucny": 0
+  },
+  "components/pack/profile/meHead.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 3,
+    "tucny": 0
+  },
+  "components/pack/profile/rankBadge.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
+  },
+  "components/pack/trip/GhostJourneyNote.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/trip/StoryCard.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/trip/StoryView.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 3,
+    "tucny": 0
+  },
+  "components/pack/trip/StoryWrite.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 3,
+    "tucny": 0
+  },
+  "components/pack/trip/TripComments.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 6,
+    "tucny": 0
+  },
+  "components/pack/trip/TripCreatorPopup.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 3,
+    "tucny": 0
+  },
+  "components/pack/trip/TripEditPanel.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/trip/TripGoPanel.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/trip/TripWalkers.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
+  },
+  "components/pack/trip/UnwalkConfirm.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "components/pack/tripShared.tsx": {
     "radius": 0,
@@ -537,17 +1231,105 @@
     "ram": 1,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 0,
+    "tucny": 0
+  },
+  "components/pack/triplist/PartyMemberCard.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
+  },
+  "components/pack/vault/ScrollParts.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 5,
+    "tucny": 0
+  },
+  "components/pack/vault/VaultChat.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 6,
+    "tucny": 0
+  },
+  "components/pack/vault/VaultWall.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 4,
+    "tucny": 0
   },
   "pages/Pack.tsx": {
-    "radius": 1,
+    "radius": 0,
     "font": 0,
     "zavoj": 0,
     "progres": 0,
     "ram": 0,
     "tien": 1,
     "pismenka": 0,
-    "odsadenie": 1
+    "odsadenie": 0,
+    "cinzel": 0,
+    "tucny": 0
+  },
+  "pages/PackAinubis.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 7,
+    "tucny": 0
+  },
+  "pages/PackBuddy.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 4,
+    "tucny": 0
+  },
+  "pages/PackChronicle.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "pages/PackDogDetail.tsx": {
     "radius": 0,
@@ -557,7 +1339,21 @@
     "ram": 4,
     "tien": 4,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 12,
+    "tucny": 0
+  },
+  "pages/PackDogIdModules.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 5,
+    "tucny": 0
   },
   "pages/PackDogQuiz.tsx": {
     "radius": 0,
@@ -567,7 +1363,9 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "pages/PackDogs.tsx": {
     "radius": 0,
@@ -577,7 +1375,21 @@
     "ram": 4,
     "tien": 5,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 7,
+    "tucny": 0
+  },
+  "pages/PackJoin.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 2,
+    "tucny": 0
   },
   "pages/PackMap.tsx": {
     "radius": 0,
@@ -587,7 +1399,9 @@
     "ram": 17,
     "tien": 55,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 23,
+    "tucny": 0
   },
   "pages/PackNatureQuiz.tsx": {
     "radius": 0,
@@ -597,7 +1411,21 @@
     "ram": 14,
     "tien": 9,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 16,
+    "tucny": 0
+  },
+  "pages/PackProfile.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 1,
+    "tucny": 0
   },
   "pages/PackTripArticle.tsx": {
     "radius": 0,
@@ -607,6 +1435,32 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 0
+    "odsadenie": 0,
+    "cinzel": 5,
+    "tucny": 0
+  },
+  "pages/PackTriplist.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 9,
+    "tucny": 0
+  },
+  "pages/PackWill.tsx": {
+    "radius": 0,
+    "font": 0,
+    "zavoj": 0,
+    "progres": 0,
+    "ram": 0,
+    "tien": 0,
+    "pismenka": 0,
+    "odsadenie": 0,
+    "cinzel": 3,
+    "tucny": 0
   }
 }
