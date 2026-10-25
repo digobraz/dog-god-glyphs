@@ -72,6 +72,12 @@ export const ME_CSS = `
 /* VLAJKA NA TITULKE (Matej 25. 10.: *„tá vlajka je super, dal by som ju každému profilu na titulku do pravého rohu
    bez čísla"*). Národnosť je vždy viditeľná (lock 25. 7.), preto aj tu bez prepínača. */
 .me-flag{ display:block; width:${S.xl}px; height:${S.xl}px; border-radius:${PACK_R.pill}px; object-fit:cover; border:2px solid ${T.card}; box-shadow:${T.panelShadow}; }
+/* PRÁVE SOM V (Matej 25. 10.: *„po kliknutí môžem vybrať, že sme aktuálne niekde inde, keď budeme v zahraničí"*).
+   Veľká vlajka = kde som teraz, malá v rohu = národnosť. Na mojom profile leží nad ňou priehľadný natívny <select>
+   (systémový picker, rovnaký vzor ako pole národnosti v UPRAVIŤ). */
+.me-flagw{ position:relative; display:block; }
+.me-flagw .home{ position:absolute; left:-${S.xs}px; bottom:-${S.xs}px; width:${S.md}px; height:${S.md}px; border-radius:${PACK_R.pill}px; object-fit:cover; border:1px solid ${T.card}; box-shadow:${T.panelShadow}; }
+.me-flagw select{ position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; font-size:${TX.body}px; }
 .me-bones{ display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.md}px; border-radius:${PACK_R.pill}px; cursor:pointer;
   background:${tierGradient(BONES_TIER)}; border:1px solid ${BONES_TIER.b}; color:${BONES_TIER.ink}; box-shadow:${T.panelShadow};
   font-family:${FONT_UI}; font-weight:600; font-size:${TX.label}px; letter-spacing:.02em; }
@@ -802,9 +808,29 @@ export function MeRank({ kind, devotion, pilgrim, study, servantYears, onDogId, 
   );
 }
 
-/** Vlajka národnosti do pravého rohu titulky (`MeCover right`). */
-export function MeFlag({ code, label }: { code: string; label: string }) {
-  return <img className="me-flag" src={flagUrl(countryISO2(code) || 'sk', 80)} alt={label} title={label} />;
+/** Vlajka do pravého rohu titulky (`MeCover right`). `here` = krajina, kde človek práve je (`human.here`);
+ *  keď sa líši od národnosti, veľká vlajka ukáže ju a národnosť ostane malá v rohu. `pick` = môj profil:
+ *  ťuk otvorí systémový výber krajiny. */
+export function MeFlag({ code, label, here, hereLabel, pick }: {
+  code: string; label: string; here?: string | null; hereLabel?: string;
+  pick?: { options: Array<{ value: string; flag: string; label: string }>; homeLabel: string; aria: string; onChange: (v: string) => void };
+}) {
+  const home = countryISO2(code) || 'sk';
+  const now = here ? countryISO2(here) : null;
+  const away = !!now && now !== home;
+  const title = away ? `${hereLabel ?? here} · ${label}` : label;
+  return (
+    <span className="me-flagw">
+      <img className="me-flag" src={flagUrl(away ? now! : home, 80)} alt={title} title={title} />
+      {away && <img className="home" src={flagUrl(home, 40)} alt="" aria-hidden />}
+      {pick && (
+        <select value={away ? here! : ''} aria-label={pick.aria} onChange={(e) => pick.onChange(e.target.value)}>
+          <option value="">{pick.homeLabel}</option>
+          {pick.options.map((o) => <option key={o.value} value={o.value}>{o.flag} {o.label}</option>)}
+        </select>
+      )}
+    </span>
+  );
 }
 
 /** Riadok psa v šuplíku (môj aj cudzí profil — vytiahnuté z PackMe 25. 10. 2026). Bio a povaha sú tie isté polia ako v DOG ID (`profile.dogs[id]`). */

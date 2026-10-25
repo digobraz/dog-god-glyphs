@@ -6444,6 +6444,8 @@ export const en = {
   'pack.me.changePhoto': "Change photo",
   'pack.me.newStory': "New story",
   'pack.me.stories': "Stories",
+  'pack.me.atHome': "At home",
+  'pack.me.hereAria': "Where I am right now",
   'pack.me.highlights': "Highlights",
   'pack.me.newHighlight': "New",
   'pack.me.soonFeed': "Arrives with the FEED.",

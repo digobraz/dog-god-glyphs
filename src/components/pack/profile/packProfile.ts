@@ -86,6 +86,7 @@ export interface HumanProfile {
   dogOrder?: string[];
   displayAs?: 'name' | 'nickname' | 'packName'; // ktorá verzia sa ukazuje navonok, default 'name'
   nationality?: string;     // country code z NATIONALITY_OPTIONS, default 'SK' (nezapisuje sa kým user nevyberie)
+  here?: string;            // PRÁVE SOM V (25. 10. 2026): krajina, kde človek teraz je; prázdne = doma. Mení sa ťukom na vlajku profilu.
   relationship?: RelationshipStatus;
   dogVoiceBio?: string;      // „What my dog says about me" — ≤150 slov, HERO (zobrazuje sa prvý)
   personType?: PersonType;
