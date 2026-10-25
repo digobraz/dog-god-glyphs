@@ -16,11 +16,15 @@
 // ⚠️ NIE sticky (5. 10. 2026, test po FLIPe): rad nemá podklad, takže pri rolovaní plával cez
 //    obsah — logo cez „€94 RESCUE“, kapsula cez km PILGRIMA. Rad ide s obsahom; AINUBIS je
 //    stále v spodnej lište. Miesto v toku je rovnaké (padding-top rodiča nesie `top`).
+// 🔁 STICKY NA HLADKOM PAPYRUSE (TEST_BUILD, Matej 25. 10. 2026: *„nechajme sticky horný panel s ainubisom
+//    a upozorneniami, bude to lepšie"*). Dôvod zákazu vyššie bol chýbajúci podklad — na `.pk-plain`
+//    (profily, psy, DOG ID) ho rad dostane: papyrusový pás cez celé okno od hornej hrany po medzeru pod
+//    radom + krátke rozplynutie, pod ktoré obsah zajde. Tmavé obrazovky ostávajú v toku.
 // ⚠️ `translate`, nie `transform` — hover kolieska píše `transform` a dedenie sa nesmie biť.
 import type { ReactNode } from 'react';
 import { HubAinubis } from './PackNotifications';
 import { BackButton } from './BackButton';
-import { PACK_TOPROW, PACK_COL_INNER, PACK_COL_PAD } from './packTheme';
+import { PACK_TOPROW, PACK_COL_INNER, PACK_COL_PAD, PAPER_BG } from './packTheme';
 
 const CSS = `
 .pk-toprow{position:relative;z-index:30;
@@ -31,6 +35,11 @@ const CSS = `
 @media (min-width:640px){.pk-toprow{width:min(${PACK_COL_INNER}px, calc(100vw - ${2 * PACK_COL_PAD.desktop}px));}}
 /* Arabčina (dir=rtl): margin-left:50% + translate:-50% v RTL ujde o ~93 px za ľavý okraj
    a stránka dostane vodorovný scroll (UI audit jazykov 15. 10. 2026) — zrkadlový tvar. */
+.pk-plain .pk-toprow{position:sticky;top:calc(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.top}px);}
+.pk-plain .pk-toprow::before{content:'';position:absolute;z-index:-1;pointer-events:none;left:50%;width:100vw;margin-left:-50vw;
+  top:calc(-1 * (env(safe-area-inset-top, 0px) + ${PACK_TOPROW.top}px));bottom:-${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h}px;background:${PAPER_BG};}
+.pk-plain .pk-toprow::after{content:'';position:absolute;z-index:-1;pointer-events:none;left:50%;width:100vw;margin-left:-50vw;
+  top:calc(100% + ${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h}px);height:${PACK_TOPROW.top}px;background:linear-gradient(180deg, ${PAPER_BG}, transparent);}
 [dir=rtl] .pk-toprow{margin-left:0;margin-right:50%;translate:50% 0;}
 .pk-toprow > *{pointer-events:auto;}
 .pk-toprow-l{justify-self:start;display:flex;}
