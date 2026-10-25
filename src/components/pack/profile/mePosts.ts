@@ -33,7 +33,7 @@ export interface MePost {
   body: string;
   photos: string[];
   tags: string[];
-  attach: { trip_slug?: string; dogs?: string[]; title?: string };
+  attach: { trip_slug?: string; dogs?: string[]; title?: string; place?: { name: string; lat?: number; lon?: number } };
   visibility: Visibility;
   createdAt: string;
 }
@@ -89,11 +89,13 @@ export async function publish(opts: {
   title?: string;
   dogIds: string[];
   visibility: Visibility;
+  place?: { name: string; lat?: number; lon?: number } | null;
 }): Promise<void> {
   const photos = await uploadAll(opts.files, opts.uid);
   const attach: MePost['attach'] = {};
   if (opts.dogIds.length) attach.dogs = opts.dogIds;
   if (opts.mode === 'album' && opts.title?.trim()) attach.title = opts.title.trim();
+  if (opts.place?.name.trim()) attach.place = { ...opts.place, name: opts.place.name.trim() };
   const tag = opts.mode === 'moment' ? TAG_MOMENT : opts.mode === 'album' ? TAG_ALBUM : TAG_POST;
   const base = { author_id: opts.uid, body: opts.body.trim(), tags: [tag], attach, visibility: opts.visibility };
   const rows = opts.mode === 'moment' ? photos.map((p) => ({ ...base, photos: [p] })) : [{ ...base, photos }];
@@ -145,4 +147,36 @@ export async function changeDogMainPhoto(dogId: string, file: File): Promise<str
   const { error } = await supabase.from('dogs').update({ cloudinary_main_url: secureUrl }).eq('id', dogId);
   if (error) throw new Error(error.message);
   return secureUrl;
+}
+
+// ── ❤️ 💬 POD PRÍSPEVKOM (25. 10. 2026, migrácia `20261025_post_social.sql`) ─────────────────
+export type PostSocial = { likes: number; comments: number; liked: boolean; saved: boolean };
+export type PostComment = { id: string; mine: boolean; canDelete: boolean; name: string; photo: string | null; ownerN: number | null; body: string; createdAt: string };
+
+export async function fetchPostSocial(postId: string): Promise<PostSocial> {
+  const { data } = await db.rpc('post_social', { p_post: postId });
+  const r = Array.isArray(data) ? data[0] : null;
+  return { likes: Number(r?.likes) || 0, comments: Number(r?.comments) || 0, liked: !!r?.liked, saved: !!r?.saved };
+}
+
+export async function fetchComments(postId: string): Promise<PostComment[]> {
+  const { data, error } = await db.rpc('list_post_comments', { p_post: postId });
+  if (error || !Array.isArray(data)) return [];
+  return (data as Array<Record<string, unknown>>).map((r) => ({
+    id: String(r.id), mine: !!r.mine, canDelete: !!r.can_delete,
+    name: typeof r.first_name === 'string' ? r.first_name : '',
+    photo: typeof r.photo === 'string' ? r.photo : null,
+    ownerN: r.owner_n == null ? null : Number(r.owner_n),
+    body: String(r.body ?? ''), createdAt: String(r.created_at),
+  }));
+}
+
+export async function addComment(postId: string, uid: string, body: string): Promise<void> {
+  const { error } = await db.from('post_comments').insert({ post_id: postId, user_id: uid, body: body.trim() });
+  if (error) throw error;
+}
+
+export async function deleteComment(id: string): Promise<void> {
+  const { error } = await db.from('post_comments').delete().eq('id', id);
+  if (error) throw error;
 }

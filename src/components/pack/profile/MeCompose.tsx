@@ -19,6 +19,7 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser } from '@/hooks/usePackUser';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { publish, type ComposeMode, type Visibility } from '@/components/pack/profile/mePosts';
+import { PlaceField, type PostPlace } from '@/components/pack/profile/PlaceField';
 import { useToast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -87,6 +88,7 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   const [body, setBody] = useState('');
   const [title, setTitle] = useState('');
   const [dogIds, setDogIds] = useState<string[]>([]);
+  const [place, setPlace] = useState<PostPlace | null>(null);
   // Story aj príspevok idú svorke (členom) — kto chce len pre seba, prepne. RLS pustí cudzím
   // len `public` a len zaplateným členom, takže „svorka" nie je verejný web.
   const [vis, setVis] = useState<Visibility>('public');
@@ -125,7 +127,7 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
     if (!ready || !uid || busy) return;
     setBusy(true);
     try {
-      await publish({ uid, mode, files, body, title, dogIds, visibility: vis });
+      await publish({ uid, mode, files, body, title, dogIds, visibility: vis, place: mode === 'post' ? place : null });
       toast({ title: mode === 'moment' ? tx('pack.compose.storyDone', 'Your story is live for 24 hours') : tx('pack.compose.done', 'Shared') });
       onClose();
     } catch (err) {
@@ -206,6 +208,8 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
             placeholder={mode === 'moment' ? tx('pack.compose.storyText', 'A line on the photo (optional)')
               : mode === 'album' ? tx('pack.compose.albumText', 'What is this album about? (optional)')
                 : tx('pack.compose.postText', 'Write something about it…')} />
+
+          {mode === 'post' && <PlaceField value={place} onChange={setPlace} />}
 
           {dogs.length > 0 && (
             <div>
