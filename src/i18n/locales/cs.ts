@@ -1576,6 +1576,16 @@ export const cs: Partial<Dict> = {
   // pack.rank
   "pack.rank.viewAll": "Zobrazit vše →",
   "pack.rank.ariaClose": "Zavřít",
+  "pack.rank.servantYears": "{n} let se psem",
+  "pack.rank.servantYear1": "1 rok se psem",
+  "pack.rank.servantFirst": "První rok se psem",
+  "pack.rank.servantActive": "Dny v appce · posledních 90",
+  "pack.rank.servantToNext": "Ještě {n} r. do dalšího odznaku",
+  "pack.rank.servantTop": "Nejvyšší odznak. Dál už je jen pes.",
+  "pack.rank.servantHow": "Číslo = celé roky se psem, od „Spolu od“ v DOG ID. Zlato se plní každým dnem, kdy něco zapíšeš v appce.",
+  "pack.rank.servantNoDate": "Doplň „Spolu od“ v DOG ID",
+  "pack.rank.ladderYears": "let",
+  "pack.rank.ladderLevels": "level",
   "pack.rank.noData": "Zatím žádná data — žebříček se naplní, jak smečka poroste.",
   // pack.hero
   "pack.hero.ariaEditAvatar": "Upravit avatar",
