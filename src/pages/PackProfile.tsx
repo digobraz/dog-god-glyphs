@@ -293,7 +293,7 @@ export default function PackProfile() {
   useEffect(() => { reloadMates(); }, []);
   const resetFlow = useDogyptStore((st) => st.reset);
   const { dogs: loadedDogs } = usePackUser(session?.user?.id ?? null);
-  const servantYears = useServantYears(loadedDogs.map((d) => d.id), RANK_BADGE_ON);
+  const servantYears = useServantYears(loadedDogs, RANK_BADGE_ON);
   // Práve vymenené fotky psov — kým sa `usePackUser` nenačíta nanovo (hlava aj SVORKA ich ukážu hneď).
   const [dogPhoto, setDogPhoto] = useState<Record<string, string>>({});
   const [dogBusy, setDogBusy] = useState<string | null>(null);

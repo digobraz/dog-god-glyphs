@@ -98,26 +98,45 @@ export function useActiveDays(enabled: boolean): number | null {
   return days;
 }
 
-/** Dokončené roky služby = od najskoršieho DOG ID `basics.since` („Together since") spomedzi psov po dnes.
- *  Matej 25. 10.: *„musí to byť v DOG ID — ja to tam mám 06.06.2017"*. Psy naraz sa nezdvojujú.
- *  ⚠️ Medzera medzi psami (jeden odišiel, ďalší prišiel o roky neskôr) sa zatiaľ NEodpočíta — dátum
- *  odchodu psa v DOG ID nie je. `null` = nikto z psov dátum nemá → UČEŇ. */
-export function useServantYears(dogIds: string[], enabled: boolean): number | null {
+/** Dokončené roky služby = čas, keď mal človek aspoň jedného psa: od DOG ID `basics.since`
+ *  („Together since") po odchod psa (`dogs.death_date`, `MemorialControl`) alebo po dnes.
+ *  Matej 25. 10.: *„musí to byť v DOG ID — ja to tam mám 06.06.2017"* · *„kedy pes odišiel máme"*.
+ *  Psy naraz sa nezdvojujú (zjednotenie úsekov), medzera medzi psami sa nerátá.
+ *  `null` = nikto z psov dátum nemá → UČEŇ. */
+type ServDog = { id: string; life_status?: string | null; death_date?: string | null };
+export function useServantYears(dogs: ServDog[], enabled: boolean): number | null {
   const [years, setYears] = useState<number | null>(null);
-  const key = dogIds.join(',');
+  const key = dogs.map((d) => `${d.id}:${d.life_status === 'deceased' ? d.death_date ?? '' : ''}`).join(',');
   useEffect(() => {
     if (!enabled || !key) return;
     let alive = true;
-    readEvents(key.split(','), ['basics.since']).then((evs) => {
+    const end: Record<string, string | null> = {};
+    for (const part of key.split(',')) { const [id, dd] = part.split(':'); end[id] = dd || null; }
+    readEvents(Object.keys(end), ['basics.since']).then((evs) => {
       if (!alive) return;
-      const last: Record<string, string> = {};
-      for (const e of evs) if (typeof e.value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(e.value)) last[e.dogId] = e.value.slice(0, 10);
-      const first = Object.values(last).sort()[0];
-      if (!first) { setYears(null); return; }
-      const [y, m, d] = first.split('-').map(Number);
-      const now = new Date();
-      const full = now.getFullYear() - y - ((now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) ? 1 : 0);
-      setYears(Math.max(0, full));
+      const since: Record<string, string> = {};
+      for (const e of evs) if (typeof e.value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(e.value)) since[e.dogId] = e.value.slice(0, 10);
+      const today = new Date().toLocaleDateString('sv');
+      const spans = Object.entries(since)
+        .map(([id, s]) => [s, (end[id] ?? today).slice(0, 10)] as [string, string])
+        .filter(([s, e]) => s <= e)
+        .sort((x, y) => (x[0] < y[0] ? -1 : 1));
+      if (!spans.length) { setYears(null); return; }
+      const merged: [string, string][] = [];
+      for (const sp of spans) {
+        const last = merged[merged.length - 1];
+        if (last && sp[0] <= last[1]) { if (sp[1] > last[1]) last[1] = sp[1]; } else merged.push([...sp]);
+      }
+      const day = (iso: string) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10));
+      // Jeden súvislý úsek = presne podľa výročia; viac úsekov = súčet dní.
+      if (merged.length === 1) {
+        const [s, e] = merged[0];
+        const full = +e.slice(0, 4) - +s.slice(0, 4) - (e.slice(5) < s.slice(5) ? 1 : 0);
+        setYears(Math.max(0, full));
+      } else {
+        const days = merged.reduce((n, [s, e]) => n + (day(e) - day(s)) / 864e5, 0);
+        setYears(Math.max(0, Math.floor(days / 365.2425)));
+      }
     }).catch(() => {});
     return () => { alive = false; };
   }, [key, enabled]);

@@ -169,7 +169,7 @@ export default function PackMe() {
   }, [location.key, location.search]);
   const uid = session?.user?.id ?? null;
   const { dogs } = usePackUser(uid);
-  const servantYears = useServantYears(dogs.map((d) => d.id), RANK_BADGE_ON);
+  const servantYears = useServantYears(dogs, RANK_BADGE_ON);
   const { profile } = useProfile();
   const human = profile?.human;
   const meta = (session?.user?.user_metadata ?? {}) as Record<string, string | undefined>;

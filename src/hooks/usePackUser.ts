@@ -31,6 +31,8 @@ export interface PackDogFull {
   heroglyph_png_url?: string | null;
   /** 'deceased' = psí anjel (`MemorialControl`). SVORKA v UPRAVIŤ PROFIL ho ukáže medzi psami ako anjela. */
   life_status?: string | null;
+  /** Deň odchodu psa (`MemorialControl`, yyyy-mm-dd) — končí jeho roky v SLUŽOBNÍKOVI. */
+  death_date?: string | null;
   /** Krajina psa z heroflow (2. krok) — SNIFFER z nej predvolí krajinu rajónu. */
   country?: string | null;
 }
@@ -139,7 +141,7 @@ export function usePackUser(userId: string | null): PackUserData {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let dogsQuery = (supabase as any)
         .from('dogs')
-        .select('id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url, owner_name, country, life_status')
+        .select('id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url, owner_name, country, life_status, death_date')
         .eq('payment_status', 'paid');
       dogsQuery = ids ? dogsQuery.in('id', ids) : dogsQuery.eq('user_id', user.id);
       const { data: dogRows } = await dogsQuery
