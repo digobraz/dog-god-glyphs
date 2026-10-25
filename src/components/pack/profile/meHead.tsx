@@ -38,7 +38,12 @@ const GAP = { m: OWN_DROP + SAT_DROP.m + PACK_SPACE.sm - PACK_SPACE.md, pc: PACK
 /* Fotka psa v šuplíku stojí v OSI fotky majiteľa (Matej 22. 10.) — odsadenie z rovnice. */
 const DOG_D = { m: 60, pc: 96 };
 const DOG_X = { m: OWN_X.m + OWN.m / 2 - DOG_D.m / 2, pc: OWN_X.pc + OWN.pc / 2 - DOG_D.pc / 2 };
-export const RING = `conic-gradient(from 200deg,${LAPIS.edge},${LAPIS.deep},${T.cardEdge},#A3782B,${LAPIS.edge})`;
+const RING_OLD = `conic-gradient(from 200deg,${LAPIS.edge},${LAPIS.deep},${T.cardEdge},#A3782B,${LAPIS.edge})`;
+/* OBRUČ V1 „Slnko a Níl" (25. 10. 2026, len TEST_BUILD): Matej po 4 kolách nákresu `plany/nakresy/obruc/ig.html`
+   — *„klasika Instagram štýl, jemne 3D, tenké… nemusí to pulzovať ani nič"* + *„ok super aj rozloženie psov aj farba
+   aplikuj to!"*. Zlatá → modrá, bez fialovej (tá patrí výletom). Story už netočí ani nedýcha. */
+const RING_V1 = 'linear-gradient(45deg,#FFD54A 0%,#F7A21B 32%,#2F7BFF 72%,#1034A6 100%)';
+export const RING = RANK_BADGE_ON ? RING_V1 : RING_OLD;
 
 export const ME_CSS = `
 .me-card{ position:relative; border-radius:${PACK_R.card}px; border:1.5px solid ${T.cardEdge}; background:${T.cardGrad}; box-shadow:${T.cardShadow}; overflow:hidden; }
@@ -168,6 +173,28 @@ export const ME_CSS = `
 .me-sdog .cam{ color:${LAPIS.ink}; position:absolute; right:-${S.sm}px; bottom:-${S.xs}px; width:28px; height:28px; border-radius:${PACK_R.pill}px; display:grid; place-items:center;
   background:${LAPIS.grad}; border:2px solid ${T.card}; box-shadow:${LAPIS_BTN_SHADOW}; }
 .me-own .ini{ display:grid; place-items:center; width:100%; height:100%; font-family:${FONT_TITLE}; font-size:${TX.h1}px; color:${T.inkWarm}; }
+${RANK_BADGE_ON ? `
+/* TEST_BUILD · OBRUČ V1: pás 6 px (5 % priemeru), papyrusová medzera = rám fotky, jemné 3D svetlo zhora,
+   bez otáčania a žiary. Bez story = tenká papyrusová linka (ako Instagram). */
+.me-own{ padding:6px; }
+.me-own.st-live::before{ animation:none; }
+.me-own.st-live{ animation:none; box-shadow:0 1px 3px rgba(60,40,10,.35); }
+.me-own.st-live::after{ content:''; position:absolute; inset:0; border-radius:${PACK_R.pill}px; pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,.22));
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5.5px));
+          mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5.5px)); }
+.me-own.st-none::before{ background:${T.card}; box-shadow:inset 0 0 0 1.5px ${T.border}; }
+/* + story ustúpi hore doprava — dolný oblúk patrí psom. */
+.me-own .me-add{ bottom:auto; top:${S.xs}px; }
+/* PSY PO SPODNOM OBLÚKU: stred psa leží na obruči, rad súmerne okolo spodku. Polohy a priemer v % z fotky
+   majiteľa (počíta arcDogs), takže mobil 126 aj PC 158 sedia z jednej rovnice. */
+.me-arc{ position:absolute; inset:0; z-index:2; padding:0; border:0; background:none; pointer-events:none; }
+.me-arc .ad{ position:absolute; aspect-ratio:1; border-radius:${PACK_R.pill}px; padding:1.5px; background:${T.border}; pointer-events:auto; cursor:pointer;
+  box-shadow:0 1px 3px rgba(60,40,10,.4); }
+.me-arc .ad img{ width:100%; height:100%; border-radius:${PACK_R.pill}px; object-fit:cover; display:block; border:2px solid ${T.card}; }
+.me-arc .ad.cnt{ display:grid; place-items:center; background:${LAPIS.grad}; color:${LAPIS.ink}; border:2px solid ${T.card};
+  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; }
+` : ''}
 .me-sat{ position:absolute; left:50%; transform:translateX(-50%); bottom:-${SAT_DROP.m}px; display:flex; align-items:center;
   padding:0; border:0; background:none; cursor:pointer; }
 .me-sat .s{ width:${SAT.m}px; height:${SAT.m}px; border-radius:${PACK_R.pill}px; padding:${S.xs}px; background:${RING}; margin-left:-18px;
@@ -431,6 +458,22 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
 }
 
 /** FOTKA MAJITEĽA + SATELIT PSOV. Bez `onToggle` je satelit len obraz (náhľad v UPRAVIŤ). */
+/* Psy po spodnom oblúku — priemer psa ako podiel fotky majiteľa podľa počtu (nákres: 56·46·40·36·32 px pri 126).
+   Uhol medzi psami z tetivy 0,9 × priemer; stred psa na kružnici s polomerom 0,475 fotky (stred pásu obruče).
+   Viac než 5 psov: prvé 4 + krúžok „+N". */
+const ARC_MAX = 5;
+const ARC_D = [0, .444, .365, .317, .286, .254];
+function arcDogs(count: number): CSSProperties[] {
+  const n = Math.min(count, ARC_MAX);
+  const d = ARC_D[n];
+  const r = .475;
+  const step = 2 * Math.asin(Math.min(1, (d * .9) / (2 * r)));
+  return Array.from({ length: n }, (_, k) => {
+    const a = Math.PI / 2 - (k - (n - 1) / 2) * step;
+    return { width: `${d * 100}%`, left: `${(.5 + r * Math.cos(a) - d / 2) * 100}%`, top: `${(.5 + r * Math.sin(a) - d / 2) * 100}%` };
+  });
+}
+
 export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, photoLabel, toggleLabel, badge, story, onAdd, addLabel, onDogPhoto, dogBusy, dogPhotoLabel }: {
   photo: string | null;
   initial: string;
@@ -481,18 +524,35 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
       {dogs.length > 2 && <span className="cnt">{dogs.length}</span>}
     </>
   );
+  // TEST_BUILD: psy po spodnom oblúku obruče (nákres `plany/nakresy/obruc/ig.html`, sekcia „psy po spodku kruhu").
+  // DEV: `?psy=5` zopakuje psov, aby sa dal oblúk pozrieť aj s jedným psom v účte; `?story=1` zapne obruč story.
+  const devN = import.meta.env.DEV ? Number(new URLSearchParams(window.location.search).get('psy')) : 0;
+  if (devN > 0 && dogs.length > 0) dogs = Array.from({ length: devN }, (_, k) => ({ ...dogs[k % dogs.length], id: `${dogs[k % dogs.length].id}-${k}` }));
+  if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('story') === '1') story = 'live';
+  const arc = RANK_BADGE_ON && !open && dogs.length > 0;
   return (
     <div className={`me-own${story ? ` st-${story}` : ''}`}>
       <button type="button" onClick={onPhoto} aria-label={photoLabel}>
         {photo ? <img src={sizedUrl(photo, 320)} alt="" /> : <span className="ini">{initial}</span>}
       </button>
       {badge}
+      {arc && (
+        <button type="button" className="me-arc" onClick={onToggle} aria-expanded={open} aria-label={toggleLabel} disabled={!onToggle}>
+          {arcDogs(dogs.length).map((p, k) => {
+            const more = dogs.length > ARC_MAX && k === ARC_MAX - 1;
+            const d = dogs[k];
+            return more
+              ? <span key="cnt" className="ad cnt" style={p}>+{dogs.length - (ARC_MAX - 1)}</span>
+              : <span key={d.id} className="ad" style={p}>{d.cloudinary_main_url && <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" />}</span>;
+          })}
+        </button>
+      )}
       {onAdd && (
         <button type="button" className="me-add" onClick={onAdd} aria-label={addLabel}>
           <BrandIcon name="plus-sign" size={14} tint="white" />
         </button>
       )}
-      {dogs.length > 0 && (onToggle ? (
+      {!arc && dogs.length > 0 && (onToggle ? (
         <button type="button" className="me-sat" onClick={onToggle} aria-expanded={open} aria-label={toggleLabel}>{sat}</button>
       ) : (
         <span className="me-sat" aria-hidden>{sat}</span>
