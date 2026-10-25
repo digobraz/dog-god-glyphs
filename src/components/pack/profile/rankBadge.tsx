@@ -11,7 +11,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { TEST_BUILD } from '@/lib/env';
 import { readEvents } from '@/lib/dogEvents';
-import { PACK_R, PACK_SHADOW, PACK_THEME, PACK_TEXT, PACK_SPACE, FONT_TITLE } from '@/components/pack/packTheme';
+import { PACK_R, PACK_SHADOW, PACK_THEME, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 
@@ -66,7 +66,7 @@ export const RANK_BADGE_CSS = `
   50%{ box-shadow:inset 0 -3px 5px rgba(60,30,0,.45), 0 0 12px 3px rgba(255,224,150,1); } }
 @media (prefers-reduced-motion:reduce){ .rk .fl::after, .rk .fl.full{ animation:none; } }
 .rk .nb{ position:absolute; top:0; bottom:0; right:0; left:calc(var(--s) * .48); display:flex; align-items:center; justify-content:center;
-  font-family:${FONT_TITLE}; font-weight:700; font-size:calc(var(--s) * .42); line-height:1; letter-spacing:0; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.85); }
+  font-family:${FONT_UI}; font-weight:600; font-size:calc(var(--s) * .42); line-height:1; letter-spacing:0; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.85); }
 .rk.on .cp{ border-color:#fff; }
 /* BONES: kapsula podľa dĺžky čísla (1 240 je širšie než 9). */
 .rk .cp.cp--auto{ width:auto; min-width:calc(var(--s) * 1.6); padding:0 14px 0 calc(var(--s) * .72); display:flex; align-items:center; justify-content:center; }
@@ -232,9 +232,9 @@ export const RANK_PANEL_CSS = `
 .rkp-hd .tx{ flex:1; min-width:0; }
 .rkp-hd h3{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:16px; letter-spacing:.14em; text-transform:uppercase; color:#F3E6C8; }
 .rkp-hd p{ margin:4px 0 0; font-size:14px; color:#F3E6C8; }
-.rkp-hd .ab{ flex:none; font-family:${FONT_TITLE}; font-weight:700; font-size:12px; letter-spacing:.02em; color:#E7C46C; }
+.rkp-hd .ab{ flex:none; font-family:${FONT_UI}; font-weight:600; font-size:12px; letter-spacing:.02em; color:#E7C46C; }
 .rkp-lbl{ display:flex; justify-content:space-between; gap:8px; margin:16px 0 4px; font-size:12px; color:rgba(243,230,200,.75); }
-.rkp-lbl b{ font-family:${FONT_TITLE}; font-weight:700; color:#F3E6C8; }
+.rkp-lbl b{ font-family:${FONT_UI}; font-weight:600; color:#F3E6C8; }
 /* Pás = kapsula odznaku natiahnutá: tmavá ryha, zlatý lem, tekutá náplň s odleskom a prebehom svetla. */
 .rkp-bar{ position:relative; height:24px; border-radius:${PACK_R.pill}px; overflow:hidden; background:linear-gradient(180deg, #1b2350, #0c1030);
   border:1.5px solid rgba(231,196,108,.85); box-shadow:inset 0 2px 4px rgba(0,0,0,.6); }
@@ -244,7 +244,7 @@ export const RANK_PANEL_CSS = `
 .rkp-bar .fl::after{ content:''; position:absolute; top:0; bottom:0; width:40%; left:-40%;
   background:linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); animation:rk-flow 3.2s ease-in-out infinite; }
 .rkp-bar .fl.full{ animation:rk-glow 2.4s ease-in-out infinite; }
-.rkp-bar span{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:${FONT_TITLE}; font-weight:700;
+.rkp-bar span{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:${FONT_UI}; font-weight:600;
   font-size:12px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.85); }
 .rkp-nx{ display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; color:rgba(243,230,200,.75); }
 .rkp-nx img{ width:24px; height:24px; object-fit:contain; }
@@ -254,14 +254,14 @@ export const RANK_PANEL_CSS = `
 .rkp-lad img{ width:100%; max-width:40px; aspect-ratio:1; object-fit:contain; filter:grayscale(1) brightness(.45); opacity:.6; }
 .rkp-lad .done img{ filter:none; opacity:1; }
 .rkp-lad .on img{ filter:drop-shadow(0 0 6px rgba(255,214,120,.9)); opacity:1; transform:scale(1.15); }
-.rkp-lad small{ font-family:${FONT_TITLE}; font-weight:700; font-size:10px; color:rgba(243,230,200,.55); }
+.rkp-lad small{ font-family:${FONT_UI}; font-weight:600; font-size:10px; color:rgba(243,230,200,.55); }
 .rkp-lad .on small{ color:#E7C46C; }
 .rkp-cap{ margin:4px 0 0; text-align:center; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:rgba(243,230,200,.5); }
 .rkp-how{ margin:12px 0 0; font-size:12px; line-height:1.45; color:rgba(243,230,200,.75); }
 .rkp-act{ display:inline-flex; align-items:center; gap:4px; margin-top:12px; border:0; background:none; padding:0; cursor:pointer;
   font-weight:600; font-size:12px; color:#E7C46C; text-decoration:underline; text-underline-offset:3px; }
 .rkp-nums{ display:grid; grid-template-columns:repeat(3, 1fr); margin-top:16px; text-align:center; }
-.rkp-nums b{ display:block; font-family:${FONT_TITLE}; font-weight:700; font-size:20px; color:#F3E6C8; }
+.rkp-nums b{ display:block; font-family:${FONT_UI}; font-weight:600; font-size:20px; color:#F3E6C8; }
 .rkp-nums span{ font-size:10px; color:rgba(243,230,200,.6); }
 @media (prefers-reduced-motion:reduce){ .rkp-bar .fl::after, .rkp-bar .fl.full{ animation:none; } }
 `;
@@ -389,7 +389,7 @@ export const STORY_RING_CSS = `
   box-shadow:${PACK_SHADOW.card}; }
 .me-arc .ad img{ width:100%; height:100%; border-radius:${PACK_R.pill}px; object-fit:cover; display:block; border:2px solid ${PACK_THEME.card}; }
 .me-arc .ad.cnt{ display:grid; place-items:center; background:${LAPIS.grad}; color:${LAPIS.ink}; border:2px solid ${PACK_THEME.card};
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.micro}px; }
+  font-family:${FONT_UI}; font-weight:600; font-size:${PACK_TEXT.micro}px; }
 `;
 
 /* Psy po spodnom oblúku — priemer psa ako podiel fotky majiteľa podľa počtu (nákres: 56·46·40·36·32 px pri 126).

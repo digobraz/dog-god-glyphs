@@ -33,13 +33,14 @@ import { devotionLevel, DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, visibleLocalTrails, tripPath } from '@/components/pack/tripShared';
-import { PILL_CSS } from '@/components/pack/packTheme';
+import { PILL_CSS, PAPER_ROUTES_EXTRA } from '@/components/pack/packTheme';
+import { TEST_BUILD } from '@/lib/env';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BonesSheet } from '@/components/pack/BonesSheet';
 import { TripShareSheet, type TripShareData } from '@/components/pack/trip/TripShareSheet';
 import { dogShareLink } from '@/lib/useShareCard';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { ME_CSS, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
+import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
 import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBadge';
 import { StoryViewer } from '@/components/pack/profile/StoryViewer';
 import { DevotionToday } from '@/components/pack/profile/DevotionToday';
@@ -48,6 +49,11 @@ import { levelProgress } from '@/lib/tripPoints';
 import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbum, isLive, isTripStory, type MePost } from '@/components/pack/profile/mePosts';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
+
+// PROFIL BEZ KARTY (TEST_BUILD, Matej 25. 10. 2026): celá plocha bledá, obsah na celú šírku —
+// papyrus bez ohľadu na prepínač šatu, ako DOMOV v `pages/Pack.tsx`.
+const FLAT = TEST_BUILD;
+if (FLAT) PAPER_ROUTES_EXTRA.push(/^\/pack\/profile$/);
 
 const TOTAL_SCROLLS = VAULT_WORLDS.reduce((s, w) => s + w.scrolls, 0);
 
@@ -300,13 +306,14 @@ export default function PackMe() {
     <PackLayout>
       <style>{PILL_CSS}</style>
       <style>{ME_CSS}</style>
+      {FLAT && <style>{ME_FLAT_CSS}</style>}
       {novice && (
         <button type="button" className="pk-pill pk-pill--tap" onClick={noviceOff}
           style={{ display: 'flex', margin: '0 auto 8px', fontSize: 12 }}>
           {tx('pack.me.novicePreview', 'Preview: a brand-new member · back to my account')}
         </button>
       )}
-      <section className={`me-card${open ? ' open' : ''}`}>
+      <section className={`me-card${FLAT ? ' me-flat' : ''}${open ? ' open' : ''}`}>
         {/* TITULKA — BONES · meno · DEVOTION · PÚTNIK (spoločná s UPRAVIŤ PROFIL, `meHead.tsx`). */}
         <MeCover
           cover={coverSrc}

@@ -3,7 +3,7 @@
 // *„daj náhľad ako bude v realite = meno gradient atď... nech to má človek 1:1"*.
 // Úprava hlavy sa preto robí TU a prejaví sa na oboch obrazovkách naraz.
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_TOPROW, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandCamera } from '@/components/pack/HandIcons';
@@ -64,7 +64,7 @@ export const ME_CSS = `
 .me-tbar{ display:flex; justify-content:space-between; align-items:flex-start; padding:${S.md}px; }
 .me-bones{ display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.md}px; border-radius:${PACK_R.pill}px; cursor:pointer;
   background:${tierGradient(BONES_TIER)}; border:1px solid ${BONES_TIER.b}; color:${BONES_TIER.ink}; box-shadow:${T.panelShadow};
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.label}px; letter-spacing:.02em; }
+  font-family:${FONT_UI}; font-weight:600; font-size:${TX.label}px; letter-spacing:.02em; }
 .me-foot{ position:absolute; left:${OWN_X.m + OWN.m + S.sm}px; right:${S.md}px; bottom:-${OWN_DROP}px; }
 .me-nm{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.h2}px; letter-spacing:.14em; color:${T.inkStrong};
   text-transform:uppercase; white-space:nowrap; overflow:hidden; }
@@ -73,7 +73,7 @@ export const ME_CSS = `
    nenaťahuje; dlhý stupeň sa skráti. Pod sebou len so „stack“. Ťuk = rozbaľovač MeRank pod hlavou. */
 .me-lv{ display:flex; gap:6px; margin-top:${S.sm}px; }
 .me-lv > *{ flex:0 1 auto; min-width:0; justify-content:center; display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.sm}px; border-radius:${PACK_R.pill}px; white-space:nowrap;
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; letter-spacing:.02em; text-transform:uppercase; cursor:pointer; }
+  font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.02em; text-transform:uppercase; cursor:pointer; }
 .me-lv.stack{ flex-direction:column; align-items:flex-start; gap:${S.xs}px; }
 .me-lv.stack > *{ flex:none; letter-spacing:.14em; }
 .me-lv > .on{ box-shadow:0 0 0 2px ${T.card}, 0 0 0 3.5px ${LAPIS.edge}; }
@@ -88,21 +88,21 @@ export const ME_CSS = `
 .me-rk-hd .tx{ flex:1; min-width:0; }
 .me-rk-hd .tx p.me-rk-q{ margin:${S.xs}px 0 0; font-size:${TX.label}px; }
 .me-rk-hd .ic{ flex:none; display:grid; place-items:center; width:32px; height:32px; border-radius:${PACK_R.pill}px; background:var(--dv-dot); box-shadow:0 0 14px var(--dv-glow); }
-.me-rk-hd .ic b{ font-family:${FONT_TITLE}; font-weight:700; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.lead}px; }
+.me-rk-hd .ic b{ font-family:${FONT_UI}; font-weight:600; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.lead}px; }
 .me-rk-hd .ic.pt{ background:var(--rk-fill); box-shadow:none; }
 .me-rk-hd .ab{ flex:none; display:inline-flex; align-items:center; gap:${S.xs}px; border:0; background:none; padding:${S.xs}px 0; color:var(--rk-ink);
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.label}px; letter-spacing:.02em; white-space:nowrap; }
+  font-family:${FONT_UI}; font-weight:600; font-size:${TX.label}px; letter-spacing:.02em; white-space:nowrap; }
 .me-rk-hd button.ab{ cursor:pointer; }
 .me-rk-hd button.ab:disabled{ cursor:default; }
 /* Deliaca čiara DO STRATENA (Matej 23. 10.) — zo stredu sa rozplynie do oboch strán. */
 .me-rk-line{ height:1px; border:0; margin:${S.md}px 0; background:linear-gradient(90deg, transparent, var(--rk-edge) 50%, transparent); opacity:.85; }
 /* PROGRES: koľaj + žiariaca výplň s pomalým leskom, napravo ďalší stupeň. */
 .me-rk-row{ display:flex; align-items:center; gap:${S.md}px; }
-.me-rk-nx{ flex:none; display:inline-flex; align-items:center; gap:${S.xs}px; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px;
+.me-rk-nx{ flex:none; display:inline-flex; align-items:center; gap:${S.xs}px; font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px;
   letter-spacing:.14em; text-transform:uppercase; color:var(--rk-ink); white-space:nowrap; }
 .me-rk-nx .g{ display:grid; place-items:center; width:18px; height:18px; border-radius:${PACK_R.pill}px; background:var(--dv-dot); box-shadow:0 0 8px var(--dv-glow); }
-.me-rk-nx .g b{ font-family:${FONT_TITLE}; font-weight:700; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.micro}px; }
-.me-rk-nx b{ font-family:${FONT_TITLE}; font-size:${TX.label}px; }
+.me-rk-nx .g b{ font-family:${FONT_UI}; font-weight:600; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.micro}px; }
+.me-rk-nx b{ font-family:${FONT_UI}; font-weight:600; font-size:${TX.label}px; }
 .me-rk-bar{ position:relative; flex:1; min-width:0; height:24px; border-radius:${PACK_R.pill}px; background:var(--rk-track); overflow:hidden; }
 .me-rk-bar > b{ position:absolute; left:0; top:0; bottom:0; border-radius:${PACK_R.pill}px; overflow:hidden; transition:width .8s cubic-bezier(.2,.8,.2,1);
   background:linear-gradient(90deg, color-mix(in srgb, var(--rk-fill) 55%, transparent), var(--rk-fill));
@@ -112,7 +112,7 @@ export const ME_CSS = `
 @keyframes me-shine{ 0%{ transform:translateX(-100%); } 60%,100%{ transform:translateX(100%); } }
 @media (prefers-reduced-motion:reduce){ .me-rk-bar > b::after{ animation:none; } }
 .me-rk-bar > span{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:0 ${S.sm}px; white-space:nowrap; overflow:hidden;
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; letter-spacing:.02em; color:var(--rk-ink); }
+  font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.02em; color:var(--rk-ink); }
 .me-rk-bar > span.in{ color:var(--rk-bg-ink); }
 .me-rk h3 small{ font-family:${FONT_UI}; font-weight:500; font-size:${TX.micro}px; letter-spacing:.02em; text-transform:none; color:var(--rk-dim); }
 .me-rk p{ margin:${S.sm}px 0 0; font-family:${FONT_UI}; font-size:${TX.label}px; line-height:1.45; color:var(--rk-ink); }
@@ -124,7 +124,7 @@ export const ME_CSS = `
 .me-rk-sc span.done{ opacity:1; }
 .me-rk-sc span.cur{ opacity:1; background:var(--rk-fill); border-color:var(--rk-fill); color:var(--rk-bg-ink); font-weight:600; }
 .me-rk-nums{ display:grid; grid-template-columns:repeat(3,1fr); margin-top:${S.md}px; text-align:center; }
-.me-rk-nums b{ display:block; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.lead}px; color:var(--rk-ink); }
+.me-rk-nums b{ display:block; font-family:${FONT_UI}; font-weight:600; font-size:${TX.lead}px; color:var(--rk-ink); }
 .me-rk-nums span{ font-family:${FONT_UI}; font-size:${TX.micro}px; color:var(--rk-dim); }
 .me-rk-link{ display:inline-flex; align-items:center; gap:${S.xs}px; margin-top:${S.md}px; border:0; background:none; padding:0; cursor:pointer;
   font-family:${FONT_UI}; font-weight:600; font-size:${TX.label}px; color:var(--rk-ink); text-decoration:underline; text-underline-offset:3px; }
@@ -132,7 +132,7 @@ export const ME_CSS = `
 /* NOC + ŽIARA (Matej 23. 10.): farbu stupňa nesie žiariaca gulička s kresbou (devotionTiers.ts). */
 .me-dvg{ flex:none; display:grid; place-items:center; width:18px; height:18px; border-radius:${PACK_R.pill}px;
   background:var(--dv-dot); box-shadow:0 0 8px var(--dv-glow); }
-.me-dvg b{ font-family:${FONT_TITLE}; font-weight:700; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.micro}px; letter-spacing:0; }
+.me-dvg b{ font-family:${FONT_UI}; font-weight:600; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.micro}px; letter-spacing:0; }
 .me-lv > .me-dv{ padding-right:${S.md}px; }
 .me-lv > .me-pt{ flex:none; min-width:52px; padding:${S.xs}px ${S.md}px; }
 .me-rk p.me-rk-q{ font-style:italic; color:var(--rk-dim); }
@@ -140,12 +140,12 @@ export const ME_CSS = `
 .me-rk-py{ display:flex; flex-direction:column; align-items:center; gap:2px; margin-top:${S.md}px; }
 .me-rk-py span{ display:flex; align-items:center; justify-content:center; height:14px; border-radius:${PACK_R.pill}px; overflow:hidden; white-space:nowrap;
   border:1px solid var(--rk-edge); background:var(--rk-track); color:var(--rk-dim); opacity:.55;
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; line-height:1; letter-spacing:.02em; text-transform:uppercase; }
+  font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; line-height:1; letter-spacing:.02em; text-transform:uppercase; }
 .me-rk-py span.done{ opacity:1; background:var(--dv-dot); border-color:var(--dv-glow); color:var(--dv-icon-ink); }
 .me-rk-py span.on{ opacity:1; height:24px; background:var(--dv-dot); border-color:var(--dv-glow); color:var(--dv-icon-ink); box-shadow:0 0 14px var(--dv-glow); }
 .me-rk-py span.gold,.me-rk-py span.sun{ opacity:.85; background:var(--dv-bg); border-color:var(--dv-edge); color:var(--dv-ink); }
 .me-rk-sc span i{ display:grid; place-items:center; width:18px; height:18px; font-style:normal; border-radius:${PACK_R.pill}px; background:var(--dv-dot); }
-.me-rk-sc span i b{ font-family:${FONT_TITLE}; font-weight:700; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.micro}px; }
+.me-rk-sc span i b{ font-family:${FONT_UI}; font-weight:600; line-height:1; color:var(--dv-icon-ink); font-style:normal; font-size:${TX.micro}px; }
 .me-pt{ background:var(--tier-bg); border:1px solid var(--tier-b); color:var(--tier-ink); cursor:pointer; }
 
 .me-under{ position:relative; padding:0 ${S.lg}px ${S.lg}px; }
@@ -171,7 +171,7 @@ export const ME_CSS = `
 .me-sdog:disabled{ cursor:default; opacity:.7; }
 .me-sdog .cam{ color:${LAPIS.ink}; position:absolute; right:-${S.sm}px; bottom:-${S.xs}px; width:28px; height:28px; border-radius:${PACK_R.pill}px; display:grid; place-items:center;
   background:${LAPIS.grad}; border:2px solid ${T.card}; box-shadow:${LAPIS_BTN_SHADOW}; }
-.me-own .ini{ display:grid; place-items:center; width:100%; height:100%; font-family:${FONT_TITLE}; font-size:${TX.h1}px; color:${T.inkWarm}; }
+.me-own .ini{ display:grid; place-items:center; width:100%; height:100%; font-family:${FONT_UI}; font-weight:600; font-size:${TX.h1}px; color:${T.inkWarm}; }
 ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
 .me-sat{ position:absolute; left:50%; transform:translateX(-50%); bottom:-${SAT_DROP.m}px; display:flex; align-items:center;
   padding:0; border:0; background:none; cursor:pointer; }
@@ -181,7 +181,7 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
 .me-sat .s img{ width:100%; height:100%; border-radius:${PACK_R.pill}px; object-fit:cover; display:block; border:2px solid ${T.card}; }
 .me-sat .cnt{ position:absolute; right:-${S.sm}px; top:-${S.xs}px; min-width:22px; height:22px; padding:0 ${S.xs}px; border-radius:${PACK_R.pill}px;
   background:${LAPIS.grad}; color:${LAPIS.ink}; border:1.5px solid ${T.card}; display:grid; place-items:center;
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; }
+  font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; }
 .me-sat .up{ width:30px; height:30px; border-radius:${PACK_R.pill}px; display:grid; place-items:center; background:${LAPIS.grad};
   box-shadow:${LAPIS_BTN_SHADOW}; border:2px solid ${T.card}; }
 .me-sat .up img{ transform:rotate(90deg); }
@@ -198,7 +198,7 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
   box-shadow:${T.panelShadow}; border:0; cursor:pointer; }
 .me-dp img{ width:100%; height:100%; border-radius:${PACK_R.pill}px; object-fit:cover; display:block; border:2px solid ${T.card}; }
 .me-no{ display:inline-flex; align-items:center; background:${LAPIS.grad}; color:${LAPIS.ink}; box-shadow:${LAPIS_BTN_SHADOW};
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; letter-spacing:.02em; padding:0 ${S.sm}px; border-radius:${PACK_R.pill}px;
+  font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.02em; padding:0 ${S.sm}px; border-radius:${PACK_R.pill}px;
   border:1.5px solid ${T.card}; white-space:nowrap; }
 .me-dp .me-no{ position:absolute; left:50%; bottom:-${S.sm}px; transform:translateX(-50%); }
 .me-hg{ flex:1; min-width:0; position:relative; height:56px; padding:0; border:0; background:none; cursor:pointer; }
@@ -214,7 +214,7 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
 .me-drow.flip .me-dinfo{ max-height:240px; opacity:1; }
 .me-dedit{ display:inline-flex; align-items:center; gap:${S.xs}px; margin-top:${S.sm}px; padding:${S.xs}px ${S.md}px; border-radius:${PACK_R.pill}px;
   background:transparent; border:1.5px solid ${LAPIS.edge}; color:${LAPIS.edge}; cursor:pointer;
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; letter-spacing:.14em; text-transform:uppercase; }
+  font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.14em; text-transform:uppercase; }
 .me-dedit:hover{ background:${LAPIS.fill}; }
 .me-dinfo .none{ color:${T.inkFaint}; font-style:italic; cursor:pointer; }
 .me-dinfo p{ margin:${S.xs}px 0 0; font-family:${FONT_UI}; font-size:${TX.label}px; line-height:1.45; color:${T.ink};
@@ -224,7 +224,7 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
 
 .me-stats{ display:grid; grid-template-columns:repeat(5,1fr); margin:${S.md}px 0 0; padding:${S.sm}px 0; }
 .me-stats button{ background:none; border:0; padding:0; cursor:pointer; color:inherit; text-align:center; min-width:0; }
-.me-stats b{ display:block; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.lead}px; color:${T.inkStrong}; line-height:1.2; white-space:nowrap; }
+.me-stats b{ display:block; font-family:${FONT_UI}; font-weight:600; font-size:${TX.lead}px; color:${T.inkStrong}; line-height:1.2; white-space:nowrap; }
 .me-stats b.na{ color:${T.alertRed}; }
 .me-stats span{ display:block; font-family:${FONT_UI}; font-size:${TX.micro}px; color:${T.inkWarm}; white-space:nowrap; }
 .me-btns{ display:grid; grid-template-columns:1fr 1fr; gap:${S.sm}px; margin-top:${S.md}px; }
@@ -235,7 +235,7 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
 .me-out{ background:transparent; color:${LAPIS.edge}; border:1.5px solid ${LAPIS.edge}; }
 .me-out:hover{ background:${LAPIS.fill}; }
 .me-role{ display:flex; flex-wrap:wrap; gap:${S.xs}px; margin-top:${S.md}px; }
-.me-role .pk-pill{ font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; letter-spacing:.14em; text-transform:uppercase; padding:${S.xs}px ${S.md}px; }
+.me-role .pk-pill{ font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.14em; text-transform:uppercase; padding:${S.xs}px ${S.md}px; }
 .me-bio{ margin:${S.sm}px 0 0; }
 .me-bio p{ margin:0; font-family:${FONT_UI}; font-size:${TX.body}px; line-height:1.45; color:${T.ink};
   display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
@@ -267,7 +267,7 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
 .me-grid img{ width:100%; height:100%; object-fit:cover; display:block; }
 .me-grid .cap{ position:absolute; left:0; right:0; bottom:0; padding:${S.lg}px ${S.sm}px ${S.sm}px; text-align:left;
   background:linear-gradient(180deg, transparent, color-mix(in srgb, ${T.pageBg} 80%, transparent));
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; line-height:1.2; color:${LAPIS.ink}; }
+  font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; line-height:1.2; color:${LAPIS.ink}; }
 .me-grid--story button{ aspect-ratio:9/16; }
 .me-tag{ position:absolute; left:4px; top:4px; font-family:${FONT_UI}; font-size:${TX.micro}px; letter-spacing:.14em; background:${LAPIS.grad}; color:${LAPIS.ink}; padding:0 ${S.sm}px; border-radius:${PACK_R.pill}px; }
 .me-empty{ padding:${S.xl}px ${S.lg}px; text-align:center; font-family:${FONT_UI}; font-size:${TX.body}px; color:${T.inkWarm}; }
@@ -298,6 +298,39 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
   .me-strip{ margin-right:0; padding-right:0; }
   .me-bio{ max-width:560px; }
   .me-grid{ grid-template-columns:repeat(5,1fr); }
+}
+`;
+
+/* PROFIL BEZ KARTY (TEST_BUILD, Matej 25. 10. 2026: *„layout daj bez toho bloku nad chrámom, skrátka
+ * obsah na celú šírku — horná časť bude bledá s gradientom nad obrázkom a celá plocha bude bledá"*).
+ * Titulka siaha až pod horný rad (AINUBIS · obálka · chvost) a rozplynie sa do papyrusu hore aj dole;
+ * stránka stojí na `.pk-paper` (PackMe ju zapíše do `PAPER_ROUTES_EXTRA`). Len `/pack/profile` —
+ * UPRAVIŤ PROFIL ostáva na karte, kým to Matej nepovie. Odsadenie z rovnice: rad = `PACK_TOPROW.content`,
+ * okraj stĺpca = `px-4` / `sm:px-6` z `PackLayout`. */
+const TOP = `(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.content}px)`;
+const FLAT_FADE = 'linear-gradient(180deg, transparent 0%, transparent 6%, rgba(0,0,0,.45) 24%, #000 42%, #000 54%, transparent 100%)';
+/* Bez rámu karty meria vzduch od okraja OKNA — fotka majiteľa na `PAGE_AIR` (16), šuplík v jej osi. */
+const FLAT_X = S.lg;
+export const ME_FLAT_CSS = `
+.me-card.me-flat{ border:0; border-radius:0; background:none; box-shadow:none; margin:calc(-1 * ${TOP}) -${S.lg}px 0; }
+.me-flat .me-cover{ height:calc(${COVER_H.m}px + ${TOP}); }
+.me-flat .me-cover::before{ -webkit-mask-image:${FLAT_FADE}; mask-image:${FLAT_FADE}; }
+.me-flat .me-cover::after{ display:none; }
+.me-flat .me-tbar{ padding-top:calc(${TOP} + ${S.sm}px); padding-left:${FLAT_X}px; padding-right:${FLAT_X}px; }
+.me-flat .me-own{ left:${FLAT_X}px; }
+.me-flat .me-foot{ left:${FLAT_X + OWN.m + S.sm}px; right:${FLAT_X}px; }
+.me-flat .me-drow{ padding-left:${FLAT_X + OWN.m / 2 - DOG_D.m / 2}px; }
+@media (min-width:640px){ .me-card.me-flat{ margin:calc(-1 * ${TOP}) -${S.xl}px 0; } }
+@media (min-width:768px){
+  .me-flat .me-cover{ height:calc(${COVER_H.pc}px + ${TOP}); }
+  .me-flat .me-tbar{ padding-left:${S.xl}px; padding-right:${S.xl}px; }
+  .me-flat .me-own{ left:${S.xl}px; }
+  .me-flat .me-foot{ left:${S.xl + OWN.pc + S.lg}px; right:${S.xl}px; }
+  .me-flat .me-drow{ padding-left:${S.xl + OWN.pc / 2 - DOG_D.pc / 2}px; }
+  /* PC: stĺpec 880 nekončí na okraji okna — titulka sa rozplynie aj do strán, inak by stáli dve tvrdé hrany. */
+  .me-flat .me-cover::before{ -webkit-mask-image:${FLAT_FADE}, linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+    mask-image:${FLAT_FADE}, linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+    -webkit-mask-composite:source-in; mask-composite:intersect; }
 }
 `;
 
