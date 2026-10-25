@@ -106,7 +106,7 @@ body.psv-open .pta-acts.collapsed{ display:none; }
   flex:0 0 auto; width:36px; height:36px; border-radius:${PACK_R.pill}px;
   display:flex; align-items:center; justify-content:center; overflow:hidden;
   background:${T.tileBg}; border:1.5px solid ${T.border};
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.body}px; color:${T.inkWarm};
+  font-family:${FONT_UI}; font-weight:600; font-size:${PACK_TEXT.body}px; color:${T.inkWarm};
 }
 /* Pes je DRUHÝ a menší: príbeh píše človek. Zlatý lem ho odlíši v prekryve. */
 .psv-face--dog{ width:30px; height:30px; border-color:${T.cardEdge}; }

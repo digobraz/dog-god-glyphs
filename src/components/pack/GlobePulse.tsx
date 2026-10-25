@@ -395,9 +395,9 @@ function MilestoneSwiper({
                 <div
                   className="inline-flex items-center justify-center gap-1.5"
                   style={{
-                    fontFamily: FONT_TITLE,
+                    fontFamily: FONT_UI,
                     fontSize: 'clamp(19px, 4.6vw, 24px)',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     letterSpacing: '0.14em',
                     color: 'hsl(45 96% 90%)',
                   }}

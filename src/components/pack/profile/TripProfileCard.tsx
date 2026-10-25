@@ -5,7 +5,7 @@
 // wiring do reálneho buddy-listu (PackMap.tsx) je samostatný krok.
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_UI } from '@/components/pack/packTheme';
 import type { PackDogFull } from '@/hooks/usePackUser';
 import type { PartyMember } from '@/components/pack/triplist/useTripParty';
 import {
@@ -169,7 +169,7 @@ export function TripProfileCard({
           {hasAvatar ? (
             <img src={sizedUrl(effAvatar!, 144)} alt={effName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 18, fontWeight: 700, color: T.inkDim }}>
+            <span style={{ fontFamily: FONT_UI, fontSize: 18, fontWeight: 600, color: T.inkDim }}>
               {initial}
             </span>
           )}

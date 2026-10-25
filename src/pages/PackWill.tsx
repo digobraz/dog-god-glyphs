@@ -118,7 +118,7 @@ export default function PackWill() {
                     <span style={{ fontFamily: DOG_FONT, fontWeight: 700, fontSize: PACK_TEXT.h2, color: T.inkStrong }}>
                       {d.name}
                       {d.number != null && (
-                        <span style={{ marginLeft: S.sm, background: LAPIS.grad, color: LAPIS.ink, fontFamily: FONT_TITLE, fontSize: PACK_TEXT.micro, padding: `0 ${S.sm}px`, borderRadius: PACK_R.pill, verticalAlign: 'middle' }}>#{d.number}</span>
+                        <span style={{ marginLeft: S.sm, background: LAPIS.grad, color: LAPIS.ink, fontFamily: FONT_UI, fontWeight: 600, fontSize: PACK_TEXT.micro, padding: `0 ${S.sm}px`, borderRadius: PACK_R.pill, verticalAlign: 'middle' }}>#{d.number}</span>
                       )}
                     </span>
                   </div>

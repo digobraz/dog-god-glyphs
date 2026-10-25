@@ -59,7 +59,7 @@ const CSS = `
 .pkid-av svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;}
 .pkid-photo{position:relative;z-index:1;width:${PHOTO}px;height:${PHOTO}px;border-radius:${PACK_R.pill}px;object-fit:cover;
   display:flex;align-items:center;justify-content:center;background:${AINUBIS.faceBg};color:${AINUBIS.ctaA};
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;line-height:1;}
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.body}px;line-height:1;}
 /* Číslo NA OKRAJI avatara; lem = farba podkladu pod ním (tu AINUBISOV displej). */
 .pkid-lvl{position:absolute;z-index:3;right:-2px;bottom:-2px;width:20px;height:20px;border-radius:${PACK_R.pill}px;
   display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;

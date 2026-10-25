@@ -288,7 +288,7 @@ ${AI_BREATHE_CSS}
 .akc-av{width:30px;height:30px;flex:0 0 30px;border-radius:50%;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
   border:1px solid ${AINUBIS.edge};background:${AINUBIS.faceBg};
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;line-height:1;
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;line-height:1;
   color:${AINUBIS.cyan};}
 .akc-av img{width:100%;height:100%;object-fit:cover;display:block;}
 .akc-owner b{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;

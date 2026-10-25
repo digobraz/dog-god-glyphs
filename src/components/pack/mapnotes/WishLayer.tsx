@@ -67,7 +67,7 @@ function clusterIcon(n: number): L.DivIcon {
       `<div class="mn-mark mn-cluster" style="box-sizing:border-box;width:${px}px;height:${px}px;` +
       `border-radius:999px;background:#FFFFFF;border:2.5px solid ${WISH_RIM};` +
       `box-shadow:${PACK_SHADOW.lift};gap:2px;` +
-      `font-family:${FONT_TITLE};font-weight:700;font-size:${fs}px;color:${WISH_RIM};">` +
+      `font-family:${FONT_UI};font-weight:600;font-size:${fs}px;color:${WISH_RIM};">` +
       `<i style="font-style:normal;font-family:${FONT_EMOJI};font-size:12px">${WISH_EMOJI}</i>${n}</div>`,
   });
 }

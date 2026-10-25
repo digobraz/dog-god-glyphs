@@ -85,9 +85,9 @@ export function TripGradeCard({ result, photoCount, onGo, t }: {
 const TRIP_GRADE_CSS = `
 .tgc-card{padding:16px;color:${T.ink};font-family:${FONT_UI};}
 .tgc-head{display:flex;align-items:center;gap:12px;width:100%;background:none;border:0;padding:0;cursor:pointer;text-align:left;color:inherit;font-family:inherit;}
-.tgc-medal{width:48px;height:48px;border-radius:999px;display:grid;place-items:center;flex:none;font-family:${FONT_TITLE};font-weight:700;font-size:24px;color:#fff;box-shadow:${PACK_SHADOW.lift};}
+.tgc-medal{width:48px;height:48px;border-radius:999px;display:grid;place-items:center;flex:none;font-family:${FONT_UI};font-weight:600;font-size:24px;color:#fff;box-shadow:${PACK_SHADOW.lift};}
 .tgc-meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;}
-.tgc-score{font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:.14em;color:${T.inkStrong};}
+.tgc-score{font-family:${FONT_UI};font-weight:600;font-size:16px;letter-spacing:.14em;color:${T.inkStrong};}
 .tgc-sub{font-size:12px;color:${T.inkDim};}
 .tgc-chev{width:8px;height:8px;flex:none;border-right:2px solid ${T.inkDim};border-bottom:2px solid ${T.inkDim};transform:rotate(45deg);margin:0 8px 4px 0;transition:transform .15s;}
 .tgc-chev.open{transform:rotate(-135deg);margin:4px 8px 0 0;}

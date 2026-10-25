@@ -32,7 +32,7 @@ const CSS = `${PROGRESS_CSS}
 .kp-sub{padding:${PACK_SPACE.md}px;}
 .kp-lbl{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .kp-hero{display:flex;justify-content:space-between;align-items:baseline;gap:${PACK_SPACE.sm}px;}
-.kp-hero b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;color:${T.inkStrong};white-space:nowrap;}
+.kp-hero b{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.h1}px;color:${T.inkStrong};white-space:nowrap;}
 .kp-tot{display:flex;justify-content:space-between;gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.xs}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .kp-tot b{font-weight:600;color:${T.inkStrong};}
 .kp-mh,.kp-mo{display:grid;grid-template-columns:minmax(56px,auto) 1fr 1fr 12px;gap:${PACK_SPACE.sm}px;align-items:center;}

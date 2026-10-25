@@ -296,7 +296,7 @@ export function WillPanel({
                 className="pk-pill pk-pill--gold pk-pill--tap inline-flex items-center gap-2"
                 onClick={send}
                 disabled={sending}
-                style={{ fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' }}
+                style={{ fontFamily: FONT_UI, fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' }}
               >
                 {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                 {tx('pack.will.sendNow', 'Send')}
@@ -319,7 +319,7 @@ export function WillPanel({
                     : undefined
               }
               style={{
-                fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.14em',
+                fontFamily: FONT_UI, fontSize: 10, fontWeight: 600, letterSpacing: '0.14em',
                 textTransform: 'uppercase', opacity: canSend ? 1 : 0.45,
                 cursor: canSend ? 'pointer' : 'default',
               }}
@@ -336,7 +336,7 @@ export function WillPanel({
               onClick={save}
               disabled={!dirty || saving}
               style={{
-                fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.14em',
+                fontFamily: FONT_UI, fontSize: 10, fontWeight: 600, letterSpacing: '0.14em',
                 textTransform: 'uppercase', opacity: dirty || savedAt ? 1 : 0.45,
                 cursor: dirty ? 'pointer' : 'default',
               }}

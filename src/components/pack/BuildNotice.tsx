@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight, Send, Paperclip, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadFeedbackPhoto } from '@/services/cloudinaryService';
-import { PACK_THEME, PACK_SHADOW } from './packTheme';
+import { PACK_THEME, PACK_SHADOW, FONT_UI } from './packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import { HandCheck } from '@/components/pack/HandIcons';
 
@@ -80,7 +80,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
           background: BRICK,
           borderRadius: 999,
           padding: '4px 12px',
-          fontFamily: "'Cinzel', serif",
+          fontFamily: FONT_UI,
           fontSize: 10,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',

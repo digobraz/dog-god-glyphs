@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { intlLocale } from '@/i18n/bcp47';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { PACK_THEME, PACK_SHADOW } from './packTheme';
+import { PACK_THEME, PACK_SHADOW, FONT_UI } from './packTheme';
 import imgMobileApp from '@/assets/pack-survey/mobile-app.webp';
 import imgHealth from '@/assets/pack-survey/health.webp';
 import imgMerch from '@/assets/pack-survey/merch.webp';
@@ -254,9 +254,9 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
             onClick={() => setShowResults((v) => !v)}
             className="mt-3"
             style={{
-              fontFamily: "'Cinzel', serif",
+              fontFamily: FONT_UI,
               fontSize: 10,
-              fontWeight: 700,
+              fontWeight: 600,
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
               color: T.ink,
@@ -364,9 +364,9 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
                         disabled={isBusy}
                         className="mt-3 inline-flex items-center gap-2"
                         style={{
-                          fontFamily: "'Cinzel', serif",
+                          fontFamily: FONT_UI,
                           fontSize: 10,
-                          fontWeight: 700,
+                          fontWeight: 600,
                           letterSpacing: '0.14em',
                           textTransform: 'uppercase',
                           padding: '8px 16px',
@@ -530,9 +530,9 @@ function ResultsGraph({
               <span
                 className="inline-flex items-center gap-1"
                 style={{
-                  fontFamily: "'Cinzel', serif",
+                  fontFamily: FONT_UI,
                   fontSize: 12,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   letterSpacing: '0.02em',
                   color: CREAM,
                 }}

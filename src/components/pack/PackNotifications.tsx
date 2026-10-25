@@ -390,7 +390,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
             <>
               <div
                 style={{
-                  fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.26em',
+                  fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, letterSpacing: '0.26em',
                   textTransform: 'uppercase', color: T.inkDim, marginBottom: 8,
                 }}
               >
@@ -496,7 +496,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
             <>
               <div
                 style={{
-                  fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.26em',
+                  fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, letterSpacing: '0.26em',
                   textTransform: 'uppercase', color: T.inkDim, marginBottom: 8,
                 }}
               >
@@ -522,7 +522,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                             flexShrink: 0, width: 22, height: 22, borderRadius: '50%',
                             background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 10, color: T.ink,
+                            fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600, fontSize: 10, color: T.ink,
                           }}
                         >
                           {name.charAt(0).toUpperCase()}

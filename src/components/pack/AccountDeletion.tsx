@@ -33,7 +33,7 @@ const btnSecondary: React.CSSProperties = {
   border: `1px solid ${T.border}`,
   borderRadius: PACK_R.field,
   padding: `${PACK_SPACE.sm}px ${PACK_SPACE.lg}px`,
-  fontFamily: FONT_TITLE,
+  fontFamily: FONT_UI,
   fontSize: PACK_TEXT.micro,
   letterSpacing: '0.26em',
   textTransform: 'uppercase',
@@ -118,7 +118,7 @@ export function DeleteAccountButton() {
         <Okno onClose={() => !busy && setOpen(false)}>
           <div className="flex items-center" style={{ gap: PACK_SPACE.md }}>
             <BackButton tone="pale" onClick={() => !busy && setOpen(false)} label={tx('pack.settings.close', 'Close')} />
-            <span style={{ fontFamily: FONT_TITLE, fontSize: PACK_TEXT.micro, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim }}>
+            <span style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.micro, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim }}>
               {tx('pack.settings.delete', 'Delete account')}
             </span>
           </div>

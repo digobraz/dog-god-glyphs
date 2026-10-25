@@ -62,7 +62,7 @@ const QUIZ_CSS = `
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:12px 24px; background:transparent;
   border:1.5px solid ${T.border}; border-radius:8px; color:${T.inkWarm};
-  font-family:'Cinzel',serif; font-size:10px; font-weight:700;
+  font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:600;
   letter-spacing:0.14em; text-transform:uppercase; cursor:pointer;
 }
 .qz-ghost:hover{ border-color:${T.cardEdge}; color:${T.inkStrong}; }
@@ -93,7 +93,7 @@ const QUIZ_CSS = `
 .qz-seg.is-on::before{ background:${LAPIS.edge}; }
 .qz-seg:hover{ color:${T.inkStrong}; }
 .qz-skip{ padding:12px 12px; background:none; border:0; cursor:pointer;
-  font-family:'Cinzel',serif; font-size:10px; font-weight:700; letter-spacing:0.14em;
+  font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:600; letter-spacing:0.14em;
   text-transform:uppercase; color:${T.inkWarm}; text-decoration:underline; text-underline-offset:4px;
   text-decoration-color:rgba(122,90,42,0.35); }
 .qz-skip:hover{ color:${T.inkStrong}; text-decoration-color:currentColor; }

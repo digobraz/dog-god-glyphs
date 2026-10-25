@@ -51,7 +51,7 @@ const PASS_CSS = `
 /* ✎ a „zdieľať" = pilulky. DNA .pk-pill (papyrusový gradient + 1.5px rgba(179,130,45,.55)
    + hover lift) — rozdiel medzi nimi nesie len veľkosť písma a výplň, nie iný rám. */
 .pass-share{ display:inline-flex; align-items:center; gap:7px;
-  font-family:'Cinzel',serif; font-size:10px; font-weight:700; letter-spacing:.14em;
+  font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:600; letter-spacing:.14em;
   text-transform:uppercase; padding:8px 16px; }
 .pass-share:disabled{ opacity:.5; cursor:default; }
 .pass-edit{ font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:0.14em;

@@ -79,14 +79,14 @@ ${MEDALLION_CSS}
 .vk .pk-progress{background:${AINUBIS.surface};}
 .vk-head{display:flex;align-items:center;gap:${PACK_SPACE.lg}px;margin-top:${PACK_SPACE.md}px;}
 .vk-head .pk-medallion{border-color:${AINUBIS.edgeStrong};background:${AINUBIS.faceBg};color:${AINUBIS.ctaA};
-  font:700 ${PACK_TEXT.h2}px ${FONT_TITLE};}
+  font:600 ${PACK_TEXT.h2}px ${FONT_UI};}
 .vk-head > div{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;min-width:0;}
 .vk-who{font-size:${PACK_TEXT.label}px;color:${AINUBIS.inkDim};}
 /* VEĽKÉ ČÍSLA — ako svetové štatistiky v TRIPSTATS */
 .vk-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.xl}px;}
 @media (min-width:768px){.vk-kpis{grid-template-columns:repeat(4,minmax(0,1fr));}}
 .vk-kpi{padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;${AI_GLASS}display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
-.vk-kpi b{font:700 ${PACK_TEXT.h1}px/1 ${FONT_TITLE};color:${AINUBIS.ink};}
+.vk-kpi b{font:600 ${PACK_TEXT.h1}px/1 ${FONT_UI};color:${AINUBIS.ink};}
 .vk-kpi b small{font-size:${PACK_TEXT.body}px;color:${AINUBIS.inkFaint};}
 .vk-kpi span{font-size:${PACK_TEXT.label}px;line-height:1.35;color:${AINUBIS.inkDim};}
 .vk-kpi i{font-style:normal;font-size:${PACK_TEXT.micro}px;color:${AINUBIS.inkFaint};}
@@ -116,7 +116,7 @@ ${MEDALLION_CSS}
 .vk-badge .vk-bic{width:56px;height:56px;border-radius:${PACK_R.pill}px;display:inline-flex;align-items:center;justify-content:center;
   background:${AINUBIS.raised};border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkFaint};}
 .vk-badge .vk-bic i{display:block;width:28px;height:28px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;}
-.vk-badge b{font:700 ${PACK_TEXT.label}px ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkDim};}
+.vk-badge b{font:600 ${PACK_TEXT.label}px ${FONT_UI};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkDim};}
 .vk-badge small{font-size:${PACK_TEXT.micro}px;line-height:1.4;color:${AINUBIS.inkFaint};}
 .vk-badge .pk-progress{height:4px;margin-top:${PACK_SPACE.xs}px;}
 .vk-badge.is-got{border-color:${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};}

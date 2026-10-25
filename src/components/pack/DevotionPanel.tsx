@@ -21,7 +21,7 @@ export function DevotionPanel({ devotion }: { devotion: number }) {
       <div className="flex items-center justify-between gap-3 mb-3">
         <span
           style={{
-            fontFamily: "'Cinzel', serif",
+            fontFamily: "'Space Grotesk', sans-serif",
             fontSize: 10,
             letterSpacing: '0.32em',
             textTransform: 'uppercase',
@@ -53,9 +53,9 @@ export function DevotionPanel({ devotion }: { devotion: number }) {
           </span>
           <span
             style={{
-              fontFamily: "'Cinzel', serif",
+              fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 600,
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
               color: '#FFF6E6',
@@ -90,9 +90,9 @@ export function DevotionPanel({ devotion }: { devotion: number }) {
         <div className="relative h-full flex items-center justify-center gap-1.5">
           <span
             style={{
-              fontFamily: "'Cinzel', serif",
+              fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 16,
-              fontWeight: 700,
+              fontWeight: 600,
               color: T.ink,
               lineHeight: 1,
               textShadow: '0 1px 2px rgba(250,244,236,0.5)',

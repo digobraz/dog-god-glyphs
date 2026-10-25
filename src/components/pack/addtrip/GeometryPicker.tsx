@@ -1818,7 +1818,7 @@ export function GeometryPicker({
         <div style={{ fontFamily: FONT_UI, fontSize: 12, color: T.onDarkDim }}>{t('pack.addTrip.geo.snappingBusy')}</div>
       )}
       {value.kind === 'route' && onPickExisting && pointCount === 0 && (
-        <div style={{ fontFamily: FONT_TITLE, fontSize: 12, letterSpacing: '0.14em', color: T.onDarkDim, textTransform: 'uppercase' }}>
+        <div style={{ fontFamily: FONT_UI, fontSize: 12, letterSpacing: '0.14em', color: T.onDarkDim, textTransform: 'uppercase' }}>
           {t('pack.addTrip.geo.ghostHint')}
         </div>
       )}

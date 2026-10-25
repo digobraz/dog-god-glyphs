@@ -12,7 +12,7 @@
 // Vytiahnuté 1:1 z `PackDogDetail.tsx` — z neho sa NEIMPORTUJE nič (~3200 riadkov, lazy).
 import React, { useState } from 'react';
 import { BrandIcon } from './BrandIcon';
-import { PACK_THEME, PACK_SHADOW } from './packTheme';
+import { PACK_THEME, PACK_SHADOW, FONT_UI } from './packTheme';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -76,9 +76,9 @@ export function DogStats({ birthMonth = null, birthDay = null }: { birthMonth?: 
           <div className="absolute inset-0 flex items-center justify-center" style={{ padding: 16 }}>
             <span
               style={{
-                fontFamily: "'Cinzel', serif",
+                fontFamily: FONT_UI,
                 fontSize: 16,
-                fontWeight: 700,
+                fontWeight: 600,
                 letterSpacing: '0.26em',
                 textTransform: 'uppercase',
                 color: T.accentGold,
@@ -189,7 +189,7 @@ function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; bi
             style={{
               width: 28,
               flexShrink: 0,
-              fontFamily: "'Cinzel', serif",
+              fontFamily: FONT_UI,
               fontSize: 10,
               letterSpacing: '0.02em',
               textTransform: 'uppercase',
@@ -225,7 +225,7 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
     <div className="flex flex-col gap-2">
       <div
         style={{
-          fontFamily: "'Cinzel', serif",
+          fontFamily: FONT_UI,
           fontSize: 10,
           letterSpacing: '0.26em',
           textTransform: 'uppercase',
@@ -240,7 +240,7 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
         <div key={l.label} className="flex items-center gap-2.5">
           <span style={{ width: 16, height: 16, borderRadius: 8, flexShrink: 0, background: l.color }} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, fontWeight: 700, color: T.ink, lineHeight: 1.1 }}>
+            <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, color: T.ink, lineHeight: 1.1 }}>
               {l.label}
             </div>
             <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkFaint }}>{l.desc}</div>

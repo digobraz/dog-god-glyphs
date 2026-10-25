@@ -35,7 +35,7 @@ export const DOG_ORDER_CSS = `
 .dor-bar{ display:flex; justify-content:flex-end; margin-bottom:-${PACK_SPACE.xs}px; }
 .dor-pill{ display:inline-flex; align-items:center; justify-content:center; padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
   border-radius:${PACK_R.pill}px; border:1px solid; cursor:pointer; white-space:nowrap;
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.label}px; letter-spacing:0.14em; text-transform:uppercase;
+  font-family:${FONT_UI}; font-weight:600; font-size:${PACK_TEXT.label}px; letter-spacing:0.14em; text-transform:uppercase;
   background:linear-gradient(180deg,#FFFDF7 0%,#EFDDAE 100%); border-color:${LAPIS.edge}; color:${PICK_INK.lapis};
   transition:transform .12s ease; }
 .dor-pill:hover{ transform:translateY(-1px); }
@@ -47,7 +47,7 @@ export const DOG_ORDER_CSS = `
   border:2px solid ${PACK_THEME.cardEdge}; background:${PACK_THEME.tileBg}; }
 .dor-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.body}px; letter-spacing:0.02em; color:${PACK_THEME.ink}; }
-.dor-num{ flex:none; font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.label}px; letter-spacing:0.02em;
+.dor-num{ flex:none; font-family:${FONT_UI}; font-weight:600; font-size:${PACK_TEXT.label}px; letter-spacing:0.02em;
   padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px; border-radius:${PACK_R.pill}px; background:${LAPIS.grad}; color:${LAPIS.ink}; }
 .dor-grip{ flex:none; width:${PACK_SPACE.xl}px; height:${PACK_SPACE.xl + PACK_SPACE.md}px; display:grid; place-items:center;
   cursor:grab; touch-action:none; border-radius:${PACK_R.field}px; }

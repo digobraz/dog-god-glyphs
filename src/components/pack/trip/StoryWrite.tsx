@@ -77,7 +77,7 @@ ${PF_FIELD_CSS}
 }
 /* Poradie PRED zverejnením — dôvod dopísať to dnes, nie o rok (rozhodnutie 7). */
 .psw-rank{ margin:${PACK_SPACE.lg}px 0 0; font-size:${PACK_TEXT.label}px; color:${T.inkWarm}; }
-.psw-rank b{ font-family:${FONT_TITLE}; font-weight:700; color:${T.cardEdge}; }
+.psw-rank b{ font-family:${FONT_UI}; font-weight:700; color:${T.cardEdge}; }
 /* Prepínač viditeľnosti — VÝBER je priesvitný tint, nie plná plocha (brand). */
 .psw-vis{ display:flex; gap:${PACK_SPACE.sm}px; margin-top:${PACK_SPACE.sm}px; }
 .psw-vis button{

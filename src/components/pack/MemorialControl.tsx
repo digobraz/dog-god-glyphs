@@ -119,7 +119,7 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
     background: 'transparent',
     border: `1px solid ${T.border}`,
     color: T.inkDim,
-    fontFamily: "'Cinzel', serif",
+    fontFamily: "'Space Grotesk', sans-serif",
     fontSize: 10,
     letterSpacing: '0.14em',
     textTransform: 'uppercase',

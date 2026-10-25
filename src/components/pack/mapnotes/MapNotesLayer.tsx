@@ -171,7 +171,7 @@ function clusterIcon(n: number, tint: string): L.DivIcon {
       `<div class="mn-mark mn-cluster" style="box-sizing:border-box;width:${px}px;height:${px}px;` +
       `border-radius:999px;background:#FFFFFF;border:2.5px solid ${tint};` +
       `box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);` +
-      `font-family:${FONT_TITLE};font-weight:700;font-size:${fs}px;color:${tint};">${n}</div>`,
+      `font-family:${FONT_UI};font-weight:600;font-size:${fs}px;color:${tint};">${n}</div>`,
   });
 }
 
@@ -573,7 +573,7 @@ ${CIRCLE_MARK_CSS}
    pravda vedľa tej z JS. */
 .mn-bubble-mark{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:999px;background:#FFFFFF;border:2px solid ${T.border};box-sizing:border-box;}
 .mn-bubble-em{font-style:normal;font-family:${FONT_EMOJI};font-size:16px;line-height:1;-webkit-user-select:none;user-select:none;}
-.mn-bubble-kind{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;}
+.mn-bubble-kind{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;}
 .mn-bubble-tag{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkWarm};border:1px solid ${T.border};border-radius:999px;padding:4px 8px;}
 .mn-bubble-stale{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkWarm};}
 .mn-bubble-body{margin:0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.inkStrong};white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;}

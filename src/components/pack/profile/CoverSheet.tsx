@@ -48,7 +48,7 @@ const CSS = `
 .cs-grid > *{position:relative;aspect-ratio:1;border-radius:${PACK_R.field}px;overflow:hidden;padding:0;border:0;cursor:pointer;background:${T.tileBg};}
 .cs-grid img{width:100%;height:100%;object-fit:cover;display:block;}
 .cs-add{display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:${S.xs}px;border:1.5px dashed ${T.cardEdge} !important;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
+  font-family:${FONT_UI};font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .cs-ph.on{box-shadow:inset 0 0 0 3px ${LAPIS.edge};}
 .cs-ph .bd{position:absolute;left:${S.xs}px;top:${S.xs}px;padding:0 ${S.sm}px;border-radius:${PACK_R.pill}px;background:${LAPIS.grad};color:${LAPIS.ink};
   font-family:${FONT_UI};font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;}

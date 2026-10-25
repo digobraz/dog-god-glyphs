@@ -88,7 +88,7 @@ export const AINUBIS_BUBBLE_CSS = `
 .ain-face-btn--pulse{animation:ain-face-pulse 2.4s ease-in-out infinite;}
 @keyframes ain-face-pulse{0%,100%{box-shadow:0 0 0 0 rgba(91,224,240,0);}50%{box-shadow:0 0 0 5px rgba(91,224,240,0.22);}}
 @media (prefers-reduced-motion: reduce){.ain-face-btn--pulse{animation:none;}}
-.ain-bubble b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:${A.ink};margin-bottom:4px;}
+.ain-bubble b{display:block;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:${A.ink};margin-bottom:4px;}
 .ain-bubble .ain-cta{margin-top:12px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:8px 16px;border-radius:8px;background:${A.ctaGrad};color:${A.ctaInk};border:1px solid ${GOLD_BTN.edge};box-shadow:${A.ctaShadow};cursor:pointer;}
 .ain-bubble .ain-cta:disabled{opacity:.6;cursor:default;}
 `;

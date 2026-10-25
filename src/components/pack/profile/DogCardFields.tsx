@@ -11,7 +11,7 @@
 import { useState } from 'react';
 import { ChevronDown, X } from 'lucide-react';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_UI } from '@/components/pack/packTheme';
 import { TRAFFIC_OPTIONS, TRAFFIC_COLORS, type TaxonomyOption, type TrafficLight } from './packProfile';
 
 const T = PACK_THEME;
@@ -25,7 +25,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 const sectionLabelStyle: React.CSSProperties = {
-  fontFamily: "'Cinzel', serif",
+  fontFamily: FONT_UI,
   fontSize: 10,
   letterSpacing: '0.22em',
   textTransform: 'uppercase',

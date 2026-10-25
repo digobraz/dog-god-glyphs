@@ -118,13 +118,13 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
               marginTop: 10, paddingTop: 8, borderTop: `1px solid ${T.border}`,
             }}>
               <span style={{
-                fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12,
+                fontFamily: FONT_UI, fontWeight: 600, fontSize: 12,
                 letterSpacing: '.14em', textTransform: 'uppercase',
                 color: T.onDark,
               }}>
                 {t('pack.tier.totalLabel')}
               </span>
-              <b style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 24, color: '#F5C73D' }}>
+              <b style={{ fontFamily: FONT_UI, fontWeight: 600, fontSize: 24, color: '#F5C73D' }}>
                 {level.points}
               </b>
             </div>

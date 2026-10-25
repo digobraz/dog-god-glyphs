@@ -77,7 +77,7 @@ export function VerseOfTheDay() {
       {/* eyebrow */}
       <span
         style={{
-          fontFamily: FONT_TITLE,
+          fontFamily: FONT_UI,
           fontSize: 10,
           letterSpacing: '0.26em',
           textTransform: 'uppercase',

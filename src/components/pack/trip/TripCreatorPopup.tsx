@@ -34,7 +34,7 @@ export const TRIP_CREATOR_CSS = `${VEIL_CSS}
 .tcp-x{${backCircleCSS('pale')}}
 .tcp-x:hover{${backHoverCSS('pale')}}
 .tcp-author{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;border:1px solid ${PACK_THEME.border};background:rgba(201,154,63,0.08);}
-.tcp-av{flex-shrink:0;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_TITLE};font-weight:700;font-size:20px;color:${INK};}
+.tcp-av{flex-shrink:0;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:20px;color:${INK};}
 .tcp-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${T.onDark};}
 .tcp-role{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${GOLD};margin-bottom:3px;}
 .tcp-msg{margin-top:14px;width:100%;height:42px;border-radius:8px;border:1px solid ${GOLD_BTN.edge};background:${GOLD_BTN.grad};color:${INK};font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;}

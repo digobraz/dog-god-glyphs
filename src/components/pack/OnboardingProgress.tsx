@@ -1,7 +1,7 @@
 import { Circle, Sparkles } from 'lucide-react';
 import { useT } from '@/i18n/LanguageContext';
 import { BrandIcon } from './BrandIcon';
-import { PACK_THEME, GOLD_BTN } from './packTheme';
+import { PACK_THEME, GOLD_BTN, FONT_UI } from './packTheme';
 import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
@@ -35,7 +35,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
       <div
         className="flex items-center gap-2 mb-2"
         style={{
-          fontFamily: "'Cinzel', serif",
+          fontFamily: FONT_UI,
           fontSize: 10,
           letterSpacing: '0.32em',
           textTransform: 'uppercase',
@@ -60,9 +60,9 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
         </h4>
         <div
           style={{
-            fontFamily: "'Cinzel', serif",
+            fontFamily: FONT_UI,
             fontSize: 22,
-            fontWeight: 700,
+            fontWeight: 600,
             color: T.ink,
             letterSpacing: '0.02em',
           }}

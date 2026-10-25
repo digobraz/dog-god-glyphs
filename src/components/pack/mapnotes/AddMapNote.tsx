@@ -858,7 +858,7 @@ export const ADD_NOTE_CSS = `
 .mna-radius-switch{display:flex;gap:6px;}
 .mna-radius-switch .mna-opt{flex:0 1 auto;font-size:10px;padding:4px 12px;}
 .mna-radius-switch .mna-opt.on{color:${GOLD};border-color:${GOLD};background:rgba(201,154,63,0.12);}
-.mna-radius-val{margin-left:auto;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;color:${T.onDark};}
+.mna-radius-val{margin-left:auto;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;color:${T.onDark};}
 .mna-radius-note{margin:6px 0 0;font-family:${FONT_UI};font-size:10px;line-height:1.4;color:${T.onDarkDim};}
 .mna-range{width:100%;margin:9px 0 0;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;}
 .mna-range:focus{outline:none;}

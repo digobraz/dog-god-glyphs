@@ -167,7 +167,7 @@ export const NOTE_PALETTE_CSS = `
 .np-item--off{opacity:.42;cursor:default;}
 .np-item--off:hover{border-color:${T.onDarkBorder};background:rgba(245,240,228,0.04);transform:none;}
 
-.np-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:${T.onDark};white-space:nowrap;}
+.np-name{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:${T.onDark};white-space:nowrap;}
 .np-text{font-family:${FONT_UI};font-size:12px;line-height:1.45;color:${T.onDarkDim};}
 
 .np-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:${FONT_EMOJI};line-height:1;-webkit-user-select:none;user-select:none;}

@@ -148,7 +148,7 @@ export const MAP_NOTES_SECTION_CSS = `
 .mns-threat--tip{border-color:${GROUP_TINT.comment};}
 .mns-main{flex:1;min-width:0;}
 .mns-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
-.mns-kind{font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;}
+.mns-kind{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;}
 .mns-tag{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkWarm};border:1px solid ${T.border};border-radius:999px;padding:4px 8px;}
 .mns-stale{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkWarm};}
 .mns-body{margin:5px 0 0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:rgba(42,22,8,0.86);white-space:pre-wrap;word-break:break-word;}

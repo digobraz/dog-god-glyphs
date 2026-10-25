@@ -247,7 +247,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
             style={{
               width: 34, height: 34, borderRadius: '50%', border: `1.5px solid ${T.cardEdge}`,
               background: d.cloudinary_main_url ? `center/cover url('${sizedUrl(d.cloudinary_main_url, 102)}')` : T.tileBg,
-              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, color: T.inkStrong,
+              fontFamily: FONT_UI, fontWeight: 600, fontSize: 12, color: T.inkStrong,
             }}
           >
             {d.cloudinary_main_url ? '' : (d.dog_name || 'D').charAt(0).toUpperCase()}
@@ -279,7 +279,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
               className={`mate-preset${activePreset === p.id ? ' on' : ''}`}
               onClick={() => applyPreset(p.id)}
             >
-              <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+              <span style={{ display: 'block', fontFamily: FONT_UI, fontWeight: 600, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                 {lb(p.label)}
               </span>
               <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 10, lineHeight: 1.35, marginTop: 2, opacity: 0.85 }}>

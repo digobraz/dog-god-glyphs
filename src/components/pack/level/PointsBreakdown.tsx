@@ -88,8 +88,8 @@ export function PointsBreakdown({ rows, onDark = true, highlightKey, stagger }: 
             <b
               style={{
                 flex: '0 0 auto',
-                fontFamily: FONT_TITLE,
-                fontWeight: 700,
+                fontFamily: FONT_UI,
+                fontWeight: 600,
                 fontSize: 15.5,
                 color: accent,
                 fontVariantNumeric: 'tabular-nums',

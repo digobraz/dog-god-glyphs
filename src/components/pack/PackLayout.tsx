@@ -5,7 +5,7 @@ import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BonesCoin } from './BonesCoin';
-import { PACK_THEME, PACK_COL, PACK_COL_INNER, PACK_TOPROW_PAD, usePaperRoute, PAPER_PAGE_CSS, PAPER_ROUTES_EXTRA } from './packTheme';
+import { PACK_THEME, PACK_COL, PACK_COL_INNER, PACK_TOPROW_PAD, usePaperRoute, PAPER_PAGE_CSS, PAPER_ROUTES_EXTRA, FONT_UI } from './packTheme';
 import { TEST_BUILD } from '@/lib/env';
 import { PackTopRow } from './PackTopRow';
 import { devotionLevel } from '@/lib/devotion';
@@ -93,7 +93,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel }: Pac
       >
         {paperPage ? <style>{PAPER_PAGE_CSS}</style> : <HieroglyphBg />}
         <div className="relative" style={{ zIndex: 1 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 12, color: paperPage ? T.inkWarm : T.onDarkDim }}>
+          <div style={{ fontFamily: FONT_UI, letterSpacing: '0.26em', fontSize: 12, color: paperPage ? T.inkWarm : T.onDarkDim }}>
             {t('pack.layout.loading')}
           </div>
         </div>
@@ -161,7 +161,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel }: Pac
           <header className="mb-7 text-center">
             {subtitle && (
               <div className="mb-2" style={{
-                fontFamily: "'Cinzel', serif", letterSpacing: '0.26em',
+                fontFamily: FONT_UI, letterSpacing: '0.26em',
                 fontSize: 10, textTransform: 'uppercase', color: T.onDarkDim,
               }}>
                 {subtitle}
@@ -722,7 +722,7 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
             border: NAV_SKIN === 'gold' ? '1px solid rgba(150,105,30,0.55)' : 'none',
             boxSizing: 'border-box',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 12, color: '#1c160c',
+            fontFamily: FONT_UI, fontWeight: 600, fontSize: 12, color: '#1c160c',
           }}>
             {avatarInitial || 'D'}
           </div>
@@ -795,7 +795,7 @@ export function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, pack
               width: 36, height: 36, borderRadius: '50%',
               background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 15, color: '#1c160c',
+              fontFamily: FONT_UI, fontWeight: 600, fontSize: 15, color: '#1c160c',
               border: '2px solid rgba(201,154,63,0.45)',
             }}>
               {avatarInitial}
@@ -1040,11 +1040,11 @@ const pillStyle = (active: boolean): React.CSSProperties =>
    niekedy vrátiť, vráti sa V TOMTO tvare, nie v novom vymyslenom.
    eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const pillLabelStyle: React.CSSProperties = {
-  fontFamily: "'Cinzel', serif",
+  fontFamily: FONT_UI,
   fontSize: 11,
   letterSpacing: '0.22em',
   textTransform: 'uppercase',
-  fontWeight: 700,
+  fontWeight: 600,
 };
 
 function BrandIcon({ src, active }: { src: string; active: boolean }) {

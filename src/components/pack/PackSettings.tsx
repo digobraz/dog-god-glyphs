@@ -185,7 +185,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
       <style>{PF_FIELD_CSS}</style>
       {!bare && <div
         style={{
-          fontFamily: FONT_TITLE,
+          fontFamily: FONT_UI,
           fontSize: 10,
           letterSpacing: '0.26em',
           textTransform: 'uppercase',
@@ -213,7 +213,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
             border: `1px solid ${T.border}`,
             borderRadius: 8,
             padding: '8px 16px',
-            fontFamily: FONT_TITLE,
+            fontFamily: FONT_UI,
             fontSize: 10,
             letterSpacing: '0.26em',
             textTransform: 'uppercase',
@@ -326,7 +326,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
             border: `1px solid ${T.border}`,
             borderRadius: 8,
             padding: '8px 16px',
-            fontFamily: FONT_TITLE,
+            fontFamily: FONT_UI,
             fontSize: 10,
             letterSpacing: '0.26em',
             textTransform: 'uppercase',
@@ -426,7 +426,7 @@ export function Field({ icon, label, children, last }: { icon: React.ReactNode; 
     >
       <div className="flex items-center gap-3" style={{ color: T.inkDim }}>
         {icon}
-        <span style={{ fontFamily: FONT_TITLE, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase' }}>
+        <span style={{ fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase' }}>
           {label}
         </span>
       </div>

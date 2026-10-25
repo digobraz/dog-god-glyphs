@@ -142,7 +142,7 @@ function RankRowView({
         borderTop: first ? 'none' : `1px solid ${T.hairline}`,
       }}
     >
-      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12, color: T.inkDim, letterSpacing: '0.14em' }}>
+      <span style={{ fontFamily: FONT_UI, fontSize: 12, color: T.inkDim, letterSpacing: '0.14em' }}>
         {String(rank).padStart(2, '0')}
       </span>
       <span style={{ fontSize: kind === 'country' ? 19 : 16, lineHeight: 1 }}>{glyph}</span>
@@ -197,7 +197,7 @@ function PlaceholderRow({ rank, first }: { rank: number; first: boolean }) {
         opacity: 0.45,
       }}
     >
-      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12, color: T.inkFaint, letterSpacing: '0.14em' }}>
+      <span style={{ fontFamily: FONT_UI, fontSize: 12, color: T.inkFaint, letterSpacing: '0.14em' }}>
         {String(rank).padStart(2, '0')}
       </span>
       <span style={{ fontSize: 16, lineHeight: 1, color: T.inkFaint }}>—</span>

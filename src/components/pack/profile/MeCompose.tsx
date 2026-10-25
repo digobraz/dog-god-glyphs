@@ -40,7 +40,7 @@ const CSS = `
 .mc-body > *{flex:none;}
 .mc-pick{display:grid;grid-template-columns:1fr 1fr;gap:${S.md}px;}
 .mc-pick button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${S.sm}px;aspect-ratio:1;border-radius:${PACK_R.tile}px;cursor:pointer;
-  border:1.5px dashed ${T.cardEdge};background:${T.tileBg};color:${T.inkStrong};font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;letter-spacing:.14em;text-transform:uppercase;}
+  border:1.5px dashed ${T.cardEdge};background:${T.tileBg};color:${T.inkStrong};font-family:${FONT_UI};font-weight:600;font-size:${TX.label}px;letter-spacing:.14em;text-transform:uppercase;}
 .mc-story{position:relative;align-self:center;width:min(100%,320px);aspect-ratio:9/16;border-radius:${PACK_R.card}px;overflow:hidden;background:${T.pageBg};box-shadow:${T.panelShadow};}
 .mc-story img{width:100%;height:100%;object-fit:cover;display:block;}
 .mc-story p{position:absolute;left:${S.lg}px;right:${S.lg}px;bottom:${S.xl}px;margin:0;text-align:center;font-family:${FONT_UI};font-weight:600;font-size:${TX.h2}px;line-height:1.3;color:#fff;

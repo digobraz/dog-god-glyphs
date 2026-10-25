@@ -54,7 +54,7 @@ export const STORY_CARD_CSS = `
 .pst-num{
   position:absolute; left:-${PACK_SPACE.sm}px; top:-${PACK_SPACE.sm}px; z-index:2;
   display:inline-flex; align-items:center; justify-content:center;
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.label}px;
+  font-family:${FONT_UI}; font-weight:700; font-size:${PACK_TEXT.label}px;
   letter-spacing:0.02em; line-height:1; white-space:nowrap;
   padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px; border-radius:${PACK_R.pill}px;
   background:linear-gradient(180deg,#F5C73D,#E69E1A); color:#3d1f00;

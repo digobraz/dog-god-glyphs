@@ -113,7 +113,7 @@ export const SNIFFER_CARD_CSS = `
    lapis so zlatým písmom. Číslo v kotúči vľavo, zlatý lem, jemný lesk. */
 .sn-lv > span{display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px ${PACK_SPACE.xs}px ${PACK_SPACE.xs}px;
   border-radius:${PACK_R.pill}px;border:1px solid ${BRAND_GOLD_BTN.edge};white-space:nowrap;box-shadow:${PACK_SHADOW.panel};
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
 .sn-lv > span > b{display:inline-grid;place-items:center;min-width:${PACK_SPACE.lg + PACK_SPACE.xs}px;height:${PACK_SPACE.lg + PACK_SPACE.xs}px;padding:0 ${PACK_SPACE.xs}px;
   border-radius:${PACK_R.pill}px;font-family:${FONT_UI};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:0;}
 .sn-lv .is-pilgrim > b{background:rgba(0,0,0,.28);color:#fff;}
@@ -131,7 +131,7 @@ export const SNIFFER_CARD_CSS = `
 .sn-lbl{align-self:center;font-size:${PACK_TEXT.label}px;opacity:.75;margin-right:${PACK_SPACE.xs}px;}
 .sn-chip{align-self:flex-start;display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
   font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;white-space:nowrap;}
-.sn-chip b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;}
+.sn-chip b{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.body}px;}
 .sn-chip i{font-style:normal;opacity:.5;}
 /* CELÝ PROFIL = kreslené OKO pri mene (kolo 2: „schovaj to pod tlačidlo… vyber nejaký hand drawn").
    Kotúč 44 px (ťukacia plocha bez triku), zlatý lem ako odznaky, kresba z kitu eye.svg. */

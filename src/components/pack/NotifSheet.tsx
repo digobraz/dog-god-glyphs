@@ -177,7 +177,7 @@ const CSS = `
 .ntf-dog::after{content:'';position:absolute;left:0;right:0;bottom:0;height:46%;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.62));}
 /* Odznak čísla — ten istý ako na homepage (HeroCard): lapis. */
 .ntf-dog-cap{position:absolute;z-index:1;left:${PACK_SPACE.sm}px;right:${PACK_SPACE.sm}px;bottom:${PACK_SPACE.sm}px;display:flex;align-items:center;gap:${PACK_SPACE.sm}px;pointer-events:none;}
-.ntf-dog-num{flex:0 0 auto;white-space:nowrap;font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.02em;line-height:1;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;
+.ntf-dog-num{flex:0 0 auto;white-space:nowrap;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:${PACK_TEXT.label}px;letter-spacing:.02em;line-height:1;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;
   background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${T.hairline};box-shadow:${PACK_SHADOW.lift};}
 /* Trojbodka NEEXISTUJE (brand v4.1) — meno psa sa radšej zalomí. */
 .ntf-dog-name{min-width:0;overflow-wrap:anywhere;line-height:1.15;font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.body}px;color:${T.card};}
@@ -205,7 +205,7 @@ const CSS = `
 /* Počítadlo — písmo sa zmenšuje podľa POČTU ZNAKOV (--ntf-len), aby sa zmestilo aj „1 000 000".
    Farba = tmavý atrament papyrusu (Matej 23. 10.: lapis→zlatý gradient „nie sú v brande"). */
 .ntf-num{display:flex;align-items:baseline;gap:${PACK_SPACE.sm}px;}
-.ntf-num b{color:${T.inkStrong};font-family:'Cinzel',serif;font-weight:700;font-size:min(48px, calc(40cqw / var(--ntf-len, 3)));letter-spacing:.02em;line-height:1;white-space:nowrap;}
+.ntf-num b{color:${T.inkStrong};font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:min(48px, calc(40cqw / var(--ntf-len, 3)));letter-spacing:.02em;line-height:1;white-space:nowrap;}
 .ntf-num span{font-size:${PACK_TEXT.label}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 /* BEŽIACI PÁS — NAD blokom (Matej 23. 10.), nie v ňom. */
 .ntf-tick{position:relative;flex:0 0 auto;display:block;overflow:hidden;margin:${PACK_SPACE.sm}px 0 0;

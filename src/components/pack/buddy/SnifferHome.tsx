@@ -46,7 +46,7 @@ const CSS = `
 /* Horný prepínač výraznejší, aktívna záložka v PLNOM lapise (Matej 25. 9.). */
 .sh-tabs{display:flex;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:${T.cardSoft};box-shadow:${PACK_SHADOW.card};}
 .sh-tabs button{flex:1 1 0;padding:${PACK_SPACE.md}px ${PACK_SPACE.sm}px;border:1px solid transparent;border-radius:${PACK_R.pill}px;background:transparent;cursor:pointer;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};transition:background .2s ease,color .2s ease;}
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};transition:background .2s ease,color .2s ease;}
 .sh-tabs button:hover{color:${LAPIS.edge};}
 .sh-tabs button.is-on{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
 .sh-pane{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
@@ -71,7 +71,7 @@ const CSS = `
 .sh-btn.is-hit{animation:sh-hit .36s ease;}
 @keyframes sh-hit{0%{transform:scale(1);}35%{transform:scale(1.22);}100%{transform:scale(1);}}
 .sh-stamp{position:absolute;top:${PACK_SPACE.xxxl}px;z-index:4;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border:3px solid currentColor;border-radius:${PACK_R.field}px;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;letter-spacing:.14em;text-transform:uppercase;pointer-events:none;background:rgba(0,0,0,.25);}
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.h1}px;letter-spacing:.14em;text-transform:uppercase;pointer-events:none;background:rgba(0,0,0,.25);}
 .sh-stamp--yes{left:${PACK_SPACE.lg}px;color:#7BD88F;transform:rotate(-14deg);}
 .sh-stamp--no{right:${PACK_SPACE.lg}px;color:#FF7A6B;transform:rotate(14deg);}
 /* Celý profil odletí tým istým smerom ako karta. */
@@ -82,7 +82,7 @@ const CSS = `
 .sh-ico{display:block;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;}
 .sh-empty{margin:auto 0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sh-ghost{align-self:center;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border:1px solid ${T.border};background:${T.cardSoft};
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};cursor:pointer;}
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};cursor:pointer;}
 /* E3 (audit-sniffer-2026-09-26, „Duplicity"): .sh-cta bolo doslovné dvojča .bd-cta
    z PackBuddy.tsx — tá istá karta Shell ho vždy vykreslí spolu s týmto panelom, takže
    trieda je vždy po ruke. Tlačidlá nižšie preto berú .bd-cta, druhá definícia zbytočná. */

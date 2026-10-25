@@ -121,7 +121,7 @@ const CSS = `
 .bd-cta:disabled{opacity:.45;cursor:default;}
 .bd-cta--small{width:auto;align-self:flex-start;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;font-size:${PACK_TEXT.label}px;}
 .bd-ghost{width:100%;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.md}px;border:1px solid ${T.border};background:transparent;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};cursor:pointer;}
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};cursor:pointer;}
 /* tlačidlo drží dole, zoznam pod ním beží — bez vlastného pásu, aby nekreslilo obdĺžnik cez tapetu */
 .bd-incta{width:100%;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.md}px;}
 .bd-dock{position:sticky;bottom:${PAGE_AIR.min}px;z-index:4;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
@@ -149,7 +149,7 @@ const CSS = `
   background:${LAPIS.grad};border:2px solid ${T.card};box-shadow:${PACK_SHADOW.card};cursor:grab;}
 .bd-range input::-moz-range-thumb{pointer-events:auto;width:24px;height:24px;border-radius:${PACK_R.pill}px;
   background:${LAPIS.grad};border:2px solid ${T.card};box-shadow:${PACK_SHADOW.card};cursor:grab;}
-.bd-range__val{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;color:${T.inkStrong};}
+.bd-range__val{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;color:${T.inkStrong};}
 /* ÚVOD — erb s animovaným logom (SnifferLogo) a jedna veta. */
 .bd-hero{padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;}
 .bd-hero .bd-h2{font-size:${PACK_TEXT.h1}px;}
