@@ -310,7 +310,11 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
 const TOP = `(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.content}px)`;
 /* Horný rad (ikonky) stojí na PLNOM papyruse — fotka začína až pod ním a rozplynie sa do neho
  * (Matej 25. 10.: *„horná lišta bude širšia, aby ikonky s obálkou a chvostom boli celé na bledom"*). */
-const FLAT_FADE = `linear-gradient(180deg, transparent 0, transparent calc(${TOP}), #000 calc(${TOP} + 72px), #000 54%, transparent 100%)`;
+/* 🔁 Bez prechodu pod lištou (Matej 25. 10. nad porovnaním: variant „bez horného gradientu" → *„ok"*) —
+ * fotka začína ROVNOU hranou hneď pod radom, rozplýva sa len dole. */
+const FLAT_FADE = `linear-gradient(180deg, transparent 0, transparent calc(${TOP}), #000 calc(${TOP}), #000 54%, transparent 100%)`;
+/* Titulka o 20 px vyššia než na karte (Matej 25. 10.: *„zväčši veľkosť fotky tak o 20px na výšku"*). */
+const FLAT_TALL = 20;
 /* Bez rámu karty meria vzduch od okraja OKNA — fotka majiteľa na `PAGE_AIR` (16), šuplík v jej osi. */
 const FLAT_X = S.lg;
 export const ME_FLAT_CSS = `
@@ -318,7 +322,7 @@ export const ME_FLAT_CSS = `
 .pk-paper:has(.me-flat)::before, .pk-paper:has(.me-flat)::after{ display:none; }
 .me-flat .me-nm{ font-weight:900; }
 .me-card.me-flat{ border:0; border-radius:0; background:none; box-shadow:none; margin:calc(-1 * ${TOP}) -${S.lg}px 0; }
-.me-flat .me-cover{ height:calc(${COVER_H.m}px + ${TOP}); }
+.me-flat .me-cover{ height:calc(${COVER_H.m + FLAT_TALL}px + ${TOP}); }
 .me-flat .me-cover::before{ -webkit-mask-image:${FLAT_FADE}; mask-image:${FLAT_FADE}; }
 .me-flat .me-cover::after{ display:none; }
 .me-flat .me-tbar{ padding-top:calc(${TOP} + ${S.sm}px); padding-left:${FLAT_X}px; padding-right:${FLAT_X}px; }
@@ -327,7 +331,7 @@ export const ME_FLAT_CSS = `
 .me-flat .me-drow{ padding-left:${FLAT_X + OWN.m / 2 - DOG_D.m / 2}px; }
 @media (min-width:640px){ .me-card.me-flat{ margin:calc(-1 * ${TOP}) -${S.xl}px 0; } }
 @media (min-width:768px){
-  .me-flat .me-cover{ height:calc(${COVER_H.pc}px + ${TOP}); }
+  .me-flat .me-cover{ height:calc(${COVER_H.pc + FLAT_TALL}px + ${TOP}); }
   .me-flat .me-tbar{ padding-left:${S.xl}px; padding-right:${S.xl}px; }
   .me-flat .me-own{ left:${S.xl}px; }
   .me-flat .me-foot{ left:${S.xl + OWN.pc + S.lg}px; right:${S.xl}px; }
