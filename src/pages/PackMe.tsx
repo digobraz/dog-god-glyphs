@@ -26,7 +26,7 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
-import { useProfile, customPills, profileRoles, PERSONALITY_OPTIONS, type DogProfileAttrs } from '@/components/pack/profile/packProfile';
+import { useProfile, customPills, profileRoles, humanPills, type DogProfileAttrs } from '@/components/pack/profile/packProfile';
 import { useScrollState, useLiked, useSaved } from '@/components/pack/vault/vaultScrolls';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { devotionLevel, DEVOTION_TODAY_ON } from '@/lib/devotion';
@@ -35,6 +35,7 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, visibleLocalTrails, tripPath } from '@/components/pack/tripShared';
 import { PILL_CSS } from '@/components/pack/packTheme';
 import { TEST_BUILD } from '@/lib/env';
+import { STORIES_ON } from '@/lib/packFlags';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BonesSheet } from '@/components/pack/BonesSheet';
 import { TripShareSheet, type TripShareData } from '@/components/pack/trip/TripShareSheet';
@@ -94,19 +95,6 @@ function useNovicePreview(search: string): [boolean, () => void] {
 }
 
 const asFrames = (p: MePost): MePost[] => p.photos.map((ph, k) => ({ ...p, id: `${p.id}:${k}`, photos: [ph], body: k === 0 ? p.body : '' }));
-
-/** Pilulky človeka = jeho POVAHA z editora (emoji + meno) + jedna vlastná. */
-function humanPills(personality: string[] | undefined, custom: string[], t: (k: string) => string) {
-  const out = (personality ?? []).flatMap((v) => {
-    const o = PERSONALITY_OPTIONS.find((x) => x.value === v);
-    if (!o) return [];
-    const key = `pack.profile.personality.${v}`;
-    const label = t(key) === key ? o.labelEN : t(key);
-    return [{ k: v, emoji: o.emoji ?? '', label }];
-  });
-  custom.forEach((c, i) => out.push({ k: `custom${i}`, emoji: '', label: c }));
-  return out;
-}
 
 /** Riadok psa v šuplíku. Bio a povaha sú tie isté polia ako v DOG ID (`profile.dogs[id]`). */
 function DogRow({ dog, attrs, onClose, onDogId, tx }: {
@@ -241,7 +229,6 @@ export default function PackMe() {
   }, []);
 
   const bio = human?.dogVoiceBio?.trim() || human?.bio?.trim() || '';
-  const sigDog = human?.dogVoiceBio?.trim() ? dogs[0]?.dog_name : null;
   // „more" len vtedy, keď text naozaj presiahne 3 riadky.
   useLayoutEffect(() => {
     const el = bioRef.current;
@@ -295,7 +282,7 @@ export default function PackMe() {
 
   const TABS: Array<[Tab, string, string]> = [
     ['all', 'layers', tx('pack.me.tabAll', 'All')],
-    ['stories', 'play', tx('pack.me.stories', 'Stories')],
+    ...(STORIES_ON ? [['stories', 'play', tx('pack.me.stories', 'Stories')] as [Tab, string, string]] : []),
     ['albums', 'frame', tx('pack.me.tabAlbums', 'Albums')],
     ['trips', 'map', tx('pack.me.tabTrips', 'Trips')],
     ['private', 'lock', tx('pack.me.tabPrivate', 'Only me')],
@@ -343,10 +330,13 @@ export default function PackMe() {
             onToggle={() => setOpen((o) => !o)}
             // Ťuk na fotku: žije story → prehrávač, inak rovno nová story (ako IG). Profilovka sa
             // mení v UPRAVIŤ PROFIL.
-            onPhoto={() => (live.length ? setViewing({ items: live, start: 0, del: true }) : openCompose('moment'))}
-            photoLabel={live.length ? tx('pack.me.stories', 'Stories') : tx('pack.compose.newStory', 'New story')}
-            story={live.length ? 'live' : 'none'}
-            onAdd={() => openCompose('moment')}
+            // Príbehy vypnuté (`STORIES_ON`, 25. 10.): ťuk na fotku = výmena fotky, bez „+".
+            onPhoto={() => (!STORIES_ON ? navigate('/pack/profile/edit?edit=avatar')
+              : live.length ? setViewing({ items: live, start: 0, del: true }) : openCompose('moment'))}
+            photoLabel={!STORIES_ON ? tx('pack.profile.changeAvatarAria', 'Change avatar')
+              : live.length ? tx('pack.me.stories', 'Stories') : tx('pack.compose.newStory', 'New story')}
+            story={STORIES_ON && live.length ? 'live' : 'none'}
+            onAdd={STORIES_ON ? () => openCompose('moment') : undefined}
             addLabel={tx('pack.compose.newStory', 'New story')}
             toggleLabel={open ? tx('pack.me.closeDogs', 'Hide dogs') : tx('pack.me.openDogs', 'Show dogs')}
           />
@@ -412,7 +402,7 @@ export default function PackMe() {
           <div className={`me-bio${bioFull ? ' full' : ''}${bio ? '' : ' empty'}`}>
             <p ref={bioRef}>
               {bio || tx('pack.me.bioEmpty', 'What would your dog say about you? Write it in Edit.')}
-              {bio && sigDog && <> <span className="sig">— <b>{sigDog}</b></span></>}
+              {/* Bez podpisu psa — bio sú slová majiteľa (Matej 25. 10.: „daj to preč, to sú moje slová“). */}
             </p>
             {(bioLong || bioFull) && (
               <button type="button" className="me-more" onClick={() => setBioFull((f) => !f)}>

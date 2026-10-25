@@ -23,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
 import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
-import { PAWMATE_LIVE } from '@/lib/packFlags';
+import { STORIES_ON, PAWMATE_LIVE } from '@/lib/packFlags';
 import {
   PAWMATE_RIGHTS, RIGHT_LABEL, invitePawmate, listMyPawmates, revokePawmate, revokeDogInvite,
   type MyPawmates, type PawmateRow, type PawmateRight,
@@ -299,10 +299,11 @@ export default function PackProfile() {
   const [dogBusy, setDogBusy] = useState<string | null>(null);
   const dogs = loadedDogs.map((d) => (dogPhoto[d.id] ? { ...d, cloudinary_main_url: dogPhoto[d.id] } : d));
   // Obruč 1:1 s profilom: živá story = farebná obruč, inak neutrálny pás (bez `story` padala úprava vždy na farebnú).
+  // Pri vypnutých príbehoch (`STORIES_ON`) sa nič nenačítava — obruč je vždy neutrálna.
   const [storyLive, setStoryLive] = useState(false);
   useEffect(() => {
     const uid = session?.user?.id;
-    if (!uid) return;
+    if (!uid || !STORIES_ON) return;
     let alive = true;
     fetchMyPosts(uid).then((rows) => { if (alive) setStoryLive(rows.filter(isMoment).some((p) => isLive(p, Date.now()))); }).catch(() => {});
     return () => { alive = false; };

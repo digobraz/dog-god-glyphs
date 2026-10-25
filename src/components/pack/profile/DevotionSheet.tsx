@@ -7,6 +7,7 @@
 //    nie vymyslené číslo. Zdroje ☥ = DOGMA 4.3.1: modlitby · sviatosti · ocenenia.
 import { useEffect, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
+import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { BackButton } from '@/components/pack/BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS, GOLD_BTN } from '@/components/pack/packTheme';
 import { NIGHT, NIGHT_EDGE, NIGHT_INK, DEVOTION_TIERS, devotionVars } from '@/lib/devotionTiers';
@@ -73,6 +74,7 @@ const CSS = `
 `;
 
 export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClose: () => void }) {
+  const sw = useSheetSwipe(onClose);
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const [todayOpen, setTodayOpen] = useState(false);
@@ -123,9 +125,9 @@ export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClos
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{VEIL_CSS}</style>
       <style>{CSS}</style>
-      <div className="dvs-sheet">
-        <span className="dvs-grab" aria-hidden />
-        <div className="dvs-head">
+      <div className="dvs-sheet" style={sw.sheetStyle}>
+        <span className="dvs-grab" aria-hidden {...sw.handle} />
+        <div className="dvs-head" {...sw.handle}>
           <BackButton tone="dark" onClick={onClose} label={tx('pack.network.close', 'Close')} />
           <h2>{tx('pack.dvinfo.title', 'How you earn devotion')}</h2>
         </div>

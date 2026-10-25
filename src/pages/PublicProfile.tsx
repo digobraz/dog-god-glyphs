@@ -23,26 +23,27 @@
 // shared-trip výpočtu). Psí BIO + tagy = vždy verejné (fixné pravidlo, nie cez getTier()).
 import { sizedUrl } from '@/services/cloudinaryService';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryLabel } from '@/lib/countryOptions';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { PACK_THEME, PF_FIELD_CSS } from '@/components/pack/packTheme';
-import { usePackUser } from '@/hooks/usePackUser';
-import { useProfile, emptyDogAttrs } from '@/components/pack/profile/packProfile';
+import { PACK_THEME, PACK_SPACE, PACK_TEXT, PF_FIELD_CSS, PILL_CSS, FONT_UI } from '@/components/pack/packTheme';
+import type { PackDogFull } from '@/hooks/usePackUser';
+import { customPills, profileRoles, humanPills } from '@/components/pack/profile/packProfile';
 import { fetchMemberProfiles, memberAvatarUrl, memberDisplayName, type MemberProfile } from '@/components/pack/profile/memberProfile';
-import { computeCompletion } from '@/components/pack/packCommunity';
+import { coverOfDay } from '@/components/pack/profile/mePosts';
+import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn } from '@/components/pack/profile/meHead';
 import { DogGalleryAccordion, type DogGalleryEntry } from '@/components/pack/profile/DogGallery';
-import { readWalkedIds, tripPath } from '@/components/pack/tripShared';
-import { HERO_TRAILS } from '@/data/heroTrails.generated';
-import { HERO_JOURNEYS } from '@/data/heroJourneys';
+import { TEST_BUILD } from '@/lib/env';
+import { useToast } from '@/hooks/use-toast';
 import { flagUrl, countryISO2 } from '@/lib/countryGeo';
 
 const T = PACK_THEME;
+const FLAT = TEST_BUILD;
 
 export default function PublicProfile() {
   const t = useT();
@@ -52,17 +53,12 @@ export default function PublicProfile() {
   // Session — potrebujeme vedieť KTO sa pozerá (isSelf porovnáva session.user.id s :id).
   const [session, setSession] = useState<Session | null>(null);
   const [sessionChecked, setSessionChecked] = useState(false);
-  const [fullName, setFullName] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       setSession(data.session);
-      const meta = (data.session?.user.user_metadata ?? {}) as Record<string, string | undefined>;
-      setAvatarUrl(meta.avatar_url || meta.avatar || null);
-      setFullName(meta.full_name || meta.name || '');
       setSessionChecked(true);
     });
     return () => { mounted = false; };
@@ -75,8 +71,11 @@ export default function PublicProfile() {
   const goBack = () => { if (window.history.state?.idx > 0) navigate(-1); else navigate('/pack'); };
 
   const isSelf = sessionChecked && !!session?.user && session.user.id === id;
-  const { dogs, loading: dogsLoading } = usePackUser(isSelf ? session!.user.id : null);
-  const { profile } = useProfile();
+  const { toast } = useToast();
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  const bioRef = useRef<HTMLParagraphElement>(null);
+  const [bioFull, setBioFull] = useState(false);
+  const [bioLong, setBioLong] = useState(false);
 
   // Cudzí člen — adresovaný poradovým číslom. `undefined` = ešte sa načítava,
   // `null` = také číslo nič nevrátilo. Rozdiel je dôležitý: bez neho by stránka
@@ -91,27 +90,19 @@ export default function PublicProfile() {
     return () => { alive = false; };
   }, [sessionChecked, isSelf, askedNumber]);
 
-  // Aggregované badges (trips walked + NP medaily) — reálne dáta pre self (sessionStorage
-  // walked-ids, per-browser).
-  const selfBadges = useMemo(() => {
-    if (!isSelf) return null;
-    try {
-      const walkedIds = readWalkedIds();
-      const allTrails = [...HERO_JOURNEYS, ...HERO_TRAILS];
-      const walkedTrails = allTrails.filter((tr) => walkedIds.has(tr.id));
-      const npCount = computeCompletion(walkedTrails).categories.find((c) => c.key === 'parks')?.done.length ?? 0;
-      return { trips: walkedTrails.length, np: npCount, walkedTrails };
-    } catch {
-      return null;
-    }
-  }, [isSelf]);
+  const bio = member ? (member.human.dogVoiceBio?.trim() || member.human.bio?.trim() || '') : '';
+  // „more" len vtedy, keď text naozaj presiahne 3 riadky (ten istý recept ako môj profil).
+  useLayoutEffect(() => {
+    const el = bioRef.current;
+    if (el && !bioFull) setBioLong(el.scrollHeight > el.clientHeight + 1);
+  }, [bio, bioFull]);
 
   if (!sessionChecked) {
     return (
       <PackLayout>
         <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>
           <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 10 }}>
+          <span style={{ fontFamily: FONT_UI, fontWeight: 500, letterSpacing: '0.22em', fontSize: PACK_TEXT.micro, textTransform: 'uppercase' }}>
             {t('pack.dog.loading')}
           </span>
         </div>
@@ -119,14 +110,17 @@ export default function PublicProfile() {
     );
   }
 
+  // Ja sám (staré odkazy s UUID) → môj profil. Dve podoby vlastného profilu by sa rozišli.
+  if (isSelf) return <Navigate to="/pack/profile" replace />;
+
   // Cudzí člen sa ešte načítava — ticho, nie fallback. Fallback by na okamih tvrdil,
   // že taký človek neexistuje, a potom sa sám opravil.
-  if (!isSelf && member === undefined) {
+  if (member === undefined) {
     return (
       <PackLayout>
         <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>
           <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 10 }}>
+          <span style={{ fontFamily: FONT_UI, fontWeight: 500, letterSpacing: '0.22em', fontSize: PACK_TEXT.micro, textTransform: 'uppercase' }}>
             {t('pack.dog.loading')}
           </span>
         </div>
@@ -136,7 +130,7 @@ export default function PublicProfile() {
 
   // ── Fallback — číslo, ktoré nič nevrátilo (neexistuje / neplatiaci / nie je členom).
   // Odpoveď je zámerne rovnaká pre všetky tri prípady, ako v `get_trip_party()`. ──
-  if (!isSelf && !member) {
+  if (!member) {
     return (
       <PackLayout onBack={goBack} backLabel={t('pack.publicProfile.backToPack')}>
         <div
@@ -175,198 +169,135 @@ export default function PublicProfile() {
     );
   }
 
-  // Odtiaľto beží JEDNA vetva renderu pre seba aj pre cudzieho člena. Dve kópie tej istej
-  // stránky by sa rozišli pri prvej zmene — rovnaký dôvod, prečo `TripProfileCard` neexistuje
-  // v dvoch verziách.
-  const human = member ? member.human : profile?.human;
-  // Meno: prezývka → meno z profilu → meno z objednávky. Pri sebe samom je meno z profilu
-  // `fullName` (user_metadata), lebo vlastný profil sa nečíta cez RPC.
-  const displayName = member
-    ? (memberDisplayName(member) || 'A Dogyptian')
-    : ((human?.displayAs === 'nickname' && human?.nickname)
-      || (human?.displayAs === 'packName' && human?.packName) || fullName || 'A Dogyptian');
-  const headerAvatar = member ? memberAvatarUrl(member) : avatarUrl;
-  const packNumber = member ? member.memberNumber : (dogs[0]?.pack_number ?? null);
-  // Národnosť je VŽDY viditeľná — nedá sa skryť (Matej 2026-07-25: „nechaj viditeľné furt").
-  const nationality = human?.nationality ?? 'SK';
-  // Zoznam krajín už nie je ručných 19 — názov sa preloží podľa aktívneho jazyka
-  // (`lib/countryOptions.ts`). Bez toho by profil s krajinou mimo pôvodného zoznamu
-  // ukázal prázdno, nie „iná krajina".
+  // ── CUDZÍ PROFIL V ŠATE MÔJHO (25. 10. 2026) ─────────────────────────────────────────────
+  // Matej: cudzí profil bol jediný v starom dizajne — pri prekliku na iného člena sa vracala stará appka.
+  // Hlava je TÁ ISTÁ ako `/pack/profile` a UPRAVIŤ PROFIL (`MeCover` + `MeOwn` z `meHead.tsx`), len:
+  //  • namiesto odznakov SLUŽOBNÍK + PÚTNIK vlajka a číslo — hodnosti cudzieho človeka appka nevydáva,
+  //  • namiesto UPRAVIŤ + POZVI tlačidlá SLEDOVAŤ + NAPÍSAŤ. Sledovanie príde s FEEDom; správa z profilu
+  //    potrebuje novú serverovú funkciu (dnes `start_dm` pustí len nad spoločným výletom) — obe zatiaľ
+  //    povedia, kedy prídu, a nič nepredstierajú.
+  //  • 5 čísel chýba zámerne: o cudzom človeku ich appka nemá (výlety ani BONES nevydáva).
+  // Súkromné polia odstráni už server (`get_member_profiles`), preto tu žiadne `getTier()`.
+  const human = member.human;
+  const displayName = memberDisplayName(member) || 'A Dogyptian';
+  const avatar = memberAvatarUrl(member);
+  const firstDog = member.dogs.find((d) => d.packNumber != null) ?? member.dogs[0] ?? null;
+  const coverSrc = coverOfDay(human) || human.buddyPhoto || firstDog?.photo || null;
+  const nationality = human.nationality ?? 'SK';
   const nationalityLabel = countryLabel(nationality, lang);
+  const pills = humanPills(human.personality, customPills(human), t);
+  // `MeOwn` kreslí psov z `PackDogFull` — potrebuje len id, fotku a meno.
+  const ownDogs = member.dogs.map((d) => ({ id: d.dogId, cloudinary_main_url: d.photo, dog_name: d.name }) as unknown as PackDogFull);
+  const soon = (title: string, description: string) => toast({ title, description });
 
-  const dogEntries: DogGalleryEntry[] = member
-    ? member.dogs.map((d) => ({
-        id: d.dogId,
-        name: d.name || 'Unnamed',
-        photoUrl: d.photo,
-        packNumber: d.packNumber,
-        attrs: d.attrs,
-        // farba (`colour`) a línia (`bloodline`) sa o cudzom psovi nevydávajú — zobrazovací
-        // blok „From the heroglyph" je zrušený a používa sa už len `gender` na farbu pilulky
-        heroglyph: { gender: d.gender },
-        heroglyphUrl: d.heroglyphUrl,
-        dogIdValues: d.dogIdPublic,
-      }))
-    : dogs.map((d) => ({
-        id: d.id,
-        name: d.dog_name || 'Unnamed',
-        photoUrl: d.cloudinary_main_url,
-        packNumber: d.pack_number,
-        attrs: profile?.dogs[d.id] ?? emptyDogAttrs(d.id),
-        heroglyph: {
-          gender: d.selections?.dogGender,
-          colour: d.selections?.dogColour,
-          bloodline: d.selections?.dogBloodline,
-        },
-      }));
-
-  const loadingDogs = isSelf && dogsLoading;
+  const dogEntries: DogGalleryEntry[] = member.dogs.map((d) => ({
+    id: d.dogId,
+    name: d.name || 'Unnamed',
+    photoUrl: d.photo,
+    packNumber: d.packNumber,
+    attrs: d.attrs,
+    // farba (`colour`) a línia (`bloodline`) sa o cudzom psovi nevydávajú — zobrazovací
+    // blok „From the heroglyph" je zrušený a používa sa už len `gender` na farbu pilulky
+    heroglyph: { gender: d.gender },
+    heroglyphUrl: d.heroglyphUrl,
+    dogIdValues: d.dogIdPublic,
+  }));
 
   return (
     <PackLayout onBack={goBack} backLabel={t('pack.publicProfile.backToPack')}>
-      <div className="flex flex-col gap-5">
-        {/* `.pf-field`/`.pf-pill` (packTheme.ts) — DogGalleryAccordion tu renderuje
-            tie isté chipy/polia ako PackProfile.tsx (editor), takže potrebujú tú
-            istú CSS triedu aj na read-only profile. */}
-        <style>{PF_FIELD_CSS}</style>
+      <style>{PILL_CSS}</style>
+      <style>{ME_CSS}</style>
+      {FLAT && <style>{ME_FLAT_CSS}</style>}
+      {/* `.pf-field`/`.pf-pill` — DogGalleryAccordion kreslí tie isté chipy ako editor. */}
+      <style>{PF_FIELD_CSS}</style>
 
-        {/* Owner hlavička — avatar · meno/nickname · nationalita · pack# · badges */}
-        <section
-          style={{
-            background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
-            padding: 24, boxShadow: T.cardShadow,
-          }}
-        >
-          <div className="flex items-center gap-4">
-            <span
-              className="inline-flex items-center justify-center overflow-hidden shrink-0"
-              style={{ width: 72, height: 72, borderRadius: '50%', background: T.bg, border: `2px solid ${T.accentGold}` }}
-            >
-              {headerAvatar ? (
-                <img src={sizedUrl(headerAvatar, 240)} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <span style={{ fontFamily: "'Cinzel', serif", fontSize: 24, fontWeight: 700, color: T.inkDim }}>
-                  {(displayName?.[0] || 'D').toUpperCase()}
-                </span>
-              )}
+      <section className={`me-card${FLAT ? ' me-flat' : ''}`}>
+        <MeCover
+          cover={coverSrc}
+          coverY={human.coverY}
+          name={displayName}
+          devLabel=""
+          devLevel={0}
+          pilgrimLabel=""
+          pilgrimLevel={0}
+          ranks={
+            <span className="pk-pill">
+              <img
+                src={flagUrl(countryISO2(nationality) || 'sk', 80)}
+                alt={nationalityLabel || nationality}
+                title={nationalityLabel || nationality}
+                style={{ width: PACK_SPACE.lg, height: PACK_SPACE.lg, borderRadius: '50%', objectFit: 'cover' }}
+              />
+              {member.memberNumber != null && <>#{member.memberNumber}</>}
             </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 700, color: T.ink, margin: 0 }}>
-                  {displayName}
-                </h1>
-                {nationality && (
-                  <img
-                    src={flagUrl(countryISO2(nationality) || 'sk', 80)}
-                    alt={nationalityLabel || nationality}
-                    title={nationalityLabel || nationality}
-                    style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover', border: `1.5px solid ${PACK_THEME.border}` }}
-                  />
-                )}
-              </div>
-              {packNumber != null && (
-                <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: T.inkFaint, marginTop: 3 }}>
-                  Dogyptian #{packNumber}
-                </div>
-              )}
+          }
+        />
+
+        <div className="me-under">
+          <MeOwn
+            photo={avatar}
+            initial={(displayName[0] || 'D').toUpperCase()}
+            dogs={ownDogs}
+            onPhoto={() => {}}
+            photoLabel={displayName}
+            story="none"
+          />
+          <div className="me-gap" />
+
+          {/* Bez riadku čísel: od psa k tlačidlám tá istá vzdušnosť ako na mojom profile k číslam (margin S.md + padding S.sm). */}
+          <div className="me-btns" style={{ marginTop: PACK_SPACE.md + PACK_SPACE.sm }}>
+            <button type="button" className="me-cta" onClick={() => soon(tx('pack.publicProfile.follow', 'Follow'), tx('pack.me.soonFeed', 'Arrives with the FEED.'))}>
+              {tx('pack.publicProfile.follow', 'Follow')}
+            </button>
+            <button type="button" className="me-out" onClick={() => soon(tx('pack.publicProfile.message', 'Message'), tx('pack.publicProfile.msgSoon', 'Writing from the profile is on its way. For now, write over a shared trip.'))}>
+              {tx('pack.publicProfile.message', 'Message')}
+            </button>
+          </div>
+
+          {FLAT ? (
+            <div className="me-role me-role--label">
+              <span>{profileRoles(human).map((r) => tx(`pack.role.${r}`, r)).join(' · ')}</span>
+              <i aria-hidden />
             </div>
-            {isSelf && (
-              <Link
-                to="/pack/profile"
-                style={{
-                  fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase',
-                  color: T.ink, padding: '8px 12px', border: `1px solid ${T.border}`, borderRadius: 8,
-                  textDecoration: 'none', whiteSpace: 'nowrap',
-                }}
-              >
-                {t('pack.publicProfile.editButton')}
-              </Link>
+          ) : (
+            <div className="me-role">{profileRoles(human).map((r) => <span key={r} className="pk-pill">{tx(`pack.role.${r}`, r)}</span>)}</div>
+          )}
+
+          <div className={`me-bio${bioFull ? ' full' : ''}${bio ? '' : ' empty'}`}>
+            <p ref={bioRef}>
+              {bio || tx('pack.publicProfile.noBio', 'No bio yet.')}
+              {/* Bez podpisu psa — bio sú slová majiteľa (Matej 25. 10.: „daj to preč, to sú moje slová“). */}
+            </p>
+            {(bioLong || bioFull) && (
+              <button type="button" className="me-more" onClick={() => setBioFull((f) => !f)}>
+                {bioFull ? tx('pack.me.less', 'less') : tx('pack.me.more', 'more')}
+              </button>
             )}
           </div>
 
-          {/* Badges — agregované (trips walked + NP medaily). Len keď ich máme: o cudzom
-              človeku appka výlety nevydáva, takže riadok „— —“ stál na KAŽDOM cudzom profile
-              ako mŕtvy údaj (audit 27. 9.). */}
-          {selfBadges && (<div style={{ borderTop: `1px solid ${T.hairline}`, marginTop: 18, paddingTop: 16 }}>
-            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkFaint, display: 'block', marginBottom: 10 }}>
-              {t('pack.publicProfile.badgesLabel')}
-            </span>
-            <div className="flex items-center gap-6">
-              <BadgeStat value={String(selfBadges.trips)} label={t('pack.publicProfile.trips')} />
-              <BadgeStat value={String(selfBadges.np)} label={t('pack.publicProfile.npMedals')} />
+          {pills.length > 0 && (
+            <div className="me-strip">
+              {pills.map((p) => <span key={p.k} className="pk-pill">{p.emoji && <i>{p.emoji}</i>}{p.label}</span>)}
             </div>
-          </div>)}
-        </section>
-
-        {/* Moja svorka — read-only galéria (rovnaký accordion ako editor, bez edit polí) */}
-        <section
-          style={{
-            background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
-            padding: 24, boxShadow: T.cardShadow,
-          }}
-        >
-          <div className="flex items-center gap-2.5" style={{ color: T.inkDim, marginBottom: 14 }}>
-            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase' }}>
-              {member ? t('pack.publicProfile.theirPack') : t('pack.publicProfile.myPack')}
-            </span>
-          </div>
-          {loadingDogs ? (
-            <div className="flex items-center gap-2 py-2" style={{ color: T.inkFaint }}>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12 }}>{t('pack.dog.loading')}</span>
-            </div>
-          ) : (
-            <DogGalleryAccordion dogs={dogEntries} editable={false} />
           )}
-        </section>
 
-        {/* Kadiaľ šli — voliteľné, vynechá sa ak nemáme walked dáta (selfBadges null/prázdne) */}
-        {isSelf && selfBadges && selfBadges.walkedTrails.length > 0 && (
-          <section
-            style={{
-              background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
-              padding: 24, boxShadow: T.cardShadow,
-            }}
-          >
-            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim, display: 'block', marginBottom: 14 }}>
-              {t('pack.publicProfile.walkedSection')}
-            </span>
-            <div className="flex flex-col gap-2">
-              {selfBadges.walkedTrails.map((tr) => (
-                <Link
-                  key={tr.id}
-                  to={tripPath(tr)}
-                  className="flex items-center justify-between"
-                  style={{
-                    padding: '8px 12px', border: `1px solid ${T.hairline}`, borderRadius: 8,
-                    textDecoration: 'none', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
-                  }}
-                >
-                  <span style={{ color: T.ink, fontWeight: 600 }}>{tr.name}</span>
-                  {/* vodná plocha (isWaterTrail) má km: '' — bez podmienky by sa vykreslilo holé
-                      "region ·  km" (rovnaký audit #45 fix ako PackTripArticle/PublicProfile). */}
-                  <span style={{ color: T.inkFaint, fontSize: 12 }}>{tr.region}{tr.km?.trim() ? ` · ${tr.km} km` : ''}</span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
+          {/* SVORKA — read-only galéria psov (ten istý accordion ako editor, bez edit polí), pod nadpisom
+              v tvare PAWTNER: hladký papyrus nemá vonkajšie karty. */}
+          {dogEntries.length > 0 && (
+            <>
+              <div className="me-role me-role--label">
+                <span>{t('pack.publicProfile.theirPack')}</span>
+                <i aria-hidden />
+              </div>
+              <div style={{ marginTop: PACK_SPACE.md }}>
+                <DogGalleryAccordion dogs={dogEntries} editable={false} />
+              </div>
+            </>
+          )}
+        </div>
+      </section>
 
-        <div style={{ height: 24 }} />
-      </div>
+      <div style={{ height: PACK_SPACE.xl }} />
     </PackLayout>
-  );
-}
-
-function BadgeStat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="flex flex-col items-center">
-      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 700, color: value === '—' ? T.inkFaint : T.accentGold }}>
-        {value}
-      </span>
-      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkFaint, marginTop: 2 }}>
-        {label}
-      </span>
-    </div>
   );
 }

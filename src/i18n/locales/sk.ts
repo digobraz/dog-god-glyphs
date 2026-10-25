@@ -2810,6 +2810,9 @@ export const sk: Partial<Dict> = {
   'pack.publicProfile.npMedals': "Medaily NP",
   'pack.publicProfile.badgesLabel': "Výlety a odznaky",
   'pack.publicProfile.noBio': "Zatiaľ žiadne bio.",
+  'pack.publicProfile.follow': "Sledovať",
+  'pack.publicProfile.message': "Napísať",
+  'pack.publicProfile.msgSoon': "Písanie z profilu sa chystá. Zatiaľ sa dá písať nad spoločným výletom.",
 
   // ── /entry + /heroglyph sales (i18n 2026-07-13) ──
   'heroglyph.sales.pricePill': 'Jednorazovo €11 · tvoj vstup',

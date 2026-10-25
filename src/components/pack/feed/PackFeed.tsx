@@ -18,6 +18,7 @@
 // 🔴 PRÁZDNE JE PRÁZDNE. Chýbajúce dáta sa nenahrádzajú vymyslenými osobami ani číslami — viď `feedData.ts`
 //    (zoznam toho, čo potrebuje server).
 import { useEffect, useMemo, useState } from 'react';
+import { STORIES_ON } from '@/lib/packFlags';
 import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
@@ -292,7 +293,7 @@ export function PackFeed() {
       <div className="pkf-col">
         {/* ── RAD PRÍBEHOV: Ty · AINUBIS · autori najnovších výletov ── */}
         <div className="pkf-stories">
-          <button type="button" className="pkf-st"
+          {STORIES_ON && <button type="button" className="pkf-st"
             onClick={() => (myLive.length ? setViewing(myLive) : openCompose('moment'))}
             aria-label={tx('pack.me.stories', 'Stories')}>
             <span className={`pkf-ring${myLive.length ? '' : ' none'}`} style={{ display: 'block' }}>
@@ -303,7 +304,7 @@ export function PackFeed() {
                 onClick={(e) => { e.stopPropagation(); openCompose('moment'); }}><HandPlus size={12} /></span>
             </span>
             <span className="pkf-n">{tx('pack.feed.you', 'You')}</span>
-          </button>
+          </button>}
           <button type="button" className="pkf-st" onClick={() => navigate('/pack/ainubis')}>
             <span className="pkf-ring ai" style={{ display: 'block' }}>
               <span className="im" style={{ backgroundImage: `url(${ainubisHead})`, display: 'block' }} />

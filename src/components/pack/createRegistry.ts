@@ -19,6 +19,7 @@
 //    sa dopisuje riadok.
 import { DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { TEST_BUILD } from '@/lib/env';
+import { STORIES_ON } from '@/lib/packFlags';
 
 // ── MIESTA ──────────────────────────────────────────────────────────────────────────────────
 // Štyri miesta chrbtice, ktoré majú lištu, + GLOBÁL. GLOBÁL nie je tab a nikdy ním nebude
@@ -352,7 +353,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     back: 'origin',
     lands: 'posts (štítok moment, 24 h) → prstenec na fotke v profile JA',
     state: 'live',
-    panel: true,
+    panel: STORIES_ON,
     note: 'Štítok `moment`, nie `story` — `story` je príbeh z cesty s unikátnym indexom na trasu.',
   },
   {

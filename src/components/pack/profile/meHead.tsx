@@ -29,6 +29,8 @@ export const COVER_H = { m: 250, pc: 300 };
 const OWN = { m: 126, pc: 158 };
 const OWN_X = { m: 10, pc: 16 };
 const OWN_DROP = 13;
+/* Výška riadku odznakov SLUŽOBNÍK + PÚTNIK (46 px, zmerané 25. 10.) — cudzí profil v ňom drží miesto. */
+const RANK_ROW_H = 46;
 const SAT = { m: 56, pc: 70 };
 /* Satelit je zo 3/4 VONKU z fotky majiteľa a len 1/4 v nej (Matej 23. 10.) — jeho spodok
  * visí 3/4 priemeru pod spodkom fotky. Medzera pod fotkou z toho istého čísla, aby satelit
@@ -79,6 +81,7 @@ export const ME_CSS = `
 .me-lv{ display:flex; gap:6px; margin-top:${S.sm}px; }
 .me-lv > *{ flex:0 1 auto; min-width:0; justify-content:center; display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.sm}px; border-radius:${PACK_R.pill}px; white-space:nowrap;
   font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.02em; text-transform:uppercase; cursor:pointer; }
+.me-lv--own{ min-height:${RANK_ROW_H}px; align-items:center; }
 .me-lv.stack{ flex-direction:column; align-items:flex-start; gap:${S.xs}px; }
 .me-lv.stack > *{ flex:none; letter-spacing:.14em; }
 .me-lv > .on{ box-shadow:0 0 0 2px ${T.card}, 0 0 0 3.5px ${LAPIS.edge}; }
@@ -364,7 +367,7 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, ranks }: {
   cover: string | null;
   coverY?: number;
   name: string;
@@ -397,6 +400,9 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   /** Ťuk na pozadie titulky = album titulky (`CoverSheet`, 23. 10. 2026). Nie v režime ťahania. */
   onCover?: () => void;
   coverLabel?: string;
+  /** CUDZÍ PROFIL: hodnosti iného človeka appka nevydáva — namiesto odznakov sa v ich riadku ukáže toto
+   *  (vlajka + číslo). Riadok drží výšku odznakov, aby meno stálo tam, kde na mojom profile. */
+  ranks?: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
@@ -470,7 +476,9 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
       <div className="me-foot">
         <h1 className="me-nm">{name}</h1>
         {RANK_BADGE_ON && <style>{RANK_BADGE_CSS}</style>}
-        {RANK_BADGE_ON ? (
+        {ranks !== undefined ? (
+          <div className="me-lv me-lv--own">{ranks}</div>
+        ) : RANK_BADGE_ON ? (
           // TEST_BUILD (25. 10. 2026): odznaky SLUŽOBNÍK + PÚTNIK namiesto pilulky DEVOTION + PÚTNIK.
           // Roky = DOG ID `basics.since` (useServantYears, volá stránka so psami).
           <div className="me-lv rk-row">

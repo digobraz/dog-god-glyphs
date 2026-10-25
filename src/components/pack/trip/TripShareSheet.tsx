@@ -20,6 +20,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
+import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { useToast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
 import logoGold from '@/assets/dogypt-logo-gold.webp';
@@ -319,6 +320,7 @@ const CSS = `
 `;
 
 export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripShareData; onClose: () => void; kind?: ShareKind }) {
+  const sw = useSheetSwipe(onClose);
   const K = KIND_KEYS[kind];
   const t = useT();
   const { toast } = useToast();
@@ -449,9 +451,9 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
       <style>{CSS}</style>
       <div className="tsh-veil" role="dialog" aria-modal="true" aria-label={t(K.title)}
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-        <div className="tsh-panel" style={{ ...PACK_BOX.panel }}>
-          <div className="tsh-grip" />
-          <div className="tsh-head">
+        <div className="tsh-panel" style={{ ...PACK_BOX.panel, ...sw.sheetStyle }}>
+          <div className="tsh-grip" {...sw.handle} />
+          <div className="tsh-head" {...sw.handle}>
             <h2>{t(K.title)}</h2>
             <button type="button" className="tsh-x" onClick={onClose} aria-label={t('pack.trip.shareClose')}>
               <span className="tsh-ic" style={{ '--ic': `url(${ICON('cross')})` } as React.CSSProperties} />

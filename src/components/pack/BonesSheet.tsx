@@ -15,6 +15,7 @@
 //    (peňaženka, zoznam línie, info — `z-[70]` cez portál), ktoré sa otvárajú z neho.
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { PackNetwork } from '@/components/pack/PackNetwork';
 import { BackButton } from '@/components/pack/BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
@@ -60,6 +61,7 @@ export function BonesSheet({ avatarUrl, initial, onClose, onShare, shareLink }: 
   onShare?: () => void;
   shareLink?: string;
 }) {
+  const sw = useSheetSwipe(onClose);
   const t = useT();
   const { lang } = useLang();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
@@ -89,9 +91,9 @@ export function BonesSheet({ avatarUrl, initial, onClose, onShare, shareLink }: 
     >
       <style>{VEIL_CSS}</style>
       <style>{CSS}</style>
-      <div className="bs-sheet">
-        <span className="bs-grab" aria-hidden />
-        <div className="bs-head">
+      <div className="bs-sheet" style={sw.sheetStyle}>
+        <span className="bs-grab" aria-hidden {...sw.handle} />
+        <div className="bs-head" {...sw.handle}>
           <BackButton tone="pale" onClick={onClose} label={tx('pack.network.close', 'Close')} />
           <h2>BONES</h2>
         </div>

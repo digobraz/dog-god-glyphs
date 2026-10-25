@@ -3159,6 +3159,9 @@ export const en = {
   'pack.publicProfile.npMedals': "NP medals",
   'pack.publicProfile.badgesLabel': "Trips & badges",
   'pack.publicProfile.noBio': "No bio yet.",
+  'pack.publicProfile.follow': "Follow",
+  'pack.publicProfile.message': "Message",
+  'pack.publicProfile.msgSoon': "Writing from the profile is on its way. For now, write over a shared trip.",
 
   // ── /pack i18n vlna 3 (2026-08-04) ────────────────────────────────────────────
   'pack.profile.wizard.welcome.subtitle': "Welcome to the Pack.",

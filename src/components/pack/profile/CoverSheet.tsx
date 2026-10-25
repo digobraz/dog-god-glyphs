@@ -8,6 +8,7 @@
 // ⚠️ Polohu fotky (ťahanie hore/dole) nesie UPRAVIŤ PROFIL — tu sa len vyberá, ktorá.
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandTrash } from '@/components/pack/HandIcons';
@@ -73,6 +74,7 @@ export function CoverSheet({ uid, human, onClose }: {
   human: HumanProfile | undefined;
   onClose: () => void;
 }) {
+  const sw = useSheetSwipe(onClose);
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { toast } = useToast();
@@ -153,9 +155,9 @@ export function CoverSheet({ uid, human, onClose }: {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{VEIL_CSS}</style>
       <style>{CSS}</style>
-      <div className="cs-sheet">
-        <span className="cs-grab" aria-hidden />
-        <div className="cs-head">
+      <div className="cs-sheet" style={sw.sheetStyle}>
+        <span className="cs-grab" aria-hidden {...sw.handle} />
+        <div className="cs-head" {...sw.handle}>
           <BackButton tone="pale" onClick={onClose} label={tx('pack.network.close', 'Close')} />
           <h2>{tx('pack.cover.title', 'Cover photo')}</h2>
         </div>

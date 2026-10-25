@@ -1016,3 +1016,16 @@ export function profileRoles(h: Pick<HumanProfile, 'role' | 'roles'> | null | un
   const list = (h?.roles?.length ? h.roles : h?.role ? [h.role] : []).filter((r) => (PROFILE_ROLES as readonly string[]).includes(r));
   return list.length ? list.slice(0, MAX_ROLES) : ['pawtner'];
 }
+
+/** Pilulky človeka = jeho POVAHA z editora (emoji + meno) + vlastné. Spoločné pre môj aj cudzí profil (25. 10. 2026). */
+export function humanPills(personality: string[] | undefined, custom: string[], t: (k: string) => string) {
+  const out = (personality ?? []).flatMap((v) => {
+    const o = PERSONALITY_OPTIONS.find((x) => x.value === v);
+    if (!o) return [];
+    const key = `pack.profile.personality.${v}`;
+    const label = t(key) === key ? o.labelEN : t(key);
+    return [{ k: v, emoji: o.emoji ?? '', label }];
+  });
+  custom.forEach((c, i) => out.push({ k: `custom${i}`, emoji: '', label: c }));
+  return out;
+}

@@ -179,3 +179,9 @@ export const WISHES_LIVE = true; // FLIP 5. 10. 2026
 // `20261003_sniffer_zamok.sql`): kto nie je na zozname, SNIFFER nezapne.
 // FLIP = `bash scripts/flip.sh --krok 2c` (server) + krok 4: `BUDDY_LIVE = true`.
 export const BUDDY_LIVE = true; // FLIP 5. 10. 2026 — sniffer_gate.open_all (krok 2c)
+
+// PRÍBEHY (stories, štítok `moment`) — VYPNUTÉ 25. 10. 2026. Matej: *„vieš čo príbehy zatiaľ vypnime…
+// keď tak neskôr spustíme = fotka sa bude dať len vymeniť / bez + pridať príbeh"*. Kód ostáva; vypínač
+// skryje každý vstup: ťuk na fotku a „+" na profile, obruč story, kartu PRÍBEHY, položku v paneli „+“
+// a bublinu „Ty" v rade FEEDu. Zapnutie = `true` tu, nič iné.
+export const STORIES_ON = false;

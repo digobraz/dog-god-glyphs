@@ -58,7 +58,8 @@ const T = PACK_THEME;
 // HLADKÝ PAPYRUS (TEST_BUILD, Matej 25. 10. 2026): profily, psy a DOG ID stoja na bledej ploche
 // BEZ tapety chrámu a bez vonkajšej karty — *„asi je to takto lepšie než to mať v bloku nad tmavým
 // pozadím"* → *„aplikuj to na celý pack, myslím na profily, dogs a id"*. Papyrus bez ohľadu na prepínač šatu.
-const PLAIN_ROUTES: readonly RegExp[] = [/^\/pack\/profile(\/|$)/, /^\/pack\/dogs(\/|$)/];
+// Cudzí profil `/pack/u/:id` (25. 10.) má tú istú hlavu ako môj, teda aj tú istú plochu.
+const PLAIN_ROUTES: readonly RegExp[] = [/^\/pack\/profile(\/|$)/, /^\/pack\/dogs(\/|$)/, /^\/pack\/u\/[^/]+$/];
 if (TEST_BUILD) PAPER_ROUTES_EXTRA.push(...PLAIN_ROUTES);
 
 interface PackLayoutProps {
