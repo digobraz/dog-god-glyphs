@@ -10,6 +10,8 @@ import { HandCamera } from '@/components/pack/HandIcons';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { sizedUrl } from '@/services/cloudinaryService';
 import type { PackDogFull } from '@/hooks/usePackUser';
+import type { DogProfileAttrs } from '@/components/pack/profile/packProfile';
+import { flagUrl, countryISO2 } from '@/lib/countryGeo';
 import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, PACK_TIERS, type PackTier } from '@/lib/packTiers';
@@ -29,8 +31,6 @@ export const COVER_H = { m: 250, pc: 300 };
 const OWN = { m: 126, pc: 158 };
 const OWN_X = { m: 10, pc: 16 };
 const OWN_DROP = 13;
-/* Výška riadku odznakov SLUŽOBNÍK + PÚTNIK (46 px, zmerané 25. 10.) — cudzí profil v ňom drží miesto. */
-const RANK_ROW_H = 46;
 const SAT = { m: 56, pc: 70 };
 /* Satelit je zo 3/4 VONKU z fotky majiteľa a len 1/4 v nej (Matej 23. 10.) — jeho spodok
  * visí 3/4 priemeru pod spodkom fotky. Medzera pod fotkou z toho istého čísla, aby satelit
@@ -69,6 +69,9 @@ export const ME_CSS = `
 .me-cover.drag{ cursor:grab; touch-action:none; user-select:none; }
 .me-cover.drag.on{ cursor:grabbing; }
 .me-tbar{ display:flex; justify-content:space-between; align-items:flex-start; padding:${S.md}px; }
+/* VLAJKA NA TITULKE (Matej 25. 10.: *„tá vlajka je super, dal by som ju každému profilu na titulku do pravého rohu
+   bez čísla"*). Národnosť je vždy viditeľná (lock 25. 7.), preto aj tu bez prepínača. */
+.me-flag{ display:block; width:${S.xl}px; height:${S.xl}px; border-radius:${PACK_R.pill}px; object-fit:cover; border:2px solid ${T.card}; box-shadow:${T.panelShadow}; }
 .me-bones{ display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.md}px; border-radius:${PACK_R.pill}px; cursor:pointer;
   background:${tierGradient(BONES_TIER)}; border:1px solid ${BONES_TIER.b}; color:${BONES_TIER.ink}; box-shadow:${T.panelShadow};
   font-family:${FONT_UI}; font-weight:600; font-size:${TX.label}px; letter-spacing:.02em; }
@@ -81,7 +84,6 @@ export const ME_CSS = `
 .me-lv{ display:flex; gap:6px; margin-top:${S.sm}px; }
 .me-lv > *{ flex:0 1 auto; min-width:0; justify-content:center; display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.sm}px; border-radius:${PACK_R.pill}px; white-space:nowrap;
   font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.02em; text-transform:uppercase; cursor:pointer; }
-.me-lv--own{ min-height:${RANK_ROW_H}px; align-items:center; }
 .me-lv.stack{ flex-direction:column; align-items:flex-start; gap:${S.xs}px; }
 .me-lv.stack > *{ flex:none; letter-spacing:.14em; }
 .me-lv > .on{ box-shadow:0 0 0 2px ${T.card}, 0 0 0 3.5px ${LAPIS.edge}; }
@@ -367,7 +369,7 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, ranks }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel }: {
   cover: string | null;
   coverY?: number;
   name: string;
@@ -400,9 +402,6 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   /** Ťuk na pozadie titulky = album titulky (`CoverSheet`, 23. 10. 2026). Nie v režime ťahania. */
   onCover?: () => void;
   coverLabel?: string;
-  /** CUDZÍ PROFIL: hodnosti iného človeka appka nevydáva — namiesto odznakov sa v ich riadku ukáže toto
-   *  (vlajka + číslo). Riadok drží výšku odznakov, aby meno stálo tam, kde na mojom profile. */
-  ranks?: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
@@ -476,9 +475,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
       <div className="me-foot">
         <h1 className="me-nm">{name}</h1>
         {RANK_BADGE_ON && <style>{RANK_BADGE_CSS}</style>}
-        {ranks !== undefined ? (
-          <div className="me-lv me-lv--own">{ranks}</div>
-        ) : RANK_BADGE_ON ? (
+        {RANK_BADGE_ON ? (
           // TEST_BUILD (25. 10. 2026): odznaky SLUŽOBNÍK + PÚTNIK namiesto pilulky DEVOTION + PÚTNIK.
           // Roky = DOG ID `basics.since` (useServantYears, volá stránka so psami).
           <div className="me-lv rk-row">
@@ -487,10 +484,11 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
           </div>
         ) : (
         <div className={`me-lv${stack ? ' stack' : ''}`}>
-          <button type="button" data-rank-toggle className={`me-dv${rank === 'dev' ? ' on' : ''}`} onClick={onDev} aria-expanded={rank === 'dev'} style={devotionVars(devLevel)}>
+          {/* Prázdny `devLabel` = DEVOTION cudzieho človeka appka nemá (cudzí profil) — pilulka sa nekreslí. */}
+          {devLabel && <button type="button" data-rank-toggle className={`me-dv${rank === 'dev' ? ' on' : ''}`} onClick={onDev} aria-expanded={rank === 'dev'} style={devotionVars(devLevel)}>
             <span className="me-dvg"><b>{devLevel}</b></span>
             {devLabel}
-          </button>
+          </button>}
           <button type="button" data-rank-toggle className={`me-pt${rank === 'pt' ? ' on' : ''}`} onClick={onPilgrim} aria-expanded={rank === 'pt'} style={tierStyle(pilgrimTier)}>
             <BrandIcon name="world-grid" size={12} tint={inkIsLight(pilgrimTier.ink) ? 'white' : 'dark'} />
             {pilgrimLabel}
@@ -798,6 +796,59 @@ export function MeRank({ kind, devotion, pilgrim, study, servantYears, onDogId, 
       <button type="button" className="me-rk-link" onClick={onStats}>
         {tx('pack.rank.openStats', 'Trip stats')}<BrandIcon name="back" size={12} tint={/^#[0-3]/.test(tierOfLevel(lv.level).ink) ? 'dark' : 'white'} style={{ transform: 'rotate(180deg)' }} />
       </button>
+    </div>
+  );
+}
+
+/** Vlajka národnosti do pravého rohu titulky (`MeCover right`). */
+export function MeFlag({ code, label }: { code: string; label: string }) {
+  return <img className="me-flag" src={flagUrl(countryISO2(code) || 'sk', 80)} alt={label} title={label} />;
+}
+
+/** Riadok psa v šuplíku (môj aj cudzí profil — vytiahnuté z PackMe 25. 10. 2026). Bio a povaha sú tie isté polia ako v DOG ID (`profile.dogs[id]`). */
+export function MeDogRow({ dog, attrs, onClose, onDogId, tx }: {
+  dog: PackDogFull;
+  attrs: Partial<DogProfileAttrs> | undefined;
+  onClose: () => void;
+  /** Môj pes → úprava v DOG ID. Cudzí pes (`/pack/u/:id`) ho nemá: bez ceruzky a bez výzvy písať. */
+  onDogId?: () => void;
+  tx: (key: string, fallback: string) => string;
+}) {
+  const [flip, setFlip] = useState(false);
+  const src = dog.cloudinary_main_url;
+  const name = dog.dog_name ?? '';
+  const num = dog.pack_number != null ? <span className="me-no">#{dog.pack_number}</span> : null;
+  const bio = attrs?.bio?.trim();
+  const tags = attrs?.tags?.temperament ?? [];
+  return (
+    <div className={`me-drow${flip ? ' flip' : ''}`}>
+      <button type="button" className="me-dp" onClick={onClose} aria-label={tx('pack.me.closeDogs', 'Hide dogs')}>
+        {src && <img src={sizedUrl(src, 200)} alt="" />}
+        {num}
+      </button>
+      <button type="button" className="me-hg" onClick={() => setFlip((f) => !f)} aria-expanded={flip} aria-label={name}>
+        <span className="fa">
+          {dog.heroglyph_png_url ? <img src={dog.heroglyph_png_url} alt="" /> : <span className="empty">{name}</span>}
+        </span>
+        <span className="ba"><b>{name}</b>{num}</span>
+      </button>
+      <div className="me-dinfo">
+          {bio ? <p>{bio}</p> : onDogId ? (
+            <p className="none" onClick={onDogId}>{tx('pack.me.dogBioEmpty', 'No bio yet. Write it in DOG ID.')}</p>
+          ) : <p className="none">{tx('pack.publicProfile.noBio', 'No bio yet.')}</p>}
+          {tags.length > 0 && (
+            <div className="me-strip">
+              {tags.map((g) => <span key={g} className="pk-pill">{tx(`pack.dogTag.${g}`, g)}</span>)}
+            </div>
+          )}
+          {/* Môj pes → úprava v DOG ID (Matej 23. 10.: „možnosť upraviť a klikom sa preniesť do /dogs"). */}
+          {onDogId && (
+            <button type="button" className="me-dedit" onClick={onDogId}>
+              <BrandIcon name="pencil" size={12} tint="violet" />
+              {tx('pack.me.editDog', 'Edit DOG ID')}
+            </button>
+          )}
+      </div>
     </div>
   );
 }

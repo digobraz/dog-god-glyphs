@@ -13,7 +13,7 @@ import { devotionLevel } from '@/lib/devotion';
 import { PACK_THEME, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE, PACK_R, PF_FIELD_CSS, PILL_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { ME_CSS, ME_FLAT_CSS, RING, DOG_FONT, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
+import { ME_CSS, ME_FLAT_CSS, RING, DOG_FONT, MeCover, MeOwn, MeRank, MeFlag } from '@/components/pack/profile/meHead';
 import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBadge';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { coverAlbumOf, coverOfDay, changeDogMainPhoto, fetchMyPosts, isMoment, isLive } from '@/components/pack/profile/mePosts';
@@ -21,7 +21,7 @@ import { CoverSheet } from '@/components/pack/profile/CoverSheet';
 import { DevotionSheet } from '@/components/pack/profile/DevotionSheet';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import { countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
+import { countryLabel, countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
 import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import { STORIES_ON, PAWMATE_LIVE } from '@/lib/packFlags';
 import {
@@ -490,6 +490,8 @@ export default function PackProfile() {
           onMoveEnd={(y) => { patchHuman({ coverY: y }); }}
           right={
             <span className="pe-tr">
+              {/* Vlajka 1:1 s profilom (25. 10.) — mení sa v poli národnosti nižšie. */}
+              <MeFlag code={human?.nationality ?? 'SK'} label={countryLabel(human?.nationality ?? 'SK', lang)} />
               {/* Štítok „POTIAHNI“ preč — ťahá sa aj bez neho (Matej 23. 10.: „funkciu zachovaj, tlačítko vyhoď“). */}
               {/* Foťák = ALBUM TITULKY (`CoverSheet`: viac fotiek, striedanie po dni), Matej 23. 10.:
                   *„upraviť titulku v /edit sekcii"*. Ťahanie polohy ostáva na titulke. */}

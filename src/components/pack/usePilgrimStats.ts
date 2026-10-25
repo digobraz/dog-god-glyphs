@@ -2,7 +2,7 @@
 // Vytiahnuté z `PackIdentityBar.tsx`, keď to isté číslo potrebovala karta SNIFFERu — druhá
 // kópia výpočtu by sa rozišla s hlavičkou mapy (presne tak sa 6. 8. rozišla mapa s vysvedčením).
 import { useEffect, useMemo } from 'react';
-import { saveHuman, useProfile } from '@/components/pack/profile/packProfile';
+import { saveHuman, useProfile, type HumanProfile } from '@/components/pack/profile/packProfile';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
@@ -54,4 +54,21 @@ export function usePublishPilgrimLevel(level: number | null | undefined) {
     }, 4000);
     return () => clearTimeout(h);
   }, [profile, level, published]);
+}
+
+/** Zverejní ČÍSLA PROFILU (`human.stats`), aby ich cudzí profil ukázal 1:1 s mojím (25. 10. 2026).
+ *  Rovnaký recept ako `usePublishPilgrimLevel`: zápis len pri zmene a až keď sa čísla 4 s neupravia
+ *  (načítavajú sa postupne — bez čakania by išli von medzistavy). `null` = ešte sa ráta, nezapisuj. */
+export function usePublishProfileStats(next: Omit<NonNullable<HumanProfile['stats']>, 'at'> | null) {
+  const { profile } = useProfile();
+  const cur = profile?.human?.stats;
+  const same = !!cur && !!next && cur.km === next.km && cur.pilgrimPct === next.pilgrimPct
+    && cur.brought === next.brought && cur.study === next.study && cur.servantYears === next.servantYears;
+  const key = next ? JSON.stringify(next) : '';
+  useEffect(() => {
+    if (!profile || !next || same) return;
+    const h = setTimeout(() => { void saveHuman({ stats: { ...next, at: new Date().toISOString() } }); }, 4000);
+    return () => clearTimeout(h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, key, same]);
 }

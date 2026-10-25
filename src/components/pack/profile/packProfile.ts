@@ -134,6 +134,11 @@ export interface HumanProfile {
    *  videli ostatní (Matej 25. 9.: „level putnika musi vidieť každý každému"). Druhá
    *  definícia levelu na serveri NEVZNIKÁ. */
   pilgrim?: { level: number; at: string };
+  /** ČÍSLA PROFILU pre ostatných (25. 10. 2026, Matej: *„cudzí profil by mal mať to isté viditeľné — obidva
+   *  ranky aj 5 stĺpcov … veď tak to má Instagram"*). Zapisuje ich majiteľova appka pri otvorení profilu
+   *  (`usePublishProfileStats`) — tá istá cesta ako `pilgrim`, žiadna druhá definícia na serveri.
+   *  ⚠️ Kým človek profil neotvorí, ostatní vidia posledné zverejnené čísla (alebo nič). */
+  stats?: { km: number; pilgrimPct: number; brought: number; study: number; servantYears: number | null; at: string };
   /** Orientácia — osobitná kategória údajov (GDPR čl. 9). Nepovinná; von ide LEN keď
    *  `orientationPublic` je true (predvolene skrytá). */
   orientation?: Orientation;

@@ -36,11 +36,9 @@ import type { PackDogFull } from '@/hooks/usePackUser';
 import { customPills, profileRoles, humanPills } from '@/components/pack/profile/packProfile';
 import { fetchMemberProfiles, memberAvatarUrl, memberDisplayName, type MemberProfile } from '@/components/pack/profile/memberProfile';
 import { coverOfDay } from '@/components/pack/profile/mePosts';
-import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn } from '@/components/pack/profile/meHead';
-import { DogGalleryAccordion, type DogGalleryEntry } from '@/components/pack/profile/DogGallery';
+import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeDogRow, MeFlag } from '@/components/pack/profile/meHead';
 import { TEST_BUILD } from '@/lib/env';
 import { useToast } from '@/hooks/use-toast';
-import { flagUrl, countryISO2 } from '@/lib/countryGeo';
 
 const T = PACK_THEME;
 const FLAT = TEST_BUILD;
@@ -76,6 +74,7 @@ export default function PublicProfile() {
   const bioRef = useRef<HTMLParagraphElement>(null);
   const [bioFull, setBioFull] = useState(false);
   const [bioLong, setBioLong] = useState(false);
+  const [open, setOpen] = useState(false);
 
   // Cudzí člen — adresovaný poradovým číslom. `undefined` = ešte sa načítava,
   // `null` = také číslo nič nevrátilo. Rozdiel je dôležitý: bez neho by stránka
@@ -169,14 +168,14 @@ export default function PublicProfile() {
     );
   }
 
-  // ── CUDZÍ PROFIL V ŠATE MÔJHO (25. 10. 2026) ─────────────────────────────────────────────
-  // Matej: cudzí profil bol jediný v starom dizajne — pri prekliku na iného člena sa vracala stará appka.
-  // Hlava je TÁ ISTÁ ako `/pack/profile` a UPRAVIŤ PROFIL (`MeCover` + `MeOwn` z `meHead.tsx`), len:
-  //  • namiesto odznakov SLUŽOBNÍK + PÚTNIK vlajka a číslo — hodnosti cudzieho človeka appka nevydáva,
-  //  • namiesto UPRAVIŤ + POZVI tlačidlá SLEDOVAŤ + NAPÍSAŤ. Sledovanie príde s FEEDom; správa z profilu
-  //    potrebuje novú serverovú funkciu (dnes `start_dm` pustí len nad spoločným výletom) — obe zatiaľ
-  //    povedia, kedy prídu, a nič nepredstierajú.
-  //  • 5 čísel chýba zámerne: o cudzom človeku ich appka nemá (výlety ani BONES nevydáva).
+  // ── CUDZÍ PROFIL = MÔJ PROFIL OČAMI INÝCH (25. 10. 2026) ───────────────────────────────────
+  // Matej: *„cudzí profil by mal mať to isté viditeľné, teda obidva ranky aj 5 stĺpcov a po kliku na psa
+  // heroglyf a jeho bio, veď tak to má Instagram"*. Hlava, šuplík psov aj čísla sú TIE ISTÉ komponenty
+  // ako `/pack/profile` (`meHead.tsx`). Čísla zverejňuje majiteľova appka (`human.pilgrim`, `human.stats`,
+  // `usePublishProfileStats`) — kým profil neotvorí v novej verzii, svieti „·“.
+  //  • Namiesto UPRAVIŤ + POZVI: SLEDOVAŤ + NAPÍSAŤ. Sledovanie príde s FEEDom; správa z profilu potrebuje
+  //    novú serverovú funkciu (dnes `start_dm` pustí len nad spoločným výletom) — obe zatiaľ povedia, kedy prídu.
+  //  • DEVOTION cudzieho človeka appka nemá → v starom šate sa jeho pilulka nekreslí (prázdny `devLabel`).
   // Súkromné polia odstráni už server (`get_member_profiles`), preto tu žiadne `getTier()`.
   const human = member.human;
   const displayName = memberDisplayName(member) || 'A Dogyptian';
@@ -186,51 +185,37 @@ export default function PublicProfile() {
   const nationality = human.nationality ?? 'SK';
   const nationalityLabel = countryLabel(nationality, lang);
   const pills = humanPills(human.personality, customPills(human), t);
+  const st = human.stats;
+  const pilgrimLevel = human.pilgrim?.level ?? 1;
+  const fmt = (n: number) => n.toLocaleString(lang === 'sk' ? 'sk-SK' : 'en-US');
+  const num = (n: number | undefined, suffix = '') => <b>{n == null ? '·' : `${fmt(n)}${suffix}`}</b>;
+  const dash = <b className="na" aria-label={tx('pack.me.notYet', 'not yet')}>—</b>;
+  const soonFeed = (what: string) => soon(what, tx('pack.me.soonFeed', 'Arrives with the FEED.'));
   // `MeOwn` kreslí psov z `PackDogFull` — potrebuje len id, fotku a meno.
-  const ownDogs = member.dogs.map((d) => ({ id: d.dogId, cloudinary_main_url: d.photo, dog_name: d.name }) as unknown as PackDogFull);
+  const ownDogs = member.dogs.map((d) => ({ id: d.dogId, cloudinary_main_url: d.photo, dog_name: d.name, pack_number: d.packNumber, heroglyph_png_url: d.heroglyphUrl }) as unknown as PackDogFull);
   const soon = (title: string, description: string) => toast({ title, description });
 
-  const dogEntries: DogGalleryEntry[] = member.dogs.map((d) => ({
-    id: d.dogId,
-    name: d.name || 'Unnamed',
-    photoUrl: d.photo,
-    packNumber: d.packNumber,
-    attrs: d.attrs,
-    // farba (`colour`) a línia (`bloodline`) sa o cudzom psovi nevydávajú — zobrazovací
-    // blok „From the heroglyph" je zrušený a používa sa už len `gender` na farbu pilulky
-    heroglyph: { gender: d.gender },
-    heroglyphUrl: d.heroglyphUrl,
-    dogIdValues: d.dogIdPublic,
-  }));
 
   return (
     <PackLayout onBack={goBack} backLabel={t('pack.publicProfile.backToPack')}>
       <style>{PILL_CSS}</style>
       <style>{ME_CSS}</style>
       {FLAT && <style>{ME_FLAT_CSS}</style>}
-      {/* `.pf-field`/`.pf-pill` — DogGalleryAccordion kreslí tie isté chipy ako editor. */}
-      <style>{PF_FIELD_CSS}</style>
 
-      <section className={`me-card${FLAT ? ' me-flat' : ''}`}>
+      <section className={`me-card${FLAT ? ' me-flat' : ''}${open ? ' open' : ''}`}>
         <MeCover
           cover={coverSrc}
           coverY={human.coverY}
           name={displayName}
           devLabel=""
           devLevel={0}
-          pilgrimLabel=""
-          pilgrimLevel={0}
-          ranks={
-            <span className="pk-pill">
-              <img
-                src={flagUrl(countryISO2(nationality) || 'sk', 80)}
-                alt={nationalityLabel || nationality}
-                title={nationalityLabel || nationality}
-                style={{ width: PACK_SPACE.lg, height: PACK_SPACE.lg, borderRadius: '50%', objectFit: 'cover' }}
-              />
-              {member.memberNumber != null && <>#{member.memberNumber}</>}
-            </span>
-          }
+          pilgrimLabel={String(pilgrimLevel)}
+          pilgrimLevel={pilgrimLevel}
+          pilgrimPct={st?.pilgrimPct ?? 0}
+          servantYears={st?.servantYears ?? null}
+          servantLabel={tx('pack.ladder.servant', 'Servant')}
+          pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
+          right={<MeFlag code={nationality} label={nationalityLabel || nationality} />}
         />
 
         <div className="me-under">
@@ -238,14 +223,31 @@ export default function PublicProfile() {
             photo={avatar}
             initial={(displayName[0] || 'D').toUpperCase()}
             dogs={ownDogs}
+            open={open}
+            onToggle={() => setOpen((o) => !o)}
             onPhoto={() => {}}
             photoLabel={displayName}
             story="none"
+            toggleLabel={open ? tx('pack.me.closeDogs', 'Hide dogs') : tx('pack.me.openDogs', 'Show dogs')}
           />
+
+          <div className="me-drawer" aria-hidden={!open}>
+            {member.dogs.map((d, k) => (
+              <MeDogRow key={d.dogId} dog={ownDogs[k]} attrs={d.attrs} onClose={() => setOpen(false)} tx={tx} />
+            ))}
+          </div>
           <div className="me-gap" />
 
-          {/* Bez riadku čísel: od psa k tlačidlám tá istá vzdušnosť ako na mojom profile k číslam (margin S.md + padding S.sm). */}
-          <div className="me-btns" style={{ marginTop: PACK_SPACE.md + PACK_SPACE.sm }}>
+          {/* 5 ČÍSEL — tie isté ako na mojom profile, zverejnené majiteľom (`human.stats`). */}
+          <div className="me-stats">
+            <button type="button" onClick={() => soonFeed(tx('pack.me.followers', 'followers'))}>{dash}<span>{tx('pack.me.followers', 'followers')}</span></button>
+            <button type="button" onClick={() => soonFeed(tx('pack.me.following', 'following'))}>{dash}<span>{tx('pack.me.following', 'following')}</span></button>
+            <button type="button">{num(st?.brought)}<span>{tx('pack.me.brought', 'brought in')}</span></button>
+            <button type="button">{num(st?.km)}<span>km</span></button>
+            <button type="button">{num(st?.study, ' %')}<span>{tx('pack.me.studying', 'studying')}</span></button>
+          </div>
+
+          <div className="me-btns">
             <button type="button" className="me-cta" onClick={() => soon(tx('pack.publicProfile.follow', 'Follow'), tx('pack.me.soonFeed', 'Arrives with the FEED.'))}>
               {tx('pack.publicProfile.follow', 'Follow')}
             </button>
@@ -279,20 +281,6 @@ export default function PublicProfile() {
             <div className="me-strip">
               {pills.map((p) => <span key={p.k} className="pk-pill">{p.emoji && <i>{p.emoji}</i>}{p.label}</span>)}
             </div>
-          )}
-
-          {/* SVORKA — read-only galéria psov (ten istý accordion ako editor, bez edit polí), pod nadpisom
-              v tvare PAWTNER: hladký papyrus nemá vonkajšie karty. */}
-          {dogEntries.length > 0 && (
-            <>
-              <div className="me-role me-role--label">
-                <span>{t('pack.publicProfile.theirPack')}</span>
-                <i aria-hidden />
-              </div>
-              <div style={{ marginTop: PACK_SPACE.md }}>
-                <DogGalleryAccordion dogs={dogEntries} editable={false} />
-              </div>
-            </>
           )}
         </div>
       </section>

@@ -25,8 +25,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
-import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
-import { useProfile, customPills, profileRoles, humanPills, type DogProfileAttrs } from '@/components/pack/profile/packProfile';
+import { usePilgrimStats, usePublishPilgrimLevel, usePublishProfileStats } from '@/components/pack/usePilgrimStats';
+import { useProfile, customPills, profileRoles, humanPills } from '@/components/pack/profile/packProfile';
 import { useScrollState, useLiked, useSaved } from '@/components/pack/vault/vaultScrolls';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { devotionLevel, DEVOTION_TODAY_ON } from '@/lib/devotion';
@@ -41,7 +41,7 @@ import { BonesSheet } from '@/components/pack/BonesSheet';
 import { TripShareSheet, type TripShareData } from '@/components/pack/trip/TripShareSheet';
 import { dogShareLink } from '@/lib/useShareCard';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
+import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeRank, MeDogRow, MeFlag } from '@/components/pack/profile/meHead';
 import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBadge';
 import { StoryViewer } from '@/components/pack/profile/StoryViewer';
 import { DevotionToday } from '@/components/pack/profile/DevotionToday';
@@ -50,6 +50,7 @@ import { levelProgress } from '@/lib/tripPoints';
 import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbum, isLive, isTripStory, type MePost } from '@/components/pack/profile/mePosts';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
+import { countryLabel } from '@/lib/countryOptions';
 
 // PROFIL BEZ KARTY (TEST_BUILD, Matej 25. 10. 2026): obsah na celú šírku. Hladký papyrus pod ním
 // zapína PackLayout (`PLAIN_ROUTES`).
@@ -95,51 +96,6 @@ function useNovicePreview(search: string): [boolean, () => void] {
 }
 
 const asFrames = (p: MePost): MePost[] => p.photos.map((ph, k) => ({ ...p, id: `${p.id}:${k}`, photos: [ph], body: k === 0 ? p.body : '' }));
-
-/** Riadok psa v šuplíku. Bio a povaha sú tie isté polia ako v DOG ID (`profile.dogs[id]`). */
-function DogRow({ dog, attrs, onClose, onDogId, tx }: {
-  dog: PackDogFull;
-  attrs: DogProfileAttrs | undefined;
-  onClose: () => void;
-  onDogId: () => void;
-  tx: (key: string, fallback: string) => string;
-}) {
-  const [flip, setFlip] = useState(false);
-  const src = dog.cloudinary_main_url;
-  const name = dog.dog_name ?? '';
-  const num = dog.pack_number != null ? <span className="me-no">#{dog.pack_number}</span> : null;
-  const bio = attrs?.bio?.trim();
-  const tags = attrs?.tags?.temperament ?? [];
-  return (
-    <div className={`me-drow${flip ? ' flip' : ''}`}>
-      <button type="button" className="me-dp" onClick={onClose} aria-label={tx('pack.me.closeDogs', 'Hide dogs')}>
-        {src && <img src={sizedUrl(src, 200)} alt="" />}
-        {num}
-      </button>
-      <button type="button" className="me-hg" onClick={() => setFlip((f) => !f)} aria-expanded={flip} aria-label={name}>
-        <span className="fa">
-          {dog.heroglyph_png_url ? <img src={dog.heroglyph_png_url} alt="" /> : <span className="empty">{name}</span>}
-        </span>
-        <span className="ba"><b>{name}</b>{num}</span>
-      </button>
-      <div className="me-dinfo">
-          {bio ? <p>{bio}</p> : (
-            <p className="none" onClick={onDogId}>{tx('pack.me.dogBioEmpty', 'No bio yet. Write it in DOG ID.')}</p>
-          )}
-          {tags.length > 0 && (
-            <div className="me-strip">
-              {tags.map((g) => <span key={g} className="pk-pill">{tx(`pack.dogTag.${g}`, g)}</span>)}
-            </div>
-          )}
-          {/* Môj pes → úprava v DOG ID (Matej 23. 10.: „možnosť upraviť a klikom sa preniesť do /dogs"). */}
-          <button type="button" className="me-dedit" onClick={onDogId}>
-            <BrandIcon name="pencil" size={12} tint="violet" />
-            {tx('pack.me.editDog', 'Edit DOG ID')}
-          </button>
-      </div>
-    </div>
-  );
-}
 
 export default function PackMe() {
   const t = useT();
@@ -202,6 +158,11 @@ export default function PackMe() {
   const readScrolls = novice ? 0 : Object.values(zstate).filter((v) => v === 2).length;
   // prvý prečítaný zvitok nesmie ukázať 0 % — to isté pravidlo ako hlavička AINUBISA
   const studyPct = readScrolls ? Math.max(1, Math.round((readScrolls / Math.max(1, TOTAL_SCROLLS)) * 100)) : 0;
+  // ČÍSLA PROFILU pre ostatných — cudzí profil ich ukáže 1:1 (25. 10. 2026). Nováčikov náhľad nič nezverejní.
+  usePublishPilgrimLevel(novice ? null : pilgrim.level.level);
+  usePublishProfileStats(novice || brought == null ? null : {
+    km: pilgrim.km, pilgrimPct: pilgrim.level.pct, brought, study: studyPct, servantYears,
+  });
   const dev = devotionLevel(devotion);
   const [rank, setRank] = useState<'dev' | 'pt' | 'study' | null>(null);
   const liked = useLiked();
@@ -314,6 +275,7 @@ export default function PackMe() {
           servantLabel={tx('pack.ladder.servant', 'Servant')}
           pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
           bones={fmt(bones)}
+          right={<MeFlag code={human?.nationality ?? 'SK'} label={countryLabel(human?.nationality ?? 'SK', lang)} />}
           onBones={() => setBonesOpen(true)}
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
           onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
@@ -343,7 +305,7 @@ export default function PackMe() {
 
           <div className="me-drawer" aria-hidden={!open}>
             {dogs.map((d) => (
-              <DogRow key={d.id} dog={d} attrs={profile?.dogs?.[d.id]} onClose={() => setOpen(false)} onDogId={() => navigate(`/pack/dogs/${d.id}`)} tx={tx} />
+              <MeDogRow key={d.id} dog={d} attrs={profile?.dogs?.[d.id]} onClose={() => setOpen(false)} onDogId={() => navigate(`/pack/dogs/${d.id}`)} tx={tx} />
             ))}
           </div>
           <div className="me-gap" />
