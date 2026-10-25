@@ -69,6 +69,12 @@ export const RANK_BADGE_CSS = `
 /* BONES: kapsula podľa dĺžky čísla (1 240 je širšie než 9). */
 .rk .cp.cp--auto{ width:auto; min-width:calc(var(--s) * 1.6); padding:0 14px 0 calc(var(--s) * .72); display:flex; align-items:center; justify-content:center; }
 .rk .cp.cp--auto .nb{ position:static; font-size:calc(var(--s) * .36); white-space:nowrap; }
+/* BONES = zlatá kapsula so ŠIKMÝM koncom a tmavým číslom (Matej 25. 10.: „suma zlatým, text tmavým…
+   nie ukončenie pils ale takto“ + „daj len bones skosené, tie dve nechaj ako sú“). Skosenie = skewX
+   celej kapsuly; ľavý koniec sa schová pod mincu, číslo sa vyrovná späť. */
+.rk--bones .cp{ border-radius:5px; border:1.5px solid #F6E3A6; transform:skewX(-24deg); transform-origin:0 100%;
+  background:linear-gradient(180deg, #F2D27A, #C99A3F 55%, #A3782B); box-shadow:inset 0 1px 0 rgba(255,255,255,.55), inset 0 -2px 3px rgba(80,50,0,.35); }
+.rk--bones .cp .nb{ transform:skewX(24deg); color:#241a06; text-shadow:0 1px 0 rgba(255,240,200,.6); }
 /* Riadok pod menom: odznak nie je pilulka — zruší odsadenie a zmršťovanie z .me-lv > * (meHead.tsx). */
 .me-lv.rk-row{ gap:8px; align-items:center; }
 .me-lv.rk-row > .rk{ flex:none; padding:0; gap:0; border-radius:0; letter-spacing:0; }
