@@ -6118,6 +6118,7 @@ export const cs: Partial<Dict> = {
   'pack.me.newStory': "Nová story",
   'pack.me.stories': "Příběhy",
   'pack.me.post': "Příspěvek",
+  'pack.wish.saveQuick': "Uložit hned, doplním později",
   'pack.post.saveToWish': "Přidat do TRIPWISH",
   'pack.post.savedToWish': "Přidáno do TRIPWISH",
   'pack.post.saveToPosts': "Uložit do příspěvků",

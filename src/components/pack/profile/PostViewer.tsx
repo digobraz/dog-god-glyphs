@@ -8,8 +8,8 @@
 // 🆕 25. 10. noc: *„chcem, aby sa dali rozkliknúť ľudia, čo lajkujú, ako na IG"* → „Páči sa to …" otvorí šuplík
 //    ľudí (`list_post_likers`), ťuk = ich profil · *„pri príspevku bude táto mapa ako posledný obrázok aj s pinom
 //    a možnosťou klikom dostať sa do mapy cz"* → posledná snímka = mapa s bodom (`attach.place` s lat/lon).
-// 🆕 *„uložiť do triplistu … ikonka, čo už máme, namiesto hviezdičky, po kliknutí uložiť do príspevkov,
-//    uložiť do triplistu"* + *„to je asi tripwish, nie triplist"* → `target` (brandová dvojička 🎯 TRIPWISH z panela +) otvorí šuplík s dvomi voľbami.
+// 🆕 ULOŽIŤ: Matej *„nechaj tam hviezdičku — a po kliknutí tam má byť príspevok alebo tripwish, a ten má emoji
+//    terč, nie náš"* → ☆ otvorí šuplík: 🖼️ Príspevok · 🎯 TRIPWISH — emoji z panela + (`createEmoji`), nie kópia.
 //    Do triplistu ide PRIANIE (`addWishPin`) s predvolbou krátky výlet · tento rok — doladí sa v triplistu.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -24,8 +24,10 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { deletePost, fetchPostSocial, fetchComments, addComment, deleteComment, fetchLikers, mapyPointUrl, type PostLiker, type MePost, type PostSocial, type PostComment } from '@/components/pack/profile/mePosts';
 import { toggleMark } from '@/components/pack/story/storyData';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { HandHeart, HandTrash } from '@/components/pack/HandIcons';
-import { addWishPin } from '@/components/pack/mapnotes/wishData';
+import { HandHeart, HandStar, HandTrash } from '@/components/pack/HandIcons';
+import { createEmoji } from '@/components/pack/addtrip/AddTripEntry';
+import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
+import { AddWish } from '@/components/pack/mapnotes/AddWish';
 import { useToast } from '@/hooks/use-toast';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
@@ -33,6 +35,7 @@ import type { PackDogFull } from '@/hooks/usePackUser';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
+const noop = () => {};
 const S = PACK_SPACE;
 const TX = PACK_TEXT;
 
@@ -87,6 +90,8 @@ const CSS = `
 .pv-ls ul{list-style:none;margin:0;padding:0 ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);overflow-y:auto;}
 .pv-ls li button{display:flex;align-items:center;gap:${S.md}px;width:100%;padding:${S.sm}px 0;background:none;border:0;cursor:pointer;color:${T.inkStrong};
   font-family:${FONT_UI};font-size:${TX.body}px;font-weight:600;text-align:left;}
+.pv-ls .em{flex:none;width:${PACK_AVATAR.sm}px;text-align:center;font-size:${TX.h2}px;line-height:1;}
+.pv-ls .pv-sv[aria-pressed="true"]{color:${T.accentGold};}
 .pv-ls li i{display:grid;place-items:center;font-style:normal;font-weight:600;color:${T.inkWarm};}
 .pv-ls li img,.pv-ls li i{flex:none;width:${PACK_AVATAR.sm}px;height:${PACK_AVATAR.sm}px;border-radius:${PACK_R.pill}px;object-fit:cover;background:${T.tileBg};}
 .pv-ls li small{font-weight:400;color:${T.inkWarm};margin-left:auto;}
@@ -134,6 +139,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
   const [likersOpen, setLikersOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [wished, setWished] = useState(false);
+  const [wishing, setWishing] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -221,7 +227,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
           </button>
           <span className="sp" />
           <button type="button" className={`save${soc.saved || wished ? ' on' : ''}`} onClick={() => setSaveOpen(true)} aria-label={tx('pack.post.save', 'Save')}>
-            <BrandIcon name="target" size={24} tint={soc.saved || wished ? 'gold' : 'dark'} />
+            <HandStar size={24} filled={soc.saved || wished} />
           </button>
         </div>
         {likers.length > 0 && lead && (
@@ -276,17 +282,19 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
       {saveOpen && (
         <SaveSheet title={tx('pack.post.save', 'Save')} close={tx('pack.network.close', 'Close')}
           rows={[
-            { key: 'post', icon: 'frame', label: tx('pack.post.saveToPosts', 'Save to posts'), on: soc.saved, run: () => mark('save') },
-            ...(pin ? [{ key: 'trip', icon: 'target', label: tx('pack.post.saveToWish', 'Add to TRIPWISH'), on: wished, run: async () => {
-              if (wished) return;
-              try {
-                await addWishPin({ lat: pin.lat, lon: pin.lon, placeName: place?.name || '', placeKind: 'point', tripKind: 'short', when: 'year', seeking: false, note: null });
-                setWished(true);
-                toast({ title: tx('pack.post.savedToWish', 'Added to your TRIPWISH') });
-              } catch { toast({ title: tx('pack.profile.toastUnknownError', 'Unknown error'), variant: 'destructive' }); }
-            } }] : []),
+            { key: 'post', emoji: createEmoji('post'), label: tx('pack.me.post', 'Post'), on: soc.saved, run: () => mark('save') },
+            ...(pin ? [{ key: 'trip', emoji: createEmoji('wish'), label: 'TRIPWISH', on: wished, run: () => { if (wished) return; setSaveOpen(false); setWishing(true); } }] : []),
           ]}
           onClose={() => setSaveOpen(false)} />
+      )}
+      {wishing && pin && (
+        <>
+          {/* Šuplík priania žije nad mapou (z 1202) — tu musí ležať nad príspevkom (1300). */}
+          <style>{'.ws-wrap{z-index:1360 !important;}'}</style>
+          <AddWish map={null} start={{ name: place?.name || '', lat: pin.lat, lon: pin.lon }} onDraft={noop}
+            onCancel={() => setWishing(false)}
+            onSaved={() => { setWished(true); toast({ title: tx('pack.post.savedToWish', 'Added to your TRIPWISH') }); }} />
+        </>
       )}
       {likersOpen && (
         <LikersSheet list={likers} title={tx('pack.post.likes', 'Likes')} you={tx('pack.post.you', 'you')} close={tx('pack.network.close', 'Close')}
@@ -319,7 +327,7 @@ function MapSlide({ lat, lon, label, onOpen }: { lat: number; lon: number; label
 
 function SaveSheet({ title, close, rows, onClose }: {
   title: string; close: string;
-  rows: Array<{ key: string; icon: string; label: string; on: boolean; run: () => void | Promise<void> }>;
+  rows: Array<{ key: string; emoji: string; label: string; on: boolean; run: () => void | Promise<void> }>;
   onClose: () => void;
 }) {
   const sw = useSheetSwipe(onClose);
@@ -337,7 +345,7 @@ function SaveSheet({ title, close, rows, onClose }: {
           {rows.map((r) => (
             <li key={r.key}>
               <button type="button" className="pv-sv" aria-pressed={r.on} onClick={() => { void r.run(); }}>
-                <BrandIcon name={r.icon} size={24} tint={r.on ? 'gold' : 'dark'} />
+                <span className="em" style={{ fontFamily: FONT_EMOJI }} aria-hidden>{r.emoji}</span>
                 {r.label}
               </button>
             </li>

@@ -4446,6 +4446,7 @@ export const sk: Partial<Dict> = {
   'pack.wish.seeking': "Hľadám parťáka",
   'pack.wish.private': "Len pre mňa",
   'pack.wish.pin': "Pripnúť",
+  'pack.wish.saveQuick': "Uložiť hneď, doplním neskôr",
   'pack.wish.close': "Hotovo",
   'pack.wish.failed': "Nepodarilo sa. Skús to znova.",
   'pack.wish.cantWrite': "Tomuto človeku sa teraz napísať nedá.",

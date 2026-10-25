@@ -4816,6 +4816,7 @@ export const en = {
   'pack.wish.seeking': "Looking for a buddy",
   'pack.wish.private': "Just for me",
   'pack.wish.pin': "Pin it",
+  'pack.wish.saveQuick': "Save now, fill in later",
   'pack.wish.close': "Done",
   'pack.wish.failed': "That didn't work. Try again.",
   'pack.wish.cantWrite': "You can't message this person right now.",

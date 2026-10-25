@@ -38,8 +38,12 @@ export type WishDraftPoint = { lat: number; lon: number } | null;
 
 const NOTE_MAX = 140;
 
-export function AddWish({ map, onDraft, onSaved, onCancel }: {
+export function AddWish({ map, onDraft, onSaved, onCancel, start }: {
   map: LeafletMap | null;
+  /** TRIPWISH Z PRÍSPEVKU (Matej 25. 10. 2026: *„príspevkové tripwish by nemuseli obsahovať, alebo by ich
+   *  mohol človek vyplniť, ako keby ho išiel zakladať"*). Miesto je dané — tok začína pri druhu výletu
+   *  a ponúka ULOŽIŤ HNEĎ (bez údajov: krátky výlet · tento rok · len pre mňa). */
+  start?: { name: string; lat: number; lon: number };
   /** Kde má mapa ukázať rozpracovaný 🎯 (null = nikde). */
   onDraft: (p: WishDraftPoint) => void;
   onSaved: () => void;
@@ -49,8 +53,9 @@ export function AddWish({ map, onDraft, onSaved, onCancel }: {
   const mapRef = useRef<LeafletMap | null>(map);
   mapRef.current = map;
 
-  const [step, setStep] = useState<Step>('place');
-  const [place, setPlace] = useState<{ name: string; lat: number; lon: number; kind: WishPlaceKind; country: string | null } | null>(null);
+  const [step, setStep] = useState<Step>(start ? 'kind' : 'place');
+  const [place, setPlace] = useState<{ name: string; lat: number; lon: number; kind: WishPlaceKind; country: string | null } | null>(
+    start ? { ...start, kind: 'point', country: null } : null);
   const [kind, setKind] = useState<WishTripKind | null>(null);
   const [when, setWhen] = useState<WishWhen | null>(null);
   const [note, setNote] = useState('');
@@ -72,19 +77,20 @@ export function AddWish({ map, onDraft, onSaved, onCancel }: {
 
   const back = () => {
     setErr(null);
-    if (step === 'kind') { setStep('place'); setPlace(null); onDraft(null); return; }
+    if (step === 'kind') { if (start) { onCancel(); return; } setStep('place'); setPlace(null); onDraft(null); return; }
     if (step === 'when') { setStep('kind'); return; }
     if (step === 'note') { setStep('when'); return; }
     onCancel();
   };
 
-  const save = async () => {
-    if (!place || !kind || !when) return;
+  const save = async (quick = false) => {
+    if (!place || (!quick && (!kind || !when))) return;
     setBusy(true); setErr(null);
     try {
       await addWishPin({
         lat: place.lat, lon: place.lon, placeName: place.name, placeKind: place.kind, countryCode: place.country,
-        tripKind: kind, when, seeking, note: note.trim() ? note.trim().slice(0, NOTE_MAX) : null,
+        tripKind: quick ? 'short' : kind!, when: quick ? 'year' : when!, seeking: quick ? false : seeking,
+        note: !quick && note.trim() ? note.trim().slice(0, NOTE_MAX) : null,
       });
       setStep('done');
       onDraft(null);
@@ -136,6 +142,12 @@ export function AddWish({ map, onDraft, onSaved, onCancel }: {
           ))}
         </div>
       )}
+      {step === 'kind' && start && (
+        <div className="aw-row">
+          <button type="button" className="aw-ghost" disabled={busy} onClick={() => save(true)}>{t('pack.wish.saveQuick')}</button>
+        </div>
+      )}
+      {step === 'kind' && start && err && <div className="aw-err">{err}</div>}
       {step === 'when' && (
         <div className="aw-chips">
           {WISH_WHENS.map((w) => (
@@ -158,7 +170,7 @@ export function AddWish({ map, onDraft, onSaved, onCancel }: {
             <button type="button" className={`aw-chip${seeking ? ' on' : ''}`} onClick={() => setSeeking(true)}>{t('pack.wish.seeking')}</button>
             <button type="button" className={`aw-chip${!seeking ? ' on' : ''}`} onClick={() => setSeeking(false)}>{t('pack.wish.private')}</button>
           </div>
-          <button type="button" className="aw-cta" disabled={busy} onClick={save}>
+          <button type="button" className="aw-cta" disabled={busy} onClick={() => save()}>
             {WISH_EMOJI} {busy ? '…' : t('pack.wish.pin')}
           </button>
           {err && <div className="aw-err">{err}</div>}

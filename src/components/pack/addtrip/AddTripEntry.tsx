@@ -154,6 +154,9 @@ const EMOJI: Record<CreateId, string> = {
   chat: '🤖', brain: '📥', board: '❓',
   dm: '💌', group: '👪',
 };
+/** Ten istý slovník aj mimo panela (šuplík ULOŽIŤ v príspevku, 25. 10. 2026) — jedno emoji na vec. */
+export const createEmoji = (id: CreateId): string => EMOJI[id];
+
 
 /** Dlaždica podľa id objektu v registri. Mapové objekty kreslí panel, zvyšok register. */
 const KIND_BY_ID: Partial<Record<string, KindDef>> = Object.fromEntries(KINDS.map((k) => [k.kind, k]));
