@@ -8,6 +8,9 @@
 // 🆕 25. 10. noc: *„chcem, aby sa dali rozkliknúť ľudia, čo lajkujú, ako na IG"* → „Páči sa to …" otvorí šuplík
 //    ľudí (`list_post_likers`), ťuk = ich profil · *„pri príspevku bude táto mapa ako posledný obrázok aj s pinom
 //    a možnosťou klikom dostať sa do mapy cz"* → posledná snímka = mapa s bodom (`attach.place` s lat/lon).
+// 🆕 *„uložiť do triplistu … ikonka, čo už máme, namiesto hviezdičky, po kliknutí uložiť do príspevkov,
+//    uložiť do triplistu"* + *„to je asi tripwish, nie triplist"* → `target` (brandová dvojička 🎯 TRIPWISH z panela +) otvorí šuplík s dvomi voľbami.
+//    Do triplistu ide PRIANIE (`addWishPin`) s predvolbou krátky výlet · tento rok — doladí sa v triplistu.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +24,9 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { deletePost, fetchPostSocial, fetchComments, addComment, deleteComment, fetchLikers, mapyPointUrl, type PostLiker, type MePost, type PostSocial, type PostComment } from '@/components/pack/profile/mePosts';
 import { toggleMark } from '@/components/pack/story/storyData';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { HandHeart, HandStar, HandTrash } from '@/components/pack/HandIcons';
+import { HandHeart, HandTrash } from '@/components/pack/HandIcons';
+import { addWishPin } from '@/components/pack/mapnotes/wishData';
+import { useToast } from '@/hooks/use-toast';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import type { PackDogFull } from '@/hooks/usePackUser';
@@ -127,6 +132,9 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
   const input = useRef<HTMLInputElement>(null);
   const [likers, setLikers] = useState<PostLiker[]>([]);
   const [likersOpen, setLikersOpen] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [wished, setWished] = useState(false);
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const reload = useCallback(() => {
@@ -212,8 +220,8 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
             <BrandIcon name="chat" size={24} tint="dark" />{soc.comments > 0 && soc.comments}
           </button>
           <span className="sp" />
-          <button type="button" className={`save${soc.saved ? ' on' : ''}`} onClick={() => mark('save')} aria-pressed={soc.saved} aria-label={tx('pack.post.save', 'Save')}>
-            <HandStar size={24} filled={soc.saved} />
+          <button type="button" className={`save${soc.saved || wished ? ' on' : ''}`} onClick={() => setSaveOpen(true)} aria-label={tx('pack.post.save', 'Save')}>
+            <BrandIcon name="target" size={24} tint={soc.saved || wished ? 'gold' : 'dark'} />
           </button>
         </div>
         {likers.length > 0 && lead && (
@@ -265,6 +273,21 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
           </button>
         )}
       </div>
+      {saveOpen && (
+        <SaveSheet title={tx('pack.post.save', 'Save')} close={tx('pack.network.close', 'Close')}
+          rows={[
+            { key: 'post', icon: 'frame', label: tx('pack.post.saveToPosts', 'Save to posts'), on: soc.saved, run: () => mark('save') },
+            ...(pin ? [{ key: 'trip', icon: 'target', label: tx('pack.post.saveToWish', 'Add to TRIPWISH'), on: wished, run: async () => {
+              if (wished) return;
+              try {
+                await addWishPin({ lat: pin.lat, lon: pin.lon, placeName: place?.name || '', placeKind: 'point', tripKind: 'short', when: 'year', seeking: false, note: null });
+                setWished(true);
+                toast({ title: tx('pack.post.savedToWish', 'Added to your TRIPWISH') });
+              } catch { toast({ title: tx('pack.profile.toastUnknownError', 'Unknown error'), variant: 'destructive' }); }
+            } }] : []),
+          ]}
+          onClose={() => setSaveOpen(false)} />
+      )}
       {likersOpen && (
         <LikersSheet list={likers} title={tx('pack.post.likes', 'Likes')} you={tx('pack.post.you', 'you')} close={tx('pack.network.close', 'Close')}
           onClose={() => setLikersOpen(false)}
@@ -291,6 +314,37 @@ function MapSlide({ lat, lon, label, onOpen }: { lat: number; lon: number; label
       <div className="lf" ref={el} />
       <span className="go">{label}</span>
     </button>
+  );
+}
+
+function SaveSheet({ title, close, rows, onClose }: {
+  title: string; close: string;
+  rows: Array<{ key: string; icon: string; label: string; on: boolean; run: () => void | Promise<void> }>;
+  onClose: () => void;
+}) {
+  const sw = useSheetSwipe(onClose);
+  return (
+    <div className="pv-ls pk-veil pk-veil--modal" role="dialog" aria-modal="true" aria-label={title}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <style>{VEIL_CSS}</style>
+      <div className="sh" style={sw.sheetStyle}>
+        <span className="grab" aria-hidden {...sw.handle} />
+        <div className="hd" {...sw.handle}>
+          <BackButton tone="pale" onClick={onClose} label={close} />
+          <h2>{title}</h2>
+        </div>
+        <ul>
+          {rows.map((r) => (
+            <li key={r.key}>
+              <button type="button" className="pv-sv" aria-pressed={r.on} onClick={() => { void r.run(); }}>
+                <BrandIcon name={r.icon} size={24} tint={r.on ? 'gold' : 'dark'} />
+                {r.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
 
