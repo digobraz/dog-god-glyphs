@@ -10,6 +10,8 @@
 //    a možnosťou klikom dostať sa do mapy cz"* → posledná snímka = mapa s bodom (`attach.place` s lat/lon).
 // 🆕 ULOŽIŤ: Matej *„nechaj tam hviezdičku — a po kliknutí tam má byť príspevok alebo tripwish, a ten má emoji
 //    terč, nie náš"* → ☆ otvorí šuplík: 🖼️ Príspevok · 🎯 TRIPWISH — emoji z panela + (`createEmoji`), nie kópia.
+//    TRIPWISH = JEDEN ŤUK, bez formulára (Matej: *„nemá to zmysel… skrátka len uložiť do tripwishu a hotovo"*):
+//    prianie s predvolbou krátky výlet · tento rok · len pre mňa, potom potvrdenie AINUBISA so závojom.
 //    Do triplistu ide PRIANIE (`addWishPin`) s predvolbou krátky výlet · tento rok — doladí sa v triplistu.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -27,7 +29,9 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandHeart, HandStar, HandTrash } from '@/components/pack/HandIcons';
 import { createEmoji } from '@/components/pack/addtrip/AddTripEntry';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
-import { AddWish } from '@/components/pack/mapnotes/AddWish';
+import { ADD_WISH_CSS } from '@/components/pack/mapnotes/AddWish';
+import { WishSheet } from '@/components/pack/mapnotes/WishSheet';
+import { addWishPin } from '@/components/pack/mapnotes/wishData';
 import { useToast } from '@/hooks/use-toast';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
@@ -35,7 +39,6 @@ import type { PackDogFull } from '@/hooks/usePackUser';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
-const noop = () => {};
 const S = PACK_SPACE;
 const TX = PACK_TEXT;
 
@@ -283,20 +286,27 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
         <SaveSheet title={tx('pack.post.save', 'Save')} close={tx('pack.network.close', 'Close')}
           rows={[
             { key: 'post', emoji: createEmoji('post'), label: tx('pack.me.post', 'Post'), on: soc.saved, run: () => mark('save') },
-            ...(pin ? [{ key: 'trip', emoji: createEmoji('wish'), label: 'TRIPWISH', on: wished, run: () => { if (wished) return; setSaveOpen(false); setWishing(true); } }] : []),
+            ...(pin ? [{ key: 'trip', emoji: createEmoji('wish'), label: 'TRIPWISH', on: wished, run: async () => {
+              if (wished) return;
+              setSaveOpen(false);
+              try {
+                await addWishPin({ lat: pin.lat, lon: pin.lon, placeName: place?.name || '', placeKind: 'point', tripKind: 'short', when: 'year', seeking: false, note: null });
+                setWished(true); setWishing(true);
+              } catch { toast({ title: tx('pack.profile.toastUnknownError', 'Unknown error'), variant: 'destructive' }); }
+            } }] : []),
           ]}
           onClose={() => setSaveOpen(false)} />
       )}
-      {wishing && pin && (
+      {wishing && (
         <>
-          {/* Šuplík priania žije nad mapou (z 1202) — tu musí ležať nad príspevkom (1300) a príspevok
+          {/* Blok AINUBISA žije nad mapou (z 1202) — tu musí ležať nad príspevkom (1300) a príspevok
               pod ním stmavne (Matej 25. 10.: *„stmaviť pozadie, aby išiel do popredia"*). */}
-          <style>{'.ws-wrap{z-index:1360 !important;}'}</style>
-          <style>{VEIL_CSS}</style>
+          <style>{'.ws-wrap{z-index:1360 !important;}' + VEIL_CSS + ADD_WISH_CSS}</style>
           <div className="pk-veil pk-veil--modal" style={{ zIndex: 1355 }} aria-hidden onClick={() => setWishing(false)} />
-          <AddWish map={null} start={{ name: place?.name || '', lat: pin.lat, lon: pin.lon }} onDraft={noop}
-            onCancel={() => setWishing(false)}
-            onSaved={() => { setWished(true); toast({ title: tx('pack.post.savedToWish', 'Added to your TRIPWISH') }); }} />
+          <WishSheet text={tx('pack.wish.guide.donePost', 'Saved. You’ll find it on the Map in your profile, under TRIPWISH.')}
+            onClose={() => setWishing(false)} closeLabel={tx('pack.network.close', 'Close')}>
+            <button type="button" className="aw-cta" onClick={() => setWishing(false)}>{tx('pack.wish.close', 'Done')}</button>
+          </WishSheet>
         </>
       )}
       {likersOpen && (
