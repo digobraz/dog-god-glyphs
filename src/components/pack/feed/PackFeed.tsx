@@ -73,7 +73,7 @@ body.pkf-on .pk-paper::before,body.pkf-on .pk-paper::after{display:none;}
 .pkf-ring.plain{background:${T.hairline};}
 .pkf-ring.none{background:none;}
 .pkf-ring > .im{width:100%;height:100%;border-radius:${PACK_R.pill}px;border:3px solid ${PAPER_BG};background:${T.tileBg} center/cover;
-  display:grid;place-items:center;overflow:hidden;font:700 ${TX.lead}px/1 ${FONT_TITLE};color:${T.inkWarm};}
+  display:grid;place-items:center;overflow:hidden;font:600 ${TX.lead}px/1 ${FONT_UI};color:${T.inkWarm};}
 .pkf-ring.ai > .im{background-color:${AINUBIS.bgDeep};}
 .pkf-plus{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:${PACK_R.pill}px;background:${LAPIS.grad};
   border:2px solid ${PAPER_BG};display:grid;place-items:center;color:${LAPIS.ink};cursor:pointer;padding:0;}
@@ -90,7 +90,7 @@ body.pkf-on .pk-paper::before,body.pkf-on .pk-paper::after{display:none;}
 .pkf-post{border-bottom:1px solid ${T.hairline};padding-bottom:${S.md}px;}
 .pkf-ph{display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px ${S.lg}px;}
 .pkf-av{flex:0 0 auto;width:${PACK_AVATAR.sm}px;height:${PACK_AVATAR.sm}px;border-radius:${PACK_R.pill}px;background:${T.tileBg} center/cover no-repeat;
-  display:grid;place-items:center;overflow:hidden;font:700 ${TX.body}px/1 ${FONT_TITLE};color:${T.inkWarm};}
+  display:grid;place-items:center;overflow:hidden;font:600 ${TX.body}px/1 ${FONT_UI};color:${T.inkWarm};}
 .pkf-av.logo{border:1px solid ${T.cardEdge};background-size:80%;background-color:${PAPER_BG};}
 .pkf-av.ai{border:2px solid ${AINUBIS.cyan};background-color:${AINUBIS.bgDeep};}
 .pkf-who{flex:1;min-width:0;}

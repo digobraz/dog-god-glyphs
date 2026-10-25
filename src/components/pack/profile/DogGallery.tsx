@@ -711,7 +711,7 @@ function DogGalleryBody({
             </FieldGrid>
 
             <div style={{ marginTop: 10 }}>
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint, display: 'block', marginBottom: 6 }}>
+              <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint, display: 'block', marginBottom: 6 }}>
                 {t('pack.dogCard.feeding')}
               </span>
               <ChipMulti
@@ -836,7 +836,7 @@ function TagGroup({ label, options, selected, editable, max, onToggle }: {
   return (
     <div style={{ marginTop: 12 }}>
       <span className="flex items-baseline gap-2" style={{ marginBottom: 8 }}>
-        <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint }}>
+        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint }}>
           {label}
         </span>
         {editable && max != null && (

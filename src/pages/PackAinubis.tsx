@@ -106,7 +106,7 @@ ${STAGE_CSS}
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
   background:${AINUBIS.surface};border:1px solid ${AINUBIS.edgeStrong};box-shadow:${AINUBIS.panelShadow};
   font-size:${PACK_TEXT.label}px;line-height:1.4;color:${AINUBIS.inkDim};}
-.akv-tip b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;
+.akv-tip b{display:block;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};}
 .akv-tip u{display:block;text-decoration:none;margin-top:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.micro}px;
   letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};}
@@ -153,7 +153,7 @@ ${STAGE_CSS}
 .akv-note{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;
   border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};
   box-shadow:0 0 24px ${AINUBIS.glowTint};}
-.akv-note b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
+.akv-note b{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
   text-transform:uppercase;color:${AINUBIS.ctaA};}
 .akv-note p{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;line-height:1.45;color:${AINUBIS.inkDim};}
 .akv-note--t{margin-top:${PACK_SPACE.sm}px;}
@@ -494,7 +494,7 @@ ${STAGE_CSS}
 /* Prepínač NIE JE výzva k akcii: pilulka 999 BEZ dosvitu (lock §1.3.1). */
 .akv-mtoggle{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;cursor:pointer;white-space:nowrap;
   padding:${PACK_SPACE.md}px ${PACK_SPACE.xl}px;border-radius:${PACK_R.pill}px;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
   text-transform:uppercase;background:${AINUBIS.ctaGrad};color:${AINUBIS.ctaInk};border:1px solid ${AINUBIS.ctaEdge};}
 .akv-mtoggle i{width:16px;height:16px;flex:0 0 auto;background:${AINUBIS.ctaInk};
   -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;

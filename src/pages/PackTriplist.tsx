@@ -910,7 +910,7 @@ export default function PackTriplist() {
       <div className="pk-paper flex items-center justify-center" style={{ minHeight: '100dvh' }}>
         <style>{PAPER_PAGE_CSS}</style>
         <div className="relative" style={{ zIndex: 1 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 12, color: T.inkWarm }}>
+          <div style={{ fontFamily: FONT_UI, letterSpacing: '0.26em', fontSize: 12, color: T.inkWarm }}>
             {t('pack.layout.loading')}
           </div>
         </div>

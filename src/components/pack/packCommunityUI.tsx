@@ -231,7 +231,7 @@ ${VEIL_CSS}
    → [[feedback_svetly_povrch_zabija_priesvitnost]] */
 .comm-submit:disabled{background:rgba(42,22,8,0.06);border-color:${P.hair};color:${P.faint};box-shadow:none;cursor:default;}
 /* „Teraz nie" je rovnocenná ponuka, nie akcia — papyrusový outline, nie druhá plná farba. */
-.comm-ghostbtn{width:100%;margin-top:9px;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${P.soft};color:${P.ink};border:1px solid ${P.border};cursor:pointer;}
+.comm-ghostbtn{width:100%;margin-top:9px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${P.soft};color:${P.ink};border:1px solid ${P.border};cursor:pointer;}
 .comm-ghostbtn:hover{border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
 
 
@@ -710,7 +710,7 @@ ${VEIL_CSS}
 .comm-pts-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_UI};font-weight:500;font-size:10px;color:${T.inkWarm};padding:4px 0;}
 .comm-pts-row b{font-weight:600;color:${T.inkStrong};white-space:nowrap;font-variant-numeric:tabular-nums;}
 .comm-pts-rule{display:block;height:2px;margin:10px 0;background:${T.rule};}
-.comm-pts-tot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.02em;color:${T.inkStrong};}
+.comm-pts-tot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_UI};font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.02em;color:${T.inkStrong};}
 /* prázdny pravý stĺpec — nový člen nemá ani bod, a prázdna polovica bez vysvetlenia vyzerá
    ako chyba renderu. */
 .comm-pts-none{font-family:${FONT_UI};font-weight:500;font-size:10px;font-style:italic;line-height:1.5;color:${T.inkWarm};}

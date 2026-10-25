@@ -112,7 +112,7 @@ export const INBOX_CSS = `
    Nie je to lapis: lapis znamená „moja voľba / moja akcia", a neprečítaná správa
    nie je ani jedno — je to stav. */
 .msg-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${T.accentGold};box-shadow:0 0 0 2px var(--msg-dot-ring);}
-.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
+.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
 .msg-avatar.is-sniffer{position:relative;}
 .msg-origin{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:${T.card};border:1px solid ${T.cardEdge};padding:0;box-sizing:border-box;object-fit:contain;}

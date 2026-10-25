@@ -131,7 +131,7 @@ ${STAGE_CSS}
 .zv-n{font:500 ${PACK_TEXT.label}px ${FONT_UI};color:${AINUBIS.ink};min-width:1ch;}
 /* SILA DÔKAZU */
 .zv-sd{position:relative;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:0 0 auto;
-  border-radius:${PACK_R.field}px;font:700 ${PACK_TEXT.lead}px ${FONT_TITLE};cursor:help;
+  border-radius:${PACK_R.field}px;font:600 ${PACK_TEXT.lead}px ${FONT_UI};cursor:help;
   color:var(--zv-g);border:1px solid var(--zv-g);background:var(--zv-gt);}
 .zv-sd[data-g="A"]{--zv-g:rgb(${BRAIN_STATE.read});--zv-gt:rgba(${BRAIN_STATE.read},0.14);}
 .zv-sd[data-g="B"]{--zv-g:rgb(${BRAIN_STATE.seen});--zv-gt:rgba(${BRAIN_STATE.seen},0.14);}
@@ -154,7 +154,7 @@ ${STAGE_CSS}
 /* HOTOVO = PLNÁ zelená s tmavým inkoustom (Matej: „treba viac zvýrazniť, teraz je to prehliadnuteľné“). */
 .zv-read.is-done{background:var(--zv-read);border-color:var(--zv-read);color:#03140A;outline:3px solid rgba(${BRAIN_STATE.read},0.28);outline-offset:2px;}
 .zv-badge{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
-  background:var(--zv-read);color:#03140A;font:700 ${PACK_TEXT.label}px ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;
+  background:var(--zv-read);color:#03140A;font:600 ${PACK_TEXT.label}px ${FONT_UI};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;
   outline:3px solid rgba(${BRAIN_STATE.read},0.28);outline-offset:2px;}
 /* NÁHĽAD /magnet — zvitok mimo darčeka: viditeľný, stlmený, so zámkom z kitu. */
 .akv-zv--locked .akv-zvimg img{filter:saturate(.55) brightness(.7);}
@@ -229,7 +229,7 @@ ${packColCSS('.zv-wrap')}
   border:1px solid ${AINUBIS.cyan};filter:drop-shadow(0 0 6px rgba(${AINUBIS.cyanRGB},0.45));transition:filter 200ms ease;}
 .zv-pod.is-play{filter:drop-shadow(0 0 14px rgba(${AINUBIS.cyanRGB},0.85));}
 .zv-pod small{display:flex;align-items:center;gap:${PACK_SPACE.xs}px;margin-bottom:${PACK_SPACE.sm}px;
-  font:700 ${PACK_TEXT.label}px ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
+  font:600 ${PACK_TEXT.label}px ${FONT_UI};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
 /* hlavička podcastu: názov vľavo, jazyky vpravo (Matej 4. 10.: „pri tlačidle prehrať výber jazykov") */
 .zv-pod small{justify-content:space-between;flex-wrap:wrap;}
 .zv-pod small > span{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;}
@@ -287,7 +287,7 @@ ${packColCSS('.zv-wrap')}
 .zv-req select{flex:1 1 auto;min-width:0;padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.field}px;background:${AINUBIS.bgDeep};
   border:1px solid ${AINUBIS.edge};color:${AINUBIS.ink};font:500 ${PACK_TEXT.body}px ${FONT_UI};}
 .zv-req button{flex:none;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.field}px;cursor:pointer;
-  background:${AINUBIS.raised};border:1px solid ${AINUBIS.cyan};color:${AINUBIS.cyan};font:700 ${PACK_TEXT.label}px ${FONT_TITLE};
+  background:${AINUBIS.raised};border:1px solid ${AINUBIS.cyan};color:${AINUBIS.cyan};font:600 ${PACK_TEXT.label}px ${FONT_UI};
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
 .zv-req .zv-ok{margin-top:${PACK_SPACE.sm}px;}
 /* ČLENITOSŤ PRÍBEHU (Matej 4. 10.: „chýba rozmanitosť odsekov, roky, odrážky… obrázky, ktoré sme nepoužili")
@@ -297,7 +297,7 @@ ${packColCSS('.zv-wrap')}
 .zv-tl li{position:relative;margin:0 0 ${PACK_SPACE.lg}px;}
 .zv-tl li:last-child{margin-bottom:0;}
 .zv-tl li::before{content:'';position:absolute;left:-${PACK_SPACE.lg + 6}px;top:4px;width:10px;height:10px;border-radius:${PACK_R.pill}px;background:${AINUBIS.ctaA};}
-.zv-tl b{display:block;font:700 ${PACK_TEXT.label}px ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};}
+.zv-tl b{display:block;font:600 ${PACK_TEXT.label}px ${FONT_UI};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};}
 .zv-tl span{display:block;font-size:${PACK_TEXT.body}px;line-height:1.6;}
 .zv-fact{margin:${PACK_SPACE.xl}px 0;padding:${PACK_SPACE.sm}px 0 ${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border-left:2px solid ${AINUBIS.ctaA};
   font:600 ${PACK_TEXT.h2}px/1.45 ${FONT_UI};color:${AINUBIS.ink};}
@@ -321,7 +321,7 @@ ${packColCSS('.zv-wrap')}
 /* NAVRHNÚŤ ZMENU — červené podsvietenie (Matej 3. 10.), po kliku tri druhy návrhu + text. */
 .zv-prop{display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;cursor:pointer;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;
   border-radius:${PACK_R.field}px;background:${AINUBIS.dangerTint};border:1px solid ${AINUBIS.danger};color:${AINUBIS.danger};
-  font:700 ${PACK_TEXT.label}px ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
+  font:600 ${PACK_TEXT.label}px ${FONT_UI};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
 .zv-prop.is-open{background:${AINUBIS.danger};color:${AINUBIS.ctaInk};}
 .zv-kinds{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;margin:${PACK_SPACE.md}px 0;}
 .zv-kind{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;background:transparent;

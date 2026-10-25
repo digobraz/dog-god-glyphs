@@ -92,7 +92,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
             {/* Date eyebrow */}
             <div
               style={{
-                fontFamily: "'Cinzel', serif",
+                fontFamily: FONT_UI,
                 fontSize: 10,
                 letterSpacing: '0.26em',
                 textTransform: 'uppercase',
@@ -169,7 +169,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                         display: 'flex',
                         justifyContent: 'space-between',
                         paddingRight: 52,
-                        fontFamily: "'Cinzel', serif",
+                        fontFamily: FONT_UI,
                         fontSize: 10,
                         letterSpacing: '0.02em',
                         color: 'rgba(250,244,236,0.62)',
@@ -326,7 +326,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                         borderRadius: 8,
                         background: 'transparent',
                         border: `1px solid ${T.border}`,
-                        fontFamily: "'Cinzel', serif",
+                        fontFamily: FONT_UI,
                         fontSize: 10,
                         letterSpacing: '0.14em',
                         textTransform: 'uppercase',
@@ -478,7 +478,7 @@ function PrayerRow({
           {eyebrow && (
             <div
               style={{
-                fontFamily: "'Cinzel', serif",
+                fontFamily: FONT_UI,
                 fontSize: 10,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
@@ -557,7 +557,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
           padding: '4px 12px',
           borderRadius: 999,
           background: T.tileBg,
-          fontFamily: "'Cinzel', serif",
+          fontFamily: FONT_UI,
           fontSize: 10,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',

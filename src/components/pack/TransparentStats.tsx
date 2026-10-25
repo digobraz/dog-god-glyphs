@@ -113,9 +113,9 @@ export function TransparentStats() {
       >
         <span
           style={{
-            fontFamily: FONT_TITLE,
+            fontFamily: FONT_UI,
             fontSize: 'clamp(32px, 7vw, 44px)',
-            fontWeight: 700,
+            fontWeight: 600,
             lineHeight: 1,
             color: T.ink,
           }}
@@ -124,7 +124,7 @@ export function TransparentStats() {
         </span>
         <span
           style={{
-            fontFamily: FONT_TITLE,
+            fontFamily: FONT_UI,
             fontSize: 10,
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
@@ -143,9 +143,9 @@ export function TransparentStats() {
           vo všetkých 18 jazykoch; nový kľúč by 16 z nich zhodil na angličtinu. */}
       <p
         style={{
-          fontFamily: FONT_TITLE,
+          fontFamily: FONT_UI,
           fontSize: 10,
-          fontWeight: 700,
+          fontWeight: 600,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
           color: T.inkDim,
@@ -201,7 +201,7 @@ export function TransparentStats() {
             <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
               <span
                 style={{
-                  fontFamily: FONT_TITLE,
+                  fontFamily: FONT_UI,
                   fontSize: 10,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
@@ -345,9 +345,9 @@ export function TransparentStats() {
 
               <div
                 style={{
-                  fontFamily: FONT_TITLE,
+                  fontFamily: FONT_UI,
                   fontSize: 24,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   lineHeight: 1,
                   color: ALLOC[openTile].item.color,
                 }}

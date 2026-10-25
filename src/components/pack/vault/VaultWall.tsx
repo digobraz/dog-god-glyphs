@@ -359,7 +359,7 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 .akw-av{width:34px;height:34px;flex:0 0 34px;border-radius:${PACK_R.pill}px;
   display:flex;align-items:center;justify-content:center;
   border:1px solid ${AINUBIS.edge};background:${AINUBIS.faceBg};
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;line-height:1;color:${AINUBIS.cyan};}
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;line-height:1;color:${AINUBIS.cyan};}
 .akw-who{min-width:0;}
 .akw-who b{display:block;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.body}px;
   line-height:1.3;color:${AINUBIS.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -396,7 +396,7 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
    je to priznanie. Cyan by mu dal váhu znalosti, ktorú nemá. */
 .akw-ai.is-blank::before{${AI_RAIL_BLANK}}
 .akw-aihd{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;line-height:1;
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;line-height:1;
   letter-spacing:${PACK_HEAD.section.letterSpacing};color:${AINUBIS.inkFaint};}
 /* MENO JE VŽDY AI + NUBIS — záporný margin vracia medzeru zjedenú rozstrelením. */
 .akw-aihd i{font-style:normal;color:${AINUBIS.aiInk};text-shadow:${AINUBIS.aiShadow};margin-right:-0.22em;}
@@ -485,7 +485,7 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;line-height:1.4;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
 .akw-tally s{text-decoration:none;display:inline-flex;align-items:baseline;gap:${PACK_SPACE.sm}px;}
-.akw-tally b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1;
+.akw-tally b{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.h2}px;line-height:1;
   letter-spacing:0;color:${AINUBIS.ink};}
 .akw-my{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;
   padding:${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;${AI_GLASS}}

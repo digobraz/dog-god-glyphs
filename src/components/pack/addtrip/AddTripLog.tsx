@@ -4561,7 +4561,7 @@ const STEP_CSS = `
    prečítať skôr, než sa naň klikne. Inkoust je tmavočervený na svetlom, aby fungovala aj
    na papyruse PC — druhá verzia pre bledý skin tým odpadá. */
 .atl-draftwarn{margin-bottom:10px;padding:12px 12px;border-radius:8px;background:rgba(206,75,60,0.14);border:1.5px solid rgba(206,75,60,0.75);}
-.atl-draftwarn b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;color:#E9A093;}
+.atl-draftwarn b{display:block;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;color:#E9A093;}
 .atl-draftwarn p{margin:5px 0 0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.onDarkDim};}
 .atl-nav{display:flex;gap:8px;align-items:stretch;}
 .atl-nav .atl-toggle-btn{flex:0 0 34%;}
@@ -5030,7 +5030,7 @@ const LOG_CSS = `
 .atl-check.on b{border-color:${PICK};color:${T.onDark};}
 .atl-seats{display:flex;align-items:center;gap:8px;margin-top:8px;}
 .atl-seats span{font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;color:${T.onDarkDim};}
-.atl-seats b{font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${T.onDark};min-width:16px;text-align:center;}
+.atl-seats b{font-family:${FONT_UI};font-weight:600;font-size:14px;color:${T.onDark};min-width:16px;text-align:center;}
 .atl-seats button{width:26px;height:26px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:14px;line-height:1;cursor:pointer;}
 .atl-seats button:hover{border-color:${GOLD};}
 .atl-chip{display:inline-flex;align-items:center;height:28px;font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;padding:0 12px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
