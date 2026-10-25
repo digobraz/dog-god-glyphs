@@ -398,7 +398,16 @@ export default function PackMe() {
             <button type="button" className="me-out" onClick={invite}>{tx('pack.me.invite', 'Invite')}</button>
           </div>
 
-          <div className="me-role">{profileRoles(human).map((r) => <span key={r} className="pk-pill">{tx(`pack.role.${r}`, r)}</span>)}</div>
+          {/* ROLA = NADPIS NAD BIO, nie pilulka (TEST_BUILD, Matej 25. 10.: *„pill pawtner sa mi nepáči, lebo je taký
+              istý ako dolné pillsy povahy"* → z troch návrhov *„ja by som dal P3"*). Štítok + zlatá linka. */}
+          {FLAT ? (
+            <div className="me-role me-role--label">
+              <span>{profileRoles(human).map((r) => tx(`pack.role.${r}`, r)).join(' · ')}</span>
+              <i aria-hidden />
+            </div>
+          ) : (
+            <div className="me-role">{profileRoles(human).map((r) => <span key={r} className="pk-pill">{tx(`pack.role.${r}`, r)}</span>)}</div>
+          )}
 
           <div className={`me-bio${bioFull ? ' full' : ''}${bio ? '' : ' empty'}`}>
             <p ref={bioRef}>

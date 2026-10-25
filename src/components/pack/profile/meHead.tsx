@@ -327,6 +327,9 @@ export const ME_FLAT_CSS = `
 .me-flat .me-cover{ height:calc(${COVER_H.m + FLAT_TALL}px + ${TOP}); }
 .me-flat .me-cover::before{ -webkit-mask-image:${FLAT_FADE}; mask-image:${FLAT_FADE}; }
 .me-flat .me-cover::after{ display:none; }
+.me-role--label{ flex-wrap:nowrap; align-items:center; gap:${S.sm}px; margin-top:${S.lg}px; }
+.me-role--label span{ font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.26em; text-transform:uppercase; color:${T.inkWarm}; white-space:nowrap; }
+.me-role--label i{ flex:1; height:1px; background:linear-gradient(90deg, ${T.cardEdge}, transparent); }
 .me-flat .me-tbar{ padding-top:calc(${TOP} + ${S.sm}px); padding-left:${FLAT_X}px; padding-right:${FLAT_X}px; }
 .me-flat .me-own{ left:${FLAT_X}px; }
 .me-flat .me-foot{ left:${FLAT_X + OWN.m + S.sm}px; right:${FLAT_X}px; bottom:-${OWN_DROP + BADGE_SINK.m}px; }
