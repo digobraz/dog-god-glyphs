@@ -301,7 +301,17 @@ export function CharacterScreen() {
                 disabled={!canGo}
                 onClick={() => { if (!canGo) return; if (handover) setCur(missing); else navigate('/heroglyph/owner-info'); }}
               >
-                {handover ? t('heroglyph.flow.multi.nextDog') : t('heroglyph.flow.breed.continue')}
+                {/* 🔴 SIVÉ CTA HOVORÍ, ČO CHÝBA (25. 10. 2026). Dagmar (TOSCA #135) mala
+                    vo flowe dvoch psov, Tosce dala jednu povahu a 6 minút prepínala
+                    psov a ťukala na heroglyf — sivé „Pokračovať" nepovedalo prečo.
+                    Matej: *„aby bolo jasné, že každý pes má mať dva… nemožno ísť
+                    ďalej, kým to nie je dobre vyplnené"*. Pri viacerých psoch nesie
+                    meno, aby bolo jasné, KTORÉMU psovi to chýba. */}
+                {!canGo
+                  ? (dogs.length > 1
+                    ? t('heroglyph.flow.dogCharacter.pickMoreDog', { dog: dog?.name || '', n: String(PICK_N - sel.length) })
+                    : t('heroglyph.flow.dogCharacter.pickMore', { n: String(PICK_N - sel.length) }))
+                  : handover ? t('heroglyph.flow.multi.nextDog') : t('heroglyph.flow.breed.continue')}
               </button>
             </div>
           </motion.div>

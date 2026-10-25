@@ -11,7 +11,7 @@ import { useLocation } from 'react-router-dom';
 import { HandArrowLeftIcon as HandArrowLeft } from '@/components/pack/handArrowLeft';
 import { useT } from '@/i18n/LanguageContext';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
-import { PACK_THEME as T } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_VEIL } from '@/components/pack/packTheme';
 import { getConsent, saveConsent, applyConsent, hasChoice } from '@/lib/consent';
 
 // Headless capture routes (generate-pdfs → Cloudflare Browser Rendering,
@@ -156,7 +156,17 @@ export function ConsentBanner() {
   };
 
   return (
-    <div ref={barRef} className="consent-banner" role="dialog" aria-live="polite" aria-label={t('consent.title')}>
+    <>
+    {/* ── ZÁVOJ ZA LIŠTOU (25. 10. 2026) ────────────────────────────────────────
+        Matej 25. 10.: *„kým je lišta, malo by byť horšie viditeľné to, čo je vzadu…
+        na každej obrazovke, aby to človek nevedel ignorovať"*. Prebíja jeho vetu
+        z 23. 9. (*„je to jeden ťuk"*, prekrytie spodného navu nechané tak).
+        Príčina: smoke test 25. 10. — lišta ležala cez CTA Pokračovať vo flowe na
+        všetkých 4 telefónoch; kto ju ignoroval, ťukal do nej a nepohol sa.
+        Závoj = brandový ZÁVOJ (PACK_VEIL.modal + blur), nie vlastná tmavosť.
+        Zachytí ťuknutia, takže obsah pod ním nereaguje, kým človek nezvolí. */}
+    <div className="consent-veil" aria-hidden />
+    <div ref={barRef} className="consent-banner" role="dialog" aria-modal="true" aria-live="polite" aria-label={t('consent.title')}>
       {/* ── LIŠTA 22. 9. 2026 (Matej: „cookies sa nedajú zmenšiť skrátiť a CTA musí byť
           lapis - oprav to všade … a v only necessary dať dropdown s choose") ──────────
           · CTA je LAPIS — lišta je bledá, na bledom je hlavné CTA lapis (brand lock).
@@ -172,6 +182,11 @@ export function ConsentBanner() {
         /* PAPYRUS = matrica PACK_BOX.panel (Matej 3. 10. 2026: *„cookie lišta nie je
            v brande, je v takej divnej farbe"*). Dovtedy plochá #F5EEDF so šedým
            inkoustom — bledý blok podľa locku je papyrusový gradient v zlatom ráme. */
+        .consent-veil {
+          position: fixed; inset: 0; z-index: 9998;
+          background: ${PACK_VEIL.modal};
+          -webkit-backdrop-filter: blur(${PACK_VEIL.blur}); backdrop-filter: blur(${PACK_VEIL.blur});
+        }
         .consent-banner {
           position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
           background: ${T.panelGrad}; border-top: 1.5px solid ${T.cardEdge};
@@ -305,7 +320,9 @@ export function ConsentBanner() {
           /* Panel PLUS vychádza z toho istého navu do tej istej výšky — kým je otvorený, karta
              ustúpi (ako AINUBIS, rozhodnutie 3. 10.) a po zavretí sa vráti. */
           body:has(.trp-root):has(.att-entry-backdrop) .consent-banner,
-          body:has(.akv-root):has(.att-entry-backdrop) .consent-banner { display: none; }
+          body:has(.akv-root):has(.att-entry-backdrop) .consent-banner,
+          body:has(.trp-root):has(.att-entry-backdrop) .consent-veil,
+          body:has(.akv-root):has(.att-entry-backdrop) .consent-veil { display: none; }
           .consent-inner { flex-direction: column; align-items: stretch; gap: 12px; }
           .consent-actions > * { flex: 1 1 0; min-width: 0; }
           .consent-btn-primary, .consent-btn-secondary { padding: 12px 8px; }
@@ -422,5 +439,6 @@ export function ConsentBanner() {
         </div>
       </div>
     </div>
+    </>
   );
 }

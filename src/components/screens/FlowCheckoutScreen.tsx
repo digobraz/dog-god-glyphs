@@ -199,9 +199,18 @@ export function FlowCheckoutScreen() {
           ...getAttribution(),
         }),
       });
-      const data = res.ok ? await res.json() : null;
-      if (!data?.url) {
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.url) {
         console.error('create-checkout failed:', res.status, data?.error);
+        // 🧩 Server odmietol neúplný heroglyf (25. 10. 2026, TOSCA #135) — povedz,
+        //    KTORÉMU psovi to chýba, nie všeobecné „niečo sa pokazilo".
+        if (data?.error === 'incomplete_heroglyph') {
+          const names = (data.dogs as { dog: string }[] | undefined)?.map((d) => d.dog).join(', ') || '';
+          track('payment_incomplete_heroglyph', { dogs: names });
+          setPayError(t('payment.incompleteHeroglyph', { dogs: names }));
+          setLoading(false);
+          return;
+        }
         setPayError(t('payment.error'));
         setLoading(false);
         return;
