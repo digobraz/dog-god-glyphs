@@ -123,11 +123,11 @@ function MapPick({ start, lang, tx, onClose, onPick }: {
     const map = L.map(el.current, { zoomControl: false, attributionControl: false }).setView(start ?? SK_CENTER, start ? 14 : 7);
     L.tileLayer(mapyTiles('outdoor'), { maxZoom: 19 }).addTo(map);
     let mark: L.CircleMarker | null = start
-      ? L.circleMarker(start, { radius: 8, color: LAPIS.deep, weight: 3, fillColor: LAPIS.edge, fillOpacity: 1 }).addTo(map) : null;
+      ? L.circleMarker(start, { radius: 8, color: T.brandBlue, weight: 3, fillColor: T.card, fillOpacity: 1 }).addTo(map) : null;
     map.on('click', (e: L.LeafletMouseEvent) => {
       const p: [number, number] = [e.latlng.lat, e.latlng.lng];
       if (mark) mark.setLatLng(p);
-      else mark = L.circleMarker(p, { radius: 8, color: LAPIS.deep, weight: 3, fillColor: LAPIS.edge, fillOpacity: 1 }).addTo(map);
+      else mark = L.circleMarker(p, { radius: 8, color: T.brandBlue, weight: 3, fillColor: T.card, fillOpacity: 1 }).addTo(map);
       setPt(p);
     });
     return () => { map.remove(); };

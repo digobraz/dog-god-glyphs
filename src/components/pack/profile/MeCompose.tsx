@@ -89,6 +89,11 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   const [title, setTitle] = useState('');
   const [dogIds, setDogIds] = useState<string[]>([]);
   const [place, setPlace] = useState<PostPlace | null>(null);
+  // MINIFLOW PRÍSPEVKU (Matej 25. 10. 2026: *„pri pridávaní príspevku taký miniflow — vybrať možnosť foto,
+  // viac foto, a ak klikne lokalitu, vie vybrať pin z mapy"*): krok 1 = fotky, krok 2 = text, lokalita, psy, kto vidí.
+  // Story a album ostávajú na jednej obrazovke (oba sú dnes vypnuté).
+  const [step, setStep] = useState<1 | 2>(1);
+  const flow = mode === 'post';
   // Story aj príspevok idú svorke (členom) — kto chce len pre seba, prepne. RLS pustí cudzím
   // len `public` a len zaplateným členom, takže „svorka" nie je verejný web.
   const [vis, setVis] = useState<Visibility>('public');
@@ -154,15 +159,26 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
       <style>{CSS}</style>
       <div className="mc-box">
         <div className="mc-head">
-          <BackButton tone="pale" onClick={() => !busy && onClose()} label={tx('pack.network.close', 'Close')} />
+          <BackButton tone="pale" onClick={() => { if (busy) return; if (flow && step === 2) setStep(1); else onClose(); }}
+            label={flow && step === 2 ? tx('pack.compose.back', 'Back') : tx('pack.network.close', 'Close')} />
           <h2>{heading}</h2>
-          <button type="button" className="mc-go" disabled={!ready || busy} onClick={share}>
-            {busy ? tx('pack.compose.sharing', 'Sharing…') : tx('pack.compose.share', 'Share')}
-          </button>
+          {flow && step === 1 ? (
+            <button type="button" className="mc-go" disabled={files.length === 0} onClick={() => setStep(2)}>
+              {tx('pack.compose.next', 'Next')}
+            </button>
+          ) : (
+            <button type="button" className="mc-go" disabled={!ready || busy} onClick={share}>
+              {busy ? tx('pack.compose.sharing', 'Sharing…') : tx('pack.compose.share', 'Share')}
+            </button>
+          )}
         </div>
         <div className="mc-body">
           {inputs}
-          {files.length === 0 ? (
+          {flow && step === 2 ? (
+            <div className="mc-strip">
+              {urls.map((u) => <span key={u} className="mc-th"><img src={u} alt="" /></span>)}
+            </div>
+          ) : files.length === 0 ? (
             <div className="mc-pick">
               <button type="button" onClick={() => galRef.current?.click()}>
                 <BrandIcon name="frame" size={32} tint="dark" />{tx('pack.compose.gallery', 'Gallery')}
@@ -199,6 +215,7 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
             </>
           )}
 
+          {(!flow || step === 2) && <>
           {mode === 'album' && (
             <input className="pf-field" value={title} maxLength={60} onChange={(e) => setTitle(e.target.value)}
               placeholder={tx('pack.compose.albumTitle', 'Album name — e.g. Summer by the lake')} />
@@ -232,6 +249,7 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
               <button type="button" className={vis === 'private' ? 'on' : ''} onClick={() => setVis('private')}>{tx('pack.compose.visMe', 'Only me')}</button>
             </div>
           </div>
+          </>}
         </div>
       </div>
     </div>,

@@ -180,3 +180,20 @@ export async function deleteComment(id: string): Promise<void> {
   const { error } = await db.from('post_comments').delete().eq('id', id);
   if (error) throw error;
 }
+
+/** Kto dal ❤️ (ako na IG, Matej 25. 10. 2026). Adresa človeka = poradové číslo psa (`/pack/u/:n`). */
+export type PostLiker = { name: string; photo: string | null; ownerN: number | null; mine: boolean };
+export async function fetchLikers(postId: string): Promise<PostLiker[]> {
+  const { data, error } = await db.rpc('list_post_likers', { p_post: postId });
+  if (error || !Array.isArray(data)) return [];
+  return (data as Array<Record<string, unknown>>).map((r) => ({
+    name: typeof r.first_name === 'string' ? r.first_name : '',
+    photo: typeof r.photo === 'string' ? r.photo : null,
+    ownerN: r.owner_n == null ? null : Number(r.owner_n),
+    mine: !!r.mine,
+  }));
+}
+
+/** Odkaz do Mapy.cz s bodom — ten istý tvar ako pri výletoch. */
+export const mapyPointUrl = (lat: number, lon: number) =>
+  `https://mapy.com/turisticka?source=coor&id=${lon},${lat}&x=${lon}&y=${lat}&z=16`;
