@@ -26,7 +26,7 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { usePilgrimStats, usePublishPilgrimLevel, usePublishProfileStats } from '@/components/pack/usePilgrimStats';
-import { useProfile, saveHuman, customPills, profileRoles, humanPills } from '@/components/pack/profile/packProfile';
+import { useProfile, customPills, profileRoles, humanPills } from '@/components/pack/profile/packProfile';
 import { useScrollState, useLiked, useSaved } from '@/components/pack/vault/vaultScrolls';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { devotionLevel, DEVOTION_TODAY_ON } from '@/lib/devotion';
@@ -51,7 +51,7 @@ import { levelProgress } from '@/lib/tripPoints';
 import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbum, isLive, isTripStory, type MePost } from '@/components/pack/profile/mePosts';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import { countryLabel, countryOptions } from '@/lib/countryOptions';
+import { countryLabel } from '@/lib/countryOptions';
 
 // PROFIL BEZ KARTY (TEST_BUILD, Matej 25. 10. 2026): obsah na celú šírku. Hladký papyrus pod ním
 // zapína PackLayout (`PLAIN_ROUTES`).
@@ -278,14 +278,7 @@ export default function PackMe() {
           servantLabel={tx('pack.ladder.servant', 'Servant')}
           pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
           bones={fmt(bones)}
-          right={<MeFlag code={human?.nationality ?? 'SK'} label={countryLabel(human?.nationality ?? 'SK', lang)}
-            here={human?.here} hereLabel={human?.here ? countryLabel(human.here, lang) : undefined}
-            pick={{
-              options: (() => { const { frequent, rest } = countryOptions(lang); return [...frequent, ...rest]; })(),
-              homeLabel: `${tx('pack.me.atHome', 'At home')} · ${countryLabel(human?.nationality ?? 'SK', lang)}`,
-              aria: tx('pack.me.hereAria', 'Where I am right now'),
-              onChange: (v) => { saveHuman({ here: v || undefined }); },
-            }} />}
+          right={<MeFlag code={human?.nationality ?? 'SK'} label={countryLabel(human?.nationality ?? 'SK', lang)} />}
           onBones={() => setBonesOpen(true)}
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
           onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}

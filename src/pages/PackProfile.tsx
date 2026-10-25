@@ -491,8 +491,7 @@ export default function PackProfile() {
           right={
             <span className="pe-tr">
               {/* Vlajka 1:1 s profilom (25. 10.) — mení sa v poli národnosti nižšie. */}
-              <MeFlag code={human?.nationality ?? 'SK'} label={countryLabel(human?.nationality ?? 'SK', lang)}
-                here={human?.here} hereLabel={human?.here ? countryLabel(human.here, lang) : undefined} />
+              <MeFlag code={human?.nationality ?? 'SK'} label={countryLabel(human?.nationality ?? 'SK', lang)} />
               {/* Štítok „POTIAHNI“ preč — ťahá sa aj bez neho (Matej 23. 10.: „funkciu zachovaj, tlačítko vyhoď“). */}
               {/* Foťák = ALBUM TITULKY (`CoverSheet`: viac fotiek, striedanie po dni), Matej 23. 10.:
                   *„upraviť titulku v /edit sekcii"*. Ťahanie polohy ostáva na titulke. */}

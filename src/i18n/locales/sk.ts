@@ -6136,8 +6136,6 @@ export const sk: Partial<Dict> = {
   'pack.me.newStory': "Nová story",
   'pack.me.stories': "Príbehy",
   'pack.me.post': "Príspevok",
-  'pack.me.atHome': "Doma",
-  'pack.me.hereAria': "Kde som práve teraz",
   'pack.me.highlights': "Výbery",
   'pack.me.newHighlight': "Nový",
   'pack.me.soonFeed': "Príde spolu s FEEDom.",

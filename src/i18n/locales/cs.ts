@@ -6118,8 +6118,6 @@ export const cs: Partial<Dict> = {
   'pack.me.newStory': "Nová story",
   'pack.me.stories': "Příběhy",
   'pack.me.post': "Příspěvek",
-  'pack.me.atHome': "Doma",
-  'pack.me.hereAria': "Kde jsem právě teď",
   'pack.me.highlights': "Výběry",
   'pack.me.newHighlight': "Nový",
   'pack.me.soonFeed': "Přijde spolu s FEEDem.",

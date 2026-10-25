@@ -241,8 +241,7 @@ export default function PublicProfile() {
           servantYears={st?.servantYears ?? null}
           servantLabel={tx('pack.ladder.servant', 'Servant')}
           pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
-          right={<MeFlag code={nationality} label={nationalityLabel || nationality}
-            here={human.here} hereLabel={human.here ? countryLabel(human.here, lang) : undefined} />}
+          right={<MeFlag code={nationality} label={nationalityLabel || nationality} />}
           // Ťuk len na PÚTNIKA (Matej 25. 10.: *„po kliknutí na tieto levely sa nič neukáže na cudzom profile, možno
           // iba pútnik — level, body, výlety, km a krajiny“*). SLUŽOBNÍK na cudzom profile nereaguje.
           onPilgrim={pilgrimPanel ? () => setRank((r) => (r === 'pt' ? null : 'pt')) : undefined}
