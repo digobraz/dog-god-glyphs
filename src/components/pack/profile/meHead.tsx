@@ -312,7 +312,7 @@ const TOP = `(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.content}px)`;
  * (Matej 25. 10.: *„horná lišta bude širšia, aby ikonky s obálkou a chvostom boli celé na bledom"*). */
 /* 🔁 Bez prechodu pod lištou (Matej 25. 10. nad porovnaním: variant „bez horného gradientu" → *„ok"*) —
  * fotka začína ROVNOU hranou hneď pod radom, rozplýva sa len dole. */
-const FLAT_FADE = `linear-gradient(180deg, transparent 0, transparent calc(${TOP}), #000 calc(${TOP}), #000 54%, transparent 100%)`;
+const FLAT_FADE = 'linear-gradient(180deg, #000 0%, #000 42%, transparent 100%)';
 /* Titulka o 20 px vyššia než na karte (Matej 25. 10.: *„zväčši veľkosť fotky tak o 20px na výšku"*). */
 const FLAT_TALL = 20;
 /* ODZNAKY V OSI PSA (Matej 25. 10.: *„tie odznaky by mohli byť v tej istej výške ako ikonka psa, nech to sedí
@@ -330,7 +330,9 @@ export const ME_FLAT_CSS = `
 .me-flat .me-nm{ font-weight:900; }
 .me-card.me-flat{ border:0; border-radius:0; background:none; box-shadow:none; margin:calc(-1 * ${TOP}) -${S.lg}px 0; }
 .me-flat .me-cover{ height:calc(${COVER_H.m + FLAT_TALL}px + ${TOP}); }
-.me-flat .me-cover::before{ -webkit-mask-image:${FLAT_FADE}; mask-image:${FLAT_FADE}; }
+/* Fotka (::before) začína POD horným radom — nie maskou nad ním. Tak sa výrez (coverY) aj ťahanie v UPRAVIŤ
+   rátajú z výšky, ktorú človek naozaj vidí. */
+.me-flat .me-cover::before{ top:calc(${TOP}); -webkit-mask-image:${FLAT_FADE}; mask-image:${FLAT_FADE}; }
 .me-flat .me-cover::after{ display:none; }
 .me-role--label{ flex-wrap:nowrap; align-items:center; gap:${S.sm}px; margin-top:${S.lg}px; }
 .me-role--label span{ font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.26em; text-transform:uppercase; color:${T.inkWarm}; white-space:nowrap; }
@@ -414,7 +416,11 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   const overflow = () => {
     const el = ref.current;
     if (!el || !nat) return 0;
-    const { width: W, height: H } = el.getBoundingClientRect();
+    // Fotka je pseudo-prvok `::before`; v profile bez karty začína až POD horným radom (`top`),
+    // takže posúva sa len v jeho výške, nie v celej titulke (Matej 25. 10.: „fotka Hektora v upraviť
+    // titulku mi nejde dať nižšie, ako keby mala iný horný koniec a bola za panelom").
+    const { width: W, height: full } = el.getBoundingClientRect();
+    const H = full - (parseFloat(getComputedStyle(el, '::before').top) || 0);
     const scale = Math.max(W / nat.w, H / nat.h);
     return Math.max(0, nat.h * scale - H);
   };
