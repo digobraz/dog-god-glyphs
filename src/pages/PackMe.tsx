@@ -35,7 +35,7 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, visibleLocalTrails, tripPath } from '@/components/pack/tripShared';
 import { PILL_CSS } from '@/components/pack/packTheme';
 import { TEST_BUILD } from '@/lib/env';
-import { STORIES_ON } from '@/lib/packFlags';
+import { STORIES_ON, ALBUMS_ON } from '@/lib/packFlags';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BonesSheet } from '@/components/pack/BonesSheet';
 import { TripShareSheet, type TripShareData } from '@/components/pack/trip/TripShareSheet';
@@ -44,6 +44,7 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeRank, MeDogRow, MeFlag } from '@/components/pack/profile/meHead';
 import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBadge';
 import { StoryViewer } from '@/components/pack/profile/StoryViewer';
+import { PostViewer } from '@/components/pack/profile/PostViewer';
 import { DevotionToday } from '@/components/pack/profile/DevotionToday';
 import { DevotionSheet } from '@/components/pack/profile/DevotionSheet';
 import { levelProgress } from '@/lib/tripPoints';
@@ -95,7 +96,6 @@ function useNovicePreview(search: string): [boolean, () => void] {
   return [on, off];
 }
 
-const asFrames = (p: MePost): MePost[] => p.photos.map((ph, k) => ({ ...p, id: `${p.id}:${k}`, photos: [ph], body: k === 0 ? p.body : '' }));
 
 export default function PackMe() {
   const t = useT();
@@ -127,6 +127,7 @@ export default function PackMe() {
   const [priv, setPriv] = useState<Private>('saved');
   const [posts, setPosts] = useState<MePost[] | null>(null);
   const [viewing, setViewing] = useState<Viewing | null>(null);
+  const [reading, setReading] = useState<MePost | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [brought, setBrought] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
@@ -237,7 +238,8 @@ export default function PackMe() {
   const openPost = (p: MePost) => {
     const trip = isTripStory(p) ? p.attach.trip_slug : undefined;
     if (trip) { navigate(`/pack/map/${trip}`); return; }
-    setViewing({ items: asFrames(p), start: 0 });
+    // Príspevok = detail ako na IG (`PostViewer`), nie prehrávač stories (25. 10. 2026).
+    setReading(p);
   };
 
   const pills = humanPills(human?.personality, customPills(human), t);
@@ -245,7 +247,7 @@ export default function PackMe() {
   const TABS: Array<[Tab, string, string]> = [
     ['all', 'layers', tx('pack.me.tabAll', 'All')],
     ...(STORIES_ON ? [['stories', 'play', tx('pack.me.stories', 'Stories')] as [Tab, string, string]] : []),
-    ['albums', 'frame', tx('pack.me.tabAlbums', 'Albums')],
+    ...(ALBUMS_ON ? [['albums', 'frame', tx('pack.me.tabAlbums', 'Albums')] as [Tab, string, string]] : []),
     ['trips', 'map', tx('pack.me.tabTrips', 'Trips')],
     ['private', 'lock', tx('pack.me.tabPrivate', 'Only me')],
   ];
@@ -480,6 +482,9 @@ export default function PackMe() {
       </section>
       {aboutDev && <DevotionSheet devotion={devotion} onClose={() => setAboutDev(false)} />}
       {todayOpen && <DevotionToday onClose={() => setTodayOpen(false)} />}
+      {reading && (
+        <PostViewer post={reading} name={shownName} avatar={avatarUrl} dogs={dogs} mine lang={lang} onClose={() => setReading(null)} />
+      )}
       {viewing && (
         <StoryViewer items={viewing.items} start={viewing.start} name={shownName} avatar={avatarUrl} dogs={dogs}
           mine={!!viewing.del} lang={lang} onClose={() => setViewing(null)} />

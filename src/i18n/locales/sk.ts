@@ -6135,6 +6135,7 @@ export const sk: Partial<Dict> = {
   'pack.me.changePhoto': "Zmeniť fotku",
   'pack.me.newStory': "Nová story",
   'pack.me.stories': "Príbehy",
+  'pack.me.post': "Príspevok",
   'pack.me.atHome': "Doma",
   'pack.me.hereAria': "Kde som práve teraz",
   'pack.me.highlights': "Výbery",

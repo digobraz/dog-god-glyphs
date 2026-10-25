@@ -185,3 +185,8 @@ export const BUDDY_LIVE = true; // FLIP 5. 10. 2026 — sniffer_gate.open_all (k
 // skryje každý vstup: ťuk na fotku a „+" na profile, obruč story, kartu PRÍBEHY, položku v paneli „+“
 // a bublinu „Ty" v rade FEEDu. Zapnutie = `true` tu, nič iné.
 export const STORIES_ON = false;
+
+// ALBUMY (štítok `album`) — VYPNUTÉ 25. 10. 2026. Matej: *„zatiaľ nedáme ani albumy (až na požiadanie,
+// nech netvoríme to, o čo nie je záujem)"*. Vypínač skryje položku v paneli „+“ a kartu ALBUMY na profile;
+// staré albumy sa ukážu ako bežný príspevok v karte VŠETKO. Zapnutie = `true` tu.
+export const ALBUMS_ON = false;
