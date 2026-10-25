@@ -13,7 +13,7 @@ import { devotionLevel } from '@/lib/devotion';
 import { PACK_THEME, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE, PACK_R, PF_FIELD_CSS, PILL_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { ME_CSS, RING, DOG_FONT, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
+import { ME_CSS, ME_FLAT_CSS, RING, DOG_FONT, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
 import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBadge';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { coverAlbumOf, coverOfDay, changeDogMainPhoto } from '@/components/pack/profile/mePosts';
@@ -441,6 +441,7 @@ export default function PackProfile() {
       <style>{PF_FIELD_CSS}</style>
       <style>{ROWS_CSS}</style>
       <style>{ME_CSS}</style>
+      {TEST_BUILD && <style>{ME_FLAT_CSS}</style>}
       <style>{EDIT_CSS}</style>
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
       <input ref={coverInputRef} type="file" accept="image/*" onChange={handleCoverChange} style={{ display: 'none' }} />
@@ -458,7 +459,7 @@ export default function PackProfile() {
         } finally { setDogBusy(null); }
       }} />
 
-      <section className="me-card pe-card">
+      <section className={`me-card pe-card${TEST_BUILD ? ' me-flat' : ''}`}>
         {/* NÁHĽAD 1:1 — tá istá hlava ako profil. Titulka sa ťahá, foťák ju mení. */}
         <MeCover
           cover={coverSrc}

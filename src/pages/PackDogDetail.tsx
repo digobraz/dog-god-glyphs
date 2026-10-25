@@ -24,7 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { uploadExtraPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { flagUrl, countryISO2, flagEmojiFromISO2 } from '@/lib/countryGeo';
-import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
+import { EDGE_BASE, SUPABASE_ANON_KEY, TEST_BUILD } from '@/lib/env';
 import { DEV_FULL } from '@/lib/packFlags';
 // Vek psa žije v lib/dogAge.ts — tú istú matematiku potrebuje aj svorka na `/pack`.
 import { computeAge, type DogAge } from '@/lib/dogAge';
@@ -62,6 +62,9 @@ const DOGID_CSS = `
 .did-card{position:relative;animation:did-in .32s cubic-bezier(.16,1,.3,1) both;}
 /* dvojitý rám — doklady majú vnútornú linku, nie jednu hranu */
 .did-card::before{content:'';position:absolute;inset:7px;border:1px solid ${PACK_THEME.hairline};border-radius:12px;pointer-events:none;}
+/* DOG ID BEZ VONKAJŠEJ KARTY (TEST_BUILD, Matej 25. 10. 2026 — ten istý krok ako profil): doklad stojí
+   rovno na hladkom papyruse, sekcie 01–09 si nechávajú svoje karty. */
+.did-card.did-flat::before{display:none;}
 .did-idzone{position:relative;}
 
 /* CENTROVANÁ OS — vzor je certifikát: všetko na jednej osi, zhora nadol. */
@@ -771,8 +774,8 @@ export default function PackDogDetail() {
         <div className="grid grid-cols-1 gap-5 md:gap-6 items-stretch">
 
           <section
-            className="did-card"
-            style={{
+            className={`did-card${TEST_BUILD ? ' did-flat' : ''}`}
+            style={TEST_BUILD ? { padding: '0 0 24px' } : {
               background: T.cardGrad,
               border: `1.5px solid ${T.cardEdge}`,
               borderRadius: 16,

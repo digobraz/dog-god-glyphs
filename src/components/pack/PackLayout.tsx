@@ -5,7 +5,8 @@ import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BonesCoin } from './BonesCoin';
-import { PACK_THEME, PACK_COL, PACK_COL_INNER, PACK_TOPROW_PAD, usePaperRoute, PAPER_PAGE_CSS } from './packTheme';
+import { PACK_THEME, PACK_COL, PACK_COL_INNER, PACK_TOPROW_PAD, usePaperRoute, PAPER_PAGE_CSS, PAPER_ROUTES_EXTRA } from './packTheme';
+import { TEST_BUILD } from '@/lib/env';
 import { PackTopRow } from './PackTopRow';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
@@ -54,6 +55,12 @@ const Thread = lazy(() => import('./messaging/Thread').then((m) => ({ default: m
 
 const T = PACK_THEME;
 
+// HLADKÝ PAPYRUS (TEST_BUILD, Matej 25. 10. 2026): profily, psy a DOG ID stoja na bledej ploche
+// BEZ tapety chrámu a bez vonkajšej karty — *„asi je to takto lepšie než to mať v bloku nad tmavým
+// pozadím"* → *„aplikuj to na celý pack, myslím na profily, dogs a id"*. Papyrus bez ohľadu na prepínač šatu.
+const PLAIN_ROUTES: readonly RegExp[] = [/^\/pack\/profile(\/|$)/, /^\/pack\/dogs(\/|$)/];
+if (TEST_BUILD) PAPER_ROUTES_EXTRA.push(...PLAIN_ROUTES);
+
 interface PackLayoutProps {
   children: ReactNode;
   title?: string;
@@ -74,12 +81,14 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel }: Pac
   // rozišli a prejavilo by sa to bliknutím čiernej pred bledou stránkou.
   // ⚠️ `pk-paper` NESMIE dostať vlastný `z-index`/`transform`/`opacity` — jeho
   //    tapeta stojí na `z-index:-1` a uzavrela by sa doň (viď PAPER_PAGE_CSS).
-  const paperPage = usePaperRoute(useLocation().pathname);
+  const pathname = useLocation().pathname;
+  const paperPage = usePaperRoute(pathname);
+  const plain = TEST_BUILD && PLAIN_ROUTES.some((r) => r.test(pathname)) ? ' pk-plain' : '';
 
   if (loading) {
     return (
       <div
-        className={`min-h-[100dvh] flex items-center justify-center relative${paperPage ? ' pk-paper' : ''}`}
+        className={`min-h-[100dvh] flex items-center justify-center relative${paperPage ? ` pk-paper${plain}` : ''}`}
         style={paperPage ? undefined : { backgroundColor: T.pageBg }}
       >
         {paperPage ? <style>{PAPER_PAGE_CSS}</style> : <HieroglyphBg />}
@@ -96,7 +105,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel }: Pac
 
   return (
     <div
-      className={`min-h-[100dvh] relative${paperPage ? ' pk-paper' : ''}`}
+      className={`min-h-[100dvh] relative${paperPage ? ` pk-paper${plain}` : ''}`}
       style={paperPage ? { color: T.inkStrong } : { backgroundColor: T.pageBg, color: T.onDark }}
     >
       {paperPage ? <style>{PAPER_PAGE_CSS}</style> : <HieroglyphBg />}

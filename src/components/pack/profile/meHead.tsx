@@ -315,11 +315,13 @@ const TOP = `(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.content}px)`;
 const FLAT_FADE = `linear-gradient(180deg, transparent 0, transparent calc(${TOP}), #000 calc(${TOP}), #000 54%, transparent 100%)`;
 /* Titulka o 20 px vyššia než na karte (Matej 25. 10.: *„zväčši veľkosť fotky tak o 20px na výšku"*). */
 const FLAT_TALL = 20;
+/* ODZNAKY V OSI PSA (Matej 25. 10.: *„tie odznaky by mohli byť v tej istej výške ako ikonka psa, nech to sedí
+ * a lícuje — teraz sú vyššie"*). Stred radu odznakov (46 px) = stred spodného psa na obruči, ktorý sedí
+ * 3 px (mobil) / 4 px (PC) nad spodkom fotky majiteľa: klesnutie = 46/2 − 3, resp. 46/2 − 4 (zmerané 25. 10.). */
+const BADGE_SINK = { m: 20, pc: 19 };
 /* Bez rámu karty meria vzduch od okraja OKNA — fotka majiteľa na `PAGE_AIR` (16), šuplík v jej osi. */
 const FLAT_X = S.lg;
 export const ME_FLAT_CSS = `
-/* CELÁ PLOCHA BLEDÁ — bez tapety heroglyfov (Matej 25. 10.: *„to bude celé bledé, nie chrám"*). */
-.pk-paper:has(.me-flat)::before, .pk-paper:has(.me-flat)::after{ display:none; }
 .me-flat .me-nm{ font-weight:900; }
 .me-card.me-flat{ border:0; border-radius:0; background:none; box-shadow:none; margin:calc(-1 * ${TOP}) -${S.lg}px 0; }
 .me-flat .me-cover{ height:calc(${COVER_H.m + FLAT_TALL}px + ${TOP}); }
@@ -327,14 +329,14 @@ export const ME_FLAT_CSS = `
 .me-flat .me-cover::after{ display:none; }
 .me-flat .me-tbar{ padding-top:calc(${TOP} + ${S.sm}px); padding-left:${FLAT_X}px; padding-right:${FLAT_X}px; }
 .me-flat .me-own{ left:${FLAT_X}px; }
-.me-flat .me-foot{ left:${FLAT_X + OWN.m + S.sm}px; right:${FLAT_X}px; }
+.me-flat .me-foot{ left:${FLAT_X + OWN.m + S.sm}px; right:${FLAT_X}px; bottom:-${OWN_DROP + BADGE_SINK.m}px; }
 .me-flat .me-drow{ padding-left:${FLAT_X + OWN.m / 2 - DOG_D.m / 2}px; }
 @media (min-width:640px){ .me-card.me-flat{ margin:calc(-1 * ${TOP}) -${S.xl}px 0; } }
 @media (min-width:768px){
   .me-flat .me-cover{ height:calc(${COVER_H.pc + FLAT_TALL}px + ${TOP}); }
   .me-flat .me-tbar{ padding-left:${S.xl}px; padding-right:${S.xl}px; }
   .me-flat .me-own{ left:${S.xl}px; }
-  .me-flat .me-foot{ left:${S.xl + OWN.pc + S.lg}px; right:${S.xl}px; }
+  .me-flat .me-foot{ left:${S.xl + OWN.pc + S.lg}px; right:${S.xl}px; bottom:-${S.lg + BADGE_SINK.pc}px; }
   .me-flat .me-drow{ padding-left:${S.xl + OWN.pc / 2 - DOG_D.pc / 2}px; }
   /* PC: stĺpec 880 nekončí na okraji okna — titulka sa rozplynie aj do strán, inak by stáli dve tvrdé hrany. */
   .me-flat .me-cover::before{ -webkit-mask-image:${FLAT_FADE}, linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);

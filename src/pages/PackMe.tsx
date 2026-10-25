@@ -33,7 +33,7 @@ import { devotionLevel, DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, visibleLocalTrails, tripPath } from '@/components/pack/tripShared';
-import { PILL_CSS, PAPER_ROUTES_EXTRA } from '@/components/pack/packTheme';
+import { PILL_CSS } from '@/components/pack/packTheme';
 import { TEST_BUILD } from '@/lib/env';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BonesSheet } from '@/components/pack/BonesSheet';
@@ -50,10 +50,9 @@ import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbu
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 
-// PROFIL BEZ KARTY (TEST_BUILD, Matej 25. 10. 2026): celá plocha bledá, obsah na celú šírku —
-// papyrus bez ohľadu na prepínač šatu, ako DOMOV v `pages/Pack.tsx`.
+// PROFIL BEZ KARTY (TEST_BUILD, Matej 25. 10. 2026): obsah na celú šírku. Hladký papyrus pod ním
+// zapína PackLayout (`PLAIN_ROUTES`).
 const FLAT = TEST_BUILD;
-if (FLAT) PAPER_ROUTES_EXTRA.push(/^\/pack\/profile$/);
 
 const TOTAL_SCROLLS = VAULT_WORLDS.reduce((s, w) => s + w.scrolls, 0);
 

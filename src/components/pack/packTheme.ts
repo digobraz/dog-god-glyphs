@@ -661,6 +661,9 @@ export const PAPER_PAGE_CSS = `
    "transform", "filter" ani "opacity"), inak by sa doň záporná vrstva uzavrela a zmizla
    pod pozadím. Preto má len "position:relative". */
 .pk-paper::before,.pk-paper::after{z-index:-1;}
+/* HLADKÝ PAPYRUS bez tapety (TEST_BUILD, Matej 25. 10. 2026: *„to bude celé bledé, nie chrám"* → *„aplikuj to
+   na celý pack, myslím na profily, dogs a ID"*). Triedu pridáva PackLayout podľa cesty ("PLAIN_ROUTES"). */
+.pk-paper.pk-plain::before,.pk-paper.pk-plain::after{display:none;}
 /* LOGO NA PAPYRUSE JE TMAVÉ (Matej 3. 10. 2026: „na pc aj mobile musí byť logo tmavé nie
    zlaté — to platí všade, zlatá na bielom zaniká"). PageTopBar nesie zlatú kresbu; ten istý
    filter, ktorým si ju tmaví vstup (flowPaleSkin.ts .hf-topbar), aby boli bledé povrchy zhodné. */
