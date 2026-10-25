@@ -6445,6 +6445,8 @@ export const en = {
   'pack.me.newStory': "New story",
   'pack.me.stories': "Stories",
   'pack.me.post': "Post",
+  'pack.compose.privacy': "Privacy",
+  'pack.compose.visAll': "Everyone",
   'pack.compose.next': "Next",
   'pack.compose.back': "Back",
   'pack.post.openMapy': "Open in Mapy.cz",

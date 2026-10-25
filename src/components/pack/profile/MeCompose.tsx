@@ -243,9 +243,9 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
           )}
 
           <div>
-            <p className="mc-lbl">{tx('pack.compose.who', 'Who sees it')}</p>
+            <p className="mc-lbl">{tx('pack.compose.privacy', 'Privacy')}</p>
             <div className="mc-vis">
-              <button type="button" className={vis === 'public' ? 'on' : ''} onClick={() => setVis('public')}>{tx('pack.compose.visPack', 'The pack')}</button>
+              <button type="button" className={vis === 'public' ? 'on' : ''} onClick={() => setVis('public')}>{tx('pack.compose.visAll', 'Everyone')}</button>
               <button type="button" className={vis === 'private' ? 'on' : ''} onClick={() => setVis('private')}>{tx('pack.compose.visMe', 'Only me')}</button>
             </div>
           </div>

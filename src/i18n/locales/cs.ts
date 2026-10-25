@@ -6118,6 +6118,8 @@ export const cs: Partial<Dict> = {
   'pack.me.newStory': "Nová story",
   'pack.me.stories': "Příběhy",
   'pack.me.post': "Příspěvek",
+  'pack.compose.privacy': "Soukromí",
+  'pack.compose.visAll': "Všichni",
   'pack.compose.next': "Dál",
   'pack.compose.back': "Zpět",
   'pack.post.openMapy': "Otevřít v Mapy.cz",

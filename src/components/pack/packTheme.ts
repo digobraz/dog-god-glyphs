@@ -925,6 +925,10 @@ export const PILL_CSS = `${HIT_CSS}
 // raz na stránke, presne ako `GLASS_CSS` vyššie.
 export const PF_FIELD_CSS = `
 .pf-field{
+  /* POLOMER V RECEPTE (Matej 25. 10. 2026: *„nikde nemáme hranaté polia!"*). Katalóg hovoril
+     POLE = PACK_R.field, ale recept polomer nemal — každá obrazovka si ho dopisovala sama a nové
+     polia (lokalita, komentár, hodiny pripomienky) vyšli hranaté. Vlastný polomer (pilulka) prebije. */
+  border-radius: ${PACK_R.field}px;
   background: linear-gradient(180deg, #FFFDF7 0%, #F1DFB3 100%);
   border: 1.5px solid rgba(179,130,45,0.55);
   box-shadow: inset 0 1px 2px rgba(122,90,42,0.16);

@@ -69,6 +69,7 @@ const CSS = `
   font-family:${FONT_UI};font-size:${TX.body}px;text-align:left;}
 .pv-likers .fc{display:flex;}
 .pv-likers .fc img,.pv-likers .fc i{width:22px;height:22px;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${PAPER_BG};margin-left:-${S.sm}px;background:${T.tileBg};display:block;}
+.pv-likers .fc i{display:grid;place-items:center;font-style:normal;font-size:${TX.micro}px;font-weight:600;color:${T.inkWarm};}
 .pv-likers .fc > :first-child{margin-left:0;}
 .pv-likers b{font-weight:600;}
 .pv-who .pl{cursor:pointer;background:none;border:0;padding:0;text-align:left;font-family:${FONT_UI};}
@@ -81,6 +82,7 @@ const CSS = `
 .pv-ls ul{list-style:none;margin:0;padding:0 ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);overflow-y:auto;}
 .pv-ls li button{display:flex;align-items:center;gap:${S.md}px;width:100%;padding:${S.sm}px 0;background:none;border:0;cursor:pointer;color:${T.inkStrong};
   font-family:${FONT_UI};font-size:${TX.body}px;font-weight:600;text-align:left;}
+.pv-ls li i{display:grid;place-items:center;font-style:normal;font-weight:600;color:${T.inkWarm};}
 .pv-ls li img,.pv-ls li i{flex:none;width:${PACK_AVATAR.sm}px;height:${PACK_AVATAR.sm}px;border-radius:${PACK_R.pill}px;object-fit:cover;background:${T.tileBg};}
 .pv-ls li small{font-weight:400;color:${T.inkWarm};margin-left:auto;}
 @keyframes pv-up{from{transform:translateY(100%);}to{transform:none;}}
@@ -216,7 +218,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
         </div>
         {likers.length > 0 && lead && (
           <button type="button" className="pv-likers" onClick={() => setLikersOpen(true)}>
-            <span className="fc">{likers.slice(0, 3).map((l, k) => (l.photo ? <img key={k} src={sizedUrl(l.photo, 60)} alt="" /> : <i key={k} />))}</span>
+            <span className="fc">{likers.slice(0, 3).map((l, k) => (l.photo ? <img key={k} src={sizedUrl(l.photo, 60)} alt="" /> : <i key={k}>{(l.name || '#')[0]}</i>))}</span>
             <span>{likers.length === 1
               ? <>{tx('pack.post.likedBy', 'Liked by')} <b>{lead.mine ? tx('pack.post.you', 'you') : lead.name || `#${lead.ownerN ?? ''}`}</b></>
               : <>{tx('pack.post.likedBy', 'Liked by')} <b>{lead.name || `#${lead.ownerN ?? ''}`}</b> {tx('pack.post.andOthers', 'and others')} ({likers.length - 1})</>}
@@ -311,7 +313,7 @@ function LikersSheet({ list, title, you, close, onClose, onPick }: {
           {list.map((l, k) => (
             <li key={k}>
               <button type="button" disabled={l.mine || l.ownerN == null} onClick={() => l.ownerN != null && onPick(l.ownerN)}>
-                {l.photo ? <img src={sizedUrl(l.photo, 80)} alt="" /> : <i />}
+                {l.photo ? <img src={sizedUrl(l.photo, 80)} alt="" /> : <i>{(l.name || '#')[0]}</i>}
                 {l.name || (l.ownerN != null ? `#${l.ownerN}` : '')}
                 {l.mine && <small>{you}</small>}
               </button>
