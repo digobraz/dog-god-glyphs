@@ -5802,7 +5802,7 @@ export const jpn: Partial<Dict> = {
   'pack.dvinfo.firsts': "はじめの一歩",
   'pack.dvinfo.firstSteps': "DOGYPTのはじめの一歩を完了（1回）",
   'pack.dvinfo.sacraments': "秘跡",
-  'pack.dvinfo.baptism': "ヒエログリフによる洗礼",
+  'pack.dvinfo.baptism': "Heroglyphによる洗礼",
   'pack.dvinfo.puppy': "子犬を迎える",
   'pack.dvinfo.memorial': "旅立った犬とのお別れ",
   'pack.dvinfo.honours': "表彰",
