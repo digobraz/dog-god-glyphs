@@ -42,6 +42,8 @@ const SKIP = [
   'components/pack/mapnotes/circleMark.ts', // geometria značky na mape (28/2.5 px lock)
   'components/pack/mapDockShape.ts',        // tvar doku nad mapou (lock 24. 8. 2026)
   'components/pack/navGoldSkin.ts',         // D-BLOK — čísla sú NAV_R zo spodného navu
+  'components/pack/profile/rankBadge.tsx',  // odznaky SLUŽOBNÍK/PÚTNIK = herný smalt + žiara tekutiny,
+                                            //   vzhľad z nákresu plany/nakresy/rebricky (Matej OK 25. 10. 2026)
 ];
 
 /* Súbory, KTORÉ NESÚ RECEPT — v nich primitív patrí, inde je to ručná kópia. */

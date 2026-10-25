@@ -466,6 +466,9 @@ export default function PackProfile() {
           devLevel={dev.index}
           pilgrimLabel={String(pilgrim.level.level)}
           pilgrimLevel={pilgrim.level.level}
+          pilgrimPct={pilgrim.level.pct}
+          servantLabel={tx('pack.ladder.servant', 'Servant')}
+          pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
           onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
           rank={rank}

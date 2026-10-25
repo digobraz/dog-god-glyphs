@@ -14,6 +14,7 @@ import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, PACK_TIERS, type PackTier } from '@/lib/packTiers';
 import { devotionTier, devotionVars, NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
+import { RANK_BADGE_ON, RANK_BADGE_CSS, ServantBadge, PilgrimBadge, useActiveDays } from '@/components/pack/profile/rankBadge';
 /** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
 const BONES_TIER = PACK_TIERS.find((t) => t.key === 'turquoise') as PackTier;
 
@@ -303,7 +304,7 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel }: {
   cover: string | null;
   coverY?: number;
   name: string;
@@ -314,6 +315,11 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   pilgrimLabel: string;
   /** Level PÚTNIKA — pilulka nesie farbu jeho pásma (`packTiers.ts`), tú istú ako hlavička `/map`. */
   pilgrimLevel: number;
+  /** Postup PÚTNIKA k ďalšiemu levelu 0–100 — plní kapsulu odznaku (TEST_BUILD). */
+  pilgrimPct?: number;
+  /** Mená pre čítačku pri odznakoch (TEST_BUILD): „Služobník", „Pútnik". */
+  servantLabel?: string;
+  pilgrimRankLabel?: string;
   /** Bez `bones` sa pilulka nekreslí — UPRAVIŤ PROFIL ju nemá (Matej 23. 10.: BONES = šuplík na profile). */
   bones?: string;
   onBones?: () => void;
@@ -353,6 +359,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   };
   const editable = !!onMoveY && !!url;
   const pilgrimTier = tierOfLevel(pilgrimLevel);
+  const activeDays = useActiveDays(RANK_BADGE_ON);
 
   return (
     <div
@@ -394,6 +401,15 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
       </div>
       <div className="me-foot">
         <h1 className="me-nm">{name}</h1>
+        {RANK_BADGE_ON && <style>{RANK_BADGE_CSS}</style>}
+        {RANK_BADGE_ON ? (
+          // TEST_BUILD (25. 10. 2026): odznaky SLUŽOBNÍK + PÚTNIK namiesto pilulky DEVOTION + PÚTNIK.
+          // ⚠️ Roky so psom zatiaľ nemáme odkiaľ vziať (pole „u mňa od" v DB nie je) → každý je UČEŇ.
+          <div className="me-lv rk-row">
+            <ServantBadge years={null} activeDays={activeDays} on={rank === 'dev'} onClick={onDev} label={servantLabel} />
+            <PilgrimBadge level={pilgrimLevel} pct={pilgrimPct} on={rank === 'pt'} onClick={onPilgrim} label={`${pilgrimRankLabel} ${pilgrimLevel}`} />
+          </div>
+        ) : (
         <div className={`me-lv${stack ? ' stack' : ''}`}>
           <button type="button" data-rank-toggle className={`me-dv${rank === 'dev' ? ' on' : ''}`} onClick={onDev} aria-expanded={rank === 'dev'} style={devotionVars(devLevel)}>
             <span className="me-dvg"><b>{devLevel}</b></span>
@@ -404,6 +420,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
             {pilgrimLabel}
           </button>
         </div>
+        )}
       </div>
     </div>
   );

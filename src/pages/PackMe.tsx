@@ -314,6 +314,9 @@ export default function PackMe() {
           devLevel={dev.index}
           pilgrimLabel={String(pilgrim.level.level)}
           pilgrimLevel={pilgrim.level.level}
+          pilgrimPct={pilgrim.level.pct}
+          servantLabel={tx('pack.ladder.servant', 'Servant')}
+          pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
           bones={fmt(bones)}
           onBones={() => setBonesOpen(true)}
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
