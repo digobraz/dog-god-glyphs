@@ -119,6 +119,9 @@ const GROUPS: Group[] = [
         path: '/heroglyph/breed',
         state: 'done',
       },
+      // 25. 10. 2026 (TOSCA #135): sivé CTA povahy hovorí, čo chýba („TOSCA: vyber ešte 1"),
+      // pokladňa ukáže `payment.incompleteHeroglyph`, server neúplného psa odmietne.
+      // Stavy ostávajú „done" — zmenil sa text CTA, nie obrazovka. Web 632c0734.
       {
         name: '7 · Povaha',
         path: '/heroglyph/dog-character',
