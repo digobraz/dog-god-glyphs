@@ -70,7 +70,7 @@ const S = PACK_SPACE;
 /** Tlačidlo v riadku ÚČTU — ten istý tvar ako ODHLÁSIŤ SA v `PackSettings`. */
 const ROW_BTN: React.CSSProperties = {
   background: 'none', border: `1px solid ${T.border}`, borderRadius: PACK_R.field, padding: `${S.sm}px ${S.lg}px`,
-  fontFamily: FONT_TITLE, fontSize: PACK_TEXT.micro, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim, cursor: 'pointer',
+  fontFamily: FONT_UI, fontWeight: 500, fontSize: PACK_TEXT.micro, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim, cursor: 'pointer',
 };
 
 // ── RIADKY PROFILU (21. 10. 2026) ── štítok vľavo · hodnota vpravo · tenká čiara, ako úprava
@@ -79,7 +79,7 @@ const ROWS_CSS = `
 .pf-rows{display:flex;flex-direction:column;}
 .pf-row{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;min-height:44px;border-bottom:1px solid ${T.hairline};color:inherit;}
 .pf-rows > .pf-row:last-child,.pf-rows > :last-child > .pf-row{border-bottom:none;}
-.pf-row-lbl{flex:0 0 auto;font-family:'Cinzel',serif;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
+.pf-row-lbl{flex:0 0 auto;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};}
 .pf-row.is-shown .pf-row-lbl{color:${LAPIS.edge};font-weight:700;}
 .pf-row > :not(.pf-row-lbl){flex:1 1 auto;min-width:0;display:flex;justify-content:flex-end;}
 .pf-row-txt{align-items:center;gap:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.body}px;color:${T.ink};}
@@ -125,20 +125,20 @@ const EDIT_CSS = `
 .pe-own-cam{position:absolute;right:0;bottom:${S.sm}px;z-index:4;}
 .pe-grp{margin-top:${S.lg}px;padding:${S.lg}px;}
 .pe-gh{display:flex;align-items:center;justify-content:space-between;gap:${S.sm}px;margin-bottom:${S.md}px;color:${T.inkDim};}
-.pe-gh .pk-pill{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;padding:${S.xs}px ${S.md}px;}
+.pe-gh .pk-pill{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;padding:${S.xs}px ${S.md}px;}
 .pe-lbl{display:block;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkDim};margin:${S.lg}px 0 ${S.sm}px;}
 .pe-show{display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
-  background:transparent;border:1.5px solid ${LAPIS.edge};color:${LAPIS.edge};font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
+  background:transparent;border:1.5px solid ${LAPIS.edge};color:${LAPIS.edge};font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
 .pe-show:hover{background:${LAPIS.fill};}
 .pe-line{display:flex;flex-wrap:wrap;gap:${S.md}px ${S.lg}px;}
 .pe-mem{display:inline-flex;align-items:center;gap:${S.sm}px;border:0;background:none;padding:0;cursor:pointer;color:inherit;text-align:left;min-width:0;}
 .pe-mem .c{flex:none;width:48px;height:48px;border-radius:${PACK_R.pill}px;padding:${S.xs}px;background:${RING};box-shadow:${T.panelShadow};}
 .pe-mem .c img,.pe-mem .c i{width:100%;height:100%;border-radius:${PACK_R.pill}px;object-fit:cover;display:grid;place-items:center;border:2px solid ${T.card};background:${T.card};
-  font-style:normal;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;color:${T.inkWarm};}
+  font-style:normal;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.lead}px;color:${T.inkWarm};}
 .pe-mem b{display:block;font-family:${DOG_FONT};font-weight:700;font-size:${PACK_TEXT.body}px;color:${T.inkStrong};white-space:nowrap;}
 .pe-mem.hu b{font-family:${FONT_TITLE};letter-spacing:.02em;}
 .pe-mem small{display:block;font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;color:${T.inkWarm};letter-spacing:.14em;text-transform:uppercase;}
-.pe-num{display:inline-flex;align-items:center;margin-left:${S.xs}px;background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_TITLE};font-weight:700;
+.pe-num{display:inline-flex;align-items:center;margin-left:${S.xs}px;background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_UI};font-weight:600;
   font-size:${PACK_TEXT.micro}px;letter-spacing:.02em;padding:0 ${S.sm}px;border-radius:${PACK_R.pill}px;vertical-align:middle;}
 .pe-ghost .c{background:transparent;box-shadow:none;border:1.5px dashed ${LAPIS.edge};opacity:.55;display:grid;place-items:center;padding:0;}
 .pe-ghost:hover .c{opacity:.85;}
@@ -186,7 +186,7 @@ const EDIT_CSS = `
 .pe-core{}
 .pe-me{display:flex;align-items:center;justify-content:space-between;gap:${S.sm}px;padding:${S.sm}px 0;}
 .pe-role{position:relative;display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.md}px;border-radius:${PACK_R.pill}px;
-  background:${T.tileBg};border:1px solid ${T.cardEdge};color:${T.inkStrong};font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
+  background:${T.tileBg};border:1px solid ${T.cardEdge};color:${T.inkStrong};font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
 .pe-role select{appearance:none;-webkit-appearance:none;border:0;background:none;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;cursor:pointer;padding:0;outline:none;}
 .pe-dog + .pe-dog{border-top:1px solid ${T.hairline};}
 .pe-dog-h{display:flex;align-items:center;gap:${S.sm}px;width:100%;padding:${S.sm}px 0;border:0;background:none;cursor:pointer;text-align:left;color:inherit;}
@@ -220,7 +220,7 @@ const EDIT_CSS = `
 .pe-addbar{display:flex;align-items:center;gap:${S.sm}px;margin-top:${S.sm}px;padding:${S.sm}px;border-radius:${PACK_R.tile}px;background:${T.tileBg};border:1px solid ${T.hairline};}
 .pe-plus{flex:none;width:40px;height:40px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};}
 .pe-door{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:${S.xs}px;padding:${S.md}px ${S.sm}px;border-radius:${PACK_R.field}px;cursor:pointer;text-decoration:none;
-  background:${T.card};color:${T.inkStrong};border:1px solid ${T.cardEdge};font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
+  background:${T.card};color:${T.inkStrong};border:1px solid ${T.cardEdge};font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
 .pe-door.on{background:${LAPIS.grad};color:${LAPIS.ink};border-color:${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};}
 .pe-door:disabled{opacity:.5;cursor:default;}
 .pe-mform{display:flex;flex-direction:column;gap:${S.sm}px;padding:${S.md}px 0 ${S.xs}px;}
@@ -947,7 +947,7 @@ function IdentityVisibilityEye({
           >
             <span
               style={{
-                fontFamily: "'Cinzel', serif",
+                fontFamily: FONT_UI, fontWeight: 500,
                 fontSize: 10,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',

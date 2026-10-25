@@ -34,12 +34,12 @@ const CSS = `
   background:radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--dv-glow) 22%, transparent), transparent 60%), rgba(0,0,0,.28);}
 .dvs-me{display:flex;align-items:center;gap:${S.md}px;}
 .dvs-orb{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:${PACK_R.pill}px;background:var(--dv-dot);filter:drop-shadow(0 0 12px var(--dv-glow));}
-.dvs-orb b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;line-height:1;color:var(--dv-icon-ink);}
+.dvs-orb b{font-family:${FONT_UI};font-weight:600;font-size:${TX.h2}px;line-height:1;color:var(--dv-icon-ink);}
 .dvs-me .tx{flex:1;min-width:0;}
 .dvs-me h3{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;color:${NIGHT_INK};}
 .dvs-me p{margin:${S.xs}px 0 0;white-space:nowrap;font-size:${TX.label}px;color:${T.onDarkDim};}
-.dvs-me p b{font-family:${FONT_TITLE};font-weight:700;color:${NIGHT_EDGE};}
-.dvs-bal{flex:none;display:inline-flex;align-items:center;gap:${S.xs}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;color:${NIGHT_EDGE};}
+.dvs-me p b{font-family:${FONT_UI};font-weight:600;color:${NIGHT_EDGE};}
+.dvs-bal{flex:none;display:inline-flex;align-items:center;gap:${S.xs}px;font-family:${FONT_UI};font-weight:600;font-size:${TX.h2}px;color:${NIGHT_EDGE};}
 .dvs-path{display:flex;justify-content:space-between;align-items:center;margin-top:${S.lg}px;}
 .dvs-path i{display:block;width:8px;height:8px;border-radius:${PACK_R.pill}px;border:1px solid ${T.onDarkBorder};}
 .dvs-path i.done{border:0;background:var(--d);}
@@ -54,7 +54,7 @@ const CSS = `
 .dvs-row:first-of-type{border-top:0;}
 .dvs-row.off > span{color:${T.onDarkDim};}
 .dvs-v{flex:none;display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;white-space:nowrap;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;color:#140D07;background:linear-gradient(180deg,#F1D58C,${NIGHT_EDGE});filter:drop-shadow(0 0 6px rgba(201,154,63,.35));}
+  font-family:${FONT_UI};font-weight:600;font-size:${TX.label}px;color:#140D07;background:linear-gradient(180deg,#F1D58C,${NIGHT_EDGE});filter:drop-shadow(0 0 6px rgba(201,154,63,.35));}
 .dvs-v.soon{font-family:${FONT_UI};font-weight:500;color:${T.onDarkDim};background:none;filter:none;border:1px dashed ${T.onDarkBorder};}
 .dvs-cta{display:block;width:100%;margin:0 0 ${S.lg}px;padding:${S.md}px;border:1px solid ${GOLD_BTN.edge};border-radius:${PACK_R.field}px;cursor:pointer;
   font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;letter-spacing:.14em;text-transform:uppercase;

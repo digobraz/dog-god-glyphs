@@ -464,7 +464,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 boxShadow: '0 0 6px rgba(22, 48, 122, 0.6)',
               }}
             />
-            <span style={{ fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: FONT_UI, fontSize: 10, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase' }}>
               Pawtner
             </span>
           </button>
@@ -597,7 +597,7 @@ function OwnerSlot({
               ) : (
                 <span
                   className="flex items-center justify-center h-full w-full"
-                  style={{ fontFamily: FONT_TITLE, fontSize: Math.round(size * 0.41), fontWeight: 700, color: T.inkDim }}
+                  style={{ fontFamily: FONT_UI, fontSize: Math.round(size * 0.41), fontWeight: 600, color: T.inkDim }}
                 >
                   {initial}
                 </span>
@@ -670,7 +670,7 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
             ) : (
               <div
                 className="flex items-center justify-center h-full"
-                style={{ color: T.inkFaint, fontFamily: FONT_TITLE, fontSize: Math.max(7, Math.round(size * 0.09)), letterSpacing: '0.22em' }}
+                style={{ color: T.inkFaint, fontFamily: FONT_UI, fontSize: Math.max(7, Math.round(size * 0.09)), letterSpacing: '0.22em' }}
               >
                 {t('pack.tree.noPhoto')}
               </div>
@@ -691,8 +691,8 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontFamily: FONT_TITLE,
-                fontWeight: 700,
+                fontFamily: FONT_UI,
+                fontWeight: 600,
                 fontSize: Math.max(8, Math.round(size * 0.115)),
                 letterSpacing: '0.02em',
                 lineHeight: 1,
@@ -866,7 +866,7 @@ function PackNameRow({ label, fallback }: { label: string; fallback: string }) {
             style={{
               flexShrink: 0, padding: '8px 8px', borderRadius: 8, cursor: 'pointer',
               background: 'transparent', border: 'none', color: T.inkWarm,
-              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 10,
+              fontFamily: FONT_UI, fontWeight: 600, fontSize: 10,
               letterSpacing: '0.14em', textTransform: 'uppercase',
             }}
           >
@@ -883,8 +883,8 @@ function PackNameRow({ label, fallback }: { label: string; fallback: string }) {
             <span
               style={{
                 minWidth: 0,
-                fontFamily: FONT_TITLE,
-                fontWeight: 700,
+                fontFamily: FONT_UI,
+                fontWeight: 600,
                 fontSize: 12,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
@@ -955,8 +955,8 @@ function EmptyPackCta({ onAdd }: { onAdd: () => void }) {
           z 12. 9.; kľúč je zdieľaný s menovkovým riadkom, aby sa dve miesta nerozišli. */}
       <div
         style={{
-          fontFamily: FONT_TITLE,
-          fontWeight: 700,
+          fontFamily: FONT_UI,
+          fontWeight: 600,
           fontSize: 10,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',

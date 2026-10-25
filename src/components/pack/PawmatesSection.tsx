@@ -96,7 +96,7 @@ const CSS = `
 .pws-cta:hover:not(:disabled){ background:${LAPIS.gradHover}; }
 .pws-cta:disabled{ opacity:.5; cursor:default; }
 .pws-chip{
-  font-family:${FONT_TITLE}; font-weight:700; font-size:10px; letter-spacing:0.14em;
+  font-family:${FONT_UI}; font-weight:600; font-size:10px; letter-spacing:0.14em;
   text-transform:uppercase; padding:4px 8px; border-radius:999px; white-space:nowrap;
   border:1px solid ${T.border}; color:${T.inkWarm}; background:${T.tileBg};
 }
@@ -317,7 +317,7 @@ export function PawmatesSection({ bare = false }: { bare?: boolean } = {}) {
         <div className="flex" style={{ gap: 7, flexWrap: 'wrap', marginTop: 7 }}>
           {PAWMATE_PRESETS.map((p) => (
             <button key={p.id} type="button" className={`pws-preset${activePreset === p.id ? ' on' : ''}`} onClick={() => applyPreset(p.id)}>
-              <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+              <span style={{ display: 'block', fontFamily: FONT_UI, fontWeight: 600, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                 {lb(p.label)}
               </span>
               <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 10, lineHeight: 1.35, marginTop: 2, opacity: 0.85 }}>
@@ -363,7 +363,7 @@ export function PawmatesSection({ bare = false }: { bare?: boolean } = {}) {
                 style={{
                   width: 30, height: 30, borderRadius: '50%', border: `1.5px solid ${T.cardEdge}`,
                   background: d.photo ? `center/cover url('${sizedUrl(d.photo, 96)}')` : T.tileBg,
-                  fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, color: T.inkStrong,
+                  fontFamily: FONT_UI, fontWeight: 600, fontSize: 12, color: T.inkStrong,
                 }}
               >
                 {d.photo ? '' : (d.name || 'D').charAt(0).toUpperCase()}

@@ -191,7 +191,7 @@ ${VEIL_CSS}
 .comm-reward-break{display:flex;flex-direction:column;gap:3px;margin:-4px 0 0 8px;padding-left:12px;border-left:2px solid ${T.border};}
 .comm-reward-breakrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_UI};font-weight:500;font-size:10px;color:${T.inkWarm};}
 .comm-reward-breakrow b{font-weight:600;color:${T.inkStrong};font-variant-numeric:tabular-nums;white-space:nowrap;}
-.comm-reward-unit{font-family:${FONT_TITLE};font-weight:700;}
+.comm-reward-unit{font-family:${FONT_UI};font-weight:600;}
 .comm-reward-kind{display:block;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${T.cardEdge};margin-top:2px;}
 /* deliaca čiara vnútri bledej karty = zlatá, vyblednutá do strán (lock z Entry.tsx),
    NIE šedý hairline. Oddeľuje „čo už padlo" od „čo ešte môžeš získať". */

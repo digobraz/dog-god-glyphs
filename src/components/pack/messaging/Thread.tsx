@@ -65,7 +65,7 @@ export const THREAD_CSS = `
 .msg-thread-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:var(--msg-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .msg-thread-sub{font-family:${FONT_UI};font-size:10px;color:var(--msg-dim);margin-top:2px;}
 /* max-width + ellipsis: štítok je jeden riadok (nowrap), takže sa musí dať orezať. */
-.msg-tagchip{max-width:100%;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
+.msg-tagchip{max-width:100%;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
 .msg-tagchip--click:hover{background:var(--msg-chip-hot);border-color:${T.cardEdge};}
 /* ── PLOCHA SPRÁV JE SKLENENÁ DOSKA (Matej 15. 9. 2026) ──────────────────────────────
@@ -165,7 +165,7 @@ export const THREAD_CSS = `
 ${AINUBIS_SHEET_CSS}
 .msg-blocked{flex-shrink:0;${PACK_COL_FIT}margin:0 auto;padding:16px 0 calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid var(--msg-bar-edge);background:var(--msg-bar);box-sizing:border-box;text-align:center;position:relative;z-index:2;}
 .msg-blockedtxt{font-family:${FONT_UI};font-size:12px;line-height:1.6;color:var(--msg-dim);}
-.msg-unblock{margin-top:10px;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:8px 16px;border-radius:8px;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
+.msg-unblock{margin-top:10px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:8px 16px;border-radius:8px;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
 .msg-unblock:hover{border-color:${T.cardEdge};color:var(--msg-title);background:var(--msg-btn-hot);}
 
 /* Šírka stĺpca = domov /pack (PACK_COL, 21. 9. 2026) — od 640 px padding 24, nie 16. */

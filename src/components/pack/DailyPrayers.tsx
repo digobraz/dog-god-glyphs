@@ -14,7 +14,7 @@ import React, { useState } from 'react';
 import { ChevronDown, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
-import { PACK_THEME, GOLD_BTN, VEIL_CSS, PACK_SHADOW } from './packTheme';
+import { PACK_THEME, GOLD_BTN, VEIL_CSS, PACK_SHADOW, FONT_UI } from './packTheme';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { toast } from '@/hooks/use-toast';

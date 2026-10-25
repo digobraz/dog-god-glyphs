@@ -89,7 +89,7 @@ export const REVEAL_CSS = `
 .rv-av{border-radius:50%;border:2px solid #C99A3F;overflow:hidden;flex:0 0 auto;
        background:linear-gradient(135deg,#6b5836,#2a2015);
        display:flex;align-items:center;justify-content:center;object-fit:cover;
-       font-family:${FONT_TITLE};font-weight:700;color:#F5C73D;
+       font-family:${FONT_UI};font-weight:600;color:#F5C73D;
        width:52px;height:52px;font-size:19px;margin-left:-12px;
        transition:width .62s cubic-bezier(.3,.85,.25,1),height .62s cubic-bezier(.3,.85,.25,1),
                   font-size .62s,margin .62s,border-width .62s;}
@@ -111,7 +111,7 @@ export const REVEAL_CSS = `
 .rv-fly{position:fixed;z-index:40;border-radius:50%;overflow:hidden;object-fit:cover;
         border:2px solid #C99A3F;background:linear-gradient(135deg,#6b5836,#2a2015);
         display:flex;align-items:center;justify-content:center;pointer-events:none;
-        font-family:${FONT_TITLE};font-weight:700;font-size:19px;color:#F5C73D;
+        font-family:${FONT_UI};font-weight:600;font-size:19px;color:#F5C73D;
         transform-origin:top left;
         animation:rv-fly-home .62s cubic-bezier(.3,.85,.25,1) forwards;}
 @keyframes rv-fly-home{
@@ -124,7 +124,7 @@ export const REVEAL_CSS = `
          text-transform:uppercase;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
          color:${PALE.ink};transition:font-size .62s;}
 .rv-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;
-         font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.12em;
+         font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.12em;
          text-transform:uppercase;border:1px solid rgba(250,244,236,0.30);
          background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));
          color:var(--tier-ink,#241a06);transition:background .5s,color .5s,font-size .62s;}
@@ -191,7 +191,7 @@ export const REVEAL_CSS = `
          background:linear-gradient(180deg,rgba(255,251,240,0.72),rgba(246,233,205,0.52));
          border:1px solid ${PALE.border};
          box-shadow:0 1px 0 rgba(255,252,244,0.8) inset,0 2px 6px rgba(70,46,12,0.10);}
-.rv-stat b{font-family:${FONT_TITLE};font-weight:700;font-size:15px;line-height:1;
+.rv-stat b{font-family:${FONT_UI};font-weight:600;font-size:15px;line-height:1;
            color:${PALE.deep};font-variant-numeric:tabular-nums;}
 .rv-stat i{font-family:${FONT_UI};font-style:normal;font-weight:500;font-size:10.5px;
            letter-spacing:.08em;text-transform:uppercase;color:${PALE.dim};}
@@ -232,7 +232,7 @@ export const REVEAL_CSS = `
 /* ⚠️ TMAVÉ ZLATO, NIE SVETLÉ. Gradient #F5C73D→#E69E1A je odmeraný na čiernu obrazovku;
    na pieskovcovej doske je to svetlé na svetlom a číslo — teda to jediné, prečo sa reveal
    otvára — zaniká. Je to tá istá farebná rodina, len o dva tóny nižšie. */
-.rv-score{font-family:${FONT_TITLE};font-weight:700;font-size:54px;line-height:1;
+.rv-score{font-family:${FONT_UI};font-weight:600;font-size:54px;line-height:1;
           background:linear-gradient(135deg,#B3822D,#7A4F14);
           -webkit-background-clip:text;background-clip:text;color:transparent;
           filter:drop-shadow(0 1px 0 rgba(255,250,228,0.55));
@@ -240,7 +240,7 @@ export const REVEAL_CSS = `
 /* JEDNOTKA STOJÍ VEDĽA ČÍSLA — „+52 BODOV" je jedna veta, nie dva riadky.
    Veľkosť vybral Matej 24. 8. („bodov veľkým") — Cinzel vo váhe čísla, nie tichý popisok.
    Preto smie zlomiť riadok pri dlhšom preklade (EN POINTS), namiesto pretečenia. */
-.rv-unit{align-self:flex-end;margin-bottom:3px;font-family:${FONT_TITLE};font-weight:700;
+.rv-unit{align-self:flex-end;margin-bottom:3px;font-family:${FONT_UI};font-weight:600;
          font-size:34px;letter-spacing:.02em;text-transform:uppercase;color:${PALE.deep};
          opacity:0;}
 @media (max-width:359px){.rv-score{font-size:44px;}.rv-unit{font-size:26px;}}
@@ -257,7 +257,7 @@ export const REVEAL_CSS = `
    zámerne nie sú zlaté: zlatá je v tomto rozhraní stav HOTOVO. */
 .rv-draft{flex:0 0 auto;margin-top:12px;padding:12px 13px;border-radius:12px;
           background:rgba(0,0,0,0.34);border:1px dashed rgba(232,220,195,0.34);text-align:left;}
-.rv-drafth{font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.14em;
+.rv-drafth{font-family:${FONT_UI};font-weight:600;font-size:11.5px;letter-spacing:.14em;
            text-transform:uppercase;color:#E8DCC3;margin-bottom:6px;}
 .rv-draftp{font-family:${FONT_UI};font-size:12px;line-height:1.5;color:rgba(232,220,195,0.78);margin:0;}
 .rv-draftmiss{display:block;margin-top:6px;font-family:${FONT_UI};font-weight:600;font-size:12px;color:#E8DCC3;}
@@ -313,7 +313,7 @@ export const REVEAL_CSS = `
        box-shadow:0 10px 34px rgba(0,0,0,0.7);}
 .rv-ph--owner{width:132px;height:132px;font-size:46px;
               background:linear-gradient(135deg,#6b5836,#2a2015);
-              font-family:${FONT_TITLE};font-weight:700;color:var(--tier-a,#F5C73D);}
+              font-family:${FONT_UI};font-weight:600;color:var(--tier-a,#F5C73D);}
 .rv-slot--dog{z-index:5;}
 .rv-slot--dog .rv-ph{border-width:2.5px;opacity:0;transform:scale(.5);
                      animation:rvDogPop .62s cubic-bezier(.25,1.4,.4,1) forwards;}
@@ -342,7 +342,7 @@ export const REVEAL_CSS = `
          padding:12px 28px;border-radius:999px;overflow:hidden;
          background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));
          border:1.5px solid rgba(250,244,236,0.30);color:var(--tier-ink,#241a06);
-         font-family:${FONT_TITLE};font-weight:700;font-size:19px;letter-spacing:.16em;
+         font-family:${FONT_UI};font-weight:600;font-size:19px;letter-spacing:.16em;
          text-transform:uppercase;transition:background .7s,color .7s;}
 .rv-pill-txt{position:relative;z-index:3;line-height:1;}
 .rv-pillrim{position:absolute;inset:0;border-radius:999px;overflow:hidden;opacity:0;z-index:1;}
@@ -443,11 +443,11 @@ export const REVEAL_CSS = `
           margin-top:13px;padding:11px 12px 9px;border-radius:12px;
           border-top:2px solid rgba(201,154,63,0.55);
           background:linear-gradient(180deg,rgba(201,154,63,0.16),rgba(201,154,63,0.04));}
-.rv-total span{font-family:${FONT_TITLE};font-weight:700;font-size:12px;
+.rv-total span{font-family:${FONT_UI};font-weight:600;font-size:12px;
                letter-spacing:.14em;text-transform:uppercase;color:${PALE.ink};}
 /* Súčet nesie ten istý tmavozlatý gradient ako číslo na obrazovke pod ním — je to to isté
    číslo, len rozobraté; dve rôzne farby by z neho spravili dva rôzne údaje. */
-.rv-total b{font-family:${FONT_TITLE};font-weight:700;font-size:32px;line-height:1;
+.rv-total b{font-family:${FONT_UI};font-weight:600;font-size:32px;line-height:1;
             background:linear-gradient(135deg,#B3822D,#7A4F14);
             -webkit-background-clip:text;background-clip:text;color:transparent;
             filter:drop-shadow(0 1px 0 rgba(255,250,228,0.55));}

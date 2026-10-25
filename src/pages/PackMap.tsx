@@ -1287,7 +1287,7 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-avwrap svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;}
 .trp-mavatar{width:34px;height:34px;border-radius:50%;flex:0 0 auto;object-fit:cover;border:1.5px solid ${GOLD};box-shadow:0 0 0 1px rgba(0,0,0,0.5);}
 .trp-avwrap .trp-mavatar{border:none;position:relative;z-index:1;}
-.trp-mavatar--initial{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2a2317,#14110b);color:${GOLD};font-family:${FONT_TITLE};font-weight:700;font-size:14px;line-height:1;}
+.trp-mavatar--initial{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2a2317,#14110b);color:${GOLD};font-family:${FONT_UI};font-weight:600;font-size:14px;line-height:1;}
 .trp-midentity-txt{display:flex;flex-direction:column;gap:2px;min-width:0;}
 .trp-midentity .trp-level{gap:7px;}
 .trp-midentity .trp-level-name{font-size:12px;letter-spacing:.14em;}
@@ -1431,7 +1431,7 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
    jeho hlas a šat (ainubisSheet.tsx); tu je len poloha. */
 .trp-eventshint{position:absolute;top:calc(100% + 8px);right:0;z-index:30;max-width:300px;}
 /* Kategórie (Trips/Events/Places/Services) sú nadpisy sekcií, nie dáta → FONT_TITLE. */
-.trp-catpill{flex:1 1 0;min-width:0;padding:12px 8px;border-radius:8px;border:1px solid rgba(245,240,228,0.22);background:rgba(245,240,228,0.07);font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;color:rgba(245,240,228,0.78);cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center;}
+.trp-catpill{flex:1 1 0;min-width:0;padding:12px 8px;border-radius:8px;border:1px solid rgba(245,240,228,0.22);background:rgba(245,240,228,0.07);font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;color:rgba(245,240,228,0.78);cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center;}
 .trp-catpill.on{background:${GOLD_BTN.grad};border-color:rgba(250,244,236,0.3);color:#1c160c;box-shadow:0 4px 14px rgba(201,154,63,0.3);}
 .trp-catpill.soon{border-style:dashed;opacity:.5;cursor:default;position:relative;}
 .trp-catpill.soon:hover{opacity:.8;}
@@ -1650,7 +1650,7 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 /* #41 — blok jednej partie (organizátor + kto s ním ide) v inline detaile */
 .trp-inldet-host + .trp-inldet-host{margin-top:10px;}
 .trp-inldet-actions{display:flex;gap:9px;padding:16px 16px 16px;border-top:1px solid ${T.onDarkHair};flex-shrink:0;}
-.trp-inldet-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:12px 8px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
+.trp-inldet-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:12px 8px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
 .trp-inldet-btn--ghost{background:rgba(245,240,228,0.06);color:${T.onDark};border-color:${T.onDarkBorder};}
 .trp-inldet-btn--ghost.on{background:rgba(201,154,63,0.16);color:${GOLD};border-color:${GOLD};}
 
@@ -4598,7 +4598,7 @@ export default function PackMap() {
       <div className="min-h-[100dvh] flex items-center justify-center relative" style={{ backgroundColor: T.pageBg }}>
         <HieroglyphBg />
         <div className="relative" style={{ zIndex: 1 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 12, color: T.onDarkDim }}>
+          <div style={{ fontFamily: FONT_UI, letterSpacing: '0.26em', fontSize: 12, color: T.onDarkDim }}>
             {t('pack.layout.loading')}
           </div>
         </div>

@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { Link } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { PACK_THEME, GOLD_BTN } from './packTheme';
+import { PACK_THEME, GOLD_BTN, FONT_UI } from './packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { BrandIcon } from './BrandIcon';
 import heroglyphFrame from '@/assets/heroglyph-frame.svg';
@@ -119,7 +119,7 @@ function LifeLine({ dog, center = false }: { dog: DogNode; center?: boolean }) {
     >
       <span
         className="inline-flex items-center gap-1.5"
-        style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkDim }}
+        style={{ fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkDim }}
       >
         {life.isAngel ? (
           <>🕊 {t('pack.dog.inAngelForm')}</>
@@ -287,7 +287,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
           ) : (
             <div
               className="flex items-center justify-center h-full"
-              style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.2em' }}
+              style={{ color: T.inkFaint, fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.2em' }}
             >
               {t('pack.tree.noPhoto')}
             </div>
@@ -340,7 +340,7 @@ function DogCollection({ dogs }: { dogs: DogNode[] }) {
       <div
         className="text-center"
         style={{
-          fontFamily: "'Cinzel', serif",
+          fontFamily: FONT_UI,
           fontSize: 11,
           letterSpacing: '0.24em',
           textTransform: 'uppercase',
@@ -435,7 +435,7 @@ function DogGridCard({ dog }: { dog: DogNode }) {
         {dog.cloudinary_main_url ? (
           <img src={sizedUrl(dog.cloudinary_main_url, 320)} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
-          <div className="flex items-center justify-center h-full" style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 7, letterSpacing: '0.14em' }}>
+          <div className="flex items-center justify-center h-full" style={{ color: T.inkFaint, fontFamily: FONT_UI, fontSize: 7, letterSpacing: '0.14em' }}>
             {t('pack.tree.noPhoto')}
           </div>
         )}
@@ -498,7 +498,7 @@ function DogAvatar({ dog }: { dog: DogNode }) {
       {dog.cloudinary_main_url ? (
         <img src={sizedUrl(dog.cloudinary_main_url, 320)} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       ) : (
-        <div className="flex items-center justify-center h-full" style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 6, letterSpacing: '0.1em' }}>
+        <div className="flex items-center justify-center h-full" style={{ color: T.inkFaint, fontFamily: FONT_UI, fontSize: 6, letterSpacing: '0.1em' }}>
           {t('pack.tree.noPhoto')}
         </div>
       )}
@@ -548,7 +548,7 @@ function DogRow({ dog }: { dog: DogNode }) {
         ) : (
           <div
             className="flex items-center justify-center h-full"
-            style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.16em' }}
+            style={{ color: T.inkFaint, fontFamily: FONT_UI, fontSize: 8, letterSpacing: '0.16em' }}
           >
             {t('pack.tree.noPhoto')}
           </div>
@@ -741,9 +741,9 @@ function OwnerNode({ avatarUrl, initial }: { avatarUrl: string | null; initial: 
       ) : (
         <span
           style={{
-            fontFamily: "'Cinzel', serif",
+            fontFamily: FONT_UI,
             fontSize: 24,
-            fontWeight: 700,
+            fontWeight: 600,
             color: T.inkDim,
           }}
         >

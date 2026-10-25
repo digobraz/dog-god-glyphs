@@ -66,11 +66,11 @@ const CSS = `
 .dvt-top{display:flex;align-items:center;gap:${S.sm}px;margin:0 0 ${S.sm}px;}
 .dvt-top .sp{flex:1;}
 .dvt-streak{display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;border:1px solid ${A.ctaEdge};background:${A.ctaTint};
-  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;color:${A.ctaA};}
+  font-family:${FONT_UI};font-weight:600;font-size:${TX.label}px;color:${A.ctaA};}
 .dvt-who{display:flex;align-items:center;gap:${S.md}px;}
 .dvt-face{flex:none;width:72px;height:72px;border-radius:${PACK_R.pill}px;object-fit:contain;background:${A.faceBg};box-shadow:${A.faceRing};}
 .dvt-q{flex:1;min-width:0;}
-.dvt-q b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${A.ink};margin:0 0 ${S.xs}px;}
+.dvt-q b{display:block;font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${A.ink};margin:0 0 ${S.xs}px;}
 .dvt-q b span{color:${A.aiInk};text-shadow:${A.aiShadow};}
 .dvt-q p{margin:0 0 ${S.sm}px;font-size:${TX.body}px;line-height:1.4;color:${A.ink};}
 .dvt-dogs{display:flex;gap:${S.sm}px;flex-wrap:wrap;}
@@ -97,7 +97,7 @@ const CSS = `
   font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;color:${A.ctaInk};background:${A.ctaGrad};}
 .dvt-cnt.dim{color:${A.inkDim};background:none;border:1px solid ${A.edge};}
 .dvt-tile.bump .dvt-cnt{animation:dvt-bump .3s ease;}
-.dvt-fly{position:absolute;left:50%;top:40%;pointer-events:none;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;color:${A.ctaA};
+.dvt-fly{position:absolute;left:50%;top:40%;pointer-events:none;font-family:${FONT_UI};font-weight:600;font-size:${TX.h2}px;color:${A.ctaA};
   text-shadow:${A.aiShadow};animation:dvt-fly .8s ease-out forwards;}
 .dvt-deed{margin:${S.md}px 0 0;border-radius:${PACK_R.tile}px;border:1px solid ${A.ctaEdge};background:${A.ctaTint};}
 .dvt-deed > button{appearance:none;width:100%;display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;background:none;border:0;color:${A.ink};font:inherit;font-size:${TX.body}px;text-align:left;cursor:pointer;}
@@ -158,24 +158,24 @@ const CSS = `
 const TALLY_CSS = `
 .dvy{position:relative;display:flex;flex-direction:column;gap:${S.sm}px;margin:0 0 ${S.md}px;animation:dvy-in .35s ease both;}
 .dvy-hd{display:flex;align-items:center;justify-content:space-between;gap:${S.sm}px;}
-.dvy-hd b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${A.ink};}
+.dvy-hd b{font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${A.ink};}
 .dvy-hd b span{color:${A.aiInk};text-shadow:${A.aiShadow};}
-.dvy-hd small{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${A.inkDim};}
+.dvy-hd small{font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${A.inkDim};}
 .dvy-tot{display:flex;align-items:center;justify-content:space-between;gap:${S.md}px;}
-.dvy-num{display:inline-block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h1}px;letter-spacing:.02em;color:${A.ctaA};text-shadow:${A.aiShadow};
+.dvy-num{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:${TX.h1}px;letter-spacing:.02em;color:${A.ctaA};text-shadow:${A.aiShadow};
   transform:scale(1.8);transform-origin:left center;}
 .dvy-num.hit{animation:dvy-hit .4s ease;}
 .dvy-orb{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:${PACK_R.pill}px;background:var(--dv-dot);box-shadow:0 0 14px var(--dv-glow);
-  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;color:var(--dv-icon-ink);}
+  font-family:${FONT_UI};font-weight:600;font-size:${TX.lead}px;color:var(--dv-icon-ink);}
 .dvy-bar{height:8px;margin-top:${S.md}px;}
 .dvy-bar .pk-progress__fill{background:var(--dv-glow);box-shadow:0 0 12px var(--dv-glow);}
 .dvy-bar > u{position:absolute;top:0;bottom:0;border-radius:${PACK_R.pill}px;background:${A.ink};opacity:0;transition:opacity .6s ease;}
 .dvy-bar > u.on{opacity:.75;}
-.dvy-row{display:flex;justify-content:space-between;gap:${S.sm}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${A.inkDim};}
+.dvy-row{display:flex;justify-content:space-between;gap:${S.sm}px;font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${A.inkDim};}
 .dvy-msg{display:flex;align-items:center;gap:${S.md}px;margin:${S.sm}px 0 0;font-size:${TX.body}px;line-height:1.4;color:${A.ink};animation:dvy-in .45s ease both;}
 .dvy-msg img{flex:none;width:40px;height:40px;border-radius:${PACK_R.pill}px;object-fit:contain;background:${A.faceBg};box-shadow:${A.faceRing};}
 .dvt-sheet.tally .dvt-grid,.dvt-sheet.tally .dvt-deed{opacity:.25;transition:opacity .5s ease 1.6s;pointer-events:none;}
-.dvy-fly{position:absolute;z-index:3;pointer-events:none;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;color:${A.ctaA};text-shadow:${A.aiShadow};
+.dvy-fly{position:absolute;z-index:3;pointer-events:none;font-family:${FONT_UI};font-weight:600;font-size:${TX.h2}px;color:${A.ctaA};text-shadow:${A.aiShadow};
   opacity:0;animation:dvy-fly 1.2s cubic-bezier(.5,0,.7,1) both;}
 @keyframes dvy-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
 @keyframes dvy-hit{50%{transform:scale(2);}}
@@ -185,7 +185,7 @@ const TALLY_CSS = `
 
 .dvr-root{position:fixed;inset:0;z-index:69;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${S.lg}px;padding:${S.xl}px ${S.lg}px;
   text-align:center;overflow:hidden;background:${A.surface};color:${A.ink};font-family:${FONT_UI};animation:dvt-fade .35s ease both;}
-.dvr-ai{position:absolute;top:calc(env(safe-area-inset-top,0px) + ${S.xl}px);left:0;right:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.micro}px;letter-spacing:.22em;}
+.dvr-ai{position:absolute;top:calc(env(safe-area-inset-top,0px) + ${S.xl}px);left:0;right:0;font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;}
 .dvr-ai span{color:${A.aiInk};text-shadow:${A.aiShadow};}
 .dvr-rays{position:absolute;left:50%;top:42%;width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:${PACK_R.pill}px;pointer-events:none;
   background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--dv-glow) 32%,transparent) 0 6deg,transparent 6deg 18deg);
@@ -194,10 +194,10 @@ const TALLY_CSS = `
 .dvr-stage{position:relative;width:112px;height:112px;}
 .dvr-orb{position:absolute;inset:0;display:grid;place-items:center;border-radius:${PACK_R.pill}px;background:var(--dv-dot);
   box-shadow:0 0 40px var(--dv-glow),0 0 90px color-mix(in srgb,var(--dv-glow) 50%,transparent);}
-.dvr-orb b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h1}px;line-height:1;color:var(--dv-icon-ink);transform:scale(2.2);}
+.dvr-orb b{display:block;font-family:${FONT_UI};font-weight:600;font-size:${TX.h1}px;line-height:1;color:var(--dv-icon-ink);transform:scale(2.2);}
 .dvr-orb.old{animation:dvr-old .6s ease both;}
 .dvr-orb.new{animation:dvr-rise 1.1s cubic-bezier(.2,.9,.25,1.15) .3s both;}
-.dvr-lbl{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${A.inkDim};animation:dvy-in .5s ease 1.1s both;}
+.dvr-lbl{font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${A.inkDim};animation:dvy-in .5s ease 1.1s both;}
 .dvr-name{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h1}px;letter-spacing:.14em;text-transform:uppercase;color:${A.ink};animation:dvy-in .6s ease 1.3s both;}
 .dvr-desc{margin:0;max-width:320px;font-size:${TX.body}px;line-height:1.45;font-style:italic;color:${A.inkDim};animation:dvy-in .6s ease 1.7s both;}
 .dvr-root .dvt-claim{width:auto;min-width:220px;animation:dvy-in .6s ease 2.2s both;}

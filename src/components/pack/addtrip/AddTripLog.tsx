@@ -4554,7 +4554,7 @@ const STEP_CSS = `
    pole, ktoré sa vypĺňa. Dostáva vlastnú plochu (úroveň 2 matrice), väčšie labky a číslo
    vedľa — číslo je jediné, čo z hodnotenia človek prečíta na diaľku. */
 .atl-rate{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-radius:12px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};}
-.atl-rate-val{flex:0 0 auto;font-family:${FONT_TITLE};font-weight:700;font-size:20px;line-height:1;color:${T.onDarkDim};font-variant-numeric:tabular-nums;}
+.atl-rate-val{flex:0 0 auto;font-family:${FONT_UI};font-weight:600;font-size:20px;line-height:1;color:${T.onDarkDim};font-variant-numeric:tabular-nums;}
 .atl-rate-val.on{color:#F5C73D;}
 /* ── ČERVENÁ BUBLINKA NAD CTA (§5.4) ───────────────────────────────────────────────────
    Plná výplň a plný rám, nie priesvitný tint: stojí nad zlatým tlačidlom a musí sa dať

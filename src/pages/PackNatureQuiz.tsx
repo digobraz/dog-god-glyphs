@@ -131,7 +131,7 @@ const NQ_CSS = `${VEIL_CSS}
   display:inline-flex; align-items:center; justify-content:center; gap:7px;
   padding:12px 24px; background:transparent;
   border:1.5px solid ${T.border}; border-radius:8px; color:${T.inkWarm};
-  font-family:'Cinzel',serif; font-size:10px; font-weight:700;
+  font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:600;
   letter-spacing:0.14em; text-transform:uppercase; cursor:pointer;
 }
 .nq-ghost:hover{ border-color:${T.cardEdge}; color:${T.inkStrong}; }
@@ -215,7 +215,7 @@ const NQ_CSS = `${VEIL_CSS}
   flex:0 0 auto; width:26px; height:26px; border-radius:999px;
   display:grid; place-items:center;
   background:rgba(255,255,255,0.55); border:1.5px solid rgba(179,130,45,0.45);
-  font-family:'Cinzel',serif; font-weight:700; font-size:10px; letter-spacing:.02em;
+  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:10px; letter-spacing:.02em;
   color:${T.inkWarm}; transition:background .18s, border-color .18s, color .18s;
 }
 .is-on > .nq-mark{
@@ -272,7 +272,7 @@ const NQ_CSS = `${VEIL_CSS}
   display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:9px;
 }
 .nq-proglbl{
-  font-family:'Cinzel',serif; font-weight:700; font-size:12px;
+  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12px;
   letter-spacing:.14em; text-transform:uppercase; color:${T.inkStrong};
 }
 .nq-prognum{
@@ -335,7 +335,7 @@ const NQ_CSS = `${VEIL_CSS}
 }
 .nq-dogfb{
   display:grid; place-items:center; width:100%; height:100%;
-  font-family:'Cinzel',serif; font-weight:700; font-size:calc(var(--nq-dog,54px) * 0.34);
+  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:calc(var(--nq-dog,54px) * 0.34);
   color:${T.inkWarm};
 }
 /* Zoznam odpovedí. Trieda, nie inline mriežka — mobil musí vedieť zmeniť rozostup. */
@@ -640,7 +640,7 @@ const NQ_CSS = `${VEIL_CSS}
 .nqd-slot::before,.nqd-slot::after{ content:''; position:absolute; width:9px; height:9px; border:1px solid #8a5c10; }
 .nqd-slot::before{ top:5px; left:5px; border-right:0; border-bottom:0; }
 .nqd-slot::after{ bottom:5px; right:5px; border-left:0; border-top:0; }
-.nqd-rank{ font-family:'Cinzel',serif; font-weight:900; font-size:10px; letter-spacing:0.22em; color:#8a5c10; opacity:.8; }
+.nqd-rank{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:10px; letter-spacing:0.22em; color:#8a5c10; opacity:.8; }
 .nqd-art{ height:116px; display:grid; place-items:center; margin:6px 0 8px; }
 .nqd-art img{ width:104px; margin:0; filter:drop-shadow(0 8px 18px rgba(60,38,8,.32)); }
 .nqd-slot.spec .nqd-art img{ width:88px; }
@@ -658,7 +658,7 @@ const NQ_CSS = `${VEIL_CSS}
    ⚠️ Číslo sekcie MUSÍ sedieť s číslom odznaku v hlavičke. I = konštitúcia na
    oboch miestach — číslo je sľub, buď platí dvakrát, alebo tam nemá čo robiť. */
 .nqd-head{ text-align:center; margin:0 0 18px; }
-.nqd-head .num{ font-family:'Cinzel',serif; font-weight:900; font-size:12px; letter-spacing:0.26em; color:#8a5c10; }
+.nqd-head .num{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12px; letter-spacing:0.26em; color:#8a5c10; }
 .nqd-head h2{
   font-family:'Cinzel',serif; font-weight:900; font-size:${PACK_TEXT.h1}px; letter-spacing:0.02em;
   text-transform:uppercase; color:#1a0900; margin:5px 0 0; line-height:1.1;
@@ -723,7 +723,7 @@ const NQ_CSS = `${VEIL_CSS}
   display:block; font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:${PACK_TEXT.micro}px;
   letter-spacing:0.22em; text-transform:uppercase; color:${T.inkWarm};
 }
-.nqd-fact .v{ display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12px; color:#1a0900; margin-top:2px; }
+.nqd-fact .v{ display:block; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12px; color:#1a0900; margin-top:2px; }
 
 /* ── IV · USMERNENIE ──────────────────────────────────────────────────────
    Kombinačný riadok stojí SAMOSTATNE nad omylmi. Je to jediná veta dokumentu,
@@ -731,7 +731,7 @@ const NQ_CSS = `${VEIL_CSS}
 .nqd-pair{ position:relative; border:1px solid #8a5c10; border-radius:8px; padding:16px 16px;
   background:linear-gradient(135deg, rgba(245,199,61,.16), rgba(230,158,26,.09)); margin-bottom:20px; }
 .nqd-pair .cross{
-  font-family:'Cinzel',serif; font-weight:900; font-size:10px; letter-spacing:0.22em;
+  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:10px; letter-spacing:0.22em;
   text-transform:uppercase; color:#8a5c10; margin-bottom:6px;
 }
 .nqd-cat{ margin-top:20px; }
@@ -744,7 +744,7 @@ const NQ_CSS = `${VEIL_CSS}
 .nqd-cap i{ flex:1; height:1px; background:linear-gradient(90deg,#8a5c10,transparent); }
 .nqd-rules{ display:grid; gap:12px; margin:0; padding:0; }
 .nqd-rules li{ list-style:none; display:grid; grid-template-columns:30px 1fr; gap:12px; align-items:start; }
-.nqd-rules .n{ font-family:'Cinzel',serif; font-weight:900; font-size:14px; color:#8a5c10; text-align:right; line-height:1.3; }
+.nqd-rules .n{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px; color:#8a5c10; text-align:right; line-height:1.3; }
 .nqd-rules b.t{
   display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12px; letter-spacing:0.02em;
   text-transform:uppercase; color:#1a0900; margin-bottom:3px;
@@ -997,7 +997,7 @@ function DogIdNote({ tx }: { tx: (k: string, f: string) => string }) {
           Kolízia kľúčov sa neprejaví ako chyba, len ako zlý text. */}
       <div style={{ minWidth: 0 }}>
         <div style={{
-          fontFamily: FONT_TITLE, fontWeight: 700, textTransform: 'uppercase',
+          fontFamily: FONT_UI, fontWeight: 600, textTransform: 'uppercase',
           fontSize: 12, letterSpacing: '0.14em', color: '#5BE0F0', marginBottom: 4,
         }}>{tx('pack.nature.intro.dogid', 'It goes into the DOG ID')}</div>
         <div style={{
@@ -1069,7 +1069,7 @@ function Pentagram({ rows, color }: {
         return (
           <g key={i}>
             <text x={x} y={y} textAnchor="middle" dominantBaseline="middle"
-              fontFamily="Cinzel, serif" fontSize={r.top ? 12 : 10.5} fontWeight={r.top ? 900 : 700}
+              fontFamily="Space Grotesk, sans-serif" fontSize={r.top ? 12 : 10.5} fontWeight={600}
               fill={r.top ? '#1a0900' : '#5a3a0a'} letterSpacing="0.5">
               {r.label.toUpperCase()}
             </text>

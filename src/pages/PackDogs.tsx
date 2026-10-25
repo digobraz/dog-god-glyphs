@@ -233,7 +233,7 @@ const HUB_CSS = `
 .dogblk-num{
   position:absolute; bottom:-4px; left:50%; transform:translateX(-50%);
   display:inline-flex; align-items:center; justify-content:center;
-  font-family:'Cinzel',serif; font-weight:700; font-size:14px; letter-spacing:0.02em;
+  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px; letter-spacing:0.02em;
   line-height:1; white-space:nowrap; padding:4px 8px; border-radius:999px;
   /* LAPIS od 28. 9. 2026 (Matej: „daj lapis") — ten istý odznak ako #1 na homepage (HeroCard). */
   background:${LAPIS.grad}; color:${LAPIS.ink};
@@ -297,7 +297,7 @@ const HUB_CSS = `
 .dogblk-poster{ opacity:.88; transition:transform .2s ease, opacity .2s ease; }
 .hub-hover:hover .dogblk-poster{ transform:translateX(3px); opacity:1; }
 .dogblk-railcap{
-  font-family:${FONT_TITLE}; font-weight:800; font-size:10px; letter-spacing:0.22em;
+  font-family:${FONT_UI}; font-weight:600; font-size:10px; letter-spacing:0.22em;
   text-transform:uppercase; color:${T.inkStrong}; white-space:nowrap;
 }
 /* Progres = pilulka NAD posterom (Matej 12.8.). Percento je ÚDAJ, takže Space Grotesk
@@ -1076,8 +1076,8 @@ function Pill({ children, dashed = false, mono = false, solid = false }: {
         // ho preč, bez rámiku bude pils"). Preto sa `borderStyle` vetví tiež.
         border: solid ? 'none' : `1px solid ${dashed ? 'rgba(179,130,45,0.6)' : T.border}`,
         borderStyle: solid ? 'none' : (dashed ? 'dashed' : 'solid'),
-        fontFamily: mono ? "'JetBrains Mono', ui-monospace, monospace" : FONT_TITLE,
-        fontWeight: 700,
+        fontFamily: mono ? "'JetBrains Mono', ui-monospace, monospace" : FONT_UI,
+        fontWeight: 600,
         textTransform: solid ? 'none' : 'uppercase',
         lineHeight: solid ? 1.1 : 1.25,
         letterSpacing: solid ? DAYS_PILL.letterSpacing : undefined,

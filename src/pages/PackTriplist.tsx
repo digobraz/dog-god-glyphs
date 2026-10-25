@@ -256,7 +256,7 @@ const CSS = `
 .tl-block-badge.looking{background:${GOLD_BTN.grad};color:#3d1f00;}
 .tl-block-info{padding:8px 12px 12px;}
 .tl-grade{display:flex;align-items:center;gap:8px;width:100%;margin-top:8px;padding:0;background:none;border:0;cursor:pointer;text-align:left;font-family:${FONT_UI};}
-.tl-grade-medal{width:24px;height:24px;border-radius:999px;display:grid;place-items:center;flex:none;font-family:${FONT_TITLE};font-weight:700;font-size:12px;color:#fff;box-shadow:${PACK_SHADOW.lift};}
+.tl-grade-medal{width:24px;height:24px;border-radius:999px;display:grid;place-items:center;flex:none;font-family:${FONT_UI};font-weight:600;font-size:12px;color:#fff;box-shadow:${PACK_SHADOW.lift};}
 .tl-grade-medal--big{width:48px;height:48px;font-size:24px;}
 .tl-grade-miss{font-size:10px;line-height:1.3;color:${P.dim};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .tl-grade:hover .tl-grade-miss{color:${P.deep};text-decoration:underline;}

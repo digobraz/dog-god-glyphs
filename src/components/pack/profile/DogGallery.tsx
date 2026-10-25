@@ -254,7 +254,7 @@ function DogGalleryRow({
           {dog.photoUrl ? (
             <img src={sizedUrl(dog.photoUrl, 480)} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            <span style={{ fontFamily: "'Cinzel', serif", fontSize: S.initial, fontWeight: 700, color: T.inkDim }}>
+            <span style={{ fontFamily: "'Cinzel', serif", fontSize: S.initial, fontWeight: 600, color: T.inkDim }}>
               {(dog.name?.[0] || '?').toUpperCase()}
             </span>
           )}
@@ -362,7 +362,7 @@ function DogOpenCard({
           {dog.photoUrl ? (
             <img src={sizedUrl(dog.photoUrl, 480)} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            <span className="text-xl lg:text-3xl" style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, color: 'rgba(31,26,14,0.26)', lineHeight: 1 }}>
+            <span className="text-xl lg:text-3xl" style={{ fontFamily: "'Cinzel', serif", fontWeight: 600, color: 'rgba(31,26,14,0.26)', lineHeight: 1 }}>
               {(dog.name?.[0] || '?').toUpperCase()}
             </span>
           )}
@@ -540,7 +540,7 @@ function DogTile({
           // paddingBottom = výška cartouche pásu, inak doň „Add a photo" naráža.
           style={{ background: `linear-gradient(160deg, ${T.bgTop} 0%, ${T.bgBottom} 100%)`, gap: 6, paddingBottom: 48 }}
         >
-          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 46, fontWeight: 700, color: 'rgba(31,26,14,0.28)', lineHeight: 1 }}>
+          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 46, fontWeight: 600, color: 'rgba(31,26,14,0.28)', lineHeight: 1 }}>
             {(dog.name?.[0] || '?').toUpperCase()}
           </span>
           <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint }}>

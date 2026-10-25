@@ -319,6 +319,11 @@ const FLAT_TALL = 20;
  * a lícuje — teraz sú vyššie"*). Stred radu odznakov (46 px) = stred spodného psa na obruči, ktorý sedí
  * 3 px (mobil) / 4 px (PC) nad spodkom fotky majiteľa: klesnutie = 46/2 − 3, resp. 46/2 − 4 (zmerané 25. 10.). */
 const BADGE_SINK = { m: 20, pc: 19 };
+/* UPRAVIŤ PROFIL kreslí psa STARÝM satelitom (s fotoaparátom) — visí `SAT_DROP` pod fotkou, teda nižšie než pes
+ * na obruči. Matej 25. 10.: *„pri edit profile nie sú odznaky v tej istej pozícii ako pri profile"*. Stred radu
+ * (46 px) = stred satelitu: spodok fotky + SAT_DROP − SAT/2, rad visí o polovicu výšky nižšie. */
+const RK_HALF = 23;
+const EDIT_FOOT = { m: OWN_DROP + SAT_DROP.m - SAT.m / 2 + RK_HALF, pc: S.lg + SAT_DROP.pc - SAT.pc / 2 + RK_HALF };
 /* Bez rámu karty meria vzduch od okraja OKNA — fotka majiteľa na `PAGE_AIR` (16), šuplík v jej osi. */
 const FLAT_X = S.lg;
 export const ME_FLAT_CSS = `
@@ -334,10 +339,12 @@ export const ME_FLAT_CSS = `
 .me-flat .me-own{ left:${FLAT_X}px; }
 .me-flat .me-foot{ left:${FLAT_X + OWN.m + S.sm}px; right:${FLAT_X}px; bottom:-${OWN_DROP + BADGE_SINK.m}px; }
 .me-flat .me-drow{ padding-left:${FLAT_X + OWN.m / 2 - DOG_D.m / 2}px; }
+.pe-card.me-flat .me-foot{ bottom:-${EDIT_FOOT.m}px; }
 @media (min-width:640px){ .me-card.me-flat{ margin:calc(-1 * ${TOP}) -${S.xl}px 0; } }
 @media (min-width:768px){
   .me-flat .me-cover{ height:calc(${COVER_H.pc + FLAT_TALL}px + ${TOP}); }
   .me-flat .me-tbar{ padding-left:${S.xl}px; padding-right:${S.xl}px; }
+  .pe-card.me-flat .me-foot{ bottom:-${EDIT_FOOT.pc}px; }
   .me-flat .me-own{ left:${S.xl}px; }
   .me-flat .me-foot{ left:${S.xl + OWN.pc + S.lg}px; right:${S.xl}px; bottom:-${S.lg + BADGE_SINK.pc}px; }
   .me-flat .me-drow{ padding-left:${S.xl + OWN.pc / 2 - DOG_D.pc / 2}px; }

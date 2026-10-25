@@ -72,7 +72,7 @@ const CSS = `${VEIL_CSS}
 .mi-card{display:flex;flex-direction:column;gap:${S.sm}px;width:100%;padding:${S.md}px;border-radius:${PACK_R.card}px;border:1px solid ${T.cardEdge};background:${T.tileBg};box-shadow:${PACK_SHADOW.card};cursor:pointer;text-align:left;color:${T.inkStrong};font-family:${FONT_UI};transition:transform .15s ease, box-shadow .15s ease;}
 .mi-card:hover{transform:translateY(-2px);box-shadow:${PACK_SHADOW.lift};}
 .mi-card > small{font-weight:500;font-size:${TX.micro}px;letter-spacing:.26em;text-transform:uppercase;color:${T.inkWarm};text-align:center;}
-.mi-card > b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;letter-spacing:.02em;text-align:center;}
+.mi-card > b{font-family:${FONT_UI};font-weight:600;font-size:${TX.h2}px;letter-spacing:.02em;text-align:center;}
 .mi-li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:${S.sm}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.tile}px;background:color-mix(in srgb, var(--c) 8%, transparent);border:1px solid color-mix(in srgb, var(--c) 40%, transparent);}
 .mi-li .ic{display:grid;place-items:center;width:28px;height:28px;border-radius:${PACK_R.pill}px;border:1px solid var(--c);background:color-mix(in srgb, var(--c) 14%, transparent);}
 .mi-li b{font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;overflow-wrap:anywhere;}
@@ -90,7 +90,7 @@ const CSS = `${VEIL_CSS}
 @keyframes mi-pulse{0%{transform:scale(.96);opacity:.7}100%{transform:scale(1.14);opacity:0}}
 .mi-coin > span{display:flex;flex-direction:column;align-items:center;width:124px;height:124px;justify-content:center;border-radius:${PACK_R.pill}px;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};color:${LAPIS.ink};text-align:center;}
 .mi-coin small{font-size:${TX.micro}px;letter-spacing:.22em;text-transform:uppercase;opacity:.8;}
-.mi-coin b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;color:#FBF5E6;}
+.mi-coin b{font-family:${FONT_UI};font-weight:600;font-size:${TX.lead}px;color:#FBF5E6;}
 .mi-coinw > em{font-style:normal;font-size:${TX.label}px;color:${T.inkWarm};text-align:center;}
 /* TOK — prerušovaná žiariaca čiara ako v DOGYPTLANDe (.flow path), bez peňazí len tichá bodkovaná. */
 .mi-flowsvg{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:visible;}
@@ -103,7 +103,7 @@ const CSS = `${VEIL_CSS}
 /* PÁS TRANSPARENTNOSTI. */
 .mi-transp{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:${S.sm}px ${S.lg}px;max-width:832px;margin:0 auto ${S.xl}px;padding:${S.sm}px ${S.md}px;border-radius:${PACK_R.card}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};}
 .mi-transp span{display:inline-flex;align-items:baseline;gap:${S.xs}px;}
-.mi-transp b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;text-transform:none;color:${T.inkStrong};}
+.mi-transp b{font-family:${FONT_UI};font-weight:600;font-size:${TX.body}px;letter-spacing:.02em;text-transform:none;color:${T.inkStrong};}
 .mi-transp .t{align-items:center;color:${T.inkStrong};font-weight:600;letter-spacing:.22em;}
 /* AKTUÁLNE MESAČNÉ NÁKLADY — mriežka labiek (53 × 5 €), rozpis služieb na rozklik (Matej 24. 10.: „schovaj a urob mriežku paciek“). */
 .mi-paws{display:flex;flex-wrap:wrap;justify-content:center;gap:${S.xs}px;max-width:560px;margin:0 auto;}
@@ -116,7 +116,7 @@ const CSS = `${VEIL_CSS}
 .mi-fixd[open] summary{margin-bottom:${S.sm}px;}
 .mi-fixed{margin-top:${S.xl}px;padding:${S.md}px;border-radius:${PACK_R.card}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};text-align:center;}
 .mi-fixed > small{display:block;font-weight:500;font-size:${TX.micro}px;letter-spacing:.26em;text-transform:uppercase;color:${T.inkWarm};}
-.mi-fixed > b{display:block;margin-top:${S.xs}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;color:${T.inkStrong};}
+.mi-fixed > b{display:block;margin-top:${S.xs}px;font-family:${FONT_UI};font-weight:600;font-size:${TX.h2}px;color:${T.inkStrong};}
 .mi-fixed > p{margin:${S.xs}px 0 ${S.md}px;font-size:${TX.label}px;color:${T.inkWarm};}
 .mi-fixgrid{color:${T.inkStrong};display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${S.xs}px ${S.md}px;text-align:left;font-size:${TX.label}px;}
 .mi-fixgrid span{display:flex;justify-content:space-between;gap:${S.sm}px;padding:${S.xs}px 0;border-bottom:1px dashed color-mix(in srgb, ${T.cardEdge} 50%, transparent);}
@@ -136,7 +136,7 @@ const CSS = `${VEIL_CSS}
 .mi-it .mi-split,.mi-it .mi-kv{grid-column:1 / -1;margin:${S.xs}px 0 0;}
 .mi-bal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:${S.xs}px;text-align:center;}
 .mi-bal span{padding:${S.sm}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};}
-.mi-bal span b{display:block;margin-top:${S.xs}px;font-family:${FONT_TITLE};font-size:${TX.lead}px;letter-spacing:.02em;text-transform:none;color:${T.inkStrong};}
+.mi-bal span b{display:block;margin-top:${S.xs}px;font-family:${FONT_UI};font-weight:600;font-size:${TX.lead}px;letter-spacing:.02em;text-transform:none;color:${T.inkStrong};}
 .mi-bal span.k{background:${LAPIS.grad};border-color:${LAPIS.edge};color:${LAPIS.ink};} .mi-bal span.k b{color:#FBF5E6;}
 /* OBRÁZOK POMOCI — útulok dnes / DOGYPT centrum (vstupy/WEB/BEFORE|AFTER shelters.png), posúvač. */
 .mi-shel{margin:0 0 ${S.md}px;}
@@ -191,7 +191,7 @@ const CSS = `${VEIL_CSS}
 .mi-tiers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:${S.sm}px;margin:0 0 ${S.md}px;}
 .mi-tier{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.xs}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:none;cursor:pointer;font-family:${FONT_UI};color:${T.inkStrong};}
 .mi-tier span{font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};}
-.mi-tier b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h2}px;}
+.mi-tier b{font-family:${FONT_UI};font-weight:600;font-size:${TX.h2}px;}
 .mi-own{display:flex;align-items:center;justify-content:space-between;gap:${S.md}px;margin:0 0 ${S.md}px;font-size:${TX.label}px;color:${T.inkWarm};}
 .mi-own input{width:96px;padding:${S.sm}px;border-radius:${PACK_R.field}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};font-size:${TX.lead}px;text-align:right;color:${T.inkStrong};}
 .mi-input{width:100%;padding:${S.md}px;margin:0 0 ${S.md}px;border-radius:${PACK_R.field}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};font-size:${TX.lead}px;color:${T.inkStrong};}

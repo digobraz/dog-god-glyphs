@@ -99,7 +99,7 @@ const CSS = `
   position:absolute; top:22px; left:24px; z-index:3;
   display:inline-flex; align-items:center; gap:7px;
   padding:8px 16px; border-radius:999px; white-space:nowrap;
-  font-family:${FONT_TITLE}; font-weight:700; font-size:14px;
+  font-family:${FONT_UI}; font-weight:600; font-size:14px;
   box-shadow:${PACK_SHADOW.lift};
   animation: ts-glow 2.6s ease-in-out infinite;
 }
