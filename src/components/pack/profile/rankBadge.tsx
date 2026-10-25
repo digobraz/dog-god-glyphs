@@ -66,6 +66,9 @@ export const RANK_BADGE_CSS = `
 .rk .nb{ position:absolute; top:0; bottom:0; right:0; left:calc(var(--s) * .48); display:flex; align-items:center; justify-content:center;
   font-family:${FONT_TITLE}; font-weight:700; font-size:calc(var(--s) * .42); line-height:1; letter-spacing:0; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.85); }
 .rk.on .cp{ border-color:#fff; }
+/* BONES: kapsula podľa dĺžky čísla (1 240 je širšie než 9). */
+.rk .cp.cp--auto{ width:auto; min-width:calc(var(--s) * 1.6); padding:0 14px 0 calc(var(--s) * .72); display:flex; align-items:center; justify-content:center; }
+.rk .cp.cp--auto .nb{ position:static; font-size:calc(var(--s) * .36); white-space:nowrap; }
 /* Riadok pod menom: odznak nie je pilulka — zruší odsadenie a zmršťovanie z .me-lv > * (meHead.tsx). */
 .me-lv.rk-row{ gap:8px; align-items:center; }
 .me-lv.rk-row > .rk{ flex:none; padding:0; gap:0; border-radius:0; letter-spacing:0; }
@@ -164,6 +167,21 @@ export function ServantBadge({ years, activeDays, on, onClick, label }: BadgeBtn
       </span>
     </button>
   );
+}
+
+/** BONES — tretí odznak, hore v titulke (25. 10. 2026, Matej vybral mincu C7 z
+ *  `plany/nakresy/rebricky/bones.html`: *„len tyrkys a zlatú ako mincu, lapis nie"*). Bez náplne —
+ *  BONES nie sú postup, len stav. Kapsula sa rozšíri podľa čísla. */
+export function BonesBadge({ value, onClick, label }: { value: string; onClick?: () => void; label: string }) {
+  const inner = (
+    <>
+      <span className="ic" style={{ ['--k' as string]: 1.25 }}><img src="/icons/pack/rank/bones.webp" alt="" /></span>
+      <span className="cp cp--auto"><span className="nb">{value}</span></span>
+    </>
+  );
+  return onClick
+    ? <button type="button" className="rk rk--bones" onClick={onClick} aria-label={label}>{inner}</button>
+    : <span className="rk rk--bones" aria-label={label}>{inner}</span>;
 }
 
 /** PÚTNIK — level + postup k ďalšiemu; náplň prechádza z farby stupňa k farbe ďalšieho. */

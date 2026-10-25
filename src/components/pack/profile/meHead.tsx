@@ -14,7 +14,7 @@ import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, PACK_TIERS, type PackTier } from '@/lib/packTiers';
 import { devotionTier, devotionVars, NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
-import { RANK_BADGE_ON, RANK_BADGE_CSS, ServantBadge, PilgrimBadge, useActiveDays } from '@/components/pack/profile/rankBadge';
+import { RANK_BADGE_ON, RANK_BADGE_CSS, ServantBadge, PilgrimBadge, BonesBadge, useActiveDays } from '@/components/pack/profile/rankBadge';
 /** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
 const BONES_TIER = PACK_TIERS.find((t) => t.key === 'turquoise') as PackTier;
 
@@ -384,7 +384,9 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
       onClick={!editable && onCover ? (e) => { if (!(e.target as HTMLElement).closest('button')) onCover(); } : undefined}
     >
       <div className="me-tbar">
-        {bones == null ? <span /> : onBones ? (
+        {bones == null ? <span /> : RANK_BADGE_ON ? (
+          <BonesBadge value={bones} onClick={onBones} label={`${bones} BONES`} />
+        ) : onBones ? (
           <button type="button" className="me-bones" onClick={onBones} aria-label={`${bones} BONES`}>
             <BrandIcon name="bone" size={16} tint="dark" />
             {bones}
