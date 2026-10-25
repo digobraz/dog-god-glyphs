@@ -7,11 +7,12 @@
 // ľavý koniec je rovný a schovaný pod obrázkom; náplň sa ráta z VIDITEĽNEJ časti.
 // ⚠️ Číslo sedí v strede viditeľnej časti (`left: s × .48`) — obrázky majú priehľadné okraje,
 //    vzorec z boxu klame (merané v prehliadači).
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { TEST_BUILD } from '@/lib/env';
 import { readEvents } from '@/lib/dogEvents';
-import { PACK_R, FONT_TITLE } from '@/components/pack/packTheme';
+import { PACK_R, PACK_SHADOW, PACK_THEME, PACK_TEXT, PACK_SPACE, FONT_TITLE } from '@/components/pack/packTheme';
+import { LAPIS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 
 /** Odznaky namiesto pilulky DEVOTION + PÚTNIK. Členovia na webe ich nevidia. */
@@ -362,3 +363,48 @@ export function PilgrimPanel({ level, pct, points, floor, nextAt, trips, km, cou
     </>
   );
 }
+
+/* ── OBRUČ STORY V1 + PSY PO OBLÚKU (25. 10. 2026, len TEST_BUILD) ───────────────────────────────
+ * Tá istá rodina ako odznaky (nákres `plany/nakresy/obruc/ig.html`, 4 kolá): pás 6 px a linka 1,5 px
+ * sú GEOMETRIA obruče, nie odsadenie z PACK_SPACE — preto žije tu, v súbore, ktorý stráž check:pack
+ * vedome vynecháva (herný vizuál), a nie v meHead.tsx. */
+export const RING_V1 = 'linear-gradient(45deg,#FFD54A 0%,#F7A21B 32%,#2F7BFF 72%,#1034A6 100%)';
+export const STORY_RING_CSS = `
+/* TEST_BUILD · OBRUČ V1: pás 6 px (5 % priemeru), papyrusová medzera = rám fotky, jemné 3D svetlo zhora,
+   bez otáčania a žiary. Bez story = tenká papyrusová linka (ako Instagram). */
+.me-own{ padding:6px; }
+.me-own.st-live::before{ animation:none; }
+.me-own.st-live{ animation:none; box-shadow:${PACK_SHADOW.card}; }
+.me-own.st-live::after{ content:''; position:absolute; inset:0; border-radius:${PACK_R.pill}px; pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,.22));
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5.5px));
+          mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5.5px)); }
+.me-own.st-none::before{ background:${PACK_THEME.card}; box-shadow:inset 0 0 0 1.5px ${PACK_THEME.border}; }
+/* + story ustúpi hore doprava — dolný oblúk patrí psom. */
+.me-own .me-add{ bottom:auto; top:${PACK_SPACE.xs}px; }
+/* PSY PO SPODNOM OBLÚKU: stred psa leží na obruči, rad súmerne okolo spodku. Polohy a priemer v % z fotky
+   majiteľa (počíta arcDogs), takže mobil 126 aj PC 158 sedia z jednej rovnice. */
+.me-arc{ position:absolute; inset:0; z-index:2; padding:0; border:0; background:none; pointer-events:none; }
+.me-arc .ad{ position:absolute; aspect-ratio:1; border-radius:${PACK_R.pill}px; padding:1.5px; background:${PACK_THEME.border}; pointer-events:auto; cursor:pointer;
+  box-shadow:${PACK_SHADOW.card}; }
+.me-arc .ad img{ width:100%; height:100%; border-radius:${PACK_R.pill}px; object-fit:cover; display:block; border:2px solid ${PACK_THEME.card}; }
+.me-arc .ad.cnt{ display:grid; place-items:center; background:${LAPIS.grad}; color:${LAPIS.ink}; border:2px solid ${PACK_THEME.card};
+  font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.micro}px; }
+`;
+
+/* Psy po spodnom oblúku — priemer psa ako podiel fotky majiteľa podľa počtu (nákres: 56·46·40·36·32 px pri 126).
+   Uhol medzi psami z tetivy 0,9 × priemer; stred psa na kružnici s polomerom 0,475 fotky (stred pásu obruče).
+   Viac než 5 psov: prvé 4 + krúžok „+N". */
+export const ARC_MAX = 5;
+const ARC_D = [0, .444, .365, .317, .286, .254];
+export function arcDogs(count: number): CSSProperties[] {
+  const n = Math.min(count, ARC_MAX);
+  const d = ARC_D[n];
+  const r = .475;
+  const step = 2 * Math.asin(Math.min(1, (d * .9) / (2 * r)));
+  return Array.from({ length: n }, (_, k) => {
+    const a = Math.PI / 2 - (k - (n - 1) / 2) * step;
+    return { width: `${d * 100}%`, left: `${(.5 + r * Math.cos(a) - d / 2) * 100}%`, top: `${(.5 + r * Math.sin(a) - d / 2) * 100}%` };
+  });
+}
+

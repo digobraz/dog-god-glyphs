@@ -14,7 +14,7 @@ import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, PACK_TIERS, type PackTier } from '@/lib/packTiers';
 import { devotionTier, devotionVars, NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
-import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, useActiveDays } from '@/components/pack/profile/rankBadge';
+import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, STORY_RING_CSS, RING_V1, ARC_MAX, arcDogs, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, useActiveDays } from '@/components/pack/profile/rankBadge';
 /** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
 const BONES_TIER = PACK_TIERS.find((t) => t.key === 'turquoise') as PackTier;
 
@@ -42,7 +42,6 @@ const RING_OLD = `conic-gradient(from 200deg,${LAPIS.edge},${LAPIS.deep},${T.car
 /* OBRUČ V1 „Slnko a Níl" (25. 10. 2026, len TEST_BUILD): Matej po 4 kolách nákresu `plany/nakresy/obruc/ig.html`
    — *„klasika Instagram štýl, jemne 3D, tenké… nemusí to pulzovať ani nič"* + *„ok super aj rozloženie psov aj farba
    aplikuj to!"*. Zlatá → modrá, bez fialovej (tá patrí výletom). Story už netočí ani nedýcha. */
-const RING_V1 = 'linear-gradient(45deg,#FFD54A 0%,#F7A21B 32%,#2F7BFF 72%,#1034A6 100%)';
 export const RING = RANK_BADGE_ON ? RING_V1 : RING_OLD;
 
 export const ME_CSS = `
@@ -173,28 +172,7 @@ export const ME_CSS = `
 .me-sdog .cam{ color:${LAPIS.ink}; position:absolute; right:-${S.sm}px; bottom:-${S.xs}px; width:28px; height:28px; border-radius:${PACK_R.pill}px; display:grid; place-items:center;
   background:${LAPIS.grad}; border:2px solid ${T.card}; box-shadow:${LAPIS_BTN_SHADOW}; }
 .me-own .ini{ display:grid; place-items:center; width:100%; height:100%; font-family:${FONT_TITLE}; font-size:${TX.h1}px; color:${T.inkWarm}; }
-${RANK_BADGE_ON ? `
-/* TEST_BUILD · OBRUČ V1: pás 6 px (5 % priemeru), papyrusová medzera = rám fotky, jemné 3D svetlo zhora,
-   bez otáčania a žiary. Bez story = tenká papyrusová linka (ako Instagram). */
-.me-own{ padding:6px; }
-.me-own.st-live::before{ animation:none; }
-.me-own.st-live{ animation:none; box-shadow:0 1px 3px rgba(60,40,10,.35); }
-.me-own.st-live::after{ content:''; position:absolute; inset:0; border-radius:${PACK_R.pill}px; pointer-events:none;
-  background:linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,.22));
-  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5.5px));
-          mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5.5px)); }
-.me-own.st-none::before{ background:${T.card}; box-shadow:inset 0 0 0 1.5px ${T.border}; }
-/* + story ustúpi hore doprava — dolný oblúk patrí psom. */
-.me-own .me-add{ bottom:auto; top:${S.xs}px; }
-/* PSY PO SPODNOM OBLÚKU: stred psa leží na obruči, rad súmerne okolo spodku. Polohy a priemer v % z fotky
-   majiteľa (počíta arcDogs), takže mobil 126 aj PC 158 sedia z jednej rovnice. */
-.me-arc{ position:absolute; inset:0; z-index:2; padding:0; border:0; background:none; pointer-events:none; }
-.me-arc .ad{ position:absolute; aspect-ratio:1; border-radius:${PACK_R.pill}px; padding:1.5px; background:${T.border}; pointer-events:auto; cursor:pointer;
-  box-shadow:0 1px 3px rgba(60,40,10,.4); }
-.me-arc .ad img{ width:100%; height:100%; border-radius:${PACK_R.pill}px; object-fit:cover; display:block; border:2px solid ${T.card}; }
-.me-arc .ad.cnt{ display:grid; place-items:center; background:${LAPIS.grad}; color:${LAPIS.ink}; border:2px solid ${T.card};
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.micro}px; }
-` : ''}
+${RANK_BADGE_ON ? STORY_RING_CSS : ''}
 .me-sat{ position:absolute; left:50%; transform:translateX(-50%); bottom:-${SAT_DROP.m}px; display:flex; align-items:center;
   padding:0; border:0; background:none; cursor:pointer; }
 .me-sat .s{ width:${SAT.m}px; height:${SAT.m}px; border-radius:${PACK_R.pill}px; padding:${S.xs}px; background:${RING}; margin-left:-18px;
@@ -458,22 +436,6 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
 }
 
 /** FOTKA MAJITEĽA + SATELIT PSOV. Bez `onToggle` je satelit len obraz (náhľad v UPRAVIŤ). */
-/* Psy po spodnom oblúku — priemer psa ako podiel fotky majiteľa podľa počtu (nákres: 56·46·40·36·32 px pri 126).
-   Uhol medzi psami z tetivy 0,9 × priemer; stred psa na kružnici s polomerom 0,475 fotky (stred pásu obruče).
-   Viac než 5 psov: prvé 4 + krúžok „+N". */
-const ARC_MAX = 5;
-const ARC_D = [0, .444, .365, .317, .286, .254];
-function arcDogs(count: number): CSSProperties[] {
-  const n = Math.min(count, ARC_MAX);
-  const d = ARC_D[n];
-  const r = .475;
-  const step = 2 * Math.asin(Math.min(1, (d * .9) / (2 * r)));
-  return Array.from({ length: n }, (_, k) => {
-    const a = Math.PI / 2 - (k - (n - 1) / 2) * step;
-    return { width: `${d * 100}%`, left: `${(.5 + r * Math.cos(a) - d / 2) * 100}%`, top: `${(.5 + r * Math.sin(a) - d / 2) * 100}%` };
-  });
-}
-
 export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, photoLabel, toggleLabel, badge, story, onAdd, addLabel, onDogPhoto, dogBusy, dogPhotoLabel }: {
   photo: string | null;
   initial: string;
