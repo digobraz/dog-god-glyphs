@@ -36,7 +36,15 @@ export function prevadzkaMesacne() {
   for (const s of D.sluzby) {
     if (s.cena && s.obd === 'mes') mesacne.push({ id: s.id, nazov: s.nazov, eur: eur(s, s.cena) });
     else if (s.cena && s.obd === 'rok') rocne.push({ id: s.id, nazov: s.nazov, eur: eur(s, s.cena) / 12 });
-    else if (s.platby?.length) mesacne.push({ id: s.id, nazov: s.nazov, eur: eur(s, s.platby[s.platby.length - 1].cena) });
+    else if (s.platby?.length) {
+      // Dobíjaný kredit (Kie.ai): priemer = súčet platieb / mesiace od prvej po dnešok vrátane, NIE posledná platba
+      // ako mesačná (Matej 25. 10. 2026 — Kie platený v marci a októbri, nie každý mesiac).
+      const [y, m] = s.platby[0].d.split('-').map(Number);
+      const now = new Date();
+      const months = Math.max(1, (now.getFullYear() - y) * 12 + (now.getMonth() + 1 - m) + 1);
+      const sum = s.platby.reduce((a, q) => a + q.cena, 0);
+      mesacne.push({ id: s.id, nazov: s.nazov, eur: eur(s, sum / months) });
+    }
   }
   mesacne.sort((a, b) => b.eur - a.eur);
   const spolu = [...mesacne, ...rocne].reduce((a, q) => a + q.eur, 0);
