@@ -263,10 +263,11 @@ export function MisiaBody() {
   const givers = Math.min(dash?.givers ?? 0, goalN);
   const balance = inTotal - outTotal;
 
+  // V appke bez cenníka (Apple 3.1.1, Matej 25. 10. 2026) — riadok bez sumy ukáže „—“, rozpad a pokladnica ostávajú.
   const NODE_TXT: Record<NodeKey, [string, string]> = {
-    hero: [tx('pack.misia.hero', 'Heroglyph'), tx('pack.misia.hero.s', '€11 per dog, once')],
-    rest: [tx('pack.misia.rest', 'Testers & dog angels'), tx('pack.misia.rest.s', '€1 / €3')],
-    gift: [tx('pack.misia.gift', 'Gifts'), tx('pack.misia.gift.s', 'voluntary, from €3')],
+    hero: [tx('pack.misia.hero', 'Heroglyph'), IS_APP ? '—' : tx('pack.misia.hero.s', '€11 per dog, once')],
+    rest: [tx('pack.misia.rest', 'Testers & dog angels'), IS_APP ? '—' : tx('pack.misia.rest.s', '€1 / €3')],
+    gift: [tx('pack.misia.gift', 'Gifts'), IS_APP ? '—' : tx('pack.misia.gift.s', 'voluntary, from €3')],
     merch: [tx('pack.misia.merch', 'Merch'), tx('pack.misia.soon', 'coming')],
     more: [tx('pack.misia.more', 'More sources'), tx('pack.misia.soon', 'coming')],
     run: [tx('pack.misia.run', 'Running'), tx('pack.misia.run.s', 'servers, AI, mail')],
@@ -407,13 +408,17 @@ export function MisiaBody() {
       </div>
 
       {notice && <p className="mi-hint">{notice}</p>}
-      <div className="mi-mine">
-        <div>
-          <span>{tx('pack.misia.mine', 'My gift')}</span>
-          <p>{IS_APP ? tx('pack.misia.mine.app', 'Gifts are made on dogypt.com') : tx('pack.misia.mine.s', 'Monthly or once, from €3')}</p>
+      {/* V appke riadok „Môj dar“ nie je vôbec — ani veta o dogypt.com (Apple 3.1.1 = výzva platiť mimo appky).
+          Nahradí ho tlačidlo „Priložím labku“ → mail D1 (pipeline daru, Matej 25. 10. 2026). */}
+      {!IS_APP && (
+        <div className="mi-mine">
+          <div>
+            <span>{tx('pack.misia.mine', 'My gift')}</span>
+            <p>{tx('pack.misia.mine.s', 'Monthly or once, from €3')}</p>
+          </div>
+          <button type="button" className="mi-cta" onClick={() => { setNotice(null); setSheet({ kind: 'gift' }); }}>{tx('pack.misia.give', 'Give')}</button>
         </div>
-        {!IS_APP && <button type="button" className="mi-cta" onClick={() => { setNotice(null); setSheet({ kind: 'gift' }); }}>{tx('pack.misia.give', 'Give')}</button>}
-      </div>
+      )}
       <div className="mi-links">
         <button type="button" className="mi-link" onClick={() => setSheet({ kind: 'vision' })}>{tx('pack.misia.vision', 'Our idea')}</button>
       </div>
