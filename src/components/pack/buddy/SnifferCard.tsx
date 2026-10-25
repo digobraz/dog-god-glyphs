@@ -115,7 +115,7 @@ export const SNIFFER_CARD_CSS = `
   border-radius:${PACK_R.pill}px;border:1px solid ${BRAND_GOLD_BTN.edge};white-space:nowrap;box-shadow:${PACK_SHADOW.panel};
   font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
 .sn-lv > span > b{display:inline-grid;place-items:center;min-width:${PACK_SPACE.lg + PACK_SPACE.xs}px;height:${PACK_SPACE.lg + PACK_SPACE.xs}px;padding:0 ${PACK_SPACE.xs}px;
-  border-radius:${PACK_R.pill}px;font-family:${FONT_UI};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:0;}
+  border-radius:${PACK_R.pill}px;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:0;}
 .sn-lv .is-pilgrim > b{background:rgba(0,0,0,.28);color:#fff;}
 .sn-lv .is-devotion{background:${LAPIS.grad};color:${LAPIS.ink};}
 .sn-lv .is-devotion > b{background:${BRAND_GOLD_BTN.grad};color:${BRAND_GOLD_BTN.ink};}
