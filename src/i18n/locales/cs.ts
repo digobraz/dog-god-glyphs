@@ -442,6 +442,8 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.owner.signsEmpty': 'Zatím nevybráno',
   'heroglyph.flow.owner.byDate': 'Podle data narození',
   'heroglyph.flow.multi.nextDog': 'Další pes',
+  'heroglyph.flow.dogCharacter.pickMore': 'Vyber ještě {n}',
+  'heroglyph.flow.dogCharacter.pickMoreDog': '{dog}: vyber ještě {n}',
 
   // ── /heroglyph flow — spoločné ──
   'heroglyph.flow.yourDogFallback': 'TVÉHO PSA',
@@ -969,6 +971,7 @@ export const cs: Partial<Dict> = {
   'payment.pay': 'ZAPLATIT PŘES STRIPE',
   'payment.secured': 'Zabezpečeno přes Stripe · Karta, Apple Pay, Google Pay',
   'payment.error': 'Platbu se nepodařilo spustit. Zkontroluj připojení a zkus to znovu.',
+  'payment.incompleteHeroglyph': 'Heroglyf není celý ({dogs}). Vrať se a doplň každému psovi všechno — povahy, majitele a patrona.',
   'payment.photoNotReady': 'Fotka tvého psa se nestihla nahrát. Vrať se ke kroku s fotkou a přidej ji znovu.',
   'payment.back': 'Zpět',
   // promo code — tester perk callout
@@ -6118,6 +6121,8 @@ export const cs: Partial<Dict> = {
   'pack.me.newStory': "Nová story",
   'pack.me.stories': "Příběhy",
   'pack.me.post': "Příspěvek",
+  'pack.wish.guide.kindPost': "Uložím ti {place} do TRIPWISH. Na jak dlouho?",
+  'pack.wish.guide.donePost': "Uloženo. Najdeš ho na Mapě ve svém profilu, v části TRIPWISH.",
   'pack.wish.saveQuick': "Uložit hned, doplním později",
   'pack.post.saveToWish': "Přidat do TRIPWISH",
   'pack.post.savedToWish': "Přidáno do TRIPWISH",

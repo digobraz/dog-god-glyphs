@@ -104,10 +104,10 @@ export function AddWish({ map, onDraft, onSaved, onCancel, start }: {
 
   const text =
     step === 'place' ? t('pack.wish.guide.place')
-      : step === 'kind' ? t('pack.wish.guide.kind', { place: place?.name ?? '' })
+      : step === 'kind' ? t(start ? 'pack.wish.guide.kindPost' : 'pack.wish.guide.kind', { place: place?.name ?? '' })
         : step === 'when' ? t('pack.wish.guide.when')
           : step === 'note' ? t('pack.wish.guide.note')
-            : t('pack.wish.guide.done');
+            : t(start ? 'pack.wish.guide.donePost' : 'pack.wish.guide.done');
 
   const backBtn = (
     <button type="button" className="aw-back" onClick={back} aria-label={t('pack.mapNotes.add.back')} title={t('pack.mapNotes.add.back')}>

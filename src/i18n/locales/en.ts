@@ -638,6 +638,8 @@ export const en = {
   'heroglyph.flow.owner.signsEmpty': 'Not picked yet',
   'heroglyph.flow.owner.byDate': 'Use my date of birth',
   'heroglyph.flow.multi.nextDog': 'Next dog',
+  'heroglyph.flow.dogCharacter.pickMore': 'Pick {n} more',
+  'heroglyph.flow.dogCharacter.pickMoreDog': '{dog}: pick {n} more',
 
   // ── /heroglyph flow — shared ──
   'heroglyph.flow.yourDogFallback': 'YOUR DOG',
@@ -1773,6 +1775,7 @@ export const en = {
   'payment.pay': 'PAY WITH STRIPE',
   'payment.secured': 'Secured by Stripe · Card, Apple Pay, Google Pay',
   'payment.error': 'Payment could not start. Please check your connection and try again.',
+  'payment.incompleteHeroglyph': 'The heroglyph is not complete ({dogs}). Go back and fill in everything for each dog — character, owner and patron.',
   'payment.photoNotReady': "Your dog's photo hasn't finished uploading. Go back to the photo step and add it again.",
   'payment.back': 'Back',
   // promo code — tester perk callout
@@ -4798,6 +4801,8 @@ export const en = {
   'pack.wish.guide.when': "Roughly when? No exact date needed.",
   'pack.wish.guide.note': "Want to add a few words? Tent, car, who with…",
   'pack.wish.guide.done': "Pinned. Now the whole pack knows.",
+  'pack.wish.guide.kindPost': "I’ll save {place} to your TRIPWISH. For how long?",
+  'pack.wish.guide.donePost': "Saved. You’ll find it on the Map in your profile, under TRIPWISH.",
   'pack.wish.guide.meTooWhen': "{place}, good call. When for you?",
   'pack.wish.kind.short': "Short trip",
   'pack.wish.kind.day': "Full day",

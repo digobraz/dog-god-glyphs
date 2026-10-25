@@ -289,8 +289,11 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
       )}
       {wishing && pin && (
         <>
-          {/* Šuplík priania žije nad mapou (z 1202) — tu musí ležať nad príspevkom (1300). */}
+          {/* Šuplík priania žije nad mapou (z 1202) — tu musí ležať nad príspevkom (1300) a príspevok
+              pod ním stmavne (Matej 25. 10.: *„stmaviť pozadie, aby išiel do popredia"*). */}
           <style>{'.ws-wrap{z-index:1360 !important;}'}</style>
+          <style>{VEIL_CSS}</style>
+          <div className="pk-veil pk-veil--modal" style={{ zIndex: 1355 }} aria-hidden onClick={() => setWishing(false)} />
           <AddWish map={null} start={{ name: place?.name || '', lat: pin.lat, lon: pin.lon }} onDraft={noop}
             onCancel={() => setWishing(false)}
             onSaved={() => { setWished(true); toast({ title: tx('pack.post.savedToWish', 'Added to your TRIPWISH') }); }} />

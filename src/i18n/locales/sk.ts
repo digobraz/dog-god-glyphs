@@ -528,6 +528,8 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.owner.signsEmpty': 'Zatiaľ nevybraté',
   'heroglyph.flow.owner.byDate': 'Podľa dátumu narodenia',
   'heroglyph.flow.multi.nextDog': 'Ďalší pes',
+  'heroglyph.flow.dogCharacter.pickMore': 'Vyber ešte {n}',
+  'heroglyph.flow.dogCharacter.pickMoreDog': '{dog}: vyber ešte {n}',
 
   // ── /heroglyph flow — spoločné ──
   'heroglyph.flow.yourDogFallback': 'TVOJHO PSA',
@@ -1523,6 +1525,7 @@ export const sk: Partial<Dict> = {
   'payment.pay': 'ZAPLATIŤ CEZ STRIPE',
   'payment.secured': 'Zabezpečené cez Stripe · Karta, Apple Pay, Google Pay',
   'payment.error': 'Platbu sa nepodarilo spustiť. Skontroluj pripojenie a skús to znova.',
+  'payment.incompleteHeroglyph': 'Heroglyf nie je celý ({dogs}). Vráť sa a doplň každému psovi všetko — povahy, majiteľa a patróna.',
   'payment.photoNotReady': 'Fotka tvojho psa sa nestihla nahrať. Vráť sa na krok s fotkou a pridaj ju znova.',
   'payment.back': 'Späť',
   // promo code — tester perk callout
@@ -4428,6 +4431,8 @@ export const sk: Partial<Dict> = {
   'pack.wish.guide.when': "Kedy približne? Presný dátum nechcem.",
   'pack.wish.guide.note': "Chceš k tomu pár slov? Stan, auto, s kým…",
   'pack.wish.guide.done': "Pripnuté. Teraz o tom vie celá svorka.",
+  'pack.wish.guide.kindPost': "Uložím ti {place} do TRIPWISH. Na koľko?",
+  'pack.wish.guide.donePost': "Uložené. Nájdeš ho na Mape vo svojom profile, v časti TRIPWISH.",
   'pack.wish.guide.meTooWhen': "{place}, dobrá voľba. A ty kedy?",
   'pack.wish.kind.short': "Krátky výlet",
   'pack.wish.kind.day': "Celodenný",
