@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { TEST_BUILD } from '@/lib/env';
 import { readEvents } from '@/lib/dogEvents';
 import { PACK_R, FONT_TITLE } from '@/components/pack/packTheme';
+import { BrandIcon } from '@/components/pack/BrandIcon';
 
 /** Odznaky namiesto pilulky DEVOTION + PÚTNIK. Členovia na webe ich nevidia. */
 export const RANK_BADGE_ON = TEST_BUILD;
@@ -214,5 +215,150 @@ export function PilgrimBadge({ level, pct, on, onClick, label }: BadgeBtn & { le
         <span className="nb">{level}</span>
       </span>
     </button>
+  );
+}
+
+/* ── ROZKLIK ODZNAKU (25. 10. 2026) ─────────────────────────────────────────────────────────────
+ * Matej: *„teraz to musíme aplikovať aj do príslušných blokov po rozkliknutí, keďže sú tam staré
+ * veci = zmeniť ikonku aj informácie a prispôsobiť aj dizajn"*. Blok pod hlavou (`MeRank`) dovtedy
+ * ukazoval DEVOTION pyramídu (22 stupňov, body ☥) a Pútnika v starých farbách pásiem s glóbusom.
+ * Odteraz hovorí tým istým jazykom ako odznak: NOC so zlatým lemom (rám odznakov je zlatý), obrázok
+ * stupňa, TEKUTÝ pás ako kapsula a rebrík všetkých obrázkov — dosiahnuté plné, ďalšie v tieni. */
+export const RANK_PANEL_CSS = `
+.rkp-hd{ display:flex; align-items:center; gap:12px; }
+.rkp-hd .im{ flex:none; position:relative; width:56px; height:56px; }
+.rkp-hd .im img{ position:absolute; left:50%; top:50%; width:calc(56px * var(--k, 1.4)); height:auto; max-width:none; transform:translate(-50%, -50%); }
+.rkp-hd .tx{ flex:1; min-width:0; }
+.rkp-hd h3{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:16px; letter-spacing:.14em; text-transform:uppercase; color:#F3E6C8; }
+.rkp-hd p{ margin:4px 0 0; font-size:14px; color:#F3E6C8; }
+.rkp-hd .ab{ flex:none; font-family:${FONT_TITLE}; font-weight:700; font-size:12px; letter-spacing:.02em; color:#E7C46C; }
+.rkp-lbl{ display:flex; justify-content:space-between; gap:8px; margin:16px 0 4px; font-size:12px; color:rgba(243,230,200,.75); }
+.rkp-lbl b{ font-family:${FONT_TITLE}; font-weight:700; color:#F3E6C8; }
+/* Pás = kapsula odznaku natiahnutá: tmavá ryha, zlatý lem, tekutá náplň s odleskom a prebehom svetla. */
+.rkp-bar{ position:relative; height:24px; border-radius:${PACK_R.pill}px; overflow:hidden; background:linear-gradient(180deg, #1b2350, #0c1030);
+  border:1.5px solid rgba(231,196,108,.85); box-shadow:inset 0 2px 4px rgba(0,0,0,.6); }
+.rkp-bar .fl{ position:absolute; left:0; top:0; bottom:0; border-radius:${PACK_R.pill}px; overflow:hidden; transition:width .8s cubic-bezier(.2,.8,.2,1); }
+.rkp-bar .fl::before{ content:''; position:absolute; left:4px; right:8px; top:12%; height:34%; border-radius:${PACK_R.pill}px;
+  background:linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,0)); }
+.rkp-bar .fl::after{ content:''; position:absolute; top:0; bottom:0; width:40%; left:-40%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); animation:rk-flow 3.2s ease-in-out infinite; }
+.rkp-bar .fl.full{ animation:rk-glow 2.4s ease-in-out infinite; }
+.rkp-bar span{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:${FONT_TITLE}; font-weight:700;
+  font-size:12px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.85); }
+.rkp-nx{ display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; color:rgba(243,230,200,.75); }
+.rkp-nx img{ width:24px; height:24px; object-fit:contain; }
+/* Rebrík: všetky obrázky stupňov v rade; dosiahnuté plné, môj so zlatou žiarou, ďalšie v tieni. */
+.rkp-lad{ display:grid; grid-template-columns:repeat(var(--n), 1fr); gap:4px; margin-top:16px; padding-top:12px; border-top:1px solid rgba(231,196,108,.25); }
+.rkp-lad div{ display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0; }
+.rkp-lad img{ width:100%; max-width:40px; aspect-ratio:1; object-fit:contain; filter:grayscale(1) brightness(.45); opacity:.6; }
+.rkp-lad .done img{ filter:none; opacity:1; }
+.rkp-lad .on img{ filter:drop-shadow(0 0 6px rgba(255,214,120,.9)); opacity:1; transform:scale(1.15); }
+.rkp-lad small{ font-family:${FONT_TITLE}; font-weight:700; font-size:10px; color:rgba(243,230,200,.55); }
+.rkp-lad .on small{ color:#E7C46C; }
+.rkp-cap{ margin:4px 0 0; text-align:center; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:rgba(243,230,200,.5); }
+.rkp-how{ margin:12px 0 0; font-size:12px; line-height:1.45; color:rgba(243,230,200,.75); }
+.rkp-act{ display:inline-flex; align-items:center; gap:4px; margin-top:12px; border:0; background:none; padding:0; cursor:pointer;
+  font-weight:600; font-size:12px; color:#E7C46C; text-decoration:underline; text-underline-offset:3px; }
+.rkp-nums{ display:grid; grid-template-columns:repeat(3, 1fr); margin-top:16px; text-align:center; }
+.rkp-nums b{ display:block; font-family:${FONT_TITLE}; font-weight:700; font-size:20px; color:#F3E6C8; }
+.rkp-nums span{ font-size:10px; color:rgba(243,230,200,.6); }
+@media (prefers-reduced-motion:reduce){ .rkp-bar .fl::after, .rkp-bar .fl.full{ animation:none; } }
+`;
+
+type Tx = (key: string, fallback: string) => string;
+const SERVANT_FILL = 'linear-gradient(180deg,#FFF6CC,#F2C24E 40%,#C88A22 75%,#8A5A12)';
+
+/** SLUŽOBNÍK po rozkliku: roky + obrázok stupňa, zlatý pás aktivity, rebrík 8 odznakov. */
+export function ServantPanel({ years, onDogId, tx }: { years: number | null; onDogId?: () => void; tx: Tx }) {
+  const activeDays = useActiveDays(true);
+  const y = Math.max(0, years ?? 0);
+  const t = stepOf(S_FROM, y);
+  const d = activeDays ?? 0;
+  const pct = Math.min(100, (d / FULL_DAYS) * 100);
+  const next = t < S_FROM.length - 1 ? S_FROM[t + 1] : null;
+  const sub = y === 0 ? tx('pack.rank.servantFirst', 'First year with a dog')
+    : y === 1 ? tx('pack.rank.servantYear1', '1 year with a dog')
+    : tx('pack.rank.servantYears', '{n} years with a dog').replace('{n}', String(y));
+  return (
+    <>
+      <div className="rkp-hd">
+        <span className="im" style={{ ['--k' as string]: S_K[t] }}><img src={`/icons/pack/rank/servant-${t}.webp`} alt="" /></span>
+        <div className="tx">
+          <h3>{tx('pack.ladder.servant', 'Servant')}{y > 0 ? ` ${y}` : ''}</h3>
+          <p>{sub}</p>
+        </div>
+      </div>
+      <div className="rkp-lbl"><span>{tx('pack.rank.servantActive', 'Days in the app · last 90')}</span><b>{activeDays == null ? '—' : `${d} / ${FULL_DAYS}`}</b></div>
+      <div className="rkp-bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
+        <i className={`fl${d >= FULL_DAYS ? ' full' : ''}`} style={{ width: `max(${pct}%, 20px)`, background: SERVANT_FILL,
+          boxShadow: 'inset 0 -3px 5px rgba(60,30,0,.45), 0 0 10px rgba(255,200,90,.6)' }} />
+      </div>
+      <div className="rkp-nx">
+        {next != null ? <><img src={`/icons/pack/rank/servant-${t + 1}.webp`} alt="" />{tx('pack.rank.servantToNext', '{n} more years to the next badge').replace('{n}', String(next - y))}</>
+          : tx('pack.rank.servantTop', 'The highest badge. Nothing left but the dog.')}
+      </div>
+      <div className="rkp-lad" style={{ ['--n' as string]: S_FROM.length }}>
+        {S_FROM.map((f, i) => (
+          <div key={f} className={i === t ? 'on' : i < t ? 'done' : ''}>
+            <img src={`/icons/pack/rank/servant-${i}.webp`} alt="" />
+            <small>{f === 0 ? 1 : f}</small>
+          </div>
+        ))}
+      </div>
+      <p className="rkp-cap">{tx('pack.rank.ladderYears', 'years')}</p>
+      <p className="rkp-how">{tx('pack.rank.servantHow', 'The number counts full years with a dog, from “Together since” in DOG ID. The gold fills with every day you write something in the app.')}</p>
+      {years == null && onDogId && (
+        <button type="button" className="rkp-act" onClick={onDogId}>{tx('pack.rank.servantNoDate', 'Add “Together since” in DOG ID')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>
+      )}
+    </>
+  );
+}
+
+/** PÚTNIK po rozkliku: level + obrázok stupňa, pás v prechode farieb stupňa, čísla, rebrík 9 odznakov. */
+export function PilgrimPanel({ level, pct, points, floor, nextAt, trips, km, countries, onStats, tx }: {
+  level: number; pct: number; points: number; floor: number; nextAt: number;
+  trips: number; km: number; countries: number; onStats: () => void; tx: Tx;
+}) {
+  const t = stepOf(P_FROM, level);
+  const c = P_COL[t];
+  const nx = t < P_COL.length - 1 ? P_COL[t + 1] : c;
+  const f = P_FROM[t];
+  const span = (t < P_FROM.length - 1 ? P_FROM[t + 1] : f + 12) - f;
+  const still = t === P_NOBLEND;
+  const c0 = mixHex(c, nx, still ? 0 : (level - f) / span);
+  const c1 = mixHex(c, nx, still ? 0 : Math.min(1, (level - f + pct / 100) / span));
+  const fmtN = (n: number) => Math.round(n).toLocaleString('sk-SK');
+  const nt = stepOf(P_FROM, level + 1);
+  return (
+    <>
+      <div className="rkp-hd">
+        <span className="im"><img src={`/icons/pack/rank/pilgrim-${t}.webp`} alt="" /></span>
+        <div className="tx"><h3>{tx('pack.map.rankPilgrim', 'Pilgrim')} {level}</h3></div>
+        <span className="ab">{fmtN(points)} {tx('pack.rank.pts', 'pts')}</span>
+      </div>
+      <div className="rkp-lbl"><span>{tx('pack.tier.toNext', '{n} points to level {level}').replace('{n}', fmtN(nextAt - points)).replace('{level}', String(level + 1))}</span></div>
+      <div className="rkp-bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
+        <i className="fl" style={{ width: `max(${Math.min(100, pct)}%, 20px)`,
+          background: `linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,.08) 42%,rgba(0,0,0,0) 55%,rgba(0,0,0,.32)),linear-gradient(90deg,${c0},${c1})`,
+          boxShadow: `inset 0 -3px 5px rgba(0,0,0,.35), 0 0 10px ${c1}` }} />
+        <span>{fmtN(points - floor)} / {fmtN(nextAt - floor)}</span>
+      </div>
+      <div className="rkp-nx"><img src={`/icons/pack/rank/pilgrim-${nt}.webp`} alt="" />{tx('pack.map.rankPilgrim', 'Pilgrim')} {level + 1}</div>
+      <div className="rkp-nums">
+        <div><b>{trips}</b><span>{tx('pack.rank.trips', 'trips')}</span></div>
+        <div><b>{km}</b><span>km</span></div>
+        <div><b>{countries}</b><span>{tx('pack.rank.countries', 'countries')}</span></div>
+      </div>
+      <div className="rkp-lad" style={{ ['--n' as string]: P_FROM.length }}>
+        {P_FROM.map((from, i) => (
+          <div key={from} className={i === t ? 'on' : i < t ? 'done' : ''}>
+            <img src={`/icons/pack/rank/pilgrim-${i}.webp`} alt="" />
+            <small>{from}</small>
+          </div>
+        ))}
+      </div>
+      <p className="rkp-cap">{tx('pack.rank.ladderLevels', 'level')}</p>
+      <button type="button" className="rkp-act" onClick={onStats}>{tx('pack.rank.openStats', 'Trip stats')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>
+    </>
   );
 }

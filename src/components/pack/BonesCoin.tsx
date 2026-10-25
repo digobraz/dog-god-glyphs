@@ -1,4 +1,5 @@
 import React from 'react';
+import { RANK_BADGE_ON } from '@/components/pack/profile/rankBadge';
 
 // ════════════════════════════════════════════════════════════════════════════
 // MINCA BONES — JEDINÝ ZDROJ ZNAČKY MENY (LOCKED 2026-09-12)
@@ -65,6 +66,15 @@ export function BonesCoin({
   style?: React.CSSProperties;
 }) {
   const d = typeof size === 'number' ? size : BONES_COIN_SIZE[size];
+  // TEST_BUILD (25. 10. 2026): minca C7 (tyrkys + zlato) — tá istá ako odznak BONES v titulke profilu,
+  // aby šuplík BONES nehovoril inou mincou než ťuk, ktorý ho otvoril. Obrázok má priehľadný okraj → 1,25×.
+  if (RANK_BADGE_ON) {
+    return (
+      <span aria-hidden className={className} style={{ width: d, height: d, flexShrink: 0, position: 'relative', display: 'inline-block', ...style }}>
+        <img src="/icons/pack/rank/bones.webp" alt="" style={{ position: 'absolute', left: '50%', top: '50%', width: d * 1.25, height: 'auto', maxWidth: 'none', transform: 'translate(-50%, -50%)' }} />
+      </span>
+    );
+  }
   const bw = Math.round(d * BONE_RATIO);
   const bh = Math.round((bw * BONE_VB.h) / BONE_VB.w);
   return (

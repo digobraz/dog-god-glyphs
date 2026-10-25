@@ -506,7 +506,7 @@ export default function PackProfile() {
             }
           />
           <div className="me-gap" />
-          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} onStats={() => navigate('/pack/map/triplist?tab=stats')} onAbout={() => setAboutDev(true)} onClose={() => setRank(null)} tx={tx} />}
+          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} servantYears={servantYears} onDogId={dogs[0] ? () => navigate(`/pack/dogs/${dogs[0].id}`) : undefined} onStats={() => navigate('/pack/map/triplist?tab=stats')} onAbout={() => setAboutDev(true)} onClose={() => setRank(null)} tx={tx} />}
           {aboutDev && <DevotionSheet devotion={devotion} onClose={() => setAboutDev(false)} />}
 
           {/* ── 1 · O MNE — jediný nadpis skupiny. Poradie (Matej 23. 10.): mená · bio · fakty · povaha. ── */}

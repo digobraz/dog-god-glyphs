@@ -353,6 +353,8 @@ export default function PackMe() {
           <div className="me-gap" />
           {rank && (
             <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} tx={tx}
+              servantYears={novice ? null : servantYears}
+              onDogId={dogs[0] ? () => navigate(`/pack/dogs/${dogs[0].id}`) : undefined}
               study={{ read: readScrolls, total: TOTAL_SCROLLS, pct: studyPct, liked: liked.length, saved: saved.length }}
               onStats={() => navigate('/pack/map/triplist?tab=stats')}
               onVault={() => navigate('/pack/ainubis/knowledge')}

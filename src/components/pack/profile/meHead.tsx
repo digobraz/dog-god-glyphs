@@ -14,7 +14,7 @@ import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, PACK_TIERS, type PackTier } from '@/lib/packTiers';
 import { devotionTier, devotionVars, NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
-import { RANK_BADGE_ON, RANK_BADGE_CSS, ServantBadge, PilgrimBadge, BonesBadge, useActiveDays } from '@/components/pack/profile/rankBadge';
+import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, useActiveDays } from '@/components/pack/profile/rankBadge';
 /** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
 const BONES_TIER = PACK_TIERS.find((t) => t.key === 'turquoise') as PackTier;
 
@@ -553,8 +553,12 @@ function rankVars(kind: 'dev' | 'pt' | 'study', ptLevel: number, devIndex = 1): 
  *  o leveloch a stupnica … to isté pri pútnikovi — chýbajúce body do ďalšieho levelu, otvoriť tripstats"*).
  *  Rebríček je `DEVOTION_LEVELS` (jeden zdroj), PÚTNIK je `levelProgress` z `tripPoints.ts`.
  *  Tretí druh ŠTÚDIUM (23. 10. večer): ťuk na percento štúdia — základné čísla AINUBISA + odkaz do VAULTu. */
-export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbout, onClose, tx }: {
+export function MeRank({ kind, devotion, pilgrim, study, servantYears, onDogId, onStats, onVault, onAbout, onClose, tx }: {
   kind: 'dev' | 'pt' | 'study';
+  /** TEST_BUILD: roky SLUŽOBNÍKA (`useServantYears`); null = nikto z psov nemá „Spolu od“. */
+  servantYears?: number | null;
+  /** TEST_BUILD: odkaz do DOG ID, keď chýba „Spolu od“. */
+  onDogId?: () => void;
   devotion: number;
   pilgrim: { level: LevelProgress; count: number; km: number; countries: number };
   study?: StudyStats;
@@ -581,6 +585,21 @@ export function MeRank({ kind, devotion, pilgrim, study, onStats, onVault, onAbo
   const dev = devotionLevel(devotion);
   const vars = rankVars(kind, pilgrim.level.level, dev.index);
   const fmtN = (n: number) => Math.round(n).toLocaleString('sk-SK');
+  // TEST_BUILD (25. 10. 2026): rozklik odznaku SLUŽOBNÍK / PÚTNIK — noc so zlatým lemom ako odznaky,
+  // obsah v `rankBadge.tsx` (ServantPanel / PilgrimPanel). DEVOTION pyramída ostáva pre web.
+  if (RANK_BADGE_ON && kind !== 'study') {
+    const night = { '--rk-bg': 'radial-gradient(120% 100% at 0% 0%, #22306a 0%, #121a44 45%, #0a0d26 100%)', '--rk-edge': 'rgba(231,196,108,.7)', '--rk-ink': NIGHT_INK } as CSSProperties;
+    const lv = pilgrim.level;
+    return (
+      <div className="me-rk" style={night} ref={boxRef}>
+        <style>{RANK_PANEL_CSS}</style>
+        {kind === 'dev'
+          ? <ServantPanel years={servantYears ?? null} onDogId={onDogId} tx={tx} />
+          : <PilgrimPanel level={lv.level} pct={lv.pct} points={lv.points} floor={lv.floorPoints} nextAt={lv.nextPoints}
+              trips={pilgrim.count} km={pilgrim.km} countries={pilgrim.countries} onStats={onStats} tx={tx} />}
+      </div>
+    );
+  }
   if (kind === 'study') {
     const st = study ?? { read: 0, total: 0, pct: 0, liked: 0, saved: 0 };
     return (
