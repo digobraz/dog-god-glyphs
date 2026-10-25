@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { TEST_BUILD } from '@/lib/env';
+import { readEvents } from '@/lib/dogEvents';
 import { PACK_R, FONT_TITLE } from '@/components/pack/packTheme';
 
 /** Odznaky namiesto pilulky DEVOTION + PÚTNIK. Členovia na webe ich nevidia. */
@@ -95,6 +96,32 @@ export function useActiveDays(enabled: boolean): number | null {
     return () => { alive = false; };
   }, [enabled]);
   return days;
+}
+
+/** Dokončené roky služby = od najskoršieho DOG ID `basics.since` („Together since") spomedzi psov po dnes.
+ *  Matej 25. 10.: *„musí to byť v DOG ID — ja to tam mám 06.06.2017"*. Psy naraz sa nezdvojujú.
+ *  ⚠️ Medzera medzi psami (jeden odišiel, ďalší prišiel o roky neskôr) sa zatiaľ NEodpočíta — dátum
+ *  odchodu psa v DOG ID nie je. `null` = nikto z psov dátum nemá → UČEŇ. */
+export function useServantYears(dogIds: string[], enabled: boolean): number | null {
+  const [years, setYears] = useState<number | null>(null);
+  const key = dogIds.join(',');
+  useEffect(() => {
+    if (!enabled || !key) return;
+    let alive = true;
+    readEvents(key.split(','), ['basics.since']).then((evs) => {
+      if (!alive) return;
+      const last: Record<string, string> = {};
+      for (const e of evs) if (typeof e.value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(e.value)) last[e.dogId] = e.value.slice(0, 10);
+      const first = Object.values(last).sort()[0];
+      if (!first) { setYears(null); return; }
+      const [y, m, d] = first.split('-').map(Number);
+      const now = new Date();
+      const full = now.getFullYear() - y - ((now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) ? 1 : 0);
+      setYears(Math.max(0, full));
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [key, enabled]);
+  return years;
 }
 
 type BadgeBtn = { on?: boolean; onClick?: () => void; label: string };

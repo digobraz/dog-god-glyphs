@@ -304,7 +304,7 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel }: {
   cover: string | null;
   coverY?: number;
   name: string;
@@ -317,6 +317,8 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   pilgrimLevel: number;
   /** Postup PÚTNIKA k ďalšiemu levelu 0–100 — plní kapsulu odznaku (TEST_BUILD). */
   pilgrimPct?: number;
+  /** Dokončené roky služby (DOG ID `basics.since`); null = UČEŇ. */
+  servantYears?: number | null;
   /** Mená pre čítačku pri odznakoch (TEST_BUILD): „Služobník", „Pútnik". */
   servantLabel?: string;
   pilgrimRankLabel?: string;
@@ -404,9 +406,9 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
         {RANK_BADGE_ON && <style>{RANK_BADGE_CSS}</style>}
         {RANK_BADGE_ON ? (
           // TEST_BUILD (25. 10. 2026): odznaky SLUŽOBNÍK + PÚTNIK namiesto pilulky DEVOTION + PÚTNIK.
-          // ⚠️ Roky so psom zatiaľ nemáme odkiaľ vziať (pole „u mňa od" v DB nie je) → každý je UČEŇ.
+          // Roky = DOG ID `basics.since` (useServantYears, volá stránka so psami).
           <div className="me-lv rk-row">
-            <ServantBadge years={null} activeDays={activeDays} on={rank === 'dev'} onClick={onDev} label={servantLabel} />
+            <ServantBadge years={servantYears ?? null} activeDays={activeDays} on={rank === 'dev'} onClick={onDev} label={servantLabel} />
             <PilgrimBadge level={pilgrimLevel} pct={pilgrimPct} on={rank === 'pt'} onClick={onPilgrim} label={`${pilgrimRankLabel} ${pilgrimLevel}`} />
           </div>
         ) : (

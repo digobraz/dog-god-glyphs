@@ -40,6 +40,7 @@ import { TripShareSheet, type TripShareData } from '@/components/pack/trip/TripS
 import { dogShareLink } from '@/lib/useShareCard';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { ME_CSS, MeCover, MeOwn, MeRank } from '@/components/pack/profile/meHead';
+import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBadge';
 import { StoryViewer } from '@/components/pack/profile/StoryViewer';
 import { DevotionToday } from '@/components/pack/profile/DevotionToday';
 import { DevotionSheet } from '@/components/pack/profile/DevotionSheet';
@@ -168,6 +169,7 @@ export default function PackMe() {
   }, [location.key, location.search]);
   const uid = session?.user?.id ?? null;
   const { dogs } = usePackUser(uid);
+  const servantYears = useServantYears(dogs.map((d) => d.id), RANK_BADGE_ON);
   const { profile } = useProfile();
   const human = profile?.human;
   const meta = (session?.user?.user_metadata ?? {}) as Record<string, string | undefined>;
@@ -315,6 +317,7 @@ export default function PackMe() {
           pilgrimLabel={String(pilgrim.level.level)}
           pilgrimLevel={pilgrim.level.level}
           pilgrimPct={pilgrim.level.pct}
+          servantYears={novice ? null : servantYears}
           servantLabel={tx('pack.ladder.servant', 'Servant')}
           pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
           bones={fmt(bones)}
