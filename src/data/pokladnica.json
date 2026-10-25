@@ -31,6 +31,14 @@
       ]
     },
     {
+      "id": "supabase",
+      "nazov": "Supabase",
+      "mena": "USD",
+      "cena": 35,
+      "obd": "mes",
+      "od": "2026-10"
+    },
+    {
       "id": "stripe",
       "nazov": "Stripe",
       "mena": "EUR",
