@@ -308,10 +308,15 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
  * UPRAVIŤ PROFIL ostáva na karte, kým to Matej nepovie. Odsadenie z rovnice: rad = `PACK_TOPROW.content`,
  * okraj stĺpca = `px-4` / `sm:px-6` z `PackLayout`. */
 const TOP = `(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.content}px)`;
-const FLAT_FADE = 'linear-gradient(180deg, transparent 0%, transparent 6%, rgba(0,0,0,.45) 24%, #000 42%, #000 54%, transparent 100%)';
+/* Horný rad (ikonky) stojí na PLNOM papyruse — fotka začína až pod ním a rozplynie sa do neho
+ * (Matej 25. 10.: *„horná lišta bude širšia, aby ikonky s obálkou a chvostom boli celé na bledom"*). */
+const FLAT_FADE = `linear-gradient(180deg, transparent 0, transparent calc(${TOP}), #000 calc(${TOP} + 72px), #000 54%, transparent 100%)`;
 /* Bez rámu karty meria vzduch od okraja OKNA — fotka majiteľa na `PAGE_AIR` (16), šuplík v jej osi. */
 const FLAT_X = S.lg;
 export const ME_FLAT_CSS = `
+/* CELÁ PLOCHA BLEDÁ — bez tapety heroglyfov (Matej 25. 10.: *„to bude celé bledé, nie chrám"*). */
+.pk-paper:has(.me-flat)::before, .pk-paper:has(.me-flat)::after{ display:none; }
+.me-flat .me-nm{ font-weight:900; }
 .me-card.me-flat{ border:0; border-radius:0; background:none; box-shadow:none; margin:calc(-1 * ${TOP}) -${S.lg}px 0; }
 .me-flat .me-cover{ height:calc(${COVER_H.m}px + ${TOP}); }
 .me-flat .me-cover::before{ -webkit-mask-image:${FLAT_FADE}; mask-image:${FLAT_FADE}; }
