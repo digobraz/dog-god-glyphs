@@ -41,6 +41,7 @@ import { levelProgress } from '@/lib/tripPoints';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { TEST_BUILD } from '@/lib/env';
 import { useToast } from '@/hooks/use-toast';
+import { fetchProfileMates, useProfileMates, type ProfileMate } from '@/components/pack/profile/profileMates';
 
 const T = PACK_THEME;
 const FLAT = TEST_BUILD;
@@ -48,7 +49,7 @@ const FLAT = TEST_BUILD;
 export default function PublicProfile() {
   const t = useT();
   const { lang } = useLang();
-  const { id } = useParams<{ id: string }>();
+  const { id, mateId } = useParams<{ id: string; mateId?: string }>();
 
   // Session — potrebujeme vedieť KTO sa pozerá (isSelf porovnáva session.user.id s :id).
   const [session, setSession] = useState<Session | null>(null);
@@ -93,7 +94,19 @@ export default function PublicProfile() {
     return () => { alive = false; };
   }, [sessionChecked, isSelf, askedNumber]);
 
-  const bio = member ? (member.human.dogVoiceBio?.trim() || member.human.bio?.trim() || '') : '';
+  // PAWMATE (26. 10. 2026): `/pack/u/:n/mate/:uid` = karta človeka, ktorého majiteľ #n ukázal na profile.
+  // `undefined` = načítava sa, `null` = nie je ukázaný (alebo stará DB bez `get_profile_mates`).
+  const [mateCard, setMateCard] = useState<ProfileMate | null | undefined>(mateId ? undefined : null);
+  useEffect(() => {
+    if (!mateId || !sessionChecked) return;
+    let alive = true;
+    fetchProfileMates({ userId: mateId }).then((list) => { if (alive) setMateCard(list.find((m) => m.ownerNumber === askedNumber) ?? list[0] ?? null); });
+    return () => { alive = false; };
+  }, [mateId, sessionChecked, askedNumber]);
+  const shownMates = useProfileMates(mateId ? null : member?.memberNumber ?? null);
+
+  const bioHuman = mateCard ? mateCard.human : member?.human;
+  const bio = bioHuman ? (bioHuman.dogVoiceBio?.trim() || bioHuman.bio?.trim() || '') : '';
   // „more" len vtedy, keď text naozaj presiahne 3 riadky (ten istý recept ako môj profil).
   useLayoutEffect(() => {
     const el = bioRef.current;
@@ -115,10 +128,11 @@ export default function PublicProfile() {
 
   // Ja sám (staré odkazy s UUID) → môj profil. Dve podoby vlastného profilu by sa rozišli.
   if (isSelf) return <Navigate to="/pack/profile" replace />;
+  if (mateId && session?.user?.id === mateId) return <Navigate to="/pack/profile" replace />;
 
   // Cudzí člen sa ešte načítava — ticho, nie fallback. Fallback by na okamih tvrdil,
   // že taký človek neexistuje, a potom sa sám opravil.
-  if (member === undefined) {
+  if (member === undefined || mateCard === undefined) {
     return (
       <PackLayout>
         <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>
@@ -133,7 +147,7 @@ export default function PublicProfile() {
 
   // ── Fallback — číslo, ktoré nič nevrátilo (neexistuje / neplatiaci / nie je členom).
   // Odpoveď je zámerne rovnaká pre všetky tri prípady, ako v `get_trip_party()`. ──
-  if (!member) {
+  if (!member || (mateId && !mateCard)) {
     return (
       <PackLayout onBack={goBack} backLabel={t('pack.publicProfile.backToPack')}>
         <div
@@ -181,9 +195,18 @@ export default function PublicProfile() {
   //    NAPÍSAŤ otvorí rozhovor cez `start_member_dm` (migrácia 20261025_member_dm.sql).
   //  • DEVOTION cudzieho človeka appka nemá → v starom šate sa jeho pilulka nekreslí (prázdny `devLabel`).
   // Súkromné polia odstráni už server (`get_member_profiles`), preto tu žiadne `getTier()`.
-  const human = member.human;
-  const displayName = memberDisplayName(member) || 'A Dogyptian';
-  const avatar = memberAvatarUrl(member);
+  // Na karte PAWMATA je hlavnou osobou on; majiteľ #n stojí vedľa neho (ťuk = jeho profil) a psy sú majiteľove.
+  const mate = mateCard ?? null;
+  const human = mate ? mate.human : member.human;
+  const ownerName = memberDisplayName(member) || 'A Dogyptian';
+  const displayName = mate ? (mate.name || 'Pawmate') : ownerName;
+  const avatar = mate ? mate.avatarUrl : memberAvatarUrl(member);
+  const beside = mate
+    ? { photo: memberAvatarUrl(member), initial: (ownerName[0] || 'D').toUpperCase(), label: ownerName, onClick: () => navigate(`/pack/u/${member.memberNumber ?? id}`) }
+    : shownMates[0]
+      ? { photo: shownMates[0].avatarUrl, initial: (shownMates[0].name?.[0] || 'P').toUpperCase(), label: shownMates[0].name || 'Pawmate',
+          onClick: () => navigate(`/pack/u/${member.memberNumber ?? id}/mate/${shownMates[0].userId}`) }
+      : null;
   const firstDog = member.dogs.find((d) => d.packNumber != null) ?? member.dogs[0] ?? null;
   const coverSrc = coverOfDay(human) || human.buddyPhoto || firstDog?.photo || null;
   const nationality = human.nationality ?? 'SK';
@@ -228,8 +251,9 @@ export default function PublicProfile() {
       <style>{ME_CSS}</style>
       {FLAT && <style>{ME_FLAT_CSS}</style>}
 
-      <section className={`me-card${FLAT ? ' me-flat' : ''}${open ? ' open' : ''}`}>
+      <section className={`me-card${FLAT ? ' me-flat' : ''}${open ? ' open' : ''}${beside ? ' with-mate' : ''}`}>
         <MeCover
+          noRanks={!!mate}
           cover={coverSrc}
           coverY={human.coverY}
           name={displayName}
@@ -258,6 +282,7 @@ export default function PublicProfile() {
             onPhoto={() => {}}
             photoLabel={displayName}
             story="none"
+            mate={beside}
             toggleLabel={open ? tx('pack.me.closeDogs', 'Hide dogs') : tx('pack.me.openDogs', 'Show dogs')}
           />
 
@@ -271,27 +296,28 @@ export default function PublicProfile() {
             <MeRank kind="pt" devotion={0} pilgrim={pilgrimPanel} onClose={() => setRank(null)} tx={tx} />
           )}
 
-          {/* 5 ČÍSEL — tie isté ako na mojom profile, zverejnené majiteľom (`human.stats`). */}
-          <div className="me-stats">
+          {/* 5 ČÍSEL — tie isté ako na mojom profile, zverejnené majiteľom (`human.stats`). Pawmate ich nemá. */}
+          {!mate && <div className="me-stats">
             <button type="button" onClick={() => soonFeed(tx('pack.me.followers', 'followers'))}>{dash}<span>{tx('pack.me.followers', 'followers')}</span></button>
             <button type="button" onClick={() => soonFeed(tx('pack.me.following', 'following'))}>{dash}<span>{tx('pack.me.following', 'following')}</span></button>
             <button type="button">{num(st?.brought)}<span>{tx('pack.me.brought', 'brought in')}</span></button>
             <button type="button">{num(st?.km)}<span>km</span></button>
             <button type="button">{num(st?.study, ' %')}<span>{tx('pack.me.studying', 'studying')}</span></button>
-          </div>
+          </div>}
 
           <div className="me-btns">
             <button type="button" className="me-cta" onClick={() => soon(tx('pack.publicProfile.follow', 'Follow'), tx('pack.me.soonFeed', 'Arrives with the FEED.'))}>
               {tx('pack.publicProfile.follow', 'Follow')}
             </button>
-            <button type="button" className="me-out" onClick={writeTo} disabled={dmBusy || member.memberNumber == null}>
+            {/* Pawmate nemá číslo, rozhovor sa naňho zatiaľ adresovať nedá — NAPÍSAŤ len majiteľovi. */}
+            {!mate && <button type="button" className="me-out" onClick={writeTo} disabled={dmBusy || member.memberNumber == null}>
               {tx('pack.publicProfile.message', 'Message')}
-            </button>
+            </button>}
           </div>
 
           {FLAT ? (
             <div className="me-role me-role--label">
-              <span>{profileRoles(human).map((r) => tx(`pack.role.${r}`, r)).join(' · ')}</span>
+              <span>{mate ? tx('pack.add.pawmate', 'Pawmate') : profileRoles(human).map((r) => tx(`pack.role.${r}`, r)).join(' · ')}</span>
               <i aria-hidden />
             </div>
           ) : (

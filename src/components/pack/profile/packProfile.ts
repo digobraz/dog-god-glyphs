@@ -118,6 +118,9 @@ export interface HumanProfile {
   /** ROLY — najviac DVE (Matej 23. 10. 2026: „druhy osôb, možnosť vybrať dve"). `role` nesie prvú
    *  kvôli starším čítačom. Prázdne = [role] alebo ['pawtner']; čítaj cez `profileRoles()`. */
   roles?: ProfileRole[];
+  /** PAWMATI ukázaní na mojom profile vedľa mojej fotky (user_id). Rozhoduje majiteľ v MOJEJ SVORKE,
+   *  server ich vydá len kým naozaj stoja pri mojom psovi (`get_profile_mates`, 26. 10. 2026). */
+  showMates?: string[];
   /** Všetky fotky SNIFFER karty v poradí (Váš profil, 25. 9. 2026). `buddyPhoto` ostáva
    *  tá JEDNA, na ktorej ste spolu — z nich je a brána ju chce. Prázdne = len `buddyPhoto`. */
   buddyPhotos?: string[];

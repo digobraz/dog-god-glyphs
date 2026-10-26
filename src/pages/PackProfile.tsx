@@ -10,10 +10,10 @@ import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
 import { devotionLevel } from '@/lib/devotion';
-import { PACK_THEME, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE, PACK_R, PF_FIELD_CSS, PILL_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE, PACK_R, PACK_SHADOW, PF_FIELD_CSS, PILL_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { ME_CSS, ME_FLAT_CSS, RING, DOG_FONT, MeCover, MeOwn, MeRank, MeFlag } from '@/components/pack/profile/meHead';
+import { ME_CSS, ME_FLAT_CSS, DOG_FONT, MeCover, MeOwn, MeRank, MeFlag } from '@/components/pack/profile/meHead';
 import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBadge';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { coverAlbumOf, coverOfDay, changeDogMainPhoto, fetchMyPosts, isMoment, isLive } from '@/components/pack/profile/mePosts';
@@ -64,6 +64,7 @@ import {
 } from '@/components/pack/profile/packProfile';
 import { HandCamera } from '@/components/pack/HandIcons';
 import { MisiaBody, MISIA_ON } from '@/components/pack/profile/MisiaGroup';
+import { useBeside, type Beside } from '@/components/pack/profile/profileMates';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -132,7 +133,8 @@ const EDIT_CSS = `
 .pe-show:hover{background:${LAPIS.fill};}
 .pe-line{display:flex;flex-wrap:wrap;gap:${S.md}px ${S.lg}px;}
 .pe-mem{display:inline-flex;align-items:center;gap:${S.sm}px;border:0;background:none;padding:0;cursor:pointer;color:inherit;text-align:left;min-width:0;}
-.pe-mem .c{flex:none;width:48px;height:48px;border-radius:${PACK_R.pill}px;padding:${S.xs}px;background:${RING};box-shadow:${T.panelShadow};}
+/* Bez obruče story (Matej 26. 10. 2026: *„sú tam kruhy story, daj to preč"*) — tenký rám ako psy na oblúku profilu. */
+.pe-mem .c{flex:none;width:48px;height:48px;border-radius:${PACK_R.pill}px;padding:0;background:${T.card};box-shadow:0 0 0 2px ${T.border}, ${PACK_SHADOW.card};}
 .pe-mem .c img,.pe-mem .c i{width:100%;height:100%;border-radius:${PACK_R.pill}px;object-fit:cover;display:grid;place-items:center;border:2px solid ${T.card};background:${T.card};
   font-style:normal;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.lead}px;color:${T.inkWarm};}
 .pe-mem b{display:block;font-family:${DOG_FONT};font-weight:700;font-size:${PACK_TEXT.body}px;color:${T.inkStrong};white-space:nowrap;}
@@ -190,6 +192,11 @@ const EDIT_CSS = `
 .pe-role select{appearance:none;-webkit-appearance:none;border:0;background:none;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;cursor:pointer;padding:0;outline:none;}
 .pe-dog + .pe-dog{border-top:1px solid ${T.hairline};}
 .pe-dog-h{display:flex;align-items:center;gap:${S.sm}px;width:100%;padding:${S.sm}px 0;border:0;background:none;cursor:pointer;text-align:left;color:inherit;}
+/* Riadok s pilulkou vpravo (JA): hlavička = dva ťuky (meno · šípka) a pilulka medzi nimi — tlačidlo v tlačidle nejde. */
+.pe-dog-row{display:flex;align-items:center;gap:${S.sm}px;}
+.pe-dog-row > .pe-dog-h{flex:1;min-width:0;width:auto;}
+.pe-dog-row > .pe-chev{flex:none;display:grid;place-items:center;width:${S.xl}px;height:${S.xl}px;padding:0;border:0;background:none;cursor:pointer;color:${T.inkDim};transition:transform .25s ease;}
+.pe-dog.open .pe-dog-row > .pe-chev{transform:rotate(180deg);}
 .pe-dog-h .pe-mem{pointer-events:none;flex:1;}
 .pe-dog-h > i{display:grid;place-items:center;transition:transform .25s ease;color:${T.inkDim};}
 .pe-dog.open .pe-dog-h > i{transform:rotate(180deg);}
@@ -197,8 +204,12 @@ const EDIT_CSS = `
 .pe-dog-tags{display:flex;flex-wrap:wrap;gap:6px;}
 .pe-link{align-self:flex-start;display:inline-flex;align-items:center;gap:${S.xs}px;border:0;background:none;padding:${S.xs}px 0;cursor:pointer;
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;color:${LAPIS.edge};}
-.pe-roles{display:flex;flex-direction:column;}
-.pe-roles .pe-role{align-self:flex-start;cursor:pointer;}
+.pe-roles{position:relative;display:flex;flex-direction:column;}
+.pe-roles .pe-role{align-self:flex-end;cursor:pointer;}
+/* Výber role = rozbaľovač POD pilulkou (Matej 26. 10.: *„pills s dropdownom … po rozkliknutí nasleduje dropdown a výber max 2"*). */
+.pe-roles-pop{position:absolute;z-index:5;right:0;top:calc(100% + ${S.xs}px);min-width:200px;padding:${S.sm}px ${S.md}px;border-radius:${PACK_R.tile}px;
+  background:${T.card};border:1px solid ${T.cardEdge};box-shadow:${PACK_SHADOW.panel};}
+.pe-roles-pop .pe-check.sub{padding-left:0;}
 .pe-check input:disabled{opacity:.4;cursor:default;}
 .pe-pick{display:grid;grid-template-columns:1fr;gap:${S.sm}px;}
 .pe-steps{margin:${S.xs}px 0 0;padding-left:${S.lg}px;list-style:decimal;display:flex;flex-direction:column;gap:${S.xs}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.5;color:${T.ink};}
@@ -293,7 +304,10 @@ export default function PackProfile() {
   useEffect(() => { reloadMates(); }, []);
   const resetFlow = useDogyptStore((st) => st.reset);
   const { dogs: loadedDogs } = usePackUser(session?.user?.id ?? null);
-  const servantYears = useServantYears(loadedDogs, RANK_BADGE_ON);
+  // PAWMATE (žiadny pes nie je jeho) — bez hodností a bez mena z cudzej objednávky (26. 10. 2026).
+  const ownLoaded = loadedDogs.filter((d) => !d.user_id || d.user_id === session?.user?.id);
+  const isMate = loadedDogs.length > 0 && ownLoaded.length === 0;
+  const servantYears = useServantYears(ownLoaded, RANK_BADGE_ON);
   // Práve vymenené fotky psov — kým sa `usePackUser` nenačíta nanovo (hlava aj SVORKA ich ukážu hneď).
   const [dogPhoto, setDogPhoto] = useState<Record<string, string>>({});
   const [dogBusy, setDogBusy] = useState<string | null>(null);
@@ -313,6 +327,8 @@ export default function PackProfile() {
   const { profile } = useProfile();
   const human = profile?.human;
   const patchHuman = (p: Partial<HumanProfile>) => { saveHuman(p); };
+  const myNumber = ownLoaded.map((d) => d.pack_number).filter((n): n is number => n != null).sort((a, b) => a - b)[0] ?? null;
+  const beside = useBeside({ uid: session?.user?.id ?? null, isMate, showMates: human?.showMates, myNumber });
 
   useEffect(() => {
     let mounted = true;
@@ -349,7 +365,7 @@ export default function PackProfile() {
 
   const email = session?.user?.email ?? '—';
   // Meno z objednávky — východisko, keď si človek v profile žiadne nevypísal.
-  const orderName = dogs.map((d) => d.owner_name?.trim()).find(Boolean) ?? '';
+  const orderName = ownLoaded.map((d) => d.owner_name?.trim()).find(Boolean) ?? '';
   const pilgrim = usePilgrimStats(session?.user?.email ?? '', (fullName || orderName).split(' ')[0] ?? '');
 
   // Staré odkazy: BONES a línia žijú v šuplíku na profile, nie tu.
@@ -469,7 +485,7 @@ export default function PackProfile() {
         } finally { setDogBusy(null); }
       }} />
 
-      <section className={`me-card pe-card${TEST_BUILD ? ' me-flat' : ''}`}>
+      <section className={`me-card pe-card${TEST_BUILD ? ' me-flat' : ''}${beside ? ' with-mate' : ''}`}>
         {/* NÁHĽAD 1:1 — tá istá hlava ako profil. Titulka sa ťahá, foťák ju mení. */}
         <MeCover
           cover={coverSrc}
@@ -486,6 +502,7 @@ export default function PackProfile() {
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
           onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
           rank={rank}
+          noRanks={isMate}
           onMoveY={setCoverY}
           onMoveEnd={(y) => { patchHuman({ coverY: y }); }}
           right={
@@ -505,6 +522,7 @@ export default function PackProfile() {
         <div className="me-under">
           <MeOwn
             story={storyLive ? 'live' : 'none'}
+            mate={beside ? { ...beside, onClick: () => navigate(beside.to) } : null}
             photo={avatarUrl}
             initial={initial}
             dogs={dogs}
@@ -616,12 +634,15 @@ export default function PackProfile() {
                 photo={avatarUrl ? sizedUrl(avatarUrl, 140) : null}
                 initial={initial}
                 name={shownName}
-                sub={profileRoles(human).map((r) => tx(`pack.role.${r}`, r)).join(' · ')}
+                sub={isMate ? tx('pack.add.pawmate', 'Pawmate') : 'Pawtner'}
                 human
+                // ROLA = pilulka VPRAVO vedľa mena, výber v rozbaľovači pod ňou (Matej 26. 10. 2026: *„zruš rozklik šípkou
+                // … na pravej strane vedľa mena daj pills s dropdownom … jeden klik"*). Šípka riadku ostáva — v rozkliku
+                // je voľba pawmata na profile (*„predsa len ponechaj dropdown šípku … ak bude mať človek pawmata"*).
+                aside={<RolePicker value={profileRoles(human)} onChange={(roles) => patchHuman({ roles, role: roles[0] })} />}
               >
-                {/* Po rozkliku LEN rola (Matej 23. 10.: „zatiaľ len pawtner dropdown, zmeniť foto preč … možnosť
-                    vybrať dve"). Neskôr sem príde odkaz na biznis prevádzku (obchod, e-shop). */}
-                <RolePicker value={profileRoles(human)} onChange={(roles) => patchHuman({ roles, role: roles[0] })} />
+                <ShowMates mates={mates} isMate={isMate} beside={beside} value={human?.showMates ?? []}
+                  onChange={(ids) => patchHuman({ showMates: ids })} />
               </MemberRow>
               {dogs.map((d) => (
                 <DogEditRow key={d.id} dog={d} attrs={profile?.dogs?.[d.id]} onDogId={() => navigate(`/pack/dogs/${d.id}`)} />
@@ -636,9 +657,9 @@ export default function PackProfile() {
               <div className="pe-addbar">
                 <span className="pe-plus" aria-hidden><BrandIcon name="plus" size={16} tint="white" /></span>
                 <Link to="/heroglyph/name" onClick={resetFlow} className="pe-door"><BrandIcon name="dogsphinx" size={20} tint="dim" />{tx('pack.hero.roleDog', 'Dog')}</Link>
-                <button type="button" className={`pe-door${mateOpen ? ' on' : ''}`} onClick={() => (PAWMATE_LIVE ? setMateOpen((o) => !o) : soon())}>
+                {!isMate && <button type="button" className={`pe-door${mateOpen ? ' on' : ''}`} onClick={() => (PAWMATE_LIVE ? setMateOpen((o) => !o) : soon())}>
                   <BrandIcon name="add-user" size={16} tint={mateOpen ? 'white' : 'dim'} />{tx('pack.add.pawmate', 'Pawmate')}
-                </button>
+                </button>}
               </div>
               {mateOpen && <MateForm dogs={dogs.filter((d) => d.life_status !== 'deceased')} lang={lang} onDone={() => { setMateOpen(false); reloadMates(); }} />}
             </div>
@@ -1266,8 +1287,10 @@ function PillPicker({ human, patchHuman }: { human: HumanProfile | undefined; pa
 
 // ČLEN SVORKY — jeden riadok s rozklikom (Matejova skica 23. 10.): kruh s fotkou · meno · šípka.
 // Ten istý tvar pre JA, psa aj pawmata, aby sa svorka čítala ako jeden zoznam.
-function MemberRow({ photo, initial, name, num, sub, angel = false, human = false, dim = false, children }: {
+function MemberRow({ photo, initial, name, num, sub, angel = false, human = false, dim = false, aside, children }: {
   photo: string | null;
+  /** Pilulka vpravo vedľa mena (JA = rola). Stojí MIMO ťuku na riadok, aby mala vlastný rozbaľovač. */
+  aside?: React.ReactNode;
   initial?: string;
   name: string;
   num?: number | null;
@@ -1278,6 +1301,29 @@ function MemberRow({ photo, initial, name, num, sub, angel = false, human = fals
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const head = (
+    <span className={`pe-mem${angel ? ' angel' : ''}${human ? ' hu' : ''}${dim ? ' dim' : ''}`}>
+      <span className="c">{photo ? <img src={photo} alt="" /> : <i>{initial ?? ''}</i>}</span>
+      <span>
+        <b>{name}{num != null && <span className="pe-num">#{num}</span>}</b>
+        {sub && <small>{sub}</small>}
+      </span>
+    </span>
+  );
+  if (aside) {
+    return (
+      <div className={`pe-dog${open ? ' open' : ''}`}>
+        <div className="pe-dog-row">
+          <button type="button" className="pe-dog-h" onClick={() => setOpen((o) => !o)} aria-expanded={open}>{head}</button>
+          {aside}
+          <button type="button" className="pe-chev" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={name}>
+            <ChevronDown className="h-4 w-4" />
+          </button>
+        </div>
+        {open && <div className="pe-dog-b">{children}</div>}
+      </div>
+    );
+  }
   return (
     <div className={`pe-dog${open ? ' open' : ''}`}>
       <button type="button" className="pe-dog-h" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
@@ -1295,24 +1341,62 @@ function MemberRow({ photo, initial, name, num, sub, angel = false, human = fals
   );
 }
 
+// PAWMATE NA PROFILE — voľba v rozkliku riadku JA (Matej 26. 10. 2026: *„jej fotka sa bude môcť dať zverejniť
+// vedľa majiteľovej fotky v nastaveniach majiteľa … či ho uviesť v profile"*). Rozhoduje majiteľ; pawmate tu len
+// vidí, kto ho ukázal. Ukázaný je najviac JEDEN (vedľa fotky je miesto na jedného človeka).
+function ShowMates({ mates, isMate, beside, value, onChange }: { mates: MyPawmates | null; isMate: boolean; beside: Beside | null; value: string[]; onChange: (ids: string[]) => void }) {
+  const t = useT();
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  if (isMate) {
+    return <p className="pe-hint" style={{ marginTop: 0 }}>{beside
+      ? tx('pack.edit.mateShownBy', '{name} shows you on their profile, next to their photo.').replace('{name}', beside.label)
+      : tx('pack.edit.mateNotShown', 'Your pawtner decides whether you appear on their profile.')}</p>;
+  }
+  const people = (mates?.people ?? []).filter((p) => p.kind === 'human' && p.user_id);
+  if (!people.length) {
+    return <p className="pe-hint" style={{ marginTop: 0 }}>{tx('pack.edit.mateNone', "When you have a pawmate, you can show their photo next to yours on the profile.")}</p>;
+  }
+  return (
+    <>
+      {people.map((p) => {
+        const on = value.includes(p.user_id as string);
+        return (
+          <label key={p.user_id} className="pe-check">
+            <input type="checkbox" checked={on} onChange={() => onChange(on ? [] : [p.user_id as string])} />
+            <span>{tx('pack.edit.mateShow', 'Show {name} on my profile').replace('{name}', p.name || p.email || tx('pack.add.pawmate', 'Pawmate'))}</span>
+          </label>
+        );
+      })}
+    </>
+  );
+}
+
 // ROLY — rozbaľovač s výberom najviac DVOCH (Matej 23. 10.). Tretí ťuk vytlačí najstaršiu voľbu. Odznačiť poslednú nejde — prázdne by aj tak spadlo späť na PAWTNER.
 function RolePicker({ value, onChange }: { value: ProfileRole[]; onChange: (v: ProfileRole[]) => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  // Rozbaľovač sa zavrie ťukom mimo neho (je to vrstva nad riadkami, nie rozbalený riadok).
+  useEffect(() => {
+    if (!open) return;
+    const off = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('pointerdown', off);
+    return () => document.removeEventListener('pointerdown', off);
+  }, [open]);
   // Nová voľba sa VŽDY označí; pri plnom počte vypadne najstaršia (Matej 23. 10.: „aby sa nemuselo odznačovať").
   const toggle = (r: ProfileRole) => {
     if (value.includes(r)) { if (value.length > 1) onChange(value.filter((x) => x !== r)); }
     else onChange([...value, r].slice(-MAX_ROLES));
   };
   return (
-    <div className="pe-roles">
+    <div className="pe-roles" ref={box}>
       <button type="button" className="pe-role" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         {value.map((r) => tx(`pack.role.${r}`, r)).join(' · ')}
         <ChevronDown aria-hidden className="h-3 w-3" style={{ transform: open ? 'rotate(180deg)' : 'none' }} />
       </button>
       {open && (
-        <div style={{ marginTop: S.sm }}>
+        <div className="pe-roles-pop">
           {PROFILE_ROLES.map((r) => {
             const on = value.includes(r);
             return (

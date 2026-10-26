@@ -52,6 +52,7 @@ import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbu
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryLabel } from '@/lib/countryOptions';
+import { useBeside } from '@/components/pack/profile/profileMates';
 
 // PROFIL BEZ KARTY (TEST_BUILD, Matej 25. 10. 2026): obsah na celú šírku. Hladký papyrus pod ním
 // zapína PackLayout (`PLAIN_ROUTES`).
@@ -118,7 +119,11 @@ export default function PackMe() {
   }, [location.key, location.search]);
   const uid = session?.user?.id ?? null;
   const { dogs } = usePackUser(uid);
-  const servantYears = useServantYears(dogs, RANK_BADGE_ON);
+  // PAWMATE = vidí psov, ale žiadny nie je jeho (Matej 26. 10. 2026, test „Lenka"). Meno ani hodnosti
+  // si od majiteľa psa nepožičiava — dovtedy niesol meno z objednávky a roky služby jeho psa.
+  const ownDogs = dogs.filter((d) => !d.user_id || d.user_id === uid);
+  const isMate = dogs.length > 0 && ownDogs.length === 0;
+  const servantYears = useServantYears(ownDogs, RANK_BADGE_ON);
   const { profile } = useProfile();
   const human = profile?.human;
   const meta = (session?.user?.user_metadata ?? {}) as Record<string, string | undefined>;
@@ -144,7 +149,7 @@ export default function PackMe() {
   const bioRef = useRef<HTMLParagraphElement>(null);
 
   // ── Meno navonok — tá istá voľba „Zobraziť ako", akú vidia ostatní (`memberDisplayName`).
-  const orderName = dogs.map((d) => d.owner_name?.trim()).find(Boolean) ?? '';
+  const orderName = ownDogs.map((d) => d.owner_name?.trim()).find(Boolean) ?? '';
   const fullName = (meta.full_name || meta.name || orderName || '').trim();
   const shownName = (() => {
     if (human?.displayAs === 'nickname' && human.nickname?.trim()) return human.nickname.trim();
@@ -199,6 +204,10 @@ export default function PackMe() {
   }, [bio, bioFull]);
 
   const firstDog = dogs.find((d) => d.pack_number != null) ?? dogs[0] ?? null;
+  const myNumber = ownDogs.map((d) => d.pack_number).filter((n): n is number => n != null).sort((a, b) => a - b)[0] ?? null;
+
+  // VEDĽA MOJEJ FOTKY (26. 10. 2026) — pawmate pri majiteľovi, majiteľ pri pawmatovi (`useBeside`).
+  const beside = useBeside({ uid: novice ? null : uid, isMate, showMates: human?.showMates, myNumber });
   const fmt = (n: number) => n.toLocaleString(lang === 'sk' ? 'sk-SK' : 'en-US');
 
   // Staré odkazy do editora — presmerovať skôr, než sa čokoľvek vykreslí.
@@ -263,7 +272,7 @@ export default function PackMe() {
           {tx('pack.me.novicePreview', 'Preview: a brand-new member · back to my account')}
         </button>
       )}
-      <section className={`me-card${FLAT ? ' me-flat' : ''}${open ? ' open' : ''}`}>
+      <section className={`me-card${FLAT ? ' me-flat' : ''}${open ? ' open' : ''}${beside ? ' with-mate' : ''}`}>
         {/* TITULKA — BONES · meno · DEVOTION · PÚTNIK (spoločná s UPRAVIŤ PROFIL, `meHead.tsx`). */}
         <MeCover
           cover={coverSrc}
@@ -283,6 +292,7 @@ export default function PackMe() {
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
           onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
           rank={rank}
+          noRanks={isMate}
         />
 
         <div className="me-under">
@@ -303,6 +313,7 @@ export default function PackMe() {
             story={STORIES_ON && live.length ? 'live' : 'none'}
             onAdd={STORIES_ON ? () => openCompose('moment') : undefined}
             addLabel={tx('pack.compose.newStory', 'New story')}
+            mate={beside ? { ...beside, onClick: () => navigate(beside.to) } : null}
             toggleLabel={open ? tx('pack.me.closeDogs', 'Hide dogs') : tx('pack.me.openDogs', 'Show dogs')}
           />
 
@@ -357,7 +368,7 @@ export default function PackMe() {
               istý ako dolné pillsy povahy"* → z troch návrhov *„ja by som dal P3"*). Štítok + zlatá linka. */}
           {FLAT ? (
             <div className="me-role me-role--label">
-              <span>{profileRoles(human).map((r) => tx(`pack.role.${r}`, r)).join(' · ')}</span>
+              <span>{isMate ? tx('pack.add.pawmate', 'Pawmate') : profileRoles(human).map((r) => tx(`pack.role.${r}`, r)).join(' · ')}</span>
               <i aria-hidden />
             </div>
           ) : (

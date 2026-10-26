@@ -161,6 +161,12 @@ const CSS = `${VEIL_CSS}
 .mi-cta:hover{background:${LAPIS.gradHover};}
 .mi-cta:disabled{opacity:.6;cursor:default;}
 .mi-cta.wide{display:flex;width:100%;}
+/* PRILOŽÍM LABKU (26. 10. 2026) — výzva nad tlačidlami, po ťuku len potvrdenie. */
+.mi-paw{display:flex;flex-direction:column;align-items:center;gap:${S.sm}px;margin-top:${S.lg}px;padding:${S.lg}px ${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};text-align:center;}
+.mi-paw > b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: nadpis */
+.mi-paw > p{margin:0;font-size:${TX.label}px;line-height:1.5;color:${T.ink};}
+.mi-paw-b{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:${S.md}px;margin-top:${S.xs}px;}
+.mi-paw .ok{font-weight:600;font-size:${TX.body}px;color:${T.inkStrong};}
 .mi-links{display:flex;justify-content:center;flex-wrap:wrap;gap:${S.lg}px;margin-top:${S.md}px;}
 .mi-link{padding:0;border:0;background:none;cursor:pointer;font-family:${FONT_UI};font-size:${TX.label}px;color:${LAPIS.edge};text-decoration:underline;text-underline-offset:3px;}
 /* POPUP — papyrus UPROSTRED okna (Matej 24. 10.: *„vadí mi, že je celý tak dolu“*), nie šuplík zdola. */
@@ -212,6 +218,25 @@ export function MisiaBody() {
   const [dash, setDash] = useState<Dash | null>(null);
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [notice, setNotice] = useState<string | null>(params.get('zrusene') ? tx('carry.canceled', 'Payment cancelled. Nothing was charged.') : null);
+  // PRILOŽÍM LABKU → mail D1 s možnosťami pomoci a odkazom na dar (edge `misia-labka`). NESKÔR len skryje výzvu
+  // v tomto prehliadači — pripomienky (D0/D2) sa riadia mailom, nie týmto.
+  const [paw, setPaw] = useState<'idle' | 'busy' | 'sent' | 'already' | 'fail' | 'later'>(() => {
+    try { return localStorage.getItem('dg-misia-paw-later') === '1' ? 'later' : 'idle'; } catch { return 'idle'; }
+  });
+  const lendPaw = async () => {
+    setPaw('busy');
+    try {
+      const tok = await sessionToken();
+      const r = await fetch(`${EDGE_BASE}/misia-labka`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(tok ? { Authorization: `Bearer ${tok}` } : {}) },
+        body: JSON.stringify({ lang: gl, cost: Math.round(prevadzkaMesacne().spolu), givers: dash?.givers ?? 0 }),
+      });
+      const j = await r.json().catch(() => ({})) as { ok?: boolean; already?: boolean };
+      setPaw(r.ok && j.ok ? (j.already ? 'already' : 'sent') : 'fail');
+    } catch { setPaw('fail'); }
+  };
+  const later = () => { setPaw('later'); try { localStorage.setItem('dg-misia-paw-later', '1'); } catch { /* len na túto návštevu */ } };
 
   useEffect(() => {
     // Čísla VŽDY z ostrej pokladnice (Matej 24. 10.: *„použime reálne a live dáta“*) — aj v deve; verejný GET, nič nezapisuje.
@@ -219,6 +244,8 @@ export function MisiaBody() {
     const sid = params.get('dakujeme');
     if (sid) call<Thanks>({ action: 'session', session_id: sid }).then((th) => setSheet({ kind: 'thanks', t: th })).catch(() => {});
     if (params.has('odkaz')) setSheet({ kind: 'manage' });
+    // Odkaz z mailu D1 (`misia-labka`): rovno formulár daru — len na webe, v appke sa nedaruje (Apple 3.1.1).
+    if (params.has('dar') && !IS_APP) setSheet({ kind: 'gift' });
   }, [params]);
 
   const ledger = useMemo(() => (dash?.revenue_by_month ? pokladnica(dash.revenue_by_month) : null), [dash]);
@@ -408,6 +435,25 @@ export function MisiaBody() {
       </div>
 
       {notice && <p className="mi-hint">{notice}</p>}
+      {/* PRILOŽÍM LABKU K DIELU (Matej 26. 10. 2026: *„pri misii chýba CTA — tlačítko, ktoré odošle e-mail s infom
+          a linkom na platbu"*). Appka aj web; text tlačidla a „Svorku nesieme spolu" vybral Matej 25. 10. (A). */}
+      {paw !== 'later' && (
+        <div className="mi-paw">
+          <b>{tx('pack.misia.paw.lead', 'We carry the pack together.')}</b>
+          {paw === 'sent' || paw === 'already' ? (
+            <span className="ok">{paw === 'sent' ? tx('pack.misia.paw.sent', 'Check your inbox ✓') : tx('pack.misia.paw.already', 'The e-mail is already in your inbox ✓')}</span>
+          ) : (
+            <>
+              <p>{tx('pack.misia.paw.sub', 'We will send you an e-mail with ways to help — a gift is one of them.')}</p>
+              <div className="mi-paw-b">
+                <button type="button" className="mi-cta" disabled={paw === 'busy'} onClick={lendPaw}>{tx('pack.misia.paw.cta', 'Lend a paw')}</button>
+                <button type="button" className="mi-link" onClick={later}>{tx('pack.misia.paw.later', 'Later')}</button>
+              </div>
+              {paw === 'fail' && <p>{tx('pack.misia.paw.fail', 'It did not go through. Try again in a moment.')}</p>}
+            </>
+          )}
+        </div>
+      )}
       {/* V appke riadok „Môj dar“ nie je vôbec — ani veta o dogypt.com (Apple 3.1.1 = výzva platiť mimo appky).
           Nahradí ho tlačidlo „Priložím labku“ → mail D1 (pipeline daru, Matej 25. 10. 2026). */}
       {!IS_APP && (

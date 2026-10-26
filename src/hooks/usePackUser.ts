@@ -5,6 +5,8 @@ import { getAccessibleDogIds } from '@/lib/dogRights';
 
 export interface PackDogFull {
   id: string;
+  /** Majiteľ psa. U PAWMATA iný než prihlásený — podľa toho sa pozná, ktorí psy sú MOJI (26. 10. 2026). */
+  user_id?: string | null;
   dog_name: string | null;
   cloudinary_main_url: string | null;
   /** Meno majiteľa Z OBJEDNÁVKY. Je to VÝCHODISKO mena člena, keď si v profile
@@ -141,7 +143,7 @@ export function usePackUser(userId: string | null): PackUserData {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let dogsQuery = (supabase as any)
         .from('dogs')
-        .select('id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url, owner_name, country, life_status, death_date')
+        .select('id, user_id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url, owner_name, country, life_status, death_date')
         .eq('payment_status', 'paid');
       dogsQuery = ids ? dogsQuery.in('id', ids) : dogsQuery.eq('user_id', user.id);
       const { data: dogRows } = await dogsQuery

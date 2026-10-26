@@ -222,7 +222,9 @@ export function usePackIdentity(): PackIdentity {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const avatarInitial = (session?.user?.email?.[0] ?? 'D').toUpperCase();
+  // Iniciála z MENA, nie z e-mailu (26. 10. 2026: pawmate „Lenka" s adresou hekthorsk+… niesla „H").
+  const metaName = (session?.user?.user_metadata as { full_name?: string; name?: string } | undefined);
+  const avatarInitial = ((metaName?.full_name || metaName?.name || '').trim()[0] ?? session?.user?.email?.[0] ?? 'D').toUpperCase();
 
   return { session, loading, sessionReady, dogs, devotion, bones, avatarUrl, avatarInitial, packTotal, packToday };
 }

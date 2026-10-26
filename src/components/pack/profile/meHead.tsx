@@ -36,6 +36,13 @@ const SAT = { m: 56, pc: 70 };
  * visí 3/4 priemeru pod spodkom fotky. Medzera pod fotkou z toho istého čísla, aby satelit
  * nenarazil do čísel (rezerva S.sm nad nimi, čísla majú vlastný margin S.md). */
 const SAT_DROP = { m: SAT.m * 3 / 4, pc: Math.round(SAT.pc * 3 / 4) };
+/* PAWMATE vedľa majiteľa — podiely fotky majiteľa. MATE_OUT = kam siaha jeho pravý okraj (meno titulky začína za ním).
+ * Jediný pes s pawmatom = DOG1 (stred na styku oboch kruhov, dole). */
+const MATE = { d: .6, left: .76, top: .2 };
+const MATE_OUT = MATE.left + MATE.d;
+const MATE_CSS = { left: `${Math.round(MATE.left * 100)}%`, top: `${Math.round(MATE.top * 100)}%`, d: `${Math.round(MATE.d * 100)}%` };
+const DOG1_WITH_MATE = { d: .42, cx: .86, cy: .86 };
+const FLAT_X_M = 16;
 /* Psy po OBLÚKU (RANK_BADGE_ON) visia inak než satelit: medzera = presne po spodok najnižšieho psa, takže
  * nad číslami ostane tá istá vzdušnosť ako pod nimi k tlačidlám (margin S.md + padding S.sm na oboch stranách).
  * Matej 25. 10.: *„štatistiky posuň hore tak, aby nad nimi bola taká istá medzera ako pod nimi"*. */
@@ -183,6 +190,22 @@ export const ME_CSS = `
   background:${LAPIS.grad}; border:2px solid ${T.card}; box-shadow:${LAPIS_BTN_SHADOW}; }
 .me-own .ini{ display:grid; place-items:center; width:100%; height:100%; font-family:${FONT_UI}; font-weight:600; font-size:${TX.h1}px; color:${T.inkWarm}; }
 ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
+/* PAWMATE VEDĽA MAJITEĽA (26. 10. 2026, Matej: *„pridá sa vedľa ako fotka a pes, ak bude jeden, pôjde medzi nich"*).
+   Polohy v % z fotky majiteľa (jedna rovnica pre mobil 126 aj PC 158): pawmate = MATE_D, vpravo, majiteľ ho
+   zľahka prekrýva; jediný pes sedí dole na ich styku. Meno na titulke ustúpi o presah pawmata (MATE_OUT). */
+.me-own > button:first-child{ position:relative; z-index:1; }
+.me-mate{ position:absolute; z-index:0; left:${MATE_CSS.left}; top:${MATE_CSS.top}; width:${MATE_CSS.d}; aspect-ratio:1; padding:0; border:0; cursor:pointer;
+  border-radius:${PACK_R.pill}px; background:${T.card}; box-shadow:0 0 0 2px ${T.border}, ${T.panelShadow}; }
+.me-mate img, .me-mate i{ width:100%; height:100%; display:grid; place-items:center; border-radius:${PACK_R.pill}px; object-fit:cover; border:3px solid ${T.card}; background:${T.card};
+  font-style:normal; font-family:${FONT_UI}; font-weight:600; font-size:${TX.h2}px; color:${T.inkWarm}; }
+.me-card.with-mate .me-foot{ left:${OWN_X.m + Math.round(OWN.m * MATE_OUT) + S.sm}px; }
+.me-flat.with-mate .me-foot{ left:${FLAT_X_M + Math.round(OWN.m * MATE_OUT) + S.sm}px; }
+.me-card.with-mate .me-foot .rk-row{ zoom:.86; }
+@media (min-width:768px){
+  .me-card.with-mate .me-foot{ left:${OWN_X.pc + Math.round(OWN.pc * MATE_OUT) + S.lg}px; }
+  .me-flat.with-mate .me-foot{ left:${S.xl + Math.round(OWN.pc * MATE_OUT) + S.lg}px; }
+  .me-card.with-mate .me-foot .rk-row{ zoom:1; }
+}
 .me-sat{ position:absolute; left:50%; transform:translateX(-50%); bottom:-${SAT_DROP.m}px; display:flex; align-items:center;
   padding:0; border:0; background:none; cursor:pointer; }
 .me-sat .s{ width:${SAT.m}px; height:${SAT.m}px; border-radius:${PACK_R.pill}px; padding:${S.xs}px; background:${RING}; margin-left:-18px;
@@ -369,8 +392,10 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false }: {
   cover: string | null;
+  /** PAWMATE bez vlastného psa (Matej 26. 10. 2026: *„ona nebude mať level pútnika ani služobníka"*) — titulka len s menom. */
+  noRanks?: boolean;
   coverY?: number;
   name: string;
   devLabel: string;
@@ -475,7 +500,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
       <div className="me-foot">
         <h1 className="me-nm">{name}</h1>
         {RANK_BADGE_ON && <style>{RANK_BADGE_CSS}</style>}
-        {RANK_BADGE_ON ? (
+        {noRanks ? null : RANK_BADGE_ON ? (
           // TEST_BUILD (25. 10. 2026): odznaky SLUŽOBNÍK + PÚTNIK namiesto pilulky DEVOTION + PÚTNIK.
           // Roky = DOG ID `basics.since` (useServantYears, volá stránka so psami).
           <div className="me-lv rk-row">
@@ -500,9 +525,19 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   );
 }
 
+/** Polohy psov: s pawmatom a JEDNÝM psom sedí pes na styku oboch kruhov, inak oblúk ako dovtedy. */
+function arcFor(count: number, withMate: boolean): CSSProperties[] {
+  if (!withMate || count !== 1) return arcDogs(count);
+  const { d, cx, cy } = DOG1_WITH_MATE;
+  const pct = (v: number) => `${Math.round(v * 1000) / 10}%`;
+  return [{ width: pct(d), left: pct(cx - d / 2), top: pct(cy - d / 2) }];
+}
+
 /** FOTKA MAJITEĽA + SATELIT PSOV. Bez `onToggle` je satelit len obraz (náhľad v UPRAVIŤ). */
-export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, photoLabel, toggleLabel, badge, story, onAdd, addLabel, onDogPhoto, dogBusy, dogPhotoLabel }: {
+export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, photoLabel, toggleLabel, badge, story, onAdd, addLabel, onDogPhoto, dogBusy, dogPhotoLabel, mate }: {
   photo: string | null;
+  /** PAWMATE ukázaný vedľa majiteľa (26. 10. 2026). Bez neho sa hlava kreslí ako dovtedy. */
+  mate?: { photo: string | null; initial: string; label: string; onClick?: () => void } | null;
   initial: string;
   dogs: PackDogFull[];
   open?: boolean;
@@ -532,8 +567,13 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
           {photo ? <img src={sizedUrl(photo, 320)} alt="" /> : <span className="ini">{initial}</span>}
         </button>
         {badge}
+        {mate && (
+          <button type="button" className="me-mate" onClick={mate.onClick} disabled={!mate.onClick} aria-label={mate.label}>
+            {mate.photo ? <img src={sizedUrl(mate.photo, 200)} alt="" /> : <i>{mate.initial}</i>}
+          </button>
+        )}
         <span className="me-arc">
-          {arcDogs(shown.length).map((p, k) => {
+          {arcFor(shown.length, !!mate).map((p, k) => {
             const d = shown[k];
             return (
               <button key={d.id} type="button" className="ad me-sdog" style={p} onClick={() => onDogPhoto(d)} disabled={dogBusy === d.id}
@@ -554,6 +594,11 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
           {photo ? <img src={sizedUrl(photo, 320)} alt="" /> : <span className="ini">{initial}</span>}
         </button>
         {badge}
+        {mate && (
+          <button type="button" className="me-mate" onClick={mate.onClick} disabled={!mate.onClick} aria-label={mate.label}>
+            {mate.photo ? <img src={sizedUrl(mate.photo, 200)} alt="" /> : <i>{mate.initial}</i>}
+          </button>
+        )}
         <span className="me-sat">
           {dogs.slice(0, 3).map((d) => (
             <button key={d.id} type="button" className="s me-sdog" onClick={() => onDogPhoto(d)} disabled={dogBusy === d.id}
@@ -588,9 +633,14 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
         {photo ? <img src={sizedUrl(photo, 320)} alt="" /> : <span className="ini">{initial}</span>}
       </button>
       {badge}
+      {mate && (
+        <button type="button" className="me-mate" onClick={mate.onClick} disabled={!mate.onClick} aria-label={mate.label}>
+          {mate.photo ? <img src={sizedUrl(mate.photo, 200)} alt="" /> : <i>{mate.initial}</i>}
+        </button>
+      )}
       {arc && (
         <button type="button" className="me-arc" onClick={onToggle} aria-expanded={open} aria-label={toggleLabel} disabled={!onToggle}>
-          {arcDogs(dogs.length).map((p, k) => {
+          {arcFor(dogs.length, !!mate).map((p, k) => {
             const more = dogs.length > ARC_MAX && k === ARC_MAX - 1;
             const d = dogs[k];
             return more
