@@ -31,7 +31,7 @@ export function MateHome({ dogs, me, onInvite, flat }: {
   /** Psy, ku ktorým má pawmate prístup — všetky patria pawtnerovi. */
   dogs: PackDogFull[];
   /** Pawmate sám — malý kruh vedľa pawtnera. */
-  me: { photo: string | null; initial: string; name: string };
+  me: { photo: string | null; initial: string; name: string; uid?: string | null };
   onInvite?: () => void;
   flat: boolean;
 }) {
@@ -192,7 +192,7 @@ export function MateHome({ dogs, me, onInvite, flat }: {
         </div>
       </section>
       {reading && (
-        <PostViewer post={reading} name={ownerName} avatar={ownerAvatar} dogs={ownerDogs} mine={false} authorN={ownerNumber} lang={lang} onClose={() => setReading(null)} />
+        <PostViewer post={reading} name={ownerName} avatar={ownerAvatar} dogs={ownerDogs} mine={!!me.uid && reading.actedBy === me.uid} authorN={ownerNumber} lang={lang} onClose={() => setReading(null)} />
       )}
     </>
   );

@@ -244,7 +244,7 @@ export default function PackMe() {
         <style>{PILL_CSS}</style>
         <style>{ME_CSS}</style>
         {FLAT && <style>{ME_FLAT_CSS}</style>}
-        <MateHome dogs={dogs} me={{ photo: avatarUrl, initial: avatarInitial, name: shownName }} onInvite={shareData ? invite : undefined} flat={FLAT} />
+        <MateHome dogs={dogs} me={{ photo: avatarUrl, initial: avatarInitial, name: shownName, uid }} onInvite={shareData ? invite : undefined} flat={FLAT} />
         {shareOpen && shareData && <TripShareSheet kind="dog" data={shareData} onClose={() => setShareOpen(false)} />}
       </PackLayout>
     );

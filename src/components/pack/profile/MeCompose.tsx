@@ -17,6 +17,7 @@ import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PF_FIEL
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser } from '@/hooks/usePackUser';
+import { useMyDogRights } from '@/lib/dogRights';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { publish, type ComposeMode, type Visibility } from '@/components/pack/profile/mePosts';
 import { PlaceField, type PostPlace } from '@/components/pack/profile/PlaceField';
@@ -97,6 +98,13 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   const { session } = usePackIdentity();
   const uid = session?.user?.id ?? null;
   const { dogs } = usePackUser(uid);
+  // K4 MODEL A: pawmate bez vlastného psa NEMÁ vlastný profil — píše do pawtnerovho a server
+  // dopíše `acted_by`. Bez práva `social` neodošle nič (server by to aj tak odmietol).
+  const rights = useMyDogRights();
+  const mateOnly = !!rights.rows && rights.rows.length > 0 && !rights.rows.some((r) => r.isOwner);
+  const actRow = mateOnly ? rights.rows!.find((r) => r.rights.social === true) ?? null : null;
+  const author = actRow ? dogs.find((d) => d.id === actRow.dogId)?.user_id ?? null : null;
+  const blockedMate = mateOnly && !author;
 
   const [files, setFiles] = useState<File[]>([]);
   const [cur, setCur] = useState(0);
@@ -148,13 +156,13 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   const heading = mode === 'moment' ? tx('pack.compose.newStory', 'New story')
     : mode === 'album' ? tx('pack.compose.newAlbum', 'New album')
       : tx('pack.compose.newPost', 'New post');
-  const ready = files.length > 0 && !!uid && (mode !== 'album' || title.trim().length > 0) && (mode !== 'post' || pills || nature !== null);
+  const ready = files.length > 0 && !!uid && !blockedMate && (mode !== 'album' || title.trim().length > 0) && (mode !== 'post' || pills || nature !== null);
 
   const share = async () => {
     if (!ready || !uid || busy) return;
     setBusy(true);
     try {
-      await publish({ uid, mode, files, body, title, dogIds, visibility: vis, place: mode === 'post' ? place : null, nature: mode === 'post' && !pills && nature === true, topics: mode === 'post' && pills ? topics : undefined });
+      await publish({ uid, author, mode, files, body, title, dogIds, visibility: vis, place: mode === 'post' ? place : null, nature: mode === 'post' && !pills && nature === true, topics: mode === 'post' && pills ? topics : undefined });
       toast({ title: mode === 'moment' ? tx('pack.compose.storyDone', 'Your story is live for 24 hours') : tx('pack.compose.done', 'Shared') });
       onClose();
     } catch (err) {
@@ -196,6 +204,7 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
         </div>
         <div className="mc-body">
           {inputs}
+          {blockedMate && <p className="mc-note">{tx('pack.mate.composeLocked', 'Your pawtner hasn\'t allowed you to post yet — they can turn it on in My pack.')}</p>}
           {flow && step === 2 ? (
             <div className="mc-strip">
               {urls.map((u) => <span key={u} className="mc-th"><img src={u} alt="" /></span>)}

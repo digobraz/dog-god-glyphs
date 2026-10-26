@@ -39,6 +39,8 @@ export interface MePost {
   attach: { trip_slug?: string; dogs?: string[]; title?: string; place?: { name: string; lat?: number; lon?: number } };
   visibility: Visibility;
   createdAt: string;
+  /** K4: kto to NAOZAJ urobil, keď to nebol autor (pawmate z pawtnerovho profilu). Plní ho DB trigger. */
+  actedBy: string | null;
 }
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
@@ -51,7 +53,7 @@ export const isLive = (p: MePost, now = Date.now()) => isMoment(p) && now - Date
 
 export async function fetchMyPosts(uid: string): Promise<MePost[]> {
   const { data, error } = await db.from('posts')
-    .select('id, body, photos, tags, attach, visibility, created_at')
+    .select('id, body, photos, tags, attach, visibility, created_at, acted_by')
     .eq('author_id', uid).order('created_at', { ascending: false }).limit(200);
   if (error) throw error;
   return ((data ?? []) as Array<Record<string, unknown>>).map((r) => ({
@@ -62,6 +64,7 @@ export async function fetchMyPosts(uid: string): Promise<MePost[]> {
     attach: (r.attach ?? {}) as MePost['attach'],
     visibility: r.visibility === 'public' ? 'public' : 'private',
     createdAt: String(r.created_at),
+    actedBy: typeof r.acted_by === 'string' ? r.acted_by : null,
   }));
 }
 
@@ -87,6 +90,9 @@ async function uploadAll(files: File[], uid: string): Promise<string[]> {
  *  zmazanie); príspevok a album = jeden riadok so všetkými fotkami. */
 export async function publish(opts: {
   uid: string;
+  /** K4 MODEL A: pawmate píše Z PAWTNEROVHO profilu — riadok nesie pawtnerovo `author_id`,
+   *  `acted_by` doplní server. Bez neho = vlastný profil. */
+  author?: string | null;
   mode: ComposeMode;
   files: File[];
   body: string;
@@ -106,7 +112,7 @@ export async function publish(opts: {
   if (opts.place?.name.trim()) attach.place = { ...opts.place, name: opts.place.name.trim() };
   const tag = opts.mode === 'moment' ? TAG_MOMENT : opts.mode === 'album' ? TAG_ALBUM : TAG_POST;
   const tags = opts.mode === 'post' ? [tag, ...(opts.nature ? [TAG_NATURE] : []), ...(opts.topics ?? []).slice(0, 2)] : [tag];
-  const base = { author_id: opts.uid, body: opts.body.trim(), tags, attach, visibility: opts.visibility };
+  const base = { author_id: opts.author || opts.uid, body: opts.body.trim(), tags, attach, visibility: opts.visibility };
   const rows = opts.mode === 'moment' ? photos.map((p) => ({ ...base, photos: [p] })) : [{ ...base, photos }];
   const { error } = await db.from('posts').insert(rows);
   if (error) throw error;

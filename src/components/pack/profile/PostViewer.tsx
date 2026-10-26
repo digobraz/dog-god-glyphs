@@ -28,6 +28,7 @@ import { toggleMark } from '@/components/pack/story/storyData';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandPaw, HandStar, HandTrash } from '@/components/pack/HandIcons';
 import { createEmoji } from '@/components/pack/addtrip/AddTripEntry';
+import { ActedBy } from './ActedBy';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { ADD_WISH_CSS } from '@/components/pack/mapnotes/AddWish';
 import { WishSheet } from '@/components/pack/mapnotes/WishSheet';
@@ -211,6 +212,8 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
               ? <button type="button" className="pl" onClick={openMapy}>{place.name}</button>
               : <span className="pl">{place.name}</span>)}
           </span>
+          {/* K4: pawmate z pawtnerovho profilu — kto to naozaj pridal */}
+          <ActedBy id={post.actedBy} />
           <PostMenu postId={post.id} authorN={authorN} authorName={name} mine={mine} onDelete={remove} />
         </div>
         <div className="pv-media" ref={media} onScroll={onScroll}>
