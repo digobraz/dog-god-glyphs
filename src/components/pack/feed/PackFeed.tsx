@@ -48,7 +48,8 @@ import { SnifferStrip, TripStrip, FEED_TOP_CSS } from './FeedTop';
 import { QuoteComments } from './QuoteComments';
 import { fetchQuoteComments } from '@/components/pack/trip/tripCommentsData';
 import { FeedMapCard, FEED_MAP_CSS, useMapAdds, type MapAdd } from './FeedMapCard';
-import { POST_TAGS, postTopics } from './postTags';
+import { postTopics } from './postTags';
+import { FeedTopics, FEED_TOPICS_CSS, topicVariant, type TopicLook } from './FeedTopics';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -79,26 +80,18 @@ ${FEED_POST_CSS}
 ${FEED_AI_CSS}
 ${FEED_TOP_CSS}
 ${FEED_MAP_CSS}
-/* Feed je PLOCHÝ papyrus bez tapety (Matej 24. 10.: „layout bez toho čierneho pozadia ako je aj na ig"). */
-body.pkf-on .pk-paper{background-color:${PAPER_BG};}
-body.pkf-on .pk-paper::before,body.pkf-on .pk-paper::after{display:none;}
+${FEED_TOPICS_CSS}
+/* MOBIL: PLOCHÝ papyrus bez tapety (Matej 24. 10.: „layout bez toho čierneho pozadia ako je aj na ig").
+   PC (od 768): tapeta a príspevky v blokoch ostávajú (Matej 26. 10., kolo 5: „na pc by som vrátil ten štýl pozadie
+   a obsah na bloku… len na jednom pozadí to nevyzerá dobre"). */
+@media (max-width:767px){
+  body.pkf-on .pk-paper{background-color:${PAPER_BG};}
+  body.pkf-on .pk-paper::before,body.pkf-on .pk-paper::after{display:none;}
+}
 .pkf{color:${T.inkStrong};}
 /* padding-top: prvý nadpis nesmie začínať v prechode sticky hlavičky (Matej 26. 10.: „nie je to dobre vidieť"). */
 .pkf-col{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:${S.lg}px;padding:${S.lg}px 0 ${S.xl}px;}
 .pkf-top{display:flex;flex-direction:column;gap:${S.lg}px;}
-
-/* TÉMY — dlaždice s veľkou ikonou namiesto tenkých pilulek (Matej 26. 10.: „krajšie, nápaditejšie, aby som si to všimol"). */
-.pkf-th{margin:0 0 ${S.sm}px;font:500 ${TX.micro}px/1.2 ${FONT_UI};letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${T.inkWarm};}
-.pkf-tags{display:flex;gap:${S.sm}px;overflow-x:auto;scrollbar-width:none;margin:0 -${S.lg}px;padding:0 ${S.lg}px ${S.xs}px;scroll-snap-type:x proximity;}
-.pkf-tags::-webkit-scrollbar{display:none;}
-.pkf-tag{flex:none;width:88px;display:flex;flex-direction:column;align-items:center;gap:${S.sm}px;padding:${S.md}px ${S.xs}px ${S.sm}px;cursor:pointer;
-  border-radius:${PACK_R.tile}px;border:1.5px solid ${T.border};background:${T.card};color:${T.inkStrong};scroll-snap-align:start;
-  font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;line-height:1.25;text-align:center;transition:transform .12s ease;}
-.pkf-tag:active{transform:scale(.94);}
-.pkf-tag .ic{width:48px;height:48px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;background:${PAPER_BG};border:1px solid ${T.hairline};}
-.pkf-tag span:last-child{min-height:2.5em;display:flex;align-items:center;}
-.pkf-tag.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
-.pkf-tag.on .ic{border-color:${LAPIS.edge};}
 
 /* HĽADANIE VO FEEDE (lupa v hlavičke) */
 .pkf-sb{display:flex;align-items:center;gap:${S.sm}px;padding:${S.sm}px ${S.md}px;border-radius:${PACK_R.field}px;border:1.5px solid ${LAPIS.edge};background:${T.card};}
@@ -109,6 +102,10 @@ body.pkf-on .pk-paper::before,body.pkf-on .pk-paper::after{display:none;}
 /* PRÍSPEVOK CEZ CELÚ ŠÍRKU — bez rámu bloku; papyrusové delí vlasová čiara, AINUBIS nesie vlastný tmavý pás. */
 .pkf-list{display:flex;flex-direction:column;gap:${S.lg}px;}
 .pkf-it.pap{border-top:1px solid ${T.hairline};}
+@media (min-width:768px){
+  body.pkf-on .pk-paper.pk-plain::before,body.pkf-on .pk-paper.pk-plain::after{display:block;}
+  .pkf-it.pap{overflow:hidden;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px;box-shadow:${T.cardShadow};}
+}
 @media (max-width:639px){
   .pkf-it{margin:0 -${PACK_COL_PAD.mobile}px;}
   .pkf-it .fai,.pkf-it .akv-zv{border-radius:0;border-left-width:0;border-right-width:0;}
@@ -224,6 +221,26 @@ export function PackFeed() {
     return [...ok.slice(k), ...ok.slice(0, k)];
   }, [scrolls, lang, day]);
   const savedScrolls = useMemo(() => savedIds.map((id) => scrolls.find((z) => z.id === id)).filter((z): z is DemoScroll => !!z), [savedIds, scrolls]);
+
+  // Návrh B: obraz a počet kusov témy zo skutočného obsahu (výlet, zvitok sveta, výjav citátu ako náhrada).
+  const looks = useMemo(() => {
+    const inW = (ws: string[] | 'all') => allScrolls.filter((z) => ws === 'all' || ws.includes(z.world));
+    const tagged = (tag: string) => publicPosts.filter((p) => postTopics(p).includes(tag));
+    const scene = (n: number) => `/feed/citaty/c${n}.webp`;
+    const out: Record<string, TopicLook> = {
+      all: { img: scene(3), n: 0 },
+      't:trip': { img: trips[0]?.trail.photos[0] ?? scene(5), n: trips.length + tagged('t:trip').length },
+    };
+    for (const [tag, ws] of Object.entries(TOPIC_WORLDS)) {
+      const zs = inW(ws);
+      out[tag] = { img: zs[0]?.img ?? scene(7), n: zs.length + tagged(tag).length };
+    }
+    ([['t:fun', 9], ['t:tips', 12], ['t:help', 15], ['t:life', 18]] as const).forEach(([tag, n]) => {
+      const p = tagged(tag);
+      out[tag] = { img: p[0]?.photos[0] ?? scene(n), n: p.length };
+    });
+    return out;
+  }, [allScrolls, publicPosts, trips]);
 
   const ownName = firstWord((dogs[0]?.owner_name || '').trim()) || tx('pack.feed.you', 'You');
   const youImg = avatarUrl || dogs[0]?.cloudinary_main_url || null;
@@ -397,21 +414,8 @@ export function PackFeed() {
           <div className="pkf-top">
             <TripStrip trips={trips.slice(0, 8)} />
           </div>
-          {/* TÉMY — tie isté štítky ako pri pridávaní príspevku (`postTags.ts`), dlaždica s ikonou + „Všetko". */}
-          <section>
-            <h2 className="pkf-th">{tx('pack.feed.tag.filter', 'Topics')}</h2>
-            <div className="pkf-tags" role="group" aria-label={tx('pack.feed.tag.filter', 'Topics')}>
-              <button type="button" className={`pkf-tag${topic === null ? ' on' : ''}`} aria-pressed={topic === null} onClick={() => setTopic(null)}>
-                <span className="ic"><BrandIcon name="paw" size={28} tint="dark" /></span><span>{tx('pack.feed.tag.all', 'All')}</span>
-              </button>
-              {POST_TAGS.map((d) => (
-                <button key={d.tag} type="button" className={`pkf-tag${topic === d.tag ? ' on' : ''}`} aria-pressed={topic === d.tag}
-                  onClick={() => setTopic((c) => (c === d.tag ? null : d.tag))}>
-                  <span className="ic"><BrandIcon name={d.icon} size={28} tint="dark" /></span><span>{tx(d.i18n, d.fallback)}</span>
-                </button>
-              ))}
-            </div>
-          </section>
+          {/* TÉMY — tie isté štítky ako pri pridávaní príspevku (`postTags.ts`); tvar = návrh z `?temy=` (kolo 5). */}
+          <FeedTopics variant={topicVariant(params.get('temy'))} topic={topic} onTopic={setTopic} looks={looks} />
         </>)}
 
         <div className="pkf-list">
