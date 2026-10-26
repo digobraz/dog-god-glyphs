@@ -213,7 +213,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
               : <span className="pl">{place.name}</span>)}
           </span>
           {/* K4: pawmate z pawtnerovho profilu — kto to naozaj pridal */}
-          <ActedBy id={post.actedBy} />
+          <ActedBy id={post.actedBy} name={post.actedName} />
           <PostMenu postId={post.id} authorN={authorN} authorName={name} mine={mine} onDelete={remove} />
         </div>
         <div className="pv-media" ref={media} onScroll={onScroll}>

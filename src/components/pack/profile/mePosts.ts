@@ -41,6 +41,8 @@ export interface MePost {
   createdAt: string;
   /** K4: kto to NAOZAJ urobil, keď to nebol autor (pawmate z pawtnerovho profilu). Plní ho DB trigger. */
   actedBy: string | null;
+  /** Meno zapísané pri čine — štítok prežije zánik účtu pawmata. */
+  actedName: string | null;
 }
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
@@ -53,7 +55,7 @@ export const isLive = (p: MePost, now = Date.now()) => isMoment(p) && now - Date
 
 export async function fetchMyPosts(uid: string): Promise<MePost[]> {
   const { data, error } = await db.from('posts')
-    .select('id, body, photos, tags, attach, visibility, created_at, acted_by')
+    .select('id, body, photos, tags, attach, visibility, created_at, acted_by, acted_name')
     .eq('author_id', uid).order('created_at', { ascending: false }).limit(200);
   if (error) throw error;
   return ((data ?? []) as Array<Record<string, unknown>>).map((r) => ({
@@ -65,6 +67,7 @@ export async function fetchMyPosts(uid: string): Promise<MePost[]> {
     visibility: r.visibility === 'public' ? 'public' : 'private',
     createdAt: String(r.created_at),
     actedBy: typeof r.acted_by === 'string' ? r.acted_by : null,
+    actedName: typeof r.acted_name === 'string' ? r.acted_name : null,
   }));
 }
 

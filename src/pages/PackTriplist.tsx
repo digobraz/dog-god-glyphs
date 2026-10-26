@@ -37,7 +37,8 @@ import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, P
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
 import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, tripName, visibleLocalTrails, tripDraftMissing, memberTrailIds, coverPos } from '@/components/pack/tripShared';
-import { closeMyTripEvents, readLocalTrailMeta, readJson, writeJson, readWalkedAt, readMyClaims, PACK_KEYS } from '@/lib/packStore';
+import { closeMyTripEvents, readLocalTrailMeta, readJson, writeJson, readWalkedAt, readWalkedBy, readMyClaims, PACK_KEYS } from '@/lib/packStore';
+import { ActedBy } from '@/components/pack/profile/ActedBy';
 import { isFounderEmail } from '@/lib/founder';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 // Tvary počítaného mena (1 výlet · 2–4 výlety · 5+ výletov) — jeden zdroj pre celý /pack.
@@ -638,6 +639,8 @@ export default function PackTriplist() {
     () => sortMyTrips(realMyTrips, nowMs, mg ? {} : readWalkedAt()),
     [realMyTrips, nowMs, storeEpoch], // eslint-disable-line react-hooks/exhaustive-deps
   );
+  // K4: kto mi výlet zapísal (pawmate) — číta sa z tej istej synchronizácie ako `walkedAt`.
+  const walkedBy: ReturnType<typeof readWalkedBy> = mg ? {} : readWalkedBy();
 
   // ── #43: MOJE VÝLETY SÚ DVE SEKCIE, NIE JEDEN PÁS (18. 9. 2026) ─────────────
   // Meranie z 16. 9.: 73 kariet v jednom rade, pás široký 11 818 px, z toho 72 prejdených.
@@ -990,6 +993,8 @@ export default function PackTriplist() {
           </div>
           <div className="tl-block-info">
             <div className="tl-block-name">{tripName(trail, lang)}</div>
+            {/* K4: výlet mi zapísal pawmate — je môj, štítok hovorí kto */}
+            {done && walkedBy[entry.tripId] && <div><ActedBy id={walkedBy[entry.tripId].id} name={walkedBy[entry.tripId].name} /></div>}
             {mod === 'pending' && <div className="tl-block-pendhint">{t('pack.triplist.pendingHint')}</div>}
             {gradeRes && (
               <button

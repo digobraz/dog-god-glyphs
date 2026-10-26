@@ -213,6 +213,8 @@ export interface MapNote {
   myLike: boolean;
   /** odvodené serverom (2× „už neplatí“ ⇒ true), alebo ručný override Mateja */
   isStale: boolean;
+  /** K4: značku za pawtnera položil pawmate — meno zapísané pri čine. */
+  actedName?: string | null;
 }
 
 interface NoteRow {
@@ -236,6 +238,7 @@ interface NoteRow {
   likes: number | null;
   my_like: boolean | null;
   is_stale: boolean;
+  acted_name?: string | null;
 }
 
 function fromRow(r: NoteRow): MapNote {
@@ -257,6 +260,7 @@ function fromRow(r: NoteRow): MapNote {
     // `?? null` NIE JE ozdoba — kým migrácia lajkov nie je na LIVE, RPC tie stĺpce
     // nevráti vôbec a bublina by čítala `undefined`.
     authorPhoto: r.author_photo ?? null,
+    actedName: r.acted_name ?? null,
     packNumber: r.pack_number,
     validVotes: r.valid_votes ?? 0,
     staleVotes: r.stale_votes ?? 0,

@@ -37,7 +37,8 @@ export const ACTED_BY_CSS = `${PILL_CSS}
 .k4-by i{display:grid;place-items:center;font-style:normal;font-size:${PACK_TEXT.micro}px;color:#FFFDF7;background:#7a5a2a;}
 `;
 
-export function ActedBy({ id, fallback = 'pawmate' }: { id: string | null | undefined; fallback?: string }) {
+/** `name` = meno zapísané pri čine (`acted_name`) — štítok ostane, aj keď účet pawmata už zanikol. */
+export function ActedBy({ id, name, fallback = 'pawmate' }: { id: string | null | undefined; name?: string | null; fallback?: string }) {
   const [card, setCard] = useState<Card | null>(null);
   useEffect(() => {
     if (!id) { setCard(null); return; }
@@ -45,13 +46,13 @@ export function ActedBy({ id, fallback = 'pawmate' }: { id: string | null | unde
     void actorCard(id).then((c) => { if (alive) setCard(c); });
     return () => { alive = false; };
   }, [id]);
-  if (!id || !card) return null;
-  const nm = card.name || fallback;
+  if (!card && !name) return null;
+  const nm = card?.name || name || fallback;
   return (
     <>
       <style>{ACTED_BY_CSS}</style>
       <span className="pk-pill k4-by">
-        {card.photo ? <img src={sizedUrl(card.photo, 40)} alt="" /> : <i>{nm[0].toUpperCase()}</i>}
+        {card?.photo ? <img src={sizedUrl(card.photo, 40)} alt="" /> : <i>{nm[0].toUpperCase()}</i>}
         {nm}
       </span>
     </>

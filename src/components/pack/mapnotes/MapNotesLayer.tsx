@@ -18,6 +18,7 @@
 // ktoré appka doteraz NIKDE nekreslila — pozri `datasetNotes()` v mapNotesGeo.ts.
 // Sú to dáta z datasetu, nie od členov: nemajú autora, nehlasuje sa o nich
 // a nedajú sa mazať.
+import { ActedBy } from '@/components/pack/profile/ActedBy';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Marker, Circle, Popup, useMap, useMapEvent } from 'react-leaflet';
@@ -385,6 +386,7 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
                   </span>}
               <span className="mn-bubble-who">
                 {n.authorFirst && <b className="mn-bubble-author">{n.authorFirst}</b>}
+                {n.actedName && <ActedBy id={null} name={n.actedName} />}
                 <span className="mn-bubble-date">{formatDate(n.createdAt, locale)}</span>
               </span>
             </div>
