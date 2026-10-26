@@ -37,6 +37,7 @@
 import { trackPack } from './packAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadPackTripPhoto } from '@/services/cloudinaryService';
+import { takeUploadBlob } from '@/components/pack/addtrip/photoOptimize';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 
 // ── úložisko ────────────────────────────────────────────────────────────────
@@ -706,7 +707,7 @@ async function processOverrideQueue(): Promise<void> {
           const photos = [...(ov.photos ?? [])];
           for (let i = 0; i < photos.length; i++) {
             if (!photos[i].startsWith('data:')) continue;
-            const { secureUrl } = await uploadPackTripPhoto(dataUrlToBlob(photos[i]), OVR_SLUG_PREFIX + id, i);
+            const { secureUrl } = await uploadPackTripPhoto(takeUploadBlob(photos[i]) ?? dataUrlToBlob(photos[i]), OVR_SLUG_PREFIX + id, i);
             photos[i] = secureUrl;
             const cur = readTrailOverrides();
             writeJson(PACK_KEYS.trailOverrides, { ...cur, [id]: { ...cur[id], photos } });
@@ -743,7 +744,7 @@ async function uploadTrailPhotos(slug: string): Promise<string[]> {
   const photos = [...(trail?.photos ?? [])];
   for (let i = 0; i < photos.length; i++) {
     if (!photos[i].startsWith('data:')) continue; // už URL (predchádzajúci beh / plánovaný trip bez fotky)
-    const blob = dataUrlToBlob(photos[i]);
+    const blob = takeUploadBlob(photos[i]) ?? dataUrlToBlob(photos[i]);
     const { secureUrl } = await uploadPackTripPhoto(blob, slug, i);
     photos[i] = secureUrl;
     const all = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []);

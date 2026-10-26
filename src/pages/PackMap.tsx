@@ -6168,7 +6168,7 @@ export default function PackMap() {
     // holú Cloudinary adresu bez transformácie — karta ťahala ORIGINÁL (aj 4000 px .jpg).
     // Karta je najviac ~360 px široká ⇒ strop 1080 px na dlhšej strane = ostrá na retine.
     // Karta v zozname má najviac ~400 px (panel 440) × DPR 2 ⇒ 800; 1080 ťahal 13 MB pri otvorení (audit 27. 9.).
-    const photo = sizedUrl(tr.photos[idx] ?? tr.photos[0], 800) || placeholderFor(tr.acts, tr.id);
+    const photo = sizedUrl(tr.photos[idx] ?? tr.photos[0], 1080) || placeholderFor(tr.acts, tr.id);
     const agg = crowdAggregate(tr, votes[tr.id]);
     const others = Math.max(0, agg.dogyptianCount - founderDogyptians(tr)); // Dogypťania nad zakladateľa (človek + psy)
     // ⚠️ `walkerCount` = koľkí PREŠLI. `walkedCount` je od 17. 9. počet HODNOTENÍ a dal by tu nulu vždy.

@@ -65,12 +65,44 @@ function drawToCanvas(img: HTMLImageElement, maxDim: number): HTMLCanvasElement 
   return canvas;
 }
 
+/**
+ * KVALITNÁ VERZIA PRE CLOUDINARY (26. 10. 2026).
+ *
+ * Matej: „kvalita na feede aj celkovo je nižšia možno to bude ludom vadiť". Rozpočet vyššie
+ * (73 kB) platí pre localStorage, no tá istá malá data URL išla aj na Cloudinary — karta
+ * výletu na PC (485 px × DPR 2) tak dostala 600–720 px pri kvalite 0,4. Odteraz sa pri
+ * zmenšení vyrobí aj kvalitná verzia a upload si ju vezme cez `takeUploadBlob`. Malá ostáva
+ * náhľadom a zálohou: keď sa stránka medzi výberom a uploadom obnoví, ide malá (ako doteraz).
+ */
+const UPLOAD_STEP = { maxDim: 1600, quality: 0.82 };
+const uploadBlobs = new Map<string, Blob>();
+
+/** Kvalitná verzia k data URL z `optimizePhoto`, ak ešte žije v pamäti. Po prevzatí sa zabudne. */
+export function takeUploadBlob(small: string): Blob | null {
+  const b = uploadBlobs.get(small);
+  if (b) uploadBlobs.delete(small);
+  return b ?? null;
+}
+
+function encodeBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null> {
+  return new Promise((res) => {
+    try {
+      canvas.toBlob((webp) => {
+        if (webp && webp.type === 'image/webp') return res(webp);
+        canvas.toBlob((jpg) => res(jpg), 'image/jpeg', quality);
+      }, 'image/webp', quality);
+    } catch { res(null); }
+  });
+}
+
 export function optimizePhoto(file: File): Promise<string | null> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
-    img.onload = () => {
+    img.onload = async () => {
       URL.revokeObjectURL(url);
+      const hqCanvas = drawToCanvas(img, UPLOAD_STEP.maxDim);
+      const hq = hqCanvas ? await encodeBlob(hqCanvas, UPLOAD_STEP.quality) : null;
       let last: string | null = null;
       for (const step of PHOTO_STEPS) {
         const canvas = drawToCanvas(img, step.maxDim);
@@ -82,6 +114,7 @@ export function optimizePhoto(file: File): Promise<string | null> {
       }
       // Posledný pokus sa vracia aj keď je nad rozpočtom — fotka z panorámy sa pod strop
       // dostať nemusí a zahodiť ju ticho by bolo horšie než uložiť o niečo väčšiu.
+      if (last && hq) uploadBlobs.set(last, hq);
       resolve(last);
     };
     img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
