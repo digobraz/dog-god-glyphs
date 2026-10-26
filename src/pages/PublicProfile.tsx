@@ -33,7 +33,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME, PACK_SPACE, PACK_TEXT, PF_FIELD_CSS, PILL_CSS, FONT_UI } from '@/components/pack/packTheme';
 import type { PackDogFull } from '@/hooks/usePackUser';
-import { customPills, profileRoles, humanPills } from '@/components/pack/profile/packProfile';
+import { customPills, roleLabels, humanPills } from '@/components/pack/profile/packProfile';
 import { fetchMemberProfiles, memberAvatarUrl, memberDisplayName, type MemberProfile } from '@/components/pack/profile/memberProfile';
 import { coverOfDay } from '@/components/pack/profile/mePosts';
 import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeRank, MeDogRow, MeFlag } from '@/components/pack/profile/meHead';
@@ -317,11 +317,11 @@ export default function PublicProfile() {
 
           {FLAT ? (
             <div className="me-role me-role--label">
-              <span>{mate ? tx('pack.add.pawmate', 'Pawmate') : profileRoles(human).map((r) => tx(`pack.role.${r}`, r)).join(' · ')}</span>
+              <span>{roleLabels(!!mate, human, tx).join(' · ')}</span>
               <i aria-hidden />
             </div>
           ) : (
-            <div className="me-role">{profileRoles(human).map((r) => <span key={r} className="pk-pill">{tx(`pack.role.${r}`, r)}</span>)}</div>
+            <div className="me-role">{roleLabels(!!mate, human, tx).map((r) => <span key={r} className="pk-pill">{r}</span>)}</div>
           )}
 
           <div className={`me-bio${bioFull ? ' full' : ''}${bio ? '' : ' empty'}`}>

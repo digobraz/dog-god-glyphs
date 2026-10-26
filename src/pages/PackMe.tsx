@@ -26,7 +26,7 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { usePilgrimStats, usePublishPilgrimLevel, usePublishProfileStats } from '@/components/pack/usePilgrimStats';
-import { useProfile, customPills, profileRoles, humanPills } from '@/components/pack/profile/packProfile';
+import { useProfile, customPills, roleLabels, humanPills } from '@/components/pack/profile/packProfile';
 import { useScrollState, useLiked, useSaved } from '@/components/pack/vault/vaultScrolls';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { devotionLevel, DEVOTION_TODAY_ON } from '@/lib/devotion';
@@ -368,11 +368,11 @@ export default function PackMe() {
               istý ako dolné pillsy povahy"* → z troch návrhov *„ja by som dal P3"*). Štítok + zlatá linka. */}
           {FLAT ? (
             <div className="me-role me-role--label">
-              <span>{isMate ? tx('pack.add.pawmate', 'Pawmate') : profileRoles(human).map((r) => tx(`pack.role.${r}`, r)).join(' · ')}</span>
+              <span>{roleLabels(!!isMate, human, tx).join(' · ')}</span>
               <i aria-hidden />
             </div>
           ) : (
-            <div className="me-role">{profileRoles(human).map((r) => <span key={r} className="pk-pill">{tx(`pack.role.${r}`, r)}</span>)}</div>
+            <div className="me-role">{roleLabels(!!isMate, human, tx).map((r) => <span key={r} className="pk-pill">{r}</span>)}</div>
           )}
 
           <div className={`me-bio${bioFull ? ' full' : ''}${bio ? '' : ' empty'}`}>

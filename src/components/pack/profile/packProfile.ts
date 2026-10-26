@@ -1018,13 +1018,40 @@ export function customPills(h: Pick<HumanProfile, 'customPersonality' | 'customE
 
 /** ROLY človeka (Matej 23. 10. 2026: *„pills pawtner ale s možnosťou výberu … tvorca, liečiteľ,
  *  tréner, športovec, pútnik"*). PAWTNER je východisko — status každého, kto má psa s heroglyfom. */
-export const PROFILE_ROLES = ['pawtner', 'creator', 'healer', 'trainer', 'athlete', 'pilgrim'] as const;
-export type ProfileRole = typeof PROFILE_ROLES[number];
+// ROLY v TROCH SKUPINÁCH (Matej 26. 10. 2026: *„aká je tvoja rola v DOGYPTe, aký je tvoj prínos"*).
+// PAWTNER/PAWMATE už NIE JE rola — je to POSTAVENIE v svorke a určuje ho DB (kto vytvoril heroglyf), nie výber.
+// Skupina SRDCE (nie „PAWTNER") práve preto, aby si pawmate nevybral rolu „Pawtner". Chovateľská stanica = BIZNIS.
+// Nákres plany/nakresy/pawmate-rola-2026-10-26/.
+export const ROLE_GROUPS = [
+  { id: 'heart', emoji: '❤️', roles: ['volunteer', 'pilgrim', 'foster', 'fundraiser', 'shelter'] },
+  { id: 'creator', emoji: '✨', roles: ['healer', 'trainer', 'vet', 'physio', 'nutrition', 'events', 'educator', 'artist'] },
+  { id: 'business', emoji: '🏛️', roles: ['hotel', 'camp', 'cafe', 'daycare', 'handmade', 'shop', 'breeder', 'groomer'] },
+] as const;
+export type ProfileRole = typeof ROLE_GROUPS[number]['roles'][number];
+export const PROFILE_ROLES = ROLE_GROUPS.flatMap((g) => g.roles) as readonly ProfileRole[];
+export const ROLE_EMOJI: Record<ProfileRole, string> = {
+  volunteer: '🤝', pilgrim: '🥾', foster: '🏡', fundraiser: '🎁', shelter: '🐾',
+  healer: '🌿', trainer: '🎯', vet: '🩺', physio: '💆', nutrition: '🍖', events: '📅', educator: '🎓', artist: '🎨',
+  hotel: '🏨', camp: '⛺', cafe: '☕', daycare: '🎒', handmade: '🧶', shop: '🥩', breeder: '🏠', groomer: '🚿',
+};
+/** Staré hodnoty z editora pred 26. 10. — `pawtner` bolo postavenie, nie rola, a vypadne. */
+const LEGACY_ROLE: Record<string, ProfileRole | null> = { pawtner: null, creator: 'artist', athlete: 'pilgrim' };
 export const MAX_ROLES = 2;
-/** Roly človeka v poradí výberu — nikdy prázdne (východisko PAWTNER). */
+/** Roly človeka v poradí výberu. Môže byť PRÁZDNE — postavenie (Pawtner/Pawmate) ukazuje volajúci zvlášť. */
 export function profileRoles(h: Pick<HumanProfile, 'role' | 'roles'> | null | undefined): ProfileRole[] {
-  const list = (h?.roles?.length ? h.roles : h?.role ? [h.role] : []).filter((r) => (PROFILE_ROLES as readonly string[]).includes(r));
-  return list.length ? list.slice(0, MAX_ROLES) : ['pawtner'];
+  const raw: string[] = h?.roles?.length ? [...h.roles] : h?.role ? [h.role] : [];
+  const out: ProfileRole[] = [];
+  for (const r of raw) {
+    const v = (r in LEGACY_ROLE ? LEGACY_ROLE[r] : (PROFILE_ROLES as readonly string[]).includes(r) ? r : null) as ProfileRole | null;
+    if (v && !out.includes(v)) out.push(v);
+  }
+  return out.slice(0, MAX_ROLES);
+}
+
+/** Riadok pod menom: POSTAVENIE (Pawtner/Pawmate) + roly s emoji. Jeden zdroj pre editor, môj aj cudzí profil. */
+export function roleLabels(isMate: boolean, h: Pick<HumanProfile, 'role' | 'roles'> | null | undefined, tx: (k: string, f: string) => string): string[] {
+  const pos = isMate ? tx('pack.add.pawmate', 'Pawmate') : tx('pack.role.pawtner', 'Pawtner');
+  return [pos, ...profileRoles(h).map((r) => `${ROLE_EMOJI[r]} ${tx(`pack.role.${r}`, r)}`)];
 }
 
 /** Pilulky človeka = jeho POVAHA z editora (emoji + meno) + vlastné. Spoločné pre môj aj cudzí profil (25. 10. 2026). */
