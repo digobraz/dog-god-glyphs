@@ -60,6 +60,9 @@ const T = PACK_THEME;
 // pozadím"* → *„aplikuj to na celý pack, myslím na profily, dogs a id"*. Papyrus bez ohľadu na prepínač šatu.
 // Cudzí profil `/pack/u/:id` (25. 10.) má tú istú hlavu ako môj, teda aj tú istú plochu.
 const PLAIN_ROUTES: readonly RegExp[] = [/^\/pack\/profile(\/|$)/, /^\/pack\/dogs(\/|$)/, /^\/pack\/u\/[^/]+$/];
+// FEED 2 (26. 10. 2026): DOMOV `/pack` stojí na tej istej ploche — hlavička ostáva hore ako na profile
+// (Matej: *„potrebujem aby nejaká hlavička zostala“*). Len cesta presne `/pack`, nie celý strom.
+const PLAIN_HOME = /^\/pack\/?$/;
 if (TEST_BUILD) PAPER_ROUTES_EXTRA.push(...PLAIN_ROUTES);
 
 interface PackLayoutProps {
@@ -69,9 +72,11 @@ interface PackLayoutProps {
   /** Šípka späť v strede horného radu (PackTopRow). Bez nej je stred prázdny — homepage, profil. */
   onBack?: () => void;
   backLabel?: string;
+  /** Vedľa AINUBISA v hornom rade (FEED 2: lupa). */
+  topLeft?: ReactNode;
 }
 
-export function PackLayout({ children, title, subtitle, onBack, backLabel }: PackLayoutProps) {
+export function PackLayout({ children, title, subtitle, onBack, backLabel, topLeft }: PackLayoutProps) {
   const t = useT();
   const navigate = useNavigate();
   const { session, loading, dogs, devotion, bones, avatarUrl, avatarInitial, packTotal, packToday } = usePackIdentity();
@@ -84,7 +89,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel }: Pac
   //    tapeta stojí na `z-index:-1` a uzavrela by sa doň (viď PAPER_PAGE_CSS).
   const pathname = useLocation().pathname;
   const paperPage = usePaperRoute(pathname);
-  const plain = TEST_BUILD && PLAIN_ROUTES.some((r) => r.test(pathname)) ? ' pk-plain' : '';
+  const plain = TEST_BUILD && (PLAIN_ROUTES.some((r) => r.test(pathname)) || PLAIN_HOME.test(pathname)) ? ' pk-plain' : '';
 
   if (loading) {
     return (
@@ -156,7 +161,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel }: Pac
             away with the rest of the column. Pinned just under the safe-area, above content
             (z-index above the z-10 column). */}
         {DEV_FULL && (
-          <PackTopRow onBack={onBack} backLabel={backLabel} right={<PackTopRight last24h={packToday} total={packTotal} layout="inline" />} />
+          <PackTopRow onBack={onBack} backLabel={backLabel} left={topLeft} right={<PackTopRight last24h={packToday} total={packTotal} layout="inline" />} />
         )}
         {(title || subtitle) && (
           <header className="mb-7 text-center">

@@ -24,7 +24,7 @@
 import type { ReactNode } from 'react';
 import { HubAinubis } from './PackNotifications';
 import { BackButton } from './BackButton';
-import { PACK_TOPROW, PACK_COL_INNER, PACK_COL_PAD, PAPER_BG } from './packTheme';
+import { PACK_TOPROW, PACK_COL_INNER, PACK_COL_PAD, PAPER_BG, PACK_SPACE } from './packTheme';
 
 const CSS = `
 .pk-toprow{position:relative;z-index:30;
@@ -42,21 +42,23 @@ const CSS = `
   top:calc(100% + ${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h}px);height:${PACK_TOPROW.top}px;background:linear-gradient(180deg, ${PAPER_BG}, transparent);}
 [dir=rtl] .pk-toprow{margin-left:0;margin-right:50%;translate:50% 0;}
 .pk-toprow > *{pointer-events:auto;}
-.pk-toprow-l{justify-self:start;display:flex;}
+.pk-toprow-l{justify-self:start;display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
 .pk-toprow-r{justify-self:end;display:flex;align-items:center;}
 `;
 
-export function PackTopRow({ onBack, backLabel, right }: {
+export function PackTopRow({ onBack, backLabel, right, left }: {
   /** Bez `onBack` je stred prázdny (homepage, DOG ID, profil). */
   onBack?: () => void;
   backLabel?: string;
   /** Pravý kraj: správy a upozornenia, nastavenia SNIFFERu… */
   right?: ReactNode;
+  /** Vedľa AINUBISA vľavo — FEED 2 tu má lupu (Matej 26. 10. 2026: lupa vedľa AINUBISA, nie pri správach). */
+  left?: ReactNode;
 }) {
   return (
     <div className="pk-toprow">
       <style>{CSS}</style>
-      <span className="pk-toprow-l"><HubAinubis /></span>
+      <span className="pk-toprow-l"><HubAinubis />{left}</span>
       {onBack ? <BackButton tone="pale" onClick={onBack} label={backLabel ?? ''} /> : <span />}
       <span className="pk-toprow-r">{right}</span>
     </div>

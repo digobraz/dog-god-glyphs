@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME, PACK_BOX, PAPER_ROUTES_EXTRA } from '@/components/pack/packTheme';
 import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { HandSearch } from '@/components/pack/HandIcons';
 import { GlobePulse } from '@/components/pack/GlobePulse';
 import { WIZ } from '@/components/pack/wizAnchors';
 // NextTripCard parkuje (nahradený TripSpotlightom 9.8.2026) — pozri komentár pri bloku nižšie.
@@ -107,12 +108,30 @@ export default function Pack() {
   const { search } = useLocation();
   if (TEST_BUILD && new URLSearchParams(search).get('welcome') !== '1') {
     return (
-      <PackLayout>
+      <PackLayout topLeft={<FeedSearch />}>
         <Suspense fallback={null}><PackFeed /></Suspense>
       </PackLayout>
     );
   }
   return <PackLegacy />;
+}
+
+/**
+ * LUPA vedľa AINUBISA (FEED 2, Matej 26. 10. 2026: *„lupa… v brande, nie vyplnená ale outlined“*).
+ * Globálne hľadanie zatiaľ nie je — jediné hotové hľadanie je HĽADAŤ v SNIFFERi (ľudia), preto vedie tam.
+ * Obrys: biela výplň kresby z kitu sa zhasne, ostane len čiara.
+ */
+function FeedSearch() {
+  const navigate = useNavigate();
+  const t = useT();
+  const label = t('pack.feed.search') === 'pack.feed.search' ? 'Search' : t('pack.feed.search');
+  return (
+    <button type="button" className="pkf-lupa" aria-label={label} onClick={() => navigate('/pack/sniffer?tab=search')}
+      style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', display: 'grid', placeItems: 'center', color: PACK_THEME.inkStrong }}>
+      <style>{'.pkf-lupa path[fill="#ffffff"]{fill:transparent;}'}</style>
+      <HandSearch size={24} />
+    </button>
+  );
 }
 
 function PackLegacy() {

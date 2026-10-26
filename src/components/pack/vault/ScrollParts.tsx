@@ -24,7 +24,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
-import { AINUBIS, AI_GLASS, BRAIN_STATE, aiWorld } from '@/components/pack/ainubisSkin';
+import { AINUBIS, AI_GLASS, AI_WORLD, BRAIN_STATE, aiWorld } from '@/components/pack/ainubisSkin';
 import { HandStar, HandPlus, HandPaw, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft, HandTrash, HandLock } from '@/components/pack/HandIcons';
 
 /** Kresba z kitu `/icons/pack/` cez masku (ten istý zápis ako v PackAinubis). */
@@ -384,6 +384,53 @@ ${packColCSS('.zv-wrap')}
 .zv-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.md}px);z-index:41;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;background:${AINUBIS.surfaceBase};
   border:1px solid ${AINUBIS.edge};font-size:${PACK_TEXT.label}px;color:${AINUBIS.ink};}
+`;
+
+/* KARTA ZVITKU — jeden zdroj pre DOGSCROLL (`PackAinubis`) aj FEED (`feed/PackFeed`). Presunuté z PackAinubis
+   26. 10. 2026 bez zmeny (Matej: *„je to vlastne to isté, len v inom priečinku"*). PC rozloženie vedľa seba ostáva
+   v PackAinubis — viaže sa na kontajner police (`.akv-root.has-zv`), feed je vždy stĺpec. */
+export const SCROLL_CARD_CSS = `
+.akv-zvh{text-align:center;font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.label.letterSpacing};
+  text-transform:uppercase;color:${AINUBIS.cyan};}
+/* SVET vo farbe, ktorou ho kreslí mozog (WORLD_TINT cez --ai-w) — Matej 6. 10.: „z toho nie je jasné, aký je to svet“ */
+.akv-zvw{color:rgb(var(--ai-w,${AINUBIS.cyanRGB}));font-weight:600;}
+.akv-zv{position:relative;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
+  padding:${PACK_SPACE.md}px;border-radius:${PACK_R.card}px;${AI_GLASS}}
+.akv-zvimg{position:relative;flex:0 0 auto;}
+.akv-zvimg img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:${PACK_R.tile}px;cursor:pointer;}
+.akv-zvacts{align-self:stretch;margin-top:auto;display:flex;gap:${PACK_SPACE.sm}px;padding-top:${PACK_SPACE.sm}px;
+  border-top:1px solid ${AINUBIS.edge};}
+.akv-zvacts button{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  border-radius:${PACK_R.pill}px;background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};color:${AINUBIS.ink};}
+.akv-zvacts button:hover{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};}
+.akv-zvt{display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.lg}px;min-width:0;}
+.akv-zvlbl{font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
+/* písmo: nadpis */ .akv-zvn{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1.2;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};overflow-wrap:anywhere;}
+.akv-zvv{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.55;color:${AINUBIS.inkDim};}
+/* VEZMI SI Z TOHO — jedna veta (fasáda v2). Ľavá niť v zlato-oranžovej AINUBISA, nie plná plocha. */
+.akv-zvtake{align-self:stretch;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:${AINUBIS.ctaTint};
+  border-left:2px solid ${AINUBIS.ctaA};font-size:${PACK_TEXT.body}px;line-height:1.45;color:${AINUBIS.ink};}
+.akv-zvtake b{font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};}
+/* Jediné plné CTA na karte = AINUBISOVO zlato-oranžové; ostatné sú obrysové. */
+.akv-zvcta{align-self:stretch;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;cursor:pointer;border-radius:${PACK_R.field}px;
+  background:${AINUBIS.ctaGrad};border:1px solid ${AINUBIS.ctaEdge};color:${AINUBIS.ctaInk};
+  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;} /* písmo: cta */
+.akv-zvrow{align-self:stretch;display:flex;gap:${PACK_SPACE.sm}px;}
+.akv-zvsec{flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;cursor:pointer;white-space:nowrap;
+  padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.field}px;background:transparent;border:1px solid ${AINUBIS.edge};
+  color:${AINUBIS.cyan};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;}
+.akv-zvsec:hover{border-color:${AINUBIS.edgeStrong};}
+.akv-zvsec i{width:14px;height:14px;flex:0 0 auto;background:currentColor;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;}
+.akv-zvrel{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;}
+.akv-zvrel span{color:${AINUBIS.inkDim};}
+.akv-zvrel a{color:${AINUBIS.cyan};cursor:pointer;}
+/* Karta zvitku ŽIARI FARBOU SVOJHO SVETA (Matej 8. 10.) — prstenec cez pseudoprvok,
+   aby neprepísal vrstvy AI-SKLA na karte. */
+.akv-zv::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:${AI_WORLD.ring};}
 `;
 
 export function EvidenceBadge({ sd, lang, corner = false }: { sd: number; lang: string; corner?: boolean }) {

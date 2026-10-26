@@ -1304,7 +1304,7 @@
     "tien": 0,
     "pismenka": 0,
     "odsadenie": 0,
-    "cinzel": 7,
+    "cinzel": 5,
     "tucny": 0
   },
   "pages/PackBuddy.tsx": {

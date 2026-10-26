@@ -52,7 +52,7 @@ import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
 import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
 import { SCROLL_DEMO, useDemoScrolls, usePublicScrolls, useScrollState, useReadsReady, useReads, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import { VaultKnowledge, KNOW_CSS } from '@/components/pack/vault/VaultKnowledge';
-import { ScrollCard, ScrollView, SCROLL_CSS, scrollUI, circleName as scrollCircle } from '@/components/pack/vault/ScrollParts';
+import { ScrollCard, ScrollView, SCROLL_CSS, SCROLL_CARD_CSS, scrollUI, circleName as scrollCircle } from '@/components/pack/vault/ScrollParts';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
@@ -359,43 +359,7 @@ ${STAGE_CSS}
    a text VPRAVO; na mobile pod sebou.
    🔴 ROVNICA, NIE MERANIE: výšku obrazu drží 100cqh zoznamu (obsahová výška = nad
       rezervou lišty, takže CTA nikdy nepodlezie lištu), šírku police obraz + text. */
-.akv-zvh{text-align:center;font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.label.letterSpacing};
-  text-transform:uppercase;color:${AINUBIS.cyan};}
-/* SVET vo farbe, ktorou ho kreslí mozog (WORLD_TINT cez --ai-w) — Matej 6. 10.: „z toho nie je jasné, aký je to svet“ */
-.akv-zvw{color:rgb(var(--ai-w,${AINUBIS.cyanRGB}));font-weight:600;}
-.akv-zv{position:relative;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
-  padding:${PACK_SPACE.md}px;border-radius:${PACK_R.card}px;${AI_GLASS}}
-.akv-zvimg{position:relative;flex:0 0 auto;}
-.akv-zvimg img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:${PACK_R.tile}px;cursor:pointer;}
-.akv-zvacts{align-self:stretch;margin-top:auto;display:flex;gap:${PACK_SPACE.sm}px;padding-top:${PACK_SPACE.sm}px;
-  border-top:1px solid ${AINUBIS.edge};}
-.akv-zvacts button{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;
-  border-radius:${PACK_R.pill}px;background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};color:${AINUBIS.ink};}
-.akv-zvacts button:hover{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};}
-.akv-zvt{display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.lg}px;min-width:0;}
-.akv-zvlbl{font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
-.akv-zvn{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1.2;
-  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};overflow-wrap:anywhere;}
-.akv-zvv{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.55;color:${AINUBIS.inkDim};}
-/* VEZMI SI Z TOHO — jedna veta (fasáda v2). Ľavá niť v zlato-oranžovej AINUBISA, nie plná plocha. */
-.akv-zvtake{align-self:stretch;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;
-  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:${AINUBIS.ctaTint};
-  border-left:2px solid ${AINUBIS.ctaA};font-size:${PACK_TEXT.body}px;line-height:1.45;color:${AINUBIS.ink};}
-.akv-zvtake b{font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};}
-/* Jediné plné CTA na karte = AINUBISOVO zlato-oranžové; ostatné sú obrysové. */
-.akv-zvcta{align-self:stretch;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;cursor:pointer;border-radius:${PACK_R.field}px;
-  background:${AINUBIS.ctaGrad};border:1px solid ${AINUBIS.ctaEdge};color:${AINUBIS.ctaInk};
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
-.akv-zvrow{align-self:stretch;display:flex;gap:${PACK_SPACE.sm}px;}
-.akv-zvsec{flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;cursor:pointer;white-space:nowrap;
-  padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.field}px;background:transparent;border:1px solid ${AINUBIS.edge};
-  color:${AINUBIS.cyan};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;}
-.akv-zvsec:hover{border-color:${AINUBIS.edgeStrong};}
-.akv-zvsec i{width:14px;height:14px;flex:0 0 auto;background:currentColor;
-  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;}
-.akv-zvrel{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;}
-.akv-zvrel span{color:${AINUBIS.inkDim};}
-.akv-zvrel a{color:${AINUBIS.cyan};cursor:pointer;}
+${SCROLL_CARD_CSS}
 @media (min-width:${PC_MIN}px){
   .akv-root.has-zv{--akv-panel:clamp(480px,calc((100dvh - ${ZV_CHROME + ZV_ACTS}px) * 0.75 + ${ZV_TEXT_COL + ZV_SIDE}px),56vw);}
   .akv-root.has-zv .akv-list{container-type:size;}
@@ -464,10 +428,6 @@ ${STAGE_CSS}
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;border:1px dashed ${AI_WORLD.edge};
   background:transparent;color:rgb(var(--ai-w,${AINUBIS.cyanRGB}));font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;}
 .akv-fold .akv-chev{display:inline-flex;transform:rotate(90deg);}
-/* Karta zvitku ŽIARI FARBOU SVOJHO SVETA (Matej 8. 10.) — prstenec cez pseudoprvok,
-   aby neprepísal vrstvy AI-SKLA na karte. */
-.akv-zv::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  box-shadow:${AI_WORLD.ring};}
 /* POČÚVAJ ZA SEBOU — na PC vpravo od nadpisu, na mobile v pruhu polohy. */
 .akv-listen{flex:0 0 auto;display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;cursor:pointer;white-space:nowrap;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${AINUBIS.edgeStrong};
