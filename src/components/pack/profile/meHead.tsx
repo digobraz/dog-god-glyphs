@@ -89,7 +89,11 @@ export const ME_CSS = `
    strop = stupeň nadpisu, dno = label 12; až pod dnom nastúpi „…". --nm = počet znakov (nastavuje render). */
 .me-nm{ margin:0; font-family:${FONT_TITLE}; font-weight:700; letter-spacing:.14em; color:${T.inkStrong}; /* písmo: meno */
   font-size:clamp(${TX.label}px, calc(100cqw / (var(--nm, 10) * .92)), ${TX.h2}px);
-  text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  text-transform:uppercase; line-height:1.15; overflow:hidden;
+  /* DLHÉ MENO = DVA RIADKY + ZMENŠOVANIE (Matej 26. 10.: „zalomiť / zmenšovanie"). Viacslovné meno sa
+     zalomí medzi slovami; veľkosť ráta rovnica z NAJDLHŠIEHO slova (--nm), nie z celého mena. Tretí riadok
+     nie je — nad dvomi nastúpi orez. */
+  white-space:normal; overflow-wrap:break-word; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
 /* HODNOSTI VEDĽA SEBA (Matej 23. 10.: „až po pravý okraj“ → v ten istý deň neskôr: „pútnika mierne
    rozšír a faraóna zúž, aby to bolo akurát, nerozťahuj to“). Pilulka = svoj obsah + vzduch, nič sa
    nenaťahuje; dlhý stupeň sa skráti. Pod sebou len so „stack“. Ťuk = rozbaľovač MeRank pod hlavou. */
@@ -506,7 +510,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
         ))}
       </div>
       <div className="me-foot">
-        <h1 className="me-nm" style={{ ['--nm' as string]: Math.max(8, String(name ?? '').length) }}>{name}</h1>
+        <h1 className="me-nm" style={{ ['--nm' as string]: Math.max(8, ...String(name ?? '').split(/\s+/).map((w) => w.length)) }}>{name}</h1>
         {RANK_BADGE_ON && <style>{RANK_BADGE_CSS}</style>}
         {noRanks ? null : RANK_BADGE_ON ? (
           // TEST_BUILD (25. 10. 2026): odznaky SLUŽOBNÍK + PÚTNIK namiesto pilulky DEVOTION + PÚTNIK.

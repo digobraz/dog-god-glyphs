@@ -37,6 +37,8 @@ import { FeedTripCard, FEED_TRIP_CSS } from './FeedTripCard';
 import { FeedPostCard, FEED_POST_CSS } from './FeedPostCard';
 import { AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
 import { SnifferStrip, TripStrip, FEED_TOP_CSS } from './FeedTop';
+import { QuoteComments } from './QuoteComments';
+import { fetchQuoteComments } from '@/components/pack/trip/tripCommentsData';
 import { FeedMapCard, FEED_MAP_CSS, useMapAdds, type MapAdd } from './FeedMapCard';
 import { POST_TAGS, postTopics } from './postTags';
 
@@ -128,6 +130,15 @@ export function PackFeed() {
 
   const { quote, bg: photoBg, day } = useMemo(() => feedQuoteForDay(), []);
   const quoteText = feedQuoteText(quote, lang);
+  // Komentáre pod citátom: vlákno patrí DŇU (citáty rotujú po 16 dňoch), kľúč `<id>-<deň>`.
+  const quoteKey = `${quote.id}-${day}`;
+  const [quoteCm, setQuoteCm] = useState(0);
+  const [quoteCmOpen, setQuoteCmOpen] = useState(false);
+  useEffect(() => {
+    let on = true;
+    fetchQuoteComments(quoteKey).then((r) => { if (on) setQuoteCm(r.length); }).catch(() => {});
+    return () => { on = false; };
+  }, [quoteKey]);
   // Citát dňa striedavo A (fotka) / B (výjav) po dni — oba tvary sú v nákrese odklepnuté.
   const variant: 'a' | 'b' = day % 2 ? 'a' : 'b';
   const quoteBg = variant === 'b' ? `/feed/citaty/c${(day % SCENES) + 1}.webp` : photoBg;
@@ -182,7 +193,7 @@ export function PackFeed() {
     return out;
   }, [trips, posts, dayScrolls, savedScrolls.length, mapAdds]);
 
-  const aiLabels = { like: tx('pack.feed.act.like', 'Like'), save: tx('pack.feed.act.save', 'Save'), more: tx('pack.feed.more', 'more') };
+  const aiLabels = { like: tx('pack.feed.act.like', 'Like'), comment: tx('pack.feed.act.comment', 'Comments'), save: tx('pack.feed.act.save', 'Save'), more: tx('pack.feed.more', 'more') };
 
   const render = (it: Item, n: number) => {
     switch (it.k) {
@@ -192,7 +203,8 @@ export function PackFeed() {
             sub={tx('pack.feed.quote.title', 'Quote of the day')} labels={aiLabels}
             // TODO backend: labka a ☆ citátu = len toto zariadenie (citát nie je riadok `posts`).
             liked={likes.has(`quote:${quote.id}`)} onLike={() => likes.toggle(`quote:${quote.id}`)}
-            saved={likes.has(`quote-save:${quote.id}`)} onSave={() => likes.toggle(`quote-save:${quote.id}`)} />
+            saved={likes.has(`quote-save:${quote.id}`)} onSave={() => likes.toggle(`quote-save:${quote.id}`)}
+            onComment={() => setQuoteCmOpen(true)} comments={quoteCm} />
         );
       case 'trip': {
         const ft = trips[it.i];
@@ -231,7 +243,6 @@ export function PackFeed() {
             (chvost v hlavičke, `AinubisOznam.tsx`) — Matej 26. 10.: „ten prvý oznam ainubisa je ok
             ALE schovaj ho do upozornenia". ── */}
         <div className="pkf-top">
-          <SnifferStrip />
           <TripStrip trips={trips.slice(0, 8)} />
         </div>
 
@@ -251,12 +262,17 @@ export function PackFeed() {
             : <p className="pkf-none">{tx('pack.feed.tag.empty', 'No posts with this topic yet.')}</p>)
           : items.map(render)}
 
+        {/* SNIFFER JE NA KONCI (Matej 26. 10.: „ten sniffer dajme nakoniec"), pred „videl si všetko". */}
+        <SnifferStrip />
+
         {!topic && <div className="pkf-end">
           <BrandIcon name="paw" size={32} tint="gold" />
           <b>{tx('pack.feed.end.title', 'You have seen it all')}</b>
           {tx('pack.feed.end.sub', 'A new quote tomorrow.')}
         </div>}
       </div>
+
+      {quoteCmOpen && <QuoteComments quoteKey={quoteKey} onClose={() => setQuoteCmOpen(false)} onCount={setQuoteCm} />}
 
       {reading && (
         <PostViewer post={reading} name={ownName} avatar={youImg} dogs={dogs} mine lang={lang} onClose={() => setReading(null)} />

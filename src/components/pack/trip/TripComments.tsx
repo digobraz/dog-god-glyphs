@@ -36,6 +36,9 @@ import {
   getAuthedUserId,
   fetchTripReviews,
   fetchTripQuestions,
+  fetchQuoteComments,
+  postQuoteComment,
+  deleteQuoteComment,
   upsertMyReview,
   deleteMyReview,
   postTripQuestion,
@@ -341,8 +344,11 @@ export function ReportSheet({ onClose, onSend, busy, error, sent, reasons = REPO
  * ⚠️ `authorRating = 0` znamená NEHODNOTENÉ, nie nula labiek — vtedy riadok nie je a počet
  * o neho nerastie. Rovnaké pravidlo ako `agg.rating > 0` v článku.
  */
-export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequestWalk, authorRating = 0, authorName, onCountChange }: {
-  tripId: string; tripName?: string; walked?: boolean; onMarkWalked?: () => void; onRequestWalk?: () => void;
+export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequestWalk, authorRating = 0, authorName, onCountChange, quoteThread }: {
+  /** Pri `quoteThread` je `tripId` kľúč vlákna citátu dňa (`<id>-<deň>`). */
+  tripId: string;
+  /** Vlákno pod citátom vo feede: len zoznam komentárov + pole (bez recenzií a záložiek), tabuľka `quote_comments`. */
+  quoteThread?: boolean; tripName?: string; walked?: boolean; onMarkWalked?: () => void; onRequestWalk?: () => void;
   /** Labky autora výletu (`trail.stars`). 0 = nehodnotil. */
   authorRating?: number;
   /** Meno autora — do riadku aj do iniciálky v krúžku. */
@@ -355,7 +361,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   // Náhľad /magnet: čítať sa dá, písať a nahlasovať nie (ťuk = popup „Ďalej idú len Dogypťania").
   const mg = useMagnetPreview();
   const dogRights = useMyDogRights();
-  const [tab, setTab] = useState<'reviews' | 'advice'>('reviews');
+  const [tab, setTab] = useState<'reviews' | 'advice'>(quoteThread ? 'advice' : 'reviews');
   const [page, setPage] = useState(1);
   const changeTab = (t: 'reviews' | 'advice') => { setTab(t); setPage(1); };
 
@@ -399,8 +405,8 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
     setRealReviews(await fetchTripReviews(tripId));
   }, [tripId]);
   const refreshQuestions = useCallback(async () => {
-    setRealQuestions(await fetchTripQuestions(tripId));
-  }, [tripId]);
+    setRealQuestions(await (quoteThread ? fetchQuoteComments(tripId) : fetchTripQuestions(tripId)));
+  }, [tripId, quoteThread]);
 
   useEffect(() => { void refreshReviews(); void refreshQuestions(); }, [refreshReviews, refreshQuestions]);
   // Recenzia mohla vzniknúť aj z okna „Prešiel som" (`reviewFromWalk`) — obnov sa, keď patrí tomuto výletu.
@@ -422,7 +428,8 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
 
   // Hore do článku. Beží po každej zmene zoznamu (dotiahnutie z DB, pridanie, zmazanie), aby
   // zátvorka pri labkách nezamrzla na čísle z prvého renderu.
-  useEffect(() => { onCountChange?.(reviewCount); }, [reviewCount, onCountChange]);
+  const horeCount = quoteThread ? adviceCount : reviewCount;
+  useEffect(() => { onCountChange?.(horeCount); }, [horeCount, onCountChange]);
 
   const reviewPages = Math.max(1, Math.ceil(reviewCount / PAGE_SIZE));
   const advicePages = Math.max(1, Math.ceil(adviceCount / PAGE_SIZE));
@@ -466,7 +473,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
     setQuestionError(null);
     setQuestionPosting(true);
     try {
-      await postTripQuestion(tripId, text);
+      await (quoteThread ? postQuoteComment(tripId, text) : postTripQuestion(tripId, text));
       await refreshQuestions();
       setAskText('');
     } catch (err) {
@@ -477,7 +484,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   };
   const deleteQuestion = async (id: string) => {
     try {
-      await deleteTripQuestion(id);
+      await (quoteThread ? deleteQuoteComment(id) : deleteTripQuestion(id));
       await refreshQuestions();
     } catch {
       setQuestionError('Could not delete — try again.');
@@ -531,14 +538,14 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   return (
     <div className="tcm-wrap" aria-label={t('pack.trip.cm.aria', { name: tripName ?? t('pack.trip.cm.thisTrip') })}>
       <style>{TRIP_COMMENTS_CSS}</style>
-      <div className="tcm-tabs">
+      {!quoteThread && <div className="tcm-tabs">
         <button type="button" className={`tcm-tab${tab === 'reviews' ? ' on' : ''}`} onClick={() => changeTab('reviews')}>
           {t('pack.trip.cm.reviews', { n: reviewCount })}
         </button>
         <button type="button" className={`tcm-tab${tab === 'advice' ? ' on' : ''}`} onClick={() => changeTab('advice')}>
           {t('pack.trip.cm.advice', { n: adviceCount })}
         </button>
-      </div>
+      </div>}
       <div className="tcm-body">
         {tab === 'reviews' ? (
           <>
@@ -649,19 +656,19 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                 onChange={(e) => setAskText(e.target.value)}
                 readOnly={!!mg}
                 onClick={mg ? () => mg.lock('action') : undefined}
-                placeholder={t('pack.trip.cm.askPlaceholder')}
+                placeholder={quoteThread ? t('pack.feed.quote.cm.placeholder') : t('pack.trip.cm.askPlaceholder')}
               />
               <div className="tcm-ask-actions">
                 <button type="button" className="tcm-postbtn" disabled={!askText.trim() || !canWrite || questionPosting} onClick={postQuestion}>
                   {questionPosting ? t('pack.trip.cm.postQuestion') + '…' : t('pack.trip.cm.postQuestion')}
                 </button>
               </div>
-              {!canWrite && !mg && <div className="tcm-gatehint">{t('pack.trip.cm.signInAsk')}</div>}
+              {!canWrite && !mg && <div className="tcm-gatehint">{quoteThread ? t('pack.feed.quote.cm.signIn') : t('pack.trip.cm.signInAsk')}</div>}
               {questionError && <div className="tcm-gatehint" style={{ color: '#E0796D' }}>{questionError}</div>}
             </div>
 
             {adviceCount === 0 ? (
-              <div className="tcm-empty">{t('pack.trip.cm.noQuestions')}</div>
+              <div className="tcm-empty">{quoteThread ? t('pack.feed.quote.cm.none') : t('pack.trip.cm.noQuestions')}</div>
             ) : (
               advicePageItems.map((item) => {
                 if (item.kind === 'mine') {

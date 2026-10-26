@@ -82,14 +82,22 @@ function AiPost({ sub, media, children }: { sub: string; media?: React.ReactNode
 }
 
 /** Labka + ☆ v pilulke DOGSCROLLu. Bez počtov — tie zatiaľ nemajú server. */
-function AiActs({ liked, saved, onLike, onSave, labels }: {
-  liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string };
+function AiActs({ liked, saved, onLike, onSave, labels, onComment, comments = 0 }: {
+  liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string; comment?: string };
+  /** Komentáre — zatiaľ len pod citátom. Poradie vždy labka · komentár · ☆ (lock architektura-pack §4.2). */
+  onComment?: () => void; comments?: number;
 }) {
   return (
     <div className="zv-acts">
       <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={onLike} aria-pressed={liked} aria-label={labels.like}>
         <HandPaw size={20} on={liked} />
       </button>
+      {onComment && (
+        <button type="button" data-k="talk" className={`zv-act${comments > 0 ? ' is-on' : ''}`} onClick={onComment} aria-label={labels.comment}>
+          <i className="zv-ic" aria-hidden style={{ WebkitMaskImage: `url(/icons/pack/${comments > 0 ? 'chat-right-full' : 'chat'}.svg)`, maskImage: `url(/icons/pack/${comments > 0 ? 'chat-right-full' : 'chat'}.svg)` }} />
+          <span className="zv-n">{comments}</span>
+        </button>
+      )}
       <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={onSave} aria-pressed={saved} aria-label={labels.save}>
         <HandStar size={20} filled={saved} />
       </button>
@@ -97,9 +105,10 @@ function AiActs({ liked, saved, onLike, onSave, labels }: {
   );
 }
 
-export function AiQuote({ text, author, bg, variant, sub, liked, saved, onLike, onSave, labels }: {
+export function AiQuote({ text, author, bg, variant, sub, liked, saved, onLike, onSave, labels, onComment, comments }: {
   text: string; author: string; bg: string; variant: 'a' | 'b'; sub: string;
-  liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string };
+  liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string; comment?: string };
+  onComment?: () => void; comments?: number;
 }) {
   return (
     <AiPost sub={sub} media={(
@@ -110,7 +119,7 @@ export function AiQuote({ text, author, bg, variant, sub, liked, saved, onLike, 
         </div>
       </div>
     )}>
-      <AiActs liked={liked} saved={saved} onLike={onLike} onSave={onSave} labels={labels} />
+      <AiActs liked={liked} saved={saved} onLike={onLike} onSave={onSave} labels={labels} onComment={onComment} comments={comments} />
     </AiPost>
   );
 }

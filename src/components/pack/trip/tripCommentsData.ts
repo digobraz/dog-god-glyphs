@@ -166,3 +166,29 @@ export async function deleteTripQuestion(id: string): Promise<void> {
   const { error } = await db.from('trip_questions').delete().eq('id', id);
   if (error) throw new Error(`[tripCommentsData] mazanie otázky zlyhalo: ${error.message ?? 'unknown'}`);
 }
+
+// ── KOMENTÁRE POD CITÁTOM DŇA (feed, migrácia `20261027_quote_comments.sql`) ──────────────
+// Ten istý tvar ako otázky (`RealQuestion`), aby `TripComments` použil jeden zoznam a jednu sadu tried.
+// Kľúč vlákna = `<id citátu>-<deň>`; AINUBIS riadok prichádza s `ownerFirst = 'AINUBIS'`.
+interface QuoteRow extends QuestionRow { author_kind?: string }
+
+export async function fetchQuoteComments(quoteKey: string): Promise<RealQuestion[]> {
+  const { data, error } = await db.rpc('list_quote_comments', { p_quote_key: quoteKey }) as
+    { data: QuoteRow[] | null; error: unknown };
+  if (error || !data) return []; // migrácia ešte nie je na tejto DB / neprihlásený — prázdne vlákno, nie pád
+  return data.map(fromQuestionRow);
+}
+
+export async function postQuoteComment(quoteKey: string, body: string): Promise<void> {
+  const uid = await getAuthedUserId();
+  if (!uid) throw new Error('[tripCommentsData] postQuoteComment: not signed in');
+  const trimmed = body.trim();
+  if (!trimmed) return;
+  const { error } = await db.from('quote_comments').insert({ quote_key: quoteKey, user_id: uid, body: trimmed });
+  if (error) throw new Error(`[tripCommentsData] komentár neodišiel: ${error.message ?? 'unknown'}`);
+}
+
+export async function deleteQuoteComment(id: string): Promise<void> {
+  const { error } = await db.from('quote_comments').delete().eq('id', id);
+  if (error) throw new Error(`[tripCommentsData] mazanie komentára zlyhalo: ${error.message ?? 'unknown'}`);
+}
