@@ -13,10 +13,11 @@
 //    · CUDZIE STORIES — `posts_read` ich pustí platiacemu členovi, ale `posts` nesie len `author_id` a žiadna
 //      funkcia nevydáva meno/fotku človeka podľa `user_id` (zámok z `get_member_profiles`, adresa člena je
 //      poradové číslo). Treba RPC `list_feed_moments()` s menom, fotkou a číslom psa.
-//    · AUTOR VÝLETU S FOTKOU — `payload.author` je len meno; fotka človeka v `pack_trips` nie je.
-//    · LAJKY VÝLETOV A CITÁTU — `post_marks` kľúčuje `posts.id`, výlet ani citát nie je riadok `posts`.
-import { useCallback, useEffect, useState } from 'react';
+//    (Cudzie PRÍSPEVKY a fotka autora výletu prišli 26. 10. 2026 — `useFeedPosts`, `useTripAuthors` nižšie.)
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import type { HeroTrail } from '@/data/heroTrails.generated';
+import type { MePost } from '@/components/pack/profile/mePosts';
 import { readLocalTrails, visibleLocalTrails } from '@/components/pack/tripShared';
 import { onPackStoreHydrated, readLocalTrailMeta } from '@/lib/packStore';
 import { intlLocale } from '@/i18n/bcp47';
@@ -84,27 +85,94 @@ export const tripTitle = (t: HeroTrail, lang: string): string =>
 
 export const firstWord = (s: string): string => s.split(/\s+/)[0] || s;
 
-// ── LAJKY, ktoré zatiaľ nemajú server ────────────────────────────────────────────────────────
-// TODO backend: `post_marks` kľúčuje `posts.id`. Výlet (`pack_trips`) ani citát dňa nie je riadok `posts`,
-// takže ❤️ tu drží len toto zariadenie. Keď pribudne tabuľka značiek pre výlety (alebo výlet dostane
-// príspevok), zmení sa len telo týchto dvoch funkcií.
-const LIKES_KEY = 'dogypt-feed-likes-v1';
+// ── LABKA a ☆ NA OBJEKTE, KTORÝ NIE JE PRÍSPEVOK ───────────────────────────────────────────────
+// Výlet, citát, značka z mapy a príbeh AINUBISA nie sú riadky `posts`, takže `post_marks` ich nevezme.
+// Od 26. 10. 2026 ich drží `feed_marks` (migrácia 20261104_feed_server.sql), kľúč = `trip:<slug>`,
+// `quote:<id>`, `map:<id>`, `story:<id>`. Počty pýta feed po dávkach cez `feed_social(targets[])`.
+// ⚠️ Kým server migráciu nemá (LIVE pred „ok"), RPC padne a hook sa ticho vráti k tomuto zariadeniu
+//    (localStorage, ten istý tvar ako dovtedy) — feed nesmie zhasnúť len preto, že chýba tabuľka.
+const LOCAL_KEY = 'dogypt-feed-likes-v1';
+const db = supabase as any;
 
-function readLikes(): Set<string> {
-  try { return new Set(JSON.parse(localStorage.getItem(LIKES_KEY) || '[]') as string[]); } catch { return new Set(); }
+export interface FeedSoc { likes: number; liked: boolean; saved: boolean; comments: number }
+const NONE: FeedSoc = { likes: 0, liked: false, saved: false, comments: 0 };
+
+/** Starý lokálny zápis: `trip:x` = labka, `quote-save:x` = ☆ citátu `quote:x`. */
+const localKey = (target: string, kind: 'like' | 'save') => {
+  if (kind === 'like') return target;
+  const i = target.indexOf(':');
+  return `${target.slice(0, i)}-save${target.slice(i)}`;
+};
+function readLocal(): Set<string> {
+  try { return new Set(JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]') as string[]); } catch { return new Set(); }
 }
 
-export function useLocalLikes(): { has: (id: string) => boolean; toggle: (id: string) => void } {
-  const [set, setSet] = useState<Set<string>>(() => readLikes());
-  const toggle = useCallback((id: string) => {
-    setSet((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      try { localStorage.setItem(LIKES_KEY, JSON.stringify([...next])); } catch { /* súkromné okno */ }
+export interface FeedMarks {
+  get: (target: string) => FeedSoc;
+  toggle: (target: string, kind: 'like' | 'save') => void;
+  /** Feed ohlási, čo práve ukazuje; neznáme ciele sa dopýtajú jedným volaním. */
+  want: (targets: string[]) => void;
+}
+
+export function useFeedMarks(): FeedMarks {
+  const [soc, setSoc] = useState<Map<string, FeedSoc>>(() => new Map());
+  const [server, setServer] = useState(true);
+  const asked = useRef<Set<string>>(new Set());
+  const local = useRef<Set<string>>(readLocal());
+
+  const want = useCallback((targets: string[]) => {
+    const fresh = targets.filter((x) => !asked.current.has(x));
+    if (!fresh.length || !server) return;
+    fresh.forEach((x) => asked.current.add(x));
+    void db.rpc('feed_social', { p_targets: fresh }).then(({ data, error }: { data: Array<FeedSoc & { target: string }> | null; error: unknown }) => {
+      if (error) { setServer(false); return; }
+      setSoc((prev) => {
+        const next = new Map(prev);
+        for (const r of data ?? []) next.set(r.target, { likes: r.likes, liked: r.liked, saved: r.saved, comments: r.comments });
+        return next;
+      });
+    });
+  }, [server]);
+
+  const get = useCallback((target: string): FeedSoc => {
+    if (server) return soc.get(target) ?? NONE;
+    const liked = local.current.has(localKey(target, 'like'));
+    return { likes: liked ? 1 : 0, liked, saved: local.current.has(localKey(target, 'save')), comments: 0 };
+  }, [soc, server]);
+
+  const toggle = useCallback((target: string, kind: 'like' | 'save') => {
+    if (!server) {
+      const k = localKey(target, kind);
+      if (local.current.has(k)) local.current.delete(k); else local.current.add(k);
+      try { localStorage.setItem(LOCAL_KEY, JSON.stringify([...local.current])); } catch { /* súkromné okno */ }
+      setSoc((m) => new Map(m));
+      return;
+    }
+    // Optimisticky — akcia nesmie čakať na server (ten istý vzor ako FeedPostCard).
+    const cur = soc.get(target) ?? NONE;
+    const on = kind === 'like' ? !cur.liked : !cur.saved;
+    const apply = (v: boolean) => setSoc((prev) => {
+      const next = new Map(prev);
+      const c = next.get(target) ?? NONE;
+      next.set(target, kind === 'like'
+        ? { ...c, liked: v, likes: Math.max(0, c.likes + (v === c.liked ? 0 : v ? 1 : -1)) }
+        : { ...c, saved: v });
       return next;
     });
-  }, []);
-  return { has: (id) => set.has(id), toggle };
+    apply(on);
+    void (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) { apply(!on); return; }
+      const { error } = on
+        ? await db.from('feed_marks').insert({ target, user_id: uid, kind })
+        : await db.from('feed_marks').delete().eq('target', target).eq('user_id', uid).eq('kind', kind);
+      // 23505 = už tam bola (druhé ťuknutie z iného zariadenia) — stav je aj tak „zapnuté".
+      if (error && (error as { code?: string }).code !== '23505') apply(!on);
+    })();
+  }, [soc, server]);
+
+  return { get, toggle, want };
 }
 
 /**
@@ -117,4 +185,62 @@ export async function shareOut(data: { title: string; text?: string; url: string
     try { await navigator.share(data); return 'shared'; } catch { return 'cancelled'; }
   }
   try { await navigator.clipboard.writeText(data.url); return 'copied'; } catch { return 'cancelled'; }
+}
+
+// ── CUDZIE PRÍSPEVKY a AUTOR VÝLETU (server, 26. 10. 2026) ───────────────────────────────────────
+// `list_feed_posts` vydá cudzie verejné príspevky s krstným menom, fotkou a číslom majiteľa — bez `user_id`.
+// Moje, story a zablokovaných vynechá server. Bez migrácie RPC padne ⇒ prázdny zoznam (feed ostane pri mojich).
+export interface FeedPost { post: MePost; name: string; avatar: string | null; ownerN: number | null }
+
+export function useFeedPosts(enabled: boolean): FeedPost[] {
+  const [rows, setRows] = useState<FeedPost[]>([]);
+  useEffect(() => {
+    if (!enabled) return;
+    let alive = true;
+    void db.rpc('list_feed_posts', { p_limit: 60 }).then(({ data, error }: { data: Array<Record<string, unknown>> | null; error: unknown }) => {
+      if (!alive || error) return;
+      setRows((data ?? []).map((r) => ({
+        post: {
+          id: String(r.id),
+          body: String(r.body ?? ''),
+          photos: Array.isArray(r.photos) ? (r.photos as string[]) : [],
+          tags: (r.tags as string[]) ?? [],
+          attach: (r.attach as MePost['attach']) ?? {},
+          visibility: 'public',
+          createdAt: String(r.created_at),
+          actedBy: null,
+          actedName: null,
+        },
+        name: String(r.first_name ?? ''),
+        avatar: (r.photo as string | null) ?? null,
+        ownerN: r.owner_n == null ? null : Number(r.owner_n),
+      })));
+    });
+    return () => { alive = false; };
+  }, [enabled]);
+  return rows;
+}
+
+export interface TripAuthor { photo: string | null; ownerN: number | null }
+
+/** Fotka a číslo autora výletu (karta mala len meno z payloadu). Pýta sa len na nové slugy. */
+export function useTripAuthors(slugs: string[]): Map<string, TripAuthor> {
+  const [map, setMap] = useState<Map<string, TripAuthor>>(() => new Map());
+  const asked = useRef<Set<string>>(new Set());
+  const key = slugs.join('|');
+  useEffect(() => {
+    const fresh = slugs.filter((x) => !asked.current.has(x)).slice(0, 200);
+    if (!fresh.length) return;
+    fresh.forEach((x) => asked.current.add(x));
+    void db.rpc('feed_trip_authors', { p_slugs: fresh }).then(({ data, error }: { data: Array<{ slug: string; photo: string | null; owner_n: number | null }> | null; error: unknown }) => {
+      if (error) return;
+      setMap((prev) => {
+        const next = new Map(prev);
+        for (const r of data ?? []) next.set(r.slug, { photo: r.photo, ownerN: r.owner_n });
+        return next;
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return map;
 }

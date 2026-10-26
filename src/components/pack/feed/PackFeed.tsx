@@ -40,7 +40,7 @@ import { fetchMyPosts, onPostsChanged, isMoment, isAlbum, isTripStory, type MePo
 import { readFavIds, tripText } from '@/components/pack/tripShared';
 import { persistFav } from '@/lib/packStore';
 import { feedQuoteForDay, feedQuoteText } from '@/data/feedQuotes';
-import { firstWord, tripTitle, useFeedTrips, useLocalLikes } from './feedData';
+import { firstWord, tripTitle, useFeedTrips, useFeedMarks, useFeedPosts, useTripAuthors, type FeedPost } from './feedData';
 import { FeedTripCard, FEED_TRIP_CSS } from './FeedTripCard';
 import { FeedPostCard, FEED_POST_CSS } from './FeedPostCard';
 import { AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
@@ -50,6 +50,7 @@ import { fetchQuoteComments } from '@/components/pack/trip/tripCommentsData';
 import { FeedMapCard, FEED_MAP_CSS, useMapAdds, type MapAdd } from './FeedMapCard';
 import { postTopics } from './postTags';
 import { FeedTopics, FEED_TOPICS_CSS } from './FeedTopics';
+import { useBlockedOwners } from '@/components/pack/profile/moderation';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -124,13 +125,27 @@ type Item =
   | { k: 'quote' }
   | { k: 'trip'; i: number }
   | { k: 'scroll'; z: DemoScroll }
-  | { k: 'post'; p: MePost }
+  | { k: 'post'; p: PostIt }
   | { k: 'map'; a: MapAdd }
   | { k: 'story' }
   | { k: 'saved' };
 
+/** Príspevok vo feede: môj (bez `who`) alebo cudzí s tvárou autora zo servera. */
+type PostIt = { p: MePost; who?: FeedPost };
+
+/** Kľúč v `feed_marks` pre položku feedu (príspevok má vlastné `post_marks`, zvitok svoje uloženie). */
+function keyTarget(it: Item, quoteId: number, trips: Array<{ trail: { id: string } }>): string {
+  switch (it.k) {
+    case 'quote': return `quote:${quoteId}`;
+    case 'trip': return `trip:${trips[it.i].trail.id}`;
+    case 'map': return `map:${it.a.id}`;
+    case 'story': return 'story:hekthor';
+    default: return '';
+  }
+}
+
 /** Zo zásobníkov striedavo podľa vzoru, kým niečo zostáva — nič sa nezahodí. */
-function weave(q: { trip: number[]; scroll: DemoScroll[]; post: MePost[]; map: MapAdd[] }, story: boolean): Item[] {
+function weave(q: { trip: number[]; scroll: DemoScroll[]; post: PostIt[]; map: MapAdd[] }, story: boolean): Item[] {
   const out: Item[] = [];
   const cycle: Array<'trip' | 'scroll' | 'post' | 'map' | 'story'> = ['trip', 'scroll', 'post', 'scroll', 'map', 'trip', 'scroll', 'story'];
   let told = !story;
@@ -138,7 +153,7 @@ function weave(q: { trip: number[]; scroll: DemoScroll[]; post: MePost[]; map: M
     for (const k of cycle) {
       if (k === 'trip' && q.trip.length) out.push({ k: 'trip', i: q.trip.shift() as number });
       else if (k === 'scroll' && q.scroll.length) out.push({ k: 'scroll', z: q.scroll.shift() as DemoScroll });
-      else if (k === 'post' && q.post.length) out.push({ k: 'post', p: q.post.shift() as MePost });
+      else if (k === 'post' && q.post.length) out.push({ k: 'post', p: q.post.shift() as PostIt });
       else if (k === 'map' && q.map.length) out.push({ k: 'map', a: q.map.shift() as MapAdd });
       else if (k === 'story' && !told) { out.push({ k: 'story' }); told = true; }
     }
@@ -160,9 +175,9 @@ export function PackFeed() {
 
   const [myPosts, setMyPosts] = useState<MePost[]>([]);
   const [topic, setTopic] = useState<string | null>(null);
-  const [reading, setReading] = useState<MePost | null>(null);
+  const [reading, setReading] = useState<PostIt | null>(null);
   const [favs, setFavs] = useState<Set<string>>(() => readFavIds());
-  const likes = useLocalLikes();
+  const marks = useFeedMarks();
   const trips = useFeedTrips(999);
   const mapAdds = useMapAdds(6);
   const scrolls = useDemoScrolls();
@@ -191,10 +206,14 @@ export function PackFeed() {
     const off = onPostsChanged(load);
     return () => { alive = false; off(); };
   }, [uid]);
-  const publicPosts = useMemo(
-    () => myPosts.filter((p) => !isMoment(p) && !isAlbum(p) && !isTripStory(p) && p.visibility === 'public'),
-    [myPosts],
-  );
+  // CUDZIE verejné príspevky (server, 26. 10.) + moje; zablokovaných vynechá server, klient ešte skryje tých,
+  // ktorých človek zablokoval práve teraz (zoznam z `useBlockedOwners` sa obnoví bez nového načítania feedu).
+  const otherPosts = useFeedPosts(!!uid);
+  const blocked = useBlockedOwners();
+  const publicPosts = useMemo<PostIt[]>(() => [
+    ...myPosts.filter((p) => !isMoment(p) && !isAlbum(p) && !isTripStory(p) && p.visibility === 'public').map((p) => ({ p })),
+    ...otherPosts.filter((w) => w.ownerN == null || !blocked.has(w.ownerN)).map((w) => ({ p: w.post, who: w })),
+  ].sort((a, b) => Date.parse(b.p.createdAt) - Date.parse(a.p.createdAt)), [myPosts, otherPosts, blocked]);
 
   const { quote, bg: photoBg, day } = useMemo(() => feedQuoteForDay(), []);
   const quoteText = feedQuoteText(quote, lang);
@@ -249,7 +268,7 @@ export function PackFeed() {
       return weave({
         trip: tripIdx.filter((i) => { const tr = trips[i].trail; return hit(tripTitle(tr, lang), tr.name, tr.region, tripText(tr, 'desc', lang)); }),
         scroll: allScrolls.filter((z) => { const x = pickText(z, lang); return hit(x?.t, x?.v, x?.d, worldName(z.world)); }),
-        post: publicPosts.filter((p) => hit(p.body, p.attach.place?.name)),
+        post: publicPosts.filter(({ p }) => hit(p.body, p.attach.place?.name)),
         map: [],
       }, false);
     }
@@ -259,7 +278,7 @@ export function PackFeed() {
       return weave({
         trip: topic === 't:trip' ? tripIdx : [],
         scroll: worlds ? allScrolls.filter((z) => worlds === 'all' || worlds.includes(z.world)) : [],
-        post: publicPosts.filter((p) => postTopics(p).includes(topic)),
+        post: publicPosts.filter(({ p }) => postTopics(p).includes(topic)),
         map: [],
       }, false);
     }
@@ -270,7 +289,7 @@ export function PackFeed() {
     return out.concat(weave({
       trip: tripIdx,
       scroll: allScrolls.filter((z) => !saved.has(z.id)),
-      post: publicPosts.filter((p) => p.photos.length > 0),
+      post: publicPosts.filter(({ p }) => p.photos.length > 0),
       map: [...mapAdds],
     }, true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -333,6 +352,21 @@ export function PackFeed() {
   const shownRef = useRef(shown);
   shownRef.current = shown;
 
+  // LABKY A POČTY ZO SERVERA — len pre to, čo je naozaj vykreslené (dávka po PAGE), jedným volaním.
+  const visible = items.slice(0, shown);
+  const targetKey = visible.map((it) => keyTarget(it, quote.id, trips)).filter(Boolean).join('|');
+  useEffect(() => {
+    if (targetKey) marks.want(targetKey.split('|'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetKey]);
+  const tripAuthors = useTripAuthors(useMemo(
+    () => visible.flatMap((it) => (it.k === 'trip' && !trips[it.i].mine ? [trips[it.i].trail.id] : [])),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [targetKey],
+  ));
+  const [tripCmOpen, setTripCmOpen] = useState<string | null>(null);
+  const [tripCm, setTripCm] = useState<Record<string, number>>({});
+
   const aiLabels = { like: tx('pack.feed.act.like', 'Like'), comment: tx('pack.feed.act.comment', 'Comments'), save: tx('pack.feed.act.save', 'Save'), more: tx('pack.feed.more', 'more') };
 
   const render = (it: Item) => {
@@ -341,39 +375,42 @@ export function PackFeed() {
         return (
           <AiQuote text={quoteText} author={quote.author} bg={quoteBg} variant={variant}
             sub={tx('pack.feed.quote.title', 'Quote of the day')} labels={aiLabels}
-            // TODO backend: labka a ☆ citátu = len toto zariadenie (citát nie je riadok `posts`).
-            liked={likes.has(`quote:${quote.id}`)} onLike={() => likes.toggle(`quote:${quote.id}`)}
-            saved={likes.has(`quote-save:${quote.id}`)} onSave={() => likes.toggle(`quote-save:${quote.id}`)}
+            liked={marks.get(`quote:${quote.id}`).liked} onLike={() => marks.toggle(`quote:${quote.id}`, 'like')}
+            saved={marks.get(`quote:${quote.id}`).saved} onSave={() => marks.toggle(`quote:${quote.id}`, 'save')}
             onComment={() => setQuoteCmOpen(true)} comments={quoteCm} />
         );
       case 'trip': {
         const ft = trips[it.i];
         return (
-          <FeedTripCard ft={ft} youImg={youImg}
-            liked={likes.has(`trip:${ft.trail.id}`)} onLike={() => likes.toggle(`trip:${ft.trail.id}`)}
+          <FeedTripCard ft={ft} youImg={youImg} authorImg={tripAuthors.get(ft.trail.id)?.photo ?? null}
+            liked={marks.get(`trip:${ft.trail.id}`).liked} onLike={() => marks.toggle(`trip:${ft.trail.id}`, 'like')}
+            comments={tripCm[ft.trail.id] ?? marks.get(`trip:${ft.trail.id}`).comments} onComment={() => setTripCmOpen(ft.trail.id)}
             listed={favs.has(ft.trail.id)} onList={() => toggleFav(ft.trail.id)} />
         );
       }
       case 'scroll':
         return <ScrollCard z={it.z} lang={lang} worldName={worldName(it.z.world)} onOpen={openScroll} onShare={() => {}} />;
       case 'post':
-        return <FeedPostCard post={it.p} name={ownName} avatar={youImg} onOpen={setReading} />;
+        return it.p.who
+          ? <FeedPostCard post={it.p.p} name={it.p.who.name || tx('pack.feed.member', 'Member')} avatar={it.p.who.avatar}
+              authorN={it.p.who.ownerN} mine={false} onOpen={() => setReading(it.p)} />
+          : <FeedPostCard post={it.p.p} name={ownName} avatar={youImg} onOpen={() => setReading(it.p)} />;
       case 'map':
-        return <FeedMapCard add={it.a} liked={likes.has(`map:${it.a.id}`)} onLike={() => likes.toggle(`map:${it.a.id}`)} />;
+        return <FeedMapCard add={it.a} liked={marks.get(`map:${it.a.id}`).liked} onLike={() => marks.toggle(`map:${it.a.id}`, 'like')} />;
       case 'story':
         return (
           <AiStory src="/videos/WHO_IS_HEKTHOR.mp4" poster="/videos/WHO_IS_HEKTHOR.webp"
             title={`${t('heroglyph.flow.name.whoTitle')} ${t('heroglyph.flow.name.whoTitleName')}`}
             body={t('heroglyph.flow.name.whoBody')} sub={tx('pack.feed.story.label', 'Story')} labels={aiLabels}
-            liked={likes.has('story:hekthor')} onLike={() => likes.toggle('story:hekthor')}
-            saved={likes.has('story-save:hekthor')} onSave={() => likes.toggle('story-save:hekthor')} />
+            liked={marks.get('story:hekthor').liked} onLike={() => marks.toggle('story:hekthor', 'like')}
+            saved={marks.get('story:hekthor').saved} onSave={() => marks.toggle('story:hekthor', 'save')} />
         );
       case 'saved':
         return <AiSaved list={savedScrolls} lang={lang} onOpen={(id) => openScroll(id)} />;
     }
   };
   const keyOf = (it: Item, n: number) =>
-    it.k === 'trip' ? `t:${trips[it.i].trail.id}` : it.k === 'scroll' ? `z:${it.z.id}` : it.k === 'post' ? `p:${it.p.id}` : it.k === 'map' ? it.a.id : `${it.k}:${n}`;
+    it.k === 'trip' ? `t:${trips[it.i].trail.id}` : it.k === 'scroll' ? `z:${it.z.id}` : it.k === 'post' ? `p:${it.p.p.id}` : it.k === 'map' ? it.a.id : `${it.k}:${n}`;
   // Papyrusové príspevky delí čiara; AINUBIS (citát, zvitok, príbeh, odložené) má vlastný tmavý pás.
   const isPaper = (it: Item) => it.k === 'trip' || it.k === 'post' || it.k === 'map';
 
@@ -424,8 +461,13 @@ export function PackFeed() {
 
       {quoteCmOpen && <QuoteComments quoteKey={quoteKey} onClose={() => setQuoteCmOpen(false)} onCount={setQuoteCm} />}
 
-      {reading && (
-        <PostViewer post={reading} name={ownName} avatar={youImg} dogs={dogs} mine lang={lang} onClose={() => setReading(null)} />
+      {tripCmOpen && <QuoteComments tripId={tripCmOpen} onClose={() => setTripCmOpen(null)}
+        onCount={(n) => setTripCm((m) => (m[tripCmOpen] === n ? m : { ...m, [tripCmOpen]: n }))} />}
+
+      {reading && (reading.who
+        ? <PostViewer post={reading.p} name={reading.who.name || tx('pack.feed.member', 'Member')} avatar={reading.who.avatar}
+            dogs={[]} mine={false} authorN={reading.who.ownerN} lang={lang} onClose={() => setReading(null)} />
+        : <PostViewer post={reading.p} name={ownName} avatar={youImg} dogs={dogs} mine lang={lang} onClose={() => setReading(null)} />
       )}
     </div>
   );

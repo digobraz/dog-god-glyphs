@@ -20,6 +20,7 @@ import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { HandPaw, HandClipboard, HandArrowLeft } from '@/components/pack/HandIcons';
+import { BrandIcon } from '@/components/pack/BrandIcon';
 import { COMMUNITY_CSS, PhotoMetaPills } from '@/components/pack/packCommunityUI';
 import { crowdAggregate } from '@/components/pack/packCommunity';
 import { categoriesOf, chipsOf, ACT_TAG_EMOJI, TAG_EMOJI, TAG_I18N } from '@/components/pack/tripCategories';
@@ -99,10 +100,13 @@ function MiniRoute({ path }: { path: HeroTrail['path'] }) {
   );
 }
 
-export function FeedTripCard({ ft, youImg, liked, onLike, listed, onList }: {
+export function FeedTripCard({ ft, youImg, authorImg = null, liked, onLike, comments = 0, onComment, listed, onList }: {
   ft: FeedTrip;
   youImg: string | null;
+  /** Fotka cudzieho autora (`feed_trip_authors`, 26. 10.); bez nej začiatočné písmeno mena. */
+  authorImg?: string | null;
   liked: boolean; onLike: () => void;
+  comments?: number; onComment?: () => void;
   listed: boolean; onList: () => void;
 }) {
   const t = useT();
@@ -133,7 +137,7 @@ export function FeedTripCard({ ft, youImg, liked, onLike, listed, onList }: {
   const go = () => navigate(tripPath(tr));
   // Široká ostáva široká; vysoká sa oreže na 4:5 (strop výšky ako na IG). Kým sa nenačíta, 4:3.
   const aspect = ratio ? Math.min(Math.max(ratio, 4 / 5), 2) : 4 / 3;
-  const ownImg = ft.mine ? youImg : null;
+  const ownImg = ft.mine ? youImg : authorImg;
 
   return (
     <article className="pft">
@@ -190,10 +194,15 @@ export function FeedTripCard({ ft, youImg, liked, onLike, listed, onList }: {
       </div>
 
       <div className="pft-acts">
-        {/* TODO backend: labka výletu = len toto zariadenie (`post_marks` kľúčuje `posts.id`). */}
+        {/* Poradie VŠADE labka · komentár · uloženie (Matej 26. 10.). Labka = `feed_marks`, komentár = šuplík výletu. */}
         <button type="button" onClick={onLike} aria-pressed={liked} aria-label={tx('pack.feed.act.like', 'Like')}>
           <HandPaw size={24} on={liked} />
         </button>
+        {onComment && (
+          <button type="button" onClick={onComment} aria-label={tx('pack.feed.act.comment', 'Comments')}>
+            <BrandIcon name="chat" size={24} tint="dark" />{comments > 0 && comments}
+          </button>
+        )}
         <span className="sp" />
         <button type="button" className={`list${listed ? ' on' : ''}`} onClick={onList} aria-pressed={listed} aria-label="TRIPLIST" title="TRIPLIST">
           <HandClipboard size={24} />
