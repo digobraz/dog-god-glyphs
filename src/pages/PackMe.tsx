@@ -290,6 +290,7 @@ export default function PackMe() {
       <section className={`me-card${FLAT ? ' me-flat' : ''}${open ? ' open' : ''}${beside ? ' with-mate' : ''}`}>
         {/* TITULKA — BONES · meno · DEVOTION · PÚTNIK (spoločná s UPRAVIŤ PROFIL, `meHead.tsx`). */}
         <MeCover
+          withName={beside?.label ?? null}
           cover={coverSrc}
           coverY={human?.coverY}
           name={shownName}

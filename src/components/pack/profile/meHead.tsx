@@ -85,6 +85,7 @@ export const ME_CSS = `
 .me-foot{ position:absolute; left:${OWN_X.m + OWN.m + S.sm}px; right:${S.md}px; bottom:-${OWN_DROP}px; }
 .me-nm{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.h2}px; letter-spacing:.14em; color:${T.inkStrong};
   text-transform:uppercase; white-space:nowrap; overflow:hidden; }
+.me-with{ margin:${S.xs}px 0 0; font-family:${FONT_UI}; font-size:${TX.label}px; font-weight:500; color:${T.inkWarm}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 /* HODNOSTI VEDĽA SEBA (Matej 23. 10.: „až po pravý okraj“ → v ten istý deň neskôr: „pútnika mierne
    rozšír a faraóna zúž, aby to bolo akurát, nerozťahuj to“). Pilulka = svoj obsah + vzduch, nič sa
    nenaťahuje; dlhý stupeň sa skráti. Pod sebou len so „stack“. Ťuk = rozbaľovač MeRank pod hlavou. */
@@ -392,7 +393,9 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false, withName }: {
+  /** Meno pawmata pod menom (Matej 26. 10.: „každý kto uvidí môj profil by videl aj foto aj názov A Lenka“) — len tam, kde je jeho fotka. */
+  withName?: string | null;
   cover: string | null;
   /** PAWMATE bez vlastného psa (Matej 26. 10. 2026: *„ona nebude mať level pútnika ani služobníka"*) — titulka len s menom. */
   noRanks?: boolean;
@@ -499,6 +502,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
       </div>
       <div className="me-foot">
         <h1 className="me-nm">{name}</h1>
+        {withName && <p className="me-with">&amp; {withName}</p>}
         {RANK_BADGE_ON && <style>{RANK_BADGE_CSS}</style>}
         {noRanks ? null : RANK_BADGE_ON ? (
           // TEST_BUILD (25. 10. 2026): odznaky SLUŽOBNÍK + PÚTNIK namiesto pilulky DEVOTION + PÚTNIK.
