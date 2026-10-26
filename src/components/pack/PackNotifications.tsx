@@ -62,10 +62,16 @@ const CAP_DOT: React.CSSProperties = {
   position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 999,
   background: SNIFFER_HEART, boxShadow: `0 0 0 1.5px ${T.pageBg}`,
 };
-// Tá istá bodka v hlase AINUBISA — cyan so žiarou ako bodka oznamu v páse panela (`.ntf-pill--news i`).
-const CAP_DOT_AI: React.CSSProperties = {
-  ...CAP_DOT, background: AINUBIS.cyan, boxShadow: `0 0 0 1.5px ${T.pageBg}, 0 0 6px ${AINUBIS.cyan}`,
-};
+// ODZNAK S ČÍSLOM NA CHVOSTE (26. 10. 2026, TEST_BUILD). Matej 24. 10. vybral bodku (vyššie), 26. 10. nad
+// krokom 1: *„myslel som bodku cyan s upozornením … bodka s číslom tak ako bude aj červené upozornenie"*.
+// Novší pokyn platí pre chvost; obálka správ ostáva bodkou. Červená = od členov, cyan = AINUBIS a systém.
+const capBadge = (cyan: boolean): React.CSSProperties => ({
+  position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
+  display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+  fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, fontWeight: 600,
+  background: cyan ? AINUBIS.cyan : SNIFFER_HEART, color: cyan ? AINUBIS.bg : '#fff',
+  boxShadow: cyan ? `0 0 0 1.5px ${T.pageBg}, 0 0 6px ${AINUBIS.cyan}` : `0 0 0 1.5px ${T.pageBg}`,
+});
 
 // ── OZNAM AINUBISA = CYAN BODKA (26. 10. 2026, len za TEST_BUILD) ─────────────────────────────
 // Matej: *„každé prihlásenie hlási cyan upozornenie — kde oznámime počet členov (ak pribudnú) alebo
@@ -387,8 +393,10 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
       >
         <HandTail key={wag} size={capsule ? 24 : 17} className={wag ? 'ntf-wag' : undefined} />
         <style>{WAG_CSS}</style>
-        {memberDot && capsule && <span aria-hidden style={CAP_DOT} />}
-        {cyanDot && capsule && <span aria-hidden style={CAP_DOT_AI} />}
+        {memberDot && capsule && (TEST_BUILD
+          ? <span aria-hidden style={capBadge(false)}>{freshAlerts.length > 9 ? '9+' : freshAlerts.length}</span>
+          : <span aria-hidden style={CAP_DOT} />)}
+        {cyanDot && capsule && <span aria-hidden style={capBadge(true)}>1</span>}
         {bellCount > 0 && !capsule && (
           <span
             style={{
