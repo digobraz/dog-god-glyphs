@@ -681,7 +681,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                     <div className="tcm-advice" key={item.q.id}>
                       <div className="tcm-advice-text">{item.q.body}</div>
                       <div className="tcm-advice-meta">
-                        <span>{name}{item.q.packNumber != null ? ` · Dogyptian #${item.q.packNumber}` : ''}</span>
+                        <span>{name}</span>
                         {canWrite && (
                           <button type="button" className="tcm-reportlink" onClick={() => openReport(item.q.id)}>{t('pack.trip.cm.report')}</button>
                         )}
