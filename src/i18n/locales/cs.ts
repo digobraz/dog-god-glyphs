@@ -4168,6 +4168,7 @@ export const cs: Partial<Dict> = {
   'pack.alerts.walkInvite': '{who} píše, že jste tento výlet prošli spolu',
   'pack.alerts.walkInviteYes': 'Ano, šli jsme spolu',
   'pack.alerts.walkInviteNo': 'Ne, to nejsem já',
+  'pack.alerts.pawmateJoined': '{who} je ve tvé smečce',
 
   // ── pack.community ──
   'pack.community.browseTrips': 'Projdi si výlety',

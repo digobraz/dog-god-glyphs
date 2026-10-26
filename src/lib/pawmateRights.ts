@@ -193,8 +193,24 @@ export async function revokePawmate(dogId: string, userId: string): Promise<void
     await patchMockPawmate(userId, dogId, null);
     return;
   }
-  const { error } = await (supabase as any).rpc('revoke_pawmate', { p_dog: dogId, p_user: userId });
-  if (error) throw new Error(error.message);
+  // 26. 10. 2026: vyradenie ide cez edge `revoke-pawmate` — tá pošle vyradenému
+  // mail F (inak sa nedozvie nič, do appky už nevidí). RPC ostáva ako záloha
+  // pre prípad, že funkcia na danom prostredí ešte nie je nasadená (404 brány
+  // nemá `{ error }` v tele); „taký pawmate nie je" sa nezálohuje — RPC by
+  // povedala to isté.
+  const { error } = await supabase.functions.invoke('revoke-pawmate', { body: { dogId, userId } });
+  if (!error) return;
+  let code = 'internal';
+  try {
+    const res = (error as { context?: Response }).context;
+    if (res && typeof res.json === 'function') {
+      const body = await res.json();
+      if (typeof body?.error === 'string') code = body.error;
+    }
+  } catch { /* telo sa nedá prečítať — ostáva `internal` */ }
+  if (code === 'not_found' || code === 'unauthorized') throw new Error(code);
+  const { error: rpcErr } = await (supabase as any).rpc('revoke_pawmate', { p_dog: dogId, p_user: userId });
+  if (rpcErr) throw new Error(rpcErr.message);
 }
 
 export async function revokeDogInvite(dogId: string, inviteId: string): Promise<void> {
