@@ -37,6 +37,7 @@ import { levelProgress, POINTS, POINTS_PER_KM, POINTS_PER_100M, JOURNEY_POINTS, 
 // reveal po zápise). TRIPSTATS ich doteraz NEPOUŽÍVAL a mal zlatú pilulku aj zlatý pruh,
 // takže vysvedčenie ako jediné neukazovalo, kde človek na ceste stojí.
 import { tierVars, tierPillStyle, tierOfLevel, tierIndexOfLevel, pilgrimImg } from '@/lib/packTiers';
+import { PilgrimBadge, RANK_BADGE_CSS, RANK_BADGE_ON } from '@/components/pack/profile/rankBadge';
 import { TierScale } from '@/components/pack/level/TierScale';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { trailCountry, flagUrl, flagEmojiFromISO2, countryName } from '@/lib/countryGeo';
@@ -1711,6 +1712,15 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
               raz tmavý a raz svetlý (`tier.ink`), takže filter by sa musel prepočítavať ku
               každému z deviatich pásiem zvlášť. */}
           <span className="comm-tierwrap">
+            {/* TEST_BUILD: ODZNAK PÚTNIKA presne ako v /profile (Matej 26. 10.: „tu nebude tento pills ale
+                presne to čo je v /profile“). Klik ďalej otvára škálu pásiem. */}
+            {RANK_BADGE_ON ? (
+              <span className="comm-rkbadge" onClick={(e) => e.stopPropagation()}>
+                <style>{RANK_BADGE_CSS}</style>
+                <PilgrimBadge level={lvl.level} pct={lvl.pct} on={tierOpen} onClick={() => setTierOpen((v) => !v)}
+                  label={t('pack.stats.rankAria', { rank: t('pack.map.rankPilgrim'), level: lvl.level, tier: tierOfLevel(lvl.level).name })} />
+              </span>
+            ) : (
             <button
               type="button"
               className="comm-level-pill"
@@ -1725,6 +1735,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                   ho drží natvrdo ako 'Pilgrim'. Tú istú výmenu má hlavička `/map`. */}
               {t('pack.stats.rankLine', { rank: t('pack.map.rankPilgrim'), level: lvl.level })}
             </button>
+            )}
             {tierOpen && (
               <span className="comm-tiers" onClick={(e) => e.stopPropagation()}>
                 <span className="comm-pts-eyebrow">{t('pack.stats.levelColours')}</span>

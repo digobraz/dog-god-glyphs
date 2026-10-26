@@ -76,18 +76,23 @@ export function TierScale({ level, onDark = true }: TierScaleProps) {
                 fontSize: 11.5,
                 letterSpacing: '.02em',
                 color: isHere ? ink : dim,
+                // „tu si“ ide POD rozsah, nie vedľa — vedľa sa rozsah lámal na 3 riadky a nápis vyliezal
+                // z rámu (26. 10. 2026, mená pásiem „Above the Clouds“ sú dlhšie než farby).
+                minWidth: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                whiteSpace: 'nowrap',
               }}
             >
               {t('pack.tier.levelRange', { range: tierRangeLabel(tier) })}
-            </span>
             {isHere && (
               <span
                 style={{
-                  flex: '0 0 auto',
                   fontFamily: FONT_UI,
                   fontWeight: 600,
                   fontSize: 9.5,
                   letterSpacing: '.16em',
+                  whiteSpace: 'nowrap',
                   textTransform: 'uppercase',
                   color: tier.a,
                 }}
@@ -95,6 +100,7 @@ export function TierScale({ level, onDark = true }: TierScaleProps) {
                 {t('pack.tier.youAreHere')}
               </span>
             )}
+            </span>
           </div>
         );
       })}

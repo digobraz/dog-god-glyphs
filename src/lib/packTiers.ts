@@ -77,7 +77,8 @@ export interface PackTier {
 }
 
 const TIER_KEYS = ['lime', 'emerald', 'turquoise', 'azure', 'ice', 'rose', 'garnet', 'amethyst', 'indigo'];
-const TIER_NAMES = ['Lime', 'Emerald', 'Turquoise', 'Azure', 'Ice', 'Rose', 'Garnet', 'Amethyst', 'Indigo'];
+// Mená pásiem = KRAJINA cesty pútnika (Matej 26. 10.: „pásma pomenujeme podľa zeme… lúky, lesa, hôr“ → schválené A + Peak + Nad oblakmi + Mliečna dráha).
+const TIER_NAMES = ['Meadow', 'Wildwood', 'Tarn', 'Peak', 'Glacier', 'Aurora', 'Volcano', 'Above the Clouds', 'Milky Way'];
 
 /** Svetlý inkoust na tmavej farbe, tmavý na svetlej (vnímaný jas). */
 function inkFor(hex: string): string {

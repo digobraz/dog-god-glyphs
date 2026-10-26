@@ -4080,14 +4080,14 @@ export const cs: Partial<Dict> = {
   'pack.stats.yourPoints': 'Tvoje body',
 
   // ── pack.tier ──
-  'pack.tier.amethyst': 'Ametyst',
-  'pack.tier.lime': 'Limetka',
-  'pack.tier.emerald': 'Smaragd',
-  'pack.tier.azure': 'Azur',
-  'pack.tier.ice': 'Led',
-  'pack.tier.rose': 'Růže',
-  'pack.tier.garnet': 'Granát',
-  'pack.tier.indigo': 'Indigo',
+  'pack.tier.amethyst': "Nad mraky",
+  'pack.tier.lime': "Louka",
+  'pack.tier.emerald': "Prales",
+  'pack.tier.azure': "Štít",
+  'pack.tier.ice': "Ledovec",
+  'pack.tier.rose': "Polární záře",
+  'pack.tier.garnet': "Sopka",
+  'pack.tier.indigo': "Mléčná dráha",
   'pack.tier.breakdownTitle': 'Za co máš body',
   'pack.tier.carnelian': 'Karneol',
   'pack.tier.chip': 'Level {level} · {tier}',
@@ -4107,7 +4107,7 @@ export const cs: Partial<Dict> = {
   'pack.tier.toNext': 'ještě {n} bodů do levelu {level}',
   'pack.tier.toNextShort': 'ještě {n} bodů do dalšího levelu',
   'pack.tier.totalLabel': 'Celkem',
-  'pack.tier.turquoise': 'Tyrkys',
+  'pack.tier.turquoise': "Pleso",
   'pack.tier.youAreHere': 'tady jsi',
 
   // ══ 2026-09-16 — preklad /pack zo SK (613 kľúčov) ══
