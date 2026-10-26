@@ -26,7 +26,7 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { deletePost, fetchPostSocial, fetchComments, addComment, deleteComment, fetchLikers, mapyPointUrl, type PostLiker, type MePost, type PostSocial, type PostComment } from '@/components/pack/profile/mePosts';
 import { toggleMark } from '@/components/pack/story/storyData';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { HandHeart, HandStar, HandTrash } from '@/components/pack/HandIcons';
+import { HandPaw, HandStar, HandTrash } from '@/components/pack/HandIcons';
 import { createEmoji } from '@/components/pack/addtrip/AddTripEntry';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { ADD_WISH_CSS } from '@/components/pack/mapnotes/AddWish';
@@ -223,7 +223,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
         )}
         <div className="pv-acts">
           <button type="button" className={`like${soc.liked ? ' on' : ''}`} onClick={() => mark('like')} aria-pressed={soc.liked} aria-label={tx('pack.post.like', 'Like')}>
-            <HandHeart size={24} on={soc.liked} />{soc.likes > 0 && soc.likes}
+            <HandPaw size={24} on={soc.liked} />{soc.likes > 0 && soc.likes}
           </button>
           <button type="button" onClick={() => input.current?.focus()} aria-label={tx('pack.post.comment', 'Comment')}>
             <BrandIcon name="chat" size={24} tint="dark" />{soc.comments > 0 && soc.comments}
