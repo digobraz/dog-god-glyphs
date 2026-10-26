@@ -2463,6 +2463,9 @@ export const en = {
   'pack.alerts.walkInviteYes': 'Yes, I was there',
   'pack.alerts.walkInviteNo': 'Not me',
   'pack.alerts.pawmateJoined': '{who} is now in your pack',
+  'pack.mate.heirTitle': 'Successor',
+  'pack.mate.heirTakes': '{name} takes over {dog}',
+  'pack.mate.heirHint': 'When you can no longer care for the dog. We confirm the takeover by hand — nothing moves on its own.',
   // pack.notif
   'pack.notif.ariaMessages': "Messages — coming soon",
   'pack.notif.ariaNotifications': "Notifications",
