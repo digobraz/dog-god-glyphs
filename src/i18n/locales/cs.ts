@@ -1769,7 +1769,7 @@ export const cs: Partial<Dict> = {
   "pack.create.photo.title": "Fotka",
   "pack.create.post.title": "Příspěvek",
   "pack.create.post.hint": "fotka + text + štítky",
-  "pack.create.chat.title": "Začít rozhovor",
+  "pack.create.chat.title": "Nový rozhovor",
   "pack.create.brain.title": "Znalost do mozku",
   "pack.create.brain.hint": "poznatek · odkaz · kniha · video",
   "pack.create.board.title": "Zeptej se smečky",
