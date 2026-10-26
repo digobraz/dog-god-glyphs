@@ -559,7 +559,7 @@ export async function setPeerBlocked(convId: string, blocked: boolean): Promise<
  * Zlyhaný mail preto nikdy nezhodí nahlásenie.
  */
 export async function reportContent(
-  kind: 'member' | 'conversation' | 'comment' | 'trip',
+  kind: 'member' | 'conversation' | 'comment' | 'trip' | 'post',
   ref: string,
   reason: ReportReason,
   note?: string,

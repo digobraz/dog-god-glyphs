@@ -18,6 +18,8 @@ import { addWishPin } from '@/components/pack/mapnotes/wishData';
 import { createEmoji } from '@/components/pack/addtrip/AddTripEntry';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { agoLabel } from './feedData';
+import { PostMenu } from '@/components/pack/profile/PostMenu';
+import { deletePost } from '@/components/pack/profile/mePosts';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -49,8 +51,10 @@ export const FEED_POST_CSS = `
 .pfp-cm{display:block;background:none;border:0;cursor:pointer;padding:${S.xs}px ${S.md}px ${S.md}px;font:500 ${TX.label}px/1.3 ${FONT_UI};color:${T.inkWarm};}
 `;
 
-export function FeedPostCard({ post, name, avatar, onOpen }: {
+export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine = true }: {
   post: MePost; name: string; avatar: string | null; onOpen: (p: MePost) => void;
+  /** Cudzí autor (až bude feed vedieť): jeho číslo majiteľa + `mine={false}` — tri bodky ponúknu nahlásiť/zablokovať. */
+  authorN?: number | null; mine?: boolean;
 }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
@@ -95,6 +99,7 @@ export function FeedPostCard({ post, name, avatar, onOpen }: {
           <b>{name}</b>
           <small>{[place?.name, agoLabel(Date.parse(post.createdAt), lang)].filter(Boolean).join(' · ')}</small>
         </div>
+        <PostMenu postId={post.id} authorN={authorN} authorName={name} mine={mine} onDelete={() => deletePost(post.id)} />
       </div>
       {post.photos[0] && (
         <div className="pfp-ph" style={{ aspectRatio: String(aspect) }} onClick={() => onOpen(post)}>

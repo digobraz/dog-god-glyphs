@@ -11,9 +11,9 @@
 // ⚠️ PRIZNANÁ VÝNIMKA z lapisového kánonu (ako AINUBIS a zelená Mapy.com): v sekcii
 //    BONES je hlavné CTA tyrkysové, nie lapis. Mimo BONES sa tyrkys na CTA nedáva.
 // ════════════════════════════════════════════════════════════════════════════
-import { PACK_TIERS, tierGradient, type PackTier } from '@/lib/packTiers';
+import { BONES_TIER, tierGradient } from '@/lib/packTiers';
 
-const TQ = PACK_TIERS.find((t) => t.key === 'turquoise') as PackTier;
+const TQ = BONES_TIER;
 
 export const BONES = {
   /** Svetlý a tmavý koniec pásma. */

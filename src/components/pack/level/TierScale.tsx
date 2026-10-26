@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { FONT_TITLE, FONT_UI, PACK_THEME as T, GOLD_BTN } from '@/components/pack/packTheme';
-import { PACK_TIERS, tierGradient, tierIndexOfLevel, tierRangeLabel } from '@/lib/packTiers';
+import { PACK_TIERS, tierGradient, tierIndexOfLevel, tierRangeLabel, pilgrimImg } from '@/lib/packTiers';
 import { useT } from '@/i18n/LanguageContext';
 
 export interface TierScaleProps {
@@ -47,6 +47,7 @@ export function TierScale({ level, onDark = true }: TierScaleProps) {
                 : 'transparent',
             }}
           >
+            <img src={pilgrimImg(i)} alt="" aria-hidden style={{ flex: 'none', width: 28, height: 28, objectFit: 'contain', opacity: i <= here ? 1 : 0.55 }} />
             <span
               style={{
                 flex: '0 0 auto',

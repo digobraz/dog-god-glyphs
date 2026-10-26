@@ -21,7 +21,8 @@ import { useLang, useT } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser } from '@/hooks/usePackUser';
-import { PACK_THEME, PACK_SPACE, PACK_TEXT, FONT_TITLE, PILL_CSS, MEDALLION_CSS, PAPER_BG } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PILL_CSS, MEDALLION_CSS, PAPER_BG } from '@/components/pack/packTheme';
+import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { ScrollCard, SCROLL_CSS, SCROLL_CARD_CSS } from '@/components/pack/vault/ScrollParts';
 import { useDemoScrolls, useSaved, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
@@ -36,6 +37,8 @@ import { FeedTripCard, FEED_TRIP_CSS } from './FeedTripCard';
 import { FeedPostCard, FEED_POST_CSS } from './FeedPostCard';
 import { AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
 import { SnifferStrip, TripStrip, FEED_TOP_CSS } from './FeedTop';
+import { FeedMapCard, FEED_MAP_CSS, useMapAdds, type MapAdd } from './FeedMapCard';
+import { POST_TAGS, postTopics } from './postTags';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -51,12 +54,19 @@ ${FEED_TRIP_CSS}
 ${FEED_POST_CSS}
 ${FEED_AI_CSS}
 ${FEED_TOP_CSS}
+${FEED_MAP_CSS}
 /* Feed je PLOCHÝ papyrus bez tapety (Matej 24. 10.: „layout bez toho čierneho pozadia ako je aj na ig"). */
 body.pkf-on .pk-paper{background-color:${PAPER_BG};}
 body.pkf-on .pk-paper::before,body.pkf-on .pk-paper::after{display:none;}
 .pkf{color:${T.inkStrong};}
 .pkf-col{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:${S.lg}px;padding-bottom:${S.xl}px;}
 .pkf-top{display:flex;flex-direction:column;gap:${S.lg}px;padding-bottom:${S.lg}px;border-bottom:1px solid ${T.hairline};}
+.pkf-tags{display:flex;gap:${S.sm}px;overflow-x:auto;scrollbar-width:none;margin:0 -${S.lg}px;padding:0 ${S.lg}px ${S.xs}px;}
+.pkf-tags::-webkit-scrollbar{display:none;}
+.pkf-tag{flex:none;display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;border:1.5px solid ${T.border};
+  background:${T.card};color:${T.inkStrong};font-family:${FONT_UI};font-weight:500;font-size:${TX.label}px;white-space:nowrap;}
+.pkf-tag.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
+.pkf-none{padding:${S.xl}px ${S.lg}px;text-align:center;font-size:${TX.label}px;color:${T.inkWarm};}
 .pkf-end{padding:${S.xl}px ${S.lg}px;text-align:center;font-size:${TX.label}px;color:${T.inkWarm};}
 .pkf-end img{margin:0 auto;}
 .pkf-end b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;line-height:1.3;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};margin:${S.sm}px 0 ${S.xs}px;} /* písmo: nadpis */
@@ -67,6 +77,7 @@ type Item =
   | { k: 'trip'; i: number }
   | { k: 'scroll'; z: DemoScroll }
   | { k: 'post'; p: MePost }
+  | { k: 'map'; a: MapAdd }
   | { k: 'story' }
   | { k: 'saved' };
 
@@ -81,10 +92,12 @@ export function PackFeed() {
   const { dogs } = usePackUser(uid);
 
   const [myPosts, setMyPosts] = useState<MePost[]>([]);
+  const [topic, setTopic] = useState<string | null>(null);
   const [reading, setReading] = useState<MePost | null>(null);
   const [favs, setFavs] = useState<Set<string>>(() => readFavIds());
   const likes = useLocalLikes();
   const trips = useFeedTrips(12);
+  const mapAdds = useMapAdds(6);
   const scrolls = useDemoScrolls();
   const savedIds = useSaved();
 
@@ -103,6 +116,11 @@ export function PackFeed() {
     const off = onPostsChanged(load);
     return () => { alive = false; off(); };
   }, [uid]);
+  // FILTER TÉM (krok 5): pilulka vyberie len príspevky s daným štítkom `t:*` — ostatné bloky feedu sa skryjú.
+  const tagged = useMemo(
+    () => (topic ? myPosts.filter((p) => !isMoment(p) && !isAlbum(p) && !isTripStory(p) && p.visibility === 'public' && postTopics(p).includes(topic)) : []),
+    [myPosts, topic],
+  );
   const posts = useMemo(
     () => myPosts.filter((p) => !isMoment(p) && !isAlbum(p) && !isTripStory(p) && p.visibility === 'public' && p.photos.length > 0).slice(0, 6),
     [myPosts],
@@ -148,11 +166,13 @@ export function PackFeed() {
     const sq = [...dayScrolls];
     if (savedScrolls.length) out.push({ k: 'saved' });
     out.push({ k: 'quote' });
-    const pattern: Array<'trip' | 'scroll' | 'post' | 'story'> = ['trip', 'scroll', 'post', 'trip', 'story', 'scroll'];
+    const mq = [...mapAdds];
+    const pattern: Array<'trip' | 'scroll' | 'post' | 'story' | 'map'> = ['trip', 'scroll', 'post', 'map', 'trip', 'story', 'scroll', 'map', 'map'];
     for (const k of pattern) {
       if (k === 'trip' && tq.length) out.push({ k: 'trip', i: tq.shift() as number });
       else if (k === 'scroll' && sq.length) out.push({ k: 'scroll', z: sq.shift() as DemoScroll });
       else if (k === 'post' && pq.length) out.push({ k: 'post', p: pq.shift() as MePost });
+      else if (k === 'map' && mq.length) out.push({ k: 'map', a: mq.shift() as MapAdd });
       else if (k === 'story') out.push({ k: 'story' });
     }
     while (tq.length || pq.length) {
@@ -160,7 +180,7 @@ export function PackFeed() {
       if (pq.length) out.push({ k: 'post', p: pq.shift() as MePost });
     }
     return out;
-  }, [trips, posts, dayScrolls, savedScrolls.length]);
+  }, [trips, posts, dayScrolls, savedScrolls.length, mapAdds]);
 
   const aiLabels = { like: tx('pack.feed.act.like', 'Like'), save: tx('pack.feed.act.save', 'Save'), more: tx('pack.feed.more', 'more') };
 
@@ -186,6 +206,10 @@ export function PackFeed() {
         return <ScrollCard key={`z:${it.z.id}`} z={it.z} lang={lang} worldName={worldName(it.z.world)} onOpen={openScroll} onShare={() => {}} />;
       case 'post':
         return <FeedPostCard key={`p:${it.p.id}`} post={it.p} name={ownName} avatar={youImg} onOpen={setReading} />;
+      case 'map':
+        return (
+          <FeedMapCard key={it.a.id} add={it.a} liked={likes.has(`map:${it.a.id}`)} onLike={() => likes.toggle(`map:${it.a.id}`)} />
+        );
       case 'story':
         return (
           <AiStory key="story" src="/videos/WHO_IS_HEKTHOR.mp4" poster="/videos/WHO_IS_HEKTHOR.webp"
@@ -211,13 +235,27 @@ export function PackFeed() {
           <TripStrip trips={trips.slice(0, 8)} />
         </div>
 
-        {items.map(render)}
+        {/* FILTER TÉM — tie isté pilulky ako pri pridávaní príspevku (`postTags.ts`). */}
+        <div className="pkf-tags" role="group" aria-label={tx('pack.feed.tag.filter', 'Topics')}>
+          {POST_TAGS.map((d) => (
+            <button key={d.tag} type="button" className={`pkf-tag${topic === d.tag ? ' on' : ''}`} aria-pressed={topic === d.tag}
+              onClick={() => setTopic((c) => (c === d.tag ? null : d.tag))}>
+              <BrandIcon name={d.icon} size={16} tint="dark" />{tx(d.i18n, d.fallback)}
+            </button>
+          ))}
+        </div>
 
-        <div className="pkf-end">
+        {topic
+          ? (tagged.length
+            ? tagged.map((p) => <FeedPostCard key={`p:${p.id}`} post={p} name={ownName} avatar={youImg} onOpen={setReading} />)
+            : <p className="pkf-none">{tx('pack.feed.tag.empty', 'No posts with this topic yet.')}</p>)
+          : items.map(render)}
+
+        {!topic && <div className="pkf-end">
           <BrandIcon name="paw" size={32} tint="gold" />
           <b>{tx('pack.feed.end.title', 'You have seen it all')}</b>
           {tx('pack.feed.end.sub', 'A new quote tomorrow.')}
-        </div>
+        </div>}
       </div>
 
       {reading && (

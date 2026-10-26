@@ -1,21 +1,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // FAREBNÉ PÁSMA LEVELU — jeden zdroj farby pre celú appku.
 //
-// Level je číslo bez stropu (`levelOf` v `@/lib/tripPoints`). Pásmo je FARBA, ktorú to
-// číslo práve nosí, a mení sa každé TRI levely — deväťkrát za celú cestu:
-//
-//     Level  1– 3  Piesok      Level 10–12  Karneol     Level 19–21  Tyrkys
-//     Level  4– 6  Meď         Level 13–15  Olivín      Level 22–24  Lapis
-//     Level  7– 9  Zlato       Level 16–18  Cyprus      Level 25+    Ametyst
-//
-// Sadu si vybral Matej 23. 8. 2026 v palete nákresu (`plany/reveal-nakres.html`) a poslal
-// hotový zoznam aj s hexmi — hodnoty nižšie sú jeho výber, nie návrh.
-//
-// PORADIE = TEPLOTA farby (teplé → studené), s jednou zámernou odbočkou: KARNEOL sedí medzi
-// zlatom a olivínom ako akcent. Červený odtieň bol raz zamietnutý (*„vyzerá ako niečo zlé"*)
-// a Matej ho vrátil sám — *„ok dajme tam predsa tu červenú"*. Neponúkaj ho preč znova.
-// ⚠️ Červená je na MAPE obsadená hrozbou; toto je iný povrch (level človeka) a kolízia
-//    významov je prijaté riziko, nie prehliadnutie.
+// Level je číslo bez stropu (`levelOf` v `@/lib/tripPoints`). Stupeň je FARBA + obrázok, ktoré to
+// číslo práve nosí — deväť stupňov (od 26. 10. 2026 podľa profilu, prahy `PILGRIM_FROM` nižšie;
+// pôvodných 9 pásiem po troch leveloch Piesok…Ametyst zaniklo).
 //
 // PREČO SAMOSTATNÝ MODUL: farbu berie hlavička mapy, karta na `/pack`, panel škály, reveal
 // po zápise výletu aj pilulka pri cudzích menách. Keby si ju každý povrch písal sám, rozišli
@@ -25,58 +13,109 @@
 
 import type { CSSProperties } from 'react';
 
-/** Koľko levelov pokrýva jedno pásmo. Matej 23. 8.: „treba to hustejšie kludne po 3 leveloch". */
-export const TIER_SPAN = 3;
+/**
+ * 🔄 26. 10. 2026 — JEDEN ZDROJ PRE PÚTNIKA (Matej: *„zmenili sme farebnosť aj ikonku a to musíme
+ * zmeniť aj na /map v tripliste"*). Vzhľad z profilu (`profile/rankBadge.tsx`: 9 stupňov, smalt +
+ * obrázok `pilgrim-N.webp`) je od teraz JEDINÝ — mapa, triplist, reveal, panel škály aj profil
+ * čítajú tie isté `PILGRIM_FROM` / `PILGRIM_COL`. Staré pásma po troch leveloch (Piesok…Ametyst)
+ * a ich farby zanikli; prahy nesie `PILGRIM_FROM`, nie `TIER_SPAN`.
+ * Level samotný sa NEMENIL (`levelOf` v `tripPoints.ts`) — hýbe sa len to, do ktorého stupňa spadá.
+ */
+/** Prvý level každého z 9 stupňov. */
+export const PILGRIM_FROM = [1, 4, 8, 13, 19, 26, 34, 43, 53];
+/** Smalt stupňa. */
+export const PILGRIM_COL = ['#5BD12A', '#1E9A48', '#3FD6C8', '#2F86F0', '#DCEAF2', '#E0287A', '#7A1530', '#6A2AC0', '#141A4A'];
+/** Ľadová biela sa NEprelieva do ružovej (Matej 25. 10.: „biela sa farbí do ružova, to sa mi nepáči“). */
+export const PILGRIM_NOBLEND = 4;
+/** Posledný stupeň nemá ďalší prah — rozpätie na prelievanie farby. */
+const LAST_SPAN = 12;
+
+/** Index stupňa (0–8) pre hodnotu `v` — rovnaké pre level aj pre `from` poľa. */
+export const stepOf = (from: number[], v: number) => from.reduce((t, f, i) => (v >= f ? i : t), 0);
+
+export function mixHex(a: string, b: string, t: number) {
+  const A = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
+  const B = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+  return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join('');
+}
+
+/** Farba náplne pre level + postup k ďalšiemu (0–100): začiatok a koniec prechodu k farbe ďalšieho stupňa. */
+export function pilgrimColors(level: number, pct = 0): { t: number; c: string; c0: string; c1: string } {
+  const t = stepOf(PILGRIM_FROM, level);
+  const c = PILGRIM_COL[t];
+  const nx = t < PILGRIM_COL.length - 1 ? PILGRIM_COL[t + 1] : c;
+  const f = PILGRIM_FROM[t];
+  const span = (t < PILGRIM_FROM.length - 1 ? PILGRIM_FROM[t + 1] : f + LAST_SPAN) - f;
+  const still = t === PILGRIM_NOBLEND;
+  return {
+    t, c,
+    c0: mixHex(c, nx, still ? 0 : (level - f) / span),
+    c1: mixHex(c, nx, still ? 0 : Math.min(1, (level - f + pct / 100) / span)),
+  };
+}
+
+/** Obrázok stupňa (ikonka PÚTNIKA). */
+export const pilgrimImg = (t: number) => `/icons/pack/rank/pilgrim-${t}.webp`;
 
 export interface PackTier {
   /** stabilný i18n kľúč — `pack.tier.<key>` */
   key: string;
-  /** EN fallback / kánon názvu materiálu */
+  /** EN fallback / názov stupňa */
   name: string;
   /** svetlý koniec gradientu */
   a: string;
-  /** tmavý koniec gradientu */
+  /** hlavná farba (smalt stupňa; pri `tierOfLevel` už prelievaná podľa levelu) */
   b: string;
-  /** farba písma NA tejto pilulke — nie je odvoditeľná, tmavé pásma potrebujú svetlý inkoust */
+  /** farba písma NA tejto pilulke — tmavé stupne potrebujú svetlý inkoust */
   ink: string;
-  /** prvý level pásma (1, 4, 7, …) */
+  /** prvý level stupňa */
   from: number;
-  /** posledný level pásma; posledné pásmo je otvorené (`null`) */
+  /** posledný level stupňa; posledný stupeň je otvorený (`null`) */
   to: number | null;
+  /** index stupňa 0–8 (obrázok `pilgrim-<idx>.webp`) */
+  idx: number;
 }
 
-export const PACK_TIERS: PackTier[] = [
-  { key: 'sand',     name: 'Sand',      a: '#EFE0B8', b: '#C9AC6E', ink: '#241a06', from: 1,  to: 3 },
-  { key: 'copper',   name: 'Copper',    a: '#EE9A4A', b: '#A94E15', ink: '#241a06', from: 4,  to: 6 },
-  { key: 'gold',     name: 'Gold',      a: '#F5C73D', b: '#E69E1A', ink: '#241a06', from: 7,  to: 9 },
-  { key: 'carnelian',name: 'Carnelian', a: '#E4654A', b: '#8E2118', ink: '#F5F0E4', from: 10, to: 12 },
-  { key: 'olivine',  name: 'Olivine',   a: '#C8D75F', b: '#6C8A16', ink: '#241a06', from: 13, to: 15 },
-  { key: 'cypress',  name: 'Cypress',   a: '#2E8F63', b: '#06301D', ink: '#F5F0E4', from: 16, to: 18 },
-  { key: 'turquoise',name: 'Turquoise', a: '#74DCC6', b: '#178C80', ink: '#0d2426', from: 19, to: 21 },
-  { key: 'lapis',    name: 'Lapis',     a: '#6C8FE8', b: '#1F3490', ink: '#F5F0E4', from: 22, to: 24 },
-  { key: 'amethyst', name: 'Amethyst',  a: '#BC8BEA', b: '#6431A8', ink: '#F5F0E4', from: 25, to: null },
-];
+const TIER_KEYS = ['lime', 'emerald', 'turquoise', 'azure', 'ice', 'rose', 'garnet', 'amethyst', 'indigo'];
+const TIER_NAMES = ['Lime', 'Emerald', 'Turquoise', 'Azure', 'Ice', 'Rose', 'Garnet', 'Amethyst', 'Indigo'];
+
+/** Svetlý inkoust na tmavej farbe, tmavý na svetlej (vnímaný jas). */
+function inkFor(hex: string): string {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return 0.299 * r + 0.587 * g + 0.114 * b > 150 ? '#0d1630' : '#F5F0E4';
+}
+
+function tierAt(i: number, color: string): PackTier {
+  return {
+    key: TIER_KEYS[i], name: TIER_NAMES[i],
+    a: mixHex(color, '#ffffff', 0.3), b: color, ink: inkFor(color),
+    from: PILGRIM_FROM[i], to: i < PILGRIM_FROM.length - 1 ? PILGRIM_FROM[i + 1] - 1 : null, idx: i,
+  };
+}
+
+export const PACK_TIERS: PackTier[] = PILGRIM_COL.map((c, i) => tierAt(i, c));
+
+/** Odtieň BONES (tyrkys) — NIE je to PÚTNIK; zostal z pôvodnej sady, aby sa BONES nezmenili s rebríčkom. */
+export const BONES_TIER: PackTier = {
+  key: 'turquoise', name: 'Turquoise', a: '#74DCC6', b: '#178C80', ink: '#0d2426', from: 0, to: null, idx: 2,
+};
 
 /**
- * Pásmo pre daný level. Level pod 1 aj level nad poslednou hranicou vracia krajné pásmo —
- * funkcia nikdy nevracia `undefined`, aby volajúci nemusel riešiť prázdno vo `style`.
+ * Stupeň pre daný level, s farbou už prelievanou podľa levelu (ako náplň odznaku v profile).
+ * Level pod 1 aj nad poslednou hranicou vracia krajný stupeň — nikdy `undefined`.
  */
 export function tierOfLevel(level: number): PackTier {
   const lv = Math.max(1, Math.floor(level || 1));
-  const i = Math.min(PACK_TIERS.length - 1, Math.floor((lv - 1) / TIER_SPAN));
-  return PACK_TIERS[i];
+  const { t, c0 } = pilgrimColors(lv, 0);
+  return tierAt(t, c0);
 }
 
-/** Index pásma (0–8) — na porovnanie „prešiel som do ďalšieho pásma?". */
+/** Index stupňa (0–8) — na porovnanie „prešiel som do ďalšieho stupňa?". */
 export function tierIndexOfLevel(level: number): number {
-  const lv = Math.max(1, Math.floor(level || 1));
-  return Math.min(PACK_TIERS.length - 1, Math.floor((lv - 1) / TIER_SPAN));
+  return stepOf(PILGRIM_FROM, Math.max(1, Math.floor(level || 1)));
 }
 
-/**
- * Prechod medzi dvoma levelmi zmenil pásmo? Level up je bežná udalosť, zmena pásma je
- * udalosť, ktorú človek uvidí deväťkrát za celú cestu — a scéna sa podľa toho správa inak.
- */
+/** Prechod medzi dvoma levelmi zmenil stupeň? */
 export function crossedTier(fromLevel: number, toLevel: number): boolean {
   return tierIndexOfLevel(fromLevel) !== tierIndexOfLevel(toLevel);
 }

@@ -36,7 +36,7 @@ import { levelProgress, POINTS, POINTS_PER_KM, POINTS_PER_100M, JOURNEY_POINTS, 
 // FAREBNÉ PÁSMA LEVELU — jeden zdroj farby pre celú appku (hlavička mapy, karta na /pack,
 // reveal po zápise). TRIPSTATS ich doteraz NEPOUŽÍVAL a mal zlatú pilulku aj zlatý pruh,
 // takže vysvedčenie ako jediné neukazovalo, kde človek na ceste stojí.
-import { tierVars, tierPillStyle, tierOfLevel } from '@/lib/packTiers';
+import { tierVars, tierPillStyle, tierOfLevel, tierIndexOfLevel, pilgrimImg } from '@/lib/packTiers';
 import { TierScale } from '@/components/pack/level/TierScale';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { trailCountry, flagUrl, flagEmojiFromISO2, countryName } from '@/lib/countryGeo';
@@ -1719,7 +1719,8 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
               aria-expanded={tierOpen}
               aria-label={t('pack.stats.rankAria', { rank: t('pack.map.rankPilgrim'), level: lvl.level, tier: tierOfLevel(lvl.level).name })}
             >
-              <span className="comm-level-ic" style={{ '--ic': `url(${ICON('trophy')})` } as React.CSSProperties} />
+              {/* 26. 10. 2026: ikonka = obrázok stupňa PÚTNIKA (rovnaký ako odznak v profile), nie pohár. */}
+              <img src={pilgrimImg(tierIndexOfLevel(lvl.level))} alt="" aria-hidden style={{ width: 28, height: 28, margin: '-8px -4px -8px -8px', flex: 'none', objectFit: 'contain' }} />
               {/* Rang ide cez `pack.map.rankPilgrim`, nie cez `lvl.rank` — `tripPoints.ts`
                   ho drží natvrdo ako 'Pilgrim'. Tú istú výmenu má hlavička `/map`. */}
               {t('pack.stats.rankLine', { rank: t('pack.map.rankPilgrim'), level: lvl.level })}

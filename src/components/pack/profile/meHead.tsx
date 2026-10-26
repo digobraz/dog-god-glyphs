@@ -14,11 +14,10 @@ import type { DogProfileAttrs } from '@/components/pack/profile/packProfile';
 import { flagUrl, countryISO2 } from '@/lib/countryGeo';
 import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
-import { tierOfLevel, tierGradient, PACK_TIERS, type PackTier } from '@/lib/packTiers';
+import { tierOfLevel, tierGradient, BONES_TIER, type PackTier } from '@/lib/packTiers';
 import { devotionTier, devotionVars, NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
 import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, STORY_RING_CSS, RING_V1, ARC_MAX, ARC_BELOW, arcDogs, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, useActiveDays } from '@/components/pack/profile/rankBadge';
 /** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
-const BONES_TIER = PACK_TIERS.find((t) => t.key === 'turquoise') as PackTier;
 
 const T = PACK_THEME;
 const S = PACK_SPACE;

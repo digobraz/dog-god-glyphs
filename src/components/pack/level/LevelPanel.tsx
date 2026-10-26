@@ -18,7 +18,7 @@ import { BackButton } from '../BackButton';
 
 import { FONT_TITLE, FONT_UI, PACK_THEME as T, GOLD_BTN, VEIL_CSS, PACK_SHADOW } from '@/components/pack/packTheme';
 import type { LevelProgress, PointsRow } from '@/lib/tripPoints';
-import { tierOfLevel, tierGradient } from '@/lib/packTiers';
+import { tierOfLevel, tierGradient, pilgrimImg } from '@/lib/packTiers';
 import { useT } from '@/i18n/LanguageContext';
 import { TierScale } from './TierScale';
 import { PointsBreakdown } from './PointsBreakdown';
@@ -70,6 +70,7 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
               letterSpacing: '0.14em', textTransform: 'uppercase',
               color: 'rgba(245,240,228,0.92)', display: 'flex', alignItems: 'center', gap: 9,
             }}>
+              <img src={pilgrimImg(tier.idx)} alt="" aria-hidden style={{ width: 36, height: 36, margin: '-8px -4px -8px -8px', objectFit: 'contain' }} />
               {t('pack.map.rankPilgrim')}
               <span style={{
                 display: 'inline-flex', alignItems: 'center', padding: '4px 12px 4px',

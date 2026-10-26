@@ -20,6 +20,7 @@ import { fetchMemberProfiles, memberAvatarUrl, memberDisplayName, type MemberPro
 import { fetchMyPosts, coverOfDay, isMoment, isAlbum, isTripStory, type MePost } from './mePosts';
 import { MeCover, MeOwn, MeRank, MeDogRow, MeFlag } from './meHead';
 import { PostViewer } from './PostViewer';
+import { useBlockedOwners } from './moderation';
 
 /** Vyblednuté hodnosti pawtnera — vidí ich, ale nie sú jej (nákres §2). */
 export const MATE_HOME_CSS = `
@@ -50,6 +51,7 @@ export function MateHome({ dogs, me, onInvite, flat }: {
   const [open, setOpen] = useState(false);
   const [rank, setRank] = useState<'pt' | null>(null);
   const [reading, setReading] = useState<MePost | null>(null);
+  const blocked = useBlockedOwners();
 
   useEffect(() => {
     if (ownerNumber == null) { setMember(null); return; }
@@ -82,7 +84,8 @@ export function MateHome({ dogs, me, onInvite, flat }: {
   const dash = <b className="na" aria-label={tx('pack.me.notYet', 'not yet')}>—</b>;
   const bio = human ? (human.dogVoiceBio?.trim() || human.bio?.trim() || '') : '';
   const pills = human ? humanPills(human.personality, customPills(human), t) : [];
-  const grid = (posts ?? []).filter((p) => !isMoment(p) && p.photos.length > 0);
+  // Zablokovaný pawtner (tri bodky v detaile príspevku) = jeho príspevky sa tu nekreslia.
+  const grid = (ownerNumber != null && blocked.has(ownerNumber) ? [] : posts ?? []).filter((p) => !isMoment(p) && p.photos.length > 0);
   const first = ownerName;
 
   return (
@@ -188,7 +191,7 @@ export function MateHome({ dogs, me, onInvite, flat }: {
         </div>
       </section>
       {reading && (
-        <PostViewer post={reading} name={ownerName} avatar={ownerAvatar} dogs={ownerDogs} mine={false} lang={lang} onClose={() => setReading(null)} />
+        <PostViewer post={reading} name={ownerName} avatar={ownerAvatar} dogs={ownerDogs} mine={false} authorN={ownerNumber} lang={lang} onClose={() => setReading(null)} />
       )}
     </>
   );

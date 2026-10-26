@@ -13,16 +13,14 @@ import { TEST_BUILD } from '@/lib/env';
 import { readEvents } from '@/lib/dogEvents';
 import { PACK_R, PACK_SHADOW, PACK_THEME, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
+import { PILGRIM_FROM as P_FROM, stepOf, pilgrimColors, pilgrimImg } from '@/lib/packTiers';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 
 /** Odznaky namiesto pilulky DEVOTION + PÚTNIK. Členovia na webe ich nevidia. */
 export const RANK_BADGE_ON = TEST_BUILD;
 
 /* PÚTNIK — 9 stupňov podľa levelu (`levelOf`, body bez zmeny). Smalt odznaku = farba stupňa. */
-const P_FROM = [1, 4, 8, 13, 19, 26, 34, 43, 53];
-const P_COL = ['#5BD12A', '#1E9A48', '#3FD6C8', '#2F86F0', '#DCEAF2', '#E0287A', '#7A1530', '#6A2AC0', '#141A4A'];
-/** Ľadová biela sa NEprelieva do ružovej (Matej 25. 10.: „biela sa farbí do ružova, to sa mi nepáči“). */
-const P_NOBLEND = 4;
+/* Prahy a farby PÚTNIKA žijú v `lib/packTiers.ts` (od 26. 10. 2026 ich číta aj /map a triplist) — tu sa nepíšu. */
 
 /* SLUŽOBNÍK — číslo = DOKONČENÉ roky so psom (🔒 24. 10.), prvý rok = UČEŇ bez čísla.
  * 8 obrázkov podľa rokov 0–3 · 4–8 · 9–13 · 14–18 · 19–23 · 24–29 · 30–39 · 40+. Súbory sú už
@@ -33,14 +31,6 @@ const S_K = [1.4, 1.4, 1.4, 1.4, 1.4, 1.4, 1.65, 1.6];
 /** Aktivita: dni so zápisom za posledných 90 dní; 80+ = plná kapsula a pulz žiary (nákres: 0–100 % ≈ 0–80 dní). */
 const ACTIVE_DAYS = 90;
 const FULL_DAYS = 80;
-
-const stepOf = (from: number[], v: number) => from.reduce((t, f, i) => (v >= f ? i : t), 0);
-
-function mixHex(a: string, b: string, t: number) {
-  const A = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
-  const B = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
-  return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join('');
-}
 
 /** Šírka náplne: schovaná časť pod odznakom + podiel viditeľnej. */
 const fillWidth = (pct: number) => `calc(var(--s) * .48 + (100% - var(--s) * .48) * ${Math.max(0, Math.min(100, pct)) / 100})`;
@@ -202,17 +192,10 @@ export function BonesBadge({ value, onClick, label }: { value: string; onClick?:
 
 /** PÚTNIK — level + postup k ďalšiemu; náplň prechádza z farby stupňa k farbe ďalšieho. */
 export function PilgrimBadge({ level, pct, on, onClick, label }: BadgeBtn & { level: number; pct: number }) {
-  const t = stepOf(P_FROM, level);
-  const c = P_COL[t];
-  const nx = t < P_COL.length - 1 ? P_COL[t + 1] : c;
-  const f = P_FROM[t];
-  const span = (t < P_FROM.length - 1 ? P_FROM[t + 1] : f + 12) - f;
-  const still = t === P_NOBLEND;
-  const c0 = mixHex(c, nx, still ? 0 : (level - f) / span);
-  const c1 = mixHex(c, nx, still ? 0 : Math.min(1, (level - f + pct / 100) / span));
+  const { t, c0, c1 } = pilgrimColors(level, pct);
   return (
     <button type="button" data-rank-toggle className={`rk${on ? ' on' : ''}`} onClick={onClick} aria-expanded={on} aria-label={label}>
-      <span className="ic"><img src={`/icons/pack/rank/pilgrim-${t}.webp`} alt="" /></span>
+      <span className="ic"><img src={pilgrimImg(t)} alt="" /></span>
       <span className="cp">
         <span className="fl" style={{
           width: fillWidth(pct),
@@ -327,20 +310,13 @@ export function PilgrimPanel({ level, pct, points, floor, nextAt, trips, km, cou
   /** Bez `onStats` (cudzí profil) sa tlačidlo „Štatistiky výletov“ nekreslí — sú to moje štatistiky. */
   trips: number; km: number; countries: number; onStats?: () => void; tx: Tx;
 }) {
-  const t = stepOf(P_FROM, level);
-  const c = P_COL[t];
-  const nx = t < P_COL.length - 1 ? P_COL[t + 1] : c;
-  const f = P_FROM[t];
-  const span = (t < P_FROM.length - 1 ? P_FROM[t + 1] : f + 12) - f;
-  const still = t === P_NOBLEND;
-  const c0 = mixHex(c, nx, still ? 0 : (level - f) / span);
-  const c1 = mixHex(c, nx, still ? 0 : Math.min(1, (level - f + pct / 100) / span));
+  const { t, c0, c1 } = pilgrimColors(level, pct);
   const fmtN = (n: number) => Math.round(n).toLocaleString('sk-SK');
   const nt = stepOf(P_FROM, level + 1);
   return (
     <>
       <div className="rkp-hd">
-        <span className="im"><img src={`/icons/pack/rank/pilgrim-${t}.webp`} alt="" /></span>
+        <span className="im"><img src={pilgrimImg(t)} alt="" /></span>
         <div className="tx"><h3>{tx('pack.map.rankPilgrim', 'Pilgrim')} {level}</h3></div>
         <span className="ab">{fmtN(points)} {tx('pack.rank.pts', 'pts')}</span>
       </div>
@@ -351,7 +327,7 @@ export function PilgrimPanel({ level, pct, points, floor, nextAt, trips, km, cou
           boxShadow: `inset 0 -3px 5px rgba(0,0,0,.35), 0 0 10px ${c1}` }} />
         <span>{fmtN(points - floor)} / {fmtN(nextAt - floor)}</span>
       </div>
-      <div className="rkp-nx"><img src={`/icons/pack/rank/pilgrim-${nt}.webp`} alt="" />{tx('pack.map.rankPilgrim', 'Pilgrim')} {level + 1}</div>
+      <div className="rkp-nx"><img src={pilgrimImg(nt)} alt="" />{tx('pack.map.rankPilgrim', 'Pilgrim')} {level + 1}</div>
       <div className="rkp-nums">
         <div><b>{trips}</b><span>{tx('pack.rank.trips', 'trips')}</span></div>
         <div><b>{km}</b><span>km</span></div>
@@ -360,7 +336,7 @@ export function PilgrimPanel({ level, pct, points, floor, nextAt, trips, km, cou
       <div className="rkp-lad" style={{ ['--n' as string]: P_FROM.length }}>
         {P_FROM.map((from, i) => (
           <div key={from} className={i === t ? 'on' : i < t ? 'done' : ''}>
-            <img src={`/icons/pack/rank/pilgrim-${i}.webp`} alt="" />
+            <img src={pilgrimImg(i)} alt="" />
             <small>{from}</small>
           </div>
         ))}

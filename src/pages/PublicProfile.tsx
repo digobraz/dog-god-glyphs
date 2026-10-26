@@ -42,6 +42,7 @@ import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { TEST_BUILD } from '@/lib/env';
 import { useToast } from '@/hooks/use-toast';
 import { fetchProfileMates, useProfileMates, type ProfileMate } from '@/components/pack/profile/profileMates';
+import { PostMenu } from '@/components/pack/profile/PostMenu';
 
 const T = PACK_THEME;
 const FLAT = TEST_BUILD;
@@ -263,6 +264,12 @@ export default function PublicProfile() {
       {FLAT && <style>{ME_FLAT_CSS}</style>}
 
       <section className={`me-card${FLAT ? ' me-flat' : ''}${open ? ' open' : ''}${beside ? ' with-mate' : ''}`}>
+        {/* App Store 1.2 (26. 10. 2026): nahlásiť / zablokovať člena — tri bodky vpravo hore, ako pri príspevku. */}
+        {!mate && !isSelf && (
+          <div style={{ position: 'absolute', top: PACK_SPACE.sm, right: PACK_SPACE.sm, zIndex: 5 }}>
+            <PostMenu tone="onCover" authorN={member.memberNumber ?? null} authorName={ownerName} />
+          </div>
+        )}
         <MeCover
           noRanks={!!mate}
           foreign={!isSelf}

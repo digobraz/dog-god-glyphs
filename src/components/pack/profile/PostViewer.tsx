@@ -37,6 +37,7 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import type { PackDogFull } from '@/hooks/usePackUser';
 import { useT } from '@/i18n/LanguageContext';
+import { PostMenu } from '@/components/pack/profile/PostMenu';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -110,14 +111,11 @@ const CSS = `
 .pv-dog{display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.sm}px ${S.xs}px ${S.xs}px;border-radius:${PACK_R.pill}px;
   border:1px solid ${T.hairline};font-size:${TX.label}px;}
 .pv-dog img{width:22px;height:22px;border-radius:${PACK_R.pill}px;object-fit:cover;}
-.pv-del{display:block;margin:${S.xl}px auto 0;border:1px solid ${T.hairline};background:none;color:${T.inkWarm};border-radius:${PACK_R.pill}px;cursor:pointer;
-  padding:${S.sm}px ${S.lg}px;font-family:${FONT_UI};font-size:${TX.label}px;}
-.pv-del.sure{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};}
 @keyframes pv-in{from{opacity:0;}to{opacity:1;}}
 @media (prefers-reduced-motion:reduce){.pv-root{animation:none;}}
 `;
 
-export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
+export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, authorN = null }: {
   post: MePost;
   name: string;
   avatar: string | null;
@@ -125,11 +123,12 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
   mine: boolean;
   lang: string;
   onClose: () => void;
+  /** Poradové číslo majiteľa autora (cudzí príspevok) — bez neho nejde zablokovať. */
+  authorN?: number | null;
 }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const [at, setAt] = useState(0);
-  const [sure, setSure] = useState(false);
   const media = useRef<HTMLDivElement>(null);
   const { session } = usePackIdentity();
   const uid = session?.user?.id ?? null;
@@ -144,7 +143,6 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
   const [wished, setWished] = useState(false);
   const [wishing, setWishing] = useState(false);
   const { toast } = useToast();
-  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
 
   const reload = useCallback(() => {
@@ -187,15 +185,8 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
     if (el) setAt(Math.round(el.scrollLeft / Math.max(1, el.clientWidth)));
   };
 
-  const remove = async () => {
-    if (!sure) { setSure(true); return; }
-    if (deleting) return;
-    setDeleting(true);
-    // Tichý neúspech by vyzeral ako „nič sa nestalo" — človek by ťukal znova (audit 26. 10.).
-    try { await deletePost(post.id); onClose(); }
-    catch { setSure(false); toast({ title: tx('pack.profile.toastUnknownError', 'Unknown error'), variant: 'destructive' }); }
-    finally { setDeleting(false); }
-  };
+  // Zmazanie žije v menu (tri bodky) — dvojťuk si stráži `PostMenu`; zlyhanie vyhodí, menu ukáže chybu (audit 26. 10.).
+  const remove = async () => { await deletePost(post.id); onClose(); };
 
   const tagged = dogs.filter((d) => post.attach.dogs?.includes(d.id));
   const date = new Date(post.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' });
@@ -220,6 +211,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
               ? <button type="button" className="pl" onClick={openMapy}>{place.name}</button>
               : <span className="pl">{place.name}</span>)}
           </span>
+          <PostMenu postId={post.id} authorN={authorN} authorName={name} mine={mine} onDelete={remove} />
         </div>
         <div className="pv-media" ref={media} onScroll={onScroll}>
           {post.photos.map((u) => <img key={u} src={sizedUrl(u, 1080)} alt="" draggable={false} />)}
@@ -282,11 +274,6 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
               </span>
             ))}
           </div>
-        )}
-        {mine && (
-          <button type="button" className={`pv-del${sure ? ' sure' : ''}`} onClick={remove}>
-            {sure ? tx('pack.story.deleteSure', 'Tap again to delete') : tx('pack.story.delete', 'Delete')}
-          </button>
         )}
       </div>
       {saveOpen && (
