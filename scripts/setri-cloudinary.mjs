@@ -6,7 +6,7 @@
 //
 // Použitie:  const browser = setriCloudinary(await chromium.launch());
 // Každá požiadavka na res.cloudinary.com/dz8lolmod/image/upload/ dostane na KONIEC
-// reťaze strop `c_limit,w_480` (rovnaké pravidlo vsuvky ako `sizedUrl` v appke).
+// reťaze strop `c_limit,w_40` (do 26. 10. 2026 w_480) (rovnaké pravidlo vsuvky ako `sizedUrl` v appke).
 // Fotka ostane na snímke rozpoznateľná a živá (401 „cloud disabled" stráž stále vidí),
 // len má desiatky kB namiesto 1–2,4 MB originálu.
 // Plné fotky (meranie váhy, snímka na schválenie):  PLNE_FOTO=1 node …
@@ -14,7 +14,7 @@
 // ⚠️ Kópia z DOGYPT repa: scripts/lib/setri-cloudinary.mjs — meň obe.
 
 const UPLOAD = 'res.cloudinary.com/dz8lolmod/image/upload/';
-const STROP = 'c_limit,w_480,f_auto,q_auto:eco';
+const STROP = 'c_limit,w_40,f_auto,q_auto:low'; // 26. 10. 2026: 480 → 40 px, stráž meria len naturalWidth > 0
 const CIEL = /^https:\/\/res\.cloudinary\.com\/dz8lolmod\/image\/upload\//;
 
 export function zmensiCloudinary(url) {

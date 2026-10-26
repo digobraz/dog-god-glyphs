@@ -5,7 +5,7 @@
 //
 // Keď v DEVe ovláda prehliadač automat (Playwright, Puppeteer, DevTools MCP ⇒
 // `navigator.webdriver`), každá URL z `res.cloudinary.com/dz8lolmod/image/upload/`
-// dostane na KONIEC reťaze strop `c_limit,w_480`. Fotka ostane rozpoznateľná na
+// dostane na KONIEC reťaze strop `c_limit,w_40` (do 26. 10. 2026 w_480). Fotka ostane rozpoznateľná na
 // snímke, ale má desiatky kB namiesto 1–2,4 MB originálu.
 // Plné fotky pre robota: `?plneFoto` v URL alebo `localStorage.plneFoto = '1'`.
 //
@@ -13,7 +13,7 @@
 // merajú LIVE, šetrí `scripts/lib/setri-cloudinary.mjs`.
 
 const UPLOAD = 'res.cloudinary.com/dz8lolmod/image/upload/';
-const STROP = 'c_limit,w_480,f_auto,q_auto:eco';
+const STROP = 'c_limit,w_40,f_auto,q_auto:low'; // 26. 10. 2026: 480 → 40 px, stráž meria len naturalWidth > 0
 const VSETKY = /https:\/\/res\.cloudinary\.com\/dz8lolmod\/image\/upload\/[^\s"'()<>,]+/g;
 
 /** Strop ako posledná fáza reťaze — rovnaké pravidlo vsuvky ako `sizedUrl`. */
