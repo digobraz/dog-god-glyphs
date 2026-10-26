@@ -1919,7 +1919,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
           >
             <img src={flagUrl(c.iso)} alt="" loading="lazy" draggable={false} />
             <b>{c.name}</b>
-            <span>{c.trips > 0 ? `${c.trips} trip${c.trips === 1 ? '' : 's'}` : 'not yet'}</span>
+            <span>{c.trips > 0 ? t(`pack.triplist.myTripsCount${pluralKey(c.trips)}`, { n: c.trips }) : t('pack.stats.notYet')}</span>
           </button>
         ))}
       </div>
@@ -1953,7 +1953,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
             <div className="comm-chero-goaltxt">
               <span>
                 {tier.earned ? `${tier.earned} · ` : ''}
-                {tier.next ? `${cTrails.length}/${tier.nextAt} trips to ${tier.next}` : 'every tier taken'}
+                {tier.next ? t('pack.stats.tierNext', { done: cTrails.length, at: tier.nextAt, tier: tier.next }) : t('pack.stats.tierAll')}
               </span>
               <span className="comm-rankinfo">
                 <button
@@ -1992,8 +1992,8 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         // vymyslený menovateľ by klamal viac než jeho absencia.
         cTrails.length === 0 ? (
           <>
-            <div className="comm-empty">No trips in {cName} yet.</div>
-            <div className="comm-unit-addrow" onClick={() => onAddTrip()}>＋ Add the first trip in {cName}</div>
+            <div className="comm-empty">{t('pack.stats.noTripsIn', { c: cName })}</div>
+            <div className="comm-unit-addrow" onClick={() => onAddTrip()}>{t('pack.stats.addFirstTripIn', { c: cName })}</div>
           </>
         ) : (
           <>
@@ -2002,14 +2002,14 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
               <div className="comm-wstat"><b>{cTrails.filter((tr) => !tr.acts?.includes('hike')).length}</b><span>{t('pack.stats.places')}</span></div>
               <div className="comm-wstat"><b>{fmtKm(cKm)}</b><span>Km</span></div>
             </div>
-            <div className="comm-dash-section-title">Trips in {cName}</div>
+            <div className="comm-dash-section-title">{t('pack.stats.tripsIn', { c: cName })}</div>
             {cTrails.map((tr) => (
               <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)}>
                 <span className="comm-walkedrow-name">{tr.name}</span>
                 <span className="comm-walkedrow-meta">{walkedMeta(tr, true, lang)}</span>
               </div>
             ))}
-            <div className="comm-unit-addrow" style={{ marginTop: 12 }} onClick={() => onAddTrip()}>＋ Add a trip in {cName}</div>
+            <div className="comm-unit-addrow" style={{ marginTop: 12 }} onClick={() => onAddTrip()}>{t('pack.stats.addTripIn', { c: cName })}</div>
           </>
         )
       ) : (
@@ -2103,7 +2103,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                     ) : (
                       <div className="comm-unit-empty">{t('pack.stats.noTrailsHere')}</div>
                     )}
-                    <div className="comm-unit-addrow" onClick={() => onAddTrip(expandedUnit)}>＋ Add a trip here</div>
+                    <div className="comm-unit-addrow" onClick={() => onAddTrip(expandedUnit)}>{t('pack.stats.addTripHere')}</div>
                   </div>
                 );
               })()}
