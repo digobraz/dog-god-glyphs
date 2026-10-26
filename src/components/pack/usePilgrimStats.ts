@@ -11,11 +11,15 @@ import { profileLevelFor, readVotes, walkedCountries } from './packCommunity';
 import { useMyNotePoints } from './mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
+import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 
 export function usePilgrimStats(email: string, ownerName: string) {
   const myNotePoints = useMyNotePoints();
   const myEventCount = useMyEventCount();
   const myWishCount = useMyWishCount();
+  // Prejdené výlety sa na novom zariadení dotiahnu z DB až po chvíli — bez epochy by výpočet
+  // ostal na nule a zverejnenie by ostatným prepísalo skutočné čísla nulou (audit 26. 10. 2026).
+  const storeEpoch = usePackStoreEpoch();
   return useMemo(() => {
     const all: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];
     const walked = readWalkedIds();
@@ -32,8 +36,9 @@ export function usePilgrimStats(email: string, ownerName: string) {
       eventsHeld: myEventCount,
       wishesDone: myWishCount,
     });
-    return { level, count: walkedTrails.length, km: Math.round(km), countries: walkedCountries(walkedTrails) };
-  }, [email, ownerName, myNotePoints, myEventCount, myWishCount]);
+    /** `ready` = úložisko výletov je načítané z DB; dovtedy čísla NEzverejňuj. */
+    return { level, count: walkedTrails.length, km: Math.round(km), countries: walkedCountries(walkedTrails), ready: storeEpoch > 0 };
+  }, [email, ownerName, myNotePoints, myEventCount, myWishCount, storeEpoch]);
 }
 
 /** Zverejní PÚTNIK level, aby ho videli ostatní (Matej 25. 9.: „level putnika musi vidieť

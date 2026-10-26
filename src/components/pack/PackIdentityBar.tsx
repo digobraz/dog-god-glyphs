@@ -38,18 +38,12 @@ import { AINUBIS, AI_GLASS } from './ainubisSkin';
 import { NAV_R, PALE_PC_MIN } from './navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import { AvatarRing, AV_D, AV_D_HEAD, PHOTO, photoAt } from './AvatarRing';
+import { firstNameFrom } from '@/lib/pilgrimName';
 
 /** Krstné meno — PORADIE AKO blok JA v `Pack.tsx` (`displayName`): účet (full_name
  *  z /pack/profile) → meno z objednávky psa (`dogs.owner_name`, kartuša) → e-mail.
  *  ⚠️ 22. 9. náhľad na ostrých dátach ukázal „HEKTHORSK": prostredný krok chýbal
  *  a účet bez full_name spadol rovno na e-mail. */
-function firstNameFrom(email: string, fullName?: string): string {
-  if (fullName && fullName.trim()) return fullName.trim().split(' ')[0];
-  if (!email) return 'Dogyptian';
-  const base = (email.split('@')[0] || '').split('+')[0].replace(/[._-]/g, ' ').replace(/\d+/g, '').trim();
-  if (!base) return 'Dogyptian';
-  return base.charAt(0).toUpperCase() + base.slice(1);
-}
 
 const CSS = `
 .pkid{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;min-width:0;}
@@ -154,7 +148,7 @@ export function PackIdentityBar({ id, middle, stats, primary, onMe, pcStats, mSt
 
   /* Výpočet žije v `usePilgrimStats` — to isté číslo číta aj karta SNIFFERu. */
   const view = usePilgrimStats(email, firstNameFrom(email, fullName));
-  usePublishPilgrimLevel(view.level.level);
+  usePublishPilgrimLevel(view.ready ? view.level.level : null);
 
   const lv = view.level;
   return (

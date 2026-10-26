@@ -19,6 +19,7 @@
 // 🔴 ČO ZATIAĽ NEMÁ ZDROJ, NESIE ČERVENÚ POMLČKU (Matej 21. 10.). Sledovanie, stories,
 //    albumy a uložené prídu so session FEED — karta ostáva, obsah je prázdny stav.
 //    Pomlčka nie je nula: nula by tvrdila, že ťa nikto nesleduje.
+import { pilgrimAuthorName } from '@/lib/pilgrimName';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -158,15 +159,15 @@ export default function PackMe() {
   })();
 
   // ── Čísla. Každé z miesta, kde už žije — žiadny druhý výpočet.
-  const realPilgrim = usePilgrimStats(session?.user?.email ?? '', fullName.split(' ')[0] ?? '');
+  const realPilgrim = usePilgrimStats(session?.user?.email ?? '', pilgrimAuthorName(session?.user?.email, meta));
   const pilgrim = novice ? { ...realPilgrim, level: levelProgress(0), count: 0, km: 0, countries: 0 } : realPilgrim;
   const zstate = useScrollState();
   const readScrolls = novice ? 0 : Object.values(zstate).filter((v) => v === 2).length;
   // prvý prečítaný zvitok nesmie ukázať 0 % — to isté pravidlo ako hlavička AINUBISA
   const studyPct = readScrolls ? Math.max(1, Math.round((readScrolls / Math.max(1, TOTAL_SCROLLS)) * 100)) : 0;
   // ČÍSLA PROFILU pre ostatných — cudzí profil ich ukáže 1:1 (25. 10. 2026). Nováčikov náhľad nič nezverejní.
-  usePublishPilgrimLevel(novice ? null : pilgrim.level.level);
-  usePublishProfileStats(novice || brought == null ? null : {
+  usePublishPilgrimLevel(novice || !realPilgrim.ready ? null : pilgrim.level.level);
+  usePublishProfileStats(novice || brought == null || !realPilgrim.ready ? null : {
     km: pilgrim.km, pilgrimPct: pilgrim.level.pct, brought, study: studyPct, servantYears,
     points: pilgrim.level.points, trips: pilgrim.count, countries: pilgrim.countries,
   });
@@ -181,8 +182,8 @@ export default function PackMe() {
     const load = () => fetchMyPosts(uid).then((rows) => { if (alive) { setPosts(rows); setNow(Date.now()); } }).catch(() => { if (alive) setPosts([]); });
     load();
     const off = onPostsChanged(load);
-    supabase.rpc('get_my_network').then(({ data }) => {
-      if (!alive) return;
+    supabase.rpc('get_my_network').then(({ data, error }) => {
+      if (!alive || error) return; // chyba ≠ „priviedol 0" — bez čísla sa nič nezverejní (audit 26. 10.)
       const n = (data as { level1_count?: number } | null)?.level1_count;
       setBrought(typeof n === 'number' ? n : 0);
     });

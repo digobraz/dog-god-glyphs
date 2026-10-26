@@ -181,6 +181,7 @@ import { useEvents, saveEvent, type EventItem } from '@/components/pack/events/e
 import { BUDDY_LIVE, EVENTS_LIVE, PLANNING_LIVE, WISHES_LIVE } from '@/lib/packFlags';
 import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_TO_UI, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
 import { AvatarRing, AV_D, AV_D_HEAD, photoAt } from '@/components/pack/AvatarRing';
+import { firstNameFrom } from '@/lib/pilgrimName';
 
 /* ── SŤAHUJE SA AŽ PO KLIKNUTÍ (audit /pack/map B7, 26. 9. 2026) ─────────────────────────
    Sprievodca výletu (AddTripLog + GeometryPicker ≈ 470 KB zdroja), podujatia, reveal po zápise,
@@ -474,14 +475,6 @@ type FlyTarget = { ll: LatLngTuple; zoom: number };
 
 // prvé meno z user_metadata (full_name/name), fallback e-mail local-part — rovnaký
 // vzor ako firstNameFrom() v Pack.tsx, len lokálna kópia (usePackIdentity meno neexponuje).
-function firstNameFrom(email: string, fullName?: string): string {
-  if (fullName && fullName.trim()) return fullName.trim().split(' ')[0];
-  if (!email) return 'Dogyptian';
-  const local = email.split('@')[0] || '';
-  const base = local.split('+')[0].replace(/[._-]/g, ' ').replace(/\d+/g, '').trim();
-  if (!base) return 'Dogyptian';
-  return base.charAt(0).toUpperCase() + base.slice(1);
-}
 
 // ── zoomovo-vrstvené markery + pixelové zhlukovanie (2026-07-27, port z odladeného prototypu
 // scratchpad/pins-proto.html — Matej: "z diaľky len piktogramy, postupne pilulky s km, zapratané

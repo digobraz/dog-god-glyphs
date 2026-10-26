@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { pilgrimAuthorName } from '@/lib/pilgrimName';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { ChevronDown, Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -376,7 +377,7 @@ export default function PackProfile() {
   const email = session?.user?.email ?? '—';
   // Meno z objednávky — východisko, keď si človek v profile žiadne nevypísal.
   const orderName = ownLoaded.map((d) => d.owner_name?.trim()).find(Boolean) ?? '';
-  const pilgrim = usePilgrimStats(session?.user?.email ?? '', (fullName || orderName).split(' ')[0] ?? '');
+  const pilgrim = usePilgrimStats(session?.user?.email ?? '', pilgrimAuthorName(session?.user?.email, session?.user?.user_metadata));
 
   // Staré odkazy: BONES a línia žijú v šuplíku na profile, nie tu.
   if (location.hash === '#network') return <Navigate to="/pack/profile#network" replace />;
