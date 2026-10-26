@@ -2462,6 +2462,7 @@ export const en = {
   'pack.alerts.walkInvite': '{who} says you walked this together',
   'pack.alerts.walkInviteYes': 'Yes, I was there',
   'pack.alerts.walkInviteNo': 'Not me',
+  'pack.alerts.pawmateJoined': '{who} is now in your pack',
   // pack.notif
   'pack.notif.ariaMessages': "Messages — coming soon",
   'pack.notif.ariaNotifications': "Notifications",

@@ -2219,6 +2219,7 @@ export const sk: Partial<Dict> = {
   "pack.alerts.walkInvite": "{who} píše, že ste tento výlet prešli spolu",
   "pack.alerts.walkInviteYes": "Áno, išli sme spolu",
   "pack.alerts.walkInviteNo": "Nie, to nie som ja",
+  "pack.alerts.pawmateJoined": "{who} je v tvojej svorke",
   // pack.notif
   "pack.notif.ariaMessages": "Správy — už čoskoro",
   "pack.notif.ariaNotifications": "Upozornenia",

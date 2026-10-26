@@ -55,7 +55,12 @@ export type EventAlertKind = 'event_rsvp' | 'event_changed' | 'event_cancelled' 
 // AINUBIS (`WishAsk.tsx`) — upozornenie len zavolá, odpovedá sa tam, kde je pin.
 export type WishAlertKind = 'wish_me_too' | 'wish_ask' | 'wish_missed' | 'wish_nudge';
 // `walk_invite` (15. 10. 2026): člen ma označil na výlete — potvrdím alebo odmietnem priamo v NOS.
-export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | EventAlertKind | WishAlertKind;
+// `pawmate_joined` (26. 10. 2026): pawmate prijal pozvánku. Matej: *„email že pawmate prijal
+// nemusí byť, stačí upozornenie v apke notifikácia"* — preto mail E nevznikol a je to tu.
+export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | EventAlertKind | WishAlertKind;
+
+/** Koľko dní svieti „{meno} je v tvojej svorke" — potom je to už stav, nie správa. */
+const PAWMATE_ALERT_DAYS = 30;
 
 /**
  * Dataset trás — LAZY, rovnaký dôvod ako v `messaging/tripLabel.ts`: `heroTrails.generated.ts`
@@ -158,6 +163,16 @@ interface WishAlertRow {
   at: string;
 }
 
+/** riadok `my_pawmates()` — len polia, ktoré upozornenie potrebuje */
+interface PawmateAlertRow {
+  kind: string;
+  user_id: string | null;
+  email: string | null;
+  name: string | null;
+  dogs: Array<{ dog_name?: string | null }> | null;
+  since: string;
+}
+
 interface EventAlertRow {
   kind: EventAlertKind;
   edition_id: string;
@@ -191,7 +206,7 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
   const uid = sess.session?.user?.id;
   if (!uid) return []; // odhlásený / DEV_NOAUTH — RLS by aj tak nevydala nič
 
-  const [incoming, mine, walked, events, wishes, invites] = await Promise.all([
+  const [incoming, mine, walked, events, wishes, invites, mates] = await Promise.all([
     db.from('trip_requests').select('trip_slug,created_at,decided_at')
       .eq('organizer_id', uid).eq('status', 'requested') as
       Promise<{ data: RequestRow[] | null }>,
@@ -209,6 +224,9 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
     (WISHES_LIVE ? db.rpc('get_wish_alerts') : Promise.resolve({ data: [] })) as Promise<{ data: WishAlertRow[] | null }>,
     // Pozvánky „bol si so mnou" — chyba (migrácia ešte nie je na LIVE) padne na prázdno.
     db.rpc('get_walk_invite_alerts') as Promise<{ data: WalkInviteRow[] | null }>,
+    // Pawmati — tá istá RPC ako editor svorky (`listMyPawmates`), žiadna nová tabuľka.
+    // Kto psa nemá, dostane prázdno; chyba padne na prázdno ako ostatné.
+    db.rpc('my_pawmates') as Promise<{ data: PawmateAlertRow[] | null }>,
   ]);
 
   const trails = await loadTrails();
@@ -260,6 +278,19 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
   // POZVÁNKY — názov z DB (výlet môže čakať na schválenie a v datasete ešte nie je).
   for (const v of invites.data ?? []) {
     out.push({ id: `inv|${v.id}`, kind: 'walk_invite', tripSlug: v.trip_slug, tripName: v.trip_name || nameOf(v.trip_slug), tripPath: pathOf(v.trip_slug), count: 1, at: v.at, who: v.who, inviteId: v.id });
+  }
+
+  // PAWMATE PRIJAL — id nesie človeka aj čas: keď ho pawtner vyradí a znova pozve,
+  // rozsvieti sa nanovo. Meno, inak začiatok e-mailu (pawtner ho zadal sám).
+  const since = Date.now() - PAWMATE_ALERT_DAYS * 864e5;
+  for (const m of mates.data ?? []) {
+    if (m.kind !== 'human' || !m.user_id || Date.parse(m.since) < since) continue;
+    const dogNames = (m.dogs ?? []).map((d) => d.dog_name).filter(Boolean).join(' & ');
+    out.push({
+      id: `mate|${m.user_id}|${m.since}`, kind: 'pawmate_joined', tripSlug: '', tripName: dogNames,
+      tripPath: '/pack/profile/edit', count: 1, at: m.since,
+      who: m.name || (m.email ?? '').split('@')[0] || undefined,
+    });
   }
 
   return out.sort((a, b) => (a.at < b.at ? 1 : -1));
