@@ -305,14 +305,14 @@ export function PackFeed() {
     } catch { /* súkromné okno */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  // Výlety a zvitky dobiehajú zo siete — skočí sa, až keď je stránka dosť vysoká (najdlhšie 4 s, potom sa vzdá).
+  // Výlety a zvitky dobiehajú zo siete — skočí sa, až keď je stránka dosť vysoká (najdlhšie 6 s, potom sa vzdá).
   useEffect(() => {
     const r = restore.current;
     if (!r) return;
     const t0 = Date.now();
     const id = window.setInterval(() => {
       const tall = document.documentElement.scrollHeight >= r.y + window.innerHeight;
-      if (tall || Date.now() - t0 > 4000) { window.scrollTo(0, r.y); restore.current = null; window.clearInterval(id); }
+      if (tall || Date.now() - t0 > 6000) { window.scrollTo(0, r.y); restore.current = null; window.clearInterval(id); }
     }, 80);
     return () => window.clearInterval(id);
   }, [items.length, shown]);
@@ -322,6 +322,8 @@ export function PackFeed() {
     const save = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
+        // Pri odchode sa adresa zmení skôr, než feed zmizne — stránka sa medzitým zrazí na 0 a prepísala by pozíciu.
+        if (window.location.pathname.replace(/\/$/, '') !== '/pack') return;
         try { sessionStorage.setItem(POS_KEY, JSON.stringify({ y: window.scrollY, shown: shownRef.current })); } catch { /* nič */ }
       });
     };
