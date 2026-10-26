@@ -158,7 +158,6 @@ export function CoverSheet({ uid, human, onClose }: {
       <div className="cs-sheet" style={sw.sheetStyle}>
         <span className="cs-grab" aria-hidden {...sw.handle} />
         <div className="cs-head" {...sw.handle}>
-          <BackButton tone="pale" onClick={onClose} label={tx('pack.network.close', 'Close')} />
           <h2>{tx('pack.cover.title', 'Cover photo')}</h2>
         </div>
         <div className="cs-body">

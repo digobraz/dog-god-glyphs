@@ -493,6 +493,18 @@ export const PACK_BLOCKS = {
       + 'DOSKA: tá je rovnomerná plocha pod obsahom. Výšku dáva volajúci, odtieň povrch '
       + '(`--pk-blurfade`), rozostrenie a priebeh masky tento recept.',
   },
+  // ── PRIBUDLO 26. 10. 2026 ───────────────────────────────────────────────
+  // Matej: „nazvime si to popup = na tej obrazovke nemusí byť šípka späť, dostane nás
+  // preč stiahnutie alebo kliknutie vedľa".
+  'POPUP': {
+    recept: '<PackPopup> — PackPopup.tsx (PACK_POPUP_CSS)',
+    polomer: PACK_R.card,
+    kedy: 'Okno NAD obrazovkou (detail odznaku, filtre, BONES, výber). Mobil = šuplík zdola '
+      + 'cez celú šírku s úchytom, obsah roluje vo vnútri; od 768 px okno v strede.',
+    lock: 'Bez šípky späť a bez krížika — von stiahnutím za úchyt, ťukom vedľa alebo Esc. '
+      + 'Kto kreslí úchyt, MUSÍ ťahať cez useSheetSwipe (úchyt je sľub gesta). Šípka späť '
+      + 'patrí obrazovke (PackTopRow), nie oknu nad ňou.',
+  },
 } as const;
 
 // ════════════════════════════════════════════════════════════════════════════

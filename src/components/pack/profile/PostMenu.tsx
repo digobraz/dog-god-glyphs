@@ -120,7 +120,6 @@ export function PostMenu({ postId, authorN, authorName, mine = false, onDelete, 
           <div className="sh" style={sw.sheetStyle}>
             <span className="grab" aria-hidden {...sw.handle} />
             <div className="hd" {...sw.handle}>
-              <BackButton tone="pale" onClick={close} label={tx('pack.network.close', 'Close')} />
               <h2>{mine ? tx('pack.me.post', 'Post') : who}</h2>
             </div>
             <ul>

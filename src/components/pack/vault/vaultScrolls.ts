@@ -90,7 +90,13 @@ function loadScrolls(): Promise<DemoScroll[]> {
       if (!list.length && import.meta.env.DEV) {
         list = await fetch('/vault-demo/zvitky.json').then((r) => (r.ok ? r.json() : [])).then((j) => j.map(fromDemo)).catch(() => []);
       }
-      cache = list;
+      // 🔴 PRÁZDNO SA NEKEŠUJE (26. 10. 2026, Matej: „v apke nemám ainubisa a podcasty").
+      // Tabuľku číta len prihlásený člen (RLS `published AND is_paid_member()`). Appka obnovuje
+      // session z natívneho úložiska asynchrónne — keď sa spýta skôr (alebo s vypršaným tokenom),
+      // dostane 0 riadkov. Predtým sa tá nula zapamätala do zabitia appky: zmizol blok AINUBIS
+      // vo FEEDe aj podcasty. Teraz sa nula zahodí a skúsi sa znova po prihlásení (nižšie).
+      if (list.length) cache = list;
+      loading = null;
       return list;
     })();
   }
@@ -101,8 +107,12 @@ export function useDemoScrolls(): DemoScroll[] {
   useEffect(() => {
     if (cache) return;
     let on = true;
-    void loadScrolls().then((l) => { if (on) setList(l); });
-    return () => { on = false; };
+    const load = () => { void loadScrolls().then((l) => { if (on && l.length) setList(l); }); };
+    load();
+    const { data: sub } = supabase.auth.onAuthStateChange((ev) => {
+      if (!cache && (ev === 'SIGNED_IN' || ev === 'TOKEN_REFRESHED' || ev === 'INITIAL_SESSION')) load();
+    });
+    return () => { on = false; sub.subscription.unsubscribe(); };
   }, []);
   return list;
 }

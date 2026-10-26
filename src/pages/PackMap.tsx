@@ -93,6 +93,7 @@ import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PoiLayer } from '@/components/geo/PoiLayer';
 import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_TOPROW, PAGE_AIR, PACK_R, PACK_SHADOW } from '@/components/pack/packTheme';
 import { BackIcon, ExpandIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
+import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { goldFrameCSS, goldPlateCSS, pickTintCSS, PICK_INK, SLAB, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, NAV_R, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
 import ainubisFace from '@/assets/ainubis-head.webp';
@@ -178,7 +179,7 @@ import { useEvents, saveEvent, type EventItem } from '@/components/pack/events/e
 // zoznam eventov v ľavom paneli + piny na mape (krok 5, plany/zadanie-eventy-2026-08-06.md §9
 // krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
 // panel ostal viazaný len na TRIP vetvu).
-import { BUDDY_LIVE, EVENTS_LIVE, PLANNING_LIVE, WISHES_LIVE } from '@/lib/packFlags';
+import { EVENTS_LIVE, PLANNING_LIVE, WISHES_LIVE } from '@/lib/packFlags';
 import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_TO_UI, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
 import { AvatarRing, AV_D, AV_D_HEAD, photoAt } from '@/components/pack/AvatarRing';
 import { firstNameFrom } from '@/lib/pilgrimName';
@@ -2072,11 +2073,10 @@ ${TRAIL_LINE_CSS}
   .trp-msheet-back{position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.55);backdrop-filter:blur(2px);}
   .trp-msheet{position:fixed;left:0;right:0;bottom:0;z-index:961;display:flex;flex-direction:column;max-height:86vh;background:rgba(10,9,6,0.97);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid ${T.onDarkBorder};border-radius:16px 16px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,0.6);padding-bottom:env(safe-area-inset-bottom,0px);}
   .trp-msheet-grab{width:38px;height:4px;border-radius:999px;background:rgba(245,240,228,0.22);margin:9px auto 2px;flex:0 0 auto;}
-  .trp-msheet-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:8px 16px 12px;flex:0 0 auto;}
+  .trp-msheet-head{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 16px 12px;flex:0 0 auto;}
   .trp-msheet-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.22em;text-transform:uppercase;color:${GOLD};}
   /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
-  .trp-msheet-x{${backCircleCSS('pale')}}
-  .trp-msheet-x:hover{${backHoverCSS('pale')}}
+  .trp-msheet-top{flex:0 0 auto;cursor:grab;}
   .trp-msheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 16px 16px;display:flex;flex-direction:column;gap:15px;}
   .trp-msheet-field{display:flex;flex-direction:column;gap:6px;}
   .trp-msheet-pair{display:flex;gap:10px;}
@@ -2423,12 +2423,6 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
      zlatej doske v zlatom ráme bola tretia zlatá vrstva na sebe — z troch pilulek sa nedalo
      na prvý pohľad povedať, ktorá je zapnutá. */
   .trp-sidebar .trp-catpill.on{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
-  /* SNIFFER (Matej 25. 9. 2026: „dajme čierne", nákres plany/nakres-sniffer-tlacidlo-2026-09-25.html,
-     variant A) — nie je to filter mapy, ale vstup do inej roviny, preto nesie LOGO na tmavom
-     namiesto slova v šate pilulky. Svetlá verzia loga (-light) je kreslená práve pre tmavý podklad. */
-  .trp-sidebar .trp-catpill.trp-sniffer{display:flex;align-items:center;justify-content:center;background:${T.ink};border-color:${T.cardEdge};}
-  .trp-sidebar .trp-catpill.trp-sniffer:hover{background:${T.ink};border-color:${T.cardEdge};transform:translateY(-1px);}
-  .trp-catpill.trp-sniffer img{height:16px;width:auto;display:block;}
   .trp-sidebar .trp-catpill.soon{border-color:${P_HAIR};color:${P_FAINT};opacity:1;}
 
   /* ⚠️ MENŠIE PÍSMO (Matej 2026-08-26: „tie 3 dropdowny… moc veľké písmo ktoré sa nevojde").
@@ -2453,8 +2447,6 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-sidebar .trp-catpill{display:inline-flex;align-items:center;justify-content:center;padding:4px 12px;border-radius:999px;border:1px solid transparent;background:transparent;box-shadow:none;
     font-family:${FONT_UI};font-weight:500;font-size:10px;line-height:15px;letter-spacing:0.02em;color:${P_DIM};}
   .trp-sidebar .trp-catpill.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}font-weight:600;}
-  .trp-sidebar .trp-catpill.trp-sniffer,.trp-sidebar .trp-catpill.trp-sniffer:hover{background:${T.ink};border-color:transparent;transform:none;}
-  .trp-sidebar .trp-catpill.trp-sniffer img{height:12px;}
   .trp-topbar .trp-mapsearch{box-sizing:border-box;height:42px;gap:8px;padding:0 12px;border-radius:999px;border-width:1px;}
   .trp-topbar .trp-mapsearch input{padding:8px 0;}
   .trp-topbar .trp-tagdd-btn,.trp-sidebar .trp-tagdd-btn,.trp-sidebar .trp-pickdd-wrap .trp-tagdd-btn{box-sizing:border-box;height:36px;padding:8px 12px;border-radius:999px;border-width:1px;font-size:12px;font-weight:500;}
@@ -2632,9 +2624,6 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-mheader-cats button{flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:500;font-size:10px;line-height:15px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:${P_DIM};cursor:pointer;transition:all .15s;}
   .trp-mheader-cats button.is-locked{opacity:.6;}
   .trp-mheader-cats button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}font-weight:600;}
-  /* SNIFFER — mobilná dvojička tmavého tlačidla z panelu (komentár pri .trp-sniffer vyššie). */
-  .trp-mheader-cats button.trp-sniffer{display:inline-flex;align-items:center;background:${T.ink};}
-  .trp-mheader-cats button.trp-sniffer img{height:12px;width:auto;display:block;}
 
   /* ── DVE TLAČIDLÁ NAD SPODNÝM NAVOM ────────────────────────────────────────────────
      Matej: „zmeň farbu aj dolným tlačítkam - pridať lapis zoznam bude gold a oprav šírky
@@ -2799,6 +2788,10 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-mlist .trp-bigcard-author{color:${P_DIM};}
   .trp-mlist .comm-bigrating i{color:${P_DIM};}
   .trp-mlist .comm-bigrating.mini b{color:#8A5F1E;}
+  /* LABKY NA PAPYRUSE AJ NA MOBILE (Matej 26. 10. 2026: „na mobile nie su vidno tie labky ako
+     hodnotenie, splývajú s bledým pozadím"). Premenné RatingPaws mala len PC vetva (.trp-sidebar
+     v bloku PALE_PC_MIN), mobil kreslil predvolenú svetlú žltú + biely obrys pre TMAVÝ povrch. */
+  .trp-mlist{--rp-fill:#A3782B;--rp-empty:#A3782B;--rp-empty-op:0.28;}
   .trp-mlist .trp-bigcard-meta2-row{color:${P_DIM};}
   .trp-mlist .trp-bigcard-star{color:#8A5F1E;}
   .trp-mlist button.trp-authorbtn{text-decoration-color:rgba(179,130,45,0.6);}
@@ -4141,6 +4134,9 @@ export default function PackMap() {
   // tagy/sort. Vlastný stav (NIE zdieľaný sortOpen), aby sa desktopový sort popover a mobilný
   // sheet nikdy neotvorili naraz pri zmene šírky okna.
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  // POPUP (Matej 26. 10. 2026): úchyt filtrov bol len kresba — „čiarka hore znamená, že sa to dá
+  // stiahnuť dolu, ale nefunguje to". Ťahá hlavička + úchyt, telo roluje (useSheetSwipe).
+  const filterSwipe = useSheetSwipe(() => setFilterSheetOpen(false));
   // AINUBIS launcher (.ainubis-launcher, z-index 60) žije MIMO tejto stránky a PackLayout mu
   // dáva vlastný stacking context (`<div className="relative" style={{zIndex:1}}>`), takže ho
   // žiadny z-index vnútri .trp-root neprebije — sadal si na "SHOW N" v pätke sheetu. Sheet je
@@ -6722,9 +6718,7 @@ export default function PackMap() {
             {/* PARŤÁCI (BUDDY krok 3, 24. 9. 2026) — vstup do roviny `/pack/sniffer` (verejné meno SNIFFER od 24. 9. večer) (lock §8.1:
                 iný obsah sa prepína HORE). Dočasne v rade kategórií, kým VON nedostane horný
                 pás MAPA · PARŤÁCI — tvar toho pásu čaká na Mateja nad nákresom. */}
-            {BUDDY_LIVE && (
-              <button type="button" className="trp-catpill trp-sniffer" aria-label={t('pack.map.catBuddy')} onClick={() => navigate('/pack/sniffer')}><img src="/icons/sniffer/sniffer-logo-light.svg" alt="" /></button>
-            )}
+            {/* SNIFFER odtiaľto ODIŠIEL 26. 10. 2026 (Matej: „sniffer od tialto dajme preč... už je vo feede"). */}
             {/* Matej 2026-08-06: MIESTA (Places) pill preč — PLACE ako filter kategória bola
                 zrušená (pláže/lúky/parky sú TRIP cez aktivitu `explore`, viď zadanie-eventy §A).
                 i18n kľúč `pack.map.catPlaces` ostáva v locale súboroch pre prípadné budúce použitie. */}
@@ -6935,10 +6929,6 @@ export default function PackMap() {
           <button type="button" role="tab" aria-selected={activeCat === 'trips'} className={activeCat === 'trips' ? 'on' : ''} onClick={() => setActiveCat('trips')}>{t('pack.map.catTrips')}</button>
           {eventsHint && <AinubisBubble className="trp-eventshint" role="status">{t('pack.map.eventsSoon')}</AinubisBubble>}
           <button type="button" role="tab" aria-selected={activeCat === 'events'} aria-disabled={!EVENTS_LIVE} className={activeCat === 'events' ? 'on' : EVENTS_LIVE ? '' : 'is-locked'} onClick={pickEvents}>{EVENTS_LIVE ? '' : '🔒 '}{t('pack.map.catEvents')}</button>
-          {/* PARŤÁCI — mobilná dvojička vstupu z `.trp-cat-pills` (komentár tam). */}
-          {BUDDY_LIVE && (
-            <button type="button" className="trp-sniffer" aria-label={t('pack.map.catBuddy')} onClick={() => navigate('/pack/sniffer')}><img src="/icons/sniffer/sniffer-logo-light.svg" alt="" /></button>
-          )}
         </div>
       </div>
 
@@ -6950,11 +6940,13 @@ export default function PackMap() {
       {filterSheetOpen && (
         <>
           <div className="trp-msheet-back" onClick={() => setFilterSheetOpen(false)} aria-hidden />
-          <div className="trp-msheet" role="dialog" aria-label={t('pack.map.filters')}>
-            <div className="trp-msheet-grab" aria-hidden />
-            <div className="trp-msheet-head">
-              <button type="button" className="trp-msheet-x" onClick={() => setFilterSheetOpen(false)} aria-label={t('pack.map.closeFilters')}><BackIcon /></button>
-              <span className="trp-msheet-title">{t('pack.map.filters')}</span>
+          <div className="trp-msheet" role="dialog" aria-label={t('pack.map.filters')} style={filterSwipe.sheetStyle}>
+            {/* POPUP bez šípky späť (26. 10. 2026) — von stiahnutím, ťukom vedľa (.trp-msheet-back). */}
+            <div className="trp-msheet-top" {...filterSwipe.handle}>
+              <div className="trp-msheet-grab" aria-hidden />
+              <div className="trp-msheet-head">
+                <span className="trp-msheet-title">{t('pack.map.filters')}</span>
+              </div>
             </div>
 
             <div className="trp-msheet-body">

@@ -348,7 +348,6 @@ function SaveSheet({ title, close, rows, onClose }: {
       <div className="sh" style={sw.sheetStyle}>
         <span className="grab" aria-hidden {...sw.handle} />
         <div className="hd" {...sw.handle}>
-          <BackButton tone="pale" onClick={onClose} label={close} />
           <h2>{title}</h2>
         </div>
         <ul>
@@ -378,7 +377,6 @@ function LikersSheet({ list, title, you, close, onClose, onPick }: {
       <div className="sh" style={sw.sheetStyle}>
         <span className="grab" aria-hidden {...sw.handle} />
         <div className="hd" {...sw.handle}>
-          <BackButton tone="pale" onClick={onClose} label={close} />
           <h2>{title}</h2>
         </div>
         <ul>

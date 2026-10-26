@@ -3,8 +3,8 @@
 // bones a línie ako to už máme"* → nákres `plany/nakres-editprofile-bones-2026-10-23.html`.
 //
 // Tvar: na mobile šuplík zdola s úchytom, od 768 px okno v strede (lock architektura-pack
-// §1.1.1). 🔴 Nikoho neodnesie preč (§4.2). Zavrie ho ŠÍPKA vľavo hore (krížik v `/pack`
-// neexistuje — lock pack-dizajn-system, 27. 9.), ťuk na závoj alebo Esc.
+// §1.1.1). 🔴 Nikoho neodnesie preč (§4.2). Je to POPUP (katalóg, 26. 10. 2026): šípka späť ZANIKLA,
+// zavrie ho stiahnutie za úchyt, ťuk na závoj alebo Esc.
 //
 // Obsah = MISIA hore (verejné čísla `get-pack-stats`, tie isté ako na homepage a v upozorneniach)
 // a pod ňou blok, ktorý UŽ MÁME — `PackNetwork` (BONES, línia 1. a 2. labky, kto prišiel,
@@ -94,7 +94,6 @@ export function BonesSheet({ avatarUrl, initial, onClose, onShare, shareLink }: 
       <div className="bs-sheet" style={sw.sheetStyle}>
         <span className="bs-grab" aria-hidden {...sw.handle} />
         <div className="bs-head" {...sw.handle}>
-          <BackButton tone="pale" onClick={onClose} label={tx('pack.network.close', 'Close')} />
           <h2>BONES</h2>
         </div>
         <div className="bs-body">

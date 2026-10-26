@@ -40,6 +40,7 @@ import { HandArrowLeft } from '@/components/pack/HandIcons';
 import ainubisFace from '@/assets/ainubis-badge.webp';
 import { mountBrain } from './brainEngine';
 import { VAULT_WORLDS } from './worlds';
+import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import {
   DEMO_CHATS, DEMO_SCROLLS, DEMO_CONTEXT, DEMO_FORMS, FORM_ORDER,
   DEMO_PENDING, DEMO_REPLY, DEMO_STARTERS, DEMO_DOGS, SCOPE_GENERAL, scopeChoices, demoVerdict,
@@ -870,6 +871,8 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
      (ktorý zvitok), atribút koreňa drží POLOHU (otvorené / zavreté). Dve
      miesta preto, že CSS musí vedieť zúžiť vlákno, a to je mimo tohto uzla. */
   const [src, setSrc] = useState<number | null>(null);
+  // Úchyt na mobile = sľub gesta (POPUP, 26. 10. 2026) — šuplík zdroja sa dá stiahnuť.
+  const srcSwipe = useSheetSwipe(() => openSrc(null));
   const openSrc = (id: number | null) => {
     setSrc(id);
     const r = document.querySelector<HTMLElement>('.akv-root');
@@ -1333,9 +1336,9 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
           „pripravuje sa" by sľubovalo čítanie, ktoré nepríde. */}
       <aside className="akc-src" aria-label="Where this comes from"
         aria-hidden={src == null}
-        style={src != null ? aiWorld(VAULT_WORLDS[DEMO_SCROLLS[src].world]?.key) : undefined}>
-        <div className="akc-srcgrip" aria-hidden />
-        <div className="akc-srchd">
+        style={src != null ? { ...aiWorld(VAULT_WORLDS[DEMO_SCROLLS[src].world]?.key), ...srcSwipe.sheetStyle } : undefined}>
+        <div className="akc-srcgrip" aria-hidden {...srcSwipe.handle} />
+        <div className="akc-srchd" {...srcSwipe.handle}>
           <b>{src != null ? DEMO_SCROLLS[src].circle : ''}</b>
           <button type="button" className="akc-back akc-srcx" aria-label="Close"
             onClick={() => openSrc(null)}>

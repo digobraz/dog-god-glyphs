@@ -128,7 +128,6 @@ export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClos
       <div className="dvs-sheet" style={sw.sheetStyle}>
         <span className="dvs-grab" aria-hidden {...sw.handle} />
         <div className="dvs-head" {...sw.handle}>
-          <BackButton tone="dark" onClick={onClose} label={tx('pack.network.close', 'Close')} />
           <h2>{tx('pack.dvinfo.title', 'How you earn devotion')}</h2>
         </div>
         <div className="dvs-body">

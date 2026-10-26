@@ -3,7 +3,7 @@
 // Brand: tmavé glass pozadie + papyrusové karty + zlaté CTA (Cinzel), rovnaké tokeny ako Portal.
 // Fáza UI-first: žiadna perzistencia, všetko dostáva dáta/handlery cez props z PackMap.
 import { sizedUrl } from '@/services/cloudinaryService';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
@@ -43,6 +43,7 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { trailCountry, flagUrl, flagEmojiFromISO2, countryName } from '@/lib/countryGeo';
 import { FlagCircle } from './FlagCircle';
 import { HeroBadges } from '@/components/pack/HeroBadges';
+import { PackPopup } from '@/components/pack/PackPopup';
 import { TripProfileCard, partyMemberToProfileCardProps } from '@/components/pack/profile/TripProfileCard';
 import { useProfile } from '@/components/pack/profile/packProfile';
 // #41 — reálna partia (get_trip_party), namiesto fabrikovaného MOCK_MEMBER_POOL zoznamu.
@@ -318,20 +319,22 @@ ${VEIL_CSS}
    panel papyrusová karta, sú to dve rovnaké karty v sebe: rovnaký gradient, rovnaký rám,
    a matricový tieň (0 14px 44px čiernej + halo ring) z toho urobí tmavý mrak vnútri svetlého
    bloku. Úroveň 2 = panelGrad, 1px rám, radius 12, jemný lift. */
-.comm-vhead{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;box-shadow:${PACK_SHADOW.lift};padding:16px 16px;margin-bottom:22px;}
+.comm-vhead{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;box-shadow:${PACK_SHADOW.lift};padding:16px 16px;margin-bottom:22px;}
 .comm-vhead-pack{display:flex;align-items:center;flex-shrink:0;}
 /* prstenec okolo avatara = farba PODKLADU, nie čierna stránka — na papyruse by čierny krúžok
    vyzeral ako dier(k)a. T.card je plná papyrusová, T.cardGrad by sa v box-shadow nedal použiť. */
-.comm-vavatar{width:48px;height:48px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid ${T.cardEdge};box-shadow:0 0 0 3px ${T.card};background:rgba(201,154,63,0.12);margin-left:-14px;}
+.comm-vavatar{width:72px;height:72px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid ${T.cardEdge};box-shadow:0 0 0 3px ${T.card};background:rgba(201,154,63,0.12);margin-left:-16px;}
 .comm-vhead-pack .comm-vavatar:first-child{margin-left:0;}
 .comm-vavatar img{width:100%;height:100%;object-fit:cover;display:block;}
-.comm-vavatar img.comm-vavatar-fallback{width:18px;height:18px;object-fit:contain;filter:none;opacity:.6;}
+.comm-vavatar img.comm-vavatar-fallback{width:24px;height:24px;object-fit:contain;filter:none;opacity:.6;}
 .comm-vavatar--owner{background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);font-family:${FONT_UI};font-weight:600;font-size:16px;color:${INK};}
 /* .comm-vavatar--slot (prerušovaný „+" krúžok = priestor pre budúceho member, Matej 23. 7.)
    ZMAZANÝ 2026-08-05 — Matej: „to plus daj preč tu sa psy nebudú pridávať". */
 /* MENO + PILULKA V JEDNOM RADE (Matej 2026-08-06: „pils dajme vedla nie pod"). Meno berie
    zvyšok šírky, pilulka sa nezmenší; "padding-right" drží text mimo info tlačidla v rohu. */
-.comm-vhead-id{flex:1;min-width:180px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-right:32px;}
+.comm-vhead-id{display:flex;align-items:center;justify-content:center;gap:12px;}
+/* Hlavička je od 26. 10. 2026 stĺpec na osi — pás levelu musí ostať cez celú šírku. */
+.comm-vhead .comm-lvlwrap{align-self:stretch;text-align:left;}
 /* vlajky precestovaných krajín — trofej, ktorá rastie. Krúžok má vlastný zlatý rám z FlagCircle,
    takže tu ide len o rozostup, klikateľnosť a zvýraznenie práve zvolenej krajiny. */
 .comm-vflags{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;}
@@ -341,7 +344,7 @@ ${VEIL_CSS}
    zmenšil a rad by poskakoval pri každom prepnutí). */
 .comm-vflag.on{box-shadow:0 0 0 2px ${T.card},0 0 0 4px ${GOLD};}
 
-.comm-vhead-name{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${T.inkStrong};min-width:0;}
+.comm-vhead-name{font-family:${FONT_TITLE};font-weight:700;font-size:20px;color:${T.inkStrong};min-width:0;}
 /* Výplň, inkoust a rám dodáva tierPillStyle(level) inline — tu ostáva len tvar. Pilulka je
    TLAČIDLO (otvára škálu pásiem), takže potrebuje reset kurzora a rodinu písma. */
 .comm-tierwrap{position:relative;display:inline-flex;flex-shrink:0;}
@@ -361,16 +364,17 @@ ${VEIL_CSS}
    pevných 52vh znamenalo, že sa k vlastným bodom vždy musí rolovať.
    ⚠️ Šírka je 520, nie 340 — dvojstĺpcový cenník sa do úzkeho popupu nezmestí; pod 560 px
    padá na jeden stĺpec sám (media query pri .comm-pts-cols). */
-.comm-tiers{position:absolute;top:calc(100% + 9px);left:0;z-index:32;width:min(520px,88vw);max-height:max(320px,calc(100vh - 300px));overflow-y:auto;overscroll-behavior:contain;text-align:left;cursor:default;text-transform:none;letter-spacing:normal;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:12px 16px;}
+.comm-tiers{position:absolute;top:calc(100% + 9px);left:50%;transform:translateX(-50%);z-index:32;width:min(520px,88vw);max-height:max(320px,calc(100vh - 300px));overflow-y:auto;overscroll-behavior:contain;text-align:left;cursor:default;text-transform:none;letter-spacing:normal;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:12px 16px;}
 @media (max-width:560px){
   .comm-vhead{padding:12px 16px;gap:12px;}
-  .comm-vhead-name{font-size:14px;}
+  .comm-vhead-name{font-size:16px;}
+  .comm-vavatar{width:64px;height:64px;}
   /* ⚠️ NA ÚZKOM OKNE SA POPUP KOTVÍ NA BLOK, NIE NA PILULKU. Pilulka začína ~145 px od ľavého
      okraja, takže popup široký 88vw jej spod pravého okraja vytiekol z obrazovky (bolo to tak
      aj pri pôvodných 340 px — zväčšenie na 520 to len zviditeľnilo). Zrušením position:relative
      na obale sa najbližším ukotveným predkom stáva .comm-vhead a popup dostane šírku bloku. */
   .comm-tierwrap{position:static;}
-  .comm-tiers{left:16px;right:16px;width:auto;}
+  .comm-tiers{left:16px;right:16px;width:auto;transform:none;}
 }
 
 /* svetový prehľad — easy dashboard (Matej 2026-07-23).
@@ -389,6 +393,17 @@ ${VEIL_CSS}
 .comm-worldstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px;}
 .comm-wstat{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${PACK_SHADOW.lift};padding:16px 12px 16px;text-align:center;transition:transform .2s ease,box-shadow .2s ease;}
 .comm-wstat:hover{transform:translateY(-2px);box-shadow:${PACK_SHADOW.card};}
+/* Dlaždica-tlačidlo (KRAJINY → popup, VÝLETY → zoznam dole, 26. 10. 2026). */
+.comm-wstat--btn{font:inherit;color:inherit;cursor:pointer;width:100%;}
+.comm-wstat--btn:disabled{cursor:default;}
+.comm-wstat--btn:disabled:hover{transform:none;box-shadow:${PACK_SHADOW.lift};}
+.comm-wflags{display:flex;justify-content:center;flex-wrap:wrap;gap:4px;margin-top:8px;font-style:normal;}
+/* Riadky popupu KRAJINY — ťuk prepne vysvedčenie na krajinu a doskroluje k nemu. */
+.comm-ctrylist{display:flex;flex-direction:column;gap:8px;}
+.comm-ctryrow{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border-radius:12px;border:1px solid ${T.border};background:${T.panelGrad};color:${P.ink};font:inherit;cursor:pointer;text-align:left;}
+.comm-ctryrow b{flex:1;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:16px;} /* písmo: meno */
+.comm-ctryrow span{font-family:${FONT_UI};font-weight:500;font-size:12px;color:${P.dim};white-space:nowrap;}
+.comm-ctryrow.on{border-color:${T.cardEdge};background:${T.cardGrad};}
 .comm-wstat b{display:block;font-family:${FONT_UI};font-weight:600;font-size:24px;font-variant-numeric:tabular-nums;color:${P.ink};line-height:1;}
 /* ⚠️ NAJVYŠŠÍ BOD JE MENO MIESTA, NIE ČÍSLO — a typografický lock hovorí, že identitu
    (názvy miest) nesie Cinzel, kým dáta nesie Space Grotesk. Do 1. 9. tu stálo meno vrcholu
@@ -529,12 +544,13 @@ ${VEIL_CSS}
    by ukotvil position:fixed o panel, nie o viewport). Backdrop klik = dismiss; klik NA card = nič. */
 /* Závoj ostáva tmavý — je to okamih, keď má obrazovka stíchnuť a svietiť má len odznak.
    Karta pod ním je PANEL (úroveň 4 matrice): papyrus, 1.5px zlatý rám, panelShadow. */
-.comm-reveal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px;cursor:pointer;animation:comm-reveal-fadein .35s ease;}
-.comm-reveal-card{position:relative;display:flex;gap:28px;align-items:center;width:100%;max-width:760px;max-height:86vh;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;padding:32px;cursor:default;box-shadow:${T.panelShadow};animation:comm-reveal-pop .55s cubic-bezier(.2,1.3,.4,1);}
+/* 26. 10. 2026: obal je POPUP (PackPopup) — závoj, šuplík, úchyt a rolovanie nesie on.
+   Karta je už len ROZLOŽENIE vnútri; rolovanie má celé telo popupu, nie stĺpec s príbehom. */
+.comm-reveal-card{display:flex;gap:28px;align-items:center;padding:8px 0 0;}
 .comm-reveal-left{flex:0 0 210px;display:flex;flex-direction:column;align-items:center;gap:12px;}
 .comm-reveal-badge{width:210px;max-width:44vw;filter:drop-shadow(0 0 14px rgba(201,154,63,.45)) drop-shadow(0 10px 20px rgba(90,62,20,.40));}
 .comm-reveal-trips{font-family:${FONT_UI};font-weight:600;font-size:12px;color:${P.deep};letter-spacing:0.14em;text-transform:uppercase;}
-.comm-reveal-right{flex:1;min-width:0;text-align:left;max-height:70vh;overflow-y:auto;}
+.comm-reveal-right{flex:1;min-width:0;text-align:left;}
 /* Eyebrow na papyruse = zlatá (T.cardEdge), telo textu plný inkoust s tichším krytím —
    inkWarm je na popisky a odsek v ňom sa číta ako poznámka pod čiarou. */
 .comm-reveal-kicker{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.22em;color:${T.cardEdge};text-transform:uppercase;}
@@ -548,18 +564,13 @@ ${VEIL_CSS}
 .comm-reveal-source:hover{border-bottom-color:${T.cardEdge};}
 .comm-reveal-source-label{font-family:inherit;font-weight:400;font-size:10px;color:${P.dim};letter-spacing:0;}
 @media (max-width:600px){
-  .comm-reveal-card{flex-direction:column;gap:16px;padding:24px 16px 24px;text-align:center;}
+  .comm-reveal-card{flex-direction:column;gap:16px;text-align:center;}
   .comm-reveal-left{flex:none;}
   .comm-reveal-badge{width:150px;}
-  .comm-reveal-right{text-align:center;max-height:48vh;}
+  .comm-reveal-right{text-align:center;}
   .comm-reveal-name{font-size:24px;}
 }
-@keyframes comm-reveal-fadein{from{opacity:0;}to{opacity:1;}}
-@keyframes comm-reveal-pop{from{opacity:0;transform:scale(.94) translateY(8px);}to{opacity:1;transform:none;}}
-@media (prefers-reduced-motion:reduce){
-  .comm-reveal{animation:none;}
-  .comm-reveal-card{animation:none;}
-}
+
 
 /* ── KARTA PLÁNOVANÉHO VÝLETU S POZVÁNKOU (EventsView) — BLEDÁ (2026-09-01, 2. beh) ──
    Karta stála TMAVÁ vnútri papyrusového panela mapy (.trp-sidebar na PC, .trp-mlist na
@@ -1614,6 +1625,26 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   // `setRanksOpen(false)` — popup ranku nesie meno krajiny v nadpise; nechať ho otvorený cez
   // prepnutie krajiny by ukazoval prahy pod iným menom, než na aké sa človek díval.
   const pickCountry = (iso: string) => { setCountry(iso); setExpanded(null); setWalkedOpen(false); setRanksOpen(false); };
+  // Dlaždice KRAJINY a VÝLETY (26. 10. 2026) — popup krajín a skok na zoznam prejdených.
+  const [ctryPopup, setCtryPopup] = useState(false);
+  const countryRef = useRef<HTMLElement | null>(null);
+  const walkedRef = useRef<HTMLButtonElement | null>(null);
+  const [walkedJump, setWalkedJump] = useState(0);
+  const goToWalked = () => {
+    // Zoznam dole je PER KRAJINA — kým je vybraná krajina bez výletov, skok by trafil prázdno.
+    if (cTrails.length === 0 && walkedCountryList[0]) setCountry(walkedCountryList[0].iso);
+    setWalkedOpen(true);
+    setWalkedJump((n) => n + 1);
+  };
+  useEffect(() => {
+    if (!walkedJump) return;
+    requestAnimationFrame(() => walkedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }, [walkedJump]);
+  const openCountry = (iso: string) => {
+    pickCountry(iso);
+    setCtryPopup(false);
+    requestAnimationFrame(() => countryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
 
   // ── identity header (Slice B, Matej 2026-07-23) — foto svorky + meno svorky + level odznak.
   // usePackIdentity() je vlastný hook call (spec: „TripStatsPanel volá usePackIdentity() priamo"),
@@ -1686,6 +1717,10 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
       {/* `tierVars` visí na CELOM bloku, aby farbu pásma zdedila pilulka AJ pruh postupu —
           sú to dva prvky, ktoré musia hovoriť to isté, a druhá sada čísel by sa rozišla. */}
       <div className="comm-vhead" style={tierVars(lvl.level)}>
+        {/* HLAVIČKA V STREDE (Matej 26. 10. 2026: „fotky by som zväčšil a centroval do stredu pod to
+            meno a rank"): MENO → FOTKY → ODZNAK PÚTNIKA, všetko na osi. Vlajky odišli do dlaždice
+            KRAJINY nižšie („vlajky by som dal do bloku kde sú 3 krajiny"). */}
+        <div className="comm-vhead-name">{packName}</div>
         {/* Poradie fotiek = poradie mien (Matej 2026-08-05): človek prvý, psy za ním. */}
         <div className="comm-vhead-pack">
           <span className="comm-vavatar comm-vavatar--owner">
@@ -1705,7 +1740,6 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
             Predtým bola pilulka o riadok nižšie a meno stálo samo — dva riadky na to, čo je
             jedna informácia: kto som a kde som. */}
         <div className="comm-vhead-id">
-          <div className="comm-vhead-name">{packName}</div>
           {/* PILULKA JE TLAČIDLO — farba pásma bez vysvetlenia je len ozdoba; klik otvorí
               škálu, kde je vidieť, čo tá farba znamená a čo príde po nej.
               Ikonka ide MASKOU (`background: currentColor`), nie filtrom: inkoust pásma je
@@ -1772,28 +1806,6 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
               </span>
             )}
           </span>
-          {/* VLAJKY PRECESTOVANÝCH KRAJÍN (Matej 2026-08-06: „za pil levelu by sme mohli dať
-              vlajky štátov kde sme boli a tam by sa pridávaly"). Zbierka, ktorá rastie sama —
-              nič sa nenastavuje, vlajka pribudne prvým výletom v novej krajine.
-              LEN prejdené: prázdne štáty patria do pásu chipov nižšie („not yet" = pozvánka),
-              tu by z trofeje spravili checklist. Klik = prepnutie vysvedčenia na tú krajinu,
-              takže to nie je len ozdoba. */}
-          {walkedCountryList.length > 0 && (
-            <span className="comm-vflags">
-              {walkedCountryList.map((c) => (
-                <button
-                  key={c.iso}
-                  type="button"
-                  className={`comm-vflag pk-hit${c.iso === country ? ' on' : ''}`}
-                  onClick={() => pickCountry(c.iso)}
-                  title={`${c.name} · ${t(`pack.triplist.myTripsCount${pluralKey(c.trips)}`, { n: c.trips })}`}
-                  aria-label={`${c.name}, ${t(`pack.triplist.myTripsCount${pluralKey(c.trips)}`, { n: c.trips })}`}
-                >
-                  <FlagCircle iso2={c.iso} label={c.name} size={22} />
-                </button>
-              ))}
-            </span>
-          )}
         </div>
         {/* ⚠️ ⓘ V PRAVOM HORNOM ROHU ZANIKLO (Matej 1. 9. 2026: „spojiť dva popupy na hlavičke
             do jedného ako na mape"). Hlavička mala DVA výklady toho istého: pilulka ukazovala
@@ -1815,8 +1827,22 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
 
       {/* WORLD prehľad — precestované krajiny/vrch/výlety/km (scope select presunutý do BLOKU 2). */}
       <div className="comm-worldstats">
-        <div className="comm-wstat"><b>{countriesTraveled}</b><span>{t('pack.stats.countries')}</span></div>
-        <div className="comm-wstat"><b>{walkedTrails.length}</b><span>{t('pack.stats.trips')}</span></div>
+        {/* KRAJINY nesie VLAJKY a ťuk otvorí POPUP so zoznamom (Matej 26. 10. 2026: „vlajky by som dal
+            do bloku kde sú 3 krajiny a po kliku by sa dali otvoriť"). LEN prejdené krajiny —
+            prázdne štáty sú pozvánka v páse chipov nižšie, tu by z trofeje spravili checklist. */}
+        <button type="button" className="comm-wstat comm-wstat--btn" onClick={() => setCtryPopup(true)} disabled={walkedCountryList.length === 0}>
+          <b>{countriesTraveled}</b><span>{t('pack.stats.countries')}</span>
+          {walkedCountryList.length > 0 && (
+            <i className="comm-wflags" aria-hidden>
+              {walkedCountryList.map((c) => <FlagCircle key={c.iso} iso2={c.iso} label={c.name} size={20} />)}
+            </i>
+          )}
+        </button>
+        {/* VÝLETY = skok na zoznam prejdených dole (Matej 26. 10. 2026: „po kliku na výlety sa človek
+            scrollne na všetky výlety dolu"). Rozbalí ho, ak je zbalený. */}
+        <button type="button" className="comm-wstat comm-wstat--btn" onClick={goToWalked} disabled={walkedTrails.length === 0}>
+          <b>{walkedTrails.length}</b><span>{t('pack.stats.trips')}</span>
+        </button>
         <div className="comm-wstat"><b>{fmtKm(walkedKm)}</b><span>{t('pack.stats.km')}</span></div>
         {/* MENO VRCHOLU ide v Cinzeli (identita miesta), nie zmenšeným Space Groteskom —
             trieda `--name` prepína písmo aj veľkosť, aby to nerobil inline style. Pomlčka
@@ -1864,9 +1890,23 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
       <HeroBadges walkedCount={walkedTrails.length} />
       </section>
 
+      {ctryPopup && (
+        <PackPopup title={t('pack.stats.countries')} onClose={() => setCtryPopup(false)}>
+          <div className="comm-ctrylist">
+            {walkedCountryList.map((c) => (
+              <button key={c.iso} type="button" className={`comm-ctryrow${c.iso === country ? ' on' : ''}`} onClick={() => openCountry(c.iso)}>
+                <FlagCircle iso2={c.iso} label={c.name} size={32} />
+                <b>{c.name}</b>
+                <span>{t(`pack.triplist.myTripsCount${pluralKey(c.trips)}`, { n: c.trips })}</span>
+              </button>
+            ))}
+          </div>
+        </PackPopup>
+      )}
+
       {/* BLOK 2 — VYSVEDČENIE krajiny: všetky štáty s vlajkou (#46) + hero krajiny s dropdownom
          a cieľom v tripoch namiesto percent (#47) + kategórie + zoznam prejdených tripov. */}
-      <section className="tl-panel" style={{ marginTop: 14 }}>
+      <section className="tl-panel" style={{ marginTop: 14, scrollMarginTop: 96 }} ref={countryRef}>
       {/* #46 — VŠETKY štáty, aj tie bez výletu. Prázdny štát sa dá vybrať a skončí výzvou
          „pridaj tam prvý výlet"; predtým tu bol select s troma natvrdo vypnutými krajinami. */}
       <div className="comm-ctrys">
@@ -2131,8 +2171,10 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
       ) : (
         <>
           <button
+            ref={walkedRef}
             type="button"
             className={`comm-drop${walkedOpen ? ' on' : ''}`}
+            style={{ scrollMarginTop: 96 }}
             onClick={() => setWalkedOpen((v) => !v)}
             aria-expanded={walkedOpen}
           >

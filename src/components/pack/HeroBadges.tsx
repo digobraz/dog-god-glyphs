@@ -24,7 +24,7 @@
 // otvorí ten istý card layout ako REVEAL, len s iným kickerom (earned = "Hero badge", locked =
 // "N more trips to unlock") a grayscale odznakom keď locked. Zdieľaný renderer = HeroRevealCard.
 import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { PackPopup } from '@/components/pack/PackPopup';
 import { useT } from '@/i18n/LanguageContext';
 import { HERO_BADGES, type HeroBadge } from '@/components/pack/heroBadgesData';
 import {
@@ -62,20 +62,13 @@ function HeroRevealCard({ badge, kicker, locked, onClose }: {
   onClose: () => void;
 }) {
   const t = useT();
-  // ── BEZ KRÍŽIKA (lock 2026-08-28, Matej: „nedávajme tie krížiky na bloky") ──
-  // Von sa ide klikom vedľa karty (to vedel aj Matejov pôvodný popis reveal-momentu:
-  // „klikne vedľa zmizne to") alebo Esc. Esc je podmienka locku, nie ozdoba — na PC
-  // je to jediná cesta von, ktorú netreba trafiť myšou.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
-  return createPortal(
-    <div
-      className="comm-reveal"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
+  // ── POPUP (Matej 26. 10. 2026): „po kliknutí na odznak dajme lepší popup… ten čo sa dá stiahnuť
+  // dolu, ale zároveň scrollovať po celej šírke, lebo aktuálne to na mobile nie je dobre vidno".
+  // Starý modal v strede mal príbeh v okne s max-height a na iPhone zašiel pod spodnú lištu.
+  // Bez krížika aj bez šípky (lock 28. 8. platí ďalej): von stiahnutím, ťukom vedľa alebo Esc —
+  // všetko rieši PackPopup.
+  return (
+    <PackPopup onClose={onClose} label={badge.name} className="comm-reveal-pop">
       <div className="comm-reveal-card">
         <div className="comm-reveal-left">
           <img className={`comm-reveal-badge${locked ? ' comm-reveal-badge--off' : ''}`} src={badge.img} alt={badge.name} />
@@ -92,8 +85,7 @@ function HeroRevealCard({ badge, kicker, locked, onClose }: {
           )}
         </div>
       </div>
-    </div>,
-    document.body,
+    </PackPopup>
   );
 }
 

@@ -60,6 +60,7 @@ import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
 import { mountBrain, type BrainHandle, type BrainLayer } from '@/components/pack/vault/brainEngine';
 import ainubisHead from '@/assets/ainubis-head.webp';
 import { HandArrowLeft, HandSearch, HandPaw, HandStar, HandPlus, HandForward, HandCheck } from '@/components/pack/HandIcons';
+import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 
 /* ⚠️ JEDNA HRANICA — tá istá ako na mape (`PackMap`: ≤1023 = mobilný pohľad
    s pilulkou ZOZNAM). Dve čísla by znamenali šírku, kde má mapa pilulku a VAULT nie. */
@@ -286,7 +287,8 @@ ${STAGE_CSS}
   display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.xl}px);
   border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;background:${AINUBIS.bg};border-top:1px solid ${AINUBIS.edgeStrong};}
-.akv-grab{align-self:center;width:40px;height:4px;border:0;padding:0;cursor:pointer;border-radius:${PACK_R.pill}px;background:${AINUBIS.edge};}
+.akv-stop{display:flex;flex-direction:column;gap:inherit;cursor:grab;}
+.akv-grab{align-self:center;width:40px;height:4px;border:0;padding:0;border-radius:${PACK_R.pill}px;background:${AINUBIS.edge};}
 .akv-sttl{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
   text-transform:uppercase;color:${AINUBIS.ink};}
 .akv-sgrp{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
@@ -762,6 +764,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   const [layer, setLayer] = useState<BrainLayer>('worlds');
   const layerRef = useRef<BrainLayer>('worlds');
   const [sheet, setSheet] = useState(false);
+  // POPUP (26. 10. 2026): úchyt sa dal len ťuknúť, nie stiahnuť — teraz ťahá ako každý úchyt v /pack.
+  const sheetSwipe = useSheetSwipe(() => setSheet(false));
   useEffect(() => {
     if (!dd) return;
     const close = () => setDd(null);
@@ -1348,9 +1352,11 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
       {sheet && (
         <>
           <div className="akv-sback" onClick={() => setSheet(false)} aria-hidden />
-          <div className="akv-sheet" role="dialog" aria-label={t('pack.map.filters')}>
-            <button type="button" className="akv-grab" onClick={() => setSheet(false)} aria-label={t('pack.map.filters')} />
-            <div className="akv-sttl">{t('pack.map.filters')}</div>
+          <div className="akv-sheet" role="dialog" aria-label={t('pack.map.filters')} style={sheetSwipe.sheetStyle}>
+            <div className="akv-stop" {...sheetSwipe.handle}>
+              <span className="akv-grab" aria-hidden />
+              <div className="akv-sttl">{t('pack.map.filters')}</div>
+            </div>
             <div className="akv-sgrp">
               <b>{tx('pack.ainubis.filter.world', 'World')}</b>
               <div className="akv-chips">
