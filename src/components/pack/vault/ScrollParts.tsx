@@ -468,10 +468,11 @@ export function ScrollActions({ id, lang, onTalk, lock }: {
             (prebíja 4. 10. „dajme srdiečko“; nákres plany/nakres-feed-2026-10-26.html). */}
         <HandPaw size={20} on={liked} /><span className="zv-n">{likes}</span>
       </button>
-      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={lock ?? (() => toggleSaved(id))} aria-label={u.save}><HandStar size={20} filled={saved} /><span className="zv-n">{saves}</span></button>
+      {/* PORADIE VŠADE: labka · komentár · ☆ (Matej 26. 10. 2026, lock architektura-pack §4.2). */}
       <button type="button" data-k="talk" className={`zv-act${talk > 0 ? ' is-on' : ''}`} onClick={lock ?? onTalk} aria-label={u.talk}>
         <Ic ic={talk > 0 ? 'chat-right-full' : 'chat'} /><span className="zv-n">{talk}</span>
       </button>
+      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={lock ?? (() => toggleSaved(id))} aria-label={u.save}><HandStar size={20} filled={saved} /><span className="zv-n">{saves}</span></button>
     </div>
   );
 }

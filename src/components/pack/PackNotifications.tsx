@@ -65,12 +65,15 @@ const CAP_DOT: React.CSSProperties = {
 // ODZNAK S ČÍSLOM NA CHVOSTE (26. 10. 2026, TEST_BUILD). Matej 24. 10. vybral bodku (vyššie), 26. 10. nad
 // krokom 1: *„myslel som bodku cyan s upozornením … bodka s číslom tak ako bude aj červené upozornenie"*.
 // Novší pokyn platí pre chvost; obálka správ ostáva bodkou. Červená = od členov, cyan = AINUBIS a systém.
+// Oba naraz (Matej 26. 10.: *„môžu byť aj dve naraz a zobrazia sa spolu jedno hore jedno dolu
+// (červená/cyan)"*) — červená hore vpravo, cyan dole vpravo; samotný cyan ostáva tiež dole.
+// Menšie a bez obruby (Matej 26. 10.: *„upozornenie bez ohraničenia skúsme a asi aj menšie… musia sa
+// zmestiť dve bodky pri chvoste aj správach"*) — 14 px, dve pod sebou sa zmestia do 40 px kapsuly.
 const capBadge = (cyan: boolean): React.CSSProperties => ({
-  position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
+  position: 'absolute', ...(cyan ? { bottom: 4 } : { top: 4 }), right: 4, minWidth: 14, height: 14, padding: '0 4px', borderRadius: 999,
   display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
   fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, fontWeight: 600,
   background: cyan ? AINUBIS.cyan : SNIFFER_HEART, color: cyan ? AINUBIS.bg : '#fff',
-  boxShadow: cyan ? `0 0 0 1.5px ${T.pageBg}, 0 0 6px ${AINUBIS.cyan}` : `0 0 0 1.5px ${T.pageBg}`,
 });
 
 // ── OZNAM AINUBISA = CYAN BODKA (26. 10. 2026, len za TEST_BUILD) ─────────────────────────────
@@ -256,7 +259,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   const [seenDogs] = useState(readSeenDogs);
   const grown = TEST_BUILD && total && seenDogs && total > seenDogs ? total - seenDogs : 0;
   const memberDot = TEST_BUILD ? freshAlerts.length > 0 : bellCount > 0;
-  const cyanDot = TEST_BUILD && !memberDot && oznamFresh;
+  const cyanDot = TEST_BUILD && oznamFresh;
 
   return (
     <div
@@ -289,7 +292,9 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
               a obalka zanikne rovnako, ako zanikalo cele tlacidlo. `dark` (#5A3F12) je
               ten isty tint, akym sa kreslia ikonky na zlatych plochach. */}
           <BrandIcon name="envelope" size={capsule ? 24 : 16} tint={dark ? 'gold' : 'dark'} />
-          {msgCount > 0 && capsule && <span aria-hidden style={CAP_DOT} />}
+          {msgCount > 0 && capsule && (TEST_BUILD
+            ? <span aria-hidden style={capBadge(false)}>{msgCount > 9 ? '9+' : msgCount}</span>
+            : <span aria-hidden style={CAP_DOT} />)}
           {msgCount > 0 && !capsule && (
             <span
               style={{

@@ -235,7 +235,12 @@ const CSS = `
 .ntf-real{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .ntf-real ul{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;margin:0;padding:0;list-style:none;}
 .ntf-real li{padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:rgba(251,245,230,0.78);border:1px solid ${T.hairline};}
-.ntf-row--ai{background:rgba(${AINUBIS.cyanRGB},0.10);border-color:rgba(${AINUBIS.cyanRGB},0.45);}
+/* AINUBIS riadky v JEHO tmavom brande (Matej 26. 10.: „ak sa jedná o ainubisa, musí byť v jeho tmavom brande… nie v bledom") — oznam aj „Pre teba". */
+.ntf-row--ai{background:${AINUBIS.surfaceBase};border-color:${AINUBIS.edge};color:${AINUBIS.ink};}
+.ntf-row--ai .ntf-txt small{color:${AINUBIS.inkDim};}
+.ntf-row--ai .ntf-ai{color:${AINUBIS.ink};}
+.ntf-row--ai .ntf-ai span{-webkit-text-stroke:0;text-shadow:${AINUBIS.aiShadow};}
+.ntf-row--ai .ntf-cta{background:${AINUBIS.ctaGrad};color:${AINUBIS.ctaInk};box-shadow:${AINUBIS.ctaShadow};}
 .ntf-av{flex:0 0 auto;width:40px;height:40px;border-radius:${PACK_R.pill}px;background:${AINUBIS.faceBg};box-shadow:${AINUBIS.faceRing};display:grid;place-items:center;overflow:hidden;}
 .ntf-av img{height:78%;width:auto;}
 .ntf-txt{flex:1;min-width:0;font-size:${PACK_TEXT.body}px;line-height:1.35;}
@@ -380,7 +385,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
               {hasReal && <div className="ntf-real">{children}</div>}
               {tips.length > 0 && <div className="ntf-sec">{t('pack.notif.forYou')}</div>}
               {tips.map((tip) => (
-                <div key={tip.id} className="ntf-row">
+                <div key={tip.id} className="ntf-row ntf-row--ai">
                   <span className="ntf-av"><img src={ainubisHead} alt="" /></span>
                   <span className="ntf-txt">
                     <span className="ntf-ai"><span>AI</span>NUBIS</span> · {tip.title}

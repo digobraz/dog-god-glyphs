@@ -10,8 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_BOX, PACK_HEAD, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
-import { BrandIcon } from '@/components/pack/BrandIcon';
+import { SNIFFER_HEART } from '@/components/pack/buddy/SnifferLogo';
 import { loadNearby, type SnifferCardData } from '@/components/pack/buddy/snifferDeck';
 import { tripPath } from '@/components/pack/tripShared';
 import { trailCountry, flagUrl } from '@/lib/countryGeo';
@@ -21,6 +20,8 @@ import { tripTitle, type FeedTrip } from './feedData';
 const T = PACK_THEME;
 const S = PACK_SPACE;
 const TX = PACK_TEXT;
+/** Papyrus z loga SNIFFERu (`sniffer-napis-light.svg`) — nápis na červenej dlaždici. */
+const SNIFFER_PAPER = '#F6E9D0';
 
 export const FEED_TOP_CSS = `
 .pfs-row{display:flex;align-items:baseline;justify-content:space-between;gap:${S.md}px;margin:0 0 ${S.sm}px;}
@@ -34,9 +35,13 @@ export const FEED_TOP_CSS = `
 .pfs-dog span{position:absolute;left:${S.sm}px;right:${S.sm}px;bottom:${S.sm}px;z-index:1;color:${T.onDark};}
 .pfs-dog b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} /* písmo: meno */
 .pfs-dog small{display:block;font:500 ${TX.micro}px/1.3 ${FONT_UI};opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.pfs-go{flex:none;width:104px;height:140px;border-radius:${PACK_R.tile}px;cursor:pointer;border:1px solid ${LAPIS.deep};background:${LAPIS.grad};color:${LAPIS.ink};
-  box-shadow:${LAPIS_BTN_SHADOW};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${S.sm}px;padding:${S.sm}px;scroll-snap-align:start;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;} /* písmo: cta */
+.pfs-go{flex:none;width:104px;height:140px;border-radius:${PACK_R.tile}px;cursor:pointer;border:1px solid ${SNIFFER_HEART};background:${SNIFFER_HEART};color:${SNIFFER_PAPER};
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${S.sm}px;padding:${S.sm}px;scroll-snap-align:start;}
+.pfs-go i{display:block;width:32px;height:32px;background:${SNIFFER_PAPER};-webkit-mask:url(/icons/sniffer/nose.svg) center/contain no-repeat;mask:url(/icons/sniffer/nose.svg) center/contain no-repeat;}
+.pfs-go img{display:block;height:20px;width:auto;}
+.pfs-row .pfs-logo{display:block;height:24px;width:auto;}
+.pfs-row.is-sniffer button{display:flex;align-items:center;}
+.pfs-row.is-sniffer h2{color:${SNIFFER_HEART};}
 .pfs-trip{flex:none;width:168px;overflow:hidden;cursor:pointer;padding:0;text-align:left;scroll-snap-align:start;color:${T.inkStrong};font-family:${FONT_UI};}
 .pfs-trip .ph{position:relative;display:block;width:100%;aspect-ratio:4/3;background:${T.tileBg} center/cover no-repeat;}
 .pfs-trip .ph img{position:absolute;left:${S.sm}px;top:${S.sm}px;width:24px;height:24px;border-radius:${PACK_R.pill}px;border:2px solid ${T.onDark};object-fit:cover;}
@@ -60,9 +65,9 @@ export function SnifferStrip() {
   const go = () => navigate('/pack/sniffer');
   return (
     <section>
-      <div className="pfs-row">
+      <div className="pfs-row is-sniffer">
         <h2>{tx('pack.feed.top.buddy', 'Looking for a buddy')}</h2>
-        <button type="button" onClick={go}>SNIFFER</button>
+        <button type="button" onClick={go} aria-label="SNIFFER"><img className="pfs-logo" src="/icons/sniffer/sniffer-logo.svg" alt="" /></button>
       </div>
       <div className="pfs-strip">
         {cards.map((c) => {
@@ -78,7 +83,7 @@ export function SnifferStrip() {
           );
         })}
         <button type="button" className="pfs-go" onClick={go}>
-          <BrandIcon name="paw" size={24} tint="white" />{tx('pack.feed.top.sniff', 'Sniff')}
+          <i aria-hidden /><img src="/icons/sniffer/sniffer-napis-light.svg" alt="" /><span className="sr-only">{tx('pack.feed.top.sniff', 'Sniff')}</span>
         </button>
       </div>
     </section>
