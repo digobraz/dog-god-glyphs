@@ -7,7 +7,7 @@ import { useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI } from '@/components/pack/packTheme';
 import { HandTrash } from '@/components/pack/HandIcons';
-import { optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
+import { optimizePhoto, takeUploadBlob } from '@/components/pack/addtrip/photoOptimize';
 import { uploadTripReviewPhoto, sizedUrl } from '@/services/cloudinaryService';
 
 const T = PACK_THEME;
@@ -49,7 +49,7 @@ export function ReviewPhotoPicker({ slug, photos, onChange }: {
       for (const [i, f] of picked.slice(0, room).entries()) {
         const small = await optimizePhoto(f);
         if (!small) continue;
-        const up = await uploadTripReviewPhoto(await dataUrlToBlob(small), slug, `${stamp}-${i}`);
+        const up = await uploadTripReviewPhoto(takeUploadBlob(small) ?? await dataUrlToBlob(small), slug, `${stamp}-${i}`);
         out.push(up.secureUrl);
       }
       if (out.length) onChange([...photos, ...out].slice(0, REVIEW_MAX_PHOTOS));

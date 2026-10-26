@@ -18,7 +18,7 @@
 //     termín, miesto, organizátor). Facebook dnu nepustí → človek doplní ručne.
 //   · tvrdá duplicita (`source_url` už máme) → „už ho máme" + ukázať existujúce
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
+import { optimizePhoto, takeUploadBlob } from '@/components/pack/addtrip/photoOptimize';
 import { uploadEventPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { previewLink, isoToLocalInput, type EventItem } from './eventStore';
 import type { MutableRefObject } from 'react';
@@ -244,7 +244,7 @@ export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, ma
     try {
       const small = await optimizePhoto(f);
       if (!small) throw new Error('photo');
-      const up = await uploadEventPhoto(await dataUrlToBlob(small), eventId, `cover-${Date.now()}`);
+      const up = await uploadEventPhoto(takeUploadBlob(small) ?? await dataUrlToBlob(small), eventId, `cover-${Date.now()}`);
       setPhotoUrl(up.secureUrl);
     } catch {
       setSubmitError(t('pack.event.errorPhoto'));

@@ -19,7 +19,7 @@ import {
 import { LAPIS, LAPIS_BTN_SHADOW } from '../navGoldSkin';
 import { HandTrash } from '../HandIcons';
 import { BackButton } from '../BackButton';
-import { MAX_PHOTOS, optimizePhoto } from '../addtrip/photoOptimize';
+import { MAX_PHOTOS, optimizePhoto, takeUploadBlob } from '../addtrip/photoOptimize';
 import { uploadTripStoryPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { loadMyStory, loadStoryCount, saveStory } from '../story/storyData';
 
@@ -171,7 +171,7 @@ export function StoryWrite({ slug, requireDate = false, onClose, onSaved }: Stor
       for (const [i, f] of picked.slice(0, room).entries()) {
         const small = await optimizePhoto(f);
         if (!small) continue;
-        const up = await uploadTripStoryPhoto(await dataUrlToBlob(small), slug, `${stamp}-${i}`);
+        const up = await uploadTripStoryPhoto(takeUploadBlob(small) ?? await dataUrlToBlob(small), slug, `${stamp}-${i}`);
         out.push(up.secureUrl);
       }
       if (out.length) setPhotos((p) => [...p, ...out].slice(0, MAX_PHOTOS));

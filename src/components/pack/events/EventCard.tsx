@@ -20,7 +20,7 @@ import { PALE as P, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/com
 import { DeleteButton } from '@/components/pack/DeleteButton';
 import { AinubisSheet } from '@/components/pack/ainubisSheet';
 import { eventEmoji, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
-import { optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
+import { optimizePhoto, takeUploadBlob } from '@/components/pack/addtrip/photoOptimize';
 import { uploadEventPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { pluralKey } from '@/lib/plural';
 import { EVENT_KIND_LABEL_KEYS } from './eventModel';
@@ -174,7 +174,7 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
     try {
       const small = await optimizePhoto(f);
       if (!small) throw new Error('photo');
-      const up = await uploadEventPhoto(await dataUrlToBlob(small), item.id, `recap-${Date.now()}`);
+      const up = await uploadEventPhoto(takeUploadBlob(small) ?? await dataUrlToBlob(small), item.id, `recap-${Date.now()}`);
       setRecapPhoto(up.secureUrl);
       setErr('');
     } catch {
