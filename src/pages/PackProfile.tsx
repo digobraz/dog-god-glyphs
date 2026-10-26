@@ -531,7 +531,7 @@ export default function PackProfile() {
         <div className="me-under">
           <MeOwn
             story={storyLive ? 'live' : 'none'}
-            mate={beside ? { ...beside, onClick: () => navigate(beside.to) } : null}
+            mate={beside ? { ...beside, onClick: beside.to ? () => navigate(beside.to as string) : undefined } : null}
             photo={avatarUrl}
             initial={initial}
             dogs={dogs}

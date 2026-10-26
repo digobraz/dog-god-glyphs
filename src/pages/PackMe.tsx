@@ -313,7 +313,7 @@ export default function PackMe() {
             story={STORIES_ON && live.length ? 'live' : 'none'}
             onAdd={STORIES_ON ? () => openCompose('moment') : undefined}
             addLabel={tx('pack.compose.newStory', 'New story')}
-            mate={beside ? { ...beside, onClick: () => navigate(beside.to) } : null}
+            mate={beside ? { ...beside, onClick: beside.to ? () => navigate(beside.to as string) : undefined } : null}
             toggleLabel={open ? tx('pack.me.closeDogs', 'Hide dogs') : tx('pack.me.openDogs', 'Show dogs')}
           />
 

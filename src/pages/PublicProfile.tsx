@@ -204,8 +204,7 @@ export default function PublicProfile() {
   const beside = mate
     ? { photo: memberAvatarUrl(member), initial: (ownerName[0] || 'D').toUpperCase(), label: ownerName, onClick: () => navigate(`/pack/u/${member.memberNumber ?? id}`) }
     : shownMates[0]
-      ? { photo: shownMates[0].avatarUrl, initial: (shownMates[0].name?.[0] || 'P').toUpperCase(), label: shownMates[0].name || 'Pawmate',
-          onClick: () => navigate(`/pack/u/${member.memberNumber ?? id}/mate/${shownMates[0].userId}`) }
+      ? { photo: shownMates[0].avatarUrl, initial: (shownMates[0].name?.[0] || 'P').toUpperCase(), label: shownMates[0].name || 'Pawmate' }
       : null;
   const firstDog = member.dogs.find((d) => d.packNumber != null) ?? member.dogs[0] ?? null;
   const coverSrc = coverOfDay(human) || human.buddyPhoto || firstDog?.photo || null;

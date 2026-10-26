@@ -572,8 +572,7 @@ const App = () => (
                   self; cudzí člen = graceful fallback („profile isn't public yet"), žiaden crash.
                   Fabrikovaní členovia zmazaní 2026-08-03. */}
               <Route path="/pack/u/:id" element={DEV_FULL ? <PublicProfile /> : <Navigate to="/pack" replace />} />
-              {/* PAWMATE ukázaný na profile majiteľa (26. 10. 2026) — tá istá stránka, iný človek. */}
-              <Route path="/pack/u/:id/mate/:mateId" element={DEV_FULL ? <PublicProfile /> : <Navigate to="/pack" replace />} />
+              {/* `/pack/u/:id/mate/:mateId` ZRUŠENÁ 26. 10. 2026 — PAWMATE nemá samostatný profil (model A, Matej: „ano"). */}
               {/* Map = povrch výletov (mapa + reálne tripy), LIVE schovaný (Matej 2026-07-08). V DEV_FULL ostáva.
                   Statické segmenty (triplist) vyhrávajú nad :slug. */}
               <Route path="/pack/map" element={<MapGate><PackMap /></MapGate>} />

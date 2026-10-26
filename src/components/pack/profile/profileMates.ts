@@ -41,7 +41,8 @@ export function useProfileMates(packNumber: number | null | undefined): ProfileM
   return list;
 }
 
-export interface Beside { photo: string | null; initial: string; label: string; to: string }
+/** `to` = null pri pawmatovi — PAWMATE nemá samostatný profil (model A, Matej 26. 10. 2026). */
+export interface Beside { photo: string | null; initial: string; label: string; to: string | null }
 
 /** KTO STOJÍ VEDĽA MOJEJ FOTKY — profil aj UPRAVIŤ PROFIL z jedného miesta.
  *  Majiteľ: pawmate, ktorého si zapol (`human.showMates`) · pawmate: majiteľ, ktorý ho ukázal. `uid` null = nikto. */
@@ -65,7 +66,7 @@ export function useBeside({ uid, isMate, showMates, myNumber }: { uid: string | 
       const want = key.split(',');
       listMyPawmates().then((r) => {
         const m = r.people.find((p) => p.kind === 'human' && p.user_id && want.includes(p.user_id));
-        if (alive) setBeside(m ? { photo: m.avatar_url, initial: (m.name?.[0] || 'P').toUpperCase(), label: m.name || 'Pawmate', to: `/pack/u/${myNumber}/mate/${m.user_id}` } : null);
+        if (alive) setBeside(m ? { photo: m.avatar_url, initial: (m.name?.[0] || 'P').toUpperCase(), label: m.name || 'Pawmate', to: null } : null);
       }).catch(() => { if (alive) setBeside(null); });
     } else setBeside(null);
     return () => { alive = false; };
