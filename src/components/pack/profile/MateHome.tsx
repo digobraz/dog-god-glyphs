@@ -93,6 +93,7 @@ export function MateHome({ dogs, me, onInvite, flat }: {
       <style>{MATE_HOME_CSS}</style>
       <section className={`me-card me-zdedeny${flat ? ' me-flat' : ''}${open ? ' open' : ''} with-mate`}>
         <MeCover
+          withName={me.name}
           foreign
           cover={coverSrc}
           coverY={human?.coverY}

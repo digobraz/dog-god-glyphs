@@ -94,6 +94,7 @@ export const ME_CSS = `
      zalomí medzi slovami; veľkosť ráta rovnica z NAJDLHŠIEHO slova (--nm), nie z celého mena. Tretí riadok
      nie je — nad dvomi nastúpi orez. */
   white-space:normal; overflow-wrap:break-word; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+.me-with{ margin:${S.xs}px 0 0; font-family:${FONT_UI}; font-size:${TX.label}px; font-weight:500; color:${T.inkWarm}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 /* HODNOSTI VEDĽA SEBA (Matej 23. 10.: „až po pravý okraj“ → v ten istý deň neskôr: „pútnika mierne
    rozšír a faraóna zúž, aby to bolo akurát, nerozťahuj to“). Pilulka = svoj obsah + vzduch, nič sa
    nenaťahuje; dlhý stupeň sa skráti. Pod sebou len so „stack“. Ťuk = rozbaľovač MeRank pod hlavou. */
@@ -401,8 +402,12 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false, foreign = false }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false, foreign = false, withName }: {
   cover: string | null;
+  /** Meno pawmata pod menom — „& Lenka“ (Matej 26. 10.: *„pod menom stachoman by mohol byť malým text a Lenka“* ·
+   *„každý kto uvidí môj profil by videl aj foto aj názov a Lenka“*). Len tam, kde je aj fotka pawmata
+   (`human.showMates`). Meno sa neskloňuje. */
+  withName?: string | null;
   /** PAWMATE bez vlastného psa (Matej 26. 10. 2026: *„ona nebude mať level pútnika ani služobníka"*) — titulka len s menom. */
   noRanks?: boolean;
   /** Cudzí profil — zlato SLUŽOBNÍKA sa NEčíta: `devotion_events` vidím len svoje, takže by ukázalo MOJE dni
@@ -511,6 +516,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
       </div>
       <div className="me-foot">
         <h1 className="me-nm" style={{ ['--nm' as string]: Math.max(8, ...String(name ?? '').split(/\s+/).map((w) => w.length)) }}>{name}</h1>
+        {withName && <p className="me-with">&amp; {withName}</p>}
         {RANK_BADGE_ON && <style>{RANK_BADGE_CSS}</style>}
         {noRanks ? null : RANK_BADGE_ON ? (
           // TEST_BUILD (25. 10. 2026): odznaky SLUŽOBNÍK + PÚTNIK namiesto pilulky DEVOTION + PÚTNIK.

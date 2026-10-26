@@ -271,6 +271,7 @@ export default function PublicProfile() {
           </div>
         )}
         <MeCover
+          withName={beside?.label ?? null}
           noRanks={!!mate}
           foreign={!isSelf}
           cover={coverSrc}
