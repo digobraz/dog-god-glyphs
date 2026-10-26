@@ -8,6 +8,7 @@
 // ŠAT (od 22. 9. 2026): PAPYRUS v zlatom odliatku, vysunutý nad spodnú lištu v jej šírke —
 // na každej obrazovke rovnako (Matej: „na každej obrazovke musí byť bledý štýl"). Do 22. 9.
 // tu stálo čierne pk-glass a bledým ho robilo len prebitie na mape.
+import { getPodcastNext } from '@/lib/ainubisBus';
 import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
@@ -151,7 +152,7 @@ const EMOJI: Record<CreateId, string> = {
   devotion: '🐾', trip: '🥾', wish: '🎯', sniffer: '👃', note: '💬', event: '📣', service: '🏥', article: '📕',
   diary: '✍️', photo: '📷',
   post: '🖼️', story: '✨', album: '🗂️',
-  chat: '💬', brain: '📥', board: '❓',
+  chat: '🤖', podcast: '🎧', brain: '📥', board: '❓',
   dm: '💌', group: '👪',
 };
 /** Ten istý slovník aj mimo panela (šuplík ULOŽIŤ v príspevku, 25. 10. 2026) — jedno emoji na vec. */
@@ -317,7 +318,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBl
         }}
       >
         <span className="att-entry-emoji" aria-hidden="true">{EMOJI[o.id]}</span>
-        <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}</span>
+        <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}{o.id === 'podcast' && getPodcastNext() ? ` ${getPodcastNext()}` : ''}</span>
       </button>
     );
   };

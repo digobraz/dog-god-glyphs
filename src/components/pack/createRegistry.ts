@@ -17,6 +17,7 @@
 //    jediný dôvod, prečo `+` smie byť kontextový (§3 nákresu, „VÝSLEDOK MERANIA"). Objekt,
 //    ktorý by patril dvom miestam naraz, ten dôkaz ruší — vtedy sa vracia rozhodnutie, nie
 //    sa dopisuje riadok.
+import { getPodcastNext } from '@/lib/ainubisBus';
 import { DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { TEST_BUILD } from '@/lib/env';
 import { STORIES_ON, ALBUMS_ON } from '@/lib/packFlags';
@@ -118,7 +119,7 @@ export type CreateId =
   | 'trip' | 'wish' | 'sniffer' | 'note' | 'event' | 'service' | 'article'
   | 'diary' | 'photo'
   | 'post' | 'story' | 'album'
-  | 'chat' | 'brain' | 'board'
+  | 'chat' | 'podcast' | 'brain' | 'board'
   | 'dm' | 'group'
   | 'devotion';
 
@@ -449,6 +450,21 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     // aj dlaždica v kostre (`PackAinubis.tsx:214`).
   },
   {
+    // POKRAČUJ V PODCASTE (Matej 26. 10. 2026: „zapísať, chat a pokračuj v podcaste… 1/xy"). Číslo N/M
+    // pripisuje panel z `getPodcastNext()` (lib/ainubisBus.ts); keď nie je čo počúvať, položka zmizne.
+    id: 'podcast',
+    labelKey: 'pack.create.podcast.title',
+    labelFallback: 'Continue the podcast',
+    icon: { kind: 'panel' },
+    place: 'AINUBIS',
+    needs: 'nic',
+    target: { kind: 'route', path: '/pack/ainubis?listen=1' },
+    back: 'origin',
+    lands: 'prehrávač prvého nevypočutého podcastu (zvitky VAULTu)',
+    state: 'live',
+    panel: true,
+  },
+  {
     id: 'brain',
     labelKey: 'pack.create.brain.title',
     labelFallback: 'Add to the brain',
@@ -624,16 +640,18 @@ export const DOMOV_PANEL: readonly CreateId[] = TEST_BUILD
   ? ['devotion', 'post', 'story', 'trip', 'diary']
   : ['devotion', 'trip', 'wish', 'sniffer', 'diary'];
 
-// 💬 AINUBIS MÁ VLASTNÝ VÝREZ (Matej 26. 10. 2026, hárok nakres-cta 2A): NOVÝ ROZHOVOR prvý, potom
-//    Zapíš dnešok a Do denníka. Dovtedy mal AINUBIS z hotových položiek len rozhovor + devotion, teda
-//    < 3, a fallback nižšie mu ukázal repertoár DOMOVA — rozhovor v ňom chýbal úplne.
-export const AINUBIS_PANEL: readonly CreateId[] = ['chat', 'devotion', 'diary'];
+// 🤖 AINUBIS MÁ VLASTNÝ VÝREZ. Dovtedy mal z hotových položiek len rozhovor + devotion, teda < 3,
+//    a fallback nižšie mu ukázal repertoár DOMOVA — rozhovor v ňom chýbal úplne.
+//    26. 10. ráno (nakres-cta 2A): Nový rozhovor · Zapíš dnešok · Do denníka.
+//    26. 10. večer Matej: *„dal by som zapísať, chat a pokračuj v podcaste… 1/xy"* — denník z AINUBISa odišiel.
+//    Podcast sa ukáže len keď je čo počúvať (`getPodcastNext`).
+export const AINUBIS_PANEL: readonly CreateId[] = ['devotion', 'chat', 'podcast'];
 
 export function panelFor(place: CreatePlace): Array<{ group: CreatePlace | null; items: CreateObject[] }> {
   if (place === 'AINUBIS') {
     const items = AINUBIS_PANEL
       .map((id) => CREATE_OBJECTS.find((o) => o.id === id))
-      .filter((o): o is CreateObject => !!o && isReady(o));
+      .filter((o): o is CreateObject => !!o && isReady(o) && (o.id !== 'podcast' || getPodcastNext() != null));
     if (items.length >= 2) return [{ group: null, items }];
   }
   if (place === 'DOMOV') {

@@ -55,6 +55,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryLabel } from '@/lib/countryOptions';
 import { useBeside } from '@/components/pack/profile/profileMates';
 import { MateHome } from '@/components/pack/profile/MateHome';
+import { FollowListPopup, useFollow, type FollowKind } from '@/components/pack/profile/follow';
 
 // PROFIL BEZ KARTY (TEST_BUILD, Matej 25. 10. 2026): obsah na celú šírku. Hladký papyrus pod ním
 // zapína PackLayout (`PLAIN_ROUTES`).
@@ -174,6 +175,9 @@ export default function PackMe() {
   });
   const dev = devotionLevel(devotion);
   const [rank, setRank] = useState<'dev' | 'pt' | 'study' | null>(null);
+  // SLEDOVANIE — moje počty a zoznamy (Matej 26. 10. 2026: „po kliknutí na číslo sa otvorí zoznam").
+  const fol = useFollow(null);
+  const [followList, setFollowList] = useState<FollowKind | null>(null);
   const liked = useLiked();
   const saved = useSaved();
 
@@ -218,7 +222,6 @@ export default function PackMe() {
     return <Navigate to={`/pack/profile/edit${location.search}${location.hash}`} replace />;
   }
 
-  const soon = (what: string) => toast({ title: what, description: tx('pack.me.soonFeed', 'Arrives with the FEED.') });
 
   // POZVI = okno ZDIEĽAJ KARTU PSA — ten istý mechanizmus ako zdieľanie výletu (IG príbeh / FB,
   // čistá fotka psa alebo vlastná, meno + heroglyf, odkaz sa skopíruje na nálepku). Matej 23. 10. 2026. To isté okno
@@ -350,13 +353,22 @@ export default function PackMe() {
               onAbout={() => setAboutDev(true)} onClose={() => setRank(null)} />
           )}
 
+          {followList && (
+            <FollowListPopup
+              packNumber={null}
+              kind={followList}
+              title={followList === 'followers' ? tx('pack.me.followers', 'followers') : tx('pack.me.following', 'following')}
+              empty={tx('pack.follow.empty', 'Nobody yet.')}
+              onClose={() => setFollowList(null)}
+            />
+          )}
           {/* 5 ČÍSEL — hneď pod fotkou, bez čiar (Matej 22. 10.). */}
           <div className="me-stats">
-            <button type="button" onClick={() => soon(tx('pack.me.followers', 'followers'))}>
-              {dash}<span>{tx('pack.me.followers', 'followers')}</span>
+            <button type="button" onClick={() => setFollowList('followers')}>
+              {fol.info ? <b>{fmt(fol.info.followers)}</b> : dash}<span>{tx('pack.me.followers', 'followers')}</span>
             </button>
-            <button type="button" onClick={() => soon(tx('pack.me.following', 'following'))}>
-              {dash}<span>{tx('pack.me.following', 'following')}</span>
+            <button type="button" onClick={() => setFollowList('following')}>
+              {fol.info ? <b>{fmt(fol.info.following)}</b> : dash}<span>{tx('pack.me.following', 'following')}</span>
             </button>
             <button type="button" onClick={() => setBonesOpen(true)}>
               <b>{brought == null ? '·' : fmt(novice ? 0 : brought)}</b>

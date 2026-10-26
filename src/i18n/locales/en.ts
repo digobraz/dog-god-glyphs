@@ -2142,6 +2142,7 @@ export const en = {
   'pack.create.post.title': "Post",
   'pack.create.post.hint': "photo + text + tags",
   'pack.create.chat.title': "New conversation",
+  'pack.create.podcast.title': "Continue the podcast",
   'pack.create.brain.title': "Add to the brain",
   'pack.create.brain.hint': "finding · link · book · video",
   'pack.create.board.title': "Ask the pack",
@@ -3167,6 +3168,9 @@ export const en = {
   'pack.publicProfile.badgesLabel': "Trips & badges",
   'pack.publicProfile.noBio': "No bio yet.",
   'pack.publicProfile.follow': "Follow",
+  'pack.publicProfile.followingThem': "following",
+  'pack.publicProfile.followingBtn': "Following",
+  'pack.follow.empty': "Nobody yet.",
   'pack.publicProfile.message': "Message",
   'pack.publicProfile.msgFail': "Couldn't open the conversation. Try again in a moment.",
 

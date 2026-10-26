@@ -43,6 +43,7 @@ import { TEST_BUILD } from '@/lib/env';
 import { useToast } from '@/hooks/use-toast';
 import { fetchProfileMates, useProfileMates, type ProfileMate } from '@/components/pack/profile/profileMates';
 import { PostMenu } from '@/components/pack/profile/PostMenu';
+import { FollowListPopup, useFollow, type FollowKind } from '@/components/pack/profile/follow';
 
 const T = PACK_THEME;
 const FLAT = TEST_BUILD;
@@ -117,6 +118,10 @@ export default function PublicProfile() {
     return () => { alive = false; };
   }, [mateId, sessionChecked, askedNumber]);
   const shownMates = useProfileMates(mateId ? null : member?.memberNumber ?? null);
+  // SLEDOVANIE — len majiteľ (pawmate nemá číslo). Bez čísla sa nepýta: `null` by znamenalo „ja".
+  const followNumber = mateId ? null : member?.memberNumber ?? null;
+  const fol = useFollow(followNumber, followNumber != null);
+  const [followList, setFollowList] = useState<FollowKind | null>(null);
 
   const bioHuman = mateCard ? mateCard.human : member?.human;
   const bio = bioHuman ? (bioHuman.dogVoiceBio?.trim() || bioHuman.bio?.trim() || '') : '';
@@ -234,10 +239,8 @@ export default function PublicProfile() {
   const fmt = (n: number) => n.toLocaleString(lang === 'sk' ? 'sk-SK' : 'en-US');
   const num = (n: number | undefined, suffix = '') => <b>{n == null ? '·' : `${fmt(n)}${suffix}`}</b>;
   const dash = <b className="na" aria-label={tx('pack.me.notYet', 'not yet')}>—</b>;
-  const soonFeed = (what: string) => soon(what, tx('pack.me.soonFeed', 'Arrives with the FEED.'));
   // `MeOwn` kreslí psov z `PackDogFull` — potrebuje len id, fotku a meno.
   const ownDogs = member.dogs.map((d) => ({ id: d.dogId, cloudinary_main_url: d.photo, dog_name: d.name, pack_number: d.packNumber, heroglyph_png_url: d.heroglyphUrl }) as unknown as PackDogFull);
-  const soon = (title: string, description: string) => toast({ title, description });
   // NAPÍSAŤ = rozhovor s človekom (Matej 25. 10.: *„áno, môže sa písať každému“*). Server nájde majiteľa
   // podľa čísla psa — cudzí `user_id` appka ani teraz nemá. Existujúci rozhovor sa len otvorí.
   const writeTo = async () => {
@@ -318,21 +321,36 @@ export default function PublicProfile() {
 
           {/* 5 ČÍSEL — tie isté ako na mojom profile, zverejnené majiteľom (`human.stats`). Pawmate ich nemá. */}
           {!mate && <div className="me-stats">
-            <button type="button" onClick={() => soonFeed(tx('pack.me.followers', 'followers'))}>{dash}<span>{tx('pack.me.followers', 'followers')}</span></button>
-            <button type="button" onClick={() => soonFeed(tx('pack.me.following', 'following'))}>{dash}<span>{tx('pack.me.following', 'following')}</span></button>
+            {/* SLEDOVANIE (Matej 26. 10. 2026: „presne ako IG … po kliknutí na číslo sa otvorí zoznam"). */}
+            <button type="button" onClick={() => setFollowList('followers')}>{fol.info ? num(fol.info.followers) : dash}<span>{tx('pack.me.followers', 'followers')}</span></button>
+            <button type="button" onClick={() => setFollowList('following')}>{fol.info ? num(fol.info.following) : dash}<span>{tx('pack.publicProfile.followingThem', 'following')}</span></button>
             <button type="button">{num(st?.brought)}<span>{tx('pack.me.brought', 'brought in')}</span></button>
             <button type="button">{num(st?.km)}<span>km</span></button>
             <button type="button">{num(st?.study, ' %')}<span>{tx('pack.me.studying', 'studying')}</span></button>
           </div>}
 
-          {/* JEDNO LAPIS: NAPÍSAŤ cez celú šírku (Matej 26. 10. 2026, nakres-cta 3A). SLEDOVAŤ nič nerobilo
-              (len toast „príde s FEEDom") — vráti sa, až bude sledovanie funkcia.
-              Pawmate nemá číslo, rozhovor sa naňho zatiaľ adresovať nedá — NAPÍSAŤ len majiteľovi. */}
-          {!mate && <div className="me-btns" style={{ gridTemplateColumns: '1fr' }}>
-            <button type="button" className="me-cta" onClick={writeTo} disabled={dmBusy || member.memberNumber == null}>
+          {/* SLEDOVAŤ + NAPÍSAŤ ako na IG (Matej 26. 10. 2026: „postavme nech to funguje a vieme sa sledovať").
+              Plné lapis je vždy JEDNO: kým ho nesledujem, je to SLEDOVAŤ; potom SLEDUJEŠ zostane
+              obrysom (ťuk = prestať) a hlavnou akciou sa stane NAPÍSAŤ.
+              Pawmate nemá číslo — nesleduje sa a nepíše sa mu, oboje len majiteľovi. */}
+          {!mate && <div className="me-btns">
+            <button type="button" className={fol.info?.iFollow ? 'me-out' : 'me-cta'} onClick={fol.toggle}
+              disabled={!fol.info || fol.busy || member.memberNumber == null} aria-pressed={!!fol.info?.iFollow}>
+              {fol.info?.iFollow ? `✓ ${tx('pack.publicProfile.followingBtn', 'Following')}` : tx('pack.publicProfile.follow', 'Follow')}
+            </button>
+            <button type="button" className={fol.info?.iFollow ? 'me-cta' : 'me-out'} onClick={writeTo} disabled={dmBusy || member.memberNumber == null}>
               {tx('pack.publicProfile.message', 'Message')}
             </button>
           </div>}
+          {followList && member.memberNumber != null && (
+            <FollowListPopup
+              packNumber={member.memberNumber}
+              kind={followList}
+              title={followList === 'followers' ? tx('pack.me.followers', 'followers') : tx('pack.publicProfile.followingThem', 'following')}
+              empty={tx('pack.follow.empty', 'Nobody yet.')}
+              onClose={() => setFollowList(null)}
+            />
+          )}
 
           {FLAT ? (
             <div className="me-role me-role--label">

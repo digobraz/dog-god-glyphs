@@ -53,7 +53,7 @@ import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
 import { SCROLL_DEMO, useDemoScrolls, usePublicScrolls, useScrollState, useReadsReady, useReads, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import { VaultKnowledge, KNOW_CSS } from '@/components/pack/vault/VaultKnowledge';
 import { ScrollCard, ScrollView, SCROLL_CSS, SCROLL_CARD_CSS, scrollUI, circleName as scrollCircle } from '@/components/pack/vault/ScrollParts';
-import { openAinubis } from '@/lib/ainubisBus';
+import { openAinubis, setPodcastNext } from '@/lib/ainubisBus';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
@@ -924,6 +924,28 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
     ro.observe(top);
     return () => ro.disconnect();
   }, [ready]);
+
+  /* „+" NA AINUBIS → POKRAČUJ V PODCASTE N/M (Matej 26. 10. 2026: „zapísať, chat a pokračuj v podcaste… 1/xy").
+     Číslo = to isté ako na tlačidle Počúvaj podcast nižšie (prvý nevypočutý z podcastov v poradí); panel ho číta
+     z busu. Položka vedie na `?listen=1` a tu sa z toho stane prehrávač — s `replace`, aby sa späť nevrátilo
+     na adresu, ktorá by ho pustila znova. Musí to stáť PRED `if (!ready) return` (pravidlá hookov). */
+  const podAll = feed.filter((z) => Object.keys(z.pod || {}).length > 0 && (!pv || isFreeScrollCode(z.code)));
+  const podNextZ = podAll.find((z) => !readRows[z.id]?.listened_at);
+  const podNext = podNextZ ? `${podAll.indexOf(podNextZ) + 1}/${podAll.length}` : null;
+  useEffect(() => {
+    if (pv) return;
+    setPodcastNext(podNext);
+    return () => setPodcastNext(null);
+  }, [podNext, pv]);
+  const wantListen = sp.get('listen') === '1';
+  useEffect(() => {
+    if (!wantListen || !ready || pv) return;
+    if (!podNextZ) { const n = new URLSearchParams(sp); n.delete('listen'); setSp(n, { replace: true }); return; }
+    setQueue(true);
+    setScrollFocus('pod');
+    navigate(`/pack/ainubis/zvitok/${podNextZ.id}`, { replace: true, state: { back: '/pack/ainubis' } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wantListen, ready, podNextZ?.id]);
 
   if (!ready) return <div className="akv-root" style={{ position: 'fixed', inset: 0, background: AINUBIS.surfaceBase }} />;
 

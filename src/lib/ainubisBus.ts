@@ -50,3 +50,11 @@ export function onAinubisUnread(cb: (n: number) => void): () => void {
   window.addEventListener(AINUBIS_UNREAD_EVENT, h);
   return () => window.removeEventListener(AINUBIS_UNREAD_EVENT, h);
 }
+
+// ── POKRAČUJ V PODCASTE N/M ─────────────────────────────────────────────────
+// Položka v paneli „+" na AINUBIS (Matej 26. 10. 2026) nesie číslo ďalšieho nevypočutého podcastu.
+// Počíta ho `PackAinubis` (má zvitky aj stav vypočutia), panel ho len číta. `null` = nie je čo počúvať
+// alebo AINUBIS nie je otvorený — vtedy panel položku neukáže.
+let podcastNext: string | null = null;
+export function setPodcastNext(v: string | null): void { podcastNext = v; }
+export function getPodcastNext(): string | null { return podcastNext; }

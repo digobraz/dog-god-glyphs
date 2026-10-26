@@ -2525,6 +2525,7 @@ export const sk: Partial<Dict> = {
   "pack.create.post.title": "Príspevok",
   "pack.create.post.hint": "fotka + text + štítky",
   "pack.create.chat.title": "Nový rozhovor",
+  'pack.create.podcast.title': "Pokračuj v podcaste",
   "pack.create.brain.title": "Znalosť do mozgu",
   "pack.create.brain.hint": "poznatok · odkaz · kniha · video",
   "pack.create.board.title": "Spýtaj sa svorky",
@@ -2818,6 +2819,9 @@ export const sk: Partial<Dict> = {
   'pack.publicProfile.badgesLabel': "Výlety a odznaky",
   'pack.publicProfile.noBio': "Zatiaľ žiadne bio.",
   'pack.publicProfile.follow': "Sledovať",
+  'pack.publicProfile.followingThem': "sleduje",
+  'pack.publicProfile.followingBtn': "Sleduješ",
+  'pack.follow.empty': "Zatiaľ nikto.",
   'pack.publicProfile.message': "Napísať",
   'pack.publicProfile.msgFail': "Rozhovor sa nepodarilo otvoriť. Skús to o chvíľu.",
 
