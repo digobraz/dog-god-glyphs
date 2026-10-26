@@ -57,6 +57,8 @@ const RING_OLD = `conic-gradient(from 200deg,${LAPIS.edge},${LAPIS.deep},${T.car
    — *„klasika Instagram štýl, jemne 3D, tenké… nemusí to pulzovať ani nič"* + *„ok super aj rozloženie psov aj farba
    aplikuj to!"*. Zlatá → modrá, bez fialovej (tá patrí výletom). Story už netočí ani nedýcha. */
 export const RING = RANK_BADGE_ON ? RING_V1 : RING_OLD;
+/** Stará pilulka DEVOTION (22 stupňov, ☥) — vypnutá 26. 10. 2026, DEVOTION nahradil SLUŽOBNÍK. */
+const DEVOTION_PILL_ON = false;
 
 export const ME_CSS = `
 .me-card{ position:relative; border-radius:${PACK_R.card}px; border:1.5px solid ${T.cardEdge}; background:${T.cardGrad}; box-shadow:${T.cardShadow}; overflow:hidden; }
@@ -509,8 +511,10 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
           </div>
         ) : (
         <div className={`me-lv${stack ? ' stack' : ''}`}>
-          {/* Prázdny `devLabel` = DEVOTION cudzieho človeka appka nemá (cudzí profil) — pilulka sa nekreslí. */}
-          {devLabel && <button type="button" data-rank-toggle className={`me-dv${rank === 'dev' ? ' on' : ''}`} onClick={onDev} aria-expanded={rank === 'dev'} style={devotionVars(devLevel)}>
+          {/* Prázdny `devLabel` = DEVOTION cudzieho človeka appka nemá (cudzí profil) — pilulka sa nekreslí.
+              🔴 Na LIVE (táto vetva = mimo TEST_BUILD) sa nekreslí VÔBEC — Matej 26. 10. 2026 (audit FEED+profil):
+              DEVOTION je zrušená, nahrádza ju SLUŽOBNÍK; zamrznutá pilulka „100 ☥" sľubovala body, ktoré nechodia. */}
+          {DEVOTION_PILL_ON && devLabel && <button type="button" data-rank-toggle className={`me-dv${rank === 'dev' ? ' on' : ''}`} onClick={onDev} aria-expanded={rank === 'dev'} style={devotionVars(devLevel)}>
             <span className="me-dvg"><b>{devLevel}</b></span>
             {devLabel}
           </button>}
