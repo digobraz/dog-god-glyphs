@@ -24,7 +24,7 @@ import { useBlockedOwners } from './moderation';
 
 /** Vyblednuté hodnosti pawtnera — vidí ich, ale nie sú jej (nákres §2). */
 export const MATE_HOME_CSS = `
-.me-mate .me-lv, .me-mate .rk-row { opacity: .55; }
+.me-zdedeny .me-lv, .me-zdedeny .rk-row { opacity: .55; }
 `;
 
 export function MateHome({ dogs, me, onInvite, flat }: {
@@ -91,7 +91,7 @@ export function MateHome({ dogs, me, onInvite, flat }: {
   return (
     <>
       <style>{MATE_HOME_CSS}</style>
-      <section className={`me-card me-mate${flat ? ' me-flat' : ''}${open ? ' open' : ''} with-mate`}>
+      <section className={`me-card me-zdedeny${flat ? ' me-flat' : ''}${open ? ' open' : ''} with-mate`}>
         <MeCover
           foreign
           cover={coverSrc}
