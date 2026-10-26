@@ -5311,6 +5311,8 @@ export const sk: Partial<Dict> = {
   'pack.quiz.nature.element.row': "Element",
   'pack.quiz.nature.specials.row': "Zvláštna úloha",
   'pack.pass.fillTitle': "Vyplnené",
+  'pack.pass.fillCta': "Vyplniť DOG ID",
+  'pack.pass.fillMissing': "chýba",
   'pack.pass.group.will': "Závet",
   // Read-only riadky z heroglyfu — needitujú sa, plemeno je zapečené v glyfe
   'pack.dog.rowBreed': "Plemeno",

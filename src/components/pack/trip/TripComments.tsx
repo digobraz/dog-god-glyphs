@@ -548,7 +548,10 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
       <div className="tcm-body">
         {tab === 'reviews' ? (
           <>
-            <div className="tcm-addrow">
+            {/* OHODNOŤ LEN PO PREJDENÍ (Matej 26. 10. 2026, nakres-cta 1A). Pred označením tu stálo
+                druhé „prešli ste?" a hlavná akcia článku (PREŠLI SME hore) sa tým zdvojila.
+                Vlákno citátu záložku hodnotení nemá, takže ho to nezasiahne. */}
+            {walked && <div className="tcm-addrow">
               {/* §16 (2026-07-23): keď trip NIE je walked, tlačidlo neni disabled — je to CTA
                   „Walked this trail? ADD REVIEW!" ktoré otvorí ten istý walked-popup ako „Mark
                   walked" (onRequestWalk). Po walked submitte sa z neho stane bežné Add/Edit review. */}
@@ -559,7 +562,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
               >
                 {walked ? (myReview ? t('pack.trip.cm.editMine') : t('pack.trip.cm.addShort')) : t('pack.trip.cm.walkedThen')}
               </button>
-            </div>
+            </div>}
 
             {reviewCount > 0 && (
               <button type="button" className="tcm-collapse-toggle" onClick={() => setReviewsOpen((v) => !v)}>

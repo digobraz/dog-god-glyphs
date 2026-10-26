@@ -325,15 +325,14 @@ export default function PublicProfile() {
             <button type="button">{num(st?.study, ' %')}<span>{tx('pack.me.studying', 'studying')}</span></button>
           </div>}
 
-          <div className="me-btns">
-            <button type="button" className="me-cta" onClick={() => soon(tx('pack.publicProfile.follow', 'Follow'), tx('pack.me.soonFeed', 'Arrives with the FEED.'))}>
-              {tx('pack.publicProfile.follow', 'Follow')}
-            </button>
-            {/* Pawmate nemá číslo, rozhovor sa naňho zatiaľ adresovať nedá — NAPÍSAŤ len majiteľovi. */}
-            {!mate && <button type="button" className="me-out" onClick={writeTo} disabled={dmBusy || member.memberNumber == null}>
+          {/* JEDNO LAPIS: NAPÍSAŤ cez celú šírku (Matej 26. 10. 2026, nakres-cta 3A). SLEDOVAŤ nič nerobilo
+              (len toast „príde s FEEDom") — vráti sa, až bude sledovanie funkcia.
+              Pawmate nemá číslo, rozhovor sa naňho zatiaľ adresovať nedá — NAPÍSAŤ len majiteľovi. */}
+          {!mate && <div className="me-btns" style={{ gridTemplateColumns: '1fr' }}>
+            <button type="button" className="me-cta" onClick={writeTo} disabled={dmBusy || member.memberNumber == null}>
               {tx('pack.publicProfile.message', 'Message')}
-            </button>}
-          </div>
+            </button>
+          </div>}
 
           {FLAT ? (
             <div className="me-role me-role--label">

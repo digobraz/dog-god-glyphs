@@ -63,9 +63,7 @@ import { PackTopRow } from '@/components/pack/PackTopRow';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { fetchMyWishes, type MyWish } from '@/components/pack/mapnotes/wishData';
 import { WISHES_LIVE } from '@/lib/packFlags';
-import { withOrigin } from '@/components/pack/createRegistry';
 import { WIZ } from '@/components/pack/wizAnchors';
-import { emitCreate } from '@/lib/createBus';
 
 // Karta je v mriežke najviac ~270 px (PC, 3 stĺpce v 832) a ~170 px (mobil, 2 stĺpce × DPR 2–3).
 const COVER_PX = 540;
@@ -781,7 +779,6 @@ export default function PackTriplist() {
       .catch(() => { if (alive) setWishes([]); });
     return () => { alive = false; };
   }, [storeEpoch]);
-  const addWish = () => { if (mg) { mg.lock('wish'); return; } navigate(withOrigin('/pack/map', '/pack/map/triplist')); emitCreate({ id: 'wish' }); };
 
   const [closeOffer, setCloseOffer] = useState<{ slug: string; who: string | null } | null>(null);
   const incoming = useIncomingRequests(reqEpoch);
@@ -1193,7 +1190,7 @@ export default function PackTriplist() {
             <div className="tl-section" id={WIZ.tlWish}>
               <div className="tl-sechead">
                 <h3>TRIPWISH<MagnetInfoBubble k="wish" /></h3>
-                <button type="button" className="tl-seeall pk-hit" onClick={addWish}>+ {t('pack.triplist.wishAdd')}</button>
+                {/* „+ PRIDAŤ" zaniklo (Matej 26. 10. 2026, nakres-cta 5A) — robilo to isté čo „+" v lište. */}
               </div>
               {wishes.length === 0 ? (
                 <div className="tl-emptybox"><span className="tl-empty">{t('pack.triplist.wishEmpty')}</span></div>

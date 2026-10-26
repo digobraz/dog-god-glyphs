@@ -2903,6 +2903,8 @@ export const cs: Partial<Dict> = {
   'pack.pass.empty': 'Zatím nic vyplněno. Všechno, co odpovíš v Mojí smečce, se objeví tady.',
   'pack.pass.emptyView': 'V tomhle pohledu zatím nic není.',
   'pack.pass.fillTitle': 'Vyplněno',
+  'pack.pass.fillCta': "Vyplnit DOG ID",
+  'pack.pass.fillMissing': "chybí",
   'pack.pass.group.contacts': 'Kontakty',
   'pack.pass.group.food': 'Strava a režim',
   'pack.pass.group.health': 'Zdraví',

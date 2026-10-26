@@ -10,7 +10,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW, MAPY, MAPY_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { LAPIS, MAPY, MAPY_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { navTarget, navUrl, isAppleDevice, mapyTrailUrl, downloadGpx, type NavApp } from '@/components/pack/tripNav';
@@ -80,8 +80,10 @@ const GO_CSS = `${VEIL_CSS}
   border-radius:8px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;
   text-transform:uppercase;cursor:pointer;text-align:center;}
 .tgo-cta .tgo-ic{font-size:16px;}
-.tgo-cta--park{background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};box-shadow:${LAPIS_BTN_SHADOW};}
-.tgo-cta--park:hover{background:${LAPIS.gradHover};}
+/* 🅿️ VYRAZIŤ = OBRYS, nie plný lapis (Matej 26. 10. 2026, hárok nakres-cta 1A: „1 obrazovka = 1 lapisové
+   tlačidlo"). Jediné plné lapis na článku je PREŠLI SME hore; vyraziť je cesta k miestu, nie hlavná akcia. */
+.tgo-cta--park{background:transparent;color:${LAPIS.edge};border:1px solid ${LAPIS.edge};}
+.tgo-cta--park:hover{background:${LAPIS.fill};}
 /* Zelená nesie ten istý odliatok ako lapis, aby tlačidlá čítali ako dvojica. */
 .tgo-cta--trail{background:${MAPY.grad};color:${MAPY.ink};border:1px solid ${MAPY.edge};box-shadow:${MAPY_BTN_SHADOW};}
 .tgo-cta--trail:hover{background:${MAPY.gradHover};}

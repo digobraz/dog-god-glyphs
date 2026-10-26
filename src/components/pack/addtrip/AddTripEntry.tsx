@@ -151,7 +151,7 @@ const EMOJI: Record<CreateId, string> = {
   devotion: '🐾', trip: '🥾', wish: '🎯', sniffer: '👃', note: '💬', event: '📣', service: '🏥', article: '📕',
   diary: '✍️', photo: '📷',
   post: '🖼️', story: '✨', album: '🗂️',
-  chat: '🤖', brain: '📥', board: '❓',
+  chat: '💬', brain: '📥', board: '❓',
   dm: '💌', group: '👪',
 };
 /** Ten istý slovník aj mimo panela (šuplík ULOŽIŤ v príspevku, 25. 10. 2026) — jedno emoji na vec. */

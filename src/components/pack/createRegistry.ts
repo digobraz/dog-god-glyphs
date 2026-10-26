@@ -624,7 +624,18 @@ export const DOMOV_PANEL: readonly CreateId[] = TEST_BUILD
   ? ['devotion', 'post', 'story', 'trip', 'diary']
   : ['devotion', 'trip', 'wish', 'sniffer', 'diary'];
 
+// 💬 AINUBIS MÁ VLASTNÝ VÝREZ (Matej 26. 10. 2026, hárok nakres-cta 2A): NOVÝ ROZHOVOR prvý, potom
+//    Zapíš dnešok a Do denníka. Dovtedy mal AINUBIS z hotových položiek len rozhovor + devotion, teda
+//    < 3, a fallback nižšie mu ukázal repertoár DOMOVA — rozhovor v ňom chýbal úplne.
+export const AINUBIS_PANEL: readonly CreateId[] = ['chat', 'devotion', 'diary'];
+
 export function panelFor(place: CreatePlace): Array<{ group: CreatePlace | null; items: CreateObject[] }> {
+  if (place === 'AINUBIS') {
+    const items = AINUBIS_PANEL
+      .map((id) => CREATE_OBJECTS.find((o) => o.id === id))
+      .filter((o): o is CreateObject => !!o && isReady(o));
+    if (items.length >= 2) return [{ group: null, items }];
+  }
   if (place === 'DOMOV') {
     const items = DOMOV_PANEL
       .map((id) => CREATE_OBJECTS.find((o) => o.id === id))

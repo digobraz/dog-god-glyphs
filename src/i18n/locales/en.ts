@@ -5618,6 +5618,8 @@ export const en = {
   'pack.quiz.nature.element.row': "Element",
   'pack.quiz.nature.specials.row': "Special role",
   'pack.pass.fillTitle': "Filled in",
+  'pack.pass.fillCta': "Fill in DOG ID",
+  'pack.pass.fillMissing': "missing",
   'pack.pass.group.will': "Will",
   // Read-only riadky z heroglyfu
   'pack.dog.rowBreed': "Breed",
