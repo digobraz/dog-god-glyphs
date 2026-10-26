@@ -6120,6 +6120,9 @@ export const cs: Partial<Dict> = {
   // ── Profil JA v6 (21. 10. 2026) — pages/PackMe.tsx
   'pack.me.title': "Profil",
   'pack.me.invite': "Pozvi",
+  'pack.mate.banner': "Jsi pawmate. Tohle je profil tvého pawtnera ({name}) — co smíš přidávat, nastavuje v Mé smečce.",
+  'pack.mate.myPhotoBio': "Moje fotka a bio",
+  'pack.mate.postsEmpty': "Ve smečce zatím nejsou příspěvky.",
   'pack.me.settings': "Nastavení",
   'pack.me.changePhoto': "Změnit fotku",
   'pack.me.newStory': "Nová story",

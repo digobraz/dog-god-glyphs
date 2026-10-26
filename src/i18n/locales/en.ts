@@ -6448,6 +6448,9 @@ export const en = {
   // ── Profil JA v6 (21. 10. 2026) — pages/PackMe.tsx
   'pack.me.title': "Profile",
   'pack.me.invite': "Invite",
+  'pack.mate.banner': "You're a pawmate. This is your pawtner's profile ({name}) — what you may add, they set in My pack.",
+  'pack.mate.myPhotoBio': "My photo & bio",
+  'pack.mate.postsEmpty': "No posts in your pack yet.",
   'pack.me.settings': "Settings",
   'pack.me.changePhoto': "Change photo",
   'pack.me.newStory': "New story",

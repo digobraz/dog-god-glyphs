@@ -54,6 +54,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryLabel } from '@/lib/countryOptions';
 import { useBeside } from '@/components/pack/profile/profileMates';
+import { MateHome } from '@/components/pack/profile/MateHome';
 
 // PROFIL BEZ KARTY (TEST_BUILD, Matej 25. 10. 2026): obsah na celú šírku. Hladký papyrus pod ním
 // zapína PackLayout (`PLAIN_ROUTES`).
@@ -234,6 +235,20 @@ export default function PackMe() {
     chips: [],
   } : null;
   const invite = () => { if (shareData) setShareOpen(true); };
+
+  // K3 · PAWMATE vidí PAWTNEROV profil, nie vlastný (model A, Matej 26. 10. 2026) — `MateHome.tsx`.
+  // POZVI zdieľa kartu pawtnerovho psa (`firstDog` je jeho), BONES teda idú pawtnerovi.
+  if (isMate && !novice) {
+    return (
+      <PackLayout>
+        <style>{PILL_CSS}</style>
+        <style>{ME_CSS}</style>
+        {FLAT && <style>{ME_FLAT_CSS}</style>}
+        <MateHome dogs={dogs} me={{ photo: avatarUrl, initial: avatarInitial, name: shownName }} onInvite={shareData ? invite : undefined} flat={FLAT} />
+        {shareOpen && shareData && <TripShareSheet kind="dog" data={shareData} onClose={() => setShareOpen(false)} />}
+      </PackLayout>
+    );
+  }
 
   const dash = <b className="na" aria-label={tx('pack.me.notYet', 'not yet')}>—</b>;
   // Titulka = vlastná (UPRAVIŤ PROFIL), inak fotka človeka so psom (SNIFFER), inak hlavná fotka prvého psa; bez fotky ostane čierna.
