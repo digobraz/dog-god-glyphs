@@ -30,7 +30,8 @@ export const FEED_TOP_CSS = `
 .pfs-row{display:flex;align-items:baseline;justify-content:space-between;gap:${S.md}px;margin:0 0 ${S.sm}px;}
 .pfs-row h2{margin:0;font:500 ${TX.micro}px/1.2 ${FONT_UI};letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${T.inkWarm};}
 .pfs-row button{background:none;border:0;padding:0;cursor:pointer;font:600 ${TX.micro}px/1 ${FONT_UI};letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};}
-.pfs-strip{display:flex;gap:${S.sm}px;overflow-x:auto;scrollbar-width:none;margin:0 -${S.lg}px;padding:0 ${S.lg}px ${S.xs}px;scroll-snap-type:x proximity;}
+/* scroll-padding: prvá karta začína tam, kde blok Sniffera, nie pri kraji okna (Matej 26. 10., kolo 6: moc pri kraji). */
+.pfs-strip{display:flex;gap:${S.sm}px;overflow-x:auto;scrollbar-width:none;margin:0 -${S.lg}px;padding:0 ${S.lg}px ${S.xs}px;scroll-snap-type:x proximity;scroll-padding-inline:${S.lg}px;}
 .pfs-strip::-webkit-scrollbar{display:none;}
 .pfs-dog{position:relative;flex:none;width:104px;height:140px;border-radius:${PACK_R.tile}px;overflow:hidden;cursor:pointer;padding:0;border:1px solid ${T.cardEdge};
   background:${T.tileBg} center/cover no-repeat;scroll-snap-align:start;text-align:left;}

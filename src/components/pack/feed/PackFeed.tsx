@@ -49,7 +49,7 @@ import { QuoteComments } from './QuoteComments';
 import { fetchQuoteComments } from '@/components/pack/trip/tripCommentsData';
 import { FeedMapCard, FEED_MAP_CSS, useMapAdds, type MapAdd } from './FeedMapCard';
 import { postTopics } from './postTags';
-import { FeedTopics, FEED_TOPICS_CSS, topicVariant, type TopicLook } from './FeedTopics';
+import { FeedTopics, FEED_TOPICS_CSS } from './FeedTopics';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -102,9 +102,12 @@ ${FEED_TOPICS_CSS}
 /* PRÍSPEVOK CEZ CELÚ ŠÍRKU — bez rámu bloku; papyrusové delí vlasová čiara, AINUBIS nesie vlastný tmavý pás. */
 .pkf-list{display:flex;flex-direction:column;gap:${S.lg}px;}
 .pkf-it.pap{border-top:1px solid ${T.hairline};}
+/* PC (od 768): tapeta + CELÝ STRED NA JEDNOM BLOKU (Matej 26. 10., kolo 6: „obsah čo je v strede bude na bloku
+   a ten blok bude nad pozadím… nie že obsah bude plávať nad pozadím"). Príspevky vnútri ostávajú ploché. */
 @media (min-width:768px){
   body.pkf-on .pk-paper.pk-plain::before,body.pkf-on .pk-paper.pk-plain::after{display:block;}
-  .pkf-it.pap{overflow:hidden;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px;box-shadow:${T.cardShadow};}
+  .pkf .pkf-col{max-width:608px;padding:${S.xl}px;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px;box-shadow:${T.cardShadow};}
+  .pkf-col .pkf-tags,.pkf-col .pfs-strip{margin:0 -${S.xl}px;padding-left:${S.xl}px;padding-right:${S.xl}px;scroll-padding-inline:${S.xl}px;}
 }
 @media (max-width:639px){
   .pkf-it{margin:0 -${PACK_COL_PAD.mobile}px;}
@@ -221,26 +224,6 @@ export function PackFeed() {
     return [...ok.slice(k), ...ok.slice(0, k)];
   }, [scrolls, lang, day]);
   const savedScrolls = useMemo(() => savedIds.map((id) => scrolls.find((z) => z.id === id)).filter((z): z is DemoScroll => !!z), [savedIds, scrolls]);
-
-  // Návrh B: obraz a počet kusov témy zo skutočného obsahu (výlet, zvitok sveta, výjav citátu ako náhrada).
-  const looks = useMemo(() => {
-    const inW = (ws: string[] | 'all') => allScrolls.filter((z) => ws === 'all' || ws.includes(z.world));
-    const tagged = (tag: string) => publicPosts.filter((p) => postTopics(p).includes(tag));
-    const scene = (n: number) => `/feed/citaty/c${n}.webp`;
-    const out: Record<string, TopicLook> = {
-      all: { img: scene(3), n: 0 },
-      't:trip': { img: trips[0]?.trail.photos[0] ?? scene(5), n: trips.length + tagged('t:trip').length },
-    };
-    for (const [tag, ws] of Object.entries(TOPIC_WORLDS)) {
-      const zs = inW(ws);
-      out[tag] = { img: zs[0]?.img ?? scene(7), n: zs.length + tagged(tag).length };
-    }
-    ([['t:fun', 9], ['t:tips', 12], ['t:help', 15], ['t:life', 18]] as const).forEach(([tag, n]) => {
-      const p = tagged(tag);
-      out[tag] = { img: p[0]?.photos[0] ?? scene(n), n: p.length };
-    });
-    return out;
-  }, [allScrolls, publicPosts, trips]);
 
   const ownName = firstWord((dogs[0]?.owner_name || '').trim()) || tx('pack.feed.you', 'You');
   const youImg = avatarUrl || dogs[0]?.cloudinary_main_url || null;
@@ -414,8 +397,8 @@ export function PackFeed() {
           <div className="pkf-top">
             <TripStrip trips={trips.slice(0, 8)} />
           </div>
-          {/* TÉMY — tie isté štítky ako pri pridávaní príspevku (`postTags.ts`); tvar = návrh z `?temy=` (kolo 5). */}
-          <FeedTopics variant={topicVariant(params.get('temy'))} topic={topic} onTopic={setTopic} looks={looks} />
+          {/* TÉMY — tie isté štítky ako pri pridávaní príspevku (`postTags.ts`), kruhy s príbehovým prstencom (kolo 6). */}
+          <FeedTopics topic={topic} onTopic={setTopic} />
         </>)}
 
         <div className="pkf-list">
