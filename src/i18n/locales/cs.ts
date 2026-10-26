@@ -4080,7 +4080,7 @@ export const cs: Partial<Dict> = {
   'pack.stats.yourPoints': 'Tvoje body',
 
   // ── pack.tier ──
-  'pack.tier.amethyst': "Nad mraky",
+  'pack.tier.amethyst': "Mraky",
   'pack.tier.lime': "Louka",
   'pack.tier.emerald': "Prales",
   'pack.tier.azure': "Štít",

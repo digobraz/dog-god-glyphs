@@ -4792,7 +4792,7 @@ export const sk: Partial<Dict> = {
   'pack.tier.cypress': "Cyprus",
   'pack.tier.turquoise': "Pleso",
   'pack.tier.lapis': "Lapis",
-  'pack.tier.amethyst': "Nad oblakmi",
+  'pack.tier.amethyst': "Oblaky",
   'pack.tier.lime': "Lúka",
   'pack.tier.emerald': "Prales",
   'pack.tier.azure': "Štít",

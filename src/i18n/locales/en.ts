@@ -5095,7 +5095,7 @@ export const en = {
   'pack.tier.cypress': "Cypress",
   'pack.tier.turquoise': "Tarn",
   'pack.tier.lapis': "Lapis",
-  'pack.tier.amethyst': "Above the Clouds",
+  'pack.tier.amethyst': "Clouds",
   'pack.tier.lime': "Meadow",
   'pack.tier.emerald': "Wildwood",
   'pack.tier.azure': "Peak",
