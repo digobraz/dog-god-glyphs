@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { PACK_THEME, PACK_BOX, PAPER_ROUTES_EXTRA } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PAPER_ROUTES_EXTRA, PAPER_BG } from '@/components/pack/packTheme';
 import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { HandSearch } from '@/components/pack/HandIcons';
@@ -128,7 +128,9 @@ function FeedSearch() {
   return (
     <button type="button" className="pkf-lupa" aria-label={label} onClick={() => navigate('/pack/sniffer?tab=search')}
       style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', display: 'grid', placeItems: 'center', color: PACK_THEME.inkStrong }}>
-      <style>{'.pkf-lupa path[fill="#ffffff"]{fill:transparent;}'}</style>
+      {/* Kresba z kitu je PLNÁ silueta a šošovku na ňu kreslí biela vrstva. Priehľadná biela odhalila čiernu pod ňou
+          (lupa vyzerala vyplnená) — šošovka preto nesie farbu papyrusu, na ktorom hlavička stojí. */}
+      <style>{`.pkf-lupa path[fill="#ffffff"]{fill:${PAPER_BG};}`}</style>
       <HandSearch size={24} />
     </button>
   );

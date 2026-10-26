@@ -42,8 +42,10 @@ export const FEED_AI_CSS = `
 
 /* CITÁT 16:9 — text kreslí appka, obraz je bez písma. Stupeň sa viaže na ŠÍRKU KARTY (cqw), nie na okno. */
 .fai-q{position:relative;width:100%;aspect-ratio:16/9;background:${AINUBIS.bgDeep} center/cover no-repeat;container-type:inline-size;}
-.fai-q .tx{position:absolute;left:6%;top:0;bottom:0;width:42%;display:flex;flex-direction:column;justify-content:center;gap:${S.sm}px;text-align:center;}
+.fai-q .tx{position:absolute;left:5%;top:0;bottom:0;width:39%;display:flex;flex-direction:column;justify-content:center;gap:${S.sm}px;text-align:center;}
 .fai-q q{font-family:${FONT_TITLE};font-weight:700;font-size:clamp(12px,4.4cqw,24px);line-height:1.25;letter-spacing:.02em;quotes:"„" "“";} /* písmo: nadpis */
+/* Dlhý citát sa do ľavej polovice nezmestí v plnom stupni — zmenší sa (krátke a úderné sú cieľ, Matej 26. 10.). */
+.fai-q.long q{font-size:clamp(10px,3.3cqw,20px);}
 .fai-q cite{font:500 clamp(8px,2cqw,12px)/1.3 ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;font-style:normal;}
 .fai-q.b q{color:${T.inkStrong};}
 .fai-q.b cite{color:${T.inkWarm};}
@@ -111,7 +113,7 @@ export function AiQuote({ text, author, bg, variant, sub, liked, saved, onLike, 
 }) {
   return (
     <AiPost sub={sub} media={(
-      <div className={`fai-q ${variant}`} style={{ backgroundImage: `url(${bg})` }}>
+      <div className={`fai-q ${variant}${text.length > 60 ? ' long' : ''}`} style={{ backgroundImage: `url(${bg})` }}>
         <div className="tx">
           <q>{text}</q>
           {author && <cite>{author}</cite>}
