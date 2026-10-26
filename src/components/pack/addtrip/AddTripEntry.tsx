@@ -318,7 +318,9 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBl
         }}
       >
         <span className="att-entry-emoji" aria-hidden="true">{EMOJI[o.id]}</span>
-        <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}{o.id === 'podcast' && getPodcastNext() ? ` ${getPodcastNext()}` : ''}</span>
+        <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}</span>
+        {/* N/M ďalšieho podcastu stojí mimo názvu — názov sa na úzkom mobile skracuje, číslo nesmie. */}
+        {o.id === 'podcast' && getPodcastNext() && <span className="att-entry-num">{getPodcastNext()}</span>}
       </button>
     );
   };
@@ -494,6 +496,7 @@ body:has(.att-entry-backdrop) .ainubis-launcher{visibility:hidden;pointer-events
 .att-entry-emoji{flex:0 0 auto;width:28px;font-family:${FONT_EMOJI};font-size:24px;line-height:1;text-align:center;}
 .att-entry-title{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkStrong};
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.att-entry-num{flex:none;font-family:${FONT_UI};font-weight:600;font-size:14px;font-variant-numeric:tabular-nums;color:${T.inkWarm};}
 /* ⚠️ NÁZOV JE VŽDY NA JEDEN RIADOK (Matej 22. 9.: „nezalamuj texty… musia byť vždy na jeden
    riadok"). Panel má šírku lišty (~310 px na PC), preto termín „čoskoro" nestojí vedľa
    názvu, ale ako ŠTÍTOK NA HORNEJ HRANE riadku — šírku názvu nezje. Tri tečky sú len
