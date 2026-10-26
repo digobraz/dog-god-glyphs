@@ -2525,7 +2525,7 @@ export const sk: Partial<Dict> = {
   "pack.create.post.title": "Príspevok",
   "pack.create.post.hint": "fotka + text + štítky",
   "pack.create.chat.title": "Nový rozhovor",
-  'pack.create.podcast.title': "Pokračuj v podcaste",
+  'pack.create.podcast.title': "Ďalší podcast",
   "pack.create.brain.title": "Znalosť do mozgu",
   "pack.create.brain.hint": "poznatok · odkaz · kniha · video",
   "pack.create.board.title": "Spýtaj sa svorky",

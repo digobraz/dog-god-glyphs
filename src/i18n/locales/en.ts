@@ -2142,7 +2142,7 @@ export const en = {
   'pack.create.post.title': "Post",
   'pack.create.post.hint': "photo + text + tags",
   'pack.create.chat.title': "New conversation",
-  'pack.create.podcast.title': "Continue the podcast",
+  'pack.create.podcast.title': "Next podcast",
   'pack.create.brain.title': "Add to the brain",
   'pack.create.brain.hint': "finding · link · book · video",
   'pack.create.board.title': "Ask the pack",
