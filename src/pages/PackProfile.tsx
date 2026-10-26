@@ -25,7 +25,7 @@ import { countryLabel, countryOptions, normalizeCountryValue, COUNTRY_OTHER } fr
 import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import { STORIES_ON, PAWMATE_LIVE } from '@/lib/packFlags';
 import {
-  PAWMATE_RIGHTS, RIGHT_LABEL, invitePawmate, listMyPawmates, revokePawmate, revokeDogInvite, setPawmateAccess,
+  PAWMATE_RIGHTS, RIGHT_LABEL, invitePawmate, listMyPawmates, revokePawmate, revokeDogInvite, setPawmateAccess, setPawmateSuccessor,
   type MyPawmates, type PawmateRow, type PawmateRight, type PawmateRole,
 } from '@/lib/pawmateRights';
 import { appWebVersion } from '@/lib/appUpdate';
@@ -1520,6 +1520,18 @@ function MateRow({ mate, onChanged }: { mate: PawmateRow; onChanged: () => void 
     }
   };
   const flip = (r: PawmateRight) => save(role, rights.includes(r) ? rights.filter((x) => x !== r) : [...rights, r]);
+  // K2 · NÁSTUPCA (26. 10. 2026): „{meno} prevezme {pes}" — po psoch, jeden nástupca na psa.
+  // Je to záznam vôle; samotné prevzatie ostáva ručné (kolo 5 závetu).
+  const [heirOf, setHeirOf] = useState<string[]>(() => mate.dogs.filter((d) => d.successor).map((d) => d.dog_id));
+  const flipHeir = async (dogId: string) => {
+    if (!mate.user_id) return;
+    const on = !heirOf.includes(dogId);
+    setHeirOf(on ? [...heirOf, dogId] : heirOf.filter((x) => x !== dogId));
+    try { await setPawmateSuccessor(dogId, mate.user_id, on); } catch (e) {
+      toast({ title: tx('pack.profile.toastCouldNotSave', 'Could not save'), description: String((e as Error).message ?? e), variant: 'destructive' });
+      onChanged();
+    }
+  };
   const editable = PAWMATE_RIGHTS.filter((r) => r !== 'will');
   const roleName = tx(`pack.mate.role.${role}`, role === 'family' ? 'Family' : 'Partner');
   return (
@@ -1556,6 +1568,16 @@ function MateRow({ mate, onChanged }: { mate: PawmateRow; onChanged: () => void 
             ))}
           </div>
           <p className="pe-hint">{tx('pack.mate.never', 'Never: payments, deleting a dog, adding people, the pack name.')}</p>
+          <p className="pe-sec">{tx('pack.mate.heirTitle', 'Successor')}</p>
+          <div>
+            {mate.dogs.map((d) => (
+              <label key={d.dog_id} className="pe-check sub" style={{ paddingLeft: 0 }}>
+                <input type="checkbox" checked={heirOf.includes(d.dog_id)} onChange={() => flipHeir(d.dog_id)} />
+                <span>{tx('pack.mate.heirTakes', '{name} takes over {dog}').replace('{name}', label).replace('{dog}', d.dog_name ?? tx('pack.mate.unnamedDog', 'Your dog'))}</span>
+              </label>
+            ))}
+          </div>
+          <p className="pe-hint" style={{ marginTop: 0 }}>{tx('pack.mate.heirHint', 'When you can no longer care for the dog. We confirm the takeover by hand — nothing moves on its own.')}</p>
         </>
       )}
       {ask ? (

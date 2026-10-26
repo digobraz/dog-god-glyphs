@@ -213,6 +213,16 @@ export async function revokePawmate(dogId: string, userId: string): Promise<void
   if (rpcErr) throw new Error(rpcErr.message);
 }
 
+/** K2 · nástupca — jeden na psa; zapnutie vypne predošlého (RPC `set_pawmate_successor`). */
+export async function setPawmateSuccessor(dogId: string, userId: string, on: boolean): Promise<void> {
+  if (DEV_NOAUTH) {
+    await patchMockPawmate(userId, dogId, (d) => { (d as { successor?: boolean }).successor = on; });
+    return;
+  }
+  const { error } = await (supabase as any).rpc('set_pawmate_successor', { p_dog: dogId, p_user: userId, p_on: on });
+  if (error) throw new Error(error.message);
+}
+
 export async function revokeDogInvite(dogId: string, inviteId: string): Promise<void> {
   if (DEV_NOAUTH) { dropMock((r) => r.invite_id === inviteId); return; }
   const { error } = await (supabase as any).rpc('revoke_dog_invite', { p_dog: dogId, p_invite: inviteId });
@@ -288,6 +298,8 @@ export interface MateDogRef {
   role: string;
   rights: PawmateRights;
   since?: string;
+  /** K2 (26. 10. 2026): tento pawmate prevezme psa — záznam vôle, prevzatie je ručné. */
+  successor?: boolean;
   /** Len pri čakajúcej pozvánke — zrušiť sa dá po psoch. */
   invite_id?: string;
   expires_at?: string;
