@@ -16,19 +16,19 @@ export interface PostTagDef {
   tag: string;
   i18n: string;
   fallback: string;
-  /** hand-drawn ikonka z `public/icons/pack/` */
+  /** hand-drawn ikonka z `public/icons/pack/` — naklikal Matej 26. 10. 2026 (nákres `temy-ikony`, `vyber.json`) */
   icon: string;
 }
 
 export const POST_TAGS: PostTagDef[] = [
-  { tag: 't:trip', i18n: 'pack.feed.tag.trip', fallback: 'Trips & nature', icon: 'mountain' },
-  { tag: 't:fun', i18n: 'pack.feed.tag.fun', fallback: 'Fun & chill', icon: 'sun' },
-  { tag: 't:train', i18n: 'pack.feed.tag.train', fallback: 'Training & coach', icon: 'trophy' },
-  { tag: 't:tips', i18n: 'pack.feed.tag.tips', fallback: 'Tips & tricks', icon: 'idea' },
-  { tag: 't:health', i18n: 'pack.feed.tag.health', fallback: 'Health & food', icon: 'vet' },
+  { tag: 't:trip', i18n: 'pack.feed.tag.trip', fallback: 'Trips & nature', icon: 'pin' },
+  { tag: 't:fun', i18n: 'pack.feed.tag.fun', fallback: 'Fun & chill', icon: 'ball' },
+  { tag: 't:train', i18n: 'pack.feed.tag.train', fallback: 'Training & coach', icon: 'trophy-cup' },
+  { tag: 't:tips', i18n: 'pack.feed.tag.tips', fallback: 'Tips & tricks', icon: 'puzzle' },
+  { tag: 't:health', i18n: 'pack.feed.tag.health', fallback: 'Health & food', icon: 'bow' },
   { tag: 't:learn', i18n: 'pack.feed.tag.learn', fallback: 'Knowledge', icon: 'graduate' },
-  { tag: 't:help', i18n: 'pack.feed.tag.help', fallback: 'Helping dogs', icon: 'heartpaw' },
-  { tag: 't:life', i18n: 'pack.feed.tag.life', fallback: 'Dog life', icon: 'house-heart' },
+  { tag: 't:help', i18n: 'pack.feed.tag.help', fallback: 'Helping dogs', icon: 'hut' },
+  { tag: 't:life', i18n: 'pack.feed.tag.life', fallback: 'Dog life', icon: 'dogsphinx' },
 ];
 
 /** Témy príspevku; starý `nature` = `t:trip`. */

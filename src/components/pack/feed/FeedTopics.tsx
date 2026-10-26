@@ -4,7 +4,7 @@
 // musíme ich urobiť krajšie, práve im môžme urobiť príbehové okraje žlto-modré a do vnútra použiť iné ikonky"*.
 // Okrúhle TLAČIDLO, nie MEDAILÓN (lock pack-dizajn-system: medailón je len fotka a identita).
 // Prstenec = zlato → lapis ako príbeh na IG; vybraná téma = hrubší lapisový prstenec + lapisový tint vnútri.
-// Ikonky vyberá Matej z hand-drawn sady (nákres `plany/nakres-feed-2026-10-26/temy-ikony/`), labka NIE —
+// Ikonky naklikal Matej z hand-drawn sady (nákres `plany/nakres-feed-2026-10-26/temy-ikony/`, okraj A), labka NIE —
 // *„tú používame furt a je aj na obrazovke"*.
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_UI, PAPER_BG } from '@/components/pack/packTheme';
@@ -39,8 +39,8 @@ export const FEED_TOPICS_CSS = `
 .pkt-a b{font-weight:600;min-height:2.5em;}
 `;
 
-/** „Všetko" — ikonku vyberie Matej (labka nie). Dovtedy slnko-hviezda, ktorú feed inde nepoužíva. */
-const ALL = { tag: '', i18n: 'pack.feed.tag.all', fallback: 'All', icon: 'star-six' };
+/** „Všetko" = Horovo oko (Matej naklikal 26. 10. 2026; labka nie — „tú používame furt"). */
+const ALL = { tag: '', i18n: 'pack.feed.tag.all', fallback: 'All', icon: 'eye' };
 
 export function FeedTopics({ topic, onTopic }: { topic: string | null; onTopic: (t: string | null) => void }) {
   const t = useT();
