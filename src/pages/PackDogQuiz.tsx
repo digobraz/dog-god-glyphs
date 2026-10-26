@@ -19,6 +19,7 @@
 // progres. Pre KAŽDÝ kľúč platí: otvorenie skočí na PRVÚ NEVYPLNENÚ otázku (nie na
 // začiatok), dá sa PRESKOČIŤ a pri otázke je HISTÓRIA predošlých hodnôt s dátumom —
 // `dog_events` je append-only, úprava nič neprepíše.
+import { canStepBack } from '@/lib/stepBack';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useMemo, useState } from 'react';
@@ -689,7 +690,7 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose?: () 
   // Šípka späť je VŽDY — aj keď kvíz nemá komu sa vypĺňať alebo neexistuje. Bez nej
   // to bola slepá ulička (audit 26. 9.): text bez cesty von.
   const navigate = useNavigate();
-  const back = onClose ?? (() => navigate('/pack/dogs'));
+  const back = onClose ?? (() => (canStepBack() ? navigate(-1) : navigate('/pack/dogs')));
   return (
     <div
       className={`min-h-[100dvh] relative${paper ? ' pk-paper' : ''}`}

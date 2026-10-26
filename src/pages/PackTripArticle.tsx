@@ -8,6 +8,7 @@
 // component state, ktorý sa pri navigácii sem zruší — tripShared.ts sessionStorage mirror
 // (readLocalTrails/readFavIds/readWalkedIds) drží ich konzistentné cez mount/unmount v rámci
 // tej istej browser session (žiadna Supabase perzistencia, tá je mimo rozsahu).
+import { canStepBack } from '@/lib/stepBack';
 import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
@@ -1715,7 +1716,7 @@ export default function PackTripArticle() {
         {(trail as { photoCredit?: string }).photoCredit && (
           <div className="pta-hero-credit">{(trail as { photoCredit?: string }).photoCredit}</div>
         )}
-        <BackButton tone="pale" className="pta-back" onClick={() => navigate('/pack/map')} label={t('pack.trip.backToTrips')} />
+        <BackButton tone="pale" className="pta-back" onClick={() => (canStepBack() ? navigate(-1) : navigate('/pack/map'))} label={t('pack.trip.backToTrips')} />
         {/* Ceruzka je v hero oproti šípke späť — je to akcia nad CELÝM článkom, nie nad jeho
             sekciou, a v rade pod titulom (triplist / prešiel som / zdieľať) by si konkurovala
             s vecami, ktoré robí ktokoľvek. Vidí ju len autor (`canEdit`). */}

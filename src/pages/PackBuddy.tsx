@@ -9,6 +9,7 @@
 //    doplnený. Preto stránka NEMOUNTUJE `PackLayout` (ten by priniesol spodnú lištu).
 // 🔴 BRÁNA SA DOPĹŇA TU, NIE ODKAZOM DO PROFILU (nákres 0b), ale zapisuje sa do TÝCH ISTÝCH
 //    polí ako profil (`saveHuman` / `saveDogAttrs`). Definícia 100 % → `buddy/buddyGate.ts`.
+import { canStepBack } from '@/lib/stepBack';
 import { prefillFromDogId } from '@/lib/dogIdBridge';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -384,6 +385,7 @@ export default function PackBuddy() {
     else if (view === 'done' && doneFrom === 'settings') setView('settings');
     else if (view === 'gate' && !introSeen()) { setIntroStep(3); setView('intro'); }
     else if (view === 'intro' && introStep > 1) setIntroStep(introStep - 1);
+    else if (canStepBack()) navigate(-1);
     else navigate('/pack/map');
   };
 

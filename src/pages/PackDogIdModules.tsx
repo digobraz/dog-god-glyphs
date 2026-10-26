@@ -23,6 +23,7 @@
 //    po svojom. Percento je TO ISTÉ číslo ako v psom bloku; farby percenta (lock 12. 9.):
 //    pod 100 červená, na 100 zelená.
 // ════════════════════════════════════════════════════════════════════════════
+import { canStepBack } from '@/lib/stepBack';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
@@ -115,7 +116,7 @@ export default function PackDogIdModules() {
         {/* ── hlavička: návrat · názov  |  SPOLU ── */}
         <header className="dm-head">
           <div className="dm-head-l">
-            <BackButton tone="pale" onClick={() => navigate('/pack/dogs')} label={tx('pack.chronicle.back', 'Back')} />
+            <BackButton tone="pale" onClick={() => (canStepBack() ? navigate(-1) : navigate('/pack/dogs'))} label={tx('pack.chronicle.back', 'Back')} />
             <div style={{ minWidth: 0 }}>
               <span className="dm-eyebrow">{tx('pack.dogid.eyebrow', 'Your dog’s document')}</span>
               <h1 className="dm-h1">{tx('pack.hub.profileTitle', 'DOG ID')}</h1>

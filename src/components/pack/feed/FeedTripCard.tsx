@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { HandPaw, HandClipboard, HandArrowLeft } from '@/components/pack/HandIcons';
 import { COMMUNITY_CSS, PhotoMetaPills } from '@/components/pack/packCommunityUI';
@@ -34,8 +34,10 @@ const TX = PACK_TEXT;
 
 export const FEED_TRIP_CSS = `
 ${COMMUNITY_CSS}
-.pft{padding:${S.md}px;display:flex;flex-direction:column;gap:${S.md}px;}
-.pft-head{display:flex;align-items:center;gap:${S.sm}px;}
+/* PLOCHÝ príspevok cez celú šírku (Matej 26. 10.: „príspevky na feede by som dal cez celú šírku, nie do blokov") —
+   fotka ide od okraja po okraj, odsadené sú len hlavička, text a akcie. */
+.pft{display:flex;flex-direction:column;}
+.pft-head{display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;}
 .pft-head .pk-medallion{font:600 ${TX.body}px/1 ${FONT_UI};color:${T.inkWarm};}
 .pft-who{min-width:0;flex:1;}
 .pft-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: meno */
@@ -64,7 +66,7 @@ ${COMMUNITY_CSS}
   background:${T.card};font:600 ${TX.micro}px/1 ${FONT_UI};color:${T.inkStrong};}
 .pft-cta{width:100%;cursor:pointer;border:1px solid ${LAPIS.deep};background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};
   border-radius:${PACK_R.field}px;padding:${S.md}px ${S.lg}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;letter-spacing:.14em;text-transform:uppercase;} /* písmo: cta */
-.pft-acts{display:flex;align-items:center;gap:${S.lg}px;}
+.pft-acts{display:flex;align-items:center;gap:${S.lg}px;padding:0 ${S.md}px ${S.md}px;}
 .pft-acts button{background:none;border:0;padding:0;cursor:pointer;color:${T.inkStrong};display:inline-flex;align-items:center;gap:${S.xs}px;
   font:600 ${TX.label}px/1 ${FONT_UI};transition:transform .12s ease;}
 .pft-acts button:active{transform:scale(.85);}
@@ -134,7 +136,7 @@ export function FeedTripCard({ ft, youImg, liked, onLike, listed, onList }: {
   const ownImg = ft.mine ? youImg : null;
 
   return (
-    <article className="pft" style={{ ...PACK_BOX.card }}>
+    <article className="pft">
       <div className="pft-head">
         <span className="pk-medallion">
           {ownImg ? <img src={sizedUrl(ownImg, 80)} alt="" /> : (ft.author || '?').charAt(0).toUpperCase()}
@@ -145,7 +147,7 @@ export function FeedTripCard({ ft, youImg, liked, onLike, listed, onList }: {
         </div>
       </div>
 
-      <div className="pft-in" style={{ ...PACK_BOX.subblock }}>
+      <div className="pft-in">
         <div className="pft-ph" style={{ aspectRatio: String(aspect) }}>
           <img className="im" src={sizedUrl(tr.photos[idx] ?? tr.photos[0], 1080)} alt="" loading="lazy" decoding="async"
             style={{ objectPosition: coverPos(tr, idx) }}

@@ -118,7 +118,8 @@ export default function Pack() {
 
 /**
  * LUPA vedľa AINUBISA (FEED 2, Matej 26. 10. 2026: *„lupa… v brande, nie vyplnená ale outlined“*).
- * Globálne hľadanie zatiaľ nie je — jediné hotové hľadanie je HĽADAŤ v SNIFFERi (ľudia), preto vedie tam.
+ * Otvára HĽADANIE VO FEEDE (`/pack?hladaj=`, `PackFeed.tsx`) — Matej 26. 10., kolo 4: *„kliknutie na lupu
+ * otvorí sniffer… to je zle! má tam byť vyhľadávač vo feede"*.
  * Obrys: biela výplň kresby z kitu sa zhasne, ostane len čiara.
  */
 function FeedSearch() {
@@ -126,7 +127,7 @@ function FeedSearch() {
   const t = useT();
   const label = t('pack.feed.search') === 'pack.feed.search' ? 'Search' : t('pack.feed.search');
   return (
-    <button type="button" className="pkf-lupa" aria-label={label} onClick={() => navigate('/pack/sniffer?tab=search')}
+    <button type="button" className="pkf-lupa" aria-label={label} onClick={() => { if (!new URLSearchParams(window.location.search).has('hladaj')) navigate('/pack?hladaj='); }}
       style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', display: 'grid', placeItems: 'center', color: PACK_THEME.inkStrong }}>
       {/* Kresba z kitu je PLNÁ silueta a šošovku na ňu kreslí biela vrstva. Priehľadná biela odhalila čiernu pod ňou
           (lupa vyzerala vyplnená) — šošovka preto nesie farbu papyrusu, na ktorom hlavička stojí. */}

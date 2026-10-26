@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { HandPaw, HandStar } from '@/components/pack/HandIcons';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { toggleMark } from '@/components/pack/story/storyData';
@@ -92,7 +92,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
   };
 
   return (
-    <article className="pfp" style={{ ...PACK_BOX.card }}>
+    <article className="pfp">
       <div className="pfp-head">
         <span className="pk-medallion">{avatar ? <img src={sizedUrl(avatar, 80)} alt="" /> : name.charAt(0).toUpperCase()}</span>
         <div className="pfp-who">

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { canStepBack } from '@/lib/stepBack';
 import { pilgrimAuthorName } from '@/lib/pilgrimName';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
@@ -476,7 +477,7 @@ export default function PackProfile() {
   const soon = () => toast({ title: tx('pack.edit.soon', 'Coming soon.') });
 
   return (
-    <PackLayout onBack={() => navigate('/pack/profile')} backLabel={tx('pack.edit.back', 'Back')}>
+    <PackLayout onBack={() => (canStepBack() ? navigate(-1) : navigate('/pack/profile'))} backLabel={tx('pack.edit.back', 'Back')}>
       <style>{PILL_CSS}</style>
       <style>{PF_FIELD_CSS}</style>
       <style>{ROWS_CSS}</style>

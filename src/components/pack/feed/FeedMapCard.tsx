@@ -1,5 +1,6 @@
 // PRIDANIE NA MAPU AKO PRÍSPEVOK — FEED 2 krok 4 (Matej 26. 10. 2026: *„každé pridanie do /map sa tu tiež dá ako
 // príspevok na feed"*). Tri druhy: značka (`map_notes`), TRIPWISH (`wish_pins`) a podujatie (`event_editions`).
+// 🔁 KOLO 4 (26. 10. neskoro): značky a TRIPWISH z feedu ODIŠLI — načítava sa len podujatie; vetvy kariet ostávajú.
 //
 // 🔴 ČÍTA SA LEN TO, ČO KLIENT SMIE: existujúce RPC `list_map_notes`, `list_wish_pins`, `list_event_editions`.
 //    Všetky tri už vydávajú krstné meno, psa a jeho fotku autora (nie `user_id`) — žiadna migrácia.
@@ -10,15 +11,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { HandPaw } from '@/components/pack/HandIcons';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
-import { loadNotes } from '@/components/pack/mapnotes/useMyNotePoints';
 import { likeMapNote, type MapNote } from '@/components/pack/mapnotes/mapNotesData';
-import { fetchWishPins, type WishPin } from '@/components/pack/mapnotes/wishData';
+import { type WishPin } from '@/components/pack/mapnotes/wishData';
 import { fetchEvents, type EventItem } from '@/components/pack/events/eventStore';
 import { FONT_EMOJI, MARK_EMOJI, WISH_EMOJI, eventEmoji } from '@/components/pack/mapnotes/markEmoji';
-import { WISHES_LIVE, EVENTS_LIVE } from '@/lib/packFlags';
+import { EVENTS_LIVE } from '@/lib/packFlags';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { agoLabel } from './feedData';
 
@@ -37,16 +37,12 @@ export function useMapAdds(limit = 6): MapAdd[] {
   useEffect(() => {
     let on = true;
     (async () => {
-      const [notes, wishes, events] = await Promise.all([
-        loadNotes().catch(() => [] as MapNote[]),
-        WISHES_LIVE ? fetchWishPins().catch(() => [] as WishPin[]) : Promise.resolve([] as WishPin[]),
-        EVENTS_LIVE ? fetchEvents(false).catch(() => [] as EventItem[]) : Promise.resolve([] as EventItem[]),
-      ]);
-      const out: MapAdd[] = [
-        ...notes.filter((n) => !n.isStale).map((n) => ({ k: 'note' as const, id: `n:${n.id}`, at: Date.parse(n.createdAt) || 0, n })),
-        ...wishes.map((w) => ({ k: 'wish' as const, id: `w:${w.id}`, at: Date.parse(w.createdAt) || 0, w })),
-        ...events.map((e) => ({ k: 'event' as const, id: `e:${e.id}`, at: e.createdAt || 0, e })),
-      ].sort((a, b) => b.at - a.at).slice(0, limit);
+      // ZNAČKY (parkovisko, tip, voda…) a TRIPWISH do feedu NEJDÚ (Matej 26. 10. 2026, kolo 4: *„tripwish
+      // parkovisko tip atď. by som do feedu nedával"*) — ostávajú na /map. Z pridaní na mapu ide len podujatie.
+      const events = EVENTS_LIVE ? await fetchEvents(false).catch(() => [] as EventItem[]) : [];
+      const out: MapAdd[] = events
+        .map((e) => ({ k: 'event' as const, id: `e:${e.id}`, at: e.createdAt || 0, e }))
+        .sort((a, b) => b.at - a.at).slice(0, limit);
       if (on) setAdds(out);
     })();
     return () => { on = false; };
@@ -115,7 +111,7 @@ export function FeedMapCard({ add, liked, onLike }: { add: MapAdd; liked: boolea
   const isOn = add.k === 'note' ? noteLike.on : liked;
 
   return (
-    <article className="pfm" style={{ ...PACK_BOX.card }}>
+    <article className="pfm">
       <div className="pfm-head">
         <span className="pk-medallion">{photo ? <img src={sizedUrl(photo, 80)} alt="" /> : name.charAt(0).toUpperCase()}</span>
         <div className="pfm-who">

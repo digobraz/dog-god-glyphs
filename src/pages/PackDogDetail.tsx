@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { canStepBack } from '@/lib/stepBack';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum, intlLocale } from '@/i18n/bcp47';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -746,7 +747,7 @@ export default function PackDogDetail() {
   };
 
   return (
-    <PackLayout onBack={() => navigate('/pack/dogs')} backLabel={t('pack.tree.title')}>
+    <PackLayout onBack={() => (canStepBack() ? navigate(-1) : navigate('/pack/dogs'))} backLabel={t('pack.tree.title')}>
       {/* `PackDogWizard` (krok „Prayer of Presence") tu bol vypnutý od 3. 8. 2026 a
           24. 8. zanikol úplne — stál na starom číslovanom stave prehliadky (`dogypt_wz==='2'`)
           a sľuboval modlitby, ktoré z appky odišli 6. 8. Nový scenár (AInubis) má krok

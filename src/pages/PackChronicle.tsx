@@ -17,6 +17,7 @@
 //    sa platí za minútu — cena sa Matejovi ukáže pred stavbou). Filter „Hlasovky"
 //    preto ešte nie je: filter bez jediného možného zápisu by klamal.
 // ════════════════════════════════════════════════════════════════════════════
+import { canStepBack } from '@/lib/stepBack';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
@@ -68,7 +69,7 @@ export default function PackChronicle() {
     return out;
   }, [rows, dogSel, lang]);
 
-  const back = () => { if (window.history.length > 1) navigate(-1); else navigate('/pack/dogs'); };
+  const back = () => { if (canStepBack()) navigate(-1); else navigate('/pack/dogs'); };
 
   const cta: CSSProperties = {
     width: '100%', maxWidth: 320, borderRadius: PACK_R.field, padding: `${PACK_SPACE.md}px ${PACK_SPACE.lg}px`, fontFamily: FONT_TITLE,

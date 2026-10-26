@@ -12,6 +12,7 @@
 // DESIGN (2026-07-23, LOCKED): obsah v LIQUID GLASS paneli (.pk-glass z packTheme GLASS_CSS) nad
 // heroglyf pozadím — NEmixovať s plnou čiernou. Rovnaký primitív ide neskôr aj na článok + walked.
 // Bloky = štvorcové karty v 3-stĺpcovom gride (MY TRIPS + OPEN TRIPS zdieľajú .tl-grid/.tl-block).
+import { canStepBack } from '@/lib/stepBack';
 import { useEffect, useMemo, useState } from 'react';
 import { PLANNING_LIVE } from '@/lib/packFlags';
 import { useSearchParams, Link } from 'react-router-dom';
@@ -1038,7 +1039,7 @@ export default function PackTriplist() {
           čiernej) sa sem už nevkladá. Volať oboje naraz = dve tapety cez seba. */}
 
       <div className="tl-body">
-        <PackTopRow onBack={() => navigate('/pack/map')} backLabel={t('pack.triplist.backToMap')} />
+        <PackTopRow onBack={() => (canStepBack() ? navigate(-1) : navigate('/pack/map'))} backLabel={t('pack.triplist.backToMap')} />
 
         {/* dve karty-prepínače (Matej 2026-07-23): naše ikony (paw/trophy), žiadne emoji, žiadne nadpisy nad.
             Matej 2026-07-26: poradie otočené — Tripstats vľavo, Triplist vpravo. */}
