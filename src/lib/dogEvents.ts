@@ -47,6 +47,9 @@ export interface LatestValue {
   value: unknown;
   recordedAt: string;
   source: DogEventSource;
+  /** K4: hodnotu zapísal pawmate (meno pri čine) — štítok pri poli DOG ID. */
+  actedBy?: string | null;
+  actedName?: string | null;
 }
 
 // ── lokálny fallback ────────────────────────────────────────────────────────
@@ -178,12 +181,12 @@ export async function appendDogEvents(inputs: DogEventInput[]): Promise<void> {
 }
 
 // ── čítanie ─────────────────────────────────────────────────────────────────
-function foldLatest(rows: Array<{ field: string; value: unknown; recordedAt: string; source: DogEventSource }>): Record<string, LatestValue> {
+function foldLatest(rows: Array<{ field: string; value: unknown; recordedAt: string; source: DogEventSource; actedBy?: string | null; actedName?: string | null }>): Record<string, LatestValue> {
   const out: Record<string, LatestValue> = {};
   for (const r of rows) {
     const cur = out[r.field];
     if (!cur || r.recordedAt >= cur.recordedAt) {
-      out[r.field] = { value: r.value, recordedAt: r.recordedAt, source: r.source };
+      out[r.field] = { value: r.value, recordedAt: r.recordedAt, source: r.source, actedBy: r.actedBy ?? null, actedName: r.actedName ?? null };
     }
   }
   return out;
@@ -197,7 +200,7 @@ export async function readLatest(dogId: string): Promise<Record<string, LatestVa
 
   const { data, error } = await sb
     .from('dog_events')
-    .select('field, value, recorded_at, source')
+    .select('field, value, recorded_at, source, acted_by, acted_name')
     .eq('dog_id', dogId)
     .order('recorded_at', { ascending: true });
 
@@ -208,6 +211,8 @@ export async function readLatest(dogId: string): Promise<Record<string, LatestVa
         value: r.value as unknown,
         recordedAt: r.recorded_at as string,
         source: r.source as DogEventSource,
+        actedBy: (r.acted_by as string | null) ?? null,
+        actedName: (r.acted_name as string | null) ?? null,
       }));
 
   // Poradie je zámerné: lokálne najprv, vzdialené potom — pri ZHODNOM `recordedAt`

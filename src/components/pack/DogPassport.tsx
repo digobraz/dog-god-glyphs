@@ -24,6 +24,7 @@
 //     ako tlačidlá „poslať", nie ako prepínač zobrazenia.
 //
 // `stepInView()` a `views` v katalógu ostávajú — použije ich share render (§8 zadania).
+import { ActedBy } from '@/components/pack/profile/ActedBy';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PACK_THEME, PACK_BOX, PILL_CSS, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
@@ -31,7 +32,7 @@ import { PASS_GROUPS, STEP_BY_FIELD, PROGRESS_STEPS, quizValueLabel, type QuizSt
 import { natureArt, storedSpecials } from './natureQuiz';
 import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, type LatestValue } from '@/lib/dogEvents';
 import { RightGate } from '@/components/pack/RightGate';
-import { LAPIS, PICK_INK, pickTintCSS } from './navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from './navGoldSkin';
 import { TILT_CSS, TILT_PROPS } from './packTilt';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
@@ -145,6 +146,12 @@ const PASS_CSS = `
   border:1px solid ${T.border}; overflow:hidden; }
 .pass-fillbar__on{ height:100%; border-radius:999px;
   background:linear-gradient(90deg,${LAPIS.lite} 0%,${LAPIS.edge} 100%); transition:width .4s ease; }
+/* HLAVNÉ CTA dokladu — geometria .btn-gold (r8), výplň LAPIS. Písmo: cta. */
+.pass-cta{ display:block; width:100%; box-sizing:border-box; margin:0 0 16px; padding:16px; border-radius:8px;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:16px; letter-spacing:.14em; text-transform:uppercase; /* písmo: cta */
+  text-align:center; text-decoration:none; cursor:pointer;
+  background:${LAPIS.grad}; color:${LAPIS.ink}; border:1px solid ${LAPIS.edge}; box-shadow:${LAPIS_BTN_SHADOW}; }
+.pass-cta:hover{ background:${LAPIS.gradHover}; }
 /* riadok, ktorý sa needituje (plemeno, narodenie, pohlavie) */
 .pass-fixed{ font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:500;
   color:${T.inkStrong}; }
@@ -266,6 +273,26 @@ export function DogPassport({
     return { done, total, pct: total ? Math.round((done / total) * 100) : 0 };
   }, [latest]);
 
+  // ĎALŠIE PRÁZDNE POLE — kam vedie VYPLNIŤ DOG ID (Matej 26. 10. 2026, nakres-cta 4A). Hľadá sa
+  // v PORADÍ DOKLADU (sekcie zhora), nie v poradí `PROGRESS_STEPS`, aby tlačidlo viedlo na prvú
+  // červenú pomlčku, ktorú človek pod ním uvidí. Cieľ je ten istý ako pri pomlčke (`PassRow`).
+  const nextMissing = useMemo(() => {
+    if (!latest || readOnly) return null;
+    const counted = new Set(PROGRESS_STEPS.map((st) => st.field));
+    for (const { group, rows } of groups) {
+      const hit = rows.find(({ step }) => counted.has(step.field) && !hasValue(latest[step.field]));
+      if (!hit) continue;
+      if (group.editPanel) return { panel: group.editPanel, to: null as string | null };
+      return {
+        panel: null as string | null,
+        to: hit.step.editHref
+          ? `${hit.step.editHref}?dog=${dogId}`
+          : `/pack/dogs/quiz/${group.editSection}?dog=${dogId}&field=${hit.step.field}`,
+      };
+    }
+    return null;
+  }, [groups, latest, readOnly, dogId]);
+
   if (!latest) return null;
 
   return (
@@ -307,6 +334,23 @@ export function DogPassport({
             />
           </div>
         </div>
+      )}
+
+      {/* VYPLNIŤ DOG ID · N CHÝBA — jediné plné lapis na detaile psa (Matej 26. 10. 2026, nakres-cta 4A:
+          „žiadne hlavné tlačidlo"). Pod pásom VYPLNENÉ, lebo pás hovorí koľko a tlačidlo kam ďalej.
+          Na 100 % zmizne — nie je čo vyplniť. UPRAVIŤ pri sekciách ostáva ako druhá cesta. */}
+      {fill && !readOnly && fill.done < fill.total && nextMissing && (
+        <RightGate right="dogid.edit" dogId={dogId}>
+          {nextMissing.panel ? (
+            <button type="button" className="pass-cta" onClick={() => onEditPanel?.(nextMissing.panel!)}>
+              {tx('pack.pass.fillCta', 'Fill in DOG ID')} · {fill.total - fill.done} {tx('pack.pass.fillMissing', 'missing')}
+            </button>
+          ) : (
+            <Link className="pass-cta" to={nextMissing.to!}>
+              {tx('pack.pass.fillCta', 'Fill in DOG ID')} · {fill.total - fill.done} {tx('pack.pass.fillMissing', 'missing')}
+            </Link>
+          )}
+        </RightGate>
       )}
 
       <div className={readOnly ? 'pass-groups pass-groups--ro' : 'pass-groups'}>
@@ -554,6 +598,8 @@ function PassRow({
         >
           {shortDate(value.recordedAt, loc)}
         </span>
+        {/* K4: poslednú zmenu poľa urobil pawmate */}
+        {(value.actedBy || value.actedName) && <> <ActedBy id={value.actedBy} name={value.actedName} /></>}
       </dd>
     </>
   );

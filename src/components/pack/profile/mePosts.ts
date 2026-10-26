@@ -169,7 +169,7 @@ export async function changeDogMainPhoto(dogId: string, file: File): Promise<str
 
 // ── ❤️ 💬 POD PRÍSPEVKOM (25. 10. 2026, migrácia `20261025_post_social.sql`) ─────────────────
 export type PostSocial = { likes: number; comments: number; liked: boolean; saved: boolean };
-export type PostComment = { id: string; mine: boolean; canDelete: boolean; name: string; photo: string | null; ownerN: number | null; body: string; createdAt: string };
+export type PostComment = { id: string; mine: boolean; canDelete: boolean; name: string; photo: string | null; ownerN: number | null; body: string; createdAt: string; actedBy: string | null; actedName: string | null };
 
 export async function fetchPostSocial(postId: string): Promise<PostSocial> {
   const { data } = await db.rpc('post_social', { p_post: postId });
@@ -186,11 +186,18 @@ export async function fetchComments(postId: string): Promise<PostComment[]> {
     photo: typeof r.photo === 'string' ? r.photo : null,
     ownerN: r.owner_n == null ? null : Number(r.owner_n),
     body: String(r.body ?? ''), createdAt: String(r.created_at),
+    actedBy: typeof r.acted_by === 'string' ? r.acted_by : null,
+    actedName: typeof r.acted_name === 'string' ? r.acted_name : null,
   }));
 }
 
 export async function addComment(postId: string, uid: string, body: string): Promise<void> {
-  const { error } = await db.from('post_comments').insert({ post_id: postId, user_id: uid, body: body.trim() });
+  // K4 MODEL A: pawmate bez vlastného psa komentuje za pawtnera — za koho, povie server
+  // (`act_for_owner`), `acted_by` dopíše trigger. Pawmate BEZ práva dostane null = len prezerá.
+  const { data: actFor, error: actErr } = await db.rpc('act_for_owner', { p_right: 'social' });
+  if (!actErr && actFor == null) throw new Error('pawmate without the social right');
+  const author = typeof actFor === 'string' ? actFor : uid;
+  const { error } = await db.from('post_comments').insert({ post_id: postId, user_id: author, body: body.trim() });
   if (error) throw error;
 }
 
