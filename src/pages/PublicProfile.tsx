@@ -253,6 +253,7 @@ export default function PublicProfile() {
       <section className={`me-card${FLAT ? ' me-flat' : ''}${open ? ' open' : ''}${beside ? ' with-mate' : ''}`}>
         <MeCover
           noRanks={!!mate}
+          foreign={!isSelf}
           cover={coverSrc}
           coverY={human.coverY}
           name={displayName}

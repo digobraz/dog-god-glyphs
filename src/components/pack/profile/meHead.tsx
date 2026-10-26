@@ -398,10 +398,13 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false, foreign = false }: {
   cover: string | null;
   /** PAWMATE bez vlastného psa (Matej 26. 10. 2026: *„ona nebude mať level pútnika ani služobníka"*) — titulka len s menom. */
   noRanks?: boolean;
+  /** Cudzí profil — zlato SLUŽOBNÍKA sa NEčíta: `devotion_events` vidím len svoje, takže by ukázalo MOJE dni
+   *  na cudzom odznaku (audit 26. 10. 2026). Kapsula ostane bez náplne. */
+  foreign?: boolean;
   coverY?: number;
   name: string;
   devLabel: string;
@@ -461,7 +464,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   };
   const editable = !!onMoveY && !!url;
   const pilgrimTier = tierOfLevel(pilgrimLevel);
-  const activeDays = useActiveDays(RANK_BADGE_ON);
+  const activeDays = useActiveDays(RANK_BADGE_ON && !foreign);
 
   return (
     <div
