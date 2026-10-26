@@ -6139,6 +6139,9 @@ export const sk: Partial<Dict> = {
   // ── Profil JA v6 (21. 10. 2026) — pages/PackMe.tsx
   'pack.me.title': "Profil",
   'pack.me.invite': "Pozvi",
+  'pack.mate.banner': "Si pawmate. Toto je profil tvojho pawtnera ({name}) — čo smieš pridávať, nastavuje v Mojej svorke.",
+  'pack.mate.myPhotoBio': "Moja fotka a bio",
+  'pack.mate.postsEmpty': "Vo svorke zatiaľ nie sú príspevky.",
   'pack.me.settings': "Nastavenia",
   'pack.me.changePhoto': "Zmeniť fotku",
   'pack.me.newStory': "Nová story",
