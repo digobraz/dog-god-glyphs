@@ -64,6 +64,15 @@ const CSS = `
   font-family:${FONT_UI};font-weight:500;font-size:${TX.label}px;}
 .mc-vis button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
 .mc-note{margin:${S.xs}px 0 0;font-size:${TX.label}px;color:${T.inkWarm};}
+/* NÁHĽAD OREZU (FEED 2, Matej 26. 10.: „vysoká fotka sa oreže, ale autor vidí náhľad orezu pri pridávaní ako na IG").
+   Rám má pomer, v akom fotku uvidí feed: široká ostáva, vysoká sa oreže na 4:5. */
+.mc-crop{position:relative;align-self:center;width:min(100%,400px);overflow:hidden;border-radius:${PACK_R.tile}px;background:${T.pageBg};box-shadow:${T.panelShadow};}
+.mc-crop img{width:100%;height:100%;object-fit:cover;display:block;}
+/* OTÁZKA „Z VÝLETU / Z PRÍRODY?" — povinná, BEZ predvoľby (predklikané ≠ súhlas). */
+.mc-ask{display:grid;grid-template-columns:1fr 1fr;gap:${S.md}px;}
+.mc-ask button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${S.sm}px;padding:${S.lg}px ${S.md}px;border-radius:${PACK_R.tile}px;cursor:pointer;
+  border:1.5px solid ${T.border};background:${T.card};color:${T.inkStrong};font-family:${FONT_UI};font-weight:600;font-size:${TX.body}px;}
+.mc-ask button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
 @media (min-width:768px){
   .mc-root{align-items:center;padding:${S.xl}px;}
   .mc-box{width:640px;max-height:90dvh;border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px;box-shadow:${T.panelShadow};}
@@ -97,6 +106,9 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   // Story aj príspevok idú svorke (členom) — kto chce len pre seba, prepne. RLS pustí cudzím
   // len `public` a len zaplateným členom, takže „svorka" nie je verejný web.
   const [vis, setVis] = useState<Visibility>('public');
+  // Z výletu / z prírody? `null` = neodpovedal — príspevok sa vtedy neodošle (áno ⇒ vo feede 🎯 TRIPWISH).
+  const [nature, setNature] = useState<boolean | null>(null);
+  const [ratio, setRatio] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const galRef = useRef<HTMLInputElement>(null);
   const camRef = useRef<HTMLInputElement>(null);
@@ -126,13 +138,13 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   const heading = mode === 'moment' ? tx('pack.compose.newStory', 'New story')
     : mode === 'album' ? tx('pack.compose.newAlbum', 'New album')
       : tx('pack.compose.newPost', 'New post');
-  const ready = files.length > 0 && !!uid && (mode !== 'album' || title.trim().length > 0);
+  const ready = files.length > 0 && !!uid && (mode !== 'album' || title.trim().length > 0) && (mode !== 'post' || nature !== null);
 
   const share = async () => {
     if (!ready || !uid || busy) return;
     setBusy(true);
     try {
-      await publish({ uid, mode, files, body, title, dogIds, visibility: vis, place: mode === 'post' ? place : null });
+      await publish({ uid, mode, files, body, title, dogIds, visibility: vis, place: mode === 'post' ? place : null, nature: mode === 'post' && nature === true });
       toast({ title: mode === 'moment' ? tx('pack.compose.storyDone', 'Your story is live for 24 hours') : tx('pack.compose.done', 'Shared') });
       onClose();
     } catch (err) {
@@ -189,6 +201,12 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
             </div>
           ) : (
             <>
+              {mode === 'post' && (
+                <div className="mc-crop" style={{ aspectRatio: String(ratio ? Math.min(Math.max(ratio, 4 / 5), 2) : 4 / 5) }}>
+                  <img src={urls[cur] ?? urls[0]} alt="" onLoad={(e) => { const im = e.currentTarget; if (im.naturalHeight) setRatio(im.naturalWidth / im.naturalHeight); }} />
+                </div>
+              )}
+              {mode === 'post' && <p className="mc-note" style={{ textAlign: 'center', marginTop: 0 }}>{tx('pack.compose.cropNote', 'This is how the pack will see it.')}</p>}
               {mode === 'moment' && (
                 <div className="mc-story">
                   <img src={urls[cur] ?? urls[0]} alt="" />
@@ -197,7 +215,7 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
               )}
               <div className="mc-strip">
                 {urls.map((u, i) => (
-                  <button key={u} type="button" className={`mc-th${mode === 'moment' && i === cur ? ' on' : ''}`} onClick={() => setCur(i)}>
+                  <button key={u} type="button" className={`mc-th${mode !== 'album' && i === cur ? ' on' : ''}`} onClick={() => { setCur(i); setRatio(null); }}>
                     <img src={u} alt="" />
                     <span className="rm" role="button" aria-label={tx('pack.compose.remove', 'Remove')}
                       onClick={(e) => { e.stopPropagation(); remove(i); }}><HandTrash size={13} /></span>
@@ -225,6 +243,21 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
             placeholder={mode === 'moment' ? tx('pack.compose.storyText', 'A line on the photo (optional)')
               : mode === 'album' ? tx('pack.compose.albumText', 'What is this album about? (optional)')
                 : tx('pack.compose.postText', 'Write something about it…')} />
+
+          {mode === 'post' && (
+            <div>
+              <p className="mc-lbl">{tx('pack.compose.natureQ', 'Is the photo from a trip or from nature?')}</p>
+              <div className="mc-ask" role="radiogroup">
+                <button type="button" role="radio" aria-checked={nature === true} className={nature === true ? 'on' : ''} onClick={() => setNature(true)}>
+                  <BrandIcon name="mountain" size={32} tint="dark" />{tx('pack.compose.yes', 'Yes')}
+                </button>
+                <button type="button" role="radio" aria-checked={nature === false} className={nature === false ? 'on' : ''} onClick={() => setNature(false)}>
+                  <BrandIcon name="house-heart" size={32} tint="dark" />{tx('pack.compose.no', 'No')}
+                </button>
+              </div>
+              {nature === null && <p className="mc-note">{tx('pack.compose.natureNote', 'Pick one — the post won’t go out without it.')}</p>}
+            </div>
+          )}
 
           {mode === 'post' && <PlaceField value={place} onChange={setPlace} />}
 

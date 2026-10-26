@@ -22,6 +22,9 @@ const db = supabase as any;
 export const TAG_POST = 'post';
 export const TAG_MOMENT = 'moment';
 export const TAG_ALBUM = 'album';
+/** Fotka z výletu alebo z prírody (povinná otázka pri pridaní, FEED 2 26. 10. 2026) ⇒ vo feede sa ukladá
+ *  ako 🎯 TRIPWISH, nie ☆. `posts.tags` je voľné `text[]` — štítok nepotrebuje migráciu. */
+export const TAG_NATURE = 'nature';
 /** Štítok príbehu z cesty — vlastní ho `story/storyData.ts`, tu ho len rozoznávame. */
 const TAG_TRIP_STORY = 'story';
 
@@ -42,6 +45,7 @@ export const DAY_MS = 24 * 60 * 60 * 1000;
 export const isMoment = (p: MePost) => p.tags.includes(TAG_MOMENT);
 export const isAlbum = (p: MePost) => p.tags.includes(TAG_ALBUM);
 export const isTripStory = (p: MePost) => p.tags.includes(TAG_TRIP_STORY);
+export const isNature = (p: MePost) => p.tags.includes(TAG_NATURE);
 /** Story žije 24 h od zverejnenia. */
 export const isLive = (p: MePost, now = Date.now()) => isMoment(p) && now - Date.parse(p.createdAt) < DAY_MS;
 
@@ -90,6 +94,8 @@ export async function publish(opts: {
   dogIds: string[];
   visibility: Visibility;
   place?: { name: string; lat?: number; lon?: number } | null;
+  /** Odpoveď na „Je fotka z výletu alebo z prírody?" — len príspevok. */
+  nature?: boolean;
 }): Promise<void> {
   const photos = await uploadAll(opts.files, opts.uid);
   const attach: MePost['attach'] = {};
@@ -97,7 +103,8 @@ export async function publish(opts: {
   if (opts.mode === 'album' && opts.title?.trim()) attach.title = opts.title.trim();
   if (opts.place?.name.trim()) attach.place = { ...opts.place, name: opts.place.name.trim() };
   const tag = opts.mode === 'moment' ? TAG_MOMENT : opts.mode === 'album' ? TAG_ALBUM : TAG_POST;
-  const base = { author_id: opts.uid, body: opts.body.trim(), tags: [tag], attach, visibility: opts.visibility };
+  const tags = opts.mode === 'post' && opts.nature ? [tag, TAG_NATURE] : [tag];
+  const base = { author_id: opts.uid, body: opts.body.trim(), tags, attach, visibility: opts.visibility };
   const rows = opts.mode === 'moment' ? photos.map((p) => ({ ...base, photos: [p] })) : [{ ...base, photos }];
   const { error } = await db.from('posts').insert(rows);
   if (error) throw error;

@@ -642,7 +642,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
      počítadlo podcastov číta LEN `listened_at`. */
   const readRowsRaw = useReads();
   const readRows = pv ? NO_ROWS : readRowsRaw;
-  const [scrollFocus, setScrollFocus] = useState<string | null>(null);
+  // Zvitok otvorený z FEEDU (DOMOV) si nesie cieľ v `state.focus` — ▶ podcast na karte má otvoriť prehrávač.
+  const [scrollFocus, setScrollFocus] = useState<string | null>(() => (loc.state as { focus?: string } | null)?.focus || null);
   const [zvToast, setZvToast] = useState('');
   const openScroll = (id: string, focus?: 'pod' | 'src' | 'talk') => {
     /* Náhľad: otvorí sa len zvitok zdarma; ostatné = popup (zámok je vidno už v zozname). */

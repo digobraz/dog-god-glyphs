@@ -755,18 +755,6 @@
     "cinzel": 1,
     "tucny": 0
   },
-  "components/pack/feed/PackFeed.tsx": {
-    "radius": 0,
-    "font": 0,
-    "zavoj": 0,
-    "progres": 0,
-    "ram": 0,
-    "tien": 0,
-    "pismenka": 0,
-    "odsadenie": 0,
-    "cinzel": 7,
-    "tucny": 0
-  },
   "components/pack/level/LevelPanel.tsx": {
     "radius": 0,
     "font": 0,
