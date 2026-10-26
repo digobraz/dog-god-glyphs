@@ -34,6 +34,7 @@ import { Loader2 } from 'lucide-react';
 import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from './navGoldSkin';
 import { HandKey, HandTrash } from './HandIcons';
+import { DeleteRequests } from './DeleteRequests';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
 import {
@@ -602,7 +603,7 @@ export function PawmatesSection({ bare = false }: { bare?: boolean } = {}) {
     );
   }
 
-  if (bare) return <div id="pawmates"><style>{PF_FIELD_CSS}{CSS}</style>{body}</div>;
+  if (bare) return <div id="pawmates"><style>{PF_FIELD_CSS}{CSS}</style><DeleteRequests />{body}</div>;
 
   return (
     // Úroveň 1 MATRICE (KARTA) — sekcia stojí na stránke vedľa ostatných kariet
@@ -630,6 +631,8 @@ export function PawmatesSection({ bare = false }: { bare?: boolean } = {}) {
         {tx('pack.mates.title', 'Your people')}
       </h3>
       <div aria-hidden style={{ height: 2, background: T.rule, margin: '14px 0 16px' }} />
+      {/* K4c: vyradený pawmate žiada o zmazanie — rozhoduješ ty */}
+      <DeleteRequests />
       {body}
     </section>
   );

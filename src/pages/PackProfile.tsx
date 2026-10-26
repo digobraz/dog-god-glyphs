@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { DeleteRequests } from '@/components/pack/DeleteRequests';
 import { canStepBack } from '@/lib/stepBack';
 import { pilgrimAuthorName } from '@/lib/pilgrimName';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -645,6 +646,8 @@ export default function PackProfile() {
           <div className={`pe-grp${shut.has('pack') ? ' shut' : ''}`} style={{ ...PACK_BOX.subblock }}>
             <GroupHead icon="people" label={tx('pack.edit.mySvorka', 'My pack')} open={!shut.has('pack')} onToggle={() => toggleGrp('pack')} />
             <div className="pe-core">
+              {/* K4c: vyradený pawmate žiada o zmazanie — rozhoduješ ty (nič sa nemaže samo) */}
+              {!isMate && <DeleteRequests />}
               <MemberRow
                 photo={avatarUrl ? sizedUrl(avatarUrl, 140) : null}
                 initial={initial}
@@ -1589,6 +1592,8 @@ function MateRow({ mate, onChanged }: { mate: PawmateRow; onChanged: () => void 
       {ask ? (
         <div className="pe-me">
           <span className="pe-hint" style={{ margin: 0 }}>{invite ? tx('pack.mate.revokeAsk', 'Withdraw this invitation?') : tx('pack.mates.removeAsk', 'Remove {name} from the pack?').replace('{name}', label)}</span>
+          {/* K4c: čo vyradenie znamená — nákres §3 „Vyradiť Lenku?“ */}
+          {!invite && <span className="pe-hint" style={{ margin: 0 }}>{tx('pack.mates.removeHint', 'They get 3 days and can only ask you to delete their photos. Everything else stays yours.')}</span>}
           <span style={{ display: 'flex', gap: 8 }}>
             <button type="button" className="pe-show pe-danger" disabled={busy} onClick={remove}>{invite ? tx('pack.mate.revokeYes', 'Withdraw') : tx('pack.mate.removeYes', 'Remove')}</button>
             <button type="button" className="pe-show" onClick={() => setAsk(false)}>{tx('pack.mate.cancel', 'Cancel')}</button>

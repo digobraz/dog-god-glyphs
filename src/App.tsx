@@ -162,6 +162,8 @@ const lazyPack = <T extends ComponentType<any>>(f: () => Promise<{ default: T }>
 // Brána mapy číta session zo Supabase — lazy, aby klient nesedel v hlavnom balíku (perf 7. 10. 2026).
 // Brána zmazania účtu (13. 10. 2026): kto sa vráti počas 30-dňovej lehoty, môže zmazanie zrušiť.
 const AccountDeletionGate = lazy(() => import("@/components/pack/AccountDeletion").then((m) => ({ default: m.AccountDeletionGate })));
+// K4c: vyradený pawmate — 3 dni na označenie fotiek, potom účet zanikne.
+const PawmateDepartureGate = lazy(() => import("@/components/pack/PawmateDepartureGate").then((m) => ({ default: m.PawmateDepartureGate })));
 const MapGate = lazyPack(() => import("@/components/pack/MapGate").then((m) => ({ default: m.MapGate })));
 const Terms = lazy(() => import("./pages/Terms.tsx"));
 const Privacy = lazy(() => import("./pages/Privacy.tsx"));
@@ -305,7 +307,7 @@ function PackGate() {
 /** Brána zmazania účtu len na /pack — inde (film, heroflow) sa Supabase klient nesťahuje. */
 function OnPackDeletionGate() {
   const { pathname } = useLocation();
-  return /^\/pack(\/|$)/.test(pathname) ? <Suspense fallback={null}><AccountDeletionGate /></Suspense> : null;
+  return /^\/pack(\/|$)/.test(pathname) ? <Suspense fallback={null}><AccountDeletionGate /><PawmateDepartureGate /></Suspense> : null;
 }
 
 function RefCapture() {
