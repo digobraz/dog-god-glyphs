@@ -10,7 +10,6 @@
 // tabuľka značiek mimo `posts` — zoznam migrácií v `plany/prompt-feed2-stavba-2026-10-26.md`). Ankety a oznamy
 // s CTA z nákresu tu zatiaľ NIE SÚ — hlasy potrebujú server.
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_AVATAR, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS } from '@/components/pack/ainubisSkin';
@@ -64,15 +63,6 @@ export const FEED_AI_CSS = `
 .fai-sv img{flex:none;width:48px;height:64px;border-radius:${PACK_R.field}px;object-fit:cover;}
 .fai-sv b{display:block;font-weight:600;font-size:${TX.body}px;line-height:1.3;}
 .fai-sv small{font-size:${TX.label}px;color:${AINUBIS.inkDim};}
-
-/* DOSKA HORE — AINUBIS pod hlavičkou feedu */
-.fai-board{display:flex;align-items:center;gap:${S.md}px;padding:${S.md}px;border-radius:${PACK_R.card}px;${AI_GLASS}}
-.fai-board .tt{flex:1;min-width:0;}
-.fai-board b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;color:${AINUBIS.ink};} /* písmo: meno */
-.fai-board b .ai{color:${AINUBIS.aiInk};}
-.fai-board small{display:block;font-size:${TX.label}px;line-height:1.35;color:${AINUBIS.inkDim};}
-.fai-board button{flex:none;cursor:pointer;border:0;border-radius:${PACK_R.field}px;padding:${S.sm}px ${S.md}px;background:${AINUBIS.ctaGrad};color:${AINUBIS.ctaInk};
-  box-shadow:${AINUBIS.ctaShadow};font-family:${FONT_TITLE};font-weight:700;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;} /* písmo: cta */
 `;
 
 const AiName = () => <><span className="ai">AI</span>NUBIS</>;
@@ -178,27 +168,6 @@ export function AiSaved({ list, lang, onOpen }: { list: DemoScroll[]; lang: stri
       })}
       <button type="button" className="fai-cta" onClick={() => onOpen(list[0].id)}>{tx('pack.feed.scroll.read', 'Read')}</button>
     </AiPost>
-  );
-}
-
-/** Doska pod hlavičkou: čo AINUBIS pre teba má. Text sa skladá len zo skutočných čísel. */
-export function AiBoard({ saved, newTrips }: { saved: number; newTrips: number }) {
-  const t = useT();
-  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
-  const navigate = useNavigate();
-  const parts = [
-    saved > 0 ? tx('pack.feed.board.saved', '{n} scrolls put aside').replace('{n}', String(saved)) : '',
-    newTrips > 0 ? tx('pack.feed.board.trips', '{n} new trips today').replace('{n}', String(newTrips)) : '',
-  ].filter(Boolean);
-  return (
-    <div className="fai-board">
-      <span className="fai-av" style={{ backgroundImage: `url(${ainubisHead})` }} aria-hidden />
-      <div className="tt">
-        <b><AiName /></b>
-        <small>{parts.length ? parts.join(' · ') : tx('pack.feed.board.idle', 'Ask me anything about your dog.')}</small>
-      </div>
-      <button type="button" onClick={() => navigate('/pack/ainubis')}>{tx('pack.feed.board.open', 'Open')}</button>
-    </div>
   );
 }
 

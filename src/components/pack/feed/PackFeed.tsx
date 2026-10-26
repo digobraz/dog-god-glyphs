@@ -34,7 +34,7 @@ import { feedQuoteForDay, feedQuoteText } from '@/data/feedQuotes';
 import { firstWord, useFeedTrips, useLocalLikes } from './feedData';
 import { FeedTripCard, FEED_TRIP_CSS } from './FeedTripCard';
 import { FeedPostCard, FEED_POST_CSS } from './FeedPostCard';
-import { AiBoard, AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
+import { AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
 import { SnifferStrip, TripStrip, FEED_TOP_CSS } from './FeedTop';
 
 const T = PACK_THEME;
@@ -43,7 +43,6 @@ const TX = PACK_TEXT;
 
 /** Výjavy citátov (šablóna B, 16:9, ľavá polovica voľný papyrus) — `public/feed/citaty/c1–c30.webp`. */
 const SCENES = 30;
-const DAY_MS = 86_400_000;
 
 const CSS = `
 ${PILL_CSS}
@@ -127,7 +126,6 @@ export function PackFeed() {
   }, [scrolls, lang, day, savedIds]);
   const savedScrolls = useMemo(() => savedIds.map((id) => scrolls.find((z) => z.id === id)).filter((z): z is DemoScroll => !!z), [savedIds, scrolls]);
 
-  const newToday = useMemo(() => trips.filter((tr) => tr.at && Date.now() - tr.at < DAY_MS).length, [trips]);
   const ownName = firstWord((dogs[0]?.owner_name || '').trim()) || tx('pack.feed.you', 'You');
   const youImg = avatarUrl || dogs[0]?.cloudinary_main_url || null;
 
@@ -205,9 +203,10 @@ export function PackFeed() {
     <div className="pkf">
       <style>{SCROLL_CSS}{SCROLL_CARD_CSS}{CSS}</style>
       <div className="pkf-col">
-        {/* ── PÁS POD HLAVIČKOU: AINUBIS → Sniffer → Najnovšie výlety ── */}
+        {/* ── PÁS POD HLAVIČKOU: Sniffer → Najnovšie výlety. Doska AINUBISa odišla do upozornení
+            (chvost v hlavičke, `AinubisOznam.tsx`) — Matej 26. 10.: „ten prvý oznam ainubisa je ok
+            ALE schovaj ho do upozornenia". ── */}
         <div className="pkf-top">
-          <AiBoard saved={savedScrolls.length} newTrips={newToday} />
           <SnifferStrip />
           <TripStrip trips={trips.slice(0, 8)} />
         </div>

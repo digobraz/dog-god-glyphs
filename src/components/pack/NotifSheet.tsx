@@ -36,6 +36,8 @@ import { countryISO2 } from '@/lib/countryGeo';
 import { flagUrl } from '@/lib/flagUrl';
 
 const StatsDetail = lazy(() => import('./StatsDetail').then((m) => ({ default: m.StatsDetail })));
+// Oznam AINUBISA (26. 10. 2026, TEST_BUILD) — lenivo, ťahá zvitky a výlety; viď `AinubisOznam.tsx`.
+const AinubisOznam = lazy(() => import('./AinubisOznam'));
 
 const DOG_NAME_FONT = "'Cinzel Decorative','Cinzel',serif";
 
@@ -233,6 +235,7 @@ const CSS = `
 .ntf-real{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .ntf-real ul{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;margin:0;padding:0;list-style:none;}
 .ntf-real li{padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:rgba(251,245,230,0.78);border:1px solid ${T.hairline};}
+.ntf-row--ai{background:rgba(${AINUBIS.cyanRGB},0.10);border-color:rgba(${AINUBIS.cyanRGB},0.45);}
 .ntf-av{flex:0 0 auto;width:40px;height:40px;border-radius:${PACK_R.pill}px;background:${AINUBIS.faceBg};box-shadow:${AINUBIS.faceRing};display:grid;place-items:center;overflow:hidden;}
 .ntf-av img{height:78%;width:auto;}
 .ntf-txt{flex:1;min-width:0;font-size:${PACK_TEXT.body}px;line-height:1.35;}
@@ -244,9 +247,10 @@ const CSS = `
 .ntf-all{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.xl}px);}
 ${STAGE_CSS}`;
 
-type Props = { onClose: () => void; children?: React.ReactNode; hasReal: boolean };
+/** `oznam` = riadok AINUBISA navrchu zoznamu (TEST_BUILD); `grown` = koľko psov pribudlo od poslednej návštevy. */
+type Props = { onClose: () => void; children?: React.ReactNode; hasReal: boolean; oznam?: { grown: number } };
 
-export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet({ onClose, children, hasReal }, ref) {
+export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet({ onClose, children, hasReal, oznam }, ref) {
   const t = useT();
   const { lang } = useLang();
   const navigate = useNavigate();
@@ -372,6 +376,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
               </span>
             </div>
             <div className="ntf-list">
+              {oznam && <Suspense fallback={null}><AinubisOznam grown={oznam.grown} onClose={onClose} /></Suspense>}
               {hasReal && <div className="ntf-real">{children}</div>}
               {tips.length > 0 && <div className="ntf-sec">{t('pack.notif.forYou')}</div>}
               {tips.map((tip) => (
@@ -384,7 +389,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                   <button type="button" className="ntf-cta" onClick={tip.go}>{tip.cta}</button>
                 </div>
               ))}
-              {!hasReal && tips.length === 0 && <div className="ntf-empty">{t('pack.notif.allClear')}</div>}
+              {!hasReal && !oznam && tips.length === 0 && <div className="ntf-empty">{t('pack.notif.allClear')}</div>}
             </div>
           </>
         )}

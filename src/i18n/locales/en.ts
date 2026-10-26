@@ -6947,6 +6947,7 @@ export const en = {
   'pack.feed.toast.unlisted': "Removed from TRIPLIST",
   'pack.feed.saved.head': "You put aside scrolls ({n}). Got five minutes now?",
   'pack.feed.saved.sub': "For later",
+  'pack.feed.board.grown': "new dogs in the pack: {n}",
   'pack.feed.board.saved': "scrolls put aside: {n}",
   'pack.feed.board.trips': "new trips today: {n}",
   'pack.feed.board.idle': "Ask me anything about your dog.",

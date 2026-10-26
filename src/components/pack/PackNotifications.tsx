@@ -14,6 +14,7 @@ import ainubisFace from '@/assets/ainubis-badge.webp';
 // s bielym textom… červená zo sniffer“). Jedna červená v appke, nie nový odtieň.
 import { SNIFFER_HEART } from './buddy/SnifferLogo';
 import { DEV_FULL } from '@/lib/packFlags';
+import { TEST_BUILD } from '@/lib/env';
 import { LAPIS } from './navGoldSkin';
 // Lazy, rovnaký dôvod ako pri `packAlerts`: `packHumans` ťahá `packStore`.
 const respondWalkInviteLazy = (id: string, accept: boolean) =>
@@ -61,6 +62,33 @@ const CAP_DOT: React.CSSProperties = {
   position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 999,
   background: SNIFFER_HEART, boxShadow: `0 0 0 1.5px ${T.pageBg}`,
 };
+// Tá istá bodka v hlase AINUBISA — cyan so žiarou ako bodka oznamu v páse panela (`.ntf-pill--news i`).
+const CAP_DOT_AI: React.CSSProperties = {
+  ...CAP_DOT, background: AINUBIS.cyan, boxShadow: `0 0 0 1.5px ${T.pageBg}, 0 0 6px ${AINUBIS.cyan}`,
+};
+
+// ── OZNAM AINUBISA = CYAN BODKA (26. 10. 2026, len za TEST_BUILD) ─────────────────────────────
+// Matej: *„každé prihlásenie hlási cyan upozornenie — kde oznámime počet členov (ak pribudnú) alebo
+// nejaký oznam"* · *„cyan = systém + AINUBIS · červená = upozornenia od členov"*. Riadok je v
+// `AinubisOznam.tsx`, tu sa len rozhoduje, či svieti ako nový:
+//   · „prihlásenie" = nové otvorenie appky (sessionStorage) — po otvorení panela zhasne do ďalšieho;
+//   · prírastok = psy s číslom (`total` z `get-pack-stats.dogs`, ten istý počet ako homepage), porovnaný
+//     s číslom, ktoré človek videl pri poslednom otvorení panela (localStorage).
+// Do dnes to isté miesto rozsvecoval prírastok za 24 h ČERVENOU — systém sa tvári ako člen.
+const OZNAM_SEEN_KEY = 'pack-oznam-seen';
+const SEEN_DOGS_KEY = 'pack-seen-dogs';
+function readOznamSeen(): boolean {
+  try { return sessionStorage.getItem(OZNAM_SEEN_KEY) === '1'; } catch { return false; }
+}
+function readSeenDogs(): number | null {
+  try { const v = Number(localStorage.getItem(SEEN_DOGS_KEY)); return v > 0 ? v : null; } catch { return null; }
+}
+function markOznamSeen(dogs: number | null | undefined): void {
+  try {
+    sessionStorage.setItem(OZNAM_SEEN_KEY, '1');
+    if (dogs && dogs > 0) localStorage.setItem(SEEN_DOGS_KEY, String(dogs));
+  } catch { /* súkromné okno — oznam sa ukáže znova, nič sa nerozbije */ }
+}
 
 type PackMessagingModule = typeof import('./messaging/packMessaging');
 type PackAlertsModule = typeof import('./packAlerts');
@@ -217,6 +245,12 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   // Odznak NOSA = neprečítané upozornenia + dnešný prírastok svorky. Správy sa sem
   // ZÁMERNE nepočítajú — má ich obálka vedľa a dve rovnaké čísla vedľa seba nič nehovoria.
   const bellCount = (last24h ?? 0) + freshAlerts.length;
+  // TEST_BUILD: červená = len od členov, cyan = oznam AINUBISA / prírastok (hlavička súboru).
+  const [oznamFresh, setOznamFresh] = useState(() => TEST_BUILD && !readOznamSeen());
+  const [seenDogs] = useState(readSeenDogs);
+  const grown = TEST_BUILD && total && seenDogs && total > seenDogs ? total - seenDogs : 0;
+  const memberDot = TEST_BUILD ? freshAlerts.length > 0 : bellCount > 0;
+  const cyanDot = TEST_BUILD && !memberDot && oznamFresh;
 
   return (
     <div
@@ -329,6 +363,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
             alertsMod.markSeen(freshAlerts.map((x) => x.id));
             setSeenEpoch((e) => e + 1);
           }
+          if (next && TEST_BUILD) { markOznamSeen(total); setOznamFresh(false); }
           return next;
         }), open ? 0 : 260); }}
         aria-label={t('pack.notif.ariaNotifications')}
@@ -352,7 +387,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
       >
         <HandTail key={wag} size={capsule ? 24 : 17} className={wag ? 'ntf-wag' : undefined} />
         <style>{WAG_CSS}</style>
-        {bellCount > 0 && capsule && <span aria-hidden style={CAP_DOT} />}
+        {memberDot && capsule && <span aria-hidden style={CAP_DOT} />}
+        {cyanDot && capsule && <span aria-hidden style={CAP_DOT_AI} />}
         {bellCount > 0 && !capsule && (
           <span
             style={{
@@ -385,7 +421,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           tie isté, len stoja v papyrusovom skle pod blokom DOGYPT STATS. „Tep svorky" (prírastok
           dnes / za 30 dní / spolu) odišiel do bloku STATS. */}
       {open && createPortal(
-        <NotifSheet ref={panelRef} onClose={closeSheet} hasReal={DEV_FULL && (alerts.length > 0 || unreadConvs.length > 0)}>
+        <NotifSheet ref={panelRef} onClose={closeSheet} hasReal={DEV_FULL && (alerts.length > 0 || unreadConvs.length > 0)}
+          oznam={TEST_BUILD ? { grown } : undefined}>
           {DEV_FULL && alerts.length > 0 && (
             <>
               <div

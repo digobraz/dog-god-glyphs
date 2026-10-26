@@ -6650,6 +6650,7 @@ export const cs: Partial<Dict> = {
   'pack.feed.toast.unlisted': "Odebráno z TRIPLISTU",
   'pack.feed.saved.head': "Odložené svitky čekají ({n}). Máš teď pět minut?",
   'pack.feed.saved.sub': "Na později",
+  'pack.feed.board.grown': "do smečky přibyli psi: {n}",
   'pack.feed.board.saved': "odložené svitky: {n}",
   'pack.feed.board.trips': "nové výlety dnes: {n}",
   'pack.feed.board.idle': "Zeptej se mě na cokoli o svém psovi.",
