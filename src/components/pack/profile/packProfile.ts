@@ -925,9 +925,28 @@ export async function saveHuman(patch: Partial<HumanProfile>, opts?: { throwOnEr
 
   const uid = await currentUserId();
   if (uid) {
+    // 🔴 Na server ide LEN ZMENA, zlúčená s ČERSTVÝM `human` zo servera — nie celá lokálna
+    //    kópia (audit FEED+profil 26. 10. 2026, R1). Kópia sa načíta raz za návštevu, kým
+    //    PackSettings / humanPrefs píšu `notifications_enabled`, `notif_off` a `devotion_times`
+    //    priamo do DB. Celý objekt z kópie ich ticho vracal späť: človek si vypol maily
+    //    a ďalšia úprava profilu mu ich zapla. To isté robili dve zariadenia naraz.
+    const { data: row, error: readErr } = await db.from('pack_profiles')
+      .select('human').eq('user_id', uid).maybeSingle();
+    if (readErr) {
+      if (opts?.throwOnError) throw readErr;
+      return next; // bez čerstvého stavu nezapisuj — stará kópia by prepísala novší server
+    }
+    const serverHuman = (row as { human?: Record<string, unknown> } | null)?.human;
+    const merged = serverHuman ? { ...serverHuman, ...patch } : (next.human as unknown as Record<string, unknown>);
     const { error } = await db.from('pack_profiles')
-      .upsert({ user_id: uid, human: next.human as unknown as Record<string, unknown> }, { onConflict: 'user_id' });
+      .upsert({ user_id: uid, human: merged }, { onConflict: 'user_id' });
     if (error && opts?.throwOnError) throw error;
+    if (!error && serverHuman) {
+      const synced: CentralProfile = { ...next, human: { ...next.human, ...(merged as Partial<HumanProfile>) } };
+      writeRaw(synced);
+      emitChange();
+      return synced;
+    }
   }
   return next;
 }
