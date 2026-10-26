@@ -78,7 +78,6 @@ export const TRIP_COMMENTS_CSS = `${VEIL_CSS}
 .tcm-review-main{flex:1;min-width:0;}
 .tcm-review-top{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
 .tcm-review-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;color:${T.inkStrong};}
-.tcm-review-pack{font-size:10px;color:${T.inkWarm};}
 .tcm-review-badge{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6E4A12;background:rgba(201,154,63,0.20);padding:4px 8px;border-radius:999px;}
 .tcm-paws{display:inline-flex;gap:2px;margin-top:4px;}
 .tcm-review-text{font-size:12px;line-height:1.5;color:rgba(42,22,8,0.86);margin-top:5px;}
@@ -620,7 +619,6 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                         <div className="tcm-review-main">
                           <div className="tcm-review-top">
                             <span className="tcm-review-name">{name}</span>
-                            {r.packNumber != null && <span className="tcm-review-pack">· Dogyptian #{r.packNumber}</span>}
                           </div>
                           <Paws rating={r.paws} />
                           {r.body && <div className="tcm-review-text">{r.body}</div>}
