@@ -144,6 +144,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
   const [wished, setWished] = useState(false);
   const [wishing, setWishing] = useState(false);
   const { toast } = useToast();
+  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
 
   const reload = useCallback(() => {
@@ -163,12 +164,13 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
   const send = async () => {
     if (!uid || !draft.trim() || sending) return;
     setSending(true);
-    try { await addComment(post.id, uid, draft); setDraft(''); reload(); } catch { /* ostane v poli */ }
+    try { await addComment(post.id, uid, draft); setDraft(''); reload(); }
+    catch { toast({ title: tx('pack.settings.notifErr', 'Could not save'), variant: 'destructive' }); /* text ostane v poli */ }
     setSending(false);
   };
   const dropComment = async (id: string) => {
     setCms((c) => c.filter((x) => x.id !== id));
-    try { await deleteComment(id); } catch { /* vráti ho reload */ }
+    try { await deleteComment(id); } catch { toast({ title: tx('pack.profile.toastUnknownError', 'Unknown error'), variant: 'destructive' }); /* vráti ho reload */ }
     reload();
   };
 
@@ -187,7 +189,12 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose }: {
 
   const remove = async () => {
     if (!sure) { setSure(true); return; }
-    try { await deletePost(post.id); onClose(); } catch { setSure(false); }
+    if (deleting) return;
+    setDeleting(true);
+    // Tichý neúspech by vyzeral ako „nič sa nestalo" — človek by ťukal znova (audit 26. 10.).
+    try { await deletePost(post.id); onClose(); }
+    catch { setSure(false); toast({ title: tx('pack.profile.toastUnknownError', 'Unknown error'), variant: 'destructive' }); }
+    finally { setDeleting(false); }
   };
 
   const tagged = dogs.filter((d) => post.attach.dogs?.includes(d.id));

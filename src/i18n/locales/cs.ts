@@ -6313,7 +6313,7 @@ export const cs: Partial<Dict> = {
   'pack.me.diaryEmpty': "Deník přijde s FEEDem. Vidíš ho jen ty.",
   'pack.me.openDogs': "Ukázat psy",
   'pack.me.closeDogs': "Skrýt psy",
-  'pack.me.dogBioEmpty': "Zatím bez bia. Napiš ho v DOG ID.",
+  'pack.me.dogBioEmpty': "Zatím bez popisu. Napiš ho v DOG ID.",
   'pack.me.editDog': "Upravit DOG ID",
 
   // profil JA: tvorba · stories · titulka (23. 10. 2026)

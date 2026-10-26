@@ -6400,7 +6400,7 @@ export const sk: Partial<Dict> = {
   'pack.me.diaryEmpty': "Denník príde s FEEDom. Vidíš ho len ty.",
   'pack.me.openDogs': "Ukázať psov",
   'pack.me.closeDogs': "Skryť psov",
-  'pack.me.dogBioEmpty': "Zatiaľ bez bia. Napíš ho v DOG ID.",
+  'pack.me.dogBioEmpty': "Zatiaľ bez popisu. Napíš ho v DOG ID.",
   'pack.me.editDog': "Upraviť DOG ID",
   // profil JA: tvorba · stories · titulka (23. 10. 2026)
   'pack.compose.newPost': "Nový príspevok",

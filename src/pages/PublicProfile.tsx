@@ -94,6 +94,18 @@ export default function PublicProfile() {
     return () => { alive = false; };
   }, [sessionChecked, isSelf, askedNumber]);
 
+  // Moje vlastné číslo (`/pack/u/<číslo môjho psa>`) → môj profil, nie cudzí s NAPÍSAŤ sebe (audit 26. 10.).
+  // Vlastné psy číta RLS, takže stačí opýtať sa, či pes s týmto číslom je môj.
+  const [mineNumber, setMineNumber] = useState(false);
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid || askedNumber == null) { setMineNumber(false); return; }
+    let alive = true;
+    supabase.from('dogs').select('id').eq('user_id', uid).eq('pack_number', askedNumber).limit(1)
+      .then(({ data }) => { if (alive) setMineNumber(!!data?.length); });
+    return () => { alive = false; };
+  }, [session?.user?.id, askedNumber]);
+
   // PAWMATE (26. 10. 2026): `/pack/u/:n/mate/:uid` = karta človeka, ktorého majiteľ #n ukázal na profile.
   // `undefined` = načítava sa, `null` = nie je ukázaný (alebo stará DB bez `get_profile_mates`).
   const [mateCard, setMateCard] = useState<ProfileMate | null | undefined>(mateId ? undefined : null);
@@ -127,7 +139,7 @@ export default function PublicProfile() {
   }
 
   // Ja sám (staré odkazy s UUID) → môj profil. Dve podoby vlastného profilu by sa rozišli.
-  if (isSelf) return <Navigate to="/pack/profile" replace />;
+  if (isSelf || mineNumber) return <Navigate to="/pack/profile" replace />;
   if (mateId && session?.user?.id === mateId) return <Navigate to="/pack/profile" replace />;
 
   // Cudzí člen sa ešte načítava — ticho, nie fallback. Fallback by na okamih tvrdil,
