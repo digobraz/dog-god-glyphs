@@ -84,9 +84,13 @@ export const ME_CSS = `
 .me-bones{ display:inline-flex; align-items:center; gap:${S.xs}px; padding:${S.xs}px ${S.md}px; border-radius:${PACK_R.pill}px; cursor:pointer;
   background:${tierGradient(BONES_TIER)}; border:1px solid ${BONES_TIER.b}; color:${BONES_TIER.ink}; box-shadow:${T.panelShadow};
   font-family:${FONT_UI}; font-weight:600; font-size:${TX.label}px; letter-spacing:.02em; }
-.me-foot{ position:absolute; left:${OWN_X.m + OWN.m + S.sm}px; right:${S.md}px; bottom:-${OWN_DROP}px; }
-.me-nm{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:${TX.h2}px; letter-spacing:.14em; color:${T.inkStrong};
-  text-transform:uppercase; white-space:nowrap; overflow:hidden; }
+.me-foot{ position:absolute; left:${OWN_X.m + OWN.m + S.sm}px; right:${S.md}px; bottom:-${OWN_DROP}px; container-type:inline-size; }
+/* Meno sa ZMESTÍ, nie odreže (audit 26. 10.: „Alexandra Kováčová" na 360 px končila uprostred písmena).
+   Rovnica, nie meranie: Cinzel verzálky + .14em ≈ .92em na znak ⇒ veľkosť = šírka pätičky / (znaky × .92),
+   strop = stupeň nadpisu, dno = label 12; až pod dnom nastúpi „…". --nm = počet znakov (nastavuje render). */
+.me-nm{ margin:0; font-family:${FONT_TITLE}; font-weight:700; letter-spacing:.14em; color:${T.inkStrong}; /* písmo: meno */
+  font-size:clamp(${TX.label}px, calc(100cqw / (var(--nm, 10) * .92)), ${TX.h2}px);
+  text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 /* HODNOSTI VEDĽA SEBA (Matej 23. 10.: „až po pravý okraj“ → v ten istý deň neskôr: „pútnika mierne
    rozšír a faraóna zúž, aby to bolo akurát, nerozťahuj to“). Pilulka = svoj obsah + vzduch, nič sa
    nenaťahuje; dlhý stupeň sa skráti. Pod sebou len so „stack“. Ťuk = rozbaľovač MeRank pod hlavou. */
@@ -311,7 +315,7 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
 @media (min-width:768px){
   .me-cover{ height:${COVER_H.pc}px; }
   .me-foot{ left:${OWN_X.pc + OWN.pc + S.lg}px; bottom:-${S.lg}px; }
-  .me-nm{ font-size:${TX.h1}px; }
+  .me-nm{ font-size:clamp(${TX.label}px, calc(100cqw / (var(--nm, 10) * .92)), ${TX.h1}px); }
   .me-lv{ max-width:360px; }
   .me-lv > *{ letter-spacing:.14em; }
   .me-under{ padding:0 ${S.xl}px ${S.xl}px; }
@@ -500,7 +504,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
         ))}
       </div>
       <div className="me-foot">
-        <h1 className="me-nm">{name}</h1>
+        <h1 className="me-nm" style={{ ['--nm' as string]: Math.max(8, String(name ?? '').length) }}>{name}</h1>
         {RANK_BADGE_ON && <style>{RANK_BADGE_CSS}</style>}
         {noRanks ? null : RANK_BADGE_ON ? (
           // TEST_BUILD (25. 10. 2026): odznaky SLUŽOBNÍK + PÚTNIK namiesto pilulky DEVOTION + PÚTNIK.

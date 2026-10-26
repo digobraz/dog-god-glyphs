@@ -16,6 +16,7 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { ME_CSS, ME_FLAT_CSS, DOG_FONT, MeCover, MeOwn, MeRank, MeFlag } from '@/components/pack/profile/meHead';
 import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBadge';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
+import { compressFile } from '@/lib/photoIntake';
 import { coverAlbumOf, coverOfDay, changeDogMainPhoto, fetchMyPosts, isMoment, isLive } from '@/components/pack/profile/mePosts';
 import { CoverSheet } from '@/components/pack/profile/CoverSheet';
 import { DevotionSheet } from '@/components/pack/profile/DevotionSheet';
@@ -390,7 +391,9 @@ export default function PackProfile() {
     if (!file || !session?.user) return;
     setUploading(true);
     try {
-      const result = await uploadAvatarPhoto(file, session.user.id);
+      // Zmenšiť pred nahraním ako titulka v CoverSheet a príspevky — fotka z mobilu má 10+ MB (audit 26. 10.).
+      const { blob } = await compressFile(file);
+      const result = await uploadAvatarPhoto(blob, session.user.id);
       const { error: upErr } = await supabase.auth.updateUser({
         data: { avatar_url: result.secureUrl },
       });
@@ -418,7 +421,8 @@ export default function PackProfile() {
     if (!file || !session?.user) return;
     setCoverUploading(true);
     try {
-      const result = await uploadCoverPhoto(file, session.user.id);
+      const { blob } = await compressFile(file);
+      const result = await uploadCoverPhoto(blob, session.user.id);
       // Nová titulka ide aj do ALBUMU titulky (`CoverSheet` na profile), inak by sa po výmene stratila stará.
       await saveHuman({ coverPhoto: result.secureUrl, coverY: 50, coverAlbum: [...coverAlbumOf(human), result.secureUrl] }, { throwOnError: true });
       setCoverY(null);
