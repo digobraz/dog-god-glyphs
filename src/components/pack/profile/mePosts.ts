@@ -45,7 +45,7 @@ export const DAY_MS = 24 * 60 * 60 * 1000;
 export const isMoment = (p: MePost) => p.tags.includes(TAG_MOMENT);
 export const isAlbum = (p: MePost) => p.tags.includes(TAG_ALBUM);
 export const isTripStory = (p: MePost) => p.tags.includes(TAG_TRIP_STORY);
-export const isNature = (p: MePost) => p.tags.includes(TAG_NATURE);
+export const isNature = (p: MePost) => p.tags.includes(TAG_NATURE) || p.tags.includes('t:trip');
 /** Story žije 24 h od zverejnenia. */
 export const isLive = (p: MePost, now = Date.now()) => isMoment(p) && now - Date.parse(p.createdAt) < DAY_MS;
 
@@ -96,6 +96,8 @@ export async function publish(opts: {
   place?: { name: string; lat?: number; lon?: number } | null;
   /** Odpoveď na „Je fotka z výletu alebo z prírody?" — len príspevok. */
   nature?: boolean;
+  /** Pilulky tém (`t:trip`…, FEED 2 krok 5) — voliteľné, najviac 2; nahrádzajú otázku `nature`. */
+  topics?: string[];
 }): Promise<void> {
   const photos = await uploadAll(opts.files, opts.uid);
   const attach: MePost['attach'] = {};
@@ -103,7 +105,7 @@ export async function publish(opts: {
   if (opts.mode === 'album' && opts.title?.trim()) attach.title = opts.title.trim();
   if (opts.place?.name.trim()) attach.place = { ...opts.place, name: opts.place.name.trim() };
   const tag = opts.mode === 'moment' ? TAG_MOMENT : opts.mode === 'album' ? TAG_ALBUM : TAG_POST;
-  const tags = opts.mode === 'post' && opts.nature ? [tag, TAG_NATURE] : [tag];
+  const tags = opts.mode === 'post' ? [tag, ...(opts.nature ? [TAG_NATURE] : []), ...(opts.topics ?? []).slice(0, 2)] : [tag];
   const base = { author_id: opts.uid, body: opts.body.trim(), tags, attach, visibility: opts.visibility };
   const rows = opts.mode === 'moment' ? photos.map((p) => ({ ...base, photos: [p] })) : [{ ...base, photos }];
   const { error } = await db.from('posts').insert(rows);

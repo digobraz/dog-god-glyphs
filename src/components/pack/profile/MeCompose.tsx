@@ -22,6 +22,8 @@ import { publish, type ComposeMode, type Visibility } from '@/components/pack/pr
 import { PlaceField, type PostPlace } from '@/components/pack/profile/PlaceField';
 import { useToast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
+import { TEST_BUILD } from '@/lib/env';
+import { POST_TAGS, POST_TAG_MAX } from '@/components/pack/feed/postTags';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -63,6 +65,10 @@ const CSS = `
 .mc-vis button{flex:1;padding:${S.sm}px ${S.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;border:1.5px solid ${T.border};background:${T.card};color:${T.inkStrong};
   font-family:${FONT_UI};font-weight:500;font-size:${TX.label}px;}
 .mc-vis button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
+.mc-tags{display:flex;flex-wrap:wrap;gap:${S.sm}px;}
+.mc-tag{display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;border:1.5px solid ${T.border};background:${T.card};
+  color:${T.inkStrong};font-family:${FONT_UI};font-weight:500;font-size:${TX.label}px;}
+.mc-tag.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
 .mc-note{margin:${S.xs}px 0 0;font-size:${TX.label}px;color:${T.inkWarm};}
 /* NÁHĽAD OREZU (FEED 2, Matej 26. 10.: „vysoká fotka sa oreže, ale autor vidí náhľad orezu pri pridávaní ako na IG").
    Rám má pomer, v akom fotku uvidí feed: široká ostáva, vysoká sa oreže na 4:5. */
@@ -108,6 +114,10 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   const [vis, setVis] = useState<Visibility>('public');
   // Z výletu / z prírody? `null` = neodpovedal — príspevok sa vtedy neodošle (áno ⇒ vo feede 🎯 TRIPWISH).
   const [nature, setNature] = useState<boolean | null>(null);
+  // FEED 2 krok 5 (len TEST_BUILD): osem pilulok tém namiesto otázky — voliteľné, 1–2, bez predvoľby.
+  const [topics, setTopics] = useState<string[]>([]);
+  const pills = TEST_BUILD;
+  const toggleTopic = (tag: string) => setTopics((c) => (c.includes(tag) ? c.filter((x) => x !== tag) : c.length >= POST_TAG_MAX ? [...c.slice(1), tag] : [...c, tag]));
   const [ratio, setRatio] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const galRef = useRef<HTMLInputElement>(null);
@@ -138,13 +148,13 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   const heading = mode === 'moment' ? tx('pack.compose.newStory', 'New story')
     : mode === 'album' ? tx('pack.compose.newAlbum', 'New album')
       : tx('pack.compose.newPost', 'New post');
-  const ready = files.length > 0 && !!uid && (mode !== 'album' || title.trim().length > 0) && (mode !== 'post' || nature !== null);
+  const ready = files.length > 0 && !!uid && (mode !== 'album' || title.trim().length > 0) && (mode !== 'post' || pills || nature !== null);
 
   const share = async () => {
     if (!ready || !uid || busy) return;
     setBusy(true);
     try {
-      await publish({ uid, mode, files, body, title, dogIds, visibility: vis, place: mode === 'post' ? place : null, nature: mode === 'post' && nature === true });
+      await publish({ uid, mode, files, body, title, dogIds, visibility: vis, place: mode === 'post' ? place : null, nature: mode === 'post' && !pills && nature === true, topics: mode === 'post' && pills ? topics : undefined });
       toast({ title: mode === 'moment' ? tx('pack.compose.storyDone', 'Your story is live for 24 hours') : tx('pack.compose.done', 'Shared') });
       onClose();
     } catch (err) {
@@ -244,7 +254,20 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
               : mode === 'album' ? tx('pack.compose.albumText', 'What is this album about? (optional)')
                 : tx('pack.compose.postText', 'Write something about it…')} />
 
-          {mode === 'post' && (
+          {mode === 'post' && pills && (
+            <div>
+              <p className="mc-lbl">{tx('pack.feed.tag.ask', 'What is it about? (pick up to 2)')}</p>
+              <div className="mc-tags">
+                {POST_TAGS.map((d) => (
+                  <button key={d.tag} type="button" className={`mc-tag${topics.includes(d.tag) ? ' on' : ''}`} aria-pressed={topics.includes(d.tag)} onClick={() => toggleTopic(d.tag)}>
+                    <BrandIcon name={d.icon} size={16} tint="dark" />{tx(d.i18n, d.fallback)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mode === 'post' && !pills && (
             <div>
               <p className="mc-lbl">{tx('pack.compose.natureQ', 'Is the photo from a trip or from nature?')}</p>
               <div className="mc-ask" role="radiogroup">
