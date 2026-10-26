@@ -25,7 +25,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, BRAIN_STATE, aiWorld } from '@/components/pack/ainubisSkin';
-import { HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft, HandHeart, HandTrash, HandLock } from '@/components/pack/HandIcons';
+import { HandStar, HandPlus, HandPaw, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft, HandTrash, HandLock } from '@/components/pack/HandIcons';
 
 /** Kresba z kitu `/icons/pack/` cez masku (ten istý zápis ako v PackAinubis). */
 const Ic = ({ ic }: { ic: string }) => (
@@ -98,7 +98,6 @@ export const scrollUI = (lang: string) => UI[scrollLang(lang) as keyof typeof UI
 /** Známka dôkazu ako v medicíne (úroveň dôkazov A/B/C), Matej 3. 10.: „možno ABC? stupnica?“ — sd 3/2/1 → A/B/C. */
 const GRADE = ['', 'C', 'B', 'A'];
 /** Ružová diskusie — NOVÁ farba mimo palety AINUBISA (Matej 3. 10.), kým ju nepotvrdí. */
-const ZV_PINK = '#FF8AC8';
 
 export const SCROLL_CSS = `
 ${STAGE_CSS}
@@ -116,15 +115,14 @@ ${STAGE_CSS}
 .zv-act{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;
   min-width:44px;height:36px;padding:0 ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;cursor:pointer;
   background:none;border:0;color:${AINUBIS.ink};font:500 ${PACK_TEXT.label}px ${FONT_UI};transition:color 150ms ease;}
-/* FARBY IKONIEK — Matej 3. 10.: „labka cyan neónová žiariaca, hviezdička žltá, komenty ružová, zdieľanie zelená“.
-   ⚠️ RUŽOVÁ nie je v palete AINUBISA (nová, ZV_PINK) · ZELENÁ zdieľania je tá istá ako „prečítané“ (BRAIN_STATE.read)
-   — flagnuté Matejovi, zatiaľ podľa neho. Zapnutá akcia = ikonka žiari (drop-shadow, nie box-shadow). */
+/* FARBY IKONIEK — Matej 3. 10.: „labka cyan neónová žiariaca, hviezdička žltá“. Komentár je od 26. 10. svetlý
+   (ružová nebola v palete AINUBISA) a zdieľanie zmizlo — DOGSCROLL = ten istý blok ako zvitok vo FEEDe
+   (Matej 26. 10.: „zjednoťme, je to vlastne to isté, len v inom priečinku“). Zapnutá akcia = ikonka žiari. */
 .zv-act{opacity:.9;}
 .zv-act:hover{opacity:1;}
 .zv-act[data-k="like"]{color:${AINUBIS.cyan};filter:drop-shadow(0 0 2px rgba(${AINUBIS.cyanRGB},0.4));}
 .zv-act[data-k="save"]{color:${AINUBIS.ctaA};}
-.zv-act[data-k="talk"]{color:${ZV_PINK};}
-.zv-act[data-k="share"]{color:var(--zv-read);}
+.zv-act[data-k="talk"]{color:${AINUBIS.ink};}
 /* Žiara len jemná (Matej 4. 10.: „nerob takú žiaru na ikonkách, packa je celá rozmazaná“). */
 .zv-act.is-on{opacity:1;filter:drop-shadow(0 0 3px rgba(${AINUBIS.cyanRGB},0.35));}
 .zv-act .zv-ic{margin-right:0;width:20px;height:20px;}
@@ -399,8 +397,8 @@ export function EvidenceBadge({ sd, lang, corner = false }: { sd: number; lang: 
   );
 }
 
-export function ScrollActions({ id, lang, onShare, onTalk, lock }: {
-  id: string; lang: string; onShare: () => void; onTalk: () => void;
+export function ScrollActions({ id, lang, onTalk, lock }: {
+  id: string; lang: string; onTalk: () => void;
   /** NÁHĽAD /magnet (12. 10. 2026): akcie nič nezapisujú, každá otvorí popup pre Dogypťanov. */
   lock?: () => void;
 }) {
@@ -412,23 +410,20 @@ export function ScrollActions({ id, lang, onShare, onTalk, lock }: {
   const c = useCounts(id);
   const likes = c ? c.likes : (liked ? 1 : 0);
   const saves = c ? c.saves : (saved ? 1 : 0);
-  const [sent, setSent] = useState(false);
   // ZAPNUTÁ AKCIA = VYPLNENÁ IKONKA (Matej 3. 10.: „vyplnia sa farbou, nie len obrys, ale aj vnútro —
   // pri komentoch len pravá bublina"). Labka = plná z kitu, hviezdička a šípka = vyplnený vonkajší
-  // obrys tej istej kresby, bubliny = pravá vyplnená. Zdieľanie nie je prepínač — svieti chvíľu po kliku.
+  // obrys tej istej kresby, bubliny = pravá vyplnená.
   // POČTY pri páči sa a uložení (Matej 3. 10.: „počty musia byť pri likeoch a uloženiach").
   return (
     <div className="zv-acts">
       <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={lock ?? (() => toggleLiked(id))} aria-label={u.like}>
-        <HandHeart size={20} on={liked} />{/* srdiečko, nie labka — lock §4.2 ❤️, labka = nav + RatingPaws (Matej 4. 10.: „dajme srdiečko“) */}<span className="zv-n">{likes}</span>
+        {/* LABKA, nie srdce — Matej 26. 10. pri FEEDe: lajk = labka všade, DOGSCROLL = „to isté, len v inom priečinku“
+            (prebíja 4. 10. „dajme srdiečko“; nákres plany/nakres-feed-2026-10-26.html). */}
+        <HandPaw size={20} on={liked} /><span className="zv-n">{likes}</span>
       </button>
       <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={lock ?? (() => toggleSaved(id))} aria-label={u.save}><HandStar size={20} filled={saved} /><span className="zv-n">{saves}</span></button>
       <button type="button" data-k="talk" className={`zv-act${talk > 0 ? ' is-on' : ''}`} onClick={lock ?? onTalk} aria-label={u.talk}>
         <Ic ic={talk > 0 ? 'chat-right-full' : 'chat'} /><span className="zv-n">{talk}</span>
-      </button>
-      <button type="button" data-k="share" className={`zv-act${sent ? ' is-on' : ''}`}
-        onClick={lock ?? (() => { onShare(); setSent(true); window.setTimeout(() => setSent(false), 1500); })} aria-label={u.share}>
-        <HandForward size={20} filled={sent} />
       </button>
     </div>
   );
@@ -467,7 +462,7 @@ export function ScrollCard({ z, lang, worldName, onOpen, onShare, lock, locked }
         {z.img && <img src={z.img} alt="" loading="lazy" onClick={() => onOpen(z.id)} />}
         {locked
           ? <span className="zv-lockbadge" aria-hidden><HandLock size={20} /></span>
-          : <ScrollActions id={z.id} lang={lang} onShare={() => onShare(z.id)} onTalk={() => onOpen(z.id, 'talk')} lock={lock} />}
+          : <ScrollActions id={z.id} lang={lang} onTalk={() => onOpen(z.id, 'talk')} lock={lock} />}
       </div>
       <div className="akv-zvt">
         {/* ZNÁMKA V ROHU TEXTOVÉHO BLOKU, NIE KARTY (Matej 5. 10. 2026: *„relevantnosť nesmie byť
@@ -785,7 +780,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
         <div className="zv-top">
           <div className="zv-hero">
             {z.img && <img src={z.img} alt="" onClick={() => setGal(0)} />}
-            <ScrollActions id={z.id} lang={lang} onShare={() => onShare(z.id)} onTalk={() => talkRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} lock={lock} />
+            <ScrollActions id={z.id} lang={lang} onTalk={() => talkRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} lock={lock} />
           </div>
           <div className="zv-head">
             {/* Známka v rohu bloku ako na karte (Matej 4. 10.: „v detaile dať známku na kraj ako pri náhľade“). */}
@@ -883,7 +878,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
                   {/* Lajk komentára s počtom od všetkých (`post_marks`). */}
                   <div className="zv-crow">
                     <button type="button" className={`zv-clike${c.liked ? ' is-on' : ''}`} onClick={() => toggleTalkLike(z.id, i)} aria-label={u.like}>
-                      <HandHeart size={16} on={!!c.liked} />{c.likes ?? (c.liked ? 1 : 0)}
+                      <HandPaw size={16} on={!!c.liked} />{c.likes ?? (c.liked ? 1 : 0)}
                     </button>
                     {/* Mazanie VLASTNÉHO komentára (Matej 6. 10.: „musí to fungovať"). Dva kroky
                         priamo v riadku — systémové okno `confirm()` by zablokovalo appku. */}
