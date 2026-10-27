@@ -238,7 +238,6 @@ export default function PublicProfile() {
     : null;
   const fmt = (n: number) => n.toLocaleString(lang === 'sk' ? 'sk-SK' : 'en-US');
   const num = (n: number | undefined, suffix = '') => <b>{n == null ? '·' : `${fmt(n)}${suffix}`}</b>;
-  const dash = <b className="na" aria-label={tx('pack.me.notYet', 'not yet')}>—</b>;
   // `MeOwn` kreslí psov z `PackDogFull` — potrebuje len id, fotku a meno.
   const ownDogs = member.dogs.map((d) => ({ id: d.dogId, cloudinary_main_url: d.photo, dog_name: d.name, pack_number: d.packNumber, heroglyph_png_url: d.heroglyphUrl }) as unknown as PackDogFull);
   // NAPÍSAŤ = rozhovor s človekom (Matej 25. 10.: *„áno, môže sa písať každému“*). Server nájde majiteľa
@@ -322,8 +321,8 @@ export default function PublicProfile() {
           {/* 5 ČÍSEL — tie isté ako na mojom profile, zverejnené majiteľom (`human.stats`). Pawmate ich nemá. */}
           {!mate && <div className="me-stats">
             {/* SLEDOVANIE (Matej 26. 10. 2026: „presne ako IG … po kliknutí na číslo sa otvorí zoznam"). */}
-            <button type="button" onClick={() => setFollowList('followers')}>{fol.info ? num(fol.info.followers) : dash}<span>{tx('pack.me.followers', 'followers')}</span></button>
-            <button type="button" onClick={() => setFollowList('following')}>{fol.info ? num(fol.info.following) : dash}<span>{tx('pack.publicProfile.followingThem', 'following')}</span></button>
+            <button type="button" onClick={() => setFollowList('followers')}>{num(fol.info?.followers ?? 0)}<span>{tx('pack.me.followers', 'followers')}</span></button>
+            <button type="button" onClick={() => setFollowList('following')}>{num(fol.info?.following ?? 0)}<span>{tx('pack.publicProfile.followingThem', 'following')}</span></button>
             <button type="button">{num(st?.brought)}<span>{tx('pack.me.brought', 'brought in')}</span></button>
             <button type="button">{num(st?.km)}<span>km</span></button>
             <button type="button">{num(st?.study, ' %')}<span>{tx('pack.me.studying', 'studying')}</span></button>

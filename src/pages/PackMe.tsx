@@ -253,7 +253,6 @@ export default function PackMe() {
     );
   }
 
-  const dash = <b className="na" aria-label={tx('pack.me.notYet', 'not yet')}>—</b>;
   // Titulka = vlastná (UPRAVIŤ PROFIL), inak fotka človeka so psom (SNIFFER), inak hlavná fotka prvého psa; bez fotky ostane čierna.
   // Pri striedaní po dni (album titulky) vyberá dnešnú `coverOfDay`.
   const coverSrc = coverOfDay(human) || human?.buddyPhoto || firstDog?.cloudinary_main_url || null;
@@ -365,10 +364,10 @@ export default function PackMe() {
           {/* 5 ČÍSEL — hneď pod fotkou, bez čiar (Matej 22. 10.). */}
           <div className="me-stats">
             <button type="button" onClick={() => setFollowList('followers')}>
-              {fol.info ? <b>{fmt(fol.info.followers)}</b> : dash}<span>{tx('pack.me.followers', 'followers')}</span>
+              <b>{fmt(fol.info?.followers ?? 0)}</b><span>{tx('pack.me.followers', 'followers')}</span>
             </button>
             <button type="button" onClick={() => setFollowList('following')}>
-              {fol.info ? <b>{fmt(fol.info.following)}</b> : dash}<span>{tx('pack.me.following', 'following')}</span>
+              <b>{fmt(fol.info?.following ?? 0)}</b><span>{tx('pack.me.following', 'following')}</span>
             </button>
             <button type="button" onClick={() => setBonesOpen(true)}>
               <b>{brought == null ? '·' : fmt(novice ? 0 : brought)}</b>

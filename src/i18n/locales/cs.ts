@@ -4187,6 +4187,7 @@ export const cs: Partial<Dict> = {
   'pack.alerts.walkInviteYes': 'Ano, šli jsme spolu',
   'pack.alerts.walkInviteNo': 'Ne, to nejsem já',
   'pack.alerts.pawmateJoined': '{who} je ve tvé smečce',
+  'pack.alerts.followNew': '{who} tě sleduje',
   'pack.mate.heirTitle': 'Nástupce',
   'pack.mate.heirTakes': '{name} převezme psa {dog}',
   'pack.mate.heirHint': 'Až se ty o psa už nebudeš moct postarat. Převzetí ověříme ručně — samo se nic nepřepíše.',

@@ -33,6 +33,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { currentTripId, tripPathById } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
+import { fetchMemberProfiles, memberDisplayName } from '@/components/pack/profile/memberProfile';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rovnaký dôvod ako v packStore.ts:
 // `types.ts` tabuľky /packu nepozná (migrácie sú novšie než generovaný súbor).
@@ -57,10 +58,14 @@ export type WishAlertKind = 'wish_me_too' | 'wish_ask' | 'wish_missed' | 'wish_n
 // `walk_invite` (15. 10. 2026): člen ma označil na výlete — potvrdím alebo odmietnem priamo v NOS.
 // `pawmate_joined` (26. 10. 2026): pawmate prijal pozvánku. Matej: *„email že pawmate prijal
 // nemusí byť, stačí upozornenie v apke notifikácia"* — preto mail E nevznikol a je to tu.
-export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | EventAlertKind | WishAlertKind;
+// `follow_new` (27. 10. 2026): „X ťa začal sledovať" — ako IG. Zdroj = `get_follow_list(null,
+// 'followers')` zo `20261105_sledovanie.sql`, žiadna nová tabuľka ani migrácia.
+export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | 'follow_new' | EventAlertKind | WishAlertKind;
 
 /** Koľko dní svieti „{meno} je v tvojej svorke" — potom je to už stav, nie správa. */
 const PAWMATE_ALERT_DAYS = 30;
+/** Nový sledujúci svieti rovnako dlho; staršie sú už len v zozname „sledujúci". */
+const FOLLOW_ALERT_DAYS = 30;
 
 /**
  * Dataset trás — LAZY, rovnaký dôvod ako v `messaging/tripLabel.ts`: `heroTrails.generated.ts`
@@ -173,6 +178,12 @@ interface PawmateAlertRow {
   since: string;
 }
 
+/** riadok `get_follow_list` — len číslo a čas, meno dodá `fetchMemberProfiles` */
+interface FollowAlertRow {
+  pack_number: number;
+  followed_at: string;
+}
+
 interface EventAlertRow {
   kind: EventAlertKind;
   edition_id: string;
@@ -206,7 +217,7 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
   const uid = sess.session?.user?.id;
   if (!uid) return []; // odhlásený / DEV_NOAUTH — RLS by aj tak nevydala nič
 
-  const [incoming, mine, walked, events, wishes, invites, mates] = await Promise.all([
+  const [incoming, mine, walked, events, wishes, invites, mates, follows] = await Promise.all([
     db.from('trip_requests').select('trip_slug,created_at,decided_at')
       .eq('organizer_id', uid).eq('status', 'requested') as
       Promise<{ data: RequestRow[] | null }>,
@@ -227,6 +238,8 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
     // Pawmati — tá istá RPC ako editor svorky (`listMyPawmates`), žiadna nová tabuľka.
     // Kto psa nemá, dostane prázdno; chyba padne na prázdno ako ostatné.
     db.rpc('my_pawmates') as Promise<{ data: PawmateAlertRow[] | null }>,
+    // Noví sledujúci — tá istá RPC ako zoznam po ťuknutí na číslo (`follow.tsx`). Chyba = prázdno.
+    db.rpc('get_follow_list', { p_pack_number: null, p_kind: 'followers' }) as Promise<{ data: FollowAlertRow[] | null }>,
   ]);
 
   const trails = await loadTrails();
@@ -291,6 +304,24 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
       tripPath: '/pack/profile/edit', count: 1, at: m.since,
       who: m.name || (m.email ?? '').split('@')[0] || undefined,
     });
+  }
+
+  // NOVÝ SLEDUJÚCI — id nesie číslo aj čas: kto prestane a znova začne, rozsvieti sa nanovo.
+  // Meno = to isté „Zobraziť ako", aké vidí v zozname; pes ide do zlatého riadku.
+  const folSince = Date.now() - FOLLOW_ALERT_DAYS * 864e5;
+  const fresh = (follows.data ?? []).filter((f) => Date.parse(f.followed_at) >= folSince);
+  if (fresh.length) {
+    const prof = await fetchMemberProfiles(fresh.map((f) => f.pack_number));
+    for (const f of fresh) {
+      const m = prof.get(f.pack_number) ?? null;
+      const num = m?.memberNumber ?? f.pack_number;
+      out.push({
+        id: `fol|${num}|${f.followed_at}`, kind: 'follow_new', tripSlug: '',
+        tripName: (m?.dogs ?? []).map((d) => d.name).filter(Boolean).join(' & '),
+        tripPath: `/pack/u/${num}`, count: 1, at: f.followed_at,
+        who: memberDisplayName(m, `#${num}`) || undefined,
+      });
+    }
   }
 
   return out.sort((a, b) => (a.at < b.at ? 1 : -1));
