@@ -18,17 +18,19 @@ export interface PostTagDef {
   fallback: string;
   /** hand-drawn ikonka z `public/icons/pack/` — naklikal Matej 26. 10. 2026 (nákres `temy-ikony`, `vyber.json`) */
   icon: string;
+  /** pigment, ktorým sa znak vyleje pri výbere (kolo 7, Matej 27. 10.: *„daj 1"*, hárok `temy-kamen/ziara.html`) */
+  color: string;
 }
 
 export const POST_TAGS: PostTagDef[] = [
-  { tag: 't:trip', i18n: 'pack.feed.tag.trip', fallback: 'Trips & nature', icon: 'pin' },
-  { tag: 't:fun', i18n: 'pack.feed.tag.fun', fallback: 'Fun & chill', icon: 'ball' },
-  { tag: 't:train', i18n: 'pack.feed.tag.train', fallback: 'Training & coach', icon: 'trophy-cup' },
-  { tag: 't:tips', i18n: 'pack.feed.tag.tips', fallback: 'Tips & tricks', icon: 'puzzle' },
-  { tag: 't:health', i18n: 'pack.feed.tag.health', fallback: 'Health & food', icon: 'bow' },
-  { tag: 't:learn', i18n: 'pack.feed.tag.learn', fallback: 'Knowledge', icon: 'graduate' },
-  { tag: 't:help', i18n: 'pack.feed.tag.help', fallback: 'Helping dogs', icon: 'hut' },
-  { tag: 't:life', i18n: 'pack.feed.tag.life', fallback: 'Dog life', icon: 'dogsphinx' },
+  { tag: 't:trip', i18n: 'pack.feed.tag.trip', fallback: 'Trips & nature', icon: 'pin', color: '#7A2FBF' },
+  { tag: 't:fun', i18n: 'pack.feed.tag.fun', fallback: 'Fun & chill', icon: 'ball', color: '#D0711F' },
+  { tag: 't:train', i18n: 'pack.feed.tag.train', fallback: 'Training & coach', icon: 'trophy-cup', color: '#1E44C0' },
+  { tag: 't:tips', i18n: 'pack.feed.tag.tips', fallback: 'Tips & tricks', icon: 'puzzle', color: '#2F8A4E' },
+  { tag: 't:health', i18n: 'pack.feed.tag.health', fallback: 'Health & food', icon: 'bow', color: '#7E9418' },
+  { tag: 't:learn', i18n: 'pack.feed.tag.learn', fallback: 'Knowledge', icon: 'graduate', color: '#118A93' },
+  { tag: 't:help', i18n: 'pack.feed.tag.help', fallback: 'Helping dogs', icon: 'hut', color: '#C23B2A' },
+  { tag: 't:life', i18n: 'pack.feed.tag.life', fallback: 'Dog life', icon: 'dogsphinx', color: '#B02F7C' },
 ];
 
 /** Témy príspevku; starý `nature` = `t:trip`. */

@@ -108,7 +108,9 @@ ${FEED_TOPICS_CSS}
 @media (min-width:768px){
   body.pkf-on .pk-paper.pk-plain::before,body.pkf-on .pk-paper.pk-plain::after{display:block;}
   .pkf .pkf-col{max-width:608px;padding:${S.xl}px;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px;box-shadow:${T.cardShadow};}
-  .pkf-col .pkf-tags,.pkf-col .pfs-strip{margin:0 -${S.xl}px;padding-left:${S.xl}px;padding-right:${S.xl}px;scroll-padding-inline:${S.xl}px;}
+  .pkf-col .pfs-strip{margin:0 -${S.xl}px;}
+  .pkf-col .pkf-tags{margin-left:-${S.xl}px;margin-right:-${S.xl}px;}
+  .pkf-col .pkf-tags,.pkf-col .pfs-strip{padding-left:${S.xl}px;padding-right:${S.xl}px;scroll-padding-inline:${S.xl}px;}
 }
 @media (max-width:639px){
   .pkf-it{margin:0 -${PACK_COL_PAD.mobile}px;}
