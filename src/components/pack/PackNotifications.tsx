@@ -10,6 +10,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { openAinubis, getAinubisUnread, onAinubisUnread } from '@/lib/ainubisBus';
 import { AINUBIS } from './ainubisSkin';
 import ainubisFace from '@/assets/ainubis-badge.webp';
+import ainubisHead from '@/assets/ainubis-head.webp';
 // Odznak v kapsule = ČERVENÁ zo SNIFFERu s bielym číslom (Matej 26. 9.: „červené upozornenia
 // s bielym textom… červená zo sniffer“). Jedna červená v appke, nie nový odtieň.
 import { SNIFFER_HEART } from './buddy/SnifferLogo';
@@ -258,8 +259,11 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   const [oznamFresh, setOznamFresh] = useState(() => TEST_BUILD && !readOznamSeen());
   const [seenDogs] = useState(readSeenDogs);
   const grown = TEST_BUILD && total && seenDogs && total > seenDogs ? total - seenDogs : 0;
-  const memberDot = TEST_BUILD ? freshAlerts.length > 0 : bellCount > 0;
-  const cyanDot = TEST_BUILD && oznamFresh;
+  // Odpoveď AINUBISA pod citátom je jeho hlas ⇒ CYAN, nie červená od členov (Matej 27. 10.: „samozrejme A").
+  const memberFresh = freshAlerts.filter((a) => a.kind !== 'ainubis_reply');
+  const cyanCount = TEST_BUILD ? (oznamFresh ? 1 : 0) + freshAlerts.length - memberFresh.length : 0;
+  const memberDot = TEST_BUILD ? memberFresh.length > 0 : bellCount > 0;
+  const cyanDot = cyanCount > 0;
 
   return (
     <div
@@ -399,9 +403,9 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
         <HandTail key={wag} size={capsule ? 24 : 17} className={wag ? 'ntf-wag' : undefined} />
         <style>{WAG_CSS}</style>
         {memberDot && capsule && (TEST_BUILD
-          ? <span aria-hidden style={capBadge(false)}>{freshAlerts.length > 9 ? '9+' : freshAlerts.length}</span>
+          ? <span aria-hidden style={capBadge(false)}>{memberFresh.length > 9 ? '9+' : memberFresh.length}</span>
           : <span aria-hidden style={CAP_DOT} />)}
-        {cyanDot && capsule && <span aria-hidden style={capBadge(true)}>1</span>}
+        {cyanDot && capsule && <span aria-hidden style={capBadge(true)}>{cyanCount > 9 ? '9+' : cyanCount}</span>}
         {bellCount > 0 && !capsule && (
           <span
             style={{
@@ -447,7 +451,21 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                 {t('pack.alerts.title')}
               </div>
               <ul className="flex flex-col gap-2 mb-3">
-                {alerts.slice(0, 6).map((al) => al.kind === 'walk_invite' ? (
+                {alerts.slice(0, 6).map((al) => al.kind === 'ainubis_reply' ? (
+                  // AINUBIS ODPÍSAL (27. 10. 2026) — jeho šat (`ntf-row--ai` z NotifSheet), ťuk = vlákno citátu.
+                  <li key={al.id} className="ntf-li-ai">
+                    <div className="ntf-row ntf-row--ai">
+                      <span className="ntf-av"><img src={ainubisHead} alt="" /></span>
+                      <span className="ntf-txt">
+                        <span className="ntf-ai"><span>AI</span>NUBIS</span> {t('pack.alerts.ainubisReply')}
+                        <small style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>„{al.tripName}“</small>
+                      </span>
+                      <button type="button" className="ntf-cta" onClick={() => { setOpen(false); navigate(al.tripPath); }}>
+                        {t('pack.alerts.ainubisReplyOpen')}
+                      </button>
+                    </div>
+                  </li>
+                ) : al.kind === 'walk_invite' ? (
                   // POZVÁNKA „bol si so mnou" (15. 10. 2026) — rozhoduje sa TU, nie na výlete:
                   // výlet môže ešte čakať na schválenie a pozvaný by ho nevedel otvoriť.
                   <li key={al.id} className="flex items-start gap-2">

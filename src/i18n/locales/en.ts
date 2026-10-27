@@ -2465,6 +2465,8 @@ export const en = {
   'pack.alerts.walkInviteNo': 'Not me',
   'pack.alerts.pawmateJoined': '{who} is now in your pack',
   'pack.alerts.followNew': '{who} started following you',
+  'pack.alerts.ainubisReply': 'replied to your comment under the quote',
+  'pack.alerts.ainubisReplyOpen': 'Open',
   'pack.mate.heirTitle': 'Successor',
   'pack.mate.heirTakes': '{name} takes over {dog}',
   'pack.mate.heirHint': 'When you can no longer care for the dog. We confirm the takeover by hand — nothing moves on its own.',

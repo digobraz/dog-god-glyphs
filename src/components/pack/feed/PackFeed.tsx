@@ -220,7 +220,17 @@ export function PackFeed() {
   // Komentáre pod citátom: vlákno patrí DŇU (citáty rotujú po 16 dňoch), kľúč `<id>-<deň>`.
   const quoteKey = `${quote.id}-${day}`;
   const [quoteCm, setQuoteCm] = useState(0);
-  const [quoteCmOpen, setQuoteCmOpen] = useState(false);
+  // Otvorené vlákno = jeho kľúč. Dnešný citát otvára `quoteKey`; upozornenie „AINUBIS ti odpísal" (27. 10.)
+  // príde cez `?cm=<kľúč>` a môže patriť aj staršiemu dňu — vlákno sa otvorí aj tak.
+  const [cmKey, setCmKey] = useState<string | null>(null);
+  const cmParam = params.get('cm');
+  useEffect(() => {
+    if (!cmParam) return;
+    setCmKey(cmParam);
+    const next = new URLSearchParams(params); next.delete('cm');
+    setParams(next, { replace: true });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cmParam]);
   useEffect(() => {
     let on = true;
     fetchQuoteComments(quoteKey).then((r) => { if (on) setQuoteCm(r.length); }).catch(() => {});
@@ -378,7 +388,7 @@ export function PackFeed() {
             liked={marks.get(`quote:${quote.id}`).liked} onLike={() => marks.toggle(`quote:${quote.id}`, 'like')}
             saved={marks.get(`quote:${quote.id}`).saved} onSave={() => marks.toggle(`quote:${quote.id}`, 'save')}
             likes={marks.get(`quote:${quote.id}`).likes} saves={marks.get(`quote:${quote.id}`).saves}
-            onComment={() => setQuoteCmOpen(true)} comments={quoteCm} />
+            onComment={() => setCmKey(quoteKey)} comments={quoteCm} />
         );
       case 'trip': {
         const ft = trips[it.i];
@@ -464,7 +474,7 @@ export function PackFeed() {
         </>}
       </div>
 
-      {quoteCmOpen && <QuoteComments quoteKey={quoteKey} onClose={() => setQuoteCmOpen(false)} onCount={setQuoteCm} />}
+      {cmKey && <QuoteComments quoteKey={cmKey} onClose={() => setCmKey(null)} onCount={(n) => { if (cmKey === quoteKey) setQuoteCm(n); }} />}
 
       {tripCmOpen && <QuoteComments tripId={tripCmOpen} onClose={() => setTripCmOpen(null)}
         onCount={(n) => setTripCm((m) => (m[tripCmOpen] === n ? m : { ...m, [tripCmOpen]: n }))} />}

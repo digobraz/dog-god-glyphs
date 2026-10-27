@@ -60,7 +60,10 @@ export type WishAlertKind = 'wish_me_too' | 'wish_ask' | 'wish_missed' | 'wish_n
 // nemusí byť, stačí upozornenie v apke notifikácia"* — preto mail E nevznikol a je to tu.
 // `follow_new` (27. 10. 2026): „X ťa začal sledovať" — ako IG. Zdroj = `get_follow_list(null,
 // 'followers')` zo `20261105_sledovanie.sql`, žiadna nová tabuľka ani migrácia.
-export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | 'follow_new' | EventAlertKind | WishAlertKind;
+// `ainubis_reply` (27. 10. 2026): AINUBIS odpísal na môj komentár pod citátom dňa. Matej: *„samozrejme A"*
+// = CYAN číslo na chvoste (nie červené — to je od členov), ťuk otvorí vlákno. Zdroj `my_ainubis_replies()`
+// zo `20261105_ainubis_reply_alert.sql`.
+export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | 'follow_new' | 'ainubis_reply' | EventAlertKind | WishAlertKind;
 
 /** Koľko dní svieti „{meno} je v tvojej svorke" — potom je to už stav, nie správa. */
 const PAWMATE_ALERT_DAYS = 30;
@@ -178,6 +181,14 @@ interface PawmateAlertRow {
   since: string;
 }
 
+/** riadok `my_ainubis_replies` — telo je už skrátené na 140 znakov */
+interface AinubisReplyRow {
+  id: string;
+  quote_key: string;
+  body: string;
+  created_at: string;
+}
+
 /** riadok `get_follow_list` — len číslo a čas, meno dodá `fetchMemberProfiles` */
 interface FollowAlertRow {
   pack_number: number;
@@ -217,7 +228,7 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
   const uid = sess.session?.user?.id;
   if (!uid) return []; // odhlásený / DEV_NOAUTH — RLS by aj tak nevydala nič
 
-  const [incoming, mine, walked, events, wishes, invites, mates, follows] = await Promise.all([
+  const [incoming, mine, walked, events, wishes, invites, mates, follows, aiReplies] = await Promise.all([
     db.from('trip_requests').select('trip_slug,created_at,decided_at')
       .eq('organizer_id', uid).eq('status', 'requested') as
       Promise<{ data: RequestRow[] | null }>,
@@ -240,6 +251,8 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
     db.rpc('my_pawmates') as Promise<{ data: PawmateAlertRow[] | null }>,
     // Noví sledujúci — tá istá RPC ako zoznam po ťuknutí na číslo (`follow.tsx`). Chyba = prázdno.
     db.rpc('get_follow_list', { p_pack_number: null, p_kind: 'followers' }) as Promise<{ data: FollowAlertRow[] | null }>,
+    // Odpovede AINUBISA pod citátom. Pred LIVE migráciou RPC chýba ⇒ chyba ⇒ prázdno, nič nespadne.
+    db.rpc('my_ainubis_replies') as Promise<{ data: AinubisReplyRow[] | null }>,
   ]);
 
   const trails = await loadTrails();
@@ -322,6 +335,14 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
         who: memberDisplayName(m, `#${num}`) || undefined,
       });
     }
+  }
+
+  // AINUBIS ODPÍSAL — id = id odpovede, takže každá svieti raz. Ťuk otvorí vlákno toho dňa vo feede.
+  for (const r of aiReplies.data ?? []) {
+    out.push({
+      id: `air|${r.id}`, kind: 'ainubis_reply', tripSlug: '',
+      tripName: r.body, tripPath: `/pack?cm=${encodeURIComponent(r.quote_key)}`, count: 1, at: r.created_at,
+    });
   }
 
   return out.sort((a, b) => (a.at < b.at ? 1 : -1));

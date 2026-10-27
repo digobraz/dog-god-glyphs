@@ -2221,6 +2221,8 @@ export const sk: Partial<Dict> = {
   "pack.alerts.walkInviteNo": "Nie, to nie som ja",
   "pack.alerts.pawmateJoined": "{who} je v tvojej svorke",
   "pack.alerts.followNew": "{who} ťa sleduje",
+  "pack.alerts.ainubisReply": "ti odpísal pod citátom",
+  "pack.alerts.ainubisReplyOpen": "Otvoriť",
   "pack.mate.heirTitle": "Nástupca",
   "pack.mate.heirTakes": "{name} prevezme psa {dog}",
   "pack.mate.heirHint": "Keď sa ty o psa už nebudeš môcť postarať. Prevzatie overíme ručne — samo sa nič neprepíše.",
