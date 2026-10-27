@@ -155,6 +155,8 @@ export function AccountDeletionGate() {
   const tx = useTx();
   const datum = useDatum();
   const [kedy, setKedy] = useState<string | null>(null);
+  // Zánik po odchode pawmata (K4c) sa zrušiť nedá — DB to odmietne, tak tlačidlo ani neukážeme.
+  const [pawmate, setPawmate] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -164,12 +166,12 @@ export function AccountDeletionGate() {
       if (!data.session) { if (!zrusene) setKedy(null); return; }
       const { data: rows } = await supabase
         .from('account_deletions' as never)
-        .select('purge_after')
+        .select('purge_after, reason')
         .is('cancelled_at', null)
         .is('purged_at', null)
         .limit(1);
-      const r = (rows as { purge_after: string }[] | null)?.[0];
-      if (!zrusene) setKedy(r?.purge_after ?? null);
+      const r = (rows as { purge_after: string; reason: string | null }[] | null)?.[0];
+      if (!zrusene) { setKedy(r?.purge_after ?? null); setPawmate(r?.reason === 'pawmate'); }
     };
     void over();
     const { data: sub } = supabase.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') void over(); });
@@ -199,10 +201,12 @@ export function AccountDeletionGate() {
       <p style={textBody}>
         {tx('pack.deletion.when', 'It will be deleted on {date}.').replace('{date}', datum(kedy))}
       </p>
-      <p style={textBody}>{tx('pack.deletion.stay', 'Want to stay? Cancel the deletion and everything stays as it was.')}</p>
-      <button type="button" onClick={zrus} disabled={busy} style={btnLapis(busy)}>
-        {tx('pack.deletion.cancel', 'Keep my account')}
-      </button>
+      {!pawmate && <>
+        <p style={textBody}>{tx('pack.deletion.stay', 'Want to stay? Cancel the deletion and everything stays as it was.')}</p>
+        <button type="button" onClick={zrus} disabled={busy} style={btnLapis(busy)}>
+          {tx('pack.deletion.cancel', 'Keep my account')}
+        </button>
+      </>}
       <button type="button" onClick={odhlas} disabled={busy} style={{ ...btnSecondary, justifyContent: 'center' }}>
         {tx('pack.settings.signOut', 'Sign out')}
       </button>
