@@ -79,6 +79,9 @@ export interface Conversation {
   // zámerne: kto koho zablokoval, si už ani jeden druhému nenapíše, takže UI nemá
   // dôvod ten smer poznať (a z blokovaného by sa nemalo dať vyčítať, že blokol on).
   blocked?: boolean;
+  /** DM so zakladateľom (Matej) — jeho správa svieti na obálke CYAN, nie červenou (27. 10. 2026,
+   *  `list_my_conversations.other_founder`). Klient uuid zakladateľa nepozná, len tento príznak. */
+  founder?: boolean;
 }
 
 // ── úložisko ──
@@ -251,6 +254,7 @@ interface ConvRow {
   last_at: string | null;
   unread: number | null;
   blocked: boolean | null;
+  other_founder?: boolean | null;
 }
 
 interface MsgRow { id: string; conv_id: string; sender_id: string; body: string; created_at: string }
@@ -325,6 +329,7 @@ function convFromRow(row: ConvRow, meId: string): Conversation {
     lastReadAt: { [meId]: readAt },
     updatedAt: row.updated_at,
     blocked: row.blocked ?? false,
+    founder: !!row.other_founder,
   };
 }
 
@@ -660,15 +665,23 @@ export async function markRead(convId: string): Promise<void> {
 // správou od niekoho iného. Group konverzácie počítajú len ak som joinnutý
 // (memberIds obsahuje me) — nejoinnutá open group nie je "moja" pre badge.
 export function unreadCount(): number {
+  const { member, founder } = unreadSplit();
+  return member + founder;
+}
+
+/** Neprečítané vlákna rozdelené podľa farby na obálke: `founder` = od zakladateľa (CYAN — Matej 27. 10.:
+ *  *„ak je to správa odo mňa resp. nejaký dôležitý oznam príde do obálky (modrý cyan)"*), `member` = červená. */
+export function unreadSplit(): { member: number; founder: number } {
   const meId = meCache.id;
-  let count = 0;
+  let member = 0;
+  let founder = 0;
   for (const conv of Object.values(cache.conversations)) {
     if (!conv.memberIds.includes(meId)) continue;
     const readAt = conv.lastReadAt[meId] ?? '';
     const hasUnread = conv.messages.some((m) => m.senderId !== meId && m.createdAt > readAt);
-    if (hasUnread) count += 1;
+    if (hasUnread) { if (conv.founder) founder += 1; else member += 1; }
   }
-  return count;
+  return { member, founder };
 }
 
 // Bývalé `maybeAutoReply()`/`MSG_AUTOREPLY` (§4.4 + Fable amendment §10) —

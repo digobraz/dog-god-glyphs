@@ -34,6 +34,7 @@ import { intlLocale } from '@/i18n/bcp47';
 import { getMe, listConversations, subscribe, type Conversation } from './packMessaging';
 import { tripNames, tripNameSync } from './tripLabel';
 import { PALE } from '@/components/pack/navGoldSkin';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 
 const T = PACK_THEME;
 
@@ -112,6 +113,8 @@ export const INBOX_CSS = `
    Nie je to lapis: lapis znamená „moja voľba / moja akcia", a neprečítaná správa
    nie je ani jedno — je to stav. */
 .msg-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${T.accentGold};box-shadow:0 0 0 2px var(--msg-dot-ring);}
+/* Správa od zakladateľa = CYAN, tá istá farba ako jej číslo na obálke (Matej 27. 10.). */
+.msg-dot.is-founder{background:${AINUBIS.cyan};}
 .msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
 .msg-avatar.is-sniffer{position:relative;}
@@ -290,7 +293,7 @@ export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
                       {isGroup ? `${t(memberCount === 1 ? 'pack.msg.memberCountOne' : 'pack.msg.memberCountMany', { n: memberCount })} · ` : ''}
                       {last ? last.text : t('pack.msg.noMessagesYet')}
                     </span>
-                    {unread && <span className="msg-dot" aria-hidden />}
+                    {unread && <span className={`msg-dot${conv.founder ? ' is-founder' : ''}`} aria-hidden />}
                   </span>
                   {tripLabel && (
                     onOpenTrip && tripId ? (

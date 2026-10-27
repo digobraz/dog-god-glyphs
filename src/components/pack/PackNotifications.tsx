@@ -222,6 +222,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   void seenEpoch; // len spúšťač prepočtu vyššie
 
   const [msgCount, setMsgCount] = useState(0);
+  // Z toho od zakladateľa — na obálke CYAN (Matej 27. 10.), zvyšok červená ako doteraz.
+  const [msgFounder, setMsgFounder] = useState(0);
   const [meId, setMeId] = useState('me');
   const [unreadConvs, setUnreadConvs] = useState<Conversation[]>([]);
   useEffect(() => {
@@ -229,7 +231,9 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
     const me = messaging.getMe();
     setMeId(me.id);
     const load = () => {
-      setMsgCount(messaging.unreadCount());
+      const split = messaging.unreadSplit();
+      setMsgCount(split.member + split.founder);
+      setMsgFounder(split.founder);
       messaging.listConversations().then((cs) => setUnreadConvs(cs.filter((c) => hasUnread(c, me.id))));
     };
     load();
@@ -297,7 +301,10 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
               ten isty tint, akym sa kreslia ikonky na zlatych plochach. */}
           <BrandIcon name="envelope" size={capsule ? 24 : 16} tint={dark ? 'gold' : 'dark'} />
           {msgCount > 0 && capsule && (TEST_BUILD
-            ? <span aria-hidden style={capBadge(false)}>{msgCount > 9 ? '9+' : msgCount}</span>
+            ? <>
+                {msgCount - msgFounder > 0 && <span aria-hidden style={capBadge(false)}>{msgCount - msgFounder > 9 ? '9+' : msgCount - msgFounder}</span>}
+                {msgFounder > 0 && <span aria-hidden style={capBadge(true)}>{msgFounder > 9 ? '9+' : msgFounder}</span>}
+              </>
             : <span aria-hidden style={CAP_DOT} />)}
           {msgCount > 0 && !capsule && (
             <span
