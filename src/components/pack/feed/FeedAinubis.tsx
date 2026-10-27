@@ -81,16 +81,18 @@ function AiPost({ sub, media, children }: { sub: string; media?: React.ReactNode
   );
 }
 
-/** Labka + ☆ v pilulke DOGSCROLLu. Bez počtov — tie zatiaľ nemajú server. */
-function AiActs({ liked, saved, onLike, onSave, labels, onComment, comments = 0 }: {
+/** Labka · komentár · ☆ v pilulke DOGSCROLLu, každá s počtom (`feed_social`, Matej 27. 10.:
+ *  *„počet pri labkách, komentoch aj uloženiach"*). */
+function AiActs({ liked, saved, onLike, onSave, labels, onComment, comments = 0, likes = 0, saves = 0 }: {
   liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string; comment?: string };
   /** Komentáre — zatiaľ len pod citátom. Poradie vždy labka · komentár · ☆ (lock architektura-pack §4.2). */
-  onComment?: () => void; comments?: number;
+  onComment?: () => void; comments?: number; likes?: number; saves?: number;
 }) {
   return (
     <div className="zv-acts">
       <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={onLike} aria-pressed={liked} aria-label={labels.like}>
         <HandPaw size={20} on={liked} />
+        <span className="zv-n">{likes}</span>
       </button>
       {onComment && (
         <button type="button" data-k="talk" className={`zv-act${comments > 0 ? ' is-on' : ''}`} onClick={onComment} aria-label={labels.comment}>
@@ -100,15 +102,16 @@ function AiActs({ liked, saved, onLike, onSave, labels, onComment, comments = 0 
       )}
       <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={onSave} aria-pressed={saved} aria-label={labels.save}>
         <HandStar size={20} filled={saved} />
+        <span className="zv-n">{saves}</span>
       </button>
     </div>
   );
 }
 
-export function AiQuote({ text, author, bg, variant, sub, liked, saved, onLike, onSave, labels, onComment, comments }: {
+export function AiQuote({ text, author, bg, variant, sub, liked, saved, onLike, onSave, labels, onComment, comments, likes, saves }: {
   text: string; author: string; bg: string; variant: 'a' | 'b'; sub: string;
   liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string; comment?: string };
-  onComment?: () => void; comments?: number;
+  onComment?: () => void; comments?: number; likes?: number; saves?: number;
 }) {
   return (
     <AiPost sub={sub} media={(
@@ -119,14 +122,15 @@ export function AiQuote({ text, author, bg, variant, sub, liked, saved, onLike, 
         </div>
       </div>
     )}>
-      <AiActs liked={liked} saved={saved} onLike={onLike} onSave={onSave} labels={labels} onComment={onComment} comments={comments} />
+      <AiActs liked={liked} saved={saved} onLike={onLike} onSave={onSave} labels={labels} onComment={onComment} comments={comments} likes={likes} saves={saves} />
     </AiPost>
   );
 }
 
-export function AiStory({ src, poster, title, body, sub, liked, saved, onLike, onSave, labels }: {
+export function AiStory({ src, poster, title, body, sub, liked, saved, onLike, onSave, labels, likes, saves }: {
   src: string; poster: string; title: string; body: string; sub: string;
   liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string; more: string };
+  likes?: number; saves?: number;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [open, setOpen] = useState(false);
@@ -148,7 +152,7 @@ export function AiStory({ src, poster, title, body, sub, liked, saved, onLike, o
       <h3>{title}</h3>
       <p className={open ? '' : 'cut'}>{body}</p>
       {!open && body.length > 140 && <button type="button" className="fai-more" onClick={() => setOpen(true)}>{labels.more}</button>}
-      <AiActs liked={liked} saved={saved} onLike={onLike} onSave={onSave} labels={labels} />
+      <AiActs liked={liked} saved={saved} onLike={onLike} onSave={onSave} labels={labels} likes={likes} saves={saves} />
     </AiPost>
   );
 }

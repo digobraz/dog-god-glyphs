@@ -100,14 +100,15 @@ function MiniRoute({ path }: { path: HeroTrail['path'] }) {
   );
 }
 
-export function FeedTripCard({ ft, youImg, authorImg = null, liked, onLike, comments = 0, onComment, listed, onList }: {
+export function FeedTripCard({ ft, youImg, authorImg = null, liked, onLike, likes = 0, comments = 0, onComment, listed, onList, lists = 0 }: {
   ft: FeedTrip;
   youImg: string | null;
   /** Fotka cudzieho autora (`feed_trip_authors`, 26. 10.); bez nej začiatočné písmeno mena. */
   authorImg?: string | null;
-  liked: boolean; onLike: () => void;
+  liked: boolean; onLike: () => void; likes?: number;
   comments?: number; onComment?: () => void;
-  listed: boolean; onList: () => void;
+  /** `lists` = koľko ľudí má výlet v TRIPLISTe (vrátane mňa), počty od 27. 10. */
+  listed: boolean; onList: () => void; lists?: number;
 }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
@@ -196,7 +197,7 @@ export function FeedTripCard({ ft, youImg, authorImg = null, liked, onLike, comm
       <div className="pft-acts">
         {/* Poradie VŠADE labka · komentár · uloženie (Matej 26. 10.). Labka = `feed_marks`, komentár = šuplík výletu. */}
         <button type="button" onClick={onLike} aria-pressed={liked} aria-label={tx('pack.feed.act.like', 'Like')}>
-          <HandPaw size={24} on={liked} />
+          <HandPaw size={24} on={liked} />{likes > 0 && likes}
         </button>
         {onComment && (
           <button type="button" onClick={onComment} aria-label={tx('pack.feed.act.comment', 'Comments')}>
@@ -205,7 +206,7 @@ export function FeedTripCard({ ft, youImg, authorImg = null, liked, onLike, comm
         )}
         <span className="sp" />
         <button type="button" className={`list${listed ? ' on' : ''}`} onClick={onList} aria-pressed={listed} aria-label="TRIPLIST" title="TRIPLIST">
-          <HandClipboard size={24} />
+          <HandClipboard size={24} />{lists > 0 && lists}
         </button>
       </div>
     </article>

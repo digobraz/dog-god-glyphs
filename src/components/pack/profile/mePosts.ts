@@ -168,13 +168,13 @@ export async function changeDogMainPhoto(dogId: string, file: File): Promise<str
 }
 
 // ── ❤️ 💬 POD PRÍSPEVKOM (25. 10. 2026, migrácia `20261025_post_social.sql`) ─────────────────
-export type PostSocial = { likes: number; comments: number; liked: boolean; saved: boolean };
+export type PostSocial = { likes: number; comments: number; liked: boolean; saved: boolean; saves: number };
 export type PostComment = { id: string; mine: boolean; canDelete: boolean; name: string; photo: string | null; ownerN: number | null; body: string; createdAt: string; actedBy: string | null; actedName: string | null };
 
 export async function fetchPostSocial(postId: string): Promise<PostSocial> {
   const { data } = await db.rpc('post_social', { p_post: postId });
   const r = Array.isArray(data) ? data[0] : null;
-  return { likes: Number(r?.likes) || 0, comments: Number(r?.comments) || 0, liked: !!r?.liked, saved: !!r?.saved };
+  return { likes: Number(r?.likes) || 0, comments: Number(r?.comments) || 0, liked: !!r?.liked, saved: !!r?.saved, saves: Number(r?.saves) || 0 };
 }
 
 export async function fetchComments(postId: string): Promise<PostComment[]> {

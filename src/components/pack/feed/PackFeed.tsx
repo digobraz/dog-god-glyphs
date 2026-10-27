@@ -377,15 +377,19 @@ export function PackFeed() {
             sub={tx('pack.feed.quote.title', 'Quote of the day')} labels={aiLabels}
             liked={marks.get(`quote:${quote.id}`).liked} onLike={() => marks.toggle(`quote:${quote.id}`, 'like')}
             saved={marks.get(`quote:${quote.id}`).saved} onSave={() => marks.toggle(`quote:${quote.id}`, 'save')}
+            likes={marks.get(`quote:${quote.id}`).likes} saves={marks.get(`quote:${quote.id}`).saves}
             onComment={() => setQuoteCmOpen(true)} comments={quoteCm} />
         );
       case 'trip': {
         const ft = trips[it.i];
+        const ts = marks.get(`trip:${ft.trail.id}`);
+        // TRIPLIST drží `favs` (moje ťuknutie hneď), server dal počet aj môj stav v okamihu dopytu.
+        const lists = Math.max(0, ts.saves - (ts.saved ? 1 : 0)) + (favs.has(ft.trail.id) ? 1 : 0);
         return (
           <FeedTripCard ft={ft} youImg={youImg} authorImg={tripAuthors.get(ft.trail.id)?.photo ?? null}
-            liked={marks.get(`trip:${ft.trail.id}`).liked} onLike={() => marks.toggle(`trip:${ft.trail.id}`, 'like')}
+            liked={marks.get(`trip:${ft.trail.id}`).liked} onLike={() => marks.toggle(`trip:${ft.trail.id}`, 'like')} likes={ts.likes}
             comments={tripCm[ft.trail.id] ?? marks.get(`trip:${ft.trail.id}`).comments} onComment={() => setTripCmOpen(ft.trail.id)}
-            listed={favs.has(ft.trail.id)} onList={() => toggleFav(ft.trail.id)} />
+            listed={favs.has(ft.trail.id)} onList={() => toggleFav(ft.trail.id)} lists={lists} />
         );
       }
       case 'scroll':
@@ -396,14 +400,15 @@ export function PackFeed() {
               authorN={it.p.who.ownerN} mine={false} onOpen={() => setReading(it.p)} />
           : <FeedPostCard post={it.p.p} name={ownName} avatar={youImg} onOpen={() => setReading(it.p)} />;
       case 'map':
-        return <FeedMapCard add={it.a} liked={marks.get(`map:${it.a.id}`).liked} onLike={() => marks.toggle(`map:${it.a.id}`, 'like')} />;
+        return <FeedMapCard add={it.a} liked={marks.get(`map:${it.a.id}`).liked} likes={marks.get(`map:${it.a.id}`).likes} onLike={() => marks.toggle(`map:${it.a.id}`, 'like')} />;
       case 'story':
         return (
           <AiStory src="/videos/WHO_IS_HEKTHOR.mp4" poster="/videos/WHO_IS_HEKTHOR.webp"
             title={`${t('heroglyph.flow.name.whoTitle')} ${t('heroglyph.flow.name.whoTitleName')}`}
             body={t('heroglyph.flow.name.whoBody')} sub={tx('pack.feed.story.label', 'Story')} labels={aiLabels}
             liked={marks.get('story:hekthor').liked} onLike={() => marks.toggle('story:hekthor', 'like')}
-            saved={marks.get('story:hekthor').saved} onSave={() => marks.toggle('story:hekthor', 'save')} />
+            saved={marks.get('story:hekthor').saved} onSave={() => marks.toggle('story:hekthor', 'save')}
+            likes={marks.get('story:hekthor').likes} saves={marks.get('story:hekthor').saves} />
         );
       case 'saved':
         return <AiSaved list={savedScrolls} lang={lang} onOpen={(id) => openScroll(id)} />;

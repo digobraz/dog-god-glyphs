@@ -133,7 +133,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
   const media = useRef<HTMLDivElement>(null);
   const { session } = usePackIdentity();
   const uid = session?.user?.id ?? null;
-  const [soc, setSoc] = useState<PostSocial>({ likes: 0, comments: 0, liked: false, saved: false });
+  const [soc, setSoc] = useState<PostSocial>({ likes: 0, comments: 0, liked: false, saved: false, saves: 0 });
   const [cms, setCms] = useState<PostComment[]>([]);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
@@ -156,7 +156,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
   // ❤️ / 🔖 optimisticky — akcia nesmie čakať na server (ako kronika výletu).
   const mark = async (kind: 'like' | 'save') => {
     const on = kind === 'like' ? !soc.liked : !soc.saved;
-    setSoc((s) => kind === 'like' ? { ...s, liked: on, likes: s.likes + (on ? 1 : -1) } : { ...s, saved: on });
+    setSoc((s) => kind === 'like' ? { ...s, liked: on, likes: s.likes + (on ? 1 : -1) } : { ...s, saved: on, saves: Math.max(0, s.saves + (on ? 1 : -1)) });
     const got = await toggleMark(post.id, kind, on);
     if (got !== on) reload();
   };
@@ -232,7 +232,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
           </button>
           <span className="sp" />
           <button type="button" className={`save${soc.saved || wished ? ' on' : ''}`} onClick={() => setSaveOpen(true)} aria-label={tx('pack.post.save', 'Save')}>
-            <HandStar size={24} filled={soc.saved || wished} />
+            <HandStar size={24} filled={soc.saved || wished} />{soc.saves > 0 && soc.saves}
           </button>
         </div>
         {likers.length > 0 && lead && (

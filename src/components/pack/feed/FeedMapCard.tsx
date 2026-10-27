@@ -72,7 +72,7 @@ export const FEED_MAP_CSS = `
   padding:${S.sm}px ${S.md}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;} /* písmo: cta */
 `;
 
-export function FeedMapCard({ add, liked, onLike }: { add: MapAdd; liked: boolean; onLike: () => void }) {
+export function FeedMapCard({ add, liked, likes = 0, onLike }: { add: MapAdd; liked: boolean; likes?: number; onLike: () => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { lang } = useLang();
@@ -128,7 +128,7 @@ export function FeedMapCard({ add, liked, onLike }: { add: MapAdd; liked: boolea
       </div>
       <div className="pfm-foot">
         <button type="button" className="lk" onClick={pressLike} aria-pressed={isOn} aria-label={tx('pack.feed.act.like', 'Like')}>
-          <HandPaw size={24} on={isOn} />{add.k === 'note' && noteLike.n > 0 && noteLike.n}
+          <HandPaw size={24} on={isOn} />{(add.k === 'note' ? noteLike.n : likes) > 0 && (add.k === 'note' ? noteLike.n : likes)}
         </button>
         <span className="sp" />
         <button type="button" className="pfm-go" onClick={() => navigate(add.k === 'event' ? `/pack/map?event=${add.e.id}` : '/pack/map')}>

@@ -94,8 +94,10 @@ export const firstWord = (s: string): string => s.split(/\s+/)[0] || s;
 const LOCAL_KEY = 'dogypt-feed-likes-v1';
 const db = supabase as any;
 
-export interface FeedSoc { likes: number; liked: boolean; saved: boolean; comments: number }
-const NONE: FeedSoc = { likes: 0, liked: false, saved: false, comments: 0 };
+/** `saves` = koľko ľudí uložilo (výlet: koľko ho má v TRIPLISTe), `saved` pri výlete = môj TRIPLIST
+ *  v okamihu dopytu — migrácia 20261105_feed_saves.sql, Matej 27. 10.: *„počet pri labkách, komentoch aj uloženiach"*. */
+export interface FeedSoc { likes: number; liked: boolean; saved: boolean; comments: number; saves: number }
+const NONE: FeedSoc = { likes: 0, liked: false, saved: false, comments: 0, saves: 0 };
 
 /** Starý lokálny zápis: `trip:x` = labka, `quote-save:x` = ☆ citátu `quote:x`. */
 const localKey = (target: string, kind: 'like' | 'save') => {
@@ -128,7 +130,7 @@ export function useFeedMarks(): FeedMarks {
       if (error) { setServer(false); return; }
       setSoc((prev) => {
         const next = new Map(prev);
-        for (const r of data ?? []) next.set(r.target, { likes: r.likes, liked: r.liked, saved: r.saved, comments: r.comments });
+        for (const r of data ?? []) next.set(r.target, { likes: r.likes, liked: r.liked, saved: r.saved, comments: r.comments, saves: Number(r.saves) || 0 });
         return next;
       });
     });
@@ -137,7 +139,8 @@ export function useFeedMarks(): FeedMarks {
   const get = useCallback((target: string): FeedSoc => {
     if (server) return soc.get(target) ?? NONE;
     const liked = local.current.has(localKey(target, 'like'));
-    return { likes: liked ? 1 : 0, liked, saved: local.current.has(localKey(target, 'save')), comments: 0 };
+    const saved = local.current.has(localKey(target, 'save'));
+    return { likes: liked ? 1 : 0, liked, saved, comments: 0, saves: saved ? 1 : 0 };
   }, [soc, server]);
 
   const toggle = useCallback((target: string, kind: 'like' | 'save') => {
@@ -156,7 +159,7 @@ export function useFeedMarks(): FeedMarks {
       const c = next.get(target) ?? NONE;
       next.set(target, kind === 'like'
         ? { ...c, liked: v, likes: Math.max(0, c.likes + (v === c.liked ? 0 : v ? 1 : -1)) }
-        : { ...c, saved: v });
+        : { ...c, saved: v, saves: Math.max(0, c.saves + (v === c.saved ? 0 : v ? 1 : -1)) });
       return next;
     });
     apply(on);

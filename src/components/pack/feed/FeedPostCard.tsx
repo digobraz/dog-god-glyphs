@@ -60,7 +60,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { lang } = useLang();
   const { toast } = useToast();
-  const [soc, setSoc] = useState<PostSocial>({ likes: 0, comments: 0, liked: false, saved: false });
+  const [soc, setSoc] = useState<PostSocial>({ likes: 0, comments: 0, liked: false, saved: false, saves: 0 });
   const [ratio, setRatio] = useState<number | null>(null);
   const [wished, setWished] = useState(false);
   useEffect(() => { void fetchPostSocial(post.id).then(setSoc).catch(() => {}); }, [post.id]);
@@ -72,9 +72,9 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
   // Optimisticky — akcia nesmie čakať na server (ten istý vzor ako PostViewer).
   const mark = async (kind: 'like' | 'save') => {
     const on = kind === 'like' ? !soc.liked : !soc.saved;
-    setSoc((s) => (kind === 'like' ? { ...s, liked: on, likes: s.likes + (on ? 1 : -1) } : { ...s, saved: on }));
+    setSoc((s) => (kind === 'like' ? { ...s, liked: on, likes: s.likes + (on ? 1 : -1) } : { ...s, saved: on, saves: Math.max(0, s.saves + (on ? 1 : -1)) }));
     const got = await toggleMark(post.id, kind, on);
-    if (got !== on) setSoc((s) => (kind === 'like' ? { ...s, liked: got, likes: s.likes + (got ? 1 : -1) } : { ...s, saved: got }));
+    if (got !== on) setSoc((s) => (kind === 'like' ? { ...s, liked: got, likes: s.likes + (got ? 1 : -1) } : { ...s, saved: got, saves: Math.max(0, s.saves + (got ? 1 : -1)) }));
   };
   const wish = async () => {
     if (wished) return;
@@ -123,7 +123,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
           </button>
         ) : (
           <button type="button" className={`save${soc.saved ? ' on' : ''}`} onClick={() => mark('save')} aria-pressed={soc.saved} aria-label={tx('pack.feed.act.save', 'Save')}>
-            <HandStar size={24} filled={soc.saved} />
+            <HandStar size={24} filled={soc.saved} />{soc.saves > 0 && soc.saves}
           </button>
         )}
       </div>
