@@ -17,7 +17,8 @@
 // zdieľanom pohľade. Veterinár ani opatrovateľ ho neuvidia ani omylom; vidí ho len
 // majiteľ (pohľad `full`) a adresát, ktorému ho pošle.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Loader2, Save, Send } from 'lucide-react';
+import { Loader2, Save } from 'lucide-react';
+import { BrandIcon } from './BrandIcon';
 import { BackButton } from './BackButton';
 import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, VEIL_CSS, FONT_TITLE, FONT_UI, MODAL_MAX_H } from './packTheme';
 import { appendDogEvents, readLatest, type LatestValue } from '@/lib/dogEvents';
@@ -298,7 +299,7 @@ export function WillPanel({
                 disabled={sending}
                 style={{ fontFamily: FONT_UI, fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' }}
               >
-                {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <BrandIcon name="feather" size={14} tint="white" />}
                 {tx('pack.will.sendNow', 'Send')}
               </button>
             </div>
@@ -324,7 +325,7 @@ export function WillPanel({
                 cursor: canSend ? 'pointer' : 'default',
               }}
             >
-              <Send className="h-3.5 w-3.5" />
+              <BrandIcon name="feather" size={14} tint="dark" />
               {tx('pack.will.send', 'Send it')}
             </button>
             </RightGate>

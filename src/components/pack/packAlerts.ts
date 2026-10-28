@@ -120,6 +120,8 @@ export interface PackAlert {
   photo?: string;
   /** sociálne komentáre: telo najnovšieho komentára, už skrátené serverom */
   preview?: string;
+  /** sociálne druhy: fotka človeka, ktorý reagoval (IG: vľavo tvár, vpravo náhľad) */
+  whoPhoto?: string;
 }
 
 // ── prečítanosť ────────────────────────────────────────────────────────────────────────────
@@ -213,6 +215,9 @@ interface SocialAlertRow {
   preview: string | null;
   photo: string | null;
   at: string;
+  /** tvár toho, kto reagoval (avatar, inak jeho pes) — `20261108_social_alerts_tvar.sql` */
+  who_photo?: string | null;
+  who_n?: number | null;
 }
 
 interface EventAlertRow {
@@ -381,6 +386,7 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
       id: `soc|${r.kind}|${r.target}|${r.at}`, kind: r.kind, tripSlug: isTrip ? r.target : '',
       tripName: r.preview ?? '', tripPath: path, count: r.n, at: r.at, who: r.who ?? undefined,
       photo: r.photo ?? tripPhoto ?? undefined, preview: r.preview ?? undefined,
+      whoPhoto: r.who_photo ?? undefined,
     });
   }
 

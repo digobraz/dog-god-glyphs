@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { BrandIcon } from './BrandIcon';
 import { HandTail } from './HandIcons';
 import { NotifSheet } from './NotifSheet';
-import { PACK_THEME } from './packTheme';
+import { PACK_THEME, PACK_AVATAR, PACK_TEXT, PACK_R, FONT_UI } from './packTheme';
 import { pluralKey } from '@/lib/plural';
 import { useT } from '@/i18n/LanguageContext';
 import { openAinubis, getAinubisUnread, onAinubisUnread } from '@/lib/ainubisBus';
@@ -533,10 +533,15 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                         // s kým ide, a pri prejdení má rovno tlačidlo zapísať si ho aj za seba.
                         navigate(al.kind === 'trip_request' ? '/pack/map/triplist' : al.tripPath);
                       }}
-                      className="flex items-start gap-2 w-full text-left"
+                      className={`flex ${SOCIAL_KEY[al.kind] ? 'items-center gap-3' : 'items-start gap-2'} w-full text-left`}
                       style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}
                     >
-                      <HandTail size={14} style={{ flexShrink: 0, marginTop: 2, color: T.accentGold }} />
+                      {/* Sociálne = ako Instagram (Matej 28. 10.): vľavo TVÁR človeka, vpravo náhľad príspevku. Chvost ostáva len systémovým. */}
+                      {SOCIAL_KEY[al.kind]
+                        ? <span style={{ flex: 'none', width: PACK_AVATAR.head, height: PACK_AVATAR.head, borderRadius: PACK_R.pill, overflow: 'hidden', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: T.tileBg, border: `1.5px solid ${T.border}` }}>
+                            {al.whoPhoto ? <img src={sizedUrl(al.whoPhoto, 96)} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <span style={{ font: `600 ${PACK_TEXT.body}px/1 ${FONT_UI}`, color: T.inkWarm }}>{(al.who || '?').charAt(0).toUpperCase()}</span>}
+                          </span>
+                        : <HandTail size={14} style={{ flexShrink: 0, marginTop: 2, color: T.accentGold }} />}
                       <span style={{ minWidth: 0, flex: 1 }}>
                         <span
                           style={{

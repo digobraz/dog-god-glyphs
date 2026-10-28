@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Send, Paperclip, X } from 'lucide-react';
+import { ArrowUpRight, Paperclip, X } from 'lucide-react';
+import { BrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadFeedbackPhoto } from '@/services/cloudinaryService';
 import { PACK_THEME, PACK_SHADOW, FONT_UI } from './packTheme';
@@ -239,7 +240,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
                 opacity: message.trim() && status !== 'loading' ? 1 : 0.55,
               }}
             >
-              <Send className="h-3.5 w-3.5" />
+              <BrandIcon name="feather" size={14} tint="white" />
               {status === 'loading' ? (file ? t('pack.build.uploading') : t('pack.build.sending')) : t('pack.build.sendBtn')}
             </button>
           </form>

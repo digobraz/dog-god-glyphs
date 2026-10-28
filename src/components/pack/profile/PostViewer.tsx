@@ -282,7 +282,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
               onKeyDown={(e) => { if (e.key === 'Enter') send(); }}
               placeholder={tx('pack.post.addComment', 'Add a comment…')} aria-label={tx('pack.post.addComment', 'Add a comment…')} />
             <button type="button" className="pv-send" disabled={!draft.trim() || sending} onClick={send} aria-label={tx('pack.post.send', 'Send')}>
-              <BrandIcon name="send" size={18} tint="white" />
+              <BrandIcon name="feather" size={18} tint="white" />
             </button>
           </div>
         )}
