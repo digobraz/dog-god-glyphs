@@ -12,7 +12,6 @@
 //
 // ⚠️ TEXTY IDÚ CEZ `t()` (dátumy cez `intlLocale`, nie natvrdo en-US).
 import { sizedUrl } from '@/services/cloudinaryService';
-import { BUDDY_LIVE } from '@/lib/packFlags';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useEffect, useState } from 'react';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, PACK_TOPROW } from '@/components/pack/packTheme';
@@ -45,6 +44,7 @@ export const INBOX_CSS = `
 /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
 .msg-x{${backCircleCSS('pale')}}
 .msg-x:hover{${backHoverCSS('pale')}}
+.msg-new{flex:none;width:${PACK_TOPROW.h}px;height:${PACK_TOPROW.h}px;display:inline-flex;align-items:center;justify-content:center;background:none;border:0;padding:0;opacity:.35;cursor:default;}
 /* ZOZNAM = bez karty, riadky cez celý stĺpec obsahu ako IG Direct. */
 .msg-inbox-list{${PACK_COL_FIT}margin:0 auto;padding:0 0 calc(env(safe-area-inset-bottom,0px) + 24px);box-sizing:border-box;flex:1 0 auto;position:relative;z-index:2;}
 /* ⚠️ Riadok je <div role="button">, NIE <button> — vnútri je vlastné tlačidlo (štítok výletu)
@@ -102,7 +102,7 @@ function fmtTime(iso: string, locale: string): string {
   return d.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 }
 
-export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
+export function Inbox({ onOpenThread, onClose, onOpenTrip }: {
   onOpenThread: (convId: string) => void;
   onClose: () => void;
   /** #55 — prázdny inbox potrebuje jednu akciu: rozhovor začína na tripe, nie tu. */
@@ -144,6 +144,11 @@ export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
         <div className="msg-inbox-headinner">
           <button type="button" className="msg-x" onClick={onClose} aria-label={t('pack.msg.closeAriaLabel')}><BackIcon /></button>
           <div className="msg-inbox-title">{t('pack.msg.inboxTitle')}</div>
+          {/* NOVÁ SPRÁVA (Matej 28. 10.: „hore vpravo + akože napísať správu, zatiaľ vyblednuté — aj IG to tam má“).
+              Výber príjemcu ešte nie je postavený → len vyblednutý, neklikateľný. */}
+          <button type="button" className="msg-new" disabled aria-label={t('pack.msg.newMessage')} title={t('pack.msg.newMessage')}>
+            <BrandIcon name="plus" size={20} tint="dark" />
+          </button>
         </div>
       </div>
       <div className="msg-inbox-list">
@@ -151,10 +156,7 @@ export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
           <div className="msg-emptybox">
             <BrandIcon name="chat" size={48} tint="gold" />
             <p className="msg-emptytitle">{t('pack.msg.emptyTitle')}</p>
-            {/* Tlačidlo vedie do SNIFFERu — len kde SNIFFER beží (BUDDY_LIVE); inde by `/pack/sniffer`
-                presmeroval na mapu, takže tam ostane len text bez SNIFFERu. */}
-            <p className="msg-emptysub">{t(BUDDY_LIVE ? 'pack.msg.emptySub' : 'pack.msg.emptySubNoSniffer')}</p>
-            {BUDDY_LIVE && onOpenSniffer && <button type="button" className="msg-emptybtn" onClick={onOpenSniffer}>{t('pack.msg.openSniffer')}</button>}
+            {/* Matej 28. 10.: „ak nebudú žiadne správy, nebude tam sniffer!“ — nová správa = „+“ v hlavičke. */}
           </div>
         ) : (
           convs.map((conv) => {
@@ -199,7 +201,6 @@ export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
                   <span className="msg-row-top">
                     <span className="msg-row-name" style={{ fontFamily: nameFont }}>
                       {name}
-                      {!isGroup && other?.packNumber ? <span className="msg-row-pack"> {t('pack.msg.packNumberSuffix', { n: other.packNumber })}</span> : null}
                     </span>
                     {last && <span className="msg-row-time">{fmtTime(last.createdAt, locale)}</span>}
                   </span>

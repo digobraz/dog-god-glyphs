@@ -267,8 +267,8 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
             {cms.map((c) => (
               <li key={c.id} data-cid={c.id} className={hlId === c.id ? 'hl' : undefined}>
                 {c.photo ? <img className="av" src={sizedUrl(c.photo, 60)} alt="" /> : <span className="av">{(c.name || '#')[0]}</span>}
-                <p><b>{c.name || (c.ownerN ? `#${c.ownerN}` : '')}</b>{(c.actedBy || c.actedName) && <><ActedBy id={c.actedBy} name={c.actedName} /> </>}{linkify(c.body, openLink, 'pv-link')}
-                  <small>{new Date(c.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'short' })}</small></p>
+                <p><b>{c.name || (c.ownerN ? `#${c.ownerN}` : '')}</b>{(c.actedBy || c.actedName) && <><ActedBy id={c.actedBy} name={c.actedName} /> </>}{linkify(c.body, openLink, 'pv-link')}</p>
+                {/* Pri komentári dátum nie je (Matej 28. 10. 2026) — len meno a text. */}
                 {c.canDelete && (
                   <button type="button" className="rm" onClick={() => dropComment(c.id)} aria-label={tx('pack.story.delete', 'Delete')}><HandTrash size={14} /></button>
                 )}

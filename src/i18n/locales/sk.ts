@@ -3861,6 +3861,7 @@ export const sk: Partial<Dict> = {
   'pack.msg.sendReport': "Odoslať nahlásenie",
   'pack.msg.inboxTitle': "Správy",
   'pack.msg.closeAriaLabel': "Zavrieť",
+  'pack.msg.newMessage': "Nová správa",
   'pack.msg.emptyTitle': "Zatiaľ žiadne správy.",
   'pack.msg.emptySub': "Napísať môžeš hociktorému členovi — nájdi ho cez Sniffer.",
   'pack.msg.emptySubNoSniffer': "Napísať môžeš tomu, kto hľadá parťáka na prianie, alebo s kým ideš na výlet.",

@@ -284,11 +284,14 @@ function otherFromRow(row: ConvRow): Participant {
   // SNIFFER je zoznamka ĽUDÍ — vlákno zo zhody nesie meno človeka, nie psa
   // (audit 26. 9. 2026: vlákno s Katkou sa volalo „KYLIE"). Značka = `tag_label`,
   // ktorú zapisuje `assnif_swipe` pri zhode. Ostatné DM ostávajú po psovi (D1).
-  const human = row.tag_label === 'SNIFFER' ? row.other_first?.trim() : undefined;
+  // 28. 10. 2026 Matej: „v správach bude meno používateľa, nie psa a nie Dogyptian a #…“ —
+  // `other_first` = member_display_name (20261108_spravy_meno_cloveka.sql), to isté meno ako vo feede.
+  // Pes ostáva len núdzová záloha pre server bez tej migrácie.
+  const human = row.other_first?.trim();
   const dog = human ? undefined : row.other_dog?.trim();
-  const name = human || dog || row.other_first?.trim() || 'Dogyptian';
+  const name = human || dog || '?';
   return {
-    isDogName: !!dog,
+    isDogName: false,
     // cudzí `user_id` appka nedostáva (get_trip_party ani list_my_conversations ho
     // nevydávajú) — na rozlíšenie „ja vs. on" v bubline stačí stabilný kľúč vlákna
     id: `other:${row.conv_id}`,

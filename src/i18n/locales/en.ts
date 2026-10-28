@@ -4144,6 +4144,7 @@ export const en = {
   'pack.msg.sendReport': "Send report",
   'pack.msg.inboxTitle': "Messages",
   'pack.msg.closeAriaLabel': "Close",
+  'pack.msg.newMessage': "New message",
   'pack.msg.emptyTitle': "No messages yet.",
   'pack.msg.emptySub': "You can write to any member — find them with Sniffer.",
   'pack.msg.emptySubNoSniffer': "You can write to someone who is looking for a buddy on a wish or who is on a trip with you.",
