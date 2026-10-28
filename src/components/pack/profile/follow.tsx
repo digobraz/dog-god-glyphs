@@ -4,10 +4,12 @@
 // Mená a fotky v zozname berie `fetchMemberProfiles` — tá istá cesta ako partia výletu.
 // Zoznam = POPUP + RIADOK (`PACK_BOX.row`) + MEDAILÓN, nič nové v katalógu.
 import { useCallback, useEffect, useState } from 'react';
+import { useT } from '@/i18n/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { PackPopup } from '@/components/pack/PackPopup';
-import { PACK_THEME, PACK_SPACE, PACK_TEXT, PACK_BOX, MEDALLION_CSS, FONT_UI, FONT_TITLE } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_BOX, MEDALLION_CSS, FONT_UI, FONT_TITLE } from '@/components/pack/packTheme';
+import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { fetchMemberProfiles, memberAvatarUrl, memberDisplayName, type MemberProfile } from '@/components/pack/profile/memberProfile';
 
 const db = supabase as any;
@@ -55,6 +57,61 @@ export function useFollow(packNumber: number | null, enabled = true) {
     setBusy(false);
   };
   return { info, busy, toggle, reload };
+}
+
+// ── ČIPKA „SLEDOVAŤ" VO FEEDE (Matej 28. 10. 2026) ───────────────────────────────
+// Kariet je veľa a jeden autor ich môže mať viac ⇒ stav drží ZDIEĽANÝ obchod podľa čísla autora:
+// jedno volanie `get_follow_info` na autora (nie na kartu) a ťuk na jednej karte prepne všetky.
+const chipCache = new Map<number, FollowInfo | null>();
+const chipLoading = new Set<number>();
+const chipListeners = new Set<() => void>();
+const chipEmit = () => chipListeners.forEach((fn) => fn());
+
+function useChipInfo(n: number | null) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const fn = () => tick((v) => v + 1);
+    chipListeners.add(fn);
+    return () => { chipListeners.delete(fn); };
+  }, []);
+  useEffect(() => {
+    if (n == null || chipCache.has(n) || chipLoading.has(n)) return;
+    chipLoading.add(n);
+    fetchFollowInfo(n).then((info) => { chipCache.set(n, info); chipLoading.delete(n); chipEmit(); });
+  }, [n]);
+  return n == null ? null : chipCache.get(n) ?? null;
+}
+
+export const FOLLOW_CHIP_CSS = `
+.fchip{flex:none;cursor:pointer;border-radius:${PACK_R.field}px;padding:${S.xs}px ${S.sm}px;font:600 ${PACK_TEXT.label}px/1.2 ${FONT_UI};white-space:nowrap;
+  background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};}
+.fchip.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}box-shadow:none;font-weight:500;}
+.fchip:disabled{opacity:.6;cursor:default;}
+`;
+
+/** Skrytie (vlastné, bez čísla, katalóg) rieši volajúci: `n == null` ⇒ nič. Sledovaný = tichší tint. */
+export function FollowChip({ n }: { n: number | null }) {
+  const t = useT();
+  const info = useChipInfo(n);
+  const [busy, setBusy] = useState(false);
+  if (n == null || !info || info.isMe) return null;
+  const tx = (k: string, fb: string) => { const v = t(k); return v === k ? fb : v; };
+  const toggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (busy) return;
+    const want = !info.iFollow;
+    setBusy(true);
+    chipCache.set(n, { ...info, iFollow: want, followers: Math.max(0, info.followers + (want ? 1 : -1)) });
+    chipEmit();
+    const got = await setFollow(n, want);
+    if (got !== want) { chipCache.set(n, info); chipEmit(); }
+    setBusy(false);
+  };
+  return (
+    <button type="button" className={`fchip${info.iFollow ? ' on' : ''}`} onClick={toggle} disabled={busy} aria-pressed={info.iFollow}>
+      {info.iFollow ? `✓ ${tx('pack.publicProfile.followingBtn', 'Following')}` : tx('pack.publicProfile.follow', 'Follow')}
+    </button>
+  );
 }
 
 const LIST_CSS = `

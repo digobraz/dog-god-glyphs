@@ -29,6 +29,7 @@ import { useLang, useT } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser } from '@/hooks/usePackUser';
+import { useProfile } from '@/components/pack/profile/packProfile';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, PACK_COL_PAD, FONT_TITLE, FONT_UI, PILL_CSS, MEDALLION_CSS, PAPER_BG } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
@@ -154,7 +155,7 @@ function keyTarget(it: Item, quoteId: number, trips: Array<{ trail: { id: string
 }
 
 /** Zo zásobníkov striedavo podľa vzoru, kým niečo zostáva — nič sa nezahodí. */
-function weave(q: { trip: number[]; scroll: DemoScroll[]; post: PostIt[]; map: MapAdd[] }, story: boolean): Item[] {
+function weave(q: { trip: number[]; scroll: DemoScroll[]; post: PostIt[]; map: MapAdd[] }, story: boolean, thin = false): Item[] {
   const out: Item[] = [];
   const cycle: Array<'trip' | 'scroll' | 'post' | 'map' | 'story'> = ['trip', 'scroll', 'post', 'scroll', 'map', 'trip', 'scroll', 'story'];
   let told = !story;
@@ -174,6 +175,17 @@ function weave(q: { trip: number[]; scroll: DemoScroll[]; post: PostIt[]; map: M
     const j = out.findIndex((it, x) => x > i && it.k !== 'scroll');
     if (j < 0) break;
     [out[i], out[j]] = [out[j], out[i]];
+  }
+  // ZVITKY NIE STENA (Matej 28. 10.): na hlavnom feede najviac 1 zvitok na 3 iné položky; zvitky navyše sa nezobrazia
+  // (ostávajú vo VAULTe). Hľadanie a filter témy sa neriedia — tam človek zvitky hľadá sám.
+  if (thin) {
+    let gap = 3;
+    return out.filter((it) => {
+      if (it.k !== 'scroll') { gap++; return true; }
+      if (gap < 3) return false;
+      gap = 0;
+      return true;
+    });
   }
   return out;
 }
@@ -289,7 +301,16 @@ export function PackFeed() {
   }, [scrolls, lang, day]);
   const savedScrolls = useMemo(() => savedIds.map((id) => scrolls.find((z) => z.id === id)).filter((z): z is DemoScroll => !!z), [savedIds, scrolls]);
 
-  const ownName = firstWord((dogs[0]?.owner_name || '').trim()) || tx('pack.feed.you', 'You');
+  // Meno navonok = to isté ako `shownName` na /pack/me (voľba „Zobraziť ako", potom meno z účtu / objednávky).
+  const { profile } = useProfile();
+  const human = profile?.human;
+  const meta = (session?.user?.user_metadata ?? {}) as Record<string, string | undefined>;
+  const orderName = dogs.filter((d) => !d.user_id || d.user_id === uid).map((d) => d.owner_name?.trim()).find(Boolean) ?? '';
+  const ownName = (() => {
+    if (human?.displayAs === 'nickname' && human.nickname?.trim()) return human.nickname.trim();
+    if (human?.displayAs === 'packName' && human.packName?.trim()) return human.packName.trim();
+    return (meta.full_name || meta.name || orderName || '').trim() || session?.user?.email?.split('@')[0] || '';
+  })() || tx('pack.feed.you', 'You');
   const youImg = avatarUrl || dogs[0]?.cloudinary_main_url || null;
 
   const toggleFav = (id: string) => {
@@ -336,7 +357,7 @@ export function PackFeed() {
       scroll: allScrolls.filter((z) => !saved.has(z.id)),
       post: publicPosts.filter(({ p }) => p.photos.length > 0),
       map: [...mapAdds],
-    }, true));
+    }, true, true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trips, publicPosts, allScrolls, savedScrolls.length, savedIds, mapAdds, topic, searching, query, lang]);
 
@@ -431,7 +452,7 @@ export function PackFeed() {
         // TRIPLIST drží `favs` (moje ťuknutie hneď), server dal počet aj môj stav v okamihu dopytu.
         const lists = Math.max(0, ts.saves - (ts.saved ? 1 : 0)) + (favs.has(ft.trail.id) ? 1 : 0);
         return (
-          <FeedTripCard ft={ft} youImg={youImg} authorImg={tripAuthors.get(ft.trail.id)?.photo ?? null}
+          <FeedTripCard ft={ft} youImg={youImg} authorImg={tripAuthors.get(ft.trail.id)?.photo ?? null} authorN={tripAuthors.get(ft.trail.id)?.ownerN ?? null} authorName={tripAuthors.get(ft.trail.id)?.name ?? null}
             liked={marks.get(`trip:${ft.trail.id}`).liked} onLike={() => marks.toggle(`trip:${ft.trail.id}`, 'like')} likes={ts.likes}
             comments={tripCm[ft.trail.id] ?? marks.get(`trip:${ft.trail.id}`).comments} onComment={() => setTripCmOpen(ft.trail.id)}
             listed={favs.has(ft.trail.id)} onList={() => toggleFav(ft.trail.id)} lists={lists} />

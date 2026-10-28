@@ -28,6 +28,7 @@ import { tripPath, tripText, hasRouteMetrics, isWaterTrail, coverPos, TRAIL_LINE
 import { mapyTiles } from '@/lib/env';
 import { trailCountry, flagUrl } from '@/lib/countryGeo';
 import { sizedUrl } from '@/services/cloudinaryService';
+import { FollowChip, FOLLOW_CHIP_CSS } from '@/components/pack/profile/follow';
 import { agoLabel, tripTitle, useSwipe, type FeedTrip } from './feedData';
 
 const T = PACK_THEME;
@@ -36,6 +37,7 @@ const TX = PACK_TEXT;
 
 export const FEED_TRIP_CSS = `
 ${COMMUNITY_CSS}
+${FOLLOW_CHIP_CSS}
 /* PLOCHÝ príspevok cez celú šírku (Matej 26. 10.: „príspevky na feede by som dal cez celú šírku, nie do blokov") —
    fotka ide od okraja po okraj, odsadené sú len hlavička, text a akcie. */
 .pft{display:flex;flex-direction:column;}
@@ -151,11 +153,15 @@ function MiniRoute({ path }: { path: HeroTrail['path'] }) {
   );
 }
 
-export function FeedTripCard({ ft, youImg, authorImg = null, liked, onLike, likes = 0, comments = 0, onComment, listed, onList, lists = 0 }: {
+export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, authorName = null, liked, onLike, likes = 0, comments = 0, onComment, listed, onList, lists = 0 }: {
   ft: FeedTrip;
   youImg: string | null;
   /** Fotka cudzieho autora (`feed_trip_authors`, 26. 10.); bez nej začiatočné písmeno mena. */
   authorImg?: string | null;
+  /** Číslo autora (`feed_trip_authors.owner_n`); katalógový výlet ho nemá ⇒ bez SLEDOVAŤ. */
+  authorN?: number | null;
+  /** Meno z profilu (`member_display_name`, cez `feed_trip_authors`) — má prednosť pred zamrznutým `ft.author`. */
+  authorName?: string | null;
   liked: boolean; onLike: () => void; likes?: number;
   comments?: number; onComment?: () => void;
   /** `lists` = koľko ľudí má výlet v TRIPLISTe (vrátane mňa), počty od 27. 10. */
@@ -190,18 +196,20 @@ export function FeedTripCard({ ft, youImg, authorImg = null, liked, onLike, like
   const swipe = useSwipe(n, (d) => setIdx((i) => (i + d + n) % n));
   // Široká ostáva široká; vysoká sa oreže na 4:5 (strop výšky ako na IG). Kým sa nenačíta, 4:3.
   const aspect = ratio ? Math.min(Math.max(ratio, 4 / 5), 2) : 4 / 3;
+  const shownAuthor = (!ft.mine && authorName) || ft.author;
   const ownImg = ft.mine ? youImg : authorImg;
 
   return (
     <article className="pft">
       <div className="pft-head">
         <span className="pk-medallion">
-          {ownImg ? <img src={sizedUrl(ownImg, 80)} alt="" /> : (ft.author || '?').charAt(0).toUpperCase()}
+          {ownImg ? <img src={sizedUrl(ownImg, 80)} alt="" /> : (shownAuthor || '?').charAt(0).toUpperCase()}
         </span>
         <div className="pft-who">
-          <b>{ft.author || tx('pack.feed.member', 'Member')}</b>
+          <b>{shownAuthor || tx('pack.feed.member', 'Member')}</b>
           <small>{[tx('pack.feed.trip.new', 'New trip'), agoLabel(ft.at, lang)].filter(Boolean).join(' · ')}</small>
         </div>
+        {!ft.mine && authorN != null && <FollowChip n={authorN} />}
       </div>
 
       <div className="pft-in">

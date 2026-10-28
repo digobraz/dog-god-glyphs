@@ -7,6 +7,9 @@
 //
 // ⚠️ Dnes tu sú LEN MOJE príspevky: cudzí autor potrebuje RPC s menom a fotkou (zoznam migrácií).
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { linkify } from '@/components/ainubis/ainubisLinkify';
+import { FollowChip, FOLLOW_CHIP_CSS } from '@/components/pack/profile/follow';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
@@ -26,6 +29,8 @@ const S = PACK_SPACE;
 const TX = PACK_TEXT;
 
 export const FEED_POST_CSS = `
+${FOLLOW_CHIP_CSS}
+.pfp-link{color:inherit;text-decoration:underline;word-break:break-all;}
 .pfp{overflow:hidden;}
 .pfp-head{display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;}
 .pfp-head .pk-medallion{font:600 ${TX.body}px/1 ${FONT_UI};color:${T.inkWarm};}
@@ -60,6 +65,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { lang } = useLang();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [soc, setSoc] = useState<PostSocial>({ likes: 0, comments: 0, liked: false, saved: false, saves: 0 });
   const [ratio, setRatio] = useState<number | null>(null);
   const [wished, setWished] = useState(false);
@@ -102,6 +108,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
           <b>{name}</b>
           <small>{[place?.name, agoLabel(Date.parse(post.createdAt), lang)].filter(Boolean).join(' · ')}</small>
         </div>
+        {!mine && authorN != null && <FollowChip n={authorN} />}
         <PostMenu postId={post.id} authorN={authorN} authorName={name} mine={mine} onDelete={() => deletePost(post.id)} />
       </div>
       {post.photos[0] && (
@@ -130,7 +137,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
           </button>
         )}
       </div>
-      {post.body && <p className="pfp-tx"><b>{name}</b>{post.body}</p>}
+      {post.body && <p className="pfp-tx" onClick={(e) => e.stopPropagation()}><b>{name}</b>{linkify(post.body, (path) => navigate(path), 'pfp-link')}</p>}
       {soc.comments > 0
         ? <button type="button" className="pfp-cm" onClick={() => onOpen(post)}>{tx('pack.feed.comments', 'View {n} comments').replace('{n}', String(soc.comments))}</button>
         : <div style={{ height: S.md }} />}

@@ -224,7 +224,7 @@ export function useFeedPosts(enabled: boolean): FeedPost[] {
   return rows;
 }
 
-export interface TripAuthor { photo: string | null; ownerN: number | null }
+export interface TripAuthor { photo: string | null; ownerN: number | null; name: string | null }
 
 /** Fotka a číslo autora výletu (karta mala len meno z payloadu). Pýta sa len na nové slugy. */
 export function useTripAuthors(slugs: string[]): Map<string, TripAuthor> {
@@ -235,11 +235,11 @@ export function useTripAuthors(slugs: string[]): Map<string, TripAuthor> {
     const fresh = slugs.filter((x) => !asked.current.has(x)).slice(0, 200);
     if (!fresh.length) return;
     fresh.forEach((x) => asked.current.add(x));
-    void db.rpc('feed_trip_authors', { p_slugs: fresh }).then(({ data, error }: { data: Array<{ slug: string; photo: string | null; owner_n: number | null }> | null; error: unknown }) => {
+    void db.rpc('feed_trip_authors', { p_slugs: fresh }).then(({ data, error }: { data: Array<{ slug: string; first_name: string | null; photo: string | null; owner_n: number | null }> | null; error: unknown }) => {
       if (error) return;
       setMap((prev) => {
         const next = new Map(prev);
-        for (const r of data ?? []) next.set(r.slug, { photo: r.photo, ownerN: r.owner_n });
+        for (const r of data ?? []) next.set(r.slug, { photo: r.photo, ownerN: r.owner_n, name: r.first_name?.trim() || null });
         return next;
       });
     });
