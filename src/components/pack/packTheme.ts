@@ -1289,6 +1289,9 @@ export const PACK_AVATAR = {
   xs: 24,
   /** Avatar v riadku zoznamu, člen svorky. */
   sm: 32,
+  /** Hlavička karty vo FEEDe (autor príspevku, výletu, AINUBIS) — Matej 28. 10. 2026:
+   *  *„fotky profilu v hlavičke príspevku sú malinké, môžu byť o trošku väčšie“* (32 → 40). */
+  head: 40,
   /** Avatar v hlavičke, autor výletu. */
   md: 48,
   /** Hlavná fotka psa na karte, medaila. */

@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { HandPaw, HandClipboard, HandArrowLeft } from '@/components/pack/HandIcons';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -42,7 +42,7 @@ ${FOLLOW_CHIP_CSS}
    fotka ide od okraja po okraj, odsadené sú len hlavička, text a akcie. */
 .pft{display:flex;flex-direction:column;}
 .pft-head{display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;}
-.pft-head .pk-medallion{font:600 ${TX.body}px/1 ${FONT_UI};color:${T.inkWarm};}
+.pft-head .pk-medallion{width:${PACK_AVATAR.head}px;height:${PACK_AVATAR.head}px;font:600 ${TX.body}px/1 ${FONT_UI};color:${T.inkWarm};}
 .pft-who{min-width:0;flex:1;}
 .pft-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: meno */
 .pft-who small{font-size:${TX.label}px;color:${T.inkWarm};}

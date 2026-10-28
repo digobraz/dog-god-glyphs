@@ -12,7 +12,7 @@ import { linkify } from '@/components/ainubis/ainubisLinkify';
 import { FollowChip, FOLLOW_CHIP_CSS } from '@/components/pack/profile/follow';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
 import { HandPaw, HandStar } from '@/components/pack/HandIcons';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { toggleMark } from '@/components/pack/story/storyData';
@@ -33,7 +33,7 @@ ${FOLLOW_CHIP_CSS}
 .pfp-link{color:inherit;text-decoration:underline;word-break:break-all;}
 .pfp{overflow:hidden;}
 .pfp-head{display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;}
-.pfp-head .pk-medallion{font:600 ${TX.body}px/1 ${FONT_UI};color:${T.inkWarm};}
+.pfp-head .pk-medallion{width:${PACK_AVATAR.head}px;height:${PACK_AVATAR.head}px;font:600 ${TX.body}px/1 ${FONT_UI};color:${T.inkWarm};}
 .pfp-who{min-width:0;flex:1;}
 .pfp-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: meno */
 .pfp-who small{font-size:${TX.label}px;color:${T.inkWarm};}

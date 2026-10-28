@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
 import { HandPaw } from '@/components/pack/HandIcons';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { likeMapNote, type MapNote } from '@/components/pack/mapnotes/mapNotesData';
@@ -53,7 +53,7 @@ export function useMapAdds(limit = 6): MapAdd[] {
 export const FEED_MAP_CSS = `
 .pfm{overflow:hidden;}
 .pfm-head{display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;}
-.pfm-head .pk-medallion{font:600 ${TX.body}px/1 ${FONT_UI};color:${T.inkWarm};}
+.pfm-head .pk-medallion{width:${PACK_AVATAR.head}px;height:${PACK_AVATAR.head}px;font:600 ${TX.body}px/1 ${FONT_UI};color:${T.inkWarm};}
 .pfm-who{min-width:0;flex:1;}
 .pfm-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: meno */
 .pfm-who small{font-size:${TX.label}px;color:${T.inkWarm};}

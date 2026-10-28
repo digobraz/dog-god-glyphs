@@ -24,12 +24,13 @@ const TX = PACK_TEXT;
 export const FEED_AI_CSS = `
 .fai{overflow:hidden;border-radius:${PACK_R.card}px;${AI_GLASS}}
 .fai-h{display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;}
-.fai-av{flex:none;width:${PACK_AVATAR.sm}px;height:${PACK_AVATAR.sm}px;border-radius:${PACK_R.pill}px;background:${AINUBIS.bgDeep} center/cover no-repeat;
+.fai-av{flex:none;width:${PACK_AVATAR.head}px;height:${PACK_AVATAR.head}px;border-radius:${PACK_R.pill}px;background:${AINUBIS.bgDeep} center/cover no-repeat;
   border:2px solid ${AINUBIS.cyan};box-shadow:${AINUBIS.faceRing};}
 .fai-who{min-width:0;flex:1;}
-.fai-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;color:${AINUBIS.ink};} /* písmo: meno */
-.fai-who b .ai{color:${AINUBIS.aiInk};}
-.fai-who small{font-size:${TX.label}px;color:${AINUBIS.inkDim};}
+.fai-who b{display:block;font-family:${FONT_UI};font-weight:400;font-size:${TX.body}px;line-height:1.2;letter-spacing:.26em;color:${AINUBIS.ink};}
+/* Matej 28. 10. 2026: AINUBIS = sci-fi, Cinzel mu nesedí → Grotesk široko rozstrelený („C“), „AI“ tučne (600 = najťažší načítaný rez). */
+.fai-who b .ai{color:${AINUBIS.aiInk};font-weight:600;}
+.fai-who small{display:block;margin-top:${S.xs}px;font-size:${TX.label}px;line-height:1.25;color:${AINUBIS.inkDim};}
 .fai-b{padding:${S.md}px;display:flex;flex-direction:column;gap:${S.sm}px;}
 .fai-b .zv-acts{margin-top:0;}
 .fai-b h3{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;line-height:1.3;letter-spacing:.02em;color:${AINUBIS.ink};} /* písmo: nadpis */
