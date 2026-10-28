@@ -16,7 +16,7 @@
 import { useEffect } from 'react';
 import { BackButton } from '../BackButton';
 
-import { FONT_TITLE, FONT_UI, PACK_THEME as T, GOLD_BTN, VEIL_CSS, PACK_SHADOW } from '@/components/pack/packTheme';
+import { FONT_TITLE, FONT_UI, PACK_THEME as T, GOLD_BTN, VEIL_CSS, PACK_SHADOW, MODAL_MAX_H } from '@/components/pack/packTheme';
 import type { LevelProgress, PointsRow } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, pilgrimImg } from '@/lib/packTiers';
 import { useT } from '@/i18n/LanguageContext';
@@ -53,7 +53,7 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: '100%', maxWidth: 460, maxHeight: '92vh', overflowY: 'auto',
+          width: '100%', maxWidth: 460, maxHeight: MODAL_MAX_H, overflowY: 'auto',
           background: 'linear-gradient(160deg, rgba(28,20,10,0.98), rgba(14,10,5,0.98))',
           border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
           boxShadow: PACK_SHADOW.panel,

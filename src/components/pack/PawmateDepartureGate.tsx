@@ -20,7 +20,7 @@ const DAY = 24 * 60 * 60 * 1000;
 
 const CSS = `
 .pd-root{position:fixed;inset:0;z-index:1200;overflow-y:auto;background:${AINUBIS.surface};color:${AINUBIS.ink};font-family:${FONT_UI};}
-.pd-col{max-width:640px;margin:0 auto;padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px ${PACK_SPACE.xxl}px;display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;}
+.pd-col{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px) ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.xxl}px);display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;}
 .pd-msg{border:1px solid ${AINUBIS.edgeStrong};border-radius:${PACK_R.card}px;padding:${PACK_SPACE.lg}px;background:${AINUBIS.raised};display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .pd-name{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;color:${AINUBIS.ink};} /* písmo: meno */
 .pd-name span{color:${AINUBIS.aiInk};}

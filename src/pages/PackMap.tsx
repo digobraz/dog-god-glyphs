@@ -2034,7 +2034,8 @@ ${TRAIL_LINE_CSS}
   /* Matej 2026-08-03 („na mobil je toho veľa"): riadok 1 UŽ NIE JE rad piatich pilulek
      v horizontálnom scrolli, ale IDENTITA vľavo ↔ notifikácie vpravo. Preto space-between
      a žiadny overflow-x — už niet čo scrollovať, obsah sa vždy zmestí. */
-  .trp-mheader-status{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;}
+  /* top:-2px = ikonky (44) na OSI spoločnej hlavičky: stred riadku = PACK_TOPROW.axis (28. 10. 2026, Matej: ikonky v jednej úrovni aj na mape). Ostatné obrazovky majú rad 40, tu je riadok 44. */
+  .trp-mheader-status{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;position:relative;top:-${(44 - PACK_TOPROW.h) / 2}px;}
   .trp-mheader-status .trp-headright{gap:5px;flex:0 0 auto;justify-content:flex-end;}
   /* Identita samotná je v GLOBÁLNOM CSS vyššie (.trp-midentity a spol.) — jeden blok na oboch
      šírkach. Tu ostáva len to, čo je naozaj mobilné: na mobile ide identita cez celú voľnú šírku. */

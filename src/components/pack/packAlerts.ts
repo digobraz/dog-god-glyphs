@@ -63,7 +63,11 @@ export type WishAlertKind = 'wish_me_too' | 'wish_ask' | 'wish_missed' | 'wish_n
 // `ainubis_reply` (27. 10. 2026): AINUBIS odpísal na môj komentár pod citátom dňa. Matej: *„samozrejme A"*
 // = CYAN číslo na chvoste (nie červené — to je od členov), ťuk otvorí vlákno. Zdroj `my_ainubis_replies()`
 // zo `20261105_ainubis_reply_alert.sql`.
-export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | 'follow_new' | 'ainubis_reply' | EventAlertKind | WishAlertKind;
+// `post_like` · `post_comment` · `trip_like` · `trip_comment` · `quote_reply` (28. 10. 2026): upozornenia AKO NA IG — niekto
+// lajkol / okomentoval môj príspevok či výlet, alebo odpovedal na môj komentár pod citátom. ČERVENÉ (od členov).
+// Zdroj `get_social_alerts()` zo `20261107_social_alerts.sql` (zoskupené: „Jana a 4 ďalší“).
+export type SocialAlertKind = 'post_like' | 'post_comment' | 'trip_like' | 'trip_comment' | 'quote_reply';
+export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | 'follow_new' | 'ainubis_reply' | SocialAlertKind | EventAlertKind | WishAlertKind;
 
 /** Koľko dní svieti „{meno} je v tvojej svorke" — potom je to už stav, nie správa. */
 const PAWMATE_ALERT_DAYS = 30;
@@ -112,6 +116,10 @@ export interface PackAlert {
   who?: string;
   /** `walk_invite`: id pozvánky pre `respond_walk_invite` */
   inviteId?: string;
+  /** sociálne druhy: náhľad fotky príspevku / výletu (jednoriadkový, môže chýbať) */
+  photo?: string;
+  /** sociálne komentáre: telo najnovšieho komentára, už skrátené serverom */
+  preview?: string;
 }
 
 // ── prečítanosť ────────────────────────────────────────────────────────────────────────────
@@ -195,6 +203,18 @@ interface FollowAlertRow {
   followed_at: string;
 }
 
+/** riadok `get_social_alerts` — už zoskupený: n rôznych ľudí, who = najnovší z nich */
+interface SocialAlertRow {
+  kind: SocialAlertKind;
+  target: string;
+  ref: string | null;
+  n: number;
+  who: string | null;
+  preview: string | null;
+  photo: string | null;
+  at: string;
+}
+
 interface EventAlertRow {
   kind: EventAlertKind;
   edition_id: string;
@@ -228,7 +248,7 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
   const uid = sess.session?.user?.id;
   if (!uid) return []; // odhlásený / DEV_NOAUTH — RLS by aj tak nevydala nič
 
-  const [incoming, mine, walked, events, wishes, invites, mates, follows, aiReplies] = await Promise.all([
+  const [incoming, mine, walked, events, wishes, invites, mates, follows, aiReplies, social] = await Promise.all([
     db.from('trip_requests').select('trip_slug,created_at,decided_at')
       .eq('organizer_id', uid).eq('status', 'requested') as
       Promise<{ data: RequestRow[] | null }>,
@@ -253,6 +273,8 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
     db.rpc('get_follow_list', { p_pack_number: null, p_kind: 'followers' }) as Promise<{ data: FollowAlertRow[] | null }>,
     // Odpovede AINUBISA pod citátom. Pred LIVE migráciou RPC chýba ⇒ chyba ⇒ prázdno, nič nespadne.
     db.rpc('my_ainubis_replies') as Promise<{ data: AinubisReplyRow[] | null }>,
+    // Lajky / komentáre / odpovede ako na IG. Pred LIVE migráciou RPC chýba ⇒ chyba ⇒ prázdno.
+    db.rpc('get_social_alerts') as Promise<{ data: SocialAlertRow[] | null }>,
   ]);
 
   const trails = await loadTrails();
@@ -342,6 +364,23 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
     out.push({
       id: `air|${r.id}`, kind: 'ainubis_reply', tripSlug: '',
       tripName: r.body, tripPath: `/pack?cm=${encodeURIComponent(r.quote_key)}`, count: 1, at: r.created_at,
+    });
+  }
+
+  // SOCIÁLNE (IG) — id nesie druh, cieľ a čas najnovšej reakcie: ďalší lajk rozsvieti zoskupený riadok znova.
+  // Odkaz: príspevok `?post=<id>` (+ `&c=` komentár), citát `?cm=<kľúč>&c=<komentár>` (vlákno, odroluje na komentár),
+  // výlet = jeho článok. Fotka výletu je z klientskeho datasetu (server ju nenesie).
+  for (const r of social.data ?? []) {
+    const isTrip = r.kind === 'trip_like' || r.kind === 'trip_comment';
+    const tripPhoto = isTrip ? trails.find((t) => t.id === currentTripId(r.target))?.photos?.[0] : undefined;
+    const c = r.ref ? `&c=${encodeURIComponent(r.ref)}` : '';
+    const path = r.kind === 'quote_reply' ? `/pack?cm=${encodeURIComponent(r.target)}${c}`
+      : isTrip ? pathOf(r.target)
+      : `/pack?post=${encodeURIComponent(r.target)}${r.kind === 'post_comment' ? c : ''}`;
+    out.push({
+      id: `soc|${r.kind}|${r.target}|${r.at}`, kind: r.kind, tripSlug: isTrip ? r.target : '',
+      tripName: r.preview ?? '', tripPath: path, count: r.n, at: r.at, who: r.who ?? undefined,
+      photo: r.photo ?? tripPhoto ?? undefined, preview: r.preview ?? undefined,
     });
   }
 

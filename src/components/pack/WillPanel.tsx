@@ -19,7 +19,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, Save, Send } from 'lucide-react';
 import { BackButton } from './BackButton';
-import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, VEIL_CSS, FONT_TITLE, FONT_UI } from './packTheme';
+import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, VEIL_CSS, FONT_TITLE, FONT_UI, MODAL_MAX_H } from './packTheme';
 import { appendDogEvents, readLatest, type LatestValue } from '@/lib/dogEvents';
 import { RightGate } from '@/components/pack/RightGate';
 import { supabase } from '@/integrations/supabase/client';
@@ -178,7 +178,7 @@ export function WillPanel({
           padding: '24px 16px',
           width: '100%',
           maxWidth: 480,
-          maxHeight: '86vh',
+          maxHeight: MODAL_MAX_H,
           overflowY: 'auto',
           color: T.ink,
         }}

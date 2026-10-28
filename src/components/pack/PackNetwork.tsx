@@ -6,7 +6,7 @@ import { BackButton } from './BackButton';
 import { toast } from 'sonner';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
-import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, MODAL_MAX_H } from '@/components/pack/packTheme';
 import { BonesCoin } from '@/components/pack/BonesCoin';
 import { BONES } from '@/components/pack/bonesSkin';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
@@ -689,7 +689,7 @@ function WalletPanel({
         style={{
           transform: 'translate(-50%,-50%)',
           width: 'min(440px, 93vw)',
-          maxHeight: '88vh',
+          maxHeight: MODAL_MAX_H,
           background: T.panelGrad,
           border: `1.5px solid ${T.cardEdge}`,
           borderRadius: 14,
@@ -1388,7 +1388,7 @@ function NetworkListPanel({ rows, onClose }: {
         style={{
           transform: 'translate(-50%,-50%)',
           width: 'min(720px, 92vw)',
-          maxHeight: '86vh',
+          maxHeight: MODAL_MAX_H,
           background: T.panelGrad,
           border: `1.5px solid ${T.cardEdge}`,
           borderRadius: 14,

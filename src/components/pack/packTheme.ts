@@ -224,7 +224,14 @@ export const PACK_TOPROW = {
   h: 40,
   /** Začiatok obsahu od safe-area (8 + 40 + PACK_SPACE.md). */
   content: 60,
+  /** OS IKONIEK od safe-area (top + h / 2) — stred AINUBISA, šípky, správ a upozornení na KAŽDEJ obrazovke
+   *  (28. 10. 2026). /map a VAULT majú vlastnú štruktúru hlavičky, ale ikonky stoja na tejto osi. */
+  axis: 28,
 } as const;
+/** Strop výšky CENTROVANÉHO okna (modal nad obrazovkou). `86vh`/`92vh` nerátali s hodinami a domovským indikátorom, takže
+ *  na iPhone zašlo okno pod status bar (28. 10. 2026). Okno vycentrované v celom okne s týmto stropom má hore
+ *  aspoň `safe-area-inset-top` + 16 px. */
+export const MODAL_MAX_H = 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)';
 /** `padding-top` stĺpca, v ktorom rad stojí. */
 export const PACK_TOPROW_PAD = `calc(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.top}px)`;
 
@@ -1318,7 +1325,9 @@ export const VEIL_CSS = `
   background:var(--pk-veil, ${PACK_VEIL.modal});
   -webkit-backdrop-filter:blur(${PACK_VEIL.blur});
   backdrop-filter:blur(${PACK_VEIL.blur});
-  display:flex; align-items:center; justify-content:center; padding:20px;
+  display:flex; align-items:center; justify-content:center;
+  /* safe-area (28. 10. 2026): na webe je 0 ⇒ 20 px ako doteraz; v appke okno nezájde pod hodiny ani domovský indikátor. */
+  padding:calc(env(safe-area-inset-top, 0px) + 20px) 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
 }
 /* FOTO a DOŠTIČKA ležia VNÚTRI prvku, nie cez okno — preto absolute. */
 .pk-veil--photo{ position:absolute; inset:0; background:${PACK_VEIL.photo}; pointer-events:none; }

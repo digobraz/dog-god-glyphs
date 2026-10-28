@@ -34,6 +34,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SHADOW, GOLD_BTN, FONT_TITLE, FONT_UI, PF_FIELD_CSS,
+  MODAL_MAX_H,
 } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
@@ -1799,7 +1800,7 @@ const CAL_CSS = `
 /* ── POPUP DŇA ──────────────────────────────────────────────────────────── */
 .cal-popbg{position:fixed;inset:0;background:rgba(20,12,4,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:60}
 .cal-pop{${boxCSS(PACK_BOX.panel)};padding:16px;max-width:420px;width:100%;
-  max-height:86vh;overflow:auto}
+  max-height:${MODAL_MAX_H};overflow:auto}
 .cal-pop h4{font-family:${FONT_TITLE};font-size:14px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 4px;color:${T.inkStrong}}
 .cal-when{font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};margin-bottom:12px}
 .cal-entry{${boxCSS(PACK_BOX.row)};display:flex;gap:8px;align-items:flex-start;padding:8px 12px;margin-bottom:8px}

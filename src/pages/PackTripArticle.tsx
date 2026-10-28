@@ -33,7 +33,8 @@ import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIde
 import { useMagnetPreview, usePackNavigate, isFreeTrip, magnetPath, MAGNET_MEMBER_TRAILS } from '@/components/pack/magnetPreview';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, HIT_CSS, PACK_SPACE, PACK_SHADOW, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, HIT_CSS, PACK_SPACE, PACK_SHADOW, BRAND_GOLD_BTN, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
+import { PackTopRow } from '@/components/pack/PackTopRow';
 import { BackButton, BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 // Lapisové hlavné CTA + priesvitný tint stavu — jeden zdroj pre celý /pack (2026-08-26/28).
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, PALE } from '@/components/pack/navGoldSkin';
@@ -234,8 +235,12 @@ const CSS = `
    matrice PACK_BOX.card (cardGrad · 1.5px cardEdge · r16 · cardShadow). Zapísané ako CSS,
    nie style={{...PACK_BOX.card}}, lebo .pta-shell potrebuje ešte overflow, z-index
    a media query — hodnoty sú však TIE ISTÉ a menia sa v matrici, nie tu. */
+.pta-root{padding-top:${PACK_TOPROW_PAD};}
+/* Magnet náhľad (bez navu) nemá spoločnú hlavičku — šípka ostáva na fotke a rámik si odstup od hodín nesie sám. */
+.pta-root--mg{padding-top:0;}
+.pta-root--mg .pta-shell{margin-top:calc(env(safe-area-inset-top,0px) + 22px);}
 .pta-root--mg{padding-bottom:calc(${PACK_SPACE.xxxl}px + 52px + env(safe-area-inset-bottom,0px));}
-.pta-shell{${PACK_COL_FIT}margin:calc(env(safe-area-inset-top,0px) + 22px) auto 0;position:relative;z-index:2;overflow:hidden;
+.pta-shell{${PACK_COL_FIT}margin:0 auto;position:relative;z-index:2;overflow:hidden;
   background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:16px;box-shadow:${T.cardShadow};}
 .pta-hero{position:relative;width:100%;height:34vh;min-height:230px;max-height:360px;overflow:hidden;background-size:cover;background-position:center;background-color:#111;}
 .pta-hero-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.30) 0%,rgba(0,0,0,0) 34%,rgba(0,0,0,0.55) 100%);}
@@ -1710,13 +1715,15 @@ export default function PackTripArticle() {
           podkladom `.pk-paper` na koreni — tapeta je jeho súčasť, preto sa sem už nič
           nevkladá. Volať oboje naraz = dve tapety cez seba. */}
 
+      {/* Spoločná hlavička /pack (28. 10. 2026): AINUBIS · šípka · správy. Šípka z fotky odišla, na fotke ostáva len ceruzka autora. */}
+      {!mg && <PackTopRow onBack={() => (canStepBack() ? navigate(-1) : navigate('/pack/map'))} backLabel={t('pack.trip.backToTrips')} />}
       <div className="pta-shell">
       <div className="pta-hero" style={cover ? { backgroundImage: `url('${sizedUrl(cover, heroPx())}')`, backgroundPosition: coverPos(trail) } : undefined}>
         <div className="pta-hero-grad" />
         {(trail as { photoCredit?: string }).photoCredit && (
           <div className="pta-hero-credit">{(trail as { photoCredit?: string }).photoCredit}</div>
         )}
-        <BackButton tone="pale" className="pta-back" onClick={() => (canStepBack() ? navigate(-1) : navigate('/pack/map'))} label={t('pack.trip.backToTrips')} />
+        {mg && <BackButton tone="pale" className="pta-back" onClick={() => (canStepBack() ? navigate(-1) : navigate('/pack/map'))} label={t('pack.trip.backToTrips')} />}
         {/* Ceruzka je v hero oproti šípke späť — je to akcia nad CELÝM článkom, nie nad jeho
             sekciou, a v rade pod titulom (triplist / prešiel som / zdieľať) by si konkurovala
             s vecami, ktoré robí ktokoľvek. Vidí ju len autor (`canEdit`). */}

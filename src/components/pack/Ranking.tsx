@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BackButton } from './BackButton';
-import { PACK_THEME, FONT_UI, HIT_CSS, VEIL_CSS } from './packTheme';
+import { PACK_THEME, FONT_UI, HIT_CSS, VEIL_CSS, MODAL_MAX_H } from './packTheme';
 import { countryFlag } from '@/lib/countryGeo';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -269,7 +269,7 @@ function ModalShell({
         style={{
           width: '100%',
           maxWidth,
-          maxHeight: '86vh',
+          maxHeight: MODAL_MAX_H,
           display: 'flex',
           flexDirection: 'column',
           background: T.panelGrad,

@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BackButton } from './BackButton';
 import { HandArrowLeft } from './HandIcons';
-import { PACK_BOX, PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI, FONT_TITLE, VEIL_CSS, PROGRESS_CSS } from './packTheme';
+import { PACK_BOX, PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_TOPROW, FONT_UI, FONT_TITLE, VEIL_CSS, PROGRESS_CSS } from './packTheme';
 import { type Mesiac, type Polozka } from '@/lib/pokladnica';
 
 const T = PACK_THEME;
@@ -25,10 +25,11 @@ const CSS = `${PROGRESS_CSS}
 .kp-root.pk-veil{z-index:210;padding:0;align-items:stretch;}
 .kp{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;}
 /* Mobil = šuplík cez celú obrazovku (nákres); od 768 plávajúci panel. */
-@media (min-width:768px){.kp-root.pk-veil{padding:${PACK_SPACE.xl}px;align-items:center;}.kp{width:min(100%,480px);height:auto;max-height:100%;}}
-.kp-top{display:flex;align-items:center;gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px ${PACK_SPACE.sm}px;}
+@media (min-width:768px){.kp-root.pk-veil{padding:${PACK_SPACE.xl}px;align-items:center;}.kp{width:min(100%,480px);height:auto;max-height:100%;}.kp .kp-top{padding-top:${PACK_SPACE.lg}px;}}
+/* Mobil = cez celú obrazovku, takže šípka NESMIE ísť pod hodiny: rad = spoločná hlavička /pack (safe-area + PACK_TOPROW.top, výška PACK_TOPROW.h) — 28. 10. 2026. */
+.kp-top{display:flex;align-items:center;gap:${PACK_SPACE.md}px;box-sizing:content-box;min-height:${PACK_TOPROW.h}px;padding:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top}px) ${PACK_SPACE.lg}px ${PACK_SPACE.sm}px;}
 .kp-top h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
-.kp-body{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;}
+.kp-body{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.lg}px);}
 .kp-sub{padding:${PACK_SPACE.md}px;}
 .kp-lbl{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .kp-hero{display:flex;justify-content:space-between;align-items:baseline;gap:${PACK_SPACE.sm}px;}

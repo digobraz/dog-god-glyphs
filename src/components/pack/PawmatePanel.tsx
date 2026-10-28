@@ -29,7 +29,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Loader2 } from 'lucide-react';
-import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, VEIL_CSS, FONT_TITLE, FONT_UI } from './packTheme';
+import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, VEIL_CSS, FONT_TITLE, FONT_UI, MODAL_MAX_H } from './packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from './navGoldSkin';
 import { HandKey, HandTrash, HandArrowLeft } from './HandIcons';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -493,7 +493,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
         style={{
           ...PACK_BOX.panel,
           padding: '24px 16px',
-          width: '100%', maxWidth: 460, maxHeight: '88vh', overflowY: 'auto',
+          width: '100%', maxWidth: 460, maxHeight: MODAL_MAX_H, overflowY: 'auto',
           color: T.ink,
         }}
       >

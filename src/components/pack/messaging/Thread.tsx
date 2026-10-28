@@ -24,9 +24,8 @@ import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, STAGE_CSS, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, STAGE_CSS, PACK_COL_FIT, packColCSS, PACK_TOPROW } from '@/components/pack/packTheme';
 import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
-import { SkinToggle } from './Inbox';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { AINUBIS_SHEET_CSS, AinubisWho } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -55,8 +54,9 @@ export const THREAD_CSS = `
 .msg-thread.msg-skin{position:fixed;inset:0;z-index:1300;display:flex;flex-direction:column;}
 /* Pás nesie POZADIE cez celé okno, stĺpec vnútri nesie OBSAH — a jeho šírka je tá istá,
    akú má telo správ (.msg-thread-body) aj písací panel (.msg-thread-send). */
-.msg-thread-head{position:sticky;top:0;z-index:3;padding:calc(env(safe-area-inset-top,0px) + 22px) 0 16px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
-.msg-thread-headinner{display:flex;align-items:center;gap:12px;${PACK_COL_FIT}margin:0 auto;}
+/* Výška a poloha hlavičky = spoločný rad /pack (28. 10. 2026), rovnako ako .msg-inbox-head. */
+.msg-thread-head{position:sticky;top:0;z-index:3;padding:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top}px) 0 ${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h}px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
+.msg-thread-headinner{display:flex;align-items:center;gap:12px;min-height:${PACK_TOPROW.h}px;${PACK_COL_FIT}margin:0 auto;}
 .msg-back{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
 .msg-back:hover{border-color:${T.cardEdge};color:var(--msg-title);background:var(--msg-btn-hot);}
 /* flex:1 + min-width:0 — bez toho dlhý štítok výletu na mobile podlezie ovládania vpravo. */
@@ -198,7 +198,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   const me = getMe();
   const t = useT();
   const navigate = useNavigate();
-  const [skin, toggleSkin] = useMsgSkin();
+  const [skin] = useMsgSkin();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -370,7 +370,6 @@ export function Thread({ convId, onClose, onOpenTrip }: {
             a slniečko skončilo opticky v strede lišty. Obe ovládania sú odteraz v JEDNOM
             bloku úplne vpravo; poradie je slniečko → ⋯, aby sa ⋯ držalo rohu. */}
         <div className="msg-thread-acts">
-          <SkinToggle skin={skin} onToggle={toggleSkin} />
           {!isGroup && (
             <button
               type="button"

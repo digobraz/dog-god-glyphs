@@ -344,11 +344,11 @@ const pickStyle: CSSProperties = {
  *  je bug, nie štýl, a zhodí `npm run check:pack`. */
 export const DIARY_CSS = `
 .dia-bg{position:fixed;inset:0;background:rgba(20,12,4,.55);display:flex;
-  padding:${PACK_SPACE.lg}px;z-index:70;overflow-y:auto;
-  padding-bottom:calc(${PACK_SPACE.lg}px + var(--consent-h, 0px))}
+  padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;z-index:70;overflow-y:auto;
+  padding-bottom:calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.lg}px + var(--consent-h, 0px))}
 .dia-pop{background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};
   border-radius:${PACK_BOX.panel.borderRadius}px;box-shadow:${PACK_BOX.panel.boxShadow};
-  padding:${PACK_SPACE.lg}px;max-width:420px;width:100%;margin:auto;max-height:calc(100vh - ${PACK_SPACE.xxl}px - var(--consent-h, 0px));
+  padding:${PACK_SPACE.lg}px;max-width:420px;width:100%;margin:auto;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - ${PACK_SPACE.xxl}px - var(--consent-h, 0px));
   overflow-y:auto}
 /* 🔴 CENTRUJE margin:auto NA DIEŤATI, nie align-items:center na rodičovi s overflow-y:auto
    (CLAUDE.md, PAGE_AIR): pretečenie by sa rozdelilo na obe strany a hornú časť by sa nedalo

@@ -27,7 +27,6 @@ import { canStepBack } from '@/lib/stepBack';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { BackButton } from '@/components/pack/BackButton';
 import { RightGate } from '@/components/pack/RightGate';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandCheck } from '@/components/pack/HandIcons';
@@ -110,13 +109,12 @@ export default function PackDogIdModules() {
   const shown = sel === 'all' ? (dogs ?? []) : (dogs ?? []).filter((d) => d.id === sel);
 
   return (
-    <PackLayout>
+    <PackLayout onBack={() => (canStepBack() ? navigate(-1) : navigate('/pack/dogs'))} backLabel={tx('pack.chronicle.back', 'Back')}>
       <style>{PILL_CSS}{PROGRESS_CSS}{CSS}</style>
       <section ref={cardRef} className="dm" style={{ ...PACK_BOX.card, boxShadow: PACK_SHADOW.panel }}>
         {/* ── hlavička: návrat · názov  |  SPOLU ── */}
         <header className="dm-head">
           <div className="dm-head-l">
-            <BackButton tone="pale" onClick={() => (canStepBack() ? navigate(-1) : navigate('/pack/dogs'))} label={tx('pack.chronicle.back', 'Back')} />
             <div style={{ minWidth: 0 }}>
               <span className="dm-eyebrow">{tx('pack.dogid.eyebrow', 'Your dog’s document')}</span>
               <h1 className="dm-h1">{tx('pack.hub.profileTitle', 'DOG ID')}</h1>

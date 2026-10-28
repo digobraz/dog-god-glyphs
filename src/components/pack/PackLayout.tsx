@@ -161,7 +161,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel, topLe
             away with the rest of the column. Pinned just under the safe-area, above content
             (z-index above the z-10 column). */}
         {DEV_FULL && (
-          <PackTopRow onBack={onBack} backLabel={backLabel} left={topLeft} right={<PackTopRight last24h={packToday} total={packTotal} layout="inline" />} />
+          <PackTopRow onBack={onBack} backLabel={backLabel} left={topLeft} />
         )}
         {(title || subtitle) && (
           <header className="mb-7 text-center">

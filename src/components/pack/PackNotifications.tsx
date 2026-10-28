@@ -30,6 +30,12 @@ import { emitOpenInbox, emitOpenThread } from './messaging/openBridge';
 // `packAlerts` siaha cez `tripLabel` na dataset trás a cez `tripShared` na packStore.
 import type { PackAlert } from './packAlerts';
 import { useNavigate } from 'react-router-dom';
+import { sizedUrl } from '@/services/cloudinaryService';
+
+/** Sociálne (IG) upozornenia → základ i18n kľúča `pack.alerts.soc.<základ>One|Many`. */
+const SOCIAL_KEY: Record<string, string> = {
+  post_like: 'postLike', post_comment: 'postComment', trip_like: 'tripLike', trip_comment: 'tripComment', quote_reply: 'quoteReply',
+};
 
 const T = PACK_THEME;
 
@@ -541,6 +547,9 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                             ? (al.kind === 'event_rsvp'
                               ? t('pack.alerts.eventRsvp' + pluralKey(al.count), { count: al.count })
                               : t('pack.alerts.' + ({ event_changed: 'eventChanged', event_cancelled: 'eventCancelled', event_reminder: 'eventReminder', event_held_ask: 'eventHeldAsk' } as Record<string, string>)[al.kind]))
+                            : SOCIAL_KEY[al.kind]
+                            // IG: „Tvoj príspevok sa páči: Jana a 4 ďalším“ — bez rodu, preto One/Many (nie podľa pohlavia).
+                            ? t('pack.alerts.soc.' + SOCIAL_KEY[al.kind] + (al.kind !== 'quote_reply' && al.count > 1 ? 'Many' : 'One'), { who: al.who || t('pack.triplist.fallbackDogyptian'), others: al.count - 1 })
                             : al.kind === 'follow_new'
                             ? t('pack.alerts.followNew', { who: al.who || t('pack.triplist.fallbackDogyptian') })
                             : al.kind === 'pawmate_joined'
@@ -555,6 +564,11 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                               ? t('pack.alerts.walked')
                               : t('pack.alerts.accepted')}
                         </span>
+                        {SOCIAL_KEY[al.kind] ? (al.preview && (
+                          <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.35, color: T.inkDim, marginTop: 1 }}>
+                            „{al.preview}“
+                          </span>
+                        )) : (
                         <span
                           style={{
                             display: 'block', fontFamily: "'Cinzel', serif", fontWeight: 700,
@@ -564,7 +578,9 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                         >
                           {al.tripName}
                         </span>
+                        )}
                       </span>
+                      {al.photo && <img src={sizedUrl(al.photo, 96)} alt="" width={40} height={40} loading="lazy" style={{ flexShrink: 0, width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />}
                     </button>
                   </li>
                 ))}

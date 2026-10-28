@@ -33,7 +33,7 @@ import { usePilgrimStats, usePublishPilgrimLevel } from './usePilgrimStats';
 import { tierVars } from '@/lib/packTiers';
 import type { usePackIdentity } from './usePackIdentity';
 import { PackTopRight } from './PackLayout';
-import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI } from './packTheme';
+import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, PACK_TOPROW, FONT_TITLE, FONT_UI } from './packTheme';
 import { AINUBIS, AI_GLASS } from './ainubisSkin';
 import { NAV_R, PALE_PC_MIN } from './navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
@@ -47,6 +47,8 @@ import { firstNameFrom } from '@/lib/pilgrimName';
 
 const CSS = `
 .pkid{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;min-width:0;}
+/* Mobil: ikonky (44) na OSI spoločnej hlavičky — stred riadku = PACK_TOPROW.axis (28. 10. 2026, Matej: ikonky v jednej úrovni aj vo VAULTe). */
+@media (max-width:${PALE_PC_MIN - 1}px){.pkid{position:relative;top:-${(44 - PACK_TOPROW.h) / 2}px;}}
 .pkid-me{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;min-width:0;flex:0 1 auto;
   background:none;border:none;padding:0;cursor:pointer;text-align:left;color:${AINUBIS.ink};}
 .pkid-av{position:relative;flex:0 0 auto;width:${AV_D}px;height:${AV_D}px;display:grid;place-items:center;}

@@ -744,7 +744,7 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, childre
         <PackTopRow
           onBack={onBack}
           backLabel={backLabel}
-          right={onGear && (
+          extra={onGear && (
             <button type="button" className="bd-gear" onClick={onGear} aria-label={gearLabel}>
               <BrandIcon name="sliders" size={PACK_SPACE.lg} tint="dark" />
             </button>

@@ -21,7 +21,6 @@ import { canStepBack } from '@/lib/stepBack';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { BackButton } from '@/components/pack/BackButton';
 import {
   PACK_THEME, PACK_BOX, PACK_HEAD, PACK_SPACE, PACK_TEXT, PACK_R, GOLD_BTN,
   FONT_TITLE, FONT_UI, PILL_CSS, PHOTO_CSS,
@@ -79,11 +78,11 @@ export default function PackChronicle() {
   };
 
   return (
-    <PackLayout>
+    <PackLayout onBack={back} backLabel={tx('pack.chronicle.back', 'Back')}>
       <style>{PILL_CSS}{PHOTO_CSS}{DIARY_LIST_CSS}{CSS}</style>
       <section style={{ ...PACK_BOX.card, padding: PACK_SPACE.xl }}>
         <div className="chr-head">
-          <BackButton tone="pale" onClick={back} label={tx('pack.chronicle.back', 'Back')} />
+          {/* Šípka späť je v spoločnej hlavičke (PackTopRow), nie v karte — Matej 28. 10. 2026. */}
           <h1 style={{ ...PACK_HEAD.card, color: T.inkStrong, margin: 0 }}>{tx('pack.chronicle.title', 'Chronicle')}</h1>
         </div>
 

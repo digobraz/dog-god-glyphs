@@ -34,6 +34,8 @@ const T = PACK_THEME;
 export type MsgSkin = 'light' | 'dark';
 
 const KEY = 'dogypt.messages.skin.v1';
+/** Prepínač šatu v hlavičke správ je vypnutý; tmavý šat (`.msg-skin--dark`) ostáva v CSS, kým Matej nerozhodne o jeho zániku. */
+const SKIN_SWITCH = false;
 
 // Inbox a Thread sú dva komponenty, ale jeden povrch — bez spoločného kanála by
 // si po prepnutí v inboxe vlákno ďalej svietilo po starom. Rovnaký pub/sub vzor
@@ -42,6 +44,9 @@ type Listener = (s: MsgSkin) => void;
 const listeners = new Set<Listener>();
 
 function read(): MsgSkin {
+  // Prepínač svetlosti zrušený (Matej 28. 10. 2026) — správy majú jeden, svetlý šat. Uložené 'dark' z čias
+  // prepínača sa ignoruje, inak by človek zostal v tmavom šate bez cesty späť.
+  if (!SKIN_SWITCH) return 'light';
   try {
     return localStorage.getItem(KEY) === 'dark' ? 'dark' : 'light';
   } catch {

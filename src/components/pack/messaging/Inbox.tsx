@@ -26,7 +26,7 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { BUDDY_LIVE } from '@/lib/packFlags';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useEffect, useState } from 'react';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, PACK_TOPROW } from '@/components/pack/packTheme';
 import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -63,8 +63,9 @@ export const INBOX_CSS = `
    v strede v 640 px — na širokej obrazovke to bola hlavička od inej stránky.
    Rovnica je ZHODNÁ s .msg-thread-headinner vo vlákne (PACK_COL_FIT + packColCSS),
    aby sa krok späť zo správy nepohol o pixel. Vodorovný padding preto drží vnútro, nie pás. */
-.msg-inbox-head{position:sticky;top:0;z-index:3;padding:calc(env(safe-area-inset-top,0px) + 22px) 0 16px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
-.msg-inbox-headinner{display:flex;align-items:center;justify-content:space-between;gap:12px;${PACK_COL_FIT}margin:0 auto;}
+/* Výška a poloha hlavičky = spoločný rad /pack (28. 10. 2026): rad od safe-area + PACK_TOPROW.top, výška PACK_TOPROW.h, obsah končí na PACK_TOPROW.content. */
+.msg-inbox-head{position:sticky;top:0;z-index:3;padding:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top}px) 0 ${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h}px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
+.msg-inbox-headinner{display:flex;align-items:center;justify-content:space-between;gap:12px;height:${PACK_TOPROW.h}px;${PACK_COL_FIT}margin:0 auto;}
 .msg-inbox-title{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:20px;color:var(--msg-title);}
 .msg-inbox-acts{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
@@ -192,7 +193,7 @@ export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
   onOpenTrip?: (tripId: string) => void;
 }) {
   const t = useT();
-  const [skin, toggleSkin] = useMsgSkin();
+  const [skin] = useMsgSkin();
   const { lang } = useLang();
   const locale = intlLocale(lang);
   const [convs, setConvs] = useState<Conversation[]>([]);
@@ -227,9 +228,7 @@ export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
         <div className="msg-inbox-headinner">
           <button type="button" className="msg-x" onClick={onClose} aria-label={t('pack.msg.closeAriaLabel')}><BackIcon /></button>
           <div className="msg-inbox-title">{t('pack.msg.inboxTitle')}</div>
-          <div className="msg-inbox-acts">
-            <SkinToggle skin={skin} onToggle={toggleSkin} />
-          </div>
+          {/* Prepínač svetlosti zrušený (Matej 28. 10. 2026) — správy majú jeden šat. */}
         </div>
       </div>
       <div className="msg-inbox-list msg-plate">
