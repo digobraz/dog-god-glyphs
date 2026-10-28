@@ -1,40 +1,30 @@
 // Inbox overlay — zoznam konverzácií (DM + open groups). Design:
 // plany/zadanie-profil-messaging-2026-07-23.md §4.3/§12.
 //
-// ── DRAK → BRIGHT, krok 2 (2026-09-02) ─────────────────────────────────────
-// Do 1. 9. 2026 to bola tmavá glass plocha (`T.pageBg` + `onDark*` inkoust). Prezlečené
-// do papyrusu podľa zadania `plany/zadanie-drak-bright-pokracovanie-FRESH-SESSION.md`,
-// predloha šatu = `/pack/map` a `PackTriplist.tsx` z tej istej vlny.
+// ── SPRÁVY BEZ D-BLOKU (28. 10. 2026) ──────────────────────────────────────
+// Matej: „urobme tú stránku bez D-bloku = na celú šírku ako to má Instagram, a použi bledé
+// pozadie bez heroglyfov." Zoznam je rad riadkov cez celý stĺpec (PACK_COL_INNER), oddelených
+// jemnou čiarou — ako IG Direct. Podklad = plochý papyrus z `msgTheme.ts` (žiadna tapeta).
+// Tmavý šat a jeho prepínač zanikli.
 //
-// ⚠️ DVA ŠATY, JEDNA SADA PRAVIDIEL (2026-09-01). Matej: „správy daj možnosť aj prepnúť
-//    do tmavej." Farby sú CSS premenné z `messaging/msgTheme.ts`; tento súbor nevie, ktorý
-//    šat beží. Kto sem napíše konkrétnu farbu, napíše ju len pre jeden z nich — a v druhom
-//    z toho bude nečitateľné miesto, nie chyba, ktorú niečo nahlási.
-// ⚠️ PODKLAD SA TU NEPÍŠE — nesie ho trieda `.msg-skin` (papyrusová alebo čierna tapeta).
-//    `<HieroglyphBg />` sa k nej NEVOLÁ: boli by dve tapety cez seba a navyše žije
-//    v `PackLayout.tsx`, ktorý si Inbox lazy importuje — teda kruh.
+// ⚠️ KRÍŽIK/ŠÍPKA: Inbox je celoobrazovkový prekryv, bez šípky späť by z neho nebolo kam ísť.
+//    Hlavička je spoločný rad /pack (PACK_TOPROW) — zachovaná.
 //
-// ⚠️ KRÍŽIK TU OSTÁVA, a nie je to porušenie locku z 28. 8. („bloky bez krížika"). Ten lock
-//    hovorí o PLÁVAJÚCOM paneli, kde je odchod plocha okolo neho. Inbox je celoobrazovkový
-//    prekryv — nemá „okolo", takže bez krížika by z neho nebolo kam ísť. (Esc tu zatiaľ
-//    nepočúva nikto; nie je to súčasť prezliekania, ale stojí za samostatný beh.)
-//
-// ⚠️ TEXTY IDÚ CEZ `t()`. Pôvodná hlavička tu tvrdila „web texty = EN" a súbor mal 5 volaní
-// `t()` na celý inbox — Slovák tak v slovenskom rozhraní čítal „No messages yet" a dátumy
-// „Aug 9" (natvrdo `en-US`). Thread.tsx je preložený od začiatku; Inbox dorovnaný 2026-08-12.
+// ⚠️ TEXTY IDÚ CEZ `t()` (dátumy cez `intlLocale`, nie natvrdo en-US).
 import { sizedUrl } from '@/services/cloudinaryService';
 import { BUDDY_LIVE } from '@/lib/packFlags';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useEffect, useState } from 'react';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, PACK_TOPROW } from '@/components/pack/packTheme';
-import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
+import { MSG_SKIN_CSS } from './msgTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { getMe, listConversations, subscribe, type Conversation } from './packMessaging';
 import { tripNames, tripNameSync } from './tripLabel';
-import { PALE } from '@/components/pack/navGoldSkin';
+import { PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
+import { SNIFFER_HEART } from '@/components/pack/buddy/SnifferLogo';
 
 const T = PACK_THEME;
 
@@ -44,92 +34,53 @@ const DOG_NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
 const HUMAN_NAME_FONT = "'Cinzel', serif";
 
 export const INBOX_CSS = `
-/* ⚠️ FARBY SÚ PREMENNÉ, NIE TOKENY. Definuje ich MSG_SKIN_CSS v msgTheme.ts a nesie ich
-   trieda .msg-skin (+ .msg-skin--dark). Kto sem napíše konkrétnu farbu, napíše ju len pre
-   jeden zo šatov a v druhom sa to prejaví ako nečitateľné miesto, nie ako chyba.
-
-   ⚠️ .msg-inbox NESIE AJ .msg-skin, a tá má position:relative — prekryv ju musí prebiť.
-   Preto je selektor DVOJTRIEDNY (0,2,0): prebije ju bez ohľadu na to, v akom poradí sa oba
-   <style> bloky dostanú do dokumentu. Spoliehať sa tu na poradie by znamenalo, že prvý, kto
-   tie dva tagy prehodí, pošle inbox do toku stránky.
-   Pozadie ani tapetu tu nehľadaj — nesie ich .msg-skin. Dve nepriehľadné plochy nad sebou
-   by tapetu prekryli (tá istá chyba padla na blogu 1. 9.). */
+/* Farby sú premenné z MSG_SKIN_CSS (msgTheme.ts). Dvojtriedny selektor (0,2,0) prebije
+   position:relative z .msg-skin bez ohľadu na poradie <style> blokov. Pozadie nesie .msg-skin. */
 .msg-inbox.msg-skin{position:fixed;inset:0;z-index:1300;overflow-y:auto;display:flex;flex-direction:column;min-height:100dvh;}
-/* Lepiaca hlavička MUSÍ byť nepriehľadná (riadky pod ňou podchádzajú), a tým pádom sa nesmie
-   tváriť, že je to holá stránka: doska by na tapete vytvorila obdĺžnik iného odtieňa.
-   Číta sa preto ako LIŠTA — vlastný povrch a zlatá spodná hrana. */
-/* ⚠️ LIŠTA JE PÁS CEZ CELÉ OKNO, OBSAH STOJÍ V STĹPCI. Do 15. 9. 2026 tu bol flex priamo
-   na páse, takže názov a tlačidlá viseli na krajoch okna, kým doska pod nimi stála
-   v strede v 640 px — na širokej obrazovke to bola hlavička od inej stránky.
-   Rovnica je ZHODNÁ s .msg-thread-headinner vo vlákne (PACK_COL_FIT + packColCSS),
-   aby sa krok späť zo správy nepohol o pixel. Vodorovný padding preto drží vnútro, nie pás. */
-/* Výška a poloha hlavičky = spoločný rad /pack (28. 10. 2026): rad od safe-area + PACK_TOPROW.top, výška PACK_TOPROW.h, obsah končí na PACK_TOPROW.content. */
+/* Výška a poloha hlavičky = spoločný rad /pack (28. 10. 2026): rad od safe-area + PACK_TOPROW.top, výška PACK_TOPROW.h, obsah končí na PACK_TOPROW.content.
+   Pás nesie povrch cez celé okno, obsah stojí v stĺpci (rovnica zhodná s .msg-thread-headinner). */
 .msg-inbox-head{position:sticky;top:0;z-index:3;padding:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top}px) 0 ${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h}px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
 .msg-inbox-headinner{display:flex;align-items:center;justify-content:space-between;gap:12px;height:${PACK_TOPROW.h}px;${PACK_COL_FIT}margin:0 auto;}
-.msg-inbox-title{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:20px;color:var(--msg-title);}
-.msg-inbox-acts{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.msg-inbox-title{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:20px;color:var(--msg-title);} /* písmo: nadpis */
 /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
 .msg-x{${backCircleCSS('pale')}}
 .msg-x:hover{${backHoverCSS('pale')}}
-/* ⚠️ Doska sa MUSÍ držať obsahu, preto tu NIE JE flex:1 1 auto — s ním by sa pri troch
-   vláknach roztiahla na celú výšku okna a bola z nej prázdna platňa.
-   ⚠️ Rám berie 6 px z každej strany, tak vodorovný padding klesol o toľko isto (16 -> 10).
-      Odstup od spodného navu je MARGIN, nie padding — inak by tých 100 px bolo vnútri dosky.
-   ⚠️ Vzduch od okrajov okna nesie width:calc(100% - 32px), nie 100% (precedens .pta-shell). */
-.msg-inbox-list{${PACK_COL_FIT}margin:14px auto 100px;padding:12px 8px 16px;box-sizing:border-box;flex:0 0 auto;position:relative;z-index:2;}
+/* ZOZNAM = bez karty, riadky cez celý stĺpec obsahu ako IG Direct. */
+.msg-inbox-list{${PACK_COL_FIT}margin:0 auto;padding:0 0 calc(env(safe-area-inset-bottom,0px) + 24px);box-sizing:border-box;flex:1 0 auto;position:relative;z-index:2;}
 /* ⚠️ Riadok je <div role="button">, NIE <button> — vnútri je vlastné tlačidlo (štítok výletu)
-   a <button> v <button> je nevalidný HTML, ktorý prehliadač ticho rozbije. Preto tu musí
-   ostať aj :focus-visible, klávesnica sa inak stratí.
-
-   🔑 RIADOK JE VÝRAZNÝ BLOK, NIE priesvitná dlaždica (Matej 1. 9. 2026: „jednotlivé bloky viac
-   zvýraznené, sú teraz takmer neviditeľné"). Prvé kolo držalo úroveň 3 matrice doslova
-   (tileBg = zlatá pri 6 %) a na pieskovcovej doske to bola zlatá na zlatej. Úroveň 3 je
-   definovaná proti SVETLEJ karte; na doske jej podklad chýba.
-   ⚠️ „VÝRAZNÝ" NEZNAMENÁ „SVETLÝ" — od 15. 9. 2026 to rozhoduje ŠAT (Matej: „pri dark by
-   nemali byť bledé bloky ale tmavé"). V svetlom šate je riadok svetlejší než doska, v tmavom
-   tmavší; obe polohy nesie --msg-row-* v msgTheme.ts, tento súbor o šate nevie.
-   ⚠️ Bubliny vo VLÁKNE sa tým NEMENIA — cudzia ostáva bledá aj v tmavom šate (Matej 1. 9.).
-   Preto má riadok vlastné tokeny a nesiaha už na --msg-block-*. */
-.msg-row{display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;background:var(--msg-row-bg);color:var(--msg-row-ink);border:1px solid var(--msg-row-edge);border-radius:12px;padding:12px 16px;margin-bottom:10px;cursor:pointer;box-shadow:var(--msg-row-shadow);transition:border-color .15s,transform .15s,box-shadow .15s;font-family:inherit;}
-.msg-row:last-child{margin-bottom:0;}
-.msg-row:hover{transform:translateY(-1px);box-shadow:var(--msg-row-hover);}
-.msg-row:focus-visible{outline:none;box-shadow:var(--msg-row-hover);}
-/* Avatar bez fotky = zlatá PLOCHA, teda brandová rampa okolo #C99A3F — NIE gradient .btn-gold
-   (#F5C73D->#E69E1A). Ten je locknutý pre TLAČIDLO, kde je malý a lesklý, takže sa číta ako
-   svetlo; tá istá zmes na súvislej ploche je žltá a Matej si ju spája s AINUBISOM (lock 28. 8.).
-   Rampa drží v oboch šatoch — je to identita psa, nie povrch stránky. */
-.msg-avatar{flex-shrink:0;width:42px;height:42px;border-radius:50%;background:linear-gradient(140deg,${T.cardEdge},#A3782B);background-size:cover;background-position:center;border:1px solid ${PALE.border};box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:16px;color:${T.card};}
+   a <button> v <button> je nevalidný HTML. Preto tu musí ostať aj :focus-visible. */
+.msg-row{display:flex;align-items:center;gap:16px;width:100%;box-sizing:border-box;text-align:left;background:transparent;color:var(--msg-ink);border:0;border-bottom:1px solid var(--msg-sep);padding:12px 8px;cursor:pointer;transition:background .15s;font-family:inherit;-webkit-tap-highlight-color:transparent;}
+.msg-row:last-child{border-bottom:0;}
+.msg-row:hover,.msg-row:active{background:var(--msg-row-hot);}
+.msg-row:focus-visible{outline:none;background:var(--msg-row-hot);}
+/* Avatar bez fotky = zlatá PLOCHA, brandová rampa okolo #C99A3F — NIE gradient .btn-gold (ten je pre tlačidlo). */
+.msg-avatar{flex-shrink:0;width:56px;height:56px;border-radius:50%;background:linear-gradient(140deg,${T.cardEdge},#A3782B);background-size:cover;background-position:center;border:1px solid ${PALE.border};box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:20px;color:${T.card};}
 .msg-row-mid{flex:1;min-width:0;}
 .msg-row-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
-.msg-row-name{font-weight:700;font-size:14px;color:var(--msg-row-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-/* ⚠️ Riadok má v tmavom šate BLEDÝ podklad, takže jeho druhotné texty NEMÔŽU brať --msg-dim
-   (ten je počítaný pre tmavé pozadie stránky). Tlmenie sa robí krytím TEJ ISTEJ farby
-   inkoustu riadku — inak by v tmavom šate zmizli. */
-.msg-row-pack{font-family:${FONT_UI};font-weight:400;font-size:10px;color:var(--msg-row-ink);opacity:.66;}
-.msg-row-time{flex-shrink:0;font-size:10px;color:var(--msg-row-ink);opacity:.52;}
-.msg-row-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px;}
-.msg-row-preview{font-size:12px;color:var(--msg-row-ink);opacity:.72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-/* Neprečítané = zlatá bodka s prstencom farby PODKLADU (ako odznak počtu správ
-   v PackNotifications). Bez prstenca by na zlatkasto tónovanom riadku splynula.
-   Nie je to lapis: lapis znamená „moja voľba / moja akcia", a neprečítaná správa
-   nie je ani jedno — je to stav. */
-.msg-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${T.accentGold};box-shadow:0 0 0 2px var(--msg-dot-ring);}
-/* Správa od zakladateľa = CYAN, tá istá farba ako jej číslo na obálke (Matej 27. 10.). */
+.msg-row-name{font-weight:700;font-size:14px;color:var(--msg-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.msg-row-pack{font-family:${FONT_UI};font-weight:400;font-size:10px;color:var(--msg-dim);}
+.msg-row-time{flex-shrink:0;font-family:${FONT_UI};font-size:10px;color:var(--msg-dim);}
+.msg-row-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;}
+/* Posledná správa = JEDEN riadok. Neprečítaná je tučnejšia a v plnom inkouste. */
+.msg-row-preview{font-family:${FONT_UI};font-size:12px;font-weight:400;color:var(--msg-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.msg-row.is-unread .msg-row-preview{font-weight:600;color:var(--msg-ink);}
+.msg-row.is-unread .msg-row-time{font-weight:600;color:var(--msg-ink);}
+/* Neprečítané = bodka. ČERVENÁ od člena (rovnako ako číslo na obálke), CYAN od zakladateľa/DOGYPTu
+   (Matej 27. 10.). Farby sú tie isté ako badge v PackNotifications. */
+.msg-dot{flex-shrink:0;width:10px;height:10px;border-radius:50%;background:${SNIFFER_HEART};}
 .msg-dot.is-founder{background:${AINUBIS.cyan};}
-.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
+.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
 .msg-avatar.is-sniffer{position:relative;}
 .msg-origin{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:${T.card};border:1px solid ${T.cardEdge};padding:0;box-sizing:border-box;object-fit:contain;}
 .msg-tagchip--click:hover{background:var(--msg-chip-hot);border-color:${T.cardEdge};}
-.msg-empty{text-align:center;padding:32px 16px;color:var(--msg-dim);font-size:12px;font-style:italic;}
-/* #55 — prázdny inbox je celá obrazovka s jednou vetou; bez akcie je to slepá ulička. */
-.msg-emptybox{display:flex;flex-direction:column;align-items:center;gap:16px;padding:32px 16px;text-align:center;}
-.msg-emptybox p{margin:0;color:var(--msg-ink);opacity:.72;font-size:12px;font-style:italic;line-height:1.5;max-width:320px;}
-/* Jediné hlavné CTA na tejto obrazovke → farba MOJEJ bubliny (v svetlom šate lapis,
-   v tmavom oranžovozlatá). Geometriu si berie od .btn-gold (radius 8, NIE pilulka) —
-   zmena farby nie je povolenie na iný tvar. */
-.msg-emptybtn{font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:12px 16px;border-radius:8px;border:1px solid var(--msg-mine-edge);background:var(--msg-mine);color:var(--msg-mine-ink);box-shadow:var(--msg-mine-shadow);cursor:pointer;}
-.msg-emptybtn:hover{background:var(--msg-mine-hover);}
+/* PRÁZDNY STAV — bez bloku: ikonka, veta, nápoveda a jedno lapis CTA. */
+.msg-emptybox{display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 16px;text-align:center;margin:auto;}
+.msg-emptytitle{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:var(--msg-title);} /* písmo: nadpis */
+.msg-emptysub{margin:0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:var(--msg-dim);max-width:320px;}
+/* Jediné hlavné CTA → LAPIS (na bledom podklade). Geometria .btn-gold (radius 8, NIE pilulka). */
+.msg-emptybtn{margin-top:12px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;padding:12px 24px;border-radius:8px;border:1px solid ${LAPIS.deep};background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;} /* písmo: cta */
+.msg-emptybtn:hover{background:${LAPIS.gradHover};}
 
 /* Šírka stĺpca = domov /pack (PACK_COL, 21. 9. 2026) — od 640 px padding 24, nie 16. */
 ${packColCSS('.msg-inbox-headinner,.msg-inbox-list')}
@@ -151,39 +102,6 @@ function fmtTime(iso: string, locale: string): string {
   return d.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 }
 
-/**
- * Prepínač šatu. Ikonka je BRIGHT BUTTON SIGN z hand-drawn kitu — Matej 1. 9. 2026:
- * „myslel som toto z brandu." Zdroj `vstupy/vizualna-identita/Icons hand drawn/
- * bright-hand-drawn-button-sign-svgrepo-com.svg`, skopírovaný do `public/icons/pack/bright.svg`
- * verbatim (tak, ako sú tam ostatné).
- *
- * JEDNA ikonka pre oba stavy, nie dve. Je to znak JASU (kruh z polovice vyplnený, okolo
- * lúče) — hovorí „tu sa prepína svetlo", nie „práve je deň". Stav nesie tlačidlo: v tmavom
- * šate má značka zlatý odtieň, v svetlom inkoustový (`--msg-glyph`).
- *
- * ⚠️ Predtým tu stáli heroglyfové značky farby srsti (`COLOUR-DARK` = mesiac,
- *    `COLOUR-BRIGHT` = slnko). Fungovali, ale sú to znaky PSA — farba jeho srsti, nie
- *    ovládací prvok rozhrania. Matej ich preto vymenil za ikonku z kitu.
- */
-export function SkinToggle({ skin, onToggle }: { skin: 'light' | 'dark'; onToggle: () => void }) {
-  // Popisok hovorí, KAM sa prepne, nie kde práve stojím — tlačidlo je akcia, nie stav.
-  // (Stav nesie odtieň značky: v tmavom šate zlatý, v svetlom inkoustový.)
-  const t = useT();
-  const label = skin === 'dark' ? t('pack.msg.skinToLight') : t('pack.msg.skinToDark');
-  return (
-    <button
-      type="button"
-      className="msg-skinbtn"
-      onClick={onToggle}
-      aria-pressed={skin === 'dark'}
-      aria-label={label}
-      title={label}
-    >
-      <BrandIcon name="bright" size={17} />
-    </button>
-  );
-}
-
 export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
   onOpenThread: (convId: string) => void;
   onClose: () => void;
@@ -193,7 +111,6 @@ export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
   onOpenTrip?: (tripId: string) => void;
 }) {
   const t = useT();
-  const [skin] = useMsgSkin();
   const { lang } = useLang();
   const locale = intlLocale(lang);
   const [convs, setConvs] = useState<Conversation[]>([]);
@@ -220,24 +137,23 @@ export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
   }, [convs, namesReady]);
 
   return (
-    <div className={`msg-inbox msg-skin${skin === 'dark' ? ' msg-skin--dark' : ''}`}>
-      {/* Tapetu nesie .msg-skin — <HieroglyphBg /> sa sem NEPRIDÁVA (bola by druhá vrstva). */}
-      <style>{MSG_SKIN_CSS}</style>
+    <div className="msg-inbox msg-skin">
+            <style>{MSG_SKIN_CSS}</style>
       <style>{INBOX_CSS}</style>
       <div className="msg-inbox-head">
         <div className="msg-inbox-headinner">
           <button type="button" className="msg-x" onClick={onClose} aria-label={t('pack.msg.closeAriaLabel')}><BackIcon /></button>
           <div className="msg-inbox-title">{t('pack.msg.inboxTitle')}</div>
-          {/* Prepínač svetlosti zrušený (Matej 28. 10. 2026) — správy majú jeden šat. */}
         </div>
       </div>
-      <div className="msg-inbox-list msg-plate">
+      <div className="msg-inbox-list">
         {convs.length === 0 ? (
           <div className="msg-emptybox">
-            {/* Rozhovor sa dnes nezačína len na výlete (Matej 26. 9.: „nájsť výlet je hlúposť už").
-                Tlačidlo vedie do SNIFFERu — ale len kde SNIFFER beží (BUDDY_LIVE); inde by
-                `/pack/sniffer` presmeroval na mapu, takže tam ostane len text bez SNIFFERu. */}
-            <p>{t(BUDDY_LIVE ? 'pack.msg.inboxEmpty' : 'pack.msg.inboxEmptyNoSniffer')}</p>
+            <BrandIcon name="chat" size={48} tint="gold" />
+            <p className="msg-emptytitle">{t('pack.msg.emptyTitle')}</p>
+            {/* Tlačidlo vedie do SNIFFERu — len kde SNIFFER beží (BUDDY_LIVE); inde by `/pack/sniffer`
+                presmeroval na mapu, takže tam ostane len text bez SNIFFERu. */}
+            <p className="msg-emptysub">{t(BUDDY_LIVE ? 'pack.msg.emptySub' : 'pack.msg.emptySubNoSniffer')}</p>
             {BUDDY_LIVE && onOpenSniffer && <button type="button" className="msg-emptybtn" onClick={onOpenSniffer}>{t('pack.msg.openSniffer')}</button>}
           </div>
         ) : (
@@ -262,7 +178,7 @@ export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
                 key={conv.id}
                 role="button"
                 tabIndex={0}
-                className="msg-row"
+                className={`msg-row${unread ? ' is-unread' : ''}`}
                 onClick={openThread}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openThread(); }

@@ -2,20 +2,13 @@
 // plany/zadanie-profil-messaging-2026-07-23.md §4.3/§12. Send box (Enter=send), auto-scroll dole,
 // markRead pri mounte/otvorení. Nejoinnutá open group → "Join the pack" namiesto send boxu.
 //
-// ── DRAK → BRIGHT, krok 2 (2026-09-02) ─────────────────────────────────────
-// Do 1. 9. 2026 tmavá plocha (`T.pageBg` + `onDark*` inkoust). Prezlečené do papyrusu podľa
-// `plany/zadanie-drak-bright-pokracovanie-FRESH-SESSION.md`; predloha = `PackTriplist.tsx`.
+// ── SPRÁVY BEZ D-BLOKU (28. 10. 2026) ──────────────────────────────────────
+// Matej: „na celú šírku ako to má Instagram, bledé pozadie bez heroglyfov." Vlákno stojí na
+// plochom papyruse z `msgTheme.ts` (žiadna tapeta, žiadna sklenená doska), bubliny priamo
+// na ňom, písací pás prilepený dole so safe-area; nad klávesnicou ho drží `visualViewport`.
 //
-// ⚠️ DVA ŠATY, JEDNA SADA PRAVIDIEL (2026-09-01). Matej: „správy daj možnosť aj prepnúť
-//    do tmavej = to isté ale v čiernej s oranžovozlatou a bledou farbou bubliniek."
-//    Farby sú CSS premenné z `msgTheme.ts`; tento súbor nevie, ktorý šat beží.
-//    Podklad nesie trieda `.msg-skin`, nie tento súbor.
-//
-// ⚠️ MOJA BUBLINA JE PLNÝ LAPIS (Matej 1. 9. 2026). Prvé kolo tu malo tint pri 14 % podľa
-//    pravidla „plná farebná plocha len pre hlavné CTA"; on ho pre bubliny zrušil: bublina
-//    nie je tlačidlo ani výber, je to OBSAH, a v rozhovore musí byť na prvý pohľad vidno,
-//    kto hovorí. Odosielacie tlačidlo je tiež lapisové ZÁMERNE — čítajú sa ako jedna
-//    rodina („ja"), nie ako dve súperiace hlavné veci.
+// ⚠️ MOJA BUBLINA JE PLNÝ LAPIS (Matej 1. 9. 2026): bublina je OBSAH, v rozhovore musí byť
+//    na prvý pohľad vidno, kto hovorí. Odosielacie tlačidlo má tú istú farbu — jedna rodina „ja".
 //
 // ⚠️ PANEL HLÁSENÍ NIE JE PAPYRUSOVÝ — je AINUBISOV (tmavá modrá, cyan, zlato-oranžové
 //    CTA). Bezpečnosť má na starosti on, nie appka. Tokeny v `ainubisSkin.ts`.
@@ -24,8 +17,8 @@ import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, STAGE_CSS, PACK_COL_FIT, packColCSS, PACK_TOPROW } from '@/components/pack/packTheme';
-import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_COL_FIT, packColCSS, PACK_TOPROW } from '@/components/pack/packTheme';
+import { MSG_SKIN_CSS } from './msgTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { AINUBIS_SHEET_CSS, AinubisWho } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -47,7 +40,7 @@ const DOG_NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
 const HUMAN_NAME_FONT = "'Cinzel', serif";
 
 export const THREAD_CSS = `
-/* ⚠️ FARBY SÚ PREMENNÉ z msgTheme.ts (.msg-skin / .msg-skin--dark). Konkrétna farba napísaná
+/* ⚠️ FARBY SÚ PREMENNÉ z msgTheme.ts (.msg-skin). Konkrétna farba napísaná
    sem platí len pre jeden šat a v druhom z nej bude nečitateľné miesto.
    Dvojtriedny selektor (0,2,0) prebije position:relative z .msg-skin bez ohľadu na poradie
    <style> blokov. Pozadie ani tapetu tu nehľadaj — nesie ich .msg-skin. */
@@ -68,16 +61,8 @@ export const THREAD_CSS = `
 .msg-tagchip{max-width:100%;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
 .msg-tagchip--click:hover{background:var(--msg-chip-hot);border-color:${T.cardEdge};}
-/* ── PLOCHA SPRÁV JE SKLENENÁ DOSKA (Matej 15. 9. 2026) ──────────────────────────────
-   „možno by bolo dobré nad blok kde sa píše pridať blok priesvitný kde pôjdu správy…
-   lebo teraz to zaniká na pozadí… potrebujeme tam panel bud priesvitný alebo liquid glass."
-   Bubliny dovtedy stáli priamo na hieroglyfovej tapete a splývali s ňou. Doska tapetu
-   ROZMAŽE a stlmí, ale nezakryje — preto sklo, nie plná výplň.
-   Šírka je tá istá, akú má hlavička aj písací panel: tri bloky v jednom stĺpci.
-   ⚠️ Vzhľad nesie BLOK SKLENENÁ DOSKA (.pk-stage, STAGE_CSS v packTheme.ts), tu sú len
-   rozmery. Farbu prepínajú premenné pk-stage v msgTheme.ts — v tmavom šate je to TMAVÉ
-   sklo; svetlá doska by tam rozsvietila polovicu obrazovky. */
-.msg-thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px;${PACK_COL_FIT}margin:12px auto;display:flex;flex-direction:column;position:relative;z-index:2;}
+/* Telo vlákna: bubliny priamo na plochom papyruse, bez dosky. Stĺpec = šírka hlavičky aj písacieho pásu. */
+.msg-thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px 0;${PACK_COL_FIT}margin:0 auto;display:flex;flex-direction:column;position:relative;z-index:2;}
 .msg-bubblewrap{display:flex;flex-direction:column;align-items:flex-start;margin-bottom:11px;max-width:82%;}
 .msg-bubblewrap.me{align-items:flex-end;align-self:flex-end;}
 /* FOTKA TOHO, KTO PÍŠE, VEDĽA BUBLINY (Matej 1. 9. 2026: „vedľa bublinky by mala byť
@@ -102,23 +87,15 @@ export const THREAD_CSS = `
 .msg-bubble.me{background:var(--msg-mine);color:var(--msg-mine-ink);border-color:var(--msg-mine-edge);box-shadow:var(--msg-mine-shadow);}
 .msg-empty{text-align:center;padding:32px 16px;color:var(--msg-dim);font-size:12px;font-style:italic;}
 .msg-senderr{flex-shrink:0;${PACK_COL_FIT}margin:0 auto;padding:0 0 8px;box-sizing:border-box;font-family:${FONT_UI};font-size:12px;color:var(--msg-err);}
-/* ── PÍSANIE SPRÁVY = LEVITUJÚCI PANEL (Matej 15. 9. 2026) ───────────────────────────
-   „dolný rámik je divný — urob panel s oblými rohmi a levitujúci ako pri spodnom nave,
-   nemusí byť dblok ale nech to je pekne v priestore."
-   Dovtedy to bol pás cez celú šírku s rovnou hornou čiarou (border-top), ktorý sa na
-   širokej obrazovke skončil v strede na 640 px — teda ani pás, ani panel: obdĺžnik
-   s dvoma ostrými rohmi visiaci nad okrajom. Teraz je to plávajúca doska: rám dookola,
-   radius 16, tieň panela a odsadenie od spodnej hrany (safe-area sa PRIPOČÍTAVA k medzere,
-   nie nahrádza). Tapeta pod ním presvitá — o to Matejovi šlo („pekne v priestore").
-   ⚠️ Šírku drží width:calc(100% - 32px), nie padding na rodičovi — pás totiž sedí
-   v stĺpci so stropom PACK_COL_INNER a bočné odsadenie musí platiť aj pod tou hranicou. */
-.msg-thread-send{flex-shrink:0;display:flex;gap:10px;align-items:center;padding:12px;
-  border:1px solid var(--msg-bar-edge);border-radius:16px;background:var(--msg-bar);
-  box-shadow:${PACK_SHADOW.panel};${PACK_COL_FIT}
-  margin:0 auto calc(env(safe-area-inset-bottom,0px) + 14px);box-sizing:border-box;position:relative;z-index:2;}
-/* Písacie pole je v OBOCH šatoch plochá výplň bez gradientu; zaostrenie nesie farbu „mojej"
+/* ── PÍSANIE SPRÁVY = PÁS PRILEPENÝ DOLE (28. 10. 2026, ako IG) ─────────────────────
+   Pás cez celé okno (jemná horná čiara), pole v stĺpci. Safe-area sa PRIPOČÍTAVA k medzere;
+   keď je hore klávesnica (.is-kb), sedí pás tesne nad ňou a safe-area odpadá (tá je pod klávesnicou). */
+.msg-thread-dock{flex-shrink:0;border-top:1px solid var(--msg-sep);background:var(--msg-page);padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 8px);position:relative;z-index:2;}
+.msg-thread.is-kb .msg-thread-dock{padding-bottom:8px;}
+.msg-thread-send{display:flex;gap:8px;align-items:center;${PACK_COL_FIT}margin:0 auto;box-sizing:border-box;}
+/* Písacie pole je plochá výplň bez gradientu; zaostrenie nesie farbu „mojej"
    strany, teda to isté, čo bublina a tlačidlo. */
-.msg-thread-input{flex:1;background:var(--msg-field);border:1px solid var(--msg-btn-edge);border-radius:999px;padding:12px 16px;color:var(--msg-field-ink);font-family:${FONT_UI};font-size:12px;outline:0;}
+.msg-thread-input{flex:1;background:var(--msg-field);border:1px solid var(--msg-btn-edge);border-radius:999px;padding:12px 16px;color:var(--msg-field-ink);font-family:${FONT_UI};font-size:16px;outline:0;}
 .msg-thread-input::placeholder{color:var(--msg-faint);}
 .msg-thread-input:focus{border-color:var(--msg-focus);box-shadow:0 0 0 3px var(--msg-focus-halo);}
 /* ⚠️ IKONKA JE DOČASNE 'feather' (Matej 1. 9. 2026). Do vtedy tu stálo 'chat' — dve bubliny
@@ -137,9 +114,7 @@ export const THREAD_CSS = `
 .msg-sendbtn:disabled img{opacity:.55;}
 /* Pridanie sa do svorky stojí na TOM ISTOM mieste ako písacie pole, takže nesie ten istý
    tvar — inak by sa spodok obrazovky menil podľa toho, či som členom. */
-.msg-thread-join{flex-shrink:0;padding:12px;border:1px solid var(--msg-bar-edge);border-radius:16px;
-  background:var(--msg-bar);box-shadow:${PACK_SHADOW.panel};${PACK_COL_FIT}
-  margin:0 auto calc(env(safe-area-inset-bottom,0px) + 14px);box-sizing:border-box;position:relative;z-index:2;}
+.msg-thread-join{${PACK_COL_FIT}margin:0 auto;box-sizing:border-box;}
 /* Geometria z .btn-gold (radius 8, NIE pilulka) — zmena farby nie je povolenie na iný tvar. */
 .msg-joinbtn{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:var(--msg-mine);color:var(--msg-mine-ink);border:1px solid var(--msg-mine-edge);box-shadow:var(--msg-mine-shadow);cursor:pointer;}
 .msg-joinbtn:hover{background:var(--msg-mine-hover);}
@@ -198,8 +173,24 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   const me = getMe();
   const t = useT();
   const navigate = useNavigate();
-  const [skin] = useMsgSkin();
   const bottomRef = useRef<HTMLDivElement>(null);
+  // KLÁVESNICA (appka-ram.md): prekryv je position:fixed, takže ho mobilná klávesnica prekryje spolu
+  // s písacím poľom. visualViewport povie, koľko okna klávesnica zožrala; prekryv o to skrátime
+  // (bottom), takže pás zostane tesne nad ňou. Bez klávesnice je 0 a rozhoduje čisté CSS.
+  const [kb, setKb] = useState(0);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const upd = () => {
+      const h = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+      setKb(h > 80 ? h : 0);
+    };
+    upd();
+    vv.addEventListener('resize', upd);
+    vv.addEventListener('scroll', upd);
+    return () => { vv.removeEventListener('resize', upd); vv.removeEventListener('scroll', upd); };
+  }, []);
+  const rootStyle: React.CSSProperties | undefined = kb ? { bottom: kb } : undefined;
 
   useEffect(() => {
     let alive = true;
@@ -240,13 +231,12 @@ export function Thread({ convId, onClose, onOpenTrip }: {
 
   if (!conv) {
     return (
-      <div className={`msg-thread msg-skin${skin === 'dark' ? ' msg-skin--dark' : ''}`}>
+      <div className={`msg-thread msg-skin${kb ? ' is-kb' : ''}`} style={rootStyle}>
         <style>{MSG_SKIN_CSS}</style>
         <style>{THREAD_CSS}</style>
-        <style>{STAGE_CSS}</style>
         <div className="msg-thread-head">
          <div className="msg-thread-headinner">
-          <BackButton tone={skin === 'dark' ? 'dark' : 'pale'} onClick={onClose} label={t('pack.msg.backAriaLabel')} />
+          <BackButton tone="pale" onClick={onClose} label={t('pack.msg.backAriaLabel')} />
           <div className="msg-thread-headtxt"><div className="msg-thread-title">{t('pack.msg.loading')}</div></div>
          </div>
         </div>
@@ -335,11 +325,9 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   };
 
   return (
-    <div className={`msg-thread msg-skin${skin === 'dark' ? ' msg-skin--dark' : ''}`}>
-      {/* Tapetu nesie .msg-skin — <HieroglyphBg /> sa sem NEPRIDÁVA (bola by druhá vrstva). */}
+    <div className={`msg-thread msg-skin${kb ? ' is-kb' : ''}`} style={rootStyle}>
       <style>{MSG_SKIN_CSS}</style>
       <style>{THREAD_CSS}</style>
-      <style>{STAGE_CSS}</style>
       {/* ⚠️ HLAVIČKA MÁ VNÚTORNÝ STĹPEC (Matej 15. 9. 2026): „chcem aby dolná šírka obsahu —
           panel kde sa píše — bola totožná aj hore v headri = meno / prepínač / nahlásenie
           musia byť viac v strede nie na kraji." Pás pozadia ide ďalej cez celé okno (inak by
@@ -350,7 +338,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
         {/* ⚠️ TÓN SA RIADI ŠATOM (Matej 15. 9. 2026: „nevidím šípku do zadu"). Natvrdo tu
             stál `dark`, teda takmer biela ikonka v priesvitnom kruhu — na papyrusovej
             hlavičke neviditeľná. Povrch má dva šaty, takže návrat ich musí mať tiež. */}
-        <BackButton tone={skin === 'dark' ? 'dark' : 'pale'} onClick={onClose} label={t('pack.msg.backToInboxAriaLabel')} />
+        <BackButton tone="pale" onClick={onClose} label={t('pack.msg.backToInboxAriaLabel')} />
         <div className="msg-thread-headtxt">
           <div className="msg-thread-title" style={{ fontFamily: titleFont }}>{title}</div>
           {isGroup && (
@@ -383,7 +371,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
        </div>
       </div>
 
-      <div className="msg-thread-body pk-stage">
+      <div className="msg-thread-body">
         {conv.messages.length === 0 && <div className="msg-empty">{t('pack.msg.emptyThread')}</div>}
         {conv.messages.map((m) => {
           const mine = m.senderId === me.id;
@@ -435,7 +423,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
           {modErr && <div className="msg-blockedtxt" role="alert" style={{ marginTop: 10, color: 'var(--msg-err)' }}>{modErr}</div>}
         </div>
       ) : iAmMember ? (
-        <div className="msg-thread-send">
+        <div className="msg-thread-dock"><div className="msg-thread-send">
           {/* Písanie v mene svorky = právo `social` (§5). Gate je na OBOCH prvkoch:
               pole nesie `readOnly` (klávesnicu `pointer-events` nezastaví), tlačidlo
               vysvetlenie. */}
@@ -453,13 +441,13 @@ export function Thread({ convId, onClose, onOpenTrip }: {
             <BrandIcon name="feather" size={17} tint="white" />
           </button>
           </RightGate>
-        </div>
+        </div></div>
       ) : (
-        <div className="msg-thread-join">
+        <div className="msg-thread-dock"><div className="msg-thread-join">
           <button type="button" className="msg-joinbtn" onClick={() => void handleJoin()}>
             {conv.tag?.kind === 'trip' ? t('pack.msg.joinTripPack') : t('pack.msg.joinPack')}
           </button>
-        </div>
+        </div></div>
       )}
 
       {modView && (
