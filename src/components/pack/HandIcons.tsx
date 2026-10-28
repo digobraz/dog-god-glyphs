@@ -12,6 +12,7 @@
 // 800×800 a bez tohto by roztrhali layout.
 import type { CSSProperties } from 'react';
 import { HandArrowLeftIcon } from './handArrowLeft';
+import { SNIFFER_HEART } from './buddy/SnifferLogo';
 
 export interface HandIconProps {
   size?: number;
@@ -107,9 +108,11 @@ export function HandPencil({ size = 16, className, style, title }: HandIconProps
 }
 
 /** naša packa — upraviť psov · zdroj: Hekypaw.svg · `on` = plná labka (Hekypaw full.svg) — „páči sa“ vo feede a v DOGSCROLLe */
+// Matej 28. 10. 2026: „daj červenú labku ale skús ju otočiť naopak — prsty dolu“.
+// Červená = SNIFFER_HEART (sociálne = červená, systém = cyan); otočená len plná labka.
 export function HandPaw({ size = 16, className, style, title, on = false }: HandIconProps & { on?: boolean }) {
   if (on) return (
-    <svg viewBox="0 0 1538 1592" className={className} style={style} {...svgProps(size)} role={title ? 'img' : undefined} aria-hidden={title ? undefined : true}>
+    <svg viewBox="0 0 1538 1592" className={className} style={{ transform: 'rotate(180deg)', ...style }} {...svgProps(size)} fill={SNIFFER_HEART} role={title ? 'img' : undefined} aria-hidden={title ? undefined : true}>
       {title ? <title>{title}</title> : null}
       <path d="M924.388,9.167c40.92,-13.488 111.383,-11.188 141.975,4.604c78.82,40.854 135.729,127.7 151.845,231.779c7.763,49.871 3.621,145.463 -8.42,195.204c-12.038,49.538 -45.463,114.867 -76.58,149.542c-94.279,105.262 -230.991,112.237 -330.862,16.971c-46.25,-44.146 -80,-118.684 -91.054,-201.45c-9.738,-72.371 8.42,-171.779 44.408,-243.359c39.804,-79.212 94.279,-128.754 168.688,-153.291Z" />
       <path d="M950.571,92.454c-71.446,26.254 -120.725,95.334 -142.829,200.334c-15.659,74.675 -5,149.279 30.066,209.875c46.513,80.395 148.884,95.133 219.213,31.579c27.042,-24.409 57.7,-85.463 68.292,-136.054c11.645,-55.463 7.5,-154.938 -8.421,-200.4c-32.042,-91.45 -95.2,-131.45 -166.321,-105.334Z" />
