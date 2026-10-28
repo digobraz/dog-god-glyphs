@@ -24,7 +24,7 @@ const CSS = `${VEIL_CSS}
 
 /** `quoteKey` = vlákno citátu dňa · `tripId` = komentáre výletu (26. 10.: ten istý šuplík ako v článku výletu,
  *  hodnotenia + rady), aby 💬 pod kartou výletu vo feede človeka neodnieslo preč (lock §4.2). */
-export function QuoteComments({ quoteKey, tripId, onClose, onCount }: { quoteKey?: string; tripId?: string; onClose: () => void; onCount: (n: number) => void }) {
+export function QuoteComments({ quoteKey, tripId, focusId, onClose, onCount }: { quoteKey?: string; tripId?: string; focusId?: string | null; onClose: () => void; onCount: (n: number) => void }) {
   const t = useT();
   const title = t('pack.feed.quote.cm.title');
   return createPortal((
@@ -36,8 +36,8 @@ export function QuoteComments({ quoteKey, tripId, onClose, onCount }: { quoteKey
           <h3>{title === 'pack.feed.quote.cm.title' ? 'Comments' : title}</h3>
         </div>
         {tripId
-          ? <TripComments tripId={tripId} onCountChange={onCount} />
-          : <TripComments tripId={quoteKey ?? ''} quoteThread onCountChange={onCount} />}
+          ? <TripComments tripId={tripId} focusId={focusId} onCountChange={onCount} />
+          : <TripComments tripId={quoteKey ?? ''} quoteThread focusId={focusId} onCountChange={onCount} />}
       </div>
     </div>
   ), document.body);

@@ -1,4 +1,5 @@
 import type React from 'react';
+import { Fragment } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BrandIcon } from './BrandIcon';
@@ -224,6 +225,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   // Neprečítané sa počítajú pri každom renderi zo živej `seen` — otvorenie panela ju zmení
   // a odznak musí zhasnúť hneď, nie až po ďalšom načítaní.
   const [seenEpoch, setSeenEpoch] = useState(0);
+  const [newIds, setNewIds] = useState<Set<string>>(() => new Set());
   const freshAlerts = alertsMod ? alertsMod.unseen(alerts, alertsMod.readSeen()) : [];
   void seenEpoch; // len spúšťač prepočtu vyššie
 
@@ -388,6 +390,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           // Otvorenie = prečítanie. Označujeme presne to, čo bolo v tej chvíli na zozname —
           // nie „všetko", inak by žiadosť, ktorá dorazí o sekundu neskôr, zhasla nevidená.
           if (next && alertsMod && freshAlerts.length) {
+            setNewIds(new Set(freshAlerts.map((x) => x.id)));   // „Nové“ v paneli = to, čo bolo neprečítané PRED otvorením
             alertsMod.markSeen(freshAlerts.map((x) => x.id));
             setSeenEpoch((e) => e + 1);
           }
@@ -464,7 +467,9 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                 {t('pack.alerts.title')}
               </div>
               <ul className="flex flex-col gap-2 mb-3">
-                {alerts.slice(0, 6).map((al) => al.kind === 'ainubis_reply' ? (
+                {[...alerts.filter((a) => newIds.has(a.id)), ...alerts.filter((a) => !newIds.has(a.id))].map((al, ai, ordered) => <Fragment key={al.id}>{newIds.size > 0 && (ai === 0 || (!newIds.has(al.id) && newIds.has(ordered[ai - 1].id))) && (
+                  <li className="ntf-li-sec"><span className="ntf-sec">{t(newIds.has(al.id) ? 'pack.alerts.new' : 'pack.alerts.earlier')}</span></li>
+                )}{al.kind === 'ainubis_reply' ? (
                   // AINUBIS ODPÍSAL (27. 10. 2026) — jeho šat (`ntf-row--ai` z NotifSheet), ťuk = vlákno citátu.
                   <li key={al.id} className="ntf-li-ai">
                     <div className="ntf-row ntf-row--ai">
@@ -583,7 +588,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                       {al.photo && <img src={sizedUrl(al.photo, 96)} alt="" width={40} height={40} loading="lazy" style={{ flexShrink: 0, width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />}
                     </button>
                   </li>
-                ))}
+                )}</Fragment>)}
               </ul>
                           </>
           )}

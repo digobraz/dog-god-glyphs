@@ -195,6 +195,22 @@ export async function shareOut(data: { title: string; text?: string; url: string
 // Moje, story a zablokovaných vynechá server. Bez migrácie RPC padne ⇒ prázdny zoznam (feed ostane pri mojich).
 export interface FeedPost { post: MePost; name: string; avatar: string | null; ownerN: number | null }
 
+/** Jeden príspevok podľa id (odkaz z upozornenia `?post=`): aj starší než 60 načítaných, aj môj. `null` = neexistuje / nesmiem. */
+export async function fetchFeedPost(id: string): Promise<(FeedPost & { mine: boolean }) | null> {
+  const { data, error } = await db.rpc('get_feed_post', { p_id: id });
+  const r = Array.isArray(data) ? (data[0] as Record<string, unknown> | undefined) : undefined;
+  if (error || !r) return null;
+  return {
+    post: {
+      id: String(r.id), body: String(r.body ?? ''), photos: Array.isArray(r.photos) ? (r.photos as string[]) : [],
+      tags: (r.tags as string[]) ?? [], attach: (r.attach as MePost['attach']) ?? {}, visibility: 'public',
+      createdAt: String(r.created_at), actedBy: null, actedName: null,
+    },
+    name: String(r.first_name ?? ''), avatar: (r.photo as string | null) ?? null,
+    ownerN: r.owner_n == null ? null : Number(r.owner_n), mine: r.mine === true,
+  };
+}
+
 export function useFeedPosts(enabled: boolean): FeedPost[] {
   const [rows, setRows] = useState<FeedPost[]>([]);
   useEffect(() => {

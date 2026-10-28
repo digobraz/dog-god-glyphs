@@ -237,6 +237,8 @@ const CSS = `
 .ntf-real li{padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:rgba(251,245,230,0.78);border:1px solid ${T.hairline};}
 /* Riadok AINUBISA (odpoveď pod citátom, 27. 10.) nesie vlastný tmavý šat — papyrusový rám okolo by ho zdvojil. */
 .ntf-real li.ntf-li-ai{padding:0;background:none;border:0;}
+.ntf-real li.ntf-li-sec{padding:0;background:none;border:0;}
+.ntf-real li.ntf-li-sec .ntf-sec{margin-top:0;}
 /* AINUBIS riadky v JEHO tmavom brande (Matej 26. 10.: „ak sa jedná o ainubisa, musí byť v jeho tmavom brande… nie v bledom") — oznam aj „Pre teba". */
 .ntf-row--ai{background:${AINUBIS.surfaceBase};border-color:${AINUBIS.edge};color:${AINUBIS.ink};}
 .ntf-row--ai .ntf-txt small{color:${AINUBIS.inkDim};}

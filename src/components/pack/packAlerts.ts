@@ -369,13 +369,13 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
 
   // SOCIÁLNE (IG) — id nesie druh, cieľ a čas najnovšej reakcie: ďalší lajk rozsvieti zoskupený riadok znova.
   // Odkaz: príspevok `?post=<id>` (+ `&c=` komentár), citát `?cm=<kľúč>&c=<komentár>` (vlákno, odroluje na komentár),
-  // výlet = jeho článok. Fotka výletu je z klientskeho datasetu (server ju nenesie).
+  // výlet = jeho článok (`?c=<id>` odroluje na otázku/recenziu v `TripComments`). Fotka výletu je z klientskeho datasetu (server ju nenesie).
   for (const r of social.data ?? []) {
     const isTrip = r.kind === 'trip_like' || r.kind === 'trip_comment';
     const tripPhoto = isTrip ? trails.find((t) => t.id === currentTripId(r.target))?.photos?.[0] : undefined;
     const c = r.ref ? `&c=${encodeURIComponent(r.ref)}` : '';
     const path = r.kind === 'quote_reply' ? `/pack?cm=${encodeURIComponent(r.target)}${c}`
-      : isTrip ? pathOf(r.target)
+      : isTrip ? `${pathOf(r.target)}${r.kind === 'trip_comment' && r.ref ? `?c=${encodeURIComponent(r.ref)}` : ''}`
       : `/pack?post=${encodeURIComponent(r.target)}${r.kind === 'post_comment' ? c : ''}`;
     out.push({
       id: `soc|${r.kind}|${r.target}|${r.at}`, kind: r.kind, tripSlug: isTrip ? r.target : '',

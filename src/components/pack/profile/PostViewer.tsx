@@ -21,7 +21,7 @@ import 'leaflet/dist/leaflet.css';
 import { mapyTiles } from '@/lib/env';
 import { BackButton } from '@/components/pack/BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_AVATAR, FONT_TITLE, FONT_UI, PAPER_BG, PF_FIELD_CSS, VEIL_CSS } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW, tintRGBA } from '@/components/pack/navGoldSkin';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { deletePost, fetchPostSocial, fetchComments, addComment, deleteComment, fetchLikers, mapyPointUrl, type PostLiker, type MePost, type PostSocial, type PostComment } from '@/components/pack/profile/mePosts';
 import { toggleMark } from '@/components/pack/story/storyData';
@@ -66,6 +66,8 @@ const CSS = `
 .pv-cm{list-style:none;margin:0;padding:${S.sm}px ${S.lg}px 0;display:flex;flex-direction:column;gap:${S.sm}px;}
 .pv-cm li{display:flex;align-items:flex-start;gap:${S.sm}px;font-size:${TX.body}px;line-height:1.4;}
 .pv-cm .av{flex:none;width:28px;height:28px;border-radius:${PACK_R.pill}px;object-fit:cover;background:${T.tileBg};display:grid;place-items:center;font-size:${TX.label}px;font-weight:600;color:${T.inkWarm};}
+.pv-cm li{border-radius:${PACK_R.tile}px;transition:background .6s;}
+.pv-cm li.hl{background:${tintRGBA(LAPIS.edge, 0.16)};}
 .pv-cm p{flex:1;min-width:0;margin:0;white-space:pre-wrap;word-break:break-word;}
 .pv-cm p b{font-weight:600;margin-right:${S.xs}px;}
 .pv-cm p small{display:block;font-size:${TX.micro}px;color:${T.inkWarm};}
@@ -119,7 +121,7 @@ const CSS = `
 @media (prefers-reduced-motion:reduce){.pv-root{animation:none;}}
 `;
 
-export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, authorN = null }: {
+export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, authorN = null, focusComment = null }: {
   post: MePost;
   name: string;
   avatar: string | null;
@@ -129,6 +131,8 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
   onClose: () => void;
   /** Poradové číslo majiteľa autora (cudzí príspevok) — bez neho nejde zablokovať. */
   authorN?: number | null;
+  /** Id komentára z upozornenia (`?c=`): odroluje naň a krátko ho zvýrazní. */
+  focusComment?: string | null;
 }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
@@ -156,6 +160,15 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
     fetchLikers(post.id).then(setLikers);
   }, [post.id]);
   useEffect(() => { reload(); }, [reload]);
+  // Odkaz z upozornenia: komentár sa odroluje do stredu a ~2,5 s svieti tintom (class `hl`).
+  const [hlId, setHlId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!focusComment || !cms.some((c) => c.id === focusComment)) return;
+    setHlId(focusComment);
+    document.querySelector(`[data-cid="${focusComment}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    const tm = window.setTimeout(() => setHlId(null), 2500);
+    return () => window.clearTimeout(tm);
+  }, [focusComment, cms]);
 
   // ❤️ / 🔖 optimisticky — akcia nesmie čakať na server (ako kronika výletu).
   const mark = async (kind: 'like' | 'save') => {
@@ -252,7 +265,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
         {cms.length > 0 && (
           <ul className="pv-cm">
             {cms.map((c) => (
-              <li key={c.id}>
+              <li key={c.id} data-cid={c.id} className={hlId === c.id ? 'hl' : undefined}>
                 {c.photo ? <img className="av" src={sizedUrl(c.photo, 60)} alt="" /> : <span className="av">{(c.name || '#')[0]}</span>}
                 <p><b>{c.name || (c.ownerN ? `#${c.ownerN}` : '')}</b>{(c.actedBy || c.actedName) && <><ActedBy id={c.actedBy} name={c.actedName} /> </>}{linkify(c.body, openLink, 'pv-link')}
                   <small>{new Date(c.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'short' })}</small></p>

@@ -42,7 +42,7 @@ import { fetchMyPosts, onPostsChanged, isMoment, isAlbum, isTripStory, type MePo
 import { readFavIds, tripText } from '@/components/pack/tripShared';
 import { persistFav } from '@/lib/packStore';
 import { feedQuoteForDay, feedQuoteText } from '@/data/feedQuotes';
-import { firstWord, tripTitle, useFeedTrips, type FeedTrip, useFeedMarks, useFeedPosts, useTripAuthors, type FeedPost } from './feedData';
+import { firstWord, tripTitle, useFeedTrips, type FeedTrip, useFeedMarks, useFeedPosts, useTripAuthors, fetchFeedPost, type FeedPost } from './feedData';
 import { FeedTripCard, FEED_TRIP_CSS } from './FeedTripCard';
 import { FeedPostCard, FEED_POST_CSS } from './FeedPostCard';
 import { AiHead, AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
@@ -271,13 +271,32 @@ export function PackFeed() {
   // príde cez `?cm=<kľúč>` a môže patriť aj staršiemu dňu — vlákno sa otvorí aj tak.
   const [cmKey, setCmKey] = useState<string | null>(null);
   const cmParam = params.get('cm');
+  // `&c=<id>` = komentár, na ktorý má vlákno / príspevok odrolovať (upozornenie „odpovedal na tvoj komentár").
+  const [focusC, setFocusC] = useState<string | null>(null);
   useEffect(() => {
     if (!cmParam) return;
     setCmKey(cmParam);
-    const next = new URLSearchParams(params); next.delete('cm');
+    setFocusC(params.get('c'));
+    const next = new URLSearchParams(params); next.delete('cm'); next.delete('c');
     setParams(next, { replace: true });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cmParam]);
+  // `?post=<id>` (upozornenie na lajk/komentár) otvorí príspevok ako vrstvu nad feedom, tak ako ťuk na kartu.
+  // Zatvorenie vrstvy = späť na feed (parameter sa z adresy hneď zmaže, žiadny extra krok v histórii).
+  const postParam = params.get('post');
+  useEffect(() => {
+    if (!postParam || !uid) return;
+    const c = params.get('c');
+    const next = new URLSearchParams(params); next.delete('post'); next.delete('c');
+    setParams(next, { replace: true });
+    // Bez „on“ strážcu: parameter sa zmaže hneď, takže cleanup efektu by odpoveď zahodil skôr, než príde.
+    void fetchFeedPost(postParam).then((r) => {
+      if (!r) { toast({ title: tx('pack.feed.postGone', 'That post is no longer available') }); return; }
+      setFocusC(c);
+      setReading(r.mine ? { p: r.post } : { p: r.post, who: r });
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postParam, uid]);
   useEffect(() => {
     let on = true;
     fetchQuoteComments(quoteKey).then((r) => { if (on) setQuoteCm(r.length); }).catch(() => {});
@@ -531,15 +550,15 @@ export function PackFeed() {
         </>}
       </div>
 
-      {cmKey && <QuoteComments quoteKey={cmKey} onClose={() => setCmKey(null)} onCount={(n) => { if (cmKey === quoteKey) setQuoteCm(n); }} />}
+      {cmKey && <QuoteComments quoteKey={cmKey} focusId={focusC} onClose={() => { setCmKey(null); setFocusC(null); }} onCount={(n) => { if (cmKey === quoteKey) setQuoteCm(n); }} />}
 
       {tripCmOpen && <QuoteComments tripId={tripCmOpen} onClose={() => setTripCmOpen(null)}
         onCount={(n) => setTripCm((m) => (m[tripCmOpen] === n ? m : { ...m, [tripCmOpen]: n }))} />}
 
       {reading && (reading.who
         ? <PostViewer post={reading.p} name={reading.who.name || tx('pack.feed.member', 'Member')} avatar={reading.who.avatar}
-            dogs={[]} mine={false} authorN={reading.who.ownerN} lang={lang} onClose={() => setReading(null)} />
-        : <PostViewer post={reading.p} name={ownName} avatar={youImg} dogs={dogs} mine lang={lang} onClose={() => setReading(null)} />
+            dogs={[]} mine={false} authorN={reading.who.ownerN} lang={lang} focusComment={focusC} onClose={() => { setReading(null); setFocusC(null); }} />
+        : <PostViewer post={reading.p} name={ownName} avatar={youImg} dogs={dogs} mine lang={lang} focusComment={focusC} onClose={() => { setReading(null); setFocusC(null); }} />
       )}
     </div>
   );

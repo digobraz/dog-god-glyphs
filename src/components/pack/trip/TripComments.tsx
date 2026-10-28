@@ -23,15 +23,15 @@
 // Writes are NEVER optimistic: insert/upsert/delete await the DB response, and on RLS rejection
 // (signed out, unpaid, DEV_NOAUTH) the popup shows an error instead of pretending it saved — same
 // rule as `sendMessage()` in packMessaging.ts.
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useT } from '@/i18n/LanguageContext';
 import { guardMessage } from '@/components/pack/contentGuardError';
 import { linkify } from '@/components/ainubis/ainubisLinkify';
 import { useMagnetPreview } from '@/components/pack/magnetPreview';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN, VEIL_CSS } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS, tintRGBA } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
 import { ReviewPhotoPicker, ReviewPhotoStrip } from '@/components/pack/trip/ReviewPhotos';
@@ -76,6 +76,8 @@ export const TRIP_COMMENTS_CSS = `${VEIL_CSS}
 .tcm-tab.on{color:#6E4A12;background:rgba(201,154,63,0.16);box-shadow:inset 0 -2px 0 ${GOLD};}
 .tcm-body{padding:12px 16px 8px;}
 .tcm-empty{text-align:center;padding:16px 8px;color:${T.inkWarm};font-size:12px;font-style:italic;}
+.tcm-review.hl,.tcm-advice.hl{background:${tintRGBA(LAPIS.edge, 0.16)};}
+.tcm-review,.tcm-advice{transition:background .6s;}
 .tcm-review{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid ${T.hairline};}
 .tcm-review:last-child{border-bottom:none;}
 .tcm-review.mine{cursor:pointer;border:1px solid ${T.border};background:rgba(201,154,63,0.07);border-radius:12px;padding:12px 12px;margin-bottom:4px;}
@@ -347,10 +349,12 @@ export function ReportSheet({ onClose, onSend, busy, error, sent, reasons = REPO
  * ⚠️ `authorRating = 0` znamená NEHODNOTENÉ, nie nula labiek — vtedy riadok nie je a počet
  * o neho nerastie. Rovnaké pravidlo ako `agg.rating > 0` v článku.
  */
-export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequestWalk, authorRating = 0, authorName, onCountChange, quoteThread }: {
+export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequestWalk, authorRating = 0, authorName, onCountChange, quoteThread, focusId: focusProp }: {
   /** Pri `quoteThread` je `tripId` kľúč vlákna citátu dňa (`<id>-<deň>`). */
   tripId: string;
   /** Vlákno pod citátom vo feede: len zoznam komentárov + pole (bez recenzií a záložiek), tabuľka `quote_comments`. */
+  /** Id komentára z upozornenia: otvorí jeho záložku a stránku, odroluje naň a krátko ho zvýrazní. */
+  focusId?: string | null;
   quoteThread?: boolean; tripName?: string; walked?: boolean; onMarkWalked?: () => void; onRequestWalk?: () => void;
   /** Labky autora výletu (`trail.stars`). 0 = nehodnotil. */
   authorRating?: number;
@@ -369,6 +373,11 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   const dogRights = useMyDogRights();
   const [tab, setTab] = useState<'reviews' | 'advice'>(quoteThread ? 'advice' : 'reviews');
   const [page, setPage] = useState(1);
+  // Odkaz z upozornenia: parameter `?c=<id>` v článku výletu, alebo `focusId` zo šuplíka vo feede.
+  const [urlParams] = useSearchParams();
+  const focusId = focusProp ?? (quoteThread ? null : urlParams.get('c'));
+  const [hlId, setHlId] = useState<string | null>(null);
+  const focusDone = useRef<string | null>(null);
   const changeTab = (t: 'reviews' | 'advice') => { setTab(t); setPage(1); };
 
   // reviews collapse behind a dropdown by default — "Add review" CTA stays visible above it.
@@ -441,8 +450,8 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   const advicePages = Math.max(1, Math.ceil(adviceCount / PAGE_SIZE));
 
   // clamp page if list shrinks (e.g. deleting my own review/question mid-page)
-  useEffect(() => { if (page > reviewPages) setPage(reviewPages); }, [reviewPages, page]);
-  useEffect(() => { if (page > advicePages) setPage(advicePages); }, [advicePages, page]);
+  useEffect(() => { if (tab === 'reviews' && page > reviewPages) setPage(reviewPages); }, [reviewPages, page, tab]);
+  useEffect(() => { if (tab === 'advice' && page > advicePages) setPage(advicePages); }, [advicePages, page, tab]);
 
   const saveReview = async (v: { paws: number; text?: string; photos: string[] }) => {
     setReviewError(null);
@@ -541,6 +550,22 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   const adviceStart = (page - 1) * PAGE_SIZE;
   const advicePageItems = questionItems.slice(adviceStart, adviceStart + PAGE_SIZE);
 
+  // Komentár z upozornenia: nájdi ho (recenzia → záložka Hodnotenia, otázka → Rady), prepni stránku, odroluj, zvýrazni.
+  useEffect(() => {
+    if (!focusId || focusDone.current === focusId) return;
+    const ri = reviewItems.findIndex((x) => x.kind !== 'author' && x.review.id === focusId);
+    const qi = questionItems.findIndex((x) => x.q.id === focusId);
+    if (ri < 0 && qi < 0) return;
+    focusDone.current = focusId;
+    if (ri >= 0) { setTab('reviews'); setPage(Math.floor(ri / PAGE_SIZE) + 1); }
+    else { setTab('advice'); setPage(Math.floor(qi / PAGE_SIZE) + 1); }
+    setHlId(focusId);
+    const raf = window.setTimeout(() => document.querySelector(`[data-cid="${focusId}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120);
+    const off = window.setTimeout(() => setHlId(null), 2600);
+    return () => { window.clearTimeout(raf); window.clearTimeout(off); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusId, reviewItems.length, questionItems.length]);
+
   return (
     <div className="tcm-wrap" aria-label={t('pack.trip.cm.aria', { name: tripName ?? t('pack.trip.cm.thisTrip') })}>
       <style>{TRIP_COMMENTS_CSS}</style>
@@ -631,7 +656,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                     const r = item.review;
                     const name = r.ownerFirst ?? t('pack.trip.cm.dogyptian');
                     return (
-                      <div className="tcm-review" key={r.id}>
+                      <div className={`tcm-review${hlId === r.id ? ' hl' : ''}`} data-cid={r.id} key={r.id}>
                         <span className="tcm-avatar">{name.charAt(0).toUpperCase()}</span>
                         <div className="tcm-review-main">
                           <div className="tcm-review-top">
@@ -682,7 +707,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
               advicePageItems.map((item) => {
                 if (item.kind === 'mine') {
                   return (
-                    <div className="tcm-advice mine" key={item.q.id}>
+                    <div className={`tcm-advice mine${hlId === item.q.id ? ' hl' : ''}`} data-cid={item.q.id} key={item.q.id}>
                       <div className="tcm-advice-text">{linkify(item.q.body, openLink, 'tcm-link')}</div>
                       <div className="tcm-advice-meta">
                         <span>You</span>
@@ -694,7 +719,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                 if (item.kind === 'real') {
                   const name = item.q.ownerFirst ?? t('pack.trip.cm.dogyptian');
                   return (
-                    <div className="tcm-advice" key={item.q.id}>
+                    <div className={`tcm-advice${hlId === item.q.id ? ' hl' : ''}`} data-cid={item.q.id} key={item.q.id}>
                       <div className="tcm-advice-text">{linkify(item.q.body, openLink, 'tcm-link')}</div>
                       <div className="tcm-advice-meta">
                         <span>{name}</span>
