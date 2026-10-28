@@ -42,6 +42,39 @@ async function ownVersion(): Promise<string> {
   } catch { return ''; }
 }
 
+// ── ŠTART NESMIE ČAKAŤ NA AKTUALIZÁCIU (28. 10. 2026) ───────────────────────────
+// Matej 27. 10. na mobilných dátach: *„prvé načítanie trvalo 30 sekúnd!"* Kontrola bežala hneď
+// pri štarte: jeden testovací build zmení ~240 chunkov (hash sa reťazí cez importy), Capgo ich
+// ťahal 12 spojeniami (2,5–4,4 MB) a prihlásenie s dátami /pack čakalo v rade za nimi. A už
+// stiahnutú verziu zapínal `set()` uprostred štartu = okamžitý reload, prvé načítanie do koša.
+// Teraz: sieť sa dotkne až po SIET_PO_MS, keď je /pack vykreslený; stiahnutá verzia sa zapne
+// pri odchode z appky (stránka skrytá) — alebo hneď na začiatku ďalšieho štartu, kým sa
+// ešte nič nenačítava (lokálne, bez siete; to pokrýva aj zabitie appky švihom).
+const SIET_PO_MS = 15_000;
+const PENDING_KEY = 'dogypt_app_next';   // id stiahnutej verzie, ktorá čaká na zapnutie
+
+function rememberPending(id: string) {
+  try { localStorage.setItem(PENDING_KEY, id); } catch { /* bez úložiska ostáva next() */ }
+}
+function readPending(): string {
+  try { return localStorage.getItem(PENDING_KEY) || ''; } catch { return ''; }
+}
+function forgetPending() {
+  try { localStorage.removeItem(PENDING_KEY); } catch { /* nič */ }
+}
+
+type Updater = typeof import('@capgo/capacitor-updater')['CapacitorUpdater'];
+
+/** Zapni čakajúcu verziu, keď človek odíde z appky — reload vtedy nikoho neruší. */
+function applyOnHide(updater: Updater, id: string) {
+  const onHide = () => {
+    if (document.visibilityState !== 'hidden') return;
+    document.removeEventListener('visibilitychange', onHide);
+    updater.set({ id }).catch(() => {});
+  };
+  document.addEventListener('visibilitychange', onHide);
+}
+
 async function check() {
   // Dynamicky: web si Capacitor ani plugin nestiahne.
   const [{ CapacitorUpdater }, { CapacitorHttp }] = await Promise.all([
@@ -50,6 +83,25 @@ async function check() {
   ]);
   await CapacitorUpdater.notifyAppReady();
   if (APP_DEV) return;
+
+  // Rýchla cesta, bez siete: verzia stiahnutá minule → zapni ju TERAZ, na úplnom začiatku,
+  // keď reload stojí zlomok sekundy. Appka sa sem vráti už s ňou ako `current`.
+  const pending = readPending();
+  if (pending) {
+    const now = await CapacitorUpdater.current();
+    if (now.bundle.id !== pending) {
+      const { bundles } = await CapacitorUpdater.list();
+      const b = bundles.find((x) => x.id === pending);
+      if (b && (b.status === 'success' || b.status === 'pending')) {
+        await CapacitorUpdater.set({ id: b.id });
+        return;
+      }
+    }
+    forgetPending();
+  }
+
+  // Sieť až keď beží /pack — prihlásenie a dáta majú prednosť pred aktualizáciou.
+  await new Promise((r) => setTimeout(r, SIET_PO_MS));
 
   // CapacitorHttp ide natívne — fetch z capacitor://localhost by na dogypt.com narazil na CORS.
   const res = await CapacitorHttp.get({ url: `${LIVE}/app-update.json`, headers: { 'Cache-Control': 'no-cache' } });
@@ -61,18 +113,24 @@ async function check() {
   if (m.version === mine) return;
   if (!nativeOk(cur.native, m.minNative)) return;
 
-  // Už stiahnutá minulý štart → ZAPNI HNEĎ, teraz je appka len otvorená a nikto nepíše.
   // ⚠️ `next()` sa zapne až pri odchode na plochu a späť. Kto appku ZABIJE švihom
-  // z prepínača (Matej 21. 10. 2026), ten prechod nikdy nespraví — a tu sa stiahnutá verzia
-  // v stave `pending` predtým zahodila a sťahovala znova, takže aktualizácia neprišla nikdy.
-  // Overené v simulátore: kill → štart = stará verzia; plocha → späť = nová.
+  // z prepínača (Matej 21. 10. 2026), ten prechod nikdy nespraví — preto si id pamätáme
+  // (PENDING_KEY) a ďalší štart ho zapne rýchlou cestou hore. Do 28. 10. tu bol `set()`
+  // hneď = reload uprostred štartu. Overené v simulátore 21. 10.: kill → štart = stará verzia.
   const { bundles } = await CapacitorUpdater.list();
   const have = bundles.find((b) => b.version === m.version);
-  if (have && (have.status === 'success' || have.status === 'pending')) { await CapacitorUpdater.set({ id: have.id }); return; }
+  if (have && (have.status === 'success' || have.status === 'pending')) {
+    await CapacitorUpdater.next({ id: have.id });
+    rememberPending(have.id);
+    applyOnHide(CapacitorUpdater, have.id);
+    return;
+  }
   if (have) await CapacitorUpdater.delete({ id: have.id }).catch(() => {});
 
   const bundle = await CapacitorUpdater.download({ url: `${LIVE}/app-update.json`, version: m.version, manifest: m.files });
   await CapacitorUpdater.next({ id: bundle.id });
+  rememberPending(bundle.id);
+  applyOnHide(CapacitorUpdater, bundle.id);
 
   // Staré stiahnuté verzie (okrem bežiacej a práve naplánovanej) by len zaberali miesto.
   for (const b of bundles) {
