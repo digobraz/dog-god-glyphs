@@ -829,7 +829,7 @@ function Post({ post, onOpen }: { post: WallPost; onOpen: () => void }) {
         </div>
       </div>
       <div className="akw-met">
-        <s><HandPaw size={13} /><b>{post.paws}</b></s>
+        <s><HandPaw size={13} on={false} /><b>{post.paws}</b></s>
         {/* ODPOVEDE — Matej 24. 9. 2026 vybral z kitu `chat` nad skutočnou kartou
             (`ik-chat.png`). Do vtedy tu stálo holé slovo „replies“, lebo kresba
             neexistovala a brand lock zakazuje siahnuť po lucide.
@@ -933,7 +933,7 @@ function PostFull({ post, onLibrary, onClose }: {
       <div className="akw-foot">
         <button type="button" className={`akw-act${paw ? ' is-on' : ''}`} onClick={() => setPaw((v) => !v)}
           aria-label="Paws">
-          <HandPaw size={14} /><b>{post.paws + (paw ? 1 : 0)}</b>
+          <HandPaw size={14} on={paw} /><b>{post.paws + (paw ? 1 : 0)}</b>
         </button>
         <button type="button" className={`akw-act${saved ? ' is-on' : ''}`} onClick={() => setSaved((v) => !v)}
           aria-label="Save"><HandStar size={14} /></button>
