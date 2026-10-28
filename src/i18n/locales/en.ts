@@ -2455,6 +2455,8 @@ export const en = {
   // pack.alerts — NOS (upozornenia). Oddelené od `pack.notif.*` zámerne: to je pulz svorky
   // (koľko ľudí pribudlo), toto sú veci adresované konkrétnemu človeku.
   'pack.alerts.title': "Waiting for you",
+  'pack.alerts.new': "New",
+  'pack.alerts.earlier': "Earlier",
   'pack.alerts.requestOne': "{count} Dogyptian wants to join",
   'pack.alerts.requestFew': "{count} Dogyptians want to join",
   'pack.alerts.requestMany': "{count} Dogyptians want to join",
@@ -3909,6 +3911,7 @@ export const en = {
   'pack.trip.cm.deleteFailed': "Could not delete your review \u2014 try again.",
   'pack.trip.cm.postFailed': "Could not post \u2014 try again.",
   'pack.guard.slow': "Slow down \u2014 try again in a moment.",
+  'pack.guard.muted': "You can't post right now.",
   'pack.guard.rejected': "This can't be posted.",
   'pack.trip.rp.reasonHarassment': "Harassment or abuse",
   'pack.trip.rp.reasonSpam': "Spam or advertising",
@@ -4141,17 +4144,14 @@ export const en = {
   'pack.msg.sendReport': "Send report",
   'pack.msg.inboxTitle': "Messages",
   'pack.msg.closeAriaLabel': "Close",
-  'pack.msg.inboxEmpty': "No messages yet. You can write to someone you have a SNIFFER match with, who is looking for a buddy on a wish, or who is on a trip with you.",
-  'pack.msg.inboxEmptyNoSniffer': "No messages yet. You can write to someone who is looking for a buddy on a wish or who is on a trip with you.",
+  'pack.msg.emptyTitle': "No messages yet.",
+  'pack.msg.emptySub': "You can write to any member — find them with Sniffer.",
+  'pack.msg.emptySubNoSniffer': "You can write to someone who is looking for a buddy on a wish or who is on a trip with you.",
   'pack.notif.messages': "Messages",
   'pack.msg.openSniffer': "Open SNIFFER",
   'pack.msg.fallbackMemberName': "Dogyptian",
   'pack.msg.packNumberSuffix': "· Dogyptian #{n}",
   'pack.msg.noMessagesYet': "No messages yet",
-  // Prepínač svetlého/tmavého šatu správ (`Inbox.tsx` → `SkinToggle`). Jedna ikonka,
-  // dva stavy — popisok hovorí, KAM sa prepne, nie kde práve som.
-  'pack.msg.skinToLight': "Switch to light",
-  'pack.msg.skinToDark': "Switch to dark",
   // Potvrdenie po odoslaní hlásenia (`Thread.tsx`, vetva `modView === 'sent'`).
   // Blokovanie sa tu NEDUPLIKUJE — `pack.msg.blocking` a `pack.msg.blockButton` už
   // existujú pre vetvu `menu` a tá istá dvojica sa používa aj tu.
@@ -7025,6 +7025,7 @@ export const en = {
   'pack.feed.quote.cm.none': "No comments yet.",
   'pack.feed.act.comment': "Comments",
   'pack.feed.quote.cm.title': "Comments on the quote",
+  'pack.feed.postGone': "That post is no longer available",
   'pack.feed.top.sniff': "Sniff",
   'pack.feed.top.trips': "Newest trips",
   'pack.feed.top.map': "Map",
