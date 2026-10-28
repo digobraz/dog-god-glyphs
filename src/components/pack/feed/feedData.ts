@@ -247,3 +247,37 @@ export function useTripAuthors(slugs: string[]): Map<string, TripAuthor> {
   }, [key]);
   return map;
 }
+
+/**
+ * SWIPE KARUSELU FOTIEK (Matej 28. 10. 2026): dotyk (potiahnutie do strany) aj trackpad (vodorovný scroll) listujú
+ * fotky; šípky ostávajú pre myš. `touch-action:pan-y` na prvku nechá zvislý scroll stránky prejsť.
+ * `moved()` povie, či ťuk bol vlastne potiahnutie — kliknutie na fotku (otvor výlet) sa potom ignoruje.
+ */
+export function useSwipe(n: number, step: (dir: 1 | -1) => void) {
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const dragged = useRef(false);
+  const wheel = useRef({ acc: 0, at: 0, fired: false });
+  return {
+    moved: () => { const d = dragged.current; dragged.current = false; return d; },
+    handlers: {
+      onTouchStart: (e: React.TouchEvent) => { if (n < 2) return; start.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; dragged.current = false; },
+      onTouchEnd: (e: React.TouchEvent) => {
+        const s = start.current; start.current = null;
+        if (!s || n < 2) return;
+        const dx = e.changedTouches[0].clientX - s.x;
+        const dy = e.changedTouches[0].clientY - s.y;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) { dragged.current = true; step(dx < 0 ? 1 : -1); }
+      },
+      onWheel: (e: React.WheelEvent) => {
+        if (n < 2 || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+        const w = wheel.current;
+        const now = Date.now();
+        if (now - w.at > 250) { w.acc = 0; w.fired = false; }   // nové gesto trackpadu = nová séria udalostí
+        w.at = now;
+        if (w.fired) return;                                    // jedna fotka na gesto, zvyšok zotrvačnosti sa zahodí
+        w.acc += e.deltaX;
+        if (Math.abs(w.acc) > 40) { w.fired = true; step(w.acc > 0 ? 1 : -1); }
+      },
+    },
+  };
+}

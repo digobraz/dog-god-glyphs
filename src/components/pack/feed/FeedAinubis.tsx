@@ -67,14 +67,21 @@ export const FEED_AI_CSS = `
 
 const AiName = () => <><span className="ai">AI</span>NUBIS</>;
 
+/** Hlavička AINUBISA (avatar + meno) — rovnaká pre všetky jeho príspevky vo feede, vrátane zvitku. */
+export function AiHead({ sub }: { sub: string }) {
+  return (
+    <div className="fai-h">
+      <span className="fai-av" style={{ backgroundImage: `url(${ainubisHead})` }} aria-hidden />
+      <div className="fai-who"><b><AiName /></b><small>{sub}</small></div>
+    </div>
+  );
+}
+
 /** Hlavička + telo v šate AINUBISA. `media` ide od kraja po kraj medzi hlavičkou a pásom. */
 function AiPost({ sub, media, children }: { sub: string; media?: React.ReactNode; children: React.ReactNode }) {
   return (
     <article className="fai">
-      <div className="fai-h">
-        <span className="fai-av" style={{ backgroundImage: `url(${ainubisHead})` }} aria-hidden />
-        <div className="fai-who"><b><AiName /></b><small>{sub}</small></div>
-      </div>
+      <AiHead sub={sub} />
       {media}
       <div className="fai-b">{children}</div>
     </article>

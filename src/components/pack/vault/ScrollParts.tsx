@@ -478,8 +478,10 @@ export function ScrollActions({ id, lang, onTalk, lock }: {
 }
 
 /** Karta zvitku v zozname. Videné = karta aspoň 2 s z polovice na obrazovke. */
-export function ScrollCard({ z, lang, worldName, onOpen, onShare, lock, locked }: {
+export function ScrollCard({ z, lang, worldName, onOpen, onShare, lock, locked, head }: {
   z: DemoScroll; lang: string;
+  /** FEED (28. 10. 2026): hlavička autora nad kartou — AINUBIS ako pri príspevkoch. DOGSCROLL ju nemá. */
+  head?: React.ReactNode;
   /** NÁHĽAD /magnet: akcie otvoria popup, karta nezapisuje videné. */
   lock?: () => void;
   /** NÁHĽAD /magnet: zvitok mimo darčeka — viditeľný so zámkom, ťuk otvorí popup (cez onOpen). */
@@ -506,6 +508,7 @@ export function ScrollCard({ z, lang, worldName, onOpen, onShare, lock, locked }
   }, [z.id, s, lock, locked]);
   return (
     <article ref={ref} className={`akv-zv${locked ? ' akv-zv--locked' : ''}`} data-zid={z.id} style={aiWorld(z.world)}>
+      {head}
       <div className="akv-zvimg">
         {z.img && <img src={z.img} alt="" loading="lazy" onClick={() => onOpen(z.id)} />}
         {locked

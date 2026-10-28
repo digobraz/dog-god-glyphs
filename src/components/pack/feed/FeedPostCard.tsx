@@ -17,7 +17,7 @@ import { fetchPostSocial, isNature, type MePost, type PostSocial } from '@/compo
 import { addWishPin } from '@/components/pack/mapnotes/wishData';
 import { createEmoji } from '@/components/pack/addtrip/AddTripEntry';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { agoLabel } from './feedData';
+import { agoLabel, useSwipe } from './feedData';
 import { PostMenu } from '@/components/pack/profile/PostMenu';
 import { deletePost } from '@/components/pack/profile/mePosts';
 
@@ -32,7 +32,7 @@ export const FEED_POST_CSS = `
 .pfp-who{min-width:0;flex:1;}
 .pfp-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: meno */
 .pfp-who small{font-size:${TX.label}px;color:${T.inkWarm};}
-.pfp-ph{position:relative;width:100%;background:${T.tileBg};cursor:pointer;}
+.pfp-ph{position:relative;width:100%;background:${T.tileBg};cursor:pointer;touch-action:pan-y;overscroll-behavior-x:contain;}
 .pfp-ph img{display:block;width:100%;height:100%;object-fit:cover;}
 .pfp-place{position:absolute;left:${S.sm}px;bottom:${S.sm}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;background:rgba(0,0,0,.55);
   color:${T.onDark};font:600 ${TX.micro}px/1.2 ${FONT_UI};display:inline-flex;align-items:center;gap:${S.xs}px;}
@@ -63,6 +63,9 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
   const [soc, setSoc] = useState<PostSocial>({ likes: 0, comments: 0, liked: false, saved: false, saves: 0 });
   const [ratio, setRatio] = useState<number | null>(null);
   const [wished, setWished] = useState(false);
+  const [idx, setIdx] = useState(0);
+  const np = post.photos.length;
+  const swipe = useSwipe(np, (d) => setIdx((i) => (i + d + np) % np));
   useEffect(() => { void fetchPostSocial(post.id).then(setSoc).catch(() => {}); }, [post.id]);
 
   const nature = isNature(post);
@@ -102,10 +105,10 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
         <PostMenu postId={post.id} authorN={authorN} authorName={name} mine={mine} onDelete={() => deletePost(post.id)} />
       </div>
       {post.photos[0] && (
-        <div className="pfp-ph" style={{ aspectRatio: String(aspect) }} onClick={() => onOpen(post)}>
-          <img src={sizedUrl(post.photos[0], 1080)} alt="" loading="lazy" decoding="async"
+        <div className="pfp-ph" style={{ aspectRatio: String(aspect) }} onClick={() => { if (!swipe.moved()) onOpen(post); }} {...swipe.handlers}>
+          <img src={sizedUrl(post.photos[idx] ?? post.photos[0], 1080)} alt="" loading="lazy" decoding="async"
             onLoad={(e) => { const im = e.currentTarget; if (im.naturalHeight) setRatio(im.naturalWidth / im.naturalHeight); }} />
-          {post.photos.length > 1 && <span className="pfp-cnt">1/{post.photos.length}</span>}
+          {post.photos.length > 1 && <span className="pfp-cnt">{idx + 1}/{post.photos.length}</span>}
           {nature && place?.name && <span className="pfp-place"><BrandIcon name="locate" size={12} tint="white" />{place.name}</span>}
         </div>
       )}

@@ -30,9 +30,10 @@ import { useToast } from '@/hooks/use-toast';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser } from '@/hooks/usePackUser';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, PACK_COL_PAD, FONT_TITLE, FONT_UI, PILL_CSS, MEDALLION_CSS, PAPER_BG } from '@/components/pack/packTheme';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { ScrollCard, SCROLL_CSS, SCROLL_CARD_CSS } from '@/components/pack/vault/ScrollParts';
+import { ScrollCard, SCROLL_CSS, SCROLL_CARD_CSS, scrollUI } from '@/components/pack/vault/ScrollParts';
 import { useDemoScrolls, useSaved, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { PostViewer } from '@/components/pack/profile/PostViewer';
@@ -40,10 +41,10 @@ import { fetchMyPosts, onPostsChanged, isMoment, isAlbum, isTripStory, type MePo
 import { readFavIds, tripText } from '@/components/pack/tripShared';
 import { persistFav } from '@/lib/packStore';
 import { feedQuoteForDay, feedQuoteText } from '@/data/feedQuotes';
-import { firstWord, tripTitle, useFeedTrips, useFeedMarks, useFeedPosts, useTripAuthors, type FeedPost } from './feedData';
+import { firstWord, tripTitle, useFeedTrips, type FeedTrip, useFeedMarks, useFeedPosts, useTripAuthors, type FeedPost } from './feedData';
 import { FeedTripCard, FEED_TRIP_CSS } from './FeedTripCard';
 import { FeedPostCard, FEED_POST_CSS } from './FeedPostCard';
-import { AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
+import { AiHead, AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
 import { SnifferStrip, TripStrip, FEED_TOP_CSS } from './FeedTop';
 import { QuoteComments } from './QuoteComments';
 import { fetchQuoteComments } from '@/components/pack/trip/tripCommentsData';
@@ -116,6 +117,12 @@ ${FEED_TOPICS_CSS}
   .pkf-it{margin:0 -${PACK_COL_PAD.mobile}px;}
   .pkf-it .fai,.pkf-it .akv-zv{border-radius:0;border-left-width:0;border-right-width:0;}
 }
+/* ZVITOK vo feede: hlavička AINUBISA ako pri príspevkoch; hlavné CTA „vypočuť“ = PLNÝ cyan (výber AINUBISA),
+   „prečítať“ ostáva sekundárne obrysové (Matej 28. 10.). */
+.pkf .akv-zv > .fai-h{padding:0;}
+.pkf .zv-ctas{flex-direction:column;}
+.pkf .zv-ctas .akv-zvsec{order:-1;background:${AINUBIS.cyan};border-color:${AINUBIS.cyan};color:${AINUBIS.bgDeep};font-weight:600;}
+.pkf .zv-ctas .akv-zvsec:hover{border-color:${AINUBIS.ink};}
 .pkf-more{height:1px;}
 .pkf-none{padding:${S.xl}px ${S.lg}px;text-align:center;font-size:${TX.label}px;color:${T.inkWarm};}
 .pkf-end{padding:${S.xl}px ${S.lg}px;text-align:center;font-size:${TX.label}px;color:${T.inkWarm};}
@@ -160,6 +167,14 @@ function weave(q: { trip: number[]; scroll: DemoScroll[]; post: PostIt[]; map: M
       else if (k === 'story' && !told) { out.push({ k: 'story' }); told = true; }
     }
   }
+  // DVA ZVITKY HNEĎ ZA SEBOU NIE (Matej 28. 10.): keď by sa stretli, najbližšia neskoršia položka, ktorá zvitok nie je,
+  // sa vytiahne dopredu. Ak už žiadna iná nezostala (zvitkov je viac než ostatných), susedstvo sa neodvráti.
+  for (let i = 1; i < out.length; i++) {
+    if (out[i].k !== 'scroll' || out[i - 1].k !== 'scroll') continue;
+    const j = out.findIndex((it, x) => x > i && it.k !== 'scroll');
+    if (j < 0) break;
+    [out[i], out[j]] = [out[j], out[i]];
+  }
   return out;
 }
 
@@ -180,7 +195,7 @@ export function PackFeed() {
   const [reading, setReading] = useState<PostIt | null>(null);
   const [favs, setFavs] = useState<Set<string>>(() => readFavIds());
   const marks = useFeedMarks();
-  const trips = useFeedTrips(999);
+  const feedTrips = useFeedTrips(999);
   const mapAdds = useMapAdds(6);
   const scrolls = useDemoScrolls();
   const savedIds = useSaved();
@@ -189,6 +204,24 @@ export function PackFeed() {
   const searching = params.has('hladaj');
   const query = (params.get('hladaj') || '').trim();
   const searchRef = useRef<HTMLInputElement>(null);
+  // KATALÓG VÝLETOV PRE HĽADANIE: `useFeedTrips` vracia len schválené členské výlety s fotkou (kurátorovaný
+  // dataset — napr. „Súľovské skaly“ — v ňom nie je), preto sa pri hľadaní dotiahne celý katalóg (lazy chunk).
+  // Doplnené karty nemajú autora ani čas ⇒ „Hekthor & Matej“ ako inde v appke (`authorOf`).
+  const [catalog, setCatalog] = useState<FeedTrip[]>([]);
+  useEffect(() => {
+    if (!searching || catalog.length) return;
+    let alive = true;
+    void import('@/data/heroTrails.generated').then(({ HERO_TRAILS }) => {
+      if (alive) setCatalog(HERO_TRAILS.filter((tr) => !tr.id.startsWith('plan-') && !tr.id.startsWith('ovr-') && (tr.photos?.length ?? 0) > 0)
+        .map((trail) => ({ trail, at: 0, mine: false, author: (trail.author || '').trim() || 'Hekthor & Matej' })));
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [searching, catalog.length]);
+  const trips = useMemo(() => {
+    if (!searching || !catalog.length) return feedTrips;
+    const have = new Set(feedTrips.map((f) => f.trail.id));
+    return [...feedTrips, ...catalog.filter((f) => !have.has(f.trail.id))];
+  }, [feedTrips, catalog, searching]);
   useEffect(() => { if (searching) searchRef.current?.focus(); }, [searching]);
   const setQuery = (v: string) => setParams({ hladaj: v }, { replace: true });
   const closeSearch = () => { if (canStepBack()) navigate(-1); else setParams({}, { replace: true }); };
@@ -405,7 +438,8 @@ export function PackFeed() {
         );
       }
       case 'scroll':
-        return <ScrollCard z={it.z} lang={lang} worldName={worldName(it.z.world)} onOpen={openScroll} onShare={() => {}} />;
+        return <ScrollCard z={it.z} lang={lang} worldName={worldName(it.z.world)} onOpen={openScroll} onShare={() => {}}
+          head={<AiHead sub={scrollUI(lang).scroll} />} />;
       case 'post':
         return it.p.who
           ? <FeedPostCard post={it.p.p} name={it.p.who.name || tx('pack.feed.member', 'Member')} avatar={it.p.who.avatar}

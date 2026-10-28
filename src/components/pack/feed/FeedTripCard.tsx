@@ -28,7 +28,7 @@ import { tripPath, tripText, hasRouteMetrics, isWaterTrail, coverPos, TRAIL_LINE
 import { mapyTiles } from '@/lib/env';
 import { trailCountry, flagUrl } from '@/lib/countryGeo';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { agoLabel, tripTitle, type FeedTrip } from './feedData';
+import { agoLabel, tripTitle, useSwipe, type FeedTrip } from './feedData';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -45,7 +45,7 @@ ${COMMUNITY_CSS}
 .pft-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: meno */
 .pft-who small{font-size:${TX.label}px;color:${T.inkWarm};}
 .pft-in{overflow:hidden;}
-.pft-ph{position:relative;width:100%;background:${T.tileBg};overflow:hidden;}
+.pft-ph{position:relative;width:100%;background:${T.tileBg};overflow:hidden;touch-action:pan-y;overscroll-behavior-x:contain;}
 .pft-ph img.im{display:block;width:100%;height:100%;object-fit:cover;cursor:pointer;}
 .pft-flag{position:absolute;left:${S.md}px;top:${S.md}px;width:32px;height:32px;border-radius:${PACK_R.pill}px;border:2px solid ${T.onDark};object-fit:cover;}
 .pft-cnt{position:absolute;right:${S.md}px;top:${S.md}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;background:rgba(0,0,0,.45);
@@ -187,6 +187,7 @@ export function FeedTripCard({ ft, youImg, authorImg = null, liked, onLike, like
   ], [tr, t]);
   const desc = tripText(tr, 'desc', lang);
   const go = () => navigate(tripPath(tr));
+  const swipe = useSwipe(n, (d) => setIdx((i) => (i + d + n) % n));
   // Široká ostáva široká; vysoká sa oreže na 4:5 (strop výšky ako na IG). Kým sa nenačíta, 4:3.
   const aspect = ratio ? Math.min(Math.max(ratio, 4 / 5), 2) : 4 / 3;
   const ownImg = ft.mine ? youImg : authorImg;
@@ -204,11 +205,11 @@ export function FeedTripCard({ ft, youImg, authorImg = null, liked, onLike, like
       </div>
 
       <div className="pft-in">
-        <div className="pft-ph" style={{ aspectRatio: String(aspect) }}>
+        <div className="pft-ph" style={{ aspectRatio: String(aspect) }} {...swipe.handlers}>
           <img className="im" src={sizedUrl(tr.photos[idx] ?? tr.photos[0], 1080)} alt="" loading="lazy" decoding="async"
             style={{ objectPosition: coverPos(tr, idx) }}
             onLoad={(e) => { if (idx === 0) { const im = e.currentTarget; if (im.naturalHeight) setRatio(im.naturalWidth / im.naturalHeight); } }}
-            onClick={go} />
+            onClick={() => { if (!swipe.moved()) go(); }} />
           <img className="pft-flag" src={flagUrl(country)} alt="" loading="lazy" />
           {n > 1 && <span className="pft-cnt">{idx + 1}/{n}</span>}
           {n > 1 && <>
