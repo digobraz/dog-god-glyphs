@@ -3617,6 +3617,8 @@ export const sk: Partial<Dict> = {
   'pack.trip.cm.saveFailed': "Hodnotenie sa nepodarilo uložiť — skús znova.",
   'pack.trip.cm.deleteFailed': "Hodnotenie sa nepodarilo zmazať — skús znova.",
   'pack.trip.cm.postFailed': "Nepodarilo sa odoslať — skús znova.",
+  'pack.guard.slow': "Pomaly, skús o chvíľu.",
+  'pack.guard.rejected': "Toto sa nedá odoslať.",
   'pack.trip.rp.reasonHarassment': "Obťažovanie alebo útoky",
   'pack.trip.rp.reasonSpam': "Spam alebo reklama",
   'pack.trip.rp.reasonUnsafe': "Nebezpečné pre ľudí alebo psov",

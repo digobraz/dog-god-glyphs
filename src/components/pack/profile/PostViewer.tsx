@@ -29,6 +29,8 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandPaw, HandStar, HandTrash } from '@/components/pack/HandIcons';
 import { createEmoji } from '@/components/pack/addtrip/AddTripEntry';
 import { ActedBy } from './ActedBy';
+import { guardMessage } from '@/components/pack/contentGuardError';
+import { linkify } from '@/components/ainubis/ainubisLinkify';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { ADD_WISH_CSS } from '@/components/pack/mapnotes/AddWish';
 import { WishSheet } from '@/components/pack/mapnotes/WishSheet';
@@ -108,6 +110,7 @@ const CSS = `
 .pv-dots i.on{background:${LAPIS.edge};}
 .pv-body{margin:0;padding:${S.md}px ${S.lg}px 0;font-size:${TX.body}px;line-height:1.45;white-space:pre-wrap;word-break:break-word;}
 .pv-body b{font-weight:600;margin-right:${S.xs}px;}
+.pv-link{color:inherit;text-decoration:underline;word-break:break-all;}
 .pv-dogs{display:flex;flex-wrap:wrap;gap:${S.sm}px;padding:${S.md}px ${S.lg}px 0;}
 .pv-dog{display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.sm}px ${S.xs}px ${S.xs}px;border-radius:${PACK_R.pill}px;
   border:1px solid ${T.hairline};font-size:${TX.label}px;}
@@ -145,6 +148,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
   const [wishing, setWishing] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const openLink = (path: string) => { onClose(); navigate(path); };
 
   const reload = useCallback(() => {
     fetchPostSocial(post.id).then(setSoc);
@@ -164,7 +168,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
     if (!uid || !draft.trim() || sending) return;
     setSending(true);
     try { await addComment(post.id, uid, draft); setDraft(''); reload(); }
-    catch { toast({ title: tx('pack.settings.notifErr', 'Could not save'), variant: 'destructive' }); /* text ostane v poli */ }
+    catch (err) { toast({ title: guardMessage(err, tx) ?? tx('pack.settings.notifErr', 'Could not save'), variant: 'destructive' }); /* text ostane v poli */ }
     setSending(false);
   };
   const dropComment = async (id: string) => {
@@ -244,13 +248,13 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
             </span>
           </button>
         )}
-        {post.body && <p className="pv-body"><b>{name}</b>{post.body}</p>}
+        {post.body && <p className="pv-body"><b>{name}</b>{linkify(post.body, openLink, 'pv-link')}</p>}
         {cms.length > 0 && (
           <ul className="pv-cm">
             {cms.map((c) => (
               <li key={c.id}>
                 {c.photo ? <img className="av" src={sizedUrl(c.photo, 60)} alt="" /> : <span className="av">{(c.name || '#')[0]}</span>}
-                <p><b>{c.name || (c.ownerN ? `#${c.ownerN}` : '')}</b>{(c.actedBy || c.actedName) && <><ActedBy id={c.actedBy} name={c.actedName} /> </>}{c.body}
+                <p><b>{c.name || (c.ownerN ? `#${c.ownerN}` : '')}</b>{(c.actedBy || c.actedName) && <><ActedBy id={c.actedBy} name={c.actedName} /> </>}{linkify(c.body, openLink, 'pv-link')}
                   <small>{new Date(c.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'short' })}</small></p>
                 {c.canDelete && (
                   <button type="button" className="rm" onClick={() => dropComment(c.id)} aria-label={tx('pack.story.delete', 'Delete')}><HandTrash size={14} /></button>

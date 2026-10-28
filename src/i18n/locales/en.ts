@@ -3899,6 +3899,8 @@ export const en = {
   'pack.trip.cm.saveFailed': "Could not save your review \u2014 try again.",
   'pack.trip.cm.deleteFailed': "Could not delete your review \u2014 try again.",
   'pack.trip.cm.postFailed': "Could not post \u2014 try again.",
+  'pack.guard.slow': "Slow down \u2014 try again in a moment.",
+  'pack.guard.rejected': "This can't be posted.",
   'pack.trip.rp.reasonHarassment': "Harassment or abuse",
   'pack.trip.rp.reasonSpam': "Spam or advertising",
   'pack.trip.rp.reasonUnsafe': "Unsafe for people or dogs",

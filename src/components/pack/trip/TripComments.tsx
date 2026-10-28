@@ -24,8 +24,11 @@
 // (signed out, unpaid, DEV_NOAUTH) the popup shows an error instead of pretending it saved — same
 // rule as `sendMessage()` in packMessaging.ts.
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useT } from '@/i18n/LanguageContext';
+import { guardMessage } from '@/components/pack/contentGuardError';
+import { linkify } from '@/components/ainubis/ainubisLinkify';
 import { useMagnetPreview } from '@/components/pack/magnetPreview';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN, VEIL_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
@@ -88,6 +91,7 @@ export const TRIP_COMMENTS_CSS = `${VEIL_CSS}
 .tcm-advice:last-child{border-bottom:none;}
 .tcm-advice.mine{border:1px solid ${T.border};background:rgba(201,154,63,0.07);border-radius:12px;padding:12px 12px;margin-bottom:4px;}
 .tcm-advice-text{font-size:12px;line-height:1.5;color:rgba(42,22,8,0.86);}
+.tcm-link{color:inherit;text-decoration:underline;word-break:break-all;}
 .tcm-advice-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10px;color:${T.inkWarm};margin-top:5px;}
 .tcm-advice-del{flex-shrink:0;background:none;border:none;color:${T.inkWarm};font-size:14px;line-height:1;cursor:pointer;padding:0 4px;}
 .tcm-advice-del:hover{color:#E0796D;}
@@ -357,6 +361,9 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   onCountChange?: (n: number) => void;
 }) {
   const t = useT();
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  const navigate = useNavigate();
+  const openLink = (path: string) => navigate(path);
   // Náhľad /magnet: čítať sa dá, písať a nahlasovať nie (ťuk = popup „Ďalej idú len Dogypťania").
   const mg = useMagnetPreview();
   const dogRights = useMyDogRights();
@@ -476,7 +483,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
       await refreshQuestions();
       setAskText('');
     } catch (err) {
-      setQuestionError(err instanceof Error ? err.message : t('pack.trip.cm.postFailed'));
+      setQuestionError(guardMessage(err, tx) ?? (err instanceof Error ? err.message : t('pack.trip.cm.postFailed')));
     } finally {
       setQuestionPosting(false);
     }
@@ -614,7 +621,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                             <span className="tcm-review-badge">{t('pack.trip.cm.yourReview')}</span>
                           </div>
                           <Paws rating={r.paws} />
-                          {r.body && <div className="tcm-review-text">{r.body}</div>}
+                          {r.body && <div className="tcm-review-text">{linkify(r.body, openLink, 'tcm-link')}</div>}
                           <ReviewPhotoStrip photos={r.photos} />
                         </div>
                       </div>
@@ -631,7 +638,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                             <span className="tcm-review-name">{name}</span>
                           </div>
                           <Paws rating={r.paws} />
-                          {r.body && <div className="tcm-review-text">{r.body}</div>}
+                          {r.body && <div className="tcm-review-text">{linkify(r.body, openLink, 'tcm-link')}</div>}
                           <ReviewPhotoStrip photos={r.photos} />
                           {canWrite && (
                             <div className="tcm-review-footer">
@@ -656,6 +663,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                 value={askText}
                 onChange={(e) => setAskText(e.target.value)}
                 readOnly={!!mg}
+                maxLength={2000}
                 onClick={mg ? () => mg.lock('action') : undefined}
                 placeholder={quoteThread ? t('pack.feed.quote.cm.placeholder') : t('pack.trip.cm.askPlaceholder')}
               />
@@ -675,7 +683,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                 if (item.kind === 'mine') {
                   return (
                     <div className="tcm-advice mine" key={item.q.id}>
-                      <div className="tcm-advice-text">{item.q.body}</div>
+                      <div className="tcm-advice-text">{linkify(item.q.body, openLink, 'tcm-link')}</div>
                       <div className="tcm-advice-meta">
                         <span>You</span>
                         <button type="button" className="tcm-advice-del" onClick={() => deleteQuestion(item.q.id)} aria-label={t('pack.trip.cm.deleteQuestion')}>✕</button>
@@ -687,7 +695,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                   const name = item.q.ownerFirst ?? t('pack.trip.cm.dogyptian');
                   return (
                     <div className="tcm-advice" key={item.q.id}>
-                      <div className="tcm-advice-text">{item.q.body}</div>
+                      <div className="tcm-advice-text">{linkify(item.q.body, openLink, 'tcm-link')}</div>
                       <div className="tcm-advice-meta">
                         <span>{name}</span>
                         {canWrite && (

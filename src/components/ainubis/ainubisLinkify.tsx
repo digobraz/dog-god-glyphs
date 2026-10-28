@@ -5,6 +5,18 @@ import type { ReactNode } from 'react';
 // cudzí ide do nového tabu. Text sa nikdy nevkladá ako HTML — len ako React uzly.
 const URL_RE = /https?:\/\/[^\s<>"]+/g;
 const TRAIL = /[.,;:!?)\]»”"']+$/;
+/** Zobrazený text cudzieho odkazu sa skracuje (celá URL ostáva v `href`). */
+const SHOW_MAX = 40;
+const shortUrl = (u: string) => (u.length > SHOW_MAX ? `${u.slice(0, SHOW_MAX - 1)}…` : u);
+/** Host MUSÍ mať bodku (`http://localhost`, `https://x` nie sú odkaz) a URL musí byť parsovateľná. */
+function externalOk(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    return (u.protocol === 'http:' || u.protocol === 'https:') && u.hostname.includes('.');
+  } catch {
+    return false;
+  }
+}
 
 /** Cesta v appke, ak je URL interná (dogypt.com/pack…), inak null. */
 export function internalPath(raw: string): string | null {
@@ -30,8 +42,9 @@ export function linkify(
     const start = m.index ?? 0;
     const tail = m[0].match(TRAIL)?.[0] ?? '';
     const url = tail ? m[0].slice(0, -tail.length) : m[0];
-    if (start > last) out.push(text.slice(last, start));
     const path = internalPath(url);
+    if (!path && !externalOk(url)) continue;               // nie je to odkaz → ostane ako holý text
+    if (start > last) out.push(text.slice(last, start));
     out.push(
       path ? (
         <a
@@ -47,8 +60,8 @@ export function linkify(
           {url}
         </a>
       ) : (
-        <a key={`l${n++}`} className={className} href={url} target="_blank" rel="noopener noreferrer">
-          {url}
+        <a key={`l${n++}`} className={className} href={url} target="_blank" rel="noopener noreferrer nofollow ugc">
+          {shortUrl(url)}
         </a>
       ),
     );

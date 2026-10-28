@@ -108,7 +108,8 @@ export async function toggleMark(
   if (!uid) return !on;
   if (on) {
     const { error } = await db.from('post_marks').insert({ post_id: postId, user_id: uid, kind });
-    return error ? !on : on;
+    // 23505 = už tam je (dvojklik / druhé zariadenie) → cieľový stav je dosiahnutý, nie chyba.
+    return error && error.code !== '23505' ? !on : on;
   }
   const { error } = await db.from('post_marks')
     .delete().eq('post_id', postId).eq('user_id', uid).eq('kind', kind);

@@ -159,7 +159,7 @@ export async function postTripQuestion(tripSlug: string, body: string): Promise<
   const trimmed = body.trim();
   if (!trimmed) return;
   const { error } = await db.from('trip_questions').insert({ trip_slug: tripSlug, user_id: uid, body: trimmed });
-  if (error) throw new Error(`[tripCommentsData] otázka neodišla: ${error.message ?? 'unknown'}`);
+  if (error) throw new Error(`[tripCommentsData] otázka neodišla: ${error.message ?? 'unknown'} [${error.code ?? ''}]`);
 }
 
 export async function deleteTripQuestion(id: string): Promise<void> {
@@ -185,7 +185,7 @@ export async function postQuoteComment(quoteKey: string, body: string): Promise<
   const trimmed = body.trim();
   if (!trimmed) return;
   const { error } = await db.from('quote_comments').insert({ quote_key: quoteKey, user_id: uid, body: trimmed });
-  if (error) throw new Error(`[tripCommentsData] komentár neodišiel: ${error.message ?? 'unknown'}`);
+  if (error) throw new Error(`[tripCommentsData] komentár neodišiel: ${error.message ?? 'unknown'} [${error.code ?? ''}]`);
 }
 
 export async function deleteQuoteComment(id: string): Promise<void> {
