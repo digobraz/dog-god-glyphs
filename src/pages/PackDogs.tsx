@@ -55,8 +55,6 @@ import { useDiaryRows } from '@/components/pack/diary/DiaryList';
 import { FlagCircle } from '@/components/pack/FlagCircle';
 import { PackCalendar } from '@/components/pack/calendar/PackCalendar';
 import { DiaryEntry } from '@/components/pack/diary/DiaryEntry';
-import ainubisBadge from '@/assets/ainubis-badge.webp';
-import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK } from '@/components/pack/navGoldSkin';
 import {
   PROGRESS_STEPS, STEP_BY_FIELD,
@@ -551,16 +549,13 @@ export default function PackDogs() {
   if (dogs.length === 0) return <PackLayout><style>{HUB_CSS}</style><EmptyState /></PackLayout>;
 
   // /dogs v2 (30. 10. 2026) — MOJA SVORKA · DOG ID · ŽIVOT, zatiaľ len v testovacej appke.
-  // Kalendár žije v záložke ŽIVOT, preto sa pod ňou nekreslí; KRONIKA a AINUBIS ostávajú.
+  // Kalendár žije v záložke ŽIVOT, preto sa pod ňou nekreslí; AINUBIS blok zrušený 30. 10.
   if (TEST_BUILD) {
     return (
       <PackLayout>
         <style>{HUB_CSS}{PROGRESS_CSS}</style>
         {/* KRONIKA zatiaľ ako tretia záložka (Matej 30. 10.: „možno ju dáme mimo"). */}
         <DogsHubV2 dogs={dogs} latest={latest} tx={tx} chronicle={<ChronicleTeaser dogs={dogs} tx={tx} />} />
-        <div style={{ marginTop: PACK_SPACE.md }}>
-          <AinubisBlock tx={tx} />
-        </div>
       </PackLayout>
     );
   }
@@ -620,10 +615,7 @@ export default function PackDogs() {
         />
       </div>
 
-      {/* ── AINUBIS — VÝSTUP, nie vstup ─────────────────────────────────────── */}
-      <div style={{ marginTop: PACK_SPACE.md }}>
-        <AinubisBlock tx={tx} />
-      </div>
+      {/* AINUBIS blok tu bol do 30. 10. 2026 (Matej: „AINUBIS blok daj predsa len preč — úplne dolu, z každej obrazovky"). */}
 
       {/* ── DOG ID na 100 % — koniec stránky, s možnosťou upraviť. */}
       {latestLoaded && dogIdAllDone && <DogIdCard latest={latest} dogs={dogs} tx={tx} />}
@@ -1222,100 +1214,6 @@ function ChronicleTeaser({ dogs, tx }: { dogs: HubDog[]; tx: Tx }) {
       </div>
       <Link to="/pack/dogs/chronicle" className="dic-cta ctz-cta">{tx('pack.hub.open', 'Open')}</Link>
     </section>
-  );
-}
-
-// ── 5 · AINUBIS ──────────────────────────────────────────────────────────────
-// ⚠️ VEDOMÁ ODCHÝLKA OD BRAND v3.2. AINUBIS má naprieč appkou VLASTNÚ cyborg paletu:
-// cyan `#5BE0F0` + modrá = STROJ, zlatá = ČLOVEK (Matej 2026-07-26: „základ modrý, ale
-// prvky zlatej — modrý je AINUBIS a človek má zlaté interakcie"). Zdroj pravdy =
-// hlavička `components/ainubis/AinubisWidget.css`. Papyrusová karta by tu bola chyba —
-// blok by splynul so vstupnými dlaždicami a AINUBIS by prestal byť rozoznateľný ako AI.
-//
-// COMING SOON (Matej 6.8.): plán sa zatiaľ nestavia, preto tu NIE JE zlaté CTA —
-// zlatá = interakcia človeka, a tá tu žiadna nie je. Odznak je technický, cyan.
-function AinubisBlock({ tx }: { tx: Tx }) {
-  return (
-    <Link
-      to="/pack/ainubis"
-      className="flex items-center gap-4 flex-wrap"
-      style={{
-        textDecoration: 'none',
-        // AI-PALUBA (katalóg `PACK_BLOCKS`): vlastná paleta, polomer KARTY.
-        padding: '16px 24px', borderRadius: PACK_R.card,
-        background: 'radial-gradient(circle at 22% 20%, #12233a 0%, #01050A 74%)',
-        border: '1px solid rgba(91,224,240,0.28)',
-        boxShadow: '0 0 0 4px rgba(59,158,255,0.05), 0 18px 44px -22px rgba(59,158,255,0.45)',
-      }}
-    >
-      <img
-        src={ainubisBadge}
-        alt=""
-        aria-hidden
-        style={{
-          // VÄČŠIA (Matej 12. 9. 2026: „blok s ainubisom fotka v kruhu musí byť väčšia").
-          // 88 px je výška, ktorú blok má aj tak z troch riadkov textu vedľa — dovtedy
-          // okolo kruhu ostával prázdny pás a hlava pôsobila ako ikonka, nie ako tvár.
-          width: 88, height: 88, objectFit: 'contain', borderRadius: '50%', flex: '0 0 auto',
-          background: 'radial-gradient(circle at 35% 28%, #12233a 0%, #01050A 74%)',
-          border: '1px solid rgba(91,224,240,0.35)',
-          boxShadow: '0 0 0 5px rgba(59,158,255,0.06), 0 0 26px rgba(59,158,255,0.34)',
-        }}
-      />
-      {/* Meno je NADPIS, nie drobný eyebrow (Matej 6.8.). Značka sa neprekladá.
-          MENO MA TVAR: „AI" je cyan (Matej 12. 9. 2026 - „AINUBIS je tu napisany bez
-          toho aby bolo AI zvyraznene! on ma predsa svoj tvar tak ho dodrzuj vsade").
-          Deli sa v MARKUPE, nie v preklade - holy text farbu niest nevie. Tokeny z
-          `ainubisSkin.ts`, rovnake ako `.gw-ai` v Gateways a `.ainubis-ai` vo widgete. */}
-      <div style={{ flex: 1, minWidth: 200 }}>
-        <h4
-          style={{
-            fontFamily: FONT_TITLE, fontWeight: 700, fontSize: PACK_TEXT.h1, lineHeight: 1,
-            letterSpacing: '0.14em', textTransform: 'uppercase', color: AINUBIS.ink, margin: 0,
-            textShadow: '0 0 22px rgba(91,224,240,0.55)',
-          }}
-        >
-          <span style={{ color: AINUBIS.aiInk, textShadow: AINUBIS.aiShadow }}>AI</span>NUBIS
-        </h4>
-        <div
-          style={{
-            fontFamily: FONT_UI, fontWeight: 500, fontSize: PACK_TEXT.label, letterSpacing: '0.02em',
-            color: '#5BE0F0', margin: '8px 0 4px',
-          }}
-        >
-          {tx('pack.hub.ainubisTagline', 'your virtual pack member!')}
-        </div>
-        <p
-          style={{
-            fontFamily: FONT_UI, fontSize: PACK_TEXT.label, lineHeight: 1.55,
-            color: 'rgba(230,250,255,0.62)', margin: 0, maxWidth: '52ch',
-          }}
-        >
-          {tx(
-            'pack.hub.ainubisBody',
-            'A personal advisor made just for your dog — always at hand.',
-          )}
-        </p>
-      </div>
-      {/* ⚠️ BOL TU ODZNAK „SOON" A NIKAM SA NEKLIKALO (do 21. 9. 2026). Odkedy existuje
-          kostra `/pack/ainubis`, blok VEDIE DO NEJ (rozhodnutie 4A, nákres 21. 9.:
-          „blok AINUBIS na /pack/dogs — nahradí ho odkaz do kostry"). „Soon" by odteraz
-          klamalo: to, kam odkaz vedie, existuje — čo sa ešte len stavia, sú svety v ňom,
-          a to povie banner tam, nie odznak tu.
-          Zlaté CTA tu NIE JE ani teraz: zlatá v cyborg palete patrí ČLOVEKU a šípka
-          je smer, nie akcia. */}
-      <span
-        style={{
-          fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: PACK_TEXT.micro,
-          letterSpacing: '0.22em', textTransform: 'uppercase', whiteSpace: 'nowrap',
-          color: AINUBIS.cyan, background: `rgba(${AINUBIS.cyanRGB},0.08)`,
-          border: `1px solid rgba(${AINUBIS.cyanRGB},0.35)`,
-          borderRadius: PACK_R.pill, padding: '8px 16px',
-        }}
-      >
-        {tx('pack.hub.ainubisEnter', 'Enter')}
-      </span>
-    </Link>
   );
 }
 
