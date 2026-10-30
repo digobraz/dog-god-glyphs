@@ -68,8 +68,10 @@ const CSS = `
   cursor:pointer;border:1px solid ${T.border};background:${T.cardSoft};box-shadow:${PACK_SHADOW.panel};transition:transform .12s ease;}
 .sh-btn:active{transform:scale(.94);}
 .sh-btn:disabled{opacity:.45;cursor:default;}
-.sh-btn--msg{width:${PACK_AVATAR.md}px;height:${PACK_AVATAR.md}px;margin-top:${PACK_SPACE.sm}px;}
 .sh-btn--yes{border-color:${T.growGreen};background:linear-gradient(135deg, #4E9A63, ${T.growGreen});box-shadow:${PACK_SHADOW.panel};}
+/* NIE = plná ČERVENÁ, zrkadlo zeleného SNIFF (Matej 30. 10. 2026: „no dajme červenou a write dajme preč").
+   Tlačidlo WRITE (áno + správa) z radu aj z celého profilu zmizlo — zostali dve voľby. */
+.sh-btn--no{border-color:${T.alertRed};background:linear-gradient(135deg, #C46A53, ${T.alertRed});box-shadow:${PACK_SHADOW.panel};}
 /* ODPOVEĎ NA ŤUK — tlačidlo pruží a karta nesie pečiatku SNIFF / NIE (Matej 25. 9.: „animácie pri
    ok a no… aj na mobile aj PC"). Pečiatka rastie s ťahom, pri ťuku je hneď celá. */
 .sh-btn.is-hit{animation:sh-hit .36s ease;}
@@ -422,17 +424,10 @@ export function SnifferHome({ tx, me }: {
               </div>
               <div className="sh-acts">
                 <div className="sh-act">
-                  <button type="button" className={`sh-btn${hit === 'pass' ? ' is-hit' : ''}`} aria-label={tx('pack.sniffer.no', 'No')} onClick={() => void decide('pass')}>
-                    <MaskIcon src="/icons/pack/cross.svg" size={26} color={T.alertRed} />
+                  <button type="button" className={`sh-btn sh-btn--no${hit === 'pass' ? ' is-hit' : ''}`} aria-label={tx('pack.sniffer.no', 'No')} onClick={() => void decide('pass')}>
+                    <MaskIcon src="/icons/pack/cross.svg" size={26} color="#fff" />
                   </button>
                   {tx('pack.sniffer.no', 'No')}
-                </div>
-                <div className="sh-act">
-                  <button type="button" className="sh-btn sh-btn--msg" aria-label={tx('pack.sniffer.write', 'Write')}
-                    onClick={() => { setDraft(''); setComposer({ card: top, send: (m) => void decide('like', m) }); }}>
-                    <MaskIcon src="/icons/pack/chat.svg" size={22} color={LAPIS.edge} />
-                  </button>
-                  {tx('pack.sniffer.write', 'Write')}
                 </div>
                 <div className="sh-act">
                   <button type="button" className={`sh-btn sh-btn--yes${hit === 'like' ? ' is-hit' : ''}`} aria-label={tx('pack.sniffer.yes', 'SNIFF')} onClick={() => void decide('like')}>
@@ -515,12 +510,8 @@ export function SnifferHome({ tx, me }: {
             onClick={(e) => { if ((e.target as HTMLElement).closest('.sfp-photo, .sfp-card, button, a, input, textarea')) e.stopPropagation(); }}>
             <SnifferFullProfile card={peek} tx={tx} actions={(
               <>
-                <button type="button" className="sh-btn" aria-label={tx('pack.sniffer.no', 'No')} onClick={() => void act(peek, 'pass')}>
-                  <MaskIcon src="/icons/pack/cross.svg" size={26} color={T.alertRed} />
-                </button>
-                <button type="button" className="sh-btn sh-btn--msg" aria-label={tx('pack.sniffer.write', 'Write')}
-                  onClick={() => { const c = peek; setDraft(''); setPeek(null); setComposer({ card: c, send: (m) => void act(c, 'like', m) }); }}>
-                  <MaskIcon src="/icons/pack/chat.svg" size={22} color={LAPIS.edge} />
+                <button type="button" className="sh-btn sh-btn--no" aria-label={tx('pack.sniffer.no', 'No')} onClick={() => void act(peek, 'pass')}>
+                  <MaskIcon src="/icons/pack/cross.svg" size={26} color="#fff" />
                 </button>
                 <button type="button" className="sh-btn sh-btn--yes" aria-label={tx('pack.sniffer.yes', 'SNIFF')} onClick={() => void act(peek, 'like')}>
                   <MaskIcon src="/icons/pack/nose.svg" size={30} color="#fff" />
