@@ -72,6 +72,8 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
 import { RightGate } from '@/components/pack/RightGate';
 import { grantDogIdFull } from '@/lib/devotionGrant';
+import { TEST_BUILD } from '@/lib/env';
+import { DogsHubV2 } from '@/components/pack/dogs/DogsHubV2';
 
 const T = PACK_THEME;
 
@@ -512,7 +514,7 @@ export default function PackDogs() {
   // Dotaz žije v `lib/packDogsList.ts` — ten istý číta KRONIKA (8. 10. 2026).
   useEffect(() => {
     let alive = true;
-    loadPackDogs<HubDog>('id, dog_name, cloudinary_main_url, heroglyph_png_url, pack_number, country, life_status, death_date, birth_year, selections, created_at, breed')
+    loadPackDogs<HubDog>('id, dog_name, cloudinary_main_url, heroglyph_png_url, pack_number, country, life_status, death_date, birth_year, selections, created_at, breed, weight_kg, owner_name, patron_svg')
       .then((rows) => { if (alive) setDogs(rows); });
     return () => { alive = false; };
   }, []);
@@ -547,6 +549,21 @@ export default function PackDogs() {
   // v úzkom stĺpci (max-w-2xl) a vedľa profilu vyzeral ako iná stránka (Matej 6.8.).
   if (dogs === null) return <PackLayout><HubSkeleton /></PackLayout>;
   if (dogs.length === 0) return <PackLayout><style>{HUB_CSS}</style><EmptyState /></PackLayout>;
+
+  // /dogs v2 (30. 10. 2026) — MOJA SVORKA · DOG ID · ŽIVOT, zatiaľ len v testovacej appke.
+  // Kalendár žije v záložke ŽIVOT, preto sa pod ňou nekreslí; KRONIKA a AINUBIS ostávajú.
+  if (TEST_BUILD) {
+    return (
+      <PackLayout>
+        <style>{HUB_CSS}{PROGRESS_CSS}</style>
+        <DogsHubV2 dogs={dogs} latest={latest} tx={tx} />
+        <ChronicleTeaser dogs={dogs} tx={tx} />
+        <div style={{ marginTop: PACK_SPACE.md }}>
+          <AinubisBlock tx={tx} />
+        </div>
+      </PackLayout>
+    );
+  }
 
   return (
     <PackLayout>
