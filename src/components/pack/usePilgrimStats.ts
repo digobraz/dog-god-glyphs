@@ -12,6 +12,7 @@ import { useMyNotePoints } from './mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
+import { trailCountry } from '@/lib/countryGeo';
 
 export function usePilgrimStats(email: string, ownerName: string) {
   const myNotePoints = useMyNotePoints();
@@ -37,7 +38,9 @@ export function usePilgrimStats(email: string, ownerName: string) {
       wishesDone: myWishCount,
     });
     /** `ready` = úložisko výletov je načítané z DB; dovtedy čísla NEzverejňuj. */
-    return { level, count: walkedTrails.length, km: Math.round(km), countries: walkedCountries(walkedTrails), ready: storeEpoch > 0 };
+    return { level, count: walkedTrails.length, km: Math.round(km), countries: walkedCountries(walkedTrails),
+      /** Kódy tých istých krajín (ISO2 malými) — odznak ZAHRANIČIE odpočíta vlastnú. */
+      countryCodes: [...new Set(walkedTrails.map((tr) => trailCountry(tr)))], ready: storeEpoch > 0 };
   }, [email, ownerName, myNotePoints, myEventCount, myWishCount, storeEpoch]);
 }
 

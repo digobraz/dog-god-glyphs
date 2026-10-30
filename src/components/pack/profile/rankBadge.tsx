@@ -8,13 +8,13 @@
 // ⚠️ Číslo sedí v strede viditeľnej časti (`left: s × .48`) — obrázky majú priehľadné okraje,
 //    vzorec z boxu klame (merané v prehliadači).
 import { useEffect, useState, type CSSProperties } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { TEST_BUILD } from '@/lib/env';
 import { readEvents } from '@/lib/dogEvents';
 import { PACK_R, PACK_SHADOW, PACK_THEME, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PILGRIM_FROM as P_FROM, stepOf, pilgrimColors, pilgrimImg } from '@/lib/packTiers';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { BADGE_SHELF_CSS, BadgeShelf, BadgeDetail, badgeCounts, daysWithin, useMyActivity } from './badgeShelf';
 
 /** Odznaky namiesto pilulky DEVOTION + PÚTNIK. Členovia na webe ich nevidia. */
 export const RANK_BADGE_ON = TEST_BUILD;
@@ -84,27 +84,12 @@ export const RANK_BADGE_CSS = `
 @media (min-width:768px){ .me-lv.rk-row{ gap:24px; max-width:none; } }
 `;
 
-/** Dni so zápisom v `devotion_events` za posledných 90 dní (vlastné riadky, RLS). `null` = ešte nevieme. */
+/** Dni so zápisom za posledných 90 dní. `null` = ešte nevieme.
+ *  🔴 Ten istý „deň" ako odznaky DNI SO PSOM / DNI V RADE (`loadMyActivity` v badgeShelf.tsx, 30. 10. 2026):
+ *  dovtedy sa tu čítal len `devotion_events`, takže výlet, príspevok či zvitok zlato neplnili. */
 export function useActiveDays(enabled: boolean): number | null {
-  const [days, setDays] = useState<number | null>(null);
-  useEffect(() => {
-    if (!enabled) return;
-    let alive = true;
-    (async () => {
-      const { data: s } = await supabase.auth.getSession();
-      const uid = s.session?.user?.id;
-      if (!uid) return;
-      const since = new Date(Date.now() - ACTIVE_DAYS * 864e5).toISOString();
-      const { data } = await (supabase as unknown as {
-        from: (t: string) => { select: (c: string) => { eq: (k: string, v: string) => { gte: (k: string, v: string) => { limit: (n: number) => Promise<{ data: { created_at: string }[] | null }> } } } };
-      }).from('devotion_events').select('created_at').eq('user_id', uid).gte('created_at', since).limit(5000);
-      if (!alive) return;
-      const set = new Set((data ?? []).map((r) => new Date(r.created_at).toLocaleDateString('sv')));
-      setDays(set.size);
-    })();
-    return () => { alive = false; };
-  }, [enabled]);
-  return days;
+  const a = useMyActivity(enabled);
+  return a ? daysWithin(a, ACTIVE_DAYS) : null;
 }
 
 /** Dokončené roky služby = čas, keď mal človek aspoň jedného psa: od DOG ID `basics.since`
@@ -238,7 +223,9 @@ export const RANK_PANEL_CSS = `
 .rkp-nx{ display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; color:rgba(243,230,200,.75); }
 .rkp-nx img{ width:24px; height:24px; object-fit:contain; }
 /* Rebrík: všetky obrázky stupňov v rade; dosiahnuté plné, môj so zlatou žiarou, ďalšie v tieni. */
-.rkp-lad{ display:grid; grid-template-columns:repeat(var(--n), 1fr); gap:4px; margin-top:16px; padding-top:12px; border-top:1px solid rgba(231,196,108,.25); }
+/* Deliaca čiara nad rebríkom aj nad ODZNAKMI (badgeShelf.tsx) — jedna hodnota. */
+.rkp-lad, .bd-sec{ border-top:1px solid rgba(231,196,108,.25); }
+.rkp-lad{ display:grid; grid-template-columns:repeat(var(--n), 1fr); gap:4px; margin-top:16px; padding-top:12px; }
 .rkp-lad div{ display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0; }
 .rkp-lad img{ width:100%; max-width:40px; aspect-ratio:1; object-fit:contain; filter:grayscale(1) brightness(.45); opacity:.6; }
 .rkp-lad .done img{ filter:none; opacity:1; }
@@ -257,10 +244,18 @@ export const RANK_PANEL_CSS = `
 
 type Tx = (key: string, fallback: string) => string;
 const SERVANT_FILL = 'linear-gradient(180deg,#FFF6CC,#F2C24E 40%,#C88A22 75%,#8A5A12)';
+/** Zlatá náplň pásu SLUŽOBNÍKA — ten istý pás nesie aj detail odznaku. */
+const SERVANT_BAR: CSSProperties = { background: SERVANT_FILL, boxShadow: 'inset 0 -3px 5px rgba(60,30,0,.45), 0 0 10px rgba(255,200,90,.6)' };
 
 /** SLUŽOBNÍK po rozkliku: roky + obrázok stupňa, zlatý pás aktivity, rebrík 8 odznakov. */
-export function ServantPanel({ years, onDogId, tx }: { years: number | null; onDogId?: () => void; tx: Tx }) {
-  const activeDays = useActiveDays(true);
+/** Pod rebríkom rokov sú ODZNAKY (30. 10. 2026) — ťuk na odznak ukáže detail v tom istom paneli.
+ *  `trips` a `abroad` = čísla PÚTNIKA (počet prejdených výletov, krajiny mimo vlastnej). */
+export function ServantPanel({ years, onDogId, trips = 0, abroad = 0, tx }: { years: number | null; onDogId?: () => void; trips?: number; abroad?: number; tx: Tx }) {
+  const act = useMyActivity(true);
+  const activeDays = act ? daysWithin(act, ACTIVE_DAYS) : null;
+  const counts = act ? badgeCounts(act, trips, abroad) : null;
+  const [open, setOpen] = useState<string | null>(null);
+  if (open && counts) return <><style>{BADGE_SHELF_CSS}</style><BadgeDetail id={open} counts={counts} fill={SERVANT_BAR} onBack={() => setOpen(null)} tx={tx} /></>;
   const y = Math.max(0, years ?? 0);
   const t = stepOf(S_FROM, y);
   const d = activeDays ?? 0;
@@ -280,8 +275,7 @@ export function ServantPanel({ years, onDogId, tx }: { years: number | null; onD
       </div>
       <div className="rkp-lbl"><span>{tx('pack.rank.servantActive', 'Days in the app · last 90')}</span><b>{activeDays == null ? '—' : `${d} / ${FULL_DAYS}`}</b></div>
       <div className="rkp-bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
-        <i className={`fl${d >= FULL_DAYS ? ' full' : ''}`} style={{ width: `max(${pct}%, 20px)`, background: SERVANT_FILL,
-          boxShadow: 'inset 0 -3px 5px rgba(60,30,0,.45), 0 0 10px rgba(255,200,90,.6)' }} />
+        <i className={`fl${d >= FULL_DAYS ? ' full' : ''}`} style={{ width: `max(${pct}%, 20px)`, ...SERVANT_BAR }} />
       </div>
       <div className="rkp-nx">
         {next != null ? <><img src={`/icons/pack/rank/servant-${t + 1}.webp`} alt="" />{tx('pack.rank.servantToNext', '{n} more years to the next badge').replace('{n}', String(next - y))}</>
@@ -300,6 +294,8 @@ export function ServantPanel({ years, onDogId, tx }: { years: number | null; onD
       {years == null && onDogId && (
         <button type="button" className="rkp-act" onClick={onDogId}>{tx('pack.rank.servantNoDate', 'Add “Together since” in DOG ID')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>
       )}
+      <style>{BADGE_SHELF_CSS}</style>
+      <BadgeShelf counts={counts} onOpen={setOpen} tx={tx} />
     </>
   );
 }
