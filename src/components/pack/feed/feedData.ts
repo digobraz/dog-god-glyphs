@@ -126,14 +126,23 @@ export function useFeedMarks(): FeedMarks {
     const fresh = targets.filter((x) => !asked.current.has(x));
     if (!fresh.length || !server) return;
     fresh.forEach((x) => asked.current.add(x));
-    void db.rpc('feed_social', { p_targets: fresh }).then(({ data, error }: { data: Array<FeedSoc & { target: string }> | null; error: unknown }) => {
-      if (error) { setServer(false); return; }
+    const run = (attempt: number) => void db.rpc('feed_social', { p_targets: fresh }).then(({ data, error }: { data: Array<FeedSoc & { target: string }> | null; error: { code?: string } | null }) => {
+      if (error) {
+        // LOKÁLNY REŽIM len keď funkcia na serveri naozaj NIE JE (42883 Postgres, PGRST202 PostgREST). Každé iné zlyhanie
+        // (sieť, 5xx, vypršaná relácia) je prechodné: jedno opakovanie a potom sa ciele uvoľnia na ďalší pokus —
+        // predtým jedno zlyhanie preplo lajky do localStorage až do konca session (audit 30. 10. 2026).
+        if (error.code === '42883' || error.code === 'PGRST202') { setServer(false); return; }
+        if (attempt < 1) { window.setTimeout(() => run(attempt + 1), 1500); return; }
+        fresh.forEach((x) => asked.current.delete(x));
+        return;
+      }
       setSoc((prev) => {
         const next = new Map(prev);
         for (const r of data ?? []) next.set(r.target, { likes: r.likes, liked: r.liked, saved: r.saved, comments: r.comments, saves: Number(r.saves) || 0 });
         return next;
       });
     });
+    run(0);
   }, [server]);
 
   const get = useCallback((target: string): FeedSoc => {
@@ -211,33 +220,106 @@ export async function fetchFeedPost(id: string): Promise<(FeedPost & { mine: boo
   };
 }
 
-export function useFeedPosts(enabled: boolean): FeedPost[] {
+const POSTS_PAGE = 30;
+const REFRESH_MS = 30_000;
+
+const postOf = (r: Record<string, unknown>): FeedPost => ({
+  post: {
+    id: String(r.id),
+    body: String(r.body ?? ''),
+    photos: Array.isArray(r.photos) ? (r.photos as string[]) : [],
+    tags: (r.tags as string[]) ?? [],
+    attach: (r.attach as MePost['attach']) ?? {},
+    visibility: 'public',
+    createdAt: String(r.created_at),
+    actedBy: null,
+    actedName: null,
+  },
+  name: String(r.first_name ?? ''),
+  avatar: (r.photo as string | null) ?? null,
+  ownerN: r.owner_n == null ? null : Number(r.owner_n),
+});
+
+/**
+ * Cudzie príspevky po stránkach (`p_before` = čas najstaršieho načítaného). `loadMore()` dobrá ďalšiu stránku pri konci
+ * scrollu; návrat na kartu (visibility/focus, najviac raz za 30 s) obnoví prvú stránku a nové príspevky pridá navrch.
+ * `done` = server už nemá starších (alebo RPC nie je) ⇒ feed môže ukázať „videl si všetko".
+ */
+export function useFeedPosts(enabled: boolean): { rows: FeedPost[]; loadMore: () => void; done: boolean } {
   const [rows, setRows] = useState<FeedPost[]>([]);
+  const [done, setDone] = useState(false);
+  const busy = useRef(false);
+  const doneRef = useRef(false);
+  const lastRun = useRef(0);
+  const oldest = useRef<string | null>(null);
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+
+  const page = useCallback(async (before: string | null, first: boolean) => {
+    if (busy.current) return;
+    busy.current = true;
+    const had = oldest.current !== null;
+    try {
+      const { data, error } = await db.rpc('list_feed_posts', { p_limit: POSTS_PAGE, ...(before ? { p_before: before } : {}) });
+      if (!alive.current) return;
+      if (error) { if (!first) { doneRef.current = true; setDone(true); } return; }
+      const got = ((data ?? []) as Array<Record<string, unknown>>).map(postOf);
+      setRows((prev) => {
+        const by = new Map(prev.map((x) => [x.post.id, x]));
+        got.forEach((x) => by.set(x.post.id, x));
+        const all = [...by.values()].sort((a, b) => Date.parse(b.post.createdAt) - Date.parse(a.post.createdAt));
+        oldest.current = all.length ? all[all.length - 1].post.createdAt : null;
+        return all;
+      });
+      // Obnova prvej stránky stav „hotovo" nemení (starších stránok sa netýka); prvé načítanie alebo dobratie ho nastaví.
+      if (got.length < POSTS_PAGE && (!first || !had)) { doneRef.current = true; setDone(true); }
+    } finally { busy.current = false; }
+  }, []);
+
   useEffect(() => {
     if (!enabled) return;
-    let alive = true;
-    void db.rpc('list_feed_posts', { p_limit: 60 }).then(({ data, error }: { data: Array<Record<string, unknown>> | null; error: unknown }) => {
-      if (!alive || error) return;
-      setRows((data ?? []).map((r) => ({
-        post: {
-          id: String(r.id),
-          body: String(r.body ?? ''),
-          photos: Array.isArray(r.photos) ? (r.photos as string[]) : [],
-          tags: (r.tags as string[]) ?? [],
-          attach: (r.attach as MePost['attach']) ?? {},
-          visibility: 'public',
-          createdAt: String(r.created_at),
-          actedBy: null,
-          actedName: null,
-        },
-        name: String(r.first_name ?? ''),
-        avatar: (r.photo as string | null) ?? null,
-        ownerN: r.owner_n == null ? null : Number(r.owner_n),
-      })));
+    lastRun.current = Date.now();
+    void page(null, true);
+    // Návrat do appky / na kartu: príspevky mohli pribudnúť, kým bola na pozadí.
+    const back = () => {
+      if (document.visibilityState !== 'visible' || Date.now() - lastRun.current < REFRESH_MS) return;
+      lastRun.current = Date.now();
+      void page(null, true);
+    };
+    document.addEventListener('visibilitychange', back);
+    window.addEventListener('focus', back);
+    return () => { document.removeEventListener('visibilitychange', back); window.removeEventListener('focus', back); };
+  }, [enabled, page]);
+
+  const loadMore = useCallback(() => {
+    if (!enabled || doneRef.current || !oldest.current) return;
+    void page(oldest.current, false);
+  }, [enabled, page]);
+
+  return { rows, loadMore, done };
+}
+
+/** Mená psov k príspevkom (označení + psi autora) — len pre HĽADANIE. Pýta sa po dávkach, jedno volanie na dávku. */
+export function useFeedPostDogs(ids: string[], enabled: boolean): Map<string, string[]> {
+  const [map, setMap] = useState<Map<string, string[]>>(() => new Map());
+  const asked = useRef<Set<string>>(new Set());
+  const key = ids.join('|');
+  useEffect(() => {
+    if (!enabled) return;
+    const fresh = ids.filter((x) => !asked.current.has(x)).slice(0, 200);
+    if (!fresh.length) return;
+    fresh.forEach((x) => asked.current.add(x));
+    void db.rpc('feed_post_dog_names', { p_posts: fresh }).then(({ data, error }: { data: Array<{ post_id: string; names: string[] }> | null; error: unknown }) => {
+      if (error) { fresh.forEach((x) => asked.current.delete(x)); return; }
+      setMap((prev) => {
+        const next = new Map(prev);
+        for (const r of data ?? []) next.set(r.post_id, r.names ?? []);
+        return next;
+      });
     });
-    return () => { alive = false; };
-  }, [enabled]);
-  return rows;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, enabled]);
+  return map;
 }
 
 export interface TripAuthor { photo: string | null; ownerN: number | null; name: string | null }

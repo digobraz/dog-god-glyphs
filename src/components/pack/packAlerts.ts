@@ -12,11 +12,10 @@
 // sa o nej dozvedel len tak, že sám otvoril zoznam výletov, a žiadateľ sa nedozvedel vôbec,
 // že ho vzali. Databáza pritom bola v poriadku — chýbalo len to, že o nej nikto nedal vedieť.
 //
-// ── PREČÍTANOSŤ JE LOKÁLNA (vedomý kompromis) ────────────────────────────────────────────
-// `localStorage` pod `pack-alerts-seen`. Dôsledok: kto si upozornenie prečíta na telefóne,
-// uvidí ho na počítači ešte raz. Alternatíva je nová tabuľka so stavom per člen — to je
-// samostatná stavba a nie je to podmienka pre to, aby NOS začal fungovať. Keď taký stĺpec
-// raz vznikne, mení sa telo `readSeen`/`markSeen`, nič iné.
+// ── PREČÍTANOSŤ: LOKÁLNE + ZRKADLO NA SERVERI (30. 10. 2026) ─────────────────────────────
+// `localStorage` pod `pack-alerts-seen` ostáva rýchly zdroj pre `readSeen`. Od 30. 10. sa `markSeen` zapisuje aj na
+// server (`mark_alerts_seen`, migrácia 20261109_feed_appka.sql) a `loadAlerts` ho pri každom načítaní zlúči späť
+// (`syncSeen`) — prečítané na telefóne je prečítané aj na druhom zariadení. Bez migrácie RPC padne a všetko ide ako dovtedy.
 //
 // ── TRETÍ DRUH: „NIEKTO Z PARTIE UŽ VÝLET ZAPÍSAL" (Matej 4. 9. 2026) ────────────────────
 // Kto výlet prejde, potvrdí ho ZA SEBA; ostatní z partie dostanú upozornenie a svoj záznam
@@ -144,6 +143,35 @@ export function markSeen(ids: string[]): void {
     const next = [...prev.filter((id) => !ids.includes(id)), ...ids];
     localStorage.setItem(SEEN_KEY, JSON.stringify(next.slice(-SEEN_MAX)));
   } catch { /* kvóta — prečítanosť je pohodlie, nie dáta; strata nič nerozbije */ }
+  pushSeen(ids);
+}
+
+/** Zápis na server — zlepené do jedného volania (otvorenie panela môže označiť desiatky id naraz). */
+let pendingSeen: string[] = [];
+let seenTimer: number | undefined;
+function pushSeen(ids: string[]): void {
+  pendingSeen.push(...ids);
+  if (seenTimer !== undefined) return;
+  seenTimer = window.setTimeout(() => {
+    seenTimer = undefined;
+    const batch = [...new Set(pendingSeen)].slice(-200);
+    pendingSeen = [];
+    void Promise.resolve(db.rpc('mark_alerts_seen', { p_ids: batch })).catch(() => { /* prečítanosť je pohodlie, nie dáta */ });
+  }, 400);
+}
+
+/** Stiahne prečítané zo servera a pridá ich do lokálneho zoznamu. Vracia, či sa niečo pridalo. */
+async function syncSeen(): Promise<boolean> {
+  try {
+    const { data, error } = await db.rpc('get_alerts_seen');
+    if (error || !Array.isArray(data)) return false;
+    const have = readSeen();
+    const add = (data as unknown[]).filter((x): x is string => typeof x === 'string' && !have.has(x));
+    if (!add.length) return false;
+    const next = [...have, ...add];
+    localStorage.setItem(SEEN_KEY, JSON.stringify(next.slice(-SEEN_MAX)));
+    return true;
+  } catch { return false; }
 }
 
 export const unseen = (alerts: PackAlert[], seen: Set<string>): PackAlert[] =>
@@ -252,6 +280,8 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
   const { data: sess } = await supabase.auth.getSession();
   const uid = sess.session?.user?.id;
   if (!uid) return []; // odhlásený / DEV_NOAUTH — RLS by aj tak nevydala nič
+  // Prečítané z iného zariadenia sa zlúčia do lokálneho zoznamu skôr, než volajúci spočíta neprečítané.
+  await syncSeen();
 
   const [incoming, mine, walked, events, wishes, invites, mates, follows, aiReplies, social] = await Promise.all([
     db.from('trip_requests').select('trip_slug,created_at,decided_at')

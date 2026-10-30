@@ -13,7 +13,7 @@
 //    TRIPWISH = JEDEN ŤUK, bez formulára (Matej: *„nemá to zmysel… skrátka len uložiť do tripwishu a hotovo"*):
 //    prianie s predvolbou krátky výlet · tento rok · len pre mňa, potom potvrdenie AINUBISA so závojom.
 //    Do triplistu ide PRIANIE (`addWishPin`) s predvolbou krátky výlet · tento rok — doladí sa v triplistu.
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
@@ -41,6 +41,10 @@ import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import type { PackDogFull } from '@/hooks/usePackUser';
 import { useT } from '@/i18n/LanguageContext';
 import { PostMenu } from '@/components/pack/profile/PostMenu';
+import type { ReportReason } from '@/components/pack/messaging/packMessaging';
+
+// Panel nahlásenia je ten istý ako pri komentári výletu (AINUBIS) — ťažký modul sa nahrá až pri ťuku na NAHLÁSIŤ.
+const ReportSheet = lazy(() => import('@/components/pack/trip/TripComments').then((m) => ({ default: m.ReportSheet })));
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -71,6 +75,8 @@ const CSS = `
 .pv-cm p{flex:1;min-width:0;margin:0;white-space:pre-wrap;word-break:break-word;}
 .pv-cm p b{font-weight:600;margin-right:${S.xs}px;}
 .pv-cm p small{display:block;font-size:${TX.micro}px;color:${T.inkWarm};}
+.pv-cm .rl{flex:none;align-self:center;background:none;border:0;padding:${S.xs}px;cursor:pointer;font:500 ${TX.micro}px/1 ${FONT_UI};letter-spacing:.02em;color:${T.inkWarm};text-decoration:underline;text-underline-offset:2px;}
+.pv-cm .sure{flex:none;align-self:center;border-radius:${PACK_R.pill}px;border:1.5px solid ${T.alertRed};background:none;color:${T.alertRed};cursor:pointer;padding:${S.xs}px ${S.md}px;font:600 ${TX.micro}px/1 ${FONT_UI};}
 .pv-cm .rm{flex:none;background:none;border:0;padding:${S.xs}px;cursor:pointer;color:${T.inkWarm};}
 .pv-add{display:flex;gap:${S.sm}px;align-items:center;padding:${S.md}px ${S.lg}px 0;}
 .pv-add .pf-field{flex:1;min-width:0;}
@@ -155,9 +161,10 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
   const openLink = (path: string) => { onClose(); navigate(path); };
 
   const reload = useCallback(() => {
-    fetchPostSocial(post.id).then(setSoc);
-    fetchComments(post.id).then(setCms);
-    fetchLikers(post.id).then(setLikers);
+    // `.catch`: bez neho zlyhanie siete skončí ako neodchytené odmietnutie a stav ostane nenačítaný (audit 30. 10. 2026).
+    fetchPostSocial(post.id).then(setSoc).catch(() => {});
+    fetchComments(post.id).then(setCms).catch(() => {});
+    fetchLikers(post.id).then(setLikers).catch(() => {});
   }, [post.id]);
   useEffect(() => { reload(); }, [reload]);
   // Odkaz z upozornenia: komentár sa odroluje do stredu a ~2,5 s svieti tintom (class `hl`).
@@ -184,7 +191,30 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
     catch (err) { toast({ title: guardMessage(err, tx) ?? tx('pack.settings.notifErr', 'Could not save'), variant: 'destructive' }); /* text ostane v poli */ }
     setSending(false);
   };
+  // Zmazanie komentára: prvé ťuknutie len pýta „Naozaj?" (inline, bez confirm()), druhé zmaže.
+  const [sureId, setSureId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!sureId) return;
+    const tm = window.setTimeout(() => setSureId(null), 4000);
+    return () => window.clearTimeout(tm);
+  }, [sureId]);
+  // Nahlásenie cudzieho komentára (App Store 1.2) — `reportContent('comment', id)`, rovnaký vzor ako `TripComments`.
+  const [reportId, setReportId] = useState<string | null>(null);
+  const [repSent, setRepSent] = useState(false);
+  const [repBusy, setRepBusy] = useState(false);
+  const [repErr, setRepErr] = useState<string | null>(null);
+  const sendReport = async (reason: ReportReason, note?: string) => {
+    if (!reportId) return;
+    setRepBusy(true); setRepErr(null);
+    try {
+      const m = await import('@/components/pack/messaging/packMessaging');
+      await m.reportContent('comment', reportId, reason, note);
+      setRepSent(true);
+    } catch { setRepErr(tx('pack.mod.reportErr', 'Could not send the report. Check your connection and try again.')); }
+    finally { setRepBusy(false); }
+  };
   const dropComment = async (id: string) => {
+    setSureId(null);
     setCms((c) => c.filter((x) => x.id !== id));
     try { await deleteComment(id); } catch { toast({ title: tx('pack.profile.toastUnknownError', 'Unknown error'), variant: 'destructive' }); /* vráti ho reload */ }
     reload();
@@ -269,9 +299,12 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
                 {c.photo ? <img className="av" src={sizedUrl(c.photo, 60)} alt="" /> : <span className="av">{(c.name || '#')[0]}</span>}
                 <p><b>{c.name || (c.ownerN ? `#${c.ownerN}` : '')}</b>{(c.actedBy || c.actedName) && <><ActedBy id={c.actedBy} name={c.actedName} /> </>}{linkify(c.body, openLink, 'pv-link')}</p>
                 {/* Pri komentári dátum nie je (Matej 28. 10. 2026) — len meno a text. */}
-                {c.canDelete && (
-                  <button type="button" className="rm" onClick={() => dropComment(c.id)} aria-label={tx('pack.story.delete', 'Delete')}><HandTrash size={14} /></button>
+                {!c.mine && (
+                  <button type="button" className="rl" onClick={() => { setReportId(c.id); setRepSent(false); setRepErr(null); }}>{tx('pack.trip.cm.report', 'Report')}</button>
                 )}
+                {c.canDelete && (sureId === c.id
+                  ? <button type="button" className="sure" onClick={() => dropComment(c.id)}>{tx('pack.post.commentSure', 'Really?')}</button>
+                  : <button type="button" className="rm" onClick={() => setSureId(c.id)} aria-label={tx('pack.story.delete', 'Delete')}><HandTrash size={14} /></button>)}
               </li>
             ))}
           </ul>
@@ -322,6 +355,11 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
             <button type="button" className="aw-cta" onClick={() => setWishing(false)}>{tx('pack.wish.close', 'Done')}</button>
           </WishSheet>
         </>
+      )}
+      {reportId && (
+        <Suspense fallback={null}>
+          <ReportSheet onClose={() => setReportId(null)} onSend={sendReport} busy={repBusy} error={repErr} sent={repSent} />
+        </Suspense>
       )}
       {likersOpen && (
         <LikersSheet list={likers} title={tx('pack.post.likes', 'Likes')} you={tx('pack.post.you', 'you')} close={tx('pack.network.close', 'Close')}

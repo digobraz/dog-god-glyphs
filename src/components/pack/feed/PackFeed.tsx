@@ -42,7 +42,7 @@ import { fetchMyPosts, onPostsChanged, isMoment, isAlbum, isTripStory, type MePo
 import { readFavIds, tripText } from '@/components/pack/tripShared';
 import { persistFav } from '@/lib/packStore';
 import { feedQuoteForDay, feedQuoteText } from '@/data/feedQuotes';
-import { firstWord, tripTitle, useFeedTrips, type FeedTrip, useFeedMarks, useFeedPosts, useTripAuthors, fetchFeedPost, type FeedPost } from './feedData';
+import { firstWord, tripTitle, useFeedTrips, type FeedTrip, useFeedMarks, useFeedPosts, useFeedPostDogs, useTripAuthors, fetchFeedPost, type FeedPost } from './feedData';
 import { FeedTripCard, FEED_TRIP_CSS } from './FeedTripCard';
 import { FeedPostCard, FEED_POST_CSS } from './FeedPostCard';
 import { AiHead, AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
@@ -272,12 +272,17 @@ export function PackFeed() {
   }, [uid]);
   // CUDZIE verejné príspevky (server, 26. 10.) + moje; zablokovaných vynechá server, klient ešte skryje tých,
   // ktorých človek zablokoval práve teraz (zoznam z `useBlockedOwners` sa obnoví bez nového načítania feedu).
-  const otherPosts = useFeedPosts(!!uid);
+  const { rows: otherPosts, loadMore: loadMorePosts, done: postsDone } = useFeedPosts(!!uid);
   const blocked = useBlockedOwners();
+  // Môj príspevok v KARANTÉNE (`hiddenAt`, server ho schová pred ostatnými) autor stále vidí — so štítkom „Čaká na kontrolu".
+  // Súkromný (voľba „Only me") ostáva skrytý, ten `hiddenAt` nemá.
   const publicPosts = useMemo<PostIt[]>(() => [
-    ...myPosts.filter((p) => !isMoment(p) && !isAlbum(p) && !isTripStory(p) && p.visibility === 'public').map((p) => ({ p })),
+    ...myPosts.filter((p) => !isMoment(p) && !isAlbum(p) && !isTripStory(p) && (p.visibility === 'public' || !!p.hiddenAt)).map((p) => ({ p })),
     ...otherPosts.filter((w) => w.ownerN == null || !blocked.has(w.ownerN)).map((w) => ({ p: w.post, who: w })),
   ].sort((a, b) => Date.parse(b.p.createdAt) - Date.parse(a.p.createdAt)), [myPosts, otherPosts, blocked]);
+
+  // Mená psov k cudzím príspevkom — len keď sa hľadá (jedno volanie na dávku).
+  const postDogs = useFeedPostDogs(publicPosts.filter((x) => x.who).map((x) => x.p.id), searching && query.length >= 2);
 
   const { quote, bg: photoBg, day } = useMemo(() => feedQuoteForDay(), []);
   const quoteText = feedQuoteText(quote, lang);
@@ -368,9 +373,10 @@ export function PackFeed() {
       const q = fold(query);
       const hit = (...xs: Array<string | undefined | null>) => xs.some((x) => x && fold(x).includes(q));
       return weave({
-        trip: tripIdx.filter((i) => { const tr = trips[i].trail; return hit(tripTitle(tr, lang), tr.name, tr.region, tripText(tr, 'desc', lang)); }),
+        trip: tripIdx.filter((i) => { const tr = trips[i].trail; return hit(tripTitle(tr, lang), tr.name, tr.region, tripText(tr, 'desc', lang), trips[i].author); }),
         scroll: allScrolls.filter((z) => { const x = pickText(z, lang); return hit(x?.t, x?.v, x?.d, worldName(z.world)); }),
-        post: publicPosts.filter(({ p }) => hit(p.body, p.attach.place?.name)),
+        // Text, miesto, MENO AUTORA a mená PSOV (označení + psi autora; môj príspevok = moje psy).
+        post: publicPosts.filter(({ p, who }) => hit(p.body, p.attach.place?.name, who ? who.name : ownName, ...(who ? postDogs.get(p.id) ?? [] : dogs.map((d) => d.dog_name)))),
         map: [],
       }, false);
     }
@@ -391,11 +397,11 @@ export function PackFeed() {
     return out.concat(weave({
       trip: tripIdx,
       scroll: allScrolls.filter((z) => !saved.has(z.id)),
-      post: publicPosts.filter(({ p }) => p.photos.length > 0),
+      post: publicPosts,
       map: [...mapAdds],
     }, true, true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trips, publicPosts, allScrolls, savedScrolls.length, savedIds, mapAdds, topic, searching, query, lang]);
+  }, [trips, publicPosts, allScrolls, savedScrolls.length, savedIds, mapAdds, topic, searching, query, lang, postDogs, ownName, dogs]);
 
   // DÁVKY: najprv PAGE kusov, ďalšie, keď sa strážca na konci zoznamu priblíži k oknu.
   const [shown, setShown] = useState(PAGE);
@@ -409,11 +415,15 @@ export function PackFeed() {
   const moreRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = moreRef.current;
-    if (!el || shown >= items.length) return;
-    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) setShown((n) => n + PAGE); }, { rootMargin: '1200px 0px' });
+    if (!el || (shown >= items.length && postsDone)) return;
+    // Pri konci zoznamu sa dobratie ďalších príspevkov zo servera (`p_before`) — stráž stojí, kým nie je `postsDone`.
+    const io = new IntersectionObserver((es) => {
+      if (!es.some((e) => e.isIntersecting)) return;
+      if (shown < items.length) setShown((n) => n + PAGE); else loadMorePosts();
+    }, { rootMargin: '1200px 0px' });
     io.observe(el);
     return () => io.disconnect();
-  }, [shown, items.length]);
+  }, [shown, items.length, postsDone, loadMorePosts]);
 
   // NÁVRAT NA TO ISTÉ MIESTO: pri odchode sa zapíše pozícia a počet dávok; pri „späť" (POP) sa obnoví,
   // keď je zoznam dosť dlhý. Nový vstup cez nav (PUSH) začína hore.
@@ -466,6 +476,12 @@ export function PackFeed() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [targetKey],
   ));
+  // Výlet zablokovaného autora sa nezobrazí (server filtruje príspevky; výlety žijú v klientskom úložisku, takže filter je tu).
+  const rendered = visible.filter((it) => {
+    if (it.k !== 'trip') return true;
+    const n = tripAuthors.get(trips[it.i].trail.id)?.ownerN;
+    return n == null || !blocked.has(n);
+  });
   const [tripCmOpen, setTripCmOpen] = useState<string | null>(null);
   const [tripCm, setTripCm] = useState<Record<string, number>>({});
 
@@ -501,7 +517,7 @@ export function PackFeed() {
         return it.p.who
           ? <FeedPostCard post={it.p.p} name={it.p.who.name || tx('pack.feed.member', 'Member')} avatar={it.p.who.avatar}
               authorN={it.p.who.ownerN} mine={false} onOpen={() => setReading(it.p)} />
-          : <FeedPostCard post={it.p.p} name={ownName} avatar={youImg} onOpen={() => setReading(it.p)} />;
+          : <FeedPostCard post={it.p.p} name={ownName} avatar={youImg} onOpen={() => setReading(it.p)} pending={!!it.p.p.hiddenAt} />;
       case 'map':
         return <FeedMapCard add={it.a} liked={marks.get(`map:${it.a.id}`).liked} likes={marks.get(`map:${it.a.id}`).likes} onLike={() => marks.toggle(`map:${it.a.id}`, 'like')} />;
       case 'story':
@@ -547,16 +563,16 @@ export function PackFeed() {
         </>)}
 
         <div className="pkf-list">
-          {items.slice(0, shown).map((it, n) => (
+          {rendered.map((it, n) => (
             <div key={keyOf(it, n)} className={`pkf-it${isPaper(it) ? ' pap' : ''}`}>{render(it)}</div>
           ))}
         </div>
-        {shown < items.length && <div ref={moreRef} className="pkf-more" aria-hidden />}
+        {(shown < items.length || !postsDone) && <div ref={moreRef} className="pkf-more" aria-hidden />}
         {!items.length && (searching ? query.length >= 2 : !!topic) && (
           <p className="pkf-none">{searching ? tx('pack.feed.search.none', 'Nothing found. Try another word.') : tx('pack.feed.tag.empty', 'No posts with this topic yet.')}</p>
         )}
 
-        {!searching && shown >= items.length && <>
+        {!searching && shown >= items.length && postsDone && <>
           {/* SNIFFER aj na konci, pred „videl si všetko". */}
           <SnifferStrip />
           {!topic && <div className="pkf-end">

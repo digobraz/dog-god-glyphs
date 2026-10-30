@@ -5,6 +5,7 @@
 // Zoznam = POPUP + RIADOK (`PACK_BOX.row`) + MEDAILÓN, nič nové v katalógu.
 import { useCallback, useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
+import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { PackPopup } from '@/components/pack/PackPopup';
@@ -40,6 +41,8 @@ export async function fetchFollowList(packNumber: number | null, kind: FollowKin
 
 /** Počty + môj stav. `toggle` prepne hneď a pri neúspechu vráti späť. */
 export function useFollow(packNumber: number | null, enabled = true) {
+  const t = useT();
+  const { toast } = useToast();
   const [info, setInfo] = useState<FollowInfo | null>(null);
   const [busy, setBusy] = useState(false);
   const reload = useCallback(() => {
@@ -53,7 +56,11 @@ export function useFollow(packNumber: number | null, enabled = true) {
     setBusy(true);
     setInfo({ ...info, iFollow: want, followers: Math.max(0, info.followers + (want ? 1 : -1)) });
     const got = await setFollow(packNumber, want);
-    if (got !== want) setInfo(info);
+    if (got !== want) {
+      setInfo(info);
+      // Vrátenie bez slova pôsobilo ako „tlačidlo nefunguje" (audit 30. 10. 2026).
+      toast({ title: t('pack.follow.err') === 'pack.follow.err' ? 'Could not follow right now. Try again.' : t('pack.follow.err'), variant: 'destructive' });
+    }
     setBusy(false);
   };
   return { info, busy, toggle, reload };
@@ -92,6 +99,7 @@ export const FOLLOW_CHIP_CSS = `
 /** Skrytie (vlastné, bez čísla, katalóg) rieši volajúci: `n == null` ⇒ nič. Sledovaný = tichší tint. */
 export function FollowChip({ n }: { n: number | null }) {
   const t = useT();
+  const { toast } = useToast();
   const info = useChipInfo(n);
   const [busy, setBusy] = useState(false);
   if (n == null || !info || info.isMe) return null;
@@ -104,7 +112,10 @@ export function FollowChip({ n }: { n: number | null }) {
     chipCache.set(n, { ...info, iFollow: want, followers: Math.max(0, info.followers + (want ? 1 : -1)) });
     chipEmit();
     const got = await setFollow(n, want);
-    if (got !== want) { chipCache.set(n, info); chipEmit(); }
+    if (got !== want) {
+      chipCache.set(n, info); chipEmit();
+      toast({ title: tx('pack.follow.err', 'Could not follow right now. Try again.'), variant: 'destructive' });
+    }
     setBusy(false);
   };
   return (

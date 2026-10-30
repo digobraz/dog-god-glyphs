@@ -22,6 +22,7 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { publish, type ComposeMode, type Visibility } from '@/components/pack/profile/mePosts';
 import { PlaceField, type PostPlace } from '@/components/pack/profile/PlaceField';
 import { useToast } from '@/hooks/use-toast';
+import { guardMessage } from '@/components/pack/contentGuardError';
 import { useT } from '@/i18n/LanguageContext';
 import { APP_NEW } from '@/lib/packFlags';
 import { POST_TAGS, POST_TAG_MAX } from '@/components/pack/feed/postTags';
@@ -71,6 +72,11 @@ const CSS = `
   color:${T.inkStrong};font-family:${FONT_UI};font-weight:500;font-size:${TX.label}px;}
 .mc-tag.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
 .mc-note{margin:${S.xs}px 0 0;font-size:${TX.label}px;color:${T.inkWarm};}
+/* ZAHODIŤ? — inline otázka namiesto browser confirm() */
+.mc-ask-discard{display:flex;align-items:center;gap:${S.md}px;flex-wrap:wrap;padding:${S.md}px ${S.lg}px;border-radius:${PACK_R.tile}px;border:1.5px solid ${T.cardEdge};background:${T.card};}
+.mc-ask-discard span{flex:1 1 100%;font-weight:600;font-size:${TX.body}px;color:${T.inkStrong};}
+.mc-ask-discard button{border-radius:${PACK_R.field}px;cursor:pointer;padding:${S.sm}px ${S.lg}px;font-family:${FONT_UI};font-weight:600;font-size:${TX.label}px;border:1.5px solid ${T.border};background:${T.card};color:${T.inkStrong};}
+.mc-ask-discard button.no{border-color:${LAPIS.edge};color:${LAPIS.edge};}
 /* NÁHĽAD OREZU (FEED 2, Matej 26. 10.: „vysoká fotka sa oreže, ale autor vidí náhľad orezu pri pridávaní ako na IG").
    Rám má pomer, v akom fotku uvidí feed: široká ostáva, vysoká sa oreže na 4:5. */
 .mc-crop{position:relative;align-self:center;width:min(100%,400px);overflow:hidden;border-radius:${PACK_R.tile}px;background:${T.pageBg};box-shadow:${T.panelShadow};}
@@ -128,23 +134,62 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   const toggleTopic = (tag: string) => setTopics((c) => (c.includes(tag) ? c.filter((x) => x !== tag) : c.length >= POST_TAG_MAX ? [...c.slice(1), tag] : [...c, tag]));
   const [ratio, setRatio] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+  // Dvojité ťuknutie na ZDIEĽAŤ: `busy` je state a ďalší klik príde skôr, než sa prekreslí — ref to zastaví hneď.
+  const sending = useRef(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [askDiscard, setAskDiscard] = useState(false);
   const galRef = useRef<HTMLInputElement>(null);
   const camRef = useRef<HTMLInputElement>(null);
 
   const urls = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
   useEffect(() => () => urls.forEach((u) => URL.revokeObjectURL(u)), [urls]);
 
+  // KONCEPT (audit 30. 10. 2026): text, názov a štítky tém sa držia v localStorage, kým sa príspevok neodošle.
+  // Fotky sa neukladajú (súbory sa do úložiska nedajú) — po obnove ich človek vyberie znova.
+  const draftKey = `dogypt-compose-draft-v1-${mode}`;
+  const drafted = useRef(false);
+  useEffect(() => {
+    try {
+      const d = JSON.parse(localStorage.getItem(draftKey) || 'null') as { body?: string; title?: string; topics?: string[] } | null;
+      if (d) {
+        if (typeof d.body === 'string') setBody(d.body);
+        if (typeof d.title === 'string') setTitle(d.title);
+        if (Array.isArray(d.topics)) setTopics(d.topics.filter((x) => typeof x === 'string').slice(0, POST_TAG_MAX));
+      }
+    } catch { /* súkromné okno / poškodený zápis — bez konceptu */ }
+    drafted.current = true;
+  }, [draftKey]);
+  useEffect(() => {
+    if (!drafted.current || sending.current) return;
+    try {
+      if (body.trim() || title.trim() || topics.length) localStorage.setItem(draftKey, JSON.stringify({ body, title, topics }));
+      else localStorage.removeItem(draftKey);
+    } catch { /* kvóta */ }
+  }, [body, title, topics, draftKey]);
+  const clearDraft = () => { try { localStorage.removeItem(draftKey); } catch { /* nič */ } };
+
+  // Zatvorenie s rozpísaným obsahom = inline otázka „Zahodiť?" (nie confirm()).
+  const dirty = body.trim().length > 0 || title.trim().length > 0 || files.length > 0;
+  const requestClose = () => { if (sending.current) return; if (dirty && !askDiscard) { setAskDiscard(true); return; } if (askDiscard) clearDraft(); onClose(); };
+  const closeRef = useRef(requestClose);
+  closeRef.current = requestClose;
+  const discard = () => { clearDraft(); onClose(); };
+
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !busy) onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current(); };
     window.addEventListener('keydown', onKey);
     return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
-  }, [onClose, busy]);
+  }, []);
 
   const addFiles = (list: FileList | null) => {
     const picked = Array.from(list ?? []).filter((f) => f.type.startsWith('image/'));
     if (!picked.length) return;
+    const room = MAX[mode] - files.length;
+    if (picked.length > room) {
+      toast({ title: tx('pack.compose.maxPhotos', 'You can add up to {n} photos — the rest was left out.').replace('{n}', String(MAX[mode])) });
+    }
     setFiles((prev) => [...prev, ...picked].slice(0, MAX[mode]));
   };
   const remove = (i: number) => {
@@ -156,21 +201,25 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   const heading = mode === 'moment' ? tx('pack.compose.newStory', 'New story')
     : mode === 'album' ? tx('pack.compose.newAlbum', 'New album')
       : tx('pack.compose.newPost', 'New post');
-  const ready = files.length > 0 && !!uid && !blockedMate && (mode !== 'album' || title.trim().length > 0) && (mode !== 'post' || pills || nature !== null);
+  const ready = (files.length > 0 || (mode === 'post' && body.trim().length > 0)) && !!uid && !blockedMate && (mode !== 'album' || title.trim().length > 0) && (mode !== 'post' || pills || nature !== null);
 
   const share = async () => {
-    if (!ready || !uid || busy) return;
+    if (!ready || !uid || busy || sending.current) return;
+    sending.current = true;
     setBusy(true);
     try {
-      await publish({ uid, author, mode, files, body, title, dogIds, visibility: vis, place: mode === 'post' ? place : null, nature: mode === 'post' && !pills && nature === true, topics: mode === 'post' && pills ? topics : undefined });
+      await publish({ uid, author, mode, files, body, title, dogIds, visibility: vis, place: mode === 'post' ? place : null, nature: mode === 'post' && !pills && nature === true, topics: mode === 'post' && pills ? topics : undefined, onProgress: (done, total) => setProgress({ done, total }) });
+      clearDraft();
       toast({ title: mode === 'moment' ? tx('pack.compose.storyDone', 'Your story is live for 24 hours') : tx('pack.compose.done', 'Shared') });
       onClose();
     } catch (err) {
       toast({
         title: tx('pack.profile.toastUploadFailed', 'Upload failed'),
-        description: err instanceof Error ? err.message : tx('pack.profile.toastUnknownError', 'Unknown error'),
+        description: guardMessage(err, tx) ?? tx('pack.profile.toastUnknownError', 'Unknown error'),
         variant: 'destructive',
       });
+      sending.current = false;
+      setProgress(null);
       setBusy(false);
     }
   };
@@ -184,40 +233,54 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
 
   return createPortal(
     <div className="mc-root" role="dialog" aria-modal="true" aria-label={heading}
-      onClick={(e) => { if (e.target === e.currentTarget && !busy) onClose(); }}>
+      onClick={(e) => { if (e.target === e.currentTarget && !busy) requestClose(); }}>
       <style>{PF_FIELD_CSS}</style>
       <style>{CSS}</style>
       <div className="mc-box">
         <div className="mc-head">
-          <BackButton tone="pale" onClick={() => { if (busy) return; if (flow && step === 2) setStep(1); else onClose(); }}
+          <BackButton tone="pale" onClick={() => { if (busy) return; if (flow && step === 2) setStep(1); else requestClose(); }}
             label={flow && step === 2 ? tx('pack.compose.back', 'Back') : tx('pack.network.close', 'Close')} />
           <h2>{heading}</h2>
           {flow && step === 1 ? (
-            <button type="button" className="mc-go" disabled={files.length === 0} onClick={() => setStep(2)}>
+            <button type="button" className="mc-go" onClick={() => setStep(2)}>
               {tx('pack.compose.next', 'Next')}
             </button>
           ) : (
             <button type="button" className="mc-go" disabled={!ready || busy} onClick={share}>
-              {busy ? tx('pack.compose.sharing', 'Sharing…') : tx('pack.compose.share', 'Share')}
+              {busy
+                ? (progress && progress.total > 1
+                  ? tx('pack.compose.photoProgress', 'Photo {n}/{total}').replace('{n}', String(progress.done)).replace('{total}', String(progress.total))
+                  : tx('pack.compose.sharing', 'Sharing…'))
+                : tx('pack.compose.share', 'Share')}
             </button>
           )}
         </div>
         <div className="mc-body">
           {inputs}
+          {askDiscard && (
+            <div className="mc-ask-discard" role="alertdialog" aria-label={tx('pack.compose.discardQ', 'Discard?')}>
+              <span>{tx('pack.compose.discardQ', 'Discard?')}</span>
+              <button type="button" onClick={discard}>{tx('pack.compose.discard', 'Discard')}</button>
+              <button type="button" className="no" onClick={() => setAskDiscard(false)}>{tx('pack.compose.keepWriting', 'Keep writing')}</button>
+            </div>
+          )}
           {blockedMate && <p className="mc-note">{tx('pack.mate.composeLocked', 'Your pawtner hasn\'t allowed you to post yet — they can turn it on in My pack.')}</p>}
           {flow && step === 2 ? (
-            <div className="mc-strip">
+            urls.length > 0 && <div className="mc-strip">
               {urls.map((u) => <span key={u} className="mc-th"><img src={u} alt="" /></span>)}
             </div>
           ) : files.length === 0 ? (
-            <div className="mc-pick">
-              <button type="button" onClick={() => galRef.current?.click()}>
-                <BrandIcon name="frame" size={32} tint="dark" />{tx('pack.compose.gallery', 'Gallery')}
-              </button>
-              <button type="button" onClick={() => camRef.current?.click()}>
-                <BrandIcon name="camera" size={32} tint="dark" />{tx('pack.compose.camera', 'Camera')}
-              </button>
-            </div>
+            <>
+              <div className="mc-pick">
+                <button type="button" onClick={() => galRef.current?.click()}>
+                  <BrandIcon name="frame" size={32} tint="dark" />{tx('pack.compose.gallery', 'Gallery')}
+                </button>
+                <button type="button" onClick={() => camRef.current?.click()}>
+                  <BrandIcon name="camera" size={32} tint="dark" />{tx('pack.compose.camera', 'Camera')}
+                </button>
+              </div>
+              {flow && <p className="mc-note" style={{ textAlign: 'center' }}>{tx('pack.compose.noPhotoNote', 'No photo? Tap Next and write just text.')}</p>}
+            </>
           ) : (
             <>
               {mode === 'post' && (

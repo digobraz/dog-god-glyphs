@@ -57,13 +57,16 @@ ${FOLLOW_CHIP_CSS}
 .pfp-acts .save.on{color:${T.accentGold};}
 .pfp-tx{margin:0;padding:${S.sm}px ${S.md}px 0;font-size:${TX.body}px;line-height:1.45;color:${T.inkStrong};white-space:pre-line;}
 .pfp-tx b{font-weight:600;margin-right:${S.xs}px;}
+.pfp-pend{display:inline-block;margin-top:${S.xs}px;padding:2px ${S.sm}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.hairline};font:500 ${TX.micro}px/1.3 ${FONT_UI};color:${T.inkWarm};}
 .pfp-cm{display:block;background:none;border:0;cursor:pointer;padding:${S.xs}px ${S.md}px ${S.md}px;font:500 ${TX.label}px/1.3 ${FONT_UI};color:${T.inkWarm};}
 `;
 
-export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine = true }: {
+export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine = true, pending = false }: {
   post: MePost; name: string; avatar: string | null; onOpen: (p: MePost) => void;
   /** Cudzí autor (až bude feed vedieť): jeho číslo majiteľa + `mine={false}` — tri bodky ponúknu nahlásiť/zablokovať. */
   authorN?: number | null; mine?: boolean;
+  /** Môj príspevok v karanténe (`hidden_at`) — ostatným skrytý, autorovi sa ukáže s jemným štítkom. */
+  pending?: boolean;
 }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
@@ -117,6 +120,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
         <div className="pfp-who">
           <b role="link" tabIndex={0} onClick={openAuthor} onKeyDown={(e) => { if (e.key === 'Enter') openAuthor(); }}>{name}</b>
           <small>{[place?.name, agoLabel(Date.parse(post.createdAt), lang)].filter(Boolean).join(' · ')}</small>
+          {pending && <span className="pfp-pend">{tx('pack.feed.pending', 'Awaiting review')}</span>}
         </div>
         {!mine && authorN != null && <FollowChip n={authorN} />}
         <PostMenu postId={post.id} authorN={authorN} authorName={name} mine={mine} onDelete={() => deletePost(post.id)} />
