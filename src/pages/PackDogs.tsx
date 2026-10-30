@@ -556,8 +556,8 @@ export default function PackDogs() {
     return (
       <PackLayout>
         <style>{HUB_CSS}{PROGRESS_CSS}</style>
-        <DogsHubV2 dogs={dogs} latest={latest} tx={tx} />
-        <ChronicleTeaser dogs={dogs} tx={tx} />
+        {/* KRONIKA zatiaľ ako tretia záložka (Matej 30. 10.: „možno ju dáme mimo"). */}
+        <DogsHubV2 dogs={dogs} latest={latest} tx={tx} chronicle={<ChronicleTeaser dogs={dogs} tx={tx} />} />
         <div style={{ marginTop: PACK_SPACE.md }}>
           <AinubisBlock tx={tx} />
         </div>

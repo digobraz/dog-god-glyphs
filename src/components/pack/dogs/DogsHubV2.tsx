@@ -14,7 +14,7 @@
 // Nič nové v DB nezakladá: psy + `latest` dá PackDogs, cieľ veku ide do toho istého
 // `calendar.bands`, ktorý číta kalendár (CalBandsSettings).
 // ════════════════════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
@@ -95,11 +95,15 @@ const CSS = `
  font:700 12px Cinzel,Georgia,serif;letter-spacing:.14em} /* písmo: cta */
 .dv2-solo.ok .dv2-out{box-shadow:inset 0 0 0 1.5px var(--grn);color:var(--grn)}
 /* záložky — pribudnú ďalšie, preto rad rolovateľný */
-.dv2-tabs{display:flex;gap:4px;margin:24px 0 0;overflow-x:auto;scrollbar-width:none}
+.dv2-band{margin:24px -16px 0}
+@media (min-width:640px){.dv2-band{margin:24px -24px 0}.dv2-band .dv2-tabs,.dv2-band .dv2-sheet{padding-left:24px;padding-right:24px}}
+.dv2-tabs{display:flex;gap:4px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
 .dv2-tab{flex:1 0 auto;padding:12px 16px 8px;text-align:center;background:rgba(122,90,42,.08);border-radius:12px 12px 0 0;cursor:pointer;border:0;color:var(--mut);text-transform:uppercase;
  font:700 14px Cinzel,Georgia,serif;letter-spacing:.14em} /* písmo: nadpis */
 .dv2-tab.on{background:var(--pap);color:var(--ink);box-shadow:inset 0 -2px 0 var(--g);}
-.dv2-sheet{padding:24px 0 8px;background:linear-gradient(180deg,var(--pap),rgba(250,242,224,0) 70%)}
+.dv2-sheet{padding:24px 16px 8px;background:linear-gradient(180deg,var(--pap),rgba(250,242,224,0) 70%)}
+/* KRONIKA v záložke — karta si nesie inline marginTop zo samostatnej polohy */
+.dv2-sheet .ctz{margin-top:0!important}
 .dv2-ex{margin:0 0 16px;font:400 14px/1.45 "Space Grotesk",system-ui;color:var(--ink)}
 .dv2-ex b{font-weight:600}
 /* VITRÁŽ — DOG ID svorky */
@@ -219,11 +223,11 @@ const fillW = (pct: number) => {
   return { width: w };
 };
 
-export function DogsHubV2({ dogs, latest, tx }: { dogs: DogsV2Dog[]; latest: Latest; tx: Tx }) {
+export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; latest: Latest; tx: Tx; chronicle?: ReactNode }) {
   const { lang } = useLang();
   const solo = dogs.length === 1;
   const [sel, setSel] = useState<number>(solo ? 0 : -1);
-  const [tab, setTab] = useState<'id' | 'z'>('id');
+  const [tab, setTab] = useState<'id' | 'z' | 'k'>('id');
   const [goals, setGoals] = useState<Record<string, number>>({});
   const total = PROGRESS_STEPS.length;
 
@@ -299,11 +303,17 @@ export function DogsHubV2({ dogs, latest, tx }: { dogs: DogsV2Dog[]; latest: Lat
         {solo && v && !v.angel && <SoloInfo v={v} total={total} tx={tx} />}
       </div>
 
+      <div className="dv2-band">
       <div className="dv2-tabs" role="tablist">
         <button type="button" role="tab" className={`dv2-tab${tab === 'id' ? ' on' : ''}`} onClick={() => setTab('id')}>DOG ID</button>
         <button type="button" role="tab" className={`dv2-tab${tab === 'z' ? ' on' : ''}`} onClick={() => setTab('z')}>
           {tx('pack.dogs2.life', 'Life')}
         </button>
+        {chronicle && (
+          <button type="button" role="tab" className={`dv2-tab${tab === 'k' ? ' on' : ''}`} onClick={() => setTab('k')}>
+            {tx('pack.dogs2.chronicle', 'Chronicle')}
+          </button>
+        )}
       </div>
 
       <div className="dv2-sheet">
@@ -313,6 +323,8 @@ export function DogsHubV2({ dogs, latest, tx }: { dogs: DogsV2Dog[]; latest: Lat
         {tab === 'z' && v && (
           <OneLife v={v} tx={tx} latest={latest} onGoal={(g) => setGoals((p) => ({ ...p, [v.dog.id]: g }))} />
         )}
+        {tab === 'k' && chronicle}
+      </div>
       </div>
     </div>
   );

@@ -6826,5 +6826,6 @@ export const sk: Partial<Dict> = {
   'pack.dogs2.usually': "sa zvyčajne dožíva",
   'pack.dogs2.goal': "Náš cieľ",
   'pack.dogs2.goalShort': "cieľ",
+  'pack.dogs2.chronicle': "Kronika",
   'pack.dogs2.lifeIntro': "Koľko života majú tvoji psi za sebou — a koľko ešte môžu mať. Jeden blok = jeden rok. Ťukni na psa.",
 };
