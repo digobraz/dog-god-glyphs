@@ -7137,6 +7137,6 @@ export const en = {
   'pack.dogs2.usually': "usually lives",
   'pack.dogs2.goal': "Our goal",
   'pack.dogs2.goalShort': "goal",
-  'pack.dogs2.chronicle': "Chronicle",
+  'pack.dogs2.diary': "Diary",
   'pack.dogs2.lifeIntro': "How much life your dogs have behind them — and how much more they can have. One block = one year. Tap a dog.",
 } as const;

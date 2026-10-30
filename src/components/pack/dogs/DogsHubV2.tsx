@@ -64,7 +64,7 @@ const LOGO_INK = '/images/dogypt-logo-black-w.png';
 /* Farby rámov a tieňov idú cez premenné — stráž check:pack meria doslovnú farbu v ráme a tieni. */
 const CSS = `
 .dv2{--g:${T.cardEdge};--g55:rgba(201,154,63,.55);--g30:rgba(201,154,63,.3);--pap:#FAF2E0;--red:#B25640;--grn:#3D7A4E;
- --lap:#1E3C90;--lapd:#0A1A4A;--ink:${T.inkStrong};--mut:${T.inkWarm};--sh:rgba(80,55,15,.18);--lsh:rgba(10,26,74,.3)}
+ --lap:#1E3C90;--lapd:#0A1A4A;--ink:${T.inkStrong};--mut:${T.inkWarm};--sh:rgba(80,55,15,.18);--lsh:rgba(10,26,74,.3);--hi:rgba(255,255,255,.6)}
 .dv2-head{display:flex;justify-content:space-between;align-items:center;padding:4px 0 12px;border-bottom:1.5px solid var(--g55)}
 .dv2-title{font:700 16px Cinzel,Georgia,serif;letter-spacing:.14em;color:var(--ink);margin:0;text-transform:uppercase} /* písmo: nadpis */
 .dv2-add{display:flex;align-items:center;gap:8px;height:32px;padding:0 16px;border-radius:999px;background:transparent;border:0;cursor:pointer;
@@ -96,12 +96,22 @@ const CSS = `
 .dv2-solo.ok .dv2-out{box-shadow:inset 0 0 0 1.5px var(--grn);color:var(--grn)}
 /* záložky — pribudnú ďalšie, preto rad rolovateľný */
 .dv2-band{margin:24px -16px 0}
-@media (min-width:640px){.dv2-band{margin:24px -24px 0}.dv2-band .dv2-tabs,.dv2-band .dv2-sheet{padding-left:24px;padding-right:24px}}
-.dv2-tabs{display:flex;gap:4px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
-.dv2-tab{flex:1 0 auto;padding:12px 16px 8px;text-align:center;background:rgba(122,90,42,.08);border-radius:12px 12px 0 0;cursor:pointer;border:0;color:var(--mut);text-transform:uppercase;
- font:700 14px Cinzel,Georgia,serif;letter-spacing:.14em} /* písmo: nadpis */
-.dv2-tab.on{background:var(--pap);color:var(--ink);box-shadow:inset 0 -2px 0 var(--g);}
-.dv2-sheet{padding:24px 16px 8px;background:linear-gradient(180deg,var(--pap),rgba(250,242,224,0) 70%)}
+@media (min-width:640px){.dv2-band{margin:24px -24px 0}.dv2-band .dv2-tabwrap,.dv2-band .dv2-sheet{padding-left:24px;padding-right:24px}}
+.dv2-tabwrap{padding:0 16px}
+/* ZLATÝ PÁS (Matej 30. 10., nákres zalozky3.html): vyrytá lišta, otvorená záložka = vyvýšená doska
+   s ikonkou + nadpisom, ostatné len ikonky. Ikonka = maska → farbí sa atramentom. */
+.dv2-tabs{display:flex;padding:4px;border-radius:16px;background:linear-gradient(180deg,#E3CC97,#EAD8AC);
+ box-shadow:inset 0 1.5px 3px var(--sh),inset 0 0 0 1px var(--g55),0 1px 0 var(--hi);}
+.dv2-tab{flex:1 1 0;min-width:0;height:44px;display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;background:transparent;cursor:pointer;padding:0;
+ transition:flex .35s cubic-bezier(.3,.7,.3,1),background .25s,box-shadow .25s}
+.dv2-tab.on{flex:2.6 1 0;background:linear-gradient(180deg,#FFFBEF,#F6E7C2);box-shadow:0 0 0 1.5px var(--g),0 4px 10px var(--sh),inset 0 1px 0 var(--hi);}
+.dv2-ti{display:block;flex:none;width:24px;height:24px;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;
+ background:linear-gradient(180deg,#6b4c1f,#2e200c);opacity:.55}
+.dv2-tab.on .dv2-ti{opacity:1}
+.dv2-tl{display:none;white-space:nowrap;color:var(--ink);text-transform:uppercase;
+ font:700 12px Cinzel,Georgia,serif;letter-spacing:.14em} /* písmo: nadpis */
+.dv2-tab.on .dv2-tl{display:inline}
+.dv2-sheet{padding:24px 16px 8px}
 /* KRONIKA v záložke — karta si nesie inline marginTop zo samostatnej polohy */
 .dv2-sheet .ctz{margin-top:0!important}
 .dv2-ex{margin:0 0 16px;font:400 14px/1.45 "Space Grotesk",system-ui;color:var(--ink)}
@@ -198,6 +208,13 @@ const CSS = `
 .dv2-ybr{position:absolute;left:0;bottom:0;height:2.5px;background:var(--g);border-radius:2px}
 .dv2-ybr::after{content:"";position:absolute;right:0;top:-3px;width:2.5px;height:8px;background:var(--g);border-radius:2px}
 `;
+
+/** Záložky — nová sekcia (KRMENIE, KALENDÁR…) = nový riadok tu. Ikonky z kitu Icons hand drawn. */
+const TABS: { key: 'id' | 'z' | 'k'; icon: string; i18n: string; labelEN: string }[] = [
+  { key: 'id', icon: 'badge', i18n: 'pack.hub.profileTitle', labelEN: 'DOG ID' },
+  { key: 'z', icon: 'sand-clock', i18n: 'pack.dogs2.life', labelEN: 'Life' },
+  { key: 'k', icon: 'pencil', i18n: 'pack.dogs2.diary', labelEN: 'Diary' },
+];
 
 interface View {
   dog: DogsV2Dog;
@@ -304,16 +321,19 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
       </div>
 
       <div className="dv2-band">
+      <div className="dv2-tabwrap">
       <div className="dv2-tabs" role="tablist">
-        <button type="button" role="tab" className={`dv2-tab${tab === 'id' ? ' on' : ''}`} onClick={() => setTab('id')}>DOG ID</button>
-        <button type="button" role="tab" className={`dv2-tab${tab === 'z' ? ' on' : ''}`} onClick={() => setTab('z')}>
-          {tx('pack.dogs2.life', 'Life')}
-        </button>
-        {chronicle && (
-          <button type="button" role="tab" className={`dv2-tab${tab === 'k' ? ' on' : ''}`} onClick={() => setTab('k')}>
-            {tx('pack.dogs2.chronicle', 'Chronicle')}
-          </button>
-        )}
+        {TABS.filter((t) => t.key !== 'k' || chronicle).map((t) => {
+          const label = t.key === 'id' ? 'DOG ID' : tx(t.i18n, t.labelEN);
+          return (
+            <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} aria-label={label}
+              className={`dv2-tab${tab === t.key ? ' on' : ''}`} onClick={() => setTab(t.key)}>
+              <i className="dv2-ti" style={{ ['--m' as string]: `url(/icons/pack/${t.icon}.svg)` }} />
+              <span className="dv2-tl">{label}</span>
+            </button>
+          );
+        })}
+      </div>
       </div>
 
       <div className="dv2-sheet">
