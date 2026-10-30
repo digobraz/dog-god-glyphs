@@ -16,9 +16,22 @@ import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
  * bez nastavenia podľa psieho čísla vzostupne (do 13. 10. 2026 podľa `created_at`).
  * Bez session: v deve s `VITE_PACK_NOAUTH=1` mock svorka, inak prázdne pole.
  */
+// POSLEDNÝ VÝSLEDOK podľa `select` (30. 10. 2026, Matej: „/dogs je dlho vidno len načítavam").
+// Obrazovka si ho vezme ako počiatočný stav (`peekPackDogs`), takže pri návrate na /dogs
+// nekreslí kostru znova — čerstvé dáta dobehnú hneď za tým tým istým `loadPackDogs`.
+const last = new Map<string, unknown[]>();
+
+/** Psy z posledného načítania (tej istej `select`), alebo `null`, kým sa ešte nenačítali. */
+export function peekPackDogs<T>(select: string): T[] | null {
+  return (last.get(select) as T[] | undefined) ?? null;
+}
+
 export async function loadPackDogs<T>(select: string): Promise<T[]> {
-  const { data: auth } = await supabase.auth.getUser();
-  const uid = auth?.user?.id;
+  // `getSession()`, nie `getUser()`: uid stačí z uloženej session — `getUser()` je vždy
+  // jedna cesta na auth server navyše, a stála NA ZAČIATKU reťaze (uid → práva → psy).
+  // Prístup aj tak stráži RLS podľa tokenu, nie toto uid.
+  const { data: auth } = await supabase.auth.getSession();
+  const uid = auth?.session?.user?.id;
   if (!uid) return DEV_NOAUTH ? (DEV_MOCK_DOGS as unknown as T[]) : [];
   // B3c: zoznam ide z práv (`my_dog_rights()`), nie z vlastníctva. Majiteľovi
   // vráti tú istú množinu; pri `null` (RPC zlyhala) ostáva filter na vlastníka.
@@ -30,5 +43,7 @@ export async function loadPackDogs<T>(select: string): Promise<T[]> {
     q.order('pack_number', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
     readDogOrder(),
   ]);
-  return applyDogOrder(((data as T[]) ?? []) as (T & { id: string })[], order);
+  const rows = applyDogOrder(((data as T[]) ?? []) as (T & { id: string })[], order);
+  last.set(select, rows);
+  return rows;
 }

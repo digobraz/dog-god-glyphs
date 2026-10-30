@@ -41,6 +41,9 @@ export interface PackIdentity {
 // <DevotionHeader> without going through PackLayout's max-w column shell.
 // LOCKED pattern — PackLayout.tsx consumes this same hook; behavior MUST stay
 // byte-identical to what was inline before this extraction (2026-07-22).
+/** `link_my_dogs` raz za beh appky — viď volanie nižšie. */
+let linkOnce: { uid: string; p: Promise<void> } | null = null;
+
 export function usePackIdentity(): PackIdentity {
   const navigate = useNavigate();
   const location = useLocation();
@@ -129,7 +132,14 @@ export function usePackIdentity(): PackIdentity {
         // a celý `/pack` ostane na „NAČÍTAVAM…" — vyzerá to ako mŕtva appka, pritom je to
         // zaseknutý prehliadač. Preskočením zámku prežije prehliadka aj taký profil.
         if (!DEV_NOAUTH) {
-          try { await supabase.rpc('link_my_dogs'); } catch { /* non-blocking */ }
+          // RAZ ZA BEH APPKY (30. 10. 2026): hook žije v každom `PackLayout`, a ten sa pri
+          // každom prechode medzi obrazovkami montuje nanovo — `link_my_dogs` tak išiel na
+          // server pri každom ťuku v lište (na /profile dvakrát naraz) a stál pred psami.
+          // Kľúč = uid: po odhlásení a prihlásení iného účtu sa prepojí znova.
+          if (linkOnce?.uid !== s.user.id) {
+            linkOnce = { uid: s.user.id, p: Promise.resolve(supabase.rpc('link_my_dogs')).then(() => undefined, () => undefined) };
+          }
+          await linkOnce.p;
         }
         if (!mounted) return;
         // Perzistencia výletov (issue #32): raz za návštevu stiahne stav z Supabase do

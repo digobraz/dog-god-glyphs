@@ -797,8 +797,10 @@ let hydrated = false;
 /** Prihlásený používateľ, alebo `null` (odhlásený / `DEV_NOAUTH`). */
 async function currentUserId(): Promise<string | null> {
   try {
-    const { data } = await supabase.auth.getUser();
-    return data.user?.id ?? null;
+    // `getSession()` (uložená session), nie `getUser()` — ten je cesta na auth server navyše
+    // pri každom načítaní profilu a na /dogs stál v reťazi pred zoznamom psov (30. 10. 2026).
+    const { data } = await supabase.auth.getSession();
+    return data.session?.user?.id ?? null;
   } catch {
     return null; // sieť / neplatná session — správame sa ako odhlásený, appka beží ďalej z pamäte
   }

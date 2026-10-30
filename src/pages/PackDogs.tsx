@@ -64,7 +64,7 @@ import { storedSpecials } from '@/components/pack/natureQuiz';
 import { readLatestForDogs, onDogEventsChange, hasValue, type LatestValue } from '@/lib/dogEvents';
 import { dogLifeLine } from '@/lib/dogAge';
 import { countryISO2 } from '@/lib/countryGeo';
-import { loadPackDogs } from '@/lib/packDogsList';
+import { loadPackDogs, peekPackDogs } from '@/lib/packDogsList';
 import { DogOrderEditor, DogOrderPill, DOG_ORDER_CSS } from '@/components/pack/DogOrderEditor';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
@@ -492,7 +492,8 @@ export default function PackDogs() {
     return v === key ? fallback : v;
   };
 
-  const [dogs, setDogs] = useState<HubDog[] | null>(null);
+  // Návrat na /dogs nekreslí kostru: posledný zoznam hneď, čerstvý dobehne (30. 10. 2026).
+  const [dogs, setDogs] = useState<HubDog[] | null>(() => peekPackDogs<HubDog>(HUB_DOGS_SELECT));
   // DENNÍK — jedno okno na celú stránku (KROK 5 bloku 2). Otvárajú ho DVA vchody:
   // dlaždica DENNÍK (bez dňa = dnešok) a popup dňa v kalendári (s dňom, na ktorý sa
   // človek práve díva). Držať si ho musí STRÁNKA, nie dlaždica ani kalendár — dve
@@ -512,7 +513,7 @@ export default function PackDogs() {
   // Dotaz žije v `lib/packDogsList.ts` — ten istý číta KRONIKA (8. 10. 2026).
   useEffect(() => {
     let alive = true;
-    loadPackDogs<HubDog>('id, dog_name, cloudinary_main_url, heroglyph_png_url, pack_number, country, life_status, death_date, birth_year, selections, created_at, breed, weight_kg, owner_name, patron_svg')
+    loadPackDogs<HubDog>(HUB_DOGS_SELECT)
       .then((rows) => { if (alive) setDogs(rows); });
     return () => { alive = false; };
   }, []);
@@ -1216,6 +1217,8 @@ function ChronicleTeaser({ dogs, tx }: { dogs: HubDog[]; tx: Tx }) {
     </section>
   );
 }
+
+const HUB_DOGS_SELECT = 'id, dog_name, cloudinary_main_url, heroglyph_png_url, pack_number, country, life_status, death_date, birth_year, selections, created_at, breed, weight_kg, owner_name, patron_svg';
 
 // ── prázdne stavy ────────────────────────────────────────────────────────────
 function HubSkeleton() {

@@ -99,6 +99,9 @@ export function usePackUser(userId: string | null): PackUserData {
     }
 
     (async () => {
+      // `getUser()` (čerstvé user_metadata: devotion, bones, avatar) a zoznam psov idú NARAZ —
+      // psy potrebujú len `userId`, ktorý už máme. Do 30. 10. 2026 čakali psy na `getUser()`.
+      const dogsP = loadDogs(userId).catch(() => null);
       const { data: { user } } = await supabase.auth.getUser();
       if (!mounted || !user) {
         if (mounted) setState(s => ({ ...s, loading: false }));
@@ -139,15 +142,7 @@ export function usePackUser(userId: string | null): PackUserData {
       // otvorí samo v deň, keď sa pustí B3b. Pri `null` (RPC zlyhala) sa
       // vedome vraciame k dnešnému filtru — prázdna appka je horšia než appka
       // bez pawmata.
-      const ids = await getAccessibleDogIds();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let dogsQuery = (supabase as any)
-        .from('dogs')
-        .select('id, user_id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url, owner_name, country, life_status, death_date')
-        .eq('payment_status', 'paid');
-      dogsQuery = ids ? dogsQuery.in('id', ids) : dogsQuery.eq('user_id', user.id);
-      const { data: dogRows } = await dogsQuery
-        .order('pack_number', { ascending: true }) as { data: PackDogFull[] | null };
+      const dogRows = await dogsP;
 
       if (!mounted) return;
 
@@ -160,4 +155,18 @@ export function usePackUser(userId: string | null): PackUserData {
   }, [userId]);
 
   return state;
+}
+
+/** Zaplatení psi, ku ktorým má človek prístup (B3c — práva, pri zlyhaní RPC vlastníctvo). */
+async function loadDogs(uid: string): Promise<PackDogFull[] | null> {
+  const ids = await getAccessibleDogIds();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let dogsQuery = (supabase as any)
+    .from('dogs')
+    .select('id, user_id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url, owner_name, country, life_status, death_date')
+    .eq('payment_status', 'paid');
+  dogsQuery = ids ? dogsQuery.in('id', ids) : dogsQuery.eq('user_id', uid);
+  const { data: dogRows } = await dogsQuery
+    .order('pack_number', { ascending: true }) as { data: PackDogFull[] | null };
+  return dogRows;
 }
