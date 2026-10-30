@@ -49,9 +49,13 @@ const CSS = `
   font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};transition:background .2s ease,color .2s ease;}
 .sh-tabs button:hover{color:${LAPIS.edge};}
 .sh-tabs button.is-on{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
-.sh-pane{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
+.sh-pane{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;container-type:size;}
 .sh-pane--scroll{overflow-y:auto;margin:0 -${PACK_SPACE.xs}px;padding:0 ${PACK_SPACE.xs}px;}
 .sh-deck{position:relative;flex:1 1 auto;min-height:360px;width:100%;max-width:440px;margin:0 auto;}
+/* KARTA NA VÝŠKU ako na Tinderi (Matej 30. 10. 2026: „karta musí byť ako na tinderi na výšku").
+   Na PC je okno široké a nízke (1477×724) — šírka sa preto viaže na VÝŠKU panela (cqh), 3 : 4,
+   po odpočítaní radu tlačidiel (kotúč + popis + medzera). Na mobile vyhrá 100 % šírky. */
+.sh-deck{max-width:min(440px, calc((100cqh - ${PACK_AVATAR.lg + PACK_SPACE.xl + PACK_SPACE.lg}px) * .75));}
 .sh-mover{position:absolute;inset:0;}
 .sh-mover.is-anim{transition:transform .32s ease, opacity .32s ease;}
 .sh-acts{display:flex;justify-content:center;align-items:flex-start;gap:${PACK_SPACE.xl}px;}

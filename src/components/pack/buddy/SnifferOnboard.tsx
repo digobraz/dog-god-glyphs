@@ -43,8 +43,9 @@ const PROFILE_KEYS: BuddyStepKey[] = ['name', 'age', 'gender', 'region'];
 const DOG_KEYS: BuddyStepKey[] = ['temperament', 'fitness', 'compat'];
 
 const CSS = `
-.so-cardwrap{height:clamp(${PACK_SPACE.xxxl * 4}px, 38dvh, ${PACK_SPACE.xxxl * 7}px);flex:0 0 auto;}
-.so-cardwrap .sn-stage{min-height:0;height:100%;}
+/* KARTA NA VÝŠKU ako v balíčku (Matej 30. 10. 2026: „karta musí byť ako na tinderi na výšku"). */
+.so-cardwrap{flex:0 0 auto;width:min(100%, ${PACK_SPACE.xxxl * 6 + PACK_SPACE.xl}px);aspect-ratio:3/4;margin:0 auto;}
+.so-cardwrap .sn-stage{min-height:0;height:100%;max-width:none;}
 .so-from{margin:0;text-align:center;}
 `;
 

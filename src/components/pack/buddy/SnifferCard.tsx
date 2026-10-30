@@ -102,6 +102,11 @@ export const SNIFFER_CARD_CSS = `
 .sn-meta{margin:0;font-size:${PACK_TEXT.label}px;opacity:.85;}
 /* flex-wrap — dlhé meno + dva odznaky levelov sa na 360 px inak pobijú (audit C7). */
 .sn-head{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
+/* Meno nerastie — odznaky stoja hneď za ním (zalomia sa pod meno, keď sa nezmestia), oko vpravo. */
+.sn-id{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;}
+.sn-id > .sn-nm{flex:0 1 auto;}
+/* Odznaky pri mene menšie než na profile (46 px) — aby sa na PC karte (≈350 px) zmestili s menom do riadku. */
+.sn-head .rk{--s:30px;}
 .sn-lv{display:flex;flex-wrap:wrap;align-items:center;gap:${PACK_SPACE.xs}px;}
 /* HORNÝ OKRAJ — levely a štatistika (kolo 2). Pod pásikmi fotiek, s vlastným tieňom zhora,
    aby na svetlej fotke nestratili čitateľnosť. Klik prepúšťa (ťuk na fotku ide pod ním). */
@@ -123,7 +128,8 @@ export const SNIFFER_CARD_CSS = `
 /* PSY pred zámerom: „1 pes · HEKTOR · Hľadám: Priateľstvo" */
 /* Pes TESNE pod menom, bez ikonky labky (Matej 26. 9.: „daj preč ikonku toho psa a daj to meno
    psa blízko mena človeka") — záporný okraj zruší polovicu medzery stĺpca .sn-ov. */
-.sn-dogs{margin:-${PACK_SPACE.md + PACK_SPACE.xs}px 0 0;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.body}px;min-width:0;}
+/* Od 30. 10. môže byť nad psom druhý riadok (odznaky zalomené pod meno) — ťah nahor len o xs, inak by ich prekryl. */
+.sn-dogs{margin:-${PACK_SPACE.xs}px 0 0;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.body}px;min-width:0;}
 .sn-dogs > b{font-weight:400;opacity:.75;}
 .sn-dogs em{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* C7 — karta nie je OFICIÁLNY povrch (DOG ID/certifikát/share/WALL/PackTree) → meno psa
@@ -254,13 +260,17 @@ export function SnifferCard({ card, tx, back = false, className = '', style, onO
       )}
 
       <div className="sn-top">
-        <SnifferLevels card={card} tx={tx} />
         <SnifferStatsChip card={card} tx={tx} />
       </div>
 
       <div className="sn-ov">
         <div className="sn-head">
-          <p className="sn-nm">{card.name}{card.age ? <>, <span>{card.age}</span></> : null}</p>
+          {/* ODZNAKY VEDĽA MENA, nie hore (Matej 30. 10. 2026: „tie odznaky umiestniť vedľa mena nie hore").
+              Meno + odznaky sú jedna skupina, ktorá sa smie zalomiť; oko ostáva vpravo v tom istom riadku. */}
+          <span className="sn-id">
+            <p className="sn-nm">{card.name}{card.age ? <>, <span>{card.age}</span></> : null}</p>
+            <SnifferLevels card={card} tx={tx} />
+          </span>
           {onOpenFull && (
             <button type="button" className="sn-full" aria-label={tx('pack.sniffer.fullProfile', 'Full profile')}
               title={tx('pack.sniffer.fullProfile', 'Full profile')}
