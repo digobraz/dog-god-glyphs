@@ -26,16 +26,15 @@ import {
 import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import {
   saveHuman, saveDogAttrs, emptyDogAttrs,
-  ORIENTATION_OPTIONS, RELATIONSHIP_OPTIONS, SMOKE_OPTIONS, DIET_OPTIONS, WORK_OPTIONS, NATIONALITY_OPTIONS,
-  PERSONALITY_OPTIONS, MAX_PERSONALITY, SEEK_KIND_OPTIONS,
+  ORIENTATION_OPTIONS, SEEK_KIND_OPTIONS,
   DOG_TEMPERAMENT_TAGS, DOG_FITNESS_OPTIONS, DOG_COMPAT_OPTIONS,
-  DOG_ALONE_OPTIONS, DOG_SKILL_OPTIONS, DOG_JOY_SUGGESTIONS, DOG_DISLIKED_TYPE_SUGGESTIONS,
-  type DogProfileAttrs, type HumanProfile, type Orientation, type PersonalityTag, type TaxonomyOption, type SeekKind,
+  DOG_DISLIKED_TYPE_SUGGESTIONS,
+  type DogProfileAttrs, type HumanProfile, type Orientation, type TaxonomyOption, type SeekKind,
 } from '@/components/pack/profile/packProfile';
 import { MAX_DOG_TEMPERAMENT } from '@/components/pack/profile/DogGallery';
 import { useLang } from '@/i18n/LanguageContext';
-import { zodiacIcon, zodiacLabel } from './SnifferCard';
-import { BrandIcon } from '@/components/pack/BrandIcon';
+import { SnifferMyCard, SNIFFER_CARD_CSS } from './SnifferCard';
+import { SNIFFER_MIN_PHOTOS } from './SnifferOnboard';
 import { PAWMATE_LIVE } from '@/lib/packFlags';
 import { useNavigate } from 'react-router-dom';
 import type { BuddySettings, BuddyStepKey } from './buddyGate';
@@ -59,6 +58,17 @@ const thumb = (u?: string | null, w = 300, h = 400) => bgImg(u, w, h);
  *  zdroj so `SnifferFullProfile` — bola duplicita, audit 26. 9. 2026) —
  *  emoji mimo mapy brand nepúšťa (`check:ikony`) a vlastná kresba znamenia už existuje. */
 export const SNIFFER_PROFILE_CSS = `
+/* Karta SNIFFER v nastaveniach = tá istá karta 3:4 ako posledný krok onboardingu. */
+.so-cardwrap{flex:0 1 auto;min-height:0;width:min(100%, ${PACK_SPACE.xxxl * 6 + PACK_SPACE.xl}px);aspect-ratio:3/4;margin:0 auto;}
+.so-cardwrap .sn-stage{min-height:0;height:100%;max-width:none;}
+.so-from{margin:0;text-align:center;}
+.sp-mine{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:'on' 'card' 'rows';gap:${PACK_SPACE.sm}px;min-height:0;}
+.sp-mine__on{grid-area:on;} .sp-mine__card{grid-area:card;} .sp-mine__rows{grid-area:rows;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;min-width:0;}
+.sp-mine__on .bd-onbox{margin-left:0;width:100%;height:auto;}
+@media (min-width:721px){
+  .sp-mine{grid-template-columns:auto minmax(0,1fr);grid-template-areas:'card on' 'card rows';align-items:start;gap:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;}
+  .sp-mine__card{width:${PACK_SPACE.xxxl * 6 + PACK_SPACE.xl}px;}
+}
 .sp-pager{width:100%;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;touch-action:pan-y;}
 .sp-nav{display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.md}px;}
 .sp-count{min-width:${PACK_SPACE.xxxl}px;text-align:center;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;color:${T.inkWarm};}
@@ -250,19 +260,14 @@ export const toggle = <V extends string>(arr: readonly V[], v: V) => (arr.includ
 interface Slide { key: string; title: string; sub?: string; right?: ReactNode; body: ReactNode }
 
 export function SnifferProfile({
-  tx, uid, name, human, dogs, dogAttrsOf, heroGender, zodiac, homeCountry, audienceEditor, missing, gateEditor, gateSummary,
-  settings, onPatch, finish, fit = false, basicsAside,
+  tx, uid, human, dogs, dogAttrsOf, homeCountry, audienceEditor, missing, gateEditor, gateSummary,
+  settings, onPatch, finish, fit = false, basicsAside, reloadKey, suggestPhotos = [],
 }: {
   tx: Tx;
   uid: string | null;
-  name: string;
   human: HumanProfile | undefined;
   dogs: SnifferProfileDog[];
   dogAttrsOf: (id: string) => DogProfileAttrs | undefined;
-  /** Pohlavie z heroglyfu — keď je, SNIFFER sa naň nepýta (Matej 25. 9.). */
-  heroGender: string | null;
-  /** Znamenie z malého rámika heroglyfu (Matej 25. 9.: „chýba nám tu znamenie"). */
-  zodiac?: { western?: string | null; chinese?: string | null };
   /** Krajina z heroflow (2. krok) — predvolí krajinu rajónu. */
   homeCountry?: string | null;
   /** Komu sa ukážem po častiach — karta Hľadáme ich delí do dvoch stĺpcov. */
@@ -277,15 +282,17 @@ export function SnifferProfile({
   finish?: { label: string; onClick: () => void; busy?: boolean; note?: ReactNode };
   /** Obrazovka bez scrollu (brána): karta berie zvyšok výšky okna a obsah sa zmenší, nie stránka. */
   fit?: boolean;
-  /** Vpravo dole v karte Základ, vedľa fotiek — v nastaveniach tam sedí zapnutie SNIFFERa. */
+  /** Hore v karte SNIFFER — prepínač zapnutia. */
   basicsAside?: ReactNode;
+  /** Mení sa s profilom ⇒ karta „Takto ťa vidia" sa načíta nanovo. */
+  reloadKey?: string;
+  /** Fotky, ktoré už človek má (profil, titulka, psy) — ponuka nad slotmi. */
+  suggestPhotos?: string[];
 }) {
   const [open, setOpen] = useState<string | null>(null);
-  const [allTraits, setAllTraits] = useState(false);
   const { lang } = useLang();
   const [iso, setIso] = useState(() => defaultCountry(human?.pin, human?.nationality, lang, homeCountry));
   useEffect(() => { if (!human?.pin?.country && homeCountry) setIso(homeCountry.toLowerCase()); }, [homeCountry, human?.pin?.country]);
-  const [dogIdx, setDogIdx] = useState(0);
   const navigate = useNavigate();
   useEffect(() => { if (human?.pin?.country) setIso(human.pin.country.toLowerCase()); }, [human?.pin?.country]);
 
@@ -305,21 +312,6 @@ export function SnifferProfile({
   };
   const gateRow = (k: BuddyStepKey, label: string) =>
     row(k, label, gateSummary(k), gateEditor(k), missing.includes(k));
-  /** Dlaždica 2×2: popis nad hodnotou; editor sa otvorí POD mriežkou (nie v nej, aby ju nerozbil). */
-  const tile = (k: BuddyStepKey, label: string, editable = true) => {
-    const todo = missing.includes(k);
-    return editable ? (
-      <button key={k} type="button" className="sp-tile" aria-expanded={open === k} onClick={() => setOpen(open === k ? null : k)}>
-        <span>{label}</span>
-        <b className={todo ? 'is-todo' : ''}>{todo ? tx('pack.buddy.fill', 'Fill in') : gateSummary(k)}</b>
-        <i aria-hidden />
-      </button>
-    ) : (
-      <div key={k} className="sp-tile is-static"><span>{label}</span><b>{gateSummary(k)}</b></div>
-    );
-  };
-  const BASIC_KEYS: BuddyStepKey[] = ['name', 'age', 'gender', 'region'];
-
   const badge = (keys: BuddyStepKey[]) => {
     const n = keys.filter((k) => missing.includes(k)).length;
     return n > 0
@@ -327,132 +319,73 @@ export function SnifferProfile({
       : <span className="sp-ok">{tx('pack.sniffer.profile.done', 'Done')}</span>;
   };
 
+  const PROFILE_KEYS: BuddyStepKey[] = ['name', 'age', 'gender', 'region'];
+  const DOG_KEYS: BuddyStepKey[] = ['temperament', 'fitness', 'compat'];
+  const dogDone = (id: string) => {
+    const x = dogAttrsOf(id);
+    return !!x && (x.tags.temperament ?? []).length > 0 && !!x.card.fitness && !!x.card.compat?.dogs_overall;
+  };
   const photos = (human?.buddyPhotos?.length ? human.buddyPhotos : human?.buddyPhoto ? [human.buddyPhoto] : []);
-  const opt = (v?: string | null) => (v ? tx(`pack.dogCard.opt.${v}`, v) : '');
-  const tag = <V extends string>(o: TaxonomyOption<V>) => tx(`pack.profileTag.${o.value}`, o.labelEN, { rod: human?.gender ?? '' });
-  const personality = human?.personality ?? [];
-  const traitsTotal = personality.length + (human?.customPersonality ? 1 : 0);
 
+  // NASTAVENIA = LEN ZOZNAMKA (Matej 30. 10. 2026 „ok" nad plany/nakres-sniffer-nastavenia-2026-10-30.html).
+  // Meno, vek, bio, povaha a štýl sa menia LEN v UPRAVIŤ PROFIL, pes v DOG ID. Tu ostane z nich iba to,
+  // čo chýba bráne — tými istými riadkami ako posledný krok onboardingu.
   const slides: Slide[] = [
     {
-      key: 'basics',
-      title: tx('pack.sniffer.profile.basics', 'Basics'),
-      sub: tx('pack.sniffer.profile.tapHint', 'Tap a row to change it'),
-      right: badge(['name', 'age', 'gender', 'region', 'photo']),
+      key: 'sniffer',
+      title: tx('pack.sniffer.onb.cardTitle', 'Your card'),
+      right: missing.some((k) => [...PROFILE_KEYS, ...DOG_KEYS].includes(k))
+        ? <span className="sp-miss">{tx('pack.sniffer.profile.missing', '{n} missing', { n: missing.filter((k) => [...PROFILE_KEYS, ...DOG_KEYS].includes(k)).length })}</span>
+        : undefined,
       body: (
         <>
-          <div className="sp-grid">
-            {tile('name', tx('pack.buddy.step.name', 'Name'))}
-            {tile('age', tx('pack.buddy.step.age', 'Age'))}
-            {tile('gender', tx('pack.buddy.step.gender', 'Gender'), !heroGender)}
-            {tile('region', tx('pack.buddy.step.region', 'Where you live'))}
+          {/* Mobil: prepínač · karta · riadky pod sebou. PC: karta vľavo, prepínač a riadky vpravo (nákres ⚙). */}
+          <div className="sp-mine">
+          <div className="sp-mine__on">{basicsAside}</div>
+          <div className="so-cardwrap sp-mine__card"><SnifferMyCard tx={tx} reloadKey={reloadKey} /></div>
+          <div className="sp-mine__rows">
+          {PROFILE_KEYS.filter((k) => missing.includes(k)).map((k) => gateRow(k, tx(`pack.buddy.step.${k}`, k)))}
+          {dogs.filter((d) => !dogDone(d.id)).map((d) => (
+            <DogGateRows key={d.id} dog={d} attrs={dogAttrsOf(d.id) ?? emptyDogAttrs(d.id)} tx={tx} onlyMissing />
+          ))}
+          {/* NEMÁ RÁD = psí filter balíčka (`20261002_sniffer_audit.sql`: small_dogs/big_dogs proti veľkosti
+              druhého psa). DOG ID ho nepýta, takže jeho jediný editor ostáva tu, pri psích bodoch. */}
+          {dogs.map((d) => {
+            const a = dogAttrsOf(d.id) ?? emptyDogAttrs(d.id);
+            return row(`${d.id}-d`, dogs.length > 1 ? `${d.dog_name} · ${tx('pack.sniffer.profile.dislikes', 'Dislikes')}` : tx('pack.sniffer.profile.dislikes', 'Dislikes'),
+              a.card.dislikedTypes.map((v) => tx(`pack.dogCard.type.${v}`, v)).join(', '), (
+                <Pills
+                  options={DOG_DISLIKED_TYPE_SUGGESTIONS.map((v) => ({ value: v, label: tx(`pack.dogCard.type.${v}`, v) }))}
+                  selected={a.card.dislikedTypes}
+                  onToggle={(v) => void saveDogAttrs(d.id, { card: { ...a.card, dislikedTypes: toggle(a.card.dislikedTypes, v) } })}
+                />
+              ));
+          })}
+          {/* ORIENTÁCIA patrí zoznamke, na profile nikdy (nákres ⚙ 30. 10.). Jeden riadok na karte SNIFFER,
+              editor až na ťuk — „Hľadáme" by sa inak na mobil nezmestila. GDPR čl. 9: von ide LEN s vlastným súhlasom, predvolene skrytá. */}
+          {row('orientation', tx('pack.sniffer.info.orientation', 'Orientation'),
+            human?.orientation ? `${tx(`pack.sniffer.info.orientation.${human.orientation}`, human.orientation)} · ${human.orientationPublic ? tx('pack.sniffer.profile.shown', 'visible') : tx('pack.sniffer.profile.hidden', 'hidden')}` : '', (
+              <div className="sp-chips">
+                <ChipSelect placeholder={tx('pack.sniffer.info.orientation', 'Orientation')}
+                  options={ORIENTATION_OPTIONS} value={human?.orientation}
+                  label={(o) => tx(`pack.sniffer.info.orientation.${o.value}`, o.labelEN)}
+                  onChange={(v) => void saveHuman({ orientation: v as Orientation | undefined })} />
+                {human?.orientation && (
+                  <button type="button" className={`sp-chip is-tap${human.orientationPublic ? ' is-set' : ''}`}
+                    onClick={() => void saveHuman({ orientationPublic: !human.orientationPublic })}>
+                    {human.orientationPublic ? tx('pack.sniffer.profile.shown', 'visible') : tx('pack.sniffer.profile.hidden', 'hidden')}
+                  </button>
+                )}
+              </div>
+            ))}
+          <p className="bd-note so-from">
+            {tx('pack.sniffer.onb.editHint', 'Everything else lives in your profile.')}{' '}
+            <button type="button" className="bd-link" onClick={() => navigate('/pack/profile/edit')}>
+              {tx('pack.sniffer.onb.editProfile', 'Edit profile')}
+            </button>
+          </p>
           </div>
-          {open && (BASIC_KEYS as string[]).includes(open) && <div className="sp-editor">{gateEditor(open as BuddyStepKey)}</div>}
-          <div className="sp-photorow">
-            <PhotoSlots uid={uid} photos={photos} together={human?.buddyPhoto ?? null} tx={tx} />
-            {basicsAside}
           </div>
-        </>
-      ),
-    },
-    {
-      // 2/4 = tie isté polia ako `/pack/profile` (Matej: „su prepojene s profilom").
-      // Nadpis LEN „BIO", podnadpis pár slov, otázka psa ide do placeholdera (Matej 25. 9.).
-      key: 'bio',
-      title: tx('pack.sniffer.profile.bioTitle', 'Bio'),
-      sub: tx('pack.sniffer.profile.bioSub', 'A few words about me'),
-      body: (
-        <>
-          <label className="sp-quote">
-            {/* D7 — `key` sa mení až KEĎ profil dôjde (`human` z undefined na objekt), takže
-                pomalé načítanie neprepíše uložené bio prázdnym `defaultValue` (audit). */}
-            <textarea key={human ? 'loaded' : 'pending'} className="pf-field sp-area" defaultValue={human?.dogVoiceBio ?? ''} maxLength={900}
-              aria-label={tx('pack.sniffer.profile.bioTitle', 'Bio')}
-              placeholder={tx('pack.sniffer.profile.bioPh2', 'What would my dog probably say about me…')}
-              onBlur={(e) => { const v = e.target.value.trim(); if (v !== (human?.dogVoiceBio ?? '')) void saveHuman({ dogVoiceBio: v || undefined }); }} />
-          </label>
-
-          <span className="sp-sec">{tx('pack.profile.basics', 'The basics')}</span>
-          <div className="sp-chips">
-            {zodiac?.western && (
-              <span className="sp-chip is-ro" title={tx('heroglyph.flow.ownerZodiac.westernLabel', 'Zodiac sign')}>
-                {zodiacIcon('western', zodiac.western) && <img src={zodiacIcon('western', zodiac.western)} alt="" />}
-                {zodiacLabel('western', zodiac.western, tx)}
-              </span>
-            )}
-            {zodiac?.chinese && (
-              <span className="sp-chip is-ro" title={tx('heroglyph.flow.ownerZodiac.chineseLabel', 'Chinese zodiac')}>
-                {zodiacIcon('chinese', zodiac.chinese) && <img src={zodiacIcon('chinese', zodiac.chinese)} alt="" />}
-                {zodiacLabel('chinese', zodiac.chinese, tx)}
-              </span>
-            )}
-            <span className="sp-chip is-ro"><BrandIcon name="paw" size={PACK_SPACE.lg} tint="dark" />
-              {dogs.length} {dogs.length === 1 ? tx('pack.profile.dogOne', 'dog') : tx('pack.profile.dogMany', 'dogs')}</span>
-            {/* D7 — bez uloženej hodnoty NESMIE svietiť ako SK (audit); prázdny = čiarkovaný chip. */}
-            <ChipSelect placeholder={tx('pack.profile.nationality', 'Nationality')} options={NATIONALITY_OPTIONS}
-              value={human?.nationality} label={(o) => o.abbr ?? o.labelEN}
-              onChange={(v) => void saveHuman({ nationality: v })} />
-            <ChipSelect placeholder={tx('pack.sniffer.info.orientation', 'Orientation')}
-              options={ORIENTATION_OPTIONS} value={human?.orientation}
-              label={(o) => tx(`pack.sniffer.info.orientation.${o.value}`, o.labelEN)}
-              onChange={(v) => void saveHuman({ orientation: v as Orientation | undefined })} />
-            {/* ORIENTÁCIA (kolo 2) — GDPR čl. 9: von ide LEN s vlastným súhlasom, predvolene skrytá. */}
-            {human?.orientation && (
-              <button type="button" className={`sp-chip is-tap${human.orientationPublic ? ' is-set' : ''}`}
-                onClick={() => void saveHuman({ orientationPublic: !human.orientationPublic })}>
-                {human.orientationPublic ? tx('pack.sniffer.profile.shown', 'visible') : tx('pack.sniffer.profile.hidden', 'hidden')}
-              </button>
-            )}
-          </div>
-
-          <span className="sp-sec">{tx('pack.profile.lifestyle', 'Lifestyle')}</span>
-          <div className="sp-chips">
-            <ChipSelect placeholder={tx('pack.profile.statusPlaceholder', 'Status')} options={RELATIONSHIP_OPTIONS}
-              value={human?.relationship} label={tag} onChange={(v) => void saveHuman({ relationship: v })} />
-            <ChipSelect placeholder={tx('pack.profile.smokePlaceholder', 'Smoke')} options={SMOKE_OPTIONS}
-              value={human?.smoke} label={(o) => tx(`pack.sniffer.profile.smoke.${o.value}`, o.value === 'yes' ? 'I smoke' : 'I don’t smoke')}
-              onChange={(v) => void saveHuman({ smoke: v })} />
-            <ChipSelect placeholder={tx('pack.profile.dietPlaceholder', 'Diet')} options={DIET_OPTIONS}
-              value={human?.diet} label={tag} onChange={(v) => void saveHuman({ diet: v })} />
-            <ChipSelect placeholder={tx('pack.profile.workPlaceholder', 'Work')} options={WORK_OPTIONS}
-              value={human?.work} label={tag} onChange={(v) => void saveHuman({ work: v })} />
-          </div>
-
-          <span className="sp-sec">{tx('pack.profile.whatYoureLike', 'What you’re like', { rod: human?.gender ?? '' })} <b>{traitsTotal}/{MAX_PERSONALITY}</b></span>
-          {/* Vybrané ako lapisové chipy; celá paleta až na ťuk — inak by 20 pilulek vytlačilo kartu z okna. */}
-          {allTraits ? (
-            <Pills
-              options={PERSONALITY_OPTIONS.map((o) => ({ value: o.value, label: `${o.emoji ?? ''} ${tag(o)}`.trim() }))}
-              selected={personality}
-              disabled={(v) => !personality.includes(v as PersonalityTag) && traitsTotal >= MAX_PERSONALITY}
-              onToggle={(v) => void saveHuman({ personality: toggle(personality, v as PersonalityTag) })}
-            />
-          ) : (
-            <div className="sp-chips">
-              {PERSONALITY_OPTIONS.filter((o) => personality.includes(o.value)).map((o) => (
-                <span key={o.value} className="sp-chip is-set">{o.emoji && <span aria-hidden>{o.emoji}</span>}{tag(o)}</span>
-              ))}
-              {human?.customPersonality && <span className="sp-chip is-set">{human.customPersonality}</span>}
-            </div>
-          )}
-          <button type="button" className="sp-chip is-tap is-empty" style={{ alignSelf: 'flex-start' }} onClick={() => setAllTraits(!allTraits)}>
-            {allTraits ? tx('pack.sniffer.profile.traitsDone', 'Done') : `+ ${tx('pack.sniffer.profile.traitsEdit', 'Change')}`}
-          </button>
-        </>
-      ),
-    },
-    {
-      // RAJÓN (Matej: „nadpis naľavo a chip napravo a možnosť vybrať iný").
-      key: 'patch',
-      // Zjednotené s `full.patch` (audit: „Náš rajón" vs „Môj rajón" — pin je vždy MÔJ, nie SPOLOČNÝ).
-      title: tx('pack.sniffer.profile.patchTitle', 'My patch'),
-      sub: tx('pack.sniffer.profile.patchSub', 'Where we spend most of our time'),
-      right: <SnifferCountryChip iso={iso} onPick={setIso} tx={tx} />,
-      body: (
-        <>
-          <SnifferPinEditor tx={tx} pin={human?.pin} iso={iso} radiusKm={settings.radius_km}
-            onRadius={(km) => void onPatch({ radius_km: km })} />
-          <p className="bd-note">{tx('pack.sniffer.pin.note2', 'Tap inside the country to drop your pin · others only see how far you are')}</p>
         </>
       ),
     },
@@ -502,93 +435,29 @@ export function SnifferProfile({
         </div>
       ),
     },
-    // PSI — JEDNA karta, v nej prepínač psov svorky (Matej 25. 9.: „treba mať pripravený multipsí
-    // štýl a tu sa vyplní každý pes vo svorke"). Počet kariet tak nerastie s počtom psov.
-    ...dogs.slice(0, 1).map((): Slide => {
-      const d = dogs[Math.min(dogIdx, dogs.length - 1)];
-      const a = dogAttrsOf(d.id) ?? emptyDogAttrs(d.id);
-      const setCard = (patch: Partial<DogProfileAttrs['card']>) => void saveDogAttrs(d.id, { card: { ...a.card, ...patch } });
-      const temper = a.tags.temperament ?? [];
-      const dogDone = temper.length > 0 && !!a.card.fitness && !!a.card.compat?.dogs_overall;
-      return {
-        key: 'dogs',
-        title: dogs.length > 1 ? tx('pack.sniffer.profile.dogsTitle', 'Our dogs') : tx('pack.buddy.dog', 'Dog'),
-        right: dogDone
-          ? <span className="sp-ok">{tx('pack.sniffer.profile.done', 'Done')}</span>
-          : <span className="sp-miss">{tx('pack.sniffer.profile.dogTodo', 'Fill in 3')}</span>,
-        body: (
-          <>
-            {dogs.length > 1 && (
-              <div className="sp-dogtabs" role="tablist">
-                {dogs.map((x, i) => {
-                  const xa = dogAttrsOf(x.id);
-                  const ok = !!xa && (xa.tags.temperament ?? []).length > 0 && !!xa.card.fitness && !!xa.card.compat?.dogs_overall;
-                  return (
-                    <button key={x.id} type="button" role="tab" aria-selected={i === dogIdx} className={i === dogIdx ? 'is-on' : ''}
-                      onClick={() => { setDogIdx(i); setOpen(null); }}>
-                      {x.cloudinary_main_url && <img src={thumb(x.cloudinary_main_url, 80, 80)} alt="" />}
-                      {x.dog_name}<i className={ok ? '' : 'is-todo'} aria-hidden />
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            <div className="sp-dogh">
-              <span className="sp-dogh__ph">
-                {d.cloudinary_main_url && <img src={thumb(d.cloudinary_main_url, 100, 100)} alt="" />}
-                {d.heroglyph_png_url && <img className="sp-dogh__hg" src={withTransform(d.heroglyph_png_url, 'c_limit,w_200,f_auto,q_auto')} alt="" />}
-              </span>
-              <span className="sp-dogh__txt">
-                <b>{d.dog_name}</b>
-                <span className="sp-chips">
-                  {temper.length
-                    ? temper.map((v) => <span key={v} className="sp-chip is-set">{tx(`pack.dogTag.${v}`, v)}</span>)
-                    : <span className="sp-chip is-empty">{tx('pack.sniffer.profile.dogEmpty', 'Tell us what they’re like')}</span>}
-                </span>
-              </span>
-            </div>
-            <div className="sp-rows2">
-              <DogGateRows dog={d} attrs={a} tx={tx} />
-              {row(`${d.id}-j`, tx('pack.sniffer.profile.likes', 'Likes'), a.card.joys.map((v) => tx(`pack.dogCard.joy.${v}`, v)).join(', '), (
-                <Pills
-                  options={DOG_JOY_SUGGESTIONS.map((v) => ({ value: v, label: tx(`pack.dogCard.joy.${v}`, v) }))}
-                  selected={a.card.joys}
-                  onToggle={(v) => setCard({ joys: toggle(a.card.joys, v) })}
-                />
-              ))}
-              {row(`${d.id}-d`, tx('pack.sniffer.profile.dislikes', 'Dislikes'), a.card.dislikedTypes.map((v) => tx(`pack.dogCard.type.${v}`, v)).join(', '), (
-                <Pills
-                  options={DOG_DISLIKED_TYPE_SUGGESTIONS.map((v) => ({ value: v, label: tx(`pack.dogCard.type.${v}`, v) }))}
-                  selected={a.card.dislikedTypes}
-                  onToggle={(v) => setCard({ dislikedTypes: toggle(a.card.dislikedTypes, v) })}
-                />
-              ))}
-              {row(`${d.id}-a`, tx('pack.dogCard.alone', 'Alone at the lodging'), opt(a.card.alone), (
-                <Pills
-                  options={DOG_ALONE_OPTIONS.map((o) => ({ value: o.value, label: tx(`pack.dogCard.opt.${o.value}`, o.labelEN) }))}
-                  selected={a.card.alone ? [a.card.alone] : []}
-                  onToggle={(v) => setCard({ alone: v as DogProfileAttrs['card']['alone'] })}
-                />
-              ))}
-              {row(`${d.id}-o`, tx('pack.dogCard.obedience', 'Obedience'), opt(a.card.obedience), (
-                <Pills
-                  options={DOG_SKILL_OPTIONS.map((o) => ({ value: o.value, label: tx(`pack.dogCard.opt.${o.value}`, o.labelEN) }))}
-                  selected={a.card.obedience ? [a.card.obedience] : []}
-                  onToggle={(v) => setCard({ obedience: v as DogProfileAttrs['card']['obedience'] })}
-                />
-              ))}
-              {row(`${d.id}-r`, tx('pack.dogCard.recall', 'Recall'), opt(a.card.recall), (
-                <Pills
-                  options={DOG_SKILL_OPTIONS.map((o) => ({ value: o.value, label: tx(`pack.dogCard.opt.${o.value}`, o.labelEN) }))}
-                  selected={a.card.recall ? [a.card.recall] : []}
-                  onToggle={(v) => setCard({ recall: v as DogProfileAttrs['card']['recall'] })}
-                />
-              ))}
-            </div>
-          </>
-        ),
-      };
-    }),
+    {
+      // RAJÓN (Matej: „nadpis naľavo a chip napravo a možnosť vybrať iný").
+      key: 'patch',
+      // Zjednotené s `full.patch` (audit: „Náš rajón" vs „Môj rajón" — pin je vždy MÔJ, nie SPOLOČNÝ).
+      title: tx('pack.sniffer.profile.patchTitle', 'My patch'),
+      sub: tx('pack.sniffer.profile.patchSub', 'Where we spend most of our time'),
+      right: <SnifferCountryChip iso={iso} onPick={setIso} tx={tx} />,
+      body: (
+        <>
+          <SnifferPinEditor tx={tx} pin={human?.pin} iso={iso} radiusKm={settings.radius_km}
+            onRadius={(km) => void onPatch({ radius_km: km })} />
+          <p className="bd-note">{tx('pack.sniffer.pin.note2', 'Tap inside the country to drop your pin · others only see how far you are')}</p>
+        </>
+      ),
+    },
+    {
+      // FOTKY — ten istý komponent ako krok 3 onboardingu (min. 3, jedna so psom).
+      key: 'photos',
+      title: tx('pack.sniffer.onb.photosTitle', 'Photos'),
+      sub: tx('pack.sniffer.onb.photosSub', 'At least {n} · on one you’re together with your dog', { n: SNIFFER_MIN_PHOTOS }),
+      right: badge(['photo']),
+      body: <PhotoSlots uid={uid} photos={photos} together={human?.buddyPhoto ?? null} tx={tx} suggest={suggestPhotos} note={false} />,
+    },
     {
       // Na konci to, čo v úvode chýbalo (Matej: „nevidím že ukazad sa ludom v okoli a zapnute
       // upozornenia"). „V okolí" má východisko NIE (kolo 2).
@@ -626,15 +495,16 @@ export function SnifferProfile({
   // Karta s prvým chýbajúcim bodom — kam skočí zapnutie, kým nie je všetko.
   const missingSlide = (() => {
     const at = (keys: BuddyStepKey[]) => keys.some((k) => missing.includes(k));
-    if (at(['name', 'age', 'gender', 'region', 'photo'])) return 0;
+    if (at([...PROFILE_KEYS, ...DOG_KEYS])) return 0;
     if (at(['intents', 'audience'])) return slides.findIndex((s) => s.key === 'seek');
-    if (at(['temperament', 'fitness', 'compat'])) return Math.max(0, slides.findIndex((s) => s.key === 'dogs'));
+    if (at(['photo'])) return slides.findIndex((s) => s.key === 'photos');
     return -1;
   })();
 
   return (
     <>
       <style>{SNIFFER_PROFILE_CSS}</style>
+      <style>{SNIFFER_CARD_CSS}</style>
       <Pager tx={tx} fit={fit} slides={slides} finish={finish} missingSlide={missingSlide} />
     </>
   );

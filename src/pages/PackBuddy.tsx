@@ -269,14 +269,9 @@ export default function PackBuddy() {
   // `human.gender`, odkiaľ ho číta brána na serveri. Kto heroglyf bez pohlavia nemá,
   // krok uvidí ako doteraz.
   const heroGender: Gender | null = HERO_GENDER[(ownerGender ?? '').toLowerCase()] ?? null;
-  // ZNAMENIE je tiež z heroglyfu (malý rámik majiteľa) — Matej 25. 9.: „chýba nám tu znamenie".
   // KRAJINA je z heroflow, 2. krok (Matej 25. 9.: „krajinu vypĺňaš v heroflow v 2 kroku!") —
   // `dogs.country`; rajón z nej predvolí krajinu, kým človek nepoloží pin.
   const homeCountry = dogs.map((d) => countryISO2(d.country)).find(Boolean) ?? null;
-  const zodiac = {
-    western: dogs.map((d) => d.selections?.ownerZodiac).find(Boolean) ?? null,
-    chinese: dogs.map((d) => d.selections?.ownerChineseZodiac).find(Boolean) ?? null,
-  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -607,23 +602,21 @@ export default function PackBuddy() {
           <SnifferProfile
             tx={tx}
             uid={session?.user.id ?? null}
-            name={name}
             human={human}
             dogs={dogs}
             dogAttrsOf={(id) => profile?.dogs[id]}
-            heroGender={heroGender}
             missing={missing}
             gateEditor={editor}
             gateSummary={summary}
-            zodiac={zodiac}
             homeCountry={homeCountry}
             audienceEditor={(part) => <AudienceEditor s={s} onPatch={patchSettings} tx={tx} part={part} />}
             settings={s}
             onPatch={patchSettings}
             fit
-            // ZAPNUTIE sedí v karte Základ vpravo dole, vedľa fotiek (Matej 25. 9.: „tú info o zapnutí
-            // daj do toho bloku základ, asi napravo dolu, aby sa to zmestilo celé na viewport ako pri
-            // onboardingu"). Pauza zrušená („je tam zbytočná"). Pod prepínačom „Ako ma vidia ostatní".
+            reloadKey={profile?.updatedAt}
+            suggestPhotos={profilePhotos}
+            // ZAPNUTIE hore v karte SNIFFER, pod ním karta „takto ťa vidia" (nákres ⚙ 30. 10. 2026).
+            // Pauza zrušená (Matej 25. 9.: „je tam zbytočná").
             basicsAside={(
               <div className="bd-onbox">
                 <div className="bd-onbox__row">
@@ -638,11 +631,6 @@ export default function PackBuddy() {
                     }}><i /></button>
                 </div>
                 <small>{s.enabled ? tx('pack.buddy.on', 'On') : tx('pack.buddy.offNote', 'Off — nobody sees you')}</small>
-                {s.enabled && (
-                  <button type="button" className="bd-ghost" onClick={() => { setDoneFrom('settings'); setView('done'); }}>
-                    {tx('pack.sniffer.howSeen', 'How others see me')}
-                  </button>
-                )}
               </div>
             )}
           />
