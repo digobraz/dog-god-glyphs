@@ -24,6 +24,7 @@ import { countryISO2 } from '@/lib/countryGeo';
 import { SnifferLogo, SNIFFER_LOGO_END_MS } from '@/components/pack/buddy/SnifferLogo';
 import { SnifferHome } from '@/components/pack/buddy/SnifferHome';
 import { SnifferProfile } from '@/components/pack/buddy/SnifferProfile';
+import { SnifferOnboard, firstOnbStep, ONB_STEPS, type OnbStep } from '@/components/pack/buddy/SnifferOnboard';
 import { SnifferMyCard, SNIFFER_CARD_CSS } from '@/components/pack/buddy/SnifferCard';
 import { SnifferFullProfile } from '@/components/pack/buddy/SnifferFullProfile';
 import type { SnifferCardData } from '@/components/pack/buddy/snifferDeck';
@@ -44,7 +45,8 @@ import {
   type BuddySettings, type BuddyStepKey,
 } from '@/components/pack/buddy/buddyGate';
 
-type View = 'splash' | 'intro' | 'gate' | 'done' | 'settings' | 'home';
+// 'onb' = onboarding zoznamky (30. 10. 2026) — nahradil 'intro' (3 obrazovky) a 'gate' (brána 10 položiek).
+type View = 'splash' | 'onb' | 'done' | 'settings' | 'home';
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 
 
@@ -233,7 +235,7 @@ export default function PackBuddy() {
   const [settings, setSettings] = useState<BuddySettings | null>(null);
   const [view, setView] = useState<View | null>(null);
   const [myFull, setMyFull] = useState<SnifferCardData | null>(null);
-  const [introStep, setIntroStep] = useState(1);
+  const [onbStep, setOnbStep] = useState<OnbStep>('who');
   const [logoDone, setLogoDone] = useState(false);
   // `SnifferLogo` má `onDone` v deps svojho efektu — inline funkcia by časovač reštartovala
   // pri KAŽDOM re-renderi (napr. `dogsLoading` sa mení počas úvodu). Stabilná identita.
@@ -310,12 +312,14 @@ export default function PackBuddy() {
   }, [heroGender, profile]);
 
   const s = settings ?? DEFAULT_BUDDY_SETTINGS;
+  // Fotky, ktoré človek UŽ MÁ v profile — krok FOTKY ich ponúkne bez nového nahrávania.
+  const profilePhotos = useMemo(() => Array.from(new Set([
+    human?.buddyPhoto, human?.coverPhoto, ...(human?.coverAlbum ?? []), avatarUrl,
+    ...dogs.map((d) => d.cloudinary_main_url),
+  ].filter((u): u is string => !!u && /^https?:/.test(u)))), [human, avatarUrl, dogs]);
   const steps = BUDDY_STEPS.filter((st) => st.key !== 'gender' || !heroGender);
   const missing = buddyGateMissing({ name, human, dogAttrs, hasDog: !!dog, settings: s })
     .filter((k) => steps.some((st) => st.key === k));
-  const doneCount = steps.length - missing.length;
-  // Šírka výplne receptu `.pk-progress` (PROGRESS_CSS) — pruh nekreslíme, len mu dávame číslo.
-  const gateFill = `${Math.round((doneCount / steps.length) * 100)}%`;
 
   // B4 (audit-sniffer-2026-09-26): pri zlyhaní zápisu sa nastavenie vráti na predošlú hodnotu
   // a ukáže sa `bd-warn` — inak GHOST/okolie/zámery môžu svietiť opačne než na serveri.
@@ -356,12 +360,14 @@ export default function PackBuddy() {
     if (dogAttrs) void saveDog({ card: { ...dogAttrs.card, ...patch } });
   };
 
-  const enable = async () => {
+  // Z onboardingu rovno na swipe (nákres 30. 10.: karta už bola vidno v kroku „Tvoja karta");
+  // z nastavení cez „Takto ťa vidia" ako doteraz.
+  const enable = async (to: View = 'done') => {
     setBusy(true);
     setServerMissing(null);
     const r = await patchSettings({ enabled: true, paused_until: null });
     setBusy(false);
-    if (r.ok) setView('done');
+    if (r.ok) setView(to);
     else setSettings((cur) => ({ ...(cur ?? DEFAULT_BUDDY_SETTINGS), enabled: false }));
   };
 
@@ -371,7 +377,8 @@ export default function PackBuddy() {
     ? tx('pack.buddy.settings', 'Settings')
     : tx('pack.buddy.title', 'SNIFFER');
 
-  const afterSplash = () => setView(s.enabled ? 'home' : introSeen() ? 'gate' : 'intro');
+  const openOnb = () => { setOnbStep(firstOnbStep(human, missing)); setView('onb'); };
+  const afterSplash = () => { if (s.enabled) setView('home'); else openOnb(); };
   // Kto je v SNIFFERi, ide po logu sám rovno na swipe; nový človek pokračuje tlačidlom.
   useEffect(() => {
     if (view !== 'splash' || !s.enabled) return;
@@ -381,10 +388,10 @@ export default function PackBuddy() {
   }, [view, s.enabled]);
 
   const back = () => {
-    if (view === 'settings') setView(s.enabled ? 'home' : 'gate');
+    if (view === 'settings') { if (s.enabled) setView('home'); else openOnb(); }
     else if (view === 'done' && doneFrom === 'settings') setView('settings');
-    else if (view === 'gate' && !introSeen()) { setIntroStep(3); setView('intro'); }
-    else if (view === 'intro' && introStep > 1) setIntroStep(introStep - 1);
+    // Späť = KROK PRED (pamäť feedback_krok_spat_je_krok_pred), z prvého kroku na logo.
+    else if (view === 'onb') { const i = ONB_STEPS.indexOf(onbStep); if (i > 0) setOnbStep(ONB_STEPS[i - 1]); else setView('splash'); }
     else if (canStepBack()) navigate(-1);
     else navigate('/pack/map');
   };
@@ -486,7 +493,7 @@ export default function PackBuddy() {
       // otvorili by to isté, čo človek práve vypĺňa (Matej 25. 9.: „otvorí to isté").
       onGear={view === 'home' || view === 'done' ? () => setView('settings') : undefined}
       // Šípka je v strede VŽDY (spoločný rad PackTopRow, 27. 9. 2026).
-      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'gate' || view === 'settings'} fit={view === 'home' || view === 'done' || view === 'gate' || view === 'settings'}>
+      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'onb' || view === 'settings'} fit={view === 'home' || view === 'done' || view === 'onb' || view === 'settings'}>
       {view === 'splash' && (
         <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
           <div className="bd-stage__body">
@@ -506,7 +513,7 @@ export default function PackBuddy() {
                   {/* CTA V BLOKU pod textom, nie mimo (Matej 25. 9.: „to CTA daj do bloku pod text"). */}
                   {!s.enabled && (
                     <div className="bd-incta bd-reveal">
-                      <button type="button" className="bd-cta" onClick={afterSplash}>{tx('pack.buddy.next', 'Next')}</button>
+                      <button type="button" className="bd-cta" onClick={afterSplash}>{tx('pack.buddy.introCta', 'I want buddies')}</button>
                       <p className="bd-note bd-note--center">{tx('pack.buddy.introOff', 'Off by default')}</p>
                     </div>
                   )}
@@ -517,92 +524,39 @@ export default function PackBuddy() {
         </div>
       )}
 
-      {view === 'intro' && (
-        /* ONBOARDING (Matej 25. 9.): „najskôr len jeden blok LOGO a tagline, až po kliknutí
-           ďalej by sa zobrazil postup… kroky v kartách, aby nebol potrebný scrolling".
-           Štyri obrazovky, každá sa zmestí bez scrollu: 0 logo · 1–3 jeden krok na kartu.
-           Len PRVÝ raz — potom sa ide rovno do brány (`INTRO_SEEN`). */
-        <div className="bd-stage">
-          <div className="bd-stage__body">
-            {(() => {
-              const n = String(introStep) as '1' | '2' | '3';
-              return (
-                <div key={n} className="bd-card bd-center bd-hero bd-howcard hf-carved" style={{ ...PACK_BOX.card }}>
-                  <span className="hf-carved-rim" aria-hidden />
-                  <span className="bd-eyebrow">{tx('pack.buddy.howTitle', 'How it works')} · {n}/3</span>
-                  <span className="bd-disc bd-disc--xl" style={{ background: HOW_STYLE[n].bg }} aria-hidden>
-                    <BrandIcon name={HOW_STYLE[n].icon} size={PACK_AVATAR.md} tint="white" />
-                  </span>
-                  <h2 className="bd-h2">{tx(`pack.buddy.how${n}`, HOW_EN[n][0])}</h2>
-                  <p className="bd-lead bd-lead--ui">{tx(`pack.buddy.how${n}Sub`, HOW_EN[n][1])}</p>
-                  {/* CTA v bloku pod textom — ten istý vzor ako úvod s logom. */}
-                  <div className="bd-incta">
-                    {n !== '3' ? (
-                      <button type="button" className="bd-cta" onClick={() => setIntroStep(introStep + 1)}>
-                        {tx('pack.buddy.next', 'Next')}
-                      </button>
-                    ) : (
-                      <button type="button" className="bd-cta" onClick={() => { markIntroSeen(); setView('gate'); }}>
-                        {tx('pack.buddy.introCta', 'I want buddies')}
-                      </button>
-                    )}
-                    <p className="bd-note bd-note--center">{tx('pack.buddy.introOff', 'Off by default')}</p>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-          <div className="bd-dots" aria-hidden>
-            {[1, 2, 3].map((i) => <span key={i} className={i === introStep ? 'is-on' : ''} />)}
-          </div>
-        </div>
-      )}
-
-      {view === 'gate' && (
+      {view === 'onb' && (
+        /* ONBOARDING ZOZNAMKY (30. 10. 2026, nákres plany/nakres-sniffer-onboarding-2026-10-30.html):
+           koho hľadám → rajón → fotky → TVOJA KARTA = profil → SNIFF ON → swipe. Zapisuje do
+           tých istých polí ako profil; definícia 100 % ostáva v buddyGate.ts + na serveri. */
         <>
-          {/* VÁŠ PROFIL (zadanie-sniffer-stavba §2.2, nákres A) — ty a pes v kartách do strán.
-              Zapisuje sa do tých istých polí ako profil a DOG ID; definícia 100 % → buddyGate.ts. */}
-          <div className="bd-center" style={{ display: 'flex', flexDirection: 'column', gap: PACK_SPACE.xs }}>
-            {/* Obrazovka BEZ SCROLLU (Matej 25. 9.: „musí to byť ako heroflow pravidlo, že obsah na PC
-                musí sedieť"). Hlavička je preto jeden nadpis + počet v jednom riadku. */}
-            <h2 className="bd-h2">{tx('pack.sniffer.profile.title', 'Your profile')}
-              {' '}<span className="bd-count"><b>{doneCount}</b> / {steps.length} {tx('pack.buddy.done', 'done')}</span></h2>
-            <div className="pk-progress" aria-hidden>
-              <div className={`pk-progress__fill${missing.length ? ' pk-progress__fill--low' : ' pk-progress__fill--done'}`}
-                style={{ width: gateFill }} />
-            </div>
-            {fieldErr && <p className="bd-warn">{fieldErr}</p>}
-          </div>
-          <SnifferProfile
-            fit
+          {fieldErr && <p className="bd-warn">{fieldErr}</p>}
+          <SnifferOnboard
+            step={onbStep}
+            onStep={setOnbStep}
             tx={tx}
             uid={session?.user.id ?? null}
-            name={name}
             human={human}
-            dogs={dogs}
-            dogAttrsOf={(id) => profile?.dogs[id]}
-            heroGender={heroGender}
-            missing={missing}
-            gateEditor={editor}
-            gateSummary={summary}
-            zodiac={zodiac}
-            homeCountry={homeCountry}
-            audienceEditor={(part) => <AudienceEditor s={s} onPatch={patchSettings} tx={tx} part={part} />}
             settings={s}
             onPatch={patchSettings}
-            // Zapnutie je CTA POSLEDNEJ karty; kým niečo chýba, ťuk skočí na kartu s tým bodom.
-            finish={{
-              label: missing.length > 0
-                ? tx('pack.buddy.left', '{n} more to fill in', { n: missing.length })
-                : tx('pack.sniffer.profile.enable', 'Switch SNIFFER on'),
-              onClick: () => void enable(),
-              busy,
-              note: serverMissing && serverMissing.length > 0 ? (
-                <p className="bd-warn">
-                  {tx('pack.buddy.serverMissing', 'Still missing: {list}', { list: serverMissing.map(stepLabel).join(', ') })}
-                </p>
-              ) : undefined,
-            }}
+            dogs={dogs}
+            dogAttrsOf={(id) => profile?.dogs[id]}
+            buddyDogId={dog?.id ?? null}
+            homeCountry={homeCountry}
+            missing={missing}
+            heroGender={heroGender}
+            editor={editor}
+            summary={summary}
+            intentsEditor={editor('intents')}
+            audienceEditor={(part) => <AudienceEditor s={s} onPatch={patchSettings} tx={tx} part={part} />}
+            onEnable={() => void enable('home')}
+            busy={busy}
+            note={serverMissing && serverMissing.length > 0 ? (
+              <p className="bd-warn">
+                {tx('pack.buddy.serverMissing', 'Still missing: {list}', { list: serverMissing.map(stepLabel).join(', ') })}
+              </p>
+            ) : undefined}
+            reloadKey={profile?.updatedAt}
+            suggestPhotos={profilePhotos}
           />
         </>
       )}
@@ -679,7 +633,7 @@ export default function PackBuddy() {
                     className={`bd-sw${s.enabled ? ' is-on' : ''}`}
                     onClick={async () => {
                       if (s.enabled) { await patchSettings({ enabled: false }); return; }
-                      if (missing.length > 0) { setView('gate'); return; }
+                      if (missing.length > 0) { openOnb(); return; }
                       await enable();
                     }}><i /></button>
                 </div>
@@ -700,27 +654,8 @@ export default function PackBuddy() {
   );
 }
 
-/** Onboarding len prvý raz (Matej 25. 9.: „toto by bolo asi len prvý krát"). Pohodlie
- *  jedného prehliadača — keď sa stratí, človek uvidí úvod znova a nič sa nerozbije. */
-const INTRO_SEEN = 'dogypt_sniffer_intro';
-function introSeen(): boolean { try { return localStorage.getItem(INTRO_SEEN) === '1'; } catch { return false; } }
-function markIntroSeen() { try { localStorage.setItem(INTRO_SEEN, '1'); } catch { /* bez úložiska ostane úvod */ } }
-
-/** Farba a kresba troch krokov úvodu (Matej 25. 9.: „zatraktívniť kroky farebne"). */
-const HOW_STYLE: Record<'1' | '2' | '3', { bg: string; icon: string }> = {
-  '1': { bg: T.accentGold, icon: 'badge' },
-  '2': { bg: LAPIS.edge, icon: 'paw' },
-  '3': { bg: T.growGreen, icon: 'nose' },
-};
-
 /** Heroglyf píše pohlavie majiteľa ako `man`/`woman` (starší zápis `male`/`female`). */
 const HERO_GENDER: Record<string, Gender> = { man: 'male', male: 'male', woman: 'female', female: 'female' };
-
-const HOW_EN: Record<'1' | '2' | '3', [string, string]> = {
-  '1': ['Fill in your buddy card', 'You, your dog, what you’re looking for. All from your profile.'],
-  '2': ['The dogs decide first', 'You only see people whose dogs get along with yours.'],
-  '3': ['You catch each other’s scent', 'A match is just a notice. Writing is up to you.'],
-};
 
 function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, children }: {
   title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; wide?: boolean; fit?: boolean; children?: ReactNode;

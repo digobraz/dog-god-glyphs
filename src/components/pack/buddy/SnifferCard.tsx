@@ -22,6 +22,7 @@ import type { SnifferCardData, SnifferDistanceBand } from './snifferDeck';
 import { loadMyCard, pilgrimFromTrips } from './snifferDeck';
 import { pilgrimLevelOf } from './pilgrimOf';
 import { devotionLevel, DEVOTION_START, DEVOTION_TODAY_ON } from '@/lib/devotion';
+import { RANK_BADGE_ON, RANK_BADGE_CSS, ServantBadge, PilgrimBadge } from '@/components/pack/profile/rankBadge';
 import { tierOfLevel, tierGradient } from '@/lib/packTiers';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 
@@ -157,8 +158,20 @@ export const plural = (n: number) => (n === 1 ? 'one' : n >= 2 && n <= 4 ? 'few'
  *  o cudzom človeku nevieme — kontrakt koordinátora 26. 9. večer).
  *  Chýbajúci PÚTNIK = 0 prejdených výletov; neukazuje sa nič, nie vymyslená jednotka. */
 export function SnifferLevels({ card, tx }: { card: SnifferCardData; tx: Tx }) {
-  const dev = card.devotion != null ? devotionLevel(DEVOTION_TODAY_ON ? Number(card.devotion) : DEVOTION_START) : null;
   const pilgrimLevel = card.pilgrimLevel ?? pilgrimLevelOf(card.trips ?? []);
+  // ODZNAKY = TIE ISTÉ AKO PROFIL (30. 10. 2026, nákres plany/nakres-sniffer-onboarding-2026-10-30.html):
+  // SLUŽOBNÍK (roky) + PÚTNIK z `human.stats`, presne ako `PublicProfile`. Ťuk prepúšťa `.sn-top`
+  // (pointer-events:none), odznak je tu len obraz. DEVOTION zrušená 26. 10. — v tejto vetve nie je.
+  if (RANK_BADGE_ON) {
+    return (
+      <span className="sn-lv rk-row">
+        <style>{RANK_BADGE_CSS}</style>
+        <ServantBadge years={card.servantYears ?? null} activeDays={null} label={tx('pack.ladder.servant', 'Servant')} />
+        <PilgrimBadge level={pilgrimLevel || 1} pct={card.pilgrimPct ?? 0} label={`${tx('pack.sniffer.pilgrim', 'Pilgrim')} ${pilgrimLevel || 1}`} />
+      </span>
+    );
+  }
+  const dev = card.devotion != null ? devotionLevel(DEVOTION_TODAY_ON ? Number(card.devotion) : DEVOTION_START) : null;
   if (!pilgrimLevel && !dev) return null;
   return (
     <span className="sn-lv">

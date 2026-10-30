@@ -53,6 +53,10 @@ export interface SnifferCardData {
   /** PÚTNIK level (zapisuje ho majiteľov klient) · DEVOTION body (100 + ledger). */
   pilgrimLevel?: number | null;
   devotion?: number | null;
+  /** Odznaky z profilu (30. 10. 2026, `20261030_sniffer_odznaky_z_profilu.sql`) — ten istý zdroj
+   *  ako cudzí profil: `human.stats.pilgrimPct` a `human.stats.servantYears` (null = UČEŇ). */
+  pilgrimPct?: number | null;
+  servantYears?: number | null;
   /** TRIPWISH — živé priania (`wish_pins.place_name`). */
   wishes?: string[];
   /** Môj rajón — `W` Západ · `C` Stred · `E` Východ. */

@@ -58,7 +58,7 @@ const thumb = (u?: string | null, w = 300, h = 400) => bgImg(u, w, h);
 /** Znamenie kreslí TÁ ISTÁ kresba ako malý rámik heroglyfu (`zodiacIcon`/`zodiacLabel`, jeden
  *  zdroj so `SnifferFullProfile` — bola duplicita, audit 26. 9. 2026) —
  *  emoji mimo mapy brand nepúšťa (`check:ikony`) a vlastná kresba znamenia už existuje. */
-const CSS = `
+export const SNIFFER_PROFILE_CSS = `
 .sp-pager{width:100%;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;touch-action:pan-y;}
 .sp-nav{display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.md}px;}
 .sp-count{min-width:${PACK_SPACE.xxxl}px;text-align:center;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;color:${T.inkWarm};}
@@ -128,6 +128,14 @@ const CSS = `
 .sp-slot__tag{position:absolute;left:${PACK_SPACE.xs}px;bottom:${PACK_SPACE.xs}px;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;
   color:${T.card};background:${T.growGreen};border-radius:${PACK_R.pill}px;padding:0 ${PACK_SPACE.xs}px;}
 .sp-photo-menu{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
+/* VÝBER Z PROFILU (onboarding 30. 10. 2026) — kruhy fotiek, ktoré už človek má; ťuk = pridať. */
+.sp-suggest{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
+.sp-suggest button{position:relative;width:${PACK_AVATAR.lg}px;height:${PACK_AVATAR.lg}px;padding:0;border-radius:${PACK_R.pill}px;overflow:visible;
+  border:2px solid ${T.border};background:${T.tileBg};cursor:pointer;}
+.sp-suggest img{width:100%;height:100%;border-radius:${PACK_R.pill}px;object-fit:cover;display:block;}
+.sp-suggest i{position:absolute;right:-${PACK_SPACE.xs}px;bottom:-${PACK_SPACE.xs}px;width:${PACK_SPACE.lg + PACK_SPACE.xs}px;height:${PACK_SPACE.lg + PACK_SPACE.xs}px;
+  border-radius:${PACK_R.pill}px;display:grid;place-items:center;font-style:normal;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;
+  background:${LAPIS.grad};color:${LAPIS.ink};}
 /* 2/4 BIO A INFO — citát psa, potom chipy (Matej: „je to nevýrazné (bez chipov…)") */
 .sp-quote{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .sp-quote > span{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.lead}px;line-height:1.25;color:${T.inkStrong};}
@@ -205,7 +213,7 @@ const CSS = `
 }
 `;
 
-function Pills({ options, selected, onToggle, disabled }: {
+export function Pills({ options, selected, onToggle, disabled }: {
   options: Array<{ value: string; label: string }>; selected: readonly string[]; onToggle: (v: string) => void; disabled?: (v: string) => boolean;
 }) {
   return (
@@ -237,7 +245,7 @@ function ChipSelect<V extends string>({ emoji, placeholder, options, value, onCh
   );
 }
 
-const toggle = <V extends string>(arr: readonly V[], v: V) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+export const toggle = <V extends string>(arr: readonly V[], v: V) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
 interface Slide { key: string; title: string; sub?: string; right?: ReactNode; body: ReactNode }
 
@@ -540,34 +548,7 @@ export function SnifferProfile({
               </span>
             </div>
             <div className="sp-rows2">
-              {row(`${d.id}-t`, tx('pack.buddy.step.temperament', 'Temperament'), temper.map((v) => tx(`pack.dogTag.${v}`, v)).join(', '), (
-                <>
-                  <Pills
-                    options={DOG_TEMPERAMENT_TAGS.map((v) => ({ value: v, label: tx(`pack.dogTag.${v}`, v) }))}
-                    selected={temper}
-                    onToggle={(v) => {
-                      const next = toggle(temper as string[], v);
-                      if (next.length > MAX_DOG_TEMPERAMENT) return;
-                      void saveDogAttrs(d.id, { tags: { ...a.tags, temperament: next as DogProfileAttrs['tags']['temperament'] } });
-                    }}
-                  />
-                  <p className="bd-note">{tx('pack.buddy.maxTags', 'Up to {n}.', { n: MAX_DOG_TEMPERAMENT })}</p>
-                </>
-              ), temper.length === 0)}
-              {row(`${d.id}-f`, tx('pack.dogCard.fitness', 'Physical condition'), opt(a.card.fitness), (
-                <Pills
-                  options={DOG_FITNESS_OPTIONS.map((o) => ({ value: o.value, label: tx(`pack.dogCard.opt.${o.value}`, o.labelEN) }))}
-                  selected={a.card.fitness ? [a.card.fitness] : []}
-                  onToggle={(v) => setCard({ fitness: v as DogProfileAttrs['card']['fitness'] })}
-                />
-              ), !a.card.fitness)}
-              {row(`${d.id}-c`, tx('pack.dogCard.compat.dogs_overall', 'With other dogs'), opt(a.card.compat?.dogs_overall), (
-                <Pills
-                  options={DOG_COMPAT_OPTIONS.map((o) => ({ value: o.value, label: tx(`pack.dogCard.opt.${o.value}`, o.labelEN) }))}
-                  selected={a.card.compat?.dogs_overall ? [a.card.compat.dogs_overall] : []}
-                  onToggle={(v) => setCard({ compat: { ...a.card.compat, dogs_overall: v as never } })}
-                />
-              ), !a.card.compat?.dogs_overall)}
+              <DogGateRows dog={d} attrs={a} tx={tx} />
               {row(`${d.id}-j`, tx('pack.sniffer.profile.likes', 'Likes'), a.card.joys.map((v) => tx(`pack.dogCard.joy.${v}`, v)).join(', '), (
                 <Pills
                   options={DOG_JOY_SUGGESTIONS.map((v) => ({ value: v, label: tx(`pack.dogCard.joy.${v}`, v) }))}
@@ -653,8 +634,72 @@ export function SnifferProfile({
 
   return (
     <>
-      <style>{CSS}</style>
+      <style>{SNIFFER_PROFILE_CSS}</style>
       <Pager tx={tx} fit={fit} slides={slides} finish={finish} missingSlide={missingSlide} />
+    </>
+  );
+}
+
+/** Jeden riadok „popis · hodnota (alebo Doplniť) · šípka" s editorom pod ním. Vlastný stav
+ *  otvorenia — používa ho krok „Tvoja karta" onboardingu aj psie riadky brány. */
+export function KvRow({ label, value, todo, tx, children }: { label: string; value: string; todo: boolean; tx: Tx; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="sp-kv">
+      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <span>{label}</span>
+        <b className={todo ? 'is-todo' : ''}>{todo ? tx('pack.buddy.fill', 'Fill in') : value || '—'}</b>
+        <i aria-hidden />
+      </button>
+      {open && <div className="bd-edit">{children}</div>}
+    </div>
+  );
+}
+
+/** Tri psie body brány (povaha · kondícia · s inými psami) — JEDINÁ definícia, zapisuje do
+ *  `dog_profiles.attrs` ako DOG ID. `onlyMissing` = krok „Tvoja karta" ukáže len to, čo chýba. */
+export function DogGateRows({ dog, attrs: a, tx, onlyMissing = false }: {
+  dog: SnifferProfileDog; attrs: DogProfileAttrs; tx: Tx; onlyMissing?: boolean;
+}) {
+  const opt = (v?: string | null) => (v ? tx(`pack.dogCard.opt.${v}`, v) : '');
+  const setCard = (patch: Partial<DogProfileAttrs['card']>) => void saveDogAttrs(dog.id, { card: { ...a.card, ...patch } });
+  const temper = a.tags.temperament ?? [];
+  const show = (todo: boolean) => !onlyMissing || todo;
+  return (
+    <>
+      {show(temper.length === 0) && (
+        <KvRow tx={tx} label={tx('pack.buddy.step.temperament', 'Temperament')} todo={temper.length === 0}
+          value={temper.map((v) => tx(`pack.dogTag.${v}`, v)).join(', ')}>
+          <Pills
+            options={DOG_TEMPERAMENT_TAGS.map((v) => ({ value: v, label: tx(`pack.dogTag.${v}`, v) }))}
+            selected={temper}
+            onToggle={(v) => {
+              const next = toggle(temper as string[], v);
+              if (next.length > MAX_DOG_TEMPERAMENT) return;
+              void saveDogAttrs(dog.id, { tags: { ...a.tags, temperament: next as DogProfileAttrs['tags']['temperament'] } });
+            }}
+          />
+          <p className="bd-note">{tx('pack.buddy.maxTags', 'Up to {n}.', { n: MAX_DOG_TEMPERAMENT })}</p>
+        </KvRow>
+      )}
+      {show(!a.card.fitness) && (
+        <KvRow tx={tx} label={tx('pack.dogCard.fitness', 'Physical condition')} todo={!a.card.fitness} value={opt(a.card.fitness)}>
+          <Pills
+            options={DOG_FITNESS_OPTIONS.map((o) => ({ value: o.value, label: tx(`pack.dogCard.opt.${o.value}`, o.labelEN) }))}
+            selected={a.card.fitness ? [a.card.fitness] : []}
+            onToggle={(v) => setCard({ fitness: v as DogProfileAttrs['card']['fitness'] })}
+          />
+        </KvRow>
+      )}
+      {show(!a.card.compat?.dogs_overall) && (
+        <KvRow tx={tx} label={tx('pack.dogCard.compat.dogs_overall', 'With other dogs')} todo={!a.card.compat?.dogs_overall} value={opt(a.card.compat?.dogs_overall)}>
+          <Pills
+            options={DOG_COMPAT_OPTIONS.map((o) => ({ value: o.value, label: tx(`pack.dogCard.opt.${o.value}`, o.labelEN) }))}
+            selected={a.card.compat?.dogs_overall ? [a.card.compat.dogs_overall] : []}
+            onToggle={(v) => setCard({ compat: { ...a.card.compat, dogs_overall: v as never } })}
+          />
+        </KvRow>
+      )}
     </>
   );
 }
@@ -755,7 +800,14 @@ function Pager({ tx, slides, fit, finish, missingSlide }: {
 
 /** Fotky karty: až 6, jedna označená „spolu" (zelený rám) = `buddyPhoto` pre bránu.
  *  Nákres A: „aspoň na jednej ste spolu (zelený rám)". */
-function PhotoSlots({ uid, photos, together, tx }: { uid: string | null; photos: string[]; together: string | null; tx: Tx }) {
+export function PhotoSlots({ uid, photos, together, tx, suggest = [], note = true }: {
+  uid: string | null; photos: string[]; together: string | null; tx: Tx;
+  /** Veta o zelenom ráme — onboarding ju má v podnadpise karty, druhýkrát nie. */
+  note?: boolean;
+  /** Fotky, ktoré človek UŽ MÁ v profile (fotka, titulka, album titulky, psy) — ťuk ich pridá
+   *  bez nového nahrávania (onboarding 30. 10. 2026: „výber z toho, čo už má"). */
+  suggest?: string[];
+}) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -766,7 +818,21 @@ function PhotoSlots({ uid, photos, together, tx }: { uid: string | null; photos:
 
   return (
     <div className="sp-kv" style={{ paddingTop: PACK_SPACE.sm, display: 'flex', flexDirection: 'column', gap: PACK_SPACE.sm }}>
-      <span className="bd-note">{tx('pack.sniffer.profile.photosNote', 'Photos — on at least one of them you’re together (green frame).')}</span>
+      {note && <span className="bd-note">{tx('pack.sniffer.profile.photosNote', 'Photos — on at least one of them you’re together (green frame).')}</span>}
+      {photos.length < MAX_PHOTOS && suggest.filter((u) => !photos.includes(u)).length > 0 && (
+        <>
+          <span className="sp-sec">{tx('pack.sniffer.onb.fromProfile', 'From your profile')}</span>
+          <div className="sp-suggest">
+            {suggest.filter((u) => !photos.includes(u)).map((u) => (
+              <button key={u} type="button" aria-label={tx('pack.sniffer.onb.addPhoto', 'Add this photo')}
+                onClick={() => write([...photos, u], together ?? u)}>
+                <img src={bgImg(u, 120, 120)} alt="" draggable={false} />
+                <i aria-hidden>+</i>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
       <div className="sp-slots">
         {photos.map((u) => (
           <button key={u} type="button" className={`sp-slot${u === together ? ' is-together' : ''}`} onClick={() => setPick(pick === u ? null : u)}>
