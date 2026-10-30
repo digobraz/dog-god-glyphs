@@ -46,6 +46,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { PACK_THEME as T, PACK_BOX, PACK_SHADOW, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
+import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { readLocalTrails, updateLocalTrail, translateLocalTrailName } from '@/components/pack/tripShared';
@@ -67,7 +68,7 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
    s lapisom!") ── Doska = PACK_BOX.panel, písmo inkoust papyrusu, ZLATO = konštrukcia (rám),
    LAPIS = voľba a akcia (vybraná možnosť, zaostrené pole, CTA). Vzor: TripGoPanel.tsx. */
 .tep-overlay{z-index:1200;padding:16px;}
-.tep-modal{width:100%;max-width:440px;max-height:calc(100dvh - 40px);overflow-y:auto;padding:24px;
+.tep-modal{width:100%;max-width:440px;max-height:${MODAL_MAX_H};overflow-y:auto;padding:24px;
   background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};border-radius:${PACK_BOX.panel.borderRadius}px;box-shadow:${PACK_BOX.panel.boxShadow};}
 .tep-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;}
 .tep-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkStrong};line-height:1.25;}
@@ -183,6 +184,16 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
   const [pickup, setPickup] = useState(!!plan?.travel?.pickup);
   const [pickupSeats, setPickupSeats] = useState(plan?.travel?.seats ?? 1);
 
+  // iOS klávesnica nemení dvh — výšku okna berieme z visualViewport, aby ULOŽIŤ nezostalo pod klávesnicou.
+  const [vvH, setVvH] = useState<number | null>(null);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const sync = () => setVvH(vv.height < window.innerHeight - 80 ? vv.height : null);
+    sync();
+    vv.addEventListener('resize', sync);
+    return () => vv.removeEventListener('resize', sync);
+  }, []);
   // Panel sa zatvára klikom mimo (nižšie) alebo Esc — krížik na bloku je zrušený lockom
   // z 28. 8. 2026, takže Esc nie je pohodlie navyše, ale druhá polovica odchodu na PC.
   useEffect(() => {
@@ -283,7 +294,7 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
 
   return (
     <div className="pk-veil pk-veil--modal tep-overlay" onClick={onClose}>
-      <div className="tep-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="tep-modal" style={vvH ? { maxHeight: `${vvH - 32}px` } : undefined} onClick={(e) => e.stopPropagation()}>
         <style>{TRIP_EDIT_CSS}</style>
         <div className="tep-head">
           <div>

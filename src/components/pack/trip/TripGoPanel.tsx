@@ -10,6 +10,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
+import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { LAPIS, MAPY, MAPY_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import type { HeroTrail } from '@/data/heroTrails.generated';
@@ -25,7 +26,7 @@ const GO_CSS = `${VEIL_CSS}
    do premennej --pack-nav-h (ResizeObserver v PackLayout.tsx) a šírka pillu je premenlivá
    podľa jazyka. Na LIVE nav neexistuje (DEV_FULL), premenná chýba a fallback 0 nechá
    panel dole. */
-.tgo-panel{width:100%;max-width:420px;max-height:calc(100dvh - 40px);overflow-y:auto;
+.tgo-panel{width:100%;max-width:420px;max-height:${MODAL_MAX_H};overflow-y:auto;
   padding:22px 20px calc(24px + var(--pack-nav-h, 0px) + env(safe-area-inset-bottom, 0px));
   background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};box-shadow:${PACK_BOX.panel.boxShadow};
   border-radius:16px 16px 0 0;}

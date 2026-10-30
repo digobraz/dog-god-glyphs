@@ -12,6 +12,7 @@ import { BONES } from '@/components/pack/bonesSkin';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
+import { IS_APP } from '@/lib/isApp';
 // Len pre ukážkovú líniu (`?netdemo=62`) — reálne psy z WALLu, aby simulácia
 // vyzerala ako skutočný zoznam. Súbor je zoznam mien a názvov súborov, nie dáta
 // s obrázkami; do bundlu pridá jednotky kB.
@@ -488,7 +489,7 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
             <b>
               {shownBones == null ? '—' : shownBones.toLocaleString(intlLocale(lang))}
               <span>
-                {shownBones != null && shownBones > 0
+                {IS_APP ? null : shownBones != null && shownBones > 0
                   ? `≈ €${eur(shownBones)}`
                   : tx('pack.network.bonesRate', '{n} bones = €1', { n: BONES_PER_EUR })}
               </span>
@@ -607,7 +608,9 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
             <Chain l1={l1} l2={l2} avatarUrl={avatarUrl} initial={initial} loading={loading} />
           </Step>
           <Step n={3} icon="bone" title={tx('pack.network.step3Title', 'Spend them inside DOGYPT')}>
-            {tx('pack.network.step3Body', '{n} BONES = €1. The money goes back into the mission — helping dogs, merch, and paying other members for what they make.', { n: BONES_PER_EUR })}
+            {IS_APP
+              ? tx('pack.network.step3BodyApp', 'Spend them inside DOGYPT — helping dogs, claiming merch, and paying other members for what they make.')
+              : tx('pack.network.step3Body', '{n} BONES = €1. The money goes back into the mission — helping dogs, merch, and paying other members for what they make.', { n: BONES_PER_EUR })}
           </Step>
         </ol>
 
@@ -707,7 +710,7 @@ function WalletPanel({
                 {balance.toLocaleString(intlLocale(lang))}
               </span>
               <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, color: T.inkWarm, marginTop: 3 }}>
-                BONES · ≈ €{(balance / BONES_PER_EUR).toFixed(2)}
+                BONES{IS_APP ? '' : ` · ≈ €${(balance / BONES_PER_EUR).toFixed(2)}`}
               </span>
               <button type="button" onClick={onInfo} style={{ background: 'none', border: 'none', padding: 0, marginTop: 4, fontFamily: FONT_UI, fontSize: 12, color: T.cardEdge, textDecoration: 'underline', textUnderlineOffset: 3, cursor: 'pointer' }}>
                 {tx('pack.network.whatIsBones', 'What is BONES?')}
@@ -922,7 +925,7 @@ function SendStep({
             className="flex items-baseline justify-between"
             style={{ marginTop: 11, paddingTop: 8, borderTop: `1px solid ${T.hairline}`, fontFamily: FONT_UI, fontSize: 12, color: T.inkFaint }}
           >
-            <span>≈ €<b style={{ fontFamily: FONT_UI, fontWeight: 600, fontSize: 14, color: T.inkStrong }}>{(v / BONES_PER_EUR).toFixed(2)}</b></span>
+            {IS_APP ? <span /> : <span>≈ €<b style={{ fontFamily: FONT_UI, fontWeight: 600, fontSize: 14, color: T.inkStrong }}>{(v / BONES_PER_EUR).toFixed(2)}</b></span>}
             <span style={{ color: T.inkWarm }}>
               +<b style={{ fontFamily: FONT_UI, fontWeight: 600, fontSize: 14, color: T.accentGold }}>{granted.toLocaleString(intlLocale(lang))}</b> {tx('pack.network.devotionWord', 'devotion')}
             </span>
@@ -1656,6 +1659,10 @@ const INFO = {
   },
 } as const;
 
+const INFO_BONES_APP =
+  'BONES is DOGYPT’s internal currency — a playful name for a real thing. You <b>earn</b> them by bringing dog lovers into the pack '
+  + 'and by moving the movement forward, and you <b>spend</b> them inside DOGYPT.';
+
 function InfoPanel({ variant, onClose }: { variant: 'why' | 'bones'; onClose: () => void }) {
   const t = useT();
   const tx: Tx = (key, fallback, vars) => {
@@ -1666,7 +1673,9 @@ function InfoPanel({ variant, onClose }: { variant: 'why' | 'bones'; onClose: ()
   const cap = tx(c.capKey, c.capFallback);
   const body = variant === 'why'
     ? tx(c.bodyKey, c.bodyFallback, { l1: L1_BONES, l2: L2_BONES })
-    : tx(c.bodyKey, c.bodyFallback, { n: BONES_PER_EUR });
+    : IS_APP
+      ? tx('pack.network.info.bones.bodyApp', INFO_BONES_APP)
+      : tx(c.bodyKey, c.bodyFallback, { n: BONES_PER_EUR });
   return (
     // z-[70]: rovnaký dôvod ako vo `WalletPanel` — nad `.ainubis-launcher` (z-index 60).
     <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true">

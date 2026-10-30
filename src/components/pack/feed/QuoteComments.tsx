@@ -6,6 +6,7 @@
 import { createPortal } from 'react-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, VEIL_CSS } from '@/components/pack/packTheme';
+import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { BackButton } from '@/components/pack/BackButton';
 import { TripComments } from '@/components/pack/trip/TripComments';
 
@@ -15,7 +16,7 @@ const TX = PACK_TEXT;
 
 const CSS = `${VEIL_CSS}
 .pk-veil.pkq-veil{align-items:flex-end;padding:0;}
-.pkq-sheet{width:100%;max-width:560px;max-height:85vh;overflow-y:auto;border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;background:${T.card};padding:${S.lg}px;box-sizing:border-box;}
+.pkq-sheet{width:100%;max-width:560px;max-height:${MODAL_MAX_H};overflow-y:auto;border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;background:${T.card};padding:${S.lg}px;box-sizing:border-box;}
 .pkq-head{display:flex;align-items:center;gap:${S.md}px;margin:0 0 ${S.sm}px;}
 .pkq-head h3{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};} /* písmo: nadpis */
 .pkq-sheet .tcm-wrap{margin-top:0;}

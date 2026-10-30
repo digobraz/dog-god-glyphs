@@ -31,6 +31,7 @@ import { guardMessage } from '@/components/pack/contentGuardError';
 import { linkify } from '@/components/ainubis/ainubisLinkify';
 import { useMagnetPreview } from '@/components/pack/magnetPreview';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN, VEIL_CSS } from '@/components/pack/packTheme';
+import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS, tintRGBA } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
@@ -146,7 +147,7 @@ export const TRIP_COMMENTS_CSS = `${VEIL_CSS}
 /* popup (self-contained, same look as WalkedPopup in packCommunityUI.tsx) */
 /* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha a odsadenie. */
 .tcm-overlay{z-index:1200;padding:16px;}
-.tcm-modal{width:100%;max-width:400px;max-height:calc(100dvh - 40px);overflow-y:auto;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
+.tcm-modal{width:100%;max-width:400px;max-height:${MODAL_MAX_H};overflow-y:auto;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
 .tcm-modal-head{display:flex;align-items:flex-start;justify-content:flex-start;gap:12px;margin-bottom:18px;}
 .tcm-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${T.inkStrong};line-height:1.25;}
 .tcm-modal-sub{font-size:12px;color:${T.inkWarm};margin-top:4px;}

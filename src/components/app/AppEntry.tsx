@@ -156,6 +156,7 @@ function Touch({ onDone }: { onDone: () => void }) {
 // ── 3 · ČÍSLO ────────────────────────────────────────────────────────────────
 function NumberStep({ onSent }: { onSent: (s: Sent) => void }) {
   const t = useT();
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { lang } = useLang();
   const [num, setNum] = useState('');
   const [busy, setBusy] = useState(false);
@@ -210,6 +211,13 @@ function NumberStep({ onSent }: { onSent: (s: Sent) => void }) {
         {err && !sheet && <p className="ae-err" role="alert">{err}</p>}
         <button type="submit" className="ae-cta" disabled={!num || busy}>{t('appEntry.continue')}</button>
         <button type="button" className="ae-link" onClick={() => { setErr(''); setSheet(true); }}>{t('appEntry.noNumber')}</button>
+        {/* Apple 1.2 / EULA: súhlas s podmienkami pri vstupe. /terms a /privacy ostávajú v appke (appLinks APP_PATHS). */}
+        <p className="ae-legal">
+          {tx('appEntry.legal.pre', 'By continuing you agree to the ')}
+          <a href="/terms">{tx('appEntry.legal.terms', 'Terms')}</a>
+          {tx('appEntry.legal.and', ' and the ')}
+          <a href="/privacy">{tx('appEntry.legal.privacy', 'Privacy Policy')}</a>.
+        </p>
       </form>
 
       {sheet && (
@@ -526,6 +534,8 @@ const APP_ENTRY_CSS = `
 .ae-link { margin-top: ${PACK_SPACE.lg}px; border: 0; background: none; padding: ${PACK_SPACE.xs}px; cursor: pointer;
   font-family: ${FONT_UI}; font-size: ${PACK_TEXT.label}px; color: ${LAB.inkSoft}; }
 .ae-link:disabled { cursor: default; }
+.ae-legal { margin: ${PACK_SPACE.md}px 0 0; font-size: ${PACK_TEXT.label}px; line-height: 1.5; color: ${LAB.inkMuted}; text-align: center; text-wrap: balance; }
+.ae-legal a { color: ${LAB.inkSoft}; text-decoration: underline; text-underline-offset: 3px; }
 .ae-link--quiet { margin-top: ${PACK_SPACE.xs}px; color: ${LAB.inkMuted}; }
 
 /* šuplík zdola */

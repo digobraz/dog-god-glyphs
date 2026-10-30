@@ -13,6 +13,7 @@ import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandTrash } from '@/components/pack/HandIcons';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS, PACK_SHADOW } from '@/components/pack/packTheme';
+import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { saveHuman, type HumanProfile } from '@/components/pack/profile/packProfile';
 import { coverAlbumOf, coverOfDay } from '@/components/pack/profile/mePosts';
@@ -29,7 +30,7 @@ const MAX_ALBUM = 30;
 
 const CSS = `
 .cs-root.pk-veil{z-index:65;align-items:flex-end;padding:0;animation:cs-fade .3s ease both;}
-.cs-sheet{position:relative;width:100%;max-height:88dvh;display:flex;flex-direction:column;background:${T.cardGrad};color:${T.inkStrong};
+.cs-sheet{position:relative;width:100%;max-height:${MODAL_MAX_H};display:flex;flex-direction:column;background:${T.cardGrad};color:${T.inkStrong};
   border-top:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${T.panelShadow};font-family:${FONT_UI};
   animation:cs-up .38s cubic-bezier(.2,.8,.2,1) both;}
 .cs-grab{flex:none;width:44px;height:4px;border-radius:${PACK_R.pill}px;background:${T.hairline};margin:${S.sm}px auto 0;}

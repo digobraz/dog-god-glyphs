@@ -16,13 +16,14 @@ import { useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
+import { MODAL_MAX_H } from '@/components/pack/packTheme';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
 
 export const PACK_POPUP_CSS = `
 .ppu-root.pk-veil{z-index:65;align-items:flex-end;padding:0;animation:ppu-fade .3s ease both;}
-.ppu-sheet{position:relative;width:100%;max-height:88dvh;display:flex;flex-direction:column;background:${T.cardGrad};color:${T.inkStrong};
+.ppu-sheet{position:relative;width:100%;max-height:${MODAL_MAX_H};display:flex;flex-direction:column;background:${T.cardGrad};color:${T.inkStrong};
   border-top:2px solid ${T.cardEdge};border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${T.panelShadow};
   font-family:${FONT_UI};animation:ppu-up .38s cubic-bezier(.2,.8,.2,1) both;}
 .ppu-top{flex:none;display:flex;flex-direction:column;cursor:grab;}

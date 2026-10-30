@@ -12,6 +12,7 @@ import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
 import { WISHES_LIVE } from '@/lib/packFlags';
 import { fetchPackHumans, HUMAN_KEY_PREFIX, type PackHuman } from '@/lib/packHumans';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN, HIT_CSS, VEIL_CSS } from '@/components/pack/packTheme';
+import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { pluralKey } from '@/lib/plural';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy aj triplist.
@@ -150,7 +151,7 @@ ${VEIL_CSS}
    nie panel sám. */
 /* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len vrstva a odsadenie. */
 .comm-overlay{z-index:1200;padding:16px;}
-.comm-modal{width:100%;max-width:420px;max-height:calc(100dvh - 40px);overflow-y:auto;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
+.comm-modal{width:100%;max-width:420px;max-height:${MODAL_MAX_H};overflow-y:auto;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
 .comm-modal.wide{max-width:640px;}
 /* Matej 2026-08-06 („konsolidujeme zjednodušujeme"): nadpis je CENTROVANÝ a nesie priamo názov
    tripu — dvojica „OHODNOŤ A ZÍSKAJ BODY" + podnadpis s názvom bola dva riadky na to isté.

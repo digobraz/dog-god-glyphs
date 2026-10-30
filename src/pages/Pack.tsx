@@ -18,16 +18,15 @@ const VerseOfTheDay = lazy(() => import('@/components/pack/VerseOfTheDay').then(
 const PlanAskCard = lazy(() => import('@/components/pack/PlanAskCard').then((m) => ({ default: m.PlanAskCard })));
 import { Gateways } from '@/components/pack/Gateways';
 import { useProfile } from '@/components/pack/profile/packProfile';
-import { DEV_FULL, PLANNING_LIVE } from '@/lib/packFlags';
+import { DEV_FULL, PLANNING_LIVE, APP_NEW } from '@/lib/packFlags';
 import { DEV_NOAUTH, DEV_MOCK_DOGS, DEV_MOCK_USER } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { getMyAffiliate, getPackStats } from '@/lib/sharedFetch';
-import { TEST_BUILD } from '@/lib/env';
-// FEED 1.0 (24. 10. 2026) — len za TEST_BUILD, viď `Pack()` nižšie. Lazy: členovia ho nikdy nestiahnu.
+// FEED 1.0 (24. 10. 2026) — len za APP_NEW, viď `Pack()` nižšie. Lazy: členovia ho nikdy nestiahnu.
 const PackFeed = lazy(() => import('@/components/pack/feed/PackFeed').then((m) => ({ default: m.PackFeed })));
 // DOMOV je v testovacej appke feed na papyruse bez ohľadu na prepínač šatu (zápis pri načítaní modulu,
 // ešte pred prvým vykreslením — `PackLayout` aj `PackTopRight` sa pýtajú `usePaperRoute`).
-if (TEST_BUILD) PAPER_ROUTES_EXTRA.push(/^\/pack$/);
+if (APP_NEW) PAPER_ROUTES_EXTRA.push(/^\/pack$/);
 
 const T = PACK_THEME;
 
@@ -99,14 +98,14 @@ function firstNameFrom(email: string, fullName?: string): string {
 }
 
 /**
- * DOMOV `/pack`. Pri TEST_BUILD (vite dev + testovacia appka) je to FEED (Matej 24. 10. 2026: *„postav to
+ * DOMOV `/pack`. Pri APP_NEW (vite dev + testovacia aj natívna appka) je to FEED (Matej 24. 10. 2026: *„postav to
  * zatiaľ do appky, lepšie než nič… budeme to ladiť postupne"*). Bez príznaku (dogypt.com, členovia) ostáva
  * dnešný DOMOV bajt po bajte — `PackLegacy` je pôvodný komponent, len premenovaný.
  * ⚠️ `?welcome=1` z uvítacieho mailu ide ďalej do `PackLegacy`, ktorý ho presmeruje na profil.
  */
 export default function Pack() {
   const { search } = useLocation();
-  if (TEST_BUILD && new URLSearchParams(search).get('welcome') !== '1') {
+  if (APP_NEW && new URLSearchParams(search).get('welcome') !== '1') {
     return (
       <PackLayout topLeft={<FeedSearch />}>
         <Suspense fallback={null}><PackFeed /></Suspense>

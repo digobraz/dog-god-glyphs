@@ -13,6 +13,7 @@
 import { useState } from 'react';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, VEIL_CSS } from '@/components/pack/packTheme';
+import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { PartyMemberCard } from '@/components/pack/triplist/PartyMemberCard';
 import type { PartyMember } from '@/components/pack/triplist/useTripParty';
@@ -26,7 +27,7 @@ export const TRIP_CREATOR_CSS = `${VEIL_CSS}
 /* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha a odsadenie. */
 .tcp-back{z-index:1400;align-items:flex-end;padding:0;}
 @media(min-width:640px){.tcp-back{align-items:center;}}
-.tcp{width:100%;max-width:460px;max-height:86vh;overflow-y:auto;background:${T.pageBg};border:1px solid ${T.onDarkBorder};border-radius:16px 16px 0 0;padding:20px 18px calc(env(safe-area-inset-bottom,0px) + 20px);}
+.tcp{width:100%;max-width:460px;max-height:${MODAL_MAX_H};overflow-y:auto;background:${T.pageBg};border:1px solid ${T.onDarkBorder};border-radius:16px 16px 0 0;padding:20px 18px calc(env(safe-area-inset-bottom,0px) + 20px);}
 @media(min-width:640px){.tcp{border-radius:16px;padding-bottom:16px;}}
 .tcp-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;margin-bottom:14px;}
 .tcp-title{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:${GOLD};}

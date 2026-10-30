@@ -15,8 +15,7 @@ import ainubisHead from '@/assets/ainubis-head.webp';
 // Odznak v kapsule = ČERVENÁ zo SNIFFERu s bielym číslom (Matej 26. 9.: „červené upozornenia
 // s bielym textom… červená zo sniffer“). Jedna červená v appke, nie nový odtieň.
 import { SNIFFER_HEART } from './buddy/SnifferLogo';
-import { DEV_FULL } from '@/lib/packFlags';
-import { TEST_BUILD } from '@/lib/env';
+import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
 import { LAPIS } from './navGoldSkin';
 // Lazy, rovnaký dôvod ako pri `packAlerts`: `packHumans` ťahá `packStore`.
 const respondWalkInviteLazy = (id: string, accept: boolean) =>
@@ -70,7 +69,7 @@ const CAP_DOT: React.CSSProperties = {
   position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 999,
   background: SNIFFER_HEART, boxShadow: `0 0 0 1.5px ${T.pageBg}`,
 };
-// ODZNAK S ČÍSLOM NA CHVOSTE (26. 10. 2026, TEST_BUILD). Matej 24. 10. vybral bodku (vyššie), 26. 10. nad
+// ODZNAK S ČÍSLOM NA CHVOSTE (26. 10. 2026, APP_NEW). Matej 24. 10. vybral bodku (vyššie), 26. 10. nad
 // krokom 1: *„myslel som bodku cyan s upozornením … bodka s číslom tak ako bude aj červené upozornenie"*.
 // Novší pokyn platí pre chvost; obálka správ ostáva bodkou. Červená = od členov, cyan = AINUBIS a systém.
 // Oba naraz (Matej 26. 10.: *„môžu byť aj dve naraz a zobrazia sa spolu jedno hore jedno dolu
@@ -84,7 +83,7 @@ const capBadge = (cyan: boolean): React.CSSProperties => ({
   background: cyan ? AINUBIS.cyan : SNIFFER_HEART, color: cyan ? AINUBIS.bg : '#fff',
 });
 
-// ── OZNAM AINUBISA = CYAN BODKA (26. 10. 2026, len za TEST_BUILD) ─────────────────────────────
+// ── OZNAM AINUBISA = CYAN BODKA (26. 10. 2026, len za APP_NEW) ─────────────────────────────
 // Matej: *„každé prihlásenie hlási cyan upozornenie — kde oznámime počet členov (ak pribudnú) alebo
 // nejaký oznam"* · *„cyan = systém + AINUBIS · červená = upozornenia od členov"*. Riadok je v
 // `AinubisOznam.tsx`, tu sa len rozhoduje, či svieti ako nový:
@@ -267,14 +266,14 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   // Odznak NOSA = neprečítané upozornenia + dnešný prírastok svorky. Správy sa sem
   // ZÁMERNE nepočítajú — má ich obálka vedľa a dve rovnaké čísla vedľa seba nič nehovoria.
   const bellCount = (last24h ?? 0) + freshAlerts.length;
-  // TEST_BUILD: červená = len od členov, cyan = oznam AINUBISA / prírastok (hlavička súboru).
-  const [oznamFresh, setOznamFresh] = useState(() => TEST_BUILD && !readOznamSeen());
+  // APP_NEW: červená = len od členov, cyan = oznam AINUBISA / prírastok (hlavička súboru).
+  const [oznamFresh, setOznamFresh] = useState(() => APP_NEW && !readOznamSeen());
   const [seenDogs] = useState(readSeenDogs);
-  const grown = TEST_BUILD && total && seenDogs && total > seenDogs ? total - seenDogs : 0;
+  const grown = APP_NEW && total && seenDogs && total > seenDogs ? total - seenDogs : 0;
   // Odpoveď AINUBISA pod citátom je jeho hlas ⇒ CYAN, nie červená od členov (Matej 27. 10.: „samozrejme A").
   const memberFresh = freshAlerts.filter((a) => a.kind !== 'ainubis_reply');
-  const cyanCount = TEST_BUILD ? (oznamFresh ? 1 : 0) + freshAlerts.length - memberFresh.length : 0;
-  const memberDot = TEST_BUILD ? memberFresh.length > 0 : bellCount > 0;
+  const cyanCount = APP_NEW ? (oznamFresh ? 1 : 0) + freshAlerts.length - memberFresh.length : 0;
+  const memberDot = APP_NEW ? memberFresh.length > 0 : bellCount > 0;
   const cyanDot = cyanCount > 0;
 
   return (
@@ -308,7 +307,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
               a obalka zanikne rovnako, ako zanikalo cele tlacidlo. `dark` (#5A3F12) je
               ten isty tint, akym sa kreslia ikonky na zlatych plochach. */}
           <BrandIcon name="envelope" size={capsule ? 24 : 16} tint={dark ? 'gold' : 'dark'} />
-          {msgCount > 0 && capsule && (TEST_BUILD
+          {msgCount > 0 && capsule && (APP_NEW
             ? <>
                 {msgCount - msgFounder > 0 && <span aria-hidden style={capBadge(false)}>{msgCount - msgFounder > 9 ? '9+' : msgCount - msgFounder}</span>}
                 {msgFounder > 0 && <span aria-hidden style={capBadge(true)}>{msgFounder > 9 ? '9+' : msgFounder}</span>}
@@ -394,7 +393,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
             alertsMod.markSeen(freshAlerts.map((x) => x.id));
             setSeenEpoch((e) => e + 1);
           }
-          if (next && TEST_BUILD) { markOznamSeen(total); setOznamFresh(false); }
+          if (next && APP_NEW) { markOznamSeen(total); setOznamFresh(false); }
           return next;
         }), open ? 0 : 260); }}
         aria-label={t('pack.notif.ariaNotifications')}
@@ -418,7 +417,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
       >
         <HandTail key={wag} size={capsule ? 24 : 17} className={wag ? 'ntf-wag' : undefined} />
         <style>{WAG_CSS}</style>
-        {memberDot && capsule && (TEST_BUILD
+        {memberDot && capsule && (APP_NEW
           ? <span aria-hidden style={capBadge(false)}>{memberFresh.length > 9 ? '9+' : memberFresh.length}</span>
           : <span aria-hidden style={CAP_DOT} />)}
         {cyanDot && capsule && <span aria-hidden style={capBadge(true)}>{cyanCount > 9 ? '9+' : cyanCount}</span>}
@@ -455,7 +454,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           dnes / za 30 dní / spolu) odišiel do bloku STATS. */}
       {open && createPortal(
         <NotifSheet ref={panelRef} onClose={closeSheet} hasReal={DEV_FULL && (alerts.length > 0 || unreadConvs.length > 0)}
-          oznam={TEST_BUILD ? { grown } : undefined}>
+          oznam={APP_NEW ? { grown } : undefined}>
           {DEV_FULL && alerts.length > 0 && (
             <>
               <div

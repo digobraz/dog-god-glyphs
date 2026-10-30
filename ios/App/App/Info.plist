@@ -26,6 +26,12 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>DOGYPT uses your camera so you can take a photo of your dog for the wall, a post or an avatar.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>DOGYPT uses your photos so you can pick a picture of your dog for the wall, a post or an avatar.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>DOGYPT saves your dog's share card and heroglyph to your photos.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>DOGYPT uses your location for SNIFFER and the trip maps.</string>
 	<key>UIApplicationSceneManifest</key>

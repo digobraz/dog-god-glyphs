@@ -23,7 +23,7 @@ import { publish, type ComposeMode, type Visibility } from '@/components/pack/pr
 import { PlaceField, type PostPlace } from '@/components/pack/profile/PlaceField';
 import { useToast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
-import { TEST_BUILD } from '@/lib/env';
+import { APP_NEW } from '@/lib/packFlags';
 import { POST_TAGS, POST_TAG_MAX } from '@/components/pack/feed/postTags';
 
 const T = PACK_THEME;
@@ -122,9 +122,9 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   const [vis, setVis] = useState<Visibility>('public');
   // Z výletu / z prírody? `null` = neodpovedal — príspevok sa vtedy neodošle (áno ⇒ vo feede 🎯 TRIPWISH).
   const [nature, setNature] = useState<boolean | null>(null);
-  // FEED 2 krok 5 (len TEST_BUILD): osem pilulok tém namiesto otázky — voliteľné, 1–2, bez predvoľby.
+  // FEED 2 krok 5 (len APP_NEW): osem pilulok tém namiesto otázky — voliteľné, 1–2, bez predvoľby.
   const [topics, setTopics] = useState<string[]>([]);
-  const pills = TEST_BUILD;
+  const pills = APP_NEW;
   const toggleTopic = (tag: string) => setTopics((c) => (c.includes(tag) ? c.filter((x) => x !== tag) : c.length >= POST_TAG_MAX ? [...c.slice(1), tag] : [...c, tag]));
   const [ratio, setRatio] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
