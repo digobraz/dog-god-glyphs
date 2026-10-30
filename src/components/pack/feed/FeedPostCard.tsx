@@ -34,7 +34,9 @@ ${FOLLOW_CHIP_CSS}
 .pfp{overflow:hidden;}
 .pfp-head{display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;}
 .pfp-head .pk-medallion{width:${PACK_AVATAR.head}px;height:${PACK_AVATAR.head}px;font:600 ${TX.body}px/1 ${FONT_UI};color:${T.inkWarm};}
+.pfp-av{all:unset;cursor:pointer;display:flex;flex:none;border-radius:999px;}
 .pfp-who{min-width:0;flex:1;}
+.pfp-who b{cursor:pointer;}
 .pfp-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: meno */
 .pfp-who small{font-size:${TX.label}px;color:${T.inkWarm};}
 .pfp-ph{position:relative;width:100%;background:${T.tileBg};cursor:pointer;touch-action:pan-y;overscroll-behavior-x:contain;}
@@ -100,12 +102,18 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
     }
   };
 
+  const authorPath = mine ? '/pack/profile' : authorN != null ? `/pack/u/${authorN}` : null;
+  const openAuthor = () => { if (authorPath) navigate(authorPath); };
+
   return (
     <article className="pfp">
       <div className="pfp-head">
-        <span className="pk-medallion">{avatar ? <img src={sizedUrl(avatar, 80)} alt="" /> : name.charAt(0).toUpperCase()}</span>
+        {/* Fotka aj meno autora = jeho profil (Matej 30. 10.); môj príspevok = môj profil. */}
+        <button type="button" className="pfp-av" onClick={openAuthor} aria-label={name}>
+          <span className="pk-medallion">{avatar ? <img src={sizedUrl(avatar, 80)} alt="" /> : name.charAt(0).toUpperCase()}</span>
+        </button>
         <div className="pfp-who">
-          <b>{name}</b>
+          <b role="link" tabIndex={0} onClick={openAuthor} onKeyDown={(e) => { if (e.key === 'Enter') openAuthor(); }}>{name}</b>
           <small>{[place?.name, agoLabel(Date.parse(post.createdAt), lang)].filter(Boolean).join(' · ')}</small>
         </div>
         {!mine && authorN != null && <FollowChip n={authorN} />}

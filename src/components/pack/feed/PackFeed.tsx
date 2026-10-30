@@ -21,7 +21,7 @@
 //   · značky a TRIPWISH z mapy vo feede nie sú (`FeedMapCard.tsx`) · návrat z výletu/Sniffera na to isté miesto feedu
 // 🔴 PRÁZDNE JE PRÁZDNE. Chýbajúce dáta sa nenahrádzajú vymyslenými osobami ani číslami — čo potrebuje server
 //    (cudzí autori, lajky výletov a citátov, komentáre výletu, ankety), je v `feedData.ts` a v zozname migrácií.
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as RMouseEvent } from 'react';
 import { useNavigate, useNavigationType, useSearchParams } from 'react-router-dom';
 import { canStepBack } from '@/lib/stepBack';
 import { HandSearch } from '@/components/pack/HandIcons';
@@ -92,6 +92,7 @@ ${FEED_TOPICS_CSS}
   body.pkf-on .pk-paper::before,body.pkf-on .pk-paper::after{display:none;}
 }
 .pkf{color:${T.inkStrong};}
+.pkf.srch{min-height:100dvh;}
 /* padding-top: prvý nadpis nesmie začínať v prechode sticky hlavičky (Matej 26. 10.: „nie je to dobre vidieť"). */
 .pkf-col{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:${S.lg}px;padding:${S.lg}px 0 ${S.xl}px;}
 .pkf-top{display:flex;flex-direction:column;gap:${S.lg}px;}
@@ -237,6 +238,22 @@ export function PackFeed() {
   useEffect(() => { if (searching) searchRef.current?.focus(); }, [searching]);
   const setQuery = (v: string) => setParams({ hladaj: v }, { replace: true });
   const closeSearch = () => { if (canStepBack()) navigate(-1); else setParams({}, { replace: true }); };
+  // Hľadanie sa zavrie aj ťukom MIMO lištu a výsledky (prázdne miesto pod nimi) a klávesom Esc — Matej 30. 10.:
+  // „malo by sa to dať zavrieť aj inak než len kliknúť na zavrieť“.
+  // Okná nad feedom (komentáre, otvorený príspevok) sú súrodenci `.pkf-col` — ťuk v nich hľadanie nezavrie.
+  const closeOnOutside = (e: RMouseEvent<HTMLDivElement>) => {
+    if (!searching) return;
+    const el = e.target as HTMLElement;
+    if (el !== e.currentTarget && (!el.closest('.pkf-col') || el.closest('.pkf-sb, .pkf-it'))) return;
+    closeSearch();
+  };
+  useEffect(() => {
+    if (!searching) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeSearch(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searching]);
 
   // Plochý papyrus: tapeta PackLayoutu sa pre túto stránku vypne (CSS vyššie).
   useEffect(() => {
@@ -506,7 +523,7 @@ export function PackFeed() {
   const isPaper = (it: Item) => it.k === 'trip' || it.k === 'post' || it.k === 'map';
 
   return (
-    <div className="pkf">
+    <div className={`pkf${searching ? ' srch' : ''}`} onClick={closeOnOutside}>
       <style>{SCROLL_CSS}{SCROLL_CARD_CSS}{CSS}</style>
       <div className="pkf-col">
         {searching ? (<>
