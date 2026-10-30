@@ -25,8 +25,10 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { HubAinubis, PackNotifications } from './PackNotifications';
 import { BackButton } from './BackButton';
+import { SosButton } from './SosButton';
 import { PACK_TOPROW, PACK_COL_INNER, PACK_COL_PAD, PAPER_BG, PACK_SPACE, usePaperRoute } from './packTheme';
 import { DEV_FULL } from '@/lib/packFlags';
+import { TEST_BUILD } from '@/lib/env';
 import { getPackStats } from '@/lib/sharedFetch';
 
 // ── JEDNA HLAVIČKA (Matej 28. 10. 2026) ──────────────────────────────────────────────────
@@ -51,6 +53,8 @@ function TopRowRight({ extra }: { extra?: ReactNode }) {
   return (
     <>
       {extra}
+      {/* SOS vedľa správ (Matej 30. 10. 2026) — zatiaľ len testovacia appka; LIVE až po jeho „ok“. */}
+      {TEST_BUILD && <SosButton />}
       {DEV_FULL && <PackNotifications dark={!paper} last24h={stats.last24h} total={stats.total} layout="inline" capsule />}
     </>
   );

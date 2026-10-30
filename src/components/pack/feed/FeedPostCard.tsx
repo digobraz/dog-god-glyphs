@@ -35,8 +35,10 @@ ${FOLLOW_CHIP_CSS}
 .pfp-head{display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;}
 .pfp-head .pk-medallion{width:${PACK_AVATAR.head}px;height:${PACK_AVATAR.head}px;font:600 ${TX.body}px/1 ${FONT_UI};color:${T.inkWarm};}
 .pfp-av{all:unset;cursor:pointer;display:flex;flex:none;border-radius:999px;}
-.pfp-who{min-width:0;flex:1;}
+.pfp-who{min-width:0;flex:1;line-height:1.25;}
 .pfp-who b{cursor:pointer;}
+.pfp-who small{display:block;}
+.pfp-head .fchip{padding:${S.sm}px ${S.md}px;font-size:${TX.body}px;}
 .pfp-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: meno */
 .pfp-who small{font-size:${TX.label}px;color:${T.inkWarm};}
 .pfp-ph{position:relative;width:100%;background:${T.tileBg};cursor:pointer;touch-action:pan-y;overscroll-behavior-x:contain;}

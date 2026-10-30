@@ -34,6 +34,7 @@ import { agoLabel, tripTitle, useSwipe, type FeedTrip } from './feedData';
 const T = PACK_THEME;
 const S = PACK_SPACE;
 const TX = PACK_TEXT;
+const FRESH_MS = 3 * 24 * 3600 * 1000;
 
 export const FEED_TRIP_CSS = `
 ${COMMUNITY_CSS}
@@ -43,8 +44,11 @@ ${FOLLOW_CHIP_CSS}
 .pft{display:flex;flex-direction:column;}
 .pft-head{display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;}
 .pft-head .pk-medallion{width:${PACK_AVATAR.head}px;height:${PACK_AVATAR.head}px;font:600 ${TX.body}px/1 ${FONT_UI};color:${T.inkWarm};}
-.pft-who{min-width:0;flex:1;}
-.pft-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: meno */
+.pfp-av{all:unset;cursor:pointer;display:flex;flex:none;border-radius:999px;}
+.pft-who{min-width:0;flex:1;line-height:1.25;}
+.pft-who small{display:block;}
+.pft-head .fchip{padding:${S.sm}px ${S.md}px;font-size:${TX.body}px;}
+.pft-who b{cursor:pointer;display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: meno */
 .pft-who small{font-size:${TX.label}px;color:${T.inkWarm};}
 .pft-in{overflow:hidden;}
 .pft-ph{position:relative;width:100%;background:${T.tileBg};overflow:hidden;touch-action:pan-y;overscroll-behavior-x:contain;}
@@ -198,16 +202,23 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
   const aspect = ratio ? Math.min(Math.max(ratio, 4 / 5), 2) : 4 / 3;
   const shownAuthor = (!ft.mine && authorName) || ft.author;
   const ownImg = ft.mine ? youImg : authorImg;
+  const isFresh = ft.at > 0 && Date.now() - ft.at < FRESH_MS;
+  const authorPath = ft.mine ? '/pack/profile' : authorN != null ? `/pack/u/${authorN}` : null;
+  const openAuthor = () => { if (authorPath) navigate(authorPath); };
 
   return (
     <article className="pft">
       <div className="pft-head">
-        <span className="pk-medallion">
-          {ownImg ? <img src={sizedUrl(ownImg, 80)} alt="" /> : (shownAuthor || '?').charAt(0).toUpperCase()}
-        </span>
+        {/* Fotka aj meno autora = jeho profil (Matej 30. 10.). */}
+        <button type="button" className="pfp-av" onClick={openAuthor} aria-label={shownAuthor || ''}>
+          <span className="pk-medallion">
+            {ownImg ? <img src={sizedUrl(ownImg, 80)} alt="" /> : (shownAuthor || '?').charAt(0).toUpperCase()}
+          </span>
+        </button>
         <div className="pft-who">
-          <b>{shownAuthor || tx('pack.feed.member', 'Member')}</b>
-          <small>{[tx('pack.feed.trip.new', 'New trip'), agoLabel(ft.at, lang)].filter(Boolean).join(' · ')}</small>
+          <b role="link" tabIndex={0} onClick={openAuthor} onKeyDown={(e) => { if (e.key === 'Enter') openAuthor(); }}>{shownAuthor || tx('pack.feed.member', 'Member')}</b>
+          {/* „Nový výlet“ len prvé 3 dni (Matej 30. 10.), potom ostane len čas. */}
+          <small>{[isFresh ? tx('pack.feed.trip.new', 'New trip') : '', agoLabel(ft.at, lang)].filter(Boolean).join(' · ')}</small>
         </div>
         {!ft.mine && authorN != null && <FollowChip n={authorN} />}
       </div>
