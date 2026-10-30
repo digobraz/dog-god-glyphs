@@ -7112,6 +7112,8 @@ export const en = {
   'pack.sos.firstAid': "First aid",
   'pack.sos.vet': "Nearest vet",
   'pack.sos.soon': "Soon",
+  'pack.rank.sinceAsk': "Since when do you have your dog? Roughly is fine.",
+  'pack.rank.sinceSave': "Save",
   'pack.feed.search.count': "Found: {n}",
   'pack.feed.search.hint': "Searches trips, AINUBIS scrolls and posts.",
   'pack.feed.map.note': "Left a note on the map",

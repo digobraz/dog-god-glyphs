@@ -345,6 +345,7 @@ export default function PackMe() {
           {rank && (
             <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} tx={tx}
               servantYears={novice ? null : servantYears}
+              sinceDogs={ownDogs.filter((d) => d.life_status !== 'deceased').map((d) => ({ id: d.id, name: d.dog_name || '' }))}
               home={human?.nationality ?? 'SK'}
               blank={novice}
               abroad={pilgrim.countryCodes.filter((c) => c !== (human?.nationality ?? 'SK').toLowerCase()).length}

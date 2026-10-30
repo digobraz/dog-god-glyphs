@@ -9,7 +9,7 @@
 //    vzorec z boxu klame (merané v prehliadači).
 import { useEffect, useState, type CSSProperties } from 'react';
 import { TEST_BUILD } from '@/lib/env';
-import { readEvents } from '@/lib/dogEvents';
+import { readEvents, appendDogEvents, onDogEventsChange } from '@/lib/dogEvents';
 import { PACK_R, PACK_SHADOW, PACK_THEME, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PILGRIM_FROM as P_FROM, stepOf, pilgrimColors, pilgrimImg } from '@/lib/packTiers';
@@ -100,6 +100,9 @@ export function useActiveDays(enabled: boolean): number | null {
 type ServDog = { id: string; life_status?: string | null; death_date?: string | null };
 export function useServantYears(dogs: ServDog[], enabled: boolean): number | null {
   const [years, setYears] = useState<number | null>(null);
+  // Dátum doplnený priamo v rozkliku odznaku (SinceRows) prepočíta číslo hneď.
+  const [rev, setRev] = useState(0);
+  useEffect(() => onDogEventsChange(() => setRev((n) => n + 1)), []);
   const key = dogs.map((d) => `${d.id}:${d.life_status === 'deceased' ? d.death_date ?? '' : ''}`).join(',');
   useEffect(() => {
     if (!enabled || !key) return;
@@ -133,13 +136,13 @@ export function useServantYears(dogs: ServDog[], enabled: boolean): number | nul
       }
     }).catch(() => {});
     return () => { alive = false; };
-  }, [key, enabled]);
+  }, [key, enabled, rev]);
   return years;
 }
 
 type BadgeBtn = { on?: boolean; onClick?: () => void; label: string };
 
-/** SLUŽOBNÍK — `years` null/0 = UČEŇ (bez čísla). `activeDays` plní kapsulu žiariacim zlatom. */
+/** SLUŽOBNÍK — číslo VŽDY, aj 0 (Matej 30. 10.: *„minimálne 1 alebo 0, ale nie prázdnota“*); null = bez dátumu = 0. `activeDays` plní kapsulu žiariacim zlatom. */
 export function ServantBadge({ years, activeDays, on, onClick, label }: BadgeBtn & { years: number | null; activeDays: number | null }) {
   const y = Math.max(0, years ?? 0);
   const t = stepOf(S_FROM, y);
@@ -154,7 +157,7 @@ export function ServantBadge({ years, activeDays, on, onClick, label }: BadgeBtn
           background: 'linear-gradient(180deg,#FFF6CC,#F2C24E 40%,#C88A22 75%,#8A5A12)',
           boxShadow: 'inset 0 -3px 5px rgba(60,30,0,.45), 0 0 10px rgba(255,200,90,.6)',
         }} />
-        {y > 0 && <span className="nb">{y}</span>}
+        <span className="nb">{y}</span>
       </span>
     </button>
   );
@@ -236,6 +239,13 @@ export const RANK_PANEL_CSS = `
 .rkp-how{ margin:12px 0 0; font-size:12px; line-height:1.45; color:rgba(243,230,200,.75); }
 .rkp-act{ display:inline-flex; align-items:center; gap:4px; margin-top:12px; border:0; background:none; padding:0; cursor:pointer;
   font-weight:600; font-size:12px; color:#E7C46C; text-decoration:underline; text-underline-offset:3px; }
+.rkp-since{ margin-top:${PACK_SPACE.md}px; display:flex; flex-direction:column; gap:${PACK_SPACE.sm}px; }
+.rkp-since p{ margin:0; font-size:12px; color:rgba(243,230,200,.75); }
+.rkp-since label{ display:flex; align-items:center; gap:${PACK_SPACE.sm}px; }
+.rkp-since b{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:${FONT_UI}; font-weight:600; font-size:14px; color:#F3E6C8; }
+.rkp-since input{ font:500 14px/1.2 ${FONT_UI}; padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px; border-radius:${PACK_R.field}px; border:1px solid ${PACK_THEME.cardEdge}; background:${PACK_THEME.card}; color:${PACK_THEME.inkStrong}; }
+.rkp-since button{ font:600 12px/1 ${FONT_UI}; padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px; border-radius:${PACK_R.field}px; border:0; cursor:pointer; background:linear-gradient(180deg,#C99A3F,#A3782B); color:#2A1B06; }
+.rkp-since button:disabled{ opacity:.45; cursor:default; }
 .rkp-nums{ display:grid; grid-template-columns:repeat(3, 1fr); margin-top:16px; text-align:center; }
 .rkp-nums b{ display:block; font-family:${FONT_UI}; font-weight:600; font-size:20px; color:#F3E6C8; }
 .rkp-nums span{ font-size:10px; color:rgba(243,230,200,.6); }
@@ -250,8 +260,10 @@ const SERVANT_BAR: CSSProperties = { background: SERVANT_FILL, boxShadow: 'inset
 /** SLUŽOBNÍK po rozkliku: roky + obrázok stupňa, zlatý pás aktivity, rebrík 8 odznakov. */
 /** Pod rebríkom rokov sú ODZNAKY (30. 10. 2026) — ťuk na odznak ukáže detail v tom istom paneli.
  *  `trips` a `abroad` = čísla PÚTNIKA (počet prejdených výletov, krajiny mimo vlastnej). */
-export function ServantPanel({ years, onDogId, trips = 0, abroad = 0, home = 'SK', blank = false, tx }: {
+export function ServantPanel({ years, onDogId, dogs = [], trips = 0, abroad = 0, home = 'SK', blank = false, tx }: {
   years: number | null; onDogId?: () => void; trips?: number; abroad?: number; home?: string;
+  /** Vlastní psi — kto nemá „Spolu od“, dostane riadok s dátumom priamo tu (Matej 30. 10.). */
+  dogs?: SinceDog[];
   /** Náhľad „nový člen“ (`?novice`) — odznaky ukáže prázdne, nie skutočné. */
   blank?: boolean; tx: Tx;
 }) {
@@ -274,7 +286,7 @@ export function ServantPanel({ years, onDogId, trips = 0, abroad = 0, home = 'SK
       <div className="rkp-hd">
         <span className="im" style={{ ['--k' as string]: S_K[t] }}><img src={`/icons/pack/rank/servant-${t}.webp`} alt="" /></span>
         <div className="tx">
-          <h3>{tx('pack.ladder.servant', 'Servant')}{y > 0 ? ` ${y}` : ''}</h3>
+          <h3>{tx('pack.ladder.servant', 'Servant')} {y}</h3>
           <p>{sub}</p>
         </div>
       </div>
@@ -296,12 +308,57 @@ export function ServantPanel({ years, onDogId, trips = 0, abroad = 0, home = 'SK
       </div>
       <p className="rkp-cap">{tx('pack.rank.ladderYears', 'years')}</p>
       <p className="rkp-how">{tx('pack.rank.servantHow', 'The number counts full years with a dog, from “Together since” in DOG ID. The gold fills with every day you write something in the app.')}</p>
-      {years == null && onDogId && (
+      {!blank && <SinceRows dogs={dogs} tx={tx} />}
+      {years == null && onDogId && !dogs.length && (
         <button type="button" className="rkp-act" onClick={onDogId}>{tx('pack.rank.servantNoDate', 'Add “Together since” in DOG ID')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>
       )}
       <style>{BADGE_SHELF_CSS}</style>
       <BadgeShelf counts={counts} failed={st === 'error'} onRetry={retry} onOpen={setOpen} tx={tx} />
     </>
+  );
+}
+
+/** „SPOLU OD“ priamo v rozkliku SLUŽOBNÍKA — dovtedy sa dal dátum zadať len v DOG ID (Základ) a profil JA
+ *  naň ani neodkazoval. Zapisuje do toho istého poľa `basics.since`, takže DOG ID ho uvidí tiež. */
+export type SinceDog = { id: string; name: string };
+function SinceRows({ dogs, tx }: { dogs: SinceDog[]; tx: Tx }) {
+  const [missing, setMissing] = useState<SinceDog[]>([]);
+  const [val, setVal] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState<string | null>(null);
+  const ids = dogs.map((d) => d.id).join(',');
+  useEffect(() => {
+    if (!ids) return;
+    let alive = true;
+    readEvents(ids.split(','), ['basics.since']).then((evs) => {
+      if (!alive) return;
+      const has = new Set(evs.filter((e) => typeof e.value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(e.value)).map((e) => e.dogId));
+      setMissing(dogs.filter((d) => !has.has(d.id)));
+    }).catch(() => {});
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ids]);
+  if (!missing.length) return null;
+  const today = new Date().toLocaleDateString('sv');
+  const save = async (d: SinceDog) => {
+    const v = val[d.id];
+    if (!v || v > today) return;
+    setBusy(d.id);
+    try {
+      await appendDogEvents([{ dogId: d.id, field: 'basics.since', value: v, source: 'profile' }]);
+      setMissing((m) => m.filter((x) => x.id !== d.id));
+    } finally { setBusy(null); }
+  };
+  return (
+    <div className="rkp-since">
+      <p>{tx('pack.rank.sinceAsk', 'Since when do you have your dog? Roughly is fine.')}</p>
+      {missing.map((d) => (
+        <label key={d.id}>
+          <b>{d.name}</b>
+          <input type="date" max={today} value={val[d.id] ?? ''} onChange={(e) => setVal((m) => ({ ...m, [d.id]: e.target.value }))} />
+          <button type="button" disabled={!val[d.id] || busy === d.id} onClick={() => save(d)}>{tx('pack.rank.sinceSave', 'Save')}</button>
+        </label>
+      ))}
+    </div>
   );
 }
 

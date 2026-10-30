@@ -6821,6 +6821,8 @@ export const cs: Partial<Dict> = {
   'pack.sos.firstAid': "První pomoc",
   'pack.sos.vet': "Nejbližší veterinář",
   'pack.sos.soon': "Brzy",
+  'pack.rank.sinceAsk': "Odkdy máš psa? Stačí přibližně.",
+  'pack.rank.sinceSave': "Uložit",
   'pack.feed.search.count': "Nalezeno: {n}",
   'pack.feed.search.hint': "Hledá ve výletech, svitcích AINUBISe i v příspěvcích.",
   'pack.feed.map.note': "Nechal(a) značku na mapě",

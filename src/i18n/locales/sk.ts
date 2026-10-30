@@ -6801,6 +6801,8 @@ export const sk: Partial<Dict> = {
   'pack.sos.firstAid': "Prvá pomoc",
   'pack.sos.vet': "Najbližší veterinár",
   'pack.sos.soon': "Čoskoro",
+  'pack.rank.sinceAsk': "Odkedy máš psa? Stačí približne.",
+  'pack.rank.sinceSave': "Uložiť",
   'pack.feed.search.count': "Nájdené: {n}",
   'pack.feed.search.hint': "Hľadá vo výletoch, zvitkoch AINUBISa aj v príspevkoch.",
   'pack.feed.map.note': "Nechal(a) značku na mape",

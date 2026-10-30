@@ -1,4 +1,4 @@
-// ── SOS — GLOBÁL v hornom páse, vedľa správ (Matej 30. 10. 2026) ─────────────────────────────
+// ── SOS — GLOBÁL v hornom páse, vedľa správ (Matej 30. 10. 2026), ikonka = trojuholník s výkričníkom ─────────────────────────────
 // *„postavme to už teraz, resp. chcem to tam mať už zarámované, obsah môžeme dodať aj neskôr"*.
 // Lock `architektura-pack.md` §1.2: SOS je GLOBÁL, max 1 ťuk odkiaľkoľvek, nikdy tab.
 // Ťuk = POPUP (šuplík zdola, lock pack-dizajn-system §POPUP). Dnes je to RÁM — riadky sú „čoskoro":
@@ -16,9 +16,7 @@ const T = PACK_THEME;
 const S = PACK_SPACE;
 
 const CSS = `
-.sos-btn{all:unset;cursor:pointer;box-sizing:border-box;height:28px;padding:0 ${S.sm}px;display:grid;place-items:center;
-  border-radius:${PACK_R.pill}px;border:1.5px solid ${T.alertRed};color:${T.alertRed};
-  font:600 ${PACK_TEXT.label}px/1 ${FONT_UI};letter-spacing:.02em;}
+.sos-btn{all:unset;cursor:pointer;box-sizing:border-box;width:44px;height:44px;display:grid;place-items:center;border-radius:${PACK_R.pill}px;}
 .sos-btn:active{background:${T.alertRedSoft};}
 .sos-list{display:flex;flex-direction:column;gap:${S.sm}px;}
 .sos-row{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:${S.md}px;padding:${S.md}px;}
@@ -41,7 +39,8 @@ export function SosButton() {
   return (
     <>
       <style>{CSS}</style>
-      <button type="button" className="sos-btn" onClick={() => setOpen(true)} aria-label="SOS">SOS</button>
+      {/* Trojuholník s výkričníkom z kitu (`alert.svg`), červený — Matej 30. 10.: „nie SOS, ale ikonku trojuholník s výkričníkom“. */}
+      <button type="button" className="sos-btn" onClick={() => setOpen(true)} aria-label="SOS"><BrandIcon name="alert" size={24} tint="danger" /></button>
       {open && (
         <PackPopup title="SOS" onClose={() => setOpen(false)}>
           <div className="sos-list">
