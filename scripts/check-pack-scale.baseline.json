@@ -1336,11 +1336,11 @@
     "font": 0,
     "zavoj": 0,
     "progres": 0,
-    "ram": 4,
-    "tien": 5,
+    "ram": 1,
+    "tien": 3,
     "pismenka": 0,
     "odsadenie": 0,
-    "cinzel": 7,
+    "cinzel": 6,
     "tucny": 0
   },
   "pages/PackJoin.tsx": {
