@@ -41,6 +41,14 @@ async function register() {
     } catch { /* ďalší štart skúsi znova */ }
   });
   await PushNotifications.addListener('registrationError', () => { /* bez kľúčov (FCM/APNs) je to očakávané */ });
+  // ŤUK NA NOTIFIKÁCIU (30. 10. 2026) — server posiela `data.url` (napr. `/pack/profile?dnes=1`),
+  // dovtedy ťuk len otvoril appku tam, kde bola. BrowserRouter počúva `popstate`, preto pushState + event.
+  await PushNotifications.addListener('pushNotificationActionPerformed', ({ notification }) => {
+    const url = (notification?.data as { url?: unknown } | undefined)?.url;
+    if (typeof url !== 'string' || !url.startsWith('/')) return;
+    window.history.pushState({}, '', url);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  });
   const perm = await PushNotifications.checkPermissions();
   const granted = perm.receive === 'granted' || (await PushNotifications.requestPermissions()).receive === 'granted';
   if (granted) await PushNotifications.register();
@@ -53,7 +61,14 @@ export function startAppPush() {
   supabase.auth.onAuthStateChange((event, session) => {
     if (event !== 'INITIAL_SESSION' && event !== 'SIGNED_IN') return;
     const perm = (session?.user?.user_metadata as { app_perm?: { push?: boolean } } | undefined)?.app_perm;
-    if (perm?.push === true) void register().catch(() => {});
+    if (perm?.push === true) { void register().catch(() => {}); return; }
+    // Povolené v telefóne (aj mimo prvého otvorenia) = súhlas; bez neho sa nepýtame (30. 10. 2026:
+    // token mal 1 človek, hoci iOS povolenie dalo viac ľudí).
+    void (async () => {
+      if (APP_PLATFORM === 'android' && !ANDROID_PUSH_READY) return;
+      const { PushNotifications } = await import('@capacitor/push-notifications');
+      if ((await PushNotifications.checkPermissions()).receive === 'granted') await register();
+    })().catch(() => {});
   });
 }
 
