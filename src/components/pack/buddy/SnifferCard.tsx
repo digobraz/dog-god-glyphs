@@ -105,6 +105,7 @@ export const SNIFFER_CARD_CSS = `
 /* Meno nerastie — odznaky stoja hneď za ním (zalomia sa pod meno, keď sa nezmestia), oko vpravo. */
 .sn-id{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;}
 .sn-id > .sn-nm{flex:0 1 auto;}
+.sn-id.is-tap{padding:0;border:0;background:none;color:inherit;text-align:left;cursor:pointer;font:inherit;}
 /* Odznaky pri mene menšie než na profile (46 px) — aby sa na PC karte (≈350 px) zmestili s menom do riadku. */
 .sn-head .rk{--s:30px;}
 .sn-lv{display:flex;flex-wrap:wrap;align-items:center;gap:${PACK_SPACE.xs}px;}
@@ -140,12 +141,6 @@ export const SNIFFER_CARD_CSS = `
   font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;white-space:nowrap;}
 .sn-chip b{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.body}px;}
 .sn-chip i{font-style:normal;opacity:.5;}
-/* CELÝ PROFIL = kreslené OKO pri mene (kolo 2: „schovaj to pod tlačidlo… vyber nejaký hand drawn").
-   Kotúč 44 px (ťukacia plocha bez triku), zlatý lem ako odznaky, kresba z kitu eye.svg. */
-.sn-full{flex:0 0 auto;width:44px;height:44px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;cursor:pointer;padding:0;
-  background:rgba(0,0,0,.35);border:1px solid ${BRAND_GOLD_BTN.edge};color:${T.onDark};box-shadow:${PACK_SHADOW.panel};}
-.sn-full > i{width:24px;height:24px;background:currentColor;
-  -webkit-mask:url(/icons/pack/eye.svg) center/contain no-repeat;mask:url(/icons/pack/eye.svg) center/contain no-repeat;}
 .sn-bio{margin:0;font-size:${PACK_TEXT.label}px;line-height:1.45;opacity:.92;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .sn-pills{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.xs}px;}
 .sn-pills .pk-pill{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;}
@@ -266,18 +261,19 @@ export function SnifferCard({ card, tx, back = false, className = '', style, onO
       <div className="sn-ov">
         <div className="sn-head">
           {/* ODZNAKY VEDĽA MENA, nie hore (Matej 30. 10. 2026: „tie odznaky umiestniť vedľa mena nie hore").
-              Meno + odznaky sú jedna skupina, ktorá sa smie zalomiť; oko ostáva vpravo v tom istom riadku. */}
-          <span className="sn-id">
-            <p className="sn-nm">{card.name}{card.age ? <>, <span>{card.age}</span></> : null}</p>
-            <SnifferLevels card={card} tx={tx} />
-          </span>
-          {onOpenFull && (
-            <button type="button" className="sn-full" aria-label={tx('pack.sniffer.fullProfile', 'Full profile')}
-              title={tx('pack.sniffer.fullProfile', 'Full profile')}
-              onPointerDown={(e) => e.stopPropagation()}
+              CELÝ PROFIL = ŤUK NA MENO ako na Tinderi (Matej 30. 10. 2026 „B") — oko `eye.svg` zrušené,
+              nikto nevedel, čo znamená. pointerdown sa nezastavuje kvôli swipu (B9), ťuk áno. */}
+          {onOpenFull ? (
+            <button type="button" className="sn-id is-tap" aria-label={tx('pack.sniffer.fullProfile', 'Full profile')}
               onClick={(e) => { e.stopPropagation(); onOpenFull(); }}>
-              <i aria-hidden />
+              <span className="sn-nm">{card.name}{card.age ? <>, <span>{card.age}</span></> : null}</span>
+              <SnifferLevels card={card} tx={tx} />
             </button>
+          ) : (
+            <span className="sn-id">
+              <p className="sn-nm">{card.name}{card.age ? <>, <span>{card.age}</span></> : null}</p>
+              <SnifferLevels card={card} tx={tx} />
+            </span>
           )}
         </div>
         {card.dogs.length > 0 && (
