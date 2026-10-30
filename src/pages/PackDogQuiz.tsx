@@ -727,7 +727,7 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose?: () 
         {/* × → ŠÍPKA SPÄŤ v spoločnom rade (Matej 27. 9. 2026: „pri kvízoch je nutný ten
             krížik? nemáme ho nikde … napr. šípka dozadu"). Robí to isté, čo krížik: uloží
             rozpracované a vráti na /pack/dogs. Ľavý roh tým pripadol AINUBISOVI. */}
-        <PackTopRow onBack={back} backLabel={t('pack.quiz.back')} />
+        <PackTopRow onBack={back} backLabel={t('pack.quiz.back')} task />
         {children}
       </div>
     </div>

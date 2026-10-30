@@ -25,10 +25,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { HubAinubis, PackNotifications } from './PackNotifications';
 import { BackButton } from './BackButton';
-import { SosButton } from './SosButton';
 import { PACK_TOPROW, PACK_COL_INNER, PACK_COL_PAD, PAPER_BG, PACK_SPACE, usePaperRoute } from './packTheme';
 import { DEV_FULL } from '@/lib/packFlags';
-import { TEST_BUILD } from '@/lib/env';
 import { getPackStats } from '@/lib/sharedFetch';
 
 // ── JEDNA HLAVIČKA (Matej 28. 10. 2026) ──────────────────────────────────────────────────
@@ -53,8 +51,6 @@ function TopRowRight({ extra }: { extra?: ReactNode }) {
   return (
     <>
       {extra}
-      {/* SOS vedľa správ (Matej 30. 10. 2026) — zatiaľ len testovacia appka; LIVE až po jeho „ok“. */}
-      {TEST_BUILD && <SosButton />}
       {DEV_FULL && <PackNotifications dark={!paper} last24h={stats.last24h} total={stats.total} layout="inline" capsule />}
     </>
   );
@@ -80,7 +76,11 @@ const CSS = `
 .pk-toprow-r{justify-self:end;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;}
 `;
 
-export function PackTopRow({ onBack, backLabel, right, extra, left }: {
+// 🎯 ÚLOHA = KÔŠ 3 (Matej 30. 10. 2026 nad onboardingom SNIFFERa: *„vadí mi sos, správy a chvost… nie je to
+//    aktívna obrazovka, kde sa niečo robí? postráž si tieto pohľady“*). Kde človek vypĺňa, ladí alebo hrá kvíz,
+//    pravý kraj ostane PRÁZDNY — žiadne správy, upozornenia ani SOS. AINUBIS vľavo a šípka ostávajú.
+//    SOS nie je v tomto rade vôbec — žije len v hlavičke /map (`PackMap.tsx`).
+export function PackTopRow({ onBack, backLabel, right, extra, left, task = false }: {
   /** Bez `onBack` je stred prázdny (homepage, DOG ID, profil). */
   onBack?: () => void;
   backLabel?: string;
@@ -90,13 +90,15 @@ export function PackTopRow({ onBack, backLabel, right, extra, left }: {
   extra?: ReactNode;
   /** Vedľa AINUBISA vľavo — FEED 2 tu má lupu (Matej 26. 10. 2026: lupa vedľa AINUBISA, nie pri správach). */
   left?: ReactNode;
+  /** Obrazovka ÚLOHY (kôš 3) — pravý kraj bez správ a upozornení. */
+  task?: boolean;
 }) {
   return (
     <div className="pk-toprow">
       <style>{CSS}</style>
       <span className="pk-toprow-l"><HubAinubis />{left}</span>
       {onBack ? <BackButton tone="pale" onClick={onBack} label={backLabel ?? ''} /> : <span />}
-      <span className="pk-toprow-r">{right ?? <TopRowRight extra={extra} />}</span>
+      <span className="pk-toprow-r">{task ? extra : right ?? <TopRowRight extra={extra} />}</span>
     </div>
   );
 }

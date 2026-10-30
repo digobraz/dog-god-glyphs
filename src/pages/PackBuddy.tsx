@@ -174,6 +174,7 @@ const CSS = `
 .bd-stage{flex:1 1 auto;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;min-height:0;}
 .bd-stage__body{flex:1 1 auto;display:flex;flex-direction:column;}
 .bd-stage__body > .bd-card{margin:auto 0;}
+.bd-hero--bare{background:none;border:0;box-shadow:none;}
 .bd-howcard{gap:${PACK_SPACE.lg}px;}
 .bd-disc--xl{width:${PACK_AVATAR.lg + PACK_SPACE.xl}px;height:${PACK_AVATAR.lg + PACK_SPACE.xl}px;}
 .bd-dots{display:flex;justify-content:center;gap:${PACK_SPACE.sm}px;}
@@ -488,12 +489,14 @@ export default function PackBuddy() {
       // otvorili by to isté, čo človek práve vypĺňa (Matej 25. 9.: „otvorí to isté").
       onGear={view === 'home' || view === 'done' ? () => setView('settings') : undefined}
       // Šípka je v strede VŽDY (spoločný rad PackTopRow, 27. 9. 2026).
+      // Úvod, vypĺňanie a nastavenia = ÚLOHA (kôš 3): hore bez správ a upozornení (Matej 30. 10. 2026).
+      task={view === 'splash' || view === 'onb' || view === 'settings'}
       gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'onb' || view === 'settings'} fit={view === 'home' || view === 'done' || view === 'onb' || view === 'settings'}>
       {view === 'splash' && (
         <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
           <div className="bd-stage__body">
-            <div className={`bd-card bd-center bd-hero hf-carved${logoDone ? ' is-done' : ''}`} style={{ ...PACK_BOX.card }}>
-              <span className="hf-carved-rim" aria-hidden />
+            {/* BEZ BLOKU (Matej 30. 10. 2026: „animácia by mala byť na ploche, nie v bloku = zruš ten blok“). */}
+            <div className={`bd-card bd-center bd-hero bd-hero--bare${logoDone ? ' is-done' : ''}`}>
               <SnifferLogo size={PACK_AVATAR.lg * 3 + PACK_SPACE.xl} onDone={onLogoDone} />
               {/* Nápis a veta až KEĎ STOJÍ SRDCE (Matej 25. 9.: „až po tom, čo nabehne srdce, až
                   vtedy príde text, a tagline bude groteskom"). Počas animácie je logo v STREDE
@@ -645,7 +648,8 @@ export default function PackBuddy() {
 /** Heroglyf píše pohlavie majiteľa ako `man`/`woman` (starší zápis `male`/`female`). */
 const HERO_GENDER: Record<string, Gender> = { man: 'male', male: 'male', woman: 'female', female: 'female' };
 
-function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, children }: {
+function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, task, children }: {
+  task?: boolean;
   title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; wide?: boolean; fit?: boolean; children?: ReactNode;
 }) {
   return (
@@ -667,6 +671,7 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, childre
         <PackTopRow
           onBack={onBack}
           backLabel={backLabel}
+          task={task}
           extra={onGear && (
             <button type="button" className="bd-gear" onClick={onGear} aria-label={gearLabel}>
               <BrandIcon name="sliders" size={PACK_SPACE.lg} tint="dark" />

@@ -31,9 +31,10 @@ export const ICONS: Array<{ file: string; color: string }> = [
 /** Srdce loga — koralová z Matejovho návrhu. */
 export const SNIFFER_HEART = '#E8493F';
 /** Znak je hotový (srdce stojí, nos sedí) — odtiaľ smie nabehnúť nápis a veta. */
-export const SNIFFER_LOGO_DONE_MS = 5700;
+// SKRÁTENÉ na ~polovicu (Matej 30. 10. 2026: „môžeš tu animáciu skrátiť“) — poradie krokov rovnaké.
+export const SNIFFER_LOGO_DONE_MS = 3300;
 /** Celá animácia vrátane posledného začuchania. */
-export const SNIFFER_LOGO_END_MS = 8000;
+export const SNIFFER_LOGO_END_MS = 4800;
 const INK = '#1F1A0E';
 
 const CSS = `
@@ -46,25 +47,25 @@ const CSS = `
 /* SRDCE = ZADOK (Matej: „srdce musí vyznieť ako zadok — jedna a druhá pola sa zatrasú").
    Dve polovice, každá sa trasie sama a o chvíľu neskôr než druhá. */
 .snl-heart{width:92%;height:92%;margin:-46% 0 0 -46%;transform:scale(0);transform-origin:50% 60%;
-  animation:snl-heart .7s cubic-bezier(.3,1.5,.5,1) 5s forwards;}
+  animation:snl-heart .6s cubic-bezier(.3,1.5,.5,1) 2.7s forwards;}
 .snl-heart svg{width:100%;height:100%;display:block;overflow:visible;}
 .snl-cheek{transform-box:fill-box;transform-origin:50% 20%;}
-.snl-cheek--l{animation:snl-jig .42s ease-in-out 5.8s 3;}
-.snl-cheek--r{animation:snl-jig .42s ease-in-out 5.95s 3;}
+.snl-cheek--l{animation:snl-jig .36s ease-in-out 3.3s 3;}
+.snl-cheek--r{animation:snl-jig .36s ease-in-out 3.42s 3;}
 @keyframes snl-jig{0%,100%{transform:none;}30%{transform:translateY(2.5%) scale(1.03,.95);}65%{transform:translateY(-1.5%) scale(.98,1.04);}}
 .snl-ring{width:0;height:0;}
 /* KRESBY — presne rozloženie z Matejovho obrázka: smajlík hore, v smere hodín stromy, slnko,
    srdce, loptička, hory, jablko, mapa. Obehnú VŠETKY NARAZ rovnomerne (linear) a ZASEKNÚ sa
-   — plynulé dobrzďovanie vyzeralo, že sa ešte hýbu („nestoja nehybne!"). Stoja 1,2 s. */
+   — plynulé dobrzďovanie vyzeralo, že sa ešte hýbu („nestoja nehybne!"). Stoja 0,5 s. */
 .snl-ico{position:absolute;left:0;top:0;width:calc(var(--snl-size) * .13);height:calc(var(--snl-size) * .13);background:var(--snl-c);opacity:0;
   --snl-r:calc(var(--snl-size) * .31);--snl-t:-150deg;
   transform:translate(-50%,-50%) rotate(calc(var(--snl-a) + var(--snl-t))) translateY(calc(-1 * var(--snl-r))) rotate(calc(-1 * (var(--snl-a) + var(--snl-t))));
-  animation:snl-fade .5s ease-out calc(.8s + var(--snl-i) * .1s) forwards, snl-orbit 2.4s linear .8s forwards,
-    snl-merge .7s cubic-bezier(.6,0,.9,.4) 4.4s forwards;}
+  animation:snl-fade .4s ease-out calc(.4s + var(--snl-i) * .06s) forwards, snl-orbit 1.4s linear .4s forwards,
+    snl-merge .5s cubic-bezier(.6,0,.9,.4) 2.3s forwards;}
 /* Nos: JEDEN pulz pri nástupe (bez čuchania), na konci si sadne do polohy znaku. */
 .snl-nose{width:44%;height:44%;margin:-22% 0 0 -22%;background:${INK};transform:scale(0);
-  animation:snl-nose-in .6s cubic-bezier(.3,1.6,.5,1) .1s forwards, snl-nose-sit .7s ease-in-out 5s forwards,
-    snl-sniff2 .55s ease-in-out 7.2s 1;}
+  animation:snl-nose-in .5s cubic-bezier(.3,1.6,.5,1) .1s forwards, snl-nose-sit .6s ease-in-out 2.7s forwards,
+    snl-sniff2 .5s ease-in-out 4.3s 1;}
 @keyframes snl-nose-in{0%{transform:scale(0);}60%{transform:scale(.92);}100%{transform:scale(.82);}}
 @keyframes snl-nose-sit{from{transform:scale(.82);}to{transform:translateY(4.2%) scale(1.086,1.004);}}
 @keyframes snl-sniff2{0%,100%{transform:translateY(4.2%) scale(1.086,1.004);}50%{transform:translateY(4.2%) scale(1.14,.95);}}

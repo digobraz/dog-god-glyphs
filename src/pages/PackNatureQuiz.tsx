@@ -1394,7 +1394,7 @@ function Shell({ children, onClose, fill, overlay }: {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: PACK_TOPROW.h, marginBottom: PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h }}>
             <BackButton tone="pale" onClick={onClose} label={t('pack.quiz.back')} />
           </div>
-        ) : <PackTopRow onBack={onClose} backLabel={t('pack.quiz.back')} />}
+        ) : <PackTopRow onBack={onClose} backLabel={t('pack.quiz.back')} task />}
         {fill ? <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>{children}</div> : children}
       </div>
       {/* Dialóg žije TU, nie vedľa Shellu — NQ_CSS (a s ním `.nq-scrim`) sa vkladá

@@ -57,7 +57,8 @@ import { MapContainer, TileLayer, Polyline, Polygon, Circle, Marker, ScaleContro
 import L from 'leaflet';
 import type { LatLngTuple } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { mapyTiles, MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
+import { mapyTiles, MAPY_API_KEY, MAPY_BASE, TEST_BUILD } from '@/lib/env';
+import { SosButton } from '@/components/pack/SosButton';
 import { track } from '@/lib/analytics';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { useTrailPaths, fullPathOf } from '@/data/trailPaths';
@@ -5942,6 +5943,9 @@ export default function PackMap() {
       {/* KAPSULA ako na každej inej stránke /pack (Matej 3. 10. 2026: *„správy a upozornenia sú
           na mobile klasicky v spoločnom chipe… nech je to všade také isté"*). Do vtedy tu boli
           dve samostatné tmavé kolieska („obrátená pilulka" z 26. 8.) a na papyruse zanikali. */}
+      {/* SOS LEN TU, v hlavičke /map (Matej 30. 10. 2026: *„sos by som dal len na /map zatiaľ nikam inam,
+          len tam do hlavičky“*). Zatiaľ len testovacia appka; LIVE až po jeho „ok“. */}
+      {TEST_BUILD && <SosButton />}
       <PackNotifications dark={dark} layout="inline" className="trp-header-notif" last24h={id.packToday} total={id.packTotal} capsule />
     </div>
   );
