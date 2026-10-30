@@ -35,7 +35,8 @@
 //
 // Zrušenie po flipe `DEV_FULL`: zmazať FULL_PACK_EMAILS a vetvu na konci súboru.
 // ============================================================================
-import { SUPABASE_URL } from '@/lib/env';
+import { SUPABASE_URL, TEST_BUILD } from '@/lib/env';
+import { IS_APP } from '@/lib/isApp';
 
 /** Účty, ktoré vidia plný `/pack` aj v produkčnom builde. Prázdne pole = výnimka vypnutá. */
 export const FULL_PACK_EMAILS = ['hekthorsk@gmail.com'];
@@ -190,3 +191,11 @@ export const STORIES_ON = false;
 // nech netvoríme to, o čo nie je záujem)"*. Vypínač skryje položku v paneli „+“ a kartu ALBUMY na profile;
 // staré albumy sa ukážu ako bežný príspevok v karte VŠETKO. Zapnutie = `true` tu.
 export const ALBUMS_ON = false;
+
+// ── NOVÁ APPKA DO OBCHODU (30. 10. 2026) ────────────────────────────────────────
+// Audit `plany/audit-appka-2026-10-30/`: FEED, profil FLAT, odznaky, /dogs v2 a „Zapíš
+// dnešok" svietili LEN za `TEST_BUILD` → build pre App Store by ukázal staré obrazovky.
+// `APP_NEW` = test kanál (TEST_BUILD) ALEBO natívna appka. Web na dogypt.com ostáva,
+// kým Matej neschváli prepnutie aj tam (LIVE web len so súhlasom). MISIA ostáva na
+// TEST_BUILD — nemá ošetrené sumy v appke.
+export const APP_NEW: boolean = TEST_BUILD || IS_APP;
