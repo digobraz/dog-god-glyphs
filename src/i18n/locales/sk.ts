@@ -6330,6 +6330,8 @@ export const sk: Partial<Dict> = {
   'pack.badge.toNext': "Do ďalšieho odznaku",
   'pack.badge.top': "Celý rad je tvoj.",
   'pack.badge.left': "ešte {n}",
+  'pack.badge.failed': "Odznaky sa nenačítali.",
+  'pack.badge.retry': "Skúsiť znova",
   'pack.badge.rad': "Dni v rade",
   'pack.badge.rad.for': "koľko dní v rade bol aktívny (aspoň 1 zápis)",
   'pack.badge.dni': "Dni so psom",

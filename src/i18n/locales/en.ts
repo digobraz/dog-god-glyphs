@@ -6640,6 +6640,8 @@ export const en = {
   'pack.badge.toNext': "To the next badge",
   'pack.badge.top': "The whole row is yours.",
   'pack.badge.left': "{n} to go",
+  'pack.badge.failed': "Badges did not load.",
+  'pack.badge.retry': "Try again",
   'pack.badge.rad': "Days in a row",
   'pack.badge.rad.for': "how many days in a row you were active (at least 1 entry)",
   'pack.badge.dni': "Days with a dog",

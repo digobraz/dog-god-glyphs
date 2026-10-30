@@ -88,8 +88,8 @@ export const RANK_BADGE_CSS = `
  *  🔴 Ten istý „deň" ako odznaky DNI SO PSOM / DNI V RADE (`loadMyActivity` v badgeShelf.tsx, 30. 10. 2026):
  *  dovtedy sa tu čítal len `devotion_events`, takže výlet, príspevok či zvitok zlato neplnili. */
 export function useActiveDays(enabled: boolean): number | null {
-  const a = useMyActivity(enabled);
-  return a ? daysWithin(a, ACTIVE_DAYS) : null;
+  const [a] = useMyActivity(enabled);
+  return a && a !== 'error' ? daysWithin(a, ACTIVE_DAYS) : null;
 }
 
 /** Dokončené roky služby = čas, keď mal človek aspoň jedného psa: od DOG ID `basics.since`
@@ -250,10 +250,15 @@ const SERVANT_BAR: CSSProperties = { background: SERVANT_FILL, boxShadow: 'inset
 /** SLUŽOBNÍK po rozkliku: roky + obrázok stupňa, zlatý pás aktivity, rebrík 8 odznakov. */
 /** Pod rebríkom rokov sú ODZNAKY (30. 10. 2026) — ťuk na odznak ukáže detail v tom istom paneli.
  *  `trips` a `abroad` = čísla PÚTNIKA (počet prejdených výletov, krajiny mimo vlastnej). */
-export function ServantPanel({ years, onDogId, trips = 0, abroad = 0, home = 'SK', tx }: { years: number | null; onDogId?: () => void; trips?: number; abroad?: number; home?: string; tx: Tx }) {
-  const act = useMyActivity(true);
-  const activeDays = act ? daysWithin(act, ACTIVE_DAYS) : null;
-  const counts = act ? badgeCounts(act, trips, abroad, home) : null;
+export function ServantPanel({ years, onDogId, trips = 0, abroad = 0, home = 'SK', blank = false, tx }: {
+  years: number | null; onDogId?: () => void; trips?: number; abroad?: number; home?: string;
+  /** Náhľad „nový člen“ (`?novice`) — odznaky ukáže prázdne, nie skutočné. */
+  blank?: boolean; tx: Tx;
+}) {
+  const [st, retry] = useMyActivity(true);
+  const act = st && st !== 'error' ? st : null;
+  const activeDays = blank ? 0 : act ? daysWithin(act, ACTIVE_DAYS) : null;
+  const counts = blank ? {} : act ? badgeCounts(act, trips, abroad, home) : null;
   const [open, setOpen] = useState<string | null>(null);
   if (open && counts) return <><style>{BADGE_SHELF_CSS}</style><BadgeDetail id={open} counts={counts} fill={SERVANT_BAR} onBack={() => setOpen(null)} tx={tx} /></>;
   const y = Math.max(0, years ?? 0);
@@ -295,7 +300,7 @@ export function ServantPanel({ years, onDogId, trips = 0, abroad = 0, home = 'SK
         <button type="button" className="rkp-act" onClick={onDogId}>{tx('pack.rank.servantNoDate', 'Add “Together since” in DOG ID')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>
       )}
       <style>{BADGE_SHELF_CSS}</style>
-      <BadgeShelf counts={counts} onOpen={setOpen} tx={tx} />
+      <BadgeShelf counts={counts} failed={st === 'error'} onRetry={retry} onOpen={setOpen} tx={tx} />
     </>
   );
 }
