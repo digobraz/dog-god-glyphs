@@ -6955,6 +6955,7 @@ export const en = {
   'pack.dvtoday.dtChronPh': "What did you live through together today?",
   'pack.dvtoday.dtGoodSub': "support, help for a dog or a person",
   'pack.dvtoday.title': "Today",
+  'pack.dvtoday.chronFail': "Points saved, but the note did not reach the chronicle.",
   'pack.dvtoday.with': "With whom",
   'pack.dvtoday.walkShort': "Short walk",
   'pack.dvtoday.walkShortSub': "under 20 min · up to 3× a day",

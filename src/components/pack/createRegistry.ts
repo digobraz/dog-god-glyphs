@@ -20,7 +20,7 @@
 import { getPodcastNext } from '@/lib/ainubisBus';
 import { DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { TEST_BUILD } from '@/lib/env';
-import { STORIES_ON, ALBUMS_ON } from '@/lib/packFlags';
+import { APP_NEW, STORIES_ON, ALBUMS_ON } from '@/lib/packFlags';
 
 // ── MIESTA ──────────────────────────────────────────────────────────────────────────────────
 // Štyri miesta chrbtice, ktoré majú lištu, + GLOBÁL. GLOBÁL nie je tab a nikdy ním nebude
@@ -389,7 +389,10 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     // ⚠️ TOTO JE TEN JEDEN RIADOK, o ktorom hovorí `isReady`: preklopením `state` sa
     //    položka objavila na svojom mieste (JA) aj na DOMOVE naraz, bez editácie panela.
     state: 'live',
-    panel: true,
+    // 🆕 31. 10. 2026 (audit appky): z panela `+` ODIŠIEL — Matej 30. 10.: *„pri cta tlačítku zmizne
+    //    'do denníka' lebo sme to vyriešili len zápisom"*. Text zo „Zapíš dnešok" padá do `dog_events`
+    //    ako `diary.note`, takže denník sa píše cez zápis. Okno `DiaryEntry` ostáva (Kronika, kalendár).
+    panel: false,
     // ⚠️ BEZ `soon` — termín sa MAŽE, keď obrazovka pribudne. Tu nikdy nebol (denník bol
     //    KROK 5 tohto bloku, nie ohlásená vlna), takže niet čo mazať.
     // 🔴 HISTORICKÁ POZNÁMKA K PORADIU PRÁCE: kým denník nebol hotový, mal panel na JA
@@ -636,9 +639,16 @@ export function createAll(place: CreatePlace): CreateObject[] {
 //    „Zapíš dnešok" ostáva na čele (23. 10. „zapíš devotion by malo byť všade") — Matej ho v zozname z 24. 10.
 //    nespomenul, takže ho NEZRUŠUJEM potichu; ak ho tam nechce, stačí vyhodiť 'devotion' z poľa nižšie.
 //    Mimo TEST_BUILD (členovia, dogypt.com) ostáva zoznam z 23. 10. bajt po bajte.
-export const DOMOV_PANEL: readonly CreateId[] = TEST_BUILD
-  ? ['devotion', 'post', 'story', 'trip', 'diary']
+// 🆕 31. 10. 2026 (audit appky): appka (`APP_NEW`) dostáva nový zoznam bez „Do denníka" (viď objekt `diary`).
+//    Web dogypt.com mimo TEST_BUILD ostáva bajt po bajte.
+export const DOMOV_PANEL: readonly CreateId[] = APP_NEW
+  ? ['devotion', 'post', 'story', 'trip']
   : ['devotion', 'trip', 'wish', 'sniffer', 'diary'];
+
+// 🪪 JA MÁ VLASTNÝ VÝREZ (31. 10. 2026). Po odchode denníka z panela mal JA len devotion + príspevok,
+//    teda < 3, a fallback by mu ticho ukázal repertoár DOMOVA. Zápis a príspevok sú presne to,
+//    čo človek robí „u seba" — výlet patrí VON.
+export const JA_PANEL: readonly CreateId[] = ['devotion', 'post', 'story'];
 
 // 🤖 AINUBIS MÁ VLASTNÝ VÝREZ. Dovtedy mal z hotových položiek len rozhovor + devotion, teda < 3,
 //    a fallback nižšie mu ukázal repertoár DOMOVA — rozhovor v ňom chýbal úplne.
@@ -652,6 +662,12 @@ export function panelFor(place: CreatePlace): Array<{ group: CreatePlace | null;
     const items = AINUBIS_PANEL
       .map((id) => CREATE_OBJECTS.find((o) => o.id === id))
       .filter((o): o is CreateObject => !!o && isReady(o) && (o.id !== 'podcast' || getPodcastNext() != null));
+    if (items.length >= 2) return [{ group: null, items }];
+  }
+  if (place === 'JA' && APP_NEW) {
+    const items = JA_PANEL
+      .map((id) => CREATE_OBJECTS.find((o) => o.id === id))
+      .filter((o): o is CreateObject => !!o && isReady(o));
     if (items.length >= 2) return [{ group: null, items }];
   }
   if (place === 'DOMOV') {

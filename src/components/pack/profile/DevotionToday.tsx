@@ -22,6 +22,8 @@ import { useNavigate } from 'react-router-dom';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { grantDevotion } from '@/lib/devotionGrant';
+import { appendDogEvents } from '@/lib/dogEvents';
+import { chipOf, diaryEvent, todayKey } from '@/components/pack/diary/diaryModel';
 import { readHuman, patchHuman, notifOff, devotionTimes } from '@/lib/humanPrefs';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { toast } from '@/hooks/use-toast';
@@ -470,6 +472,17 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
       const flyItems = TILES.filter((r) => (tap[r.kind] ?? 0) > 0).map((r) => ({ kind: r.kind as string, txt: `+${ptsOf(r.kind, tap[r.kind] ?? 0)}` }));
       if (deed.trim() && deedPts(deedType)) flyItems.push({ kind: 'deed', txt: `+${deedPts(deedType)}` });
       const j = await grantDevotion({ kind: 'claim', dog_ids: sel.map((g) => g.id), items, note: deed.trim(), deed_type: deedType ?? 'chronicle' });
+      // 📖 ZÁPIS = DENNÍK (audit appky 31. 10. 2026). Dovtedy text ostal len v `devotion_events.meta.note`
+      //    a nikde sa nezobrazil. Teraz ide aj do `dog_events` `diary.note` každého vybraného psa,
+      //    takže ho Kronika a kalendár ukážu. Body ☥ rieši `grant-devotion` vyššie, toto je len text.
+      // ⚠️ Zlyhanie zápisu nezhodí body — človek dostane vlastnú hlášku a text mu ostane v Kronike chýbať.
+      if (deed.trim()) {
+        try {
+          await appendDogEvents(sel.map((g) => diaryEvent(g.id, chipOf('note'), todayKey(), { text: deed.trim() })));
+        } catch {
+          toast({ title: tx('pack.dvtoday.chronFail', 'Points saved, but the note did not reach the chronicle.'), variant: 'destructive' });
+        }
+      }
       setBoom(true); setTimeout(() => setBoom(false), 650); buzz();
       setTap({}); setDeed(''); setDeedType(null); setDeedOpen(false);
       await load();

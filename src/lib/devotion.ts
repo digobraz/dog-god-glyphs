@@ -7,6 +7,7 @@
 // (☼) are symbolic in the sim — kept at 1M / 2M so the level math has numbers.
 // ============================================================================
 import { TEST_BUILD } from '@/lib/env';
+import { APP_NEW } from '@/lib/packFlags';
 // `key` = stabilný i18n kľúč (`pack.ladder.<key>`). `name` = EN fallback / kánon.
 // Komponenty rendrujú `t('pack.ladder.' + lv.key)` — názov sa prekladá, prahy nie.
 export const DEVOTION_LEVELS = [
@@ -81,7 +82,8 @@ export const DEVOTION_START = 100;
 //    o tom, čo vidia členovia“*). Appku majú dnes len testeri (TestFlight).
 // ✅ 25. 10. 2026: `IS_APP` → `TEST_BUILD` (lock appka-ram §TESTOVACÍ KANÁL) — vidí ju dev a testovacia
 //    appka, NIE appka z obchodu. Na LIVE ju pustí až schválená DEVOTION (prepni na `true`).
-export const DEVOTION_TODAY_ON: boolean = TEST_BUILD;
+// 🆕 31. 10. 2026 (audit appky): aj do natívnej appky (`APP_NEW`), web ostáva.
+export const DEVOTION_TODAY_ON: boolean = APP_NEW;
 
 export const DEVOTION_DAILY = {
   walk_short: { points: 2, perDay: 3 },   // krátke venčenie < 20 min — povinnosť, nie skutok

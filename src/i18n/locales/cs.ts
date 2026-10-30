@@ -6565,6 +6565,7 @@ export const cs: Partial<Dict> = {
   'pack.dvtoday.dtChronPh': "Co jste dnes spolu zažili?",
   'pack.dvtoday.dtGoodSub': "podpora, pomoc psovi nebo člověku",
   'pack.dvtoday.title': "Dnešek",
+  'pack.dvtoday.chronFail': "Body jsou uložené, ale zápis se do Kroniky nedostal.",
   'pack.dvtoday.with': "S kým",
   'pack.dvtoday.walkShort': "Krátké venčení",
   'pack.dvtoday.walkShortSub': "do 20 min · nejvýš 3× denně",
