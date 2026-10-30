@@ -250,10 +250,10 @@ const SERVANT_BAR: CSSProperties = { background: SERVANT_FILL, boxShadow: 'inset
 /** SLUŽOBNÍK po rozkliku: roky + obrázok stupňa, zlatý pás aktivity, rebrík 8 odznakov. */
 /** Pod rebríkom rokov sú ODZNAKY (30. 10. 2026) — ťuk na odznak ukáže detail v tom istom paneli.
  *  `trips` a `abroad` = čísla PÚTNIKA (počet prejdených výletov, krajiny mimo vlastnej). */
-export function ServantPanel({ years, onDogId, trips = 0, abroad = 0, tx }: { years: number | null; onDogId?: () => void; trips?: number; abroad?: number; tx: Tx }) {
+export function ServantPanel({ years, onDogId, trips = 0, abroad = 0, home = 'SK', tx }: { years: number | null; onDogId?: () => void; trips?: number; abroad?: number; home?: string; tx: Tx }) {
   const act = useMyActivity(true);
   const activeDays = act ? daysWithin(act, ACTIVE_DAYS) : null;
-  const counts = act ? badgeCounts(act, trips, abroad) : null;
+  const counts = act ? badgeCounts(act, trips, abroad, home) : null;
   const [open, setOpen] = useState<string | null>(null);
   if (open && counts) return <><style>{BADGE_SHELF_CSS}</style><BadgeDetail id={open} counts={counts} fill={SERVANT_BAR} onBack={() => setOpen(null)} tx={tx} /></>;
   const y = Math.max(0, years ?? 0);

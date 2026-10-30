@@ -345,6 +345,7 @@ export default function PackMe() {
           {rank && (
             <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} tx={tx}
               servantYears={novice ? null : servantYears}
+              home={human?.nationality ?? 'SK'}
               abroad={pilgrim.countryCodes.filter((c) => c !== (human?.nationality ?? 'SK').toLowerCase()).length}
               onDogId={dogs[0] ? () => navigate(`/pack/dogs/${dogs[0].id}`) : undefined}
               study={{ read: readScrolls, total: TOTAL_SCROLLS, pct: studyPct, liked: liked.length, saved: saved.length }}

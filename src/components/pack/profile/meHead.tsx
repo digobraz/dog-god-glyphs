@@ -735,7 +735,7 @@ function rankVars(kind: 'dev' | 'pt' | 'study', ptLevel: number, devIndex = 1): 
  *  o leveloch a stupnica … to isté pri pútnikovi — chýbajúce body do ďalšieho levelu, otvoriť tripstats"*).
  *  Rebríček je `DEVOTION_LEVELS` (jeden zdroj), PÚTNIK je `levelProgress` z `tripPoints.ts`.
  *  Tretí druh ŠTÚDIUM (23. 10. večer): ťuk na percento štúdia — základné čísla AINUBISA + odkaz do VAULTu. */
-export function MeRank({ kind, devotion, pilgrim, study, servantYears, abroad, onDogId, onStats, onVault, onAbout, onClose, tx }: {
+export function MeRank({ kind, devotion, pilgrim, study, servantYears, abroad, home, onDogId, onStats, onVault, onAbout, onClose, tx }: {
   kind: 'dev' | 'pt' | 'study';
   /** TEST_BUILD: roky SLUŽOBNÍKA (`useServantYears`); null = nikto z psov nemá „Spolu od“. */
   servantYears?: number | null;
@@ -743,6 +743,8 @@ export function MeRank({ kind, devotion, pilgrim, study, servantYears, abroad, o
   onDogId?: () => void;
   /** TEST_BUILD: krajiny prejdených výletov MIMO vlastnej (odznak ZAHRANIČIE). */
   abroad?: number;
+  /** TEST_BUILD: vlajka profilu (ISO2) — ZAHRANIČIE ju nepočíta. */
+  home?: string;
   devotion: number;
   pilgrim: { level: LevelProgress; count: number; km: number; countries: number };
   study?: StudyStats;
@@ -778,7 +780,7 @@ export function MeRank({ kind, devotion, pilgrim, study, servantYears, abroad, o
       <div className="me-rk" style={night} ref={boxRef}>
         <style>{RANK_PANEL_CSS}</style>
         {kind === 'dev'
-          ? <ServantPanel years={servantYears ?? null} onDogId={onDogId} trips={pilgrim.count} abroad={abroad ?? 0} tx={tx} />
+          ? <ServantPanel years={servantYears ?? null} onDogId={onDogId} trips={pilgrim.count} abroad={abroad ?? 0} home={home} tx={tx} />
           : <PilgrimPanel level={lv.level} pct={lv.pct} points={lv.points} floor={lv.floorPoints} nextAt={lv.nextPoints}
               trips={pilgrim.count} km={pilgrim.km} countries={pilgrim.countries} onStats={onStats} tx={tx} />}
       </div>

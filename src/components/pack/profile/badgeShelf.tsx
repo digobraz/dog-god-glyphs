@@ -13,6 +13,9 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_R, PACK_SPACE as S, PACK_TEXT, FONT_UI } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { HERO_TRAILS } from '@/data/heroTrails.generated';
+import { HERO_JOURNEYS } from '@/data/heroJourneys';
+import { trailCountry } from '@/lib/countryGeo';
 import { BADGE_FAMILIES, badgeTier, badgeImg, type BadgeFamily } from './badgeRegister';
 
 type Tx = (key: string, fallback: string) => string;
@@ -58,6 +61,10 @@ export interface MyActivity {
   posts: number;
   scrolls: number;
   diary: number;
+  /** Prejdené výlety a ich krajiny priamo z DB — poistka, kým sa úložisko PÚTNIKA nedotiahne
+   *  (na čerstvom zariadení ukazoval PÚTNIK 30. 10. VÝLETY 0, hoci človek mal 77). */
+  trips: number;
+  countries: string[];
 }
 
 type Rows<T> = Promise<{ data: T[] | null }>;
@@ -75,7 +82,7 @@ export function loadMyActivity(): Promise<MyActivity | null> {
     const [ev, po, tw, vr, di] = await Promise.all([
       db.from('devotion_events').select('kind, created_at').eq('user_id', uid).neq('kind', 'baptism').limit(20000) as Rows<{ kind: string; created_at: string }>,
       db.from('posts').select('created_at').eq('author_id', uid).is('hidden_at', null).limit(20000) as Rows<{ created_at: string }>,
-      db.from('trip_walked').select('walked_at').eq('user_id', uid).limit(20000) as Rows<{ walked_at: string | null }>,
+      db.from('trip_walked').select('trip_slug, walked_at').eq('user_id', uid).limit(20000) as Rows<{ trip_slug: string; walked_at: string | null }>,
       db.from('vault_reads').select('read_at').eq('user_id', uid).not('read_at', 'is', null).limit(20000) as Rows<{ read_at: string }>,
       db.from('dog_events').select('recorded_at').eq('user_id', uid).like('field', 'diary.%').limit(20000) as Rows<{ recorded_at: string }>,
     ]);
@@ -86,7 +93,16 @@ export function loadMyActivity(): Promise<MyActivity | null> {
     for (const r of tw.data ?? []) if (r.walked_at) days.add(day(r.walked_at));
     for (const r of vr.data ?? []) days.add(day(r.read_at));
     for (const r of di.data ?? []) days.add(day(r.recorded_at));
-    return { days, kinds, posts: po.data?.length ?? 0, scrolls: vr.data?.length ?? 0, diary: di.data?.length ?? 0 };
+    const slugs = [...new Set((tw.data ?? []).map((r) => r.trip_slug))];
+    const known = new Map<string, string>();
+    for (const tr of [...HERO_JOURNEYS, ...HERO_TRAILS] as { id: string; country?: string; path?: readonly (readonly number[])[] }[]) known.set(tr.id, trailCountry(tr));
+    const own = slugs.filter((s) => !known.has(s));
+    if (own.length) {
+      const { data: pt } = await (db.from('pack_trips').select('slug, country').in('slug', own) as Rows<{ slug: string; country: string | null }>);
+      for (const r of pt ?? []) if (r.country) known.set(r.slug, r.country.toLowerCase());
+    }
+    const countries = [...new Set(slugs.map((s) => known.get(s)).filter((c): c is string => !!c))];
+    return { days, kinds, posts: po.data?.length ?? 0, scrolls: vr.data?.length ?? 0, diary: di.data?.length ?? 0, trips: slugs.length, countries };
   })();
   cache = { at: Date.now(), p };
   return p;
@@ -119,17 +135,19 @@ function longestStreak(days: Set<string>): number {
   return best;
 }
 
-/** VÝLETY a ZAHRANIČIE berú ČÍSLA PÚTNIKA (to isté, čo ukazuje jeho panel) — druhý výpočet by sa rozišiel. */
-export function badgeCounts(a: MyActivity, trips: number, abroad: number): Record<string, number> {
+/** VÝLETY a ZAHRANIČIE = čísla PÚTNIKA (to isté, čo ukazuje jeho panel); kým sa jeho úložisko
+ *  nedotiahne, drží ich DB (`trip_walked`) — berie sa väčšie. `home` = vlajka profilu (ISO2). */
+export function badgeCounts(a: MyActivity, trips: number, abroad: number, home: string): Record<string, number> {
+  const dbAbroad = a.countries.filter((c) => c !== home.toLowerCase()).length;
   return {
     rad: longestStreak(a.days),
     dni: a.days.size,
     vencenie: a.kinds.walk_short ?? 0,
     prechadzky: a.kinds.walk ?? 0,
-    vylety: trips,
+    vylety: Math.max(trips, a.trips),
     pritomnost: a.kinds.presence ?? 0,
     vault: a.scrolls,
-    zahranicie: abroad,
+    zahranicie: Math.max(abroad, dbAbroad),
     kronika: a.diary,
     tvorca: a.posts,
   };
