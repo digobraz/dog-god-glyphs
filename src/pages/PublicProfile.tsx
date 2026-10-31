@@ -39,14 +39,14 @@ import { coverOfDay } from '@/components/pack/profile/mePosts';
 import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeRank, MeDogRow, MeFlag } from '@/components/pack/profile/meHead';
 import { levelProgress } from '@/lib/tripPoints';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
-import { TEST_BUILD } from '@/lib/env';
+import { APP_NEW } from '@/lib/packFlags';
 import { useToast } from '@/hooks/use-toast';
 import { fetchProfileMates, useProfileMates, type ProfileMate } from '@/components/pack/profile/profileMates';
 import { PostMenu } from '@/components/pack/profile/PostMenu';
 import { FollowListPopup, useFollow, type FollowKind } from '@/components/pack/profile/follow';
 
 const T = PACK_THEME;
-const FLAT = TEST_BUILD;
+const FLAT = APP_NEW;
 
 export default function PublicProfile() {
   const t = useT();

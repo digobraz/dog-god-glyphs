@@ -27,7 +27,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryLabel, countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
 import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
-import { STORIES_ON, PAWMATE_LIVE } from '@/lib/packFlags';
+import { STORIES_ON, PAWMATE_LIVE, APP_NEW } from '@/lib/packFlags';
+import { TEST_BUILD } from '@/lib/env';
 import {
   PAWMATE_RIGHTS, RIGHT_LABEL, invitePawmate, listMyPawmates, revokePawmate, revokeDogInvite, setPawmateAccess, setPawmateSuccessor,
   type MyPawmates, type PawmateRow, type PawmateRight, type PawmateRole,
@@ -36,7 +37,6 @@ import { appWebVersion } from '@/lib/appUpdate';
 import { openAinubis } from '@/lib/ainubisBus';
 import { createWill, listMyWills, revokeWill, type WillRow } from '@/lib/willAccess';
 import { APP_PLATFORM } from '@/lib/isApp';
-import { TEST_BUILD } from '@/lib/env';
 import {
   useProfile,
   saveHuman,
@@ -483,7 +483,7 @@ export default function PackProfile() {
       <style>{PF_FIELD_CSS}</style>
       <style>{ROWS_CSS}</style>
       <style>{ME_CSS}</style>
-      {TEST_BUILD && <style>{ME_FLAT_CSS}</style>}
+      {APP_NEW && <style>{ME_FLAT_CSS}</style>}
       <style>{EDIT_CSS}</style>
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
       <input ref={coverInputRef} type="file" accept="image/*" onChange={handleCoverChange} style={{ display: 'none' }} />
@@ -501,7 +501,7 @@ export default function PackProfile() {
         } finally { setDogBusy(null); }
       }} />
 
-      <section className={`me-card pe-card${TEST_BUILD ? ' me-flat' : ''}${beside ? ' with-mate' : ''}`}>
+      <section className={`me-card pe-card${APP_NEW ? ' me-flat' : ''}${beside ? ' with-mate' : ''}`}>
         {/* NÁHĽAD 1:1 — tá istá hlava ako profil. Titulka sa ťahá, foťák ju mení. */}
         <MeCover
           cover={coverSrc}

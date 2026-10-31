@@ -70,7 +70,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
 import { RightGate } from '@/components/pack/RightGate';
 import { grantDogIdFull } from '@/lib/devotionGrant';
-import { TEST_BUILD } from '@/lib/env';
+import { APP_NEW } from '@/lib/packFlags';
 import { DogsHubV2 } from '@/components/pack/dogs/DogsHubV2';
 
 const T = PACK_THEME;
@@ -551,7 +551,7 @@ export default function PackDogs() {
 
   // /dogs v2 (30. 10. 2026) — MOJA SVORKA · DOG ID · ŽIVOT, zatiaľ len v testovacej appke.
   // Kalendár žije v záložke ŽIVOT, preto sa pod ňou nekreslí; AINUBIS blok zrušený 30. 10.
-  if (TEST_BUILD) {
+  if (APP_NEW) {
     return (
       <PackLayout>
         <style>{HUB_CSS}{PROGRESS_CSS}</style>

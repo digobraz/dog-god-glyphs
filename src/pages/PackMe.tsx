@@ -35,8 +35,7 @@ import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, visibleLocalTrails, tripPath } from '@/components/pack/tripShared';
 import { PILL_CSS } from '@/components/pack/packTheme';
-import { TEST_BUILD } from '@/lib/env';
-import { STORIES_ON, ALBUMS_ON } from '@/lib/packFlags';
+import { STORIES_ON, ALBUMS_ON, APP_NEW } from '@/lib/packFlags';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BonesSheet } from '@/components/pack/BonesSheet';
 import { TripShareSheet, type TripShareData } from '@/components/pack/trip/TripShareSheet';
@@ -59,7 +58,7 @@ import { FollowListPopup, useFollow, type FollowKind } from '@/components/pack/p
 
 // PROFIL BEZ KARTY (TEST_BUILD, Matej 25. 10. 2026): obsah na celú šírku. Hladký papyrus pod ním
 // zapína PackLayout (`PLAIN_ROUTES`).
-const FLAT = TEST_BUILD;
+const FLAT = APP_NEW;
 
 const TOTAL_SCROLLS = VAULT_WORLDS.reduce((s, w) => s + w.scrolls, 0);
 

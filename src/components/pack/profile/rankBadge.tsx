@@ -8,7 +8,7 @@
 // ⚠️ Číslo sedí v strede viditeľnej časti (`left: s × .48`) — obrázky majú priehľadné okraje,
 //    vzorec z boxu klame (merané v prehliadači).
 import { useEffect, useState, type CSSProperties } from 'react';
-import { TEST_BUILD } from '@/lib/env';
+import { APP_NEW } from '@/lib/packFlags';
 import { readEvents, appendDogEvents, onDogEventsChange } from '@/lib/dogEvents';
 import { PACK_R, PACK_SHADOW, PACK_THEME, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
@@ -17,7 +17,7 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BADGE_SHELF_CSS, BadgeShelf, BadgeDetail, badgeCounts, daysWithin, useMyActivity } from './badgeShelf';
 
 /** Odznaky namiesto pilulky DEVOTION + PÚTNIK. Členovia na webe ich nevidia. */
-export const RANK_BADGE_ON = TEST_BUILD;
+export const RANK_BADGE_ON = APP_NEW;
 
 /* PÚTNIK — 9 stupňov podľa levelu (`levelOf`, body bez zmeny). Smalt odznaku = farba stupňa. */
 /* Prahy a farby PÚTNIKA žijú v `lib/packTiers.ts` (od 26. 10. 2026 ich číta aj /map a triplist) — tu sa nepíšu. */
