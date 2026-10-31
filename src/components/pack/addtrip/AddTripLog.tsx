@@ -4587,9 +4587,10 @@ const STEP_CSS = `
    sklenený panel. Výška je daná oknom, nie obsahom: text má rásť do plochy, ktorá už stojí,
    inak by sa pri písaní hýbalo tlačidlo pod ním. */
 /* Celá obrazovka (Matej 31. 10. 2026: „je fajn"): papier cez celé okno, bez závoja a rámu. Okraj = PAGE_AIR
-   (dno, nie padding). Spodok zdvíha --dia-kb z useKeyboardLift, takže merač stojí nad klávesnicou. */
-.atl-editor-scrim{position:fixed;left:0;right:0;top:0;bottom:var(--dia-kb,0px);z-index:1500;background:${T.card};display:flex;justify-content:center;padding:${PAGE_AIR.min}px ${PAGE_AIR.side}px;box-sizing:border-box;}
-@media (min-width:768px){.atl-editor-scrim{padding-top:${PAGE_AIR.md}px;padding-bottom:${PAGE_AIR.md}px;}}
+   (dno, nie padding). Spodok zdvíha --dia-kb z useKeyboardLift, takže merač stojí nad klávesnicou.
+   Hore + safe-area-inset-top (Matej 31. 10.: v appke hlavička ležala pod hodinami a batériou). */
+.atl-editor-scrim{position:fixed;left:0;right:0;top:0;bottom:var(--dia-kb,0px);z-index:1500;background:${T.card};display:flex;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + ${PAGE_AIR.min}px) ${PAGE_AIR.side}px ${PAGE_AIR.min}px;box-sizing:border-box;}
+@media (min-width:768px){.atl-editor-scrim{padding-top:calc(env(safe-area-inset-top,0px) + ${PAGE_AIR.md}px);padding-bottom:${PAGE_AIR.md}px;}}
 .atl-editor{display:flex;flex-direction:column;gap:12px;width:min(640px,100%);height:100%;min-height:0;}
 .atl-editor-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;flex:none;}
 .atl-editor-label{flex:1;min-width:0;font-family:${PACK_HEAD.label.fontFamily};font-weight:${PACK_HEAD.label.fontWeight};font-size:${PACK_HEAD.label.fontSize}px;letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${T.cardEdge};}
