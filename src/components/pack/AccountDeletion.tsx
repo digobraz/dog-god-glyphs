@@ -123,7 +123,7 @@ export function DeleteAccountButton() {
             </span>
           </div>
           <p style={textBody}>{tx('pack.settings.deleteGone', 'We will delete your login, e-mail, profile, messages and AINUBIS conversations.')}</p>
-          <p style={textBody}>{tx('pack.settings.deleteStays', 'Your dog stays on the wall with its heroglyph and number. The invoice stays too — the law requires it.')}</p>
+          <p style={textBody}>{tx('pack.settings.deleteStays2', 'Your dog stays on the wall with its heroglyph and number, and so do the entries about the dog (DOG ID answers, diary, will) — without your name. The invoice stays too — the law requires it.')}</p>
           <p style={{ ...textBody, color: T.ink }}>{tx('pack.settings.deleteGrace', 'You have 30 days to change your mind: just sign in again. After that it cannot be undone.')}</p>
           <label style={{ display: 'flex', flexDirection: 'column', gap: PACK_SPACE.sm }}>
             <span style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.label, color: T.inkDim }}>

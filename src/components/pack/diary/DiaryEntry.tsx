@@ -29,26 +29,35 @@
 // ⚠️ JE TO JS TEMPLATE LITERAL (CSS nižšie): spätný apostrof v komentári zhodí build
 //    a `tsc` to nechytí. Po zásahu `npm run check:css` z `vystupy/web/`.
 // ════════════════════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { createPortal } from 'react-dom';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import {
-  PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, GOLD_BTN,
+  PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, GOLD_BTN, MODAL_MAX_H,
   FONT_TITLE, FONT_UI, PF_FIELD_CSS, PILL_CSS, PHOTO_CSS,
 } from '@/components/pack/packTheme';
+import { PackPopup } from '@/components/pack/PackPopup';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, tintRGBA } from '@/components/pack/navGoldSkin';
-import { appendDogEvents } from '@/lib/dogEvents';
+import { appendDogEvents, updateDiaryEvent } from '@/lib/dogEvents';
 import { compressFile } from '@/lib/photoIntake';
 import { uploadDogDiaryPhoto } from '@/services/cloudinaryService';
+import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
+import { toast } from '@/hooks/use-toast';
 import {
-  DIARY_CHIPS, chipOf, diaryEvent, isPlanDay, todayKey, type DiaryKind,
+  DIARY_CHIPS, asDiaryValue, chipOf, dayToRecordedAt, diaryEvent, isPlanDay, todayKey, type DiaryKind,
 } from './diaryModel';
+import { useBackClose } from './useBackClose';
+import { useKeyboardLift, kbLiftCSS } from './useKeyboardLift';
 
 const T = PACK_THEME;
 const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
+/** KONCEPT (audit 30. 10. 2026): rozpísaný zápis prežije zatvorenie okna aj obnovu aplikácie. Fotka sa neukladá. */
+const DRAFT_KEY = 'dogypt-diary-draft-v1';
 
 type Tx = (key: string, fallback: string) => string;
 
 export type DiaryDog = { id: string; name: string };
+
+/** Zápis, ktorý sa UPRAVUJE (Kronika). Pes a druh sa nemenia — meniť sa dá text, fotka a deň. */
+export type DiaryEditTarget = { id: string; dogId: string; field: string; value: unknown; recordedAt: string };
 
 export type DiaryEntryProps = {
   dogs: DiaryDog[];
@@ -58,33 +67,79 @@ export type DiaryEntryProps = {
   day?: string;
   /** `photo` = ten istý formulár otvorený pri fotke (vchod `diary.photo` z registra). */
   mode?: 'write' | 'photo';
+  /** Úprava existujúceho zápisu (bez konceptu, bez výberu psa a druhu). */
+  edit?: DiaryEditTarget;
   onClose: () => void;
   /** Zavolá sa po úspešnom zápise — volajúci si prekreslí kalendár. */
   onSaved?: () => void;
   tx: Tx;
 };
 
-export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved, tx }: DiaryEntryProps) {
-  const [dog, setDog] = useState<string>(dogId ?? dogs[0]?.id ?? '');
-  const [kind, setKind] = useState<DiaryKind>('note');
-  const [dayKey, setDayKey] = useState<string>(day ?? todayKey());
-  const [text, setText] = useState('');
-  const [kg, setKg] = useState('');
-  const [photo, setPhoto] = useState<{ preview: string; url: string | null; busy: boolean } | null>(null);
+type Draft = { dog?: string; kind?: DiaryKind; text?: string; kg?: string };
+function readDraft(): Draft | null {
+  try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null') as Draft | null; } catch { return null; }
+}
+function dayKeyOfIso(iso: string): string {
+  const d = new Date(iso);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+type PhotoState = { preview: string; url: string | null; busy: boolean; blob: Blob | null };
+
+export function DiaryEntry({ dogs, dogId, day, mode = 'write', edit, onClose, onSaved, tx }: DiaryEntryProps) {
+  const editChip = edit ? DIARY_CHIPS.find((c) => c.field === edit.field) : undefined;
+  const editVal = edit ? asDiaryValue(edit.value) : null;
+  // Koncept sa obnovuje len pri NOVOM zápise; popup dňa z kalendára si deň drží sám.
+  const draft = useRef<Draft | null>(edit ? null : readDraft()).current;
+  const draftDog = draft?.dog && dogs.some((g) => g.id === draft.dog) ? draft.dog : undefined;
+
+  const [dog, setDog] = useState<string>(edit?.dogId ?? dogId ?? draftDog ?? dogs[0]?.id ?? '');
+  const [kind, setKind] = useState<DiaryKind>(editChip?.id ?? draft?.kind ?? 'note');
+  const [dayKey, setDayKey] = useState<string>(edit ? dayKeyOfIso(edit.recordedAt) : (day ?? todayKey()));
+  const [text, setText] = useState(editVal?.text ?? draft?.text ?? '');
+  const [kg, setKg] = useState(draft?.kg ?? '');
+  const [photo, setPhoto] = useState<PhotoState | null>(
+    editVal?.photo ? { preview: editVal.photo, url: editVal.photo, busy: false, blob: null } : null,
+  );
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [askDiscard, setAskDiscard] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const photoSeq = useRef(0);
 
   const chip = chipOf(kind);
   const plan = isPlanDay(dayKey);
+  useFlowKeyboardFix();
+  useKeyboardLift();
 
-  // Esc zavrie — ten istý zvyk ako popup dňa kalendára (brand lock 28. 8. 2026:
-  // prekryvová vrstva NEMÁ krížik, von sa ide klikom mimo alebo Esc).
+  // KONCEPT — zapisuje sa pri každej zmene, maže po uložení alebo „Zahodiť".
+  const restored = useRef(false);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+    if (edit) return;
+    if (!restored.current) { restored.current = true; return; }   // prvý beh = obnova, nie zmena
+    try {
+      if (text.trim() || kg.trim()) localStorage.setItem(DRAFT_KEY, JSON.stringify({ dog, kind, text, kg }));
+      else localStorage.removeItem(DRAFT_KEY);
+    } catch { /* súkromné okno / kvóta — bez konceptu */ }
+  }, [edit, dog, kind, text, kg]);
+  const clearDraft = () => { try { localStorage.removeItem(DRAFT_KEY); } catch { /* nič */ } };
+
+  // ZATVORENIE (úchyt, ťuk vedľa, Esc, gesto späť) = jedna cesta. S rozpísaným obsahom sa najprv
+  // opýta inline „Zahodiť?" (nie confirm()); koncept ostáva v úložisku, kým človek nepovie Zahodiť.
+  const dirty = edit
+    ? (text !== (editVal?.text ?? '') || (photo?.url ?? null) !== (editVal?.photo ?? null))
+    : text.trim().length > 0 || kg.trim().length > 0 || !!photo;
+  const requestClose = () => {
+    if (saving) return;
+    if (dirty && !askDiscard) { setAskDiscard(true); return; }
+    onClose();
+  };
+  const closeRef = useRef(requestClose);
+  closeRef.current = requestClose;
+  const close = useCallback(() => closeRef.current(), []);
+  useBackClose(close);
+  const discard = () => { if (!edit) clearDraft(); onClose(); };
 
   // Vchod „fotka" otvorí systémový výber hneď — inak je to len prázdny formulár
   // s malým tlačidlom a človek, ktorý klikol na FOTKU, musí kliknúť druhý raz.
@@ -97,30 +152,52 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
 
   // Náhľad je blob adresa — po zavretí ju treba uvoľniť, inak ju prehliadač drží
   // do konca session (`photoIntake.ts` má ten istý problém popísaný).
-  useEffect(() => () => { if (photo?.preview) URL.revokeObjectURL(photo.preview); }, [photo?.preview]);
+  useEffect(() => () => { if (photo?.preview.startsWith('blob:')) URL.revokeObjectURL(photo.preview); }, [photo?.preview]);
 
   const canSave = useMemo(() => {
     if (!dog || saving) return false;
+    // 🔴 Počas nahrávania fotky sa neukladá — zápis by odišiel bez nej (audit 30. 10. 2026).
+    if (photo?.busy) return false;
     if (chip.input === 'number') return !Number.isNaN(parseFloat(kg)) && parseFloat(kg) > 0;
     // Zápis bez textu je legitímny, KEĎ nesie fotku — „takto vyzeral dnes" je celý obsah.
     return text.trim().length > 0 || !!photo?.url;
-  }, [dog, saving, chip.input, kg, text, photo?.url]);
+  }, [dog, saving, chip.input, kg, text, photo?.url, photo?.busy]);
 
-  async function pickPhoto(file: File): Promise<void> {
-    setErr(null);
-    const { url: preview, blob } = await compressFile(file);
-    setPhoto({ preview, url: null, busy: true });
+  /** Nahrá hotový blob do priečinka PSA, ktorého sa zápis týka (nie toho, čo bol vybraný pri výbere súboru). */
+  async function uploadFor(blob: Blob, preview: string, forDog: string): Promise<void> {
+    const seq = ++photoSeq.current;
+    setPhoto({ preview, url: null, busy: true, blob });
     try {
       const stamp = `${dayKey}-${Date.now()}`;
-      const { secureUrl } = await uploadDogDiaryPhoto(blob, dog, stamp);
-      setPhoto({ preview, url: secureUrl, busy: false });
+      const { secureUrl } = await uploadDogDiaryPhoto(blob, forDog, stamp);
+      if (seq === photoSeq.current) setPhoto({ preview, url: secureUrl, busy: false, blob });
     } catch {
       // 🔴 NEUKLADÁ SA blob adresa. Prežije prechod medzi obrazovkami, ale nie reload
       //    ani iné zariadenie — zápis s ňou by v denníku ostal ako mŕtvy odkaz
       //    (tá istá pasca, ktorú lieči `photoIntake.ts`).
-      setPhoto({ preview, url: null, busy: false });
+      if (seq !== photoSeq.current) return;
+      setPhoto({ preview, url: null, busy: false, blob });
       setErr(tx('pack.diary.photoFailed', 'The photo could not be uploaded. You can save the entry without it.'));
     }
+  }
+
+  async function pickPhoto(file: File): Promise<void> {
+    setErr(null);
+    let compressed: { url: string; blob: Blob };
+    try {
+      compressed = await compressFile(file);
+    } catch {
+      setErr(tx('pack.diary.photoPrep', 'The photo could not be prepared. Try another one.'));
+      return;
+    }
+    await uploadFor(compressed.blob, compressed.url, dog);
+  }
+
+  /** Iný pes = fotka patrí do jeho priečinka, preto sa nahrá znova z toho istého blobu. */
+  function pickDog(id: string): void {
+    if (id === dog) return;
+    setDog(id);
+    if (photo?.blob) void uploadFor(photo.blob, photo.preview, id);
   }
 
   async function save(): Promise<void> {
@@ -128,11 +205,26 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
     setSaving(true);
     setErr(null);
     try {
-      await appendDogEvents([diaryEvent(dog, chip, dayKey, {
-        text: text.trim(),
-        photo: photo?.url ?? undefined,
-        number: chip.input === 'number' ? parseFloat(kg) : undefined,
-      })]);
+      let res: 'saved' | 'queued' = 'saved';
+      if (edit) {
+        await updateDiaryEvent(edit.id, {
+          value: { text: text.trim(), ...(photo?.url ? { photo: photo.url } : {}) },
+          recordedAt: dayToRecordedAt(dayKey),
+        });
+      } else {
+        res = await appendDogEvents([diaryEvent(dog, chip, dayKey, {
+          text: text.trim(),
+          photo: photo?.url ?? undefined,
+          number: chip.input === 'number' ? parseFloat(kg) : undefined,
+        })]);
+        clearDraft();
+      }
+      toast({
+        title: res === 'queued'
+          ? tx('pack.diary.savedOffline', 'It will be saved when you are online.')
+          : edit ? tx('pack.diary.editedToast', 'Entry updated.')
+            : plan ? tx('pack.diary.plannedToast', 'Planned.') : tx('pack.diary.savedToast', 'Written down.'),
+      });
       onSaved?.();
       onClose();
     } catch {
@@ -155,22 +247,22 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
     whiteSpace: 'nowrap',
   };
 
-  // 🔴 `createPortal(…, document.body)` JE POVINNÝ, NIE KOZMETIKA. Obsahový stĺpec
-  //    `/pack` je v `PackLayout` `className="relative z-10"` — teda VLASTNÝ stacking
-  //    kontext. Spodný nav je jeho SÚRODENEC s `z-40`, takže čokoľvek vnútri stĺpca sa
-  //    kreslí pod navom, aj keby tu stálo 9999; porovnáva sa `10 < 40`, nie moje číslo.
-  //    Premerané 21. 9. 2026 s CUDZOU cookie lištou na obrazovke: bez portálu ležal nav
-  //    cez tlačidlo ZAPÍSAŤ. Tú istú pascu má appka zapísanú pre `.nav-top` na `/onepage`.
-  return createPortal((
-    <div className="dia-bg" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <style>{PF_FIELD_CSS}{PILL_CSS}{PHOTO_CSS}{DIARY_CSS}</style>
-      <div className="dia-pop dia-pop--write" role="dialog" aria-modal="true" aria-label={tx('pack.diary.title', 'To the diary')}>
-        <h4>{tx('pack.diary.title', 'To the diary')}</h4>
+  // 🔴 OKNO = `<PackPopup>` (audit 30. 10. 2026, lock POPUP 26. 10.): mobil šuplík zdola s úchytom, PC okno
+  //    v strede, BEZ šípky a BEZ tlačidla ZRUŠIŤ — von sa ide stiahnutím, ťukom vedľa, Esc alebo gestom späť.
+  //    Portál do `document.body` rieši PackPopup (obsahový stĺpec `/pack` je vlastný stacking kontext).
+  return (
+    <PackPopup
+      title={edit ? tx('pack.diary.editTitle', 'Edit entry') : tx('pack.diary.title', 'To the diary')}
+      onClose={close}
+      className="dia-sheet"
+    >
+      <div className="dia-form">
+        <style>{PF_FIELD_CSS}{PILL_CSS}{PHOTO_CSS}{DIARY_CSS}{kbLiftCSS('dia-sheet', MODAL_MAX_H)}</style>
 
         {/* KTORÉHO PSA. Jeden pes = žiadny výber; dva a viac = pilulky.
             Rovnaké pravidlo ako filter psa v kalendári — prepínač s jednou polohou
-            je nábytok, ktorý nič neprepína. */}
-        {dogs.length > 1 && (
+            je nábytok, ktorý nič neprepína. Pri úprave sa pes nemení. */}
+        {!edit && dogs.length > 1 && (
           <div className="dia-row">
             {dogs.map((g) => (
               <button
@@ -178,7 +270,7 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
                 type="button"
                 className={`pk-pill pk-pill--tap${g.id === dog ? ' dia-on' : ''}`}
                 style={g.id === dog ? pickStyle : undefined}
-                onClick={() => setDog(g.id)}
+                onClick={() => pickDog(g.id)}
               >
                 {g.name}
               </button>
@@ -187,21 +279,23 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
         )}
 
         {/* ČO ZAPISUJEM. Čipy sú z registra `DIARY_CHIPS` — nový druh zápisu sa
-            pridáva TAM, nie sem. */}
-        <div className="dia-row" style={{ marginTop: PACK_SPACE.md }}>
-          {DIARY_CHIPS.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className={`pk-pill pk-pill--tap${c.id === kind ? ' dia-on' : ''}`}
-              style={c.id === kind ? pickStyle : undefined}
-              onClick={() => { setKind(c.id); setErr(null); }}
-            >
-              <span style={{ fontFamily: EMOJI_FONT }}>{c.emoji}</span>
-              {tx(c.labelKey, c.labelFallback)}
-            </button>
-          ))}
-        </div>
+            pridáva TAM, nie sem. Pri úprave sa druh nemení. */}
+        {!edit && (
+          <div className="dia-row" style={{ marginTop: PACK_SPACE.md }}>
+            {DIARY_CHIPS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className={`pk-pill pk-pill--tap${c.id === kind ? ' dia-on' : ''}`}
+                style={c.id === kind ? pickStyle : undefined}
+                onClick={() => { setKind(c.id); setErr(null); }}
+              >
+                <span style={{ fontFamily: EMOJI_FONT }}>{c.emoji}</span>
+                {tx(c.labelKey, c.labelFallback)}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* KEDY. Dátum je jediný prepínač medzi zápisom a plánom, preto stojí NAD
             obsahom — človek má vedieť, čo robí, skôr než začne písať. */}
@@ -245,7 +339,7 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
             <textarea
               id="dia-text"
               className="pf-field dia-inp dia-area"
-              rows={8}
+              rows={6}
               placeholder={tx(chip.hintKey, chip.hintFallback)}
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -280,7 +374,7 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
                   <button
                     type="button"
                     className="dia-link"
-                    onClick={() => { if (photo.preview) URL.revokeObjectURL(photo.preview); setPhoto(null); }}
+                    onClick={() => { photoSeq.current++; setPhoto(null); }}
                   >
                     {tx('pack.diary.photoRemove', 'Remove')}
                   </button>
@@ -295,7 +389,16 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
           </>
         )}
 
-        {err && <p className="dia-err">{err}</p>}
+        {err && <p className="dia-err" role="alert">{err}</p>}
+
+        {/* ZAHODIŤ? — inline otázka namiesto browser confirm(), ten istý tvar ako v MeCompose. */}
+        {askDiscard && (
+          <div className="dia-ask" role="alertdialog" aria-label={tx('pack.compose.discardQ', 'Discard?')}>
+            <span>{tx('pack.compose.discardQ', 'Discard?')}</span>
+            <button type="button" onClick={discard}>{tx('pack.compose.discard', 'Discard')}</button>
+            <button type="button" className="no" onClick={() => setAskDiscard(false)}>{tx('pack.compose.keepWriting', 'Keep writing')}</button>
+          </div>
+        )}
 
         <div className="dia-btns">
           <button
@@ -315,19 +418,13 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
           >
             {saving
               ? tx('pack.diary.saving', 'Saving…')
-              : plan ? tx('pack.diary.savePlan', 'Plan it') : tx('pack.diary.save', 'Write it down')}
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{ ...btnBase, background: 'transparent', border: `1px solid ${T.border}`, color: T.inkWarm }}
-          >
-            {tx('pack.diary.cancel', 'Cancel')}
+              : edit ? tx('pack.diary.saveEdit', 'Save changes')
+                : plan ? tx('pack.diary.savePlan', 'Plan it') : tx('pack.diary.save', 'Write it down')}
           </button>
         </div>
       </div>
-    </div>
-  ), document.body);
+    </PackPopup>
+  );
 }
 
 /** VÝBER JE PRIESVITNÝ TINT (lock 26. 8. 2026), nie plná lapisová plocha — tá patrí
@@ -357,6 +454,7 @@ export const DIARY_CSS = `
    nech je veľký priestor"). 640 je šírka FORMULÁRA PÍSANIA z locku stĺpca (pack-dizajn-system). */
 .dia-pop--write{max-width:640px}
 .dia-pop--write .dia-area{min-height:40vh}
+.dia-form .dia-area{min-height:min(24dvh,180px)}
 .dia-pop h4{font-family:${FONT_TITLE};font-size:${PACK_HEAD.card.fontSize}px;font-weight:700;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;
   margin:0 0 ${PACK_SPACE.md}px;color:${T.inkStrong}}
@@ -383,5 +481,11 @@ export const DIARY_CSS = `
    Hranica 720 px je tá istá, akú drží psí blok na /pack/dogs — jedno číslo naprieč appkou. */
 .dia-btns{display:flex;gap:${PACK_SPACE.sm}px;flex-wrap:wrap;margin-top:${PACK_SPACE.xl}px}
 .dia-btns > button{flex:1 1 auto}
+.dia-ask{display:flex;align-items:center;gap:${PACK_SPACE.md}px;flex-wrap:wrap;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;margin-top:${PACK_SPACE.lg}px;
+  border-radius:${PACK_R.tile}px;border:1.5px solid ${T.cardEdge};background:${T.card}}
+.dia-ask span{flex:1 1 100%;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.body}px;color:${T.inkStrong}}
+.dia-ask button{border-radius:${PACK_R.field}px;cursor:pointer;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;font-family:${FONT_UI};font-weight:600;
+  font-size:${PACK_TEXT.label}px;border:1.5px solid ${T.border};background:${T.card};color:${T.inkStrong}}
+.dia-ask button.no{border-color:${LAPIS.edge};color:${LAPIS.edge}}
 @media (max-width:720px){ .dia-btns > .dia-primary{flex:1 1 100%} }
 `;

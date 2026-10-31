@@ -1,7 +1,7 @@
 {
  "_": "ZÁKLADŇA STRÁŽE IKONIEK — smie sa len ZMENŠOVAŤ. Zapisuje `npm run check:ikony -- --write`.",
  "__": "Rast ktorejkoľvek položky alebo nová položka = build padá. Register v brand manuáli sa generuje z tých istých čísel.",
- "merane": "2026-10-28",
+ "merane": "2026-10-31",
  "polozky": {
   "emoji@components/admin/AinubisPanel.tsx": 9,
   "emoji@components/pack/AvatarRing.tsx": 1,
@@ -38,7 +38,7 @@
   "lucide:ArrowLeft": 13,
   "lucide:ArrowUpRight": 1,
   "lucide:Check": 5,
-  "lucide:ChevronDown": 9,
+  "lucide:ChevronDown": 7,
   "lucide:ChevronLeft": 9,
   "lucide:ChevronRight": 12,
   "lucide:ChevronUp": 1,
@@ -62,7 +62,7 @@
   "lucide:Save": 2,
   "lucide:Sparkles": 5,
   "lucide:Upload": 1,
-  "lucide:X": 14,
+  "lucide:X": 13,
   "znak:×": 3,
   "znak:‹": 7,
   "znak:›": 9,

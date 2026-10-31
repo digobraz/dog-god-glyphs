@@ -84,6 +84,7 @@ const CSS = `
 .dv2-nm{font:700 10px ${NAME_FONT};color:var(--ink);white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis}
 /* jeden pes: stav DOG ID vedľa fotky — nad fotkou ani nad preukazom nič */
 .dv2-solo{flex:1;min-width:0;padding:12px;border-radius:12px;background:rgba(178,86,64,.1);box-shadow:inset 0 0 0 1.5px var(--red);display:flex;flex-direction:column;gap:8px}
+.dv2-endcard{margin-top:12px;display:flex}
 .dv2-solo.ok{background:rgba(61,122,78,.1);box-shadow:inset 0 0 0 1.5px var(--grn);}
 .dv2-eb{font:500 10px "Space Grotesk",system-ui;letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
 .dv2-solo .dv2-eb{color:var(--red)}.dv2-solo.ok .dv2-eb{color:var(--grn)}
@@ -317,7 +318,8 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
             <span className="dv2-nm">{d.name.toUpperCase()}</span>
           </button>
         ))}
-        {solo && v && !v.angel && <SoloInfo v={v} total={total} tx={tx} />}
+        {/* Lock dogs-dogid.md: na 100 % karta DOG ID zo začiatku odchádza na KONIEC (nižšie pod doskou). */}
+        {solo && v && !v.angel && v.pct < 100 && <SoloInfo v={v} total={total} tx={tx} />}
       </div>
 
       <div className="dv2-band">
@@ -345,23 +347,16 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
         )}
         {tab === 'k' && chronicle}
       </div>
+      {solo && v && !v.angel && v.pct >= 100 && <div className="dv2-endcard"><SoloInfo v={v} total={total} tx={tx} /></div>}
       </div>
     </div>
   );
 }
 
-/** PRIDAŤ — v appke sa nekupuje (Apple), ďalší pes sa pridáva na webe. */
+/** PRIDAŤ — v appke sa nekupuje (Apple IAP) a ani neodkazuje na web (31. 10. 2026): tlačidlo v appke nie je. */
 function AddDog({ tx }: { tx: Tx }) {
-  const label = <>+ {tx('pack.dogs2.add', 'Add')}</>;
-  if (IS_APP) {
-    return (
-      <button type="button" className="dv2-add"
-        onClick={() => toast(tx('pack.dogs2.addInApp', 'You can add another dog at dogypt.com.'))}>
-        {label}
-      </button>
-    );
-  }
-  return <Link to="/heroglyph" className="dv2-add">{label}</Link>;
+  if (IS_APP) return null;
+  return <Link to="/heroglyph" className="dv2-add">+ {tx('pack.dogs2.add', 'Add')}</Link>;
 }
 
 function SoloInfo({ v, total, tx }: { v: View; total: number; tx: Tx }) {
@@ -424,7 +419,7 @@ function PackDogId({ dogs, latest, tx }: { dogs: DogsV2Dog[]; latest: Latest; tx
 function OneDogId({ v, solo, total, tx }: { v: View; solo: boolean; total: number; tx: Tx }) {
   return (
     <>
-      {solo ? <p className="dv2-ex">{intro(tx)}</p> : !v.angel && (
+      {solo ? <p className="dv2-ex">{intro(tx)}</p> : !v.angel && v.pct < 100 && (
         <>
           <div className="dv2-fill">
             <span className="dv2-eb">{tx('pack.dogs2.filled', 'Filled')}</span>
@@ -439,6 +434,21 @@ function OneDogId({ v, solo, total, tx }: { v: View; solo: boolean; total: numbe
         </>
       )}
       <IdCard v={v} tx={tx} />
+      {/* Na 100 % sa postup presúva pod kartu (lock dogs-dogid.md, 31. 10. 2026). */}
+      {!solo && !v.angel && v.pct >= 100 && (
+        <>
+          <div className="dv2-fill">
+            <span className="dv2-eb">{tx('pack.dogs2.filled', 'Filled')}</span>
+            <span className="pk-progress">
+              <span className="pk-progress__fill pk-progress__fill--done" style={fillW(v.pct)} />
+            </span>
+            <b>{v.pct} %</b>
+          </div>
+          <p className="dv2-fsub">
+            {tx('pack.dogs2.answered', 'answered')} <b>{v.done} / {total}</b> {tx('pack.dogs2.questions', 'questions')}
+          </p>
+        </>
+      )}
       <Link to={`/pack/dogs/${v.dog.id}`} className="dv2-cta">{tx('pack.dogs2.open', 'Open DOG ID')}</Link>
       {v.angel
         ? <p className="dv2-memo">{tx('pack.dogs2.forever', 'forever in the pack')}</p>

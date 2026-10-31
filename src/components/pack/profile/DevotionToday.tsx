@@ -13,8 +13,11 @@
 // Šat = AINUBIS (`ainubisSkin.ts`): oznamy appky hovoria jeho hlasom (lock brand §AINUBIS).
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { BackButton } from '@/components/pack/BackButton';
-import { PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN, PROGRESS_CSS } from '@/components/pack/packTheme';
+import { PackPopup } from '@/components/pack/PackPopup';
+import { useBackClose } from '@/components/pack/diary/useBackClose';
+import { useKeyboardLift, kbLiftCSS } from '@/components/pack/diary/useKeyboardLift';
+import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
+import { PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN, PROGRESS_CSS, MODAL_MAX_H } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { DEVOTION_DAILY, DEVOTION_FEED, DEVOTION_DEED, DEVOTION_TRIP, DEVOTION_DAY_CAP, devotionLevel, type DevotionDailyKind } from '@/lib/devotion';
 import { devotionTier, devotionVars } from '@/lib/devotionTiers';
@@ -61,10 +64,12 @@ const DEED_TYPES: Array<{ id: DeedType; icon: string; points: number | null; lab
 const deedPts = (t: DeedType | null) => DEED_TYPES.find((d) => d.id === t)?.points ?? null;
 
 const CSS = `
-.dvt-root{position:fixed;inset:0;z-index:66;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,6,11,0.74);animation:dvt-fade .25s ease both;}
-.dvt-sheet{position:relative;width:100%;max-height:94dvh;display:flex;flex-direction:column;background:${A.surface};color:${A.ink};font-family:${FONT_UI};
-  border:1px solid ${A.edgeStrong};border-bottom:0;border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${A.panelShadow};animation:dvt-up .38s cubic-bezier(.2,.8,.2,1) both;}
-.dvt-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:${S.md}px ${S.lg}px ${S.lg}px;}
+/* OKNO = <PackPopup> (audit appky 30. 10. 2026): úchyt, bez šípky; šat AINUBISA sa prenáša cez .dvt-pop. */
+.ppu-sheet.dvt-pop{background:${A.surface};color:${A.ink};border-color:${A.edgeStrong};}
+.dvt-pop .ppu-grab{background:${A.edge};}
+.dvt-pop .ppu-body{padding:0;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.dvt-sheet{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;color:${A.ink};font-family:${FONT_UI};}
+.dvt-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:${S.sm}px ${S.lg}px ${S.lg}px;}
 .dvt-top{display:flex;align-items:center;gap:${S.sm}px;margin:0 0 ${S.sm}px;}
 .dvt-top .sp{flex:1;}
 .dvt-streak{display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;border:1px solid ${A.ctaEdge};background:${A.ctaTint};
@@ -131,8 +136,7 @@ const CSS = `
 .dvt-sw.on::after{transform:translateX(18px);background:${A.cyan};}
 .dvt-empty{padding:${S.xl}px 0;text-align:center;font-size:${TX.label}px;color:${A.inkDim};}
 @media (min-width:768px){
-  .dvt-root{align-items:center;padding:${S.lg}px;}
-  .dvt-sheet{width:520px;max-height:calc(100dvh - 48px);border-bottom:1px solid ${A.edgeStrong};border-radius:${PACK_R.card}px;}
+  .ppu-sheet.dvt-pop{width:520px;}
   .dvt-tile{min-height:72px;}
 }
 @media (max-height:760px) and (min-width:768px){
@@ -147,7 +151,7 @@ const CSS = `
 @keyframes dvt-fly{0%{opacity:0;transform:translate(-50%,0) scale(.7);}20%{opacity:1;transform:translate(-50%,-12px) scale(1.1);}100%{opacity:0;transform:translate(-50%,-56px) scale(1);}}
 @keyframes dvt-bump{0%{transform:scale(1);}40%{transform:scale(1.25);}100%{transform:scale(1);}}
 @keyframes dvt-boom{0%{transform:scale(1);}30%{transform:scale(1.04);}100%{transform:scale(1);}}
-@media (prefers-reduced-motion:reduce){.dvt-sheet,.dvt-root,.dvt-fly,.dvt-cnt,.dvt-claim b{animation:none !important;}}
+@media (prefers-reduced-motion:reduce){.dvt-sheet,.dvt-fly,.dvt-cnt,.dvt-claim b{animation:none !important;}}
 `;
 
 /* ZÁVER PO VYZDVIHNI — nákres `plany/nakres-devotion-flow-2026-10-24.html`, voľba Mateja 24. 10. 2026
@@ -323,9 +327,12 @@ function DevotionReveal({ from, to, tx, onDone }: { from: number; to: number; tx
 
 /* OKNO „INÉ" — druhá vrstva nad panelom, ten istý šat AINUBISA. */
 const DEED_CSS = `
-.dvd-root{position:fixed;inset:0;z-index:67;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,6,11,0.6);animation:dvt-fade .2s ease both;}
-.dvd-sheet{width:100%;background:${A.surface};color:${A.ink};font-family:${FONT_UI};border:1px solid ${A.edgeStrong};border-bottom:0;
-  border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${A.panelShadow};padding:${S.lg}px ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.lg}px);animation:dvt-up .3s cubic-bezier(.2,.8,.2,1) both;}
+.ppu-sheet.dvd-pop{background:${A.surface};color:${A.ink};border-color:${A.edgeStrong};}
+.dvd-pop .ppu-grab{background:${A.edge};}
+.dvd-ask{display:flex;align-items:center;gap:${S.md}px;flex-wrap:wrap;margin:${S.lg}px 0 0;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${A.ctaEdge};background:${A.ctaTint};}
+.dvd-ask span{flex:1 1 100%;font-weight:600;font-size:${TX.body}px;}
+.dvd-ask button{appearance:none;border-radius:${PACK_R.field}px;cursor:pointer;padding:${S.sm}px ${S.lg}px;font:inherit;font-weight:600;font-size:${TX.label}px;border:1px solid ${A.edge};background:${A.raised};color:${A.ink};}
+.dvd-ask button.no{border-color:${A.cyan};color:${A.cyan};}
 .dvd-who{display:flex;align-items:center;gap:${S.md}px;margin:0 0 ${S.lg}px;}
 .dvd-who img{flex:none;width:48px;height:48px;border-radius:${PACK_R.pill}px;object-fit:contain;background:${A.faceBg};box-shadow:${A.faceRing};}
 .dvd-who p{margin:0;font-size:${TX.lead}px;line-height:1.35;}
@@ -343,48 +350,75 @@ const DEED_CSS = `
 .dvd-note{margin:${S.sm}px 0 0;font-size:${TX.micro}px;color:${A.inkFaint};}
 .dvd-row{display:flex;gap:${S.sm}px;margin:${S.lg}px 0 0;}
 .dvd-row .dvt-claim{flex:1;font-size:${TX.label}px;}
-@media (min-width:768px){
-  .dvd-root{align-items:center;padding:${S.lg}px;}
-  .dvd-sheet{width:480px;border-bottom:1px solid ${A.edgeStrong};border-radius:${PACK_R.card}px;}
-}
 `;
+
+/** KONCEPT Iné — text prežije zatvorenie okna, kým ho človek neuloží do dnešku alebo nezahodí. */
+const DEED_DRAFT_KEY = 'dogypt-deed-draft-v1';
+function readDeedDraft(): { type?: DeedType; text?: string } | null {
+  try { return JSON.parse(localStorage.getItem(DEED_DRAFT_KEY) || 'null'); } catch { return null; }
+}
+const clearDeedDraft = () => { try { localStorage.removeItem(DEED_DRAFT_KEY); } catch { /* nič */ } };
 
 function DeedSheet({ initialType, initialText, tx, onClose, onSave }: {
   initialType: DeedType | null; initialText: string; tx: (k: string, f: string) => string;
   onClose: () => void; onSave: (type: DeedType, text: string) => void;
 }) {
-  const [type, setType] = useState<DeedType | null>(initialType ?? 'chronicle');
-  const [text, setText] = useState(initialText);
+  const draft = useRef(initialText ? null : readDeedDraft()).current;
+  const [type, setType] = useState<DeedType | null>(initialType ?? draft?.type ?? 'chronicle');
+  const [text, setText] = useState(initialText || draft?.text || '');
+  const [askDiscard, setAskDiscard] = useState(false);
+  useKeyboardLift();
   const ok = !!type && text.trim().length >= 3;
   const ph = DEED_TYPES.find((d) => d.id === type)?.ph ?? ['pack.dvtoday.deedPh', 'What did you do for a dog today?'];
+
+  const restored = useRef(false);
+  useEffect(() => {
+    if (!restored.current) { restored.current = true; return; }
+    try {
+      if (text.trim() && text !== initialText) localStorage.setItem(DEED_DRAFT_KEY, JSON.stringify({ type, text }));
+      else localStorage.removeItem(DEED_DRAFT_KEY);
+    } catch { /* kvóta / súkromné okno */ }
+  }, [type, text, initialText]);
+
+  // Zatvorenie s nepridaným textom = inline Zahodiť?; koncept ostáva, kým človek nepovie Zahodiť.
+  const dirty = text.trim().length > 0 && text.trim() !== initialText.trim();
+  const requestClose = () => { if (dirty && !askDiscard) { setAskDiscard(true); return; } onClose(); };
+  const closeRef = useRef(requestClose);
+  closeRef.current = requestClose;
+  const close = useCallback(() => closeRef.current(), []);
+  useBackClose(close);
+
   return (
-    <div className="dvd-root" role="dialog" aria-modal="true" aria-label={tx('pack.dvtoday.deed', 'Other')}
-      onClick={(e) => { e.stopPropagation(); if (e.target === e.currentTarget) onClose(); }}>
-      <style>{DEED_CSS}</style>
-      <div className="dvd-sheet">
-        <div className="dvd-who">
-          <img src={ainubisFace} alt="" aria-hidden />
-          <p>{tx('pack.dvtoday.deedAsk', 'What happened today? Tell me in a few words.')}</p>
-        </div>
-        <div className="dvd-types" role="radiogroup">
-          {DEED_TYPES.map((d) => (
-            <button key={d.id} type="button" role="radio" aria-checked={type === d.id} className={`dvd-type${type === d.id ? ' on' : ''}`} onClick={() => setType(d.id)}>
-              <BrandIcon name={d.icon} size={16} tint="gold" />
-              <span className="tx"><b>{tx(...d.label)}</b><small>{tx(...d.sub)}</small></span>
-              <span className="dvt-cnt dim">{d.points != null ? `+${d.points}` : tx('pack.dvtoday.deedJudge', 'AINUBIS will judge')}</span>
-            </button>
-          ))}
-        </div>
-        <textarea className="dvd-text" value={text} maxLength={500} onChange={(e) => setText(e.target.value)} placeholder={tx(...ph)} />
-        {type === 'good_deed' && <p className="dvd-note">{tx('pack.dvtoday.deedNote', 'AINUBIS will read it and add devotion.')}</p>}
-        <div className="dvd-row">
-          <BackButton tone="ainubis" onClick={onClose} label={tx('pack.network.close', 'Close')} />
-          <button type="button" className="dvt-claim" disabled={!ok} onClick={() => ok && type && onSave(type, text.trim())}>
-            {tx('pack.dvtoday.deedAdd', 'Add to today')}
-          </button>
-        </div>
+    <PackPopup label={tx('pack.dvtoday.deed', 'Other')} onClose={close} className="dvd-pop">
+      <style>{DEED_CSS}{kbLiftCSS('dvd-pop', MODAL_MAX_H)}</style>
+      <div className="dvd-who">
+        <img src={ainubisFace} alt="" aria-hidden />
+        <p>{tx('pack.dvtoday.deedAsk', 'What happened today? Tell me in a few words.')}</p>
       </div>
-    </div>
+      <div className="dvd-types" role="radiogroup">
+        {DEED_TYPES.map((d) => (
+          <button key={d.id} type="button" role="radio" aria-checked={type === d.id} className={`dvd-type${type === d.id ? ' on' : ''}`} onClick={() => setType(d.id)}>
+            <BrandIcon name={d.icon} size={16} tint="gold" />
+            <span className="tx"><b>{tx(...d.label)}</b><small>{tx(...d.sub)}</small></span>
+            <span className="dvt-cnt dim">{d.points != null ? `+${d.points}` : tx('pack.dvtoday.deedJudge', 'AINUBIS will judge')}</span>
+          </button>
+        ))}
+      </div>
+      <textarea className="dvd-text" value={text} maxLength={500} onChange={(e) => setText(e.target.value)} placeholder={tx(...ph)} />
+      {type === 'good_deed' && <p className="dvd-note">{tx('pack.dvtoday.deedNote', 'AINUBIS will read it and add devotion.')}</p>}
+      {askDiscard && (
+        <div className="dvd-ask" role="alertdialog" aria-label={tx('pack.compose.discardQ', 'Discard?')}>
+          <span>{tx('pack.compose.discardQ', 'Discard?')}</span>
+          <button type="button" onClick={() => { clearDeedDraft(); onClose(); }}>{tx('pack.compose.discard', 'Discard')}</button>
+          <button type="button" className="no" onClick={() => setAskDiscard(false)}>{tx('pack.compose.keepWriting', 'Keep writing')}</button>
+        </div>
+      )}
+      <div className="dvd-row">
+        <button type="button" className="dvt-claim" disabled={!ok} onClick={() => { if (ok && type) { clearDeedDraft(); onSave(type, text.trim()); } }}>
+          {tx('pack.dvtoday.deedAdd', 'Add to today')}
+        </button>
+      </div>
+    </PackPopup>
   );
 }
 
@@ -398,6 +432,8 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
   const [pick, setPick] = useState<string[]>([]);
   const [tap, setTap] = useState<Partial<Record<TileKind, number>>>({});
   const [deedOpen, setDeedOpen] = useState(false);
+  const deedOpenRef = useRef(false);
+  deedOpenRef.current = deedOpen;
   const [deed, setDeed] = useState('');
   const [deedType, setDeedType] = useState<DeedType | null>(null);
   const [busy, setBusy] = useState(false);
@@ -413,6 +449,11 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
   const [remOn, setRemOn] = useState(true);
   const [remTime, setRemTime] = useState<[string, string]>(['15:00', '19:00']);
   const flyId = useRef(0);
+  useFlowKeyboardFix();
+  useKeyboardLift();
+  // Vnorené okno Iné má vlastné zatvorenie (Esc, gesto späť, závoj) — rodič sa vtedy nehýbe.
+  const popClose = useCallback(() => { if (!deedOpenRef.current) onClose(); }, [onClose]);
+  useBackClose(popClose);
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.rpc('devotion_today' as never);
@@ -429,14 +470,6 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
       setRemTime(devotionTimes(human));
     });
   }, []);
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
-  }, [onClose]);
-
   const sel = (today?.dogs ?? []).filter((g) => pick.includes(g.id));
   // Koľko ťukov ešte smie pribudnúť = miesto u psa, ktorý ho má NAJVIAC.
   const room = (k: TileKind) => (sel.length ? Math.max(...sel.map((g) => DEVOTION_DAILY[k].perDay - (g.done[k] ?? 0))) : 0);
@@ -526,15 +559,13 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
   const question = said ?? tx('pack.dvtoday.ask', 'How was today with {dog}? Tap what you did together.').replace('{dog}', withWhom);
   const feedOn = (today?.dogs ?? []).some((g) => g.diet);
 
-  return createPortal(
-    <div className="dvt-root" role="dialog" aria-modal="true" aria-label={tx('pack.dvtoday.title', 'Today')}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <style>{CSS}</style>
+  return (
+    <PackPopup label={tx('pack.dvtoday.title', 'Today')} onClose={popClose} className="dvt-pop">
+      <style>{CSS}{kbLiftCSS('dvt-pop', MODAL_MAX_H)}</style>
       {reveal && <DevotionReveal from={reveal.from} to={reveal.to} tx={tx} onDone={onClose} />}
       <div className={`dvt-sheet${done ? ' tally' : ''}`} ref={sheetRef}>
         <div className="dvt-body" ref={bodyRef}>
           <div className="dvt-top">
-            <BackButton tone="ainubis" onClick={onClose} label={tx('pack.network.close', 'Close')} />
             <span className="sp" />
             {today && today.streak > 0 && (
               <span className="dvt-streak"><BrandIcon name="bolt" size={12} tint="gold" />{streakText(today.streak)}</span>
@@ -660,7 +691,6 @@ export function DevotionToday({ onClose }: { onClose: () => void }) {
           onClose={() => setDeedOpen(false)}
           onSave={(type, text) => { setDeedType(type); setDeed(text); setDeedOpen(false); setSaid(null); setBump('deed'); setTimeout(() => setBump(null), 320); buzz(); }} />
       )}
-    </div>,
-    document.body,
+    </PackPopup>
   );
 }

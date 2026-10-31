@@ -23,9 +23,15 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { MemorialControl } from '@/components/pack/MemorialControl';
 import { useToast } from '@/hooks/use-toast';
 import { uploadExtraPhoto, sizedUrl } from '@/services/cloudinaryService';
+import { compressFile } from '@/lib/photoIntake';
+import { IS_APP } from '@/lib/isApp';
+import { openExternal } from '@/lib/appLinks';
+
+// PDF v appke (WebView `download` nestiahne): systémový prehliadač (audit 30. 10. 2026). Na webe nič nemení.
+const openPdf = (href: string) => IS_APP ? (e: React.MouseEvent) => { e.preventDefault(); openExternal(href); } : undefined;
 import { useDogyptStore } from '@/store/dogyptStore';
 import { flagUrl, countryISO2, flagEmojiFromISO2 } from '@/lib/countryGeo';
-import { EDGE_BASE, SUPABASE_ANON_KEY, TEST_BUILD } from '@/lib/env';
+import { EDGE_BASE, TEST_BUILD } from '@/lib/env';
 import { DEV_FULL } from '@/lib/packFlags';
 // Vek psa žije v lib/dogAge.ts — tú istú matematiku potrebuje aj svorka na `/pack`.
 import { computeAge, type DogAge } from '@/lib/dogAge';
@@ -226,7 +232,6 @@ export default function PackDogDetail() {
   const [dog, setDog] = useState<DogRow | null>(null);
   const [status, setStatus] = useState<Status>('loading');
   const [errorMsg, setErrorMsg] = useState<string>('');
-  const [resending, setResending] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [packNumber, setPackNumber] = useState<number | null>(null);
   const { toast } = useToast();
@@ -263,12 +268,6 @@ export default function PackDogDetail() {
   // Weight — editable inline, saves to DB via weightKgDb.
   const [weightEditing, setWeightEditing] = useState(false);
   const [weightDraft, setWeightDraft] = useState('');
-  // DAILY PRAYERS — the three acts of devotion from the Constitution (Part IV).
-  const [presenceDone, setPresenceDone] = useState(false);
-  const [walkHours, setWalkHours] = useState<number | null>(null); // 0..5, 0 = under 1 h, null = untouched
-  const [prayersSubmitted, setPrayersSubmitted] = useState(false); // locks the block once logged
-  const [prayerLockedPoints, setPrayerLockedPoints] = useState<number | null>(null); // points credited when locked
-  const [showPrayerConfirm, setShowPrayerConfirm] = useState(false);
   // HEALTH — editable fields from DB
   const [weightKgDb, setWeightKgDb] = useState<string>('');
   const [allergiesDb, setAllergiesDb] = useState<string>('');
@@ -276,40 +275,6 @@ export default function PackDogDetail() {
   const [medicationDb, setMedicationDb] = useState<string>('');
   const [dietDb, setDietDb] = useState<string>('');
   const [healthSaving, setHealthSaving] = useState(false);
-
-  // Log today's prayer → grant-devotion (idempotent: one credit per dog per day).
-  const confirmAndSubmitPrayers = async () => {
-    setShowPrayerConfirm(false);
-    const pts = (presenceDone ? 3 : 0) + (walkHours !== null ? walkPointsFor(walkHours) : 0);
-    setPrayersSubmitted(true); // optimistic lock
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(`${EDGE_BASE}/grant-devotion`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token ?? ''}`,
-          apikey: SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ kind: 'prayer', dog_id: id, presence: presenceDone, walk_hours: walkHours }),
-      });
-      if (res.ok) {
-        const j = await res.json();
-        setPrayerLockedPoints(j.points ?? pts);
-        if (typeof j.total === 'number') {
-          window.dispatchEvent(new CustomEvent('dogypt:devotion', { detail: { total: j.total } }));
-        }
-      } else {
-        // Revert optimistic lock on failure
-        setPrayersSubmitted(false);
-        toast({ title: t('pack.dog.toastCouldntLog'), variant: 'destructive' });
-      }
-    } catch {
-      // Revert optimistic lock on network error
-      setPrayersSubmitted(false);
-      toast({ title: t('pack.dog.toastCouldntLog'), variant: 'destructive' });
-    }
-  };
 
   // Save one or more health fields to DB.
   const saveHealthFields = async (fields: Partial<Record<'weight_kg' | 'allergies' | 'conditions' | 'medication' | 'diet' | 'health_status', string | number | null>>) => {
@@ -409,27 +374,6 @@ export default function PackDogDetail() {
       }
       setStatus('ready');
 
-      // Check if today's prayer is already logged (lock the block if so).
-      const todayUTC = new Date().toISOString().slice(0, 10);
-      const idemKey = `prayer:${id}:${todayUTC}`;
-      const { data: existingPrayer } = await (supabase as unknown as {
-        from: (t: string) => {
-          select: (cols: string) => {
-            eq: (col: string, val: string) => {
-              maybeSingle: () => Promise<{ data: { points?: number } | null }>;
-            };
-          };
-        };
-      })
-        .from('devotion_events')
-        .select('points')
-        .eq('idem_key', idemKey)
-        .maybeSingle();
-      if (mounted && existingPrayer) {
-        setPrayersSubmitted(true);
-        setPrayerLockedPoints(existingPrayer.points ?? null);
-      }
-
       // pack_number is stored directly on dogs row (set by seal_pack_number at payment).
       if (mounted && data.pack_number != null) setPackNumber(data.pack_number);
     }
@@ -527,7 +471,9 @@ export default function PackDogDetail() {
     try {
       // `stripe_session_id` klient od P1 (20261011) nevidí — nové fotky idú do priečinka psa.
       const sessionFolder = dog.id;
-      const result = await uploadExtraPhoto(file, sessionFolder, 0);
+      // Zmenšiť pred nahraním (fotka z mobilu má 10+ MB) — rovnako ako profilovka a titulka (audit 30. 10. 2026).
+      const { blob } = await compressFile(file);
+      const result = await uploadExtraPhoto(blob, sessionFolder, 0);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       await updateDogRow(dog.id, { cloudinary_main_url: result.secureUrl });
@@ -601,35 +547,6 @@ export default function PackDogDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dog]);
 
-  const handleResend = async () => {
-    if (!dog?.id || resending) return;
-    setResending(true);
-    try {
-      // resend-magic-link generates a fresh link server-side and emails it to the
-      // buyer on file (rate-limited 5/h per dog). The previous send-certificate
-      // call ({dogId, force}) was a silent no-op — that function ignores payloads
-      // without an email field and its email path is internal-only since v22.
-      const { data: { session } } = await supabase.auth.getSession();
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
-      const res = await fetch(`${EDGE_BASE}/resend-magic-link`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ dogId: dog.id }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      toast({ title: t('pack.dog.toastEmailResent'), description: t('pack.dog.toastEmailResentDesc') });
-    } catch (err) {
-      toast({
-        title: t('pack.dog.toastCouldNotResend'),
-        description: err instanceof Error ? err.message : t('pack.dog.toastUnknownError'),
-        variant: 'destructive',
-      });
-    } finally {
-      setResending(false);
-    }
-  };
-
   if (status === 'loading') {
     return (
       <PackLayout>
@@ -679,15 +596,6 @@ export default function PackDogDetail() {
   const deathDateLabel = deathDate
     ? deathDate.toLocaleDateString(appLoc, { day: 'numeric', month: 'short', year: 'numeric' })
     : null;
-  const WALK_LEVELS = getWalkLevels(t);
-
-  // Daily-prayers header + provisional points (placeholder; rolls up to stats later).
-  const todayLabel = new Date()
-    .toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
-    .toUpperCase();
-  const walkPts = walkHours !== null ? walkPointsFor(walkHours) : 0;
-  const todayPoints = (presenceDone ? 3 : 0) + walkPts;
-
   // Birthday for the STATS calendar markers (real birthday + 6 human-year birthdays).
   const sel = (dog.selections ?? {}) as Record<string, unknown>;
   const birthMonth = Number(sel.birthdayMonth) || null;
@@ -798,19 +706,7 @@ export default function PackDogDetail() {
             {/* FRONT — identity (always rendered; defines the block height) */}
             <div className="did-front">
 
-            {/* — Ikony v rohoch (Lost · Dokumenty) — */}
-            <div className="absolute flex items-center gap-2" style={{ top: 4, left: 4, zIndex: 4 }}>
-              {/* FIX9: deceased pes sa nestráca — schovaj "Report lost dog" ikonu. */}
-              {!isDeceased && (
-                <IconBtn
-                  icon={<BrandIcon name="alert" size={16} tint="danger" />}
-                  label={t('pack.dog.lostDogTooltip')}
-                  tooltipSide="right"
-                  soon
-                  danger
-                />
-              )}
-            </div>
+            {/* — Ikona v rohu (Dokumenty). „Report lost dog" (soon) zmazaný 31. 10. 2026 — nikdy nefungoval. — */}
             <div className="absolute flex items-center gap-2" style={{ top: 4, right: 4, zIndex: 4 }}>
               <IconBtn
                 icon={<BrandIcon name="document" size={16} tint="gold" />}
@@ -1328,22 +1224,6 @@ export default function PackDogDetail() {
             12.8.2026: pas sa presunul DOVNÚTRA karty vyššie (jedna karta = jedno ID),
             gate ostal na tom istom mieste v strome, len o pár riadkov vyššie. */}
 
-        {/* ČLENSKÁ VETVA — tri „čoskoro" dlaždice, presne ako pred 6.8.2026.
-            Sú tu preto, že pas o riadok vyššie je za flagom: bez nich by členovi na
-            `/pack/dogs/:id` zostal len blok identity a stránka by sa skončila — dostal by
-            ODOBRATIE (zmizli mu dlaždice) bez PRIDANIA (pas nevidí). Panely pod nimi sa
-            NEVRACAJÚ, vstup je natrvalo v MY PACK; toto je len sľub, že tie tri veci existujú.
-            Modlitbová coming-soon karta sa zámerne NEVRACIA — tá funkcia je zrušená
-            („zatial celkom preč"), a sľubovať zrušené je horšie než nesľubovať nič.
-            ZMAZAŤ celý tento blok pri odomknutí hubu členom. */}
-        {!DEV_FULL && (
-          <div className="grid grid-cols-3 gap-4 md:gap-6">
-            <HubTile icon="heartpaw" label={t('pack.dog.tileHealth')} sub={t('pack.dog.tileHealthSub')} soon />
-            <HubTile icon="trophy" label={t('pack.dog.tileTraining')} sub={t('pack.dog.tileTrainingSub')} soon />
-            <HubTile icon="feather" label={t('pack.dog.tileJournal')} sub={t('pack.dog.tileJournalSub')} soon />
-          </div>
-        )}
-
 
         {/* ŠTATISTIKY (ročný kalendár) PRESUNUTÉ 6.8.2026 do MY PACK (`/pack/dogs`) ako
             posledný blok — Matej: „premiestni STATS do /DOGS ako posledné (coming soon)".
@@ -1354,7 +1234,7 @@ export default function PackDogDetail() {
             mne to tam nedáva zmysel"). Volalo `resend-magic-link` — poslalo kupujúcemu
             nový prihlasovací odkaz. Je to vec ÚČTU, nie psa: kto je prihlásený a číta
             túto stránku, prihlasovací odkaz už nepotrebuje. Ak sa raz vráti, patrí do
-            `/pack/profile` k účtu. Handler `handleResend` ostáva v súbore nevyužitý.
+            `/pack/profile` k účtu. Mŕtvy handler `handleResend` zmazaný 31. 10. 2026.
             Bonus dôvod: tlačidlo malo `color: T.ink` (papyrusová čierna) na TMAVOM
             pozadí stránky, takže bolo aj tak fakticky neviditeľné. */}
 
@@ -2900,187 +2780,6 @@ function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: stri
   );
 }
 
-// LIVE coming-soon karta na mieste Daily Prayers (Block 2). DEV_FULL = plný blok.
-function PrayersComingSoon({ dogName }: { dogName: string }) {
-  const t = useT();
-  return (
-    <section
-      className="flex flex-col items-center justify-center text-center"
-      style={{
-        background: T.cardGrad,
-        border: `1.5px solid ${T.cardEdge}`,
-        borderRadius: 16,
-        padding: '32px 24px',
-        boxShadow: T.cardShadow,
-        gap: 14,
-      }}
-    >
-      <span
-        className="inline-flex items-center justify-center"
-        style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(201,154,63,0.08)', border: `1px solid ${PACK_THEME.hairline}` }}
-      >
-        <HandLock size={24} style={{ color: T.accentGold }} />
-      </span>
-      <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>
-        {t('pack.dog.dailyPrayers')}
-      </h2>
-      <span
-        className="inline-flex items-center gap-1.5"
-        style={{
-          padding: '4px 12px',
-          borderRadius: 999,
-          background: T.tileBg,
-          fontFamily: FONT_UI,
-          fontSize: 10,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: T.inkDim,
-        }}
-      >
-        <HandLock size={10} />
-        {t('pack.dog.comingSoon')}
-      </span>
-      <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.5, color: T.inkDim, maxWidth: 280 }}>
-        {t('pack.dog.prayersComingSoonDesc', { dogName })}
-      </p>
-    </section>
-  );
-}
-
-function HubTile({
-  icon,
-  label,
-  sub,
-  active,
-  open,
-  soon,
-  onClick,
-}: {
-  icon: string;
-  label: string;
-  sub?: string;
-  active?: boolean;
-  open?: boolean;
-  soon?: boolean;
-  onClick?: () => void;
-}) {
-  const t = useT();
-  const clickable = !!active && !soon;
-  const [hover, setHover] = useState(false);
-  const lift = clickable && hover;
-  return (
-    <button
-      type="button"
-      onClick={clickable ? onClick : undefined}
-      disabled={!clickable}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      className="relative flex flex-col items-center justify-center text-center"
-      style={{
-        padding: '32px 16px',
-        borderRadius: 16,
-        background: T.cardGrad,
-        border: `1.5px solid ${T.cardEdge}`,
-        // lift (hover na klikateľnej karte) = lockovaný cardShadow + zlatý glow navrch;
-        // pokoj = lockovaný cardShadow.
-        boxShadow: lift
-          ? `0 24px 50px -18px rgba(201, 154, 63, 0.5), ${T.cardShadow}`
-          : T.cardShadow,
-        gap: 13,
-        minHeight: 158,
-        width: '100%',
-        cursor: clickable ? 'pointer' : 'default',
-        transform: lift ? 'translateY(-4px)' : 'translateY(0)',
-        transition: 'all 0.2s ease',
-      }}
-    >
-      {soon && (
-        <span
-          className="absolute inline-flex items-center gap-1"
-          style={{
-            top: 11,
-            right: 11,
-            padding: '4px 8px',
-            borderRadius: 999,
-            background: T.tileBg,
-            fontFamily: FONT_UI,
-            fontSize: 10,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: T.inkFaint,
-          }}
-        >
-          <HandLock size={10} />
-          {t('pack.dog.soon')}
-        </span>
-      )}
-      {active && (
-        <ChevronDown
-          className="absolute h-4 w-4"
-          style={{
-            top: 12,
-            right: 12,
-            color: T.accentGold,
-            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s',
-          }}
-        />
-      )}
-
-      {/* Ikona v zlatom kruhovom halo */}
-      <span
-        className="inline-flex items-center justify-center"
-        style={{
-          width: 64,
-          height: 64,
-          borderRadius: '50%',
-          flexShrink: 0,
-          background: active ? 'rgba(201, 154, 63, 0.12)' : 'rgba(201, 154, 63, 0.05)',
-          border: `1px solid ${active ? PACK_THEME.border : PACK_THEME.hairline}`,
-          boxShadow: lift ? '0 0 0 6px rgba(201, 154, 63, 0.10)' : 'none',
-          transition: 'box-shadow 0.2s ease',
-        }}
-      >
-        <img
-          src={`/icons/pack/${icon}.svg`}
-          alt=""
-          style={{ width: 36, height: 36, filter: GOLD_FILTER, opacity: active ? 1 : 0.45 }}
-        />
-      </span>
-
-      {/* Label + teaser */}
-      <div className="flex flex-col items-center" style={{ gap: 4 }}>
-        <span
-          style={{
-            fontFamily: FONT_UI,
-            fontSize: 14,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: active ? T.ink : T.inkDim,
-            fontWeight: 600,
-            lineHeight: 1,
-          }}
-        >
-          {label}
-        </span>
-        {sub && (
-          <span
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 10,
-              letterSpacing: '0.02em',
-              color: active ? T.inkDim : T.inkFaint,
-              lineHeight: 1.2,
-            }}
-          >
-            {sub}
-          </span>
-        )}
-      </div>
-    </button>
-  );
-}
-
 function DownloadButton({
   label,
   href,
@@ -3131,7 +2830,7 @@ function DownloadButton({
       </>
     );
     return enabled ? (
-      <a href={href!} download={filename} target="_blank" rel="noopener noreferrer" style={style}>{inner}</a>
+      <a href={href!} download={filename} target="_blank" rel="noopener noreferrer" style={style} onClick={openPdf(href!)}>{inner}</a>
     ) : (
       <div style={style} title={t('pack.dog.generating')}>{inner}</div>
     );
@@ -3164,7 +2863,7 @@ function DownloadButton({
     </>
   );
   return enabled ? (
-    <a href={href!} download={filename} target="_blank" rel="noopener noreferrer" style={style}>{inner}</a>
+    <a href={href!} download={filename} target="_blank" rel="noopener noreferrer" style={style} onClick={openPdf(href!)}>{inner}</a>
   ) : (
     <div style={style} title="Generating…">{inner}</div>
   );

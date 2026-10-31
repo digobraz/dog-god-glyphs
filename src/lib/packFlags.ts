@@ -113,8 +113,10 @@ export const DEV_FULL = true;
 // 🔴 NIE JE TO ODOMKNUTIE PODĽA B8 a lock tým neplatí za splnený — pre KLIENTA
 // sa nemení nič, dvere mu ostávajú zamknuté s pilulkou ČOSKORO. B8 je stále to,
 // čo `isFullPackEmail(...)` odtiaľto ODSTRÁNI a nechá zapnuté pre všetkých.
+// 🆕 31. 10. 2026 (audit appky, rozhodnutie za Mateja): v NATÍVNEJ appke (`IS_APP`) je pawmate skrytý celý —
+// žiadne dvere, žiadne „Coming soon". Web a testovací kanál ostávajú ako doteraz.
 export const PAWMATE_LIVE =
-  import.meta.env.VITE_PAWMATE === 'true' || isFullPackEmail(sessionEmailFromStorage());
+  !IS_APP && (import.meta.env.VITE_PAWMATE === 'true' || isFullPackEmail(sessionEmailFromStorage()));
 
 // ── PODUJATIA — DVERE ZAMKNUTÉ, KÝM NA LIVE NIE JE SCHÉMA (2026-09-15) ──────
 // 🟢 STAV K 5. 10. 2026: FRONTEND JE HOTOVÝ A ČÍTA AJ PÍŠE DB (vlna 2, 24.–25. 9., commit

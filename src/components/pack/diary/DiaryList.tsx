@@ -12,14 +12,16 @@
 //    s vlastnou obrazovkou (kôš 2, šípka späť). Ostal tu len čitateľ a jeden zápis.
 //
 // ⚠️ ŽIADNE NOVÉ ÚLOŽISKO — číta tie isté riadky `dog_events` ako kalendár
-//    (`readEvents`). Váženie sa tu NEUKAZUJE: je to číslo, žije vo váhovej krivke
-//    a v kalendári; kronika je o zápiskoch (text + fotka). GALÉRIA nemá vlastnú
+//    (`readEvents`). Váženie sa v KRONIKE ukazuje od 31. 10. 2026 (`opts.weights`) ako jeden riadok bez
+//    úpravy — je to údaj, append-only; teaser na /pack/dogs ho ďalej nerátá. GALÉRIA nemá vlastnú
 //    tabuľku: fotka je príloha zápisu, filter „Fotky" sú zápisy s `photo`.
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useState } from 'react';
+import { HandPencil, HandTrash } from '@/components/pack/HandIcons';
+import { toast } from '@/hooks/use-toast';
 import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
-import { readEvents, onDogEventsChange } from '@/lib/dogEvents';
+import { readEvents, onDogEventsChange, deleteDiaryEvent } from '@/lib/dogEvents';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { DIARY_CHIPS, asDiaryValue, isPlanDay } from './diaryModel';
 
@@ -31,14 +33,22 @@ type Tx = (key: string, fallback: string) => string;
 /** Len textové zápisky — váženie (`health.weightKg`) je číslo a patrí krivke. */
 const TEXT_CHIPS = DIARY_CHIPS.filter((c) => c.input === 'text');
 const TEXT_FIELDS = TEXT_CHIPS.map((c) => c.field);
+/** Váženie je v KRONIKE od 31. 10. 2026 (audit D·9) — jeden riadok „⚖️ 24,5 kg", bez úpravy (údaj je append-only). */
+const WEIGHT_CHIP = DIARY_CHIPS.find((c) => c.input === 'number')!;
 
 export type DiaryRow = {
   key: string;
+  /** `dog_events.id` (alebo `local-…` zo offline fronty). */
+  id: string;
   dogId: string;
   field: string;
   recordedAt: string;
   text: string;
   photo?: string;
+  /** Len váženie. */
+  kg?: number;
+  /** Surová hodnota — úprava ju posiela formuláru. */
+  value?: unknown;
 };
 
 /** `YYYY-MM-DD` miestneho dňa — to isté porovnanie, aké robí `isPlanDay`. */
@@ -49,21 +59,29 @@ function dayKeyOf(iso: string): string {
 }
 
 /** Zápisky psov, najnovší hore. `null` = ešte sa načítava. Prekreslí sa po každom zápise. */
-export function useDiaryRows(dogIds: string[]): DiaryRow[] | null {
+export function useDiaryRows(dogIds: string[], opts: { weights?: boolean } = {}): DiaryRow[] | null {
   const [rows, setRows] = useState<DiaryRow[] | null>(null);
   const ids = dogIds.join(',');
+  const withWeights = !!opts.weights;
 
   useEffect(() => {
     let alive = true;
     const load = () => {
-      readEvents(ids ? ids.split(',') : [], TEXT_FIELDS).then((evs) => {
+      readEvents(ids ? ids.split(',') : [], withWeights ? [...TEXT_FIELDS, WEIGHT_CHIP.field] : TEXT_FIELDS).then((evs) => {
         if (!alive) return;
         const out: DiaryRow[] = [];
         evs.forEach((ev, i) => {
+          if (ev.field === WEIGHT_CHIP.field) {
+            if (typeof ev.value === 'number' && ev.value > 0) {
+              out.push({ key: ev.id ?? `${ev.dogId}-${ev.recordedAt}-${i}`, id: ev.id, dogId: ev.dogId, field: ev.field,
+                recordedAt: ev.recordedAt, text: '', kg: ev.value });
+            }
+            return;
+          }
           const v = asDiaryValue(ev.value);
           if (!v || (!v.text.trim() && !v.photo)) return;
-          out.push({ key: ev.id ?? `${ev.dogId}-${ev.recordedAt}-${i}`, dogId: ev.dogId, field: ev.field,
-            recordedAt: ev.recordedAt, text: v.text, photo: v.photo });
+          out.push({ key: ev.id ?? `${ev.dogId}-${ev.recordedAt}-${i}`, id: ev.id, dogId: ev.dogId, field: ev.field,
+            recordedAt: ev.recordedAt, text: v.text, photo: v.photo, value: ev.value });
         });
         // Najnovší deň hore — kronika sa číta od včerajška dozadu.
         out.sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
@@ -73,32 +91,55 @@ export function useDiaryRows(dogIds: string[]): DiaryRow[] | null {
     load();
     const off = onDogEventsChange(load);
     return () => { alive = false; off(); };
-  }, [ids]);
+  }, [ids, withWeights]);
 
   return rows;
 }
 
-/** Jeden zápis — celý text a celá fotka, nič orezané. */
-export function DiaryItem({ row, dogName, tx }: { row: DiaryRow; dogName?: string; tx: Tx }) {
+/** Jeden zápis — celý text a celá fotka, nič orezané. `onEdit` = úprava (len zápisy denníka, nie váženie). */
+export function DiaryItem({ row, dogName, tx, onEdit }: { row: DiaryRow; dogName?: string; tx: Tx; onEdit?: (row: DiaryRow) => void }) {
   const lang = (typeof document !== 'undefined' && document.documentElement.lang) || undefined;
-  const chip = TEXT_CHIPS.find((c) => c.field === row.field);
+  const chip = DIARY_CHIPS.find((c) => c.field === row.field);
   const plan = isPlanDay(dayKeyOf(row.recordedAt));
+  const editable = row.kg === undefined;   // váženie je údaj (append-only), zápis denníka je text autora
+  const [askDel, setAskDel] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const del = async () => {
+    if (busy) return;
+    setBusy(true);
+    try { await deleteDiaryEvent(row.id); }   // prekreslenie nesie signál `onDogEventsChange`
+    catch { toast({ title: tx('pack.diary.deleteFailed', 'Could not delete the entry.'), variant: 'destructive' }); setBusy(false); setAskDel(false); }
+  };
   return (
     <article className="dl-item" style={{ ...PACK_BOX.subblock }}>
       <div className="dl-meta">
         <span>{new Date(row.recordedAt).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
         {plan && <span className="dl-plan">{tx('pack.diary.planTag', 'Plan')}</span>}
+        {editable && onEdit && (
+          <span className="dl-acts">
+            <button type="button" aria-label={tx('pack.diary.edit', 'Edit')} onClick={() => onEdit(row)}><HandPencil size={16} /></button>
+            <button type="button" aria-label={tx('pack.diary.delete', 'Delete')} onClick={() => setAskDel(true)}><HandTrash size={16} /></button>
+          </span>
+        )}
       </div>
       <div className="dl-kind">
         <span style={{ fontFamily: EMOJI_FONT }}>{chip?.emoji}</span>
         {chip ? tx(chip.labelKey, chip.labelFallback) : ''}
         {dogName && <span className="dl-dog">· {dogName}</span>}
       </div>
+      {row.kg !== undefined && <p className="dl-text">{row.kg.toLocaleString(lang, { maximumFractionDigits: 1 })} kg</p>}
       {row.text.trim() && <p className="dl-text">{row.text}</p>}
       {row.photo && (
         <a className="pk-photo dl-photo" href={row.photo} target="_blank" rel="noreferrer">
           <img src={sizedUrl(row.photo, 720)} alt="" loading="lazy" />
         </a>
+      )}
+      {askDel && (
+        <div className="dl-ask" role="alertdialog" aria-label={tx('pack.diary.deleteQ', 'Delete this entry?')}>
+          <span>{tx('pack.diary.deleteQ', 'Delete this entry?')}</span>
+          <button type="button" onClick={() => void del()} disabled={busy}>{tx('pack.diary.deleteYes', 'Delete')}</button>
+          <button type="button" className="no" onClick={() => setAskDel(false)}>{tx('pack.diary.deleteNo', 'Keep it')}</button>
+        </div>
       )}
     </article>
   );
@@ -110,6 +151,12 @@ export const DIARY_LIST_CSS = `
 .dl-item{padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px}
 .dl-meta{display:flex;gap:${PACK_SPACE.sm}px;align-items:center;font-family:${FONT_UI};
   font-size:${PACK_TEXT.micro}px;letter-spacing:0.14em;text-transform:uppercase;color:${T.inkWarm}}
+.dl-acts{margin-left:auto;display:inline-flex;gap:${PACK_SPACE.xs}px}
+.dl-acts button{appearance:none;display:grid;place-items:center;width:40px;height:40px;padding:0;background:none;border:0;border-radius:${PACK_R.pill}px;cursor:pointer;color:${T.inkWarm}}
+.dl-ask{display:flex;align-items:center;gap:${PACK_SPACE.md}px;flex-wrap:wrap;margin-top:${PACK_SPACE.md}px}
+.dl-ask span{flex:1 1 100%;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.body}px;color:${T.inkStrong}}
+.dl-ask button{border-radius:${PACK_R.field}px;cursor:pointer;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;border:1.5px solid ${T.border};background:${T.card};color:${T.inkStrong}}
+.dl-ask button.no{border-color:${LAPIS.edge};color:${LAPIS.edge}}
 .dl-plan{border:1px solid ${LAPIS.edge};color:${LAPIS.edge};border-radius:${PACK_R.pill}px;padding:0 ${PACK_SPACE.sm}px}
 .dl-kind{display:flex;gap:${PACK_SPACE.xs}px;align-items:center;margin-top:${PACK_SPACE.xs}px;
   font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;color:${T.inkStrong}}

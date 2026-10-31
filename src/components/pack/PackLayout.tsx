@@ -36,6 +36,7 @@ import { placeForRoute, withOrigin, type CreateObject } from './createRegistry';
 import { emitCreate, type CreateIntent } from '@/lib/createBus';
 import { openAinubis } from '@/lib/ainubisBus';
 import { patchHuman } from '@/lib/humanPrefs';
+import { toast } from '@/hooks/use-toast';
 import { onOpenCompose, type ComposeMode } from './profile/mePosts';
 
 // Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: HERO_TRAILS 1,5 MB,
@@ -48,6 +49,7 @@ import { onOpenCompose, type ComposeMode } from './profile/mePosts';
 // aby prvé ťuknutie nečakalo na sieť.
 const loadAddTripEntry = () => import('./addtrip/AddTripEntry');
 const AddTripEntry = lazy(() => loadAddTripEntry().then((m) => ({ default: m.AddTripEntry })));
+const DevotionToday = lazy(() => import('./profile/DevotionToday').then((m) => ({ default: m.DevotionToday })));
 const DiaryEntry = lazy(() => import('./diary/DiaryEntry').then((m) => ({ default: m.DiaryEntry })));
 const MeCompose = lazy(() => import('./profile/MeCompose').then((m) => ({ default: m.MeCompose })));
 const Inbox = lazy(() => import('./messaging/Inbox').then((m) => ({ default: m.Inbox })));
@@ -350,6 +352,8 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
   const place = placeForRoute(pathname);
   const [createOpen, setCreateOpen] = useState(false);
   const [diary, setDiary] = useState<{ mode: 'write' | 'photo' } | null>(null);
+  // ZAPÍŠ DNEŠOK — okno nad miestom, kde človek stojí (D·4, lock §4.2), nie presmerovanie na profil.
+  const [todayOpen, setTodayOpen] = useState(false);
   // TVORBA (príspevok · story · album) — otvára ju panel `+` aj `+` na fotke v profile JA.
   const [compose, setCompose] = useState<ComposeMode | null>(null);
   useEffect(() => onOpenCompose((m) => { setCreateOpen(false); setCompose(m); }), []);
@@ -406,6 +410,13 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
   const runCreate = (o: CreateObject) => {
     setCreateOpen(false);
     if (o.target.kind !== 'handler') return;
+    // 🔴 BEZ PSA SA NIČ NEDEJE = chyba (D·8): zápis a „Zapíš dnešok" sú o psovi. Povedz prečo, nezatváraj mlčky.
+    //    `dogs === undefined` = ešte sa načítava; tu sa nehlási nič.
+    if (o.needs === 'pes' && dogs && dogs.length === 0) {
+      toast({ title: tx('pack.create.needsDog', 'Add a dog first — entries are written for a dog.') });
+      return;
+    }
+    if (o.target.id === 'devotion.today') { setTodayOpen(true); return; }
     if (o.target.id === 'diary.write') { setDiary({ mode: 'write' }); return; }
     if (o.target.id === 'diary.photo') { setDiary({ mode: 'photo' }); return; }
     if (o.target.id === 'feed.post') { setCompose('post'); return; }
@@ -645,6 +656,11 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
           onClose={() => setDiary(null)}
           tx={tx}
         />
+      </Suspense>
+    )}
+    {todayOpen && (
+      <Suspense fallback={null}>
+        <DevotionToday onClose={() => setTodayOpen(false)} />
       </Suspense>
     )}
     {compose && (

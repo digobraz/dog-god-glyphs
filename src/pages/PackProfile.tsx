@@ -29,6 +29,7 @@ import { countryLabel, countryOptions, normalizeCountryValue, COUNTRY_OTHER } fr
 import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import { STORIES_ON, PAWMATE_LIVE, APP_NEW } from '@/lib/packFlags';
 import { TEST_BUILD } from '@/lib/env';
+import { IS_APP } from '@/lib/isApp';
 import {
   PAWMATE_RIGHTS, RIGHT_LABEL, invitePawmate, listMyPawmates, revokePawmate, revokeDogInvite, setPawmateAccess, setPawmateSuccessor,
   type MyPawmates, type PawmateRow, type PawmateRight, type PawmateRole,
@@ -339,9 +340,13 @@ export default function PackProfile() {
   const dogPick = useRef<PackDogFull | null>(null);
   const { profile } = useProfile();
   const human = profile?.human;
-  const patchHuman = (p: Partial<HumanProfile>) => { saveHuman(p); };
+  // Chyba zápisu sa ukáže (audit 30. 10. 2026) — predtým `saveHuman(p)` bez throwOnError a človek nevedel, že sa nič neuložilo.
+  const patchHuman = (p: Partial<HumanProfile>) => {
+    saveHuman(p, { throwOnError: true }).catch(() => toast({ title: tx('pack.profile.toastCouldNotSave', 'Could not save'), variant: 'destructive' }));
+  };
   const myNumber = ownLoaded.map((d) => d.pack_number).filter((n): n is number => n != null).sort((a, b) => a - b)[0] ?? null;
-  const beside = useBeside({ uid: session?.user?.id ?? null, isMate, showMates: human?.showMates, myNumber });
+  const besideRaw = useBeside({ uid: session?.user?.id ?? null, isMate, showMates: human?.showMates, myNumber });
+  const beside = IS_APP ? null : besideRaw; // v natívnej appke je pawmate skrytý (31. 10. 2026)
 
   useEffect(() => {
     let mounted = true;
@@ -475,7 +480,7 @@ export default function PackProfile() {
   // Tá istá titulka ako na profile — pri striedaní po dni dnešná (`coverOfDay`).
   const coverSrc = coverOfDay(human) || human?.buddyPhoto || firstDog?.cloudinary_main_url || null;
   const dev = devotionLevel(devotion);
-  const soon = () => toast({ title: tx('pack.edit.soon', 'Coming soon.') });
+  const soon = () => toast({ title: tx('pack.edit.soon', 'Coming soon.') }); // len web (v appke je AddMember skrytý)
 
   return (
     <PackLayout onBack={() => (canStepBack() ? navigate(-1) : navigate('/pack/profile'))} backLabel={tx('pack.edit.back', 'Back')}>
@@ -658,8 +663,8 @@ export default function PackProfile() {
                 sub={roleLabels(isMate, human, tx).join(' · ')}
                 human
               >
-                <ShowMates mates={mates} isMate={isMate} beside={beside} value={human?.showMates ?? []}
-                  onChange={(ids) => patchHuman({ showMates: ids })} />
+                {!IS_APP && <ShowMates mates={mates} isMate={isMate} beside={beside} value={human?.showMates ?? []}
+                  onChange={(ids) => patchHuman({ showMates: ids })} />}
                 <RolePicker value={profileRoles(human)} onChange={(roles) => patchHuman({ roles, role: roles[0] })} />
               </MemberRow>
               {dogs.map((d) => (
@@ -673,9 +678,10 @@ export default function PackProfile() {
               {/* PRIDAŤ ČLENA — jedno lapisové tlačidlo cez celú šírku, po ťuku dvoje dvere s vysvetlením (Matej 26. 10. 2026:
                   *„jedno lapis tlačítko cez celé, nie kruh a tlačítko … PES / člen domácnosti (pawmate) … vysvetlenie malým
                   písmom … teraz to nie je vysvetlené"*). PES = výroba heroglyfu, ČLEN = formulár pawmata pod ním. */}
-              <AddMember isMate={isMate} open={addOpen} onToggle={() => { setAddOpen((o) => !o); setMateOpen(false); }}
-                mateOpen={mateOpen} onMate={() => (PAWMATE_LIVE ? setMateOpen((o) => !o) : soon())} onDog={resetFlow} />
-              {mateOpen && <MateForm dogs={dogs.filter((d) => d.life_status !== 'deceased')} lang={lang} onDone={() => { setMateOpen(false); setAddOpen(false); reloadMates(); }} />}
+              {/* V appke (IS_APP) bez „Pridať člena": pes = nákup heroglyfu (Apple IAP), pawmate je skrytý (31. 10. 2026). */}
+              {!IS_APP && <AddMember isMate={isMate} open={addOpen} onToggle={() => { setAddOpen((o) => !o); setMateOpen(false); }}
+                mateOpen={mateOpen} onMate={() => (PAWMATE_LIVE ? setMateOpen((o) => !o) : soon())} onDog={resetFlow} />}
+              {!IS_APP && mateOpen && <MateForm dogs={dogs.filter((d) => d.life_status !== 'deceased')} lang={lang} onDone={() => { setMateOpen(false); setAddOpen(false); reloadMates(); }} />}
             </div>
           </div>
 

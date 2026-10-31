@@ -134,7 +134,7 @@ export default function PackDogIdModules() {
             </button>
             {dogs!.map((d) => (
               <button key={d.id} type="button" className={`pk-pill pk-pill--tap dm-pill${sel === d.id ? ' on' : ''}`} onClick={() => pick(d.id)}>
-                {d.dog_name ?? '—'}
+                <span className="dm-dogname">{d.dog_name ?? '—'}</span>
               </button>
             ))}
           </div>
@@ -165,7 +165,7 @@ export default function PackDogIdModules() {
             <div className="dm-detail">
               <span className="dm-detail-l">{tx('pack.dogid.detail', 'The whole DOG ID')}</span>
               {shown.map((d) => (
-                <Link key={d.id} to={`/pack/dogs/${d.id}`} className="pk-pill pk-pill--tap dm-pill">{d.dog_name ?? '—'}</Link>
+                <Link key={d.id} to={`/pack/dogs/${d.id}`} className="pk-pill pk-pill--tap dm-pill"><span className="dm-dogname">{d.dog_name ?? '—'}</span></Link>
               ))}
             </div>
           )}
@@ -321,6 +321,7 @@ const CSS = `
 .dm-total .pk-progress{ grid-column:1/-1; }
 .dm-pills{ display:flex; flex-wrap:wrap; gap:${PACK_SPACE.sm}px; }
 .dm-pill{ font-family:${FONT_UI}; font-size:${PACK_TEXT.label}px; font-weight:600; letter-spacing:0.02em; text-transform:uppercase; text-decoration:none; }
+.dm-dogname{ font-family:'Cinzel Decorative', ${FONT_TITLE}; font-weight:700; } /* písmo: meno — meno psa na oficiálnom povrchu (DOG ID) */
 .dm-pill.on{ ${pickTintCSS(LAPIS.edge, PICK_INK.lapis)} }
 
 /* ── BENTO: ZÁKLAD veľký vľavo, OSOBNOSŤ a ZÁVET vpravo ── */

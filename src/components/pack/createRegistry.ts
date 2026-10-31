@@ -68,6 +68,7 @@ export type CreateHandler =
   | 'addEntry.service'  // AddChoice tvar ešte NEEXISTUJE — viď `service` nižšie (#63)
   | 'diary.write'       // pisateľ `lib/dogEvents.ts` → appendDogEvents()
   | 'diary.photo'       // ten istý pisateľ, zápis s prílohou fotky
+  | 'devotion.today'    // DevotionToday ako okno NAD miestom (PackLayout) — Zapíš dnešok neodnáša na profil
   | 'feed.post'
   | 'feed.story'        // MeCompose mode 'moment' (profil JA, 23. 10. 2026)
   | 'feed.album'        // MeCompose mode 'album'
@@ -174,9 +175,12 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     icon: { kind: 'panel' },
     place: 'JA',
     needs: 'pes',
-    target: { kind: 'route', path: '/pack/profile?dnes=1' },
+    // 🆕 31. 10. 2026 (audit appky, D·4): HANDLER, nie routa. Lock §4.2 — akcia neodnesie človeka preč z miesta,
+    //    kde je; „Zapíš dnešok" z /pack/dogs ho predtým prehodil na profil. Okno otvára `PackLayout`.
+    //    (`/pack/profile?dnes=1` žije ďalej pre ťuk na push pripomienku — `PackMe` ho číta.)
+    target: { kind: 'handler', id: 'devotion.today' },
     back: 'origin',
-    lands: 'devotion_events (grant-devotion claim) → profil JA',
+    lands: 'devotion_events (grant-devotion claim) + dog_events diary.note → okno nad miestom',
     state: DEVOTION_TODAY_ON ? 'live' : 'pripravene',   // 24. 10. stiahnuté do appky (lib/devotion.ts)
     panel: true,
   },

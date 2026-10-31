@@ -36,6 +36,7 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, visibleLocalTrails, tripPath } from '@/components/pack/tripShared';
 import { PILL_CSS } from '@/components/pack/packTheme';
 import { STORIES_ON, ALBUMS_ON, APP_NEW } from '@/lib/packFlags';
+import { IS_APP } from '@/lib/isApp';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BonesSheet } from '@/components/pack/BonesSheet';
 import { TripShareSheet, type TripShareData } from '@/components/pack/trip/TripShareSheet';
@@ -46,6 +47,7 @@ import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBa
 import { StoryViewer } from '@/components/pack/profile/StoryViewer';
 import { PostViewer } from '@/components/pack/profile/PostViewer';
 import { DevotionToday } from '@/components/pack/profile/DevotionToday';
+import { ChronicleBody } from '@/components/pack/diary/ChronicleBody';
 import { DevotionSheet } from '@/components/pack/profile/DevotionSheet';
 import { levelProgress } from '@/lib/tripPoints';
 import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbum, isLive, isTripStory, type MePost } from '@/components/pack/profile/mePosts';
@@ -212,7 +214,8 @@ export default function PackMe() {
   const myNumber = ownDogs.map((d) => d.pack_number).filter((n): n is number => n != null).sort((a, b) => a - b)[0] ?? null;
 
   // VEDĽA MOJEJ FOTKY (26. 10. 2026) — pawmate pri majiteľovi, majiteľ pri pawmatovi (`useBeside`).
-  const beside = useBeside({ uid: novice ? null : uid, isMate, showMates: human?.showMates, myNumber });
+  const besideRaw = useBeside({ uid: novice ? null : uid, isMate, showMates: human?.showMates, myNumber });
+  const beside = IS_APP ? null : besideRaw; // v natívnej appke je pawmate skrytý (31. 10. 2026)
   const fmt = (n: number) => n.toLocaleString(lang === 'sk' ? 'sk-SK' : 'en-US');
 
   // Staré odkazy do editora — presmerovať skôr, než sa čokoľvek vykreslí.
@@ -508,9 +511,14 @@ export default function PackMe() {
                   </button>
                 ))}
               </div>
-              <div className="me-empty">
-                {priv === 'saved' ? tx('pack.me.savedEmpty', 'What you save will wait here. Only you can see it.') : tx('pack.me.diaryEmpty', 'Your diary arrives with the FEED. Only you can see it.')}
-              </div>
+              {/* DENNÍK = KRONIKA všetkých psov (audit appky 30. 10. 2026, D·10); mimo appky ostáva prázdny stav. */}
+              {priv === 'diary' && APP_NEW ? (
+                <ChronicleBody tx={tx} />
+              ) : (
+                <div className="me-empty">
+                  {priv === 'saved' ? tx('pack.me.savedEmpty', 'What you save will wait here. Only you can see it.') : tx('pack.me.diaryEmpty', 'Your diary arrives with the FEED. Only you can see it.')}
+                </div>
+              )}
             </>
           )}
         </div>

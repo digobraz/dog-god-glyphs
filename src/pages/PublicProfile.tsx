@@ -40,8 +40,9 @@ import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeRank, MeDogRow, MeFlag } from '@
 import { levelProgress } from '@/lib/tripPoints';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { APP_NEW } from '@/lib/packFlags';
+import { IS_APP } from '@/lib/isApp';
 import { useToast } from '@/hooks/use-toast';
-import { fetchProfileMates, useProfileMates, type ProfileMate } from '@/components/pack/profile/profileMates';
+import { useProfileMates } from '@/components/pack/profile/profileMates';
 import { PostMenu } from '@/components/pack/profile/PostMenu';
 import { FollowListPopup, useFollow, type FollowKind } from '@/components/pack/profile/follow';
 
@@ -51,7 +52,7 @@ const FLAT = APP_NEW;
 export default function PublicProfile() {
   const t = useT();
   const { lang } = useLang();
-  const { id, mateId } = useParams<{ id: string; mateId?: string }>();
+  const { id } = useParams<{ id: string }>();
 
   // Session — potrebujeme vedieť KTO sa pozerá (isSelf porovnáva session.user.id s :id).
   const [session, setSession] = useState<Session | null>(null);
@@ -108,22 +109,15 @@ export default function PublicProfile() {
     return () => { alive = false; };
   }, [session?.user?.id, askedNumber]);
 
-  // PAWMATE (26. 10. 2026): `/pack/u/:n/mate/:uid` = karta človeka, ktorého majiteľ #n ukázal na profile.
-  // `undefined` = načítava sa, `null` = nie je ukázaný (alebo stará DB bez `get_profile_mates`).
-  const [mateCard, setMateCard] = useState<ProfileMate | null | undefined>(mateId ? undefined : null);
-  useEffect(() => {
-    if (!mateId || !sessionChecked) return;
-    let alive = true;
-    fetchProfileMates({ userId: mateId }).then((list) => { if (alive) setMateCard(list.find((m) => m.ownerNumber === askedNumber) ?? list[0] ?? null); });
-    return () => { alive = false; };
-  }, [mateId, sessionChecked, askedNumber]);
-  const shownMates = useProfileMates(mateId ? null : member?.memberNumber ?? null);
+  // Karta pawmata (`/pack/u/:n/mate/:uid`) zrušená 26. 10. 2026 (model A) — premenná `mateId` zmazaná 31. 10. 2026.
+  // V natívnej appke je pawmate skrytý celý: pri majiteľovi sa vedľa fotky nekreslí.
+  const shownMates = useProfileMates(IS_APP ? null : member?.memberNumber ?? null);
   // SLEDOVANIE — len majiteľ (pawmate nemá číslo). Bez čísla sa nepýta: `null` by znamenalo „ja".
-  const followNumber = mateId ? null : member?.memberNumber ?? null;
+  const followNumber = member?.memberNumber ?? null;
   const fol = useFollow(followNumber, followNumber != null);
   const [followList, setFollowList] = useState<FollowKind | null>(null);
 
-  const bioHuman = mateCard ? mateCard.human : member?.human;
+  const bioHuman = member?.human;
   const bio = bioHuman ? (bioHuman.dogVoiceBio?.trim() || bioHuman.bio?.trim() || '') : '';
   // „more" len vtedy, keď text naozaj presiahne 3 riadky (ten istý recept ako môj profil).
   useLayoutEffect(() => {
@@ -146,11 +140,10 @@ export default function PublicProfile() {
 
   // Ja sám (staré odkazy s UUID) → môj profil. Dve podoby vlastného profilu by sa rozišli.
   if (isSelf || mineNumber) return <Navigate to="/pack/profile" replace />;
-  if (mateId && session?.user?.id === mateId) return <Navigate to="/pack/profile" replace />;
 
   // Cudzí člen sa ešte načítava — ticho, nie fallback. Fallback by na okamih tvrdil,
   // že taký človek neexistuje, a potom sa sám opravil.
-  if (member === undefined || mateCard === undefined) {
+  if (member === undefined) {
     return (
       <PackLayout>
         <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>
@@ -165,7 +158,7 @@ export default function PublicProfile() {
 
   // ── Fallback — číslo, ktoré nič nevrátilo (neexistuje / neplatiaci / nie je členom).
   // Odpoveď je zámerne rovnaká pre všetky tri prípady, ako v `get_trip_party()`. ──
-  if (!member || (mateId && !mateCard)) {
+  if (!member) {
     return (
       <PackLayout onBack={goBack} backLabel={t('pack.publicProfile.backToPack')}>
         <div
@@ -214,14 +207,11 @@ export default function PublicProfile() {
   //  • DEVOTION cudzieho človeka appka nemá → v starom šate sa jeho pilulka nekreslí (prázdny `devLabel`).
   // Súkromné polia odstráni už server (`get_member_profiles`), preto tu žiadne `getTier()`.
   // Na karte PAWMATA je hlavnou osobou on; majiteľ #n stojí vedľa neho (ťuk = jeho profil) a psy sú majiteľove.
-  const mate = mateCard ?? null;
-  const human = mate ? mate.human : member.human;
+  const human = member.human;
   const ownerName = memberDisplayName(member) || 'A Dogyptian';
-  const displayName = mate ? (mate.name || 'Pawmate') : ownerName;
-  const avatar = mate ? mate.avatarUrl : memberAvatarUrl(member);
-  const beside = mate
-    ? { photo: memberAvatarUrl(member), initial: (ownerName[0] || 'D').toUpperCase(), label: ownerName, onClick: () => navigate(`/pack/u/${member.memberNumber ?? id}`) }
-    : shownMates[0]
+  const displayName = ownerName;
+  const avatar = memberAvatarUrl(member);
+  const beside = shownMates[0]
       ? { photo: shownMates[0].avatarUrl, initial: (shownMates[0].name?.[0] || 'P').toUpperCase(), label: shownMates[0].name || 'Pawmate' }
       : null;
   const firstDog = member.dogs.find((d) => d.packNumber != null) ?? member.dogs[0] ?? null;
@@ -267,14 +257,14 @@ export default function PublicProfile() {
 
       <section className={`me-card${FLAT ? ' me-flat' : ''}${open ? ' open' : ''}${beside ? ' with-mate' : ''}`}>
         {/* App Store 1.2 (26. 10. 2026): nahlásiť / zablokovať člena — tri bodky vpravo hore, ako pri príspevku. */}
-        {!mate && !isSelf && (
+        {!isSelf && (
           <div style={{ position: 'absolute', top: PACK_SPACE.sm, right: PACK_SPACE.sm, zIndex: 5 }}>
             <PostMenu tone="onCover" authorN={member.memberNumber ?? null} authorName={ownerName} />
           </div>
         )}
         <MeCover
           withName={beside?.label ?? null}
-          noRanks={!!mate}
+          noRanks={false}
           foreign={!isSelf}
           cover={coverSrc}
           coverY={human.coverY}
@@ -318,21 +308,21 @@ export default function PublicProfile() {
             <MeRank kind="pt" devotion={0} pilgrim={pilgrimPanel} onClose={() => setRank(null)} tx={tx} />
           )}
 
-          {/* 5 ČÍSEL — tie isté ako na mojom profile, zverejnené majiteľom (`human.stats`). Pawmate ich nemá. */}
-          {!mate && <div className="me-stats">
+          {/* 5 ČÍSEL — tie isté ako na mojom profile, zverejnené majiteľom (`human.stats`). */}
+          <div className="me-stats">
             {/* SLEDOVANIE (Matej 26. 10. 2026: „presne ako IG … po kliknutí na číslo sa otvorí zoznam"). */}
             <button type="button" onClick={() => setFollowList('followers')}>{num(fol.info?.followers ?? 0)}<span>{tx('pack.me.followers', 'followers')}</span></button>
             <button type="button" onClick={() => setFollowList('following')}>{num(fol.info?.following ?? 0)}<span>{tx('pack.publicProfile.followingThem', 'following')}</span></button>
             <button type="button">{num(st?.brought)}<span>{tx('pack.me.brought', 'brought in')}</span></button>
             <button type="button">{num(st?.km)}<span>km</span></button>
             <button type="button">{num(st?.study, ' %')}<span>{tx('pack.me.studying', 'studying')}</span></button>
-          </div>}
+          </div>
 
           {/* SLEDOVAŤ + NAPÍSAŤ ako na IG (Matej 26. 10. 2026: „postavme nech to funguje a vieme sa sledovať").
               Plné lapis je vždy JEDNO: kým ho nesledujem, je to SLEDOVAŤ; potom SLEDUJEŠ zostane
               obrysom (ťuk = prestať) a hlavnou akciou sa stane NAPÍSAŤ.
               Pawmate nemá číslo — nesleduje sa a nepíše sa mu, oboje len majiteľovi. */}
-          {!mate && <div className="me-btns">
+          <div className="me-btns">
             <button type="button" className={fol.info?.iFollow ? 'me-out' : 'me-cta'} onClick={fol.toggle}
               disabled={!fol.info || fol.busy || member.memberNumber == null} aria-pressed={!!fol.info?.iFollow}>
               {fol.info?.iFollow ? `✓ ${tx('pack.publicProfile.followingBtn', 'Following')}` : tx('pack.publicProfile.follow', 'Follow')}
@@ -340,7 +330,7 @@ export default function PublicProfile() {
             <button type="button" className={fol.info?.iFollow ? 'me-cta' : 'me-out'} onClick={writeTo} disabled={dmBusy || member.memberNumber == null}>
               {tx('pack.publicProfile.message', 'Message')}
             </button>
-          </div>}
+          </div>
           {followList && member.memberNumber != null && (
             <FollowListPopup
               packNumber={member.memberNumber}
@@ -353,11 +343,11 @@ export default function PublicProfile() {
 
           {FLAT ? (
             <div className="me-role me-role--label">
-              <span>{roleLabels(!!mate, human, tx).join(' · ')}</span>
+              <span>{roleLabels(false, human, tx).join(' · ')}</span>
               <i aria-hidden />
             </div>
           ) : (
-            <div className="me-role">{roleLabels(!!mate, human, tx).map((r) => <span key={r} className="pk-pill">{r}</span>)}</div>
+            <div className="me-role">{roleLabels(false, human, tx).map((r) => <span key={r} className="pk-pill">{r}</span>)}</div>
           )}
 
           <div className={`me-bio${bioFull ? ' full' : ''}${bio ? '' : ' empty'}`}>

@@ -869,7 +869,9 @@ async function hydrate(): Promise<CentralProfile> {
 
   const [{ data: humanRow }, { data: dogRows }] = await Promise.all([
     db.from('pack_profiles').select('user_id,human,avatar_url,updated_at').eq('user_id', uid).maybeSingle(),
-    db.from('dog_profiles').select('dog_id,attrs').eq('user_id', uid),
+    // Podľa PRÁVA čítať (RLS: majiteľ psa + pawtner s `dogid.edit`), nie podľa `user_id` riadku — pawtnerov zápis
+    // by sa pod jeho vlastným `user_id` nenašiel a karta psa, ktorú upravil, by mu po obnovení zmizla.
+    db.from('dog_profiles').select('dog_id,attrs'),
   ]);
 
   const alreadyMigrated = (() => { try { return localStorage.getItem(MIGRATED_KEY) === '1'; } catch { return false; } })();
@@ -919,38 +921,51 @@ export async function getProfile(): Promise<CentralProfile> {
 //    SNIFFERu (HeroCard, SnifferPin, SnifferSearch, usePilgrimStats, PackProfile) — zmena by im
 //    pridala nezachytenú výnimku, ktorú dnes nečakajú. SNIFFER (`PackBuddy.tsx`) si chybu
 //    vypýta explicitne a ukáže ju človeku.
+// 🔴 FRONTA (audit 30. 10. 2026): dva `saveHuman` naraz (ťuk na chip + ďalší chip) robili čítanie → zlúčenie → zápis
+//    súbežne a druhý zápis ticho prepísal prvý. Serverová časť beží po jednom — každý ďalší zápis dostane už ten
+//    stav, ktorý predošlý zapísal. (Medzi zariadeniami to nerieši; tam by trebalo RPC `jsonb ||`.)
+let humanQueue: Promise<unknown> = Promise.resolve();
+
 export async function saveHuman(patch: Partial<HumanProfile>, opts?: { throwOnError?: boolean }): Promise<CentralProfile> {
   const cur = readRaw();
   const next: CentralProfile = { ...cur, human: { ...cur.human, ...patch }, updatedAt: new Date().toISOString() };
   writeRaw(next);
   emitChange();
 
-  const uid = await currentUserId();
-  if (uid) {
-    // 🔴 Na server ide LEN ZMENA, zlúčená s ČERSTVÝM `human` zo servera — nie celá lokálna
-    //    kópia (audit FEED+profil 26. 10. 2026, R1). Kópia sa načíta raz za návštevu, kým
-    //    PackSettings / humanPrefs píšu `notifications_enabled`, `notif_off` a `devotion_times`
-    //    priamo do DB. Celý objekt z kópie ich ticho vracal späť: človek si vypol maily
-    //    a ďalšia úprava profilu mu ich zapla. To isté robili dve zariadenia naraz.
-    const { data: row, error: readErr } = await db.from('pack_profiles')
-      .select('human').eq('user_id', uid).maybeSingle();
-    if (readErr) {
-      if (opts?.throwOnError) throw readErr;
-      return next; // bez čerstvého stavu nezapisuj — stará kópia by prepísala novší server
+  const run = async (): Promise<CentralProfile> => {
+    const uid = await currentUserId();
+    if (uid) {
+      // 🔴 Na server ide LEN ZMENA, zlúčená s ČERSTVÝM `human` zo servera — nie celá lokálna
+      //    kópia (audit FEED+profil 26. 10. 2026, R1). Kópia sa načíta raz za návštevu, kým
+      //    PackSettings / humanPrefs píšu `notifications_enabled`, `notif_off` a `devotion_times`
+      //    priamo do DB. Celý objekt z kópie ich ticho vracal späť: človek si vypol maily
+      //    a ďalšia úprava profilu mu ich zapla. To isté robili dve zariadenia naraz.
+      const { data: row, error: readErr } = await db.from('pack_profiles')
+        .select('human').eq('user_id', uid).maybeSingle();
+      if (readErr) {
+        // Bez čerstvého stavu nezapisuj — stará kópia by prepísala novší server. Chyba sa NEPREHLTNE (30. 10. 2026):
+        // volajúci s `throwOnError` ju ukáže človeku, ostatní ju aspoň zalogujú (predtým „uspeli" aj bez zápisu).
+        if (opts?.throwOnError) throw readErr;
+        console.warn('[saveHuman] čítanie profilu zlyhalo, zmena ostala len lokálne', readErr.message);
+        return next;
+      }
+      const serverHuman = (row as { human?: Record<string, unknown> } | null)?.human;
+      const merged = serverHuman ? { ...serverHuman, ...patch } : (next.human as unknown as Record<string, unknown>);
+      const { error } = await db.from('pack_profiles')
+        .upsert({ user_id: uid, human: merged }, { onConflict: 'user_id' });
+      if (error && opts?.throwOnError) throw error;
+      if (!error && serverHuman) {
+        const synced: CentralProfile = { ...next, human: { ...next.human, ...(merged as Partial<HumanProfile>) } };
+        writeRaw(synced);
+        emitChange();
+        return synced;
+      }
     }
-    const serverHuman = (row as { human?: Record<string, unknown> } | null)?.human;
-    const merged = serverHuman ? { ...serverHuman, ...patch } : (next.human as unknown as Record<string, unknown>);
-    const { error } = await db.from('pack_profiles')
-      .upsert({ user_id: uid, human: merged }, { onConflict: 'user_id' });
-    if (error && opts?.throwOnError) throw error;
-    if (!error && serverHuman) {
-      const synced: CentralProfile = { ...next, human: { ...next.human, ...(merged as Partial<HumanProfile>) } };
-      writeRaw(synced);
-      emitChange();
-      return synced;
-    }
-  }
-  return next;
+    return next;
+  };
+  const job = humanQueue.then(run, run);
+  humanQueue = job.catch(() => undefined); // padnutý zápis nesmie zastaviť frontu
+  return job;
 }
 
 export async function saveDogAttrs(
@@ -978,9 +993,23 @@ export async function saveDogAttrs(
 
   const uid = await currentUserId();
   if (uid) {
-    const { error } = await db.from('dog_profiles')
-      .upsert({ dog_id: dogId, user_id: uid, attrs: merged as unknown as Record<string, unknown> }, { onConflict: 'dog_id' });
-    if (error && opts?.throwOnError) throw error;
+    // 🔴 Merge so SERVEROM (audit 30. 10. 2026, E5): lokálna kópia je zo štartu návštevy, pawtner s `dogid.edit`
+    //    mohol medzitým zapísať iné polia — upsert celej kópie by ich vrátil späť. Čítame čerstvé `attrs`,
+    //    prekryjeme LEN zmenené polia (`patch`). `user_id` sa pri existujúcom riadku NEMENÍ (UPDATE bez neho):
+    //    upsert pawtnera ho prepisoval na pawtnerovo uid. Nový riadok dostane uid zapisujúceho.
+    const { data: row, error: readErr } = await db.from('dog_profiles')
+      .select('attrs').eq('dog_id', dogId).maybeSingle();
+    if (readErr) {
+      if (opts?.throwOnError) throw readErr;
+      console.warn('[saveDogAttrs] čítanie karty psa zlyhalo, zmena ostala len lokálne', readErr.message);
+    } else {
+      const serverAttrs = (row as { attrs?: Record<string, unknown> } | null)?.attrs;
+      const toSave = serverAttrs ? { ...serverAttrs, ...(patch as Record<string, unknown>), dogId } : (merged as unknown as Record<string, unknown>);
+      const { error } = row
+        ? await db.from('dog_profiles').update({ attrs: toSave }).eq('dog_id', dogId)
+        : await db.from('dog_profiles').insert({ dog_id: dogId, user_id: uid, attrs: toSave });
+      if (error && opts?.throwOnError) throw error;
+    }
   }
   // Most do DOG ID (SNIFFER ↔ DOG ID, Matej 5. 10. 2026) — povaha, kondícia, so psami, radosti.
   // `noMirror` = zápis, ktorý z DOG ID práve prišiel (predvyplnenie), späť ho neposielaj.
@@ -997,8 +1026,9 @@ export async function saveDogAttrs(
 export async function saveDisplayName(name: string | null): Promise<void> {
   const uid = await currentUserId();
   if (!uid) return;
-  await db.from('pack_profiles')
+  const { error } = await db.from('pack_profiles')
     .upsert({ user_id: uid, display_name: name?.trim() || null }, { onConflict: 'user_id' });
+  if (error) throw new Error(error.message); // volajúci to ukáže človeku (audit 30. 10. 2026)
 }
 
 /**
@@ -1012,7 +1042,8 @@ export async function saveDisplayName(name: string | null): Promise<void> {
 export async function saveAvatarUrl(url: string | null): Promise<void> {
   const uid = await currentUserId();
   if (!uid) return;
-  await db.from('pack_profiles').upsert({ user_id: uid, avatar_url: url }, { onConflict: 'user_id' });
+  const { error } = await db.from('pack_profiles').upsert({ user_id: uid, avatar_url: url }, { onConflict: 'user_id' });
+  if (error) throw new Error(error.message); // volajúci to ukáže človeku (audit 30. 10. 2026)
 }
 
 // ── hook ──

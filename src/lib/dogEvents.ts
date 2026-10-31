@@ -139,8 +139,9 @@ export async function flushDogEventsQueue(userId?: string | null): Promise<void>
   }
 }
 
-export async function appendDogEvents(inputs: DogEventInput[]): Promise<void> {
-  if (inputs.length === 0) return;
+/** `'queued'` = zápis čaká vo fronte (offline) a dopošle sa, až bude spojenie — UI to povie vetou. */
+export async function appendDogEvents(inputs: DogEventInput[]): Promise<'saved' | 'queued'> {
+  if (inputs.length === 0) return 'saved';
   const now = new Date().toISOString();
 
   const { data: auth } = await supabase.auth.getUser();
@@ -157,7 +158,7 @@ export async function appendDogEvents(inputs: DogEventInput[]): Promise<void> {
       recorded_at: i.recordedAt ?? now,
     }));
     const { error } = await sb.from('dog_events').insert(rows);
-    if (!error) { emitChange(); return; }
+    if (!error) { emitChange(); return 'saved'; }
     if (isServerRejection(error)) {
       console.warn('[dogEvents] insert rejected:', error.code, error.message);
       throw new Error(error.message);
@@ -178,6 +179,7 @@ export async function appendDogEvents(inputs: DogEventInput[]): Promise<void> {
     })),
   ]);
   emitChange();
+  return 'queued';
 }
 
 // ── čítanie ─────────────────────────────────────────────────────────────────
@@ -325,3 +327,46 @@ export async function readEvents(dogIds: string[], fields: string[]): Promise<Do
 
   return [...local, ...remote].sort((a, b) => a.recordedAt.localeCompare(b.recordedAt));
 }
+
+// ── ÚPRAVA A ZMAZANIE ZÁPISU DENNÍKA (audit appky 30. 10. 2026, D·9) ────────────────────────
+// Výnimka z append-only, zdôvodnená v migrácii `20261110_dog_events_diary_edit.sql`: smie sa to LEN pre
+// textové zápisy `diary.*` (server to vynúti RLS + triggerom). Údaje (váha, očkovanie…) ostávajú
+// prírastkom — preto tieto dve funkcie zámerne odmietnu iné pole než `diary.*`.
+const isDiaryField = (f: string) => f.startsWith('diary.');
+
+/** Zmení text/fotku a deň zápisu. Lokálny zápis z fronty sa upraví priamo v nej. */
+export async function updateDiaryEvent(id: string, patch: { value: unknown; recordedAt: string }): Promise<void> {
+  if (id.startsWith('local-')) {
+    const rows = readLocal();
+    const hit = rows.find((r) => r.id === id);
+    if (!hit || !isDiaryField(hit.field)) throw new Error('not editable');
+    writeLocal(rows.map((r) => (r.id === id ? { ...r, value: patch.value, recordedAt: patch.recordedAt } : r)));
+    emitChange();
+    return;
+  }
+  const { data, error } = await sb.from('dog_events')
+    .update({ value: patch.value === undefined ? null : patch.value, recorded_at: patch.recordedAt })
+    .eq('id', id).like('field', 'diary.%').select('id');
+  if (error) throw new Error(error.message);
+  if (!data || data.length === 0) throw new Error('not editable');   // RLS: cudzí alebo nie-denníkový riadok
+  emitChange();
+}
+
+/** Zmaže zápis denníka naozaj (nie tombstone). */
+export async function deleteDiaryEvent(id: string): Promise<void> {
+  if (id.startsWith('local-')) {
+    const rows = readLocal();
+    const hit = rows.find((r) => r.id === id);
+    if (!hit || !isDiaryField(hit.field)) throw new Error('not deletable');
+    writeLocal(rows.filter((r) => r.id !== id));
+    emitChange();
+    return;
+  }
+  const { data, error } = await sb.from('dog_events').delete().eq('id', id).like('field', 'diary.%').select('id');
+  if (error) throw new Error(error.message);
+  if (!data || data.length === 0) throw new Error('not deletable');
+  emitChange();
+}
+
+/** Čaká niečo vo fronte offline? (pre vetu „Uloží sa, keď budeš online".) */
+export function hasQueuedDogEvents(): boolean { return readLocal().length > 0; }

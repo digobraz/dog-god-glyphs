@@ -11,13 +11,18 @@ import { DeleteAccountButton } from './AccountDeletion';
 import { BrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS, PF_FIELD_CSS } from './packTheme';
-import { usePackSkin, setPackSkin, type PackSkin } from './packSkin';
 import { useToast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '@/components/LanguagePicker';
 import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
+
+// Odkazový „tlačidlový" tvar riadkov Podmienky / Súkromie / Kontakt — ten istý rám ako ODHLÁSIŤ SA nižšie.
+const LINK_BTN: React.CSSProperties = {
+  background: 'none', border: `1px solid ${T.border}`, borderRadius: 8, padding: '8px 16px', fontFamily: FONT_UI,
+  fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim, cursor: 'pointer',
+};
 
 // Account / settings — email, password (modal), language, notifications, sign out.
 // Zdieľané: spodok homepage (/pack, LIVE) aj frozen profil (DEV_FULL).
@@ -41,7 +46,6 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
      chýbajúcom preklade SAMOTNÝ KĽÚČ, čo by na obrazovke svietilo ako
      „pack.settings.skin". Zavedený vzor naprieč /pack. */
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
-  const skin = usePackSkin();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -122,6 +126,25 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
       await patchHuman({ devotion_times: time, notif_off: on ? off : [...off, 'devotion_evening'] });
     } catch {
       setRemOn(predtym.on); setRemTime(predtym.time);
+      toast({ title: tx('pack.settings.notifErr', 'Could not save'), description: tx('pack.settings.notifErrDesc', 'Try again in a moment.') });
+    }
+  };
+
+  // Upozornenia AINUBISa (31. 10. 2026) — druh `notif_ainubis` v `human.notif_off`; logiku pushu robí agent F,
+  // tu je len prepínač. Predvolene zapnuté (kľúč v `notif_off` = vypnuté).
+  const [ainOn, setAinOn] = useState(true);
+  useEffect(() => {
+    void readHuman().then(({ human }) => setAinOn(!notifOff(human).includes('notif_ainubis')));
+  }, []);
+  const ulozAinubis = async (on: boolean) => {
+    const predtym = ainOn;
+    setAinOn(on);
+    try {
+      const { human } = await readHuman();
+      const off = notifOff(human).filter((x) => x !== 'notif_ainubis');
+      await patchHuman({ notif_off: on ? off : [...off, 'notif_ainubis'] });
+    } catch {
+      setAinOn(predtym);
       toast({ title: tx('pack.settings.notifErr', 'Could not save'), description: tx('pack.settings.notifErrDesc', 'Try again in a moment.') });
     }
   };
@@ -227,33 +250,8 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
       <Field icon={<BrandIcon name="globe" size={16} tint="gold" />} label={t('pack.settings.language')}>
         <LanguagePicker variant="settings" />
       </Field>
-      {/* ── ŠAT — TMAVÝ (východisko) ↔ BLEDÝ (2026-09-11) ──────────────────────
-          Matej: „v tejto fázy vráť tmavý šat do nastavenia (bude sa dať prepínať)
-          páči sa mi to viac - väčší kontrast... v originály by to mohlo ostať tmavé
-          a dať prepnúť na bledé (zatiaľ len pridaj prepínacie tlačítko)".
-          Zámer je REVIEW: prejsť a schváliť najprv bledú verziu, potom tmavú.
-          ⚠️ Prepínač NEOVLÁDA mapu, triplist ani článok výletu — tie tmavú verziu
-             už nemajú (1. 9. sa nahradila, nie zdvojila), viď `packSkin.ts`.
-          Tvar prepínača je ten istý ako „zobraziť meno/prezývku" v profile
-          (`.pf-toggle`), nie druhý vlastný — preto sem ide aj `PF_FIELD_CSS`. */}
-      <Field icon={<BrandIcon name="bright" size={16} tint="gold" />} label={tx('pack.settings.skin', 'Appearance')}>
-        <div className="pf-toggle">
-          {([
-            { key: 'dark' as PackSkin, label: tx('pack.settings.skinDark', 'Dark') },
-            { key: 'paper' as PackSkin, label: tx('pack.settings.skinPaper', 'Papyrus') },
-          ]).map((opt) => (
-            <button
-              key={opt.key}
-              type="button"
-              onClick={() => setPackSkin(opt.key)}
-              aria-pressed={skin === opt.key}
-              className={`pf-toggle__opt${skin === opt.key ? ' is-on' : ''}`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </Field>
+      {/* ŠAT Tmavý/Papyrus (11. 9. 2026) tu bol prepínač, ktorý nič nerobil (audit appky 30. 10. 2026, E9) — skrytý.
+          `usePackSkin`/`setPackSkin` ostávajú v `packSkin.ts`; vráti sa spolu s tmavým šatom. */}
       {/* Riadok „Upozornenia" bol 13. 8. 2026 zmazaný ako „UŽ ČOSKORO" (audit D2,
           Matej: „Preč, kým to nefunguje"). 16. 9. 2026 sa VRÁTIL, lebo už funguje:
           príznak číta odosielač (`pending_message_notifications()`), nie len obrazovka.
@@ -309,6 +307,31 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
           </div>
         </Field>
       )}
+      {notifOn && (
+        <Field icon={<BrandIcon name="ankh" size={16} tint="gold" />} label={tx('pack.settings.notifAinubis', 'AINUBIS notifications')}>
+          <div className="pf-toggle">
+            {([
+              { key: true, label: tx('pack.settings.notifOn', 'On') },
+              { key: false, label: tx('pack.settings.notifOff', 'Off') },
+            ]).map((opt) => (
+              <button key={String(opt.key)} type="button" onClick={() => void ulozAinubis(opt.key)}
+                aria-pressed={ainOn === opt.key} className={`pf-toggle__opt${ainOn === opt.key ? ' is-on' : ''}`}>
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
+      {/* PRÁVNE + KONTAKT (Apple 5.1.1, 31. 10. 2026): /terms a /privacy ostávajú v appke (APP_PATHS), mailto otvorí poštu. */}
+      <Field icon={<BrandIcon name="document" size={16} tint="gold" />} label={tx('pack.settings.terms', 'Terms')}>
+        <button type="button" className="pf-tap" onClick={() => navigate('/terms')} style={LINK_BTN}>{tx('pack.settings.open', 'Open')}</button>
+      </Field>
+      <Field icon={<BrandIcon name="lock" size={16} tint="gold" />} label={tx('pack.settings.privacy', 'Privacy')}>
+        <button type="button" className="pf-tap" onClick={() => navigate('/privacy')} style={LINK_BTN}>{tx('pack.settings.open', 'Open')}</button>
+      </Field>
+      <Field icon={<BrandIcon name="envelope" size={16} tint="gold" />} label={tx('pack.settings.contact', 'Contact')}>
+        <a href="mailto:woof@dogypt.com" style={{ ...LINK_BTN, textDecoration: 'none', display: 'inline-block' }}>woof@dogypt.com</a>
+      </Field>
       <Field icon={<HandTrash size={16} />} label={tx('pack.settings.deleteRow', 'Deletion')}>
         {/* Zmazanie účtu — Apple 5.1.1(v), GDPR (13. 10. 2026). 30 dní na rozmyslenie, pes ostáva. */}
         <DeleteAccountButton />

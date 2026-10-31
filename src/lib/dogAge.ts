@@ -10,6 +10,8 @@ export interface DogAge {
   days: number;
   totalDays: number;
   humanYears: number; // zlaté „≈ N v ľudských rokoch" (×7)
+  /** true = mesiac alebo deň narodenia nie je známy, vek je odhad (stred roka / mesiaca). */
+  approx?: boolean;
 }
 
 /** Minimum, ktoré potrebuje výpočet — nie celý riadok z `dogs`. */
@@ -27,8 +29,14 @@ export function computeAge(
 ): DogAge | null {
   const y = parseInt(selections?.birthdayYear || '', 10) || fallbackYear || 0;
   if (!y || y < 1990) return null;
-  const m = parseInt(selections?.birthdayMonth || '', 10) || 1;
-  const d = parseInt(selections?.birthdayDay || '', 10) || 1;
+  // Chýbajúci mesiac/deň sa NEDOSADZUJE 1. 1. (audit 30. 10. 2026: pes narodený „v roku 2020" by mal vek až o rok
+  // väčší a „dni nažive" posunuté o pol roka). Neznámy mesiac = stred roka (júl), neznámy deň = 15. — chyba je
+  // najviac pol roka resp. pol mesiaca na obe strany, nie jeden smer.
+  const mRaw = parseInt(selections?.birthdayMonth || '', 10);
+  const dRaw = parseInt(selections?.birthdayDay || '', 10);
+  const approx = !mRaw || !dRaw;
+  const m = mRaw || 7;
+  const d = dRaw || (mRaw ? 15 : 1);
   const birth = new Date(y, m - 1, d);
   const now = asOf ?? new Date();
   if (birth > now) return null;
@@ -46,7 +54,7 @@ export function computeAge(
   }
   const totalDays = Math.floor((now.getTime() - birth.getTime()) / 86_400_000);
   const humanYears = Math.max(1, Math.round((totalDays / 365.25) * 7));
-  return { years, months, days, totalDays, humanYears };
+  return { years, months, days, totalDays, humanYears, ...(approx ? { approx: true } : {}) };
 }
 
 export interface DogLifeLine {

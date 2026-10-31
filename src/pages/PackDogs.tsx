@@ -71,6 +71,7 @@ import { fmtNum } from '@/i18n/bcp47';
 import { RightGate } from '@/components/pack/RightGate';
 import { grantDogIdFull } from '@/lib/devotionGrant';
 import { APP_NEW } from '@/lib/packFlags';
+import { IS_APP } from '@/lib/isApp';
 import { DogsHubV2 } from '@/components/pack/dogs/DogsHubV2';
 
 const T = PACK_THEME;
@@ -1239,6 +1240,7 @@ function HubSkeleton() {
 function EmptyState() {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  // V appke (IS_APP) bez nákupu a bez odkazu na web (Apple 3.1.1): len text prázdneho stavu.
   return (
     <div
       className="flex flex-col items-center text-center gap-4"
@@ -1246,11 +1248,15 @@ function EmptyState() {
     >
       <BrandIcon name="bone" size={30} tint="dark" />
       <p style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.body, lineHeight: 1.6, color: T.inkDim, margin: 0, maxWidth: 320 }}>
-        {tx('pack.hub.empty', "No dog on your leash yet. Give one a heroglyph and it'll show up here.")}
+        {IS_APP
+          ? tx('pack.hub.emptyApp', 'No dog on your leash yet. Dogs appear here once they have a heroglyph.')
+          : tx('pack.hub.empty', "No dog on your leash yet. Give one a heroglyph and it'll show up here.")}
       </p>
-      <Link to="/heroglyph/name" className="hub-gold">
-        {tx('pack.hub.emptyCta', 'Get a heroglyph')}
-      </Link>
+      {!IS_APP && (
+        <Link to="/heroglyph/name" className="hub-gold">
+          {tx('pack.hub.emptyCta', 'Get a heroglyph')}
+        </Link>
+      )}
     </div>
   );
 }
