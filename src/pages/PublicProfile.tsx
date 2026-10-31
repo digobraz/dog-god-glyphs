@@ -40,7 +40,6 @@ import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeRank, MeDogRow, MeFlag } from '@
 import { levelProgress } from '@/lib/tripPoints';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { APP_NEW } from '@/lib/packFlags';
-import { IS_APP } from '@/lib/isApp';
 import { useToast } from '@/hooks/use-toast';
 import { useProfileMates } from '@/components/pack/profile/profileMates';
 import { PostMenu } from '@/components/pack/profile/PostMenu';
@@ -110,8 +109,7 @@ export default function PublicProfile() {
   }, [session?.user?.id, askedNumber]);
 
   // Karta pawmata (`/pack/u/:n/mate/:uid`) zrušená 26. 10. 2026 (model A) — premenná `mateId` zmazaná 31. 10. 2026.
-  // V natívnej appke je pawmate skrytý celý: pri majiteľovi sa vedľa fotky nekreslí.
-  const shownMates = useProfileMates(IS_APP ? null : member?.memberNumber ?? null);
+  const shownMates = useProfileMates(member?.memberNumber ?? null);
   // SLEDOVANIE — len majiteľ (pawmate nemá číslo). Bez čísla sa nepýta: `null` by znamenalo „ja".
   const followNumber = member?.memberNumber ?? null;
   const fol = useFollow(followNumber, followNumber != null);

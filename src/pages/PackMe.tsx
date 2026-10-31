@@ -36,7 +36,6 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, visibleLocalTrails, tripPath } from '@/components/pack/tripShared';
 import { PILL_CSS } from '@/components/pack/packTheme';
 import { STORIES_ON, ALBUMS_ON, APP_NEW } from '@/lib/packFlags';
-import { IS_APP } from '@/lib/isApp';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BonesSheet } from '@/components/pack/BonesSheet';
 import { TripShareSheet, type TripShareData } from '@/components/pack/trip/TripShareSheet';
@@ -214,8 +213,7 @@ export default function PackMe() {
   const myNumber = ownDogs.map((d) => d.pack_number).filter((n): n is number => n != null).sort((a, b) => a - b)[0] ?? null;
 
   // VEDĽA MOJEJ FOTKY (26. 10. 2026) — pawmate pri majiteľovi, majiteľ pri pawmatovi (`useBeside`).
-  const besideRaw = useBeside({ uid: novice ? null : uid, isMate, showMates: human?.showMates, myNumber });
-  const beside = IS_APP ? null : besideRaw; // v natívnej appke je pawmate skrytý (31. 10. 2026)
+  const beside = useBeside({ uid: novice ? null : uid, isMate, showMates: human?.showMates, myNumber });
   const fmt = (n: number) => n.toLocaleString(lang === 'sk' ? 'sk-SK' : 'en-US');
 
   // Staré odkazy do editora — presmerovať skôr, než sa čokoľvek vykreslí.

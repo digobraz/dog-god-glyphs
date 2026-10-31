@@ -345,8 +345,7 @@ export default function PackProfile() {
     saveHuman(p, { throwOnError: true }).catch(() => toast({ title: tx('pack.profile.toastCouldNotSave', 'Could not save'), variant: 'destructive' }));
   };
   const myNumber = ownLoaded.map((d) => d.pack_number).filter((n): n is number => n != null).sort((a, b) => a - b)[0] ?? null;
-  const besideRaw = useBeside({ uid: session?.user?.id ?? null, isMate, showMates: human?.showMates, myNumber });
-  const beside = IS_APP ? null : besideRaw; // v natívnej appke je pawmate skrytý (31. 10. 2026)
+  const beside = useBeside({ uid: session?.user?.id ?? null, isMate, showMates: human?.showMates, myNumber });
 
   useEffect(() => {
     let mounted = true;
@@ -663,8 +662,8 @@ export default function PackProfile() {
                 sub={roleLabels(isMate, human, tx).join(' · ')}
                 human
               >
-                {!IS_APP && <ShowMates mates={mates} isMate={isMate} beside={beside} value={human?.showMates ?? []}
-                  onChange={(ids) => patchHuman({ showMates: ids })} />}
+                <ShowMates mates={mates} isMate={isMate} beside={beside} value={human?.showMates ?? []}
+                  onChange={(ids) => patchHuman({ showMates: ids })} />
                 <RolePicker value={profileRoles(human)} onChange={(roles) => patchHuman({ roles, role: roles[0] })} />
               </MemberRow>
               {dogs.map((d) => (
@@ -678,10 +677,10 @@ export default function PackProfile() {
               {/* PRIDAŤ ČLENA — jedno lapisové tlačidlo cez celú šírku, po ťuku dvoje dvere s vysvetlením (Matej 26. 10. 2026:
                   *„jedno lapis tlačítko cez celé, nie kruh a tlačítko … PES / člen domácnosti (pawmate) … vysvetlenie malým
                   písmom … teraz to nie je vysvetlené"*). PES = výroba heroglyfu, ČLEN = formulár pawmata pod ním. */}
-              {/* V appke (IS_APP) bez „Pridať člena": pes = nákup heroglyfu (Apple IAP), pawmate je skrytý (31. 10. 2026). */}
-              {!IS_APP && <AddMember isMate={isMate} open={addOpen} onToggle={() => { setAddOpen((o) => !o); setMateOpen(false); }}
-                mateOpen={mateOpen} onMate={() => (PAWMATE_LIVE ? setMateOpen((o) => !o) : soon())} onDog={resetFlow} />}
-              {!IS_APP && mateOpen && <MateForm dogs={dogs.filter((d) => d.life_status !== 'deceased')} lang={lang} onDone={() => { setMateOpen(false); setAddOpen(false); reloadMates(); }} />}
+              {/* V appke (IS_APP) bez dverí PES — nový pes = nákup heroglyfu (Apple IAP 3.1.1). Pawmate v appke JE (Matej 31. 10. 2026). */}
+              <AddMember isMate={isMate} dogDoor={!IS_APP} open={addOpen} onToggle={() => { setAddOpen((o) => !o); setMateOpen(false); }}
+                mateOpen={mateOpen} onMate={() => (PAWMATE_LIVE ? setMateOpen((o) => !o) : soon())} onDog={resetFlow} />
+              {mateOpen && <MateForm dogs={dogs.filter((d) => d.life_status !== 'deceased')} lang={lang} onDone={() => { setMateOpen(false); setAddOpen(false); reloadMates(); }} />}
             </div>
           </div>
 
@@ -1423,8 +1422,8 @@ function RolePicker({ value, onChange }: { value: ProfileRole[]; onChange: (v: P
 // PRIDAŤ ČLENA (Matej 26. 10. 2026) — jedno lapisové tlačidlo, po ťuku dvoje dvere: PES (heroglyf) a ČLEN DOMÁCNOSTI
 // (pawmate). Pod tým stručne, prečo má pes jedného pána, a upozornenie pre domácnosť s dvoma psami dvoch pánov.
 // Pawmate pawmata nepridáva — vidí len dvere PES (vlastný pes = stane sa pawtnerom).
-function AddMember({ isMate, open, onToggle, mateOpen, onMate, onDog }: {
-  isMate: boolean; open: boolean; onToggle: () => void; mateOpen: boolean; onMate: () => void; onDog: () => void;
+function AddMember({ isMate, dogDoor, open, onToggle, mateOpen, onMate, onDog }: {
+  isMate: boolean; dogDoor: boolean; open: boolean; onToggle: () => void; mateOpen: boolean; onMate: () => void; onDog: () => void;
 }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
@@ -1437,10 +1436,12 @@ function AddMember({ isMate, open, onToggle, mateOpen, onMate, onDog }: {
         <>
           <p className="pe-explain">{tx('pack.edit.addWhy', 'In DOGYPT a dog has one master — the one who created its heroglyph. But at home we live with partners and family who love the dog too. Add them as a Pawmate.')}</p>
           <div className="pe-pick">
-            <Link to="/heroglyph/name" onClick={onDog} className="pe-door pe-door2">
-              <span><BrandIcon name="dogsphinx" size={20} tint="dim" />{tx('pack.hero.roleDog', 'Dog')}</span>
-              <small>{tx('pack.edit.addDogHint', 'A new dog = its own heroglyph. You become its pawtner.')}</small>
-            </Link>
+            {dogDoor && (
+              <Link to="/heroglyph/name" onClick={onDog} className="pe-door pe-door2">
+                <span><BrandIcon name="dogsphinx" size={20} tint="dim" />{tx('pack.hero.roleDog', 'Dog')}</span>
+                <small>{tx('pack.edit.addDogHint', 'A new dog = its own heroglyph. You become its pawtner.')}</small>
+              </Link>
+            )}
             {!isMate && (
               <button type="button" className={`pe-door pe-door2${mateOpen ? ' on' : ''}`} onClick={onMate}>
                 <span><BrandIcon name="add-user" size={16} tint={mateOpen ? 'white' : 'dim'} />{tx('pack.edit.addHousehold', 'Household member · Pawmate')}</span>
