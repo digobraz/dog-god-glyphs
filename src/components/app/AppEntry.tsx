@@ -20,6 +20,7 @@ import doorImg from '@/assets/app/brana-dvere.webp';
 import pawImg from '@/assets/app/dotyk-labka.webp';
 import handImg from '@/assets/app/dotyk-ruka.webp';
 import logo2026 from '@/assets/app/logo-2026.svg';
+import { RulesSheet, termsOk } from '@/components/app/TermsGate';
 
 // ════════════════════════════════════════════════════════════════════════════
 // PRVÉ OTVORENIE APPKY (20. 10. 2026)
@@ -37,7 +38,7 @@ import logo2026 from '@/assets/app/logo-2026.svg';
 // Hosť dostane namiesto kódu mail s odkazom na platbu — appka to nevie a neukáže.
 // ════════════════════════════════════════════════════════════════════════════
 
-type Step = 'gate' | 'touch' | 'number' | 'code' | 'perm';
+type Step = 'gate' | 'touch' | 'number' | 'code' | 'rules' | 'perm';
 type PubDog = { n: number; name: string | null; photo: string | null };
 type Sent = { masked: string; codeLength: number; dogs: PubDog[]; entered?: number; email?: string };
 
@@ -211,13 +212,7 @@ function NumberStep({ onSent }: { onSent: (s: Sent) => void }) {
         {err && !sheet && <p className="ae-err" role="alert">{err}</p>}
         <button type="submit" className="ae-cta" disabled={!num || busy}>{t('appEntry.continue')}</button>
         <button type="button" className="ae-link" onClick={() => { setErr(''); setSheet(true); }}>{t('appEntry.noNumber')}</button>
-        {/* Apple 1.2 / EULA: súhlas s podmienkami pri vstupe. /terms a /privacy ostávajú v appke (appLinks APP_PATHS). */}
-        <p className="ae-legal">
-          {tx('appEntry.legal.pre', 'By continuing you agree to the ')}
-          <a href="/terms">{tx('appEntry.legal.terms', 'Terms')}</a>
-          {tx('appEntry.legal.and', ' and the ')}
-          <a href="/privacy">{tx('appEntry.legal.privacy', 'Privacy Policy')}</a>.
-        </p>
+        {/* Súhlas s podmienkami = výslovné SÚHLASÍM po kóde (`TermsGate.tsx`, 31. 10.), nie pasívny riadok tu. */}
       </form>
 
       {sheet && (
@@ -232,13 +227,6 @@ function NumberStep({ onSent }: { onSent: (s: Sent) => void }) {
             />
             {err && <p className="ae-err" role="alert">{err}</p>}
             <button type="submit" className="ae-cta" disabled={busy}>{t('appEntry.mail.send')}</button>
-            {/* Ten istý súhlas aj pri vstupe e-mailom (31. 10.) — inak by táto cesta obišla podmienky. */}
-            <p className="ae-legal">
-              {tx('appEntry.legal.pre', 'By continuing you agree to the ')}
-              <a href="/terms">{tx('appEntry.legal.terms', 'Terms')}</a>
-              {tx('appEntry.legal.and', ' and the ')}
-              <a href="/privacy">{tx('appEntry.legal.privacy', 'Privacy Policy')}</a>.
-            </p>
           </form>
         </div>
       )}
@@ -429,18 +417,20 @@ export default function AppEntry() {
     let off = false;
     void supabase.auth.getSession().then(({ data }) => {
       if (off || !data.session) return;
-      if (permAsked()) goHome();
+      if (!termsOk(data.session.user)) setStep('rules');
+      else if (permAsked()) goHome();
       else setStep('perm');
     });
     return () => { off = true; };
   }, [goHome]);
   const goTouch = useCallback(() => setStep('touch'), []);
   const goNumber = useCallback(() => setStep('number'), []);
+  const afterRules = useCallback(() => { if (permAsked()) goHome(); else setStep('perm'); }, [goHome]);
+  // Po kóde: PRAVIDLÁ SVORKY (výslovné SÚHLASÍM, App Store 1.2) → povolenia → DOMOV. Kto už súhlasil, ide ďalej.
   const signedIn = useCallback(() => {
     savePending(null);
-    if (permAsked()) goHome();
-    else setStep('perm');
-  }, [goHome]);
+    void supabase.auth.getUser().then(({ data }) => { if (termsOk(data.user)) afterRules(); else setStep('rules'); });
+  }, [afterRules]);
 
   return (
     <div className="ae-root">
@@ -450,6 +440,7 @@ export default function AppEntry() {
       {step === 'touch' && <Touch onDone={goNumber} />}
       {step === 'number' && <NumberStep onSent={(s) => { savePending(s); setSent(s); setStep('code'); }} />}
       {step === 'code' && sent && <CodeStep sent={sent} onIn={signedIn} onOther={() => { savePending(null); setSent(null); setStep('number'); }} />}
+      {step === 'rules' && <><div className="ae-screen" /><RulesSheet onDone={afterRules} /></>}
       {step === 'perm' && <PermStep onDone={goHome} />}
     </div>
   );

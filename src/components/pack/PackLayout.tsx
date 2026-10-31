@@ -9,7 +9,8 @@ import { PACK_THEME, PACK_COL, PACK_COL_INNER, PACK_TOPROW_PAD, usePaperRoute, P
 import { TEST_BUILD } from '@/lib/env';
 import { PackTopRow } from './PackTopRow';
 import { devotionLevel } from '@/lib/devotion';
-import { DEV_FULL } from '@/lib/packFlags';
+import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
+import { TermsGuard } from '@/components/app/TermsGate';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
 import { intlLocale } from '@/i18n/bcp47';
 import { PackNotifications } from './PackNotifications';
@@ -117,6 +118,8 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel, topLe
       style={paperPage ? { color: T.inkStrong } : { backgroundColor: T.pageBg, color: T.onDark }}
     >
       {paperPage ? <style>{PAPER_PAGE_CSS}</style> : <HieroglyphBg />}
+      {/* PRAVIDLÁ SVORKY (31. 10.): v appke kto ešte nesúhlasil s aktuálnou verziou podmienok, dostane okno nad všetkým. */}
+      {APP_NEW && session && <TermsGuard />}
 
       {/* FLOATING STATUS HUB — fixed top, slim single-row pill. DEV_FULL target model
           (D4 nav rework) drops this entirely — identity moved to the bottom nav avatar,
