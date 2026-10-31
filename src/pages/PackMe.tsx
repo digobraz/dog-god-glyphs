@@ -46,7 +46,6 @@ import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBa
 import { StoryViewer } from '@/components/pack/profile/StoryViewer';
 import { PostViewer } from '@/components/pack/profile/PostViewer';
 import { DevotionToday } from '@/components/pack/profile/DevotionToday';
-import { ChronicleBody } from '@/components/pack/diary/ChronicleBody';
 import { DevotionSheet } from '@/components/pack/profile/DevotionSheet';
 import { levelProgress } from '@/lib/tripPoints';
 import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbum, isLive, isTripStory, type MePost } from '@/components/pack/profile/mePosts';
@@ -73,7 +72,6 @@ const EDITOR_PARAMS = ['welcome', 'edit'];
 // SAVED + DENNÍK sú pod jednou kartou so zámkom, aby sa na mobile zmestilo päť ikon).
 // SAVED = polica „uložené" v JA (lock architektura-pack §1.3 a §4.2 🔖).
 type Tab = 'all' | 'stories' | 'albums' | 'trips' | 'private';
-type Private = 'saved' | 'diary';
 
 /** Prehrávač pustený z profilu — story, album alebo príspevok (album a príspevok = prehliadka fotiek). */
 type Viewing = { items: MePost[]; start: number; del?: boolean };
@@ -132,7 +130,6 @@ export default function PackMe() {
   const meta = (session?.user?.user_metadata ?? {}) as Record<string, string | undefined>;
 
   const [tab, setTab] = useState<Tab>('all');
-  const [priv, setPriv] = useState<Private>('saved');
   const [posts, setPosts] = useState<MePost[] | null>(null);
   const [viewing, setViewing] = useState<Viewing | null>(null);
   const [reading, setReading] = useState<MePost | null>(null);
@@ -500,24 +497,10 @@ export default function PackMe() {
               <div className="me-empty">{tx('pack.me.tripsEmpty', 'No walked trips yet.')}</div>
             )
           )}
+          {/* LEN JA = len ULOŽENÉ. Denník (KRONIKA) odtiaľto odišiel 31. 10. 2026 — Matej: „ok nechaj to v dogs“.
+              Zápisy sú psie (ostávajú pri psovi aj po zmazaní účtu), na profile boli druhou kópiou /pack/dogs. */}
           {tab === 'private' && (
-            <>
-              <div className="me-sub">
-                {(['saved', 'diary'] as Private[]).map((k) => (
-                  <button key={k} type="button" className={`pk-pill pk-pill--tap${priv === k ? ' on' : ''}`} onClick={() => setPriv(k)}>
-                    {k === 'saved' ? tx('pack.me.saved', 'Saved') : tx('pack.me.diary', 'Diary')}
-                  </button>
-                ))}
-              </div>
-              {/* DENNÍK = KRONIKA všetkých psov (audit appky 30. 10. 2026, D·10); mimo appky ostáva prázdny stav. */}
-              {priv === 'diary' && APP_NEW ? (
-                <ChronicleBody tx={tx} />
-              ) : (
-                <div className="me-empty">
-                  {priv === 'saved' ? tx('pack.me.savedEmpty', 'What you save will wait here. Only you can see it.') : tx('pack.me.diaryEmpty', 'Your diary arrives with the FEED. Only you can see it.')}
-                </div>
-              )}
-            </>
+            <div className="me-empty">{tx('pack.me.savedEmpty', 'What you save will wait here. Only you can see it.')}</div>
           )}
         </div>
       </section>

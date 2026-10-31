@@ -96,8 +96,10 @@ export function useDiaryRows(dogIds: string[], opts: { weights?: boolean } = {})
   return rows;
 }
 
-/** Jeden zápis — celý text a celá fotka, nič orezané. `onEdit` = úprava (len zápisy denníka, nie váženie). */
-export function DiaryItem({ row, dogName, tx, onEdit }: { row: DiaryRow; dogName?: string; tx: Tx; onEdit?: (row: DiaryRow) => void }) {
+/** Jeden zápis — celý text a celá fotka, nič orezané. `onEdit` = úprava (len zápisy denníka, nie váženie).
+ *  `inDay` = riadok VNÚTRI karty dňa (Kronika od 31. 10. 2026): bez vlastného rámu a dátumu — ten nesie karta;
+ *  druh sa píše len keď nie je obyčajná zápiska (⭐ míľnik, ⚖️ váha…), „Poznámka" pri každom riadku bol šum. */
+export function DiaryItem({ row, dogName, tx, onEdit, inDay }: { row: DiaryRow; dogName?: string; tx: Tx; onEdit?: (row: DiaryRow) => void; inDay?: boolean }) {
   const lang = (typeof document !== 'undefined' && document.documentElement.lang) || undefined;
   const chip = DIARY_CHIPS.find((c) => c.field === row.field);
   const plan = isPlanDay(dayKeyOf(row.recordedAt));
@@ -111,9 +113,15 @@ export function DiaryItem({ row, dogName, tx, onEdit }: { row: DiaryRow; dogName
     catch { toast({ title: tx('pack.diary.deleteFailed', 'Could not delete the entry.'), variant: 'destructive' }); setBusy(false); setAskDel(false); }
   };
   return (
-    <article className="dl-item" style={{ ...PACK_BOX.subblock }}>
+    <article className={inDay ? 'dl-item dl-item--day' : 'dl-item'} style={inDay ? undefined : { ...PACK_BOX.subblock }}>
       <div className="dl-meta">
-        <span>{new Date(row.recordedAt).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+        {!inDay && <span>{new Date(row.recordedAt).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })}</span>}
+        {inDay && (row.field !== 'diary.note' || dogName) && (
+          <span className="dl-kind dl-kind--day">
+            {row.field !== 'diary.note' && <><span style={{ fontFamily: EMOJI_FONT }}>{chip?.emoji}</span>{chip ? tx(chip.labelKey, chip.labelFallback) : ''}</>}
+            {dogName && <span className="dl-dog">{row.field !== 'diary.note' ? '· ' : ''}{dogName}</span>}
+          </span>
+        )}
         {plan && <span className="dl-plan">{tx('pack.diary.planTag', 'Plan')}</span>}
         {editable && onEdit && (
           <span className="dl-acts">
@@ -122,11 +130,13 @@ export function DiaryItem({ row, dogName, tx, onEdit }: { row: DiaryRow; dogName
           </span>
         )}
       </div>
-      <div className="dl-kind">
-        <span style={{ fontFamily: EMOJI_FONT }}>{chip?.emoji}</span>
-        {chip ? tx(chip.labelKey, chip.labelFallback) : ''}
-        {dogName && <span className="dl-dog">· {dogName}</span>}
-      </div>
+      {!inDay && (
+        <div className="dl-kind">
+          <span style={{ fontFamily: EMOJI_FONT }}>{chip?.emoji}</span>
+          {chip ? tx(chip.labelKey, chip.labelFallback) : ''}
+          {dogName && <span className="dl-dog">· {dogName}</span>}
+        </div>
+      )}
       {row.kg !== undefined && <p className="dl-text">{row.kg.toLocaleString(lang, { maximumFractionDigits: 1 })} kg</p>}
       {row.text.trim() && <p className="dl-text">{row.text}</p>}
       {row.photo && (
@@ -149,6 +159,11 @@ export function DiaryItem({ row, dogName, tx, onEdit }: { row: DiaryRow; dogName
 export const DIARY_LIST_CSS = `
 .dl-list{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px}
 .dl-item{padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px}
+.dl-item--day{padding:${PACK_SPACE.md}px 0 0;border-top:1px solid ${T.hairline}}
+.dl-item--day .dl-text{margin-top:0}
+.dl-item--day > .dl-meta{float:right;margin:-8px -8px 0 ${PACK_SPACE.sm}px}
+.dl-item--day::after{content:'';display:block;clear:both}
+.dl-kind--day{margin-top:0;font-size:${PACK_TEXT.label}px;text-transform:none;letter-spacing:0}
 .dl-meta{display:flex;gap:${PACK_SPACE.sm}px;align-items:center;font-family:${FONT_UI};
   font-size:${PACK_TEXT.micro}px;letter-spacing:0.14em;text-transform:uppercase;color:${T.inkWarm}}
 .dl-acts{margin-left:auto;display:inline-flex;gap:${PACK_SPACE.xs}px}

@@ -2644,6 +2644,7 @@ export const cs: Partial<Dict> = {
   'pack.chronicle.kindAll': "Vše",
   'pack.chronicle.kindPhoto': "Fotky",
   'pack.chronicle.write': "Napsat",
+  'pack.chronicle.dayTaps': 'Zapsáno ten den',
   'pack.chronicle.noPhotos': "Zatím žádné fotky. Přidej ji k zápisu a objeví se tady.",
   // DOG ID = moduly (8. 10. 2026, lock dogs-dogid §REVÍZIA)
   'pack.dogid.eyebrow': "Doklad tvého psa",

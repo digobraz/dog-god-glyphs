@@ -5281,6 +5281,7 @@ export const en = {
   'pack.chronicle.kindAll': "Everything",
   'pack.chronicle.kindPhoto': "Photos",
   'pack.chronicle.write': "Write",
+  'pack.chronicle.dayTaps': "Logged that day",
   'pack.chronicle.noPhotos': "No photos yet. Add one to an entry and it will show up here.",
   // DOG ID = moduly (8. 10. 2026, lock dogs-dogid §REVÍZIA)
   'pack.dogid.eyebrow': "Your dog’s document",
