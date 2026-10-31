@@ -137,8 +137,7 @@ export const POI_EMOJI: Record<TrailPoiType, string> = {
 export const SLEEP_EMOJI: Record<SleepKind, string> = {
   hut: '🛏️',    // útulňa AJ chata — budova, v ktorej spíš vnútri (od 27. 8. spojené)
   camp: '⛺',             // kemp — oficiálne táborisko, väčšinou za peniaze
-  bivak: '🛖',           // bivak — strecha a lavica, prespíš núdzovo
-  wild: '🌙',            // divoké miesto — lúka, les, breh; v OSM neexistuje
+  bivak: '🛖',           // bivak / prístrešok — strecha; či sa dá prespať, nesie chip `sleep_ok` (31. 10.)
 };
 
 /** Emoji bodu v dlaždici (`sleep_hut`…). Poistka pre starý uložený typ vracia útulňu —

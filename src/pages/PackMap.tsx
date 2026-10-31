@@ -92,6 +92,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale, fmtNum } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PoiLayer } from '@/components/geo/PoiLayer';
+import { WISH_PLACE_EVENT } from '@/components/geo/PlaceSheet';
 import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_TOPROW, PAGE_AIR, PACK_R, PACK_SHADOW } from '@/components/pack/packTheme';
 import { BackIcon, ExpandIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
@@ -149,6 +150,7 @@ import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNote
 import { WishLayer } from '@/components/pack/mapnotes/WishLayer';
 import type { WishDraftPoint } from '@/components/pack/mapnotes/AddWish';
 import { fetchMyWishes, fetchWishPins, useMyWishCount, wishMatchForTrail, type WishPin } from '@/components/pack/mapnotes/wishData';
+import { useMyPlacePostCount } from '@/components/geo/placePosts';
 import type { WishAskKind, WishAskReq } from '@/components/pack/mapnotes/WishAsk';
 import { WISH_EMOJI, WISH_RIM } from '@/components/pack/mapnotes/markEmoji';
 import { dockFitPadding, DOCK_COL_W } from '@/components/pack/mapDockShape';
@@ -3785,6 +3787,20 @@ export default function PackMap() {
   }, []);
   useEffect(() => { reloadWishes(); }, [reloadWishes]);
   const [wishFlow, setWishFlow] = useState(false);
+  // „Uložiť" na mieste mapy (útulňa, prameň… — `geo/PlaceSheet.tsx`, 31. 10. 2026) = TRIPWISH
+  // s vopred vyplneným miestom (lock architektura-pack §4.2 🔖: miesto bez výletu → TRIPWISH).
+  // Udalosťou, nie propom: miesto otvára `PoiLayer` vnútri mapy, tok prania žije tu.
+  const [wishPlace, setWishPlace] = useState<{ name: string; lat: number; lon: number } | null>(null);
+  useEffect(() => {
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<{ name: string; lat: number; lon: number }>).detail;
+      if (!d) return;
+      setWishPlace(d);
+      setWishFlow(true);
+    };
+    window.addEventListener(WISH_PLACE_EVENT, on);
+    return () => window.removeEventListener(WISH_PLACE_EVENT, on);
+  }, []);
   // ŽIVOT PRIANIA (26. 9. 2026) — otázka AINUBISA nad mapou (`WishAsk.tsx`). Dva zdroje:
   // upozornenie z NOS (`?wish=&ask=`) a zapísaný výlet blízko môjho prania (D1). D1 čaká,
   // kým sa zavrie odmena výletu — dve oslavy naraz by sa prekrikovali.
@@ -4485,6 +4501,7 @@ export default function PackMap() {
   const myNotePoints = useMyNotePoints();
   const myEventCount = useMyEventCount();
   const myWishCount = useMyWishCount();
+  const myPlacePosts = useMyPlacePostCount();
   const profile = useMemo(() => {
     const email = id.session?.user?.email ?? '';
     const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
@@ -4497,10 +4514,11 @@ export default function PackMap() {
       notePoints: myNotePoints,
       eventsHeld: myEventCount,
       wishesDone: myWishCount,
+      placePosts: myPlacePosts,
     });
     // `storeEpoch` je v deps zámerne: `approvedAddedIds` číta statusy priamo z úložiska, takže
     // sa musí prepočítať v momente, keď hydratácia z DB dobehne.
-  }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session, myNotePoints, myEventCount, myWishCount]);
+  }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session, myNotePoints, myEventCount, myWishCount, myPlacePosts]);
   const profilePoints = profile.points;
   const levelInfo = profile.level;
   // Zverejní level ostatným (SNIFFER kolo 2) — to isté číslo, aké ukazuje táto hlavička.
@@ -7880,8 +7898,9 @@ export default function PackMap() {
           <AddWish
             map={mapInstance}
             onDraft={setWishDraft}
+            initialPlace={wishPlace}
             onSaved={() => { reloadWishes(); setOverlayOn((prev) => ({ ...prev, wish: true })); }}
-            onCancel={() => { setWishFlow(false); setWishDraft(null); }}
+            onCancel={() => { setWishFlow(false); setWishDraft(null); setWishPlace(null); }}
           />
         </Suspense>
       )}

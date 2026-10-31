@@ -86,6 +86,12 @@ export const uploadPackDogPhoto = (blob: Blob, sessionId: string, dogId: string)
 export const uploadPackTripPhoto = (blob: Blob, slug: string, index: number) =>
   uploadBlob(blob, `pack-trips/${slug}`, `${String(index).padStart(2, '0')}-${Date.now().toString(36)}`);
 
+// Fotka k POSTREHU O MIESTE NA MAPE (útulňa, prameň…, 31. 10. 2026, `place_posts.photos`).
+// ⚠️ Priečinok je `places/<userId>` mimo `tmp/` (trvalé, dôvod pri `uploadAvatarPhoto`) a
+//    `public_id` nesie ČAS — unsigned preset neprepisuje (Danka #42 pri `uploadPackTripPhoto`).
+export const uploadPlacePhoto = (blob: Blob, userId: string, stamp: string) =>
+  uploadBlob(blob, `places/${userId}`, stamp);
+
 // Fotka priložená k zápisu do denníka psa (KROK 5, `components/pack/diary/`).
 // ⚠️ Priečinok je `dog-diary/<dogId>`, NIE `dogs/<...>` — `dogs/` nesie profilové fotky
 //    z heroflow (`cloudinary_main_url`) a zhoda `public_id` by ich prepísala. Fotka denníka

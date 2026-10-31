@@ -1,4 +1,4 @@
-// NAČÍTAVAČ DLAŽDÍC OSM BODOV — `public/poi/v1/`
+// NAČÍTAVAČ DLAŽDÍC OSM BODOV — `public/poi/v2/`
 //
 // Zadanie: `plany/zadanie-vrstva-osm-body-2026-08-27.md` §6.3
 // Dáta:    `node plany/gen-poi-tiles.mjs`
@@ -30,11 +30,20 @@ const MAX_PARALLEL = 6;
  *  nič nekreslí. */
 const MAX_TILES_PER_VIEW = 24;
 
-export type PoiTilePoint = { t: string; lat: number; lon: number; name?: string; elev?: number };
+/** `t`: sleep_hut · sleep_camp · sleep_bivak · spring · viewpoint.
+ *  `sleep` = dá sa tu prespať (len `sleep_bivak`: basic_hut áno, ostatné prístrešky nie).
+ *  `range` = pohorie, `district` = okres (bez „okres "), pečené z polygónov OSM pri generovaní. */
+export type PoiTilePoint = {
+  t: string; lat: number; lon: number; name?: string; elev?: number;
+  sleep?: boolean; phone?: string; web?: string; range?: string; district?: string;
+};
+
+/** Piaty prvok záznamu v dlaždici (v2) — je tam LEN keď niečo nesie. */
+type PoiTileExtra = { s?: 1; p?: string; w?: string; r?: string; o?: string };
 
 type TileIndex = { v: number; tileDeg: number; types: string[]; attribution: string; tiles: string[] };
 
-const BASE = '/poi/v1';
+const BASE = '/poi/v2';
 
 const tileCache = new Map<string, PoiTilePoint[]>();
 const inFlight = new Set<string>();
@@ -81,13 +90,23 @@ async function fetchTile(id: string): Promise<void> {
   try {
     const r = await fetch(`${BASE}/${id}.json`);
     if (!r.ok) throw new Error(String(r.status));
-    // Poziční n-tica z generátora: [lat, lon] · [lat, lon, meno] · [lat, lon, meno, výška].
-    // Prázdne meno pri bode s výškou je zámer, nie chyba dát — preto `name || undefined`.
-    const raw = (await r.json()) as Record<string, Array<[number, number, string?, number?]>>;
+    // Poziční n-tica z generátora: [lat, lon] · [lat, lon, meno] · [lat, lon, meno, výška] ·
+    // [lat, lon, meno, výška, extra]. Prázdne meno / `null` výška pri bode s `extra` je zámer,
+    // nie chyba dát — preto `name || undefined` a `elev != null`.
+    const raw = (await r.json()) as Record<string, Array<[number, number, string?, (number | null)?, PoiTileExtra?]>>;
     const pts: PoiTilePoint[] = [];
     for (const [t, arr] of Object.entries(raw)) {
-      for (const [lat, lon, name, elev] of arr) {
-        pts.push({ t, lat, lon, ...(name ? { name } : {}), ...(elev != null ? { elev } : {}) });
+      for (const [lat, lon, name, elev, x] of arr) {
+        pts.push({
+          t, lat, lon,
+          ...(name ? { name } : {}),
+          ...(elev != null ? { elev } : {}),
+          ...(x?.s ? { sleep: true } : {}),
+          ...(x?.p ? { phone: x.p } : {}),
+          ...(x?.w ? { web: x.w } : {}),
+          ...(x?.r ? { range: x.r } : {}),
+          ...(x?.o ? { district: x.o } : {}),
+        });
       }
     }
     tileCache.set(id, pts);

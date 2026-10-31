@@ -6919,6 +6919,7 @@ export const cs: Partial<Dict> = {
   'pack.diary.deleteYes': "Smazat",
   'pack.diary.deleteNo': "Nechat",
   'pack.diary.deleteFailed': "Zápis se nepodařilo smazat.",
+  'pack.diary.isToday': "Dnes — je to zápis do deníku.",
   'ainubis.chat.today': "Dnes",
   'ainubis.chat.yesterday': "Včera",
   'ainubis.chat.history': "Rozhovory",

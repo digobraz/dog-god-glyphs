@@ -156,7 +156,10 @@ function keyTarget(it: Item, quoteId: number, trips: Array<{ trail: { id: string
 }
 
 /** Zo zásobníkov striedavo podľa vzoru, kým niečo zostáva — nič sa nezahodí. */
-function weave(q: { trip: number[]; scroll: DemoScroll[]; post: PostIt[]; map: MapAdd[] }, story: boolean, thin = false): Item[] {
+function weave(src: { trip: number[]; scroll: DemoScroll[]; post: PostIt[]; map: MapAdd[] }, story: boolean, thin = false): Item[] {
+  // KÓPIE (31. 10.): `shift()` nižšie vyprázdnil memoizované `publicPosts`/`tripIdx` — po prvom vykreslení
+  // feed ostal bez cudzích príspevkov aj výletov (smoke 2 účty: B nevidel príspevok A).
+  const q = { trip: [...src.trip], scroll: [...src.scroll], post: [...src.post], map: [...src.map] };
   const out: Item[] = [];
   const cycle: Array<'trip' | 'scroll' | 'post' | 'map' | 'story'> = ['trip', 'scroll', 'post', 'scroll', 'map', 'trip', 'scroll', 'story'];
   let told = !story;

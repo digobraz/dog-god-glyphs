@@ -9,6 +9,7 @@ import { fmtNum } from '@/i18n/bcp47';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
+import { useMyPlacePostCount } from '@/components/geo/placePosts';
 import { WISHES_LIVE } from '@/lib/packFlags';
 import { fetchPackHumans, HUMAN_KEY_PREFIX, type PackHuman } from '@/lib/packHumans';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN, HIT_CSS, VEIL_CSS } from '@/components/pack/packTheme';
@@ -1687,6 +1688,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   const myNotePoints = useMyNotePoints();
   const myEventCount = useMyEventCount();
   const myWishCount = useMyWishCount();
+  const myPlacePosts = useMyPlacePostCount();
   /**
    * PSIE ČÍSLA (B20). Zdroj je `dog_trips` cez `dogTripStats()` — ten istý modul,
    * z ktorého číta psí profil, aby dve obrazovky nehlásili o tom istom psovi iné km.
@@ -1703,7 +1705,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
       }))
       .filter((d) => d.trips > 0)
   ), [id.dogs, storeEpoch, t]);
-  const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, ratings: myRatings, countries: countriesTraveled, notePoints: myNotePoints, eventsHeld: myEventCount, wishesDone: myWishCount });
+  const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, ratings: myRatings, countries: countriesTraveled, notePoints: myNotePoints, eventsHeld: myEventCount, wishesDone: myWishCount, placePosts: myPlacePosts });
   const lvl = levelProgress(profilePoints.total);
 
   return (

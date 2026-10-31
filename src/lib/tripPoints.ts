@@ -280,6 +280,13 @@ export interface ProfilePointsInput {
    * stráži server (`my_wish_points()`), zdroj `useMyWishCount()` (mapnotes/wishData.ts).
    */
   wishesDone?: number;
+  /**
+   * Počet POSTREHOV K MIESTU NA MAPE, ktoré priniesli body (+`POINTS.place` za každý). Matej
+   * 31. 10. 2026: „nie bones ale body pútnika predsa!" — prvý postreh s fotkou na mieste, raz
+   * na (miesto, človek), až po schválení fotky AINUBISOM. Stráži server (`my_place_points()`),
+   * zdroj `useMyPlacePostCount()` (geo/placePosts.ts).
+   */
+  placePosts?: number;
 }
 
 /**
@@ -365,6 +372,9 @@ export function calculateProfilePoints(input: ProfilePointsInput): TripPointsRes
 
   const wishesDone = input.wishesDone ?? 0;
   if (wishesDone > 0) rows.push({ labelKey: 'pack.points.wishes', points: wishesDone * POINTS.wish });
+
+  const placePosts = input.placePosts ?? 0;
+  if (placePosts > 0) rows.push({ labelKey: 'pack.points.placePosts', points: placePosts * POINTS.place });
 
   return { total: rows.reduce((s, r) => s + r.points, 0), rows };
 }

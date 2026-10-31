@@ -31,7 +31,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryLabel } from '@/lib/countryOptions';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { PACK_THEME, PACK_SPACE, PACK_TEXT, PF_FIELD_CSS, PILL_CSS, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_SPACE, PACK_TEXT, PF_FIELD_CSS, PILL_CSS, FONT_UI, PACK_TOPROW } from '@/components/pack/packTheme';
 import type { PackDogFull } from '@/hooks/usePackUser';
 import { customPills, roleLabels, humanPills } from '@/components/pack/profile/packProfile';
 import { fetchMemberProfiles, memberAvatarUrl, memberDisplayName, type MemberProfile } from '@/components/pack/profile/memberProfile';
@@ -258,7 +258,11 @@ export default function PublicProfile() {
       <section className={`me-card${FLAT ? ' me-flat' : ''}${open ? ' open' : ''}${beside ? ' with-mate' : ''}`}>
         {/* App Store 1.2 (26. 10. 2026): nahlásiť / zablokovať člena — tri bodky vpravo hore, ako pri príspevku. */}
         {!isSelf && (
-          <div style={{ position: 'absolute', top: PACK_SPACE.sm, right: PACK_SPACE.sm, zIndex: 5 }}>
+          // FLAT (31. 10.): obálka začína pod lepkavým horným radom — vpravo hore by ··· prekryl zvonček
+          // (smoke 390 px: neklikateľné). Sedí preto vľavo hore na obálke, pod radom; vpravo je vlajka.
+          <div style={FLAT
+            ? { position: 'absolute', top: PACK_TOPROW.content + PACK_SPACE.sm, left: PACK_SPACE.sm, zIndex: 5 }
+            : { position: 'absolute', top: PACK_SPACE.sm, right: PACK_SPACE.sm, zIndex: 5 }}>
             <PostMenu tone="onCover" authorN={member.memberNumber ?? null} authorName={ownerName} />
           </div>
         )}

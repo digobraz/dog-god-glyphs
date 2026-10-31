@@ -35,7 +35,8 @@ import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
+import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAGE_AIR, PACK_HEAD } from '@/components/pack/packTheme';
+import { useKeyboardLift } from '@/components/pack/diary/useKeyboardLift';
 import { sizedUrl, heroPx } from '@/services/cloudinaryService';
 import { searchTripCompanions, INVITE_KEY_PREFIX, type TripCompanionHit } from '@/lib/packHumans';
 import { PhotoSortGrid } from './PhotoSortGrid';
@@ -450,6 +451,40 @@ function StoryMeter({ text }: { text: string }) {
     <p className="atl-storymeter" style={{ color }} aria-live="polite">
       <b>{level === 'ok' ? n : `${n}/${DESC_MIN_CHARS}`}</b> · {t(`pack.addTrip.step.storyMeter.${level}`)}
     </p>
+  );
+}
+
+/** Editor príbehu na celú obrazovku — papyrus bez závoja a rámu, okraj PAGE_AIR, merač nad klávesnicou (`--dia-kb`). */
+function StoryEditor({ title, note, onChange, onClose }: { title: string; note: string; onChange: (v: string) => void; onClose: () => void }) {
+  const t = useT();
+  useKeyboardLift();
+  return (
+    <div
+      className="atl-editor-scrim"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('pack.addTrip.log.story')}
+      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+    >
+      <div className="atl-editor">
+        <div className="atl-editor-head">
+          <button type="button" className="atl-editor-x" onClick={onClose} aria-label={t('pack.mapNotes.add.close')}><BackIcon /></button>
+          <span className="atl-editor-label">{t('pack.addTrip.log.story')}</span>
+          <button type="button" className="btn-gold atl-editor-done" onClick={onClose}>
+            {t('pack.addTrip.step.editorDone')}
+          </button>
+        </div>
+        {title && <h2 className="atl-editor-title">{title}</h2>}
+        <textarea
+          className="atl-editor-area"
+          value={note}
+          autoFocus
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={t('pack.addTrip.step.storyPlaceholder')}
+        />
+        <StoryMeter text={note} />
+      </div>
+    </div>
   );
 }
 
@@ -3056,31 +3091,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
           Escape zatvára — je to plocha na písanie, nie rozhodnutie, takže z nej musí viesť
           von aj klávesnica. */}
       {storyFull && createPortal(
-        <div
-          className="atl-editor-scrim"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('pack.addTrip.log.story')}
-          onKeyDown={(e) => { if (e.key === 'Escape') setStoryFull(false); }}
-        >
-          <div className="atl-editor">
-            <div className="atl-editor-head">
-              <button type="button" className="atl-editor-x" onClick={() => setStoryFull(false)} aria-label={t('pack.mapNotes.add.close')}><BackIcon /></button>
-              <span>{t('pack.addTrip.log.story')}</span>
-            </div>
-            <textarea
-              className="atl-editor-area"
-              value={note}
-              autoFocus
-              onChange={(e) => setNote(e.target.value)}
-              placeholder={t('pack.addTrip.step.storyPlaceholder')}
-            />
-            <StoryMeter text={note} />
-            <button type="button" className="btn-gold atl-editor-done" onClick={() => setStoryFull(false)}>
-              {t('pack.addTrip.step.editorDone')}
-            </button>
-          </div>
-        </div>,
+        <StoryEditor
+          title={name.trim()}
+          note={note}
+          onChange={setNote}
+          onClose={() => setStoryFull(false)}
+        />,
         document.body,
       )}
       <style>{ROUTE_HERO_CSS}</style>
@@ -4538,16 +4554,24 @@ const STEP_CSS = `
    Papyrusová plocha, do ktorej sa píše — teda úroveň 5 matrice (plochý papyrus), nie
    sklenený panel. Výška je daná oknom, nie obsahom: text má rásť do plochy, ktorá už stojí,
    inak by sa pri písaní hýbalo tlačidlo pod ním. */
-.atl-editor-scrim{position:fixed;inset:0;z-index:1500;background:rgba(24,14,4,0.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;}
-.atl-editor{display:flex;flex-direction:column;gap:12px;width:min(860px,100%);height:min(80vh,760px);padding:24px;border-radius:16px;background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);border:1.5px solid ${T.cardEdge};box-shadow:0 24px 64px rgba(0,0,0,0.55),0 0 0 3px rgba(201,154,63,0.15);}
-.atl-editor-head{display:flex;align-items:center;justify-content:flex-start;gap:10px;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkStrong};}
+/* Celá obrazovka (Matej 31. 10. 2026: „je fajn"): papier cez celé okno, bez závoja a rámu. Okraj = PAGE_AIR
+   (dno, nie padding). Spodok zdvíha --dia-kb z useKeyboardLift, takže merač stojí nad klávesnicou. */
+.atl-editor-scrim{position:fixed;left:0;right:0;top:0;bottom:var(--dia-kb,0px);z-index:1500;background:${T.card};display:flex;justify-content:center;padding:${PAGE_AIR.min}px ${PAGE_AIR.side}px;box-sizing:border-box;}
+@media (min-width:768px){.atl-editor-scrim{padding-top:${PAGE_AIR.md}px;padding-bottom:${PAGE_AIR.md}px;}}
+.atl-editor{display:flex;flex-direction:column;gap:12px;width:min(640px,100%);height:100%;min-height:0;}
+.atl-editor-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;flex:none;}
+.atl-editor-label{flex:1;min-width:0;font-family:${PACK_HEAD.label.fontFamily};font-weight:${PACK_HEAD.label.fontWeight};font-size:${PACK_HEAD.label.fontSize}px;letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${T.cardEdge};}
+.atl-editor-title{flex:none;margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:20px;line-height:1.25;letter-spacing:0.02em;color:${T.inkStrong};overflow-wrap:anywhere;}
 /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
 .atl-editor-x{${backCircleCSS('pale')}}
 .atl-editor-x:hover{${backHoverCSS('pale')}}
-.atl-editor-area{flex:1 1 auto;min-height:0;resize:none;width:100%;box-sizing:border-box;padding:16px 16px;border-radius:8px;background:${T.card};border:1px solid ${PALE.border};color:${T.inkStrong};font-family:${FONT_UI};font-size:16px;line-height:1.6;}
-.atl-editor-area:focus{outline:none;border-color:${T.cardEdge};}
+/* 16 px ostáva — iOS pod 16 pri zameraní zoomuje stránku. */
+.atl-editor-area{flex:1 1 auto;min-height:0;resize:none;width:100%;box-sizing:border-box;padding:16px 0;border:0;background:transparent;color:${T.inkStrong};font-family:${FONT_UI};font-size:16px;line-height:1.6;}
+.atl-editor-area:focus{outline:none;}
 .atl-editor-area::placeholder{color:${T.inkWarm};opacity:.7;}
-.atl-editor-done{flex:0 0 auto;align-self:flex-end;min-width:180px;}
+/* HOTOVO = lapis na papieri vždy (editor je bledý na mobile aj PC), tvar CTA r8 z .btn-gold. */
+.atl-editor .atl-editor-done.btn-gold{flex:0 0 auto;width:auto;min-width:112px;padding:8px 16px;background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
+.atl-editor .atl-editor-done.btn-gold:hover:not(:disabled){background:${LAPIS.gradHover};box-shadow:${LAPIS_BTN_SHADOW};}
 /* ── HODNOTENIE JE VÝRAZNEJŠIE (§5.3) ──────────────────────────────────────────────────
    Matej 2026-08-26: „hodnotenie musí byť tiež výraznejšie."
    Päť malých obrysových labiek v rade bez akéhokoľvek rámu vyzeralo ako popisok, nie ako

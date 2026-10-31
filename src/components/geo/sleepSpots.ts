@@ -29,7 +29,12 @@
 // a či varia, nesú CHIPY (`fee`, `meals`), lebo platená útulňa aj neplatená chata existujú.
 // 🛁 sa tým uvoľnilo pre HOTELY — tie ale nie sú spacie miesto pre chodca, patria do SLUŽIEB.
 // 🔴 `bivak` sa NEZLIEVA: strecha bez dverí, spíš vonku vo svojom — opačný koniec, nie sused.
-export const SLEEP_KINDS = ['hut', 'camp', 'bivak', 'wild'] as const;
+// ✂️ `wild` (divoké miesto) ZRUŠENÝ 31. 10. 2026 — Matej nad nákresom miesta na mape: *„Vyhodiť“*.
+// V OSM nikdy nebol, takže z mapy nezmizol ani jeden bod; padla len prázdna príprava na body od
+// svorky a s ňou povinná veta o voľnom táborení (`SLEEP_WILD_WARNING_KEY` nižšie ostáva len kvôli
+// kľúču v prekladoch, nikto ju už nevykresľuje). Druhov miesta je od 31. 10. päť
+// (`geo/placePosts.ts` · `PLACE_KINDS`); `bivak` nesie aj prístrešok („Bivak / prístrešok").
+export const SLEEP_KINDS = ['hut', 'camp', 'bivak'] as const;
 export type SleepKind = (typeof SLEEP_KINDS)[number];
 
 /** Typ bodu v dlaždici. Prefix `sleep_` je zámerný — dlaždice raz ponesú aj pramene a

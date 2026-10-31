@@ -38,8 +38,11 @@ export type WishDraftPoint = { lat: number; lon: number } | null;
 
 const NOTE_MAX = 140;
 
-export function AddWish({ map, onDraft, onSaved, onCancel }: {
+export function AddWish({ map, onDraft, onSaved, onCancel, initialPlace }: {
   map: LeafletMap | null;
+  /** Miesto je už známe — „Uložiť" na útulni či prameni (31. 10. 2026). Krok „kde" sa
+   *  preskočí; hľadať druhýkrát to isté miesto by bola práca navyše. */
+  initialPlace?: { name: string; lat: number; lon: number } | null;
   /** Kde má mapa ukázať rozpracovaný 🎯 (null = nikde). */
   onDraft: (p: WishDraftPoint) => void;
   onSaved: () => void;
@@ -49,8 +52,9 @@ export function AddWish({ map, onDraft, onSaved, onCancel }: {
   const mapRef = useRef<LeafletMap | null>(map);
   mapRef.current = map;
 
-  const [step, setStep] = useState<Step>('place');
-  const [place, setPlace] = useState<{ name: string; lat: number; lon: number; kind: WishPlaceKind; country: string | null } | null>(null);
+  const [step, setStep] = useState<Step>(initialPlace ? 'kind' : 'place');
+  const [place, setPlace] = useState<{ name: string; lat: number; lon: number; kind: WishPlaceKind; country: string | null } | null>(
+    initialPlace ? { ...initialPlace, kind: 'point', country: null } : null);
   const [kind, setKind] = useState<WishTripKind | null>(null);
   const [when, setWhen] = useState<WishWhen | null>(null);
   const [note, setNote] = useState('');
@@ -60,6 +64,9 @@ export function AddWish({ map, onDraft, onSaved, onCancel }: {
 
   // Rozpracovaný pin zmizne s tokom — aj keď sa zavrie inak než tlačidlom.
   useEffect(() => () => onDraft(null), [onDraft]);
+  // Vopred známe miesto ukáže svoj 🎯 hneď, ako keby ho človek práve vybral.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (initialPlace) onDraft({ lat: initialPlace.lat, lon: initialPlace.lon }); }, []);
 
   const pickPlace = (s: PlaceSug) => {
     const k = placeKindFromMapy(s.type);
@@ -72,7 +79,10 @@ export function AddWish({ map, onDraft, onSaved, onCancel }: {
 
   const back = () => {
     setErr(null);
-    if (step === 'kind') { setStep('place'); setPlace(null); onDraft(null); return; }
+    if (step === 'kind') {
+      if (initialPlace) { onCancel(); return; }
+      setStep('place'); setPlace(null); onDraft(null); return;
+    }
     if (step === 'when') { setStep('kind'); return; }
     if (step === 'note') { setStep('when'); return; }
     onCancel();

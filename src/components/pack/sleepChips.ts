@@ -46,6 +46,11 @@ export const SLEEP_CHIPS: Array<{ id: string; label: string; emoji: string; grou
   // Bez tohto chipu by sa zlúčením stratila — a to je presne tá výmena, ktorú zlúčenie
   // sľubovalo opačne: druh hovorí ČO to je, chipy hovoria AKÝ je to obchod (`fee`, `meals`).
   { id: 'meals', label: 'Varia tu', emoji: '🍲', group: 'has' },           // OSM nepozná spoľahlivo
+  // ➕ 31. 10. 2026 — PRIBUDOL SO ZLÚČENÍM bivaku a prístrešku do jedného druhu (Matej nad nákresom
+  // miesta na mape). Bez neho by zlúčenie poslalo človeka spať pod altánok: prístrešok je strecha
+  // s lavicou na dážď, bivak strecha, pod ktorou sa dá prespať. Pri bode z OSM ho zapne samo
+  // `shelter_type=basic_hut` (`PlacePoint.sleep`); vo formulári ho ponúka len bivak.
+  { id: 'sleep_ok', label: 'Dá sa tu prespať', emoji: '🛌', group: 'has' },
   // PRAVIDLÁ
   { id: 'fee', label: 'Platí sa', emoji: '💶', group: 'rules' },           // `fee` 22 % — najsilnejší
   // 🚩 PRÁVNE CITLIVÉ — čaká na Mateja. Voľné táborenie je v národných parkoch ZAKÁZANÉ,

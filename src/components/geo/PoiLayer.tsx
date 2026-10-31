@@ -23,7 +23,7 @@
 // Dáta nie sú ťahané naživo: Overpass je nespoľahlivý (zažitý celoplošný výpadok), takže sú
 // predpočítané do koridoru okolo našich trás skriptom `plany/compute-trail-poi.py` a zapečené
 // generátorom do `src/data/trailPoi.generated.ts`.
-import { useCallback, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Marker, Popup, useMap, useMapEvent } from 'react-leaflet';
 
 // Odsadenie autopanu ako konštanta — stabilná referencia pre react-leaflet (slučku po kliku
@@ -37,7 +37,8 @@ import { POI_EMOJI, sleepEmoji, WORLD_RIM } from '@/components/pack/mapnotes/mar
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import { usePoiTiles, type PoiTilePoint } from './usePoiTiles';
 import { PlaceCard, PLACE_CARD_CSS } from './PlaceCard';
-import { useSleepSpots, spotAt } from './sleepSpotsData';
+import { PlaceSheet, PLACE_PIN_CSS, PLACE_DONE_CLASS, placePinHtml, type PlacePoint } from './PlaceSheet';
+import { placeKindOf, postsAt, usePlacePosts } from './placePosts';
 import { useT } from '@/i18n/LanguageContext';
 
 // Pod týmto priblížením je mapa príbeh o TRASÁCH — lavičky a pramene by z nej urobili šum.
@@ -59,7 +60,7 @@ const POI_MAX_RENDER = 200;      // strop na výrez — nad ním sa mapa mení n
 // útulne". S kempom pred chatou mapa v tom mieste ukázala DVA STANY a útulňu vôbec, hoci
 // práve ona je to, čo tam človek hľadá. Táborisko pri chate je jej príveskom, nie súperom.
 const POI_PRIORITY: Record<string, number> = {
-  sleep_hut: -5, sleep_bivak: -3, sleep_camp: -2, sleep_wild: -1,
+  sleep_hut: -5, sleep_bivak: -3, sleep_camp: -2,
   spring: 0, shelter: 1, saddle: 2, waterfall: 3, tower: 4,
   cave: 5, viewpoint: 6, firepit: 7, cliff: 8, bench: 9,
 };
@@ -107,10 +108,29 @@ const MARK_H = 26;
 //
 // ⚠️ Kruh sa NESTAVIA tu — `circleMarkHtml()` je jediný staviteľ pre všetky kruhové
 // značky mapy. Vlastný `<div>` s tými istými rozmermi by bol štvrtá kópia geometrie.
-const poiIcon = (t: string) => L.divIcon({
+const poiIcon = (t: string, done = false) => L.divIcon({
   className: 'mk-wrap',
-  html: circleMarkHtml(markEmojiFor(t), WORLD_RIM, ' mk-circle--world'),
+  html: circleMarkHtml(markEmojiFor(t), WORLD_RIM, ` mk-circle--world${done ? PLACE_DONE_CLASS : ''}`),
 });
+
+/** Vybraný bod = KVAPKA s menom (`PlaceSheet.tsx`, nákres v3). Kotva na špičke kvapky. */
+const pinIcon = (t: string, name?: string) => L.divIcon({
+  className: 'mk-wrap',
+  html: placePinHtml(markEmojiFor(t), name),
+  iconSize: [0, 0],
+});
+
+const sameP = (a: { t: string; lat: number; lon: number } | null, b: { t: string; lat: number; lon: number }) =>
+  !!a && a.t === b.t && a.lat === b.lat && a.lon === b.lon;
+
+/** `?place=<typ>,<lat>,<lon>` — odkaz z „Poslať" (`PlaceSheet.tsx`). */
+function placeFromUrl(): PlacePoint | null {
+  if (typeof window === 'undefined') return null;
+  const raw = new URLSearchParams(window.location.search).get('place');
+  const m = raw?.match(/^([a-z_]+),(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/);
+  if (!m || !placeKindOf(m[1])) return null;
+  return { t: m[1], lat: Number(m[2]), lon: Number(m[3]) };
+}
 
 /** i18n kľúč popisku typu. Do 21. 8. tu bola natvrdo anglická mapa — v slovenskej
  *  appke teda svietilo „Viewpoint". Kľúče žijú v `sk.ts` aj `en.ts`. */
@@ -123,13 +143,27 @@ const poiLabelKey = (t: string): string =>
  * @param tiles    body sa berú z dlaždíc `public/poi/v1/` (celé SK) namiesto `TRAIL_POI`
  *                 (250 m koridor okolo našich trás).
  */
-export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false }: { minZoom?: number; tiles?: boolean } = {}) {
+export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false, drawing = false }: {
+  minZoom?: number; tiles?: boolean;
+  /** práve sa kreslí trasa — ťuk na miesto otvorí rovno postreh („Uložiť a kresliť ďalej") */
+  drawing?: boolean;
+} = {}) {
   const tx = useT();
   const map = useMap();
-  // Prevzaté miesta — načítajú sa raz za život stránky a karta si z nich vyberá podľa
-  // vzdialenosti. Bez session (alebo bez platby) je zoznam prázdny a karta ukáže stav
-  // „bod zo sveta", čo je pravda, nie chyba.
-  const spots = useSleepSpots();
+  // Postrehy členov — načítajú sa raz za život stránky, k bodu sa párujú vzdialenosťou.
+  // Bez session (alebo bez platby) je zoznam prázdny a miesto ukáže „zatiaľ nikto nič".
+  const posts = usePlacePosts();
+  const [sel, setSel] = useState<PlacePoint | null>(null);
+  const closeSel = useCallback(() => setSel(null), []);
+  // Odkaz „Poslať" otvorí miesto rovno (len hlavná mapa — článok má vlastný výrez).
+  useEffect(() => {
+    if (!tiles) return;
+    const p = placeFromUrl();
+    if (!p) return;
+    map.setView([p.lat, p.lon], Math.max(16, minZoom));
+    setSel(p);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // DEV: rukoväť na mapu pre vizuálnu kontrolu z konzoly (`__MAP.setView([lat,lon], z)`).
   // react-leaflet inštanciu nikam nevystavuje a cez React fiber sa k nej dostať nedá, takže
   // bez tohto sa vrstva nedá odskúšať inak než ručným ťahaním mapy k správnemu kopcu.
@@ -181,43 +215,81 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false }: { minZoom?: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, zoom, moveTick, minZoom, tiles, tilePoints]);
 
+  // Bod z odkazu nemusí byť vo výreze ešte načítaný — doplní sa o meno a výšku, keď dlaždica príde.
+  const selFull: PlacePoint | null = useMemo(() => {
+    if (!sel) return null;
+    const hit = (tiles ? tilePoints : (TRAIL_POI as AnyPoi[])).find((p) => sameP(sel, p));
+    return hit ? { ...sel, ...hit } : sel;
+  }, [sel, tiles, tilePoints]);
+  const selKind = selFull ? placeKindOf(selFull.t) : null;
+
   return (
     <>
       <style>{CIRCLE_MARK_CSS}</style>
       <style>{PLACE_CARD_CSS}</style>
+      <style>{PLACE_PIN_CSS}</style>
       <style>{POI_CSS}</style>
-      {items.map((p) => (
-        <Marker
-          key={`poi-${p.t}-${p.lat}-${p.lon}`}
-          position={[p.lat, p.lon]}
-          icon={poiIcon(p.t)}
-          zIndexOffset={-600}   // POI nesmie prebiť trip pin ani vizuálne, ani klikom
-          // `title` = natívny tooltip na prejdení myšou. Na dotyku sa neukáže, preto
-          // je názov aj v popupe nižšie — Matej chcel „po prejdení myšou ALEBO kliku".
-          title={p.name ? `${tx(poiLabelKey(p.t))} · ${p.name}` : tx(poiLabelKey(p.t))}
-        >
-          {/* ⚠️ AUTOPAN MUSÍ POČÍTAŤ S CHROMOM NAD MAPOU, nie s hranou okna. Karta je vysoká
-              (fotka 132 px + text) a otvára sa NAD značkou — s rovnomerným odsadením 20 px
-              jej Leaflet nechal miesto až po okraj okna a fotka skončila SCHOVANÁ za horným
-              barom a radom filtrov. Vyzeralo to, že fotka chýba, pritom bola načítaná.
-              Vľavo/hore preto odsadenie do výšky lišty, vpravo/dole nad spodný nav. */}
-          <Popup
-            className="poi-popup"
-            closeButton={false}
-            autoPanPaddingTopLeft={PAN_TL}
-            autoPanPaddingBottomRight={PAN_BR}
-          >
-            <PlaceCard
-              poiType={p.t}
-              kindLabel={tx(poiLabelKey(p.t))}
-              name={p.name}
-              elevM={p.elev}
-              spot={p.t.startsWith('sleep_') ? spotAt(spots, p.lat, p.lon) : null}
-              tx={tx}
+      {items.map((p) => {
+        const kind = placeKindOf(p.t);
+        const label = p.name ? `${tx(poiLabelKey(p.t))} · ${p.name}` : tx(poiLabelKey(p.t));
+        // MIESTO (5 druhov, Matej 31. 10.) → pin + šuplík `PlaceSheet`. Ostatné body (lavička,
+        // sedlo, vodopád… — „mimo") si nechávajú pôvodnú bublinu `PlaceCard`, len na čítanie.
+        if (kind) {
+          if (sameP(sel, p)) return null;   // vybraný kreslí pin nižšie
+          const done = posts.some((q) => q.isMine) && postsAt(posts, kind, p.lat, p.lon).some((q) => q.isMine);
+          return (
+            <Marker
+              key={`poi-${p.t}-${p.lat}-${p.lon}`}
+              position={[p.lat, p.lon]}
+              icon={poiIcon(p.t, done)}
+              zIndexOffset={-600}   // POI nesmie prebiť trip pin ani vizuálne, ani klikom
+              title={label}
+              // ⚠️ Klik na značku do mapy NEPREPADNE (Leaflet `bubblingMouseEvents:false`
+              //    pri značkách) — preto ťuk počas kreslenia trasy nepridá kotvu (zadanie bod 8).
+              eventHandlers={{ click: () => setSel({ ...p }) }}
             />
-          </Popup>
-        </Marker>
-      ))}
+          );
+        }
+        return (
+          <Marker
+            key={`poi-${p.t}-${p.lat}-${p.lon}`}
+            position={[p.lat, p.lon]}
+            icon={poiIcon(p.t)}
+            zIndexOffset={-600}
+            title={label}
+          >
+            {/* ⚠️ AUTOPAN MUSÍ POČÍTAŤ S CHROMOM NAD MAPOU, nie s hranou okna — karta sa otvára
+                NAD značkou a s rovnomerným odsadením 20 px skončila za horným barom. */}
+            <Popup
+              className="poi-popup"
+              closeButton={false}
+              autoPanPaddingTopLeft={PAN_TL}
+              autoPanPaddingBottomRight={PAN_BR}
+            >
+              <PlaceCard poiType={p.t} kindLabel={tx(poiLabelKey(p.t))} name={p.name} elevM={p.elev} tx={tx} />
+            </Popup>
+          </Marker>
+        );
+      })}
+      {selFull && selKind && (
+        <>
+          <Marker
+            key={`pin-${selFull.t}-${selFull.lat}-${selFull.lon}`}
+            position={[selFull.lat, selFull.lon]}
+            icon={pinIcon(selFull.t, selFull.name)}
+            zIndexOffset={900}
+            interactive={false}
+          />
+          <PlaceSheet
+            point={selFull}
+            kind={selKind}
+            posts={postsAt(posts, selKind, selFull.lat, selFull.lon)}
+            drawing={drawing}
+            onClose={closeSel}
+            tx={tx}
+          />
+        </>
+      )}
     </>
   );
 }

@@ -28,7 +28,6 @@
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { FONT_EMOJI, sleepEmoji } from '@/components/pack/mapnotes/markEmoji';
 import { SLEEP_CHIPS } from '@/components/pack/sleepChips';
-import { SLEEP_WILD_WARNING_KEY } from './sleepSpots';
 import type { SleepSpot } from './sleepSpotsData';
 
 const CHIP_BY_ID = new Map(SLEEP_CHIPS.map((c) => [c.id, c]));
@@ -61,7 +60,6 @@ export function PlaceCard({ poiType, kindLabel, name, elevM, spot, tx }: PlaceCa
   const emoji = isSleep ? sleepEmoji(poiType) : '';
   const title = spot?.name || name;
   const chips = (spot?.chips ?? []).map((id) => CHIP_BY_ID.get(id)).filter(Boolean);
-  const isWild = (spot?.kind ?? (isSleep ? poiType.slice(6) : '')) === 'wild';
 
   return (
     <div className="pcard">
@@ -78,8 +76,6 @@ export function PlaceCard({ poiType, kindLabel, name, elevM, spot, tx }: PlaceCa
         </div>
         {title && <div className="pcard-name">{title}</div>}
         {elevM != null && <div className="pcard-meta">{elevM.toLocaleString('sk-SK')} m n. m.</div>}
-
-        {isWild && <div className="pcard-warn">{tx(SLEEP_WILD_WARNING_KEY)}</div>}
 
         {spot ? (
           <>

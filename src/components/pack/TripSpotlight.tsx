@@ -35,6 +35,7 @@ import { placeholderFor } from '@/lib/tripPlaceholder';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
+import { useMyPlacePostCount } from '@/components/geo/placePosts';
 import { profileLevelFor, readVotes, readPlans } from './packCommunity';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
@@ -351,6 +352,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
   const myNotePoints = useMyNotePoints();
   const myEventCount = useMyEventCount();
   const myWishCount = useMyWishCount();
+  const myPlacePosts = useMyPlacePostCount();
   const view = useMemo(() => {
     const nowMs = Date.now();
     const allTrails: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];
@@ -428,6 +430,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
       notePoints: myNotePoints,
       eventsHeld: myEventCount,
       wishesDone: myWishCount,
+      placePosts: myPlacePosts,
     });
 
     return {
@@ -445,7 +448,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
       countryCount: countries.size,
       level: level.level,
     };
-  }, [email, ownerName, myNotePoints, myEventCount, myWishCount]);
+  }, [email, ownerName, myNotePoints, myEventCount, myWishCount, myPlacePosts]);
 
   // Bez jediného výletu s fotkou nemá plagát čo ukázať — radšej nič než prázdny rám.
   if (!view.trail) return null;

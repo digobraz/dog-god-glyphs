@@ -767,7 +767,7 @@ export { FOUNDER_ACCOUNT_EMAIL, isFounderEmail };
 // dodá `computeCompletion` — táto funkcia ich len spojí.
 export function profilePointsFor(
   walkedTrails: HeroTrail[],
-  opts?: { addedIds?: Set<string>; ratings?: number; countries?: number; notePoints?: number; eventsHeld?: number; wishesDone?: number },
+  opts?: { addedIds?: Set<string>; ratings?: number; countries?: number; notePoints?: number; eventsHeld?: number; wishesDone?: number; placePosts?: number },
 ): TripPointsResult {
   const completion = computeCompletion(walkedTrails);
   const done = (key: GeoCategory) => completion.categories.find((c) => c.key === key)?.done.length ?? 0;
@@ -779,6 +779,7 @@ export function profilePointsFor(
     notePoints: opts?.notePoints,
     eventsHeld: opts?.eventsHeld,
     wishesDone: opts?.wishesDone,
+    placePosts: opts?.placePosts,
     discovered: {
       ranges: done('ranges'), parks: done('parks'), chko: done('chko'), waters: done('waters'),
       countries: opts?.countries ?? (walkedTrails.length > 0 ? 1 : 0),
@@ -816,8 +817,10 @@ export function profileLevelFor(input: {
   eventsHeld?: number;
   /** Počet splnených prianí s bodmi — z `useMyWishCount()`. Ten istý dôvod ako `notePoints`. */
   wishesDone?: number;
+  /** Počet postrehov k miestu s bodmi — z `useMyPlacePostCount()`. Ten istý dôvod ako `notePoints`. */
+  placePosts?: number;
 }): { points: TripPointsResult; level: LevelProgress } {
-  const { walkedTrails, localTrailIds = [], votes, email, ownerName, notePoints, eventsHeld, wishesDone } = input;
+  const { walkedTrails, localTrailIds = [], votes, email, ownerName, notePoints, eventsHeld, wishesDone, placePosts } = input;
   const byAuthor = addedByMeIds(walkedTrails, { ownerName, isFounder: isFounderEmail(email) });
   const addedIds = approvedAddedIds([...byAuthor, ...localTrailIds]);
   const points = profilePointsFor(walkedTrails, {
@@ -827,6 +830,7 @@ export function profileLevelFor(input: {
     notePoints,
     eventsHeld,
     wishesDone,
+    placePosts,
   });
   return { points, level: levelProgress(points.total) };
 }

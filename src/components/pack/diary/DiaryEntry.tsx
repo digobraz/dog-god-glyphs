@@ -310,7 +310,9 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', edit, onClose, on
         <p className="dia-hint">
           {plan
             ? tx('pack.diary.isPlan', 'Future date — this becomes a plan in the calendar.')
-            : tx('pack.diary.isLog', 'Past date — this is a diary entry.')}
+            : dayKey === todayKey()
+              ? tx('pack.diary.isToday', 'Today — this is a diary entry.')
+              : tx('pack.diary.isLog', 'Past date — this is a diary entry.')}
         </p>
 
         {/* ČO. Váha je číslo, zvyšok je text. */}

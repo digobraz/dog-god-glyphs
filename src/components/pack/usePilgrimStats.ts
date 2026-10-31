@@ -11,6 +11,7 @@ import { profileLevelFor, readVotes, walkedCountries } from './packCommunity';
 import { useMyNotePoints } from './mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
+import { useMyPlacePostCount } from '@/components/geo/placePosts';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { trailCountry } from '@/lib/countryGeo';
 
@@ -18,6 +19,7 @@ export function usePilgrimStats(email: string, ownerName: string) {
   const myNotePoints = useMyNotePoints();
   const myEventCount = useMyEventCount();
   const myWishCount = useMyWishCount();
+  const myPlacePosts = useMyPlacePostCount();
   // Prejdené výlety sa na novom zariadení dotiahnu z DB až po chvíli — bez epochy by výpočet
   // ostal na nule a zverejnenie by ostatným prepísalo skutočné čísla nulou (audit 26. 10. 2026).
   const storeEpoch = usePackStoreEpoch();
@@ -36,12 +38,13 @@ export function usePilgrimStats(email: string, ownerName: string) {
       notePoints: myNotePoints,
       eventsHeld: myEventCount,
       wishesDone: myWishCount,
+      placePosts: myPlacePosts,
     });
     /** `ready` = úložisko výletov je načítané z DB; dovtedy čísla NEzverejňuj. */
     return { level, count: walkedTrails.length, km: Math.round(km), countries: walkedCountries(walkedTrails),
       /** Kódy tých istých krajín (ISO2 malými) — odznak ZAHRANIČIE odpočíta vlastnú. */
       countryCodes: [...new Set(walkedTrails.map((tr) => trailCountry(tr)))], ready: storeEpoch > 0 };
-  }, [email, ownerName, myNotePoints, myEventCount, myWishCount, storeEpoch]);
+  }, [email, ownerName, myNotePoints, myEventCount, myWishCount, myPlacePosts, storeEpoch]);
 }
 
 /** Zverejní PÚTNIK level, aby ho videli ostatní (Matej 25. 9.: „level putnika musi vidieť
