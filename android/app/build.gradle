@@ -7,7 +7,8 @@ android {
         applicationId "com.dogypt.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        // Číslo buildu dodá `scripts/appka/vydaj.sh` (rastie s časom, Play odmietne rovnaké dvakrát).
+        versionCode((System.getenv("DOGYPT_VERSION_CODE") ?: "1") as Integer)
         versionName "1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -33,8 +34,22 @@ android {
             resValue "string", "title_activity_main", "DOGYPT DEV"
         }
     }
+    // PODPIS PRE PLAY (31. 10. 2026): kľúč a heslo nikdy nie sú v repe — dodá ich `vydaj.sh`
+    // (~/.dogypt-keys/dogypt-upload.jks + kľúčenka `dogypt-android-upload-keystore`).
+    signingConfigs {
+        upload {
+            def store = System.getenv("DOGYPT_UPLOAD_STORE")
+            if (store) {
+                storeFile file(store)
+                storePassword System.getenv("DOGYPT_UPLOAD_PW")
+                keyAlias "dogypt-upload"
+                keyPassword System.getenv("DOGYPT_UPLOAD_PW")
+            }
+        }
+    }
     buildTypes {
         release {
+            if (System.getenv("DOGYPT_UPLOAD_STORE")) signingConfig signingConfigs.upload
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
