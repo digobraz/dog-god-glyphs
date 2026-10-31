@@ -60,7 +60,6 @@ export function UnwalkConfirm({ name, points, km, onConfirm, onClose }: {
   const parts = loss.split('**');
 
   return createPortal(
-
     <div className="pk-veil pk-veil--modal uwc-overlay" onClick={(e) => { e.stopPropagation(); onClose(); }}>
       <div className="uwc-box" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <style>{CSS}</style>

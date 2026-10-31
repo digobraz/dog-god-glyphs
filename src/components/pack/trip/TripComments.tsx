@@ -237,7 +237,6 @@ function ReviewPopup({ slug, trailName, initial, canWrite, saving, error, onSubm
   const [photos, setPhotos] = useState<string[]>(initial?.photos ?? []);
   const canSubmit = paws > 0 && canWrite && !saving;
   return createPortal(
-
     <div className="pk-veil pk-veil--modal tcm-overlay" onClick={onClose}>
       <div className="tcm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="tcm-modal-head">

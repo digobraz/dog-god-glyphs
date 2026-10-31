@@ -844,7 +844,6 @@ function Modal({ title, sub, onClose, wide, children }: {
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
   return createPortal(
-
     <div className="pk-veil pk-veil--modal comm-overlay" onClick={onClose}>
       <div className={`comm-modal${wide ? ' wide' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className="comm-modal-head">

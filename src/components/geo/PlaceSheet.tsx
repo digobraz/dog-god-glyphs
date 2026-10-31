@@ -506,22 +506,23 @@ function PlacePostForm({ point, kind, name, drawing, scoredHere, onDone, onClose
   const ready = photos.filter((p) => p.url).map((p) => p.url as string);
   const canSave = !saving && !uploading && (paws > 0 || body.trim().length > 0 || ready.length > 0);
 
-  const pick = async (files: FileList | null) => {
-    if (!files?.length) return;
-    console.warn('[E2E] pick', files.length);
+  const pick = async (list: FileList | null) => {
+    if (!list?.length) return;
+    // 🔴 KÓPIA HNEĎ (31. 10. 2026): FileList je ŽIVÝ — `e.target.value = ''` nižšie ho vyprázdni
+    // počas `await getUser()` a fotka sa ticho stratila (bez chyby, bez slotu). Chytil to e2e test.
+    const files = Array.from(list);
     setErr(null);
     const { data } = await db.auth.getUser();
     const uid = data.user?.id;
-    console.warn('[E2E] uid', uid);
     if (!uid) { setErr(tx('pack.place.failed')); return; }
     const room = MAX_PHOTOS - photos.length;
-    for (const f of Array.from(files).slice(0, room)) {
+    for (const f of files.slice(0, room)) {
       const preview = URL.createObjectURL(f);
       setPhotos((prev) => [...prev, { preview, url: null, busy: true }]);
       uploadPlaceFile(f, uid)
         .then((url) => setPhotos((prev) => prev.map((p) => (p.preview === preview ? { ...p, url, busy: false } : p))))
         // 🔴 blob adresa sa NEUKLADÁ (mŕtvy odkaz po reloade, `photoIntake.ts`) — zlyhaná fotka odpadne.
-        .catch((e) => { console.warn('[E2E] upl', String(e)); setPhotos((prev) => prev.filter((p) => p.preview !== preview)); setErr(tx('pack.place.photoFailed')); });
+        .catch(() => { setPhotos((prev) => prev.filter((p) => p.preview !== preview)); setErr(tx('pack.place.photoFailed')); });
     }
   };
 

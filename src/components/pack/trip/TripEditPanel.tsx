@@ -42,6 +42,7 @@
 // verziu — teda text, ktorý autor práve prepísal, a nemal by ako zistiť, že je starý. Pád na SK
 // je horší zážitok, ale pravdivý. Od 5. 10. 2026 sa nový preklad dorobí hneď po uložení
 // (Edge Function `translate-trip`), takže SK fallback trvá len pár sekúnd.
+import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
@@ -71,7 +72,11 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
 .tep-overlay{z-index:1200;padding:${VEIL_PAD};}
 .tep-modal{width:100%;max-width:440px;max-height:${MODAL_MAX_H};overflow-y:auto;padding:24px;
   background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};border-radius:${PACK_BOX.panel.borderRadius}px;box-shadow:${PACK_BOX.panel.boxShadow};}
-.tep-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;}
+.tep-top{position:sticky;top:-24px;z-index:3;margin:-24px -24px 16px;padding:0 24px 12px;background:${PACK_BOX.panel.background};
+  border-bottom:1px solid ${T.hairline};cursor:grab;}
+.tep-grab{display:block;width:44px;height:4px;border-radius:999px;background:${T.hairline};margin:0 auto;position:relative;top:8px;margin-bottom:24px;}
+.tep-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+@media (min-width:768px){.tep-grab{visibility:hidden;margin-bottom:16px;}.tep-top{cursor:default;}}
 .tep-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkStrong};line-height:1.25;}
 .tep-sub{font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};margin-top:4px;}
 .tep-field{margin-bottom:16px;}
@@ -187,6 +192,7 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
 
   // iOS klávesnica nemení dvh — výšku okna berieme z visualViewport, aby ULOŽIŤ nezostalo pod klávesnicou.
   const [vvH, setVvH] = useState<number | null>(null);
+  const sw = useSheetSwipe(onClose);
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
@@ -294,12 +300,16 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
   );
 
   return createPortal(
-
     <div className="pk-veil pk-veil--modal tep-overlay" onClick={onClose}>
       {/* ⚠️ visualViewport výška NEPOZNÁ výrez iPhonu — samotné `vvH - 32` v appke posunulo hlavičku
           pod hodiny (31. 10.). Preto menšie z oboch: strop so safe-area aj priestor nad klávesnicou. */}
-      <div className="tep-modal" style={vvH ? { maxHeight: `min(${MODAL_MAX_H}, ${vvH - 32}px)` } : undefined} onClick={(e) => e.stopPropagation()}>
+      <div className="tep-modal" style={{ ...(vvH ? { maxHeight: `min(${MODAL_MAX_H}, ${vvH - 32}px)` } : {}), ...sw.sheetStyle }} onClick={(e) => e.stopPropagation()}>
         <style>{TRIP_EDIT_CSS}</style>
+        {/* ÚCHYT + HLAVIČKA SÚ PRILEPENÉ HORE (31. 10. 2026, Matej: *„nie je vidno horný panel aby sa dalo
+            ísť preč"*). Na mobile okno vyplní výšku a „ťuk vedľa" by bol 16 px okraj — úchyt je sľub
+            gesta POPUPU: stiahnutím dole sa okno zavrie (`useSheetSwipe`), krížik sa nevracia. */}
+        <div className="tep-top" {...sw.handle}>
+        <span className="tep-grab" aria-hidden />
         <div className="tep-head">
           <div>
             <div className="tep-title">{t(isPlan ? 'pack.trip.edit.planTitle' : 'pack.trip.edit.title')}</div>
@@ -307,6 +317,7 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
           </div>
           {/* KRÍŽIK ZANIKOL (lock 2026-08-28: „nedávajme tie krížiky na bloky"). Von sa ide
               klikom mimo panela — na mobile to je jediné gesto, na PC k tomu Esc nižšie. */}
+        </div>
         </div>
 
         {/* FOTKY A HODNOTENIE LEN PRI PREJDENOM VÝLETE. Na pláne by to bola výzva
