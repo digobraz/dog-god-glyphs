@@ -25,7 +25,9 @@
 // nestojí — a tlačidlo bez cieľa je horšie než chýbajúce tlačidlo (klik nespraví nič a
 // človek to skúsi znova). Karta má na ne miesto v spodnom rade, doplnia sa spolu s formulárom.
 // ============================================================================
-import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT as TX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { intlLocale } from '@/i18n/bcp47';
+import { useLang } from '@/i18n/LanguageContext';
 import { FONT_EMOJI, sleepEmoji } from '@/components/pack/mapnotes/markEmoji';
 import { SLEEP_CHIPS } from '@/components/pack/sleepChips';
 import type { SleepSpot } from './sleepSpotsData';
@@ -60,6 +62,7 @@ export function PlaceCard({ poiType, kindLabel, name, elevM, spot, tx }: PlaceCa
   const emoji = isSleep ? sleepEmoji(poiType) : '';
   const title = spot?.name || name;
   const chips = (spot?.chips ?? []).map((id) => CHIP_BY_ID.get(id)).filter(Boolean);
+  const { lang } = useLang();
 
   return (
     <div className="pcard">
@@ -75,7 +78,7 @@ export function PlaceCard({ poiType, kindLabel, name, elevM, spot, tx }: PlaceCa
           {kindLabel}
         </div>
         {title && <div className="pcard-name">{title}</div>}
-        {elevM != null && <div className="pcard-meta">{elevM.toLocaleString('sk-SK')} m n. m.</div>}
+        {elevM != null && <div className="pcard-meta">{tx('pack.place.elev', { m: elevM.toLocaleString(intlLocale(lang)) })}</div>}
 
         {spot ? (
           <>
@@ -83,7 +86,7 @@ export function PlaceCard({ poiType, kindLabel, name, elevM, spot, tx }: PlaceCa
               <div className="pcard-chips">
                 {chips.map((c) => (
                   <span key={c!.id} className="pcard-chip">
-                    <i style={{ fontFamily: FONT_EMOJI }}>{c!.emoji}</i>{c!.label}
+                    <i style={{ fontFamily: FONT_EMOJI }}>{c!.emoji}</i>{tx(`pack.place.chip.${c!.id}`)}
                   </span>
                 ))}
               </div>
@@ -115,30 +118,25 @@ export function PlaceCard({ poiType, kindLabel, name, elevM, spot, tx }: PlaceCa
  */
 export const PLACE_CARD_CSS = `
 /* PEVNÁ ŠÍRKA, NIE ZMRŠŤOVANIE — dôvod je v hlavičke súboru. 260 px je šírka, pri ktorej sa
-   dvojriadkový názov útulne ešte zmestí bez delenia slov. */
-.pcard{width:260px;font-family:${FONT_UI};}
-.pcard-photo{display:block;width:100%;height:132px;object-fit:cover;border-radius:9px 9px 0 0;}
-.pcard-body{padding:10px 12px 11px;display:flex;flex-direction:column;gap:4px;}
-/* Eyebrow = druh. Space Grotesk 600, zlatá — ten istý vzor ako ".religion-eyebrow". */
-.pcard-kind{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:600;
-  letter-spacing:.18em;text-transform:uppercase;color:${T.cardEdge};}
-.pcard-kind i{font-style:normal;font-size:12px;line-height:1;}
-/* Meno miesta = Cinzel, ako názov výletu na karte. Nie je to údaj, je to identita miesta. */
-.pcard-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;line-height:1.25;
-  letter-spacing:.02em;color:#F3E9DA;}
-.pcard-meta{font-size:11.5px;color:rgba(245,240,228,0.62);}
-.pcard-warn{margin-top:4px;font-size:11px;line-height:1.35;color:#E8A87C;}
-.pcard-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
-.pcard-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:999px;
-  background:rgba(201,154,63,0.14);border:1px solid rgba(201,154,63,0.34);
-  font-size:10.5px;color:rgba(245,240,228,0.88);white-space:nowrap;}
-.pcard-chip i{font-style:normal;font-size:11px;line-height:1;}
-/* Popis sa NELÁME v strede slova (to bola pôvodná chyba) a je zastrihnutý na štyri riadky —
-   celý text patrí na profil miesta, bublina je náhľad. */
-.pcard-text{margin:7px 0 0;font-size:12px;line-height:1.45;color:rgba(245,240,228,0.90);
+   dvojriadkový názov útulne ešte zmestí bez delenia slov.
+   BLEDÝ ŠAT (31. 10. 2026): Matej chcel miesta na mape „v bledom šate"; šuplík miest to dostal,
+   ostatné body (lavička, sedlo…) ostali v tmavej bubline — tá istá mapa, dva šaty. Teraz papyrus. */
+.pcard{width:260px;font-family:${FONT_UI};color:${T.inkStrong};}
+.pcard-photo{display:block;width:100%;height:132px;object-fit:cover;border-radius:${PACK_R.tile}px ${PACK_R.tile}px 0 0;}
+.pcard-body{padding:${S.md}px;display:flex;flex-direction:column;gap:${S.xs}px;}
+.pcard-kind{display:flex;align-items:center;gap:${S.xs}px;font-size:${TX.micro}px;font-weight:600;
+  letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
+.pcard-kind i{font-style:normal;font-size:${TX.label}px;line-height:1;letter-spacing:0;}
+.pcard-name{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.body}px;line-height:1.25; /* písmo: meno */
+  letter-spacing:.02em;color:${T.inkStrong};}
+.pcard-meta{font-size:${TX.label}px;color:${T.inkWarm};}
+.pcard-chips{display:flex;flex-wrap:wrap;gap:${S.xs}px;margin-top:${S.xs}px;}
+.pcard-chip{display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;
+  background:#FFFDF7;border:1px solid ${T.hairline};font-size:${TX.label}px;color:${T.inkStrong};white-space:nowrap;}
+.pcard-chip i{font-style:normal;line-height:1;}
+.pcard-text{margin:${S.xs}px 0 0;font-size:${TX.label}px;line-height:1.45;color:${T.inkStrong};
   display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
-.pcard-by{margin-top:7px;display:flex;align-items:center;gap:6px;font-size:11px;
-  color:rgba(245,240,228,0.55);}
+.pcard-by{margin-top:${S.xs}px;display:flex;align-items:center;gap:${S.xs}px;font-size:${TX.label}px;color:${T.inkWarm};}
 .pcard-by b{font-weight:600;color:${T.cardEdge};}
-.pcard-empty{margin:7px 0 0;font-size:11.5px;line-height:1.4;color:rgba(245,240,228,0.58);}
+.pcard-empty{margin:${S.xs}px 0 0;font-size:${TX.label}px;line-height:1.4;color:${T.inkWarm};}
 `;

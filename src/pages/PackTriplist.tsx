@@ -32,7 +32,7 @@ import { JOIN_REQUIRED_STEPS } from '@/components/pack/dogQuiz';
 import { hasValue, readLatestForDogs, onDogEventsChange } from '@/lib/dogEvents';
 import { useMyDogRights } from '@/lib/dogRights';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, PACK_TOPROW_PAD, GOLD_BTN, PACK_SHADOW, PACK_SPACE, HIT_CSS, VEIL_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, PACK_TOPROW_PAD, GOLD_BTN, PACK_SHADOW, PACK_SPACE, HIT_CSS, VEIL_CSS, VEIL_PAD } from '@/components/pack/packTheme';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
@@ -345,7 +345,7 @@ const CSS = `
    ⚠️ BEZ KRÍŽIKA (lock 2026-08-28, Matej: „nedávajme tie krížiky na bloky") — von sa ide
    klikom mimo (overlay) alebo klávesom Esc. Trieda .tl-x preto zanikla aj z JSX. */
 /* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha nad spodným navom a odsadenie. */
-.tl-overlay{z-index:1200;padding:16px;}
+.tl-overlay{z-index:1200;padding:${VEIL_PAD};}
 .tl-modal{width:100%;max-width:360px;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
 .tl-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
 .tl-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${P.ink};}

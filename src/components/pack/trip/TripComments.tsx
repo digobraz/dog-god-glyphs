@@ -23,6 +23,7 @@
 // Writes are NEVER optimistic: insert/upsert/delete await the DB response, and on RLS rejection
 // (signed out, unpaid, DEV_NOAUTH) the popup shows an error instead of pretending it saved — same
 // rule as `sendMessage()` in packMessaging.ts.
+import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
@@ -30,7 +31,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { guardMessage } from '@/components/pack/contentGuardError';
 import { linkify } from '@/components/ainubis/ainubisLinkify';
 import { useMagnetPreview } from '@/components/pack/magnetPreview';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN, VEIL_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN, VEIL_CSS, VEIL_PAD } from '@/components/pack/packTheme';
 import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS, tintRGBA } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -146,7 +147,7 @@ export const TRIP_COMMENTS_CSS = `${VEIL_CSS}
 
 /* popup (self-contained, same look as WalkedPopup in packCommunityUI.tsx) */
 /* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha a odsadenie. */
-.tcm-overlay{z-index:1200;padding:16px;}
+.tcm-overlay{z-index:1200;padding:${VEIL_PAD};}
 .tcm-modal{width:100%;max-width:400px;max-height:${MODAL_MAX_H};overflow-y:auto;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
 .tcm-modal-head{display:flex;align-items:flex-start;justify-content:flex-start;gap:12px;margin-bottom:18px;}
 .tcm-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${T.inkStrong};line-height:1.25;}
@@ -235,7 +236,8 @@ function ReviewPopup({ slug, trailName, initial, canWrite, saving, error, onSubm
   const [text, setText] = useState(initial?.body ?? '');
   const [photos, setPhotos] = useState<string[]>(initial?.photos ?? []);
   const canSubmit = paws > 0 && canWrite && !saving;
-  return (
+  return createPortal(
+
     <div className="pk-veil pk-veil--modal tcm-overlay" onClick={onClose}>
       <div className="tcm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="tcm-modal-head">
@@ -266,7 +268,8 @@ function ReviewPopup({ slug, trailName, initial, canWrite, saving, error, onSubm
         {!canWrite && <div className="tcm-gatehint">{t('pack.trip.cm.signInReview')}</div>}
         {error && <div className="tcm-gatehint" style={{ color: '#E0796D' }}>{error}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

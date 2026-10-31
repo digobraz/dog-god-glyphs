@@ -32,14 +32,16 @@ const MAX_TILES_PER_VIEW = 24;
 
 /** `t`: sleep_hut · sleep_camp · sleep_bivak · spring · viewpoint.
  *  `sleep` = dá sa tu prespať (len `sleep_bivak`: basic_hut áno, ostatné prístrešky nie).
- *  `range` = pohorie, `district` = okres (bez „okres "), pečené z polygónov OSM pri generovaní. */
+ *  `range` = pohorie, `district` = okres (bez „okres "), pečené z polygónov OSM pri generovaní.
+ *  `desc` = popis z OSM (`description:sk` › `description`), `descEn` = `description:en` — ~400 bodov. */
 export type PoiTilePoint = {
   t: string; lat: number; lon: number; name?: string; elev?: number;
   sleep?: boolean; phone?: string; web?: string; range?: string; district?: string;
+  desc?: string; descEn?: string;
 };
 
 /** Piaty prvok záznamu v dlaždici (v2) — je tam LEN keď niečo nesie. */
-type PoiTileExtra = { s?: 1; p?: string; w?: string; r?: string; o?: string };
+type PoiTileExtra = { s?: 1; p?: string; w?: string; r?: string; o?: string; d?: string; de?: string };
 
 type TileIndex = { v: number; tileDeg: number; types: string[]; attribution: string; tiles: string[] };
 
@@ -106,6 +108,8 @@ async function fetchTile(id: string): Promise<void> {
           ...(x?.w ? { web: x.w } : {}),
           ...(x?.r ? { range: x.r } : {}),
           ...(x?.o ? { district: x.o } : {}),
+          ...(x?.d ? { desc: x.d } : {}),
+          ...(x?.de ? { descEn: x.de } : {}),
         });
       }
     }

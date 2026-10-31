@@ -82,7 +82,10 @@ const fromRow = (r: Row): PlacePost => ({
 // ⚠️ RPC nie sú v `integrations/supabase/types.ts` (typy sú staršie než migrácia) — rovnaká
 //    jedna obchádzka ako `list_sleep_spots` v `sleepSpotsData.ts`. Oprava = pregenerovať typy.
 type Rpc = (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
-const rpc = db.rpc as unknown as Rpc;
+// 🔴 `.bind(db)` NIE JE OZDOBA (31. 10. 2026): holé `db.rpc` stratí `this` a hodí chybu ešte PRED
+// sieťou — postreh sa neuložil, zoznam sa nenačítal a „zatiaľ nikto nič" to ticho zakrylo.
+// NOAUTH dev to neodhalil (rpc nevolá); chytil to až prihlásený test na DEV.
+const rpc = (db.rpc as unknown as Rpc).bind(db);
 
 let cache: PlacePost[] | null = null;
 let inflight: Promise<PlacePost[]> | null = null;

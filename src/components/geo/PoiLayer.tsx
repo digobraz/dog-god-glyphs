@@ -32,12 +32,12 @@ const PAN_TL: [number, number] = [20, 180];
 const PAN_BR: [number, number] = [20, 110];
 import L from 'leaflet';
 import { TRAIL_POI, POI_ATTRIBUTION, type TrailPoi } from '@/data/trailPoi.generated';
-import { FONT_UI } from '@/components/pack/packTheme';
+import { FONT_UI, PACK_THEME as T, PACK_R } from '@/components/pack/packTheme';
 import { POI_EMOJI, sleepEmoji, WORLD_RIM } from '@/components/pack/mapnotes/markEmoji';
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import { usePoiTiles, type PoiTilePoint } from './usePoiTiles';
 import { PlaceCard, PLACE_CARD_CSS } from './PlaceCard';
-import { PlaceSheet, PLACE_PIN_CSS, PLACE_DONE_CLASS, placePinHtml, type PlacePoint } from './PlaceSheet';
+import { PlaceSheet, PLACE_PIN_CSS, PLACE_DONE_CLASS, PLACE_PIN_NAME_W, placePinHtml, type PlacePoint } from './PlaceSheet';
 import { placeKindOf, postsAt, usePlacePosts } from './placePosts';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -118,9 +118,9 @@ const poiIcon = (t: string, done = false) => L.divIcon({
 });
 
 /** Vybraný bod = KVAPKA s menom (`PlaceSheet.tsx`, nákres v3). Kotva na špičke kvapky. */
-const pinIcon = (t: string, name?: string) => L.divIcon({
+const pinIcon = (t: string, name?: string, flip = false) => L.divIcon({
   className: 'mk-wrap',
-  html: placePinHtml(markEmojiFor(t), name),
+  html: placePinHtml(markEmojiFor(t), name, flip),
   iconSize: [0, 0],
 });
 
@@ -230,6 +230,14 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false, drawing = fals
     return hit ? { ...sel, ...hit } : sel;
   }, [sel, tiles, tilePoints]);
   const selKind = selFull ? placeKindOf(selFull.t) : null;
+  // Meno pri pine ide naľavo, keď by vpravo vyšlo z okna (48 px kvapka + strop mena + okraj).
+  // `moveTick`/`zoom` v závislostiach: posun mapy mení polohu pinu vo výreze.
+  const selFlip = useMemo(() => {
+    if (!selFull?.name) return false;
+    const x = map.latLngToContainerPoint([selFull.lat, selFull.lon]).x;
+    return x + 48 + PLACE_PIN_NAME_W + 8 > map.getSize().x;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, selFull, zoom, moveTick]);
 
   return (
     <>
@@ -284,7 +292,7 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false, drawing = fals
           <Marker
             key={`pin-${selFull.t}-${selFull.lat}-${selFull.lon}`}
             position={[selFull.lat, selFull.lon]}
-            icon={pinIcon(selFull.t, selFull.name)}
+            icon={pinIcon(selFull.t, selFull.name, selFlip)}
             zIndexOffset={900}
             interactive={false}
           />
@@ -302,15 +310,15 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false, drawing = fals
   );
 }
 
-/** Bublina s názvom. Leaflet si nesie vlastný biely chrome (`-content-wrapper`, `-tip`) —
+/** Bublina s názvom — BLEDÁ od 31. 10. 2026 (ako šuplík miesta). Leaflet si nesie vlastný biely chrome (`-content-wrapper`, `-tip`) —
  *  bez prebitia by nad mapou svietil biely obdĺžnik. Rovnaký recept ako `.mn-popup`. */
 const POI_CSS = `
-.poi-popup .leaflet-popup-content-wrapper{background:rgba(5,5,5,0.94);border:1px solid rgba(201,154,63,0.45);border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,0.5);padding:0;overflow:hidden;}
+.poi-popup .leaflet-popup-content-wrapper{background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.tile}px;box-shadow:${T.panelShadow};padding:0;overflow:hidden;}
 /* ⚠️ ŽIADNE "width:auto" + "min-width:0". Práve tá dvojica (spolu s "word-break" v texte)
    zmrštila bublinu na šírku JEDNÉHO PÍSMENA a meno útulne sa vysypalo pod seba — Matej
    2026-08-27: „aha ako to hádže". Šírku nesie karta (".pcard", 260 px), bublina je len rám. */
 .poi-popup .leaflet-popup-content{margin:0;padding:0;width:auto!important;min-width:260px;}
-.poi-popup .leaflet-popup-tip{background:rgba(5,5,5,0.94);border:1px solid rgba(201,154,63,0.45);}
+.poi-popup .leaflet-popup-tip{background:#F3E4C4;border:1.5px solid ${T.cardEdge};}
 .poi-popup a.leaflet-popup-close-button{display:none;}
 `;
 

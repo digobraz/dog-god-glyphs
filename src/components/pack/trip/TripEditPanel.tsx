@@ -42,10 +42,11 @@
 // verziu — teda text, ktorý autor práve prepísal, a nemal by ako zistiť, že je starý. Pád na SK
 // je horší zážitok, ale pravdivý. Od 5. 10. 2026 sa nový preklad dorobí hneď po uložení
 // (Edge Function `translate-trip`), takže SK fallback trvá len pár sekúnd.
+import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { PACK_THEME as T, PACK_BOX, PACK_SHADOW, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_BOX, PACK_SHADOW, FONT_TITLE, FONT_UI, VEIL_CSS, VEIL_PAD } from '@/components/pack/packTheme';
 import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
@@ -67,7 +68,7 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
    ── BLEDÝ PANEL S LAPISOM (Matej 5. 10. 2026: „edit trip je starý dizajn! prerobiť na bledý
    s lapisom!") ── Doska = PACK_BOX.panel, písmo inkoust papyrusu, ZLATO = konštrukcia (rám),
    LAPIS = voľba a akcia (vybraná možnosť, zaostrené pole, CTA). Vzor: TripGoPanel.tsx. */
-.tep-overlay{z-index:1200;padding:16px;}
+.tep-overlay{z-index:1200;padding:${VEIL_PAD};}
 .tep-modal{width:100%;max-width:440px;max-height:${MODAL_MAX_H};overflow-y:auto;padding:24px;
   background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};border-radius:${PACK_BOX.panel.borderRadius}px;box-shadow:${PACK_BOX.panel.boxShadow};}
 .tep-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;}
@@ -292,9 +293,12 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
     </div>
   );
 
-  return (
+  return createPortal(
+
     <div className="pk-veil pk-veil--modal tep-overlay" onClick={onClose}>
-      <div className="tep-modal" style={vvH ? { maxHeight: `${vvH - 32}px` } : undefined} onClick={(e) => e.stopPropagation()}>
+      {/* ⚠️ visualViewport výška NEPOZNÁ výrez iPhonu — samotné `vvH - 32` v appke posunulo hlavičku
+          pod hodiny (31. 10.). Preto menšie z oboch: strop so safe-area aj priestor nad klávesnicou. */}
+      <div className="tep-modal" style={vvH ? { maxHeight: `min(${MODAL_MAX_H}, ${vvH - 32}px)` } : undefined} onClick={(e) => e.stopPropagation()}>
         <style>{TRIP_EDIT_CSS}</style>
         <div className="tep-head">
           <div>
@@ -524,6 +528,7 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
         </button>
         {err && <div className="tep-err">{err}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

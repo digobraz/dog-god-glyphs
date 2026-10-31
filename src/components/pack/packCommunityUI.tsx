@@ -2,6 +2,7 @@
 // popupy/dashboard/events na jednom mieste, aby PackMap.tsx nerástol o ďalších 800 riadkov.
 // Brand: tmavé glass pozadie + papyrusové karty + zlaté CTA (Cinzel), rovnaké tokeny ako Portal.
 // Fáza UI-first: žiadna perzistencia, všetko dostáva dáta/handlery cez props z PackMap.
+import { createPortal } from 'react-dom';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -12,7 +13,7 @@ import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
 import { useMyPlacePostCount } from '@/components/geo/placePosts';
 import { WISHES_LIVE } from '@/lib/packFlags';
 import { fetchPackHumans, HUMAN_KEY_PREFIX, type PackHuman } from '@/lib/packHumans';
-import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN, HIT_CSS, VEIL_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN, HIT_CSS, VEIL_CSS, VEIL_PAD } from '@/components/pack/packTheme';
 import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { pluralKey } from '@/lib/plural';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
@@ -151,7 +152,7 @@ ${VEIL_CSS}
    radius 14, panelShadow. Bez backdrop-filter — rozmazávať sa má závoj pod panelom,
    nie panel sám. */
 /* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len vrstva a odsadenie. */
-.comm-overlay{z-index:1200;padding:16px;}
+.comm-overlay{z-index:1200;padding:${VEIL_PAD};}
 .comm-modal{width:100%;max-width:420px;max-height:${MODAL_MAX_H};overflow-y:auto;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
 .comm-modal.wide{max-width:640px;}
 /* Matej 2026-08-06 („konsolidujeme zjednodušujeme"): nadpis je CENTROVANÝ a nesie priamo názov
@@ -842,7 +843,8 @@ function Modal({ title, sub, onClose, wide, children }: {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
-  return (
+  return createPortal(
+
     <div className="pk-veil pk-veil--modal comm-overlay" onClick={onClose}>
       <div className={`comm-modal${wide ? ' wide' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className="comm-modal-head">
@@ -853,7 +855,8 @@ function Modal({ title, sub, onClose, wide, children }: {
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

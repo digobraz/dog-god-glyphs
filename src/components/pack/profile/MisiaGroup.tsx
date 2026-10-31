@@ -14,7 +14,7 @@ import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type C
 import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT as TX, FONT_TITLE, FONT_UI, VEIL_CSS, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT as TX, FONT_TITLE, FONT_UI, VEIL_CSS, GOLD_BTN, PACK_SHADOW, VEIL_PAD } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { DALSI_UTULOK, VYPLATA_UTULKU } from '@/components/pack/PokladnicaSheet';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -170,7 +170,7 @@ const CSS = `${VEIL_CSS}
 .mi-links{display:flex;justify-content:center;flex-wrap:wrap;gap:${S.lg}px;margin-top:${S.md}px;}
 .mi-link{padding:0;border:0;background:none;cursor:pointer;font-family:${FONT_UI};font-size:${TX.label}px;color:${LAPIS.edge};text-decoration:underline;text-underline-offset:3px;}
 /* POPUP — papyrus UPROSTRED okna (Matej 24. 10.: *„vadí mi, že je celý tak dolu“*), nie šuplík zdola. */
-.mi-root.pk-veil{z-index:65;align-items:center;padding:${S.md}px;}
+.mi-root.pk-veil{z-index:65;align-items:center;padding:${VEIL_PAD};}
 .mi-sheet{position:relative;width:100%;max-width:520px;margin:0 auto;max-height:min(80dvh,720px);display:flex;flex-direction:column;background:${T.cardGrad};color:${T.inkStrong};
   border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px;box-shadow:${T.panelShadow};font-family:${FONT_UI};animation:mi-up .24s cubic-bezier(.2,.8,.2,1) both;}
 @keyframes mi-up{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}

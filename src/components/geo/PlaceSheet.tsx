@@ -60,11 +60,16 @@ export interface PlacePoint {
   web?: string;
   range?: string;
   district?: string;
+  /** popis z OSM (miestny jazyk) a jeho anglická verzia, ak ju OSM má */
+  desc?: string;
+  descEn?: string;
 }
 
 type Tx = (key: string, vars?: Record<string, string | number>) => string;
 
 const CHIP_BY_ID = new Map(SLEEP_CHIPS.map((c) => [c.id, c]));
+/** Text chipu. `label` v `SLEEP_CHIPS` je slovenský kánon matrice — na obrazovke ide preklad. */
+const chipLabel = (tx: Tx, id: string) => tx(`pack.place.chip.${id}`);
 /** Chipy „Čo tu je" dávajú zmysel len pri spaní; prameň a výhľad ich nemajú. */
 const HAS_CHIPS = (k: PlaceKind) => k === 'hut' || k === 'camp' || k === 'bivak';
 const MAX_PHOTOS = 4;
@@ -82,9 +87,13 @@ export const placeLabelKey = (t: string): string =>
 // s emoji, vedľa meno. FIALOVÝ `tripPurple` — Matej: *„nechaj fialový a keď tak vymeníme
 // neskôr"*. ⚠️ Vedomá výnimka z brand locku (fialová = len výlety), zapísaná v `brand.md`.
 // Farba je JEDNA premenná (`--plc-pin`), výmena = jedno slovo.
-export function placePinHtml(emoji: string, name?: string): string {
+// ⚠️ MENO NESMIE VYJSŤ Z OKNA (31. 10., mobil): dlhé meno („Ďurková v prípade naplnenia kapacity
+// útulne") sa zalomí do dvoch riadkov v strope `--plc-name-w` a pin pri pravom okraji ho dá NAĽAVO
+// (`flip`). Kam, rozhoduje volajúci podľa polohy pinu vo výreze — pin sám okno nepozná.
+export const PLACE_PIN_NAME_W = 148;
+export function placePinHtml(emoji: string, name?: string, flip = false): string {
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  return `<div class="plc-pin"><span class="plc-pin-drop"></span><span class="plc-pin-dot"><i>${emoji}</i></span>${
+  return `<div class="plc-pin${flip ? ' plc-pin--flip' : ''}"><span class="plc-pin-drop"></span><span class="plc-pin-dot"><i>${emoji}</i></span>${
     name ? `<b class="plc-pin-name">${esc(name)}</b>` : ''}</div>`;
 }
 
@@ -99,9 +108,11 @@ export const PLACE_PIN_CSS = `
 .plc-pin-dot{position:absolute;left:8px;top:8px;width:28px;height:28px;border-radius:${PACK_R.pill}px;background:#FFFDF7;
   display:grid;place-items:center;}
 .plc-pin-dot i{font-style:normal;font-family:${FONT_EMOJI};font-size:${PACK_TEXT.lead}px;line-height:1;}
-.plc-pin-name{position:absolute;left:48px;top:12px;white-space:nowrap;font-family:${FONT_TITLE};font-weight:700; /* písmo: meno */
-  font-size:${PACK_TEXT.label}px;letter-spacing:.02em;color:${T.inkStrong};
+.plc-pin-name{position:absolute;left:48px;top:${S.sm}px;width:max-content;max-width:${PLACE_PIN_NAME_W}px;font-family:${FONT_TITLE};font-weight:700; /* písmo: meno */
+  font-size:${PACK_TEXT.label}px;line-height:1.25;letter-spacing:.02em;color:${T.inkStrong};
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
   text-shadow:0 0 4px #FFFDF7,0 0 4px #FFFDF7,0 0 4px #FFFDF7;}
+.plc-pin--flip .plc-pin-name{left:auto;right:48px;text-align:right;}
 .mk-circle.plc-done{border-color:${T.tripPurple}!important;}
 .mk-circle.plc-done::after{content:'\\2713';position:absolute;right:-6px;top:-6px;width:14px;height:14px;border-radius:${PACK_R.pill}px;
   background:${T.tripPurple};color:#FFFDF7;font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;line-height:14px;text-align:center;}
@@ -338,6 +349,8 @@ function PlaceDetail({ point, kind, name, posts, tx, onSave, onShare }: {
     return [...ids].map((id) => CHIP_BY_ID.get(id)).filter(Boolean) as typeof SLEEP_CHIPS;
   }, [posts, kind, point.sleep]);
 
+  // Popis z OSM: v EN anglický, ak ho OSM má; inak miestny (lepší cudzí jazyk než nič).
+  const about = (lang === 'en' && point.descEn) || point.desc || point.descEn || '';
   const where = [point.range, point.district && tx('pack.place.district', { name: point.district })].filter(Boolean).join(' · ');
   const coords = fmtCoord(point.lat, point.lon);
 
@@ -411,11 +424,18 @@ function PlaceDetail({ point, kind, name, posts, tx, onSave, onShare }: {
           )}
         </div>
 
+        {about && (
+          <section>
+            <div className="plc-eb">{tx('pack.place.about')}</div>
+            <p className="plc-about">{about}</p>
+          </section>
+        )}
+
         {chips.length > 0 && (
           <section>
             <div className="plc-eb">{tx('pack.place.whatsHere')}</div>
             <div className="plc-chips">
-              {chips.map((c) => <span key={c.id} className="plc-chip"><i>{c.emoji}</i>{c.label}</span>)}
+              {chips.map((c) => <span key={c.id} className="plc-chip"><i>{c.emoji}</i>{chipLabel(tx, c.id)}</span>)}
             </div>
           </section>
         )}
@@ -488,9 +508,11 @@ function PlacePostForm({ point, kind, name, drawing, scoredHere, onDone, onClose
 
   const pick = async (files: FileList | null) => {
     if (!files?.length) return;
+    console.warn('[E2E] pick', files.length);
     setErr(null);
     const { data } = await db.auth.getUser();
     const uid = data.user?.id;
+    console.warn('[E2E] uid', uid);
     if (!uid) { setErr(tx('pack.place.failed')); return; }
     const room = MAX_PHOTOS - photos.length;
     for (const f of Array.from(files).slice(0, room)) {
@@ -499,7 +521,7 @@ function PlacePostForm({ point, kind, name, drawing, scoredHere, onDone, onClose
       uploadPlaceFile(f, uid)
         .then((url) => setPhotos((prev) => prev.map((p) => (p.preview === preview ? { ...p, url, busy: false } : p))))
         // 🔴 blob adresa sa NEUKLADÁ (mŕtvy odkaz po reloade, `photoIntake.ts`) — zlyhaná fotka odpadne.
-        .catch(() => { setPhotos((prev) => prev.filter((p) => p.preview !== preview)); setErr(tx('pack.place.photoFailed')); });
+        .catch((e) => { console.warn('[E2E] upl', String(e)); setPhotos((prev) => prev.filter((p) => p.preview !== preview)); setErr(tx('pack.place.photoFailed')); });
     }
   };
 
@@ -567,7 +589,7 @@ function PlacePostForm({ point, kind, name, drawing, scoredHere, onDone, onClose
               return (
                 <button key={c.id} type="button" className={`plc-chip plc-chip--tap${on ? ' on' : ''}`} aria-pressed={on}
                   onClick={() => setChips((prev) => (on ? prev.filter((x) => x !== c.id) : [...prev, c.id]))}>
-                  <i>{c.emoji}</i>{c.label}
+                  <i>{c.emoji}</i>{chipLabel(tx, c.id)}
                 </button>
               );
             })}
@@ -673,6 +695,7 @@ export const PLACE_SHEET_CSS = `
 .plc-chip i{font-style:normal;font-family:${FONT_EMOJI};}
 .plc-chip--tap{cursor:pointer;}
 .plc-chip--tap.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
+.plc-about{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.5;color:${T.inkStrong};white-space:pre-line;overflow-wrap:anywhere;}
 .plc-empty{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.5;color:${T.inkWarm};}
 .plc-posts{display:flex;flex-direction:column;gap:${S.sm}px;}
 .plc-post{display:flex;gap:${S.md}px;padding:${S.md}px;}

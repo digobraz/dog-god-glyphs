@@ -232,6 +232,11 @@ export const PACK_TOPROW = {
  *  na iPhone zašlo okno pod status bar (28. 10. 2026). Okno vycentrované v celom okne s týmto stropom má hore
  *  aspoň `safe-area-inset-top` + 16 px. */
 export const MODAL_MAX_H = 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)';
+/** Odsadenie ZÁVOJA okna v strede, keď si ho povrch zužuje zo 20 na 16 px.
+ *  🔴 31. 10. 2026 (Matej: *„upraviť výlet… nie je vidno horný panel aby sa dalo ísť preč"*):
+ *  päť okien prebíjalo safe-area z `.pk-veil--modal` holým `padding:16px` → v appke hlavička
+ *  okna zašla pod hodiny. Kto mení odsadenie závoja, berie TOTO, nie číslo. */
+export const VEIL_PAD = 'calc(env(safe-area-inset-top, 0px) + 16px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px)';
 /** `padding-top` stĺpca, v ktorom rad stojí. */
 export const PACK_TOPROW_PAD = `calc(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.top}px)`;
 

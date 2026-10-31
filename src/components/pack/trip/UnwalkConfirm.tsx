@@ -11,15 +11,16 @@
 // Blok = PANEL (`PACK_BOX.panel`) na ZÁVOJI, rovnako ako úprava výletu. Bezpečná voľba je HLAVNÁ
 // (lapis, fokus): Enter ani náhodný druhý klik nič nezmaže. Zrušenie je tichý text v červenej,
 // ktorú používa `DeleteButton` — jeden význam, jedna farba.
+import { createPortal } from 'react-dom';
 import { useEffect, useRef } from 'react';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS, VEIL_PAD } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 
 const DANGER = '#CE4B3C';
 
 const CSS = `${VEIL_CSS}
-.uwc-overlay{z-index:1250;padding:16px;}
+.uwc-overlay{z-index:1250;padding:${VEIL_PAD};}
 .uwc-box{width:100%;max-width:400px;padding:24px;text-align:center;
   background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};border-radius:${PACK_BOX.panel.borderRadius}px;box-shadow:${PACK_BOX.panel.boxShadow};}
 .uwc-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkStrong};line-height:1.25;}
@@ -58,7 +59,8 @@ export function UnwalkConfirm({ name, points, km, onConfirm, onClose }: {
   // Čísla sú v **…** — následok má byť to prvé, čo oko chytí. Bez innerHTML: preklad je text.
   const parts = loss.split('**');
 
-  return (
+  return createPortal(
+
     <div className="pk-veil pk-veil--modal uwc-overlay" onClick={(e) => { e.stopPropagation(); onClose(); }}>
       <div className="uwc-box" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <style>{CSS}</style>
@@ -68,6 +70,7 @@ export function UnwalkConfirm({ name, points, km, onConfirm, onClose }: {
         <button ref={keepRef} type="button" className="uwc-keep" onClick={onClose}>{t('pack.map.unwalk.keep')}</button>
         <button type="button" className="uwc-drop" onClick={() => { onConfirm(); onClose(); }}>{t('pack.map.unwalk.confirm')}</button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
