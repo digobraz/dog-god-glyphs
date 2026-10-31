@@ -4865,7 +4865,7 @@ export const en = {
   'pack.place.savedPoints': "Note saved · +{pts} PILGRIM once the photo is checked",
   'pack.place.failed': "Couldn't save the note. Try again.",
   'pack.place.photoFailed': "The photo didn't upload. You can save the note without it.",
-  'pack.map.layer.sleep': "Sleeping spots",
+  'pack.map.layer.sleep': "Huts, springs, viewpoints",
   'pack.addTrip.entry.kind.wish.title': "Add a TRIPWISH",
   'pack.addTrip.entry.kind.sniffer.title': "Open SNIFFER",
   'pack.addTrip.entry.kind.wish.text': "Where it pulls you",

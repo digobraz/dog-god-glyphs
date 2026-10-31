@@ -4494,7 +4494,7 @@ export const sk: Partial<Dict> = {
   'pack.place.savedPoints': "Postreh je uložený · +{pts} PÚTNIK po kontrole fotky",
   'pack.place.failed': "Postreh sa nepodarilo uložiť. Skús to znova.",
   'pack.place.photoFailed': "Fotka sa nenahrala. Postreh uložíš aj bez nej.",
-  'pack.map.layer.sleep': "Spacie miesta",
+  'pack.map.layer.sleep': "Útulne, pramene, výhľady",
   'pack.addTrip.entry.kind.wish.title': "Pridaj TRIPWISH",
   'pack.addTrip.entry.kind.sniffer.title': "Sniffuj",
   'pack.addTrip.entry.kind.wish.text': "Kam ťa to ťahá",
