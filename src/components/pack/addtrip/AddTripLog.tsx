@@ -50,7 +50,7 @@ import { HERO_JOURNEYS, type Journey } from '@/data/heroJourneys';
 import { trailCountry, flagEmoji } from '@/lib/countryGeo';
 import { countryLabel } from '@/lib/countryOptions';
 import { trailWCE } from '@/components/pack/triplist/triplist';
-import { pluralKey } from '@/components/pack/tripShared';
+import { pluralKey, ICON } from '@/components/pack/tripShared';
 import { DiffMark, DIFF_MARK_CSS } from '@/components/pack/tripShared';
 import { dockFitPadding, dockPadX } from '@/components/pack/mapDockShape';
 import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
@@ -76,7 +76,7 @@ import {
   missingFields, needsDifficulty,
   type AddTripDraft, type TripGeometry, type ApprovalStatus, type TripNoteRef, type TripState,
   type TravelMode, TRAVEL_MODES,
-  readAddDraft, writeAddDraft, clearAddDraft, clearTripNotes,
+  readAddDraft, writeAddDraft, clearAddDraft, clearTripNotes, readDraftPhotos, writeDraftPhotos,
 } from './addTripModel';
 import { TRIP_CATEGORIES, OWN_CHIP, chipsForCategory, chipsOf, otherChips, geometryForCategory, type TripChip } from '@/components/pack/tripCategories';
 
@@ -1241,10 +1241,19 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    * prekreslení, odletela by človeku späť zakaždým, keď si ju sám posunie.
    */
   const refitRef = useRef(false);
+  // Počet fotiek v rozrobenom výlete — ponuka ich ukáže, kým človek klikne (IndexedDB je async).
+  const [restoredPhotos, setRestoredPhotos] = useState<string[]>([]);
+  useEffect(() => {
+    if (!restored) return;
+    let alive = true;
+    void readDraftPhotos().then((ph) => { if (alive) setRestoredPhotos(ph.slice(0, MAX_PHOTOS)); });
+    return () => { alive = false; };
+  }, [restored]);
 
   const restore = () => {
     if (!restored) return;
     restoredRef.current = true;
+    if (restoredPhotos.length) setPhotos(restoredPhotos);
     refitRef.current = true;
     setActivity(restored.activity || '');
     // Náčrt nesie `state`, takže obnovený výlet sa nemusí pýtať na to isté druhýkrát.
@@ -1827,6 +1836,14 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     const { photos: _photos, ...withoutPhotos } = draft;
     writeAddDraft(withoutPhotos as AddTripDraft);
   }, [draft, restored]);
+  // Fotky idú do IndexedDB zvlášť (addTripModel.ts → writeDraftPhotos) — len keď sa zmenia,
+  // nie s každým písmenom v príbehu. Tie isté brzdy ako draft: ponuka obnovy na obrazovke
+  // a dopĺňanie uloženého výletu nesmú prepísať fotky rozrobeného.
+  useEffect(() => {
+    if (restored || finishing) return;
+    if (!(name || (geometry?.kind === 'route' && geometry.path.length > 0))) return;
+    void writeDraftPhotos(photos);
+  }, [photos, restored]);
 
   /**
    * ── PREVÝŠENIE SA DOPOČÍTA EŠTE PRED ZÁPISOM (Matej 2026-08-25, Rokoš: „prevýšenie
@@ -3149,9 +3166,24 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
           automaticky sa nemaže nič, čo človek nakreslil. */}
       {restored && (
         <div className="atl-restore">
-          <p className="atl-restore-txt">
-            {t('pack.addTrip.log.restoreLead', { name: restored.name || t('pack.addTrip.log.restoreUnnamed') })}
-          </p>
+          {/* KARTA ROZROBENÉHO VÝLETU (Matej 31. 10. 2026: „daj tam ikonku map paper nech je to
+              trošku krajšie nie také fádne, oživ to"). Papierová mapa z kitu + meno výletu +
+              čo sa vráti (body trasy, krok, fotky) — človek vidí, o čo by „Začať odznova" prišiel. */}
+          <div className="atl-restore-head">
+            <span className="atl-restore-ico" aria-hidden="true" />
+            <div className="atl-restore-body">
+              <span className="atl-restore-eyebrow">{t('pack.addTrip.log.restoreEyebrow')}</span>
+              <b className="atl-restore-name">{restored.name || t('pack.addTrip.log.restoreUnnamed')}</b>
+              <span className="atl-restore-meta">
+                {restored.geometry?.kind === 'route' && restored.geometry.path?.length > 0 && (
+                  <i>{ptsWord(restored.geometry.path.length)}</i>
+                )}
+                {!!restored.step && <i>{t('pack.addTrip.log.restoreStep', { n: restored.step })}</i>}
+                {restoredPhotos.length > 0 && <i>{t('pack.addTrip.log.restorePhotos', { n: restoredPhotos.length })}</i>}
+              </span>
+            </div>
+          </div>
+          <p className="atl-restore-txt">{t('pack.addTrip.log.restoreAsk')}</p>
           <div className="atl-restore-btns">
             <button type="button" className="atl-toggle-btn" onClick={discardRestore}>{t('pack.addTrip.log.restoreDiscard')}</button>
             <button type="button" className="atl-toggle-btn on" onClick={restore}>{t('pack.addTrip.log.restoreResume')}</button>
@@ -4597,6 +4629,15 @@ const RESTORE_CSS = `
 .atl-restore-txt{margin:0 0 12px;font-family:${FONT_UI};font-size:14px;line-height:1.5;color:${T.onDark};}
 .atl-restore-btns{display:flex;gap:8px;}
 .atl-restore-btns .atl-toggle-btn{flex:1 1 0;}
+.atl-restore-head{display:flex;align-items:center;gap:16px;margin:0 0 12px;}
+.atl-restore-ico{flex:none;width:56px;height:56px;background:${T.cardEdge};-webkit-mask:url(${ICON('map-paper')}) center/contain no-repeat;mask:url(${ICON('map-paper')}) center/contain no-repeat;transform:rotate(-8deg);}
+.atl-restore-body{min-width:0;display:flex;flex-direction:column;gap:4px;}
+.atl-restore-eyebrow{font-family:${PACK_HEAD.section.fontFamily};font-weight:${PACK_HEAD.section.fontWeight};font-size:${PACK_HEAD.section.fontSize}px;letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${T.cardEdge};}
+.atl-restore-name{font-family:${FONT_TITLE};font-weight:700;font-size:20px;line-height:1.25;letter-spacing:0.02em;color:${T.onDark};overflow-wrap:anywhere;} /* písmo: meno */
+.atl-restore-meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-family:${FONT_UI};font-size:12px;color:${T.onDarkDim};}
+.atl-restore-meta i{font-style:normal;}
+.atl-restore-meta i+i::before{content:'·';margin-right:12px;opacity:.6;}
+.atl-restore-btns .atl-toggle-btn.on{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
 `;
 
 const ROUTE_HERO_CSS = `
@@ -5298,7 +5339,10 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-noteask:not(.atl-noteask--bar){background:rgba(255,251,240,0.6);border-color:${P_BORDER};}
   .atl-noteask p{color:${P_INK};}
   .atl-restore{background:rgba(255,251,240,0.6);border-color:${P_BORDER};}
-  .atl-restore-txt{color:${P_INK};}
+  .atl-restore-txt,.atl-restore-name{color:${P_INK};}
+  .atl-restore-eyebrow{color:${P_DEEP};}
+  .atl-restore-ico{background:${P_DEEP};}
+  .atl-restore-meta{color:${P_DIM};}
   .atl-miss > label{color:#9E3A22;}
   .atl-draftwarn{background:rgba(206,75,60,0.12);border-color:rgba(176,52,40,0.8);}
   .atl-draftwarn b{color:#8E2A20;}

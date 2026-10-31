@@ -575,4 +575,50 @@ export function readTripNotesForSession(): TripNoteRef[] {
 
 export function clearAddDraft(): void {
   try { addStore.removeItem(ADD_DRAFT_KEY); } catch { /* non-fatal */ }
+  void writeDraftPhotos([]);
+}
+
+/**
+ * FOTKY ROZROBENÉHO VÝLETU — IndexedDB, NIE localStorage (Matej 31. 10. 2026: „urob to
+ * aby to bolo optimálne"). Fotky sú base64 dataURL a v localStorage (~5 MB) by pár kusov
+ * prekročilo kvótu — zápis by padol aj s trasou. IndexedDB má stovky MB, takže fotky ležia
+ * vo vlastnom sklade vedľa draftu a trasu nikdy neohrozia. Všetko je best-effort: keď
+ * IndexedDB nie je (súkromný režim), výlet sa vráti bez fotiek ako doteraz.
+ */
+const PHOTO_DB = 'dogypt-addtrip';
+const PHOTO_STORE = 'draft';
+const PHOTO_KEY = 'photos';
+function photoDb(): Promise<IDBDatabase | null> {
+  return new Promise((res) => {
+    try {
+      const rq = indexedDB.open(PHOTO_DB, 1);
+      rq.onupgradeneeded = () => { rq.result.createObjectStore(PHOTO_STORE); };
+      rq.onsuccess = () => res(rq.result);
+      rq.onerror = () => res(null);
+    } catch { res(null); }
+  });
+}
+export async function writeDraftPhotos(photos: string[]): Promise<boolean> {
+  const db = await photoDb();
+  if (!db) return false;
+  return new Promise((res) => {
+    try {
+      const tx = db.transaction(PHOTO_STORE, 'readwrite');
+      const st = tx.objectStore(PHOTO_STORE);
+      if (photos.length) st.put(photos, PHOTO_KEY); else st.delete(PHOTO_KEY);
+      tx.oncomplete = () => { db.close(); res(true); };
+      tx.onerror = () => { db.close(); res(false); };
+    } catch { db.close(); res(false); }
+  });
+}
+export async function readDraftPhotos(): Promise<string[]> {
+  const db = await photoDb();
+  if (!db) return [];
+  return new Promise((res) => {
+    try {
+      const rq = db.transaction(PHOTO_STORE, 'readonly').objectStore(PHOTO_STORE).get(PHOTO_KEY);
+      rq.onsuccess = () => { db.close(); res(Array.isArray(rq.result) ? rq.result : []); };
+      rq.onerror = () => { db.close(); res([]); };
+    } catch { db.close(); res([]); }
+  });
 }
