@@ -9,7 +9,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Číslo buildu dodá `scripts/appka/vydaj.sh` (rastie s časom, Play odmietne rovnaké dvakrát).
         versionCode((System.getenv("DOGYPT_VERSION_CODE") ?: "1") as Integer)
-        versionName "1.1"
+        // 1.2 = Firebase (push) — appPush.ts podľa toho zapína registráciu (31. 10. 2026).
+        versionName "1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

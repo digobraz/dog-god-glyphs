@@ -24,12 +24,25 @@ let started = false;
 // iPhone ostrá appka = com.dogypt.ios (com.dogypt.app zabral 20. 10. osobný Apple tím); APNs topic = bundle ID.
 const appId = () => (APP_DEV ? 'com.dogypt.app.dev' : APP_PLATFORM === 'ios' ? 'com.dogypt.ios' : 'com.dogypt.app');
 
-/** Android bez `google-services.json` (Firebase) pri `register()` natívne spadne — prepnúť na true
- *  až v builde, ktorý súbor má (a zvýšiť `minNative`). iOS ide cez APNs a Firebase nepotrebuje. */
-const ANDROID_PUSH_READY = false;
+/** Android bez `google-services.json` (Firebase) pri `register()` natívne spadne. Firebase má
+ *  appka od versionName 1.2 (31. 10. 2026, projekt `dogypt-c6da5`); staršia ho nemá, a keďže web
+ *  sa do nej dostane aktualizáciou, rozhoduje natívna verzia, nie príznak v kóde.
+ *  iOS ide cez APNs a Firebase nepotrebuje. */
+const ANDROID_FIREBASE_FROM = '1.2';
+async function pushReady(): Promise<boolean> {
+  if (APP_PLATFORM !== 'android') return true;
+  const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
+  const have = (await CapacitorUpdater.current()).native.split('.').map(Number);
+  const need = ANDROID_FIREBASE_FROM.split('.').map(Number);
+  for (let i = 0; i < Math.max(have.length, need.length); i++) {
+    const x = have[i] || 0, y = need[i] || 0;
+    if (x !== y) return x > y;
+  }
+  return true;
+}
 
 async function register() {
-  if (APP_PLATFORM === 'android' && !ANDROID_PUSH_READY) return;
+  if (!(await pushReady())) return;
   const { PushNotifications } = await import('@capacitor/push-notifications');
   await PushNotifications.removeAllListeners();
   await PushNotifications.addListener('registration', async ({ value }) => {
@@ -65,7 +78,7 @@ export function startAppPush() {
     // Povolené v telefóne (aj mimo prvého otvorenia) = súhlas; bez neho sa nepýtame (30. 10. 2026:
     // token mal 1 človek, hoci iOS povolenie dalo viac ľudí).
     void (async () => {
-      if (APP_PLATFORM === 'android' && !ANDROID_PUSH_READY) return;
+      if (!(await pushReady())) return;
       const { PushNotifications } = await import('@capacitor/push-notifications');
       if ((await PushNotifications.checkPermissions()).receive === 'granted') await register();
     })().catch(() => {});

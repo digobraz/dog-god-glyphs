@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "697208780457",
+    "project_id": "dogypt-c6da5",
+    "storage_bucket": "dogypt-c6da5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:697208780457:android:d3da0706728a5b2dd5dbb8",
+        "android_client_info": {
+          "package_name": "com.dogypt.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoqYky2APkR6FiPqc9uXzKKQogNQRm1ec"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:697208780457:android:9048cf8c2b733fbdd5dbb8",
+        "android_client_info": {
+          "package_name": "com.dogypt.app.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoqYky2APkR6FiPqc9uXzKKQogNQRm1ec"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
