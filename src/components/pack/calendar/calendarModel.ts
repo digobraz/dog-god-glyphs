@@ -314,7 +314,7 @@ export function hexRGBA(hex: string, a: number): string {
 // padol rebrík 🪜: značka, ktorú vidno len na novom telefóne, nie je značka.
 // Kde to šlo, berie sa tá istá značka, akú už appka používa na mape
 // (`mapnotes/markEmoji.ts`), aby sa jeden pojem nekreslil dvoma spôsobmi.
-export type LogKind = 'trip' | 'vet' | 'deworm' | 'note' | 'alone' | 'weigh' | 'milestone' | 'plan';
+export type LogKind = 'trip' | 'vet' | 'deworm' | 'note' | 'alone' | 'weigh' | 'milestone' | 'plan' | 'zapis';
 export type LogGroup = 'log' | 'vet' | 'plan';
 
 export interface LogType {
@@ -349,6 +349,9 @@ export const LOG_TYPES: Record<LogKind, LogType> = {
   weigh: { emoji: '⚖️', group: 'log', nameSK: 'Váženie', i18n: 'pack.cal.type.weigh' },
   // 📍 zhodné s `TRIP_TARGET_EMOJI` na mape — plánovaný výlet je tá istá vec.
   plan: { emoji: '📍', group: 'plan', nameSK: 'Plán', i18n: 'pack.cal.type.plan' },
+  // ✅ ZÁPIS DŇA v4 (31. 10. 2026): deň, v ktorom člen ťukal dlaždice okna „Zapíš dnešok" (`devotion_events`).
+  // Jeden záznam na deň; emoji dlaždíc nesie `CalEntry.emojis`, ✓ v bunke mesiaca kreslí `HandCheck`.
+  zapis: { emoji: '✅', group: 'log', nameSK: 'Zápis dňa', i18n: 'pack.cal.type.zapis' },
 };
 
 export interface CalEntry {
@@ -372,6 +375,8 @@ export interface CalEntry {
    *    Kreslí ju POPUP DŇA, nie bunka: v mriežke 372 dní by z nej bol šum.
    */
   photo?: string;
+  /** Zápis dňa: emoji dlaždíc, ktoré v ten deň padli (kalendár ich ukáže v bunke). */
+  emojis?: string[];
 }
 
 /**

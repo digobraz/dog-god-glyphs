@@ -20,8 +20,17 @@ import { BADGE_FAMILIES, badgeTier, badgeImg, type BadgeFamily } from './badgeRe
 
 type Tx = (key: string, fallback: string) => string;
 
-/** Rodiny, ktoré majú zdroj UŽ DNES. Ostatné prídu so ZÁPISOM DŇA. */
-const LIVE = new Set(['rad', 'dni', 'vencenie', 'prechadzky', 'vylety', 'pritomnost', 'vault', 'zahranicie', 'kronika', 'tvorca']);
+/** Rodiny, ktoré majú zdroj UŽ DNES. Od 31. 10. 2026 (ZÁPIS DŇA v4) aj všetkých 13 rodín, ktoré kŕmia nové druhy
+ *  `devotion_events` (`KIND_FAMILY`). */
+const LIVE = new Set(['rad', 'dni', 'vencenie', 'prechadzky', 'vylety', 'pritomnost', 'vault', 'zahranicie', 'kronika', 'tvorca',
+  'ocuchanie', 'veterina', 'kliest', 'plavanie', 'spa', 'leny', 'prusvih', 'hovienko', 'hra', 'trening', 'sutaz', 'zajac', 'krmenie']);
+
+/** Druh skutku v `devotion_events` → rodina odznaku, ktorú kŕmi. Jedno miesto pre počty aj pre okno ZÁPISU DŇA. */
+export const KIND_FAMILY: Readonly<Record<string, string>> = {
+  walk_short: 'vencenie', walk: 'prechadzky', presence: 'pritomnost', feeding: 'krmenie',
+  play: 'hra', training: 'trening', sniff: 'ocuchanie', swim: 'plavanie', hare: 'zajac', lazy: 'leny',
+  mischief: 'prusvih', poop: 'hovienko', vet: 'veterina', tick: 'kliest', spa: 'spa', contest: 'sutaz',
+};
 
 /** EN fallback mien a „za čo". SK = sk.ts (pack.badge.<id> · pack.badge.<id>.for), mená z register.json. */
 const EN: Record<string, [string, string]> = {
@@ -94,7 +103,7 @@ export function loadMyActivity(): Promise<MyActivity | null> {
     if (!uid) return null;
     const db = supabase as unknown as { from: (t: string) => any }; // eslint-disable-line @typescript-eslint/no-explicit-any
     const [ev, po, tw, vr, di] = await Promise.all([
-      all<{ kind: string; created_at: string }>(() => db.from('devotion_events').select('kind, created_at').eq('user_id', uid).neq('kind', 'baptism').order('id')),
+      all<{ kind: string; created_at: string; meta: { day?: string; n?: number } | null }>(() => db.from('devotion_events').select('kind, created_at, meta').eq('user_id', uid).neq('kind', 'baptism').order('id')),
       all<{ created_at: string }>(() => db.from('posts').select('created_at').eq('author_id', uid).is('hidden_at', null).order('id')),
       all<{ trip_slug: string; walked_at: string | null }>(() => db.from('trip_walked').select('trip_slug, walked_at').eq('user_id', uid).order('trip_slug')),
       // MÚDROSŤ = to isté ako ŠTÚDIUM v profile (vaultScrolls: prečítaný ALEBO vypočutý zvitok).
@@ -103,7 +112,16 @@ export function loadMyActivity(): Promise<MyActivity | null> {
     ]);
     const days = new Set<string>();
     const kinds: Record<string, number> = {};
-    for (const r of ev) { kinds[r.kind] = (kinds[r.kind] ?? 0) + 1; days.add(day(r.created_at)); }
+    // ZÁPIS DŇA v4: jeden ťuk so dvoma psami = dva riadky, ale JEDEN skutok. Nové druhy nesú `meta.n` (poradie ťuku
+    // v dni), krmenie je deň; ostatné (starý tok) ostávajú riadok = skutok.
+    const tapSeen = new Set<string>();
+    for (const r of ev) {
+      days.add(day(r.created_at));
+      const key = r.kind === 'feeding' ? `feeding|${r.meta?.day ?? r.created_at}`
+        : r.meta?.n != null ? `${r.kind}|${r.meta.day ?? ''}|${r.meta.n}` : null;
+      if (key) { if (tapSeen.has(key)) continue; tapSeen.add(key); }
+      kinds[r.kind] = (kinds[r.kind] ?? 0) + 1;
+    }
     for (const r of po) days.add(day(r.created_at));
     for (const r of tw) if (r.walked_at) days.add(day(r.walked_at));
     for (const r of vr) { const at = r.read_at ?? r.listened_at; if (at) days.add(day(at)); }
@@ -167,6 +185,7 @@ export function badgeCounts(a: MyActivity, trips: number, abroad: number, home: 
     prechadzky: a.kinds.walk ?? 0,
     vylety: Math.max(trips, a.trips),
     pritomnost: a.kinds.presence ?? 0,
+    ...Object.fromEntries(Object.entries(KIND_FAMILY).filter(([k]) => !['walk_short', 'walk', 'presence'].includes(k)).map(([k, f]) => [f, a.kinds[k] ?? 0])),
     vault: a.scrolls,
     zahranicie: Math.max(abroad, dbAbroad),
     kronika: a.diary,
@@ -242,10 +261,12 @@ export function BadgeShelf({ counts, failed, onRetry, onOpen, tx }: {
           </button>
         ))}
       </div>
-      <div className="bd-later">
-        <span>{tx('pack.badge.later', 'Coming with the daily log')}</span>
-        <div>{later.map((f) => <img key={f.id} src={badgeImg(f.symbol, 1)} alt={badgeName(f.id, tx)} title={badgeName(f.id, tx)} />)}</div>
-      </div>
+      {later.length > 0 && (
+        <div className="bd-later">
+          <span>{tx('pack.badge.later', 'Coming with the daily log')}</span>
+          <div>{later.map((f) => <img key={f.id} src={badgeImg(f.symbol, 1)} alt={badgeName(f.id, tx)} title={badgeName(f.id, tx)} />)}</div>
+        </div>
+      )}
     </div>
   );
 }

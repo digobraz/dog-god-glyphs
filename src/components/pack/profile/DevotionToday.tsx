@@ -11,7 +11,8 @@
 // 🔴 Body sa rátajú NA ŽIVÉHO PSA (DB `devotion_today` vráti len živých zaplatených).
 //    Strop a hodnoty drží server (`grant-devotion`, kind 'claim'); `DEVOTION_DAILY` je zrkadlo.
 // Šat = AINUBIS (`ainubisSkin.ts`): oznamy appky hovoria jeho hlasom (lock brand §AINUBIS).
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { APP_NEW } from '@/lib/packFlags';
 import { createPortal } from 'react-dom';
 import { PackPopup } from '@/components/pack/PackPopup';
 import { useBackClose } from '@/components/pack/diary/useBackClose';
@@ -424,7 +425,14 @@ function DeedSheet({ initialType, initialText, tx, onClose, onSave }: {
 
 const buzz = () => { try { navigator.vibrate?.(12); } catch { /* iOS web nevie — appka dostane haptiku neskôr */ } };
 
+/** V appke (`APP_NEW`) je „Zapíš dnešok" ZÁPIS DŇA v4 (31. 10. 2026, `ZapisDna.tsx`); AINUBIS okno nižšie ostáva pre web. */
+const ZapisDna = lazy(() => import('./ZapisDna').then((m) => ({ default: m.ZapisDna })));
 export function DevotionToday({ onClose }: { onClose: () => void }) {
+  if (APP_NEW) return <Suspense fallback={null}><ZapisDna onClose={onClose} /></Suspense>;
+  return <DevotionTodayWeb onClose={onClose} />;
+}
+
+function DevotionTodayWeb({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };

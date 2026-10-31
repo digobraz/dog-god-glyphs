@@ -51,6 +51,9 @@ import { readLocalTrails } from '@/components/pack/tripShared';
 import { readStringSet, PACK_KEYS } from '@/lib/packStore';
 import { computeAge } from '@/lib/dogAge';
 import { useLang } from '@/i18n/LanguageContext';
+import { APP_NEW } from '@/lib/packFlags';
+import { HandCheck } from '@/components/pack/HandIcons';
+import { loadZapisDays, KIND_EMOJI } from '@/components/pack/profile/zapisDnaModel';
 import { intlLocale } from '@/i18n/bcp47';
 import type { ElementKey } from '@/components/pack/natureQuiz';
 import {
@@ -351,6 +354,36 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dogs]);
 
+  // ZÁPIS DŇA v4 (appka, `APP_NEW`): dni, v ktorých člen ťukal dlaždice okna „Zapíš dnešok" — ✓ + emoji dlaždíc.
+  // Číta `devotion_events` (RLS: len moje riadky); prekreslí sa na signál z `grantDevotion` aj z okna zápisu.
+  const [zapisEntries, setZapisEntries] = useState<CalEntry[]>([]);
+  const [popDay, setPopDay] = useState<string | null>(null);
+  useEffect(() => {
+    if (!APP_NEW) return;
+    let alive = true;
+    const load = () => {
+      loadZapisDays().then((days) => {
+        if (!alive) return;
+        setZapisEntries(days.flatMap((z): CalEntry[] => {
+          const [y, m, d] = z.day.split('-').map(Number);
+          if (!y || !m || !d) return [];
+          const emojis = z.kinds.map((k) => KIND_EMOJI[k]).filter(Boolean);
+          return [{ kind: 'zapis', y, m, d, title: emojis.join(' '), dogId: null, emojis }];
+        }));
+      }).catch(() => { if (alive) setZapisEntries([]); });
+    };
+    load();
+    let pop: ReturnType<typeof setTimeout> | undefined;
+    const onZapis = (e: Event) => {
+      load();
+      const day = (e as CustomEvent<{ day?: string }>).detail?.day;
+      if (day) { const [, m, d] = day.split('-').map(Number); setPopDay(`${m}-${d}`); clearTimeout(pop); pop = setTimeout(() => setPopDay(null), 1200); }
+    };
+    window.addEventListener('dogypt:devotion', load);
+    window.addEventListener('dogypt:zapis', onZapis);
+    return () => { alive = false; clearTimeout(pop); window.removeEventListener('dogypt:devotion', load); window.removeEventListener('dogypt:zapis', onZapis); };
+  }, []);
+
   // Veterinár a odčervenie z DOG ID. Sú to dátumy udalostí, ktoré sa STALI —
   // teda plnohodnotné zápisy, len ich nikto nikdy nenakreslil.
   const vetEntries: CalEntry[] = useMemo(() => {
@@ -374,7 +407,7 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
   // Jeden index na celý rok — mriežka sa pýta 372× „čo je v tento deň".
   const byDay = useMemo(() => {
     const map = new Map<string, CalEntry[]>();
-    for (const e of [...tripEntries, ...diaryEntries, ...vetEntries]) {
+    for (const e of [...tripEntries, ...diaryEntries, ...vetEntries, ...zapisEntries]) {
       if (e.y !== year) continue;                                  // pohľad ROK drží jeden rok
       if (e.dogId !== null && solo && e.dogId !== sel) continue;   // cudzieho psa skryjeme
       const k = dateKey(e.m, e.d);
@@ -382,12 +415,12 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
       if (arr) arr.push(e); else map.set(k, [e]);
     }
     return map;
-  }, [tripEntries, diaryEntries, vetEntries, solo, sel, year]);
+  }, [tripEntries, diaryEntries, vetEntries, zapisEntries, solo, sel, year]);
 
   /** CELÁ história pre životnú os — bez filtra roka, s filtrom psa. */
-  const allEntries = useMemo(() => [...tripEntries, ...diaryEntries, ...vetEntries]
+  const allEntries = useMemo(() => [...tripEntries, ...diaryEntries, ...vetEntries, ...zapisEntries]
     .filter((e) => !(e.dogId !== null && solo && e.dogId !== sel)),
-  [tripEntries, diaryEntries, vetEntries, solo, sel]);
+  [tripEntries, diaryEntries, vetEntries, zapisEntries, solo, sel]);
 
   const entriesOn = (m: number, d: number): CalEntry[] => (layers.log ? byDay.get(dateKey(m, d)) ?? [] : []);
   const moons = useMemo(() => moonDaysOfYear(year), [year]);
@@ -513,7 +546,7 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
           seniorSelected={seniorSelected} layers={layers}
           entriesOn={entriesOn} moonOn={moonOn} onDay={(m, d) => setOpen({ m, d })}
           monthShort={monthShort} seasonName={seasonName} elementName={elementName} protName={protName}
-          tx={tx}
+          tx={tx} popDay={popDay}
         />
       ) : (
         <MonthGrid
@@ -521,7 +554,7 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
           seniorSelected={seniorSelected} layers={layers}
           entriesOn={entriesOn} moonOn={moonOn} onDay={(m, d) => setOpen({ m, d })}
           setMonth={setMonth} monthName={monthName} seasonName={seasonName} elementName={elementName}
-          protName={protName} tx={tx} dow={dow}
+          protName={protName} tx={tx} dow={dow} popDay={popDay}
         />
       )}
 
@@ -564,8 +597,10 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
 // ════════════════════════════════════════════════════════════════════════════
 function YearGrid({
   year, today, dogs, solo, myElement, seniorSelected, layers, entriesOn, moonOn, onDay,
-  monthShort, seasonName, elementName, protName, tx,
+  monthShort, seasonName, elementName, protName, tx, popDay,
 }: {
+  /** `m-d` dňa, ktorý sa práve zapísal v okne „Zapíš dnešok" — bunka „vyskočí". */
+  popDay: string | null;
   year: number; today: { m: number; d: number; year: number }; dogs: CalDog[]; solo: boolean;
   myElement: ElementKey | null; seniorSelected: boolean; layers: { log: boolean; prot: boolean; nat: boolean };
   entriesOn: (m: number, d: number) => CalEntry[]; moonOn: (m: number, d: number) => MoonPhase | null;
@@ -622,6 +657,7 @@ function YearGrid({
                     else if (!fill && es.some((e) => LOG_TYPES[e.kind].group === 'plan')) cls.push('isPlan');
                   }
                   if (year === today.year && m === today.m && d === today.d) cls.push('today');
+                  if (popDay === `${m}-${d}`) cls.push('zpop');
                   const mo = moonOn(m, d);
                   return (
                     <span
@@ -691,8 +727,9 @@ const rangeTxt = (w: ProtWindow): string => `${w.from.d}. ${w.from.m}. – ${w.t
 // ════════════════════════════════════════════════════════════════════════════
 function MonthGrid({
   year, month, today, dogs, solo, myElement, seniorSelected, layers, entriesOn, moonOn, onDay,
-  setMonth, monthName, seasonName, elementName, protName, tx, dow,
+  setMonth, monthName, seasonName, elementName, protName, tx, dow, popDay,
 }: {
+  popDay: string | null;
   year: number; month: number; today: { m: number; d: number; year: number }; dogs: CalDog[]; solo: boolean;
   myElement: ElementKey | null; seniorSelected: boolean; layers: { log: boolean; prot: boolean; nat: boolean };
   entriesOn: (m: number, d: number) => CalEntry[]; moonOn: (m: number, d: number) => MoonPhase | null;
@@ -749,14 +786,15 @@ function MonthGrid({
           if (layers.log) {
             birthdaysOn(dogs, month, d).forEach(() => marks.push('🎂'));
             humanYearsOn(year, dogs, month, d, solo).forEach(() => marks.push('🎈'));
-            es.forEach((e) => marks.push(LOG_TYPES[e.kind].emoji));
+            es.forEach((e) => { if (e.kind === 'zapis') marks.push(...(e.emojis ?? [])); else marks.push(LOG_TYPES[e.kind].emoji); });
           }
+          const zapis = layers.log && es.some((e) => e.kind === 'zapis');
           const mo = moonOn(month, d);
           const isToday = year === today.year && month === today.m && d === today.d;
           return (
             <div
               key={d}
-              className={`cal-mocell${isToday ? ' today' : ''}`}
+              className={`cal-mocell${isToday ? ' today' : ''}${popDay === `${month}-${d}` ? ' zpop' : ''}`}
               style={fill ? { background: softer(fill, 0.10), borderColor: softer(fill, 0.45) } : undefined}
               role="button"
               tabIndex={0}
@@ -764,6 +802,7 @@ function MonthGrid({
               onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onDay(month, d); } }}
             >
               <span className="cal-monum">{d}</span>
+              {zapis && <span className="cal-chk" aria-label={tx('pack.cal.type.zapis', 'Zápis dňa')}><HandCheck size={14} /></span>}
               {mo && <span className="cal-momoon" style={{ background: mo === 'full' ? '#FFFDF5' : '#241a09' }} />}
               <span className="cal-momk" style={{ fontFamily: EMOJI_FONT }}>
                 {marks.slice(0, 3).join('')}
@@ -1770,6 +1809,11 @@ const CAL_CSS = `
 .cal-cell .moonF{background:${T.card}}
 .cal-cell .moonN{background:rgba(36,26,9,.62)}
 .cal-cell.today{outline:2px solid ${LAPIS.edge};outline-offset:1px}
+/* ZÁPIS DŇA: bunka vyskočí, keď sa deň práve zapísal; ✓ (HandCheck) sedí v rohu bunky mesiaca. */
+.cal-cell.zpop,.cal-mocell.zpop{animation:cal-zpop .6s cubic-bezier(.3,1.6,.5,1);position:relative;z-index:2}
+.cal-chk{position:absolute;top:2px;right:2px;display:grid;place-items:center;line-height:0}
+@keyframes cal-zpop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.cal-cell.zpop,.cal-mocell.zpop{animation:none}}
 .cal-rail{grid-column:3;grid-row:2/14;display:grid;grid-template-columns:1fr 1fr 20px;grid-template-rows:repeat(12,1fr);gap:3px;align-self:stretch}
 .cal-bar{border-radius:8px;padding:4px;display:flex;align-items:center;gap:4px;font-family:${FONT_UI};font-size:10px;font-weight:600;line-height:1.15;overflow:hidden;min-width:0}
 .cal-bar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
