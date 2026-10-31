@@ -64,6 +64,8 @@ export function ChronicleBody({ tx }: { tx: Tx }) {
       if (!e.length) continue;
       (days.get(z.day) ?? days.set(z.day, { day: z.day, items: [], emojis: [] }).get(z.day)!).emojis = e;
     }
+    // V karte dňa ráno → večer (podľa okamihu zápisu); dni najnovší hore.
+    for (const d of days.values()) d.items.sort((a, b) => (a.createdAt ?? a.recordedAt).localeCompare(b.createdAt ?? b.recordedAt));
     const sorted = [...days.values()].sort((a, b) => b.day.localeCompare(a.day));
     const out: { label: string; days: typeof sorted }[] = [];
     for (const d of sorted) {

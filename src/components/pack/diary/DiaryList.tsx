@@ -43,6 +43,8 @@ export type DiaryRow = {
   dogId: string;
   field: string;
   recordedAt: string;
+  /** Okamih zápisu — poradie v rámci dňa (zápis dňa nesie recordedAt na pol dňa, teda rovnaký pre všetky). */
+  createdAt?: string;
   text: string;
   photo?: string;
   /** Len váženie. */
@@ -81,7 +83,7 @@ export function useDiaryRows(dogIds: string[], opts: { weights?: boolean } = {})
           const v = asDiaryValue(ev.value);
           if (!v || (!v.text.trim() && !v.photo)) return;
           out.push({ key: ev.id ?? `${ev.dogId}-${ev.recordedAt}-${i}`, id: ev.id, dogId: ev.dogId, field: ev.field,
-            recordedAt: ev.recordedAt, text: v.text, photo: v.photo, value: ev.value });
+            recordedAt: ev.recordedAt, createdAt: ev.createdAt, text: v.text, photo: v.photo, value: ev.value });
         });
         // Najnovší deň hore — kronika sa číta od včerajška dozadu.
         out.sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));

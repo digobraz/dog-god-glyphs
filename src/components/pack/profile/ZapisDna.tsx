@@ -5,17 +5,22 @@
 // Pripomienky k v3 (30. 10.): *„tých 21 dlaždíc je ok, ale musíme to nejak rozumne rozložiť, aby to nebolo cez celú
 // obrazovku"* · *„zápis textový dajme ako prvý"* · *„animácia ok"*  →  POPUP (šuplík zdola), nie celá obrazovka.
 //
-//   hore    DNES + dátum + kruhy psov (multidog, ťuk = s kým)
-//   veta    textové pole PRVÉ (nepovinné) + fotoaparát (fotka do priečinka psa, ako DiaryEntry)
-//   RUTINA  4 veľké dlaždice v rade
-//   záložky DEŇ · ZDRAVIE · ĎALŠIE — rad menších dlaždíc, jedna záložka otvorená
-//   dole    lapis ZAPÍSAŤ DEŇ → pečať s číslom dňa → pásy odznakov → šuplík zbehne, deň v kalendári dostane ✓
+// 🔁 v5 = NÁKRES B (Matej 31. 10. 2026 nad `plany/nakresy/zapis-dna-2026-10-31/`: „páči sa mi najviac B“ ·
+//    „daj len tri vedľa seba venčenie prechádzka chvíľka a hru daj medzi pills“ · „všetky tie pills rad radom bez
+//    kategórií … len s čiarami“ · krmenie z panela preč — „to sa mi zdá zbytočné“ · x/y pod dlaždicou preč, mýlilo
+//    sa za „koľkokrát dnes“ · „čo si dnes zažil by malo otvoriť písací panel, kde človek vidí text“):
+//   hore    kruhy psov (multidog, ťuk = s kým) + DNES + dátum v jednom riadku
+//   RUTINA  3 karty v rade (venčenie s bodkami do 3, prechádzka, chvíľa spolu)
+//   pilulky všetko ostatné rad radom, okruhy (deň · zdravie · ďalšie) delí len zlatá čiarka, bez nadpisov
+//   veta    pole „Čo dnes zažil?“ → ťuk otvorí PÍSACÍ PANEL na celú obrazovku nad klávesnicou (text + fotka + HOTOVO)
+//   dole    lapis ZAPÍSAŤ DEŇ · N → pečať s číslom dňa → pásy odznakov → šuplík zbehne, deň v kalendári dostane ✓
 //
 // 🔴 Každý ťuk = riadok `devotion_events` (`grant-devotion`, kind 'claim'; body 0 — ☥ body sú zrušené, level = roky).
 //    Text → `dog_events` diary.note, míľnik → diary.milestone, váha → health.weightKg (existujúci zápis váhy).
 //    Výlet sa NEŤUKÁ: odznak VÝLETY ide len zo zapísaného výletu (`trip_walked`), dlaždica vedie do „Zapíš výlet".
 // ⚠️ `supabase.rpc` volať VIAZANE (nie `const { rpc } = supabase`) a FileList z inputu skopírovať `Array.from` PRED await.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { PackPopup } from '@/components/pack/PackPopup';
 import { useBackClose } from '@/components/pack/diary/useBackClose';
@@ -23,7 +28,8 @@ import { useKeyboardLift, kbLiftCSS } from '@/components/pack/diary/useKeyboardL
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, BRAND_GOLD_BTN, MODAL_MAX_H, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
-import { HandCamera } from '@/components/pack/HandIcons';
+import { HandCamera, HandCheck } from '@/components/pack/HandIcons';
+import { BackIcon, backCircleCSS } from '@/components/pack/BackButton';
 import { supabase } from '@/integrations/supabase/client';
 import { grantDevotion } from '@/lib/devotionGrant';
 import { appendDogEvents } from '@/lib/dogEvents';
@@ -46,37 +52,31 @@ const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans
 interface TodayDog { id: string; name: string | null; photo: string | null; diet: 'kibble' | 'barf' | null; done: Record<string, number> }
 interface Today { day: string; dogs: TodayDog[] }
 
-const GROUPS: Array<[TileGroup, string, string]> = [
-  ['den', 'pack.zd.tab.den', 'Day'],
-  ['zdravie', 'pack.zd.tab.zdravie', 'Health'],
-  ['dalsie', 'pack.zd.tab.dalsie', 'More'],
-];
+/** Rutina = tri karty v rade. Krmenie z panela odišlo (Matej 31. 10.: „to sa mi zdá zbytočné“) — denná povinnosť
+ *  nie je skutok; kind `feeding` a jeho odznak ostávajú v modeli, len sa tu neponúka. */
+const RUTINA = ['walk_short', 'walk', 'presence'];
+/** Pilulky rad radom: Hra prvá (z rutiny), potom okruhy deň · zdravie · ďalšie, medzi nimi len čiarka. */
+const PILL_ORDER: TileGroup[] = ['den', 'zdravie', 'dalsie'];
 
 const CSS = `
 .ppu-sheet.zd-pop{overflow:hidden;}
 .zd-pop .ppu-body{padding:0;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
 .zd-sheet{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;color:${T.inkStrong};font-family:${FONT_UI};}
 .zd-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 ${S.lg}px ${S.md}px;}
-.zd-top{display:flex;flex-direction:column;align-items:center;text-align:center;gap:${S.xs}px;padding:0 0 ${S.md}px;}
+.zd-top{display:flex;align-items:center;gap:${S.md}px;padding:0 0 ${S.md}px;}
+.zd-top .zd-dogs{margin:0;}
+.zd-top .zd-dog{width:56px;height:56px;}
 .zd-day{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h1}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};} /* písmo: nadpis */
 .zd-date{margin:0;font-family:${FONT_UI};font-weight:500;font-size:${TX.label}px;color:${T.inkWarm};}
-.zd-dogs{display:flex;justify-content:center;gap:${S.sm}px;margin-top:${S.sm}px;}
+.zd-dogs{display:flex;gap:${S.sm}px;}
 .zd-dog{appearance:none;display:grid;place-items:center;width:40px;height:40px;padding:0;border-radius:${PACK_R.pill}px;cursor:pointer;overflow:hidden;
   border:2px solid ${T.border};background:${T.tileBg};opacity:.5;transition:opacity .15s,border-color .15s,transform .15s;}
 .zd-dog img{width:100%;height:100%;object-fit:cover;display:block;}
 .zd-dog i{font-style:normal;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;color:${T.inkStrong};} /* písmo: meno */
 .zd-dog.on{opacity:1;border-color:${LAPIS.edge};}
 .zd-dog:active{transform:scale(.94);}
-.zd-q{display:flex;align-items:flex-start;gap:${S.sm}px;margin:0 0 ${S.sm}px;}
-.zd-q textarea{flex:1;min-width:0;min-height:48px;resize:none;}
-.zd-cam{appearance:none;flex:none;display:grid;place-items:center;width:48px;height:48px;padding:0;border-radius:${PACK_R.field}px;cursor:pointer;
-  border:1px solid ${T.border};background:${T.tileBg};}
-.zd-cam:disabled{opacity:.5;cursor:default;}
-.zd-photo{display:flex;align-items:center;gap:${S.md}px;margin:0 0 ${S.sm}px;}
-.zd-photo p{margin:0;font-size:${TX.label}px;color:${T.inkWarm};}
 .zd-link{appearance:none;border:0;background:none;padding:0;cursor:pointer;font:inherit;font-weight:600;font-size:${TX.label}px;color:${PICK_INK.lapis};text-decoration:underline;}
 .zd-sec{margin:${S.md}px 0 ${S.sm}px;font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.26em;text-transform:uppercase;color:${T.inkWarm};}
-.zd-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:${S.sm}px;}
 .zd-tile{appearance:none;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${S.xs}px;min-width:0;
   height:80px;padding:${S.xs}px 2px ${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkStrong};
   font:inherit;font-weight:500;font-size:${TX.micro}px;line-height:1.1;text-align:center;cursor:pointer;user-select:none;
@@ -84,22 +84,49 @@ const CSS = `
 .zd-tile:active:not(:disabled){transform:scale(.94);}
 .zd-tile em{font-style:normal;font-size:${TX.h2}px;line-height:1;font-family:${EMOJI_FONT};}
 .zd-tile b{font-weight:500;max-width:100%;overflow-wrap:anywhere;}
-.zd-tile.big{height:96px;padding-bottom:${S.lg}px;}
-.zd-tile.big em{font-size:${TX.h1}px;}
-.zd-tile.big b{font-size:${TX.label}px;}
 .zd-tile.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
 .zd-tile.got{opacity:.5;cursor:default;}
 .zd-tile .n{position:absolute;top:${S.xs}px;right:${S.xs}px;min-width:18px;height:18px;padding:0 ${S.xs}px;border-radius:${PACK_R.pill}px;box-sizing:border-box;
   border:1px solid ${LAPIS.edge};background:${LAPIS.fill};color:${PICK_INK.lapis};font-family:${FONT_UI};font-weight:600;font-size:${TX.micro}px;line-height:16px;}
-.zd-tile .bg{position:absolute;bottom:${S.xs}px;left:0;right:0;font-weight:500;font-size:${TX.micro}px;color:${T.inkWarm};white-space:nowrap;}
-.zd-tile.on .bg{color:${PICK_INK.lapis};}
-.zd-tabs{display:flex;gap:${S.xs}px;margin:${S.lg}px 0 ${S.sm}px;padding:${S.xs}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.border};background:${T.tileBg};}
-.zd-tab{appearance:none;flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:${S.xs}px;height:40px;padding:0;border-radius:${PACK_R.field}px;
-  border:1px solid transparent;background:none;cursor:pointer;color:${T.inkWarm};
-  font-family:${FONT_UI};font-weight:600;font-size:${TX.label}px;letter-spacing:.14em;text-transform:uppercase;}
-.zd-tab.on{border-color:${T.cardEdge};background:${T.card};color:${T.inkStrong};}
-.zd-tab i{font-style:normal;min-width:16px;height:16px;border-radius:${PACK_R.pill}px;background:${LAPIS.fill};border:1px solid ${LAPIS.edge};
-  color:${PICK_INK.lapis};font-size:${TX.micro}px;line-height:14px;letter-spacing:0;}
+.zd-rut{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:${S.sm}px;}
+.zd-rut .zd-tile{height:88px;padding:${S.sm}px ${S.xs}px;}
+.zd-rut .zd-tile em{font-size:${TX.h1}px;}
+.zd-rut .zd-tile b{font-size:${TX.label}px;font-weight:600;}
+.zd-dots{display:flex;gap:${S.xs}px;justify-content:center;}
+.zd-dots u{width:6px;height:6px;border-radius:${PACK_R.pill}px;background:${T.hairline};}
+.zd-dots u.f{background:${LAPIS.edge};}
+.zd-dots u.d{background:${T.cardEdge};}
+.zd-tile .ok,.zd-pill .ok{position:absolute;top:-${S.xs}px;right:-${S.xs}px;min-width:20px;height:20px;padding:0 ${S.xs}px;box-sizing:border-box;border-radius:${PACK_R.pill}px;
+  background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_UI};font-weight:600;font-size:${TX.micro}px;line-height:20px;text-align:center;box-shadow:0 0 0 2px ${T.card};display:inline-grid;place-items:center;}
+.zd-pills{display:flex;flex-wrap:wrap;align-items:center;gap:${S.sm}px;margin-top:${S.lg}px;}
+.zd-pill{appearance:none;position:relative;display:inline-flex;align-items:center;gap:${S.xs}px;height:36px;padding:0 ${S.md}px 0 ${S.sm}px;border-radius:${PACK_R.pill}px;
+  border:1px solid ${T.border};background:${T.tileBg};color:${T.inkStrong};cursor:pointer;font:inherit;font-weight:500;font-size:${TX.label}px;
+  -webkit-tap-highlight-color:transparent;transition:transform .15s;}
+.zd-pill:active:not(:disabled){transform:scale(.94);}
+.zd-pill em{font-style:normal;font-size:${TX.lead}px;line-height:1;font-family:${EMOJI_FONT};}
+.zd-pill.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}font-weight:600;}
+.zd-pill.got{opacity:.5;cursor:default;}
+.zd-sep{flex:none;width:2px;height:24px;border-radius:${PACK_R.pill}px;background:${T.cardEdge};}
+.zd-wfield{appearance:none;display:flex;align-items:center;gap:${S.sm}px;width:100%;min-height:48px;margin-top:${S.lg}px;padding:${S.sm}px ${S.md}px;text-align:left;cursor:text;
+  border-radius:${PACK_R.field}px;border:1px solid ${T.border};background:${T.card};font:inherit;font-size:${TX.body}px;color:${T.inkStrong};}
+.zd-wfield span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.zd-wfield span.ph{color:${T.inkWarm};}
+.zd-wfield img{width:32px;height:32px;border-radius:${PACK_R.field}px;object-fit:cover;}
+/* PÍSACÍ PANEL — celá obrazovka nad klávesnicou (--dia-kb z useKeyboardLift), ten istý vzor ako editor príbehu výletu */
+.zd-wr{position:fixed;left:0;right:0;top:0;bottom:var(--dia-kb,0px);z-index:1300;display:flex;justify-content:center;background:${T.cardGrad};
+  padding:calc(env(safe-area-inset-top,0px) + ${S.lg}px) ${S.lg}px ${S.md}px;box-sizing:border-box;}
+.zd-wr-in{width:100%;max-width:640px;display:flex;flex-direction:column;gap:${S.md}px;min-height:0;}
+.zd-wr-head{display:flex;align-items:center;gap:${S.md}px;}
+.zd-wr-back{${backCircleCSS('pale')}}
+.zd-wr-head .zd-dog{width:44px;height:44px;opacity:1;border-color:${T.cardEdge};cursor:default;}
+.zd-wr-t{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};} /* písmo: nadpis */
+.zd-wr-s{margin:0;font-size:${TX.label}px;color:${T.inkWarm};}
+.zd-wr textarea{flex:1;min-height:96px;resize:none;padding:${S.md}px ${S.lg}px;font-size:${TX.lead}px;line-height:1.5;}
+.zd-wr-ph{display:flex;align-items:center;gap:${S.md}px;}
+.zd-wr-slot{appearance:none;flex:none;display:grid;place-items:center;width:64px;height:64px;padding:0;border-radius:${PACK_R.tile}px;cursor:pointer;
+  border:1.5px dashed ${T.cardEdge};background:${T.card};overflow:hidden;}
+.zd-wr-slot img{width:100%;height:100%;object-fit:cover;}
+.zd-wr-ph p{margin:0;font-size:${TX.label}px;color:${T.inkWarm};}
 .zd-subs{display:flex;flex-wrap:wrap;align-items:center;gap:${S.sm}px;margin:${S.sm}px 0 0;}
 .zd-subs > b{font-family:${FONT_UI};font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};}
 .zd-chip{appearance:none;height:32px;padding:0 ${S.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:${T.tileBg};cursor:pointer;
@@ -142,7 +169,7 @@ const CSS = `
 @keyframes zd-spin{to{transform:rotate(360deg);}}
 @media (min-width:768px){
   .ppu-sheet.zd-pop{width:640px;}
-  .zd-tile{height:88px;}
+  .zd-pill{height:40px;}
 }
 @media (prefers-reduced-motion:reduce){
   .zd-seal.in,.zd-rays{animation:none;}
@@ -175,7 +202,7 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
   const [text, setText] = useState('');
   const [kg, setKg] = useState('');
   const [miles, setMiles] = useState('');
-  const [tab, setTab] = useState<TileGroup>('den');
+  const [writing, setWriting] = useState(false);
   const [photo, setPhoto] = useState<PhotoState | null>(null);
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
   const [plans, setPlans] = useState<Array<{ slug: string; name: string; href: string }> | null>(null);
@@ -282,15 +309,6 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
   const any = chosen.length > 0 || hasMile || hasWeight || hasText;
   const ready = any && picked.length > 0 && !busy && !photo?.busy;
 
-  const badgeLine = (tile: ZTile): { have: number; nx: number } | null => {
-    const fam = KIND_FAMILY[tile.id] ?? (tile.id === 'abroad' ? 'zahranicie' : tile.id === 'trip' ? 'vylety' : null);
-    const f = fam ? BADGE_FAMILIES.find((x) => x.id === fam) : null;
-    if (!f || !counts) return null;
-    const have = (counts[f.id] ?? 0) + (KIND_FAMILY[tile.id] ? eff(tile) : 0);
-    const nx = f.prahy.find((p) => p > have) ?? f.prahy[f.prahy.length - 1];
-    return { have, nx };
-  };
-
   // ── ZAPÍSAŤ DEŇ ─────────────────────────────────────────────────────────────
   const save = async () => {
     if (!ready) return;
@@ -349,7 +367,7 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
     // 1 · emoji vyletia z vybraných dlaždíc do stredu
     if (!fast) {
       const flies: HTMLElement[] = [];
-      sheet.querySelectorAll<HTMLElement>('.zd-tile.on').forEach((tile) => {
+      sheet.querySelectorAll<HTMLElement>('.zd-tile.on, .zd-pill.on').forEach((tile) => {
         const em = tile.querySelector('em');
         if (!em) return;
         const r = tile.getBoundingClientRect();
@@ -388,27 +406,42 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
   const dateText = useMemo(() => {
     try { return new Intl.DateTimeFormat(intlLocale(lang), { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()); } catch { return ''; }
   }, [lang]);
-  const tabCount = (g: TileGroup) => ZTILES.filter((x) => x.group === g)
-    .filter((x) => (x.special ? (sel[x.id] ?? 0) > 0 && (x.special !== 'weight' || kgOk) && x.special !== 'trip' : eff(x) > 0)).length;
-
-  const tileBtn = (tile: ZTile, big = false) => {
+  /** Rutina = karta (bodky pri počítadle, ✓ pri jednom ťuku). Bez x/y odznaku — mýlilo sa za „koľkokrát dnes“. */
+  const rutCard = (tile: ZTile) => {
     const n = eff(tile);
-    const selected = tile.special ? (sel[tile.id] ?? 0) > 0 : n > 0;
-    const got = !tile.special && room(tile) <= 0;
-    const bl = badgeLine(tile);
+    // Bodky: zlaté = dnes už zapísané (u psa, ktorý má najmenej), lapis = práve vybrané.
+    const done = picked.length ? Math.min(...picked.map((g) => g.done[tile.id] ?? 0)) : 0;
+    const got = room(tile) <= 0;
     return (
-      <button key={tile.id} type="button" className={`zd-tile${big ? ' big' : ''}${selected ? ' on' : ''}${got ? ' got' : ''}`}
-        disabled={got || !picked.length} aria-pressed={selected} onClick={() => hit(tile)}>
-        {n > 1 && <span className="n">{n}</span>}
+      <button key={tile.id} type="button" className={`zd-tile${n > 0 ? ' on' : ''}${got ? ' got' : ''}`}
+        disabled={got || !picked.length} aria-pressed={n > 0} onClick={() => hit(tile)}>
+        {n > 0 && !tile.multi && <span className="ok"><HandCheck size={12} /></span>}
         <em>{tile.emoji}</em>
         <b>{tx(`pack.zd.t.${tile.id}`, tile.name)}</b>
-        {bl && <span className="bg">{bl.have}/{bl.nx}</span>}
+        {tile.multi && <span className="zd-dots" aria-hidden>{Array.from({ length: tile.multi }, (_, i) => <u key={i} className={i < done ? 'd' : i < done + n ? 'f' : ''} />)}</span>}
       </button>
     );
   };
-
-  const groupTiles = ZTILES.filter((x) => x.group === tab);
-  const subTiles = groupTiles.filter((x) => x.subs && eff(x) > 0);
+  const pill = (tile: ZTile) => {
+    const n = eff(tile);
+    const selected = tile.special ? (sel[tile.id] ?? 0) > 0 : n > 0;
+    const got = !tile.special && room(tile) <= 0;
+    return (
+      <button key={tile.id} type="button" className={`zd-pill${selected ? ' on' : ''}${got ? ' got' : ''}`}
+        disabled={got || !picked.length} aria-pressed={selected} onClick={() => hit(tile)}>
+        {n > 1 && <span className="ok">{n}</span>}
+        <em>{tile.emoji}</em>{tx(`pack.zd.t.${tile.id}`, tile.name)}
+      </button>
+    );
+  };
+  const play = ZTILES.find((x) => x.id === 'play');
+  const pillGroups = PILL_ORDER.map((g) => {
+    const list = ZTILES.filter((x) => x.group === g && x.id !== 'play');
+    return g === 'den' && play ? [play, ...list] : list;
+  });
+  const subTiles = ZTILES.filter((x) => x.subs && eff(x) > 0);
+  const nChosen = chosen.length + (hasMile ? 1 : 0) + (hasWeight ? 1 : 0) + (hasText ? 1 : 0);
+  const dogLabel = picked.map((g) => g.name).filter(Boolean).join(' · ');
 
   return (
     <PackPopup label={tx('pack.zd.title', 'Log today')} onClose={popClose} className="zd-pop">
@@ -416,8 +449,6 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
       <div className="zd-sheet" ref={sheetRef}>
         <div className="zd-body">
           <div className="zd-top">
-            <h2 className="zd-day">{tx('pack.zd.today', 'Today')}</h2>
-            <p className="zd-date">{dateText}</p>
             {dogs.length > 0 && (
               <div className="zd-dogs">
                 {dogs.map((g) => (
@@ -428,45 +459,24 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
                 ))}
               </div>
             )}
+            <div>
+              <h2 className="zd-day">{tx('pack.zd.today', 'Today')}</h2>
+              <p className="zd-date">{dateText}</p>
+            </div>
           </div>
 
           {today === null ? <div className="zd-empty">…</div> : dogs.length === 0 ? (
             <div className="zd-empty">{tx('pack.zd.noDogs', 'The log is kept for living dogs in the pack.')}</div>
           ) : (<>
-            <div className="zd-q">
-              <textarea className="pf-field" rows={2} maxLength={500} value={text} onChange={(e) => setText(e.target.value)}
-                placeholder={tx('pack.zd.sentence', 'A sentence for the chronicle (optional)')} />
-              <input ref={fileRef} type="file" accept="image/*" hidden data-testid="zd-file"
-                onChange={(e) => {
-                  const f = Array.from(e.target.files ?? [])[0];   // FileList skopírovať PRED await — po vynulovaní inputu je prázdny
-                  e.target.value = '';
-                  if (f) void pickPhoto(f);
-                }} />
-              <button type="button" className="zd-cam" disabled={!primary} aria-label={tx('pack.diary.photoAdd', 'Add a photo')} onClick={() => fileRef.current?.click()}>
-                <HandCamera size={24} />
-              </button>
-            </div>
-            {photo && (
-              <div className="zd-photo">
-                <div className="pk-photo" style={{ width: 56, height: 56, flex: '0 0 auto' }}><img src={photo.preview} alt="" /></div>
-                <div style={{ minWidth: 0 }}>
-                  <p>{photo.busy ? tx('pack.diary.photoBusy', 'Uploading…') : photo.url ? tx('pack.diary.photoReady', 'Photo attached.') : tx('pack.diary.photoOff', 'Not uploaded — the entry will be saved without it.')}</p>
-                  <button type="button" className="zd-link" onClick={() => { photoSeq.current++; setPhoto(null); }}>{tx('pack.diary.photoRemove', 'Remove')}</button>
-                </div>
-              </div>
-            )}
-
             <div className="zd-sec">{tx('pack.zd.rutina', 'Routine')}</div>
-            <div className="zd-grid">{ZTILES.filter((x) => x.group === 'rutina').map((x) => tileBtn(x, true))}</div>
+            <div className="zd-rut">{ZTILES.filter((x) => RUTINA.includes(x.id)).map(rutCard)}</div>
 
-            <div className="zd-tabs" role="tablist">
-              {GROUPS.map(([g, k, fb]) => (
-                <button key={g} type="button" role="tab" aria-selected={tab === g} className={`zd-tab${tab === g ? ' on' : ''}`} onClick={() => setTab(g)}>
-                  {tx(k, fb)}{tabCount(g) > 0 && <i>{tabCount(g)}</i>}
-                </button>
-              ))}
+            <div className="zd-pills">
+              {pillGroups.map((list, gi) => [
+                gi > 0 ? <i key={`sep-${gi}`} className="zd-sep" aria-hidden /> : null,
+                ...list.map(pill),
+              ])}
             </div>
-            <div className="zd-grid">{groupTiles.map((x) => tileBtn(x))}</div>
 
             {subTiles.map((x) => (
               <div className="zd-subs" key={x.id}>
@@ -477,18 +487,18 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
                 ))}
               </div>
             ))}
-            {tab === 'zdravie' && (sel.weight ?? 0) > 0 && (
+            {(sel.weight ?? 0) > 0 && (
               <div className="zd-ask">
                 <b>{primary?.name ?? ''}</b>
                 <input className="pf-field" inputMode="decimal" value={kg} placeholder={tx('pack.zd.kg', 'Weight in kg')} onChange={(e) => setKg(e.target.value)} />
               </div>
             )}
-            {tab === 'dalsie' && hasMile && (
+            {hasMile && (
               <div className="zd-ask">
                 <input className="pf-field" maxLength={200} value={miles} placeholder={tx('pack.zd.mile', 'What was the milestone?')} onChange={(e) => setMiles(e.target.value)} />
               </div>
             )}
-            {tab === 'dalsie' && (sel.trip ?? 0) > 0 && (
+            {(sel.trip ?? 0) > 0 && (
               <div className="zd-subs">
                 {(plans ?? []).map((p) => (
                   <button key={p.slug} type="button" className="zd-chip" onClick={() => { onClose(); navigate(p.href); }}>{p.name}</button>
@@ -496,10 +506,18 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
                 <button type="button" className="zd-chip on" onClick={() => { onClose(); navigate('/pack/add'); }}>{tx('pack.zd.newTrip', '+ New trip')}</button>
               </div>
             )}
+
+            <div className="zd-sec">{tx('pack.zd.sentenceLbl', 'A sentence for the chronicle')}</div>
+            <button type="button" className="zd-wfield" style={{ marginTop: 0 }} onClick={() => setWriting(true)}>
+              <span className={text.trim() ? '' : 'ph'}>{text.trim() || tx('pack.zd.write', 'What did you live today?')}</span>
+              {photo ? <img src={photo.preview} alt="" /> : <HandCamera size={22} />}
+            </button>
           </>)}
         </div>
         <div className="zd-foot">
-          <button type="button" className="zd-save" disabled={!ready} onClick={() => void save()}>{tx('pack.zd.save', 'Log the day')}</button>
+          <button type="button" className="zd-save" disabled={!ready} onClick={() => void save()}>
+            {tx('pack.zd.save', 'Log the day')}{nChosen > 0 ? ` · ${nChosen}` : ''}
+          </button>
         </div>
 
         <div className={`zd-rit${ritual ? ' on' : ''}`} aria-hidden={!ritual}>
@@ -517,6 +535,45 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
           </>)}
         </div>
       </div>
+      <input ref={fileRef} type="file" accept="image/*" hidden data-testid="zd-file"
+        onChange={(e) => {
+          const f = Array.from(e.target.files ?? [])[0];   // FileList skopírovať PRED await — po vynulovaní inputu je prázdny
+          e.target.value = '';
+          if (f) void pickPhoto(f);
+        }} />
+      {writing && createPortal(
+        <div className="zd-wr" role="dialog" aria-modal="true" aria-label={tx('pack.zd.writerTitle', 'Chronicle')}
+          onKeyDown={(e) => { if (e.key === 'Escape') setWriting(false); }}>
+          <style>{PF_FIELD_CSS}{PHOTO_CSS}{CSS}</style>
+          <div className="zd-wr-in">
+            <div className="zd-wr-head">
+              <button type="button" className="zd-wr-back" aria-label={tx('pack.zd.done', 'Done')} onClick={() => setWriting(false)}><BackIcon /></button>
+              {primary && (
+                <span className="zd-dog on">{primary.photo ? <img src={sizedUrl(primary.photo, 120)} alt="" /> : <i>{(primary.name || '?').slice(0, 1)}</i>}</span>
+              )}
+              <div style={{ minWidth: 0 }}>
+                <p className="zd-wr-t">{tx('pack.zd.writerTitle', 'Chronicle')}</p>
+                <p className="zd-wr-s">{dogLabel}{dogLabel ? ' · ' : ''}{dateText}</p>
+              </div>
+            </div>
+            <textarea className="pf-field" autoFocus maxLength={500} value={text} onChange={(e) => setText(e.target.value)}
+              placeholder={tx('pack.zd.write', 'What did you live today?')} />
+            <div className="zd-wr-ph">
+              <button type="button" className="zd-wr-slot" disabled={!primary} aria-label={tx('pack.diary.photoAdd', 'Add a photo')} onClick={() => fileRef.current?.click()}>
+                {photo ? <img src={photo.preview} alt="" /> : <HandCamera size={26} />}
+              </button>
+              {photo && (
+                <div style={{ minWidth: 0 }}>
+                  <p>{photo.busy ? tx('pack.diary.photoBusy', 'Uploading…') : photo.url ? tx('pack.diary.photoReady', 'Photo attached.') : tx('pack.diary.photoOff', 'Not uploaded — the entry will be saved without it.')}</p>
+                  <button type="button" className="zd-link" onClick={() => { photoSeq.current++; setPhoto(null); }}>{tx('pack.diary.photoRemove', 'Remove')}</button>
+                </div>
+              )}
+            </div>
+            <button type="button" className="zd-save" onClick={() => setWriting(false)}>{tx('pack.zd.done', 'Done')}</button>
+          </div>
+        </div>,
+        document.body,
+      )}
     </PackPopup>
   );
 }
