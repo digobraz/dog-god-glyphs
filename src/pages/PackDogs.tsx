@@ -54,6 +54,7 @@ import { ChronicleBook } from '@/components/pack/diary/ChronicleBook';
 import { useDiaryRows } from '@/components/pack/diary/DiaryList';
 import { FlagCircle } from '@/components/pack/FlagCircle';
 import { PackCalendar } from '@/components/pack/calendar/PackCalendar';
+import { DevotionToday } from '@/components/pack/profile/DevotionToday';
 import { DiaryEntry } from '@/components/pack/diary/DiaryEntry';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK } from '@/components/pack/navGoldSkin';
 import {
@@ -500,6 +501,8 @@ export default function PackDogs() {
   // človek práve díva). Držať si ho musí STRÁNKA, nie dlaždica ani kalendár — dve
   // inštancie toho istého formulára = dva rôzne rozpísané texty.
   const [diary, setDiary] = useState<{ day?: string; mode: 'write' | 'photo' } | null>(null);
+  // ZÁPIS DŇA z DENNÍKA (appka): tlačidlo ZAPÍŠ DNES pri mesiaci otvára to isté okno ako „Zapíš dnešok" na domovskej.
+  const [zapisOpen, setZapisOpen] = useState(false);
   const [latest, setLatest] = useState<Latest>({});
   // Kým progres nie je načítaný, kvízový blok sa NEVYKRESLÍ ani v jednom stave —
   // inak by majiteľovi s hotovým kvízom najprv bliklo veľké hero a až potom by
@@ -557,7 +560,14 @@ export default function PackDogs() {
       <PackLayout>
         <style>{HUB_CSS}{PROGRESS_CSS}</style>
         {/* KRONIKA zatiaľ ako tretia záložka (Matej 30. 10.: „možno ju dáme mimo"). */}
-        <DogsHubV2 dogs={dogs} latest={latest} tx={tx} chronicle={<ChronicleTeaser dogs={dogs} tx={tx} />} />
+        {/* DENNÍK: hore mesiac so ✓ + emoji dňa (ten istý PackCalendar, len mesiac), pod ním KRONIKA. */}
+        <DogsHubV2 dogs={dogs} latest={latest} tx={tx} chronicle={(
+          <>
+            <PackCalendar monthOnly dogs={dogs} latest={latest} tx={tx} onWriteToday={() => setZapisOpen(true)} />
+            <div style={{ marginTop: PACK_SPACE.md }}><ChronicleTeaser dogs={dogs} tx={tx} /></div>
+          </>
+        )} />
+        {zapisOpen && <DevotionToday onClose={() => setZapisOpen(false)} />}
       </PackLayout>
     );
   }

@@ -183,7 +183,7 @@ function dowNames(locale: string): string[] {
  *  stĺpcoch na ~250 px sa dvojciferné čísla pri 10 px prekrývajú. */
 const DAY_TICKS = new Set([1, 5, 10, 15, 20, 25, 31]);
 
-export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
+export function PackCalendar({ dogs, latest, tx, onAddToDay, monthOnly, onWriteToday }: {
   dogs: CalendarDogRow[];
   latest: Latest;
   tx: Tx;
@@ -194,6 +194,12 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
    * rozpísaného textu. Kalendár preto len hlási DEŇ; okno vlastní stránka.
    */
   onAddToDay?: (dayKey: string) => void;
+  /**
+   * DENNÍK v appke (`APP_NEW`, 31. 10. 2026): len MESIAC so zápismi, bez karty, prepínača pohľadov, vrstiev
+   * a legendy. Dáta aj bunky sú tie isté ako v plnom kalendári. Tlačidlo ZAPÍŠ DNES vedľa mesiaca volá `onWriteToday`.
+   */
+  monthOnly?: boolean;
+  onWriteToday?: () => void;
 }) {
   const year = new Date().getFullYear();
   const today = useMemo(() => { const n = new Date(); return { m: n.getMonth() + 1, d: n.getDate(), year: n.getFullYear() }; }, []);
@@ -204,9 +210,9 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
   const monthShorts = useMemo(() => monthNames(locale, 'short'), [locale]);
   const dow = useMemo(() => dowNames(locale), [locale]);
 
-  const [view, setView] = useState<'year' | 'month' | 'life'>('life');
+  const [view, setView] = useState<'year' | 'month' | 'life'>(monthOnly ? 'month' : 'life');
   const [sel, setSel] = useState<string>('all');          // 'all' | dogId
-  const [layers, setLayers] = useState({ log: true, prot: true, nat: true });
+  const [layers, setLayers] = useState(monthOnly ? { log: true, prot: false, nat: false } : { log: true, prot: true, nat: true });
   const [month, setMonth] = useState(today.m);
   const [open, setOpen] = useState<{ m: number; d: number } | null>(null);
 
@@ -443,7 +449,7 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
   const protName = (w: ProtWindow): string => tx(`pack.cal.prot.${w.id}`, w.nameSK);
 
   return (
-    <section id="calendar" style={{ ...PACK_BOX.card, padding: 24 }}>
+    <section id={monthOnly ? undefined : 'calendar'} className={monthOnly ? 'cal-mo-only' : undefined} style={monthOnly ? undefined : { ...PACK_BOX.card, padding: 24 }}>
       <style>{CAL_CSS}</style>
       <style>{PF_FIELD_CSS}</style>
 
@@ -457,7 +463,7 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
           OBRAZOVKY, nie nastavenie mriežky — patrí k nadpisu, nie medzi vrstvy.
           Na mobile sa zalomí pod nadpis a zaberie celú šírku, aby sa tri slová
           nestlačili do rohu. */}
-      <div className="cal-head">
+      {!monthOnly && <div className="cal-head">
         <div className="flex items-center gap-3">
           <BrandIcon name="bars" size={24} tint="gold" />
           <h2 style={{ ...PACK_HEAD.card, color: T.inkStrong, lineHeight: 1.05 }}>
@@ -478,7 +484,7 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
             </button>
           ))}
         </div>
-      </div>
+      </div>}
       {/* ── OVLÁDANIE — TRI TVARY, nie jeden rad ôsmich rovnakých pilulek ─────
            Prvá verzia mala pohľad, psov aj vrstvy ako identické lapisové pilulky
            v jednom rade: osem rovnakých prvkov, z ktorých päť svietilo rovnako,
@@ -487,7 +493,7 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
                HORE PRI NADPISE (`.cal-head`), nie v tomto rade
              • VRSTVY  = tiché pilulky s bodkou
              • PSY     = vlastný riadok, lapis TINT (výber, nie akcia) */}
-      <div className="cal-ctl">
+      {!monthOnly && <div className="cal-ctl">
         {/* V ŽIVOTNEJ osi rad vrstiev ZMIZNE: mriežka nekreslí ani okná protokolu,
             ani fázy mesiaca, takže dve z troch pilulek by neprepínali nič —
             a prepínač, ktorý nič nerobí, sa číta ako pokazený. */}
@@ -511,11 +517,11 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
             );
           })}
         </div>
-      </div>
+      </div>}
 
       {/* Rad psov sa zobrazí len pri DVOCH a viac — s jedným psom je to chrome
           bez úlohy. Výber NESKRÝVA spoločné výlety: pes tam bol tiež. */}
-      {calDogs.length > 1 && (
+      {calDogs.length > 1 && !monthOnly && (
         <div className="cal-dogsel" role="group" aria-label={tx('pack.cal.filter', 'Filter psov')}>
           {view !== 'life' && (
             <button type="button" className={`cal-dogpill${sel === 'all' ? ' on' : ''}`} onClick={() => setSel('all')}>
@@ -554,12 +560,12 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
           seniorSelected={seniorSelected} layers={layers}
           entriesOn={entriesOn} moonOn={moonOn} onDay={(m, d) => setOpen({ m, d })}
           setMonth={setMonth} monthName={monthName} seasonName={seasonName} elementName={elementName}
-          protName={protName} tx={tx} dow={dow} popDay={popDay}
+          protName={protName} tx={tx} dow={dow} popDay={popDay} onWriteToday={monthOnly ? onWriteToday : undefined}
         />
       )}
 
       {/* Prázdny kalendár musí POVEDAŤ, prečo je prázdny — inak vyzerá pokazený. */}
-      {view !== 'life' && layers.log && !hasAnyEntry && (
+      {!monthOnly && view !== 'life' && layers.log && !hasAnyEntry && (
         <p className="cal-note" style={{ marginTop: 12 }}>
           {tx('pack.cal.emptyHint', 'Zatiaľ tu nie je ani jeden zápis. Kalendár kreslí len to, čo má DEŇ — výlet s dátumom, očkovanie, váženie.')}
         </p>
@@ -568,7 +574,7 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
       {/* Legenda hovorí o sezónach, protokole a fázach mesiaca — ŽIVOTNÁ os
           z toho nekreslí nič, takže by pod ňou stála legenda k inému obrázku.
           Vlastnú legendu si životná mriežka kreslí sama NAD sebou (13. 9. 2026). */}
-      {view !== 'life' && <Legend layers={layers} solo={solo} tx={tx} typeName={typeName} />}
+      {!monthOnly && view !== 'life' && <Legend layers={layers} solo={solo} tx={tx} typeName={typeName} />}
 
       {open && (
         <DayPopup
@@ -727,9 +733,11 @@ const rangeTxt = (w: ProtWindow): string => `${w.from.d}. ${w.from.m}. – ${w.t
 // ════════════════════════════════════════════════════════════════════════════
 function MonthGrid({
   year, month, today, dogs, solo, myElement, seniorSelected, layers, entriesOn, moonOn, onDay,
-  setMonth, monthName, seasonName, elementName, protName, tx, dow, popDay,
+  setMonth, monthName, seasonName, elementName, protName, tx, dow, popDay, onWriteToday,
 }: {
   popDay: string | null;
+  /** DENNÍK v appke: tlačidlo ZAPÍŠ DNES pri mesiaci (zápis spätne server nevie, vždy dnešok). */
+  onWriteToday?: () => void;
   year: number; month: number; today: { m: number; d: number; year: number }; dogs: CalDog[]; solo: boolean;
   myElement: ElementKey | null; seniorSelected: boolean; layers: { log: boolean; prot: boolean; nat: boolean };
   entriesOn: (m: number, d: number) => CalEntry[]; moonOn: (m: number, d: number) => MoonPhase | null;
@@ -751,6 +759,7 @@ function MonthGrid({
         <button type="button" onClick={() => setMonth(month > 1 ? month - 1 : 12)} aria-label={tx('pack.cal.prevMonth', 'Predchádzajúci mesiac')}>‹</button>
         <span className="cal-moname">{monthName(month)} {year}</span>
         <button type="button" onClick={() => setMonth(month < 12 ? month + 1 : 1)} aria-label={tx('pack.cal.nextMonth', 'Ďalší mesiac')}>›</button>
+        {onWriteToday && <button type="button" className="cal-wtoday" onClick={onWriteToday}>{tx('pack.cal.writeToday', 'Zapíš dnes')}</button>}
       </div>
 
       <div className="cal-band">
@@ -812,9 +821,9 @@ function MonthGrid({
           );
         })}
       </div>
-      <p className="cal-note" style={{ marginTop: 12 }}>
+      {!onWriteToday && <p className="cal-note" style={{ marginTop: 12 }}>
         {tx('pack.cal.monthNote', 'Kalendár kreslí len to, čo má deň. Výlet bez dátumu tu nie je — ostáva v tripliste.')}
-      </p>
+      </p>}
     </>
   );
 }
@@ -1863,6 +1872,13 @@ const CAL_CSS = `
   box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;
   font-family:${FONT_TITLE};font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase}
 .cal-add:hover{background:${LAPIS.gradHover}}
+/* DENNÍK v appke (monthOnly): mesiac bez pásu sezón; ZAPÍŠ DNES = lapis CTA ako .cal-add, len na šírku textu. */
+.cal-mo-only .cal-band{display:none}
+.cal-mo-only .cal-monav{flex-wrap:wrap}
+.cal-wtoday{border:1px solid ${GOLD_BTN.edge}!important;background:${LAPIS.grad}!important;color:${LAPIS.ink}!important;box-shadow:${LAPIS_BTN_SHADOW};
+  width:auto!important;height:34px!important;padding:0 16px;border-radius:8px;cursor:pointer;
+  font-family:${FONT_TITLE};font-size:12px!important;font-weight:700;letter-spacing:0.14em;text-transform:uppercase} /* písmo: cta */
+.cal-wtoday:hover{background:${LAPIS.gradHover}!important}
 
 /* ── LEGENDA ────────────────────────────────────────────────────────────── */
 .cal-lgroup{margin-top:16px}
