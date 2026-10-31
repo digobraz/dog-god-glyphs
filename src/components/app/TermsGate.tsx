@@ -13,8 +13,10 @@ import { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/i18n/LanguageContext';
-import { HandAlert, HandHeart } from '@/components/pack/HandIcons';
+import { HandAlert, HandCheck, HandHeart } from '@/components/pack/HandIcons';
+import ainubisFace from '@/assets/ainubis-head.webp';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 import {
   FONT_UI, PACK_BOX, PACK_HEAD, PACK_R, PACK_SHADOW, PACK_SPACE, PACK_TEXT, PACK_THEME, PACK_VEIL,
 } from '@/components/pack/packTheme';
@@ -47,8 +49,11 @@ export function RulesSheet({ onDone }: { onDone: () => void }) {
     window.location.replace('/login');
   };
 
-  const row = (icon: JSX.Element, text: string) => (
-    <li className="tr-row"><span className="tr-ib">{icon}</span><span>{text}</span></li>
+  // `**slovo**` v preklade = tučné (Matej 31. 10.: „zvýrazniť boldom tie dôležité slovíčka").
+  const rich = (text: string) => text.split('**').map((part, i) => (i % 2 ? <b key={i}>{part}</b> : part));
+  const row = (icon: JSX.Element, head: string, text: string, ai = false) => (
+    <li className="tr-row"><span className={`tr-ib${ai ? ' tr-ib--ai' : ''}`}>{icon}</span>
+      <span><b className="tr-head">{ai ? <><span>AI</span>NUBIS</> : head}</b> {rich(text)}</span></li>
   );
 
   return (
@@ -59,10 +64,16 @@ export function RulesSheet({ onDone }: { onDone: () => void }) {
         <p className="tr-eyebrow">{tx('appEntry.rules.eyebrow', 'Before you enter')}</p>
         <h2 id="tr-title" className="tr-title">{tx('appEntry.rules.title', 'Pack rules')}</h2>
         <ul className="tr-list">
-          {row(<HandHeart size={20} />, tx('appEntry.rules.r1', 'Zero tolerance for abuse, hate and indecent content.'))}
-          {row(<HandAlert size={20} />, tx('appEntry.rules.r2', 'You can report and block any post, comment or member.'))}
-          {row(<img src="/icons/pack/clock.svg" alt="" />, tx('appEntry.rules.r3', 'We handle every report within 24 hours and remove content that breaks the rules.'))}
+          {row(<HandCheck size={20} />, tx('appEntry.rules.h1', 'Fair play.'),
+            tx('appEntry.rules.r1', 'Earn points and levels **honestly** — **no point farming, no lies**. Points gained by cheating can be taken away.'))}
+          {row(<HandHeart size={20} />, tx('appEntry.rules.h2', 'Respect.'),
+            tx('appEntry.rules.r2', '**Zero tolerance** for abuse, hate and indecent content.'))}
+          {row(<HandAlert size={20} />, tx('appEntry.rules.h3', 'Report & block.'),
+            tx('appEntry.rules.r3', 'Any post, comment or member. We act **within 24 hours** and remove what breaks the rules.'))}
+          {row(<img src={ainubisFace} alt="" />, 'AINUBIS',
+            tx('appEntry.rules.r4', 'knows your dogs, DOG ID and diary to advise you precisely. **Any problem? Write to him.**'), true)}
         </ul>
+        <p className="tr-together">{rich(tx('appEntry.rules.together', '**We build this together.** Everything you do here serves the whole pack.'))}</p>
         <p className="tr-legal">
           {tx('appEntry.rules.pre', 'I agree to the ')}
           <a href="/terms">{tx('appEntry.legal.terms', 'Terms')}</a>
@@ -114,6 +125,12 @@ const TERMS_CSS = `
 .tr-ib { width: 36px; height: 36px; border-radius: ${PACK_R.pill}px; display: grid; place-items: center;
   background: ${PACK_THEME.card}; border: 1px solid ${PACK_THEME.hairline}; color: ${LAB.ink}; }
 .tr-ib img { width: 20px; height: 20px; display: block; }
+.tr-ib--ai { overflow: hidden; }
+.tr-ib--ai img { width: 100%; height: 100%; object-fit: cover; }
+.tr-row b { font-weight: 600; }
+.tr-head > span { color: ${AINUBIS.aiInk}; text-shadow: ${AINUBIS.aiShadow}; }
+.tr-together { margin: ${PACK_SPACE.md}px 0 0; font-size: ${PACK_TEXT.label}px; line-height: 1.45; color: ${LAB.ink}; text-wrap: balance; }
+.tr-together b { font-weight: 600; }
 .tr-legal { margin: ${PACK_SPACE.lg}px 0 0; font-size: ${PACK_TEXT.label}px; line-height: 1.5; color: ${LAB.inkMuted}; text-wrap: balance; }
 .tr-legal a { color: ${LAB.inkSoft}; text-decoration: underline; text-underline-offset: 3px; }
 .tr-err { margin: ${PACK_SPACE.sm}px 0 0; font-size: ${PACK_TEXT.label}px; color: ${PACK_THEME.ink}; }
