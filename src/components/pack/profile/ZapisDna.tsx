@@ -20,7 +20,6 @@
 //    Výlet sa NEŤUKÁ: odznak VÝLETY ide len zo zapísaného výletu (`trip_walked`), dlaždica vedie do „Zapíš výlet".
 // ⚠️ `supabase.rpc` volať VIAZANE (nie `const { rpc } = supabase`) a FileList z inputu skopírovať `Array.from` PRED await.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { PackPopup } from '@/components/pack/PackPopup';
 import { useBackClose } from '@/components/pack/diary/useBackClose';
@@ -112,10 +111,10 @@ const CSS = `
 .zd-wfield span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .zd-wfield span.ph{color:${T.inkWarm};}
 .zd-wfield img{width:32px;height:32px;border-radius:${PACK_R.field}px;object-fit:cover;}
-/* PÍSACÍ PANEL — celá obrazovka nad klávesnicou (--dia-kb z useKeyboardLift), ten istý vzor ako editor príbehu výletu */
-.zd-wr{position:fixed;left:0;right:0;top:0;bottom:var(--dia-kb,0px);z-index:1300;display:flex;justify-content:center;background:${T.cardGrad};
-  padding:calc(env(safe-area-inset-top,0px) + ${S.lg}px) ${S.lg}px ${S.md}px;box-sizing:border-box;}
-.zd-wr-in{width:100%;max-width:640px;display:flex;flex-direction:column;gap:${S.md}px;min-height:0;}
+/* PÍSACÍ PANEL — v TOM ISTOM šuplíku, rovnako vysoký ako vyplnený panel (Matej 31. 10.: „to písanie daj do výšky
+   toho panela ako je vyplnené, nech to má nejakú súrodosť“). Klávesnicu rieši šuplík sám (kbLiftCSS). */
+.zd-wr{position:absolute;inset:0;z-index:4;display:flex;background:${T.cardGrad};padding:${S.sm}px ${S.lg}px ${S.md}px;box-sizing:border-box;}
+.zd-wr-in{width:100%;display:flex;flex-direction:column;gap:${S.md}px;min-height:0;}
 .zd-wr-head{display:flex;align-items:center;gap:${S.md}px;}
 .zd-wr-back{${backCircleCSS('pale')}}
 .zd-wr-head .zd-dog{width:44px;height:44px;opacity:1;border-color:${T.cardEdge};cursor:default;}
@@ -534,6 +533,37 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
             </div>
           </>)}
         </div>
+        {writing && (
+          <div className="zd-wr" role="dialog" aria-label={tx('pack.zd.writerTitle', 'Chronicle')}
+            onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); setWriting(false); } }}>
+            <div className="zd-wr-in">
+              <div className="zd-wr-head">
+                <button type="button" className="zd-wr-back" aria-label={tx('pack.zd.done', 'Done')} onClick={() => setWriting(false)}><BackIcon /></button>
+                {primary && (
+                  <span className="zd-dog on">{primary.photo ? <img src={sizedUrl(primary.photo, 120)} alt="" /> : <i>{(primary.name || '?').slice(0, 1)}</i>}</span>
+                )}
+                <div style={{ minWidth: 0 }}>
+                  <p className="zd-wr-t">{tx('pack.zd.writerTitle', 'Chronicle')}</p>
+                  <p className="zd-wr-s">{dogLabel}{dogLabel ? ' · ' : ''}{dateText}</p>
+                </div>
+              </div>
+              <textarea className="pf-field" autoFocus maxLength={500} value={text} onChange={(e) => setText(e.target.value)}
+                placeholder={tx('pack.zd.write', 'What did you live today?')} />
+              <div className="zd-wr-ph">
+                <button type="button" className="zd-wr-slot" disabled={!primary} aria-label={tx('pack.diary.photoAdd', 'Add a photo')} onClick={() => fileRef.current?.click()}>
+                  {photo ? <img src={photo.preview} alt="" /> : <HandCamera size={26} />}
+                </button>
+                {photo && (
+                  <div style={{ minWidth: 0 }}>
+                    <p>{photo.busy ? tx('pack.diary.photoBusy', 'Uploading…') : photo.url ? tx('pack.diary.photoReady', 'Photo attached.') : tx('pack.diary.photoOff', 'Not uploaded — the entry will be saved without it.')}</p>
+                    <button type="button" className="zd-link" onClick={() => { photoSeq.current++; setPhoto(null); }}>{tx('pack.diary.photoRemove', 'Remove')}</button>
+                  </div>
+                )}
+              </div>
+              <button type="button" className="zd-save" onClick={() => setWriting(false)}>{tx('pack.zd.done', 'Done')}</button>
+            </div>
+          </div>
+        )}
       </div>
       <input ref={fileRef} type="file" accept="image/*" hidden data-testid="zd-file"
         onChange={(e) => {
@@ -541,39 +571,6 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
           e.target.value = '';
           if (f) void pickPhoto(f);
         }} />
-      {writing && createPortal(
-        <div className="zd-wr" role="dialog" aria-modal="true" aria-label={tx('pack.zd.writerTitle', 'Chronicle')}
-          onKeyDown={(e) => { if (e.key === 'Escape') setWriting(false); }}>
-          <style>{PF_FIELD_CSS}{PHOTO_CSS}{CSS}</style>
-          <div className="zd-wr-in">
-            <div className="zd-wr-head">
-              <button type="button" className="zd-wr-back" aria-label={tx('pack.zd.done', 'Done')} onClick={() => setWriting(false)}><BackIcon /></button>
-              {primary && (
-                <span className="zd-dog on">{primary.photo ? <img src={sizedUrl(primary.photo, 120)} alt="" /> : <i>{(primary.name || '?').slice(0, 1)}</i>}</span>
-              )}
-              <div style={{ minWidth: 0 }}>
-                <p className="zd-wr-t">{tx('pack.zd.writerTitle', 'Chronicle')}</p>
-                <p className="zd-wr-s">{dogLabel}{dogLabel ? ' · ' : ''}{dateText}</p>
-              </div>
-            </div>
-            <textarea className="pf-field" autoFocus maxLength={500} value={text} onChange={(e) => setText(e.target.value)}
-              placeholder={tx('pack.zd.write', 'What did you live today?')} />
-            <div className="zd-wr-ph">
-              <button type="button" className="zd-wr-slot" disabled={!primary} aria-label={tx('pack.diary.photoAdd', 'Add a photo')} onClick={() => fileRef.current?.click()}>
-                {photo ? <img src={photo.preview} alt="" /> : <HandCamera size={26} />}
-              </button>
-              {photo && (
-                <div style={{ minWidth: 0 }}>
-                  <p>{photo.busy ? tx('pack.diary.photoBusy', 'Uploading…') : photo.url ? tx('pack.diary.photoReady', 'Photo attached.') : tx('pack.diary.photoOff', 'Not uploaded — the entry will be saved without it.')}</p>
-                  <button type="button" className="zd-link" onClick={() => { photoSeq.current++; setPhoto(null); }}>{tx('pack.diary.photoRemove', 'Remove')}</button>
-                </div>
-              )}
-            </div>
-            <button type="button" className="zd-save" onClick={() => setWriting(false)}>{tx('pack.zd.done', 'Done')}</button>
-          </div>
-        </div>,
-        document.body,
-      )}
     </PackPopup>
   );
 }
