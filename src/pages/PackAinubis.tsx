@@ -47,13 +47,13 @@ import {
 import {
   AINUBIS, AI_GLASS, AI_BREATHE_CSS, AI_PANEL_SHADOW, AI_FOCUS, aiWorld, BRAIN_STATE, AI_WORLD,
 } from '@/components/pack/ainubisSkin';
-import { VaultChat, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
 import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
 import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
 import { SCROLL_DEMO, useDemoScrolls, usePublicScrolls, useScrollState, useReadsReady, useReads, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import { VaultKnowledge, KNOW_CSS } from '@/components/pack/vault/VaultKnowledge';
 import { ScrollCard, ScrollView, SCROLL_CSS, SCROLL_CARD_CSS, scrollUI, circleName as scrollCircle } from '@/components/pack/vault/ScrollParts';
-import { openAinubis, setPodcastNext } from '@/lib/ainubisBus';
+import { openAinubis, setPodcastNext, setAinubisPlaneHost, onAinubisPlaneBack } from '@/lib/ainubisBus';
+import { APP_NEW } from '@/lib/packFlags';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
@@ -595,6 +595,18 @@ function AinubisApp() {
   return <AinubisScreen id={id} pv={null} />;
 }
 
+/** Rovina CHAT: celá obrazovka je úloha (rovnaké pravidlá ako maketa z 23. 9., len bez nej). */
+const CHATPLANE_CSS = `
+.akv-root[data-plane="chat"] .akv-brain,
+.akv-root[data-plane="chat"] .akv-top,
+.akv-root[data-plane="chat"] .akv-mtools,
+.akv-root[data-plane="chat"] .akv-mactions,
+.akv-root[data-plane="chat"] .akv-ctl{display:none;}
+.akv-chathost{position:absolute;z-index:3;inset:0;box-sizing:border-box;
+  padding:calc(env(safe-area-inset-top,0px) + ${PAGE_AIR.side}px) ${PAGE_AIR.side}px calc(env(safe-area-inset-bottom,0px) + ${PAGE_AIR.side}px);
+  background-color:${AINUBIS.surfaceBase};}
+`;
+
 function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof useMagnetPreview> }) {
   const t = useT();
   const tx = (key: string, fallback: string) => {
@@ -603,10 +615,11 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   };
   const { lang } = useLang();
   const [view, setView] = useState<View>('brain');
-  /* ROVINA — VAULT alebo CHAT (maketa). 🔴 LEN V DEVE: v produkčnom builde CHAT
-     naďalej otvára živý panel `AinubisWidget`, ktorý beží naostro. Maketa je
-     rozostavaná vec za zamknutými dverami, nie náhrada fungujúceho chatu. */
-  const CHAT_MOCK = import.meta.env.DEV;
+  /* ROVINA — VAULT alebo CHAT. 🔴 CHAT NAOSTRO (appka MVP, 31. 10. 2026): pod `APP_NEW` je rovina CHAT
+     ŽIVÝ `AinubisWidget` (edge `ainubis-chat`) vykreslený do prvku `.akv-chathost` — ten istý panel ako
+     šuplík, nie maketa. Maketa `VaultChat` (23. 9.) sa zo stránky stiahla; web na dogypt.com
+     (`APP_NEW` = false) ostáva ako bol: pilulka zamknutá, CHAT otvára šuplík. */
+  const CHAT_LIVE = APP_NEW;
   /* NÁSTENKA = rovina 3, maketa z 24. 9. 2026 (voľby A1 · B2 · C2 · D2 · E2 · F1).
      Naostro ostáva pilulka zamknutá so „soon" — rozostavaná vec stojí za
      zamknutými dverami, rovnako ako chat. */
@@ -656,7 +669,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   };
   const closeScroll = () => { setQueue(false); navigate((loc.state as { back?: string } | null)?.back || '/pack/ainubis'); };
   /** PRISPEJ v článku zvitku → chat s AINUBISOM (➕ Použiť Matej 3. 10. vyradil). */
-  const askAinubis = () => (pv ? lockAction('chat') : CHAT_MOCK ? navigate('/pack/ainubis?plane=chat') : openAinubis());
+  const askAinubis = () => (pv ? lockAction('chat') : CHAT_LIVE ? navigate('/pack/ainubis?plane=chat') : openAinubis());
   const shareScroll = (id: string) => {
     const url = `${window.location.origin}/pack/ainubis/zvitok/${id}`;
     const done = () => { setZvToast(scrollUI(lang).copied); window.setTimeout(() => setZvToast(''), 2000); };
@@ -667,7 +680,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   const planeParam = sp.get('plane');
   const [plane2, setPlane2] = useState<'vault' | 'chat' | 'wall'>(
     pv ? 'vault' : planeParam === 'wall' && WALL_MOCK ? 'wall'
-      : planeParam === 'chat' && CHAT_MOCK ? 'chat'
+      : planeParam === 'chat' && CHAT_LIVE ? 'chat'
         : 'vault',
   );
   /* Záložka nástenky žije v adrese z toho istého dôvodu ako rovina: riadok
@@ -690,6 +703,11 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
     setWallTab('pack');
     setQuery({ plane: next === 'vault' ? null : next, tab: null });
   };
+  /* Šípka späť v hlavičke živého panela (rovina CHAT) → ZVITKY. Handler čerstvý cez ref —
+     `goPlane` sa pri každom rendri vyrába nanovo. */
+  const goPlaneRef = useRef(goPlane);
+  goPlaneRef.current = goPlane;
+  useEffect(() => onAinubisPlaneBack(() => goPlaneRef.current('vault')), []);
   const pushedPost = useRef(false);
   const goWallTab = (t: 'pack' | 'mine' | 'lib') => {
     setWallTab(t);
@@ -967,7 +985,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
       {/* 🔒 Matej 8. 10. 2026: na LIVE funguje LEN ZVITKY — chat, fórum aj zdroje sú
           vyblednuté („čoskoro"), kým ich neupraceme; naplno žijú len na DEVE. */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'chat' ? 'page' : undefined}
-        disabled={!CHAT_MOCK && !pv} title={CHAT_MOCK || pv ? undefined : soon}
+        disabled={!CHAT_LIVE && !pv} title={CHAT_LIVE || pv ? undefined : soon}
         onClick={() => goPlane('chat')}>{plane('chat', 'Chat')}</button>
       {/* „čoskoro" len v tooltipe — v SK „NÁSTENKA ČOSKORO" pretiekla z pilulky (390 px aj PC 40 %). */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'wall' && wallTab !== 'lib' ? 'page' : undefined}
@@ -1181,7 +1199,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
     <div className={`akv-root${SCROLL_DEMO ? ' has-zv' : ''}`} ref={rootRef} data-view={view} data-plane={plane2}>
       <style>{CSS}</style>
       {SCROLL_DEMO && <style>{SCROLL_CSS}{KNOW_CSS}</style>}
-      {CHAT_MOCK && <style>{VAULT_CHAT_CSS}</style>}
+      {CHAT_LIVE && <style>{CHATPLANE_CSS}</style>}
       {WALL_MOCK && <style>{VAULT_WALL_CSS}</style>}
       <div className="akv-bg" aria-hidden />
 
@@ -1239,12 +1257,12 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
 
       </section>
 
-      {/* ── ROVINA CHAT (maketa, len DEV) — pás histórie + vlákno ──────────────
-          Stojí NAD mozgom ako DOGSCROLL, ale mozog v nej ostáva viditeľný: panel
-          `ODKIAĽ TO VIEM` je jediné, čím sa tento chat líši od každého iného. */}
-      {CHAT_MOCK && plane2 === 'chat' && (
-        <VaultChat onBack={() => goPlane('vault')} onOpenScroll={() => goPlane('vault')}
-          onOpenSources={openLibrary} />
+      {/* ── ROVINA CHAT (naostro pod APP_NEW) ──────────────────────────────────
+          Prázdny prvok, do ktorého `AinubisWidget` vykreslí svoj panel (portál) — ten istý
+          panel ako šuplík. Celá obrazovka je ÚLOHA: mozog, horný pás ani lišta tu nesvietia
+          (`CHATPLANE_CSS`); späť na ZVITKY vedie šípka v hlavičke panela (`onAinubisPlaneBack`). */}
+      {CHAT_LIVE && plane2 === 'chat' && !pv && (
+        <div className="akv-chathost" ref={setAinubisPlaneHost} />
       )}
 
       {/* ── ROVINA NÁSTENKA (maketa, len DEV) ────────────────────────────────

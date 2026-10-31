@@ -1,11 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { linkify } from './ainubisLinkify';
 import { X, Move } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useLang } from '@/i18n/LanguageContext';
+import { useLang, useT } from '@/i18n/LanguageContext';
 import { getAinubisCopy } from './ainubisCopy';
-import { AINUBIS_OPEN_EVENT, setAinubisUnread } from '@/lib/ainubisBus';
+import { AINUBIS_OPEN_EVENT, setAinubisUnread, getAinubisPlaneHost, onAinubisPlaneHost, requestAinubisPlaneBack } from '@/lib/ainubisBus';
+import { APP_NEW } from '@/lib/packFlags';
+import {
+  ACCESS_KEYS, clearHistory, listHistory, readAccess, writeAccess,
+  type Access, type AccessKey, type HistoryItem,
+} from './ainubisHistory';
 import ainubisFace from '@/assets/ainubis-badge.webp';
 import './AinubisWidget.css';
 import { captureViewport, targetContext, type TargetMark } from './ainubisTarget';
@@ -16,6 +22,14 @@ import { captureViewport, targetContext, type TargetMark } from './ainubisTarget
  * serveri žijú ďalej, chat len štartuje v podpore.
  */
 const SHOW_BRANCH_UI = false;
+
+/**
+ * APPKA MVP (31. 10. 2026, zadanie F): člen v `/pack` pod `APP_NEW` píše s plným AINUBISOM —
+ * znalostná báza + zdravie (beta) + postoj DOGYPTU. Server dostane vetvu `personal`, UI ostáva v bežnej
+ * (cyan) farbe: fialová `ainubis-panel--personal` je vizuál zrušených dverí. Web (dogypt.com) a hosť
+ * ostávajú v `support` — tam sa nič nemení. Vypnúť = prepnúť na `'support'`.
+ */
+const MVP_SERVER_BRANCH: Branch = 'personal';
 
 // ── Konštanty ────────────────────────────────────────────────────────────
 const LS_CONV = 'ainubis.conv';
@@ -491,9 +505,20 @@ function AinubisWidgetInner() {
   // ŠUPLÍK SPRAVA v /pack (Matej 24. 10. 2026: „súhlasím so šuflíkom“, nákres
   // `plany/nakres-ainubis-labka-2026-10-24.html` O1): celá výška, vľavo pás so závojom, ťuk naň
   // zavrie. Šuplík má pevné miesto, takže sa v /pack nepresúva (`canMove` tam neplatí).
-  const sheet = pathname.startsWith('/pack');
   const reducedMotion = useReducedMotion();
   const memberEmail = useOptionalMemberEmail();
+  const t = useT();
+  /** i18n s anglickým záložným textom (kľúče `ainubis.chat.*`) — widget inak žije v `ainubisCopy.ts`. */
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  // ROVINA CHAT (31. 10. 2026): na `/pack/ainubis?plane=chat` rovina podá miesto (`setAinubisPlaneHost`)
+  // a ten istý panel sa vykreslí do nej cez portál — žiadna druhá komponenta, len iný rám (lock: jeden
+  // komponent pre šuplík aj rovinu). Mimo `APP_NEW` ostáva všetko ako doteraz.
+  const [planeHost, setPlaneHostEl] = useState<HTMLElement | null>(() => getAinubisPlaneHost());
+  useEffect(() => onAinubisPlaneHost(() => setPlaneHostEl(getAinubisPlaneHost())), []);
+  const plane = APP_NEW && !!planeHost && pathname.startsWith('/pack/ainubis');
+  const sheet = pathname.startsWith('/pack') && !plane;
+  /** Plná appková verzia chatu: história, nový rozhovor, koliesko. Člen v `/pack` pod `APP_NEW`. */
+  const mvp = APP_NEW && !!memberEmail && pathname.startsWith('/pack');
   const openNowRef = useRef(false);
   const { names: dogNames, mode: dogIdMode } = useMemberDogNames(memberEmail, openNowRef);
   // Verejné uvítanie: o projekte, chybách a pomoci — nie technická podpora appky.
@@ -591,6 +616,16 @@ function AinubisWidgetInner() {
   // guľa s odznakom skrytá (viď `.ainubis-launcher` v AinubisWidget.css).
   useEffect(() => { setAinubisUnread(unreadCount); }, [unreadCount]);
   const [takeoverActive, setTakeoverActive] = useState(false);
+  /** Vrstva vnútri panela: história rozhovorov / koliesko (čo smie AINUBIS vidieť). */
+  const [panelView, setPanelView] = useState<null | 'hist' | 'cfg'>(null);
+  const [hist, setHist] = useState<HistoryItem[] | null>(null);
+  const [histErr, setHistErr] = useState(false);
+  const [access, setAccess] = useState<Access | null>(null);
+  const [cfgMsg, setCfgMsg] = useState<'' | 'saveErr' | 'cleared' | 'clearErr'>('');
+  const [clearAsk, setClearAsk] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  /** Nový rozhovor = znovu prehrať uvítanie (efekt uvítania visí aj na tomto čísle). */
+  const [convNonce, setConvNonce] = useState(0);
   const [input, setInput] = useState('');
   /** E-mail hosťa (brána 2A). Ref kvôli odoslaniu hneď po zadaní — stav sa prepíše až po rendri. */
   const visitorEmailRef = useRef<string | null>(safeLocalStorageGet(LS_EMAIL));
@@ -674,6 +709,20 @@ function AinubisWidgetInner() {
     openRef.current = open;
     if (open) pollNowRef.current?.();
   }, [open]);
+
+  // Rovina drží panel otvorený; po odchode z roviny sa šuplík nenechá visieť otvorený.
+  const wasPlaneRef = useRef(false);
+  useEffect(() => {
+    if (plane) {
+      setOpen(true);
+      setUnreadCount(0);
+      safeLocalStorageSet(LS_LAST_SEEN, new Date().toISOString());
+    } else if (wasPlaneRef.current) {
+      setOpen(false);
+      safeLocalStorageSet(LS_OPEN, '0');
+    }
+    wasPlaneRef.current = plane;
+  }, [plane]);
 
   // ── Presúvanie panelu ─────────────────────────────────────────────────
   // Hranica je tá istá ako v CSS; pri zúžení okna pod ňu sa režim vypne, inak by
@@ -909,7 +958,7 @@ function AinubisWidgetInner() {
       timers.forEach((t) => window.clearTimeout(t));
       setWelcomeTyping(false);
     };
-  }, [open, copy.welcome, reducedMotion, historyReady]);
+  }, [open, copy.welcome, reducedMotion, historyReady, convNonce]);
 
   // ── Typewriter — 14 ms/znak, klik kdekoľvek do panelu preskočí (skipTypewriter).
   useEffect(() => {
@@ -1096,7 +1145,7 @@ function AinubisWidgetInner() {
           // Vetva promptu. `undefined` server prečíta ako „drž doterajšiu vetvu
           // vlákna", takže sa neposiela pri každej správe zbytočne — ale
           // posielať ju stále je lacnejšie než riešiť rozbeh po reloade.
-          branch: branch ?? undefined,
+          branch: mvp ? MVP_SERVER_BRANCH : branch ?? undefined,
           // ⚠️ Server toto pole od 20. 8. 2026 IGNORUJE — identitu si berie
           // z tokenu, ktorý `functions.invoke` posiela v `Authorization`.
           // Necháva sa len preto, aby sa tvar požiadavky nemenil skokom.
@@ -1298,6 +1347,7 @@ function AinubisWidgetInner() {
   }
 
   function handleToggleOpen() {
+    if (plane) return; // v rovine panel nikto nezatvára — z roviny sa odchádza lištou
     setOpen((prev) => {
       const next = !prev;
       if (next) {
@@ -1434,6 +1484,89 @@ function AinubisWidgetInner() {
     textareaRef.current?.focus();
   }
 
+  // ── História, nový rozhovor, koliesko (appka MVP) ─────────────────────────────
+  function startNewConversation() {
+    resetSession();
+    setMessages([]);
+    setTypewriter(null);
+    setTakeoverActive(false);
+    setInput('');
+    setPanelView(null);
+    setHistoryReady(true);
+    welcomePlayedRef.current = false;
+    setConvNonce((n) => n + 1);
+  }
+
+  function openHistory() {
+    setPanelView('hist');
+    setHistErr(false);
+    setHist(null);
+    listHistory().then(setHist).catch(() => setHistErr(true));
+  }
+
+  function openPastConversation(it: HistoryItem) {
+    setPanelView(null);
+    if (it.id === conversationId) return;
+    safeLocalStorageSet(LS_CONV, it.id);
+    safeLocalStorageSet(LS_TOK, it.session_token);
+    setMessages([]);
+    setTypewriter(null);
+    setTakeoverActive(false);
+    setHistoryReady(false);
+    welcomePlayedRef.current = true; // minulý rozhovor sa nezačína uvítaním
+    setConversationId(it.id);
+    setSessionToken(it.session_token);
+  }
+
+  function openSettings() {
+    setPanelView('cfg');
+    setCfgMsg('');
+    setClearAsk(false);
+    readAccess().then(setAccess).catch(() => setAccess({ dogs: true, dogId: true, diary: true, memory: true }));
+  }
+
+  function toggleAccess(k: AccessKey) {
+    if (!access) return;
+    const prev = access;
+    // Vypnutie „mojich psov" je hlavný vypínač: bez neho AINUBIS nevie ani kto si.
+    const next: Access = { ...access, [k]: !access[k] };
+    setAccess(next);
+    setCfgMsg('');
+    writeAccess(next).catch(() => { setAccess(prev); setCfgMsg('saveErr'); });
+  }
+
+  async function doClearHistory() {
+    setClearing(true);
+    setCfgMsg('');
+    try {
+      await clearHistory();
+      setClearAsk(false);
+      startNewConversation();
+      setPanelView('cfg');
+      setCfgMsg('cleared');
+      setHist(null);
+    } catch {
+      setCfgMsg('clearErr');
+    } finally {
+      setClearing(false);
+    }
+  }
+
+  /** Štítok dňa nad správami: Dnes / Včera / dátum v jazyku člena. */
+  function dayLabel(iso: string): string {
+    const d = new Date(iso);
+    const start = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const diff = Math.round((start(new Date()) - start(d)) / 86_400_000);
+    if (diff === 0) return tx('ainubis.chat.today', 'Today');
+    if (diff === 1) return tx('ainubis.chat.yesterday', 'Yesterday');
+    try {
+      return d.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: diff > 300 ? 'numeric' : undefined });
+    } catch {
+      return d.toLocaleDateString();
+    }
+  }
+  const dayKey = (iso: string) => { const d = new Date(iso); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; };
+
   /** Konverzácia je stále čerstvá — človek ešte nenapísal. Intro karta (badge +
    *  meno + rola) drží miesto od prvej sekundy, aj kým uvítanie ešte nabieha:
    *  keby sa dorenderovala až po ňom, bubliny by pod ňou poskočili. */
@@ -1479,32 +1612,10 @@ function AinubisWidgetInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingTopic, introReady]);
 
-  return (
-    <>
-      <button
-        type="button"
-        className={`ainubis-launcher${onPublicRoute ? ' ainubis-launcher--left' : ''}${unreadCount > 0 ? ' ainubis-launcher--unread' : ''}${
-          blinking ? ' ainubis-launcher--blink' : ''}${scrolling && !open ? ' ainubis-launcher--scrolling' : ''
-        }`}
-        onClick={handleToggleOpen}
-        aria-label={open ? copy.closeAria : copy.openAria}
-        aria-expanded={open}
-      >
-        <AinubisEyePlaceholder />
-        {!open && unreadCount > 0 && (
-          <span className="ainubis-badge" aria-label={copy.unreadBadgeLabel(unreadCount)}>
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
-
-      {open && sheet && target === 'off' && (
-        <div className="ainubis-veil" aria-hidden onClick={handleToggleOpen} />
-      )}
-      {open && (
+  const panelEl = (
         <div
           ref={panelRef}
-          className={`ainubis-panel${sheet ? ' ainubis-panel--sheet' : ''}${onPublicRoute ? ' ainubis-panel--left' : ''}${target !== 'off' ? ' ainubis-panel--away' : ''}${dragging ? ' ainubis-panel--dragging' : ''}${
+          className={`ainubis-panel${sheet ? ' ainubis-panel--sheet' : ''}${plane ? ' ainubis-panel--plane' : ''}${onPublicRoute ? ' ainubis-panel--left' : ''}${target !== 'off' ? ' ainubis-panel--away' : ''}${dragging ? ' ainubis-panel--dragging' : ''}${
             branch === 'personal' ? ' ainubis-panel--personal' : ''
           }`}
           /* ⚠️ Inline `left/top` MUSÍ vypnúť aj `right/bottom` — základné pravidlo
@@ -1512,7 +1623,7 @@ function AinubisWidgetInner() {
              Pod hranicou `MOVE_MIN_WIDTH` sa pozícia ignoruje: tam vládne
              fullscreen sheet z CSS. */
           style={
-            canMove && !sheet && panelPos
+            canMove && !sheet && !plane && panelPos
               ? { left: panelPos.x, top: panelPos.y, right: 'auto', bottom: 'auto' }
               : undefined
           }
@@ -1536,14 +1647,34 @@ function AinubisWidgetInner() {
                 sľub bez termínu, klik ukázal len bublinu „čoskoro". Prázdny zarážač drží
                 ĽAVÉ miesto: hlavička je `space-between`, bez neho by krížik zatvorenia
                 skočil doľava. Kľúč `dashboardHint` v ainubisCopy.ts ostáva. */}
-            <span className="ainubis-panel__dash" aria-hidden style={{ visibility: 'hidden' }} />
+            {mvp ? (
+              <span className="ainubis-panel__tools">
+                {plane && (
+                  <button type="button" className="ainubis-panel__tool" onClick={(e) => { e.stopPropagation(); requestAinubisPlaneBack(); }}
+                    aria-label={tx('ainubis.chat.back', 'Back')} title={tx('ainubis.chat.back', 'Back')}>
+                    <span className="ainubis-tool-ico ainubis-tool-ico--back" aria-hidden />
+                  </button>
+                )}
+                {/* HISTÓRIA A NOVÝ ROZHOVOR (appka MVP): ikonky z kitu (hodiny, plus) maskou. */}
+                <button type="button" className="ainubis-panel__tool" onClick={(e) => { e.stopPropagation(); openHistory(); }}
+                  aria-label={tx('ainubis.chat.history', 'Conversations')} title={tx('ainubis.chat.history', 'Conversations')}>
+                  <span className="ainubis-tool-ico ainubis-tool-ico--clock" aria-hidden />
+                </button>
+                <button type="button" className="ainubis-panel__tool" onClick={(e) => { e.stopPropagation(); startNewConversation(); }}
+                  aria-label={tx('ainubis.chat.new', 'New conversation')} title={tx('ainubis.chat.new', 'New conversation')}>
+                  <span className="ainubis-tool-ico ainubis-tool-ico--plus" aria-hidden />
+                </button>
+              </span>
+            ) : (
+              <span className="ainubis-panel__dash" aria-hidden style={{ visibility: 'hidden' }} />
+            )}
 
             {/* Kríž = ÚCHYT, nie prepínač (Matej: „bude sa to dať hned posúvať od prvého
                 momentu"). Stlač a ťahaj — žiadny režim, ktorý treba najprv zapnúť. Práve
                 preto, že sa ťahá ZA KRÍŽ a nie za hlavičku, nehrozí, že netrafený klik na
                 krížik odsunie okno; to bol jediný dôvod pre pôvodný dvojstavový režim.
                 Dvojklik vráti panel do rohu. Na mobile sa nevykresľuje — tam je fullscreen sheet. */}
-            {canMove && !sheet && (
+            {canMove && !sheet && !plane && (
               <button
                 type="button"
                 className={`ainubis-panel__move${dragging ? ' ainubis-panel__move--on' : ''}`}
@@ -1562,17 +1693,27 @@ function AinubisWidgetInner() {
               </button>
             )}
 
-            <button
-              type="button"
-              className="ainubis-panel__close"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleToggleOpen();
-              }}
-              aria-label={copy.closeAria}
-            >
-              <X size={18} />
-            </button>
+            <span className="ainubis-panel__tools">
+              {mvp && (
+                <button type="button" className="ainubis-panel__tool" onClick={(e) => { e.stopPropagation(); openSettings(); }}
+                  aria-label={tx('ainubis.chat.settings', 'What AINUBIS may see')} title={tx('ainubis.chat.settings', 'What AINUBIS may see')}>
+                  <span className="ainubis-tool-ico ainubis-tool-ico--cog" aria-hidden />
+                </button>
+              )}
+              {!plane && (
+                <button
+                  type="button"
+                  className="ainubis-panel__close"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleOpen();
+                  }}
+                  aria-label={copy.closeAria}
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </span>
           </div>
 
           {/* Stav ONLINE z hlavičky odišiel, ale PREVZATIE SLOVA pánom je informácia, ktorú
@@ -1615,11 +1756,18 @@ function AinubisWidgetInner() {
               </div>
             )}
             {messages.map((m, i) => {
+              // Rozhovor po dňoch (appka MVP): štítok dňa nad prvou správou každého dňa; uvítanie (lokálne) ho nemá.
+              const prevReal = mvp ? [...messages.slice(0, i)].reverse().find((x) => !x.id.startsWith('welcome')) : undefined;
+              const newDay = mvp && !m.id.startsWith('welcome') && (!prevReal || dayKey(prevReal.created_at) !== dayKey(m.created_at));
+              const dayDivider = newDay ? <div key={`day-${m.id}`} className="ainubis-day">{dayLabel(m.created_at)}</div> : null;
               if (m.role === 'system') {
                 return (
-                  <div key={m.id} className="ainubis-msg ainubis-msg--system">
-                    {m.content}
-                  </div>
+                  <Fragment key={m.id}>
+                    {dayDivider}
+                    <div className="ainubis-msg ainubis-msg--system">
+                      {m.content}
+                    </div>
+                  </Fragment>
                 );
               }
               const isUser = m.role === 'user';
@@ -1653,7 +1801,7 @@ function AinubisWidgetInner() {
                   )}
                 </div>
               );
-              if (isUser) return <div key={m.id} className="ainubis-row ainubis-row--user">{bubble}</div>;
+              if (isUser) return <Fragment key={m.id}>{dayDivider}<div className="ainubis-row ainubis-row--user">{bubble}</div></Fragment>;
 
               // Portrét sedí pri POSLEDNEJ bubline súvislej série AINUBISA — tak to
               // robí IG/Messenger. Uvítanie sú dve bubliny po sebe; dva portréty pod
@@ -1664,14 +1812,17 @@ function AinubisWidgetInner() {
               const showAvatar =
                 (!next || next.role === 'user') && !(i === messages.length - 1 && busy);
               return (
-                <div key={m.id} className="ainubis-row">
-                  {showAvatar ? (
-                    <img className="ainubis-row__avatar" src={ainubisFace} alt="" aria-hidden="true" />
-                  ) : (
-                    <span className="ainubis-row__avatar ainubis-row__avatar--gap" aria-hidden="true" />
-                  )}
-                  {bubble}
-                </div>
+                <Fragment key={m.id}>
+                  {dayDivider}
+                  <div className="ainubis-row">
+                    {showAvatar ? (
+                      <img className="ainubis-row__avatar" src={ainubisFace} alt="" aria-hidden="true" />
+                    ) : (
+                      <span className="ainubis-row__avatar ainubis-row__avatar--gap" aria-hidden="true" />
+                    )}
+                    {bubble}
+                  </div>
+                </Fragment>
               );
             })}
             {(waitingReply || welcomeTyping) && (
@@ -1835,8 +1986,103 @@ function AinubisWidgetInner() {
               </button>
             </div>
           </div>
+
+          {/* VRSTVY VNÚTRI PANELA (appka MVP): história rozhovorov a koliesko. Vrstva, nie nová obrazovka —
+              zavrie sa šípkou vľavo hore a človek ostane v tom istom rozhovore. */}
+          {mvp && panelView === 'hist' && (
+            <div className="ainubis-layer" onClick={(e) => e.stopPropagation()}>
+              <div className="ainubis-layer__head">
+                <button type="button" className="ainubis-panel__tool" onClick={() => setPanelView(null)} aria-label={tx('ainubis.chat.back', 'Back')}>
+                  <span className="ainubis-tool-ico ainubis-tool-ico--back" aria-hidden />
+                </button>
+                <b>{tx('ainubis.chat.history', 'Conversations')}</b>
+              </div>
+              <div className="ainubis-layer__body">
+                {histErr && <p className="ainubis-layer__note">{tx('ainubis.chat.histFail', 'Could not load. Try again in a moment.')}</p>}
+                {!histErr && hist === null && <p className="ainubis-layer__note">{tx('ainubis.chat.histLoading', 'Loading…')}</p>}
+                {hist !== null && hist.length === 0 && <p className="ainubis-layer__note">{tx('ainubis.chat.histEmpty', 'No earlier conversations yet.')}</p>}
+                {hist !== null && hist.map((it, i) => (
+                  <Fragment key={it.id}>
+                    {(i === 0 || dayKey(hist[i - 1].last_message_at) !== dayKey(it.last_message_at)) && (
+                      <div className="ainubis-day">{dayLabel(it.last_message_at)}</div>
+                    )}
+                    <button type="button" className={`ainubis-hist${it.id === conversationId ? ' ainubis-hist--on' : ''}`} onClick={() => openPastConversation(it)}>
+                      <span>{it.preview || tx('ainubis.chat.noPreview', 'Conversation')}</span>
+                      <small>{new Date(it.last_message_at).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })}</small>
+                    </button>
+                  </Fragment>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mvp && panelView === 'cfg' && (
+            <div className="ainubis-layer" onClick={(e) => e.stopPropagation()}>
+              <div className="ainubis-layer__head">
+                <button type="button" className="ainubis-panel__tool" onClick={() => setPanelView(null)} aria-label={tx('ainubis.chat.back', 'Back')}>
+                  <span className="ainubis-tool-ico ainubis-tool-ico--back" aria-hidden />
+                </button>
+                <b>{tx('ainubis.chat.cfgTitle', 'What AINUBIS may see')}</b>
+              </div>
+              <div className="ainubis-layer__body">
+                <p className="ainubis-layer__note">{tx('ainubis.chat.cfgNote', 'AINUBIS never writes first. You decide what it may see about you and your dogs — change it any time.')}</p>
+                {access && ACCESS_KEYS.map((k) => (
+                  <button key={k} type="button" role="switch" aria-checked={access[k]} className={`ainubis-sw${access[k] ? ' ainubis-sw--on' : ''}`} onClick={() => toggleAccess(k)}>
+                    <span className="ainubis-sw__txt">
+                      <b>{tx(`ainubis.chat.cfg.${k}`, { dogs: 'My dogs', dogId: 'DOG ID details', diary: 'Diary', memory: 'Earlier conversations' }[k])}</b>
+                      <small>{tx(`ainubis.chat.cfg.${k}Hint`, {
+                        dogs: 'Names, breeds and years, so I know who we talk about.',
+                        dogId: 'Character, health, feeding and quiz answers.',
+                        diary: 'Your diary entries.',
+                        memory: 'A short summary of what we talked about before.',
+                      }[k])}</small>
+                    </span>
+                    <i aria-hidden />
+                  </button>
+                ))}
+                {cfgMsg === 'saveErr' && <p className="ainubis-layer__note ainubis-layer__note--err">{tx('ainubis.chat.saveErr', 'Could not save. Try again.')}</p>}
+                {cfgMsg === 'cleared' && <p className="ainubis-layer__note">{tx('ainubis.chat.cleared', 'History deleted.')}</p>}
+                {cfgMsg === 'clearErr' && <p className="ainubis-layer__note ainubis-layer__note--err">{tx('ainubis.chat.clearErr', 'Could not delete. Try again.')}</p>}
+                {!clearAsk ? (
+                  <button type="button" className="ainubis-layer__danger" onClick={() => setClearAsk(true)}>{tx('ainubis.chat.clear', 'Delete my history')}</button>
+                ) : (
+                  <div className="ainubis-layer__confirm">
+                    <p>{tx('ainubis.chat.clearAsk', 'Delete every conversation with AINUBIS, including screenshots? This cannot be undone.')}</p>
+                    <div>
+                      <button type="button" className="ainubis-layer__danger" disabled={clearing} onClick={() => void doClearHistory()}>{tx('ainubis.chat.clearYes', 'Delete')}</button>
+                      <button type="button" className="ainubis-layer__ghost" disabled={clearing} onClick={() => setClearAsk(false)}>{tx('ainubis.chat.clearNo', 'Cancel')}</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
+  );
+
+  return (
+    <>
+      <button
+        type="button"
+        className={`ainubis-launcher${plane ? ' ainubis-launcher--plane' : ''}${onPublicRoute ? ' ainubis-launcher--left' : ''}${unreadCount > 0 ? ' ainubis-launcher--unread' : ''}${
+          blinking ? ' ainubis-launcher--blink' : ''}${scrolling && !open ? ' ainubis-launcher--scrolling' : ''
+        }`}
+        onClick={handleToggleOpen}
+        aria-label={open ? copy.closeAria : copy.openAria}
+        aria-expanded={open}
+      >
+        <AinubisEyePlaceholder />
+        {!open && unreadCount > 0 && (
+          <span className="ainubis-badge" aria-label={copy.unreadBadgeLabel(unreadCount)}>
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {open && sheet && target === 'off' && (
+        <div className="ainubis-veil" aria-hidden onClick={handleToggleOpen} />
       )}
+      {open && (plane && planeHost ? createPortal(panelEl, planeHost) : panelEl)}
       {target === 'aim' && (
         <div
           className="ainubis-target-veil"

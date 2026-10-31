@@ -983,18 +983,6 @@
     "cinzel": 4,
     "tucny": 0
   },
-  "components/pack/profile/DogGallery.tsx": {
-    "radius": 0,
-    "font": 1,
-    "zavoj": 0,
-    "progres": 0,
-    "ram": 0,
-    "tien": 0,
-    "pismenka": 0,
-    "odsadenie": 0,
-    "cinzel": 3,
-    "tucny": 0
-  },
   "components/pack/profile/MeCompose.tsx": {
     "radius": 0,
     "font": 0,
@@ -1283,18 +1271,6 @@
     "cinzel": 4,
     "tucny": 0
   },
-  "pages/PackChronicle.tsx": {
-    "radius": 0,
-    "font": 0,
-    "zavoj": 0,
-    "progres": 0,
-    "ram": 0,
-    "tien": 0,
-    "pismenka": 0,
-    "odsadenie": 0,
-    "cinzel": 2,
-    "tucny": 0
-  },
   "pages/PackDogDetail.tsx": {
     "radius": 0,
     "font": 0,
@@ -1304,7 +1280,7 @@
     "tien": 4,
     "pismenka": 0,
     "odsadenie": 0,
-    "cinzel": 12,
+    "cinzel": 11,
     "tucny": 0
   },
   "pages/PackDogIdModules.tsx": {

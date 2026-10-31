@@ -58,3 +58,41 @@ export function onAinubisUnread(cb: (n: number) => void): () => void {
 let podcastNext: string | null = null;
 export function setPodcastNext(v: string | null): void { podcastNext = v; }
 export function getPodcastNext(): string | null { return podcastNext; }
+
+// ── ROVINA CHAT (appka MVP, 31. 10. 2026) ───────────────────────────────────
+// `/pack/ainubis?plane=chat` a šuplík sprava sú JEDEN komponent: `AinubisWidget` (root singleton).
+// Rovina mu len podá miesto, kam sa má vykresliť — widget panel pošle cez portál do tohto prvku
+// (bez šuplíkového závoja, bez zatvárania). Prvok registruje `PackAinubis`; keď zmizne (odchod z roviny),
+// widget sa vráti do šuplíka.
+export const AINUBIS_PLANE_EVENT = 'dogypt:ainubis-plane';
+let planeHost: HTMLElement | null = null;
+
+/** Volá `PackAinubis` (ref callback) — `null` pri odchode z roviny. */
+export function setAinubisPlaneHost(el: HTMLElement | null): void {
+  if (el === planeHost) return;
+  planeHost = el;
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(AINUBIS_PLANE_EVENT));
+}
+
+export function getAinubisPlaneHost(): HTMLElement | null {
+  return planeHost;
+}
+
+export function onAinubisPlaneHost(cb: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener(AINUBIS_PLANE_EVENT, cb);
+  return () => window.removeEventListener(AINUBIS_PLANE_EVENT, cb);
+}
+
+/** Šípka späť v hlavičke panela v rovine → `PackAinubis` vráti rovinu na ZVITKY. */
+export const AINUBIS_PLANE_BACK_EVENT = 'dogypt:ainubis-plane-back';
+export function requestAinubisPlaneBack(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(AINUBIS_PLANE_BACK_EVENT));
+}
+export function onAinubisPlaneBack(cb: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener(AINUBIS_PLANE_BACK_EVENT, cb);
+  return () => window.removeEventListener(AINUBIS_PLANE_BACK_EVENT, cb);
+}

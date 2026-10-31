@@ -508,6 +508,10 @@ body.has-pack-nav {
 
 .ainubis-panel__body {
   flex: 1 1 auto;
+  /* 31. 10. 2026 (bod 7 „bublina odrezaná pri scrolle", appka): rolovanie nesmie preliezť na stránku pod
+     panelom a riadky sa v stĺpcovom flexe nesmú stláčať (viď `> *` nižšie). */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   /* ⚠️ Bez `min-height: 0` sa flex položka nezmenší pod obsah, takže čokoľvek
      vysoké pod ňou (dvere vetiev) sa cez správy PREKRYJE namiesto toho, aby ich
      posunulo. Pri malých čipoch návrhov to roky nebolo vidno. */
@@ -1317,3 +1321,202 @@ html body .ainubis-panel.ainubis-panel--sheet.ainubis-panel--sheet.ainubis-panel
    vľavo, aj hore aj dolu". Guľa žije len tam, kde nie je horný rad s kolieskom (mapa, článok
    výletu, VAULT) — inde ju skryje `has-hub-ainubis`. */
 body.has-pack-nav .ainubis-launcher { left: 16px; right: auto; }
+
+/* ══ APPKA MVP (31. 10. 2026, zadanie F) ═════════════════════════════════════
+   Jeden panel pre šuplík AJ rovinu `/pack/ainubis?plane=chat`; história po dňoch, nový rozhovor,
+   koliesko (čo smie AINUBIS vidieť). Všetko berie farby z premenných AINUBISA vyššie. */
+
+/* ── ROVINA: panel žije v prvku, ktorý mu podá `PackAinubis`, nie v pevnej kotve ──────────────
+   Štvorrová trieda prebíja `body.has-pack-nav`, `has-hub-ainubis`, SNIFFER aj mobilný `--kb`
+   (všetko pevné kotvy plávajúceho panela). Výšku a polohu dáva host. */
+.ainubis-launcher.ainubis-launcher--plane { display: none; }
+html body .ainubis-panel.ainubis-panel--plane.ainubis-panel--plane.ainubis-panel--plane,
+html body .ainubis-panel.ainubis-panel--plane.ainubis-panel--plane.ainubis-panel--plane.ainubis-panel--kb {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  max-width: 832px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+  animation: none;
+  box-shadow: none;
+}
+
+/* ── Hlavička: skupiny ikoniek vľavo a vpravo ─────────────────────────────── */
+.ainubis-panel__tools { display: flex; align-items: center; gap: 4px; min-width: 44px; }
+.ainubis-panel__tools:last-child { justify-content: flex-end; }
+.ainubis-panel__tool {
+  background: none;
+  border: none;
+  color: rgba(207, 243, 250, 0.75);
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  padding: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.ainubis-panel__tool:hover { color: var(--ainubis-cyan); background: rgba(var(--ainubis-cyan-rgb), 0.10); }
+.ainubis-tool-ico {
+  display: block;
+  width: 22px;
+  height: 22px;
+  background: currentColor;
+  -webkit-mask: center / contain no-repeat;
+  mask: center / contain no-repeat;
+}
+.ainubis-tool-ico--clock { -webkit-mask-image: url(/icons/pack/clock.svg); mask-image: url(/icons/pack/clock.svg); }
+.ainubis-tool-ico--plus  { -webkit-mask-image: url(/icons/pack/plus.svg); mask-image: url(/icons/pack/plus.svg); }
+.ainubis-tool-ico--cog   { -webkit-mask-image: url(/icons/pack/cogwheel.svg); mask-image: url(/icons/pack/cogwheel.svg); }
+.ainubis-tool-ico--back  { -webkit-mask-image: url(/icons/pack/back.svg); mask-image: url(/icons/pack/back.svg); }
+
+/* ── Štítok dňa nad správami ─────────────────────────────────────────────── */
+.ainubis-day {
+  align-self: center;
+  flex-shrink: 0;
+  margin: 6px 0 2px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(var(--ainubis-cyan-rgb), 0.7);
+}
+
+/* ── Vrstva vnútri panela (história, koliesko) ───────────────────────────── */
+.ainubis-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: linear-gradient(180deg, var(--ainubis-bg) 0%, var(--ainubis-bg-deep) 100%);
+  border-radius: inherit;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.ainubis-layer__head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(var(--ainubis-cyan-rgb), 0.22);
+}
+.ainubis-layer__head b {
+  font-family: 'Cinzel', serif; /* písmo: nadpis */
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ainubis-ink);
+}
+.ainubis-layer__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ainubis-layer__note {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(226, 240, 248, 0.72);
+}
+.ainubis-layer__note--err { color: #FF9A8A; }
+
+.ainubis-hist {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.18);
+  background: rgba(var(--ainubis-cyan-rgb), 0.05);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #E2F0F8;
+}
+.ainubis-hist span { min-width: 0; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ainubis-hist small { flex-shrink: 0; font-size: 10px; color: rgba(var(--ainubis-cyan-rgb), 0.7); }
+.ainubis-hist--on { border-color: rgba(var(--ainubis-cyan-rgb), 0.6); background: rgba(var(--ainubis-cyan-rgb), 0.12); }
+
+/* Prepínač „čo smie AINUBIS vidieť" — vybraté = cyan (systém/AINUBIS), nie zlato. */
+.ainubis-sw {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.18);
+  background: rgba(var(--ainubis-cyan-rgb), 0.04);
+}
+.ainubis-sw__txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ainubis-sw__txt b { font: 600 12px/1.3 'Space Grotesk', sans-serif; color: var(--ainubis-ink); }
+.ainubis-sw__txt small { font: 400 12px/1.4 'Space Grotesk', sans-serif; color: rgba(226, 240, 248, 0.6); }
+.ainubis-sw i {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.15s ease;
+}
+.ainubis-sw i::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #CFEAF2;
+  transition: transform 0.15s ease;
+}
+.ainubis-sw--on i { background: rgba(var(--ainubis-cyan-rgb), 0.55); }
+.ainubis-sw--on i::after { transform: translateX(16px); }
+
+.ainubis-layer__danger, .ainubis-layer__ghost {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font: 600 12px/1 'Space Grotesk', sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ainubis-layer__danger { border: 1px solid rgba(255, 154, 138, 0.55); color: #FF9A8A; }
+.ainubis-layer__ghost { border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.3); color: rgba(226, 240, 248, 0.8); margin-left: 8px; }
+.ainubis-layer__danger:disabled, .ainubis-layer__ghost:disabled { opacity: 0.5; cursor: default; }
+.ainubis-layer__confirm { margin-top: 8px; }
+.ainubis-layer__confirm p { margin: 0 0 4px; font: 400 12px/1.5 'Space Grotesk', sans-serif; color: #E2F0F8; }
+
+/* ── BUBLINA ODREZANÁ PRI SCROLLE (audit 30. 10., bod 7) ──────────────────────────────────────
+   V Chromiu sa to nedá reprodukovať (overené na DEV, 4 dlhé odpovede po 2 700 znakov, mobil 390 aj PC).
+   Dve známe príčiny z WebKitu, ktoré tento panel spĺňa: (1) deti stĺpcového flexu s `overflow` na rodičovi
+   sa môžu stlačiť pod obsah; (2) dolný `padding` posuvného flex kontajnera sa do výšky rolovania
+   nezapočíta, takže posledná bublina sadne priamo na pole. Oprava = deti sa nestláčajú a koniec drží
+   rozpórka. ⚠️ OVER NA IPHONE (Matej, TestFlight) — iOS Safari je jediné miesto, kde sa to ukáže. */
+.ainubis-panel__body > * { flex-shrink: 0; }
+.ainubis-panel__body::after { content: ''; flex: 0 0 8px; }
