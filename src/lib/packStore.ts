@@ -525,11 +525,15 @@ export function deletePackTrip(slug: string): void {
  *  bezpečné volať opakovane, slug sa vo fronte nezduplikuje. */
 export function queueLocalTripUpload(ids: string[]): void {
   if (!ids.length) return;
+  if (tripInflight && ids.includes(tripInflight)) tripInflightRequeued = true;
   writeTripPending([...readTripPending(), ...ids]);
   void processTripUploadQueue();
 }
 
 let tripProcessing = false;
+// Slug, ktorý práve ide hore, a či ho počas uploadu niekto zaradil znova (EN preklad, úprava).
+let tripInflight: string | null = null;
+let tripInflightRequeued = false;
 
 async function processTripUploadQueue(): Promise<void> {
   if (tripProcessing) return;
@@ -542,11 +546,20 @@ async function processTripUploadQueue(): Promise<void> {
       const slug = pending[0];
       const trail = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).find((t) => t.id === slug);
       if (!trail) { pending = pending.slice(1); writeTripPending(pending); continue; } // zmazaný lokálne medzitým
-      // 🔴 Slug sa vyberie z fronty PRED nahrávaním (11. 10. 2026). `writeTripPending` robí Set,
-      //    takže EN preklad, ktorý dobehol počas uploadu (`updateLocalTrail` → `queueLocalTripUpload`),
-      //    sa zlial s práve spracúvaným slugom a koncové `slice(1)` ho zahodilo — v `pack_trips`
-      //    ostal riadok bez `nameEN`/`descEN`. Teraz sa re-queue počas uploadu vráti do fronty.
-      writeTripPending(pending.slice(1));
+      // 🔴 SLUG OSTÁVA VO FRONTE, KÝM NIE JE ODOVZDANÝ (31. 10. 2026, Matejov Rosuchov).
+      //    Od 11. 10. sa vyberal PRED nahrávaním fotiek — appku na iPhone uspalo po 3. fotke,
+      //    `catch` sa nespustil, fronta bola prázdna, takže pull nižšie (`tripsBlocked`) prepísal
+      //    `localTrails` zo servera a výlet zmizol aj z telefónu. Teraz slug odchádza až PO
+      //    odovzdaní upsertu do `enqueue` (od tej chvíle blokuje pull `pendingTables`).
+      //    Pôvodný dôvod (EN preklad dobehnutý počas uploadu sa zlial so slugom a stratil)
+      //    rieši `tripInflightRequeued`: taký slug vo fronte ostane a prejde ešte raz.
+      tripInflight = slug;
+      tripInflightRequeued = false;
+      const done = () => {
+        const requeued = tripInflightRequeued;
+        tripInflight = null;
+        if (!requeued) writeTripPending(readTripPending().filter((s) => s !== slug));
+      };
       try {
         const photos = await uploadTrailPhotos(slug);
         const fresh = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).find((t) => t.id === slug) ?? trail;
@@ -568,9 +581,12 @@ async function processTripUploadQueue(): Promise<void> {
             console.warn('[packStore] update_own_trip odmietnutý:', error.message);
             announceRejected('rpc:update_own_trip', error.message);
           }
+          done();
           pending = readTripPending();
           continue;
         }
+        // Zmazaný počas uploadu (`deletePackTrip` ho vyhodil z fronty) — upsert by ho vzkriesil.
+        if (!readTripPending().includes(slug)) { tripInflight = null; pending = readTripPending(); continue; }
         enqueue([{
           kind: 'upsert', tbl: 'pack_trips', onConflict: 'slug', own: 'author_id',
           row: {
@@ -581,9 +597,10 @@ async function processTripUploadQueue(): Promise<void> {
             country: fresh.country ?? null,
           },
         }]);
+        done();
       } catch {
-        writeTripPending([slug, ...readTripPending()]); // vrátiť na začiatok
-        break; // sieť padla uprostred uploadu — necháme frontu, skúsi sa znova (online event / ďalšia hydratácia)
+        tripInflight = null; // slug vo fronte ostal — necháme ho tam
+        break; // sieť padla uprostred uploadu — skúsi sa znova (online event / ďalšia hydratácia)
       }
       pending = readTripPending();
     }
