@@ -7040,6 +7040,7 @@ export const en = {
   'pack.zd.sealDone': "LOGGED",
   'pack.zd.diaryFail': "Saved, but the note did not reach the chronicle.",
   'pack.cal.type.zapis': "Day logged",
+  "pack.cal.writeToday": "Log today",
   'pack.zd.t.walk_short': "Short walk",
   'pack.zd.t.walk': "Walk",
   'pack.zd.t.presence': "Time together",

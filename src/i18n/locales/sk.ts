@@ -6729,6 +6729,7 @@ export const sk: Partial<Dict> = {
   'pack.zd.sealDone': "ZAPÍSANÉ",
   'pack.zd.diaryFail': "Zapísané, ale veta sa do kroniky nedostala.",
   'pack.cal.type.zapis': "Zápis dňa",
+  "pack.cal.writeToday": "Zapíš dnes",
   'pack.zd.t.walk_short': "Venčenie",
   'pack.zd.t.walk': "Prechádzka",
   'pack.zd.t.presence': "Chvíľa spolu",
