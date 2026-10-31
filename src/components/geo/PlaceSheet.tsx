@@ -546,7 +546,7 @@ function PlacePostForm({ point, kind, name, drawing, scoredHere, onDone, onClose
   );
 
   return (
-    <PackPopup label={name} onClose={onClose} className="plc-form">
+    <PackPopup label={name} onClose={onClose} className="plc-form" over={drawing}>
       <style>{PF_FIELD_CSS + PILL_CSS + PLACE_SHEET_CSS}</style>
       <div className="plc-form-h">
         <div className="plc-kind"><i>{placeEmoji(point.t)}</i>{name}</div>

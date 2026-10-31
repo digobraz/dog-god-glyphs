@@ -22,6 +22,7 @@ const T = PACK_THEME;
 const S = PACK_SPACE;
 
 export const PACK_POPUP_CSS = `
+.ppu-root.pk-veil.ppu-root--over{z-index:1300;}
 .ppu-root.pk-veil{z-index:65;align-items:flex-end;padding:0;animation:ppu-fade .3s ease both;}
 .ppu-sheet{position:relative;width:100%;max-height:${MODAL_MAX_H};display:flex;flex-direction:column;background:${T.cardGrad};color:${T.inkStrong};
   border-top:2px solid ${T.cardEdge};border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${T.panelShadow};
@@ -43,7 +44,7 @@ export const PACK_POPUP_CSS = `
 @media (prefers-reduced-motion:reduce){.ppu-sheet,.ppu-root.pk-veil{animation:none;}}
 `;
 
-export function PackPopup({ title, label, onClose, children, className }: {
+export function PackPopup({ title, label, onClose, children, className, over }: {
   /** Nadpis v hlavičke (Cinzel). Bez neho ostane len úchyt. */
   title?: ReactNode;
   /** Meno okna pre čítačku, keď `title` nie je text. */
@@ -52,6 +53,10 @@ export function PackPopup({ title, label, onClose, children, className }: {
   children: ReactNode;
   /** Trieda na `.ppu-sheet` — obsah si ňou ladí vlastné rozloženie. */
   className?: string;
+  /** Popup nad PRACOVNÝM PANELOM, nie len nad lištou — zapisovanie výletu má dok na 1200
+   *  (`.trp-dock`), takže formulár miesta otvorený počas kreslenia trasy sa so 65 vložil POD
+   *  neho a nedal sa vyplniť (Matej 31. 10. 2026). 1300 = nad dokom, pod „Zahodiť výlet" (1400). */
+  over?: boolean;
 }) {
   const sw = useSheetSwipe(onClose);
   // Stránka pod popupom sa nesmie rolovať (iPhone by „ťahal" celé okno) + Esc zavrie.
@@ -65,7 +70,7 @@ export function PackPopup({ title, label, onClose, children, className }: {
 
   return createPortal(
     <div
-      className="ppu-root pk-veil pk-veil--modal"
+      className={`ppu-root pk-veil pk-veil--modal${over ? ' ppu-root--over' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-label={label ?? (typeof title === 'string' ? title : undefined)}
