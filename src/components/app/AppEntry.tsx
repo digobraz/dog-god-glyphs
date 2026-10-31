@@ -232,6 +232,13 @@ function NumberStep({ onSent }: { onSent: (s: Sent) => void }) {
             />
             {err && <p className="ae-err" role="alert">{err}</p>}
             <button type="submit" className="ae-cta" disabled={busy}>{t('appEntry.mail.send')}</button>
+            {/* Ten istý súhlas aj pri vstupe e-mailom (31. 10.) — inak by táto cesta obišla podmienky. */}
+            <p className="ae-legal">
+              {tx('appEntry.legal.pre', 'By continuing you agree to the ')}
+              <a href="/terms">{tx('appEntry.legal.terms', 'Terms')}</a>
+              {tx('appEntry.legal.and', ' and the ')}
+              <a href="/privacy">{tx('appEntry.legal.privacy', 'Privacy Policy')}</a>.
+            </p>
           </form>
         </div>
       )}
