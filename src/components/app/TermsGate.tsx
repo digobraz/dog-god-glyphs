@@ -35,6 +35,7 @@ export function RulesSheet({ onDone }: { onDone: () => void }) {
   const tx = (k: string, fb: string) => { const v = t(k); return v === k ? fb : v; };
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [leaving, setLeaving] = useState(false);   // „Nesúhlasím“ najprv vysvetlí, až potom odhlási (Matej 31. 10.)
 
   const agree = async () => {
     if (busy) return;
@@ -59,6 +60,19 @@ export function RulesSheet({ onDone }: { onDone: () => void }) {
   return (
     <div className="tr-veil" role="dialog" aria-modal="true" aria-labelledby="tr-title">
       <style>{TERMS_CSS}</style>
+      {leaving ? (
+        <div className="tr-sheet">
+          <span className="tr-grip" />
+          <h2 id="tr-title" className="tr-title">{tx('appEntry.rules.leaveTitle', 'Without the rules')}</h2>
+          <p className="tr-leave">{tx('appEntry.rules.leaveText', "Without agreeing to the rules you can't enter the pack. Your dog stays on the wall.")}</p>
+          <button type="button" className="tr-cta" onClick={() => setLeaving(false)}>
+            {tx('appEntry.rules.back', 'Back to the rules')}
+          </button>
+          <button type="button" className="tr-link" onClick={() => void decline()}>
+            {tx('appEntry.rules.leave', 'Leave')}
+          </button>
+        </div>
+      ) : (
       <div className="tr-sheet">
         <span className="tr-grip" />
         <p className="tr-eyebrow">{tx('appEntry.rules.eyebrow', 'Before you enter')}</p>
@@ -84,10 +98,11 @@ export function RulesSheet({ onDone }: { onDone: () => void }) {
         <button type="button" className="tr-cta" disabled={busy} onClick={() => void agree()}>
           {tx('appEntry.rules.agree', 'I agree')}
         </button>
-        <button type="button" className="tr-link" onClick={() => void decline()}>
+        <button type="button" className="tr-link" onClick={() => setLeaving(true)}>
           {tx('appEntry.rules.decline', "I don't agree")}
         </button>
       </div>
+      )}
     </div>
   );
 }
@@ -133,6 +148,7 @@ const TERMS_CSS = `
 .tr-together b { font-weight: 600; }
 .tr-legal { margin: ${PACK_SPACE.lg}px 0 0; font-size: ${PACK_TEXT.label}px; line-height: 1.5; color: ${LAB.inkMuted}; text-wrap: balance; }
 .tr-legal a { color: ${LAB.inkSoft}; text-decoration: underline; text-underline-offset: 3px; }
+.tr-leave { margin: 0; font-size: ${PACK_TEXT.body}px; line-height: 1.5; color: ${LAB.inkSoft}; text-wrap: balance; }
 .tr-err { margin: ${PACK_SPACE.sm}px 0 0; font-size: ${PACK_TEXT.label}px; color: ${PACK_THEME.ink}; }
 .tr-cta { width: 100%; height: 48px; margin-top: ${PACK_SPACE.lg}px; border: 0; border-radius: ${PACK_R.field}px; cursor: pointer;
   background: ${LAPIS.grad}; color: ${LAPIS.ink}; box-shadow: ${LAPIS_BTN_SHADOW};
