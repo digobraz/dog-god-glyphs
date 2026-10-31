@@ -41,7 +41,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { BADGE_FAMILIES } from './badgeRegister';
 import { KIND_FAMILY, loadMyActivity, badgeCounts } from './badgeShelf';
-import { ZTILES, type ZTile, type TileGroup } from './zapisDnaModel';
+import { ZTILES, loadZapisDays, type ZTile, type TileGroup } from './zapisDnaModel';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -87,6 +87,15 @@ const CSS = `
 .zd-tile.got{opacity:.5;cursor:default;}
 .zd-tile .n{position:absolute;top:${S.xs}px;right:${S.xs}px;min-width:18px;height:18px;padding:0 ${S.xs}px;border-radius:${PACK_R.pill}px;box-sizing:border-box;
   border:1px solid ${LAPIS.edge};background:${LAPIS.fill};color:${PICK_INK.lapis};font-family:${FONT_UI};font-weight:600;font-size:${TX.micro}px;line-height:16px;}
+.zd-days{display:flex;gap:${S.sm}px;overflow-x:auto;margin:0 -${S.lg}px ${S.sm}px;padding:${S.xs}px ${S.lg}px;scrollbar-width:none;}
+.zd-days::-webkit-scrollbar{display:none;}
+.zd-dy{appearance:none;position:relative;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:56px;height:64px;padding:0;
+  border-radius:${PACK_R.tile}px;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkWarm};cursor:pointer;
+  font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;}
+.zd-dy b{font-weight:600;font-size:${TX.h2}px;letter-spacing:0;color:${T.inkStrong};line-height:1;}
+.zd-dy.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
+.zd-dy svg{position:absolute;top:${S.xs}px;right:${S.xs}px;color:#3D7A4E;}
+.zd-dy--cal input{position:absolute;inset:0;opacity:0;cursor:pointer;}
 .zd-rut{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:${S.sm}px;}
 .zd-rut .zd-tile{height:88px;padding:${S.sm}px ${S.xs}px;}
 .zd-rut .zd-tile em{font-size:${TX.h1}px;}
@@ -189,7 +198,20 @@ const reduced = () => typeof window !== 'undefined' && !!window.matchMedia?.('(p
 interface PhotoState { preview: string; url: string | null; busy: boolean; blob: Blob; forDog: string }
 interface Row { fam: string; emoji: string; before: number; after: number; lo: number; nx: number; hit: boolean }
 
-export function ZapisDna({ onClose }: { onClose: () => void }) {
+/** Deň `YYYY-MM-DD` posunutý o `n` dní (miestny čas — ten istý ako `todayKey`). */
+function shiftDay(key: string, n: number): string {
+  const [y, m, d] = key.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + n);
+  const p = (x: number) => String(x).padStart(2, '0');
+  return `${dt.getFullYear()}-${p(dt.getMonth() + 1)}-${p(dt.getDate())}`;
+}
+const dateOf = (key: string) => { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d); };
+/** Spätne najviac 30 dní — ten istý strop drží server (`grant-devotion`). */
+const BACK_DAYS = 30;
+
+/** `pickDay` = otvorené z KRONIKY (NAPÍSAŤ): hore pás dní, predvybraté VČERA, zápis ide na ten deň.
+ *  Z labky (panel +) je to vždy dnešok bez pásu (Matej 31. 10.: „len dnešok“). */
+export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pickDay?: boolean }) {
   const navigate = useNavigate();
   const t = useT();
   const { lang } = useLang();
@@ -202,6 +224,13 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
   const [kg, setKg] = useState('');
   const [miles, setMiles] = useState('');
   const [writing, setWriting] = useState(false);
+  const todayK = useMemo(() => todayKey(), []);
+  const [day, setDay] = useState(() => (pickDay ? shiftDay(todayK, -1) : todayK));
+  const isToday = day === todayK;
+  /** Čo je na vybraný MINULÝ deň už zapísané (`devotion_today` vie len dnešok) — z vlastných riadkov `devotion_events`. */
+  const [pastDone, setPastDone] = useState<Record<string, Record<string, number>> | null>(null);
+  /** Dni s nejakým zápisom (✓ v páse). */
+  const [doneDays, setDoneDays] = useState<Set<string>>(new Set());
   const [photo, setPhoto] = useState<PhotoState | null>(null);
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
   const [plans, setPlans] = useState<Array<{ slug: string; name: string; href: string }> | null>(null);
@@ -234,7 +263,33 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
     return () => { alive = false; };
   }, []);
 
-  const dogs = today?.dogs ?? [];
+  useEffect(() => {
+    if (!pickDay) return;
+    let alive = true;
+    loadZapisDays().then((d) => { if (alive) setDoneDays(new Set(d.map((x) => x.day))); }).catch(() => {});
+    return () => { alive = false; };
+  }, [pickDay]);
+  useEffect(() => {
+    if (isToday) { setPastDone(null); return; }
+    let alive = true;
+    (async () => {
+      const { data: s } = await supabase.auth.getSession();
+      const uid = s.session?.user?.id;
+      if (!uid) return;
+      const db = supabase as unknown as { from: (t: string) => any }; // eslint-disable-line @typescript-eslint/no-explicit-any
+      const { data } = await db.from('devotion_events').select('dog_id, kind').eq('user_id', uid).eq('meta->>day', day);
+      const out: Record<string, Record<string, number>> = {};
+      for (const r of (data ?? []) as Array<{ dog_id: string | null; kind: string }>) {
+        if (!r.dog_id) continue;
+        const m = (out[r.dog_id] ??= {});
+        m[r.kind] = (m[r.kind] ?? 0) + 1;
+      }
+      if (alive) setPastDone(out);
+    })().catch(() => { if (alive) setPastDone({}); });
+    return () => { alive = false; };
+  }, [day, isToday]);
+
+  const dogs = useMemo(() => (today?.dogs ?? []).map((g) => (isToday ? g : { ...g, done: pastDone?.[g.id] ?? {} })), [today, isToday, pastDone]);
   const picked = dogs.filter((g) => pick.includes(g.id));
   const primary = picked[0] ?? null;
 
@@ -247,7 +302,6 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
 
   /** Dnešné plány výletov (tripliste s dnešným dátumom) — názvy z datasetu trás, ťahá sa až na ťuk. */
   const loadPlans = async () => {
-    const day = todayKey();
     const mine = Object.entries(readTriplist()).filter(([, tr]) => tr.date === day);
     if (!mine.length) { setPlans([]); return; }
     try {
@@ -281,7 +335,7 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
     const seq = ++photoSeq.current;
     setPhoto({ preview, url: null, busy: true, blob, forDog });
     try {
-      const { secureUrl } = await uploadDogDiaryPhoto(blob, forDog, `${todayKey()}-${Date.now()}`);
+      const { secureUrl } = await uploadDogDiaryPhoto(blob, forDog, `${day}-${Date.now()}`);
       if (seq === photoSeq.current) setPhoto({ preview, url: secureUrl, busy: false, blob, forDog });
     } catch {
       if (seq !== photoSeq.current) return;
@@ -315,17 +369,17 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
     try {
       const ids = picked.map((g) => g.id);
       const items = chosen.map((x) => ({ kind: x.id, n: eff(x), ...(sub[x.id] ? { sub: sub[x.id] as string } : {}) }));
-      if (items.length) await grantDevotion({ kind: 'claim', dog_ids: ids, items });
+      if (items.length) await grantDevotion({ kind: 'claim', dog_ids: ids, items, ...(isToday ? {} : { day }) });
       // 📖 text, míľnik a váha → `dog_events` (Kronika a kalendár). Zlyhanie nezhodí zápis dlaždíc — vlastná hláška.
       const events = [];
       let url = photo?.url ?? null;
       if (photo && primary && photo.forDog !== primary.id) {   // pes sa medzitým zmenil → fotka do priečinka toho správneho
-        try { url = (await uploadDogDiaryPhoto(photo.blob, primary.id, `${todayKey()}-${Date.now()}`)).secureUrl; } catch { url = null; }
+        try { url = (await uploadDogDiaryPhoto(photo.blob, primary.id, `${day}-${Date.now()}`)).secureUrl; } catch { url = null; }
       }
       const noteOn = !!(text.trim() || url);
-      if (noteOn) for (const id of ids) events.push(diaryEvent(id, chipOf('note'), todayKey(), { text: text.trim(), photo: url ?? undefined }));
-      if (hasMile) for (const id of ids) events.push(diaryEvent(id, chipOf('milestone'), todayKey(), { text: miles.trim() }));
-      if (hasWeight && primary) events.push(diaryEvent(primary.id, chipOf('weight'), todayKey(), { text: '', number: kgNum }));
+      if (noteOn) for (const id of ids) events.push(diaryEvent(id, chipOf('note'), day, { text: text.trim(), photo: url ?? undefined }));
+      if (hasMile) for (const id of ids) events.push(diaryEvent(id, chipOf('milestone'), day, { text: miles.trim() }));
+      if (hasWeight && primary) events.push(diaryEvent(primary.id, chipOf('weight'), day, { text: '', number: kgNum }));
       if (events.length) {
         try { await appendDogEvents(events); } catch {
           toast({ title: tx('pack.zd.diaryFail', 'Saved, but the note did not reach the chronicle.'), variant: 'destructive' });
@@ -347,7 +401,7 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
         return [{ fam, emoji, before, after, lo, nx, hit: f.prahy.some((p) => before < p && after >= p) }];
       }).sort((a, b) => Number(b.hit) - Number(a.hit)).slice(0, 5);
       await ritualRun(rowsRef.current);
-      window.dispatchEvent(new CustomEvent('dogypt:zapis', { detail: { day: todayKey() } }));
+      window.dispatchEvent(new CustomEvent('dogypt:zapis', { detail: { day } }));
       closeRef.current();
     } catch {
       toast({ title: tx('pack.dog.toastCouldntLog', 'Could not save'), variant: 'destructive' });
@@ -357,7 +411,7 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
 
   async function ritualRun(rows: Row[]) {
     const sheet = sheetRef.current;
-    setRitual({ day: new Date().getDate() });
+    setRitual({ day: dateOf(day).getDate() });
     if (!sheet) return;
     const fast = reduced();
     await wait(60);
@@ -402,9 +456,13 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
     // 4 · šuplík zbehne (zatvorí rodič); kalendár dostane signál `dogypt:zapis` → ✓ + pop
   }
 
-  const dateText = useMemo(() => {
-    try { return new Intl.DateTimeFormat(intlLocale(lang), { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()); } catch { return ''; }
+  const fmt = useCallback((key: string, o: Intl.DateTimeFormatOptions) => {
+    try { return new Intl.DateTimeFormat(intlLocale(lang), o).format(dateOf(key)); } catch { return key; }
   }, [lang]);
+  const dateText = useMemo(() => fmt(day, { weekday: 'long', day: 'numeric', month: 'long' }), [fmt, day]);
+  const dayTitle = isToday ? tx('pack.zd.today', 'Today')
+    : day === shiftDay(todayK, -1) ? tx('pack.zd.yesterday', 'Yesterday')
+    : fmt(day, { weekday: 'short', day: 'numeric' }).replace(/\./g, '').toUpperCase();
   /** Rutina = karta (bodky pri počítadle, ✓ pri jednom ťuku). Bez x/y odznaku — mýlilo sa za „koľkokrát dnes“. */
   const rutCard = (tile: ZTile) => {
     const n = eff(tile);
@@ -459,10 +517,28 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
               </div>
             )}
             <div>
-              <h2 className="zd-day">{tx('pack.zd.today', 'Today')}</h2>
+              <h2 className="zd-day">{dayTitle}</h2>
               <p className="zd-date">{dateText}</p>
             </div>
           </div>
+
+          {pickDay && (
+            <div className="zd-days" role="radiogroup" aria-label={tx('pack.zd.pickDay', 'Which day')}>
+              {Array.from({ length: 7 }, (_, i) => shiftDay(todayK, -i)).map((k, i) => (
+                <button key={k} type="button" role="radio" aria-checked={k === day} className={`zd-dy${k === day ? ' on' : ''}`} onClick={() => setDay(k)}>
+                  <span>{i === 0 ? tx('pack.zd.today', 'Today') : i === 1 ? tx('pack.zd.yesterday', 'Yesterday') : fmt(k, { weekday: 'short' }).replace(/\./g, '')}</span>
+                  <b>{dateOf(k).getDate()}</b>
+                  {doneDays.has(k) && <HandCheck size={10} />}
+                </button>
+              ))}
+              <label className={`zd-dy zd-dy--cal${day < shiftDay(todayK, -6) ? ' on' : ''}`} aria-label={tx('pack.zd.olderDay', 'Older day')}>
+                <span>{tx('pack.zd.older', 'Older')}</span>
+                <b>{day < shiftDay(todayK, -6) ? dateOf(day).getDate() : '…'}</b>
+                <input type="date" value={day} min={shiftDay(todayK, -BACK_DAYS)} max={todayK}
+                  onChange={(e) => { const v = e.target.value; if (v && v <= todayK && v >= shiftDay(todayK, -BACK_DAYS)) setDay(v); }} />
+              </label>
+            </div>
+          )}
 
           {today === null ? <div className="zd-empty">…</div> : dogs.length === 0 ? (
             <div className="zd-empty">{tx('pack.zd.noDogs', 'The log is kept for living dogs in the pack.')}</div>
@@ -508,7 +584,7 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
 
             <div className="zd-sec">{tx('pack.zd.sentenceLbl', 'A sentence for the chronicle')}</div>
             <button type="button" className="zd-wfield" style={{ marginTop: 0 }} onClick={() => setWriting(true)}>
-              <span className={text.trim() ? '' : 'ph'}>{text.trim() || tx('pack.zd.write', 'What did you live today?')}</span>
+              <span className={text.trim() ? '' : 'ph'}>{text.trim() || (isToday ? tx('pack.zd.write', 'What did you live today?') : tx('pack.zd.writePast', 'What did you live that day?'))}</span>
               {photo ? <img src={photo.preview} alt="" /> : <HandCamera size={22} />}
             </button>
           </>)}
@@ -521,7 +597,7 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
 
         <div className={`zd-rit${ritual ? ' on' : ''}`} aria-hidden={!ritual}>
           {ritual && (<>
-            <div className="zd-seal"><span className="zd-rays" /><b>{ritual.day}</b><small>{tx('pack.zd.sealToday', 'TODAY')} · {tx('pack.zd.sealDone', 'LOGGED')}</small></div>
+            <div className="zd-seal"><span className="zd-rays" /><b>{ritual.day}</b><small>{isToday ? tx('pack.zd.sealToday', 'TODAY') : dayTitle} · {tx('pack.zd.sealDone', 'LOGGED')}</small></div>
             <div className="zd-prog">
               {rowsRef.current.map((r) => (
                 <div key={r.fam} className={`zd-pg${r.hit ? ' new' : ''}`}>
@@ -548,7 +624,7 @@ export function ZapisDna({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
               <textarea className="pf-field" autoFocus maxLength={500} value={text} onChange={(e) => setText(e.target.value)}
-                placeholder={tx('pack.zd.write', 'What did you live today?')} />
+                placeholder={(isToday ? tx('pack.zd.write', 'What did you live today?') : tx('pack.zd.writePast', 'What did you live that day?'))} />
               <div className="zd-wr-ph">
                 <button type="button" className="zd-wr-slot" disabled={!primary} aria-label={tx('pack.diary.photoAdd', 'Add a photo')} onClick={() => fileRef.current?.click()}>
                   {photo ? <img src={photo.preview} alt="" /> : <HandCamera size={26} />}

@@ -4,7 +4,7 @@
 // a záložka Denník na profile JA. Kronika sa nekopíruje — mení sa tu a platí na oboch.
 // ⚠️ Zápis (`DiaryEntry`) je prekryv NAD stránkou (lock §4.2) — človek z kroniky neodíde.
 // ════════════════════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import {
   PACK_THEME, PACK_HEAD, PACK_SPACE, PACK_TEXT, PACK_R, GOLD_BTN, PACK_BOX,
   FONT_TITLE, /* písmo: cta */ FONT_UI, PILL_CSS, PHOTO_CSS,
@@ -15,6 +15,10 @@ import { DiaryItem, DIARY_LIST_CSS, useDiaryRows, type DiaryRow } from './DiaryL
 import { loadPackDogs } from '@/lib/packDogsList';
 import { APP_NEW } from '@/lib/packFlags';
 import { loadZapisDays, KIND_EMOJI, type ZapisDay } from '@/components/pack/profile/zapisDnaModel';
+
+/** V appke NAPÍSAŤ = TEN ISTÝ panel ako labka, len s pásom dní (Matej 31. 10. 2026: „áno“ nad nákresom
+ *  `plany/nakresy/zapis-dna-2026-10-31/` · NAPÍSAŤ Z KRONIKY). Staré okno „Do denníka“ ostáva len webu. */
+const ZapisDna = lazy(() => import('@/components/pack/profile/ZapisDna').then((m) => ({ default: m.ZapisDna })));
 
 const T = PACK_THEME;
 type Tx = (key: string, fallback: string) => string;
@@ -140,7 +144,10 @@ export function ChronicleBody({ tx }: { tx: Tx }) {
         </div>
       ))}
 
-      {write && dogs && dogs.length > 0 && (
+      {write && APP_NEW && (
+        <Suspense fallback={null}><ZapisDna pickDay onClose={() => setWrite(false)} /></Suspense>
+      )}
+      {write && !APP_NEW && dogs && dogs.length > 0 && (
         <DiaryEntry
           dogs={dogs.map((d) => ({ id: d.id, name: d.dog_name ?? '—' }))}
           // Filter na jedného psa = NAPÍSAŤ ho predvyplní (audit 30. 10. 2026).
