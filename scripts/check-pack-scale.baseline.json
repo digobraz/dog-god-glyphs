@@ -554,10 +554,10 @@
   "components/pack/addtrip/AddTripLog.tsx": {
     "radius": 0,
     "font": 0,
-    "zavoj": 5,
+    "zavoj": 4,
     "progres": 0,
     "ram": 7,
-    "tien": 9,
+    "tien": 8,
     "pismenka": 0,
     "odsadenie": 0,
     "cinzel": 13,

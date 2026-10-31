@@ -7482,7 +7482,7 @@ export default function PackMap() {
                   Pramene a lavičky tu ZATIAĽ NIE SÚ — je ich 12 000 a 35 000, čo je iná liga
                   než 738 spacích miest; idú do tých istých dlaždíc, keď na ne príde rad.
                   Atribúcia (`<MapAttribution poi />` nižšie) je podmienka licencie ODbL. */}
-              {!isCleanMode && overlayOn.sleep && <PoiLayer tiles minZoom={SLEEP_MIN_ZOOM} />}
+              {!isCleanMode && overlayOn.sleep && <PoiLayer tiles minZoom={SLEEP_MIN_ZOOM} drawing={mapDrawing} />}
               {/* trip markery (pilulky s km, bodky-piktogramy, zhlukové bubliny s počtom) —
                   DOGYPT čistý vizuál (2026-08-04, Matej: „iba hmla a svetelné meče... žiadne
                   písmo ani vysvetlivky") ich celé skrýva, nesú číslo/piktogram na každom bode. */}

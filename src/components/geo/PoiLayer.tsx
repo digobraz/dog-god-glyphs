@@ -64,10 +64,14 @@ const POI_PRIORITY: Record<string, number> = {
   spring: 0, shelter: 1, saddle: 2, waterfall: 3, tower: 4,
   cave: 5, viewpoint: 6, firepit: 7, cliff: 8, bench: 9,
 };
-const prio = (t: string) => POI_PRIORITY[t] ?? 99;
+// ⚠️ PRÍSTREŠOK BEZ SPANIA USTÚPI PRAMEŇU (31. 10. 2026). So zlúčením bivaku a prístreška je
+// `sleep_bivak` 3 823 bodov, z toho len 149 sa dá prespať — zvyšok sú altánky na dážď. S prioritou
+// spacieho miesta by zatienili vodu, ktorá je pre psa na trase najdôležitejšia.
+const prio = (t: string, sleep?: boolean) =>
+  t === 'sleep_bivak' && !sleep ? 0.5 : POI_PRIORITY[t] ?? 99;
 
 /** Bod ktoréhokoľvek z oboch zdrojov. `TrailPoi` má zúžený `t`, dlaždice nesú aj `sleep_*`. */
-type AnyPoi = { t: string; lat: number; lon: number; name?: string; elev?: number };
+type AnyPoi = { t: string; lat: number; lon: number; name?: string; elev?: number; sleep?: boolean };
 
 /** Emoji podľa zdroja typu. Sady sú DVE (`POI_EMOJI` pre OSM body, `SLEEP_EMOJI` pre spacie
  *  miesta) zámerne — spacie miesta si Matej vyberá zvlášť a majú na mape iné postavenie. */
@@ -155,15 +159,6 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false, drawing = fals
   const posts = usePlacePosts();
   const [sel, setSel] = useState<PlacePoint | null>(null);
   const closeSel = useCallback(() => setSel(null), []);
-  // Odkaz „Poslať" otvorí miesto rovno (len hlavná mapa — článok má vlastný výrez).
-  useEffect(() => {
-    if (!tiles) return;
-    const p = placeFromUrl();
-    if (!p) return;
-    map.setView([p.lat, p.lon], Math.max(16, minZoom));
-    setSel(p);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
   // DEV: rukoväť na mapu pre vizuálnu kontrolu z konzoly (`__MAP.setView([lat,lon], z)`).
   // react-leaflet inštanciu nikam nevystavuje a cez React fiber sa k nej dostať nedá, takže
   // bez tohto sa vrstva nedá odskúšať inak než ručným ťahaním mapy k správnemu kopcu.
@@ -187,6 +182,19 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false, drawing = fals
   useMapEvent('moveend', onMoveEnd);
   useMapEvent('popupopen', onPopupOpen);
   useMapEvent('popupclose', onPopupClose);
+  // Odkaz „Poslať" otvorí miesto rovno (len hlavná mapa — článok má vlastný výrez).
+  // ⚠️ Až PO `useMapEvent`: `setView` pred ich prihlásením odpáli `zoomend` naprázdno, vrstva
+  // ostane na starom zoome pod prahom a dlaždice sa nenačítajú (zmerané 31. 10.).
+  useEffect(() => {
+    if (!tiles) return;
+    const p = placeFromUrl();
+    if (!p) return;
+    map.setView([p.lat, p.lon], Math.max(16, minZoom));
+    setZoom(map.getZoom());
+    setMoveTick((n) => n + 1);
+    setSel(p);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Hook sa volá VŽDY, aj keď `tiles` nie je zapnuté — podmienené volanie hooku React
   // nedovolí. Vypnutý vráti prázdno a nesiahne na sieť.
@@ -203,7 +211,7 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false, drawing = fals
     // body sa objavia samy — takže sa nič nestráca, len sa to nekopí.
     const placed: { x: number; y: number }[] = [];
     const out: AnyPoi[] = [];
-    for (const p of [...vis].sort((a, b) => prio(a.t) - prio(b.t) || (b.name ? 1 : 0) - (a.name ? 1 : 0))) {
+    for (const p of [...vis].sort((a, b) => prio(a.t, a.sleep) - prio(b.t, b.sleep) || (b.name ? 1 : 0) - (a.name ? 1 : 0))) {
       const pt = map.latLngToContainerPoint([p.lat, p.lon]);
       if (placed.some((q) => Math.abs(q.x - pt.x) < MARK_W && Math.abs(q.y - pt.y) < MARK_H)) continue;
       placed.push({ x: pt.x, y: pt.y });

@@ -4471,6 +4471,7 @@ export const sk: Partial<Dict> = {
   'pack.place.noPosts': "Zatiaľ bez postrehov",
   'pack.place.visitors': "Dogypťania tu: {n}",
   'pack.place.district': "okres {name}",
+  'pack.place.elev': "{m} m n. m.",
   'pack.place.copy': "Kopírovať",
   'pack.place.coordsCopied': "Súradnice sú skopírované",
   'pack.place.linkCopied': "Odkaz je skopírovaný",

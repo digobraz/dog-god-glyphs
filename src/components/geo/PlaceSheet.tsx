@@ -389,7 +389,7 @@ function PlaceDetail({ point, kind, name, posts, tx, onSave, onShare }: {
 
         <div className="plc-info" style={{ ...PACK_BOX.subblock }}>
           {where && (
-            <div><img src={ICON('mountain')} alt="" aria-hidden /><span>{where}</span></div>
+            <div><img src={ICON('map')} alt="" aria-hidden /><span>{where}</span></div>
           )}
           <div>
             <img src={ICON('pin')} alt="" aria-hidden />
@@ -397,7 +397,7 @@ function PlaceDetail({ point, kind, name, posts, tx, onSave, onShare }: {
             <button type="button" className="plc-link" onClick={copy}>{tx('pack.place.copy')}</button>
           </div>
           {point.elev != null && (
-            <div><img src={ICON('sun')} alt="" aria-hidden /><span>{point.elev.toLocaleString(intlLocale(lang))} m n. m.</span></div>
+            <div><img src={ICON('mountain')} alt="" aria-hidden /><span>{tx('pack.place.elev', { m: point.elev.toLocaleString(intlLocale(lang)) })}</span></div>
           )}
           {point.phone && (
             <div><img src={ICON('chat')} alt="" aria-hidden /><a className="plc-link plc-link--l" href={`tel:${point.phone.replace(/\s+/g, '')}`}>{point.phone}</a></div>
@@ -538,7 +538,7 @@ function PlacePostForm({ point, kind, name, drawing, scoredHere, onDone, onClose
             <div key={p.preview} className="plc-slot" style={{ backgroundImage: `url(${p.preview})` }}>
               {p.busy && <span className="plc-slot-busy" aria-label={tx('pack.place.uploading')} />}
               <button type="button" className="plc-slot-x" aria-label={tx('pack.place.removePhoto')}
-                onClick={() => setPhotos((prev) => prev.filter((q) => q.preview !== p.preview))}>×</button>
+                onClick={() => setPhotos((prev) => prev.filter((q) => q.preview !== p.preview))}><img src={ICON('cross')} alt="" aria-hidden /></button>
             </div>
           ))}
           {photos.length < MAX_PHOTOS && Array.from({ length: MAX_PHOTOS - photos.length }).map((_, i) => (
@@ -626,7 +626,8 @@ export const PLACE_SHEET_CSS = `
 .plc-pts{display:inline-flex;align-items:center;border-radius:${PACK_R.pill}px;padding:2px ${S.sm}px;border:1px solid ${T.tripPurple};
   color:${T.tripPurple};background:#FFFDF7;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:.02em;}
 
-.plc-side{position:fixed;right:${S.lg}px;top:${S.xxxl + S.xl}px;bottom:calc(var(--pack-nav-h,64px) + var(--pack-nav-bottom,16px) + ${S.md}px);
+/* Pod horným pásom mapy aj radom hľadania — panel nesmie zakryť štatistiky ani filtre. */
+.plc-side{position:fixed;right:${S.lg}px;top:${S.xxxl * 3 + S.xl + S.lg}px;bottom:calc(var(--pack-nav-h,64px) + var(--pack-nav-bottom,16px) + ${S.md}px);
   width:400px;z-index:65;display:flex;flex-direction:column;overflow:hidden;background:${T.cardGrad};color:${T.inkStrong};
   border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px;box-shadow:${T.panelShadow};font-family:${FONT_UI};
   --rp-fill:#A3782B;--rp-empty:#A3782B;--rp-empty-op:0.28;}
@@ -701,7 +702,8 @@ export const PLACE_SHEET_CSS = `
 .plc-slot-busy::after{content:'';position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:${PACK_R.pill}px;
   border:2px solid ${LAPIS.edge};border-right-color:transparent;animation:plc-spin .8s linear infinite;}
 .plc-slot-x{position:absolute;right:${S.xs}px;top:${S.xs}px;width:24px;height:24px;border-radius:${PACK_R.pill}px;border:0;
-  background:rgba(10,8,4,0.6);color:#FFF6E3;font-size:${PACK_TEXT.lead}px;line-height:24px;padding:0;cursor:pointer;}
+  background:rgba(10,8,4,0.6);display:grid;place-items:center;padding:0;cursor:pointer;}
+.plc-slot-x img{width:12px;height:12px;filter:invert(1);}
 .plc-text{width:100%;min-height:88px;padding:${S.md}px;font-family:${FONT_UI};font-size:${PACK_TEXT.lead}px;line-height:1.5;color:${T.inkStrong};resize:vertical;}
 .plc-reward{display:flex;align-items:center;gap:${S.sm}px;margin-top:${S.lg}px;padding:${S.sm}px ${S.md}px;font-size:${PACK_TEXT.label}px;
   color:${T.inkStrong};border-radius:${PACK_R.tile}px;border:1px solid ${T.tripPurple};}

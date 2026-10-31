@@ -4842,6 +4842,7 @@ export const en = {
   'pack.place.noPosts': "No notes yet",
   'pack.place.visitors': "Dogyptians here: {n}",
   'pack.place.district': "{name} district",
+  'pack.place.elev': "{m} m above sea level",
   'pack.place.copy': "Copy",
   'pack.place.coordsCopied': "Coordinates copied",
   'pack.place.linkCopied': "Link copied",
