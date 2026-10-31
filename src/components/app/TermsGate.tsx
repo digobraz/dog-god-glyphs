@@ -64,12 +64,12 @@ export function RulesSheet({ onDone }: { onDone: () => void }) {
         <p className="tr-eyebrow">{tx('appEntry.rules.eyebrow', 'Before you enter')}</p>
         <h2 id="tr-title" className="tr-title">{tx('appEntry.rules.title', 'Pack rules')}</h2>
         <ul className="tr-list">
-          {row(<HandCheck size={20} />, tx('appEntry.rules.h1', 'Fair play.'),
-            tx('appEntry.rules.r1', 'Earn points and levels **honestly** — **no point farming, no lies**. Points gained by cheating can be taken away.'))}
+          {row(<HandCheck size={20} />, tx('appEntry.rules.h1', 'Be fair.'),
+            tx('appEntry.rules.r1', 'Collect points **honestly** and **don\'t lie**. Suspicious activity will be uncovered by AINUBIS :)'))}
           {row(<HandHeart size={20} />, tx('appEntry.rules.h2', 'Respect.'),
-            tx('appEntry.rules.r2', '**Zero tolerance** for abuse, hate and indecent content.'))}
-          {row(<HandAlert size={20} />, tx('appEntry.rules.h3', 'Report & block.'),
-            tx('appEntry.rules.r3', 'Any post, comment or member. We act **within 24 hours** and remove what breaks the rules.'))}
+            tx('appEntry.rules.r2', 'We don\'t tolerate **insults, violence, stalking or spam**.'))}
+          {row(<HandAlert size={20} />, tx('appEntry.rules.h3', 'Report & block'),
+            tx('appEntry.rules.r3', '**anything inappropriate** — you help us spot problems sooner :)'))}
           {row(<img src={ainubisFace} alt="" />, 'AINUBIS',
             tx('appEntry.rules.r4', 'knows your dogs, DOG ID and diary to advise you precisely. **Any problem? Write to him.**'), true)}
         </ul>
