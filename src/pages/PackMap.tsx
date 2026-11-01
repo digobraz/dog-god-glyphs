@@ -71,6 +71,7 @@ import { SVK_BORDER } from '@/data/svkBorder';
 import { COUNTRY_BORDERS } from '@/data/countryBorders';
 import { trailCountry, flagUrl, flagEmoji } from '@/lib/countryGeo';
 import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/pack/PackLayout';
+import { SwipePhotos } from '@/components/pack/SwipePhotos';
 import { PackNotifications } from '@/components/pack/PackNotifications';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
@@ -6225,7 +6226,9 @@ export default function PackMap() {
         onClick={() => selectTrail(tr)}
       >
         <div className="trp-bigcard-photo">
-          {photo && <img className="trp-bigcard-img" src={photo} alt="" loading="lazy" decoding="async" draggable={false} style={{ objectPosition: coverPos(tr, idx) }} />}
+          {tr.photos.length > 1
+            ? <SwipePhotos photos={tr.photos.map((u) => sizedUrl(u, 1080) || u)} idx={idx} onIdx={(i) => setPhotoIdx((p) => ({ ...p, [tr.id]: i }))} position={(i) => coverPos(tr, i)} />
+            : photo && <img className="trp-bigcard-img" src={photo} alt="" loading="lazy" decoding="async" draggable={false} style={{ objectPosition: coverPos(tr, idx) }} />}
           <img className="trp-cardflag" src={flagUrl(trailCountry(tr))} alt="" loading="lazy" draggable={false} />
           {mg && !isFreeTrip(tr.id) && <span className="trp-lockbadge"><HandLock size={12} /></span>}
           {tr.photos.length > 1 && (
@@ -6449,7 +6452,11 @@ export default function PackMap() {
                     šípky (reused .trp-bigcard-photonav) + ♡ zmenené na ★ "Add to wishlist"
                     textové tlačidlo (dolný pravý roh, ako karta bod 3). */}
                 <div className={`trp-inldet-photowrap${isGhostJourney(dt, packWalked) ? ' trp-ghostphoto' : ''}`}>
-                  {photo && <div className="trp-inldet-photo" style={{ backgroundImage: `url('${photo}')`, backgroundPosition: coverPos(dt, idx) }} />}
+                  {dt.photos.length > 1
+                    ? <div className="trp-inldet-photo" style={{ position: 'relative', overflow: 'hidden' }}>
+                        <SwipePhotos photos={dt.photos.map((u) => sizedUrl(u, 1600) || u)} idx={idx} onIdx={(i) => setPhotoIdx((p) => ({ ...p, [dt.id]: i }))} position={(i) => coverPos(dt, i)} />
+                      </div>
+                    : photo && <div className="trp-inldet-photo" style={{ backgroundImage: `url('${photo}')`, backgroundPosition: coverPos(dt, idx) }} />}
                   {/* Magistrála na prevzatie autora NEMÁ — „by Hekthor & Matej" by klamalo. */}
                   {!isGhostJourney(dt, packWalked) && (
                   <div className="trp-inldet-authoravatar" title={t('pack.map.byAuthor', { author: authorOf(dt) })}>

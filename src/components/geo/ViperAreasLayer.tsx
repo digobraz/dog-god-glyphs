@@ -23,6 +23,10 @@ import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { useT } from '@/i18n/LanguageContext';
 import { VIPER_POINTS, VIPER_SOURCE, VIPER_FINDS_TOTAL } from '@/data/viperAreas';
 import { clusterByPixels, clusterPx, clusterRadiusForZoom } from '@/components/pack/mapnotes/clusterPoints';
+import { PackPopup } from '@/components/pack/PackPopup';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+type ViperPoint = (typeof VIPER_POINTS)[number];
 
 /** Nad týmto priblížením vrstva mizne — krajová značka bez odstupu začína klamať. */
 export const VIPER_MAX_ZOOM = 11;
@@ -60,6 +64,10 @@ const viperClusterIcon = (n: number) =>
 export function ViperAreasLayer({ lang }: { lang: string }) {
   const t = useT();
   const map = useMap();
+  // MOBIL = ŠUPLÍK ZDOLA, nie bublina (Matej 1. 11. 2026: „otvorí popup, ale ten sa schováva a je zbytočne úzky").
+  // Bublina nad značkou sa v telefóne nezmestí medzi lišty; PC ostáva pri bubline, len širšej.
+  const isMobile = useIsMobile();
+  const [sheet, setSheet] = useState<ViperPoint | null>(null);
   const [zoom, setZoom] = useState(() => map.getZoom());
   const [moveTick, setMoveTick] = useState(0);
   // Stabilná referencia — inak useMapEvent pri každom renderi listener prehodí
@@ -94,8 +102,32 @@ export function ViperAreasLayer({ lang }: { lang: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, zoom, moveTick]);
 
-  if (zoom > VIPER_MAX_ZOOM) return null;
   const sk = lang === 'sk' || lang === 'cs';
+  const bubble = (p: ViperPoint) => (
+    <div className="vp-bubble">
+      <div className="vp-head">
+        {/* Krúžok aj v bubline — tá istá zmena ako pri zápisoch svorky
+            (Matej 2026-08-22). Bublina je to, na čo človek klikol; holé
+            emoji by v nej čítalo ako iná vec než značka pod prstom. */}
+        <span className="vp-mark" aria-hidden="true"><i className="vp-em">🐍</i></span>
+        <span className="vp-kind">{t('pack.viper.title')}</span>
+      </div>
+      <p className="vp-area">{sk ? p.name : p.nameEN}</p>
+      <p className="vp-body">{t('pack.viper.one')}</p>
+      {/* ZDROJ NIE JE DROBNÉ PÍSMO NAKONIEC — sú to cudzie dáta a bez mena
+          by bublina tvrdila, že ich máme od seba. */}
+      <p className="vp-src">
+        {t('pack.viper.source')}<br />
+        <b>{VIPER_SOURCE.name}</b> · {VIPER_SOURCE.org}
+      </p>
+      <p className="vp-note">
+        {t('pack.viper.rough').replace('{total}', String(VIPER_FINDS_TOTAL))}
+      </p>
+    </div>
+  );
+
+  // Šuplík žije v stave, nie v značke: pri priblížení vrstva zmizne, ale otvorený text ostáva.
+  if (zoom > VIPER_MAX_ZOOM) return sheet ? <><style>{VIPER_CSS}</style><PackPopup over label={t('pack.viper.title')} onClose={() => setSheet(null)}>{bubble(sheet)}</PackPopup></> : null;
 
   return (
     <>
@@ -118,43 +150,29 @@ export function ViperAreasLayer({ lang }: { lang: string }) {
           // k celému kraju, takže sa nemá stratiť, a zároveň nesmie prekryť to,
           // čo človek práve robí.
           zIndexOffset={-200}
+          eventHandlers={isMobile ? { click: () => setSheet(it.p) } : undefined}
         >
           {/* ⚠️ Odsadenie musí pokryť plávajúce panely, nie okraj kontajnera — mapa
               je full-bleed POD nimi, takže „24 px zhora" znamená schovaný pod lištou
               (Matej 2026-08-22: „popupy pri vreteniciach sa zobrazujú zle cez okraj
               obrazovky"). Rovnaké čísla ako v MapNotesLayer — dve bubliny nad jednou
               mapou nesmú mať dva rôzne okraje. */}
-          <Popup
-            className="vp-popup"
-            closeButton={false}
-            autoPanPaddingTopLeft={[24, 170]}
-            autoPanPaddingBottomRight={[24, 110]}
-            keepInView
-          >
-            <div className="vp-bubble">
-              <div className="vp-head">
-                {/* Krúžok aj v bubline — tá istá zmena ako pri zápisoch svorky
-                    (Matej 2026-08-22). Bublina je to, na čo človek klikol; holé
-                    emoji by v nej čítalo ako iná vec než značka pod prstom. */}
-                <span className="vp-mark" aria-hidden="true"><i className="vp-em">🐍</i></span>
-                <span className="vp-kind">{t('pack.viper.title')}</span>
-              </div>
-              <p className="vp-area">{sk ? it.p.name : it.p.nameEN}</p>
-              <p className="vp-body">{t('pack.viper.one')}</p>
-              {/* ZDROJ NIE JE DROBNÉ PÍSMO NAKONIEC — sú to cudzie dáta a bez mena
-                  by bublina tvrdila, že ich máme od seba. */}
-              <p className="vp-src">
-                {t('pack.viper.source')}<br />
-                <b>{VIPER_SOURCE.name}</b> · {VIPER_SOURCE.org}
-              </p>
-              <p className="vp-note">
-                {t('pack.viper.rough').replace('{total}', String(VIPER_FINDS_TOTAL))}
-              </p>
-            </div>
-          </Popup>
+          {!isMobile && (
+            <Popup
+              className="vp-popup"
+              closeButton={false}
+              maxWidth={320}
+              autoPanPaddingTopLeft={[24, 170]}
+              autoPanPaddingBottomRight={[24, 110]}
+              keepInView
+            >
+              {bubble(it.p)}
+            </Popup>
+          )}
         </Marker>
         ),
       )}
+      {sheet && <PackPopup over label={t('pack.viper.title')} onClose={() => setSheet(null)}>{bubble(sheet)}</PackPopup>}
     </>
   );
 }
@@ -163,7 +181,12 @@ export function ViperAreasLayer({ lang }: { lang: string }) {
 // mapou nesmú byť z dvoch svetov. Leaflet si aj tu nesie vlastný biely chrome.
 const VIPER_CSS = `
 .vp-popup .leaflet-popup-content-wrapper{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:0;}
-.vp-popup .leaflet-popup-content{margin:0;padding:12px 14px;width:auto!important;min-width:200px;max-width:270px;}
+.vp-popup .leaflet-popup-content{margin:0;padding:12px 14px;width:auto!important;min-width:240px;max-width:320px;}
+/* V šuplíku je miesta dosť — text čitateľný, nie bublinkový. */
+.ppu-sheet .vp-area{font-size:16px;}
+.ppu-sheet .vp-body{font-size:14px;}
+.ppu-sheet .vp-src{font-size:12px;}
+.ppu-sheet .vp-note{font-size:12px;}
 .vp-popup .leaflet-popup-tip{background:${T.card};border:1.5px solid ${T.cardEdge};box-shadow:none;}
 .vp-popup a.leaflet-popup-close-button{display:none;}
 .vp-wrap{background:none;border:0;}
