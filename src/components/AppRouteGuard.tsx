@@ -11,7 +11,7 @@ import { IS_APP } from '@/lib/isApp';
 // Na webe sa komponent nevykreslí vôbec.
 
 const APP_PATHS = /^\/(pack|login|privacy|terms)(\/|$|\?)/;
-const PURCHASE = /^\/(heroglyph|entry|welcome)(\/|$)/;
+const PURCHASE = /^\/(heroglyph|checkout|payment|entry|welcome)(\/|$)/;
 
 function Guard() {
   const { pathname, search } = useLocation();
