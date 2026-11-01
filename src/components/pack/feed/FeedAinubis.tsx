@@ -99,7 +99,7 @@ function AiActs({ liked, saved, onLike, onSave, labels, onComment, comments = 0,
   return (
     <div className="zv-acts">
       <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={onLike} aria-pressed={liked} aria-label={labels.like}>
-        <HandPaw size={20} on={liked} />
+        <HandPaw size={20} on={liked} color={AINUBIS.cyan} />
         <span className="zv-n">{likes}</span>
       </button>
       {onComment && (

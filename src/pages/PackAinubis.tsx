@@ -85,6 +85,12 @@ const ZV_SIDE = 2 * PACK_SPACE.xl + 2 * PACK_SPACE.md + PACK_SPACE.lg;
 const CSS = `
 ${AI_BREATHE_CSS}
 ${STAGE_CSS}
+/* Som v AINUBISe ⇒ plávajúca guľa je duplikát a zavadzala filtrom (Matej 1. 11. 2026). */
+body:has(.akv-root) .ainubis-launcher{display:none;}
+/* Správy a upozornenia v AINUBISe BIELE, nie zlaté (Matej 1. 11. 2026: „žltá mi vadí"). Bodky
+   (červená = členovia, cyan = AINUBIS) ostávajú. Prebíja inline farbu z PackNotifications. */
+.akv-top [data-mg="msgs"],.akv-top [data-mg="notif"]{color:#fff !important;}
+.akv-top [data-mg="msgs"] img{filter:brightness(0) invert(1) !important;}
 .akv-root{position:fixed;inset:0;overflow:hidden;background:${AINUBIS.surfaceBase};color:${AINUBIS.ink};
   font-family:${FONT_UI};--akv-panel:min(40vw,480px);}
 /* Podsvietený displej, nie čierny obdĺžnik — dve mriežky ako v nákrese (.bg .mesh / .mesh8). */
@@ -1303,7 +1309,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           {SCROLL_DEMO && posBar('akv-pos--l')}
         </header>
 
-        <div className="akv-list" ref={listRef}>
+        <div className="akv-list" ref={listRef} data-retap-top>
         <div className="akv-col">
           {SCROLL_DEMO && listenBtn('akv-listen akv-listen--m')}
           {shown.length === 0 && feedShown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}

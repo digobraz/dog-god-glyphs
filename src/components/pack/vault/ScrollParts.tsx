@@ -56,7 +56,7 @@ const UI = {
     addedNone: 'Zatiaľ nič nové. Keď pribudne poznatok, ktorý nie je v podcaste, zapíše sa sem s dátumom.',
     rel: 'Súvisí', contrib: 'Prispej', cEdit: 'Navrhnúť zmenu', kinds: ['Pridať novú znalosť k téme', 'Nahlásiť chybné tvrdenie', 'Vlastný text'],
     propPh: 'Napíš, čo chýba alebo čo nesedí. Ak máš zdroj, pridaj odkaz.', propSend: 'Odoslať AINUBISOVI', propOk: 'Odoslané — AINUBIS to posúdi a overí zdroj.', photo: 'Fotka',
-    done: 'Prečítané — zapíš do mozgu', doneSub: 'krúžok zozelenie a zrno v mozgu sa rozsvieti',
+    done: 'Označiť ako prečítané',
     doneOk: 'Zapísané do mozgu', copied: 'Odkaz skopírovaný',
     tr: 'Prepis', trHide: 'Skryť prepis', other: 'Iný jazyk', reqTitle: 'Podcast v tvojom jazyku',
     reqText: 'Základ je SK · EN · CZ. Iný jazyk vznikne, keď oň požiada prvý člen — potom ostane pre všetkých.',
@@ -71,7 +71,7 @@ const UI = {
     addedNone: 'Zatím nic nového. Když přibude poznatek, který není v podcastu, zapíše se sem s datem.',
     rel: 'Souvisí', contrib: 'Přispěj', cEdit: 'Navrhnout změnu', kinds: ['Přidat novou znalost k tématu', 'Nahlásit chybné tvrzení', 'Vlastní text'],
     propPh: 'Napiš, co chybí nebo co nesedí. Pokud máš zdroj, přidej odkaz.', propSend: 'Odeslat AINUBISOVI', propOk: 'Odesláno — AINUBIS to posoudí a ověří zdroj.', photo: 'Fotka',
-    done: 'Přečteno — zapiš do mozku', doneSub: 'kroužek zezelená a zrno v mozku se rozsvítí',
+    done: 'Označit jako přečtené',
     doneOk: 'Zapsáno do mozku', copied: 'Odkaz zkopírován',
     tr: 'Přepis', trHide: 'Skrýt přepis', other: 'Jiný jazyk', reqTitle: 'Podcast ve tvém jazyce',
     reqText: 'Základ je SK · EN · CZ. Jiný jazyk vznikne, když o něj požádá první člen — pak zůstane pro všechny.',
@@ -86,7 +86,7 @@ const UI = {
     addedNone: 'Nothing new yet. When a finding that is not in the podcast arrives, it is written here with a date.',
     rel: 'Related', contrib: 'Contribute', cEdit: 'Suggest a change', kinds: ['Add new knowledge to the topic', 'Report a wrong claim', 'Own text'],
     propPh: 'Write what is missing or wrong. If you have a source, add the link.', propSend: 'Send to AINUBIS', propOk: 'Sent — AINUBIS will review it and check the source.', photo: 'Photo',
-    done: 'Read — write it into the brain', doneSub: 'the ring turns green and the grain lights up',
+    done: 'Mark as read',
     doneOk: 'Written into the brain', copied: 'Link copied',
     tr: 'Transcript', trHide: 'Hide transcript', other: 'Other language', reqTitle: 'Podcast in your language',
     reqText: 'The base is SK · EN · CZ. Another language is made when the first member asks for it — then it stays for everyone.',
@@ -466,7 +466,7 @@ export function ScrollActions({ id, lang, onTalk, lock }: {
       <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={lock ?? (() => toggleLiked(id))} aria-label={u.like}>
         {/* LABKA, nie srdce — Matej 26. 10. pri FEEDe: lajk = labka všade, DOGSCROLL = „to isté, len v inom priečinku“
             (prebíja 4. 10. „dajme srdiečko“; nákres plany/nakres-feed-2026-10-26.html). */}
-        <HandPaw size={20} on={liked} /><span className="zv-n">{likes}</span>
+        <HandPaw size={20} on={liked} color={AINUBIS.cyan} /><span className="zv-n">{likes}</span>
       </button>
       {/* PORADIE VŠADE: labka · komentár · ☆ (Matej 26. 10. 2026, lock architektura-pack §4.2). */}
       <button type="button" data-k="talk" className={`zv-act${talk > 0 ? ' is-on' : ''}`} onClick={lock ?? onTalk} aria-label={u.talk}>
@@ -909,9 +909,9 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
           {propSent && <div className="zv-ok">{u.propOk}</div>}
           </section>}
 
+          {/* „Označiť ako prečítané" (Matej 1. 11. 2026); odmena „Zapísané do mozgu" až po ťuku. */}
           {!lock && <button type="button" className={`zv-done${s === 2 ? ' is-done' : ''}`} onClick={() => markScroll(z.id, 2)}>
             <b>{s === 2 && <HandCheck size={12} />} {s === 2 ? u.doneOk : u.done}</b>
-            {s !== 2 && <small>{u.doneSub}</small>}
           </button>}
 
           {/* DISKUSIA — komentáre k celému článku, „ako také fórum" (Matej 3. 10.).
@@ -929,7 +929,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
                   {/* Lajk komentára s počtom od všetkých (`post_marks`). */}
                   <div className="zv-crow">
                     <button type="button" className={`zv-clike${c.liked ? ' is-on' : ''}`} onClick={() => toggleTalkLike(z.id, i)} aria-label={u.like}>
-                      <HandPaw size={16} on={!!c.liked} />{c.likes ?? (c.liked ? 1 : 0)}
+                      <HandPaw size={16} on={!!c.liked} color={AINUBIS.cyan} />{c.likes ?? (c.liked ? 1 : 0)}
                     </button>
                     {/* Mazanie VLASTNÉHO komentára (Matej 6. 10.: „musí to fungovať"). Dva kroky
                         priamo v riadku — systémové okno `confirm()` by zablokovalo appku. */}

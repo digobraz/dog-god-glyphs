@@ -706,6 +706,7 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
     }
     lastTap.current = { at: now, from: pathname };
     if (!pathname.startsWith('/pack/profile') && !pathname.startsWith('/pack/dogs')) navigate('/pack/profile');
+    else if (pathname === '/pack/profile' || pathname === '/pack/dogs') retapTop();
   };
 
   return (
@@ -1122,11 +1123,31 @@ function AinubisNavLink({ label }: { label: string }) {
   return <FloatingNavLink to="/pack/ainubis" label={label} icon="/icons/pack/star-six.svg" />;
 }
 
+/**
+ * ŤUK NA MIESTO, KDE UŽ SOM = SPÄŤ NA ZAČIATOK (Matej 1. 11. 2026: *„pri kliku na spodnú ikonku
+ * by sa mal obraz vrátiť na začiatok scrolingu (ako pri feede, mape zoznam)"*). Ako IG a iOS.
+ * Z podstránky (článok výletu, detail psa) vedie ťuk na koreň miesta sám `NavLink` — sem sa
+ * dostane len ťuk na ten istý koreň. Stránky s vlastným scrollom (nie okno) označia svoj
+ * zoznam `data-retap-top`; okno sa vracia vždy.
+ */
+export function retapTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.querySelectorAll<HTMLElement>('[data-retap-top]').forEach((el) => el.scrollTo({ top: 0, behavior: 'smooth' }));
+}
+
 function FloatingNavLink({ to, label, icon, end }: { to: string; label: string; icon: string; end?: boolean }) {
+  const { pathname, search } = useLocation();
   return (
     <NavLink
       to={to}
       end={end}
+      onClick={(e) => {
+        if (pathname.replace(/\/$/, '') !== to) return;
+        // Bez parametrov = som na úvode miesta, len sa vrátim hore. S parametrami (hľadanie,
+        // otvorený zvitok, rovina) NavLink ich zahodí — a hore sa ide tiež.
+        if (!search) e.preventDefault();
+        retapTop();
+      }}
       aria-label={label}
       className="group flex items-center gap-2 transition-all"
       style={({ isActive }) => pillStyle(isActive)}

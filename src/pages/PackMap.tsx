@@ -6803,7 +6803,7 @@ export default function PackMap() {
           </>)}
         </div>
 
-        <div className="trp-cards-scroll">
+        <div className="trp-cards-scroll" data-retap-top>
           <div className="trp-cards">
             {activeCat === 'trips'
               ? renderTripList(true)
@@ -7167,7 +7167,7 @@ export default function PackMap() {
       </div>
 
       {/* full-page card list (mobile 'list' view — replaces the map, not an overlay) */}
-      <div className="trp-mlist">
+      <div className="trp-mlist" data-retap-top>
         <div className="trp-cards">
           {activeCat === 'trips'
             ? renderTripList(false)

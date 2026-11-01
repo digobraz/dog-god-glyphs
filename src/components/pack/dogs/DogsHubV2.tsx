@@ -18,7 +18,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_HEAD } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { PROGRESS_STEPS } from '@/components/pack/dogQuiz';
@@ -66,7 +66,8 @@ const CSS = `
 .dv2{--g:${T.cardEdge};--g55:rgba(201,154,63,.55);--g30:rgba(201,154,63,.3);--pap:#FAF2E0;--red:#B25640;--grn:#3D7A4E;
  --lap:#1E3C90;--lapd:#0A1A4A;--ink:${T.inkStrong};--mut:${T.inkWarm};--sh:rgba(80,55,15,.18);--lsh:rgba(10,26,74,.3);--hi:rgba(255,255,255,.6)}
 .dv2-head{display:flex;justify-content:space-between;align-items:center;padding:4px 0 12px;border-bottom:1.5px solid var(--g55)}
-.dv2-title{font:700 16px Cinzel,Georgia,serif;letter-spacing:.14em;color:var(--ink);margin:0;text-transform:uppercase} /* písmo: nadpis */
+/* MOJA SVORKA = nadpis SEKCIE (PACK_HEAD.section), nie karty — Matej 1. 11. 2026: „menším a možno aj groteskom". */
+.dv2-title{font:${PACK_HEAD.section.fontWeight} ${PACK_HEAD.section.fontSize}px ${PACK_HEAD.section.fontFamily};letter-spacing:${PACK_HEAD.section.letterSpacing};color:var(--ink);margin:0;text-transform:uppercase}
 .dv2-add{display:flex;align-items:center;gap:8px;height:32px;padding:0 16px;border-radius:999px;background:transparent;border:0;cursor:pointer;
  box-shadow:inset 0 0 0 1.5px var(--lap);color:var(--lap);font:600 12px "Space Grotesk",system-ui;letter-spacing:.14em;text-transform:uppercase;text-decoration:none}
 .dv2-dogs{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 8px;padding:16px 0 4px}
