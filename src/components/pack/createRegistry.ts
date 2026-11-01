@@ -170,8 +170,9 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
   //    miesta; tu je jej `place` JA len preto, že register každému objektu jedno miesto pripisuje.
   {
     id: 'devotion',
-    labelKey: 'pack.create.devotion.title',
-    labelFallback: 'Log today',
+    // Názvy v appke = slovesom, Matej 1. 11. 2026: „pridať príspevok", „zapísať deň", „pridať výlet", „vysniffuj parťáka".
+    labelKey: APP_NEW ? 'pack.create.devotion.titleApp' : 'pack.create.devotion.title',
+    labelFallback: APP_NEW ? 'Log the day' : 'Log today',
     icon: { kind: 'panel' },
     place: 'JA',
     needs: 'pes',
@@ -187,8 +188,8 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
   // ── VON ───────────────────────────────────────────────────────────────────────────────────
   {
     id: 'trip',
-    labelKey: 'pack.addTrip.entry.kind.trip.title',
-    labelFallback: 'TRIP',
+    labelKey: APP_NEW ? 'pack.addTrip.entry.kind.trip.titleApp' : 'pack.addTrip.entry.kind.trip.title',
+    labelFallback: APP_NEW ? 'Add a trip' : 'TRIP',
     hintKey: 'pack.addTrip.entry.kind.trip.text',
     hintFallback: 'Share your spot with the pack',
     icon: { kind: 'panel' },
@@ -225,8 +226,8 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     // 🔴 VÝNIMKA z lock §8.1 („do registra `+` nepribúda NIČ") — Matej ju dal s tým lockom
     //    pred sebou, lock je doplnený. Nevzniká objekt, len vchod: routa, nie handler.
     id: 'sniffer',
-    labelKey: 'pack.addTrip.entry.kind.sniffer.title',
-    labelFallback: 'Open SNIFFER',
+    labelKey: APP_NEW ? 'pack.addTrip.entry.kind.sniffer.titleApp' : 'pack.addTrip.entry.kind.sniffer.title',
+    labelFallback: APP_NEW ? 'Sniff out a buddy' : 'Open SNIFFER',
     icon: { kind: 'panel' },
     place: 'VON',
     needs: 'pes',
@@ -327,8 +328,8 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
   // ── JA ────────────────────────────────────────────────────────────────────────────────────
   {
     id: 'post',
-    labelKey: 'pack.create.post.title',
-    labelFallback: 'Post',
+    labelKey: APP_NEW ? 'pack.create.post.titleApp' : 'pack.create.post.title',
+    labelFallback: APP_NEW ? 'Add a post' : 'Post',
     hintKey: 'pack.create.post.hint',
     hintFallback: 'photo + text + tags',
     icon: { kind: 'panel' },
@@ -645,8 +646,9 @@ export function createAll(place: CreatePlace): CreateObject[] {
 //    Mimo TEST_BUILD (členovia, dogypt.com) ostáva zoznam z 23. 10. bajt po bajte.
 // 🆕 31. 10. 2026 (audit appky): appka (`APP_NEW`) dostáva nový zoznam bez „Do denníka" (viď objekt `diary`).
 //    Web dogypt.com mimo TEST_BUILD ostáva bajt po bajte.
+// 🆕 1. 11. 2026 Matej: DOMOV = zapísať deň · príspevok · výlet · „vysniffuj parťáka"; Story je zrušený (`STORIES_ON`).
 export const DOMOV_PANEL: readonly CreateId[] = APP_NEW
-  ? ['devotion', 'post', 'story', 'trip']
+  ? ['devotion', 'post', 'trip', 'sniffer']
   : ['devotion', 'trip', 'wish', 'sniffer', 'diary'];
 
 // 🪪 JA MÁ VLASTNÝ VÝREZ (31. 10. 2026). Po odchode denníka z panela mal JA len devotion + príspevok,
@@ -661,7 +663,17 @@ export const JA_PANEL: readonly CreateId[] = ['devotion', 'post', 'story'];
 //    Podcast sa ukáže len keď je čo počúvať (`getPodcastNext`).
 export const AINUBIS_PANEL: readonly CreateId[] = ['devotion', 'chat', 'podcast'];
 
+// 🌍 VON V APPKE (Matej 1. 11. 2026: *„pri VON by som dal preč zapísať dnešok aj sniffer"*). Prebíja „devotion všade" z 23. 10.
+//    len na tomto mieste; sniffer sa dostane cez DOMOV. Web ostáva na fallbacku nižšie.
+export const VON_PANEL: readonly CreateId[] = ['trip', 'wish', 'note', 'event'];
+
 export function panelFor(place: CreatePlace): Array<{ group: CreatePlace | null; items: CreateObject[] }> {
+  if (place === 'VON' && APP_NEW) {
+    const items = VON_PANEL
+      .map((id) => CREATE_OBJECTS.find((o) => o.id === id))
+      .filter((o): o is CreateObject => !!o && isReady(o));
+    if (items.length >= 2) return [{ group: null, items }];
+  }
   if (place === 'AINUBIS') {
     const items = AINUBIS_PANEL
       .map((id) => CREATE_OBJECTS.find((o) => o.id === id))

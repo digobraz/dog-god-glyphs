@@ -1822,6 +1822,7 @@ export const cs: Partial<Dict> = {
   "pack.create.diary.hint": "poznámka · váha · zdraví · milník",
   "pack.create.photo.title": "Fotka",
   "pack.create.post.title": "Příspěvek",
+  'pack.create.post.titleApp': "Přidat příspěvek",
   "pack.create.post.hint": "fotka + text + štítky",
   "pack.create.chat.title": "Nový rozhovor",
   'pack.create.podcast.title': "Další podcast",
@@ -2322,6 +2323,7 @@ export const cs: Partial<Dict> = {
   'pack.map.layer.sleep': 'Chaty, prameny, výhledy',
   'pack.addTrip.entry.kind.wish.title': 'Přidat TRIPWISH',
   'pack.addTrip.entry.kind.sniffer.title': "Otevřít SNIFFER",
+  'pack.addTrip.entry.kind.sniffer.titleApp': "Vysniffuj parťáka",
   'pack.addTrip.entry.kind.wish.text': 'Kam tě to táhne',
   'pack.map.layer.wish': 'Přání',
   'pack.wish.guide.place': 'Kam tě to táhne? Vrchol, město i celý stát.',
@@ -3380,6 +3382,7 @@ export const cs: Partial<Dict> = {
   'pack.addTrip.entry.kind.service.title': 'SLUŽBA',
   'pack.addTrip.entry.kind.trip.text': 'Poděl se o svoje místo se smečkou',
   'pack.addTrip.entry.kind.trip.title': 'VÝLET',
+  'pack.addTrip.entry.kind.trip.titleApp': "Přidat výlet",
   'pack.addTrip.entry.planned.text': 'Přidej ho do soukromého triplistu — nebo ho zveřejni a najdi Dogypťany na cestu.',
   'pack.addTrip.entry.planned.title': 'NAPLÁNUJ VÝLET',
   'pack.addTrip.entry.walked.text': 'Zapiš výlet, který jsi se psy už absolvoval — a inspiruj ostatní Dogypťany.',
@@ -4253,6 +4256,8 @@ export const cs: Partial<Dict> = {
 
   // ── pack.alerts ──
   'pack.alerts.accepted': 'Jsi v partě',
+  'pack.alerts.tripPublished': 'Tvůj výlet je zveřejněný na mapě',
+  'pack.alerts.tripReturned': 'Tvůj výlet čeká na úpravu — AINUBIS ti napsal, co doplnit',
   'pack.alerts.requestFew': '{count} Dogypťané se chtějí přidat',
   'pack.alerts.requestMany': '{count} Dogypťanů se chce přidat',
   'pack.alerts.requestOne': '{count} Dogypťan se chce přidat',
@@ -6643,6 +6648,7 @@ export const cs: Partial<Dict> = {
   // DEVOTION: za čo sa dostáva · náhľad nováčika (23. 10. 2026)
   'pack.dvinfo.daily': "Každý den se psem",
   'pack.create.devotion.title': "Zapiš dnešek",
+  'pack.create.devotion.titleApp': "Zapsat den",
   'pack.dvtoday.levelUp': "Nový stupeň",
   'pack.rank.devPyramid': "Pyramida oddanosti",
   'pack.dvtoday.total': "Oddanost celkem",

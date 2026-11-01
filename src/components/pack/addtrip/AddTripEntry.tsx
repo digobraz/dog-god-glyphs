@@ -24,7 +24,7 @@ import {
   panelFor, isReady, type CreateId, type CreateObject, type CreatePlace,
 } from '@/components/pack/createRegistry';
 import { POINTS } from '@/lib/tripPoints';
-import { BUDDY_LIVE, EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
+import { APP_NEW, BUDDY_LIVE, EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
 import { useNavigate } from 'react-router-dom';
 import { RightGate } from '@/components/pack/RightGate';
 import type { PawmateRight } from '@/lib/pawmateRights';
@@ -155,8 +155,10 @@ const EMOJI: Record<CreateId, string> = {
   chat: '🤖', podcast: '🎧', brain: '📥', board: '❓',
   dm: '💌', group: '👪',
 };
+// Appka (Matej 1. 11. 2026): „zapíš dnešok by som dal checkmark zelený štvorček s bielym check, príspevok foťák s bleskom".
+const EMOJI_APP: Partial<Record<CreateId, string>> = { devotion: '✅', post: '📸' };
 /** Ten istý slovník aj mimo panela (šuplík ULOŽIŤ v príspevku, 25. 10. 2026) — jedno emoji na vec. */
-export const createEmoji = (id: CreateId): string => EMOJI[id];
+export const createEmoji = (id: CreateId): string => (APP_NEW && EMOJI_APP[id]) || EMOJI[id];
 
 
 /** Dlaždica podľa id objektu v registri. Mapové objekty kreslí panel, zvyšok register. */
@@ -276,7 +278,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBl
         }}
       >
         <span className="att-entry-emoji" aria-hidden="true">{EMOJI[k.kind as CreateId]}</span>
-        <span className="att-entry-title">{t(k.titleKey)}</span>
+        <span className="att-entry-title">{t(APP_NEW && k.kind === 'trip' ? 'pack.addTrip.entry.kind.trip.titleApp' : k.titleKey)}</span>
         {/* JEDNOTKA MUSÍ BYŤ PRI ČÍSLE a SKLOŇUJE SA (Matej 24. 8.): dlaždice nesú 20 / 10 / 3,
             teda dva slovenské tvary naraz. */}
         {/* PODUJATIE dáva body až PO USKUTOČNENÍ (Matej 24. 9. 2026) — „+10 bodov" pri
@@ -317,7 +319,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBl
           onCreate?.(o);
         }}
       >
-        <span className="att-entry-emoji" aria-hidden="true">{EMOJI[o.id]}</span>
+        <span className="att-entry-emoji" aria-hidden="true">{createEmoji(o.id)}</span>
         <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}</span>
         {/* N/M ďalšieho podcastu stojí mimo názvu — názov sa na úzkom mobile skracuje, číslo nesmie. */}
         {o.id === 'podcast' && getPodcastNext() && <span className="att-entry-num">{getPodcastNext()}</span>}
