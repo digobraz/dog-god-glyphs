@@ -16,11 +16,11 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { PACK_THEME, PACK_HEAD } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
+import { RoundQR } from '@/components/pack/dogs/RoundQR';
 import { PROGRESS_STEPS } from '@/components/pack/dogQuiz';
 import { LIVE_MODULES, moduleProgress } from '@/components/pack/dogIdModules';
 import { NATURE_ELEMENTS, NATURE_ROLES, type ElementKey, type RoleKey } from '@/components/pack/natureQuiz';
@@ -145,7 +145,12 @@ const CSS = `
 /* PREUKAZ — HERO VĽAVO */
 .dv2-idc{position:relative;border-radius:14px;padding:12px 16px 8px;overflow:hidden;margin:0 0 16px;
  background:radial-gradient(120% 70% at 100% 0%,rgba(242,210,122,.45),rgba(242,210,122,0) 55%),linear-gradient(160deg,#FCF6E8 0%,#F3E4C4 55%,#E9D3A2 100%);
- box-shadow:0 0 0 1.5px var(--g),0 0 0 4px var(--pap),0 0 0 5px var(--g55),0 12px 28px var(--sh);}
+ box-shadow:0 0 0 1.5px var(--g),0 0 0 4px var(--pap),0 0 0 5px var(--g55),0 12px 28px var(--sh);--mut:#5C3F1A}
+/* PERLEŤ S LAPISOVÝM NÁDYCHOM + vlnovky ako na bankovke (Matej 1. 11. 2026, nákres plany/nakres-launch-2026-11-01/preukaz) */
+.dv2-idc>*{position:relative;z-index:1}
+.dv2-idc::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;border-radius:inherit;
+ background:radial-gradient(90% 70% at 100% 100%,rgba(150,182,255,.42),rgba(150,182,255,0) 70%),radial-gradient(70% 50% at 0% 0%,rgba(170,198,255,.34),rgba(170,198,255,0) 70%),linear-gradient(120deg,rgba(255,255,255,.55) 0%,rgba(242,210,122,.18) 34%,rgba(255,255,255,.66) 54%,rgba(255,255,255,.4) 100%)}
+.dv2-idc>.dv2-gui{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.26;background:center/100% 100% no-repeat}
 .dv2-idc.ang{filter:saturate(.35)}
 .dv2-bar{display:flex;align-items:center;justify-content:space-between;padding:0 0 8px;margin:0 0 12px;border-bottom:1px solid var(--g55)}
 .dv2-bar img{height:16px;width:auto;display:block}
@@ -158,11 +163,11 @@ const CSS = `
 .dv2-lc{display:flex;flex-direction:column;justify-content:space-between;height:198px}
 .dv2-ph{width:84px;height:104px;border-radius:12px;object-fit:cover;display:block;box-shadow:0 0 0 1.5px var(--g),0 0 0 3px var(--pap);}
 .dv2-idc.ang .dv2-ph{filter:grayscale(1)}
-.dv2-qr{width:84px;height:84px;padding:8px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--g55);display:block}
+.dv2-qr{width:84px;height:84px;padding:8px;border-radius:12px;background:var(--pap);box-shadow:inset 0 0 0 1px var(--g55);display:block}
 .dv2-qr svg{display:block;width:100%;height:100%}
 .dv2-mc{display:flex;flex-direction:column;min-width:0;height:198px}
 .dv2-name{font:700 20px/1 ${NAME_FONT};color:var(--ink);overflow-wrap:anywhere}
-.dv2-f{display:flex;flex-direction:column;margin-top:8px}
+.dv2-f{display:flex;flex-direction:column;margin-top:4px}
 .dv2-f small{font:600 10px "Space Grotesk",system-ui;letter-spacing:.22em;color:var(--mut);text-transform:uppercase}
 .dv2-f span{font:600 12px "Space Grotesk",system-ui;color:var(--ink)}
 .dv2-f i{display:block;width:64px;height:6px;margin-top:4px;border-radius:999px;background:rgba(122,90,42,.16)}
@@ -458,6 +463,19 @@ function OneDogId({ v, solo, total, tx }: { v: View; solo: boolean; total: numbe
   );
 }
 
+/** Vlnovky preukazu: 14 sínusoviek a 2 kruhy (vzor z nákresu preukaz-v5). */
+const GUILLOCHE = (() => {
+  let p = '';
+  for (let i = 0; i < 14; i++) {
+    const y0 = 20 + i * 12;
+    let d = `M0 ${y0}`;
+    for (let x = 0; x <= 400; x += 10) d += ` L${x} ${(y0 + Math.sin(x / 28 + i * 0.7) * 6).toFixed(1)}`;
+    p += `<path d="${d}"/>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 252" preserveAspectRatio="none"><g fill="none" stroke="#C99A3F" stroke-width=".6">${p}<circle cx="330" cy="70" r="60" stroke-width=".5"/><circle cx="330" cy="70" r="46" stroke-width=".5"/></g></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+})();
+
 /** PREUKAZ — HERO VĽAVO (lock 28. 10.): heroglyf · fotka nad QR · meno + polia + odznaky. */
 function IdCard({ v, tx }: { v: View; tx: Tx }) {
   const s = v.dog.selections ?? {};
@@ -469,6 +487,7 @@ function IdCard({ v, tx }: { v: View; tx: Tx }) {
   const mrzName = v.name.toUpperCase().normalize('NFD').replace(/[^A-Z]/g, '');
   return (
     <div className={`dv2-idc${v.angel ? ' ang' : ''}`}>
+      <i className="dv2-gui" style={{ backgroundImage: GUILLOCHE }} />
       <div className="dv2-bar">
         <img src={LOGO_INK} alt="DOGYPT" />
         <span className="dv2-no">#{no}</span>
@@ -479,7 +498,7 @@ function IdCard({ v, tx }: { v: View; tx: Tx }) {
         </div>
         <div className="dv2-lc">
           <img className="dv2-ph" src={v.img} alt="" />
-          <span className="dv2-qr"><QRCodeSVG value={qrUrl} level="M" bgColor="transparent" fgColor="#24180a" /></span>
+          <span className="dv2-qr"><RoundQR value={qrUrl} ink="#24180a" eye="#1E3C90" /></span>
         </div>
         <div className="dv2-mc">
           <div className="dv2-name">{v.name}</div>
