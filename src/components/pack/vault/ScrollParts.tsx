@@ -32,6 +32,9 @@ const Ic = ({ ic }: { ic: string }) => (
   <i className="zv-ic" aria-hidden style={{ WebkitMaskImage: `url(/icons/pack/${ic}.svg)`, maskImage: `url(/icons/pack/${ic}.svg)` }} />
 );
 import { BackButton } from '@/components/pack/BackButton';
+import { PackTopRight } from '@/components/pack/PackLayout';
+import { useMagnetPreview } from '@/components/pack/magnetPreview';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang,
   markScroll, useScrollState, toggleSaved, useSaved, useTalk, useTalkCount, addTalk, deleteTalk, toggleLiked, useLiked,
@@ -202,6 +205,16 @@ ${packColCSS('.zv-wrap')}
 @media (max-width:767px){.zv-wrap{margin-top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px);margin-bottom:calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.lg}px);padding:${PACK_SPACE.md}px;}}
 @media (min-width:768px){.zv-wrap{padding:${PACK_SPACE.xl}px;}}
 .zv-back{margin-bottom:${PACK_SPACE.md}px;}
+/* MOBIL = ZVITOK NA CELÚ ŠÍRKU + LEPIACA HLAVIČKA so šípkou a upozorneniami (Matej 1. 11. 2026: „dať obsah po celej šírke",
+   „vždy možnosť vrátiť sa = sticky header"; PC ostáva blok). Ikonky biele ako na obrazovke AINUBISa. */
+.zv-bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;
+  padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.sm}px) ${PACK_SPACE.md}px ${PACK_SPACE.sm}px;background:${AINUBIS.surfaceBase};}
+.zv-bar [data-mg="msgs"],.zv-bar [data-mg="notif"]{color:#fff !important;}
+.zv-bar [data-mg="msgs"] img{filter:brightness(0) invert(1) !important;}
+@media (max-width:767px){
+  .zv-wrap.pk-stage{width:100%;max-width:none;margin-top:0;border:0;border-radius:0;box-shadow:none;}
+  .zv-wrap .zv-back{display:none !important;}
+}
 .zv-top{display:grid;grid-template-columns:1fr;gap:${PACK_SPACE.lg}px;}
 @media (min-width:768px){.zv-top{grid-template-columns:280px 1fr;}}
 .zv-hero img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:${PACK_R.tile}px;}
@@ -786,6 +799,8 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
   const [prop, setProp] = useState('');
   const [propSent, setPropSent] = useState(false);
   const veil = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+  const magnet = useMagnetPreview();
   const podRef = useRef<HTMLDivElement>(null);
   const srcRef = useRef<HTMLHeadingElement>(null);
   const talkRef = useRef<HTMLElement>(null);
@@ -826,6 +841,12 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
     <div className="zv-veil" ref={veil} role="dialog" aria-modal="true" aria-label={x.t}>
       <div className="zv-bg" aria-hidden />
       {gal !== null && gallery.length > 0 && <Gallery list={gallery} start={gal} label={u.back} onClose={() => setGal(null)} />}
+      {isMobile && (
+        <div className="zv-bar">
+          <BackButton tone="ainubis" onClick={onClose} label={u.back} />
+          {!magnet && <PackTopRight last24h={null} total={null} layout="inline" />}
+        </div>
+      )}
       <div className="zv-wrap pk-stage">
         <BackButton tone="ainubis" onClick={onClose} label={u.back} className="zv-back" />
         <div className="zv-top">

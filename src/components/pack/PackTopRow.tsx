@@ -56,6 +56,13 @@ function TopRowRight({ extra }: { extra?: ReactNode }) {
   );
 }
 
+const stickyRow = (scope: string) => `
+${scope} .pk-toprow{position:sticky;top:calc(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.top}px);}
+${scope} .pk-toprow::before{content:'';position:absolute;z-index:-1;pointer-events:none;left:50%;width:100vw;margin-left:-50vw;
+  top:calc(-1 * (env(safe-area-inset-top, 0px) + ${PACK_TOPROW.top}px));bottom:-${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h}px;background:${PAPER_BG};}
+${scope} .pk-toprow::after{content:'';position:absolute;z-index:-1;pointer-events:none;left:50%;width:100vw;margin-left:-50vw;
+  top:calc(100% + ${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h}px);height:${PACK_TOPROW.top}px;background:linear-gradient(180deg, ${PAPER_BG}, transparent);}`;
+
 const CSS = `
 .pk-toprow{position:relative;z-index:30;
   display:grid;grid-template-columns:1fr auto 1fr;align-items:center;box-sizing:border-box;
@@ -65,11 +72,10 @@ const CSS = `
 @media (min-width:640px){.pk-toprow{width:min(${PACK_COL_INNER}px, calc(100vw - ${2 * PACK_COL_PAD.desktop}px));}}
 /* Arabčina (dir=rtl): margin-left:50% + translate:-50% v RTL ujde o ~93 px za ľavý okraj
    a stránka dostane vodorovný scroll (UI audit jazykov 15. 10. 2026) — zrkadlový tvar. */
-.pk-plain .pk-toprow{position:sticky;top:calc(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.top}px);}
-.pk-plain .pk-toprow::before{content:'';position:absolute;z-index:-1;pointer-events:none;left:50%;width:100vw;margin-left:-50vw;
-  top:calc(-1 * (env(safe-area-inset-top, 0px) + ${PACK_TOPROW.top}px));bottom:-${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h}px;background:${PAPER_BG};}
-.pk-plain .pk-toprow::after{content:'';position:absolute;z-index:-1;pointer-events:none;left:50%;width:100vw;margin-left:-50vw;
-  top:calc(100% + ${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h}px);height:${PACK_TOPROW.top}px;background:linear-gradient(180deg, ${PAPER_BG}, transparent);}
+${stickyRow('.pk-plain')}
+/* ČÍTANIE NA MOBILE (.pk-read, článok výletu): tá istá lepiaca hlavička so šípkou späť a upozorneniami —
+   Matej 1. 11. 2026: „musí byť vždy možnosť vrátiť sa = sticky header". Na PC ostáva v toku. */
+@media (max-width:767px){${stickyRow('.pk-read')}}
 [dir=rtl] .pk-toprow{margin-left:0;margin-right:50%;translate:50% 0;}
 .pk-toprow > *{pointer-events:auto;}
 .pk-toprow-l{justify-self:start;display:flex;align-items:center;gap:${PACK_SPACE.md}px;}

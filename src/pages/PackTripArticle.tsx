@@ -38,6 +38,7 @@ import { PackTopRow } from '@/components/pack/PackTopRow';
 import { BackButton, BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 // Lapisové hlavné CTA + priesvitný tint stavu — jeden zdroj pre celý /pack (2026-08-26/28).
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, PALE } from '@/components/pack/navGoldSkin';
+import { HandPencil } from '@/components/pack/HandIcons';
 // Emoji v čísle výletu (km, prevýšenie) — bez tohto fontu sadne Windows na čiernobiely
 // textový variant. Ten istý zdroj, aký drží značky na mape.
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
@@ -253,8 +254,9 @@ const CSS = `
 /* Zrkadlo .pta-back — rovnaká výška aj tvar, aby hero mal dva rovnocenné rohy a nie jeden
    ovládač a jednu ozdobu. Zlatý inkoust hovorí „toto je tvoje", nie „pozor". */
 /* 27. 9. 2026 bledá spolu so šípkou (tá istá plocha ako backCircleCSS pale), inkoust ostáva zlatý. */
-.pta-edit{position:absolute;top:18px;right:18px;z-index:5;${backCircleCSS('pale')}color:${PALE.deep};font-size:16px;}
-.pta-edit:hover{${backHoverCSS('pale')}}
+/* 1. 11. 2026 LAPIS s bielou ceruzkou (Matej: „tá ceruzka na úpravu tripu je zle vidno"). Úprava = moja akcia ⇒ lapis. */
+.pta-edit{position:absolute;top:18px;right:18px;z-index:5;${backCircleCSS('pale')}color:#fff;background:${LAPIS.grad};border-color:${LAPIS.edge};box-shadow:${LAPIS_BTN_SHADOW};}
+.pta-edit:hover{background:${LAPIS.gradHover};}
 /* iterácia 15 (Matej 2026-07-27): akčný rad je VON z hero fotky — sedí v glass paneli NAD
    stat tabuľkou (km/prevýšenie). Dôvod: ghost tlačidlá na fotke boli „slabo viditeľné a biedne",
    plné farby na tmavom paneli čítajú lepšie a fotka ostáva čistá.
@@ -326,6 +328,13 @@ const CSS = `
 @media (min-width:768px){.pta-body{padding:24px 24px 0;}}
 /* Rám článku = stĺpec domova /pack (21. 9. 2026); užší ostáva len text (.pta-body 760). */
 ${packColCSS('.pta-shell')}
+/* MOBIL = ČLÁNOK NA CELÚ ŠÍRKU, štruktúra ako /profile (Matej 1. 11. 2026: „urobme to na celú šírku"; „na PC by som to
+   nechal, tam je blok na stred celkom fajn"). Rámik karty odchádza, fotka ide od kraja po kraj, text drží .pta-body. */
+@media (max-width:767px){
+  .pta-shell{width:100%;max-width:none;background:transparent;border:0;border-radius:0;box-shadow:none;}
+  /* Karta zakrývala tapetu; bez nej by text stál na rozmazaných heroglyfoch — hladký papyrus ako .pk-plain na /profile. */
+  .pk-paper.pta-root::before,.pk-paper.pta-root::after{display:none;}
+}
 /* §16 (2026-07-23): obsahová časť článku do zdieľaného LIQUID GLASS panelu (.pk-glass z GLASS_CSS)
    — nemá plávať na plnej čiernej, rovnaká situácia ako triplist/walked. */
 .pta-panel{padding:24px 16px 24px;}
@@ -1691,7 +1700,7 @@ export default function PackTripArticle() {
   );
 
   return (
-    <div className={`pk-paper pta-root${mg ? ' pta-root--mg' : ''}`}>
+    <div className={`pk-paper pk-read pta-root${mg ? ' pta-root--mg' : ''}`}>
       <style>{PAPER_PAGE_CSS}{HIT_CSS}</style>
       <style>{CSS}</style>
       <style>{COMMUNITY_CSS}</style>
@@ -1728,7 +1737,7 @@ export default function PackTripArticle() {
             sekciou, a v rade pod titulom (triplist / prešiel som / zdieľať) by si konkurovala
             s vecami, ktoré robí ktokoľvek. Vidí ju len autor (`canEdit`). */}
         {canEdit && (
-          <button type="button" className="pta-edit" onClick={() => setEditOpen(true)} aria-label={t('pack.trip.edit.open')}>✎</button>
+          <button type="button" className="pta-edit" onClick={() => setEditOpen(true)} aria-label={t('pack.trip.edit.open')}><HandPencil size={16} /></button>
         )}
       </div>
 
