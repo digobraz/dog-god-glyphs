@@ -152,8 +152,13 @@ ${VEIL_CSS}
    radius 14, panelShadow. Bez backdrop-filter — rozmazávať sa má závoj pod panelom,
    nie panel sám. */
 /* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len vrstva a odsadenie. */
-.comm-overlay{z-index:1200;padding:${VEIL_PAD};}
-.comm-modal{width:100%;max-width:420px;max-height:${MODAL_MAX_H};overflow-y:auto;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
+/* UKOTVENÉ (Matej 1. 11. 2026: „obsah v bloku celý pláva… vidím scrolling za blokom"). Blok sa hýbe len zvisle a na konci sa neťahá,
+   závoj gesto nepustí ďalej a rolovanie pod ním na dotyku stojí. Mesiac ako natívny vstup na iPhone by inak mohol rozšíriť stĺpec. */
+.comm-overlay{z-index:1200;padding:${VEIL_PAD};touch-action:none;}
+.comm-modal{width:100%;max-width:420px;max-height:${MODAL_MAX_H};overflow-x:hidden;overflow-y:auto;overscroll-behavior:none;touch-action:pan-y;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
+.comm-modal .comm-walked-grid > *{min-width:0;}
+.comm-modal input[type="month"]{max-width:100%;}
+@media (hover:none){body.comm-modal-open [data-retap-top]{overflow:hidden;}}
 .comm-modal.wide{max-width:640px;}
 /* Matej 2026-08-06 („konsolidujeme zjednodušujeme"): nadpis je CENTROVANÝ a nesie priamo názov
    tripu — dvojica „OHODNOŤ A ZÍSKAJ BODY" + podnadpis s názvom bola dva riadky na to isté.
@@ -843,6 +848,13 @@ function Modal({ title, sub, onClose, wide, children }: {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
+  // Stránka pod blokom sa nesmie rolovať (iPhone by „ťahal" celé okno), rovnako ako v PackPopup.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('comm-modal-open');
+    return () => { document.body.style.overflow = prev; document.body.classList.remove('comm-modal-open'); };
+  }, []);
   return createPortal(
     <div className="pk-veil pk-veil--modal comm-overlay" onClick={onClose}>
       <div className={`comm-modal${wide ? ' wide' : ''}`} onClick={(e) => e.stopPropagation()}>
