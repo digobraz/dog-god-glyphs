@@ -23,13 +23,13 @@
 // cesty nesie pole `art` v `natureQuiz.ts`, obrázky sú v `public/images/nature/`.
 // Výsledok je JEDEN DOKUMENT NA PSA (`ResultDoc`), nie štyri karty pod sebou.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { PackTopRow } from '@/components/pack/PackTopRow';
 import { BackButton } from '@/components/pack/BackButton';
 import { useMagnetPreview } from '@/components/pack/magnetPreview';
 import { MagnetLeadGate } from '@/components/pack/magnetLeadGate';
-import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, VEIL_CSS, usePaperRoute, PACK_TOPROW_PAD, PACK_TOPROW } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, VEIL_CSS, PACK_TOPROW_PAD, PACK_TOPROW } from '@/components/pack/packTheme';
 import {
   ELEMENT_QUESTIONS, ROLE_QUESTIONS, BALANCE_ITEMS, BALANCE_VET_NOTE,
   NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
@@ -45,7 +45,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
-import { PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { HandCheck, HandCycle } from '@/components/pack/HandIcons';
 import { sizedUrl } from '@/services/cloudinaryService';
 
@@ -107,18 +107,9 @@ const NQ_CSS = `${VEIL_CSS}
 }
 .nq-gold:hover{ transform:scale(1.04); background:${LAPIS.gradHover}; }
 .nq-gold:disabled{ opacity:.45; cursor:default; transform:none; box-shadow:none; }
-.nq-gold.is-ondark{
-  background:var(--cta-gradient-dark); color:#000;
-  border:1px solid ${GOLD_BTN.edge};
-  box-shadow:var(--cta-shadow-glow);
-}
 /* Ghost na čiernom: teplý hnedý ink "${T.inkWarm}" je inkoust NA PAPYRUS a na čiernej ho
    nevidno. Rovnaká pasca ako pri pätičke s attribution — na tmavých vrstvách sa berú
    onDark odtiene, nie ink*. */
-.nq-ghost.is-ondark{
-  border-color:rgba(201,154,63,0.55); color:${T.onDark};
-}
-.nq-ghost.is-ondark:hover{ border-color:${T.cardEdge}; color:#F5C73D; }
 /* Hlavné CTA úvodu — vzor hub-gold.is-big z PackDogs.tsx. Meria sa na šírku
    textového stĺpca, nie na dĺžku slova START: tlačidlo, ktoré má stránku otvoriť,
    nesmie byť menšie než dlaždice nad ním (Matej 14.8.: „urob vačšie širšie").
@@ -800,6 +791,54 @@ const NQ_READ: React.CSSProperties = {
  * Pri 5–6 psoch by 54 px zabralo viac než pol riadku, tak sa zmenšujú. 36 px je dno
  * (dotykové minimum) — pod ním sa rad radšej zalomí pod text (media query 500 px).
  */
+const NQ_PLAIN_CSS = `
+/* ── JEDNOLIATY KVÍZ (Matej 1. 11. 2026: „tmavé pozadie tam nebude a nedajme to ani do bloku ale do jednoliateho pozadia a trošku to
+   obzvláštnime… zostanem v brande"). Hladký papyrus bez heroglyfov a bez rámov. Charakter nesie VITRÁŽ od kraja po kraj, ktorá sa do
+   papyrusu rozplynie, a STOPA LABIEK. Výber = lapisový tint (moja voľba), poloha = zlato. Stojí za NQ_CSS a prebíja ho poradím. */
+.nq-plain.pk-paper::before,.nq-plain.pk-paper::after{display:none;}
+.nq-plain .nq-band,.nq-plain .nq-introart{display:block;position:relative;overflow:hidden;min-height:0;margin:0 -16px 8px;}
+.nq-plain .nq-band{height:120px;}
+.nq-plain .nq-introart{height:320px;}
+.nq-plain .nq-band img,.nq-plain .nq-introart img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:left top;display:block;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 24px,#000 58%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 24px,#000 58%,transparent 100%);}
+.nq-plain .nq-intro{display:block;overflow:visible;}
+.nq-plain .nq-introbody{padding:0;}
+.nq-plain .nq-axes{gap:0;}
+.nq-plain .nq-axis{background:none;border:0;border-radius:0;box-shadow:none;padding:12px 0;border-bottom:1px solid ${PALE.border};}
+.nq-plain .nq-axis:last-child{border-bottom:0;}
+.nq-plain .nq-opts{gap:4px;margin:0 -12px;}
+.nq-plain .nq-opt,.nq-plain .nq-optlbl{padding:12px;}
+.nq-plain .nq-opts:has(.nq-optrow){gap:16px;}
+.nq-plain .nq-opt,.nq-plain .nq-optlbl{background:none;border:1.5px solid transparent;box-shadow:none;}
+.nq-plain .nq-opt:hover,.nq-plain .nq-optlbl:hover{background:rgba(22,48,122,0.06);border-color:transparent;box-shadow:none;transform:none;}
+.nq-plain .nq-opt.is-on,.nq-plain .nq-optlbl.is-on,.nq-plain .nq-opt.is-on:hover,.nq-plain .nq-optlbl.is-on:hover{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
+.nq-plain .nq-optlbl.is-some{background:rgba(22,48,122,0.07);border-color:transparent;box-shadow:inset 4px 0 0 ${LAPIS.edge};color:${PICK_INK.lapis};}
+.nq-plain .nq-mark{background:none;}
+.nq-plain .is-on > .nq-mark{background:${LAPIS.edge};border-color:${LAPIS.edge};color:#fff;}
+.nq-plain .nqd{background:none;border:0;border-radius:0;box-shadow:none;overflow:visible;}
+.nq-plain .nqd::before,.nq-plain .nqd::after{display:none;}
+.nq-plain .nqd-framed{border:0;padding:0;}
+.nq-plain .nqd-inner{border:0;padding:0;}
+.nq-paws{display:flex;align-items:center;justify-content:space-between;height:24px;}
+.nq-paw{width:16px;height:16px;background:${T.cardEdge};opacity:.28;transform:rotate(90deg) translateX(-3px);transition:opacity .3s;
+  -webkit-mask:url('/icons/pack/paw-solid.svg') center/contain no-repeat;mask:url('/icons/pack/paw-solid.svg') center/contain no-repeat;}
+.nq-paw:nth-child(even){transform:rotate(90deg) translateX(3px);}
+.nq-paw.on{opacity:1;}
+.nq-paw.last{animation:nq-paw-in .45s cubic-bezier(.3,1.5,.5,1);}
+@keyframes nq-paw-in{from{scale:.3;opacity:.2;}to{scale:1;opacity:1;}}
+.nq-step{animation:nq-step-in .35s ease both;}
+@keyframes nq-step-in{from{opacity:0;translate:0 8px;}to{opacity:1;translate:0 0;}}
+@media (prefers-reduced-motion:reduce){.nq-step,.nq-paw.last{animation:none;}}
+@media (min-width:640px){
+  .nq-plain .nq-band,.nq-plain .nq-introart{margin:0 0 8px;}
+  .nq-plain .nq-band{height:160px;}
+  .nq-plain .nq-introart{height:360px;}
+  .nq-plain .nq-introart img{object-position:center 12%;}
+  .nq-plain .nq-band img{object-position:center top;}
+  .nq-plain .nq-intro,.nq-plain .nq-step{max-width:640px;margin-left:auto;margin-right:auto;width:100%;}
+}
+`;
+
 function readStyle(dogCount: number): React.CSSProperties {
   const size = dogCount <= 2 ? 54 : dogCount <= 4 ? 44 : 38;
   return { ...NQ_READ, ['--nq-dog' as string]: `${size}px` } as React.CSSProperties;
@@ -893,8 +932,7 @@ function Card({ children, style, className }: {
 }) {
   return (
     <div className={className} style={{
-      background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
-      boxShadow: T.cardShadow, padding: '24px 16px', ...style,
+      padding: 0, ...style,
     }}>{children}</div>
   );
 }
@@ -911,18 +949,11 @@ function Tile({ children }: { children: React.ReactNode }) {
   );
 }
 
-// POZOR: pätička stojí MIMO papyrusovej karty, teda na čiernom pozadí. `T.inkFaint`
-// je tmavý ink pre papyrus — na tmavom je nečitateľný. Odhalil to screenshot, nie tsc:
-// typová kontrola prejde, text je len neviditeľný. Na tmavých vrstvách sa berú
-// `onDark*` tokeny, nie `ink*`.
-// ⚠️ Pri bledom šate (pk-paper) je pod pätičkou papyrusová tapeta, nie čierna — krémový
-// ink tam zanikol. Tón sa berie z PODKLADU, rovnako ako krížik v Shell.
 function Attribution({ tx }: { tx: (k: string, f: string) => string }) {
-  const paper = usePaperRoute(useLocation().pathname);
   return (
     <p style={{
       fontFamily: FONT_UI, fontSize: 10, lineHeight: 1.55,
-      color: paper ? T.inkWarm : 'rgba(245,240,228,0.55)',
+      color: T.inkWarm,
       marginTop: 12, textAlign: 'center',
     }}>
       {tx(NATURE_ATTRIBUTION.i18n, NATURE_ATTRIBUTION.textEN)}
@@ -970,11 +1001,7 @@ function AxisTile({ icon, title, sub }: { icon: string; title: string; sub: stri
 function DogIdNote({ tx }: { tx: (k: string, f: string) => string }) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 16, marginTop: 12,
-      padding: '12px 16px', borderRadius: 12,
-      background: 'radial-gradient(circle at 22% 20%, #12233a 0%, #01050A 74%)',
-      border: '1px solid rgba(91,224,240,0.28)',
-      boxShadow: '0 0 0 4px rgba(59,158,255,0.05), 0 18px 44px -22px rgba(59,158,255,0.45)',
+      display: 'flex', alignItems: 'center', gap: 16, marginTop: 12, padding: '12px 0',
     }}>
       <img
         src={ainubisBadge}
@@ -998,10 +1025,10 @@ function DogIdNote({ tx }: { tx: (k: string, f: string) => string }) {
       <div style={{ minWidth: 0 }}>
         <div style={{
           fontFamily: FONT_UI, fontWeight: 600, textTransform: 'uppercase',
-          fontSize: 12, letterSpacing: '0.14em', color: '#5BE0F0', marginBottom: 4,
+          fontSize: 12, letterSpacing: '0.14em', color: LAPIS.edge, marginBottom: 4,
         }}>{tx('pack.nature.intro.dogid', 'It goes into the DOG ID')}</div>
         <div style={{
-          fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.5, color: T.onDarkDim,
+          fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.5, color: T.inkWarm,
         }}>
           {tx('pack.nature.intro.dogidSub',
             'Your answers go into the DOG ID, so advice on food, routine and training fits this dog.')}
@@ -1130,22 +1157,21 @@ function ScoreBreakdown({ r, tx }: { r: NatureResult; tx: (k: string, f: string)
  * `done` v stránke). Pri troch psoch teda prúžok nenarastie, kým neodpovedia všetci,
  * a to je správne: inak by sľuboval hotovo pri jednom psovi z troch.
  */
+const PROG_PAWS = 11;
 function Progress({ done, total, label }: { done: number; total: number; label: string }) {
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const onPaws = Math.round((pct / 100) * PROG_PAWS);
   return (
     <div className="nq-prog">
       <div className="nq-proghead">
         <span className="nq-proglbl">{label}</span>
         <span className="nq-prognum">{pct}%</span>
       </div>
-      <div
-        className="nq-progbar"
-        role="progressbar"
-        aria-valuenow={done}
-        aria-valuemin={0}
-        aria-valuemax={total}
-      >
-        <div className="nq-progbar__on" style={{ width: `${pct}%` }} />
+      {/* STOPA LABIEK namiesto pruhu: pes kráča dokumentom doprava, zlatá = poloha. Každá labka sú dve otázky. */}
+      <div className="nq-paws" role="progressbar" aria-valuenow={done} aria-valuemin={0} aria-valuemax={total}>
+        {Array.from({ length: PROG_PAWS }, (_, i) => (
+          <span key={i} className={`nq-paw${i < onPaws ? ' on' : ''}${i === onPaws - 1 ? ' last' : ''}`} />
+        ))}
       </div>
     </div>
   );
@@ -1274,7 +1300,7 @@ function PackHint({ tx }: { tx: (k: string, f: string) => string }) {
  */
 function HowItWorks({ solo, tx }: { solo: boolean; tx: (k: string, f: string) => string }) {
   return (
-    <div style={{ ...PACK_BOX.subblock, padding: '12px 16px', margin: '0 0 16px' }}>
+    <div style={{ margin: '0 0 16px' }}>
       <div style={{
         fontFamily: FONT_UI, fontSize: 10, fontWeight: 500, letterSpacing: '.26em',
         textTransform: 'uppercase', color: T.cardEdge, marginBottom: 6,
@@ -1358,31 +1384,14 @@ function Shell({ children, onClose, fill, overlay }: {
   // NÁHĽAD NA `/magnet/kviz`: horný rad je len šípka späť (AINUBIS panel tu nežije) a
   // spodok nesmie zakryť lišta s CTA (~72 px + safe-area).
   const mg = useMagnetPreview();
-  // Karty kvízu su papyrusové v oboch šatoch — tmavá ostala len TAPETA za nimi, takže
-  // pri zapnutom bledom šate si z papyrusového hubu prepadol do čiernej. Recept bledej
-  // plochy je `pk-paper` + `PAPER_PAGE_CSS`, ten istý ako v `PackLayout`.
+  // JEDNOLIATY PAPYRUS BEZ BLOKOV (Matej 1. 11. 2026: „tmavé pozadie tam nebude a nedajme to ani do bloku ale do jednoliateho
+  // pozadia"). Platí v oboch šatoch a na všetkých obrazovkách kvízu, tmavá tapeta tu zanikla.
   const t = useT();
-  const paper = usePaperRoute(useLocation().pathname);
   return (
-    <div
-      className={`min-h-[100dvh] relative flex flex-col${paper ? ' pk-paper' : ''}`}
-      style={paper ? { color: T.inkStrong } : { backgroundColor: T.pageBg, color: T.onDark }}
-    >
-      {paper ? <style>{PAPER_PAGE_CSS}</style> : (
-        <>
-          <div aria-hidden style={{
-            position: 'fixed', inset: 0, width: '100vw', height: '100lvh',
-            backgroundImage: "url('/images/bg-dark.webp')", backgroundSize: 'cover',
-            backgroundPosition: 'center', filter: 'blur(3px)', zIndex: 0, pointerEvents: 'none',
-          }} />
-          <div aria-hidden style={{
-            position: 'fixed', inset: 0, width: '100vw', height: '100lvh',
-            background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.25) 0%, rgba(5,5,5,0.45) 60%, rgba(5,5,5,0.6) 100%)',
-            zIndex: 0, pointerEvents: 'none',
-          }} />
-        </>
-      )}
+    <div className="min-h-[100dvh] relative flex flex-col pk-paper nq-plain" style={{ color: T.inkStrong }}>
+      <style>{PAPER_PAGE_CSS}</style>
       <style>{NQ_CSS}</style>
+      <style>{NQ_PLAIN_CSS}</style>
       <div
         className={`relative z-10 mx-auto w-full px-4 sm:px-6 flex flex-col ${fill ? 'flex-1 pb-6' : 'pb-24'}`}
         style={{ maxWidth: PACK_COL.wide, paddingTop: PACK_TOPROW_PAD, ...(mg ? { paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))' } : null) }}
@@ -1512,7 +1521,7 @@ function BalanceSection({ b, own, tx }: {
           VÝZNAM. Presne ako ZÁVET na DOG ID: sekcia, ktorá hovorí o chorobe, nesmie
           mať na papyruse rovnakú váhu ako obľúbená maškrta. */}
       {b.diagnoses.length > 0 && (
-        <div style={{ ...PACK_BOX.subblockDark, padding: '16px 16px', marginTop: 12 }}>
+        <div style={{ padding: '16px 0', marginTop: 12 }}>
           <p className="nqd-eyebrow" style={{ color: T.cardEdge }}>
             {tx('pack.nature.balance.vet', 'This belongs with your vet')}
           </p>
@@ -1520,11 +1529,11 @@ function BalanceSection({ b, own, tx }: {
             {b.diagnoses.map((it) => (
               <span key={it.id} className="pk-pill--dark" style={{
                 fontFamily: FONT_UI, fontSize: 12, padding: '4px 12px', borderRadius: 999,
-                border: `1px solid ${T.cardEdge}`, background: 'rgba(201,154,63,0.10)', color: T.onDark,
+                border: `1px solid ${T.cardEdge}`, background: 'rgba(201,154,63,0.10)', color: T.inkStrong,
               }}>{tx(it.i18n, it.labelEN)}</span>
             ))}
           </div>
-          <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.6, color: T.onDarkDim, margin: 0 }}>
+          <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.6, color: T.inkWarm, margin: 0 }}>
             {tx(BALANCE_VET_NOTE.i18n, BALANCE_VET_NOTE.textEN)}
           </p>
         </div>
@@ -2200,10 +2209,10 @@ export default function PackNatureQuiz() {
           </div>
         ))}
         <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button type="button" className="nq-ghost is-ondark" onClick={startOver}>
+          <button type="button" className="nq-ghost" onClick={startOver}>
             <HandCycle size={14} /> {tx('pack.nature.result.again', 'Take it again')}
           </button>
-          <button type="button" className="nq-gold is-ondark" onClick={() => navigate(exitTo)}>
+          <button type="button" className="nq-gold" onClick={() => navigate(exitTo)}>
             {tx('pack.nature.result.done', 'Done')}
           </button>
         </div>
@@ -2217,9 +2226,7 @@ export default function PackNatureQuiz() {
   if (phase === 'intro') {
     return (
       <Shell onClose={() => navigate(exitTo)} fill>
-        {/* ⚠️ `padding` a `overflow` musia ísť INLINE — `Card` si padding píše inline
-            a inline vždy prebije triedu `.nq-intro`. */}
-        <Card className="nq-intro" style={{ flex: 1, padding: 0, overflow: 'hidden' }}>
+        <Card className="nq-intro" style={{ flex: 1 }}>
           {/* Obraz je prvý v DOM aj na mobile — pás nad textom, nie pod tlačidlom. */}
           <div className="nq-introart">
             <img src={INTRO_ART} alt="" aria-hidden />
@@ -2276,9 +2283,9 @@ export default function PackNatureQuiz() {
         {/* Karta je široká ako panely `/pack`, ale ČÍTACÍ stĺpec vnútri je zúžený
             (`NQ_READ`) — veta odpovede roztiahnutá na 1000 px sa oku ťažko vracia
             na začiatok riadku. Široký je panel, nie riadok textu. */}
-        <Card style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Card style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <QuizArt />
-          <div style={readStyle(list.length)}>
+          <div className="nq-step" key={q.id} style={readStyle(list.length)}>
             {/* Číslo je „v tomto kvíze", nie „zo všetkých 22" — po prestavbe sú to
                 tri samostatné kvízy a „11 z 22" by po predele pôsobilo, akoby sa
                 nič neposunulo. Prúžok naďalej meria celý priebeh. */}
@@ -2354,7 +2361,7 @@ export default function PackNatureQuiz() {
   if (phase === 'balance') {
     return (
       <Shell onClose={requestClose} fill overlay={leaveOverlay}>
-        <Card style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Card style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <QuizArt />
           <div style={readStyle(list.length)}>
             <Progress done={done} total={total} label={tx('pack.nature.part.balance', 'Balance')} />
@@ -2390,7 +2397,7 @@ export default function PackNatureQuiz() {
                   {ELEMENT_KEYS.map((el) => {
                     const items = BALANCE_ITEMS.filter((b) => b.element === el);
                     return (
-                      <div key={el} style={{ ...PACK_BOX.subblock, padding: '12px 16px' }}>
+                      <div key={el} style={{ padding: '4px 0' }}>
                         <div style={{
                           fontFamily: FONT_UI, fontWeight: 500, fontSize: 10, letterSpacing: '.26em',
                           textTransform: 'uppercase', color: T.cardEdge, marginBottom: 10,
@@ -2452,7 +2459,7 @@ export default function PackNatureQuiz() {
   if (phase === 'special') {
     return (
       <Shell onClose={requestClose} fill overlay={leaveOverlay}>
-        <Card style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Card style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <QuizArt />
           <div style={readStyle(list.length)}>
             <Progress done={done} total={total} label={tx('pack.nature.progress', 'Progress')} />
@@ -2571,20 +2578,18 @@ export default function PackNatureQuiz() {
           <ResultDoc dog={dog} r={r} b={b} tx={tx} />
         </div>
       ))}
-      {/* JEDINÉ dve tlačidlá kvízu na ČIERNOM podklade — stoja pod kartami, nie v nich.
-          Preto `is-ondark`: jasná zlatá so žiarou a svetlý ink v ghoste. */}
       <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-        <button type="button" className="nq-ghost is-ondark" onClick={restart}>
+        <button type="button" className="nq-ghost" onClick={restart}>
           <HandCycle size={14} /> {tx('pack.nature.result.again', 'Take it again')}
         </button>
         {!mg && (
-          <button type="button" className="nq-gold is-ondark" onClick={() => navigate(exitTo)}>
+          <button type="button" className="nq-gold" onClick={() => navigate(exitTo)}>
             {tx('pack.nature.result.done', 'Done')}
           </button>
         )}
       </div>
       {mg && (
-        <div style={{ ...PACK_BOX.subblock, padding: '12px 16px', marginTop: 18 }}>
+        <div style={{ padding: '12px 0', marginTop: 18 }}>
           <p style={{ fontFamily: FONT_UI, fontSize: 14, lineHeight: 1.55, color: T.inkStrong, margin: 0 }}>
             {tx('magnet.pv.quiz.p', 'As a Dogyptian you save the full reading — food, what to watch, advice from AINUBIS — to your dog’s DOG ID.')}
           </p>
@@ -2596,7 +2601,7 @@ export default function PackNatureQuiz() {
         </p>
       )}
       {saved && (
-        <p style={{ fontFamily: FONT_UI, fontSize: 10, color: 'rgba(245,240,228,0.55)', marginTop: 12, textAlign: 'center' }}>
+        <p style={{ fontFamily: FONT_UI, fontSize: 10, color: T.inkWarm, marginTop: 12, textAlign: 'center' }}>
           <HandCheck size={12} />{' '}
           {solo
             ? tx('pack.nature.result.saved', 'Saved to your dog’s card')

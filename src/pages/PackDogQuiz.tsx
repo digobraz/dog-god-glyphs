@@ -23,10 +23,11 @@ import { canStepBack } from '@/lib/stepBack';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PackTopRow } from '@/components/pack/PackTopRow';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PAPER_PAGE_CSS, usePaperRoute, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PAPER_PAGE_CSS, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
 import { QUIZ_BY_KEY, quizValueLabel, type QuizStep } from '@/components/pack/dogQuiz';
 import { BASE_FLOW, BASE_SEGMENTS, segmentAt, firstOpenStep } from '@/components/pack/dogIdModules';
 import { appendDogEvents, readEvents, readLatestForDogs, type DogEvent, type DogEventInput, type LatestValue } from '@/lib/dogEvents';
@@ -141,7 +142,7 @@ export default function PackDogQuiz() {
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
       const uid = auth?.user?.id;
-      if (!uid) { if (alive) setDogs([]); return; }
+      if (!uid) { if (alive) setDogs(DEV_NOAUTH ? (DEV_MOCK_DOGS as unknown as QuizDog[]) : []); return; }
       // B3c: zoznam ide z práv (`my_dog_rights()`), nie z vlastníctva. Majiteľovi
       // vráti tú istú množinu; pri `null` (RPC zlyhala) ostáva dnešný filter.
       const accessIds = await getAccessibleDogIds();
@@ -682,42 +683,18 @@ const fieldStyle: React.CSSProperties = {
 // ── škrupina ─────────────────────────────────────────────────────────────────
 function Shell({ children, onClose }: { children: React.ReactNode; onClose?: () => void }) {
   const t = useT();
-  // Panel kvízu bol papyrusový v OBOCH šatoch, tapeta za ním len tmavá — pri zapnutom
-  // bledom šate si sa tak z papyrusového `/pack/dogs` preklikol do čiernej a späť.
-  // Recept bledej plochy je `pk-paper` + `PAPER_PAGE_CSS` (packTheme.ts), rovnako ako
-  // v `PackLayout`; tmavá vetva ostáva nedotknutá.
-  const paper = usePaperRoute(useLocation().pathname);
+  // Jednoliaty papyrus bez tapety a bez bloku, ako „Kto je tvoj pes?" (Matej 1. 11. 2026).
   // Šípka späť je VŽDY — aj keď kvíz nemá komu sa vypĺňať alebo neexistuje. Bez nej
   // to bola slepá ulička (audit 26. 9.): text bez cesty von.
   const navigate = useNavigate();
   const back = onClose ?? (() => (canStepBack() ? navigate(-1) : navigate('/pack/dogs')));
   return (
     <div
-      className={`min-h-[100dvh] relative${paper ? ' pk-paper' : ''}`}
-      style={paper ? { color: T.inkStrong } : { backgroundColor: T.pageBg, color: T.onDark }}
+      className="min-h-[100dvh] relative pk-paper qz-plain"
+      style={{ color: T.inkStrong }}
     >
-      {paper ? <style>{PAPER_PAGE_CSS}</style> : (
-        <>
-          <div
-            aria-hidden
-            style={{
-              position: 'fixed', top: 0, left: 0, width: '100vw', height: '100lvh',
-              backgroundImage: "url('/images/bg-dark.webp')", backgroundSize: 'cover',
-              backgroundPosition: 'center', filter: 'blur(3px)', zIndex: 0, pointerEvents: 'none',
-            }}
-          />
-          {/* Stmavenie — bez neho je heroglyfová textúra na fullscreen route príliš svetlá
-              a karta na nej stráca kontrast. Rovnaké hodnoty ako `HieroglyphBg` v PackLayout. */}
-          <div
-            aria-hidden
-            style={{
-              position: 'fixed', top: 0, left: 0, width: '100vw', height: '100lvh',
-              background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.25) 0%, rgba(5,5,5,0.45) 60%, rgba(5,5,5,0.6) 100%)',
-              zIndex: 0, pointerEvents: 'none',
-            }}
-          />
-        </>
-      )}
+      <style>{PAPER_PAGE_CSS}</style>
+      <style>{'.qz-plain.pk-paper::before,.qz-plain.pk-paper::after{display:none;}'}</style>
       <style>{PF_FIELD_CSS}</style>
       <style>{QUIZ_CSS}</style>
       <div
@@ -739,8 +716,7 @@ function Card({ children }: { children: React.ReactNode }) {
     <div
       className="qz-card"
       style={{
-        background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
-        boxShadow: T.cardShadow, padding: '24px 24px', color: T.ink,
+        padding: '8px 0', color: T.ink,
       }}
     >
       {children}
