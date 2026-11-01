@@ -5517,7 +5517,7 @@ export const ara: Partial<Dict> = {
   "pack.addTrip.grade.point.route": "المسار",
   "pack.addTrip.grade.point.parking": "الموقف",
   "pack.addTrip.grade.point.tip": "نصيحة للكلاب",
-  "pack.addTrip.grade.hint.desc": "أضف 3 جمل أو أكثر عن المسار وسيراه عدد أكبر من الناس.",
+  "pack.addTrip.grade.hint.desc": "أضف 2 جمل أو أكثر عن المسار وسيراه عدد أكبر من الناس.",
   "pack.addTrip.grade.hint.photos": "أضف بضع صور أخرى وسيراه عدد أكبر من الناس.",
   "pack.addTrip.grade.hint.route": "ارسم المسار وسيراه عدد أكبر من الناس.",
   "pack.addTrip.grade.hint.parking": "أضف مكان الموقف وسيراه عدد أكبر من الناس.",

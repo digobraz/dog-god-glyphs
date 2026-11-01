@@ -5521,7 +5521,7 @@ export const ind: Partial<Dict> = {
   "pack.addTrip.grade.point.route": "रास्ता",
   "pack.addTrip.grade.point.parking": "पार्किंग",
   "pack.addTrip.grade.point.tip": "कुत्तों की टिप",
-  "pack.addTrip.grade.hint.desc": "रास्ते के बारे में 3 या ज़्यादा वाक्य जोड़ें और ज़्यादा लोग इसे देखेंगे।",
+  "pack.addTrip.grade.hint.desc": "रास्ते के बारे में 2 या ज़्यादा वाक्य जोड़ें और ज़्यादा लोग इसे देखेंगे।",
   "pack.addTrip.grade.hint.photos": "कुछ और फ़ोटो जोड़ें और ज़्यादा लोग इसे देखेंगे।",
   "pack.addTrip.grade.hint.route": "रास्ता बनाएँ और ज़्यादा लोग इसे देखेंगे।",
   "pack.addTrip.grade.hint.parking": "पार्किंग की जगह जोड़ें और ज़्यादा लोग इसे देखेंगे।",

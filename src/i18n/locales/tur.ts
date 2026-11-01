@@ -5520,7 +5520,7 @@ export const tur: Partial<Dict> = {
   "pack.addTrip.grade.point.route": "Rota",
   "pack.addTrip.grade.point.parking": "Otopark",
   "pack.addTrip.grade.point.tip": "Köpek ipucu",
-  "pack.addTrip.grade.hint.desc": "Rota hakkında 3 ya da daha fazla cümle ekle, daha çok kişi görsün.",
+  "pack.addTrip.grade.hint.desc": "Rota hakkında 2 ya da daha fazla cümle ekle, daha çok kişi görsün.",
   "pack.addTrip.grade.hint.photos": "Birkaç fotoğraf daha ekle, daha çok kişi görsün.",
   "pack.addTrip.grade.hint.route": "Rotayı çiz, daha çok kişi görsün.",
   "pack.addTrip.grade.hint.parking": "Otoparkı ekle, daha çok kişi görsün.",

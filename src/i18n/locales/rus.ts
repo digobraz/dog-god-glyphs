@@ -5687,7 +5687,7 @@ export const rus: Partial<Dict> = {
   "pack.addTrip.grade.point.route": "Маршрут",
   "pack.addTrip.grade.point.parking": "Парковка",
   "pack.addTrip.grade.point.tip": "Собачий совет",
-  "pack.addTrip.grade.hint.desc": "Добавь 3 и больше предложений о маршруте — и поездку увидит больше людей.",
+  "pack.addTrip.grade.hint.desc": "Добавь 2 и больше предложений о маршруте — и поездку увидит больше людей.",
   "pack.addTrip.grade.hint.photos": "Добавь ещё несколько фото — и её увидит больше людей.",
   "pack.addTrip.grade.hint.route": "Нарисуй маршрут — и её увидит больше людей.",
   "pack.addTrip.grade.hint.parking": "Добавь парковку — и её увидит больше людей.",

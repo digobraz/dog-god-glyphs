@@ -5706,7 +5706,7 @@ export const deu: Partial<Dict> = {
   "pack.addTrip.grade.point.route": "Route",
   "pack.addTrip.grade.point.parking": "Parkplatz",
   "pack.addTrip.grade.point.tip": "Hunde-Tipp",
-  "pack.addTrip.grade.hint.desc": "Füge 3 oder mehr Sätze zur Route hinzu, und mehr Leute sehen ihn.",
+  "pack.addTrip.grade.hint.desc": "Füge 2 oder mehr Sätze zur Route hinzu, und mehr Leute sehen ihn.",
   "pack.addTrip.grade.hint.photos": "Füge noch ein paar Fotos hinzu, und mehr Leute sehen ihn.",
   "pack.addTrip.grade.hint.route": "Zeichne die Route, und mehr Leute sehen ihn.",
   "pack.addTrip.grade.hint.parking": "Füge den Parkplatz hinzu, und mehr Leute sehen ihn.",
