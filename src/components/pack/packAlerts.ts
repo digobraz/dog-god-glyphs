@@ -320,13 +320,13 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
   }
 
   // VÝLET ZVEREJNENÝ / VRÁTENÝ — id nesie čas posudku: opravený a znova zverejnený výlet sa rozsvieti nanovo.
-  // Zverejnený → článok výletu (cesta ako `zivyOdkaz` v chate), vrátený → AINUBIS rozhovor, kde je dôvod.
+  // Zverejnený → článok výletu (cesta ako `zivyOdkaz` v chate), vrátený → môj zoznam výletov (AINUBIS routa na LIVE nie je).
   for (const r of reviewed.data ?? []) {
     const ok = r.status === 'approved';
     out.push({
       id: `rev|${r.slug}|${r.reviewed_at}`, kind: ok ? 'trip_published' : 'trip_returned', tripSlug: r.slug,
       tripName: r.name || r.slug, count: 1, at: r.reviewed_at,
-      tripPath: ok ? `/pack/map/${iso2ToISO3(r.country || 'sk').toLowerCase()}/${r.urlSlug || r.slug}` : '/pack/ainubis?plane=chat',
+      tripPath: ok ? `/pack/map/${iso2ToISO3(r.country || 'sk').toLowerCase()}/${r.urlSlug || r.slug}` : '/pack/map/triplist',
     });
   }
 
