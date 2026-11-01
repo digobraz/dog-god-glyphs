@@ -8,11 +8,12 @@ import { SplitDetail } from '@/components/SplitDetail';
 import { EDGE_BASE } from '@/lib/env';
 import { intlLocale } from '@/i18n/bcp47';
 import { useT, useLang } from '@/i18n/LanguageContext';
+import { IS_APP } from '@/lib/isApp';
 
 const T = PACK_THEME;
 
 // Currency — €11 for launch (Europe first). One-line switch back to '$' for the US.
-const PRICE = '€11';
+const PRICE = IS_APP ? '' : '€11';
 
 // ─────────────────────────────────────────────────────────────────────────
 // TRANSPARENT STATS — the money, in the open, Stripe-style. Same numbers as the
@@ -141,6 +142,9 @@ export function TransparentStats() {
           reálne je. Predtým stáli tie dve polovice jednej vety v dvoch rôznych blokoch.
           ⚠️ Kľúče `pack.invite.*` sú zámerne PONECHANÉ napriek presunu — majú preklad
           vo všetkých 18 jazykoch; nový kľúč by 16 z nich zhodil na angličtinu. */}
+      {/* V APPKE ŽIADNA SUMA (Apple 3.1.1): rozpad €11, pás aj dlaždice s podielmi (rozklik = SplitDetail) sa skrývajú celé. */}
+      {!IS_APP && (
+      <>
       <p
         style={{
           fontFamily: FONT_UI,
@@ -256,6 +260,8 @@ export function TransparentStats() {
       >
         {t('pack.invite.tapBlockHint')}
       </div>
+      </>
+      )}
 
       {/* Constitution link — Money is an Energy chapter.
           Odkaz ide do jazyka, v ktorom je pack (Matej 2026-08-12). Ústava existuje LEN v SK

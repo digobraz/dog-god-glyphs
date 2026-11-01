@@ -1,4 +1,5 @@
 import { useT } from '@/i18n/LanguageContext';
+import { IS_APP } from '@/lib/isApp';
 import type { TransparencySplitItem } from '@/lib/transparency';
 
 /**
@@ -16,7 +17,8 @@ export function SplitDetail({ item }: { item: TransparencySplitItem }) {
       <span className="split-detail-lead">{t(item.noteKey)}</span>
       {item.parts.map((p) => (
         <span key={p.labelKey} className="split-detail-part" style={{ ['--c' as string]: p.color }}>
-          <span className="split-detail-h">€{p.share} · {t(p.labelKey)}</span>
+          {/* appka: žiadna suma (Apple 3.1.1) — zostane len názov podielu */}
+          <span className="split-detail-h">{IS_APP ? null : <>€{p.share} · </>}{t(p.labelKey)}</span>
           <span>{t(p.noteKey)}</span>
         </span>
       ))}

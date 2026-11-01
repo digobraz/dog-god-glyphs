@@ -421,10 +421,12 @@ export function MisiaBody() {
       <div className="mi-fixed">
         <small>{tx('pack.misia.fixed', 'Current monthly costs')}</small>
         <b>{eur(run1.spolu)}</b>
+        {!IS_APP && (<>
         <p>{tx('pack.misia.fixed.p', '{n} people at €5 a month cover them — today there are {g}.').replace('{n}', String(goalN)).replace('{g}', String(givers))}</p>
         <div className="mi-paws" aria-hidden>
           {Array.from({ length: goalN }, (_, i) => <span key={i} className={i < givers ? 'on' : ''} style={{ animationDelay: `${(i % 11) * 0.12}s` }}><BrandIcon name="paw" size={12} tint={i < givers ? 'white' : 'dim'} /></span>)}
         </div>
+        </>)}
         <details className="mi-fixd">
           <summary>{tx('pack.misia.fixed.list', 'What we pay')}</summary>
           <div className="mi-fixgrid">
@@ -544,9 +546,9 @@ function AllBody({ sec, tx, eur, ins, rozvoj, pomoc, NODE_TXT, inTotal, outTotal
   useEffect(() => { if (sec !== 'in') refs[sec].current?.scrollIntoView({ block: 'start' }); }, [sec]); // eslint-disable-line react-hooks/exhaustive-deps
   const run = prevadzkaMesacne();
   const P: Record<NodeKey, string> = {
-    rest: tx('pack.misia.rest.p', 'Discounted entries — testers and dog angels. The whole amount goes to Hekthor\'s bowl; a tester\'s €3 = €1 bowl + €2 help.'),
-    hero: tx('pack.misia.hero.p', 'Each €11 heroglyph is split: €8 to growing the community, €2 to dogs in need, €1 to Hekthor\'s bowl. It makes you a Dogyptian.'),
-    gift: tx('pack.misia.gift.p', 'A voluntary gift, monthly or once. It unlocks nothing — that is why it is a gift, not a membership. After the Stripe fee all of it goes to growing DOGYPT.'),
+    rest: IS_APP ? '' : tx('pack.misia.rest.p', 'Discounted entries — testers and dog angels. The whole amount goes to Hekthor\'s bowl; a tester\'s €3 = €1 bowl + €2 help.'),
+    hero: IS_APP ? '' : tx('pack.misia.hero.p', 'Each €11 heroglyph is split: €8 to growing the community, €2 to dogs in need, €1 to Hekthor\'s bowl. It makes you a Dogyptian.'),
+    gift: IS_APP ? '' : tx('pack.misia.gift.p', 'A voluntary gift, monthly or once. It unlocks nothing — that is why it is a gift, not a membership. After the Stripe fee all of it goes to growing DOGYPT.'),
     merch: tx('pack.misia.merch.p', 'Shirts, patches and things for dogs. What they earn goes to the treasury.'),
     more: tx('pack.misia.more.p', 'We will only add sources that need no ads and no investors.'),
     run: tx('pack.misia.run.p', 'So that DOGYPT runs at all: servers, AI, mail, app licences. This is paid first.'),
@@ -556,15 +558,15 @@ function AllBody({ sec, tx, eur, ins, rozvoj, pomoc, NODE_TXT, inTotal, outTotal
     people: tx('pack.misia.people.p', 'Paying the people who help dogs: trainers, behaviourists, people working in shelters.'),
     centers: tx('pack.misia.centers.p', 'Building places for dogs: training, adoption and rehabilitation centres.'),
     vet: tx('pack.misia.vet.p', 'Treatment and operations for dogs nobody else would pay for.'),
-    help: tx('pack.misia.help.p', '€2 of every heroglyph goes to dogs in need. Every {n} goes out to the next shelter — now {shelter}.')
+    help: IS_APP ? '' : tx('pack.misia.help.p', '€2 of every heroglyph goes to dogs in need. Every {n} goes out to the next shelter — now {shelter}.')
       .replace('{n}', eur(VYPLATA_UTULKU)).replace('{shelter}', `${DALSI_UTULOK.meno}, ${DALSI_UTULOK.mesto}`),
   };
   const It = ({ n }: { n: Node }) => (
     <div className={`mi-it${n.eur == null ? ' soon' : ''}`} style={{ '--c': n.color } as CSSProperties}>
       <span className="ic"><BrandIcon name={n.icon} size={16} tint="dim" /></span>
-      <div><b>{NODE_TXT[n.k][0]}</b><p>{P[n.k]}</p></div>
+      <div><b>{NODE_TXT[n.k][0]}</b>{P[n.k] && <p>{P[n.k]}</p>}</div>
       <i>{n.eur != null && n.eur > 0 ? eur(n.eur) : n.eur == null ? tx('pack.misia.later', 'When there are more of us') : '0 €'}</i>
-      {n.k === 'hero' && (
+      {n.k === 'hero' && !IS_APP && (
         <div className="mi-split" aria-hidden>
           <span style={{ flex: 8, background: T.partMkt }}>8 € · {tx('pack.misia.hero.dev', 'Growing the community')}</span>
           <span style={{ flex: 2, background: T.partHelp }}>2 €</span>
