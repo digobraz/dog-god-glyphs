@@ -77,7 +77,7 @@ interface PackLayoutProps {
   backLabel?: string;
   /** Vedľa AINUBISA v hornom rade (FEED 2: lupa). */
   topLeft?: ReactNode;
-  /** Stred horného radu (FEED: číslo verzie appky pre zakladateľa). */
+  /** Stred horného radu (FEED: číslo verzie appky pre zakladateľa a testerov). */
   topCenter?: ReactNode;
 }
 

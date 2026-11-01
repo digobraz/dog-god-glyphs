@@ -90,7 +90,7 @@ export function PackTopRow({ onBack, backLabel, right, extra, left, center, task
   extra?: ReactNode;
   /** Vedľa AINUBISA vľavo — FEED 2 tu má lupu (Matej 26. 10. 2026: lupa vedľa AINUBISA, nie pri správach). */
   left?: ReactNode;
-  /** Stred, keď tam nie je šípka späť — číslo verzie appky na FEEDe (len účet zakladateľa). */
+  /** Stred, keď tam nie je šípka späť — číslo verzie appky na FEEDe (zakladateľ a testeri). */
   center?: ReactNode;
   /** Obrazovka ÚLOHY (kôš 3) — pravý kraj bez správ a upozornení. */
   task?: boolean;

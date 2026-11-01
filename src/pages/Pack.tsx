@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME, PACK_BOX, PACK_TEXT, PAPER_ROUTES_EXTRA, PAPER_BG, FONT_UI } from '@/components/pack/packTheme';
 import { appWebVersion } from '@/lib/appUpdate';
-import { isFounderEmail } from '@/lib/founder';
+import { isFounderEmail, isAppTester } from '@/lib/founder';
 import { TEST_BUILD } from '@/lib/env';
 import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -110,7 +110,7 @@ export default function Pack() {
   const { search } = useLocation();
   if (APP_NEW && new URLSearchParams(search).get('welcome') !== '1') {
     return (
-      <PackLayout topLeft={<FeedSearch />} topCenter={<FounderAppVersion />}>
+      <PackLayout topLeft={<FeedSearch />} topCenter={<TeamAppVersion />}>
         <Suspense fallback={null}><PackFeed /></Suspense>
       </PackLayout>
     );
@@ -119,16 +119,18 @@ export default function Pack() {
 }
 
 /**
- * ČÍSLO VERZIE APPKY — len účet zakladateľa, v hlavičke FEEDu medzi lupou a poštou (Matej 1. 11. 2026:
- * *„to číslo apky premiestni len na moje konto hekthorsk a daj ho na feed hore do headru do stredu"*).
+ * ČÍSLO VERZIE APPKY — zakladateľ a testeri, v hlavičke FEEDu medzi lupou a poštou (Matej 1. 11. 2026:
+ * *„to číslo apky premiestni len na moje konto hekthorsk a daj ho na feed hore do headru do stredu"* ·
+ * *„daj ho aj testerom na to miesto kde ho mám ja"*).
  * Dovtedy bol riadok dole na JA a videl ho každý. Rovnaké číslo ako `version` v app-update.json; na webe prázdne.
  */
-function FounderAppVersion() {
+function TeamAppVersion() {
   const [ver, setVer] = useState('');
   useEffect(() => {
     let live = true;
     supabase.auth.getSession().then(async ({ data }) => {
-      if (!isFounderEmail(data.session?.user?.email)) return;
+      const user = data.session?.user;
+      if (!isFounderEmail(user?.email) && !isAppTester(user?.id)) return;
       const v = await appWebVersion();
       if (live) setVer(v);
     }).catch(() => {});
