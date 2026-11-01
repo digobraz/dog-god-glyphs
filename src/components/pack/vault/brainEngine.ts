@@ -274,6 +274,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
   }
   const toScreen = (p: Node) => ({ x: W / 2 + (p.x + p.dx + view.x) * view.k, y: H / 2 + (p.y + p.dy + view.y) * view.k });
 
+  let lastF = performance.now();
   function frame() {
     if (!alive) return;
     /* Pohľad sa číta KAŽDÝ RÁMEC, nie pri montáži — prepnutie vrstvy sa tým
@@ -281,6 +282,15 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     const layerNow: BrainLayer = o.layer ? o.layer() : 'worlds';
     const TL = performance.now() * 0.001;
     view.x += (vt.x - view.x) * 0.18; view.y += (vt.y - view.y) * 0.18; view.k += (vt.k - view.k) * 0.18;
+    /* DOBEH PO PUSTENÍ + NÁVRAT ZA OKRAJA (dt z hodín, nie z počtu snímok — 60 aj 120 Hz rovnako) */
+    const dtF = Math.min(48, Math.max(1, TL * 1000 - lastF)); lastF = TL * 1000;
+    if (!pan && !down && (vel.x || vel.y)) {
+      panBy(vel.x * dtF, vel.y * dtF);
+      const dec = Math.pow(0.95, dtF / 16.67) * (elipsa().m > 1 ? Math.pow(0.8, dtF / 16.67) : 1);
+      vel.x *= dec; vel.y *= dec;
+      if (Math.hypot(vel.x, vel.y) < 0.02) vel.x = vel.y = 0;
+    }
+    if (spring && !pan && !down && !vel.x && !vel.y) { if (!vratKOkraju(1 - Math.pow(0.86, dtF / 16.67))) spring = false; }
     N.forEach((p) => {
       /* rozbalenie mena sveta — mimo vetvy `drag`, inak by meno zmizlo pri ťahu */
       if (p.role === 'w') p.ex += ((HOV === p ? 1 : 0) - p.ex) * 0.18;
@@ -541,6 +551,46 @@ export function mountBrain(o: BrainOptions): BrainHandle {
   }
   /* ⚠️ Oddialenie na východisko vráti mapu do stredu — inak by ostala zaparkovaná mimo. */
   const panSpat = () => { if (!panMozne()) { vt.x = 0; vt.y = baseY; } else drzVSieti(); };
+  /* ── POSUN PRSTOM: ZOTRVAČNOSŤ + MÄKKÝ OKRAJ (Matej 1. 11. 2026, telefón: „intenzita sladu ide
+     dosť naprd a málo; posúvať sa plynulejšie, väčší záber"). Dovtedy: prst na uzle (a tých je
+     v zábere pri 43 % bodov plochy) uzol len rozhrnul a mapa sa nepohla, po pustení mapa stála
+     ako zarazená a okraj ju zasekol tvrdým orezom. Teraz sa mapa za prstom hýbe 1:1 odkiaľkoľvek,
+     po pustení dobehne (rAF), za okrajom sa prst brzdí ako guma a mapa sa sama vráti. ───────── */
+  const OKRAJ = 1.0;        /* elipsa pre posun prstom (zoom/PC ostáva na 0.92 v drzVSieti) */
+  const GUMA = 0.25;        /* o koľko polomeru sa dá prejsť za okraj (brzdí sa na nulu) */
+  const vel = { x: 0, y: 0 }; /* rýchlosť posunu v px/ms (obrazovka), dobieha po pustení */
+  let spring = false;       /* po pustení prstom sa mapa, ak je za okrajom, vráti (len po geste, nie po klikaní) */
+  let panT = 0;
+  const elipsa = () => {
+    const sx = (BB.x0 + BB.x1) / 2, sy = (BB.y0 + BB.y1) / 2;
+    const rx = Math.max(1, ((BB.x1 - BB.x0) / 2) * OKRAJ), ry = Math.max(1, ((BB.y1 - BB.y0) / 2) * OKRAJ);
+    const nx = (-vt.x - sx) / rx, ny = (-vt.y - sy) / ry;
+    return { sx, sy, rx, ry, nx, ny, m: Math.hypot(nx, ny) };
+  };
+  /* posun o (dx, dy) PX; smerom von za elipsu sa brzdí */
+  function panBy(dx: number, dy: number) {
+    let ddx = dx / view.k, ddy = dy / view.k;
+    const el = elipsa();
+    if (el.m > 1) {
+      /* vonkajšia normála v súradniciach mapy; vt = −poloha, preto znamienko */
+      const gx = el.nx / el.rx, gy = el.ny / el.ry, gl = Math.hypot(gx, gy) || 1;
+      const out = -(ddx * gx + ddy * gy) / gl;
+      if (out > 0) {
+        const f = Math.pow(Math.max(0, 1 - (el.m - 1) / GUMA), 2);
+        ddx += (out * (1 - f)) * (gx / gl); ddy += (out * (1 - f)) * (gy / gl);
+      }
+    }
+    vt.x += ddx; vt.y += ddy; view.x += ddx; view.y += ddy;
+  }
+  /* mäkký návrat k okraju (jeden krok); vráti true, kým ešte ide */
+  function vratKOkraju(k: number) {
+    const el = elipsa();
+    if (el.m <= 1.002) return false;
+    const tx = -(el.sx + (el.nx / el.m) * el.rx), ty = -(el.sy + (el.ny / el.m) * el.ry);
+    vt.x += (tx - vt.x) * k; vt.y += (ty - vt.y) * k; view.x = vt.x; view.y = vt.y;
+    return true;
+  }
+  const stojiPosun = () => { vel.x = vel.y = 0; spring = false; };
   const orez = (q: Node, max: number) => { const m = Math.hypot(q.dx, q.dy); if (m > max) { q.dx *= max / m; q.dy *= max / m; } };
   const at = (e: PointerEvent) => { const b = cv.getBoundingClientRect(); ptr.x = e.clientX - b.left; ptr.y = e.clientY - b.top; };
   const zoomTo = (k: number) => { vt.k = Math.max(0.35, Math.min(4.5, k)); panSpat(); };
@@ -642,8 +692,15 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     }
     if (pan) {
       const dx = e.clientX - last.x, dy = e.clientY - last.y; moved += Math.hypot(dx, dy);
-      vt.x += dx / view.k; vt.y += dy / view.k; view.x += dx / view.k; view.y += dy / view.k;
-      drzVSieti(); last = { x: e.clientX, y: e.clientY }; return;
+      if (e.pointerType === 'mouse') { vt.x += dx / view.k; vt.y += dy / view.k; view.x += dx / view.k; view.y += dy / view.k; drzVSieti(); }
+      else {
+        panBy(dx, dy);
+        /* rýchlosť prsta = kĺzavý priemer, aby jedno zaváhanie nezhodilo dobeh */
+        const dt = Math.max(1, e.timeStamp - panT);
+        vel.x = vel.x * 0.6 + (dx / dt) * 0.4; vel.y = vel.y * 0.6 + (dy / dt) * 0.4;
+        panT = e.timeStamp;
+      }
+      last = { x: e.clientX, y: e.clientY }; return;
     }
     if (down) moved += Math.hypot(e.clientX - last.x, e.clientY - last.y);
     hover();
@@ -658,9 +715,14 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       }
     }
     at(e); cv.setPointerCapture(e.pointerId); last = { x: e.clientX, y: e.clientY }; moved = 0; down = true;
+    stojiPosun(); panT = e.timeStamp;
     hover(); /* na dotyku nie je hover — zásah sa musí zmerať pri položení prsta */
     const n = hitNode();
-    if (n) { drag = n; drag.vx = drag.vy = 0; HOLD = n; } else if (panMozne()) pan = true;
+    /* NA DOTYKU SA POSÚVA MAPA AJ KEĎ PRST PADOL NA UZOL — uzol si drží len klik (HOLD). Rozhrnúť uzol
+       prstom bol PC detail; na telefóne to znamenalo, že pri skoro polovici plochy sa nehýbe nič. */
+    if (n && e.pointerType === 'mouse') { drag = n; drag.vx = drag.vy = 0; HOLD = n; }
+    else if (n) { HOLD = n; if (panMozne()) pan = true; }
+    else if (panMozne()) pan = true;
   };
   const onUp = (e: PointerEvent) => {
     touches.delete(e.pointerId); if (touches.size < 2) pinch0 = 0;
@@ -668,6 +730,14 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     if (down && moved < 5) {
       if (HOLD) pick(HOLD);
       else { const e2 = hitEdge(); if (e2) pick(e2[1]); }
+    }
+    /* DOBEH: len keď sa naozaj ťahalo a prst sa pri pustení ešte hýbal (stojaci prst = žiadny dobeh) */
+    if (pan && moved >= 5 && e.pointerType !== 'mouse') {
+      const pause = e.timeStamp - panT;
+      const sp = Math.hypot(vel.x, vel.y);
+      if (!LEVIT || pause > 90 || sp < 0.08) { vel.x = vel.y = 0; }
+      else { const c = Math.min(3, sp) / sp; vel.x *= c; vel.y *= c; }
+      if (LEVIT) spring = true; else drzVSieti();
     }
     drag = null; pan = false; HOLD = null; down = false;
   };
