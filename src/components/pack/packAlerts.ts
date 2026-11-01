@@ -79,6 +79,8 @@ const PAWMATE_ALERT_DAYS = 30;
 const FOLLOW_ALERT_DAYS = 30;
 /** Zverejnený / vrátený výlet svieti rovnako dlho. */
 const REVIEW_ALERT_DAYS = 30;
+/** Staršie posudky upozornenie nedostanú — autorom by po vydaní naraz zasvietili výlety spred mesiaca. */
+const REVIEW_ALERT_FROM = '2026-11-01T00:00:00Z';
 
 /**
  * Dataset trás — LAZY, rovnaký dôvod ako v `messaging/tripLabel.ts`: `heroTrails.generated.ts`
@@ -301,7 +303,8 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
   // Prečítané z iného zariadenia sa zlúčia do lokálneho zoznamu skôr, než volajúci spočíta neprečítané.
   await syncSeen();
 
-  const reviewSince = new Date(Date.now() - REVIEW_ALERT_DAYS * 864e5).toISOString();
+  const reviewAgo = new Date(Date.now() - REVIEW_ALERT_DAYS * 864e5).toISOString();
+  const reviewSince = reviewAgo > REVIEW_ALERT_FROM ? reviewAgo : REVIEW_ALERT_FROM;
   const [incoming, mine, walked, events, wishes, invites, mates, follows, aiReplies, social, reviewed] = await Promise.all([
     db.from('trip_requests').select('trip_slug,created_at,decided_at')
       .eq('organizer_id', uid).eq('status', 'requested') as
