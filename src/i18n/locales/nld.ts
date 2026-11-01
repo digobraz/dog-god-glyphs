@@ -5520,7 +5520,7 @@ export const nld: Partial<Dict> = {
   "pack.addTrip.grade.point.route": "Route",
   "pack.addTrip.grade.point.parking": "Parkeren",
   "pack.addTrip.grade.point.tip": "Hondentip",
-  "pack.addTrip.grade.hint.desc": "Voeg 3 of meer zinnen over de route toe en meer mensen zien hem.",
+  "pack.addTrip.grade.hint.desc": "Voeg 2 of meer zinnen over de route toe en meer mensen zien hem.",
   "pack.addTrip.grade.hint.photos": "Voeg nog een paar foto's toe en meer mensen zien hem.",
   "pack.addTrip.grade.hint.route": "Teken de route en meer mensen zien hem.",
   "pack.addTrip.grade.hint.parking": "Voeg de parkeerplek toe en meer mensen zien hem.",

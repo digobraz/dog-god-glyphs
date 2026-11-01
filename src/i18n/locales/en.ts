@@ -4101,7 +4101,7 @@ export const en = {
   'pack.addTrip.grade.point.route': 'Route',
   'pack.addTrip.grade.point.parking': 'Parking',
   'pack.addTrip.grade.point.tip': 'Dog tip',
-  'pack.addTrip.grade.hint.desc': 'Add 3 or more sentences about the route and more people will see it.',
+  'pack.addTrip.grade.hint.desc': 'Add 2 or more sentences about the route and more people will see it.',
   'pack.addTrip.grade.hint.photos': 'Add a few more photos and more people will see it.',
   'pack.addTrip.grade.hint.route': 'Draw the route and more people will see it.',
   'pack.addTrip.grade.hint.parking': 'Add the parking spot and more people will see it.',

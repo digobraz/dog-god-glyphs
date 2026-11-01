@@ -5520,7 +5520,7 @@ export const kor: Partial<Dict> = {
   "pack.addTrip.grade.point.route": "경로",
   "pack.addTrip.grade.point.parking": "주차",
   "pack.addTrip.grade.point.tip": "개 팁",
-  "pack.addTrip.grade.hint.desc": "경로에 관해 3문장 이상 쓰면 더 많은 사람이 보게 돼요.",
+  "pack.addTrip.grade.hint.desc": "경로에 관해 2문장 이상 쓰면 더 많은 사람이 보게 돼요.",
   "pack.addTrip.grade.hint.photos": "사진을 몇 장 더 추가하면 더 많은 사람이 보게 돼요.",
   "pack.addTrip.grade.hint.route": "경로를 그리면 더 많은 사람이 보게 돼요.",
   "pack.addTrip.grade.hint.parking": "주차 장소를 추가하면 더 많은 사람이 보게 돼요.",

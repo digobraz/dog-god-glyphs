@@ -436,7 +436,7 @@ function CompanionAvatarsOnly(props: {
  * „počítadlo znakov… ak napíše málo, text červený a výzva napíš viac, nech je tvoj výlet
  *  užitočnejší pre komunitu, potom oranžová pridaj ešte niečo… a potom super, máš pochvalu
  *  za snahu, komunita bude vďačná!"
- * Zelená = ten istý prah, aký dáva bod za popis v známke (`descOk`: 120 znakov a 3 vety) —
+ * Zelená = ten istý prah, aký dáva bod za popis v známke (`descOk`: 120 znakov alebo 2 vety) —
  * dve rôzne „dosť" by si odporovali o krok ďalej.
  */
 const STORY_LOW = 60;

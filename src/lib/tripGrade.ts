@@ -24,8 +24,9 @@ export const GRADE_POINTS: readonly GradePoint[] = ['desc', 'photos', 'route', '
 /** Plný počet bodov (dnes 4). Nikde nepíš „/ 5" ani „/ 4" natvrdo — ber toto číslo. */
 export const GRADE_MAX = GRADE_POINTS.length;
 
-/** Popis „3 a viac viet" (Matej 14. 10. 2026): aspoň 3 vety A aspoň 120 znakov (tri krátke slová nestačia). */
-export const DESC_MIN_SENTENCES = 3;
+/** Popis (Matej 1. 11. 2026, mení 14. 10.): bod dostane text nad 120 znakov ALEBO aspoň 2 vety.
+ *  Rosuchov (2 vety, 187 znakov) mal B len pre chýbajúcu tretiu vetu — „daj že aj nad 120… alebo 2-3 vety". */
+export const DESC_MIN_SENTENCES = 2;
 export const DESC_MIN_CHARS = 120;
 export const PHOTOS_MIN = 3;
 
@@ -56,7 +57,7 @@ export function countSentences(text: string): number {
 
 export function descOk(text: string): boolean {
   const t = String(text || '').trim();
-  return t.length >= DESC_MIN_CHARS && countSentences(t) >= DESC_MIN_SENTENCES;
+  return t.length >= DESC_MIN_CHARS || countSentences(t) >= DESC_MIN_SENTENCES;
 }
 
 /**

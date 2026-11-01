@@ -5706,7 +5706,7 @@ export const esp: Partial<Dict> = {
   "pack.addTrip.grade.point.route": "Ruta",
   "pack.addTrip.grade.point.parking": "Aparcamiento",
   "pack.addTrip.grade.point.tip": "Consejo perruno",
-  "pack.addTrip.grade.hint.desc": "Añade 3 frases o más sobre la ruta y más gente lo verá.",
+  "pack.addTrip.grade.hint.desc": "Añade 2 frases o más sobre la ruta y más gente lo verá.",
   "pack.addTrip.grade.hint.photos": "Añade algunas fotos más y más gente lo verá.",
   "pack.addTrip.grade.hint.route": "Dibuja la ruta y más gente lo verá.",
   "pack.addTrip.grade.hint.parking": "Añade el aparcamiento y más gente lo verá.",

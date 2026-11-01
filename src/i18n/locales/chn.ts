@@ -5517,7 +5517,7 @@ export const chn: Partial<Dict> = {
   "pack.addTrip.grade.point.route": "路线",
   "pack.addTrip.grade.point.parking": "停车",
   "pack.addTrip.grade.point.tip": "狗狗贴士",
-  "pack.addTrip.grade.hint.desc": "加上 3 句或更多关于路线的描述，会有更多人看到它。",
+  "pack.addTrip.grade.hint.desc": "加上 2 句或更多关于路线的描述，会有更多人看到它。",
   "pack.addTrip.grade.hint.photos": "再加几张照片，会有更多人看到它。",
   "pack.addTrip.grade.hint.route": "画出路线，会有更多人看到它。",
   "pack.addTrip.grade.hint.parking": "加上停车地点，会有更多人看到它。",

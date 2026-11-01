@@ -5517,7 +5517,7 @@ export const jpn: Partial<Dict> = {
   "pack.addTrip.grade.point.route": "ルート",
   "pack.addTrip.grade.point.parking": "駐車場",
   "pack.addTrip.grade.point.tip": "犬のヒント",
-  "pack.addTrip.grade.hint.desc": "ルートについて3文以上書くと、もっと多くの人に見てもらえます。",
+  "pack.addTrip.grade.hint.desc": "ルートについて2文以上書くと、もっと多くの人に見てもらえます。",
   "pack.addTrip.grade.hint.photos": "写真をあと数枚追加すると、もっと多くの人に見てもらえます。",
   "pack.addTrip.grade.hint.route": "ルートを描くと、もっと多くの人に見てもらえます。",
   "pack.addTrip.grade.hint.parking": "駐車場所を追加すると、もっと多くの人に見てもらえます。",
