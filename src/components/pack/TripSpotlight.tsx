@@ -22,7 +22,7 @@ import { PLANNING_LIVE } from '@/lib/packFlags';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds, tripPath, tripName, pluralKey, visibleLocalTrails, RatingPaws, coverPos } from './tripShared';
+import { readLocalTrails, readWalkedIds, tripPath, tripName, pluralKey, visibleLocalTrails, RatingPaws, coverPos, regionName } from './tripShared';
 import { readTriplist } from './triplist/triplist';
 import { parsePlanDate, planDateLabel, planStart } from './addtrip/planDate';
 import { planPhase } from './planReminder';
@@ -514,7 +514,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
           </h3>
 
           <div className="flex flex-wrap gap-2" style={{ marginTop: 12 }}>
-            {trail.region && <span className="ts-chip">{trail.region}</span>}
+            {trail.region && <span className="ts-chip">{regionName(trail.region, t)}</span>}
             {trail.km && <span className="ts-chip">{fmtNum(trail.km, lang)} km</span>}
             {trail.diff && <span className="ts-chip">{t('pack.map.diff.' + trail.diff)}</span>}
             {/* HODNOTENIE = PACKY, NIE HVIEZDIČKY (Matej 12. 9. 2026: „v 2. bloku sú

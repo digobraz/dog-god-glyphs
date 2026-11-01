@@ -36,7 +36,7 @@ import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, P
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
-import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, tripName, visibleLocalTrails, tripDraftMissing, memberTrailIds, coverPos } from '@/components/pack/tripShared';
+import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, tripName, visibleLocalTrails, tripDraftMissing, memberTrailIds, coverPos, isMacroCode } from '@/components/pack/tripShared';
 import { closeMyTripEvents, readLocalTrailMeta, readJson, writeJson, readWalkedAt, readWalkedBy, readMyClaims, PACK_KEYS } from '@/lib/packStore';
 import { ActedBy } from '@/components/pack/profile/ActedBy';
 import { isFounderEmail } from '@/lib/founder';
@@ -55,7 +55,7 @@ import {
 import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
 import {
   readTriplist, upsertMyTrip, seedTriplistFromPlans, seedTriplistFromWalked,
-  trailWCE, WCE_LABEL, type WCE,
+  trailWCE, WCE_KEY, type WCE,
   type TriplistTrip, type TripStatus,
 } from '@/components/pack/triplist/triplist';
 import { RightGate } from '@/components/pack/RightGate';
@@ -1274,7 +1274,7 @@ export default function PackTriplist() {
             <div className="tl-filters">
               {(['all', 'W', 'C', 'E'] as const).map((k) => (
                 <button key={k} type="button" className={`tl-filter${publicWCE === k ? ' on' : ''}`} onClick={() => setRegion(k)}>
-                  {k === 'all' ? t('pack.triplist.allRegions') : WCE_LABEL[k]}
+                  {k === 'all' ? t('pack.triplist.allRegions') : t(`pack.map.macroRegionFull.${WCE_KEY[k]}`)}
                 </button>
               ))}
               {/* Výber krajiny (SK + vypnuté CZ · PL · AT „Soon") ZMIZOL — nákres launchu
@@ -1324,7 +1324,7 @@ export default function PackTriplist() {
                     </div>
                     <div className="tl-block-info">
                       <div className="tl-block-name">{tripName(c.trail, lang)}</div>
-                      <div className="tl-block-sub">{c.trail.region} · {WCE_LABEL[trailWCE(c.trail)]}</div>
+                      <div className="tl-block-sub">{isMacroCode(c.trail.region) ? '' : `${c.trail.region} · `}{t(`pack.map.macroRegionFull.${WCE_KEY[trailWCE(c.trail)]}`)}</div>
                       <div className="tl-block-foot">
                         {c.date ? <span className="tl-datepill">{c.date}</span> : <span className="tl-date">{t('pack.triplist.noDateYet')}</span>}
                       </div>

@@ -24,7 +24,7 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { COMMUNITY_CSS, PhotoMetaPills } from '@/components/pack/packCommunityUI';
 import { crowdAggregate } from '@/components/pack/packCommunity';
 import { categoriesOf, chipsOf, ACT_TAG_EMOJI, TAG_EMOJI, TAG_I18N } from '@/components/pack/tripCategories';
-import { tripPath, tripText, hasRouteMetrics, isWaterTrail, coverPos, TRAIL_LINE } from '@/components/pack/tripShared';
+import { tripPath, tripText, hasRouteMetrics, isWaterTrail, coverPos, TRAIL_LINE, regionName } from '@/components/pack/tripShared';
 import { mapyTiles } from '@/lib/env';
 import { trailCountry, flagUrl } from '@/lib/countryGeo';
 import { sizedUrl } from '@/services/cloudinaryService';
@@ -242,7 +242,7 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
           )}
         </div>
         <div className="pft-body">
-          <div className="pft-loc">{[tr.region, countryName].filter(Boolean).join(' · ')}</div>
+          <div className="pft-loc">{[regionName(tr.region, t), countryName].filter(Boolean).join(' · ')}</div>
           <h3>{tripTitle(tr, lang)}</h3>
           {chips.length > 0 && (
             <div className="pft-chips">

@@ -53,6 +53,7 @@ import { usePublishPilgrimLevel } from '@/components/pack/usePilgrimStats';
 import { trackPack } from '@/lib/packAnalytics';
 import { Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
+import { TripCardSlot } from '@/components/pack/TripCardSlot';
 import { MapContainer, TileLayer, Polyline, Polygon, Circle, Marker, ScaleControl, useMap, useMapEvent } from 'react-leaflet';
 import L from 'leaflet';
 import type { LatLngTuple } from 'leaflet';
@@ -102,7 +103,7 @@ import ainubisFace from '@/assets/ainubis-head.webp';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import {
-  ICON, authorOf, REGION_OF, diffMarkShape, DiffMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
+  ICON, authorOf, REGION_OF, regionLabel, diffMarkShape, DiffMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
   DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, coverPos, hasRouteMetrics, tripShareText, pluralKey,
   readLocalTrails, writeLocalTrails, updateLocalTrail, translateLocalTrailDesc, translateLocalTrailName, backfillLocalTrailTranslations, makeTripUrlSlug, tripName, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
@@ -3522,6 +3523,10 @@ function MagnetTripsInfo({ locked, onTryAdd, where }: {
 }
 
 
+// Prežijú odmount PackMap (návrat z karty výletu), ale nie nové načítanie stránky. Na tom stojí poistka proti slučke nižšie.
+let mapMountedInDocument = false;
+let mlistScrollTop = 0;
+
 export default function PackMap() {
   const t = useT();
   // Práva pawmata (B6/F4) — mapa má dva zápisy bez prvku: dlhé podržanie (značka)
@@ -4138,7 +4143,30 @@ export default function PackMap() {
   // (react-router ho vracia ako `location.state`) a po návrate sa z neho obnoví. Nový vstup cez
   // ikonku v lište záznam nemá → začína mapou ako doteraz.
   const entryState = useLocation().state as { mview?: string } | null;
-  const [mobileView, setMobileView] = useState<'map' | 'list'>(() => (entryState?.mview === 'list' ? 'list' : 'map'));
+  // 🔴 ZOZNAM SA OBNOVUJE LEN PRI NÁVRATE V TEJ ISTEJ STRÁNKE, NIE PO JEJ NAČÍTANÍ (Matej 1. 11. 2026: „zasekne sa to
+  // v loope otvárania"). Keď webview padne, appka ho načíta nanovo a záznam histórie prežije: s pamätaným 'list' by sa
+  // zoznam otvoril sám a padol znova. Prvý mount v novom dokumente preto začína vždy mapou.
+  const [mobileView, setMobileView] = useState<'map' | 'list'>(() => (mapMountedInDocument && entryState?.mview === 'list' ? 'list' : 'map'));
+  useEffect(() => { mapMountedInDocument = true; }, []);
+  // Rozloženie: pod 1024 px je sidebar skrytý, nad ním zoznam. Kreslí sa len ten, ktorý človek vidí (dovtedy všetky karty dvakrát).
+  const [narrow, setNarrow] = useState(() => window.matchMedia('(max-width: 1023px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023px)');
+    const on = () => setNarrow(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  // Zoznam sa pri odchode odmountuje, poloha sa preto drží tu: po „späť" z karty výletu človek stojí tam, kde bol.
+  // ⚠️ Pri návrate prvok ešte neexistuje (skorý return kým beží prihlásenie), preto obnovu robí aj callback ref, nie len efekt.
+  const mlistEl = useRef<HTMLDivElement | null>(null);
+  const startsInList = useRef(mobileView === 'list');
+  const mlistRef = useCallback((el: HTMLDivElement | null) => {
+    mlistEl.current = el;
+    if (el && startsInList.current) el.scrollTop = mlistScrollTop;
+  }, []);
+  useEffect(() => {
+    if (mobileView === 'list' && mlistEl.current) mlistEl.current.scrollTop = mlistScrollTop;
+  }, [mobileView]);
   useEffect(() => {
     try {
       const h = window.history.state;
@@ -6174,16 +6202,20 @@ export default function PackMap() {
           )}
         </div>
       )}
-      {inViewTrails.map(({ tr }) => renderTripCard(tr, withRef))}
+      {inViewTrails.map(({ tr }) => renderListCard(tr, withRef))}
       {elsewhereTrails.length > 0 && (
         <div className="trp-cards-sep">
           <span>{inViewTrails.length === 0 ? t('pack.map.nothingInThisView') : t('pack.map.elsewhereOnMap')}</span>
           <b>{elsewhereTrails.length}</b>
         </div>
       )}
-      {elsewhereTrails.map(({ tr }) => renderTripCard(tr, withRef))}
+      {elsewhereTrails.map(({ tr }) => renderListCard(tr, withRef))}
     </>
   );
+  // Mobil kreslí kartu až pri obrazovke (TripCardSlot); PC ju drží stále, lebo hover z mapy na ňu scrolluje cez ref.
+  const renderListCard = (tr: HeroTrail, withRef: boolean) => (withRef
+    ? renderTripCard(tr, true)
+    : <TripCardSlot key={tr.id}>{() => renderTripCard(tr, false)}</TripCardSlot>);
 
   // karta zdieľaná medzi desktop .trp-cards-scroll a mobile .trp-mlist (bod 5) — withRef len
   // pre desktop (hover→scrollIntoView), mobile ju nepotrebuje (touch, žiadny hover-scroll).
@@ -6194,7 +6226,7 @@ export default function PackMap() {
     // holú Cloudinary adresu bez transformácie — karta ťahala ORIGINÁL (aj 4000 px .jpg).
     // Karta je najviac ~360 px široká ⇒ strop 1080 px na dlhšej strane = ostrá na retine.
     // Karta v zozname má najviac ~400 px (panel 440) × DPR 2 ⇒ 800; 1080 ťahal 13 MB pri otvorení (audit 27. 9.).
-    const photo = sizedUrl(tr.photos[idx] ?? tr.photos[0], 1080) || placeholderFor(tr.acts, tr.id);
+    const photo = sizedUrl(tr.photos[idx] ?? tr.photos[0], 800) || placeholderFor(tr.acts, tr.id);
     const agg = crowdAggregate(tr, votes[tr.id]);
     const others = Math.max(0, agg.dogyptianCount - founderDogyptians(tr)); // Dogypťania nad zakladateľa (človek + psy)
     // ⚠️ `walkerCount` = koľkí PREŠLI. `walkedCount` je od 17. 9. počet HODNOTENÍ a dal by tu nulu vždy.
@@ -6241,7 +6273,7 @@ export default function PackMap() {
       >
         <div className="trp-bigcard-photo">
           {tr.photos.length > 1
-            ? <SwipePhotos photos={tr.photos.map((u) => sizedUrl(u, 1080) || u)} idx={idx} onIdx={(i) => setPhotoIdx((p) => ({ ...p, [tr.id]: i }))} position={(i) => coverPos(tr, i)} />
+            ? <SwipePhotos photos={tr.photos.map((u) => sizedUrl(u, 800) || u)} idx={idx} onIdx={(i) => setPhotoIdx((p) => ({ ...p, [tr.id]: i }))} position={(i) => coverPos(tr, i)} />
             : photo && <img className="trp-bigcard-img" src={photo} alt="" loading="lazy" decoding="async" draggable={false} style={{ objectPosition: coverPos(tr, idx) }} />}
           <img className="trp-cardflag" src={flagUrl(trailCountry(tr))} alt="" loading="lazy" draggable={false} />
           {mg && !isFreeTrip(tr.id) && <span className="trp-lockbadge"><HandLock size={12} /></span>}
@@ -6345,7 +6377,7 @@ export default function PackMap() {
                 len keď je pohorie namapované cez REGION_OF (guard, nič sa nefabrikuje) */}
             {/* Pohorie je vlastné meno (neprekladá sa), macro región áno — inak stálo pod
                 slovenským zoznamom „MALÉ KARPATY · WEST". Kľúče `pack.map.macroRegion.*`. */}
-            <div className="trp-bigcard-loc">{tr.region}{REGION_OF[tr.region] ? ` · ${t(`pack.map.macroRegion.${REGION_OF[tr.region]}`)}` : ''}</div>
+            <div className="trp-bigcard-loc">{regionLabel(tr.region, t)}</div>
             {viaAct && (
               <div className="trp-bigcard-why">
                 <span className="trp-cbadge">
@@ -6534,7 +6566,7 @@ export default function PackMap() {
                     název/autor+avatarpair), vpravo rating(packy+číslo)+difficulty+km+Crowd */}
                 <div className="trp-inldet-main">
                   <div className="trp-inldet-info">
-                    <div className="trp-inldet-loc">{dt.region}{REGION_OF[dt.region] ? ` · ${t(`pack.map.macroRegion.${REGION_OF[dt.region]}`)}` : ''}</div>
+                    <div className="trp-inldet-loc">{regionLabel(dt.region, t)}</div>
                     <div className="trp-inldet-name">{tripName(dt, lang)}</div>
                     {/* ── AKO SA TAM IDE (2026-08-26) ──────────────────────────────
                         Doprava · odkiaľ · voľné miesta. Zdroj je INZERÁT (`events`), nie
@@ -6827,7 +6859,7 @@ export default function PackMap() {
         <div className="trp-cards-scroll" data-retap-top>
           <div className="trp-cards">
             {activeCat === 'trips'
-              ? renderTripList(true)
+              ? (narrow ? null : renderTripList(true))
               : (<>
                   {/* EVENT zoznam (krok 5, zadanie-eventy §9 krok 5) — pridané NAD existujúci
                       „looking for pack" EventsView nižšie (iná entita, § zadania §1: EVENT nemá
@@ -7188,10 +7220,10 @@ export default function PackMap() {
       </div>
 
       {/* full-page card list (mobile 'list' view — replaces the map, not an overlay) */}
-      <div className="trp-mlist" data-retap-top>
+      <div className="trp-mlist" data-retap-top ref={mlistRef} onScroll={(e) => { if (mobileView === 'list') mlistScrollTop = e.currentTarget.scrollTop; }}>
         <div className="trp-cards">
           {activeCat === 'trips'
-            ? renderTripList(false)
+            ? (narrow && mobileView === 'list' ? renderTripList(false) : null)
             : (<>
                 {/* mobile — rovnaký zoznam, bez card-refov (withRef=false, žiadny hover-scroll na touch). */}
                 <Suspense fallback={null}>

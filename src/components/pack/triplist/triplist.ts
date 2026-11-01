@@ -41,7 +41,7 @@ export function trailWCE(trail: HeroTrail): WCE {
   if (lng < 20.3) return 'C';
   return 'E';
 }
-export const WCE_LABEL: Record<WCE, string> = { W: 'West Slovakia', C: 'Central Slovakia', E: 'East Slovakia' };
+export const WCE_KEY: Record<WCE, 'West' | 'Center' | 'East'> = { W: 'West', C: 'Center', E: 'East' };
 
 const STORE_KEY = PACK_KEYS.triplist;
 

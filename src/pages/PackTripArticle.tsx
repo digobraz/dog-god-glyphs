@@ -332,6 +332,8 @@ ${packColCSS('.pta-shell')}
    nechal, tam je blok na stred celkom fajn"). Rámik karty odchádza, fotka ide od kraja po kraj, text drží .pta-body. */
 @media (max-width:767px){
   .pta-shell{width:100%;max-width:none;background:transparent;border:0;border-radius:0;box-shadow:none;}
+  /* Fotka sa do papyrusu rozplynie aj dole, ako hore pod hlavičkou (Matej 1. 11. 2026: „dolu ostrá hrana do béžovej"). Maska, nie farba: podklad sa neopisuje. */
+  .pta-hero{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 24px),transparent);}
   /* Karta zakrývala tapetu; bez nej by text stál na rozmazaných heroglyfoch — hladký papyrus ako .pk-plain na /profile. */
   .pk-paper.pta-root::before,.pk-paper.pta-root::after{display:none;}
 }

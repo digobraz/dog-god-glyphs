@@ -57,6 +57,21 @@ export const REGION_OF: Record<string, 'West' | 'Center' | 'East'> = {
   'Volovské vrchy': 'East',
 };
 
+// Výlet zapísaný v appke nesie v `region` kód W/C/E (`addTripModel.ts`), nie pohorie. Holý kód sa ukazovať nesmie
+// (Matej 1. 11. 2026: „W C alebo E… toto nikto nechápe; dal by som to normálne západ, stred, východ").
+const MACRO_CODE: Record<string, 'West' | 'Center' | 'East'> = { W: 'West', C: 'Center', E: 'East' };
+export const isMacroCode = (region: string | null | undefined) => !!MACRO_CODE[(region ?? '').trim()];
+/** Pohorie bez kódu: „W" → „Západ", „Malé Karpaty" ostáva. */
+export const regionName = (region: string | null | undefined, t: (key: string) => string): string => {
+  const raw = (region ?? '').trim();
+  return MACRO_CODE[raw] ? t(`pack.map.macroRegion.${MACRO_CODE[raw]}`) : raw;
+};
+/** Riadok nad názvom výletu: „Malé Karpaty · Západ", alebo len „Západ", keď výlet nesie kód. */
+export const regionLabel = (region: string | null | undefined, t: (key: string) => string): string => {
+  const macro = REGION_OF[(region ?? '').trim()];
+  return macro ? `${regionName(region, t)} · ${t(`pack.map.macroRegion.${macro}`)}` : regionName(region, t);
+};
+
 // gold-tint filter pre čierne SVG ikony na tmavom pozadí — rovnaká hodnota ako BrandIcon.tsx
 // `gold` variant (viď src/components/pack/BrandIcon.tsx). Potrebné pre rating packy (bod 4).
 export const GOLD_ICON_FILTER =

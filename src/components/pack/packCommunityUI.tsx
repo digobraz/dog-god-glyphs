@@ -20,7 +20,7 @@ import { pluralKey } from '@/lib/plural';
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy aj triplist.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { HieroglyphBg } from '@/components/pack/PackLayout';
-import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER, isWaterTrail, hasRouteMetrics } from '@/components/pack/tripShared';
+import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER, isWaterTrail, hasRouteMetrics, regionName } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI,
@@ -1521,9 +1521,9 @@ function pointsLegend(t: TFn): Array<[string, string]> {
  * Región ostáva: ten okruh MÁ. Vypadne len číslo, ktoré neexistuje, aj s oddeľovačom pred ním
  * (osamotená bodka na konci riadku vyzerá ako chýbajúci text).
  */
-const walkedMeta = (tr: HeroTrail, withRegion: boolean, lang: string): string => {
+const walkedMeta = (tr: HeroTrail, withRegion: boolean, lang: string, t: (key: string) => string): string => {
   const km = hasRouteMetrics(tr) ? `${fmtNum(tr.km, lang)} km` : '';
-  const region = withRegion ? tr.region : '';
+  const region = withRegion ? regionName(tr.region, t) : '';
   return [region, km].filter(Boolean).join(' · ');
 };
 
@@ -2011,7 +2011,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
             {cTrails.map((tr) => (
               <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)}>
                 <span className="comm-walkedrow-name">{tr.name}</span>
-                <span className="comm-walkedrow-meta">{walkedMeta(tr, true, lang)}</span>
+                <span className="comm-walkedrow-meta">{walkedMeta(tr, true, lang, t)}</span>
               </div>
             ))}
             <div className="comm-unit-addrow" style={{ marginTop: 12 }} onClick={() => onAddTrip()}>{t('pack.stats.addTripIn', { c: cName })}</div>
@@ -2102,7 +2102,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                       matches.map((tr) => (
                         <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)} style={{ marginBottom: 8 }}>
                           <span className="comm-walkedrow-name">{tr.name}</span>
-                          <span className="comm-walkedrow-meta">{walkedMeta(tr, false, lang) && `· ${walkedMeta(tr, false, lang)}`}</span>
+                          <span className="comm-walkedrow-meta">{walkedMeta(tr, false, lang, t) && `· ${walkedMeta(tr, false, lang, t)}`}</span>
                         </div>
                       ))
                     ) : (
@@ -2189,7 +2189,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
           {walkedOpen && cTrails.map((tr) => (
             <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)}>
               <span className="comm-walkedrow-name">{tr.name}</span>
-              <span className="comm-walkedrow-meta">{walkedMeta(tr, true, lang)}</span>
+              <span className="comm-walkedrow-meta">{walkedMeta(tr, true, lang, t)}</span>
             </div>
           ))}
         </>
@@ -2315,7 +2315,7 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
           <div className="comm-plan-meta">
             {whenLabel} · hosted by{' '}
             <HostNameLink host={hostLabel} />
-            {tr ? ` · ${tr.region}` : ''}
+            {tr ? ` · ${regionName(tr.region, t)}` : ''}
           </div>
         </div>
         {/* Zavretá skupina: inzerát ostáva viditeľný, len sa nedá pridať.
