@@ -271,7 +271,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   const [seenDogs] = useState(readSeenDogs);
   const grown = APP_NEW && total && seenDogs && total > seenDogs ? total - seenDogs : 0;
   // Odpoveď AINUBISA pod citátom je jeho hlas ⇒ CYAN, nie červená od členov (Matej 27. 10.: „samozrejme A").
-  const memberFresh = freshAlerts.filter((a) => a.kind !== 'ainubis_reply');
+  // Zverejnený / vrátený výlet je oznam systému ⇒ tiež cyan (1. 11. 2026).
+  const memberFresh = freshAlerts.filter((a) => a.kind !== 'ainubis_reply' && a.kind !== 'trip_published' && a.kind !== 'trip_returned');
   const cyanCount = APP_NEW ? (oznamFresh ? 1 : 0) + freshAlerts.length - memberFresh.length : 0;
   const memberDot = APP_NEW ? memberFresh.length > 0 : bellCount > 0;
   const cyanDot = cyanCount > 0;
@@ -565,6 +566,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                             ? t('pack.alerts.pawmateJoined', { who: al.who || t('pack.triplist.fallbackDogyptian') })
                             : al.kind === 'trip_request'
                             ? t('pack.alerts.request' + pluralKey(al.count), { count: al.count })
+                            : al.kind === 'trip_published' || al.kind === 'trip_returned'
+                            ? t(al.kind === 'trip_published' ? 'pack.alerts.tripPublished' : 'pack.alerts.tripReturned')
                             : al.kind === 'trip_walked'
                               // Pozvánka, nie hotový záznam — appka za človeka nič nezapisuje
                               // (viď packAlerts.ts, tretí druh). Počet ľudí, čo už výlet

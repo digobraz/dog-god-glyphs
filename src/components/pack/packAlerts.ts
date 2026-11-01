@@ -32,6 +32,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { currentTripId, tripPathById } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
+import { iso2ToISO3 } from '@/lib/countryGeo';
 import { fetchMemberProfiles, memberDisplayName } from '@/components/pack/profile/memberProfile';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rovnaký dôvod ako v packStore.ts:
@@ -66,12 +67,18 @@ export type WishAlertKind = 'wish_me_too' | 'wish_ask' | 'wish_missed' | 'wish_n
 // lajkol / okomentoval môj príspevok či výlet, alebo odpovedal na môj komentár pod citátom. ČERVENÉ (od členov).
 // Zdroj `get_social_alerts()` zo `20261107_social_alerts.sql` (zoskupené: „Jana a 4 ďalší“).
 export type SocialAlertKind = 'post_like' | 'post_comment' | 'trip_like' | 'trip_comment' | 'quote_reply';
-export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | 'follow_new' | 'ainubis_reply' | SocialAlertKind | EventAlertKind | WishAlertKind;
+// `trip_published` · `trip_returned` (1. 11. 2026): môj výlet sme v chate zverejnili / vrátili na úpravu. Matej po
+// zverejnení Rosuchova: *„neprišlo mi upozornenie na chvostíku"* — správa išla len do AINUBIS rozhovoru. CYAN (systém).
+// Zdroj = vlastné `pack_trips` (RLS `pack_trips_read` pustí autora), žiadna RPC ani migrácia.
+export type ReviewAlertKind = 'trip_published' | 'trip_returned';
+export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | 'follow_new' | 'ainubis_reply' | ReviewAlertKind | SocialAlertKind | EventAlertKind | WishAlertKind;
 
 /** Koľko dní svieti „{meno} je v tvojej svorke" — potom je to už stav, nie správa. */
 const PAWMATE_ALERT_DAYS = 30;
 /** Nový sledujúci svieti rovnako dlho; staršie sú už len v zozname „sledujúci". */
 const FOLLOW_ALERT_DAYS = 30;
+/** Zverejnený / vrátený výlet svieti rovnako dlho. */
+const REVIEW_ALERT_DAYS = 30;
 
 /**
  * Dataset trás — LAZY, rovnaký dôvod ako v `messaging/tripLabel.ts`: `heroTrails.generated.ts`
@@ -248,6 +255,17 @@ interface SocialAlertRow {
   who_n?: number | null;
 }
 
+/** riadok vlastného `pack_trips` — len polia z payloadu, ktoré upozornenie ukáže (čiara trasy je ťažká) */
+interface ReviewAlertRow {
+  slug: string;
+  status: 'approved' | 'rejected';
+  reviewed_at: string;
+  name: string | null;
+  urlSlug: string | null;
+  country: string | null;
+  photo: string | null;
+}
+
 interface EventAlertRow {
   kind: EventAlertKind;
   edition_id: string;
@@ -283,7 +301,8 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
   // Prečítané z iného zariadenia sa zlúčia do lokálneho zoznamu skôr, než volajúci spočíta neprečítané.
   await syncSeen();
 
-  const [incoming, mine, walked, events, wishes, invites, mates, follows, aiReplies, social] = await Promise.all([
+  const reviewSince = new Date(Date.now() - REVIEW_ALERT_DAYS * 864e5).toISOString();
+  const [incoming, mine, walked, events, wishes, invites, mates, follows, aiReplies, social, reviewed] = await Promise.all([
     db.from('trip_requests').select('trip_slug,created_at,decided_at')
       .eq('organizer_id', uid).eq('status', 'requested') as
       Promise<{ data: RequestRow[] | null }>,
@@ -310,6 +329,11 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
     db.rpc('my_ainubis_replies') as Promise<{ data: AinubisReplyRow[] | null }>,
     // Lajky / komentáre / odpovede ako na IG. Pred LIVE migráciou RPC chýba ⇒ chyba ⇒ prázdno.
     db.rpc('get_social_alerts') as Promise<{ data: SocialAlertRow[] | null }>,
+    // Moje výlety po schválení v chate. `eq(author_id)` je nutné aj pri RLS — admin účet vidí všetky.
+    db.from('pack_trips')
+      .select('slug,status,reviewed_at,name:payload->>name,urlSlug:payload->>urlSlug,country:payload->>country,photo:payload->photos->>0')
+      .eq('author_id', uid).in('status', ['approved', 'rejected']).gte('reviewed_at', reviewSince) as
+      Promise<{ data: ReviewAlertRow[] | null }>,
   ]);
 
   const trails = await loadTrails();
@@ -399,6 +423,17 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
     out.push({
       id: `air|${r.id}`, kind: 'ainubis_reply', tripSlug: '',
       tripName: r.body, tripPath: `/pack?cm=${encodeURIComponent(r.quote_key)}`, count: 1, at: r.created_at,
+    });
+  }
+
+  // VÝLET ZVEREJNENÝ / VRÁTENÝ — id nesie čas posudku: opravený a znova zverejnený výlet sa rozsvieti nanovo.
+  // Zverejnený → článok výletu (cesta ako `zivyOdkaz` v chate), vrátený → AINUBIS rozhovor, kde je dôvod.
+  for (const r of reviewed.data ?? []) {
+    const ok = r.status === 'approved';
+    out.push({
+      id: `rev|${r.slug}|${r.reviewed_at}`, kind: ok ? 'trip_published' : 'trip_returned', tripSlug: r.slug,
+      tripName: r.name || r.slug, count: 1, at: r.reviewed_at, photo: r.photo ?? undefined,
+      tripPath: ok ? `/pack/map/${iso2ToISO3(r.country || 'sk').toLowerCase()}/${r.urlSlug || r.slug}` : '/pack/ainubis?plane=chat',
     });
   }
 
