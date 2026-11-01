@@ -2215,6 +2215,8 @@ export const sk: Partial<Dict> = {
   "pack.alerts.requestFew": "{count} Dogypťania sa chcú pridať",
   "pack.alerts.requestMany": "{count} Dogypťanov sa chce pridať",
   "pack.alerts.accepted": "Si v partii",
+  "pack.alerts.tripPublished": "Tvoj výlet je zverejnený na mape",
+  "pack.alerts.tripReturned": "Tvoj výlet čaká na úpravu — AINUBIS ti napísal, čo doplniť",
   "pack.alerts.walked": "Prešli ste ho spolu — zapíš si výlet aj ty",
   "pack.alerts.walkInvite": "{who} píše, že ste tento výlet prešli spolu",
   "pack.alerts.walkInviteYes": "Áno, išli sme spolu",

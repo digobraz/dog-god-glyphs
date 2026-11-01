@@ -468,6 +468,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                               : t('pack.alerts.' + ({ event_changed: 'eventChanged', event_cancelled: 'eventCancelled', event_reminder: 'eventReminder', event_held_ask: 'eventHeldAsk' } as Record<string, string>)[al.kind]))
                             : al.kind === 'pawmate_joined'
                             ? t('pack.alerts.pawmateJoined', { who: al.who || t('pack.triplist.fallbackDogyptian') })
+                            : al.kind === 'trip_published' || al.kind === 'trip_returned'
+                            ? t(al.kind === 'trip_published' ? 'pack.alerts.tripPublished' : 'pack.alerts.tripReturned')
                             : al.kind === 'trip_request'
                             ? t('pack.alerts.request' + pluralKey(al.count), { count: al.count })
                             : al.kind === 'trip_walked'

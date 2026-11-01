@@ -4160,6 +4160,8 @@ export const cs: Partial<Dict> = {
 
   // ── pack.alerts ──
   'pack.alerts.accepted': 'Jsi v partě',
+  'pack.alerts.tripPublished': 'Tvůj výlet je zveřejněný na mapě',
+  'pack.alerts.tripReturned': 'Tvůj výlet čeká na úpravu — AINUBIS ti napsal, co doplnit',
   'pack.alerts.requestFew': '{count} Dogypťané se chtějí přidat',
   'pack.alerts.requestMany': '{count} Dogypťanů se chce přidat',
   'pack.alerts.requestOne': '{count} Dogypťan se chce přidat',

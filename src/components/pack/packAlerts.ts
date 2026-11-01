@@ -33,6 +33,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { currentTripId, tripPathById } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
+import { iso2ToISO3 } from '@/lib/countryGeo';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rovnaký dôvod ako v packStore.ts:
 // `types.ts` tabuľky /packu nepozná (migrácie sú novšie než generovaný súbor).
@@ -57,10 +58,18 @@ export type WishAlertKind = 'wish_me_too' | 'wish_ask' | 'wish_missed' | 'wish_n
 // `walk_invite` (15. 10. 2026): člen ma označil na výlete — potvrdím alebo odmietnem priamo v NOS.
 // `pawmate_joined` (26. 10. 2026): pawmate prijal pozvánku. Matej: *„email že pawmate prijal
 // nemusí byť, stačí upozornenie v apke notifikácia"* — preto mail E nevznikol a je to tu.
-export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | EventAlertKind | WishAlertKind;
+// `trip_published` · `trip_returned` (1. 11. 2026): môj výlet sme v chate zverejnili / vrátili na úpravu. Matej po
+// zverejnení Rosuchova: *„neprišlo mi upozornenie na chvostíku"* — správa išla len do AINUBIS rozhovoru.
+// Zdroj = vlastné `pack_trips` (RLS `pack_trips_read` pustí autora), žiadna RPC ani migrácia.
+export type ReviewAlertKind = 'trip_published' | 'trip_returned';
+export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | ReviewAlertKind | EventAlertKind | WishAlertKind;
 
 /** Koľko dní svieti „{meno} je v tvojej svorke" — potom je to už stav, nie správa. */
 const PAWMATE_ALERT_DAYS = 30;
+/** Zverejnený / vrátený výlet svieti rovnako dlho. */
+const REVIEW_ALERT_DAYS = 30;
+/** Staršie posudky upozornenie nedostanú — autorom by po vydaní naraz zasvietili výlety spred mesiaca. */
+const REVIEW_ALERT_FROM = '2026-11-01T00:00:00Z';
 
 /**
  * Dataset trás — LAZY, rovnaký dôvod ako v `messaging/tripLabel.ts`: `heroTrails.generated.ts`
@@ -173,6 +182,16 @@ interface PawmateAlertRow {
   since: string;
 }
 
+/** riadok vlastného `pack_trips` — len polia z payloadu, ktoré upozornenie ukáže (čiara trasy je ťažká) */
+interface ReviewAlertRow {
+  slug: string;
+  status: 'approved' | 'rejected';
+  reviewed_at: string;
+  name: string | null;
+  urlSlug: string | null;
+  country: string | null;
+}
+
 interface EventAlertRow {
   kind: EventAlertKind;
   edition_id: string;
@@ -206,7 +225,9 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
   const uid = sess.session?.user?.id;
   if (!uid) return []; // odhlásený / DEV_NOAUTH — RLS by aj tak nevydala nič
 
-  const [incoming, mine, walked, events, wishes, invites, mates] = await Promise.all([
+  const reviewAgo = new Date(Date.now() - REVIEW_ALERT_DAYS * 864e5).toISOString();
+  const reviewSince = reviewAgo > REVIEW_ALERT_FROM ? reviewAgo : REVIEW_ALERT_FROM;
+  const [incoming, mine, walked, events, wishes, invites, mates, reviewed] = await Promise.all([
     db.from('trip_requests').select('trip_slug,created_at,decided_at')
       .eq('organizer_id', uid).eq('status', 'requested') as
       Promise<{ data: RequestRow[] | null }>,
@@ -227,6 +248,11 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
     // Pawmati — tá istá RPC ako editor svorky (`listMyPawmates`), žiadna nová tabuľka.
     // Kto psa nemá, dostane prázdno; chyba padne na prázdno ako ostatné.
     db.rpc('my_pawmates') as Promise<{ data: PawmateAlertRow[] | null }>,
+    // Moje výlety po schválení v chate. `eq(author_id)` je nutné aj pri RLS — admin účet vidí všetky.
+    db.from('pack_trips')
+      .select('slug,status,reviewed_at,name:payload->>name,urlSlug:payload->>urlSlug,country:payload->>country')
+      .eq('author_id', uid).in('status', ['approved', 'rejected']).gte('reviewed_at', reviewSince) as
+      Promise<{ data: ReviewAlertRow[] | null }>,
   ]);
 
   const trails = await loadTrails();
@@ -290,6 +316,17 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
       id: `mate|${m.user_id}|${m.since}`, kind: 'pawmate_joined', tripSlug: '', tripName: dogNames,
       tripPath: '/pack/profile/edit', count: 1, at: m.since,
       who: m.name || (m.email ?? '').split('@')[0] || undefined,
+    });
+  }
+
+  // VÝLET ZVEREJNENÝ / VRÁTENÝ — id nesie čas posudku: opravený a znova zverejnený výlet sa rozsvieti nanovo.
+  // Zverejnený → článok výletu (cesta ako `zivyOdkaz` v chate), vrátený → AINUBIS rozhovor, kde je dôvod.
+  for (const r of reviewed.data ?? []) {
+    const ok = r.status === 'approved';
+    out.push({
+      id: `rev|${r.slug}|${r.reviewed_at}`, kind: ok ? 'trip_published' : 'trip_returned', tripSlug: r.slug,
+      tripName: r.name || r.slug, count: 1, at: r.reviewed_at,
+      tripPath: ok ? `/pack/map/${iso2ToISO3(r.country || 'sk').toLowerCase()}/${r.urlSlug || r.slug}` : '/pack/ainubis?plane=chat',
     });
   }
 

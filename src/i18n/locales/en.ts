@@ -2458,6 +2458,8 @@ export const en = {
   'pack.alerts.requestFew': "{count} Dogyptians want to join",
   'pack.alerts.requestMany': "{count} Dogyptians want to join",
   'pack.alerts.accepted': "You're in the party",
+  'pack.alerts.tripPublished': 'Your trip is published on the map',
+  'pack.alerts.tripReturned': 'Your trip needs a small fix — AINUBIS wrote you what to add',
   'pack.alerts.walked': "You walked this one together — log it too",
   'pack.alerts.walkInvite': '{who} says you walked this together',
   'pack.alerts.walkInviteYes': 'Yes, I was there',
