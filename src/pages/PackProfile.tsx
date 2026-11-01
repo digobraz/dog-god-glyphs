@@ -28,16 +28,13 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryLabel, countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
 import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import { STORIES_ON, PAWMATE_LIVE, APP_NEW } from '@/lib/packFlags';
-import { TEST_BUILD } from '@/lib/env';
 import { IS_APP } from '@/lib/isApp';
 import {
   PAWMATE_RIGHTS, RIGHT_LABEL, invitePawmate, listMyPawmates, revokePawmate, revokeDogInvite, setPawmateAccess, setPawmateSuccessor,
   type MyPawmates, type PawmateRow, type PawmateRight, type PawmateRole,
 } from '@/lib/pawmateRights';
-import { appWebVersion } from '@/lib/appUpdate';
 import { openAinubis } from '@/lib/ainubisBus';
 import { createWill, listMyWills, revokeWill, type WillRow } from '@/lib/willAccess';
-import { APP_PLATFORM } from '@/lib/isApp';
 import {
   useProfile,
   saveHuman,
@@ -262,7 +259,6 @@ const EDIT_CSS = `
 .pe-sup{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:${S.sm}px;margin-top:${S.md}px;padding-top:${S.md}px;border-top:1px solid ${T.hairline};}
 .pe-sup-b{display:flex;align-items:center;gap:${S.md}px;flex-wrap:wrap;}
 .pe-mail{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${LAPIS.edge};}
-.pe-ver{text-align:center;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;color:${T.inkDim};margin-top:${S.lg}px;}
 @media (min-width:768px){
   .pe-card .me-under{ padding-bottom:${S.xl}px; }
   .pe-duo{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:${S.xl}px;}
@@ -294,8 +290,6 @@ export default function PackProfile() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const [appVer, setAppVer] = useState('');
-  useEffect(() => { appWebVersion().then(setAppVer).catch(() => {}); }, []);
   const { toast } = useToast();
   const { devotion } = usePackIdentity();
   const [mateOpen, setMateOpen] = useState(false);
@@ -702,8 +696,6 @@ export default function PackProfile() {
                 <button type="button" className="pf-tap" onClick={() => openAinubis()} style={ROW_BTN}>{tx('pack.edit.supportAi', 'Ask AINUBIS')}</button>
               </Field>
             </>} />
-            {/* ČÍSLO VERZIE — LEN V APPKE (21. 10. 2026), rovnaké ako `version` v dogypt.com/app-update.json. */}
-            {appVer && <div className="pe-ver">DOGYPT · {APP_PLATFORM} · {appVer}{TEST_BUILD ? ' · TEST' : ''}</div>}
           </div>
         </div>
       </section>

@@ -2,7 +2,10 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { PACK_THEME, PACK_BOX, PAPER_ROUTES_EXTRA, PAPER_BG } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_TEXT, PAPER_ROUTES_EXTRA, PAPER_BG, FONT_UI } from '@/components/pack/packTheme';
+import { appWebVersion } from '@/lib/appUpdate';
+import { isFounderEmail } from '@/lib/founder';
+import { TEST_BUILD } from '@/lib/env';
 import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { HandSearch } from '@/components/pack/HandIcons';
@@ -107,12 +110,36 @@ export default function Pack() {
   const { search } = useLocation();
   if (APP_NEW && new URLSearchParams(search).get('welcome') !== '1') {
     return (
-      <PackLayout topLeft={<FeedSearch />}>
+      <PackLayout topLeft={<FeedSearch />} topCenter={<FounderAppVersion />}>
         <Suspense fallback={null}><PackFeed /></Suspense>
       </PackLayout>
     );
   }
   return <PackLegacy />;
+}
+
+/**
+ * ČÍSLO VERZIE APPKY — len účet zakladateľa, v hlavičke FEEDu medzi lupou a poštou (Matej 1. 11. 2026:
+ * *„to číslo apky premiestni len na moje konto hekthorsk a daj ho na feed hore do headru do stredu"*).
+ * Dovtedy bol riadok dole na JA a videl ho každý. Rovnaké číslo ako `version` v app-update.json; na webe prázdne.
+ */
+function FounderAppVersion() {
+  const [ver, setVer] = useState('');
+  useEffect(() => {
+    let live = true;
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!isFounderEmail(data.session?.user?.email)) return;
+      const v = await appWebVersion();
+      if (live) setVer(v);
+    }).catch(() => {});
+    return () => { live = false; };
+  }, []);
+  if (!ver) return null;
+  return (
+    <span style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.micro, letterSpacing: '.02em', color: PACK_THEME.inkDim, whiteSpace: 'nowrap' }}>
+      {ver}{TEST_BUILD ? ' · TEST' : ''}
+    </span>
+  );
 }
 
 /**

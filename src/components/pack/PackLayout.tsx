@@ -77,9 +77,11 @@ interface PackLayoutProps {
   backLabel?: string;
   /** Vedľa AINUBISA v hornom rade (FEED 2: lupa). */
   topLeft?: ReactNode;
+  /** Stred horného radu (FEED: číslo verzie appky pre zakladateľa). */
+  topCenter?: ReactNode;
 }
 
-export function PackLayout({ children, title, subtitle, onBack, backLabel, topLeft }: PackLayoutProps) {
+export function PackLayout({ children, title, subtitle, onBack, backLabel, topLeft, topCenter }: PackLayoutProps) {
   const t = useT();
   const navigate = useNavigate();
   const { session, loading, dogs, devotion, bones, avatarUrl, avatarInitial, packTotal, packToday } = usePackIdentity();
@@ -166,7 +168,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel, topLe
             away with the rest of the column. Pinned just under the safe-area, above content
             (z-index above the z-10 column). */}
         {DEV_FULL && (
-          <PackTopRow onBack={onBack} backLabel={backLabel} left={topLeft} />
+          <PackTopRow onBack={onBack} backLabel={backLabel} left={topLeft} center={topCenter} />
         )}
         {(title || subtitle) && (
           <header className="mb-7 text-center">

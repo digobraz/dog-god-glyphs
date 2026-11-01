@@ -80,7 +80,7 @@ const CSS = `
 //    aktívna obrazovka, kde sa niečo robí? postráž si tieto pohľady“*). Kde človek vypĺňa, ladí alebo hrá kvíz,
 //    pravý kraj ostane PRÁZDNY — žiadne správy, upozornenia ani SOS. AINUBIS vľavo a šípka ostávajú.
 //    SOS nie je v tomto rade vôbec — žije len v hlavičke /map (`PackMap.tsx`).
-export function PackTopRow({ onBack, backLabel, right, extra, left, task = false }: {
+export function PackTopRow({ onBack, backLabel, right, extra, left, center, task = false }: {
   /** Bez `onBack` je stred prázdny (homepage, DOG ID, profil). */
   onBack?: () => void;
   backLabel?: string;
@@ -90,6 +90,8 @@ export function PackTopRow({ onBack, backLabel, right, extra, left, task = false
   extra?: ReactNode;
   /** Vedľa AINUBISA vľavo — FEED 2 tu má lupu (Matej 26. 10. 2026: lupa vedľa AINUBISA, nie pri správach). */
   left?: ReactNode;
+  /** Stred, keď tam nie je šípka späť — číslo verzie appky na FEEDe (len účet zakladateľa). */
+  center?: ReactNode;
   /** Obrazovka ÚLOHY (kôš 3) — pravý kraj bez správ a upozornení. */
   task?: boolean;
 }) {
@@ -97,7 +99,7 @@ export function PackTopRow({ onBack, backLabel, right, extra, left, task = false
     <div className="pk-toprow">
       <style>{CSS}</style>
       <span className="pk-toprow-l"><HubAinubis />{left}</span>
-      {onBack ? <BackButton tone="pale" onClick={onBack} label={backLabel ?? ''} /> : <span />}
+      {onBack ? <BackButton tone="pale" onClick={onBack} label={backLabel ?? ''} /> : <span>{center}</span>}
       <span className="pk-toprow-r">{task ? extra : right ?? <TopRowRight extra={extra} />}</span>
     </div>
   );
