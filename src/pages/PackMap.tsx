@@ -4131,7 +4131,21 @@ export default function PackMap() {
   }, []);
 
   // bod 5 — mobile map-first + LIST/MAP toggle + FILTER (sort) popover.
-  const [mobileView, setMobileView] = useState<'map' | 'list'>('map');
+  // ⚠️ POHĽAD SA PAMÄTÁ V ZÁZNAME HISTÓRIE (Matej 1. 11. 2026, testovacia appka: „po kliknutí na
+  // map-zoznam sa obnoví obrazovka a prepne späť na mapu"). Ťuk na kartu otvorí článok na vlastnej
+  // route a PackMap sa odmountuje; po „späť" sa mountol nanovo s lokálnym stavom 'map', takže zoznam
+  // zmizol a človek skončil na mape. Pohľad sa preto zapíše do `history.state.usr` TOHO záznamu
+  // (react-router ho vracia ako `location.state`) a po návrate sa z neho obnoví. Nový vstup cez
+  // ikonku v lište záznam nemá → začína mapou ako doteraz.
+  const entryState = useLocation().state as { mview?: string } | null;
+  const [mobileView, setMobileView] = useState<'map' | 'list'>(() => (entryState?.mview === 'list' ? 'list' : 'map'));
+  useEffect(() => {
+    try {
+      const h = window.history.state;
+      if (!h || (h.usr?.mview ?? 'map') === mobileView) return;
+      window.history.replaceState({ ...h, usr: { ...(h.usr ?? {}), mview: mobileView } }, '');
+    } catch { /* bez histórie len začne mapou */ }
+  }, [mobileView]);
   const [sortOpen, setSortOpen] = useState(false);
   // Matej 2026-07-27: default poradie = „klasicky na najlepšie hodnotené" → 'top' je VÝCHODZÍ
   // stav, nie voliteľný filter (preto sa ani neráta do activeFilterCount a prázdna hodnota ''
