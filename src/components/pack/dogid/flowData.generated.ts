@@ -1558,7 +1558,9 @@ export const FLOW_SCREENS: FlowScreen[] = [
    "side": "pack.flow.z_vaha.ph_side",
    "top": "pack.flow.z_vaha.ph_top",
    "cta": "pack.flow.z_vaha.ph_cta",
-   "sent": "pack.flow.z_vaha.ph_sent"
+   "sent": "pack.flow.z_vaha.ph_sent",
+   "sideHint": "pack.flow.z_vaha.ph_sideHint",
+   "topHint": "pack.flow.z_vaha.ph_topHint"
   }
  },
  {

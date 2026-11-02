@@ -107,8 +107,10 @@ textarea.dfl-in{min-height:64px;}
 .dfl-bd small{font-weight:500;font-size:${X.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .dfl-bd b{font:700 ${X.body}px/1.1 ${FONT_TITLE};color:${T.inkStrong};} /* písmo: nadpis */
 .dfl-ph{display:grid;grid-template-columns:1fr 1fr;gap:${S.sm}px;margin-top:${S.sm}px;}
-.dfl-phb{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${S.xs}px;height:112px;border:1.5px dashed ${T.cardEdge};border-radius:${R.tile}px;font-size:${X.label}px;color:${T.inkWarm};overflow:hidden;cursor:pointer;}
-.dfl-phb img{max-height:56px;opacity:.75;}
+.dfl-phb{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${S.xs}px;height:136px;padding:${S.sm}px;text-align:center;border:1.5px dashed ${T.cardEdge};border-radius:${R.tile}px;font-size:${X.label}px;color:${T.inkWarm};overflow:hidden;cursor:pointer;}
+.dfl-phb img{height:64px;max-width:100%;object-fit:contain;}
+.dfl-phb b{font-weight:600;font-size:${X.body}px;color:${T.inkStrong};}
+.dfl-phb small{font-size:${X.micro}px;line-height:1.2;}
 .dfl-phb img.full{position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:cover;opacity:1;}
 .dfl-phb input{position:absolute;inset:0;opacity:0;}
 .dfl-vet{display:flex;flex-direction:column;gap:${S.xs}px;margin-top:${S.sm}px;}

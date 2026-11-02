@@ -7724,6 +7724,8 @@ export const en = {
   "pack.flow.z_vaha.ph_top": "Top",
   "pack.flow.z_vaha.ph_cta": "Send to AINUBIS",
   "pack.flow.z_vaha.ph_sent": "Sent. We will get back to you in messages.",
+  "pack.flow.z_vaha.ph_sideHint": "Dog standing, camera at back height.",
+  "pack.flow.z_vaha.ph_topHint": "Stand over them and shoot straight down.",
   "pack.flow.z_alerg.t": "Any allergies?",
   "pack.flow.z_alerg.note": "What have you noticed? For example: scratches after chicken.",
   "pack.flow.z_alerg.o.none": "None",

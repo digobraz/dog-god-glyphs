@@ -7413,6 +7413,8 @@ export const sk: Partial<Dict> = {
   "pack.flow.z_vaha.ph_top": "Zhora",
   "pack.flow.z_vaha.ph_cta": "Poslať AINUBISOVI",
   "pack.flow.z_vaha.ph_sent": "Odoslané. Ozveme sa ti v správach.",
+  "pack.flow.z_vaha.ph_sideHint": "Pes stojí, foť z výšky jeho chrbta.",
+  "pack.flow.z_vaha.ph_topHint": "Stoj nad ním a foť priamo dole.",
   "pack.flow.z_alerg.t": "Má nejakú alergiu?",
   "pack.flow.z_alerg.note": "Čo pozoruješ? Napríklad: po kuracom sa škrabe.",
   "pack.flow.z_alerg.o.none": "Žiadnu",

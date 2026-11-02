@@ -682,10 +682,10 @@ function WeightPhotos({ s, tx, dogId, v, set }: { s: FlowScreen; tx: Tx; dogId: 
       <span className="dfl-lab">{tx(P.title)}</span>
       <p className="dfl-s" style={{ marginTop: 0 }}>{tx(P.hint)}</p>
       <div className="dfl-ph">
-        {[{ url: side, put: setSide, l: P.side, ex: 'siluela' }, { url: top, put: setTop, l: P.top, ex: 'zhora' }].map((x) => (
+        {[{ url: side, put: setSide, l: P.side, h: P.sideHint, ex: 'siluela' }, { url: top, put: setTop, l: P.top, h: P.topHint, ex: 'zhora' }].map((x) => (
           <label className="dfl-phb" key={x.ex}>
             {x.url ? <img className="full" src={x.url} alt="" /> : <img src={`/images/dogid/${x.ex}.svg`} alt="" />}
-            {!x.url && <span>{tx(x.l)}</span>}
+            {!x.url && <><b>{tx(x.l)}</b><small>{tx(x.h)}</small></>}
             <input type="file" accept="image/*" disabled={busy} aria-label={tx(x.l)} onChange={(e) => { void up(e, x.put); }} />
           </label>
         ))}
