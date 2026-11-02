@@ -248,7 +248,7 @@ function Flow({ mode, tx, dogs, jump }: { mode: 'base' | 'nature'; tx: Tx; dogs:
     }
   };
 
-  const toResult = () => navigate(`/pack/nature?view=result${onlyDog ? `&dog=${onlyDog}&from=id` : ''}`);
+  const toResult = () => navigate(`/pack/nature?view=result&dog=${onlyDog ?? dog.id}${onlyDog ? '&from=id' : ''}`);
   const goIdx = (id: string) => setIdx(screens.findIndex((x) => x.id === id));
 
   /** Koniec osobnosti: „Iné" ohodnotí AI, zráta sa výsledok a zapíše sa do tých istých polí ako doteraz. */
@@ -651,6 +651,7 @@ function VetSearch({ field, v, set, tx }: { field: string; v: Vals; set: (f: str
 // ── FOTKY VÁHY ──────────────────────────────────────────────────────────────
 // Dobrovoľné. AI pripraví návrh, Matej ho odklikne na Telegrame a až potom ide členovi do správ.
 function WeightPhotos({ s, tx, dogId, v, set }: { s: FlowScreen; tx: Tx; dogId: string; v: Vals; set: (f: string, x: unknown) => void }) {
+  const { lang } = useLang();
   const [side, setSide] = useState<string | null>(null);
   const [top, setTop] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -670,7 +671,7 @@ function WeightPhotos({ s, tx, dogId, v, set }: { s: FlowScreen; tx: Tx; dogId: 
       const res = await fetch(`${SUPABASE_URL}/functions/v1/dogid-weight-review`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sess.session?.access_token ?? ''}` },
-        body: JSON.stringify({ dogId, sideUrl: side, topUrl: top, weightKg: v['health.weightKg'] ?? null }),
+        body: JSON.stringify({ dogId, sideUrl: side, topUrl: top, weightKg: v['health.weightKg'] ?? null, lang }),
       });
       if (!res.ok) throw new Error(String(res.status));
       set('health.weightPhotos', { side, top });
