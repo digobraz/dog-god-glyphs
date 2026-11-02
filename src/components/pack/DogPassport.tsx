@@ -28,7 +28,7 @@ import { ActedBy } from '@/components/pack/profile/ActedBy';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PACK_THEME, PACK_BOX, PILL_CSS, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
-import { PASS_GROUPS, STEP_BY_FIELD, PROGRESS_STEPS, quizValueLabel, type QuizStep } from './dogQuiz';
+import { PASS_GROUPS, STEP_BY_FIELD, PROGRESS_STEPS, FLOW_EXTRA_FIELDS, quizValueLabel, type QuizStep } from './dogQuiz';
 import { natureArt, storedSpecials } from './natureQuiz';
 import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, type LatestValue } from '@/lib/dogEvents';
 import { RightGate } from '@/components/pack/RightGate';
@@ -256,7 +256,7 @@ export function DogPassport({
       const fields = readOnly ? [...(PUBLIC_EXTRA_FIELDS[g.key] ?? []), ...g.fields] : g.fields;
       const rows = fields
         .map((f) => ({ step: STEP_BY_FIELD[f], value: capSpecials(f, latest[f], latest) }))
-        .filter((r) => !!r.step);
+        .filter((r) => !!r.step && (!FLOW_EXTRA_FIELDS.has(r.step.field) || hasValue(r.value)));
       return { group: g, rows };
     }).filter((g) => g.rows.length > 0);
   }, [latest, readOnly]);

@@ -1393,6 +1393,28 @@ function dualV2<K extends string>(order: K[], s: Record<K, number>, min: number)
   return second && s[top] >= min && s[top] - s[second] <= 1 ? second : null;
 }
 
+/** Appka (2. 11. 2026): body zrátal kvíz sám, lebo odpoveď smie niesť dva elementy a „Iné" hodnotí AI. */
+export function scoreFromTallies(
+  el: Record<ElementKey, number>,
+  role: Record<RoleKey, number>,
+  specialAnswers: Partial<Record<SpecialKey, SpecialAnswer>>,
+  tieEl?: string,
+  tieRole?: string,
+): NatureResult {
+  const spec: Record<SpecialKey, number> = { loner: 0, hunter: 0, peacemaker: 0, nurturer: 0 };
+  for (const [k, a] of Object.entries(specialAnswers)) if (a) spec[k as SpecialKey] += SPECIAL_ANSWER_WEIGHTS[a];
+  const elOrder = rankWithTiebreak(el, ELEMENT_KEYS, tieEl);
+  const roleOrder = rankWithTiebreak(role, ROLE_KEYS, tieRole);
+  return {
+    element: elOrder[0],
+    elementSecond: dualV2(elOrder, el, DUAL_MIN_EL),
+    role: roleOrder[0],
+    roleSecond: dualV2(roleOrder, role, DUAL_MIN_ROLE),
+    specials: pickSpecials(spec, specialAnswers),
+    scores: { el, role, spec, v: NATURE_SCORE_VERSION },
+  };
+}
+
 export function scoreNature(
   answers: Record<string, string>,
   specialAnswers: Partial<Record<SpecialKey, SpecialAnswer>> = {},

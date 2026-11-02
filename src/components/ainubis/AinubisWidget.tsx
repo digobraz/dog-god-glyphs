@@ -122,6 +122,8 @@ function dogIdFromPath(pathname: string): string | undefined {
 }
 
 function isAinubisHidden(pathname: string): boolean {
+  // Kvízy DOG ID v appke: bublina by sedela na tlačidle ĎALEJ, rady AINUBISa sú priamo v otázkach.
+  if (APP_NEW && (pathname.startsWith('/pack/dogs/quiz/') || pathname === '/pack/nature')) return true;
   if (HIDDEN_EXACT_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return true;
   // Celý heroglyph flow OKREM bare /heroglyph (sales page) — v platobnom
   // flow by widget rušil konverziu.

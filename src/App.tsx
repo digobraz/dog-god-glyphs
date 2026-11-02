@@ -2,8 +2,8 @@ import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode
 import { afterLoad } from "@/lib/afterLoad";
 import { PHOTO_INVITE_NEEDED } from "@/lib/photoInvite";
 import { HelmetProvider } from "react-helmet-async";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { DEV_FULL, BUDDY_LIVE, hasStoredSessionOrAuthReturn } from "@/lib/packFlags";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
+import { APP_NEW, DEV_FULL, BUDDY_LIVE, hasStoredSessionOrAuthReturn } from "@/lib/packFlags";
 // Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
 import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
 import { LanguageProvider, useLang, ensurePackDict } from "@/i18n/LanguageContext";
@@ -187,6 +187,9 @@ const PackAinubis = lazyPack(() => import("./pages/PackAinubis.tsx")); // kostra
 const PackDogQuiz = lazyPack(() => import("./pages/PackDogQuiz.tsx")); // fullscreen kvíz (zadanie-mypack-petpas-2026-08-06 §6)
 const PackChronicle = lazyPack(() => import("./pages/PackChronicle.tsx")); // KRONIKA = denník + galéria (8. 10. 2026)
 const PackDogIdModules = lazyPack(() => import("./pages/PackDogIdModules.tsx")); // DOG ID = moduly (8. 10. 2026)
+const PackDogIdFlow = lazyPack(() => import("./pages/PackDogIdFlow.tsx")); // kvízy DOG ID v appke (nákres 1. 11., Matejove úpravy 2. 11.)
+const DogIdQuizRoute = lazyPack(() => import("./pages/PackDogIdFlow.tsx").then((m) => ({ default: m.DogIdQuizRoute })));
+const NatureRoute = () => { const [q] = useSearchParams(); return q.get('view') === 'result' ? <PackNatureQuiz /> : <PackDogIdFlow mode="nature" />; };
 const PackNatureQuiz = lazyPack(() => import("./pages/PackNatureQuiz.tsx")); // osobnostný kvíz element+úloha (zadanie-osobnostny-kviz-2026-08-06)
 const Login = lazyPack(() => import("./pages/Login.tsx"));
 const Admin = lazyPack(() => import("./pages/Admin.tsx"));
@@ -610,11 +613,11 @@ const App = () => (
               <Route path="/pack/dogs/chronicle" element={DEV_FULL ? <PackChronicle /> : <Navigate to="/pack" replace />} />
               {/* DOG ID · MODULY — kôš 2, rozcestník ZÁKLAD · OSOBNOSŤ · ZÁVET (lock dogs-dogid §REVÍZIA 8. 10.).
                   `dogid`, nie `id`: segment `id` by sa čítal ako identifikátor psa. */}
-              <Route path="/pack/dogs/dogid" element={DEV_FULL ? <PackDogIdModules /> : <Navigate to="/pack" replace />} />
-              <Route path="/pack/dogs/quiz/:key" element={DEV_FULL ? <PackDogQuiz /> : <Navigate to="/pack" replace />} />
+              <Route path="/pack/dogs/dogid" element={!DEV_FULL ? <Navigate to="/pack" replace /> : APP_NEW ? <PackDogIdFlow mode="modules" /> : <PackDogIdModules />} />
+              <Route path="/pack/dogs/quiz/:key" element={!DEV_FULL ? <Navigate to="/pack" replace /> : APP_NEW ? <DogIdQuizRoute /> : <PackDogQuiz />} />
               {/* Osobnostný kvíz (element + úloha v svorke). Cesta je `/pack/nature` zámerne:
                   `/pack/dogs/quiz/nature` by zachytil `:key` vyššie a `/pack/dogs/nature` zjedol `:id`. */}
-              <Route path="/pack/nature" element={DEV_FULL ? <PackNatureQuiz /> : <Navigate to="/pack" replace />} />
+              <Route path="/pack/nature" element={!DEV_FULL ? <Navigate to="/pack" replace /> : APP_NEW ? <NatureRoute /> : <PackNatureQuiz />} />
               {/* KOSTRA AINUBISA — miesto chrbtice, kôš 1 „SOM DOMA" (lock architektura-pack §3).
                   Za `DEV_FULL` z toho istého dôvodu ako `/pack/dogs`: obrazovka ide von
                   s 1. vlnou, nie skôr. Chat sa z nej otvára cez `ainubisBus`, takže widget

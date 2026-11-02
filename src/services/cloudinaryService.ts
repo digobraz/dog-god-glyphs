@@ -283,6 +283,18 @@ export const uploadHeroglyphPng = (blob: Blob, sessionId: string) =>
 export const uploadShareCardPng = (blob: Blob, sessionId: string) =>
   uploadPngBlob(blob, 'sharecards', sessionId);
 
+// Fotky psa z boku a zhora pre AINUBISA (DOG ID, váha). Rovnaký nepodpísaný upload ako spätná väzba.
+export async function uploadDogIdPhoto(file: File): Promise<CloudinaryResult> {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', PRESET);
+  fd.append('folder', 'dogid-weight');
+  const res = await fetch(UPLOAD_URL, { method: 'POST', body: fd });
+  if (!res.ok) throw new Error(`Cloudinary dogid ${res.status}: ${await res.text()}`);
+  const json = await res.json();
+  return { publicId: json.public_id, secureUrl: json.secure_url };
+}
+
 // Pack feedback "proof" photo — raw file, auto public_id, parked in feedback/.
 export async function uploadFeedbackPhoto(file: File): Promise<CloudinaryResult> {
   const fd = new FormData();

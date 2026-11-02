@@ -203,6 +203,8 @@ const MAPOVE = [
   'components/pack/tripShared.tsx',
   'components/pack/tripCategories.ts',
   'components/pack/TrailMarks.tsx',
+  // Kvízy DOG ID: emoji pri odpovediach si Matej sám vyberal v nákrese (2. 11. 2026). Nie je to mapa, je to jeho voľba.
+  'components/pack/dogid/',
 ];
 
 // shadcn primitívy — cudzí kód, nie náš dizajn. Meria sa zvlášť.

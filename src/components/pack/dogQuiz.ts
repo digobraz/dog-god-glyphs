@@ -30,6 +30,8 @@ import {
   NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
   ELEMENT_KEYS, ROLE_KEYS, SPECIAL_KEYS,
 } from './natureQuiz';
+import { APP_NEW } from '@/lib/packFlags';
+import { flowExtraSteps, FLOW_SCREENS } from './dogid/flowCatalog';
 
 // ── pohľady (§7) ─────────────────────────────────────────────────────────────
 // 'full' = moja karta + ZÁVET (Matej 6.8.: závet má 100 % info, dedič nastupuje na
@@ -681,6 +683,38 @@ export const PASS_GROUPS: PassGroup[] = [
     fields: ['will.heirName', 'will.heirEmail', 'will.heirEmail2', 'will.letter'] },
 ];
 
+// APPKA (2. 11. 2026): nové otázky DOG ID. Polia, ktoré starý katalóg nepozná, sú nepovinné, takže
+// nemenia percento ani zámok na výlet; hodnoty nových možností dostanú popisok na doklade.
+const LEGACY_STEPS: QuizStep[] = QUIZ_SECTIONS.flatMap((s) => s.steps);
+/** Nové polia z appky: doklad ich ukáže, až keď sú vyplnené, inak by narástol o desiatky prázdnych riadkov. */
+export const FLOW_EXTRA_FIELDS = new Set<string>();
+if (APP_NEW) {
+  const known = new Set(LEGACY_STEPS.map((s) => s.field));
+  const label = (i18n: string) => ({ labelEN: '', i18n });
+  const extra = flowExtraSteps(known).map((x): QuizStep => ({
+    field: x.field, kind: x.kind, labelEN: '', i18n: x.rowI18n, rowEN: '', rowI18n: x.rowI18n,
+    views: x.field.startsWith('note.') ? [] : ['sitter'], optional: true,
+    valueLabels: x.labels ? Object.fromEntries(Object.entries(x.labels).map(([v, k]) => [v, label(k)])) : undefined,
+  }));
+  extra.forEach((st) => FLOW_EXTRA_FIELDS.add(st.field));
+  QUIZ_SECTIONS.push({ key: 'flowExtra', labelEN: '', i18n: 'pack.flow.sec.Povaha', subEN: '', subI18n: '', emoji: '', kind: 'scored', steps: extra });
+  for (const scr of FLOW_SCREENS) {
+    if (scr.flow !== 'base') continue;
+    const step = LEGACY_STEPS.find((x) => x.field === scr.field);
+    if (step && scr.opts) step.valueLabels = { ...Object.fromEntries(scr.opts.map((o) => [o.v, label(o.t)])), ...step.valueLabels };
+    if (step && scr.opts && step.options) step.options = scr.opts.map((o) => ({ value: o.v, labelEN: '' }));
+    for (const r of scr.rows ?? []) {
+      const rowStep = LEGACY_STEPS.find((x) => x.field === r.field);
+      if (rowStep) rowStep.valueLabels = { ...Object.fromEntries(r.vals.map((v) => [v.v, label(v.t)])), ...rowStep.valueLabels };
+    }
+  }
+  const prefixGroup: Record<string, string> = { basics: 'identity', howWorks: 'howWorks', social: 'social', temperament: 'temperament', health: 'health', food: 'food', routine: 'food', safety: 'contacts', note: 'temperament' };
+  for (const st of extra) {
+    const g = PASS_GROUPS.find((x) => x.key === prefixGroup[st.field.split('.')[0]]);
+    if (g) g.fields.push(st.field);
+  }
+}
+
 export const STEP_BY_FIELD: Record<string, QuizStep> =
   Object.fromEntries(QUIZ_SECTIONS.flatMap((s) => s.steps).map((st) => [st.field, st]));
 
@@ -697,7 +731,9 @@ export const ALL_STEPS: QuizStep[] = QUIZ_SECTIONS.flatMap((s) => s.steps);
 // Do progresu idú len polia, ktoré sa DAJÚ vyplniť a ktorých absencia niečo znamená.
 // `optional` je vylúčené z rovnakého dôvodu ako `noProgress`: bonusové pole nesmie
 // držať doklad pod 100 %, inak sa 100 % nikdy nedosiahne a číslo klame.
-export const PROGRESS_STEPS: QuizStep[] = ALL_STEPS.filter((s) => !s.noProgress && !s.optional);
+// V appke sa na `food.forbidden` a dátum odčervenia už kvíz nepýta priamo, preto nedržia 100 %.
+const APP_NOT_REQUIRED = new Set(['food.forbidden', 'health.deworm']);
+export const PROGRESS_STEPS: QuizStep[] = ALL_STEPS.filter((s) => !s.noProgress && !s.optional && !(APP_NEW && APP_NOT_REQUIRED.has(s.field)));
 
 /**
  * ═══ ZÁMOK NA PRIDANIE SA NA CUDZÍ VÝLET (issue #70) ═══════════════════════════
