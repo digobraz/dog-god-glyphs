@@ -2007,7 +2007,7 @@ ${TRAIL_LINE_CSS}
      nemeni; preteci len neviditelna plocha. */
   .trp-zoomgroup{overflow:visible;}
   .trp-zoomgroup button::after{content:'';position:absolute;top:0;bottom:0;left:-5px;right:-5px;z-index:0;}
-  .trp-layersdd-panel{z-index:2;}
+  /* Panel ostáva nad závojom (40). Stupeň 2 ho na mobile schoval pod závoj a každý ťuk ho len zavrel (Matej 2. 11.: „kliknutie nič nerobí“). */
 
   /* 2026-08-22: text mal white-space:nowrap a kontajner sa nezalamoval, takže na 430 px
      vytlačil tlačidlo HOTOVO za pravý okraj bubliny AJ za okraj obrazovky (merané: bublina

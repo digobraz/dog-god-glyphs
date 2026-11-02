@@ -17,7 +17,7 @@ import { PACK_THEME, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE, PACK_R, PACK_SH
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { ME_CSS, ME_FLAT_CSS, DOG_FONT, MeCover, MeOwn, MeRank, MeFlag } from '@/components/pack/profile/meHead';
-import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBadge';
+import { RANK_BADGE_ON, useServantSpan } from '@/components/pack/profile/rankBadge';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { compressFile } from '@/lib/photoIntake';
 import { coverAlbumOf, coverOfDay, changeDogMainPhoto, fetchMyPosts, isMoment, isLive } from '@/components/pack/profile/mePosts';
@@ -315,7 +315,7 @@ export default function PackProfile() {
   // PAWMATE (žiadny pes nie je jeho) — bez hodností a bez mena z cudzej objednávky (26. 10. 2026).
   const ownLoaded = loadedDogs.filter((d) => !d.user_id || d.user_id === session?.user?.id);
   const isMate = loadedDogs.length > 0 && ownLoaded.length === 0;
-  const servantYears = useServantYears(ownLoaded, RANK_BADGE_ON);
+  const { years: servantYears, days: servantDays } = useServantSpan(ownLoaded, RANK_BADGE_ON);
   // Práve vymenené fotky psov — kým sa `usePackUser` nenačíta nanovo (hlava aj SVORKA ich ukážu hneď).
   const [dogPhoto, setDogPhoto] = useState<Record<string, string>>({});
   const [dogBusy, setDogBusy] = useState<string | null>(null);
@@ -552,7 +552,7 @@ export default function PackProfile() {
             }
           />
           <div className="me-gap" />
-          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} servantYears={servantYears} sinceDogs={ownLoaded.filter((d) => d.life_status !== 'deceased').map((d) => ({ id: d.id, name: d.dog_name || '' }))} onDogId={dogs[0] ? () => navigate(`/pack/dogs/${dogs[0].id}`) : undefined} onStats={() => navigate('/pack/map/triplist?tab=stats')} onAbout={() => setAboutDev(true)} onClose={() => setRank(null)} tx={tx} />}
+          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} servantYears={servantYears} servantDays={servantDays} sinceDogs={ownLoaded.filter((d) => d.life_status !== 'deceased').map((d) => ({ id: d.id, name: d.dog_name || '' }))} onDogId={dogs[0] ? () => navigate(`/pack/dogs/${dogs[0].id}`) : undefined} onStats={() => navigate('/pack/map/triplist?tab=stats')} onAbout={() => setAboutDev(true)} onClose={() => setRank(null)} tx={tx} />}
           {aboutDev && <DevotionSheet devotion={devotion} onClose={() => setAboutDev(false)} />}
 
           {/* ── 1 · O MNE — jediný nadpis skupiny. Poradie (Matej 23. 10.): mená · bio · fakty · povaha. ── */}

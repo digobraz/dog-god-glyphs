@@ -12,6 +12,7 @@ import { APP_NEW } from '@/lib/packFlags';
 import { readEvents, appendDogEvents, onDogEventsChange } from '@/lib/dogEvents';
 import { PACK_R, PACK_SHADOW, PACK_THEME, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
+import { pluralKey } from '@/lib/plural';
 import { PILGRIM_FROM as P_FROM, stepOf, pilgrimColors, pilgrimImg } from '@/lib/packTiers';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BADGE_SHELF_CSS, BadgeShelf, BadgeDetail, badgeCounts, daysWithin, useMyActivity } from './badgeShelf';
@@ -99,7 +100,12 @@ export function useActiveDays(enabled: boolean): number | null {
  *  `null` = nikto z psov dátum nemá → UČEŇ. */
 type ServDog = { id: string; life_status?: string | null; death_date?: string | null };
 export function useServantYears(dogs: ServDog[], enabled: boolean): number | null {
+  return useServantSpan(dogs, enabled).years;
+}
+/** To isté a navyše počet dní so psom (Matej 2. 11.: *„nie len roky, do zátvorky"*). */
+export function useServantSpan(dogs: ServDog[], enabled: boolean): { years: number | null; days: number | null } {
   const [years, setYears] = useState<number | null>(null);
+  const [days, setDays] = useState<number | null>(null);
   // Dátum doplnený priamo v rozkliku odznaku (SinceRows) prepočíta číslo hneď.
   const [rev, setRev] = useState(0);
   useEffect(() => onDogEventsChange(() => setRev((n) => n + 1)), []);
@@ -118,26 +124,27 @@ export function useServantYears(dogs: ServDog[], enabled: boolean): number | nul
         .map(([id, s]) => [s, (end[id] ?? today).slice(0, 10)] as [string, string])
         .filter(([s, e]) => s <= e)
         .sort((x, y) => (x[0] < y[0] ? -1 : 1));
-      if (!spans.length) { setYears(null); return; }
+      if (!spans.length) { setYears(null); setDays(null); return; }
       const merged: [string, string][] = [];
       for (const sp of spans) {
         const last = merged[merged.length - 1];
         if (last && sp[0] <= last[1]) { if (sp[1] > last[1]) last[1] = sp[1]; } else merged.push([...sp]);
       }
       const day = (iso: string) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10));
+      const total = merged.reduce((n, [s, e]) => n + (day(e) - day(s)) / 864e5, 0);
+      setDays(Math.round(total));
       // Jeden súvislý úsek = presne podľa výročia; viac úsekov = súčet dní.
       if (merged.length === 1) {
         const [s, e] = merged[0];
         const full = +e.slice(0, 4) - +s.slice(0, 4) - (e.slice(5) < s.slice(5) ? 1 : 0);
         setYears(Math.max(0, full));
       } else {
-        const days = merged.reduce((n, [s, e]) => n + (day(e) - day(s)) / 864e5, 0);
-        setYears(Math.max(0, Math.floor(days / 365.2425)));
+        setYears(Math.max(0, Math.floor(total / 365.2425)));
       }
     }).catch(() => {});
     return () => { alive = false; };
   }, [key, enabled, rev]);
-  return years;
+  return { years, days };
 }
 
 type BadgeBtn = { on?: boolean; onClick?: () => void; label: string };
@@ -224,13 +231,14 @@ export const RANK_PANEL_CSS = `
 .rkp-bar span{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:${FONT_UI}; font-weight:600;
   font-size:12px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.85); }
 .rkp-nx{ display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; color:rgba(243,230,200,.75); }
-.rkp-nx img{ width:24px; height:24px; object-fit:contain; }
+.rkp-nx img{ width:32px; height:32px; object-fit:contain; }
 /* Rebrík: všetky obrázky stupňov v rade; dosiahnuté plné, môj so zlatou žiarou, ďalšie v tieni. */
 /* Deliaca čiara nad rebríkom aj nad ODZNAKMI (badgeShelf.tsx) — jedna hodnota. */
 .rkp-lad, .bd-sec{ border-top:1px solid rgba(231,196,108,.25); }
-.rkp-lad{ display:grid; grid-template-columns:repeat(var(--n), 1fr); gap:4px; margin-top:16px; padding-top:12px; }
+.rkp-lad{ display:grid; grid-template-columns:repeat(4, 1fr); gap:12px 8px; margin-top:16px; padding-top:12px; }
+@media (min-width:768px){ .rkp-lad{ grid-template-columns:repeat(var(--n), 1fr); } }
 .rkp-lad div{ display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0; }
-.rkp-lad img{ width:100%; max-width:40px; aspect-ratio:1; object-fit:contain; filter:grayscale(1) brightness(.45); opacity:.6; }
+.rkp-lad img{ width:100%; max-width:72px; aspect-ratio:1; object-fit:contain; filter:grayscale(1) brightness(.75); opacity:.8; }
 .rkp-lad .done img{ filter:none; opacity:1; }
 .rkp-lad .on img{ filter:drop-shadow(0 0 6px rgba(255,214,120,.9)); opacity:1; transform:scale(1.15); }
 .rkp-lad small{ font-family:${FONT_UI}; font-weight:600; font-size:10px; color:rgba(243,230,200,.55); }
@@ -260,8 +268,8 @@ const SERVANT_BAR: CSSProperties = { background: SERVANT_FILL, boxShadow: 'inset
 /** SLUŽOBNÍK po rozkliku: roky + obrázok stupňa, zlatý pás aktivity, rebrík 8 odznakov. */
 /** Pod rebríkom rokov sú ODZNAKY (30. 10. 2026) — ťuk na odznak ukáže detail v tom istom paneli.
  *  `trips` a `abroad` = čísla PÚTNIKA (počet prejdených výletov, krajiny mimo vlastnej). */
-export function ServantPanel({ years, onDogId, dogs = [], trips = 0, abroad = 0, home = 'SK', blank = false, tx }: {
-  years: number | null; onDogId?: () => void; trips?: number; abroad?: number; home?: string;
+export function ServantPanel({ years, days, onDogId, dogs = [], trips = 0, abroad = 0, home = 'SK', blank = false, tx }: {
+  years: number | null; days?: number | null; onDogId?: () => void; trips?: number; abroad?: number; home?: string;
   /** Vlastní psi — kto nemá „Spolu od“, dostane riadok s dátumom priamo tu (Matej 30. 10.). */
   dogs?: SinceDog[];
   /** Náhľad „nový člen“ (`?novice`) — odznaky ukáže prázdne, nie skutočné. */
@@ -287,7 +295,7 @@ export function ServantPanel({ years, onDogId, dogs = [], trips = 0, abroad = 0,
         <span className="im" style={{ ['--k' as string]: S_K[t] }}><img src={`/icons/pack/rank/servant-${t}.webp`} alt="" /></span>
         <div className="tx">
           <h3>{tx('pack.ladder.servant', 'Servant')} {y}</h3>
-          <p>{sub}</p>
+          <p>{sub}{days != null && ` (${tx(`pack.rank.servantDays${pluralKey(days)}`, '{n} days').replace('{n}', days.toLocaleString('sk-SK'))})`}</p>
         </div>
       </div>
       <div className="rkp-lbl"><span>{tx('pack.rank.servantActive', 'Days in the app · last 90')}</span><b>{activeDays == null ? '—' : `${d} / ${FULL_DAYS}`}</b></div>

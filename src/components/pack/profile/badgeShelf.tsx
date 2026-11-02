@@ -210,17 +210,17 @@ export const BADGE_SHELF_CSS = `
 .bd-hd span{ font-family:${FONT_UI}; font-weight:500; font-size:${PACK_TEXT.micro}px; letter-spacing:.22em; text-transform:uppercase; color:rgba(243,230,200,.75); }
 .bd-hd b{ font-family:${FONT_UI}; font-weight:600; font-size:${PACK_TEXT.body}px; color:#E7C46C; }
 .bd-tip{ margin:0 0 ${S.sm}px; font-size:${PACK_TEXT.label}px; line-height:1.45; color:#F3E6C8; }
-.bd-grid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:${S.sm}px ${S.xs}px; }
+.bd-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:${S.sm}px ${S.xs}px; }
 @media (min-width:768px){ .bd-grid{ grid-template-columns:repeat(10, 1fr); } }
 .bd{ display:flex; flex-direction:column; align-items:center; min-width:0; padding:${S.xs}px 0; border:0; background:none; cursor:pointer;
   border-radius:${PACK_R.tile}px; color:#F3E6C8; -webkit-tap-highlight-color:transparent; }
 .bd:focus{ outline:none; }
 /* Kresba má priehľadný okraj — 56 px obrázok je opticky ~40 px kruh (ako rebrík SLUŽOBNÍKA). */
-.bd img{ width:56px; height:56px; margin:-${S.xs}px 0; object-fit:contain; }
+.bd img{ width:72px; height:72px; margin:-${S.xs}px 0; object-fit:contain; }
 .bd b{ max-width:100%; margin-top:${S.xs}px; font-family:${FONT_UI}; font-weight:500; font-size:${PACK_TEXT.micro}px; letter-spacing:.02em;
   line-height:1.2; min-height:2.4em; overflow-wrap:anywhere; display:flex; align-items:center; }
 .bd small{ font-family:${FONT_UI}; font-weight:600; font-size:${PACK_TEXT.micro}px; color:#E7C46C; }
-.bd.off img{ filter:grayscale(1) brightness(.45); opacity:.6; }
+.bd.off img{ filter:grayscale(1) brightness(.75); opacity:.8; }
 .bd.off b, .bd.off small{ color:rgba(243,230,200,.5); }
 .bd-later{ display:flex; flex-direction:column; gap:${S.xs}px; margin-top:${S.md}px; }
 .bd-later span{ font-size:${PACK_TEXT.micro}px; color:rgba(243,230,200,.5); }

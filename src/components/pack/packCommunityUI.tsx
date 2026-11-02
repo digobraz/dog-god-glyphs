@@ -43,7 +43,7 @@ import { tierVars, tierPillStyle, tierOfLevel, tierIndexOfLevel, pilgrimImg } fr
 import { PilgrimBadge, RANK_BADGE_CSS, RANK_BADGE_ON } from '@/components/pack/profile/rankBadge';
 import { TierScale } from '@/components/pack/level/TierScale';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { trailCountry, flagUrl, flagEmojiFromISO2, countryName } from '@/lib/countryGeo';
+import { trailCountry, flagUrl, countryName } from '@/lib/countryGeo';
 import { FlagCircle } from './FlagCircle';
 import { HeroBadges } from '@/components/pack/HeroBadges';
 import { PackPopup } from '@/components/pack/PackPopup';
@@ -372,7 +372,6 @@ ${VEIL_CSS}
    pevných 52vh znamenalo, že sa k vlastným bodom vždy musí rolovať.
    ⚠️ Šírka je 520, nie 340 — dvojstĺpcový cenník sa do úzkeho popupu nezmestí; pod 560 px
    padá na jeden stĺpec sám (media query pri .comm-pts-cols). */
-.comm-tiers{position:absolute;top:calc(100% + 9px);left:50%;transform:translateX(-50%);z-index:32;width:min(520px,88vw);max-height:max(320px,calc(100vh - 300px));overflow-y:auto;overscroll-behavior:contain;text-align:left;cursor:default;text-transform:none;letter-spacing:normal;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:12px 16px;}
 @media (max-width:560px){
   .comm-vhead{padding:12px 16px;gap:12px;}
   .comm-vhead-name{font-size:16px;}
@@ -382,7 +381,6 @@ ${VEIL_CSS}
      aj pri pôvodných 340 px — zväčšenie na 520 to len zviditeľnilo). Zrušením position:relative
      na obale sa najbližším ukotveným predkom stáva .comm-vhead a popup dostane šírku bloku. */
   .comm-tierwrap{position:static;}
-  .comm-tiers{left:16px;right:16px;width:auto;transform:none;}
 }
 
 /* svetový prehľad — easy dashboard (Matej 2026-07-23).
@@ -782,11 +780,7 @@ ${VEIL_CSS}
 .comm-chero--noimg .comm-chero-bar{background:rgba(42,22,8,0.14);}
 .comm-chero--noimg .comm-chero-flag{border-color:${P.border};box-shadow:${PACK_SHADOW.lift};}
 .comm-chero--noimg .comm-rankinfo-btn{border-color:${P.border};background:${P.soft};color:${P.ink};}
-.comm-chero--noimg .comm-chero-sel select{background:${P.field};border-color:${P.border};color:${P.ink};}
 .comm-chero-flag{display:block;width:54px;height:36px;object-fit:cover;border-radius:8px;border:1px solid ${T.onDarkBorder};box-shadow:${PACK_SHADOW.panel};margin-bottom:11px;}
-.comm-chero-sel{position:absolute;top:12px;right:12px;z-index:2;}
-.comm-chero-sel select{appearance:none;-webkit-appearance:none;background:rgba(3,2,1,0.55);border:1px solid ${T.border};border-radius:999px;color:${T.card};font-family:${FONT_UI};font-weight:600;font-size:10px;padding:8px 24px 8px 12px;cursor:pointer;}
-.comm-chero-sel::after{content:'';position:absolute;right:12px;top:50%;width:6px;height:6px;border-right:1.5px solid ${GOLD};border-bottom:1.5px solid ${GOLD};transform:translateY(-70%) rotate(45deg);pointer-events:none;}
 .comm-chero-in{position:relative;z-index:1;width:100%;}
 .comm-chero-name{font-family:${FONT_TITLE};font-weight:700;font-size:24px;line-height:1;letter-spacing:0.02em;text-transform:uppercase;color:${T.card};text-shadow:0 2px 14px rgba(0,0,0,0.7);}
 .comm-chero-sub{font-family:${FONT_UI};font-weight:500;font-size:12px;color:rgba(245,240,228,0.85);margin-top:7px;}
@@ -1625,12 +1619,6 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   // levelu ukázať v dropdowne to poradie a farby levelov"); dovtedy ho volal len panel
   // levelu na mape. Tu sa len konečne zapája tam, kam bol napísaný.
   const [tierOpen, setTierOpen] = useState(false);
-  useEffect(() => {
-    if (!tierOpen) return;
-    const close = () => setTierOpen(false);
-    const tm = window.setTimeout(() => document.addEventListener('click', close), 0);
-    return () => { window.clearTimeout(tm); document.removeEventListener('click', close); };
-  }, [tierOpen]);
   const [ranksOpen, setRanksOpen] = useState(false);
   useEffect(() => {
     if (!ranksOpen) return;
@@ -1768,7 +1756,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
             {RANK_BADGE_ON ? (
               <span className="comm-rkbadge" onClick={(e) => e.stopPropagation()}>
                 <style>{RANK_BADGE_CSS}</style>
-                <PilgrimBadge level={lvl.level} pct={lvl.pct} on={tierOpen} onClick={() => setTierOpen((v) => !v)}
+                <PilgrimBadge level={lvl.level} pct={lvl.pct} on={tierOpen} onClick={() => setTierOpen(true)}
                   label={t('pack.stats.rankAria', { rank: t('pack.map.rankPilgrim'), level: lvl.level, tier: tierOfLevel(lvl.level).name })} />
               </span>
             ) : (
@@ -1776,7 +1764,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
               type="button"
               className="comm-level-pill"
               style={tierPillStyle(lvl.level)}
-              onClick={(e) => { e.stopPropagation(); setTierOpen((v) => !v); }}
+              onClick={(e) => { e.stopPropagation(); setTierOpen(true); }}
               aria-expanded={tierOpen}
               aria-label={t('pack.stats.rankAria', { rank: t('pack.map.rankPilgrim'), level: lvl.level, tier: tierOfLevel(lvl.level).name })}
             >
@@ -1787,9 +1775,9 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
               {t('pack.stats.rankLine', { rank: t('pack.map.rankPilgrim'), level: lvl.level })}
             </button>
             )}
+            {/* Popup zdola, nie dropdown (Matej 2. 11.). */}
             {tierOpen && (
-              <span className="comm-tiers" onClick={(e) => e.stopPropagation()}>
-                <span className="comm-pts-eyebrow">{t('pack.stats.levelColours')}</span>
+              <PackPopup title={t('pack.stats.levelColours')} onClose={() => setTierOpen(false)}>
                 <TierScale level={lvl.level} onDark={false} />
                 <span className="comm-pts-rule" />
                 {/* DVA STĹPCE: vľavo cenník (platí pre každého), vpravo MOJE body + TOTAL.
@@ -1820,7 +1808,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                     )}
                   </span>
                 </span>
-              </span>
+              </PackPopup>
             )}
           </span>
         </div>
@@ -1941,19 +1929,13 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         ))}
       </div>
 
-      {/* #47 — hero krajiny: obrázok (fotka z vlastného výletu, inak vlajka), veľký názov vľavo,
-         dropdown na inú krajinu vpravo hore. Cieľ je v TRIPOCH, nie v percentách. */}
+      {/* #47 — hero krajiny: obrázok (fotka z vlastného výletu, inak vlajka), veľký názov vľavo.
+         Krajina sa vyberá pilulkami vyššie, dropdown v obrázku bol navyše (Matej 2. 11.).
+         Cieľ je v TRIPOCH, nie v percentách. */}
       <div
         className={`comm-chero${heroPhoto ? '' : ' comm-chero--noimg'}`}
         style={heroPhoto ? { backgroundImage: `url('${sizedUrl(heroPhoto, 1200)}')` } : undefined}
       >
-        <div className="comm-chero-sel">
-          <select value={country} onChange={(e) => pickCountry(e.target.value)} aria-label={t('pack.stats.countryAria')}>
-            {countries.map((c) => (
-              <option key={c.iso} value={c.iso}>{flagEmojiFromISO2(c.iso)} {c.name}</option>
-            ))}
-          </select>
-        </div>
         <div className="comm-chero-in">
           {!heroPhoto && <img className="comm-chero-flag" src={flagUrl(country, 160)} alt="" loading="lazy" draggable={false} />}
           <div className="comm-chero-name">{cName}</div>

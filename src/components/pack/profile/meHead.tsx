@@ -735,10 +735,11 @@ function rankVars(kind: 'dev' | 'pt' | 'study', ptLevel: number, devIndex = 1): 
  *  o leveloch a stupnica … to isté pri pútnikovi — chýbajúce body do ďalšieho levelu, otvoriť tripstats"*).
  *  Rebríček je `DEVOTION_LEVELS` (jeden zdroj), PÚTNIK je `levelProgress` z `tripPoints.ts`.
  *  Tretí druh ŠTÚDIUM (23. 10. večer): ťuk na percento štúdia — základné čísla AINUBISA + odkaz do VAULTu. */
-export function MeRank({ kind, devotion, pilgrim, study, servantYears, sinceDogs, abroad, home, blank, onDogId, onStats, onVault, onAbout, onClose, tx }: {
+export function MeRank({ kind, devotion, pilgrim, study, servantYears, servantDays, sinceDogs, abroad, home, blank, onDogId, onStats, onVault, onAbout, onClose, tx }: {
   kind: 'dev' | 'pt' | 'study';
   /** TEST_BUILD: roky SLUŽOBNÍKA (`useServantYears`); null = nikto z psov nemá „Spolu od“. */
   servantYears?: number | null;
+  servantDays?: number | null;
   /** TEST_BUILD: odkaz do DOG ID, keď chýba „Spolu od“. */
   onDogId?: () => void;
   /** TEST_BUILD: vlastní psi — kto nemá „Spolu od“, doplní sa priamo v rozkliku SLUŽOBNÍKA. */
@@ -784,7 +785,7 @@ export function MeRank({ kind, devotion, pilgrim, study, servantYears, sinceDogs
       <div className="me-rk" style={night} ref={boxRef}>
         <style>{RANK_PANEL_CSS}</style>
         {kind === 'dev'
-          ? <ServantPanel years={servantYears ?? null} onDogId={onDogId} dogs={sinceDogs} trips={pilgrim.count} abroad={abroad ?? 0} home={home} blank={blank} tx={tx} />
+          ? <ServantPanel years={servantYears ?? null} days={servantDays} onDogId={onDogId} dogs={sinceDogs} trips={pilgrim.count} abroad={abroad ?? 0} home={home} blank={blank} tx={tx} />
           : <PilgrimPanel level={lv.level} pct={lv.pct} points={lv.points} floor={lv.floorPoints} nextAt={lv.nextPoints}
               trips={pilgrim.count} km={pilgrim.km} countries={pilgrim.countries} onStats={onStats} tx={tx} />}
       </div>

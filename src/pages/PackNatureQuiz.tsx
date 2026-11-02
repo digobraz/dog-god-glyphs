@@ -1832,7 +1832,7 @@ function ResultDoc({ dog, r, b, tx }: {
             DOGYPT · {tx('pack.nature.doc.footTitle', 'WHO IS YOUR DOG')}<br />
             {tx(NATURE_ATTRIBUTION.i18n, NATURE_ATTRIBUTION.textEN)}
           </p>
-          <img className="nqd-seal" src="/_certassets/seal.png" alt="" aria-hidden loading="lazy" />
+          <img className="nqd-seal" src="/images/nature/seal.png" alt="" aria-hidden loading="lazy" />
         </div>
 
       </div></div>

@@ -42,7 +42,7 @@ import { TripShareSheet, type TripShareData } from '@/components/pack/trip/TripS
 import { dogShareLink } from '@/lib/useShareCard';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeRank, MeDogRow, MeFlag } from '@/components/pack/profile/meHead';
-import { RANK_BADGE_ON, useServantYears } from '@/components/pack/profile/rankBadge';
+import { RANK_BADGE_ON, useServantSpan } from '@/components/pack/profile/rankBadge';
 import { StoryViewer } from '@/components/pack/profile/StoryViewer';
 import { PostViewer } from '@/components/pack/profile/PostViewer';
 import { DevotionToday } from '@/components/pack/profile/DevotionToday';
@@ -124,7 +124,7 @@ export default function PackMe() {
   // si od majiteľa psa nepožičiava — dovtedy niesol meno z objednávky a roky služby jeho psa.
   const ownDogs = dogs.filter((d) => !d.user_id || d.user_id === uid);
   const isMate = dogs.length > 0 && ownDogs.length === 0;
-  const servantYears = useServantYears(ownDogs, RANK_BADGE_ON);
+  const { years: servantYears, days: servantDays } = useServantSpan(ownDogs, RANK_BADGE_ON);
   const { profile } = useProfile();
   const human = profile?.human;
   const meta = (session?.user?.user_metadata ?? {}) as Record<string, string | undefined>;
@@ -342,6 +342,7 @@ export default function PackMe() {
           {rank && (
             <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} tx={tx}
               servantYears={novice ? null : servantYears}
+              servantDays={novice ? null : servantDays}
               sinceDogs={ownDogs.filter((d) => d.life_status !== 'deceased').map((d) => ({ id: d.id, name: d.dog_name || '' }))}
               home={human?.nationality ?? 'SK'}
               blank={novice}

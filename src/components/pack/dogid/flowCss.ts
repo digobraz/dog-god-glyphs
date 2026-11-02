@@ -8,7 +8,7 @@ const PICK = pickTintCSS(LAPIS.edge, PICK_INK.lapis);
 const WHITE = '#fff';
 
 export const FLOW_CSS = `
-.dfl{position:relative;height:100dvh;overflow:hidden;background:${PAPER_BG};color:${T.ink};container-type:size;font-family:${FONT_UI};}
+.dfl{position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;background:${PAPER_BG};color:${T.ink};container-type:size;font-family:${FONT_UI};}
 :where(.dfl) :where(button,input,textarea){font-family:inherit;color:inherit;}
 :where(.dfl) :where(button){cursor:pointer;}
 .dfl-sc{position:absolute;inset:0;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + ${S.md}px) ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.lg}px);overflow:hidden;}
@@ -32,7 +32,7 @@ export const FLOW_CSS = `
 .dfl-dog i{width:24px;height:24px;border-radius:${R.pill}px;background:${T.cardEdge} center/cover;display:block;}
 .dfl-q{font:700 ${X.h1}px/1.2 ${FONT_TITLE};color:${T.inkStrong};letter-spacing:.02em;margin:${S.lg}px 0 0;text-wrap:balance;} /* písmo: nadpis */
 .dfl-s{font-size:${X.body}px;line-height:1.4;color:${T.inkWarm};margin:${S.sm}px 0 0;}
-.dfl-main{flex:0 1 auto;min-height:0;overflow-y:auto;margin-top:${S.lg}px;padding:0;-webkit-overflow-scrolling:touch;}
+.dfl-main{flex:0 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;margin-top:${S.lg}px;padding:0;-webkit-overflow-scrolling:touch;}
 .dfl-ans{display:grid;gap:${S.sm}px;}
 .dfl-a{display:flex;align-items:center;gap:${S.md}px;width:100%;text-align:left;border:1px solid ${T.border};border-radius:${R.tile}px;background:${T.card};padding:${S.md}px;min-height:48px;transition:transform .12s;}
 .dfl-a:active{transform:scale(.985);}
@@ -46,7 +46,9 @@ export const FLOW_CSS = `
 .dfl-a.on .dot::after{content:'';width:8px;height:4px;border-left:2px solid ${WHITE};border-bottom:2px solid ${WHITE};transform:rotate(-45deg) translate(1px,-1px);}
 .dfl-a.none{background:transparent;border-style:dashed;}
 .dfl-a.none .tx{font-weight:400;color:${T.inkWarm};}
-.dfl-rv{grid-column:1/-1;display:flex;flex-direction:column;gap:${S.sm}px;padding:0 0 ${S.xs}px ${S.xl}px;}
+.dfl-rv{grid-column:1/-1;flex:0 0 100%;min-width:0;display:flex;flex-direction:column;gap:${S.sm}px;margin-left:${S.md}px;padding:${S.xs}px 0 ${S.xs}px ${S.md}px;border-left:2px solid ${LAPIS.edge};}
+.dfl-chips>.dfl-rv{flex-basis:calc(100% - ${S.md}px);}
+.dfl-rv .dfl-c.small{min-height:40px;padding:${S.sm}px ${S.md}px;font-size:${X.body}px;}
 .dfl-sizes{display:grid;grid-template-columns:1fr 1fr;gap:${S.sm}px;}
 .dfl-sz{height:clamp(136px,21cqh,184px);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:${S.xs}px;border:1px solid ${T.border};border-radius:${R.tile}px;background:${T.card};padding:${S.sm}px;overflow:hidden;}
 .dfl-sz .pic{flex:1;min-height:0;width:100%;position:relative;}
@@ -68,6 +70,9 @@ export const FLOW_CSS = `
 .dfl-in{width:100%;min-height:44px;border:1px solid ${T.cardEdge};border-radius:${R.field}px;background:${T.card};padding:${S.sm}px ${S.md}px;font-size:${X.lead}px;line-height:1.4;color-scheme:light;display:block;resize:none;}
 .dfl-in:focus{outline:2px solid ${LAPIS.edge};outline-offset:1px;}
 textarea.dfl-in{min-height:64px;}
+/* iPhone dáva dátumu vlastnú šírku a riadok sa dal ťahať do strán. */
+.dfl-in[type=date]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;}
+.dfl-flds label{display:block;min-width:0;}
 .dfl-in.big{font-weight:500;font-size:${X.h1}px;text-align:center;}
 .dfl-mx{display:grid;gap:${S.sm}px;}
 .dfl-mr{display:flex;flex-direction:column;justify-content:center;gap:${S.sm}px;border:1px solid ${T.border};border-radius:${R.tile}px;background:${T.card};padding:${S.sm}px ${S.md}px;}
@@ -80,10 +85,15 @@ textarea.dfl-in{min-height:64px;}
 .dfl-mo button.on.red{${pickTintCSS(T.alertRed, PICK_INK.red)}}
 .dfl-flds{display:flex;flex-direction:column;gap:${S.md}px;}
 .dfl-lab{display:block;font-weight:500;font-size:${X.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};margin-bottom:${S.xs}px;}
-.dfl-tip{margin-top:${S.sm}px;border:1px solid ${AINUBIS.edgeStrong};border-radius:${R.tile}px;background:${AINUBIS.surface};padding:${S.sm}px ${S.md}px;font-size:${X.body}px;line-height:1.35;color:rgba(255,255,255,.82);}
-.dfl-tip b{color:#fff;font-weight:600;}
-.dfl-tip .who{display:block;font:700 ${X.micro}px/1.4 ${FONT_TITLE};letter-spacing:.14em;color:#fff;margin-bottom:${S.xs}px;} /* písmo: meno */
+.dfl-tip{display:flex;align-items:center;gap:${S.sm}px;width:100%;text-align:left;margin-top:${S.sm}px;min-height:48px;border:1px solid ${AINUBIS.edgeStrong};border-radius:${R.tile}px;background:${AINUBIS.surface};padding:${S.sm}px ${S.md}px;color:#fff;}
+.dfl-tip .who{flex:none;font:700 ${X.micro}px/1.4 ${FONT_TITLE};letter-spacing:.14em;color:#fff;} /* písmo: meno */
 .dfl-tip .who span{color:${AINUBIS.cyan};}
+.dfl-tip .tt{flex:1;min-width:0;font-weight:500;font-size:${X.body}px;line-height:1.25;color:#fff;}
+.dfl-say{margin-top:${S.sm}px;border:1px solid ${AINUBIS.edgeStrong};border-radius:${R.tile}px;background:${AINUBIS.surface};padding:${S.sm}px ${S.md}px;font-size:${X.body}px;line-height:1.35;color:rgba(255,255,255,.82);}
+.dfl-say .who{display:block;font:700 ${X.micro}px/1.4 ${FONT_TITLE};letter-spacing:.14em;color:#fff;margin-bottom:${S.xs}px;} /* písmo: meno */
+.dfl-say .who span{color:${AINUBIS.cyan};}
+.dfl-tipx{margin:${S.sm}px 0 0;font-size:${X.body}px;line-height:1.45;color:${AINUBIS.inkDim};}
+.dfl-tipx b{color:${AINUBIS.ink};font-weight:600;}
 .dfl-note{margin-top:${S.sm}px;}
 .dfl-noteb{background:none;border:0;padding:${S.xs}px 0;color:${PICK_INK.lapis};font-weight:500;font-size:${X.body}px;}
 .dfl-foot{display:flex;align-items:center;gap:${S.md}px;margin-top:auto;padding-top:${S.sm}px;}

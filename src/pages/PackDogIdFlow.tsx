@@ -12,6 +12,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { AinubisSheet } from '@/components/pack/ainubisSheet';
 import { FLOW_CSS } from '@/components/pack/dogid/flowCss';
 import {
   flowScreens, screenById, screenFields, primaryFields, fieldOf, noteField, normalizeValue,
@@ -148,13 +149,36 @@ function Modules({ tx, dogs, onlyDog }: { tx: Tx; dogs: Dog[] | null; onlyDog: s
 }
 
 // ── FLOW ────────────────────────────────────────────────────────────────────
-function Tip({ text, tx }: { text: string; tx: Tx }) {
+// Potvrdenie po odoslaní nie je rada, ostáva celé na očiach.
+function Say({ text, tx }: { text: string; tx: Tx }) {
   return (
-    <div className="dfl-tip">
+    <div className="dfl-say">
       <span className="who"><span>AI</span>NUBIS</span>
-      {/* Text je náš vlastný zo slovníka, značky `<b>` tam patria. */}
       <span dangerouslySetInnerHTML={{ __html: tx(text) }} />
     </div>
+  );
+}
+
+// Rada AINUBISa je blok s nadpisom, text je v jeho popupe (Matej 2. 11.: *„len do bloku s nadpisom
+// a klik otvorí popup s radou/radami"*). Viac rád k jednej otázke = jeden blok.
+function Tip({ title, texts, tx }: { title?: string; texts: string[]; tx: Tx }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" className="dfl-tip" onClick={() => setOpen(true)}>
+        <span className="who"><span>AI</span>NUBIS</span>
+        <span className="tt">{title ? tx(title) : ''}</span>
+        <BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)', flex: 'none' }} />
+      </button>
+      {open && (
+        <AinubisSheet onClose={() => setOpen(false)}>
+          {title && <div className="msg-modtitle">{tx(title)}</div>}
+          {/* Text je náš vlastný zo slovníka, značky `<b>` tam patria. */}
+          {texts.map((x) => <p key={x} className="dfl-tipx" dangerouslySetInnerHTML={{ __html: tx(x) }} />)}
+          <button type="button" className="msg-modcancel" onClick={() => setOpen(false)}>{tx('pack.tier.close', 'Close')}</button>
+        </AinubisSheet>
+      )}
+    </>
   );
 }
 
@@ -406,7 +430,7 @@ function Flow({ mode, tx, dogs, jump }: { mode: 'base' | 'nature'; tx: Tx; dogs:
       {s.s && <p className="dfl-s">{tx(s.s)}</p>}
       <div className="dfl-main" ref={mainRef}>
         <Body s={s} v={v} set={set} tx={tx} own={own} setOwn={setOwn} dogId={dog.id} />
-        {s.tip?.map((x) => <Tip key={x} text={x} tx={tx} />)}
+        {s.tip && <Tip title={s.tipT} texts={s.tip} tx={tx} />}
         <div className="dfl-note">
           {(s.noteOpen || noteOpen[s.id] || !empty(v[noteField(s)])) ? (
             <textarea className="dfl-in" value={String(v[noteField(s)] ?? '')} placeholder={tx(s.notePh ?? 'pack.flow.ui.notePh')} onChange={(e) => set(noteField(s), e.target.value)} />
@@ -452,7 +476,7 @@ function Reveal({ s, o, v, set, tx }: { s: FlowScreen; o: FlowOpt; v: Vals; set:
   const textField = o.other ? `other.${s.id}` : rv?.field;
   const chips = asList(rv?.chipsField ? v[rv.chipsField] : undefined);
   const subVal = o.sub ? (v[o.sub.field] as string | undefined) : undefined;
-  const subWarn = o.sub?.opts.find((x) => x.v === subVal)?.warn;
+  const subOpt = o.sub?.opts.find((x) => x.v === subVal);
   if (!rv && !o.sub && !o.warn) return null;
   return (
     <div className="dfl-rv">
@@ -486,8 +510,8 @@ function Reveal({ s, o, v, set, tx }: { s: FlowScreen; o: FlowOpt; v: Vals; set:
           ))}
         </div>
       )}
-      {o.warn && <Tip text={o.warn} tx={tx} />}
-      {subWarn && <Tip text={subWarn} tx={tx} />}
+      {o.warn && <Tip title={o.warnT} texts={[o.warn]} tx={tx} />}
+      {subOpt?.warn && <Tip title={subOpt.warnT} texts={[subOpt.warn]} tx={tx} />}
     </div>
   );
 }
@@ -552,13 +576,16 @@ function Body({ s, v, set, tx, own, setOwn, dogId }: {
       <>
         <div className="dfl-chips">
           {s.opts?.map((o) => (
-            <button type="button" key={o.v} disabled={full && !pick.includes(o.v)} className={`dfl-c${pick.includes(o.v) ? ' on' : ''}${o.none ? ' none' : ''}`} onClick={() => toggle(o.v, o.none)}>
-              {o.e && <span className="dfl-em">{o.e} </span>}{tx(o.t)}
-            </button>
+            <React.Fragment key={o.v}>
+              <button type="button" disabled={full && !pick.includes(o.v)} className={`dfl-c${pick.includes(o.v) ? ' on' : ''}${o.none ? ' none' : ''}`} onClick={() => toggle(o.v, o.none)}>
+                {o.e && <span className="dfl-em">{o.e} </span>}{tx(o.t)}
+              </button>
+              {/* Doplnenie ide hneď pod svoju odpoveď, nie pod všetky (Matej 2. 11.). */}
+              {pick.includes(o.v) && <Reveal s={s} o={o} v={v} set={set} tx={tx} />}
+            </React.Fragment>
           ))}
           {extras.map((x) => <button type="button" key={x} className="dfl-c on" onClick={() => toggle(x)}>{tx(`pack.dogTag.${x}`, tx(`pack.dogCard.fear.${x}`, x))}</button>)}
         </div>
-        {s.opts?.filter((o) => pick.includes(o.v)).map((o) => <Reveal key={o.v} s={s} o={o} v={v} set={set} tx={tx} />)}
         {s.max && <div className="dfl-count">{pick.length} / {s.max}</div>}
         {s.add && (
           <div className="dfl-add">
@@ -692,7 +719,7 @@ function WeightPhotos({ s, tx, dogId, v, set }: { s: FlowScreen; tx: Tx; dogId: 
         ))}
       </div>
       {state === 'sent'
-        ? <Tip text={P.sent} tx={tx} />
+        ? <Say text={P.sent} tx={tx} />
         : <button type="button" className="dfl-cta sm" style={{ marginTop: 8 }} disabled={busy || !side || !top} onClick={() => { void send(); }}>{tx(busy ? 'pack.flow.ui.sending' : P.cta)}</button>}
       {state === 'err' && <p className="dfl-err" role="alert">{tx('pack.flow.ui.saveErr')}</p>}
     </div>
@@ -823,7 +850,7 @@ function Will({ tx, dogs }: { tx: Tx; dogs: Dog[] | null }) {
       </div>
       {err && <p className="dfl-err" role="alert">{tx('pack.flow.ui.saveErr')}</p>}
       {state === 'sent' ? (
-        <Tip text="pack.flow.ui.sentOk" tx={tx} />
+        <Say text="pack.flow.ui.sentOk" tx={tx} />
       ) : state === 'ask' ? (
         <>
           <p className="dfl-s">{tx('pack.flow.ui.confirmSend')}</p>

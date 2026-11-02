@@ -67,6 +67,7 @@ export const FLOW_SCREENS: FlowScreen[] = [
     "t": "pack.flow.z_kastr.o.yes",
     "e": "✂️",
     "warn": "pack.flow.z_kastr.o.yes.warn",
+    "warnT": "pack.flow.z_kastr.o.yes.warnT",
     "reveal": {
      "ph": "pack.flow.z_kastr.o.yes.ph",
      "field": "basics.neuterAge",
@@ -88,17 +89,20 @@ export const FLOW_SCREENS: FlowScreen[] = [
       {
        "v": "kennel",
        "t": "pack.flow.z_kastr.o.no.sub.kennel",
-       "warn": "pack.flow.z_kastr.o.no.sub.kennel.warn"
+       "warn": "pack.flow.z_kastr.o.no.sub.kennel.warn",
+       "warnT": "pack.flow.z_kastr.o.no.sub.kennel.warnT"
       },
       {
        "v": "plan_neuter",
        "t": "pack.flow.z_kastr.o.no.sub.plan_neuter",
-       "warn": "pack.flow.z_kastr.o.no.sub.plan_neuter.warn"
+       "warn": "pack.flow.z_kastr.o.no.sub.plan_neuter.warn",
+       "warnT": "pack.flow.z_kastr.o.no.sub.plan_neuter.warnT"
       },
       {
        "v": "puppies",
        "t": "pack.flow.z_kastr.o.no.sub.puppies",
-       "warn": "pack.flow.z_kastr.o.no.sub.puppies.warn"
+       "warn": "pack.flow.z_kastr.o.no.sub.puppies.warn",
+       "warnT": "pack.flow.z_kastr.o.no.sub.puppies.warnT"
       }
      ]
     }
@@ -987,12 +991,10 @@ export const FLOW_SCREENS: FlowScreen[] = [
   "flow": "base",
   "kind": "chips",
   "t": "pack.flow.z_aky.t",
-  "s": "pack.flow.z_aky.s",
   "sec": "pack.flow.sec.Povaha",
   "secE": "🎭",
   "art": "k0-zrkadlo",
   "add": true,
-  "max": 5,
   "field": "temperament.tags",
   "opts": [
    {
@@ -1756,6 +1758,7 @@ export const FLOW_SCREENS: FlowScreen[] = [
    "pack.flow.z_ocko.tip0",
    "pack.flow.z_ocko.tip1"
   ],
+  "tipT": "pack.flow.z_ocko.tipT",
   "fields": [
    {
     "field": "health.vaxRabies",
@@ -1780,6 +1783,7 @@ export const FLOW_SCREENS: FlowScreen[] = [
   "tip": [
    "pack.flow.z_parazity.tip0"
   ],
+  "tipT": "pack.flow.z_parazity.tipT",
   "field": "health.parasites",
   "opts": [
    {
@@ -1931,7 +1935,8 @@ export const FLOW_SCREENS: FlowScreen[] = [
     "v": "free",
     "t": "pack.flow.z_davky.o.free",
     "e": "🍽️",
-    "warn": "pack.flow.z_davky.o.free.warn"
+    "warn": "pack.flow.z_davky.o.free.warn",
+    "warnT": "pack.flow.z_davky.o.free.warnT"
    }
   ]
  },
