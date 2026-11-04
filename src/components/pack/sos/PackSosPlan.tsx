@@ -2,7 +2,7 @@
 // vždy je otvorený práve JEDEN krok (prvý nesplnený), iný sa dá otvoriť ručne — v panike nič neblokuje.
 // Otvorený krok: Prečo · Čo povedať (predvyplnený text + SKOPÍROVAŤ) · kontakty ZAVOLAŤ/SMS · Na čo sa spýtať ·
 // HOTOVO, ĎALEJ · Preskočiť. Po návrate z hovoru/SMS sa opýta „Podarilo sa?“ (NEDOVOLAL SOM SA → ďalší kontakt).
-// Odškrtnutie nesie server (`lost_dogs.plan_done`, `sosSetPlan`); preskočené je len v tejto návšteve a do hotových sa nepočíta.
+// Odškrtnutie nesie server (`lost_dogs.plan_done`, `sosSetPlan`); preskočené si pamätá toto zariadenie a do hotových sa nepočíta.
 // Kroky leták a zdieľanie sa odškrtnú samy (`flyer_url`, `shares` / zdieľanie z tejto obrazovky).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -43,6 +43,7 @@ const CSS = `
 .sosp-tag--ok{color:#2F6A42;background:${T.growGreenSoft};}
 .sosp-tag--no{color:#8A5A10;background:rgba(201,154,63,.2);}
 .sosp-tag a{color:inherit;}
+.sosp-report{align-self:center;min-height:44px;display:inline-flex;align-items:center;text-align:center;font-size:${PACK_TEXT.label}px;color:${T.inkWarm};text-decoration:underline;}
 .sosp-acts{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
 .sosp-acts--one{grid-template-columns:1fr;}
 .sosp-fixed{display:grid;grid-template-columns:1fr;gap:${PACK_SPACE.sm}px;}
@@ -67,6 +68,18 @@ const digits = (p: string) => p.replace(/[^\d+]/g, '');
 const isMobile = (p: string) => /^(?:(?:\+|00)421|0)9(?!6)|^(?:(?:\+|00)420)?[67]/.test(digits(p));
 const mmYYYY = (d: string) => { const m = /^(\d{4})-(\d{2})/.exec(d); return m ? `${m[2]}/${m[1]}` : d; };
 
+const skippedKey = (slug?: string) => `sos-plan-skipped:${slug ?? ''}`;
+const loadSkipped = (slug?: string): Set<string> => {
+  try { return new Set(JSON.parse(localStorage.getItem(skippedKey(slug)) ?? '[]') as string[]); } catch { return new Set(); }
+};
+const saveSkipped = (slug: string | undefined, next: Set<string>) => {
+  try { localStorage.setItem(skippedKey(slug), JSON.stringify([...next])); } catch { /* súkromné okno: platí len do obnovenia */ }
+};
+
+/** Zlé číslo alebo žiadosť o vymazanie: predvyplnený mail, vybaví sa ručne (`sos_contact_remove`). */
+const reportHref = (c: SosContact, s: SosT) =>
+  `mailto:woof@dogypt.com?subject=${encodeURIComponent(s('pack.sos.plan.report.subject', { name: c.name }))}&body=${encodeURIComponent(s('pack.sos.plan.report.body', { name: c.name, phone: c.phone ?? '–' }))}`;
+
 function Contact({ c, smsBody, s, onAct }: { c: SosContact; smsBody: string; s: SosT; onAct: () => void }) {
   return (
     <div className="sosp-item" style={{ ...PACK_BOX.row }}>
@@ -84,6 +97,7 @@ function Contact({ c, smsBody, s, onAct }: { c: SosContact; smsBody: string; s: 
       ) : c.web ? (
         <a className="sos-cta sos-cta--ghost" href={c.web} target="_blank" rel="noopener noreferrer" onClick={onAct}>{s('pack.sos.plan.web')}</a>
       ) : null}
+      <a className="sosp-report" href={reportHref(c, s)}>{s('pack.sos.plan.report')}</a>
     </div>
   );
 }
@@ -98,7 +112,7 @@ export default function PackSosPlan() {
   const s = useSosT(load.state === 'ready' ? load.pub.dog_gender : null);
   const [rows, setRows] = useState<SosContact[] | null>(null);
   const [done, setDone] = useState<Set<string>>(new Set());
-  const [skipped, setSkipped] = useState<Set<string>>(new Set());
+  const [skipped, setSkipped] = useState<Set<string>>(() => loadSkipped(slug));
   const [shared, setShared] = useState(false);
   const [openId, setOpenId] = useState<Step | null | undefined>(undefined); // undefined = prvý nesplnený
   const [extra, setExtra] = useState<Partial<Record<Step, number>>>({});
@@ -155,7 +169,7 @@ export default function PackSosPlan() {
     if (!isDone(st)) markDone(st);
   };
   const skip = (st: Step) => {
-    const nextSk = new Set(skipped); nextSk.add(st); setSkipped(nextSk);
+    const nextSk = new Set(skipped); nextSk.add(st); setSkipped(nextSk); saveSkipped(slug, nextSk);
     const after = STEPS.slice(STEPS.indexOf(st) + 1).find((x) => !isDone(x) && !nextSk.has(x));
     setOpenId(after ?? null);
   };

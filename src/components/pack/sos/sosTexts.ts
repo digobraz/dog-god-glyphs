@@ -198,6 +198,13 @@ export const SOS_TEXTS = {
   'pack.sos.plan.km': T('approx. {km} km', 'cca {km} km', 'cca {km} km'),
   'pack.sos.btn.abuse': T('Report abuse', 'Nahlásiť týranie', 'Nahlásit týrání'),
   'pack.sos.plan.web': T('WEBSITE', 'WEB', 'WEB'),
+  'pack.sos.plan.report': T('Report a mistake or ask for removal', 'Nahlásiť chybu alebo žiadosť o vymazanie', 'Nahlásit chybu nebo žádost o vymazání'),
+  'pack.sos.plan.report.subject': T('SOS contact: {name}', 'SOS kontakt: {name}', 'SOS kontakt: {name}'),
+  'pack.sos.plan.report.body': T(
+    'Contact: {name}\nPhone: {phone}\n\nWhat is wrong, or should we remove it?\n',
+    'Kontakt: {name}\nTelefón: {phone}\n\nČo nesedí, alebo ho máme vymazať?\n',
+    'Kontakt: {name}\nTelefon: {phone}\n\nCo nesedí, nebo ho máme vymazat?\n',
+  ),
   'pack.sos.plan.smsText': T('Hello, I am looking for my lost dog {name}. Last seen: {place}. {url}', 'Dobrý deň, stratil sa mi pes {name}. Naposledy videný: {place}. {url}', 'Dobrý den, ztratil se mi pes {name}. Naposledy viděn: {place}. {url}'),
 
   // ── 5 · verejná stránka ──────────────────────────────────────────────────

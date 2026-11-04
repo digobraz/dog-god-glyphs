@@ -1119,6 +1119,10 @@ export const cs: Partial<Dict> = {
   'privacy.s14.body':
     'AINUBIS je AI průvodce uvnitř DOGYPTu. Jeho odpovědi generuje Claude, model společnosti Anthropic, PBC, která je naším zpracovatelem. Když jste přihlášení, s každou vaší zprávou pro AINUBISE odchází do Anthropicu také: jméno z vašeho profilu, jména a základní údaje vašich psů, údaje z jejich DOG ID (povaha, zdraví, krmení), poslední zápisy z jejich deníku a krátký výtah z vašich předchozích rozhovorů s AINUBISEM. AINUBIS nikdy nedostane závěť vašeho psa ani kontakty jiných lidí, které jste zapsali do DOG ID (veterinář, záložní kontakt, dědic). Anthropic tyto údaje dostává jen k vygenerování odpovědi a nepoužívá je k trénování svých modelů. Pokud přihlášení nejste, AINUBIS ví jen to, co mu napíšete do chatu, a snímek obrazovky, pokud ho přiložíte.\n\nKaždou z těchto částí — psy, DOG ID, deník a paměť — si budete moci vypnout v nastavení AINUBISE. AINUBIS pak pracuje jen s tím, co mu řeknete v rozhovoru.\n\nRozhovory s AINUBISEM včetně přiložených snímků uchováváme v naší databázi (Supabase) jako běžnou historii. Když si rozhovor v chatu skryjete nebo smažete, zmizí z vašeho pohledu, ne z našich záznamů; historii smažeme, když nás požádáte o zrušení účtu. Na rozdíl od zpráv mezi Členy (článek 13) nejsou rozhovory s AINUBISEM před námi uzavřené: zakladatel Matej Stacho je čte a může do nich sám odpovídat. Právní základ: u Členů čl. 6 odst. 1 písm. b) GDPR — AINUBIS je součástí členství; u nepřihlášených návštěvníků náš oprávněný zájem odpovědět na jejich otázku (čl. 6 odst. 1 písm. f)).',
 
+  'privacy.s15.title': '15. Kontakty v plánu při ztrátě psa',
+  'privacy.s15.body':
+    'Když se ztratí pes, aplikace členovi, který ho hledá, ukáže nejbližší organizace, které mohou pomoci: policii, útulky, myslivecké spolky a spolky na ochranu zvířat. Jejich názvy a telefonní čísla jsme shromáždili z veřejných zdrojů, především z vlastních webů organizací a veřejných rejstříků, a u každého si držíme zdroj. Pokud organizace uvádí jako kontakt konkrétní osobu, patří sem i její jméno, funkce a telefon. Používáme je jen k tomu, aby se ztracený pes našel dříve (oprávněný zájem, čl. 6 odst. 1 písm. f GDPR), zobrazují se jen členům uvnitř aplikace a neprodáváme je ani nepoužíváme k marketingu. Je tu vaše jméno nebo číslo, nebo je údaj nesprávný? Napište na woof@dogypt.com. Opravíme ho nebo vymažeme a při aktualizaci seznamu se už nevrátí.',
+
   // ── Consent banner (ConsentBanner.tsx + Footer „Nastavení cookies") ──
   'consent.title': 'Lidské povinnosti',
   'consent.body':
@@ -8027,6 +8031,9 @@ export const cs: Partial<Dict> = {
   "pack.sos.plan.km": "cca {km} km",
   "pack.sos.btn.abuse": "Nahlásit týrání",
   "pack.sos.plan.web": "WEB",
+  "pack.sos.plan.report": "Nahlásit chybu nebo žádost o vymazání",
+  "pack.sos.plan.report.subject": "SOS kontakt: {name}",
+  "pack.sos.plan.report.body": "Kontakt: {name}\nTelefon: {phone}\n\nCo nesedí, nebo ho máme vymazat?\n",
   "pack.sos.plan.smsText": "Dobrý den, ztratil se mi pes {name}. Naposledy viděn: {place}. {url}",
   "pack.sos.pub.dontChase": "Neháněj ho. Sedni si, mluv potichu a zavolej.",
   "pack.sos.pub.flyer": "Leták",

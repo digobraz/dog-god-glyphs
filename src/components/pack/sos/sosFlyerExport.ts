@@ -23,13 +23,42 @@ async function waitReady(node: HTMLElement, ms = 12000): Promise<void> {
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(null))));
 }
 
+/** Je na mieste fotky a mapy niečo nakreslené? Výrez z rohu bunky mimo krúžku mapy; prázdna bunka je jednofarebná. */
+async function imagesDrawn(png: Blob, flyer: HTMLElement): Promise<boolean> {
+  const imgs = [...flyer.querySelectorAll<HTMLImageElement>('.sfl-pic > img')];
+  if (!imgs.length) return true;
+  const box = flyer.getBoundingClientRect();
+  const bmp = await createImageBitmap(png);
+  const c = document.createElement('canvas');
+  c.width = c.height = 32;
+  const g = c.getContext('2d', { willReadFrequently: true })!;
+  const ok = imgs.every((img) => {
+    const r = img.getBoundingClientRect();
+    const k = bmp.width / box.width;
+    g.drawImage(bmp, (r.left - box.left + r.width * 0.1) * k, (r.top - box.top + r.height * 0.1) * k, r.width * 0.25 * k, r.height * 0.25 * k, 0, 0, 32, 32);
+    const d = g.getImageData(0, 0, 32, 32).data;
+    let lo = 255; let hi = 0;
+    for (let i = 0; i < d.length; i += 4) { const v = d[i] + d[i + 1] + d[i + 2]; lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    return hi - lo > 6;
+  });
+  bmp.close();
+  return ok;
+}
+
 /** Presne 2480×3508 PNG. */
 export async function flyerToPng(node: HTMLElement): Promise<Blob> {
   await waitReady(node);
   const { toBlob } = await import('html-to-image');
   const flyer = node.querySelector<HTMLElement>('.sfl') ?? node;
   const h = Math.round((FLYER_CSS_W * 297) / 210);
-  const blob = await toBlob(flyer, { pixelRatio: 2, width: FLYER_CSS_W, height: h, cacheBust: false, skipFonts: false });
+  await Promise.all([...flyer.querySelectorAll('img')].map((i) => i.decode().catch(() => undefined)));
+  // 🔴 WebKit (iPhone) pri prvom kreslení obrázky do SVG často nedokreslí a leták vyjde bez fotky (test 4. 11. 2026).
+  let blob: Blob | null = null;
+  for (let pokus = 0; pokus < 4; pokus++) {
+    blob = await toBlob(flyer, { pixelRatio: 2, width: FLYER_CSS_W, height: h, cacheBust: false, skipFonts: false });
+    if (blob && await imagesDrawn(blob, flyer)) break;
+    await new Promise((r) => setTimeout(r, 250));
+  }
   if (!blob) throw new Error('flyer_empty');
   const bmp = await createImageBitmap(blob);
   if (bmp.width === FLYER_W && bmp.height === FLYER_H) { bmp.close(); return blob; }
