@@ -111,8 +111,10 @@ export default function PackDogCard() {
       // Hodnoty v DOG ID sú kódy („none", „ib"): na kartičku ide to, čo vidí človek. „Žiadne" sa na kartičku nepíše.
       const tr = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
       const shown = (f: string, v: LatestValue | undefined) => {
-        if (!hasValue(v) || v!.value === 'none' || !STEP_BY_FIELD[f]) return '';
-        return passPlainValue(STEP_BY_FIELD[f], v!.value, tr, intlLocale(lang));
+        if (!hasValue(v) || !STEP_BY_FIELD[f]) return '';
+        const raw = Array.isArray(v!.value) ? v!.value.filter((x) => x !== 'none') : v!.value === 'none' ? '' : v!.value;
+        if (raw === '' || (Array.isArray(raw) && !raw.length)) return '';
+        return passPlainValue(STEP_BY_FIELD[f], raw, tr, intlLocale(lang));
       };
       const { name, phone } = splitContact(shown('health.backupContact', latest['health.backupContact']));
       const birth = d?.birth_year;

@@ -32,6 +32,7 @@ const rel = (f) => f.slice(KOREN.length + 1);
 // ── Vedomé výnimky: súbor + úryvok riadku → dôvod, prečo to v appke nie je nákup ─────────────
 // Pridávaj len s dôvodom. Nález, ktorý je v appke naozaj dosiahnuteľný, sem NEPATRÍ — oprav ho.
 const VEDOME = [
+  { subor: 'src/lib/vetEmergency.ts', obsahuje: '"fee":', dovod: 'príplatok cudzej veterinárnej kliniky, v appke sa nič nekupuje' },
   { subor: 'src/components/PageTopBar.tsx', obsahuje: '/heroglyph/', dovod: 'len porovnanie cesty na vzhľad lišty, nič neotvára' },
   { subor: 'src/components/PageTopBar.tsx', obsahuje: "'/checkout'", dovod: 'len porovnanie cesty na vzhľad lišty, nič neotvára' },
   { subor: 'src/components/ainubis/AinubisWidget.tsx', obsahuje: '/heroglyph/', dovod: 'skrýva widget na nákupných cestách, nič neotvára' },
