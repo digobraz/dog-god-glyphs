@@ -33,7 +33,7 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>DOGYPT saves your dog's share card and heroglyph to your photos.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>DOGYPT uses your location for SNIFFER and the trip maps.</string>
+	<string>DOGYPT uses your location for SNIFFER, the trip maps and to alert you when a dog goes missing near you.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

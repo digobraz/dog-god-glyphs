@@ -12,6 +12,7 @@ import { BrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS, PF_FIELD_CSS } from './packTheme';
 import { useToast } from '@/hooks/use-toast';
+import { TEST_BUILD } from '@/lib/env';
 import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '@/components/LanguagePicker';
 import { HandCheck } from '@/components/pack/HandIcons';
@@ -145,6 +146,26 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
       await patchHuman({ notif_off: on ? off : [...off, 'notif_ainubis'] });
     } catch {
       setAinOn(predtym);
+      toast({ title: tx('pack.settings.notifErr', 'Could not save'), description: tx('pack.settings.notifErrDesc', 'Try again in a moment.') });
+    }
+  };
+
+  // Stratený pes v okolí (4. 11. 2026) — druh `notif_sos` v `human.notif_off`, rešpektuje ho `send-push` (`opt_out_key`
+  // z `notify-sos`). Platí LEN pre push „stratený pes v okolí"; upozornenia majiteľovi na vlastného psa sa nevypínajú.
+  const [sosOn, setSosOn] = useState(true);
+  useEffect(() => {
+    if (!TEST_BUILD) return;
+    void readHuman().then(({ human }) => setSosOn(!notifOff(human).includes('notif_sos')));
+  }, []);
+  const ulozSos = async (on: boolean) => {
+    const predtym = sosOn;
+    setSosOn(on);
+    try {
+      const { human } = await readHuman();
+      const off = notifOff(human).filter((x) => x !== 'notif_sos');
+      await patchHuman({ notif_off: on ? off : [...off, 'notif_sos'] });
+    } catch {
+      setSosOn(predtym);
       toast({ title: tx('pack.settings.notifErr', 'Could not save'), description: tx('pack.settings.notifErrDesc', 'Try again in a moment.') });
     }
   };
@@ -316,6 +337,21 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
             ]).map((opt) => (
               <button key={String(opt.key)} type="button" onClick={() => void ulozAinubis(opt.key)}
                 aria-pressed={ainOn === opt.key} className={`pf-toggle__opt${ainOn === opt.key ? ' is-on' : ''}`}>
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
+      {notifOn && TEST_BUILD && (
+        <Field icon={<BrandIcon name="alert" size={16} tint="danger" />} label={tx('pack.settings.notifSos', 'Lost dogs nearby')}>
+          <div className="pf-toggle">
+            {([
+              { key: true, label: tx('pack.settings.notifOn', 'On') },
+              { key: false, label: tx('pack.settings.notifOff', 'Off') },
+            ]).map((opt) => (
+              <button key={String(opt.key)} type="button" onClick={() => void ulozSos(opt.key)}
+                aria-pressed={sosOn === opt.key} className={`pf-toggle__opt${sosOn === opt.key ? ' is-on' : ''}`}>
                 {opt.label}
               </button>
             ))}

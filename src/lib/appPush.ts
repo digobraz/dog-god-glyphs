@@ -11,6 +11,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { IS_APP, APP_PLATFORM } from '@/lib/isApp';
 import { APP_DEV } from '@/lib/env';
+import { sendPushGeoOnce } from '@/lib/appPushGeo';
 
 // `push_tokens` a `register_push_token` ešte nie sú v generovaných typoch (types.ts sa nepíše ručne).
 const db = supabase as unknown as {
@@ -50,7 +51,7 @@ async function register() {
       const { error } = await db.rpc('register_push_token', {
         p_token: value, p_platform: APP_PLATFORM, p_app_id: appId(),
       });
-      if (!error) localStorage.setItem(TOKEN_KEY, value);
+      if (!error) { localStorage.setItem(TOKEN_KEY, value); void sendPushGeoOnce(); }
     } catch { /* ďalší štart skúsi znova */ }
   });
   await PushNotifications.addListener('registrationError', () => { /* bez kľúčov (FCM/APNs) je to očakávané */ });

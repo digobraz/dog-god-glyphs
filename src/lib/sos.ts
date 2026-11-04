@@ -7,6 +7,7 @@
 // Čakané chyby servera: bad_phone · bad_coords · bad_time · bad_state · bad_url · rate_limited ·
 // no_access · not_authenticated. Čítaj ich cez `sosErrorCode`.
 import { supabase } from '@/integrations/supabase/client';
+import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rpc = (name: string, args?: Record<string, unknown>) => (supabase as any).rpc(name, args);
@@ -135,6 +136,10 @@ export const sosErrorCode = (e: unknown): string =>
 
 const first = <T,>(data: T | T[] | null): T | null => (Array.isArray(data) ? data[0] ?? null : data);
 
+/** Hrubá poloha zariadenia pre push „stratený pes v okolí“ — server zaokrúhľuje na 2 desatinné miesta (~1 km). */
+export const sosPushGeo = (token: string, lat: number, lng: number) =>
+  call<void>('push_token_geo', { p_token: token, p_lat: lat, p_lng: lng });
+
 export const sosMyDogs = () => call<SosDog[]>('sos_my_dogs');
 export const sosLastPhone = () => call<string | null>('sos_last_phone');
 
@@ -177,7 +182,18 @@ export const sosContactsNear = (lat: number, lng: number, country: string, perTy
   call<SosContact[]>('sos_contacts_near', { p_lat: lat, p_lng: lng, p_country: country, p_limit_per_typ: perType });
 
 export const lostPublic = async (slug: string) => first(await call<LostPublic | LostPublic[] | null>('lost_public', { p_slug: slug }));
-export const lostPhone = (slug: string) => call<string | null>('lost_phone', { p_slug: slug });
+// Telefón ide cez Edge Function `lost-phone` (rate limit na IP) — RPC `lost_phone` má od 20261119 právo len service_role.
+export async function lostPhone(slug: string): Promise<string | null> {
+  const r = await fetch(`${EDGE_BASE}/lost-phone`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY },
+    body: JSON.stringify({ slug }),
+  });
+  if (r.status === 429) throw new Error('rate_limited');
+  if (!r.ok) throw new Error('bad');
+  const j = (await r.json()) as { phone?: string | null };
+  return typeof j.phone === 'string' ? j.phone : null;
+}
 export const lostShare = (slug: string) => call<void>('lost_share', { p_slug: slug });
 
 /** Odkaz, ktorý ide na leták a do zdieľania. Slug sa po vzniku nikdy nemení. */

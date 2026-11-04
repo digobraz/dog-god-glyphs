@@ -52,6 +52,19 @@ export function circleMarkHtml(emoji: string, rim: string, extra = ''): string {
   return `<div class="mk-circle${extra}" style="border-color:${rim}"><i>${emoji}</i></div>`;
 }
 
+/** Priemer kruhu so FOTKOU psa (SOS pátranie, 4. 11. 2026) — väčší než emoji kruh, fotka musí byť poznať.
+ *  Je to VARIANT toho istého kruhu (`.mk-circle--photo`), nie druhá značka: lem nesie skupinu (SOS = červená),
+ *  špička dole je kotva na súradnici. Farbu nesie volajúci, rovnako ako pri ostatných. */
+export const PHOTO_CIRCLE_PX = 44;
+const PHOTO_RIM_PX = 3;
+const PHOTO_TIP_PX = 8;
+
+/** Značka „fotka v kruhu so špičkou" ako HTML string pre `L.divIcon` (kotva = hrot špičky). */
+export function circlePhotoHtml(photo: string | null, rim: string, extra = ''): string {
+  const bg = photo ? `background-image:url('${encodeURI(photo).replace(/'/g, '%27')}');` : '';
+  return `<div class="mk-circle mk-circle--photo${extra}" style="border-color:${rim};--mk-tip:${rim};${bg}"></div>`;
+}
+
 /**
  * CSS kruhovej značky. Injektuje ho KAŽDÝ povrch, ktorý `circleMarkHtml()` volá —
  * `MapNotesLayer` cez `MAP_NOTES_CSS`, `PackMap` cez svoj blok.
@@ -79,4 +92,8 @@ export const CIRCLE_MARK_CSS = `
    nesie volajúci cez WORLD_RIM, rovnako ako pri všetkých ostatných kruhoch. */
 .mk-circle--world{width:${WORLD_CIRCLE_PX}px;height:${WORLD_CIRCLE_PX}px;border-width:${WORLD_RIM_PX}px;box-shadow:0 1px 2px rgba(0,0,0,0.40),0 0 0 1px rgba(0,0,0,0.08);}
 .mk-circle--world i{font-size:${WORLD_EMOJI_PX}px;}
+/* FOTKA PSA (SOS) — ten istý kruh, väčší, s výplňou fotkou a špičkou dole; hrot sedí na súradnici (posun o výšku + špičku). */
+.mk-circle--photo{width:${PHOTO_CIRCLE_PX}px;height:${PHOTO_CIRCLE_PX}px;border-width:${PHOTO_RIM_PX}px;background-size:cover;background-position:center;background-repeat:no-repeat;transform:translate(-50%,calc(-100% - ${PHOTO_TIP_PX + 1}px));}
+.mk-circle--photo:hover{transform:translate(-50%,calc(-100% - ${PHOTO_TIP_PX + 1}px)) scale(1.08);}
+.mk-circle--photo::after{content:'';position:absolute;left:50%;bottom:-${PHOTO_TIP_PX + 1}px;transform:translateX(-50%);border:${PHOTO_TIP_PX}px solid transparent;border-top-color:var(--mk-tip,#000);border-bottom:0;}
 `;

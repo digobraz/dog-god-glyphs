@@ -46,6 +46,8 @@ import { firstWord, tripTitle, useFeedTrips, type FeedTrip, useFeedMarks, useFee
 import { FeedTripCard, FEED_TRIP_CSS } from './FeedTripCard';
 import { FeedPostCard, FEED_POST_CSS } from './FeedPostCard';
 import { AiHead, AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
+import { FeedSosBlock } from './FeedSosCard';
+import { useSosActive } from '../sosKit';
 import { SnifferStrip, TripStrip, FEED_TOP_CSS } from './FeedTop';
 import { QuoteComments } from './QuoteComments';
 import { fetchQuoteComments } from '@/components/pack/trip/tripCommentsData';
@@ -198,6 +200,7 @@ export function PackFeed() {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { lang } = useLang();
+  const sosRows = useSosActive();
   const navigate = useNavigate();
   const navType = useNavigationType();
   const [params, setParams] = useSearchParams();
@@ -545,6 +548,8 @@ export function PackFeed() {
     <div className={`pkf${searching ? ' srch' : ''}`} onClick={closeOnOutside}>
       <style>{SCROLL_CSS}{SCROLL_CARD_CSS}{CSS}</style>
       <div className="pkf-col">
+        {/* SOS (4. 11. 2026): červený blok stratených psov NAD VŠETKÝM, mimo `weave()`. Len TEST_BUILD (hook inak nevolá nič). */}
+        {!searching && <FeedSosBlock rows={sosRows} />}
         {searching ? (<>
           <div className="pkf-sb" role="search">
             <HandSearch size={20} />

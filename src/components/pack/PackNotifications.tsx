@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { BrandIcon } from './BrandIcon';
 import { HandTail } from './HandIcons';
 import { NotifSheet } from './NotifSheet';
-import { PACK_THEME, PACK_AVATAR, PACK_TEXT, PACK_R, FONT_UI } from './packTheme';
+import { PACK_THEME, PACK_AVATAR, PACK_TEXT, PACK_R, PACK_SPACE, FONT_UI } from './packTheme';
 import { pluralKey } from '@/lib/plural';
 import { useT } from '@/i18n/LanguageContext';
 import { openAinubis, getAinubisUnread, onAinubisUnread } from '@/lib/ainubisBus';
@@ -31,6 +31,9 @@ import { emitOpenInbox, emitOpenThread } from './messaging/openBridge';
 import type { PackAlert } from './packAlerts';
 import { useNavigate } from 'react-router-dom';
 import { sizedUrl } from '@/services/cloudinaryService';
+
+/** SOS riadky chvosta (`sos_lost`, `sos_still`) — prioritné, mimo zoznamu „nové / skôr“. */
+const isSosAlert = (a: PackAlert) => a.kind === 'sos_lost' || a.kind === 'sos_still';
 
 /** Sociálne (IG) upozornenia → základ i18n kľúča `pack.alerts.soc.<základ>One|Many`. */
 const SOCIAL_KEY: Record<string, string> = {
@@ -151,6 +154,7 @@ interface PackNotificationsProps {
 export function PackNotifications({ last24h, last30d, total, dark = false, className, layout = 'overlay', capsule = false }: PackNotificationsProps) {
   const inline = layout === 'inline';
   const t = useT();
+  const tl = (k: string, fb: string, vars: Record<string, string | number>) => { const v = t(k, vars); return v === k ? fb.replace(/\{(\w+)\}/g, (_, n) => String(vars[n] ?? '')) : v; };
   const [open, setOpen] = useState(false);
   const closeSheet = useCallback(() => setOpen(false), []);
   // CHVOST SA ZAVRTÍ (21. 10. 2026, Matej: „po kliknutí na chvost by bolo dobré urobiť mini
@@ -467,7 +471,28 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                 {t('pack.alerts.title')}
               </div>
               <ul className="flex flex-col gap-2 mb-3">
-                {[...alerts.filter((a) => newIds.has(a.id)), ...alerts.filter((a) => !newIds.has(a.id))].map((al, ai, ordered) => <Fragment key={al.id}>{newIds.size > 0 && (ai === 0 || (!newIds.has(al.id) && newIds.has(ordered[ai - 1].id))) && (
+                {/* SOS (4. 11. 2026): stratený pes v krajine = PRIORITNÝ riadok navrchu, mimo „nové / skôr". Zanikne sám, keď pátranie skončí
+                    (zdroj je `sosActive()`); prečítaním zmizne z počtu, nie zo zoznamu. */}
+                {alerts.filter(isSosAlert).map((al) => (
+                  <li key={al.id}>
+                    <button type="button" onClick={() => { setOpen(false); navigate(al.tripPath); }}
+                      className="flex items-center gap-3 w-full text-left"
+                      style={{ cursor: 'pointer', font: 'inherit', padding: PACK_SPACE.sm, borderRadius: PACK_R.tile, border: `1px solid ${T.sosRed}`, background: T.sosRedSoft }}>
+                      {al.photo
+                        ? <img src={sizedUrl(al.photo, 96)} alt="" width={40} height={40} loading="lazy" style={{ flexShrink: 0, width: 40, height: 40, borderRadius: PACK_R.pill, objectFit: 'cover', border: `2px solid ${T.sosRed}` }} />
+                        : <BrandIcon name="alert" size={24} tint="danger" />}
+                      <span style={{ minWidth: 0, flex: 1 }}>
+                        <span style={{ display: 'block', fontFamily: FONT_UI, fontWeight: 600, fontSize: PACK_TEXT.body, lineHeight: 1.35, color: T.sosRed }}>
+                          {al.kind === 'sos_still'
+                            ? tl('pack.sos.alert.still', 'Still looking for {name}?', { name: al.who ?? '' })
+                            : tl('pack.sos.alert.lost', '{name} is lost', { name: al.who ?? '' })}
+                        </span>
+                        {al.tripName && <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: PACK_TEXT.label, lineHeight: 1.35, color: T.inkDim }}>{al.tripName}</span>}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+                {[...alerts.filter((a) => !isSosAlert(a) && newIds.has(a.id)), ...alerts.filter((a) => !isSosAlert(a) && !newIds.has(a.id))].map((al, ai, ordered) => <Fragment key={al.id}>{newIds.size > 0 && (ai === 0 || (!newIds.has(al.id) && newIds.has(ordered[ai - 1].id))) && (
                   <li className="ntf-li-sec"><span className="ntf-sec">{t(newIds.has(al.id) ? 'pack.alerts.new' : 'pack.alerts.earlier')}</span></li>
                 )}{al.kind === 'ainubis_reply' ? (
                   // AINUBIS ODPÍSAL (27. 10. 2026) — jeho šat (`ntf-row--ai` z NotifSheet), ťuk = vlákno citátu.

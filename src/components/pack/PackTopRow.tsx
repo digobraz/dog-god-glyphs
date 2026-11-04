@@ -28,6 +28,8 @@ import { BackButton } from './BackButton';
 import { PACK_TOPROW, PACK_COL_INNER, PACK_COL_PAD, PAPER_BG, PACK_SPACE, usePaperRoute } from './packTheme';
 import { DEV_FULL } from '@/lib/packFlags';
 import { getPackStats } from '@/lib/sharedFetch';
+import { TEST_BUILD } from '@/lib/env';
+import { SosButton } from './SosButton';
 
 // ── JEDNA HLAVIČKA (Matej 28. 10. 2026) ──────────────────────────────────────────────────
 // *„header musí mať stálu výšku a umiestnenie, ikonky nemôže mať každá obrazovka iné. Výnimkou je
@@ -51,6 +53,8 @@ function TopRowRight({ extra }: { extra?: ReactNode }) {
   return (
     <>
       {extra}
+      {/* SOS (4. 11. 2026): trojuholník vedľa správ, 1 ťuk odkiaľkoľvek (lock §1.2). Len TEST_BUILD; `task` ho nekreslí (kôš 3). */}
+      {TEST_BUILD && <SosButton />}
       {DEV_FULL && <PackNotifications dark={!paper} last24h={stats.last24h} total={stats.total} layout="inline" capsule />}
     </>
   );
@@ -85,7 +89,7 @@ ${stickyRow('.pk-plain')}
 // 🎯 ÚLOHA = KÔŠ 3 (Matej 30. 10. 2026 nad onboardingom SNIFFERa: *„vadí mi sos, správy a chvost… nie je to
 //    aktívna obrazovka, kde sa niečo robí? postráž si tieto pohľady“*). Kde človek vypĺňa, ladí alebo hrá kvíz,
 //    pravý kraj ostane PRÁZDNY — žiadne správy, upozornenia ani SOS. AINUBIS vľavo a šípka ostávajú.
-//    SOS nie je v tomto rade vôbec — žije len v hlavičke /map (`PackMap.tsx`).
+//    SOS (`TopRowRight`) sa tu preto nekreslí tiež — kôš 3 ho nemá (revízia 4. 11. 2026: inde je SOS vedľa správ).
 export function PackTopRow({ onBack, backLabel, right, extra, left, center, task = false }: {
   /** Bez `onBack` je stred prázdny (homepage, DOG ID, profil). */
   onBack?: () => void;

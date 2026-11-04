@@ -33,6 +33,9 @@ import { currentTripId, tripPathById } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
 import { iso2ToISO3 } from '@/lib/countryGeo';
+import { loadSosActive } from '@/components/pack/sosKit';
+import { sosMine } from '@/lib/sos';
+import { TEST_BUILD } from '@/lib/env';
 import { fetchMemberProfiles, memberDisplayName } from '@/components/pack/profile/memberProfile';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rovnaký dôvod ako v packStore.ts:
@@ -71,7 +74,11 @@ export type SocialAlertKind = 'post_like' | 'post_comment' | 'trip_like' | 'trip
 // zverejnení Rosuchova: *„neprišlo mi upozornenie na chvostíku"* — správa išla len do AINUBIS rozhovoru. CYAN (systém).
 // Zdroj = vlastné `pack_trips` (RLS `pack_trips_read` pustí autora), žiadna RPC ani migrácia.
 export type ReviewAlertKind = 'trip_published' | 'trip_returned';
-export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | 'follow_new' | 'ainubis_reply' | ReviewAlertKind | SocialAlertKind | EventAlertKind | WishAlertKind;
+// `sos_lost` · `sos_still` (4. 11. 2026): stratený pes v mojej krajine / „Stále hľadáš MENO?" (majiteľ, keď 14-dňová otázka
+// `asked_at` visí). Zdroj = `sosActive()` + `sosMine()` (len TEST_BUILD). Keď pátranie skončí (NAŠIEL SA), zo zdroja zmizne
+// ⇒ riadok zanikne sám. Prečítanie = id v `seen` ⇒ zmizne z počtu, riadok v zozname ostáva (nič trvalé).
+export type SosAlertKind = 'sos_lost' | 'sos_still';
+export type AlertKind = SosAlertKind | 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | 'follow_new' | 'ainubis_reply' | ReviewAlertKind | SocialAlertKind | EventAlertKind | WishAlertKind;
 
 /** Koľko dní svieti „{meno} je v tvojej svorke" — potom je to už stav, nie správa. */
 const PAWMATE_ALERT_DAYS = 30;
@@ -456,6 +463,22 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
       photo: r.photo ?? tripPhoto ?? undefined, preview: r.preview ?? undefined,
       whoPhoto: r.who_photo ?? undefined,
     });
+  }
+
+  // SOS — prioritné riadky (v paneli idú navrch). Len TEST_BUILD; chyba = žiadne riadky.
+  if (TEST_BUILD) {
+    try {
+      const lost = await loadSosActive();
+      for (const r of lost) {
+        out.push({ id: `sos|${r.id}`, kind: 'sos_lost', tripSlug: '', tripName: r.place_label ?? '', tripPath: `/pack/sos/${r.slug}`, count: 1, at: r.created_at, who: r.dog_name, photo: r.photo ?? undefined });
+      }
+      for (const r of lost.filter((x) => x.is_mine)) {
+        const m = await sosMine(r.id).catch(() => null);
+        if (m?.status === 'active' && m.asked_at) {
+          out.push({ id: `sosq|${m.id}|${m.asked_at}`, kind: 'sos_still', tripSlug: '', tripName: m.place_label ?? '', tripPath: `/pack/sos/${m.slug}`, count: 1, at: m.asked_at, who: m.dog_name, photo: m.photo ?? undefined });
+        }
+      }
+    } catch { /* SOS je prídavok, chvost nesmie spadnúť */ }
   }
 
   return out.sort((a, b) => (a.at < b.at ? 1 : -1));
