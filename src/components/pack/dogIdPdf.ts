@@ -7,6 +7,7 @@ import { PASS_GROUPS, STEP_BY_FIELD, FLOW_EXTRA_FIELDS } from './dogQuiz';
 import { passPlainValue, capSpecials, type FixedRow } from './DogPassport';
 import { readLatest, hasValue } from '@/lib/dogEvents';
 import { IS_APP } from '@/lib/isApp';
+import { PACK_THEME as T } from './packTheme';
 
 const A4_W = 794;
 const A4_H = 1123;
@@ -44,8 +45,8 @@ function groupBlocks({ fixedRows, tx, loc }: Input, latest: Awaited<ReturnType<t
     });
     const note = latest[`${g.key}.note`]?.value;
     const cells = [...fixed, ...rows].map(([l, v]) =>
-      `<div style="display:flex;gap:16px;padding:4px 0;border-bottom:1px solid #E5D6B2"><span style="flex:0 0 200px;color:#7a5a2a">${esc(l)}</span><b style="font-weight:500;flex:1">${esc(v) || '&nbsp;'}</b></div>`).join('');
-    return `<section style="margin-bottom:24px"><h2 style="font:700 16px Cinzel,serif;letter-spacing:.14em;text-transform:uppercase;margin:0 0 8px">${esc(tx(g.i18n, g.labelEN))}</h2>${cells}${typeof note === 'string' && note ? `<p style="font-style:italic;color:#7a5a2a;margin:8px 0 0">„${esc(note)}“</p>` : ''}</section>`;
+      `<div style="display:flex;gap:16px;padding:4px 0;border-bottom:1px solid ${T.hairline}"><span style="flex:0 0 200px;color:#7a5a2a">${esc(l)}</span><b style="font-weight:500;flex:1">${esc(v) || '&nbsp;'}</b></div>`).join('');
+    return `<section style="margin-bottom:24px"><h2 style="font:700 16px Cinzel,serif;letter-spacing:.14em;text-transform:uppercase;margin:0 0 8px">${esc(tx(g.i18n, g.labelEN))}</h2>${cells}${typeof note === 'string' && note ? `<p style="font-style:italic;color:#7a5a2a;margin:8px 0 0">„${esc(note)}“</p>` : ''}</section>`; /* písmo: nadpis */
   });
 }
 
@@ -67,7 +68,7 @@ export async function exportDogIdPdf(input: Input): Promise<boolean> {
     const pages = [page()];
     const head = document.createElement('div');
     head.style.cssText = 'display:flex;align-items:center;gap:24px;margin-bottom:24px';
-    head.innerHTML = `${photo ? `<img src="${photo}" alt="" style="width:112px;height:112px;border-radius:50%;object-fit:cover;border:2px solid #C99A3F">` : ''}<div style="flex:1"><div style="font:500 10px 'Space Grotesk';letter-spacing:.26em">DOG ID</div><div style="font:700 32px 'Cinzel Decorative',Cinzel,serif;text-transform:uppercase">${esc(input.dogName)}</div><div style="font-weight:600">${esc(input.number)}</div></div>`;
+    head.innerHTML = `${photo ? `<img src="${photo}" alt="" style="width:112px;height:112px;border-radius:50%;object-fit:cover;border:2px solid ${T.accentGold}">` : ''}<div style="flex:1"><div style="font:500 10px 'Space Grotesk';letter-spacing:.26em">DOG ID</div><div style="font:700 32px 'Cinzel Decorative',Cinzel,serif;text-transform:uppercase">${esc(input.dogName)}</div><div style="font-weight:600">${esc(input.number)}</div></div>`; /* písmo: nadpis */
     pages[0].appendChild(head);
     if (input.glyphNode) {
       const g = input.glyphNode.cloneNode(true) as HTMLElement;
@@ -75,7 +76,8 @@ export async function exportDogIdPdf(input: Input): Promise<boolean> {
       pages[0].appendChild(g);
     }
     const room = A4_H - 2 * PAD;
-    let used = pages[0].scrollHeight - 2 * PAD;
+    // scrollHeight prázdnej strany je celá A4, preto zo spodnej hrany posledného prvku.
+    let used = (pages[0].lastElementChild as HTMLElement).getBoundingClientRect().bottom - pages[0].getBoundingClientRect().top - PAD + 24;
     for (const html of groupBlocks(input, latest)) {
       const wrap = document.createElement('div');
       wrap.innerHTML = html;

@@ -140,7 +140,7 @@ const DOGID_CSS = `
 .did-sealtip{position:absolute;left:50%;bottom:-48px;transform:translateX(-50%);z-index:13;white-space:nowrap;padding:4px 12px;border-radius:8px;background:${T.ink};color:${T.card};font-family:'Space Grotesk',sans-serif;font-size:12px;}
 .did-name.did-name--app{position:relative;margin:32px 0 0;font-weight:700;}
 .did-namelast{white-space:nowrap;}
-.did-flagin{display:inline-block;vertical-align:middle;margin-left:8px;line-height:0;}
+.did-flagin{display:inline-block;vertical-align:middle;margin-left:12px;line-height:0;}
 .did-status{position:relative;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:12px;}
 .did-status .did-health{width:auto;min-width:112px;}
 .did-lifelbl{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};white-space:nowrap;}

@@ -27,7 +27,7 @@
 import { ActedBy } from '@/components/pack/profile/ActedBy';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PACK_THEME, PACK_BOX, PILL_CSS, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
+import { PACK_THEME, PACK_BOX, PILL_CSS, PF_FIELD_CSS, PROGRESS_CSS, FONT_TITLE, FONT_UI } from './packTheme';
 import { PASS_GROUPS, STEP_BY_FIELD, PROGRESS_STEPS, FLOW_EXTRA_FIELDS, quizValueLabel, type QuizStep } from './dogQuiz';
 import { natureArt, storedSpecials } from './natureQuiz';
 import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, type LatestValue } from '@/lib/dogEvents';
@@ -479,9 +479,10 @@ const TRIO_FIELDS = ['nature.element', 'nature.role', 'nature.specials'];
 const LAPIS_ICON = 'brightness(0) saturate(100%) invert(14%) sepia(52%) saturate(3300%) hue-rotate(219deg) brightness(92%) contrast(103%)';
 
 const CH_CSS = `
-.dic-cta{ position:relative; overflow:hidden; padding:16px 16px 20px; }
+.dic-cta{ position:relative; overflow:hidden; padding:16px 16px 24px; }
 .dic-cta small{ display:block; margin-top:4px; font-family:${FONT_UI}; font-weight:500; font-size:12px; letter-spacing:.02em; text-transform:none; opacity:.85; }
-.dic-cta i{ position:absolute; left:0; bottom:0; height:4px; background:linear-gradient(90deg,#EDCE7C,${T.accentGold}); }
+.dic-cta .dic-bar{ position:absolute; left:0; bottom:0; height:4px; border-radius:0; background:transparent; }
+.dic-cta .dic-bar > span{ display:block; border-radius:0; background:linear-gradient(90deg,#EDCE7C,${T.accentGold}); }
 .dic-card{ background:${T.cardGrad}; border:1px solid ${T.cardEdge}; border-radius:16px; box-shadow:${T.cardShadow}; margin-bottom:8px; }
 .dic-trio{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:16px 8px; text-align:center; margin-bottom:16px; }
 .dic-trio.two{ grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -520,6 +521,12 @@ const CH_CSS = `
 .dic-dark .pass-note{ border-top-color:${T.onDarkBorder}; }
 `;
 
+/** Šírka výplne PROGRESU (recept `.pk-progress`), ten istý pomocník ako v `StatsDetail`. */
+const fillW = (pct: number) => {
+  const w = `${Math.min(100, Math.max(0, pct))}%`;
+  return { display: 'block', width: w };
+};
+
 /** Text hodnoty bez kresby: zhrnutie kapitoly a PDF na tlač. */
 export function passPlainValue(step: QuizStep, v: unknown, tx: (k: string, f: string) => string, loc: string): string {
   if (Array.isArray(v)) return v.map((x) => quizValueLabel(step, String(x), tx)).join(', ');
@@ -556,7 +563,7 @@ function DogIdChapters({
       <small>
         {tx('pack.dogs2.left', '{n} questions left · about {m} min').replace('{n}', String(left)).replace('{m}', String(Math.max(1, Math.ceil((left * 10) / 60))))}
       </small>
-      <i style={{ width: `${fill.pct}%` }} />
+      <span className="pk-progress dic-bar"><span className="pk-progress__fill" style={fillW(fill.pct)} /></span>
     </>
   );
 
@@ -612,6 +619,7 @@ function DogIdChapters({
       <style>{PILL_CSS}</style>
       <style>{PF_FIELD_CSS}</style>
       <style>{PASS_CSS}</style>
+      <style>{PROGRESS_CSS}</style>
       <style>{CH_CSS}</style>
 
       {fill && fill.done < fill.total && nextMissing && (
