@@ -3,6 +3,7 @@
 // Lock `architektura-pack.md` §1.2: SOS je GLOBÁL, max 1 ťuk odkiaľkoľvek, nikdy tab.
 // Ťuk = POPUP (šuplík zdola, lock pack-dizajn-system §POPUP):
 //   · STRATIL SA MI PES — červené tlačidlo, VŽDY prvé a nikdy nezmizne → `/pack/sos/new`
+//   · NAHLÁSIŤ TÝRANIE — zatiaľ „čoskoro“ (pod Stratil sa mi pes, nad Prvou pomocou)
 //   · PRVÁ POMOC · NAJBLIŽŠÍ VETERINÁR — zatiaľ „čoskoro"
 //   · AKTUÁLNE PÁTRANIE — pod nimi zoznam z `sosActive()` (len krajina člena), moje prvé; ťuk → `/pack/sos/<slug>`.
 //     Bez pátraní nadpis nie je. Keď beží MOJA strata, trojuholník nesie malú červenú bodku.
@@ -66,6 +67,12 @@ export function SosButton() {
             <button type="button" className="sos-row lost" style={{ ...PACK_BOX.row, background: T.sosRed, borderColor: T.sosRedDark }} onClick={() => go('/pack/sos/new')}>
               <BrandIcon name="dogposter" size={24} tint="white" />
               <b>{tx('pack.sos.btn.lost', 'My dog is lost')}</b>
+            </button>
+            {/* Nahlásiť týranie: zatiaľ bez akcie, vyzerá ako ostatné „čoskoro“ (nie červeno). */}
+            <button type="button" className="sos-row abuse" style={{ ...PACK_BOX.row }}>
+              <BrandIcon name="eye" size={24} tint="gold" />
+              <b>{tx('pack.sos.btn.abuse', 'Report abuse')}</b>
+              <small>{tx('pack.sos.soon', 'Soon')}</small>
             </button>
             {ROWS.map((r) => (
               <button key={r.key} type="button" className={`sos-row ${r.key}`} style={{ ...PACK_BOX.row }}>

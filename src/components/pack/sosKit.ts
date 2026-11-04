@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { TEST_BUILD } from '@/lib/env';
 import { sosActive, lostShare, lostUrl, type SosActiveRow } from '@/lib/sos';
 import { intlLocale } from '@/i18n/bcp47';
+import { toast } from '@/hooks/use-toast';
+import { withTransform } from '@/services/cloudinaryService';
 
 const TTL = 30_000;
 const EVT = 'dogypt:sos-changed';
@@ -20,7 +22,7 @@ export function loadSosActive(): Promise<SosActiveRow[]> {
   if (cache && Date.now() - cache.at < TTL) return cache.p;
   const p = (async () => {
     const { data } = await supabase.auth.getSession();
-    if (!data.session) return [] as SosActiveRow[];
+    if (!data.session) { cache = null; return [] as SosActiveRow[]; } // relácia ešte nedoletela: prázdno sa NECACHUJE
     const rows = await sosActive();
     return [...rows].sort((a, b) => Number(b.is_mine) - Number(a.is_mine) || (a.created_at < b.created_at ? 1 : -1));
   })().catch(() => { cache = null; return [] as SosActiveRow[]; });
@@ -45,7 +47,9 @@ export function useSosActive(): SosActiveRow[] {
     const onVis = () => { if (document.visibilityState === 'visible') load(); };
     document.addEventListener('visibilitychange', onVis);
     window.addEventListener(EVT, load);
-    return () => { alive = false; document.removeEventListener('visibilitychange', onVis); window.removeEventListener(EVT, load); };
+    // prvé načítanie môže predbehnúť obnovu relácie po otvorení stránky — keď príde, načítaj znova (TTL chráni pred zbytočným volaním)
+    const { data: sub } = supabase.auth.onAuthStateChange((ev) => { if (ev === 'INITIAL_SESSION' || ev === 'SIGNED_IN') load(); });
+    return () => { alive = false; sub.subscription.unsubscribe(); document.removeEventListener('visibilitychange', onVis); window.removeEventListener(EVT, load); };
   }, []);
   return rows;
 }
@@ -60,19 +64,46 @@ export function sosAgo(iso: string, lang: string): string {
   return rtf.format(Math.round(mins / 1440), 'day');
 }
 
-/** Zdieľanie odkazu na pátranie: systémové zdieľanie, inak schránka. Počíta sa len skutočné zdieľanie (`lost_share`). */
-export async function shareLostDog(slug: string, text: string): Promise<'shared' | 'copied' | 'failed' | 'cancel'> {
-  const url = lostUrl(slug);
-  if (typeof navigator.share === 'function') {
-    try {
-      await navigator.share({ title: text, text, url });
-      void lostShare(slug).catch(() => {});
+/** Obrázok letáku ako súbor pre natívne zdieľanie (CORS-otvorený Cloudinary). */
+async function flyerFile(url: string, name: string): Promise<File | null> {
+  try {
+    const r = await fetch(url, { mode: 'cors' });
+    if (!r.ok) return null;
+    const b = await r.blob();
+    return new File([b], `dogypt-sos-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'pes'}.${b.type === 'image/jpeg' ? 'jpg' : 'png'}`, { type: b.type || 'image/png' });
+  } catch { return null; }
+}
+
+/**
+ * JEDINÉ zdieľanie pátrania (FEED aj stránka psa aj verejná `/lost`): leták ako obrázok + odkaz, ak je
+ * (`flyerUrl`) a prehliadač vie súbory; inak systémové zdieľanie odkazu; inak schránka (+ toast `copiedText`).
+ * Počíta sa len skutočné zdieľanie (`lost_share`); zrušenie dialógu nie.
+ */
+export async function shareLostDog(a: {
+  slug: string; name: string; text: string; copiedText: string; flyerUrl?: string | null;
+}): Promise<'shared' | 'copied' | 'failed' | 'cancel'> {
+  const url = lostUrl(a.slug);
+  const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean };
+  const counted = () => { void lostShare(a.slug).catch(() => {}); };
+  try {
+    if (a.flyerUrl && typeof nav.canShare === 'function' && typeof navigator.share === 'function') {
+      const file = await flyerFile(withTransform(a.flyerUrl, 'c_limit,w_1600,f_jpg,q_auto'), a.name);
+      if (file && nav.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], text: `${a.text} ${url}`, url });
+        counted();
+        return 'shared';
+      }
+    }
+    if (typeof navigator.share === 'function') {
+      await navigator.share({ title: a.text, text: a.text, url });
+      counted();
       return 'shared';
-    } catch { return 'cancel'; }
-  }
+    }
+  } catch (e) { if (e instanceof DOMException && e.name === 'AbortError') return 'cancel'; /* iná chyba: schránka */ }
   try {
     await navigator.clipboard.writeText(url);
-    void lostShare(slug).catch(() => {});
+    toast({ title: a.copiedText });
+    counted();
     return 'copied';
-  } catch { return 'failed'; }
+  } catch { toast({ title: url }); return 'failed'; }
 }

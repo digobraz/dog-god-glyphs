@@ -7,8 +7,9 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { lostPublic, sosMine, sosMyDogs, type LostPublic, type SosMine } from '@/lib/sos';
+import { lostPublic, sosMineBySlug, type LostPublic, type SosMine } from '@/lib/sos';
 import { canStepBack } from '@/lib/stepBack';
+import { localizeBreed } from '@/lib/breedDisplay';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR, PACK_TOPROW, PACK_TOPROW_PAD, PACK_SHADOW,
   PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PAPER_ROUTES_EXTRA, BRAND_GOLD_BTN,
@@ -63,6 +64,12 @@ export function sosErrCode(e: unknown): string {
   return hit ? hit[0] : 'error';
 }
 
+/** Plemeno v jazyku rozhrania (rovnaký slovník ako DOG ID: `breeds.json`, `Mixed` → Kríženec). */
+export function useBreedLabel(): (breed: string | null | undefined) => string {
+  const { lang } = useLang();
+  return useCallback((b) => localizeBreed(b, lang), [lang]);
+}
+
 /** Farba srsti z `dogs.selections.dogColour` (`bright` · `dark` · `mix`) na slovo. */
 export function colorWord(color: string | null | undefined, s: SosT): string | null {
   if (color === 'bright' || color === 'dark' || color === 'mix') return s(`pack.sos.breedColor.${color}` as SosKey);
@@ -70,15 +77,9 @@ export function colorWord(color: string | null | undefined, s: SosT): string | n
 }
 
 // ── MOJA STRATA ───────────────────────────────────────────────────────────────────────────
-// Verejný detail (`lostPublic`) funguje bez prihlásenia. „Moja“ je strata, ku ktorej mám prístup.
-// ⚠️ MEDZERA V BACKENDE: neexistuje `slug → id` pre majiteľa. `sosMyDogs` vracia len AKTÍVNU stratu
-//    (`active_id`), `sosActive` tiež. Ukončenú alebo nájdenú vlastnú stratu preto otvára len `id`
-//    zapamätané v tomto prehliadači (`sosRememberId`). V novom zariadení sa po skončení strata
-//    ukáže ako cudzia — bez HĽADÁM ĎALEJ. Riešenie je RPC `sos_mine_by_slug(slug)` (migrácia mimo tejto úlohy).
-const ID_KEY = (slug: string) => `dogypt-sos-id:${slug}`;
-export function sosRememberId(slug: string, id: string) { try { localStorage.setItem(ID_KEY(slug), id); } catch { /* súkromný režim */ } }
-const sosRecallId = (slug: string): string | null => { try { return localStorage.getItem(ID_KEY(slug)); } catch { return null; } };
-
+// Verejný detail (`lostPublic`) funguje bez prihlásenia. „Moja“ je strata, ku ktorej mám prístup:
+// `sosMineBySlug` (migrácia 20261120) vráti plný riadok aj pre ukončenú / nájdenú stratu na čistom
+// prehliadači, cudziemu a odhlásenému `null`. Žiadne zapamätané id v prehliadači.
 export type SosLoad =
   | { state: 'loading' }
   | { state: 'missing' }
@@ -98,15 +99,7 @@ export function useSosLost(slug: string | undefined): SosLoad & { reload: () => 
         if (!alive) return;
         if (!pub) { setData({ state: 'missing' }); return; }
         let mine: SosMine | null = null;
-        let id: string | null = null;
-        try {
-          const dogs = await sosMyDogs();
-          id = dogs.find((d) => d.active_slug === slug && d.active_id)?.active_id ?? null;
-        } catch { /* bez prihlásenia: cudzí pohľad */ }
-        id = id ?? sosRecallId(slug);
-        if (id) {
-          try { const m = await sosMine(id); if (m && m.slug === slug) { mine = m; sosRememberId(slug, id); } } catch { /* nie je moja */ }
-        }
+        try { mine = await sosMineBySlug(slug); } catch { /* bez prihlásenia: cudzí pohľad */ }
         if (alive) setData({ state: 'ready', pub, mine });
       } catch { if (alive) setData({ state: 'error' }); }
     })();

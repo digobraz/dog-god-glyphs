@@ -90,6 +90,8 @@ export interface SosMine {
   notified_count: number | null;
   notified_at: string | null;
   sightings: SosSighting[];
+  /** Odškrtnuté kroky „Čo teraz urobiť“ (server). */
+  plan_done: string[];
 }
 
 export interface LostPublic {
@@ -129,6 +131,8 @@ export interface SosContact {
   source: string | null;
   source_url: string | null;
   verified_at: string | null;
+  contact_person: string | null;
+  contact_role: string | null;
 }
 
 export const sosErrorCode = (e: unknown): string =>
@@ -178,6 +182,8 @@ export const sosStillSearching = (id: string) => call<void>('sos_still_searching
 export const sosActive = (country?: string) =>
   call<SosActiveRow[]>('sos_active', country ? { p_country: country } : {});
 export const sosMine = (id: string) => call<SosMine | null>('sos_mine', { p_id: id });
+export const sosSetPlan = (id: string, done: string[]) => call<string[]>('sos_set_plan', { p_id: id, p_done: done });
+export const sosMineBySlug = (slug: string) => call<SosMine | null>('sos_mine_by_slug', { p_slug: slug });
 export const sosContactsNear = (lat: number, lng: number, country: string, perType = 3) =>
   call<SosContact[]>('sos_contacts_near', { p_lat: lat, p_lng: lng, p_country: country, p_limit_per_typ: perType });
 

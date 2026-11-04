@@ -6,7 +6,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
-import { useToast } from '@/hooks/use-toast';
 import { sizedUrl } from '@/services/cloudinaryService';
 import type { SosActiveRow } from '@/lib/sos';
 import { sosAgo, shareLostDog } from '@/components/pack/sosKit';
@@ -37,11 +36,13 @@ function SosCard({ r }: { r: SosActiveRow }) {
   const t = useT();
   const { lang } = useLang();
   const nav = useNavigate();
-  const { toast } = useToast();
   const tx = (key: string, fb: string, vars?: Record<string, string | number>) => { const v = t(key, vars); return v === key ? fb.replace(/\{(\w+)\}/g, (_, k) => String(vars?.[k] ?? '')) : v; };
   const share = async () => {
-    const res = await shareLostDog(r.slug, tx('pack.sos.feed.shareText', '{name} is lost. Help search.', { name: r.dog_name }));
-    if (res === 'copied') toast({ description: tx('pack.sos.feed.copied', 'Link copied') });
+    await shareLostDog({
+      slug: r.slug, name: r.dog_name,
+      text: tx('pack.sos.feed.shareText', '{name} is lost. Help search.', { name: r.dog_name }),
+      copiedText: tx('pack.sos.feed.copied', 'Link copied'),
+    });
   };
   return (
     <div className="fsos-card">

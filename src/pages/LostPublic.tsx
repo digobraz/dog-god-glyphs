@@ -8,8 +8,9 @@ import { ensurePackDict } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { lostPublic, type LostPublic as LostRow } from '@/lib/sos';
 import { FLOW_PALE_CSS } from '@/components/screens/flowPaleSkin';
-import { CallPopup, SeenPopup, shareLost } from '@/components/pack/sos/sosActions';
-import { SOS_CSS, colorWord, useSosT, useWhen } from '@/components/pack/sos/sosShared';
+import { shareLostDog } from '@/components/pack/sosKit';
+import { CallPopup, SeenPopup } from '@/components/pack/sos/sosActions';
+import { SOS_CSS, colorWord, useBreedLabel, useSosT, useWhen } from '@/components/pack/sos/sosShared';
 
 /**
  * VEREJNÁ STRÁNKA STRATENÉHO PSA — `/lost/:slug` (SOS, 4. 11. 2026). BEZ PRIHLÁSENIA, noindex.
@@ -34,6 +35,7 @@ const CSS = `
 
 function LostPublicInner({ slug }: { slug: string }) {
   const s = useSosT();
+  const breedLabel = useBreedLabel();
   const when = useWhen();
   const [row, setRow] = useState<LostRow | null | undefined>(undefined);
   const [pop, setPop] = useState<'call' | 'seen' | null>(null);
@@ -80,7 +82,7 @@ function LostPublicInner({ slug }: { slug: string }) {
               )}
               {row.photo ? <img className="sos-photo" src={sizedUrl(row.photo, 900)} alt={row.dog_name} /> : <div className="sos-photo sos-photo--none" />}
               <h1 className="sos-dogname">{row.dog_name}</h1>
-              {(row.breed || row.color) && <p className="sos-dogsub">{[row.breed, colorWord(row.color, s)].filter(Boolean).join(' · ')}</p>}
+              {(row.breed || row.color) && <p className="sos-dogsub">{[breedLabel(row.breed), colorWord(row.color, s)].filter(Boolean).join(' · ')}</p>}
 
               {active && (
                 <>
@@ -97,13 +99,13 @@ function LostPublicInner({ slug }: { slug: string }) {
                   <p className="sos-eyebrow">{s('pack.sos.pub.flyer')}</p>
                   <img className="lp-flyer" src={sizedUrl(row.flyer_url, 1000)} alt="" />
                   <div className="sos-two">
-                    <button type="button" className="sos-cta sos-cta--gold" onClick={() => void shareLost({ slug: row.slug, name: row.dog_name, flyerUrl: row.flyer_url, s })}>{s('pack.sos.det.share')}</button>
+                    <button type="button" className="sos-cta sos-cta--gold" onClick={() => void shareLostDog({ slug: row.slug, name: row.dog_name, flyerUrl: row.flyer_url, text: s('pack.sos.det.shareText', { name: row.dog_name }), copiedText: s('pack.sos.det.copied') })}>{s('pack.sos.det.share')}</button>
                     <button type="button" className="sos-cta sos-cta--ghost" onClick={() => void download(row.flyer_url!, row.dog_name)}>{s('pack.sos.pub.download')}</button>
                   </div>
                 </>
               )}
               {active && !row.flyer_url && (
-                <button type="button" className="sos-cta sos-cta--gold" onClick={() => void shareLost({ slug: row.slug, name: row.dog_name, flyerUrl: null, s })}>{s('pack.sos.det.share')}</button>
+                <button type="button" className="sos-cta sos-cta--gold" onClick={() => void shareLostDog({ slug: row.slug, name: row.dog_name, flyerUrl: null, text: s('pack.sos.det.shareText', { name: row.dog_name }), copiedText: s('pack.sos.det.copied') })}>{s('pack.sos.det.share')}</button>
               )}
             </>
           )}

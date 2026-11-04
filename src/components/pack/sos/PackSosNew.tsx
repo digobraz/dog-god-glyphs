@@ -11,9 +11,10 @@ import { useLang } from '@/i18n/LanguageContext';
 import { countryCentroid } from '@/lib/countryGeo';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { sosDeclare, sosLastPhone, sosMyDogs, type SosDog } from '@/lib/sos';
+import { sosInvalidate } from '@/components/pack/sosKit';
 import { MapAttribution, MAP_ATTR_CSS } from '@/components/pack/mapAttribution';
 import { PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI } from '@/components/pack/packTheme';
-import { SosCard, sosErrCode, sosPath, sosRememberId, useBack, useSosT } from './sosShared';
+import { SosCard, sosErrCode, sosPath, useBack, useSosT } from './sosShared';
 import { SosTaskShell } from './SosTaskShell';
 import type { SosKey } from './sosTexts';
 
@@ -151,7 +152,7 @@ export default function PackSosNew() {
     setBusy(true);
     try {
       const r = await sosDeclare({ dogId: dog.id, lat: pt[0], lng: pt[1], lastSeen: when, place: place.trim(), phone: phone.trim() });
-      sosRememberId(r.slug, r.id);
+      sosInvalidate();
       navigate(sosPath.page(r.slug), { replace: true });
     } catch (x) {
       const code = sosErrCode(x);

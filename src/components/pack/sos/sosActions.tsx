@@ -1,50 +1,13 @@
 // SOS — akcie a okná zdieľané stránkou psa (`/pack/sos/:slug`) aj verejnou `/lost/:slug`:
-// zdieľanie, kopírovanie odkazu, ZAVOLAŤ (číslo až po ťuku), VIDEL SOM HO, potvrdenia NAŠIEL SA a STÁLE HĽADÁM.
+// kopírovanie odkazu (zdieľanie = `shareLostDog` v `sosKit`), ZAVOLAŤ (číslo až po ťuku), VIDEL SOM HO, potvrdenia NAŠIEL SA a STÁLE HĽADÁM.
 // Okná = `PackPopup` (úchyt = gesto, bez šípky). Žiadne „zhasne o X dní“.
 import { useState } from 'react';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 import { toast } from '@/hooks/use-toast';
-import { withTransform } from '@/services/cloudinaryService';
-import { lostPhone, lostShare, lostUrl } from '@/lib/sos';
+import { lostPhone, lostUrl } from '@/lib/sos';
 import { PackPopup } from '@/components/pack/PackPopup';
 import { PF_FIELD_CSS } from '@/components/pack/packTheme';
 import { SOS_CSS, type SosT } from './sosShared';
-
-const isAbort = (e: unknown) => e instanceof DOMException && e.name === 'AbortError';
-
-/** Obrázok letáku ako súbor pre natívne zdieľanie (CORS-otvorený Cloudinary). */
-async function flyerFile(url: string, name: string): Promise<File | null> {
-  try {
-    const r = await fetch(url, { mode: 'cors' });
-    if (!r.ok) return null;
-    const b = await r.blob();
-    return new File([b], `dogypt-sos-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'pes'}.${b.type === 'image/jpeg' ? 'jpg' : 'png'}`, { type: b.type || 'image/png' });
-  } catch { return null; }
-}
-
-/** Natívne zdieľanie: leták ako obrázok + odkaz, bez neho len odkaz; na PC skopíruje odkaz. Počíta sa cez `lostShare`. */
-export async function shareLost(a: { slug: string; name: string; flyerUrl?: string | null; s: SosT }): Promise<void> {
-  const url = lostUrl(a.slug);
-  const text = `${a.s('pack.sos.det.shareText', { name: a.name })} ${url}`;
-  const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean };
-  try {
-    if (a.flyerUrl && typeof nav.canShare === 'function' && typeof navigator.share === 'function') {
-      const file = await flyerFile(withTransform(a.flyerUrl, 'c_limit,w_1600,f_jpg,q_auto'), a.name);
-      if (file && nav.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text, url });
-        void lostShare(a.slug).catch(() => {});
-        return;
-      }
-    }
-    if (typeof navigator.share === 'function') {
-      await navigator.share({ text: a.s('pack.sos.det.shareText', { name: a.name }), url });
-      void lostShare(a.slug).catch(() => {});
-      return;
-    }
-  } catch (e) { if (isAbort(e)) return; /* iná chyba: spadni na kopírovanie */ }
-  await copyLostLink(a.slug, a.s);
-  void lostShare(a.slug).catch(() => {});
-}
 
 export async function copyLostLink(slug: string, s: SosT): Promise<void> {
   try { await navigator.clipboard.writeText(lostUrl(slug)); toast({ title: s('pack.sos.det.copied') }); }

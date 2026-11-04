@@ -10,11 +10,11 @@
 // 🔴 Export čaká na `data-ready="1"` (fotka aj mapa sú dohrané) — `sosFlyerExport.ts`.
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
-import { sizedUrl } from '@/services/cloudinaryService';
+import { withTransform } from '@/services/cloudinaryService';
 import { lostUrl, type SosFlyer as FlyerFields } from '@/lib/sos';
 import { RoundQR } from '@/components/pack/dogs/RoundQR';
 import { PACK_THEME as T } from '@/components/pack/packTheme';
-import { colorWord, useSosT, useWhen, type SosT } from './sosShared';
+import { colorWord, useBreedLabel, useSosT, useWhen, type SosT } from './sosShared';
 import type { SosKey } from './sosTexts';
 
 export type FlyerLook = 'papyrus' | 'print';
@@ -140,7 +140,9 @@ const CSS = `
 export function SosFlyer({ data, look = 'papyrus', onReady }: { data: FlyerData; look?: FlyerLook; onReady?: () => void }) {
   const s = useSosT();
   const when = useWhen();
-  const photoSrc = useMemo(() => (data.photo ? sizedUrl(data.photo, 1200) : null), [data.photo]);
+  const breedLabel = useBreedLabel();
+  // PLNÉ rozlíšenie uloženej fotky (výrez 1200 px, bez zmenšenia) — leták sa tlačí na A4 pri 300 dpi.
+  const photoSrc = useMemo(() => (data.photo ? withTransform(data.photo, 'q_auto:best') : null), [data.photo]);
   const photo = useBlobUrl(photoSrc);
   const [mapSettled, setMapSettled] = useState(false);
   const onMapSettled = useCallback(() => setMapSettled(true), []);
@@ -152,7 +154,7 @@ export function SosFlyer({ data, look = 'papyrus', onReady }: { data: FlyerData;
   const thanks = f.thanks ?? def.thanks;
   const deg = typeof f.direction_deg === 'number' ? f.direction_deg : null;
   const ran = deg === null ? null : s('pack.sos.fl.ran', { dir: s(`pack.sos.fl.dir.${nearestDir(deg)}` as SosKey) });
-  const breedLine = [data.breed, colorWord(data.color, s)].filter(Boolean).join(', ');
+  const breedLine = [breedLabel(data.breed), colorWord(data.color, s)].filter(Boolean).join(', ');
   const url = lostUrl(data.slug);
   const ready = photo.settled && mapSettled;
   useEffect(() => { if (ready) onReady?.(); }, [ready, onReady]);

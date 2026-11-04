@@ -10,8 +10,9 @@ import { useT } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { lostUrl, sosFound, sosResume, sosStillSearching, type LostPublic, type SosMine } from '@/lib/sos';
 import { PACK_BOX } from '@/components/pack/packTheme';
-import { AskPopup, CallPopup, FoundPopup, SeenPopup, copyLostLink, shareLost } from './sosActions';
-import { SosCard, SosStyles, colorWord, sosErrCode, sosPath, useBack, useSosLost, useSosT, useWhen, type SosT } from './sosShared';
+import { shareLostDog, sosInvalidate } from '@/components/pack/sosKit';
+import { AskPopup, CallPopup, FoundPopup, SeenPopup, copyLostLink } from './sosActions';
+import { SosCard, SosStyles, colorWord, useBreedLabel, sosErrCode, sosPath, useBack, useSosLost, useSosT, useWhen, type SosT } from './sosShared';
 
 const TL: Record<string, string> = { green: 'Mastered', amber: 'Depends', red: 'Still learning' };
 
@@ -36,6 +37,7 @@ function Facts({ pub, s, when, t }: { pub: LostPublic; s: SosT; when: (i: string
 export default function PackSosDetail() {
   const { slug } = useParams<{ slug: string }>();
   const s = useSosT();
+  const breedLabel = useBreedLabel();
   const t = useT();
   const when = useWhen();
   const navigate = useNavigate();
@@ -60,7 +62,7 @@ export default function PackSosDetail() {
   const own = !!mine;
   const status = (mine?.status ?? pub.status);
   const flyerUrl = mine?.flyer_url ?? pub.flyer_url;
-  const sub = [pub.breed, colorWord(pub.color, s)].filter(Boolean).join(' · ');
+  const sub = [breedLabel(pub.breed), colorWord(pub.color, s)].filter(Boolean).join(' · ');
   const placeWhen = [pub.place_label, when(pub.last_seen_at)].filter(Boolean).join(' · ');
   const askOpen = own && status === 'active' && !!mine?.asked_at && !askClosed;
 
@@ -96,7 +98,7 @@ export default function PackSosDetail() {
           <SosCard>
             <h2 className="sos-h2">{s('pack.sos.det.endedTitle')}</h2>
             <p className="sos-p">{s('pack.sos.det.endedText')}</p>
-            <button type="button" className="sos-cta" disabled={busy} onClick={() => run(() => sosResume(mine.id))}>{s('pack.sos.det.resume')}</button>
+            <button type="button" className="sos-cta" disabled={busy} onClick={() => run(async () => { await sosResume(mine.id); sosInvalidate(); })}>{s('pack.sos.det.resume')}</button>
             {FoundCta}
           </SosCard>
         )}
@@ -119,9 +121,12 @@ export default function PackSosDetail() {
             {flyerUrl ? s('pack.sos.det.flyerEdit') : s('pack.sos.det.flyerMake')}
           </button>
         )}
+        {status === 'active' && own && mine && (
+          <button type="button" className="sos-cta" onClick={() => navigate(sosPath.plan(mine.slug))}>{s('pack.sos.det.plan')}</button>
+        )}
         {status === 'active' && (
           <div className="sos-two">
-            <button type="button" className="sos-cta sos-cta--gold" onClick={() => void shareLost({ slug: pub.slug, name: pub.dog_name, flyerUrl, s })}>{s('pack.sos.det.share')}</button>
+            <button type="button" className="sos-cta sos-cta--gold" onClick={() => void shareLostDog({ slug: pub.slug, name: pub.dog_name, flyerUrl: flyerUrl, text: s('pack.sos.det.shareText', { name: pub.dog_name }), copiedText: s('pack.sos.det.copied') })}>{s('pack.sos.det.share')}</button>
             <button type="button" className="sos-cta sos-cta--ghost" onClick={() => void copyLostLink(pub.slug, s)}>{s('pack.sos.det.copy')}</button>
           </div>
         )}
@@ -133,7 +138,7 @@ export default function PackSosDetail() {
 
       {pop === 'call' && <CallPopup slug={pub.slug} name={pub.dog_name} s={s} onClose={() => setPop(null)} />}
       {pop === 'seen' && <SeenPopup slug={pub.slug} s={s} onClose={() => setPop(null)} />}
-      {pop === 'found' && mine && <FoundPopup name={pub.dog_name} s={s} busy={busy} onYes={() => run(() => sosFound(mine.id))} onClose={() => setPop(null)} />}
+      {pop === 'found' && mine && <FoundPopup name={pub.dog_name} s={s} busy={busy} onYes={() => run(async () => { await sosFound(mine.id); sosInvalidate(); })} onClose={() => setPop(null)} />}
       {askOpen && pop !== 'found' && mine && (
         <AskPopup name={pub.dog_name} s={s} busy={busy} onClose={() => setAskClosed(true)}
           onStill={() => run(() => sosStillSearching(mine.id))} onFound={() => setPop('found')} />
@@ -148,9 +153,6 @@ function OwnerBlock({ mine, s, when, navigate }: { mine: SosMine; s: SosT; when:
     <>
       <p className="sos-eyebrow">{s('pack.sos.det.next')}</p>
       <div className="sos-stack" style={{ gap: 8 }}>
-        <button type="button" className="sos-row" style={{ ...PACK_BOX.row }} onClick={() => navigate(sosPath.plan(mine.slug))}>
-          <span className="grow"><b>{s('pack.sos.det.plan')}</b><small>{s('pack.sos.det.planSub')}</small></span>
-        </button>
         <a className="sos-row" style={{ ...PACK_BOX.row }} href={`/lost/${mine.slug}`} target="_blank" rel="noopener noreferrer">
           <span className="grow"><b>{s('pack.sos.det.finderView')}</b><small>{lostUrl(mine.slug).replace(/^https?:\/\//, '')}</small></span>
         </a>
