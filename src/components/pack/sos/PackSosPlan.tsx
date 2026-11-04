@@ -189,9 +189,13 @@ export default function PackSosPlan() {
     const all = (rows ?? []).filter((r) => r.typ === cfg.typ);
     // Celoštátne tímy s číslom vždy prvé, potom najbližšie, skupiny bez čísla nakoniec.
     const near = all.filter((r) => !r.nationwide);
+    const closest = near.slice(0, cfg.base + (extra[st] ?? 0));
+    // Mestská polícia do 15 km má pevné miesto popri obvodnom oddelení (Matej 4. 11. 2026).
+    const city = st === 'police' ? near.find((r) => /^(mestsk|městsk)/i.test(r.name) && r.distance_km != null && r.distance_km <= 15) : undefined;
     const shown = [
       ...all.filter((r) => r.nationwide && r.phone),
-      ...near.slice(0, cfg.base + (extra[st] ?? 0)),
+      ...closest,
+      ...(city && !closest.includes(city) ? [city] : []),
       ...all.filter((r) => r.nationwide && !r.phone),
     ];
     const act = () => setAway(st);
