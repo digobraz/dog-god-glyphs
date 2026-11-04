@@ -7,6 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import { sosUpdate, type SosFlyer as FlyerFields } from '@/lib/sos';
 import { SosCard, sosErrCode, useBack, useSosLost, useSosT } from './sosShared';
 import { SosFlyer, flyerDefaults, nearestDir, type FlyerData, type FlyerLook } from './SosFlyer';
+import { sosInvalidate } from '@/components/pack/sosKit';
 import { flyerDownload, flyerToPng, flyerUpload, FLYER_CSS_W } from './sosFlyerExport';
 import { PACK_R, PACK_SHADOW, PACK_SPACE, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
 import { sosPath } from './sosShared';
@@ -89,6 +90,7 @@ export default function PackSosFlyer() {
       const url = await flyerUpload(png, mine.slug);
       const flyer: FlyerFields = { headline: f.headline, about: f.about, reward: f.reward, thanks: f.thanks, direction_deg: f.deg };
       await sosUpdate(mine.id, { flyer, flyerUrl: url, phone: f.phone.trim(), place: f.place.trim() });
+      sosInvalidate();
       toast({ title: s('pack.sos.fl.saved') });
       back();
     } catch (e) {

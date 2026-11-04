@@ -52,6 +52,7 @@ export interface SosActiveRow {
   lng: number;
   created_at: string;
   is_mine: boolean;
+  flyer_url: string | null;
 }
 
 export interface SosSighting {
