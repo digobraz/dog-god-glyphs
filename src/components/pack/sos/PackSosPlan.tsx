@@ -26,7 +26,8 @@ const CSS = `
 .sosp-step{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;padding:0;overflow:hidden;}
 .sosp-head{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:${PACK_SPACE.md}px;width:100%;min-height:56px;padding:${PACK_SPACE.md}px;cursor:pointer;}
 .sosp-ring{flex:none;width:44px;height:44px;display:grid;place-items:center;}
-.sosp-ring i{display:block;width:24px;height:24px;border-radius:${PACK_R.pill}px;border:2px solid ${T.cardEdge};background:transparent;box-sizing:border-box;color:#fff;font:700 ${PACK_TEXT.label}px/20px sans-serif;text-align:center;}
+.sosp-ring i{display:block;width:24px;height:24px;border-radius:${PACK_R.pill}px;border:2px solid ${T.cardEdge};background:transparent;box-sizing:border-box;position:relative;}
+.sosp-step.is-done .sosp-ring i::after{content:'';position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}
 .sosp-step.is-done .sosp-ring i{background:${T.growGreen};border-color:${T.growGreen};}
 .sosp-step.is-skip .sosp-ring i{border-style:dashed;}
 .sosp-head .grow{flex:1;min-width:0;}
@@ -246,7 +247,7 @@ export default function PackSosPlan() {
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpenId(open ? null : st); } }}>
                     <button type="button" className="sosp-ring" aria-label={s(key(st, 't'))} aria-pressed={d}
                       onClick={(e) => { e.stopPropagation(); toggle(st); }}>
-                      <i>{d ? '✓' : ''}</i>
+                      <i />
                     </button>
                     <span className="grow">
                       <b>{idx + 1}. {s(key(st, 't'))}</b>
