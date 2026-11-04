@@ -32,7 +32,10 @@ const openPdf = (href: string) => IS_APP ? (e: React.MouseEvent) => { e.preventD
 import { useDogyptStore } from '@/store/dogyptStore';
 import { flagUrl, countryISO2, flagEmojiFromISO2 } from '@/lib/countryGeo';
 import { EDGE_BASE, TEST_BUILD } from '@/lib/env';
-import { DEV_FULL } from '@/lib/packFlags';
+import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
+import NavMedallion, { NAV_MEDALLION_CSS } from '@/components/lab/NavMedallion';
+import angelIconUrl from '@/assets/angel-icon.svg';
+import { exportDogIdPdf } from '@/components/pack/dogIdPdf';
 // Vek psa žije v lib/dogAge.ts — tú istú matematiku potrebuje aj svorka na `/pack`.
 import { computeAge, type DogAge } from '@/lib/dogAge';
 import { HEALTH_KEYS, HEALTH_COLORS, healthLabelKey, type HealthKey } from '@/lib/dogHealth';
@@ -120,6 +123,45 @@ const DOGID_CSS = `
 @media (max-width:720px){
   .did-photoframe{width:112px;height:112px;}
 }
+
+/* HLAVIČKA V APPKE (Matej 4. 11. 2026, nákres plany/nakresy/dogid-2026-11-04): fotka v obruči ako logo na webe,
+   číslo = pečať na obruči. Obruč je kresba NavMedallion, tu sa len škáluje; jej vzhľad sa ladí v jeho nákrese.
+   Lúče strihá did-idzone, hore ich stlmí maska, aby na hornej lište nevznikla hrana. */
+.did-idzone.did-hero{overflow:clip;margin:0 -16px;padding:0 16px 16px;}
+.did-rays{position:absolute;inset:0;pointer-events:none;-webkit-mask:linear-gradient(180deg,transparent 0,#000 48px);mask:linear-gradient(180deg,transparent 0,#000 48px);}
+.did-rays::before{content:'';position:absolute;left:50%;top:96px;width:760px;height:760px;transform:translate(-50%,-50%);background:repeating-conic-gradient(from 0deg,rgba(201,154,63,.15) 0 5deg,transparent 5deg 15deg);-webkit-mask:radial-gradient(circle,#000 22%,transparent 62%);mask:radial-gradient(circle,#000 22%,transparent 62%);}
+.did-slot{position:relative;width:176px;height:176px;margin:8px auto 0;--medal-k:1.76;}
+.did-medalbtn{position:absolute;inset:0;display:block;padding:0;border:0;background:none;border-radius:50%;cursor:pointer;}
+.did-medalbtn .nav-medal-face{font-size:10px;}
+.did-medalcam{position:absolute;inset:24px;z-index:10;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(10,10,10,.55);color:${T.card};opacity:0;transition:opacity .15s;}
+.did-medalbtn:hover .did-medalcam,.did-medalcam.on{opacity:1;}
+.did-seal{position:absolute;left:50%;bottom:-16px;transform:translateX(-50%);z-index:12;display:flex;align-items:center;justify-content:center;min-width:48px;height:48px;padding:0 4px;border:0;border-radius:999px;cursor:pointer;background:conic-gradient(from 59deg,#FCF0C2,#EDCE7C 8%,#D8B052 22%,#AA8129 34%,#C09636 46%,#F7E4A8 58%,#D8B052 72%,#A97F27 86%,#FCF0C2 100%);box-shadow:${PACK_SHADOW.panel};}
+.did-seal span{display:flex;align-items:center;justify-content:center;min-width:40px;height:40px;padding:0 8px;border-radius:999px;background:${LAPIS.grad};color:${LAPIS.ink};font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px;white-space:nowrap;}
+.did-sealtip{position:absolute;left:50%;bottom:-48px;transform:translateX(-50%);z-index:13;white-space:nowrap;padding:4px 12px;border-radius:8px;background:${T.ink};color:${T.card};font-family:'Space Grotesk',sans-serif;font-size:12px;}
+.did-name.did-name--app{position:relative;margin:32px 0 0;font-weight:700;}
+.did-namelast{white-space:nowrap;}
+.did-flagin{display:inline-block;vertical-align:middle;margin-left:8px;line-height:0;}
+.did-status{position:relative;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.did-status .did-health{width:auto;min-width:112px;}
+.did-lifelbl{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};white-space:nowrap;}
+.did-hero .did-glyph{position:relative;}
+/* PÁS ČÍSEL a kapitoly dokumentov */
+.did-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:12px 0;margin-bottom:16px;background:${T.cardGrad};border:1px solid ${T.cardEdge};border-radius:16px;box-shadow:${T.cardShadow};text-align:center;}
+.did-strip div+div{border-left:1px solid ${T.hairline};}
+.did-strip b{display:block;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px;color:${T.ink};}
+.did-strip span{font-family:'Space Grotesk',sans-serif;font-size:10px;color:${T.inkWarm};}
+.did-docs{display:flex;gap:12px;align-items:center;}
+.did-docthumb{position:relative;flex:none;width:112px;aspect-ratio:1080/1527;overflow:hidden;border-radius:8px;box-shadow:${PACK_SHADOW.card};}
+.did-docbtns{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;}
+.did-dl{display:flex;align-items:center;justify-content:center;width:100%;min-height:40px;padding:4px 8px;border-radius:8px;border:1px solid ${LAPIS.edge};background:none;color:${LAPIS.edge};font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;text-align:center;text-decoration:none;cursor:pointer;}
+.did-dl--on{background:${LAPIS.grad};color:${LAPIS.ink};}
+.did-dl[aria-disabled='true']{opacity:.5;cursor:default;}
+.did-regen{display:flex;align-items:center;justify-content:center;gap:4px;margin:12px auto 0;background:none;border:0;font-family:'Space Grotesk',sans-serif;font-size:12px;color:${T.inkWarm};text-decoration:underline;cursor:pointer;}
+.did-wall{margin:0;font-family:'Space Grotesk',sans-serif;font-style:italic;font-size:14px;color:${T.inkWarm};overflow-wrap:anywhere;}
+.did-wallfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;font-family:'Space Grotesk',sans-serif;font-size:10px;color:${T.inkWarm};}
+.did-angel{display:flex;align-items:center;justify-content:center;gap:8px;margin:24px auto 8px;padding:8px;background:none;border:0;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:14px;color:${T.alertRed};cursor:pointer;}
+.did-angel u{text-underline-offset:4px;}
+.did-angel img{width:28px;height:28px;object-fit:contain;filter:brightness(0) saturate(100%) invert(38%) sepia(27%) saturate(1070%) hue-rotate(327deg) brightness(93%) contrast(85%);}
 `;
 
 // "labrador retriever" → "Labrador Retriever"
@@ -243,6 +285,7 @@ export default function PackDogDetail() {
   const [showCert, setShowCert] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [wallOpen, setWallOpen] = useState(false);
+  const [idPdfBusy, setIdPdfBusy] = useState(false);
   // Závet — panel nad dokladom. Otvára ho ✎ pri bloku ZÁVET, jeho červené pomlčky
   // aj tlačidlo v zdieľacom rade; všetky tri vedú na to isté miesto.
   // Štvrtý vchod (8. 10. 2026): modul ZÁVET na obrazovke DOG ID · MODULY → `?panel=will`.
@@ -461,6 +504,24 @@ export default function PackDogDetail() {
     }
   };
 
+  const handleIdPdf = async () => {
+    if (!dog?.id || idPdfBusy) return;
+    setIdPdfBusy(true);
+    try {
+      const handed = await exportDogIdPdf({
+        dogId: dog.id, dogName, number: certNumber,
+        photoUrl: dog.cloudinary_main_url ? sizedUrl(dog.cloudinary_main_url, 480) : null,
+        glyphNode: document.querySelector('.did-glyph'),
+        fixedRows: fixedIdentityRows, tx, loc: intlLocale(appLang),
+      });
+      if (!handed) toast({ title: t('pack.dog.docIdNoShare') });
+    } catch (err) {
+      toast({ title: t('pack.dog.docIdFailed'), description: err instanceof Error ? err.message : t('pack.dog.toastUnknownError'), variant: 'destructive' });
+    } finally {
+      setIdPdfBusy(false);
+    }
+  };
+
   const handleChangeMainPhoto = () => mainPhotoInputRef.current?.click();
 
   const handleMainPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -577,6 +638,10 @@ export default function PackDogDetail() {
   }
 
   const dogName = dog.dog_name || t('pack.dog.unnamed');
+  // Posledné slovo mena drží vlajku pri sebe, aby pri zalomení neostala sama na riadku.
+  const nameCut = dogName.trimEnd().lastIndexOf(' ') + 1;
+  const nameHead = dogName.slice(0, nameCut);
+  const nameLast = dogName.slice(nameCut);
   const ownerName = dog.owner_name || '';
   const heroglyphCode = dog.heroglyph_code || 'H-XX-XX-XX-XX-XX-XX-XX-XX-XX-XX-XX';
   // FIX9 Memorial: deceased pes → vek zamrzne ku dňu úmrtia (frozen "Lived his best
@@ -683,8 +748,8 @@ export default function PackDogDetail() {
         <div className="grid grid-cols-1 gap-5 md:gap-6 items-stretch">
 
           <section
-            className={`did-card${TEST_BUILD ? ' did-flat' : ''}`}
-            style={TEST_BUILD ? { padding: '0 0 24px' } : {
+            className={`did-card${APP_NEW || TEST_BUILD ? ' did-flat' : ''}`}
+            style={APP_NEW || TEST_BUILD ? { padding: '0 0 24px' } : {
               background: T.cardGrad,
               border: `1.5px solid ${T.cardEdge}`,
               borderRadius: 16,
@@ -701,20 +766,21 @@ export default function PackDogDetail() {
             {/* Identitná zóna je vlastný `relative` obal — dokumentový panel
                 (profileOpen) sa prekrýva LEN cez ňu. Keby ostal na `<section>`,
                 po zlúčení s pasom by prekryl celý dokument (aj 1500 px údajov). */}
-            <div className="did-idzone">
+            <div className={`did-idzone${APP_NEW ? ' did-hero' : ''}`}>
+            {APP_NEW && <><style>{NAV_MEDALLION_CSS}</style><span className="did-rays" /></>}
 
             {/* FRONT — identity (always rendered; defines the block height) */}
             <div className="did-front">
 
             {/* — Ikona v rohu (Dokumenty). „Report lost dog" (soon) zmazaný 31. 10. 2026 — nikdy nefungoval. — */}
-            <div className="absolute flex items-center gap-2" style={{ top: 4, right: 4, zIndex: 4 }}>
+            {!APP_NEW && <div className="absolute flex items-center gap-2" style={{ top: 4, right: 4, zIndex: 4 }}>
               <IconBtn
                 icon={<BrandIcon name="document" size={16} tint="gold" />}
                 label={t('pack.dog.profileDocumentsTooltip')}
                 active={profileOpen}
                 onClick={() => setProfileOpen((v) => !v)}
               />
-            </div>
+            </div>}
 
             {/* CENTROVANÁ OS ako na certifikáte (Matej 12.8.: „skúsme to teda predsa
                 len centrovať podobne ako je to na certifikáte"). Fotka je KRUH —
@@ -725,6 +791,35 @@ export default function PackDogDetail() {
                 daj preč“). Kľúč pack.dog.idTitle sa nemaže. */}
 
             {/* Foto — kruh, zlatý prsteň; hover (PC) / tap (mobile) = zmena, ako avatar majiteľa */}
+            {APP_NEW ? (
+              <div className="did-slot">
+                <RightGate right="dog.photo" dogId={dog.id} lock="corner">
+                <button
+                  type="button"
+                  onClick={handleChangeMainPhoto}
+                  disabled={uploadingMain}
+                  aria-label={t('pack.dog.ariaChangePhoto')}
+                  className="did-medalbtn"
+                >
+                  <NavMedallion
+                    still
+                    face={dog.cloudinary_main_url
+                      ? <img src={sizedUrl(dog.cloudinary_main_url, 480)} alt={dogName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : (
+                        <span className="flex flex-col items-center justify-center" style={{ color: T.inkStrong, fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.22em', gap: 4 }}>
+                          <HandCamera size={16} aria-hidden="true" />
+                          {t('pack.dog.noPhoto')}
+                        </span>
+                      )}
+                  />
+                  <span className={`did-medalcam${uploadingMain ? ' on' : ''}`}>
+                    {uploadingMain ? <Loader2 className="h-5 w-5 animate-spin" /> : <HandCamera size={20} />}
+                  </span>
+                </button>
+                </RightGate>
+                <NumberSeal number={certNumber} since={issuedDateLocal} />
+              </div>
+            ) : (
             <RightGate right="dog.photo" dogId={dog.id} lock="corner">
             <button
               type="button"
@@ -759,6 +854,7 @@ export default function PackDogDetail() {
               </span>
             </button>
             </RightGate>
+            )}
             <input
               ref={mainPhotoInputRef}
               type="file"
@@ -768,6 +864,43 @@ export default function PackDogDetail() {
             />
 
             {/* Meno + pulzujúca „alive" bodka vľavo (FIX9: deceased → statický anjelský znak, žiadny pulz) */}
+            {APP_NEW ? (
+              <div className="did-main">
+                {/* Písmo podľa NAJDLHŠIEHO slova, nie merané po vykreslení: dlhé meno sa tak zmestí aj s vlajkou. */}
+                <h1 className="did-name did-name--app" style={{ fontSize: nameFontPx(dogName) }}>
+                  {isDeceased && <AngelDot />}
+                  {nameHead}
+                  <span className="did-namelast">
+                    {nameLast}
+                    <span className="did-flagin">
+                      <FlagCircle src={dogFlagUrl} iso2={flagIso} label={origin || t('pack.dog.defaultCountry')} />
+                    </span>
+                  </span>
+                </h1>
+                <div className="did-status">
+                  <div className="did-health">
+                    {isDeceased ? <InLovingMemoryBadge /> : (
+                      <HealthBadge
+                        status={healthStatus}
+                        open={healthOpen}
+                        onToggle={() => setHealthOpen((v) => !v)}
+                        onSelect={(k) => {
+                          setHealthStatus(k);
+                          setHealthOpen(false);
+                          void saveHealthFields({ health_status: k });
+                        }}
+                      />
+                    )}
+                  </div>
+                  {!isDeceased && age && (
+                    <>
+                      <span className="did-lifelbl">{t('pack.dog.livingBestLife')}</span>
+                      <BestLifeBadge age={age} />
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
             <div className="did-main">
               <div className="flex items-center justify-center" style={{ gap: 10 }}>
                 {isDeceased ? <AngelDot /> : <AliveDot />}
@@ -810,6 +943,7 @@ export default function PackDogDetail() {
                 </div>
               </div>
             </div>
+            )}
 
             {/* Heroglyf — čierny, na šírku stredného stĺpca */}
             <div className="did-glyph">
@@ -826,7 +960,7 @@ export default function PackDogDetail() {
 
             {/* "Living my best life" — hlavný údaj = dni (badge, podčiarknuté); roky+ľudské roky v tooltipe (hover PC / tap mobile).
                 FIX9: deceased pes → zmrazené "Lived his best life" + živé "In angel form" počítadlo. */}
-            <div className="did-meta">
+            {(!APP_NEW || isDeceased || !age) && <div className="did-meta">
             {isDeceased ? (
               <div className="flex flex-col items-center gap-2">
                 <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
@@ -875,7 +1009,7 @@ export default function PackDogDetail() {
                 )}
               </div>
             )}
-            </div>
+            </div>}
             {/* /did-meta */}
 
             </div>
@@ -1069,12 +1203,96 @@ export default function PackDogDetail() {
                 (T.rule) je predpísaný oddeľovač vnútri bledej karty. */}
             {DEV_FULL && (
               <>
-                <div className="did-rule" />
+                {!APP_NEW && <div className="did-rule" />}
                 <DogPassport
                   dogId={dog.id}
                   bare
                   fixedRows={fixedIdentityRows}
                   onEditPanel={(p) => { if (p === 'will') setWillOpen(true); }}
+                  chapters={!APP_NEW ? undefined : {
+                    head: <DogLifeStrip dogId={dog.id} tx={tx} />,
+                    extra: [
+                      {
+                        key: 'docs', title: t('pack.dog.docsTitle'), icon: 'certificate', sub: t('pack.dog.docsSub'),
+                        body: (
+                          <>
+                            <div className="did-docs">
+                              <div className="did-docthumb" ref={(el) => {
+                                const inner = el?.firstElementChild as HTMLElement | null;
+                                if (el && inner) inner.style.transform = `scale(${el.clientWidth / 1080})`;
+                              }}>
+                                <div style={{ position: 'absolute', inset: 0, transformOrigin: 'top left', width: 1080, height: 1527 }}>
+                                  <CertificateCard
+                                    dogName={dogName}
+                                    ownerName={ownerName}
+                                    photoUrl={dog.cloudinary_main_url || undefined}
+                                    heroglyphCode={heroglyphCode}
+                                    certNumber={certNumber}
+                                    issuedDate={issuedDate}
+                                  />
+                                </div>
+                              </div>
+                              <div className="did-docbtns">
+                                <DocLink label={t('pack.dog.docCertPdf')} href={dog.pdf_cert_url} filename={`${dogName}-certificate.pdf`} on />
+                                <DocLink label={t('pack.dog.docGlyphV')} href={dog.pdf_vertical_url} filename={`${dogName}-vertical.pdf`} />
+                                <DocLink label={t('pack.dog.docGlyphH')} href={dog.pdf_horizontal_url} filename={`${dogName}-horizontal.pdf`} />
+                                <button type="button" className="did-dl" disabled={idPdfBusy} onClick={handleIdPdf}>
+                                  {idPdfBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : t('pack.dog.docIdPrint')}
+                                </button>
+                              </div>
+                            </div>
+                            <button type="button" className="did-regen" onClick={handleRegenerate} disabled={regenerating}>
+                              {regenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <HandCycle size={12} />}
+                              {regenerating ? t('pack.dog.generating') : (dog.pdf_cert_url ? t('pack.dog.regeneratePdfs') : t('pack.dog.generatePdfs'))}
+                            </button>
+                          </>
+                        ),
+                      },
+                      {
+                        key: 'wall', title: t('pack.dog.wallTitle'), icon: 'heartpaw',
+                        sub: dog.grid_message || dog.selections?.dogMessage || t('pack.dog.wallEmpty'),
+                        body: (
+                          <>
+                            <p className="did-wall">
+                              {dog.grid_message || dog.selections?.dogMessage
+                                ? `„${dog.grid_message || dog.selections?.dogMessage}“`
+                                : t('pack.dog.wallEmpty')}
+                            </p>
+                            <div className="did-wallfoot">
+                              <span>{t('pack.dog.wallHint')}</span>
+                              <RightGate right="grid.message" dogId={dog.id}>
+                                <button type="button" className="pk-pill pk-pill--tap pass-edit" onClick={() => setWallOpen(true)}>
+                                  ✎ {t('pack.pass.edit')}
+                                </button>
+                              </RightGate>
+                            </div>
+                          </>
+                        ),
+                      },
+                    ],
+                    footer: (
+                      /* 🔒 Nevratné ⇒ len majiteľ, potvrdenie drží MemorialControl. */
+                      <RightGate right="owner" dogId={dog.id}>
+                        <button
+                          type="button"
+                          className="did-angel"
+                          onClick={() => {
+                            setMemorialStep(isDeceased ? 'date' : 'confirm');
+                            setMemorialOpen(true);
+                          }}
+                        >
+                          <img src={angelIconUrl} alt="" />
+                          <u>
+                            {isDeceased
+                              ? awaitingDeathDate
+                                ? t('pack.dog.memorial.addDate', { name: dogName })
+                                : t('pack.dog.memorial.editDate')
+                              : t('pack.dog.memorial.markLink')}
+                          </u>
+                        </button>
+                      </RightGate>
+                    ),
+                  }}
                 />
               </>
             )}
@@ -1108,7 +1326,7 @@ export default function PackDogDetail() {
                 }}
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <SectionHeading icon={<BrandIcon name="heartpaw" size={12} tint="gold" />} label={t('pack.dog.wordOnWall')} inline />
+                  <SectionHeading icon={<BrandIcon name="heartpaw" size={12} tint="gold" />} label={APP_NEW ? t('pack.dog.wallTitle') : t('pack.dog.wordOnWall')} inline />
                   <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: T.inkDim }}>
                     {messageDraft.length}/{MESSAGE_MAX}
                   </span>
@@ -1244,7 +1462,7 @@ export default function PackDogDetail() {
              🔒 Toto NIE JE pútnik. Pútnik (level, prstenec, body v hlavičke `/map`)
              ostáva ČLOVEKU a ráta sa z `trip_walked`; tu je len to, čo prešiel PES.
              Preto ani žiadny level, prstenec či body — dve čísla a nič viac. */}
-        <DogTrailsBlock dogId={dog.id} tx={tx} />
+        {!APP_NEW && <DogTrailsBlock dogId={dog.id} tx={tx} />}
 
         <div style={{ height: 24 }} />
       </div>
@@ -1270,9 +1488,23 @@ export default function PackDogDetail() {
 const LIFE_NOTE_FIELDS = ['diary.note', 'diary.health', 'diary.milestone'];
 const LIFE_CSS = `.did-life{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:${PACK_SPACE.md}px;}
 @media (max-width:720px){.did-life{grid-template-columns:repeat(2,minmax(0,1fr));}}`;
-function DogTrailsBlock({ dogId, tx }: { dogId: string; tx: (k: string, f: string) => string }) {
-  const epoch = usePackStoreEpoch();
+/** Tie isté čísla ako ŽIVOT V KOCKE, len ako pás hore (appka). */
+function DogLifeStrip({ dogId, tx }: { dogId: string; tx: (k: string, f: string) => string }) {
   const { lang } = useLang();
+  const { stats, notes, days } = useDogLife(dogId);
+  const cell = (label: string, value: string) => <div key={label}><b>{value}</b><span>{label}</span></div>;
+  return (
+    <div className="did-strip">
+      {cell(tx('pack.dog.trailsTrips', 'Trips'), String(stats.trips))}
+      {cell(tx('pack.dog.trailsKm', 'Kilometres'), fmtNum(stats.km, lang, 0))}
+      {cell(tx('pack.dog.lifeDays', 'Days together'), days === null ? '—' : fmtNum(days, lang, 0))}
+      {cell(tx('pack.dog.lifeNotes', 'Diary entries'), notes === null ? '—' : String(notes))}
+    </div>
+  );
+}
+
+function useDogLife(dogId: string) {
+  const epoch = usePackStoreEpoch();
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `epoch` JE tá závislosť:
   // dáta ležia v localStorage, takže sa o ich zmene inak nedozvieme.
   const stats = useMemo(() => dogTripStats(dogId), [dogId, epoch]);
@@ -1293,6 +1525,12 @@ function DogTrailsBlock({ dogId, tx }: { dogId: string; tx: (k: string, f: strin
   }, [dogId]);
   const sinceMs = since ? Date.parse(since) : NaN;
   const days = Number.isFinite(sinceMs) ? Math.max(0, Math.floor((Date.now() - sinceMs) / 86400000)) : null;
+  return { stats, notes, days };
+}
+
+function DogTrailsBlock({ dogId, tx }: { dogId: string; tx: (k: string, f: string) => string }) {
+  const { lang } = useLang();
+  const { stats, notes, days } = useDogLife(dogId);
   const cell = (label: string, value: string) => (
     <div className="pk-tilt" {...TILT_PROPS} style={{ ...PACK_BOX.subblock, padding: PACK_SPACE.lg, textAlign: 'center' }}>
       <div style={{ ...PACK_HEAD.section, color: T.inkDim, marginBottom: PACK_SPACE.xs }}>{label}</div>
@@ -1524,6 +1762,33 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
 // nebude viditeľné pod DOG ID nadpisom, ale pri prechode myšou na pils s číslom #").
 // Tooltip má rovnakú mechaniku ako BestLifeBadge: hover na PC, tap na mobile — bez tapu
 // by bol údaj na telefóne nedostupný.
+/** Číslo psa na obruči (appka). Ťuk ukáže, odkedy je v DOGYPTE, ako pilulka vedľa neho. */
+function NumberSeal({ number, since }: { number: string; since: string }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" className="did-seal" onClick={() => setOpen((v) => !v)} aria-label={since ? t('pack.dog.inDogyptSince', { date: since }) : number}>
+        <span>{number}</span>
+      </button>
+      {open && since && <span className="did-sealtip">{t('pack.dog.inDogyptSince', { date: since })}</span>}
+    </>
+  );
+}
+
+/** Tlačidlo dokumentu (appka). PDF ide do systémového prehliadača cez `openPdf`, WebView by ho nestiahol. */
+function DocLink({ label, href, filename, on }: { label: string; href: string | null; filename: string; on?: boolean }) {
+  const cls = `did-dl${on ? ' did-dl--on' : ''}`;
+  if (!href) return <span className={cls} aria-disabled="true">{label}</span>;
+  return <a className={cls} href={href} download={filename} target="_blank" rel="noopener noreferrer" onClick={openPdf(href)}>{label}</a>;
+}
+
+/** Stupeň mena: 32 px, kým sa najdlhšie slovo zmestí do stĺpca aj s vlajkou. Rovnica, nie meranie. */
+function nameFontPx(name: string): number {
+  const longest = Math.max(...name.split(/\s+/).map((w) => w.length), 1);
+  return Math.max(16, Math.min(32, Math.floor(420 / longest)));
+}
+
 function NumberPill({ number, since }: { number: string; since: string }) {
   const t = useT();
   const [open, setOpen] = useState(false);

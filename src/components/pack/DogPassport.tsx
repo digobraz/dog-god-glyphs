@@ -32,6 +32,7 @@ import { PASS_GROUPS, STEP_BY_FIELD, PROGRESS_STEPS, FLOW_EXTRA_FIELDS, quizValu
 import { natureArt, storedSpecials } from './natureQuiz';
 import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, type LatestValue } from '@/lib/dogEvents';
 import { RightGate } from '@/components/pack/RightGate';
+import { BrandIcon } from '@/components/pack/BrandIcon';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from './navGoldSkin';
 import { TILT_CSS, TILT_PROPS } from './packTilt';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -190,9 +191,14 @@ export interface FixedRow {
 export const PUBLIC_DOGID_GROUPS = ['howWorks', 'social', 'temperament'] as const;
 const PUBLIC_EXTRA_FIELDS: Record<string, string[]> = { temperament: ['nature.element', 'nature.role'] };
 
+/** Kapitola mimo údajov dokladu (dokumenty, odkaz na stene). */
+export type DogIdExtraChapter = { key: string; title: string; icon: string; sub: string; body: React.ReactNode };
+
 export function DogPassport({
-  dogId, bare = false, fixedRows, onEditPanel, values, readOnly = false,
+  dogId, bare = false, fixedRows, onEditPanel, values, readOnly = false, chapters,
 }: {
+  /** Kapitoly na rozkliknutie (appka, Matej 4. 11. 2026). Bez neho kreslí doklad ako doteraz. */
+  chapters?: { head?: React.ReactNode; extra: DogIdExtraChapter[]; footer?: React.ReactNode };
   dogId: string;
   bare?: boolean;
   /** Read-only riadky navrch skupiny — kľúč je `PassGroup.key`. */
@@ -294,6 +300,15 @@ export function DogPassport({
   }, [groups, latest, readOnly, dogId]);
 
   if (!latest) return null;
+
+  if (chapters) {
+    return (
+      <DogIdChapters
+        dogId={dogId} groups={groups} latest={latest} fixedRows={fixedRows ?? {}} fill={fill}
+        nextMissing={nextMissing} onEditPanel={onEditPanel} weightTrend={weightTrend} tx={tx} {...chapters}
+      />
+    );
+  }
 
   return (
     <section
@@ -451,6 +466,230 @@ export function DogPassport({
   );
 }
 
+// ── KAPITOLY DOG ID (appka, Matej 4. 11. 2026, nákres plany/nakresy/dogid-2026-11-04) ─────
+// Deväť rovnakých kariet (4 091 px) sa zmenilo na kapitoly na rozkliknutie. Údaje, práva aj odkazy
+// do kvízu sú tie isté ako v doklade vyššie; mení sa len kresba. Dátum z každého riadku odišiel
+// do jedného „Upravené" na konci kapitoly, veterinár ho teda stále vidí.
+const CH_ICON: Record<string, string> = {
+  identity: 'document', health: 'heart', vax: 'chemical', food: 'bone', howWorks: 'mountain',
+  social: 'people', temperament: 'star-badge', contacts: 'paper-plane', will: 'feather',
+};
+/** Polia, ktoré hore nesú veľké emblémy, a preto ich kapitola Identita neopakuje. */
+const TRIO_FIELDS = ['nature.element', 'nature.role', 'nature.specials'];
+const LAPIS_ICON = 'brightness(0) saturate(100%) invert(14%) sepia(52%) saturate(3300%) hue-rotate(219deg) brightness(92%) contrast(103%)';
+
+const CH_CSS = `
+.dic-cta{ position:relative; overflow:hidden; padding:16px 16px 20px; }
+.dic-cta small{ display:block; margin-top:4px; font-family:${FONT_UI}; font-weight:500; font-size:12px; letter-spacing:.02em; text-transform:none; opacity:.85; }
+.dic-cta i{ position:absolute; left:0; bottom:0; height:4px; background:linear-gradient(90deg,#EDCE7C,${T.accentGold}); }
+.dic-card{ background:${T.cardGrad}; border:1px solid ${T.cardEdge}; border-radius:16px; box-shadow:${T.cardShadow}; margin-bottom:8px; }
+.dic-trio{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:16px 8px; text-align:center; margin-bottom:16px; }
+.dic-trio.two{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+.dic-tr{ display:block; color:inherit; text-decoration:none; min-width:0; }
+.dic-tr img{ width:72px; height:72px; object-fit:contain; display:block; margin:0 auto 8px; }
+.dic-tr em{ display:block; font-style:normal; font-family:${FONT_UI}; font-weight:500; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:${T.inkWarm}; }
+.dic-tr b{ font-family:${FONT_UI}; font-weight:600; font-size:14px; color:${T.inkStrong}; }
+.dic-tr .dic-q{ width:72px; height:72px; margin:0 auto 8px; border-radius:50%; border:1px dashed ${LAPIS.edge}; display:flex; align-items:center; justify-content:center; font-family:${FONT_UI}; font-size:24px; color:${LAPIS.edge}; }
+.dic-coin{ flex:none; width:44px; height:44px; border-radius:50%; background:${T.cardGrad}; border:1px solid ${T.cardEdge}; display:flex; align-items:center; justify-content:center; box-shadow:${T.cardShadow}; }
+.dic-hd{ display:flex; align-items:center; gap:12px; width:100%; background:none; border:0; padding:12px; text-align:left; cursor:pointer; color:inherit; }
+.dic-ttl{ flex:1; min-width:0; }
+.dic-ttl h3{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:14px; letter-spacing:.14em; text-transform:uppercase; color:${T.inkStrong}; } /* písmo: nadpis */
+.dic-ttl p{ margin:0; font-family:${FONT_UI}; font-size:12px; color:${T.inkWarm}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dic-ttl p.miss{ color:${T.alertRed}; }
+.dic-ok{ flex:none; position:relative; width:20px; height:20px; border-radius:50%; background:${T.growGreen}; }
+.dic-ok::after{ content:''; position:absolute; left:7px; top:3px; width:5px; height:10px; border:solid #EAF7ED; border-width:0 2px 2px 0; transform:rotate(45deg); }
+.dic-chev{ flex:none; width:8px; height:8px; margin:0 4px; border:solid ${T.inkWarm}; border-width:0 2px 2px 0; transform:rotate(45deg); transition:transform .2s; }
+.dic-open .dic-chev{ transform:rotate(-135deg); }
+.dic-bd{ padding:0 12px 12px; }
+.dic-tiles{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; }
+.dic-t{ display:block; min-width:0; min-height:56px; padding:8px 12px; border-radius:12px; background:${B.background}; border:${B.border}; text-decoration:none; color:${T.inkStrong}; overflow-wrap:anywhere; font-family:${FONT_UI}; font-size:14px; font-weight:600; text-align:left; }
+.dic-t.w{ grid-column:1/-1; }
+.dic-t em{ display:block; font-style:normal; font-weight:500; font-size:10px; letter-spacing:.14em; color:${T.inkWarm}; }
+.dic-t.e{ background:${LAPIS.fill}; border:1px dashed ${LAPIS.edge}; color:${LAPIS.edge}; font-size:12px; font-weight:500; cursor:pointer; }
+.dic-foot{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:12px; font-family:${FONT_UI}; font-size:10px; color:${T.inkWarm}; }
+/* ZÁVET ostáva tmavý — ten istý význam ako .pass-block--dark. */
+.dic-dark{ background:var(--brand-gradient); }
+.dic-dark .dic-ttl h3{ color:${LAPIS.ink}; }
+.dic-dark .dic-ttl p.miss{ color:#D9705C; }
+.dic-dark .dic-chev{ border-color:${LAPIS.ink}; }
+.dic-dark .dic-t{ background:rgba(245,240,228,0.08); border:1px solid ${T.onDarkBorder}; color:${T.onDark}; }
+.dic-dark .dic-t em, .dic-dark .dic-foot{ color:${T.onDarkDim}; }
+.dic-dark .dic-t.e{ border-style:dashed; color:${LAPIS.ink}; }
+.dic-dark .pass-noteadd{ color:rgba(245,240,228,0.42); }
+.dic-dark .pass-notetext{ color:rgba(245,240,228,0.62); }
+.dic-dark .pass-note{ border-top-color:${T.onDarkBorder}; }
+`;
+
+/** Text hodnoty bez kresby: zhrnutie kapitoly a PDF na tlač. */
+export function passPlainValue(step: QuizStep, v: unknown, tx: (k: string, f: string) => string, loc: string): string {
+  if (Array.isArray(v)) return v.map((x) => quizValueLabel(step, String(x), tx)).join(', ');
+  const s = String(v);
+  if (step.kind === 'date') return longDate(s, loc);
+  if (step.kind === 'number') return step.unit ? `${s} ${step.unit}` : s;
+  if (step.kind === 'single') return quizValueLabel(step, s, tx);
+  return s;
+}
+
+function DogIdChapters({
+  dogId, groups, latest, fixedRows, fill, nextMissing, onEditPanel, weightTrend, tx, head, extra, footer,
+}: {
+  dogId: string;
+  groups: { group: (typeof PASS_GROUPS)[number]; rows: { step: QuizStep; value: LatestValue | undefined }[] }[];
+  latest: Record<string, LatestValue>;
+  fixedRows: Record<string, FixedRow[]>;
+  fill: { done: number; total: number; pct: number } | null;
+  nextMissing: { panel: string | null; to: string | null } | null;
+  onEditPanel?: (panel: string) => void;
+  weightTrend: string | null;
+  tx: (k: string, f: string) => string;
+  head?: React.ReactNode; extra: DogIdExtraChapter[]; footer?: React.ReactNode;
+}) {
+  const { lang } = useLang();
+  const loc = intlLocale(lang);
+  const [open, setOpen] = useState('identity');
+  const counted = useMemo(() => new Set(PROGRESS_STEPS.map((s) => s.field)), []);
+  const left = fill ? fill.total - fill.done : 0;
+
+  const ctaInner = fill && (
+    <>
+      {tx('pack.pass.fillCta', 'Fill in DOG ID')}
+      <small>
+        {tx('pack.dogs2.left', '{n} questions left · about {m} min').replace('{n}', String(left)).replace('{m}', String(Math.max(1, Math.ceil((left * 10) / 60))))}
+      </small>
+      <i style={{ width: `${fill.pct}%` }} />
+    </>
+  );
+
+  const trio = TRIO_FIELDS.flatMap((f) => {
+    const step = STEP_BY_FIELD[f];
+    if (!step) return [];
+    const val = capSpecials(f, latest[f], latest);
+    // Zvláštna úloha je u väčšiny psov prázdna zámerne, prázdne miesto by hlásilo poruchu, ktorá nie je.
+    if (f === 'nature.specials' && !hasValue(val)) return [];
+    const raw = Array.isArray(val?.value) ? val!.value[0] : val?.value;
+    const label = f === 'nature.element' ? tx('pack.dogs2.element', 'Element') : tx(step.rowI18n, step.rowEN);
+    const to = hasValue(val) && step.resultHref ? `${step.resultHref}&dog=${dogId}&from=id` : `${step.editHref}?dog=${dogId}`;
+    const art = hasValue(val) ? natureArt(f, raw) : '';
+    return [(
+      <Link key={f} className="dic-tr" to={to}>
+        {art ? <img src={art} alt="" /> : <span className="dic-q">?</span>}
+        <em>{label}</em>
+        <b>{hasValue(val) ? quizValueLabel(step, String(raw), tx) : tx('pack.pass.addValue', 'add')}</b>
+      </Link>
+    )];
+  });
+
+  const editOf = (group: (typeof PASS_GROUPS)[number], dark: boolean) => (
+    group.editPanel ? (
+      <RightGate right={group.key === 'will' ? 'will' : 'dogid.edit'} dogId={dogId}>
+        <button type="button" className={`pk-pill pk-pill--tap pass-edit${dark ? ' pk-pill--dark' : ''}`} onClick={() => onEditPanel?.(group.editPanel!)}>
+          ✎ {tx('pack.pass.edit', 'edit')}
+        </button>
+      </RightGate>
+    ) : (
+      <RightGate right="dogid.edit" dogId={dogId}>
+        <Link className="pk-pill pk-pill--tap pass-edit" to={`/pack/dogs/quiz/${group.editSection}?dog=${dogId}&field=${group.fields[0]}`}>
+          ✎ {tx('pack.pass.edit', 'edit')}
+        </Link>
+      </RightGate>
+    )
+  );
+
+  const row = (key: string, title: string, icon: string, sub: string, miss: boolean, done: boolean, dark: boolean, body: React.ReactNode) => (
+    <div key={key} className={`dic-card${dark ? ' dic-dark' : ''}${open === key ? ' dic-open' : ''}`}>
+      <button type="button" className="dic-hd" aria-expanded={open === key} onClick={() => setOpen(open === key ? '' : key)}>
+        <span className="dic-coin"><BrandIcon name={icon} size={24} style={{ filter: LAPIS_ICON }} /></span>
+        <span className="dic-ttl"><h3>{title}</h3>{sub && <p className={miss ? 'miss' : ''}>{sub}</p>}</span>
+        {done && <span className="dic-ok" />}
+        <span className="dic-chev" />
+      </button>
+      {open === key && <div className="dic-bd">{body}</div>}
+    </div>
+  );
+
+  return (
+    <section style={{ color: T.ink, textAlign: 'left' }}>
+      <style>{PILL_CSS}</style>
+      <style>{PF_FIELD_CSS}</style>
+      <style>{PASS_CSS}</style>
+      <style>{CH_CSS}</style>
+
+      {fill && fill.done < fill.total && nextMissing && (
+        <RightGate right="dogid.edit" dogId={dogId}>
+          {nextMissing.panel
+            ? <button type="button" className="pass-cta dic-cta" onClick={() => onEditPanel?.(nextMissing.panel!)}>{ctaInner}</button>
+            : <Link className="pass-cta dic-cta" to={nextMissing.to!}>{ctaInner}</Link>}
+        </RightGate>
+      )}
+
+      {trio.length > 0 && <div className={`dic-card dic-trio${trio.length === 2 ? ' two' : ''}`}>{trio}</div>}
+      {head}
+
+      {groups.map(({ group, rows }) => {
+        const dark = group.key === 'will';
+        const shown = rows.filter((r) => !TRIO_FIELDS.includes(r.step.field));
+        const fixed = fixedRows[group.key] ?? [];
+        const missing = shown.filter((r) => counted.has(r.step.field) && !hasValue(r.value));
+        const filled = shown.filter((r) => hasValue(r.value));
+        const summary = [...fixed.map((r) => r.value ?? ''), ...filled.map((r) => passPlainValue(r.step, r.value!.value, tx, loc))]
+          .filter(Boolean).slice(0, 3).join(' · ');
+        const sub = missing.length
+          ? `${tx('pack.pass.missingList', 'missing')}: ${missing.map((r) => tx(r.step.rowI18n, r.step.rowEN).toLowerCase()).join(', ')}`
+          : summary;
+        const stamp = filled.map((r) => r.value!.recordedAt).sort().pop();
+
+        // Široká dlaždica = dlhý text alebo pilulky. Úzka bez suseda sa natiahne, aby v mriežke neostala diera.
+        const cells = [
+          ...fixed.map((r) => ({ key: r.i18n, wide: (r.value ?? '').length > 16, node: (w: boolean) => (
+            <div key={r.i18n} className={`dic-t${w ? ' w' : ''}`}><em>{tx(r.i18n, r.labelEN)}</em>{r.value || '—'}</div>
+          ) })),
+          ...shown.map(({ step, value }) => {
+            const to = step.editHref ? `${step.editHref}?dog=${dogId}` : `/pack/dogs/quiz/${group.editSection}?dog=${dogId}&field=${step.field}`;
+            const name = tx(step.rowI18n, step.rowEN);
+            if (!hasValue(value)) {
+              const inner = (w: boolean) => (group.editPanel
+                ? <button type="button" key={step.field} className={`dic-t e${w ? ' w' : ''}`} onClick={() => onEditPanel?.(group.editPanel!)}><em>{name}</em>+ {tx('pack.pass.addValue', 'add')}</button>
+                : <Link key={step.field} className={`dic-t e${w ? ' w' : ''}`} to={to}><em>{name}</em>+ {tx('pack.pass.addValue', 'add')}</Link>);
+              return { key: step.field, wide: name.length > 16, node: inner };
+            }
+            const text = passPlainValue(step, value!.value, tx, loc);
+            const wide = Array.isArray(value!.value) || text.length > 16;
+            return { key: step.field, wide, node: (w: boolean) => (
+              <div key={step.field} className={`dic-t${w ? ' w' : ''}`}>
+                <em>{name}</em>
+                {renderValue(step, value!.value, tx, loc)}
+                {step.field === 'health.weightKg' && weightTrend && <span style={{ fontFamily: FONT_UI, fontSize: 10, color: T.growGreen, marginLeft: 8 }}>{weightTrend}</span>}
+                {(value!.actedBy || value!.actedName) && <> <ActedBy id={value!.actedBy} name={value!.actedName} /></>}
+              </div>
+            ) };
+          }),
+        ];
+        let col = 0;
+        const tiles = cells.map((c, i) => {
+          const next = cells[i + 1];
+          const wide = c.wide || (col === 0 && (!next || next.wide));
+          col = wide ? 0 : (col + 1) % 2;
+          return c.node(wide);
+        });
+
+        return row(
+          group.key, tx(group.i18n, group.labelEN), CH_ICON[group.key] ?? 'document', sub, missing.length > 0, missing.length === 0, dark,
+          <>
+            <div className="dic-tiles">{tiles}</div>
+            <GroupNote dogId={dogId} groupKey={group.key} value={typeof latest[`${group.key}.note`]?.value === 'string' ? String(latest[`${group.key}.note`]!.value) : ''} tx={tx} />
+            <div className="dic-foot">
+              <span>{stamp ? tx('pack.pass.updated', 'Updated {date}').replace('{date}', shortDate(stamp, loc)) : ''}</span>
+              {editOf(group, dark)}
+            </div>
+          </>,
+        );
+      })}
+      {extra.map((c) => row(c.key, c.title, c.icon, c.sub, false, false, false, c.body))}
+      {footer}
+    </section>
+  );
+}
+
 // ── ZDIEĽANIE ────────────────────────────────────────────────────────────────
 // Hore aj dole. Voľba príjemcu = voľba POHĽADU, a ten sa zapečie do odkazu (§2/8 zadania):
 // odkaz sa nedá dodatočne prepnúť, chceš iný — vyrobíš nový. Bezpečnostná vlastnosť.
@@ -470,7 +709,7 @@ export function DogPassport({
  * pri prvom pokuse 22. 8. (doklad „The Peacemaker", blok „The Nurturer", ten istý pes).
  * Jeden zdroj čísel = jedna odpoveď na všetkých troch povrchoch.
  */
-function capSpecials(
+export function capSpecials(
   field: string,
   value: LatestValue | undefined,
   latest: Record<string, LatestValue>,
