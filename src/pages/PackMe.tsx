@@ -124,7 +124,7 @@ export default function PackMe() {
   // si od majiteľa psa nepožičiava — dovtedy niesol meno z objednávky a roky služby jeho psa.
   const ownDogs = dogs.filter((d) => !d.user_id || d.user_id === uid);
   const isMate = dogs.length > 0 && ownDogs.length === 0;
-  const { years: servantYears, days: servantDays } = useServantSpan(ownDogs, RANK_BADGE_ON);
+  const { years: servantYears, days: servantDays, toNext: servantNext } = useServantSpan(ownDogs, RANK_BADGE_ON);
   const { profile } = useProfile();
   const human = profile?.human;
   const meta = (session?.user?.user_metadata ?? {}) as Record<string, string | undefined>;
@@ -343,6 +343,7 @@ export default function PackMe() {
             <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} tx={tx}
               servantYears={novice ? null : servantYears}
               servantDays={novice ? null : servantDays}
+              servantNext={novice ? null : servantNext}
               sinceDogs={ownDogs.filter((d) => d.life_status !== 'deceased').map((d) => ({ id: d.id, name: d.dog_name || '' }))}
               home={human?.nationality ?? 'SK'}
               blank={novice}

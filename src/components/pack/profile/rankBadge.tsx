@@ -103,9 +103,11 @@ export function useServantYears(dogs: ServDog[], enabled: boolean): number | nul
   return useServantSpan(dogs, enabled).years;
 }
 /** To isté a navyše počet dní so psom (Matej 2. 11.: *„nie len roky, do zátvorky"*). */
-export function useServantSpan(dogs: ServDog[], enabled: boolean): { years: number | null; days: number | null } {
+export function useServantSpan(dogs: ServDog[], enabled: boolean): { years: number | null; days: number | null; toNext: number | null } {
   const [years, setYears] = useState<number | null>(null);
   const [days, setDays] = useState<number | null>(null);
+  // Dni do ďalšieho levelu; null = dnes nie je so živým psom, čas nebeží (Matej 4. 11.).
+  const [toNext, setToNext] = useState<number | null>(null);
   // Dátum doplnený priamo v rozkliku odznaku (SinceRows) prepočíta číslo hneď.
   const [rev, setRev] = useState(0);
   useEffect(() => onDogEventsChange(() => setRev((n) => n + 1)), []);
@@ -124,7 +126,7 @@ export function useServantSpan(dogs: ServDog[], enabled: boolean): { years: numb
         .map(([id, s]) => [s, (end[id] ?? today).slice(0, 10)] as [string, string])
         .filter(([s, e]) => s <= e)
         .sort((x, y) => (x[0] < y[0] ? -1 : 1));
-      if (!spans.length) { setYears(null); setDays(null); return; }
+      if (!spans.length) { setYears(null); setDays(null); setToNext(null); return; }
       const merged: [string, string][] = [];
       for (const sp of spans) {
         const last = merged[merged.length - 1];
@@ -133,18 +135,23 @@ export function useServantSpan(dogs: ServDog[], enabled: boolean): { years: numb
       const day = (iso: string) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10));
       const total = merged.reduce((n, [s, e]) => n + (day(e) - day(s)) / 864e5, 0);
       setDays(Math.round(total));
+      const running = merged[merged.length - 1][1] === today;
       // Jeden súvislý úsek = presne podľa výročia; viac úsekov = súčet dní.
       if (merged.length === 1) {
         const [s, e] = merged[0];
         const full = +e.slice(0, 4) - +s.slice(0, 4) - (e.slice(5) < s.slice(5) ? 1 : 0);
         setYears(Math.max(0, full));
+        const nextYear = +s.slice(0, 4) + Math.max(0, full) + 1;
+        setToNext(running ? Math.round((day(`${nextYear}${s.slice(4)}`) - day(e)) / 864e5) : null);
       } else {
-        setYears(Math.max(0, Math.floor(total / 365.2425)));
+        const full = Math.max(0, Math.floor(total / 365.2425));
+        setYears(full);
+        setToNext(running ? Math.ceil((full + 1) * 365.2425 - total) : null);
       }
     }).catch(() => {});
     return () => { alive = false; };
   }, [key, enabled, rev]);
-  return { years, days };
+  return { years, days, toNext };
 }
 
 type BadgeBtn = { on?: boolean; onClick?: () => void; label: string };
@@ -268,8 +275,8 @@ const SERVANT_BAR: CSSProperties = { background: SERVANT_FILL, boxShadow: 'inset
 /** SLUŽOBNÍK po rozkliku: roky + obrázok stupňa, zlatý pás aktivity, rebrík 8 odznakov. */
 /** Pod rebríkom rokov sú ODZNAKY (30. 10. 2026) — ťuk na odznak ukáže detail v tom istom paneli.
  *  `trips` a `abroad` = čísla PÚTNIKA (počet prejdených výletov, krajiny mimo vlastnej). */
-export function ServantPanel({ years, days, onDogId, dogs = [], trips = 0, abroad = 0, home = 'SK', blank = false, tx }: {
-  years: number | null; days?: number | null; onDogId?: () => void; trips?: number; abroad?: number; home?: string;
+export function ServantPanel({ years, days, toNext, onDogId, dogs = [], trips = 0, abroad = 0, home = 'SK', blank = false, tx }: {
+  years: number | null; days?: number | null; toNext?: number | null; onDogId?: () => void; trips?: number; abroad?: number; home?: string;
   /** Vlastní psi — kto nemá „Spolu od“, dostane riadok s dátumom priamo tu (Matej 30. 10.). */
   dogs?: SinceDog[];
   /** Náhľad „nový člen“ (`?novice`) — odznaky ukáže prázdne, nie skutočné. */
@@ -289,6 +296,11 @@ export function ServantPanel({ years, days, onDogId, dogs = [], trips = 0, abroa
   const sub = y === 0 ? tx('pack.rank.servantFirst', 'First year with a dog')
     : y === 1 ? tx('pack.rank.servantYear1', '1 year with a dog')
     : tx('pack.rank.servantYears', '{n} years with a dog').replace('{n}', String(y));
+  // Pod mesiac už v dňoch, inak celé mesiace.
+  const months = toNext != null ? Math.floor(toNext / 30.44) : 0;
+  const nextIn = toNext == null ? null
+    : months >= 1 ? tx(`pack.rank.servantMonths${pluralKey(months)}`, '{n} months').replace('{n}', String(months))
+    : tx(`pack.rank.servantDays${pluralKey(toNext)}`, '{n} days').replace('{n}', String(toNext));
   return (
     <>
       <div className="rkp-hd">
@@ -296,6 +308,7 @@ export function ServantPanel({ years, days, onDogId, dogs = [], trips = 0, abroa
         <div className="tx">
           <h3>{tx('pack.ladder.servant', 'Servant')} {y}</h3>
           <p>{sub}{days != null && ` (${tx(`pack.rank.servantDays${pluralKey(days)}`, '{n} days').replace('{n}', days.toLocaleString('sk-SK'))})`}</p>
+          {nextIn && <p>{tx('pack.rank.servantNext', '{time} to Servant {level}').replace('{level}', String(y + 1)).replace('{time}', nextIn)}</p>}
         </div>
       </div>
       <div className="rkp-lbl"><span>{tx('pack.rank.servantActive', 'Days in the app · last 90')}</span><b>{activeDays == null ? '—' : `${d} / ${FULL_DAYS}`}</b></div>

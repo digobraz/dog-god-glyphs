@@ -315,7 +315,7 @@ export default function PackProfile() {
   // PAWMATE (žiadny pes nie je jeho) — bez hodností a bez mena z cudzej objednávky (26. 10. 2026).
   const ownLoaded = loadedDogs.filter((d) => !d.user_id || d.user_id === session?.user?.id);
   const isMate = loadedDogs.length > 0 && ownLoaded.length === 0;
-  const { years: servantYears, days: servantDays } = useServantSpan(ownLoaded, RANK_BADGE_ON);
+  const { years: servantYears, days: servantDays, toNext: servantNext } = useServantSpan(ownLoaded, RANK_BADGE_ON);
   // Práve vymenené fotky psov — kým sa `usePackUser` nenačíta nanovo (hlava aj SVORKA ich ukážu hneď).
   const [dogPhoto, setDogPhoto] = useState<Record<string, string>>({});
   const [dogBusy, setDogBusy] = useState<string | null>(null);
@@ -552,7 +552,7 @@ export default function PackProfile() {
             }
           />
           <div className="me-gap" />
-          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} servantYears={servantYears} servantDays={servantDays} sinceDogs={ownLoaded.filter((d) => d.life_status !== 'deceased').map((d) => ({ id: d.id, name: d.dog_name || '' }))} onDogId={dogs[0] ? () => navigate(`/pack/dogs/${dogs[0].id}`) : undefined} onStats={() => navigate('/pack/map/triplist?tab=stats')} onAbout={() => setAboutDev(true)} onClose={() => setRank(null)} tx={tx} />}
+          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} servantYears={servantYears} servantDays={servantDays} servantNext={servantNext} sinceDogs={ownLoaded.filter((d) => d.life_status !== 'deceased').map((d) => ({ id: d.id, name: d.dog_name || '' }))} onDogId={dogs[0] ? () => navigate(`/pack/dogs/${dogs[0].id}`) : undefined} onStats={() => navigate('/pack/map/triplist?tab=stats')} onAbout={() => setAboutDev(true)} onClose={() => setRank(null)} tx={tx} />}
           {aboutDev && <DevotionSheet devotion={devotion} onClose={() => setAboutDev(false)} />}
 
           {/* ── 1 · O MNE — jediný nadpis skupiny. Poradie (Matej 23. 10.): mená · bio · fakty · povaha. ── */}
