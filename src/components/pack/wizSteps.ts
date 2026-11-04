@@ -112,6 +112,10 @@ export const WIZ_SCREENS: WizScreen[] = [
   { key: 'member', routes: ['/pack/u/:id'], basket: 2, status: 'nie', why: 'cudzí profil — rovnaké prvky ako môj', steps: [] },
   { key: 'nature', routes: ['/pack/nature'], basket: 2, status: 'caka', steps: [] },
   // ── KÔŠ 3 a technické routy — wizard nikdy ──
+  { key: 'sosNew', routes: ['/pack/sos/new'], basket: 3, status: 'nie', why: 'úloha — vyhlásenie straty, pokyn nesie formulár', steps: [] },
+  { key: 'sosFlyer', routes: ['/pack/sos/:slug/letak'], basket: 3, status: 'nie', why: 'úloha — editor letáku', steps: [] },
+  { key: 'sosPage', routes: ['/pack/sos/:slug'], basket: 2, status: 'nie', why: 'stratený pes — v núdzi sa nič nevysvetľuje, nepoužíva sa prvýkrát len na čítanie', steps: [] },
+  { key: 'sosPlan', routes: ['/pack/sos/:slug/plan'], basket: 2, status: 'nie', why: 'SOS plán — zoznam kontaktov, nič na vysvetlenie', steps: [] },
   { key: 'addTrip', routes: ['/pack/add/trip', '/pack/add'], basket: 3, status: 'nie', why: 'úloha — pokyn nesie pilulka toku', steps: [] },
   { key: 'quiz', routes: ['/pack/dogs/quiz/:key'], basket: 3, status: 'nie', why: 'úloha — kvíz sa vysvetľuje sám', steps: [] },
   { key: 'join', routes: ['/pack/join/:token'], basket: 3, status: 'nie', why: 'pozvánka — ešte nie je člen', steps: [] },

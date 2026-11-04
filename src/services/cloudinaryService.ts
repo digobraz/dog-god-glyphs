@@ -309,3 +309,9 @@ export async function uploadFeedbackPhoto(file: File): Promise<CloudinaryResult>
   const json = await res.json();
   return { publicId: json.public_id, secureUrl: json.secure_url };
 }
+
+// LETÁK „STRATIL SA“ (SOS, 4. 11. 2026) — `sos-flyers/<slug>-<čas>`. Trvalý priečinok mimo `tmp/`.
+// ⚠️ `public_id` nesie ČAS: každé uloženie je nový súbor, takže odkaz v `lost_dogs.flyer_url` nikdy neukáže
+//    na starý obrázok z CDN cache a unsigned preset nemusí povoliť prepis.
+export const uploadSosFlyer = (blob: Blob, slug: string) =>
+  uploadBlob(blob, 'sos-flyers', `${slug}-${Date.now()}`);

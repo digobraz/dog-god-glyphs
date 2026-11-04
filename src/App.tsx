@@ -4,6 +4,7 @@ import { PHOTO_INVITE_NEEDED } from "@/lib/photoInvite";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import { APP_NEW, DEV_FULL, BUDDY_LIVE, hasStoredSessionOrAuthReturn } from "@/lib/packFlags";
+import { TEST_BUILD } from "@/lib/env";
 // Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
 import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
 import { LanguageProvider, useLang, ensurePackDict } from "@/i18n/LanguageContext";
@@ -183,6 +184,12 @@ const PackTripArticle = lazyPack(() => import("./pages/PackTripArticle.tsx")); /
 const PackTriplist = lazyPack(() => import("./pages/PackTriplist.tsx")); // TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md)
 const PackDogs = lazyPack(() => import("./pages/PackDogs.tsx"));
 const PackBuddy = lazyPack(() => import("./pages/PackBuddy.tsx")); // SNIFFER (interne BUDDY) — `/pack/sniffer`, krok 3 (zadanie-assnif §10)
+// SOS — STRATENÝ PES (4. 11. 2026, len TEST_BUILD): vyhlásenie · stránka psa · leták · plán · verejná `/lost/:slug`.
+const PackSosNew = lazyPack(() => import("@/components/pack/sos/PackSosNew")); // kôš 3
+const PackSosDetail = lazyPack(() => import("@/components/pack/sos/PackSosDetail")); // kôš 2
+const PackSosFlyer = lazyPack(() => import("@/components/pack/sos/PackSosFlyer")); // kôš 3
+const PackSosPlan = lazyPack(() => import("@/components/pack/sos/PackSosPlan")); // kôš 2
+const LostPublic = lazy(() => import("./pages/LostPublic.tsx")); // verejná, bez prihlásenia, noindex
 const PackAinubis = lazyPack(() => import("./pages/PackAinubis.tsx")); // kostra AINUBISA — `/pack/ainubis` (rozhodnutia 4A+5A, 21. 9. 2026)
 const PackDogQuiz = lazyPack(() => import("./pages/PackDogQuiz.tsx")); // fullscreen kvíz (zadanie-mypack-petpas-2026-08-06 §6)
 const PackChronicle = lazyPack(() => import("./pages/PackChronicle.tsx")); // KRONIKA = denník + galéria (8. 10. 2026)
@@ -628,6 +635,15 @@ const App = () => (
               <Route path="/pack/ainubis/*" element={DEV_FULL ? <PackAinubis /> : <Navigate to="/pack" replace />} />
               {/* SNIFFER (interne BUDDY; Matej 24. 9.: „premenujem to na SNIFFER") = kôš 3 (bez spodnej lišty), rovina vo VON — lock architektura-pack §8/§8.1. */}
               <Route path="/pack/sniffer" element={DEV_FULL && BUDDY_LIVE ? <PackBuddy /> : <Navigate to="/pack/map" replace />} />
+              {/* SOS — stratený pes (TEST_BUILD). Statické `new` vyhráva nad `:slug`. */}
+              {TEST_BUILD && (
+                <>
+                  <Route path="/pack/sos/new" element={<PackSosNew />} />
+                  <Route path="/pack/sos/:slug" element={<PackSosDetail />} />
+                  <Route path="/pack/sos/:slug/letak" element={<PackSosFlyer />} />
+                  <Route path="/pack/sos/:slug/plan" element={<PackSosPlan />} />
+                </>
+              )}
               {/* ODKIAĽ TO VIEM — od 24. 9. 2026 (Matej, voľba E1) to NIE JE vlastná
                   stránka, ale TRETIA ZÁLOŽKA NÁSTENKY (`?plane=wall&tab=lib`).
                   Ranná verzia mala vlastnú adresu (E2) a stránka `PackAinubisSources.tsx`
@@ -644,6 +660,8 @@ const App = () => (
               <Route path="/d/:pack" element={<DogShare />} />
               {/* Canonical public dog page — /dog/<name>-<pack_number> (falls back to /dog/<pack_number>) */}
               <Route path="/dog/:slug" element={<DogShare />} />
+              {/* SOS — verejná stránka straty, bez prihlásenia (TEST_BUILD; na LIVE ju `LostPublic` sám vráti ako 404) */}
+              <Route path="/lost/:slug" element={<LostPublic />} />
 
               {/* /admin — read-only backoffice (admin-email gated) */}
               <Route path="/admin" element={<Admin />} />

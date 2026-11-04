@@ -1,0 +1,169 @@
+// SOS — akcie a okná zdieľané stránkou psa (`/pack/sos/:slug`) aj verejnou `/lost/:slug`:
+// zdieľanie, kopírovanie odkazu, ZAVOLAŤ (číslo až po ťuku), VIDEL SOM HO, potvrdenia NAŠIEL SA a STÁLE HĽADÁM.
+// Okná = `PackPopup` (úchyt = gesto, bez šípky). Žiadne „zhasne o X dní“.
+import { useState } from 'react';
+import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
+import { toast } from '@/hooks/use-toast';
+import { withTransform } from '@/services/cloudinaryService';
+import { lostPhone, lostShare, lostUrl } from '@/lib/sos';
+import { PackPopup } from '@/components/pack/PackPopup';
+import { PF_FIELD_CSS } from '@/components/pack/packTheme';
+import { SOS_CSS, type SosT } from './sosShared';
+
+const isAbort = (e: unknown) => e instanceof DOMException && e.name === 'AbortError';
+
+/** Obrázok letáku ako súbor pre natívne zdieľanie (CORS-otvorený Cloudinary). */
+async function flyerFile(url: string, name: string): Promise<File | null> {
+  try {
+    const r = await fetch(url, { mode: 'cors' });
+    if (!r.ok) return null;
+    const b = await r.blob();
+    return new File([b], `dogypt-sos-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'pes'}.${b.type === 'image/jpeg' ? 'jpg' : 'png'}`, { type: b.type || 'image/png' });
+  } catch { return null; }
+}
+
+/** Natívne zdieľanie: leták ako obrázok + odkaz, bez neho len odkaz; na PC skopíruje odkaz. Počíta sa cez `lostShare`. */
+export async function shareLost(a: { slug: string; name: string; flyerUrl?: string | null; s: SosT }): Promise<void> {
+  const url = lostUrl(a.slug);
+  const text = `${a.s('pack.sos.det.shareText', { name: a.name })} ${url}`;
+  const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean };
+  try {
+    if (a.flyerUrl && typeof nav.canShare === 'function' && typeof navigator.share === 'function') {
+      const file = await flyerFile(withTransform(a.flyerUrl, 'c_limit,w_1600,f_jpg,q_auto'), a.name);
+      if (file && nav.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], text, url });
+        void lostShare(a.slug).catch(() => {});
+        return;
+      }
+    }
+    if (typeof navigator.share === 'function') {
+      await navigator.share({ text: a.s('pack.sos.det.shareText', { name: a.name }), url });
+      void lostShare(a.slug).catch(() => {});
+      return;
+    }
+  } catch (e) { if (isAbort(e)) return; /* iná chyba: spadni na kopírovanie */ }
+  await copyLostLink(a.slug, a.s);
+  void lostShare(a.slug).catch(() => {});
+}
+
+export async function copyLostLink(slug: string, s: SosT): Promise<void> {
+  try { await navigator.clipboard.writeText(lostUrl(slug)); toast({ title: s('pack.sos.det.copied') }); }
+  catch { toast({ title: lostUrl(slug) }); }
+}
+
+/** VIDEL SOM HO — verejná edge funkcia `lost-sighting` (bez prihlásenia): { slug, lat?, lng?, note? }. */
+export async function postSighting(slug: string, p: { lat?: number; lng?: number; note?: string }): Promise<void> {
+  const r = await fetch(`${EDGE_BASE}/lost-sighting`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY },
+    body: JSON.stringify({ slug, ...p }),
+  });
+  if (!r.ok) throw new Error(`sighting_${r.status}`);
+}
+
+const here = () => new Promise<GeolocationPosition>((res, rej) => {
+  if (!navigator.geolocation) { rej(new Error('no_geo')); return; }
+  navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000, enableHighAccuracy: true });
+});
+
+/** ZAVOLAŤ: číslo sa stiahne až po ťuku (`lostPhone`; počíta sa odkrytie). `null` = nenájdený / ukončený. */
+export function CallPopup({ slug, name, s, onClose }: { slug: string; name: string; s: SosT; onClose: () => void }) {
+  const [phone, setPhone] = useState<string | null | undefined>(undefined);
+  const [busy, setBusy] = useState(false);
+  const reveal = async () => {
+    setBusy(true);
+    try { setPhone(await lostPhone(slug)); } catch { setPhone(null); } finally { setBusy(false); }
+  };
+  return (
+    <PackPopup title={s('pack.sos.det.callTitle')} onClose={onClose}>
+      <style>{PF_FIELD_CSS + SOS_CSS}</style>
+      <div className="sos-stack">
+        <p className="sos-dogname" style={{ fontSize: 20 }}>{name}</p>
+        {phone === undefined ? (
+          <button type="button" className="sos-cta" disabled={busy} onClick={reveal}>{s('pack.sos.det.callOwner')}</button>
+        ) : phone ? (
+          <>
+            <p className="sos-dogname" style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 24 }}>{phone}</p>
+            <a className="sos-cta" href={`tel:${phone.replace(/[^\d+]/g, '')}`}>{s('pack.sos.det.call')}</a>
+            <a className="sos-cta sos-cta--ghost" href={`sms:${phone.replace(/[^\d+]/g, '')}`}>{s('pack.sos.det.sms')}</a>
+          </>
+        ) : <p className="sos-err">{s('pack.sos.det.callNoNumber')}</p>}
+      </div>
+    </PackPopup>
+  );
+}
+
+/** VIDEL SOM HO: poznámka + (nepovinne) poloha z prehliadača po súhlase; bez nej ide len text. */
+export function SeenPopup({ slug, s, onClose }: { slug: string; s: SosT; onClose: () => void }) {
+  const [note, setNote] = useState('');
+  const [withLoc, setWithLoc] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState('');
+  const send = async () => {
+    setBusy(true); setErr('');
+    let loc: { lat: number; lng: number } | undefined;
+    if (withLoc) {
+      try { const p = await here(); loc = { lat: p.coords.latitude, lng: p.coords.longitude }; }
+      catch { setErr(s('pack.sos.det.seenLocFail')); }
+    }
+    try {
+      await postSighting(slug, { ...(loc ?? {}), ...(note.trim() ? { note: note.trim() } : {}) });
+      setDone(true);
+    } catch { setErr(s('pack.sos.error')); } finally { setBusy(false); }
+  };
+  return (
+    <PackPopup title={s('pack.sos.det.seenTitle')} onClose={onClose}>
+      <style>{PF_FIELD_CSS + SOS_CSS}</style>
+      <div className="sos-stack">
+        {done ? (
+          <>
+            <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.det.seenDone')}</p>
+            <button type="button" className="sos-cta sos-cta--ghost" onClick={onClose}>{s('pack.sos.close')}</button>
+          </>
+        ) : (
+          <>
+            <label className="sos-field"><span>{s('pack.sos.det.seenNote')}</span>
+              <textarea className="pf-field" rows={3} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} />
+            </label>
+            <label className="sos-pill" style={{ gap: 8, minHeight: 44, cursor: 'pointer' }}>
+              <input type="checkbox" checked={withLoc} onChange={(e) => setWithLoc(e.target.checked)} /> {s('pack.sos.det.seenLoc')}
+            </label>
+            {err && <p className="sos-err">{err}</p>}
+            <button type="button" className="sos-cta" disabled={busy} onClick={send}>{s('pack.sos.det.seenSend')}</button>
+          </>
+        )}
+      </div>
+    </PackPopup>
+  );
+}
+
+/** Potvrdenie NAŠIEL SA (majiteľ). */
+export function FoundPopup({ name, s, busy, onYes, onClose }: { name: string; s: SosT; busy: boolean; onYes: () => void; onClose: () => void }) {
+  return (
+    <PackPopup title={s('pack.sos.det.foundTitle', { name })} onClose={onClose}>
+      <style>{PF_FIELD_CSS + SOS_CSS}</style>
+      <div className="sos-stack">
+        <p className="sos-p">{s('pack.sos.det.foundText')}</p>
+        <button type="button" className="sos-cta sos-cta--green" disabled={busy} onClick={onYes}>{s('pack.sos.det.foundYes')}</button>
+        <button type="button" className="sos-cta sos-cta--ghost" onClick={onClose}>{s('pack.sos.det.foundNo')}</button>
+      </div>
+    </PackPopup>
+  );
+}
+
+/** Po 14 dňoch: „Stále hľadáš X?“ (`asked_at`). */
+export function AskPopup({ name, s, busy, onStill, onFound, onClose }: {
+  name: string; s: SosT; busy: boolean; onStill: () => void; onFound: () => void; onClose: () => void;
+}) {
+  return (
+    <PackPopup title={s('pack.sos.det.askTitle', { name })} onClose={onClose}>
+      <style>{PF_FIELD_CSS + SOS_CSS}</style>
+      <div className="sos-stack">
+        <p className="sos-p">{s('pack.sos.det.askText')}</p>
+        <button type="button" className="sos-cta" disabled={busy} onClick={onStill}>{s('pack.sos.det.stillBtn')}</button>
+        <button type="button" className="sos-cta sos-cta--green" disabled={busy} onClick={onFound}>{s('pack.sos.det.foundBtn')}</button>
+      </div>
+    </PackPopup>
+  );
+}
