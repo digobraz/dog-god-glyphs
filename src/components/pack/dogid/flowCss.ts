@@ -141,6 +141,7 @@ textarea.dfl-in{min-height:64px;}
 .dfm p b{font-weight:600;color:${PICK_INK.lapis};}
 .dfm .pct{font-weight:500;font-size:${X.body}px;color:${T.inkStrong};min-width:32px;font-variant-numeric:tabular-nums;}
 .dfm .dfl-lq{flex:1;}
+.dfm-edit{background:none;border:0;padding:${S.sm}px;margin-left:auto;font:500 ${X.label}px/1 ${FONT_UI};color:${T.inkStrong};text-decoration:underline;text-underline-offset:3px;}
 .dfm.mute{background:transparent;border-style:dashed;padding:${S.sm}px ${S.lg}px;}
 .dfm.mute h3{font-size:${X.body}px;}
 .dfm .soon{margin-left:auto;font-weight:500;font-size:${X.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}

@@ -33,7 +33,7 @@ import {
 } from './navGoldSkin';
 import { DOCK, DOCK_MEDAL_CSS, DockPlus } from './packDockMedal';
 import type { AddChoice } from './addtrip/AddTripEntry';
-import { placeForRoute, withOrigin, type CreateObject } from './createRegistry';
+import { CREATE_OBJECTS, isReady, placeForRoute, withOrigin, type CreateObject } from './createRegistry';
 import { emitCreate, type CreateIntent } from '@/lib/createBus';
 import { openAinubis } from '@/lib/ainubisBus';
 import { patchHuman } from '@/lib/humanPrefs';
@@ -62,7 +62,7 @@ const T = PACK_THEME;
 // BEZ tapety chrámu a bez vonkajšej karty — *„asi je to takto lepšie než to mať v bloku nad tmavým
 // pozadím"* → *„aplikuj to na celý pack, myslím na profily, dogs a id"*. Papyrus bez ohľadu na prepínač šatu.
 // Cudzí profil `/pack/u/:id` (25. 10.) má tú istú hlavu ako môj, teda aj tú istú plochu.
-const PLAIN_ROUTES: readonly RegExp[] = [/^\/pack\/profile(\/|$)/, /^\/pack\/dogs(\/|$)/, /^\/pack\/u\/[^/]+$/];
+const PLAIN_ROUTES: readonly RegExp[] = [/^\/pack\/profile(\/|$)/, /^\/pack\/dogs(\/|$)/, /^\/pack\/u\/[^/]+$/, /^\/pack\/sos(\/|$)/]; // + SOS stratený pes (4. 11. 2026)
 // FEED 2 (26. 10. 2026): DOMOV `/pack` stojí na tej istej ploche — hlavička ostáva hore ako na profile
 // (Matej: *„potrebujem aby nejaká hlavička zostala“*). Len cesta presne `/pack`, nie celý strom.
 const PLAIN_HOME = /^\/pack\/?$/;
@@ -412,6 +412,12 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
    * ⚠️ DENNÍK JE PREKRYVOVÁ VRSTVA, NIE ROUTA (lock §4.2: akcia nikdy neodnesie človeka
    *    preč z miesta, kde je). Zapíše sa a človek stojí tam, kde stál.
    */
+  // Dlhý stisk `+` = rovno Zapísať deň, bez panela (Matej 4. 11.). Tá istá cesta ako položka v paneli.
+  const logDay = () => {
+    const day = CREATE_OBJECTS.find((o) => o.id === 'devotion');
+    if (day && isReady(day)) runCreate(day);
+  };
+
   const runCreate = (o: CreateObject) => {
     setCreateOpen(false);
     if (o.target.kind !== 'handler') return;
@@ -609,7 +615,7 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
           {/* `WIZ.navAdd` / `navAinubis` / `navMe` — kotvy prehliadky (register `wizSteps.ts`).
               `+` nesie kotvu na samotnom kotúči (obal by zlomil `align-self:stretch` slotu);
               ikonky vpravo majú obal `inline-flex` ako `WIZ.navMap`. */}
-          <DockPlus id={WIZ.navAdd} label={tx('pack.layout.navAdd', 'Add')} onClick={() => setCreateOpen(true)} />
+          <DockPlus id={WIZ.navAdd} label={tx('pack.layout.navAdd', 'Add')} onClick={() => setCreateOpen(true)} onLongPress={APP_NEW ? logDay : undefined} />
           <span className="flex items-center justify-center" style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4 }}>
             <span id={WIZ.navAinubis} style={{ display: 'inline-flex', borderRadius: 999 }}>
               <AinubisNavLink label={t('pack.layout.navAinubis')} />

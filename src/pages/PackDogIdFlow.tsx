@@ -115,6 +115,13 @@ function Modules({ tx, dogs, onlyDog }: { tx: Tx; dogs: Dog[] | null; onlyDog: s
     ? `${counts[k]} ${tx('pack.flow.ui.questions')} · ${Math.max(1, Math.round(counts[k] / 5.5))} ${tx('pack.flow.ui.min')}`
     : tx('pack.flow.ui.oneScreen'));
   const go = (k: string) => navigate(k === 'nature' ? `/pack/nature${q}` : `/pack/dogs/quiz/${k}${q}`);
+  // Matej 4. 11.: na 100 % sa človek k výsledku nesmie preklikávať cez celý kvíz. Osobnosť má vlastný
+  // výsledok, Základ nemá, jeho výstup je samotné DOG ID.
+  const view = (k: string) => {
+    if (k === 'nature') { navigate(`/pack/nature?view=result${onlyDog ? `&dog=${onlyDog}&from=id` : ''}`); return; }
+    const dog = onlyDog ?? (ids.length === 1 ? ids[0] : null);
+    navigate(dog ? `/pack/dogs/${dog}` : '/pack/dogs');
+  };
   return (
     <div className="dfl-sc">
       <div className="dfl-top"><BackButton tone="pale" onClick={() => navigate('/pack/dogs')} label={tx('pack.quiz.back', 'Back')} /></div>
@@ -134,8 +141,15 @@ function Modules({ tx, dogs, onlyDog }: { tx: Tx; dogs: Dog[] | null; onlyDog: s
               </div>
               <div className="mb">
                 <span className="pct">{pct} %</span>
-                <div className="pk-progress dfl-lq sm"><div className="pk-progress__fill" style={{ width: percent(pct) }} /></div>
-                <button type="button" className="dfl-cta sm" onClick={() => go(m.key)}>{tx(pct ? 'pack.flow.ui.cont' : 'pack.flow.ui.start')}</button>
+                {pct < 100 && <div className="pk-progress dfl-lq sm"><div className="pk-progress__fill" style={{ width: percent(pct) }} /></div>}
+                {pct >= 100 ? (
+                  <>
+                    <button type="button" className="dfm-edit" onClick={() => go(m.key)}>{tx('pack.flow.ui.edit')}</button>
+                    <button type="button" className="dfl-cta sm" onClick={() => view(m.key)}>{tx(m.key === 'nature' ? 'pack.flow.ui.viewResult' : 'pack.flow.ui.viewDogId')}</button>
+                  </>
+                ) : (
+                  <button type="button" className="dfl-cta sm" onClick={() => go(m.key)}>{tx(pct ? 'pack.flow.ui.cont' : 'pack.flow.ui.start')}</button>
+                )}
               </div>
             </div>
           );

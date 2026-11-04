@@ -54,6 +54,7 @@
 //    2. Plátno absolútneho potomka = PADDING-box rodiča. Obruč je `padding` (nie
 //       `border`), takže `100%` JE priemer aj s ňou a polomer 50 vo viewBoxe je jej hrana.
 // ════════════════════════════════════════════════════════════════════════════
+import { useEffect, useRef, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { NAV_GRAIN, LAPIS } from './navGoldSkin';
 // Jediné, čo z AINUBISOVHO brandu v tomto súbore ostalo: cyan jeho odznaku.
 import { AINUBIS } from './ainubisSkin';
@@ -190,12 +191,51 @@ function Deco() {
  * ⚠️ Panel si otvára VOLAJÚCI (`PackBottomNav`), nie tento komponent. Kotúč je kresba
  *    s klikacou plochou; čo sa v paneli ukáže, rozhoduje MIESTO, a to vie lišta.
  */
-export function DockPlus({ label, onClick, id }: { label: string; onClick: () => void; id?: string }) {
+/** Ako dlho treba držať `+`, aby to nebol ťuk. iOS systémové menu začína okolo 500 ms. */
+const LONG_PRESS_MS = 450;
+/** Prst sa pri ťuku trochu pohne; väčší pohyb znamená, že si to človek rozmyslel. */
+const LONG_PRESS_SLOP = 10;
+
+export function DockPlus({ label, onClick, onLongPress, id }: { label: string; onClick: () => void; onLongPress?: () => void; id?: string }) {
+  const timer = useRef<number | null>(null);
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const fired = useRef(false);
+  const cancel = () => {
+    if (timer.current !== null) window.clearTimeout(timer.current);
+    timer.current = null;
+  };
+  useEffect(() => cancel, []);
+  // Bez `onLongPress` sa kotúč správa ako obyčajné tlačidlo.
+  const press = onLongPress ? {
+    onPointerDown: (e: ReactPointerEvent) => {
+      fired.current = false;
+      start.current = { x: e.clientX, y: e.clientY };
+      cancel();
+      timer.current = window.setTimeout(() => {
+        timer.current = null;
+        fired.current = true;
+        navigator.vibrate?.(15);
+        onLongPress();
+      }, LONG_PRESS_MS);
+    },
+    onPointerMove: (e: ReactPointerEvent) => {
+      if (start.current && Math.hypot(e.clientX - start.current.x, e.clientY - start.current.y) > LONG_PRESS_SLOP) cancel();
+    },
+    onPointerUp: cancel,
+    onPointerLeave: cancel,
+    onPointerCancel: cancel,
+    onContextMenu: (e: ReactMouseEvent) => e.preventDefault(),
+  } : {};
+  // Po dlhom stisku príde pri pustení ešte `click`, ten nesmie otvoriť aj panel.
+  const click = () => {
+    if (fired.current) { fired.current = false; return; }
+    onClick();
+  };
   return (
     <span className="pk-medal-slot">
       {/* `id` = kotva prehliadky (`WIZ.navAdd`) — na TLAČIDLE, nie na slote: slot je pás
           cez výšku lišty, výrez má svietiť na kotúč. */}
-      <button type="button" id={id} className="pk-medal" aria-label={label} onClick={onClick}>
+      <button type="button" id={id} className="pk-medal" aria-label={label} onClick={click} {...press}>
         <span className="pk-medal-rim">
           <span className="pk-medal-face">
             {/* Kresba z kitu MASKOU, nie `<img>` s filtrom: filter farbu aproximuje, maska
@@ -229,6 +269,7 @@ export const DOCK_MEDAL_CSS = `
 /* Miesto, ktoré si medailón drží v lište; kotúč sám je absolútny nad ním. */
 .pk-medal-slot{position:relative;align-self:stretch;flex-shrink:0;width:${DOCK.slot}px;}
 .pk-medal{
+  -webkit-touch-callout:none;-webkit-user-select:none;user-select:none;
   position:absolute;left:50%;top:50%;z-index:9;
   width:${DOCK.d}px;height:${DOCK.d}px;
   /* ⚠️ Posun doprava je SÚČASŤOU centrovacieho transformu, nie samostatný left.
