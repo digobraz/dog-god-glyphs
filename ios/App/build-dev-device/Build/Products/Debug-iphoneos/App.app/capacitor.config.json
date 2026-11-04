@@ -17,6 +17,8 @@
 	},
 	"packageClassList": [
 		"CAPBrowserPlugin",
+		"PreferencesPlugin",
+		"PushNotificationsPlugin",
 		"CapacitorUpdaterPlugin"
 	]
 }

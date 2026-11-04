@@ -101,6 +101,34 @@
           "path" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/CapApp-SPM"
         },
         "subpath" : "capapp-spm"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "preferences",
+          "kind" : "fileSystem",
+          "location" : "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/preferences",
+          "name" : "preferences"
+        },
+        "state" : {
+          "name" : "fileSystem",
+          "path" : "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/preferences"
+        },
+        "subpath" : "preferences"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "push-notifications",
+          "kind" : "fileSystem",
+          "location" : "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/push-notifications",
+          "name" : "push-notifications"
+        },
+        "state" : {
+          "name" : "fileSystem",
+          "path" : "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/push-notifications"
+        },
+        "subpath" : "push-notifications"
       }
     ],
     "prebuilts" : [
