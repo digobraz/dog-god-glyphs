@@ -78,7 +78,6 @@ function PickMap({ center, zoom, pt, onPick, locateTick }: {
 }
 
 export default function PackSosNew() {
-  const s = useSosT();
   const { lang } = useLang();
   const navigate = useNavigate();
   const back = useBack('/pack/map');
@@ -96,6 +95,7 @@ export default function PackSosNew() {
   const [busy, setBusy] = useState(false);
 
   const dog = useMemo(() => dogs?.find((d) => d.id === dogId) ?? null, [dogs, dogId]);
+  const s = useSosT(dog?.dog_gender);
 
   useEffect(() => {
     let alive = true;

@@ -485,7 +485,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                         <span style={{ display: 'block', fontFamily: FONT_UI, fontWeight: 600, fontSize: PACK_TEXT.body, lineHeight: 1.35, color: T.sosRed }}>
                           {al.kind === 'sos_still'
                             ? tl('pack.sos.alert.still', 'Still looking for {name}?', { name: al.who ?? '' })
-                            : tl('pack.sos.alert.lost', '{name} is lost', { name: al.who ?? '' })}
+                            : tl(al.whoFem ? 'pack.sos.alert.lost.f' : 'pack.sos.alert.lost', '{name} is lost', { name: al.who ?? '' })}
                         </span>
                         {al.tripName && <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: PACK_TEXT.label, lineHeight: 1.35, color: T.inkDim }}>{al.tripName}</span>}
                       </span>

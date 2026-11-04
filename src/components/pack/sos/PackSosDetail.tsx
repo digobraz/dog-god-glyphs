@@ -36,13 +36,13 @@ function Facts({ pub, s, when, t }: { pub: LostPublic; s: SosT; when: (i: string
 
 export default function PackSosDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const s = useSosT();
   const breedLabel = useBreedLabel();
   const t = useT();
   const when = useWhen();
   const navigate = useNavigate();
   const back = useBack('/pack/map');
   const load = useSosLost(slug);
+  const s = useSosT(load.state === 'ready' ? load.pub.dog_gender : null);
   const [pop, setPop] = useState<'call' | 'seen' | 'found' | 'ask' | null>(null);
   const [askClosed, setAskClosed] = useState(false);
   const [busy, setBusy] = useState(false);

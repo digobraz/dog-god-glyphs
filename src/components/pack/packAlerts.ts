@@ -129,6 +129,8 @@ export interface PackAlert {
   at: string;
   /** B3: kto chce tiež — krstné meno + pes (ako na pine). Pri ostatných druhoch prázdne. */
   who?: string;
+  /** SOS: fenka, text podľa rodu. */
+  whoFem?: boolean;
   /** `walk_invite`: id pozvánky pre `respond_walk_invite` */
   inviteId?: string;
   /** sociálne druhy: náhľad fotky príspevku / výletu (jednoriadkový, môže chýbať) */
@@ -470,7 +472,7 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
     try {
       const lost = await loadSosActive();
       for (const r of lost) {
-        out.push({ id: `sos|${r.id}`, kind: 'sos_lost', tripSlug: '', tripName: r.place_label ?? '', tripPath: `/pack/sos/${r.slug}`, count: 1, at: r.created_at, who: r.dog_name, photo: r.photo ?? undefined });
+        out.push({ id: `sos|${r.id}`, kind: 'sos_lost', tripSlug: '', tripName: r.place_label ?? '', tripPath: `/pack/sos/${r.slug}`, count: 1, at: r.created_at, who: r.dog_name, whoFem: r.dog_gender === 'queen', photo: r.photo ?? undefined });
       }
       for (const r of lost.filter((x) => x.is_mine)) {
         const m = await sosMine(r.id).catch(() => null);

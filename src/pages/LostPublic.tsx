@@ -36,10 +36,10 @@ const CSS = `
 `;
 
 function LostPublicInner({ slug }: { slug: string }) {
-  const s = useSosT();
   const breedLabel = useBreedLabel();
   const when = useWhen();
   const [row, setRow] = useState<LostRow | null | undefined>(undefined);
+  const s = useSosT(row?.dog_gender);
   const [pop, setPop] = useState<'call' | 'seen' | null>(null);
   const nav = useNavigate();
 

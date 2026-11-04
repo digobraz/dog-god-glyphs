@@ -22,6 +22,7 @@ export type FlyerLook = 'papyrus' | 'print';
 export interface FlyerData {
   slug: string;
   name: string;
+  dogGender?: string | null;
   photo: string | null;
   breed: string | null;
   color: string | null;
@@ -138,7 +139,7 @@ const CSS = `
 `;
 
 export function SosFlyer({ data, look = 'papyrus', onReady }: { data: FlyerData; look?: FlyerLook; onReady?: () => void }) {
-  const s = useSosT();
+  const s = useSosT(data.dogGender);
   const when = useWhen();
   const breedLabel = useBreedLabel();
   // PLNÉ rozlíšenie uloženej fotky (výrez 1200 px, bez zmenšenia) — leták sa tlačí na A4 pri 300 dpi.

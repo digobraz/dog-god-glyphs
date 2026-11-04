@@ -44,6 +44,7 @@ const CSS = `
 .sosp-tag--no{color:#8A5A10;background:rgba(201,154,63,.2);}
 .sosp-tag a{color:inherit;}
 .sosp-acts{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
+.sosp-acts--one{grid-template-columns:1fr;}
 .sosp-fixed{display:grid;grid-template-columns:1fr;gap:${PACK_SPACE.sm}px;}
 .sosp-asks{margin:0;padding-left:${PACK_SPACE.lg}px;font-size:${PACK_TEXT.body}px;line-height:1.45;color:${T.inkDim};}
 .sosp-ret{padding:${PACK_SPACE.md}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;border-radius:${PACK_R.tile}px;background:${T.tileBg};border:1.5px solid ${T.border};}
@@ -62,6 +63,8 @@ const WITH_ASK: Step[] = ['police', 'shelter', 'hunting', 'oz'];
 const key = (step: Step, part: string) => `pack.sos.plan.s.${step}.${part}` as SosKey;
 
 const digits = (p: string) => p.replace(/[^\d+]/g, '');
+/** Na pevnú linku SMS nedôjde (180 z 459 čísel). SK mobil 09…, CZ mobil 6… a 7…; číslo bez predvoľby a nuly je české. */
+const isMobile = (p: string) => /^(?:(?:\+|00)421|0)9|^(?:(?:\+|00)420)?[67]/.test(digits(p));
 const mmYYYY = (d: string) => { const m = /^(\d{4})-(\d{2})/.exec(d); return m ? `${m[2]}/${m[1]}` : d; };
 
 function Contact({ c, smsBody, s, onAct }: { c: SosContact; smsBody: string; s: SosT; onAct: () => void }) {
@@ -74,9 +77,9 @@ function Contact({ c, smsBody, s, onAct }: { c: SosContact; smsBody: string; s: 
         ? <span className="sosp-tag sosp-tag--ok">{s('pack.sos.plan.verified', { date: mmYYYY(c.verified_at) })}</span>
         : <span className="sosp-tag sosp-tag--no">{s('pack.sos.plan.unverified')}{c.source_url && <>{'\u00A0·\u00A0'}<a href={c.source_url} target="_blank" rel="noopener noreferrer">{s('pack.sos.plan.source')}</a></>}</span>}
       {c.phone ? (
-        <div className="sosp-acts">
+        <div className={`sosp-acts${isMobile(c.phone) ? '' : ' sosp-acts--one'}`}>
           <a className="sos-cta" href={`tel:${digits(c.phone)}`} onClick={onAct}>{s('pack.sos.det.call')}</a>
-          <a className="sos-cta sos-cta--ghost" href={`sms:${digits(c.phone)}?&body=${encodeURIComponent(smsBody)}`} onClick={onAct}>SMS</a>
+          {isMobile(c.phone) && <a className="sos-cta sos-cta--ghost" href={`sms:${digits(c.phone)}?&body=${encodeURIComponent(smsBody)}`} onClick={onAct}>SMS</a>}
         </div>
       ) : c.web ? (
         <a className="sos-cta sos-cta--ghost" href={c.web} target="_blank" rel="noopener noreferrer" onClick={onAct}>{s('pack.sos.plan.web')}</a>
@@ -87,12 +90,12 @@ function Contact({ c, smsBody, s, onAct }: { c: SosContact; smsBody: string; s: 
 
 export default function PackSosPlan() {
   const { slug } = useParams<{ slug: string }>();
-  const s = useSosT();
   const navigate = useNavigate();
   const when = useWhen();
   const breedLabel = useBreedLabel();
   const back = useBack(sosPath.page(slug ?? ''));
   const load = useSosLost(slug);
+  const s = useSosT(load.state === 'ready' ? load.pub.dog_gender : null);
   const [rows, setRows] = useState<SosContact[] | null>(null);
   const [done, setDone] = useState<Set<string>>(new Set());
   const [skipped, setSkipped] = useState<Set<string>>(new Set());

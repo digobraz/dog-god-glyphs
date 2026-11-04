@@ -36,12 +36,15 @@ const interpolate = (s: string, vars?: Record<string, string | number>) =>
 export type SosT = (key: SosKey, vars?: Record<string, string | number>) => string;
 
 /** Slovník prebíja; EN z `sosTexts.ts` je poistka, keď kus s textami appky ešte nedoletel. */
-export function useSosT(): SosT {
+export function useSosT(dogGender?: string | null): SosT {
   const t = useT();
+  const fem = dogGender === 'queen';
   return useCallback((key, vars) => {
-    const v = t(key, vars);
-    return v !== key ? v : interpolate(SOS_TEXTS[key].en, vars);
-  }, [t]);
+    const f = `${key}.f`;
+    const k = (fem && f in SOS_TEXTS ? f : key) as SosKey;
+    const v = t(k, vars);
+    return v !== k ? v : interpolate(SOS_TEXTS[k].en, vars);
+  }, [t, fem]);
 }
 
 /** „4. 11. 2026 o 15:40“ — dátum a čas v jazyku rozhrania. */

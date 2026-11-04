@@ -10,6 +10,7 @@ import { useLang, useT } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
 import type { SosActiveRow } from '@/lib/sos';
 import { sosAgo, shareLostDog } from '@/components/pack/sosKit';
+import { useSosT } from '@/components/pack/sos/sosShared';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 
 const T = PACK_THEME;
@@ -42,12 +43,14 @@ function SosCard({ r }: { r: SosActiveRow }) {
   const t = useT();
   const { lang } = useLang();
   const nav = useNavigate();
+  const s = useSosT(r.dog_gender);
   const tx = (key: string, fb: string, vars?: Record<string, string | number>) => { const v = t(key, vars); return v === key ? fb.replace(/\{(\w+)\}/g, (_, k) => String(vars?.[k] ?? '')) : v; };
+  const lost = r.dog_gender === 'queen' ? s('pack.sos.feed.lost.f', { name: r.dog_name }) : tx('pack.sos.feed.lost', '{name} is lost', { name: r.dog_name });
   const share = async () => {
     await shareLostDog({
       slug: r.slug, name: r.dog_name,
       flyerUrl: r.flyer_url,
-      text: tx('pack.sos.feed.shareText', '{name} is lost. Help search.', { name: r.dog_name }),
+      text: s('pack.sos.det.shareText', { name: r.dog_name }),
       copiedText: tx('pack.sos.feed.copied', 'Link copied'),
     });
   };
@@ -56,13 +59,13 @@ function SosCard({ r }: { r: SosActiveRow }) {
       <div className="fsos-bar">{tx('pack.sos.feed.need', 'The pack needs you! Share!')}</div>
       {r.flyer_url ? (
         <button type="button" className="fsos-flyer" onClick={() => nav(`/pack/sos/${r.slug}`)}>
-          <img src={sizedUrl(r.flyer_url, 800)} alt={tx('pack.sos.feed.lost', '{name} is lost', { name: r.dog_name })} />
+          <img src={sizedUrl(r.flyer_url, 800)} alt={lost} />
         </button>
       ) : (
         <div className="fsos-body">
           <span className="fsos-ph" style={r.photo ? { backgroundImage: `url(${sizedUrl(r.photo, 160)})` } : undefined} />
           <span className="fsos-tx">
-            <b>{tx('pack.sos.feed.lost', '{name} is lost', { name: r.dog_name })}</b>
+            <b>{lost}</b>
             <span>{[r.place_label, sosAgo(r.last_seen_at, lang)].filter(Boolean).join(' · ')}</span>
           </span>
         </div>
@@ -78,12 +81,12 @@ function SosCard({ r }: { r: SosActiveRow }) {
 function SosRow({ r, onPick }: { r: SosActiveRow; onPick: () => void }) {
   const t = useT();
   const { lang } = useLang();
-  const lost = t('pack.sos.feed.lost', { name: r.dog_name });
+  const lost = t(r.dog_gender === 'queen' ? 'pack.sos.feed.lost.f' : 'pack.sos.feed.lost', { name: r.dog_name });
   return (
     <button type="button" className="fsos-row" onClick={onPick}>
       <span className="fsos-ph" style={r.photo ? { backgroundImage: `url(${sizedUrl(r.photo, 96)})` } : undefined} />
       <span className="fsos-tx">
-        <b>{lost === 'pack.sos.feed.lost' ? `${r.dog_name} is lost` : lost}</b>
+        <b>{lost.startsWith('pack.sos.') ? `${r.dog_name} is lost` : lost}</b>
         <span>{[r.place_label, sosAgo(r.last_seen_at, lang)].filter(Boolean).join(' · ')}</span>
       </span>
     </button>

@@ -31,6 +31,7 @@ export interface SosFlyer {
 export interface SosDog {
   id: string;
   dog_name: string;
+  dog_gender: string | null;
   photo: string | null;
   pack_number: number | null;
   breed: string | null;
@@ -53,6 +54,7 @@ export interface SosActiveRow {
   created_at: string;
   is_mine: boolean;
   flyer_url: string | null;
+  dog_gender: string | null;
 }
 
 export interface SosSighting {
@@ -65,6 +67,7 @@ export interface SosSighting {
 }
 
 export interface SosMine {
+  dog_gender: string | null;
   id: string;
   slug: string;
   dog_id: string;
@@ -98,6 +101,7 @@ export interface SosMine {
 export interface LostPublic {
   slug: string;
   dog_name: string;
+  dog_gender: string | null;
   photo: string | null;
   breed: string | null;
   color: string | null;

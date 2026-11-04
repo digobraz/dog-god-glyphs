@@ -29,8 +29,8 @@ const DIRS = [0, 45, 90, 135, 180, 225, 270, 315] as const;
 
 export default function PackSosFlyer() {
   const { slug: slugParam } = useParams<{ slug: string }>();
-  const s = useSosT();
   const load = useSosLost(slugParam);
+  const s = useSosT(load.state === 'ready' ? load.pub.dog_gender : null);
   const back = useBack(sosPath.page(slugParam ?? ''));
   const [look, setLook] = useState<FlyerLook>('papyrus');
   const [f, setF] = useState<{ headline: string; place: string; about: string; phone: string; reward: string; thanks: string; deg: number | null } | null>(null);
@@ -54,7 +54,7 @@ export default function PackSosFlyer() {
     if (load.state !== 'ready' || !load.mine || !f) return null;
     const m = load.mine;
     return {
-      slug: m.slug, name: m.dog_name, photo: m.photo, breed: m.breed, color: m.color, place: f.place, lastSeen: m.last_seen_at,
+      slug: m.slug, name: m.dog_name, dogGender: m.dog_gender, photo: m.photo, breed: m.breed, color: m.color, place: f.place, lastSeen: m.last_seen_at,
       lat: m.lat, lng: m.lng, phone: f.phone,
       flyer: { headline: f.headline, about: f.about, reward: f.reward, thanks: f.thanks, direction_deg: f.deg },
     };
