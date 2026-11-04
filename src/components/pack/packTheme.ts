@@ -106,6 +106,10 @@ export const PACK_THEME = {
   growGreenSoft: 'rgba(61, 122, 78, 0.12)',
   alertRed: '#B25640',
   alertRedSoft: 'rgba(178, 86, 64, 0.12)',
+  // SOS — stratený pes (4. 11. 2026): vlastná červená, ostrejšia než `alertRed` (to je upozornenie, toto je poplach).
+  sosRed: '#C8202F',
+  sosRedDark: '#9E1522',
+  sosRedSoft: 'rgba(200, 32, 47, 0.10)',
 };
 
 // ── LIQUID GLASS primitív (LOCKED design language, 2026-07-23) ───────────────
