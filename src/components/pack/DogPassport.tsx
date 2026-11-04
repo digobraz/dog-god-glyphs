@@ -477,7 +477,8 @@ const CH_ICON: Record<string, string> = {
 };
 /** Polia, ktoré hore nesú veľké emblémy, a preto ich kapitola Identita neopakuje. */
 const TRIO_FIELDS = ['nature.element', 'nature.role', 'nature.specials'];
-const LAPIS_ICON = 'brightness(0) saturate(100%) invert(14%) sepia(52%) saturate(3300%) hue-rotate(219deg) brightness(92%) contrast(103%)';
+// Ten istý dopočítaný filter ako `lapis` v lab/NavMedallion: trafí LAPIS.edge, teda rgb(22,48,122).
+const LAPIS_ICON = 'brightness(0) saturate(100%) invert(41%) sepia(94%) saturate(708%) hue-rotate(198deg) brightness(48%) contrast(123%)';
 
 const CH_CSS = `
 .dic-cta{ position:relative; overflow:hidden; padding:16px 16px 24px; }
@@ -682,7 +683,7 @@ function DogIdChapters({
         });
 
         return row(
-          group.key, tx(group.i18n, group.labelEN), CH_ICON[group.key] ?? 'dogid-identity', sub, missing.length > 0, missing.length === 0, dark,
+          group.key, tx(group.i18n, group.labelEN), CH_ICON[group.key] ?? 'dogid-identity', sub, missing.length > 0, missing.length === 0 && filled.length + fixed.length > 0, dark,
           <>
             <div className="dic-tiles">{tiles}</div>
             <GroupNote dogId={dogId} groupKey={group.key} value={typeof latest[`${group.key}.note`]?.value === 'string' ? String(latest[`${group.key}.note`]!.value) : ''} tx={tx} />

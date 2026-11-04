@@ -732,7 +732,8 @@ export const ALL_STEPS: QuizStep[] = QUIZ_SECTIONS.flatMap((s) => s.steps);
 // `optional` je vylúčené z rovnakého dôvodu ako `noProgress`: bonusové pole nesmie
 // držať doklad pod 100 %, inak sa 100 % nikdy nedosiahne a číslo klame.
 // V appke sa na `food.forbidden` a dátum odčervenia už kvíz nepýta priamo, preto nedržia 100 %.
-const APP_NOT_REQUIRED = new Set(['food.forbidden', 'health.deworm']);
+// Očkovania sú v appke dobrovoľné (Matej 4. 11. 2026: „nebudú povinné, aby nesvietili ako chýbajúce").
+const APP_NOT_REQUIRED = new Set(['food.forbidden', 'health.deworm', 'health.vaxRabies', 'health.vaxCombo']);
 export const PROGRESS_STEPS: QuizStep[] = ALL_STEPS.filter((s) => !s.noProgress && !s.optional && !(APP_NEW && APP_NOT_REQUIRED.has(s.field)));
 
 /**

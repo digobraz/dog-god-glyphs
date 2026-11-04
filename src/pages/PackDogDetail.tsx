@@ -126,9 +126,9 @@ const DOGID_CSS = `
 
 /* HLAVIČKA V APPKE (Matej 4. 11. 2026, nákres plany/nakresy/dogid-2026-11-04): fotka v obruči ako logo na webe,
    číslo = pečať na obruči. Obruč je kresba NavMedallion, tu sa len škáluje; jej vzhľad sa ladí v jeho nákrese.
-   Lúče strihá did-idzone, hore ich stlmí maska, aby na hornej lište nevznikla hrana. */
-.did-idzone.did-hero{overflow:clip;margin:0 -16px;padding:0 16px 16px;}
-.did-rays{position:absolute;inset:0;pointer-events:none;-webkit-mask:linear-gradient(180deg,transparent 0,#000 48px);mask:linear-gradient(180deg,transparent 0,#000 48px);}
+   Lúče strihá ich vlastná vrstva, nie did-idzone (ten by odrezal rozbaľovač zdravia), hore ich stlmí maska, aby na hornej lište nevznikla hrana. */
+.did-idzone.did-hero{margin:0 -16px;padding:0 16px 16px;}
+.did-rays{position:absolute;inset:0;overflow:clip;pointer-events:none;-webkit-mask:linear-gradient(180deg,transparent 0,#000 48px);mask:linear-gradient(180deg,transparent 0,#000 48px);}
 .did-rays::before{content:'';position:absolute;left:50%;top:96px;width:760px;height:760px;transform:translate(-50%,-50%);background:repeating-conic-gradient(from 0deg,rgba(201,154,63,.15) 0 5deg,transparent 5deg 15deg);-webkit-mask:radial-gradient(circle,#000 22%,transparent 62%);mask:radial-gradient(circle,#000 22%,transparent 62%);}
 .did-slot{position:relative;width:176px;height:176px;margin:8px auto 0;--medal-k:1.76;}
 .did-medalbtn{position:absolute;inset:0;display:block;padding:0;border:0;background:none;border-radius:50%;cursor:pointer;}
@@ -143,6 +143,7 @@ const DOGID_CSS = `
 .did-flagin{display:inline-block;vertical-align:middle;margin-left:12px;line-height:0;}
 .did-status{position:relative;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:12px;}
 .did-status .did-health{width:auto;min-width:112px;}
+.did-status .did-healthmenu{position:static;}
 .did-lifelbl{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};white-space:nowrap;}
 .did-hero .did-glyph{position:relative;}
 /* PÁS ČÍSEL a kapitoly dokumentov */
@@ -881,6 +882,7 @@ export default function PackDogDetail() {
                   <div className="did-health">
                     {isDeceased ? <InLovingMemoryBadge /> : (
                       <HealthBadge
+                        centered
                         status={healthStatus}
                         open={healthOpen}
                         onToggle={() => setHealthOpen((v) => !v)}
@@ -2300,18 +2302,21 @@ function HealthBadge({
   open,
   onToggle,
   onSelect,
+  centered,
 }: {
   status: HealthKey;
   open: boolean;
   onToggle: () => void;
   onSelect: (k: HealthKey) => void;
+  /** Menu na stred radu (`.did-status`), nie pod pilulku: pilulka stojí vľavo a menu by vyšlo z obrazovky. */
+  centered?: boolean;
 }) {
   const t = useT();
   const HEALTH_OPTIONS = getHealthOptions(t);
   const current = HEALTH_OPTIONS.find((o) => o.key === status) ?? HEALTH_OPTIONS[0];
   const isHealthy = status === 'healthy';
   return (
-    <div className="relative w-full">
+    <div className={centered ? 'did-healthmenu w-full' : 'relative w-full'}>
       <button
         type="button"
         onClick={onToggle}
@@ -2347,7 +2352,7 @@ function HealthBadge({
           className="absolute"
           style={{
             top: 'calc(100% + 8px)',
-            right: 0,
+            ...(centered ? { left: '50%', transform: 'translateX(-50%)' } : { right: 0 }),
             width: 250,
             zIndex: 20,
             background: T.panelGrad,
