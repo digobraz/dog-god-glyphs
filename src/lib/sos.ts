@@ -133,6 +133,7 @@ export interface SosContact {
   verified_at: string | null;
   contact_person: string | null;
   contact_role: string | null;
+  nationwide: boolean;
 }
 
 export const sosErrorCode = (e: unknown): string =>

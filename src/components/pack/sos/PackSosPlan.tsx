@@ -69,10 +69,10 @@ function Contact({ c, smsBody, s, onAct }: { c: SosContact; smsBody: string; s: 
     <div className="sosp-item" style={{ ...PACK_BOX.row }}>
       <b>{c.name}</b>
       {(c.contact_person || c.contact_role) && <span className="sos-small">{[c.contact_person, c.contact_role].filter(Boolean).join(' · ')}</span>}
-      <span className="sos-small">{[c.city, c.distance_km != null ? s('pack.sos.plan.km', { km: Math.round(c.distance_km) }) : null].filter(Boolean).join(' · ')}</span>
+      <span className="sos-small">{[c.city, c.nationwide ? s('pack.sos.plan.nationwide') : c.distance_km == null ? null : c.distance_km < 1 ? s('pack.sos.plan.kmUnder1') : s('pack.sos.plan.km', { km: Math.round(c.distance_km) })].filter(Boolean).join(' · ')}</span>
       {c.verified_at
         ? <span className="sosp-tag sosp-tag--ok">{s('pack.sos.plan.verified', { date: mmYYYY(c.verified_at) })}</span>
-        : <span className="sosp-tag sosp-tag--no">{s('pack.sos.plan.unverified')}{c.source && <>{' · '}{c.source_url ? <a href={c.source_url} target="_blank" rel="noopener noreferrer">{c.source}</a> : c.source}</>}</span>}
+        : <span className="sosp-tag sosp-tag--no">{s('pack.sos.plan.unverified')}{c.source_url && <>{'\u00A0·\u00A0'}<a href={c.source_url} target="_blank" rel="noopener noreferrer">{s('pack.sos.plan.source')}</a></>}</span>}
       {c.phone ? (
         <div className="sosp-acts">
           <a className="sos-cta" href={`tel:${digits(c.phone)}`} onClick={onAct}>{s('pack.sos.det.call')}</a>
@@ -184,7 +184,13 @@ export default function PackSosPlan() {
     const cfg = CONTACT[st];
     if (!cfg) return null;
     const all = (rows ?? []).filter((r) => r.typ === cfg.typ);
-    const shown = all.slice(0, cfg.base + (extra[st] ?? 0));
+    // Celoštátne tímy s číslom vždy prvé, potom najbližšie, skupiny bez čísla nakoniec.
+    const near = all.filter((r) => !r.nationwide);
+    const shown = [
+      ...all.filter((r) => r.nationwide && r.phone),
+      ...near.slice(0, cfg.base + (extra[st] ?? 0)),
+      ...all.filter((r) => r.nationwide && !r.phone),
+    ];
     const act = () => setAway(st);
     return (
       <>
@@ -257,6 +263,7 @@ export default function PackSosPlan() {
                   {open && (
                     <div className="sosp-body">
                       <p className="sos-p">{s(key(st, 'why'))}</p>
+                      {renderContacts(st)}
                       {WITH_SAY.includes(st) && (
                         <>
                           <p className="sosp-lbl">{s('pack.sos.plan.say')}</p>
@@ -264,7 +271,6 @@ export default function PackSosPlan() {
                           <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={() => void copy(st === 'share' ? `${s('pack.sos.det.shareText', { name: pub.dog_name })} ${url}` : say)}>{s('pack.sos.plan.copy')}</button>
                         </>
                       )}
-                      {renderContacts(st)}
                       {st === 'flyer' && <button type="button" className="sos-cta" onClick={() => navigate(sosPath.flyer(pub.slug))}>{s(key(st, 'cta'))}</button>}
                       {st === 'share' && <button type="button" className="sos-cta sos-cta--gold" onClick={() => void doShare()}>{s(key(st, 'cta'))}</button>}
                       {WITH_ASK.includes(st) && (
