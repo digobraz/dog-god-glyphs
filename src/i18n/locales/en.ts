@@ -8354,7 +8354,7 @@ export const en = {
   "pack.sos.plan.all.again": "GO THROUGH THE LIST AGAIN",
   "pack.sos.plan.all.page": "BACK TO THE PAGE",
   "pack.sos.plan.verified": "verified {date}",
-  "pack.sos.plan.unverified": "unverified",
+  "pack.sos.plan.public": "From public data",
   "pack.sos.plan.source": "source",
   "pack.sos.plan.nationwide": "nationwide",
   "pack.sos.plan.kmUnder1": "within 1 km",

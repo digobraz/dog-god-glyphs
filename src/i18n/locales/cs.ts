@@ -8024,7 +8024,7 @@ export const cs: Partial<Dict> = {
   "pack.sos.plan.all.again": "PROJÍT SEZNAM ZNOVU",
   "pack.sos.plan.all.page": "ZPĚT NA STRÁNKU",
   "pack.sos.plan.verified": "ověřeno {date}",
-  "pack.sos.plan.unverified": "neověřeno",
+  "pack.sos.plan.public": "Převzato z veřejných dat",
   "pack.sos.plan.source": "zdroj",
   "pack.sos.plan.nationwide": "celá země",
   "pack.sos.plan.kmUnder1": "do 1 km",

@@ -8043,7 +8043,7 @@ export const sk: Partial<Dict> = {
   "pack.sos.plan.all.again": "PREJSŤ ZOZNAM ZNOVU",
   "pack.sos.plan.all.page": "SPÄŤ NA STRÁNKU",
   "pack.sos.plan.verified": "overené {date}",
-  "pack.sos.plan.unverified": "neoverené",
+  "pack.sos.plan.public": "Prevzaté z verejných dát",
   "pack.sos.plan.source": "zdroj",
   "pack.sos.plan.nationwide": "celá krajina",
   "pack.sos.plan.kmUnder1": "do 1 km",

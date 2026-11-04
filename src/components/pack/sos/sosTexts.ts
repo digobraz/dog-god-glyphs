@@ -191,7 +191,7 @@ export const SOS_TEXTS = {
   'pack.sos.plan.all.again': T('GO THROUGH THE LIST AGAIN', 'PREJSŤ ZOZNAM ZNOVU', 'PROJÍT SEZNAM ZNOVU'),
   'pack.sos.plan.all.page': T('BACK TO THE PAGE', 'SPÄŤ NA STRÁNKU', 'ZPĚT NA STRÁNKU'),
   'pack.sos.plan.verified': T('verified {date}', 'overené {date}', 'ověřeno {date}'),
-  'pack.sos.plan.unverified': T('unverified', 'neoverené', 'neověřeno'),
+  'pack.sos.plan.public': T('From public data', 'Prevzaté z verejných dát', 'Převzato z veřejných dat'),
   'pack.sos.plan.source': T('source', 'zdroj', 'zdroj'),
   'pack.sos.plan.nationwide': T('nationwide', 'celá krajina', 'celá země'),
   'pack.sos.plan.kmUnder1': T('within 1 km', 'do 1 km', 'do 1 km'),

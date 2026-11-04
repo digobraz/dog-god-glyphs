@@ -41,8 +41,7 @@ const CSS = `
 .sosp-item b{font-size:${PACK_TEXT.lead}px;font-weight:600;}
 .sosp-tag{display:inline-flex;align-self:flex-start;min-height:24px;align-items:center;padding:0 ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;font-size:${PACK_TEXT.label}px;font-weight:600;}
 .sosp-tag--ok{color:#2F6A42;background:${T.growGreenSoft};}
-.sosp-tag--no{color:#8A5A10;background:rgba(201,154,63,.2);}
-.sosp-tag a{color:inherit;}
+.sosp-public a{color:inherit;}
 .sosp-report{align-self:center;min-height:44px;display:inline-flex;align-items:center;text-align:center;font-size:${PACK_TEXT.label}px;color:${T.inkWarm};text-decoration:underline;}
 .sosp-acts{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
 .sosp-acts--one{grid-template-columns:1fr;}
@@ -88,7 +87,7 @@ function Contact({ c, smsBody, s, onAct }: { c: SosContact; smsBody: string; s: 
       <span className="sos-small">{[c.city, c.nationwide ? s('pack.sos.plan.nationwide') : c.distance_km == null ? null : c.distance_km < 1 ? s('pack.sos.plan.kmUnder1') : s('pack.sos.plan.km', { km: Math.round(c.distance_km) })].filter(Boolean).join(' · ')}</span>
       {c.verified_at
         ? <span className="sosp-tag sosp-tag--ok">{s('pack.sos.plan.verified', { date: mmYYYY(c.verified_at) })}</span>
-        : <span className="sosp-tag sosp-tag--no">{s('pack.sos.plan.unverified')}{c.source_url && <>{'\u00A0·\u00A0'}<a href={c.source_url} target="_blank" rel="noopener noreferrer">{s('pack.sos.plan.source')}</a></>}</span>}
+        : <span className="sos-small sosp-public">{s('pack.sos.plan.public')}{c.source_url && <>{'\u00A0·\u00A0'}<a href={c.source_url} target="_blank" rel="noopener noreferrer">{s('pack.sos.plan.source')}</a></>}</span>}
       {c.phone ? (
         <div className={`sosp-acts${isMobile(c.phone) ? '' : ' sosp-acts--one'}`}>
           <a className="sos-cta" href={`tel:${digits(c.phone)}`} onClick={onAct}>{s('pack.sos.det.call')}</a>
