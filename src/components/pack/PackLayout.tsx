@@ -677,11 +677,10 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
   );
 }
 
-// Avatar entry — last item in the bottom pill (rightmost). ŤUK = profil, DVOJŤUK = prepne
-// PROFIL ⇄ MOJA SVORKA (Matej 23. 10. 2026: „aby sa ikonka profilu v nave prepínala dvojklikom,
-// nie výberom z dropdownu — zdržuje to"). Nahradilo menu s dvoma položkami z 24. 7. 2026
-// („NO double-tap"), novší pokyn prebíja. Prvý ťuk naviguje hneď (žiadne čakanie na druhý),
-// druhý do 350 ms ho len presmeruje — jednoduchý ťuk sa tak nezdrží ani o milisekundu.
+// Avatar entry — last item in the bottom pill (rightmost). ŤUK = menu PROFIL / MOJA SVORKA,
+// DVOJŤUK = rovno prepne medzi nimi. Matej 4. 11. 2026: „vráťme dropdown… bude fungovať aj dvojitý
+// klik… nech to majú ľudia zo začiatku jednoduchšie" (menu z 24. 7. nahradil dvojťuk 23. 10., novší
+// pokyn prebíja). Menu sa otvorí hneď, druhý ťuk do 350 ms ho zavrie a prepne.
 function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarUrl?: string | null; avatarInitial?: string; dogs?: PackDog[] }) {
   const t = useT();
   const navigate = useNavigate();
@@ -697,26 +696,44 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
       ?? dogs?.find((d) => d.cloudinary_main_url)?.cloudinary_main_url)
     : null;
   const avatarUrl = dogUrl || ownerUrl;
+  const [menu, setMenu] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  // pointerdown, nie mousedown: iPhone mousedown na neklikateľnej ploche nepošle a menu by ostalo otvorené.
+  useEffect(() => {
+    if (!menu) return;
+    const onDown = (e: PointerEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setMenu(false);
+    };
+    document.addEventListener('pointerdown', onDown);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, [menu]);
   const lastTap = useRef<{ at: number; from: string } | null>(null);
   const onTap = () => {
     const now = Date.now();
     const prev = lastTap.current;
     if (prev && now - prev.at < 350) {
       lastTap.current = null;
+      setMenu(false);
       navigate(prev.from.startsWith('/pack/dogs') ? '/pack/profile' : '/pack/dogs');
       return;
     }
     lastTap.current = { at: now, from: pathname };
-    if (!pathname.startsWith('/pack/profile') && !pathname.startsWith('/pack/dogs')) navigate('/pack/profile');
-    else if (pathname === '/pack/profile' || pathname === '/pack/dogs') retapTop();
+    setMenu((p) => !p);
+  };
+  // Položka miesta, kde už som, vráti obraz hore (ťuk na aktívnu ikonku, Matej 1. 11.).
+  const go = (to: string) => {
+    setMenu(false);
+    if (pathname === to) retapTop();
+    else navigate(to);
   };
 
   return (
-    <div className="relative" style={{ marginLeft: 4 }}>
+    <div ref={wrapRef} className="relative" style={{ marginLeft: 4 }}>
       <button
         type="button"
         onClick={onTap}
         aria-label={t('pack.layout.profileAriaLabel')}
+        aria-expanded={menu}
         className="flex items-center justify-center"
         style={NAV_SKIN === 'gold' ? {
           // Šírka zlatého rámu aj priemer fotky sú Matejov výber z nákresu — `DOCK`,
@@ -756,7 +773,108 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
         )}
       </button>
 
+      {menu && (
+        <div
+          className="pack-avatar-menu"
+          style={{
+            position: 'absolute', right: 0, minWidth: 190,
+            background: T.panelGrad, border: `1px solid ${T.cardEdge}`, borderRadius: 14, boxShadow: T.panelShadow,
+            padding: 4, zIndex: 50,
+          }}
+        >
+          {/* .pack-avatar-menu bottom offset žije v CSS (nie inline) — na mape musí preskočiť
+              dvojicu ZOZNAM/PRIDAŤ, inak jej prekryje spodnú položku (z-index 900 proti navu na 40).
+              Obe strany berú kotúč z jedného zdroja (--pack-medal-rise). Rezerva platí LEN na mape:
+              inde malo menu viseť priamo z navu (Matej 21. 10.: „má sa vysunúť spod navu"). */}
+          <style>{`
+            .pack-avatar-menu{bottom:calc(100% + 24px);}
+            @media (max-width:1023px){.trp-root .pack-avatar-menu{bottom:calc(100% + 76px + var(--pack-medal-rise, 0px) + 4px);}}
+          `}</style>
+          <AvatarMenuItem
+            label={t('pack.layout.navProfile')}
+            onClick={() => go('/pack/profile')}
+            thumb={<MiniAvatar avatarUrl={ownerUrl} avatarInitial={avatarInitial} />}
+          />
+          <AvatarMenuItem
+            label={t('pack.tree.title')}
+            onClick={() => go('/pack/dogs')}
+            thumb={<MiniDogStack dogs={dogs ?? []} />}
+          />
+        </div>
+      )}
     </div>
+  );
+}
+
+// Small circular owner-avatar thumbnail — Profile row.
+function MiniAvatar({ avatarUrl, avatarInitial }: { avatarUrl?: string | null; avatarInitial?: string }) {
+  return avatarUrl ? (
+    <img
+      src={sizedUrl(avatarUrl, 160)}
+      alt=""
+      style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover', display: 'block', border: `1px solid ${T.border}`, flexShrink: 0 }}
+    />
+  ) : (
+    <div style={{
+      width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+      background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: FONT_UI, fontWeight: 600, fontSize: 10, color: '#1c160c',
+    }}>
+      {avatarInitial || 'D'}
+    </div>
+  );
+}
+
+// Stacked dog-photo thumbnails — My Pack row. 1 dog = single circle; 2+ dogs = overlapping
+// stack, max 3 shown.
+function MiniDogStack({ dogs }: { dogs: PackDog[] }) {
+  const shown = dogs.slice(0, 3);
+  if (shown.length === 0) {
+    return <div style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, background: T.cardEdge, border: `1px solid ${T.border}` }} />;
+  }
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+      {shown.map((dog, i) => (
+        <div
+          key={dog.id}
+          style={{
+            width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+            marginLeft: i === 0 ? 0 : -8,
+            border: `1px solid ${T.border}`,
+            overflow: 'hidden',
+            background: T.cardEdge,
+            zIndex: shown.length - i,
+          }}
+        >
+          {dog.cloudinary_main_url && (
+            <img src={sizedUrl(dog.cloudinary_main_url, 160)} alt={dog.dog_name || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AvatarMenuItem({ label, onClick, thumb }: { label: string; onClick: () => void; thumb: ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center"
+      style={{
+        width: '100%', textAlign: 'left', padding: '8px 12px', gap: 8, minHeight: 44,
+        borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer',
+      }}
+    >
+      {thumb}
+      <span style={{
+        fontFamily: FONT_UI, fontSize: 12, letterSpacing: '.14em',
+        textTransform: 'uppercase', fontWeight: 600, color: T.inkStrong,
+      }}>
+        {label}
+      </span>
+    </button>
   );
 }
 
