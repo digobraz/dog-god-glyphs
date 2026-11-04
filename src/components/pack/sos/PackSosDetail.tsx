@@ -122,7 +122,7 @@ export default function PackSosDetail() {
           </button>
         )}
         {status === 'active' && own && mine && (
-          <button type="button" className="sos-cta" onClick={() => navigate(sosPath.plan(mine.slug))}>{s('pack.sos.det.plan')}</button>
+          <button type="button" className="sos-cta sos-cta--tint" onClick={() => navigate(sosPath.plan(mine.slug))}>{s('pack.sos.det.plan')}</button>
         )}
         {status === 'active' && (
           <div className="sos-two">

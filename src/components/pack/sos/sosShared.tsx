@@ -15,7 +15,7 @@ import {
   PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PAPER_ROUTES_EXTRA, BRAND_GOLD_BTN,
 } from '@/components/pack/packTheme';
 import { FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { SOS_TEXTS, type SosKey } from './sosTexts';
 
 // ── ŠAT: celý strom `/pack/sos` stojí na hladkom papyruse (kôš 2 aj 3) ────────────────────
@@ -154,6 +154,8 @@ export const SOS_CSS = `
 .sos-cta--green{background:${GREEN_GRAD};border-color:#265636;color:#fff;box-shadow:${LAPIS_BTN_SHADOW};}
 .sos-cta--green:hover{background:linear-gradient(180deg, ${T.growGreen}, ${T.growGreen});}
 .sos-cta--gold{background:${BRAND_GOLD_BTN.grad};border-color:${BRAND_GOLD_BTN.edge};color:${BRAND_GOLD_BTN.ink};box-shadow:none;}
+.sos-cta--tint{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
+.sos-cta--tint:hover{background:rgba(22,48,122,.24);}
 .sos-cta--ghost{background:transparent;color:${T.inkStrong};border:1.5px solid ${T.cardEdge};box-shadow:none;}
 .sos-cta--ghost:hover{background:${T.tileBg};}
 .sos-cta--sm{min-height:44px;font-size:${PACK_TEXT.label}px;}

@@ -30,6 +30,7 @@ export const FEED_SOS_CSS = `
 .fsos-tx span{font:500 ${PACK_TEXT.label}px/1.35 ${FONT_UI};color:${T.inkDim};}
 .fsos-act{display:flex;gap:${S.sm}px;padding:0 ${S.lg}px ${S.md}px;}
 .fsos-act button{flex:1;min-height:44px;border-radius:${PACK_R.field}px;cursor:pointer;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;} /* písmo: cta */
+.fsos-flyer + .fsos-act{padding-top:${S.md}px;}
 .fsos-share{border:1px solid ${T.sosRedDark};background:${T.sosRed};color:#FFFFFF;}
 .fsos-open{border:1px solid ${T.sosRed};background:transparent;color:${T.sosRed};}
 .fsos-row{all:unset;cursor:pointer;display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.md}px;border:1px solid ${T.sosRed};border-radius:${PACK_R.tile}px;background:${T.cardGrad};}
