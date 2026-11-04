@@ -470,9 +470,10 @@ export function DogPassport({
 // Deväť rovnakých kariet (4 091 px) sa zmenilo na kapitoly na rozkliknutie. Údaje, práva aj odkazy
 // do kvízu sú tie isté ako v doklade vyššie; mení sa len kresba. Dátum z každého riadku odišiel
 // do jedného „Upravené" na konci kapitoly, veterinár ho teda stále vidí.
+// Ikonky vybral Matej v hárku plany/nakresy/dogid-2026-11-04/ikonky (4. 11. 2026).
 const CH_ICON: Record<string, string> = {
-  identity: 'document', health: 'heart', vax: 'chemical', food: 'bone', howWorks: 'mountain',
-  social: 'people', temperament: 'star-badge', contacts: 'paper-plane', will: 'feather',
+  identity: 'dogid-identity', health: 'dogid-health', vax: 'dogid-vax', food: 'dogid-food', howWorks: 'dogid-works',
+  social: 'dogid-social', temperament: 'dogid-temperament', contacts: 'dogid-contacts', will: 'dogid-will',
 };
 /** Polia, ktoré hore nesú veľké emblémy, a preto ich kapitola Identita neopakuje. */
 const TRIO_FIELDS = ['nature.element', 'nature.role', 'nature.specials'];
@@ -681,7 +682,7 @@ function DogIdChapters({
         });
 
         return row(
-          group.key, tx(group.i18n, group.labelEN), CH_ICON[group.key] ?? 'document', sub, missing.length > 0, missing.length === 0, dark,
+          group.key, tx(group.i18n, group.labelEN), CH_ICON[group.key] ?? 'dogid-identity', sub, missing.length > 0, missing.length === 0, dark,
           <>
             <div className="dic-tiles">{tiles}</div>
             <GroupNote dogId={dogId} groupKey={group.key} value={typeof latest[`${group.key}.note`]?.value === 'string' ? String(latest[`${group.key}.note`]!.value) : ''} tx={tx} />

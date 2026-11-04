@@ -1213,7 +1213,7 @@ export default function PackDogDetail() {
                     head: <DogLifeStrip dogId={dog.id} tx={tx} />,
                     extra: [
                       {
-                        key: 'docs', title: t('pack.dog.docsTitle'), icon: 'certificate', sub: t('pack.dog.docsSub'),
+                        key: 'docs', title: t('pack.dog.docsTitle'), icon: 'dogid-docs', sub: t('pack.dog.docsSub'),
                         body: (
                           <>
                             <div className="did-docs">
@@ -1249,7 +1249,7 @@ export default function PackDogDetail() {
                         ),
                       },
                       {
-                        key: 'wall', title: t('pack.dog.wallTitle'), icon: 'heartpaw',
+                        key: 'wall', title: t('pack.dog.wallTitle'), icon: 'dogid-wall',
                         sub: dog.grid_message || dog.selections?.dogMessage || t('pack.dog.wallEmpty'),
                         body: (
                           <>
