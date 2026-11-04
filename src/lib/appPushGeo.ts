@@ -1,13 +1,13 @@
 // ── POLOHA PRE PUSH „STRATENÝ PES V OKOLÍ" (SOS, 4. 11. 2026) ───────────────────────────────
 // Server (`notify-sos` → `sos_push_targets`) posiela push len zariadeniam s hrubou polohou do 30 km od straty.
 // Appka ju hlási TAKTO a nijako inak:
-//   · len IS_APP + TEST_BUILD, len keď už existuje push token (uložil ho `appPush.ts`),
+//   · len IS_APP + SOS_ON, len keď už existuje push token (uložil ho `appPush.ts`),
 //   · len keď je povolenie polohy UŽ UDELENÉ (Permissions API === 'granted'). Nikdy sa ho tu nepýtame — pýta sa
 //     JEDINÝ mechanizmus `app_perm` v `AppEntry.tsx`. Odmietnuté / nevyriešené / API chýba ⇒ ticho nič.
 //   · najviac raz za 24 h, len pri otvorení appky v popredí (nie na pozadí), `maximumAge` 1 h (žiadne nové zisťovanie),
 //   · server zaokrúhľuje (RPC `push_token_geo`), my nič neukladáme okrem času posledného odoslania.
 import { IS_APP } from '@/lib/isApp';
-import { TEST_BUILD } from '@/lib/env';
+import { SOS_ON } from '@/lib/env';
 import { sosPushGeo } from '@/lib/sos';
 
 const AT_KEY = 'dogypt_push_geo_at';
@@ -15,7 +15,7 @@ const TOKEN_KEY = 'dogypt_push_token';
 const EVERY_MS = 24 * 3_600_000;
 
 export async function sendPushGeoOnce(): Promise<void> {
-  if (!IS_APP || !TEST_BUILD) return;
+  if (!IS_APP || !SOS_ON) return;
   if (document.visibilityState !== 'visible') return;
   try {
     const token = localStorage.getItem(TOKEN_KEY);

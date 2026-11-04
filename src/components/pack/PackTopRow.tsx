@@ -28,7 +28,7 @@ import { BackButton } from './BackButton';
 import { PACK_TOPROW, PACK_COL_INNER, PACK_COL_PAD, PAPER_BG, PACK_SPACE, usePaperRoute } from './packTheme';
 import { DEV_FULL } from '@/lib/packFlags';
 import { getPackStats } from '@/lib/sharedFetch';
-import { TEST_BUILD } from '@/lib/env';
+import { SOS_ON } from '@/lib/env';
 import { SosButton } from './SosButton';
 
 // ── JEDNA HLAVIČKA (Matej 28. 10. 2026) ──────────────────────────────────────────────────
@@ -53,8 +53,8 @@ function TopRowRight({ extra }: { extra?: ReactNode }) {
   return (
     <>
       {extra}
-      {/* SOS (4. 11. 2026): trojuholník vedľa správ, 1 ťuk odkiaľkoľvek (lock §1.2). Len TEST_BUILD; `task` ho nekreslí (kôš 3). */}
-      {TEST_BUILD && <SosButton />}
+      {/* SOS (4. 11. 2026): trojuholník vedľa správ, 1 ťuk odkiaľkoľvek (lock §1.2). Len SOS_ON; `task` ho nekreslí (kôš 3). */}
+      {SOS_ON && <SosButton />}
       {DEV_FULL && <PackNotifications dark={!paper} last24h={stats.last24h} total={stats.total} layout="inline" capsule />}
     </>
   );

@@ -12,7 +12,7 @@ import { BrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS, PF_FIELD_CSS } from './packTheme';
 import { useToast } from '@/hooks/use-toast';
-import { TEST_BUILD } from '@/lib/env';
+import { SOS_ON } from '@/lib/env';
 import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '@/components/LanguagePicker';
 import { HandCheck } from '@/components/pack/HandIcons';
@@ -154,7 +154,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
   // z `notify-sos`). Platí LEN pre push „stratený pes v okolí"; upozornenia majiteľovi na vlastného psa sa nevypínajú.
   const [sosOn, setSosOn] = useState(true);
   useEffect(() => {
-    if (!TEST_BUILD) return;
+    if (!SOS_ON) return;
     void readHuman().then(({ human }) => setSosOn(!notifOff(human).includes('notif_sos')));
   }, []);
   const ulozSos = async (on: boolean) => {
@@ -343,7 +343,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
           </div>
         </Field>
       )}
-      {notifOn && TEST_BUILD && (
+      {notifOn && SOS_ON && (
         <Field icon={<BrandIcon name="alert" size={16} tint="danger" />} label={tx('pack.settings.notifSos', 'Lost dogs nearby')}>
           <div className="pf-toggle">
             {([

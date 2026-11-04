@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { PageTopBar } from '@/components/PageTopBar';
 import { Seo } from '@/components/Seo';
 import NotFound from '@/pages/NotFound';
-import { TEST_BUILD } from '@/lib/env';
+import { SOS_ON } from '@/lib/env';
 import { ensurePackDict } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { lostPublic, type LostPublic as LostRow } from '@/lib/sos';
@@ -16,12 +16,12 @@ import { SOS_CSS, colorWord, useBreedLabel, useSosT, useWhen } from '@/component
  * VEREJNÁ STRÁNKA STRATENÉHO PSA — `/lost/:slug` (SOS, 4. 11. 2026). BEZ PRIHLÁSENIA, noindex.
  * Čo vidí nálezca: červený blok STRATIL SA (alebo zelený NAŠIEL SA), fotka, meno, ZAVOLAŤ MAJITEĽOVI (číslo až po ťuku,
  * `lostPhone`), VIDEL SOM HO (`lost-sighting`), leták ako obrázok + ZDIEĽAŤ + STIAHNUŤ. Stav `ended` = bez telefónu.
- * Za `TEST_BUILD`: na LIVE routa vracia 404, kým Matej nepovie „ostro“.
+ * Za `SOS_ON`: na LIVE routa vracia 404, kým Matej nepovie „ostro“.
  * 🔴 Nesmie čítať nič, čo vyžaduje session: len `lostPublic` (anon RPC) a edge `lost-sighting`.
  */
 export default function LostPublic() {
   const { slug } = useParams<{ slug: string }>();
-  if (!TEST_BUILD) return <NotFound />;
+  if (!SOS_ON) return <NotFound />;
   return <LostPublicInner slug={slug ?? ''} />;
 }
 

@@ -40,6 +40,10 @@ export const APP_DEV = import.meta.env.MODE === 'appdev';
 // TestFlight appka aktualizuje. Ostré dáta, ale dogypt.com tento build nikdy nevidí.
 // Rozostavaná vec v /pack sa zapína `|| TEST_BUILD` (nie `|| IS_APP` — to by ju po vydaní do obchodu videli členovia).
 export const TEST_BUILD = import.meta.env.DEV || import.meta.env.VITE_TEST_BUILD === '1';
+
+// SOS stratený pes (4. 11. 2026): vlastný vypínač, lebo testovacia appka ide na ostré dáta a LIVE tabuľky SOS ešte nemá.
+// Zapnuté len v deve a v appke DOGYPT DEV (`.env.appdev`). Pri zapnutí na LIVE → plany/sos-pred-live.md.
+export const SOS_ON = import.meta.env.DEV || import.meta.env.VITE_SOS === '1';
 const PINNED = import.meta.env.PROD && !APP_DEV;
 
 export const SUPABASE_URL = PINNED

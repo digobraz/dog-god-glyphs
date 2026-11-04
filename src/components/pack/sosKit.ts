@@ -2,10 +2,10 @@
 // Popup trojuholníka, červený blok vo FEEDe, značky na /map a riadok v chvoste čítajú TIE ISTÉ aktívne
 // straty. Jedno volanie `sosActive()` (krajina člena, bez telefónu) zdieľa `shared()`; po zmene
 // (NAŠIEL SA, nové vyhlásenie) volaj `sosInvalidate()`.
-// 🔴 Všetko je za `TEST_BUILD` — v ostrom builde `useSosActive` nevolá NIČ (žiadne `sos_*` v sieti).
+// 🔴 Všetko je za `SOS_ON` — v ostrom builde `useSosActive` nevolá NIČ (žiadne `sos_*` v sieti).
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { TEST_BUILD } from '@/lib/env';
+import { SOS_ON } from '@/lib/env';
 import { sosActive, lostShare, lostUrl, type SosActiveRow } from '@/lib/sos';
 import { intlLocale } from '@/i18n/bcp47';
 import { toast } from '@/hooks/use-toast';
@@ -18,7 +18,7 @@ let cache: { at: number; p: Promise<SosActiveRow[]> } | null = null;
 
 /** Aktívne straty v krajine člena. Odhlásený / ostrý build ⇒ prázdno bez volania. */
 export function loadSosActive(): Promise<SosActiveRow[]> {
-  if (!TEST_BUILD) return Promise.resolve([]);
+  if (!SOS_ON) return Promise.resolve([]);
   if (cache && Date.now() - cache.at < TTL) return cache.p;
   const p = (async () => {
     const { data } = await supabase.auth.getSession();
@@ -40,7 +40,7 @@ export function sosInvalidate(): void {
 export function useSosActive(): SosActiveRow[] {
   const [rows, setRows] = useState<SosActiveRow[]>([]);
   useEffect(() => {
-    if (!TEST_BUILD) return;
+    if (!SOS_ON) return;
     let alive = true;
     const load = () => { void loadSosActive().then((r) => { if (alive) setRows(r); }); };
     load();

@@ -35,7 +35,7 @@ import { EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
 import { iso2ToISO3 } from '@/lib/countryGeo';
 import { loadSosActive } from '@/components/pack/sosKit';
 import { sosMine } from '@/lib/sos';
-import { TEST_BUILD } from '@/lib/env';
+import { SOS_ON } from '@/lib/env';
 import { fetchMemberProfiles, memberDisplayName } from '@/components/pack/profile/memberProfile';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rovnaký dôvod ako v packStore.ts:
@@ -75,7 +75,7 @@ export type SocialAlertKind = 'post_like' | 'post_comment' | 'trip_like' | 'trip
 // Zdroj = vlastné `pack_trips` (RLS `pack_trips_read` pustí autora), žiadna RPC ani migrácia.
 export type ReviewAlertKind = 'trip_published' | 'trip_returned';
 // `sos_lost` · `sos_still` (4. 11. 2026): stratený pes v mojej krajine / „Stále hľadáš MENO?" (majiteľ, keď 14-dňová otázka
-// `asked_at` visí). Zdroj = `sosActive()` + `sosMine()` (len TEST_BUILD). Keď pátranie skončí (NAŠIEL SA), zo zdroja zmizne
+// `asked_at` visí). Zdroj = `sosActive()` + `sosMine()` (len SOS_ON). Keď pátranie skončí (NAŠIEL SA), zo zdroja zmizne
 // ⇒ riadok zanikne sám. Prečítanie = id v `seen` ⇒ zmizne z počtu, riadok v zozname ostáva (nič trvalé).
 export type SosAlertKind = 'sos_lost' | 'sos_still';
 export type AlertKind = SosAlertKind | 'trip_request' | 'trip_accepted' | 'trip_walked' | 'walk_invite' | 'pawmate_joined' | 'follow_new' | 'ainubis_reply' | ReviewAlertKind | SocialAlertKind | EventAlertKind | WishAlertKind;
@@ -465,8 +465,8 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
     });
   }
 
-  // SOS — prioritné riadky (v paneli idú navrch). Len TEST_BUILD; chyba = žiadne riadky.
-  if (TEST_BUILD) {
+  // SOS — prioritné riadky (v paneli idú navrch). Len SOS_ON; chyba = žiadne riadky.
+  if (SOS_ON) {
     try {
       const lost = await loadSosActive();
       for (const r of lost) {
