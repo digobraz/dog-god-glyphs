@@ -198,7 +198,7 @@ export const SOS_TEXTS = {
   'pack.sos.plan.km': T('approx. {km} km', 'cca {km} km', 'cca {km} km'),
   'pack.sos.btn.abuse': T('Report abuse', 'Nahlásiť týranie', 'Nahlásit týrání'),
   'pack.sos.plan.web': T('WEBSITE', 'WEB', 'WEB'),
-  'pack.sos.plan.smsText': T('Hello, I am looking for my lost dog {name}. Last seen: {place}. {url}', 'Dobrý deň, hľadám stratené zviera {name}. Naposledy videný: {place}. {url}', 'Dobrý den, hledám ztraceného psa {name}. Naposledy viděn: {place}. {url}'),
+  'pack.sos.plan.smsText': T('Hello, I am looking for my lost dog {name}. Last seen: {place}. {url}', 'Dobrý deň, stratil sa mi pes {name}. Naposledy videný: {place}. {url}', 'Dobrý den, hledám ztraceného psa {name}. Naposledy viděn: {place}. {url}'),
 
   // ── 5 · verejná stránka ──────────────────────────────────────────────────
   'pack.sos.pub.dontChase': T('Do not chase him. Sit down, speak quietly and call.', 'Neháňaj ho. Sadni si, hovor potichu a zavolaj.', 'Neháněj ho. Sedni si, mluv potichu a zavolej.'),

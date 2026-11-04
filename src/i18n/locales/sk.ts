@@ -8032,7 +8032,7 @@ export const sk: Partial<Dict> = {
   "pack.sos.plan.km": "cca {km} km",
   "pack.sos.btn.abuse": "Nahlásiť týranie",
   "pack.sos.plan.web": "WEB",
-  "pack.sos.plan.smsText": "Dobrý deň, hľadám stratené zviera {name}. Naposledy videný: {place}. {url}",
+  "pack.sos.plan.smsText": "Dobrý deň, stratil sa mi pes {name}. Naposledy videný: {place}. {url}",
   "pack.sos.pub.dontChase": "Neháňaj ho. Sadni si, hovor potichu a zavolaj.",
   "pack.sos.pub.flyer": "Leták",
   "pack.sos.pub.download": "STIAHNUŤ",
