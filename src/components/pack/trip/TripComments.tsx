@@ -147,8 +147,10 @@ export const TRIP_COMMENTS_CSS = `${VEIL_CSS}
 
 /* popup (self-contained, same look as WalkedPopup in packCommunityUI.tsx) */
 /* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha a odsadenie. */
-.tcm-overlay{z-index:1200;padding:${VEIL_PAD};}
-.tcm-modal{width:100%;max-width:400px;max-height:${MODAL_MAX_H};overflow-y:auto;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
+/* UKOTVENÉ ako .comm-modal (Matej 4. 11. 2026): blok sa hýbe len zvisle, závoj gesto nepustí ďalej a stránka pod ním stojí. */
+.tcm-overlay{z-index:1200;padding:${VEIL_PAD};touch-action:none;}
+@media (hover:none){body.tcm-modal-open [data-retap-top]{overflow:hidden;}}
+.tcm-modal{width:100%;max-width:400px;max-height:${MODAL_MAX_H};overflow-x:hidden;overflow-y:auto;overscroll-behavior:none;touch-action:pan-y;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
 .tcm-modal-head{display:flex;align-items:flex-start;justify-content:flex-start;gap:12px;margin-bottom:18px;}
 .tcm-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${T.inkStrong};line-height:1.25;}
 .tcm-modal-sub{font-size:12px;color:${T.inkWarm};margin-top:4px;}
@@ -236,6 +238,13 @@ function ReviewPopup({ slug, trailName, initial, canWrite, saving, error, onSubm
   const [text, setText] = useState(initial?.body ?? '');
   const [photos, setPhotos] = useState<string[]>(initial?.photos ?? []);
   const canSubmit = paws > 0 && canWrite && !saving;
+  // Stránka pod popupom sa nesmie rolovať, rovnako ako pri WalkedPopup.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('tcm-modal-open');
+    return () => { document.body.style.overflow = prev; document.body.classList.remove('tcm-modal-open'); };
+  }, []);
   return createPortal(
     <div className="pk-veil pk-veil--modal tcm-overlay" onClick={onClose}>
       <div className="tcm-modal" onClick={(e) => e.stopPropagation()}>
