@@ -63,8 +63,8 @@ const WITH_ASK: Step[] = ['police', 'shelter', 'hunting', 'oz'];
 const key = (step: Step, part: string) => `pack.sos.plan.s.${step}.${part}` as SosKey;
 
 const digits = (p: string) => p.replace(/[^\d+]/g, '');
-/** Na pevnú linku SMS nedôjde (180 z 459 čísel). SK mobil 09…, CZ mobil 6… a 7…; číslo bez predvoľby a nuly je české. */
-const isMobile = (p: string) => /^(?:(?:\+|00)421|0)9|^(?:(?:\+|00)420)?[67]/.test(digits(p));
+/** Na pevnú linku SMS nedôjde. SK mobil 09… okrem 096… (služobné linky polície), CZ mobil 6… a 7…; číslo bez predvoľby a nuly je české. */
+const isMobile = (p: string) => /^(?:(?:\+|00)421|0)9(?!6)|^(?:(?:\+|00)420)?[67]/.test(digits(p));
 const mmYYYY = (d: string) => { const m = /^(\d{4})-(\d{2})/.exec(d); return m ? `${m[2]}/${m[1]}` : d; };
 
 function Contact({ c, smsBody, s, onAct }: { c: SosContact; smsBody: string; s: SosT; onAct: () => void }) {
