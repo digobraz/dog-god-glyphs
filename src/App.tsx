@@ -189,6 +189,8 @@ const PackSosNew = lazyPack(() => import("@/components/pack/sos/PackSosNew")); /
 const PackSosDetail = lazyPack(() => import("@/components/pack/sos/PackSosDetail")); // kôš 2
 const PackSosFlyer = lazyPack(() => import("@/components/pack/sos/PackSosFlyer")); // kôš 3
 const PackSosPlan = lazyPack(() => import("@/components/pack/sos/PackSosPlan")); // kôš 2
+const PackSosVet = lazyPack(() => import("@/components/pack/sos/PackSosVet")); // kôš 3
+const PackDogCard = lazyPack(() => import("@/components/pack/dogCard/PackDogCard")); // kôš 3
 const LostPublic = lazy(() => import("./pages/LostPublic.tsx")); // verejná, bez prihlásenia, noindex
 const PackAinubis = lazyPack(() => import("./pages/PackAinubis.tsx")); // kostra AINUBISA — `/pack/ainubis` (rozhodnutia 4A+5A, 21. 9. 2026)
 const PackDogQuiz = lazyPack(() => import("./pages/PackDogQuiz.tsx")); // fullscreen kvíz (zadanie-mypack-petpas-2026-08-06 §6)
@@ -571,6 +573,7 @@ const App = () => (
               {/* /pack — buyer backoffice (auth-gated) */}
               <Route path="/pack" element={<PackGate />} />
               <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
+              <Route path="/pack/dogs/:id/karticka" element={APP_NEW ? <PackDogCard /> : <Navigate to="/pack" replace />} />
               {/* Profil je na LIVE od 2026-08-06 (Matej: „profil sa bude upravovať v /profile").
                   Podmienka pre ceruzku v HeroCard — homepage je odteraz read-only a JEDINÉ miesto,
                   kde sa mení fotka a meno, je tu. Gate sa vrátiť nesmie bez vrátenia editácie
@@ -639,6 +642,7 @@ const App = () => (
               {SOS_ON && (
                 <>
                   <Route path="/pack/sos/new" element={<PackSosNew />} />
+                  <Route path="/pack/sos/pohotovost" element={<PackSosVet />} />
                   <Route path="/pack/sos/:slug" element={<PackSosDetail />} />
                   <Route path="/pack/sos/:slug/letak" element={<PackSosFlyer />} />
                   <Route path="/pack/sos/:slug/plan" element={<PackSosPlan />} />

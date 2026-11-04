@@ -1241,6 +1241,7 @@ export default function PackDogDetail() {
                                 <button type="button" className="did-dl" disabled={idPdfBusy} onClick={handleIdPdf}>
                                   {idPdfBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : t('pack.dog.docIdPrint')}
                                 </button>
+                                <button type="button" className="did-dl" onClick={() => navigate(`/pack/dogs/${dog.id}/karticka`)}>{tx('pack.sos.card.docRow', 'Emergency card')}</button>
                               </div>
                             </div>
                             <button type="button" className="did-regen" onClick={handleRegenerate} disabled={regenerating}>

@@ -40,7 +40,6 @@ const CSS = `
 
 const ROWS = [
   { key: 'aid', icon: 'cross', k: 'pack.sos.firstAid', fb: 'First aid' },
-  { key: 'vet', icon: 'vet', k: 'pack.sos.vet', fb: 'Nearest vet' },
 ];
 
 export function SosButton() {
@@ -67,6 +66,10 @@ export function SosButton() {
             <button type="button" className="sos-row lost" style={{ ...PACK_BOX.row, background: T.sosRed, borderColor: T.sosRedDark }} onClick={() => go('/pack/sos/new')}>
               <BrandIcon name="dogposter" size={24} tint="white" />
               <b>{tx('pack.sos.btn.lost', 'My dog is lost')}</b>
+            </button>
+            <button type="button" className="sos-row vet" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/pohotovost')}>
+              <BrandIcon name="vet" size={24} tint="gold" />
+              <b>{tx('pack.sos.er.btn', 'Emergency vet')}</b>
             </button>
             {/* Nahlásiť týranie: zatiaľ bez akcie, vyzerá ako ostatné „čoskoro“ (nie červeno). */}
             <button type="button" className="sos-row abuse" style={{ ...PACK_BOX.row }}>
