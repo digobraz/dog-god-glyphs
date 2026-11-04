@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { IS_APP } from '@/lib/isApp';
 import { PageTopBar } from '@/components/PageTopBar';
 import { Seo } from '@/components/Seo';
 import NotFound from '@/pages/NotFound';
@@ -26,6 +27,7 @@ export default function LostPublic() {
 }
 
 const CSS = `
+.hf-pale.lp-flat::before,.hf-pale.lp-flat::after{display:none;}
 .lp-main{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;padding:8px 16px 48px;}
 .lp-col{width:100%;max-width:640px;margin:0 auto;}
 .lp-flyer{width:100%;display:block;border-radius:8px;box-shadow:0 8px 24px rgba(40,20,0,.3);background:#fff;}
@@ -39,6 +41,7 @@ function LostPublicInner({ slug }: { slug: string }) {
   const when = useWhen();
   const [row, setRow] = useState<LostRow | null | undefined>(undefined);
   const [pop, setPop] = useState<'call' | 'seen' | null>(null);
+  const nav = useNavigate();
 
   useEffect(() => { void ensurePackDict(); }, []);
   useEffect(() => {
@@ -63,12 +66,13 @@ function LostPublicInner({ slug }: { slug: string }) {
   const active = row?.status === 'active';
 
   return (
-    <div className="hf-pale min-h-screen flex flex-col">
+    <div className="hf-pale lp-flat min-h-screen flex flex-col">
       <Seo title={title} description={row?.place_label ?? ''} path={`/lost/${slug}`} noindex ogImage={(active ? row?.flyer_url : null) ?? (row?.photo ? sizedUrl(row.photo, 1200) : undefined)} />
       <style>{FLOW_PALE_CSS + SOS_CSS + CSS}</style>
       <div className="hf-topbar"><PageTopBar /></div>
       <main className="lp-main">
         <div className="lp-col sos-stack">
+          {IS_APP && <button type="button" className="sos-cta sos-cta--ghost" onClick={() => nav(-1)}>{s('pack.sos.back')}</button>}
           {row === undefined && <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.loading')}</p>}
           {row === null && <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.notFound')}</p>}
           {row && (

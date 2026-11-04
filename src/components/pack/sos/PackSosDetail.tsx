@@ -4,7 +4,7 @@
 //  · fotka, meno, plemeno a farba, červený riadok · majiteľ: leták, zdieľanie, plán, „takto to vidí nálezca“, videnia
 //  · `ended` = „Pátranie je vypnuté“ + HĽADÁM ĎALEJ · `found` = ďakovná časť bez telefónu · `asked_at` = „Stále hľadáš X?“
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { useT } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
@@ -153,9 +153,9 @@ function OwnerBlock({ mine, s, when, navigate }: { mine: SosMine; s: SosT; when:
     <>
       <p className="sos-eyebrow">{s('pack.sos.det.next')}</p>
       <div className="sos-stack" style={{ gap: 8 }}>
-        <a className="sos-row" style={{ ...PACK_BOX.row }} href={`/lost/${mine.slug}`} target="_blank" rel="noopener noreferrer">
+        <Link className="sos-row" style={{ ...PACK_BOX.row }} to={`/lost/${mine.slug}`}>
           <span className="grow"><b>{s('pack.sos.det.finderView')}</b><small>{lostUrl(mine.slug).replace(/^https?:\/\//, '')}</small></span>
-        </a>
+        </Link>
       </div>
       <p className="sos-small">{s('pack.sos.det.stats', { shares: mine.shares, calls: mine.phone_reveals })}</p>
       <p className="sos-eyebrow">{s('pack.sos.det.sightings')}</p>

@@ -10,7 +10,7 @@ import { IS_APP } from '@/lib/isApp';
 // táto stráž chytá zvyšok — programové `navigate()` a priame adresy.
 // Na webe sa komponent nevykreslí vôbec.
 
-const APP_PATHS = /^\/(pack|login|privacy|terms)(\/|$|\?)/;
+const APP_PATHS = /^\/(pack|login|privacy|terms|lost)(\/|$|\?)/;
 const PURCHASE = /^\/(heroglyph|checkout|payment|entry|welcome)(\/|$)/;
 
 function Guard() {

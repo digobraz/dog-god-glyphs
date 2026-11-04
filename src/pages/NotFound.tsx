@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { PageTopBar } from "@/components/PageTopBar";
+import { FLOW_PALE_CSS } from "@/components/screens/flowPaleSkin";
 import dogSilhouette from "@/assets/patroni/l11-hekthor.svg";
 
 // ── /404 — "Hekthor's Run" ──────────────────────────────────────────────
@@ -348,8 +349,9 @@ const NotFound = () => {
   const onPointer = () => { if (phase === "running") jump(); else start(); };
 
   return (
-    <div className="nf-page dark-bg">
-      <PageTopBar />
+    <div className="nf-page hf-pale">
+      <style>{FLOW_PALE_CSS}</style>
+      <div className="hf-topbar"><PageTopBar /></div>
 
       <main className="nf-main">
         <section className="nf-block">
@@ -386,8 +388,8 @@ const NotFound = () => {
       </main>
 
       <style>{`
-        .nf-page.dark-bg { min-height: 100dvh; display: flex; flex-direction: column; }
-        .nf-page.dark-bg::before { position: fixed; }
+        .nf-page.hf-pale { min-height: 100dvh; display: flex; flex-direction: column; }
+        .nf-page.hf-pale::before { position: fixed; }
         .nf-main {
           flex: 1; z-index: 1; display: flex; align-items: center; justify-content: center;
           padding: 24px 16px 40px;

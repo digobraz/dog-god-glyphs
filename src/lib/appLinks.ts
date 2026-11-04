@@ -8,7 +8,7 @@
 
 import { IS_APP } from '@/lib/isApp';
 
-const APP_PATHS = /^\/(pack|login|privacy|terms)(\/|$|\?)/;
+const APP_PATHS = /^\/(pack|login|privacy|terms|lost)(\/|$|\?)/; // lost: „Takto to vidí nálezca“ ostáva v appke
 const PURCHASE = /^\/(heroglyph|entry|welcome)(\/|$)/;
 const WEB_ORIGIN = 'https://dogypt.com';
 
