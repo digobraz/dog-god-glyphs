@@ -35,7 +35,6 @@ export function FeedSkeleton() {
   return (
     <div className="pks-page" aria-hidden>
       <style>{CSS}</style>
-      <section><div className="pk-skel pks-label" /><SkelDogs /></section>
       <SkelTrips />
       <div className="pks-row">{times(4).map((i) => <span key={i} className="pk-skel pks-topic" />)}</div>
       <SkelPost />

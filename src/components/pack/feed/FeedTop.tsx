@@ -4,7 +4,7 @@
 //
 // SNIFFER = VCHOD, nie druhý Sniffer (lock architektura-pack §8.1 DOPLNOK 26. 10.): `assnif_nearby` cez
 // `loadNearby(null)` — tí istí ľudia, ktorých vidí Sniffer, s tým istým zámkom vzájomnosti. Ťuk vedie do
-// Sniffera. Sekcia je na KONCI feedu (Matej 26. 10.). Chyba alebo nikto ⇒ oznam „vyplň si profil“ s CTA do Sniffera.
+// Sniffera. Od 5. 11. 2026 žije v Správach (`Inbox.tsx`), vo FEEDe už nie je. Chyba alebo nikto ⇒ pás sa nevykreslí.
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
@@ -21,8 +21,6 @@ import { SkelDogs } from './FeedSkeleton';
 const T = PACK_THEME;
 const S = PACK_SPACE;
 const TX = PACK_TEXT;
-/** Papyrus z loga SNIFFERu (`sniffer-napis-light.svg`) — nápis na červenej dlaždici. */
-const SNIFFER_PAPER = '#F6E9D0';
 /** Biela plocha Sniffera = papyrus karta, na ktorej logo sedí aj v zapnutí (`bd-onbox`); rám = jemná červená srdca. */
 const SNIFFER_TILE = '#FFFFFF'; // biele (Matej 26. 10.: „biele pozadie a jeho logo do poľa")
 const SNIFFER_RIM = 'rgba(232,73,63,.35)';
@@ -44,13 +42,6 @@ export const FEED_TOP_CSS = `
   display:flex;align-items:center;justify-content:center;padding:${S.sm}px;scroll-snap-align:start;}
 .pfs-go img{display:block;width:80px;height:auto;}
 .pfs-row.is-sniffer h2{color:${SNIFFER_HEART};}
-/* Prázdny stav: nikto v okolí ⇒ oznam cez celý stĺpec namiesto osamelej dlaždice. */
-.pfs-note{display:flex;flex-direction:column;align-items:center;gap:${S.md}px;padding:${S.lg}px;border-radius:${PACK_R.card}px;border:1px solid ${SNIFFER_RIM};
-  background:${SNIFFER_TILE};text-align:center;}
-.pfs-note img{display:block;width:140px;height:auto;}
-.pfs-note p{margin:0;font:500 ${TX.body}px/1.45 ${FONT_UI};color:${T.inkStrong};}
-.pfs-note button{cursor:pointer;border:1px solid ${SNIFFER_HEART};border-radius:${PACK_R.field}px;padding:${S.md}px ${S.xl}px;background:${SNIFFER_HEART};color:${SNIFFER_PAPER};
-  font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;letter-spacing:.14em;text-transform:uppercase;} /* písmo: cta */
 .pfs-trip{flex:none;width:168px;overflow:hidden;cursor:pointer;padding:0;text-align:left;scroll-snap-align:start;color:${T.inkStrong};font-family:${FONT_UI};}
 .pfs-trip .ph{position:relative;display:block;width:100%;aspect-ratio:4/3;background:${T.tileBg} center/cover no-repeat;}
 .pfs-trip .ph img{position:absolute;left:${S.sm}px;top:${S.sm}px;width:24px;height:24px;border-radius:${PACK_R.pill}px;border:2px solid ${T.onDark};object-fit:cover;}
@@ -67,7 +58,7 @@ const readStoredNearby = (): SnifferCardData[] | null => {
   try { return JSON.parse(localStorage.getItem(NEARBY_STORE) || 'null') as SnifferCardData[] | null; } catch { return null; }
 };
 
-export function SnifferStrip() {
+export function SnifferStrip({ onGo }: { onGo?: () => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const navigate = useNavigate();
@@ -83,20 +74,15 @@ export function SnifferStrip() {
     }).catch(() => { if (on) { setCards([]); setLoaded(true); } });
     return () => { on = false; };
   }, []);
-  const go = () => navigate('/pack/sniffer');
+  const go = () => { onGo?.(); navigate('/pack/sniffer'); };
+  if (loaded && !cards.length) return null;
   return (
     <section>
       <div className="pfs-row is-sniffer">
         <h2>{tx('pack.feed.top.buddy', 'Looking for a buddy')}</h2>
       </div>
       {!loaded && <SkelDogs />}
-      {loaded && !cards.length ? (
-        <div className="pfs-note">
-          <img src="/icons/sniffer/sniffer-logo.svg" alt="SNIFFER" />
-          <p>{tx('pack.feed.sniff.empty', 'Fill in your profile and find your trail buddy.')}</p>
-          <button type="button" onClick={go}>{tx('pack.feed.sniff.emptyCta', 'Sniff')}</button>
-        </div>
-      ) : loaded && (
+      {loaded && (
       <div className="pfs-strip">
         {cards.map((c) => {
           const dog = c.dogs[0];

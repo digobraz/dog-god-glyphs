@@ -24,6 +24,8 @@ import { tripNames, tripNameSync } from './tripLabel';
 import { PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { SNIFFER_HEART } from '@/components/pack/buddy/SnifferLogo';
+import { SnifferStrip, FEED_TOP_CSS } from '@/components/pack/feed/FeedTop';
+import { APP_NEW } from '@/lib/packFlags';
 
 const T = PACK_THEME;
 
@@ -75,6 +77,8 @@ export const INBOX_CSS = `
 .msg-origin{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:${T.card};border:1px solid ${T.cardEdge};padding:0;box-sizing:border-box;object-fit:contain;}
 .msg-tagchip--click:hover{background:var(--msg-chip-hot);border-color:${T.cardEdge};}
 /* PRÁZDNY STAV — bez bloku: ikonka, veta, nápoveda a jedno lapis CTA. */
+.msg-sniff{padding:16px 0 12px;}
+.msg-sniff:empty{display:none;}
 .msg-emptybox{display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 16px;text-align:center;margin:auto;}
 .msg-emptytitle{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:var(--msg-title);} /* písmo: nadpis */
 .msg-emptysub{margin:0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:var(--msg-dim);max-width:320px;}
@@ -102,10 +106,10 @@ function fmtTime(iso: string, locale: string): string {
   return d.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 }
 
-export function Inbox({ onOpenThread, onClose, onOpenTrip }: {
+export function Inbox({ onOpenThread, onClose, onOpenTrip, onOpenSniffer }: {
   onOpenThread: (convId: string) => void;
   onClose: () => void;
-  /** #55 — prázdny inbox potrebuje jednu akciu: rozhovor začína na tripe, nie tu. */
+  /** Pás SNIFFERa nad správami: overlay sa musí zavrieť, inak by Sniffer ostal pod ním. */
   onOpenSniffer?: () => void;
   /** klik na štítok výletu nad konverzáciou; bez neho ostáva štítok needitovateľný popis */
   onOpenTrip?: (tripId: string) => void;
@@ -140,6 +144,7 @@ export function Inbox({ onOpenThread, onClose, onOpenTrip }: {
     <div className="msg-inbox msg-skin">
             <style>{MSG_SKIN_CSS}</style>
       <style>{INBOX_CSS}</style>
+      {APP_NEW && <style>{FEED_TOP_CSS}</style>}
       <div className="msg-inbox-head">
         <div className="msg-inbox-headinner">
           <button type="button" className="msg-x" onClick={onClose} aria-label={t('pack.msg.closeAriaLabel')}><BackIcon /></button>
@@ -152,6 +157,9 @@ export function Inbox({ onOpenThread, onClose, onOpenTrip }: {
         </div>
       </div>
       <div className="msg-inbox-list">
+        {/* SNIFFER presunutý z FEEDu (Matej 5. 11.: „ani keď prídu ľudia, nebudú mať koho sniffovať“). Nikto v okolí ⇒ pás nie je.
+            Bez správ tu nie je tiež (Matej 28. 10.). Vchod do Sniffera ostáva v „+“. */}
+        {APP_NEW && convs.length > 0 && <div className="msg-sniff"><SnifferStrip onGo={onOpenSniffer} /></div>}
         {convs.length === 0 ? (
           <div className="msg-emptybox">
             <BrandIcon name="chat" size={48} tint="gold" />

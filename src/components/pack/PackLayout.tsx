@@ -271,6 +271,7 @@ export function MessagingOverlayHost() {
           onOpenThread={(convId) => setOverlay({ mode: 'thread', convId })}
           onClose={() => setOverlay({ mode: 'closed' })}
           onOpenTrip={(tripId) => void openTrip(tripId)}
+          onOpenSniffer={() => setOverlay({ mode: 'closed' })}
         />
       </Suspense>
     );

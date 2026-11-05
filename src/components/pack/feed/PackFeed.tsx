@@ -3,7 +3,7 @@
 // Nákres `plany/nakres-feed-2026-10-26.html` v4 (Matej 26. 10.: *„je to ok"*). Oproti FEED 1.0 (24. 10.):
 //   · príbehy (rad kruhov) a štítky PREČ
 //   · hlavička sticky (PackLayout `pk-plain`), lupa vedľa AINUBISA — rieši `pages/Pack.tsx`
-//   · pás pod hlavičkou: AINUBIS doska → Sniffer „Kto hľadá parťáka" → Najnovšie výlety (`FeedTop.tsx`)
+//   · pás pod hlavičkou: AINUBIS doska → Najnovšie výlety (`FeedTop.tsx`); Sniffer odišiel do Správ (5. 11. 2026)
 //   · AINUBIS = HOVORCA: citát dňa, príbeh, odložené zvitky — všetko v jeho tmavom šate (`FeedAinubis.tsx`)
 //   · zvitok = TEN ISTÝ blok ako v DOGSCROLLe (`ScrollCard` zo `ScrollParts.tsx`), nie kópia
 //   · výlet = karta ako na /map (`FeedTripCard.tsx`), uloženie = TRIPLIST
@@ -49,7 +49,7 @@ import { AiHead, AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
 import { FeedSosBlock } from './FeedSosCard';
 import { SkelPost, SkelTrips } from './FeedSkeleton';
 import { useSosActive } from '../sosKit';
-import { SnifferStrip, TripStrip, FEED_TOP_CSS } from './FeedTop';
+import { TripStrip, FEED_TOP_CSS } from './FeedTop';
 import { QuoteComments } from './QuoteComments';
 import { fetchQuoteComments } from '@/components/pack/trip/tripCommentsData';
 import { FeedMapCard, FEED_MAP_CSS, useMapAdds, type MapAdd } from './FeedMapCard';
@@ -566,8 +566,6 @@ export function PackFeed() {
             ? tx('pack.feed.search.hint', 'Searches trips, AINUBIS scrolls and posts.')
             : tx('pack.feed.search.count', 'Found: {n}').replace('{n}', String(items.length))}</p>
         </>) : (<>
-          {/* SNIFFER ÚPLNE NA ZAČIATKU (Matej 26. 10., kolo 4) — a ešte raz na konci feedu. */}
-          <SnifferStrip />
           <div className="pkf-top">
             {trips.length ? <TripStrip trips={trips.slice(0, 8)} /> : firstLoad && <SkelTrips />}
           </div>
@@ -587,8 +585,6 @@ export function PackFeed() {
         )}
 
         {!searching && shown >= items.length && postsDone && <>
-          {/* SNIFFER aj na konci, pred „videl si všetko". */}
-          <SnifferStrip />
           {!topic && <div className="pkf-end">
             <BrandIcon name="paw" size={32} tint="gold" />
             <b>{tx('pack.feed.end.title', 'You have seen it all')}</b>
