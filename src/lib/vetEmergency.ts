@@ -33,7 +33,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "hours": "onsite",
   "exact": true,
-  "web": "https://www.vetline.sk/"
+  "web": "https://www.vetline.sk/",
+  "photo": {
+   "src": "/vet/vetline-24h-bratislava.webp",
+   "source": "https://vetline.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "smallvet-plus-bratislava",
@@ -102,7 +107,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   "hours": "call",
   "exact": true,
   "fee": "39 €",
-  "web": "http://www.veterinapoprad.sk/"
+  "web": "http://www.veterinapoprad.sk/",
+  "photo": {
+   "src": "/vet/veterinarna-klinika-poprad.webp",
+   "source": "https://veterinapoprad.sk/sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "ambulancia-s-pohotovostou-centrum-poprad",
@@ -155,7 +165,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   "hours": "call",
   "exact": true,
   "note": "pack.sos.er.noteBranch",
-  "web": "http://www.trivet.sk/"
+  "web": "http://www.trivet.sk/",
+  "photo": {
+   "src": "/vet/tri-vet-cifer.webp",
+   "source": "https://www.trivet.sk/veterinarna-klinika-cifer/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "scar-vet-trnava",
@@ -369,7 +384,7 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "https://www.cassovet.sk/",
   "photo": {
    "src": "/vet/cassovet-kosice.webp",
-   "source": "https://www.cassovet.sk/",
+   "source": "https://www.cassovet.sk/o-nas/",
    "at": "2026-11-05"
   }
  },
@@ -505,7 +520,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    22
   ],
   "exact": true,
-  "web": "http://dkvet.sk/"
+  "web": "http://dkvet.sk/",
+  "photo": {
+   "src": "/vet/dkvet-dolny.webp",
+   "source": "https://dkvet.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "klinika-animal-michalovce",
@@ -548,7 +568,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   },
   "clientsOnly": true,
   "note": "pack.sos.er.noteClients",
-  "web": "http://www.animalcentrum.sk/"
+  "web": "http://www.animalcentrum.sk/",
+  "photo": {
+   "src": "/vet/klinika-animal-michalovce.webp",
+   "source": "https://animalcentrum.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "morvayova-vyjazdy-bratislava",
@@ -592,7 +617,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "hours": "ask",
   "home": true,
-  "web": "https://www.vetart.sk/"
+  "web": "https://www.vetart.sk/",
+  "photo": {
+   "src": "/vet/vetart-mvdr-halas-dolny.webp",
+   "source": "https://www.vetart.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "rhvet-martin",
@@ -608,7 +638,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   "exact": true,
   "home": true,
   "fee": "20 €",
-  "web": "https://rhvet.webnode.sk/"
+  "web": "https://rhvet.webnode.sk/",
+  "photo": {
+   "src": "/vet/rhvet-martin.webp",
+   "source": "https://rhvet.webnode.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "pet-medic-praha",
@@ -622,7 +657,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "hours": "nonstop",
   "home": true,
-  "web": "https://www.pet-medic.cz/"
+  "web": "https://www.pet-medic.cz/",
+  "photo": {
+   "src": "/vet/pet-medic-praha.webp",
+   "source": "https://www.pet-medic.cz/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "sonda-praha",
@@ -639,7 +679,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    20
   ],
   "home": true,
-  "web": "https://www.sonda.cz/"
+  "web": "https://www.sonda.cz/",
+  "photo": {
+   "src": "/vet/sonda-praha.webp",
+   "source": "https://www.sonda.cz/vysetreni-na-klinice",
+   "at": "2026-11-05"
+  }
  }
 ];
 
