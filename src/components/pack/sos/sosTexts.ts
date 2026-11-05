@@ -319,7 +319,7 @@ export const SOS_TEXTS = {
   'pack.sos.card.photoHint': T('Drag the photo on the card with your finger.', 'Fotku na kartičke posúvaš prstom.', 'Fotku na kartičce posouváš prstem.'),
   'pack.sos.card.download': T('DOWNLOAD TO PRINT', 'STIAHNUŤ NA TLAČ', 'STÁHNOUT K TISKU'),
   'pack.sos.card.private': T('Your edits stay only on this phone. Agree with the contact person in advance.', 'Úpravy ostávajú len v tomto telefóne. S kontaktnou osobou sa dohodni vopred.', 'Úpravy zůstávají jen v tomto telefonu. S kontaktní osobou se domluv předem.'),
-  'pack.sos.card.noShare': T('This phone cannot hand over the PDF yet.', 'Tento telefón zatiaľ nevie PDF odovzdať.', 'Tento telefon zatím neumí PDF předat.'),
+  'pack.sos.card.noShare': T('Update the DOGYPT app in your store — this version cannot hand over the file yet.', 'Aktualizuj appku DOGYPT v obchode — táto verzia ešte nevie súbor odovzdať.', 'Aktualizuj appku DOGYPT v obchodě — tato verze ještě neumí soubor předat.'),
   'pack.sos.card.step1': T('Cut along the outer edge as one rectangle.', 'Vystrihni po vonkajšom okraji ako jeden obdĺžnik.', 'Vystřihni po vnějším okraji jako jeden obdélník.'),
   'pack.sos.card.step2': T('Fold along the dashed line, pictures out.', 'Prelož podľa prerušovanej čiary, obrázkami von.', 'Přelož podle přerušované čáry, obrázky ven.'),
   'pack.sos.card.step3': T('Glue the inner sides and laminate if you can.', 'Zlep vnútorné strany a ak môžeš, zalaminuj.', 'Slep vnitřní strany a pokud můžeš, zalaminuj.'),

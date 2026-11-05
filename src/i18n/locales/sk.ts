@@ -8164,7 +8164,7 @@ export const sk: Partial<Dict> = {
   "pack.sos.card.photoHint": "Fotku na kartičke posúvaš prstom.",
   "pack.sos.card.download": "STIAHNUŤ NA TLAČ",
   "pack.sos.card.private": "Úpravy ostávajú len v tomto telefóne. S kontaktnou osobou sa dohodni vopred.",
-  "pack.sos.card.noShare": "Tento telefón zatiaľ nevie PDF odovzdať.",
+  "pack.sos.card.noShare": "Aktualizuj appku DOGYPT v obchode — táto verzia ešte nevie súbor odovzdať.",
   "pack.sos.card.step1": "Vystrihni po vonkajšom okraji ako jeden obdĺžnik.",
   "pack.sos.card.step2": "Prelož podľa prerušovanej čiary, obrázkami von.",
   "pack.sos.card.step3": "Zlep vnútorné strany a ak môžeš, zalaminuj.",

@@ -8475,7 +8475,7 @@ export const en = {
   "pack.sos.card.photoHint": "Drag the photo on the card with your finger.",
   "pack.sos.card.download": "DOWNLOAD TO PRINT",
   "pack.sos.card.private": "Your edits stay only on this phone. Agree with the contact person in advance.",
-  "pack.sos.card.noShare": "This phone cannot hand over the PDF yet.",
+  "pack.sos.card.noShare": "Update the DOGYPT app in your store — this version cannot hand over the file yet.",
   "pack.sos.card.step1": "Cut along the outer edge as one rectangle.",
   "pack.sos.card.step2": "Fold along the dashed line, pictures out.",
   "pack.sos.card.step3": "Glue the inner sides and laminate if you can.",

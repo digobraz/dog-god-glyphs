@@ -8145,7 +8145,7 @@ export const cs: Partial<Dict> = {
   "pack.sos.card.photoHint": "Fotku na kartičce posouváš prstem.",
   "pack.sos.card.download": "STÁHNOUT K TISKU",
   "pack.sos.card.private": "Úpravy zůstávají jen v tomto telefonu. S kontaktní osobou se domluv předem.",
-  "pack.sos.card.noShare": "Tento telefon zatím neumí PDF předat.",
+  "pack.sos.card.noShare": "Aktualizuj appku DOGYPT v obchodě — tato verze ještě neumí soubor předat.",
   "pack.sos.card.step1": "Vystřihni po vnějším okraji jako jeden obdélník.",
   "pack.sos.card.step2": "Přelož podle přerušované čáry, obrázky ven.",
   "pack.sos.card.step3": "Slep vnitřní strany a pokud můžeš, zalaminuj.",
