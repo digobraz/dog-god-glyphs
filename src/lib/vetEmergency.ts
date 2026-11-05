@@ -38,6 +38,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/vetline-24h-bratislava.webp",
    "source": "https://vetline.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.4,
+   "count": 729,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=VetLINE%2024H%20Staromestsk%C3%A1%206%2FD%20Bratislava"
   }
  },
  {
@@ -52,7 +58,13 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "hours": "nonstop",
   "exact": true,
-  "web": "https://www.smallvet.sk/"
+  "web": "https://www.smallvet.sk/",
+  "google": {
+   "rating": 4.2,
+   "count": 135,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=SmallVet%20%C5%BDitn%C3%A1%2046%20Bratislava"
+  }
  },
  {
   "id": "vetpoint-bratislava",
@@ -71,6 +83,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/vetpoint-bratislava.webp",
    "source": "http://www.vetpoint.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.2,
+   "count": 410,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=VetPoint%20Pan%C3%B3nska%20cesta%2038%20Bratislava"
   }
  },
  {
@@ -92,7 +110,13 @@ export const VET_EMERGENCY: VetPlace[] = [
     "tel": "+421 915 991 474"
    }
   ],
-  "web": "https://www.uvlf.sk/kliniky-sluzby/pohotovost"
+  "web": "https://www.uvlf.sk/kliniky-sluzby/pohotovost",
+  "google": {
+   "rating": 4.6,
+   "count": 672,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Klinika%20mal%C3%BDch%20zvierat%20UVLF%20Ko%C5%A1ice"
+  }
  },
  {
   "id": "veterinarna-klinika-poprad",
@@ -112,6 +136,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/veterinarna-klinika-poprad.webp",
    "source": "https://veterinapoprad.sk/sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.7,
+   "count": 152,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Veterin%C3%A1rna%20klinika%20Hrani%C4%8Dn%C3%A1%2012%20Poprad"
   }
  },
  {
@@ -131,6 +161,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/ambulancia-s-pohotovostou-centrum-poprad.webp",
    "source": "http://www.veterinar-pohotovost.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.8,
+   "count": 154,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=veterin%C3%A1r%20Dominika%20Tatarku%205%20Poprad"
   }
  },
  {
@@ -150,6 +186,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/klinika-fenix-zilina.webp",
    "source": "http://www.klinikafenix.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.9,
+   "count": 172,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Klinika%20F%C3%A9nix%20%C5%A0trkov%C3%A1%2010A%20%C5%BDilina"
   }
  },
  {
@@ -170,6 +212,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/tri-vet-cifer.webp",
    "source": "https://www.trivet.sk/veterinarna-klinika-cifer/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.7,
+   "count": 269,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Tri-Vet%20Kaplnsk%C3%A1%2014%20C%C3%ADfer"
   }
  },
  {
@@ -189,6 +237,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/scar-vet-trnava.webp",
    "source": "http://www.scarvet.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.8,
+   "count": 104,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=SCAR%20Vet%20Sladovn%C3%ADcka%2022%20Trnava"
   }
  },
  {
@@ -203,7 +257,13 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "hours": "call",
   "exact": true,
-  "web": "http://www.petclinic.sk/"
+  "web": "http://www.petclinic.sk/",
+  "google": {
+   "rating": 4.7,
+   "count": 163,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Pet%20Clinic%20N%C3%A1bre%C5%BEie%20ml%C3%A1de%C5%BEe%2047%20Nitra"
+  }
  },
  {
   "id": "doktor-zvierat-piestany",
@@ -222,6 +282,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/doktor-zvierat-piestany.webp",
    "source": "http://www.doktorzvierat.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.3,
+   "count": 31,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Doktor%20Zvierat%20Vrbovsk%C3%A1%20cesta%2014%20Pie%C5%A1%C5%A5any"
   }
  },
  {
@@ -236,7 +302,13 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "hours": "call",
   "exact": true,
-  "web": "http://www.veterina-lives.sk/"
+  "web": "http://www.veterina-lives.sk/",
+  "google": {
+   "rating": 4.6,
+   "count": 94,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Klinika%20LiVeS%201.%20m%C3%A1ja%2075%20Liptovsk%C3%BD%20Mikul%C3%A1%C5%A1"
+  }
  },
  {
   "id": "veterinar-topolcany",
@@ -256,6 +328,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/veterinar-topolcany.webp",
    "source": "http://www.veterinartopolcany.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.2,
+   "count": 134,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=veterin%C3%A1r%20Vajansk%C3%A9ho%2018%20Topo%C4%BE%C4%8Dany"
   }
  },
  {
@@ -284,7 +362,13 @@ export const VET_EMERGENCY: VetPlace[] = [
    18.61369
   ],
   "hours": "ask",
-  "web": "http://www.bebabelvet.sk/"
+  "web": "http://www.bebabelvet.sk/",
+  "google": {
+   "rating": 3.4,
+   "count": 8,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=BeBaBel%20s.r.o.%20Levice"
+  }
  },
  {
   "id": "szakall-senec",
@@ -303,6 +387,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/szakall-senec.webp",
    "source": "http://www.szakallvet.eu/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.3,
+   "count": 277,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=MVDr.%20Szakall%20SNP%207%20Senec"
   }
  },
  {
@@ -323,6 +413,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/klinika-e-vet-kralova.webp",
    "source": "http://evetklinika.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.8,
+   "count": 78,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Klinika%20E-VET%20Sadov%C3%A1%20588%20Kr%C3%A1%C4%BEov%C3%A1%20pri%20Senci"
   }
  },
  {
@@ -343,6 +439,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/zbonakova-martin.webp",
    "source": "http://www.veterinamartin.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.9,
+   "count": 27,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=MVDr.%20Zbo%C5%88%C3%A1kov%C3%A1%20Aurela%20Stodolu%205307%20Martin"
   }
  },
  {
@@ -365,6 +467,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/mypet-clinic-bratislava.webp",
    "source": "https://www.mypet.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.7,
+   "count": 142,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=MyPet%20Clinic%20Mierov%C3%A1%2027%20Bratislava"
   }
  },
  {
@@ -386,6 +494,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/cassovet-kosice.webp",
    "source": "https://www.cassovet.sk/o-nas/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.6,
+   "count": 391,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Cassovet%20Trieda%20KVP%207%20Ko%C5%A1ice"
   }
  },
  {
@@ -423,7 +537,13 @@ export const VET_EMERGENCY: VetPlace[] = [
     ]
    ]
   },
-  "web": "https://www.petservis.sk/"
+  "web": "https://www.petservis.sk/",
+  "google": {
+   "rating": 4.4,
+   "count": 259,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=PETSERVIS%20Sl%C3%A1dkovi%C4%8Dova%2022%20Bansk%C3%A1%20Bystrica"
+  }
  },
  {
   "id": "vetone-sliac",
@@ -441,7 +561,13 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "exact": true,
   "fee": "po 24:00 30 €",
-  "web": "http://www.vetone.info/"
+  "web": "http://www.vetone.info/",
+  "google": {
+   "rating": 4.8,
+   "count": 74,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=VetOne%20H%C3%A1jnick%C3%A1%2051%20Slia%C4%8D"
+  }
  },
  {
   "id": "vetaxs-trencin",
@@ -458,7 +584,13 @@ export const VET_EMERGENCY: VetPlace[] = [
    22
   ],
   "exact": true,
-  "web": "http://vetaxs.sk/"
+  "web": "http://vetaxs.sk/",
+  "google": {
+   "rating": 4.6,
+   "count": 259,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=VETAXS%20Elektri%C4%8Dn%C3%A1%2017%20Tren%C4%8D%C3%ADn"
+  }
  },
  {
   "id": "foxyvet-trencin",
@@ -480,6 +612,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/foxyvet-trencin.webp",
    "source": "http://www.foxyvet.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.8,
+   "count": 79,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=FOXYVET%20%C5%A0tef%C3%A1nikova%2086%20Tren%C4%8D%C3%ADn"
   }
  },
  {
@@ -503,6 +641,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/vet-centrum-nitra.webp",
    "source": "http://www.veterinarnaklinikanitra.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.6,
+   "count": 241,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=VET%20CENTRUM%20Akademick%C3%A1%203%20Nitra"
   }
  },
  {
@@ -525,6 +669,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/dkvet-dolny.webp",
    "source": "https://dkvet.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.8,
+   "count": 132,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=DKVet%20Bystereck%C3%A1%2014%20Doln%C3%BD%20Kub%C3%ADn"
   }
  },
  {
@@ -573,6 +723,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/klinika-animal-michalovce.webp",
    "source": "https://animalcentrum.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.7,
+   "count": 328,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Klinika%20Animal%20Masarykova%2025%20Michalovce"
   }
  },
  {
@@ -588,7 +744,13 @@ export const VET_EMERGENCY: VetPlace[] = [
   "hours": "ask",
   "home": true,
   "fee": "po 16:00 30 €",
-  "web": "https://www.vyjazdovyveterinar.sk/"
+  "web": "https://www.vyjazdovyveterinar.sk/",
+  "google": {
+   "rating": 5,
+   "count": 37,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=MVDr.%20Morvayov%C3%A1%20v%C3%BDjazdov%C3%BD%20veterin%C3%A1r%20Bratislava"
+  }
  },
  {
   "id": "veterinar-domov-mvdr-hilcanska-kosice",
@@ -603,7 +765,13 @@ export const VET_EMERGENCY: VetPlace[] = [
   "hours": "ask",
   "home": true,
   "fee": "35 €",
-  "web": "http://www.veterinardomov.sk/"
+  "web": "http://www.veterinardomov.sk/",
+  "google": {
+   "rating": 5,
+   "count": 3,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Veterin%C3%A1r%20domov%20MVDr.%20Hil%C4%8Dansk%C3%A1%20Ko%C5%A1ice"
+  }
  },
  {
   "id": "vetart-mvdr-halas-dolny",
@@ -622,6 +790,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/vetart-mvdr-halas-dolny.webp",
    "source": "https://www.vetart.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.8,
+   "count": 54,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=VetArt%20MVDr.%20Hal%C3%A1s%20Doln%C3%BD%20Ohaj"
   }
  },
  {
@@ -643,6 +817,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/rhvet-martin.webp",
    "source": "https://rhvet.webnode.sk/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.8,
+   "count": 83,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=RHvet%20Z%C3%A1tur%C4%8Dianska%2054%20Martin"
   }
  },
  {
@@ -662,6 +842,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/pet-medic-praha.webp",
    "source": "https://www.pet-medic.cz/",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.6,
+   "count": 212,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Pet-Medic%20veterin%C3%A1rn%C3%AD%20sanitka%20Praha"
   }
  },
  {
@@ -684,6 +870,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    "src": "/vet/sonda-praha.webp",
    "source": "https://www.sonda.cz/vysetreni-na-klinice",
    "at": "2026-11-05"
+  },
+  "google": {
+   "rating": 4.8,
+   "count": 141,
+   "at": "2026-11-05",
+   "url": "https://www.google.com/maps/search/?api=1&query=Sonda.cz%20Pod%20Nuselsk%C3%BDmi%20schody%203%20Praha"
   }
  }
 ];
