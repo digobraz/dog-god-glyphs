@@ -2,7 +2,7 @@
 // Zoznam je v balíku appky (`lib/vetEmergency.ts`), takže funguje aj bez signálu a nečaká na databázu.
 // Poradie: kto má práve otvorené, podľa vzdialenosti. Zatvorené idú pod čiaru, nikdy nezmiznú.
 import { useEffect, useMemo, useState } from 'react';
-import { PACK_BOX, PHOTO_CSS, PACK_R, PACK_SPACE, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
+import { FONT_TITLE, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { SosTaskShell } from './SosTaskShell';
@@ -32,25 +32,24 @@ const CSS = `
 .vet-where select{flex:1;min-height:44px;padding:0 ${PACK_SPACE.md}px;}
 .vet-warn{margin:0;padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:${T.sosRedSoft};border:1px solid ${T.sosRed};font-size:${PACK_TEXT.body}px;font-weight:500;color:${T.sosRedDark};}
 .vet-sec{margin:${PACK_SPACE.sm}px 0 0;font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
-.vet-row{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.md}px;}
+/* Karta (Matej 5. 11. 2026, nákres plany/nakresy/klinika-karta-2026-11-05, variant B): fotka vľavo sa rozplynie skôr, než začne text. */
+.vet-row{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;padding:0 ${PACK_SPACE.md}px ${PACK_SPACE.md}px;}
 .vet-row.off{opacity:.6;}
-.vet-top{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
-.vet-top .vet-tap{flex:1;min-width:0;}
-.vet-thumb{padding:0;cursor:pointer;flex:none;width:72px;height:72px;}
-.vet-pic{margin:0;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
-.vet-pic .pk-photo{aspect-ratio:3/2;}
-.vet-pic figcaption{font-size:${PACK_TEXT.micro}px;color:${T.inkWarm};}
-.vet-pic a{color:inherit;text-decoration:underline;}
+.vet-pic{all:unset;position:absolute;left:0;top:0;width:52%;height:176px;cursor:pointer;
+  -webkit-mask-image:linear-gradient(to right,black 40%,transparent 100%),linear-gradient(to bottom,black 78%,transparent 100%);mask-image:linear-gradient(to right,black 40%,transparent 100%),linear-gradient(to bottom,black 78%,transparent 100%);-webkit-mask-composite:source-in;mask-composite:intersect;}
+.vet-pic img{display:block;width:100%;height:100%;object-fit:cover;}
+.vet-top{position:relative;min-height:172px;margin-left:48%;padding:${PACK_SPACE.md}px 0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:${PACK_SPACE.xs}px;min-width:0;}
 .vet-tap{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
-.vet-tap b{font-size:${PACK_TEXT.lead}px;font-weight:600;color:${T.inkStrong};}
+.vet-tap b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1.25;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: nadpis */
 .vet-tap small{font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
-.vet-pill{align-self:flex-start;display:inline-flex;align-items:center;min-height:24px;padding:0 ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;font-size:${PACK_TEXT.micro}px;font-weight:600;letter-spacing:.02em;background:${LAPIS.grad};color:${LAPIS.ink};}
+.vet-pill{margin-top:${PACK_SPACE.xs}px;align-self:flex-start;display:inline-flex;align-items:center;min-height:24px;padding:0 ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;font-size:${PACK_TEXT.micro}px;font-weight:600;letter-spacing:.02em;background:${LAPIS.grad};color:${LAPIS.ink};}
 .vet-pill--soft{background:${T.tileBg};border:1px solid ${T.cardEdge};color:${T.inkWarm};}
-.vet-more{margin:0;font-size:${PACK_TEXT.label}px;line-height:1.5;color:${T.inkWarm};}
-.vet-acts{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
+.vet-more a{color:inherit;text-decoration:underline;}
+.vet-more{position:relative;margin:0;font-size:${PACK_TEXT.label}px;line-height:1.5;color:${T.inkWarm};}
+.vet-acts{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
 .vet-acts a,.vet-nav a{text-decoration:none;}
 .vet-acts.one{grid-template-columns:1fr;}
-.vet-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:${PACK_SPACE.sm}px;}
+.vet-nav{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:${PACK_SPACE.sm}px;}
 .vet-nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;min-height:56px;padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.field}px;border:1.5px solid ${T.cardEdge};background:${T.tileBg};font-size:${PACK_TEXT.micro}px;font-weight:600;color:${T.inkStrong};text-align:center;}
 .vet-nav img{width:24px;height:24px;display:block;}
 .vet-g{all:unset;align-self:flex-start;box-sizing:border-box;cursor:pointer;font-size:${PACK_TEXT.label}px;color:${T.inkWarm};text-decoration:underline;}
@@ -140,31 +139,24 @@ export default function PackSosVet() {
   const row = ({ p, km, on: isOn }: (typeof rows)[number], first: boolean) => {
     const canNav = vetNavUrl('google', p) !== null;
     return (
-    <div key={p.id} className={`vet-row${isOn ? '' : ' off'}`} style={{ ...PACK_BOX.row }}>
+    <div key={p.id} className={`vet-row${isOn ? '' : ' off'}`} style={{ ...PACK_BOX.subblock }}>
+      <button type="button" className="vet-pic" tabIndex={-1} aria-hidden="true" onClick={() => setOpen(open === p.id ? null : p.id)}>
+        <img src={p.photo?.src ?? NO_PHOTO} alt="" loading="lazy" decoding="async" />
+      </button>
       <div className="vet-top">
         <button type="button" className="vet-tap" onClick={() => setOpen(open === p.id ? null : p.id)} aria-expanded={open === p.id}>
           <b>{p.name}</b>
           <small>{km === null ? p.place : `${p.place} · ${km} km`}</small>
         </button>
-        {open !== p.id && (
-          <button type="button" className="vet-thumb pk-photo" tabIndex={-1} aria-hidden="true" onClick={() => setOpen(p.id)}>
-            <img src={p.photo?.src ?? NO_PHOTO} alt="" loading="lazy" decoding="async" />
-          </button>
-        )}
+        {p.google && <a className="vet-g" href={p.google.url} target="_blank" rel="noopener noreferrer">{googleLabel(p.google, s, loc)}</a>}
+        <span className={`vet-pill${p.clientsOnly || typeof p.hours !== 'string' || p.hours === 'ask' ? ' vet-pill--soft' : ''}`}>{hoursLabel(p, s, now)}</span>
       </div>
-      {p.google && <a className="vet-g" href={p.google.url} target="_blank" rel="noopener noreferrer">{googleLabel(p.google, s, loc)}</a>}
-      <span className={`vet-pill${p.clientsOnly || typeof p.hours !== 'string' || p.hours === 'ask' ? ' vet-pill--soft' : ''}`}>{hoursLabel(p, s, now)}</span>
-      {open === p.id && (
-        <figure className="vet-pic">
-          <span className="pk-photo"><img src={p.photo?.src ?? NO_PHOTO} alt={p.photo ? p.name : ''} loading="lazy" decoding="async" /></span>
-          {p.photo && <figcaption><a href={p.photo.source} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.photoFrom', { site: new URL(p.photo.source).hostname.replace(/^www\./, '') })}</a></figcaption>}
-        </figure>
-      )}
       {open === p.id && (
         <p className="vet-more">
           {p.address}
           {p.fee && <><br />{s('pack.sos.er.fee', { fee: p.fee })}</>}
           {p.note && <><br />{s(p.note)}</>}
+          {p.photo && <><br /><a href={p.photo.source} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.photoFrom', { site: new URL(p.photo.source).hostname.replace(/^www\./, '') })}</a></>}
         </p>
       )}
       {/* Volanie = hlavná akcia (lapis), navigácia druhá (ghost). Bez použiteľnej polohy ani adresy (výjazdy) zostáva samo volanie. */}
@@ -189,7 +181,7 @@ export default function PackSosVet() {
 
   return (
     <SosTaskShell onBack={onBack} backLabel={s('pack.sos.back')}>
-      <style>{PHOTO_CSS}{CSS}</style>
+      <style>{CSS}</style>
       <h1 className="sos-h2">{s('pack.sos.er.title')}</h1>
       <div className="vet-chips">
         {([['near', 'pack.sos.er.near'], ['nonstop', 'pack.sos.er.nonstopChip'], ['home', 'pack.sos.er.homeChip']] as const).map(([k, l]) => (
