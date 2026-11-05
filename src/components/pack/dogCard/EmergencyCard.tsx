@@ -35,6 +35,7 @@ export const CARD_CSS = `
 .ec-fl span{display:block;font:500 2.2cqw/1.25 ${FONT_UI};letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};}
 .ec-fl b{display:block;min-height:4.4cqw;padding-bottom:.5cqw;border-bottom:.25cqw solid ${T.accentGold};font:600 3.5cqw/1.25 ${FONT_UI};overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 .ec-fl.is-big b{min-height:5.6cqw;font-size:4.5cqw;}
+.ec-fl.is-wrap b{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere;}
 .ec-fl.is-tel b{color:${LAPIS.edge};}
 .ec-foot{flex:none;display:flex;align-items:center;justify-content:flex-end;padding:0 2.8cqw 1.5cqw;}
 .ec-foot img{height:6.4cqw;width:auto;display:block;}
@@ -53,13 +54,22 @@ const photoStyle = (p: CardPhoto): CSSProperties => ({
   transformOrigin: `${p.x}% ${p.y}%`,
 });
 
-const Fl = ({ label, value, big, tel }: { label: string; value: string; big?: boolean; tel?: boolean }) => (
-  <div className={`ec-fl${big ? ' is-big' : ''}${tel ? ' is-tel' : ''}`}><span>{label}</span><b>{value || ' '}</b></div>
-);
+// Dlhý údaj (telefón, potreby) ide na dva riadky a zmenšuje písmo podľa dĺžky. Čo sa ani tak nezmestí, ukáže stránka
+// hláškou pred stiahnutím (meria sa, či `<b>` pretiekol), takže nič sa neskráti ticho elipsou.
+const wrapSize = (len: number, tiers: [number, number][], min: number) => tiers.find(([max]) => len <= max)?.[1] ?? min;
+const Fl = ({ label, value, big, tel, wrap }: { label: string; value: string; big?: boolean; tel?: boolean; wrap?: 'tel' | 'needs' }) => {
+  const size = wrap === 'tel' ? wrapSize(value.length, [[16, 4.5], [24, 3.6]], 3)
+    : wrap === 'needs' ? wrapSize(value.length, [[40, 3.5], [70, 2.9]], 2.4) : undefined;
+  return (
+    <div className={`ec-fl${big ? ' is-big' : ''}${tel ? ' is-tel' : ''}${wrap ? ' is-wrap' : ''}`}>
+      <span>{label}</span><b style={size ? { fontSize: `${size}cqw` } : undefined}>{value || ' '}</b>
+    </div>
+  );
+};
 
 export function CardFront({ dogName, number, photo, data, tx, flat, photoHandlers }: {
   dogName: string; number: string; photo: CardPhoto; data: CardData; tx: CardTexts; flat?: boolean;
-  photoHandlers?: { onPointerDown: PointerEventHandler; onPointerMove: PointerEventHandler; onPointerUp: PointerEventHandler };
+  photoHandlers?: { onPointerDown: PointerEventHandler; onPointerMove: PointerEventHandler; onPointerUp: PointerEventHandler; onPointerCancel: PointerEventHandler };
 }) {
   return (
     <div className={`ec${flat ? ' ec--flat' : ''}`}>
@@ -77,7 +87,7 @@ export function CardFront({ dogName, number, photo, data, tx, flat, photoHandler
           <div className="ec-body">
             <div className="ec-ask">{tx.ask}</div>
             <Fl label={tx.contact} value={data.contact} big />
-            <Fl label={tx.phone} value={data.phone} big tel />
+            <Fl label={tx.phone} value={data.phone} big tel wrap="tel" />
           </div>
           <div className="ec-foot"><img src={logo} alt="DOGYPT" /></div>
         </div>
@@ -104,7 +114,7 @@ export function CardBack({ dogName, patron, data, tx, flat }: {
             <Fl label={tx.age} value={data.age} />
           </div>
           <Fl label={tx.addr} value={data.addr} />
-          <Fl label={tx.needs} value={data.needs} />
+          <Fl label={tx.needs} value={data.needs} wrap="needs" />
           <Fl label={tx.vet} value={data.vet} />
         </div>
       </div>

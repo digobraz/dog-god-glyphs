@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { forgetPushToken } from '@/lib/appPush';
+import { clearCardDrafts } from '@/components/pack/dogCard/cardDraft';
 import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/i18n/LanguageContext';
 import { useLang } from '@/i18n/LanguageContext';
@@ -101,6 +102,7 @@ export function DeleteAccountButton() {
       try { sessionStorage.setItem('dogypt-deleted-on', kedy); } catch { /* súkromné okno */ }
       // Odhlásiť zo VŠETKÝCH zariadení — účet sa „zamkne“, návrat je len novým prihlásením.
       await forgetPushToken();
+      clearCardDrafts();
       await supabase.auth.signOut({ scope: 'global' });
       window.location.assign('/login?deleted=1');
     } catch {
@@ -189,6 +191,7 @@ export function AccountDeletionGate() {
   const odhlas = async () => {
     setBusy(true);
     await forgetPushToken();
+    clearCardDrafts();
     await supabase.auth.signOut();
     window.location.assign('/login');
   };

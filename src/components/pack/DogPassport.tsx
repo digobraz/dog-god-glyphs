@@ -26,12 +26,13 @@
 // `stepInView()` a `views` v katalógu ostávajú — použije ich share render (§8 zadania).
 import { ActedBy } from '@/components/pack/profile/ActedBy';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PACK_THEME, PACK_BOX, PILL_CSS, PF_FIELD_CSS, PROGRESS_CSS, FONT_TITLE, FONT_UI } from './packTheme';
 import { PASS_GROUPS, STEP_BY_FIELD, PROGRESS_STEPS, FLOW_EXTRA_FIELDS, quizValueLabel, type QuizStep } from './dogQuiz';
 import { natureArt, storedSpecials } from './natureQuiz';
 import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, type LatestValue } from '@/lib/dogEvents';
 import { RightGate } from '@/components/pack/RightGate';
+import { useMyDogRights } from '@/lib/dogRights';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from './navGoldSkin';
 import { TILT_CSS, TILT_PROPS } from './packTilt';
@@ -195,8 +196,10 @@ const PUBLIC_EXTRA_FIELDS: Record<string, string[]> = { temperament: ['nature.el
 export type DogIdExtraChapter = { key: string; title: string; icon: string; sub: string; body: React.ReactNode };
 
 export function DogPassport({
-  dogId, bare = false, fixedRows, onEditPanel, values, readOnly = false, chapters,
+  dogId, bare = false, fixedRows, onEditPanel, values, readOnly = false, chapters, memorial = false,
 }: {
+  /** Zosnulý pes (len kapitoly v appke): bez VYPLNIŤ DOG ID, bez červeného „chýba“, bez percenta a bez „+ doplniť“. */
+  memorial?: boolean;
   /** Kapitoly na rozkliknutie (appka, Matej 4. 11. 2026). Bez neho kreslí doklad ako doteraz. */
   chapters?: { head?: React.ReactNode; extra: DogIdExtraChapter[]; footer?: React.ReactNode };
   dogId: string;
@@ -215,6 +218,9 @@ export function DogPassport({
   const t = useT();
   const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
 
+  const rights = useMyDogRights();
+  // Kapitoly v appke: pawmate bez práva `will` závet nevidí a jeho polia sa do percenta ani do „ďalšie prázdne“ nerátajú.
+  const hideWill = !!chapters && !rights.can(dogId, 'will');
   const [latest, setLatest] = useState<Record<string, LatestValue> | null>(null);
   const [weightTrend, setWeightTrend] = useState<string | null>(null);
 
@@ -256,7 +262,7 @@ export function DogPassport({
     // odhad ani predvyplnenú hodnotu — dostane pomlčku a odkaz, kde sa doplní.
     const source = readOnly
       ? PASS_GROUPS.filter((g) => (PUBLIC_DOGID_GROUPS as readonly string[]).includes(g.key))
-      : PASS_GROUPS;
+      : PASS_GROUPS.filter((g) => !(hideWill && g.key === 'will'));
     return source.map((g) => {
       // Bez filtra podľa pohľadu — majiteľ vidí komplet. Filtruje sa až pri zdieľaní.
       const fields = readOnly ? [...(PUBLIC_EXTRA_FIELDS[g.key] ?? []), ...g.fields] : g.fields;
@@ -265,7 +271,7 @@ export function DogPassport({
         .filter((r) => !!r.step && (!FLOW_EXTRA_FIELDS.has(r.step.field) || hasValue(r.value)));
       return { group: g, rows };
     }).filter((g) => g.rows.length > 0);
-  }, [latest, readOnly]);
+  }, [latest, readOnly, hideWill]);
 
   // KOMPLETNOSŤ NA SAMOTNOM DOKLADE. Percento žilo len na dlaždici v `/pack/dogs` —
   // teda nie tam, kde človek vypĺňa. Odkedy je nevyplnené červené, doklad JE checklist
@@ -274,17 +280,19 @@ export function DogPassport({
   // dlaždica na hube, aby dve miesta nemohli ukázať dve rôzne čísla.
   const fill = useMemo(() => {
     if (!latest) return null;
-    const total = PROGRESS_STEPS.length;
-    const done = PROGRESS_STEPS.filter((s) => hasValue(latest[s.field])).length;
+    if (memorial && chapters) return null; // zosnulému psovi sa nič nedopĺňa, percento nemá zmysel
+    const steps = PROGRESS_STEPS.filter((s) => !(hideWill && s.field.startsWith('will.')));
+    const total = steps.length;
+    const done = steps.filter((s) => hasValue(latest[s.field])).length;
     return { done, total, pct: total ? Math.round((done / total) * 100) : 0 };
-  }, [latest]);
+  }, [latest, hideWill, memorial, chapters]);
 
   // ĎALŠIE PRÁZDNE POLE — kam vedie VYPLNIŤ DOG ID (Matej 26. 10. 2026, nakres-cta 4A). Hľadá sa
   // v PORADÍ DOKLADU (sekcie zhora), nie v poradí `PROGRESS_STEPS`, aby tlačidlo viedlo na prvú
   // červenú pomlčku, ktorú človek pod ním uvidí. Cieľ je ten istý ako pri pomlčke (`PassRow`).
   const nextMissing = useMemo(() => {
-    if (!latest || readOnly) return null;
-    const counted = new Set(PROGRESS_STEPS.map((st) => st.field));
+    if (!latest || readOnly || (memorial && chapters)) return null;
+    const counted = new Set(PROGRESS_STEPS.filter((st) => !(hideWill && st.field.startsWith('will.'))).map((st) => st.field));
     for (const { group, rows } of groups) {
       const hit = rows.find(({ step }) => counted.has(step.field) && !hasValue(latest[step.field]));
       if (!hit) continue;
@@ -297,7 +305,7 @@ export function DogPassport({
       };
     }
     return null;
-  }, [groups, latest, readOnly, dogId]);
+  }, [groups, latest, readOnly, dogId, hideWill, memorial, chapters]);
 
   if (!latest) return null;
 
@@ -305,7 +313,7 @@ export function DogPassport({
     return (
       <DogIdChapters
         dogId={dogId} groups={groups} latest={latest} fixedRows={fixedRows ?? {}} fill={fill}
-        nextMissing={nextMissing} onEditPanel={onEditPanel} weightTrend={weightTrend} tx={tx} {...chapters}
+        nextMissing={nextMissing} onEditPanel={onEditPanel} weightTrend={weightTrend} tx={tx} memorial={memorial} {...chapters}
       />
     );
   }
@@ -489,6 +497,7 @@ const CH_CSS = `
 .dic-trio{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:16px 8px; text-align:center; margin-bottom:16px; }
 .dic-trio.two{ grid-template-columns:repeat(2,minmax(0,1fr)); }
 .dic-tr{ display:block; color:inherit; text-decoration:none; min-width:0; }
+button.dic-tr{ background:none; border:0; padding:0; width:100%; font:inherit; cursor:pointer; }
 .dic-tr img{ width:72px; height:72px; object-fit:contain; display:block; margin:0 auto 8px; }
 .dic-tr em{ display:block; font-style:normal; font-family:${FONT_UI}; font-weight:500; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:${T.inkWarm}; }
 .dic-tr b{ font-family:${FONT_UI}; font-weight:600; font-size:14px; color:${T.inkStrong}; }
@@ -540,8 +549,9 @@ export function passPlainValue(step: QuizStep, v: unknown, tx: (k: string, f: st
 }
 
 function DogIdChapters({
-  dogId, groups, latest, fixedRows, fill, nextMissing, onEditPanel, weightTrend, tx, head, extra, footer,
+  dogId, groups, latest, fixedRows, fill, nextMissing, onEditPanel, weightTrend, tx, head, extra, footer, memorial,
 }: {
+  memorial: boolean;
   dogId: string;
   groups: { group: (typeof PASS_GROUPS)[number]; rows: { step: QuizStep; value: LatestValue | undefined }[] }[];
   latest: Record<string, LatestValue>;
@@ -554,6 +564,7 @@ function DogIdChapters({
   head?: React.ReactNode; extra: DogIdExtraChapter[]; footer?: React.ReactNode;
 }) {
   const { lang } = useLang();
+  const nav = useNavigate();
   const loc = intlLocale(lang);
   const [open, setOpen] = useState('identity');
   const counted = useMemo(() => new Set(PROGRESS_STEPS.map((s) => s.field)), []);
@@ -579,11 +590,18 @@ function DogIdChapters({
     const label = f === 'nature.element' ? tx('pack.dogs2.element', 'Element') : tx(step.rowI18n, step.rowEN);
     const to = hasValue(val) && step.resultHref ? `${step.resultHref}&dog=${dogId}&from=id` : `${step.editHref}?dog=${dogId}`;
     const art = hasValue(val) ? natureArt(f, raw) : '';
+    if (!hasValue(val)) {
+      const body = (<><span className="dic-q">?</span><em>{label}</em><b>{memorial ? '—' : tx('pack.pass.addValue', 'add')}</b></>);
+      // Zosnulému sa nič nedopĺňa. Inak je to ťuk do kvízu, ktorý patrí len tomu, kto smie upravovať DOG ID (DOM prvok, aby sa gate nezabalil).
+      return [memorial
+        ? <div key={f} className="dic-tr">{body}</div>
+        : <RightGate key={f} right="dogid.edit" dogId={dogId}><button type="button" className="dic-tr" onClick={() => nav(to)}>{body}</button></RightGate>];
+    }
     return [(
       <Link key={f} className="dic-tr" to={to}>
         {art ? <img src={art} alt="" /> : <span className="dic-q">?</span>}
         <em>{label}</em>
-        <b>{hasValue(val) ? quizValueLabel(step, String(raw), tx) : tx('pack.pass.addValue', 'add')}</b>
+        <b>{quizValueLabel(step, String(raw), tx)}</b>
       </Link>
     )];
   });
@@ -639,7 +657,7 @@ function DogIdChapters({
         const dark = group.key === 'will';
         const shown = rows.filter((r) => !TRIO_FIELDS.includes(r.step.field));
         const fixed = fixedRows[group.key] ?? [];
-        const missing = shown.filter((r) => counted.has(r.step.field) && !hasValue(r.value));
+        const missing = memorial ? [] : shown.filter((r) => counted.has(r.step.field) && !hasValue(r.value));
         const filled = shown.filter((r) => hasValue(r.value));
         const summary = [...fixed.map((r) => r.value ?? ''), ...filled.map((r) => passPlainValue(r.step, r.value!.value, tx, loc))]
           .filter(Boolean).slice(0, 3).join(' · ');
@@ -657,9 +675,14 @@ function DogIdChapters({
             const to = step.editHref ? `${step.editHref}?dog=${dogId}` : `/pack/dogs/quiz/${group.editSection}?dog=${dogId}&field=${step.field}`;
             const name = tx(step.rowI18n, step.rowEN);
             if (!hasValue(value)) {
-              const inner = (w: boolean) => (group.editPanel
-                ? <button type="button" key={step.field} className={`dic-t e${w ? ' w' : ''}`} onClick={() => onEditPanel?.(group.editPanel!)}><em>{name}</em>+ {tx('pack.pass.addValue', 'add')}</button>
-                : <Link key={step.field} className={`dic-t e${w ? ' w' : ''}`} to={to}><em>{name}</em>+ {tx('pack.pass.addValue', 'add')}</Link>);
+              // Zosnulý: len tlmená pomlčka. Inak „+ doplniť“ za bránou práva (DOM prvok `button`, aby gate nezabalil dlaždicu do obalu).
+              const inner = (w: boolean) => (memorial
+                ? <div key={step.field} className={`dic-t${w ? ' w' : ''}`}><em>{name}</em>—</div>
+                : (
+                  <RightGate key={step.field} right={group.key === 'will' ? 'will' : 'dogid.edit'} dogId={dogId}>
+                    <button type="button" className={`dic-t e${w ? ' w' : ''}`} onClick={() => (group.editPanel ? onEditPanel?.(group.editPanel) : nav(to))}><em>{name}</em>+ {tx('pack.pass.addValue', 'add')}</button>
+                  </RightGate>
+                ));
               return { key: step.field, wide: name.length > 16, node: inner };
             }
             const text = passPlainValue(step, value!.value, tx, loc);
@@ -683,7 +706,9 @@ function DogIdChapters({
         });
 
         return row(
-          group.key, tx(group.i18n, group.labelEN), CH_ICON[group.key] ?? 'dogid-identity', sub, missing.length > 0, missing.length === 0 && filled.length + fixed.length > 0, dark,
+          group.key, tx(group.i18n, group.labelEN), CH_ICON[group.key] ?? 'dogid-identity', sub, missing.length > 0,
+          // Očkovania sú v appke nepovinné (nehlásia sa ako chýbajúce), ale háčik dostanú až keď sú vyplnené VŠETKY polia.
+          group.key === 'vax' ? shown.length > 0 && filled.length === shown.length : missing.length === 0 && filled.length + fixed.length > 0, dark,
           <>
             <div className="dic-tiles">{tiles}</div>
             <GroupNote dogId={dogId} groupKey={group.key} value={typeof latest[`${group.key}.note`]?.value === 'string' ? String(latest[`${group.key}.note`]!.value) : ''} tx={tx} />

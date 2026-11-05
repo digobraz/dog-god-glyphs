@@ -509,13 +509,14 @@ export default function PackDogDetail() {
     if (!dog?.id || idPdfBusy) return;
     setIdPdfBusy(true);
     try {
-      const handed = await exportDogIdPdf({
+      const { handed, photoOk } = await exportDogIdPdf({
         dogId: dog.id, dogName, number: certNumber,
         photoUrl: dog.cloudinary_main_url ? sizedUrl(dog.cloudinary_main_url, 480) : null,
         glyphNode: document.querySelector('.did-glyph'),
         fixedRows: fixedIdentityRows, tx, loc: intlLocale(appLang),
       });
       if (!handed) toast({ title: t('pack.dog.docIdNoShare') });
+      else if (!photoOk) toast({ title: tx('pack.sos.card.noPhotoPdf', 'The photo did not make it into the PDF. Try again.') });
     } catch (err) {
       toast({ title: t('pack.dog.docIdFailed'), description: err instanceof Error ? err.message : t('pack.dog.toastUnknownError'), variant: 'destructive' });
     } finally {
@@ -1211,8 +1212,9 @@ export default function PackDogDetail() {
                   bare
                   fixedRows={fixedIdentityRows}
                   onEditPanel={(p) => { if (p === 'will') setWillOpen(true); }}
+                  memorial={isDeceased}
                   chapters={!APP_NEW ? undefined : {
-                    head: <DogLifeStrip dogId={dog.id} tx={tx} />,
+                    head: <DogLifeStrip dogId={dog.id} tx={tx} deceased={isDeceased} deathDate={dog.death_date ?? null} />,
                     extra: [
                       {
                         key: 'docs', title: t('pack.dog.docsTitle'), icon: 'dogid-docs', sub: t('pack.dog.docsSub'),
@@ -1241,7 +1243,7 @@ export default function PackDogDetail() {
                                 <button type="button" className="did-dl" disabled={idPdfBusy} onClick={handleIdPdf}>
                                   {idPdfBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : t('pack.dog.docIdPrint')}
                                 </button>
-                                <button type="button" className="did-dl" onClick={() => navigate(`/pack/dogs/${dog.id}/karticka`)}>{tx('pack.sos.card.docRow', 'Emergency card')}</button>
+                                {!isDeceased && <button type="button" className="did-dl" onClick={() => navigate(`/pack/dogs/${dog.id}/karticka`)}>{tx('pack.sos.card.docRow', 'Emergency card')}</button>}
                               </div>
                             </div>
                             <button type="button" className="did-regen" onClick={handleRegenerate} disabled={regenerating}>
@@ -1492,9 +1494,9 @@ const LIFE_NOTE_FIELDS = ['diary.note', 'diary.health', 'diary.milestone'];
 const LIFE_CSS = `.did-life{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:${PACK_SPACE.md}px;}
 @media (max-width:720px){.did-life{grid-template-columns:repeat(2,minmax(0,1fr));}}`;
 /** Tie isté čísla ako ŽIVOT V KOCKE, len ako pás hore (appka). */
-function DogLifeStrip({ dogId, tx }: { dogId: string; tx: (k: string, f: string) => string }) {
+function DogLifeStrip({ dogId, tx, deceased = false, deathDate = null }: { dogId: string; tx: (k: string, f: string) => string; deceased?: boolean; deathDate?: string | null }) {
   const { lang } = useLang();
-  const { stats, notes, days } = useDogLife(dogId);
+  const { stats, notes, days } = useDogLife(dogId, deceased ? { deathDate } : undefined);
   const cell = (label: string, value: string) => <div key={label}><b>{value}</b><span>{label}</span></div>;
   return (
     <div className="did-strip">
@@ -1506,7 +1508,8 @@ function DogLifeStrip({ dogId, tx }: { dogId: string; tx: (k: string, f: string)
   );
 }
 
-function useDogLife(dogId: string) {
+/** `end` len pre zosnulého psa: dni spolu sa ráta po deň odchodu, bez dátumu je „—“ (nie dni až do dneška). */
+function useDogLife(dogId: string, end?: { deathDate: string | null }) {
   const epoch = usePackStoreEpoch();
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `epoch` JE tá závislosť:
   // dáta ležia v localStorage, takže sa o ich zmene inak nedozvieme.
@@ -1527,7 +1530,8 @@ function useDogLife(dogId: string) {
     return () => { alive = false; off(); };
   }, [dogId]);
   const sinceMs = since ? Date.parse(since) : NaN;
-  const days = Number.isFinite(sinceMs) ? Math.max(0, Math.floor((Date.now() - sinceMs) / 86400000)) : null;
+  const endMs = end ? (end.deathDate ? Date.parse(end.deathDate) : NaN) : Date.now();
+  const days = Number.isFinite(sinceMs) && Number.isFinite(endMs) ? Math.max(0, Math.floor((endMs - sinceMs) / 86400000)) : null;
   return { stats, notes, days };
 }
 

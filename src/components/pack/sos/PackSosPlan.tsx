@@ -216,7 +216,7 @@ export default function PackSosPlan() {
       <>
         {st === 'police' && (
           <div className="sosp-fixed">
-            <a className="sos-cta sos-cta--red" href="tel:158" onClick={act}>158 · {s('pack.sos.plan.police158')}</a>
+            {(pub?.country === 'SVK' || pub?.country === 'CZE') && <a className="sos-cta sos-cta--red" href="tel:158" onClick={act}>158 · {s('pack.sos.plan.police158')}</a>}
             <a className="sos-cta sos-cta--red" href="tel:112" onClick={act}>112 · {s('pack.sos.plan.emergency112')}</a>
           </div>
         )}

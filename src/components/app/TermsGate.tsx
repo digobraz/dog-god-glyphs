@@ -9,6 +9,7 @@
 // piate miesto na údaje o človeku nepribudne).
 // Dve miesta volania: `AppEntry` (krok po kóde, pred povoleniami) a `PackLayout` (kto už bol prihlásený
 // pred týmto krokom alebo prišla nová verzia podmienok).
+import { clearCardDrafts } from '@/components/pack/dogCard/cardDraft';
 import { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,7 +47,7 @@ export function RulesSheet({ onDone }: { onDone: () => void }) {
     onDone();
   };
   const decline = async () => {
-    try { await supabase.auth.signOut({ scope: 'local' }); } catch { /* aj tak späť na vstup */ }
+    try { clearCardDrafts(); await supabase.auth.signOut({ scope: 'local' }); } catch { /* aj tak späť na vstup */ }
     window.location.replace('/login');
   };
 

@@ -8,9 +8,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MAPY_API_KEY, MAPY_BASE, mapyTiles } from '@/lib/env';
 import { useLang } from '@/i18n/LanguageContext';
-import { countryCentroid } from '@/lib/countryGeo';
+import { countryCentroid, countryISO3 } from '@/lib/countryGeo';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { sosDeclare, sosLastPhone, sosMyDogs, type SosDog } from '@/lib/sos';
+import { sosDeclare, sosLastPhone, sosMyDogs, sosResume, type SosDog } from '@/lib/sos';
 import { sosInvalidate } from '@/components/pack/sosKit';
 import { MapAttribution, MAP_ATTR_CSS } from '@/components/pack/mapAttribution';
 import { PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI } from '@/components/pack/packTheme';
@@ -82,6 +82,11 @@ export default function PackSosNew() {
   const navigate = useNavigate();
   const back = useBack('/pack/map');
   const [dogs, setDogs] = useState<SosDog[] | null>(null);
+  const [dogsErr, setDogsErr] = useState(false);   // chyba načítania ≠ „nemáš psa“
+  const [tick, setTick] = useState(0);
+  const [locErr, setLocErr] = useState('');
+  const [pickCountry, setPickCountry] = useState<string | null>(null);   // ISO3 z miesta straty (rgeocode)
+  const pickSeq = useRef(0);
   const [dogId, setDogId] = useState<string | null>(null);
   const [pt, setPt] = useState<[number, number] | null>(null);
   const [gps, setGps] = useState<[number, number] | null>(null);
@@ -99,11 +104,12 @@ export default function PackSosNew() {
 
   useEffect(() => {
     let alive = true;
+    setDogsErr(false);
     sosMyDogs().then((d) => {
       if (!alive) return;
       setDogs(d);
-      setDogId((d.find((x) => !x.active_slug) ?? d[0])?.id ?? null);
-    }).catch(() => alive && setDogs([]));
+      setDogId((cur) => cur ?? (d.find((x) => !x.active_slug) ?? d[0])?.id ?? null);
+    }).catch(() => { if (alive) { setDogs([]); setDogsErr(true); } });
     sosLastPhone().then((p) => { if (alive && p) setPhone((cur) => cur || p); }).catch(() => {});
     // GPS len ak je už povolená — povolenie sa tu nevypytuje samo (tlačidlo MOJA POLOHA to robí vedome)
     (async () => {
@@ -114,29 +120,56 @@ export default function PackSosNew() {
       } catch { /* bez Permissions API zostane stred krajiny */ }
     })();
     return () => { alive = false; };
-  }, []);
+  }, [tick]);
 
   const center = useMemo<[number, number]>(() => gps ?? countryCentroid(dog?.country) ?? SK_CENTER, [gps, dog?.country]);
   const zoom = gps ? 14 : 7;
 
-  const locate = () => {
-    navigator.geolocation?.getCurrentPosition(
-      (p) => { setGps([p.coords.latitude, p.coords.longitude]); setLocateTick((n) => n + 1); }, () => {}, { timeout: 10000, enableHighAccuracy: true });
-  };
-
-  // reverzný geokód len ako NÁVRH lokality; ručne napísané sa neprepisuje
+  // reverzný geokód: NÁVRH lokality (ručne napísané sa neprepisuje) + KRAJINA z miesta straty (isoCode → ISO3)
   const pick = useCallback((p: [number, number]) => {
     setPt(p);
+    setPickCountry(null);
     setErrs((e) => { const { coords: _c, ...rest } = e; return rest; });
+    const seq = ++pickSeq.current;
     fetch(`${MAPY_BASE}/v1/rgeocode?lat=${p[0]}&lon=${p[1]}&lang=${lang}&apikey=${MAPY_API_KEY}`)
       .then((r) => r.json())
-      .then((d) => { const it = d?.items?.[0]; if (it && !placeTouched.current) setPlace(String(it.name || it.location || '')); })
+      .then((d) => {
+        if (seq !== pickSeq.current) return;   // novší klik medzitým
+        const it = d?.items?.[0];
+        if (it && !placeTouched.current) setPlace(String(it.name || it.location || ''));
+        const iso = (it?.regionalStructure as Array<{ type?: string; isoCode?: string }> | undefined)?.find((x) => x.type === 'regional.country')?.isoCode;
+        setPickCountry(iso ? countryISO3(iso) : null);
+      })
       .catch(() => {});
   }, [lang]);
+
+  // MOJA POLOHA: stred mapy + vybraný bod (a reverzný geokód). Zlyhanie / zamietnutie ukáže hlášku; Permissions API sa tu nepoužíva.
+  const locate = () => {
+    setLocErr('');
+    if (!navigator.geolocation) { setLocErr(s('pack.sos.new.locFail')); return; }
+    navigator.geolocation.getCurrentPosition(
+      (p) => { const q: [number, number] = [p.coords.latitude, p.coords.longitude]; setGps(q); setLocateTick((n) => n + 1); pick(q); },
+      (e) => setLocErr(e.code === 1 ? s('pack.sos.new.locDenied') : s('pack.sos.new.locFail')),
+      { timeout: 10000, enableHighAccuracy: true });
+  };
 
   const errText = (code: string) => {
     const k = `pack.sos.err.${code}` as SosKey;
     return ['bad_phone', 'bad_coords', 'bad_time', 'rate_limited', 'no_access', 'bad_state'].includes(code) ? s(k) : s('pack.sos.error');
+  };
+
+  // HĽADÁM ĎALEJ pri psovi s ukončeným pátraním: obnoví tú istú stratu a otvorí jej stránku
+  const resumeEnded = async () => {
+    if (!dog?.ended_id || !dog.ended_slug || busy) return;
+    setBusy(true);
+    try {
+      await sosResume(dog.ended_id);
+      sosInvalidate();
+      navigate(sosPath.page(dog.ended_slug), { replace: true });
+    } catch (x) {
+      setErrs({ resume: errText(sosErrCode(x)) });
+      setBusy(false);
+    }
   };
 
   const submit = async () => {
@@ -151,7 +184,7 @@ export default function PackSosNew() {
     if (Object.keys(e).length || !pt) return;
     setBusy(true);
     try {
-      const r = await sosDeclare({ dogId: dog.id, lat: pt[0], lng: pt[1], lastSeen: when, place: place.trim(), phone: phone.trim() });
+      const r = await sosDeclare({ dogId: dog.id, lat: pt[0], lng: pt[1], lastSeen: when, place: place.trim(), phone: phone.trim(), country: pickCountry });
       sosInvalidate();
       navigate(sosPath.page(r.slug), { replace: true });
     } catch (x) {
@@ -168,7 +201,12 @@ export default function PackSosNew() {
       <style>{MAP_ATTR_CSS}</style>
       <SosCard>
         <h1 className="sos-h2">{s('pack.sos.new.title')}</h1>
-        {dogs === null ? <p className="sos-p">{s('pack.sos.loading')}</p> : dogs.length === 0 ? (
+        {dogs === null ? <p className="sos-p">{s('pack.sos.loading')}</p> : dogsErr ? (
+          <>
+            <p className="sos-p">{s('pack.sos.offline')}</p>
+            <button type="button" className="sos-cta" onClick={() => setTick((n) => n + 1)}>{s('pack.sos.retry')}</button>
+          </>
+        ) : dogs.length === 0 ? (
           <p className="sos-p">{s('pack.sos.new.noDogs')}</p>
         ) : (
           <>
@@ -192,6 +230,13 @@ export default function PackSosNew() {
         </SosCard>
       ) : dog && (
         <>
+          {dog.ended_slug && dog.ended_id && (
+            <SosCard>
+              <p className="sos-p"><b>{dog.dog_name}</b> · {s('pack.sos.new.endedHint')}</p>
+              <button type="button" className="sos-cta" disabled={busy} onClick={resumeEnded}>{s('pack.sos.det.resume')}</button>
+              {errs.resume && <p className="sos-err">{errs.resume}</p>}
+            </SosCard>
+          )}
           <SosCard>
             <h2 className="sos-h2">{s('pack.sos.new.mapTitle')}</h2>
             <p className="sos-p">{s('pack.sos.new.mapHint')}</p>
@@ -200,6 +245,7 @@ export default function PackSosNew() {
               <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm sosn-loc" style={{ width: 'auto', background: T.card }} onClick={locate}>{s('pack.sos.new.myLocation')}</button>
               <MapAttribution />
             </div>
+            {locErr && <p className="sos-err">{locErr}</p>}
             <p className="sos-small"><i className="sosn-swatch" style={{ background: T.sosRed }} />{s('pack.sos.new.legend')}</p>
             <p className="sos-small">{s('pack.sos.new.mapNote')}</p>
             {errs.coords && <p className="sos-err">{errs.coords}</p>}
@@ -224,7 +270,7 @@ export default function PackSosNew() {
               {errs.when && <p className="sos-err">{errs.when}</p>}
             </div>
             <label className="sos-field"><span>{s('pack.sos.new.phone')}</span>
-              <input className={`pf-field${errs.phone ? ' is-bad' : ''}`} type="tel" inputMode="tel" autoComplete="tel" value={phone} maxLength={40}
+              <input className={`pf-field${errs.phone ? ' is-bad' : ''}`} type="tel" inputMode="tel" autoComplete="tel" value={phone} maxLength={20}
                 onChange={(e) => setPhone(e.target.value)} placeholder="+421 900 000 000" />
             </label>
             {errs.phone ? <p className="sos-err">{errs.phone}</p> : <p className="sos-small">{s('pack.sos.new.phoneHint')}</p>}

@@ -195,7 +195,8 @@ function foldLatest(rows: Array<{ field: string; value: unknown; recordedAt: str
 }
 
 /** Posledná hodnota každého poľa jedného psa — hlavná čítacia cesta karty psa. */
-export async function readLatest(dogId: string): Promise<Record<string, LatestValue>> {
+/** `strict`: chyba servera sa vyhodí (tlač a kartička nesmú ticho pracovať s neúplnými údajmi). Bez neho zostanú lokálne zápisy. */
+export async function readLatest(dogId: string, opts?: { strict?: boolean }): Promise<Record<string, LatestValue>> {
   const local = readLocal()
     .filter((r) => r.dogId === dogId)
     .map((r) => ({ field: r.field, value: r.value, recordedAt: r.recordedAt, source: r.source }));
@@ -206,6 +207,7 @@ export async function readLatest(dogId: string): Promise<Record<string, LatestVa
     .eq('dog_id', dogId)
     .order('recorded_at', { ascending: true });
 
+  if (error && opts?.strict) throw error;
   const remote = error || !data
     ? []
     : data.map((r) => ({

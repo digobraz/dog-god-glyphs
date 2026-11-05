@@ -2,7 +2,7 @@
 // Jedna stránka, dva pohľady: MOJA strata (`mine` z `sosMine`) a cudzia (len `lostPublic`).
 //  · červený blok STRATIL SA + lokalita a čas · majiteľ: NAŠIEL SA hneď pod ním · cudzí: ZAVOLAŤ a VIDEL SOM HO
 //  · fotka, meno, plemeno a farba, červený riadok · majiteľ: leták, zdieľanie, plán, „takto to vidí nálezca“, videnia
-//  · `ended` = „Pátranie je vypnuté“ + HĽADÁM ĎALEJ · `found` = ďakovná časť bez telefónu · `asked_at` = „Stále hľadáš X?“
+//  · `ended` = „Pátranie je vypnuté“ + HĽADÁM ĎALEJ (cudzí: ZAVOLAŤ, VIDEL SOM HO a leták žijú ďalej) · `found` = ďakovná časť bez telefónu · `asked_at` = „Stále hľadáš X?“
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
@@ -11,6 +11,7 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { lostUrl, sosFound, sosResume, sosStillSearching, type LostPublic, type SosMine } from '@/lib/sos';
 import { PACK_BOX } from '@/components/pack/packTheme';
 import { shareLostDog, sosInvalidate } from '@/components/pack/sosKit';
+import type { SosKey } from './sosTexts';
 import { AskPopup, CallPopup, FoundPopup, SeenPopup, copyLostLink } from './sosActions';
 import { SosCard, SosStyles, colorWord, useBreedLabel, sosErrCode, sosPath, useBack, useSosLost, useSosT, useWhen, type SosT } from './sosShared';
 
@@ -46,14 +47,16 @@ export default function PackSosDetail() {
   const [pop, setPop] = useState<'call' | 'seen' | 'found' | 'ask' | null>(null);
   const [askClosed, setAskClosed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [runErr, setRunErr] = useState('');   // chyba akcie sa ukáže V popupe, ktorý ostane otvorený
 
   if (load.state !== 'ready') {
     return (
       <PackLayout onBack={back} backLabel={s('pack.sos.back')}>
         <SosStyles />
         <p className="sos-p" style={{ textAlign: 'center' }}>
-          {load.state === 'loading' ? s('pack.sos.loading') : load.state === 'missing' ? s('pack.sos.notFound') : s('pack.sos.error')}
+          {load.state === 'loading' ? s('pack.sos.loading') : load.state === 'missing' ? s('pack.sos.notFound') : s('pack.sos.offline')}
         </p>
+        {load.state === 'error' && <button type="button" className="sos-cta" onClick={load.reload}>{s('pack.sos.retry')}</button>}
       </PackLayout>
     );
   }
@@ -67,12 +70,18 @@ export default function PackSosDetail() {
   const askOpen = own && status === 'active' && !!mine?.asked_at && !askClosed;
 
   const run = async (fn: () => Promise<void>) => {
-    setBusy(true);
-    try { await fn(); setPop(null); load.reload(); } catch (e) { console.warn('sos', sosErrCode(e)); } finally { setBusy(false); }
+    setBusy(true); setRunErr('');
+    try { await fn(); setPop(null); load.reload(); }
+    catch (e) {
+      const code = sosErrCode(e);
+      console.warn('sos', code);
+      setRunErr(['rate_limited', 'no_access', 'bad_state'].includes(code) ? s(`pack.sos.err.${code}` as SosKey) : s('pack.sos.offline'));
+    } finally { setBusy(false); }
   };
+  const openPop = (p: 'call' | 'seen' | 'found' | 'ask' | null) => { setRunErr(''); setPop(p); };
 
   const FoundCta = own && mine ? (
-    <button type="button" className="sos-cta sos-cta--green" onClick={() => setPop('found')}>{s('pack.sos.det.foundBtn')}</button>
+    <button type="button" className="sos-cta sos-cta--green" onClick={() => openPop('found')}>{s('pack.sos.det.foundBtn')}</button>
   ) : null;
 
   return (
@@ -88,7 +97,7 @@ export default function PackSosDetail() {
         )}
 
         {status === 'active' && own && FoundCta}
-        {status === 'active' && !own && (
+        {status !== 'found' && !own && (
           <>
             <button type="button" className="sos-cta" onClick={() => setPop('call')}>{s('pack.sos.det.call')}</button>
             <button type="button" className="sos-cta sos-cta--ghost" onClick={() => setPop('seen')}>{s('pack.sos.det.seen')}</button>
@@ -99,6 +108,7 @@ export default function PackSosDetail() {
             <h2 className="sos-h2">{s('pack.sos.det.endedTitle')}</h2>
             <p className="sos-p">{s('pack.sos.det.endedText')}</p>
             <button type="button" className="sos-cta" disabled={busy} onClick={() => run(async () => { await sosResume(mine.id); sosInvalidate(); })}>{s('pack.sos.det.resume')}</button>
+            {runErr && pop === null && <p className="sos-err">{runErr}</p>}
             {FoundCta}
           </SosCard>
         )}
@@ -124,7 +134,7 @@ export default function PackSosDetail() {
         {status === 'active' && own && mine && (
           <button type="button" className="sos-cta sos-cta--tint" onClick={() => navigate(sosPath.plan(mine.slug))}>{s('pack.sos.det.plan')}</button>
         )}
-        {status === 'active' && (
+        {status !== 'found' && (
           <div className="sos-two">
             <button type="button" className="sos-cta sos-cta--gold" onClick={() => void shareLostDog({ slug: pub.slug, name: pub.dog_name, flyerUrl: flyerUrl, text: s('pack.sos.det.shareText', { name: pub.dog_name }), copiedText: s('pack.sos.det.copied') })}>{s('pack.sos.det.share')}</button>
             <button type="button" className="sos-cta sos-cta--ghost" onClick={() => void copyLostLink(pub.slug, s)}>{s('pack.sos.det.copy')}</button>
@@ -138,10 +148,10 @@ export default function PackSosDetail() {
 
       {pop === 'call' && <CallPopup slug={pub.slug} name={pub.dog_name} s={s} onClose={() => setPop(null)} />}
       {pop === 'seen' && <SeenPopup slug={pub.slug} s={s} onClose={() => setPop(null)} />}
-      {pop === 'found' && mine && <FoundPopup name={pub.dog_name} s={s} busy={busy} onYes={() => run(async () => { await sosFound(mine.id); sosInvalidate(); })} onClose={() => setPop(null)} />}
+      {pop === 'found' && mine && <FoundPopup name={pub.dog_name} s={s} busy={busy} err={runErr} onYes={() => run(async () => { await sosFound(mine.id); sosInvalidate(); })} onClose={() => setPop(null)} />}
       {askOpen && pop !== 'found' && mine && (
-        <AskPopup name={pub.dog_name} s={s} busy={busy} onClose={() => setAskClosed(true)}
-          onStill={() => run(() => sosStillSearching(mine.id))} onFound={() => setPop('found')} />
+        <AskPopup name={pub.dog_name} s={s} busy={busy} err={runErr} onClose={() => setAskClosed(true)}
+          onStill={() => run(() => sosStillSearching(mine.id))} onFound={() => openPop('found')} />
       )}
     </PackLayout>
   );

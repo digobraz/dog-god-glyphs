@@ -4,7 +4,7 @@ import { PHOTO_INVITE_NEEDED } from "@/lib/photoInvite";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import { APP_NEW, DEV_FULL, BUDDY_LIVE, hasStoredSessionOrAuthReturn } from "@/lib/packFlags";
-import { SOS_ON } from "@/lib/env";
+import { SOS_ON, VET_ER_ON } from "@/lib/env";
 // Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
 import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
 import { LanguageProvider, useLang, ensurePackDict } from "@/i18n/LanguageContext";
@@ -639,10 +639,10 @@ const App = () => (
               {/* SNIFFER (interne BUDDY; Matej 24. 9.: „premenujem to na SNIFFER") = kôš 3 (bez spodnej lišty), rovina vo VON — lock architektura-pack §8/§8.1. */}
               <Route path="/pack/sniffer" element={DEV_FULL && BUDDY_LIVE ? <PackBuddy /> : <Navigate to="/pack/map" replace />} />
               {/* SOS — stratený pes (TEST_BUILD). Statické `new` vyhráva nad `:slug`. */}
+              {VET_ER_ON && <Route path="/pack/sos/pohotovost" element={<PackSosVet />} />}
               {SOS_ON && (
                 <>
                   <Route path="/pack/sos/new" element={<PackSosNew />} />
-                  <Route path="/pack/sos/pohotovost" element={<PackSosVet />} />
                   <Route path="/pack/sos/:slug" element={<PackSosDetail />} />
                   <Route path="/pack/sos/:slug/letak" element={<PackSosFlyer />} />
                   <Route path="/pack/sos/:slug/plan" element={<PackSosPlan />} />

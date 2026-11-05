@@ -45,7 +45,7 @@ export default function PackSosFlyer() {
     const def = flyerDefaults(s);
     const fl = load.mine.flyer ?? {};
     setF({
-      headline: fl.headline ?? def.headline, about: fl.about ?? def.about, reward: fl.reward ?? def.reward, thanks: fl.thanks ?? def.thanks,
+      headline: (fl.headline ?? def.headline).slice(0, 28), about: fl.about ?? def.about, reward: (fl.reward ?? def.reward).slice(0, 40), thanks: fl.thanks ?? def.thanks,
       place: load.mine.place_label ?? '', phone: load.mine.phone ?? '', deg: typeof fl.direction_deg === 'number' ? nearestDir(fl.direction_deg) : null,
     });
   }, [load, f, s]);
@@ -76,8 +76,9 @@ export default function PackSosFlyer() {
     return (
       <SosTaskShell onBack={back} backLabel={s('pack.sos.back')}>
         <p className="sos-p" style={{ textAlign: 'center' }}>
-          {load.state === 'loading' || (load.state === 'ready' && load.mine && !f) ? s('pack.sos.loading') : load.state === 'error' ? s('pack.sos.error') : s('pack.sos.notFound')}
+          {load.state === 'loading' || (load.state === 'ready' && load.mine && !f) ? s('pack.sos.loading') : load.state === 'error' ? s('pack.sos.offline') : s('pack.sos.notFound')}
         </p>
+        {load.state === 'error' && <button type="button" className="sos-cta" onClick={load.reload}>{s('pack.sos.retry')}</button>}
       </SosTaskShell>
     );
   }
@@ -102,14 +103,14 @@ export default function PackSosFlyer() {
 
   const download = async () => {
     setBusy('dl'); setErr('');
-    try { await flyerDownload(await renderPng(), mine.slug); }
+    try { if (!(await flyerDownload(await renderPng(), mine.slug))) setErr(s('pack.sos.fl.noShare')); }
     catch (e) { setErr(s('pack.sos.fl.exportFail')); console.warn('sos flyer', e); }
     finally { setBusy(null); }
   };
 
   const field = (k: 'headline' | 'place' | 'phone' | 'reward' | 'thanks', label: SosKey, extra?: { hint?: SosKey; type?: string }) => (
     <label className="sos-field"><span>{s(label)}</span>
-      <input className="pf-field" type={extra?.type ?? 'text'} value={f[k]} maxLength={k === 'phone' ? 40 : 120} onChange={(e) => set(k, e.target.value)} />
+      <input className="pf-field" type={extra?.type ?? 'text'} value={f[k]} maxLength={k === 'phone' ? 20 : k === 'headline' ? 28 : k === 'reward' ? 40 : 120} onChange={(e) => set(k, e.target.value)} />
       {extra?.hint && <span className="sos-small" style={{ textTransform: 'none', letterSpacing: 0, marginTop: 4 }}>{s(extra.hint)}</span>}
     </label>
   );

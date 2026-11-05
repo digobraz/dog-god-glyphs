@@ -524,10 +524,7 @@ export const VET_EMERGENCY: VetPlace[] = [
    50.075,
    14.437
   ],
-  "hours": [
-   0,
-   24
-  ],
+  "hours": "nonstop",
   "home": true,
   "web": "https://www.pet-medic.cz/"
  },
@@ -557,8 +554,15 @@ export const CITIES: { name: string; at: [number, number] }[] = [
   { name: 'Praha', at: [50.075, 14.437] },
 ];
 
-function slotsFor(sched: NonNullable<VetPlace['sched']>, d: Date) {
-  const day = d.getDay();
+/** Čas v Europe/Bratislava (aj pre Prahu: rovnaké pásmo), nezávisle od pásma telefónu. day 0 = nedeľa. */
+function localParts(d: Date): { day: number; h: number } {
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Bratislava', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(d);
+  const get = (t: string) => parts.find((x) => x.type === t)?.value ?? '';
+  const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(get('weekday'));
+  return { day, h: Number(get('hour')) + Number(get('minute')) / 60 };
+}
+
+function slotsFor(sched: NonNullable<VetPlace['sched']>, day: number) {
   return day === 0 ? sched.su : day === 6 ? sched.sa : sched.wk;
 }
 
@@ -566,13 +570,13 @@ function slotsFor(sched: NonNullable<VetPlace['sched']>, d: Date) {
 export function closesAt(p: VetPlace, d: Date): number | null {
   if (typeof p.hours === 'string') return null;
   if (!p.sched) return p.hours[1];
-  const h = d.getHours() + d.getMinutes() / 60;
-  const s = slotsFor(p.sched, d);
+  const { day, h } = localParts(d);
+  const s = slotsFor(p.sched, day);
   return (s.find(([, b]) => h < b) ?? s[s.length - 1])?.[1] ?? null;
 }
 
 export function telAt(p: VetPlace, d: Date): string {
-  const h = d.getHours() + d.getMinutes() / 60;
+  const { h } = localParts(d);
   return p.telBy?.find((x) => h >= x.from && h < x.to)?.tel ?? p.tel;
 }
 
@@ -580,16 +584,16 @@ export function telAt(p: VetPlace, d: Date): string {
 export function opensAt(p: VetPlace, d: Date): number | null {
   if (typeof p.hours === 'string') return null;
   if (!p.sched) return p.hours[0];
-  const h = d.getHours() + d.getMinutes() / 60;
-  const s = slotsFor(p.sched, d);
+  const { day, h } = localParts(d);
+  const s = slotsFor(p.sched, day);
   return (s.find(([a]) => h < a) ?? s[0])?.[0] ?? null;
 }
 
 export function isOpenAt(p: VetPlace, d: Date): boolean {
   if (typeof p.hours === 'string') return true;
-  if (p.weekdays && (d.getDay() === 0 || d.getDay() === 6)) return false;
-  const h = d.getHours() + d.getMinutes() / 60;
-  if (p.sched) return slotsFor(p.sched, d).some(([a, b]) => h >= a && h < b);
+  const { day, h } = localParts(d);
+  if (p.weekdays && (day === 0 || day === 6)) return false;
+  if (p.sched) return slotsFor(p.sched, day).some(([a, b]) => h >= a && h < b);
   const [from, to] = p.hours;
   return to > 24 ? h >= from || h < to - 24 : h >= from && h < to;
 }

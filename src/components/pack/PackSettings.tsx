@@ -1,7 +1,9 @@
 import { DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { readHuman, patchHuman, notifOff, devotionTimes } from '@/lib/humanPrefs';
+import { clearPushGeo } from '@/lib/appPushGeo';
 import { useEffect, useState } from 'react';
 import { forgetPushToken } from '@/lib/appPush';
+import { clearCardDrafts } from '@/components/pack/dogCard/cardDraft';
 import { BackButton } from './BackButton';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
@@ -164,6 +166,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
       const { human } = await readHuman();
       const off = notifOff(human).filter((x) => x !== 'notif_sos');
       await patchHuman({ notif_off: on ? off : [...off, 'notif_sos'] });
+      if (!on) void clearPushGeo();
     } catch {
       setSosOn(predtym);
       toast({ title: tx('pack.settings.notifErr', 'Could not save'), description: tx('pack.settings.notifErrDesc', 'Try again in a moment.') });
@@ -201,6 +204,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
     setSigningOut(true);
     try {
       await forgetPushToken();
+      clearCardDrafts();
       await supabase.auth.signOut();
       navigate('/login');
     } catch {

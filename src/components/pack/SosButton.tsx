@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
+import { SOS_ON } from '@/lib/env';
 import { PackPopup } from './PackPopup';
 import { BrandIcon } from './BrandIcon';
 import { useSosActive, sosAgo } from './sosKit';
@@ -63,10 +64,12 @@ export function SosButton() {
         <PackPopup title="SOS" onClose={() => setOpen(false)}>
           <div className="sos-list">
             {/* Vždy prvé, nikdy nezmizne — riadky pátraní ho nesmú nahradiť. */}
-            <button type="button" className="sos-row lost" style={{ ...PACK_BOX.row, background: T.sosRed, borderColor: T.sosRedDark }} onClick={() => go('/pack/sos/new')}>
-              <BrandIcon name="dogposter" size={24} tint="white" />
-              <b>{tx('pack.sos.btn.lost', 'My dog is lost')}</b>
-            </button>
+            {SOS_ON && (
+              <button type="button" className="sos-row lost" style={{ ...PACK_BOX.row, background: T.sosRed, borderColor: T.sosRedDark }} onClick={() => go('/pack/sos/new')}>
+                <BrandIcon name="dogposter" size={24} tint="white" />
+                <b>{tx('pack.sos.btn.lost', 'My dog is lost')}</b>
+              </button>
+            )}
             <button type="button" className="sos-row vet" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/pohotovost')}>
               <BrandIcon name="vet" size={24} tint="gold" />
               <b>{tx('pack.sos.er.btn', 'Emergency vet')}</b>
@@ -77,7 +80,7 @@ export function SosButton() {
               <b>{tx('pack.sos.btn.abuse', 'Report abuse')}</b>
               <small>{tx('pack.sos.soon', 'Soon')}</small>
             </button>
-            {ROWS.map((r) => (
+            {SOS_ON && ROWS.map((r) => (
               <button key={r.key} type="button" className={`sos-row ${r.key}`} style={{ ...PACK_BOX.row }}>
                 <BrandIcon name={r.icon} size={24} tint="gold" />
                 <b>{tx(r.k, r.fb)}</b>
@@ -85,7 +88,7 @@ export function SosButton() {
               </button>
             ))}
           </div>
-          {active.length > 0 && (
+          {SOS_ON && active.length > 0 && (
             <>
               <h3 className="sos-sec">{tx('pack.sos.active', 'Search in progress')}</h3>
               <div className="sos-list">

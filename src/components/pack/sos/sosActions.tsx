@@ -29,13 +29,17 @@ const here = () => new Promise<GeolocationPosition>((res, rej) => {
   navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000, enableHighAccuracy: true });
 });
 
-/** ZAVOLAŤ: číslo sa stiahne až po ťuku (`lostPhone`; počíta sa odkrytie). `null` = nenájdený / ukončený. */
+/** ZAVOLAŤ: číslo sa stiahne až po ťuku (`lostPhone`; počíta sa odkrytie). `null` = nenájdený / nájdený (číslo sa skrylo).
+ *  Chyba siete / servera / limit (429) NIE JE „číslo nie je dostupné“ — ukáže sa hláška a SKÚSIŤ ZNOVA. */
 export function CallPopup({ slug, name, s, onClose }: { slug: string; name: string; s: SosT; onClose: () => void }) {
   const [phone, setPhone] = useState<string | null | undefined>(undefined);
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
   const reveal = async () => {
-    setBusy(true);
-    try { setPhone(await lostPhone(slug)); } catch { setPhone(null); } finally { setBusy(false); }
+    setBusy(true); setErr('');
+    try { setPhone(await lostPhone(slug)); }
+    catch (e) { setErr((e as Error)?.message === 'rate_limited' ? s('pack.sos.err.rate_limited') : s('pack.sos.offline')); }
+    finally { setBusy(false); }
   };
   return (
     <PackPopup title={s('pack.sos.det.callTitle')} onClose={onClose}>
@@ -43,7 +47,10 @@ export function CallPopup({ slug, name, s, onClose }: { slug: string; name: stri
       <div className="sos-stack">
         <p className="sos-dogname" style={{ fontSize: 20 }}>{name}</p>
         {phone === undefined ? (
-          <button type="button" className="sos-cta" disabled={busy} onClick={reveal}>{s('pack.sos.det.callOwner')}</button>
+          <>
+            {err && <p className="sos-err">{err}</p>}
+            <button type="button" className="sos-cta" disabled={busy} onClick={reveal}>{err ? s('pack.sos.retry') : s('pack.sos.det.callOwner')}</button>
+          </>
         ) : phone ? (
           <>
             <p className="sos-dogname" style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 24 }}>{phone}</p>
@@ -64,16 +71,19 @@ export function SeenPopup({ slug, s, onClose }: { slug: string; s: SosT; onClose
   const [done, setDone] = useState(false);
   const [err, setErr] = useState('');
   const send = async () => {
-    setBusy(true); setErr('');
+    setErr('');
+    if (!note.trim() && !withLoc) { setErr(s('pack.sos.det.seenEmpty')); return; }   // prázdne hlásenie server odmietne
+    setBusy(true);
     let loc: { lat: number; lng: number } | undefined;
     if (withLoc) {
       try { const p = await here(); loc = { lat: p.coords.latitude, lng: p.coords.longitude }; }
       catch { setErr(s('pack.sos.det.seenLocFail')); }
     }
+    if (!loc && !note.trim()) { setBusy(false); return; }   // poloha nevyšla a poznámka chýba: nič na odoslanie
     try {
       await postSighting(slug, { ...(loc ?? {}), ...(note.trim() ? { note: note.trim() } : {}) });
       setDone(true);
-    } catch { setErr(s('pack.sos.error')); } finally { setBusy(false); }
+    } catch (e) { setErr((e as Error)?.message === 'sighting_429' ? s('pack.sos.err.rate_limited') : s('pack.sos.error')); } finally { setBusy(false); }
   };
   return (
     <PackPopup title={s('pack.sos.det.seenTitle')} onClose={onClose}>
@@ -102,12 +112,13 @@ export function SeenPopup({ slug, s, onClose }: { slug: string; s: SosT; onClose
 }
 
 /** Potvrdenie NAŠIEL SA (majiteľ). */
-export function FoundPopup({ name, s, busy, onYes, onClose }: { name: string; s: SosT; busy: boolean; onYes: () => void; onClose: () => void }) {
+export function FoundPopup({ name, s, busy, err, onYes, onClose }: { name: string; s: SosT; busy: boolean; err?: string; onYes: () => void; onClose: () => void }) {
   return (
     <PackPopup title={s('pack.sos.det.foundTitle', { name })} onClose={onClose}>
       <style>{PF_FIELD_CSS + SOS_CSS}</style>
       <div className="sos-stack">
         <p className="sos-p">{s('pack.sos.det.foundText')}</p>
+        {err && <p className="sos-err">{err}</p>}
         <button type="button" className="sos-cta sos-cta--green" disabled={busy} onClick={onYes}>{s('pack.sos.det.foundYes')}</button>
         <button type="button" className="sos-cta sos-cta--ghost" onClick={onClose}>{s('pack.sos.det.foundNo')}</button>
       </div>
@@ -116,14 +127,15 @@ export function FoundPopup({ name, s, busy, onYes, onClose }: { name: string; s:
 }
 
 /** Po 14 dňoch: „Stále hľadáš X?“ (`asked_at`). */
-export function AskPopup({ name, s, busy, onStill, onFound, onClose }: {
-  name: string; s: SosT; busy: boolean; onStill: () => void; onFound: () => void; onClose: () => void;
+export function AskPopup({ name, s, busy, err, onStill, onFound, onClose }: {
+  name: string; s: SosT; busy: boolean; err?: string; onStill: () => void; onFound: () => void; onClose: () => void;
 }) {
   return (
     <PackPopup title={s('pack.sos.det.askTitle', { name })} onClose={onClose}>
       <style>{PF_FIELD_CSS + SOS_CSS}</style>
       <div className="sos-stack">
         <p className="sos-p">{s('pack.sos.det.askText')}</p>
+        {err && <p className="sos-err">{err}</p>}
         <button type="button" className="sos-cta" disabled={busy} onClick={onStill}>{s('pack.sos.det.stillBtn')}</button>
         <button type="button" className="sos-cta sos-cta--green" disabled={busy} onClick={onFound}>{s('pack.sos.det.foundBtn')}</button>
       </div>

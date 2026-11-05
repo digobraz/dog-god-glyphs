@@ -112,6 +112,13 @@ const ISO2_CENTROID: Record<string, [number, number]> = {
   sg: [1.35, 103.8], ae: [23.4, 53.8], za: [-30.6, 22.9],
 };
 
+/** ISO2 → ISO3 (tak ako ho píše `dogs.country`, napr. SK → SVK) pre krajiny, ktoré tu poznáme cez 3-písmenný kľúč; inak späť ISO2 veľkými. */
+export function countryISO3(iso2: string): string {
+  const k = iso2.trim().toLowerCase();
+  const hit = Object.entries(NAME_TO_ISO2).find(([name, v]) => v === k && name.length === 3 && name !== k);
+  return (hit ? hit[0] : k).toUpperCase();
+}
+
 /** Free-text country (name / ISO2 / ISO3) → ISO2 lowercase, or null if unknown. */
 export function countryISO2(country?: string | null): string | null {
   if (!country) return null;

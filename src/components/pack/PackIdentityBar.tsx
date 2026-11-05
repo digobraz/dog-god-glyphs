@@ -37,7 +37,7 @@ import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, PACK_TOPROW, FONT_TITLE, FONT
 import { AINUBIS, AI_GLASS } from './ainubisSkin';
 import { NAV_R, PALE_PC_MIN } from './navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
-import { SOS_ON } from '@/lib/env';
+import { SOS_ON, VET_ER_ON } from '@/lib/env';
 import { SosButton } from './SosButton';
 import { AvatarRing, AV_D, AV_D_HEAD, PHOTO, photoAt } from './AvatarRing';
 import { firstNameFrom } from '@/lib/pilgrimName';
@@ -198,7 +198,7 @@ export function PackIdentityBar({ id, middle, stats, primary, onMe, pcStats, mSt
       <div className="pkid-mid">{middle}</div>
       <div className="pkid-right">
         {/* SOS vedľa správ aj vo VAULTe (4. 11. 2026, lock architektura-pack §1.2) — len SOS_ON. */}
-        {SOS_ON && <SosButton />}
+        {(VET_ER_ON || SOS_ON) && <SosButton />}
         <PackTopRight last24h={id.packToday} total={id.packTotal} layout="inline" />
       </div>
     </div>

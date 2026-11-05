@@ -6,7 +6,7 @@
 import { PASS_GROUPS, STEP_BY_FIELD, FLOW_EXTRA_FIELDS } from './dogQuiz';
 import { passPlainValue, capSpecials, type FixedRow } from './DogPassport';
 import { readLatest, hasValue } from '@/lib/dogEvents';
-import { IS_APP } from '@/lib/isApp';
+import { drawNode, imagesToPdfAndShare, safeFileName, toDataUrl } from '@/lib/sheetPdf';
 import { PACK_THEME as T } from './packTheme';
 
 const A4_W = 794;
@@ -21,19 +21,10 @@ type Input = {
   tx: (k: string, f: string) => string; loc: string;
 };
 
-async function toDataUrl(url: string): Promise<string | null> {
-  try {
-    const blob = await (await fetch(url)).blob();
-    return await new Promise((res, rej) => {
-      const fr = new FileReader();
-      fr.onload = () => res(String(fr.result));
-      fr.onerror = () => rej(fr.error);
-      fr.readAsDataURL(blob);
-    });
-  } catch { return null; }
-}
+type Group = { title: string; rows: string[]; note: string };
 
-function groupBlocks({ fixedRows, tx, loc }: Input, latest: Awaited<ReturnType<typeof readLatest>>): string[] {
+/** Skupiny po riadkoch, aby sa dlhá skupina dala rozdeliť medzi strany bez orezania. */
+function groups({ fixedRows, tx, loc }: Input, latest: Awaited<ReturnType<typeof readLatest>>): Group[] {
   return PASS_GROUPS.filter((g) => g.key !== 'will').map((g) => {
     const fixed = (fixedRows[g.key] ?? []).map((r) => [tx(r.i18n, r.labelEN), r.value ?? '']);
     const rows = g.fields.flatMap((f) => {
@@ -44,15 +35,18 @@ function groupBlocks({ fixedRows, tx, loc }: Input, latest: Awaited<ReturnType<t
       return [[tx(step.rowI18n, step.rowEN), hasValue(value) ? passPlainValue(step, value!.value, tx, loc) : '']];
     });
     const note = latest[`${g.key}.note`]?.value;
-    const cells = [...fixed, ...rows].map(([l, v]) =>
-      `<div style="display:flex;gap:16px;padding:4px 0;border-bottom:1px solid ${T.hairline}"><span style="flex:0 0 200px;color:#7a5a2a">${esc(l)}</span><b style="font-weight:500;flex:1">${esc(v) || '&nbsp;'}</b></div>`).join('');
-    return `<section style="margin-bottom:24px"><h2 style="font:700 16px Cinzel,serif;letter-spacing:.14em;text-transform:uppercase;margin:0 0 8px">${esc(tx(g.i18n, g.labelEN))}</h2>${cells}${typeof note === 'string' && note ? `<p style="font-style:italic;color:#7a5a2a;margin:8px 0 0">„${esc(note)}“</p>` : ''}</section>`; /* písmo: nadpis */
+    return {
+      title: tx(g.i18n, g.labelEN),
+      rows: [...fixed, ...rows].map(([l, v]) =>
+        `<div style="display:flex;gap:16px;padding:4px 0;border-bottom:1px solid ${T.hairline}"><span style="flex:0 0 200px;color:#7a5a2a">${esc(l)}</span><b style="font-weight:500;flex:1">${esc(v) || '&nbsp;'}</b></div>`),
+      note: typeof note === 'string' && note ? `<p style="font-style:italic;color:#7a5a2a;margin:8px 0 0">„${esc(note)}“</p>` : '',
+    };
   });
 }
 
-/** Vyrobí PDF. Vráti `false`, keď ho toto zariadenie nevie odovzdať (appka bez systémového zdieľania). */
-export async function exportDogIdPdf(input: Input): Promise<boolean> {
-  const latest = await readLatest(input.dogId);
+/** Vyrobí PDF. `handed: false` = zariadenie ho nevie odovzdať · `photoOk: false` = fotka sa ani na štvrtý pokus nenakreslila. */
+export async function exportDogIdPdf(input: Input): Promise<{ handed: boolean; photoOk: boolean }> {
+  const latest = await readLatest(input.dogId, { strict: true });
   const photo = input.photoUrl ? await toDataUrl(input.photoUrl) : null;
   const host = document.createElement('div');
   host.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4_W}px;`;
@@ -63,57 +57,62 @@ export async function exportDogIdPdf(input: Input): Promise<boolean> {
     host.appendChild(p);
     return p;
   };
+  // Strana pretiekla, keď jej obsah presiahne výšku A4.
+  const fits = (p: HTMLElement) => p.scrollHeight <= p.clientHeight + 1;
   try {
     await document.fonts.ready;
     const pages = [page()];
+    const last = () => pages[pages.length - 1];
     const head = document.createElement('div');
     head.style.cssText = 'display:flex;align-items:center;gap:24px;margin-bottom:24px';
-    head.innerHTML = `${photo ? `<img src="${photo}" alt="" style="width:112px;height:112px;border-radius:50%;object-fit:cover;border:2px solid ${T.accentGold}">` : ''}<div style="flex:1"><div style="font:500 10px 'Space Grotesk';letter-spacing:.26em">DOG ID</div><div style="font:700 32px 'Cinzel Decorative',Cinzel,serif;text-transform:uppercase">${esc(input.dogName)}</div><div style="font-weight:600">${esc(input.number)}</div></div>`; /* písmo: nadpis */
+    head.innerHTML = `${photo ? `<img data-photo src="${photo}" alt="" style="width:112px;height:112px;border-radius:50%;object-fit:cover;border:2px solid ${T.accentGold}">` : ''}<div style="flex:1"><div style="font:500 10px 'Space Grotesk';letter-spacing:.26em">DOG ID</div><div style="font:700 32px 'Cinzel Decorative',Cinzel,serif;text-transform:uppercase">${esc(input.dogName)}</div><div style="font-weight:600">${esc(input.number)}</div></div>`; /* písmo: nadpis */
     pages[0].appendChild(head);
     if (input.glyphNode) {
       const g = input.glyphNode.cloneNode(true) as HTMLElement;
       g.style.cssText = 'width:100%;max-width:none;margin:0 0 24px';
       pages[0].appendChild(g);
+      // Heroglyf, ktorý sa so záhlavím nezmestí, sa zúži, aby ho strana neorezala.
+      if (!fits(pages[0])) g.style.width = '55%';
     }
-    const room = A4_H - 2 * PAD;
-    // scrollHeight prázdnej strany je celá A4, preto zo spodnej hrany posledného prvku.
-    let used = (pages[0].lastElementChild as HTMLElement).getBoundingClientRect().bottom - pages[0].getBoundingClientRect().top - PAD + 24;
-    for (const html of groupBlocks(input, latest)) {
-      const wrap = document.createElement('div');
-      wrap.innerHTML = html;
-      const block = wrap.firstElementChild as HTMLElement;
-      pages[pages.length - 1].appendChild(block);
-      const h = block.offsetHeight + 24;
-      if (used + h > room) {
-        pages.push(page());
-        pages[pages.length - 1].appendChild(block);
-        used = 0;
+    // Skupina ide po riadkoch: čo sa nezmestí, pokračuje na ďalšej strane pod rovnakým nadpisom, nič sa neorezáva.
+    for (const grp of groups(input, latest)) {
+      const section = (cont: boolean) => {
+        const sec = document.createElement('section');
+        sec.style.marginBottom = '24px';
+        const h = document.createElement('h2');
+        h.style.cssText = "font:700 16px Cinzel,serif;letter-spacing:.14em;text-transform:uppercase;margin:0 0 8px"; /* písmo: nadpis */
+        h.textContent = cont ? `${grp.title} …` : grp.title;
+        sec.appendChild(h);
+        last().appendChild(sec);
+        return sec;
+      };
+      const items = [...grp.rows, ...(grp.note ? [grp.note] : [])];
+      let sec = section(false);
+      let placed = 0;
+      for (const html of items) {
+        const wrap = document.createElement('div');
+        wrap.innerHTML = html;
+        const el = wrap.firstElementChild as HTMLElement;
+        sec.appendChild(el);
+        if (!fits(last())) {
+          sec.removeChild(el);
+          if (sec.children.length === 1) sec.remove(); // nadpis sám dole na strane
+          pages.push(page());
+          sec = section(placed > 0);
+          sec.appendChild(el);
+        }
+        placed += 1;
       }
-      used += h;
     }
-    const { toJpeg } = await import('html-to-image');
-    const { jsPDF } = await import('jspdf');
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+    const images: { dataUrl: string; format: 'JPEG' }[] = [];
+    let photoOk = true;
     for (let i = 0; i < pages.length; i += 1) {
-      const img = await toJpeg(pages[i], { pixelRatio: 2, quality: 0.92, width: A4_W, height: A4_H, cacheBust: false });
-      if (i) pdf.addPage();
-      pdf.addImage(img, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+      const r = await drawNode(pages[i], { photoSelector: i === 0 ? 'img[data-photo]' : undefined, jpeg: true, pixelRatio: 2, width: A4_W, height: A4_H });
+      if (!r.photoOk) photoOk = false;
+      images.push({ dataUrl: r.dataUrl, format: 'JPEG' });
     }
-    const name = `DOG-ID-${input.dogName.replace(/[^\p{L}\p{N}]+/gu, '-')}.pdf`;
-    const blob = pdf.output('blob');
-    if (IS_APP) {
-      const file = new File([blob], name, { type: 'application/pdf' });
-      if (!navigator.canShare?.({ files: [file] })) return false;
-      // Systémový hárok: na iPhone má Tlačiť aj Uložiť do Súborov.
-      await navigator.share({ files: [file], title: name }).catch((e) => { if (e?.name !== 'AbortError') throw e; });
-      return true;
-    }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = name;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
-    return true;
+    const handed = await imagesToPdfAndShare(images, safeFileName('DOG-ID', input.dogName));
+    return { handed, photoOk };
   } finally {
     host.remove();
   }

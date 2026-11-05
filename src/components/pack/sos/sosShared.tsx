@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
+import { supabase } from '@/integrations/supabase/client';
 import { lostPublic, sosMineBySlug, type LostPublic, type SosMine } from '@/lib/sos';
 import { canStepBack } from '@/lib/stepBack';
 import { localizeBreed } from '@/lib/breedDisplay';
@@ -102,7 +103,13 @@ export function useSosLost(slug: string | undefined): SosLoad & { reload: () => 
         if (!alive) return;
         if (!pub) { setData({ state: 'missing' }); return; }
         let mine: SosMine | null = null;
-        try { mine = await sosMineBySlug(slug); } catch { /* bez prihlásenia: cudzí pohľad */ }
+        try { mine = await sosMineBySlug(slug); }
+        catch {
+          // Chyba ≠ „cudzí pes“: prihlásenému by sa majiteľ zhodil na cudzí pohľad (bez NAŠIEL SA, leták, plán).
+          // Bez relácie je cudzí pohľad správny; s reláciou ide o chybu siete / servera ⇒ SKÚSIŤ ZNOVA.
+          const { data: ses } = await supabase.auth.getSession();
+          if (ses.session) { if (alive) setData({ state: 'error' }); return; }
+        }
         if (alive) setData({ state: 'ready', pub, mine });
       } catch { if (alive) setData({ state: 'error' }); }
     })();

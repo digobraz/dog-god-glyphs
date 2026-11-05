@@ -10,6 +10,8 @@ import { sosActive, lostShare, lostUrl, type SosActiveRow } from '@/lib/sos';
 import { intlLocale } from '@/i18n/bcp47';
 import { toast } from '@/hooks/use-toast';
 import { withTransform } from '@/services/cloudinaryService';
+import { IS_APP } from '@/lib/isApp';
+import { shareFile } from '@/lib/shareFile';
 
 const TTL = 30_000;
 const EVT = 'dogypt:sos-changed';
@@ -86,6 +88,12 @@ export async function shareLostDog(a: {
   const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean };
   const counted = () => { void lostShare(a.slug).catch(() => {}); };
   try {
+    // V appke ide leták ako súbor cez natívny hárok (`shareFile`; nezávisí od `navigator.share` vo WebView).
+    // `false` = zariadenie to nevie ⇒ nižšie spadne na odkaz / schránku.
+    if (IS_APP && a.flyerUrl) {
+      const file = await flyerFile(withTransform(a.flyerUrl, 'c_limit,w_1600,f_jpg,q_auto'), a.name);
+      if (file && await shareFile(file, file.name)) { counted(); return 'shared'; }
+    }
     if (a.flyerUrl && typeof nav.canShare === 'function' && typeof navigator.share === 'function') {
       const file = await flyerFile(withTransform(a.flyerUrl, 'c_limit,w_1600,f_jpg,q_auto'), a.name);
       if (file && nav.canShare({ files: [file] })) {

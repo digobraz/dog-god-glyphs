@@ -39,6 +39,9 @@ export interface SosDog {
   country: string | null;
   active_id: string | null;
   active_slug: string | null;
+  /** Posledná UKONČENÁ strata psa (nie nájdená, nie aktívna) — ponúkne sa HĽADÁM ĎALEJ. */
+  ended_id: string | null;
+  ended_slug: string | null;
 }
 
 export interface SosActiveRow {
@@ -149,12 +152,16 @@ const first = <T,>(data: T | T[] | null): T | null => (Array.isArray(data) ? dat
 /** Hrubá poloha zariadenia pre push „stratený pes v okolí“ — server zaokrúhľuje na 2 desatinné miesta (~1 km). */
 export const sosPushGeo = (token: string, lat: number, lng: number) =>
   call<void>('push_token_geo', { p_token: token, p_lat: lat, p_lng: lng });
+/** Zmaže hrubú polohu zariadenia (po vypnutí „stratený pes v okolí“). */
+export const sosPushGeoClear = (token: string) => call<void>('push_token_geo_clear', { p_token: token });
 
 export const sosMyDogs = () => call<SosDog[]>('sos_my_dogs');
 export const sosLastPhone = () => call<string | null>('sos_last_phone');
 
 export async function sosDeclare(a: {
   dogId: string; lat: number; lng: number; lastSeen: Date; place: string; phone: string; flyer?: SosFlyer;
+  /** Krajina z miesta straty (ISO3 ako `dogs.country`); server pri chýbajúcej vezme krajinu psa. */
+  country?: string | null;
 }) {
   const row = first(await call<{ id: string; slug: string; existing: boolean }[]>('sos_declare', {
     p_dog: a.dogId,
@@ -164,6 +171,7 @@ export async function sosDeclare(a: {
     p_place: a.place,
     p_phone: a.phone,
     p_flyer: a.flyer ?? {},
+    p_country: a.country ?? null,
   }));
   if (!row) throw new Error('declare_empty');
   return row;
@@ -202,7 +210,7 @@ export async function lostPhone(slug: string): Promise<string | null> {
     body: JSON.stringify({ slug }),
   });
   if (r.status === 429) throw new Error('rate_limited');
-  if (!r.ok) throw new Error('bad');
+  if (!r.ok) throw new Error('bad');   // chyba servera / siete ≠ „číslo nie je dostupné“
   const j = (await r.json()) as { phone?: string | null };
   return typeof j.phone === 'string' ? j.phone : null;
 }

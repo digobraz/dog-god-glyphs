@@ -11,6 +11,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { useMyDogRights } from '@/lib/dogRights';
 import { forgetPushToken } from '@/lib/appPush';
+import { clearCardDrafts } from '@/components/pack/dogCard/cardDraft';
 import { HandCheck } from '@/components/pack/HandIcons';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { FONT_TITLE, FONT_UI, PACK_R, PACK_SPACE, PACK_TEXT } from '@/components/pack/packTheme';
@@ -96,6 +97,7 @@ export function PawmateDepartureGate() {
   };
   const signOut = async () => {
     await forgetPushToken();
+    clearCardDrafts();
     await supabase.auth.signOut();
     window.location.assign('/login');
   };

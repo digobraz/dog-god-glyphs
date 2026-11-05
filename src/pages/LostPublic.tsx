@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { IS_APP } from '@/lib/isApp';
+import { shareFile } from '@/lib/shareFile';
+import { toast } from '@/hooks/use-toast';
 import { PageTopBar } from '@/components/PageTopBar';
 import { Seo } from '@/components/Seo';
 import NotFound from '@/pages/NotFound';
@@ -16,7 +18,7 @@ import { SOS_CSS, colorWord, useBreedLabel, useSosT, useWhen } from '@/component
 /**
  * VEREJNÁ STRÁNKA STRATENÉHO PSA — `/lost/:slug` (SOS, 4. 11. 2026). BEZ PRIHLÁSENIA, noindex.
  * Čo vidí nálezca: červený blok STRATIL SA (alebo zelený NAŠIEL SA), fotka, meno, ZAVOLAŤ MAJITEĽOVI (číslo až po ťuku,
- * `lostPhone`), VIDEL SOM HO (`lost-sighting`), leták ako obrázok + ZDIEĽAŤ + STIAHNUŤ. Stav `ended` = bez telefónu.
+ * `lostPhone`), VIDEL SOM HO (`lost-sighting`), leták ako obrázok + ZDIEĽAŤ + STIAHNUŤ. Stav `ended` = telefón, leták aj VIDEL SOM HO žijú ďalej (odkaz žije, Matej 5. 11. 2026); `found` = bez telefónu aj letáku.
  * Za `SOS_ON`: na LIVE routa vracia 404, kým Matej nepovie „ostro“.
  * 🔴 Nesmie čítať nič, čo vyžaduje session: len `lostPublic` (anon RPC) a edge `lost-sighting`.
  */
@@ -39,6 +41,8 @@ function LostPublicInner({ slug }: { slug: string }) {
   const breedLabel = useBreedLabel();
   const when = useWhen();
   const [row, setRow] = useState<LostRow | null | undefined>(undefined);
+  const [failed, setFailed] = useState(false);   // chyba siete / servera ≠ „stránka neexistuje“
+  const [tick, setTick] = useState(0);
   const s = useSosT(row?.dog_gender);
   const [pop, setPop] = useState<'call' | 'seen' | null>(null);
   const nav = useNavigate();
@@ -46,35 +50,41 @@ function LostPublicInner({ slug }: { slug: string }) {
   useEffect(() => { void ensurePackDict(); }, []);
   useEffect(() => {
     let alive = true;
-    setRow(undefined);
-    lostPublic(slug).then((r) => alive && setRow(r)).catch(() => alive && setRow(null));
+    setRow(undefined); setFailed(false);
+    lostPublic(slug).then((r) => alive && setRow(r)).catch(() => { if (alive) { setRow(null); setFailed(true); } });
     return () => { alive = false; };
-  }, [slug]);
+  }, [slug, tick]);
 
   const download = async (url: string, name: string) => {
     try {
-      const b = await (await fetch(url, { mode: 'cors' })).blob();
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(b);
-      a.download = `dogypt-sos-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'pes'}.${b.type === 'image/jpeg' ? 'jpg' : 'png'}`;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      const r = await fetch(url, { mode: 'cors' });
+      if (!r.ok) throw new Error(String(r.status));
+      const b = await r.blob();
+      // web: stiahne súbor; appka: systémový hárok (Uložiť do Súborov, Tlačiť, poslať). `false` = zariadenie to nevie.
+      const ok = await shareFile(b, `dogypt-sos-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'pes'}.${b.type === 'image/jpeg' ? 'jpg' : 'png'}`);
+      if (!ok) toast({ title: s('pack.sos.fl.noShare') });
     } catch { window.open(url, '_blank', 'noopener'); }
   };
 
   const title = row ? `${row.dog_name} · ${row.status === 'found' ? s('pack.sos.found') : s('pack.sos.lost')}` : 'DOGYPT';
-  const active = row?.status === 'active';
+  const live = !!row && row.status !== 'found';   // active + ended: telefón, videnie a leták žijú ďalej
 
   return (
     <div className="hf-pale lp-flat min-h-screen flex flex-col">
-      <Seo title={title} description={row?.place_label ?? ''} path={`/lost/${slug}`} noindex ogImage={(active ? row?.flyer_url : null) ?? (row?.photo ? sizedUrl(row.photo, 1200) : undefined)} />
+      <Seo title={title} description={row?.place_label ?? ''} path={`/lost/${slug}`} noindex ogImage={(live ? row?.flyer_url : null) ?? (row?.photo ? sizedUrl(row.photo, 1200) : undefined)} />
       <style>{FLOW_PALE_CSS + SOS_CSS + CSS}</style>
       <div className="hf-topbar"><PageTopBar /></div>
       <main className="lp-main">
         <div className="lp-col sos-stack">
           {IS_APP && <button type="button" className="sos-cta sos-cta--ghost" onClick={() => nav(-1)}>{s('pack.sos.back')}</button>}
           {row === undefined && <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.loading')}</p>}
-          {row === null && <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.notFound')}</p>}
+          {row === null && !failed && <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.notFound')}</p>}
+          {row === null && failed && (
+            <>
+              <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.offline')}</p>
+              <button type="button" className="sos-cta" onClick={() => setTick((n) => n + 1)}>{s('pack.sos.retry')}</button>
+            </>
+          )}
           {row && (
             <>
               {row.status === 'found' ? (
@@ -88,7 +98,7 @@ function LostPublicInner({ slug }: { slug: string }) {
               <h1 className="sos-dogname">{row.dog_name}</h1>
               {(row.breed || row.color) && <p className="sos-dogsub">{[breedLabel(row.breed), colorWord(row.color, s)].filter(Boolean).join(' · ')}</p>}
 
-              {active && (
+              {live && (
                 <>
                   <p className="sos-motto">{s('pack.sos.det.motto')}</p>
                   <button type="button" className="sos-cta" onClick={() => setPop('call')}>{s('pack.sos.det.callOwner')}</button>
@@ -97,8 +107,8 @@ function LostPublicInner({ slug }: { slug: string }) {
                 </>
               )}
 
-              {/* leták nesie telefón v obraze ⇒ po `found`/`ended` sa neukazuje */}
-              {active && row.flyer_url && (
+              {/* leták nesie telefón v obraze ⇒ po `found` sa neukazuje (server ho vtedy ani nevracia); pri `ended` žije ďalej */}
+              {live && row.flyer_url && (
                 <>
                   <p className="sos-eyebrow">{s('pack.sos.pub.flyer')}</p>
                   <img className="lp-flyer" src={sizedUrl(row.flyer_url, 1000)} alt="" />
@@ -108,7 +118,7 @@ function LostPublicInner({ slug }: { slug: string }) {
                   </div>
                 </>
               )}
-              {active && !row.flyer_url && (
+              {live && !row.flyer_url && (
                 <button type="button" className="sos-cta sos-cta--gold" onClick={() => void shareLostDog({ slug: row.slug, name: row.dog_name, flyerUrl: null, text: s('pack.sos.det.shareText', { name: row.dog_name }), copiedText: s('pack.sos.det.copied') })}>{s('pack.sos.det.share')}</button>
               )}
             </>

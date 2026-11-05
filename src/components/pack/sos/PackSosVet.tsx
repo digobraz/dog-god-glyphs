@@ -10,6 +10,7 @@ import { useBack, useSosT, type SosT } from './sosShared';
 import { CITIES, VET_EMERGENCY, closesAt, distanceKm, isOpenAt, opensAt, telAt, type VetPlace } from '@/lib/vetEmergency';
 
 const FAR_KM = 40;
+const OUT_KM = 150; // dál ako toto od najbližšej otvorenej (alebo mimo SK a Prahy) zoznam nemáme
 const HOME_KM = 70;
 type Filter = 'near' | 'nonstop' | 'home';
 
@@ -37,7 +38,7 @@ const CSS = `
 
 function hoursLabel(p: VetPlace, s: SosT, now: Date): string {
   if (p.clientsOnly) return s('pack.sos.er.clientsOnly');
-  if (p.home) return s('pack.sos.er.home');
+  if (p.home) return s(p.hours === 'nonstop' ? 'pack.sos.er.homeNonstop' : 'pack.sos.er.home');
   if (p.hours === 'onsite') return s('pack.sos.er.onsite');
   if (p.hours === 'call') return s('pack.sos.er.call');
   if (p.hours === 'nonstop') return s('pack.sos.er.nonstop');
@@ -55,20 +56,29 @@ export default function PackSosVet() {
   const s = useSosT();
   const onBack = useBack('/pack');
   const [gps, setGps] = useState<[number, number] | null>(null);
-  const [denied, setDenied] = useState(false);
-  const [city, setCity] = useState<string>(CITIES[0].name);
+  // wait = čakáme na GPS · denied = zamietnuté (nepýtame sa znova) · fail = timeout / bez signálu (tlačidlo ostáva)
+  const [gpsState, setGpsState] = useState<'wait' | 'ok' | 'denied' | 'fail'>('wait');
+  const [city, setCity] = useState<string>(''); // '' = GPS, ak ju máme; inak nič (poloha neznáma)
   const [filter, setFilter] = useState<Filter>('near');
   const [open, setOpen] = useState<string | null>(null);
 
-  const locate = () => navigator.geolocation?.getCurrentPosition(
-    (p) => { setGps([p.coords.latitude, p.coords.longitude]); setDenied(false); },
-    () => setDenied(true),
-    { timeout: 10000, maximumAge: 300000 },
-  );
+  const locate = () => {
+    if (!navigator.geolocation) { setGpsState('fail'); return; }
+    setGpsState('wait');
+    navigator.geolocation.getCurrentPosition(
+      (p) => { setGps([p.coords.latitude, p.coords.longitude]); setGpsState('ok'); setCity(''); },
+      (e) => setGpsState(e.code === 1 ? 'denied' : 'fail'),
+      { timeout: 10000, maximumAge: 300000 },
+    );
+  };
   // Núdza: pýtame sa rovno, bez medzikroku. Odmietnutie nič neblokuje, nastúpi výber mesta.
-  useEffect(() => { if (navigator.geolocation) locate(); else setDenied(true); }, []);
+  useEffect(() => { if (navigator.geolocation) locate(); else setGpsState('fail'); }, []);
 
-  const me = useMemo<[number, number]>(() => gps ?? CITIES.find((c) => c.name === city)!.at, [gps, city]);
+  // Bez GPS a bez mesta polohu NEMÁME: nerátame od Bratislavy.
+  const me = useMemo<[number, number] | null>(
+    () => (city ? CITIES.find((c) => c.name === city)?.at ?? null : gps),
+    [gps, city],
+  );
   // Obrazovka môže ležať otvorená celú noc: hodiny sa prepočítajú aj bez ťuku.
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -77,20 +87,25 @@ export default function PackSosVet() {
   }, []);
 
   const rows = useMemo(() => {
-    const all = VET_EMERGENCY.map((p) => ({ p, km: Math.round(distanceKm(me, p.at)), on: isOpenAt(p, now) }));
-    const picked = filter === 'home' ? all.filter((r) => r.p.home && r.km <= HOME_KM)
+    const all = VET_EMERGENCY.map((p) => ({ p, km: me ? Math.round(distanceKm(me, p.at)) : null, on: isOpenAt(p, now) }));
+    const picked = filter === 'home' ? all.filter((r) => r.p.home && (r.km === null || r.km <= HOME_KM))
       : filter === 'nonstop' ? all.filter((r) => typeof r.p.hours === 'string' && r.p.hours !== 'ask')
         : all;
-    return picked.sort((a, b) => Number(!!a.p.clientsOnly) - Number(!!b.p.clientsOnly) || a.km - b.km);
+    return picked.sort((a, b) => Number(!!a.p.clientsOnly) - Number(!!b.p.clientsOnly) || (a.km ?? 0) - (b.km ?? 0));
   }, [me, filter, now]);
   const on = rows.filter((r) => r.on);
   const off = rows.filter((r) => !r.on);
+  // Mimo pokrytia: nič otvorené do 150 km (to zahŕňa aj polohu mimo SK a Prahy), nezávisle od filtra.
+  const outside = useMemo(() => {
+    if (!me) return false;
+    return !VET_EMERGENCY.some((p) => isOpenAt(p, now) && distanceKm(me, p.at) <= OUT_KM);
+  }, [me, now]);
 
   const row = ({ p, km, on: isOn }: (typeof rows)[number], first: boolean) => (
     <div key={p.id} className={`vet-row${isOn ? '' : ' off'}`} style={{ ...PACK_BOX.row }}>
       <button type="button" className="vet-tap" onClick={() => setOpen(open === p.id ? null : p.id)} aria-expanded={open === p.id}>
         <b>{p.name}</b>
-        <small>{p.place} · {km} km</small>
+        <small>{km === null ? p.place : `${p.place} · ${km} km`}</small>
       </button>
       <span className={`vet-pill${p.clientsOnly || typeof p.hours !== 'string' || p.hours === 'ask' ? ' vet-pill--soft' : ''}`}>{hoursLabel(p, s, now)}</span>
       {open === p.id && (
@@ -103,7 +118,9 @@ export default function PackSosVet() {
       <div className={`vet-acts${open === p.id ? ' two' : ''}`}>
         <a className={`sos-cta sos-cta--sm${first ? '' : ' sos-cta--tint'}`} href={`tel:${telAt(p, now).replace(/\s/g, '')}`}>{s('pack.sos.er.callBtn')}</a>
         {open === p.id && (
-          <a className="sos-cta sos-cta--sm sos-cta--ghost" href={`https://mapy.com/fnc/v1/route?start=${me[1]},${me[0]}&end=${p.at[1]},${p.at[0]}&routeType=car_fast`} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.route')}</a>
+          <a className="sos-cta sos-cta--sm sos-cta--ghost" href={me
+            ? `https://mapy.com/fnc/v1/route?start=${me[1]},${me[0]}&end=${p.at[1]},${p.at[0]}&routeType=car_fast`
+            : `https://mapy.com/fnc/v1/route?end=${p.at[1]},${p.at[0]}&routeType=car_fast`} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.route')}</a>
         )}
       </div>
     </div>
@@ -118,18 +135,26 @@ export default function PackSosVet() {
           <button key={k} type="button" className={`vet-chip${filter === k ? ' on' : ''}`} onClick={() => setFilter(k)}>{s(l)}</button>
         ))}
       </div>
-      {!gps && (
-        <div className="vet-where">
-          <BrandIcon name="locate" size={24} tint="gold" />
-          <select className="pf-field" value={city} onChange={(e) => setCity(e.target.value)} aria-label={s('pack.sos.er.where')}>
-            {CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
-          </select>
-          {!denied && <button type="button" className="sos-cta sos-cta--sm sos-cta--ghost" style={{ width: 'auto' }} onClick={locate}>{s('pack.sos.er.gps')}</button>}
-        </div>
+      <div className="vet-where">
+        <BrandIcon name="locate" size={24} tint="gold" />
+        <select className="pf-field" value={city} onChange={(e) => setCity(e.target.value)} aria-label={s('pack.sos.er.where')}>
+          {gps ? <option value="">{s('pack.sos.er.myLoc')}</option> : <option value="" disabled>{s('pack.sos.er.where')}</option>}
+          {CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+        </select>
+        {!gps && gpsState !== 'denied' && <button type="button" className="sos-cta sos-cta--sm sos-cta--ghost" style={{ width: 'auto' }} onClick={locate} disabled={gpsState === 'wait'}>{s('pack.sos.er.gps')}</button>}
+      </div>
+      {!me && gpsState === 'wait' && <p className="vet-more">{s('pack.sos.er.locating')}</p>}
+      {!me && gpsState === 'fail' && <p className="vet-more">{s('pack.sos.er.gpsFail')}</p>}
+      {!me && gpsState !== 'wait' && <p className="vet-more">{s('pack.sos.er.pick')}</p>}
+      {outside && (
+        <>
+          <p className="vet-warn">{s('pack.sos.er.outside')}</p>
+          <a className="sos-cta" href={`https://mapy.com/en/zakladni?q=${encodeURIComponent('vet emergency')}&x=${me![1]}&y=${me![0]}&z=13`} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.searchMaps')}</a>
+        </>
       )}
-      {filter !== 'home' && on[0] && on[0].km > FAR_KM && <p className="vet-warn">{s('pack.sos.er.far', { km: on[0].km })}</p>}
-      {filter === 'home' && rows.length === 0 && <p className="vet-warn">{s('pack.sos.er.noHome')}</p>}
-      {on.map((r, i) => row(r, i === 0))}
+      {!outside && filter !== 'home' && on[0] && on[0].km !== null && on[0].km > FAR_KM && <p className="vet-warn">{s('pack.sos.er.far', { km: on[0].km })}</p>}
+      {filter === 'home' && me && rows.length === 0 && <p className="vet-warn">{s('pack.sos.er.noHome')}</p>}
+      {on.map((r, i) => row(r, i === 0 && !!me && !outside))}
       {off.length > 0 && <h2 className="vet-sec">{s('pack.sos.er.closed')}</h2>}
       {off.map((r) => row(r, false))}
       <p className="vet-src">{s('pack.sos.er.source')}</p>

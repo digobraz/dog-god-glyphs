@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { withTransform } from '@/services/cloudinaryService';
 import { lostUrl, type SosFlyer as FlyerFields } from '@/lib/sos';
+import breedsData from '@/data/breeds.json';
 import { RoundQR } from '@/components/pack/dogs/RoundQR';
 import { PACK_THEME as T } from '@/components/pack/packTheme';
 import { colorWord, useBreedLabel, useSosT, useWhen, type SosT } from './sosShared';
@@ -33,6 +34,14 @@ export interface FlyerData {
   phone: string;
   flyer: FlyerFields;
 }
+
+/** Silueta patróna z plemena (`breeds.json` → `public/patrons/<kat>-<nn>.svg`); kríženec / neznáme plemeno = null. */
+const patronFor = (breed: string | null): string | null => {
+  const first = (breed ?? '').split(',')[0].trim().toLowerCase();
+  if (!first) return null;
+  const hit = (breedsData as { breeds: Array<{ en: string; patron?: string }> }).breeds.find((b) => b.en.trim().toLowerCase() === first);
+  return hit?.patron ? `/patrons/${hit.patron}.svg` : null;
+};
 
 export const MAP_ZOOM = 15;
 const MAP_PX = 600;
@@ -107,14 +116,16 @@ export function flyerDefaults(s: SosT) {
 }
 
 const CSS = `
+.sfl-fb{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:${T.tileBg};}
+.sfl-fb img{width:62%;height:auto;max-height:80%;object-fit:contain;display:block;opacity:.85;}
 .sfl{container-type:inline-size;position:relative;width:100%;aspect-ratio:210/297;overflow:hidden;color:#2A1608;text-align:left;box-sizing:border-box;}
 .sfl--papyrus{background:radial-gradient(ellipse at 50% 40%,#F7E9C8 0%,#EBD29D 70%,#D6B373 100%);}
 .sfl--print{background:#fff;color:#000;}
 .sfl-in{position:absolute;inset:0;display:flex;flex-direction:column;}
 .sfl-top{background:linear-gradient(180deg,#C8202F,#9E1522);color:#fff;padding:3.6cqw 4cqw 3cqw;text-align:center;flex:none;}
 .sfl--print .sfl-top{background:#000;}
-.sfl-h{font:800 12.6cqw/1 'Cinzel',serif;letter-spacing:.02em;margin:0;text-transform:uppercase;} /* písmo: nadpis */
-.sfl-sn{font:700 4cqw/1.1 'Cinzel',serif;letter-spacing:.14em;margin-top:1cqw;} /* písmo: nadpis */
+.sfl-h{font:800 12.6cqw/1 'Cinzel',serif;letter-spacing:.02em;margin:0;text-transform:uppercase;white-space:nowrap;} /* písmo: nadpis */
+.sfl-sn{font:700 4cqw/1.1 'Cinzel',serif;letter-spacing:.14em;margin-top:1cqw;white-space:nowrap;} /* písmo: nadpis */
 .sfl-sn b{font:900 5.6cqw 'Cinzel Decorative','Cinzel',serif;letter-spacing:.02em;}
 .sfl-grid{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:2.6cqw;margin:2.6cqw 8cqw 0;flex:none;}
 .sfl-cell{aspect-ratio:1/1;min-width:0;overflow:hidden;position:relative;}
@@ -125,7 +136,7 @@ const CSS = `
 .sfl-txt{display:flex;flex-direction:column;justify-content:flex-start;gap:1.4cqw;}
 .sfl-txt--last{justify-content:flex-end;padding-top:9cqw;}
 .sfl-lbl{font:600 2.2cqw/1 'Space Grotesk',sans-serif;letter-spacing:.22em;text-transform:uppercase;opacity:.75;}
-.sfl-big{font:700 3.1cqw/1.18 'Space Grotesk',sans-serif;}
+.sfl-big{font:700 3.1cqw/1.18 'Space Grotesk',sans-serif;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .sfl-ab{font:400 2.7cqw/1.28 'Space Grotesk',sans-serif;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;}
 .sfl-rew{font:800 5.4cqw/1.3 'Cinzel',serif;letter-spacing:.02em;color:#C8202F;margin-top:.4cqw;} /* písmo: nadpis */
 .sfl--print .sfl-rew{color:#000;}
@@ -145,6 +156,9 @@ export function SosFlyer({ data, look = 'papyrus', onReady }: { data: FlyerData;
   // PLNÉ rozlíšenie uloženej fotky (výrez 1200 px, bez zmenšenia) — leták sa tlačí na A4 pri 300 dpi.
   const photoSrc = useMemo(() => (data.photo ? withTransform(data.photo, 'q_auto:best') : null), [data.photo]);
   const photo = useBlobUrl(photoSrc);
+  // Pes bez fotky (alebo fotka nedoletela): náhradná kresba — silueta patróna z plemena, inak pečať. Nikdy prázdny štvorec.
+  const noPhoto = photo.settled && !photo.url;
+  const fb = useBlobUrl(noPhoto ? (patronFor(data.breed) ?? '/images/peciat-dogypt.webp') : null);
   const [mapSettled, setMapSettled] = useState(false);
   const onMapSettled = useCallback(() => setMapSettled(true), []);
   const def = flyerDefaults(s);
@@ -157,7 +171,11 @@ export function SosFlyer({ data, look = 'papyrus', onReady }: { data: FlyerData;
   const ran = deg === null ? null : s('pack.sos.fl.ran', { dir: s(`pack.sos.fl.dir.${nearestDir(deg)}` as SosKey) });
   const breedLine = [breedLabel(data.breed), colorWord(data.color, s)].filter(Boolean).join(', ');
   const url = lostUrl(data.slug);
-  const ready = photo.settled && mapSettled;
+  const ready = photo.settled && fb.settled && mapSettled;
+  // dlhý nadpis / meno / odmena sa zmenšia, aby sa zmestili (nadpis max 28, odmena max 40 znakov)
+  const hSize = Math.min(12.6, 120 / Math.max(headline.length, 1));
+  const nSize = Math.min(5.6, 56 / Math.max(data.name.length, 1));
+  const rSize = Math.min(5.4, 76 / Math.max(reward.length, 1));
   useEffect(() => { if (ready) onReady?.(); }, [ready, onReady]);
 
   return (
@@ -165,12 +183,13 @@ export function SosFlyer({ data, look = 'papyrus', onReady }: { data: FlyerData;
       <style>{CSS}</style>
       <div className="sfl-in">
         <div className="sfl-top">
-          <div className="sfl-h">{headline}</div>
-          <div className="sfl-sn">{s('pack.sos.fl.searching')} <b>{data.name}</b></div>
+          <div className="sfl-h" style={{ fontSize: `${hSize}cqw` }}>{headline}</div>
+          <div className="sfl-sn">{s('pack.sos.fl.searching')} <b style={{ fontSize: `${nSize}cqw` }}>{data.name}</b></div>
         </div>
         <div className="sfl-grid">
           <div className="sfl-cell sfl-pic">
-            {photo.url ? <img className="sfl-photo" src={photo.url} alt="" /> : null}
+            {photo.url ? <img className="sfl-photo" src={photo.url} alt="" />
+              : noPhoto && fb.url ? <div className="sfl-fb"><img src={fb.url} alt="" /></div> : null}
           </div>
           <div className="sfl-cell sfl-txt">
             <div className="sfl-lbl">{s('pack.sos.fl.about2')}</div>
@@ -181,7 +200,7 @@ export function SosFlyer({ data, look = 'papyrus', onReady }: { data: FlyerData;
             <div className="sfl-lbl">{s('pack.sos.fl.lastSeen')}</div>
             <div className="sfl-big">{data.place}</div>
             <p className="sfl-ab">{when(data.lastSeen)}{ran && <><br />{ran}</>}</p>
-            {reward && <div className="sfl-rew">{reward}</div>}
+            {reward && <div className="sfl-rew" style={{ fontSize: `${rSize}cqw` }}>{reward}</div>}
           </div>
           <div className="sfl-cell sfl-pic" role="img" aria-label={s('pack.sos.fl.mapAlt')}>
             <FlyerMap lat={data.lat} lng={data.lng} deg={deg} onSettled={onMapSettled} />

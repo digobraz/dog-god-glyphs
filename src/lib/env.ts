@@ -44,6 +44,9 @@ export const TEST_BUILD = import.meta.env.DEV || import.meta.env.VITE_TEST_BUILD
 // SOS stratený pes (4. 11. 2026): vlastný vypínač, lebo testovacia appka ide na ostré dáta a LIVE tabuľky SOS ešte nemá.
 // Zapnuté len v deve a v appke DOGYPT DEV (`.env.appdev`). Pri zapnutí na LIVE → plany/sos-pred-live.md.
 export const SOS_ON = import.meta.env.DEV || import.meta.env.VITE_SOS === '1';
+// VETERINÁRNA POHOTOVOSŤ (5. 11. 2026): statický zoznam v balíku appky, nečíta DB, preto beží aj v testovacej appke,
+// kde je `SOS_ON` vypnutý. Zapína len `TEST_BUILD`; na LIVE ostáva mimo, kým Matej nepovie „ostro“.
+export const VET_ER_ON = TEST_BUILD;
 const PINNED = import.meta.env.PROD && !APP_DEV;
 
 export const SUPABASE_URL = PINNED
