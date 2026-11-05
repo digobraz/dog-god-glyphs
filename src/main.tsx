@@ -1,3 +1,4 @@
+import { zapniSkuskuPisma } from './lib/skuskaPisma';
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
@@ -87,15 +88,8 @@ if (FILM_PATHS.includes(location.pathname)) startEarlyGridDogs(); // film = home
 // Písma z Google Fonts sa zapínajú až teraz — viď komentár pri <link data-late-fonts> v index.html.
 document.querySelectorAll<HTMLLinkElement>('link[data-late-fonts]').forEach((l) => { l.media = 'all'; });
 
-// Skúška písma (Matej 5. 11. 2026): v testovacom kanáli appky ide LT Museum Black namiesto Cinzelu aj Cinzel Decorative.
-// Rodiny ostávajú, takže stačí prekryť ich váhy; dogypt.com, appka z obchodu ani dev servery to nedostanú.
-if (import.meta.env.VITE_TEST_BUILD === '1') {
-  const skuskaPisma = document.createElement('style');
-  skuskaPisma.textContent = ['Cinzel', 'Cinzel Decorative']
-    .flatMap((rodina) => [400, 500, 600, 700, 800, 900].map((w) => `@font-face{font-family:'${rodina}';font-weight:${w};font-style:normal;font-display:swap;src:url(/fonts/g/ltmuseum-black-test-v1.woff2) format('woff2')}`))
-    .join('');
-  document.head.appendChild(skuskaPisma);
-}
+// Skúška písma a veľkostí (`lib/skuskaPisma.ts`); dogypt.com, appka z obchodu ani dev servery ju nedostanú.
+if (import.meta.env.VITE_TEST_BUILD === '1') zapniSkuskuPisma();
 
 // Aktívny jazyk (SK/CS/…) sa dotiahne pred prvým renderom, aby neblikla angličtina.
 // Pád chunku nesmie zhodiť appku — vtedy ide render hneď a `t()` padne na EN.
