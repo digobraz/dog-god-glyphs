@@ -7,11 +7,17 @@ import { LAPIS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { SosTaskShell } from './SosTaskShell';
 import { useBack, useSosT, type SosT } from './sosShared';
-import { CITIES, VET_EMERGENCY, closesAt, distanceKm, isOpenAt, opensAt, telAt, type VetPlace } from '@/lib/vetEmergency';
+import { CITIES, VET_EMERGENCY, closesAt, distanceKm, isOpenAt, opensAt, telAt, vetNavUrl, type NavApp, type VetPlace } from '@/lib/vetEmergency';
 
 const FAR_KM = 40;
 const OUT_KM = 150; // dál ako toto od najbližšej otvorenej (alebo mimo SK a Prahy) zoznam nemáme
 const HOME_KM = 70;
+// Logá v `public/nav-apps/` (ako TripGoPanel). Poradie = čo ľudia na Slovensku reálne otvárajú.
+const NAV_APPS: { id: NavApp; name: string; logo: string }[] = [
+  { id: 'google', name: 'Google Maps', logo: '/nav-apps/google.svg' },
+  { id: 'waze', name: 'Waze', logo: '/nav-apps/waze.svg' },
+  { id: 'mapy', name: 'Mapy.com', logo: '/nav-apps/mapy.svg' },
+];
 type Filter = 'near' | 'nonstop' | 'home';
 
 const CSS = `
@@ -30,9 +36,12 @@ const CSS = `
 .vet-pill{align-self:flex-start;display:inline-flex;align-items:center;min-height:24px;padding:0 ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;font-size:${PACK_TEXT.micro}px;font-weight:600;letter-spacing:.02em;background:${LAPIS.grad};color:${LAPIS.ink};}
 .vet-pill--soft{background:${T.tileBg};border:1px solid ${T.cardEdge};color:${T.inkWarm};}
 .vet-more{margin:0;font-size:${PACK_TEXT.label}px;line-height:1.5;color:${T.inkWarm};}
-.vet-acts{display:grid;grid-template-columns:1fr;gap:${PACK_SPACE.sm}px;}
-.vet-acts.two{grid-template-columns:1fr 1fr;}
-.vet-acts a{text-decoration:none;}
+.vet-acts{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
+.vet-acts a,.vet-nav a{text-decoration:none;}
+.vet-acts.one{grid-template-columns:1fr;}
+.vet-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:${PACK_SPACE.sm}px;}
+.vet-nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;min-height:56px;padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.field}px;border:1.5px solid ${T.cardEdge};background:${T.tileBg};font-size:${PACK_TEXT.micro}px;font-weight:600;color:${T.inkStrong};text-align:center;}
+.vet-nav img{width:24px;height:24px;display:block;}
 .vet-src{margin:0;text-align:center;font-size:${PACK_TEXT.micro}px;line-height:1.5;color:${T.inkWarm};}
 `;
 
@@ -61,6 +70,7 @@ export default function PackSosVet() {
   const [city, setCity] = useState<string>(''); // '' = GPS, ak ju máme; inak nič (poloha neznáma)
   const [filter, setFilter] = useState<Filter>('near');
   const [open, setOpen] = useState<string | null>(null);
+  const [navOpen, setNavOpen] = useState<string | null>(null); // riadok, ktorému je rozbalený výber navigácie
 
   const locate = () => {
     if (!navigator.geolocation) { setGpsState('fail'); return; }
@@ -101,7 +111,9 @@ export default function PackSosVet() {
     return !VET_EMERGENCY.some((p) => isOpenAt(p, now) && distanceKm(me, p.at) <= OUT_KM);
   }, [me, now]);
 
-  const row = ({ p, km, on: isOn }: (typeof rows)[number], first: boolean) => (
+  const row = ({ p, km, on: isOn }: (typeof rows)[number], first: boolean) => {
+    const canNav = vetNavUrl('google', p) !== null;
+    return (
     <div key={p.id} className={`vet-row${isOn ? '' : ' off'}`} style={{ ...PACK_BOX.row }}>
       <button type="button" className="vet-tap" onClick={() => setOpen(open === p.id ? null : p.id)} aria-expanded={open === p.id}>
         <b>{p.name}</b>
@@ -115,16 +127,25 @@ export default function PackSosVet() {
           {p.note && <><br />{s(p.note)}</>}
         </p>
       )}
-      <div className={`vet-acts${open === p.id ? ' two' : ''}`}>
+      {/* Volanie = hlavná akcia (lapis), navigácia druhá (ghost). Bez použiteľnej polohy ani adresy (výjazdy) zostáva samo volanie. */}
+      <div className={`vet-acts${canNav ? '' : ' one'}`}>
         <a className={`sos-cta sos-cta--sm${first ? '' : ' sos-cta--tint'}`} href={`tel:${telAt(p, now).replace(/\s/g, '')}`}>{s('pack.sos.er.callBtn')}</a>
-        {open === p.id && (
-          <a className="sos-cta sos-cta--sm sos-cta--ghost" href={me
-            ? `https://mapy.com/fnc/v1/route?start=${me[1]},${me[0]}&end=${p.at[1]},${p.at[0]}&routeType=car_fast`
-            : `https://mapy.com/fnc/v1/route?end=${p.at[1]},${p.at[0]}&routeType=car_fast`} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.route')}</a>
+        {canNav && (
+          <button type="button" className="sos-cta sos-cta--sm sos-cta--ghost" aria-expanded={navOpen === p.id} onClick={() => setNavOpen(navOpen === p.id ? null : p.id)}>{s('pack.sos.er.navBtn')}</button>
         )}
       </div>
+      {canNav && navOpen === p.id && (
+        <div className="vet-nav" role="group" aria-label={s('pack.sos.er.navOpen')}>
+          {NAV_APPS.map((a) => (
+            <a key={a.id} href={vetNavUrl(a.id, p)!} target="_blank" rel="noopener noreferrer" onClick={() => setNavOpen(null)}>
+              <img src={a.logo} alt="" aria-hidden="true" />{a.name}
+            </a>
+          ))}
+        </div>
+      )}
     </div>
-  );
+    );
+  };
 
   return (
     <SosTaskShell onBack={onBack} backLabel={s('pack.sos.back')}>

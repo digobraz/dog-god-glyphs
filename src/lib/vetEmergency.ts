@@ -10,12 +10,15 @@ export type VetPlace = {
   sched?: { wk: [number, number][]; sa: [number, number][]; su: [number, number][] };
   /** Iné číslo v danom čase (hodiny), mimo neho platí `tel`. */
   telBy?: { from: number; to: number; tel: string }[];
+  /** Stále ID kliniky: nemení sa s poradím ani prekladom, na neho sa neskôr pripne profil (plany/klinika-profil-navrh-2026-11-05.md). */
+  /** exact = poloha overená na dom (OSM), navigácia ide podľa bodu. Bez neho podľa textu adresy. */
+  exact?: true;
   home?: boolean; clientsOnly?: boolean; weekdays?: boolean; fee?: string; note?: SosKey; web: string;
 };
 
 export const VET_EMERGENCY: VetPlace[] = [
  {
-  "id": "sk1",
+  "id": "vetline-24h-bratislava",
   "name": "VetLINE 24H",
   "place": "Bratislava-Staré Mesto",
   "address": "Staromestská 6/D, Bratislava",
@@ -25,10 +28,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    17.1045933
   ],
   "hours": "onsite",
+  "exact": true,
   "web": "https://www.vetline.sk/"
  },
  {
-  "id": "sk2",
+  "id": "smallvet-plus-bratislava",
   "name": "SmallVet Plus",
   "place": "Bratislava-Rača",
   "address": "Žitná 46, Bratislava",
@@ -38,10 +42,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    17.1542877
   ],
   "hours": "nonstop",
+  "exact": true,
   "web": "https://www.smallvet.sk/"
  },
  {
-  "id": "sk3",
+  "id": "vetpoint-bratislava",
   "name": "VetPoint",
   "place": "Bratislava-Petržalka",
   "address": "Panónska cesta 38, Bratislava",
@@ -51,10 +56,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    17.0950244
   ],
   "hours": "nonstop",
+  "exact": true,
   "web": "http://www.vetpoint.sk/"
  },
  {
-  "id": "sk4",
+  "id": "univerzitna-veterinarna-nemocnica-uvlf-kosice",
   "name": "Univerzitná veterinárna nemocnica UVLF",
   "place": "Košice",
   "address": "Komenského 73, Košice",
@@ -64,6 +70,7 @@ export const VET_EMERGENCY: VetPlace[] = [
    21.2468625
   ],
   "hours": "onsite",
+  "exact": true,
   "telBy": [
    {
     "from": 15.5,
@@ -74,7 +81,7 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "https://www.uvlf.sk/kliniky-sluzby/pohotovost"
  },
  {
-  "id": "sk5",
+  "id": "veterinarna-klinika-poprad",
   "name": "Veterinárna klinika Poprad",
   "place": "Poprad",
   "address": "Hraničná 12, Poprad",
@@ -84,11 +91,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    20.2819929
   ],
   "hours": "call",
+  "exact": true,
   "fee": "39 €",
   "web": "http://www.veterinapoprad.sk/"
  },
  {
-  "id": "sk6",
+  "id": "ambulancia-s-pohotovostou-centrum-poprad",
   "name": "Ambulancia s pohotovosťou Centrum",
   "place": "Poprad",
   "address": "Dominika Tatarku 5, Poprad",
@@ -98,10 +106,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    20.2991774
   ],
   "hours": "call",
+  "exact": true,
   "web": "http://www.veterinar-pohotovost.sk/"
  },
  {
-  "id": "sk7",
+  "id": "klinika-fenix-zilina",
   "name": "Klinika Fénix",
   "place": "Žilina",
   "address": "Štrková 10A, Žilina",
@@ -111,10 +120,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    18.726622
   ],
   "hours": "call",
+  "exact": true,
   "web": "http://www.klinikafenix.sk/"
  },
  {
-  "id": "sk8",
+  "id": "tri-vet-cifer",
   "name": "Tri-Vet",
   "place": "Cífer",
   "address": "Kaplnská 14, Cífer",
@@ -124,11 +134,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    17.4831545
   ],
   "hours": "call",
+  "exact": true,
   "note": "pack.sos.er.noteBranch",
   "web": "http://www.trivet.sk/"
  },
  {
-  "id": "sk9",
+  "id": "scar-vet-trnava",
   "name": "SCAR Vet",
   "place": "Trnava",
   "address": "Sladovnícka 22, Trnava",
@@ -138,10 +149,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    17.5973269
   ],
   "hours": "call",
+  "exact": true,
   "web": "http://www.scarvet.sk/"
  },
  {
-  "id": "sk10",
+  "id": "pet-clinic-nitra",
   "name": "Pet Clinic",
   "place": "Nitra",
   "address": "Nábrežie mládeže 47, Nitra",
@@ -151,10 +163,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    18.09833
   ],
   "hours": "call",
+  "exact": true,
   "web": "http://www.petclinic.sk/"
  },
  {
-  "id": "sk11",
+  "id": "doktor-zvierat-piestany",
   "name": "Doktor Zvierat",
   "place": "Piešťany",
   "address": "Vrbovská cesta 14, Piešťany",
@@ -164,10 +177,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    17.81739
   ],
   "hours": "call",
+  "exact": true,
   "web": "http://www.doktorzvierat.sk/"
  },
  {
-  "id": "sk12",
+  "id": "klinika-lives-liptovsky",
   "name": "Klinika LiVeS",
   "place": "Liptovský Mikuláš",
   "address": "1. mája 75, Liptovský Mikuláš",
@@ -177,10 +191,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    19.6242831
   ],
   "hours": "call",
+  "exact": true,
   "web": "http://www.veterina-lives.sk/"
  },
  {
-  "id": "sk13",
+  "id": "veterinar-topolcany",
   "name": "Veterinár Topoľčany",
   "place": "Topoľčany",
   "address": "Vajanského 18, Topoľčany",
@@ -190,11 +205,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    18.15034
   ],
   "hours": "call",
+  "exact": true,
   "note": "pack.sos.er.noteMayClose",
   "web": "http://www.veterinartopolcany.sk/"
  },
  {
-  "id": "sk14",
+  "id": "vetkom-povazska",
   "name": "Vetkom",
   "place": "Považská Bystrica",
   "address": "Žilinská 28, Považská Bystrica",
@@ -204,11 +220,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    18.46494
   ],
   "hours": "call",
+  "exact": true,
   "note": "pack.sos.er.noteGeneral",
   "web": "http://www.vetkom.sk/"
  },
  {
-  "id": "sk15",
+  "id": "belopotocka-levice",
   "name": "MVDr. Belopotocká",
   "place": "Levice",
   "address": "Andreja Kmeťa 29, Levice",
@@ -221,7 +238,7 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "http://www.bebabelvet.sk/"
  },
  {
-  "id": "sk16",
+  "id": "szakall-senec",
   "name": "MVDr. Szakall",
   "place": "Senec",
   "address": "SNP 7, Senec",
@@ -231,10 +248,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    17.40484
   ],
   "hours": "call",
+  "exact": true,
   "web": "http://www.szakallvet.eu/"
  },
  {
-  "id": "sk17",
+  "id": "klinika-e-vet-kralova",
   "name": "Klinika E-VET",
   "place": "Kráľová pri Senci",
   "address": "Sadová 588, Kráľová pri Senci",
@@ -244,11 +262,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    17.4425253
   ],
   "hours": "ask",
+  "exact": true,
   "fee": "60 €",
   "web": "http://evetklinika.sk/"
  },
  {
-  "id": "sk18",
+  "id": "zbonakova-martin",
   "name": "MVDr. Zboňáková",
   "place": "Martin",
   "address": "Aurela Stodolu 5307, Martin",
@@ -263,7 +282,7 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "http://www.veterinamartin.sk/"
  },
  {
-  "id": "sk19",
+  "id": "mypet-clinic-bratislava",
   "name": "MyPet Clinic",
   "place": "Bratislava-Ružinov",
   "address": "Mierová 27, Bratislava",
@@ -276,10 +295,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    10,
    24
   ],
+  "exact": true,
   "web": "https://www.mypet.sk/"
  },
  {
-  "id": "sk20",
+  "id": "cassovet-kosice",
   "name": "Cassovet",
   "place": "Košice",
   "address": "Trieda KVP 7, Košice",
@@ -295,7 +315,7 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "https://www.cassovet.sk/"
  },
  {
-  "id": "sk21",
+  "id": "petservis-banska",
   "name": "PETSERVIS",
   "place": "Banská Bystrica",
   "address": "Sládkovičova 22, Banská Bystrica",
@@ -308,6 +328,7 @@ export const VET_EMERGENCY: VetPlace[] = [
    8,
    22
   ],
+  "exact": true,
   "sched": {
    "wk": [
     [
@@ -331,7 +352,7 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "https://www.petservis.sk/"
  },
  {
-  "id": "sk22",
+  "id": "vetone-sliac",
   "name": "VetOne",
   "place": "Sliač",
   "address": "Hájnická 51, Sliač",
@@ -344,11 +365,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    19,
    31
   ],
+  "exact": true,
   "fee": "po 24:00 30 €",
   "web": "http://www.vetone.info/"
  },
  {
-  "id": "sk23",
+  "id": "vetaxs-trencin",
   "name": "VETAXS",
   "place": "Trenčín",
   "address": "Električná 17, Trenčín",
@@ -361,10 +383,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    8,
    22
   ],
+  "exact": true,
   "web": "http://vetaxs.sk/"
  },
  {
-  "id": "sk24",
+  "id": "foxyvet-trencin",
   "name": "FOXYVET",
   "place": "Trenčín",
   "address": "Štefánikova 86, Trenčín",
@@ -381,7 +404,7 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "http://www.foxyvet.sk/"
  },
  {
-  "id": "sk25",
+  "id": "vet-centrum-nitra",
   "name": "VET CENTRUM",
   "place": "Nitra",
   "address": "Akademická 3, Nitra",
@@ -394,11 +417,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    9,
    22
   ],
+  "exact": true,
   "weekdays": true,
   "web": "http://www.veterinarnaklinikanitra.sk/"
  },
  {
-  "id": "sk26",
+  "id": "dkvet-dolny",
   "name": "DKVet",
   "place": "Dolný Kubín",
   "address": "Bysterecká 14, Dolný Kubín",
@@ -411,10 +435,11 @@ export const VET_EMERGENCY: VetPlace[] = [
    6,
    22
   ],
+  "exact": true,
   "web": "http://dkvet.sk/"
  },
  {
-  "id": "sk27",
+  "id": "klinika-animal-michalovce",
   "name": "Klinika Animal",
   "place": "Michalovce",
   "address": "Masarykova 25, Michalovce",
@@ -427,6 +452,7 @@ export const VET_EMERGENCY: VetPlace[] = [
    8,
    20
   ],
+  "exact": true,
   "sched": {
    "wk": [
     [
@@ -456,7 +482,7 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "http://www.animalcentrum.sk/"
  },
  {
-  "id": "sk28",
+  "id": "morvayova-vyjazdy-bratislava",
   "name": "MVDr. Morvayová, výjazdy",
   "place": "Bratislava a okolie",
   "address": "Bebravská, Bratislava",
@@ -471,7 +497,7 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "https://www.vyjazdovyveterinar.sk/"
  },
  {
-  "id": "sk29",
+  "id": "veterinar-domov-mvdr-hilcanska-kosice",
   "name": "Veterinár domov, MVDr. Hilčanská",
   "place": "Košice a okolie",
   "address": "Košice a okolie",
@@ -486,7 +512,7 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "http://www.veterinardomov.sk/"
  },
  {
-  "id": "sk30",
+  "id": "vetart-mvdr-halas-dolny",
   "name": "VetArt, MVDr. Halás",
   "place": "Dolný Ohaj a okolie",
   "address": "Hlavná 312/55, Dolný Ohaj",
@@ -500,7 +526,7 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "https://www.vetart.sk/"
  },
  {
-  "id": "sk31",
+  "id": "rhvet-martin",
   "name": "RHvet",
   "place": "Martin a okolie",
   "address": "Záturčianska 54, Martin",
@@ -510,12 +536,13 @@ export const VET_EMERGENCY: VetPlace[] = [
    18.91661
   ],
   "hours": "ask",
+  "exact": true,
   "home": true,
   "fee": "20 €",
   "web": "https://rhvet.webnode.sk/"
  },
  {
-  "id": "cz1",
+  "id": "pet-medic-praha",
   "name": "Pet-Medic",
   "place": "Praha",
   "address": "Praha",
@@ -529,7 +556,7 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "https://www.pet-medic.cz/"
  },
  {
-  "id": "cz2",
+  "id": "sonda-praha",
   "name": "Sonda.cz",
   "place": "Praha a stredné Čechy",
   "address": "Pod Nuselskými schody 3, Praha 2",
@@ -546,6 +573,22 @@ export const VET_EMERGENCY: VetPlace[] = [
   "web": "https://www.sonda.cz/"
  }
 ];
+
+/** Navigácia: s overeným bodom podľa súradníc, inak podľa adresy. Bez čísla domu v adrese (výjazdy, „Praha“) null: nie je kam viesť. */
+export type NavApp = 'google' | 'waze' | 'mapy';
+export function vetNavUrl(app: NavApp, p: VetPlace): string | null {
+  const [lat, lon] = p.at;
+  const q = encodeURIComponent(p.address);
+  if (p.exact) {
+    if (app === 'google') return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
+    if (app === 'waze') return `https://waze.com/ul?ll=${lat},${lon}&navigate=yes`;
+    return `https://mapy.com/fnc/v1/route?end=${lon},${lat}&routeType=car_fast`;
+  }
+  if (!/\d/.test(p.address)) return null;
+  if (app === 'google') return `https://www.google.com/maps/dir/?api=1&destination=${q}`;
+  if (app === 'waze') return `https://waze.com/ul?q=${q}&navigate=yes`;
+  return `https://mapy.com/zakladni?q=${q}`;
+}
 
 export const CITIES: { name: string; at: [number, number] }[] = [
   { name: 'Bratislava', at: [48.148, 17.107] }, { name: 'Trnava', at: [48.377, 17.588] }, { name: 'Nitra', at: [48.307, 18.086] },
