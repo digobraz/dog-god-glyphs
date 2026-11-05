@@ -8,7 +8,7 @@
 // 🔴 MAPA = OBRÁZOK. Najprv statická mapa Mapy.com (cez `MAPY_BASE`), stiahnutá `fetch` → blob, aby ju export
 //    do PNG nezašpinil (CORS). Keď padne, nikdy prázdne miesto: nakreslená záložná mapka s bodom a kruhom.
 // 🔴 Export čaká na `data-ready="1"` (fotka aj mapa sú dohrané) — `sosFlyerExport.ts`.
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { withTransform } from '@/services/cloudinaryService';
 import { lostUrl, type SosFlyer as FlyerFields } from '@/lib/sos';
@@ -69,6 +69,32 @@ function useBlobUrl(src: string | null): { url: string | null; settled: boolean 
   return st;
 }
 
+/** Zmestenie dlhého textu: nastaví `--k` (0.2–1) tak, aby sa riadok (`w`, šírka) alebo stĺpec textu (`h`, výška) zmestil.
+ *  Veľkosti písma v CSS sú `calc(Ncqw * var(--k, 1))`. Prepočíta sa aj po načítaní písma. */
+function useFit(mode: 'w' | 'h', dep: string) {
+  const ref = useRef<HTMLDivElement>(null);
+  const fit = useCallback(() => {
+    const e = ref.current;
+    if (!e) return;
+    e.style.setProperty('--k', '1');
+    for (let i = 0; i < 4; i++) {
+      let over: number;
+      if (mode === 'w') over = e.scrollWidth / Math.max(e.clientWidth, 1);
+      else {
+        const kids = Array.from(e.children) as HTMLElement[];
+        if (!kids.length) return;
+        const used = kids[kids.length - 1].getBoundingClientRect().bottom - kids[0].getBoundingClientRect().top;
+        over = used / Math.max(e.clientHeight - parseFloat(getComputedStyle(e).paddingTop || '0'), 1);
+      }
+      if (!(over > 1.001)) break;
+      const k = Number(e.style.getPropertyValue('--k') || '1') / over * 0.97;
+      e.style.setProperty('--k', String(Math.max(0.2, k)));
+    }
+  }, [mode]);
+  useLayoutEffect(() => { fit(); void document.fonts?.ready.then(fit); }, [fit, dep]);
+  return ref;
+}
+
 /** Záložná mapka — nakreslená, nikdy nie prázdne miesto. */
 function FallbackMap() {
   return (
@@ -124,9 +150,9 @@ const CSS = `
 .sfl-in{position:absolute;inset:0;display:flex;flex-direction:column;}
 .sfl-top{background:linear-gradient(180deg,#C8202F,#9E1522);color:#fff;padding:3.6cqw 4cqw 3cqw;text-align:center;flex:none;}
 .sfl--print .sfl-top{background:#000;}
-.sfl-h{font:800 12.6cqw/1 'Cinzel',serif;letter-spacing:.02em;margin:0;text-transform:uppercase;white-space:nowrap;} /* písmo: nadpis */
-.sfl-sn{font:700 4cqw/1.1 'Cinzel',serif;letter-spacing:.14em;margin-top:1cqw;white-space:nowrap;} /* písmo: nadpis */
-.sfl-sn b{font:900 5.6cqw 'Cinzel Decorative','Cinzel',serif;letter-spacing:.02em;}
+.sfl-h{font:800 12.6cqw/1 'Cinzel',serif;font-size:calc(12.6cqw*var(--k,1));letter-spacing:.02em;margin:0;text-transform:uppercase;white-space:nowrap;} /* písmo: nadpis */
+.sfl-sn{font:700 4cqw/1.1 'Cinzel',serif;font-size:calc(4cqw*var(--k,1));letter-spacing:.14em;margin-top:1cqw;white-space:nowrap;} /* písmo: nadpis */
+.sfl-sn b{font:900 5.6cqw 'Cinzel Decorative','Cinzel',serif;font-size:calc(5.6cqw*var(--k,1));letter-spacing:.02em;}
 .sfl-grid{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:2.6cqw;margin:2.6cqw 8cqw 0;flex:none;}
 .sfl-cell{aspect-ratio:1/1;min-width:0;overflow:hidden;position:relative;}
 .sfl-pic{border:.8cqw solid currentColor;border-radius:4.5cqw;background:#E8D7AE;}
@@ -138,7 +164,11 @@ const CSS = `
 .sfl-lbl{font:600 2.2cqw/1 'Space Grotesk',sans-serif;letter-spacing:.22em;text-transform:uppercase;opacity:.75;}
 .sfl-big{font:700 3.1cqw/1.18 'Space Grotesk',sans-serif;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .sfl-ab{font:400 2.7cqw/1.28 'Space Grotesk',sans-serif;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;}
-.sfl-rew{font:800 5.4cqw/1.3 'Cinzel',serif;letter-spacing:.02em;color:#C8202F;margin-top:.4cqw;} /* písmo: nadpis */
+.sfl-rew{font:800 5.4cqw/1.3 'Cinzel',serif;letter-spacing:.02em;color:#C8202F;margin-top:.4cqw;overflow-wrap:anywhere;} /* písmo: nadpis */
+.sfl-txt--last .sfl-big{font-size:calc(3.1cqw*var(--k,1));}
+.sfl-txt--last .sfl-ab{font-size:calc(2.7cqw*var(--k,1));}
+.sfl-txt--last .sfl-lbl{font-size:calc(2.2cqw*var(--k,1));}
+.sfl-txt--last .sfl-rew{font-size:calc(5.4cqw*var(--k,1));}
 .sfl--print .sfl-rew{color:#000;}
 .sfl-qr{position:absolute;left:50%;top:50%;width:17cqw;height:17cqw;transform:translate(-50%,-50%);background:#fff;padding:1.3cqw;border:.7cqw solid #1A1006;border-radius:2.6cqw;filter:drop-shadow(0 .6cqw 1cqw rgba(0,0,0,.3));z-index:2;box-sizing:border-box;}
 .sfl-qr svg{width:100%;height:100%;display:block;}
@@ -173,9 +203,9 @@ export function SosFlyer({ data, look = 'papyrus', onReady }: { data: FlyerData;
   const url = lostUrl(data.slug);
   const ready = photo.settled && fb.settled && mapSettled;
   // dlhý nadpis / meno / odmena sa zmenšia, aby sa zmestili (nadpis max 28, odmena max 40 znakov)
-  const hSize = Math.min(12.6, 120 / Math.max(headline.length, 1));
-  const nSize = Math.min(5.6, 56 / Math.max(data.name.length, 1));
-  const rSize = Math.min(5.4, 76 / Math.max(reward.length, 1));
+  const hRef = useFit('w', headline);
+  const nRef = useFit('w', data.name);
+  const lastRef = useFit('h', `${data.place}|${reward}|${data.lastSeen}|${ran ?? ''}`);
   useEffect(() => { if (ready) onReady?.(); }, [ready, onReady]);
 
   return (
@@ -183,8 +213,8 @@ export function SosFlyer({ data, look = 'papyrus', onReady }: { data: FlyerData;
       <style>{CSS}</style>
       <div className="sfl-in">
         <div className="sfl-top">
-          <div className="sfl-h" style={{ fontSize: `${hSize}cqw` }}>{headline}</div>
-          <div className="sfl-sn">{s('pack.sos.fl.searching')} <b style={{ fontSize: `${nSize}cqw` }}>{data.name}</b></div>
+          <div className="sfl-h" ref={hRef}>{headline}</div>
+          <div className="sfl-sn" ref={nRef}>{s('pack.sos.fl.searching')} <b>{data.name}</b></div>
         </div>
         <div className="sfl-grid">
           <div className="sfl-cell sfl-pic">
@@ -196,11 +226,11 @@ export function SosFlyer({ data, look = 'papyrus', onReady }: { data: FlyerData;
             {breedLine && <div className="sfl-big">{breedLine}</div>}
             {about && <p className="sfl-ab">{about}</p>}
           </div>
-          <div className="sfl-cell sfl-txt sfl-txt--last">
+          <div className="sfl-cell sfl-txt sfl-txt--last" ref={lastRef}>
             <div className="sfl-lbl">{s('pack.sos.fl.lastSeen')}</div>
             <div className="sfl-big">{data.place}</div>
             <p className="sfl-ab">{when(data.lastSeen)}{ran && <><br />{ran}</>}</p>
-            {reward && <div className="sfl-rew" style={{ fontSize: `${rSize}cqw` }}>{reward}</div>}
+            {reward && <div className="sfl-rew">{reward}</div>}
           </div>
           <div className="sfl-cell sfl-pic" role="img" aria-label={s('pack.sos.fl.mapAlt')}>
             <FlyerMap lat={data.lat} lng={data.lng} deg={deg} onSettled={onMapSettled} />
