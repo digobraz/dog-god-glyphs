@@ -59,7 +59,7 @@ import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
 import { mountBrain, type BrainHandle, type BrainLayer } from '@/components/pack/vault/brainEngine';
 import ainubisHead from '@/assets/ainubis-head.webp';
-import { HandArrowLeft, HandSearch, HandPaw, HandStar, HandPlus, HandForward, HandCheck } from '@/components/pack/HandIcons';
+import { HandArrowLeft, HandLock, HandSearch, HandPaw, HandStar, HandPlus, HandForward, HandCheck } from '@/components/pack/HandIcons';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 
 /* ⚠️ JEDNA HRANICA — tá istá ako na mape (`PackMap`: ≤1023 = mobilný pohľad
@@ -82,6 +82,8 @@ const ZV_TEXT_COL = 340;
 const ZV_ACTS = 44;
 const ZV_SIDE = 2 * PACK_SPACE.xl + 2 * PACK_SPACE.md + PACK_SPACE.lg;
 
+/** Posledný svet člena vo VAULTe: len pohodlie zariadenia, bez neho sa ukáže výber. */
+const WORLD_STORE = 'dogypt_vault_world';
 const CSS = `
 ${AI_BREATHE_CSS}
 ${STAGE_CSS}
@@ -359,6 +361,35 @@ body:has(.akv-root) .ainubis-launcher{display:none;}
 .akv-wsoon{display:inline-block;margin-top:${PACK_SPACE.lg}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
   border-radius:${PACK_R.pill}px;font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};
   text-transform:uppercase;color:${AINUBIS.inkDim};border:1px solid ${AINUBIS.edge};}
+/* VÝBER SVETA (5. 11. 2026): tie isté okná sveta, zhustené, aby sa sedem zmestilo pod seba. */
+.wp-pick{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
+.wp-label{margin:0;font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.wp-grid{display:grid;gap:${PACK_SPACE.lg}px;grid-template-columns:minmax(0,1fr);}
+@media (min-width:${PC_MIN}px){.wp-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.wp-card{display:grid;grid-template-columns:40px minmax(0,1fr);column-gap:${PACK_SPACE.md}px;row-gap:${PACK_SPACE.sm}px;align-items:center;text-align:left;
+  width:100%;padding:${PACK_SPACE.lg}px ${PACK_SPACE.md}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;color:${AINUBIS.ink};font-family:${FONT_UI};cursor:pointer;}
+.wp-card:not(.is-soon)::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  border:1px solid ${AI_WORLD.edge};box-shadow:${AI_WORLD.float};}
+.wp-card.is-soon{cursor:default;}
+.wp-card.is-soon:hover{transform:none;}
+.wp-card:focus-visible{outline:1px solid ${AINUBIS.cyan};outline-offset:2px;}
+.wp-ic{grid-row:1 / 3;width:40px;height:40px;margin:0;}
+.is-soon .wp-ic{background:${AINUBIS.inkFaint};}
+.wp-top{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;min-width:0;}
+.wp-name{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1.2;letter-spacing:${PACK_HEAD.card.letterSpacing};/* písmo: nadpis */
+  text-transform:uppercase;color:${AINUBIS.ink};overflow-wrap:anywhere;}
+.is-soon .wp-name{color:${AINUBIS.inkDim};}
+.wp-go{flex:0 0 auto;display:flex;color:${AINUBIS.cyan};transform:rotate(180deg);}
+.wp-lock{flex:0 0 auto;display:flex;color:${AINUBIS.inkFaint};}
+.wp-row{display:flex;align-items:center;gap:${PACK_SPACE.md}px;min-width:0;}
+.wp-row .pk-progress{display:block;flex:1 1 auto;width:auto;min-width:0;height:4px;background:rgba(var(--ai-w,${AINUBIS.cyanRGB}),0.22);}
+.wp-row .pk-progress__fill{display:block;height:100%;background:rgb(var(--ai-w,${AINUBIS.cyanRGB}));}
+.wp-num{flex:0 0 auto;white-space:nowrap;font-size:${PACK_TEXT.label}px;}
+.wp-num b{font-weight:600;color:${AINUBIS.inkDim};font-variant-numeric:tabular-nums;}
+.wp-num i{font-style:normal;font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};margin-left:${PACK_SPACE.xs}px;}
+.wp-row .akv-wsoon{margin-top:0;white-space:nowrap;}
+.wp-back{flex:0 0 auto;}
+.wp-back .akv-pos-ic{background:currentColor;}
 
 /* ── ZVITOK S OBRAZOM 3:4 — UKÁŽKA (3. 10. 2026, len DEV, vaultScrollDemo.ts) ──
    Matej: na PC sa musí zmestiť CELÝ zvitok naraz — obraz, nadpis, text aj CTA.
@@ -431,7 +462,6 @@ ${SCROLL_CARD_CSS}
 .akv-pos-dd .akv-pos-sec{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px ${PACK_SPACE.xs}px;font-size:${PACK_TEXT.micro}px;
   letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
 .akv-pos-dd em{font-style:normal;font-size:${PACK_TEXT.micro}px;color:${AINUBIS.inkFaint};}
-.akv-pos-wdot{width:8px;height:8px;flex:0 0 auto;border-radius:${PACK_R.pill}px;background:rgb(var(--ai-w,${AINUBIS.cyanRGB}));}
 .akv-fold{display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;width:100%;cursor:pointer;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;border:1px dashed ${AI_WORLD.edge};
   background:transparent;color:rgb(var(--ai-w,${AINUBIS.cyanRGB}));font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;}
@@ -447,8 +477,9 @@ ${SCROLL_CARD_CSS}
 .akv-pos--t,.akv-listen--m{display:none;}
 @media (max-width:${PC_MIN - 1}px){
   .akv-root[data-view="scroll"] .akv-pos--t{display:flex;}
-  /* Na 390 px by meno okruhu ostalo na „Odkiaľ…" — svet nesie ikonka a farba, meno sveta ustúpi. */
-  .akv-pos--t .akv-pos-w{display:none;}
+  /* Na mobile nesie polohu pilulka sveta a číslo, meno okruhu je v roletke Okruhy. */
+  .akv-pos--t .akv-pos-c{display:none;}
+  .akv-pos--t .akv-pos-acts{margin-left:auto;}
   .akv-listen--m{display:inline-flex;align-self:center;}
 }
 
@@ -620,7 +651,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
     return v === key ? fallback : v;
   };
   const { lang } = useLang();
-  const [view, setView] = useState<View>('brain');
+  /* Na mobile sa vstupuje na výber sveta, mozog je pod pilulkou (nákres výberu sveta, Matej 5. 11. 2026). */
+  const [view, setView] = useState<View>('scroll');
   /* ROVINA — VAULT alebo CHAT. 🔴 CHAT NAOSTRO (appka MVP, 31. 10. 2026): pod `APP_NEW` je rovina CHAT
      ŽIVÝ `AinubisWidget` (edge `ainubis-chat`) vykreslený do prvku `.akv-chathost` — ten istý panel ako
      šuplík, nie maketa. Maketa `VaultChat` (23. 9.) sa zo stránky stiahla; web na dogypt.com
@@ -760,13 +792,23 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [scrolls],
   );
-  /* ŠTART = PRVÝ NEPREČÍTANÝ, určí sa RAZ (po načítaní postupu). Keby sa počítal stále,
+  /* VÝBER SVETA (Matej 5. 11. 2026, nákres `plany/nakresy/vault-vyber-sveta-2026-11-05`). Jeden rad všetkých
+     zvitkov členov nikdy nedoviedol za Cestu psa: 3 svety na LIVE, všetkých 124 udalostí z prvého. Člen si svet
+     vyberie, zoznam ukáže len ten svet a pri ďalšom vstupe appka ide rovno doň (pamäť zariadenia). */
+  const [worldKey, setWorldKey] = useState<string | null>(() => {
+    if (pv) return null;
+    try { return localStorage.getItem(WORLD_STORE); } catch { return null; }
+  });
+  const worldFeed = useMemo(() => (worldKey ? feed.filter((z) => z.world === worldKey) : []), [feed, worldKey]);
+  /* ŠTART = PRVÝ NEPREČÍTANÝ, určí sa RAZ pri vstupe do sveta (po načítaní postupu). Keby sa počítal stále,
      karta by pri dočítaní zmizla spod prsta. Kto prečítal všetko, začína od prvého. */
   const [startId, setStartId] = useState<string | null>(null);
+  const startFor = useRef<string | null>(null);
   useEffect(() => {
-    if (startId !== null || !readsReady || !feed.length) return;
-    setStartId((feed.find((z) => (zstate[z.id] || 0) !== 2) ?? feed[0]).id);
-  }, [startId, readsReady, feed, zstate]);
+    if (!worldKey || startFor.current === worldKey || !readsReady || !worldFeed.length) return;
+    startFor.current = worldKey;
+    setStartId((worldFeed.find((z) => (zstate[z.id] || 0) !== 2) ?? worldFeed[0]).id);
+  }, [worldKey, readsReady, worldFeed, zstate]);
   const [showRead, setShowRead] = useState(false);
   const [curId, setCurId] = useState<string | null>(null);
   const [posDd, setPosDd] = useState(false);
@@ -774,9 +816,25 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   const [queue, setQueue] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const [flash, setFlash] = useState<string | null>(null);
-  /* Filter SVET: -1 = všetky. Roletka otvorená: kľúč alebo null. */
-  const [wf, setWf] = useState(-1);
-  const [dd, setDd] = useState<string | null>(null);
+  const pickWorld = (key: string) => {
+    startFor.current = null;
+    setStartId(null); setCurId(null); setShowRead(false); setPosDd(false); setQ('');
+    setWorldKey(key);
+    if (!pv) { try { localStorage.setItem(WORLD_STORE, key); } catch { /* len pohodlie: nabudúce výber */ } }
+    requestAnimationFrame(() => listRef.current?.scrollTo(0, 0));
+  };
+  /* Späť na výber. Posledný svet ostáva zapamätaný, ďalší vstup ide rovno doň. */
+  const closeWorld = () => { startFor.current = null; setWorldKey(null); setCurId(null); setShowRead(false); setPosDd(false); setQ(''); };
+  /* Zvitok otvorený odkazom alebo z FEEDU: návrat má viesť do jeho sveta. */
+  const openZWorld = openZ?.world;
+  useEffect(() => {
+    if (openZWorld && openZWorld !== worldKey) pickWorld(openZWorld);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openZWorld]);
+  /* Zapamätaný svet, ktorý tu už nie je: späť na výber. */
+  useEffect(() => {
+    if (worldKey && feed.length && !feed.some((z) => z.world === worldKey)) setWorldKey(null);
+  }, [worldKey, feed]);
   /* Hľadanie nad menami a upútavkami svetov; vrstvy (panel pri pravom kraji); šuplík filtrov (mobil). */
   const [q, setQ] = useState('');
   const [lyrOpen, setLyrOpen] = useState(false);
@@ -791,12 +849,6 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   const [sheet, setSheet] = useState(false);
   // POPUP (26. 10. 2026): úchyt sa dal len ťuknúť, nie stiahnuť — teraz ťahá ako každý úchyt v /pack.
   const sheetSwipe = useSheetSwipe(() => setSheet(false));
-  useEffect(() => {
-    if (!dd) return;
-    const close = () => setDd(null);
-    window.addEventListener('click', close);
-    return () => window.removeEventListener('click', close);
-  }, [dd]);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const cvRef = useRef<HTMLCanvasElement>(null);
@@ -829,18 +881,12 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
 
   const openWorld = (wi: number) => {
     const key = VAULT_WORLDS[wi].key;
-    /* Klik na svet v mozgu ukáže jeho kartu — filter iného sveta by ju skryl. */
-    setWf(-1);
-    /* Od 22. 9. klik na uzol mozog PRIBLÍŽI a vycentruje (brainEngine focus). Na PC stojí
-       zoznam vedľa, takže karta sa len dorolovaním rozsvieti; na mobile by prepnutie na
-       zoznam priblíženie hneď schovalo — tam sa ku karte ide pilulkou DOGSCROLL. */
-    if (window.innerWidth < PC_MIN) { setFlash(key); window.setTimeout(() => setFlash((f) => (f === key ? null : f)), 1400); return; }
-    setView('scroll');
+    /* Klik na svet v mozgu vyberie svet. Od 22. 9. uzol mozog PRIBLÍŽI a vycentruje (brainEngine focus):
+       na PC stojí zoznam vedľa a hneď sa prepne, na mobile by prepnutie priblíženie schovalo,
+       tam sa k zoznamu ide pilulkou. Svet bez zvitkov sa nevyberá, povie to bublina mozgu. */
+    if (feed.some((z) => z.world === key)) pickWorld(key);
+    if (window.innerWidth >= PC_MIN) setView('scroll');
     setFlash(key);
-    /* Až po vykreslení: na mobile je DOGSCROLL do tejto chvíle `display:none`. */
-    requestAnimationFrame(() => {
-      document.getElementById(`akv-w-${key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
     window.setTimeout(() => setFlash((f) => (f === key ? null : f)), 1400);
   };
   const openWorldRef = useRef(openWorld);
@@ -880,7 +926,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           title: role === 'o' ? (cn(wi, oi) || n[wi]) : n[wi],
           sub: role === 'o' ? `${n[wi]} · ${x('pack.ainubis.tip.circle', 'A chapter being written')}`
             : x('pack.ainubis.tip.scroll', 'A scroll being written'),
-          hint: x('pack.ainubis.opening', 'Expected opening: November 2026'),
+          hint: x('pack.ainubis.preparing', 'Coming soon'),
         };
       },
       onWorld: (wi) => openWorldRef.current(wi),
@@ -930,7 +976,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
     window.addEventListener('resize', on);
     on();
     return () => { el.removeEventListener('scroll', on); window.removeEventListener('resize', on); cancelAnimationFrame(raf); };
-  }, [plane2, view, startId, showRead, feed.length]);
+  }, [plane2, view, startId, showRead, feed.length, worldKey]);
   /* Mozog ide s človekom — zrno pulzuje, kamera sa presunie pri zmene okruhu. */
   useEffect(() => {
     const z = feed.find((q) => q.id === (zid || curId));
@@ -954,7 +1000,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
      Číslo = to isté ako na tlačidle Počúvaj podcast nižšie (prvý nevypočutý z podcastov v poradí); panel ho číta
      z busu. Položka vedie na `?listen=1` a tu sa z toho stane prehrávač — s `replace`, aby sa späť nevrátilo
      na adresu, ktorá by ho pustila znova. Musí to stáť PRED `if (!ready) return` (pravidlá hookov). */
-  const podAll = feed.filter((z) => Object.keys(z.pod || {}).length > 0 && (!pv || isFreeScrollCode(z.code)));
+  const podAll = (worldKey ? worldFeed : feed).filter((z) => Object.keys(z.pod || {}).length > 0 && (!pv || isFreeScrollCode(z.code)));
   const podNextZ = podAll.find((z) => !readRows[z.id]?.listened_at);
   const podNext = podNextZ ? `${podAll.indexOf(podNextZ) + 1}/${podAll.length}` : null;
   useEffect(() => {
@@ -1007,25 +1053,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
     </nav>
   );
 
-  /* ROLETKA — SVET žije (filtruje karty), TYP a STAV čakajú na zvitky. */
+  /* ROLETKY — svet sa vyberá výberom alebo v mozgu, TYP a STAV čakajú na zvitky. */
   const chev = <span className="akv-chev" aria-hidden><HandArrowLeft size={12} /></span>;
-  const worldOpts = [tx('pack.ainubis.filter.allWorlds', 'All worlds'), ...names];
-  const worldDd = (
-    <div className={`akv-dd${wf >= 0 ? ' is-set' : ''}${dd === 'world' ? ' is-open' : ''}`}>
-      <button type="button" className="akv-ddb" aria-haspopup="listbox" aria-expanded={dd === 'world'}
-        onClick={(e) => { e.stopPropagation(); setDd((d) => (d === 'world' ? null : 'world')); }}>
-        <span>{worldOpts[wf + 1]}</span>{chev}
-      </button>
-      {dd === 'world' && (
-        <div className="akv-ddp" role="listbox">
-          {worldOpts.map((o, i) => (
-            <button key={o} type="button" role="option" aria-selected={wf === i - 1}
-              onClick={() => { setWf(i - 1); setDd(null); }}>{o}</button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
   const lockedDd = (key: string, en: string) => (
     <div className="akv-dd">
       <button type="button" className="akv-ddb" disabled title={soon}>
@@ -1037,8 +1066,6 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   /* Hľadá bez ohľadu na diakritiku a veľkosť písmen — „vyziva" nájde VÝŽIVU. */
   const norm = (v: string) => v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const nq = norm(q.trim());
-  const shown = VAULT_WORLDS.map((w, i) => ({ w, i })).filter(({ w, i }) => (wf < 0 || wf === i)
-    && (!nq || norm(`${names[i]} ${tx(`pack.ainubis.tease.${w.key}`, w.tease)}`).includes(nq)));
   const onSearch = (v: string) => {
     setQ(v);
     /* Výsledok hľadania je zoznam — na mobile sa naň prepne sám. */
@@ -1051,12 +1078,12 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
         type="search"
         value={q}
         onChange={(e) => onSearch(e.target.value)}
-        placeholder={tx('pack.ainubis.search', 'Search the Vault…')}
-        aria-label={tx('pack.ainubis.search', 'Search the Vault…')}
+        placeholder={tx('pack.ainubis.searchWorld', 'Search this world')}
+        aria-label={tx('pack.ainubis.searchWorld', 'Search this world')}
       />
     </label>
   );
-  const filtersLabel = wf >= 0 ? t('pack.map.filtersCount', { n: 1 }) : t('pack.map.filters');
+  const filtersLabel = t('pack.map.filters');
   /* Postup vo VAULTE — dnes nula, lebo žiadny svet ešte nie je otvorený. Keď pribudne
      čítanie, čísla prídu z neho; menovatele sú súčty z rozpadu svetov.
      🔒 Matej 23. 9. 2026: menovatele 62 okruhov / 569 zvitkov OSTÁVAJÚ viditeľné aj
@@ -1083,24 +1110,24 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
      daj zvitky a %"*. Prebíja „len svety a %" z 23. 9. — PC: OKRUHY | ZVITKY | %,
      mobil (dva riadky): ZVITKY a %. Menovatele ostávajú (lock 23. 9.). */
   /* ── DOGSCROLL: čo sa ukáže, kde človek je, kam skočí ─────────────────────── */
-  const filtering = !!nq || wf >= 0;
-  const feedShown = feed.filter((z) => (wf < 0 || wIdx(z.world) === wf)
-    && (!nq || norm(`${pickText(z, lang).t} ${pickText(z, lang).v} ${scrollCircle(z, lang)}`).includes(nq)));
+  const filtering = !!nq;
+  const feedShown = worldFeed.filter((z) => (!nq || norm(`${pickText(z, lang).t} ${pickText(z, lang).v} ${scrollCircle(z, lang)}`).includes(nq)));
   const startIdx = Math.max(0, feedShown.findIndex((z) => z.id === startId));
   const hiddenN = filtering || showRead ? 0 : startIdx;
   const visible = feedShown.slice(hiddenN);
-  const curZ = feed.find((z) => z.id === curId) ?? visible[0] ?? feed[0];
+  const curZ = worldFeed.find((z) => z.id === curId) ?? visible[0] ?? worldFeed[0];
   const curW = curZ ? wIdx(curZ.world) : -1;
-  const inWorld = curZ ? feed.filter((z) => z.world === curZ.world) : [];
+  const inWorld = worldFeed;
   const circlesOf = curZ ? Array.from({ length: VAULT_WORLDS[curW].circles }, (_, i) => inWorld.filter((z) => z.okruh === i + 1)) : [];
   const isRead = (z: DemoScroll) => (zstate[z.id] || 0) === 2;
   /* SKOK — na kartu v zozname; skrytú (prečítanú) najprv odhalí. Ráta s pruhom polohy,
      ktorý sa lepí hore — inak by karta zalezla pod neho. */
   const jumpTo = (id: string) => {
     setPosDd(false);
-    if (wf >= 0 || q) { setWf(-1); setQ(''); }
-    const idx = feed.findIndex((z) => z.id === id);
-    if (idx < startIdx) setShowRead(true);
+    if (q) setQ('');
+    const target = feed.find((z) => z.id === id);
+    if (target && target.world !== worldKey) { pickWorld(target.world); setShowRead(true); }
+    else if (worldFeed.findIndex((z) => z.id === id) < startIdx) setShowRead(true);
     if (window.innerWidth < PC_MIN) setView('scroll');
     const go = (tries: number) => {
       const el = listRef.current, card = el?.querySelector<HTMLElement>(`[data-zid="${id}"]`);
@@ -1123,15 +1150,15 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   const pvH = tx('magnet.ai.vault.h', 'The first circle is all yours');
   const pvP = tx('magnet.ai.vault.p', '10 scrolls with a podcast. The other {n} are guarded by a dog.').replace('{n}', String(feed.filter((z) => !isFreeScrollCode(z.code)).length));
   const playable = (z: DemoScroll) => !pv || isFreeScrollCode(z.code);
-  const listenQ = feed.filter((z) => hasPod(z) && playable(z) && !isHeard(z));
+  const listenQ = worldFeed.filter((z) => hasPod(z) && playable(z) && !isHeard(z));
   const startListen = () => { if (listenQ[0]) { setQueue(true); openScroll(listenQ[0].id, 'pod'); } };
   const nextListen = () => {
-    const i = openZ ? feed.indexOf(openZ) : -1;
-    const nx = feed.slice(i + 1).find((z) => hasPod(z) && playable(z) && !isHeard(z));
+    const i = openZ ? worldFeed.indexOf(openZ) : -1;
+    const nx = worldFeed.slice(i + 1).find((z) => hasPod(z) && playable(z) && !isHeard(z));
     if (nx) openScroll(nx.id, 'pod'); else setQueue(false);
   };
   /* Číslo = poradie podcastu, ktorý sa pustí, z celkového počtu (Matej 8. 10.: „Listen podcast XY/100"). */
-  const pods = feed.filter((z) => hasPod(z) && playable(z));
+  const pods = worldFeed.filter((z) => hasPod(z) && playable(z));
   const listenBtn = (cls: string) => listenQ.length > 0 && (
     <button type="button" className={cls} onClick={startListen}>
       <i aria-hidden />{tx('pack.ainubis.listen', 'Listen to podcast')} <em>{pods.indexOf(listenQ[0]) + 1}/{pods.length}</em>
@@ -1139,8 +1166,11 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   );
   const posBar = (cls: string) => curZ && (
     <div className={`akv-pos ${cls}`} style={aiWorld(curZ.world)}>
-      <span className="akv-pos-ic" aria-hidden style={mask(VAULT_WORLDS[curW].ic)} />
-      <span className="akv-pos-w">{names[curW]}</span>
+      <button type="button" className="akv-pos-b wp-back" aria-pressed title={tx('pack.ainubis.pos.worlds', 'Worlds')} onClick={closeWorld}>
+        <HandArrowLeft size={12} />
+        <span className="akv-pos-ic" aria-hidden style={mask(VAULT_WORLDS[curW].ic)} />
+        <span>{names[curW]}</span>
+      </button>
       <span className="akv-pos-c" title={scrollCircle(curZ, lang)}>O{curZ.okruh} · {scrollCircle(curZ, lang)}</span>
       <span className="akv-pos-n">{inWorld.indexOf(curZ) + 1}/{inWorld.length}</span>
       <div className="akv-pos-acts">
@@ -1176,18 +1206,6 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
                   onClick={() => list.length && jumpTo(firstOpen(list).id)}>
                   <span>O{i + 1} · {circleName(curW, i)}</span>
                   <b>{done && <HandCheck size={12} />}{list.filter(isRead).length}/{list.length}</b>
-                </button>
-              );
-            })}
-            <div className="akv-pos-sec">{tx('pack.ainubis.pos.more', 'More worlds')}</div>
-            {VAULT_WORLDS.map((w, i) => {
-              if (i === curW) return null;
-              const list = feed.filter((z) => z.world === w.key);
-              return (
-                <button key={w.key} type="button" role="option" aria-selected={false} disabled={!list.length}
-                  style={aiWorld(w.key)} onClick={() => list.length && jumpTo(firstOpen(list).id)}>
-                  <span className="akv-pos-wdot" aria-hidden /><span>{names[i]}</span>
-                  <b>{list.length ? `${list.filter(isRead).length}/${list.length}` : <em>{soon}</em>}</b>
                 </button>
               );
             })}
@@ -1313,7 +1331,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
         <div className="akv-list" ref={listRef} data-retap-top>
         <div className="akv-col">
           {SCROLL_DEMO && listenBtn('akv-listen akv-listen--m')}
-          {shown.length === 0 && feedShown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
+          {worldKey && feed.length > 0 && feedShown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
           {pv && feed.length > 0 && (
             /* BLOK AINUBISA (mobil) — ten istý komponent na každej stránke náhľadu. */
             <div className="akv-pvinfo">
@@ -1324,21 +1342,45 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
             <ScrollCard key={z.id} z={z} lang={lang} worldName={names[wIdx(z.world)]} onOpen={openScroll} onShare={shareScroll}
               lock={pv ? () => lockAction() : undefined} locked={!!pv && !isFreeScrollCode(z.code)} />
           ))}
-          {/* Upútavky ostávajú len svetom, ktoré ešte nemajú ani jeden zvitok. */}
-          {shown.filter(({ w }) => !feed.some((z) => z.world === w.key)).map(({ w, i }) => (
-            <section
-              key={w.key}
-              id={`akv-w-${w.key}`}
-              className={`akv-world${flash === w.key ? ' is-flash' : ''}`}
-              style={aiWorld(w.key)}
-            >
-              <div className="akv-wlbl">{tx('pack.ainubis.worldOf', 'World {n} of 7').replace('{n}', String(i + 1))}</div>
-              <div className="akv-wic" aria-hidden style={mask(w.ic)} />
-              <h2 className="akv-wname">{names[i]}</h2>
-              <p className="akv-wtease">{tx(`pack.ainubis.tease.${w.key}`, w.tease)}</p>
-              <span className="akv-wsoon">{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</span>
+          {/* VÝBER SVETA: svet so zvitkami sa otvorí, ostatné vidno so zámkom. Kým sa zoznam načíta, karty sú neutrálne. */}
+          {!worldKey && (
+            <section className="wp-pick" aria-label={tx('pack.ainubis.pick.title', 'Choose a world')}>
+              <h2 className="wp-label">{tx('pack.ainubis.pick.title', 'Choose a world')}</h2>
+              <div className="wp-grid">
+                {VAULT_WORLDS.map((w, i) => {
+                  const list = feed.filter((z) => z.world === w.key);
+                  const head = (
+                    <>
+                      <span className="akv-wic wp-ic" aria-hidden style={mask(w.ic)} />
+                      <span className="wp-top">
+                        <span className="wp-name">{names[i]}</span>
+                        {list.length > 0 && <span className="wp-go" aria-hidden><HandArrowLeft size={14} /></span>}
+                        {feed.length > 0 && !list.length && <span className="wp-lock" aria-hidden><HandLock size={14} /></span>}
+                      </span>
+                    </>
+                  );
+                  if (!list.length) return (
+                    <div key={w.key} id={`akv-w-${w.key}`} aria-disabled style={aiWorld(w.key)}
+                      className={`akv-world wp-card is-soon${flash === w.key ? ' is-flash' : ''}`}>
+                      {head}
+                      <span className="wp-row">{feed.length > 0 && <span className="akv-wsoon">{tx('pack.ainubis.preparing', 'Coming soon')}</span>}</span>
+                    </div>
+                  );
+                  const done = list.filter(isRead).length;
+                  return (
+                    <button key={w.key} type="button" id={`akv-w-${w.key}`} style={aiWorld(w.key)} onClick={() => pickWorld(w.key)}
+                      className={`akv-world wp-card${flash === w.key ? ' is-flash' : ''}`}>
+                      {head}
+                      <span className="wp-row">
+                        <span className="pk-progress"><span className="pk-progress__fill" style={fillPct(done / list.length)} /></span>
+                        <span className="wp-num"><b>{done} / {list.length}</b><i>{tx('pack.ainubis.stat.scrolls', 'scrolls')}</i></span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </section>
-          ))}
+          )}
           {SOURCES_MOCK && !pv && (
             <button type="button" className="akv-entry" onClick={openLibrary}>
               {tx('pack.ainubis.sources.entry', 'What this brain stands on')}
@@ -1368,14 +1410,13 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           onMe={() => navigate('/pack/ainubis/knowledge')}
         />}
         {/* PC: hľadanie a filtre POD hlavičkou nad mozgom, ako na /map (Matej 22. 9.). */}
-        <div className="akv-ptools">
+        {worldKey && <div className="akv-ptools">
           {search}
           <div className="akv-filters">
-            {worldDd}
             {lockedDd('type', 'Type')}
             {lockedDd('state', 'Status')}
           </div>
-        </div>
+        </div>}
         {/* 🔴 PORADIE NA MOBILE = PORADIE NA `/map` (Matej 23. 9. 2026):
             *„mobil zobrazenie na /map by sa mal zhodovať a mal by si podľa neho urobiť
             aj ainubis"* — identita → HĽADANIE + FILTRE → prepínače. Do 23. 9. tu boli
@@ -1384,13 +1425,13 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
                žijú v ľavom bloku — to je vlastné rozhodnutie z toho istého rána
                („OSTÁVA TAK, presun hore aj na PC zamietnutý"). Presúva sa poradie
                v DOM, nie miesto rovín. */}
-        <div className="akv-mtools">
+        {worldKey && <div className="akv-mtools">
           {search}
-          <button type="button" className={`akv-fbtn${wf >= 0 ? ' is-set' : ''}`}
+          <button type="button" className="akv-fbtn"
             aria-expanded={sheet} onClick={() => setSheet(true)}>
             <i aria-hidden />{filtersLabel}
           </button>
-        </div>
+        </div>}
         <div className="akv-toprow">{planes('akv-planes-t')}</div>
         {SCROLL_DEMO && posBar('akv-pos--t')}
       </div>
@@ -1403,15 +1444,6 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
             <div className="akv-stop" {...sheetSwipe.handle}>
               <span className="akv-grab" aria-hidden />
               <div className="akv-sttl">{t('pack.map.filters')}</div>
-            </div>
-            <div className="akv-sgrp">
-              <b>{tx('pack.ainubis.filter.world', 'World')}</b>
-              <div className="akv-chips">
-                {worldOpts.map((o, i) => (
-                  <button key={o} type="button" className="akv-chip" aria-pressed={wf === i - 1}
-                    onClick={() => { setWf(i - 1); setSheet(false); setView('scroll'); }}>{o}</button>
-                ))}
-              </div>
             </div>
             {([['type', 'Type'], ['state', 'Status']] as const).map(([k, en]) => (
               <div className="akv-sgrp" key={k}>
