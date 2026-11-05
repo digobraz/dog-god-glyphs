@@ -253,19 +253,24 @@ const CSS = `
 .ntf-ai span{color:${AINUBIS.aiInk};-webkit-text-stroke:0.4px #0B3A44;}
 .ntf-cta{flex:0 0 auto;font-family:'Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.field}px;background:${LAPIS.grad};color:${LAPIS.ink};border:none;cursor:pointer;white-space:nowrap;}
 .ntf-empty{font-size:${PACK_TEXT.label}px;color:${T.inkDim};text-align:center;padding:${PACK_SPACE.sm}px;}
+.ntf-history{align-self:center;background:none;border:0;cursor:pointer;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};padding:${PACK_SPACE.md}px;}
 .ntf-all{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.xl}px);}
 ${STAGE_CSS}`;
 
-/** `oznam` = riadok AINUBISA navrchu zoznamu (TEST_BUILD); `grown` = koľko psov pribudlo od poslednej návštevy. */
-type Props = { onClose: () => void; children?: React.ReactNode; hasReal: boolean; oznam?: { grown: number } };
+/** `oznam` = riadok AINUBISA navrchu zoznamu (TEST_BUILD); `grown` = koľko psov pribudlo od poslednej návštevy.
+ *  `history` (5. 11. 2026, TEST_BUILD): staré upozornenia a tipy sú zložené za malým textom; `has` = je čo ukázať okrem tipov. */
+type Props = { onClose: () => void; children?: React.ReactNode; hasReal: boolean; oznam?: { grown: number }; history?: { has: boolean; open: boolean; onOpen: () => void } };
 
-export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet({ onClose, children, hasReal, oznam }, ref) {
+export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet({ onClose, children, hasReal, oznam, history }, ref) {
   const t = useT();
   const { lang } = useLang();
   const navigate = useNavigate();
   const [stats, setStats] = useState<Stats | null>(null);
   const [view, setView] = useState<'list' | 'stats'>('list');
-  const tips = useTips(true, onClose);
+  const allTips = useTips(true, onClose);
+  const folded = !!history && !history.open;
+  const tips = folded ? [] : allTips;
+  const showOznam = !!oznam && oznam.grown > 0;
   const newest = useNewestDogs();
   const [di, setDi] = useState(0);
   const [touchX, setTouchX] = useState<number | null>(null);
@@ -385,7 +390,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
               </span>
             </div>
             <div className="ntf-list">
-              {oznam && <Suspense fallback={null}><AinubisOznam grown={oznam.grown} onClose={onClose} /></Suspense>}
+              {showOznam && <Suspense fallback={null}><AinubisOznam grown={oznam.grown} onClose={onClose} /></Suspense>}
               {hasReal && <div className="ntf-real">{children}</div>}
               {tips.length > 0 && <div className="ntf-sec">{t('pack.notif.forYou')}</div>}
               {tips.map((tip) => (
@@ -398,7 +403,10 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                   <button type="button" className="ntf-cta" onClick={tip.go}>{tip.cta}</button>
                 </div>
               ))}
-              {!hasReal && !oznam && tips.length === 0 && <div className="ntf-empty">{t('pack.notif.allClear')}</div>}
+              {folded && (history.has || allTips.length > 0) && (
+                <button type="button" className="ntf-history" onClick={history.onOpen}>{t('pack.alerts.history')}</button>
+              )}
+              {!hasReal && !showOznam && tips.length === 0 && !(folded && (history.has || allTips.length > 0)) && <div className="ntf-empty">{t('pack.notif.allClear')}</div>}
             </div>
           </>
         )}

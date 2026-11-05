@@ -36,7 +36,7 @@ import { iso2ToISO3 } from '@/lib/countryGeo';
 import { loadSosActive } from '@/components/pack/sosKit';
 import { sosMine } from '@/lib/sos';
 import { SOS_ON } from '@/lib/env';
-import { fetchMemberProfiles, memberDisplayName } from '@/components/pack/profile/memberProfile';
+import { fetchMemberProfiles, memberAvatarUrl, memberDisplayName } from '@/components/pack/profile/memberProfile';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rovnaký dôvod ako v packStore.ts:
 // `types.ts` tabuľky /packu nepozná (migrácie sú novšie než generovaný súbor).
@@ -137,7 +137,7 @@ export interface PackAlert {
   photo?: string;
   /** sociálne komentáre: telo najnovšieho komentára, už skrátené serverom */
   preview?: string;
-  /** sociálne druhy: fotka človeka, ktorý reagoval (IG: vľavo tvár, vpravo náhľad) */
+  /** fotka človeka, od ktorého upozornenie je (IG: vľavo tvár, vpravo náhľad) */
   whoPhoto?: string;
 }
 
@@ -233,6 +233,7 @@ interface PawmateAlertRow {
   user_id: string | null;
   email: string | null;
   name: string | null;
+  avatar_url: string | null;
   dogs: Array<{ dog_name?: string | null }> | null;
   since: string;
 }
@@ -409,6 +410,7 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
       id: `mate|${m.user_id}|${m.since}`, kind: 'pawmate_joined', tripSlug: '', tripName: dogNames,
       tripPath: '/pack/profile/edit', count: 1, at: m.since,
       who: m.name || (m.email ?? '').split('@')[0] || undefined,
+      whoPhoto: m.avatar_url ?? undefined,
     });
   }
 
@@ -426,6 +428,7 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
         tripName: (m?.dogs ?? []).map((d) => d.name).filter(Boolean).join(' & '),
         tripPath: `/pack/u/${num}`, count: 1, at: f.followed_at,
         who: memberDisplayName(m, `#${num}`) || undefined,
+        whoPhoto: memberAvatarUrl(m) ?? undefined,
       });
     }
   }

@@ -34,6 +34,8 @@ import { sizedUrl } from '@/services/cloudinaryService';
 
 /** SOS riadky chvosta (`sos_lost`, `sos_still`) — prioritné, mimo zoznamu „nové / skôr“. */
 const isSosAlert = (a: PackAlert) => a.kind === 'sos_lost' || a.kind === 'sos_still';
+/** Upozornenie od konkrétneho človeka = jeho tvár vľavo, nie chvost (Matej 5. 11.: „ak je to od človeka, má tam byť fotka"). */
+const isPersonAlert = (a: PackAlert) => !!SOCIAL_KEY[a.kind] || a.kind === 'follow_new' || a.kind === 'pawmate_joined' || a.kind === 'walk_invite' || a.kind === 'wish_me_too';
 
 /** Sociálne (IG) upozornenia → základ i18n kľúča `pack.alerts.soc.<základ>One|Many`. */
 const SOCIAL_KEY: Record<string, string> = {
@@ -41,6 +43,15 @@ const SOCIAL_KEY: Record<string, string> = {
 };
 
 const T = PACK_THEME;
+
+/** Tvár človeka v riadku upozornenia; bez fotky prvé písmeno mena. */
+function PersonFace({ al }: { al: PackAlert }) {
+  return (
+    <span style={{ flex: 'none', width: PACK_AVATAR.head, height: PACK_AVATAR.head, borderRadius: PACK_R.pill, overflow: 'hidden', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: T.tileBg, border: `1.5px solid ${T.border}` }}>
+      {al.whoPhoto ? <img src={sizedUrl(al.whoPhoto, 96)} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <span style={{ font: `600 ${PACK_TEXT.body}px/1 ${FONT_UI}`, color: T.inkWarm }}>{(al.who || '?').charAt(0).toUpperCase()}</span>}
+    </span>
+  );
+}
 
 // Kapsula (variant B, 26. 9. 2026): čierna plocha, zlatý lem = konštrukcia, nie CTA.
 const CAPSULE: React.CSSProperties = {
@@ -94,17 +105,14 @@ const capBadge = (cyan: boolean): React.CSSProperties => ({
 //   · prírastok = psy s číslom (`total` z `get-pack-stats.dogs`, ten istý počet ako homepage), porovnaný
 //     s číslom, ktoré človek videl pri poslednom otvorení panela (localStorage).
 // Do dnes to isté miesto rozsvecoval prírastok za 24 h ČERVENOU — systém sa tvári ako člen.
-const OZNAM_SEEN_KEY = 'pack-oznam-seen';
+// 🔁 5. 11. 2026, Matej: *„vždy keď sa prihlásim, svieti tam to isté, aj keď žiadny oznam nepribudol“* ⇒ cyan bodka
+// a riadok AINUBISA len pri skutočnom prírastku. „Každé prihlásenie“ z 26. 10. tým končí.
 const SEEN_DOGS_KEY = 'pack-seen-dogs';
-function readOznamSeen(): boolean {
-  try { return sessionStorage.getItem(OZNAM_SEEN_KEY) === '1'; } catch { return false; }
-}
 function readSeenDogs(): number | null {
   try { const v = Number(localStorage.getItem(SEEN_DOGS_KEY)); return v > 0 ? v : null; } catch { return null; }
 }
 function markOznamSeen(dogs: number | null | undefined): void {
   try {
-    sessionStorage.setItem(OZNAM_SEEN_KEY, '1');
     if (dogs && dogs > 0) localStorage.setItem(SEEN_DOGS_KEY, String(dogs));
   } catch { /* súkromné okno — oznam sa ukáže znova, nič sa nerozbije */ }
 }
@@ -271,15 +279,27 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   // ZÁMERNE nepočítajú — má ich obálka vedľa a dve rovnaké čísla vedľa seba nič nehovoria.
   const bellCount = (last24h ?? 0) + freshAlerts.length;
   // APP_NEW: červená = len od členov, cyan = oznam AINUBISA / prírastok (hlavička súboru).
-  const [oznamFresh, setOznamFresh] = useState(() => APP_NEW && !readOznamSeen());
-  const [seenDogs] = useState(readSeenDogs);
+  const [seenDogs, setSeenDogs] = useState(readSeenDogs);
+  // Prírastok v okamihu otvorenia: počet sa hneď označí za videný, riadok v paneli ho musí uniesť.
+  const [grownAtOpen, setGrownAtOpen] = useState(0);
   const grown = APP_NEW && total && seenDogs && total > seenDogs ? total - seenDogs : 0;
   // Odpoveď AINUBISA pod citátom je jeho hlas ⇒ CYAN, nie červená od členov (Matej 27. 10.: „samozrejme A").
   // Zverejnený / vrátený výlet je oznam systému ⇒ tiež cyan (1. 11. 2026).
   const memberFresh = freshAlerts.filter((a) => a.kind !== 'ainubis_reply' && a.kind !== 'trip_published' && a.kind !== 'trip_returned');
-  const cyanCount = APP_NEW ? (oznamFresh ? 1 : 0) + freshAlerts.length - memberFresh.length : 0;
+  const cyanCount = APP_NEW ? (grown > 0 ? 1 : 0) + freshAlerts.length - memberFresh.length : 0;
   const memberDot = APP_NEW ? memberFresh.length > 0 : bellCount > 0;
   const cyanDot = cyanCount > 0;
+
+  // PANEL BEZ STARÝCH OZNAMOV (5. 11. 2026, APP_NEW). Matej: *„malo by tam byť nič a malý text pozrieť históriu“*.
+  // Hore ostáva len nové, živé pátranie (SOS) a pozvánka čakajúca na odpoveď; zvyšok až po ťuknutí.
+  const [showOld, setShowOld] = useState(false);
+  const freshIds = new Set(freshAlerts.map((a) => a.id));
+  const isCurrent = (a: PackAlert) => a.kind === 'walk_invite' || newIds.has(a.id) || freshIds.has(a.id);
+  const restAlerts = alerts.filter((a) => !isSosAlert(a));
+  const orderedAlerts = [...restAlerts.filter((a) => newIds.has(a.id)), ...restAlerts.filter((a) => !newIds.has(a.id))];
+  const listedAlerts = !APP_NEW || showOld ? orderedAlerts : orderedAlerts.filter(isCurrent);
+  const hasOldAlerts = orderedAlerts.some((a) => !isCurrent(a));
+  const hasListed = listedAlerts.length > 0 || alerts.some(isSosAlert);
 
   return (
     <div
@@ -398,7 +418,13 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
             alertsMod.markSeen(freshAlerts.map((x) => x.id));
             setSeenEpoch((e) => e + 1);
           }
-          if (next && APP_NEW) { markOznamSeen(total); setOznamFresh(false); }
+          if (next && APP_NEW) {
+            setNewIds(new Set(freshAlerts.map((x) => x.id)));
+            setShowOld(false);
+            setGrownAtOpen(grown);
+            markOznamSeen(total);
+            if (total) setSeenDogs(total);
+          }
           return next;
         }), open ? 0 : 260); }}
         aria-label={t('pack.notif.ariaNotifications')}
@@ -458,9 +484,10 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           tie isté, len stoja v papyrusovom skle pod blokom DOGYPT STATS. „Tep svorky" (prírastok
           dnes / za 30 dní / spolu) odišiel do bloku STATS. */}
       {open && createPortal(
-        <NotifSheet ref={panelRef} onClose={closeSheet} hasReal={DEV_FULL && (alerts.length > 0 || unreadConvs.length > 0)}
-          oznam={APP_NEW ? { grown } : undefined}>
-          {DEV_FULL && alerts.length > 0 && (
+        <NotifSheet ref={panelRef} onClose={closeSheet} hasReal={DEV_FULL && (hasListed || unreadConvs.length > 0)}
+          oznam={APP_NEW ? { grown: grownAtOpen } : undefined}
+          history={APP_NEW ? { has: hasOldAlerts, open: showOld, onOpen: () => setShowOld(true) } : undefined}>
+          {DEV_FULL && hasListed && (
             <>
               <div
                 style={{
@@ -492,7 +519,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                     </button>
                   </li>
                 ))}
-                {[...alerts.filter((a) => !isSosAlert(a) && newIds.has(a.id)), ...alerts.filter((a) => !isSosAlert(a) && !newIds.has(a.id))].map((al, ai, ordered) => <Fragment key={al.id}>{newIds.size > 0 && (ai === 0 || (!newIds.has(al.id) && newIds.has(ordered[ai - 1].id))) && (
+                {listedAlerts.map((al, ai, ordered) => <Fragment key={al.id}>{newIds.size > 0 && (ai === 0 || (!newIds.has(al.id) && newIds.has(ordered[ai - 1].id))) && (
                   <li className="ntf-li-sec"><span className="ntf-sec">{t(newIds.has(al.id) ? 'pack.alerts.new' : 'pack.alerts.earlier')}</span></li>
                 )}{al.kind === 'ainubis_reply' ? (
                   // AINUBIS ODPÍSAL (27. 10. 2026) — jeho šat (`ntf-row--ai` z NotifSheet), ťuk = vlákno citátu.
@@ -511,8 +538,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                 ) : al.kind === 'walk_invite' ? (
                   // POZVÁNKA „bol si so mnou" (15. 10. 2026) — rozhoduje sa TU, nie na výlete:
                   // výlet môže ešte čakať na schválenie a pozvaný by ho nevedel otvoriť.
-                  <li key={al.id} className="flex items-start gap-2">
-                    <HandTail size={14} style={{ flexShrink: 0, marginTop: 2, color: T.accentGold }} />
+                  <li key={al.id} className="flex items-start gap-3">
+                    <PersonFace al={al} />
                     <span style={{ minWidth: 0, flex: 1 }}>
                       <span style={{ display: 'block', fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, lineHeight: 1.35, color: T.inkStrong }}>
                         {t('pack.alerts.walkInvite', { who: al.who || t('pack.triplist.fallbackDogyptian') })}
@@ -558,14 +585,12 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                         // s kým ide, a pri prejdení má rovno tlačidlo zapísať si ho aj za seba.
                         navigate(al.kind === 'trip_request' ? '/pack/map/triplist' : al.tripPath);
                       }}
-                      className={`flex ${SOCIAL_KEY[al.kind] ? 'items-center gap-3' : 'items-start gap-2'} w-full text-left`}
+                      className={`flex ${isPersonAlert(al) ? 'items-center gap-3' : 'items-start gap-2'} w-full text-left`}
                       style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}
                     >
                       {/* Sociálne = ako Instagram (Matej 28. 10.): vľavo TVÁR človeka, vpravo náhľad príspevku. Chvost ostáva len systémovým. */}
-                      {SOCIAL_KEY[al.kind]
-                        ? <span style={{ flex: 'none', width: PACK_AVATAR.head, height: PACK_AVATAR.head, borderRadius: PACK_R.pill, overflow: 'hidden', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: T.tileBg, border: `1.5px solid ${T.border}` }}>
-                            {al.whoPhoto ? <img src={sizedUrl(al.whoPhoto, 96)} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <span style={{ font: `600 ${PACK_TEXT.body}px/1 ${FONT_UI}`, color: T.inkWarm }}>{(al.who || '?').charAt(0).toUpperCase()}</span>}
-                          </span>
+                      {isPersonAlert(al)
+                        ? <PersonFace al={al} />
                         : <HandTail size={14} style={{ flexShrink: 0, marginTop: 2, color: T.accentGold }} />}
                       <span style={{ minWidth: 0, flex: 1 }}>
                         <span
