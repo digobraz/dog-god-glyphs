@@ -3,7 +3,7 @@
 // 🔴 Pred exportom sa čaká na fonty a na `data-ready="1"` (fotka aj mapa dohraté); cudzie obrázky idú ako `blob:`
 //    (CORS ošetrené v `SosFlyer`), inak by canvas padol.
 import { uploadSosFlyer } from '@/services/cloudinaryService';
-import { shareFile } from '@/lib/shareFile';
+import { shareFiles } from '@/lib/shareFile';
 
 export const FLYER_W = 2480;
 export const FLYER_H = 3508;
@@ -89,7 +89,7 @@ export async function flyerUpload(png: Blob, slug: string): Promise<string> {
   return r.secureUrl;
 }
 
-/** STIAHNUŤ: PDF A4, potom PNG (postupne). Web: súbory sa stiahnu; appka: systémový hárok.
+/** STIAHNUŤ: PDF A4 + PNG. Web: súbory sa stiahnu; appka: jeden systémový hárok.
  *  Vráti `false`, keď zariadenie súbor odovzdať nevie (volajúci ukáže hlášku). */
 export async function flyerDownload(png: Blob, slug: string): Promise<boolean> {
   const { jsPDF } = await import('jspdf');
@@ -101,6 +101,5 @@ export async function flyerDownload(png: Blob, slug: string): Promise<boolean> {
   });
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
   pdf.addImage(dataUrl, 'PNG', 0, 0, 210, 297, undefined, 'FAST');
-  if (!(await shareFile(pdf.output('blob'), `dogypt-sos-${slug}.pdf`))) return false;
-  return await shareFile(png, `dogypt-sos-${slug}.png`);
+  return shareFiles([{ blob: pdf.output('blob'), name: `dogypt-sos-${slug}.pdf` }, { blob: png, name: `dogypt-sos-${slug}.png` }]);
 }

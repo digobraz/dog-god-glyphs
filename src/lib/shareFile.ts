@@ -18,24 +18,33 @@ const isCancel = (e: unknown) => {
 };
 
 /** Vráti `false`, keď to zariadenie nevie odovzdať (appka bez pluginu aj bez Web Share). Zrušenie človekom je `true`. */
-export async function shareFile(blob: Blob, name: string): Promise<boolean> {
+export const shareFile = (blob: Blob, name: string) => shareFiles([{ blob, name }]);
+
+/** Viac súborov = jeden systémový hárok. Dva hárky po sebe by druhý telefón zahodil. */
+export async function shareFiles(items: { blob: Blob; name: string }[]): Promise<boolean> {
+  const title = items[0].name;
   if (IS_APP) {
     const { Capacitor } = await import('@capacitor/core');
     if (Capacitor.isPluginAvailable('Share') && Capacitor.isPluginAvailable('Filesystem')) {
       const [{ Filesystem, Directory }, { Share }] = await Promise.all([import('@capacitor/filesystem'), import('@capacitor/share')]);
-      const { uri } = await Filesystem.writeFile({ path: name, data: await toBase64(blob), directory: Directory.Cache });
-      await Share.share({ title: name, files: [uri] }).catch((e) => { if (!isCancel(e)) throw e; });
+      const files = await Promise.all(items.map(async ({ blob, name }) =>
+        (await Filesystem.writeFile({ path: name, data: await toBase64(blob), directory: Directory.Cache })).uri));
+      await Share.share({ title, files }).catch((e) => { if (!isCancel(e)) throw e; });
       return true;
     }
-    const file = new File([blob], name, { type: blob.type });
-    if (!navigator.canShare?.({ files: [file] })) return false;
-    await navigator.share({ files: [file], title: name }).catch((e) => { if (e?.name !== 'AbortError') throw e; });
+    const files = items.map(({ blob, name }) => new File([blob], name, { type: blob.type }));
+    if (!navigator.canShare?.({ files })) return false;
+    await navigator.share({ files, title }).catch((e) => { if (e?.name !== 'AbortError') throw e; });
     return true;
   }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = name;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  for (const [i, { blob, name }] of items.entries()) {
+    // Prehliadač druhé stiahnutie hneď po prvom zahodí.
+    if (i) await new Promise((r) => setTimeout(r, 400));
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
   return true;
 }
