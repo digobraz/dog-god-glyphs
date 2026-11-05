@@ -29,7 +29,10 @@ const CSS = `
 .sosn-map{position:relative;width:100%;height:320px;border-radius:${PACK_R.tile}px;overflow:hidden;border:1px solid ${T.border};}
 .sosn-map .sosn-canvas{position:absolute;inset:0;cursor:crosshair;}
 .sosn-loc{position:absolute;left:${PACK_SPACE.sm}px;top:${PACK_SPACE.sm}px;z-index:800;}
-.sosn-when{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
+/* minmax(0,1fr) + min-width:0: iOS dáva dátumu a času vlastnú šírku väčšiu než stĺpec, s holým 1fr pole vytieklo z karty (Matej 5. 11.). */
+.sosn-when{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${PACK_SPACE.sm}px;}
+.sosn-when .sos-field{min-width:0;}
+.sosn-when .pf-field{display:block;min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;}
 .sosn-swatch{display:inline-block;width:12px;height:12px;border-radius:${PACK_R.pill}px;border:1px solid ${T.sosRed};vertical-align:-1px;margin-right:${PACK_SPACE.xs}px;}
 `;
 
