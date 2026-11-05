@@ -16,6 +16,7 @@ import { tripPath } from '@/components/pack/tripShared';
 import { trailCountry, flagUrl } from '@/lib/countryGeo';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { tripTitle, type FeedTrip } from './feedData';
+import { SkelDogs } from './FeedSkeleton';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -60,15 +61,26 @@ export const FEED_TOP_CSS = `
 
 const BAND_KM: Record<string, string> = { '0-5': '0–5 km', '5-10': '5–10 km', '10-25': '10–25 km', '25-50': '25–50 km', '50+': '50+ km' };
 
+// Posledné karty v zariadení (5. 11. 2026): pás je prvé, čo človek vo FEEDe vidí. Prázdny zoznam je tiež odpoveď (oznam).
+const NEARBY_STORE = 'feed-nearby-v1';
+const readStoredNearby = (): SnifferCardData[] | null => {
+  try { return JSON.parse(localStorage.getItem(NEARBY_STORE) || 'null') as SnifferCardData[] | null; } catch { return null; }
+};
+
 export function SnifferStrip() {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const navigate = useNavigate();
-  const [cards, setCards] = useState<SnifferCardData[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [stored] = useState(readStoredNearby);
+  const [cards, setCards] = useState<SnifferCardData[]>(stored || []);
+  const [loaded, setLoaded] = useState(!!stored);
   useEffect(() => {
     let on = true;
-    loadNearby(null).then((c) => { if (on) { setCards(c.slice(0, 12)); setLoaded(true); } }).catch(() => { if (on) { setCards([]); setLoaded(true); } });
+    loadNearby(null).then((c) => {
+      const top = c.slice(0, 12);
+      try { localStorage.setItem(NEARBY_STORE, JSON.stringify(top)); } catch { /* plné úložisko */ }
+      if (on) { setCards(top); setLoaded(true); }
+    }).catch(() => { if (on) { setCards([]); setLoaded(true); } });
     return () => { on = false; };
   }, []);
   const go = () => navigate('/pack/sniffer');
@@ -77,6 +89,7 @@ export function SnifferStrip() {
       <div className="pfs-row is-sniffer">
         <h2>{tx('pack.feed.top.buddy', 'Looking for a buddy')}</h2>
       </div>
+      {!loaded && <SkelDogs />}
       {loaded && !cards.length ? (
         <div className="pfs-note">
           <img src="/icons/sniffer/sniffer-logo.svg" alt="SNIFFER" />

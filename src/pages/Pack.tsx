@@ -6,6 +6,7 @@ import { PACK_THEME, PACK_BOX, PACK_TEXT, PAPER_ROUTES_EXTRA, PAPER_BG, FONT_UI 
 import { appWebVersion } from '@/lib/appUpdate';
 import { isFounderEmail, isAppTester } from '@/lib/founder';
 import { TEST_BUILD } from '@/lib/env';
+import { FeedSkeleton } from '@/components/pack/feed/FeedSkeleton';
 import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { HandSearch } from '@/components/pack/HandIcons';
@@ -111,7 +112,7 @@ export default function Pack() {
   if (APP_NEW && new URLSearchParams(search).get('welcome') !== '1') {
     return (
       <PackLayout topLeft={<FeedSearch />} topCenter={<TeamAppVersion />}>
-        <Suspense fallback={null}><PackFeed /></Suspense>
+        <Suspense fallback={<FeedSkeleton />}><PackFeed /></Suspense>
       </PackLayout>
     );
   }

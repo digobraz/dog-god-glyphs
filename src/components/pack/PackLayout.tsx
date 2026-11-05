@@ -10,6 +10,7 @@ import { TEST_BUILD } from '@/lib/env';
 import { PackTopRow } from './PackTopRow';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
+import { FeedSkeleton } from './feed/FeedSkeleton';
 import { TermsGuard } from '@/components/app/TermsGate';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
 import { intlLocale } from '@/i18n/bcp47';
@@ -103,11 +104,13 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel, topLe
         style={paperPage ? undefined : { backgroundColor: T.pageBg }}
       >
         {paperPage ? <style>{PAPER_PAGE_CSS}</style> : <HieroglyphBg />}
+        {APP_NEW && pathname === '/pack' ? <div className="relative w-full self-start" style={{ zIndex: 1 }}><FeedSkeleton /></div> : (
         <div className="relative" style={{ zIndex: 1 }}>
           <div style={{ fontFamily: FONT_UI, letterSpacing: '0.26em', fontSize: 12, color: paperPage ? T.inkWarm : T.onDarkDim }}>
             {t('pack.layout.loading')}
           </div>
         </div>
+        )}
       </div>
     );
   }

@@ -484,6 +484,15 @@ export const PACK_BLOCKS = {
       + 'so sklom a tmavosti 0,28 / 0,32 / 0,55 vedľa seba. Doštička má zámerne '
       + 'tú istú výplň ako .pk-pill--dark — je to tá istá vrstva nad fotkou.',
   },
+  // ── PRIBUDLO 5. 11. 2026 ────────────────────────────────────────────────
+  // Matej: „ig aj fb majú takú animáciu blokov… a zachvilku sa doplnia obsahom".
+  KOSTRA: {
+    recept: 'SKELETON_CSS — .pk-skel',
+    polomer: null,
+    kedy: 'Miesto pre obsah, ktorý ešte nie je načítaný. Má ROZMERY a POLOMER prvku, ktorý nahrádza, '
+      + 'takže obsah pri príchode neposkočí. Nie je to karta ani tlačidlo a neťuká sa na ňu.',
+    lock: 'Nepoužíva sa na veci, ktoré už v zariadení sú. Bez animácie pri prefers-reduced-motion.',
+  },
   // ── PRIBUDLO 15. 9. 2026 ────────────────────────────────────────────────
   // Matej: „potrebujeme tam panel bud priesvitný alebo liquid glass" (plocha správ,
   // kde bubliny splývali s hieroglyfovou tapetou).
@@ -1324,6 +1333,15 @@ export const PACK_VEIL = {
    *  má 18–24 px — to je materiál panelu, nie závoj pod ním. */
   blur: '4px',
 } as const;
+
+/** KOSTRA — blok čakajúci na obsah, po ňom prechádza jemný lesk. Rozmery a polomer dáva miesto použitia. */
+export const SKELETON_CSS = `
+.pk-skel{position:relative;display:block;overflow:hidden;background:${PACK_THEME.hairline};border-radius:${PACK_R.field}px;}
+.pk-skel::after{content:"";position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.45) 50%,transparent 80%);animation:pk-skel 1.4s ease-in-out infinite;}
+@keyframes pk-skel{to{transform:translateX(100%);}}
+@media (prefers-reduced-motion:reduce){.pk-skel::after{animation:none;display:none;}}
+`;
 
 export const VEIL_CSS = `
 .pk-veil{ position:fixed; inset:0; z-index:200; }

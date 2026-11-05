@@ -245,8 +245,17 @@ const postOf = (r: Record<string, unknown>): FeedPost => ({
  * scrollu; návrat na kartu (visibility/focus, najviac raz za 30 s) obnoví prvú stránku a nové príspevky pridá navrch.
  * `done` = server už nemá starších (alebo RPC nie je) ⇒ feed môže ukázať „videl si všetko".
  */
+// POSLEDNÉ PRÍSPEVKY V ZARIADENÍ (5. 11. 2026): feed ich ukáže hneď a pri otvorení ich nahradí to, čo vráti server
+// (zmazaný príspevok teda zmizne). Sú to verejné príspevky, ktoré vidí každý člen, kópia preto nie je viazaná na účet.
+const POSTS_STORE = 'feed-posts-v1';
+const POSTS_STORED = 12;
+const readStoredPosts = (): FeedPost[] => {
+  try { return (JSON.parse(localStorage.getItem(POSTS_STORE) || '[]') as FeedPost[]) || []; } catch { return []; }
+};
+
 export function useFeedPosts(enabled: boolean): { rows: FeedPost[]; loadMore: () => void; done: boolean } {
-  const [rows, setRows] = useState<FeedPost[]>([]);
+  const [rows, setRows] = useState<FeedPost[]>(readStoredPosts);
+  const fromServer = useRef(false);
   const [done, setDone] = useState(false);
   const busy = useRef(false);
   const doneRef = useRef(false);
@@ -265,12 +274,14 @@ export function useFeedPosts(enabled: boolean): { rows: FeedPost[]; loadMore: ()
       if (error) { if (!first) { doneRef.current = true; setDone(true); } return; }
       const got = ((data ?? []) as Array<Record<string, unknown>>).map(postOf);
       setRows((prev) => {
-        const by = new Map(prev.map((x) => [x.post.id, x]));
+        const by = new Map((fromServer.current ? prev : []).map((x) => [x.post.id, x]));
+        fromServer.current = true;
         got.forEach((x) => by.set(x.post.id, x));
         const all = [...by.values()].sort((a, b) => Date.parse(b.post.createdAt) - Date.parse(a.post.createdAt));
         oldest.current = all.length ? all[all.length - 1].post.createdAt : null;
         return all;
       });
+      if (first) { try { localStorage.setItem(POSTS_STORE, JSON.stringify(got.slice(0, POSTS_STORED))); } catch { /* plné úložisko */ } }
       // Obnova prvej stránky stav „hotovo" nemení (starších stránok sa netýka); prvé načítanie alebo dobratie ho nastaví.
       if (got.length < POSTS_PAGE && (!first || !had)) { doneRef.current = true; setDone(true); }
     } finally { busy.current = false; }

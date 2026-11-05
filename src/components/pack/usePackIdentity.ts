@@ -44,6 +44,22 @@ export interface PackIdentity {
 /** `link_my_dogs` raz za beh appky — viď volanie nižšie. */
 let linkOnce: { uid: string; p: Promise<void> } | null = null;
 
+
+// POSLEDNÍ PSI V ZARIADENÍ (5. 11. 2026): `/pack` čakal na session → link_my_dogs → my_dog_rights → dogs a dovtedy
+// sa nezačal sťahovať ani kód obrazovky (na slabom signáli ~1,2 s „NAČÍTAVAM…" pri každom ťuku v lište).
+// Kto tu už bol, vidí svojich psov hneď a tie isté dotazy ich obnovia potichu. Člen bez psa kópiu nemá:
+// prázdny zoznam je pre povrchy odpoveď („nemáš živého psa"), takže ten vždy počká na server.
+const DOGS_STORE = 'pack-identity-v1';
+const readStoredDogs = (uid: string): PackDog[] | null => {
+  try {
+    const st = JSON.parse(localStorage.getItem(DOGS_STORE) || 'null') as { uid: string; dogs: PackDog[] } | null;
+    return st?.uid === uid && st.dogs?.length ? st.dogs : null;
+  } catch { return null; }
+};
+const writeStoredDogs = (uid: string, dogs: PackDog[]) => {
+  try { localStorage.setItem(DOGS_STORE, JSON.stringify({ uid, dogs })); } catch { /* plné úložisko: nabudúce zo siete */ }
+};
+
 export function usePackIdentity(): PackIdentity {
   const navigate = useNavigate();
   const location = useLocation();
@@ -125,6 +141,14 @@ export function usePackIdentity(): PackIdentity {
       if (s) {
         setSession(s);
         setSessionReady(true);
+        const storedDogs = DEV_NOAUTH ? null : readStoredDogs(s.user.id);
+        if (storedDogs) {
+          const m = (s.user.user_metadata ?? {}) as Record<string, unknown>;
+          setDogs(storedDogs);
+          setDevotion(DEVOTION_TODAY_ON ? Number(m.devotion) || DEVOTION_START : DEVOTION_START);
+          setAvatarUrl((m.avatar_url || m.avatar || null) as string | null);
+          setLoading(false);
+        }
         // ⚠️ Pri DEV_NOAUTH sa Supabase NEVOLÁ. Mock session nemá token, takže tieto
         // volania aj tak nič nevrátia — ale nie sú zadarmo: `rpc()` si pýta prístupový
         // token, a ten sa berie cez zámok prehliadača (`navigator.locks`). Keď ten zámok
@@ -169,12 +193,16 @@ export function usePackIdentity(): PackIdentity {
           const { data: dogRows } = identityQuery
             ? await identityQuery.order('created_at', { ascending: true }) as { data: PackDog[] | null }
             : { data: null };
-          if (mounted && dogRows) setDogs(dogRows.map(d => ({
-            id: d.id,
-            dog_name: d.dog_name ?? null,
-            cloudinary_main_url: d.cloudinary_main_url ?? null,
-            life_status: d.life_status ?? null,
-          })));
+          if (dogRows) {
+            const fresh = dogRows.map(d => ({
+              id: d.id,
+              dog_name: d.dog_name ?? null,
+              cloudinary_main_url: d.cloudinary_main_url ?? null,
+              life_status: d.life_status ?? null,
+            }));
+            if (!DEV_NOAUTH) writeStoredDogs(s.user.id, fresh);
+            if (mounted) setDogs(fresh);
+          }
           // DEV bez prihlásenia: mock session existuje, ale v DEV projekte žiadny pes nie je,
           // takže každý povrch, ktorý svorku ukazuje (hlavička mapy, reveal po zápise výletu),
           // vyzerá ako človek bez psa. To je chýbajúce dáta, nie dizajn — presne ten omyl,

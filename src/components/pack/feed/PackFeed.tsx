@@ -47,6 +47,7 @@ import { FeedTripCard, FEED_TRIP_CSS } from './FeedTripCard';
 import { FeedPostCard, FEED_POST_CSS } from './FeedPostCard';
 import { AiHead, AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
 import { FeedSosBlock } from './FeedSosCard';
+import { SkelPost, SkelTrips } from './FeedSkeleton';
 import { useSosActive } from '../sosKit';
 import { SnifferStrip, TripStrip, FEED_TOP_CSS } from './FeedTop';
 import { QuoteComments } from './QuoteComments';
@@ -545,6 +546,9 @@ export function PackFeed() {
   // Papyrusové príspevky delí čiara; AINUBIS (citát, zvitok, príbeh, odložené) má vlastný tmavý pás.
   const isPaper = (it: Item) => it.k === 'trip' || it.k === 'post' || it.k === 'map';
 
+  // Prvé otvorenie na zariadení: v telefóne ešte nič nie je, miesto držia sivé bloky.
+  const firstLoad = !searching && !topic && !trips.length && !scrolls.length && !otherPosts.length && !postsDone;
+
   return (
     <div className={`pkf${searching ? ' srch' : ''}`} onClick={closeOnOutside}>
       <style>{SCROLL_CSS}{SCROLL_CARD_CSS}{CSS}</style>
@@ -565,7 +569,7 @@ export function PackFeed() {
           {/* SNIFFER ÚPLNE NA ZAČIATKU (Matej 26. 10., kolo 4) — a ešte raz na konci feedu. */}
           <SnifferStrip />
           <div className="pkf-top">
-            <TripStrip trips={trips.slice(0, 8)} />
+            {trips.length ? <TripStrip trips={trips.slice(0, 8)} /> : firstLoad && <SkelTrips />}
           </div>
           {/* TÉMY — tie isté štítky ako pri pridávaní príspevku (`postTags.ts`), kruhy s príbehovým prstencom (kolo 6). */}
           <FeedTopics topic={topic} onTopic={setTopic} />
@@ -575,6 +579,7 @@ export function PackFeed() {
           {rendered.map((it, n) => (
             <div key={keyOf(it, n)} className={`pkf-it${isPaper(it) ? ' pap' : ''}`}>{render(it)}</div>
           ))}
+          {firstLoad && <SkelPost />}
         </div>
         {(shown < items.length || !postsDone) && <div ref={moreRef} className="pkf-more" aria-hidden />}
         {!items.length && (searching ? query.length >= 2 : !!topic) && (
