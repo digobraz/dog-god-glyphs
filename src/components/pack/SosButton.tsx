@@ -41,7 +41,7 @@ const CSS = `
 `;
 
 const ROWS = [
-  { key: 'aid', icon: 'cross', k: 'pack.sos.firstAid', fb: 'First aid' },
+  { key: 'aid', icon: 'bolt', k: 'pack.sos.firstAid', fb: 'First aid' },
 ];
 
 export function SosButton() {
