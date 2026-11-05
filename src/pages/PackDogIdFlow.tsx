@@ -24,7 +24,7 @@ import {
   type ElementKey, type RoleKey, type SpecialKey, type SpecialAnswer, type NatureResult,
 } from '@/components/pack/natureQuiz';
 import { appendDogEvents, hasValue, readLatestForDogs, type DogEventInput, type LatestValue } from '@/lib/dogEvents';
-import { loadPackDogs } from '@/lib/packDogsList';
+import { loadPackDogs, peekPackDogs, readStoredPackDogs } from '@/lib/packDogsList';
 import { MAPY_API_KEY, MAPY_BASE, SUPABASE_URL } from '@/lib/env';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadDogIdPhoto } from '@/services/cloudinaryService';
@@ -42,12 +42,18 @@ const empty = (v: unknown) => v === null || v === undefined || v === '' || (Arra
 const same = (a: unknown, b: unknown) => (empty(a) && empty(b)) || JSON.stringify(a) === JSON.stringify(b);
 const asList = (v: unknown): string[] => (Array.isArray(v) ? (v as string[]) : empty(v) ? [] : [String(v)]);
 
+const DOGS_SELECT = 'id, dog_name, cloudinary_main_url';
+const pick = (rows: Dog[] | null, onlyId: string | null) => (rows && onlyId ? rows.filter((d) => d.id === onlyId) : rows);
+
 function useDogs(onlyId: string | null) {
-  const [dogs, setDogs] = useState<Dog[] | null>(null);
+  const [dogs, setDogs] = useState<Dog[] | null>(() => pick(peekPackDogs<Dog>(DOGS_SELECT), onlyId));
   useEffect(() => {
     let alive = true;
-    loadPackDogs<Dog>('id, dog_name, cloudinary_main_url').then((rows) => {
-      if (alive) setDogs(onlyId ? rows.filter((d) => d.id === onlyId) : rows);
+    // Psy z minula sú hneď (kvíz bol do príchodu dotazu prázdny 2 s); rovnaká odpoveď nekreslí znova.
+    void readStoredPackDogs<Dog>(DOGS_SELECT).then((d) => { if (alive && d?.length) setDogs((prev) => prev ?? pick(d, onlyId)); });
+    loadPackDogs<Dog>(DOGS_SELECT).then((rows) => {
+      const next = pick(rows, onlyId);
+      if (alive) setDogs((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
     });
     return () => { alive = false; };
   }, [onlyId]);

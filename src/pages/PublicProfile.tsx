@@ -30,6 +30,7 @@ import type { Session } from '@supabase/supabase-js';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryLabel } from '@/lib/countryOptions';
 import { supabase } from '@/integrations/supabase/client';
+import { ProfileSkeleton } from '@/components/pack/profile/ProfileSkeleton';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME, PACK_SPACE, PACK_TEXT, PF_FIELD_CSS, PILL_CSS, FONT_UI, PACK_TOPROW } from '@/components/pack/packTheme';
 import type { PackDogFull } from '@/hooks/usePackUser';
@@ -141,18 +142,7 @@ export default function PublicProfile() {
 
   // Cudzí člen sa ešte načítava — ticho, nie fallback. Fallback by na okamih tvrdil,
   // že taký človek neexistuje, a potom sa sám opravil.
-  if (member === undefined) {
-    return (
-      <PackLayout>
-        <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>
-          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          <span style={{ fontFamily: FONT_UI, fontWeight: 500, letterSpacing: '0.22em', fontSize: PACK_TEXT.micro, textTransform: 'uppercase' }}>
-            {t('pack.dog.loading')}
-          </span>
-        </div>
-      </PackLayout>
-    );
-  }
+  if (member === undefined) return <PackLayout onBack={goBack} backLabel={t('pack.publicProfile.backToPack')}><ProfileSkeleton /></PackLayout>;
 
   // ── Fallback — číslo, ktoré nič nevrátilo (neexistuje / neplatiaci / nie je členom).
   // Odpoveď je zámerne rovnaká pre všetky tri prípady, ako v `get_trip_party()`. ──
