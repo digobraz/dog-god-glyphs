@@ -363,9 +363,9 @@ ${packColCSS('.zv-wrap')}
 .zv-cmt{display:flex;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px 0;border-bottom:1px solid ${AINUBIS.edge};font-size:${PACK_TEXT.body}px;}
 .zv-cmt p{margin:${PACK_SPACE.xs}px 0 0;color:${AINUBIS.inkDim};}
 .zv-cmt small{color:${AINUBIS.inkFaint};font-size:${PACK_TEXT.micro}px;}
-.zv-cav{width:28px;height:28px;flex:0 0 auto;border-radius:${PACK_R.pill}
-.zv-cav img{width:100%;height:100%;object-fit:cover;border-radius:inherit;}px;display:flex;align-items:center;justify-content:center;
+.zv-cav{width:28px;height:28px;flex:0 0 auto;border-radius:${PACK_R.pill}px;display:flex;align-items:center;justify-content:center;
   background:${AINUBIS.raised};border:1px solid ${AINUBIS.edge};font-size:${PACK_TEXT.label}px;}
+.zv-cav img{width:100%;height:100%;object-fit:cover;border-radius:inherit;}
 .zv-cform{display:flex;flex-direction:column;align-items:flex-end;gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.md}px;}
 .zv-cform textarea{align-self:stretch;resize:vertical;min-height:64px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.field}px;
   background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};color:${AINUBIS.ink};font:400 ${PACK_TEXT.body}px ${FONT_UI};}
