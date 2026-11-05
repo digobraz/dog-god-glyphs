@@ -71,6 +71,42 @@ export function mapProxyCooldownMs(): number {
   return Math.max(0, coolUntil - Date.now());
 }
 
+// ── km a čas autom (SOS pohotovosť) ─────────────────────────────────────────────────────
+export type DriveTime = { lengthM: number; durationS: number };
+const DRIVE_TTL_MS = 10 * 60_000; // premávka sa mení, kredit stojí: 10 minút stačí aj pri prepínaní filtrov
+const DRIVE_BATCH = 8;
+const driveCache = new Map<string, { at: number; v: DriveTime | null }>();
+
+/** Trasa autom k bodom. Výsledok v poradí `targets`; null = nevieme (bez signálu, limit, výpadok). */
+export async function driveTimes(from: LatLngTuple, targets: LatLngTuple[]): Promise<(DriveTime | null)[]> {
+  // Poloha zaokrúhlená na ~1 km: GPS sa hýbe o metre a nové kredity by za to nikto nemal platiť.
+  const keyOf = (t: LatLngTuple) => `${from[0].toFixed(2)},${from[1].toFixed(2)}|${t[0]},${t[1]}`;
+  const fresh = (t: LatLngTuple) => {
+    const c = driveCache.get(keyOf(t));
+    return c && Date.now() - c.at < DRIVE_TTL_MS ? c : null;
+  };
+  const missing = targets.filter((t) => !fresh(t));
+  if (missing.length && !cooling()) {
+    for (let i = 0; i < missing.length; i += DRIVE_BATCH) {
+      const batch = missing.slice(i, i + DRIVE_BATCH);
+      try {
+        const res = await fetch(`${EDGE_BASE}/map-proxy/drive`, {
+          method: 'POST',
+          headers: await authHeaders(),
+          body: JSON.stringify({ from, to: batch }),
+        });
+        if (res.status === 429) { startCooldown(); break; }
+        if (!res.ok) break;
+        const d = await res.json();
+        batch.forEach((t, j) => driveCache.set(keyOf(t), { at: Date.now(), v: d?.results?.[j] ?? null }));
+      } catch {
+        break; // bez signálu: karty ostanú na vzdušnej čiare
+      }
+    }
+  }
+  return targets.map((t) => fresh(t)?.v ?? null);
+}
+
 function segKey(from: LatLngTuple, to: LatLngTuple): string {
   return `${elevCacheKey(from[0], from[1])}|${elevCacheKey(to[0], to[1])}`;
 }

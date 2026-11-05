@@ -15,7 +15,7 @@ import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR, PACK_TOPROW, PACK_TOPROW_PAD, PACK_SHADOW,
   PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PAPER_ROUTES_EXTRA, BRAND_GOLD_BTN,
 } from '@/components/pack/packTheme';
-import { FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { FONT_TITLE, FONT_UI, PACK_COL } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { SOS_TEXTS, type SosKey } from './sosTexts';
 
@@ -149,6 +149,7 @@ const GREEN_GRAD = `linear-gradient(180deg, #4A9160, ${T.growGreen})`;
 export const SOS_CSS = `
 .sos-col{flex:1 1 auto;width:100%;max-width:640px;min-height:100dvh;margin:0 auto;padding:${PACK_TOPROW_PAD} ${PAGE_AIR.side}px ${PAGE_AIR.md}px;
   display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;font-family:${FONT_UI};color:${T.inkStrong};}
+.sos-col--wide{max-width:${PACK_COL.wide}px;}
 .sos-col > .pk-toprow{margin-bottom:${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h - PACK_SPACE.lg}px;}
 .sos-root{min-height:100dvh;display:flex;flex-direction:column;}
 .sos-stack{display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;font-family:${FONT_UI};color:${T.inkStrong};}
