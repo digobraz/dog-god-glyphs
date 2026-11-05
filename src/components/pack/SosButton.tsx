@@ -78,13 +78,13 @@ export function SosButton() {
             {/* Rýchly prístup ku kartičke, nastavenie ostáva v DOG ID (Matej 5. 11.). */}
             {APP_NEW && (
               <button type="button" className="sos-row card" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/karticka')}>
-                <BrandIcon name="dogposter" size={24} tint="gold" />
+                <BrandIcon name="attention-head" size={24} tint="gold" />
                 <b>{tx('pack.sos.card.title', 'Emergency card')}</b>
               </button>
             )}
             {/* Nahlásiť týranie: zatiaľ bez akcie, vyzerá ako ostatné „čoskoro“ (nie červeno). */}
             <button type="button" className="sos-row abuse" style={{ ...PACK_BOX.row }}>
-              <BrandIcon name="lighthouse" size={24} tint="gold" />
+              <BrandIcon name="stop-rhomb" size={24} tint="gold" />
               <b>{tx('pack.sos.btn.abuse', 'Report abuse')}</b>
               <small>{tx('pack.sos.soon', 'Soon')}</small>
             </button>
