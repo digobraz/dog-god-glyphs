@@ -215,7 +215,7 @@ export default function PackSosVet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me, rows]);
 
-  const row = ({ p, km, on: isOn }: (typeof rows)[number], first: boolean) => {
+  const row = ({ p, km, on: isOn }: (typeof rows)[number]) => {
     const canNav = vetNavUrl('google', p) !== null;
     return (
     <div key={p.id} data-vet={p.id} className={`vet-row${isOn ? '' : ' off'}`} style={{ ...PACK_BOX.subblock }}>
@@ -251,9 +251,9 @@ export default function PackSosVet() {
           )}
         </div>
       </div>
-      {/* Volanie = hlavná akcia (lapis), navigácia druhá (ghost). Bez použiteľnej polohy ani adresy (výjazdy) zostáva samo volanie. */}
+      {/* Volanie = hlavná akcia, plný lapis na každej karte (Matej 5. 11. 2026), navigácia druhá (ghost). Bez použiteľnej polohy ani adresy (výjazdy) zostáva samo volanie. */}
       <div className={`vet-acts${canNav ? '' : ' one'}`}>
-        <a className={`sos-cta sos-cta--sm${first ? '' : ' sos-cta--tint'}`} href={`tel:${telAt(p, now).replace(/\s/g, '')}`}>{s('pack.sos.er.callBtn')}</a>
+        <a className="sos-cta sos-cta--sm" href={`tel:${telAt(p, now).replace(/\s/g, '')}`}>{s('pack.sos.er.callBtn')}</a>
         {canNav && (
           <button type="button" className="sos-cta sos-cta--sm sos-cta--ghost" aria-expanded={navOpen === p.id} onClick={() => setNavOpen(navOpen === p.id ? null : p.id)}>{s('pack.sos.er.navBtn')}</button>
         )}
@@ -300,9 +300,9 @@ export default function PackSosVet() {
       {!outside && filter !== 'home' && on[0] && on[0].km !== null && on[0].km > FAR_KM && <p className="vet-warn">{s('pack.sos.er.far', { km: on[0].km })}</p>}
       {filter === 'home' && me && rows.length === 0 && <p className="vet-warn">{s('pack.sos.er.noHome')}</p>}
       <div ref={listRef} style={{ display: 'contents' }}>
-        {on.length > 0 && <div className="vet-list">{on.map((r, i) => row(r, i === 0 && !!me && !outside))}</div>}
+        {on.length > 0 && <div className="vet-list">{on.map((r) => row(r))}</div>}
         {off.length > 0 && <h2 className="vet-sec">{s('pack.sos.er.closed')}</h2>}
-        {off.length > 0 && <div className="vet-list">{off.map((r) => row(r, false))}</div>}
+        {off.length > 0 && <div className="vet-list">{off.map((r) => row(r))}</div>}
       </div>
       <p className="vet-src">{s('pack.sos.er.source')}</p>
     </SosTaskShell>
