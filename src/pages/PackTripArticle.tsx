@@ -1965,6 +1965,7 @@ export default function PackTripArticle() {
           authorRating={authorRating}
           authorName={authorOf(trail)}
           onCountChange={setRatingCount}
+          myDogs={id.dogs.map((d) => ({ id: d.id, name: d.dog_name ?? t('pack.map.myDogFallback'), photo: d.cloudinary_main_url, deceased: d.life_status === 'deceased' }))}
         />
         </div>
 

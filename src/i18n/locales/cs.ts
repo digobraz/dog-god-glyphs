@@ -3066,6 +3066,8 @@ export const cs: Partial<Dict> = {
   'pack.trip.cm.sayMore': 'Řekni víc (nepovinné)',
   'pack.trip.cm.sayMorePlaceholder': 'Po dešti bláto, nahoře krásný úsek na volno…',
   'pack.trip.cm.photos': "Fotky (max. 3, nepovinné)",
+  'pack.trip.cm.whoWith': "Kdo byl s tebou",
+  'pack.trip.cm.whoWithMemory': "na památku",
   'pack.trip.cm.photoAdd': "Přidat fotku",
   'pack.trip.cm.photoDrop': "Odebrat fotku",
   'pack.trip.cm.photoFail': "Fotka se nenahrála. Zkus to znovu.",

@@ -3573,6 +3573,8 @@ export const sk: Partial<Dict> = {
   'pack.trip.cm.sayMore': "Povedz viac (nepovinné)",
   'pack.trip.cm.sayMorePlaceholder': "Po daždi blato, hore krásny úsek na voľno…",
   'pack.trip.cm.photos': "Fotky (max. 3, nepovinné)",
+  'pack.trip.cm.whoWith': "Kto bol s tebou",
+  'pack.trip.cm.whoWithMemory': "na pamiatku",
   'pack.trip.cm.photoAdd': "Pridať fotku",
   'pack.trip.cm.photoDrop': "Odobrať fotku",
   'pack.trip.cm.photoFail': "Fotka sa nenahrala. Skús to znova.",

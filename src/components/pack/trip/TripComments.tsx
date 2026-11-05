@@ -58,6 +58,8 @@ import { reportContent, type ReportReason } from '@/components/pack/messaging/pa
 import { AinubisSheet } from '@/components/pack/ainubisSheet';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { useMyDogRights } from '@/lib/dogRights';
+import { sizedUrl } from '@/services/cloudinaryService';
+import { readDogTrips, setDogTripCrew } from '@/lib/packStore';
 
 const T = PACK_THEME;
 const GOLD = T.cardEdge;
@@ -176,6 +178,13 @@ export const TRIP_COMMENTS_CSS = `${VEIL_CSS}
 .tcm-reportreason:hover{border-color:${GOLD};}
 /* Výber = lapisový TINT (brand: zlato = konštrukcia, lapis = moja voľba). */
 .tcm-reportreason.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
+/* KTO BOL S TEBOU (Daniela 5. 11. 2026) — moji psi ako voľba, výber = ten istý lapisový tint. */
+.tcm-dogs{display:flex;flex-wrap:wrap;gap:8px;}
+.tcm-dog{display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:999px;background:${T.tileBg};border:1px solid ${T.border};color:${T.inkStrong};font-family:${FONT_UI};font-size:12px;cursor:pointer;}
+.tcm-dog:hover{border-color:${GOLD};}
+.tcm-dog.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
+.tcm-dog-av{width:28px;height:28px;border-radius:999px;flex-shrink:0;background:${T.border} center/cover no-repeat;}
+.tcm-dog i{font-style:normal;font-size:10px;color:${T.inkWarm};}
 .tcm-reportcancel{width:100%;margin-top:8px;background:none;border:0;color:${T.inkWarm};font-family:inherit;font-size:12px;padding:8px;cursor:pointer;}
 .tcm-reportcancel:hover{color:${GOLD};}
 `;
@@ -229,14 +238,30 @@ function Pager({ page, totalPages, onPrev, onNext }: { page: number; totalPages:
 // (packCommunityUI.tsx): dark glass overlay + card, gold title, gold submit. Deliberately
 // lighter than WalkedPopup's full form (no difficulty/vibe/hazards) — this is a rating+opinion,
 // not a walk log. ──
-function ReviewPopup({ slug, trailName, initial, canWrite, saving, error, onSubmit, onDelete, onClose }: {
+export type ReviewDog = { id: string; name: string; photo?: string | null; deceased?: boolean };
+
+/** Psi, ktorí výlet už majú; nemá ho nikto ⇒ živí psi (to isté, čo by zapísal trigger). */
+const crewOf = (slug: string, dogs: ReviewDog[]) => {
+  const map = readDogTrips();
+  const had = dogs.filter((d) => (map[d.id] ?? []).includes(slug)).map((d) => d.id);
+  return had.length ? had : dogs.filter((d) => !d.deceased).map((d) => d.id);
+};
+
+function ReviewPopup({ slug, trailName, initial, canWrite, saving, error, myDogs, onSubmit, onDelete, onClose }: {
   slug: string; trailName: string; initial?: RealReview | null; canWrite: boolean; saving: boolean; error: string | null;
-  onSubmit: (v: { paws: number; text?: string; photos: string[] }) => void; onDelete?: () => void; onClose: () => void;
+  /** KTO BOL S TEBOU (Daniela 5. 11. 2026: „chýba mi tam, kto tam s tebou bol. Lebo aj Labka tam bola“).
+   *  Ukáže sa len pri výbere, ktorý appka sama nevie: dvaja a viac psov, alebo zosnulý pes (spomienka). */
+  myDogs?: ReviewDog[];
+  onSubmit: (v: { paws: number; text?: string; photos: string[]; dogIds?: string[] }) => void; onDelete?: () => void; onClose: () => void;
 }) {
   const t = useT();
   const [paws, setPaws] = useState(initial?.paws ?? 0);
   const [text, setText] = useState(initial?.body ?? '');
   const [photos, setPhotos] = useState<string[]>(initial?.photos ?? []);
+  const dogs = myDogs ?? [];
+  const askDogs = dogs.length > 1 || dogs.some((d) => d.deceased);
+  const [crew, setCrew] = useState<string[]>(() => crewOf(slug, dogs));
+  const toggleDog = (id: string) => setCrew((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
   const canSubmit = paws > 0 && canWrite && !saving;
   // Stránka pod popupom sa nesmie rolovať, rovnako ako pri WalkedPopup.
   useEffect(() => {
@@ -267,7 +292,21 @@ function ReviewPopup({ slug, trailName, initial, canWrite, saving, error, onSubm
           <label className="tcm-label">{t('pack.trip.cm.photos')}</label>
           <ReviewPhotoPicker slug={slug} photos={photos} onChange={setPhotos} />
         </div>
-        <button type="button" className="tcm-submit" disabled={!canSubmit} onClick={() => canSubmit && onSubmit({ paws, text: text.trim() || undefined, photos })}>
+        {askDogs && (
+          <div className="tcm-field">
+            <label className="tcm-label">{t('pack.trip.cm.whoWith')}</label>
+            <div className="tcm-dogs">
+              {dogs.map((d) => (
+                <button key={d.id} type="button" aria-pressed={crew.includes(d.id)} className={`tcm-dog${crew.includes(d.id) ? ' on' : ''}`} onClick={() => toggleDog(d.id)}>
+                  <span className="tcm-dog-av" style={d.photo ? { backgroundImage: `url('${sizedUrl(d.photo, 64)}')` } : undefined} />
+                  <span>{d.name}</span>
+                  {d.deceased && <i>{t('pack.trip.cm.whoWithMemory')}</i>}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <button type="button" className="tcm-submit" disabled={!canSubmit} onClick={() => canSubmit && onSubmit({ paws, text: text.trim() || undefined, photos, dogIds: askDogs && crew.length ? crew : undefined })}>
           {saving ? 'Saving…' : initial ? t('pack.trip.cm.update') : t('pack.trip.cm.post')}
         </button>
         {initial && onDelete && (
@@ -361,7 +400,9 @@ export function ReportSheet({ onClose, onSend, busy, error, sent, reasons = REPO
  * ⚠️ `authorRating = 0` znamená NEHODNOTENÉ, nie nula labiek — vtedy riadok nie je a počet
  * o neho nerastie. Rovnaké pravidlo ako `agg.rating > 0` v článku.
  */
-export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequestWalk, authorRating = 0, authorName, onCountChange, quoteThread, focusId: focusProp }: {
+export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequestWalk, authorRating = 0, authorName, onCountChange, quoteThread, focusId: focusProp, myDogs }: {
+  /** Moji psi (aj zosnulí) pre „Kto bol s tebou“ v okne recenzie. Chýba = riadok sa nevykreslí. */
+  myDogs?: ReviewDog[];
   /** Pri `quoteThread` je `tripId` kľúč vlákna citátu dňa (`<id>-<deň>`). */
   tripId: string;
   /** Vlákno pod citátom vo feede: len zoznam komentárov + pole (bez recenzií a záložiek), tabuľka `quote_comments`. */
@@ -465,7 +506,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   useEffect(() => { if (tab === 'reviews' && page > reviewPages) setPage(reviewPages); }, [reviewPages, page, tab]);
   useEffect(() => { if (tab === 'advice' && page > advicePages) setPage(advicePages); }, [advicePages, page, tab]);
 
-  const saveReview = async (v: { paws: number; text?: string; photos: string[] }) => {
+  const saveReview = async (v: { paws: number; text?: string; photos: string[]; dogIds?: string[] }) => {
     setReviewError(null);
     setReviewSaving(true);
     try {
@@ -473,6 +514,12 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
       await upsertMyReview(tripId, v.paws, v.text, v.photos.length > 0 || (myReview?.photos.length ?? 0) > 0 ? v.photos : undefined);
       await refreshReviews();
       onMarkWalked?.(); // reviewing implies (and guarantees) the trip is marked walked
+      // Psi až PO označení prejdenia: zápis do `trip_walked` pustí trigger s odhadom (živí psi) a ručný
+      // výber ho musí prepísať, nie predbehnúť. Fronta v packStore je FIFO.
+      if (v.dogIds && myDogs) {
+        const before = crewOf(tripId, myDogs);
+        if (v.dogIds.length !== before.length || v.dogIds.some((x) => !before.includes(x))) setDogTripCrew(tripId, v.dogIds);
+      }
       setReviewPopupOpen(false);
     } catch (err) {
       setReviewError(err instanceof Error ? err.message : t('pack.trip.cm.saveFailed'));
@@ -758,6 +805,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
           canWrite={canWrite}
           saving={reviewSaving}
           error={reviewError}
+          myDogs={myDogs}
           onSubmit={saveReview}
           onDelete={myReview ? deleteReview : undefined}
           onClose={() => setReviewPopupOpen(false)}

@@ -3849,6 +3849,8 @@ export const en = {
   'pack.trip.cm.sayMore': "Say more (optional)",
   'pack.trip.cm.sayMorePlaceholder': "Muddy after rain, great off-leash stretch near the top\u2026",
   'pack.trip.cm.photos': "Photos (up to 3, optional)",
+  'pack.trip.cm.whoWith': "Who was with you",
+  'pack.trip.cm.whoWithMemory': "in memory",
   'pack.trip.cm.photoAdd': "Add a photo",
   'pack.trip.cm.photoDrop': "Remove photo",
   'pack.trip.cm.photoFail': "The photo could not be uploaded. Try again.",
