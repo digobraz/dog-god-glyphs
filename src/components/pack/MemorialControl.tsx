@@ -3,7 +3,8 @@ import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DateDropdowns } from '@/components/DateDropdowns';
-import { PACK_THEME, GOLD_BTN, VEIL_CSS, PACK_SHADOW } from '@/components/pack/packTheme';
+import { PACK_THEME, VEIL_CSS } from '@/components/pack/packTheme';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 
 const T = PACK_THEME;
 
@@ -109,9 +110,10 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
   const primaryBtn: React.CSSProperties = {
     padding: '8px 16px',
     borderRadius: 8,
-    background: GOLD_BTN.grad,
-    border: `1px solid ${GOLD_BTN.edge}`,
-    color: '#3d1f00',
+    // hlavné CTA na bledom podklade = LAPIS (Matej 5. 11. 2026)
+    background: LAPIS.grad,
+    border: `1px solid ${LAPIS.edge}`,
+    color: LAPIS.ink,
     fontFamily: "'Cinzel', serif",
     fontSize: 10,
     letterSpacing: '0.14em',
@@ -119,7 +121,7 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
     fontWeight: 700,
     cursor: saving ? 'default' : 'pointer',
     opacity: saving ? 0.6 : 1,
-    boxShadow: PACK_SHADOW.panel,
+    boxShadow: LAPIS_BTN_SHADOW,
   };
 
   const ghostBtn: React.CSSProperties = {
