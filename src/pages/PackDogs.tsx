@@ -170,17 +170,17 @@ const HUB_CSS = `
 .hub-gold{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:12px 24px;
-  background:${GOLD_BTN.grad};
-  border:1px solid ${GOLD_BTN.edge};
+  background:${LAPIS.grad};
+  border:1px solid ${LAPIS.deep};
   border-radius:8px;
-  color:#000;
+  color:${LAPIS.ink};
   font-family:'Cinzel',serif; font-size:12px; font-weight:800;
   letter-spacing:0.14em; text-transform:uppercase;
   cursor:pointer; white-space:nowrap; text-decoration:none;
-  box-shadow:0 0 28px rgba(230,158,26,0.34), inset 0 1px 0 rgba(255,255,255,0.3);
+  box-shadow:${LAPIS_BTN_SHADOW};
   transition: transform .2s, box-shadow .22s;
 }
-.hub-gold:hover{ transform:scale(1.04); box-shadow:0 0 44px rgba(230,158,26,0.5), inset 0 1px 0 rgba(255,255,255,0.3); }
+.hub-gold:hover{ transform:scale(1.04); background:${LAPIS.gradHover}; }
 .hub-gold:active{ transform:scale(0.98); }
 
 /* ── psí blok ───────────────────────────────────────────────────────────────── */

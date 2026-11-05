@@ -29,7 +29,7 @@ import { PackTopRow } from '@/components/pack/PackTopRow';
 import { BackButton } from '@/components/pack/BackButton';
 import { useMagnetPreview } from '@/components/pack/magnetPreview';
 import { MagnetLeadGate } from '@/components/pack/magnetLeadGate';
-import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, VEIL_CSS, PACK_TOPROW_PAD, PACK_TOPROW } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI, PACK_SHADOW, PAPER_PAGE_CSS, VEIL_CSS, PACK_TOPROW_PAD, PACK_TOPROW } from '@/components/pack/packTheme';
 import {
   ELEMENT_QUESTIONS, ROLE_QUESTIONS, BALANCE_ITEMS, BALANCE_VET_NOTE,
   NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
@@ -45,11 +45,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
-import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
+import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK } from '@/components/pack/navGoldSkin';
 import { HandCheck, HandCycle } from '@/components/pack/HandIcons';
 import { sizedUrl } from '@/services/cloudinaryService';
 
 const T = PACK_THEME;
+// obrys nevybratej pilulky vyváženia (výber nesie `.pf-pill.is-selected` — lapis tint)
+const PILL_OFF_EDGE = 'rgba(179,130,45,0.55)';
 const NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
 // Tá istá vitráž, akou sa kvíz ponúka na `/pack/dogs` (`NATURE_ART` v PackDogs.tsx).
 // Úvod je druhý záber tej istej dlaždice — iný obrázok by pôsobil ako iná stránka.
@@ -167,11 +169,8 @@ const NQ_CSS = `${VEIL_CSS}
   box-shadow:${PACK_SHADOW.lift};
 }
 .nq-opt.is-on, .nq-optlbl.is-on{
-  background:${GOLD_BTN.grad};
-  border-color:#E69E1A; color:#241a06;
-  box-shadow:${PACK_SHADOW.lift};
+  ${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}
 }
-.nq-opt.is-on:hover, .nq-optlbl.is-on:hover{ box-shadow:${PACK_SHADOW.lift}; }
 .nq-optxt{ flex:1 1 auto; min-width:0; }
 
 /* ── ROZOBRATÁ ODPOVEĎ: „NIEKTO" JE TIEŽ STAV ─────────────────────────────────
@@ -189,10 +188,10 @@ const NQ_CSS = `${VEIL_CSS}
    hrana je binárna. ⚠️ Stredný stav NESMIE byť taký sýty ako plný — inak zmizne
    informácia „zhodli sa", ktorá je pri svorke to zaujímavé. */
 .nq-optlbl.is-some{
-  background:linear-gradient(180deg,#FFF8E4 0%,#F4DA9B 100%);
-  border-color:#D9A93A;
-  box-shadow:0 2px 9px rgba(179,130,45,0.20), inset 4px 0 0 #E69E1A;
-  color:#4a3410;
+  background:${tintRGBA(LAPIS.edge, 0.07)};
+  border-color:${LAPIS.edge};
+  box-shadow:inset 4px 0 0 ${LAPIS.edge};
+  color:${PICK_INK.lapis};
 }
 .is-some > .nq-mark{
   background:#F8E9C2; border-color:${T.cardEdge}; color:#3d2a08;
@@ -210,7 +209,7 @@ const NQ_CSS = `${VEIL_CSS}
   color:${T.inkWarm}; transition:background .18s, border-color .18s, color .18s;
 }
 .is-on > .nq-mark{
-  background:#241a06; border-color:#241a06; color:#F5C73D;
+  background:${LAPIS.edge}; border-color:${LAPIS.edge}; color:${LAPIS.ink};
 }
 
 /* ── VETA, KTORÁ NIE JE OVLÁDAČ (len pri VIACERÝCH psoch) ─────────────────────
@@ -241,8 +240,7 @@ const NQ_CSS = `${VEIL_CSS}
   box-shadow:${PACK_SHADOW.lift};
 }
 .nq-tri.is-on{
-  background:${GOLD_BTN.grad};
-  border-color:#E69E1A; color:#241a06; box-shadow:${PACK_SHADOW.lift};
+  ${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}
 }
 
 /* ── PROGRES ──────────────────────────────────────────────────────────────────
@@ -2412,14 +2410,17 @@ export default function PackNatureQuiz() {
                                 onClick={() => toggleBalance(d.id, b.id)}
                                 aria-pressed={on}
                                 title={b.noteEN ? tx(`${b.i18n}.note`, b.noteEN) : undefined}
-                                className={`pf-pill${on ? ' is-on' : ''}`}
+                                className={`pf-pill${on ? ' is-on is-selected' : ''}`}
                                 style={{
                                   fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.35, textAlign: 'left',
                                   padding: '8px 12px', borderRadius: 999, cursor: 'pointer',
-                                  border: `1px solid ${on ? T.cardEdge : 'rgba(179,130,45,0.55)'}`,
-                                  background: on ? 'linear-gradient(180deg,#F5C73D,#E69E1A)' : T.tileBg,
-                                  color: on ? '#3d1f00' : T.inkStrong,
-                                  fontWeight: on ? 600 : 400,
+                                  // výber = lapis tint z `.pf-pill.is-selected` (packTheme), inline len pre nevybraté
+                                  ...(on ? {} : {
+                                    border: `1px solid ${PILL_OFF_EDGE}`,
+                                    background: T.tileBg,
+                                    color: T.inkStrong,
+                                    fontWeight: 400,
+                                  }),
                                 }}
                               >
                                 {tx(b.i18n, b.labelEN)}

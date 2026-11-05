@@ -253,7 +253,7 @@ const CSS = `
 /* ⚠️ Hint UŽ NIE JE na fotke — stojí v .tl-block-info, teda na papyruse. */
 .tl-block-pendhint{margin-top:3px;font-family:${FONT_UI};font-size:10px;line-height:1.35;color:${P.dim};}
 .tl-block-badge.with{background:#F0E6D2;color:#1a1305;border:1px solid ${T.border};}
-.tl-block-badge.looking{background:${GOLD_BTN.grad};color:#3d1f00;}
+.tl-block-badge.looking{background:${LAPIS.grad};color:${LAPIS.ink};}
 .tl-block-info{padding:8px 12px 12px;}
 .tl-grade{display:flex;align-items:center;gap:8px;width:100%;margin-top:8px;padding:0;background:none;border:0;cursor:pointer;text-align:left;font-family:${FONT_UI};}
 .tl-grade-medal{width:24px;height:24px;border-radius:999px;display:grid;place-items:center;flex:none;font-family:${FONT_UI};font-weight:600;font-size:12px;color:#fff;box-shadow:${PACK_SHADOW.lift};}

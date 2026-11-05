@@ -6,7 +6,7 @@ import { BackButton } from './BackButton';
 import { toast } from 'sonner';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
-import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, MODAL_MAX_H } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, FONT_TITLE, FONT_UI, PACK_SHADOW, MODAL_MAX_H } from '@/components/pack/packTheme';
 import { BonesCoin } from '@/components/pack/BonesCoin';
 import { BONES } from '@/components/pack/bonesSkin';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
@@ -987,10 +987,11 @@ function SendStep({
             className="inline-flex items-center justify-center gap-2"
             style={{
               flex: 1.4,
-              background: GOLD_BTN.grad,
-              border: `1px solid ${GOLD_BTN.edge}`,
+              background: LAPIS.grad,
+              border: `1px solid ${LAPIS.deep}`,
               borderRadius: 8,
-              color: T.ink,
+              color: LAPIS.ink,
+              boxShadow: LAPIS_BTN_SHADOW,
               padding: '12px 16px',
               fontFamily: FONT_TITLE,
               fontSize: 12,

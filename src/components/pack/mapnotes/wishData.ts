@@ -13,6 +13,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { hasSession } from '@/lib/hasSession';
+import { readDeviceCopy, writeDeviceCopy } from '@/lib/deviceCopy';
 import { WISHES_LIVE } from '@/lib/packFlags';
 import { countryISO2 } from '@/lib/countryGeo';
 import { distM } from '@/components/pack/addtrip/builtUpCheck';
@@ -134,8 +135,14 @@ export async function fetchWishPins(): Promise<WishPin[]> {
   if (!(await hasSession())) return []; // anonym: RPC je len pre členov (hasSession.ts)
   const { data, error } = await db.rpc('list_wish_pins');
   if (error) throw error;
-  return ((data ?? []) as Row[]).map(fromRow);
+  const pins = ((data ?? []) as Row[]).map(fromRow);
+  void writeDeviceCopy(WISHES_COPY, pins);
+  return pins;
 }
+
+/** Priania z posledného otvorenia: na mape sú hneď, `fetchWishPins` ich potom obnoví. */
+const WISHES_COPY = 'map-wishes-v1';
+export const readStoredWishPins = () => readDeviceCopy<WishPin[]>(WISHES_COPY);
 
 export async function addWishPin(n: NewWish): Promise<string> {
   if (DEV_NOAUTH) return mockAdd(n);

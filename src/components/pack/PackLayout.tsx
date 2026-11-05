@@ -29,7 +29,7 @@ import { onOpenMessaging, type MessagingOpenEvent } from './messaging/openBridge
 // lazy až pri kliku na štítok výletu.
 import { currentTripId, tripPathById } from './tripShared';
 import {
-  NAV_R, NAV_GOLD, NAV_GRAIN, NAV_MOTTLE,
+  NAV_R, NAV_GOLD, NAV_GRAIN, NAV_MOTTLE, LAPIS,
   NAV_FRAME_SHADOW, NAV_PLATE_SHADOW, NAV_PILL_SHADOW,
 } from './navGoldSkin';
 import { DOCK, DOCK_MEDAL_CSS, DockPlus } from './packDockMedal';
@@ -771,11 +771,11 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
         ) : (
           <div style={{
             width: DOCK.avPhoto, height: DOCK.avPhoto, borderRadius: '50%',
-            background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
+            background: LAPIS.grad,
             border: NAV_SKIN === 'gold' ? '1px solid rgba(150,105,30,0.55)' : 'none',
             boxSizing: 'border-box',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: FONT_UI, fontWeight: 600, fontSize: 12, color: '#1c160c',
+            fontFamily: FONT_UI, fontWeight: 600, fontSize: 12, color: LAPIS.ink,
           }}>
             {avatarInitial || 'D'}
           </div>

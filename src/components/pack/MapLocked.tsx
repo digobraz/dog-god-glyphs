@@ -20,7 +20,8 @@
 // a globálne sa neimportuje. Dva fonty: Cinzel = identita, Space Grotesk = text.
 import { Link } from 'react-router-dom';
 import { PageTopBar } from '@/components/PageTopBar';
-import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN } from './packTheme';
+import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI } from './packTheme';
+import { LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -36,8 +37,8 @@ const CSS = `
 .mlk-actions{display:flex;flex-direction:column;gap:10px;}
 /* .btn-gold (brand manuál v3.2 — LOCKED): gradient 135°, radius 8 (NIE pilulka),
    papyrusový rám, zlatý dosvit. Nedoladovať. */
-.mlk-cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 24px;border-radius:8px;background:${GOLD_BTN.grad};border:1px solid ${GOLD_BTN.edge};color:#000;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;box-shadow:${GOLD_BTN.glow};transition:transform .2s, box-shadow .22s;}
-.mlk-cta:hover{box-shadow:${GOLD_BTN.glowHover};}
+.mlk-cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 24px;border-radius:8px;background:${LAPIS.grad};border:1px solid ${LAPIS.deep};color:${LAPIS.ink};font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;box-shadow:${LAPIS_BTN_SHADOW};transition:transform .2s, box-shadow .22s;}
+.mlk-cta:hover{background:${LAPIS.gradHover};}
 .mlk-cta:active{transform:scale(0.98);}
 .mlk-ghost{display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;border-radius:8px;background:transparent;border:1px solid ${T.cardEdge};color:${T.inkStrong};font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;}
 .mlk-ghost:hover{background:rgba(201,154,63,0.12);}

@@ -670,11 +670,18 @@ export function claimJourney(id: string, patch: Partial<HeroTrail>): boolean {
 }
 export const readMyClaims = (): string[] => readJson<string[]>(MY_CLAIMS_KEY, []);
 
+/** Hmla aj karty výletov sa pýtajú naraz: kým dotaz beží, druhý volajúci dostane ten istý. */
+let walkedRowsInFlight: Promise<{ data: { trip_slug: string }[] | null; error: { message: string } | null }> | null = null;
+export function packWalkedRows() {
+  return walkedRowsInFlight ??= Promise.resolve((supabase as any).rpc('get_pack_walked_slugs'))
+    .finally(() => { walkedRowsInFlight = null; }) as NonNullable<typeof walkedRowsInFlight>;
+}
+
 /** Slugy prejdené aspoň jedným členom svorky — agregát bez mien (viď migrácia
  *  20260804_fog_walked_agg.sql). Chyba = prázdny zoznam, volajúci si pridá vlastné. */
 export async function fetchPackWalkedSlugs(): Promise<string[]> {
   try {
-    const { data, error } = await (supabase as any).rpc('get_pack_walked_slugs');
+    const { data, error } = await packWalkedRows();
     if (error || !Array.isArray(data)) return [];
     return data.map((r: { trip_slug: string }) => r.trip_slug);
   } catch { return []; }

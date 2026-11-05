@@ -152,7 +152,7 @@ import { ORIGIN_PARAM, returnTo } from '@/components/pack/createRegistry';
 import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
 import { WishLayer } from '@/components/pack/mapnotes/WishLayer';
 import type { WishDraftPoint } from '@/components/pack/mapnotes/AddWish';
-import { fetchMyWishes, fetchWishPins, useMyWishCount, wishMatchForTrail, type WishPin } from '@/components/pack/mapnotes/wishData';
+import { fetchMyWishes, fetchWishPins, readStoredWishPins, useMyWishCount, wishMatchForTrail, type WishPin } from '@/components/pack/mapnotes/wishData';
 import { useMyPlacePostCount } from '@/components/geo/placePosts';
 import type { WishAskKind, WishAskReq } from '@/components/pack/mapnotes/WishAsk';
 import { WISH_EMOJI, WISH_RIM } from '@/components/pack/mapnotes/markEmoji';
@@ -2302,9 +2302,9 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   /* Avatar: zlatý krúžok na tmavom pozadí mal čierny halo ring, ktorý na papyruse vyzerá
      ako špina. Ostáva rám, halo sa mení na svetlý. */
   .trp-topbar .trp-mavatar{box-shadow:0 0 0 1px rgba(255,252,240,0.9);}
-  /* Iniciála ostáva ZLATÁ (rovnaký kruh ako .trp-inldet-authoravatar), nie papyrusová:
-     krémový kruh na pieskovej doske je krém na kréme a avatar z hlavičky zmizne. */
-  .trp-topbar .trp-mavatar--initial{background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);color:#1c160c;}
+  /* Iniciála je LAPIS so zlatým písmom (5. 11. 2026, hárok oranzova-2026-11-05): oranžový kruh
+     patrí tmavému podkladu; na pieskovej doske je krém na kréme, takže nie papyrusová. */
+  .trp-topbar .trp-mavatar--initial{background:${LAPIS.grad};color:${LAPIS.ink};}
   /* Pilulka = úroveň 5 matrice (pilulkový variant poľa): plochá svetlá výplň, jeden rám. */
   /* ── LAPIS — HLAVNÁ AKCIA A OZNAČENÁ VOĽBA (pracovný návrh, 2026-08-26) ───────────────
      Pravidlo: ZLATO drží konštrukciu a polohu (rám, doska, nav, aktívny krok), LAPIS nesie
@@ -2412,8 +2412,8 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-sidebar .trp-greet-filter{background:${P_SOFT};border-color:${P_BORDER};}
   .trp-sidebar .trp-greet-filter img{filter:none;opacity:.7;}
   .trp-sidebar .trp-greet-filter:hover{border-color:${T.cardEdge};background:#FFFDF6;}
-  .trp-sidebar .trp-greet-filter.on{background:${GOLD_BTN.grad};border-color:rgba(250,244,236,0.55);}
-  .trp-sidebar .trp-greet-filter.on img{filter:none;opacity:.9;}
+  .trp-sidebar .trp-greet-filter.on{background:${LAPIS.grad};border-color:${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};}
+  .trp-sidebar .trp-greet-filter.on img{filter:brightness(0) invert(1);opacity:.9;}
 
   .trp-sidebar .trp-sortpop--desk{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};box-shadow:${T.panelShadow};backdrop-filter:none;-webkit-backdrop-filter:none;}
   .trp-sidebar .trp-sortpop--desk button{color:${P_INK};border-bottom:1px solid ${P_HAIR};}
@@ -2593,7 +2593,7 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-mheader .trp-mstats2 b{color:${P_INK};}
   .trp-mheader .trp-mstats2 i{color:${P_DIM};}
   .trp-mheader .trp-mavatar{box-shadow:0 0 0 1px rgba(255,252,240,0.9);}
-  .trp-mheader .trp-mavatar--initial{background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);color:#1c160c;}
+  .trp-mheader .trp-mavatar--initial{background:${LAPIS.grad};color:${LAPIS.ink};}
   /* Lem čísla levelu = farba dosky POD ním; na doske je to horný odtieň PANEL_SURFACE. */
   .trp-mheader .trp-avwrap{--notch-rim:#F4E7C6;}
 
@@ -3790,7 +3790,11 @@ export default function PackMap() {
   const reloadWishes = useCallback(() => {
     // Na LIVE do FLIPu tabuľky nie sú — bez prepínača 404 pri každom otvorení mapy.
     if (!WISHES_LIVE) return;
-    fetchWishPins().then(setWishes).catch(() => { /* bez prianí mapa žije ďalej */ });
+    // Priania z posledného otvorenia sú na mape hneď; rovnaká odpoveď servera nekreslí znova.
+    void readStoredWishPins().then((stored) => { if (stored?.length) setWishes((prev) => (prev.length ? prev : stored)); });
+    fetchWishPins()
+      .then((next) => setWishes((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next)))
+      .catch(() => { /* bez prianí mapa žije ďalej */ });
   }, []);
   useEffect(() => { reloadWishes(); }, [reloadWishes]);
   const [wishFlow, setWishFlow] = useState(false);

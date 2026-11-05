@@ -457,7 +457,7 @@ ${VEIL_CSS}
 /* koľajnica pruhu = tmavý inkoust s nízkou alfou (ako .comm-lvlbar). Svetlá koľajnica by
    na papyruse zmizla a pruh by vyzeral, akoby začínal odnikiaľ. */
 .comm-cat-bar{height:7px;border-radius:999px;background:rgba(42,22,8,0.14);overflow:hidden;}
-.comm-cat-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#F5C73D,#E69E1A);transition:width .4s;}
+.comm-cat-fill{height:100%;border-radius:999px;background:${LAPIS.grad};transition:width .4s;}
 /* ⚠️ .comm-walkedhead / -n ZMAZANÉ 2026-09-01 — nahradil ich .comm-drop (viditeľný ovládač,
    #46) a od vtedy ich nekreslil nikto. */
 .comm-dash-section-title{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:${P.deep};margin:20px 0 12px;}

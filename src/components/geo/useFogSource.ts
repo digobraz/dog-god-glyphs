@@ -17,16 +17,11 @@
 // vývojárske prezeranie („nech niečo vidno, kým RPC v DB nie je"), produkčný zdroj pravdy je RPC.
 import { useEffect, useMemo, useState } from 'react';
 import type { LatLngTuple } from 'leaflet';
-import { supabase } from '@/integrations/supabase/client';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readWalkedIds, readLocalTrails } from '@/components/pack/tripShared';
+import { packWalkedRows } from '@/lib/packStore';
 import type { FogTrail } from '@/components/geo/FogLayer';
-
-interface WalkedSlugRow {
-  trip_slug: string;
-  walkers: number;
-}
 
 export interface UseFogSourceResult {
   /** Geometria pripravená priamo pre <FogLayer trails={...} />. */
@@ -48,11 +43,7 @@ export function useFogSource(): UseFogSourceResult {
     let mounted = true;
     (async () => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = (await (supabase as any).rpc('get_pack_walked_slugs')) as {
-          data: WalkedSlugRow[] | null;
-          error: { message: string } | null;
-        };
+        const { data, error } = await packWalkedRows();
         if (!mounted) return;
         if (error || !data) {
           console.warn('[fog] get_pack_walked_slugs:', error?.message ?? 'no data — RPC zatiaľ nemusí existovať');

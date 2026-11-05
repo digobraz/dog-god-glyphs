@@ -25,6 +25,7 @@
 import { trackPack } from '@/lib/packAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { hasSession } from '@/lib/hasSession';
+import { readDeviceCopy, writeDeviceCopy } from '@/lib/deviceCopy';
 import { DEV_NOAUTH, devAddNote, devLikeNote, devListNotes, devRemoveNote, devVoteNote } from './devMockNotes';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -285,8 +286,14 @@ export async function fetchMapNotes(): Promise<MapNote[]> {
   if (!(await hasSession())) return []; // anonym: RPC je len pre členov (hasSession.ts)
   const { data, error } = await db.rpc('list_map_notes');
   if (error) throw error;
-  return ((data ?? []) as NoteRow[]).map(fromRow);
+  const notes = ((data ?? []) as NoteRow[]).map(fromRow);
+  void writeDeviceCopy(NOTES_COPY, notes);
+  return notes;
 }
+
+/** Značky z posledného otvorenia: na mape sú hneď, `fetchMapNotes` ich potom obnoví. */
+const NOTES_COPY = 'map-notes-v1';
+export const readStoredMapNotes = () => readDeviceCopy<MapNote[]>(NOTES_COPY);
 
 export interface NewMapNote {
   kind: NoteKind;

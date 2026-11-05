@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import {
   fetchMapNotes,
+  readStoredMapNotes,
   addMapNote,
   voteMapNote,
   likeMapNote,
@@ -33,12 +34,17 @@ export function useMapNotes(enabled = true) {
     try {
       const fresh = !firstLoadRef.current;
       firstLoadRef.current = false;
-      setNotes(await (fresh ? fetchMapNotes() : loadNotes()));
+      if (!fresh) {
+        const stored = await readStoredMapNotes();
+        if (stored?.length) { setNotes((prev) => (prev.length ? prev : stored)); setLoading(false); }
+      }
+      const next = await (fresh ? fetchMapNotes() : loadNotes());
+      // Rovnaká odpoveď nekreslí vrstvu druhýkrát.
+      setNotes((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
     } catch {
-      // Zlyhané načítanie = prázdna vrstva, nie rozbitá mapa. Zápisy sú doplnok
-      // k mape, nie jej podmienka — pád RPC (odhlásený, neplatiaci) nesmie
+      // Zlyhané načítanie = posledná známa vrstva (bez nej prázdna), nie rozbitá mapa. Zápisy
+      // sú doplnok k mape, nie jej podmienka — pád RPC (odhlásený, neplatiaci) nesmie
       // zhodiť celý výlet a jeho trasu.
-      setNotes([]);
     } finally {
       setLoading(false);
     }
