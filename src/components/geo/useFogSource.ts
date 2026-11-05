@@ -7,8 +7,7 @@
 //
 // Hlavná cesta = agregačná RPC `get_pack_walked_slugs()` (celok DOGYPTu naprieč všetkými
 // členmi, BEZ `user_id`/`walked_at` — píše ju paralelný agent v tej istej vlne, migrácia
-// zatiaľ nemusí byť v DB). RPC ešte nie je v generovaných Supabase typoch → volanie sa cistí
-// `(supabase as any)`, rovnaký zavedený vzor ako `useTripParty.ts` / `useOpenTrips.ts`.
+// zatiaľ nemusí byť v DB). Volanie je `packWalkedRows()` v packStore, zdieľané s kartami výletov.
 // Kým RPC neexistuje alebo padne, hook NESMIE appku zhodiť — vráti prázdne pole a hmla
 // jednoducho nič neukáže; zvyšok mapy funguje ďalej.
 //
