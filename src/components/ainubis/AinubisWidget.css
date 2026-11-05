@@ -1089,6 +1089,16 @@ body:has(.ainubis-panel--away) .ainubis-launcher { visibility: hidden; }
   mask: url(/icons/pack/target.svg) center / contain no-repeat;
 }
 
+.ainubis-attach-ico {
+  display: block;
+  /* Foťák je na šírku — 20 px, nech vedľa terča nepôsobí menší. */
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  -webkit-mask: url(/icons/pack/camera.svg) center / contain no-repeat;
+  mask: url(/icons/pack/camera.svg) center / contain no-repeat;
+}
+
 .ainubis-target-veil {
   position: fixed;
   inset: 0;

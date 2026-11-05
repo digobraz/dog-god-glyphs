@@ -86,6 +86,7 @@ export interface AinubisCopy {
     rateLimited: string;
     sessionReset: string;
     imageTooBig: string;
+    videoNotSupported: string;
   };
   unreadBadgeLabel: (n: number) => string;
   openAria: string;
@@ -186,6 +187,7 @@ const sk: AinubisCopy = {
     rateLimited: 'Spomaľ, pútnik — aj klon má len dve labky. Skús o minútu.',
     sessionReset: 'Vlákno sa muselo obnoviť. Píš ďalej, počúvam.',
     imageTooBig: 'Obrázok sa nepodarilo spracovať. Skús iný súbor.',
+    videoNotSupported: 'Video zatiaľ neprečítam. Pošli mi snímku obrazovky (fotku) — stačí jedna.',
   },
   unreadBadgeLabel: (n) => `${n} neprečítaných správ`,
   openAria: 'Otvoriť chat s AINUBISOM',
@@ -196,7 +198,7 @@ const sk: AinubisCopy = {
   targetHint: 'Ťukni na miesto, kde je problém',
   targetWhole: 'Celá obrazovka',
   targetCancel: 'Zrušiť',
-  targetFail: 'Obrazovku sa nepodarilo odfotiť. Prilož ju ako obrázok cez spinku.',
+  targetFail: 'Obrazovku sa nepodarilo odfotiť. Prilož fotku cez foťák vedľa terča.',
 };
 
 const en: AinubisCopy = {
@@ -276,6 +278,7 @@ const en: AinubisCopy = {
     rateLimited: "That's a lot of messages at once — take a breath, write again shortly.",
     sessionReset: 'The thread had to be renewed. Keep writing, I am listening.',
     imageTooBig: "Couldn't process that image. Try a different file.",
+    videoNotSupported: "I can't watch videos yet. Send me a screenshot instead — one is enough.",
   },
   unreadBadgeLabel: (n) => `${n} unread messages`,
   openAria: 'Open chat with AINUBIS',
@@ -286,7 +289,7 @@ const en: AinubisCopy = {
   targetHint: 'Tap the spot where the problem is',
   targetWhole: 'Whole screen',
   targetCancel: 'Cancel',
-  targetFail: 'Could not capture the screen. Attach it as an image with the paperclip.',
+  targetFail: 'Could not capture the screen. Attach a photo with the camera next to the target.',
 };
 
 /** SK pre `sk`, inak EN default — rovnaký fallback princíp ako `LanguageContext`. */

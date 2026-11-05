@@ -1271,6 +1271,8 @@ function AinubisWidgetInner() {
   }
 
   async function processImageFile(file: File) {
+    // Video (nahrávka obrazovky) predtým ticho zmizlo — Daniela 5. 11. 2026 ho preto poslala na IG.
+    if (file.type.startsWith('video/')) { pushSystemMessage(copy.errors.videoNotSupported); return; }
     if (!file.type.startsWith('image/')) return;
     try {
       const resized = await resizeImageForAinubis(file);
@@ -1947,9 +1949,26 @@ function AinubisWidgetInner() {
               </div>
             )}
             <div className="ainubis-composer__row">
-              {/* SPINKA A MIKROFÓN ZANIKLI (Matej 26. 9. 2026: „vymaž prílohu… a nahrávanie hlasu
-                  tiež daj preč"). AINUBIS je len technická podpora a obrázok do neho ide TERČOM.
-                  Vložiť obrázok (Ctrl+V) a pustiť ho myšou na panel ide ďalej — nič to nestojí. */}
+              {/* MIKROFÓN ZANIKOL (Matej 26. 9. 2026). PRÍLOHA SA VRÁTILA 5. 11. 2026 (Matej: „urobme to
+                  s tou spinkou a máme pokoj“) — terč nevie odfotiť stav v popupe (zavrie ho), tak
+                  Daniela nemala ako poslať snímku chyby. Ikonka = foťák z kitu, spinku kit nemá.
+                  `accept` berie aj video, aby človek dostal hlášku, nie ticho. */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                style={{ display: 'none' }}
+                onChange={handleFileInputChange}
+              />
+              <button
+                type="button"
+                className="ainubis-composer__icon-btn"
+                onClick={() => fileInputRef.current?.click()}
+                aria-label={copy.attachImage}
+                title={copy.attachImage}
+              >
+                <span className="ainubis-attach-ico" aria-hidden />
+              </button>
               <button
                 type="button"
                 className="ainubis-composer__icon-btn"
