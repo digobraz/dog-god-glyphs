@@ -35,7 +35,7 @@ import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { ScrollCard, SCROLL_CSS, SCROLL_CARD_CSS, scrollUI } from '@/components/pack/vault/ScrollParts';
-import { useDemoScrolls, useSaved, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
+import { useDemoScrolls, useScrollSearchText, useSaved, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { PostViewer } from '@/components/pack/profile/PostViewer';
 import { fetchMyPosts, onPostsChanged, isMoment, isAlbum, isTripStory, type MePost } from '@/components/pack/profile/mePosts';
@@ -221,6 +221,7 @@ export function PackFeed() {
 
   // HĽADANIE žije v adrese (`?hladaj=`), takže späť ho zavrie a odkaz na výsledok sa vráti presne sem.
   const searching = params.has('hladaj');
+  const scrollTexts = useScrollSearchText(searching && (params.get('hladaj') || '').trim().length >= 2, lang);
   const query = (params.get('hladaj') || '').trim();
   const searchRef = useRef<HTMLInputElement>(null);
   // KATALÓG VÝLETOV PRE HĽADANIE: `useFeedTrips` vracia len schválené členské výlety s fotkou (kurátorovaný
@@ -380,7 +381,7 @@ export function PackFeed() {
       const hit = (...xs: Array<string | undefined | null>) => xs.some((x) => x && fold(x).includes(q));
       return weave({
         trip: tripIdx.filter((i) => { const tr = trips[i].trail; return hit(tripTitle(tr, lang), tr.name, tr.region, tripText(tr, 'desc', lang), trips[i].author); }),
-        scroll: allScrolls.filter((z) => { const x = pickText(z, lang); return hit(x?.t, x?.v, x?.d, worldName(z.world)); }),
+        scroll: allScrolls.filter((z) => { const x = pickText(z, lang); return hit(x?.t, x?.v, scrollTexts[z.id], worldName(z.world)); }),
         // Text, miesto, MENO AUTORA a mená PSOV (označení + psi autora; môj príspevok = moje psy).
         post: publicPosts.filter(({ p, who }) => hit(p.body, p.attach.place?.name, who ? who.name : ownName, ...(who ? postDogs.get(p.id) ?? [] : dogs.map((d) => d.dog_name)))),
         map: [],
@@ -407,7 +408,7 @@ export function PackFeed() {
       map: [...mapAdds],
     }, true, true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trips, publicPosts, allScrolls, savedScrolls.length, savedIds, mapAdds, topic, searching, query, lang, postDogs, ownName, dogs]);
+  }, [trips, publicPosts, allScrolls, savedScrolls.length, savedIds, mapAdds, topic, searching, query, lang, postDogs, ownName, dogs, scrollTexts]);
 
   // DÁVKY: najprv PAGE kusov, ďalšie, keď sa strážca na konci zoznamu priblíži k oknu.
   const [shown, setShown] = useState(PAGE);

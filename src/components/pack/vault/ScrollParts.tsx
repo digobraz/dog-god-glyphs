@@ -36,7 +36,7 @@ import { PackTopRight } from '@/components/pack/PackLayout';
 import { useMagnetPreview } from '@/components/pack/magnetPreview';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
-  type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang,
+  type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang, useFullScroll,
   markScroll, useScrollState, toggleSaved, useSaved, useTalk, useTalkCount, addTalk, deleteTalk, toggleLiked, useLiked,
   toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, requestLang, useCounts, saveListen, useReads, logEvent,
 } from './vaultScrolls';
@@ -56,6 +56,8 @@ const UI = {
     like: 'Páči sa', del: 'Zmazať', delAsk: 'Zmazať komentár?', delNo: 'Nechať', save: 'Uložiť', share: 'Zdieľať', talk: 'Diskusia', readDone: 'Prečítané',
     talkNone: 'Zatiaľ tu nikto nenapísal. Začni ty — otázka, skúsenosť, nesúhlas.', talkPh: 'Napíš do diskusie…', talkSend: 'Pridať', you: 'Ty',
     back: 'Späť', added: 'Doplnené',
+    loading: 'Načítavam zvitok',
+    loadFail: 'Zvitok sa nenačítal. Ťukni a skúsime to znova.',
     addedNone: 'Zatiaľ nič nové. Keď pribudne poznatok, ktorý nie je v podcaste, zapíše sa sem s dátumom.',
     rel: 'Súvisí', contrib: 'Prispej', cEdit: 'Navrhnúť zmenu', kinds: ['Pridať novú znalosť k téme', 'Nahlásiť chybné tvrdenie', 'Vlastný text'],
     propPh: 'Napíš, čo chýba alebo čo nesedí. Ak máš zdroj, pridaj odkaz.', propSend: 'Odoslať AINUBISOVI', propOk: 'Odoslané — AINUBIS to posúdi a overí zdroj.', photo: 'Fotka',
@@ -71,6 +73,8 @@ const UI = {
     like: 'Líbí se', del: 'Smazat', delAsk: 'Smazat komentář?', delNo: 'Nechat', save: 'Uložit', share: 'Sdílet', talk: 'Diskuse', readDone: 'Přečteno',
     talkNone: 'Zatím tu nikdo nenapsal. Začni ty — otázka, zkušenost, nesouhlas.', talkPh: 'Napiš do diskuse…', talkSend: 'Přidat', you: 'Ty',
     back: 'Zpět', added: 'Doplněno',
+    loading: 'Načítám svitek',
+    loadFail: 'Svitek se nenačetl. Ťukni a zkusíme to znovu.',
     addedNone: 'Zatím nic nového. Když přibude poznatek, který není v podcastu, zapíše se sem s datem.',
     rel: 'Souvisí', contrib: 'Přispěj', cEdit: 'Navrhnout změnu', kinds: ['Přidat novou znalost k tématu', 'Nahlásit chybné tvrzení', 'Vlastní text'],
     propPh: 'Napiš, co chybí nebo co nesedí. Pokud máš zdroj, přidej odkaz.', propSend: 'Odeslat AINUBISOVI', propOk: 'Odesláno — AINUBIS to posoudí a ověří zdroj.', photo: 'Fotka',
@@ -86,6 +90,8 @@ const UI = {
     like: 'Like', del: 'Delete', delAsk: 'Delete comment?', delNo: 'Keep', save: 'Save', share: 'Share', talk: 'Discussion', readDone: 'Read',
     talkNone: 'Nobody has written here yet. Start — a question, an experience, a disagreement.', talkPh: 'Write to the discussion…', talkSend: 'Post', you: 'You',
     back: 'Back', added: 'Added',
+    loading: 'Loading the scroll',
+    loadFail: 'The scroll did not load. Tap to try again.',
     addedNone: 'Nothing new yet. When a finding that is not in the podcast arrives, it is written here with a date.',
     rel: 'Related', contrib: 'Contribute', cEdit: 'Suggest a change', kinds: ['Add new knowledge to the topic', 'Report a wrong claim', 'Own text'],
     propPh: 'Write what is missing or wrong. If you have a source, add the link.', propSend: 'Send to AINUBIS', propOk: 'Sent — AINUBIS will review it and check the source.', photo: 'Photo',
@@ -777,7 +783,7 @@ function Gallery({ list, start, label, onClose }: { list: { src: string; cap: st
 }
 
 /** Článok zvitku — vrstva nad VAULTOM s vlastnou adresou. */
-export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShare, queue, onNext, lock }: {
+export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse, onShare, queue, onNext, lock }: {
   z: DemoScroll; all: DemoScroll[]; lang: string; focus?: string | null;
   onClose: () => void; onOpen: (id: string) => void; onUse: () => void; onShare: (id: string) => void;
   /** POČÚVAJ ZA SEBOU — podcast hrá sám a po konci otvorí ďalší (`onNext`). */
@@ -787,6 +793,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
   lock?: () => void;
 }) {
   const u = scrollUI(lang);
+  const { z, ready, failed, retry } = useFullScroll(listZ);
   const x = pickText(z, lang);
   const s = useScrollState()[z.id] || 0;
   const talkList = useTalk(z.id);
@@ -830,12 +837,16 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
     }, { root: veil.current, threshold: 0.6 });
     io.observe(el);
     return () => { io.disconnect(); window.clearTimeout(t); };
-  }, [z.id, s]);
+  }, [z.id, s, ready]);
   useEffect(() => {
     veil.current?.scrollTo({ top: 0 });
     const el = focus === 'pod' ? podRef.current : focus === 'src' ? srcRef.current : focus === 'talk' ? talkRef.current : null;
     if (el) window.setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
   }, [z.id, focus]);
+  // Zdroje sa kreslia až s celým článkom, skok na ne musí počkať.
+  useEffect(() => {
+    if (ready && focus === 'src') window.setTimeout(() => srcRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="zv-veil" ref={veil} role="dialog" aria-modal="true" aria-label={x.t}>
@@ -873,15 +884,17 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
         </div>
 
         <div className="zv-body">
-          <StoryBody d={x.d} imgs={z.imgs} onImg={(src) => setGal(Math.max(0, gallery.findIndex((g) => g.src === src)))} />
-          <div ref={endRef} aria-hidden style={{ height: 1 }} />
+          {ready ? <StoryBody d={x.d} imgs={z.imgs} onImg={(src) => setGal(Math.max(0, gallery.findIndex((g) => g.src === src)))} />
+            : failed ? <button type="button" className="zv-add" onClick={retry}>{u.loadFail}</button>
+            : <div className="zv-add" role="status">{u.loading}</div>}
+          {ready && <div ref={endRef} aria-hidden style={{ height: 1 }} />}
 
-          <section className="zv-box zv-box--add">
+          {ready && <section className="zv-box zv-box--add">
           <h3 className="zv-sec">{u.added}</h3>
           {z.doplnene.length
             ? z.doplnene.map((a, i) => <div key={i} className="zv-add"><b>{a.date}</b> · {a.text}</div>)
             : <div className="zv-add">{u.addedNone}</div>}
-          </section>
+          </section>}
 
           {z.zdroje.length > 0 && <section className="zv-box zv-box--src">
             <h3 className="zv-sec" ref={srcRef}>{u.src} · {z.zdroje.length}</h3>

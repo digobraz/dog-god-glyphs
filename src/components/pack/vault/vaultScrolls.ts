@@ -22,7 +22,7 @@
 // ⚠️ Zápis je optimistický — klik sa ukáže hneď, DB dobehne; chyba zápisu sa len zaloguje
 //    (stav sa nevráti, ďalší zápis ten istý riadok aj tak prepíše celý).
 // ════════════════════════════════════════════════════════════════════════════
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadVaultTalkPhoto } from '@/services/cloudinaryService';
 import { VAULT_BADGES } from './vaultBadges';
@@ -49,6 +49,8 @@ export type DemoScroll = {
   zdroje: ScrollSource[];
   doplnene: { date: string; text: string }[];
   rel: string[];
+  /** Riadok zo zoznamu bez textu, prepisov a zdrojov — celý článok dotiahne `useFullScroll`. */
+  lite?: boolean;
 };
 
 /** Jazyk obsahu VAULTU: základ EN/SK/CZ (Matej 3. 10.), ostatné padajú na EN. */
@@ -72,6 +74,26 @@ const fromRow = (r: any): DemoScroll => ({
   circle: r.circle?.sk || '', img: r.img, imgs: r.imgs || {}, sd: r.sd || 0,
   lang: r.lang || {}, pod: r.pod || {}, zdroje: r.zdroje || [], doplnene: r.doplnene || [], rel: r.rel || [],
 });
+
+// ZOZNAM vs. ČLÁNOK (5. 11. 2026): LIVE 244 zvitkov = ~7 MB JSON a ťahalo sa to celé už na FEEDe,
+// teda na prvej obrazovke appky. 6,4 MB z toho je text (`d`), prepis podcastu (`tr`) a zdroje,
+// ktoré číta len otvorený článok. Zoznam berie karty bez nich, článok si dotiahne `useFullScroll`.
+const LIST_LANGS = ['sk', 'en', 'cs'] as const;
+const LIST_COLS = ['id', 'code', 'okruh', 'n', 'total', 'world', 'circle', 'img', 'imgs', 'sd', 'rel',
+  ...LIST_LANGS.flatMap((l) => [
+    `${l}_t:lang->${l}->>t`, `${l}_v:lang->${l}->>v`, `${l}_vz:lang->${l}->>vz`, `${l}_min:lang->${l}->min`,
+    `${l}_src:pod->${l}->>src`, `${l}_sec:pod->${l}->sec`,
+  ])].join(',');
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const fromListRow = (r: any): DemoScroll => {
+  const lang: DemoScroll['lang'] = {};
+  const pod: DemoScroll['pod'] = {};
+  for (const l of LIST_LANGS) {
+    if (r[`${l}_t`]) lang[l] = { t: r[`${l}_t`], v: r[`${l}_v`] || '', vz: r[`${l}_vz`] || '', d: '', min: r[`${l}_min`] || 0 };
+    if (r[`${l}_src`]) pod[l] = { src: r[`${l}_src`], sec: r[`${l}_sec`] || 0 };
+  }
+  return { ...fromRow({ ...r, lang, pod }), lite: true };
+};
 /** Stará DEV ukážka (id bez sveta) → id so svetom, aby sedeli kľúče postupu. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fromDemo = (z: any): DemoScroll => ({
@@ -85,8 +107,8 @@ function loadScrolls(): Promise<DemoScroll[]> {
   if (cache) return Promise.resolve(cache);
   if (!loading) {
     loading = (async () => {
-      const { data, error } = await db.from('vault_scrolls').select('*').order('world').order('okruh').order('n');
-      let list: DemoScroll[] = !error && data?.length ? data.map(fromRow) : [];
+      const { data, error } = await db.from('vault_scrolls').select(LIST_COLS).order('world').order('okruh').order('n');
+      let list: DemoScroll[] = !error && data?.length ? data.map(fromListRow) : [];
       if (!list.length && import.meta.env.DEV) {
         list = await fetch('/vault-demo/zvitky.json').then((r) => (r.ok ? r.json() : [])).then((j) => j.map(fromDemo)).catch(() => []);
       }
@@ -115,6 +137,55 @@ export function useDemoScrolls(): DemoScroll[] {
     return () => { on = false; sub.subscription.unsubscribe(); };
   }, []);
   return list;
+}
+
+type ScrollBody = Pick<DemoScroll, 'lang' | 'pod' | 'zdroje' | 'doplnene'>;
+const bodyCache = new Map<string, ScrollBody>();
+/** CELÝ ČLÁNOK k riadku zo zoznamu. `ready` = text je tu; pred ním sa nesmie merať „dočítané“. */
+export function useFullScroll(base: DemoScroll) {
+  const [, bump] = useState(0);
+  const [failedId, setFailedId] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const body = base.lite ? bodyCache.get(base.id) : undefined;
+  useEffect(() => {
+    if (!base.lite || bodyCache.has(base.id)) return;
+    let on = true;
+    setFailedId(null);
+    void db.from('vault_scrolls').select('lang,pod,zdroje,doplnene').eq('id', base.id).maybeSingle()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .then(({ data, error }: { data: any; error: unknown }) => {
+        if (!on) return;
+        if (error || !data) { setFailedId(base.id); return; }
+        bodyCache.set(base.id, { lang: data.lang || {}, pod: data.pod || {}, zdroje: data.zdroje || [], doplnene: data.doplnene || [] });
+        bump((n) => n + 1);
+      });
+    return () => { on = false; };
+  }, [base.id, base.lite, attempt]);
+  const z = useMemo(() => (body ? { ...base, ...body, lite: false } : base), [base, body]);
+  return { z, ready: !base.lite || !!body, failed: failedId === base.id, retry: () => setAttempt((n) => n + 1) };
+}
+
+/** TEXTY ZVITKOV len na hľadanie vo FEEDe — dotiahnu sa až keď človek naozaj hľadá. */
+const searchCache: Record<string, Record<string, string>> = {};
+export function useScrollSearchText(active: boolean, lang: string) {
+  const l = scrollLang(lang);
+  const [texts, setTexts] = useState<Record<string, string>>(searchCache[l] || {});
+  useEffect(() => {
+    if (!active) return;
+    if (searchCache[l]) { setTexts(searchCache[l]); return; }
+    let on = true;
+    void db.from('vault_scrolls').select(`id,d:lang->${l}->>d,en:lang->en->>d`)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .then(({ data, error }: { data: any[] | null; error: unknown }) => {
+        if (error || !data) return;
+        const map: Record<string, string> = {};
+        for (const r of data) map[r.id] = r.d || r.en || '';
+        searchCache[l] = map;
+        if (on) setTexts(map);
+      });
+    return () => { on = false; };
+  }, [active, l]);
+  return texts;
 }
 
 /** VEREJNÉ ZVITKY pre `/magnet` (12. 10. 2026) — bez prihlásenia, cez funkciu
