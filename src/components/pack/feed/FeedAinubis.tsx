@@ -153,7 +153,7 @@ export function AiStory({ src, poster, title, body, sub, liked, saved, onLike, o
   return (
     <AiPost sub={sub} media={(
       <div className="fai-v">
-        <video ref={ref} src={src} poster={poster} muted loop playsInline preload="metadata"
+        <video ref={ref} src={src} poster={poster} muted loop playsInline preload="none"
           onClick={(e) => { const v = e.currentTarget; if (v.paused) void v.play(); else v.pause(); }} />
       </div>
     )}>

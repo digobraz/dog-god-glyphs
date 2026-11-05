@@ -79,7 +79,7 @@ const fromRow = (r: any): DemoScroll => ({
 // teda na prvej obrazovke appky. 6,4 MB z toho je text (`d`), prepis podcastu (`tr`) a zdroje,
 // ktoré číta len otvorený článok. Zoznam berie karty bez nich, článok si dotiahne `useFullScroll`.
 const LIST_LANGS = ['sk', 'en', 'cs'] as const;
-const LIST_COLS = ['id', 'code', 'okruh', 'n', 'total', 'world', 'circle', 'img', 'imgs', 'sd', 'rel',
+const LIST_COLS = ['id', 'code', 'okruh', 'n', 'total', 'world', 'circle', 'img', 'imgs', 'sd', 'rel', 'updated_at',
   ...LIST_LANGS.flatMap((l) => [
     `${l}_t:lang->${l}->>t`, `${l}_v:lang->${l}->>v`, `${l}_vz:lang->${l}->>vz`, `${l}_min:lang->${l}->min`,
     `${l}_src:pod->${l}->>src`, `${l}_sec:pod->${l}->sec`,
@@ -101,14 +101,53 @@ const fromDemo = (z: any): DemoScroll => ({
   rel: (z.rel || []).map((x: string) => `${z.world}-${x}`),
 });
 
+// ZOZNAM V ZARIADENÍ (5. 11. 2026): Slow 4G = 94 KB a 3,4–8 s pri každom otvorení appky, hoci sa zvitky
+// menia raz za čas. Zoznam sa ukáže hneď z úložiska a na pozadí sa malým dotazom overí, či pribudlo
+// niečo nové; celý sa ťahá len vtedy (nové sa ukáže pri ďalšom vstupe, nech feed neposkakuje).
+// Patrí prihlásenému členovi: iný účet na tom istom zariadení kópiu nedostane. Pri zmene `LIST_COLS` zvýš verziu.
+const LIST_STORE = 'vault-list-v1';
+type StoredList = { uid: string; at: string; n: number; list: DemoScroll[] };
+const readStoredList = (uid: string): StoredList | null => {
+  try {
+    const raw = localStorage.getItem(LIST_STORE);
+    const st = raw ? JSON.parse(raw) as StoredList : null;
+    return st?.uid === uid && st.list?.length ? st : null;
+  } catch { return null; }
+};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const writeStoredList = (uid: string | undefined, rows: any[], list: DemoScroll[]) => {
+  if (!uid) return;
+  const at = rows.reduce((max: string, r) => (r.updated_at > max ? r.updated_at : max), '');
+  try { localStorage.setItem(LIST_STORE, JSON.stringify({ uid, at, n: list.length, list })); } catch { /* plné úložisko: nabudúce zo siete */ }
+};
+const fetchList = () => db.from('vault_scrolls').select(LIST_COLS).order('world').order('okruh').order('n');
+async function refreshStoredList(st: StoredList) {
+  const { data, count, error } = await db.from('vault_scrolls').select('updated_at', { count: 'exact' }).order('updated_at', { ascending: false }).limit(1);
+  if (error || !data?.length || (data[0].updated_at === st.at && count === st.n)) return;
+  const fresh = await fetchList();
+  if (fresh.error || !fresh.data?.length) return;
+  cache = fresh.data.map(fromListRow);
+  writeStoredList(st.uid, fresh.data, cache as DemoScroll[]);
+}
+
 let cache: DemoScroll[] | null = null;
 let loading: Promise<DemoScroll[]> | null = null;
 function loadScrolls(): Promise<DemoScroll[]> {
   if (cache) return Promise.resolve(cache);
   if (!loading) {
     loading = (async () => {
-      const { data, error } = await db.from('vault_scrolls').select(LIST_COLS).order('world').order('okruh').order('n');
+      const { data: { session } } = await supabase.auth.getSession();
+      const uid = session?.user.id;
+      const stored = uid ? readStoredList(uid) : null;
+      if (stored) {
+        cache = stored.list;
+        loading = null;
+        void refreshStoredList(stored).catch(() => { /* offline: ostáva kópia */ });
+        return stored.list;
+      }
+      const { data, error } = await fetchList();
       let list: DemoScroll[] = !error && data?.length ? data.map(fromListRow) : [];
+      if (list.length) writeStoredList(uid, data, list);
       if (!list.length && import.meta.env.DEV) {
         list = await fetch('/vault-demo/zvitky.json').then((r) => (r.ok ? r.json() : [])).then((j) => j.map(fromDemo)).catch(() => []);
       }
@@ -191,10 +230,10 @@ export function useScrollSearchText(active: boolean, lang: string) {
 /** VEREJNÉ ZVITKY pre `/magnet` (12. 10. 2026) — bez prihlásenia, cez funkciu
  *  `magnet_scrolls()` (migrácia 20261026). Tabuľka ostáva len pre členov. */
 let pubCache: DemoScroll[] | null = null;
-export function usePublicScrolls(): DemoScroll[] {
+export function usePublicScrolls(enabled: boolean): DemoScroll[] {
   const [list, setList] = useState<DemoScroll[]>(pubCache || []);
   useEffect(() => {
-    if (pubCache) return;
+    if (!enabled || pubCache) return;
     let on = true;
     void (async () => {
       const { data, error } = await db.rpc('magnet_scrolls');
@@ -206,7 +245,7 @@ export function usePublicScrolls(): DemoScroll[] {
       if (on) setList(l);
     })();
     return () => { on = false; };
-  }, []);
+  }, [enabled]);
   return list;
 }
 

@@ -649,7 +649,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   // ZVITKY (DEV ukážka, 3. 10. 2026) — článok zvitku žije na vlastnej adrese
   // `/pack/ainubis/zvitok/:id` (modal-as-route ako článok výletu, kôš 2).
   const memberScrolls = useDemoScrolls();
-  const publicScrolls = usePublicScrolls();
+  // 3,3 MB (`magnet_scrolls`, plné texty): len pre náhľad /magnet. Členovi to brzdilo každý vstup do AINUBISA.
+  const publicScrolls = usePublicScrolls(!!pv);
   const scrolls = pv ? publicScrolls : memberScrolls;
   const loc = useLocation();
   const sub = useParams()['*'] || '';
