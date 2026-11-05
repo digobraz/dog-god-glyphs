@@ -35,7 +35,7 @@ import { BackButton } from '@/components/pack/BackButton';
 import { PackTopRight } from '@/components/pack/PackLayout';
 import { useMagnetPreview } from '@/components/pack/magnetPreview';
 import { useIsMobile } from '@/hooks/use-mobile';
-import {
+import { scrollThumb,
   type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang, useFullScroll,
   markScroll, useScrollState, toggleSaved, useSaved, useTalk, useTalkCount, addTalk, deleteTalk, toggleLiked, useLiked,
   toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, requestLang, useCounts, saveListen, useReads, logEvent,
@@ -497,7 +497,9 @@ export function ScrollActions({ id, lang, onTalk, lock }: {
 }
 
 /** Karta zvitku v zozname. Videné = karta aspoň 2 s z polovice na obrazovke. */
-export function ScrollCard({ z, lang, worldName, onOpen, onShare, lock, locked, head }: {
+export function ScrollCard({ z, lang, worldName, onOpen, onShare, lock, locked, head, eager }: {
+  /** Karta na vrchu zoznamu: obraz sa ťahá hneď, nie až po vykreslení. */
+  eager?: boolean;
   z: DemoScroll; lang: string;
   /** FEED (28. 10. 2026): hlavička autora nad kartou — AINUBIS ako pri príspevkoch. DOGSCROLL ju nemá. */
   head?: React.ReactNode;
@@ -529,7 +531,7 @@ export function ScrollCard({ z, lang, worldName, onOpen, onShare, lock, locked, 
     <article ref={ref} className={`akv-zv${locked ? ' akv-zv--locked' : ''}`} data-zid={z.id} style={aiWorld(z.world)}>
       {head}
       <div className="akv-zvimg">
-        {z.img && <img src={z.img} alt="" loading="lazy" onClick={() => onOpen(z.id)} />}
+        {z.img && <img {...scrollThumb(z.img)} alt="" loading={eager ? 'eager' : 'lazy'} onClick={() => onOpen(z.id)} />}
         {locked
           ? <span className="zv-lockbadge" aria-hidden><HandLock size={20} /></span>
           : <ScrollActions id={z.id} lang={lang} onTalk={() => onOpen(z.id, 'talk')} lock={lock} />}
@@ -862,7 +864,7 @@ export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse,
         <BackButton tone="ainubis" onClick={onClose} label={u.back} className="zv-back" />
         <div className="zv-top">
           <div className="zv-hero">
-            {z.img && <img src={z.img} alt="" onClick={() => setGal(0)} />}
+            {z.img && <img {...scrollThumb(z.img)} alt="" onClick={() => setGal(0)} />}
             <ScrollActions id={z.id} lang={lang} onTalk={() => talkRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} lock={lock} />
           </div>
           <div className="zv-head">

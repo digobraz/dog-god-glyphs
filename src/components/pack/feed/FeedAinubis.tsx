@@ -14,7 +14,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_AVATAR, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS } from '@/components/pack/ainubisSkin';
 import { HandPaw, HandStar, HandPlay } from '@/components/pack/HandIcons';
-import { pickText, pickPod, fmtSec, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
+import { scrollThumb, pickText, pickPod, fmtSec, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import ainubisHead from '@/assets/ainubis-head.webp';
 
 const T = PACK_THEME;
@@ -179,7 +179,7 @@ export function AiSaved({ list, lang, onOpen }: { list: DemoScroll[]; lang: stri
         const pod = pickPod(z, lang);
         return (
           <button key={z.id} type="button" className="fai-sv" onClick={() => onOpen(z.id)}>
-            {z.img && <img src={z.img} alt="" loading="lazy" />}
+            {z.img && <img {...scrollThumb(z.img)} alt="" loading="lazy" />}
             <span>
               <b>{x.t}</b>
               <small>{x.min ? `${x.min} min` : ''}{x.min && pod ? ' · ' : ''}{pod && <><HandPlay size={10} /> {fmtSec(pod.sec)}</>}</small>

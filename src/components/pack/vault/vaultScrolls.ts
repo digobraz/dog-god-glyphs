@@ -65,6 +65,12 @@ export const pickPod = (z: DemoScroll, lang: string, want?: string) => {
   return l ? z.pod[l] : null;
 };
 export const sourceHref = (s: ScrollSource) => (s.doi ? `https://doi.org/${s.doi}` : s.url || '');
+/** Ľahký náhľad obrazu zvitku (`scripts/vault-nahlady.mjs`): ~70 kB namiesto 450–670 kB. Plný jpg ostáva galérii
+ *  a zálohe, keď náhľad na serveri ešte nie je. */
+export const scrollThumb = (img: string) => ({
+  src: img.replace(/(dogypt-media\.dogypt\.workers\.dev\/.*-34)\.jpg$/, '$1.webp'),
+  onError: (e: { currentTarget: HTMLImageElement }) => { if (e.currentTarget.src !== img) e.currentTarget.src = img; },
+});
 export const fmtSec = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 /** Riadok `vault_scrolls` → tvar, s ktorým pracuje UI. */

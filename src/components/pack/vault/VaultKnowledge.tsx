@@ -21,7 +21,7 @@ import { HandCheck, HandHeart, HandStar } from '@/components/pack/HandIcons';
 import { VAULT_WORLDS } from './worlds';
 import { VAULT_CIRCLES } from './circles';
 import { VAULT_BADGES } from './vaultBadges';
-import { type DemoScroll, type ReadRow, pickText, scrollLang, fmtSec, useReads, useMyRequests, useEventSums, useEarnedBadges } from './vaultScrolls';
+import { scrollThumb, type DemoScroll, type ReadRow, pickText, scrollLang, fmtSec, useReads, useMyRequests, useEventSums, useEarnedBadges } from './vaultScrolls';
 
 type Lang = 'sk' | 'cs' | 'en';
 const UI = {
@@ -200,7 +200,7 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
     const r = reads[z.id];
     return (
       <button key={z.id} type="button" className="vk-row" onClick={() => onOpen(z.id)}>
-        {z.img && <img src={z.img} alt="" loading="lazy" />}
+        {z.img && <img {...scrollThumb(z.img)} alt="" loading="lazy" />}
         <span><em>{pickText(z, lang).t}</em><small>{cName(z)} · {z.n}/{z.total}</small>{extra}</span>
         {isDone(r) && <span className="vk-ok"><HandCheck size={16} /></span>}
       </button>

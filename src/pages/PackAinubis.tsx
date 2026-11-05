@@ -1338,8 +1338,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
               <MagnetAinubisBlock where="list" h={pvH} p={pvP} />
             </div>
           )}
-          {SCROLL_DEMO && visible.map(z => (
-            <ScrollCard key={z.id} z={z} lang={lang} worldName={names[wIdx(z.world)]} onOpen={openScroll} onShare={shareScroll}
+          {SCROLL_DEMO && visible.map((z, i) => (
+            <ScrollCard key={z.id} eager={i === 0} z={z} lang={lang} worldName={names[wIdx(z.world)]} onOpen={openScroll} onShare={shareScroll}
               lock={pv ? () => lockAction() : undefined} locked={!!pv && !isFreeScrollCode(z.code)} />
           ))}
           {/* VÝBER SVETA: svet so zvitkami sa otvorí, ostatné vidno so zámkom. Kým sa zoznam načíta, karty sú neutrálne. */}
