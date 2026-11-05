@@ -494,6 +494,9 @@ const TRIP_MIGRATED_KEY = 'trp-trips-db-migrated-v1';
 const OVR_PENDING_KEY = 'trp-trail-overrides-pending-v1';
 // Magistrály, ktoré som PREVZAL ja (`pack_trips.author_id` = ja pri `claimed`) — ceruzka v článku.
 const MY_CLAIMS_KEY = 'trp-my-journey-claims-v1';
+/** Podpis posledného plného pullu `pack_trips` — šetrí egress, viď hydratáciu. */
+const TRIPS_SIG_KEY = 'trp-pack-trips-sig-v1';
+const TRIPS_FULL_EVERY_MS = 6 * 3600_000;
 const readTripPending = (): string[] => readJson<string[]>(TRIP_PENDING_KEY, []);
 const writeTripPending = (ids: string[]): void => { writeJson(TRIP_PENDING_KEY, Array.from(new Set(ids))); };
 
@@ -873,7 +876,9 @@ export function hydratePackStore(): Promise<boolean> {
         (supabase as any).from('user_trips').select('trip_slug,trip_date,status,openness,added_at').eq('user_id', uid),
         (supabase as any).from('trip_votes').select('*'),
         (supabase as any).from('trip_events').select('*').eq('host_id', uid),
-        (supabase as any).from('pack_trips').select('slug,payload,status,author_id'),
+        // Len podpis riadkov, nie payload — plné výlety (423 KB, z toho trasa 263 KB) sa
+        // stiahnu nižšie iba pri zmene. Egress Supabase Free 5. 11. 2026, viď TRIPS_SIG_KEY.
+        (supabase as any).from('pack_trips').select('slug,status,author_id,reviewed_at'),
         (supabase as any).from('hero_badges_earned').select('badge_id,earned_at'),
         // PSIE VÝLETY (B20) — bez `.eq('user_id', uid)`: RLS pustí aj psa, pri ktorom
         // som pawmate, a jeho výlety patria do psieho profilu rovnako ako moje.
@@ -965,7 +970,26 @@ export function hydratePackStore(): Promise<boolean> {
       // pull PRESKOČÍME celý, nech neprepíše rozpracovaný lokálny zápis (rovnaká opatrnosť ako
       // `blocked` vyššie — tento krok len rozširuje, čo sa počíta za "má nevyslaný zápis").
       const tripsBlocked = blocked.has('pack_trips') || readTripPending().length > 0;
+      // 🔴 EGRESS (5. 11. 2026): plný pull `pack_trips` bežal pri KAŽDOM otvorení appky
+      // (~170× denne × 423 KB) a s ďalšími ťahmi tlačil Supabase Free k limitu 5 GB.
+      // Plné riadky ťaháme len keď sa zmenil podpis (pribudol/zmizol výlet, zmena stavu,
+      // posúdenie, iný účet), alebo raz za 6 h — úprava payloadu cudzím autorom bez zmeny
+      // stavu sa tak prejaví najneskôr o 6 h. Vlastné úpravy sú lokálne hneď.
+      let tripRows: any[] | null = null;
       if (!tripsBlocked && !packTrips.error && packTrips.data) {
+        const sig = uid + '|' + (packTrips.data as any[])
+          .map((r) => `${r.slug}:${r.status}:${r.author_id}:${r.reviewed_at ?? ''}`).sort().join(',');
+        const prev = readJson<{ sig?: string; at?: number }>(TRIPS_SIG_KEY, {});
+        const fresh = prev.sig === sig && Date.now() - (prev.at ?? 0) < TRIPS_FULL_EVERY_MS
+          && readJson<unknown[]>(PACK_KEYS.localTrails, []).length > 0;
+        if (!fresh) {
+          const full = await (supabase as any).from('pack_trips').select('slug,payload,status,author_id');
+          if (!full.error && full.data) tripRows = full.data;
+        }
+        if (tripRows) writeJson(TRIPS_SIG_KEY, { sig, at: Date.now() });
+      }
+      if (tripRows) {
+        const packTrips = { data: tripRows };
         // Prepisy datasetu (`ovr-…`) idú BOKOM — nie sú to výlety členov, viď `saveTrailOverride`.
         const isOvr = (r: any) => typeof r.slug === 'string' && r.slug.startsWith(OVR_SLUG_PREFIX);
         if (!readOvrPending().length) {
