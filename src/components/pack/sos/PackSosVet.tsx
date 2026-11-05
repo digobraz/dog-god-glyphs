@@ -2,10 +2,12 @@
 // Zoznam je v balíku appky (`lib/vetEmergency.ts`), takže funguje aj bez signálu a nečaká na databázu.
 // Poradie: kto má práve otvorené, podľa vzdialenosti. Zatvorené idú pod čiaru, nikdy nezmiznú.
 import { useEffect, useMemo, useState } from 'react';
-import { PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
+import { PACK_BOX, PHOTO_CSS, PACK_R, PACK_SPACE, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { SosTaskShell } from './SosTaskShell';
+import { useLang } from '@/i18n/LanguageContext';
+import { intlLocale } from '@/i18n/bcp47';
 import { useBack, useSosT, type SosT } from './sosShared';
 import { CITIES, VET_EMERGENCY, closesAt, distanceKm, isOpenAt, opensAt, telAt, vetNavUrl, type NavApp, type VetPlace } from '@/lib/vetEmergency';
 
@@ -30,6 +32,13 @@ const CSS = `
 .vet-sec{margin:${PACK_SPACE.sm}px 0 0;font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .vet-row{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.md}px;}
 .vet-row.off{opacity:.6;}
+.vet-top{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
+.vet-top .vet-tap{flex:1;min-width:0;}
+.vet-thumb{padding:0;cursor:pointer;flex:none;width:72px;height:72px;}
+.vet-pic{margin:0;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
+.vet-pic .pk-photo{aspect-ratio:3/2;}
+.vet-pic figcaption{font-size:${PACK_TEXT.micro}px;color:${T.inkWarm};}
+.vet-pic a{color:inherit;text-decoration:underline;}
 .vet-tap{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
 .vet-tap b{font-size:${PACK_TEXT.lead}px;font-weight:600;color:${T.inkStrong};}
 .vet-tap small{font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
@@ -42,8 +51,21 @@ const CSS = `
 .vet-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:${PACK_SPACE.sm}px;}
 .vet-nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;min-height:56px;padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.field}px;border:1.5px solid ${T.cardEdge};background:${T.tileBg};font-size:${PACK_TEXT.micro}px;font-weight:600;color:${T.inkStrong};text-align:center;}
 .vet-nav img{width:24px;height:24px;display:block;}
+.vet-g{all:unset;align-self:flex-start;box-sizing:border-box;cursor:pointer;font-size:${PACK_TEXT.label}px;color:${T.inkWarm};text-decoration:underline;}
 .vet-src{margin:0;text-align:center;font-size:${PACK_TEXT.micro}px;line-height:1.5;color:${T.inkWarm};}
 `;
+
+/** „4,4 z Google · 212 recenzií (k 1. 11.)“ — číslo, množné číslo aj dátum podľa jazyka rozhrania. */
+function googleLabel(g: NonNullable<VetPlace['google']>, s: SosT, loc: string): string {
+  const cat = new Intl.PluralRules(loc).select(g.count);
+  const key = cat === 'one' ? 'pack.sos.er.gRevOne' : cat === 'few' ? 'pack.sos.er.gRevFew' : 'pack.sos.er.gRevMany';
+  const [y, m, d] = g.at.split('-').map(Number);
+  return s('pack.sos.er.gRating', {
+    rating: g.rating.toLocaleString(loc, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+    reviews: s(key, { count: g.count.toLocaleString(loc) }),
+    date: new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString(loc, { day: 'numeric', month: /^(sk|cs)/.test(loc) ? 'numeric' : 'short', timeZone: 'UTC' }),
+  });
+}
 
 function hoursLabel(p: VetPlace, s: SosT, now: Date): string {
   if (p.clientsOnly) return s('pack.sos.er.clientsOnly');
@@ -63,6 +85,8 @@ function hoursLabel(p: VetPlace, s: SosT, now: Date): string {
 
 export default function PackSosVet() {
   const s = useSosT();
+  const { lang } = useLang();
+  const loc = intlLocale(lang);
   const onBack = useBack('/pack');
   const [gps, setGps] = useState<[number, number] | null>(null);
   // wait = čakáme na GPS · denied = zamietnuté (nepýtame sa znova) · fail = timeout / bez signálu (tlačidlo ostáva)
@@ -115,11 +139,25 @@ export default function PackSosVet() {
     const canNav = vetNavUrl('google', p) !== null;
     return (
     <div key={p.id} className={`vet-row${isOn ? '' : ' off'}`} style={{ ...PACK_BOX.row }}>
-      <button type="button" className="vet-tap" onClick={() => setOpen(open === p.id ? null : p.id)} aria-expanded={open === p.id}>
-        <b>{p.name}</b>
-        <small>{km === null ? p.place : `${p.place} · ${km} km`}</small>
-      </button>
+      <div className="vet-top">
+        <button type="button" className="vet-tap" onClick={() => setOpen(open === p.id ? null : p.id)} aria-expanded={open === p.id}>
+          <b>{p.name}</b>
+          <small>{km === null ? p.place : `${p.place} · ${km} km`}</small>
+        </button>
+        {p.photo && open !== p.id && (
+          <button type="button" className="vet-thumb pk-photo" tabIndex={-1} aria-hidden="true" onClick={() => setOpen(p.id)}>
+            <img src={p.photo.src} alt="" loading="lazy" decoding="async" />
+          </button>
+        )}
+      </div>
+      {p.google && <a className="vet-g" href={p.google.url} target="_blank" rel="noopener noreferrer">{googleLabel(p.google, s, loc)}</a>}
       <span className={`vet-pill${p.clientsOnly || typeof p.hours !== 'string' || p.hours === 'ask' ? ' vet-pill--soft' : ''}`}>{hoursLabel(p, s, now)}</span>
+      {open === p.id && p.photo && (
+        <figure className="vet-pic">
+          <span className="pk-photo"><img src={p.photo.src} alt={p.name} loading="lazy" decoding="async" /></span>
+          <figcaption><a href={p.photo.source} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.photoFrom', { site: new URL(p.photo.source).hostname.replace(/^www\./, '') })}</a></figcaption>
+        </figure>
+      )}
       {open === p.id && (
         <p className="vet-more">
           {p.address}
@@ -149,7 +187,7 @@ export default function PackSosVet() {
 
   return (
     <SosTaskShell onBack={onBack} backLabel={s('pack.sos.back')}>
-      <style>{CSS}</style>
+      <style>{PHOTO_CSS}{CSS}</style>
       <h1 className="sos-h2">{s('pack.sos.er.title')}</h1>
       <div className="vet-chips">
         {([['near', 'pack.sos.er.near'], ['nonstop', 'pack.sos.er.nonstopChip'], ['home', 'pack.sos.er.homeChip']] as const).map(([k, l]) => (

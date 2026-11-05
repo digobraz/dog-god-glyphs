@@ -13,6 +13,10 @@ export type VetPlace = {
   /** Stále ID kliniky: nemení sa s poradím ani prekladom, na neho sa neskôr pripne profil (plany/klinika-profil-navrh-2026-11-05.md). */
   /** exact = poloha overená na dom (OSM), navigácia ide podľa bodu. Bez neho podľa textu adresy. */
   exact?: true;
+  /** Fotka z vlastného webu kliniky (súbor v public/vet/), source = stránka, kde je, at = dátum zberu. Bez fotky pole chýba. */
+  photo?: { src: string; source: string; at: string };
+  /** Hodnotenie z Google opísané ručne (rating 1–5, count = počet recenzií, at = dátum odpisu RRRR-MM-DD, url = profil na Google). Bez neho pole chýba. */
+  google?: { rating: number; count: number; at: string; url: string };
   home?: boolean; clientsOnly?: boolean; weekdays?: boolean; fee?: string; note?: SosKey; web: string;
 };
 
@@ -57,7 +61,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "hours": "nonstop",
   "exact": true,
-  "web": "http://www.vetpoint.sk/"
+  "web": "http://www.vetpoint.sk/",
+  "photo": {
+   "src": "/vet/vetpoint-bratislava.webp",
+   "source": "http://www.vetpoint.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "univerzitna-veterinarna-nemocnica-uvlf-kosice",
@@ -107,7 +116,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "hours": "call",
   "exact": true,
-  "web": "http://www.veterinar-pohotovost.sk/"
+  "web": "http://www.veterinar-pohotovost.sk/",
+  "photo": {
+   "src": "/vet/ambulancia-s-pohotovostou-centrum-poprad.webp",
+   "source": "http://www.veterinar-pohotovost.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "klinika-fenix-zilina",
@@ -121,7 +135,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "hours": "call",
   "exact": true,
-  "web": "http://www.klinikafenix.sk/"
+  "web": "http://www.klinikafenix.sk/",
+  "photo": {
+   "src": "/vet/klinika-fenix-zilina.webp",
+   "source": "http://www.klinikafenix.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "tri-vet-cifer",
@@ -150,7 +169,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "hours": "call",
   "exact": true,
-  "web": "http://www.scarvet.sk/"
+  "web": "http://www.scarvet.sk/",
+  "photo": {
+   "src": "/vet/scar-vet-trnava.webp",
+   "source": "http://www.scarvet.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "pet-clinic-nitra",
@@ -178,7 +202,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "hours": "call",
   "exact": true,
-  "web": "http://www.doktorzvierat.sk/"
+  "web": "http://www.doktorzvierat.sk/",
+  "photo": {
+   "src": "/vet/doktor-zvierat-piestany.webp",
+   "source": "http://www.doktorzvierat.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "klinika-lives-liptovsky",
@@ -207,7 +236,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   "hours": "call",
   "exact": true,
   "note": "pack.sos.er.noteMayClose",
-  "web": "http://www.veterinartopolcany.sk/"
+  "web": "http://www.veterinartopolcany.sk/",
+  "photo": {
+   "src": "/vet/veterinar-topolcany.webp",
+   "source": "http://www.veterinartopolcany.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "vetkom-povazska",
@@ -249,7 +283,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "hours": "call",
   "exact": true,
-  "web": "http://www.szakallvet.eu/"
+  "web": "http://www.szakallvet.eu/",
+  "photo": {
+   "src": "/vet/szakall-senec.webp",
+   "source": "http://www.szakallvet.eu/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "klinika-e-vet-kralova",
@@ -264,7 +303,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   "hours": "ask",
   "exact": true,
   "fee": "60 €",
-  "web": "http://evetklinika.sk/"
+  "web": "http://evetklinika.sk/",
+  "photo": {
+   "src": "/vet/klinika-e-vet-kralova.webp",
+   "source": "http://evetklinika.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "zbonakova-martin",
@@ -279,7 +323,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   "hours": "call",
   "clientsOnly": true,
   "fee": "50 €",
-  "web": "http://www.veterinamartin.sk/"
+  "web": "http://www.veterinamartin.sk/",
+  "photo": {
+   "src": "/vet/zbonakova-martin.webp",
+   "source": "http://www.veterinamartin.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "mypet-clinic-bratislava",
@@ -296,7 +345,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    24
   ],
   "exact": true,
-  "web": "https://www.mypet.sk/"
+  "web": "https://www.mypet.sk/",
+  "photo": {
+   "src": "/vet/mypet-clinic-bratislava.webp",
+   "source": "https://www.mypet.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "cassovet-kosice",
@@ -312,7 +366,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    8,
    24
   ],
-  "web": "https://www.cassovet.sk/"
+  "web": "https://www.cassovet.sk/",
+  "photo": {
+   "src": "/vet/cassovet-kosice.webp",
+   "source": "https://www.cassovet.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "petservis-banska",
@@ -401,7 +460,12 @@ export const VET_EMERGENCY: VetPlace[] = [
    22
   ],
   "fee": "50 €",
-  "web": "http://www.foxyvet.sk/"
+  "web": "http://www.foxyvet.sk/",
+  "photo": {
+   "src": "/vet/foxyvet-trencin.webp",
+   "source": "http://www.foxyvet.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "vet-centrum-nitra",
@@ -419,7 +483,12 @@ export const VET_EMERGENCY: VetPlace[] = [
   ],
   "exact": true,
   "weekdays": true,
-  "web": "http://www.veterinarnaklinikanitra.sk/"
+  "web": "http://www.veterinarnaklinikanitra.sk/",
+  "photo": {
+   "src": "/vet/vet-centrum-nitra.webp",
+   "source": "http://www.veterinarnaklinikanitra.sk/",
+   "at": "2026-11-05"
+  }
  },
  {
   "id": "dkvet-dolny",
