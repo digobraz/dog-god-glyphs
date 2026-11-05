@@ -8260,6 +8260,7 @@ export const en = {
   "pack.sos.det.endedTitle": "The search is switched off",
   "pack.sos.det.endedText": "The alert is no longer on the map and in the feed. The link and the flyer keep working.",
   "pack.sos.det.endedPublic": "The search has ended",
+  "pack.sos.det.foundMistake": "Marked by mistake?",
   "pack.sos.det.resume": "KEEP SEARCHING",
   "pack.sos.det.foundBtn": "FOUND HIM",
   "pack.sos.det.foundTitle": "{name} is home?",

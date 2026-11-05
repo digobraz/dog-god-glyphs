@@ -7930,6 +7930,7 @@ export const cs: Partial<Dict> = {
   "pack.sos.det.endedTitle": "Pátrání je vypnuté",
   "pack.sos.det.endedText": "Výstraha už není na mapě ani ve feedu. Odkaz a leták fungují dál.",
   "pack.sos.det.endedPublic": "Pátrání je ukončeno",
+  "pack.sos.det.foundMistake": "Označeno omylem?",
   "pack.sos.det.resume": "HLEDÁM DÁL",
   "pack.sos.det.foundBtn": "NAŠEL SE",
   "pack.sos.det.foundTitle": "{name} je doma?",

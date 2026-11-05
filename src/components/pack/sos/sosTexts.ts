@@ -93,6 +93,7 @@ export const SOS_TEXTS = {
   'pack.sos.det.endedTitle': T('The search is switched off', 'Pátranie je vypnuté', 'Pátrání je vypnuté'),
   'pack.sos.det.endedText': T('The alert is no longer on the map and in the feed. The link and the flyer keep working.', 'Výstraha už nie je na mape ani vo feede. Odkaz a leták fungujú ďalej.', 'Výstraha už není na mapě ani ve feedu. Odkaz a leták fungují dál.'),
   'pack.sos.det.endedPublic': T('The search has ended', 'Pátranie je ukončené', 'Pátrání je ukončeno'),
+  'pack.sos.det.foundMistake': T('Marked by mistake?', 'Označené omylom?', 'Označeno omylem?'),
   'pack.sos.det.resume': T('KEEP SEARCHING', 'HĽADÁM ĎALEJ', 'HLEDÁM DÁL'),
   'pack.sos.det.foundBtn': T('FOUND HIM', 'NAŠIEL SA', 'NAŠEL SE'),
   'pack.sos.det.foundTitle': T('{name} is home?', '{name} je doma?', '{name} je doma?'),

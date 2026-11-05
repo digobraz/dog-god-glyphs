@@ -116,6 +116,12 @@ export default function PackSosDetail() {
           <SosCard>
             <h2 className="sos-h2">{s('pack.sos.det.thanksTitle', { name: pub.dog_name })}</h2>
             <p className="sos-p">{s('pack.sos.det.thanksText')}</p>
+            {mine && (
+              <>
+                <p className="sos-small">{s('pack.sos.det.foundMistake')}</p>
+                <button type="button" className="sos-cta sos-cta--ghost" disabled={busy} onClick={() => run(async () => { await sosResume(mine.id); sosInvalidate(); })}>{s('pack.sos.det.resume')}</button>
+              </>
+            )}
           </SosCard>
         )}
 

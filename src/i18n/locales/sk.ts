@@ -7949,6 +7949,7 @@ export const sk: Partial<Dict> = {
   "pack.sos.det.endedTitle": "Pátranie je vypnuté",
   "pack.sos.det.endedText": "Výstraha už nie je na mape ani vo feede. Odkaz a leták fungujú ďalej.",
   "pack.sos.det.endedPublic": "Pátranie je ukončené",
+  "pack.sos.det.foundMistake": "Označené omylom?",
   "pack.sos.det.resume": "HĽADÁM ĎALEJ",
   "pack.sos.det.foundBtn": "NAŠIEL SA",
   "pack.sos.det.foundTitle": "{name} je doma?",
