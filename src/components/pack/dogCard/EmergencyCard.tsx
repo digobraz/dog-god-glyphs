@@ -1,51 +1,49 @@
-// NÚDZOVÁ KARTIČKA (Matej 5. 11. 2026): jedna kresba pre náhľad v appke aj pre tlač A4.
+// NÚDZOVÁ KARTIČKA (Matej 5. 11. 2026, nákres plany/nakresy/karticka-2026-11-05): jedna kresba pre náhľad v appke, zdieľanie aj tlač A4.
 // Všetko je v `cqw`, takže rozmer určuje rodič: 342 px v telefóne, 85,6 mm na papieri.
-// Fotka je ÚDAJ psa, nie ikonka: drží ľavú tretinu karty na plnú výšku a dá sa posunúť aj priblížiť.
+// Predná: nadpis, prosba, fotka a meno psa, text drží pri hornom okraji. Zadná: kontakty, adresa, poznámka; vpravo bledý pás s heroglyfom.
 // Kartička je tlačovina v rozmere platobnej karty, preto mimo stupníc PACK_TEXT a PACK_R (tie platia pre obrazovku).
-import type { CSSProperties, PointerEventHandler } from 'react';
+import { useLayoutEffect, useRef, type CSSProperties, type PointerEventHandler } from 'react';
 import { FONT_TITLE, FONT_UI, PACK_THEME as T } from '@/components/pack/packTheme';
-import { LAPIS } from '@/components/pack/navGoldSkin';
-import { BrandIcon } from '@/components/pack/BrandIcon';
-import logo from '@/assets/app/logo-2026.svg';
+import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
+import type { CardTexts } from './cardTexts';
 
 export type CardPhoto = { src: string | null; x: number; y: number; zoom: number };
-export type CardData = {
-  contact: string; phone: string; addr: string; needs: string; vet: string; breed: string; age: string;
-};
-export type CardTexts = {
-  frontTitle: string; ask: string; contact: string; phone: string;
-  backTitle: string; breed: string; age: string; addr: string; needs: string; vet: string;
-};
+export type CardContact = { name: string; phone: string };
+export type CardData = { contacts: CardContact[]; addr: string; note: string };
+export type CardGlyph = { selections: Record<string, string>; ownerName: string; patronSvg: string };
+
+// Zvislý heroglyf: výrez rámika z kresby 2480 × 3504 (x 788, y 365, 903 × 2774, zmerané getBBox), mierka podľa výšky 51 cqw.
+const GLYPH_H = 51;
+const GLYPH_K = GLYPH_H / 2774;
 
 export const CARD_CSS = `
 .ec{container-type:inline-size;position:relative;width:100%;aspect-ratio:85.6/54;}
-.ec-f{position:absolute;inset:0;display:flex;overflow:hidden;background:${T.cardGrad};border:.5cqw solid ${T.accentGold};border-radius:3.5cqw;color:${T.inkStrong};font-family:${FONT_UI};}
+.ec-f{position:absolute;inset:0;overflow:hidden;background:linear-gradient(160deg,${T.sosRed},${T.sosRedDark});border:.5cqw solid ${T.accentGold};border-radius:3.5cqw;color:#FFFFFF;font-family:${FONT_UI};}
 .ec--flat .ec-f{border-radius:0;}
-.ec-ph{position:relative;flex:none;width:40cqw;overflow:hidden;background:${T.tileBg};border-right:.5cqw solid ${T.accentGold};touch-action:none;}
+.ec-ph{position:absolute;right:0;top:0;width:60cqw;height:100%;overflow:hidden;touch-action:none;-webkit-mask-image:linear-gradient(90deg,transparent 0,black 40%);mask-image:linear-gradient(90deg,transparent 0,black 40%);}
 .ec-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;user-select:none;-webkit-user-drag:none;}
-.ec-veil{position:absolute;left:0;right:0;bottom:0;padding:9cqw 2.4cqw 2cqw;background:linear-gradient(180deg,rgba(24,14,4,0) 0%,rgba(24,14,4,.82) 100%);color:#FBF5E6;pointer-events:none;}
-.ec-name{display:block;font:700 5.2cqw/1.08 'Cinzel Decorative',${FONT_TITLE};overflow-wrap:anywhere;} /* písmo: meno */
-.ec-num{position:absolute;left:2cqw;top:2cqw;display:flex;align-items:center;height:5.6cqw;padding:0 1.8cqw;border-radius:999px;background:${LAPIS.grad};border:.25cqw solid ${T.accentGold};color:${LAPIS.ink};font:600 2.9cqw/1 ${FONT_UI};pointer-events:none;}
-.ec-main{flex:1;min-width:0;display:flex;flex-direction:column;}
-.ec-band{flex:none;display:flex;align-items:center;gap:2cqw;padding:1.9cqw 2.6cqw;background:linear-gradient(180deg,${T.sosRed},${T.sosRedDark});color:#FFFFFF;border-bottom:.5cqw solid ${T.accentGold};}
-.ec-band strong{font:700 4.5cqw/1.12 ${FONT_TITLE};letter-spacing:.02em;text-transform:uppercase;text-wrap:balance;} /* písmo: nadpis */
-.ec-body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:1.7cqw;padding:1.6cqw 2.8cqw;}
-.ec-ask{font:500 3cqw/1.28 ${FONT_UI};color:${T.inkDim};}
-.ec-fl{min-width:0;}
-.ec-fl span{display:block;font:500 2.2cqw/1.25 ${FONT_UI};letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};}
-.ec-fl b{display:block;min-height:4.4cqw;padding-bottom:.5cqw;border-bottom:.25cqw solid ${T.accentGold};font:600 3.5cqw/1.25 ${FONT_UI};overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.ec-fl.is-big b{min-height:5.6cqw;font-size:4.5cqw;}
-.ec-fl.is-wrap b{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere;}
-.ec-fl.is-tel b{color:${LAPIS.edge};}
-.ec-foot{flex:none;display:flex;align-items:center;justify-content:flex-end;padding:0 2.8cqw 1.5cqw;}
-.ec-foot img{height:6.4cqw;width:auto;display:block;}
-/* zadná strana */
-.ec-f--back{flex-direction:column;}
-.ec-sil{position:absolute;right:2cqw;bottom:1cqw;width:30cqw;opacity:.13;pointer-events:none;}
-.ec-b2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:1.5cqw;padding:1.6cqw 3.2cqw 2cqw;}
-.ec-two{display:flex;gap:2.6cqw;}
-.ec-two>*{flex:1;min-width:0;}
-.ec-dog{margin-left:auto;font:700 4.6cqw/1 'Cinzel Decorative',${FONT_TITLE};max-width:40cqw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;} /* písmo: meno */
+.ec-lft{position:absolute;left:6.4cqw;width:46cqw;top:3.2cqw;display:flex;flex-direction:column;gap:2cqw;pointer-events:none;}
+.ec-rtl .ec-lft{text-align:right;}
+.ec-hu{margin:0;padding-top:.32em;font-family:${FONT_TITLE};font-weight:700;line-height:1.04;letter-spacing:.02em;text-transform:uppercase;text-shadow:0 .4cqw 0 ${T.sosRedDark},0 .7cqw .5cqw ${T.inkStrong},0 1cqw 3.4cqw ${T.inkStrong};} /* písmo: nadpis */
+.ec-ask{margin:0;font:500 3.2cqw/1.3 ${FONT_UI};padding-right:3cqw;text-shadow:0 .2cqw .8cqw ${T.sosRedDark};}
+.ec-name{position:absolute;right:2.6cqw;bottom:2.2cqw;max-width:40cqw;text-align:right;font:700 6cqw/1.05 'Cinzel Decorative',${FONT_TITLE};overflow-wrap:anywhere;text-shadow:0 .4cqw 2cqw ${T.inkStrong};pointer-events:none;} /* písmo: meno */
+.ec-bl{position:absolute;left:3.2cqw;right:23.4cqw;top:2.6cqw;bottom:2.4cqw;display:flex;flex-direction:column;gap:1.5cqw;overflow:hidden;}
+.ec-rtl .ec-bl{text-align:right;}
+.ec-bt{flex:none;font:700 4.6cqw/1.12 ${FONT_TITLE};letter-spacing:.02em;text-transform:uppercase;text-shadow:0 .3cqw .8cqw ${T.inkStrong};} /* písmo: nadpis */
+.ec-cs{flex:none;display:flex;flex-direction:column;gap:1cqw;}
+.ec-cn{display:block;font:500 2.8cqw/1.2 ${FONT_UI};overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.ec-pp{display:block;font:600 5.6cqw/1.12 ${FONT_UI};white-space:nowrap;overflow:hidden;direction:ltr;unicode-bidi:isolate;}
+.ec-rtl .ec-pp{text-align:right;}
+.ec-n1 .ec-pp{font-size:6.8cqw;}.ec-n1 .ec-cn{font-size:3.2cqw;}
+.ec-n3{gap:.5cqw;}.ec-n3 .ec-pp{font-size:4.2cqw;}.ec-n3 .ec-cn{font-size:2.4cqw;}
+.ec-sec{flex:none;border-top:.25cqw solid ${T.accentGold};padding-top:1cqw;}
+.ec-lb{display:block;font:500 2.2cqw/1.25 ${FONT_UI};letter-spacing:.14em;text-transform:uppercase;opacity:.85;}
+.ec-ad{display:block;font:600 3.2cqw/1.2 ${FONT_UI};overflow-wrap:anywhere;}
+.ec-no{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;font:500 2.9cqw/1.28 ${FONT_UI};overflow-wrap:anywhere;}
+.ec-gl{position:absolute;right:0;top:0;bottom:0;width:20.6cqw;padding:2.2cqw 0 1.8cqw;background:${T.cardGrad};border-left:.5cqw solid ${T.accentGold};display:flex;flex-direction:column;align-items:center;justify-content:space-between;color:#000000;box-sizing:border-box;}
+.ec-gv{position:relative;flex:none;overflow:hidden;height:${GLYPH_H}cqw;width:${903 * GLYPH_K}cqw;filter:brightness(0);}
+.ec-gv svg{position:absolute;display:block;left:${-788 * GLYPH_K}cqw;top:${-365 * GLYPH_K}cqw;max-width:none;width:${2480 * GLYPH_K}cqw!important;height:${3504 * GLYPH_K}cqw!important;}
+.ec-web{flex:none;font:600 2.5cqw/1 ${FONT_UI};letter-spacing:.02em;}
 `;
 
 const photoStyle = (p: CardPhoto): CSSProperties => ({
@@ -54,68 +52,75 @@ const photoStyle = (p: CardPhoto): CSSProperties => ({
   transformOrigin: `${p.x}% ${p.y}%`,
 });
 
-// Dlhý údaj (telefón, potreby) ide na dva riadky a zmenšuje písmo podľa dĺžky. Čo sa ani tak nezmestí, ukáže stránka
-// hláškou pred stiahnutím (meria sa, či `<b>` pretiekol), takže nič sa neskráti ticho elipsou.
-const wrapSize = (len: number, tiers: [number, number][], min: number) => tiers.find(([max]) => len <= max)?.[1] ?? min;
-const Fl = ({ label, value, big, tel, wrap }: { label: string; value: string; big?: boolean; tel?: boolean; wrap?: 'tel' | 'needs' }) => {
-  const size = wrap === 'tel' ? wrapSize(value.length, [[16, 4.5], [24, 3.6]], 3)
-    : wrap === 'needs' ? wrapSize(value.length, [[40, 3.5], [70, 2.9]], 2.4) : undefined;
-  return (
-    <div className={`ec-fl${big ? ' is-big' : ''}${tel ? ' is-tel' : ''}${wrap ? ' is-wrap' : ''}`}>
-      <span>{label}</span><b style={size ? { fontSize: `${size}cqw` } : undefined}>{value || ' '}</b>
-    </div>
-  );
-};
+/** Nadpis je taký veľký, aký sa do 34 cqw výšky zmestí; ráta sa v `cqw`, takže nezávisí od šírky kartičky. Ráta sa znova po načítaní písma. */
+function useFitTitle(text: string) {
+  const ref = useRef<HTMLHeadingElement>(null);
+  useLayoutEffect(() => {
+    const fit = () => {
+      const h = ref.current;
+      if (!h) return;
+      h.style.height = '34cqw';
+      for (let z = 15; z >= 4; z -= 0.25) {
+        h.style.fontSize = `${z}cqw`;
+        if (h.scrollWidth <= h.clientWidth && h.scrollHeight <= h.clientHeight) break;
+      }
+      h.style.height = '';
+    };
+    fit();
+    let alive = true;
+    document.fonts?.ready.then(() => { if (alive) fit(); });
+    return () => { alive = false; };
+  }, [text]);
+  return ref;
+}
 
-export function CardFront({ dogName, number, photo, data, tx, flat, photoHandlers }: {
-  dogName: string; number: string; photo: CardPhoto; data: CardData; tx: CardTexts; flat?: boolean;
+// Dlhé meno psa sa zmenší podľa dĺžky. Čo sa ani tak nezmestí, pomenuje stránka pred tlačou.
+const nameSize = (len: number) => (len <= 10 ? 6 : len <= 18 ? 4.4 : 3.4);
+
+export function CardFront({ dogName, photo, tx, rtl, flat, photoHandlers }: {
+  dogName: string; photo: CardPhoto; tx: CardTexts; rtl?: boolean; flat?: boolean;
   photoHandlers?: { onPointerDown: PointerEventHandler; onPointerMove: PointerEventHandler; onPointerUp: PointerEventHandler; onPointerCancel: PointerEventHandler };
 }) {
+  const title = useFitTitle(tx.title);
   return (
-    <div className={`ec${flat ? ' ec--flat' : ''}`}>
+    <div className={`ec${flat ? ' ec--flat' : ''}${rtl ? ' ec-rtl' : ''}`} dir={rtl ? 'rtl' : 'ltr'}>
       <div className="ec-f">
         <div className="ec-ph" {...photoHandlers}>
           {photo.src && <img src={photo.src} alt="" draggable={false} style={photoStyle(photo)} />}
-          {number && <span className="ec-num">{number}</span>}
-          <span className="ec-veil"><span className="ec-name">{dogName}</span></span>
         </div>
-        <div className="ec-main">
-          <div className="ec-band">
-            <BrandIcon name="house-heart" size={0} tint="white" style={{ width: '6.6cqw', height: '6.6cqw', flex: 'none' }} />
-            <strong>{tx.frontTitle}</strong>
-          </div>
-          <div className="ec-body">
-            <div className="ec-ask">{tx.ask}</div>
-            <Fl label={tx.contact} value={data.contact} big />
-            <Fl label={tx.phone} value={data.phone} big tel wrap="tel" />
-          </div>
-          <div className="ec-foot"><img src={logo} alt="DOGYPT" /></div>
+        <div className="ec-lft">
+          <h4 className="ec-hu" ref={title}>{tx.title}</h4>
+          <p className="ec-ask">{tx.ask}</p>
         </div>
+        <span className="ec-name" dir="ltr" style={{ fontSize: `${nameSize(dogName.length)}cqw` }}>{dogName}</span>
       </div>
     </div>
   );
 }
 
-export function CardBack({ dogName, patron, data, tx, flat }: {
-  dogName: string; patron: string | null; data: CardData; tx: CardTexts; flat?: boolean;
+export function CardBack({ data, glyph, tx, rtl, flat }: {
+  data: CardData; glyph: CardGlyph | null; tx: CardTexts; rtl?: boolean; flat?: boolean;
 }) {
+  const filled = data.contacts.filter((c) => c.name.trim() || c.phone.trim());
   return (
-    <div className={`ec${flat ? ' ec--flat' : ''}`}>
-      <div className="ec-f ec-f--back">
-        <div className="ec-band">
-          <BrandIcon name="paw-solid" size={0} tint="white" style={{ width: '5.6cqw', height: '5.6cqw', flex: 'none' }} />
-          <strong>{tx.backTitle}</strong>
-          <span className="ec-dog">{dogName}</span>
-        </div>
-        <div className="ec-b2">
-          {patron && <img className="ec-sil" src={patron} alt="" />}
-          <div className="ec-two">
-            <Fl label={tx.breed} value={data.breed} />
-            <Fl label={tx.age} value={data.age} />
+    <div className={`ec${flat ? ' ec--flat' : ''}${rtl ? ' ec-rtl' : ''}`} dir={rtl ? 'rtl' : 'ltr'}>
+      <div className="ec-f">
+        <div className="ec-bl" data-check={tx.note}>
+          <span className="ec-bt">{tx.backTitle}</span>
+          <div className={`ec-cs ec-n${Math.max(1, filled.length)}`}>
+            {filled.map((c, i) => (
+              <div key={i}>
+                <span className="ec-cn">{c.name}</span>
+                <span className="ec-pp" data-check={c.name || c.phone}>{c.phone}</span>
+              </div>
+            ))}
           </div>
-          <Fl label={tx.addr} value={data.addr} />
-          <Fl label={tx.needs} value={data.needs} wrap="needs" />
-          <Fl label={tx.vet} value={data.vet} />
+          {data.addr.trim() && <div className="ec-sec"><span className="ec-lb">{tx.addr}</span><span className="ec-ad">{data.addr}</span></div>}
+          {data.note.trim() && <div className="ec-sec"><span className="ec-lb">{tx.note}</span><span className="ec-no" data-check={tx.note}>{data.note}</span></div>}
+        </div>
+        <div className="ec-gl" dir="ltr">
+          <div className="ec-gv">{glyph && <VerticalHeroglyphFrame data={glyph} />}</div>
+          <span className="ec-web">dogypt.com</span>
         </div>
       </div>
     </div>

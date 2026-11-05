@@ -1,5 +1,5 @@
 // SOS — akcie a okná zdieľané stránkou psa (`/pack/sos/:slug`) aj verejnou `/lost/:slug`:
-// kopírovanie odkazu (zdieľanie = `shareLostDog` v `sosKit`), ZAVOLAŤ (číslo až po ťuku), VIDEL SOM HO, potvrdenia NAŠIEL SA a STÁLE HĽADÁM.
+// kopírovanie odkazu (zdieľanie = `shareLostDog` v `sosKit`), ZAVOLAŤ (číslo až po ťuku), VIDEL SOM HO, STÁLE HĽADÁM (otázka NAŠIEL SA je v `sosClose.tsx`).
 // Okná = `PackPopup` (úchyt = gesto, bez šípky). Žiadne „zhasne o X dní“.
 import { useState } from 'react';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
@@ -106,21 +106,6 @@ export function SeenPopup({ slug, s, onClose }: { slug: string; s: SosT; onClose
             <button type="button" className="sos-cta" disabled={busy} onClick={send}>{s('pack.sos.det.seenSend')}</button>
           </>
         )}
-      </div>
-    </PackPopup>
-  );
-}
-
-/** Potvrdenie NAŠIEL SA (majiteľ). */
-export function FoundPopup({ name, s, busy, err, onYes, onClose }: { name: string; s: SosT; busy: boolean; err?: string; onYes: () => void; onClose: () => void }) {
-  return (
-    <PackPopup title={s('pack.sos.det.foundTitle', { name })} onClose={onClose}>
-      <style>{PF_FIELD_CSS + SOS_CSS}</style>
-      <div className="sos-stack">
-        <p className="sos-p">{s('pack.sos.det.foundText')}</p>
-        {err && <p className="sos-err">{err}</p>}
-        <button type="button" className="sos-cta sos-cta--green" disabled={busy} onClick={onYes}>{s('pack.sos.det.foundYes')}</button>
-        <button type="button" className="sos-cta sos-cta--ghost" onClick={onClose}>{s('pack.sos.det.foundNo')}</button>
       </div>
     </PackPopup>
   );

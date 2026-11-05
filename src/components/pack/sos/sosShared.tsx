@@ -3,7 +3,7 @@
 //
 // 🔴 ČERVENÁ JE LEN SOS (`PACK_THEME.sosRed*`, Matej 4. 11. 2026) · NAŠIEL SA = zelená SPLNENÉ (`growGreen`).
 // 🔴 TELEFÓN MAJITEĽA sa nikdy nevykresľuje ihneď — len po ťuku cez `lostPhone` (alebo je to MOJA strata → `sosMine`).
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
@@ -46,6 +46,24 @@ export function useSosT(dogGender?: string | null): SosT {
     const v = t(k, vars);
     return v !== k ? v : interpolate(SOS_TEXTS[k].en, vars);
   }, [t, fem]);
+}
+
+/** Čísla s tvarom podľa jazyka: 1 deň · 3 dni · 5 dní (sk, cs) / 1 day · 3 days (en). Slovo je v slovníku (`pack.sos.n.*`), tu je len výber tvaru. */
+export function useSosCount() {
+  const { lang } = useLang();
+  const s = useSosT();
+  const cat = useCallback((n: number): 'one' | 'few' | 'many' => {
+    if (n === 1) return 'one';
+    if (lang === 'sk' || lang === 'cs') return n >= 2 && n <= 4 ? 'few' : 'many';
+    return 'many';
+  }, [lang]);
+  return useMemo(() => ({
+    days: (n: number) => s(`pack.sos.n.days.${cat(n)}` as SosKey, { n }),
+    /** „po 3 dňoch“ (lokál): 1 → „1 dni“, inak „dňoch“. */
+    daysAfter: (n: number) => s(`pack.sos.n.daysAfter.${n === 1 ? 'one' : 'other'}` as SosKey, { n }),
+    shares: (n: number) => s(`pack.sos.n.shares.${cat(n)}` as SosKey, { n }),
+    alerted: (n: number) => s('pack.sos.n.alerted', { n }),
+  }), [s, cat]);
 }
 
 /** „4. 11. 2026 o 15:40“ — dátum a čas v jazyku rozhrania. */
@@ -188,6 +206,21 @@ export const SOS_CSS = `
 .sos-pill{display:inline-flex;align-items:center;min-height:32px;padding:0 ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:${T.tileBg};font-size:${PACK_TEXT.label}px;color:${T.inkStrong};}
 /* výber: priesvitný lapis tint */
 .sos-pick{border:1.5px solid ${T.border};background:${T.tileBg};cursor:pointer;font-family:${FONT_UI};color:${T.inkStrong};}
+.sos-nums{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
+.sos-num{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.md}px;}
+.sos-num b{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.h1}px;line-height:1;color:${T.inkStrong};}
+.sos-num small{font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};}
+.sos-opts{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+.sos-opt{display:flex;align-items:center;justify-content:center;width:100%;min-height:56px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.field}px;
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.lead}px;text-align:center;cursor:pointer;}
+.sos-opt--alive{background:${GREEN_GRAD};border:1px solid ${T.growGreen};color:#fff;box-shadow:${LAPIS_BTN_SHADOW};}
+.sos-opt--calm{background:${T.tileBg};border:1.5px solid ${T.cardEdge};color:${T.inkStrong};}
+.sos-opt--none{background:transparent;border:0;color:${T.inkWarm};min-height:44px;font-size:${PACK_TEXT.body}px;}
+.sos-opt[disabled]{opacity:.45;cursor:default;}
+.sos-diaryrow{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.md}px;}
+.sos-diaryrow .grow{flex:1;min-width:0;}
+.sos-diaryrow b{display:block;font-weight:600;font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
+.sos-diaryrow small{display:block;font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
 .sos-pick.is-on{background:${LAPIS.fill};border-color:${LAPIS.edge};box-shadow:inset 0 0 0 1px ${LAPIS.halo};}
 `;
 

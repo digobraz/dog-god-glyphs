@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { SOS_ON } from '@/lib/env';
+import { APP_NEW } from '@/lib/packFlags';
 import { PackPopup } from './PackPopup';
 import { BrandIcon } from './BrandIcon';
 import { useSosActive, sosAgo } from './sosKit';
@@ -74,9 +75,16 @@ export function SosButton() {
               <BrandIcon name="vet" size={24} tint="gold" />
               <b>{tx('pack.sos.er.btn', 'Emergency vet')}</b>
             </button>
+            {/* Rýchly prístup ku kartičke, nastavenie ostáva v DOG ID (Matej 5. 11.). */}
+            {APP_NEW && (
+              <button type="button" className="sos-row card" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/karticka')}>
+                <BrandIcon name="dogposter" size={24} tint="gold" />
+                <b>{tx('pack.sos.card.title', 'Emergency card')}</b>
+              </button>
+            )}
             {/* Nahlásiť týranie: zatiaľ bez akcie, vyzerá ako ostatné „čoskoro“ (nie červeno). */}
             <button type="button" className="sos-row abuse" style={{ ...PACK_BOX.row }}>
-              <BrandIcon name="eye" size={24} tint="gold" />
+              <BrandIcon name="lighthouse" size={24} tint="gold" />
               <b>{tx('pack.sos.btn.abuse', 'Report abuse')}</b>
               <small>{tx('pack.sos.soon', 'Soon')}</small>
             </button>

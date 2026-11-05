@@ -18,7 +18,11 @@ async function call<T>(name: string, args?: Record<string, unknown>): Promise<T>
   return data as T;
 }
 
-export type LostStatus = 'active' | 'found' | 'ended';
+export type LostStatus = 'active' | 'found' | 'ended' | 'deceased';
+/** Verejný stav: `deceased` sa navonok volá `closed` (dôvod konca pátrania sa verejne nepíše). */
+export type LostPublicStatus = 'active' | 'found' | 'ended' | 'closed';
+/** Výsledok pátrania, ktorý si vyberá človek: živý a doma / nežije. */
+export type LostOutcome = 'alive' | 'deceased';
 
 export interface SosFlyer {
   headline?: string;
@@ -87,6 +91,7 @@ export interface SosMine {
   flyer: SosFlyer;
   flyer_url: string | null;
   status: LostStatus;
+  outcome: LostOutcome | null;
   asked_at: string | null;
   confirmed_at: string | null;
   found_at: string | null;
@@ -99,6 +104,17 @@ export interface SosMine {
   sightings: SosSighting[];
   /** Odškrtnuté kroky „Čo teraz urobiť“ (server). */
   plan_done: string[];
+  /** Majiteľ psa (nie pawmate): len on rieši anjela a denník. */
+  is_owner: boolean;
+  /** Koniec pátrania označil niekto iný než majiteľ (pawmate). */
+  marked_by_other: boolean;
+  found_by_name: string | null;
+  /** Kedy sa urobil zápis do denníka pri „živý“ (raz na stratu). */
+  diary_at: string | null;
+  /** Id riadku `dog_events` (diary.milestone) zapísaného pri „živý“. */
+  diary_event: string | null;
+  /** Dni pátrania: od vyhlásenia po koniec, zaokrúhlené hore, najmenej 1. */
+  search_days: number;
 }
 
 export interface LostPublic {
@@ -109,7 +125,7 @@ export interface LostPublic {
   breed: string | null;
   color: string | null;
   country: string;
-  status: LostStatus;
+  status: LostPublicStatus;
   last_seen_at: string;
   place_label: string | null;
   lat: number;
@@ -122,6 +138,24 @@ export interface LostPublic {
   recall: string | null;
   temperament: string[] | null;
   strangers_ok: boolean | null;
+  /** Len pri `found`: dni pátrania a zdieľania (verejná stránka). */
+  search_days: number | null;
+  shares: number | null;
+}
+
+/** Zelená karta vo FEEDe: nájdený pes z posledných 72 hodín v krajine člena. */
+export interface SosFoundRow {
+  id: string;
+  slug: string;
+  dog_name: string;
+  photo: string | null;
+  found_at: string;
+  search_days: number;
+  shares: number;
+  /** null = o pátraní sa okolie neupozornilo (číslo sa neukazuje). */
+  notified_count: number | null;
+  dog_gender: string | null;
+  is_mine: boolean;
 }
 
 export type SosContactType = 'shelter' | 'police' | 'vet' | 'oz' | 'hunting';
@@ -191,6 +225,13 @@ export const sosUpdate = (id: string, patch: {
 });
 
 export const sosFound = (id: string) => call<void>('sos_found', { p_id: id });
+/** Koniec pátrania: `alive` = je živý a doma, `deceased` = nežije (telefón, leták aj VIDEL SOM HO sa skryjú, odkaz povie len „ukončené“). */
+export const sosClose = (id: string, outcome: LostOutcome) => call<void>('sos_close', { p_id: id, p_outcome: outcome });
+export const sosRecentFound = (country?: string) =>
+  call<SosFoundRow[]>('sos_recent_found', country ? { p_country: country } : {});
+/** `true` len prvému volaniu (zápis do denníka pri „živý“ sa robí raz); `false` poistku vráti. */
+export const sosDiaryMark = (id: string, on = true) => call<boolean>('sos_diary_mark', { p_id: id, p_on: on });
+export const sosDiaryEvent = (id: string, eventId: string) => call<void>('sos_diary_event', { p_id: id, p_event: eventId });
 export const sosResume = (id: string) => call<void>('sos_resume', { p_id: id });
 export const sosStillSearching = (id: string) => call<void>('sos_still_searching', { p_id: id });
 export const sosActive = (country?: string) =>

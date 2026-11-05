@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { SOS_ON } from '@/lib/env';
-import { sosActive, lostShare, lostUrl, type SosActiveRow } from '@/lib/sos';
+import { sosActive, sosRecentFound, lostShare, lostUrl, type SosActiveRow, type SosFoundRow } from '@/lib/sos';
 import { intlLocale } from '@/i18n/bcp47';
 import { toast } from '@/hooks/use-toast';
 import { withTransform } from '@/services/cloudinaryService';
@@ -32,9 +32,25 @@ export function loadSosActive(): Promise<SosActiveRow[]> {
   return p;
 }
 
+let foundCache: { at: number; p: Promise<SosFoundRow[]> } | null = null;
+
+/** Nájdené psy z posledných 72 h v krajine člena (zelená karta vo FEEDe). Bez relácie / ostrý build ⇒ prázdno. */
+export function loadSosFound(): Promise<SosFoundRow[]> {
+  if (!SOS_ON) return Promise.resolve([]);
+  if (foundCache && Date.now() - foundCache.at < TTL) return foundCache.p;
+  const p = (async () => {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) { foundCache = null; return [] as SosFoundRow[]; }
+    return sosRecentFound();
+  })().catch(() => { foundCache = null; return [] as SosFoundRow[]; });
+  foundCache = { at: Date.now(), p };
+  return p;
+}
+
 /** Zahodí odpoveď a vyzve všetky povrchy, aby sa načítali znova (po NAŠIEL SA, po vyhlásení). */
 export function sosInvalidate(): void {
   cache = null;
+  foundCache = null;
   try { window.dispatchEvent(new Event(EVT)); } catch { /* SSR */ }
 }
 
@@ -50,6 +66,23 @@ export function useSosActive(): SosActiveRow[] {
     document.addEventListener('visibilitychange', onVis);
     window.addEventListener(EVT, load);
     // prvé načítanie môže predbehnúť obnovu relácie po otvorení stránky — keď príde, načítaj znova (TTL chráni pred zbytočným volaním)
+    const { data: sub } = supabase.auth.onAuthStateChange((ev) => { if (ev === 'INITIAL_SESSION' || ev === 'SIGNED_IN') load(); });
+    return () => { alive = false; sub.subscription.unsubscribe(); document.removeEventListener('visibilitychange', onVis); window.removeEventListener(EVT, load); };
+  }, []);
+  return rows;
+}
+
+/** Zelené karty (nájdený pes, 72 h); obnovujú sa tými istými udalosťami ako červené. */
+export function useSosFound(): SosFoundRow[] {
+  const [rows, setRows] = useState<SosFoundRow[]>([]);
+  useEffect(() => {
+    if (!SOS_ON) return;
+    let alive = true;
+    const load = () => { void loadSosFound().then((r) => { if (alive) setRows(r); }); };
+    load();
+    const onVis = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener(EVT, load);
     const { data: sub } = supabase.auth.onAuthStateChange((ev) => { if (ev === 'INITIAL_SESSION' || ev === 'SIGNED_IN') load(); });
     return () => { alive = false; sub.subscription.unsubscribe(); document.removeEventListener('visibilitychange', onVis); window.removeEventListener(EVT, load); };
   }, []);

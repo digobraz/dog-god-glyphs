@@ -4,13 +4,16 @@
 // VŽDY LEN JEDEN VEĽKÝ (Matej 4. 11.: „daj C ale nie 3 letáky vedľa seba"): ostatné pátrania sú riadky pod ním,
 // ťuk na riadok ho zväčší. Max 3 riadky, ďalšie za odkazom *Ďalšie*. Žije MIMO `weave()` — nie je to príspevok, nemieša sa medzi ne a neopakuje sa pri scrolle.
 // Dáta: `sosKit.useSosActive()` (bez telefónu). Celé len za `SOS_ON` (volajúci).
+// ZELENÁ KARTA (5. 11. 2026): keď sa pes nájde živý, na mieste červenej sa 72 hodín ukáže zelená „Svorka ho našla!“ s poďakovaním a
+// číslami, ktoré naozaj meriame (dni, zdieľania, upozornené zariadenia). Tá istá krajina ako červená, bez pushu navyše;
+// pri obnovení pátrania zmizne a vráti sa červená. Pri „nežije“ sa nezobrazí NIČ (výstraha ticho zmizne).
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
-import type { SosActiveRow } from '@/lib/sos';
-import { sosAgo, shareLostDog } from '@/components/pack/sosKit';
-import { useSosT } from '@/components/pack/sos/sosShared';
+import type { SosActiveRow, SosFoundRow } from '@/lib/sos';
+import { sosAgo, shareLostDog, useSosFound } from '@/components/pack/sosKit';
+import { useSosCount, useSosT } from '@/components/pack/sos/sosShared';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 
 const T = PACK_THEME;
@@ -36,6 +39,10 @@ export const FEED_SOS_CSS = `
 .fsos-open{border:1px solid ${T.sosRed};background:transparent;color:${T.sosRed};}
 .fsos-row{all:unset;cursor:pointer;display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.md}px;border:1px solid ${T.sosRed};border-radius:${PACK_R.tile}px;background:${T.cardGrad};}
 .fsos-row .fsos-ph{width:48px;height:48px;border-width:2px;}
+.fsos-card--ok{border-color:${T.growGreen};}
+.fsos-card--ok .fsos-bar{background:${T.growGreen};}
+.fsos-card--ok .fsos-ph{border-color:${T.growGreen};}
+.fsos-card--ok .fsos-open{border-color:${T.growGreen};color:${T.growGreen};}
 .fsos-more{all:unset;cursor:pointer;align-self:center;font:600 ${PACK_TEXT.label}px/1 ${FONT_UI};letter-spacing:.14em;text-transform:uppercase;color:${T.sosRed};padding:${S.sm}px;}
 `;
 
@@ -78,6 +85,30 @@ function SosCard({ r }: { r: SosActiveRow }) {
   );
 }
 
+function FoundCard({ r }: { r: SosFoundRow }) {
+  const nav = useNavigate();
+  const t = useT();
+  const s = useSosT(r.dog_gender);
+  const count = useSosCount();
+  const meta = [count.days(r.search_days), r.shares > 0 ? count.shares(r.shares) : null, r.notified_count ? count.alerted(r.notified_count) : null].filter(Boolean).join(' · ');
+  return (
+    <div className="fsos-card fsos-card--ok">
+      <div className="fsos-bar">{s('pack.sos.feed.bar')}</div>
+      <div className="fsos-body">
+        <span className="fsos-ph" style={r.photo ? { backgroundImage: `url(${sizedUrl(r.photo, 160)})` } : undefined} />
+        <span className="fsos-tx">
+          <b>{s('pack.sos.det.thanksTitle', { name: r.dog_name })}</b>
+          <span>{s('pack.sos.feed.homeSub')}</span>
+          <span>{meta}</span>
+        </span>
+      </div>
+      <div className="fsos-act">
+        <button type="button" className="fsos-open" onClick={() => nav(`/pack/sos/${r.slug}`)}>{t('pack.sos.feed.open') === 'pack.sos.feed.open' ? 'Open' : t('pack.sos.feed.open')}</button>
+      </div>
+    </div>
+  );
+}
+
 function SosRow({ r, onPick }: { r: SosActiveRow; onPick: () => void }) {
   const t = useT();
   const { lang } = useLang();
@@ -97,7 +128,10 @@ export function FeedSosBlock({ rows }: { rows: SosActiveRow[] }) {
   const t = useT();
   const [all, setAll] = useState(false);
   const [bigId, setBigId] = useState<string | null>(null);
-  if (!rows.length) return null;
+  const found = useSosFound();
+  if (!rows.length && !found.length) return null;
+  const greens = found.slice(0, MAX).map((r) => <FoundCard key={r.id} r={r} />);
+  if (!rows.length) return <div className="fsos"><style>{FEED_SOS_CSS}</style>{greens}</div>;
   const big = rows.find((r) => r.id === bigId) ?? rows[0];
   const others = rows.filter((r) => r.id !== big.id);
   const shown = all ? others : others.slice(0, MAX);
@@ -108,6 +142,7 @@ export function FeedSosBlock({ rows }: { rows: SosActiveRow[] }) {
       <style>{FEED_SOS_CSS}</style>
       <SosCard r={big} />
       {shown.map((r) => <SosRow key={r.id} r={r} onPick={() => setBigId(r.id)} />)}
+      {greens}
       {!all && rest > 0 && (
         <button type="button" className="fsos-more" onClick={() => setAll(true)}>
           {more === 'pack.sos.feed.more' ? `More searches (${rest})` : more}

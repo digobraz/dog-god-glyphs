@@ -1,7 +1,7 @@
 // NÚDZOVÁ KARTIČKA `/pack/dogs/:id/karticka` (kôš 3). Matej 5. 11. 2026: „foto psa tam musí byť naša editovateľná a väčšia".
 // Údaje sa predvyplnia z DOG ID, ale úprava ostáva LEN v tomto zariadení (localStorage): DOG ID sa odtiaľto nikdy neprepíše
 // a adresa ani vlastná fotka nejdú na server.
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type PointerEvent as RPE } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type PointerEvent as RPE, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -18,11 +18,14 @@ import { compressFile } from '@/lib/photoIntake';
 import { FONT_UI, PACK_BOX, PACK_SPACE, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { SosTaskShell } from '@/components/pack/sos/SosTaskShell';
-import { useBreedLabel, useSosT } from '@/components/pack/sos/sosShared';
-import { CARD_CSS, CardBack, CardFront, type CardData, type CardPhoto, type CardTexts } from './EmergencyCard';
-import { exportEmergencyCardPdf } from './emergencyCardPdf';
+import { useSosT } from '@/components/pack/sos/sosShared';
+import { CARD_CSS, CardBack, CardFront, type CardContact, type CardData, type CardGlyph, type CardPhoto } from './EmergencyCard';
+import { CARD_LANGS, cardIsRtl, cardLangOf, cardTexts, cardUi } from './cardTexts';
+import { exportEmergencyCardPdf, shareEmergencyCardImage } from './emergencyCardPdf';
 
 const PHOTO_MAX = 3;
+const CONTACTS_MAX = 3;
+const NOTE_MAX = 130; // 2 až 3 vety, viac sa na zadnú stranu nezmestí
 
 const CSS = `
 ${CARD_CSS}
@@ -44,16 +47,33 @@ ${CARD_CSS}
 .ecs-fold{position:absolute;left:50%;top:-16px;bottom:-16px;border-left:1px dashed ${T.inkWarm};}
 .ecs ol{width:648px;box-sizing:border-box;margin:48px 0 0;padding-left:24px;list-style:decimal;font-size:14px;line-height:1.8;}
 .ecs small{width:648px;display:block;margin-top:24px;font-size:12px;color:${T.inkWarm};}
+/* OBRÁZOK NA ZDIEĽANIE: obe strany pod sebou, mimo obrazovky. */
+.ecshare{position:fixed;left:-99999px;top:0;width:648px;background:#FFFFFF;box-sizing:border-box;padding:24px;display:flex;flex-direction:column;gap:24px;}
+.ecp-contact{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.md}px;}
+.ecp-link{all:unset;cursor:pointer;align-self:center;padding:${PACK_SPACE.sm}px;font:500 ${PACK_TEXT.label}px/1.4 ${FONT_UI};color:${T.inkWarm};text-decoration:underline;text-underline-offset:4px;}
 `;
 
 type DogRow = {
-  dog_name: string | null; breed: string | null; birth_year: number | null; pack_number: number | null;
-  cloudinary_main_url: string | null; patron_svg: string | null; life_status: string | null;
+  dog_name: string | null; cloudinary_main_url: string | null; patron_svg: string | null; life_status: string | null;
+  selections: Record<string, string> | null; owner_name: string | null;
 };
 // Do konceptu ide LEN to, čo človek zmenil: napísané políčka a (ak ju hýbal) poloha fotky. Vlastná fotka (`src`) len keď ju sám vybral.
-type Draft = { edited: Partial<CardData>; photo?: { x: number; y: number; zoom: number; src?: string } };
+type Draft = { edited: Partial<CardData>; lang?: string; photo?: { x: number; y: number; zoom: number; src?: string } };
 
-const EMPTY: CardData = { contact: '', phone: '', addr: '', needs: '', vet: '', breed: '', age: '' };
+const EMPTY: CardData = { contacts: [{ name: '', phone: '' }], addr: '', note: '' };
+/** Koncept zo staršej verzie kartičky mal `contact`, `phone`, `needs`. Človek o napísané neprichádza. */
+function migrateEdited(raw: Record<string, unknown> | undefined, fresh: CardData): Partial<CardData> {
+  const o = raw ?? {};
+  const out: Partial<CardData> = {};
+  if (Array.isArray(o.contacts)) out.contacts = o.contacts as CardContact[];
+  else if (typeof o.contact === 'string' || typeof o.phone === 'string') {
+    out.contacts = [{ name: typeof o.contact === 'string' ? o.contact : fresh.contacts[0].name, phone: typeof o.phone === 'string' ? o.phone : fresh.contacts[0].phone }];
+  }
+  if (typeof o.addr === 'string') out.addr = o.addr;
+  if (typeof o.note === 'string') out.note = o.note;
+  else if (typeof o.needs === 'string') out.note = o.needs;
+  return out;
+}
 // Hodnoty „bez ťažkostí“ (none, suspect…) berie zo samotnej definície kvízu, nie z jedného doslovného reťazca.
 const NONE_VALUES = (field: string): Set<string> => new Set(
   FLOW_SCREENS.filter((sc) => sc.field === field).flatMap((sc) => (sc.opts ?? []).filter((o) => o.none).map((o) => o.v)),
@@ -75,11 +95,12 @@ export function splitContact(raw: string): { name: string; phone: string } {
 }
 
 
-export default function PackDogCard() {
-  const { id = '' } = useParams();
+/** `quick` = rýchly prístup z trojuholníka SOS: len kartička a ZDIEĽAŤ, nastavenie ostáva v DOG ID. */
+export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: string; quick?: boolean; picker?: ReactNode; onBack?: () => void } = {}) {
+  const params = useParams();
+  const id = dogId ?? params.id ?? '';
   const nav = useNavigate();
   const s = useSosT();
-  const breedLabel = useBreedLabel();
   const t = useT();
   const { lang } = useLang();
   const [dog, setDog] = useState<DogRow | null>(null);
@@ -90,7 +111,9 @@ export default function PackDogCard() {
   const [reload, setReload] = useState(0);
   const [busy, setBusy] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
+  const [cardLang, setCardLang] = useState(() => cardLangOf(lang));
   const sheetRef = useRef<HTMLDivElement>(null);
+  const shareRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const keyRef = useRef('');
   // Autosave sa spustí až po ručnej zmene: `edited` = políčka, ktoré človek písal; `photoTouched` = hýbal fotkou; `ownPhoto` = vybral vlastnú.
@@ -109,7 +132,7 @@ export default function PackDogCard() {
     (async () => {
       try {
         const { data: row, error } = await supabase.from('dogs')
-          .select('dog_name, breed, birth_year, pack_number, cloudinary_main_url, patron_svg, life_status')
+          .select('dog_name, cloudinary_main_url, patron_svg, life_status, selections, owner_name')
           .eq('id', id).maybeSingle();
         if (!alive) return;
         if (error) throw error;
@@ -137,24 +160,19 @@ export default function PackDogCard() {
           return passPlainValue(STEP_BY_FIELD[f], raw, tr, intlLocale(lang));
         };
         const { name, phone } = splitContact(shown('health.backupContact', latest['health.backupContact']));
-        const birth = d.birth_year;
         const allergies = shown('health.allergies', latest['health.allergies']);
         const needs = [
           shown('health.meds', latest['health.meds']),
           allergies && s('pack.sos.card.allergy', { what: allergies }),
           shown('health.conditions', latest['health.conditions']),
         ].filter(Boolean).join(', ');
-        const fresh: CardData = {
-          ...EMPTY, contact: name, phone, needs, vet: shown('health.vetContact', latest['health.vetContact']),
-          breed: d.breed ? breedLabel(d.breed) : '',
-          age: birth ? s('pack.sos.card.ageYears', { n: new Date().getFullYear() - birth }) : '', // vek vždy nanovo z roku narodenia
-        };
+        const fresh: CardData = { contacts: [{ name, phone }], addr: '', note: needs };
         // Čo človek napísal, ostáva (aj prázdne, ak to zámerne zmazal). Zvyšok si doberá z DOG ID.
-        edited.current = { ...(draft?.edited ?? {}) };
-        delete edited.current.age;
+        edited.current = migrateEdited(draft?.edited as Record<string, unknown> | undefined, fresh);
         photoTouched.current = !!draft?.photo;
         ownPhoto.current = !!draft?.photo?.src;
         setHasDraft(!!draft);
+        setCardLang(cardLangOf(draft?.lang ?? lang));
         setData({ ...fresh, ...edited.current });
         const keep = draft?.photo;
         if (keep?.src) { setPhoto({ src: keep.src, x: keep.x, y: keep.y, zoom: keep.zoom }); setStatus('ok'); return; }
@@ -177,6 +195,7 @@ export default function PackDogCard() {
     saveTimer.current = window.setTimeout(() => {
       const draft: Draft = {
         edited: edited.current,
+        lang: cardLang,
         ...(photoTouched.current ? { photo: { x: photo.x, y: photo.y, zoom: photo.zoom, ...(ownPhoto.current && photo.src ? { src: photo.src } : {}) } } : {}),
       };
       if (saveDraft(keyRef.current, draft)) setHasDraft(true);
@@ -184,22 +203,23 @@ export default function PackDogCard() {
     }, 600);
     return () => { if (saveTimer.current) window.clearTimeout(saveTimer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dirty, data, photo, status]);
+  }, [dirty, data, photo, status, cardLang]);
 
-  const tx: CardTexts = useMemo(() => ({
-    frontTitle: s('pack.sos.card.frontTitle'), ask: s('pack.sos.card.ask'),
-    contact: s('pack.sos.card.contact'), phone: s('pack.sos.card.phone'),
-    backTitle: s('pack.sos.card.backTitle'), breed: s('pack.sos.card.breed'), age: s('pack.sos.card.age'),
-    addr: s('pack.sos.card.addr'), needs: s('pack.sos.card.needs'), vet: s('pack.sos.card.vet'),
-  }), [s]);
-
+  const fem = dog?.selections?.dogGender === 'queen';
+  const tx = useMemo(() => cardTexts(cardLang, fem), [cardLang, fem]);
+  const rtl = cardIsRtl(cardLang);
   const dogName = dog?.dog_name ?? '';
-  const number = dog?.pack_number ? `#${dog.pack_number}` : '';
-  const patron = dog?.patron_svg ? `/patrons/${dog.patron_svg}` : null;
-  const set = (k: keyof CardData) => (e: ChangeEvent<HTMLInputElement>) => {
+  const glyph: CardGlyph | null = dog?.selections ? { selections: dog.selections, ownerName: dog.owner_name ?? '', patronSvg: dog.patron_svg ?? '' } : null;
+  const hasContact = data.contacts.some((c) => c.phone.trim());
+  const set = (k: 'addr' | 'note') => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const v = e.target.value;
     edited.current = { ...edited.current, [k]: v };
     setData((d) => ({ ...d, [k]: v }));
+    setDirty((n) => n + 1);
+  };
+  const setContacts = (contacts: CardContact[]) => {
+    edited.current = { ...edited.current, contacts };
+    setData((d) => ({ ...d, contacts }));
     setDirty((n) => n + 1);
   };
 
@@ -263,14 +283,13 @@ export default function PackDogCard() {
     }
   };
 
-  // Čo sa na kartičke nezmestí ani po zmenšení a dvoch riadkoch, sa pred stiahnutím pomenuje, nie ticho skráti.
+  // Čo sa na kartičke nezmestí, sa pred stiahnutím pomenuje, nie ticho skráti.
   const overflowing = (): string[] => {
-    const out: string[] = [];
-    sheetRef.current?.querySelectorAll<HTMLElement>('.ec-fl').forEach((fl) => {
-      const b = fl.querySelector('b');
-      if (b && (b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1)) out.push(fl.querySelector('span')?.textContent ?? '');
+    const out = new Set<string>();
+    sheetRef.current?.querySelectorAll<HTMLElement>('[data-check]').forEach((el) => {
+      if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) out.add(el.dataset.check ?? '');
     });
-    return out;
+    return [...out].filter(Boolean);
   };
 
   const download = async () => {
@@ -289,17 +308,29 @@ export default function PackDogCard() {
     }
   };
 
-  const field = (k: keyof CardData, label: string, type = 'text') => (
-    <label className="sos-field">
-      <span>{label}</span>
-      <input className="pf-field" type={type} value={data[k]} onChange={set(k)} />
-    </label>
-  );
+  const share = async () => {
+    if (!shareRef.current || busy) return;
+    const long = overflowing();
+    if (long.length) { toast({ title: s('pack.sos.card.tooLong', { fields: long.join(', ') }), variant: 'destructive' }); return; }
+    setBusy(true);
+    try {
+      const { handed, photoOk } = await shareEmergencyCardImage(shareRef.current, dogName, cardUi('shareFile', lang));
+      if (!handed) toast({ title: s('pack.sos.card.noShare') });
+      else if (!photoOk) toast({ title: s('pack.sos.card.noPhotoPdf'), variant: 'destructive' });
+    } catch {
+      toast({ title: s('pack.sos.error'), variant: 'destructive' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const editHref = `/pack/dogs/${id}/karticka`;
 
   return (
-    <SosTaskShell onBack={() => nav(`/pack/dogs/${id}`)} backLabel={s('pack.sos.back')}>
+    <SosTaskShell onBack={onBack ?? (() => nav(`/pack/dogs/${id}`))} backLabel={s('pack.sos.back')}>
       <style>{CSS}</style>
       <h1 className="sos-h2 ecp-title">{s('pack.sos.card.title')}</h1>
+      {picker}
       {status === 'load' && <p className="ecp-note">{s('pack.sos.loading')}</p>}
       {status === 'missing' && <p className="ecp-note">{s('pack.sos.card.notFound')}</p>}
       {status === 'error' && (
@@ -311,41 +342,75 @@ export default function PackDogCard() {
       {status === 'ok' && (
         <>
           <div className="ecp-prev">
-            <CardFront dogName={dogName} number={number} photo={photo} data={data} tx={tx}
-              photoHandlers={{ onPointerDown: onDown, onPointerMove: onMove, onPointerUp: onUp, onPointerCancel: onUp }} />
-            <CardBack dogName={dogName} patron={patron} data={data} tx={tx} />
+            <CardFront dogName={dogName} photo={photo} tx={tx} rtl={rtl}
+              photoHandlers={quick ? undefined : { onPointerDown: onDown, onPointerMove: onMove, onPointerUp: onUp, onPointerCancel: onUp }} />
+            <CardBack data={data} glyph={glyph} tx={tx} rtl={rtl} />
           </div>
-          <div className="ecp-photo" style={{ ...PACK_BOX.subblock }}>
-            <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={() => fileRef.current?.click()}>{s('pack.sos.card.photoChange')}</button>
-            <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
-            <label className="ecp-zoom">
-              {s('pack.sos.card.photoZoom')}
-              <input type="range" min={1} max={PHOTO_MAX} step={0.05} value={photo.zoom} onChange={(e) => { photoTouched.current = true; setPhoto((p) => ({ ...p, zoom: +e.target.value })); setDirty((n) => n + 1); }} />
-            </label>
-            <p className="ecp-note">{s('pack.sos.card.photoHint')}</p>
-          </div>
-          <div className="ecp-fields">
-            {field('contact', s('pack.sos.card.contact'))}
-            {field('phone', s('pack.sos.card.phone'), 'tel')}
-            {field('addr', s('pack.sos.card.addr'))}
-            {field('needs', s('pack.sos.card.needs'))}
-            {field('vet', s('pack.sos.card.vet'))}
-            <div className="ecp-two">
-              {field('breed', s('pack.sos.card.breed'))}
-              {field('age', s('pack.sos.card.age'))}
-            </div>
-          </div>
-          <button type="button" className="sos-cta" disabled={busy} onClick={download}>
-            {s(busy ? 'pack.sos.loading' : 'pack.sos.card.download')}
-          </button>
-          {hasDraft && <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={resetFromDogId}>{s('pack.sos.card.reset')}</button>}
-          <p className="ecp-note">{s('pack.sos.card.private')}</p>
+          {quick ? (
+            <>
+              {hasContact
+                ? <button type="button" className="sos-cta" disabled={busy} onClick={share}>{busy ? s('pack.sos.loading') : cardUi('share', lang)}</button>
+                : <button type="button" className="sos-cta" onClick={() => nav(editHref)}>{cardUi('setUp', lang)}</button>}
+              {hasContact && <button type="button" className="ecp-link" onClick={() => nav(editHref)}>{cardUi('edit', lang)}</button>}
+            </>
+          ) : (
+            <>
+              <label className="sos-field">
+                <span>{cardUi('lang', lang)}</span>
+                <select className="pf-field" value={cardLang} onChange={(e) => { setCardLang(e.target.value); setDirty((n) => n + 1); }}>
+                  {CARD_LANGS.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+                </select>
+              </label>
+              <p className="ecp-note">{cardUi('langHint', lang)}</p>
+              <div className="ecp-photo" style={{ ...PACK_BOX.subblock }}>
+                <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={() => fileRef.current?.click()}>{s('pack.sos.card.photoChange')}</button>
+                <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
+                <label className="ecp-zoom">
+                  {s('pack.sos.card.photoZoom')}
+                  <input type="range" min={1} max={PHOTO_MAX} step={0.05} value={photo.zoom} onChange={(e) => { photoTouched.current = true; setPhoto((p) => ({ ...p, zoom: +e.target.value })); setDirty((n) => n + 1); }} />
+                </label>
+                <p className="ecp-note">{s('pack.sos.card.photoHint')}</p>
+              </div>
+              <div className="ecp-fields">
+                {data.contacts.map((c, i) => (
+                  <div className="ecp-contact" style={{ ...PACK_BOX.subblock }} key={i}>
+                    <label className="sos-field">
+                      <span>{cardUi('name', lang)}</span>
+                      <input className="pf-field" value={c.name} onChange={(e) => setContacts(data.contacts.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} />
+                    </label>
+                    <label className="sos-field">
+                      <span>{s('pack.sos.card.phone')}</span>
+                      <input className="pf-field" type="tel" value={c.phone} onChange={(e) => setContacts(data.contacts.map((x, j) => (j === i ? { ...x, phone: e.target.value } : x)))} />
+                    </label>
+                    {data.contacts.length > 1 && <button type="button" className="ecp-link" onClick={() => setContacts(data.contacts.filter((_, j) => j !== i))}>{cardUi('remove', lang)}</button>}
+                  </div>
+                ))}
+                {data.contacts.length < CONTACTS_MAX && (
+                  <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={() => setContacts([...data.contacts, { name: '', phone: '' }])}>{cardUi('add', lang)}</button>
+                )}
+                <label className="sos-field">
+                  <span>{tx.addr}</span>
+                  <input className="pf-field" value={data.addr} onChange={set('addr')} />
+                </label>
+                <label className="sos-field">
+                  <span>{tx.note}</span>
+                  <textarea className="pf-field" rows={3} maxLength={NOTE_MAX} value={data.note} onChange={set('note')} />
+                </label>
+              </div>
+              <button type="button" className="sos-cta" disabled={busy} onClick={download}>
+                {s(busy ? 'pack.sos.loading' : 'pack.sos.card.download')}
+              </button>
+              <button type="button" className="sos-cta sos-cta--ghost" disabled={busy} onClick={share}>{cardUi('share', lang)}</button>
+              {hasDraft && <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={resetFromDogId}>{s('pack.sos.card.reset')}</button>}
+              <p className="ecp-note">{s('pack.sos.card.private')}</p>
+            </>
+          )}
 
           <div className="ecs" ref={sheetRef} aria-hidden>
             <h2>{s('pack.sos.card.title')}</h2>
             <div className="ecs-pair">
-              <CardFront dogName={dogName} number={number} photo={photo} data={data} tx={tx} flat />
-              <CardBack dogName={dogName} patron={patron} data={data} tx={tx} flat />
+              <CardFront dogName={dogName} photo={photo} tx={tx} rtl={rtl} flat />
+              <CardBack data={data} glyph={glyph} tx={tx} rtl={rtl} flat />
               <i className="ecs-fold" />
             </div>
             <ol>
@@ -355,6 +420,10 @@ export default function PackDogCard() {
               <li>{s('pack.sos.card.step4')}</li>
             </ol>
             <small>{s('pack.sos.card.printHint')}</small>
+          </div>
+          <div className="ecshare" ref={shareRef} aria-hidden>
+            <CardFront dogName={dogName} photo={photo} tx={tx} rtl={rtl} />
+            <CardBack data={data} glyph={glyph} tx={tx} rtl={rtl} />
           </div>
         </>
       )}

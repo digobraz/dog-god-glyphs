@@ -190,6 +190,7 @@ const PackSosDetail = lazyPack(() => import("@/components/pack/sos/PackSosDetail
 const PackSosFlyer = lazyPack(() => import("@/components/pack/sos/PackSosFlyer")); // kôš 3
 const PackSosPlan = lazyPack(() => import("@/components/pack/sos/PackSosPlan")); // kôš 2
 const PackSosVet = lazyPack(() => import("@/components/pack/sos/PackSosVet")); // kôš 3
+const PackSosCard = lazyPack(() => import("@/components/pack/dogCard/PackSosCard")); // kôš 3
 const PackDogCard = lazyPack(() => import("@/components/pack/dogCard/PackDogCard")); // kôš 3
 const LostPublic = lazy(() => import("./pages/LostPublic.tsx")); // verejná, bez prihlásenia, noindex
 const PackAinubis = lazyPack(() => import("./pages/PackAinubis.tsx")); // kostra AINUBISA — `/pack/ainubis` (rozhodnutia 4A+5A, 21. 9. 2026)
@@ -640,6 +641,7 @@ const App = () => (
               <Route path="/pack/sniffer" element={DEV_FULL && BUDDY_LIVE ? <PackBuddy /> : <Navigate to="/pack/map" replace />} />
               {/* SOS — stratený pes (TEST_BUILD). Statické `new` vyhráva nad `:slug`. */}
               {VET_ER_ON && <Route path="/pack/sos/pohotovost" element={<PackSosVet />} />}
+              {APP_NEW && <Route path="/pack/sos/karticka" element={<PackSosCard />} />}
               {SOS_ON && (
                 <>
                   <Route path="/pack/sos/new" element={<PackSosNew />} />

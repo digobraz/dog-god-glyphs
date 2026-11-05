@@ -20,7 +20,7 @@ import { TILT_CSS, TILT_PROPS } from '@/components/pack/packTilt';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { CertificateCard } from '@/components/CertificateCard';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import { MemorialControl } from '@/components/pack/MemorialControl';
+import { MemorialControl, memorialT } from '@/components/pack/MemorialControl';
 import { useToast } from '@/hooks/use-toast';
 import { uploadExtraPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { compressFile } from '@/lib/photoIntake';
@@ -1290,7 +1290,7 @@ export default function PackDogDetail() {
                           <u>
                             {isDeceased
                               ? awaitingDeathDate
-                                ? t('pack.dog.memorial.addDate', { name: dogName })
+                                ? memorialT(t, 'pack.dog.memorial.addDate', dogGender === 'queen', { name: dogName })
                                 : t('pack.dog.memorial.editDate')
                               : t('pack.dog.memorial.markLink')}
                           </u>
@@ -1419,6 +1419,7 @@ export default function PackDogDetail() {
             // `selections.birthdayYear`; surový stĺpec by minYear zhodil na pevné 1990.
             birthYear={birthYear}
             poss={P.poss}
+            gender={dogGender}
             open={memorialOpen}
             initialStep={memorialStep}
             onClose={() => setMemorialOpen(false)}

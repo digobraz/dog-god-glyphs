@@ -13,7 +13,7 @@ import { lostPublic, type LostPublic as LostRow } from '@/lib/sos';
 import { FLOW_PALE_CSS } from '@/components/screens/flowPaleSkin';
 import { shareLostDog } from '@/components/pack/sosKit';
 import { CallPopup, SeenPopup } from '@/components/pack/sos/sosActions';
-import { SOS_CSS, colorWord, useBreedLabel, useSosT, useWhen } from '@/components/pack/sos/sosShared';
+import { SOS_CSS, colorWord, useBreedLabel, useSosCount, useSosT, useWhen } from '@/components/pack/sos/sosShared';
 
 /**
  * VEREJNÁ STRÁNKA STRATENÉHO PSA — `/lost/:slug` (SOS, 4. 11. 2026). BEZ PRIHLÁSENIA, noindex.
@@ -40,6 +40,7 @@ const CSS = `
 function LostPublicInner({ slug }: { slug: string }) {
   const breedLabel = useBreedLabel();
   const when = useWhen();
+  const count = useSosCount();
   const [row, setRow] = useState<LostRow | null | undefined>(undefined);
   const [failed, setFailed] = useState(false);   // chyba siete / servera ≠ „stránka neexistuje“
   const [tick, setTick] = useState(0);
@@ -66,8 +67,9 @@ function LostPublicInner({ slug }: { slug: string }) {
     } catch { window.open(url, '_blank', 'noopener'); }
   };
 
-  const title = row ? `${row.dog_name} · ${row.status === 'found' ? s('pack.sos.found') : s('pack.sos.lost')}` : 'DOGYPT';
-  const live = !!row && row.status !== 'found';   // active + ended: telefón, videnie a leták žijú ďalej
+  const closed = row?.status === 'closed';   // nežije: navonok len „ukončené“, bez dôvodu
+  const title = row ? `${row.dog_name} · ${row.status === 'found' ? s('pack.sos.found') : closed ? s('pack.sos.det.endedPublic') : s('pack.sos.lost')}` : 'DOGYPT';
+  const live = !!row && (row.status === 'active' || row.status === 'ended');   // telefón, videnie a leták žijú ďalej len pri active + ended
 
   return (
     <div className="hf-pale lp-flat min-h-screen flex flex-col">
@@ -89,6 +91,8 @@ function LostPublicInner({ slug }: { slug: string }) {
             <>
               {row.status === 'found' ? (
                 <div className="sos-band sos-band--found"><b>{s('pack.sos.found')}</b><small>{s('pack.sos.pub.foundText')}</small></div>
+              ) : closed ? (
+                <div className="sos-band sos-band--ended"><b>{s('pack.sos.det.endedPublic')}</b><small>{s('pack.sos.pub.closedText')}</small></div>
               ) : row.status === 'ended' ? (
                 <div className="sos-band sos-band--ended"><b>{s('pack.sos.det.endedPublic')}</b><small>{s('pack.sos.pub.endedText')}</small></div>
               ) : (
@@ -97,6 +101,9 @@ function LostPublicInner({ slug }: { slug: string }) {
               {row.photo ? <img className="sos-photo" src={sizedUrl(row.photo, 900)} alt={row.dog_name} /> : <div className="sos-photo sos-photo--none" />}
               <h1 className="sos-dogname">{row.dog_name}</h1>
               {(row.breed || row.color) && <p className="sos-dogsub">{[breedLabel(row.breed), colorWord(row.color, s)].filter(Boolean).join(' · ')}</p>}
+              {row.status === 'found' && row.search_days != null && (
+                <p className="sos-dogsub">{row.shares ? s('pack.sos.pub.searched', { days: count.days(row.search_days), shares: count.shares(row.shares) }) : s('pack.sos.pub.searched0', { days: count.days(row.search_days) })}</p>
+              )}
 
               {live && (
                 <>

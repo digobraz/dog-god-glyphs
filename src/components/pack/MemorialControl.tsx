@@ -28,14 +28,23 @@ interface Props {
   deathDate: string | null;   // yyyy-mm-dd alebo null
   birthYear: number | null;
   poss: string;               // his / her / their (pre EN copy)
+  /** `dogs.selections.dogGender` ('queen' = fenka): texty s ženským rodom idú cez kľúč `<kľúč>.f` (SK, CS: odišla / fenku). */
+  gender?: string | null;
   open: boolean;
   initialStep: Step;
   onClose: () => void;
   onSaved: (deathISO: string) => void;
 }
 
-export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYear, poss, open, initialStep, onClose, onSaved }: Props) {
-  const t = useT();
+/** Text anjela v rode psa: fenka berie `<kľúč>.f`, ak preklad existuje, inak základ. */
+export function memorialT(t: (k: string, v?: Record<string, string | number>) => string, key: string, fem: boolean, vars?: Record<string, string | number>): string {
+  if (fem) { const f = t(`${key}.f`, vars); if (f !== `${key}.f`) return f; }
+  return t(key, vars);
+}
+
+export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYear, poss, gender, open, initialStep, onClose, onSaved }: Props) {
+  const tBase = useT();
+  const t = (k: string, v?: Record<string, string | number>) => memorialT(tBase, k, gender === 'queen', v);
   const { toast } = useToast();
   const now = new Date();
 
