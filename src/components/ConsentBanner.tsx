@@ -20,7 +20,8 @@ import { getConsent, saveConsent, applyConsent, hasChoice } from '@/lib/consent'
 // INTO the output — Daniela's certificate PDF #42 shipped with the cookie bar
 // baked across the bottom (2026-07-16). No consent UI (and no analytics) has any
 // business on a route whose only job is to be photographed.
-const RENDER_ROUTES = ['/cert-render', '/invoice-render', '/share-render'];
+// `/lost/` z iného dôvodu: nálezca prišiel z QR na ulici a lišta so závojom by mu zakryla telefón na majiteľa.
+const RENDER_ROUTES = ['/cert-render', '/invoice-render', '/share-render', '/lost/'];
 
 export function ConsentBanner() {
   const t = useT();

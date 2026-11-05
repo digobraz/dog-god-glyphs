@@ -7,7 +7,7 @@ import { LAPIS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { SosTaskShell } from './SosTaskShell';
 import { useBack, useSosT, type SosT } from './sosShared';
-import { CITIES, VET_EMERGENCY, distanceKm, isOpenAt, type VetPlace } from '@/lib/vetEmergency';
+import { CITIES, VET_EMERGENCY, closesAt, distanceKm, isOpenAt, opensAt, telAt, type VetPlace } from '@/lib/vetEmergency';
 
 const FAR_KM = 40;
 const HOME_KM = 70;
@@ -35,15 +35,20 @@ const CSS = `
 .vet-src{margin:0;text-align:center;font-size:${PACK_TEXT.micro}px;line-height:1.5;color:${T.inkWarm};}
 `;
 
-function hoursLabel(p: VetPlace, s: SosT): string {
+function hoursLabel(p: VetPlace, s: SosT, now: Date): string {
   if (p.clientsOnly) return s('pack.sos.er.clientsOnly');
   if (p.home) return s('pack.sos.er.home');
   if (p.hours === 'onsite') return s('pack.sos.er.onsite');
   if (p.hours === 'call') return s('pack.sos.er.call');
   if (p.hours === 'nonstop') return s('pack.sos.er.nonstop');
+  if (p.hours === 'ask') return s('pack.sos.er.ask');
   const [from, to] = p.hours;
   // Cez polnoc ukáž celý rozsah: cez deň by „Do 7:00" pri zatvorenej pohotovosti mýlilo.
-  return to > 24 ? `${from}:00–${to - 24}:00` : s('pack.sos.er.until', { time: `${to}:00` });
+  if (to > 24) return `${from}:00–${to - 24}:00`;
+  // Zatvorená: človek potrebuje vedieť, kedy otvoria, nie kedy dnes zavreli.
+  return isOpenAt(p, now)
+    ? s('pack.sos.er.until', { time: `${closesAt(p, now)}:00` })
+    : s('pack.sos.er.from', { time: `${opensAt(p, now)}:00` });
 }
 
 export default function PackSosVet() {
@@ -64,16 +69,20 @@ export default function PackSosVet() {
   useEffect(() => { if (navigator.geolocation) locate(); else setDenied(true); }, []);
 
   const me = useMemo<[number, number]>(() => gps ?? CITIES.find((c) => c.name === city)!.at, [gps, city]);
-  const now = new Date();
+  // Obrazovka môže ležať otvorená celú noc: hodiny sa prepočítajú aj bez ťuku.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const tick = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(tick);
+  }, []);
 
   const rows = useMemo(() => {
     const all = VET_EMERGENCY.map((p) => ({ p, km: Math.round(distanceKm(me, p.at)), on: isOpenAt(p, now) }));
     const picked = filter === 'home' ? all.filter((r) => r.p.home && r.km <= HOME_KM)
-      : filter === 'nonstop' ? all.filter((r) => typeof r.p.hours === 'string')
+      : filter === 'nonstop' ? all.filter((r) => typeof r.p.hours === 'string' && r.p.hours !== 'ask')
         : all;
     return picked.sort((a, b) => Number(!!a.p.clientsOnly) - Number(!!b.p.clientsOnly) || a.km - b.km);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [me, filter]);
+  }, [me, filter, now]);
   const on = rows.filter((r) => r.on);
   const off = rows.filter((r) => !r.on);
 
@@ -83,7 +92,7 @@ export default function PackSosVet() {
         <b>{p.name}</b>
         <small>{p.place} · {km} km</small>
       </button>
-      <span className={`vet-pill${p.clientsOnly || typeof p.hours !== 'string' ? ' vet-pill--soft' : ''}`}>{hoursLabel(p, s)}</span>
+      <span className={`vet-pill${p.clientsOnly || typeof p.hours !== 'string' || p.hours === 'ask' ? ' vet-pill--soft' : ''}`}>{hoursLabel(p, s, now)}</span>
       {open === p.id && (
         <p className="vet-more">
           {p.address}
@@ -92,7 +101,7 @@ export default function PackSosVet() {
         </p>
       )}
       <div className={`vet-acts${open === p.id ? ' two' : ''}`}>
-        <a className={`sos-cta sos-cta--sm${first ? '' : ' sos-cta--tint'}`} href={`tel:${p.tel.replace(/\s/g, '')}`}>{s('pack.sos.er.callBtn')}</a>
+        <a className={`sos-cta sos-cta--sm${first ? '' : ' sos-cta--tint'}`} href={`tel:${telAt(p, now).replace(/\s/g, '')}`}>{s('pack.sos.er.callBtn')}</a>
         {open === p.id && (
           <a className="sos-cta sos-cta--sm sos-cta--ghost" href={`https://mapy.com/fnc/v1/route?start=${me[1]},${me[0]}&end=${p.at[1]},${p.at[0]}&routeType=car_fast`} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.route')}</a>
         )}

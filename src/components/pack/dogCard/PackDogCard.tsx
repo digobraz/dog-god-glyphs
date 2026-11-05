@@ -103,10 +103,6 @@ export default function PackDogCard() {
       const d = row as DogRow | null;
       setDog(d);
       const draft = readDraft(id);
-      if (draft) {
-        setData(draft.data); setPhoto(draft.photo); setReady(true);
-        return;
-      }
       const latest = await readLatest(id).catch(() => ({} as Awaited<ReturnType<typeof readLatest>>));
       // Hodnoty v DOG ID sú kódy („none", „ib"): na kartičku ide to, čo vidí človek. „Žiadne" sa na kartičku nepíše.
       const tr = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
@@ -120,11 +116,16 @@ export default function PackDogCard() {
       const birth = d?.birth_year;
       const needs = [shown('health.meds', latest['health.meds']), shown('health.allergies', latest['health.allergies'])].filter(Boolean).join(', ');
       if (!alive) return;
-      setData({
+      const fresh: CardData = {
         ...EMPTY, contact: name, phone, needs, vet: shown('health.vetContact', latest['health.vetContact']),
         breed: d?.breed ? breedLabel(d.breed) : '',
         age: birth ? s('pack.sos.card.ageYears', { n: new Date().getFullYear() - birth }) : '',
-      });
+      };
+      // Čo človek napísal, ostáva. Prázdne políčko si doplní z DOG ID, inak by prvé otvorenie kartičku zmrazilo.
+      const merged = { ...fresh };
+      if (draft) (Object.keys(EMPTY) as (keyof CardData)[]).forEach((k) => { if (draft.data[k]) merged[k] = draft.data[k]; });
+      setData(merged);
+      if (draft?.photo.src) { setPhoto(draft.photo); setReady(true); return; }
       const src = d?.cloudinary_main_url ? await toDataUrl(sizedUrl(d.cloudinary_main_url, 900)) : null;
       if (alive) { setPhoto((p) => ({ ...p, src })); setReady(true); }
     })();

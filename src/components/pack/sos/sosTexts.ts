@@ -264,6 +264,8 @@ export const SOS_TEXTS = {
   'pack.sos.er.clientsOnly': T('Regular clients only', 'Len stáli klienti', 'Jen stálí klienti'),
   'pack.sos.er.home': T('Comes to you', 'Príde k tebe', 'Přijede k tobě'),
   'pack.sos.er.until': T('Until {time}', 'Do {time}', 'Do {time}'),
+  'pack.sos.er.from': T('From {time}', 'Od {time}', 'Od {time}'),
+  'pack.sos.er.ask': T('Hours not published, call', 'Hodiny neuvádzajú, zavolaj', 'Hodiny neuvádějí, zavolej'),
   'pack.sos.er.fee': T('Surcharge: {fee}', 'Príplatok: {fee}', 'Příplatek: {fee}'),
   'pack.sos.er.callBtn': T('CALL', 'ZAVOLAŤ', 'ZAVOLAT'),
   'pack.sos.er.route': T('ROUTE', 'TRASA', 'TRASA'),
@@ -273,6 +275,7 @@ export const SOS_TEXTS = {
   'pack.sos.er.source': T('Checked on their websites on 5 Nov 2026. Hours may change, always call first.', 'Overené na ich weboch 5. 11. 2026. Hodiny sa môžu zmeniť, vždy najprv zavolaj.', 'Ověřeno na jejich webech 5. 11. 2026. Hodiny se mohou změnit, vždy nejdřív zavolej.'),
   'pack.sos.er.noteBranch': T('Ask which branch is on duty.', 'Spýtaj sa, ktorá pobočka má službu.', 'Zeptej se, která pobočka má službu.'),
   'pack.sos.er.noteMayClose': T('They warn the service may sometimes be unavailable.', 'Sami upozorňujú, že služba môže byť občas nedostupná.', 'Sami upozorňují, že služba může být občas nedostupná.'),
+  'pack.sos.er.noteGeneral': T('General number from their website.', 'Všeobecné číslo z ich webu.', 'Obecné číslo z jejich webu.'),
   'pack.sos.er.noteClients': T('For their own clients.', 'Pre vlastných klientov.', 'Pro vlastní klienty.'),
 
   // ── núdzová kartička (Matej 5. 11. 2026) ─────────────────────────────────

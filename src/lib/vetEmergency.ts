@@ -4,8 +4,12 @@ import type { SosKey } from '@/components/pack/sos/sosTexts';
 
 export type VetPlace = {
   id: string; name: string; place: string; address: string; tel: string; at: [number, number];
-  /** onsite = lekár fyzicky na mieste · nonstop · call = nonstop na zavolanie · [od, do] v hodinách, do > 24 = cez polnoc. */
-  hours: 'onsite' | 'nonstop' | 'call' | [number, number];
+  /** onsite = lekár fyzicky na mieste · nonstop · call = nonstop na zavolanie · ask = web hodiny neuvádza, nikdy netvrdíme „zatvorené" · [od, do] v hodinách, do > 24 = cez polnoc. */
+  hours: 'onsite' | 'nonstop' | 'call' | 'ask' | [number, number];
+  /** Rozpis po dňoch (wk Po–Pi · sa · su), keď web uvádza pre dni iné hodiny. Má prednosť pred [od, do]. */
+  sched?: { wk: [number, number][]; sa: [number, number][]; su: [number, number][] };
+  /** Iné číslo v danom čase (hodiny), mimo neho platí `tel`. */
+  telBy?: { from: number; to: number; tel: string }[];
   home?: boolean; clientsOnly?: boolean; weekdays?: boolean; fee?: string; note?: SosKey; web: string;
 };
 
@@ -60,6 +64,13 @@ export const VET_EMERGENCY: VetPlace[] = [
    21.2468625
   ],
   "hours": "onsite",
+  "telBy": [
+   {
+    "from": 15.5,
+    "to": 20,
+    "tel": "+421 915 991 474"
+   }
+  ],
   "web": "https://www.uvlf.sk/kliniky-sluzby/pohotovost"
  },
  {
@@ -166,7 +177,6 @@ export const VET_EMERGENCY: VetPlace[] = [
    19.6242831
   ],
   "hours": "call",
-  "fee": "od 40 €",
   "web": "http://www.veterina-lives.sk/"
  },
  {
@@ -194,6 +204,7 @@ export const VET_EMERGENCY: VetPlace[] = [
    18.46494
   ],
   "hours": "call",
+  "note": "pack.sos.er.noteGeneral",
   "web": "http://www.vetkom.sk/"
  },
  {
@@ -206,7 +217,7 @@ export const VET_EMERGENCY: VetPlace[] = [
    48.20652,
    18.61369
   ],
-  "hours": "call",
+  "hours": "ask",
   "web": "http://www.bebabelvet.sk/"
  },
  {
@@ -229,10 +240,10 @@ export const VET_EMERGENCY: VetPlace[] = [
   "address": "Sadová 588, Kráľová pri Senci",
   "tel": "+421 951 506 104",
   "at": [
-   49.34071,
-   17.21208
+   48.19742,
+   17.4425253
   ],
-  "hours": "call",
+  "hours": "ask",
   "fee": "60 €",
   "web": "http://evetklinika.sk/"
  },
@@ -258,8 +269,8 @@ export const VET_EMERGENCY: VetPlace[] = [
   "address": "Mierová 27, Bratislava",
   "tel": "+421 2 2211 3113",
   "at": [
-   48.53832,
-   17.03832
+   48.1496635,
+   17.1678996
   ],
   "hours": [
    10,
@@ -281,7 +292,7 @@ export const VET_EMERGENCY: VetPlace[] = [
    8,
    24
   ],
-  "web": "http://www.veterinar-jazero.sk/pohotovost/"
+  "web": "https://www.cassovet.sk/"
  },
  {
   "id": "sk21",
@@ -297,6 +308,26 @@ export const VET_EMERGENCY: VetPlace[] = [
    8,
    22
   ],
+  "sched": {
+   "wk": [
+    [
+     16,
+     22
+    ]
+   ],
+   "sa": [
+    [
+     8,
+     22
+    ]
+   ],
+   "su": [
+    [
+     8,
+     22
+    ]
+   ]
+  },
   "web": "https://www.petservis.sk/"
  },
  {
@@ -396,6 +427,31 @@ export const VET_EMERGENCY: VetPlace[] = [
    8,
    20
   ],
+  "sched": {
+   "wk": [
+    [
+     18,
+     20
+    ]
+   ],
+   "sa": [
+    [
+     17,
+     19
+    ]
+   ],
+   "su": [
+    [
+     9,
+     12
+    ],
+    [
+     17,
+     19
+    ]
+   ]
+  },
+  "clientsOnly": true,
   "note": "pack.sos.er.noteClients",
   "web": "http://www.animalcentrum.sk/"
  },
@@ -409,10 +465,7 @@ export const VET_EMERGENCY: VetPlace[] = [
    48.13956,
    17.21267
   ],
-  "hours": [
-   9,
-   20
-  ],
+  "hours": "ask",
   "home": true,
   "fee": "po 16:00 30 €",
   "web": "https://www.vyjazdovyveterinar.sk/"
@@ -421,16 +474,13 @@ export const VET_EMERGENCY: VetPlace[] = [
   "id": "sk29",
   "name": "Veterinár domov, MVDr. Hilčanská",
   "place": "Košice a okolie",
-  "address": "Palackého, Košice",
+  "address": "Košice a okolie",
   "tel": "+421 944 762 228",
   "at": [
    48.71897,
    21.27037
   ],
-  "hours": [
-   8,
-   22
-  ],
+  "hours": "ask",
   "home": true,
   "fee": "35 €",
   "web": "http://www.veterinardomov.sk/"
@@ -439,18 +489,14 @@ export const VET_EMERGENCY: VetPlace[] = [
   "id": "sk30",
   "name": "VetArt, MVDr. Halás",
   "place": "Dolný Ohaj a okolie",
-  "address": "Hlavná 60, Dolný Ohaj",
+  "address": "Hlavná 312/55, Dolný Ohaj",
   "tel": "+421 918 993 268",
   "at": [
    48.08269,
    18.24951
   ],
-  "hours": [
-   8,
-   22
-  ],
+  "hours": "ask",
   "home": true,
-  "fee": "od 20 €",
   "web": "https://www.vetart.sk/"
  },
  {
@@ -463,12 +509,9 @@ export const VET_EMERGENCY: VetPlace[] = [
    49.09455,
    18.91661
   ],
-  "hours": [
-   9,
-   22
-  ],
+  "hours": "ask",
   "home": true,
-  "fee": "20–25 €",
+  "fee": "20 €",
   "web": "https://rhvet.webnode.sk/"
  },
  {
@@ -503,7 +546,6 @@ export const VET_EMERGENCY: VetPlace[] = [
    20
   ],
   "home": true,
-  "fee": "od 2 000 Kč",
   "web": "https://www.sonda.cz/"
  }
 ];
@@ -515,10 +557,39 @@ export const CITIES: { name: string; at: [number, number] }[] = [
   { name: 'Praha', at: [50.075, 14.437] },
 ];
 
+function slotsFor(sched: NonNullable<VetPlace['sched']>, d: Date) {
+  const day = d.getDay();
+  return day === 0 ? sched.su : day === 6 ? sched.sa : sched.wk;
+}
+
+/** Hodina, do ktorej platí dnešná služba (práve bežiaca, inak posledná dnešná). Pre štítok „Do 20:00". */
+export function closesAt(p: VetPlace, d: Date): number | null {
+  if (typeof p.hours === 'string') return null;
+  if (!p.sched) return p.hours[1];
+  const h = d.getHours() + d.getMinutes() / 60;
+  const s = slotsFor(p.sched, d);
+  return (s.find(([, b]) => h < b) ?? s[s.length - 1])?.[1] ?? null;
+}
+
+export function telAt(p: VetPlace, d: Date): string {
+  const h = d.getHours() + d.getMinutes() / 60;
+  return p.telBy?.find((x) => h >= x.from && h < x.to)?.tel ?? p.tel;
+}
+
+/** Hodina, od ktorej dnes služba začína (ďalšia dnešná, inak prvá dnešná). */
+export function opensAt(p: VetPlace, d: Date): number | null {
+  if (typeof p.hours === 'string') return null;
+  if (!p.sched) return p.hours[0];
+  const h = d.getHours() + d.getMinutes() / 60;
+  const s = slotsFor(p.sched, d);
+  return (s.find(([a]) => h < a) ?? s[0])?.[0] ?? null;
+}
+
 export function isOpenAt(p: VetPlace, d: Date): boolean {
   if (typeof p.hours === 'string') return true;
   if (p.weekdays && (d.getDay() === 0 || d.getDay() === 6)) return false;
   const h = d.getHours() + d.getMinutes() / 60;
+  if (p.sched) return slotsFor(p.sched, d).some(([a, b]) => h >= a && h < b);
   const [from, to] = p.hours;
   return to > 24 ? h >= from || h < to - 24 : h >= from && h < to;
 }
