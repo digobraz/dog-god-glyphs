@@ -65,7 +65,8 @@ import { storedSpecials } from '@/components/pack/natureQuiz';
 import { readLatestForDogs, onDogEventsChange, hasValue, type LatestValue } from '@/lib/dogEvents';
 import { dogLifeLine } from '@/lib/dogAge';
 import { countryISO2 } from '@/lib/countryGeo';
-import { loadPackDogs, peekPackDogs } from '@/lib/packDogsList';
+import { loadPackDogs, peekPackDogs, readStoredPackDogs } from '@/lib/packDogsList';
+import { readDeviceCopy, writeDeviceCopy } from '@/lib/deviceCopy';
 import { DogOrderEditor, DogOrderPill, DOG_ORDER_CSS } from '@/components/pack/DogOrderEditor';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
@@ -479,6 +480,7 @@ interface HubDog {
 }
 
 type Latest = Record<string, Record<string, LatestValue>>;
+const LATEST_COPY = 'dogs-latest-v1';
 type Tx = (key: string, fallback: string) => string;
 
 
@@ -517,24 +519,31 @@ export default function PackDogs() {
   // Dotaz žije v `lib/packDogsList.ts` — ten istý číta KRONIKA (8. 10. 2026).
   useEffect(() => {
     let alive = true;
+    // Po otvorení appky: psy aj vyplnenie z minula naraz, nech karta neukáže chvíľu 0 %.
+    void Promise.all([readStoredPackDogs<HubDog>(HUB_DOGS_SELECT), readDeviceCopy<Latest>(LATEST_COPY)]).then(([d, l]) => {
+      if (!alive || !d?.length) return;
+      if (l) setLatest((prev) => (Object.keys(prev).length ? prev : l));
+      setDogs((prev) => prev ?? d);
+    });
     loadPackDogs<HubDog>(HUB_DOGS_SELECT)
-      .then((rows) => { if (alive) setDogs(rows); });
+      .then((rows) => { if (alive) setDogs((prev) => (JSON.stringify(prev) === JSON.stringify(rows) ? prev : rows)); });
     return () => { alive = false; };
   }, []);
 
+  const dogIds = dogs?.map((d) => d.id).join(',') ?? '';
   // Progres sa číta pre VŠETKY psy naraz (jeden dotaz, nie N) a prekresľuje sa hneď
   // po návrate z kvízu — `onDogEventsChange` posiela in-tab signál po appende.
   useEffect(() => {
-    if (!dogs || dogs.length === 0) return;
-    const ids = dogs.map((d) => d.id);
+    if (!dogIds) return;
+    const ids = dogIds.split(',');
     let alive = true;
     const load = () => {
-      readLatestForDogs(ids).then((r) => { if (alive) { setLatest(r); setLatestLoaded(true); } });
+      readLatestForDogs(ids).then((r) => { if (alive) { setLatest(r); setLatestLoaded(true); void writeDeviceCopy(LATEST_COPY, r); } });
     };
     load();
     const off = onDogEventsChange(load);
     return () => { alive = false; off(); };
-  }, [dogs]);
+  }, [dogIds]);
 
   const totalSteps = PROGRESS_STEPS.length;
 

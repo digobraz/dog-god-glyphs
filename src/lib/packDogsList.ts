@@ -9,6 +9,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
+import { readDeviceCopy, writeDeviceCopy } from '@/lib/deviceCopy';
 import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
 
 /**
@@ -45,5 +46,11 @@ export async function loadPackDogs<T>(select: string): Promise<T[]> {
   ]);
   const rows = applyDogOrder(((data as T[]) ?? []) as (T & { id: string })[], order);
   last.set(select, rows);
+  // Prázdny zoznam sa neukladá: „nemáš psa" je odpoveď servera (zmizne aj staršia kópia).
+  void writeDeviceCopy(deviceKey(select), rows.length ? rows : null);
   return rows;
 }
+
+// Psy z minulého otvorenia appky: `last` žije len do zatvorenia, táto kópia v zariadení.
+const deviceKey = (select: string) => `pack-dogs-v1:${select}`;
+export const readStoredPackDogs = <T,>(select: string) => readDeviceCopy<T[]>(deviceKey(select));

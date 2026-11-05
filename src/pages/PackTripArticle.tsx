@@ -1019,7 +1019,9 @@ export default function PackTripArticle() {
   useCrowdOthers();
   // Môj hlas/✓ sa zapisuje frontou do DB — súhrn sa obnoví až keď zápis dobehne, inak by
   // RPC vrátilo počet ešte bezo mňa. Zámerný debounce: rýchle klikanie = jedno volanie.
+  const crowdFirst = useRef(true);
   useEffect(() => {
+    if (crowdFirst.current) { crowdFirst.current = false; return; } // prvé načítanie robí `useCrowdOthers`
     const h = setTimeout(() => { void refreshCrowdOthers(); }, 1500);
     return () => clearTimeout(h);
   }, [votes]);

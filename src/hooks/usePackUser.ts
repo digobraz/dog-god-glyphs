@@ -98,6 +98,11 @@ export function usePackUser(userId: string | null): PackUserData {
       return () => { mounted = false; };
     }
 
+    // Kto tu už bol, vidí svojich psov hneď (obálka profilu čakala 3,9 s), obnova ide potichu.
+    // Člen bez psa kópiu nemá: prázdny zoznam je pre povrchy odpoveď, ten počká na server.
+    const stored = readStoredUser(userId);
+    if (stored) setState({ ...stored, loading: false });
+
     (async () => {
       // `getUser()` (čerstvé user_metadata: devotion, bones, avatar) a zoznam psov idú NARAZ —
       // psy potrebujú len `userId`, ktorý už máme. Do 30. 10. 2026 čakali psy na `getUser()`.
@@ -146,15 +151,32 @@ export function usePackUser(userId: string | null): PackUserData {
 
       if (!mounted) return;
 
+      if (!dogRows && stored) { setState(s => ({ ...s, loading: false })); return; }
       const dogs = dogRows ?? [];
       const ownerGender = dogs[0]?.selections?.ownerGender ?? null;
-      setState({ devotion, bones, avatarUrl, ownerGender, dogs, loading: false });
+      const next = { devotion, bones, avatarUrl, ownerGender, dogs, loading: false };
+      writeStoredUser(userId, next);
+      setState(s => (JSON.stringify(s) === JSON.stringify(next) ? s : next));
     })();
 
     return () => { mounted = false; };
   }, [userId]);
 
   return state;
+}
+
+const USER_STORE = 'pack-user-v1';
+function readStoredUser(uid: string): Omit<PackUserData, 'loading'> | null {
+  try {
+    const st = JSON.parse(localStorage.getItem(USER_STORE) || 'null') as { uid: string; data: Omit<PackUserData, 'loading'> } | null;
+    return st?.uid === uid && st.data.dogs?.length ? st.data : null;
+  } catch { return null; }
+}
+function writeStoredUser(uid: string, { loading: _l, ...data }: PackUserData) {
+  try {
+    if (data.dogs.length) localStorage.setItem(USER_STORE, JSON.stringify({ uid, data }));
+    else localStorage.removeItem(USER_STORE);
+  } catch { /* plné úložisko: nabudúce zo siete */ }
 }
 
 /** Zaplatení psi, ku ktorým má človek prístup (B3c — práva, pri zlyhaní RPC vlastníctvo). */
