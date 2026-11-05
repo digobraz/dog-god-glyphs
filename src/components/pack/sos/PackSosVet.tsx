@@ -11,6 +11,8 @@ import { intlLocale } from '@/i18n/bcp47';
 import { useBack, useSosT, type SosT } from './sosShared';
 import { CITIES, VET_EMERGENCY, closesAt, distanceKm, isOpenAt, opensAt, telAt, vetNavUrl, type NavApp, type VetPlace } from '@/lib/vetEmergency';
 
+// Klinika bez vlastnej fotky: zjavne vymyslená kresba (Matej 5. 11. 2026, nákres plany/nakresy/nakres-klinika-placeholder-2026-11-05).
+const NO_PHOTO = '/vet/_bez-fotky.jpg';
 const FAR_KM = 40;
 const OUT_KM = 150; // dál ako toto od najbližšej otvorenej (alebo mimo SK a Prahy) zoznam nemáme
 const HOME_KM = 70;
@@ -144,18 +146,18 @@ export default function PackSosVet() {
           <b>{p.name}</b>
           <small>{km === null ? p.place : `${p.place} · ${km} km`}</small>
         </button>
-        {p.photo && open !== p.id && (
+        {open !== p.id && (
           <button type="button" className="vet-thumb pk-photo" tabIndex={-1} aria-hidden="true" onClick={() => setOpen(p.id)}>
-            <img src={p.photo.src} alt="" loading="lazy" decoding="async" />
+            <img src={p.photo?.src ?? NO_PHOTO} alt="" loading="lazy" decoding="async" />
           </button>
         )}
       </div>
       {p.google && <a className="vet-g" href={p.google.url} target="_blank" rel="noopener noreferrer">{googleLabel(p.google, s, loc)}</a>}
       <span className={`vet-pill${p.clientsOnly || typeof p.hours !== 'string' || p.hours === 'ask' ? ' vet-pill--soft' : ''}`}>{hoursLabel(p, s, now)}</span>
-      {open === p.id && p.photo && (
+      {open === p.id && (
         <figure className="vet-pic">
-          <span className="pk-photo"><img src={p.photo.src} alt={p.name} loading="lazy" decoding="async" /></span>
-          <figcaption><a href={p.photo.source} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.photoFrom', { site: new URL(p.photo.source).hostname.replace(/^www\./, '') })}</a></figcaption>
+          <span className="pk-photo"><img src={p.photo?.src ?? NO_PHOTO} alt={p.photo ? p.name : ''} loading="lazy" decoding="async" /></span>
+          {p.photo && <figcaption><a href={p.photo.source} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.photoFrom', { site: new URL(p.photo.source).hostname.replace(/^www\./, '') })}</a></figcaption>}
         </figure>
       )}
       {open === p.id && (
