@@ -499,7 +499,7 @@ export default function AppWeb() {
               <Rv key={k} d={i} className="ai-tile"><b><Counter to={n} run={funNear} /></b><span>{c(k)}</span><small>{c(s2)}</small></Rv>
             ))}
           </div>
-          <div className="ai-cv">
+          <div className="ai-cv" ref={funVisRef}>
             <AiFunnel run={funVis} />
             <div className="ai-rings">{RINGS.map((r, i) => <span key={i} style={{ top: `${r * 100}%` }}>{c(`ring${i + 1}`)}</span>)}</div>
           </div>
