@@ -23,6 +23,7 @@ import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar } f
 import AI_HEAD from '@/assets/ainubis-head.webp';
 import { AiFlow } from './appWeb/AiFlow';
 import { AiScrolls, AiPods, AiChat } from './appWeb/AiLearn';
+import { AiBrain } from './appWeb/AiBrain';
 import { STAGE_CSS } from '@/components/pack/packTheme';
 import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
 import { GodsGridLab } from '@/components/gods/GodsGridLab';
@@ -171,7 +172,6 @@ function Stores() {
 
 /** Do živej appky v telefóne sa vstrekne štýl, ktorý skryje predajné prvky /magnet
  *  (kartu a lištu s cenou €11 — appka je od 5. 11. zadarmo) a vývojárske tlačidlá. */
-const AI_FRAME_CSS = '.pk-veil--modal:has(.mgp-card--ai),.akv-pvinfo,.akv-pvdock,.mgp-bar,[class*=onsent],a.fixed.bottom-3,button.fixed.bottom-3{display:none!important}';
 
 /** Živá planétka z `/` — montuje sa až pri obrazovke a mimo nej stojí. */
 function LivePlanet() {
@@ -255,13 +255,16 @@ export default function AppWeb() {
   /* odznaky */
   const [ax, setAx] = useState<number | null>(null);
 
-  /* AINUBIS — živá appka sa načíta až pri obrazovke */
-  const [aiRef, aiNear] = useNear<HTMLDivElement>('400px');
-  /* svet zvitkov v karuseli — ťuk na svet v lieviku ho prepne a doroluje k zvitkom */
-  const [aiWorld, setAiWorld] = useState('nutrition');
+  /* ťuk na svet v lieviku doroluje k zvitkom */
   const scrollsRef = useRef<HTMLDivElement>(null);
-  const pickWorld = (k: string) => { setAiWorld(k); scrollsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  const pickWorld = () => { scrollsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
   const [ucOn, setUcOn] = useState(3);
+  /* mozog Učňa: kým sa nikto nedotkne odznaku, prechádza úrovne sám (1 → 10 → znova) */
+  const ucTouched = useRef(false);
+  useEffect(() => {
+    const id = setInterval(() => { if (!ucTouched.current) setUcOn((i) => (i + 1) % UCEN_PCT.length); }, 2600);
+    return () => clearInterval(id);
+  }, []);
   const i18nPct = (p: string) => (p === '1.' ? c('uc_first') : `${p} ${c('uc_vault')}`);
   /* hlavička nad tmavou sekciou AINUBIS tmavne (Matej 6. 11.: „header sa pri tejto sekcii zmení na tmavý, s bledým logom“) */
   const aiSecRef = useRef<HTMLElement>(null);
@@ -274,12 +277,6 @@ export default function AppWeb() {
   const vault = Object.values(VAULT_COUNTS);
   const vScrolls = vault.reduce((s, w) => s + w.scrolls, 0);
   const vCircles = vault.reduce((s, w) => s + w.circles, 0);
-  const injectAi = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
-    try {
-      const d = e.currentTarget.contentDocument;
-      if (d) { const s = d.createElement('style'); s.textContent = AI_FRAME_CSS; d.head.appendChild(s); }
-    } catch { /* iný pôvod — nechaj tak */ }
-  };
 
   /* Za hrou — text na rozklik */
   const [loreOpen, setLoreOpen] = useState(false);
@@ -505,7 +502,7 @@ export default function AppWeb() {
             <div className="ai-learn3">
               <div className="ai-card ai-paluba wide" data-fa="5" ref={scrollsRef}>
                 <span className="k">{c('lr1k')}</span><h4>{c('lr1h')}</h4><p>{c('lr1p')}</p>
-                <AiScrolls L={L} c={c} world={aiWorld} setWorld={setAiWorld} />
+                <AiScrolls L={L} c={c} />
               </div>
               <div className="ai-card ai-paluba"><span className="k">{c('lr2k')}</span><h4>{c('lr2h')}</h4><p>{c('lr2p')}</p><AiPods L={L} c={c} /><div className="ai-wave fill" aria-hidden>{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></div>
               <div className="ai-card ai-paluba"><span className="k">{c('lr3k')}</span><h4>{c('lr3h')}</h4><p>{c('lr3p')}</p><AiChat L={L} c={c} head={AI_HEAD} /></div>
@@ -513,8 +510,9 @@ export default function AppWeb() {
           } />
           <div className="ai-ucen2">
             <p><b>{c('uc_a')}</b> {c('uc_b')}</p>
+            <AiBrain share={UCEN_PCT[ucOn] === '1.' ? 0 : parseFloat(UCEN_PCT[ucOn]) / 100} head={AI_HEAD} />
             <div className="ai-ucrow">{UCEN_PCT.map((pc, i) => (
-              <button key={i} type="button" className={ucOn === i ? 'on' : ''} onPointerEnter={() => setUcOn(i)} onFocus={() => setUcOn(i)} onClick={() => setUcOn(i)}>
+              <button key={i} type="button" className={ucOn === i ? 'on' : ''} onPointerEnter={() => { ucTouched.current = true; setUcOn(i); }} onFocus={() => { ucTouched.current = true; setUcOn(i); }} onClick={() => { ucTouched.current = true; setUcOn(i); }}>
                 <img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" loading="lazy" />
               </button>
             ))}</div>
@@ -533,14 +531,6 @@ export default function AppWeb() {
           <Rv as="p" className="ai-quote">{c('ai_quote')}<small><span className="ai-name"><b>AI</b>NUBIS</span></small></Rv>
         </div>
 
-        {/* posledný obraz = len náhľad živej appky v strede (Matej 6. 11. večer) */}
-        <div className="wrap ai-sec ai-last">
-          <div ref={aiRef} className="ai-live">
-            {aiNear && <iframe src="/magnet/ainubis" title="AINUBIS" loading="lazy" onLoad={injectAi} />}
-            <img src={`${A}/phone.svg`} alt="" />
-            <span className="cap">{c('ai_try')}</span>
-          </div>
-        </div>
       </section>
 
       {/* 7 · NAVŽDY ZADARMO — poďakovanie psom */}

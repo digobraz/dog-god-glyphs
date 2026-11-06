@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { WORLD_TINT } from '@/components/pack/ainubisSkin';
-import { AI_SCROLLS, AI_PODS, AI_CHAT_REFS, type AiPick } from './aiPicks';
+import { AI_SCROLLS, AI_PODS, AI_CHAT_REFS, type AiPod, type AiPick } from './aiPicks';
 
 /** Tri spôsoby učenia v sekcii AINUBIS na /app (Matej 6. 11. večer): ZVITKY = karusel vybraných zvitkov po svetoch
  *  (začína Výživou; obrázok · nadpis · krátka veta) · PODCASTY = 3 naozaj hrajú · CHAT = ukážka so žlčou a odkazmi
@@ -11,45 +10,23 @@ type Lang2 = 'en' | 'sk';
 type C = (k: string) => string;
 const WKEY: Record<string, string> = { dogsPath: 'w7', understanding: 'w5', anatomy: 'w6', nutrition: 'w4', prevention: 'w3', training: 'w2', problems: 'w1' };
 const wc = (key: string) => `rgb(${WORLD_TINT[key] ?? '91,224,240'})`;
-const LIVE = Array.from(new Set(AI_SCROLLS.map((s) => s.w)));
 
-export function AiScrolls({ L, c, world, setWorld }: { L: Lang2; c: C; world: string; setWorld: (k: string) => void }) {
-  const track = useRef<HTMLDivElement>(null);
-  const hov = useRef(false);
-  const list = AI_SCROLLS.filter((s) => s.w === world);
-
-  useEffect(() => { track.current?.scrollTo({ left: 0, behavior: 'smooth' }); }, [world]);
-  /* sám sa posúva po karte; na konci sveta prejde na ďalší publikovaný svet */
-  useEffect(() => {
-    const id = setInterval(() => {
-      const t = track.current; if (!t || hov.current) return;
-      const r = t.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) return;
-      if (t.scrollLeft + t.clientWidth >= t.scrollWidth - 8) setWorld(LIVE[(LIVE.indexOf(world) + 1) % LIVE.length]);
-      else t.scrollBy({ left: (t.firstElementChild as HTMLElement | null)?.offsetWidth ?? 240, behavior: 'smooth' });
-    }, 3200);
-    return () => clearInterval(id);
-  }, [world, setWorld]);
-
+/** Nekonečný pás zvitkov (Matej 6. 11.: „daj preč tie pilsy s témami a urob z toho nekonečný loop“).
+ *  Zoznam je v páse dvakrát za sebou a posúva sa o polovicu — šev nevidno. Myš na páse = zastaví. */
+export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
+  const card = (s: AiPick, k: string) => (
+    <article key={k} className="zs-card" style={{ ['--wc' as string]: wc(s.w) }} aria-hidden={k.startsWith('b') || undefined}>
+      <div className="ph"><img src={s.img} alt="" loading="lazy" /></div>
+      <span className="w">{c(WKEY[s.w])}</span>
+      <h5>{s.t[L]}</h5>
+      <p>{s.v[L]}</p>
+    </article>
+  );
   return (
-    <div className="zs" onPointerEnter={() => { hov.current = true; }} onPointerLeave={() => { hov.current = false; }}>
-      <div className="zs-tabs">
-        {VAULT_WORLDS.map((w) => {
-          const live = LIVE.includes(w.key);
-          return (
-            <button key={w.key} type="button" disabled={!live} className={world === w.key ? 'on' : ''} style={{ ['--wc' as string]: wc(w.key) }}
-              onClick={() => setWorld(w.key)} title={live ? undefined : c('w_soon')}>{c(WKEY[w.key])}</button>
-          );
-        })}
-      </div>
-      <div className="zs-track" ref={track}>
-        {list.map((s, i) => (
-          <article key={s.id} className="zs-card" style={{ ['--wc' as string]: wc(s.w), ['--i' as string]: i }}>
-            <div className="ph"><img src={s.img} alt="" loading="lazy" /></div>
-            <span className="w">{c(WKEY[s.w])}</span>
-            <h5>{s.t[L]}</h5>
-            <p>{s.v[L]}</p>
-          </article>
-        ))}
+    <div className="zs">
+      <div className="zs-loop" style={{ ['--n' as string]: AI_SCROLLS.length }}>
+        {AI_SCROLLS.map((s) => card(s, `a${s.id}`))}
+        {AI_SCROLLS.map((s) => card(s, `b${s.id}`))}
       </div>
     </div>
   );
@@ -57,24 +34,41 @@ export function AiScrolls({ L, c, world, setWorld }: { L: Lang2; c: C; world: st
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
 
+const POD_LANGS = [['sk', 'SK'], ['en', 'EN'], ['cs', 'CZ']] as const;
+type PodLang = typeof POD_LANGS[number][0];
+
 export function AiPods({ L, c }: { L: Lang2; c: C }) {
   const au = useRef<HTMLAudioElement | null>(null);
   const [on, setOn] = useState<string | null>(null);
   const [pos, setPos] = useState(0);
+  const [pl, setPl] = useState<PodLang>(L);
+  useEffect(() => { setPl(L); }, [L]);
   useEffect(() => () => { au.current?.pause(); }, []);
-  const toggle = (p: AiPick) => {
+  const play = (p: AiPod, lang: PodLang) => {
     let a = au.current;
     if (!a) { a = new Audio(); a.preload = 'none'; au.current = a; a.ontimeupdate = () => setPos(a!.duration ? a!.currentTime / a!.duration : 0); a.onended = () => { setOn(null); setPos(0); }; }
-    if (on === p.id) { a.pause(); setOn(null); return; }
-    a.src = p.pod![L] || p.pod!.en; a.currentTime = 0; setPos(0);
+    a.src = (p.pod[lang] ?? p.pod.en).src; a.currentTime = 0; setPos(0);
     a.play().then(() => setOn(p.id)).catch(() => setOn(null));
+  };
+  const toggle = (p: AiPod) => {
+    if (on === p.id) { au.current?.pause(); setOn(null); return; }
+    play(p, pl);
+  };
+  /* prepnutie jazyka počas hrania = ten istý podcast v novom jazyku */
+  const pickLang = (lang: PodLang) => {
+    setPl(lang);
+    const cur = AI_PODS.find((p) => p.id === on); if (cur) play(cur, lang);
   };
   return (
     <div className="pd">
+      <div className="pd-lang" role="group" aria-label={c('pod_lang')}>
+        <span>{c('pod_lang')}</span>
+        {POD_LANGS.map(([k, lbl]) => <button key={k} type="button" className={pl === k ? 'on' : ''} onClick={() => pickLang(k)}>{lbl}</button>)}
+      </div>
       {AI_PODS.map((p) => (
         <button key={p.id} type="button" className={`pd-row${on === p.id ? ' on' : ''}`} onClick={() => toggle(p)} style={{ ['--wc' as string]: wc(p.w) }}>
           <span className="pd-img"><img src={p.img} alt="" loading="lazy" /><i>{on === p.id ? <svg viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /></svg> : <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" /></svg>}</i></span>
-          <span className="pd-tx"><b>{p.t[L]}</b><small>{c(WKEY[p.w])} · {mmss(p.sec ?? 0)}</small>
+          <span className="pd-tx"><b>{p.t[pl]}</b><small>{c(WKEY[p.w])} · {mmss(p.pod[pl]?.sec ?? 0)}</small>
             <span className="pd-bar"><span style={{ transform: `scaleX(${on === p.id ? pos : 0})` }} /></span></span>
           <span className={`pd-eq${on === p.id ? ' go' : ''}`} aria-hidden><i /><i /><i /><i /></span>
         </button>
