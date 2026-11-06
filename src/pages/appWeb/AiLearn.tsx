@@ -11,20 +11,56 @@ type C = (k: string) => string;
 const WKEY: Record<string, string> = { dogsPath: 'w7', understanding: 'w5', anatomy: 'w6', nutrition: 'w4', prevention: 'w3', training: 'w2', problems: 'w1' };
 const wc = (key: string) => `rgb(${WORLD_TINT[key] ?? '91,224,240'})`;
 
-/** Nekonečný pás zvitkov (Matej 6. 11.: „daj preč tie pilsy s témami a urob z toho nekonečný loop“).
- *  Zoznam je v páse dvakrát za sebou a posúva sa o polovicu — šev nevidno. Myš na páse = zastaví. */
+/** Nekonečný pás zvitkov (Matej 6. 11.: „daj preč tie pilsy s témami a urob z toho nekonečný loop“ + „aby sa to
+ *  dalo aj svajpovať“). Zoznam je v páse dvakrát za sebou; posun drží JS (nie CSS animácia), aby ho prst alebo myš
+ *  mohli ťahať — po pustení sa doznie zotrvačnosťou a pás pokračuje sám. Poloha sa zabalí do polovice pásu. */
 export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
+  const box = useRef<HTMLDivElement>(null);
+  const row = useRef<HTMLDivElement>(null);
+  const st = useRef({ x: 0, v: 0, drag: false, hov: false, lx: 0, lt: 0, moved: 0 });
+  useEffect(() => {
+    const r = row.current; if (!r) return;
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let raf = 0, last = performance.now();
+    const f = (now: number) => {
+      raf = requestAnimationFrame(f);
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      const S = st.current;
+      /* perióda = začiatok druhej kópie, nie polovica šírky (medzera na konci by robila skok) */
+      const k = r.children[AI_SCROLLS.length] as HTMLElement | undefined, half = k ? k.offsetLeft - (r.children[0] as HTMLElement).offsetLeft : 0; if (!half) return;
+      if (!S.drag) {
+        const auto = S.hov || still ? 0 : -42;           /* px/s */
+        S.v += (auto - S.v) * Math.min(1, dt * 2.2);     /* zotrvačnosť po švihu sa vráti k tempu pásu */
+        S.x += S.v * dt;
+      }
+      S.x = ((S.x % half) - half) % half;
+      r.style.transform = `translate3d(${S.x.toFixed(1)}px,0,0)`;
+    };
+    raf = requestAnimationFrame(f);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  const down = (e: React.PointerEvent) => {
+    const S = st.current; S.drag = true; S.lx = e.clientX; S.lt = performance.now(); S.v = 0; S.moved = 0;
+    box.current?.setPointerCapture(e.pointerId);
+  };
+  const move = (e: React.PointerEvent) => {
+    const S = st.current; if (!S.drag) return;
+    const now = performance.now(), dx = e.clientX - S.lx;
+    S.x += dx; S.moved += Math.abs(dx); S.v = dx / Math.max(0.008, (now - S.lt) / 1000); S.lx = e.clientX; S.lt = now;
+  };
+  const up = () => { st.current.drag = false; };
   const card = (s: AiPick, k: string) => (
     <article key={k} className="zs-card" style={{ ['--wc' as string]: wc(s.w) }} aria-hidden={k.startsWith('b') || undefined}>
-      <div className="ph"><img src={s.img} alt="" loading="lazy" /></div>
+      <div className="ph"><img src={s.img} alt="" loading="lazy" draggable={false} /></div>
       <span className="w">{c(WKEY[s.w])}</span>
       <h5>{s.t[L]}</h5>
       <p>{s.v[L]}</p>
     </article>
   );
   return (
-    <div className="zs">
-      <div className="zs-loop" style={{ ['--n' as string]: AI_SCROLLS.length }}>
+    <div className="zs" ref={box} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
+      onPointerEnter={() => { st.current.hov = true; }} onPointerLeave={() => { st.current.hov = false; st.current.drag = false; }}>
+      <div className="zs-loop" ref={row}>
         {AI_SCROLLS.map((s) => card(s, `a${s.id}`))}
         {AI_SCROLLS.map((s) => card(s, `b${s.id}`))}
       </div>

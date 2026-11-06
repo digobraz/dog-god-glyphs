@@ -88,6 +88,10 @@ export interface BrainOptions {
   /** Ktorý pohľad sa kreslí. Číta sa KAŽDÝ RÁMEC (rovnako ako `isMobile`), takže
    *  prepnutie vrstvy sa prejaví bez premontovania plátna a bez straty polohy. */
   layer?: () => BrainLayer;
+  /** VÝKLAD na webe /app (6. 11. 2026, Matej: „svety farebné, všetky uzly cyan, animácia = žltooranžová žiara,
+   *  uzly a linky sa postupne rozsvecujú na rôznych miestach“). Bubliny svetov vo svojej farbe, zrno cyan,
+   *  zrno so stavom ≥ 1 a jeho vlákno žiaria žltooranžovo a mihotajú sa. Appka ho nepoužíva. */
+  glow?: boolean;
   onWorld: (wi: number) => void;
   onRoot: () => void;
 }
@@ -131,6 +135,8 @@ const COL = {
 
 /** Farba BUBLINY SVETA — tá istá, ktorou svieti karta na nástenke.
  *  Bez nej je sedem svetov sedemkrát cyan a mozog sa okom prečítať nedá. */
+/** Žiara výkladu na webe (`glow`) — žltooranžová, nie „videné“: mimo appky stav čítania nič neznamená. */
+const GLOW = '255,184,64';
 const worldRGB = (w: VaultWorld): string => WORLD_TINT[w.key] ?? COL.cyan;
 /* Uzol sa smie rozhrnúť, nie odniesť (nákres §15). */
 const MAX_TAH = 70;
@@ -332,7 +338,12 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       const ea = vSvete ? (kost ? 0.42 : 0.20) : (kost ? 0.24 : 0.11);
       /* ⚠️ Zvýraznená spojnica je NEÓNOVO MODRÁ, nie oranžová — oranžová znamená „videné". */
       ctx.strokeStyle = hi ? 'rgba(140,240,255,.95)' : `rgba(${ec},${ea})`;
+      if (o.glow && !kost && b.st) {
+        const f = 0.55 + 0.35 * Math.sin(TL * 2.4 + b.zi * 1.7);
+        ctx.strokeStyle = `rgba(${GLOW},${f.toFixed(2)})`; ctx.lineWidth = 1.1; ctx.shadowBlur = 8; ctx.shadowColor = `rgba(${GLOW},.9)`;
+      }
       ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke();
+      ctx.shadowBlur = 0;
     });
 
     // 3 · UZLY — okruhy a zvitky
@@ -341,7 +352,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       /* 🔴 ZÁKLADNÝ POHĽAD: okruh aj zrno nesú farbu SVOJHO SVETA — to je celé
          zadanie („všetky uzle a priamky pod jedným svetom tej istej farby").
          VRSTVA POSTUP: neutrálne AINUBISOVE, svieti oranžová a zelená. */
-      const col = layerNow === 'worlds'
+      const col = o.glow ? (p.role === 'z' && p.st ? GLOW : COL.cyan) : layerNow === 'worlds'
         ? worldRGB(o.worlds[p.wi])
         : p.role !== 'z' ? COL.cyan
           : p.st === 2 ? COL.zelena : p.st === 1 ? COL.oranzova : COL.modra;
@@ -355,6 +366,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
          chumáč stratil, pri 0,95 by prehlušil bublinu sveta nad sebou. */
       let al = p.role !== 'z' ? 1 : layerNow === 'worlds' ? 0.74 : p.st ? 0.95 : 0.55;
       if (syn) al = Math.min(1, al + 0.35);
+      if (o.glow && p.role === 'z') al = p.st ? 0.75 + 0.25 * Math.sin(TL * 3 + p.zi * 2.3) : 0.6;
       const sz = p.sz * Math.min(2.2, Math.max(0.5, view.k)) * (near ? 1.7 : syn ? 1.25 : 1);
       const svieti = p.role !== 'z' || near || syn || (layerNow === 'worlds' ? true : !!p.st);
       if (svieti) { ctx.shadowBlur = near ? 26 : syn ? 20 : p.st ? 12 : 14; ctx.shadowColor = `rgba(${col},.9)`; }
@@ -470,7 +482,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
             ainubisovej farby"* — keby sedem bublín ostalo farebných, oranžová
             a zelená by na nich neboli vidieť a pohľad by hovoril obe veci naraz.
             Orientáciu nesie IKONA a MENO, nie odtieň, takže sa nestratí. */
-      const wc = layerNow === 'worlds' ? worldRGB(o.worlds[p.wi]) : COL.cyan;
+      const wc = layerNow === 'worlds' || o.glow ? worldRGB(o.worlds[p.wi]) : COL.cyan;
       ctx.shadowBlur = near ? 34 : 20; ctx.shadowColor = `rgba(${wc},.95)`;
       ctx.fillStyle = `rgba(${wc},1)`;
       ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, TAU); ctx.fill();

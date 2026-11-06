@@ -23,7 +23,7 @@ export function AiBrain({ share, head }: { share: number; head: string }) {
       worldName: () => '', circleName: () => '',
       insets: () => ({ top: 0, bottom: 0 }),
       describe: () => null,
-      layer: () => 'progress',
+      layer: () => 'progress', glow: true,
       progress: (zi) => { if (zi + 1 > total) total = zi + 1; return (st.current[zi] ?? 0) as 0 | 1 | 2; },
       onWorld: () => {}, onRoot: () => {},
     });
@@ -47,7 +47,8 @@ export function AiBrain({ share, head }: { share: number; head: string }) {
       const step = Math.max(1, Math.ceil(Math.abs(goal - lit) / 18));
       if (lit < goal) { for (let k = 0; k < step && lit < goal; k++) { S[O[lit++]] = 1; } ch = true; }
       else if (lit > goal) { for (let k = 0; k < step && lit > goal; k++) { S[O[--lit]] = 0; } ch = true; }
-      for (let k = 0; k < lit; k++) if (S[O[k]] === 1 && (k < lit - 6 || Math.random() < 0.15)) { S[O[k]] = 2; ch = true; }
+      /* mihotanie: pár rozsvietených zhasne a inde sa rozsvieti iné — svetlo putuje po sieti */
+      if (lit > 4 && Math.random() < 0.5) { const i = Math.floor(Math.random() * lit), j = lit + Math.floor(Math.random() * (total - lit)); if (j < total) { [O[i], O[j]] = [O[j], O[i]]; S[O[j]] = 0; S[O[i]] = 1; ch = true; } }
       if (ch) h.refresh();
     };
     raf = requestAnimationFrame(tick);
