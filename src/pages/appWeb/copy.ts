@@ -752,6 +752,12 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  more: { en: 'Read more', sk: 'Čítaj viac' }, less: { en: 'Less', sk: 'Menej' },
  goal: { en: 'Goal: one million Dogyptians', sk: 'Cieľ: milión Dogypťanov' },
  nav5: { en: 'Story', sk: 'Príbeh' },
+ /* blok VSTÚP = POTREBUJEME ŤA (Matej 6. 11.; texty z /onepage obrazu WE NEED YOU) · poďakovanie bez počtu psov, s rozpadom vstupného */
+ e_need: { en: 'A movement that loves dogs', sk: 'Hnutie, ktoré miluje psov' },
+ h_need1: { en: 'We need', sk: 'Potrebujeme' }, h_need2: { en: 'you.', sk: 'ťa.' },
+ l_need: { en: 'Imagine one million people standing by their dogs. The power to do so much good.', sk: 'Predstav si milión ľudí, ktorí stoja pri psoch. Obrovská sila komunity, ktorá koná dobro.' },
+ cta_join: { en: 'Join us', sk: 'Pridaj sa' },
+ split_h: { en: 'Where your entry fee goes', sk: 'Kam ide tvoje vstupné' },
  q_contact: { en: 'How do I reach you?', sk: 'Ako vás kontaktovať?' }, privacy: { en: 'Privacy', sk: 'Ochrana súkromia' },
  /* blok poďakovania = 3 snímky vodorovne (Matej 6. 11.): poďakovanie · intro video · DOGMA; „Za hrou“ sa v ňom rozpustil */
  h_lore1: { en: 'It started with one', sk: 'Začalo to jedným' }, h_lore2: { en: 'dog.', sk: 'psom.' },

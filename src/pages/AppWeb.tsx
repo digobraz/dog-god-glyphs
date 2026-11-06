@@ -29,6 +29,7 @@ import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
 import { GodsGridLab } from '@/components/gods/GodsGridLab';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
+import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
 import { IgMock, IgIcon } from './appWeb/IgMock';
 import { AlbaCount, AlbaTrio, GlyphZones } from './appWeb/AlbaGlyph';
@@ -606,12 +607,12 @@ export default function AppWeb() {
                 <p className="eye">{c('e_good')}</p>
                 <h2>{c('h_good1')} <span className="deco">{c('h_good2')}</span></h2>
                 <p className="lead">{c('l_good')}</p>
-                <div className="gs-count">
-                  <p><b>{dogs.toLocaleString('sk-SK')}</b> <span>{c('dogs_now')}</span></p>
-                  <div className="pk-progress"><div className="pk-progress__fill" style={{ width: `${Math.max(2, (dogs / 1_000_000) * 100)}%` }} /></div>
-                  <small>{c('goal')} · 1 000 000</small>
+                {/* rozpad vstupného navonok 8 · 2 · 1 (lib/transparency.ts) — počet psov je v bloku POTREBUJEME ŤA */}
+                <div className="gs-split">
+                  <small>{c('split_h')}</small>
+                  <div className="gs-bar">{TRANSPARENCY_SPLIT.map((p) => <i key={p.labelKey} style={{ flex: p.share, background: p.color }} />)}</div>
+                  <ul>{TRANSPARENCY_SPLIT.map((p) => <li key={p.labelKey}><i style={{ background: p.color }} />{t(p.labelKey)}</li>)}</ul>
                 </div>
-                <p>{c('l_good2')}</p>
                 <div className="bowls">
                   <div className="pk-subblock"><b>€0</b><span>{c('b1')}</span></div>
                   <div className="pk-subblock"><b>{c('b2v')}</b><span>{c('b2')}</span></div>
@@ -651,10 +652,15 @@ export default function AppWeb() {
         <div className="wrap">
           <Rv className="join">
             <div>
-              <p className="eye" style={{ color: 'var(--lapis-ink)' }}>{c('e_join')}</p>
-              <h2>{c('h_join')}</h2>
-              <p className="lead">{c('l_join')}</p>
-              <a className="pk-cta" href="/heroglyph/name">{c('cta_glyph')}</a>
+              <p className="eye" style={{ color: 'var(--lapis-ink)' }}>{c('e_need')}</p>
+              <h2>{c('h_need1')} <span className="deco">{c('h_need2')}</span></h2>
+              <p className="lead">{c('l_need')}</p>
+              <div className="join-goal">
+                <p><b>{dogs.toLocaleString('sk-SK')}</b> <span>{c('dogs_now')}</span></p>
+                <div className="pk-progress"><div className="pk-progress__fill" style={{ width: `${Math.max(2, (dogs / 1_000_000) * 100)}%` }} /></div>
+                <small>{c('goal')} · 1 000 000</small>
+              </div>
+              <a className="pk-cta" href="/heroglyph/name">{c('cta_join')}</a>
               <p className="or">{c('or_app')}</p>
               <Stores />
             </div>
