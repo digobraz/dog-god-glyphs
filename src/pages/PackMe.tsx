@@ -19,6 +19,7 @@
 // 🔴 ČO ZATIAĽ NEMÁ ZDROJ, NESIE ČERVENÚ POMLČKU (Matej 21. 10.). Sledovanie, stories,
 //    albumy a uložené prídu so session FEED — karta ostáva, obsah je prázdny stav.
 //    Pomlčka nie je nula: nula by tvrdila, že ťa nikto nesleduje.
+import { sealOfHuman, sealLabel } from '@/components/pack/profile/dogSeal';
 import { pilgrimAuthorName } from '@/lib/pilgrimName';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -292,6 +293,8 @@ export default function PackMe() {
         {/* TITULKA — BONES · meno · DEVOTION · PÚTNIK (spoločná s UPRAVIŤ PROFIL, `meHead.tsx`). */}
         <MeCover
           withName={beside?.label ?? null}
+          seal={novice ? 'veriaci' : sealOfHuman(dogs.length > 0)}
+          sealText={sealLabel(novice ? 'veriaci' : sealOfHuman(dogs.length > 0), tx)}
           cover={coverSrc}
           coverY={human?.coverY}
           name={shownName}

@@ -6,6 +6,7 @@
 // pustí pawmata, `is_paid_member()` ho ráta cez `dog_humans`).
 // Čo smie PRIDÁVAŤ, nastavuje pawtner v MOJA SVORKA (Matej 26. 10.: *„veď keď bude mať odo mňa povolenie,
 // môže pridávať"*) — bez práva len prezerá, návrhy na schválenie NEEXISTUJÚ (K5 zrušené).
+import { sealOfHuman, sealLabel } from '@/components/pack/profile/dogSeal';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PackDogFull } from '@/hooks/usePackUser';
@@ -94,6 +95,8 @@ export function MateHome({ dogs, me, onInvite, flat }: {
       <section className={`me-card me-zdedeny${flat ? ' me-flat' : ''}${open ? ' open' : ''} with-mate`}>
         <MeCover
           withName={me.name}
+          seal={sealOfHuman(ownerNumber != null)}
+          sealText={sealLabel(sealOfHuman(ownerNumber != null), tx)}
           foreign
           cover={coverSrc}
           coverY={human?.coverY}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { sealOfHuman, sealLabel } from '@/components/pack/profile/dogSeal';
 import { DeleteRequests } from '@/components/pack/DeleteRequests';
 import { canStepBack } from '@/lib/stepBack';
 import { pilgrimAuthorName } from '@/lib/pilgrimName';
@@ -504,6 +505,8 @@ export default function PackProfile() {
       <section className={`me-card pe-card${APP_NEW ? ' me-flat' : ''}${beside ? ' with-mate' : ''}`}>
         {/* NÁHĽAD 1:1 — tá istá hlava ako profil. Titulka sa ťahá, foťák ju mení. */}
         <MeCover
+          seal={sealOfHuman(loadedDogs.length > 0)}
+          sealText={sealLabel(sealOfHuman(loadedDogs.length > 0), tx)}
           cover={coverSrc}
           coverY={coverY ?? human?.coverY}
           name={shownName}

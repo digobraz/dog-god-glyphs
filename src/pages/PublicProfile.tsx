@@ -21,6 +21,7 @@
 // pre všeobecný verejný read-profil, kde viewer nemusí mať s majiteľom žiadny vzťah. Preto tu
 // žiadne `trip`-tier polia nerenderujeme vôbec (viď report — spĺňa „skry trip-tier" bez potreby
 // shared-trip výpočtu). Psí BIO + tagy = vždy verejné (fixné pravidlo, nie cez getTier()).
+import { sealOfHuman, sealLabel } from '@/components/pack/profile/dogSeal';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -256,6 +257,8 @@ export default function PublicProfile() {
         )}
         <MeCover
           withName={beside?.label ?? null}
+          seal={sealOfHuman(member.memberNumber != null)}
+          sealText={sealLabel(sealOfHuman(member.memberNumber != null), tx)}
           noRanks={false}
           foreign={!isSelf}
           cover={coverSrc}

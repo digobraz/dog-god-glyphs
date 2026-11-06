@@ -16,7 +16,7 @@ import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, BONES_TIER, type PackTier } from '@/lib/packTiers';
 import { devotionTier, devotionVars, NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
-import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel } from '@/components/pack/profile/dogSeal';
+import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel, type SealTier } from '@/components/pack/profile/dogSeal';
 import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, STORY_RING_CSS, RING_V1, ARC_MAX, ARC_BELOW, arcDogs, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, LearnerBadge, LearnerPanel, useActiveDays } from '@/components/pack/profile/rankBadge';
 /** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
 
@@ -403,12 +403,15 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, onStudy, study, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false, foreign = false, withName }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, onStudy, study, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false, foreign = false, withName, seal = null, sealText = '' }: {
   cover: string | null;
   /** Meno pawmata pod menom — „& Lenka“ (Matej 26. 10.: *„pod menom stachoman by mohol byť malým text a Lenka“* ·
    *„každý kto uvidí môj profil by videl aj foto aj názov a Lenka“*). Len tam, kde je aj fotka pawmata
    (`human.showMates`). Meno sa neskloňuje. */
   withName?: string | null;
+  /** PEČAŤ pri mene (6. 11. 2026) — pečať najvyššieho psa (`sealOfHuman`). VERIACI sa kreslí len na mojom. */
+  seal?: SealTier | null;
+  sealText?: string;
   /** PAWMATE bez vlastného psa (Matej 26. 10. 2026: *„ona nebude mať level pútnika ani služobníka"*) — titulka len s menom. */
   noRanks?: boolean;
   /** Cudzí profil — zlato SLUŽOBNÍKA sa NEčíta: `devotion_events` vidím len svoje, takže by ukázalo MOJE dni
@@ -520,7 +523,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
         ))}
       </div>
       <div className="me-foot">
-        <h1 className="me-nm" style={{ ['--nm' as string]: Math.max(8, ...String(name ?? '').split(/\s+/).map((w) => w.length)) }}>{name}</h1>
+        <h1 className="me-nm" style={{ ['--nm' as string]: Math.max(8, ...String(name ?? '').split(/\s+/).map((w) => w.length + (seal ? 1 : 0))) }}>{name}{seal && <DogSeal tier={seal} own={!foreign} label={sealText} size="0.8em" />}</h1>
         {withName && <p className="me-with">&amp; {withName}</p>}
         {RANK_BADGE_ON && <style>{RANK_BADGE_CSS}</style>}
         {noRanks ? null : RANK_BADGE_ON ? (

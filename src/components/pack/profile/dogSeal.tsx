@@ -29,6 +29,10 @@ export function sealOf(dog: { payment_status?: string | null } | null | undefine
  *  🔴 Keď pribudnú free psy alebo vstupné, toto sa nahradí skutočnou úrovňou psa z DB. */
 export const SEAL_OF_LISTED_DOG: SealTier = 'zakladatel';
 
+/** PEČAŤ PRI MENE ČLOVEKA (Matej 6. 11. 2026: „a)“) — človek nesie pečať svojho NAJVYŠŠIEHO psa, tak ako nesie
+ *  jeho číslo. Pečať ostáva vlastnosťou psa. Má psa v appke (= číslo člena) → pečať psa; inak VERIACI (len sám sebe). */
+export const sealOfHuman = (hasDog: boolean): SealTier => (hasDog ? SEAL_OF_LISTED_DOG : 'veriaci');
+
 /** Meno úrovne pre aria-label / tooltip. */
 export const sealLabel = (tier: SealTier, tx: (k: string, f: string) => string) =>
   tx(`pack.seal.${tier}`, { veriaci: 'Believer', akolyta: 'Acolyte', knaz: 'Priest', vezir: 'Vizier', zakladatel: 'Founder' }[tier]);
