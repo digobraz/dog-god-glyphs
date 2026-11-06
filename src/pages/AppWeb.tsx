@@ -325,7 +325,6 @@ export default function AppWeb() {
 
       {/* 2 · ŽI PSÍ ŽIVOT */}
       <section id="life" className="life">
-        <div className="seam big" aria-hidden />
         <div className="wrap split">
           <Rv className="fresco"><img src="/images/magnet/vylety.webp" alt="" loading="lazy" /></Rv>
           <Rv d={1}>
@@ -342,7 +341,6 @@ export default function AppWeb() {
 
       {/* 3 · PRE PSOV, S DUŠOU */}
       <section>
-        <div className="seam r" aria-hidden />
         <div className="wrap">
           <Rv className="sec-h">
             <Note k="n_ig" />
@@ -385,7 +383,6 @@ export default function AppWeb() {
 
       {/* 4 · FUNKCIE */}
       <section id="features">
-        <div className="seam" aria-hidden />
         <div className="wrap">
           <Rv className="sec-h"><p className="eye">{c('e_feat')}</p><h2>{c('h_feat')}<span className="h2b">{c('h_feat2')}</span></h2></Rv>
           <p className="feat-hint">{c('hover')}</p>
@@ -416,7 +413,6 @@ export default function AppWeb() {
 
       {/* 5 · ODZNAKY — štyri osi */}
       <section id="badges">
-        <div className="seam r" aria-hidden />
         <div className="wrap">
           <Rv className="sec-h">
             <p className="eye">{c('e_badge')}</p>
