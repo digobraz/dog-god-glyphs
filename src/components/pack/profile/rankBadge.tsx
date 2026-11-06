@@ -210,6 +210,83 @@ export function PilgrimBadge({ level, pct, on, onClick, label }: BadgeBtn & { le
   );
 }
 
+/* UČEŇ — štúdium vo VAULTe (6. 11. 2026). Matej: *„učeň bude na štýl pútnika, názov sa nemení, len level“*.
+ * Level = PODIEL uzavretých zvitkov z plánu VAULTu (10 pásiem, 1 = prvý zvitok … 10 = 100 %), NIKDY neklesá:
+ * keď pribudnú zvitky, % klesne, level ostane (najvyšší dosiahnutý drží prehliadač).
+ * Obrázky = atóm, guličiek toľko ako level (nákres `plany/nakresy/rebricky/ai/ucen/final/`). */
+const L_FROM = [0, 2, 5, 10, 20, 30, 45, 60, 80, 100];
+const L_KEY = 'ucen-max-level';
+export const learnerImg = (level: number) => `/icons/pack/rank/learner-${Math.max(1, Math.min(10, level))}.webp`;
+/** `read` uzavretých z `total` → level (0 = ešte nič) a postup k ďalšiemu v %. */
+export function learnerProgress(read: number, total: number): { level: number; pct: number; share: number } {
+  const share = total > 0 ? (read / total) * 100 : 0;
+  let level = read > 0 ? 1 + L_FROM.slice(1).filter((f) => share >= f).length : 0;
+  try {
+    const kept = Number(localStorage.getItem(L_KEY) || 0);
+    if (level > kept) localStorage.setItem(L_KEY, String(level)); else level = Math.max(level, kept);
+  } catch { /* súkromné okno — level len z dnešného podielu */ }
+  level = Math.min(10, level);
+  if (level >= 10 || level === 0) return { level, pct: level >= 10 ? 100 : 0, share };
+  const lo = L_FROM[level - 1], hi = L_FROM[level];
+  return { level, pct: Math.max(0, Math.min(100, ((share - lo) / (hi - lo)) * 100)), share };
+}
+/** Náplň kapsuly: cyan ako prstence; lvl 10 zlato-oranžová AINUBISA. */
+const learnerFill = (level: number): CSSProperties => (level >= 10
+  ? { background: 'linear-gradient(180deg,#FFE9A8,#F5C73D 45%,#E69E1A 80%,#9A5E08)', boxShadow: 'inset 0 -3px 5px rgba(60,30,0,.45), 0 0 10px rgba(245,170,40,.7)' }
+  : { background: 'linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,.08) 42%,rgba(0,0,0,0) 55%,rgba(0,0,0,.32)),linear-gradient(90deg,#1FA9C9,#5FE6FF)', boxShadow: 'inset 0 -3px 5px rgba(0,0,0,.35), 0 0 10px rgba(95,230,255,.6)' });
+
+export function LearnerBadge({ level, pct, on, onClick, label }: BadgeBtn & { level: number; pct: number }) {
+  return (
+    <button type="button" data-rank-toggle className={`rk${on ? ' on' : ''}`} onClick={onClick} aria-expanded={on} aria-label={label}>
+      <span className="ic" style={{ ['--k' as string]: level >= 8 ? 1.45 : 1.3, opacity: level ? 1 : .5 }}><img src={learnerImg(level)} alt="" /></span>
+      <span className="cp">
+        <span className={`fl${level >= 10 ? ' full' : ''}`} style={{ width: fillWidth(pct), ...learnerFill(level) }} />
+        <span className="nb">{level}</span>
+      </span>
+    </button>
+  );
+}
+
+/** UČEŇ po rozkliku: obrázok, pás k ďalšiemu pásmu, čísla zo VAULTu, rebrík 10 atómov, odkaz do VAULTu. */
+export function LearnerPanel({ read, total, liked, saved, onVault, tx }: {
+  read: number; total: number; liked: number; saved: number; onVault?: () => void; tx: Tx;
+}) {
+  const { level, pct, share } = learnerProgress(read, total);
+  const need = level < 10 ? Math.max(0, Math.ceil((L_FROM[level] / 100) * total) - read) : 0;
+  const name = tx('pack.rank.learner', 'Disciple');
+  return (
+    <>
+      <div className="rkp-hd">
+        <span className="im"><img src={learnerImg(level)} alt="" style={{ opacity: level ? 1 : .5 }} /></span>
+        <div className="tx"><h3>{name} {level}</h3></div>
+        <span className="ab">{Math.floor(share)} %</span>
+      </div>
+      <div className="rkp-lbl"><span>{level >= 10
+        ? tx('pack.rank.learnerTop', 'You have closed the whole VAULT.')
+        : tx('pack.rank.learnerToNext', '{n} more scrolls to level {level}').replace('{n}', String(need)).replace('{level}', String(level + 1))}</span></div>
+      <div className="rkp-bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
+        <i className="fl" style={{ width: `max(${Math.min(100, pct)}%, 20px)`, ...learnerFill(level) }} />
+        <span>{read} / {total}</span>
+      </div>
+      <div className="rkp-nums">
+        <div><b>{read}</b><span>{tx('pack.rank.scrolls', 'scrolls')}</span></div>
+        <div><b>{liked}</b><span>{tx('pack.rank.liked', 'liked')}</span></div>
+        <div><b>{saved}</b><span>{tx('pack.rank.saved', 'saved')}</span></div>
+      </div>
+      <div className="rkp-lad" style={{ ['--n' as string]: L_FROM.length }}>
+        {L_FROM.map((from, i) => (
+          <div key={from} className={i + 1 === level ? 'on' : i + 1 < level ? 'done' : ''}>
+            <img src={learnerImg(i + 1)} alt="" />
+            <small>{i === 0 ? '1' : `${from} %`}</small>
+          </div>
+        ))}
+      </div>
+      <p className="rkp-cap">{tx('pack.rank.learnerCap', 'share of the VAULT')}</p>
+      {onVault && <button type="button" className="rkp-act" onClick={onVault}>{tx('pack.rank.openVault', 'My knowledge in the VAULT')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>}
+    </>
+  );
+}
+
 /* ── ROZKLIK ODZNAKU (25. 10. 2026) ─────────────────────────────────────────────────────────────
  * Matej: *„teraz to musíme aplikovať aj do príslušných blokov po rozkliknutí, keďže sú tam staré
  * veci = zmeniť ikonku aj informácie a prispôsobiť aj dizajn"*. Blok pod hlavou (`MeRank`) dovtedy

@@ -307,6 +307,8 @@ export default function PackMe() {
           onBones={() => setBonesOpen(true)}
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
           onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
+          onStudy={() => setRank((r) => (r === 'study' ? null : 'study'))}
+          study={{ read: readScrolls, total: TOTAL_SCROLLS, label: tx('pack.rank.learner', 'Disciple') }}
           rank={rank}
           noRanks={isMate}
         />

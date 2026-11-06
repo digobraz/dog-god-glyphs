@@ -259,13 +259,12 @@
   .aw .vs{grid-template-columns:1fr auto 280px;align-items:start}
   .aw .vs .mid{align-self:center}
   .aw .vs-hd{width:280px}
-  .aw .igrow{overflow:visible;margin:0;padding:var(--s-md) 0 var(--s-xl);justify-content:center}
-  .aw .igph{width:230px;transition:transform .3s ease}
-  .aw .igph+.igph{margin-left:-28px}
-  .aw .igph1{transform:rotate(-5deg) translateY(12px)}
-  .aw .igph2{transform:translateY(-6px);z-index:1}
-  .aw .igph3{transform:rotate(5deg) translateY(12px)}
-  .aw .igph:hover{transform:rotate(0) translateY(-12px) scale(1.04);z-index:2}
+  /* tesný zväzok ako karusel v hero: stredný vpredu, bočné za ním natočené ±7° s veľkým prekryvom */
+  .aw .igrow{display:block;position:relative;overflow:visible;height:540px;margin:0;padding:0}
+  .aw .igph{position:absolute;top:0;left:50%;width:230px;margin:0;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+  .aw .igph1{transform:translateX(-112%) translateY(48px) rotate(-7deg) scale(.9);z-index:2}
+  .aw .igph2{transform:translateX(-50%);z-index:3}
+  .aw .igph3{transform:translateX(12%) translateY(48px) rotate(7deg) scale(.9);z-index:2}
   .aw .vs>.rv .tilt{width:230px;margin:0 auto}
 }
 .aw .vs .tilt{width:min(200px,56vw);margin:0 auto}
@@ -650,3 +649,9 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 /* odsek po vetách — každá veta vlastný riadok na PC (Matej 6. 11.: „trochu uprac tie textingy“) */
 .aw .hero .lead,.aw .sec-h h2.soul-h+.lead{white-space:pre-line}
 @media(max-width:767px){.aw .hero .lead,.aw .sec-h h2.soul-h+.lead{white-space:normal}}
+
+/* ikonky appiek VEĽKÉ, presahujú pilulku (Matej 6. 11.) */
+.aw .vs-hd{position:relative;padding-left:96px;margin-top:var(--s-lg)}
+.aw .vs-hd .vs-ico{position:absolute;left:-14px;top:50%;width:92px;height:92px;transform:translateY(-50%) rotate(-6deg);border-radius:22%;box-shadow:0 10px 24px -8px rgba(26,18,6,.45);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.aw .vs-hd:hover .vs-ico{transform:translateY(-50%) rotate(0) scale(1.06)}
+@media(max-width:767px){.aw .vs-hd{padding-left:80px}.aw .vs-hd .vs-ico{width:76px;height:76px;left:-10px}}

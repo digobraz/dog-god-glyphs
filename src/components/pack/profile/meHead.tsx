@@ -16,7 +16,7 @@ import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, BONES_TIER, type PackTier } from '@/lib/packTiers';
 import { devotionTier, devotionVars, NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
-import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, STORY_RING_CSS, RING_V1, ARC_MAX, ARC_BELOW, arcDogs, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, useActiveDays } from '@/components/pack/profile/rankBadge';
+import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, STORY_RING_CSS, RING_V1, ARC_MAX, ARC_BELOW, arcDogs, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, LearnerBadge, LearnerPanel, learnerProgress, useActiveDays } from '@/components/pack/profile/rankBadge';
 /** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
 
 const T = PACK_THEME;
@@ -402,7 +402,7 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false, foreign = false, withName }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, onStudy, study, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false, foreign = false, withName }: {
   cover: string | null;
   /** Meno pawmata pod menom — „& Lenka“ (Matej 26. 10.: *„pod menom stachoman by mohol byť malým text a Lenka“* ·
    *„každý kto uvidí môj profil by videl aj foto aj názov a Lenka“*). Len tam, kde je aj fotka pawmata
@@ -434,6 +434,9 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   onBones?: () => void;
   onDev?: () => void;
   onPilgrim?: () => void;
+  /** UČEŇ (6. 11. 2026) — bez `study` sa odznak nekreslí (cudzí profil zatiaľ nevie, koľko zvitkov má druhý). */
+  onStudy?: () => void;
+  study?: { read: number; total: number; label: string } | null;
   /** Ktorý rozbaľovač je otvorený — jeho pilulka dostane lem. */
   rank?: 'dev' | 'pt' | 'study' | null;
   /** Hodnosti pod sebou (vedľa fotky stojí viac ľudí). */
@@ -524,6 +527,8 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
           <div className="me-lv rk-row">
             <ServantBadge years={servantYears ?? null} activeDays={activeDays} on={rank === 'dev'} onClick={onDev} label={servantLabel} />
             <PilgrimBadge level={pilgrimLevel} pct={pilgrimPct} on={rank === 'pt'} onClick={onPilgrim} label={`${pilgrimRankLabel} ${pilgrimLevel}`} />
+            {study && (() => { const l = learnerProgress(study.read, study.total);
+              return <LearnerBadge level={l.level} pct={l.pct} on={rank === 'study'} onClick={onStudy} label={`${study.label} ${l.level}`} />; })()}
           </div>
         ) : (
         <div className={`me-lv${stack ? ' stack' : ''}`}>
@@ -779,6 +784,15 @@ export function MeRank({ kind, devotion, pilgrim, study, servantYears, servantDa
   const fmtN = (n: number) => Math.round(n).toLocaleString('sk-SK');
   // TEST_BUILD (25. 10. 2026): rozklik odznaku SLUŽOBNÍK / PÚTNIK — noc so zlatým lemom ako odznaky,
   // obsah v `rankBadge.tsx` (ServantPanel / PilgrimPanel). DEVOTION pyramída ostáva pre web.
+  if (RANK_BADGE_ON && kind === 'study' && study) {
+    const night = { '--rk-bg': 'radial-gradient(120% 100% at 0% 0%, #22306a 0%, #121a44 45%, #0a0d26 100%)', '--rk-edge': 'rgba(95,230,255,.55)', '--rk-ink': NIGHT_INK } as CSSProperties;
+    return (
+      <div className="me-rk" style={night} ref={boxRef}>
+        <style>{RANK_PANEL_CSS}</style>
+        <LearnerPanel read={study.read} total={study.total} liked={study.liked} saved={study.saved} onVault={onVault} tx={tx} />
+      </div>
+    );
+  }
   if (RANK_BADGE_ON && kind !== 'study') {
     const night = { '--rk-bg': 'radial-gradient(120% 100% at 0% 0%, #22306a 0%, #121a44 45%, #0a0d26 100%)', '--rk-edge': 'rgba(231,196,108,.7)', '--rk-ink': NIGHT_INK } as CSSProperties;
     const lv = pilgrim.level;
