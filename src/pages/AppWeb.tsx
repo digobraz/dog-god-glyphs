@@ -261,6 +261,7 @@ export default function AppWeb() {
   const [ucOn, setUcOn] = useState(3);
   /* mozog Učňa: kým sa nikto nedotkne odznaku, prechádza úrovne sám (1 → 10 → znova) */
   const ucTouched = useRef(false);
+  const [ucLive, setUcLive] = useState<number | null>(null);
   useEffect(() => {
     const id = setInterval(() => { if (!ucTouched.current) setUcOn((i) => (i + 1) % UCEN_PCT.length); }, 2600);
     return () => clearInterval(id);
@@ -510,13 +511,19 @@ export default function AppWeb() {
           } />
           <div className="ai-ucen2">
             <p><b>{c('uc_a')}</b> {c('uc_b')}</p>
-            <AiBrain share={UCEN_PCT[ucOn] === '1.' ? 0 : parseFloat(UCEN_PCT[ucOn]) / 100} head={AI_HEAD} />
+            <AiBrain share={UCEN_PCT[ucOn] === '1.' ? 0 : parseFloat(UCEN_PCT[ucOn]) / 100} head={AI_HEAD} onShare={(n, total) => {
+              /* najvyšší Učeň, na ktorého labka už nazbierala (1. = prvé zrno) */
+              ucTouched.current = true;
+              let lvl = 0;
+              UCEN_PCT.forEach((p, i) => { if (i && n / total >= parseFloat(p) / 100) lvl = i; });
+              setUcOn(lvl); setUcLive(n / total);
+            }} />
             <div className="ai-ucrow">{UCEN_PCT.map((pc, i) => (
-              <button key={i} type="button" className={ucOn === i ? 'on' : ''} onPointerEnter={() => { ucTouched.current = true; setUcOn(i); }} onFocus={() => { ucTouched.current = true; setUcOn(i); }} onClick={() => { ucTouched.current = true; setUcOn(i); }}>
+              <button key={i} type="button" className={`${ucOn === i ? 'on' : ''}${ucLive != null && i > ucOn ? ' off' : ''}`} onPointerEnter={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onFocus={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onClick={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }}>
                 <img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" loading="lazy" />
               </button>
             ))}</div>
-            <p className="ai-uclbl"><b>{c('ax3')} {ucOn + 1}</b> · {i18nPct(UCEN_PCT[ucOn])}</p>
+            <p className="ai-uclbl"><b>{c('ax3')} {ucOn + 1}</b> · {ucLive == null ? i18nPct(UCEN_PCT[ucOn]) : `${(ucLive * 100).toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB', { maximumFractionDigits: 1 })} % ${c('uc_vault')}`}</p>
           </div>
         </div>
 

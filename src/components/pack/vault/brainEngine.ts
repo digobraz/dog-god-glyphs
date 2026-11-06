@@ -94,6 +94,8 @@ export interface BrainOptions {
    *  uzly a linky sa postupne rozsvecujú na rôznych miestach“). Bubliny svetov vo svojej farbe, zrno cyan,
    *  zrno so stavom ≥ 1 a jeho vlákno žiaria žltooranžovo a mihotajú sa. Appka ho nepoužíva. */
   glow?: boolean;
+  /** `glow`: labka prešla cez zrno `zi` (volá sa raz na dotyk, kým zrno nedohasne). */
+  onTouch?: (zi: number) => void;
   onWorld: (wi: number) => void;
   onRoot: () => void;
 }
@@ -319,8 +321,11 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       const s = toScreen(p); p.sx = s.x; p.sy = s.y;
       if (o.glow) {
         p.ht = (p.ht ?? 0) * htDec;
-        const reach = p.role === 'w' ? 64 : p.role === 'root' ? 54 : p.role === 'o' ? 46 : 40;
-        if (Math.hypot(p.sx - ptr.x, p.sy - ptr.y) < reach) p.ht = 1;
+        const reach = p.role === 'w' ? 64 : p.role === 'root' ? 54 : p.role === 'o' ? 46 : 24;
+        if (Math.hypot(p.sx - ptr.x, p.sy - ptr.y) < reach) {
+          if (p.role === 'z' && (p.ht ?? 0) < 0.98) o.onTouch?.(p.zi);
+          p.ht = 1;
+        }
       }
       if (LEVIT && p !== drag) {
         /* ⚠️ Levitácia v PIXELOCH (inak rastie s mierkou) a pripočítaná k tomu, čo sa

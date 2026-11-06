@@ -859,7 +859,6 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .af-tile:hover,.aw .af-sum:hover{transform:translateY(-3px);border-color:var(--ai-edge-strong);box-shadow:0 0 34px rgba(91,224,240,.22)}
 .aw .af-tile.cy b{background:linear-gradient(180deg,#E6FDFF,var(--ai-cyan) 50%,#1FA9C4);-webkit-background-clip:text;background-clip:text;color:transparent}
 /* náraz: blok sa zavlní */
-.aw .af-hit{animation:af-jelly .5s cubic-bezier(.3,1.6,.5,1)}
 @keyframes af-jelly{0%{transform:none}30%{transform:translateY(2px) scale(1.035,.965)}60%{transform:translateY(-2px) scale(.985,1.015)}100%{transform:none}}
 /* 7 svetov — svietia, pulzujú, ťuk = zvitky sveta */
 .aw .af-world{all:unset;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;gap:var(--s-sm);-webkit-tap-highlight-color:transparent}
@@ -973,3 +972,7 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .zs{overflow:hidden;margin-left:calc(var(--s-xl) * -1);margin-right:calc(var(--s-xl) * -1);padding:0 var(--s-xl);-webkit-mask:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .aw .zs-loop .zs-card{animation:none}
 .aw .ai-brain{height:clamp(340px,50vw,560px)}
+.aw .ai-ucrow button.off{filter:grayscale(1) brightness(.45);opacity:.5}
+
+/* blok lieviku pri dotyku: len rozsvietiť a nadvihnúť, nič nepulzuje (Matej 6. 11.) */
+.aw .af-tile:hover,.aw .af-sum:hover{transform:translateY(-4px);animation:none}

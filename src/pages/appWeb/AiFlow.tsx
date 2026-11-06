@@ -8,7 +8,7 @@ import { WORLD_TINT } from '@/components/pack/ainubisSkin';
  *  blokov je vidno, ako sa narážajú, vlnia a postupujú“). Poschodia 5 → 4 → 2 → 7 svetov → 46 · 547 → zvitky.
  *  Prúd kreslí CANVAS: svetelné častice so stopou po krivkách medzi kotvami `data-fa` (merajú sa po vykreslení —
  *  poschodia sa zalamujú podľa šírky). Dopad častice = vlna na hrane bloku; blok pod myšou/prstom prúd zhustí,
- *  zrýchli a pri každom náraze sa zachveje. Varianty 1–4 zanikli. Svety sú tlačidlá: ťuk = zvitky toho sveta. */
+ *  zrýchli a blok sa rozsvieti a nadvihne — bez chvenia (Matej: „nepulzuje“). Varianty 1–4 zanikli. Svety sú tlačidlá: ťuk = zvitky toho sveta. */
 
 type Lang2 = 'en' | 'sk';
 type Pt = [number, number];
@@ -89,10 +89,6 @@ export function AiFlow({ L, c, counter, learn, onWorld, published }: {
     const parts: Part[] = []; const waves: Wave[] = [];
     const acc = new Map<number, number>();
     let last = performance.now(), raf = 0;
-    const shake = (i: number) => {
-      const n = els.current[i]; if (!n || n.classList.contains('af-hit')) return;
-      n.classList.add('af-hit'); setTimeout(() => n.classList.remove('af-hit'), 520);
-    };
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
@@ -125,7 +121,6 @@ export function AiFlow({ L, c, counter, learn, onWorld, published }: {
         if (q.t >= 1) {
           parts.splice(i, 1);
           waves.push({ x: p.p[3][0], y: p.p[3][1], col: p.col, age: 0, big: p.b === h });
-          if (p.b === h || Math.random() < 0.08) shake(p.b);
           continue;
         }
         /* stopa: 6 bodov dozadu, slabne */

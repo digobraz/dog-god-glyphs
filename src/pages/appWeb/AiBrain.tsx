@@ -7,7 +7,11 @@ import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
  *  rozsvietia až po podiel zvoleného Učňa. Labka (myš) rozsvecuje, čo prejde — svety, okruhy, zrná aj synapsy
  *  (engine `glow`); koliesko sa k plátnu nedostane, aby rolovalo stránku. Na dotykovom displeji je plátno
  *  len na pozeranie — inak by sa cez mozog nedalo rolovať. */
-export function AiBrain({ share, head }: { share: number; head: string }) {
+export function AiBrain({ share, head, onShare }: { share: number; head: string; onShare?: (n: number, total: number) => void }) {
+  /* NAŽIVO (Matej 6. 11.: „dotyk synapsí to vyfarbí ale ponechá a tým rastú nižšie odznaky“): prvým dotykom labky
+     sa ukážka vypne, mozog sa vyprázdni a svieti už len to, čo labka prešla — počet ide hore do odznakov Učňa. */
+  const mine = useRef<Set<number> | null>(null);
+  const report = useRef(onShare); report.current = onShare;
   const cv = useRef<HTMLCanvasElement>(null);
   const tip = useRef<HTMLDivElement>(null);
   const st = useRef<Uint8Array>(new Uint8Array(0));
@@ -25,6 +29,12 @@ export function AiBrain({ share, head }: { share: number; head: string }) {
       insets: () => ({ top: 0, bottom: 0 }),
       describe: () => null,
       layer: () => 'progress', glow: true,
+      onTouch: (zi) => {
+        if (!mine.current) { mine.current = new Set(); st.current.fill(0); }
+        if (mine.current.has(zi)) return;
+        mine.current.add(zi); st.current[zi] = 1; h.refresh();
+        report.current?.(mine.current.size, total);
+      },
       progress: (zi) => { if (zi + 1 > total) total = zi + 1; return (st.current[zi] ?? 0) as 0 | 1 | 2; },
       onWorld: () => {}, onRoot: () => {},
     });
@@ -41,6 +51,7 @@ export function AiBrain({ share, head }: { share: number; head: string }) {
       /* počet zŕn pozná až postavený mozog (stavia sa aj pri zmene veľkosti) */
       if (st.current.length !== total) { st.current = new Uint8Array(total); order.current = Array.from({ length: total }, (_, i) => i).sort(() => Math.random() - 0.5); lit = 0; }
       if (!total) return;
+      if (mine.current) return; /* naživo kreslí labka, ukážka stojí */
       const goal = Math.max(1, Math.round(want.current * total));
       const S = st.current, O = order.current;
       let ch = false;
