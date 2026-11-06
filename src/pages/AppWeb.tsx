@@ -19,7 +19,7 @@
  */
 import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Seo } from '@/components/Seo';
-import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar } from '@/components/pack/HandIcons';
+import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar, HandArrowLeft } from '@/components/pack/HandIcons';
 import AI_HEAD from '@/assets/ainubis-head.webp';
 import { AiFlow } from './appWeb/AiFlow';
 import { AiScrolls, AiPods, AiChat } from './appWeb/AiLearn';
@@ -173,6 +173,24 @@ function Stores() {
 /** Do živej appky v telefóne sa vstrekne štýl, ktorý skryje predajné prvky /magnet
  *  (kartu a lištu s cenou €11 — appka je od 5. 11. zadarmo) a vývojárske tlačidlá. */
 
+/** Vodorovný pás snímok (blok poďakovania): natívny scroll so snap — prst, trackpad aj šípky; pilulky hore = poloha. */
+function GoodSlides({ labels, children }: { labels: string[]; children: ReactNode }) {
+  const tr = useRef<HTMLDivElement>(null);
+  const [at, setAt] = useState(0);
+  const go = (i: number) => { const el = tr.current; if (el) el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' }); };
+  const onScroll = () => { const el = tr.current; if (el) setAt(Math.round(el.scrollLeft / el.clientWidth)); };
+  return (
+    <div className="gs">
+      <div className="gs-tabs" role="tablist">
+        {labels.map((l, i) => <button key={l} role="tab" aria-selected={at === i} className={at === i ? 'on' : ''} onClick={() => go(i)}>{l}</button>)}
+      </div>
+      <div className="gs-tr" ref={tr} onScroll={onScroll}>{children}</div>
+      <button className="sl-btn l" aria-label="Späť" disabled={at === 0} onClick={() => go(at - 1)}><HandArrowLeft size={18} /></button>
+      <button className="sl-btn r" aria-label="Ďalej" disabled={at === labels.length - 1} onClick={() => go(at + 1)}><HandArrowLeft size={18} style={{ transform: 'scaleX(-1)' }} /></button>
+    </div>
+  );
+}
+
 /** Živá planétka z `/` — montuje sa až pri obrazovke a mimo nej stojí. */
 function LivePlanet() {
   const [mountRef, near] = useNear<HTMLDivElement>('600px');
@@ -309,7 +327,7 @@ export default function AppWeb() {
         <div className="wrap">
           <a className="logo" href="#" aria-label="DOGYPT"><img src="/images/magnet/logo-2026-kartusa.svg" alt="DOGYPT" /></a>
           <nav>
-            <a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#badges">{c('nav3')}</a><a href="#ainubis">AINUBIS</a><a href="#lore">{c('nav5')}</a>
+            <a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#badges">{c('nav3')}</a><a href="#ainubis">AINUBIS</a><a href="#good">{c('nav5')}</a>
           </nav>
           <button className="lang" onClick={() => setLang(L === 'sk' ? 'en' : 'sk')}>{L === 'sk' ? 'EN' : 'SK'}</button>
           <a className="pk-cta" href="#join">{c('getapp')}</a>
@@ -565,29 +583,58 @@ export default function AppWeb() {
 
       </section>
 
-      {/* 7 · NAVŽDY ZADARMO — poďakovanie psom */}
+      {/* 7 · POĎAKOVANIE — tri snímky vodorovne: poďakovanie + počet psov · intro video · DOGMA
+          (Matej 6. 11.: „blok poďakovanie bude mať 3 časti na horizontálny scroll“; „Za hrou“ sa v ňom rozpustil) */}
       <section id="good">
         <div className="wrap">
-          <Rv className="good2 pk-card">
-            <div className="pic"><img src="/images/vision/vision-unity.webp" alt="" loading="lazy" /></div>
-            <div>
-              <p className="eye">{c('e_good')}</p>
-              <h2>{c('h_good1')} <span className="deco">{c('h_good2')}</span></h2>
-              <p className="lead">{c('l_good')}</p>
-              <p>{c('l_good2')}</p>
-              <div className="bowls">
-                <div className="pk-subblock"><b>€0</b><span>{c('b1')}</span></div>
-                <div className="pk-subblock"><b>{c('b2v')}</b><span>{c('b2')}</span></div>
-                <div className="pk-subblock"><b>{c('b3v')}</b><span>{c('b3')}</span></div>
+          <GoodSlides labels={[c('sl_good'), c('sl_video'), c('sl_dogma')]}>
+            <div className="gs-slide good2 pk-card">
+              <div className="pic"><img src="/images/vision/vision-unity.webp" alt="" loading="lazy" /></div>
+              <div>
+                <p className="eye">{c('e_good')}</p>
+                <h2>{c('h_good1')} <span className="deco">{c('h_good2')}</span></h2>
+                <p className="lead">{c('l_good')}</p>
+                <div className="gs-count">
+                  <p><b>{dogs.toLocaleString('sk-SK')}</b> <span>{c('dogs_now')}</span></p>
+                  <div className="pk-progress"><div className="pk-progress__fill" style={{ width: `${Math.max(2, (dogs / 1_000_000) * 100)}%` }} /></div>
+                  <small>{c('goal')} · 1 000 000</small>
+                </div>
+                <p>{c('l_good2')}</p>
+                <div className="bowls">
+                  <div className="pk-subblock"><b>€0</b><span>{c('b1')}</span></div>
+                  <div className="pk-subblock"><b>{c('b2v')}</b><span>{c('b2')}</span></div>
+                  <div className="pk-subblock"><b>{c('b3v')}</b><span>{c('b3')}</span></div>
+                </div>
+                <a className="pk-cta" href="#">{c('give')}</a>
+                {nakres && <p style={{ margin: '16px 0 0' }}><Note k="n_good" flag /></p>}
               </div>
-              <a className="pk-cta" href="#">{c('give')}</a>
-              {nakres && <p style={{ margin: '16px 0 0' }}><Note k="n_good" flag /></p>}
             </div>
-          </Rv>
+            <div className="gs-slide gs-video pk-card">
+              <video src="/videos/vision-intro-montage.mp4" poster="/images/mission/intro-poster.webp" controls playsInline preload="none" />
+              <div>
+                <p className="eye">{c('e_lore')}</p>
+                <h2>{c('h_lore1')} <span className="deco">{c('h_lore2')}</span></h2>
+                <p className="lead">{c('l_lore')}</p>
+                {loreOpen && <p>{c('l_lore2')}</p>}
+                <button className="more" onClick={() => setLoreOpen(!loreOpen)}>{loreOpen ? c('less') : c('more')}</button>
+                <p><a className="link-gold" href="/">{c('story_cta')}</a></p>
+              </div>
+            </div>
+            <div className="gs-slide gs-dogma pk-card">
+              <div className="pic"><img src="/images/dogma-cover.webp" alt="DOGMA" loading="lazy" /></div>
+              <div>
+                <p className="eye">{c('e_dogma')}</p>
+                <h2>{c('h_dogma1')} <span className="deco">{c('h_dogma2')}</span></h2>
+                <p className="lead">{c('l_dogma')}</p>
+                <a className="pk-cta" href={L === 'sk' ? 'https://dogma.dogypt.com/' : 'https://dogma.dogypt.com/en/'}>{c('dogma_cta')}</a>
+                <p className="motto">{c('motto')}</p>
+              </div>
+            </div>
+          </GoodSlides>
         </div>
       </section>
 
-      {/* 8 · VSTÚP — heroglyf ako kľúč */}
+      {/* 8 · VSTÚP — faraón s ukazovákom „potrebujeme ťa“ z /onepage namiesto heroglyfu (Matej 6. 11.) */}
       <section id="join" style={{ paddingTop: 0 }}>
         <div className="wrap">
           <Rv className="join">
@@ -599,7 +646,7 @@ export default function AppWeb() {
               <p className="or">{c('or_app')}</p>
               <Stores />
             </div>
-            <div className="glyph-k"><img src="/images/hekthor-heroglyph.webp" alt="" loading="lazy" /></div>
+            <div className="join-ph"><img src="/images/council-pharaoh.webp" alt="" loading="lazy" /></div>
           </Rv>
         </div>
       </section>
@@ -607,35 +654,12 @@ export default function AppWeb() {
       {/* 9 · FAQ */}
       <section style={{ paddingTop: 0 }}>
         <div className="wrap">
-          <Rv className="sec-h"><p className="eye">FAQ</p></Rv>
+          <Rv className="sec-h faq-h"><p className="eye">FAQ</p><h2>{c('h_faq1')} <span className="deco">{c('h_faq2')}</span></h2></Rv>
           <div className="faq">
             {[1, 2, 3, 4, 5, 6].map((n) => (
               <Rv as="details" key={n} className="pk-stage"><summary>{c(`q_${n}`)}</summary><p>{c(`a_${n}`)}</p></Rv>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* 10 · ZA HROU — video, príbeh na rozklik, cieľ */}
-      <section id="lore" className="lore">
-        <div className="wrap">
-          <Rv className="sec-h"><p className="eye">{c('e_lore')}</p><h2>{c('h_lore')}</h2></Rv>
-          <div className="lore2">
-            <Rv><video src="/videos/vision-intro-montage.mp4" poster="/images/mission/intro-poster.webp" controls playsInline preload="none" /></Rv>
-            <Rv d={1} className="pk-dblock">
-              <p>{c('l_lore')}</p>
-              {loreOpen && <p>{c('l_lore2')}</p>}
-              <button className="more" onClick={() => setLoreOpen(!loreOpen)}>{loreOpen ? c('less') : c('more')}</button>
-              <p className="eye" style={{ marginTop: 24 }}>{c('goal')}</p>
-              <div className="big">{dogs.toLocaleString('sk-SK')} <small>/ 1 000 000</small></div>
-              <div className="pk-progress"><div className="pk-progress__fill" style={{ width: `${Math.max(2, (dogs / 1_000_000) * 100)}%` }} /></div>
-              <div className="links">
-                <a className="link-gold" href="/">{c('story_cta')}</a>
-                <a className="link-gold" href={L === 'sk' ? 'https://dogma.dogypt.com/' : 'https://dogma.dogypt.com/en/'}>{c('dogma_cta')}</a>
-              </div>
-            </Rv>
-          </div>
-          <Rv as="p" className="motto">{c('motto')}</Rv>
         </div>
       </section>
 

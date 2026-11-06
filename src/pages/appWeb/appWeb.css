@@ -1047,3 +1047,59 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 /* citát kurzívou (podpis AINUBIS ostáva rovný) */
 .aw .ai-quote{font-style:italic}
 .aw .ai-quote small{font-style:normal}
+
+/* ══ v30 (6. 11. 2026) — Matej: poďakovanie = 3 snímky vodorovne (poďakovanie · intro · DOGMA), „Za hrou“ sa v ňom
+   rozpustil · vo „Vstúp“ namiesto heroglyfu faraón „potrebujeme ťa“ · FAQ s veľkým nadpisom · planétka v písme Museum ══ */
+.aw .gs{position:relative}
+.aw .gs-tabs{display:flex;justify-content:center;gap:var(--s-sm);margin-bottom:var(--s-lg)}
+.aw .gs-tabs button{all:unset;cursor:pointer;padding:8px 16px;border-radius:var(--r-pill);font:600 var(--t-label)/1 var(--font-ui);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);border:1px solid var(--card-edge);background:color-mix(in srgb,var(--paper) 70%,transparent)}
+.aw .gs-tabs button.on{color:var(--ink-strong);background:var(--paper);box-shadow:inset 0 0 0 1.5px var(--card-edge)}
+.aw .gs-tr{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;border-radius:var(--r-card)}
+.aw .gs-tr::-webkit-scrollbar{display:none}
+.aw .gs-slide{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;box-sizing:border-box;margin:0}
+.aw .gs .sl-btn{top:50%;transform:translateY(-50%)}
+.aw .gs .sl-btn.l{left:-18px}.aw .gs .sl-btn.r{right:-18px}
+.aw .gs .sl-btn:disabled{opacity:0;pointer-events:none}
+@media(max-width:899px){.aw .gs .sl-btn{display:none}}
+/* počet psov a cieľ */
+.aw .gs-count{margin:var(--s-md) 0}
+.aw .gs-count p{margin:0}
+.aw .gs-count b{font:900 clamp(36px,4.4vw,52px)/1 var(--font-title);color:var(--ink-strong)}
+.aw .gs-count span{font:500 var(--t-body)/1 var(--font-ui);color:var(--ink-soft)}
+.aw .gs-count .pk-progress{height:10px;border-radius:var(--r-pill);overflow:hidden;margin:var(--s-sm) 0 6px}
+.aw .gs-count small{font:500 var(--t-micro)/1 var(--font-ui);letter-spacing:.18em;text-transform:uppercase;color:var(--gold-ink)}
+/* intro video */
+.aw .gs-video{display:grid;gap:var(--s-xl);align-items:center;padding:var(--s-xl)}
+@media(min-width:900px){.aw .gs-video{grid-template-columns:1.2fr 1fr;padding:var(--s-xxl)}}
+.aw .gs-video video{width:100%;display:block;border-radius:var(--r-tile);background:#000;aspect-ratio:16/9;object-fit:cover}
+.aw .gs-video h2,.aw .gs-dogma h2{font-size:34px;line-height:1.05}
+@media(min-width:768px){.aw .gs-video h2,.aw .gs-dogma h2{font-size:46px}}
+.aw .gs-video .more{display:block;margin:var(--s-sm) 0 var(--s-md);background:none;border:0;padding:0;font:600 var(--t-label)/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--lapis-deep);cursor:pointer}
+/* DOGMA — kniha */
+.aw .gs-dogma{display:grid;gap:var(--s-xl);align-items:center;padding:var(--s-xl)}
+@media(min-width:900px){.aw .gs-dogma{grid-template-columns:.8fr 1.2fr;padding:var(--s-xxl)}}
+.aw .gs-dogma .pic{justify-self:center;width:min(300px,70%)}
+.aw .gs-dogma .pic img{width:100%;display:block;border-radius:6px;box-shadow:0 24px 50px -20px rgba(26,18,6,.6);transform:rotate(-3deg)}
+.aw .gs-dogma .pk-cta{margin-top:var(--s-lg);text-decoration:none}
+.aw .gs-dogma .motto{margin:var(--s-xl) 0 0;font:900 var(--t-lead)/1 var(--font-title);letter-spacing:.14em;text-transform:uppercase;color:var(--card-edge)}
+
+/* VSTÚP — faraón vystupuje z bloku dole, hlava nad okrajom */
+.aw .join{overflow:visible;position:relative}
+.aw .join-ph{align-self:end;justify-self:center;width:min(380px,100%);margin:-140px 0 calc(-1 * var(--s-xxxl))}
+@media(min-width:900px){.aw .join-ph{margin:-180px 0 -72px}}
+.aw .join-ph img{width:100%;display:block}
+@media(max-width:899px){.aw .join-ph{width:min(260px,80%);margin:0 auto calc(-1 * var(--s-xxxl))}}
+
+/* FAQ — normálny veľký nadpis */
+.aw .faq-h{text-align:center}
+.aw .faq-h h2{font-size:clamp(40px,7vw,66px);line-height:1.04}
+
+/* PLANÉTKA — nadpis, výzva a popisky v písme stránky (LT Museum), mená psov ostávajú Cinzel Decorative (brand lock) */
+.aw .planet-live .ph-h1,.aw .planet-live .ph-h1 .g,.aw .planet-live .ph-lbl{font-family:var(--font-title)}
+.aw .planet-live .ph-h1{font-weight:500}
+.aw .planet-live .ph-h1 .g{font-weight:900}
+/* v30b — snímky rovnako vysoké = podľa najvyššej; prvá preto nižšia (obraz menší), obsah ostatných v strede */
+.aw .gs-slide.good2 .pic{justify-self:center;width:min(380px,100%)}
+.aw .gs-slide.good2{padding:var(--s-xl) var(--s-xxl)}
+.aw .gs-dogma .pic img{border-radius:0;box-shadow:none;transform:none;mix-blend-mode:multiply}
+.aw .gs-tr{padding-bottom:24px;margin-bottom:-24px}
