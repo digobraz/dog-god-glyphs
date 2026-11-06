@@ -26,6 +26,7 @@ import { GodsGridLab } from '@/components/gods/GodsGridLab';
 import { useLang } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
+import { IgMock } from './appWeb/IgMock';
 import './appWeb/appWeb.css';
 
 const A = '/web-app';
@@ -329,14 +330,7 @@ export default function AppWeb() {
           </Rv>
           <div className="vs">
             <Rv>
-              <div className="igm">
-                <div className="h"><div className="av"><HandPaw size={30} /></div><div className="st"><div><b>4</b>posts</div><div><b>11</b>followers</div><div><b>203</b>following</div></div></div>
-                <p className="nm">bella.the.beagle.official</p>
-                <p className="bio">just a girl who loves treats</p>
-                <div className="btn">Follow</div>
-                <div className="gr"><i /><i /><i /><i /></div>
-                <p className="lk">{c('ig_lk')}</p>
-              </div>
+              <IgMock c={c} />
               <p className="vs-cap">{c('cap1')}</p>
             </Rv>
             <Rv d={1} className="mid">VS</Rv>

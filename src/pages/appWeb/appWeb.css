@@ -227,18 +227,71 @@
 .aw .vs{display:grid;gap:var(--s-xl);align-items:center}
 @media(min-width:900px){.aw .vs{grid-template-columns:1fr auto 1fr}}
 .aw .vs .mid{font:900 40px/1 var(--font-title);color:var(--gold-ink);text-align:center}
-.aw .igm{background:white;border-radius:28px;padding:var(--s-lg);max-width:320px;margin:0 auto;width:100%;font-family:-apple-system,system-ui,sans-serif;color:color-mix(in srgb,var(--ink-strong) 70%,transparent);box-shadow:var(--lab-shadow);filter:grayscale(.85);transform:rotate(-2deg)}
-.aw .igm .h{display:flex;align-items:center;gap:var(--s-lg)}
-.aw .igm .av{width:72px;height:72px;flex:none;border-radius:50%;background:color-mix(in srgb,var(--ink-strong) 12%,transparent);display:grid;place-items:center;font-size:30px}
-.aw .igm .st{display:flex;gap:var(--s-md);text-align:center;font-size:var(--t-label)}
-.aw .igm .st b{display:block;font-size:var(--t-lead);color:color-mix(in srgb,var(--ink-strong) 80%,transparent)}
-.aw .igm .nm{margin:var(--s-md) 0 2px;font-weight:600;font-size:var(--t-body)}
-.aw .igm .bio{margin:0;font-size:var(--t-label);opacity:.7}
-.aw .igm .btn{margin:var(--s-md) 0;border-radius:var(--r-field);background:color-mix(in srgb,var(--ink-strong) 8%,transparent);text-align:center;padding:8px;font-size:var(--t-label);font-weight:600}
-.aw .igm .gr{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
-.aw .igm .gr i{aspect-ratio:1;background:color-mix(in srgb,var(--ink-strong) 10%,transparent)}
-.aw .igm .gr i:nth-child(2){background:color-mix(in srgb,var(--ink-strong) 16%,transparent)}
-.aw .igm .lk{margin:var(--s-sm) 0 0;font-size:var(--t-micro);opacity:.6;text-align:center}
+/* IG paródia — tri „psie" kontá. Hodnoty vnútri makety sú IG-vernné (cudzie UI), okolie drží tokeny .aw. */
+.aw .igrow{display:flex;gap:var(--s-lg);overflow-x:auto;scroll-snap-type:x mandatory;padding:var(--s-md) var(--s-lg) var(--s-xl);margin:0 calc(var(--s-lg) * -1);scrollbar-width:none}
+.aw .vs>*{min-width:0}
+.aw .igrow::-webkit-scrollbar{display:none}
+.aw .igp{position:relative;flex:none;width:min(300px,82vw);scroll-snap-align:center;background:#fff;color:#262626;border-radius:var(--r-card);padding:0 0 var(--s-sm);font:400 13px/1.35 -apple-system,system-ui,'Segoe UI',Roboto,sans-serif;box-shadow:var(--lab-shadow);overflow:hidden}
+.aw .igp b{font-weight:600}
+.aw .igp-top{display:flex;align-items:center;justify-content:space-between;padding:var(--s-md) var(--s-md) var(--s-sm);font-size:15px}
+.aw .igp-top b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aw .igp-back{width:9px;height:9px;border-left:2px solid #262626;border-bottom:2px solid #262626;transform:rotate(45deg);flex:none;margin:0 var(--s-sm) 0 var(--s-xs)}
+.aw .igp-dots{display:flex;gap:3px;flex:none;margin-left:var(--s-sm)}
+.aw .igp-dots i{width:4px;height:4px;border-radius:50%;background:#262626}
+.aw .igp-head{display:flex;align-items:center;gap:var(--s-lg);padding:var(--s-xs) var(--s-md)}
+.aw .igp-av{flex:none;width:78px;height:78px;border-radius:50%;padding:3px;background:conic-gradient(#f9ce34,#ee2a7b,#6228d7,#f9ce34)}
+.aw .igp-avin{display:block;width:100%;height:100%;border-radius:50%;border:3px solid #fff;background:linear-gradient(160deg,#cfd8e6,#a9b8cf);color:#fff;overflow:hidden}
+.aw .igp-avin svg{display:block;width:100%;height:100%}
+.aw .igp-st{flex:1;display:flex;justify-content:space-around;text-align:center;font-size:12px;line-height:1.25}
+.aw .igp-st b{display:block;font-size:16px}
+.aw .igp-bio{padding:var(--s-sm) var(--s-md) 0}
+.aw .igp-bio p{margin:0}
+.aw .igp-nm{font-weight:600}
+.aw .igp-cat{color:#737373;font-size:12px}
+.aw .igp-tx{white-space:pre-line}
+.aw .igp-lk{color:#00376b;font-weight:500}
+.aw .igp-btns{display:flex;gap:6px;padding:var(--s-sm) var(--s-md)}
+.aw .igp-b{flex:1;text-align:center;border-radius:8px;background:#efefef;padding:7px 0;font-weight:600;font-size:13px}
+.aw .igp-b.blue{background:#0095f6;color:#fff}
+.aw .igp-hl{display:flex;gap:14px;padding:var(--s-xs) var(--s-md) var(--s-md);font-size:11px;text-align:center}
+.aw .igp-hl>div{width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aw .igp-ring{display:block;width:54px;height:54px;border-radius:50%;border:1px solid #dbdbdb;padding:3px;margin-bottom:3px}
+.aw .igp-ring .igp-t{display:block;width:100%;height:100%;border-radius:50%}
+.aw .igp-tabs{display:flex;border-top:1px solid #dbdbdb}
+.aw .igp-tabs span{flex:1;display:grid;place-items:center;padding:9px 0;color:#8e8e8e;border-top:1px solid transparent;margin-top:-1px}
+.aw .igp-tabs .on{color:#262626;border-top-color:#262626}
+.aw .igp-gr{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#fff}
+.aw .igp-t{position:relative;aspect-ratio:1;display:grid;place-items:center;overflow:hidden;text-align:center}
+.aw .igp-gr .igp-t>span{position:relative;padding:5px;font:700 12px/1.1 -apple-system,system-ui,sans-serif;letter-spacing:-.01em}
+.aw .igp-gr .igp-t.sh>span{position:absolute;left:0;right:0;bottom:0;font-size:9px;font-weight:600;padding:3px 4px;background:rgba(0,0,0,.28);color:#fff}
+.aw .igp-gr .igp-t svg{position:absolute;inset:14%;width:72%;height:72%;opacity:.9}
+.aw .igp-spon{position:absolute;right:var(--s-sm);bottom:var(--s-md);background:#0095f6;color:#fff;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:600;transform:rotate(-6deg)}
+.aw .t-a{background:linear-gradient(135deg,#ffd6a5,#ff8fab);color:#7a1f3d}
+.aw .t-b{background:linear-gradient(135deg,#fdf0d5,#d9a066);color:#5a3412}
+.aw .t-c{background:linear-gradient(135deg,#a0c4ff,#bdb2ff);color:#2b2a6b}
+.aw .t-d{background:linear-gradient(180deg,#ffbe6b,#ff6b6b);color:#fff}
+.aw .t-e{background:linear-gradient(135deg,#caffbf,#9bf6ff);color:#1b4d3e}
+.aw .t-f{background:linear-gradient(135deg,#2b2d42,#52546e);color:#f1f1f1}
+.aw .t-g{background:linear-gradient(135deg,#ffc6ff,#a0c4ff);color:#4a2a6b}
+.aw .t-h{background:linear-gradient(135deg,#fffd8f,#ffcf56);color:#5c4300}
+.aw .t-i{background:linear-gradient(135deg,#e9e9e9,#cfcfcf);color:#555}
+@media(min-width:900px){
+  .aw .vs{grid-template-columns:2.4fr auto 1fr}
+  .aw .igrow{overflow:visible;margin:0;padding:var(--s-xl) 0;justify-content:center}
+  .aw .igp{width:212px;margin:0;transition:transform .3s ease}
+  .aw .igp+.igp{margin-left:-12px}
+  .aw .igp-hl{gap:8px}
+  .aw .igp-hl>div{width:42px;font-size:10px}
+  .aw .igp-ring{width:42px;height:42px}
+  .aw .igp-av{width:64px;height:64px}
+  .aw .igp-st{font-size:9px;gap:2px}
+  .aw .igp-st b{font-size:14px}
+  .aw .vs .tilt{width:90%}
+  .aw .igp1{transform:rotate(-4deg) translateY(10px)}
+  .aw .igp2{transform:translateY(-8px);z-index:1}
+  .aw .igp3{transform:rotate(4deg) translateY(10px)}
+  .aw .igp:hover{transform:rotate(0) translateY(-14px) scale(1.03);z-index:2}
+}
 .aw .vs .tilt{width:60%;max-width:270px;margin:0 auto}
 .aw .vs-cap{text-align:center;margin-top:var(--s-md);font:500 var(--t-micro)/1.3 var(--font-ui);letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft)}
 
