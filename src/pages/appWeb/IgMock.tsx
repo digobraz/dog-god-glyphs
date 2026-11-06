@@ -64,15 +64,21 @@ function DogTile({ d, scene }: { d: Dog; scene: Scene }) {
   );
 }
 
-/* glyf Instagramu: zaoblený štvorec s krúžkom a bodkou v gradiente (len jednoduchý tvar, nie ich značka) */
+/* ikonka appky Instagram v pôvodnej podobe (Matej 6. 11.: „IG ikonku daj takú, aká je originál“) —
+   radiálny prechod zdola zľava, biely obrys fotoaparátu */
 export function IgIcon({ size = 32 }: { size?: number }) {
   return (
-    <svg viewBox="0 0 32 32" width={size} height={size} aria-hidden="true" className="vs-ico">
-      <defs><linearGradient id="ig-gr" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#f9ce34" /><stop offset=".5" stopColor="#ee2a7b" /><stop offset="1" stopColor="#6228d7" /></linearGradient></defs>
-      <rect width="32" height="32" rx="7" fill="url(#ig-gr)" />
-      <rect x="7" y="7" width="18" height="18" rx="5.5" fill="none" stroke="#fff" strokeWidth="2.2" />
-      <circle cx="16" cy="16" r="4.3" fill="none" stroke="#fff" strokeWidth="2.2" />
-      <circle cx="21.2" cy="10.8" r="1.3" fill="#fff" />
+    <svg viewBox="0 0 100 100" width={size} height={size} aria-label="Instagram" className="vs-ico">
+      <defs>
+        <radialGradient id="ig-gr" cx="30" cy="107" r="150" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#fdf497" /><stop offset=".05" stopColor="#fdf497" />
+          <stop offset=".45" stopColor="#fd5949" /><stop offset=".6" stopColor="#d6249f" /><stop offset=".9" stopColor="#285AEB" />
+        </radialGradient>
+      </defs>
+      <rect width="100" height="100" rx="22" fill="url(#ig-gr)" />
+      <rect x="21" y="21" width="58" height="58" rx="17" fill="none" stroke="#fff" strokeWidth="7" />
+      <circle cx="50" cy="50" r="14" fill="none" stroke="#fff" strokeWidth="7" />
+      <circle cx="66.5" cy="33.5" r="4.4" fill="#fff" />
     </svg>
   );
 }

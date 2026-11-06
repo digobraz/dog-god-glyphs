@@ -167,8 +167,8 @@ export const COPY: Record<string, Record<Lang2, string>> = {
   "sk": "psí profil v DOGYPTe"
  },
  "e_feat": {
-  "en": "Inside the app",
-  "sk": "V appke"
+  "en": "A crossbreed of top apps",
+  "sk": "Kríženec top aplikácií"
  },
  "h_feat": {
   "en": "Everything a dog person needs",
@@ -219,8 +219,8 @@ export const COPY: Record<string, Record<Lang2, string>> = {
   "sk": "Podujatia"
  },
  "f8": {
-  "en": "Walks and meetups with other dogs.",
-  "sk": "Spoločné výlety a stretnutia."
+  "en": "Events, places, services and vets — on one map.",
+  "sk": "Podujatia, miesta, služby a ordinácie — na jednej mape."
  },
  "soon_h": {
   "en": "What can grow next",
@@ -655,7 +655,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  cap2: { en: 'one dog-person profile with all your dogs', sk: 'jeden profil psíčkara so všetkými psami' },
  e_alba: { en: 'The same name. A different dog. A unique symbol.', sk: 'To isté meno. Iný pes. Jedinečný symbol.' },
  h_alba_a: { en: "Dog name isn't unique.", sk: 'Meno psa nie je unikát.' },
- h_alba_b: { en: 'Heroglyph', sk: 'Heroglyf' },
+ h_alba_b: { en: 'HEROGLYPH', sk: 'HEROGLYF' },
  h_alba_c: { en: 'is!', sk: 'je!' },
  gb_dog: { en: 'The dog · big frame', sk: 'Pes · veľký rámik' },
  gb_own: { en: 'You · small frame', sk: 'Ty · malý rámik' },
@@ -689,9 +689,12 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  e_glyph: { en: 'Made for dogs. With a soul.', sk: 'Navrhnuté pre psov. S dušou.' },
  h_glyph: { en: 'No fakes. Only originals.', sk: 'Žiadny fejk. Len originály.' },
  l_glyph: { en: 'Every dog gets a heroglyph — a symbol nobody else has. The big frame is the dog: sex, colour, origin, bloodline, silhouette and two traits of character. You sit inside it, in the small frame — because here the dog comes first.', sk: 'Každý pes dostane heroglyf — symbol, ktorý nemá nikto iný. Veľký rámik je pes: pohlavie, farba, pôvod, pokrvná línia, silueta a dve povahové črty. Ty sedíš vo vnútri, v malom rámiku — lebo tu je pes na prvom mieste.' },
- h_feat: { en: 'Everything a dog person needs.', sk: 'Všetko, čo psíčkar potrebuje.' },
+ h_feat_a: { en: 'Everything a', sk: 'Všetko, čo' }, h_feat_b: { en: 'dog person needs.', sk: 'psíčkar potrebuje.' },
+ alba_cnt_a: { en: 'There are roughly', sk: 'Na svete je približne' },
+ alba_cnt_n: { en: '144,572', sk: '144 572' },
+ alba_cnt_b: { en: 'dogs named Alba in the world. Not one has the same heroglyph!', sk: 'psov s menom Alba. Heroglyf nemá ani jedna rovnaký!' },
+ alba_cnt_tip: { en: 'AINUBIS’s rough guess :)', sk: 'Hrubý odhad AINUBISa :)' },
  h_feat2: { en: 'Even what you didn’t know you needed.', sk: 'Aj to, o čom ešte ani nevie.' },
- hover: { en: 'hover or tap for more', sk: 'prejdi myšou alebo ťukni pre viac' },
  soon_h: { en: 'Coming next', sk: 'Čoskoro' },
  e_badge: { en: 'Badges', sk: 'Odznaky' }, h_badge1: { en: 'Four ways to', sk: 'Štyri cesty, ako' }, h_badge2: { en: 'grow.', sk: 'rásť.' },
  ax0: { en: 'Dogyptian', sk: 'Dogypťan' },

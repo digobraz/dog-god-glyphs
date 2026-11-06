@@ -27,7 +27,7 @@ import { useLang } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
 import { IgMock, IgIcon } from './appWeb/IgMock';
-import { AlbaTrio, GlyphZones } from './appWeb/AlbaGlyph';
+import { AlbaCount, AlbaTrio, GlyphZones } from './appWeb/AlbaGlyph';
 import './appWeb/appWeb.css';
 
 const A = '/web-app';
@@ -44,6 +44,8 @@ const b = (en: string, sk: string, soon = false): B => [{ en, sk }, soon];
 const FEATS: { h: Record<Lang2, string>; p: string; cls?: string; ic: ReactNode; li: B[] }[] = [
   { h: { en: 'Trails', sk: 'Výlety' }, p: 'f1', cls: 'trip', ic: <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14" />,
     li: [b('Add a trip', 'Pridaj výlet'), b('Rate it in paws', 'Ohodnoť labkami'), b('Save it for later', 'Ulož si ho na neskôr'), b('Collect km and points', 'Zbieraj km a body'), b('Route to your phone', 'Trasa do mobilu')] },
+  { h: { en: 'Map', sk: 'Mapa' }, p: 'f8', ic: <><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z" /><circle cx="12" cy="11" r="2" /></>,
+    li: [b('Events and group walks', 'Podujatia a spoločné výlety'), b('Dog-friendly places', 'Miesta, kam smie pes'), b('Services for dog people', 'Služby pre psíčkarov'), b('Vets and emergencies', 'Ordinácie a pohotovosti')] },
   { h: { en: 'DOG ID', sk: 'DOG ID' }, p: 'f2', ic: <><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="11" r="2.5" /><path d="M14 10h4M14 14h4M6 16h6" /></>,
     li: [b('Your dog’s ID card', 'Preukaz psa'), b('Personality quiz', 'Kvíz povahy'), b('Vaccines and health', 'Očkovanie a zdravie'), b('A will: who takes care of them', 'Závet: kto sa o neho postará')] },
   { h: { en: 'Daily log', sk: 'Zápis dňa' }, p: 'f3', ic: <><rect x="4" y="4" width="16" height="16" rx="3" /><path d="m8 12 3 3 5-6" /></>,
@@ -56,8 +58,6 @@ const FEATS: { h: Record<Lang2, string>; p: string; cls?: string; ic: ReactNode;
     li: [b('Lost dog: the pack around you knows', 'Stratený pes: vie o tom svorka okolo'), b('Poster in one tap', 'Leták jedným ťukom'), b('Emergency vets', 'Pohotovosť'), b('First aid', 'Prvá pomoc', true), b('Report cruelty', 'Nahlás týranie', true)] },
   { h: { en: 'Feed', sk: 'Feed' }, p: 'f7', ic: <path d="M4 5h16v11H8l-4 4V5z" />,
     li: [b('Stories from the pack', 'Príbehy zo svorky'), b('Paws and comments', 'Labky a komentáre'), b('Tag your buddies', 'Označ parťákov')] },
-  { h: { en: 'Events', sk: 'Podujatia' }, p: 'f8', ic: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></>,
-    li: [b('Group walks and trips', 'Spoločné výlety'), b('Meetups with other dogs', 'Stretnutia psov'), b('Calendar of the pack', 'Kalendár svorky')] },
 ];
 const SOON: { h: Record<Lang2, string>; p: Record<Lang2, string>; ic: ReactNode }[] = [
   { h: { en: 'Merch', sk: 'Merch' }, p: { en: 'Things for you and your dog, from the pack.', sk: 'Veci pre teba a psa, zo svorky.' }, ic: <path d="M8 4 4 6l1 5h2v9h10v-9h2l1-5-4-2a4 4 0 0 1-8 0z" /> },
@@ -330,14 +330,14 @@ export default function AppWeb() {
             <p className="lead">{c('l_soul')}</p>
           </Rv>
           <div className="vs">
-            <Rv>
-              <div className="vs-hd"><IgIcon /><p>{c('cap1')}</p></div>
+            <Rv className="vs-col">
               <IgMock c={c} />
+              <div className="vs-tag ig"><IgIcon /><p>{c('cap1')}</p></div>
             </Rv>
             <Rv d={1} className="mid">VS</Rv>
-            <Rv d={2}>
-              <div className="vs-hd"><img className="vs-ico" src="/web-app/app-icon.png" alt="DOGYPT" /><p>{c('cap2')}</p></div>
-              <Tilt set="profile" src="B-profil-top" />
+            <Rv d={2} className="vs-col">
+              <Tilt set="profile" src="svorka-danka" />
+              <div className="vs-tag dg"><img className="vs-ico" src="/web-app/app-icon.png" alt="DOGYPT" /><p>{c('cap2')}</p></div>
             </Rv>
           </div>
           <Rv className="alba-sec">
@@ -345,8 +345,8 @@ export default function AppWeb() {
             <h2 className="alba-h">{c('h_alba_a')} <span className="deco">{c('h_alba_b')}</span> {c('h_alba_c')}</h2>
           </Rv>
           <Rv><AlbaTrio /></Rv>
+          <Rv><AlbaCount c={c} /></Rv>
           <Rv className="alba-sec gz-sec">
-            <p className="lead">{c('l_glyph')}</p>
             <GlyphZones c={c} />
           </Rv>
         </div>
@@ -355,8 +355,7 @@ export default function AppWeb() {
       {/* 4 · FUNKCIE */}
       <section id="features">
         <div className="wrap">
-          <Rv className="sec-h"><p className="eye">{c('e_feat')}</p><h2>{c('h_feat')}<span className="h2b">{c('h_feat2')}</span></h2></Rv>
-          <p className="feat-hint">{c('hover')}</p>
+          <Rv className="sec-h"><p className="eye">{c('e_feat')}</p><h2>{c('h_feat_a')} <span className="blk">{c('h_feat_b')}</span><span className="h2b">{c('h_feat2')}</span></h2></Rv>
           <div className="grid">
             {FEATS.map((f, i) => (
               <Rv key={f.p} d={i % 4} className={`feat pk-stage ${f.cls ?? ''} ${openFeat === i ? 'open' : ''}`}>

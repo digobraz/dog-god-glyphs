@@ -502,7 +502,6 @@
 .aw .feat.open ul{max-height:220px;opacity:1}
 @media(hover:hover){.aw .feat.pk-stage:hover{transform:scale(1.04);z-index:3}.aw .feat.pk-stage:hover ul{max-height:220px;opacity:1}}
 .aw .grid .feat.pk-stage{cursor:pointer}
-.aw .feat-hint{text-align:center;margin:calc(-1 * var(--s-xl)) 0 var(--s-xl);font:500 var(--t-micro)/1 var(--font-ui);letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft)}
 .aw .sec-h h2 .h2b{display:block;font-size:.55em;margin-top:6px;color:var(--gold-ink)}
 
 /* ODZNAKY — 4 osi */
@@ -613,7 +612,7 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 /* HRÚBKY NADPISOV — JEDNO PRAVIDLO (Matej 6. 11.: „zjednoť tieto pravidlá hrúbok Regular/black“):
    veta = Medium 500 (Regular rodina nemá), jediné zlaté slovo (.deco) = Black 900, čiernym atramentom zvyšok */
 .aw h1,.aw h2,.aw h3{font-weight:500}
-.aw h1 .deco,.aw h2 .deco,.aw h3 .deco{font-weight:900}
+.aw h1 .deco,.aw h2 .deco,.aw h3 .deco,.aw h2 .blk{font-weight:900}
 .aw .soul-h .l2{display:block}
 
 /* nadpis sekcie 3 skoro ako hero (Matej 6. 11.) */
@@ -626,32 +625,46 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .alba-h{font-size:clamp(28px,7vw,48px);line-height:1.1;margin:0 auto}
 .aw .alba-trio{display:flex;gap:var(--s-lg);overflow-x:auto;scroll-snap-type:x mandatory;margin:var(--s-xl) calc(var(--s-lg) * -1) 0;padding:var(--s-sm) var(--s-lg) var(--s-lg);scrollbar-width:none}
 .aw .alba-trio::-webkit-scrollbar{display:none}
-.aw .alba{flex:none;width:min(260px,76vw);scroll-snap-align:center;margin:0;padding:var(--s-md);text-align:center}
-.aw .alba-ph img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:var(--r-field)}
-.aw .alba figcaption{display:flex;justify-content:center;align-items:baseline;gap:var(--s-sm);margin:var(--s-md) 0}
-.aw .alba-nm{font:900 22px/1 'Cinzel Decorative',var(--font-title);letter-spacing:.06em;color:var(--ink-strong)}
-.aw .alba figcaption b{font:700 var(--t-lead)/1 var(--font-ui);color:var(--gold-ink)}
-.aw .alba-gl{background:#fff;border-radius:var(--r-field);padding:var(--s-sm)}
-.aw .alba-gl img{display:block;width:100%}
+/* trojica ako na /onepage (.op-alba-*): bez blokov — fotka, meno + lapisová pilulka, heroglyf priamo na papyruse (Matej 6. 11.) */
+.aw .alba{flex:none;width:min(260px,76vw);scroll-snap-align:center;margin:0;display:flex;flex-direction:column;align-items:center;gap:var(--s-sm)}
+.aw .alba-ph{width:100%;border-radius:var(--r-tile);overflow:hidden;box-shadow:0 8px 24px rgba(42,22,8,.18)}
+.aw .alba-ph img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.aw .alba figcaption{display:flex;justify-content:center;align-items:center;gap:var(--s-sm);margin:var(--s-xs) 0 0}
+.aw .alba-nm{font:700 var(--t-h2)/1 'Cinzel Decorative',var(--font-title);color:var(--ink-strong)}
+.aw .alba figcaption b{font:500 var(--t-label)/1 var(--font-ui);letter-spacing:.02em;color:#fff;background:var(--lapis);box-shadow:var(--lapis-shadow);padding:4px 8px;border-radius:var(--r-pill)}
+.aw .alba-gl{display:block;width:100%;height:auto}
 @media(min-width:768px){.aw .alba-trio{justify-content:center;overflow:visible;margin:var(--s-xl) 0 0;padding:var(--s-sm) 0}.aw .alba{width:calc((100% - 2 * var(--s-lg)) / 3);max-width:330px}}
-.aw .gz-sec .lead{max-width:640px;margin:0 auto var(--s-xl)}
+/* veta s odhadom — číslo podčiarknuté bodkami, bublina „Hrubý odhad AINUBISa :)“ na hover/ťuk */
+.aw .alba-cnt{max-width:640px;margin:var(--s-xl) auto 0;text-align:center}
+.aw .alba-num{position:relative;font:inherit;font-weight:600;color:var(--ink-strong);background:none;border:0;padding:0;cursor:help;text-decoration:underline dotted var(--gold-ink);text-decoration-thickness:2px;text-underline-offset:4px}
+.aw .alba-tip{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%,4px);white-space:nowrap;font:500 var(--t-label)/1 var(--font-ui);padding:var(--s-sm) var(--s-md);border-radius:var(--r-pill);background:var(--ai-bg);color:var(--ai-cyan);border:1px solid var(--ai-edge);opacity:0;pointer-events:none;transition:opacity .15s,transform .15s}
+.aw .alba-num:hover .alba-tip,.aw .alba-num:focus-visible .alba-tip,.aw .alba-num.on .alba-tip{opacity:1;transform:translate(-50%,0)}
+/* veľký heroglyf — zložený ako na /onepage, priamo na papyruse; na mobile zvislý */
 .aw .gz{max-width:900px;margin:0 auto}
-.aw .gz-scroll{overflow-x:auto;background:#fff;border-radius:var(--r-tile);padding:var(--s-md);box-shadow:inset 0 0 0 1px var(--card-edge)}
-.aw .gz-img{position:relative;min-width:600px;aspect-ratio:13100/3500;line-height:0}
-.aw .gz-img img{position:absolute;inset:0;width:100%;height:100%;display:block}
-.aw .gz-z{position:absolute;padding:0;border:2px solid transparent;border-radius:var(--r-field);background:transparent;cursor:pointer;transition:background .15s,border-color .15s}
+.aw .gz-svg{display:block;width:100%;height:auto;overflow:visible}
+.aw .gz.v{display:grid;grid-template-columns:minmax(0,150px) 1fr;gap:var(--s-lg);align-items:center;max-width:420px}
+.aw .gz.v .gz-pill{margin:0;align-self:center}
+.aw .gz-z{cursor:pointer;outline:none}
+.aw .gz-hl{fill:transparent;stroke:transparent;stroke-width:40;transition:fill .15s,stroke .15s}
+.aw .gz.v .gz-hl{stroke-width:6}
 .aw .g-basics{--gc:#8C2F26}.aw .g-breed{--gc:#16307A}.aw .g-char{--gc:#7A2FBF}.aw .g-own{--gc:#3D7A4E}
-.aw .gz-z:hover,.aw .gz-z.on,.aw .gz-z:focus-visible{background:color-mix(in srgb,var(--gc) 16%,transparent);border-color:var(--gc);outline:none}
-.aw .gz-pill{margin:var(--s-lg) auto 0;min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:var(--s-md) var(--s-lg);border-radius:var(--r-tile);border:1px solid var(--hairline);background:color-mix(in srgb,var(--gc,#8a5a14) 8%,transparent);color:var(--ink-body);font:400 var(--t-body)/1.4 var(--font-ui)}
-.aw .gz-pill i{font:500 var(--t-micro)/1.4 var(--font-ui);font-style:normal;letter-spacing:.22em;text-transform:uppercase;color:var(--gc,var(--gold-ink))}
-.aw .gz-pill b{font:700 var(--t-lead)/1.2 var(--font-title);color:var(--gc,var(--ink-strong))}
+.aw .gz-z:hover .gz-hl,.aw .gz-z.on .gz-hl,.aw .gz-z:focus-visible .gz-hl{fill:color-mix(in srgb,var(--gc) 18%,transparent);stroke:var(--gc)}
+.aw .gz-pill{margin:var(--s-xl) auto 0;max-width:640px;min-height:112px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s-xs);padding:var(--s-lg) var(--s-xl);border-radius:var(--r-tile);border:1px solid var(--hairline);background:color-mix(in srgb,var(--gc,#8a5a14) 8%,transparent);color:var(--ink-body);font:400 var(--t-h2)/1.4 var(--font-ui);text-align:center}
+.aw .gz-pill i{font:500 var(--t-label)/1.4 var(--font-ui);font-style:normal;letter-spacing:.22em;text-transform:uppercase;color:var(--gc,var(--gold-ink))}
+.aw .gz-pill b{font:500 var(--t-h1)/1.2 var(--font-title);color:var(--gc,var(--ink-strong))}
+@media(max-width:767px){.aw .gz-pill{font-size:var(--t-lead);padding:var(--s-md);min-height:0}.aw .gz-pill b{font-size:var(--t-h2)}}
 
 /* odsek po vetách — každá veta vlastný riadok na PC (Matej 6. 11.: „trochu uprac tie textingy“) */
 .aw .hero .lead,.aw .sec-h h2.soul-h+.lead{white-space:pre-line}
 @media(max-width:767px){.aw .hero .lead,.aw .sec-h h2.soul-h+.lead{white-space:normal}}
 
-/* ikonky appiek VEĽKÉ, presahujú pilulku (Matej 6. 11.) */
-.aw .vs-hd{position:relative;padding-left:96px;margin-top:var(--s-lg)}
-.aw .vs-hd .vs-ico{position:absolute;left:-14px;top:50%;width:92px;height:92px;transform:translateY(-50%) rotate(-6deg);border-radius:22%;box-shadow:0 10px 24px -8px rgba(26,18,6,.45);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
-.aw .vs-hd:hover .vs-ico{transform:translateY(-50%) rotate(0) scale(1.06)}
-@media(max-width:767px){.aw .vs-hd{padding-left:80px}.aw .vs-hd .vs-ico{width:76px;height:76px;left:-10px}}
+/* IKONKA + PILULKA = jeden štítok v ľavom dolnom rohu mockupov (Matej 6. 11.: „ikonka aj s pills patrí k sebe… na ľavý dolný kraj“),
+   rovnaký princíp ako levitujúce odznaky v hero (.flt): veľká ikonka presahuje pilulku */
+.aw .vs-col{position:relative}
+.aw .vs-tag{position:absolute;z-index:7;left:-8px;display:flex;align-items:center;min-height:64px;max-width:300px;padding:var(--s-sm) var(--s-lg) var(--s-sm) 100px;border-radius:var(--r-pill);
+  border:1px solid var(--hairline);background:color-mix(in srgb,var(--paper) 78%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 12px 30px -16px rgba(26,18,6,.45);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.aw .vs-tag p{margin:0;font:500 var(--t-label)/1.3 var(--font-ui);color:var(--ink-body);text-align:left}
+.aw .vs-tag .vs-ico{position:absolute;left:-6px;top:50%;width:96px;height:96px;transform:translateY(-50%) rotate(-6deg);border-radius:22%;box-shadow:0 14px 30px -10px rgba(26,18,6,.5);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.aw .vs-tag:hover .vs-ico{transform:translateY(-50%) rotate(0) scale(1.06)}
+.aw .vs-tag.ig{bottom:52px}.aw .vs-tag.dg{bottom:-16px}
+@media(max-width:767px){.aw .vs-tag{left:0;max-width:260px;padding-left:84px}.aw .vs-tag .vs-ico{width:80px;height:80px}.aw .vs-tag.ig{bottom:8px}.aw .vs-tag.dg{bottom:-12px}}

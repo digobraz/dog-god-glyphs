@@ -1,7 +1,10 @@
 /* Tri ALBY (skutočné psy #43 #59 #61, údaje presne z OnePage.tsx `ALBAS`, zámerne natvrdo) + interaktívny
- *  heroglyf: ťuk/hover na časť rámika ukáže, čo znamená. Zóny = `DGX_SLOTS` z OnePage.tsx
- *  (sústava HeroglyphFrame.tsx, viewBox 800 1100 13100 3500), prepočítané na %. Texty COPY3 `gz_*`. */
-import { useState, type CSSProperties } from 'react';
+ *  heroglyf: ťuk/hover na časť rámika ukáže, čo znamená. Heroglyf je zložený ako na /onepage (dekodér DGX):
+ *  rám + kartuša + 12 dielov `/heroglyph/dogtrix/hek/*.svg` (Hektor, pack #1), na PC vodorovný, na mobile
+ *  ZVISLÝ (Matej 6. 11.: „na mobile by mohol byť vertikálny… tak ako máme aktuálne na webe“). Geometria
+ *  odpísaná z OnePage.tsx `DGX_SLOTS` / `DGX_SLOTS_V` / `DGX_D_*` (sústavy HeroglyphFrame a VerticalHeroglyphFrame).
+ *  Texty COPY3 `gz_*`. */
+import { useEffect, useState } from 'react';
 
 const ALBAS = [
   { n: 43,
@@ -15,9 +18,9 @@ const ALBAS = [
     glyph: 'https://res.cloudinary.com/dz8lolmod/image/upload/v1786438287/heroglyphs/cs_live_b19NQNaAzwyfMcnLvVjUl3Fw9Mo4GCl44VcwRp9tgzLpAB1WYzgRtmAQWV.png' },
 ] as const;
 const cldPhoto = (u: string) => u.replace('/upload/', '/upload/c_fill,g_auto,w_420,h_420,q_auto,f_auto/');
-const cldGlyph = (u: string, w = 600) => u.replace('/upload/', `/upload/c_fit,w_${w},q_auto,f_auto/`);
+const cldGlyph = (u: string) => u.replace('/upload/', '/upload/c_fit,w_600,q_auto,f_auto/');
 
-/* sloty veľkého rámu — x, y, w, h vo viewBoxe 800 1100 13100 3500; g = skupina (dog | own) */
+/* sloty vodorovného rámu (viewBox 800 1100 13100 3500) a zvislého (781 329.5 917.9 2844.8); g = skupina */
 const SLOTS = [
   { k: 'dogGender',  x: 1282,  y: 1620, w: 1348, h: 935,  g: 'basics' },
   { k: 'colour',     x: 3034,  y: 1620, w: 933,  h: 935,  g: 'basics' },
@@ -32,39 +35,89 @@ const SLOTS = [
   { k: 'ownInitial', x: 8977,  y: 2895, w: 975,  h: 936,  g: 'own'    },
   { k: 'ownRank',    x: 10049, y: 2898, w: 723,  h: 933,  g: 'own'    },
 ] as const;
-const VB = { x: 800, y: 1100, w: 13100, h: 3500 };
+const SLOTS_V = [
+  { k: 'dogGender',  x: 898.453,  y: 475,     w: 323.19,  h: 224.091, g: 'basics' },
+  { k: 'colour',     x: 1313.13,  y: 475,     w: 224.039, h: 224.091, g: 'basics' },
+  { k: 'fate',       x: 898.767,  y: 751.933, w: 322.889, h: 313.596, g: 'basics' },
+  { k: 'bloodline',  x: 1268.43,  y: 751.933, w: 313.561, h: 312.991, g: 'basics' },
+  { k: 'shape',      x: 898.807,  y: 1116.58, w: 682.7,   h: 534.378, g: 'breed'  },
+  { k: 'ownGender',  x: 948.932,  y: 1755.42, w: 188.442, h: 409.417, g: 'own'    },
+  { k: 'ownChinese', x: 1157.84,  y: 1756.02, w: 202.167, h: 193.755, g: 'own'    },
+  { k: 'ownZodiac',  x: 1380.51,  y: 1756.02, w: 150.407, h: 193.81,  g: 'own'    },
+  { k: 'ownInitial', x: 1157.51,  y: 1970.04, w: 202.91,  h: 194.803, g: 'own'    },
+  { k: 'ownRank',    x: 1380.51,  y: 1970.62, w: 150.407, h: 193.055, g: 'own'    },
+  { k: 'char1',      x: 898.459,  y: 2268.7,  w: 683.547, h: 353.512, g: 'char'   },
+  { k: 'char2',      x: 898.459,  y: 2675.15, w: 683.777, h: 353.396, g: 'char'   },
+] as const;
+const VB = '800 1100 13100 3500';
+const VB_V = '781 329.5 917.9 2844.8';
+const D_CART = 'M10870.8,3739.26c-0,104.218 -85.92,188.593 -192.014,188.593l-2610.03,0c-106.146,0 -192.014,-84.375 -192.014,-188.593l0,-1782.66c0,-104.027 85.868,-188.576 192.014,-188.576l2610.03,0c106.094,0 192.014,84.549 192.014,188.576l-0,1782.66Zm-63.542,-2118.37l-2866.96,-0c-116.406,-0 -210.955,95.885 -210.955,214.149l0,2025.78c0,118.264 94.549,214.184 210.955,214.184l2866.96,0c116.354,0 210.747,-95.92 210.747,-214.184l-0,-2025.78c-0,-118.264 -94.393,-214.149 -210.747,-214.149Z';
+const D_FRAME = 'M13628.1,4142.36l-0,-2589.06c-0,-83.629 -67.778,-151.389 -151.424,-151.389l-12261.6,-0c-83.75,-0 -151.545,67.76 -151.545,151.389l-0,2589.06c-0,83.611 67.795,151.406 151.545,151.406l12261.6,0c83.646,0 151.424,-67.795 151.424,-151.406m209.687,-2772.55l0,2956.22c0,98.091 -79.479,177.604 -177.569,177.604l-12628.8,0c-98.125,0 -177.604,-79.513 -177.604,-177.604l-0,-2956.22c-0,-98.16 79.479,-177.604 177.604,-177.604l12628.8,-0c98.09,-0 177.569,79.444 177.569,177.604';
+const D_CART_V = 'M1551.35,2145.5c0,21.678 -17.872,39.229 -39.94,39.229l-542.91,-0c-22.08,-0 -39.941,-17.551 -39.941,-39.229l0,-370.809c0,-21.638 17.861,-39.225 39.941,-39.225l542.91,-0c22.068,-0 39.94,17.587 39.94,39.225l0,370.809Zm-13.217,-440.64l-596.353,0c-24.214,0 -43.881,19.945 -43.881,44.545l0,421.381c0,24.6 19.667,44.552 43.881,44.552l596.353,-0c24.203,-0 43.837,-19.952 43.837,-44.552l0,-421.381c0,-24.6 -19.634,-44.545 -43.837,-44.545Z';
+const D_FRAME_V = 'M1597.58,421.985l-715.32,-0c-20.346,-0 -36.85,16.492 -36.85,36.842l0.075,2586.18c-0,20.392 16.504,36.887 36.845,36.887l715.325,0c20.355,0 36.846,-16.495 36.846,-36.887l-0.075,-2586.18c0,-20.35 -16.491,-36.842 -36.846,-36.842m-759.983,-51.042l804.683,0c23.88,0 43.221,19.338 43.221,43.225l0.075,2675.54c0,23.879 -19.341,43.221 -43.221,43.221l-804.683,-0c-23.879,-0 -43.221,-19.342 -43.221,-43.221l-0.075,-2675.54c0,-23.887 19.346,-43.225 43.221,-43.225';
 
+/* Trojica ako na /onepage (`.op-alba-*`): fotka, meno + lapisová pilulka s číslom, heroglyf priamo na papyruse — bez blokov. */
 export function AlbaTrio() {
   return (
     <div className="alba-trio">
       {ALBAS.map(a => (
-        <figure className="alba pk-subblock" key={a.n}>
+        <figure className="alba" key={a.n}>
           <div className="alba-ph"><img src={cldPhoto(a.photo)} alt={`ALBA #${a.n}`} loading="lazy" /></div>
           <figcaption><span className="alba-nm">ALBA</span><b>#{a.n}</b></figcaption>
-          <div className="alba-gl"><img src={cldGlyph(a.glyph)} alt={`heroglyph ALBA #${a.n}`} loading="lazy" /></div>
+          <img className="alba-gl" src={cldGlyph(a.glyph)} alt={`heroglyph ALBA #${a.n}`} loading="lazy" />
         </figure>
       ))}
     </div>
   );
 }
 
+/** „Na svete je približne 144 572 psov s menom Alba…“ — číslo podčiarknuté bodkami, hover/ťuk = „Hrubý odhad AINUBISa :)“. */
+export function AlbaCount({ c }: { c: (k: string) => string }) {
+  const [tip, setTip] = useState(false);
+  return (
+    <p className="lead alba-cnt">
+      {c('alba_cnt_a')}{' '}
+      <button type="button" className={`alba-num${tip ? ' on' : ''}`} onClick={() => setTip(!tip)} onBlur={() => setTip(false)}>
+        {c('alba_cnt_n')}<span className="alba-tip" role="tooltip">{c('alba_cnt_tip')}</span>
+      </button>{' '}
+      {c('alba_cnt_b')}
+    </p>
+  );
+}
+
+const useVertical = () => {
+  const q = '(max-width: 767px)';
+  const [v, setV] = useState(() => typeof window !== 'undefined' && window.matchMedia(q).matches);
+  useEffect(() => {
+    const m = window.matchMedia(q);
+    const f = () => setV(m.matches);
+    m.addEventListener('change', f);
+    return () => m.removeEventListener('change', f);
+  }, []);
+  return v;
+};
+
 export function GlyphZones({ c }: { c: (k: string) => string }) {
   const [on, setOn] = useState<string | null>(null);
-  const s = SLOTS.find(x => x.k === on);
+  const vert = useVertical();
+  const SL = vert ? SLOTS_V : SLOTS;
+  const s = SL.find(x => x.k === on);
   const grp = s ? (s.g === 'own' ? 'gb_own' : 'gb_dog') : null;
   return (
-    <div className="gz">
-      <div className="gz-scroll">
-        <div className="gz-img" onPointerLeave={e => { if (e.pointerType === 'mouse') setOn(null); }}>
-          <img src={cldGlyph(ALBAS[0].glyph, 1400)} alt={`heroglyph ALBA #${ALBAS[0].n}`} loading="lazy" />
-          {SLOTS.map(z => (
-            <button key={z.k} type="button" className={`gz-z g-${z.g}${on === z.k ? ' on' : ''}`} aria-label={c(`gz_${z.k}`)}
-              style={{ left: `${((z.x - VB.x) / VB.w) * 100}%`, top: `${((z.y - VB.y) / VB.h) * 100}%`, width: `${(z.w / VB.w) * 100}%`, height: `${(z.h / VB.h) * 100}%` } as CSSProperties}
-              onPointerEnter={e => { if (e.pointerType === 'mouse') setOn(z.k); }}
-              onClick={() => setOn(on === z.k ? null : z.k)} />
-          ))}
-        </div>
-      </div>
+    <div className={`gz${vert ? ' v' : ''}`}>
+      <svg className="gz-svg" viewBox={vert ? VB_V : VB} onPointerLeave={e => { if (e.pointerType === 'mouse') setOn(null); }} role="img" aria-label="heroglyph">
+        <path d={vert ? D_FRAME_V : D_FRAME} fill="#2a1608" />
+        <path d={vert ? D_CART_V : D_CART} fill="#2a1608" />
+        {SL.map(z => (
+          <g key={z.k} className={`gz-z g-${z.g}${on === z.k ? ' on' : ''}`} tabIndex={0} role="button" aria-label={c(`gz_${z.k}`)}
+            onPointerEnter={e => { if (e.pointerType === 'mouse') setOn(z.k); }}
+            onClick={() => setOn(on === z.k ? null : z.k)}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOn(on === z.k ? null : z.k); } }}>
+            <rect className="gz-hl" x={z.x} y={z.y} width={z.w} height={z.h} rx={vert ? 14 : 70} />
+            <image href={`/heroglyph/dogtrix/hek/${z.k}.svg`} x={z.x} y={z.y} width={z.w} height={z.h} preserveAspectRatio="xMidYMid meet" />
+          </g>
+        ))}
+      </svg>
       <div className={`gz-pill${s ? ` g-${s.g}` : ''}`} aria-live="polite">
         {s ? <><i>{c(grp!)}</i><b>{c(`gz_${s.k}`)}</b><span>{c(`gz_${s.k}d`)}</span></> : <span>{c('gz_hint')}</span>}
       </div>
