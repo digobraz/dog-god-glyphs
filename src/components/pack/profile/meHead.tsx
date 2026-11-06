@@ -524,7 +524,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
         {noRanks ? null : RANK_BADGE_ON ? (
           // TEST_BUILD (25. 10. 2026): odznaky SLUŽOBNÍK + PÚTNIK namiesto pilulky DEVOTION + PÚTNIK.
           // Roky = DOG ID `basics.since` (useServantYears, volá stránka so psami).
-          <div className="me-lv rk-row">
+          <div className={`me-lv rk-row${study ? ' rk3' : ''}`}>
             <ServantBadge years={servantYears ?? null} activeDays={activeDays} on={rank === 'dev'} onClick={onDev} label={servantLabel} />
             <PilgrimBadge level={pilgrimLevel} pct={pilgrimPct} on={rank === 'pt'} onClick={onPilgrim} label={`${pilgrimRankLabel} ${pilgrimLevel}`} />
             {study && (() => { const l = learnerProgress(study.read, study.total);

@@ -82,6 +82,10 @@ export const RANK_BADGE_CSS = `
 /* Mobil: vedľa fotky je ~200 px — dva odznaky v 46 px sa zmestia len s medzerou 8 (flag z náhľadu 25. 10.);
    pod 390 px ustúpi odznak na 40 px, inak kapsula pútnika vybehne z karty. */
 @media (max-width:389px){ .me-lv.rk-row > .rk{ --s:40px; } }
+/* TRI odznaky (+ UČEŇ, 6. 11. 2026): na mobile je vedľa fotky ~224 px — odznak 38 px a kratšia kapsula,
+   inak tretí vybehne z karty (namerané pri 390: 456 px proti okraju 374). */
+@media (max-width:767px){ .me-lv.rk-row.rk3{ gap:${PACK_SPACE.sm}px; } .me-lv.rk-row.rk3 > .rk{ --s:38px; } .me-lv.rk-row.rk3 .cp{ width:calc(var(--s) * 1.25); } }
+@media (max-width:389px){ .me-lv.rk-row.rk3 > .rk{ --s:34px; } }
 @media (min-width:768px){ .me-lv.rk-row{ gap:24px; max-width:none; } }
 `;
 
@@ -252,7 +256,7 @@ export function LearnerPanel({ read, total, liked, saved, onVault, tx }: {
   read: number; total: number; liked: number; saved: number; onVault?: () => void; tx: Tx;
 }) {
   const { level, pct, share } = learnerProgress(read, total);
-  const need = level < 10 ? Math.max(0, Math.ceil((L_FROM[level] / 100) * total) - read) : 0;
+  const need = level === 0 ? 1 : level < 10 ? Math.max(1, Math.ceil((L_FROM[level] / 100) * total) - read) : 0;
   const name = tx('pack.rank.learner', 'Disciple');
   return (
     <>
