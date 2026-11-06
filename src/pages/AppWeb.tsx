@@ -37,6 +37,9 @@ const A = '/web-app';
 
 const CAROUSEL: [string, string][] = [['map', '11-vretenica-mapa'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', '8-ainubis'], ['feed', 'feed']];
 
+/** Kým Matej nevybral variant prúdu v lieviku, prepínač je viditeľný pre každého (/app je noindex, nie na LIVE). */
+const FLOW_CHOSEN = false;
+
 const SERVANT_YEARS = [1, 4, 9, 14, 19, 24, 29, 34];
 /** Pásma UČŇA = % VAULTU (schválené 6. 11., `plany/nakresy/pecat-odznaky-2026-11-06`). */
 const UCEN_PCT = ['1.', '2 %', '5 %', '10 %', '20 %', '30 %', '45 %', '60 %', '80 %', '100 %'];
@@ -496,7 +499,8 @@ export default function AppWeb() {
             <h2>{c('h_ai_a')} <span className="ai-deco">{c('h_ai_b')}</span> {c('h_ai_c')}</h2>
             <p className="lead">{c('l_ai')} <span className="ai-still" tabIndex={0}>({c('still')})<span className="tip">{c('still_t')}</span></span></p>
           </Rv>
-          {nakres && (
+          {/* výber prúdu je viditeľný stále, kým Matej nevyberie (6. 11.: „nevidím tie prúdenia“) — potom zmazať */}
+          {(nakres || !FLOW_CHOSEN) && (
             <div className="ai-flowpick">{(['1', '2', '3', '4'] as FlowVariant[]).map((v) => (
               <button key={v} className={flow === v ? 'on' : ''} onClick={() => setFlow(v)}>{v} · {FLOW_NAMES[v]}</button>
             ))}</div>
