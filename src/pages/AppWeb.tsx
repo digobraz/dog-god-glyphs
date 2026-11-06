@@ -47,9 +47,9 @@ const UCEN_PCT = ['1.', '2 %', '5 %', '10 %', '20 %', '30 %', '45 %', '60 %', '8
 
 /** Štyri cesty v sekcii Odznaky — `mine` = úroveň vzorového psíčkara, tá istá ako v levitujúcich odznakoch v hero. */
 const PATHS = [
-  { ax: 'ax0', mine: 'dogyptan-2.svg', lvl: 't2' },
+  { ax: 'ax0', mine: 'dogyptan-perla.svg', lvl: 't2' },  /* perleťový Kňaz (Matej 6. 11.: „daj aj dogyptiana perleťového“) */
   { ax: 'ax1', mine: 'servant-2.webp', lvl: 'my1' },
-  { ax: 'ax2', mine: 'pilgrim-3.webp', lvl: 'my2' },
+  { ax: 'ax2', mine: 'pilgrim-1.webp', lvl: 'my2' },  /* zelený: „prevláda modrá, musíme to oživiť“ (Matej 6. 11.) */
   { ax: 'ax3', mine: 'ucen-4.webp', lvl: 'my3' },
 ];
 
@@ -443,7 +443,7 @@ export default function AppWeb() {
             {CAROUSEL.map(([set, src], i) => (
               <Tilt key={set} set={set} src={src} className={`ph ${pos(i)}`} onOpen={() => setCi(i)} />
             ))}
-            <span className="flt f1" tabIndex={0}><img className="xl" src={`${A}/odznaky/pilgrim-3.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
+            <span className="flt f1" tabIndex={0}><img className="xl" src={`${A}/odznaky/pilgrim-1.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
             <span className="flt f2" tabIndex={0}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
             <span className="flt f3" tabIndex={0}><img className="xl" src={`${A}/odznaky/ucen-4.webp`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
           </div>
@@ -583,9 +583,9 @@ export default function AppWeb() {
           {ax !== null && (
             <div className="axis pk-stage on" key={ax}>
               <h3>{c(PATHS[ax].ax)}</h3><p className="what">{c(`${PATHS[ax].ax}p`)}</p>
-              {ax === 0 && <div className="medals m4">{[0, 1, 2, 3].map((i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/dogyptan-${i}.svg`} alt="" /><span>{c(`t${i}`)}</span></figure>)}</div>}
+              {ax === 0 && <div className="medals m4">{[0, 1, 2, 3].map((i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/${i === 2 ? 'dogyptan-perla' : `dogyptan-${i}`}.svg`} alt="" /><span>{c(`t${i}`)}</span></figure>)}</div>}
               {ax === 1 && <div className="medals">{SERVANT_YEARS.map((y, i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/servant-${i}.webp`} alt="" /><span>{y}</span></figure>)}</div>}
-              {ax === 2 && <div className="medals">{SERVANT_YEARS.map((_, i) => <figure key={i} className={i > 3 ? 'lock' : ''}><img src={`${A}/odznaky/pilgrim-${i}.webp`} alt="" /><span>{i + 1}</span></figure>)}</div>}
+              {ax === 2 && <div className="medals">{SERVANT_YEARS.map((_, i) => <figure key={i} className={i > 1 ? 'lock' : ''}><img src={`${A}/odznaky/pilgrim-${i}.webp`} alt="" /><span>{i + 1}</span></figure>)}</div>}
               {ax === 3 && <div className="medals m10">{UCEN_PCT.map((p, i) => <figure key={i} className={i > 3 ? 'lock' : ''}><img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" /><span>{p}</span></figure>)}</div>}
             </div>
           )}

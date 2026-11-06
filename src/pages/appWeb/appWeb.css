@@ -1421,3 +1421,9 @@ html:has(.aw){scroll-snap-type:y proximity}
   .aw .gz-card{grid-column:1/-1;order:2}
 }
 .aw .gz-card{text-align:left}
+/* popisy IG/DOGYPT: max 3 riadky — pilulka sa radšej roztiahne (Matej 6. 11.) */
+.aw .vs-tag{max-width:440px}
+@media(max-width:767px){.aw .vs-tag{right:-8px;left:-8px;max-width:none}}
+/* 4 cesty: obrys po kliku prekáža (Matej 6. 11.) — vybraná cesta sa ukáže len vyskočeným odznakom */
+.aw .path.on button{background:transparent;box-shadow:none}
+.aw .path button:focus-visible{outline:none}

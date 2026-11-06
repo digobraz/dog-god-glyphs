@@ -671,7 +671,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  h_feat2: { en: 'One ecosystem instead of ten apps.', sk: 'Jeden ekosystém namiesto desiatich appiek.' },
  soon_h: { en: 'Coming next', sk: 'Čoskoro' },
  e_badge: { en: 'Achievement unlocked', sk: 'Achievement odomknutý' }, h_badge1: { en: 'The 4 paths of a', sk: '4 cesty' }, h_badge2: { en: 'DOGYPTIAN', sk: 'DOGYPŤANA' },
- my1: { en: '9 years together', sk: '9 rokov spolu' }, my2: { en: 'level 4', sk: 'level 4' }, my3: { en: '10 % of Dog Sense', sk: '10 % psieho rozumu' },
+ my1: { en: '9 years together', sk: '9 rokov spolu' }, my2: { en: 'level 2', sk: 'level 2' }, my3: { en: '10 % of Dog Sense', sk: '10 % psieho rozumu' },
  ax0: { en: 'Dogyptian', sk: 'Dogypťan' },
  ax0p: { en: 'Everyone is a Believer. Those who support the mission rise: Acolyte, Priest, Vizier.', sk: 'Veriaci je každý. Kto podporí misiu, stúpa: Akolyta, Kňaz, Vezír.' },
  ax1: { en: 'Servant', sk: 'Služobník' },
