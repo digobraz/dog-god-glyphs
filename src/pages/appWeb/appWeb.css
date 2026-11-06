@@ -380,3 +380,153 @@
 
 /* lucide šípky a krížik v detaile telefónu — centrovať kresbu v kruhu */
 .aw .sl-btn,.aw .pop .x{display:grid;place-items:center;padding:0}
+
+/* ══ v3 (6. 11. 2026) — Matejove pripomienky k prvej stavbe ══════════════════ */
+
+/* POZADIE — vrstvy pod celou stránkou, varianty cez data-bg (?bg=1..4) */
+.aw{position:relative;isolation:isolate}
+.aw .aw-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.aw .aw-bg i{position:absolute;inset:-60px}
+.aw .aw-bg .glyphs{background:url('/images/bg-light.webp') center/1100px repeat;opacity:0}
+.aw .aw-bg .pearl{background:
+  radial-gradient(55% 45% at 12% 8%, rgba(255,255,255,.85), transparent 62%),
+  radial-gradient(45% 40% at 88% 22%, color-mix(in srgb,var(--lapis-edge) 10%,transparent), transparent 70%),
+  radial-gradient(60% 50% at 72% 92%, color-mix(in srgb,var(--card-edge) 22%,transparent), transparent 70%),
+  radial-gradient(40% 35% at 25% 70%, rgba(255,255,255,.6), transparent 70%);opacity:0}
+@media(prefers-reduced-motion:no-preference){.aw .aw-bg .pearl{animation:aw-drift 24s ease-in-out infinite alternate}}
+@keyframes aw-drift{to{transform:translate3d(40px,-30px,0) scale(1.06)}}
+.aw[data-bg="1"] .aw-bg .pearl{opacity:1}
+.aw[data-bg="2"] .aw-bg .pearl{opacity:1}
+.aw[data-bg="2"] .aw-bg .glyphs{opacity:.55;filter:blur(4px)}
+.aw[data-bg="3"] .aw-bg .glyphs{opacity:.28}
+.aw[data-bg="3"] .aw-bg .pearl{opacity:.7}
+.aw .bgpick{position:fixed;left:var(--s-lg);bottom:84px;z-index:40;display:flex;gap:4px}
+@media(min-width:900px){.aw .bgpick{bottom:var(--s-lg)}}
+.aw .bgpick button{font:600 var(--t-micro)/1 var(--font-ui);letter-spacing:.12em;padding:8px 10px;border-radius:var(--r-pill);border:1px dashed var(--lapis-edge);background:var(--paper);color:var(--lapis-deep);cursor:pointer}
+.aw .bgpick button.on{background:var(--lapis-deep);color:var(--lapis-ink);border-style:solid}
+
+/* HLAVIČKA — priesvitná bez deliacej čiary; po scrolle sa prilepí ako sklo */
+.aw .top{background:transparent;border-bottom:0;backdrop-filter:none;-webkit-backdrop-filter:none;transition:background .3s,box-shadow .3s,backdrop-filter .3s}
+.aw .top.stuck{background:color-mix(in srgb,var(--paper) 62%,transparent);backdrop-filter:blur(14px) saturate(120%);-webkit-backdrop-filter:blur(14px) saturate(120%);box-shadow:0 8px 30px -18px color-mix(in srgb,var(--ink-strong) 45%,transparent)}
+.aw .logo img{width:auto;height:30px}
+
+/* HERO */
+.aw .hero{position:relative;z-index:2;padding-bottom:0}
+@media(min-width:900px){.aw .hero{padding:48px 0 0}.aw .hero .wrap{grid-template-columns:1.1fr 1fr}}
+.aw .hero-txt{container-type:inline-size}
+.aw .hero h1{font-size:clamp(44px,13.4cqi,104px);line-height:.98}
+.aw .hero h1 .l1{display:block}
+.aw .hero h1 .tilt-w{display:inline-block;transform:rotate(-5deg) translateY(-2px);transform-origin:left bottom}
+.aw .store{background:var(--lapis);color:var(--lapis-ink);box-shadow:var(--lapis-shadow);border:1.5px solid rgba(250,244,236,.25)}
+.aw .store:hover{background:var(--lapis-hover)}
+.aw .car{height:640px;max-width:680px;margin-bottom:-120px}
+@media(min-width:900px){.aw .car{height:860px;margin-bottom:-200px}}
+.aw .car .ph{width:60%}
+.aw .car .ph.prev{transform:translateX(-108%) translateY(56px) rotate(-7deg) scale(.84)}
+.aw .car .ph.next{transform:translateX(8%) translateY(56px) rotate(7deg) scale(.84)}
+.aw .car .tap-hint{top:-8px}
+.aw .car-dots{bottom:auto;top:calc(100% - 210px);z-index:4}
+
+/* LEVITUJÚCE ODZNAKY nad telefónmi — vysvetlivka pri prejdení myšou */
+.aw .flt{position:absolute;z-index:6;display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:var(--r-pill);
+  background:color-mix(in srgb,var(--paper) 80%,transparent);border:1px solid var(--card-edge);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:var(--lab-shadow);font:600 var(--t-label)/1.2 var(--font-ui);color:var(--ink-strong);white-space:nowrap;cursor:help;transform:rotate(var(--r,0deg))}
+.aw .flt img{width:34px;height:34px;object-fit:contain;flex:none}
+.aw .flt.f1{left:-2%;top:70px;--r:-6deg}.aw .flt.f2{right:-4%;top:40%;--r:5deg}.aw .flt.f3{left:2%;top:58%;--r:-3deg}
+@media(prefers-reduced-motion:no-preference){.aw .flt{animation:aw-lev 5s ease-in-out infinite}.aw .flt.f2{animation-delay:1.6s}.aw .flt.f3{animation-delay:3.1s}}
+@keyframes aw-lev{0%,100%{transform:rotate(var(--r)) translateY(0)}50%{transform:rotate(var(--r)) translateY(-10px)}}
+.aw .flt .tip{position:absolute;left:50%;top:calc(100% + 10px);transform:translateX(-50%) translateY(-4px);width:230px;white-space:normal;padding:10px 12px;border-radius:var(--r-tile);
+  background:var(--lapis-deep);color:var(--lapis-ink);font:500 var(--t-label)/1.4 var(--font-ui);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:var(--lapis-shadow)}
+.aw .flt:hover .tip,.aw .flt:focus .tip{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:600px){.aw .flt{font-size:var(--t-micro);padding:4px 10px 4px 4px}.aw .flt img{width:26px;height:26px}.aw .flt.f2{right:0}}
+
+/* ŽI PSÍ ŽIVOT */
+.aw .life{position:relative;z-index:1;padding-top:160px}
+@media(min-width:900px){.aw .life{padding-top:200px}}
+.aw .fresco{border-radius:var(--r-card);overflow:hidden;box-shadow:var(--card-shadow);border:1.5px solid var(--card-edge);aspect-ratio:4/5}
+.aw .fresco img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 6s ease}
+.aw .fresco:hover img{transform:scale(1.05)}
+.aw .verbs{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-sm);margin-top:var(--s-xl)}
+.aw .verbs div{padding:var(--s-md) var(--s-lg)}
+.aw .verbs b{display:block;font:900 var(--t-h2)/1.1 var(--font-title);color:var(--ink-strong)}
+.aw .verbs span{font-size:var(--t-label);color:var(--ink-soft)}
+.aw .loopline{margin-top:var(--s-xl);font:900 var(--t-h2)/1.2 var(--font-title);color:var(--gold-ink);letter-spacing:.02em}
+
+/* DUŠA — heroglyf */
+.aw .soul{display:grid;gap:var(--s-xl);align-items:center;padding:var(--s-xl);margin-top:var(--s-xxxl)}
+@media(min-width:900px){.aw .soul{grid-template-columns:.9fr 1.1fr;padding:var(--s-xxl)}}
+.aw .soul .glyph{background:var(--page-dark);border-radius:var(--r-tile);padding:var(--s-xl);display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--card-edge)}
+.aw .soul .glyph img{width:100%;max-width:420px}
+.aw .soul h3{font-size:30px;line-height:1.1;margin-bottom:var(--s-sm)}
+.aw .soul .ticks{margin-top:var(--s-lg)}
+
+/* FUNKCIE — karta sa pri prejdení nafúkne a ukáže odrážky */
+.aw .feat{position:relative;transition:transform .25s ease,box-shadow .25s ease}
+.aw .feat ul{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-height:0;overflow:hidden;opacity:0;transition:max-height .35s ease,opacity .25s ease}
+.aw .feat li{font-size:var(--t-label);color:var(--ink-body);padding-left:14px;position:relative}
+.aw .feat li::before{content:'';position:absolute;left:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--lapis-edge)}
+.aw .feat li.soon{color:var(--ink-soft)}
+.aw .feat li.soon::before{background:transparent;border:1px dashed var(--card-edge)}
+.aw .feat li em{font-style:normal;font:600 var(--t-micro)/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--gold-ink);margin-left:4px}
+.aw .feat.open{transform:scale(1.04);z-index:3}
+.aw .feat.open ul{max-height:220px;opacity:1}
+@media(hover:hover){.aw .feat.pk-stage:hover{transform:scale(1.04);z-index:3}.aw .feat.pk-stage:hover ul{max-height:220px;opacity:1}}
+.aw .grid .feat.pk-stage{cursor:pointer}
+.aw .feat-hint{text-align:center;margin:calc(-1 * var(--s-xl)) 0 var(--s-xl);font:500 var(--t-micro)/1 var(--font-ui);letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft)}
+.aw .sec-h h2 .h2b{display:block;font-size:.55em;margin-top:6px;color:var(--gold-ink)}
+
+/* ODZNAKY — 4 osi */
+.aw .medals.m4{grid-template-columns:repeat(4,1fr)}
+.aw .medals.m10{grid-template-columns:repeat(5,1fr)}
+@media(min-width:768px){.aw .medals.m10{grid-template-columns:repeat(10,1fr)}}
+.aw .medals figure span small{display:block;font:500 var(--t-micro)/1.2 var(--font-ui);letter-spacing:.06em;color:var(--ink-soft);margin-top:2px}
+
+/* AINUBIS — živá appka v telefóne */
+.aw .ai-live{position:relative;width:320px;margin:0 auto;aspect-ratio:433/882}
+.aw .ai-live>img{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.aw .ai-live iframe{position:absolute;left:4.908%;top:2.182%;width:375px;height:812px;border:0;border-radius:54px;background:#03070C;z-index:2;transform:scale(.7677);transform-origin:0 0}
+/* appka sa kreslí v skutočnej šírke telefónu (375) a zmenší sa do rámu — v úzkom okne by sa jej nadpisy lámali */
+.aw .ai-live .cap{position:absolute;left:50%;bottom:-36px;transform:translateX(-50%);white-space:nowrap;font:500 var(--t-micro)/1 var(--font-ui);letter-spacing:.18em;text-transform:uppercase;color:var(--ai-cyan)}
+.aw .ai-stats{display:flex;gap:var(--s-xl);margin-top:var(--s-xl)}
+.aw .ai-stats b{display:block;font:900 32px/1 var(--font-title);color:var(--ai-ink)}
+.aw .ai-stats span{font:500 var(--t-micro)/1.3 var(--font-ui);letter-spacing:.18em;text-transform:uppercase;color:var(--ai-dim)}
+
+/* ZADARMO — obraz + text */
+.aw .good2{display:grid;gap:var(--s-xl);align-items:center;padding:var(--s-xl)}
+@media(min-width:900px){.aw .good2{grid-template-columns:1fr 1.1fr;padding:var(--s-xxl)}}
+.aw .good2 .pic img{width:100%;display:block;mix-blend-mode:multiply}
+.aw .good2 h2{font-size:34px;line-height:1.05}
+@media(min-width:768px){.aw .good2 h2{font-size:46px}}
+.aw .good2 .bowls{margin-top:var(--s-lg)}
+.aw .good2 .bowls b{font-size:var(--t-lead)}
+.aw .good2 .pk-cta{margin-top:var(--s-lg);text-decoration:none}
+
+/* PRIDAJ SA — heroglyf ako kľúč */
+.aw .join .pk-cta{margin-top:var(--s-xl);font-size:var(--t-lead);padding:16px 28px;text-decoration:none;background:var(--paper);color:var(--ink-strong);border-color:var(--card-edge)}
+.aw .join .or{margin:var(--s-lg) 0 0;font:500 var(--t-micro)/1 var(--font-ui);letter-spacing:.18em;text-transform:uppercase;color:var(--on-dark);opacity:.8}
+.aw .join .stores{margin-top:var(--s-md)}
+.aw .join .store{background:color-mix(in srgb,var(--paper) 16%,transparent);color:var(--on-dark);box-shadow:none;height:48px}
+.aw .join .glyph-k{justify-self:center;width:min(320px,100%)}
+.aw .join .glyph-k img{width:100%;display:block;filter:drop-shadow(0 10px 30px rgba(0,0,0,.5))}
+@media(max-width:899px){.aw .join .glyph-k{display:none}}
+
+/* FAQ v dvoch stĺpcoch */
+.aw .faq{max-width:1040px;grid-template-columns:1fr}
+@media(min-width:900px){.aw .faq{grid-template-columns:1fr 1fr;align-items:start}}
+
+/* ZA HROU — video + text na rozklik + progres cieľa */
+.aw .lore2{display:grid;gap:var(--s-xl);align-items:center}
+@media(min-width:900px){.aw .lore2{grid-template-columns:1.15fr 1fr}}
+.aw .lore2 video{width:100%;display:block;border-radius:var(--r-tile);background:#000;aspect-ratio:16/9;object-fit:cover}
+.aw .lore2 .pk-dblock{padding:var(--s-xl)}
+.aw .lore2 h3{font-size:30px;line-height:1.1}
+.aw .lore2 .more{margin-top:var(--s-sm);background:none;border:0;padding:0;font:600 var(--t-label)/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--lapis-deep);cursor:pointer}
+.aw .lore2 .links{display:flex;flex-wrap:wrap;gap:var(--s-lg);margin-top:var(--s-lg)}
+
+/* PLANÉTKA — živý komponent z / */
+.aw .planet-live{position:relative;height:100vh;min-height:620px;overflow:hidden;transform:translateZ(0)}
+.aw .planet-live .gods-root{background-color:transparent}
+.aw .planet-live .gods-root::before{display:none}
+
+/* GodsGridLab si globálne zamyká body (overflow:hidden) — na tejto stránke sa scrolluje. */
+body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
