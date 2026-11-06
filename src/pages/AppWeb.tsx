@@ -49,7 +49,7 @@ const UCEN_PCT = ['1.', '2 %', '5 %', '10 %', '20 %', '30 %', '45 %', '60 %', '8
 
 /** Štyri cesty v sekcii Odznaky — `mine` = úroveň vzorového psíčkara, tá istá ako v levitujúcich odznakoch v hero. */
 const PATHS = [
-  { ax: 'ax0', mine: 'dogyptan-0.svg', lvl: 't0' },
+  { ax: 'ax0', mine: 'dogyptan-2.svg', lvl: 't2' },
   { ax: 'ax1', mine: 'servant-2.webp', lvl: 'my1' },
   { ax: 'ax2', mine: 'pilgrim-3.webp', lvl: 'my2' },
   { ax: 'ax3', mine: 'ucen-4.webp', lvl: 'my3' },
@@ -460,7 +460,9 @@ export default function AppWeb() {
           <div className="paths">
             {PATHS.map((p, i) => (
               <Rv key={p.ax} d={i} className={`path${ax === i ? ' on' : ''}`}>
-                <button type="button" aria-expanded={ax === i} onClick={() => setAx(ax === i ? null : i)}>
+                <button type="button" aria-expanded={ax === i}
+                  onPointerEnter={e => { if (e.pointerType === 'mouse') setAx(i); }}
+                  onClick={e => { if (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === 'mouse') return; setAx(ax === i ? null : i); }}>
                   <img src={`${A}/odznaky/${p.mine}`} alt="" loading="lazy" />
                   <b>{c(p.ax)}</b>
                   <small>{c(p.lvl)}</small>
@@ -471,7 +473,7 @@ export default function AppWeb() {
           {ax !== null && (
             <div className="axis pk-stage on" key={ax}>
               <h3>{c(PATHS[ax].ax)}</h3><p className="what">{c(`${PATHS[ax].ax}p`)}</p>
-              {ax === 0 && <div className="medals m4">{[0, 1, 2, 3].map((i) => <figure key={i} className={i > 0 ? 'lock' : ''}><img src={`${A}/odznaky/dogyptan-${i}.svg`} alt="" /><span>{c(`t${i}`)}</span></figure>)}</div>}
+              {ax === 0 && <div className="medals m4">{[0, 1, 2, 3].map((i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/dogyptan-${i}.svg`} alt="" /><span>{c(`t${i}`)}</span></figure>)}</div>}
               {ax === 1 && <div className="medals">{SERVANT_YEARS.map((y, i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/servant-${i}.webp`} alt="" /><span>{y}</span></figure>)}</div>}
               {ax === 2 && <div className="medals">{SERVANT_YEARS.map((_, i) => <figure key={i} className={i > 3 ? 'lock' : ''}><img src={`${A}/odznaky/pilgrim-${i}.webp`} alt="" /><span>{i + 1}</span></figure>)}</div>}
               {ax === 3 && <div className="medals m10">{UCEN_PCT.map((p, i) => <figure key={i} className={i > 3 ? 'lock' : ''}><img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" /><span>{p}</span></figure>)}</div>}

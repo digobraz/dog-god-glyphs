@@ -682,7 +682,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  ax3p: { en: 'Verified, collected, practical knowledge translated into human language — so your life together is longer and better.', sk: 'Overené, zozbierané, praktické a do ľudskej reči preložené znalosti, ktoré predĺžia váš spoločný život a zlepšia jeho kvalitu.' },
  t0: { en: 'Believer', sk: 'Veriaci' }, t1: { en: 'Acolyte', sk: 'Akolyta' }, t2: { en: 'Priest', sk: 'Kňaz' }, t3: { en: 'Vizier', sk: 'Vezír' },
  e_ai: { en: 'Your personal mentor', sk: 'Tvoj osobný mentor' },
- h_ai_a: { en: 'Dog science.', sk: 'Psia veda.' }, h_ai_b: { en: 'In plain', sk: 'V ľudskej' }, h_ai_c: { en: 'language.', sk: 'reči.' },
+ h_ai_a: { en: 'Dog science. In', sk: 'Psia veda. V' }, h_ai_b: { en: 'plain', sk: 'ľudskej' }, h_ai_c: { en: 'language.', sk: 'reči.' },
  l_ai: { en: 'AINUBIS read the books, the studies and hundreds of hours of talks. You get what matters — for your dog, when you need it.', sk: 'AINUBIS prečítal knihy, štúdie a stovky hodín prednášok. Ty dostaneš to podstatné — pre svojho psa, keď to potrebuješ.' },
  e_fun: { en: 'The knowledge funnel', sk: 'Znalostný lievik' }, h_fun: { en: 'We read it all for you.', sk: 'Prečítali sme to za teba.' },
  src1: { en: 'hours of interviews', sk: 'hodín rozhovorov' }, src1s: { en: '339 episodes · 2018–2026', sk: '339 epizód · 2018–2026' },
