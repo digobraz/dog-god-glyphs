@@ -621,6 +621,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  fl3: { en: 'Disciple 4 · 10 % of the VAULT', sk: 'Učeň 4 · 10 % VAULTU' },
  fl3t: { en: 'Disciple: scrolls you read in AINUBIS. The more you know, the longer your dog lives.', sk: 'Učeň: zvitky prečítané v AINUBISovi. Čím viac vieš, tým dlhšie tvoj pes žije.' },
  nav1: { en: 'Dog life', sk: 'Psí život' },
+ e_life3: { en: 'Player 2: your dog', sk: 'Player 2: tvoj pes' },
  e_life2: { en: 'Every sh*t counts!', sk: 'Every sh*t counts!' },
  h_life2a: { en: 'Life as a', sk: 'Život' }, h_life2b: { en: 'GAME', sk: 'HROU' },
  l_life2: { en: 'Every day together counts! Your actions say what kind of dog person you are. And because you love your dog, you are a better human thanks to them!', sk: 'Každý deň spolu sa počíta! To, aký si psíčkar, za teba prezradia činy. A keďže miluješ svojho psa, si vďaka nemu aj lepším človekom!' },
