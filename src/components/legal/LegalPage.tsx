@@ -9,6 +9,7 @@
  *
  * Texty sa NEMENIA — žijú v slovníkoch `privacy.sN.*` / `terms.sN.*` (záväzná je EN).
  */
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
@@ -23,16 +24,26 @@ const DOCS: { kind: Kind; path: string; title: string }[] = [
   { kind: 'terms', path: '/terms', title: 'terms.title' },
 ];
 
-export default function LegalPage({ kind, count }: { kind: Kind; count: number }) {
+// `skip` = sekcia, ktorá ešte nie je zapnutá (číslovanie ostatných sa nehýbe).
+// `ids` = stála kotva pre obchody (6. 11. 2026): Apple chce Support URL, Google webovú
+// adresu zmazania účtu — `/privacy#contact`, `/privacy#delete-account`.
+export default function LegalPage({ kind, count, skip = [], ids = {} }: {
+  kind: Kind; count: number; skip?: number[]; ids?: Record<number, string>;
+}) {
   const t = useT();
   const navigate = useNavigate();
-  const sections = Array.from({ length: count }, (_, i) => ({
-    id: `${kind}-${i + 1}`,
-    n: i + 1,
+  const sections = Array.from({ length: count }, (_, i) => i + 1).filter((n) => !skip.includes(n)).map((n) => ({
+    id: ids[n] ?? `${kind}-${n}`,
+    n,
     // Slovníky nesú číslo v nadpise („1. Who We Are") — číslo kreslí krúžok, tak ho z textu zložíme.
-    title: t(`${kind}.s${i + 1}.title`).replace(/^\s*\d+[.)]\s*/, ''),
-    body: t(`${kind}.s${i + 1}.body`),
+    title: t(`${kind}.s${n}.title`).replace(/^\s*\d+[.)]\s*/, ''),
+    body: t(`${kind}.s${n}.body`),
   }));
+  // Odkaz z obchodu príde s kotvou — lazy stránka sa vykreslí až po načítaní, tak sa skočí sem.
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (id) requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ block: 'start' }));
+  }, []);
   const back = () => (window.history.length > 1 ? navigate(-1) : navigate('/'));
   const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
