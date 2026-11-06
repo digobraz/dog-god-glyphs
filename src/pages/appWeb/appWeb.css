@@ -109,7 +109,8 @@
 @font-face{font-family:'LT Museum';src:url('/fonts/museum-black.woff2') format('woff2');font-weight:900;font-display:swap}
 .aw{--font-title:'LT Museum',serif}
 .aw{scroll-behavior:smooth}
-.aw{overflow-x:hidden}
+.aw{overflow-x:clip}
+/* clip, NIE hidden: hidden robí z .aw scrollovací kontajner a hlavička (sticky) by sa neprilepila */
 .aw .wrap{max-width:1120px;margin:0 auto;padding:0 var(--s-lg)}
 @media(min-width:768px){.aw .wrap{padding:0 var(--s-xl)}}
 .aw h1,.aw h2,.aw h3{font-family:var(--font-title);font-weight:900;color:var(--ink-strong);margin:0}
@@ -541,3 +542,24 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
   radial-gradient(28% 24% at 80% 62%, rgba(255,255,255,.85), transparent 68%),
   radial-gradient(36% 30% at 60% 96%, color-mix(in srgb,var(--gold-ink) 50%,transparent), transparent 70%),
   radial-gradient(22% 20% at 40% 26%, color-mix(in srgb,var(--lapis-edge) 8%,transparent), transparent 70%)}
+
+/* ══ v5 (6. 11. 2026) — Matej: „zväčši logo a header má byť sticky“ · „hraj hru so / svojím PSOM
+   (veľkým)“ · odznaky nad mobilmi „veľké obrovské tak ako ich máme aj v profile … dominanta bude
+   ten badge“ ══════════════════════════════════════════════════════════════════════════════ */
+.aw .top{position:sticky;top:0}
+.aw .top .wrap{height:76px}
+@media(min-width:900px){.aw .top .wrap{height:96px}}
+.aw .logo img{height:38px}
+@media(min-width:900px){.aw .logo img{height:52px}}
+@media(min-width:1000px){.aw .top nav a{font-size:var(--t-body)}}
+.aw .top .pk-cta{padding:14px 22px;font-size:var(--t-lead)}
+@media(max-width:420px){.aw .top .pk-cta{padding:10px 14px;font-size:var(--t-body)}.aw .logo img{height:32px}}
+.aw .hero h1 .big{font-size:1.2em;line-height:.9;display:inline-block;transform:rotate(-5deg) translateY(-4px);transform-origin:left bottom}
+
+/* ODZNAK = dominanta: veľký vľavo, pilulka za ním užšia, text na dva riadky */
+.aw .flt{padding:8px 16px 8px 0;gap:0;white-space:normal;max-width:220px;line-height:1.25;overflow:visible}
+.aw .flt img{width:88px;height:88px;margin:-26px 6px -26px -40px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.35))}
+.aw .flt .tx{display:block}
+.aw .flt .tx small{display:block;font:500 var(--t-micro)/1.2 var(--font-ui);letter-spacing:.06em;color:var(--ink-soft);margin-top:2px}
+.aw .flt.f1{left:6%;top:60px}.aw .flt.f2{right:-2%;top:44%}.aw .flt.f3{left:8%;top:64%}
+@media(max-width:600px){.aw .flt{max-width:170px;font-size:var(--t-label)}.aw .flt img{width:64px;height:64px;margin:-18px 4px -18px -26px}.aw .flt.f1{left:30px}.aw .flt.f3{left:34px}}

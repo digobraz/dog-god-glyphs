@@ -606,10 +606,13 @@ export const NOTES: Record<string, string> = {
 /** v3 (6. 11. 2026, Matejove pripomienky k prvej stavbe) — nové a prepísané texty.
  *  Prebíjajú COPY pri rovnakom kľúči. */
 export const COPY3: Record<string, Record<Lang2, string>> = {
- h1a: { en: 'Play the game', sk: 'Hraj hru' },
- h1b: { en: 'with your', sk: 'so svojím' },
- h1c: { en: 'dog.', sk: 'psom.' },
- sub: { en: 'You play offline, you collect points online. Your whole life together in one useful app — free.', sk: 'Hráš offline, body zbieraš online. Celý váš spoločný život v jednej užitočnej appke, zadarmo.' },
+ h1a: { en: 'Play the game with', sk: 'Hraj hru so' },
+ h1b: { en: 'your', sk: 'svojím' },
+ h1c: { en: 'DOG.', sk: 'PSOM.' },
+ sub: { en: 'You play offline, you collect points online. Your whole life together in one useful app, made to measure for dog people — free.', sk: 'Hráš offline, body zbieraš online. Celý váš spoločný život v jednej užitočnej appke, vytvorenej na mieru pre psíčkarov, zadarmo.' },
+ fl1a: { en: 'Mountain trip', sk: 'Výlet na horách' }, fl1b: { en: '+46 points', sk: '+46 bodov' },
+ fl2a: { en: 'Servant 9', sk: 'Služobník 9' }, fl2b: { en: '3 285 poops picked up', sk: '3 285 zdvihnutých kôpok' },
+ fl3a: { en: 'Disciple 4', sk: 'Učeň 4' }, fl3b: { en: '10 % of the VAULT', sk: '10 % VAULTU' },
  p1: { en: 'dogs', sk: 'psov' }, p2: { en: 'people', sk: 'ľudí' }, p3: { en: 'countries', sk: 'krajín' },
  fl1: { en: 'Mountain trip · +46 points', sk: 'Výlet na horách · +46 bodov' },
  fl1t: { en: 'Pilgrim: every trip with your dog adds kilometres and points.', sk: 'Pútnik: každý výlet so psom pridá kilometre a body.' },

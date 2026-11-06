@@ -287,7 +287,7 @@ export default function AppWeb() {
           <div className="hero-txt">
             <h1>
               <span className="l1">{c('h1a')}</span>
-              <span className="l1">{c('h1b')} <span className="deco tilt-w">{c('h1c')}</span></span>
+              <span className="l1">{c('h1b')} <span className="deco big">{c('h1c')}</span></span>
             </h1>
             <p className="lead">{c('sub')}</p>
             <Stores />
@@ -313,9 +313,9 @@ export default function AppWeb() {
               <Tilt key={set} set={set} src={src} className={`ph ${pos(i)}`} onOpen={() => (i === ci ? openPop(set) : setCi(i))} />
             ))}
             <span className="tap-hint"><span>{c('tap')}</span><svg viewBox="0 0 48 36"><path d="M4 6c18-6 36 2 34 26" /><path d="M30 24l8 9 6-10" /></svg></span>
-            <span className="flt f1" tabIndex={0}><img src={`${A}/odznaky/pilgrim-3.webp`} alt="" />{c('fl1')}<span className="tip">{c('fl1t')}</span></span>
-            <span className="flt f2" tabIndex={0}><img src={`${A}/odznaky/servant-2.webp`} alt="" />{c('fl2')}<span className="tip">{c('fl2t')}</span></span>
-            <span className="flt f3" tabIndex={0}><img src={`${A}/odznaky/ucen-4.svg`} alt="" />{c('fl3')}<span className="tip">{c('fl3t')}</span></span>
+            <span className="flt f1" tabIndex={0}><img src={`${A}/odznaky/pilgrim-3.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
+            <span className="flt f2" tabIndex={0}><img src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
+            <span className="flt f3" tabIndex={0}><img src={`${A}/odznaky/ucen-4.svg`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
             <div className="car-dots">
               {CAROUSEL.map((_, i) => <button key={i} className={i === ci ? 'on' : ''} onClick={() => setCi(i)} aria-label={`${i + 1}`} />)}
             </div>
