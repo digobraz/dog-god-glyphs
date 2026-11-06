@@ -3,8 +3,11 @@
  *  rám + kartuša + 12 dielov `/heroglyph/dogtrix/hek/*.svg` (Hektor, pack #1), na PC vodorovný, na mobile
  *  ZVISLÝ (Matej 6. 11.: „na mobile by mohol byť vertikálny… tak ako máme aktuálne na webe“). Geometria
  *  odpísaná z OnePage.tsx `DGX_SLOTS` / `DGX_SLOTS_V` / `DGX_D_*` (sústavy HeroglyphFrame a VerticalHeroglyphFrame).
- *  Texty COPY3 `gz_*`. */
+ *  Obsah bubliny = ten istý ako dekodér na /onepage: Hektorove SKUTOČNÉ hodnoty zo slovníka
+ *  `onepage.dgx.bub.<slot>.label|value|glyph` (čo je to za údaj · hodnota · ako sa kresba volá) a štyri
+ *  oblasti `onepage.dgx.k.1–4` (Pôvod · Plemeno · Povaha · Ty) — Matej 6. 11.: „daj logiku toho, čo už máme hotové aj obsahovo“. */
 import { useEffect, useState, type CSSProperties, type PointerEvent } from 'react';
+import { useT } from '@/i18n/LanguageContext';
 
 const ALBAS = [
   { n: 43,
@@ -108,19 +111,23 @@ const useVertical = () => {
   return v;
 };
 
-export function GlyphZones({ c }: { c: (k: string) => string }) {
+/** oblasti v poradí `onepage.dgx.k.1–4` */
+const GROUPS = ['basics', 'breed', 'char', 'own'] as const;
+
+export function GlyphZones() {
+  const t = useT();
   const [on, setOn] = useState<string | null>(null);
   const vert = useVertical();
   const SL = vert ? SLOTS_V : SLOTS;
   const s = SL.find(x => x.k === on);
-  const grp = s ? (s.g === 'own' ? 'gb_own' : 'gb_dog') : null;
+  const b = s ? `onepage.dgx.bub.${s.k}` : '';
   return (
-    <div className={`gz${vert ? ' v' : ''}`}>
+    <div className={`gz${vert ? ' v' : ''}${s ? ` has g-${s.g}` : ''}`}>
       <svg className="gz-svg" viewBox={vert ? VB_V : VB} onPointerLeave={e => { if (e.pointerType === 'mouse') setOn(null); }} role="img" aria-label="heroglyph">
         <path d={vert ? D_FRAME_V : D_FRAME} fill="#2a1608" />
         <path d={vert ? D_CART_V : D_CART} fill="#2a1608" />
         {SL.map(z => (
-          <g key={z.k} className={`gz-z g-${z.g}${on === z.k ? ' on' : ''}`} tabIndex={0} role="button" aria-label={c(`gz_${z.k}`)}
+          <g key={z.k} className={`gz-z g-${z.g}${on === z.k ? ' on' : ''}`} tabIndex={0} role="button" aria-label={t(`onepage.dgx.bub.${z.k}.label`)}
             onPointerEnter={e => { if (e.pointerType === 'mouse') setOn(z.k); }}
             onClick={() => setOn(on === z.k ? null : z.k)}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOn(on === z.k ? null : z.k); } }}>
@@ -129,8 +136,16 @@ export function GlyphZones({ c }: { c: (k: string) => string }) {
           </g>
         ))}
       </svg>
-      <div className={`gz-pill${s ? ` g-${s.g}` : ''}`} aria-live="polite">
-        {s ? <><i>{c(grp!)}</i><b>{c(`gz_${s.k}`)}</b><span>{c(`gz_${s.k}d`)}</span></> : <span>{c('gz_hint')}</span>}
+      <div className="gz-side">
+        <div className={`gz-pill${s ? ` g-${s.g}` : ''}`} aria-live="polite">
+          {s ? <><i>{t(`${b}.label`)}</i><b>{t(`${b}.value`)}</b><span>{t(`${b}.glyph`)}</span></>
+            : <span>{t(vert ? 'onepage.dgx.hint.touch' : 'onepage.dgx.hint.hover')}</span>}
+        </div>
+        <ul className="gz-keys">
+          {GROUPS.map((g, i) => (
+            <li key={g} className={`g-${g}${s?.g === g ? ' on' : ''}`}><b>{t(`onepage.dgx.k.${i + 1}.name`)}</b><span>{t(`onepage.dgx.k.${i + 1}.desc`)}</span></li>
+          ))}
+        </ul>
       </div>
     </div>
   );

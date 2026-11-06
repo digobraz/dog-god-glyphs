@@ -621,16 +621,27 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 /* veľký heroglyf — zložený ako na /onepage, priamo na papyruse; na mobile zvislý */
 .aw .gz{max-width:900px;margin:0 auto}
 .aw .gz-svg{display:block;width:100%;height:auto;overflow:visible}
-.aw .gz.v{display:grid;grid-template-columns:minmax(0,150px) 1fr;gap:var(--s-lg);align-items:center;max-width:420px}
-.aw .gz.v .gz-pill{margin:0;align-self:center}
+.aw .gz.v{display:grid;grid-template-columns:minmax(0,140px) 1fr;gap:var(--s-lg);align-items:center;max-width:440px}
+.aw .gz.v .gz-pill{margin:0}
 .aw .gz-z{cursor:pointer;outline:none}
 .aw .gz-hl{fill:transparent;stroke:transparent;stroke-width:40;transition:fill .15s,stroke .15s}
 .aw .gz.v .gz-hl{stroke-width:6}
 .aw .g-basics{--gc:#8C2F26}.aw .g-breed{--gc:#16307A}.aw .g-char{--gc:#7A2FBF}.aw .g-own{--gc:#3D7A4E}
 .aw .gz-z:hover .gz-hl,.aw .gz-z.on .gz-hl,.aw .gz-z:focus-visible .gz-hl{fill:color-mix(in srgb,var(--gc) 18%,transparent);stroke:var(--gc)}
+.aw .gz-z image{transition:filter .2s}
+.aw .gz-z.on image{filter:drop-shadow(0 0 30px var(--gc))}
+.aw .gz.v .gz-z.on image{filter:drop-shadow(0 0 6px var(--gc))}
+/* štyri oblasti ako kóty na /onepage — aktívna sa rozsvieti farbou oblasti */
+.aw .gz-keys{list-style:none;margin:var(--s-lg) auto 0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s-sm);max-width:900px}
+.aw .gz-keys li{border-top:3px solid var(--gc);padding:var(--s-sm) var(--s-xs) 0;text-align:center;opacity:.55;transition:opacity .2s}
+.aw .gz:not(.has) .gz-keys li,.aw .gz-keys li.on{opacity:1}
+.aw .gz-keys b{display:block;font:600 var(--t-label)/1.2 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--gc)}
+.aw .gz-keys span{display:block;font:400 var(--t-label)/1.35 var(--font-ui);color:var(--ink-soft);margin-top:2px}
+.aw .gz.v .gz-keys{grid-template-columns:1fr 1fr;margin-top:var(--s-md)}
 .aw .gz-pill{margin:var(--s-xl) auto 0;max-width:640px;min-height:112px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s-xs);padding:var(--s-lg) var(--s-xl);border-radius:var(--r-tile);border:1px solid var(--hairline);background:color-mix(in srgb,var(--gc,#8a5a14) 8%,transparent);color:var(--ink-body);font:400 var(--t-h2)/1.4 var(--font-ui);text-align:center}
 .aw .gz-pill i{font:500 var(--t-label)/1.4 var(--font-ui);font-style:normal;letter-spacing:.22em;text-transform:uppercase;color:var(--gc,var(--gold-ink))}
 .aw .gz-pill b{font:500 var(--t-h1)/1.2 var(--font-title);color:var(--gc,var(--ink-strong))}
+.aw .gz-pill span{color:var(--ink-soft)}
 @media(max-width:767px){.aw .gz-pill{font-size:var(--t-lead);padding:var(--s-md);min-height:0}.aw .gz-pill b{font-size:var(--t-h2)}}
 
 /* odsek po vetách — každá veta vlastný riadok na PC (Matej 6. 11.: „trochu uprac tie textingy“) */
@@ -663,3 +674,20 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .fcard.soon .fti{border-style:dashed}
 .aw .fcard.soon .pk-pill--locked{font:600 var(--t-micro)/1 var(--font-ui);letter-spacing:.14em;padding:4px 10px;margin-top:var(--s-xs)}
 @media(max-width:767px){.aw .fgrid{gap:56px var(--s-md)}.aw .fcard{padding:60px var(--s-md) var(--s-lg)}.aw .fti{width:92px;height:92px;top:-40px;border-radius:22px}.aw .fcard h3{font-size:var(--t-h2)}.aw .fcard p{font-size:var(--t-label)}}
+
+/* slučka appiek nad funkciami (APPS_TYPE_CSS z /onepage) */
+.aw .apps-loop{text-align:center;margin:0 0 var(--s-xl)}
+/* karta = jedno tlačidlo; odrážky v paneli POD kartou, absolútne — rozbalí sa len jedna karta, rad stojí (Matej 6. 11.) */
+.aw .fcard{z-index:1}
+.aw .fhit{all:unset;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:var(--s-sm);width:100%;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.aw .fhit:focus-visible{outline:2px solid var(--lapis-edge);outline-offset:6px;border-radius:var(--r-field)}
+.aw .fmore{position:absolute;left:-1px;right:-1px;top:calc(100% - 14px);margin:0;padding:var(--s-sm) var(--s-lg) var(--s-lg);list-style:none;display:grid;gap:6px;text-align:left;
+  background:#F7EBCF;border:1px solid var(--hairline);border-top:0;border-radius:0 0 var(--r-card) var(--r-card);box-shadow:0 18px 30px -18px rgba(26,18,6,.45);
+  opacity:0;visibility:hidden;transition:opacity .15s,visibility .15s}
+.aw .fmore li{position:relative;padding-left:16px;font:400 var(--t-body)/1.35 var(--font-ui);color:var(--ink-body)}
+.aw .fmore li::before{content:'';position:absolute;left:0;top:.5em;width:6px;height:6px;border-radius:50%;background:var(--lapis-edge)}
+.aw .fmore li.soon{color:var(--ink-soft)}.aw .fmore li.soon::before{background:transparent;border:1px dashed var(--card-edge)}
+.aw .fmore li em{font:600 var(--t-micro)/1 var(--font-ui);font-style:normal;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-ink);margin-left:6px}
+.aw .fcard.open{z-index:5;border-bottom-left-radius:0;border-bottom-right-radius:0}
+.aw .fcard.open .fmore{opacity:1;visibility:visible}
+@media(hover:hover){.aw .fcard:has(.fmore li):hover{z-index:5;border-bottom-left-radius:0;border-bottom-right-radius:0}.aw .fcard:hover .fmore{opacity:1;visibility:visible}}

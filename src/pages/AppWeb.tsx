@@ -17,17 +17,18 @@
  *    (`?nakres` NIE — ten v appke otvára editor nákresov a stránku prekryje.)
  *  · Čísla psy/ľudia/krajiny sú živé z `get-pack-stats`.
  */
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Seo } from '@/components/Seo';
 import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar } from '@/components/pack/HandIcons';
 import { STAGE_CSS } from '@/components/pack/packTheme';
 import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
 import { GodsGridLab } from '@/components/gods/GodsGridLab';
-import { useLang } from '@/i18n/LanguageContext';
+import { useLang, useT } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
 import { IgMock, IgIcon } from './appWeb/IgMock';
 import { AlbaCount, AlbaTrio, GlyphZones } from './appWeb/AlbaGlyph';
+import { APP_CHIPS, APPS_TYPE_CSS } from '@/components/lab/filmAppsType';
 import './appWeb/appWeb.css';
 
 const A = '/web-app';
@@ -176,6 +177,7 @@ function LivePlanet() {
 
 export default function AppWeb() {
   const { lang, setLang } = useLang();
+  const t = useT();
   const L: Lang2 = lang === 'sk' ? 'sk' : 'en';
   const c = (k: string) => COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
   const qs = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), []);
@@ -185,7 +187,8 @@ export default function AppWeb() {
   /* pozadie — varianty v štýle MysteryHike (matné sklo, perleť, heroglyfy) */
   const [bg, setBg] = useState(() => (/^[1-4]$/.test(qs.get('bg') ?? '') ? qs.get('bg')! : '1'));
   /* dlaždica pod ikonkami funkcií — skúšame lapis aj papyrus (Matej 6. 11.) */
-  const [tile, setTile] = useState(() => (qs.get('tile') === 'papyrus' ? 'papyrus' : 'lapis'));
+  const [openFeat, setOpenFeat] = useState<number | null>(null);
+  const [tile, setTile] = useState(() => (qs.get('tile') === 'lapis' ? 'lapis' : 'papyrus'));
 
   /* živé čísla */
   const [stats, setStats] = useState<{ dogs: number; people: number; countries: number } | null>(null);
@@ -350,7 +353,7 @@ export default function AppWeb() {
           <Rv><AlbaTrio /></Rv>
           <Rv><AlbaCount c={c} /></Rv>
           <Rv className="alba-sec gz-sec">
-            <GlyphZones c={c} />
+            <GlyphZones />
           </Rv>
         </div>
       </section>
@@ -359,12 +362,37 @@ export default function AppWeb() {
       <section id="features">
         <div className="wrap">
           <Rv className="sec-h"><p className="eye">{c('e_feat')}</p><h2>{c('h_feat_a')} <span className="blk">{c('h_feat_b')}</span><span className="h2b">{c('h_feat2')}</span></h2></Rv>
-          {/* karty B — ikonka na dlaždici trčí nad kartou, bez animácie (Matej 6. 11.); dlaždica lapis / papyrus = `?tile=` */}
+          {/* karty B — ikonka na dlaždici trčí nad kartou, bez animácie (Matej 6. 11.); dlaždica papyrus (výber Mateja 6. 11.) / lapis = `?tile=lapis` */}
+          {/* slučka appiek ako na /onepage (FilmApps) — jeden zdroj APP_CHIPS + APPS_TYPE_CSS, zmena pohne oboma */}
+          <style>{APPS_TYPE_CSS}</style>
+          <div className="apps-loop">
+            <p className="op-apps-lead">{t('onepage.apps.chips.lead')}</p>
+            <div className="op-apps-marq">
+              <ul className="op-apps-chips">
+                {[0, 1].map(copy => (
+                  <Fragment key={copy}>
+                    {APP_CHIPS.map(ch => (
+                      <li key={ch.name} className={copy ? 'op-apps-clone' : undefined} aria-hidden={copy ? true : undefined}>
+                        {ch.icon && <i style={{ ['--m' as string]: `url(/icons/brands/${ch.icon}.svg)` }} aria-hidden />}
+                        {ch.name}
+                      </li>
+                    ))}
+                    <li className={`op-apps-chip-more${copy ? ' op-apps-clone' : ''}`} aria-hidden={copy ? true : undefined}>{t('onepage.apps.chips.more')}</li>
+                  </Fragment>
+                ))}
+              </ul>
+            </div>
+            <p className="op-apps-lead op-apps-tail">{t('onepage.apps.chips.tail')}</p>
+          </div>
+          {/* odrážky = hover (PC) / ťuk (mobil); rozbalí sa LEN tá karta — panel leží nad radom pod ňou, rad sa nenaťahuje */}
           <div className="fgrid" data-tile={tile}>
             {FEATS.map((f, i) => (
-              <Rv key={f.p} d={i % 4} className={`fcard pk-stage ${f.cls ?? ''}`}>
-                <div className="fti"><img src={`${A}/ikony/${f.ic}.webp`} alt="" loading="lazy" /></div>
-                <h3>{f.h[L]}</h3><p>{c(f.p)}</p>
+              <Rv key={f.p} d={i % 4} className={`fcard pk-stage ${f.cls ?? ''}${openFeat === i ? ' open' : ''}`}>
+                <button type="button" className="fhit" aria-expanded={openFeat === i} onClick={() => setOpenFeat(openFeat === i ? null : i)}>
+                  <span className="fti"><img src={`${A}/ikony/${f.ic}.webp`} alt="" loading="lazy" /></span>
+                  <h3>{f.h[L]}</h3><p>{c(f.p)}</p>
+                </button>
+                <ul className="fmore">{f.li.map(([tx, soon], k) => <li key={k} className={soon ? 'soon' : ''}>{tx[L]}{soon && <em>{c('soon')}</em>}</li>)}</ul>
               </Rv>
             ))}
           </div>
