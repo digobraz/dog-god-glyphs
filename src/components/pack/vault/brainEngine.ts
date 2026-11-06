@@ -280,8 +280,8 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     W = b.width; H = b.height;
   }
-  /* `glow` (web): celý mozog sa pomaly otáča okolo stredu — „interaktívny a pohybujúci sa“ (Matej 6. 11.) */
-  let ROT = 0;
+  /* `glow` (web) sa NEOTÁČA (Matej 6. 11.: „nech sa netočí ako kolotoč, skôr len levituje“) — ROT ostáva 0 */
+  const ROT = 0;
   const toScreen = (p: Node) => {
     let x = p.x + p.dx, y = p.y + p.dy;
     if (ROT) { const c = Math.cos(ROT), s = Math.sin(ROT); [x, y] = [x * c - y * s, x * s + y * c]; }
@@ -298,7 +298,6 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     view.x += (vt.x - view.x) * 0.18; view.y += (vt.y - view.y) * 0.18; view.k += (vt.k - view.k) * 0.18;
     /* DOBEH PO PUSTENÍ + NÁVRAT ZA OKRAJA (dt z hodín, nie z počtu snímok — 60 aj 120 Hz rovnako) */
     const dtF = Math.min(48, Math.max(1, TL * 1000 - lastF)); lastF = TL * 1000;
-    if (o.glow && LEVIT) ROT += dtF * 0.000045;
     /* STOPA LABKY (`glow`): čo je pod labkou, zažiari — svet, okruh aj zrno — a pomaly dohasína */
     const htDec = Math.pow(0.97, dtF / 16.67);
     if (!pan && !down && (vel.x || vel.y)) {
@@ -326,7 +325,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       if (LEVIT && p !== drag) {
         /* ⚠️ Levitácia v PIXELOCH (inak rastie s mierkou) a pripočítaná k tomu, čo sa
            kreslí AJ trafí — keby sa kreslilo inde, uzol by pod prstom unikal. */
-        const am = p.role === 'z' ? 4.2 : p.role === 'root' ? 1.2 : 2.6;
+        const am = (p.role === 'z' ? 4.2 : p.role === 'root' ? 1.2 : 2.6) * (o.glow ? 1.8 : 1);
         p.sx += Math.sin(TL * p.lw + p.ph) * am;
         p.sy += Math.cos(TL * p.lw * 0.83 + p.ph * 1.7) * am;
       }
@@ -425,7 +424,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     const wLbl = new Map<Node, ReturnType<typeof labelAt> & { name: string }>();
     N.forEach((p) => {
       if (p.role !== 'w') return;
-      const r = p.sz * kB * (HOV === p ? 1.18 : 1);
+      const r = p.sz * kB * (HOV === p ? 1.18 : 1) * (o.glow ? 1.3 : 1);
       const name = o.worldName(p.wi).toUpperCase();
       const w = ctx.measureText(name).width + 6;
       let L = { ...labelAt(p, root.sx, root.sy, r + 6), name };
@@ -499,7 +498,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       }
       if (p.role !== 'w') return;
       const near = HOV === p;
-      const r = p.sz * kB * (near ? 1.18 : 1);
+      const r = p.sz * kB * (near ? 1.18 : 1) * (o.glow ? 1.3 : 1);
       /* ⚠️ BUBLINA NESIE DRUH — tá istá farba, ktorou svieti karta toho sveta na
          nástenke. Ikona sa z bubliny VYREZÁVA (nižšie), takže odtieň je voľný
          a zlatý kit sa prekresľovať nemusí.
@@ -510,8 +509,21 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       const wc = layerNow === 'worlds' || o.glow ? worldRGB(o.worlds[p.wi]) : COL.cyan;
       ctx.shadowBlur = near ? 34 : 20; ctx.shadowColor = `rgba(${wc},.95)`;
       ctx.fillStyle = `rgba(${wc},1)`;
+      if (o.glow) {
+        /* ŽIARIVÁ GUĽA ako svety v lieviku nad mozgom: odlesk, dýchajúca žiara, krúžiaci prstenec */
+        const br = 0.5 + 0.5 * Math.sin(TL * 2.2 + p.wi * 0.9);
+        ctx.shadowBlur = (near ? 46 : 28) + br * 22;
+        const g = ctx.createRadialGradient(p.sx - r * 0.3, p.sy - r * 0.35, 0, p.sx, p.sy, r);
+        g.addColorStop(0, '#fff'); g.addColorStop(0.38, `rgb(${wc})`); g.addColorStop(1, `rgba(${wc},.78)`);
+        ctx.fillStyle = g;
+      }
       ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, TAU); ctx.fill();
       ctx.shadowBlur = 0;
+      if (o.glow) {
+        const a0 = TL * (1.1 + p.wi * 0.12) + p.wi;
+        ctx.lineWidth = 2; ctx.strokeStyle = `rgba(${wc},.9)`; ctx.shadowBlur = 12; ctx.shadowColor = `rgba(${wc},1)`;
+        ctx.beginPath(); ctx.arc(p.sx, p.sy, r + 5, a0, a0 + TAU * 0.3); ctx.stroke(); ctx.shadowBlur = 0;
+      }
       if (o.glow && (p.ht ?? 0) > 0.04) {
         const h = p.ht ?? 0;
         ctx.strokeStyle = `rgba(${GLOW},${h.toFixed(2)})`; ctx.lineWidth = 3; ctx.shadowBlur = 30 * h; ctx.shadowColor = `rgba(${GLOW},1)`;
