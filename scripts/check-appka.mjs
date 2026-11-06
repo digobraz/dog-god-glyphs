@@ -191,6 +191,27 @@ for (const f of dosiahnute) {
   });
 }
 
+// ── 4. TEST_BUILD je len testovací kanál (6. 11. 2026) ─────────────────────────────────────
+// Nová obrazovka patrí pod `APP_NEW` (obchod), nie pod `TEST_BUILD` — inak ju release build neukáže.
+// Import `TEST_BUILD` je povolený len tu (každé miesto zapína ladiacu/testovaciu vec alebo ho definuje).
+const TEST_BUILD_POVOLENE = {
+  'src/lib/env.ts': 'definícia + VET_ER_ON',
+  'src/lib/packFlags.ts': 'definícia APP_NEW',
+  'src/pages/Pack.tsx': 'štítok TEST vo verzii',
+  'src/components/pack/profile/MisiaGroup.tsx': 'MISIA_ON — blok len v teste',
+};
+(function strazTestBuild(dir) {
+  for (const n of readdirSync(dir)) {
+    const f = join(dir, n);
+    if (statSync(f).isDirectory()) { strazTestBuild(f); continue; }
+    if (!/\.(tsx?|jsx?)$/.test(n)) continue;
+    const kod = bezKomentarov(read(f));
+    if (/import\s*\{[^}]*\bTEST_BUILD\b[^}]*\}\s*from/.test(kod) && !TEST_BUILD_POVOLENE[rel(f)]) {
+      fail(`TEST_BUILD v ${rel(f)} — import len pre ${Object.keys(TEST_BUILD_POVOLENE).join(', ')}. Nová obrazovka patrí pod APP_NEW (packFlags.ts), TEST_BUILD je len test (ladenie, MISIA, štítok).`);
+    }
+  }
+})(SRC);
+
 // ── Výpis ────────────────────────────────────────────────────────────────────────────────────
 // Vedomé výnimky s prázdnym `obsahuje` platia pre celý súbor
 const nestrazene = zasahy.filter((z) => z.stav === 'NESTRÁŽENÉ');

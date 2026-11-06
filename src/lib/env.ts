@@ -38,7 +38,9 @@ export const APP_DEV = import.meta.env.MODE === 'appdev';
 // aby som to na telefóne vedel používať a testovať"*. `bash scripts/appka/test.sh` buildí s
 // `VITE_TEST_BUILD=1` do `dist-apptest/` a nahrá ho na `appka-dogypt.dogypt.workers.dev` — odtiaľ sa
 // TestFlight appka aktualizuje. Ostré dáta, ale dogypt.com tento build nikdy nevidí.
-// Rozostavaná vec v /pack sa zapína `|| TEST_BUILD` (nie `|| IS_APP` — to by ju po vydaní do obchodu videli členovia).
+// DVE ROLE (6. 11. 2026): `APP_NEW = TEST_BUILD || IS_APP` (packFlags.ts) = nové obrazovky, idú aj do OBCHODU.
+// `TEST_BUILD` = LEN testovací kanál (ladenie, skúška písma, MISIA, štítok TEST) — obchodná appka ho nemá.
+// Nová obrazovka patrí pod `APP_NEW`, nie pod `TEST_BUILD` (inak ju release build neukáže); web dogypt.com nemá ani jedno.
 export const TEST_BUILD = import.meta.env.DEV || import.meta.env.VITE_TEST_BUILD === '1';
 
 // SOS stratený pes (4. 11. 2026): vlastný vypínač, lebo testovacia appka ide na ostré dáta a LIVE tabuľky SOS ešte nemá.

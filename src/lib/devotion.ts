@@ -6,7 +6,6 @@
 // Path 1 of 3 (Devotion). Thresholds 1–20 are sim canon; Pharaoh (★) and Demigod
 // (☼) are symbolic in the sim — kept at 1M / 2M so the level math has numbers.
 // ============================================================================
-import { TEST_BUILD } from '@/lib/env';
 import { APP_NEW } from '@/lib/packFlags';
 // `key` = stabilný i18n kľúč (`pack.ladder.<key>`). `name` = EN fallback / kánon.
 // Komponenty rendrujú `t('pack.ladder.' + lv.key)` — názov sa prekladá, prahy nie.

@@ -31,7 +31,7 @@ import { openExternal } from '@/lib/appLinks';
 const openPdf = (href: string) => IS_APP ? (e: React.MouseEvent) => { e.preventDefault(); openExternal(href); } : undefined;
 import { useDogyptStore } from '@/store/dogyptStore';
 import { flagUrl, countryISO2, flagEmojiFromISO2 } from '@/lib/countryGeo';
-import { EDGE_BASE, TEST_BUILD } from '@/lib/env';
+import { EDGE_BASE } from '@/lib/env';
 import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
 import { DogSeal, sealOf, sealLabel } from '@/components/pack/profile/dogSeal';
 import NavMedallion, { NAV_MEDALLION_CSS } from '@/components/lab/NavMedallion';
@@ -753,8 +753,8 @@ export default function PackDogDetail() {
         <div className="grid grid-cols-1 gap-5 md:gap-6 items-stretch">
 
           <section
-            className={`did-card${APP_NEW || TEST_BUILD ? ' did-flat' : ''}`}
-            style={APP_NEW || TEST_BUILD ? { padding: '0 0 24px' } : {
+            className={`did-card${APP_NEW ? ' did-flat' : ''}`}
+            style={APP_NEW ? { padding: '0 0 24px' } : {
               background: T.cardGrad,
               border: `1.5px solid ${T.cardEdge}`,
               borderRadius: 16,

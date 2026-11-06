@@ -6,7 +6,6 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BonesCoin } from './BonesCoin';
 import { PACK_THEME, PACK_COL, PACK_COL_INNER, PACK_TOPROW_PAD, usePaperRoute, PAPER_PAGE_CSS, PAPER_ROUTES_EXTRA, FONT_UI } from './packTheme';
-import { TEST_BUILD } from '@/lib/env';
 import { PackTopRow } from './PackTopRow';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
@@ -67,7 +66,7 @@ const PLAIN_ROUTES: readonly RegExp[] = [/^\/pack\/profile(\/|$)/, /^\/pack\/dog
 // FEED 2 (26. 10. 2026): DOMOV `/pack` stojí na tej istej ploche — hlavička ostáva hore ako na profile
 // (Matej: *„potrebujem aby nejaká hlavička zostala“*). Len cesta presne `/pack`, nie celý strom.
 const PLAIN_HOME = /^\/pack\/?$/;
-if (TEST_BUILD) PAPER_ROUTES_EXTRA.push(...PLAIN_ROUTES);
+if (APP_NEW) PAPER_ROUTES_EXTRA.push(...PLAIN_ROUTES);
 
 interface PackLayoutProps {
   children: ReactNode;
@@ -95,7 +94,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel, topLe
   //    tapeta stojí na `z-index:-1` a uzavrela by sa doň (viď PAPER_PAGE_CSS).
   const pathname = useLocation().pathname;
   const paperPage = usePaperRoute(pathname);
-  const plain = TEST_BUILD && (PLAIN_ROUTES.some((r) => r.test(pathname)) || PLAIN_HOME.test(pathname)) ? ' pk-plain' : '';
+  const plain = APP_NEW && (PLAIN_ROUTES.some((r) => r.test(pathname)) || PLAIN_HOME.test(pathname)) ? ' pk-plain' : '';
 
   if (loading) {
     return (
