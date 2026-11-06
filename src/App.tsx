@@ -14,6 +14,7 @@ import { trackPageview, setAnalyticsLang } from "@/lib/analytics";
 import { maskPath, trackPackRoute } from "@/lib/packAnalytics";
 import { captureAttribution } from "@/lib/attribution";
 import { NEW_HEROFLOW } from "@/lib/flowMode";
+import { PawTrail } from "@/components/PawTrail";
 
 // Route-level code-split (P0 2026-07 perf pass). NotFound je od 7. 10. 2026 tiež lazy; od FLIPu
 // 7. 10. 2026 je homepage film (OnePage) — aj /wall, tmavý GodsGrid zanikol; everything else behind /heroglyph, /pack, /admin, legacy /spiral, etc.
@@ -356,6 +357,8 @@ const App = () => (
         <RefCapture />
         <AppRouteGuard />
         <OnPackDeletionGate />
+        {/* Psia packa + stopy na pozadí verejného webu (len myš; /pack, /admin a appka nie) */}
+        <PawTrail />
         <Suspense fallback={null}>
           <ConsentBanner />
         </Suspense>

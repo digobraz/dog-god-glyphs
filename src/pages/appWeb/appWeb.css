@@ -186,9 +186,6 @@
 .aw .car .ph.next{transform:translateX(12%) translateY(48px) rotate(7deg) scale(.86);z-index:2;filter:saturate(.8)}
 .aw .car .ph.off{transform:translateX(-50%) translateY(80px) scale(.7);opacity:0;z-index:1;pointer-events:none}
 .aw .car .tap-hint{right:0;top:-44px}
-.aw .car-dots{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:center;gap:8px}
-.aw .car-dots button{width:8px;height:8px;border-radius:50%;border:0;background:var(--hairline);cursor:pointer;padding:0;transition:width .3s}
-.aw .car-dots button.on{background:var(--lapis-edge);width:24px;border-radius:var(--r-pill)}
 .aw .float{position:absolute;z-index:5;box-shadow:var(--lab-shadow);font:600 var(--t-label)/1 var(--font-ui)}
 .aw .float.f1{left:0;top:40px}.aw .float.f2{right:0;top:46%}.aw .float.f3{left:6%;bottom:48px}
 @media(prefers-reduced-motion:no-preference){.aw .float{animation:aw-bob 4s ease-in-out infinite}.aw .float.f2{animation-delay:1.3s}.aw .float.f3{animation-delay:2.6s}}
@@ -426,7 +423,6 @@
 .aw .car .ph.prev{transform:translateX(-108%) translateY(56px) rotate(-7deg) scale(.84)}
 .aw .car .ph.next{transform:translateX(8%) translateY(56px) rotate(7deg) scale(.84)}
 .aw .car .tap-hint{top:-8px}
-.aw .car-dots{bottom:auto;top:calc(100% - 210px);z-index:4}
 
 /* LEVITUJÚCE ODZNAKY nad telefónmi — vysvetlivka pri prejdení myšou */
 .aw .flt{position:absolute;z-index:6;display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:var(--r-pill);
@@ -444,14 +440,21 @@
 /* ŽI PSÍ ŽIVOT */
 .aw .life{position:relative;z-index:1;padding-top:160px}
 @media(min-width:900px){.aw .life{padding-top:200px}}
-.aw .fresco{border-radius:var(--r-card);overflow:hidden;box-shadow:var(--card-shadow);border:1.5px solid var(--card-edge);aspect-ratio:4/5}
+.aw .fresco{border-radius:var(--r-card);overflow:hidden;box-shadow:var(--card-shadow);border:1.5px solid var(--card-edge);aspect-ratio:16/9;order:2}
 .aw .fresco img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 6s ease}
 .aw .fresco:hover img{transform:scale(1.05)}
+@media(min-width:900px){.aw .life .split{align-items:stretch}.aw .fresco{aspect-ratio:auto;order:0;min-height:100%}}
 .aw .verbs{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-sm);margin-top:var(--s-xl)}
-.aw .verbs div{padding:var(--s-md) var(--s-lg)}
-.aw .verbs b{display:block;font:900 var(--t-h2)/1.1 var(--font-title);color:var(--ink-strong)}
-.aw .verbs span{font-size:var(--t-label);color:var(--ink-soft)}
-.aw .loopline{margin-top:var(--s-xl);font:900 var(--t-h2)/1.2 var(--font-title);color:var(--gold-ink);letter-spacing:.02em}
+.aw .verb{width:100%;height:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;display:grid;grid-template-columns:auto 1fr;column-gap:var(--s-md);align-items:center;padding:var(--s-lg);transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s}
+.aw .verb .ic{grid-row:1/3;display:grid;place-items:center;width:48px;height:48px;border-radius:var(--r-field);color:var(--gold-ink);transition:transform .45s cubic-bezier(.3,1.6,.5,1),background .3s,color .3s}
+.aw .verb b{display:block;font:900 24px/1.1 var(--font-title);color:var(--ink-strong);letter-spacing:.02em}
+.aw .verb .vp{font-size:var(--t-label);color:var(--ink-soft);line-height:1.35;max-height:0;opacity:0;overflow:hidden;transition:max-height .4s ease,opacity .3s ease,margin .3s}
+.aw .verb:hover,.aw .verb:focus-visible,.aw .verb.on{transform:translateY(-4px) scale(1.03)}
+.aw .verb:hover .ic,.aw .verb:focus-visible .ic{transform:rotate(-10deg) scale(1.15)}
+.aw .verb.on .ic{background:var(--lapis);color:var(--lapis-ink);transform:rotate(-8deg) scale(1.1)}
+.aw .verb:hover .vp,.aw .verb:focus-visible .vp,.aw .verb.on .vp{max-height:60px;opacity:1;margin-top:var(--s-xs)}
+@media(hover:none){.aw .verb .vp{max-height:60px;opacity:1;margin-top:var(--s-xs)}}
+@media(prefers-reduced-motion:reduce){.aw .verb,.aw .verb .ic{transition:none}}
 
 /* DUŠA — heroglyf */
 .aw .soul{display:grid;gap:var(--s-xl);align-items:center;padding:var(--s-xl);margin-top:var(--s-xxxl)}
@@ -573,3 +576,10 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 
 /* v6 — odznaky: jas a ostrosť (grafické prvky okolo nadpisu Matej zrušil) */
 .aw .flt img{filter:brightness(1.1) saturate(1.15) contrast(1.04) drop-shadow(0 8px 14px rgba(0,0,0,.3));image-rendering:auto}
+
+/* SEKCIA 2 — nadpis veľký ako v hero (štedrosť Museum Black), aj na mobile */
+.aw .life-txt{container-type:inline-size}
+.aw .life .split h2{font-size:clamp(36px,10cqi,96px);line-height:1;white-space:nowrap}
+.aw .life h2 .l1{display:inline}
+.aw .life h2 .l1+.l1{margin-left:.22em}
+.aw .life h2 .big{font-size:1.06em;line-height:1;display:inline-block}

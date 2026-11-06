@@ -19,7 +19,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Seo } from '@/components/Seo';
-import { HandPaw } from '@/components/pack/HandIcons';
+import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar } from '@/components/pack/HandIcons';
 import { STAGE_CSS } from '@/components/pack/packTheme';
 import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
 import { GodsGridLab } from '@/components/gods/GodsGridLab';
@@ -126,6 +126,8 @@ function useNear<T extends HTMLElement>(margin = '0px', once = true) {
 }
 
 /** Blok, ktorý sa vynorí pri scrolle (`.rv` → `.in`). */
+const VERBS = [HandForward, HandHeart, HandClipboard, HandShare, HandStar, HandPaw];
+
 function Rv({ as = 'div', d = 0, className = '', children }: { as?: 'div' | 'p' | 'details'; d?: number; className?: string; children: ReactNode }) {
   const [ref, seen] = useNear<HTMLDivElement>();
   const Tag = as as 'div';
@@ -214,6 +216,7 @@ export default function AppWeb() {
 
   /* funkcie — na dotyk sa karta rozbalí */
   const [openFeat, setOpenFeat] = useState<number | null>(null);
+  const [vOn, setVOn] = useState<number | null>(null);
 
   /* odznaky */
   const [ax, setAx] = useState(0);
@@ -288,9 +291,6 @@ export default function AppWeb() {
             <span className="flt f1" tabIndex={0}><img className="xl" src={`${A}/odznaky/pilgrim-3.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
             <span className="flt f2" tabIndex={0}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
             <span className="flt f3" tabIndex={0}><img src={`${A}/odznaky/ucen-4.svg`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
-            <div className="car-dots">
-              {CAROUSEL.map((_, i) => <button key={i} className={i === ci ? 'on' : ''} onClick={() => setCi(i)} aria-label={`${i + 1}`} />)}
-            </div>
           </div>
         </div>
       </section>
@@ -299,14 +299,21 @@ export default function AppWeb() {
       <section id="life" className="life">
         <div className="wrap split">
           <Rv className="fresco"><img src="/images/magnet/vylety.webp" alt="" loading="lazy" /></Rv>
-          <Rv d={1}>
+          <Rv d={1} className="life-txt">
             <p className="eye">{c('e_life2')}</p>
-            <h2>{c('h_life2a')} <span className="deco">{c('h_life2b')}</span></h2>
+            <h2><span className="l1">{c('h_life2a')}</span><span className="l1"><span className="deco big">{c('h_life2b')}</span></span></h2>
             <p className="lead">{c('l_life2')}</p>
             <div className="verbs">
-              {[1, 2, 3, 4, 5, 6].map((n) => <div key={n} className="pk-stage"><b>{c(`v${n}`)}</b><span>{c(`v${n}p`)}</span></div>)}
+              {VERBS.map((Ic, i) => (
+                <Rv key={i} d={i + 1} className="verb-w">
+                  <button type="button" className={`pk-stage verb ${vOn === i ? 'on' : ''}`} onClick={() => setVOn(vOn === i ? null : i)}>
+                    <span className="ic"><Ic size={34} /></span>
+                    <b>{c(`v${i + 1}`)}</b>
+                    <span className="vp">{c(`v${i + 1}p`)}</span>
+                  </button>
+                </Rv>
+              ))}
             </div>
-            <p className="loopline">{c('loop')}</p>
           </Rv>
         </div>
       </section>
