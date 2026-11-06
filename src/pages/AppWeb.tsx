@@ -633,7 +633,7 @@ export default function AppWeb() {
               </div>
             </div>
             <div className="gs-slide gs-dogma pk-card">
-              <div className="pic"><img src="/images/dogma-cover.webp" alt="DOGMA" loading="lazy" /></div>
+              <div className="pic"><img src="/images/dogma-cover-lapis.webp" alt="DOGMA" loading="lazy" /></div>
               <div>
                 <p className="eye">{c('e_dogma')}</p>
                 <h2>{c('h_dogma1')} <span className="deco">{c('h_dogma2')}</span></h2>
@@ -668,22 +668,21 @@ export default function AppWeb() {
         <div className="wrap">
           <Rv className="sec-h faq-h"><p className="eye">FAQ</p><h2>{c('h_faq1')} <span className="deco">{c('h_faq2')}</span></h2></Rv>
           <div className="faq">
-            {[1, 2, 3, 4, 5, 6].map((n) => (
+            {[1, 2, 3, 4, 5].map((n) => (
               <Rv as="details" key={n} className="pk-stage"><summary>{c(`q_${n}`)}</summary><p>{c(`a_${n}`)}</p></Rv>
             ))}
+            {/* kontakt a odkazy z pätičky — pätička zanikla, posledná je planétka (Matej 6. 11.) */}
+            <Rv as="details" className="pk-stage"><summary>{c('q_contact')}</summary>
+              <p><a href="mailto:woof@dogypt.com">woof@dogypt.com</a><br />
+                <a href="/">{c('ft1')}</a> · <a href={L === 'sk' ? 'https://dogma.dogypt.com/' : 'https://dogma.dogypt.com/en/'}>DOGMA</a> · <a href="/privacy">{c('privacy')}</a><br />
+                <small>© DOGYPT</small></p>
+            </Rv>
           </div>
         </div>
       </section>
 
       {/* 11 · ŽIVÁ PLANÉTKA — finále */}
       <LivePlanet />
-
-      <footer>
-        <div className="wrap">
-          <span>© DOGYPT · woof@dogypt.com</span>
-          <span><a href="/">{c('ft1')}</a> · <a href="https://dogma.dogypt.com/">DOGMA</a> · <a href="#good">{c('ft3')}</a> · <a href="/privacy">Privacy</a></span>
-        </div>
-      </footer>
 
       <div className={`mbar${mbar ? ' on' : ''}`}><a className="pk-cta" href="#join">{c('mbar')}</a></div>
 

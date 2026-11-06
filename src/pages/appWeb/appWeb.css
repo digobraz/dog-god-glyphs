@@ -1117,3 +1117,18 @@ html:has(.aw){scroll-snap-type:y proximity}
 .aw .gs-slide:last-child{margin-right:14%}
 .aw .gs .sl-btn.r{right:-18px}
 .aw .gs-tr{align-items:flex-start}
+
+/* v32 — FAQ → planétka bez švu (Matej 6. 11.: „tento prechod mi vadí“): guľa nemá vlastný papyrusový obdĺžnik,
+   leží na tej istej perleti ako celá stránka; ostáva len svetlo za ňou. Pätička zanikla, kontakt je v FAQ. */
+.aw .planet-live .planet-root.b-hlbka{background:radial-gradient(34% 52% at 50% 44%,rgba(255,253,246,.92) 0%,rgba(253,246,229,.42) 58%,transparent 82%)}
+.aw .faq details p a{color:var(--lapis-deep);font-weight:500}
+.aw .faq details p small{opacity:.6}
+.aw .ab-switch{display:none!important}
+/* DOGMA kniha v lapise (Kie gpt-edit z pôvodnej, Matej 6. 11.: „namiesto fialovej našu lapisovú a väčšiu žiaru“):
+   žiara je svetlo ZA knihou, kniha sa na papyrus vkladá cez multiply, aby nebolo vidno jej krémový obdĺžnik */
+.aw .gs-dogma .pic{position:relative;isolation:isolate;width:min(320px,74%)}
+.aw .gs-dogma .pic::before{content:'';position:absolute;inset:-18%;z-index:-1;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(59,110,255,.55),rgba(22,48,122,.28) 45%,rgba(201,154,63,.22) 70%,transparent)}
+@media(prefers-reduced-motion:no-preference){.aw .gs-dogma .pic::before{animation:aw-aura 5s ease-in-out infinite}}
+@keyframes aw-aura{0%,100%{opacity:.75;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
+.aw .gs-dogma .pic img{mix-blend-mode:normal;filter:drop-shadow(0 0 18px rgba(59,110,255,.55)) drop-shadow(0 0 40px rgba(201,154,63,.35)) drop-shadow(0 24px 30px rgba(26,18,6,.35))}

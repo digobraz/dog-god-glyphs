@@ -752,6 +752,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  more: { en: 'Read more', sk: 'Čítaj viac' }, less: { en: 'Less', sk: 'Menej' },
  goal: { en: 'Goal: one million Dogyptians', sk: 'Cieľ: milión Dogypťanov' },
  nav5: { en: 'Story', sk: 'Príbeh' },
+ q_contact: { en: 'How do I reach you?', sk: 'Ako vás kontaktovať?' }, privacy: { en: 'Privacy', sk: 'Ochrana súkromia' },
  /* blok poďakovania = 3 snímky vodorovne (Matej 6. 11.): poďakovanie · intro video · DOGMA; „Za hrou“ sa v ňom rozpustil */
  h_lore1: { en: 'It started with one', sk: 'Začalo to jedným' }, h_lore2: { en: 'dog.', sk: 'psom.' },
  e_dogma: { en: 'The constitution', sk: 'Ústava' },
