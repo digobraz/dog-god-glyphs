@@ -22,7 +22,7 @@ import type { SnifferCardData, SnifferDistanceBand } from './snifferDeck';
 import { loadMyCard, pilgrimFromTrips } from './snifferDeck';
 import { pilgrimLevelOf } from './pilgrimOf';
 import { devotionLevel, DEVOTION_START, DEVOTION_TODAY_ON } from '@/lib/devotion';
-import { RANK_BADGE_ON, RANK_BADGE_CSS, ServantBadge, PilgrimBadge } from '@/components/pack/profile/rankBadge';
+import { RANK_BADGE_ON, RANK_BADGE_CSS, ServantBadge, PilgrimBadge, LearnerBadge } from '@/components/pack/profile/rankBadge';
 import { tierOfLevel, tierGradient } from '@/lib/packTiers';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 
@@ -165,10 +165,11 @@ export function SnifferLevels({ card, tx }: { card: SnifferCardData; tx: Tx }) {
   // (pointer-events:none), odznak je tu len obraz. DEVOTION zrušená 26. 10. — v tejto vetve nie je.
   if (RANK_BADGE_ON) {
     return (
-      <span className="sn-lv rk-row">
+      <span className={`sn-lv rk-row${card.learnerLevel ? ' rk3' : ''}`}>
         <style>{RANK_BADGE_CSS}</style>
         <ServantBadge years={card.servantYears ?? null} activeDays={null} label={tx('pack.ladder.servant', 'Servant')} />
         <PilgrimBadge level={pilgrimLevel || 1} pct={card.pilgrimPct ?? 0} label={`${tx('pack.sniffer.pilgrim', 'Pilgrim')} ${pilgrimLevel || 1}`} />
+        {card.learnerLevel ? <LearnerBadge level={card.learnerLevel} pct={card.learnerPct ?? 0} label={`${tx('pack.rank.learner', 'Disciple')} ${card.learnerLevel}`} /> : null}
       </span>
     );
   }

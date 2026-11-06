@@ -49,6 +49,8 @@ import {
 } from '@/components/pack/ainubisSkin';
 import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
 import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
+import { useLearner } from '@/components/pack/vault/useLearner';
+import { RANK_BADGE_ON, learnerRingVars } from '@/components/pack/profile/rankBadge';
 import { SCROLL_DEMO, useDemoScrolls, usePublicScrolls, useScrollState, useReadsReady, useReads, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import { VaultKnowledge, KNOW_CSS } from '@/components/pack/vault/VaultKnowledge';
 import { ScrollCard, ScrollView, SCROLL_CSS, SCROLL_CARD_CSS, scrollUI, circleName as scrollCircle } from '@/components/pack/vault/ScrollParts';
@@ -691,6 +693,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   const knowOpen = !pv && /^knowledge\/?$/.test(sub);
   const zstateRaw = useScrollState();
   const zstate = pv ? NO_STATE : zstateRaw;
+  // UČEŇ — prstenec okolo fotky nesie level štúdia (6. 11. 2026), ten istý výpočet a zápis ako profil.
+  const learner = useLearner(!!pv);
   /* VYPOČUTÉ ≠ PREČÍTANÉ (Matej 8. 10.: „označil som zvitok ako prečítaný, ale nevypočul
      som si podcast… a hore svieti, ako keby som ho vypočul"). Stav zvitku (2) zlučuje oboje;
      počítadlo podcastov číta LEN `listened_at`. */
@@ -1408,6 +1412,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
             { v: `${pct} %`, l: tx('pack.ainubis.stat.read', 'read') },
           ]}
           onMe={() => navigate('/pack/ainubis/knowledge')}
+          ring={RANK_BADGE_ON ? { level: learner.level, pct: learner.pct, vars: learnerRingVars(learner.level),
+            aria: `${tx('pack.rank.learner', 'Disciple')} ${learner.level}` } : undefined}
         />}
         {/* PC: hľadanie a filtre POD hlavičkou nad mozgom, ako na /map (Matej 22. 9.). */}
         {worldKey && <div className="akv-ptools">

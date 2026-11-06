@@ -25,7 +25,7 @@
 // ⚠️ Šat je AINUBISOV (tmavý displej). Papyrusovú polohu komponent zatiaľ nemá.
 // ⚠️ Panel pásiem (klik na číslo levelu na mape) tu NIE JE — žije vnútri PackMap.
 // ════════════════════════════════════════════════════════════════════════════
-import { Fragment, useEffect, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useState, type ReactNode, type CSSProperties } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { pluralKey } from './tripShared';
@@ -108,7 +108,7 @@ const CSS = `
 /** `stats` nahradí riadok „km · výlety" — povrch, ktorý nie je o výletoch, nesie vlastné
  *  počty (AINUBIS 22. 9.: „meno nebude mať počet tripov ani km, tu sa bude rátať počet
  *  svetov / okruhov / zvitkov / celkové %"). */
-export function PackIdentityBar({ id, middle, stats, primary, onMe, pcStats, mStats }: {
+export function PackIdentityBar({ id, middle, stats, primary, onMe, pcStats, mStats, ring }: {
   id: ReturnType<typeof usePackIdentity>; middle?: ReactNode; stats?: ReactNode;
   /** PC hlavička podľa /map: čísla v jednom rade (`b` = hodnota, `i` = popisok). Kto ich
    *  podá, dostane na PC pás s fotkou 60; bez nich ostáva bar na všetkých šírkach ako bol. */
@@ -126,6 +126,9 @@ export function PackIdentityBar({ id, middle, stats, primary, onMe, pcStats, mSt
    *    chcieť. Meno sa NEODSTRAŇUJE z komponentu, len sa dá prekryť.
    */
   primary?: ReactNode;
+  /** Čí level nesie prstenec okolo fotky. Bez neho PÚTNIK (mapa); AINUBIS podá UČŇA (6. 11. 2026) —
+   *  vo VAULTe je človek učeň, nie pútnik. `vars` = farby prstenca (`--tier-a/-b/-ink/-glow`). */
+  ring?: { level: number; pct: number; vars: CSSProperties; aria: string };
 }) {
   const t = useT();
   const navigate = useNavigate();
@@ -160,15 +163,15 @@ export function PackIdentityBar({ id, middle, stats, primary, onMe, pcStats, mSt
       <style>{CSS}</style>
       <button type="button" className="pkid-me" onClick={onMe ?? (() => navigate('/pack/map/triplist?tab=stats'))}>
         <AvatarRing
-          pct={lv.pct}
+          pct={ring ? ring.pct : lv.pct}
           avatarUrl={id.avatarUrl}
           avatarInitial={id.avatarInitial}
           wrapClassName="pkid-av"
-          wrapStyle={tierVars(lv.level)}
+          wrapStyle={ring ? ring.vars : tierVars(lv.level)}
           photoClassName="pkid-photo"
           badgeClassName="pkid-lvl"
-          badgeAriaLabel={t('pack.map.levelAriaLabel', { level: lv.level })}
-          badgeContent={lv.level}
+          badgeAriaLabel={ring ? ring.aria : t('pack.map.levelAriaLabel', { level: lv.level })}
+          badgeContent={ring ? ring.level : lv.level}
         />
         {mStats ? (
           <span className="pkid-mstats">

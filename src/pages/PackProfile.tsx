@@ -18,6 +18,7 @@ import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { ME_CSS, ME_FLAT_CSS, DOG_FONT, MeCover, MeOwn, MeRank, MeFlag } from '@/components/pack/profile/meHead';
 import { RANK_BADGE_ON, useServantSpan } from '@/components/pack/profile/rankBadge';
+import { useLearner } from '@/components/pack/vault/useLearner';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { compressFile } from '@/lib/photoIntake';
 import { coverAlbumOf, coverOfDay, changeDogMainPhoto, fetchMyPosts, isMoment, isLive } from '@/components/pack/profile/mePosts';
@@ -316,6 +317,7 @@ export default function PackProfile() {
   const ownLoaded = loadedDogs.filter((d) => !d.user_id || d.user_id === session?.user?.id);
   const isMate = loadedDogs.length > 0 && ownLoaded.length === 0;
   const { years: servantYears, days: servantDays, toNext: servantNext } = useServantSpan(ownLoaded, RANK_BADGE_ON);
+  const learner = useLearner();
   // Práve vymenené fotky psov — kým sa `usePackUser` nenačíta nanovo (hlava aj SVORKA ich ukážu hneď).
   const [dogPhoto, setDogPhoto] = useState<Record<string, string>>({});
   const [dogBusy, setDogBusy] = useState<string | null>(null);
@@ -515,6 +517,7 @@ export default function PackProfile() {
           pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
           onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
+          study={{ level: learner.level, pct: learner.pct, label: tx('pack.rank.learner', 'Disciple') }}
           rank={rank}
           noRanks={isMate}
           onMoveY={setCoverY}

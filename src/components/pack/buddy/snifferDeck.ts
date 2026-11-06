@@ -57,6 +57,9 @@ export interface SnifferCardData {
    *  ako cudzí profil: `human.stats.pilgrimPct` a `human.stats.servantYears` (null = UČEŇ). */
   pilgrimPct?: number | null;
   servantYears?: number | null;
+  /** UČEŇ z `human.learner` (6. 11. 2026) — null = VAULT v novej appke ešte neotvoril, odznak sa nekreslí. */
+  learnerLevel?: number | null;
+  learnerPct?: number | null;
   /** TRIPWISH — živé priania (`wish_pins.place_name`). */
   wishes?: string[];
   /** Môj rajón — `W` Západ · `C` Stred · `E` Východ. */

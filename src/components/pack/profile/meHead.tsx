@@ -16,7 +16,7 @@ import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, BONES_TIER, type PackTier } from '@/lib/packTiers';
 import { devotionTier, devotionVars, NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
-import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, STORY_RING_CSS, RING_V1, ARC_MAX, ARC_BELOW, arcDogs, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, LearnerBadge, LearnerPanel, learnerProgress, useActiveDays } from '@/components/pack/profile/rankBadge';
+import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, STORY_RING_CSS, RING_V1, ARC_MAX, ARC_BELOW, arcDogs, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, LearnerBadge, LearnerPanel, useActiveDays } from '@/components/pack/profile/rankBadge';
 /** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
 
 const T = PACK_THEME;
@@ -434,9 +434,10 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   onBones?: () => void;
   onDev?: () => void;
   onPilgrim?: () => void;
-  /** UČEŇ (6. 11. 2026) — bez `study` sa odznak nekreslí (cudzí profil zatiaľ nevie, koľko zvitkov má druhý). */
+  /** UČEŇ (6. 11. 2026) — level a postup už spočítané (`useLearner` na mojom, `human.learner` na cudzom).
+   *  Bez `study` sa odznak nekreslí (člen, ktorý VAULT ešte neotvoril v novej appke). */
   onStudy?: () => void;
-  study?: { read: number; total: number; label: string } | null;
+  study?: { level: number; pct: number; label: string } | null;
   /** Ktorý rozbaľovač je otvorený — jeho pilulka dostane lem. */
   rank?: 'dev' | 'pt' | 'study' | null;
   /** Hodnosti pod sebou (vedľa fotky stojí viac ľudí). */
@@ -527,8 +528,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
           <div className={`me-lv rk-row${study ? ' rk3' : ''}`}>
             <ServantBadge years={servantYears ?? null} activeDays={activeDays} on={rank === 'dev'} onClick={onDev} label={servantLabel} />
             <PilgrimBadge level={pilgrimLevel} pct={pilgrimPct} on={rank === 'pt'} onClick={onPilgrim} label={`${pilgrimRankLabel} ${pilgrimLevel}`} />
-            {study && (() => { const l = learnerProgress(study.read, study.total);
-              return <LearnerBadge level={l.level} pct={l.pct} on={rank === 'study'} onClick={onStudy} label={`${study.label} ${l.level}`} />; })()}
+            {study && <LearnerBadge level={study.level} pct={study.pct} on={rank === 'study'} onClick={onStudy} label={`${study.label} ${study.level}`} />}
           </div>
         ) : (
         <div className={`me-lv${stack ? ' stack' : ''}`}>
@@ -717,7 +717,7 @@ export function DevotionMark({ size = 14, tint = 'gold' as const }: { size?: num
   return <BrandIcon name="heartpaw" size={size} tint={tint} style={{ verticalAlign: '-2px' }} />;
 }
 
-export interface StudyStats { read: number; total: number; pct: number; liked: number; saved: number }
+export interface StudyStats { read: number; total: number; pct: number; liked: number; saved: number; /** najvyšší level z DB */ floor?: number }
 
 /** Farby bloku podľa hodnosti — premenné pre `.me-rk` (podklad, inkoust, výplň pásu). */
 function rankVars(kind: 'dev' | 'pt' | 'study', ptLevel: number, devIndex = 1): CSSProperties {
@@ -789,7 +789,7 @@ export function MeRank({ kind, devotion, pilgrim, study, servantYears, servantDa
     return (
       <div className="me-rk" style={night} ref={boxRef}>
         <style>{RANK_PANEL_CSS}</style>
-        <LearnerPanel read={study.read} total={study.total} liked={study.liked} saved={study.saved} onVault={onVault} tx={tx} />
+        <LearnerPanel read={study.read} total={study.total} floor={study.floor} liked={study.liked} saved={study.saved} onVault={onVault} tx={tx} />
       </div>
     );
   }

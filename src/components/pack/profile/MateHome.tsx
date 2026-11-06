@@ -106,6 +106,8 @@ export function MateHome({ dogs, me, onInvite, flat }: {
           servantYears={st?.servantYears ?? null}
           servantLabel={tx('pack.ladder.servant', 'Servant')}
           pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
+          // UČEŇ = najvyšší level, ktorý majiteľova appka zapísala (`useLearner`); kto VAULT ešte neotvoril, odznak nemá.
+          study={human?.learner ? { level: human?.learner.level, pct: human?.learner.pct, label: tx('pack.rank.learner', 'Disciple') } : null}
           right={<MeFlag code={nationality} label={countryLabel(nationality, lang) || nationality} />}
           onPilgrim={pilgrimPanel ? () => setRank((r) => (r === 'pt' ? null : 'pt')) : undefined}
           rank={rank}

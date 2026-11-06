@@ -269,6 +269,8 @@ export default function PublicProfile() {
           servantYears={st?.servantYears ?? null}
           servantLabel={tx('pack.ladder.servant', 'Servant')}
           pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
+          // UČEŇ = najvyšší level, ktorý majiteľova appka zapísala (`useLearner`); kto VAULT ešte neotvoril, odznak nemá.
+          study={human.learner ? { level: human.learner.level, pct: human.learner.pct, label: tx('pack.rank.learner', 'Disciple') } : null}
           right={<MeFlag code={nationality} label={nationalityLabel || nationality} />}
           // Ťuk len na PÚTNIKA (Matej 25. 10.: *„po kliknutí na tieto levely sa nič neukáže na cudzom profile, možno
           // iba pútnik — level, body, výlety, km a krajiny“*). SLUŽOBNÍK na cudzom profile nereaguje.

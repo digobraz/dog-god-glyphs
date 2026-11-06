@@ -84,8 +84,8 @@ export const RANK_BADGE_CSS = `
 @media (max-width:389px){ .me-lv.rk-row > .rk{ --s:40px; } }
 /* TRI odznaky (+ UČEŇ, 6. 11. 2026): na mobile je vedľa fotky ~224 px — odznak 38 px a kratšia kapsula,
    inak tretí vybehne z karty (namerané pri 390: 456 px proti okraju 374). */
-@media (max-width:767px){ .me-lv.rk-row.rk3{ gap:${PACK_SPACE.sm}px; } .me-lv.rk-row.rk3 > .rk{ --s:38px; } .me-lv.rk-row.rk3 .cp{ width:calc(var(--s) * 1.25); } }
-@media (max-width:389px){ .me-lv.rk-row.rk3 > .rk{ --s:34px; } }
+@media (max-width:767px){ .rk-row.rk3{ gap:${PACK_SPACE.sm}px; } .rk-row.rk3 > .rk{ --s:38px; } .rk-row.rk3 .cp{ width:calc(var(--s) * 1.25); } }
+@media (max-width:389px){ .rk-row.rk3 > .rk{ --s:34px; } }
 @media (min-width:768px){ .me-lv.rk-row{ gap:24px; max-width:none; } }
 `;
 
@@ -216,24 +216,26 @@ export function PilgrimBadge({ level, pct, on, onClick, label }: BadgeBtn & { le
 
 /* UČEŇ — štúdium vo VAULTe (6. 11. 2026). Matej: *„učeň bude na štýl pútnika, názov sa nemení, len level“*.
  * Level = PODIEL uzavretých zvitkov z plánu VAULTu (10 pásiem, 1 = prvý zvitok … 10 = 100 %), NIKDY neklesá:
- * keď pribudnú zvitky, % klesne, level ostane (najvyšší dosiahnutý drží prehliadač).
+ * keď pribudnú zvitky, % klesne, level ostane (najvyšší dosiahnutý drží DB, `human.learner`).
  * Obrázky = atóm, guličiek toľko ako level (nákres `plany/nakresy/rebricky/ai/ucen/final/`). */
 const L_FROM = [0, 2, 5, 10, 20, 30, 45, 60, 80, 100];
-const L_KEY = 'ucen-max-level';
 export const learnerImg = (level: number) => `/icons/pack/rank/learner-${Math.max(1, Math.min(10, level))}.webp`;
-/** `read` uzavretých z `total` → level (0 = ešte nič) a postup k ďalšiemu v %. */
-export function learnerProgress(read: number, total: number): { level: number; pct: number; share: number } {
+/** `read` uzavretých z `total` → level (0 = ešte nič) a postup k ďalšiemu v %.
+ *  `floor` = najvyšší dosiahnutý level z DB (`human.learner.level`) — level NIKDY NEKLESÁ, ani keď VAULT
+ *  pribudne zvitkami a podiel sa zmenší. Do večera 6. 11. 2026 to držal `localStorage` (iný telefón začínal
+ *  odznova a na spoločnom zariadení si druhý človek zdedil level prvého). Zápis robí `useLearner`. */
+export function learnerProgress(read: number, total: number, floor = 0): { level: number; pct: number; share: number } {
   const share = total > 0 ? (read / total) * 100 : 0;
   let level = read > 0 ? 1 + L_FROM.slice(1).filter((f) => share >= f).length : 0;
-  try {
-    const kept = Number(localStorage.getItem(L_KEY) || 0);
-    if (level > kept) localStorage.setItem(L_KEY, String(level)); else level = Math.max(level, kept);
-  } catch { /* súkromné okno — level len z dnešného podielu */ }
-  level = Math.min(10, level);
+  level = Math.min(10, Math.max(level, floor));
   if (level >= 10 || level === 0) return { level, pct: level >= 10 ? 100 : 0, share };
   const lo = L_FROM[level - 1], hi = L_FROM[level];
   return { level, pct: Math.max(0, Math.min(100, ((share - lo) / (hi - lo)) * 100)), share };
 }
+/** Prstenec okolo fotky v hlavičke AINUBISA (`PackIdentityBar ring`) — tie isté farby ako kapsula. */
+export const learnerRingVars = (level: number): CSSProperties => (level >= 10
+  ? { '--tier-a': '#F5C73D', '--tier-b': '#E69E1A', '--tier-ink': '#2A1600', '--tier-glow': 'rgba(245,170,40,.45)' }
+  : { '--tier-a': '#5FE6FF', '--tier-b': '#1FA9C9', '--tier-ink': '#04212A', '--tier-glow': 'rgba(95,230,255,.42)' }) as CSSProperties;
 /** Náplň kapsuly: cyan ako prstence; lvl 10 zlato-oranžová AINUBISA. */
 const learnerFill = (level: number): CSSProperties => (level >= 10
   ? { background: 'linear-gradient(180deg,#FFE9A8,#F5C73D 45%,#E69E1A 80%,#9A5E08)', boxShadow: 'inset 0 -3px 5px rgba(60,30,0,.45), 0 0 10px rgba(245,170,40,.7)' }
@@ -252,10 +254,10 @@ export function LearnerBadge({ level, pct, on, onClick, label }: BadgeBtn & { le
 }
 
 /** UČEŇ po rozkliku: obrázok, pás k ďalšiemu pásmu, čísla zo VAULTu, rebrík 10 atómov, odkaz do VAULTu. */
-export function LearnerPanel({ read, total, liked, saved, onVault, tx }: {
-  read: number; total: number; liked: number; saved: number; onVault?: () => void; tx: Tx;
+export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx }: {
+  read: number; total: number; floor?: number; liked: number; saved: number; onVault?: () => void; tx: Tx;
 }) {
-  const { level, pct, share } = learnerProgress(read, total);
+  const { level, pct, share } = learnerProgress(read, total, floor);
   const need = level === 0 ? 1 : level < 10 ? Math.max(1, Math.ceil((L_FROM[level] / 100) * total) - read) : 0;
   const name = tx('pack.rank.learner', 'Disciple');
   return (
@@ -263,7 +265,8 @@ export function LearnerPanel({ read, total, liked, saved, onVault, tx }: {
       <div className="rkp-hd">
         <span className="im"><img src={learnerImg(level)} alt="" style={{ opacity: level ? 1 : .5 }} /></span>
         <div className="tx"><h3>{name} {level}</h3></div>
-        <span className="ab">{Math.floor(share)} %</span>
+        {/* to isté zaokrúhlenie ako profil a AINUBIS: prvý zvitok nesmie ukázať 0 % */}
+        <span className="ab">{read ? Math.max(1, Math.round(share)) : 0} %</span>
       </div>
       <div className="rkp-lbl"><span>{level >= 10
         ? tx('pack.rank.learnerTop', 'You have closed the whole VAULT.')

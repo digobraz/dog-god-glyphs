@@ -28,8 +28,8 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { usePilgrimStats, usePublishPilgrimLevel, usePublishProfileStats } from '@/components/pack/usePilgrimStats';
 import { useProfile, customPills, roleLabels, humanPills } from '@/components/pack/profile/packProfile';
-import { useScrollState, useLiked, useSaved } from '@/components/pack/vault/vaultScrolls';
-import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
+import { useLiked, useSaved } from '@/components/pack/vault/vaultScrolls';
+import { useLearner, VAULT_TOTAL } from '@/components/pack/vault/useLearner';
 import { devotionLevel, DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
@@ -60,7 +60,7 @@ import { FollowListPopup, useFollow, type FollowKind } from '@/components/pack/p
 // zapína PackLayout (`PLAIN_ROUTES`).
 const FLAT = APP_NEW;
 
-const TOTAL_SCROLLS = VAULT_WORLDS.reduce((s, w) => s + w.scrolls, 0);
+const TOTAL_SCROLLS = VAULT_TOTAL;
 
 // Staré odkazy mierili do editora (kotvy a parametre) — pošleme ich tam, kam patria,
 // inak by `?welcome=1` po platbe pristálo na nesprávnej obrazovke.
@@ -160,8 +160,9 @@ export default function PackMe() {
   // ── Čísla. Každé z miesta, kde už žije — žiadny druhý výpočet.
   const realPilgrim = usePilgrimStats(session?.user?.email ?? '', pilgrimAuthorName(session?.user?.email, meta));
   const pilgrim = novice ? { ...realPilgrim, level: levelProgress(0), count: 0, km: 0, countries: 0, countryCodes: [] as string[] } : realPilgrim;
-  const zstate = useScrollState();
-  const readScrolls = novice ? 0 : Object.values(zstate).filter((v) => v === 2).length;
+  // UČEŇ + % štúdia — jeden výpočet (`useLearner`), ten istý ako v AINUBISovi; level drží DB (`human.learner`).
+  const learner = useLearner(novice);
+  const readScrolls = learner.read;
   // prvý prečítaný zvitok nesmie ukázať 0 % — to isté pravidlo ako hlavička AINUBISA
   const studyPct = readScrolls ? Math.max(1, Math.round((readScrolls / Math.max(1, TOTAL_SCROLLS)) * 100)) : 0;
   // ČÍSLA PROFILU pre ostatných — cudzí profil ich ukáže 1:1 (25. 10. 2026). Nováčikov náhľad nič nezverejní.
@@ -308,7 +309,7 @@ export default function PackMe() {
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
           onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
           onStudy={() => setRank((r) => (r === 'study' ? null : 'study'))}
-          study={{ read: readScrolls, total: TOTAL_SCROLLS, label: tx('pack.rank.learner', 'Disciple') }}
+          study={{ level: learner.level, pct: learner.pct, label: tx('pack.rank.learner', 'Disciple') }}
           rank={rank}
           noRanks={isMate}
         />
@@ -351,7 +352,7 @@ export default function PackMe() {
               blank={novice}
               abroad={pilgrim.countryCodes.filter((c) => c !== (human?.nationality ?? 'SK').toLowerCase()).length}
               onDogId={dogs[0] ? () => navigate(`/pack/dogs/${dogs[0].id}`) : undefined}
-              study={{ read: readScrolls, total: TOTAL_SCROLLS, pct: studyPct, liked: liked.length, saved: saved.length }}
+              study={{ read: readScrolls, total: TOTAL_SCROLLS, floor: learner.floor, pct: studyPct, liked: liked.length, saved: saved.length }}
               onStats={() => navigate('/pack/map/triplist?tab=stats')}
               onVault={() => navigate('/pack/ainubis/knowledge')}
               onAbout={() => setAboutDev(true)} onClose={() => setRank(null)} />

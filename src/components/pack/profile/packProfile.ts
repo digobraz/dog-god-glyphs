@@ -137,6 +137,9 @@ export interface HumanProfile {
    *  videli ostatní (Matej 25. 9.: „level putnika musi vidieť každý každému"). Druhá
    *  definícia levelu na serveri NEVZNIKÁ. */
   pilgrim?: { level: number; at: string };
+  /** UČEŇ (6. 11. 2026) — NAJVYŠŠÍ dosiahnutý level štúdia vo VAULTe + postup k ďalšiemu (%). Zapisuje
+   *  `useLearner` len NAHOR (level nikdy neklesá); číta ho môj profil ako dno a cudzí profil + SNIFFER ako odznak. */
+  learner?: { level: number; pct: number; at: string };
   /** ČÍSLA PROFILU pre ostatných (25. 10. 2026, Matej: *„cudzí profil by mal mať to isté viditeľné — obidva
    *  ranky aj 5 stĺpcov … veď tak to má Instagram"*). Zapisuje ich majiteľova appka pri otvorení profilu
    *  (`usePublishProfileStats`) — tá istá cesta ako `pilgrim`, žiadna druhá definícia na serveri.

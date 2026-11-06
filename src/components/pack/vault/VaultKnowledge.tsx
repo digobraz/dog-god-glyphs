@@ -17,10 +17,13 @@ import { useEffect, useMemo, useRef } from 'react';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, PROGRESS_CSS, MEDALLION_CSS, PACK_AVATAR } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, BRAIN_STATE, WORLD_TINT } from '@/components/pack/ainubisSkin';
 import { BackButton } from '@/components/pack/BackButton';
+import { useT } from '@/i18n/LanguageContext';
 import { HandCheck, HandHeart, HandStar } from '@/components/pack/HandIcons';
 import { VAULT_WORLDS } from './worlds';
 import { VAULT_CIRCLES } from './circles';
 import { VAULT_BADGES } from './vaultBadges';
+import { useLearner } from './useLearner';
+import { LearnerPanel, RANK_PANEL_CSS, RANK_BADGE_ON } from '@/components/pack/profile/rankBadge';
 import { scrollThumb, type DemoScroll, type ReadRow, pickText, scrollLang, fmtSec, useReads, useMyRequests, useEventSums, useEarnedBadges } from './vaultScrolls';
 
 type Lang = 'sk' | 'cs' | 'en';
@@ -141,6 +144,8 @@ ${MEDALLION_CSS}
 .vk-req p{margin:${PACK_SPACE.xs}px 0 0;color:${AINUBIS.inkDim};}
 .vk .zv-box h3{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
 .vk .zv-box h3 svg{flex:none;}
+.vk-ucen{margin:0 0 ${PACK_SPACE.md}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.tile}px;
+  background:radial-gradient(120% 100% at 0% 0%, #22306a 0%, #121a44 45%, #0a0d26 100%);border:1px solid ${AINUBIS.edgeStrong};}
 `;
 
 export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, worldName, onClose, onOpen }: {
@@ -156,6 +161,9 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
   const ev = useEventSums();
   const earnedAt = useEarnedBadges();
   const veil = useRef<HTMLDivElement>(null);
+  const learner = useLearner();
+  const t = useT();
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -224,6 +232,13 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
           </div>
         </header>
 
+        {/* UČEŇ (6. 11. 2026) — ten istý blok ako po ťuku na odznak v profile, bez odkazu „do VAULTu“ (sme v ňom). */}
+        {RANK_BADGE_ON && (
+          <div className="vk-ucen">
+            <style>{RANK_PANEL_CSS}</style>
+            <LearnerPanel read={learner.read} total={learner.total} floor={learner.floor} liked={s.liked.length} saved={s.saved.length} tx={tx} />
+          </div>
+        )}
         <div className="vk-kpis">
           <div className="vk-kpi vk-kpi--read"><b>{s.done}<small> / {s.total}</small></b><span>{u.read}</span></div>
           <div className="vk-kpi"><b>{s.listened}</b><span>{u.listened}</span><i>{s.min} {u.minutes}</i></div>
