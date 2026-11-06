@@ -542,16 +542,19 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
   radial-gradient(36% 30% at 60% 96%, color-mix(in srgb,var(--gold-ink) 50%,transparent), transparent 70%),
   radial-gradient(22% 20% at 40% 26%, color-mix(in srgb,var(--lapis-edge) 8%,transparent), transparent 70%)}
 
-/* ŠIKMÝ PRIECHOD — pás v prázdnom priestore medzi sekciami. Výška a záporné okraje sú
-   menšie než odsadenie sekcií (48 / 96 px), takže pás nikdy nesiahne na text. */
+/* ŠIKMÁ PLOCHA PRIECHODU (Matej 6. 11., snímka 13.30.50): celé prázdne miesto medzi
+   sekciami je šikmá doska — horná hrana klesá zľava doprava, dolná stúpa — a za ňou sú
+   rozmazané heroglyfy. Leží POD obsahom sekcie (z-index -1 v jej kontexte), takže telefóny
+   a freska idú cez ňu. Hrany sú nastavené tak, aby skončili nad/pod textom, nie na ňom:
+   --a = koľko siaha nad sekciu, --b = koľko do nej (≤ odsadenie sekcie). */
 .aw section{position:relative;z-index:1}
-.aw .seam{position:relative;z-index:0;height:96px;margin:-24px 0;pointer-events:none}
-@media(min-width:768px){.aw .seam{height:150px;margin:-56px 0}}
+.aw .seam{position:absolute;left:0;right:0;top:calc(-1 * var(--a,40px));height:calc(var(--a,40px) + var(--b,40px));z-index:-1;pointer-events:none}
+@media(min-width:768px){.aw .seam{--a:88px;--b:88px}}
+.aw .seam.big{--a:120px;--b:90px}
+@media(min-width:900px){.aw .seam.big{--a:130px;--b:330px}}
 .aw .seam::before,.aw .seam::after{content:'';position:absolute;inset:0}
-.aw .seam::after{background:linear-gradient(90deg,transparent,var(--card-edge) 20%,var(--gold-solid) 50%,var(--card-edge) 80%,transparent);
-  clip-path:polygon(0 34%,100% 0,100% 66%,0 100%)}
-.aw .seam::before{z-index:1;background:url('/images/bg-light.webp') center/700px repeat;filter:blur(3px) sepia(.35);opacity:.9;
-  clip-path:polygon(0 37%,100% 3%,100% 63%,0 97%);
-  -webkit-mask:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
-.aw .seam.r::after{clip-path:polygon(0 0,100% 34%,100% 100%,0 66%)}
-.aw .seam.r::before{clip-path:polygon(0 3%,100% 37%,100% 97%,0 63%)}
+.aw .seam::after{inset:-3px 0;background:linear-gradient(90deg,var(--card-edge),var(--gold-solid) 50%,var(--card-edge));
+  clip-path:polygon(0 0,100% 40%,100% 72%,0 100%)}
+.aw .seam::before{z-index:1;background:url('/images/bg-light.webp') center/760px repeat,linear-gradient(180deg,#F1E1BE,#E6D2A6);
+  filter:blur(3px) sepia(.3);clip-path:polygon(0 0,100% 40%,100% 72%,0 100%)}
+.aw .seam.r::after,.aw .seam.r::before{clip-path:polygon(0 40%,100% 0,100% 100%,0 72%)}
