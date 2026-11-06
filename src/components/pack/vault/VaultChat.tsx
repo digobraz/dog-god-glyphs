@@ -1049,7 +1049,7 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
           <span className="akc-face ai-breathe-face"><img src={ainubisFace} alt="" aria-hidden /></span>
           <div className="akc-railtop">
             <div className="akc-railname"><i>AI</i>NUBIS</div>
-            <div className="akc-railsub">the vault · 569 scrolls</div>
+            <div className="akc-railsub">Dog Sense · 569 scrolls</div>
           </div>
         </div>
         <div className="akc-railhd">

@@ -29,9 +29,9 @@ import { scrollThumb, type DemoScroll, type ReadRow, pickText, scrollLang, fmtSe
 type Lang = 'sk' | 'cs' | 'en';
 const UI = {
   sk: {
-    title: 'Moje znalosti', back: 'Späť', eyebrow: 'AINUBIS · VAULT',
+    title: 'Moje znalosti', back: 'Späť', eyebrow: 'AINUBIS · PSÍ ROZUM',
     read: 'prečítaných zvitkov', listened: 'vypočutých podcastov', minutes: 'min počúvania',
-    vault: 'celého VAULTU', worldsLit: 'svetov rozsvietených',
+    vault: 'celého psieho rozumu', worldsLit: 'svetov rozsvietených',
     worlds: 'Svety', circles: 'Otvorené okruhy', badges: 'Odznaky', more: 'ešte', got: 'Získaný',
     going: 'Rozpočúvané', liked: 'Obľúbené', saved: 'Uložené', mine: 'Moje príspevky',
     noneLiked: 'Srdiečko na zvitku ho pridá sem.', noneSaved: 'Hviezdička na zvitku ho odloží sem.',
@@ -42,9 +42,9 @@ const UI = {
     states: ['nevidené', 'videné', 'hotové'],
   },
   cs: {
-    title: 'Moje znalosti', back: 'Zpět', eyebrow: 'AINUBIS · VAULT',
+    title: 'Moje znalosti', back: 'Zpět', eyebrow: 'AINUBIS · PSÍ ROZUM',
     read: 'přečtených svitků', listened: 'poslechnutých podcastů', minutes: 'min poslechu',
-    vault: 'celého VAULTU', worldsLit: 'rozsvícených světů',
+    vault: 'celého psího rozumu', worldsLit: 'rozsvícených světů',
     worlds: 'Světy', circles: 'Otevřené okruhy', badges: 'Odznaky', more: 'ještě', got: 'Získaný',
     going: 'Rozposlouchané', liked: 'Oblíbené', saved: 'Uložené', mine: 'Moje příspěvky',
     noneLiked: 'Srdíčko na svitku ho přidá sem.', noneSaved: 'Hvězdička na svitku ho odloží sem.',
@@ -55,9 +55,9 @@ const UI = {
     states: ['neviděné', 'viděné', 'hotové'],
   },
   en: {
-    title: 'My knowledge', back: 'Back', eyebrow: 'AINUBIS · VAULT',
+    title: 'My knowledge', back: 'Back', eyebrow: 'AINUBIS · DOG SENSE',
     read: 'scrolls read', listened: 'podcasts heard', minutes: 'min listened',
-    vault: 'of the whole VAULT', worldsLit: 'worlds lit',
+    vault: 'of all of Dog Sense', worldsLit: 'worlds lit',
     worlds: 'Worlds', circles: 'Open circles', badges: 'Badges', more: 'to go', got: 'Earned',
     going: 'Still listening', liked: 'Favourites', saved: 'Saved', mine: 'My contributions',
     noneLiked: 'A heart on a scroll adds it here.', noneSaved: 'A star on a scroll keeps it here.',

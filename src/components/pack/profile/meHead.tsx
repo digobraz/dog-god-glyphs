@@ -827,7 +827,7 @@ export function MeRank({ kind, devotion, pilgrim, study, servantYears, servantDa
           <div><b>{st.saved}</b><span>{tx('pack.rank.saved', 'saved')}</span></div>
         </div>
         <button type="button" className="me-rk-link" onClick={onVault}>
-          {tx('pack.rank.openVault', 'My knowledge in the VAULT')}<BrandIcon name="back" size={12} tint="white" style={{ transform: 'rotate(180deg)' }} />
+          {tx('pack.rank.openVault', 'My knowledge in Dog Sense')}<BrandIcon name="back" size={12} tint="white" style={{ transform: 'rotate(180deg)' }} />
         </button>
       </div>
     );

@@ -48,7 +48,7 @@ const EN: Record<string, [string, string]> = {
   leny: ['Lazy day', 'just slept — that is a day too'],
   prusvih: ['Mischief', 'stole, chewed, ran off, pooped on the carpet'],
   hovienko: ['Poop event', 'only the exceptional: diarrhoea, ate something, in the rain, a record…'],
-  vault: ['Wisdom', 'scrolls read in the VAULT'],
+  vault: ['Wisdom', 'scrolls read in Dog Sense'],
   zahranicie: ['Abroad', 'a country visited with the dog'],
   kronika: ['Chronicle', 'an entry in the dog’s chronicle'],
   tvorca: ['Creator', 'a post in the feed'],

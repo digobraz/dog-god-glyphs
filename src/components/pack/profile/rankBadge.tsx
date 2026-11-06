@@ -273,7 +273,7 @@ export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx
         <span className="ab">{read ? Math.max(1, Math.round(share)) : 0} %</span>
       </div>
       <div className="rkp-lbl"><span>{level >= 10
-        ? tx('pack.rank.learnerTop', 'You have closed the whole VAULT.')
+        ? tx('pack.rank.learnerTop', 'You have mastered all of Dog Sense.')
         : tx('pack.rank.learnerToNext', '{n} more scrolls to level {level}').replace('{n}', String(need)).replace('{level}', String(level + 1))}</span></div>
       <div className="rkp-bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
         <i className="fl" style={{ width: `max(${Math.min(100, pct)}%, 20px)`, ...learnerFill(level) }} />
@@ -292,8 +292,8 @@ export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx
           </div>
         ))}
       </div>
-      <p className="rkp-cap">{tx('pack.rank.learnerCap', 'share of the VAULT')}</p>
-      {onVault && <button type="button" className="rkp-act" onClick={onVault}>{tx('pack.rank.openVault', 'My knowledge in the VAULT')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>}
+      <p className="rkp-cap">{tx('pack.rank.learnerCap', 'share of Dog Sense')}</p>
+      {onVault && <button type="button" className="rkp-act" onClick={onVault}>{tx('pack.rank.openVault', 'My knowledge in Dog Sense')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>}
     </>
   );
 }

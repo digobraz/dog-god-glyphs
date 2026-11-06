@@ -110,7 +110,7 @@ export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClos
     ]],
     ['trophy', tx('pack.dvinfo.honours', 'Recognitions'), [
       [tx('pack.dvinfo.dogid', 'DOG ID at 100 % (once per dog)'), plus(DEVOTION_ONCE.dogid_full)],
-      [tx('pack.dvinfo.scroll', 'A scroll read in the VAULT (up to 3 a day)'), plus(DEVOTION_ONCE.scroll_read)],
+      [tx('pack.dvinfo.scroll', 'A scroll read in Dog Sense (up to 3 a day)'), plus(DEVOTION_ONCE.scroll_read)],
       [tx('pack.dvinfo.chronicle', 'Note in the chronicle (up to 3× a day)'), plus(DEVOTION_DEED.chronicle)],
       [tx('pack.dvinfo.goodDeed', 'Good deed (approved by AINUBIS, once a day)'), plus(DEVOTION_DEED.good_deed)],
       [tx('pack.dvinfo.streak', 'Streak of 7 · 30 · 100 · 365 days'), pts(Object.values(DEVOTION_STREAK).map((n) => `+${n}`).join(' · '))],
