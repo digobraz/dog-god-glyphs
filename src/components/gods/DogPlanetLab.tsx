@@ -352,6 +352,7 @@ export function DogPlanetLab({
   dogs,
   open,
   paused = false,
+  anywhere = false,
   onClose,
   pick,
 }: {
@@ -364,6 +365,13 @@ export function DogPlanetLab({
    * ~1000 prvkami v 3D a berie snimky prave prebiehajucemu scrollu.
    */
   paused?: boolean;
+  /**
+   * Guľa nie je na vrchu stránky, ale ukotvená niekde nižšie (/app, posledná sekcia).
+   * Ticho kót a otáčania potom platí LEN počas samotného ťahu scrollu — inak by tam
+   * podmienka `scrollY > TOP` umlčala guľu natrvalo (Matej 6. 11.: „bude sa plynulo
+   * točiť, budú fungovať kóty").
+   */
+  anywhere?: boolean;
   onClose: () => void;
   /**
    * Žiadosť z kalkulačky v spodnom nave: „ukáž psa s týmto číslom".
@@ -869,7 +877,8 @@ export function DogPlanetLab({
     let t = 0;
     /** Ticho platí, kým stránka nestojí na vrchu — nielen počas samotného ťahu. */
     const TOP = 4;
-    scrollingRef.current = window.scrollY > TOP;
+    const quiet = () => !anywhere && window.scrollY > TOP;
+    scrollingRef.current = quiet();
     let lastY = window.scrollY;
     const onScroll = () => {
       // ── SCROLL TOČÍ GUĽU (Matej 26. 8. 2026) ─────────────────────────────
@@ -893,7 +902,7 @@ export function DogPlanetLab({
       // 160 ms po poslednom pohybe — a aj potom len vtedy, ak si späť na vrchu.
       // Kratsie a koty sa rozblikaju medzi ticmi kolieska; dlhsie a po zastaveni
       // to vyzera, ze gula prestala reagovat.
-      t = window.setTimeout(() => { scrollingRef.current = window.scrollY > TOP; }, 160);
+      t = window.setTimeout(() => { scrollingRef.current = quiet(); }, 160);
     };
     window.addEventListener('scroll', onScroll, { capture: true, passive: true });
     return () => {
@@ -901,7 +910,7 @@ export function DogPlanetLab({
       clearTimeout(t);
       scrollingRef.current = false;
     };
-  }, [open]);
+  }, [open, anywhere]);
 
   // Automatické otáčanie. Pauzuje počas ťahania a keď je overlay zavretý —
   // rAF slučka bežiaca na skrytej stránke je zbytočný žrút batérie.

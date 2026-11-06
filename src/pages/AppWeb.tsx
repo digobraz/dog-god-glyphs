@@ -177,8 +177,15 @@ function Stores() {
 function GoodSlides({ labels, children }: { labels: string[]; children: ReactNode }) {
   const tr = useRef<HTMLDivElement>(null);
   const [at, setAt] = useState(0);
-  const go = (i: number) => { const el = tr.current; if (el) el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' }); };
-  const onScroll = () => { const el = tr.current; if (el) setAt(Math.round(el.scrollLeft / el.clientWidth)); };
+  /* snímka je užšia než pás (ďalšia vykukuje „na rade“), krok sa preto berie z polohy snímky, nie zo šírky pásu */
+  const kids = () => [...(tr.current?.children ?? [])] as HTMLElement[];
+  const go = (i: number) => { const el = tr.current, k = kids()[i]; if (el && k) el.scrollTo({ left: k.offsetLeft - kids()[0].offsetLeft, behavior: 'smooth' }); };
+  const onScroll = () => {
+    const el = tr.current; if (!el) return;
+    const x0 = kids()[0]?.offsetLeft ?? 0;
+    let best = 0; kids().forEach((k, i) => { if (Math.abs(k.offsetLeft - x0 - el.scrollLeft) < Math.abs(kids()[best].offsetLeft - x0 - el.scrollLeft)) best = i; });
+    setAt(best);
+  };
   return (
     <div className="gs">
       <div className="gs-tabs" role="tablist">
@@ -198,7 +205,7 @@ function LivePlanet() {
   return (
     <div ref={mountRef}>
       <section className="planet-live theme-light" ref={visRef}>
-        {near && <GodsGridLab embedded paused={!vis} />}
+        {near && <GodsGridLab embedded paused={!vis} planetAnywhere />}
       </section>
     </div>
   );
@@ -288,8 +295,13 @@ export default function AppWeb() {
   /* hlavička nad tmavou sekciou AINUBIS tmavne (Matej 6. 11.: „header sa pri tejto sekcii zmení na tmavý, s bledým logom“) */
   const aiSecRef = useRef<HTMLElement>(null);
   const [darkHead, setDarkHead] = useState(false);
+  const [onPlanet, setOnPlanet] = useState(false);
   useEffect(() => {
-    const f = () => { const r = aiSecRef.current?.getBoundingClientRect(); setDarkHead(!!r && r.top < 60 && r.bottom > 60); };
+    const f = () => {
+      const r = aiSecRef.current?.getBoundingClientRect(); setDarkHead(!!r && r.top < 60 && r.bottom > 60);
+      /* posledná sekcia (planétka) je ukotvená na celú obrazovku ako na LIVE `/` — hlavička jej ustúpi */
+      const pl = document.querySelector('.aw .planet-live')?.getBoundingClientRect(); setOnPlanet(!!pl && pl.top < innerHeight * 0.35);
+    };
     f(); addEventListener('scroll', f, { passive: true });
     return () => removeEventListener('scroll', f);
   }, []);
@@ -323,7 +335,7 @@ export default function AppWeb() {
       <style>{STAGE_CSS}</style>
       <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /><i className="pearl p1" /><i className="pearl p2" /></div>
 
-      <header className={`top${stuck ? ' stuck' : ''}${darkHead ? ' dark' : ''}`}>
+      <header className={`top${stuck ? ' stuck' : ''}${darkHead ? ' dark' : ''}${onPlanet ? ' away' : ''}`}>
         <div className="wrap">
           <a className="logo" href="#" aria-label="DOGYPT"><img src="/images/magnet/logo-2026-kartusa.svg" alt="DOGYPT" /></a>
           <nav>

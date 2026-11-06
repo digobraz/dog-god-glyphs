@@ -506,9 +506,11 @@ interface GodsGridLabProps {
    * dal odscrollovat cely film.
    */
   onWallChange?: (wallOpen: boolean) => void;
+  /** Guľa nie je na vrchu stránky (/app) — pozri `anywhere` v DogPlanetLab. */
+  planetAnywhere?: boolean;
 }
 
-export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHref = '/heroglyph/name', portalDock = false, dockHostId, paused = false, onWallChange }: GodsGridLabProps = {}) {
+export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHref = '/heroglyph/name', portalDock = false, dockHostId, paused = false, onWallChange, planetAnywhere = false }: GodsGridLabProps = {}) {
   const [dockHost, setDockHost] = useState<HTMLElement | null>(null);
   useLayoutEffect(() => {
     // Bez hostiteľa (mobil vo filme) ide lišta späť do <body> — nesmie ostať
@@ -4104,7 +4106,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
             </div>
             )}
 
-        <DogPlanetLab dogs={planetDogs} open={planetOpen} paused={paused} onClose={() => setPlanetOpen(false)} pick={planetPick} />
+        <DogPlanetLab dogs={planetDogs} open={planetOpen} paused={paused} anywhere={planetAnywhere} onClose={() => setPlanetOpen(false)} pick={planetPick} />
 
         {/* KARTA PSA NA STENE — portál do <body>: stena si na `app` chytá ťah
             myšou aj prstom a karta nesmie byť jeho súčasťou (ťuk do karty by

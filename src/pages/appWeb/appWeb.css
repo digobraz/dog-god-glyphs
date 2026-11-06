@@ -1103,3 +1103,17 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .gs-slide.good2{padding:var(--s-xl) var(--s-xxl)}
 .aw .gs-dogma .pic img{border-radius:0;box-shadow:none;transform:none;mix-blend-mode:multiply}
 .aw .gs-tr{padding-bottom:24px;margin-bottom:-24px}
+
+/* ══ v31 (6. 11. 2026) — posledná sekcia = planétka ako na LIVE `/`: ukotvená (snap) na celú obrazovku,
+   hlavička jej ustúpi, guľa sa točí a kóty žijú (`planetAnywhere`) ═══════════════════════════════════ */
+html:has(.aw){scroll-snap-type:y proximity}
+.aw .planet-live{height:100vh;height:100lvh;scroll-snap-align:start;scroll-margin-top:0}
+.aw .top{transition:background .3s,box-shadow .3s,transform .35s cubic-bezier(.2,.7,.2,1)}
+.aw .top.away{transform:translateY(-100%)}
+/* v31b — pás poďakovania: ďalšia snímka vykukuje sprava „ako keby na rade“ (Matej 6. 11.) */
+.aw .gs-tr{gap:var(--s-lg);scroll-padding-left:0}
+.aw .gs-slide{flex:0 0 86%;transition:opacity .4s,transform .4s}
+@media(max-width:899px){.aw .gs-slide{flex-basis:88%}}
+.aw .gs-slide:last-child{margin-right:14%}
+.aw .gs .sl-btn.r{right:-18px}
+.aw .gs-tr{align-items:flex-start}
