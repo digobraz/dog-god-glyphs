@@ -19,7 +19,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Seo } from '@/components/Seo';
-import { HandArrowLeft, HandPaw } from '@/components/pack/HandIcons';
+import { HandPaw } from '@/components/pack/HandIcons';
 import { STAGE_CSS } from '@/components/pack/packTheme';
 import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
 import { GodsGridLab } from '@/components/gods/GodsGridLab';
@@ -29,15 +29,6 @@ import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
 import './appWeb/appWeb.css';
 
 const A = '/web-app';
-
-/** Sady snímok pre detail telefónu (ťuk na mobil). */
-const SETS: Record<string, { img: string[]; t: [Record<Lang2, string>, Record<Lang2, string>] }> = {
-  map: { img: ['11-vretenica-mapa', '1-zoznam-otvoreny', '1-clanok-vyletu', '2-popup-hodnotenia', '11-fotky-svih'], t: [{ en: 'Trails', sk: 'Výlety' }, { en: 'A map of dog-friendly trips. Filter, read reviews in paws, save the ones you want to walk next.', sk: 'Mapa výletov pre psov. Filtruj, čítaj hodnotenia v labkách, ulož si tie, ktoré chceš prejsť.' }] },
-  profile: { img: ['B-profil-top', '6-sluzobnik-veta'], t: [{ en: 'Your profile', sk: 'Tvoj profil' }, { en: 'Your dogs, your kilometres, your badges. A profile that grows with every walk.', sk: 'Tvoji psi, tvoje kilometre, tvoje odznaky. Profil, ktorý rastie s každou prechádzkou.' }] },
-  dogid: { img: ['9-moja-svorka', '3-dogid', '3-vysledok-osobnost', '3-quiz-base-1', '5-ockovanie-edit'], t: [{ en: 'DOG ID', sk: 'DOG ID' }, { en: "Answer questions, get your dog's ID card, personality and health record.", sk: 'Odpovedz na otázky a dostaneš preukaz psa, jeho povahu aj zdravotný záznam.' }] },
-  ainubis: { img: ['8-ainubis', '8-zvitok-top', '8-dogscroll'], t: [{ en: 'AINUBIS', sk: 'AINUBIS' }, { en: 'Seven worlds of dog knowledge, a chat that knows your dog and scrolls to read on the go.', sk: 'Sedem svetov poznania o psoch, chat, ktorý pozná tvojho psa, a zvitky na čítanie cestou.' }] },
-  feed: { img: ['feed', '8-feed-pred-lajkom', 'B-feed-komentare'], t: [{ en: 'The pack', sk: 'Svorka' }, { en: 'Stories, lost-dog alerts and buddies from the pack around you.', sk: 'Príbehy, hlásenia o stratených psoch a parťáci zo svorky okolo teba.' }] },
-};
 
 const CAROUSEL: [string, string][] = [['map', '11-vretenica-mapa'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', '8-ainubis'], ['feed', 'feed']];
 
@@ -82,8 +73,9 @@ function Phone({ src }: { src: string }) {
   );
 }
 
-/** Telefón s náklonom za myšou; ťuk otvorí detail. */
-function Tilt({ set, src, onOpen, className = '' }: { set: string; src: string; onOpen: (k: string) => void; className?: string }) {
+/** Telefón s náklonom za myšou. Neotvára sa (Matej 6. 11.: „mockupy nechaj len tak bez aktivity“);
+ *  v karuseli ťuk na bočný telefón len prepne. */
+function Tilt({ set, src, onOpen, className = '' }: { set: string; src: string; onOpen?: (k: string) => void; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const move = (e: React.PointerEvent) => {
     if (e.pointerType !== 'mouse' || !ref.current) return;
@@ -94,7 +86,7 @@ function Tilt({ set, src, onOpen, className = '' }: { set: string; src: string; 
   };
   const leave = () => { ref.current?.style.setProperty('--ry', '0deg'); ref.current?.style.setProperty('--rx', '0deg'); };
   return (
-    <div className={`tilt ${className}`} onPointerMove={move} onPointerLeave={leave} onClick={() => onOpen(set)}>
+    <div className={`tilt ${className}`} onPointerMove={move} onPointerLeave={leave} onClick={onOpen ? () => onOpen(set) : undefined}>
       <div ref={ref} className="tl"><Phone src={src} /></div>
     </div>
   );
@@ -210,11 +202,10 @@ export default function AppWeb() {
   /* karusel */
   const [ci, setCi] = useState(0);
   const hov = useRef(false);
-  const [popKey, setPopKey] = useState<string | null>(null);
   useEffect(() => {
-    const id = setInterval(() => { if (!hov.current && !popKey) setCi((i) => (i + 1) % CAROUSEL.length); }, 4200);
+    const id = setInterval(() => { if (!hov.current) setCi((i) => (i + 1) % CAROUSEL.length); }, 4200);
     return () => clearInterval(id);
-  }, [popKey]);
+  }, []);
   const sx = useRef<number | null>(null);
   const pos = (i: number) => {
     const n = CAROUSEL.length;
@@ -241,24 +232,6 @@ export default function AppWeb() {
 
   /* Za hrou — text na rozklik */
   const [loreOpen, setLoreOpen] = useState(false);
-
-  /* detail telefónu */
-  const [si, setSi] = useState(0);
-  const cur = popKey ? SETS[popKey] : null;
-  const openPop = (k: string) => { if (SETS[k]) { setSi(0); setPopKey(k); } };
-  const slide = (d: number) => { if (cur) setSi((i) => (i + d + cur.img.length) % cur.img.length); };
-  useEffect(() => {
-    if (!popKey) return;
-    const n = SETS[popKey].img.length;
-    const k = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setPopKey(null);
-      if (e.key === 'ArrowRight') setSi((i) => (i + 1) % n);
-      if (e.key === 'ArrowLeft') setSi((i) => (i - 1 + n) % n);
-    };
-    addEventListener('keydown', k);
-    return () => removeEventListener('keydown', k);
-  }, [popKey]);
-  const px = useRef<number | null>(null);
 
   const [proofRun, setProofRun] = useState(false);
   useEffect(() => { if (stats) setProofRun(true); }, [stats]);
@@ -310,11 +283,10 @@ export default function AppWeb() {
             }}
           >
             {CAROUSEL.map(([set, src], i) => (
-              <Tilt key={set} set={set} src={src} className={`ph ${pos(i)}`} onOpen={() => (i === ci ? openPop(set) : setCi(i))} />
+              <Tilt key={set} set={set} src={src} className={`ph ${pos(i)}`} onOpen={() => setCi(i)} />
             ))}
-            <span className="tap-hint"><span>{c('tap')}</span><svg viewBox="0 0 48 36"><path d="M4 6c18-6 36 2 34 26" /><path d="M30 24l8 9 6-10" /></svg></span>
-            <span className="flt f1" tabIndex={0}><img src={`${A}/odznaky/pilgrim-3.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
-            <span className="flt f2" tabIndex={0}><img src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
+            <span className="flt f1" tabIndex={0}><img className="xl" src={`${A}/odznaky/pilgrim-3.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
+            <span className="flt f2" tabIndex={0}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
             <span className="flt f3" tabIndex={0}><img src={`${A}/odznaky/ucen-4.svg`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
             <div className="car-dots">
               {CAROUSEL.map((_, i) => <button key={i} className={i === ci ? 'on' : ''} onClick={() => setCi(i)} aria-label={`${i + 1}`} />)}
@@ -361,7 +333,7 @@ export default function AppWeb() {
             </Rv>
             <Rv d={1} className="mid">VS</Rv>
             <Rv d={2}>
-              <Tilt set="profile" src="B-profil-top" onOpen={openPop} />
+              <Tilt set="profile" src="B-profil-top" />
               <p className="vs-cap">{c('cap2')}</p>
             </Rv>
           </div>
@@ -550,39 +522,6 @@ export default function AppWeb() {
         </div>
       )}
 
-      {/* DETAIL TELEFÓNU */}
-      <div className={`pop${cur ? ' on' : ''}`} onClick={() => setPopKey(null)}>
-        {cur && (
-          <div className="pk-panel" onClick={(e) => e.stopPropagation()}>
-            <div>
-              <div className="sl">
-                <button className="sl-btn l" onClick={() => slide(-1)} aria-label="prev"><HandArrowLeft size={18} /></button>
-                <div
-                  className="sl-tr"
-                  style={{ transform: `translateX(${-si * 100}%)` }}
-                  onTouchStart={(e) => { px.current = e.touches[0].clientX; }}
-                  onTouchEnd={(e) => {
-                    if (px.current == null) return;
-                    const dx = e.changedTouches[0].clientX - px.current;
-                    if (Math.abs(dx) > 40) slide(dx < 0 ? 1 : -1);
-                    px.current = null;
-                  }}
-                >
-                  {cur.img.map((s) => <Phone key={s} src={s} />)}
-                </div>
-                <button className="sl-btn r" onClick={() => slide(1)} aria-label="next"><HandArrowLeft size={18} style={{ transform: 'scaleX(-1)' }} /></button>
-              </div>
-              <div className="sl-dots">{cur.img.map((s, i) => <i key={s} className={i === si ? 'on' : ''} />)}</div>
-            </div>
-            <div>
-              <p className="eye">{L === 'sk' ? 'V appke' : 'In the app'}</p>
-              <h2>{cur.t[0][L]}</h2>
-              <p>{cur.t[1][L]}</p>
-              <a className="pk-cta" href="#join" onClick={() => setPopKey(null)} style={{ marginTop: 16, textDecoration: 'none' }}>{c('getapp2')}</a>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
