@@ -719,7 +719,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  bn2h: { en: 'Confidence', sk: 'Sebavedomie' }, bn2p: { en: 'No more guessing from forums at midnight. You know what you’re doing, and why.', sk: 'Žiadne hádanie z diskusií o polnoci. Vieš, čo robíš a prečo.' },
  bn3h: { en: 'Peace of mind', sk: 'Pohoda' }, bn3p: { en: 'A calm dog person, a calm dog. Less fear, more joy.', sk: 'Pokojný psíčkar, pokojný pes. Menej strachu, viac radosti.' },
  bn4h: { en: 'More years together', sk: 'Viac rokov spolu' }, bn4p: { en: 'Prevention before treatment. Food, movement, mind: everything that makes a dog’s life longer.', sk: 'Prevencia skôr ako liečba. Výživa, pohyb, hlava: všetko, čo predlžuje psí život.' },
- ai_quote: { en: '“I’m not a vet. I’m your mentor, so you walk in prepared.”', sk: '„Nie som veterinár. Som tvoj mentor, aby si k nemu prišiel pripravený.“' },
+ ai_quote: { en: '“The more you know, the less you fear.”', sk: '„Viac vedieť znamená menej sa báť.“' },
  e_try: { en: 'Try it now', sk: 'Vyskúšaj hneď' }, h_try: { en: 'Ask about your dog.', sk: 'Spýtaj sa na svojho psa.' },
  l_try: { en: '7 worlds of knowledge — from puppy to old age. Open any of them and start reading.', sk: '7 svetov poznania — od šteňaťa po starobu. Otvor ktorýkoľvek a začni čítať.' },
  still: { en: 'still learning', sk: 'still learning' },
