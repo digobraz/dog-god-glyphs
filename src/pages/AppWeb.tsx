@@ -188,6 +188,22 @@ export default function AppWeb() {
   const [bg, setBg] = useState(() => (/^[1-4]$/.test(qs.get('bg') ?? '') ? qs.get('bg')! : '1'));
   /* dlaždica pod ikonkami funkcií — skúšame lapis aj papyrus (Matej 6. 11.) */
   const [openFeat, setOpenFeat] = useState<number | null>(null);
+  /* stĺpce mriežky funkcií (CSS: 4 od 900 px, inak 2) — posun radu pri otvorenej karte */
+  const [fcols, setFcols] = useState(() => (typeof window !== 'undefined' && window.matchMedia('(min-width: 900px)').matches ? 4 : 2));
+  useEffect(() => {
+    const m = window.matchMedia('(min-width: 900px)');
+    const f = () => { setFcols(m.matches ? 4 : 2); setOpenFeat(null); };
+    m.addEventListener('change', f);
+    return () => m.removeEventListener('change', f);
+  }, []);
+  /** strana stĺpca: posledná karta v rade vysúva doľava */
+  const featSide = (i: number) => (i % fcols === fcols - 1 ? 'l' : 'r');
+  /** posun karty i, keď je otvorená iná karta v tom istom rade (o šírku karty + medzeru) → trieda */
+  const featShift = (i: number) => {
+    if (openFeat === null || openFeat === i || Math.floor(openFeat / fcols) !== Math.floor(i / fcols)) return '';
+    if (featSide(openFeat) === 'r') return i > openFeat ? ' sh-r' : '';
+    return i < openFeat ? ' sh-l' : '';
+  };
   const [tile, setTile] = useState(() => (qs.get('tile') === 'papyrus' ? 'papyrus' : 'lapis'));
 
   /* živé čísla */
@@ -361,12 +377,12 @@ export default function AppWeb() {
       {/* 4 · FUNKCIE */}
       <section id="features">
         <div className="wrap">
-          <Rv className="sec-h"><p className="eye">{c('e_feat')}</p><h2>{c('h_feat_a')} <span className="blk">{c('h_feat_b')}</span><span className="h2b">{c('h_feat2')}</span></h2></Rv>
+          <Rv className="sec-h"><p className="eye">{c('e_feat')}</p><h2>{c('h_feat_a')} <span className="blk">{c('h_feat_b')}</span></h2></Rv>
           {/* karty B — ikonka na dlaždici trčí nad kartou, bez animácie (Matej 6. 11.); dlaždica lapis (Matej 6. 11.: „toto vráť do lapisu“) / papyrus = `?tile=papyrus` */}
-          {/* slučka appiek ako na /onepage (FilmApps) — jeden zdroj APP_CHIPS + APPS_TYPE_CSS, zmena pohne oboma */}
+          {/* slučka appiek ako na /onepage (FilmApps) — jeden zdroj APP_CHIPS + APPS_TYPE_CSS, zmena pohne oboma.
+              Nadpisy skonsolidované (Matej 6. 11., návrh A): nadnadpis · nadpis · pilulky · „…aj to, o čom ešte ani nevie.“ */}
           <style>{APPS_TYPE_CSS}</style>
           <div className="apps-loop">
-            <p className="op-apps-lead">{t('onepage.apps.chips.lead')}</p>
             <div className="op-apps-marq">
               <ul className="op-apps-chips">
                 {[0, 1].map(copy => (
@@ -382,13 +398,17 @@ export default function AppWeb() {
                 ))}
               </ul>
             </div>
-            <p className="op-apps-lead op-apps-tail">{t('onepage.apps.chips.tail')}</p>
+            <p className="op-apps-lead op-apps-tail">{c('h_feat2')}</p>
           </div>
-          {/* odrážky = hover (PC) / ťuk (mobil): stĺpec sa vysunie DO STRANY vedľa karty (krajná karta doľava), ikonka sa pootočí; rad stojí */}
-          <div className="fgrid" data-tile={tile}>
+          {/* odrážky = hover (PC) / ťuk (mobil): otvorená karta STOJÍ, ostatné karty v jej rade sa odsunú o jednu kartu
+              (aj mimo obraz) a do uvoľneného miesta sa vysunie stĺpec — nič sa neprekrýva (Matej 6. 11.). Posledná karta
+              v rade vysúva doľava. Ikonka sa pootočí. */}
+          <div className="fgrid" data-tile={tile} onPointerLeave={e => { if (e.pointerType === 'mouse') setOpenFeat(null); }}>
             {FEATS.map((f, i) => (
-              <Rv key={f.p} d={i % 4} className={`fcard pk-stage ${f.cls ?? ''}${openFeat === i ? ' open' : ''}`}>
-                <button type="button" className="fhit" aria-expanded={openFeat === i} onClick={() => setOpenFeat(openFeat === i ? null : i)}>
+              <Rv key={f.p} d={i % 4} className={`fcard pk-stage ${f.cls ?? ''}${openFeat === i ? ' open' : ''}${featSide(i) === 'l' ? ' side-l' : ''}${featShift(i)}`}>
+                <button type="button" className="fhit" aria-expanded={openFeat === i}
+                  onPointerEnter={e => { if (e.pointerType === 'mouse') setOpenFeat(i); }}
+                  onClick={() => setOpenFeat(openFeat === i ? null : i)}>
                   <span className="fti"><img src={`${A}/ikony/${f.ic}.webp`} alt="" loading="lazy" /></span>
                   <h3>{f.h[L]}</h3><p>{c(f.p)}</p>
                 </button>
