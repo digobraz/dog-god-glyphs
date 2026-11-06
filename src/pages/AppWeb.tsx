@@ -29,6 +29,7 @@ import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
 import { GodsGridLab } from '@/components/gods/GodsGridLab';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
+import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
 import { IgMock, IgIcon } from './appWeb/IgMock';
@@ -199,6 +200,42 @@ function GoodSlides({ labels, children }: { labels: string[]; children: ReactNod
   );
 }
 
+/** PÁS SVORKY (Matej 6. 11.: „progres bar s tvárami psov, ako už máme, aj meno posledného“) — pokojná verzia
+ *  pásu z /onepage (tam ho riadi kamera filmu): Hekthor #1 · rovnomerne vybrané psy z celej svorky · posledný pes
+ *  s menom a číslom · prerušovaná cesta k 1M. Dáta = ten istý feed steny (`get-grid-dogs`), fotky ako náhľad 180 px. */
+type TrailDog = { n: number; name: string; u: string };
+const TRAIL_MID = 14;
+const cldThumb = (u: string) => u.replace('/upload/', '/upload/c_fill,g_auto,w_180,h_180,q_auto,f_auto/');
+function DogTrail({ goal }: { goal: string }) {
+  const [ref, near] = useNear<HTMLDivElement>('400px');
+  const [pack, setPack] = useState<TrailDog[]>([]);
+  useEffect(() => {
+    if (!near) return;
+    let alive = true;
+    gridFetch(GRID_URL_ALL).then((d: unknown[]) => {
+      if (!alive || !Array.isArray(d)) return;
+      type Row = { pack_number?: number | null; dog_name?: string; cloudinary_main_url?: string | null };
+      setPack((d as Row[]).filter((r) => (r.pack_number ?? 0) > 0 && r.cloudinary_main_url)
+        .sort((a, b) => (a.pack_number ?? 0) - (b.pack_number ?? 0))
+        .map((r) => ({ n: r.pack_number ?? 0, name: r.dog_name ?? '', u: cldThumb(r.cloudinary_main_url as string) })));
+    }).catch(() => { /* pás je ozdoba, číslo nad ním stojí aj bez neho */ });
+    return () => { alive = false; };
+  }, [near]);
+  const last = pack[pack.length - 1];
+  const mid = pack.length > 3 ? Array.from({ length: Math.min(TRAIL_MID, pack.length - 2) }, (_, i) => pack[Math.round(1 + ((i + 1) * (pack.length - 2)) / (Math.min(TRAIL_MID, pack.length - 2) + 1))]) : [];
+  return (
+    <div className="trail" ref={ref}>
+      <div className="trail-row">
+        <span className="trail-end"><img src="/images/hektor-grid.webp" alt="" /><em>Hekthor <b>#1</b></em></span>
+        <span className="trail-mid">{mid.map((d) => <img key={d.n} src={d.u} alt="" />)}</span>
+        {last && <span className="trail-end trail-last"><img src={last.u} alt="" /><em>{last.name} <b>#{last.n}</b></em></span>}
+        <span className="trail-road" aria-hidden><i /></span>
+        <span className="trail-goal"><b>1M</b><em>{goal}</em></span>
+      </div>
+    </div>
+  );
+}
+
 /** Živá planétka z `/` — montuje sa až pri obrazovke a mimo nej stojí. */
 function LivePlanet() {
   const [mountRef, near] = useNear<HTMLDivElement>('600px');
@@ -207,6 +244,8 @@ function LivePlanet() {
     <div ref={mountRef}>
       <section className="planet-live theme-light" ref={visRef}>
         {near && <GodsGridLab embedded paused={!vis} planetAnywhere />}
+        {/* odkazy do obchodov sa presťahovali z bloku POTREBUJEME ŤA sem, vľavo dole (Matej 6. 11.) */}
+        <div className="planet-stores"><Stores /></div>
       </section>
     </div>
   );
@@ -656,13 +695,11 @@ export default function AppWeb() {
               <h2>{c('h_need1')} <span className="deco">{c('h_need2')}</span></h2>
               <p className="lead">{c('l_need')}</p>
               <div className="join-goal">
-                <p><b>{dogs.toLocaleString('sk-SK')}</b> <span>{c('dogs_now')}</span></p>
-                <div className="pk-progress"><div className="pk-progress__fill" style={{ width: `${Math.max(2, (dogs / 1_000_000) * 100)}%` }} /></div>
-                <small>{c('goal')} · 1 000 000</small>
+                <p><b>{dogs.toLocaleString('sk-SK')}</b> <span>/ 1 000 000</span></p>
+                <small>{c('dogs_now')}</small>
               </div>
+              <DogTrail goal={c('goal')} />
               <a className="pk-cta" href="/heroglyph/name">{c('cta_join')}</a>
-              <p className="or">{c('or_app')}</p>
-              <Stores />
             </div>
             <div className="join-ph"><img src="/images/council-pharaoh.webp" alt="" loading="lazy" /></div>
           </Rv>
