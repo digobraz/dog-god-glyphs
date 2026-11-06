@@ -606,8 +606,9 @@ export const NOTES: Record<string, string> = {
 /** v3 (6. 11. 2026, Matejove pripomienky k prvej stavbe) — nové a prepísané texty.
  *  Prebíjajú COPY pri rovnakom kľúči. */
 export const COPY3: Record<string, Record<Lang2, string>> = {
- h1a: { en: 'Play the game with', sk: 'Hraj hru so' },
- h1b: { en: 'your', sk: 'svojím' },
+ h1a: { en: 'Play the', sk: 'Hraj hru' },
+ h1b: { en: 'life with', sk: 'so svojím' },
+ h1y: { en: 'your', sk: '' },
  h1c: { en: 'DOG.', sk: 'PSOM.' },
  sub: { en: 'You play offline, you collect points online.\nYour whole life in one useful app, free.', sk: 'Hráš offline, body zbieraš online.\nCelý váš život v jednej užitočnej appke, zadarmo.' },
  fl1a: { en: 'Mountain trip', sk: 'Výlet na horách' }, fl1b: { en: '+46 points', sk: '+46 bodov' },

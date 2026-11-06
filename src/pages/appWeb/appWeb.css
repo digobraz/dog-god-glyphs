@@ -431,9 +431,9 @@
 @media(min-width:900px){.aw .hero{padding:48px 0 0}.aw .hero .wrap{grid-template-columns:1.1fr 1fr}}
 .aw .hero-txt{container-type:inline-size}
 .aw .hero h1{font-size:clamp(44px,13.4cqi,104px);line-height:.98}
-.aw .hero h1{font-size:clamp(28px,min(13.4cqi,calc(100cqi / (.56 * var(--hc,11)))),104px)}
+.aw .hero h1{font-size:clamp(40px,calc(100cqi / (.56 * var(--hc,9))),150px);line-height:.92}
 .aw .hero h1 .l1{display:block;white-space:nowrap}
-.aw .hero h1 .l1+.l1{margin-top:.14em}
+.aw .hero h1 .l1+.l1{margin-top:.06em}
 .aw .hero h1 .tilt-w{display:inline-block;transform:rotate(-5deg) translateY(-2px);transform-origin:left bottom}
 .aw .store{background:var(--lapis);color:var(--lapis-ink);box-shadow:var(--lapis-shadow);border:1.5px solid rgba(250,244,236,.25)}
 .aw .store:hover{background:var(--lapis-hover)}

@@ -265,7 +265,7 @@ export default function AppWeb() {
 
   return (
     <div className="aw" data-bg={bg}>
-      <Seo path="/app" title="DOGYPT — Play the game with your dog." description={c('sub')} noindex />
+      <Seo path="/app" title="DOGYPT — Play the life with your dog." description={c('sub')} noindex />
       <style>{STAGE_CSS}</style>
       <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /></div>
 
@@ -285,10 +285,12 @@ export default function AppWeb() {
         <div className="wrap">
           <div className="hero-txt">
             <p className="eye">{c('e_life2')}</p>
-            {/* dva riadky v každom jazyku: veľkosť z najdlhšieho riadka (Matej 6. 11.: „v ENG je až na 3 riadky“) */}
-            <h1 style={{ ['--hc' as string]: Math.max(c('h1a').length, c('h1b').length + 1 + c('h1c').length * 0.9) } as CSSProperties}>
+            {/* DOMINANTA: tri riadky, čo najväčšie písmo — veľkosť z najdlhšieho riadka (Matej 6. 11.: „čo najväčší text
+                na dva riadky resp. aj na 3: play the · life with · your dog“). Zlaté slovo psa ostáva na krivo. */}
+            <h1 style={{ ['--hc' as string]: Math.max(c('h1a').length, c('h1b').length, (c('h1y') ? c('h1y').length + 1 : 0) + c('h1c').length * 0.9) } as CSSProperties}>
               <span className="l1">{c('h1a')}</span>
-              <span className="l1">{c('h1b')} <span className="deco big">{c('h1c')}</span></span>
+              <span className="l1">{c('h1b')}</span>
+              <span className="l1">{c('h1y') && <>{c('h1y')} </>}<span className="deco big">{c('h1c')}</span></span>
             </h1>
             <p className="lead">{c('sub')}</p>
             <Stores />
