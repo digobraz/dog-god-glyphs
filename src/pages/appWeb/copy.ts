@@ -606,7 +606,7 @@ export const NOTES: Record<string, string> = {
 /** v3 (6. 11. 2026, Matejove pripomienky k prvej stavbe) — nové a prepísané texty.
  *  Prebíjajú COPY pri rovnakom kľúči. */
 export const COPY3: Record<string, Record<Lang2, string>> = {
- h1a: { en: 'Play the', sk: 'Hraj hru' },
+ h1a: { en: 'Play the', sk: 'Hraj život' },
  h1b: { en: 'life with', sk: 'so svojím' },
  h1y: { en: 'your', sk: '' },
  h1c: { en: 'DOG.', sk: 'PSOM.' },
