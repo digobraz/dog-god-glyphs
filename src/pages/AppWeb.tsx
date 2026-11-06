@@ -509,8 +509,8 @@ export default function AppWeb() {
               <div className="ai-card ai-paluba"><span className="k">{c('lr3k')}</span><h4>{c('lr3h')}</h4><p>{c('lr3p')}</p><AiChat L={L} c={c} head={AI_HEAD} /></div>
             </div>
           } />
+          {/* PC: mozog vľavo veľký, vedľa text, veľké % a 2 rady po 5 odznakov (Matej 6. 11.: „aby to bolo vidno“) */}
           <div className="ai-ucen2">
-            <p><b>{c('uc_a')}</b> {c('uc_b')}</p>
             <AiBrain share={UCEN_PCT[ucOn] === '1.' ? 0 : parseFloat(UCEN_PCT[ucOn]) / 100} head={AI_HEAD} onShare={(n, total) => {
               /* najvyšší Učeň, na ktorého labka už nazbierala (1. = prvé zrno) */
               ucTouched.current = true;
@@ -518,12 +518,19 @@ export default function AppWeb() {
               UCEN_PCT.forEach((p, i) => { if (i && n / total >= parseFloat(p) / 100) lvl = i; });
               setUcOn(lvl); setUcLive(n / total);
             }} />
-            <div className="ai-ucrow">{UCEN_PCT.map((pc, i) => (
+            <div className="ai-ucside">
+              <p className="ai-uctx"><b>{c('uc_a')}</b> {c('uc_b')}</p>
+              <p className="ai-ucbig">
+                <b>{ucLive == null ? (UCEN_PCT[ucOn] === '1.' ? '1' : UCEN_PCT[ucOn]) : `${(ucLive * 100).toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB', { maximumFractionDigits: 1 })} %`}</b>
+                <span>{c('ax3')} {ucOn + 1} · {ucLive == null && UCEN_PCT[ucOn] === '1.' ? c('uc_first') : c('uc_vault')}</span>
+              </p>
+              <div className="ai-ucrow">{UCEN_PCT.map((pc, i) => (
               <button key={i} type="button" className={`${ucOn === i ? 'on' : ''}${ucLive != null && i > ucOn ? ' off' : ''}`} onPointerEnter={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onFocus={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onClick={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }}>
                 <img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" loading="lazy" />
               </button>
             ))}</div>
-            <p className="ai-uclbl"><b>{c('ax3')} {ucOn + 1}</b> · {ucLive == null ? i18nPct(UCEN_PCT[ucOn]) : `${(ucLive * 100).toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB', { maximumFractionDigits: 1 })} % ${c('uc_vault')}`}</p>
+              <p className="ai-uchint">{c('uc_hint')}</p>
+            </div>
           </div>
         </div>
 

@@ -691,6 +691,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  ch_a1: { en: 'Yellow foam in the morning is most often bile in an empty stomach. The night without food was too long for Hektor and bile flowed back from the gut.', sk: 'Žltá pena ráno býva najčastejšie žlč v prázdnom žalúdku. Noc bez jedla bola pre Hektora pridlhá a žlč sa vrátila z čreva späť.' },
  ch_a2: { en: 'Try a small meal before bed and split his daily portion into at least two meals. For many dogs that’s enough.', sk: 'Skús mu dať malé jedlo pred spaním a dennú dávku rozdeľ aspoň na dve porcie. Mnohým psom to stačí.' },
  ch_a3: { en: 'See a vet if it repeats for several days, he loses weight, seems flat or vomits during the day too — then it may not be just bile.', sk: 'K veterinárovi choď, ak sa to opakuje viac dní, Hektor chudne, je skleslý alebo zvracia aj cez deň — vtedy to už nemusí byť len žlč.' },
+ uc_hint: { en: 'Run your paw across the brain — every scroll you touch lights up and your Disciple grows.', sk: 'Prejdi labkou po mozgu — každý zvitok, ktorého sa dotkneš, sa rozsvieti a tvoj Učeň rastie.' },
  pod_lang: { en: 'Listen in', sk: 'Počúvaj v' },
  ch_src: { en: 'Based on these scrolls', sk: 'Odpoveď stojí na týchto zvitkoch' },
  l_ai: { en: 'Your personal mentor. It read the books, the studies and hundreds of hours of talks — so you know what to do for your dog, when it matters.', sk: 'Tvoj osobný mentor. Prečítal knihy, štúdie a stovky hodín prednášok — aby si vedel, čo urobiť pre svojho psa, keď na tom záleží.' },

@@ -976,3 +976,18 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 
 /* blok lieviku pri dotyku: len rozsvietiť a nadvihnúť, nič nepulzuje (Matej 6. 11.) */
 .aw .af-tile:hover,.aw .af-sum:hover{transform:translateY(-4px);animation:none}
+
+/* UČEŇ v28: mozog veľký vľavo, vedľa text + veľké % + 2 rady po 5 odznakov (Matej 6. 11.) */
+.aw .ai-ucen2{display:grid;gap:var(--s-xl);align-items:center}
+@media(min-width:900px){.aw .ai-ucen2{grid-template-columns:1.55fr 1fr;text-align:left}.aw .ai-ucen2 .ai-brain{height:clamp(460px,46vw,640px);margin:0}}
+.aw .ai-ucside{display:grid;gap:var(--s-lg);justify-items:center}
+@media(min-width:900px){.aw .ai-ucside{justify-items:start}}
+.aw .ai-uctx{margin:0;max-width:420px;color:var(--ai-dim);font-size:var(--t-lead);line-height:1.5}.aw .ai-uctx b{color:var(--ai-ink)}
+.aw .ai-ucbig{margin:0;display:grid;gap:6px}
+.aw .ai-ucbig b{font:900 clamp(56px,7vw,88px)/1 var(--font-title);background:linear-gradient(180deg,#FFE7A0,var(--ai-gold) 45%,#E69E1A);-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
+.aw .ai-ucbig span{font:600 var(--t-label)/1 var(--font-ui);letter-spacing:.2em;text-transform:uppercase;color:var(--ai-cyan)}
+.aw .ai-ucside .ai-ucrow{display:grid;grid-template-columns:repeat(5,64px);gap:var(--s-md);justify-content:start;margin:0}
+.aw .ai-ucside .ai-ucrow button{width:64px;height:64px}
+.aw .ai-ucside .ai-ucrow button.on{transform:scale(1.28);margin:0}
+.aw .ai-uchint{margin:0;font:400 var(--t-label)/1.4 var(--font-ui);color:var(--ai-dim);max-width:360px}
+@media(max-width:899px){.aw .ai-ucside .ai-ucrow{justify-content:center;grid-template-columns:repeat(5,52px)}.aw .ai-ucside .ai-ucrow button{width:52px;height:52px}}

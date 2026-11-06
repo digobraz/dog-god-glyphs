@@ -17,7 +17,7 @@ const wc = (key: string) => `rgb(${WORLD_TINT[key] ?? '91,224,240'})`;
 export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
   const box = useRef<HTMLDivElement>(null);
   const row = useRef<HTMLDivElement>(null);
-  const st = useRef({ x: 0, v: 0, drag: false, hov: false, lx: 0, lt: 0, moved: 0 });
+  const st = useRef({ x: 0, v: 0, drag: false, hov: false, fling: false, lx: 0, lt: 0, moved: 0 });
   useEffect(() => {
     const r = row.current; if (!r) return;
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -29,8 +29,10 @@ export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
       /* perióda = začiatok druhej kópie, nie polovica šírky (medzera na konci by robila skok) */
       const k = r.children[AI_SCROLLS.length] as HTMLElement | undefined, half = k ? k.offsetLeft - (r.children[0] as HTMLElement).offsetLeft : 0; if (!half) return;
       if (!S.drag) {
+        /* myš na páse = STOJÍ hneď (Matej: „pri dotyku zvitky nezastanú“); dobieha len švih po pustení */
         const auto = S.hov || still ? 0 : -42;           /* px/s */
-        S.v += (auto - S.v) * Math.min(1, dt * 2.2);     /* zotrvačnosť po švihu sa vráti k tempu pásu */
+        if (S.hov && !S.fling) S.v = 0;
+        else { S.v += (auto - S.v) * Math.min(1, dt * (S.hov ? 3.2 : 2.2)); if (Math.abs(S.v) < 4) S.fling = false; }
         S.x += S.v * dt;
       }
       S.x = ((S.x % half) - half) % half;
@@ -46,9 +48,16 @@ export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
   const move = (e: React.PointerEvent) => {
     const S = st.current; if (!S.drag) return;
     const now = performance.now(), dx = e.clientX - S.lx;
-    S.x += dx; S.moved += Math.abs(dx); S.v = dx / Math.max(0.008, (now - S.lt) / 1000); S.lx = e.clientX; S.lt = now;
+    S.x += dx * 1.3; S.moved += Math.abs(dx); S.v = (dx * 1.6) / Math.max(0.008, (now - S.lt) / 1000); S.lx = e.clientX; S.lt = now;
   };
-  const up = () => { st.current.drag = false; };
+  const up = () => { st.current.drag = false; st.current.fling = true; };
+  /* trackpad do strany posúva pás rovno (deltaX); zvislé koliesko patrí stránke */
+  useEffect(() => {
+    const b = box.current; if (!b) return;
+    const w = (e: WheelEvent) => { if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { e.preventDefault(); st.current.x -= e.deltaX * 1.4; st.current.v = 0; } };
+    b.addEventListener('wheel', w, { passive: false });
+    return () => b.removeEventListener('wheel', w);
+  }, []);
   const card = (s: AiPick, k: string) => (
     <article key={k} className="zs-card" style={{ ['--wc' as string]: wc(s.w) }} aria-hidden={k.startsWith('b') || undefined}>
       <div className="ph"><img src={s.img} alt="" loading="lazy" draggable={false} /></div>
