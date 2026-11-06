@@ -68,7 +68,7 @@
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});
     // Samotný gtm.js sa vkladá až po štarte (main.tsx volá __loadGtm) — dataLayer je plný od začiatku.
-    w.__loadGtm=function(){if(w.__gtmOn)return;w.__gtmOn=1;var f=d.getElementsByTagName(s)[0],
+    w.__loadGtm=function(){if(w.__gtmOn)return;if(w.Capacitor&&w.Capacitor.isNativePlatform&&w.Capacitor.isNativePlatform())return;w.__gtmOn=1;var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);};
     w.setTimeout(function(){w.__loadGtm()},8000);

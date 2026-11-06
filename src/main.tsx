@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import "./index.css";
 import { preloadActiveLang, ensurePackDict } from "./i18n/LanguageContext";
 import { initAnalytics } from "./lib/analytics";
+import { IS_APP } from "./lib/isApp";
 import { startEarlyGridDogs } from "./lib/earlyFetch";
 import { scrubSecrets } from "./lib/packAnalytics";
 import { startAppUpdate } from "./lib/appUpdate";
@@ -54,7 +55,8 @@ window.addEventListener("vite:preloadError", (event) => {
   const start = () => {
     if (done) return; done = true;
     initAnalytics(scrubSecrets);
-    (window as any).__loadGtm?.();
+    // Appka: GTM sa nenačíta nikdy (banner súhlasu je v appke skrytý, App Store privacy). IS_APP sa berie z window.Capacitor, ktorý vloží natívna strana pred skriptmi.
+    if (!IS_APP) (window as any).__loadGtm?.();
   };
   const arm = () => {
     const idle = () => ('requestIdleCallback' in window ? (window as any).requestIdleCallback(start, { timeout: 2000 }) : start());
