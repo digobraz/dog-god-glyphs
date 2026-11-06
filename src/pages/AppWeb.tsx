@@ -380,9 +380,10 @@ export default function AppWeb() {
           <Rv className="sec-h"><p className="eye">{c('e_feat')}</p><h2>{c('h_feat_a')} <span className="blk">{c('h_feat_b')}</span></h2></Rv>
           {/* karty B — ikonka na dlaždici trčí nad kartou, bez animácie (Matej 6. 11.); dlaždica lapis (Matej 6. 11.: „toto vráť do lapisu“) / papyrus = `?tile=papyrus` */}
           {/* slučka appiek ako na /onepage (FilmApps) — jeden zdroj APP_CHIPS + APPS_TYPE_CSS, zmena pohne oboma.
-              Nadpisy skonsolidované (Matej 6. 11., návrh A): nadnadpis · nadpis · pilulky · „…aj to, o čom ešte ani nevie.“ */}
+              Nadpisy skonsolidované (Matej 6. 11., návrh A): nadnadpis · nadpis · „aj to, o čom ešte ani nevie.“ (nad pásom, Matej 6. 11.) · pilulky */}
           <style>{APPS_TYPE_CSS}</style>
           <div className="apps-loop">
+            <p className="op-apps-lead">{c('h_feat2')}</p>
             <div className="op-apps-marq">
               <ul className="op-apps-chips">
                 {[0, 1].map(copy => (
@@ -398,7 +399,6 @@ export default function AppWeb() {
                 ))}
               </ul>
             </div>
-            <p className="op-apps-lead op-apps-tail">{c('h_feat2')}</p>
           </div>
           {/* odrážky = hover (PC) / ťuk (mobil): otvorená karta STOJÍ, ostatné karty v jej rade sa odsunú o jednu kartu
               (aj mimo obraz) a do uvoľneného miesta sa vysunie stĺpec — nič sa neprekrýva (Matej 6. 11.). Posledná karta
