@@ -400,8 +400,7 @@
 .aw[data-bg="2"] .aw-bg .glyphs{opacity:.55;filter:blur(4px)}
 .aw[data-bg="3"] .aw-bg .glyphs{opacity:.28}
 .aw[data-bg="3"] .aw-bg .pearl{opacity:.7}
-.aw .bgpick{position:fixed;left:var(--s-lg);bottom:84px;z-index:40;display:flex;gap:4px}
-@media(min-width:900px){.aw .bgpick{bottom:var(--s-lg)}}
+.aw .bgpick{position:fixed;left:50%;top:72px;transform:translateX(-50%);z-index:40;display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:calc(100% - 32px)}
 .aw .bgpick button{font:600 var(--t-micro)/1 var(--font-ui);letter-spacing:.12em;padding:8px 10px;border-radius:var(--r-pill);border:1px dashed var(--lapis-edge);background:var(--paper);color:var(--lapis-deep);cursor:pointer}
 .aw .bgpick button.on{background:var(--lapis-deep);color:var(--lapis-ink);border-style:solid}
 

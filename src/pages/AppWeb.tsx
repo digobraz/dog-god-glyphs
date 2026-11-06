@@ -13,7 +13,8 @@
  *
  *  · CSS = `appWeb/appWeb.css`, celé pod `.aw` (výrez brandu + CSS nákresu + v3).
  *  · Texty = `appWeb/copy.ts` (COPY z nákresu, COPY3 ich prebíja; ostatné jazyky → EN).
- *  · `?nakres=1` zobrazí poznámky nákresu a prepínač pozadia; `?bg=1..4` ho vyberie.
+ *  · `?varianty` zobrazí poznámky nákresu a prepínač pozadia; `?bg=1..4` ho vyberie.
+ *    (`?nakres` NIE — ten v appke otvára editor nákresov a stránku prekryje.)
  *  · Čísla psy/ľudia/krajiny sú živé z `get-pack-stats`.
  */
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
@@ -181,7 +182,7 @@ export default function AppWeb() {
   const L: Lang2 = lang === 'sk' ? 'sk' : 'en';
   const c = (k: string) => COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
   const qs = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), []);
-  const nakres = qs.has('nakres');
+  const nakres = qs.has('varianty');
   const Note = ({ k, flag }: { k: string; flag?: boolean }) => (nakres ? <span className={`note${flag ? ' flag' : ''}`}>{NOTES[k]}</span> : null);
 
   /* pozadie — varianty v štýle MysteryHike (matné sklo, perleť, heroglyfy) */
