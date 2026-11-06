@@ -26,7 +26,8 @@ import { GodsGridLab } from '@/components/gods/GodsGridLab';
 import { useLang } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
-import { IgMock } from './appWeb/IgMock';
+import { IgMock, IgIcon } from './appWeb/IgMock';
+import { AlbaTrio, GlyphZones } from './appWeb/AlbaGlyph';
 import './appWeb/appWeb.css';
 
 const A = '/web-app';
@@ -330,27 +331,23 @@ export default function AppWeb() {
           </Rv>
           <div className="vs">
             <Rv>
+              <div className="vs-hd"><IgIcon /><p>{c('cap1')}</p></div>
               <IgMock c={c} />
-              <p className="vs-cap">{c('cap1')}</p>
             </Rv>
             <Rv d={1} className="mid">VS</Rv>
             <Rv d={2}>
+              <div className="vs-hd"><img className="vs-ico" src="/web-app/app-icon.png" alt="DOGYPT" /><p>{c('cap2')}</p></div>
               <Tilt set="profile" src="B-profil-top" />
-              <p className="vs-cap">{c('cap2')}</p>
             </Rv>
           </div>
-          <Rv className="soul pk-card">
-            <div className="glyph"><img src="/images/hekthor-heroglyph.webp" alt="Heroglyph — Hekthor" loading="lazy" /></div>
-            <div>
-              <p className="eye">{c('e_glyph')}</p>
-              <h3>{c('h_glyph')}</h3>
-              <p>{c('l_glyph')}</p>
-              <ul className="ticks">
-                <li className="pk-row"><b>DOG ID</b><span>{c('tk1')}</span></li>
-                <li className="pk-row"><b>{c('tk2h')}</b><span>{c('tk2')}</span></li>
-                <li className="pk-row"><b>{c('tk3h')}</b><span>{c('tk3')}</span></li>
-              </ul>
-            </div>
+          <Rv className="alba-sec">
+            <p className="eye">{c('e_alba')}</p>
+            <h2 className="alba-h">{c('h_alba_a')} <span className="deco">{c('h_alba_b')}</span> {c('h_alba_c')}</h2>
+          </Rv>
+          <Rv><AlbaTrio /></Rv>
+          <Rv className="alba-sec gz-sec">
+            <p className="lead">{c('l_glyph')}</p>
+            <GlyphZones c={c} />
           </Rv>
         </div>
       </section>
