@@ -107,6 +107,10 @@
    Tokeny a triedy z brand.css. Písmo nadpisov = LT Museum Black (skúška, Matej 6. 11.:
    „daj font museum black namiesto cinzelu“) — prebíja Cinzel aj Decorative. */
 @font-face{font-family:'LT Museum';src:url('/fonts/museum-black.woff2') format('woff2');font-weight:900;font-display:swap}
+/* ďalšie rezy (Matej 6. 11.: „pohraj sa s hrúbkami nadpisov“) — regular/thin rodina nemá, najtenší je Light */
+@font-face{font-family:'LT Museum';src:url('/fonts/museum-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'LT Museum';src:url('/fonts/museum-medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'LT Museum';src:url('/fonts/museum-light.woff2') format('woff2');font-weight:300;font-display:swap}
 .aw{--font-title:'LT Museum',serif}
 .aw{scroll-behavior:smooth}
 .aw{overflow-x:clip}
@@ -579,7 +583,18 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 
 /* SEKCIA 2 — nadpis veľký ako v hero (štedrosť Museum Black), aj na mobile */
 .aw .life-txt{container-type:inline-size}
-.aw .life .split h2{font-size:clamp(36px,10cqi,96px);line-height:1;white-space:nowrap}
+.aw .life .split h2{font-size:clamp(40px,12.6cqi,96px);line-height:1;white-space:nowrap}
 .aw .life h2 .l1{display:inline}
 .aw .life h2 .l1+.l1{margin-left:.22em}
 .aw .life h2 .big{font-size:1.06em;line-height:1;display:inline-block}
+
+/* HRÚBKY NADPISOV — JEDNO PRAVIDLO (Matej 6. 11.: „zjednoť tieto pravidlá hrúbok Regular/black“):
+   veta = Medium 500 (Regular rodina nemá), jediné zlaté slovo (.deco) = Black 900, čiernym atramentom zvyšok */
+.aw h1,.aw h2,.aw h3{font-weight:500}
+.aw h1 .deco,.aw h2 .deco,.aw h3 .deco{font-weight:900}
+.aw .soul-h .l2{display:block}
+
+/* nadpis sekcie 3 skoro ako hero (Matej 6. 11.) */
+.aw .sec-h h2.soul-h{font-size:clamp(40px,11.4vw,66px);line-height:1.04}
+.aw .sec-h h2.soul-h+.lead{margin-top:var(--s-xl)}
+@media(min-width:768px){.aw .sec-h h2.soul-h+.lead{margin-top:var(--s-xxl)}}

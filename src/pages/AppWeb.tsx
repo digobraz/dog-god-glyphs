@@ -324,7 +324,7 @@ export default function AppWeb() {
         <div className="wrap">
           <Rv className="sec-h">
             <Note k="n_ig" />
-            <h2>{c('h_soul1')} <span className="deco">{c('h_soul2')}</span></h2>
+            <h2 className="soul-h">{c('h_soul1')} <span className="l2"><span className="deco">DOGYPT</span> {c('h_soul2')}</span></h2>
             <p className="lead">{c('l_soul')}</p>
           </Rv>
           <div className="vs">
