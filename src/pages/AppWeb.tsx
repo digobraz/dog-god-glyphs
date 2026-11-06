@@ -221,15 +221,26 @@ function DogTrail({ goal }: { goal: string }) {
     }).catch(() => { /* pás je ozdoba, číslo nad ním stojí aj bez neho */ });
     return () => { alive = false; };
   }, [near]);
+  /* náplň skla siaha presne po posledného psa — šírka zhluku tvárí sa zmeria, nie odhadne */
+  const faces = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const f = faces.current; if (!f) return;
+    const set = () => f.parentElement?.style.setProperty('--trail-w', `${f.offsetWidth + 56}px`);
+    set(); const ro = new ResizeObserver(set); ro.observe(f);
+    return () => ro.disconnect();
+  }, [pack.length]);
   const last = pack[pack.length - 1];
   const mid = pack.length > 3 ? Array.from({ length: Math.min(TRAIL_MID, pack.length - 2) }, (_, i) => pack[Math.round(1 + ((i + 1) * (pack.length - 2)) / (Math.min(TRAIL_MID, pack.length - 2) + 1))]) : [];
   return (
     <div className="trail" ref={ref}>
+      {/* lesklý „liquid“ pás ako pri leveloch (Matej 6. 11.): oranžová náplň nesie tváre, zvyšok skla čaká na milión */}
       <div className="trail-row">
-        <span className="trail-end"><img src="/images/hektor-grid.webp" alt="" /><em>Hekthor <b>#1</b></em></span>
-        <span className="trail-mid">{mid.map((d) => <img key={d.n} src={d.u} alt="" />)}</span>
-        {last && <span className="trail-end trail-last"><img src={last.u} alt="" /><em>{last.name} <b>#{last.n}</b></em></span>}
-        <span className="trail-road" aria-hidden><i /></span>
+        <div className="trail-glass" aria-hidden><span className="trail-fill"><i /></span></div>
+        <div className="trail-faces" ref={faces}>
+          <span className="trail-end"><img src="/images/hektor-grid.webp" alt="" /><em>Hekthor <b>#1</b></em></span>
+          <span className="trail-mid">{mid.map((d) => <img key={d.n} src={d.u} alt="" />)}</span>
+          {last && <span className="trail-end trail-last"><img src={last.u} alt="" /><em>{last.name} <b>#{last.n}</b></em></span>}
+        </div>
         <span className="trail-goal"><b>1M</b><em>{goal}</em></span>
       </div>
     </div>
@@ -694,14 +705,18 @@ export default function AppWeb() {
               <p className="eye" style={{ color: 'var(--lapis-ink)' }}>{c('e_need')}</p>
               <h2>{c('h_need1')} <span className="deco">{c('h_need2')}</span></h2>
               <p className="lead">{c('l_need')}</p>
+              {/* číslo a CTA v jednom riadku (Matej 6. 11.: „CTA v pridaj sa daj vedľa 15/1000000“) */}
               <div className="join-goal">
-                <p><b>{dogs.toLocaleString('sk-SK')}</b> <span>/ 1 000 000</span></p>
-                <small>{c('dogs_now')}</small>
+                <div>
+                  <p><b>{dogs.toLocaleString('sk-SK')}</b> <span>/ 1 000 000</span></p>
+                  <small>{c('dogs_now')}</small>
+                </div>
+                <a className="pk-cta" href="/heroglyph/name">{c('cta_join')}</a>
               </div>
-              <DogTrail goal={c('goal')} />
-              <a className="pk-cta" href="/heroglyph/name">{c('cta_join')}</a>
             </div>
             <div className="join-ph"><img src="/images/council-pharaoh.webp" alt="" loading="lazy" /></div>
+            {/* pás svorky cez celú šírku bloku, nad faraónom */}
+            <DogTrail goal={c('goal')} />
           </Rv>
         </div>
       </section>

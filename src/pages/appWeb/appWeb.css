@@ -1249,3 +1249,46 @@ html:has(.aw){scroll-snap-type:y proximity}
   .aw .join-ph{top:-120px;bottom:auto;height:540px;right:64px}
   .aw .trail-row{max-width:500px}
 }
+
+/* ══ v35 (6. 11. 2026) — Matej: „zväčšiť ten priestor, ale nie u AINUBISa, tá bledá časť“ · „bloky nekončia odseknuté,
+   ale idú za pravý okraj obrazovky“ · CTA vedľa čísla · pás nahustiť, väčšia časť prázdna, oranžový lesklý liquid
+   cez celú šírku bloku ═══════════════════════════════════════════════════════════════════════════════════════ */
+@media(min-width:900px){.aw #good{padding-top:136px}}
+.aw .gs-tabs{margin-bottom:var(--s-xxl)}
+/* pás snímok vyteká za pravý okraj okna (ľavý okraj drží stĺpec stránky) */
+.aw .gs-tr{margin-right:calc(50% - 50vw);padding:24px calc(50vw - 50%) 64px 0;margin-top:-24px;scroll-padding-right:0}
+.aw .gs-slide{flex-basis:min(86%,1000px)}
+.aw .gs-slide:last-child{margin-right:0}
+.aw .gs .sl-btn.r{right:-18px}
+/* POTREBUJEME ŤA — číslo + CTA v riadku */
+.aw .join-goal{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-lg) var(--s-xl)}
+.aw .join-goal .pk-cta{margin:0;font-size:var(--t-lead);padding:16px 32px}
+/* pás svorky cez celú šírku bloku (riadok gridu na plnú šírku, nad faraónom) */
+.aw .join .trail{grid-column:1/-1;position:relative;z-index:3;margin:var(--s-xl) 0 0;padding-top:30px}
+.aw .trail-row{max-width:none!important;display:grid;grid-template-columns:1fr auto;align-items:center;gap:var(--s-md);min-height:72px}
+.aw .trail-glass{grid-column:1;grid-row:1;height:22px;border-radius:var(--r-pill);position:relative;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));box-shadow:inset 0 2px 6px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.10),0 0 0 1px rgba(201,154,63,.35)}
+/* náplň = šírka zhluku tvárí (symbolická, skutočný podiel 135/1M by bol neviditeľný) */
+.aw .trail-fill{position:absolute;left:0;top:0;bottom:0;width:var(--trail-w,34%);border-radius:inherit;overflow:hidden;
+  background:linear-gradient(180deg,#FFD27A 0%,#F5A623 45%,#E07B10 100%);box-shadow:0 0 18px rgba(245,166,35,.55),inset 0 -3px 6px rgba(150,60,0,.35)}
+.aw .trail-fill::before{content:'';position:absolute;left:6px;right:6px;top:3px;height:6px;border-radius:var(--r-pill);background:linear-gradient(180deg,rgba(255,255,255,.75),rgba(255,255,255,0))}
+.aw .trail-fill i{position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);transform:translateX(-100%)}
+@media(prefers-reduced-motion:no-preference){.aw .trail-fill i{animation:aw-liquid 3.2s ease-in-out infinite}}
+@keyframes aw-liquid{to{transform:translateX(100%)}}
+.aw .trail-faces{grid-column:1;grid-row:1;display:flex;align-items:center;width:max-content;position:relative}
+/* nahustené tváre */
+.aw .trail-mid img{width:28px;height:28px;margin-left:-14px;border:1.5px solid #FFD27A}
+.aw .trail-mid img:first-child{margin-left:-12px}
+.aw .trail-end img{width:50px;height:50px;border-color:#FFD27A}
+.aw .trail-last{margin-left:-12px}
+.aw .trail-last img{width:58px;height:58px}
+.aw .trail-road{display:none}
+.aw .trail-goal{grid-column:2;grid-row:1;border-style:solid;border-color:rgba(201,154,63,.6);background:rgba(3,7,12,.35)}
+.aw .trail-goal b{font-size:26px}
+@media(max-width:600px){.aw .trail-mid img:nth-child(n+6){display:none}}
+@media(min-width:900px){
+  .aw .join{grid-template-columns:minmax(0,1fr)}
+  .aw .join>div:first-child{max-width:520px}
+}
+.aw .join .trail{width:100%}
+.aw .trail-row{width:100%}
