@@ -188,7 +188,7 @@ export default function AppWeb() {
   const [bg, setBg] = useState(() => (/^[1-4]$/.test(qs.get('bg') ?? '') ? qs.get('bg')! : '1'));
   /* dlaždica pod ikonkami funkcií — skúšame lapis aj papyrus (Matej 6. 11.) */
   const [openFeat, setOpenFeat] = useState<number | null>(null);
-  const [tile, setTile] = useState(() => (qs.get('tile') === 'lapis' ? 'lapis' : 'papyrus'));
+  const [tile, setTile] = useState(() => (qs.get('tile') === 'papyrus' ? 'papyrus' : 'lapis'));
 
   /* živé čísla */
   const [stats, setStats] = useState<{ dogs: number; people: number; countries: number } | null>(null);
@@ -362,7 +362,7 @@ export default function AppWeb() {
       <section id="features">
         <div className="wrap">
           <Rv className="sec-h"><p className="eye">{c('e_feat')}</p><h2>{c('h_feat_a')} <span className="blk">{c('h_feat_b')}</span><span className="h2b">{c('h_feat2')}</span></h2></Rv>
-          {/* karty B — ikonka na dlaždici trčí nad kartou, bez animácie (Matej 6. 11.); dlaždica papyrus (výber Mateja 6. 11.) / lapis = `?tile=lapis` */}
+          {/* karty B — ikonka na dlaždici trčí nad kartou, bez animácie (Matej 6. 11.); dlaždica lapis (Matej 6. 11.: „toto vráť do lapisu“) / papyrus = `?tile=papyrus` */}
           {/* slučka appiek ako na /onepage (FilmApps) — jeden zdroj APP_CHIPS + APPS_TYPE_CSS, zmena pohne oboma */}
           <style>{APPS_TYPE_CSS}</style>
           <div className="apps-loop">
@@ -384,7 +384,7 @@ export default function AppWeb() {
             </div>
             <p className="op-apps-lead op-apps-tail">{t('onepage.apps.chips.tail')}</p>
           </div>
-          {/* odrážky = hover (PC) / ťuk (mobil); rozbalí sa LEN tá karta — panel leží nad radom pod ňou, rad sa nenaťahuje */}
+          {/* odrážky = hover (PC) / ťuk (mobil): stĺpec sa vysunie DO STRANY vedľa karty (krajná karta doľava), ikonka sa pootočí; rad stojí */}
           <div className="fgrid" data-tile={tile}>
             {FEATS.map((f, i) => (
               <Rv key={f.p} d={i % 4} className={`fcard pk-stage ${f.cls ?? ''}${openFeat === i ? ' open' : ''}`}>

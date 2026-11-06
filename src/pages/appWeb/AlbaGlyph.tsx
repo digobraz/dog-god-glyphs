@@ -4,8 +4,8 @@
  *  ZVISLÝ (Matej 6. 11.: „na mobile by mohol byť vertikálny… tak ako máme aktuálne na webe“). Geometria
  *  odpísaná z OnePage.tsx `DGX_SLOTS` / `DGX_SLOTS_V` / `DGX_D_*` (sústavy HeroglyphFrame a VerticalHeroglyphFrame).
  *  Obsah bubliny = ten istý ako dekodér na /onepage: Hektorove SKUTOČNÉ hodnoty zo slovníka
- *  `onepage.dgx.bub.<slot>.label|value|glyph` (čo je to za údaj · hodnota · ako sa kresba volá) a štyri
- *  oblasti `onepage.dgx.k.1–4` (Pôvod · Plemeno · Povaha · Ty) — Matej 6. 11.: „daj logiku toho, čo už máme hotové aj obsahovo“. */
+ *  `onepage.dgx.bub.<slot>.label|value|glyph` (čo je to za údaj · hodnota · ako sa kresba volá) (farebná legenda oblastí
+ *  pod rámom bola a Matej ju 6. 11. zrušil) — Matej 6. 11.: „daj logiku toho, čo už máme hotové aj obsahovo“. */
 import { useEffect, useState, type CSSProperties, type PointerEvent } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -111,9 +111,6 @@ const useVertical = () => {
   return v;
 };
 
-/** oblasti v poradí `onepage.dgx.k.1–4` */
-const GROUPS = ['basics', 'breed', 'char', 'own'] as const;
-
 export function GlyphZones() {
   const t = useT();
   const [on, setOn] = useState<string | null>(null);
@@ -141,11 +138,6 @@ export function GlyphZones() {
           {s ? <><i>{t(`${b}.label`)}</i><b>{t(`${b}.value`)}</b><span>{t(`${b}.glyph`)}</span></>
             : <span>{t(vert ? 'onepage.dgx.hint.touch' : 'onepage.dgx.hint.hover')}</span>}
         </div>
-        <ul className="gz-keys">
-          {GROUPS.map((g, i) => (
-            <li key={g} className={`g-${g}${s?.g === g ? ' on' : ''}`}><b>{t(`onepage.dgx.k.${i + 1}.name`)}</b><span>{t(`onepage.dgx.k.${i + 1}.desc`)}</span></li>
-          ))}
-        </ul>
       </div>
     </div>
   );
