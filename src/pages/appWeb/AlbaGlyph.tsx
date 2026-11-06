@@ -4,7 +4,7 @@
  *  ZVISLÝ (Matej 6. 11.: „na mobile by mohol byť vertikálny… tak ako máme aktuálne na webe“). Geometria
  *  odpísaná z OnePage.tsx `DGX_SLOTS` / `DGX_SLOTS_V` / `DGX_D_*` (sústavy HeroglyphFrame a VerticalHeroglyphFrame).
  *  Texty COPY3 `gz_*`. */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties, type PointerEvent } from 'react';
 
 const ALBAS = [
   { n: 43,
@@ -56,13 +56,24 @@ const D_FRAME = 'M13628.1,4142.36l-0,-2589.06c-0,-83.629 -67.778,-151.389 -151.4
 const D_CART_V = 'M1551.35,2145.5c0,21.678 -17.872,39.229 -39.94,39.229l-542.91,-0c-22.08,-0 -39.941,-17.551 -39.941,-39.229l0,-370.809c0,-21.638 17.861,-39.225 39.941,-39.225l542.91,-0c22.068,-0 39.94,17.587 39.94,39.225l0,370.809Zm-13.217,-440.64l-596.353,0c-24.214,0 -43.881,19.945 -43.881,44.545l0,421.381c0,24.6 19.667,44.552 43.881,44.552l596.353,-0c24.203,-0 43.837,-19.952 43.837,-44.552l0,-421.381c0,-24.6 -19.634,-44.545 -43.837,-44.545Z';
 const D_FRAME_V = 'M1597.58,421.985l-715.32,-0c-20.346,-0 -36.85,16.492 -36.85,36.842l0.075,2586.18c-0,20.392 16.504,36.887 36.845,36.887l715.325,0c20.355,0 36.846,-16.495 36.846,-36.887l-0.075,-2586.18c0,-20.35 -16.491,-36.842 -36.846,-36.842m-759.983,-51.042l804.683,0c23.88,0 43.221,19.338 43.221,43.225l0.075,2675.54c0,23.879 -19.341,43.221 -43.221,43.221l-804.683,-0c-23.879,-0 -43.221,-19.342 -43.221,-43.221l-0.075,-2675.54c0,-23.887 19.346,-43.225 43.221,-43.225';
 
+/* fotky jemne pootočené a za myšou sa nakláňajú (Matej 6. 11.: „fotky alb trošku pootoč a urob interaktívne na pohyb“) */
+const ROT = [-4, 2.5, -2] as const;
+const tilt = (e: PointerEvent<HTMLDivElement>) => {
+  if (e.pointerType !== 'mouse') return;
+  const r = e.currentTarget.getBoundingClientRect();
+  e.currentTarget.style.setProperty('--tx', `${(((e.clientY - r.top) / r.height) - .5) * -14}deg`);
+  e.currentTarget.style.setProperty('--ty', `${(((e.clientX - r.left) / r.width) - .5) * 14}deg`);
+  e.currentTarget.classList.add('on');
+};
+const untilt = (e: PointerEvent<HTMLDivElement>) => { e.currentTarget.classList.remove('on'); e.currentTarget.style.removeProperty('--tx'); e.currentTarget.style.removeProperty('--ty'); };
+
 /* Trojica ako na /onepage (`.op-alba-*`): fotka, meno + lapisová pilulka s číslom, heroglyf priamo na papyruse — bez blokov. */
 export function AlbaTrio() {
   return (
     <div className="alba-trio">
-      {ALBAS.map(a => (
-        <figure className="alba" key={a.n}>
-          <div className="alba-ph"><img src={cldPhoto(a.photo)} alt={`ALBA #${a.n}`} loading="lazy" /></div>
+      {ALBAS.map((a, i) => (
+        <figure className="alba" key={a.n} style={{ ['--r' as string]: `${ROT[i]}deg` } as CSSProperties}>
+          <div className="alba-ph" onPointerMove={tilt} onPointerLeave={untilt}><img src={cldPhoto(a.photo)} alt={`ALBA #${a.n}`} loading="lazy" /></div>
           <figcaption><span className="alba-nm">ALBA</span><b>#{a.n}</b></figcaption>
           <img className="alba-gl" src={cldGlyph(a.glyph)} alt={`heroglyph ALBA #${a.n}`} loading="lazy" />
         </figure>

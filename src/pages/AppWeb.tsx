@@ -38,32 +38,33 @@ const SERVANT_YEARS = [1, 4, 9, 14, 19, 24, 29, 34];
 /** Pásma UČŇA = % VAULTU (schválené 6. 11., `plany/nakresy/pecat-odznaky-2026-11-06`). */
 const UCEN_PCT = ['1.', '2 %', '5 %', '10 %', '20 %', '30 %', '45 %', '60 %', '80 %', '100 %'];
 
-/** Ikonky funkcií = zástupné čiary z nákresu; pri doladení hand-drawn kit / Kie. */
+/** Ikonky funkcií = lesklé samolepky z Kie (`public/web-app/ikony/*.webp`, výber Mateja 6. 11. z nákresu
+ *  plany/nakresy/ikony-funkcii-2026-11-06). Odrážky `li` sa zatiaľ nekreslia — doladíme ich neskôr. */
 type B = [Record<Lang2, string>, boolean?];
 const b = (en: string, sk: string, soon = false): B => [{ en, sk }, soon];
-const FEATS: { h: Record<Lang2, string>; p: string; cls?: string; ic: ReactNode; li: B[] }[] = [
-  { h: { en: 'Trails', sk: 'Výlety' }, p: 'f1', cls: 'trip', ic: <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14" />,
+const FEATS: { h: Record<Lang2, string>; p: string; cls?: string; ic: string; li: B[] }[] = [
+  { h: { en: 'Trails', sk: 'Výlety' }, p: 'f1', cls: 'trip', ic: 'vylety',
     li: [b('Add a trip', 'Pridaj výlet'), b('Rate it in paws', 'Ohodnoť labkami'), b('Save it for later', 'Ulož si ho na neskôr'), b('Collect km and points', 'Zbieraj km a body'), b('Route to your phone', 'Trasa do mobilu')] },
-  { h: { en: 'Map', sk: 'Mapa' }, p: 'f8', ic: <><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z" /><circle cx="12" cy="11" r="2" /></>,
+  { h: { en: 'Map', sk: 'Mapa' }, p: 'f8', ic: 'mapa',
     li: [b('Events and group walks', 'Podujatia a spoločné výlety'), b('Dog-friendly places', 'Miesta, kam smie pes'), b('Services for dog people', 'Služby pre psíčkarov'), b('Vets and emergencies', 'Ordinácie a pohotovosti')] },
-  { h: { en: 'DOG ID', sk: 'DOG ID' }, p: 'f2', ic: <><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="11" r="2.5" /><path d="M14 10h4M14 14h4M6 16h6" /></>,
+  { h: { en: 'DOG ID', sk: 'DOG ID' }, p: 'f2', ic: 'dogid',
     li: [b('Your dog’s ID card', 'Preukaz psa'), b('Personality quiz', 'Kvíz povahy'), b('Vaccines and health', 'Očkovanie a zdravie'), b('A will: who takes care of them', 'Závet: kto sa o neho postará')] },
-  { h: { en: 'Daily log', sk: 'Zápis dňa' }, p: 'f3', ic: <><rect x="4" y="4" width="16" height="16" rx="3" /><path d="m8 12 3 3 5-6" /></>,
+  { h: { en: 'Daily log', sk: 'Zápis dňa' }, p: 'f3', ic: 'zapis',
     li: [b('One tap a day', 'Jeden ťuk denne'), b('A streak that keeps going', 'Séria, ktorá beží'), b('Diary and photos', 'Denník a fotky'), b('A chronicle of your life together', 'Kronika vášho života')] },
-  { h: { en: 'AINUBIS', sk: 'AINUBIS' }, p: 'f4', ic: <><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></>,
+  { h: { en: 'AINUBIS', sk: 'AINUBIS' }, p: 'f4', ic: 'ainubis',
     li: [b('7 worlds of dog knowledge', '7 svetov poznania o psoch'), b('Scrolls in plain language', 'Zvitky v ľudskej reči'), b('A chat that knows your dog', 'Chat, ktorý pozná tvojho psa'), b('Verified sources', 'Overené zdroje')] },
-  { h: { en: 'Sniffer', sk: 'Sniffer' }, p: 'f5', ic: <><circle cx="8" cy="9" r="3" /><circle cx="16" cy="9" r="3" /><path d="M3 19c1-3 3-4 5-4s4 1 4 4M12 19c0-3 2-4 4-4s4 1 5 4" /></>,
+  { h: { en: 'Sniffer', sk: 'Sniffer' }, p: 'f5', ic: 'sniffer',
     li: [b('Find a walking buddy', 'Nájdi parťáka na prechádzky'), b('Dog profile with photos', 'Profil psa s fotkami'), b('Swipe, match, walk', 'Swipe, zhoda, prechádzka')] },
-  { h: { en: 'SOS', sk: 'SOS' }, p: 'f6', cls: 'sos', ic: <path d="M12 3 2 20h20L12 3zM12 10v4M12 17v.5" />,
+  { h: { en: 'SOS', sk: 'SOS' }, p: 'f6', cls: 'sos', ic: 'sos',
     li: [b('Lost dog: the pack around you knows', 'Stratený pes: vie o tom svorka okolo'), b('Poster in one tap', 'Leták jedným ťukom'), b('Emergency vets', 'Pohotovosť'), b('First aid', 'Prvá pomoc', true), b('Report cruelty', 'Nahlás týranie', true)] },
-  { h: { en: 'Feed', sk: 'Feed' }, p: 'f7', ic: <path d="M4 5h16v11H8l-4 4V5z" />,
+  { h: { en: 'Feed', sk: 'Feed' }, p: 'f7', ic: 'feed',
     li: [b('Stories from the pack', 'Príbehy zo svorky'), b('Paws and comments', 'Labky a komentáre'), b('Tag your buddies', 'Označ parťákov')] },
 ];
-const SOON: { h: Record<Lang2, string>; p: Record<Lang2, string>; ic: ReactNode }[] = [
-  { h: { en: 'Merch', sk: 'Merch' }, p: { en: 'Things for you and your dog, from the pack.', sk: 'Veci pre teba a psa, zo svorky.' }, ic: <path d="M8 4 4 6l1 5h2v9h10v-9h2l1-5-4-2a4 4 0 0 1-8 0z" /> },
-  { h: { en: 'GPS collar', sk: 'GPS obojok' }, p: { en: 'Know where they are. Walks log themselves.', sk: 'Vieš, kde je. Prechádzky sa zapíšu samy.' }, ic: <><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></> },
-  { h: { en: 'Our research', sk: 'Naše výskumy' }, p: { en: 'Studies we fund, so dogs live longer.', sk: 'Výskumy, ktoré platíme my — aby psi žili dlhšie.' }, ic: <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3" /> },
-  { h: { en: 'New-generation shelters', sk: 'Útulky novej generácie' }, p: { en: 'Shelters dogs leave faster — and happier.', sk: 'Útulky, z ktorých psi odchádzajú rýchlejšie a šťastnejší.' }, ic: <path d="M3 11 12 4l9 7v9H3zM9 20v-5h6v5" /> },
+const SOON: { h: Record<Lang2, string>; p: Record<Lang2, string>; ic: string }[] = [
+  { h: { en: 'Merch', sk: 'Merch' }, p: { en: 'Things for you and your dog, from the pack.', sk: 'Veci pre teba a psa, zo svorky.' }, ic: 'merch' },
+  { h: { en: 'GPS collar', sk: 'GPS obojok' }, p: { en: 'Know where they are. Walks log themselves.', sk: 'Vieš, kde je. Prechádzky sa zapíšu samy.' }, ic: 'gps' },
+  { h: { en: 'Our research', sk: 'Naše výskumy' }, p: { en: 'Studies we fund, so dogs live longer.', sk: 'Výskumy, ktoré platíme my — aby psi žili dlhšie.' }, ic: 'vyskumy' },
+  { h: { en: 'New-generation shelters', sk: 'Útulky novej generácie' }, p: { en: 'Shelters dogs leave faster — and happier.', sk: 'Útulky, z ktorých psi odchádzajú rýchlejšie a šťastnejší.' }, ic: 'centra' },
 ];
 
 function Phone({ src }: { src: string }) {
@@ -183,6 +184,8 @@ export default function AppWeb() {
 
   /* pozadie — varianty v štýle MysteryHike (matné sklo, perleť, heroglyfy) */
   const [bg, setBg] = useState(() => (/^[1-4]$/.test(qs.get('bg') ?? '') ? qs.get('bg')! : '1'));
+  /* dlaždica pod ikonkami funkcií — skúšame lapis aj papyrus (Matej 6. 11.) */
+  const [tile, setTile] = useState(() => (qs.get('tile') === 'papyrus' ? 'papyrus' : 'lapis'));
 
   /* živé čísla */
   const [stats, setStats] = useState<{ dogs: number; people: number; countries: number } | null>(null);
@@ -217,7 +220,6 @@ export default function AppWeb() {
   };
 
   /* funkcie — na dotyk sa karta rozbalí */
-  const [openFeat, setOpenFeat] = useState<number | null>(null);
   const [vOn, setVOn] = useState<number | null>(null);
 
   /* odznaky */
@@ -264,7 +266,8 @@ export default function AppWeb() {
         <div className="wrap">
           <div className="hero-txt">
             <p className="eye">{c('e_life2')}</p>
-            <h1>
+            {/* dva riadky v každom jazyku: veľkosť z najdlhšieho riadka (Matej 6. 11.: „v ENG je až na 3 riadky“) */}
+            <h1 style={{ ['--hc' as string]: Math.max(c('h1a').length, c('h1b').length + 1 + c('h1c').length * 0.9) } as CSSProperties}>
               <span className="l1">{c('h1a')}</span>
               <span className="l1">{c('h1b')} <span className="deco big">{c('h1c')}</span></span>
             </h1>
@@ -356,22 +359,20 @@ export default function AppWeb() {
       <section id="features">
         <div className="wrap">
           <Rv className="sec-h"><p className="eye">{c('e_feat')}</p><h2>{c('h_feat_a')} <span className="blk">{c('h_feat_b')}</span><span className="h2b">{c('h_feat2')}</span></h2></Rv>
-          <div className="grid">
+          {/* karty B — ikonka na dlaždici trčí nad kartou, bez animácie (Matej 6. 11.); dlaždica lapis / papyrus = `?tile=` */}
+          <div className="fgrid" data-tile={tile}>
             {FEATS.map((f, i) => (
-              <Rv key={f.p} d={i % 4} className={`feat pk-stage ${f.cls ?? ''} ${openFeat === i ? 'open' : ''}`}>
-                <div onClick={() => setOpenFeat(openFeat === i ? null : i)} style={{ display: 'contents' }}>
-                  <div className="ic"><svg viewBox="0 0 24 24">{f.ic}</svg></div>
-                  <h3>{f.h[L]}</h3><p>{c(f.p)}</p>
-                  <ul>{f.li.map(([t, soon], k) => <li key={k} className={soon ? 'soon' : ''}>{t[L]}{soon && <em>{c('soon')}</em>}</li>)}</ul>
-                </div>
+              <Rv key={f.p} d={i % 4} className={`fcard pk-stage ${f.cls ?? ''}`}>
+                <div className="fti"><img src={`${A}/ikony/${f.ic}.webp`} alt="" loading="lazy" /></div>
+                <h3>{f.h[L]}</h3><p>{c(f.p)}</p>
               </Rv>
             ))}
           </div>
           <Rv as="p" className="soon-h">{c('soon_h')}</Rv>
-          <div className="grid">
+          <div className="fgrid" data-tile={tile}>
             {SOON.map((f, i) => (
-              <Rv key={f.h.en} d={i} className="feat soon">
-                <div className="ic"><svg viewBox="0 0 24 24">{f.ic}</svg></div>
+              <Rv key={f.h.en} d={i} className="fcard soon">
+                <div className="fti"><img src={`${A}/ikony/${f.ic}.webp`} alt="" loading="lazy" /></div>
                 <h3>{f.h[L]}</h3><p>{f.p[L]}</p>
                 <span className="pk-pill pk-pill--locked">{c('soon')}</span>
               </Rv>
@@ -516,6 +517,9 @@ export default function AppWeb() {
         <div className="bgpick">
           {[['1', 'PERLEŤ ZLATÁ'], ['2', 'HEROGLYFY ROZMAZANÉ'], ['3', 'HEROGLYFY JEMNÉ'], ['4', 'PAPYRUS']].map(([k, n]) => (
             <button key={k} className={bg === k ? 'on' : ''} onClick={() => setBg(k)}>{n}</button>
+          ))}
+          {[['lapis', 'IKONKY LAPIS'], ['papyrus', 'IKONKY PAPYRUS']].map(([k, n]) => (
+            <button key={k} className={tile === k ? 'on' : ''} onClick={() => setTile(k)}>{n}</button>
           ))}
         </div>
       )}

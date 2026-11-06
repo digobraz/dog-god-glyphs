@@ -271,19 +271,6 @@
 .aw .vs-cap{text-align:center;margin-top:var(--s-md);font:500 var(--t-micro)/1.3 var(--font-ui);letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft)}
 
 /* FEATURES */
-.aw .grid{display:grid;gap:var(--s-md);grid-template-columns:1fr 1fr}
-@media(min-width:900px){.aw .grid{grid-template-columns:repeat(4,1fr);gap:var(--s-lg)}}
-.aw .feat{padding:var(--s-lg);display:flex;flex-direction:column;gap:var(--s-sm);min-height:150px}
-.aw .feat.in:hover{transform:translateY(-4px)}
-.aw .feat .ic{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--card-edge);display:grid;place-items:center;color:var(--gold-ink)}
-.aw .feat .ic svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.aw .feat h3{font-size:var(--t-h2)}
-.aw .feat p{margin:0;font-size:var(--t-label);color:var(--ink-soft);line-height:1.45}
-.aw .feat.sos .ic{border-color:var(--sos);color:var(--sos)}
-.aw .feat.trip .ic{border-color:var(--trip);color:var(--trip)}
-.aw .feat.soon{background:transparent;border:1.5px dashed var(--card-edge);box-shadow:none;border-radius:var(--r-card)}
-.aw .feat.soon .ic{border-style:dashed}
-.aw .feat.soon .pk-pill--locked{align-self:flex-start;font:600 var(--t-micro)/1 var(--font-ui);letter-spacing:.14em;padding:4px 10px;margin-top:auto}
 .aw .soon-h{text-align:center;margin:var(--s-xxl) 0 var(--s-lg);font:500 var(--t-micro)/1 var(--font-ui);letter-spacing:.26em;text-transform:uppercase;color:var(--gold-ink)}
 
 /* ODZNAKY — tri osi */
@@ -444,7 +431,8 @@
 @media(min-width:900px){.aw .hero{padding:48px 0 0}.aw .hero .wrap{grid-template-columns:1.1fr 1fr}}
 .aw .hero-txt{container-type:inline-size}
 .aw .hero h1{font-size:clamp(44px,13.4cqi,104px);line-height:.98}
-.aw .hero h1 .l1{display:block}
+.aw .hero h1{font-size:clamp(28px,min(13.4cqi,calc(100cqi / (.56 * var(--hc,11)))),104px)}
+.aw .hero h1 .l1{display:block;white-space:nowrap}
 .aw .hero h1 .l1+.l1{margin-top:.14em}
 .aw .hero h1 .tilt-w{display:inline-block;transform:rotate(-5deg) translateY(-2px);transform-origin:left bottom}
 .aw .store{background:var(--lapis);color:var(--lapis-ink);box-shadow:var(--lapis-shadow);border:1.5px solid rgba(250,244,236,.25)}
@@ -491,17 +479,6 @@
 /* DUŠA — heroglyf */
 
 /* FUNKCIE — karta sa pri prejdení nafúkne a ukáže odrážky */
-.aw .feat{position:relative;transition:transform .25s ease,box-shadow .25s ease}
-.aw .feat ul{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-height:0;overflow:hidden;opacity:0;transition:max-height .35s ease,opacity .25s ease}
-.aw .feat li{font-size:var(--t-label);color:var(--ink-body);padding-left:14px;position:relative}
-.aw .feat li::before{content:'';position:absolute;left:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--lapis-edge)}
-.aw .feat li.soon{color:var(--ink-soft)}
-.aw .feat li.soon::before{background:transparent;border:1px dashed var(--card-edge)}
-.aw .feat li em{font-style:normal;font:600 var(--t-micro)/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--gold-ink);margin-left:4px}
-.aw .feat.open{transform:scale(1.04);z-index:3}
-.aw .feat.open ul{max-height:220px;opacity:1}
-@media(hover:hover){.aw .feat.pk-stage:hover{transform:scale(1.04);z-index:3}.aw .feat.pk-stage:hover ul{max-height:220px;opacity:1}}
-.aw .grid .feat.pk-stage{cursor:pointer}
 .aw .sec-h h2 .h2b{display:block;font-size:.55em;margin-top:6px;color:var(--gold-ink)}
 
 /* ODZNAKY — 4 osi */
@@ -627,7 +604,9 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .alba-trio::-webkit-scrollbar{display:none}
 /* trojica ako na /onepage (.op-alba-*): bez blokov — fotka, meno + lapisová pilulka, heroglyf priamo na papyruse (Matej 6. 11.) */
 .aw .alba{flex:none;width:min(260px,76vw);scroll-snap-align:center;margin:0;display:flex;flex-direction:column;align-items:center;gap:var(--s-sm)}
-.aw .alba-ph{width:100%;border-radius:var(--r-tile);overflow:hidden;box-shadow:0 8px 24px rgba(42,22,8,.18)}
+.aw .alba{perspective:800px}
+.aw .alba-ph{width:100%;border-radius:var(--r-tile);overflow:hidden;box-shadow:0 8px 24px rgba(42,22,8,.18);transform:rotate(var(--r,0deg)) rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg));transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .3s}
+.aw .alba-ph.on{transform:rotate(0deg) rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg)) scale(1.04);transition:transform .12s linear,box-shadow .3s;box-shadow:0 22px 40px -12px rgba(42,22,8,.4)}
 .aw .alba-ph img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
 .aw .alba figcaption{display:flex;justify-content:center;align-items:center;gap:var(--s-sm);margin:var(--s-xs) 0 0}
 .aw .alba-nm{font:700 var(--t-h2)/1 'Cinzel Decorative',var(--font-title);color:var(--ink-strong)}
@@ -668,3 +647,19 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .vs-tag:hover .vs-ico{transform:translateY(-50%) rotate(0) scale(1.06)}
 .aw .vs-tag.ig{bottom:52px}.aw .vs-tag.dg{bottom:-16px}
 @media(max-width:767px){.aw .vs-tag{left:0;max-width:260px;padding-left:84px}.aw .vs-tag .vs-ico{width:80px;height:80px}.aw .vs-tag.ig{bottom:8px}.aw .vs-tag.dg{bottom:-12px}}
+
+/* FUNKCIE = karty B (Matej 6. 11.: „daj to do blokov nie ako zoznam“) — lesklá ikonka na dlaždici trčí nad kartou,
+   bez hover animácie. Dlaždica lapis (predvolená) / papyrus = `data-tile`, prepínač v `?varianty`. */
+.aw .fgrid{--tile:linear-gradient(160deg,#1E3C90 0%,#0A1A4A 100%);display:grid;grid-template-columns:1fr 1fr;gap:64px var(--s-lg);padding-top:52px}
+.aw .fgrid[data-tile="papyrus"]{--tile:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%)}
+@media(min-width:900px){.aw .fgrid{grid-template-columns:repeat(4,1fr);gap:72px var(--s-lg)}}
+.aw .fcard{position:relative;text-align:center;padding:72px var(--s-lg) var(--s-xl);display:flex;flex-direction:column;align-items:center;gap:var(--s-sm)}
+.aw .fti{position:absolute;left:50%;top:-48px;transform:translateX(-50%) rotate(-4deg);width:112px;height:112px;border-radius:26px;background:var(--tile);border:1.5px solid var(--card-edge);display:grid;place-items:center;box-shadow:0 14px 28px -12px rgba(10,26,74,.55)}
+.aw .fcard:nth-child(even) .fti{transform:translateX(-50%) rotate(3deg)}
+.aw .fti img{width:86%;height:86%;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))}
+.aw .fcard h3{font-size:var(--t-h1)}
+.aw .fcard p{margin:0;font-size:var(--t-body);color:var(--ink-soft);line-height:1.45}
+.aw .fcard.soon{border:1.5px dashed var(--card-edge);border-radius:var(--r-card);background:color-mix(in srgb,var(--paper) 35%,transparent)}
+.aw .fcard.soon .fti{border-style:dashed}
+.aw .fcard.soon .pk-pill--locked{font:600 var(--t-micro)/1 var(--font-ui);letter-spacing:.14em;padding:4px 10px;margin-top:var(--s-xs)}
+@media(max-width:767px){.aw .fgrid{gap:56px var(--s-md)}.aw .fcard{padding:60px var(--s-md) var(--s-lg)}.aw .fti{width:92px;height:92px;top:-40px;border-radius:22px}.aw .fcard h3{font-size:var(--t-h2)}.aw .fcard p{font-size:var(--t-label)}}
