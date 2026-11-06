@@ -490,7 +490,12 @@ export default function AppWeb() {
       {/* 6 · AINUBIS — osobný mentor. v2 (Matej 6. 11. večer): logo s krúžiacim prstencom (ako VAULT) → nadpis →
           text so „(still learning)“ → LIEVIK 5·4·2·7 svetov·46/547 → prúd do celého zvitku (vľavo) + podcast a chat
           pod sebou → Učeň (interaktívny) → benefity → mockup POSLEDNÝ. Hlavička nad sekciou tmavne. */}
-      <section id="ainubis" className="ai-band" data-paw="ai" ref={aiSecRef}>
+      <section id="ainubis" className="ai-band" data-paw="ai" ref={aiSecRef} onPointerMove={(e) => {
+        /* SVETLO ZA MYŠOU: blok `.glowb` pod kurzorom dostane polohu myši — okraj a vnútro sa podsvietia v tom mieste */
+        const g = (e.target as HTMLElement).closest<HTMLElement>('.glowb'); if (!g) return;
+        const r = g.getBoundingClientRect();
+        g.style.setProperty('--mx', `${e.clientX - r.left}px`); g.style.setProperty('--my', `${e.clientY - r.top}px`);
+      }}>
         <div className="wrap ai-sec c">
           <Rv>
             <div className="ai-logo" aria-hidden><span className="r2" /><span className="r1" /><img src={AI_HEAD} alt="" /></div>
@@ -539,7 +544,7 @@ export default function AppWeb() {
           <div className="ai-ben">
             {/* ikonky z Kie vo farbách AINUBISa (výber Mateja 6. 11., plany/nakresy/ikony-benefity-2026-11-06) */}
             {['vet', 'conf', 'calm', 'roky'].map((ic, i) => (
-              <Rv key={ic} d={i} className="ai-b"><img src={`${A}/ikony/ben-${ic}.webp`} alt="" loading="lazy" /><h4>{c(`bn${i + 1}h`)}</h4><p>{c(`bn${i + 1}p`)}</p></Rv>
+              <Rv key={ic} d={i} className="ai-b glowb"><img src={`${A}/ikony/ben-${ic}.webp`} alt="" loading="lazy" /><h4>{c(`bn${i + 1}h`)}</h4><p>{c(`bn${i + 1}p`)}</p></Rv>
             ))}
           </div>
           <Rv as="p" className="ai-quote">{c('ai_quote')}<small><span className="ai-name"><b>AI</b>NUBIS</span></small></Rv>

@@ -991,3 +991,13 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .ai-ucside .ai-ucrow button.on{transform:scale(1.28);margin:0}
 .aw .ai-uchint{margin:0;font:400 var(--t-label)/1.4 var(--font-ui);color:var(--ai-dim);max-width:360px}
 @media(max-width:899px){.aw .ai-ucside .ai-ucrow{justify-content:center;grid-template-columns:repeat(5,52px)}.aw .ai-ucside .ai-ucrow button{width:52px;height:52px}}
+
+/* SVETLO ZA MYŠOU (`.glowb`) — okraj sa podsvieti tam, kde je kurzor, vnútro jemne zažiari; blok sa nadvihne */
+.aw .glowb{position:relative;isolation:isolate;--gc:var(--ai-cyan);transition:transform .3s cubic-bezier(.3,1.4,.5,1),border-color .3s,box-shadow .3s}
+.aw .glowb::before{content:'';position:absolute;inset:-1px;border-radius:inherit;padding:2px;pointer-events:none;opacity:0;transition:opacity .35s;filter:drop-shadow(0 0 6px var(--gc));
+  background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),var(--gc),color-mix(in srgb,var(--gc) 35%,transparent) 30%,transparent 65%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
+.aw .glowb::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:0;transition:opacity .35s;
+  background:radial-gradient(380px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--gc) 24%,transparent),transparent 60%)}
+.aw .glowb:hover::before,.aw .glowb:hover::after{opacity:1}
+.aw .glowb:hover{transform:translateY(-4px);box-shadow:0 18px 40px -20px color-mix(in srgb,var(--gc) 60%,transparent)}
