@@ -8,6 +8,7 @@
 // 🐕 Psí blok (kolo 2, 26. 9.): MENO psa → HEROGLYF (mimo fotky) → album, za prvou fotkou
 //    fotky z denníka psa. Samostatné úložisko fotiek psa neexistuje (createRegistry.ts `photo`).
 // 🔒 Orientácia prichádza zo servera len so súhlasom človeka (`orientationPublic`).
+import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel } from '@/components/pack/profile/dogSeal';
 import type { ReactNode } from 'react';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI,
@@ -82,7 +83,7 @@ function DogAlbum({ dog, tx }: { dog: SnifferDog; tx: Tx }) {
   const [first, ...rest] = photos;
   return (
     <div className="sfp-dog">
-      {dog.name && <p className="sfp-dogname">{dog.name}</p>}
+      {dog.name && <p className="sfp-dogname">{dog.name}<DogSeal tier={SEAL_OF_LISTED_DOG} label={sealLabel(SEAL_OF_LISTED_DOG, tx)} /></p>}
       {dog.heroglyph && <img className="sfp-hg" src={img(dog.heroglyph, 520)} alt="" />}
       <div className="sfp-alb">
         <div className={`sfp-wall sn-slide${rest.length ? '' : ' is-solo'}`}>

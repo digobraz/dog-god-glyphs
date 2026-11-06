@@ -33,6 +33,7 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { flagUrl, countryISO2, flagEmojiFromISO2 } from '@/lib/countryGeo';
 import { EDGE_BASE, TEST_BUILD } from '@/lib/env';
 import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
+import { DogSeal, sealOf, sealLabel } from '@/components/pack/profile/dogSeal';
 import NavMedallion, { NAV_MEDALLION_CSS } from '@/components/lab/NavMedallion';
 import angelIconUrl from '@/assets/angel-icon.svg';
 import { exportDogIdPdf } from '@/components/pack/dogIdPdf';
@@ -184,6 +185,8 @@ interface DogRow {
   id: string;
   user_id: string | null;
   dog_name: string | null;
+  /** Pečať psa (`sealOf`) — ZAKLADATEĽ len zaplatený; táto stránka ako jediná platbu nefiltruje. */
+  payment_status?: string | null;
   cloudinary_main_url: string | null;
   pdf_cert_url: string | null;
   pdf_vertical_url: string | null;
@@ -381,7 +384,7 @@ export default function PackDogDetail() {
       let dogQuery = (supabase as any)
         .from('dogs')
         .select(
-          'id, user_id, dog_name, cloudinary_main_url, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, life_status, death_date, patron_svg, patron_svg2, selections, grid_message, created_at, pack_number, owner_name, weight_kg, health_status, allergies, conditions, medication, diet',
+          'id, user_id, dog_name, payment_status, cloudinary_main_url, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, life_status, death_date, patron_svg, patron_svg2, selections, grid_message, created_at, pack_number, owner_name, weight_kg, health_status, allergies, conditions, medication, diet',
         )
         .eq('id', id);
       if (!viaRights) dogQuery = dogQuery.eq('user_id', user.id);
@@ -874,6 +877,8 @@ export default function PackDogDetail() {
                   {nameHead}
                   <span className="did-namelast">
                     {nameLast}
+                    {/* PEČAŤ (6. 11. 2026) — DOG ID je vlastný pes, preto aj prerušovaný VERIACI. */}
+                    <DogSeal tier={sealOf(dog)} own label={sealLabel(sealOf(dog), (k, f) => { const v = t(k); return v === k ? f : v; })} />
                     <span className="did-flagin">
                       <FlagCircle src={dogFlagUrl} iso2={flagIso} label={origin || t('pack.dog.defaultCountry')} />
                     </span>

@@ -14,6 +14,7 @@
 // Nič nové v DB nezakladá: psy + `latest` dá PackDogs, cieľ veku ide do toho istého
 // `calendar.bands`, ktorý číta kalendár (CalBandsSettings).
 // ════════════════════════════════════════════════════════════════════════════
+import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel } from '@/components/pack/profile/dogSeal';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -321,7 +322,7 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
               <img src={d.img} alt="" />
               {!d.angel && <i className="dv2-live" />}
             </span>
-            <span className="dv2-nm">{d.name.toUpperCase()}</span>
+            <span className="dv2-nm">{d.name.toUpperCase()}<DogSeal tier={SEAL_OF_LISTED_DOG} label={sealLabel(SEAL_OF_LISTED_DOG, tx)} /></span>
           </button>
         ))}
         {/* Lock dogs-dogid.md: na 100 % karta DOG ID zo začiatku odchádza na KONIEC (nižšie pod doskou). */}
@@ -501,7 +502,7 @@ function IdCard({ v, tx }: { v: View; tx: Tx }) {
           <span className="dv2-qr"><RoundQR value={qrUrl} ink="#24180a" eye="#1E3C90" /></span>
         </div>
         <div className="dv2-mc">
-          <div className="dv2-name">{v.name}</div>
+          <div className="dv2-name">{v.name}<DogSeal tier={SEAL_OF_LISTED_DOG} label={sealLabel(SEAL_OF_LISTED_DOG, tx)} /></div>
           <div className="dv2-f">
             <small>{tx('pack.dogs2.aka', 'Also known as')}</small>
             <i />
