@@ -725,16 +725,21 @@ export default function AppWeb() {
       <section style={{ paddingTop: 0 }}>
         <div className="wrap">
           <Rv className="sec-h faq-h"><p className="eye">FAQ</p><h2>{c('h_faq1')} <span className="deco">{c('h_faq2')}</span></h2></Rv>
+          {/* 4 + 4: vľavo prakticky, vpravo zmysel a ľudia; na mobile ľavý stĺpec ide prvý */}
           <div className="faq">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <Rv as="details" key={n} className="pk-stage"><summary>{c(`q_${n}`)}</summary><p>{c(`a_${n}`)}</p></Rv>
-            ))}
-            {/* kontakt a odkazy z pätičky — pätička zanikla, posledná je planétka (Matej 6. 11.) */}
-            <Rv as="details" className="pk-stage"><summary>{c('q_contact')}</summary>
-              <p><a href="mailto:woof@dogypt.com">woof@dogypt.com</a><br />
+            {[['free', 'dog', 'off', 'cult'], ['why', 'fund', 'who']].map((col, i) => (
+              <div className="faq-col" key={i}>
+                {col.map((k) => (
+                  <Rv as="details" key={k} className="pk-stage"><summary>{c(`fq_${k}`)}</summary><p>{c(`fa_${k}`)}</p></Rv>
+                ))}
+                {/* kontakt a odkazy z pätičky — pätička zanikla, posledná je planétka (Matej 6. 11.) */}
+                {i === 1 && <Rv as="details" className="pk-stage"><summary>{c('q_contact')}</summary>
+              <p>{c('fa_contact')}<br /><a href="mailto:woof@dogypt.com">woof@dogypt.com</a><br />
                 <a href="/">{c('ft1')}</a> · <a href={L === 'sk' ? 'https://dogma.dogypt.com/' : 'https://dogma.dogypt.com/en/'}>DOGMA</a> · <a href="/privacy">{c('privacy')}</a><br />
                 <small>© DOGYPT</small></p>
-            </Rv>
+            </Rv>}
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -742,7 +747,7 @@ export default function AppWeb() {
       {/* 11 · ŽIVÁ PLANÉTKA — finále */}
       <LivePlanet />
 
-      <div className={`mbar${mbar ? ' on' : ''}`}><a className="pk-cta" href="#join">{c('mbar')}</a></div>
+      <div className={`mbar${mbar ? ' on' : ''}${onPlanet ? ' away' : ''}`}><a className="pk-cta" href="#join">{c('mbar')}</a></div>
 
       {nakres && (
         <div className="bgpick">
