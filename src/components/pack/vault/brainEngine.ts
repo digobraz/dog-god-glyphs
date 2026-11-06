@@ -52,6 +52,8 @@ interface Node {
   st: 0 | 1 | 2;
   /** poradie zrna v jeho okruhu (len `z`) */
   zo?: number;
+  /** ŽIARA STOPY labky (len `glow`): 1 = labka práve prešla, potom dohasína. */
+  ht?: number;
 }
 
 export interface BrainTip { title: string; sub?: string; hint?: string }
@@ -278,7 +280,13 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     W = b.width; H = b.height;
   }
-  const toScreen = (p: Node) => ({ x: W / 2 + (p.x + p.dx + view.x) * view.k, y: H / 2 + (p.y + p.dy + view.y) * view.k });
+  /* `glow` (web): celý mozog sa pomaly otáča okolo stredu — „interaktívny a pohybujúci sa“ (Matej 6. 11.) */
+  let ROT = 0;
+  const toScreen = (p: Node) => {
+    let x = p.x + p.dx, y = p.y + p.dy;
+    if (ROT) { const c = Math.cos(ROT), s = Math.sin(ROT); [x, y] = [x * c - y * s, x * s + y * c]; }
+    return { x: W / 2 + (x + view.x) * view.k, y: H / 2 + (y + view.y) * view.k };
+  };
 
   let lastF = performance.now();
   function frame() {
@@ -290,6 +298,9 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     view.x += (vt.x - view.x) * 0.18; view.y += (vt.y - view.y) * 0.18; view.k += (vt.k - view.k) * 0.18;
     /* DOBEH PO PUSTENÍ + NÁVRAT ZA OKRAJA (dt z hodín, nie z počtu snímok — 60 aj 120 Hz rovnako) */
     const dtF = Math.min(48, Math.max(1, TL * 1000 - lastF)); lastF = TL * 1000;
+    if (o.glow && LEVIT) ROT += dtF * 0.000045;
+    /* STOPA LABKY (`glow`): čo je pod labkou, zažiari — svet, okruh aj zrno — a pomaly dohasína */
+    const htDec = Math.pow(0.97, dtF / 16.67);
     if (!pan && !down && (vel.x || vel.y)) {
       panBy(vel.x * dtF, vel.y * dtF);
       const dec = Math.pow(0.95, dtF / 16.67) * (elipsa().m > 1 ? Math.pow(0.8, dtF / 16.67) : 1);
@@ -307,6 +318,11 @@ export function mountBrain(o: BrainOptions): BrainHandle {
         if (Math.abs(p.dy) < 0.1 && Math.abs(p.vy) < 0.1) { p.dy = 0; p.vy = 0; }
       }
       const s = toScreen(p); p.sx = s.x; p.sy = s.y;
+      if (o.glow) {
+        p.ht = (p.ht ?? 0) * htDec;
+        const reach = p.role === 'w' ? 64 : p.role === 'root' ? 54 : p.role === 'o' ? 46 : 40;
+        if (Math.hypot(p.sx - ptr.x, p.sy - ptr.y) < reach) p.ht = 1;
+      }
       if (LEVIT && p !== drag) {
         /* ⚠️ Levitácia v PIXELOCH (inak rastie s mierkou) a pripočítaná k tomu, čo sa
            kreslí AJ trafí — keby sa kreslilo inde, uzol by pod prstom unikal. */
@@ -344,6 +360,12 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       }
       ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke();
       ctx.shadowBlur = 0;
+      const hh = o.glow ? Math.max(a.ht ?? 0, b.ht ?? 0) : 0;
+      if (hh > 0.04) {
+        ctx.strokeStyle = `rgba(${GLOW},${(hh * 0.95).toFixed(2)})`; ctx.lineWidth = kost ? 2.4 : 1.5;
+        ctx.shadowBlur = 14; ctx.shadowColor = `rgba(${GLOW},.95)`;
+        ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke(); ctx.shadowBlur = 0;
+      }
     });
 
     // 3 · UZLY — okruhy a zvitky
@@ -352,7 +374,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       /* 🔴 ZÁKLADNÝ POHĽAD: okruh aj zrno nesú farbu SVOJHO SVETA — to je celé
          zadanie („všetky uzle a priamky pod jedným svetom tej istej farby").
          VRSTVA POSTUP: neutrálne AINUBISOVE, svieti oranžová a zelená. */
-      const col = o.glow ? (p.role === 'z' && p.st ? GLOW : COL.cyan) : layerNow === 'worlds'
+      const col = o.glow ? ((p.ht ?? 0) > 0.15 || (p.role === 'z' && p.st) ? GLOW : COL.cyan) : layerNow === 'worlds'
         ? worldRGB(o.worlds[p.wi])
         : p.role !== 'z' ? COL.cyan
           : p.st === 2 ? COL.zelena : p.st === 1 ? COL.oranzova : COL.modra;
@@ -367,12 +389,15 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       let al = p.role !== 'z' ? 1 : layerNow === 'worlds' ? 0.74 : p.st ? 0.95 : 0.55;
       if (syn) al = Math.min(1, al + 0.35);
       if (o.glow && p.role === 'z') al = p.st ? 0.75 + 0.25 * Math.sin(TL * 3 + p.zi * 2.3) : 0.6;
+      if (o.glow && (p.ht ?? 0) > 0.15) al = Math.max(al, p.ht ?? 0);
       const sz = p.sz * Math.min(2.2, Math.max(0.5, view.k)) * (near ? 1.7 : syn ? 1.25 : 1);
       const svieti = p.role !== 'z' || near || syn || (layerNow === 'worlds' ? true : !!p.st);
       if (svieti) { ctx.shadowBlur = near ? 26 : syn ? 20 : p.st ? 12 : 14; ctx.shadowColor = `rgba(${col},.9)`; }
       else ctx.shadowBlur = 0;
       ctx.fillStyle = `rgba(${col},${al.toFixed(3)})`;
-      ctx.beginPath(); ctx.arc(p.sx, p.sy, Math.max(0.8, sz), 0, TAU); ctx.fill();
+      const szG = o.glow ? sz * (1 + 0.6 * (p.ht ?? 0)) : sz;
+      if (o.glow && (p.ht ?? 0) > 0.15) { ctx.shadowBlur = 22; ctx.shadowColor = `rgba(${GLOW},.95)`; }
+      ctx.beginPath(); ctx.arc(p.sx, p.sy, Math.max(0.8, szG), 0, TAU); ctx.fill();
       /* obrys pri zvitku pod prstom — inak by sa 2px bod viditeľne nerozsvietil */
       if (near && p.role === 'z') {
         ctx.strokeStyle = 'rgba(140,240,255,.95)'; ctx.lineWidth = 1.6;
@@ -487,6 +512,11 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       ctx.fillStyle = `rgba(${wc},1)`;
       ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, TAU); ctx.fill();
       ctx.shadowBlur = 0;
+      if (o.glow && (p.ht ?? 0) > 0.04) {
+        const h = p.ht ?? 0;
+        ctx.strokeStyle = `rgba(${GLOW},${h.toFixed(2)})`; ctx.lineWidth = 3; ctx.shadowBlur = 30 * h; ctx.shadowColor = `rgba(${GLOW},1)`;
+        ctx.beginPath(); ctx.arc(p.sx, p.sy, r + 4 + (1 - h) * 10, 0, TAU); ctx.stroke(); ctx.shadowBlur = 0;
+      }
       const im = ICONS[p.wi];
       if (im && im.complete) {
         /* ⚠️ Ikona sa VYREZÁVA (`destination-out`), nekreslí — kit je zlatý a na modrej
@@ -753,7 +783,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     }
     drag = null; pan = false; HOLD = null; down = false;
   };
-  const onLeave = () => { if (!down) { HOV = null; HOVE = null; showTip(null); } };
+  const onLeave = () => { if (o.glow) { ptr.x = -1e5; ptr.y = -1e5; } if (!down) { HOV = null; HOVE = null; showTip(null); } };
   const onWheel = (e: WheelEvent) => { e.preventDefault(); zoomTo(vt.k * Math.exp(-e.deltaY * 0.0015)); };
 
   cv.addEventListener('pointermove', onMove);

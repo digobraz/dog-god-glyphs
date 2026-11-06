@@ -709,7 +709,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  a4_3: { en: 'laid end to end — one long walk with your dog', sk: 'za sebou — poriadna prechádzka so psom' },
  a4_4: { en: 'days of reading, 8 hours a day', sk: 'dní čítania, 8 hodín denne' },
  e_learn: { en: 'Learn your way', sk: 'Študuj po svojom' }, h_learn: { en: 'Read. Listen. Ask.', sk: 'Čítaj. Počúvaj. Pýtaj sa.' },
- lr1k: { en: 'Scrolls', sk: 'Zvitky' }, lr1h: { en: '3 minutes a day', sk: '3 minúty denne' }, lr1p: { en: 'One topic, one scroll, in plain language. With a picture and a practical tip at the end.', sk: 'Jedna téma, jeden zvitok, ľudskou rečou. S obrázkom a praktickou radou na koniec.' },
+ lr1k: { en: 'Scrolls', sk: 'Zvitky' }, lr1h: { en: 'Useful scrolling', sk: 'Užitočné skrolovanie' }, lr1p: { en: 'One topic, one scroll, in plain language. With a picture and a practical tip at the end.', sk: 'Jedna téma, jeden zvitok, ľudskou rečou. S obrázkom a praktickou radou na koniec.' },
  lr2k: { en: 'Podcasts', sk: 'Podcasty' }, lr2h: { en: 'On the walk', sk: 'Na prechádzke' }, lr2p: { en: 'Every scroll as a podcast. Your dog sniffs, you learn. Press play — these five are real.', sk: 'Zvitok ako podcast. Pes čuchá, ty sa učíš. Pusti si — týchto päť naozaj hrá.' },
  lr3k: { en: 'Chat', sk: 'Chat' }, lr3h: { en: 'Knows your dog', sk: 'Pozná tvojho psa' }, lr3p: { en: 'Age, breed, character. It answers your dog, not an “average dog”.', sk: 'Vek, plemeno aj povahu. Odpovedá tvojmu psovi, nie „priemernému psovi“.' },
  uc_a: { en: 'Every scroll you read moves you up.', sk: 'Každý prečítaný zvitok ťa posunie.' }, uc_b: { en: 'From Disciple 1 to Disciple 10 — the whole VAULT. The pack sees your badge.', sk: 'Z Učňa 1 až po Učňa 10 — všetky zvitky. Odznak vidí celá svorka.' },

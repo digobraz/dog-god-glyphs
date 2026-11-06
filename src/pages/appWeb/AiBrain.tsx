@@ -4,8 +4,9 @@ import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 
 /** MOZOG UČŇA na /app (Matej 6. 11. večer: „tú neurónovú sieť, čo už máme postavenú … animácia, ako sa rozsvecujú
  *  jednotlivé uzly a synapsy“). Ten istý engine ako mozog VAULTU v appke, vrstva POSTUP: zrná sa po jednom
- *  rozsvietia (videné → prečítané) až po podiel zvoleného Učňa. Myš plátno neovláda — koliesko by inak
- *  zoomovalo mozog namiesto rolovania stránky. */
+ *  rozsvietia až po podiel zvoleného Učňa. Labka (myš) rozsvecuje, čo prejde — svety, okruhy, zrná aj synapsy
+ *  (engine `glow`); koliesko sa k plátnu nedostane, aby rolovalo stránku. Na dotykovom displeji je plátno
+ *  len na pozeranie — inak by sa cez mozog nedalo rolovať. */
 export function AiBrain({ share, head }: { share: number; head: string }) {
   const cv = useRef<HTMLCanvasElement>(null);
   const tip = useRef<HTMLDivElement>(null);
@@ -55,8 +56,17 @@ export function AiBrain({ share, head }: { share: number; head: string }) {
     return () => { cancelAnimationFrame(raf); io.disconnect(); ro.disconnect(); h.destroy(); };
   }, [head]);
 
+  /* koliesko patrí stránke, nie zoomu mozgu: zastavíme ho skôr, než dôjde k plátnu (capture), bez preventDefault */
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const b = box.current; if (!b) return;
+    const stop = (e: WheelEvent) => e.stopPropagation();
+    b.addEventListener('wheel', stop, { capture: true, passive: true });
+    return () => b.removeEventListener('wheel', stop, { capture: true });
+  }, []);
+
   return (
-    <div className="ai-brain" aria-hidden>
+    <div className="ai-brain" ref={box} aria-hidden>
       <canvas ref={cv} />
       <div ref={tip} className="ai-brain-tip" />
     </div>
