@@ -186,7 +186,7 @@ export default function AppWeb() {
   const Note = ({ k, flag }: { k: string; flag?: boolean }) => (nakres ? <span className={`note${flag ? ' flag' : ''}`}>{NOTES[k]}</span> : null);
 
   /* pozadie — varianty v štýle MysteryHike (matné sklo, perleť, heroglyfy) */
-  const [bg, setBg] = useState(() => (/^[1-4]$/.test(qs.get('bg') ?? '') ? qs.get('bg')! : '2'));
+  const [bg, setBg] = useState(() => (/^[1-4]$/.test(qs.get('bg') ?? '') ? qs.get('bg')! : '1'));
 
   /* živé čísla */
   const [stats, setStats] = useState<{ dogs: number; people: number; countries: number } | null>(null);
@@ -339,6 +339,8 @@ export default function AppWeb() {
         </div>
       </section>
 
+      <div className="seam" aria-hidden />
+
       {/* 3 · PRE PSOV, S DUŠOU */}
       <section>
         <div className="wrap">
@@ -381,6 +383,8 @@ export default function AppWeb() {
         </div>
       </section>
 
+      <div className="seam r" aria-hidden />
+
       {/* 4 · FUNKCIE */}
       <section id="features">
         <div className="wrap">
@@ -410,6 +414,8 @@ export default function AppWeb() {
           {nakres && <p style={{ textAlign: 'center', marginTop: 16 }}><Note k="n_ikony" flag /></p>}
         </div>
       </section>
+
+      <div className="seam" aria-hidden />
 
       {/* 5 · ODZNAKY — štyri osi */}
       <section id="badges">
@@ -544,7 +550,7 @@ export default function AppWeb() {
 
       {nakres && (
         <div className="bgpick">
-          {[['1', 'PERLEŤ'], ['2', 'HEROGLYFY ROZMAZANÉ'], ['3', 'HEROGLYFY JEMNÉ'], ['4', 'PAPYRUS']].map(([k, n]) => (
+          {[['1', 'PERLEŤ ZLATÁ'], ['2', 'HEROGLYFY ROZMAZANÉ'], ['3', 'HEROGLYFY JEMNÉ'], ['4', 'PAPYRUS']].map(([k, n]) => (
             <button key={k} className={bg === k ? 'on' : ''} onClick={() => setBg(k)}>{n}</button>
           ))}
         </div>

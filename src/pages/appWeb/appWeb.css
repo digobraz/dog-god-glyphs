@@ -529,3 +529,29 @@
 
 /* GodsGridLab si globálne zamyká body (overflow:hidden) — na tejto stránke sa scrolluje. */
 body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
+
+/* ══ v4 (6. 11. 2026) — Matej: „prijal by som perleť ale možno výraznejšiu a možno aj tmavšie
+   (zlaté škvrny) a na miestach prechodov kde nie je text šikmé prechody, za ktorými by boli
+   rozmazané heroglyfy (ale nemôžu zasahovať do textingu)“ ══════════════════════════════ */
+.aw[data-bg="1"]{background:linear-gradient(180deg,#EAD6A6 0%,#E2C88E 50%,#DCC083 100%)}
+.aw[data-bg="1"] .aw-bg .pearl{opacity:1;background:
+  radial-gradient(38% 30% at 10% 6%, rgba(255,255,255,.95), transparent 65%),
+  radial-gradient(30% 26% at 92% 18%, color-mix(in srgb,var(--gold-solid) 62%,transparent), transparent 70%),
+  radial-gradient(34% 30% at 22% 52%, color-mix(in srgb,var(--card-edge) 58%,transparent), transparent 70%),
+  radial-gradient(28% 24% at 80% 62%, rgba(255,255,255,.85), transparent 68%),
+  radial-gradient(36% 30% at 60% 96%, color-mix(in srgb,var(--gold-ink) 50%,transparent), transparent 70%),
+  radial-gradient(22% 20% at 40% 26%, color-mix(in srgb,var(--lapis-edge) 8%,transparent), transparent 70%)}
+
+/* ŠIKMÝ PRIECHOD — pás v prázdnom priestore medzi sekciami. Výška a záporné okraje sú
+   menšie než odsadenie sekcií (48 / 96 px), takže pás nikdy nesiahne na text. */
+.aw section{position:relative;z-index:1}
+.aw .seam{position:relative;z-index:0;height:96px;margin:-24px 0;pointer-events:none}
+@media(min-width:768px){.aw .seam{height:150px;margin:-56px 0}}
+.aw .seam::before,.aw .seam::after{content:'';position:absolute;inset:0}
+.aw .seam::after{background:linear-gradient(90deg,transparent,var(--card-edge) 20%,var(--gold-solid) 50%,var(--card-edge) 80%,transparent);
+  clip-path:polygon(0 34%,100% 0,100% 66%,0 100%)}
+.aw .seam::before{z-index:1;background:url('/images/bg-light.webp') center/700px repeat;filter:blur(3px) sepia(.35);opacity:.9;
+  clip-path:polygon(0 37%,100% 3%,100% 63%,0 97%);
+  -webkit-mask:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
+.aw .seam.r::after{clip-path:polygon(0 0,100% 34%,100% 100%,0 66%)}
+.aw .seam.r::before{clip-path:polygon(0 3%,100% 37%,100% 97%,0 63%)}
