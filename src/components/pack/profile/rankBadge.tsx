@@ -219,6 +219,10 @@ export function PilgrimBadge({ level, pct, on, onClick, label }: BadgeBtn & { le
  * keď pribudnú zvitky, % klesne, level ostane (najvyšší dosiahnutý drží DB, `human.learner`).
  * Obrázky = atóm, guličiek toľko ako level (nákres `plany/nakresy/rebricky/ai/ucen/final/`). */
 const L_FROM = [0, 2, 5, 10, 20, 30, 45, 60, 80, 100];
+/** Zväčšenie atómu. Atóm vypĺňa ~93 % obrázka, SLUŽOBNÍK a PÚTNIK 64–74 % (namerané 6. 11. 2026) — pri ich
+ *  1.4 bol UČEŇ o štvrtinu väčší (Matej: *„odznak učňa je väčší než oba pred ním“*). 1.08 × 0.93 ≈ 1.0 = ich
+ *  bežná viditeľná veľkosť; 8–10 o kúsok viac, ako koruna/krídla pri ostatných. */
+export const learnerK = (level: number) => (level >= 8 ? 1.2 : 1.08);
 export const learnerImg = (level: number) => `/icons/pack/rank/learner-${Math.max(1, Math.min(10, level))}.webp`;
 /** `read` uzavretých z `total` → level (0 = ešte nič) a postup k ďalšiemu v %.
  *  `floor` = najvyšší dosiahnutý level z DB (`human.learner.level`) — level NIKDY NEKLESÁ, ani keď VAULT
@@ -244,7 +248,7 @@ const learnerFill = (level: number): CSSProperties => (level >= 10
 export function LearnerBadge({ level, pct, on, onClick, label }: BadgeBtn & { level: number; pct: number }) {
   return (
     <button type="button" data-rank-toggle className={`rk${on ? ' on' : ''}`} onClick={onClick} aria-expanded={on} aria-label={label}>
-      <span className="ic" style={{ ['--k' as string]: level >= 8 ? 1.45 : 1.3, opacity: level ? 1 : .5 }}><img src={learnerImg(level)} alt="" /></span>
+      <span className="ic" style={{ ['--k' as string]: learnerK(level), opacity: level ? 1 : .5 }}><img src={learnerImg(level)} alt="" /></span>
       <span className="cp">
         <span className={`fl${level >= 10 ? ' full' : ''}`} style={{ width: fillWidth(pct), ...learnerFill(level) }} />
         <span className="nb">{level}</span>
@@ -263,7 +267,7 @@ export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx
   return (
     <>
       <div className="rkp-hd">
-        <span className="im"><img src={learnerImg(level)} alt="" style={{ opacity: level ? 1 : .5 }} /></span>
+        <span className="im" style={{ ['--k' as string]: learnerK(level) }}><img src={learnerImg(level)} alt="" style={{ opacity: level ? 1 : .5 }} /></span>
         <div className="tx"><h3>{name} {level}</h3></div>
         {/* to isté zaokrúhlenie ako profil a AINUBIS: prvý zvitok nesmie ukázať 0 % */}
         <span className="ab">{read ? Math.max(1, Math.round(share)) : 0} %</span>
@@ -280,7 +284,7 @@ export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx
         <div><b>{liked}</b><span>{tx('pack.rank.liked', 'liked')}</span></div>
         <div><b>{saved}</b><span>{tx('pack.rank.saved', 'saved')}</span></div>
       </div>
-      <div className="rkp-lad" style={{ ['--n' as string]: L_FROM.length }}>
+      <div className="rkp-lad lrn" style={{ ['--n' as string]: L_FROM.length }}>
         {L_FROM.map((from, i) => (
           <div key={from} className={i + 1 === level ? 'on' : i + 1 < level ? 'done' : ''}>
             <img src={learnerImg(i + 1)} alt="" />
@@ -330,6 +334,8 @@ export const RANK_PANEL_CSS = `
 @media (min-width:768px){ .rkp-lad{ grid-template-columns:repeat(var(--n), 1fr); } }
 .rkp-lad div{ display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0; }
 .rkp-lad img{ width:100%; max-width:72px; aspect-ratio:1; object-fit:contain; filter:grayscale(1) brightness(.75); opacity:.8; }
+/* UČEŇ: atóm vypĺňa obrázok skoro celý — užší, aby bol v rebríku rovnako veľký ako ostatné (pozri learnerK). */
+.rkp-lad.lrn img{ max-width:56px; }
 .rkp-lad .done img{ filter:none; opacity:1; }
 .rkp-lad .on img{ filter:drop-shadow(0 0 6px rgba(255,214,120,.9)); opacity:1; transform:scale(1.15); }
 .rkp-lad small{ font-family:${FONT_UI}; font-weight:600; font-size:10px; color:rgba(243,230,200,.55); }
