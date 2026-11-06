@@ -19,6 +19,7 @@ const GOLD = "#C99A3F";   // brandové zlato
 const INK = "#1A1206";    // tmavý atrament
 const BROWN = "#3B2614";  // stopy — tmavohnedé bez obrysu (Matej 6. 11.)
 const LAPIS = "#16307A";  // kurzor — lapis bez obrysu (Matej 6. 11.)
+const AI_LIGHT = "#CFF3FA"; // v sekcii AINUBIS (`[data-paw=ai]`) svetlé stopy a cyan packa (Matej 6. 11.)
 const STRIDE = 44;        // rozostup stôp v px (podľa prejdenej vzdialenosti, nie času)
 const MAX = 40;           // strop stôp naraz (recyklujú sa dookola)
 const FADE_MS = 3000;     // dĺžka miznutia
@@ -32,14 +33,17 @@ const svg = (size: number, rot: number, stroke: number, fill = GOLD) =>
     `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="-20 -20 409 422">` +
     `<g transform="rotate(${rot} 184 191)"><path d="${PAW_SOLID}" fill="${fill}" stroke="${stroke ? INK : "none"}" stroke-width="${stroke}" stroke-linejoin="round"/></g></svg>`);
 
-/** Kurzor — lesklý lapis (svetlejší hore) so zlatou žiarou okolo (Matej 6. 11.: „packu urob trochu žiariacu, je taká fádna“). */
-const cursorSvg = (size: number, rot: number) =>
+/** Kurzor — lesklý lapis (svetlejší hore) so zlatou žiarou okolo (Matej 6. 11.: „packu urob trochu žiariacu, je taká fádna“).
+ *  `ai` = cyan packa s cyan žiarou pre tmavú sekciu AINUBISA. */
+const cursorSvg = (size: number, rot: number, ai = false) =>
   "data:image/svg+xml;utf8," + encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="-90 -90 549 562">` +
-    `<defs><linearGradient id="l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4F7BEA"/><stop offset=".45" stop-color="${LAPIS}"/><stop offset="1" stop-color="#0A1A4A"/></linearGradient>` +
+    (ai
+      ? `<defs><linearGradient id="l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E6FAFF"/><stop offset=".45" stop-color="#5BE0F0"/><stop offset="1" stop-color="#1A8FA8"/></linearGradient>`
+      : `<defs><linearGradient id="l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4F7BEA"/><stop offset=".45" stop-color="${LAPIS}"/><stop offset="1" stop-color="#0A1A4A"/></linearGradient>`) +
     `<filter id="g" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="26"/></filter></defs>` +
-    `<g transform="rotate(${rot} 184 191)"><path d="${PAW_SOLID}" fill="#F5C73D" filter="url(#g)"/>` +
-    `<path d="${PAW_SOLID}" fill="url(#l)" stroke="#EFD79A" stroke-width="10" stroke-opacity=".7"/></g></svg>`);
+    `<g transform="rotate(${rot} 184 191)"><path d="${PAW_SOLID}" fill="${ai ? "#5BE0F0" : "#F5C73D"}" filter="url(#g)"/>` +
+    `<path d="${PAW_SOLID}" fill="url(#l)" stroke="${ai ? "#E6FAFF" : "#EFD79A"}" stroke-width="10" stroke-opacity=".7"/></g></svg>`);
 
 /** Cesty, kde packa smie bežať (verejný web). */
 const ALLOWED = /^\/(app|wall|terms|privacy|login|dog|d|lost|will|zavet)?(\/|$)/;
@@ -89,6 +93,7 @@ export function PawTrail() {
     const style = document.createElement("style");
     style.textContent =
       `html, html * { cursor: url("${cursorSvg(CURSOR_BOX, -22)}") ${CURSOR_BOX / 2} ${CURSOR_BOX / 2}, auto !important; }` +
+      `[data-paw=ai], [data-paw=ai] * { cursor: url("${cursorSvg(CURSOR_BOX, -22, true)}") ${CURSOR_BOX / 2} ${CURSOR_BOX / 2}, auto !important; }` +
       `html input:not([type=button]):not([type=submit]):not([type=checkbox]):not([type=radio]), html textarea, html [contenteditable] { cursor: text !important; }`;
     document.head.appendChild(style);
     return () => style.remove();
@@ -103,6 +108,7 @@ export function PawTrail() {
     if (!box) return;
 
     const url = `url("${svg(STAMP * 2, 0, 0, BROWN)}")`;
+    const urlAi = `url("${svg(STAMP * 2, 0, 0, AI_LIGHT)}")`;
     const pool: HTMLElement[] = [];
     for (let i = 0; i < MAX; i++) {
       const s = document.createElement("i");
@@ -112,13 +118,14 @@ export function PawTrail() {
     }
     let next = 0, lx = NaN, ly = NaN, dist = 0, side = 1;
 
-    const stamp = (x: number, y: number, a: number) => {
+    const stamp = (x: number, y: number, a: number, ai: boolean) => {
       const off = 6 * side; side = -side;
       const px = x + Math.cos(a + Math.PI / 2) * off, py = y + Math.sin(a + Math.PI / 2) * off;
       if (!isBackground(px, py)) return;
       const o = box.getBoundingClientRect();   // vrstva scrolluje so stránkou → súradnice stránky
       const s = pool[next]; next = (next + 1) % MAX;
       s.getAnimations().forEach((an) => an.cancel());
+      s.style.backgroundImage = ai ? urlAi : url;
       s.style.transform = `translate(${px - o.left}px, ${py - o.top}px) rotate(${a + Math.PI / 2}rad)`;
       s.animate([{ opacity: 0.5 }, { opacity: 0.5, offset: 0.25 }, { opacity: 0 }], { duration: FADE_MS, easing: "ease-in", fill: "forwards" });
     };
@@ -130,7 +137,7 @@ export function PawTrail() {
       const dx = x - lx, dy = y - ly, d = Math.hypot(dx, dy);
       if (d > 300) { lx = x; ly = y; dist = 0; return; }   // skok (nové okno, tab) — žiadna čiara cez stránku
       dist += d; lx = x; ly = y;
-      if (dist >= STRIDE) { dist = 0; stamp(x, y, Math.atan2(dy, dx)); }
+      if (dist >= STRIDE) { dist = 0; stamp(x, y, Math.atan2(dy, dx), !!(e.target as Element | null)?.closest?.("[data-paw=ai]")); }
     };
     const onLeave = () => { lx = NaN; };
     document.addEventListener("pointermove", onMove, { passive: true });

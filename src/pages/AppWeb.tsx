@@ -39,6 +39,14 @@ const SERVANT_YEARS = [1, 4, 9, 14, 19, 24, 29, 34];
 /** Pásma UČŇA = % VAULTU (schválené 6. 11., `plany/nakresy/pecat-odznaky-2026-11-06`). */
 const UCEN_PCT = ['1.', '2 %', '5 %', '10 %', '20 %', '30 %', '45 %', '60 %', '80 %', '100 %'];
 
+/** Štyri cesty v sekcii Odznaky — `mine` = úroveň vzorového psíčkara, tá istá ako v levitujúcich odznakoch v hero. */
+const PATHS = [
+  { ax: 'ax0', mine: 'dogyptan-0.svg', lvl: 't0' },
+  { ax: 'ax1', mine: 'servant-2.webp', lvl: 'my1' },
+  { ax: 'ax2', mine: 'pilgrim-3.webp', lvl: 'my2' },
+  { ax: 'ax3', mine: 'ucen-4.webp', lvl: 'my3' },
+];
+
 /** Ikonky funkcií = lesklé samolepky z Kie (`public/web-app/ikony/*.webp`, výber Mateja 6. 11. z nákresu
  *  plany/nakresy/ikony-funkcii-2026-11-06). Odrážky `li` sa zatiaľ nekreslia — doladíme ich neskôr. */
 type B = [Record<Lang2, string>, boolean?];
@@ -160,7 +168,7 @@ function Stores() {
 
 /** Do živej appky v telefóne sa vstrekne štýl, ktorý skryje predajné prvky /magnet
  *  (kartu a lištu s cenou €11 — appka je od 5. 11. zadarmo) a vývojárske tlačidlá. */
-const AI_FRAME_CSS = '.akv-pvinfo,.akv-pvdock,.mgp-bar,[class*=onsent],a.fixed.bottom-3,button.fixed.bottom-3{display:none!important}';
+const AI_FRAME_CSS = '.pk-veil--modal:has(.mgp-card--ai),.akv-pvinfo,.akv-pvdock,.mgp-bar,[class*=onsent],a.fixed.bottom-3,button.fixed.bottom-3{display:none!important}';
 
 /** Živá planétka z `/` — montuje sa až pri obrazovke a mimo nej stojí. */
 function LivePlanet() {
@@ -242,7 +250,7 @@ export default function AppWeb() {
   const [vOn, setVOn] = useState<number | null>(null);
 
   /* odznaky */
-  const [ax, setAx] = useState(0);
+  const [ax, setAx] = useState<number | null>(null);
 
   /* AINUBIS — živá appka sa načíta až pri obrazovke */
   const [aiRef, aiNear] = useNear<HTMLDivElement>('400px');
@@ -317,7 +325,7 @@ export default function AppWeb() {
             ))}
             <span className="flt f1" tabIndex={0}><img className="xl" src={`${A}/odznaky/pilgrim-3.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
             <span className="flt f2" tabIndex={0}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
-            <span className="flt f3" tabIndex={0}><img src={`${A}/odznaky/ucen-4.svg`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
+            <span className="flt f3" tabIndex={0}><img className="xl" src={`${A}/odznaky/ucen-4.webp`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
           </div>
         </div>
       </section>
@@ -424,7 +432,6 @@ export default function AppWeb() {
               <Rv key={f.h.en} d={i} className="fcard soon">
                 <div className="fti"><img src={`${A}/ikony/${f.ic}.webp`} alt="" loading="lazy" /></div>
                 <h3>{f.h[L]}</h3><p>{f.p[L]}</p>
-                <span className="pk-pill pk-pill--locked">{c('soon')}</span>
               </Rv>
             ))}
           </div>
@@ -432,28 +439,39 @@ export default function AppWeb() {
         </div>
       </section>
 
-      {/* 5 · ODZNAKY — štyri osi */}
+      {/* 5 · ODZNAKY — štyri cesty vedľa seba (každá ukazuje MOJU úroveň), ťuk = celý rebríček tej cesty.
+          Matej 6. 11.: „dôležité je, aby ich človek videl najprv všetky“. */}
       <section id="badges">
         <div className="wrap">
           <Rv className="sec-h">
             <p className="eye">{c('e_badge')}</p>
             <h2>{c('h_badge1')} <span className="deco">{c('h_badge2')}</span></h2>
           </Rv>
-          <Rv className="tabs">
-            {['ax0', 'ax1', 'ax2', 'ax3'].map((k, i) => <button key={k} className={ax === i ? 'on' : ''} onClick={() => setAx(i)}>{c(k)}</button>)}
-          </Rv>
-          <div className="axis pk-stage on" key={ax}>
-            <h3>{c(`ax${ax}`)}</h3><p className="what">{c(`ax${ax}p`)}</p>
-            {ax === 0 && <div className="medals m4">{[0, 1, 2, 3].map((i) => <figure key={i}><img src={`${A}/odznaky/dogyptan-${i}.svg`} alt="" /><span>{c(`t${i}`)}</span></figure>)}</div>}
-            {ax === 1 && <div className="medals">{SERVANT_YEARS.map((y, i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/servant-${i}.webp`} alt="" /><span>{y}</span></figure>)}</div>}
-            {ax === 2 && <div className="medals">{SERVANT_YEARS.map((_, i) => <figure key={i} className={i > 3 ? 'lock' : ''}><img src={`${A}/odznaky/pilgrim-${i}.webp`} alt="" /><span>{i + 1}</span></figure>)}</div>}
-            {ax === 3 && <div className="medals m10">{UCEN_PCT.map((p, i) => <figure key={i} className={i > 4 ? 'lock' : ''}><img src={`${A}/odznaky/ucen-${i + 1}.svg`} alt="" /><span>{p}</span></figure>)}</div>}
+          <div className="paths">
+            {PATHS.map((p, i) => (
+              <Rv key={p.ax} d={i} className={`path${ax === i ? ' on' : ''}`}>
+                <button type="button" aria-expanded={ax === i} onClick={() => setAx(ax === i ? null : i)}>
+                  <img src={`${A}/odznaky/${p.mine}`} alt="" loading="lazy" />
+                  <b>{c(p.ax)}</b>
+                  <small>{c(p.lvl)}</small>
+                </button>
+              </Rv>
+            ))}
           </div>
+          {ax !== null && (
+            <div className="axis pk-stage on" key={ax}>
+              <h3>{c(PATHS[ax].ax)}</h3><p className="what">{c(`${PATHS[ax].ax}p`)}</p>
+              {ax === 0 && <div className="medals m4">{[0, 1, 2, 3].map((i) => <figure key={i} className={i > 0 ? 'lock' : ''}><img src={`${A}/odznaky/dogyptan-${i}.svg`} alt="" /><span>{c(`t${i}`)}</span></figure>)}</div>}
+              {ax === 1 && <div className="medals">{SERVANT_YEARS.map((y, i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/servant-${i}.webp`} alt="" /><span>{y}</span></figure>)}</div>}
+              {ax === 2 && <div className="medals">{SERVANT_YEARS.map((_, i) => <figure key={i} className={i > 3 ? 'lock' : ''}><img src={`${A}/odznaky/pilgrim-${i}.webp`} alt="" /><span>{i + 1}</span></figure>)}</div>}
+              {ax === 3 && <div className="medals m10">{UCEN_PCT.map((p, i) => <figure key={i} className={i > 3 ? 'lock' : ''}><img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" /><span>{p}</span></figure>)}</div>}
+            </div>
+          )}
         </div>
       </section>
 
       {/* 6 · AINUBIS — živá appka v telefóne */}
-      <section id="ainubis" className="ai-band">
+      <section id="ainubis" className="ai-band" data-paw="ai">
         <div className="wrap split rev">
           <Rv>
             <p className="eye" style={{ color: 'var(--ai-cyan)' }}>{c('e_ai')}</p>
