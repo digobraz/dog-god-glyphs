@@ -19,7 +19,9 @@
  */
 import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Seo } from '@/components/Seo';
-import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar } from '@/components/pack/HandIcons';
+import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar, HandCycle } from '@/components/pack/HandIcons';
+import AI_HEAD from '@/assets/ainubis-head.webp';
+import { AiFunnel, RINGS } from './appWeb/AiFunnel';
 import { STAGE_CSS } from '@/components/pack/packTheme';
 import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
 import { GodsGridLab } from '@/components/gods/GodsGridLab';
@@ -34,6 +36,12 @@ import './appWeb/appWeb.css';
 const A = '/web-app';
 
 const CAROUSEL: [string, string][] = [['map', '11-vretenica-mapa'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', '8-ainubis'], ['feed', 'feed']];
+
+/** Zdroje lievika — snímka chrámu AINUBIS (`scripts/svet/harvest-data.json`, 26. 10. 2026; štúdie = Chrám › Znalosti).
+ *  [číslo, kľúč názvu, kľúč podnadpisu] */
+const AI_SRC: [number, string, string][] = [
+  [532, 'src1', 'src1s'], [337, 'src2', 'src2s'], [1996, 'src3', 'src3s'], [1158, 'src4', 'src4s'], [16, 'src5', 'src5s'],
+];
 
 const SERVANT_YEARS = [1, 4, 9, 14, 19, 24, 29, 34];
 /** Pásma UČŇA = % VAULTU (schválené 6. 11., `plany/nakresy/pecat-odznaky-2026-11-06`). */
@@ -254,6 +262,8 @@ export default function AppWeb() {
 
   /* AINUBIS — živá appka sa načíta až pri obrazovke */
   const [aiRef, aiNear] = useNear<HTMLDivElement>('400px');
+  const [funRef, funNear] = useNear<HTMLDivElement>('-15% 0px');
+  const [funVisRef, funVis] = useNear<HTMLDivElement>('200px', false);
   const vault = Object.values(VAULT_COUNTS);
   const vScrolls = vault.reduce((s, w) => s + w.scrolls, 0);
   const vCircles = vault.reduce((s, w) => s + w.circles, 0);
@@ -470,21 +480,70 @@ export default function AppWeb() {
         </div>
       </section>
 
-      {/* 6 · AINUBIS — živá appka v telefóne */}
+      {/* 6 · AINUBIS — osobný mentor (nákres plany/nakresy/ainubis-sekcia-2026-11-06, Matej 6. 11.: „nákres je super,
+          aplikuj ho“). Úvod → znalostný lievik → A4 → ako sa učíš → čo ti to dá → mockup POSLEDNÝ. */}
       <section id="ainubis" className="ai-band" data-paw="ai">
-        <div className="wrap split rev">
+        <div className="wrap ai-sec c">
           <Rv>
+            <div className="ai-who"><img src={AI_HEAD} alt="" /><span className="ai-name"><b>AI</b>NUBIS</span></div>
             <p className="eye" style={{ color: 'var(--ai-cyan)' }}>{c('e_ai')}</p>
-            <h2>{c('h_ai')}</h2>
+            <h2>{c('h_ai_a')} <span className="ai-deco">{c('h_ai_b')}</span> {c('h_ai_c')}</h2>
             <p className="lead">{c('l_ai')}</p>
-            <div className="ai-stats">
-              <div><b>{vault.length}</b><span>{c('ai_worlds')}</span></div>
-              <div><b>{vCircles}</b><span>{c('ai_circles')}</span></div>
-              <div><b>{vScrolls}</b><span>{c('ai_scrolls')}</span></div>
-            </div>
-            <div className="ai-q ai-paluba"><div className="who">{c('you')}</div><span>{c('q1')}</span></div>
-            <div className="ai-q ai-paluba"><div className="who"><span className="ai-name"><b>AI</b>NUBIS</span></div><span>{c('a1x')}</span></div>
-            <div className="ai-chips">{['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7'].map((k) => <span key={k}>{c(k)}</span>)}</div>
+          </Rv>
+        </div>
+
+        <div className="wrap ai-sec c" ref={funRef}>
+          <Rv><p className="eye" style={{ color: 'var(--ai-cyan)' }}>{c('e_fun')}</p><h3 className="ai-h3">{c('h_fun')}</h3></Rv>
+          <div className="ai-src">
+            {AI_SRC.map(([n, k, s2], i) => (
+              <Rv key={k} d={i} className="ai-tile"><b><Counter to={n} run={funNear} /></b><span>{c(k)}</span><small>{c(s2)}</small></Rv>
+            ))}
+          </div>
+          <div className="ai-cv">
+            <AiFunnel run={funVis} />
+            <div className="ai-rings">{RINGS.map((r, i) => <span key={i} style={{ top: `${r * 100}%` }}>{c(`ring${i + 1}`)}</span>)}</div>
+          </div>
+          <div className="ai-out">
+            <div><b><Counter to={vault.length} run={funNear} /></b><small>{c('ai_worlds')}</small></div>
+            <div><b><Counter to={vCircles} run={funNear} /></b><small>{c('ai_circles')}</small></div>
+            <div><b><Counter to={vScrolls} run={funNear} /></b><small>{c('ai_scrolls')}</small></div>
+          </div>
+          <Rv className="ai-one ai-paluba"><b>{c('one_a')} <em>{c('one_b')}</em> {c('one_c')}</b></Rv>
+          <Rv className="ai-a4">
+            <div><b>≈ 12 500</b><span>{c('a4_1')}</span></div>
+            <div><b>1,25 m</b><span>{c('a4_2')}</span></div>
+            <div><b>3,7 km</b><span>{c('a4_3')}</span></div>
+            <div><b>47</b><span>{c('a4_4')}</span></div>
+          </Rv>
+        </div>
+
+        <div className="wrap ai-sec c">
+          <Rv><p className="eye" style={{ color: 'var(--ai-cyan)' }}>{c('e_learn')}</p><h3 className="ai-h3">{c('h_learn')}</h3></Rv>
+          <div className="ai-learn">
+            <Rv d={0} className="ai-card ai-paluba"><span className="k">{c('lr1k')}</span><h4>{c('lr1h')}</h4><p>{c('lr1p')}</p><div className="ai-shot"><img src={`${A}/snimky/8-zvitok-top.jpg`} alt="" loading="lazy" /></div></Rv>
+            <Rv d={1} className="ai-card ai-paluba"><span className="k">{c('lr2k')}</span><h4>{c('lr2h')}</h4><p>{c('lr2p')}</p><div className="ai-wave">{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></Rv>
+            <Rv d={2} className="ai-card ai-paluba"><span className="k">{c('lr3k')}</span><h4>{c('lr3h')}</h4><p>{c('lr3p')}</p>
+              <div className="ai-chat"><div className="q">{c('q1')}</div><div className="a"><span className="ai-name"><b>AI</b>NUBIS</span>{c('a1x')}</div></div></Rv>
+          </div>
+          <Rv className="ai-ucen"><span className="bs"><img src={`${A}/odznaky/ucen-1.webp`} alt="" /><img className="m" src={`${A}/odznaky/ucen-4.webp`} alt="" /><img className="l" src={`${A}/odznaky/ucen-10.webp`} alt="" /></span><p><b>{c('uc_a')}</b> {c('uc_b')}</p></Rv>
+        </div>
+
+        <div className="wrap ai-sec c">
+          <Rv><p className="eye" style={{ color: 'var(--ai-cyan)' }}>{c('e_ben')}</p><h3 className="ai-h3">{c('h_ben')}</h3></Rv>
+          <div className="ai-ben">
+            {[HandClipboard, HandStar, HandHeart, HandCycle].map((Ic, i) => (
+              <Rv key={i} d={i} className="ai-b"><Ic /><h4>{c(`bn${i + 1}h`)}</h4><p>{c(`bn${i + 1}p`)}</p></Rv>
+            ))}
+          </div>
+          <Rv as="p" className="ai-quote">{c('ai_quote')}<small><span className="ai-name"><b>AI</b>NUBIS</span></small></Rv>
+        </div>
+
+        <div className="wrap split rev ai-sec">
+          <Rv>
+            <p className="eye" style={{ color: 'var(--ai-cyan)' }}>{c('e_try')}</p>
+            <h3 className="ai-h3">{c('h_try')}</h3>
+            <p className="lead">{c('l_try')}</p>
+            <div className="ai-chips">{['w7', 'w5', 'w6', 'w4', 'w3', 'w2', 'w1'].map((k) => <span key={k}>{c(k)}</span>)}</div>
             <a className="ai-cta" href="#join">{c('ai_cta')}</a>
           </Rv>
           <div ref={aiRef} className="ai-live">
