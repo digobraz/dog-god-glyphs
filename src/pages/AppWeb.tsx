@@ -261,6 +261,7 @@ export default function AppWeb() {
       <section className="hero">
         <div className="wrap">
           <div className="hero-txt">
+            <p className="eye">{c('e_life2')}</p>
             <h1>
               <span className="l1">{c('h1a')}</span>
               <span className="l1">{c('h1b')} <span className="deco big">{c('h1c')}</span></span>
@@ -300,7 +301,6 @@ export default function AppWeb() {
         <div className="wrap split">
           <Rv className="fresco"><img src="/images/magnet/vylety.webp" alt="" loading="lazy" /></Rv>
           <Rv d={1} className="life-txt">
-            <p className="eye">{c('e_life2')}</p>
             <h2><span className="l1">{c('h_life2a')}</span><span className="l1"><span className="deco big">{c('h_life2b')}</span></span></h2>
             <p className="lead">{c('l_life2')}</p>
             <div className="verbs">
