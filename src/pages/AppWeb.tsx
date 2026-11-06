@@ -19,9 +19,9 @@
  */
 import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Seo } from '@/components/Seo';
-import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar, HandCycle } from '@/components/pack/HandIcons';
+import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar } from '@/components/pack/HandIcons';
 import AI_HEAD from '@/assets/ainubis-head.webp';
-import { AiFunnel, RINGS } from './appWeb/AiFunnel';
+import { AiFlow, FLOW_NAMES, type FlowVariant } from './appWeb/AiFlow';
 import { STAGE_CSS } from '@/components/pack/packTheme';
 import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
 import { GodsGridLab } from '@/components/gods/GodsGridLab';
@@ -36,12 +36,6 @@ import './appWeb/appWeb.css';
 const A = '/web-app';
 
 const CAROUSEL: [string, string][] = [['map', '11-vretenica-mapa'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', '8-ainubis'], ['feed', 'feed']];
-
-/** Zdroje lievika — snímka chrámu AINUBIS (`scripts/svet/harvest-data.json`, 26. 10. 2026; štúdie = Chrám › Znalosti).
- *  [číslo, kľúč názvu, kľúč podnadpisu] */
-const AI_SRC: [number, string, string][] = [
-  [532, 'src1', 'src1s'], [337, 'src2', 'src2s'], [1996, 'src3', 'src3s'], [1158, 'src4', 'src4s'], [16, 'src5', 'src5s'],
-];
 
 const SERVANT_YEARS = [1, 4, 9, 14, 19, 24, 29, 34];
 /** Pásma UČŇA = % VAULTU (schválené 6. 11., `plany/nakresy/pecat-odznaky-2026-11-06`). */
@@ -262,8 +256,17 @@ export default function AppWeb() {
 
   /* AINUBIS — živá appka sa načíta až pri obrazovke */
   const [aiRef, aiNear] = useNear<HTMLDivElement>('400px');
-  const [funRef, funNear] = useNear<HTMLDivElement>('-15% 0px');
-  const [funVisRef, funVis] = useNear<HTMLDivElement>('200px', false);
+  const [flow, setFlow] = useState<FlowVariant>(() => (/^[1-4]$/.test(qs.get('flow') ?? '') ? qs.get('flow') as FlowVariant : '1'));
+  const [ucOn, setUcOn] = useState(3);
+  const i18nPct = (p: string) => (p === '1.' ? c('uc_first') : `${p} ${c('uc_vault')}`);
+  /* hlavička nad tmavou sekciou AINUBIS tmavne (Matej 6. 11.: „header sa pri tejto sekcii zmení na tmavý, s bledým logom“) */
+  const aiSecRef = useRef<HTMLElement>(null);
+  const [darkHead, setDarkHead] = useState(false);
+  useEffect(() => {
+    const f = () => { const r = aiSecRef.current?.getBoundingClientRect(); setDarkHead(!!r && r.top < 60 && r.bottom > 60); };
+    f(); addEventListener('scroll', f, { passive: true });
+    return () => removeEventListener('scroll', f);
+  }, []);
   const vault = Object.values(VAULT_COUNTS);
   const vScrolls = vault.reduce((s, w) => s + w.scrolls, 0);
   const vCircles = vault.reduce((s, w) => s + w.circles, 0);
@@ -287,7 +290,7 @@ export default function AppWeb() {
       <style>{STAGE_CSS}</style>
       <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /></div>
 
-      <header className={`top${stuck ? ' stuck' : ''}`}>
+      <header className={`top${stuck ? ' stuck' : ''}${darkHead ? ' dark' : ''}`}>
         <div className="wrap">
           <a className="logo" href="#" aria-label="DOGYPT"><img src="/images/magnet/logo-2026-kartusa.svg" alt="DOGYPT" /></a>
           <nav>
@@ -459,7 +462,7 @@ export default function AppWeb() {
           </Rv>
           <div className="paths">
             {PATHS.map((p, i) => (
-              <Rv key={p.ax} d={i} className={`path${ax === i ? ' on' : ''}`}>
+              <Rv key={p.ax} d={i} className={`path p${i}${ax === i ? ' on' : ''}`}>
                 <button type="button" aria-expanded={ax === i}
                   onPointerEnter={e => { if (e.pointerType === 'mouse') setAx(i); }}
                   onClick={e => { if (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === 'mouse') return; setAx(ax === i ? null : i); }}>
@@ -482,59 +485,52 @@ export default function AppWeb() {
         </div>
       </section>
 
-      {/* 6 · AINUBIS — osobný mentor (nákres plany/nakresy/ainubis-sekcia-2026-11-06, Matej 6. 11.: „nákres je super,
-          aplikuj ho“). Úvod → znalostný lievik → A4 → ako sa učíš → čo ti to dá → mockup POSLEDNÝ. */}
-      <section id="ainubis" className="ai-band" data-paw="ai">
+      {/* 6 · AINUBIS — osobný mentor. v2 (Matej 6. 11. večer): logo s krúžiacim prstencom (ako VAULT) → nadpis →
+          text so „(still learning)“ → LIEVIK 5·4·2·7 svetov·46/547 → prúd do celého zvitku (vľavo) + podcast a chat
+          pod sebou → Učeň (interaktívny) → benefity → mockup POSLEDNÝ. Hlavička nad sekciou tmavne. */}
+      <section id="ainubis" className="ai-band" data-paw="ai" ref={aiSecRef}>
         <div className="wrap ai-sec c">
           <Rv>
-            <div className="ai-who"><img src={AI_HEAD} alt="" /><span className="ai-name"><b>AI</b>NUBIS</span></div>
-            <p className="eye" style={{ color: 'var(--ai-cyan)' }}>{c('e_ai')}</p>
+            <div className="ai-logo" aria-hidden><span className="r2" /><span className="r1" /><img src={AI_HEAD} alt="" /></div>
+            <div className="ai-logo-nm"><span className="ai-name"><b>AI</b>NUBIS</span></div>
             <h2>{c('h_ai_a')} <span className="ai-deco">{c('h_ai_b')}</span> {c('h_ai_c')}</h2>
-            <p className="lead">{c('l_ai')}</p>
+            <p className="lead">{c('l_ai')} <span className="ai-still" tabIndex={0}>({c('still')})<span className="tip">{c('still_t')}</span></span></p>
           </Rv>
-        </div>
-
-        <div className="wrap ai-sec c" ref={funRef}>
-          <Rv><p className="eye" style={{ color: 'var(--ai-cyan)' }}>{c('e_fun')}</p><h3 className="ai-h3">{c('h_fun')}</h3></Rv>
-          <div className="ai-src">
-            {AI_SRC.map(([n, k, s2], i) => (
-              <Rv key={k} d={i} className="ai-tile"><b><Counter to={n} run={funNear} /></b><span>{c(k)}</span><small>{c(s2)}</small></Rv>
-            ))}
+          {nakres && (
+            <div className="ai-flowpick">{(['1', '2', '3', '4'] as FlowVariant[]).map((v) => (
+              <button key={v} className={flow === v ? 'on' : ''} onClick={() => setFlow(v)}>{v} · {FLOW_NAMES[v]}</button>
+            ))}</div>
+          )}
+          <AiFlow L={L} c={c} flow={flow} counter={(n, run) => <Counter to={n} run={run} />} learn={
+            <div className="ai-learn2">
+              <div className="ai-card ai-paluba big" data-fa="5">
+                <span className="k">{c('lr1k')}</span><h4>{c('lr1h')}</h4><p>{c('lr1p')}</p>
+                <div className="ai-scroll"><img src={`${A}/snimky/zvitok-cely.webp`} alt="" loading="lazy" /></div>
+              </div>
+              <div className="ai-col">
+                <div className="ai-card ai-paluba"><span className="k">{c('lr2k')}</span><h4>{c('lr2h')}</h4><p>{c('lr2p')}</p><div className="ai-wave">{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></div>
+                <div className="ai-card ai-paluba"><span className="k">{c('lr3k')}</span><h4>{c('lr3h')}</h4><p>{c('lr3p')}</p>
+                  <div className="ai-chat"><div className="q">{c('q1')}</div><div className="a"><span className="ai-name"><b>AI</b>NUBIS</span>{c('a1x')}</div></div></div>
+              </div>
+            </div>
+          } />
+          <div className="ai-ucen2">
+            <p><b>{c('uc_a')}</b> {c('uc_b')}</p>
+            <div className="ai-ucrow">{UCEN_PCT.map((pc, i) => (
+              <button key={i} type="button" className={ucOn === i ? 'on' : ''} onPointerEnter={() => setUcOn(i)} onFocus={() => setUcOn(i)} onClick={() => setUcOn(i)}>
+                <img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" loading="lazy" />
+              </button>
+            ))}</div>
+            <p className="ai-uclbl"><b>{c('ax3')} {ucOn + 1}</b> · {i18nPct(UCEN_PCT[ucOn])}</p>
           </div>
-          <div className="ai-cv" ref={funVisRef}>
-            <AiFunnel run={funVis} />
-            <div className="ai-rings">{RINGS.map((r, i) => <span key={i} style={{ top: `${r * 100}%` }}>{c(`ring${i + 1}`)}</span>)}</div>
-          </div>
-          <div className="ai-out">
-            <div><b><Counter to={vault.length} run={funNear} /></b><small>{c('ai_worlds')}</small></div>
-            <div><b><Counter to={vCircles} run={funNear} /></b><small>{c('ai_circles')}</small></div>
-            <div><b><Counter to={vScrolls} run={funNear} /></b><small>{c('ai_scrolls')}</small></div>
-          </div>
-          <Rv className="ai-one ai-paluba"><b>{c('one_a')} <em>{c('one_b')}</em> {c('one_c')}</b></Rv>
-          <Rv className="ai-a4">
-            <div><b>≈ 12 500</b><span>{c('a4_1')}</span></div>
-            <div><b>1,25 m</b><span>{c('a4_2')}</span></div>
-            <div><b>3,7 km</b><span>{c('a4_3')}</span></div>
-            <div><b>47</b><span>{c('a4_4')}</span></div>
-          </Rv>
-        </div>
-
-        <div className="wrap ai-sec c">
-          <Rv><p className="eye" style={{ color: 'var(--ai-cyan)' }}>{c('e_learn')}</p><h3 className="ai-h3">{c('h_learn')}</h3></Rv>
-          <div className="ai-learn">
-            <Rv d={0} className="ai-card ai-paluba"><span className="k">{c('lr1k')}</span><h4>{c('lr1h')}</h4><p>{c('lr1p')}</p><div className="ai-shot"><img src={`${A}/snimky/8-zvitok-top.jpg`} alt="" loading="lazy" /></div></Rv>
-            <Rv d={1} className="ai-card ai-paluba"><span className="k">{c('lr2k')}</span><h4>{c('lr2h')}</h4><p>{c('lr2p')}</p><div className="ai-wave">{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></Rv>
-            <Rv d={2} className="ai-card ai-paluba"><span className="k">{c('lr3k')}</span><h4>{c('lr3h')}</h4><p>{c('lr3p')}</p>
-              <div className="ai-chat"><div className="q">{c('q1')}</div><div className="a"><span className="ai-name"><b>AI</b>NUBIS</span>{c('a1x')}</div></div></Rv>
-          </div>
-          <Rv className="ai-ucen"><span className="bs"><img src={`${A}/odznaky/ucen-1.webp`} alt="" /><img className="m" src={`${A}/odznaky/ucen-4.webp`} alt="" /><img className="l" src={`${A}/odznaky/ucen-10.webp`} alt="" /></span><p><b>{c('uc_a')}</b> {c('uc_b')}</p></Rv>
         </div>
 
         <div className="wrap ai-sec c">
           <Rv><p className="eye" style={{ color: 'var(--ai-cyan)' }}>{c('e_ben')}</p><h3 className="ai-h3">{c('h_ben')}</h3></Rv>
           <div className="ai-ben">
-            {[HandClipboard, HandStar, HandHeart, HandCycle].map((Ic, i) => (
-              <Rv key={i} d={i} className="ai-b"><Ic /><h4>{c(`bn${i + 1}h`)}</h4><p>{c(`bn${i + 1}p`)}</p></Rv>
+            {/* ikonky z Kie vo farbách AINUBISa (výber Mateja 6. 11., plany/nakresy/ikony-benefity-2026-11-06) */}
+            {['vet', 'conf', 'calm', 'roky'].map((ic, i) => (
+              <Rv key={ic} d={i} className="ai-b"><img src={`${A}/ikony/ben-${ic}.webp`} alt="" loading="lazy" /><h4>{c(`bn${i + 1}h`)}</h4><p>{c(`bn${i + 1}p`)}</p></Rv>
             ))}
           </div>
           <Rv as="p" className="ai-quote">{c('ai_quote')}<small><span className="ai-name"><b>AI</b>NUBIS</span></small></Rv>
