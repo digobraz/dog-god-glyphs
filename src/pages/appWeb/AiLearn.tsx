@@ -21,13 +21,22 @@ export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
   useEffect(() => {
     const r = row.current; if (!r) return;
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let raf = 0, last = performance.now();
+    let raf = 0, last = performance.now(), half = 0, vis = false;
+    /* perióda = začiatok druhej kópie, nie polovica šírky (medzera na konci by robila skok).
+       Meria sa pri zmene veľkosti, nie v každom snímku — čítanie offsetLeft po zápise transformu
+       vynútilo prepočet rozloženia 60× za sekundu a sekala celá stránka (Matej 6. 11.). */
+    const measure = () => { const k = r.children[AI_SCROLLS.length] as HTMLElement | undefined; half = k ? k.offsetLeft - (r.children[0] as HTMLElement).offsetLeft : 0; };
+    measure();
+    const ro = new ResizeObserver(measure); ro.observe(r);
+    /* mimo obrazovky pás stojí */
+    const io = new IntersectionObserver(([e]) => { vis = e.isIntersecting; last = performance.now(); });
+    io.observe(r);
     const f = (now: number) => {
       raf = requestAnimationFrame(f);
+      if (!vis) return;
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
       const S = st.current;
-      /* perióda = začiatok druhej kópie, nie polovica šírky (medzera na konci by robila skok) */
-      const k = r.children[AI_SCROLLS.length] as HTMLElement | undefined, half = k ? k.offsetLeft - (r.children[0] as HTMLElement).offsetLeft : 0; if (!half) return;
+      if (!half) return;
       if (!S.drag) {
         /* myš na páse = STOJÍ hneď (Matej: „pri dotyku zvitky nezastanú“); dobieha len švih po pustení */
         const auto = S.hov || still ? 0 : -42;           /* px/s */
@@ -39,7 +48,7 @@ export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
       r.style.transform = `translate3d(${S.x.toFixed(1)}px,0,0)`;
     };
     raf = requestAnimationFrame(f);
-    return () => cancelAnimationFrame(raf);
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); };
   }, []);
   const down = (e: React.PointerEvent) => {
     const S = st.current; S.drag = true; S.lx = e.clientX; S.lt = performance.now(); S.v = 0; S.moved = 0;

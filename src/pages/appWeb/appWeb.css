@@ -1001,3 +1001,49 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
   background:radial-gradient(380px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--gc) 24%,transparent),transparent 60%)}
 .aw .glowb:hover::before,.aw .glowb:hover::after{opacity:1}
 .aw .glowb:hover{transform:translateY(-4px);box-shadow:0 18px 40px -20px color-mix(in srgb,var(--gc) 60%,transparent)}
+
+/* ══ v29 (6. 11. 2026) — Matej: „strašne to seká“ · „perleť by sa mala meniť, nie furt tá istá“ · „vľavo, kde je
+   nadpis, svetlejšie, nech vynikne PES“ · „bublina otázky má byť cyan“ · „citát italicom“ ══════════════════════ */
+
+/* VÝKON — sekcia mimo obrazovky (.idle z AppWeb) nehýbe ničím; sklo hlavičky a odznakov bez rozmazania
+   (backdrop-filter prerátaval celú plochu pod sebou pri každom posune) */
+.aw section.idle *,.aw section.idle *::before,.aw section.idle *::after{animation-play-state:paused!important}
+.aw .top.stuck{backdrop-filter:none;-webkit-backdrop-filter:none;background:color-mix(in srgb,var(--paper) 94%,transparent)}
+.aw .top.dark{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(3,7,12,.95)}
+.aw .flt{backdrop-filter:none;-webkit-backdrop-filter:none;background:color-mix(in srgb,var(--paper) 94%,transparent)}
+.aw .mbar{backdrop-filter:none;-webkit-backdrop-filter:none;background:color-mix(in srgb,var(--paper) 97%,transparent)}
+/* vlna a ekvalizér: výška → transform (výška prepočítavala rozloženie 40 pruhov v každom snímku) */
+.aw .ai-wave i{height:100%;transform:scaleY(.12)}
+.aw .pd-eq i{height:100%;transform:scaleY(.3);transform-origin:50% 100%}
+@keyframes aw-wave{0%,100%{transform:scaleY(.12)}50%{transform:scaleY(.7)}}
+
+/* PERLEŤ — tri rozloženia škvŕn, prelínajú sa podľa sekcie v strede okna (data-pz); každá vrstva stojí,
+   hýbe sa len opacity (lacné). Vrstva 0 (hero): ľavá strana pod nadpisom svetlá, zlato vpravo. */
+.aw[data-bg="1"] .aw-bg .pearl{animation:none;opacity:0;transition:opacity 1.6s ease;will-change:opacity}
+.aw[data-bg="1"] .aw-bg .pearl:not(.p1):not(.p2){background:
+  radial-gradient(42% 46% at 16% 34%, rgba(255,255,255,.92), transparent 70%),
+  radial-gradient(30% 26% at 6% 4%, rgba(255,255,255,.8), transparent 65%),
+  radial-gradient(30% 28% at 90% 16%, color-mix(in srgb,var(--gold-solid) 60%,transparent), transparent 70%),
+  radial-gradient(28% 24% at 78% 66%, rgba(255,255,255,.7), transparent 68%),
+  radial-gradient(36% 30% at 58% 98%, color-mix(in srgb,var(--gold-ink) 48%,transparent), transparent 70%)}
+.aw[data-bg="1"] .aw-bg .pearl.p1{background:
+  radial-gradient(40% 34% at 84% 12%, rgba(255,255,255,.9), transparent 66%),
+  radial-gradient(34% 30% at 12% 40%, color-mix(in srgb,var(--gold-solid) 55%,transparent), transparent 70%),
+  radial-gradient(30% 28% at 60% 58%, rgba(255,255,255,.75), transparent 68%),
+  radial-gradient(34% 30% at 92% 88%, color-mix(in srgb,var(--card-edge) 55%,transparent), transparent 70%),
+  radial-gradient(26% 22% at 30% 92%, color-mix(in srgb,var(--lapis-edge) 9%,transparent), transparent 70%)}
+.aw[data-bg="1"] .aw-bg .pearl.p2{background:
+  radial-gradient(38% 32% at 50% 6%, color-mix(in srgb,var(--gold-ink) 45%,transparent), transparent 70%),
+  radial-gradient(36% 34% at 8% 72%, rgba(255,255,255,.88), transparent 68%),
+  radial-gradient(30% 26% at 88% 46%, rgba(255,255,255,.8), transparent 66%),
+  radial-gradient(32% 28% at 70% 90%, color-mix(in srgb,var(--gold-solid) 58%,transparent), transparent 70%),
+  radial-gradient(24% 20% at 26% 28%, color-mix(in srgb,var(--card-edge) 40%,transparent), transparent 70%)}
+.aw[data-bg="1"][data-pz="0"] .aw-bg .pearl:not(.p1):not(.p2),
+.aw[data-bg="1"][data-pz="1"] .aw-bg .pearl.p1,
+.aw[data-bg="1"][data-pz="2"] .aw-bg .pearl.p2{opacity:1}
+
+/* CHAT — otázka človeka = plný cyan AINUBISa s tmavým atramentom (ako AI_BUBBLE v appke), nie modrá */
+.aw .ch-q{background:linear-gradient(135deg,#5BE0F0 0%,#3B9EFF 140%);color:#04121A;font-weight:500;box-shadow:0 10px 26px -14px rgba(91,224,240,.65),inset 0 1px 0 rgba(255,255,255,.35)}
+/* citát kurzívou (podpis AINUBIS ostáva rovný) */
+.aw .ai-quote{font-style:italic}
+.aw .ai-quote small{font-style:normal}

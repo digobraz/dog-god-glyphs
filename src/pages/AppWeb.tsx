@@ -286,11 +286,24 @@ export default function AppWeb() {
   useEffect(() => { if (stats) setProofRun(true); }, [stats]);
   useEffect(() => { const t = setTimeout(() => setProofRun(true), 1500); return () => clearTimeout(t); }, []);
 
+  /* sekcia mimo obrazovky = jej nekonečné animácie stoja (.idle) · perleť pod stránkou sa mení podľa sekcie
+     v strede okna (data-pz 0–2, prelínanie troch vrstiev cez opacity) — Matej 6. 11.: „strašne to seká“
+     a „perleť by sa mala meniť, nie furt tá istá“. Bez Reactu, aby scroll neprekresľoval strom. */
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const root = rootRef.current; if (!root) return;
+    const secs = [...root.querySelectorAll<HTMLElement>(':scope > section')];
+    const idle = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('idle', !e.isIntersecting)), { rootMargin: '100px 0px' });
+    const mid = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) root.dataset.pz = String(secs.indexOf(e.target as HTMLElement) % 3); }), { rootMargin: '-50% 0px -50% 0px' });
+    secs.forEach((s) => { idle.observe(s); mid.observe(s); });
+    return () => { idle.disconnect(); mid.disconnect(); };
+  }, []);
+
   return (
-    <div className="aw" data-bg={bg}>
+    <div className="aw" data-bg={bg} data-pz="0" ref={rootRef}>
       <Seo path="/app" title="DOGYPT — Play the life with your dog." description={c('sub')} noindex />
       <style>{STAGE_CSS}</style>
-      <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /></div>
+      <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /><i className="pearl p1" /><i className="pearl p2" /></div>
 
       <header className={`top${stuck ? ' stuck' : ''}${darkHead ? ' dark' : ''}`}>
         <div className="wrap">
