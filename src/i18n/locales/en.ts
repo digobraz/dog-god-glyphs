@@ -6603,7 +6603,7 @@ export const en = {
   'appEntry.perm.push': "NOTIFICATIONS",
   'appEntry.perm.pushText': "Activity in DOGYPT, messages from the pack and reminders for your dog.",
   'appEntry.perm.geo': "LOCATION",
-  'appEntry.perm.geoText': "When you use SNIFFER and the trip maps.",
+  'appEntry.perm.geoText': "When you use SNIFFER and the trip maps, and to warn you about a lost dog near you.",
   'appEntry.perm.aiText': "Access to your dogs' data, so he can advise you exactly.",
   'appEntry.perm.later': "Later",
 

@@ -6,7 +6,7 @@ import { toast } from '@/hooks/use-toast';
 import { PageTopBar } from '@/components/PageTopBar';
 import { Seo } from '@/components/Seo';
 import NotFound from '@/pages/NotFound';
-import { SOS_ON } from '@/lib/env';
+import { SOS_PUBLIC_ON } from '@/lib/env';
 import { ensurePackDict } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { lostPublic, type LostPublic as LostRow } from '@/lib/sos';
@@ -19,12 +19,12 @@ import { SOS_CSS, colorWord, useBreedLabel, useSosCount, useSosT, useWhen } from
  * VEREJNÁ STRÁNKA STRATENÉHO PSA — `/lost/:slug` (SOS, 4. 11. 2026). BEZ PRIHLÁSENIA, noindex.
  * Čo vidí nálezca: červený blok STRATIL SA (alebo zelený NAŠIEL SA), fotka, meno, ZAVOLAŤ MAJITEĽOVI (číslo až po ťuku,
  * `lostPhone`), VIDEL SOM HO (`lost-sighting`), leták ako obrázok + ZDIEĽAŤ + STIAHNUŤ. Stav `ended` = telefón, leták aj VIDEL SOM HO žijú ďalej (odkaz žije, Matej 5. 11. 2026); `found` = bez telefónu aj letáku.
- * Za `SOS_ON`: na LIVE routa vracia 404, kým Matej nepovie „ostro“.
+ * Za `SOS_PUBLIC_ON` (6. 11. 2026 zapnuté so SOS v appke — leták má QR na túto stránku).
  * 🔴 Nesmie čítať nič, čo vyžaduje session: len `lostPublic` (anon RPC) a edge `lost-sighting`.
  */
 export default function LostPublic() {
   const { slug } = useParams<{ slug: string }>();
-  if (!SOS_ON) return <NotFound />;
+  if (!SOS_PUBLIC_ON) return <NotFound />;
   return <LostPublicInner slug={slug ?? ''} />;
 }
 

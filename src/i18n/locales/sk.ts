@@ -6292,7 +6292,7 @@ export const sk: Partial<Dict> = {
   'appEntry.perm.push': "UPOZORNENIA",
   'appEntry.perm.pushText': "Aktivita v DOGYPTe, správy zo svorky a pripomienky pre tvojho psa.",
   'appEntry.perm.geo': "POLOHA",
-  'appEntry.perm.geoText': "Keď používaš SNIFFER a mapy výletov.",
+  'appEntry.perm.geoText': "Keď používaš SNIFFER a mapy výletov, a na upozornenie na stratené psy v tvojom okolí.",
   'appEntry.perm.aiText': "Prístup k údajom o tvojich psoch, aby ti radil presne na mieru.",
   'appEntry.perm.later': "Neskôr",
 

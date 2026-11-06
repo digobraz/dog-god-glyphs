@@ -1,5 +1,4 @@
 import LegalPage from "@/components/legal/LegalPage";
-import { SOS_ON } from "@/lib/env";
 
 // 13 sekcií — texty žijú v i18n slovníkoch (privacy.sN.title / privacy.sN.body).
 // Právne záväzná je EN verzia (legal.langNote).
@@ -11,7 +10,8 @@ import { SOS_ON } from "@/lib/env";
 // 16 (appka) a 17 (zmazanie účtu) pribudli 2026-11-06 pre App Store a Google Play — EN/SK/CS.
 // Kotvy: Support URL = /privacy#contact, zmazanie účtu (Google Data Safety) = /privacy#delete-account.
 const SECTION_COUNT = 17;
-const SKIP = SOS_ON ? [] : [15];
+// 15 (kontakty v SOS) je od 6. 11. 2026 viditeľná vždy — SOS ide do appky v obchodoch.
+const SKIP: number[] = [];
 const IDS = { 11: 'contact', 17: 'delete-account' };
 
 export default function Privacy() {
