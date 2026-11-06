@@ -347,6 +347,7 @@ export default function AppWeb() {
   const aiSecRef = useRef<HTMLElement>(null);
   const [darkHead, setDarkHead] = useState(false);
   const [onPlanet, setOnPlanet] = useState(false);
+  const [menu, setMenu] = useState(false);
   useEffect(() => {
     const f = () => {
       const r = aiSecRef.current?.getBoundingClientRect(); setDarkHead(!!r && r.top < 60 && r.bottom > 60);
@@ -394,7 +395,17 @@ export default function AppWeb() {
           </nav>
           <button className="lang" onClick={() => setLang(L === 'sk' ? 'en' : 'sk')}>{L === 'sk' ? 'EN' : 'SK'}</button>
           <a className="pk-cta" href="#join">{c('getapp')}</a>
+          {/* mobil: hamburger — sekcie, jazyky, GET THE APP (Matej 6. 11., vzor MysteryHike) */}
+          <button className={`burger${menu ? ' on' : ''}`} aria-label={c('menu')} aria-expanded={menu} onClick={() => setMenu(!menu)}><i /><i /><i /></button>
         </div>
+        {menu && (
+          <div className="mmenu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); }}>
+            <nav><a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#badges">{c('nav3')}</a><a href="#ainubis">AINUBIS</a><a href="#good">{c('nav5')}</a></nav>
+            <p className="mm-h">{c('lang_h')}</p>
+            <div className="mm-lang">{(['sk', 'en'] as const).map((l) => <button key={l} className={L === l ? 'on' : ''} onClick={() => { setLang(l); setMenu(false); }}>{l === 'sk' ? 'Slovenčina' : 'English'}</button>)}</div>
+            <Stores />
+          </div>
+        )}
       </header>
 
       {/* 1 · HERO */}
@@ -725,9 +736,9 @@ export default function AppWeb() {
       <section style={{ paddingTop: 0 }}>
         <div className="wrap">
           <Rv className="sec-h faq-h"><p className="eye">FAQ</p><h2>{c('h_faq1')} <span className="deco">{c('h_faq2')}</span></h2></Rv>
-          {/* 4 + 4: vľavo prakticky, vpravo zmysel a ľudia; na mobile ľavý stĺpec ide prvý */}
+          {/* 4 + 4: Matej 6. 11.: 1. zadarmo, 2. kto platí; vpravo zmysel a ľudia, kontakt posledný */}
           <div className="faq">
-            {[['free', 'dog', 'off', 'cult'], ['why', 'fund', 'who']].map((col, i) => (
+            {[['free', 'fund', 'dog', 'off'], ['why', 'who', 'cult']].map((col, i) => (
               <div className="faq-col" key={i}>
                 {col.map((k) => (
                   <Rv as="details" key={k} className="pk-stage"><summary>{c(`fq_${k}`)}</summary><p>{c(`fa_${k}`)}</p></Rv>
