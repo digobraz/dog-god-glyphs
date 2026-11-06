@@ -811,10 +811,6 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .af-tile.big b{font-size:clamp(36px,6vw,48px)}
 .aw .af-tile span{display:block;font:500 var(--t-label)/1.3 var(--font-ui);color:var(--ai-ink);margin-top:4px}
 .aw .af-tile small{display:block;font:400 var(--t-micro)/1.3 var(--font-ui);color:var(--ai-dim);margin-top:4px}
-.aw .af-world{display:flex;flex-direction:column;align-items:center;gap:var(--s-sm)}
-.aw .af-world i{width:64px;height:64px;border-radius:50%;background:var(--wc);box-shadow:0 0 22px var(--wc);
-  -webkit-mask:var(--m) center/58% no-repeat,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:var(--m) center/58% no-repeat,linear-gradient(#000 0 0);mask-composite:exclude}
-.aw .af-world span{font:600 var(--t-micro)/1.2 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--ai-ink)}
 .aw .af-sum{display:flex;align-items:center;justify-content:center;gap:var(--s-lg);flex-wrap:wrap;padding:var(--s-lg) var(--s-xl);border-radius:var(--r-card);border:1px solid var(--ai-edge-strong);background:#06101A;box-shadow:0 0 40px rgba(59,158,255,.18)}
 .aw .af-sum b{display:inline;font-size:36px;margin-right:6px}
 .aw .af-circ{all:unset;cursor:pointer;font:500 var(--t-lead)/1 var(--font-ui);color:var(--ai-ink);display:inline-flex;align-items:baseline;gap:4px;border-bottom:1px dashed var(--ai-edge-strong);padding-bottom:4px}
@@ -846,26 +842,6 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .ai-ucrow button.on{transform:scale(1.5) translateY(-6px);filter:drop-shadow(0 0 14px rgba(91,224,240,.6)) brightness(1.1);margin:0 12px}
 .aw .ai-uclbl{margin:var(--s-xl) 0 0;font:500 var(--t-body)/1 var(--font-ui);color:var(--ai-dim)}.aw .ai-uclbl b{color:var(--ai-gold)}
 
-/* PRÚD — 4 varianty (Matej: „urob mi viaceré alternatívy prúdenia“) */
-.aw .af-base{fill:none;stroke:rgba(91,224,240,.16);stroke-width:1.2}
-.aw .af-fx{fill:none;stroke:var(--ai-cyan);stroke-linecap:round;opacity:0}
-.aw .af-p.t2 .af-fx,.aw .af-p.t3 .af-fx,.aw .af-p.t4 .af-fx{stroke:var(--ai-gold)}
-.aw .af-p.t3 .af-base,.aw .af-p.t4 .af-base{stroke:rgba(245,199,61,.18)}
-@media(prefers-reduced-motion:no-preference){
-  .aw .af.on .af-fx{opacity:1}
-  /* 1 kométy: krátke žiariace svetlo pomaly kĺže dole */
-  .aw .af-v1 .af-fx{stroke-width:2.4;stroke-dasharray:90 910;animation:af-move calc(5s + var(--i) * .6s) cubic-bezier(.45,0,.55,1) infinite;animation-delay:calc(var(--t) * .9s + var(--i) * -.7s)}
-  /* 2 prúd bodiek: jemné bodky tečú ako tok */
-  .aw .af-v2 .af-fx{stroke-width:2;stroke-dasharray:2 22;animation:af-move 16s linear infinite;filter:none}
-  /* 3 dych: celá čiara sa rozsvieti vlnou zhora nadol */
-  .aw .af-v3 .af-fx{stroke-width:1.8;stroke-dasharray:1000 0;animation:af-breath 4s ease-in-out infinite;animation-delay:calc(var(--t) * .8s)}
-  /* 4 stuhy: široký mäkký závoj + tenké jadro, pomalé */
-  .aw .af-v4 .af-base{stroke-width:14;stroke:rgba(91,224,240,.06)}
-  .aw .af-v4 .af-p.t3 .af-base,.aw .af-v4 .af-p.t4 .af-base{stroke:rgba(245,199,61,.07)}
-  .aw .af-v4 .af-fx{stroke-width:6;stroke-dasharray:260 740;opacity:.45;animation:af-move calc(9s + var(--i) * .8s) ease-in-out infinite;animation-delay:calc(var(--i) * -1.3s)}
-}
-@keyframes af-move{from{stroke-dashoffset:1000}to{stroke-dashoffset:0}}
-@keyframes af-breath{0%,100%{opacity:.08}50%{opacity:.9}}
 .aw .ai-b img{width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 0 16px rgba(91,224,240,.35));transition:transform .3s cubic-bezier(.3,1.5,.5,1)}
 .aw .ai-b:hover img{transform:rotate(-6deg) scale(1.08)}
 /* pravý stĺpec učenia sa natiahne na výšku zvitku — výplň dostane vlna a chat, nie prázdne miesto */
@@ -873,3 +849,105 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .ai-col .ai-card{display:flex;flex-direction:column}
 .aw .ai-col .ai-wave{flex:1;min-height:150px}
 .aw .ai-col .ai-chat{flex:1;align-content:center}
+
+/* ═══ AINUBIS v3 (6. 11. večer) — osobný nadpis, prúd na canvase, svety svietia, zvitky/podcasty/chat ═══ */
+.aw .ai-kick{margin:0 0 var(--s-md);font:600 var(--t-label)/1 var(--font-ui);letter-spacing:.26em;text-transform:uppercase;color:var(--ai-cyan)}
+.aw .ai-h2{font-size:clamp(40px,7.4vw,66px);line-height:1.04}
+.aw .af-cv{position:absolute;left:0;top:0;pointer-events:none;z-index:0}
+.aw .af-tile{transition:transform .3s,border-color .3s,box-shadow .3s}
+.aw .af-tile[style*="--fc"]{border-top:2px solid color-mix(in srgb,var(--fc) 70%,transparent)}
+.aw .af-tile:hover,.aw .af-sum:hover{transform:translateY(-3px);border-color:var(--ai-edge-strong);box-shadow:0 0 34px rgba(91,224,240,.22)}
+.aw .af-tile.cy b{background:linear-gradient(180deg,#E6FDFF,var(--ai-cyan) 50%,#1FA9C4);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* náraz: blok sa zavlní */
+.aw .af-hit{animation:af-jelly .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes af-jelly{0%{transform:none}30%{transform:translateY(2px) scale(1.035,.965)}60%{transform:translateY(-2px) scale(.985,1.015)}100%{transform:none}}
+/* 7 svetov — svietia, pulzujú, ťuk = zvitky sveta */
+.aw .af-world{all:unset;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;gap:var(--s-sm);-webkit-tap-highlight-color:transparent}
+.aw .af-world .orb{position:relative;width:68px;height:68px;border-radius:50%;display:grid;place-items:center;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.aw .af-world .orb::before{content:'';position:absolute;inset:-7px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 55%,var(--wc) 80%,transparent 100%);-webkit-mask:radial-gradient(closest-side,transparent 86%,#000 88%);mask:radial-gradient(closest-side,transparent 86%,#000 88%);opacity:.8}
+.aw .af-world .orb::after{content:'';position:absolute;inset:0;border-radius:50%;box-shadow:0 0 18px var(--wc),0 0 46px color-mix(in srgb,var(--wc) 55%,transparent);opacity:.75}
+.aw .af-world i{position:relative;width:68px;height:68px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0,var(--wc) 38%,color-mix(in srgb,var(--wc) 70%,#000) 100%);
+  -webkit-mask:var(--m) center/56% no-repeat,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:var(--m) center/56% no-repeat,linear-gradient(#000 0 0);mask-composite:exclude}
+.aw .af-world .nm{font:600 var(--t-micro)/1.2 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--ai-ink);transition:color .25s}
+.aw .af-world .tip{position:absolute;top:calc(100% + 8px);left:50%;transform:translate(-50%,-4px);white-space:nowrap;padding:8px 12px;border-radius:var(--r-tile);background:#0B1622;border:1px solid color-mix(in srgb,var(--wc) 60%,transparent);font:500 var(--t-label)/1.3 var(--font-ui);color:var(--ai-ink);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:6;text-align:center}
+.aw .af-world .tip em{display:block;font-style:normal;color:var(--wc);font-size:var(--t-micro);letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+.aw .af-world:hover .orb,.aw .af-world:focus-visible .orb{transform:scale(1.16)}
+.aw .af-world:hover .orb::after{opacity:1;box-shadow:0 0 26px var(--wc),0 0 80px var(--wc)}
+.aw .af-world:hover .nm{color:var(--wc)}
+.aw .af-world:hover .tip,.aw .af-world:focus-visible .tip{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:no-preference){
+  .aw .af-world .orb::before{animation:aw-spin calc(5s + var(--k) * .7s) linear infinite}
+  .aw .af-world .orb::after{animation:af-glow 2.8s ease-in-out infinite;animation-delay:calc(var(--k) * -.4s)}
+  .aw .af-world:hover .orb::before{animation-duration:1.4s}
+}
+@keyframes af-glow{0%,100%{opacity:.5}50%{opacity:1}}
+/* hviezdička pri 547 — vysvetlivka len pri prejdení */
+.aw .af-ast{position:relative;color:var(--ai-gold);cursor:help;margin-left:2px;font-size:.8em;vertical-align:super}
+.aw .af-ast .tip{position:absolute;bottom:calc(100% + 8px);right:-8px;width:220px;padding:10px 12px;border-radius:var(--r-tile);background:#0B1622;border:1px solid var(--ai-edge-strong);color:var(--ai-ink);font:400 var(--t-label)/1.4 var(--font-ui);opacity:0;pointer-events:none;transition:opacity .15s;z-index:6;text-align:left}
+.aw .af-ast:hover .tip,.aw .af-ast:focus .tip{opacity:1}
+/* učenie: zvitky cez celú šírku, podcast + chat vedľa seba */
+.aw .ai-learn3{position:relative;z-index:1;display:grid;gap:var(--s-md);margin-top:72px;text-align:left}
+@media(min-width:900px){.aw .ai-learn3{grid-template-columns:1fr 1fr}.aw .ai-learn3 .wide{grid-column:1/-1}}
+.aw .ai-learn3 .ai-card{min-width:0;display:flex;flex-direction:column}
+/* ZVITKY — karusel */
+.aw .zs{margin-top:var(--s-lg)}
+.aw .zs-tabs{display:flex;flex-wrap:wrap;gap:var(--s-sm)}
+.aw .zs-tabs button{all:unset;cursor:pointer;padding:6px 12px;border-radius:var(--r-pill);border:1px solid color-mix(in srgb,var(--wc) 55%,transparent);color:var(--ai-ink);font:500 var(--t-label)/1 var(--font-ui);transition:background .2s,color .2s}
+.aw .zs-tabs button.on{background:color-mix(in srgb,var(--wc) 22%,transparent);color:#fff;box-shadow:0 0 16px color-mix(in srgb,var(--wc) 40%,transparent)}
+.aw .zs-tabs button:disabled{cursor:default;opacity:.35;border-style:dashed}
+.aw .zs-track{display:flex;gap:var(--s-md);overflow-x:auto;scroll-snap-type:x mandatory;margin-top:var(--s-lg);padding-bottom:var(--s-sm);scrollbar-width:none}
+.aw .zs-track::-webkit-scrollbar{display:none}
+.aw .zs-card{flex:0 0 220px;scroll-snap-align:start;border-radius:var(--r-tile);border:1px solid color-mix(in srgb,var(--wc) 35%,transparent);background:#06101A;overflow:hidden;animation:aw-pop .4s ease both;animation-delay:calc(var(--i) * 60ms);transition:transform .3s,box-shadow .3s}
+.aw .zs-card:hover{transform:translateY(-4px);box-shadow:0 0 28px color-mix(in srgb,var(--wc) 35%,transparent)}
+.aw .zs-card .ph{aspect-ratio:3/4;overflow:hidden}
+.aw .zs-card .ph img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s}
+.aw .zs-card:hover .ph img{transform:scale(1.05)}
+.aw .zs-card .w{display:block;margin:var(--s-md) var(--s-md) 0;font:600 var(--t-micro)/1 var(--font-ui);letter-spacing:.2em;text-transform:uppercase;color:var(--wc)}
+.aw .zs-card h5{margin:var(--s-sm) var(--s-md) 0;font:500 var(--t-lead)/1.2 var(--font-title);color:var(--ai-ink)}
+.aw .zs-card p{margin:var(--s-sm) var(--s-md) var(--s-md);font-size:var(--t-label);line-height:1.45;color:var(--ai-dim)}
+/* PODCASTY */
+.aw .pd{display:grid;gap:var(--s-sm);margin-top:var(--s-lg)}
+.aw .pd-row{all:unset;cursor:pointer;display:grid;grid-template-columns:64px 1fr auto;gap:var(--s-md);align-items:center;padding:var(--s-sm);border-radius:var(--r-tile);border:1px solid var(--ai-edge);background:#06101A;transition:border-color .2s,box-shadow .2s}
+.aw .pd-row:hover,.aw .pd-row.on{border-color:color-mix(in srgb,var(--wc) 60%,transparent);box-shadow:0 0 22px color-mix(in srgb,var(--wc) 25%,transparent)}
+.aw .pd-img{position:relative;width:64px;height:64px;border-radius:var(--r-tile);overflow:hidden}
+.aw .pd-img img{width:100%;height:100%;object-fit:cover}
+.aw .pd-img i{position:absolute;inset:0;display:grid;place-items:center;background:rgba(3,7,12,.45)}
+.aw .pd-img svg{width:26px;height:26px;fill:#fff;filter:drop-shadow(0 0 6px var(--wc))}
+.aw .pd-tx{min-width:0;display:grid;gap:4px}
+.aw .pd-tx b{font:500 var(--t-body)/1.25 var(--font-title);color:var(--ai-ink)}
+.aw .pd-tx small{font:500 var(--t-micro)/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--wc)}
+.aw .pd-bar{display:block;height:3px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:4px}
+.aw .pd-bar span{display:block;height:100%;background:var(--wc);transform-origin:0 50%;transition:transform .25s linear}
+.aw .pd-eq{display:flex;gap:3px;align-items:flex-end;height:20px;padding-right:var(--s-sm)}
+.aw .pd-eq i{width:3px;height:30%;border-radius:2px;background:var(--wc);opacity:.5}
+@media(prefers-reduced-motion:no-preference){.aw .pd-eq.go i{opacity:1;animation:aw-wave .9s ease-in-out infinite}.aw .pd-eq.go i:nth-child(2){animation-delay:-.3s}.aw .pd-eq.go i:nth-child(3){animation-delay:-.6s}.aw .pd-eq.go i:nth-child(4){animation-delay:-.15s}}
+/* CHAT */
+.aw .ch{margin-top:var(--s-lg);flex:1;display:flex;flex-direction:column;border-radius:var(--r-tile);border:1px solid var(--ai-edge-strong);background:radial-gradient(120% 60% at 50% 0,rgba(91,224,240,.08),transparent 60%),#050C14;overflow:hidden;min-height:420px}
+.aw .ch-top{display:flex;align-items:center;gap:var(--s-sm);padding:var(--s-sm) var(--s-md);border-bottom:1px solid var(--ai-edge)}
+.aw .ch-top img{width:28px;height:28px;border-radius:50%;object-fit:cover;object-position:50% 30%;border:1px solid var(--ai-cyan);box-shadow:0 0 10px var(--ai-cyan)}
+.aw .ch-top span{font:700 var(--t-label)/1 var(--font-title);letter-spacing:.2em;color:var(--ai-ink)}.aw .ch-top span b{color:var(--ai-cyan)}
+.aw .ch-top em{margin-left:auto;font-style:normal;font:500 var(--t-micro)/1 var(--font-ui);letter-spacing:.06em;padding:5px 10px;border-radius:var(--r-pill);border:1px solid var(--ai-edge-strong);color:var(--ai-dim)}
+.aw .ch-body{display:flex;flex-direction:column;gap:var(--s-sm);padding:var(--s-md)}
+.aw .ch-q,.aw .ch-a{padding:10px 14px;border-radius:var(--r-card);font-size:var(--t-label);line-height:1.5;animation:aw-pop .35s ease both}
+.aw .ch-q{align-self:flex-end;max-width:85%;background:linear-gradient(135deg,#1C6FD8,#2A8FE0);color:#fff;border-bottom-right-radius:4px}
+.aw .ch-a{align-self:flex-start;max-width:94%;background:#0E1B29;border:1px solid var(--ai-edge-strong);color:var(--ai-ink);border-bottom-left-radius:4px}
+.aw .ch-a b{color:var(--ai-cyan);font-weight:500}
+.aw .ch-a.typing{display:flex;gap:5px;padding:14px}
+.aw .ch-a.typing i{width:7px;height:7px;border-radius:50%;background:var(--ai-cyan);animation:af-glow 1s ease-in-out infinite}
+.aw .ch-a.typing i:nth-child(2){animation-delay:.2s}.aw .ch-a.typing i:nth-child(3){animation-delay:.4s}
+.aw .ch-refs{display:grid;gap:6px;margin-top:var(--s-xs, 4px)}
+.aw .ch-refs .lbl{font:600 var(--t-micro)/1 var(--font-ui);letter-spacing:.2em;text-transform:uppercase;color:var(--ai-dim);margin:4px 0 2px}
+.aw .ch-ref{display:flex;align-items:center;gap:var(--s-sm);padding:6px;border-radius:var(--r-tile);border:1px solid color-mix(in srgb,var(--wc) 40%,transparent);background:#06101A;cursor:default;animation:aw-pop .35s ease both;animation-delay:calc(var(--i) * 120ms)}
+.aw .ch-ref img{width:36px;height:48px;border-radius:6px;object-fit:cover;flex:0 0 auto}
+.aw .ch-ref span{font:500 var(--t-label)/1.3 var(--font-ui);color:var(--ai-ink)}
+.aw .ch-ref small{display:block;font:600 10px/1 var(--font-ui);letter-spacing:.16em;text-transform:uppercase;color:var(--wc);margin-bottom:3px}
+/* posledný obraz — len mockup v strede */
+.aw .ai-last{display:flex;justify-content:center;padding-bottom:calc(var(--s-xxxl) * 2 + 48px)}
+
+/* hero 6. 11. večer — Matej: „to hovno posuň vyššie nech je to rovnomerne rozložené… spodné stats sú moc nízko = obsah o kúsok hore“
+   text sa už necentruje na výšku karuselu (860 px), ale začína hore → čísla aj popisky pod nimi sa zmestia na obrazovku */
+@media(min-width:900px){.aw .hero .wrap{align-items:start}.aw .hero .wrap>:first-child{padding-top:16px}}
+.aw .flt.f2{top:22%}
+@media(max-width:600px){.aw .flt.f2{top:18%}}
+.aw .ai-wave.fill{flex:1;min-height:120px}
+@media(min-width:900px){.aw .hero{padding-top:20px}}

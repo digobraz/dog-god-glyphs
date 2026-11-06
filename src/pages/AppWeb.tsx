@@ -21,7 +21,8 @@ import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, typ
 import { Seo } from '@/components/Seo';
 import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar } from '@/components/pack/HandIcons';
 import AI_HEAD from '@/assets/ainubis-head.webp';
-import { AiFlow, FLOW_NAMES, type FlowVariant } from './appWeb/AiFlow';
+import { AiFlow } from './appWeb/AiFlow';
+import { AiScrolls, AiPods, AiChat } from './appWeb/AiLearn';
 import { STAGE_CSS } from '@/components/pack/packTheme';
 import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
 import { GodsGridLab } from '@/components/gods/GodsGridLab';
@@ -36,9 +37,6 @@ import './appWeb/appWeb.css';
 const A = '/web-app';
 
 const CAROUSEL: [string, string][] = [['map', '11-vretenica-mapa'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', '8-ainubis'], ['feed', 'feed']];
-
-/** Kým Matej nevybral variant prúdu v lieviku, prepínač je viditeľný pre každého (/app je noindex, nie na LIVE). */
-const FLOW_CHOSEN = false;
 
 const SERVANT_YEARS = [1, 4, 9, 14, 19, 24, 29, 34];
 /** Pásma UČŇA = % VAULTU (schválené 6. 11., `plany/nakresy/pecat-odznaky-2026-11-06`). */
@@ -259,7 +257,10 @@ export default function AppWeb() {
 
   /* AINUBIS — živá appka sa načíta až pri obrazovke */
   const [aiRef, aiNear] = useNear<HTMLDivElement>('400px');
-  const [flow, setFlow] = useState<FlowVariant>(() => (/^[1-4]$/.test(qs.get('flow') ?? '') ? qs.get('flow') as FlowVariant : '1'));
+  /* svet zvitkov v karuseli — ťuk na svet v lieviku ho prepne a doroluje k zvitkom */
+  const [aiWorld, setAiWorld] = useState('nutrition');
+  const scrollsRef = useRef<HTMLDivElement>(null);
+  const pickWorld = (k: string) => { setAiWorld(k); scrollsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
   const [ucOn, setUcOn] = useState(3);
   const i18nPct = (p: string) => (p === '1.' ? c('uc_first') : `${p} ${c('uc_vault')}`);
   /* hlavička nad tmavou sekciou AINUBIS tmavne (Matej 6. 11.: „header sa pri tejto sekcii zmení na tmavý, s bledým logom“) */
@@ -496,26 +497,18 @@ export default function AppWeb() {
           <Rv>
             <div className="ai-logo" aria-hidden><span className="r2" /><span className="r1" /><img src={AI_HEAD} alt="" /></div>
             <div className="ai-logo-nm"><span className="ai-name"><b>AI</b>NUBIS</span></div>
-            <h2>{c('h_ai_a')} <span className="ai-deco">{c('h_ai_b')}</span> {c('h_ai_c')}</h2>
+            <p className="ai-kick">{c('ai_kick')}</p>
+            <h2 className="ai-h2">{c('h_ai1')}<br />{c('h_ai2')}<br />{c('h_ai3a')} <span className="ai-deco">{c('h_ai3b')}</span></h2>
             <p className="lead">{c('l_ai')} <span className="ai-still" tabIndex={0}>({c('still')})<span className="tip">{c('still_t')}</span></span></p>
           </Rv>
-          {/* výber prúdu je viditeľný stále, kým Matej nevyberie (6. 11.: „nevidím tie prúdenia“) — potom zmazať */}
-          {(nakres || !FLOW_CHOSEN) && (
-            <div className="ai-flowpick">{(['1', '2', '3', '4'] as FlowVariant[]).map((v) => (
-              <button key={v} className={flow === v ? 'on' : ''} onClick={() => setFlow(v)}>{v} · {FLOW_NAMES[v]}</button>
-            ))}</div>
-          )}
-          <AiFlow L={L} c={c} flow={flow} counter={(n, run) => <Counter to={n} run={run} />} learn={
-            <div className="ai-learn2">
-              <div className="ai-card ai-paluba big" data-fa="5">
+          <AiFlow L={L} c={c} onWorld={pickWorld} published={['nutrition', 'dogsPath', 'understanding', 'anatomy']} counter={(n, run) => <Counter to={n} run={run} />} learn={
+            <div className="ai-learn3">
+              <div className="ai-card ai-paluba wide" data-fa="5" ref={scrollsRef}>
                 <span className="k">{c('lr1k')}</span><h4>{c('lr1h')}</h4><p>{c('lr1p')}</p>
-                <div className="ai-scroll"><img src={`${A}/snimky/zvitok-cely.webp`} alt="" loading="lazy" /></div>
+                <AiScrolls L={L} c={c} world={aiWorld} setWorld={setAiWorld} />
               </div>
-              <div className="ai-col">
-                <div className="ai-card ai-paluba"><span className="k">{c('lr2k')}</span><h4>{c('lr2h')}</h4><p>{c('lr2p')}</p><div className="ai-wave">{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></div>
-                <div className="ai-card ai-paluba"><span className="k">{c('lr3k')}</span><h4>{c('lr3h')}</h4><p>{c('lr3p')}</p>
-                  <div className="ai-chat"><div className="q">{c('q1')}</div><div className="a"><span className="ai-name"><b>AI</b>NUBIS</span>{c('a1x')}</div></div></div>
-              </div>
+              <div className="ai-card ai-paluba"><span className="k">{c('lr2k')}</span><h4>{c('lr2h')}</h4><p>{c('lr2p')}</p><AiPods L={L} c={c} /><div className="ai-wave fill" aria-hidden>{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></div>
+              <div className="ai-card ai-paluba"><span className="k">{c('lr3k')}</span><h4>{c('lr3h')}</h4><p>{c('lr3p')}</p><AiChat L={L} c={c} head={AI_HEAD} /></div>
             </div>
           } />
           <div className="ai-ucen2">
@@ -540,14 +533,8 @@ export default function AppWeb() {
           <Rv as="p" className="ai-quote">{c('ai_quote')}<small><span className="ai-name"><b>AI</b>NUBIS</span></small></Rv>
         </div>
 
-        <div className="wrap split rev ai-sec">
-          <Rv>
-            <p className="eye" style={{ color: 'var(--ai-cyan)' }}>{c('e_try')}</p>
-            <h3 className="ai-h3">{c('h_try')}</h3>
-            <p className="lead">{c('l_try')}</p>
-            <div className="ai-chips">{['w7', 'w5', 'w6', 'w4', 'w3', 'w2', 'w1'].map((k) => <span key={k}>{c(k)}</span>)}</div>
-            <a className="ai-cta" href="#join">{c('ai_cta')}</a>
-          </Rv>
+        {/* posledný obraz = len náhľad živej appky v strede (Matej 6. 11. večer) */}
+        <div className="wrap ai-sec ai-last">
           <div ref={aiRef} className="ai-live">
             {aiNear && <iframe src="/magnet/ainubis" title="AINUBIS" loading="lazy" onLoad={injectAi} />}
             <img src={`${A}/phone.svg`} alt="" />
