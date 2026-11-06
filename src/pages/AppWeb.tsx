@@ -259,11 +259,15 @@ export default function AppWeb() {
         <div className="wrap">
           <div className="hero-txt">
             <h1>
+              <svg className="gfx sparks" viewBox="0 0 60 60" aria-hidden><path d="M8 34 28 28M14 14 30 24M34 6 36 26" /></svg>
               <span className="l1">{c('h1a')}</span>
               <span className="l1">{c('h1b')} <span className="deco big">{c('h1c')}</span></span>
             </h1>
             <p className="lead">{c('sub')}</p>
-            <Stores />
+            <div className="stores-wrap">
+              <Stores />
+              <svg className="gfx squig" viewBox="0 0 130 120" aria-hidden><path d="M8 20c40-26 78 6 40 34S16 78 52 96c26 12 50 0 62-20" /><path d="m100 70 14 8 4-16" /></svg>
+            </div>
             <div className="proof">
               <div><b><Counter to={dogs} run={proofRun} /></b><span>{c('p1')}</span></div>
               <div><b>{stats?.people ? <Counter to={stats.people} run={proofRun} /> : '—'}</b><span>{c('p2')}</span></div>

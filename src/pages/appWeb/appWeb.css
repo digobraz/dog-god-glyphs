@@ -416,6 +416,7 @@
 .aw .hero-txt{container-type:inline-size}
 .aw .hero h1{font-size:clamp(44px,13.4cqi,104px);line-height:.98}
 .aw .hero h1 .l1{display:block}
+.aw .hero h1 .l1+.l1{margin-top:.14em}
 .aw .hero h1 .tilt-w{display:inline-block;transform:rotate(-5deg) translateY(-2px);transform-origin:left bottom}
 .aw .store{background:var(--lapis);color:var(--lapis-ink);box-shadow:var(--lapis-shadow);border:1.5px solid rgba(250,244,236,.25)}
 .aw .store:hover{background:var(--lapis-hover)}
@@ -554,7 +555,7 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 @media(min-width:1000px){.aw .top nav a{font-size:var(--t-body)}}
 .aw .top .pk-cta{padding:14px 22px;font-size:var(--t-lead)}
 @media(max-width:420px){.aw .top .pk-cta{padding:10px 14px;font-size:var(--t-body)}.aw .logo img{height:32px}}
-.aw .hero h1 .big{font-size:1.06em;line-height:.9;display:inline-block;transform:rotate(-5deg) translateY(-4px);transform-origin:left bottom}
+.aw .hero h1 .big{font-size:.9em;line-height:1;display:inline-block;margin-left:.12em;transform:rotate(-5deg) translateY(2px);transform-origin:left bottom}
 
 /* ODZNAK = dominanta: veľký vľavo, pilulka za ním užšia, text na dva riadky */
 .aw .flt{padding:8px 16px 8px 0;gap:0;white-space:normal;max-width:220px;line-height:1.25;overflow:visible}
@@ -569,3 +570,20 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .car .ph{cursor:pointer}
 .aw .flt img.xl{width:124px;height:124px;margin:-44px 0 -44px -58px}
 @media(max-width:600px){.aw .flt img.xl{width:88px;height:88px;margin:-30px 0 -30px -38px}}
+
+/* v6 (6. 11.) — Matej: „PSOM zmenši, je to moc nalepené na prvý riadok“ · „odznaky sú moc rozmazané
+   (zvýšiť kvalitu a jas)“ · „graficke prvky okolo textu alebo slova pes“ (vzor MysteryHike: iskry
+   pri nadpise, zvlnená čiara pri tlačidlách, krížiky). Kresba = lineárna, farby z brandu (zlato, lapis). */
+.aw .hero h1{position:relative}
+.aw .gfx{position:absolute;fill:none;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.aw .gfx.sparks{width:64px;height:64px;left:-44px;top:-34px;stroke:var(--card-edge);stroke-width:3.4}
+.aw .stores-wrap{position:relative;display:inline-block}
+.aw .gfx.squig{width:92px;height:84px;right:-112px;top:-6px;stroke:var(--lapis-edge);stroke-width:2.6;opacity:.8}
+@media(max-width:900px){.aw .gfx.squig{display:none}.aw .gfx.sparks{left:-6px;top:-40px}}
+.aw .hero-txt::before,.aw .hero-txt::after{content:'';position:absolute;width:30px;height:30px;pointer-events:none;
+  background:linear-gradient(var(--card-edge),var(--card-edge)) center/100% 3px no-repeat,linear-gradient(var(--card-edge),var(--card-edge)) center/3px 100% no-repeat;border-radius:2px}
+.aw .hero-txt{position:relative}
+.aw .hero-txt::before{left:-34px;top:46%;transform:rotate(12deg);opacity:.9}
+.aw .hero-txt::after{left:58%;bottom:-40px;width:22px;height:22px;transform:rotate(-8deg);opacity:.7}
+@media(max-width:900px){.aw .hero-txt::before,.aw .hero-txt::after{display:none}}
+.aw .flt img{filter:brightness(1.1) saturate(1.15) contrast(1.04) drop-shadow(0 8px 14px rgba(0,0,0,.3));image-rendering:auto}
