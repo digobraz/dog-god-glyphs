@@ -96,6 +96,8 @@ export interface BrainOptions {
   glow?: boolean;
   /** `glow`: labka prešla cez zrno `zi` (volá sa raz na dotyk, kým zrno nedohasne). */
   onTouch?: (zi: number) => void;
+  /** `glow` na webe: mozog STOJÍ (žiadny posun, ťahanie uzlov, pinch ani koliesko) — ťah len rozsvecuje. */
+  fixed?: boolean;
   onWorld: (wi: number) => void;
   onRoot: () => void;
 }
@@ -733,6 +735,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     vt.y = -(y0 + y1) / 2 + (ins.top - ins.bottom) / 2 / vt.k;
   }
   const onMove = (e: PointerEvent) => {
+    if (o.fixed) { at(e); return; }
     if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (touches.size === 2) {
       const [a, b] = [...touches.values()];
@@ -765,6 +768,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     hover();
   };
   const onDown = (e: PointerEvent) => {
+    if (o.fixed) { at(e); return; }
     if (e.pointerType === 'touch') {
       touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (touches.size === 2) {
@@ -801,7 +805,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     drag = null; pan = false; HOLD = null; down = false;
   };
   const onLeave = () => { if (o.glow) { ptr.x = -1e5; ptr.y = -1e5; } if (!down) { HOV = null; HOVE = null; showTip(null); } };
-  const onWheel = (e: WheelEvent) => { e.preventDefault(); zoomTo(vt.k * Math.exp(-e.deltaY * 0.0015)); };
+  const onWheel = (e: WheelEvent) => { if (o.fixed) return; e.preventDefault(); zoomTo(vt.k * Math.exp(-e.deltaY * 0.0015)); };
 
   cv.addEventListener('pointermove', onMove);
   cv.addEventListener('pointerdown', onDown);

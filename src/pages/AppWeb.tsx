@@ -635,6 +635,7 @@ export default function AppWeb() {
               <div className="ai-ucrow">{UCEN_PCT.map((pc, i) => (
               <button key={i} type="button" className={`${ucOn === i ? 'on' : ''}${ucLive != null && i > ucOn ? ' off' : ''}`} onPointerEnter={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onFocus={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onClick={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }}>
                 <img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" loading="lazy" />
+              <p className="ai-ucscr"><b>{c('uc_scrolled')}: {Math.round((ucLive ?? (UCEN_PCT[ucOn] === '1.' ? 0 : parseFloat(UCEN_PCT[ucOn]) / 100)) * vScrolls).toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB')}</b> {c('uc_of')} {vScrolls.toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB')} {c('uc_scrolls')}</p>
               </button>
             ))}</div>
               <p className="ai-uchint">{c('uc_hint')}</p>

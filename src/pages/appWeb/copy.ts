@@ -782,4 +782,5 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  sl_good: { en: 'Thank you', sk: 'Poďakovanie' }, sl_video: { en: 'Intro', sk: 'Intro' }, sl_dogma: { en: 'DOGMA', sk: 'DOGMA' },
  menu: { en: 'Menu', sk: 'Menu' }, lang_h: { en: 'Language', sk: 'Jazyk' },
  h_faq1: { en: 'Still', sk: 'Čo si ešte' }, h_faq2: { en: 'sniffing?', sk: 'nevyňuchal?' },
+ uc_scrolled: { en: 'Scrolled', sk: 'Preskrolované' }, uc_of: { en: 'of', sk: 'z' }, uc_scrolls: { en: 'scrolls', sk: 'zvitkov' },
 };

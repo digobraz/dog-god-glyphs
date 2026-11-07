@@ -991,6 +991,7 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .ai-ucside .ai-ucrow{display:grid;grid-template-columns:repeat(5,64px);gap:var(--s-md);justify-content:start;margin:0}
 .aw .ai-ucside .ai-ucrow button{width:64px;height:64px}
 .aw .ai-ucside .ai-ucrow button.on{transform:scale(1.28);margin:0}
+.aw .ai-ucscr{margin:0;font:400 var(--t-label)/1.4 var(--font-ui);color:var(--ai-dim);font-variant-numeric:tabular-nums}.aw .ai-ucscr b{color:var(--ai-ink);font-weight:600}
 .aw .ai-uchint{margin:0;font:400 var(--t-label)/1.4 var(--font-ui);color:var(--ai-dim);max-width:360px}
 @media(max-width:899px){.aw .ai-ucside .ai-ucrow{justify-content:center;grid-template-columns:repeat(5,52px)}.aw .ai-ucside .ai-ucrow button{width:52px;height:52px}}
 

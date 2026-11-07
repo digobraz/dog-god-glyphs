@@ -23,14 +23,16 @@ export function AiBrain({ share, head, onShare }: { share: number; head: string;
   useEffect(() => {
     const c = cv.current, t = tip.current; if (!c || !t) return;
     let total = 0;
-    c.style.pointerEvents = 'auto'; c.style.touchAction = 'pan-y';
+    c.style.pointerEvents = 'auto'; c.style.touchAction = 'none';
+    /* dotyk: po bokoch ostane ~24 px (16 stránka + 8 plátno), kde prst roluje stránku */
+    if (matchMedia('(hover:none)').matches) { c.style.margin = '0 8px'; c.style.width = 'calc(100% - 16px)'; }
     const h = mountBrain({
       canvas: c, tip: t, worlds: VAULT_WORLDS, head,
       isMobile: () => innerWidth < 700,
       worldName: () => '', circleName: () => '',
       insets: () => ({ top: 0, bottom: 0 }),
       describe: () => null,
-      layer: () => 'progress', glow: true,
+      layer: () => 'progress', glow: true, fixed: true,
       onTouch: (zi) => {
         if (!mine.current) { mine.current = new Set(); st.current.fill(0); }
         if (mine.current.has(zi)) return;
