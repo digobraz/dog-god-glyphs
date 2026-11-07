@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '@/components/LanguagePicker';
 import NavMedallion, { NAV_MEDALLION_CSS } from '@/components/lab/NavMedallion';
@@ -21,6 +20,11 @@ import pawImg from '@/assets/app/dotyk-labka.webp';
 import handImg from '@/assets/app/dotyk-ruka.webp';
 import logo2026 from '@/assets/app/logo-2026.svg';
 import { RulesSheet, termsOk } from '@/components/app/TermsGate';
+import { callLogin, readPending, registerFreeInApp, savePending, type PubDog, type Sent } from '@/lib/appRegister';
+import { FLOW_FIRST_STEP } from '@/lib/flowMode';
+import { hekthorFace } from '@/lib/hekthorFaces';
+import { useDogyptStore } from '@/store/dogyptStore';
+import { clearFlowDraft } from '@/lib/flowDraft';
 
 // ════════════════════════════════════════════════════════════════════════════
 // PRVÉ OTVORENIE APPKY (20. 10. 2026)
@@ -28,6 +32,9 @@ import { RulesSheet, termsOk } from '@/components/app/TermsGate';
 // Zdroj pravdy = hárok `plany/nakres-appka-prve-otvorenie-v2.html` (schválený),
 // zadanie `plany/zadanie-appka-prve-otvorenie-2026-10-20.md`.
 // Tok LOCKED 20. 10.: BRÁNA → DOTYK → ČÍSLO → KÓD → POVOLENIA → (wizard v /pack) → DOMOV.
+// 🆕 7. 11. 2026 (registrácia zadarmo, nákres `plany/nakresy/registracia-appka-2026-11-07/`):
+//    BRÁNA → DOTYK → ROZCESTIE → (MÁM ÚČET: ČÍSLO → KÓD) | (VYTVOR HEROGLYF: heroflow v appke →
+//    odhalenie zapíše hosťa a pošle kód → KÓD v podobe „Ulož heroglyf“, `sent.save`) → … DOMOV.
 //
 // Kedy: appka bez session (`/pack` bez session pošle na `/login`, Login.tsx sem).
 // So session sa brána nekreslí vôbec — človek ide rovno DOMOV.
@@ -38,33 +45,12 @@ import { RulesSheet, termsOk } from '@/components/app/TermsGate';
 // Hosť dostane namiesto kódu mail s odkazom na platbu — appka to nevie a neukáže.
 // ════════════════════════════════════════════════════════════════════════════
 
-type Step = 'gate' | 'touch' | 'number' | 'code' | 'rules' | 'perm';
-type PubDog = { n: number; name: string | null; photo: string | null };
-type Sent = { masked: string; codeLength: number; dogs: PubDog[]; entered?: number; email?: string };
+type Step = 'gate' | 'touch' | 'roz' | 'number' | 'code' | 'rules' | 'perm';
 
 /** Povolenia sa pýtajú raz na zariadení — potom už len DOMOV. */
 const PERM_KEY = 'dogypt_app_perm_v1';
 const permAsked = () => { try { return localStorage.getItem(PERM_KEY) === '1'; } catch { return false; } };
 const markPermAsked = () => { try { localStorage.setItem(PERM_KEY, '1'); } catch { /* súkromné okno */ } };
-
-/** ROZPRACOVANÝ KÓD PREŽIJE ODCHOD DO MAILU (Matej 20. 10.: „vždy keď odídem zo safari a prídem,
- *  tak stratím postup a kód tam nedokážem dať"). Človek MUSÍ odísť do schránky — a keď sa medzitým
- *  stránka či WebView načíta znova, krok KÓD sa vráti sám. Platí hodinu (dlhšie kód aj tak neplatí).
- *  Ukladá sa len zamaskovaný mail a verejné psy; pri ceste mailom aj zadaný mail — ten je človekov. */
-const PENDING_KEY = 'dogypt_app_pending_v1';
-const PENDING_MS = 60 * 60_000;
-const savePending = (s: Sent | null) => {
-  try {
-    if (s) localStorage.setItem(PENDING_KEY, JSON.stringify({ s, at: Date.now() }));
-    else localStorage.removeItem(PENDING_KEY);
-  } catch { /* súkromné okno */ }
-};
-const readPending = (): Sent | null => {
-  try {
-    const j = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null') as { s: Sent; at: number } | null;
-    return j && Date.now() - j.at < PENDING_MS ? j.s : null;
-  } catch { return null; }
-};
 
 /** Dvere = obraz 9:16, prikrytý na celú obrazovku (cover). Stred a polomer medailónu sú
  *  zlomky ŠÍRKY obrazu — odmerané v hárku (variant 4 VITRÁŽ · PSY: cx .5 · cy .44 · r .29).
@@ -74,17 +60,6 @@ const DOOR = { aspectW: 9, aspectH: 16, cx: 0.5, cy: 0.44, r: 0.29 };
 const T_MEDAL = 900;
 const T_LEAVES = 1100;
 const T_TOUCH = 2200;
-
-async function callLogin(body: Record<string, unknown>): Promise<{ status: number; data: Record<string, unknown> }> {
-  const res = await fetch(`${EDGE_BASE}/app-login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY },
-    body: JSON.stringify(body),
-  });
-  let data: Record<string, unknown> = {};
-  try { data = await res.json(); } catch { /* prázdne telo */ }
-  return { status: res.status, data };
-}
 
 const reduced = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -154,8 +129,27 @@ function Touch({ onDone }: { onDone: () => void }) {
   );
 }
 
+// ── 2b · ROZCESTIE ───────────────────────────────────────────────────────────
+function Roz({ onHave }: { onHave: () => void }) {
+  const t = useT();
+  const navigate = useNavigate();
+  return (
+    <div className="ae-screen">
+      <div className="ae-body">
+        <div className="ae-roz" style={{ ...PACK_BOX.card }}>
+          <img className="ae-roz-medal" src={hekthorFace('name')} alt="" />
+          <h1 className="ae-title">{t('appEntry.roz.title')}</h1>
+          <p className="ae-sub">{t('appEntry.roz.sub')}</p>
+          <button type="button" className="ae-cta" onClick={() => navigate(FLOW_FIRST_STEP)}>{t('appEntry.roz.create')}</button>
+          <button type="button" className="ae-cta ae-cta--ghost" onClick={onHave}>{t('appEntry.roz.have')}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── 3 · ČÍSLO ────────────────────────────────────────────────────────────────
-function NumberStep({ onSent }: { onSent: (s: Sent) => void }) {
+function NumberStep({ onSent, onBack }: { onSent: (s: Sent) => void; onBack: () => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { lang } = useLang();
@@ -212,6 +206,7 @@ function NumberStep({ onSent }: { onSent: (s: Sent) => void }) {
         {err && !sheet && <p className="ae-err" role="alert">{err}</p>}
         <button type="submit" className="ae-cta" disabled={!num || busy}>{t('appEntry.continue')}</button>
         <button type="button" className="ae-link" onClick={() => { setErr(''); setSheet(true); }}>{t('appEntry.noNumber')}</button>
+        <button type="button" className="ae-link ae-link--quiet" onClick={onBack}>{t('appEntry.number.back')}</button>
         {/* Súhlas s podmienkami = výslovné SÚHLASÍM po kóde (`TermsGate.tsx`, 31. 10.), nie pasívny riadok tu. */}
       </form>
 
@@ -256,13 +251,16 @@ function Dogs({ dogs, me }: { dogs: PubDog[]; me?: number }) {
   );
 }
 
-function CodeStep({ sent, onIn, onOther }: { sent: Sent; onIn: () => void; onOther: () => void }) {
+function CodeStep({ sent, onIn, onOther, onSent }: { sent: Sent; onIn: () => void; onOther: () => void; onSent: (s: Sent) => void }) {
   const t = useT();
   const { lang } = useLang();
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [again, setAgain] = useState(false);
+  // „Ulož heroglyf“: oprava preklepu v e-maile (psy sú už zapísané pod pôvodným).
+  const [fix, setFix] = useState(false);
+  const [fixMail, setFixMail] = useState(sent.email ?? '');
   const inputRef = useRef<HTMLInputElement>(null);
   const N = sent.codeLength;
   const who = sent.entered !== undefined ? { number: sent.entered } : { email: sent.email };
@@ -305,12 +303,55 @@ function CodeStep({ sent, onIn, onOther }: { sent: Sent; onIn: () => void; onOth
     } catch { setErr(t('appEntry.err.net')); }
   };
 
+  // Oprava e-mailu: edge prepíše e-mail hosťovských psov, ak príde id psa + pôvodný e-mail
+  // (`create-checkout`, vetva hosť). Store flowu žije, kým sa kód neoverí — po reloade už nie.
+  const sendFixed = async () => {
+    const m = fixMail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m) || busy) { setErr(t('appEntry.save.badMail')); return; }
+    setBusy(true); setErr('');
+    if (m.toLowerCase() === (sent.email ?? '').toLowerCase()) {
+      await resend(); setFix(false); setBusy(false); return;
+    }
+    useDogyptStore.getState().setEmail(m);
+    const r = await registerFreeInApp(lang);
+    if (r.ok) {
+      const p = readPending();
+      if (p) onSent(p);
+      setFix(false); setAgain(true); setCode('');
+    } else {
+      setErr(t(r.error === 'lost' ? 'appEntry.save.lost' : r.error === 'email' ? 'appEntry.save.badMail' : 'appEntry.err.net'));
+    }
+    setBusy(false);
+  };
+
+  const dogsFace = sent.save ? (
+    <img className="ae-guard" src={ainubisFace} alt="AINUBIS" />
+  ) : <Dogs dogs={sent.dogs} me={sent.entered} />;
+  const [mailBefore, mailAfter = ''] = t('appEntry.save.sub').split('{mail}');
+
   return (
     <div className="ae-screen">
       <form className="ae-body" onSubmit={(e) => { e.preventDefault(); void submit(code); }}>
-        <Dogs dogs={sent.dogs} me={sent.entered} />
-        <h1 className="ae-title">{t('appEntry.code.title')}</h1>
-        <p className="ae-sub">{t('appEntry.code.sub', { mail: sent.masked })}</p>
+        {dogsFace}
+        <h1 className="ae-title">{sent.save ? t('appEntry.save.title') : t('appEntry.code.title')}</h1>
+        {!sent.save && <p className="ae-sub">{t('appEntry.code.sub', { mail: sent.masked })}</p>}
+        {sent.save && !fix && (
+          <p className="ae-sub">
+            {mailBefore}<b>{sent.email}</b>{mailAfter} ·{' '}
+            <button type="button" className="ae-link ae-link--inl" onClick={() => { setFixMail(sent.email ?? ''); setErr(''); setFix(true); }}>{t('appEntry.save.fix')}</button>
+          </p>
+        )}
+        {sent.save && fix && (
+          <>
+            <input
+              className="ae-mail pf-field" type="email" inputMode="email" autoComplete="email" autoFocus
+              value={fixMail} onChange={(e) => setFixMail(e.target.value)}
+            />
+            {err && <p className="ae-err" role="alert">{err}</p>}
+            <button type="button" className="ae-cta ae-cta--ghost" disabled={busy} onClick={() => void sendFixed()}>{t('appEntry.save.resendFixed')}</button>
+          </>
+        )}
+        {!(sent.save && fix) && <>
         {/* Jedno skutočné pole pod N políčkami — kód z mailu sa dá vložiť naraz
             a iOS ho ponúkne sám (`one-time-code`). */}
         <label className="ae-code" style={{ ['--n' as string]: N }} onClick={() => inputRef.current?.focus()}>
@@ -328,13 +369,14 @@ function CodeStep({ sent, onIn, onOther }: { sent: Sent; onIn: () => void; onOth
           />
         </label>
         {err && <p className="ae-err" role="alert">{err}</p>}
-        <button type="submit" className="ae-cta" disabled={code.length !== N || busy}>{t('appEntry.code.enter')}</button>
+        <button type="submit" className="ae-cta" disabled={code.length !== N || busy}>{sent.save ? t('appEntry.save.confirm') : t('appEntry.code.enter')}</button>
         <button type="button" className="ae-link" onClick={paste}>{t('appEntry.code.paste')}</button>
         <button type="button" className="ae-link" onClick={resend} disabled={again}>
           {again ? t('appEntry.code.sent') : t('appEntry.code.again')}
         </button>
         {/* Krok sa po návrate z mailu otvorí sám — bez tohto by preklep v čísle zamkol človeka na hodinu. */}
-        <button type="button" className="ae-link ae-link--quiet" onClick={onOther}>{t('appEntry.code.other')}</button>
+        {!sent.save && <button type="button" className="ae-link ae-link--quiet" onClick={onOther}>{t('appEntry.code.other')}</button>}
+        </>}
       </form>
     </div>
   );
@@ -424,22 +466,26 @@ export default function AppEntry() {
     return () => { off = true; };
   }, [goHome]);
   const goTouch = useCallback(() => setStep('touch'), []);
+  const goRoz = useCallback(() => setStep('roz'), []);
   const goNumber = useCallback(() => setStep('number'), []);
   const afterRules = useCallback(() => { if (permAsked()) goHome(); else setStep('perm'); }, [goHome]);
   // Po kóde: PRAVIDLÁ SVORKY (výslovné SÚHLASÍM, App Store 1.2) → povolenia → DOMOV. Kto už súhlasil, ide ďalej.
   const signedIn = useCallback(() => {
+    // Heroglyf z flowu je uložený (hosť + účet) — rozpracovaný flow už netreba (ako web po zaplatení).
+    if (sent?.save) { useDogyptStore.getState().reset(); clearFlowDraft(); }
     savePending(null);
     void supabase.auth.getUser().then(({ data }) => { if (termsOk(data.user)) afterRules(); else setStep('rules'); });
-  }, [afterRules]);
+  }, [afterRules, sent]);
 
   return (
     <div className="ae-root">
       <style>{NAV_MEDALLION_CSS + PILL_CSS + PF_FIELD_CSS + APP_ENTRY_CSS}</style>
       {/* Pod bránou už čaká papyrus — krídla odchádzajú do neho, nie do čierna. */}
       {step === 'gate' && <Gate onDone={goTouch} />}
-      {step === 'touch' && <Touch onDone={goNumber} />}
-      {step === 'number' && <NumberStep onSent={(s) => { savePending(s); setSent(s); setStep('code'); }} />}
-      {step === 'code' && sent && <CodeStep sent={sent} onIn={signedIn} onOther={() => { savePending(null); setSent(null); setStep('number'); }} />}
+      {step === 'touch' && <Touch onDone={goRoz} />}
+      {step === 'roz' && <Roz onHave={goNumber} />}
+      {step === 'number' && <NumberStep onBack={goRoz} onSent={(s) => { savePending(s); setSent(s); setStep('code'); }} />}
+      {step === 'code' && sent && <CodeStep sent={sent} onIn={signedIn} onSent={setSent} onOther={() => { savePending(null); setSent(null); setStep('roz'); }} />}
       {step === 'rules' && <><div className="ae-screen" /><RulesSheet onDone={afterRules} /></>}
       {step === 'perm' && <PermStep onDone={goHome} />}
     </div>
@@ -535,6 +581,17 @@ const APP_ENTRY_CSS = `
 .ae-legal { margin: ${PACK_SPACE.md}px 0 0; font-size: ${PACK_TEXT.label}px; line-height: 1.5; color: ${LAB.inkMuted}; text-align: center; text-wrap: balance; }
 .ae-legal a { color: ${LAB.inkSoft}; text-decoration: underline; text-underline-offset: 3px; }
 .ae-link--quiet { margin-top: ${PACK_SPACE.xs}px; color: ${LAB.inkMuted}; }
+
+/* ROZCESTIE: karta (PACK_BOX.card) s medailónom Hektora; druhé tlačidlo = ghost v lapise */
+.ae-roz { width: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; padding: ${PACK_SPACE.xl}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px; }
+.ae-roz-medal { width: 120px; height: 120px; border-radius: ${PACK_R.pill}px; object-fit: cover; margin-bottom: ${PACK_SPACE.lg}px;
+  border: 3px solid ${PACK_THEME.cardEdge}; box-shadow: ${PACK_SHADOW.card}; }
+.ae-roz .ae-sub { margin-bottom: ${PACK_SPACE.lg}px; }
+.ae-cta--ghost { margin-top: ${PACK_SPACE.sm}px; background: transparent; box-shadow: none; color: ${LAPIS.deep}; border: 1.5px solid ${LAPIS.edge}; }
+.ae-cta--ghost:hover:not(:disabled) { background: ${LAPIS.halo}; }
+/* ULOŽ HEROGLYF: hlava AINUBISa ako strážca brány, bez karty */
+.ae-guard { width: 136px; height: 136px; object-fit: contain; margin-bottom: ${PACK_SPACE.md}px; }
+.ae-link--inl { margin: 0; padding: 0; text-decoration: underline; font-size: inherit; color: inherit; }
 
 /* šuplík zdola */
 .ae-veil { position: absolute; inset: 0; z-index: 10; background: ${PACK_VEIL.modal}; display: flex; align-items: flex-end; }

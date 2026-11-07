@@ -3,7 +3,9 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore, MAIN_DOG_ID } from '@/store/dogyptStore';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { IS_APP } from '@/lib/isApp';
+import { registerFreeInApp } from '@/lib/appRegister';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { PageTopBar } from '@/components/PageTopBar';
@@ -63,6 +65,7 @@ export function FlowRevealScreen() {
   useFlowKeyboardFix();
   const navigate = useNavigate();
   const t = useT();
+  const { lang } = useLang();
   const flowOk = useFlowGuard();
 
   const selections = useDogyptStore((s) => s.selections);
@@ -169,9 +172,25 @@ export function FlowRevealScreen() {
   const msgOf = (id: string) =>
     ((id === MAIN_DOG_ID ? (dogEssence[id]?.dogMessage ?? selections.dogMessage) : dogEssence[id]?.dogMessage) || '').trim();
   const [missing, setMissing] = useState(false);
+  const [appBusy, setAppBusy] = useState(false);
+  const [appErr, setAppErr] = useState('');
+  const saveInApp = async () => {
+    if (appBusy) return;
+    if (!useDogyptStore.getState().email.trim()) { navigate('/heroglyph/email'); return; }
+    setAppBusy(true); setAppErr('');
+    const r = await registerFreeInApp(lang);
+    setAppBusy(false);
+    if (r.ok) { navigate('/login'); return; }
+    setAppErr(t(r.error === 'photo' ? 'appEntry.save.errPhoto' : r.error === 'email' ? 'appEntry.save.badMail' : r.error === 'send' ? 'appEntry.save.errSend' : 'appEntry.save.errSave'));
+  };
   const goOn = () => {
     const i = dogs.findIndex((d) => !msgOf(d.id));
-    if (i < 0) { navigate('/checkout'); return; }
+    if (i < 0) {
+      // V appke sa nekupuje: hosť zadarmo + kód na e-mail → krok „Ulož heroglyf“ v `AppEntry` (7. 11. 2026).
+      if (IS_APP) { void saveInApp(); return; }
+      navigate('/checkout');
+      return;
+    }
     setCur(i);
     setMissing(true);
   };
@@ -340,7 +359,8 @@ export function FlowRevealScreen() {
               {missing && !storedMsg && (
                 <p role="alert" className="hf-alert">{t('heroglyph.flow.revealNew.msgRequired', { dogName })}</p>
               )}
-              <button type="button" className="hf-cta" onClick={goOn}>
+              {appErr && <p role="alert" className="hf-alert">{appErr}</p>}
+              <button type="button" className="hf-cta" onClick={goOn} disabled={appBusy}>
                 {t('heroglyph.flow.breed.continue')}
               </button>
             </div>

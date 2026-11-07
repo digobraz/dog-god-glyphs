@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { IS_APP } from '@/lib/isApp';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -203,10 +204,13 @@ export function EmailScreen() {
                 {t('heroglyph.flow.name.continue')}
               </button>
 
-              {/* Preskočenie — malým písmom, aby bolo dostupné a nie ponúkané. */}
-              <button type="button" className="hf-skip" onClick={() => go(false)}>
-                {t('heroglyph.flow.email.skip')}
-              </button>
+              {/* Preskočenie — malým písmom, aby bolo dostupné a nie ponúkané.
+                  V appke ho nie je: bez e-mailu účet nevznikne (registrácia zadarmo, 7. 11. 2026). */}
+              {!IS_APP && (
+                <button type="button" className="hf-skip" onClick={() => go(false)}>
+                  {t('heroglyph.flow.email.skip')}
+                </button>
+              )}
             </div>
           </motion.div>
 
