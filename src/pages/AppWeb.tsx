@@ -246,7 +246,9 @@ function LivePlanet() {
       <section className="planet-live theme-light" ref={visRef}>
         {/* `.aw .pop` (modal /app) zasiahne aj `.planet-root.pop` = guľa s otvorenou kartou psa → display:none, guľa zmizne.
             Tu ju vrátime na pôvodné hodnoty (rovnaké ako `.planet-root` v DogPlanetLab). */}
-        <style>{`.aw .planet-live .planet-root.pop{display:flex;position:fixed;inset:0;z-index:80;padding:0;animation:none;align-items:center;justify-content:center}.aw .planet-live .planet-root.pop .pp-panel{z-index:20}.aw .planet-live .planet-root .planet-stage{z-index:1}`}</style>
+        {/* iPhone Safari radí 3D dlaždice gule podľa hĺbky a z-index ignoruje → karta sa cez guľu prerezala (Matej 7. 11., snímka WENSDY #103).
+            Karta preto ide v 3D dopredu (translate Z, bez perspektívy = bez zmeny veľkosti) v spoločnom 3D priestore s guľou. */}
+        <style>{`.aw .planet-live .planet-root.pop{display:flex;position:fixed;inset:0;z-index:80;padding:0;animation:none;align-items:center;justify-content:center}.aw .planet-live .planet-root.pop{transform-style:preserve-3d}.aw .planet-live .planet-root.pop .pp-panel{z-index:20;translate:0 0 2000px}.aw .planet-live .planet-root .planet-stage{z-index:1}`}</style>
         {near && <Suspense fallback={null}><GodsGridLab embedded paused={!vis} planetAnywhere /></Suspense>}
         {/* odkazy do obchodov sa presťahovali z bloku POTREBUJEME ŤA sem, vľavo dole (Matej 6. 11.) */}
         <div className="planet-stores"><Stores /></div>
