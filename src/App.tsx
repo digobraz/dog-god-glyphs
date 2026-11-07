@@ -562,6 +562,11 @@ const App = () => (
               <Route path="/magnet/vylety/triplist" element={<MagnetPreview kind="trips"><PackTriplist /></MagnetPreview>} />
               <Route path="/magnet/vylety/:country/:slug" element={<MagnetPreview kind="trips"><PackTripArticle /></MagnetPreview>} />
               <Route path="/magnet/vylety/:slug" element={<MagnetPreview kind="trips"><PackTripArticle /></MagnetPreview>} />
+              {/* /map — verejná mapa výletov 1:1 s appkou (nákres 7. 11. 2026): všetky výlety na čítanie, zápis = popup appky */}
+              <Route path="/map" element={<MagnetPreview kind="map"><PackMap /></MagnetPreview>} />
+              <Route path="/map/triplist" element={<MagnetPreview kind="map"><PackTriplist /></MagnetPreview>} />
+              <Route path="/map/:country/:slug" element={<MagnetPreview kind="map"><PackTripArticle /></MagnetPreview>} />
+              <Route path="/map/:slug" element={<MagnetPreview kind="map"><PackTripArticle /></MagnetPreview>} />
               <Route path="/magnet/ainubis/*" element={<MagnetPreview kind="ainubis"><PackAinubis /></MagnetPreview>} />
               <Route path="/magnet/kviz" element={<MagnetPreview kind="quiz"><PackNatureQuiz /></MagnetPreview>} />
 

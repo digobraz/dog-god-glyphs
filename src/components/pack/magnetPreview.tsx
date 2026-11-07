@@ -23,7 +23,7 @@
  * Zdarma: 10 výletov (`MAGNET_FREE_TRIPS`) a okruh 1 Cesty psa (`O1-*`, 10 zvitkov
  * s podcastom). Body sa sľubujú LEN pri výletoch (PÚTNIK) — zvitky body nemajú.
  */
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate, useLocation, type NavigateOptions } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { openPhotoInvite } from '@/lib/photoInvite';
@@ -118,11 +118,22 @@ export const MAGNET_IDENTITY: PackIdentity = {
   session: null, loading: false, sessionReady: true, dogs: [], devotion: 0, bones: 0,
   avatarUrl: null, avatarInitial: MAGNET_FOUNDER.initial, packTotal: null, packToday: null,
 };
-export const isFreeTrip = (id?: string | null) => !!id && FREE_TRIPS.has(id);
+/**
+ * VEREJNÁ `/map` (nákres 7. 11. 2026, Matej: *„verejná stránka /map, kde bude 1:1 to čo v appke, len bez
+ * užívateľských funkcií… popup registruj sa, stiahni appku, ako to je aj na AllTrails"* + *„všetky dajme"*).
+ * Tie isté obrazovky ako `/magnet/vylety`, rozdiel sú tri veci: čítať sa dá KAŽDÝ výlet, cesty vedú na `/map`
+ * a popup aj lišta ponúkajú appku zadarmo, nie €11. Režim sa číta z adresy, lebo `isFreeTrip` volajú aj
+ * miesta mimo hookov (ikonky značiek v PackMap).
+ */
+export const onPublicMap = () => typeof window !== 'undefined' && /^\/map(\/|$)/.test(window.location.pathname);
+/** Odkazy do obchodov — tie isté ako na /app; doplníme, keď bude appka verejne v obchodoch. */
+const STORE_IOS = '#';
+const STORE_PLAY = '#';
+export const isFreeTrip = (id?: string | null) => !!id && (onPublicMap() || FREE_TRIPS.has(id));
 /** Zvitky zdarma = okruh 1 Cesty psa „Odkiaľ pes prišiel" (O1-1 … O1-10). */
 export const isFreeScrollCode = (code?: string | null) => !!code && /^O1-\d+$/.test(code);
 
-export type MagnetKind = 'trips' | 'ainubis' | 'quiz';
+export type MagnetKind = 'trips' | 'ainubis' | 'quiz' | 'map';
 /** VYSVETLIVKA, nie stráž (Matej 13. 10. 2026: *„pri kliknutí na podujatia alebo sniffer by som
  *  dal popupy, že čo to tam je… aj na upozornenia a správy… pri tripwish a chcem ísť bublinka…
  *  pri ainubisovi chat, fórum, zdroje — všade by mali byť vysvetlivky, nie stráž"*).
@@ -130,7 +141,7 @@ export type MagnetKind = 'trips' | 'ainubis' | 'quiz';
 export type InfoKey = 'events' | 'sniffer' | 'notif' | 'msgs' | 'wish' | 'want' | 'chat' | 'forum' | 'sources';
 const INFO_KEYS = new Set<string>(['events', 'sniffer', 'notif', 'msgs', 'wish', 'want', 'chat', 'forum', 'sources']);
 export const isInfoKey = (k?: string | null): k is InfoKey => !!k && INFO_KEYS.has(k);
-export type LockWhat = 'trip' | 'scroll' | 'action' | 'save' | InfoKey;
+export type LockWhat = 'trip' | 'scroll' | 'action' | 'save' | 'app' | InfoKey;
 type Ctx = { kind: MagnetKind; lock: (what?: LockWhat) => void };
 const MagnetCtx = createContext<Ctx | null>(null);
 
@@ -148,13 +159,18 @@ export function magnetPath(p: string): string | null {
   const path = cut < 0 ? p : p.slice(0, cut);
   const tail = cut < 0 ? '' : p.slice(cut);
   if (path.startsWith('/magnet')) return p;
-  if (path === '/pack/map' || path === '/pack/map/') return '/magnet/vylety' + tail;
+  const pub = onPublicMap();
+  if (pub && (path === '/map' || path.startsWith('/map/'))) return p;
+  const base = pub ? '/map' : '/magnet/vylety';
+  if (path === '/pack/map' || path === '/pack/map/') return base + tail;
   const trip = path.match(/^\/pack\/map\/(?:([a-z]{2,3})\/)?([^/]+)(\/.*)?$/);
-  if (path === '/pack/map/triplist') return '/magnet/vylety/triplist' + tail;
+  if (path === '/pack/map/triplist') return base + '/triplist' + tail;
   if (trip && trip[2] !== 'triplist') {
     if (!isFreeTrip(trip[2])) return null;
-    return `/magnet/vylety/${trip[1] ? trip[1] + '/' : ''}${trip[2]}${trip[3] ?? ''}${tail}`;
+    return `${base}/${trip[1] ? trip[1] + '/' : ''}${trip[2]}${trip[3] ?? ''}${tail}`;
   }
+  // Na /map je darček len mapa; AINUBIS a kvíz z nej vedú do popupu appky.
+  if (pub) return null;
   if (path.startsWith('/pack/ainubis')) return '/magnet/ainubis' + path.slice('/pack/ainubis'.length) + tail;
   if (path === '/pack/nature') return '/magnet/kviz' + tail;
   return null;
@@ -172,7 +188,7 @@ export function usePackNavigate() {
     if (m) { nav(m, opts); return; }
     if (to.startsWith('/pack/sniffer')) { mg.lock('sniffer'); return; }
     if (/^\/pack\/(messages|inbox|dm)/.test(to)) { mg.lock('msgs'); return; }
-    mg.lock(to.startsWith('/pack/map/') ? 'trip' : 'action');
+    mg.lock(mg.kind === 'map' ? 'app' : to.startsWith('/pack/map/') ? 'trip' : 'action');
   }, [nav, mg]);
 }
 
@@ -236,11 +252,23 @@ ${VEIL_CSS}
 .mgp-h{font-family:${FONT_TITLE};font-weight:700;font-size:24px;line-height:1.2;letter-spacing:.02em;text-transform:uppercase;color:${T.inkStrong};margin:12px 0 0;}
 .mgp-p{font-family:${FONT_UI};font-weight:400;font-size:14px;line-height:1.55;color:${T.inkWarm};margin:12px 0 24px;}
 .mgp-acts{display:flex;flex-direction:column;gap:8px;}
+.mgp-stores{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.mgp-stores .mgp-cta{flex:none;text-decoration:none;padding:12px 8px;}
 .mgp-ghost{display:block;text-decoration:none;padding:12px 16px;border-radius:8px;background:transparent;border:1px solid ${T.cardEdge};color:${T.inkStrong};
   font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;}
 `;
 
 /** Popup „Ďalej idú len Dogypťania" — jeden pre všetky tri darčeky. */
+/** Dve tlačidlá do obchodov — CTA verejnej /map (appka je od 5. 11. 2026 zadarmo, €11 sa tu nepredáva). */
+function StoreButtons() {
+  return (
+    <div className="mgp-stores">
+      <a className="mgp-cta" href={STORE_IOS}>App Store</a>
+      <a className="mgp-cta" href={STORE_PLAY}>Google Play</a>
+    </div>
+  );
+}
+
 function LockPopup({ what, onClose }: { what: LockWhat; onClose: () => void }) {
   // 13. 10. 2026 Matej: *„ten oznam o exkluzívnom obsahu daj všade, nie len na ainubis stránke…
   // daj ho všade ainubis a staň sa dogypťanom"* — JEDEN popup v brande AINUBISa pre všetky
@@ -252,7 +280,11 @@ function LockPopup({ what, onClose }: { what: LockWhat; onClose: () => void }) {
       <div className="mgp-card mgp-card--ai" onClick={(e) => e.stopPropagation()}>
         <img className="mgp-face" src={ainubisFace} alt="" aria-hidden="true" />
         <div className="mgp-who"><span>AI</span>NUBIS</div>
-        {isInfoKey(what) ? (<>
+        {onPublicMap() && !isInfoKey(what) ? (<>
+          <div className="mgp-eye">{tx(`magnet.map.${what === 'app' || what === 'save' ? what : 'lock'}.eye`, 'In the app')}</div>
+          <h2 className="mgp-h">{tx(`magnet.map.${what === 'app' || what === 'save' ? what : 'lock'}.h`, 'This lives in the app')}</h2>
+          <p className="mgp-p">{tx(`magnet.map.${what === 'app' || what === 'save' ? what : 'lock'}.p`, 'Saving, logging trips and collecting kilometres live in the app. It is free, for every dog.')}</p>
+        </>) : isInfoKey(what) ? (<>
           <div className="mgp-eye">{tx('magnet.info.eye', 'What lives here')}</div>
           <h2 className="mgp-h">{tx(`magnet.info.${what}.h`, what)}</h2>
           <p className="mgp-p">{tx(`magnet.info.${what}.p`, '').replace('{n}', String(VAULT_SOURCE_TOTALS.documents))}</p>
@@ -266,14 +298,16 @@ function LockPopup({ what, onClose }: { what: LockWhat; onClose: () => void }) {
           <p className="mgp-p">{tx('magnet.lock.ai.p', 'Yes, we have exclusive content too. Ours is about dogs, so you don’t have to hide it from anyone. €11 once, for good — less than one café visit. This time, take your dog. He won’t touch the coffee, but he’ll love this app.')}</p>
         </>)}
         <div className="mgp-acts">
-          <button type="button" className="mgp-cta" onClick={() => { onClose(); openPhotoInvite(); }}>
-            {tx('magnet.cta', 'Become Dogyptian')}
-          </button>
-          {what === 'save' && (
+          {onPublicMap() ? <StoreButtons /> : (
+            <button type="button" className="mgp-cta" onClick={() => { onClose(); openPhotoInvite(); }}>
+              {tx('magnet.cta', 'Become Dogyptian')}
+            </button>
+          )}
+          {what === 'save' && !onPublicMap() && (
             <a className="mgp-ghost" href="/login">{tx('magnet.lock.login', 'I am a Dogyptian — log in')}</a>
           )}
           <button type="button" className="mgp-ghost" onClick={onClose}>
-            {isInfoKey(what) ? tx('magnet.info.ok', 'Got it') : tx('magnet.lock.ai.stay', 'I’ll keep sniffing for free')}
+            {isInfoKey(what) ? tx('magnet.info.ok', 'Got it') : onPublicMap() ? tx('magnet.map.stay', 'Keep browsing trips') : tx('magnet.lock.ai.stay', 'I’ll keep sniffing for free')}
           </button>
         </div>
       </div>
@@ -298,10 +332,14 @@ export function MagnetDockActions() {
   const t = useT();
   const tx = (k: string, fb: string) => { const v = t(k); return v === k ? fb : v; };
   const nav = useNavigate();
+  const mg = useMagnetPreview();
+  const pub = mg?.kind === 'map';
   return (
     <div className="mgp-dockacts">
-      <button type="button" className="mgp-cta" onClick={() => openPhotoInvite()}>{tx('magnet.cta.price', 'Become Dogyptian · €11')}</button>
-      <button type="button" className="mgp-backlink" onClick={() => nav('/magnet')}>{tx('magnet.backShort', 'Back')}</button>
+      {pub
+        ? <button type="button" className="mgp-cta" onClick={() => mg.lock('app')}>{tx('magnet.map.cta', 'Get the free app')}</button>
+        : <button type="button" className="mgp-cta" onClick={() => openPhotoInvite()}>{tx('magnet.cta.price', 'Become Dogyptian · €11')}</button>}
+      <button type="button" className="mgp-backlink" onClick={() => (pub ? window.location.assign('/app') : nav('/magnet'))}>{tx('magnet.backShort', 'Back')}</button>
     </div>
   );
 }
@@ -336,6 +374,9 @@ export function MagnetAinubisBlock({ h, p, where, extra }: { h: string; p: strin
 
 /** Ktorá veta AINUBISa patrí stránke — podľa cesty (obrazovky samy nič nehlásia). */
 function barNoteKey(path: string): string {
+  if (path.startsWith('/map/triplist')) return 'map.stats';
+  if (path.startsWith('/map/')) return 'map.article';
+  if (path === '/map') return 'map';
   if (path.startsWith('/magnet/vylety/triplist')) return 'stats';
   if (path.startsWith('/magnet/vylety/')) return 'article';
   if (path.startsWith('/magnet/vylety')) return 'trips';
@@ -349,9 +390,23 @@ export function MagnetPreview({ kind, children }: { kind: MagnetKind; children: 
   const t = useT();
   const tx = (k: string, fb: string) => { const v = t(k); return v === k ? fb : v; };
   const nav = useNavigate();
-  const note = barNoteKey(useLocation().pathname);
+  const path = useLocation().pathname;
+  const note = barNoteKey(path);
   const [lockOpen, setLockOpen] = useState<LockWhat | null>(null);
   const ctx = useMemo<Ctx>(() => ({ kind, lock: (w = 'action') => setLockOpen(w) }), [kind]);
+  const pub = kind === 'map';
+  // MÄKKÝ POPUP (vzor AllTrails): po treťom otvorenom výlete na /map raz za návštevu ponúkne appku.
+  // Zavrieť sa dá a už sa nevráti; počíta sa v sessionStorage, nikam sa neposiela.
+  useEffect(() => {
+    if (!pub || !/^\/map\/(?!triplist)/.test(path)) return;
+    try {
+      if (sessionStorage.getItem('map-soft-done')) return;
+      const seen = new Set<string>(JSON.parse(sessionStorage.getItem('map-seen') || '[]'));
+      seen.add(path);
+      sessionStorage.setItem('map-seen', JSON.stringify([...seen]));
+      if (seen.size >= 3) { sessionStorage.setItem('map-soft-done', '1'); setLockOpen('app'); }
+    } catch { /* bez úložiska mäkký popup jednoducho nepríde */ }
+  }, [pub, path]);
   return (
     <MagnetCtx.Provider value={ctx}>
       <style>{CSS}</style>
@@ -366,8 +421,10 @@ export function MagnetPreview({ kind, children }: { kind: MagnetKind; children: 
             <span>{tx(`magnet.ai.${note}.bar`, 'The full menu is for Dogyptians.')}</span>
           </div>
           <div className="mgp-bar-acts">
-            <button type="button" className="mgp-cta" onClick={() => openPhotoInvite()}>{tx('magnet.cta.price', 'Become Dogyptian · €11')}</button>
-            <button type="button" className="mgp-backlink" onClick={() => nav('/magnet')}>{tx('magnet.backShort', 'Back')}</button>
+            {pub
+              ? <button type="button" className="mgp-cta" onClick={() => setLockOpen('app')}>{tx('magnet.map.cta', 'Get the free app')}</button>
+              : <button type="button" className="mgp-cta" onClick={() => openPhotoInvite()}>{tx('magnet.cta.price', 'Become Dogyptian · €11')}</button>}
+            <button type="button" className="mgp-backlink" onClick={() => (pub ? window.location.assign('/app') : nav('/magnet'))}>{tx('magnet.backShort', 'Back')}</button>
           </div>
         </div>
       </div>

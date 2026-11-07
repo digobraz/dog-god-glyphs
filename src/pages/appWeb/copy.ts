@@ -783,4 +783,15 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  menu: { en: 'Menu', sk: 'Menu' }, lang_h: { en: 'Language', sk: 'Jazyk' },
  h_faq1: { en: 'Still', sk: 'Čo si ešte' }, h_faq2: { en: 'sniffing?', sk: 'nevyňuchal?' },
  uc_scrolled: { en: 'Scrolled', sk: 'Preskrolované' }, uc_of: { en: 'of', sk: 'z' }, uc_scrolls: { en: 'scrolls', sk: 'zvitkov' },
+ /* VÝLETY — pilotná funkcia (nákres 7. 11. 2026): tri kroky + vysvedčenie (TRIPSTATS) + verejná /map */
+ nav_trips: { en: 'Trips', sk: 'Výlety' },
+ e_trips: { en: 'Pilot feature', sk: 'Pilotná funkcia' },
+ h_trips1: { en: 'Every trip goes on your', sk: 'Každý výlet ide do' }, h_trips2: { en: 'RECORD', sk: 'VYSVEDČENIA' },
+ l_trips: { en: 'Pick a trail on the map, walk it with your dog and log it. Kilometres, mountain ranges, national parks and your highest peak add up by themselves.', sk: 'Vyber trasu na mape, prejdi ju so psom a zapíš. Kilometre, pohoria, národné parky aj najvyšší vrchol sa ti zrátajú samé.' },
+ ts1: { en: 'Pick a trail', sk: 'Vyber trasu' }, ts1p: { en: 'Trails walked with dogs, with photos and ratings in paws.', sk: 'Trasy prejdené so psami, s fotkami a hodnotením v labkách.' },
+ ts2: { en: 'Log it', sk: 'Zapíš' }, ts2p: { en: 'Tap + and add the trip. Every trip earns points.', sk: 'Ťukni na + a pridaj výlet. Každý výlet ti dá body.' },
+ ts3: { en: 'Your record', sk: 'Vysvedčenie' }, ts3p: { en: 'Countries, km, ranges, national parks, peaks and lakes. Your Pilgrim level grows with every kilometre.', sk: 'Krajiny, km, pohoria, národné parky, vrcholy aj vody. Level Pútnika rastie s každým kilometrom.' },
+ tn1: { en: 'trails', sk: 'trás' }, tn2: { en: 'km of trails', sk: 'km trás' }, tn3: { en: 'countries', sk: 'krajiny' },
+ t_cta: { en: 'See the trail map', sk: 'Pozri mapu výletov' },
+ t_cta_s: { en: 'No sign-up. Every trail, free to read.', sk: 'Bez registrácie. Všetky výlety voľne.' },
 };

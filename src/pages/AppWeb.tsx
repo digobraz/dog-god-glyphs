@@ -111,6 +111,72 @@ function Tilt({ set, src, onOpen, className = '' }: { set: string; src: string; 
   );
 }
 
+/** VÝLETY (nákres 7. 11. 2026, Matej: „krátka sekcia, ako sa nakliká výlet a vysvedčenie, s CTA na verejnú /map“).
+ *  Tri kroky na ťuk menia snímku v telefóne; krok 3 je celá karta TRIPSTATS (ŠTATISTIKY), ktorá sa v telefóne
+ *  pomaly roluje — vysvedčenie je dlhé a práve tá dĺžka je pointa. Čísla sa rátajú z kurátorských trás
+ *  (lazy import — 400 KB dát nesmie zaťažiť prvé načítanie stránky). */
+const TRIP_SHOTS = ['11-vretenica-mapa', 'plus-von', 'tripstats-cela'];
+function TripsSection({ c }: { c: (k: string) => string }) {
+  const [ref, near] = useNear<HTMLDivElement>('400px');
+  const [step, setStep] = useState(0);
+  const [nums, setNums] = useState<[number, number, number] | null>(null);
+  useEffect(() => {
+    if (!near) return;
+    let alive = true;
+    import('@/data/heroTrails.generated').then(({ HERO_TRAILS }) => {
+      if (!alive) return;
+      const km = HERO_TRAILS.reduce((a, t) => a + (parseFloat(t.km) || 0), 0);
+      const lands = new Set(HERO_TRAILS.map((t) => t.country ?? 'sk')).size;
+      setNums([HERO_TRAILS.length, Math.round(km), lands]);
+    }).catch(() => { /* čísla sú doplnok, kroky stoja aj bez nich */ });
+    return () => { alive = false; };
+  }, [near]);
+  return (
+    <section id="trips" className="trips">
+      <div className="wrap" ref={ref}>
+        <Rv className="sec-h">
+          <p className="eye">{c('e_trips')}</p>
+          <h2>{c('h_trips1')} <span className="deco">{c('h_trips2')}</span></h2>
+          <p className="lead">{c('l_trips')}</p>
+        </Rv>
+        <div className="tr-grid">
+          <Rv className="tr-steps">
+            {[1, 2, 3].map((n, i) => (
+              <button key={n} type="button" className={`pk-stage tr-step${step === i ? ' on' : ''}`} aria-pressed={step === i}
+                onClick={() => setStep(i)} onPointerEnter={(e) => { if (e.pointerType === 'mouse') setStep(i); }}>
+                <span className="tr-n">{n}</span>
+                <b>{c(`ts${n}`)}</b>
+                <span className="tr-p">{c(`ts${n}p`)}</span>
+              </button>
+            ))}
+          </Rv>
+          <Rv d={1} className={`tr-phone s${step}`}>
+            <div className="phone">
+              <img className="fr" src={`${A}/phone.svg`} alt="" />
+              <div className="scr">
+                {TRIP_SHOTS.map((src, i) => (
+                  <img key={src} className={`tr-shot${i === 2 ? ' tall' : ''}${step === i ? ' on' : ''}`} src={`${A}/snimky/${src}.webp`} alt="" loading="lazy" decoding="async" />
+                ))}
+              </div>
+            </div>
+          </Rv>
+        </div>
+        <Rv className="tr-foot">
+          {nums && (
+            <div className="tr-nums">
+              <span><b>{nums[0]}</b>{c('tn1')}</span>
+              <span><b>{nums[1].toLocaleString('sk-SK')}</b>{c('tn2')}</span>
+              <span><b>{nums[2]}</b>{c('tn3')}</span>
+            </div>
+          )}
+          <a className="pk-cta" href="/map" target="_blank" rel="noopener">{c('t_cta')}</a>
+          <p className="tr-sub">{c('t_cta_s')}</p>
+        </Rv>
+      </div>
+    </section>
+  );
+}
+
 function Counter({ to, run, suffix }: { to: number; run: boolean; suffix?: ReactNode }) {
   const [v, setV] = useState(0);
   useEffect(() => {
@@ -394,7 +460,7 @@ export default function AppWeb() {
         <div className="wrap">
           <a className="logo" href="#" aria-label="DOGYPT"><img src="/images/magnet/logo-2026-kartusa.svg" alt="DOGYPT" /></a>
           <nav>
-            <a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#badges">{c('nav3')}</a><a href="#ainubis">AINUBIS</a><a href="#good">{c('nav5')}</a>
+            <a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#badges">{c('nav3')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#good">{c('nav5')}</a>
           </nav>
           <button className="lang" onClick={() => setLang(L === 'sk' ? 'en' : 'sk')}>{L === 'sk' ? 'EN' : 'SK'}</button>
           <a className="pk-cta" href="#join">{c('getapp')}</a>
@@ -403,7 +469,7 @@ export default function AppWeb() {
         </div>
         {menu && (
           <div className="mmenu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); }}>
-            <nav><a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#badges">{c('nav3')}</a><a href="#ainubis">AINUBIS</a><a href="#good">{c('nav5')}</a></nav>
+            <nav><a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#badges">{c('nav3')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#good">{c('nav5')}</a></nav>
             <p className="mm-h">{c('lang_h')}</p>
             <div className="mm-lang">{(['sk', 'en'] as const).map((l) => <button key={l} className={L === l ? 'on' : ''} onClick={() => { setLang(l); setMenu(false); }}>{l === 'sk' ? 'Slovenčina' : 'English'}</button>)}</div>
             <Stores />
@@ -594,6 +660,9 @@ export default function AppWeb() {
           )}
         </div>
       </section>
+
+      {/* 5b · VÝLETY — pilotná funkcia (nákres 7. 11.): tri kroky v telefóne, vysvedčenie = TRIPSTATS, CTA na verejnú /map */}
+      <TripsSection c={c} />
 
       {/* 6 · AINUBIS — osobný mentor. v2 (Matej 6. 11. večer): logo s krúžiacim prstencom (ako VAULT) → nadpis →
           text so „(still learning)“ → LIEVIK 5·4·2·7 svetov·46/547 → prúd do celého zvitku (vľavo) + podcast a chat

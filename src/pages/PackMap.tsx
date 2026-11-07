@@ -3499,6 +3499,7 @@ function MagnetTripsInfo({ locked, onTryAdd, where }: {
   };
   // Výška bloku na PC → `--mg-dock-h`: o toľko sa zdvihnú ovládacie prvky a podpis mapy
   // (Mapy.com logo musí ostať vidno — licencia), inak by ich blok prekryl.
+  const mgPub = useMagnetPreview()?.kind === 'map';
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current; if (!el || where !== 'dock' || typeof ResizeObserver === 'undefined') return;
@@ -3511,8 +3512,8 @@ function MagnetTripsInfo({ locked, onTryAdd, where }: {
     <div ref={ref} className={`trp-mginfo trp-mginfo--${where}`}>
       <MagnetAinubisBlock
         where={where}
-        h={tx('magnet.ai.trips.h', '10 trips to taste')}
-        p={tx('magnet.ai.trips.p', 'You can see the other {n}, but you can’t go in.', { n: locked })}
+        h={mgPub ? tx('magnet.ai.map.h', 'Every trip is yours to read') : tx('magnet.ai.trips.h', '10 trips to taste')}
+        p={mgPub ? tx('magnet.ai.map.p', 'Trails walked with dogs. Read as many as you like; logging trips and collecting kilometres happens in the free app.') : tx('magnet.ai.trips.p', 'You can see the other {n}, but you can’t go in.', { n: locked })}
         extra={<>
           <button type="button" className="mgp-ai-chip" onClick={onTryAdd}>
             <img className="mgp-ink" src={ICON('plus')} alt="" />
