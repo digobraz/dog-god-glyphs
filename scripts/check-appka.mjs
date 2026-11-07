@@ -2,7 +2,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 // STRÁŽ „V APPKE SA NEKUPUJE" — `npm run check:appka` (z `vystupy/web/`)
 // ────────────────────────────────────────────────────────────────────────────
-// Apple 3.1.1: v natívnej appke (IS_APP) sa nesmie dať dostať na cenu, pokladňu ani /heroglyph.
+// Apple 3.1.1: v natívnej appke (IS_APP) sa nesmie dať dostať na cenu ani pokladňu. Heroflow sa od 7. 11. 2026 v appke otvára (registrácia zadarmo), pokladňa a /heroglyph/stay|welcome nie.
 // Hľadanie v minifikovanom bundli je hrubé (názvy zmiznú), preto sa kontroluje ZDROJ:
 //
 //   1. Routy: každá routa z App.tsx, ktorá patrí k nákupu, musí byť zachytená regexom PURCHASE
@@ -32,6 +32,7 @@ const rel = (f) => f.slice(KOREN.length + 1);
 // ── Vedomé výnimky: súbor + úryvok riadku → dôvod, prečo to v appke nie je nákup ─────────────
 // Pridávaj len s dôvodom. Nález, ktorý je v appke naozaj dosiahnuteľný, sem NEPATRÍ — oprav ho.
 const VEDOME = [
+  { subor: 'src/lib/appRegister.ts', obsahuje: 'create-checkout', dovod: "tier:'guest' = zápis psa zadarmo (€0), bez Stripe a bez ceny — registrácia v appke 7. 11. 2026" },
   { subor: 'src/lib/vetEmergency.ts', obsahuje: '"fee":', dovod: 'príplatok cudzej veterinárnej kliniky, v appke sa nič nekupuje' },
   { subor: 'src/components/PageTopBar.tsx', obsahuje: '/heroglyph/', dovod: 'len porovnanie cesty na vzhľad lišty, nič neotvára' },
   { subor: 'src/components/PageTopBar.tsx', obsahuje: "'/checkout'", dovod: 'len porovnanie cesty na vzhľad lišty, nič neotvára' },
@@ -81,6 +82,10 @@ const appKod = bezKomentarov(read(appTsx)).replace(/\{\s*\}/g, '');
 const guardKod = read(join(SRC, 'components/AppRouteGuard.tsx'));
 const pm = guardKod.match(/const PURCHASE = \/(.*)\/;/);
 const appm = guardKod.match(/const APP_PATHS = \/(.*)\/;/);
+// Od 7. 11. 2026 sa heroflow v appke OTVÁRA (registrácia zadarmo, bez pokladne) — stráž ho berie
+// ako povolenú cestu, kým nie je zároveň v PURCHASE (pokladňa, /heroglyph/stay, /heroglyph/welcome).
+const fm = guardKod.match(/const FLOW = \/(.*)\/;/);
+const FLOW = fm ? new RegExp(fm[1]) : null;
 if (!pm || !appm) { console.error('❌ AppRouteGuard: nenašiel som PURCHASE / APP_PATHS — zmenil sa tvar, uprav stráž.'); process.exit(1); }
 const PURCHASE = new RegExp(pm[1]);
 const APP_PATHS = new RegExp(appm[1]);
@@ -98,6 +103,7 @@ for (const t of trasy) {
   if (!NAKUP_CESTA.test(t.path)) continue;
   trasyNakup.push(t.path);
   const konkretna = t.path.replace(/:[^/]+/g, 'x');
+  if (FLOW && FLOW.test(konkretna) && !PURCHASE.test(konkretna)) continue; // registračný flow v appke
   if (!PURCHASE.test(konkretna) && !APP_PATHS.test(konkretna)) {
     fail(`ROUTA ${t.path} — nákupná cesta, ale AppRouteGuard ju nepozná ako nákup: v appke by sa otvorila v systémovom prehliadači (dogypt.com${konkretna}) namiesto zablokovania.`);
   }
