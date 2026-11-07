@@ -44,7 +44,7 @@ import { placeholderFor } from '@/lib/tripPlaceholder';
 // Tvary počítaného mena (1 výlet · 2–4 výlety · 5+ výletov) — jeden zdroj pre celý /pack.
 import { pluralKey } from '@/lib/plural';
 import { readPlans } from '@/components/pack/packCommunity';
-import { COMMUNITY_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
+import { COMMUNITY_CSS, TL_FLAT_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
 import { flagUrl, trailCountry } from '@/lib/countryGeo';
 import { useMyTripParties, useTripParties, partyKey, type TripParty, type PartyMember } from '@/components/pack/triplist/useTripParty';
 import { useOpenTrips } from '@/components/pack/triplist/useOpenTrips';
@@ -62,7 +62,7 @@ import { RightGate } from '@/components/pack/RightGate';
 import { PackTopRow } from '@/components/pack/PackTopRow';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { fetchMyWishes, type MyWish } from '@/components/pack/mapnotes/wishData';
-import { WISHES_LIVE } from '@/lib/packFlags';
+import { WISHES_LIVE, APP_NEW } from '@/lib/packFlags';
 import { WIZ } from '@/components/pack/wizAnchors';
 
 // Karta je v mriežke najviac ~270 px (PC, 3 stĺpce v 832) a ~170 px (mobil, 2 stĺpce × DPR 2–3).
@@ -1028,7 +1028,7 @@ export default function PackTriplist() {
   };
 
   return (
-    <div className="pk-paper tl-root">
+    <div className={`pk-paper tl-root${APP_NEW ? ' pk-plain tl-flat' : ''}`}>
       <style>{PAPER_PAGE_CSS}{HIT_CSS}</style>
       {/* GLASS_CSS ostáva: .pk-glass ani .pk-glass-block na tejto stránke UŽ NIE SÚ, ale
           vnorené povrchy (karta člena .pmc) si sklo ešte berú — prezliekajú sa vo vlastnom
@@ -1037,6 +1037,7 @@ export default function PackTriplist() {
       <style>{COMMUNITY_CSS}</style>
       <style>{PARTY_CARD_CSS}</style>
       <style>{CSS}</style>
+      {APP_NEW && <style>{TL_FLAT_CSS}</style>}
       {/* Heroglyfová tapeta je súčasťou .pk-paper — <HieroglyphBg /> (tmavá tapeta na
           čiernej) sa sem už nevkladá. Volať oboje naraz = dve tapety cez seba. */}
 

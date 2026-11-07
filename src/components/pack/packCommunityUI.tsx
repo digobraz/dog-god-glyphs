@@ -13,12 +13,12 @@ import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
 import { useMyPlacePostCount } from '@/components/geo/placePosts';
 import { WISHES_LIVE } from '@/lib/packFlags';
 import { fetchPackHumans, HUMAN_KEY_PREFIX, type PackHuman } from '@/lib/packHumans';
-import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN, HIT_CSS, VEIL_CSS, VEIL_PAD } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN, HIT_CSS, VEIL_CSS, VEIL_PAD, PACK_SPACE, PACK_R, PACK_TEXT } from '@/components/pack/packTheme';
 import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { pluralKey } from '@/lib/plural';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy aj triplist.
-import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
+import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK } from '@/components/pack/navGoldSkin';
 import { HieroglyphBg } from '@/components/pack/PackLayout';
 import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER, isWaterTrail, hasRouteMetrics, regionName } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
@@ -132,6 +132,25 @@ const CHKO_LOGO: Record<string, string> = {
 };
 
 // ── zdieľané CSS — PackMap ho injektne raz vedľa svojho vlastného <style> ──────────────────
+/* PLOCHA (APP_NEW, audit layoutu 7. 11. 2026, hárok schválil Matej): štatistiky a triplist nie sú
+   karty na tapete, ale celostránková plocha. Vonkajší panel, hlavička a podkarty strácajú krabicu;
+   podkarty (.comm-cat, .comm-drop) sa stávajú sekciami oddelenými zlatou vlasovou čiarou.
+   Prepínač (.tl-tabs) = jedna koľajnica. Špecificita `.tl-flat` + trieda, nie !important.
+   Aktívny tab ostáva PLNÝ LAPIS (Matejova výnimka z 5. 10. 2026 — nemeniť). */
+export const TL_FLAT_CSS = `
+.tl-flat .tl-panel{background:none;border:0;border-radius:0;box-shadow:none;padding:0;margin-top:${PACK_SPACE.xl}px;}
+.tl-flat .tl-panel + .tl-panel{margin-top:${PACK_SPACE.xxl}px;}
+.tl-flat .tl-tabs{background:${tintRGBA(PALE.edge, 0.14)};border:1px solid ${PACK_THEME.hairline};border-radius:${PACK_R.pill}px;padding:${PACK_SPACE.xs}px;gap:${PACK_SPACE.xs}px;margin-top:${PACK_SPACE.lg}px;}
+.tl-flat .tl-tab{border:0;border-radius:${PACK_R.pill}px;padding:10px ${PACK_SPACE.md}px;background:none;box-shadow:none;}
+.tl-flat .tl-tab:hover{transform:none;box-shadow:none;}
+.tl-flat .tl-tab-label{font-size:${PACK_TEXT.label}px;}
+.tl-flat .tl-tab.on{background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};}
+.tl-flat .tl-tab.on:hover{background:${LAPIS.gradHover};box-shadow:${LAPIS_BTN_SHADOW};}
+.tl-flat .comm-vhead{background:none;border:0;border-radius:0;box-shadow:none;padding:${PACK_SPACE.sm}px 0 ${PACK_SPACE.lg}px;}
+.tl-flat .comm-cat,.tl-flat .comm-drop{background:none;border:0;border-radius:0;box-shadow:none;border-top:1px solid ${PACK_THEME.border};padding:${PACK_SPACE.xl}px 0 0;margin:${PACK_SPACE.xl}px 0 0;}
+.tl-flat .comm-cat--click:hover,.tl-flat .comm-drop:hover{background:none;border-top-color:${PACK_THEME.border};}
+`;
+
 export const COMMUNITY_CSS = `${HIT_CSS}
 ${VEIL_CSS}
 /* ════════════════════════════════════════════════════════════════════════════

@@ -14,6 +14,7 @@ import { sosDeclare, sosLastPhone, sosMyDogs, sosResume, type SosDog } from '@/l
 import { sosInvalidate } from '@/components/pack/sosKit';
 import { MapAttribution, MAP_ATTR_CSS } from '@/components/pack/mapAttribution';
 import { PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI } from '@/components/pack/packTheme';
+import { APP_NEW } from '@/lib/packFlags';
 import { SosCard, sosErrCode, sosPath, useBack, useSosT } from './sosShared';
 import { SosTaskShell } from './SosTaskShell';
 import type { SosKey } from './sosTexts';
@@ -21,6 +22,8 @@ import type { SosKey } from './sosTexts';
 const SK_CENTER: [number, number] = [48.7, 19.7];
 
 const CSS = `
+.sos-card.sos-card--flat{padding:${PACK_SPACE.xl}px 0;border-bottom:1px solid ${T.border};}
+.sos-card.sos-card--flat:last-child{border-bottom:0;}
 .sosn-dogs{display:grid;grid-template-columns:repeat(3,1fr);gap:${PACK_SPACE.sm}px;}
 .sosn-dog{display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.xs}px;min-height:96px;
   border-radius:${PACK_R.tile}px;min-width:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;}
@@ -202,7 +205,7 @@ export default function PackSosNew() {
     <SosTaskShell onBack={back} backLabel={s('pack.sos.back')}>
       <style>{CSS}</style>
       <style>{MAP_ATTR_CSS}</style>
-      <SosCard>
+      <SosCard flat={APP_NEW}>
         <h1 className="sos-h2">{s('pack.sos.new.title')}</h1>
         {dogs === null ? <p className="sos-p">{s('pack.sos.loading')}</p> : dogsErr ? (
           <>
@@ -227,20 +230,20 @@ export default function PackSosNew() {
       </SosCard>
 
       {dog?.active_slug ? (
-        <SosCard>
+        <SosCard flat={APP_NEW}>
           <p className="sos-p"><b>{dog.dog_name}</b> {s('pack.sos.new.searching')}</p>
           <button type="button" className="sos-cta" onClick={() => navigate(sosPath.page(dog.active_slug!))}>{s('pack.sos.new.openPage')}</button>
         </SosCard>
       ) : dog && (
         <>
           {dog.ended_slug && dog.ended_id && (
-            <SosCard>
+            <SosCard flat={APP_NEW}>
               <p className="sos-p"><b>{dog.dog_name}</b> · {s('pack.sos.new.endedHint')}</p>
               <button type="button" className="sos-cta" disabled={busy} onClick={resumeEnded}>{s('pack.sos.det.resume')}</button>
               {errs.resume && <p className="sos-err">{errs.resume}</p>}
             </SosCard>
           )}
-          <SosCard>
+          <SosCard flat={APP_NEW}>
             <h2 className="sos-h2">{s('pack.sos.new.mapTitle')}</h2>
             <p className="sos-p">{s('pack.sos.new.mapHint')}</p>
             <div className="sosn-map">
@@ -254,7 +257,7 @@ export default function PackSosNew() {
             {errs.coords && <p className="sos-err">{errs.coords}</p>}
           </SosCard>
 
-          <SosCard>
+          <SosCard flat={APP_NEW}>
             <label className="sos-field"><span>{s('pack.sos.new.place')}</span>
               <input className={`pf-field${errs.place ? ' is-bad' : ''}`} value={place} maxLength={200} placeholder={s('pack.sos.new.placeHint')}
                 onChange={(e) => { placeTouched.current = true; setPlace(e.target.value); }} />

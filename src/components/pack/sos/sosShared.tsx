@@ -232,7 +232,9 @@ export function SosStyles() {
 }
 
 /** KARTA = PACK_BOX.card (r16, zlatý rám). */
-export function SosCard({ children, className = '' }: { children: ReactNode; className?: string }) {
+export function SosCard({ children, className = '', flat = false }: { children: ReactNode; className?: string; flat?: boolean }) {
+  // flat (APP_NEW, audit layoutu 7. 11. 2026): sekcia bez krabice — rámik nesie `.sos-card--flat` v CSS, nie inline štýl.
+  if (flat) return <section className={`sos-card sos-card--flat ${className}`}>{children}</section>;
   return <section className={`sos-card ${className}`} style={{ ...PACK_BOX.card }}>{children}</section>;
 }
 
