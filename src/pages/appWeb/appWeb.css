@@ -1523,3 +1523,16 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
   .aw .join .join-cta-m{display:flex;grid-column:1/-1;justify-content:center;margin-top:var(--s-xl);position:relative;z-index:3}
 }
 .aw .trail-faces>.trail-end:first-child em{left:0;transform:none}
+/* hero odznaky: vysvetlivka sa ovláda triedou .on (ťuk), hover len pre myš; otvorený odznak ide nad ostatné; Učeň na mobile nižšie, aby ho vysvetlivka Služobníka neprekryla */
+.aw .flt:focus .tip{opacity:0;transform:translateX(-50%) translateY(-4px)}
+@media(hover:hover){.aw .flt:hover .tip{opacity:1;transform:translateX(-50%) translateY(0)}}
+.aw .flt.on .tip{opacity:1;transform:translateX(-50%) translateY(0)}
+.aw .flt.on,.aw .flt:hover{z-index:12}
+@media(max-width:600px){.aw .flt.f3{top:300px}}
+/* mobil: vysvetlivky krajných odznakov nevybehnú za okraj (f1 drží ľavú hranu pilulky, f2 pravú) */
+@media(max-width:600px){
+  .aw .flt.f1 .tip,.aw .flt.f3 .tip{left:0;transform:translateY(-4px)}
+  .aw .flt.f1.on .tip,.aw .flt.f3.on .tip{transform:none}
+  .aw .flt.f2 .tip{left:auto;right:0;transform:translateY(-4px)}
+  .aw .flt.f2.on .tip{transform:none}
+}

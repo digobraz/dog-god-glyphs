@@ -246,7 +246,7 @@ function LivePlanet() {
       <section className="planet-live theme-light" ref={visRef}>
         {/* `.aw .pop` (modal /app) zasiahne aj `.planet-root.pop` = guľa s otvorenou kartou psa → display:none, guľa zmizne.
             Tu ju vrátime na pôvodné hodnoty (rovnaké ako `.planet-root` v DogPlanetLab). */}
-        <style>{`.aw .planet-live .planet-root.pop{display:flex;position:fixed;inset:0;z-index:80;padding:0;animation:none;align-items:center;justify-content:center}`}</style>
+        <style>{`.aw .planet-live .planet-root.pop{display:flex;position:fixed;inset:0;z-index:80;padding:0;animation:none;align-items:center;justify-content:center}.aw .planet-live .planet-root.pop .pp-panel{z-index:20}.aw .planet-live .planet-root .planet-stage{z-index:1}`}</style>
         {near && <Suspense fallback={null}><GodsGridLab embedded paused={!vis} planetAnywhere /></Suspense>}
         {/* odkazy do obchodov sa presťahovali z bloku POTREBUJEME ŤA sem, vľavo dole (Matej 6. 11.) */}
         <div className="planet-stores"><Stores /></div>
@@ -297,6 +297,9 @@ export default function AppWeb() {
 
   /* hlavička — priesvitná, po scrolle sklo */
   const [stuck, setStuck] = useState(false);
+  /* vysvetlivka odznaku v hero: ťuk otvorí, druhý ťuk alebo ťuk mimo zavrie (Matej 7. 11.: „pils nejdú zavrieť“) */
+  const [tipOn, setTipOn] = useState(0);
+  useEffect(() => { if (!tipOn) return; const off = () => setTipOn(0); window.addEventListener('click', off); window.addEventListener('scroll', off, { passive: true }); return () => { window.removeEventListener('click', off); window.removeEventListener('scroll', off); }; }, [tipOn]);
   useEffect(() => {
     const f = () => { setStuck(window.scrollY > 24); };
     f();
@@ -441,9 +444,9 @@ export default function AppWeb() {
             {CAROUSEL.map(([set, src], i) => (
               <Tilt key={set} set={set} src={src} className={`ph ${pos(i)}`} onOpen={() => setCi(i)} />
             ))}
-            <span className="flt f1" tabIndex={0}><img className="xl" src={`${A}/odznaky/pilgrim-1.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
-            <span className="flt f2" tabIndex={0}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
-            <span className="flt f3" tabIndex={0}><img className="xl" src={`${A}/odznaky/ucen-4.webp`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
+            <span className={`flt f1${tipOn === 1 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 1 ? 0 : 1); }}><img className="xl" src={`${A}/odznaky/pilgrim-1.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
+            <span className={`flt f2${tipOn === 2 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 2 ? 0 : 2); }}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
+            <span className={`flt f3${tipOn === 3 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 3 ? 0 : 3); }}><img className="xl" src={`${A}/odznaky/ucen-4.webp`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
           </div>
         </div>
       </section>
@@ -632,10 +635,10 @@ export default function AppWeb() {
                 <b>{ucLive == null ? (UCEN_PCT[ucOn] === '1.' ? '1' : UCEN_PCT[ucOn]) : `${(ucLive * 100).toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB', { maximumFractionDigits: 1 })} %`}</b>
                 <span>{c('ax3')} {ucOn + 1} · {ucLive == null && UCEN_PCT[ucOn] === '1.' ? c('uc_first') : c('uc_vault')}</span>
               </p>
+              <p className="ai-ucscr"><b>{c('uc_scrolled')}: {Math.round((ucLive ?? (UCEN_PCT[ucOn] === '1.' ? 0 : parseFloat(UCEN_PCT[ucOn]) / 100)) * vScrolls).toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB')}</b> {c('uc_of')} {vScrolls.toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB')} {c('uc_scrolls')}</p>
               <div className="ai-ucrow">{UCEN_PCT.map((pc, i) => (
               <button key={i} type="button" className={`${ucOn === i ? 'on' : ''}${ucLive != null && i > ucOn ? ' off' : ''}`} onPointerEnter={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onFocus={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onClick={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }}>
                 <img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" loading="lazy" />
-              <p className="ai-ucscr"><b>{c('uc_scrolled')}: {Math.round((ucLive ?? (UCEN_PCT[ucOn] === '1.' ? 0 : parseFloat(UCEN_PCT[ucOn]) / 100)) * vScrolls).toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB')}</b> {c('uc_of')} {vScrolls.toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB')} {c('uc_scrolls')}</p>
               </button>
             ))}</div>
               <p className="ai-uchint">{c('uc_hint')}</p>
