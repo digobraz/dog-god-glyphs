@@ -5,8 +5,9 @@ import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 /** MOZOG UČŇA na /app (Matej 6. 11. večer: „tú neurónovú sieť, čo už máme postavenú … animácia, ako sa rozsvecujú
  *  jednotlivé uzly a synapsy“). Ten istý engine ako mozog VAULTU v appke, vrstva POSTUP: zrná sa po jednom
  *  rozsvietia až po podiel zvoleného Učňa. Labka (myš) rozsvecuje, čo prejde — svety, okruhy, zrná aj synapsy
- *  (engine `glow`); koliesko sa k plátnu nedostane, aby rolovalo stránku. Na dotykovom displeji je plátno
- *  len na pozeranie — inak by sa cez mozog nedalo rolovať. */
+ *  (engine `glow`); koliesko sa k plátnu nedostane, aby rolovalo stránku. Na dotyku (hover:none) CSS plátno
+ *  vypína (pointer-events:none), a tak sa mozog nedal rozsvietiť vôbec — preto ho tu zapíname späť s
+ *  `touch-action: pan-y`: zvislý ťah rolí stránku (aj cez mozog), vodorovný/šikmý ťah rozsvecuje. */
 export function AiBrain({ share, head, onShare }: { share: number; head: string; onShare?: (n: number, total: number) => void }) {
   /* NAŽIVO (Matej 6. 11.: „dotyk synapsí to vyfarbí ale ponechá a tým rastú nižšie odznaky“): prvým dotykom labky
      sa ukážka vypne, mozog sa vyprázdni a svieti už len to, čo labka prešla — počet ide hore do odznakov Učňa. */
@@ -22,6 +23,7 @@ export function AiBrain({ share, head, onShare }: { share: number; head: string;
   useEffect(() => {
     const c = cv.current, t = tip.current; if (!c || !t) return;
     let total = 0;
+    c.style.pointerEvents = 'auto'; c.style.touchAction = 'pan-y';
     const h = mountBrain({
       canvas: c, tip: t, worlds: VAULT_WORLDS, head,
       isMobile: () => innerWidth < 700,
