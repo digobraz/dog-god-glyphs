@@ -1014,6 +1014,9 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .top.dark{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(3,7,12,.95)}
 .aw .flt{backdrop-filter:none;-webkit-backdrop-filter:none;background:color-mix(in srgb,var(--paper) 94%,transparent)}
 .aw .mbar{backdrop-filter:none;-webkit-backdrop-filter:none;background:color-mix(in srgb,var(--paper) 97%,transparent)}
+/* 7. 11.: aj sklenené karty (.pk-stage, 22 ks) a štítky mockupov — 24 rozmazaní nad pevnou tapetou s perleťou sa pri
+   každom posune prepočítavalo na GPU; pod nimi je hladký papyrus, takže rozmazanie nebolo vidno */
+.aw .pk-stage,.aw .vs-tag{backdrop-filter:none;-webkit-backdrop-filter:none}
 /* vlna a ekvalizér: výška → transform (výška prepočítavala rozloženie 40 pruhov v každom snímku) */
 .aw .ai-wave i{height:100%;transform:scaleY(.12)}
 .aw .pd-eq i{height:100%;transform:scaleY(.3);transform-origin:50% 100%}
