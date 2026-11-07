@@ -1446,7 +1446,8 @@ html:has(.aw){scroll-snap-type:y proximity}
 .aw .gs-stack .good2 .pic img{width:100%;height:auto;max-width:none;object-fit:contain}
 @media(min-width:900px){
   .aw .gs-stack .gs-slide.good2{grid-template-columns:1fr 1fr;min-height:620px;padding:var(--s-xxl)}
-  .aw .gs-stack .good2 .pic{position:absolute;left:-14%;bottom:-24%;width:66%}
+  /* vidno VRCH planéty (Matej s Hektorom), spodok s visiacimi postavami schová spodný okraj (Matej 7. 11.) */
+  .aw .gs-stack .good2 .pic{position:absolute;left:-14%;top:var(--s-lg);width:66%}
   .aw .gs-stack .good2>div:last-child{grid-column:2;position:relative}
 }
 @media(max-width:899px){
