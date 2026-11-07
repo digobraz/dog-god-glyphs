@@ -6,8 +6,9 @@
  *  Obsah bubliny = ten istý ako dekodér na /onepage: Hektorove SKUTOČNÉ hodnoty zo slovníka
  *  `onepage.dgx.bub.<slot>.label|value|glyph` (čo je to za údaj · hodnota · ako sa kresba volá) (farebná legenda oblastí
  *  pod rámom bola a Matej ju 6. 11. zrušil) — Matej 6. 11.: „daj logiku toho, čo už máme hotové aj obsahovo“. */
-import { useEffect, useState, type CSSProperties, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { useT } from '@/i18n/LanguageContext';
+import './glyph.css';
 
 const ALBAS = [
   { n: 43,
@@ -111,7 +112,7 @@ const GROUPS = [
 ] as const;
 
 const useVertical = () => {
-  const q = '(max-width: 767px)';
+  const q = '(max-width: 899px)';
   const [v, setV] = useState(() => typeof window !== 'undefined' && window.matchMedia(q).matches);
   useEffect(() => {
     const m = window.matchMedia(q);
@@ -157,15 +158,27 @@ function GlyphZonesH() {
   );
 }
 
-/* mobil: zvislý rám s bodkami */
+/* mobil (<900 px): zvislý rám ZATVORENÝ v strede, bodky pri ňom; ťuk na bodku alebo diel rámu ho posunie do strany
+ *  a vedľa otvorí kartu skupiny; ťuk na tú istú skupinu, mimo alebo Esc = späť do stredu (Matej 7. 11.). */
 function GlyphZonesV() {
   const t = useT();
-  const [on, setOn] = useState<string>('basics');
-  const grp = GROUPS.find(x => x.g === on)!;
-  const items = SLOTS_V.filter(z => z.g === on);
+  const root = useRef<HTMLDivElement>(null);
+  const [on, setOn] = useState<string | null>(null);
+  const [last, setLast] = useState<string>('basics');
+  const pick = (g: string) => { setLast(g); setOn(cur => (cur === g ? null : g)); };
+  useEffect(() => {
+    if (!on) return;
+    const out = (e: Event) => { if (root.current && !root.current.contains(e.target as Node)) setOn(null); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOn(null); };
+    document.addEventListener('pointerdown', out);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('pointerdown', out); document.removeEventListener('keydown', esc); };
+  }, [on]);
+  const grp = GROUPS.find(x => x.g === last)!;
+  const items = SLOTS_V.filter(z => z.g === last);
   return (
-    <div className={`gz v g-${on}`}>
-      <div className="gz-card" aria-live="polite">
+    <div ref={root} className={`gz v gv g-${last}${on ? ' open' : ''}`}>
+      <div className="gz-card" aria-live="polite" aria-hidden={!on}>
         <h4>{t(`onepage.dgx.k.${grp.n}.name`)}</h4>
         <ul>
           {items.map(z => (
@@ -179,7 +192,7 @@ function GlyphZonesV() {
       <div className="gz-dots" role="tablist">
         {GROUPS.map(x => (
           <button key={x.g} type="button" role="tab" aria-selected={on === x.g} aria-label={t(`onepage.dgx.k.${x.n}.name`)}
-            className={`g-${x.g}${on === x.g ? ' on' : ''}`} onClick={() => setOn(x.g)} onPointerEnter={e => { if (e.pointerType === 'mouse') setOn(x.g); }} />
+            className={`g-${x.g}${on === x.g ? ' on' : ''}`} onClick={() => pick(x.g)} />
         ))}
       </div>
       <svg className="gz-svg" viewBox={VB_V} role="img" aria-label="heroglyph">
@@ -187,9 +200,8 @@ function GlyphZonesV() {
         <path d={D_CART_V} fill="#2a1608" />
         {SLOTS_V.map(z => (
           <g key={z.k} className={`gz-z g-${z.g}${on === z.g ? ' on' : ''}`} tabIndex={0} role="button" aria-label={t(`onepage.dgx.bub.${z.k}.label`)}
-            onPointerEnter={e => { if (e.pointerType === 'mouse') setOn(z.g); }}
-            onClick={() => setOn(z.g)}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOn(z.g); } }}>
+            onClick={() => pick(z.g)}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(z.g); } }}>
             <rect className="gz-hl" x={z.x} y={z.y} width={z.w} height={z.h} rx={14} />
             <image href={`/heroglyph/dogtrix/hek/${z.k}.svg`} x={z.x} y={z.y} width={z.w} height={z.h} preserveAspectRatio="xMidYMid meet" />
           </g>
