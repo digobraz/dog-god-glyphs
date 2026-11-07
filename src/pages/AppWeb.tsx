@@ -244,6 +244,9 @@ function LivePlanet() {
   return (
     <div ref={mountRef}>
       <section className="planet-live theme-light" ref={visRef}>
+        {/* `.aw .pop` (modal /app) zasiahne aj `.planet-root.pop` = guľa s otvorenou kartou psa → display:none, guľa zmizne.
+            Tu ju vrátime na pôvodné hodnoty (rovnaké ako `.planet-root` v DogPlanetLab). */}
+        <style>{`.aw .planet-live .planet-root.pop{display:flex;position:fixed;inset:0;z-index:80;padding:0;animation:none;align-items:center;justify-content:center}`}</style>
         {near && <Suspense fallback={null}><GodsGridLab embedded paused={!vis} planetAnywhere /></Suspense>}
         {/* odkazy do obchodov sa presťahovali z bloku POTREBUJEME ŤA sem, vľavo dole (Matej 6. 11.) */}
         <div className="planet-stores"><Stores /></div>
@@ -294,9 +297,8 @@ export default function AppWeb() {
 
   /* hlavička — priesvitná, po scrolle sklo */
   const [stuck, setStuck] = useState(false);
-  const [mbar, setMbar] = useState(false);
   useEffect(() => {
-    const f = () => { setStuck(window.scrollY > 24); setMbar(window.scrollY > 600); };
+    const f = () => { setStuck(window.scrollY > 24); };
     f();
     addEventListener('scroll', f, { passive: true });
     return () => removeEventListener('scroll', f);
@@ -720,6 +722,8 @@ export default function AppWeb() {
             <div className="join-ph"><img src="/images/council-pharaoh.webp" alt="" loading="lazy" /></div>
             {/* pás svorky cez celú šírku bloku, nad faraónom */}
             <DogTrail goal={c('goal')} />
+            {/* mobil: CTA až pod progresom (Matej 7. 11.) */}
+            <a className="pk-cta join-cta-m" href="/heroglyph/name">{c('cta_join')}</a>
           </Rv>
         </div>
       </section>
@@ -750,7 +754,6 @@ export default function AppWeb() {
       {/* 11 · ŽIVÁ PLANÉTKA — finále */}
       <LivePlanet />
 
-      <div className={`mbar${mbar ? ' on' : ''}${onPlanet ? ' away' : ''}`}><a className="pk-cta" href="#join">{c('mbar')}</a></div>
 
       {nakres && (
         <div className="bgpick">

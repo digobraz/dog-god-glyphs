@@ -1465,3 +1465,60 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .gs-stack .gs-slide{scroll-snap-align:none;scroll-snap-stop:normal}
 @media(min-width:768px){.aw .alba{scroll-snap-align:none}}
 @media(min-width:900px){.aw .igph{scroll-snap-align:none}}
+/* 7. 11. večer — Matejove postrehy z mobilu (plany/web-postrehy-2026-11-07-vecer.md) */
+/* 1 · STIAHNI v sticky hlavičke aj na mobile (spodnú lištu prekrýval stavový riadok, zmazaná) */
+@media(max-width:999px){
+  .aw .top .wrap>.pk-cta{display:inline-flex;margin-left:auto;padding:10px 16px;font-size:var(--t-body)}
+  .aw .top .wrap>.pk-cta+.burger{margin-left:var(--s-sm)}
+}
+/* 2 · mobil: všetky tri odznaky nad mockupmi (Učeň vytŕčal pod telefón) */
+@media(max-width:600px){
+  .aw .flt.f1{top:4px;left:14px}
+  .aw .flt.f2{top:96px;right:4px}
+  .aw .flt.f3{top:188px;left:24px}
+}
+/* 4 · pilulky pri odznakoch v hero a pri ikonkách IG/DOGYPT: podklad 90 % */
+.aw .flt,.aw .vs-tag{background:color-mix(in srgb,var(--paper) 90%,transparent)}
+/* 5 · VS: viac vzduchu medzi textom a telefónmi; kotva z menu nezaletí pod hlavičku */
+.aw .vs{margin-top:var(--s-xxl)}
+.aw section[id]{scroll-margin-top:88px}
+@media(min-width:900px){.aw section[id]{scroll-margin-top:104px}}
+/* 11 · svety v lieviku od seba (Matej: „moc na sebe“) */
+.aw .af-row.r7{max-width:1040px;column-gap:var(--s-xxl);row-gap:var(--s-xxl)}
+@media(max-width:899px){.aw .af-row.r7{column-gap:var(--s-lg);row-gap:var(--s-xxl)}}
+/* 12 · citát AINUBISa v strede plochy medzi benefitmi a koncom sekcie */
+.aw .ai-quote{margin-top:clamp(64px,10vw,112px);margin-bottom:calc(-1 * clamp(24px,6vw,80px))}
+.aw .af-row.r7>*{flex-basis:calc((100% - 3 * var(--s-lg)) / 4)}
+@media(min-width:900px){.aw .af-row.r7>*{flex-basis:calc((100% - 6 * var(--s-xxl)) / 7)}}
+/* 13–14 · mobil POĎAKOVANIE: viac vzduchu nad blokom; obrázok na stred, odseknutý kúsok pod logom DOGYPT (logo = 56 % výšky obrázka) */
+@media(max-width:899px){
+  #good{padding-top:var(--s-xxxl)}
+  .aw .gs-stack .good2 .pic{order:2;width:120%;margin:0 -10% calc(-1 * var(--s-xl));aspect-ratio:941/1003;overflow:hidden;justify-self:center}
+  .aw .gs-stack .good2 .pic img{width:100%;height:auto}
+}
+/* 16 · progres svorky: 1M nad pásom vpravo, pás na celú šírku, tváre menšie (zhluk < polovica) */
+.aw .trail-row{grid-template-columns:1fr}
+.aw .trail-goal{grid-column:1;grid-row:1;justify-self:end;margin-bottom:var(--s-sm)}
+.aw .trail-glass,.aw .trail-faces{grid-row:2}
+.aw .trail-end img{width:40px;height:40px}
+.aw .trail-last img{width:46px;height:46px}
+.aw .trail-mid img{width:22px;height:22px;margin-left:-10px}
+.aw .trail-mid img:first-child{margin-left:-8px}
+.aw .trail-last{margin-left:-8px}
+@media(max-width:600px){
+  .aw .trail-end img{width:32px;height:32px}
+  .aw .trail-last img{width:36px;height:36px}
+  .aw .trail-mid img{width:18px;height:18px;margin-left:-8px}
+  .aw .trail-mid img:nth-child(n+5){display:none}
+}
+/* 15 · mobil: číslo / 1 000 000 cez celú šírku, CTA až pod progresom */
+.aw .join-cta-m{display:none}
+@media(max-width:899px){
+  .aw .join-goal>div{width:100%}
+  .aw .join-goal p{justify-content:space-between;gap:var(--s-sm)}
+  .aw .join-goal b{font-size:clamp(64px,22vw,112px)}
+  .aw .join-goal span{font-size:clamp(24px,8.6vw,44px)}
+  .aw .join-goal .pk-cta{display:none}
+  .aw .join .join-cta-m{display:flex;grid-column:1/-1;justify-content:center;margin-top:var(--s-xl);position:relative;z-index:3}
+}
+.aw .trail-faces>.trail-end:first-child em{left:0;transform:none}
