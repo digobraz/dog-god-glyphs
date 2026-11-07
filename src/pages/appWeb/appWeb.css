@@ -1433,3 +1433,26 @@ html:has(.aw){scroll-snap-type:y proximity}
    `scale` je samostatná vlastnosť, takže hover/vyskočenie cez `transform` ostáva nedotknuté. */
 .aw img[src*="/odznaky/ucen-"]{scale:.8}
 .aw img[src*="/odznaky/pilgrim-"]{scale:1.15}
+
+/* 7. 11. — POĎAKOVANIE: tri bloky pod sebou v jednej šírke (ruší vodorovný pás .gs-tr) */
+.aw .gs-stack{display:grid;gap:var(--s-xl)}
+.aw .gs-stack .gs-slide{flex:none;width:100%;height:auto;min-height:0;max-height:none;margin:0}
+/* planéta odseknutá ľavým a spodným okrajom karty, vypĺňa čo najviac plochy; bez troch blokov (Matej 7. 11.) */
+.aw .gs-stack .gs-slide.good2{position:relative;overflow:hidden}
+.aw .gs-stack .good2 .pic{width:auto;height:auto;max-height:none;display:block;justify-self:stretch}
+.aw .gs-stack .good2 .pic img{width:100%;height:auto;max-width:none;object-fit:contain}
+@media(min-width:900px){
+  .aw .gs-stack .gs-slide.good2{grid-template-columns:1fr 1fr;min-height:620px;padding:var(--s-xxl)}
+  .aw .gs-stack .good2 .pic{position:absolute;left:-14%;bottom:-24%;width:66%}
+  .aw .gs-stack .good2>div:last-child{grid-column:2;position:relative}
+}
+@media(max-width:899px){
+  .aw .gs-stack .good2 .pic{order:2;width:135%;margin:0 0 -30% -45%}
+}
+/* 7. 11. — cieľ 1M plnou oranžovou, výrazne (Matej: „dolu ten goal oranžovou a výraznou… plnou“) */
+.aw .trail-goal{border:0;background:linear-gradient(180deg,#FFD27A 0%,#F5A623 45%,#E07B10 100%);box-shadow:0 0 22px rgba(245,166,35,.6),inset 0 -3px 6px rgba(150,60,0,.35),inset 0 1px 0 rgba(255,255,255,.6);padding:8px 16px}
+.aw .trail-goal b{color:#1A0E02;font-size:30px}
+.aw .trail-goal em{color:#1A0E02;opacity:1;font-weight:600}
+/* 7. 11. — HEKTHOR aj posledný pes: jedna pilulka, kapitálky v lapise, rovnaká veľkosť */
+.aw .trail-end em,.aw .trail-last em{font:600 var(--t-micro)/1 var(--font-ui);font-style:normal;letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;border-radius:var(--r-pill);background:var(--lapis);box-shadow:var(--lapis-shadow);color:var(--lapis-ink)}
+.aw .trail-end em b{color:inherit;font-weight:600}

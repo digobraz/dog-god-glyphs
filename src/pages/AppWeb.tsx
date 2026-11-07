@@ -19,7 +19,7 @@
  */
 import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Seo } from '@/components/Seo';
-import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar, HandArrowLeft } from '@/components/pack/HandIcons';
+import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar } from '@/components/pack/HandIcons';
 import AI_HEAD from '@/assets/ainubis-head.webp';
 import { AiFlow } from './appWeb/AiFlow';
 import { AiScrolls, AiPods, AiChat } from './appWeb/AiLearn';
@@ -174,31 +174,6 @@ function Stores() {
 
 /** Do živej appky v telefóne sa vstrekne štýl, ktorý skryje predajné prvky /magnet
  *  (kartu a lištu s cenou €11 — appka je od 5. 11. zadarmo) a vývojárske tlačidlá. */
-
-/** Vodorovný pás snímok (blok poďakovania): natívny scroll so snap — prst, trackpad aj šípky; pilulky hore = poloha. */
-function GoodSlides({ labels, children }: { labels: string[]; children: ReactNode }) {
-  const tr = useRef<HTMLDivElement>(null);
-  const [at, setAt] = useState(0);
-  /* snímka je užšia než pás (ďalšia vykukuje „na rade“), krok sa preto berie z polohy snímky, nie zo šírky pásu */
-  const kids = () => [...(tr.current?.children ?? [])] as HTMLElement[];
-  const go = (i: number) => { const el = tr.current, k = kids()[i]; if (el && k) el.scrollTo({ left: k.offsetLeft - kids()[0].offsetLeft, behavior: 'smooth' }); };
-  const onScroll = () => {
-    const el = tr.current; if (!el) return;
-    const x0 = kids()[0]?.offsetLeft ?? 0;
-    let best = 0; kids().forEach((k, i) => { if (Math.abs(k.offsetLeft - x0 - el.scrollLeft) < Math.abs(kids()[best].offsetLeft - x0 - el.scrollLeft)) best = i; });
-    setAt(best);
-  };
-  return (
-    <div className="gs">
-      <div className="gs-tabs" role="tablist">
-        {labels.map((l, i) => <button key={l} role="tab" aria-selected={at === i} className={at === i ? 'on' : ''} onClick={() => go(i)}>{l}</button>)}
-      </div>
-      <div className="gs-tr" ref={tr} onScroll={onScroll}>{children}</div>
-      <button className="sl-btn l" aria-label="Späť" disabled={at === 0} onClick={() => go(at - 1)}><HandArrowLeft size={18} /></button>
-      <button className="sl-btn r" aria-label="Ďalej" disabled={at === labels.length - 1} onClick={() => go(at + 1)}><HandArrowLeft size={18} style={{ transform: 'scaleX(-1)' }} /></button>
-    </div>
-  );
-}
 
 /** PÁS SVORKY (Matej 6. 11.: „progres bar s tvárami psov, ako už máme, aj meno posledného“) — pokojná verzia
  *  pásu z /onepage (tam ho riadi kamera filmu): Hekthor #1 · rovnomerne vybrané psy z celej svorky · posledný pes
@@ -657,12 +632,13 @@ export default function AppWeb() {
 
       </section>
 
-      {/* 7 · POĎAKOVANIE — tri snímky vodorovne: poďakovanie + počet psov · intro video · DOGMA
-          (Matej 6. 11.: „blok poďakovanie bude mať 3 časti na horizontálny scroll“; „Za hrou“ sa v ňom rozpustil) */}
+      {/* 7 · POĎAKOVANIE — tri bloky POD SEBOU v jednej šírke: poďakovanie · intro video · DOGMA
+          (Matej 7. 11.: „tieto bloky musia byť pod sebou v tej istej šírke“ — ruší vodorovný scroll zo 6. 11.) */}
       <section id="good">
         <div className="wrap">
-          <GoodSlides labels={[c('sl_good'), c('sl_video'), c('sl_dogma')]}>
+          <div className="gs-stack">
             <div className="gs-slide good2 pk-card">
+              {/* planéta odseknutá ľavým a spodným okrajom karty (Matej 7. 11.) */}
               <div className="pic"><img src="/images/vision/vision-unity.webp" alt="" loading="lazy" /></div>
               <div>
                 <p className="eye">{c('e_good')}</p>
@@ -673,11 +649,6 @@ export default function AppWeb() {
                   <small>{c('split_h')}</small>
                   <div className="gs-bar">{TRANSPARENCY_SPLIT.map((p) => <i key={p.labelKey} style={{ flex: p.share, background: p.color }} />)}</div>
                   <ul>{TRANSPARENCY_SPLIT.map((p) => <li key={p.labelKey}><i style={{ background: p.color }} />{t(p.labelKey)}</li>)}</ul>
-                </div>
-                <div className="bowls">
-                  <div className="pk-subblock"><b>€0</b><span>{c('b1')}</span></div>
-                  <div className="pk-subblock"><b>{c('b2v')}</b><span>{c('b2')}</span></div>
-                  <div className="pk-subblock"><b>{c('b3v')}</b><span>{c('b3')}</span></div>
                 </div>
                 <a className="pk-cta" href="#">{c('give')}</a>
                 {nakres && <p style={{ margin: '16px 0 0' }}><Note k="n_good" flag /></p>}
@@ -704,7 +675,7 @@ export default function AppWeb() {
                 <p className="motto">{c('motto')}</p>
               </div>
             </div>
-          </GoodSlides>
+          </div>
         </div>
       </section>
 
