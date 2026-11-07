@@ -1460,3 +1460,8 @@ html:has(.aw){scroll-snap-type:y proximity}
 /* 7. 11. — HEKTHOR aj posledný pes: jedna pilulka, kapitálky v lapise, rovnaká veľkosť */
 .aw .trail-end em,.aw .trail-last em{font:600 var(--t-micro)/1 var(--font-ui);font-style:normal;letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;border-radius:var(--r-pill);background:var(--lapis);box-shadow:var(--lapis-shadow);color:var(--lapis-ink)}
 .aw .trail-end em b{color:inherit;font-weight:600}
+/* 7. 11. — „pri scrollingu ma divne vracia“: stránka sa prichytáva len k planétke. Prvky, ktorých rad na PC nie je posuvný pás,
+   by sa inak stali zastávkami celej stránky (IG telefóny, Alby, bloky poďakovania so snap-stop:always) */
+.aw .gs-stack .gs-slide{scroll-snap-align:none;scroll-snap-stop:normal}
+@media(min-width:768px){.aw .alba{scroll-snap-align:none}}
+@media(min-width:900px){.aw .igph{scroll-snap-align:none}}
