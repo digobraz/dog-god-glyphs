@@ -1504,6 +1504,10 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 /* bod 3 (Matej 2026-07-22): šípky VŽDY viditeľné (opacity .9, nie hover-only) — člen musí
    vidieť, že fotky sa dajú prepínať. Plnšie na hover. */
 .trp-bigcard-photonav{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 8px;opacity:.9;transition:opacity .15s;}
+/* Vrstva so šípkami leží cez celú fotku — bez pointer-events:none by zachytila švih trackpadu aj prsta a fotky pod ňou
+   by sa nedali posúvať (Matej 7. 11. 2026: „nejde horizontálny slajd fotiek na detaile výletu na ľavom paneli“). */
+.trp-bigcard-photonav{pointer-events:none;}
+.trp-bigcard-photonav > *{pointer-events:auto;}
 .trp-bigcard-photo:hover .trp-bigcard-photonav{opacity:1;}
 .trp-bigcard-photobtn{width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.28);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,0.5);}
 .trp-bigcard-photobtn:hover{background:rgba(0,0,0,0.85);border-color:${GOLD};}
@@ -3499,7 +3503,6 @@ function MagnetTripsInfo({ locked, onTryAdd, where }: {
   };
   // Výška bloku na PC → `--mg-dock-h`: o toľko sa zdvihnú ovládacie prvky a podpis mapy
   // (Mapy.com logo musí ostať vidno — licencia), inak by ich blok prekryl.
-  const mgPub = useMagnetPreview()?.kind === 'map';
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current; if (!el || where !== 'dock' || typeof ResizeObserver === 'undefined') return;
@@ -3512,8 +3515,8 @@ function MagnetTripsInfo({ locked, onTryAdd, where }: {
     <div ref={ref} className={`trp-mginfo trp-mginfo--${where}`}>
       <MagnetAinubisBlock
         where={where}
-        h={mgPub ? tx('magnet.ai.map.h', 'Every trip is yours to read') : tx('magnet.ai.trips.h', '10 trips to taste')}
-        p={mgPub ? tx('magnet.ai.map.p', 'Trails walked with dogs. Read as many as you like; logging trips and collecting kilometres happens in the free app.') : tx('magnet.ai.trips.p', 'You can see the other {n}, but you can’t go in.', { n: locked })}
+        h={tx('magnet.ai.trips.h', '10 trips to taste')}
+        p={tx('magnet.ai.trips.p', 'You can see the other {n}, but you can’t go in.', { n: locked })}
         extra={<>
           <button type="button" className="mgp-ai-chip" onClick={onTryAdd}>
             <img className="mgp-ink" src={ICON('plus')} alt="" />
@@ -6195,7 +6198,8 @@ export default function PackMap() {
 
   const renderTripList = (withRef: boolean) => (
     <>
-      {mg && (
+      {/* na verejnej /map blok AINUBISa nie je (Matej 7. 11.: „kazia dojem z appky“) */}
+      {mg && mg.kind !== 'map' && (
         <MagnetTripsInfo
           where="list"
           locked={mgLockedCount}
@@ -6922,7 +6926,7 @@ export default function PackMap() {
       })()}
 
       {/* NÁHĽAD /magnet — červený blok dole v pravej časti (len PC, mobil ho má vo vrchu zoznamu). */}
-      {mg && !addFlow && (
+      {mg && mg.kind !== 'map' && !addFlow && (
         <MagnetTripsInfo where="dock" locked={mgLockedCount} onTryAdd={mgTryAdd} />
       )}
 

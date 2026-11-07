@@ -116,7 +116,9 @@ export const MAGNET_FOUNDER = {
  *  Jedna pre všetky obrazovky — `usePackIdentity()` by anonyma poslal na /login. */
 export const MAGNET_IDENTITY: PackIdentity = {
   session: null, loading: false, sessionReady: true, dogs: [], devotion: 0, bones: 0,
-  avatarUrl: null, avatarInitial: MAGNET_FOUNDER.initial, packTotal: null, packToday: null,
+  // Fotka zakladateľa (Matej 7. 11. 2026: *„na /map daj môj profil 1:1 … daj tam aj moju foto“) — tá istá ako v jeho účte.
+  avatarUrl: 'https://res.cloudinary.com/dz8lolmod/image/upload/c_fill,g_face,w_200,h_200,q_auto,f_auto/v1780678253/owners/matej/pyjw64j1wc7jscp91z8i.png',
+  avatarInitial: MAGNET_FOUNDER.initial, packTotal: null, packToday: null,
 };
 /**
  * VEREJNÁ `/map` (nákres 7. 11. 2026, Matej: *„verejná stránka /map, kde bude 1:1 to čo v appke, len bez
@@ -413,7 +415,9 @@ export function MagnetPreview({ kind, children }: { kind: MagnetKind; children: 
       {children}
       {/* LIŠTA = tá istá doska AINUBISa v malom: tvár + veta k stránke (od 768 px) + CTA a „Späť".
           Na PC ju skryje blok stránky, ak ho stránka má (`:has(.mgp-dockacts)`). */}
-      <div className={`mgp-bar mgp-bar--${kind}`}>
+      {/* Na /map lišta NIE JE (Matej 7. 11.: *„panely s ainubisom daj preč… sú až moc otravné a kazia dojem z appky“) —
+          appku ponúka len popup pri zamknutej akcii a mäkký popup po treťom výlete. */}
+      {!pub && <div className={`mgp-bar mgp-bar--${kind}`}>
         <div className="mgp-bar-in">
           <img className="mgp-ai-face" src={ainubisFace} alt="" aria-hidden="true" />
           <div className="mgp-bar-txt">
@@ -427,7 +431,7 @@ export function MagnetPreview({ kind, children }: { kind: MagnetKind; children: 
             <button type="button" className="mgp-backlink" onClick={() => (pub ? window.location.assign('/app') : nav('/magnet'))}>{tx('magnet.backShort', 'Back')}</button>
           </div>
         </div>
-      </div>
+      </div>}
       {lockOpen && <LockPopup what={lockOpen} onClose={() => setLockOpen(null)} />}
     </MagnetCtx.Provider>
   );
