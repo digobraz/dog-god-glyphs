@@ -111,25 +111,8 @@ export function EmailScreen() {
   const minutes = dogNames.length + 2;
   // SK: 3–4 „minúty", 5+ „minút". EN má jeden tvar, kľúče sú tam zhodné.
   const minuteWord = t(minutes >= 5 ? 'heroglyph.flow.email.minMany' : 'heroglyph.flow.email.minFew');
-
-  // ── PRIEMER MEDAILÓNU (24. 9. 2026) ────────────────────────────────────────
-  // Matej: *„tu musí byť čo najväčšie Hektorova fotka"* + *„pridaj obruč,
-  // veľkosť potom doladíme"*.
-  // 🔴 Obruč berie 8 % priemeru na KAŽDEJ strane, takže samotná fotka je 84 %
-  //    z tohto čísla — 260 znamená psa 218 px. Preto je strop vyšší než tých
-  //    200/240, ktoré mala fotka bez rámu.
-  // Rovnica, nie pevné číslo: menšia z polovice šírky a podielu výšky okna.
-  // Na 1280×900 vyjde strop 260, na 390×740 dvestoštrnásť, na nízkom okne klesne sama.
-  // ⚠️ PODIEL VÝŠKY JE 0,285, NIE 0,30 (25. 9. 2026). Pri tretine okna obrazovka
-  //    na iPhone SE (375×667) PRETIEKLA o 4 px — premerané meračom HRANICA.
-  //    Matej 25. 9.: *„chceme, aby každá obrazovka… nepretekali a sedeli aj na
-  //    mobile aj PC."* Ustupuje teda OBSAH (Hektor 200 → 190 px na SE), nie
-  //    rezerva od okraja; na väčších oknách sa nemení nič, tam drží strop 260.
-  const medallion = useWinSize(
-    // Nízke okno (≤ 700) berie z tváre, nie zo vzduchu: nadpis 21 px (26. 9. 2026)
-    // pridal riadok a na 375×667 doska pretiekla o 22 px (PAGE_AIR = dno).
-    (w, h) => Math.round(Math.max(96, Math.min(260, Math.min(w * 0.55, h <= 700 ? h * 0.245 - (700 - h) * 0.7 : h * 0.285)))),
-  );
+  // Medailón je od 7. 11. 2026 v rečovej bubline (`.hf-speak`, pevná veľkosť) — dynamická
+  // rovnica z okna (`useWinSize`) zanikla spolu s veľkou tvárou nad textom.
 
   if (!flowOk) return null;
 
@@ -145,7 +128,9 @@ export function EmailScreen() {
         <div className="w-full max-w-xl flex flex-col items-center">
 
           <motion.div
-            className="hf-bubble"
+            // Celá obrazovka (7. 11. 2026): rečová bublina ako ostatné otázky —
+            // fotka vľavo, text v papyrusovej bubline (`.hf-speak`, `flowFullSkin.ts`).
+            className="hf-speak"
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
@@ -158,16 +143,18 @@ export function EmailScreen() {
                 a svorky (Matej: *„prečo nemá okolo fotky obruč ako na prvých
                 dvoch?"*). Bol to holý `<img class="hf-hek">`, jediný ksicht vo
                 vstupe bez rámu; veľkosť sa ešte bude ladiť. */}
-            <FlowMedallion src={hekthorFace('email')} size={medallion} className="hf-medal" />
+            <FlowMedallion src={hekthorFace('email')} size={96} className="hf-medal" />
             {/* ⚠️ Nadpis nesie ČÍSLO (Matej 24. 9.: *„Rezervuj si 3 minúty!"*), a to
                 číslo sa ráta z počtu psov — pri troch psoch je to 5. Preto tie isté
                 parametre ako v odseku pod ním; bez nich by v nadpise ostalo `{minutes}`. */}
-            <h2>{t('heroglyph.flow.email.title', { minutes: String(minutes), minuteWord })}</h2>
-            <p>{t(manyDogs ? 'heroglyph.flow.email.reasonMany' : 'heroglyph.flow.email.reasonOne', {
-              names: nameList,
-              minutes: String(minutes),
-              minuteWord,
-            })}</p>
+            <span className="say">
+              <h2>{t('heroglyph.flow.email.title', { minutes: String(minutes), minuteWord })}</h2>
+              <p>{t(manyDogs ? 'heroglyph.flow.email.reasonMany' : 'heroglyph.flow.email.reasonOne', {
+                names: nameList,
+                minutes: String(minutes),
+                minuteWord,
+              })}</p>
+            </span>
           </motion.div>
 
           <motion.div
@@ -200,7 +187,7 @@ export function EmailScreen() {
                 </button>
               )}
 
-              <button type="button" className="hf-cta" onClick={() => go(true)} disabled={!valid}>
+              <button type="button" className="hf-cta hf-dock" onClick={() => go(true)} disabled={!valid}>
                 {t('heroglyph.flow.name.continue')}
               </button>
 

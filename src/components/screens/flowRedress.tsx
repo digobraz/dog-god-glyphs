@@ -8,6 +8,7 @@ import { FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 import { FLOW_WALL_IMAGE, FLOW_WALL_VEIL } from '@/components/screens/flowPaleSkin';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { prefetchFlowStep } from '@/lib/flowPrefetch';
+import { FLOW_FULL, FLOW_FULL_CSS, FLOW_PROGRESS_FILL } from '@/components/screens/flowFullSkin';
 
 // ════════════════════════════════════════════════════════════════════════════
 // PREZLEČENIE STARÝCH OBRAZOVIEK VSTUPU (31. 8. 2026)
@@ -404,9 +405,12 @@ export function FlowRedress() {
     const root = document.documentElement;
     if (onFlow && skin === 'pale') root.dataset.flowSkin = 'pale';
     else delete root.dataset.flowSkin;
+    // Celá obrazovka (7. 11. 2026): vrstva `flowFullSkin.ts` nad bledým šatom.
+    if (onFlow && skin === 'pale' && FLOW_FULL) root.dataset.flowFull = '1';
+    else delete root.dataset.flowFull;
     // Odchod z routy MUSÍ atribút zložiť — inak prezlečenie ostane visieť
     // na ďalšej stránke, ktorá `.dark-bg` používa na niečo iné.
-    return () => { delete root.dataset.flowSkin; };
+    return () => { delete root.dataset.flowSkin; delete root.dataset.flowFull; };
   }, [onFlow, skin]);
 
   // Krok N si na pozadí stiahne kód aj ksicht kroku N+1 (`lib/flowPrefetch.ts`).
@@ -420,7 +424,7 @@ export function FlowRedress() {
   if (!onFlow) return null;
   return (
     <>
-      <style>{REDRESS_CSS + FLOW_MEDAL_CSS}</style>
+      <style>{REDRESS_CSS + FLOW_MEDAL_CSS + (FLOW_FULL ? FLOW_FULL_CSS : '')}</style>
       {skin === 'pale' && <FlowProgress pathname={pathname} />}
     </>
   );
@@ -531,13 +535,15 @@ function FlowProgress({ pathname }: { pathname: string }) {
       style={{
         position: 'fixed', left: 0, right: 0, top, zIndex: 60,
         pointerEvents: 'none',
+        // Celá obrazovka: pruh je zaoblený, s okrajmi PAGE_AIR a na PC v stĺpci 640.
+        ...(FLOW_FULL ? { left: 'max(16px, calc(50% - 320px))', right: 'max(16px, calc(50% - 320px))', paddingTop: 8 } : {}),
       }}
     >
-      <div style={{ height: 6, background: 'rgba(201,154,63,0.38)' }}>
+      <div style={{ height: 6, background: 'rgba(201,154,63,0.38)', ...(FLOW_FULL ? { borderRadius: 999, overflow: 'hidden' } : {}) }}>
         <div
           style={{
             height: '100%', width: `${pct}%`,
-            background: LAPIS.grad,
+            background: FLOW_FULL ? FLOW_PROGRESS_FILL : LAPIS.grad,
             transition: 'width .28s ease',
           }}
         />

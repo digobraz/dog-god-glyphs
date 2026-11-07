@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { COUNTRIES } from '@/lib/flowCountries';
 import { countryFlag, countryISO2 } from '@/lib/countryGeo';
+import { FlagCircle } from '@/components/pack/FlagCircle';
 import { countryLabel } from '@/lib/countryOptions';
 import { useLang, useT } from '@/i18n/LanguageContext';
 
@@ -68,6 +69,7 @@ export function CountryPick({ value, onChange, placeholder }: CountryPickProps) 
           name,
           label,
           flag: countryFlag(name) || '🏳',
+          iso: iso || '',
           hay: `${fold(label)} ${fold(name)}`,
           rank: rank.has(name) ? (rank.get(name) as number) : 999,
         };
@@ -127,7 +129,7 @@ export function CountryPick({ value, onChange, placeholder }: CountryPickProps) 
   return (
     <div className="hf-cpick" ref={wrapRef}>
       <div className={`hf-field hf-cpick-field${value ? ' is-valid' : ''}`}>
-        <span className="flag">{current?.flag || '🏳'}</span>
+        <span className="flag">{current?.iso ? <FlagCircle iso2={current.iso} label={current.label} size={20} /> : (current?.flag || '🏳')}</span>
         <input
           ref={inputRef}
           value={open ? q : (current?.label || '')}
@@ -157,7 +159,7 @@ export function CountryPick({ value, onChange, placeholder }: CountryPickProps) 
               className={`hf-cpick-item${r.name === value ? ' on' : ''}`}
               onClick={() => pick(r.name)}
             >
-              <span className="flag">{r.flag}</span>
+              <span className="flag">{r.iso ? <FlagCircle iso2={r.iso} label={r.label} size={20} /> : r.flag}</span>
               <span className="lbl">{r.label}</span>
             </button>
           ))}

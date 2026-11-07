@@ -409,7 +409,7 @@ export function EssenceScreen() {
                     „brána" s menom chýbajúceho psa, ktorá tu stála do 26. 9. */}
                 <button
                   type="button"
-                  className={`hf-cta es-cta${allDone ? '' : ' is-off'}`}
+                  className={`hf-cta hf-dock es-cta${allDone ? '' : ' is-off'}`}
                   aria-disabled={!allDone}
                   onClick={() => {
                     if (allDone) { navigate('/heroglyph/breed'); return; }

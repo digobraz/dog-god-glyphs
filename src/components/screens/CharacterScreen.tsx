@@ -297,7 +297,7 @@ export function CharacterScreen() {
                   kroku. Tu je posledné slovo človeka, rovnako ako na PATRÓNOVI. */}
               <button
                 type="button"
-                className="hf-cta"
+                className="hf-cta hf-dock"
                 disabled={!canGo}
                 onClick={() => { if (!canGo) return; if (handover) setCur(missing); else navigate('/heroglyph/owner-info'); }}
               >

@@ -613,7 +613,7 @@ export function PatronScreen() {
                   {t('heroglyph.flow.breed.required')}
                 </button>
               )}
-              <button type="button" className="hf-cta" disabled={!canGo} onClick={go}>
+              <button type="button" className="hf-cta hf-dock" disabled={!canGo} onClick={go}>
                 {handover ? t('heroglyph.flow.multi.nextDog') : t('heroglyph.flow.breed.continue')}
               </button>
             </div>

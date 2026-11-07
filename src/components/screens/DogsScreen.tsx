@@ -5,6 +5,7 @@ import { useDogyptStore, newExtraDog, type ExtraDog } from '@/store/dogyptStore'
 import { PageTopBar } from '@/components/PageTopBar';
 import { DateDropdowns } from '@/components/DateDropdowns';
 import { countryFlag, countryISO2 } from '@/lib/countryGeo';
+import { FlagCircle } from '@/components/pack/FlagCircle';
 import { countryLabel } from '@/lib/countryOptions';
 import { guessCountryName } from '@/lib/guessCountry';
 import { CountryPick } from './CountryPick';
@@ -508,7 +509,7 @@ export function DogsScreen() {
               {/* JEDEN PES = povedz nahlas, že to stačí (Matej 8. 10. 2026: *„stačilo by pri
                   tom kroku dať že pridať psa neskôr"*). Otázka „máš aj ďalšieho psa?" bez
                   zjavnej odpovede NIE zastavila jediného človeka, ktorý sem z IG došiel. */}
-              <button type="button" className="hf-cta" onClick={handleContinue} disabled={!allDone}>
+              <button type="button" className="hf-cta hf-dock" onClick={handleContinue} disabled={!allDone}>
                 {rows.length > 1 ? t('heroglyph.flow.name.continue') : t('heroglyph.flow.dogs.continueOne')}
               </button>
               {rows.length === 1 && (
@@ -756,7 +757,9 @@ function DogRow({ row, order, first, slim, done, flags, nat, onOpen, onPhoto, on
                 </span>
               )}
               <span className={`hf-dpill solo ${flags.country ? 'ok' : 'miss'}`} title={t('heroglyph.flow.dogs.nationality')}>
-                <span className="em">{flags.country ? (countryFlag(dogISO || '') || '🏳') : '?'}</span>
+                {flags.country && dogISO
+                  ? <FlagCircle iso2={dogISO} label={dogISO} size={20} />
+                  : <span className="em">{flags.country ? (countryFlag(dogISO || '') || '🏳') : '?'}</span>}
               </span>
               <span
                 className={`hf-dpill solo ${flags.gone ? 'ok' : 'miss'}`}

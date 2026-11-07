@@ -21,6 +21,7 @@ import { LetterReveal, REVEAL_S, LETTER_S, FLOW_INTRO_CSS } from '@/components/s
 //    prepnúť na starý šat. Medailón by tým prišiel o kresbu obruče a nikto by
 //    netušil prečo; obrazovka si svoj šat nosí sama.
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
+import { FLOW_FULL } from '@/components/screens/flowFullSkin';
 import { FLOW_STAGE_CSS, FLOW_CARVE_CSS, HF, FLOW_TITLE } from '@/components/screens/flowPaleSkin';
 import { FlowModal, FLOW_PANEL_CSS } from '@/components/screens/flowPanel';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
@@ -186,8 +187,9 @@ export function NameScreen() {
   }, []);
   // Matej 26. 9.: *„treba zväčšiť fotku Hektora"* — spodná doska po podkrokoch
   // schudla (jedna otázka namiesto troch), takže medailón môže narásť.
+  // Celá obrazovka (7. 11. 2026): nákres drží medailón na 120 (`FLOW_FULL`).
   const formMedallion = NEW_HEROFLOW
-    ? (winH < 700 ? 124 : winH < 820 ? 160 : 196)
+    ? (FLOW_FULL ? 120 : winH < 700 ? 124 : winH < 820 ? 160 : 196)
     : (winH < 700 ? 96 : winH < 820 ? 118 : 148);
 
   const [showInfo, setShowInfo] = useState(false);
@@ -690,7 +692,7 @@ export function NameScreen() {
                   (rohy 12), ktorý flowRedress prefarboval na lapis a pri
                   nedostupnosti na plochý papyrus — iný vzhľad než na každom
                   ďalšom kroku. Obrazovka FLOW_PALE_CSS nevkladá, preto nm-cta. */}
-              <button type="button" className="nm-cta" onClick={handleSend} disabled={!canContinue}>
+              <button type="button" className="nm-cta hf-dock" onClick={handleSend} disabled={!canContinue}>
                 {t('heroglyph.flow.name.continue')}
               </button>
             </div>

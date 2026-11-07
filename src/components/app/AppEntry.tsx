@@ -20,6 +20,7 @@ import pawImg from '@/assets/app/dotyk-labka.webp';
 import handImg from '@/assets/app/dotyk-ruka.webp';
 import logo2026 from '@/assets/app/logo-2026.svg';
 import { RulesSheet, termsOk } from '@/components/app/TermsGate';
+import { AppWelcome } from '@/components/app/AppWelcome';
 import { callLogin, readPending, registerFreeInApp, savePending, type PubDog, type Sent } from '@/lib/appRegister';
 import { FLOW_FIRST_STEP } from '@/lib/flowMode';
 import { hekthorFace } from '@/lib/hekthorFaces';
@@ -45,7 +46,7 @@ import { clearFlowDraft } from '@/lib/flowDraft';
 // Hosť dostane namiesto kódu mail s odkazom na platbu — appka to nevie a neukáže.
 // ════════════════════════════════════════════════════════════════════════════
 
-type Step = 'gate' | 'touch' | 'roz' | 'number' | 'code' | 'rules' | 'perm';
+type Step = 'gate' | 'touch' | 'roz' | 'number' | 'code' | 'welcome' | 'rules' | 'perm';
 
 /** Povolenia sa pýtajú raz na zariadení — potom už len DOMOV. */
 const PERM_KEY = 'dogypt_app_perm_v1';
@@ -443,7 +444,9 @@ function PermStep({ onDone }: { onDone: () => void }) {
 export default function AppEntry() {
   const [params] = useSearchParams();
   const [sent, setSent] = useState<Sent | null>(readPending);
-  const [step, setStep] = useState<Step>(() => (readPending() ? 'code' : 'gate'));
+  // DEV náhľad Vitaj (`/login?app=1&vitaj=1`) — produkčný build tento kľúč ignoruje.
+  const devVitaj = import.meta.env.DEV && params.get('vitaj') === '1';
+  const [step, setStep] = useState<Step>(() => (devVitaj ? 'welcome' : readPending() ? 'code' : 'gate'));
 
   const nextParam = params.get('next') ?? params.get('return');
   const target = nextParam && nextParam.startsWith('/pack') ? nextParam : '/pack';
@@ -470,12 +473,17 @@ export default function AppEntry() {
   const goNumber = useCallback(() => setStep('number'), []);
   const afterRules = useCallback(() => { if (permAsked()) goHome(); else setStep('perm'); }, [goHome]);
   // Po kóde: PRAVIDLÁ SVORKY (výslovné SÚHLASÍM, App Store 1.2) → povolenia → DOMOV. Kto už súhlasil, ide ďalej.
+  const toRules = useCallback(() => {
+    void supabase.auth.getUser().then(({ data }) => { if (termsOk(data.user)) afterRules(); else setStep('rules'); });
+  }, [afterRules]);
   const signedIn = useCallback(() => {
     // Heroglyf z flowu je uložený (hosť + účet) — rozpracovaný flow už netreba (ako web po zaplatení).
     if (sent?.save) { useDogyptStore.getState().reset(); clearFlowDraft(); }
     savePending(null);
-    void supabase.auth.getUser().then(({ data }) => { if (termsOk(data.user)) afterRules(); else setStep('rules'); });
-  }, [afterRules, sent]);
+    // 7. 11. 2026: heroglyf z flowu končí VITAJ (nákres heroflow na celú obrazovku) → pravidlá → povolenia → DOMOV.
+    if (sent?.save) { setStep('welcome'); return; }
+    toRules();
+  }, [toRules, sent]);
 
   return (
     <div className="ae-root">
@@ -486,6 +494,7 @@ export default function AppEntry() {
       {step === 'roz' && <Roz onHave={goNumber} />}
       {step === 'number' && <NumberStep onBack={goRoz} onSent={(s) => { savePending(s); setSent(s); setStep('code'); }} />}
       {step === 'code' && sent && <CodeStep sent={sent} onIn={signedIn} onSent={setSent} onOther={() => { savePending(null); setSent(null); setStep('roz'); }} />}
+      {step === 'welcome' && <AppWelcome dog={sent?.dogs?.[0] ?? (devVitaj ? { n: 73, name: 'HEKTHOR', photo: null } : undefined)} onEnter={toRules} />}
       {step === 'rules' && <><div className="ae-screen" /><RulesSheet onDone={afterRules} /></>}
       {step === 'perm' && <PermStep onDone={goHome} />}
     </div>

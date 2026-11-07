@@ -562,7 +562,7 @@ export function OwnerScreen() {
                   koncom zavedie na prvú nevyplnenú tému. */}
               <button
                 type="button"
-                className={`hf-cta ow-cta${canGo ? '' : ' is-off'}`}
+                className={`hf-cta hf-dock ow-cta${canGo ? '' : ' is-off'}`}
                 aria-disabled={!canGo}
                 onClick={() => {
                   if (canGo) { goOn(); return; }

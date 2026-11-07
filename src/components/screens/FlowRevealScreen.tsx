@@ -20,6 +20,7 @@ import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PACK_R } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
+import { FLOW_FULL } from '@/components/screens/flowFullSkin';
 
 // ════════════════════════════════════════════════════════════════════════════
 // ODHALENIE + ODKAZ — jedna obrazovka namiesto dvoch (25. 9. 2026)
@@ -96,7 +97,8 @@ export function FlowRevealScreen() {
 
   // ── PRÍCHOD ───────────────────────────────────────────────────────────────
   const [phase, setPhase] = useState<'hero' | 'plate'>(() =>
-    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    // Celá obrazovka (7. 11. 2026): nákres začína rovno odhalením, bez tmavého príchodu.
+    FLOW_FULL || (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
       ? 'plate'
       : 'hero',
   );
@@ -255,7 +257,7 @@ export function FlowRevealScreen() {
             transition={{ duration: 0.4 }}
           >
           {/* Nadpis ostáva MALÝM písmom nad doskou, bez Hektora. */}
-          <p className="rv-kicker">{titleA}<b>{titleB}</b>{titleC} {titleD}</p>
+          {!FLOW_FULL && <p className="rv-kicker">{titleA}<b>{titleB}</b>{titleC} {titleD}</p>}
 
           {/* ── 2. BLOK: PES → DIZAJN → ODKAZ → ĎALEJ ─────────────────────── */}
           <motion.div
@@ -321,6 +323,33 @@ export function FlowRevealScreen() {
               </div>
               </div>
 
+              {FLOW_FULL ? (
+                <>
+                  {/* ODHALENIE (nákres 7. 11. 2026): nadpis so zlatým slovom, veta, pole odkazu
+                      priamo na podklade. Odkaz sa píše do toho istého poľa správy
+                      (`dogEssence[id].dogMessage` + `selections.dogMessage` pre prvého psa)
+                      a limit ostáva 150 znakov (`MESSAGE_MAX_CHARS`). 🚩 300 slov = zmena DB, príde neskôr. */}
+                  <h1 className="rv-h1">
+                    {t('heroglyph.flow.revealNew.title2a')}<b>{t('heroglyph.flow.revealNew.title2w')}</b>{t('heroglyph.flow.revealNew.title2b')}
+                  </h1>
+                  <p className="rv-sub">{t('heroglyph.flow.revealNew.sub2')}</p>
+                  <textarea
+                    className={`rv-ta${missing && !storedMsg ? ' need' : ''}`}
+                    rows={3}
+                    maxLength={MESSAGE_MAX_CHARS}
+                    value={storedMsg}
+                    placeholder={t('heroglyph.flow.revealNew.msgPlaceholder')}
+                    onChange={(e) => {
+                      const v = e.target.value.slice(0, MESSAGE_MAX_CHARS);
+                      setDogEssence(dogId, 'dogMessage', v);
+                      if (isMain) setSelection('dogMessage', v);
+                      if (v.trim()) setMissing(false);
+                    }}
+                  />
+                  <p className="rv-count">{t('heroglyph.flow.revealNew.chars', { n: String(storedMsg.length), max: String(MESSAGE_MAX_CHARS) })}</p>
+                  <p className="rv-where">{t('heroglyph.flow.revealNew.where')}</p>
+                </>
+              ) : (<>
               {/* Prepínač DIZAJNU — voľba, teda lapisový tint (lock: ZLATO =
                   poloha, LAPIS = moja voľba). */}
               <div className="rv-seg" role="tablist">
@@ -356,11 +385,13 @@ export function FlowRevealScreen() {
                 </span>
               </button>
 
+              </>)}
+
               {missing && !storedMsg && (
                 <p role="alert" className="hf-alert">{t('heroglyph.flow.revealNew.msgRequired', { dogName })}</p>
               )}
               {appErr && <p role="alert" className="hf-alert">{appErr}</p>}
-              <button type="button" className="hf-cta" onClick={goOn} disabled={appBusy}>
+              <button type="button" className="hf-cta hf-dock" onClick={goOn} disabled={appBusy}>
                 {t('heroglyph.flow.breed.continue')}
               </button>
             </div>
@@ -483,6 +514,25 @@ const REVEAL_CSS = `
 }
 .rv-kicker b { color: ${LAB.goldInk}; }
 .rv-stack .hf-plate { gap: 8px; }
+/* ── ODHALENIE NA CELÚ OBRAZOVKU (7. 11. 2026): čierny heroglyf, tenké zlaté rohy ── */
+html[data-flow-full] .rv-glyph-h { filter: brightness(0); }
+html[data-flow-full] .rv-seg { display: none; }
+html[data-flow-full] .rv-orn { padding: 36px 32px; color: #C99A3F; }
+html[data-flow-full] :is(.rv-orn-line, .rv-diamond) { display: none; }
+html[data-flow-full] .rv-corner { width: 44px; height: 44px; }
+.rv-h1 { margin: 0; text-align: center; font-size: 24px; line-height: 1.2; letter-spacing: .04em; text-transform: uppercase; color: #000; }
+.rv-h1 b { font-weight: 900; background: linear-gradient(100deg, #6E4A12 0%, #A3782B 30%, #D8A93F 50%, #A3782B 70%, #6E4A12 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.rv-sub { margin: 0; text-align: center; font-size: 14px; line-height: 1.4; color: #1a1208; }
+.rv-ta {
+  width: 100%; height: 96px; padding: 12px; resize: none; display: block;
+  border-radius: 12px; border: 1px solid #C99A3F; font-size: 16px; line-height: 1.35; color: #000;
+  background: linear-gradient(180deg, #FFFDF7 0%, #F2E2BD 100%);
+}
+.rv-ta:focus { outline: none; border-color: ${LAPIS.edge}; box-shadow: 0 0 0 2px rgba(22, 48, 122, 0.25); }
+.rv-ta.need { border-color: #B25640; }
+.rv-ta::placeholder { color: rgba(0, 0, 0, 0.45); }
+.rv-count { margin: -4px 0 0; text-align: right; font-size: 10px; color: #1a1208; }
+.rv-where { margin: 0; text-align: center; font-size: 10px; color: #1a1208; }
 
 /* 🔴 JAMKA RÁMU MÁ PEVNÚ VÝŠKU PRE OBA DIZAJNY. Doska je centrovaná, takže
    keď sa pri prepnutí zmenila výška rámu (104 → 217), poskočila CELÁ obrazovka
