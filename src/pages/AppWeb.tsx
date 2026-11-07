@@ -17,7 +17,7 @@
  *    (`?nakres` NIE — ten v appke otvára editor nákresov a stránku prekryje.)
  *  · Čísla psy/ľudia/krajiny sú živé z `get-pack-stats`.
  */
-import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Fragment, Suspense, lazy, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Seo } from '@/components/Seo';
 import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar } from '@/components/pack/HandIcons';
 import AI_HEAD from '@/assets/ainubis-head.webp';
@@ -26,7 +26,8 @@ import { AiScrolls, AiPods, AiChat } from './appWeb/AiLearn';
 import { AiBrain } from './appWeb/AiBrain';
 import { STAGE_CSS } from '@/components/pack/packTheme';
 import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
-import { GodsGridLab } from '@/components/gods/GodsGridLab';
+/* živá planétka (250 kB JS + 70 kB CSS) sa sťahuje a parsuje až pri blížení sa k nej, nie pri otvorení stránky */
+const GodsGridLab = lazy(() => import('@/components/gods/GodsGridLab').then((m) => ({ default: m.GodsGridLab })));
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
 import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
@@ -86,7 +87,7 @@ function Phone({ src }: { src: string }) {
   return (
     <div className="phone">
       <img className="fr" src={`${A}/phone.svg`} alt="" />
-      <div className="scr"><img src={`${A}/snimky/${src}.jpg`} alt="" loading="lazy" /></div>
+      <div className="scr"><img src={`${A}/snimky/${src}.webp`} alt="" loading="lazy" decoding="async" /></div>
     </div>
   );
 }
@@ -141,6 +142,20 @@ function useNear<T extends HTMLElement>(margin = '0px', once = true) {
     return () => io.disconnect();
   }, [margin, once]);
   return [ref, near] as const;
+}
+
+/** Je prvok pri obrazovke? Vracia REF (nie state), takže zmena nespustí prekreslenie stránky.
+ *  Časovače (karusel, Učeň) sa mimo obrazovky nehýbu — inak každý tik prekresľoval celý strom aj počas scrollu. */
+function useOnScreen(selector: string) {
+  const on = useRef(true);
+  useEffect(() => {
+    const el = document.querySelector(selector); if (!el) return;
+    on.current = false;
+    const io = new IntersectionObserver(([e]) => { on.current = e.isIntersecting; });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [selector]);
+  return on;
 }
 
 /** Blok, ktorý sa vynorí pri scrolle (`.rv` → `.in`). */
@@ -224,12 +239,12 @@ function DogTrail({ goal }: { goal: string }) {
 
 /** Živá planétka z `/` — montuje sa až pri obrazovke a mimo nej stojí. */
 function LivePlanet() {
-  const [mountRef, near] = useNear<HTMLDivElement>('600px');
+  const [mountRef, near] = useNear<HTMLDivElement>('1500px');
   const [visRef, vis] = useNear<HTMLElement>('0px', false);
   return (
     <div ref={mountRef}>
       <section className="planet-live theme-light" ref={visRef}>
-        {near && <GodsGridLab embedded paused={!vis} planetAnywhere />}
+        {near && <Suspense fallback={null}><GodsGridLab embedded paused={!vis} planetAnywhere /></Suspense>}
         {/* odkazy do obchodov sa presťahovali z bloku POTREBUJEME ŤA sem, vľavo dole (Matej 6. 11.) */}
         <div className="planet-stores"><Stores /></div>
       </section>
@@ -290,8 +305,9 @@ export default function AppWeb() {
   /* karusel */
   const [ci, setCi] = useState(0);
   const hov = useRef(false);
+  const carOn = useOnScreen('.aw .car');
   useEffect(() => {
-    const id = setInterval(() => { if (!hov.current) setCi((i) => (i + 1) % CAROUSEL.length); }, 4200);
+    const id = setInterval(() => { if (!hov.current && carOn.current) setCi((i) => (i + 1) % CAROUSEL.length); }, 4200);
     return () => clearInterval(id);
   }, []);
   const sx = useRef<number | null>(null);
@@ -313,8 +329,9 @@ export default function AppWeb() {
   /* mozog Učňa: kým sa nikto nedotkne odznaku, prechádza úrovne sám (1 → 10 → znova) */
   const ucTouched = useRef(false);
   const [ucLive, setUcLive] = useState<number | null>(null);
+  const ucenOn = useOnScreen('.aw .ai-ucen2');
   useEffect(() => {
-    const id = setInterval(() => { if (!ucTouched.current) setUcOn((i) => (i + 1) % UCEN_PCT.length); }, 2600);
+    const id = setInterval(() => { if (!ucTouched.current && ucenOn.current) setUcOn((i) => (i + 1) % UCEN_PCT.length); }, 2600);
     return () => clearInterval(id);
   }, []);
   const i18nPct = (p: string) => (p === '1.' ? c('uc_first') : `${p} ${c('uc_vault')}`);
@@ -324,13 +341,17 @@ export default function AppWeb() {
   const [onPlanet, setOnPlanet] = useState(false);
   const [menu, setMenu] = useState(false);
   useEffect(() => {
+    const planet = document.querySelector('.aw .planet-live');
+    let raf = 0;
     const f = () => {
+      raf = 0;
       const r = aiSecRef.current?.getBoundingClientRect(); setDarkHead(!!r && r.top < 60 && r.bottom > 60);
       /* posledná sekcia (planétka) je ukotvená na celú obrazovku ako na LIVE `/` — hlavička jej ustúpi */
-      const pl = document.querySelector('.aw .planet-live')?.getBoundingClientRect(); setOnPlanet(!!pl && pl.top < innerHeight * 0.35);
+      const pl = planet?.getBoundingClientRect(); setOnPlanet(!!pl && pl.top < innerHeight * 0.35);
     };
-    f(); addEventListener('scroll', f, { passive: true });
-    return () => removeEventListener('scroll', f);
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(f); };
+    f(); addEventListener('scroll', onScroll, { passive: true });
+    return () => { removeEventListener('scroll', onScroll); cancelAnimationFrame(raf); };
   }, []);
   const vault = Object.values(VAULT_COUNTS);
   const vScrolls = vault.reduce((s, w) => s + w.scrolls, 0);
