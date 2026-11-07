@@ -1427,3 +1427,8 @@ html:has(.aw){scroll-snap-type:y proximity}
 /* 4 cesty: obrys po kliku prekáža (Matej 6. 11.) — vybraná cesta sa ukáže len vyskočeným odznakom */
 .aw .path.on button{background:transparent;box-shadow:none}
 .aw .path button:focus-visible{outline:none}
+/* Optická veľkosť odznakov (Matej 7. 11.: „pútnik malý a učeň veľký… vyrovnať"). Merané v súbore:
+   učeň = plný šesťuholník 93 % výšky, pútnik = tenký kruh s hrotmi 65 %, služobník 75 %.
+   `scale` je samostatná vlastnosť, takže hover/vyskočenie cez `transform` ostáva nedotknuté. */
+.aw img[src*="/odznaky/ucen-"]{scale:.8}
+.aw img[src*="/odznaky/pilgrim-"]{scale:1.15}
