@@ -1111,7 +1111,7 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 
 /* ══ v31 (6. 11. 2026) — posledná sekcia = planétka ako na LIVE `/`: ukotvená (snap) na celú obrazovku,
    hlavička jej ustúpi, guľa sa točí a kóty žijú (`planetAnywhere`) ═══════════════════════════════════ */
-html:has(.aw){scroll-snap-type:y proximity}
+/* 7. 11. bez snapu stránky: z planétky sa jemným scrollom nedalo odísť hore; planétka je posledná a vysoká ako okno, na konci lícuje sama */
 .aw .planet-live{height:100vh;height:100lvh;scroll-snap-align:start;scroll-margin-top:0}
 .aw .top{transition:background .3s,box-shadow .3s,transform .35s cubic-bezier(.2,.7,.2,1)}
 .aw .top.away{transform:translateY(-100%)}
