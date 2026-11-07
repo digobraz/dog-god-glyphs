@@ -680,7 +680,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  ax2p: { en: 'The more adventures, the richer the life together — one you’ll never forget.', sk: 'Čím viac dobrodružstiev, tým bohatší spoločný život, na ktorý nikdy nezabudnete.' },
  ax3: { en: 'Disciple', sk: 'Učeň' },
  ax3p: { en: 'Verified, collected, practical knowledge translated into human language — so your life together is longer and better.', sk: 'Overené, zozbierané, praktické a do ľudskej reči preložené znalosti, ktoré predĺžia váš spoločný život a zlepšia jeho kvalitu.' },
- t0: { en: 'Believer', sk: 'Veriaci' }, t1: { en: 'Acolyte', sk: 'Akolyta' }, t2: { en: 'Priest', sk: 'Kňaz' }, t3: { en: 'Vizier', sk: 'Vezír' },
+ t0: { en: 'Believer', sk: 'Veriaci' }, t1: { en: 'Acolyte', sk: 'Akolyta' }, t2: { en: 'Priest', sk: 'Kňaz' }, t3: { en: 'Vizier', sk: 'Vezír' }, t4: { en: 'Pharaoh', sk: 'Faraón' },
  e_ai: { en: 'Your personal mentor', sk: 'Tvoj osobný mentor' },
  h_ai_a: { en: 'Dog science. In', sk: 'Psia veda. V' }, h_ai_b: { en: 'plain', sk: 'ľudskej' }, h_ai_c: { en: 'language.', sk: 'reči.' },
  ai_kick: { en: 'Be confident with AINUBIS', sk: 'Buď si istý. S AINUBISom.' },

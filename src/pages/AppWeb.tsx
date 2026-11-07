@@ -47,7 +47,7 @@ const UCEN_PCT = ['1.', '2 %', '5 %', '10 %', '20 %', '30 %', '45 %', '60 %', '8
 
 /** Štyri cesty v sekcii Odznaky — `mine` = úroveň vzorového psíčkara, tá istá ako v levitujúcich odznakoch v hero. */
 const PATHS = [
-  { ax: 'ax0', mine: 'dogyptan-2.webp', lvl: 't2' },  /* Kňaz = perleť s ružovým rámom (Matej 7. 11., plany/nakresy/odznaky-kie-2026-11-07/vyber.html); 4 = Faraón, 5 = Člen tímu */
+  { ax: 'ax0', mine: 'dogyptan-2.webp', lvl: 't2' },  /* Kňaz = perleť s ružovým rámom (Matej 7. 11., plany/nakresy/odznaky-kie-2026-11-07/vyber.html); 4 = Faraón; 5 = Člen tímu sa do rebríčka nedáva — udeľujeme ho len my (Matej 7. 11.) */
   { ax: 'ax1', mine: 'servant-2.webp', lvl: 'my1' },
   { ax: 'ax2', mine: 'pilgrim-1.webp', lvl: 'my2' },  /* zelený: „prevláda modrá, musíme to oživiť“ (Matej 6. 11.) */
   { ax: 'ax3', mine: 'ucen-4.webp', lvl: 'my3' },
@@ -583,7 +583,7 @@ export default function AppWeb() {
           {ax !== null && (
             <div className="axis pk-stage on" key={ax}>
               <h3>{c(PATHS[ax].ax)}</h3><p className="what">{c(`${PATHS[ax].ax}p`)}</p>
-              {ax === 0 && <div className="medals m4">{[0, 1, 2, 3].map((i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/dogyptan-${i}.webp`} alt="" /><span>{c(`t${i}`)}</span></figure>)}</div>}
+              {ax === 0 && <div className="medals m5">{[0, 1, 2, 3, 4].map((i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/dogyptan-${i}.webp`} alt="" /><span>{c(`t${i}`)}</span></figure>)}</div>}
               {ax === 1 && <div className="medals">{SERVANT_YEARS.map((y, i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/servant-${i}.webp`} alt="" /><span>{y}</span></figure>)}</div>}
               {ax === 2 && <div className="medals">{SERVANT_YEARS.map((_, i) => <figure key={i} className={i > 1 ? 'lock' : ''}><img src={`${A}/odznaky/pilgrim-${i}.webp`} alt="" /><span>{i + 1}</span></figure>)}</div>}
               {ax === 3 && <div className="medals m10">{UCEN_PCT.map((p, i) => <figure key={i} className={i > 3 ? 'lock' : ''}><img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" /><span>{p}</span></figure>)}</div>}
