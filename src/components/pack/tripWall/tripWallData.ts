@@ -54,7 +54,7 @@ const WATER_BY_TRAIL: Record<string, [string, WaterKind]> = {
   'chtelnica-priehrada-male-karpaty': ['Chtelnica', 'pond'],
   'bukova-priehrada-male-karpaty': ['Buková', 'pond'],
   'oresianska-priehrada': ['Orešianska', 'pond'],
-  'palcmanska-masa': ['Palcmanská Maša', 'pond'],
+  'palcmanska-masa': ['Palcmanská Maša', 'lake'],
   'liptovska-mara': ['Liptovská Mara', 'reservoir'],
   'slnava': ['Sĺňava', 'reservoir'],
   'kralova': ['Kráľová', 'reservoir'],

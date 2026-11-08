@@ -5152,6 +5152,7 @@ export const en = {
   'pack.wall.water.pond': "pond",
   'pack.wall.water.reservoir': "reservoir",
   'pack.wall.water.lake': "lake",
+  'pack.wall.water.tarn': "tarn",
   'pack.wall.waters.pond': "Ponds",
   'pack.wall.waters.reservoir': "Reservoirs",
   'pack.wall.waters.lake': "Lakes and tarns",

@@ -329,7 +329,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
     parks: { title: t('pack.stats.geo.parks'), ic: ICO('narodny-park'), items: s.parks, units: WALL_UNITS.parks, logos: NP_LOGO, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
     chko: { title: 'CHKO', ic: '/icons/chko/biele-karpaty.png', items: s.chko, units: WALL_UNITS.chko, logos: CHKO_LOGO, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
     peaks: { title: t('pack.wall.peaks'), ic: ICO('vrcholy'), items: s.peaks, icon: (x) => ICO(peakIcon(x.value ?? 0)), meta: (x) => `${n(x.value ?? 0)} m` },
-    waters: { title: t('pack.stats.geo.waters'), ic: ICO('jazero'), items: s.waters, icon: (x) => (x.water ? ICO(`voda-${WATER_ICON[x.water]}`) : ''), meta: (x) => (x.water ? t(`pack.wall.water.${x.water}`) : '') },
+    waters: { title: t('pack.stats.geo.waters'), ic: ICO('jazero'), items: s.waters, icon: (x) => (x.water ? ICO(`voda-${WATER_ICON[x.water]}`) : ''), meta: (x) => (x.water ? t(`pack.wall.water.${x.water === 'lake' && /pleso/i.test(x.name) ? 'tarn' : x.water}`) : '') },
     journeys: { title: t('pack.stats.geo.journeys'), ic: ICO('pridane'), items: s.journeys, units: WALL_UNITS.journeys, meta: (x) => `${n(x.value ?? 0)} km` },
     roadtrips: { title: t('pack.wall.roadtrips'), ic: ICO('roadtrip'), items: s.roadtrips, meta: (x) => `${n(x.value ?? 0)} km` },
     stays: { title: t('pack.wall.stays'), ic: ICO('stanovacky'), items: s.stays, meta: (x) => t(`pack.wall.nights${pluralKey(x.value ?? 0)}`, { n: x.value ?? 0 }) },
