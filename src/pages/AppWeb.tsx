@@ -143,7 +143,7 @@ function TripsSection({ c }: { c: (k: string) => string }) {
             {[1, 2, 3].map((n, i) => (
               <button key={n} type="button" className={`pk-stage tr-step${step === i ? ' on' : ''}`} aria-pressed={step === i}
                 onClick={() => setStep(i)} onPointerEnter={(e) => { if (e.pointerType === 'mouse') setStep(i); }}>
-                <span className="tr-n">{n}</span>
+                <span className="tr-ic"><img src={`${A}/ikony/kroky-${n}.webp`} alt="" loading="lazy" /></span>
                 <b>{c(`ts${n}`)}</b>
                 <span className="tr-p">{c(`ts${n}p`)}</span>
               </button>
