@@ -224,7 +224,7 @@ function useOnScreen(selector: string) {
 }
 
 /** Blok, ktorý sa vynorí pri scrolle (`.rv` → `.in`). */
-/** Život hrou: farebné kresby bez kartuše (Matej 8. 11.), výber a alternatívy v továrni `plany/ikonky/`, skupina „Web: Život hrou“. */
+/** Život hrou: bohaté kresby bez kartuše ako triplist (Matej 8. 11.), výber a alternatívy v továrni `plany/ikonky/`, skupina „Web: Život hrou“. */
 const VERBS = [1, 2, 3, 4, 5, 6];
 
 function Rv({ as = 'div', d = 0, className = '', children }: { as?: 'div' | 'p' | 'details'; d?: number; className?: string; children: ReactNode }) {
