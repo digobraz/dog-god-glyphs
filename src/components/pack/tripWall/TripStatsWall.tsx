@@ -9,6 +9,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { HeroBadges } from '@/components/pack/HeroBadges';
+import { PilgrimBadge, RANK_BADGE_CSS } from '@/components/pack/profile/rankBadge';
 import { HERO_BADGES } from '@/components/pack/heroBadgesData';
 import { PackPopup } from '@/components/pack/PackPopup';
 import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PROGRESS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
@@ -26,31 +27,36 @@ const S = PACK_SPACE;
 const ICO = (n: string) => `/icons/tripstats/${n}.webp`;
 /** PODBLOK z matrice, tlačidlá ho berú vykonateľne. */
 export const SUBBLOCK = PACK_BOX.subblock;
+/** Deň v horách (Matej 8. 11.: *„zmenil na deň s nebom, zelenou, skrátka príroda"*). Farby scény, nie brandu. */
+const DAY = { sky: 'linear-gradient(180deg,#5DB2EC 0%,#A8DBF5 62%,#DDF2F5 100%)', sun: '#FFD95A', haze: '#8FBBD6', ridgeHi: '#67AE5C', ridgeLo: '#2F7D3F', forest: '#1F5A2E', meadow: '#86C94F', near: '#5BA83D', pineA: '#1F6B37', pineB: '#2B7F42' };
 
 export const TW_CSS = `${PROGRESS_CSS}
 .tw-root{--tw-ink:${LAPIS.ink};--tw-deep:${LAPIS.deep};--tw-gold:${T.cardEdge};}
-.tw-wall{position:relative;margin-top:${S.md}px;border-radius:${PACK_R.card}px;overflow:hidden;background:${LAPIS.grad};border:1.5px solid ${T.cardEdge};box-shadow:${LAPIS_BTN_SHADOW};}
-.tw-hud{display:flex;align-items:center;gap:${S.md}px;width:100%;padding:${S.md}px;background:none;border:0;color:${LAPIS.ink};cursor:pointer;text-align:left;font-family:${FONT_UI};}
-.tw-av{width:56px;height:56px;flex:none;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};}
+.tw-wall{position:relative;margin-top:${S.md}px;border-radius:${PACK_R.card}px;overflow:hidden;background:${DAY.sky};border:1.5px solid ${T.cardEdge};box-shadow:${LAPIS_BTN_SHADOW};}
+.tw-hud{display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;color:${LAPIS.deep};}
+.tw-hudb{display:flex;align-items:center;gap:${S.md}px;flex:1;min-width:0;padding:0;background:none;border:0;color:inherit;cursor:pointer;text-align:left;font-family:${FONT_UI};}
+.tw-av{width:56px;height:56px;flex:none;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};box-shadow:0 0 0 2px ${T.card},0 0 0 3px ${T.inkStrong};}
 .tw-who{flex:1;min-width:0;}
-.tw-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.14em;text-transform:uppercase;} /* písmo: meno */
+.tw-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.14em;text-transform:uppercase;overflow-wrap:anywhere;} /* písmo: meno */
 .tw-who small{display:block;margin-top:${S.xs}px;font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;opacity:.82;}
-.tw-lv{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:${PACK_R.pill}px;background:${T.card};color:${T.inkStrong};font-size:${PACK_TEXT.h2}px;font-weight:600;border:2px solid ${T.cardEdge};}
-.tw-xp{padding:0 ${S.md}px;color:${LAPIS.ink};}
-.tw-xp .pk-progress{background:rgba(239,215,154,.2);}
+.tw-xp{padding:0 ${S.md}px;color:${LAPIS.deep};}
+.tw-xp .pk-progress{background:rgba(10,26,74,.2);}
 .tw-xp .pk-progress__fill{transition:width 1.1s cubic-bezier(.2,.7,.2,1) .2s;}
 .tw-xpt{display:flex;justify-content:space-between;margin-top:${S.xs}px;font-size:${PACK_TEXT.micro}px;font-weight:500;opacity:.86;}
 .tw-skyb{display:block;width:100%;padding:0;background:none;border:0;cursor:pointer;}
-.tw-sky{display:block;width:100%;height:132px;}
-.tw-sky text{font:600 ${PACK_TEXT.micro}px ${FONT_UI};fill:${LAPIS.ink};}
-.tw-sky .tw-a{animation:tw-star 3.2s ease-in-out infinite;}
-.tw-sky .tw-b{animation:tw-star 4.4s ease-in-out infinite .8s;}
-@keyframes tw-star{50%{opacity:.15;}}
-.tw-edge{fill:none;stroke:${T.cardEdge};stroke-width:1.5;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:tw-draw 1.5s ease-out .15s forwards;}
+.tw-sky{display:block;width:100%;height:168px;}
+.tw-sky text{font:600 ${PACK_TEXT.micro}px ${FONT_UI};fill:${LAPIS.deep};paint-order:stroke;stroke:rgba(255,255,255,.75);stroke-width:3px;}
+.tw-sky .tw-a{animation:tw-drift 9s ease-in-out infinite alternate;}
+.tw-sky .tw-b{animation:tw-drift 13s ease-in-out infinite alternate-reverse;}
+@keyframes tw-drift{from{transform:translateX(-8px);}to{transform:translateX(10px);}}
+.tw-edge{fill:none;stroke:${DAY.forest};stroke-width:1.5;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:tw-draw 1.5s ease-out .15s forwards;}
 @keyframes tw-draw{to{stroke-dashoffset:0;}}
 .tw-strip{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:${S.sm}px;margin:-${S.xxl}px ${S.sm}px 0;}
-.tw-strip button{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.xs}px ${S.md}px;cursor:pointer;font-family:${FONT_UI};}
+.tw-strip button{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.xs}px ${S.md}px;cursor:pointer;font-family:${FONT_UI};background:${LAPIS.grad};border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.tile}px;box-shadow:${LAPIS_BTN_SHADOW};}
+.tw-strip .tw-num{color:${LAPIS.ink};}
+.tw-strip .tw-lbl{color:${LAPIS.ink};opacity:.86;}
 .tw-strip img{width:48px;height:48px;object-fit:contain;}
+.tw-num,.tw-rec b,.tw-m b{-webkit-text-stroke:.5px currentColor;}
 .tw-num{font-size:${PACK_TEXT.h1}px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;color:${T.inkStrong};white-space:nowrap;}
 .tw-lbl{font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .tw-sec{display:flex;align-items:center;gap:${S.sm}px;margin:${S.xl}px 0 ${S.md}px;font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
@@ -71,7 +77,7 @@ export const TW_CSS = `${PROGRESS_CSS}
 .tw-rec b{display:block;font-size:${PACK_TEXT.body}px;font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums;color:${T.inkStrong};}
 .tw-rec small{display:block;margin-top:${S.xs}px;font-size:${PACK_TEXT.micro}px;color:${T.inkWarm};}
 .tw-dog{display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.md}px;margin-bottom:${S.sm}px;}
-.tw-dog img{width:48px;height:48px;flex:none;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};}
+.tw-dog img{width:48px;height:48px;flex:none;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};box-shadow:0 0 0 2px ${T.card},0 0 0 3px ${T.inkStrong};}
 .tw-dog b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: meno */
 .tw-dog small{display:block;margin-top:${S.xs}px;font-size:${PACK_TEXT.label}px;color:${T.inkWarm};font-variant-numeric:tabular-nums;}
 .tw-badges{display:flex;flex-direction:column;}
@@ -147,20 +153,20 @@ export function WallCount({ n }: { n: number }) {
 /** Pohorie zo skutočných vrcholov člena: najvyšší do stredu, výška = metre. */
 function Skyline({ peaks }: { peaks: WallItem[] }) {
   const svg = useMemo(() => {
-    const W = 358, H = 132, base = 132, top = 28;
+    const W = 358, H = 168, base = 168, top = 30, floor = base - 56;
     const used = peaks.slice(0, 24);
     const maxH = used[0]?.value ?? 0;
     const minH = Math.max(0, (used[used.length - 1]?.value ?? 0) - 50);
     const span = Math.max(1, maxH - minH);
-    const y = (h: number) => base - 34 - ((h - minH) / span) * (base - 34 - top);
+    const y = (h: number) => floor - ((h - minH) / span) * (floor - top);
     const order: WallItem[] = [];
     used.forEach((p, i) => { if (i % 2) order.push(p); else order.unshift(p); });
     const step = W / (order.length + 1);
     const pts = order.map((p, i) => ({ h: p.value ?? 0, name: p.name, x: step * (i + 1) + ((i * 37) % 7) - 3, y: y(p.value ?? 0) }));
-    const ws = [{ x: 0, y: base - 30 }, ...pts, { x: W, y: base - 26 }];
+    const ws = [{ x: 0, y: floor + 6 }, ...pts, { x: W, y: floor + 10 }];
     const sad = ws.slice(1).map((p, i) => {
       const q = ws[i];
-      return { x: q.x + (p.x - q.x) * (0.42 + (((i * 13) % 5) * 0.04)), y: Math.min(Math.max(q.y, p.y) + 8 + ((i * 11) % 5) * 5, base - 12) };
+      return { x: q.x + (p.x - q.x) * (0.42 + (((i * 13) % 5) * 0.04)), y: Math.min(Math.max(q.y, p.y) + 8 + ((i * 11) % 5) * 5, floor + 20) };
     });
     let d = `M${ws[0].x} ${ws[0].y}`;
     ws.slice(1).forEach((p, i) => { d += ` L${sad[i].x.toFixed(1)} ${sad[i].y.toFixed(1)} L${p.x.toFixed(1)} ${p.y.toFixed(1)}`; });
@@ -175,32 +181,57 @@ function Skyline({ peaks }: { peaks: WallItem[] }) {
       const ax = p.x + (l.x - p.x) * (L / (l.y - p.y)), bx = p.x + (r.x - p.x) * (L / (r.y - p.y)), yy = p.y + L, mx = (ax + bx) / 2;
       return `M${p.x.toFixed(1)} ${p.y.toFixed(1)} L${ax.toFixed(1)} ${yy.toFixed(1)} L${((ax + mx) / 2).toFixed(1)} ${(yy - 3).toFixed(1)} L${mx.toFixed(1)} ${(yy + 2).toFixed(1)} L${((mx + bx) / 2).toFixed(1)} ${(yy - 3).toFixed(1)} L${bx.toFixed(1)} ${yy.toFixed(1)}Z`;
     });
-    let back = `M0 ${base - 46}`;
-    for (let i = 1; i <= 15; i++) back += ` L${((i * W) / 15).toFixed(1)} ${(base - 50 - ((i * 7) % 5) * 6 - (i % 2 ? 16 : 0)).toFixed(1)}`;
+    let back = `M0 ${floor - 10}`;
+    for (let i = 1; i <= 15; i++) back += ` L${((i * W) / 15).toFixed(1)} ${(floor - 14 - ((i * 7) % 5) * 6 - (i % 2 ? 16 : 0)).toFixed(1)}`;
     back += ` L${W} ${base} L0 ${base} Z`;
-    const stars = Array.from({ length: 34 }, (_, i) => ({ x: (i * 97 + 23) % W, y: 6 + ((i * 53) % 74), r: i % 5 === 0 ? 1.3 : 0.7, o: i % 3 ? 0.4 : 0.75, c: i % 4 === 0 ? 'tw-a' : i % 7 === 0 ? 'tw-b' : undefined }));
-    return { W, H, base, top, d, back, faces, snow, stars, peak: pts.find((p) => p.h === maxH) };
+    const hill = (x: number) => floor + 12 + Math.sin(x / 58) * 7 + Math.sin(x / 23 + 1) * 3;
+    const land = (f: (x: number) => number) => {
+      let l = `M0 ${f(0).toFixed(1)}`;
+      for (let x = 6; x <= W; x += 6) l += ` L${x} ${f(x).toFixed(1)}`;
+      return `${l} L${W} ${base} L0 ${base} Z`;
+    };
+    const meadow = land(hill);
+    const near = land((x) => hill(x) + 24 + Math.sin(x / 40 + 2) * 5);
+    const pines = Array.from({ length: 13 }, (_, i) => {
+      const x = i * 29 + ((i * 17) % 13) + 8, s = 0.75 + ((i * 7) % 4) * 0.16, b = hill(x) + 3;
+      const pt = (dx: number, dy: number) => `${(x + dx * s).toFixed(1)} ${(b - dy * s).toFixed(1)}`;
+      return { d: `M${pt(0, 24)} L${pt(5, 16)} L${pt(2.5, 16)} L${pt(7, 8)} L${pt(3.5, 8)} L${pt(9, 0)} L${pt(-9, 0)} L${pt(-3.5, 8)} L${pt(-7, 8)} L${pt(-2.5, 16)} L${pt(-5, 16)}Z`, f: i % 2 ? DAY.pineB : DAY.pineA };
+    });
+    return { W, H, base, top, d, back, faces, snow, meadow, near, pines, peak: pts.find((p) => p.h === maxH) };
   }, [peaks]);
   const { lang } = useLang();
-  const { W, H, base, top, d, back, faces, snow, stars, peak } = svg;
+  const { W, H, base, top, d, back, faces, snow, meadow, near, pines, peak } = svg;
   const labelLeft = peak && peak.x > W * 0.45;
+  const sunX = labelLeft ? W - 44 : 44;
+  const cloud = (x: number, cy: number, s: number, c: string) => (
+    <g className={c} fill="#fff" opacity=".92">
+      <ellipse cx={x} cy={cy} rx={22 * s} ry={8 * s} /><ellipse cx={x - 9 * s} cy={cy - 5 * s} rx={9 * s} ry={7 * s} /><ellipse cx={x + 7 * s} cy={cy - 7 * s} rx={11 * s} ry={9 * s} />
+    </g>
+  );
   return (
     <svg className="tw-sky" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" aria-hidden="true">
       <defs>
-        <radialGradient id="tw-glow"><stop offset="0" stopColor={T.cardEdge} stopOpacity=".42" /><stop offset="1" stopColor={T.cardEdge} stopOpacity="0" /></radialGradient>
-        <linearGradient id="tw-face" gradientUnits="userSpaceOnUse" x1="0" y1={top} x2="0" y2={base - 20}><stop offset="0" stopColor={LAPIS.ink} stopOpacity=".3" /><stop offset="1" stopColor={LAPIS.ink} stopOpacity="0" /></linearGradient>
+        <radialGradient id="tw-glow"><stop offset="0" stopColor={DAY.sun} stopOpacity=".55" /><stop offset="1" stopColor={DAY.sun} stopOpacity="0" /></radialGradient>
+        <linearGradient id="tw-ridge" gradientUnits="userSpaceOnUse" x1="0" y1={top} x2="0" y2={base - 40}><stop offset="0" stopColor={DAY.ridgeHi} /><stop offset="1" stopColor={DAY.ridgeLo} /></linearGradient>
+        <linearGradient id="tw-face" gradientUnits="userSpaceOnUse" x1="0" y1={top} x2="0" y2={base - 40}><stop offset="0" stopColor={DAY.forest} stopOpacity=".42" /><stop offset="1" stopColor={DAY.forest} stopOpacity=".08" /></linearGradient>
       </defs>
-      {peak && <ellipse cx={peak.x} cy="66" rx="150" ry="66" fill="url(#tw-glow)" />}
-      {stars.map((s, i) => <circle key={i} className={s.c} cx={s.x} cy={s.y} r={s.r} opacity={s.o} fill={LAPIS.ink} />)}
-      <path d={back} fill={LAPIS.ink} fillOpacity=".1" />
+      <circle cx={sunX} cy="30" r="44" fill="url(#tw-glow)" />
+      <circle cx={sunX} cy="30" r="15" fill={DAY.sun} />
+      {cloud(112, 30, 1, 'tw-a')}
+      {cloud(256, 50, 0.75, 'tw-b')}
+      {cloud(330, 18, 0.6, 'tw-a')}
+      <path d={back} fill={DAY.haze} fillOpacity=".6" />
       {peak && <>
-        <path d={`${d} L${W} ${base} L0 ${base} Z`} fill={LAPIS.deep} />
+        <path d={`${d} L${W} ${base} L0 ${base} Z`} fill="url(#tw-ridge)" />
         {faces.map((f, i) => <path key={i} d={f} fill="url(#tw-face)" />)}
-        {snow.map((f, i) => <path key={i} d={f} fill={LAPIS.ink} />)}
+        {snow.map((f, i) => <path key={i} d={f} fill="#fff" />)}
         <path className="tw-edge" pathLength={1} d={d} />
         <path d={`M${peak.x} ${peak.y} v-15 l10 3.5 l-10 3.5`} fill={T.cardEdge} stroke={T.cardEdge} />
         <text x={labelLeft ? peak.x - 8 : peak.x + 14} y={peak.y - 4} textAnchor={labelLeft ? 'end' : 'start'}>{peak.name} {fmtNum(peak.h, lang)} m</text>
       </>}
+      <path d={meadow} fill={DAY.meadow} />
+      {pines.map((p, i) => <path key={i} d={p.d} fill={p.f} />)}
+      <path d={near} fill={DAY.near} />
     </svg>
   );
 }
@@ -386,13 +417,15 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
 
   return (
     <div className="tw-root">
-      <style>{TW_CSS}</style>
+      <style>{TW_CSS + RANK_BADGE_CSS}</style>
       <div className="tw-wall">
-        <button type="button" className="tw-hud" onClick={() => push({ kind: 'level' })} aria-label={t('pack.stats.howPointsWork')}>
-          {avatarUrl ? <img className="tw-av" src={sizedUrl(avatarUrl, 160)} alt="" /> : <span className="tw-av" />}
-          <span className="tw-who"><b>{ownerName}</b><small>{t('pack.map.rankPilgrim')}</small></span>
-          <span className="tw-lv">{lvl.level}</span>
-        </button>
+        <div className="tw-hud">
+          <button type="button" className="tw-hudb" onClick={() => push({ kind: 'level' })} aria-label={t('pack.stats.howPointsWork')}>
+            {avatarUrl ? <img className="tw-av" src={sizedUrl(avatarUrl, 160)} alt="" /> : <span className="tw-av" />}
+            <span className="tw-who"><b>{ownerName}</b><small>{t('pack.map.rankPilgrim')}</small></span>
+          </button>
+          <PilgrimBadge level={lvl.level} pct={lvl.pct} onClick={() => push({ kind: 'level' })} label={t('pack.stats.howPointsWork')} />
+        </div>
         <div className="tw-xp">
           <div className="pk-progress"><div className="pk-progress__fill" style={fillW(barOn ? lvl.pct : 0)} /></div>
           <div className="tw-xpt"><span>{t('pack.stats.pts', { n: lvl.points })}</span><span>{t('pack.stats.ptsToLevel', { n: lvl.toNext, level: lvl.level + 1 })}</span></div>
@@ -401,9 +434,9 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
       </div>
 
       <div className="tw-strip">
-        <button type="button" style={SUBBLOCK} onClick={() => openCat('km')}><img src={ICO('km')} alt="" /><span className="tw-num"><WallCount n={Math.round(s.km)} /></span><span className="tw-lbl">km</span></button>
-        <button type="button" style={SUBBLOCK} onClick={() => openCat('trips')}><img src={ICO('vylety')} alt="" /><span className="tw-num"><WallCount n={walkedTrails.length} /></span><span className="tw-lbl">{t('pack.wall.trips')}</span></button>
-        <button type="button" style={SUBBLOCK} onClick={() => push({ kind: 'countries' })}><img src={ICO('krajiny')} alt="" /><span className="tw-num"><WallCount n={s.countries.length} /></span><span className="tw-lbl">{t('pack.wall.countries')}</span></button>
+        <button type="button" onClick={() => openCat('km')}><img src={ICO('km')} alt="" /><span className="tw-num"><WallCount n={Math.round(s.km)} /></span><span className="tw-lbl">km</span></button>
+        <button type="button" onClick={() => openCat('trips')}><img src={ICO('vylety')} alt="" /><span className="tw-num"><WallCount n={walkedTrails.length} /></span><span className="tw-lbl">{t('pack.wall.trips')}</span></button>
+        <button type="button" onClick={() => push({ kind: 'countries' })}><img src={ICO('krajiny')} alt="" /><span className="tw-num"><WallCount n={s.countries.length} /></span><span className="tw-lbl">{t('pack.wall.countries')}</span></button>
       </div>
 
       <div className="tw-sec">{t('pack.wall.total')}</div>
