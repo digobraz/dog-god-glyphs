@@ -151,9 +151,9 @@ export function TriplistWall<R extends Row>({ upcoming, walked, wishes, renderCa
       </div>
 
       <div className="tw-strip">
-        <button type="button" onClick={() => setSheet({ kind: 'want', iso: 'all', sort: 'new' })}><img src={ICO('mapa-bez')} alt="" /><span className="tw-num"><WallCount n={upcoming.length} /></span><span className="tw-lbl">{t('pack.triplist.myTripsWant')}</span></button>
-        <button type="button" onClick={() => setSheet({ kind: 'wish' })}><img src={ICO('tripwish')} alt="" /><span className="tw-num"><WallCount n={wishList.length} /></span><span className="tw-lbl">Tripwish</span></button>
-        <button type="button" onClick={() => setSheet({ kind: 'walked', iso: 'all', sort: 'new' })}><img src={ICO('vylety-bez')} alt="" /><span className="tw-num"><WallCount n={walked.length} /></span><span className="tw-lbl">{t('pack.triplist.myTripsWalked')}</span></button>
+        <button type="button" className="pk-stage" onClick={() => setSheet({ kind: 'want', iso: 'all', sort: 'new' })}><img src={ICO('mapa-bez')} alt="" /><span className="tw-num"><WallCount n={upcoming.length} /></span><span className="tw-lbl">{t('pack.triplist.myTripsWant')}</span></button>
+        <button type="button" className="pk-stage" onClick={() => setSheet({ kind: 'wish' })}><img src={ICO('tripwish')} alt="" /><span className="tw-num"><WallCount n={wishList.length} /></span><span className="tw-lbl">Tripwish</span></button>
+        <button type="button" className="pk-stage" onClick={() => setSheet({ kind: 'walked', iso: 'all', sort: 'new' })}><img src={ICO('vylety-bez')} alt="" /><span className="tw-num"><WallCount n={walked.length} /></span><span className="tw-lbl">{t('pack.triplist.myTripsWalked')}</span></button>
       </div>
 
       {wishes && (

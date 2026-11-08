@@ -12,8 +12,8 @@ import { HeroBadges } from '@/components/pack/HeroBadges';
 import { PilgrimBadge, RANK_BADGE_CSS } from '@/components/pack/profile/rankBadge';
 import { HERO_BADGES } from '@/components/pack/heroBadgesData';
 import { PackPopup } from '@/components/pack/PackPopup';
-import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PROGRESS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, goldFrameCSS, pickTintCSS } from '@/components/pack/navGoldSkin';
+import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PROGRESS_CSS, STAGE_CSS, PACK_SHADOW, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
@@ -35,6 +35,8 @@ const SCENE = { w: 1672, h: 941, peakX: 50, peakY: 35.5 };
 const STRIP_H = 120;
 
 export const TW_CSS = `${PROGRESS_CSS}
+${STAGE_CSS}
+.tw-strip{--pk-stage:rgba(255,255,255,.58);--pk-stage-edge:rgba(255,255,255,.85);}
 .tw-root{--tw-ink:${LAPIS.ink};--tw-deep:${LAPIS.deep};--tw-gold:${T.cardEdge};}
 .tw-wall{--tw-sw:max(100cqw,533px);--tw-crop:0px;container-type:inline-size;position:relative;margin-top:${S.md}px;border-radius:${PACK_R.card}px;overflow:hidden;background:${DAY_SKY};border:1.5px solid ${T.cardEdge};box-shadow:${LAPIS_BTN_SHADOW};}
 .tw-wall::before{content:'';position:absolute;inset:0 0 auto;z-index:1;height:136px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,.44) 70%,rgba(255,255,255,0));}
@@ -56,7 +58,7 @@ export const TW_CSS = `${PROGRESS_CSS}
 .tw-xpt{display:flex;justify-content:space-between;margin-top:${S.xs}px;font-size:${PACK_TEXT.micro}px;font-weight:500;opacity:.86;}
 .tw-skyb{position:relative;z-index:1;display:block;width:100%;height:calc(30px + var(--tw-sw) * .363 - var(--tw-crop));padding:0;background:none;border:0;cursor:pointer;}
 .tw-strip{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:${S.sm}px;margin:-${S.xxl}px ${S.sm}px 0;}
-.tw-strip button{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.xs}px ${S.md}px;cursor:pointer;font-family:${FONT_UI};${goldFrameCSS()}}
+.tw-strip button{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.xs}px ${S.md}px;cursor:pointer;font-family:${FONT_UI};box-shadow:${PACK_SHADOW.card};}
 .tw-wall + .tw-strip{margin-top:-${STRIP_H / 2}px;}
 .tw-wall + .tw-strip button{height:${STRIP_H}px;justify-content:center;padding:${S.xs}px;}
 .tw-wall + .tw-strip .tw-lbl{line-height:1.2;}
@@ -362,9 +364,9 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
       </div>
 
       <div className="tw-strip">
-        <button type="button" onClick={() => openCat('km')}><img src={ICO('km-bez')} alt="" /><span className="tw-num"><WallCount n={Math.round(s.km)} /></span><span className="tw-lbl">km</span></button>
-        <button type="button" onClick={() => openCat('trips')}><img src={ICO('vylety-bez')} alt="" /><span className="tw-num"><WallCount n={walkedTrails.length} /></span><span className="tw-lbl">{t('pack.wall.trips')}</span></button>
-        <button type="button" onClick={() => push({ kind: 'countries' })}><img src={ICO('krajiny-bez')} alt="" /><span className="tw-num"><WallCount n={s.countries.length} /></span><span className="tw-lbl">{t('pack.wall.countries')}</span></button>
+        <button type="button" className="pk-stage" onClick={() => openCat('km')}><img src={ICO('km-bez')} alt="" /><span className="tw-num"><WallCount n={Math.round(s.km)} /></span><span className="tw-lbl">km</span></button>
+        <button type="button" className="pk-stage" onClick={() => openCat('trips')}><img src={ICO('vylety-bez')} alt="" /><span className="tw-num"><WallCount n={walkedTrails.length} /></span><span className="tw-lbl">{t('pack.wall.trips')}</span></button>
+        <button type="button" className="pk-stage" onClick={() => push({ kind: 'countries' })}><img src={ICO('krajiny-bez')} alt="" /><span className="tw-num"><WallCount n={s.countries.length} /></span><span className="tw-lbl">{t('pack.wall.countries')}</span></button>
       </div>
 
       <div className="tw-sec">{t('pack.wall.total')}</div>
