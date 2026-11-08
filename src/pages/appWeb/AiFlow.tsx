@@ -189,7 +189,7 @@ export function AiFlow({ L, c, counter, learn, onWorld, published }: {
           return (
             <button key={w.key} type="button" className="af-world" data-fa="3" data-w={w.key} onClick={() => onWorld(w.key)}
               style={{ ['--wc' as string]: wc(w.key), ['--k' as string]: k }}>
-              <span className="orb"><i style={{ ['--m' as string]: `url(/icons/pack/${w.ic}.svg)` }} /></span>
+              <span className="orb"><i /><img src={`/web-app/ikony/svet-${w.key}.webp`} alt="" loading="lazy" /></span>
               <span className="nm">{worldName(w.key)}</span>
               <span className="tip">{n ? `${n.circles} ${c('ai_circles')} · ${n.scrolls} ${c('ai_scrolls')}` : ''}<em>{live ? c('w_open') : c('w_soon')}</em></span>
             </button>
