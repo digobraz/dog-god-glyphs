@@ -66,6 +66,8 @@ export interface BrainOptions {
   /** Meno okruhu `oi` vo svete `wi` (poradie = O1, O2 … z rozpadu). */
   circleName: (wi: number, oi: number) => string;
   head: string;
+  /** Farebná kresba sveta namiesto výrezu z kitu (web /app). Bez nej ostáva výrez, ako vo VAULTe. */
+  worldArt?: (w: VaultWorld) => string;
   /** Mobilný pohľad — priblížené jadro a väčšie bubliny svetov. */
   isMobile: () => boolean;
   /** Rezerva hore a dole v px (horný pás; lišta + pilulka) — mozog sa centruje do zvyšku. */
@@ -272,7 +274,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
   const CORE = { x: 0, y: 0 };
   N.forEach((p) => { if (p.role === 'w') { CORE.x = Math.max(CORE.x, Math.abs(p.x)); CORE.y = Math.max(CORE.y, Math.abs(p.y)); } });
 
-  const ICONS: HTMLImageElement[] = o.worlds.map((w) => { const im = new Image(); im.src = `/icons/pack/${w.ic}.svg`; return im; });
+  const ICONS: HTMLImageElement[] = o.worlds.map((w) => { const im = new Image(); im.src = o.worldArt ? o.worldArt(w) : `/icons/pack/${w.ic}.svg`; return im; });
   const HEAD = new Image(); HEAD.src = o.head;
   /* ⚠️ `prefers-reduced-motion` vypína LEN pohyb — interakcia ostáva. */
   const LEVIT = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -540,7 +542,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       if (im && im.complete) {
         /* ⚠️ Ikona sa VYREZÁVA (`destination-out`), nekreslí — kit je zlatý a na modrej
            bubline by zlato bolo farbou bez významu. Tieň musí byť pred výrezom vypnutý. */
-        ctx.globalCompositeOperation = 'destination-out';
+        ctx.globalCompositeOperation = o.worldArt ? 'source-over' : 'destination-out';
         drawFit(ctx, im, p.sx, p.sy, r * 1.52, 'contain');
         ctx.globalCompositeOperation = 'source-over';
       }

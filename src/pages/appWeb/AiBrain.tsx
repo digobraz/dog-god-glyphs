@@ -27,7 +27,7 @@ export function AiBrain({ share, head, onShare }: { share: number; head: string;
     /* dotyk: po bokoch ostane ~24 px (16 stránka + 8 plátno), kde prst roluje stránku */
     if (matchMedia('(hover:none)').matches) { c.style.margin = '0 8px'; c.style.width = 'calc(100% - 16px)'; }
     const h = mountBrain({
-      canvas: c, tip: t, worlds: VAULT_WORLDS, head,
+      canvas: c, tip: t, worlds: VAULT_WORLDS, head, worldArt: (w) => `/web-app/ikony/svet-${w.key}.webp`,
       isMobile: () => innerWidth < 700,
       worldName: () => '', circleName: () => '',
       insets: () => ({ top: 0, bottom: 0 }),
