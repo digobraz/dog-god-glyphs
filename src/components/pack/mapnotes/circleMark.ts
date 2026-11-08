@@ -34,6 +34,8 @@ const RIM_PX = 2.5;
  *  bodom z OpenStreetMap ale platí: naše značky majú ostať dominantné, lebo prameňov a
  *  lavičiek budú desaťtisíce. Pôvodné pravidlo teda nepadlo, len sa ukázala hranica, po
  *  ktorú platilo. */
+/** Samolepka z `mapStickers.ts` (8. 11. 2026): väčšia než kruh, lebo biely lem je súčasť kresby. */
+export const STICKER_PX = 30;
 export const WORLD_CIRCLE_PX = 24;
 const WORLD_EMOJI_PX = 14;
 const WORLD_RIM_PX = 2;
@@ -77,6 +79,8 @@ export const CIRCLE_MARK_CSS = `
    CSS transformom, takže iconSize/iconAnchor sa NEUVÁDZAJÚ (rovnaký kontrakt
    ako mn-wrap vo vrstve zápisov). */
 .mk-wrap{background:none;border:0;}
+.mk-sticker{display:block;width:${STICKER_PX}px;height:${STICKER_PX}px;transform:translate(-50%,-50%);cursor:pointer;transition:transform .15s;-webkit-user-select:none;user-select:none;}
+.mk-sticker:hover{transform:translate(-50%,-50%) scale(1.12);}
 .mk-circle{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;width:${CIRCLE_PX}px;height:${CIRCLE_PX}px;border-radius:999px;background:#FFFFFF;border:${RIM_PX}px solid #000;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);}
 .mk-circle:hover{transform:translate(-50%,-50%) scale(1.12);}
 /* <i> je len nosič, nie kurzíva. Emoji MUSÍ mať vlastný font stack: zdedený Cinzel

@@ -34,6 +34,7 @@ import L from 'leaflet';
 import { TRAIL_POI, POI_ATTRIBUTION, type TrailPoi } from '@/data/trailPoi.generated';
 import { FONT_UI, PACK_THEME as T, PACK_R } from '@/components/pack/packTheme';
 import { POI_EMOJI, sleepEmoji, WORLD_RIM } from '@/components/pack/mapnotes/markEmoji';
+import { MAP_STICKERS_ON, stickerSrc, stickerImg } from '@/components/pack/mapnotes/mapStickers';
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import { usePoiTiles, type PoiTilePoint } from './usePoiTiles';
 import { PlaceCard, PLACE_CARD_CSS } from './PlaceCard';
@@ -81,8 +82,8 @@ const markEmojiFor = (t: string): string =>
 // `WORLD_CIRCLE_PX` (24 px) — teda stále tretina pôvodnej pilulky (78 px), takže sa na tú
 // istú mapu zmestí podstatne viac bodov. 26 nechávam zámerne o 2 px väčšie než kruh:
 // biele kruhy, ktoré sa dotýkajú, splynú do jednej škvrny skôr než dve holé emoji.
-const MARK_W = 26;
-const MARK_H = 26;
+const MARK_W = MAP_STICKERS_ON ? 32 : 26;
+const MARK_H = MAP_STICKERS_ON ? 32 : 26;
 
 // ── EMOJI BEZ NÁZVU (Matej 2026-08-21) ──────────────────────────────────────
 // „POI z OMS by som celkom zmenil — nahradil tiež za emoji bez názvu — názov sa
@@ -112,15 +113,20 @@ const MARK_H = 26;
 //
 // ⚠️ Kruh sa NESTAVIA tu — `circleMarkHtml()` je jediný staviteľ pre všetky kruhové
 // značky mapy. Vlastný `<div>` s tými istými rozmermi by bol štvrtá kópia geometrie.
-const poiIcon = (t: string, done = false) => L.divIcon({
-  className: 'mk-wrap',
-  html: circleMarkHtml(markEmojiFor(t), WORLD_RIM, ` mk-circle--world${done ? PLACE_DONE_CLASS : ''}`),
-});
+const poiIcon = (t: string, done = false) => {
+  const src = stickerSrc(t);
+  return L.divIcon({
+    className: 'mk-wrap',
+    html: src
+      ? stickerImg(src, done ? PLACE_DONE_CLASS : '')
+      : circleMarkHtml(markEmojiFor(t), WORLD_RIM, ` mk-circle--world${done ? PLACE_DONE_CLASS : ''}`),
+  });
+};
 
 /** Vybraný bod = KVAPKA s menom (`PlaceSheet.tsx`, nákres v3). Kotva na špičke kvapky. */
 const pinIcon = (t: string, name?: string, flip = false) => L.divIcon({
   className: 'mk-wrap',
-  html: placePinHtml(markEmojiFor(t), name, flip),
+  html: placePinHtml(stickerSrc(t) ? stickerImg(stickerSrc(t)!) : markEmojiFor(t), name, flip),
   iconSize: [0, 0],
 });
 

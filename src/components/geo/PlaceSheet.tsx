@@ -114,6 +114,9 @@ export const PLACE_PIN_CSS = `
   text-shadow:0 0 4px #FFFDF7,0 0 4px #FFFDF7,0 0 4px #FFFDF7;}
 .plc-pin--flip .plc-pin-name{left:auto;right:48px;text-align:right;}
 .mk-circle.plc-done{border-color:${T.tripPurple}!important;}
+.mk-sticker.plc-done{filter:drop-shadow(0 0 2px ${T.tripPurple}) drop-shadow(0 0 2px ${T.tripPurple});}
+.plc-pin-dot .mk-sticker{width:24px;height:24px;transform:none;}
+.plc-pin-dot .mk-sticker:hover{transform:none;}
 .mk-circle.plc-done::after{content:'\\2713';position:absolute;right:-6px;top:-6px;width:14px;height:14px;border-radius:${PACK_R.pill}px;
   background:${T.tripPurple};color:#FFFDF7;font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;line-height:14px;text-align:center;}
 `;
