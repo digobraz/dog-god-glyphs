@@ -54,8 +54,8 @@ const PATHS = [
   { ax: 'ax3', mine: 'ucen-4.webp', lvl: 'my3' },
 ];
 
-/** Ikonky funkcií = lesklé samolepky z Kie (`public/web-app/ikony/*.webp`, výber Mateja 6. 11. z nákresu
- *  plany/nakresy/ikony-funkcii-2026-11-06). Odrážky `li` sa zatiaľ nekreslia — doladíme ich neskôr. */
+/** Ikonky funkcií = kartuše z banky (`public/web-app/ikony/*.webp`, Matej 8. 11.: „funkcie na nete v kartuši“,
+ *  zdroj plany/nakresy/banka-ikon-2026-11-08/rez/*-kartusa.webp). Odrážky `li` sa zatiaľ nekreslia — doladíme ich neskôr. */
 type B = [Record<Lang2, string>, boolean?];
 const b = (en: string, sk: string, soon = false): B => [{ en, sk }, soon];
 const FEATS: { h: Record<Lang2, string>; p: string; cls?: string; ic: string; li: B[] }[] = [
