@@ -217,7 +217,7 @@ function Skyline({ peaks }: { peaks: WallItem[] }) {
       </defs>
       <circle cx={sunX} cy="30" r="44" fill="url(#tw-glow)" />
       <circle cx={sunX} cy="30" r="15" fill={DAY.sun} />
-      {cloud(112, 30, 1, 'tw-a')}
+      {cloud(labelLeft ? 58 : 300, 30, 1, 'tw-a')}
       {cloud(256, 50, 0.75, 'tw-b')}
       {cloud(330, 18, 0.6, 'tw-a')}
       <path d={back} fill={DAY.haze} fillOpacity=".6" />
