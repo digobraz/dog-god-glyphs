@@ -107,9 +107,7 @@ export function TierScale({ level, onDark = true, large = false }: TierScaleProp
             )}
             </span>
             {large && i < here && (
-              <span style={{ flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 999, background: '#3D7A4E' }}>
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7" /></svg>
-              </span>
+              <img src="/icons/sys/fajka.webp" alt="" aria-hidden style={{ flex: 'none', width: 32, height: 32, objectFit: 'contain' }} />
             )}
           </div>
         );
