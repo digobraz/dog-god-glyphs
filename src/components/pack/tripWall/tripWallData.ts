@@ -89,6 +89,16 @@ export function derivedKind(t: HeroTrail): 'stay' | 'roadtrip' | null {
   return tripDayCount(t) >= 2 ? 'stay' : null;
 }
 
+/** Samolepka vrcholu podľa výšky (Matej 8. 11.). */
+export function peakIcon(m: number): string {
+  const top = [800, 1200, 1600, 2000, 3000].find((h) => m <= h) ?? 4000;
+  return `vrch-${top}`;
+}
+
+/** Noci v stane: čo zadal člen, inak z dátumov, inak jedna. */
+export const nightsOf = (t: HeroTrail, nights: Record<string, number>): number =>
+  nights[t.id] ?? (Math.max((tripDayCount(t) || journeyDays(t)) - 1, 0) || 1);
+
 /** Ručné označenie člena má prednosť pred tým, čo vyplýva zo zápisu. */
 export function kindOf(t: HeroTrail, kinds: Record<string, TripKind>): 'stay' | 'roadtrip' | null {
   const k = kinds[t.id];
@@ -127,7 +137,7 @@ export interface TripWallStats {
   byAscent: HeroTrail[];
 }
 
-export function computeTripWall(walked: HeroTrail[], kinds: Record<string, TripKind> = {}): TripWallStats {
+export function computeTripWall(walked: HeroTrail[], kinds: Record<string, TripKind> = {}, nightsMap: Record<string, number> = {}): TripWallStats {
   const units = (t: HeroTrail) => unitsForTrail(t);
   const ranges = groupUnits(walked, (t) => [...(units(t).ranges ?? []), ...(EXTRA_RANGES[t.id] ?? [])]);
   const parks = groupUnits(walked, (t) => {
@@ -166,7 +176,7 @@ export function computeTripWall(walked: HeroTrail[], kinds: Record<string, TripK
   let nights = 0;
   for (const t of walked) {
     if (kindOf(t, kinds) !== 'stay') continue;
-    const n = Math.max((tripDayCount(t) || journeyDays(t)) - 1, 0);
+    const n = nightsOf(t, nightsMap);
     nights += n;
     stays.push({ name: t.name, iso: trailCountry(t), value: n, trails: [t] });
   }

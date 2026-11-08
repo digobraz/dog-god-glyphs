@@ -85,6 +85,7 @@ export const PACK_KEYS = {
   trailOverrides: 'trp-trail-overrides-v1',
   // Stanovačka / roadtrip označené na TRIPSTATS (Matej 8. 11. 2026). `{ '<slug>': kind }`, zrkadlo `trip_marks`.
   tripKinds: 'trp-trip-kinds-v1',
+  tripNights: 'trp-trip-nights-v1',
 } as const;
 
 const QUEUE_KEY = 'trp-sync-queue-v1';
@@ -288,6 +289,14 @@ export const persistWalked = (next: Set<string>) => persistSetDiff(PACK_KEYS.wal
 /** Moje označenie prejdeného výletu. `none` = zo zápisu vyplýva druh, ale člen ho odmietol. */
 export type TripKind = 'stay' | 'roadtrip' | 'none';
 export const readTripKinds = (): Record<string, TripKind> => readJson<Record<string, TripKind>>(PACK_KEYS.tripKinds, {});
+export const readTripNights = (): Record<string, number> => readJson<Record<string, number>>(PACK_KEYS.tripNights, {});
+/** Noci v stane, ktoré člen zadal sám. */
+export function setTripNights(slug: string, nights: number): Record<string, number> {
+  const next = { ...readTripNights(), [slug]: nights };
+  writeJson(PACK_KEYS.tripNights, next);
+  enqueue([{ kind: 'upsert', tbl: 'trip_marks', row: { trip_slug: slug, kind: 'stay', nights }, onConflict: 'user_id,trip_slug' }]);
+  return next;
+}
 /** Zapíše lokálne a pošle do frontu; `null` označenie zruší. Vráti novú mapu. */
 export function setTripKind(slug: string, kind: TripKind | null): Record<string, TripKind> {
   const next = { ...readTripKinds() };
@@ -909,7 +918,7 @@ export function hydratePackStore(): Promise<boolean> {
         // PSIE VÝLETY (B20) — bez `.eq('user_id', uid)`: RLS pustí aj psa, pri ktorom
         // som pawmate, a jeho výlety patria do psieho profilu rovnako ako moje.
         (supabase as any).from('dog_trips').select('dog_id,trip_slug'),
-        (supabase as any).from('trip_marks').select('trip_slug,kind').eq('user_id', uid),
+        (supabase as any).from('trip_marks').select('trip_slug,kind,nights').eq('user_id', uid),
       ]);
 
       if (!blocked.has('trip_walked') && !walked.error && walked.data) {
@@ -930,8 +939,10 @@ export function hydratePackStore(): Promise<boolean> {
       }
       if (!blocked.has('trip_marks') && !tripMarks.error && tripMarks.data) {
         const kinds: Record<string, TripKind> = {};
-        for (const r of tripMarks.data as any[]) kinds[r.trip_slug] = r.kind;
+        const nights: Record<string, number> = {};
+        for (const r of tripMarks.data as any[]) { kinds[r.trip_slug] = r.kind; if (r.nights != null) nights[r.trip_slug] = r.nights; }
         writeJson(PACK_KEYS.tripKinds, kinds);
+        writeJson(PACK_KEYS.tripNights, nights);
       }
       if (!blocked.has('trip_fav') && !fav.error && fav.data) {
         writeStringSet(PACK_KEYS.fav, new Set(fav.data.map((r: any) => r.trip_slug)));

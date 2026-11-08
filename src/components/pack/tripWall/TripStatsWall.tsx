@@ -21,8 +21,10 @@ import { flagUrl, countryName } from '@/lib/countryGeo';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { NP_LOGO, CHKO_LOGO } from '@/components/pack/packCommunity';
-import { onPackStoreHydrated, readTripKinds, setTripKind, type TripKind } from '@/lib/packStore';
-import { ascentOf, computeTripWall, derivedKind, kindOf, WALL_UNITS, type TripWallStats, type WallItem, type WaterKind } from './tripWallData';
+import { onPackStoreHydrated, readTripKinds, readTripNights, setTripKind, setTripNights, type TripKind } from '@/lib/packStore';
+import { PACK_TIERS, pilgrimImg, tierGradient, tierIndexOfLevel } from '@/lib/packTiers';
+import { pluralKey } from '@/lib/plural';
+import { ascentOf, computeTripWall, derivedKind, kindOf, nightsOf, peakIcon, WALL_UNITS, type TripWallStats, type WallItem, type WaterKind } from './tripWallData';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -133,6 +135,22 @@ button.tw-row{cursor:pointer;}
 .tw-row.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
 .tw-tick{flex:none;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:${PACK_R.pill}px;border:1.5px solid ${T.border};}
 .tw-row svg.tw-ck{width:14px;height:14px;stroke:${LAPIS.edge};stroke-width:3;}
+.tw-nt{display:flex;align-items:center;gap:${S.sm}px;padding:${S.xs}px ${S.md}px ${S.sm}px;}
+.tw-nt > span{flex:1;font-size:${PACK_TEXT.label}px;font-weight:500;color:${T.inkWarm};}
+.tw-nt button{display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;border-radius:${PACK_R.field}px;border:1.5px solid ${T.border};background:${T.card};cursor:pointer;}
+.tw-nt svg{width:16px;height:16px;stroke:${T.inkStrong};fill:none;stroke-width:2.5;stroke-linecap:round;}
+.tw-nt input{width:56px;height:44px;flex:none;text-align:center;font-family:${FONT_UI};font-size:${PACK_TEXT.lead}px;font-weight:600;color:${T.inkStrong};font-variant-numeric:tabular-nums;}
+.tw-lvh{position:relative;display:flex;align-items:center;gap:${S.md}px;padding:${S.lg}px;border-radius:${PACK_R.card}px;border:1.5px solid ${T.cardEdge};background:linear-gradient(180deg,${P.skyTop},${P.skyMid} 70%,${P.skyLow});color:${LAPIS.deep};overflow:hidden;}
+.tw-lvh img{width:96px;height:96px;flex:none;object-fit:contain;}
+.tw-lvh small{display:block;font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:.26em;text-transform:uppercase;}
+.tw-lvh h3{margin:${S.xs}px 0 ${S.sm}px;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;line-height:1.1;letter-spacing:.14em;text-transform:uppercase;} /* písmo: nadpis */
+.tw-lvh i{display:inline-block;padding:${S.xs}px ${S.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.cardEdge};font-style:normal;font-size:${PACK_TEXT.label}px;font-weight:600;letter-spacing:.02em;}
+.tw-why{margin:${S.md}px 0;font-size:${PACK_TEXT.body}px;line-height:1.4;text-align:center;color:${T.inkStrong};}
+.tw-xp.static{margin:0;cursor:default;}
+.tw-lvb .comm-pts-rule{display:none;}
+.tw-lvb .comm-pts-cols{margin-top:${S.xl}px;}
+.tw-lvb .comm-pts-eyebrow{font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
+.tw-lvb .comm-pts-row,.tw-lvb .comm-pts-none{font-size:${PACK_TEXT.label}px;}
 .tw-mark{display:block;width:100%;margin-top:${S.md}px;padding:${S.md}px;border:0;border-radius:${PACK_R.field}px;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};color:${LAPIS.ink};font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;} /* písmo: cta */
 .tw-find{display:block;width:100%;margin-top:${S.md}px;padding:${S.md}px;font-family:${FONT_UI};font-size:${PACK_TEXT.lead}px;color:${T.inkStrong};}
 .tw-cs{display:flex;align-items:center;gap:${S.sm}px;margin-top:${S.lg}px;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1.1;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: nadpis */
@@ -260,6 +278,8 @@ type Sheet = { kind: 'cat'; cat: CatKey; iso: string; water: 'all' | WaterKind }
 
 const Chev = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>;
 const Check = () => <svg className="tw-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13l4 4L19 7" /></svg>;
+const Minus = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg>;
+const Plus = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" /></svg>;
 const TileChev = () => <svg className="tw-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>;
 
 /** Šírka výplne PROGRESU (recept `.pk-progress`). */
@@ -284,8 +304,9 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
   const t = useT();
   const { lang } = useLang();
   const [kinds, setKinds] = useState<Record<string, TripKind>>(readTripKinds);
-  useEffect(() => onPackStoreHydrated(() => setKinds(readTripKinds())), []);
-  const s = useMemo<TripWallStats>(() => computeTripWall(walkedTrails, kinds), [walkedTrails, kinds]);
+  useEffect(() => onPackStoreHydrated(() => { setKinds(readTripKinds()); setNights(readTripNights()); }), []);
+  const [nights, setNights] = useState<Record<string, number>>(readTripNights);
+  const s = useMemo<TripWallStats>(() => computeTripWall(walkedTrails, kinds, nights), [walkedTrails, kinds, nights]);
   const [find, setFind] = useState('');
   const [stack, setStack] = useState<Sheet[]>([]);
   const [openRow, setOpenRow] = useState<string | null>(null);
@@ -303,15 +324,15 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
   const openCat = (cat: CatKey, iso = 'all') => push({ kind: 'cat', cat, iso, water: 'all' });
 
   const trailItem = (tr: HeroTrail, value: number): WallItem => ({ name: tr.name, iso: tr.country || 'sk', value, trails: [tr] });
-  const CATS: Record<CatKey, { title: string; ic: string; items: WallItem[]; units?: Record<string, string[]>; logos?: Record<string, string>; meta: (x: WallItem) => string; sum?: boolean; unit?: string; direct?: boolean }> = {
+  const CATS: Record<CatKey, { title: string; ic: string; items: WallItem[]; units?: Record<string, string[]>; logos?: Record<string, string>; icon?: (x: WallItem) => string; meta: (x: WallItem) => string; sum?: boolean; unit?: string; direct?: boolean }> = {
     ranges: { title: t('pack.stats.geo.ranges'), ic: ICO('pohoria'), items: s.ranges, units: WALL_UNITS.ranges, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
     parks: { title: t('pack.stats.geo.parks'), ic: ICO('narodny-park'), items: s.parks, units: WALL_UNITS.parks, logos: NP_LOGO, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
     chko: { title: 'CHKO', ic: '/icons/chko/biele-karpaty.png', items: s.chko, units: WALL_UNITS.chko, logos: CHKO_LOGO, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
-    peaks: { title: t('pack.wall.peaks'), ic: ICO('vrcholy'), items: s.peaks, meta: (x) => `${n(x.value ?? 0)} m` },
-    waters: { title: t('pack.stats.geo.waters'), ic: ICO('jazero'), items: s.waters, meta: (x) => (x.water ? t(`pack.wall.water.${x.water}`) : '') },
+    peaks: { title: t('pack.wall.peaks'), ic: ICO('vrcholy'), items: s.peaks, icon: (x) => ICO(peakIcon(x.value ?? 0)), meta: (x) => `${n(x.value ?? 0)} m` },
+    waters: { title: t('pack.stats.geo.waters'), ic: ICO('jazero'), items: s.waters, icon: (x) => (x.water ? ICO(`voda-${WATER_ICON[x.water]}`) : ''), meta: (x) => (x.water ? t(`pack.wall.water.${x.water}`) : '') },
     journeys: { title: t('pack.stats.geo.journeys'), ic: ICO('pridane'), items: s.journeys, units: WALL_UNITS.journeys, meta: (x) => `${n(x.value ?? 0)} km` },
     roadtrips: { title: t('pack.wall.roadtrips'), ic: ICO('roadtrip'), items: s.roadtrips, meta: (x) => `${n(x.value ?? 0)} km` },
-    stays: { title: t('pack.wall.stays'), ic: ICO('stanovacky'), items: s.stays, meta: (x) => (x.value ? t('pack.wall.nights', { n: x.value }) : '') },
+    stays: { title: t('pack.wall.stays'), ic: ICO('stanovacky'), items: s.stays, meta: (x) => t(`pack.wall.nights${pluralKey(x.value ?? 0)}`, { n: x.value ?? 0 }) },
     ascent: { title: t('pack.wall.ascent'), ic: ICO('najvyssi'), items: s.byAscent.map((x) => trailItem(x, ascentOf(x))), meta: (x) => `${n(x.value ?? 0)} m`, sum: true, unit: 'm', direct: true },
     km: { title: t('pack.wall.kmTitle'), ic: ICO('km'), items: s.byKm.map((x) => trailItem(x, Number(x.km) || 0)), meta: (x) => `${n(x.value ?? 0)} km`, sum: true, unit: 'km', direct: true },
     trips: { title: t('pack.wall.tripsTitle'), ic: ICO('vylety'), items: [...walkedTrails].sort((a, b) => a.name.localeCompare(b.name, lang)).map((x) => trailItem(x, Number(x.km) || 0)), meta: (x) => (x.value ? `${n(x.value)} km` : t('pack.wall.place')), direct: true },
@@ -330,16 +351,16 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
     const list = st.water === 'all' ? inC : inC.filter((x) => x.water === st.water);
     const units = st.iso !== 'all' ? c.units?.[st.iso] : undefined;
     const locked = units ? units.filter((u) => !inC.some((x) => x.name === u)) : [];
-    const head = c.sum ? `${n(inC.reduce((a, x) => a + (x.value ?? 0), 0))} ${c.unit}` : n(inC.length);
+    const nightSum = n(inC.reduce((a, x) => a + (x.value ?? 0), 0));
+    const head = st.cat === 'stays' ? nightSum : c.sum ? `${n(inC.reduce((a, x) => a + (x.value ?? 0), 0))} ${c.unit}` : n(inC.length);
     const note = st.cat === 'ascent' && st.iso === 'all' ? t('pack.wall.everest', { n: fmtNum(s.everest, lang) })
-      : st.cat === 'stays' && st.iso === 'all' && s.nights > 0 ? t('pack.wall.nights', { n: s.nights }) : '';
+      : st.cat === 'stays' ? t('pack.wall.tentNights') : '';
     const hasList = !!c.units && st.iso !== 'all' && !units;
     const mark: MarkKind | null = st.cat === 'stays' ? 'stay' : st.cat === 'roadtrips' ? 'roadtrip' : null;
     /* Vlajka len pri výlete mimo domova: slovenská v každom riadku nehovorí nič (Matej 8. 11.). */
-    const lead = (x: { name: string; iso: string }, inCountry: boolean, lock = false) => {
-      const logo = c.logos?.[x.name];
-      if (logo) return <img className="tw-logo" src={logo} alt="" />;
-      return !lock && !inCountry && x.iso !== home ? <img src={flagUrl(x.iso)} alt="" /> : null;
+    const lead = (x: WallItem, inCountry: boolean, lock = false) => {
+      const pic = c.logos?.[x.name] ?? c.icon?.(x);
+      return <>{pic && <img className="tw-logo" src={pic} alt="" />}{!lock && !inCountry && x.iso !== home && <img src={flagUrl(x.iso)} alt="" />}</>;
     };
     const rows = (items: WallItem[], inCountry: boolean) => items.map((x) => {
       const flag = lead(x, inCountry);
@@ -370,7 +391,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
         </div>
       );
     });
-    const lockRow = (u: string, iso: string) => <div key={u} className="tw-row lock">{lead({ name: u, iso }, true, true)}<span className="nm">{u}</span></div>;
+    const lockRow = (u: string, iso: string) => <div key={u} className="tw-row lock">{lead({ name: u, iso, trails: [] }, true, true)}<span className="nm">{u}</span></div>;
     /* Parky bez filtra: každá krajina zvlášť, koľko z koľkých (Matej 8. 11.). */
     const byCountry = st.iso === 'all' && !!c.logos && !!c.units;
     const countrySecs = byCountry ? isoList.filter((iso) => iso === home || c.items.some((x) => x.iso === iso)).map((iso) => {
@@ -412,7 +433,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
             <button type="button" className={st.water === 'all' ? 'on' : ''} onClick={() => patch({ water: 'all' })}>{t('pack.wall.allKinds')} <b>{inC.length}</b></button>
             {(['pond', 'reservoir', 'lake'] as WaterKind[]).map((w) => (
               <button key={w} type="button" className={st.water === w ? 'on' : ''} onClick={() => patch({ water: w })}>
-                <img src={ICO(WATER_ICON[w])} alt="" />{t(`pack.wall.waters.${w}`)} <b>{inC.filter((x) => x.water === w).length}</b>
+                <img src={ICO(`voda-${WATER_ICON[w]}`)} alt="" />{t(`pack.wall.waters.${w}`)} <b>{inC.filter((x) => x.water === w).length}</b>
               </button>
             ))}
           </div>
@@ -442,19 +463,33 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
     const c = CATS[mark === 'stay' ? 'stays' : 'roadtrips'];
     return (
       <>
-        <div className="tw-sh"><img src={c.ic} alt="" /><div><h3>{c.title}</h3><span className="tw-num">{n(c.items.length)}</span></div></div>
+        <div className="tw-sh"><img src={c.ic} alt="" /><div><h3>{c.title}</h3><span className="tw-num">{n(mark === 'stay' ? s.nights : c.items.length)}</span>{mark === 'stay' && <span className="tw-hd2">{t('pack.wall.tentNights')}</span>}</div></div>
         <input className="pf-field tw-find" type="search" value={find} onChange={(e) => setFind(e.target.value)} placeholder={t('pack.wall.searchTrip')} aria-label={t('pack.wall.searchTrip')} />
         <div className="tw-ls">
           {list.map((x) => {
             const k = kindOf(x, kinds);
             const on = k === mark;
             return (
-              <button key={x.id} type="button" className={`tw-row${on ? ' on' : ''}`} aria-pressed={on} onClick={() => toggleKind(x, mark)}>
-                <span className="nm">{x.name}</span>
-                {k && !on && <img className="tw-oth" src={ICO(k === 'stay' ? 'stanovacky' : 'roadtrip')} alt="" />}
-                {Number(x.km) > 0 && <span className="mt">{n(Number(x.km))} km</span>}
-                <span className="tw-tick">{on && <Check />}</span>
-              </button>
+              <div key={x.id}>
+                <button type="button" className={`tw-row${on ? ' on' : ''}`} aria-pressed={on} onClick={() => toggleKind(x, mark)}>
+                  <span className="nm">{x.name}</span>
+                  {k && !on && <img className="tw-oth" src={ICO(k === 'stay' ? 'stanovacky' : 'roadtrip')} alt="" />}
+                  {Number(x.km) > 0 && <span className="mt">{n(Number(x.km))} km</span>}
+                  <span className="tw-tick">{on && <Check />}</span>
+                </button>
+                {on && mark === 'stay' && (() => {
+                  const v = nightsOf(x, nights);
+                  const put = (next: number) => setNights(setTripNights(x.id, Math.min(365, Math.max(1, next))));
+                  return (
+                    <div className="tw-nt">
+                      <span>{t('pack.wall.tentNights')}</span>
+                      <button type="button" onClick={() => put(v - 1)} aria-label="-1"><Minus /></button>
+                      <input className="pf-field" type="number" inputMode="numeric" min={1} max={365} value={v} onChange={(e) => { const p = parseInt(e.target.value, 10); if (p >= 1) put(p); }} aria-label={t('pack.wall.tentNights')} />
+                      <button type="button" onClick={() => put(v + 1)} aria-label="+1"><Plus /></button>
+                    </div>
+                  );
+                })()}
+              </div>
             );
           })}
           {!list.length && <p className="tw-none">{t('pack.wall.nothing')}</p>}
@@ -497,6 +532,34 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
   const next = HERO_BADGES.find((b) => b.trips > walkedTrails.length);
   const prevAt = [...HERO_BADGES].reverse().find((b) => b.trips <= walkedTrails.length)?.trips ?? 0;
   const topRange = s.ranges[0];
+  const xpBody = (
+    <>
+      <span className="tw-xpr">
+        <span className="tw-xpl">{lvl.level}</span>
+        <span className="pk-progress"><span className="pk-progress__fill" style={fillW(barOn ? lvl.pct : 0)} /></span>
+        <span className="tw-xpl nx">{lvl.level + 1}</span>
+      </span>
+      <span className="tw-xpt"><span>{t('pack.stats.pts', { n: lvl.points })}</span><span>{t('pack.stats.ptsToLevel', { n: lvl.toNext, level: lvl.level + 1 })}</span></span>
+    </>
+  );
+  const tierIdx = tierIndexOfLevel(lvl.level);
+  const tier = PACK_TIERS[tierIdx];
+  const renderLevel = () => (
+    <>
+      <div className="tw-lvh">
+        <img src={pilgrimImg(tierIdx)} alt="" />
+        <div>
+          <small>{t('pack.map.rankPilgrim')}</small>
+          <h3>{t('pack.wall.level', { n: lvl.level })}</h3>
+          <i style={{ background: tierGradient(tier), color: tier.ink }}>{t(`pack.tier.${tier.key}`)}</i>
+        </div>
+      </div>
+      <p className="tw-why">{t('pack.wall.levelWhy')}</p>
+      <div className="tw-xp static">{xpBody}</div>
+      <div className="tw-sec">{t('pack.wall.levelBands')}</div>
+      <div className="tw-lvb">{levelSheet}</div>
+    </>
+  );
   const longest = s.byKm[0];
   const steepest = s.byAscent[0];
 
@@ -516,12 +579,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
           <PilgrimBadge level={lvl.level} pct={lvl.pct} onClick={() => push({ kind: 'level' })} label={t('pack.stats.howPointsWork')} />
         </div>
         <button type="button" className="tw-xp" onClick={() => push({ kind: 'level' })} aria-label={t('pack.stats.howPointsWork')}>
-          <span className="tw-xpr">
-            <span className="tw-xpl">{lvl.level}</span>
-            <span className="pk-progress"><span className="pk-progress__fill" style={fillW(barOn ? lvl.pct : 0)} /></span>
-            <span className="tw-xpl nx">{lvl.level + 1}</span>
-          </span>
-          <span className="tw-xpt"><span>{t('pack.stats.pts', { n: lvl.points })}</span><span>{t('pack.stats.ptsToLevel', { n: lvl.toNext, level: lvl.level + 1 })}</span></span>
+          {xpBody}
         </button>
         <button type="button" className="tw-skyb" onClick={() => openCat('peaks')} aria-label={t('pack.wall.peaks')} />
       </div>
@@ -540,7 +598,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
         {tile('waters', ICO('jazero'), <WallCount n={s.waters.length} />, t('pack.stats.geo.waters'))}
         {tile('journeys', ICO('pridane'), <WallCount n={s.journeys.length} />, t('pack.stats.geo.journeys'))}
         {tile('ascent', ICO('najvyssi'), `${fmtNum(s.everest, lang)}×`, t('pack.wall.everestTile'))}
-        {tile('stays', ICO('stanovacky'), <WallCount n={s.stays.length} />, t('pack.wall.stays'))}
+        {tile('stays', ICO('stanovacky'), <WallCount n={s.nights} />, t('pack.wall.tentNights'))}
         {tile('roadtrips', ICO('roadtrip'), <WallCount n={s.roadtrips.length} />, t('pack.wall.roadtrips'))}
         {showChko && tile('chko', '/icons/chko/biele-karpaty.png', <WallCount n={s.chko.length} />, 'CHKO', true)}
       </div>
@@ -577,7 +635,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
 
       {top && (
         <PackPopup onClose={pop} label={top.kind === 'cat' ? CATS[top.cat].title : top.kind === 'mark' ? t('pack.wall.markTrips') : top.kind === 'countries' ? t('pack.wall.countriesTitle') : t('pack.stats.howPointsWork')}>
-          {top.kind === 'cat' ? renderCat(top) : top.kind === 'mark' ? renderMark(top.mark) : top.kind === 'countries' ? renderCountries() : levelSheet}
+          {top.kind === 'cat' ? renderCat(top) : top.kind === 'mark' ? renderMark(top.mark) : top.kind === 'countries' ? renderCountries() : renderLevel()}
         </PackPopup>
       )}
     </div>

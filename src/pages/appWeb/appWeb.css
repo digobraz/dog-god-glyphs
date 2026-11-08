@@ -1439,7 +1439,7 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 /* Optická veľkosť odznakov (Matej 7. 11.: „pútnik malý a učeň veľký… vyrovnať"). Merané v súbore:
    učeň = plný šesťuholník 93 % výšky, pútnik = tenký kruh s hrotmi 65 %, služobník 75 %.
    `scale` je samostatná vlastnosť, takže hover/vyskočenie cez `transform` ostáva nedotknuté. */
-.aw img[src*="/odznaky/ucen-"]{scale:.8}
+.aw img[src*="/odznaky/ucen-"]{scale:1.2}
 .aw img[src*="/odznaky/pilgrim-"]{scale:1.2}
 
 /* 7. 11. — POĎAKOVANIE: tri bloky pod sebou v jednej šírke (ruší vodorovný pás .gs-tr) */
