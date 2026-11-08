@@ -362,9 +362,9 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
       </div>
 
       <div className="tw-strip">
-        <button type="button" onClick={() => openCat('km')}><img src={ICO('km')} alt="" /><span className="tw-num"><WallCount n={Math.round(s.km)} /></span><span className="tw-lbl">km</span></button>
-        <button type="button" onClick={() => openCat('trips')}><img src={ICO('vylety')} alt="" /><span className="tw-num"><WallCount n={walkedTrails.length} /></span><span className="tw-lbl">{t('pack.wall.trips')}</span></button>
-        <button type="button" onClick={() => push({ kind: 'countries' })}><img src={ICO('krajiny')} alt="" /><span className="tw-num"><WallCount n={s.countries.length} /></span><span className="tw-lbl">{t('pack.wall.countries')}</span></button>
+        <button type="button" onClick={() => openCat('km')}><img src={ICO('km-bez')} alt="" /><span className="tw-num"><WallCount n={Math.round(s.km)} /></span><span className="tw-lbl">km</span></button>
+        <button type="button" onClick={() => openCat('trips')}><img src={ICO('vylety-bez')} alt="" /><span className="tw-num"><WallCount n={walkedTrails.length} /></span><span className="tw-lbl">{t('pack.wall.trips')}</span></button>
+        <button type="button" onClick={() => push({ kind: 'countries' })}><img src={ICO('krajiny-bez')} alt="" /><span className="tw-num"><WallCount n={s.countries.length} /></span><span className="tw-lbl">{t('pack.wall.countries')}</span></button>
       </div>
 
       <div className="tw-sec">{t('pack.wall.total')}</div>
