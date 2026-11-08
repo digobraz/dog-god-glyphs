@@ -15,6 +15,7 @@ import { DiaryItem, DIARY_LIST_CSS, useDiaryRows, type DiaryRow } from './DiaryL
 import { loadPackDogs } from '@/lib/packDogsList';
 import { APP_NEW } from '@/lib/packFlags';
 import { loadZapisDays, KIND_EMOJI, type ZapisDay } from '@/components/pack/profile/zapisDnaModel';
+import { ZapisGlyph } from '@/components/pack/SysIcon';
 
 /** V appke NAPÍSAŤ = TEN ISTÝ panel ako labka, len s pásom dní (Matej 31. 10. 2026: „áno“ nad nákresom
  *  `plany/nakresy/zapis-dna-2026-10-31/` · NAPÍSAŤ Z KRONIKY). Staré okno „Do denníka“ ostáva len webu. */
@@ -130,7 +131,7 @@ export function ChronicleBody({ tx }: { tx: Tx }) {
                       <small>{dt.toLocaleDateString(lang, { weekday: 'short' }).replace('.', '')}</small>
                     </div>
                     {d.emojis.length > 0
-                      ? <div className="chr-dayemo" aria-label={tx('pack.chronicle.dayTaps', 'Logged that day')}>{d.emojis.map((e) => <span key={e}>{e}</span>)}</div>
+                      ? <div className="chr-dayemo" aria-label={tx('pack.chronicle.dayTaps', 'Logged that day')}>{d.emojis.map((e) => <span key={e}><ZapisGlyph mark={e} size={24} /></span>)}</div>
                       : <div className="chr-daylbl">{dt.toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long' })}</div>}
                   </div>
                   {d.items.map((r) => (

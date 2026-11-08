@@ -55,6 +55,10 @@ export const ZTILES: readonly ZTile[] = [
 
 export const KIND_EMOJI: Readonly<Record<string, string>> = Object.fromEntries(ZTILES.map((t) => [t.id, t.emoji]));
 
+// Appka (Matej 8. 11. 2026): kresby z továrne `plany/ikonky/`, skupina Zápis dňa. Krmenie sa neponúka, kresbu nemá.
+const SYS_BY_EMOJI = new Map<string, string>(ZTILES.filter((t) => t.id !== 'feeding').map((t): [string, string] => [t.emoji, `den-${t.id}`]));
+export const zapisSys = (emoji: string): string | null => SYS_BY_EMOJI.get(emoji) ?? null;
+
 /** Druhy, ktoré robia deň „zapísaným" v kalendári. Krmenie sa pripisuje aj samo (cron), preto ráta len ručné (`meta.manual`). */
 export const ZAPIS_KINDS: readonly string[] = ZTILES.filter((t) => !t.special).map((t) => t.id);
 

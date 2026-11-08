@@ -28,6 +28,7 @@ import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, BRAND_GOLD_BTN, MODAL_MAX_H, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { HandCamera, HandCheck } from '@/components/pack/HandIcons';
+import { ZapisGlyph } from '@/components/pack/SysIcon';
 import { BackIcon, backCircleCSS } from '@/components/pack/BackButton';
 import { supabase } from '@/integrations/supabase/client';
 import { grantDevotion } from '@/lib/devotionGrant';
@@ -426,7 +427,8 @@ export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pi
         const r = tile.getBoundingClientRect();
         const f = document.createElement('span');
         f.className = 'zd-fly';
-        f.textContent = em.textContent;
+        const art = em.querySelector('img');
+        if (art) f.append(art.cloneNode()); else f.textContent = em.textContent;
         f.style.left = `${r.left - sr.left + r.width / 2 - 13}px`;
         f.style.top = `${r.top - sr.top + r.height / 2 - 16}px`;
         sheet.appendChild(f);
@@ -473,7 +475,7 @@ export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pi
       <button key={tile.id} type="button" className={`zd-tile${n > 0 ? ' on' : ''}${got ? ' got' : ''}`}
         disabled={got || !picked.length} aria-pressed={n > 0} onClick={() => hit(tile)}>
         {n > 0 && !tile.multi && <span className="ok"><HandCheck size={12} /></span>}
-        <em>{tile.emoji}</em>
+        <em><ZapisGlyph mark={tile.emoji} size={32} /></em>
         <b>{tx(`pack.zd.t.${tile.id}`, tile.name)}</b>
         {tile.multi && <span className="zd-dots" aria-hidden>{Array.from({ length: tile.multi }, (_, i) => <u key={i} className={i < done ? 'd' : i < done + n ? 'f' : ''} />)}</span>}
       </button>
@@ -487,7 +489,7 @@ export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pi
       <button key={tile.id} type="button" className={`zd-pill${selected ? ' on' : ''}${got ? ' got' : ''}`}
         disabled={got || !picked.length} aria-pressed={selected} onClick={() => hit(tile)}>
         {n > 1 && <span className="ok">{n}</span>}
-        <em>{tile.emoji}</em>{tx(`pack.zd.t.${tile.id}`, tile.name)}
+        <em><ZapisGlyph mark={tile.emoji} size={20} /></em>{tx(`pack.zd.t.${tile.id}`, tile.name)}
       </button>
     );
   };
@@ -555,7 +557,7 @@ export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pi
 
             {subTiles.map((x) => (
               <div className="zd-subs" key={x.id}>
-                <b>{x.emoji} {tx(`pack.zd.t.${x.id}`, x.name)}</b>
+                <b><ZapisGlyph mark={x.emoji} size={20} /> {tx(`pack.zd.t.${x.id}`, x.name)}</b>
                 {x.subs!.map(([code, label]) => (
                   <button key={code} type="button" className={`zd-chip${sub[x.id] === code ? ' on' : ''}`}
                     onClick={() => setSub((p) => ({ ...p, [x.id]: p[x.id] === code ? null : code }))}>{tx(`pack.zd.s.${code}`, label)}</button>
@@ -601,7 +603,7 @@ export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pi
             <div className="zd-prog">
               {rowsRef.current.map((r) => (
                 <div key={r.fam} className={`zd-pg${r.hit ? ' new' : ''}`}>
-                  <em>{r.emoji}</em><span className="nm">{tx(`pack.badge.${r.fam}`, r.fam)}</span>
+                  <em><ZapisGlyph mark={r.emoji} size={24} sys={r.fam === 'kronika' ? 'den-kronika' : undefined} /></em><span className="nm">{tx(`pack.badge.${r.fam}`, r.fam)}</span>
                   <span className="bar pk-progress"><span className="pk-progress__fill" style={pctW(Math.max(3, ((r.before - r.lo) / Math.max(1, r.nx - r.lo)) * 100))} /></span>
                   <span className="v">{r.before}/{r.nx}</span>
                 </div>

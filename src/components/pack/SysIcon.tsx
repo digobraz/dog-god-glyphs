@@ -5,6 +5,13 @@ import type { CSSProperties } from 'react';
 import { APP_NEW } from '@/lib/packFlags';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandPaw, HandSearch, HandStar } from '@/components/pack/HandIcons';
+import { zapisSys } from '@/components/pack/profile/zapisDnaModel';
+
+/** Značka zápisu dňa: v appke kresba, na webe emoji. Vstup je emoji dlaždice, aby kalendár a Kronika nemuseli meniť dáta. */
+export const ZapisGlyph = ({ mark, size, sys }: { mark: string; size: number; sys?: string }) => {
+  const name = APP_NEW ? (sys ?? zapisSys(mark)) : null;
+  return name ? <SysIcon name={name} size={size} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : <>{mark}</>;
+};
 
 export const sysSrc = (name: string) => `/icons/sys/${name}.webp`;
 

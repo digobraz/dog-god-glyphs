@@ -54,6 +54,7 @@ import { useLang } from '@/i18n/LanguageContext';
 import { APP_NEW } from '@/lib/packFlags';
 import { HandCheck } from '@/components/pack/HandIcons';
 import { loadZapisDays, KIND_EMOJI } from '@/components/pack/profile/zapisDnaModel';
+import { ZapisGlyph } from '@/components/pack/SysIcon';
 import { intlLocale } from '@/i18n/bcp47';
 import type { ElementKey } from '@/components/pack/natureQuiz';
 import {
@@ -814,7 +815,7 @@ function MonthGrid({
               {zapis && <span className="cal-chk" aria-label={tx('pack.cal.type.zapis', 'Zápis dňa')}><HandCheck size={14} /></span>}
               {mo && <span className="cal-momoon" style={{ background: mo === 'full' ? '#FFFDF5' : '#241a09' }} />}
               <span className="cal-momk" style={{ fontFamily: EMOJI_FONT }}>
-                {marks.slice(0, 3).join('')}
+                {marks.slice(0, 3).map((m, i) => <ZapisGlyph key={i} mark={m} size={16} />)}
                 {marks.length > 3 && <u>+{marks.length - 3}</u>}
               </span>
             </div>
