@@ -33,6 +33,9 @@ export const POST_TAGS: PostTagDef[] = [
   { tag: 't:life', i18n: 'pack.feed.tag.life', fallback: 'Dog life', icon: 'dogsphinx', color: '#B02F7C' },
 ];
 
+/** Témy, ktoré vo feede nemajú kruh, sa v appke pri písaní neponúkajú (Matej 8. 11. 2026). Staré príspevky si ich nechávajú. */
+export const POST_TAGS_BEZ_KRUHU = new Set(['t:tips', 't:learn', 't:life']);
+
 /** Témy príspevku; starý `nature` = `t:trip`. */
 export function postTopics(p: Pick<MePost, 'tags'>): string[] {
   const out = p.tags.filter((x) => x.startsWith(POST_TAG_PREFIX));

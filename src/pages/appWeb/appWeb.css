@@ -654,21 +654,19 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .vs-tag.ig{bottom:52px}.aw .vs-tag.dg{bottom:-16px}
 @media(max-width:767px){.aw .vs-tag{left:0;max-width:260px;padding-left:84px}.aw .vs-tag .vs-ico{width:80px;height:80px}.aw .vs-tag.ig{bottom:8px}.aw .vs-tag.dg{bottom:-12px}}
 
-/* FUNKCIE = karty B (Matej 6. 11.: „daj to do blokov nie ako zoznam“) — lesklá ikonka na dlaždici trčí nad kartou,
-   bez hover animácie. Dlaždica lapis (predvolená) / papyrus = `data-tile`, prepínač v `?varianty`. */
-.aw .fgrid{--tile:linear-gradient(160deg,#1E3C90 0%,#0A1A4A 100%);display:grid;grid-template-columns:1fr 1fr;gap:64px var(--s-lg);padding-top:52px}
-.aw .fgrid[data-tile="papyrus"]{--tile:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%)}
-@media(min-width:900px){.aw .fgrid{grid-template-columns:repeat(4,1fr);gap:72px var(--s-lg)}}
-.aw .fcard{position:relative;text-align:center;padding:72px var(--s-lg) var(--s-xl);display:flex;flex-direction:column;align-items:center;gap:var(--s-sm)}
-.aw .fti{position:absolute;left:50%;top:-48px;transform:translateX(-50%) rotate(-4deg);width:112px;height:112px;border-radius:26px;background:var(--tile);border:1.5px solid var(--card-edge);display:grid;place-items:center;box-shadow:0 14px 28px -12px rgba(10,26,74,.55)}
+/* FUNKCIE = karty B (Matej 6. 11.: „daj to do blokov nie ako zoznam“) — kartuša trčí nad kartou, bez hover animácie.
+   Bez dlaždice a väčšia (Matej 8. 11.: „zrušiť a zväčšiť ikonku“), rám nesie sama kartuša. */
+.aw .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:80px var(--s-lg);padding-top:68px}
+@media(min-width:900px){.aw .fgrid{grid-template-columns:repeat(4,1fr);gap:88px var(--s-lg)}}
+.aw .fcard{position:relative;text-align:center;padding:96px var(--s-lg) var(--s-xl);display:flex;flex-direction:column;align-items:center;gap:var(--s-sm)}
+.aw .fti{position:absolute;left:50%;top:-64px;transform:translateX(-50%) rotate(-4deg);width:148px;height:148px;display:grid;place-items:center}
 .aw .fcard:nth-child(even) .fti{transform:translateX(-50%) rotate(3deg)}
-.aw .fti img{width:86%;height:86%;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))}
+.aw .fti img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))}
 .aw .fcard h3{font-size:var(--t-h1)}
 .aw .fcard p{margin:0;font-size:var(--t-body);color:var(--ink-soft);line-height:1.45}
 .aw .fcard.soon{border:1.5px dashed var(--card-edge);border-radius:var(--r-card);background:color-mix(in srgb,var(--paper) 35%,transparent)}
-.aw .fcard.soon .fti{border-style:dashed}
 .aw .fcard.soon .pk-pill--locked{font:600 var(--t-micro)/1 var(--font-ui);letter-spacing:.14em;padding:4px 10px;margin-top:var(--s-xs)}
-@media(max-width:767px){.aw .fgrid{gap:56px var(--s-md)}.aw .fcard{padding:60px var(--s-md) var(--s-lg)}.aw .fti{width:92px;height:92px;top:-40px;border-radius:22px}.aw .fcard h3{font-size:var(--t-h2)}.aw .fcard p{font-size:var(--t-label)}}
+@media(max-width:767px){.aw .fgrid{gap:64px var(--s-md);padding-top:56px}.aw .fcard{padding:76px var(--s-md) var(--s-lg)}.aw .fti{width:116px;height:116px;top:-52px}.aw .fcard h3{font-size:var(--t-h2)}.aw .fcard p{font-size:var(--t-label)}}
 
 /* slučka appiek nad funkciami (APPS_TYPE_CSS z /onepage) */
 .aw .apps-loop{text-align:center;margin:0 0 var(--s-xl)}

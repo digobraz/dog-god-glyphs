@@ -25,7 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { guardMessage } from '@/components/pack/contentGuardError';
 import { useT } from '@/i18n/LanguageContext';
 import { APP_NEW } from '@/lib/packFlags';
-import { POST_TAGS, POST_TAG_MAX } from '@/components/pack/feed/postTags';
+import { POST_TAGS, POST_TAGS_BEZ_KRUHU, POST_TAG_MAX } from '@/components/pack/feed/postTags';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -330,7 +330,7 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
             <div>
               <p className="mc-lbl">{tx('pack.feed.tag.ask', 'What is it about? (pick up to 2)')}</p>
               <div className="mc-tags">
-                {POST_TAGS.map((d) => (
+                {POST_TAGS.filter((d) => !APP_NEW || !POST_TAGS_BEZ_KRUHU.has(d.tag)).map((d) => (
                   <button key={d.tag} type="button" className={`mc-tag${topics.includes(d.tag) ? ' on' : ''}`} aria-pressed={topics.includes(d.tag)} onClick={() => toggleTopic(d.tag)}>
                     <BrandIcon name={d.icon} size={16} tint="dark" />{tx(d.i18n, d.fallback)}
                   </button>
