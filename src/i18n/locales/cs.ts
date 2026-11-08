@@ -4342,6 +4342,8 @@ export const cs: Partial<Dict> = {
   'pack.addEvent.startsLabel': 'Začátek',
   'pack.addEvent.submit': 'Přidat akci',
   'pack.addEvent.submitError': 'Neuložilo se. Zkus to znovu.',
+  "pack.addEvent.originOwn": "Organizuji já",
+  "pack.addEvent.originTip": "Našel jsem to jinde",
   'pack.addEvent.title.own': 'Přidat akci',
   'pack.addEvent.title.tip': 'Podělit se o akci',
   'pack.addEvent.titleLabel': 'Název',
