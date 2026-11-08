@@ -27,10 +27,11 @@ const S = PACK_SPACE;
 const ICO = (n: string) => `/icons/tripstats/${n}.webp`;
 /** PODBLOK z matrice, tlačidlá ho berú vykonateľne. */
 export const SUBBLOCK = PACK_BOX.subblock;
-/** Obloha pod obrázkom = farba vrchu `scena-den.webp`, aby na prechode nebol šev. */
-const DAY_SKY = '#0785F8';
-/** Pomer strán a vrchol v obrázku (%), vlajka sa drží vrcholu na každej šírke. */
-const SCENE = { w: 1672, h: 941, peakX: 50, peakY: 35.5 };
+/** Plagát parku (Matej 8. 11.: *„daj plagát"*): rozmery scény. Mobil vidí stred `VW`, PC celých 832. */
+const WALL_H = 332;
+const VW = 358;
+const SIDE = 237;
+const P = { skyTop: '#7CCBD8', skyMid: '#FCE7B0', skyLow: '#F9C873', ray: '#FFF3CF', sunOut: '#F59B3C', sunIn: '#FBB84E', tealLit: '#2E8F97', tealDark: '#1B6470', midLit: '#3F9E8B', midDark: '#2A7A6C', lowLit: '#57A869', lowDark: '#3C8854', snow: '#FFF8E6', hill: '#3F8747', pine: '#17493B', pineDark: '#113A30', trunk: '#6B4A2B' };
 /** Výška bloku: polovica ide do scény, polovica pod ňu (Matej 8. 11.: *„zapusti, aby boli v polovici"*). */
 const STRIP_H = 120;
 
@@ -38,14 +39,9 @@ export const TW_CSS = `${PROGRESS_CSS}
 ${STAGE_CSS}
 .tw-strip{--pk-stage:rgba(255,255,255,.58);--pk-stage-edge:rgba(255,255,255,.85);}
 .tw-root{--tw-ink:${LAPIS.ink};--tw-deep:${LAPIS.deep};--tw-gold:${T.cardEdge};}
-.tw-wall{--tw-sw:max(100cqw,533px);--tw-crop:0px;container-type:inline-size;position:relative;margin-top:${S.md}px;border-radius:${PACK_R.card}px;overflow:hidden;background:${DAY_SKY};border:1.5px solid ${T.cardEdge};box-shadow:${LAPIS_BTN_SHADOW};}
-.tw-wall::before{content:'';position:absolute;inset:0 0 auto;z-index:1;height:136px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,.44) 70%,rgba(255,255,255,0));}
-@media (min-width:768px){.tw-wall{--tw-crop:96px;}}
-.tw-scene{position:absolute;left:50%;bottom:calc(-1 * var(--tw-crop));width:var(--tw-sw);aspect-ratio:${SCENE.w}/${SCENE.h};transform:translateX(-50%);}
-.tw-scene img{display:block;width:100%;height:100%;-webkit-mask:linear-gradient(180deg,transparent,#000 16%);mask:linear-gradient(180deg,transparent,#000 16%);}
-.tw-peak{position:absolute;left:${SCENE.peakX}%;top:${SCENE.peakY}%;z-index:2;}
-.tw-peak svg{position:absolute;left:-1px;bottom:0;width:20px;height:24px;overflow:visible;}
-.tw-peak span{position:absolute;left:24px;bottom:${S.sm}px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;background:${T.card};color:${T.inkStrong};font:600 ${PACK_TEXT.micro}px/1 ${FONT_UI};}
+.tw-wall{position:relative;display:flex;flex-direction:column;height:${WALL_H}px;margin-top:${S.md}px;border-radius:${PACK_R.card}px;overflow:hidden;background:${P.skyTop};border:1.5px solid ${T.cardEdge};box-shadow:${LAPIS_BTN_SHADOW};}
+.tw-poster{position:absolute;inset:0;width:100%;height:100%;display:block;}
+.tw-poster text{font:600 ${PACK_TEXT.micro}px ${FONT_UI};fill:${T.inkStrong};}
 .tw-hud{position:relative;z-index:2;display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;color:${LAPIS.deep};}
 .tw-hudb{display:flex;align-items:center;gap:${S.md}px;flex:1;min-width:0;padding:0;background:none;border:0;color:inherit;cursor:pointer;text-align:left;font-family:${FONT_UI};}
 .tw-av{width:56px;height:56px;flex:none;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};box-shadow:0 0 0 2px ${T.card},0 0 0 3px ${T.inkStrong};}
@@ -56,7 +52,7 @@ ${STAGE_CSS}
 .tw-xp .pk-progress{background:rgba(10,26,74,.2);}
 .tw-xp .pk-progress__fill{transition:width 1.1s cubic-bezier(.2,.7,.2,1) .2s;}
 .tw-xpt{display:flex;justify-content:space-between;margin-top:${S.xs}px;font-size:${PACK_TEXT.micro}px;font-weight:500;opacity:.86;}
-.tw-skyb{position:relative;z-index:1;display:block;width:100%;height:calc(30px + var(--tw-sw) * .363 - var(--tw-crop));padding:0;background:none;border:0;cursor:pointer;}
+.tw-skyb{position:relative;z-index:1;display:block;width:100%;flex:1;min-height:0;padding:0;background:none;border:0;cursor:pointer;}
 .tw-strip{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:${S.sm}px;margin:-${S.xxl}px ${S.sm}px 0;}
 .tw-strip button{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.xs}px ${S.md}px;cursor:pointer;font-family:${FONT_UI};box-shadow:${PACK_SHADOW.card};}
 .tw-wall + .tw-strip{margin-top:-${STRIP_H / 2}px;}
@@ -155,6 +151,84 @@ export function WallCount({ n }: { n: number }) {
     return () => cancelAnimationFrame(raf);
   }, [n]);
   return <>{fmtNum(Math.round(v), lang)}</>;
+}
+
+/** Plagát národného parku z vrcholov člena: najvyšší v strede pred slnkom, výška = metre. */
+function Poster({ peaks }: { peaks: WallItem[] }) {
+  const { lang } = useLang();
+  const sc = useMemo(() => {
+    const f = (v: number) => v.toFixed(1);
+    let seed = 7;
+    const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const top = peaks[0]?.value ?? 2000, lo = top - 843;
+    const seq = [0, -1, 1, -2, 2, -3, 3];
+    const main = peaks.slice(0, 7).map((p, i) => ({ name: p.name, h: p.value ?? 0, x: VW / 2 + seq[i] * 60 + (i ? ((i * 37) % 11) - 5 : 0), y: Math.min(250, 258 - (((p.value ?? 0) - lo) / 843) * 112) }));
+    const apex = main[0] ?? { name: '', h: 0, x: VW / 2, y: 146 };
+    const faces: { d: string; c: string }[] = [];
+    const big = (x: number, y: number, w: number, lit: string, dark: string, snow: number) => {
+      const base = 300, tall = base - y;
+      faces.push({ d: `M${f(x)} ${f(y)} L${f(x + w)} ${base} L${f(x - w)} ${base}Z`, c: lit });
+      faces.push({ d: `M${f(x)} ${f(y)} L${f(x + w)} ${base} L${f(x + w * 0.12)} ${base} L${f(x + w * 0.2)} ${f(y + tall * 0.55)} L${f(x - w * 0.08)} ${f(y + tall * 0.32)}Z`, c: dark });
+      if (!snow) return;
+      const sy = y + tall * snow, sx = w * snow;
+      faces.push({ d: `M${f(x)} ${f(y)} L${f(x + sx)} ${f(sy)} L${f(x + sx * 0.5)} ${f(sy - 7)} L${f(x + sx * 0.18)} ${f(sy + 7)} L${f(x - sx * 0.22)} ${f(sy - 6)} L${f(x - sx * 0.6)} ${f(sy + 6)} L${f(x - sx)} ${f(sy)}Z`, c: P.snow });
+    };
+    peaks.slice(7, 15).forEach((p, i) => big(VW / 2 + (i % 2 ? 1 : -1) * (230 + (i >> 1) * 58), Math.min(250, 258 - (((p.value ?? 0) - lo) / 843) * 112) + 24, 72, P.lowLit, P.lowDark, 0));
+    big(apex.x, apex.y, 128, P.tealLit, P.tealDark, 0.3);
+    main.slice(1, 3).forEach((p) => big(p.x < apex.x ? p.x - 16 : p.x + 16, p.y + 14, 92, P.midLit, P.midDark, 0.2));
+    main.slice(3, 5).forEach((p) => big(p.x < apex.x ? p.x - 36 : p.x + 36, p.y + 24, 72, P.lowLit, P.lowDark, 0));
+    const cx = apex.x, cy = apex.y + 34;
+    const rays = Array.from({ length: 18 }, (_, i) => {
+      const a0 = (i * Math.PI) / 9 - 0.08, a1 = a0 + 0.17;
+      return `M${f(cx)} ${f(cy)} L${f(cx + Math.cos(a0) * 900)} ${f(cy + Math.sin(a0) * 900)} L${f(cx + Math.cos(a1) * 900)} ${f(cy + Math.sin(a1) * 900)}Z`;
+    });
+    const hill = (x: number) => 262 + Math.sin(x / 58 + 1) * 8;
+    let land = `M${-SIDE - 6} ${f(hill(-SIDE - 6))}`;
+    for (let x = -SIDE; x <= VW + SIDE + 6; x += 6) land += ` L${x} ${f(hill(x))}`;
+    land += ` L${VW + SIDE + 6} ${WALL_H} L${-SIDE - 6} ${WALL_H}Z`;
+    const pines: { x: number; b: number; s: number; tiers: [string, string][] }[] = [];
+    const addPine = (x: number, s: number) => {
+      const b = hill(x) + 4;
+      const tier = (a: number, w: number, h: number): [string, string] => {
+        const y0 = b - a * s, yT = y0 - h * s;
+        return [`M${f(x)} ${f(yT)} L${f(x + w * s)} ${f(y0)} L${f(x - w * s)} ${f(y0)}Z`, `M${f(x)} ${f(yT)} L${f(x + w * s)} ${f(y0)} L${f(x)} ${f(y0)}Z`];
+      };
+      pines.push({ x, b, s, tiers: [tier(3, 10, 14), tier(11, 8, 12), tier(19, 5.6, 11)] });
+    };
+    for (let i = 0; i < 20; i++) {
+      const x = i * 19 + r() * 10 - 4, s = 0.8 + ((i * 7) % 5) * 0.14;
+      if (!(x > 130 && x < 230 && s < 1.2)) addPine(x, s);
+    }
+    for (let i = 1; i <= 13; i++) { addPine(-i * 19 + r() * 8, 0.8 + ((i * 3) % 5) * 0.14); addPine(VW + i * 19 - r() * 8, 0.8 + ((i * 4) % 5) * 0.14); }
+    return { apex, faces, rays, land, pines, cx, cy, hasPeak: main.length > 0 };
+  }, [peaks]);
+  const { apex, faces, rays, land, pines, cx, cy, hasPeak } = sc;
+  const label = `${apex.name} ${fmtNum(apex.h, lang)} m`;
+  const labelW = label.length * 5.7 + 18, labelX = apex.x + 24;
+  return (
+    <svg className="tw-poster" viewBox={`${-SIDE} 0 ${VW + 2 * SIDE} ${WALL_H}`} preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <defs><linearGradient id="tw-psky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={P.skyTop} /><stop offset=".62" stopColor={P.skyMid} /><stop offset="1" stopColor={P.skyLow} /></linearGradient></defs>
+      <rect x={-SIDE} width={VW + 2 * SIDE} height={WALL_H} fill="url(#tw-psky)" />
+      {rays.map((d, i) => <path key={i} d={d} fill={P.ray} opacity=".42" />)}
+      <circle cx={cx} cy={cy} r="58" fill={P.sunOut} />
+      <circle cx={cx} cy={cy} r="46" fill={P.sunIn} />
+      {faces.map((x, i) => <path key={i} d={x.d} fill={x.c} />)}
+      <path d={land} fill={P.hill} />
+      {pines.map((p, i) => (
+        <g key={i}>
+          <rect x={p.x - 1.4 * p.s} y={p.b - 4 * p.s} width={2.8 * p.s} height={5 * p.s} fill={P.trunk} />
+          {p.tiers.map(([a, b], j) => <g key={j}><path d={a} fill={P.pine} /><path d={b} fill={P.pineDark} /></g>)}
+        </g>
+      ))}
+      {[[70, 150], [92, 142], [80, 132]].map(([x, y], i) => <path key={i} d={`M${x - 7} ${y} q3.5 -5 7 0 q3.5 -5 7 0`} fill="none" stroke={P.pine} strokeWidth="1.6" strokeLinecap="round" />)}
+      {hasPeak && <>
+        <path d={`M${apex.x} ${apex.y + 1} v-25`} stroke={P.pine} strokeWidth="2" strokeLinecap="round" />
+        <path d={`M${apex.x} ${apex.y - 24} l16 5 l-16 5z`} fill={T.cardEdge} stroke={P.pine} strokeWidth="1.4" strokeLinejoin="round" />
+        <rect x={labelX} y={apex.y - 30} width={labelW} height="20" rx="10" fill={T.card} opacity=".95" />
+        <text x={labelX + 9} y={apex.y - 16.5}>{label}</text>
+      </>}
+    </svg>
+  );
 }
 
 type CatKey = 'ranges' | 'parks' | 'chko' | 'peaks' | 'waters' | 'journeys' | 'stays' | 'ascent' | 'km' | 'trips';
@@ -340,15 +414,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
     <div className="tw-root">
       <style>{TW_CSS + RANK_BADGE_CSS}</style>
       <div className="tw-wall">
-        <div className="tw-scene" aria-hidden="true">
-          <img src={ICO('scena-den')} alt="" />
-          {s.peaks[0] && (
-            <div className="tw-peak">
-              <svg viewBox="0 0 20 24"><path d="M1 24V1" stroke={T.inkStrong} strokeWidth="2" strokeLinecap="round" /><path d="M1 1l16 5-16 5z" fill={T.cardEdge} stroke={T.inkStrong} strokeWidth="1.5" strokeLinejoin="round" /></svg>
-              <span>{s.peaks[0].name} {n(s.peaks[0].value ?? 0)} m</span>
-            </div>
-          )}
-        </div>
+        <Poster peaks={s.peaks} />
         <div className="tw-hud">
           <button type="button" className="tw-hudb" onClick={() => push({ kind: 'level' })} aria-label={t('pack.stats.howPointsWork')}>
             {avatarUrl ? <img className="tw-av" src={sizedUrl(avatarUrl, 160)} alt="" /> : <span className="tw-av" />}
