@@ -149,7 +149,7 @@ button.tw-row{cursor:pointer;}
 .tw-lvh h3{margin:${S.xs}px 0 ${S.sm}px;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;line-height:1.1;letter-spacing:.14em;text-transform:uppercase;} /* písmo: nadpis */
 .tw-lvh i{display:inline-block;padding:${S.xs}px ${S.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.cardEdge};font-style:normal;font-size:${PACK_TEXT.label}px;font-weight:600;letter-spacing:.02em;}
 .tw-why{margin:${S.md}px 0;font-size:${PACK_TEXT.body}px;line-height:1.4;text-align:center;color:${T.inkStrong};}
-.tw-xp.static{margin:0;cursor:default;}
+.tw-xp.static{margin:${S.md}px 0 0;cursor:default;}
 .tw-lvb .comm-pts-rule{display:none;}
 .tw-lvb .comm-pts-cols{margin-top:${S.xl}px;}
 .tw-lvb .comm-pts-eyebrow{font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
@@ -557,8 +557,8 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
           <i style={{ background: tierGradient(tier), color: pillInk(tier) }}>{t('pack.wall.levelArea', { area: t(`pack.tier.area.${tier.key}`), range: tierRangeLabel(tier) })}</i>
         </div>
       </div>
-      <p className="tw-why">{t('pack.wall.levelWhy')}</p>
       <div className="tw-xp static">{xpBody}</div>
+      <p className="tw-why">{t('pack.wall.levelWhy')}</p>
       <div className="tw-sec">{t('pack.wall.levelBands')}</div>
       <div className="tw-lvb">{levelSheet}</div>
     </>

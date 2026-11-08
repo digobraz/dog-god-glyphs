@@ -11,6 +11,7 @@
 
 import { FONT_TITLE, FONT_UI, PACK_THEME as T, GOLD_BTN } from '@/components/pack/packTheme';
 import { PACK_TIERS, pillInk, tierGradient, tierIndexOfLevel, tierRangeLabel, pilgrimImg } from '@/lib/packTiers';
+import { LAPIS, tintRGBA } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 
 export interface TierScaleProps {
@@ -43,13 +44,13 @@ export function TierScale({ level, onDark = true, large = false }: TierScaleProp
               borderRadius: 10,
               // aktuálne pásmo drží rám vo svojej farbe — nie zlatý, inak by zlaté pásmo
               // vyzeralo zvýraznené vždy a modré nikdy
-              border: `1px solid ${isHere ? tier.a : 'transparent'}`,
-              background: isHere
+              border: large && isHere ? `2px solid ${LAPIS.edge}` : `1px solid ${isHere ? tier.a : 'transparent'}`,
+              background: large && isHere ? tintRGBA(LAPIS.edge, 0.14) : isHere
                 ? (onDark ? 'rgba(245,240,228,0.07)' : 'rgba(201,154,63,0.10)')
                 : 'transparent',
             }}
           >
-            <img src={pilgrimImg(i)} alt="" aria-hidden style={{ flex: 'none', width: large ? 48 : 28, height: large ? 48 : 28, objectFit: 'contain', opacity: large || i <= here ? 1 : 0.55 }} />
+            <img src={pilgrimImg(i)} alt="" aria-hidden style={{ flex: 'none', width: large ? 48 : 28, height: large ? 48 : 28, objectFit: 'contain', opacity: i <= here ? 1 : large ? 0.45 : 0.55, filter: large && i > here ? 'saturate(.4)' : undefined }} />
             <span
               style={{
                 flex: '0 0 auto',
@@ -66,7 +67,8 @@ export function TierScale({ level, onDark = true, large = false }: TierScaleProp
                 letterSpacing: '.10em',
                 textTransform: 'uppercase',
                 // pásma, ktoré ešte nemá, sú tlmené — škála tým ukazuje postup, nie katalóg
-                opacity: large || i <= here ? 1 : 0.55,
+                opacity: i <= here ? 1 : large ? 0.45 : 0.55,
+                filter: large && i > here ? 'saturate(.4)' : undefined,
               }}
             >
               {t(`pack.tier.${tier.key}`)}
@@ -77,7 +79,7 @@ export function TierScale({ level, onDark = true, large = false }: TierScaleProp
                 fontFamily: FONT_UI,
                 fontSize: large ? 12 : 11.5,
                 letterSpacing: '.02em',
-                color: isHere || large ? ink : dim,
+                color: isHere || (large && i < here) ? ink : dim,
                 // „tu si“ ide POD rozsah, nie vedľa — vedľa sa rozsah lámal na 3 riadky a nápis vyliezal
                 // z rámu (26. 10. 2026, mená pásiem „Above the Clouds“ sú dlhšie než farby).
                 minWidth: 0,
@@ -92,17 +94,23 @@ export function TierScale({ level, onDark = true, large = false }: TierScaleProp
                 style={{
                   fontFamily: FONT_UI,
                   fontWeight: 600,
-                  fontSize: 9.5,
+                  fontSize: large ? 10 : 9.5,
                   letterSpacing: '.16em',
                   whiteSpace: 'nowrap',
                   textTransform: 'uppercase',
-                  color: large ? ink : tier.a,
+                  color: large ? LAPIS.ink : tier.a,
+                  ...(large ? { alignSelf: 'flex-start', marginTop: 4, padding: '4px 8px', borderRadius: 999, background: LAPIS.grad } : null),
                 }}
               >
                 {t('pack.tier.youAreHere')}
               </span>
             )}
             </span>
+            {large && i < here && (
+              <span style={{ flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 999, background: '#3D7A4E' }}>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7" /></svg>
+              </span>
+            )}
           </div>
         );
       })}
