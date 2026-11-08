@@ -288,6 +288,8 @@
 .aw .medals img{width:100%;max-width:84px;aspect-ratio:1;object-fit:contain;transition:transform .2s}
 .aw .medals figure:hover img{transform:scale(1.12) rotate(-4deg)}
 .aw .medals figure.lock img{filter:grayscale(1);opacity:.45}
+/* Služobník má na plátne miesto na krídla top tieru, tu ho vrátime na veľkosť ostatných odznakov. */
+.aw img[src*="/odznaky/servant-"]{scale:1.2}
 .aw .medals .ghost{width:100%;max-width:84px;aspect-ratio:1;border-radius:50%;border:2px dashed var(--card-edge);display:grid;place-items:center;color:var(--gold-ink)}
 .aw .medals .ghost svg{width:44%;stroke:currentColor;fill:none;stroke-width:1.6}
 

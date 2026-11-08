@@ -25,16 +25,18 @@ export const RANK_BADGE_ON = APP_NEW;
 
 /* SLUŽOBNÍK — číslo = DOKONČENÉ roky so psom (🔒 24. 10.), prvý rok = UČEŇ bez čísla.
  * 8 obrázkov podľa rokov 0–3 · 4–8 · 9–13 · 14–18 · 19–23 · 24–29 · 30–39 · 40+. Súbory sú už
- * zoradené (servant-0 = kruh … servant-7 = koruna; zdroj ai/kolo8/s1 v poradí S_ORD 0,1,5,3,2,4,6,7). */
+ * zoradené (servant-0 = drevo … servant-7 = svetlo; Matej 8. 11., `plany/nakresy/odznaky-stred-2026-11-08/final-sluzobnik.mjs`). */
 const S_FROM = [0, 4, 9, 14, 19, 24, 30, 40];
-/** Zväčšenie obrázka — 30 a 40 rokov majú krídla/korunu a bez výnimky by boli menšie. */
-const S_K = [1.4, 1.4, 1.4, 1.4, 1.4, 1.4, 1.65, 1.6];
+/** Zväčšenie obrázka — jedno pre všetky stupne: štít a hovno sedia na spoločnom plátne, top tier je väčší už v obrázku. */
+const S_K = [1.7, 1.7, 1.7, 1.7, 1.7, 1.7, 1.7, 1.7];
+/** Kde začína kapsula (násobok `--s`) — top tier má krídla, tie by zakryli číslo. */
+const S_CP = [-.5, -.5, -.5, -.5, -.5, -.1, -.04, -.02];
 /** Aktivita: dni so zápisom za posledných 90 dní; 80+ = plná kapsula a pulz žiary (nákres: 0–100 % ≈ 0–80 dní). */
 const ACTIVE_DAYS = 90;
 const FULL_DAYS = 80;
 
 /** Šírka náplne: schovaná časť pod odznakom + podiel viditeľnej. */
-const fillWidth = (pct: number) => `calc(var(--s) * .48 + (100% - var(--s) * .48) * ${Math.max(0, Math.min(100, pct)) / 100})`;
+const fillWidth = (pct: number, skryte = .48) => `calc(var(--s) * ${skryte} + (100% - var(--s) * ${skryte}) * ${Math.max(0, Math.min(100, pct)) / 100})`;
 
 export const RANK_BADGE_CSS = `
 .rk{ --s:46px; display:inline-flex; align-items:center; flex:none; padding:0; border:0; background:none; cursor:pointer; }
@@ -48,7 +50,7 @@ export const RANK_BADGE_CSS = `
 /* Stránka má img{max-width:100%} — bez none sa obrázok nezväčší. */
 .rk .ic img{ position:absolute; left:50%; top:50%; width:calc(var(--s) * var(--k, 1.4)); height:auto; max-width:none; max-height:none;
   transform:translate(-50%, -50%); pointer-events:none; }
-.rk .cp{ flex:0 0 auto; position:relative; margin-left:calc(var(--s) * -.5); height:calc(var(--s) * .62); width:calc(var(--s) * 1.6);
+.rk .cp{ flex:0 0 auto; position:relative; margin-left:calc(var(--s) * var(--cp, -.5)); height:calc(var(--s) * .62); width:calc(var(--s) * 1.6);
   border-radius:0 ${PACK_R.pill}px ${PACK_R.pill}px 0; overflow:hidden; background:linear-gradient(180deg, #1b2350, #0c1030);
   border:1.5px solid rgba(231,196,108,.85); border-left:0; box-shadow:inset 0 2px 4px rgba(0,0,0,.6); }
 .rk .fl{ position:absolute; left:0; top:0; bottom:0; border-radius:0 ${PACK_R.pill}px ${PACK_R.pill}px 0; overflow:hidden; }
@@ -167,11 +169,11 @@ export function ServantBadge({ years, activeDays, on, onClick, label }: BadgeBtn
   const d = activeDays ?? 0;
   const pct = (d / FULL_DAYS) * 100;
   return (
-    <button type="button" data-rank-toggle className={`rk${on ? ' on' : ''}`} onClick={onClick} aria-expanded={on} aria-label={label}>
+    <button type="button" data-rank-toggle className={`rk${on ? ' on' : ''}`} style={{ ['--cp' as string]: S_CP[t] }} onClick={onClick} aria-expanded={on} aria-label={label}>
       <span className="ic" style={{ ['--k' as string]: S_K[t] }}><img src={`/icons/pack/rank/servant-${t}.webp`} alt="" /></span>
       <span className="cp">
         <span className={`fl${d >= FULL_DAYS ? ' full' : ''}`} style={{
-          width: fillWidth(pct),
+          width: fillWidth(pct, t >= 5 ? .25 : .48),
           background: 'linear-gradient(180deg,#FFF6CC,#F2C24E 40%,#C88A22 75%,#8A5A12)',
           boxShadow: 'inset 0 -3px 5px rgba(60,30,0,.45), 0 0 10px rgba(255,200,90,.6)',
         }} />
@@ -327,6 +329,8 @@ export const RANK_PANEL_CSS = `
   font-size:12px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.85); }
 .rkp-nx{ display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; color:rgba(243,230,200,.75); }
 .rkp-nx img{ width:32px; height:32px; object-fit:contain; }
+/* SLUŽOBNÍK má na plátne miesto na krídla top tieru, bez zväčšenia by bol nižší stupeň v rebríku menší. */
+.rkp-nx img[src*="/servant-"], .rkp-lad img[src*="/servant-"]{ scale:1.2; }
 /* Rebrík: všetky obrázky stupňov v rade; dosiahnuté plné, môj so zlatou žiarou, ďalšie v tieni. */
 /* Deliaca čiara nad rebríkom aj nad ODZNAKMI (badgeShelf.tsx) — jedna hodnota. */
 .rkp-lad, .bd-sec{ border-top:1px solid rgba(231,196,108,.25); }
