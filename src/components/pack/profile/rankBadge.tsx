@@ -198,12 +198,17 @@ export function BonesBadge({ value, onClick, label }: { value: string; onClick?:
     : <span className="rk rk--bones" aria-label={label}>{inner}</span>;
 }
 
+/** Zväčšenie obrázka PÚTNIKA — plátno má rovnakú mierku ako SLUŽOBNÍK (`final-putnik.mjs`). */
+const P_K = 1.7;
+/** Kde začína kapsula — prstence top tieru a galaxia sú širšie, zakryli by číslo. */
+const P_CP = [-.5, -.5, -.5, -.5, -.5, -.5, -.4, -.35, -.2];
+
 /** PÚTNIK — level + postup k ďalšiemu; náplň prechádza z farby stupňa k farbe ďalšieho. */
 export function PilgrimBadge({ level, pct, on, onClick, label }: BadgeBtn & { level: number; pct: number }) {
   const { t, c0, c1 } = pilgrimColors(level, pct);
   return (
-    <button type="button" data-rank-toggle className={`rk${on ? ' on' : ''}`} onClick={onClick} aria-expanded={on} aria-label={label}>
-      <span className="ic"><img src={pilgrimImg(t)} alt="" /></span>
+    <button type="button" data-rank-toggle className={`rk${on ? ' on' : ''}`} style={{ ['--cp' as string]: P_CP[t] }} onClick={onClick} aria-expanded={on} aria-label={label}>
+      <span className="ic" style={{ ['--k' as string]: P_K }}><img src={pilgrimImg(t)} alt="" /></span>
       <span className="cp">
         <span className="fl" style={{
           width: fillWidth(pct),
@@ -329,8 +334,8 @@ export const RANK_PANEL_CSS = `
   font-size:12px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.85); }
 .rkp-nx{ display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; color:rgba(243,230,200,.75); }
 .rkp-nx img{ width:32px; height:32px; object-fit:contain; }
-/* SLUŽOBNÍK má na plátne miesto na krídla top tieru, bez zväčšenia by bol nižší stupeň v rebríku menší. */
-.rkp-nx img[src*="/servant-"], .rkp-lad img[src*="/servant-"]{ scale:1.2; }
+/* SLUŽOBNÍK a PÚTNIK majú na plátne miesto na top tier, bez zväčšenia by bol nižší stupeň v rebríku menší. */
+.rkp-nx img[src*="/servant-"], .rkp-lad img[src*="/servant-"], .rkp-nx img[src*="/pilgrim-"], .rkp-lad img[src*="/pilgrim-"]{ scale:1.2; }
 /* Rebrík: všetky obrázky stupňov v rade; dosiahnuté plné, môj so zlatou žiarou, ďalšie v tieni. */
 /* Deliaca čiara nad rebríkom aj nad ODZNAKMI (badgeShelf.tsx) — jedna hodnota. */
 .rkp-lad, .bd-sec{ border-top:1px solid rgba(231,196,108,.25); }
@@ -489,7 +494,7 @@ export function PilgrimPanel({ level, pct, points, floor, nextAt, trips, km, cou
   return (
     <>
       <div className="rkp-hd">
-        <span className="im"><img src={pilgrimImg(t)} alt="" /></span>
+        <span className="im" style={{ ['--k' as string]: P_K }}><img src={pilgrimImg(t)} alt="" /></span>
         <div className="tx"><h3>{tx('pack.map.rankPilgrim', 'Pilgrim')} {level}</h3></div>
         <span className="ab">{fmtN(points)} {tx('pack.rank.pts', 'pts')}</span>
       </div>

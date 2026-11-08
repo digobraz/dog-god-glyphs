@@ -25,7 +25,8 @@ import type { CSSProperties } from 'react';
 export const PILGRIM_FROM = [1, 4, 8, 13, 19, 26, 34, 43, 53];
 /** Smalt stupňa. */
 // Sopka je pod Žiarou (Matej 2. 11.: *„sopka pôjde dolu aj farba, žiara hore: ľadovec, sopka, žiara"*).
-export const PILGRIM_COL = ['#5BD12A', '#1E9A48', '#3FD6C8', '#2F86F0', '#DCEAF2', '#7A1530', '#E0287A', '#6A2AC0', '#141A4A'];
+// Oblaky sú pod Žiarou (Matej 8. 11.: *„podľa logiky prehodiť aj oblaky a polarnu žiaru"*).
+export const PILGRIM_COL = ['#5BD12A', '#1E9A48', '#3FD6C8', '#2F86F0', '#DCEAF2', '#7A1530', '#6A2AC0', '#E0287A', '#141A4A'];
 /** Ľadová biela sa NEprelieva do ružovej (Matej 25. 10.: „biela sa farbí do ružova, to sa mi nepáči“). */
 export const PILGRIM_NOBLEND = 4;
 /** Posledný stupeň nemá ďalší prah — rozpätie na prelievanie farby. */
@@ -56,9 +57,8 @@ export function pilgrimColors(level: number, pct = 0): { t: number; c: string; c
 }
 
 /** Obrázok stupňa (ikonka PÚTNIKA). */
-// Súbory ostali pod starým poradím: pilgrim-5 je Žiara, pilgrim-6 Sopka.
-const PILGRIM_ART = [0, 1, 2, 3, 4, 6, 5, 7, 8];
-export const pilgrimImg = (t: number) => `/icons/pack/rank/pilgrim-${PILGRIM_ART[t]}.webp`;
+// Súbory sú zoradené podľa stupňov (Matej 8. 11., `plany/nakresy/odznaky-stred-2026-11-08/final-putnik.mjs`).
+export const pilgrimImg = (t: number) => `/icons/pack/rank/pilgrim-${t}.webp`;
 
 export interface PackTier {
   /** stabilný i18n kľúč — `pack.tier.<key>` */
@@ -79,9 +79,9 @@ export interface PackTier {
   idx: number;
 }
 
-const TIER_KEYS = ['lime', 'emerald', 'turquoise', 'azure', 'ice', 'garnet', 'rose', 'amethyst', 'indigo'];
+const TIER_KEYS = ['lime', 'emerald', 'turquoise', 'azure', 'ice', 'garnet', 'amethyst', 'rose', 'indigo'];
 // Mená pásiem = KRAJINA cesty pútnika (Matej 26. 10.: „pásma pomenujeme podľa zeme… lúky, lesa, hôr“ → schválené A + Peak + Oblaky (jedno slovo, Matej) + Mliečna dráha).
-const TIER_NAMES = ['Meadow', 'Wildwood', 'Tarn', 'Peak', 'Glacier', 'Volcano', 'Aurora', 'Clouds', 'Milky Way'];
+const TIER_NAMES = ['Meadow', 'Wildwood', 'Tarn', 'Peak', 'Glacier', 'Volcano', 'Clouds', 'Aurora', 'Milky Way'];
 
 /** Svetlý inkoust na tmavej farbe, tmavý na svetlej (vnímaný jas). */
 function inkFor(hex: string): string {

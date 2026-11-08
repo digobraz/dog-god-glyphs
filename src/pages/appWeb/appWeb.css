@@ -284,6 +284,7 @@
 .aw .axis .what{margin:var(--s-sm) 0 var(--s-xl);color:var(--ink-body)}
 .aw .medals{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s-md)}
 @media(min-width:768px){.aw .medals{grid-template-columns:repeat(8,1fr)}}
+@media(min-width:768px){.aw .medals.m9{grid-template-columns:repeat(9,1fr)}}
 .aw .medals figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px;font:600 var(--t-label)/1 var(--font-ui);color:var(--ink-soft)}
 .aw .medals img{width:100%;max-width:84px;aspect-ratio:1;object-fit:contain;transition:transform .2s}
 .aw .medals figure:hover img{transform:scale(1.12) rotate(-4deg)}
@@ -1439,7 +1440,7 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
    učeň = plný šesťuholník 93 % výšky, pútnik = tenký kruh s hrotmi 65 %, služobník 75 %.
    `scale` je samostatná vlastnosť, takže hover/vyskočenie cez `transform` ostáva nedotknuté. */
 .aw img[src*="/odznaky/ucen-"]{scale:.8}
-.aw img[src*="/odznaky/pilgrim-"]{scale:1.15}
+.aw img[src*="/odznaky/pilgrim-"]{scale:1.2}
 
 /* 7. 11. — POĎAKOVANIE: tri bloky pod sebou v jednej šírke (ruší vodorovný pás .gs-tr) */
 .aw .gs-stack{display:grid;gap:var(--s-xl)}
