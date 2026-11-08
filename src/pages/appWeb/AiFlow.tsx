@@ -27,6 +27,9 @@ const bez = (p: Path['p'], t: number): Pt => {
   return [a * p[0][0] + b * p[1][0] + c * p[2][0] + d * p[3][0], a * p[0][1] + b * p[1][1] + c * p[2][1] + d * p[3][1]];
 };
 
+/** Ikonka poschodia lievika: bohatá outlined kresba z továrne (`web-ai-*`, Matej 8. 11.). Veľkosť drží CSS, krivky sa merajú bez skoku. */
+export const Ic = ({ n, cls = 'af-ic' }: { n: string; cls?: string }) => <img className={cls} src={`/web-app/ikony/ai-${n}.webp`} alt="" loading="lazy" />;
+
 export function AiFlow({ L, c, counter, learn, onWorld, published }: {
   L: Lang2; c: (k: string) => string;
   counter: (n: number, run: boolean) => ReactNode; learn: ReactNode;
@@ -169,18 +172,18 @@ export function AiFlow({ L, c, counter, learn, onWorld, published }: {
       <canvas className="af-cv" ref={cv} aria-hidden />
 
       <div className="af-row r5">
-        {[[532, 'src1', 'src1s'], [337, 'src2', 'src2s'], [1996, 'src3', 'src3s'], [1158, 'src4', 'src4s'], [16, 'src5', 'src5s']].map(([n, k, s], i) => (
-          <div key={k} className="af-tile" data-fa="0" style={{ ['--fc' as string]: SRC_COL[i] }}><b>{counter(n as number, run)}</b><span>{c(k as string)}</span><small>{c(s as string)}</small></div>
+        {[[532, 'src1', 'src1s', 'rozhovory'], [337, 'src2', 'src2s', 'studie'], [1996, 'src3', 'src3s', 'weby'], [1158, 'src4', 'src4s', 'videa'], [16, 'src5', 'src5s', 'knihy']].map(([n, k, s, ic], i) => (
+          <div key={k} className="af-tile" data-fa="0" style={{ ['--fc' as string]: SRC_COL[i] }}><Ic n={ic as string} /><b>{counter(n as number, run)}</b><span>{c(k as string)}</span><small>{c(s as string)}</small></div>
         ))}
       </div>
       <div className="af-row r4">
-        {[['≈ 12 500', 'a4_1'], ['1,25 m', 'a4_2'], ['3,7 km', 'a4_3'], ['47', 'a4_4']].map(([n, k]) => (
-          <div key={k} className="af-tile" data-fa="1"><b>{L === 'en' ? n.replace(',', '.').replace('12 500', '12,500') : n}</b><span>{c(k)}</span></div>
+        {[['≈ 12 500', 'a4_1', 'strany'], ['1,25 m', 'a4_2', 'vyska'], ['3,7 km', 'a4_3', 'cesta'], ['47', 'a4_4', 'dni']].map(([n, k, ic]) => (
+          <div key={k} className="af-tile" data-fa="1"><Ic n={ic} /><b>{L === 'en' ? n.replace(',', '.').replace('12 500', '12,500') : n}</b><span>{c(k)}</span></div>
         ))}
       </div>
       <div className="af-row r2">
-        <div className="af-tile big cy" data-fa="2"><b>{counter(13864, run)}</b><span>{c('ring1b')}</span></div>
-        <div className="af-tile big cy" data-fa="2"><b>{counter(2106, run)}</b><span>{c('ring2b')}</span><small>{c('ring2s')}</small></div>
+        <div className="af-tile big cy" data-fa="2"><Ic n="tvrdenia" /><b>{counter(13864, run)}</b><span>{c('ring1b')}</span></div>
+        <div className="af-tile big cy" data-fa="2"><Ic n="spochybnene" /><b>{counter(2106, run)}</b><span>{c('ring2b')}</span><small>{c('ring2s')}</small></div>
       </div>
       <div className="af-row r7">
         {VAULT_WORLDS.map((w, k) => {

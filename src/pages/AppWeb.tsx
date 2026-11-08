@@ -20,7 +20,7 @@
 import { Fragment, Suspense, lazy, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Seo } from '@/components/Seo';
 import AI_HEAD from '@/assets/ainubis-head.webp';
-import { AiFlow } from './appWeb/AiFlow';
+import { AiFlow, Ic } from './appWeb/AiFlow';
 import { AiScrolls, AiPods, AiChat } from './appWeb/AiLearn';
 import { AiBrain } from './appWeb/AiBrain';
 import { STAGE_CSS } from '@/components/pack/packTheme';
@@ -684,11 +684,11 @@ export default function AppWeb() {
           <AiFlow L={L} c={c} onWorld={pickWorld} published={['nutrition', 'dogsPath', 'understanding', 'anatomy']} counter={(n, run) => <Counter to={n} run={run} />} learn={
             <div className="ai-learn3">
               <div className="ai-card ai-paluba wide" data-fa="5" ref={scrollsRef}>
-                <span className="k">{c('lr1k')}</span><h4>{c('lr1h')}</h4><p>{c('lr1p')}</p>
+                <Ic n="zvitky" cls="ai-cic" /><span className="k">{c('lr1k')}</span><h4>{c('lr1h')}</h4><p>{c('lr1p')}</p>
                 <AiScrolls L={L} c={c} />
               </div>
-              <div className="ai-card ai-paluba"><span className="k">{c('lr2k')}</span><h4>{c('lr2h')}</h4><p>{c('lr2p')}</p><AiPods L={L} c={c} /><div className="ai-wave fill" aria-hidden>{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></div>
-              <div className="ai-card ai-paluba"><span className="k">{c('lr3k')}</span><h4>{c('lr3h')}</h4><p>{c('lr3p')}</p><AiChat L={L} c={c} head={AI_HEAD} /></div>
+              <div className="ai-card ai-paluba"><Ic n="podcast" cls="ai-cic" /><span className="k">{c('lr2k')}</span><h4>{c('lr2h')}</h4><p>{c('lr2p')}</p><AiPods L={L} c={c} /><div className="ai-wave fill" aria-hidden>{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></div>
+              <div className="ai-card ai-paluba"><Ic n="chat" cls="ai-cic" /><span className="k">{c('lr3k')}</span><h4>{c('lr3h')}</h4><p>{c('lr3p')}</p><AiChat L={L} c={c} head={AI_HEAD} /></div>
             </div>
           } />
           {/* PC: mozog vľavo veľký, vedľa text, veľké % a 2 rady po 5 odznakov (Matej 6. 11.: „aby to bolo vidno“) */}

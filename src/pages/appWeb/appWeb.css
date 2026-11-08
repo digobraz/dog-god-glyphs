@@ -560,11 +560,11 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .top{position:sticky;top:0}
 .aw .top .wrap{height:76px}
 @media(min-width:900px){.aw .top .wrap{height:96px}}
-.aw .logo img{height:38px}
-@media(min-width:900px){.aw .logo img{height:52px}}
+.aw .logo img{height:46px}
+@media(min-width:900px){.aw .logo img{height:64px}}
 @media(min-width:1000px){.aw .top nav a{font-size:var(--t-body)}}
 .aw .top .pk-cta{padding:14px 22px;font-size:var(--t-lead)}
-@media(max-width:420px){.aw .top .pk-cta{padding:10px 14px;font-size:var(--t-body)}.aw .logo img{height:32px}}
+@media(max-width:420px){.aw .top .pk-cta{padding:10px 14px;font-size:var(--t-body)}.aw .logo img{height:40px}}
 .aw .hero h1 .big{font-size:.9em;line-height:1;display:inline-block;margin-left:.12em;transform:rotate(-5deg) translateY(2px);transform-origin:left bottom}
 
 /* ODZNAK = dominanta: veľký vľavo, pilulka za ním užšia, text na dva riadky */
@@ -859,6 +859,9 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .af-tile[style*="--fc"]{border-top:2px solid color-mix(in srgb,var(--fc) 70%,transparent)}
 .aw .af-tile:hover,.aw .af-sum:hover{transform:translateY(-3px);border-color:var(--ai-edge-strong);box-shadow:0 0 34px rgba(91,224,240,.22)}
 .aw .af-tile.cy b{background:linear-gradient(180deg,#E6FDFF,var(--ai-cyan) 50%,#1FA9C4);-webkit-background-clip:text;background-clip:text;color:transparent}
+.aw .af-ic{display:block;width:72px;height:72px;margin:0 auto var(--s-sm);object-fit:contain}
+.aw .af-tile.big .af-ic{width:96px;height:96px}
+.aw .ai-cic{display:block;width:72px;height:72px;margin-bottom:var(--s-md);object-fit:contain}
 /* náraz: blok sa zavlní */
 @keyframes af-jelly{0%{transform:none}30%{transform:translateY(2px) scale(1.035,.965)}60%{transform:translateY(-2px) scale(.985,1.015)}100%{transform:none}}
 /* 7 svetov — svietia, pulzujú, ťuk = zvitky sveta */
