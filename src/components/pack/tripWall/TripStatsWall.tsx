@@ -40,13 +40,16 @@ const SIDE = 237;
 const P = { skyTop: '#7CCBD8', skyMid: '#FCE7B0', skyLow: '#F9C873', ray: '#FFF3CF', sunOut: '#F59B3C', sunIn: '#FBB84E', tealLit: '#2E8F97', tealDark: '#1B6470', midLit: '#3F9E8B', midDark: '#2A7A6C', lowLit: '#57A869', lowDark: '#3C8854', snow: '#FFF8E6', hill: '#3F8747', pine: '#17493B', pineDark: '#113A30', trunk: '#6B4A2B' };
 /** Výška bloku: polovica ide do scény, polovica pod ňu (Matej 8. 11.: *„zapusti, aby boli v polovici"*). */
 const STRIP_H = 120;
+/** Stena Tripstats a Triplistu: rovnaký začiatok, výška aj poloha 3 blokov (Matej 8. 11.). */
+export const WALL_TOTAL = WALL_H + SKY_UP;
+export const STRIP_HALF = STRIP_H / 2;
 
 export const TW_CSS = `${PROGRESS_CSS}
 ${STAGE_CSS}
 ${PF_FIELD_CSS}
 .tw-strip{--pk-stage:rgba(255,255,255,.58);--pk-stage-edge:rgba(255,255,255,.85);}
 .tw-root{--tw-ink:${LAPIS.ink};--tw-deep:${LAPIS.deep};--tw-gold:${T.cardEdge};}
-.tw-wall{position:relative;display:flex;flex-direction:column;height:${WALL_H + SKY_UP}px;margin-top:${S.md}px;border-radius:${PACK_R.card}px;overflow:hidden;background:${P.skyTop};border:1.5px solid ${T.cardEdge};box-shadow:${LAPIS_BTN_SHADOW};}
+.tw-wall{position:relative;display:flex;flex-direction:column;height:${WALL_TOTAL}px;margin-top:${S.md}px;border-radius:${PACK_R.card}px;overflow:hidden;background:${P.skyTop};border:1.5px solid ${T.cardEdge};box-shadow:${LAPIS_BTN_SHADOW};}
 .tw-poster{position:absolute;inset:0;width:100%;height:100%;display:block;}
 .tw-poster text{font:600 ${PACK_TEXT.micro}px ${FONT_UI};fill:${T.inkStrong};}
 .tw-hud{position:relative;z-index:2;display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;color:${LAPIS.deep};}
@@ -69,9 +72,9 @@ ${PF_FIELD_CSS}
 .tw-skyb{position:relative;z-index:1;display:block;width:100%;flex:1;min-height:0;padding:0;background:none;border:0;cursor:pointer;}
 .tw-strip{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:${S.sm}px;margin:-${S.xxl}px ${S.sm}px 0;}
 .tw-strip button{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.xs}px ${S.md}px;cursor:pointer;font-family:${FONT_UI};box-shadow:${PACK_SHADOW.card};}
-.tw-wall + .tw-strip{margin-top:-${STRIP_H / 2}px;}
-.tw-wall + .tw-strip button{height:${STRIP_H}px;justify-content:center;padding:${S.xs}px;}
-.tw-wall + .tw-strip .tw-lbl{line-height:1.2;}
+.tw-wall + .tw-strip,.tw-wallw + .tw-strip{margin-top:-${STRIP_H / 2}px;}
+.tw-wall + .tw-strip button,.tw-wallw + .tw-strip button{height:${STRIP_H}px;justify-content:center;padding:${S.xs}px;}
+.tw-wall + .tw-strip .tw-lbl,.tw-wallw + .tw-strip .tw-lbl{line-height:1.2;}
 .tw-strip img{width:48px;height:48px;object-fit:contain;}
 .tw-num,.tw-rec b,.tw-m b{-webkit-text-stroke:.5px currentColor;}
 .tw-num{font-size:${PACK_TEXT.h1}px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;color:${T.inkStrong};white-space:nowrap;}

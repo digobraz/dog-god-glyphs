@@ -14,14 +14,15 @@ import { fmtNum } from '@/i18n/bcp47';
 import { flagUrl, trailCountry } from '@/lib/countryGeo';
 import { sizedUrl } from '@/services/cloudinaryService';
 import type { MyWish } from '@/components/pack/mapnotes/wishData';
-import { SUBBLOCK, TW_CSS, WallCount } from './TripStatsWall';
+import { STRIP_HALF, SUBBLOCK, TW_CSS, WALL_TOTAL, WallCount } from './TripStatsWall';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
 const ICO = (n: string) => `/icons/tripstats/${n}.webp`;
 
 const TLW_CSS = `
-.tlw-wall{position:relative;height:264px;margin-top:${S.md}px;border-radius:${PACK_R.card}px;overflow:hidden;background:${LAPIS.deep};border:1.5px solid ${T.cardEdge};box-shadow:${LAPIS_BTN_SHADOW};}
+.tl-panel:has(> .tw-root){margin-top:0;}
+.tlw-wall{position:relative;height:${WALL_TOTAL}px;margin-top:${S.md}px;border-radius:${PACK_R.card}px;overflow:hidden;background:${LAPIS.deep};border:1.5px solid ${T.cardEdge};box-shadow:${LAPIS_BTN_SHADOW};}
 .tlw-car{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;}
 .tlw-car::-webkit-scrollbar{display:none;}
 .tlw-sl{position:relative;flex:none;width:100%;height:100%;padding:0;border:0;background:none;scroll-snap-align:start;overflow:hidden;cursor:pointer;text-align:left;font-family:${FONT_UI};}
@@ -30,7 +31,7 @@ const TLW_CSS = `
 .tlw-top{position:absolute;left:${S.md}px;top:${S.md}px;display:flex;align-items:center;gap:${S.sm}px;}
 .tlw-top img{width:24px;height:24px;border-radius:${PACK_R.pill}px;object-fit:cover;border:1.5px solid ${T.card};}
 .tlw-top u{text-decoration:none;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;background:${LAPIS.grad};color:${LAPIS.ink};font-size:${PACK_TEXT.micro}px;font-weight:600;line-height:1.2;}
-.tlw-tx{position:absolute;left:${S.md}px;right:${S.md}px;bottom:${S.xxxl}px;color:${T.card};}
+.tlw-tx{position:absolute;left:${S.md}px;right:${S.md}px;bottom:${STRIP_HALF + S.md}px;color:${T.card};}
 .tlw-tx b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;line-height:1.1;letter-spacing:.02em;} /* písmo: nadpis */
 .tlw-tx small{display:block;margin-top:${S.xs}px;font-size:${PACK_TEXT.label}px;font-weight:500;}
 .tlw-cnt{position:absolute;right:${S.md}px;top:${S.md}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;background:rgba(24,14,4,.72);color:${T.card};font-size:${PACK_TEXT.micro}px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;}
@@ -132,7 +133,7 @@ export function TriplistWall<R extends Row>({ upcoming, walked, wishes, renderCa
   return (
     <div className="tw-root">
       <style>{TW_CSS}{TLW_CSS}</style>
-      <div id={wantId}>
+      <div id={wantId} className={upcoming.length > 0 ? 'tw-wallw' : undefined}>
         {upcoming.length > 0 ? (
           <div className="tlw-wall">
             <div className="tlw-car" onScroll={(e) => setSlide(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}>
