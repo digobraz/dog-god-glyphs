@@ -129,7 +129,7 @@ button.tw-row{cursor:pointer;}
 .tw-row.open svg{transform:rotate(90deg);}
 .tw-row.lock{border-style:dashed;background:none;color:${T.inkWarm};}
 .tw-row.lock .nm{font-weight:400;}
-.tw-row img.tw-logo{width:40px;height:40px;border-radius:0;object-fit:contain;}
+.tw-row img.tw-logo{width:48px;height:48px;border-radius:0;object-fit:contain;}
 .tw-row.lock img.tw-logo{filter:grayscale(1);opacity:.5;}
 .tw-row img.tw-oth{width:24px;height:24px;border-radius:0;object-fit:contain;}
 .tw-row.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
