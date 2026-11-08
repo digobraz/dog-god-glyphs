@@ -1,9 +1,9 @@
 // MAPOVÉ SAMOLEPKY — vlastné značky namiesto emoji (Matej 8. 11. 2026, `plany/locky/brand.md` §RÁD IKONIEK).
 // Príroda a turistika = ostrovček, miesta a služby = lapis a zlato, vždy dvojitý lem.
-// Zatiaľ len testovací kanál. Na web pre členov pôjde až na Matejovo slovo.
-import { TEST_BUILD } from '@/lib/env';
+// Zatiaľ len appka (APP_NEW). Na web pre členov pôjde až na Matejovo slovo.
+import { APP_NEW } from '@/lib/packFlags';
 
-export const MAP_STICKERS_ON = TEST_BUILD;
+export const MAP_STICKERS_ON = APP_NEW;
 
 const STICKER_FILE: Record<string, string> = {
   spring: 'pramen',
