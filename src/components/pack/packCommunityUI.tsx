@@ -142,12 +142,11 @@ const CHKO_LOGO: Record<string, string> = {
 export const TL_FLAT_CSS = `
 .tl-flat .tl-panel{background:none;border:0;border-radius:0;box-shadow:none;padding:0;margin-top:${PACK_SPACE.xl}px;}
 .tl-flat .tl-panel + .tl-panel{margin-top:${PACK_SPACE.xxl}px;}
-.tl-flat .tl-tabs{background:${tintRGBA(PALE.edge, 0.14)};border:1px solid ${PACK_THEME.hairline};border-radius:${PACK_R.pill}px;padding:${PACK_SPACE.xs}px;gap:${PACK_SPACE.xs}px;margin-top:${PACK_SPACE.lg}px;}
-.tl-flat .tl-tab{border:0;border-radius:${PACK_R.pill}px;padding:10px ${PACK_SPACE.sm}px;background:none;box-shadow:none;}
+.tl-flat .tl-tabs{background:${tintRGBA(PALE.edge, 0.14)};border:1px solid ${PACK_THEME.hairline};border-radius:${PACK_R.card}px;padding:${PACK_SPACE.xs}px;gap:${PACK_SPACE.xs}px;margin-top:${PACK_SPACE.lg}px;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:1fr;}
+.tl-flat .tl-tab{border:0;border-radius:${PACK_R.tile}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.xs}px;background:none;box-shadow:none;}
 .tl-flat .tl-tab:hover{transform:none;box-shadow:none;}
-.tl-flat .tl-tab-label{font-size:${PACK_TEXT.label}px;}
-.tl-flat .tl-tab-art{width:40px;height:40px;flex:none;object-fit:contain;margin:-${PACK_SPACE.sm}px 0;}
-@media (max-width:389px){ .tl-flat .tl-tab-art{width:32px;height:32px;margin:-${PACK_SPACE.xs}px 0;} }
+.tl-flat .tl-tab-label{flex-direction:column;gap:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.label}px;letter-spacing:.02em;}
+.tl-flat .tl-tab-art{width:40px;height:40px;flex:none;object-fit:contain;}
 .tl-flat .tl-tab.on{background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};}
 .tl-flat .tl-tab.on:hover{background:${LAPIS.gradHover};box-shadow:${LAPIS_BTN_SHADOW};}
 .tl-flat .comm-vhead{background:none;border:0;border-radius:0;box-shadow:none;padding:${PACK_SPACE.sm}px 0 ${PACK_SPACE.lg}px;}

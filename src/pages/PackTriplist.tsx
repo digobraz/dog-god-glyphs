@@ -32,7 +32,7 @@ import { JOIN_REQUIRED_STEPS } from '@/components/pack/dogQuiz';
 import { hasValue, readLatestForDogs, onDogEventsChange } from '@/lib/dogEvents';
 import { useMyDogRights } from '@/lib/dogRights';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, PACK_TOPROW_PAD, GOLD_BTN, PACK_SHADOW, PACK_SPACE, HIT_CSS, VEIL_CSS, VEIL_PAD } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, PACK_TOPROW_PAD, PACK_TOPROW, GOLD_BTN, PACK_SHADOW, PACK_SPACE, HIT_CSS, VEIL_CSS, VEIL_PAD } from '@/components/pack/packTheme';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
@@ -1056,6 +1056,17 @@ export default function PackTriplist() {
           <button type="button" className={`tl-tab${view === 'list' ? ' on' : ''}`} onClick={() => setView('list')}>
             <span className="tl-tab-label">{APP_NEW ? <img className="tl-tab-art" src="/icons/tripstats/triplist.webp" alt="" /> : <span className="tl-tab-ic" style={{ '--ic': `url(${ICON('clipboard')})` } as React.CSSProperties} />}{t('pack.triplist.tabTriplist')}</span>
           </button>
+          {APP_NEW && WISHES_LIVE && (
+            <button type="button" className="tl-tab" onClick={() => {
+              setView('list');
+              setTimeout(() => {
+                const el = document.getElementById(WIZ.tlWish);
+                if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - PACK_TOPROW.content, behavior: 'smooth' });
+              }, 80);
+            }}>
+              <span className="tl-tab-label"><img className="tl-tab-art" src="/map-marks/tripwish.webp" alt="" />Tripwish</span>
+            </button>
+          )}
         </div>
 
         {view === 'stats' ? (
