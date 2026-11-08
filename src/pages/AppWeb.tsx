@@ -19,7 +19,6 @@
  */
 import { Fragment, Suspense, lazy, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Seo } from '@/components/Seo';
-import { HandPaw, HandForward, HandHeart, HandClipboard, HandShare, HandStar } from '@/components/pack/HandIcons';
 import AI_HEAD from '@/assets/ainubis-head.webp';
 import { AiFlow } from './appWeb/AiFlow';
 import { AiScrolls, AiPods, AiChat } from './appWeb/AiLearn';
@@ -225,7 +224,8 @@ function useOnScreen(selector: string) {
 }
 
 /** Blok, ktorý sa vynorí pri scrolle (`.rv` → `.in`). */
-const VERBS = [HandForward, HandHeart, HandClipboard, HandShare, HandStar, HandPaw];
+/** Život hrou: farebné kresby bez kartuše (Matej 8. 11.), výber a alternatívy v továrni `plany/ikonky/`, skupina „Web: Život hrou“. */
+const VERBS = [1, 2, 3, 4, 5, 6];
 
 function Rv({ as = 'div', d = 0, className = '', children }: { as?: 'div' | 'p' | 'details'; d?: number; className?: string; children: ReactNode }) {
   const [ref, seen] = useNear<HTMLDivElement>();
@@ -528,10 +528,10 @@ export default function AppWeb() {
             <h2><span className="l1">{c('h_life2a')}</span><span className="l1"><span className="deco big">{c('h_life2b')}</span></span></h2>
             <p className="lead">{c('l_life2')}</p>
             <div className="verbs">
-              {VERBS.map((Ic, i) => (
+              {VERBS.map((n, i) => (
                 <Rv key={i} d={i + 1} className="verb-w">
                   <button type="button" className={`pk-stage verb ${vOn === i ? 'on' : ''}`} onClick={() => setVOn(vOn === i ? null : i)}>
-                    <span className="ic"><Ic size={34} /></span>
+                    <span className="ic"><img src={`${A}/ikony/hra-${n}.webp`} alt="" loading="lazy" /></span>
                     <b>{c(`v${i + 1}`)}</b>
                     <span className="vp">{c(`v${i + 1}p`)}</span>
                   </button>
