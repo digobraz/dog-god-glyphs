@@ -13,6 +13,7 @@ import { unitsForTrail, SK_GEO, type GeoCategory } from '@/components/pack/packC
 import { trailCountry } from '@/lib/countryGeo';
 import { tripDayCount } from '@/components/pack/tripShared';
 import { ROADTRIP_ACT } from '@/components/pack/tripCategories';
+import type { TripKind } from '@/lib/packStore';
 
 export type WaterKind = 'pond' | 'reservoir' | 'lake';
 
@@ -77,6 +78,24 @@ export const WALL_UNITS: Record<'ranges' | 'parks' | 'journeys' | 'chko', Record
 
 const km = (t: HeroTrail) => Number(t.km) || 0;
 
+/** Magistrály ho nesú na trase, SNP a Malofatranský okruh v `journey` (Matej 8. 11.: SNP sa nerátalo). */
+export const ascentOf = (t: HeroTrail): number => t.ascentM ?? (t as { journey?: { ascentM?: number } }).journey?.ascentM ?? 0;
+
+const journeyDays = (t: HeroTrail): number => (t as { journey?: { days?: number } }).journey?.days ?? 0;
+
+/** Čo vyplýva zo zápisu výletu: značka roadtrip, inak viac dní = stanovačka. */
+export function derivedKind(t: HeroTrail): 'stay' | 'roadtrip' | null {
+  if (t.acts?.includes(ROADTRIP_ACT)) return 'roadtrip';
+  return tripDayCount(t) >= 2 ? 'stay' : null;
+}
+
+/** Ručné označenie člena má prednosť pred tým, čo vyplýva zo zápisu. */
+export function kindOf(t: HeroTrail, kinds: Record<string, TripKind>): 'stay' | 'roadtrip' | null {
+  const k = kinds[t.id];
+  if (k === 'none') return null;
+  return k ?? derivedKind(t);
+}
+
 function groupUnits(trails: HeroTrail[], unitsFor: (t: HeroTrail) => string[]): WallItem[] {
   const m = new Map<string, WallItem>();
   for (const t of trails) {
@@ -108,7 +127,7 @@ export interface TripWallStats {
   byAscent: HeroTrail[];
 }
 
-export function computeTripWall(walked: HeroTrail[]): TripWallStats {
+export function computeTripWall(walked: HeroTrail[], kinds: Record<string, TripKind> = {}): TripWallStats {
   const units = (t: HeroTrail) => unitsForTrail(t);
   const ranges = groupUnits(walked, (t) => [...(units(t).ranges ?? []), ...(EXTRA_RANGES[t.id] ?? [])]);
   const parks = groupUnits(walked, (t) => {
@@ -140,16 +159,16 @@ export function computeTripWall(walked: HeroTrail[]): TripWallStats {
   const journeys = walked.filter((t) => t.acts?.includes('journey'))
     .map((t) => ({ name: t.name, iso: trailCountry(t), value: km(t), trails: [] as HeroTrail[] }));
 
-  const roadtrips = walked.filter((t) => t.acts?.includes(ROADTRIP_ACT))
-    .map((t) => ({ name: t.name, iso: trailCountry(t), value: km(t), trails: [] as HeroTrail[] }));
+  const roadtrips = walked.filter((t) => kindOf(t, kinds) === 'roadtrip')
+    .map((t) => ({ name: t.name, iso: trailCountry(t), value: km(t), trails: [t] }));
 
   const stays: WallItem[] = [];
   let nights = 0;
   for (const t of walked) {
-    const days = tripDayCount(t);
-    if (days < 2 || t.acts?.includes(ROADTRIP_ACT)) continue;
-    nights += days - 1;
-    stays.push({ name: t.name, iso: trailCountry(t), value: days - 1, trails: [] });
+    if (kindOf(t, kinds) !== 'stay') continue;
+    const n = Math.max((tripDayCount(t) || journeyDays(t)) - 1, 0);
+    nights += n;
+    stays.push({ name: t.name, iso: trailCountry(t), value: n, trails: [t] });
   }
 
   const byIso = new Map<string, HeroTrail[]>();
@@ -158,7 +177,7 @@ export function computeTripWall(walked: HeroTrail[]): TripWallStats {
     const arr = byIso.get(iso);
     if (arr) arr.push(t); else byIso.set(iso, [t]);
   }
-  const ascent = walked.reduce((s, t) => s + (t.ascentM ?? 0), 0);
+  const ascent = walked.reduce((s, t) => s + ascentOf(t), 0);
 
   return {
     km: walked.reduce((s, t) => s + km(t), 0),
@@ -167,6 +186,6 @@ export function computeTripWall(walked: HeroTrail[]): TripWallStats {
     countries: [...byIso.entries()].map(([iso, trails]) => ({ iso, trails })).sort((a, b) => b.trails.length - a.trails.length),
     ranges, parks, chko, peaks, waters, journeys, roadtrips, stays, nights,
     byKm: walked.filter((t) => km(t) > 0).sort((a, b) => km(b) - km(a)),
-    byAscent: walked.filter((t) => (t.ascentM ?? 0) > 0).sort((a, b) => (b.ascentM ?? 0) - (a.ascentM ?? 0)),
+    byAscent: walked.filter((t) => ascentOf(t) > 0).sort((a, b) => ascentOf(b) - ascentOf(a)),
   };
 }

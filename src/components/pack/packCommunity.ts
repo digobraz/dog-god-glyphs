@@ -405,6 +405,35 @@ export const SK_GEO: GeoCategoryDef[] = [
   ] },
 ];
 
+// Logá SK parkov a CHKO. Kľúč = presný unit string zo SK_GEO.
+export const NP_LOGO: Record<string, string> = {
+  'Tatranský NP': '/icons/np/tatransky-np.png',
+  'NP Nízke Tatry': '/icons/np/np-nizke-tatry.png',
+  'NP Malá Fatra': '/icons/np/np-mala-fatra.png',
+  'NP Slovenský raj': '/icons/np/np-slovensky-raj.png',
+  'NP Muránska planina': '/icons/np/np-muranska-planina.png',
+  'NP Poloniny': '/icons/np/np-poloniny.png',
+  'NP Slovenský kras': '/icons/np/np-slovensky-kras.png',
+  'NP Veľká Fatra': '/icons/np/np-velka-fatra.png',
+  'Pieninský NP': '/icons/np/pieninsky-np.png',
+};
+export const CHKO_LOGO: Record<string, string> = {
+  'Malé Karpaty': '/icons/chko/male-karpaty.png',
+  'Biele Karpaty': '/icons/chko/biele-karpaty.png',
+  'Strážovské vrchy': '/icons/chko/strazovske-vrchy.png',
+  'Kysuce': '/icons/chko/kysuce.png',
+  'Horná Orava': '/icons/chko/horna-orava.png',
+  'Ponitrie': '/icons/chko/ponitrie.png',
+  'Poľana': '/icons/chko/polana.png',
+  'Cerová vrchovina': '/icons/chko/cerova-vrchovina.png',
+  'Vihorlat': '/icons/chko/vihorlat.png',
+  'Latorica': '/icons/chko/latorica.png',
+  'Štiavnické vrchy': '/icons/chko/stiavnicke-vrchy.png',
+  'Východné Karpaty': '/icons/chko/vychodne-karpaty.png',
+  'Dunajské luhy': '/icons/chko/dunajske-luhy.png',
+  'Záhorie': '/icons/chko/zahorie.png',
+};
+
 // pohorie (ranges unit) → NP odznak (TRIPSTATS medaily, Matej 2026-07-23 zadanie bod 1).
 // DRAFT geo dáta — Matej doaudituje neskôr. Hodnoty MUSIA byť z SK_GEO 'parks' units.
 const RANGE_TO_NP: Record<string, string> = {

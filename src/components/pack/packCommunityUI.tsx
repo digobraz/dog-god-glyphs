@@ -24,7 +24,7 @@ import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER, isWaterTrail, hasRouteMet
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI,
-  computeCompletion, unitsForTrail, isMyEvent, profilePointsFor, addedByMeIds, isFounderEmail,
+  computeCompletion, unitsForTrail, NP_LOGO, CHKO_LOGO, isMyEvent, profilePointsFor, addedByMeIds, isFounderEmail,
   approvedAddedIds, ratedCountFor, readVotes, walkedCountries,
   type Difficulty, type Crowd, type Hazard, type CrowdAgg, type PartnerEvent, type TripPlan,
   type SlovakiaCompletion, type MockPerson, type GeoCategory, type DiscoveryBonus,
@@ -97,17 +97,6 @@ const UNIT_STARTED_INK = '#7A5410';
 // vstupy/MAP/NP+CHKO, orezané do public/icons/np/). Kľúč = presný 'parks' unit string zo SK_GEO.
 // Earned = plnofarebné logo na svetlom chipe (enamel-pin look); off = odšednuté. Ostatné
 // kategórie (chko/peaks/waters) ostávajú na generickej glyfe — logá nemáme.
-const NP_LOGO: Record<string, string> = {
-  'Tatranský NP': '/icons/np/tatransky-np.png',
-  'NP Nízke Tatry': '/icons/np/np-nizke-tatry.png',
-  'NP Malá Fatra': '/icons/np/np-mala-fatra.png',
-  'NP Slovenský raj': '/icons/np/np-slovensky-raj.png',
-  'NP Muránska planina': '/icons/np/np-muranska-planina.png',
-  'NP Poloniny': '/icons/np/np-poloniny.png',
-  'NP Slovenský kras': '/icons/np/np-slovensky-kras.png',
-  'NP Veľká Fatra': '/icons/np/np-velka-fatra.png',
-  'Pieninský NP': '/icons/np/pieninsky-np.png',
-};
 // per-park treatment (Matej 2026-07-23): TANAP má tmavý text → biely kruh za logo nech je vidno napis;
 // Pieniny je tenké/svetlé logo → zväčšiť.
 const NP_DISC = new Set(['Tatranský NP', 'Pieninský NP']);
@@ -116,22 +105,6 @@ const NP_BIG = new Set<string>([]);
 // CHKO logá (ŠOP SR, sopsr.sk/img/posobnost, edukačné použitie) — kľúč = 'chko' unit zo SK_GEO.
 // Všetky sú kruhové s tmavým textovým prstencom „CHRÁNENÁ KRAJINNÁ OBLASŤ" → renderujú sa VŽDY
 // na bielom kruhu (disc), inak by tmavý text na tmavom packu zanikol.
-const CHKO_LOGO: Record<string, string> = {
-  'Malé Karpaty': '/icons/chko/male-karpaty.png',
-  'Biele Karpaty': '/icons/chko/biele-karpaty.png',
-  'Strážovské vrchy': '/icons/chko/strazovske-vrchy.png',
-  'Kysuce': '/icons/chko/kysuce.png',
-  'Horná Orava': '/icons/chko/horna-orava.png',
-  'Ponitrie': '/icons/chko/ponitrie.png',
-  'Poľana': '/icons/chko/polana.png',
-  'Cerová vrchovina': '/icons/chko/cerova-vrchovina.png',
-  'Vihorlat': '/icons/chko/vihorlat.png',
-  'Latorica': '/icons/chko/latorica.png',
-  'Štiavnické vrchy': '/icons/chko/stiavnicke-vrchy.png',
-  'Východné Karpaty': '/icons/chko/vychodne-karpaty.png',
-  'Dunajské luhy': '/icons/chko/dunajske-luhy.png',
-  'Záhorie': '/icons/chko/zahorie.png',
-};
 
 // ── zdieľané CSS — PackMap ho injektne raz vedľa svojho vlastného <style> ──────────────────
 /* PLOCHA (APP_NEW, audit layoutu 7. 11. 2026, hárok schválil Matej): štatistiky a triplist nie sú
@@ -1775,6 +1748,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         walkedTrails={walkedTrails}
         ownerName={ownerName}
         avatarUrl={id.avatarUrl}
+        dogs={id.dogs.filter((d) => d.cloudinary_main_url).map((d) => ({ id: d.id, photo: d.cloudinary_main_url as string }))}
         lvl={lvl}
         dogStats={dogStats}
         showChko={isFounderEmail(id.session?.user?.email)}

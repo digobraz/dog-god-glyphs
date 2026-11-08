@@ -12,7 +12,7 @@ import { HeroBadges } from '@/components/pack/HeroBadges';
 import { PilgrimBadge, RANK_BADGE_CSS } from '@/components/pack/profile/rankBadge';
 import { HERO_BADGES } from '@/components/pack/heroBadgesData';
 import { PackPopup } from '@/components/pack/PackPopup';
-import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PROGRESS_CSS, STAGE_CSS, PACK_SHADOW, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PROGRESS_CSS, STAGE_CSS, PF_FIELD_CSS, PACK_SHADOW, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { useLang, useT } from '@/i18n/LanguageContext';
@@ -20,7 +20,9 @@ import { fmtNum } from '@/i18n/bcp47';
 import { flagUrl, countryName } from '@/lib/countryGeo';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { computeTripWall, WALL_UNITS, type TripWallStats, type WallItem, type WaterKind } from './tripWallData';
+import { NP_LOGO, CHKO_LOGO } from '@/components/pack/packCommunity';
+import { onPackStoreHydrated, readTripKinds, setTripKind, type TripKind } from '@/lib/packStore';
+import { ascentOf, computeTripWall, derivedKind, kindOf, WALL_UNITS, type TripWallStats, type WallItem, type WaterKind } from './tripWallData';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -29,6 +31,8 @@ const ICO = (n: string) => `/icons/tripstats/${n}.webp`;
 export const SUBBLOCK = PACK_BOX.subblock;
 /** Plagát parku (Matej 8. 11.: *„daj plagát"*): rozmery scény. Mobil vidí stred `VW`, PC celých 832. */
 const WALL_H = 332;
+/** Nebo navyše nad scénou: výrazný pás levelu nesmie zakryť vrchol s vlajkou. */
+const SKY_UP = 44;
 const VW = 358;
 const SIDE = 237;
 const P = { skyTop: '#7CCBD8', skyMid: '#FCE7B0', skyLow: '#F9C873', ray: '#FFF3CF', sunOut: '#F59B3C', sunIn: '#FBB84E', tealLit: '#2E8F97', tealDark: '#1B6470', midLit: '#3F9E8B', midDark: '#2A7A6C', lowLit: '#57A869', lowDark: '#3C8854', snow: '#FFF8E6', hill: '#3F8747', pine: '#17493B', pineDark: '#113A30', trunk: '#6B4A2B' };
@@ -37,21 +41,29 @@ const STRIP_H = 120;
 
 export const TW_CSS = `${PROGRESS_CSS}
 ${STAGE_CSS}
+${PF_FIELD_CSS}
 .tw-strip{--pk-stage:rgba(255,255,255,.58);--pk-stage-edge:rgba(255,255,255,.85);}
 .tw-root{--tw-ink:${LAPIS.ink};--tw-deep:${LAPIS.deep};--tw-gold:${T.cardEdge};}
-.tw-wall{position:relative;display:flex;flex-direction:column;height:${WALL_H}px;margin-top:${S.md}px;border-radius:${PACK_R.card}px;overflow:hidden;background:${P.skyTop};border:1.5px solid ${T.cardEdge};box-shadow:${LAPIS_BTN_SHADOW};}
+.tw-wall{position:relative;display:flex;flex-direction:column;height:${WALL_H + SKY_UP}px;margin-top:${S.md}px;border-radius:${PACK_R.card}px;overflow:hidden;background:${P.skyTop};border:1.5px solid ${T.cardEdge};box-shadow:${LAPIS_BTN_SHADOW};}
 .tw-poster{position:absolute;inset:0;width:100%;height:100%;display:block;}
 .tw-poster text{font:600 ${PACK_TEXT.micro}px ${FONT_UI};fill:${T.inkStrong};}
 .tw-hud{position:relative;z-index:2;display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;color:${LAPIS.deep};}
 .tw-hudb{display:flex;align-items:center;gap:${S.md}px;flex:1;min-width:0;padding:0;background:none;border:0;color:inherit;cursor:pointer;text-align:left;font-family:${FONT_UI};}
 .tw-av{width:56px;height:56px;flex:none;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};box-shadow:0 0 0 2px ${T.card},0 0 0 3px ${T.inkStrong};}
+.tw-avs{display:flex;align-items:flex-end;flex:none;}
+.tw-avs .tw-av{width:48px;height:48px;}
+.tw-avs .tw-avd{width:36px;height:36px;margin-left:-${S.md}px;}
+.tw-who.tight b{font-size:${PACK_TEXT.body}px;letter-spacing:.02em;}
 .tw-who{flex:1;min-width:0;}
 .tw-who b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.14em;text-transform:uppercase;overflow-wrap:anywhere;} /* písmo: meno */
 .tw-who small{display:block;margin-top:${S.xs}px;font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;opacity:.82;}
-.tw-xp{position:relative;z-index:2;padding:0 ${S.md}px;color:${LAPIS.deep};}
-.tw-xp .pk-progress{background:rgba(10,26,74,.2);}
+.tw-xp{position:relative;z-index:2;display:block;width:auto;margin:0 ${S.md}px;padding:${S.sm}px ${S.md}px;border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.tile}px;background:${LAPIS.grad};box-shadow:${PACK_SHADOW.card};color:${LAPIS.ink};font-family:${FONT_UI};cursor:pointer;}
+.tw-xpr{display:flex;align-items:center;gap:${S.sm}px;}
+.tw-xpl{flex:none;min-width:${S.lg}px;font-size:${PACK_TEXT.lead}px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;text-align:center;-webkit-text-stroke:.5px currentColor;}
+.tw-xpl.nx{opacity:.6;}
+.tw-xp .pk-progress{flex:1;width:auto;height:12px;background:rgba(255,255,255,.2);}
 .tw-xp .pk-progress__fill{transition:width 1.1s cubic-bezier(.2,.7,.2,1) .2s;}
-.tw-xpt{display:flex;justify-content:space-between;margin-top:${S.xs}px;font-size:${PACK_TEXT.micro}px;font-weight:500;opacity:.86;}
+.tw-xpt{display:flex;justify-content:space-between;gap:${S.sm}px;margin-top:${S.xs}px;font-size:${PACK_TEXT.label}px;font-weight:500;font-variant-numeric:tabular-nums;}
 .tw-skyb{position:relative;z-index:1;display:block;width:100%;flex:1;min-height:0;padding:0;background:none;border:0;cursor:pointer;}
 .tw-strip{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:${S.sm}px;margin:-${S.xxl}px ${S.sm}px 0;}
 .tw-strip button{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.xs}px ${S.md}px;cursor:pointer;font-family:${FONT_UI};box-shadow:${PACK_SHADOW.card};}
@@ -115,6 +127,19 @@ button.tw-row{cursor:pointer;}
 .tw-row.open svg{transform:rotate(90deg);}
 .tw-row.lock{border-style:dashed;background:none;color:${T.inkWarm};}
 .tw-row.lock .nm{font-weight:400;}
+.tw-row img.tw-logo{width:40px;height:40px;border-radius:0;object-fit:contain;}
+.tw-row.lock img.tw-logo{filter:grayscale(1);opacity:.5;}
+.tw-row img.tw-oth{width:24px;height:24px;border-radius:0;object-fit:contain;}
+.tw-row.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
+.tw-tick{flex:none;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:${PACK_R.pill}px;border:1.5px solid ${T.border};}
+.tw-row svg.tw-ck{width:14px;height:14px;stroke:${LAPIS.edge};stroke-width:3;}
+.tw-mark{display:block;width:100%;margin-top:${S.md}px;padding:${S.md}px;border:0;border-radius:${PACK_R.field}px;background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};color:${LAPIS.ink};font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;} /* písmo: cta */
+.tw-find{display:block;width:100%;margin-top:${S.md}px;padding:${S.md}px;font-family:${FONT_UI};font-size:${PACK_TEXT.lead}px;color:${T.inkStrong};}
+.tw-cs{display:flex;align-items:center;gap:${S.sm}px;margin-top:${S.lg}px;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1.1;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: nadpis */
+.tw-cs img{width:24px;height:24px;border-radius:${PACK_R.pill}px;object-fit:cover;}
+.tw-cs b{margin-left:auto;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.body}px;letter-spacing:.02em;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.tw-cs + .tw-prg{margin-top:${S.sm}px;}
+.tw-cs ~ .tw-ls{margin-top:${S.sm}px;}
 .tw-sub{display:flex;flex-direction:column;padding:0 ${S.md}px ${S.sm}px ${S.xl}px;}
 .tw-sub button{display:flex;justify-content:space-between;gap:${S.sm}px;padding:${S.xs}px 0;background:none;border:0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkStrong};text-align:left;cursor:pointer;}
 .tw-sub i{font-style:normal;color:${T.inkWarm};font-variant-numeric:tabular-nums;white-space:nowrap;}
@@ -204,9 +229,9 @@ function Poster({ peaks }: { peaks: WallItem[] }) {
   const label = `${apex.name} ${fmtNum(apex.h, lang)} m`;
   const labelW = label.length * 5.7 + 18, labelX = apex.x + 24;
   return (
-    <svg className="tw-poster" viewBox={`${-SIDE} 0 ${VW + 2 * SIDE} ${WALL_H}`} preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <svg className="tw-poster" viewBox={`${-SIDE} ${-SKY_UP} ${VW + 2 * SIDE} ${WALL_H + SKY_UP}`} preserveAspectRatio="xMidYMax slice" aria-hidden="true">
       <defs><linearGradient id="tw-psky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={P.skyTop} /><stop offset=".62" stopColor={P.skyMid} /><stop offset="1" stopColor={P.skyLow} /></linearGradient></defs>
-      <rect x={-SIDE} width={VW + 2 * SIDE} height={WALL_H} fill="url(#tw-psky)" />
+      <rect x={-SIDE} y={-SKY_UP} width={VW + 2 * SIDE} height={WALL_H + SKY_UP} fill="url(#tw-psky)" />
       {rays.map((d, i) => <path key={i} d={d} fill={P.ray} opacity=".42" />)}
       <circle cx={cx} cy={cy} r="58" fill={P.sunOut} />
       <circle cx={cx} cy={cy} r="46" fill={P.sunIn} />
@@ -230,9 +255,11 @@ function Poster({ peaks }: { peaks: WallItem[] }) {
 }
 
 type CatKey = 'ranges' | 'parks' | 'chko' | 'peaks' | 'waters' | 'journeys' | 'roadtrips' | 'stays' | 'ascent' | 'km' | 'trips';
-type Sheet = { kind: 'cat'; cat: CatKey; iso: string; water: 'all' | WaterKind } | { kind: 'countries' } | { kind: 'level' };
+type MarkKind = 'stay' | 'roadtrip';
+type Sheet = { kind: 'cat'; cat: CatKey; iso: string; water: 'all' | WaterKind } | { kind: 'countries' } | { kind: 'level' } | { kind: 'mark'; mark: MarkKind };
 
 const Chev = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>;
+const Check = () => <svg className="tw-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13l4 4L19 7" /></svg>;
 const TileChev = () => <svg className="tw-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>;
 
 /** Šírka výplne PROGRESU (recept `.pk-progress`). */
@@ -243,10 +270,11 @@ const fillW = (pct: number) => {
 
 const WATER_ICON: Record<WaterKind, string> = { pond: 'jazierko', reservoir: 'priehrada', lake: 'jazero' };
 
-export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStats, showChko, onOpenTrip, levelSheet }: {
+export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, dogStats, showChko, onOpenTrip, levelSheet }: {
   walkedTrails: HeroTrail[];
   ownerName: string;
   avatarUrl: string | null | undefined;
+  dogs: { id: string; photo: string }[];
   lvl: LevelProgress;
   dogStats: { id: string; name: string; photo?: string | null; trips: number; km: number }[];
   showChko: boolean;
@@ -255,7 +283,10 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
 }) {
   const t = useT();
   const { lang } = useLang();
-  const s = useMemo<TripWallStats>(() => computeTripWall(walkedTrails), [walkedTrails]);
+  const [kinds, setKinds] = useState<Record<string, TripKind>>(readTripKinds);
+  useEffect(() => onPackStoreHydrated(() => setKinds(readTripKinds())), []);
+  const s = useMemo<TripWallStats>(() => computeTripWall(walkedTrails, kinds), [walkedTrails, kinds]);
+  const [find, setFind] = useState('');
   const [stack, setStack] = useState<Sheet[]>([]);
   const [openRow, setOpenRow] = useState<string | null>(null);
   const [barOn, setBarOn] = useState(false);
@@ -263,7 +294,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
 
   const n = (v: number) => fmtNum(Math.round(v), lang);
   const top = stack[stack.length - 1];
-  const push = (x: Sheet) => { setOpenRow(null); setStack((c) => [...c, x]); };
+  const push = (x: Sheet) => { setOpenRow(null); setFind(''); setStack((c) => [...c, x]); };
   const pop = () => { setOpenRow(null); setStack((c) => c.slice(0, -1)); };
   const patch = (p: Partial<Extract<Sheet, { kind: 'cat' }>>) => {
     setOpenRow(null);
@@ -272,21 +303,22 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
   const openCat = (cat: CatKey, iso = 'all') => push({ kind: 'cat', cat, iso, water: 'all' });
 
   const trailItem = (tr: HeroTrail, value: number): WallItem => ({ name: tr.name, iso: tr.country || 'sk', value, trails: [tr] });
-  const CATS: Record<CatKey, { title: string; ic: string; items: WallItem[]; units?: Record<string, string[]>; meta: (x: WallItem) => string; sum?: boolean; unit?: string; direct?: boolean }> = {
+  const CATS: Record<CatKey, { title: string; ic: string; items: WallItem[]; units?: Record<string, string[]>; logos?: Record<string, string>; meta: (x: WallItem) => string; sum?: boolean; unit?: string; direct?: boolean }> = {
     ranges: { title: t('pack.stats.geo.ranges'), ic: ICO('pohoria'), items: s.ranges, units: WALL_UNITS.ranges, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
-    parks: { title: t('pack.stats.geo.parks'), ic: ICO('narodny-park'), items: s.parks, units: WALL_UNITS.parks, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
-    chko: { title: 'CHKO', ic: '/icons/chko/biele-karpaty.png', items: s.chko, units: WALL_UNITS.chko, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
+    parks: { title: t('pack.stats.geo.parks'), ic: ICO('narodny-park'), items: s.parks, units: WALL_UNITS.parks, logos: NP_LOGO, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
+    chko: { title: 'CHKO', ic: '/icons/chko/biele-karpaty.png', items: s.chko, units: WALL_UNITS.chko, logos: CHKO_LOGO, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
     peaks: { title: t('pack.wall.peaks'), ic: ICO('vrcholy'), items: s.peaks, meta: (x) => `${n(x.value ?? 0)} m` },
     waters: { title: t('pack.stats.geo.waters'), ic: ICO('jazero'), items: s.waters, meta: (x) => (x.water ? t(`pack.wall.water.${x.water}`) : '') },
     journeys: { title: t('pack.stats.geo.journeys'), ic: ICO('pridane'), items: s.journeys, units: WALL_UNITS.journeys, meta: (x) => `${n(x.value ?? 0)} km` },
     roadtrips: { title: t('pack.wall.roadtrips'), ic: ICO('roadtrip'), items: s.roadtrips, meta: (x) => `${n(x.value ?? 0)} km` },
-    stays: { title: t('pack.wall.stays'), ic: ICO('stanovacky'), items: s.stays, meta: (x) => t('pack.wall.nights', { n: x.value ?? 0 }) },
-    ascent: { title: t('pack.wall.ascent'), ic: ICO('najvyssi'), items: s.byAscent.map((x) => trailItem(x, x.ascentM ?? 0)), meta: (x) => `${n(x.value ?? 0)} m`, sum: true, unit: 'm', direct: true },
+    stays: { title: t('pack.wall.stays'), ic: ICO('stanovacky'), items: s.stays, meta: (x) => (x.value ? t('pack.wall.nights', { n: x.value }) : '') },
+    ascent: { title: t('pack.wall.ascent'), ic: ICO('najvyssi'), items: s.byAscent.map((x) => trailItem(x, ascentOf(x))), meta: (x) => `${n(x.value ?? 0)} m`, sum: true, unit: 'm', direct: true },
     km: { title: t('pack.wall.kmTitle'), ic: ICO('km'), items: s.byKm.map((x) => trailItem(x, Number(x.km) || 0)), meta: (x) => `${n(x.value ?? 0)} km`, sum: true, unit: 'km', direct: true },
     trips: { title: t('pack.wall.tripsTitle'), ic: ICO('vylety'), items: [...walkedTrails].sort((a, b) => a.name.localeCompare(b.name, lang)).map((x) => trailItem(x, Number(x.km) || 0)), meta: (x) => (x.value ? `${n(x.value)} km` : t('pack.wall.place')), direct: true },
   };
 
   const isoList = s.countries.map((c) => c.iso);
+  const home = isoList[0];
   /** `countryName` vie len anglicky, stena hovorí jazykom člena. */
   const regionName = (iso: string) => {
     try { return new Intl.DisplayNames([lang], { type: 'region' }).of(iso.toUpperCase()) ?? countryName(iso); } catch { return countryName(iso); }
@@ -302,6 +334,57 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
     const note = st.cat === 'ascent' && st.iso === 'all' ? t('pack.wall.everest', { n: fmtNum(s.everest, lang) })
       : st.cat === 'stays' && st.iso === 'all' && s.nights > 0 ? t('pack.wall.nights', { n: s.nights }) : '';
     const hasList = !!c.units && st.iso !== 'all' && !units;
+    const mark: MarkKind | null = st.cat === 'stays' ? 'stay' : st.cat === 'roadtrips' ? 'roadtrip' : null;
+    /* Vlajka len pri výlete mimo domova: slovenská v každom riadku nehovorí nič (Matej 8. 11.). */
+    const lead = (x: { name: string; iso: string }, inCountry: boolean, lock = false) => {
+      const logo = c.logos?.[x.name];
+      if (logo) return <img className="tw-logo" src={logo} alt="" />;
+      return !lock && !inCountry && x.iso !== home ? <img src={flagUrl(x.iso)} alt="" /> : null;
+    };
+    const rows = (items: WallItem[], inCountry: boolean) => items.map((x) => {
+      const flag = lead(x, inCountry);
+      if (c.direct) {
+        return <button key={x.trails[0].id} type="button" className="tw-row" onClick={() => onOpenTrip(x.trails[0].id)}>{flag}<span className="nm">{x.name}</span><span className="mt">{c.meta(x)}</span></button>;
+      }
+      if (!x.trails.length || st.cat === 'waters' || mark) {
+        const only = x.trails[0];
+        return only
+          ? <button key={x.name} type="button" className="tw-row" onClick={() => onOpenTrip(only.id)}>{flag}<span className="nm">{x.name}</span><span className="mt">{c.meta(x)}</span></button>
+          : <div key={x.name} className="tw-row">{flag}<span className="nm">{x.name}</span><span className="mt">{c.meta(x)}</span></div>;
+      }
+      const isOpen = openRow === x.name;
+      return (
+        <div key={x.name}>
+          <button type="button" className={`tw-row${isOpen ? ' open' : ''}`} aria-expanded={isOpen} onClick={() => setOpenRow(isOpen ? null : x.name)}>
+            {flag}<span className="nm">{x.name}</span><span className="mt">{c.meta(x)}</span><Chev />
+          </button>
+          {isOpen && (
+            <div className="tw-sub">
+              {x.trails.map((tr) => (
+                <button key={tr.id} type="button" onClick={() => onOpenTrip(tr.id)}>
+                  <span>{tr.name}</span><i>{Number(tr.km) ? `${n(Number(tr.km))} km` : t('pack.wall.place')}</i>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    });
+    const lockRow = (u: string, iso: string) => <div key={u} className="tw-row lock">{lead({ name: u, iso }, true, true)}<span className="nm">{u}</span></div>;
+    /* Parky bez filtra: každá krajina zvlášť, koľko z koľkých (Matej 8. 11.). */
+    const byCountry = st.iso === 'all' && !!c.logos && !!c.units;
+    const countrySecs = byCountry ? isoList.filter((iso) => iso === home || c.items.some((x) => x.iso === iso)).map((iso) => {
+      const have = c.items.filter((x) => x.iso === iso);
+      const all = c.units?.[iso];
+      const miss = all ? all.filter((u) => !have.some((x) => x.name === u)) : [];
+      return (
+        <div key={iso}>
+          <div className="tw-cs"><img src={flagUrl(iso)} alt="" />{regionName(iso)}<b>{n(have.length)}{all && ` / ${all.length}`}</b></div>
+          {all && <div className="tw-prg"><div className="pk-progress"><div className="pk-progress__fill" style={fillW((have.length / all.length) * 100)} /></div></div>}
+          <div className="tw-ls">{rows(have, true)}{miss.map((u) => lockRow(u, iso))}</div>
+        </div>
+      );
+    }) : null;
     return (
       <>
         <div className="tw-sh">
@@ -335,38 +418,46 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
           </div>
         )}
         {hasList && <span className="tw-note">{t('pack.wall.listSoon')}</span>}
+        {mark && <button type="button" className="tw-mark" onClick={() => push({ kind: 'mark', mark })}>{t('pack.wall.markTrips')}</button>}
+        {countrySecs}
+        {!byCountry && (
+          <div className="tw-ls">
+            {rows(list, st.iso !== 'all')}
+            {locked.map((u) => lockRow(u, st.iso))}
+            {!list.length && !locked.length && <p className="tw-none">{t('pack.wall.nothing')}</p>}
+          </div>
+        )}
+      </>
+    );
+  };
+
+  const toggleKind = (tr: HeroTrail, mark: MarkKind) => {
+    const on = kindOf(tr, kinds) === mark;
+    setKinds(setTripKind(tr.id, on ? (derivedKind(tr) ? 'none' : null) : mark));
+  };
+
+  const renderMark = (mark: MarkKind) => {
+    const q = find.trim().toLocaleLowerCase(lang);
+    const list = walkedTrails.filter((x) => !q || x.name.toLocaleLowerCase(lang).includes(q)).sort((a, b) => a.name.localeCompare(b.name, lang));
+    const c = CATS[mark === 'stay' ? 'stays' : 'roadtrips'];
+    return (
+      <>
+        <div className="tw-sh"><img src={c.ic} alt="" /><div><h3>{c.title}</h3><span className="tw-num">{n(c.items.length)}</span></div></div>
+        <input className="pf-field tw-find" type="search" value={find} onChange={(e) => setFind(e.target.value)} placeholder={t('pack.wall.searchTrip')} aria-label={t('pack.wall.searchTrip')} />
         <div className="tw-ls">
           {list.map((x) => {
-            const flag = st.iso === 'all' ? <img src={flagUrl(x.iso)} alt="" /> : null;
-            if (c.direct) {
-              return <button key={x.trails[0].id} type="button" className="tw-row" onClick={() => onOpenTrip(x.trails[0].id)}>{flag}<span className="nm">{x.name}</span><span className="mt">{c.meta(x)}</span></button>;
-            }
-            if (!x.trails.length || st.cat === 'waters') {
-              const only = x.trails[0];
-              return only
-                ? <button key={x.name} type="button" className="tw-row" onClick={() => onOpenTrip(only.id)}>{flag}<span className="nm">{x.name}</span><span className="mt">{c.meta(x)}</span></button>
-                : <div key={x.name} className="tw-row">{flag}<span className="nm">{x.name}</span><span className="mt">{c.meta(x)}</span></div>;
-            }
-            const isOpen = openRow === x.name;
+            const k = kindOf(x, kinds);
+            const on = k === mark;
             return (
-              <div key={x.name}>
-                <button type="button" className={`tw-row${isOpen ? ' open' : ''}`} aria-expanded={isOpen} onClick={() => setOpenRow(isOpen ? null : x.name)}>
-                  {flag}<span className="nm">{x.name}</span><span className="mt">{c.meta(x)}</span><Chev />
-                </button>
-                {isOpen && (
-                  <div className="tw-sub">
-                    {x.trails.map((tr) => (
-                      <button key={tr.id} type="button" onClick={() => onOpenTrip(tr.id)}>
-                        <span>{tr.name}</span><i>{Number(tr.km) ? `${n(Number(tr.km))} km` : t('pack.wall.place')}</i>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <button key={x.id} type="button" className={`tw-row${on ? ' on' : ''}`} aria-pressed={on} onClick={() => toggleKind(x, mark)}>
+                <span className="nm">{x.name}</span>
+                {k && !on && <img className="tw-oth" src={ICO(k === 'stay' ? 'stanovacky' : 'roadtrip')} alt="" />}
+                {Number(x.km) > 0 && <span className="mt">{n(Number(x.km))} km</span>}
+                <span className="tw-tick">{on && <Check />}</span>
+              </button>
             );
           })}
-          {locked.map((u) => <div key={u} className="tw-row lock"><span className="nm">{u}</span></div>)}
-          {!list.length && !locked.length && <p className="tw-none">{t('pack.wall.nothing')}</p>}
+          {!list.length && <p className="tw-none">{t('pack.wall.nothing')}</p>}
         </div>
       </>
     );
@@ -416,15 +507,22 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
         <Poster peaks={s.peaks} />
         <div className="tw-hud">
           <button type="button" className="tw-hudb" onClick={() => push({ kind: 'level' })} aria-label={t('pack.stats.howPointsWork')}>
-            {avatarUrl ? <img className="tw-av" src={sizedUrl(avatarUrl, 160)} alt="" /> : <span className="tw-av" />}
-            <span className="tw-who"><b>{ownerName}</b><small>{t('pack.map.rankPilgrim')}</small></span>
+            <span className="tw-avs">
+              {avatarUrl ? <img className="tw-av" src={sizedUrl(avatarUrl, 160)} alt="" /> : <span className="tw-av" />}
+              {dogs.slice(0, 3).map((d) => <img key={d.id} className="tw-av tw-avd" src={sizedUrl(d.photo, 120)} alt="" />)}
+            </span>
+            <span className={`tw-who${dogs.length > 1 ? ' tight' : ''}`}><b>{ownerName}</b><small>{t('pack.map.rankPilgrim')}</small></span>
           </button>
           <PilgrimBadge level={lvl.level} pct={lvl.pct} onClick={() => push({ kind: 'level' })} label={t('pack.stats.howPointsWork')} />
         </div>
-        <div className="tw-xp">
-          <div className="pk-progress"><div className="pk-progress__fill" style={fillW(barOn ? lvl.pct : 0)} /></div>
-          <div className="tw-xpt"><span>{t('pack.stats.pts', { n: lvl.points })}</span><span>{t('pack.stats.ptsToLevel', { n: lvl.toNext, level: lvl.level + 1 })}</span></div>
-        </div>
+        <button type="button" className="tw-xp" onClick={() => push({ kind: 'level' })} aria-label={t('pack.stats.howPointsWork')}>
+          <span className="tw-xpr">
+            <span className="tw-xpl">{lvl.level}</span>
+            <span className="pk-progress"><span className="pk-progress__fill" style={fillW(barOn ? lvl.pct : 0)} /></span>
+            <span className="tw-xpl nx">{lvl.level + 1}</span>
+          </span>
+          <span className="tw-xpt"><span>{t('pack.stats.pts', { n: lvl.points })}</span><span>{t('pack.stats.ptsToLevel', { n: lvl.toNext, level: lvl.level + 1 })}</span></span>
+        </button>
         <button type="button" className="tw-skyb" onClick={() => openCat('peaks')} aria-label={t('pack.wall.peaks')} />
       </div>
 
@@ -452,7 +550,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
         <div className="tw-grid">
           {s.peaks[0] && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('peaks')}><img src={ICO('najvyssi-lapis')} alt="" /><span><b>{n(s.peaks[0].value ?? 0)} m</b><small>{s.peaks[0].name}</small></span></button>}
           {longest && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('km')}><img src={ICO('km-lapis')} alt="" /><span><b>{n(Number(longest.km))} km</b><small>{longest.name}</small></span></button>}
-          {steepest && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('ascent')}><img src={ICO('vrcholy-lapis')} alt="" /><span><b>{n(steepest.ascentM ?? 0)} m</b><small>{steepest.name}</small></span></button>}
+          {steepest && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('ascent')}><img src={ICO('vrcholy-lapis')} alt="" /><span><b>{n(ascentOf(steepest))} m</b><small>{steepest.name}</small></span></button>}
           {topRange && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('ranges')}><img src={ICO('pohoria-lapis')} alt="" /><span><b>{topRange.trails.length}×</b><small>{topRange.name}</small></span></button>}
         </div>
       </>}
@@ -478,8 +576,8 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
       </div>
 
       {top && (
-        <PackPopup onClose={pop} label={top.kind === 'cat' ? CATS[top.cat].title : top.kind === 'countries' ? t('pack.wall.countriesTitle') : t('pack.stats.howPointsWork')}>
-          {top.kind === 'cat' ? renderCat(top) : top.kind === 'countries' ? renderCountries() : levelSheet}
+        <PackPopup onClose={pop} label={top.kind === 'cat' ? CATS[top.cat].title : top.kind === 'mark' ? t('pack.wall.markTrips') : top.kind === 'countries' ? t('pack.wall.countriesTitle') : t('pack.stats.howPointsWork')}>
+          {top.kind === 'cat' ? renderCat(top) : top.kind === 'mark' ? renderMark(top.mark) : top.kind === 'countries' ? renderCountries() : levelSheet}
         </PackPopup>
       )}
     </div>

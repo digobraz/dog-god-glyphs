@@ -2754,9 +2754,15 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
         <div className="atl-toggle-row">
           <button
             type="button"
+            aria-pressed={!chips.has(ROADTRIP_ACT)}
+            className={`atl-toggle-btn atl-daymode-rt${chips.has(ROADTRIP_ACT) ? '' : ' on'}`}
+            onClick={() => setChips((prev) => { const rest = new Set(prev); rest.delete(ROADTRIP_ACT); return rest; })}
+          ><img src="/icons/tripstats/stanovacky.webp" alt="" />{t('pack.addTrip.step.camping')}</button>
+          <button
+            type="button"
             aria-pressed={chips.has(ROADTRIP_ACT)}
             className={`atl-toggle-btn atl-daymode-rt${chips.has(ROADTRIP_ACT) ? ' on' : ''}`}
-            onClick={() => toggleSet(chips, setChips, ROADTRIP_ACT)}
+            onClick={() => setChips((prev) => new Set(prev).add(ROADTRIP_ACT))}
           ><img src="/icons/tripstats/roadtrip.webp" alt="" />{t('pack.addTrip.step.roadtrip')}</button>
         </div>
       )}
