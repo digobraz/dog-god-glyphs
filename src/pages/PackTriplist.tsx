@@ -1062,7 +1062,7 @@ export default function PackTriplist() {
               setTimeout(() => {
                 const el = document.getElementById(WIZ.tlWish);
                 if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - PACK_TOPROW.content, behavior: 'smooth' });
-              }, 80);
+              }, 300);
             }}>
               <span className="tl-tab-label"><img className="tl-tab-art" src="/map-marks/tripwish.webp" alt="" />Tripwish</span>
             </button>
