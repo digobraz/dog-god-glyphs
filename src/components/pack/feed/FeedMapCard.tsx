@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
-import { HandPaw } from '@/components/pack/HandIcons';
+import { LikeMark } from '@/components/pack/SysIcon';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { likeMapNote, type MapNote } from '@/components/pack/mapnotes/mapNotesData';
 import { type WishPin } from '@/components/pack/mapnotes/wishData';
@@ -128,7 +128,7 @@ export function FeedMapCard({ add, liked, likes = 0, onLike }: { add: MapAdd; li
       </div>
       <div className="pfm-foot">
         <button type="button" className="lk" onClick={pressLike} aria-pressed={isOn} aria-label={tx('pack.feed.act.like', 'Like')}>
-          <HandPaw size={24} on={isOn} />{(add.k === 'note' ? noteLike.n : likes) > 0 && (add.k === 'note' ? noteLike.n : likes)}
+          <LikeMark on={isOn} />{(add.k === 'note' ? noteLike.n : likes) > 0 && (add.k === 'note' ? noteLike.n : likes)}
         </button>
         <span className="sp" />
         <button type="button" className="pfm-go" onClick={() => navigate(add.k === 'event' ? `/pack/map?event=${add.e.id}` : '/pack/map')}>

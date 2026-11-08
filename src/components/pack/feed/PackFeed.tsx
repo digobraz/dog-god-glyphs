@@ -24,7 +24,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as RMouseEvent } from 'react';
 import { useNavigate, useNavigationType, useSearchParams } from 'react-router-dom';
 import { canStepBack } from '@/lib/stepBack';
-import { HandSearch } from '@/components/pack/HandIcons';
+import { SearchMark } from '@/components/pack/SysIcon';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
@@ -557,7 +557,7 @@ export function PackFeed() {
         {!searching && <FeedSosBlock rows={sosRows} />}
         {searching ? (<>
           <div className="pkf-sb" role="search">
-            <HandSearch size={20} />
+            <SearchMark size={20} />
             <input ref={searchRef} type="search" value={params.get('hladaj') || ''} onChange={(e) => setQuery(e.target.value)}
               placeholder={tx('pack.feed.search.ph', 'Search trips, scrolls, posts…')} aria-label={tx('pack.feed.search.ph', 'Search')} enterKeyHint="search" />
             <button type="button" onClick={closeSearch}>{tx('pack.feed.search.close', 'Close search')}</button>

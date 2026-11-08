@@ -9,6 +9,7 @@ import { PACK_THEME, PACK_COL, PACK_COL_INNER, PACK_TOPROW_PAD, usePaperRoute, P
 import { PackTopRow } from './PackTopRow';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
+import { sysSrc } from '@/components/pack/SysIcon';
 import { FeedSkeleton } from './feed/FeedSkeleton';
 import { TermsGuard } from '@/components/app/TermsGate';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
@@ -603,7 +604,7 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
           }}
         >
           <span className="flex items-center justify-center" style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4 }}>
-            <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
+            <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={APP_NEW ? sysSrc('domov') : iconHome} end />
             {/* `WIZ.navMap` — sem svieti krok prehliadky o mape (spotlight na IKONKU,
                 nie na blok stránky). Kotva sedí na obale, nie na `NavLink`: spotlight
                 pridáva `position:relative` + `z-index`, a to by prebilo štýl pillu.
@@ -612,7 +613,7 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
                    dávke rozhodnutí o značkách potvrdil „VON ostáva planétka world-grid.svg".
                    Výmena je NÁVRH na nákres, nie hotová vec. */}
             <span id={WIZ.navMap} style={{ display: 'inline-flex', borderRadius: 999 }}>
-              <FloatingNavLink to="/pack/map" label={tx('pack.layout.navOut', 'OUT')} icon="/icons/pack/world-grid.svg" />
+              <FloatingNavLink to="/pack/map" label={tx('pack.layout.navOut', 'OUT')} icon={APP_NEW ? sysSrc('von') : '/icons/pack/world-grid.svg'} />
             </span>
           </span>
           {/* `WIZ.navAdd` / `navAinubis` / `navMe` — kotvy prehliadky (register `wizSteps.ts`).
@@ -1202,6 +1203,8 @@ const pillLabelStyle: React.CSSProperties = {
 };
 
 function BrandIcon({ src, active }: { src: string; active: boolean }) {
+  // Farebná samolepka nesmie dostať čierny filter ani vyblednúť, aktívnu polohu nesie pilulka.
+  if (APP_NEW) return <img src={src} alt="" aria-hidden draggable={false} style={{ position: 'relative', width: 28, height: 28, objectFit: 'contain', display: 'block', flexShrink: 0 }} />;
   return (
     <img
       src={src}
@@ -1249,7 +1252,7 @@ function BrandIcon({ src, active }: { src: string; active: boolean }) {
  *    points"*. `idea.svg` ostáva svetu POCHOPENIE vo VAULTE.
  */
 function AinubisNavLink({ label }: { label: string }) {
-  return <FloatingNavLink to="/pack/ainubis" label={label} icon="/icons/pack/star-six.svg" />;
+  return <FloatingNavLink to="/pack/ainubis" label={label} icon={APP_NEW ? sysSrc('ainubis') : '/icons/pack/star-six.svg'} />;
 }
 
 /**

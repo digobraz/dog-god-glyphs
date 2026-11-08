@@ -56,6 +56,8 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useRef, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { NAV_GRAIN, LAPIS } from './navGoldSkin';
+import { APP_NEW } from '@/lib/packFlags';
+import { sysSrc } from './SysIcon';
 // Jediné, čo z AINUBISOVHO brandu v tomto súbore ostalo: cyan jeho odznaku.
 import { AINUBIS } from './ainubisSkin';
 // ⚠️ `ainubis-head.webp` sa odtiaľto 21. 9. 2026 ODSŤAHOVALA do položky lišty AINUBIS
@@ -240,7 +242,9 @@ export function DockPlus({ label, onClick, onLongPress, id }: { label: string; o
           <span className="pk-medal-face">
             {/* Kresba z kitu MASKOU, nie `<img>` s filtrom: filter farbu aproximuje, maska
                 ju trafí presne. Zástupná, kým Matej nenakreslí vlastnú (zadanie §6). */}
-            <span className="pk-medal-plus" aria-hidden />
+            {APP_NEW
+              ? <img src={sysSrc('plus')} alt="" aria-hidden draggable={false} style={{ position: 'relative', width: '64%', height: '64%', objectFit: 'contain', display: 'block' }} />
+              : <span className="pk-medal-plus" aria-hidden />}
             <span className="pk-medal-grain" />
             <span className="pk-medal-gloss" />
           </span>

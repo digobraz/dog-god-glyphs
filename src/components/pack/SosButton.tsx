@@ -15,6 +15,7 @@ import { SOS_ON } from '@/lib/env';
 import { APP_NEW } from '@/lib/packFlags';
 import { PackPopup } from './PackPopup';
 import { BrandIcon } from './BrandIcon';
+import { SysIcon } from './SysIcon';
 import { TopCircle } from './TopCircle';
 import { useSosActive, sosAgo } from './sosKit';
 import { sizedUrl } from '@/services/cloudinaryService';
@@ -68,30 +69,30 @@ export function SosButton() {
             {/* Vždy prvé, nikdy nezmizne — riadky pátraní ho nesmú nahradiť. */}
             {SOS_ON && (
               <button type="button" className="sos-row lost" style={{ ...PACK_BOX.row, background: T.sosRed, borderColor: T.sosRedDark }} onClick={() => go('/pack/sos/new')}>
-                <BrandIcon name="dogposter" size={24} tint="white" />
+                {APP_NEW ? <SysIcon name="sos-strateny" size={32} /> : <BrandIcon name="dogposter" size={24} tint="white" />}
                 <b>{tx('pack.sos.btn.lost', 'My dog is lost')}</b>
               </button>
             )}
             <button type="button" className="sos-row vet" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/pohotovost')}>
-              <BrandIcon name="vet" size={24} tint="gold" />
+              {APP_NEW ? <SysIcon name="sos-vet" size={32} /> : <BrandIcon name="vet" size={24} tint="gold" />}
               <b>{tx('pack.sos.er.btn', 'Emergency vet')}</b>
             </button>
             {/* Rýchly prístup ku kartičke, nastavenie ostáva v DOG ID (Matej 5. 11.). */}
             {APP_NEW && (
               <button type="button" className="sos-row card" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/karticka')}>
-                <BrandIcon name="attention-head" size={24} tint="gold" />
+                <SysIcon name="sos-karta" size={32} />
                 <b>{tx('pack.sos.card.title', 'Emergency card')}</b>
               </button>
             )}
             {/* Nahlásiť týranie: zatiaľ bez akcie, vyzerá ako ostatné „čoskoro“ (nie červeno). */}
             <button type="button" className="sos-row abuse" style={{ ...PACK_BOX.row }}>
-              <BrandIcon name="stop-rhomb" size={24} tint="gold" />
+              {APP_NEW ? <SysIcon name="sos-tyranie" size={32} /> : <BrandIcon name="stop-rhomb" size={24} tint="gold" />}
               <b>{tx('pack.sos.btn.abuse', 'Report abuse')}</b>
               <small>{tx('pack.sos.soon', 'Soon')}</small>
             </button>
             {SOS_ON && ROWS.map((r) => (
               <button key={r.key} type="button" className={`sos-row ${r.key}`} style={{ ...PACK_BOX.row }}>
-                <BrandIcon name={r.icon} size={24} tint="gold" />
+                {APP_NEW ? <SysIcon name="sos-pomoc" size={32} /> : <BrandIcon name={r.icon} size={24} tint="gold" />}
                 <b>{tx(r.k, r.fb)}</b>
                 <small>{tx('pack.sos.soon', 'Soon')}</small>
               </button>

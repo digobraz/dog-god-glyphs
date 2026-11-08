@@ -9,7 +9,7 @@ import { TEST_BUILD } from '@/lib/env';
 import { FeedSkeleton } from '@/components/pack/feed/FeedSkeleton';
 import { applyDogOrder, readDogOrder } from '@/lib/dogOrder';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { HandSearch } from '@/components/pack/HandIcons';
+import { SearchMark } from '@/components/pack/SysIcon';
 import { GlobePulse } from '@/components/pack/GlobePulse';
 import { WIZ } from '@/components/pack/wizAnchors';
 // NextTripCard parkuje (nahradený TripSpotlightom 9.8.2026) — pozri komentár pri bloku nižšie.
@@ -161,7 +161,7 @@ function FeedSearch() {
       {/* Kresba z kitu je PLNÁ silueta a šošovku na ňu kreslí biela vrstva. Priehľadná biela odhalila čiernu pod ňou
           (lupa vyzerala vyplnená) — šošovka preto nesie farbu papyrusu, na ktorom hlavička stojí. */}
       <style>{`.pkf-lupa path[fill="#ffffff"]{fill:${PAPER_BG};}`}</style>
-      <HandSearch size={24} />
+      <SearchMark size={24} />
     </button>
   );
 }

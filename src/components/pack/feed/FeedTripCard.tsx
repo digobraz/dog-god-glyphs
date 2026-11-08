@@ -20,7 +20,8 @@ import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
-import { HandPaw, HandClipboard, HandArrowLeft } from '@/components/pack/HandIcons';
+import { HandClipboard, HandArrowLeft } from '@/components/pack/HandIcons';
+import { LikeMark, CommentMark } from '@/components/pack/SysIcon';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { COMMUNITY_CSS, PhotoMetaPills } from '@/components/pack/packCommunityUI';
 import { crowdAggregate } from '@/components/pack/packCommunity';
@@ -271,11 +272,11 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
       <div className="pft-acts">
         {/* Poradie VŠADE labka · komentár · uloženie (Matej 26. 10.). Labka = `feed_marks`, komentár = šuplík výletu. */}
         <button type="button" onClick={onLike} aria-pressed={liked} aria-label={tx('pack.feed.act.like', 'Like')}>
-          <HandPaw size={24} on={liked} />{likes > 0 && likes}
+          <LikeMark on={liked} />{likes > 0 && likes}
         </button>
         {onComment && (
           <button type="button" onClick={onComment} aria-label={tx('pack.feed.act.comment', 'Comments')}>
-            <BrandIcon name="chat" size={24} tint="dark" />{comments > 0 && comments}
+            <CommentMark />{comments > 0 && comments}
           </button>
         )}
         <span className="sp" />

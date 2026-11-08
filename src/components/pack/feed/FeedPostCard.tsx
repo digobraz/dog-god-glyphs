@@ -14,7 +14,7 @@ import { FollowChip, FOLLOW_CHIP_CSS } from '@/components/pack/profile/follow';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
-import { HandPaw, HandStar } from '@/components/pack/HandIcons';
+import { LikeMark, CommentMark, SaveMark } from '@/components/pack/SysIcon';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { toggleMark } from '@/components/pack/story/storyData';
 import { fetchPostSocial, isNature, type MePost, type PostSocial } from '@/components/pack/profile/mePosts';
@@ -136,10 +136,10 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
       )}
       <div className="pfp-acts">
         <button type="button" onClick={() => mark('like')} aria-pressed={soc.liked} aria-label={tx('pack.feed.act.like', 'Like')}>
-          <HandPaw size={24} on={soc.liked} />{soc.likes > 0 && soc.likes}
+          <LikeMark on={soc.liked} />{soc.likes > 0 && soc.likes}
         </button>
         <button type="button" onClick={() => onOpen(post)} aria-label={tx('pack.post.comment', 'Comment')}>
-          <BrandIcon name="chat" size={24} tint="dark" />{soc.comments > 0 && soc.comments}
+          <CommentMark />{soc.comments > 0 && soc.comments}
         </button>
         <span className="sp" />
         {nature ? (
@@ -148,7 +148,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
           </button>
         ) : (
           <button type="button" className={`save${soc.saved ? ' on' : ''}`} onClick={() => mark('save')} aria-pressed={soc.saved} aria-label={tx('pack.feed.act.save', 'Save')}>
-            <HandStar size={24} filled={soc.saved} />{soc.saves > 0 && soc.saves}
+            <SaveMark on={soc.saved} />{soc.saves > 0 && soc.saves}
           </button>
         )}
       </div>
