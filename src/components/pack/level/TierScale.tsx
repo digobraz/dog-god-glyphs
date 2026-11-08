@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { FONT_TITLE, FONT_UI, PACK_THEME as T, GOLD_BTN } from '@/components/pack/packTheme';
-import { PACK_TIERS, tierGradient, tierIndexOfLevel, tierRangeLabel, pilgrimImg } from '@/lib/packTiers';
+import { PACK_TIERS, pillInk, tierGradient, tierIndexOfLevel, tierRangeLabel, pilgrimImg } from '@/lib/packTiers';
 import { useT } from '@/i18n/LanguageContext';
 
 export interface TierScaleProps {
@@ -18,9 +18,11 @@ export interface TierScaleProps {
   level: number;
   /** tmavý podklad (mapa, reveal) vs. papyrusová karta */
   onDark?: boolean;
+  /** Stena TRIPSTATS: väčšie ikonky a plne čitateľné pilulky aj pri pásmach, ktoré ešte člen nemá. */
+  large?: boolean;
 }
 
-export function TierScale({ level, onDark = true }: TierScaleProps) {
+export function TierScale({ level, onDark = true, large = false }: TierScaleProps) {
   const t = useT();
   const here = tierIndexOfLevel(level);
   const ink = onDark ? T.onDark : T.inkStrong;
@@ -47,24 +49,24 @@ export function TierScale({ level, onDark = true }: TierScaleProps) {
                 : 'transparent',
             }}
           >
-            <img src={pilgrimImg(i)} alt="" aria-hidden style={{ flex: 'none', width: 28, height: 28, objectFit: 'contain', opacity: i <= here ? 1 : 0.55 }} />
+            <img src={pilgrimImg(i)} alt="" aria-hidden style={{ flex: 'none', width: large ? 48 : 28, height: large ? 48 : 28, objectFit: 'contain', opacity: large || i <= here ? 1 : 0.55 }} />
             <span
               style={{
                 flex: '0 0 auto',
-                minWidth: 96,
+                minWidth: large ? 136 : 96,
                 textAlign: 'center',
                 padding: '4px 11px',
                 borderRadius: 999,
                 border: `1px solid ${GOLD_BTN.edge}`,
                 background: tierGradient(tier),
-                color: tier.ink,
+                color: large ? pillInk(tier) : tier.ink,
                 fontFamily: FONT_UI,
                 fontWeight: 600,
-                fontSize: 10.5,
+                fontSize: large ? 12 : 10.5,
                 letterSpacing: '.10em',
                 textTransform: 'uppercase',
                 // pásma, ktoré ešte nemá, sú tlmené — škála tým ukazuje postup, nie katalóg
-                opacity: i <= here ? 1 : 0.55,
+                opacity: large || i <= here ? 1 : 0.55,
               }}
             >
               {t(`pack.tier.${tier.key}`)}
@@ -73,9 +75,9 @@ export function TierScale({ level, onDark = true }: TierScaleProps) {
               style={{
                 flex: '1 1 auto',
                 fontFamily: FONT_UI,
-                fontSize: 11.5,
+                fontSize: large ? 12 : 11.5,
                 letterSpacing: '.02em',
-                color: isHere ? ink : dim,
+                color: isHere || large ? ink : dim,
                 // „tu si“ ide POD rozsah, nie vedľa — vedľa sa rozsah lámal na 3 riadky a nápis vyliezal
                 // z rámu (26. 10. 2026, mená pásiem „Above the Clouds“ sú dlhšie než farby).
                 minWidth: 0,
@@ -94,7 +96,7 @@ export function TierScale({ level, onDark = true }: TierScaleProps) {
                   letterSpacing: '.16em',
                   whiteSpace: 'nowrap',
                   textTransform: 'uppercase',
-                  color: tier.a,
+                  color: large ? ink : tier.a,
                 }}
               >
                 {t('pack.tier.youAreHere')}

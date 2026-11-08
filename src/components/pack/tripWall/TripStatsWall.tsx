@@ -22,7 +22,7 @@ import type { LevelProgress } from '@/lib/tripPoints';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { NP_LOGO, CHKO_LOGO } from '@/components/pack/packCommunity';
 import { onPackStoreHydrated, readTripKinds, readTripNights, setTripKind, setTripNights, type TripKind } from '@/lib/packStore';
-import { PACK_TIERS, pilgrimImg, tierGradient, tierIndexOfLevel } from '@/lib/packTiers';
+import { PACK_TIERS, pilgrimImg, pillInk, tierGradient, tierIndexOfLevel, tierRangeLabel } from '@/lib/packTiers';
 import { pluralKey } from '@/lib/plural';
 import { ascentOf, computeTripWall, derivedKind, kindOf, nightsOf, peakIcon, WALL_UNITS, type TripWallStats, type WallItem, type WaterKind } from './tripWallData';
 
@@ -551,7 +551,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
         <div>
           <small>{t('pack.map.rankPilgrim')}</small>
           <h3>{t('pack.wall.level', { n: lvl.level })}</h3>
-          <i style={{ background: tierGradient(tier), color: tier.ink }}>{t(`pack.tier.${tier.key}`)}</i>
+          <i style={{ background: tierGradient(tier), color: pillInk(tier) }}>{t('pack.wall.levelArea', { area: t(`pack.tier.area.${tier.key}`), range: tierRangeLabel(tier) })}</i>
         </div>
       </div>
       <p className="tw-why">{t('pack.wall.levelWhy')}</p>

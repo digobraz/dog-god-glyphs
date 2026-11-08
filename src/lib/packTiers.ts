@@ -125,6 +125,14 @@ export function crossedTier(fromLevel: number, toLevel: number): boolean {
 }
 
 /** Gradient pásma — na `background` pilulky. */
+/** Inkoust podľa kontrastu so stredom pilulky: `ink` sa ráta len z jej tmavšieho konca a na svetlejšom sa stráca. */
+export function pillInk(t: PackTier): string {
+  const lin = (v: number) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+  const ch = (i: number) => (parseInt(t.a.slice(i, i + 2), 16) + parseInt(t.b.slice(i, i + 2), 16)) / 510;
+  const L = 0.2126 * lin(ch(1)) + 0.7152 * lin(ch(3)) + 0.0722 * lin(ch(5));
+  return 1.05 / (L + 0.05) >= (L + 0.05) / 0.055 ? '#FFFFFF' : '#14100A';
+}
+
 export const tierGradient = (t: PackTier): string => `linear-gradient(135deg, ${t.a}, ${t.b})`;
 
 /**

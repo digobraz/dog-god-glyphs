@@ -1708,7 +1708,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   // Škála pásiem + cenník + moje body: to isté okno na starej hlavičke aj na stene (APP_NEW).
   const levelSheet = (
     <>
-    <TierScale level={lvl.level} onDark={false} />
+    <TierScale level={lvl.level} onDark={false} large={APP_NEW} />
     <span className="comm-pts-rule" />
     {/* DVA STĹPCE: vľavo cenník (platí pre každého), vpravo MOJE body + TOTAL.
         Sú to dve odpovede na dve rôzne otázky — „za čo sa dávajú" a „za čo mám ja" —
