@@ -163,6 +163,7 @@ import { NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
 import { DeleteButton, DELETE_BUTTON_CSS } from '@/components/pack/DeleteButton';
 // Kruhová značka — TÁ ISTÁ geometria ako hrozba/tip vo vrstve zápisov (hlavička circleMark.ts).
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
+import { stickerSrc, stickerImg } from '@/components/pack/mapnotes/mapStickers';
 import { EVENT_RIM, TRIP_TARGET_EMOJI, eventEmoji, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { gradeTrail, gradeRank } from '@/lib/tripGrade';
@@ -455,7 +456,7 @@ const IS_SURFACE = new Set<string>(SURFACE_TAGS);
 /** Cieľ PLÁNOVANÉHO výletu — 📍 od 24. 8. (pôvodne terč; 🎯 nesie od 26. 9. PRIANIE). */
 const TARGET_PIN = L.divIcon({
   className: 'mk-wrap',
-  html: circleMarkHtml(TRIP_TARGET_EMOJI, EVENT_RIM),
+  html: stickerSrc('trip_target') ? stickerImg(stickerSrc('trip_target')!) : circleMarkHtml(TRIP_TARGET_EMOJI, EVENT_RIM),
 });
 /** PODUJATIE — emoji podľa typu (`EVENT_EMOJI` v markEmoji.ts).
  *  `hot` = zodpovedajúca karta v paneli je vybraná (pin ↔ karta sync). */
@@ -565,6 +566,8 @@ const pointIcon = (p: MapPoint, hot: boolean, zoom: number, lang: string, locked
       html: `<div class="trp-pill${type ? ` trp-pill${type}` : ''}${p.ghost ? ' trp-ghost' : ''}${hot ? ' hot' : ''}">${pointPicto(p)}<span>${label}</span>${locked ? LOCK_MARK : ''}</div>`,
     });
   }
+  const vodaZnacka = p.water && !p.ghost && !locked ? stickerSrc(`water_${Math.min(3, Math.max(1, (p.tr as { waves?: number }).waves || 1))}`) : null;
+  if (vodaZnacka) return L.divIcon({ className: 'mk-wrap', html: stickerImg(vodaZnacka) });
   return L.divIcon({
     className: 'trp-pinwrap',
     html: `<div class="trp-dot${type ? ` trp-dot${type}` : ''}${p.ghost ? ' trp-ghost' : ''}${hot ? ' hot' : ''}">${pointPicto(p)}${locked ? LOCK_MARK : ''}</div>`,
