@@ -765,12 +765,10 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 @media(max-width:700px){.aw .ai-sec{padding-top:calc(var(--s-xxxl) * 1.5)}}
 
 
-/* v23 (6. 11. večer) — hlavička nad AINUBISom tmavne s bledým logom */
+/* v23 (6. 11. večer) — hlavička nad AINUBISom tmavne, farebné logo ostáva rovnaké */
 .aw .top.dark{background:rgba(3,7,12,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 8px 30px -18px rgba(0,0,0,.8)}
-.aw .top.dark .logo img{filter:invert(1) sepia(.25) brightness(1.05)}
 .aw .top.dark nav a{color:var(--ai-dim)}.aw .top.dark nav a:hover{color:var(--ai-ink)}
 .aw .top.dark .lang{color:var(--ai-ink);border-color:var(--ai-edge-strong)}
-.aw .top .logo img{transition:filter .3s}
 
 /* hero — Učeň vyššie, všetky levitujúce odznaky nasvietené (Matej: „trochu ich nasvieť… aby ich bolo lepšie vidno“) */
 .aw .flt.f3{top:40%}
