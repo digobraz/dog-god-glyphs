@@ -1054,7 +1054,7 @@ export default function PackTriplist() {
             <span className="tl-tab-label"><span className="tl-tab-ic" style={{ '--ic': `url(${ICON('trophy')})` } as React.CSSProperties} />{t('pack.triplist.tabTripstats')}</span>
           </button>
           <button type="button" className={`tl-tab${view === 'list' ? ' on' : ''}`} onClick={() => setView('list')}>
-            <span className="tl-tab-label"><span className="tl-tab-ic" style={{ '--ic': `url(${ICON('clipboard')})` } as React.CSSProperties} />{t('pack.triplist.tabTriplist')}</span>
+            <span className="tl-tab-label">{APP_NEW ? <img className="tl-tab-art" src="/icons/tripstats/triplist.webp" alt="" /> : <span className="tl-tab-ic" style={{ '--ic': `url(${ICON('clipboard')})` } as React.CSSProperties} />}{t('pack.triplist.tabTriplist')}</span>
           </button>
         </div>
 

@@ -281,12 +281,12 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
   const trailItem = (tr: HeroTrail, value: number): WallItem => ({ name: tr.name, iso: tr.country || 'sk', value, trails: [tr] });
   const CATS: Record<CatKey, { title: string; ic: string; items: WallItem[]; units?: Record<string, string[]>; meta: (x: WallItem) => string; sum?: boolean; unit?: string; direct?: boolean }> = {
     ranges: { title: t('pack.stats.geo.ranges'), ic: ICO('pohoria'), items: s.ranges, units: WALL_UNITS.ranges, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
-    parks: { title: t('pack.stats.geo.parks'), ic: '/icons/np/tatransky-np.png', items: s.parks, units: WALL_UNITS.parks, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
+    parks: { title: t('pack.stats.geo.parks'), ic: ICO('narodny-park'), items: s.parks, units: WALL_UNITS.parks, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
     chko: { title: 'CHKO', ic: '/icons/chko/biele-karpaty.png', items: s.chko, units: WALL_UNITS.chko, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
     peaks: { title: t('pack.wall.peaks'), ic: ICO('vrcholy'), items: s.peaks, meta: (x) => `${n(x.value ?? 0)} m` },
     waters: { title: t('pack.stats.geo.waters'), ic: ICO('jazero'), items: s.waters, meta: (x) => (x.water ? t(`pack.wall.water.${x.water}`) : '') },
     journeys: { title: t('pack.stats.geo.journeys'), ic: ICO('pridane'), items: s.journeys, units: WALL_UNITS.journeys, meta: (x) => `${n(x.value ?? 0)} km` },
-    stays: { title: t('pack.wall.stays'), ic: ICO('stan'), items: s.stays, meta: (x) => t('pack.wall.nights', { n: x.value ?? 0 }) },
+    stays: { title: t('pack.wall.stays'), ic: ICO('stanovacky'), items: s.stays, meta: (x) => t('pack.wall.nights', { n: x.value ?? 0 }) },
     ascent: { title: t('pack.wall.ascent'), ic: ICO('najvyssi'), items: s.byAscent.map((x) => trailItem(x, x.ascentM ?? 0)), meta: (x) => `${n(x.value ?? 0)} m`, sum: true, unit: 'm', direct: true },
     km: { title: t('pack.wall.kmTitle'), ic: ICO('km'), items: s.byKm.map((x) => trailItem(x, Number(x.km) || 0)), meta: (x) => `${n(x.value ?? 0)} km`, sum: true, unit: 'km', direct: true },
     trips: { title: t('pack.wall.tripsTitle'), ic: ICO('vylety'), items: [...walkedTrails].sort((a, b) => a.name.localeCompare(b.name, lang)).map((x) => trailItem(x, Number(x.km) || 0)), meta: (x) => (x.value ? `${n(x.value)} km` : t('pack.wall.place')), direct: true },
@@ -393,7 +393,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
             <h4><img src={flagUrl(iso)} alt="" />{regionName(iso)}<small>{n(trails.length)} · {n(kmC)} km</small></h4>
             <div className="tw-m">
               {m('ranges', ICO('pohoria'), s.ranges, t('pack.stats.geo.ranges'))}
-              {m('parks', '/icons/np/tatransky-np.png', s.parks, t('pack.wall.parksShort'))}
+              {m('parks', ICO('narodny-park'), s.parks, t('pack.wall.parksShort'))}
               {m('peaks', ICO('vrcholy'), s.peaks, t('pack.wall.peaks'))}
               {m('waters', ICO('jazero'), s.waters, t('pack.stats.geo.waters'))}
             </div>
@@ -442,14 +442,14 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
       <div className="tw-sec">{t('pack.wall.total')}</div>
       <div className="tw-grid">
         {tile('ranges', ICO('pohoria'), <WallCount n={s.ranges.length} />, t('pack.stats.geo.ranges'))}
-        {tile('parks', '/icons/np/tatransky-np.png', <WallCount n={s.parks.length} />, t('pack.stats.geo.parks'))}
+        {tile('parks', ICO('narodny-park'), <WallCount n={s.parks.length} />, t('pack.stats.geo.parks'))}
         {tile('peaks', ICO('vrcholy'), <WallCount n={s.peaks.length} />, t('pack.wall.peaks'))}
         {tile('waters', ICO('jazero'), <WallCount n={s.waters.length} />, t('pack.stats.geo.waters'))}
         {tile('journeys', ICO('pridane'), <WallCount n={s.journeys.length} />, t('pack.stats.geo.journeys'))}
         {tile('ascent', ICO('najvyssi'), `${fmtNum(s.everest, lang)}×`, t('pack.wall.everestTile'))}
-        {tile('stays', ICO('stan'), <WallCount n={s.stays.length} />, t('pack.wall.stays'))}
+        {tile('stays', ICO('stanovacky'), <WallCount n={s.stays.length} />, t('pack.wall.stays'))}
         <button type="button" className="tw-tile" style={SUBBLOCK} disabled>
-          <img src={ICO('mapa')} alt="" /><span><span className="tw-num">0</span><span className="tw-t2">{t('pack.wall.roadtrips')}</span></span><span className="tw-soon">{t('pack.wall.soon')}</span>
+          <img src={ICO('roadtrip')} alt="" /><span><span className="tw-num">0</span><span className="tw-t2">{t('pack.wall.roadtrips')}</span></span><span className="tw-soon">{t('pack.wall.soon')}</span>
         </button>
         {showChko && tile('chko', '/icons/chko/biele-karpaty.png', <WallCount n={s.chko.length} />, 'CHKO', true)}
       </div>
