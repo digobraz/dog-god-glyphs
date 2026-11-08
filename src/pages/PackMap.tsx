@@ -468,7 +468,7 @@ const EVENT_PIN = (kind: EventKind, hot: boolean) => L.divIcon({
  *  nepripne. Hotové priania kreslí `WishLayer`. */
 const WISH_DRAFT_ICON = L.divIcon({
   className: 'mk-wrap',
-  html: circleMarkHtml(WISH_EMOJI, WISH_RIM, ' mk-circle--hot'),
+  html: stickerSrc('wish_target') ? stickerImg(stickerSrc('wish_target')!) : circleMarkHtml(WISH_EMOJI, WISH_RIM, ' mk-circle--hot'),
 });
 // `DATA_TAG_TO_UI` sa presťahovalo do `tripCategories.ts` — odvodzujú sa z neho aliasy
 // `TAG_EMOJI`/`TAG_I18N` pre surové dátové kľúče, takže musí stáť pri nich.

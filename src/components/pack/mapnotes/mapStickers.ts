@@ -22,6 +22,8 @@ const STICKER_FILE: Record<string, string> = {
   trip_target: 'cil',
   // Vodná plocha na oddialenej mape, číslo = počet vlniek z OSM (veľkosť plochy).
   water_1: 'rybnik',
+  water_3: 'priehrada',
+  wish_target: 'tripwish',
 };
 
 /** Cesta k samolepke typu bodu, alebo null, keď má ostať emoji. */

@@ -15,6 +15,7 @@ import { SOS_ON } from '@/lib/env';
 import { APP_NEW } from '@/lib/packFlags';
 import { PackPopup } from './PackPopup';
 import { BrandIcon } from './BrandIcon';
+import { TopCircle } from './TopCircle';
 import { useSosActive, sosAgo } from './sosKit';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_UI } from './packTheme';
@@ -58,7 +59,7 @@ export function SosButton() {
       <style>{CSS}</style>
       {/* Trojuholník s výkričníkom z kitu (`alert.svg`), červený — Matej 30. 10.: "nie SOS, ale ikonku trojuholník s výkričníkom". */}
       <button type="button" className="sos-btn" onClick={() => setOpen(true)} aria-label="SOS">
-        <BrandIcon name="alert" size={24} tint="danger" />
+        {APP_NEW ? <TopCircle name="sos" /> : <BrandIcon name="alert" size={24} tint="danger" />}
         {mineRunning && <i aria-hidden />}
       </button>
       {open && (

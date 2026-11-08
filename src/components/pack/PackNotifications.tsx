@@ -16,6 +16,7 @@ import ainubisHead from '@/assets/ainubis-head.webp';
 // s bielym textom… červená zo sniffer“). Jedna červená v appke, nie nový odtieň.
 import { SNIFFER_HEART } from './buddy/SnifferLogo';
 import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
+import { TopCircle, TOP_CIRCLE_PX } from './TopCircle';
 import { LAPIS } from './navGoldSkin';
 // Lazy, rovnaký dôvod ako pri `packAlerts`: `packHumans` ťahá `packStore`.
 const respondWalkInviteLazy = (id: string, accept: boolean) =>
@@ -331,7 +332,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           {/* Na tmavom skle je zlata spravna; na papyrusovom kotuci je zlata na zlatom
               a obalka zanikne rovnako, ako zanikalo cele tlacidlo. `dark` (#5A3F12) je
               ten isty tint, akym sa kreslia ikonky na zlatych plochach. */}
-          <BrandIcon name="envelope" size={capsule ? 24 : 16} tint={dark ? 'gold' : 'dark'} />
+          {APP_NEW && capsule ? <TopCircle name="spravy" /> : <BrandIcon name="envelope" size={capsule ? 24 : 16} tint={dark ? 'gold' : 'dark'} />}
           {msgCount > 0 && capsule && (APP_NEW
             ? <>
                 {msgCount - msgFounder > 0 && <span aria-hidden style={capBadge(false)}>{msgCount - msgFounder > 9 ? '9+' : msgCount - msgFounder}</span>}
@@ -446,7 +447,9 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           cursor: 'pointer',
         }}
       >
-        <HandTail key={wag} size={capsule ? 24 : 17} className={wag ? 'ntf-wag' : undefined} />
+        {APP_NEW && capsule
+          ? <TopCircle key={wag} name="zvoncek" className={wag ? 'ntf-wag' : undefined} />
+          : <HandTail key={wag} size={capsule ? 24 : 17} className={wag ? 'ntf-wag' : undefined} />}
         <style>{WAG_CSS}</style>
         {memberDot && capsule && (APP_NEW
           ? <span aria-hidden style={capBadge(false)}>{memberFresh.length > 9 ? '9+' : memberFresh.length}</span>
@@ -786,13 +789,15 @@ export function HubAinubis() {
         onClick={() => openAinubis()}
         aria-label="AINUBIS"
         className="pk-hub-ainubis relative inline-flex items-center justify-center"
-        style={{ ...CAPSULE, width: 40, height: 40, padding: 0, cursor: 'pointer' }}
+        style={APP_NEW ? { width: 44, height: 44, padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' } : { ...CAPSULE, width: 40, height: 40, padding: 0, cursor: 'pointer' }}
       >
         <img
-          src={ainubisFace}
+          src={APP_NEW ? ainubisHead : ainubisFace}
           alt=""
           aria-hidden
-          style={{ width: 32, height: 32, borderRadius: 999, border: `1.5px solid ${AINUBIS.edgeStrong}`, objectFit: 'cover', background: T.pageBg }}
+          style={APP_NEW
+            ? { width: TOP_CIRCLE_PX, height: TOP_CIRCLE_PX, borderRadius: 999, border: `2px solid ${T.accentGold}`, objectFit: 'cover', background: T.pageBg, boxSizing: 'border-box' }
+            : { width: 32, height: 32, borderRadius: 999, border: `1.5px solid ${AINUBIS.edgeStrong}`, objectFit: 'cover', background: T.pageBg }}
         />
         {unread > 0 && (
           // Odznak AINUBISA ostáva jeho vlastný (tyrkysový, `.ainubis-badge` z AinubisWidget.css) —

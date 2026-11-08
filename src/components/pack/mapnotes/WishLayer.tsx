@@ -27,6 +27,7 @@ import { PACK_THEME as T, PACK_SHADOW, FONT_TITLE, FONT_UI } from '@/components/
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import { circleMarkHtml } from './circleMark';
+import { stickerSrc, stickerImg } from './mapStickers';
 import { clusterByPixels, clusterPx, clusterRadiusForZoom } from './clusterPoints';
 import { FONT_EMOJI, WISH_EMOJI, WISH_RIM } from './markEmoji';
 import {
@@ -55,6 +56,8 @@ function groupByPlace(list: WishPin[]): Group[] {
 function pinIcon(count: number): L.DivIcon {
   // Počet ľudí na mieste sedí ako malý odznak na kruhu — kruh sám ostáva ten istý.
   const badge = count > 1 ? `<b class="wl-count">${count}</b>` : '';
+  const lampa = stickerSrc('wish_target');
+  if (lampa) return L.divIcon({ className: 'mk-wrap', html: `<div class="wl-lampa">${stickerImg(lampa)}${badge}</div>` });
   return L.divIcon({ className: 'mk-wrap', html: circleMarkHtml(WISH_EMOJI, WISH_RIM).replace('</div>', `${badge}</div>`) });
 }
 
@@ -232,7 +235,10 @@ export function WishLayer({ wishes, onChanged, interactive = true }: {
 
 // ⚠️ JS template literal — spätný apostrof v komentári by ho ukončil (check:css).
 export const WISH_LAYER_CSS = `
-.mk-circle .wl-count{position:absolute;right:-8px;top:-8px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:${WISH_RIM};color:#FFFFFF;font-family:${FONT_UI};font-weight:600;font-size:10px;line-height:16px;text-align:center;box-sizing:border-box;}
+.wl-lampa{position:absolute;left:0;top:0;width:30px;height:30px;transform:translate(-50%,-50%);}
+.wl-lampa .mk-sticker{transform:none;}
+.wl-lampa .mk-sticker:hover{transform:scale(1.12);}
+.mk-circle .wl-count,.wl-lampa .wl-count{position:absolute;right:-8px;top:-8px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:${WISH_RIM};color:#FFFFFF;font-family:${FONT_UI};font-weight:600;font-size:10px;line-height:16px;text-align:center;box-sizing:border-box;}
 .wl-crowd{font-family:${FONT_UI};font-weight:600;font-size:12px;color:${T.inkWarm};margin-bottom:4px;}
 .wl-people{display:flex;flex-direction:column;max-height:320px;overflow-y:auto;}
 .wl-person + .wl-person{margin-top:8px;}

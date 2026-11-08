@@ -10,6 +10,11 @@ import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_UI, PAPER_BG } from '@/components/pack/packTheme';
 import type { CSSProperties } from 'react';
 import { POST_TAGS } from './postTags';
+import { APP_NEW } from '@/lib/packFlags';
+
+// JEDNOTNÉ KRUHY v appke (Matej 8. 11. 2026, továreň `plany/ikonky/`, verzia C): témy *„všetko, vylety, zábava, výcvik
+// zdravie pomoc"*, farebná kresba s lemom namiesto vytesaného znaku. Ostatné témy ostávajú v `POST_TAGS` pri písaní príspevku.
+const KRUH: Record<string, string> = { '': 'all', 't:trip': 'trip', 't:fun': 'fun', 't:train': 'train', 't:health': 'health', 't:help': 'help' };
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -37,6 +42,10 @@ export const FEED_TOPICS_CSS = `
   /* zahĺbenie = tmavší okraj hore, svetlý dole (prechod, nie tieň: je to reliéf kameňa, nie výška bloku) */
   background:radial-gradient(circle at 50% 62%,transparent 58%,rgba(60,38,10,.38) 100%),${STONE_GRAIN},
     radial-gradient(circle at 32% 28%,#F6ECD6 0%,#E4D2AE 55%,#CDB487 100%);background-size:cover,120px,cover;}
+.pkt-a--k .pkt-ring{background:none;padding:0;}
+.pkt-a--k .pkt-ring i{background:${PAPER_BG};border-color:${T.accentGold};display:grid;place-items:center;}
+.pkt-a--k.on .pkt-ring i{border-color:var(--pg);}
+.pkt-a--k .pkt-ring img{width:76%;height:76%;object-fit:contain;display:block;}
 .pkt-g{position:absolute;inset:0;margin:auto;width:34px;height:34px;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;}
 .pkt-g.hi{background:rgba(255,248,232,.85);transform:translateY(1.2px);}
 .pkt-g.lo{background:rgba(30,18,4,.75);transform:translateY(-.8px);}
@@ -67,10 +76,13 @@ export function FeedTopics({ topic, onTopic }: { topic: string | null; onTopic: 
     <section>
       <h2 className="pkf-th">{aria}</h2>
       <div className="pkf-tags" role="group" aria-label={aria}>
-        {[ALL, ...POST_TAGS].map((d) => (
-          <button key={d.icon + d.tag} type="button" className={`pkt-a${isOn(d.tag) ? ' on' : ''}`} aria-pressed={isOn(d.tag)} onClick={() => pick(d.tag)}
+        {[ALL, ...POST_TAGS].filter((d) => !APP_NEW || d.tag in KRUH).map((d) => (
+          <button key={d.icon + d.tag} type="button" className={`pkt-a${APP_NEW ? ' pkt-a--k' : ''}${isOn(d.tag) ? ' on' : ''}`} aria-pressed={isOn(d.tag)} onClick={() => pick(d.tag)}
             style={{ '--ic': `url('/icons/pack/${d.icon}.svg')`, '--pg': d.color } as CSSProperties}>
-            <span className="pkt-ring"><i><s className="pkt-g hi" /><s className="pkt-g lo" /><s className="pkt-g base" /><s className="pkt-g pig" /></i></span><b>{tx(d.i18n, d.fallback)}</b>
+            {APP_NEW
+              ? <span className="pkt-ring"><i><img src={`/icons/kruhy/${KRUH[d.tag]}.webp`} alt="" draggable={false} /></i></span>
+              : <span className="pkt-ring"><i><s className="pkt-g hi" /><s className="pkt-g lo" /><s className="pkt-g base" /><s className="pkt-g pig" /></i></span>}
+            <b>{tx(d.i18n, d.fallback)}</b>
           </button>
         ))}
       </div>
