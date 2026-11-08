@@ -25,6 +25,7 @@ import {
 } from '@/components/pack/createRegistry';
 import { POINTS } from '@/lib/tripPoints';
 import { APP_NEW, BUDDY_LIVE, EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { useNavigate } from 'react-router-dom';
 import { RightGate } from '@/components/pack/RightGate';
 import type { PawmateRight } from '@/lib/pawmateRights';
@@ -160,6 +161,16 @@ const EMOJI_APP: Partial<Record<CreateId, string>> = { devotion: '✅', post: '�
 /** Ten istý slovník aj mimo panela (šuplík ULOŽIŤ v príspevku, 25. 10. 2026) — jedno emoji na vec. */
 export const createEmoji = (id: CreateId): string => (APP_NEW && EMOJI_APP[id]) || EMOJI[id];
 
+// Appka (Matej 8. 11. 2026): systémové ikonky z továrne `plany/ikonky/`, skupina Panel +. Web ostáva na emoji.
+const SYS_ICON: Partial<Record<CreateId, string>> = {
+  devotion: 'pridaj-den', post: 'pridaj-post', trip: 'pridaj-vylet', sniffer: 'pridaj-sniffer', wish: 'pridaj-tripwish',
+  note: 'pridaj-odkaz', event: 'pridaj-podujatie', chat: 'pridaj-chat', podcast: 'pridaj-podcast',
+};
+const PanelIcon = ({ id }: { id: CreateId }) => {
+  const sys = APP_NEW ? SYS_ICON[id] : undefined;
+  return <span className="att-entry-emoji" aria-hidden="true" style={sys ? { width: 32 } : undefined}>{sys ? <SysIcon name={sys} size={32} /> : createEmoji(id)}</span>;
+};
+
 
 /** Dlaždica podľa id objektu v registri. Mapové objekty kreslí panel, zvyšok register. */
 const KIND_BY_ID: Partial<Record<string, KindDef>> = Object.fromEntries(KINDS.map((k) => [k.kind, k]));
@@ -273,11 +284,12 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBl
           // `pack_trip_add_done` v `PackMap`.
           if (k.kind === 'trip') { trackPack('pack_trip_add_start'); onPick({ kind: 'trip', state: 'walked' }); }
           if (k.kind === 'wish') onPick({ kind: 'wish' });
-          if (k.kind === 'event') setStep('event');
+          // Appka: jedno PODUJATIE bez druhého kroku, „organizujem / našiel som" je vo formulári (Matej 8. 11.).
+          if (k.kind === 'event') { if (APP_NEW) onPick({ kind: 'event', origin: 'own' }); else setStep('event'); }
           if (k.kind === 'note') setStep('note');
         }}
       >
-        <span className="att-entry-emoji" aria-hidden="true">{EMOJI[k.kind as CreateId]}</span>
+        <PanelIcon id={k.kind as CreateId} />
         <span className="att-entry-title">{t(APP_NEW && k.kind === 'trip' ? 'pack.addTrip.entry.kind.trip.titleApp' : k.titleKey)}</span>
         {/* JEDNOTKA MUSÍ BYŤ PRI ČÍSLE a SKLOŇUJE SA (Matej 24. 8.): dlaždice nesú 20 / 10 / 3,
             teda dva slovenské tvary naraz. */}
@@ -319,7 +331,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBl
           onCreate?.(o);
         }}
       >
-        <span className="att-entry-emoji" aria-hidden="true">{createEmoji(o.id)}</span>
+        <PanelIcon id={o.id} />
         <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}</span>
         {/* N/M ďalšieho podcastu stojí mimo názvu — názov sa na úzkom mobile skracuje, číslo nesmie. */}
         {o.id === 'podcast' && getPodcastNext() && <span className="att-entry-num">{getPodcastNext()}</span>}

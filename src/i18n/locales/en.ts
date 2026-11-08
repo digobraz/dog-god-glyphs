@@ -3331,6 +3331,8 @@ export const en = {
   'pack.addTrip.entry.event.own.text': "You're organizing this — set the date, place and details.",
   'pack.addTrip.entry.event.tip.title': "FROM A LINK",
   'pack.addTrip.entry.event.tip.text': "Found something worth sharing? Drop the link and a few facts.",
+  'pack.addEvent.originOwn': "I'm organizing it",
+  'pack.addEvent.originTip': "I found it elsewhere",
   'pack.addEvent.title.own': "Add an event",
   'pack.addEvent.title.tip': "Share an event",
   'pack.addEvent.backAriaLabel': "Back",

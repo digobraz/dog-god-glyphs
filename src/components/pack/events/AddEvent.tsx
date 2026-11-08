@@ -26,6 +26,7 @@ import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
+import { APP_NEW } from '@/lib/packFlags';
 import { trailCountry } from '@/lib/countryGeo';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { BackButton } from '@/components/pack/BackButton';
@@ -75,7 +76,8 @@ async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
 
 export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, mapRef, initial, onShowExisting }: AddEventProps) {
   const t = useT();
-  const origin: EventOrigin = initial?.origin ?? originProp;
+  const [originPick, setOriginPick] = useState<EventOrigin>(originProp);
+  const origin: EventOrigin = initial?.origin ?? (APP_NEW ? originPick : originProp);
   // id ročníka vzniká TU — fotka sa nahráva pod `pack-events/<id>/` skôr, než existuje riadok.
   const [eventId] = useState<string>(() => initial?.id ?? (typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
@@ -294,6 +296,16 @@ export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, ma
         <div className="aev-title">{initial ? t('pack.event.editTitle') : origin === 'own' ? t('pack.addEvent.title.own') : t('pack.addEvent.title.tip')}</div>
       </div>
       <div className="aev-body">
+        {/* Appka: voľba namiesto druhého kroku v paneli + (Matej 8. 11. 2026). */}
+        {APP_NEW && !initial && (
+          <div className="aev-pills">
+            {(['own', 'tip'] as const).map((o) => (
+              <button key={o} type="button" className={`aev-pill${origin === o ? ' on' : ''}`} onClick={() => setOriginPick(o)}>
+                {t(o === 'own' ? 'pack.addEvent.originOwn' : 'pack.addEvent.originTip')}
+              </button>
+            ))}
+          </div>
+        )}
         {/* TIP začína ODKAZOM — z neho sa predvyplní zvyšok, takže patrí na začiatok. */}
         {origin === 'tip' && (
           <div className="aev-field">

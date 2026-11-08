@@ -3023,6 +3023,8 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.entry.event.own.text': "Organizuješ ho ty — nastav termín, miesto a detaily.",
   'pack.addTrip.entry.event.tip.title': "Z ODKAZU",
   'pack.addTrip.entry.event.tip.text': "Našiel si niečo, o čo sa oplatí podeliť? Vlož odkaz a pár faktov.",
+  'pack.addEvent.originOwn': "Organizujem ja",
+  'pack.addEvent.originTip': "Našiel som to inde",
   'pack.addEvent.title.own': "Pridať podujatie",
   'pack.addEvent.title.tip': "Podeliť sa o podujatie",
   'pack.addEvent.backAriaLabel': "Späť",
