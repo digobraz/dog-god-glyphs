@@ -62,7 +62,7 @@ const POI_MAX_RENDER = 200;      // strop na výrez — nad ním sa mapa mení n
 // práve ona je to, čo tam človek hľadá. Táborisko pri chate je jej príveskom, nie súperom.
 const POI_PRIORITY: Record<string, number> = {
   sleep_hut: -5, sleep_bivak: -3, sleep_camp: -2,
-  spring: 0, shelter: 1, saddle: 2, waterfall: 3, tower: 4,
+  spring: 0, shelter: 1, saddle: 2, castle: 2.5, waterfall: 3, tower: 4,
   cave: 5, viewpoint: 6, firepit: 7, cliff: 8, bench: 9,
 };
 // ⚠️ PRÍSTREŠOK BEZ SPANIA USTÚPI PRAMEŇU (31. 10. 2026). So zlúčením bivaku a prístreška je
@@ -210,7 +210,8 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false, drawing = fals
     if (zoom < minZoom) return [];
     const bounds = map.getBounds().pad(0.2);
     const src: AnyPoi[] = tiles ? tilePoints : (TRAIL_POI as AnyPoi[]);
-    const vis = src.filter((p) => (p.t !== 'bench' || zoom >= POI_BENCH_MIN_ZOOM) && bounds.contains([p.lat, p.lon]));
+    // Hrad má len samolepku, emoji sada ho nepozná: na webe pre členov sa zatiaľ nekreslí.
+    const vis = src.filter((p) => (p.t !== 'bench' || zoom >= POI_BENCH_MIN_ZOOM) && (p.t !== 'castle' || MAP_STICKERS_ON) && bounds.contains([p.lat, p.lon]));
     // ROZOSTUP (Matej 2026-07-30, prvé kolo naživo): značky sa na seba kopili — päť výhľadov
     // v jednom chumáči sa nedalo prečítať. Greedy filter v PIXELOCH: bod sa vykreslí len ak sa
     // jeho značka netrafí do už umiestnenej. Pri priblížení sa rozostup roztiahne a vynechané

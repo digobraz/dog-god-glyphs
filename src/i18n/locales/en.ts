@@ -4861,6 +4861,7 @@ export const en = {
   'pack.mapNotes.radius.point': "Point",
   'pack.mapNotes.radius.area': "Area",
   'pack.mapNotes.radius.warnNote': "Danger does not end at one coordinate — a circle tells the truth better than a pin.",
+  'pack.poi.castle': "Castle",
   'pack.poi.spring': "Water",
   'pack.poi.viewpoint': "Viewpoint",
   'pack.poi.shelter': "Shelter",

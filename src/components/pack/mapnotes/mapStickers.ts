@@ -19,6 +19,7 @@ const STICKER_FILE: Record<string, string> = {
   sleep_hut: 'utulna',
   sleep_camp: 'kemp',
   sleep_bivak: 'bivak',
+  castle: 'hrad',
   trip_target: 'cil',
   // Vodná plocha na oddialenej mape, číslo = počet vlniek z OSM (veľkosť plochy).
   water_1: 'rybnik',

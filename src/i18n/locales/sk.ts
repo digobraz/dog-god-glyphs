@@ -4486,6 +4486,7 @@ export const sk: Partial<Dict> = {
   'pack.mapNotes.radius.point': "Bod",
   'pack.mapNotes.radius.area': "Okruh",
   'pack.mapNotes.radius.warnNote': "Nebezpečenstvo nekončí na súradnici — kruh povie pravdu skôr než špendlík.",
+  'pack.poi.castle': "Hrad",
   'pack.poi.spring': "Prameň",
   'pack.poi.viewpoint': "Výhľad",
   'pack.poi.shelter': "Prístrešok",

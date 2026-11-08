@@ -4881,6 +4881,7 @@ export const cs: Partial<Dict> = {
   'pack.poi.firepit': 'Ohniště',
   'pack.poi.saddle': 'Sedlo',
   'pack.poi.shelter': 'Přístřešek',
+  'pack.poi.castle': "Hrad",
   'pack.poi.spring': 'Pramen',
   'pack.poi.tower': 'Rozhledna',
   'pack.poi.viewpoint': 'Výhled',
