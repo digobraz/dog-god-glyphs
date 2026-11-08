@@ -17,6 +17,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, PROGRESS_CSS, MEDALLION_CSS, PACK_AVATAR } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, BRAIN_STATE, WORLD_TINT } from '@/components/pack/ainubisSkin';
 import { BackButton } from '@/components/pack/BackButton';
+import { PackTopRight } from '@/components/pack/PackLayout';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useT } from '@/i18n/LanguageContext';
 import { HandCheck, HandHeart, HandStar } from '@/components/pack/HandIcons';
 import { VAULT_WORLDS } from './worlds';
@@ -156,6 +158,7 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
 }) {
   const L = scrollLang(lang) as Lang;
   const u = UI[L];
+  const isMobile = useIsMobile();
   const reads = useReads();
   const requests = useMyRequests();
   const ev = useEventSums();
@@ -219,6 +222,13 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
   return (
     <div className="zv-veil" ref={veil} role="dialog" aria-modal="true" aria-label={u.title}>
       <div className="zv-bg" aria-hidden />
+      {/* Mobil: `.zv-back` je skrytá, lepiaca hlavička je jediná cesta späť (Matej 8. 11. 2026: „nedá sa vrátiť, obsah je cez obraz"). */}
+      {isMobile && (
+        <div className="zv-bar">
+          <BackButton tone="ainubis" onClick={onClose} label={u.back} />
+          <PackTopRight last24h={null} total={null} layout="inline" />
+        </div>
+      )}
       <div className="zv-wrap pk-stage vk">
         <BackButton tone="ainubis" onClick={onClose} label={u.back} className="zv-back" />
         <header className="vk-head">
