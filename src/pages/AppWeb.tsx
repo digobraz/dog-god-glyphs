@@ -458,7 +458,7 @@ export default function AppWeb() {
 
       <header className={`top${stuck ? ' stuck' : ''}${darkHead ? ' dark' : ''}${onPlanet ? ' away' : ''}`}>
         <div className="wrap">
-          <a className="logo" href="#" aria-label="DOGYPT"><img src="/images/magnet/logo-2026-kartusa.svg" alt="DOGYPT" /></a>
+          <a className="logo" href="#" aria-label="DOGYPT"><img src="/web-app/logo-napis.webp" alt="DOGYPT" /></a>
           <nav>
             <a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#badges">{c('nav3')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#good">{c('nav5')}</a>
           </nav>
