@@ -250,6 +250,9 @@ const SPECS: CategorySpec[] = [
   },
 ];
 
+/** Roadtrip (8. 11. 2026): značka zápisu v `acts`, nie chip kategórie. Na karte sa neukazuje, ráta ju stena. */
+export const ROADTRIP_ACT = 'roadtrip';
+
 /** `acts` sa POČÍTA, neopisuje: staré hodnoty + kľúč kategórie + id chipov. */
 export const TRIP_CATEGORIES: TripCategory[] = SPECS.map((c) => ({
   ...c,

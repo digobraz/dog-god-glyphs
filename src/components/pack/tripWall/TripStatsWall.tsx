@@ -73,8 +73,6 @@ ${STAGE_CSS}
 .tw-tile span{display:block;min-width:0;}
 .tw-tile .tw-t2{margin-top:${S.xs}px;font-size:${PACK_TEXT.label}px;font-weight:500;line-height:1.2;color:${T.inkStrong};}
 .tw-chev{position:absolute;right:${S.sm}px;top:${S.sm}px;width:12px;height:12px;stroke:${T.inkWarm};fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-.tw-soon{position:absolute;right:${S.sm}px;top:${S.sm}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;border:1px dashed ${T.cardEdge};font-size:${PACK_TEXT.micro}px;font-weight:600;line-height:1;color:${T.inkWarm};}
-.tw-tile:disabled{cursor:default;opacity:.72;}
 .tw-rec{display:flex;align-items:center;gap:${S.sm}px;padding:${S.sm}px;text-align:left;cursor:pointer;font-family:${FONT_UI};transition:transform .12s ease;}
 .tw-rec img{width:44px;height:44px;flex:none;object-fit:contain;}
 .tw-rec b{display:block;font-size:${PACK_TEXT.body}px;font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums;color:${T.inkStrong};}
@@ -231,7 +229,7 @@ function Poster({ peaks }: { peaks: WallItem[] }) {
   );
 }
 
-type CatKey = 'ranges' | 'parks' | 'chko' | 'peaks' | 'waters' | 'journeys' | 'stays' | 'ascent' | 'km' | 'trips';
+type CatKey = 'ranges' | 'parks' | 'chko' | 'peaks' | 'waters' | 'journeys' | 'roadtrips' | 'stays' | 'ascent' | 'km' | 'trips';
 type Sheet = { kind: 'cat'; cat: CatKey; iso: string; water: 'all' | WaterKind } | { kind: 'countries' } | { kind: 'level' };
 
 const Chev = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>;
@@ -281,6 +279,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
     peaks: { title: t('pack.wall.peaks'), ic: ICO('vrcholy'), items: s.peaks, meta: (x) => `${n(x.value ?? 0)} m` },
     waters: { title: t('pack.stats.geo.waters'), ic: ICO('jazero'), items: s.waters, meta: (x) => (x.water ? t(`pack.wall.water.${x.water}`) : '') },
     journeys: { title: t('pack.stats.geo.journeys'), ic: ICO('pridane'), items: s.journeys, units: WALL_UNITS.journeys, meta: (x) => `${n(x.value ?? 0)} km` },
+    roadtrips: { title: t('pack.wall.roadtrips'), ic: ICO('roadtrip'), items: s.roadtrips, meta: (x) => `${n(x.value ?? 0)} km` },
     stays: { title: t('pack.wall.stays'), ic: ICO('stanovacky'), items: s.stays, meta: (x) => t('pack.wall.nights', { n: x.value ?? 0 }) },
     ascent: { title: t('pack.wall.ascent'), ic: ICO('najvyssi'), items: s.byAscent.map((x) => trailItem(x, x.ascentM ?? 0)), meta: (x) => `${n(x.value ?? 0)} m`, sum: true, unit: 'm', direct: true },
     km: { title: t('pack.wall.kmTitle'), ic: ICO('km'), items: s.byKm.map((x) => trailItem(x, Number(x.km) || 0)), meta: (x) => `${n(x.value ?? 0)} km`, sum: true, unit: 'km', direct: true },
@@ -444,9 +443,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, lvl, dogStat
         {tile('journeys', ICO('pridane'), <WallCount n={s.journeys.length} />, t('pack.stats.geo.journeys'))}
         {tile('ascent', ICO('najvyssi'), `${fmtNum(s.everest, lang)}×`, t('pack.wall.everestTile'))}
         {tile('stays', ICO('stanovacky'), <WallCount n={s.stays.length} />, t('pack.wall.stays'))}
-        <button type="button" className="tw-tile" style={SUBBLOCK} disabled>
-          <img src={ICO('roadtrip')} alt="" /><span><span className="tw-num">0</span><span className="tw-t2">{t('pack.wall.roadtrips')}</span></span><span className="tw-soon">{t('pack.wall.soon')}</span>
-        </button>
+        {tile('roadtrips', ICO('roadtrip'), <WallCount n={s.roadtrips.length} />, t('pack.wall.roadtrips'))}
         {showChko && tile('chko', '/icons/chko/biele-karpaty.png', <WallCount n={s.chko.length} />, 'CHKO', true)}
       </div>
 

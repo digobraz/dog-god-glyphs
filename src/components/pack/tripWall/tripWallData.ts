@@ -12,6 +12,7 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import { unitsForTrail, SK_GEO, type GeoCategory } from '@/components/pack/packCommunity';
 import { trailCountry } from '@/lib/countryGeo';
 import { tripDayCount } from '@/components/pack/tripShared';
+import { ROADTRIP_ACT } from '@/components/pack/tripCategories';
 
 export type WaterKind = 'pond' | 'reservoir' | 'lake';
 
@@ -100,6 +101,7 @@ export interface TripWallStats {
   peaks: WallItem[];
   waters: WallItem[];
   journeys: WallItem[];
+  roadtrips: WallItem[];
   stays: WallItem[];
   nights: number;
   byKm: HeroTrail[];
@@ -138,11 +140,14 @@ export function computeTripWall(walked: HeroTrail[]): TripWallStats {
   const journeys = walked.filter((t) => t.acts?.includes('journey'))
     .map((t) => ({ name: t.name, iso: trailCountry(t), value: km(t), trails: [] as HeroTrail[] }));
 
+  const roadtrips = walked.filter((t) => t.acts?.includes(ROADTRIP_ACT))
+    .map((t) => ({ name: t.name, iso: trailCountry(t), value: km(t), trails: [] as HeroTrail[] }));
+
   const stays: WallItem[] = [];
   let nights = 0;
   for (const t of walked) {
     const days = tripDayCount(t);
-    if (days < 2) continue;
+    if (days < 2 || t.acts?.includes(ROADTRIP_ACT)) continue;
     nights += days - 1;
     stays.push({ name: t.name, iso: trailCountry(t), value: days - 1, trails: [] });
   }
@@ -160,7 +165,7 @@ export function computeTripWall(walked: HeroTrail[]): TripWallStats {
     ascent,
     everest: Math.floor((ascent / 8849) * 10) / 10,
     countries: [...byIso.entries()].map(([iso, trails]) => ({ iso, trails })).sort((a, b) => b.trails.length - a.trails.length),
-    ranges, parks, chko, peaks, waters, journeys, stays, nights,
+    ranges, parks, chko, peaks, waters, journeys, roadtrips, stays, nights,
     byKm: walked.filter((t) => km(t) > 0).sort((a, b) => km(b) - km(a)),
     byAscent: walked.filter((t) => (t.ascentM ?? 0) > 0).sort((a, b) => (b.ascentM ?? 0) - (a.ascentM ?? 0)),
   };

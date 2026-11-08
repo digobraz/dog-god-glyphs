@@ -78,7 +78,8 @@ import {
   type TravelMode, TRAVEL_MODES,
   readAddDraft, writeAddDraft, clearAddDraft, clearTripNotes, readDraftPhotos, writeDraftPhotos,
 } from './addTripModel';
-import { TRIP_CATEGORIES, OWN_CHIP, chipsForCategory, chipsOf, otherChips, geometryForCategory, type TripChip } from '@/components/pack/tripCategories';
+import { TRIP_CATEGORIES, OWN_CHIP, ROADTRIP_ACT, chipsForCategory, chipsOf, otherChips, geometryForCategory, type TripChip } from '@/components/pack/tripCategories';
+import { APP_NEW } from '@/lib/packFlags';
 
 const GOLD = T.cardEdge;
 
@@ -1357,6 +1358,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
      * nesie ich `legacyActs` kategórie.
      */
     const seededChips = chipsOf(finishTrail.acts ?? []).map((c) => c.id);
+    if (finishTrail.acts?.includes(ROADTRIP_ACT)) seededChips.push(ROADTRIP_ACT);
     if (seededChips.length) setChips(new Set(seededChips));
     /**
      * ── TVAR SA ČÍTA ZO ZÁZNAMU, NEPREDPOKLADÁ SA TRASA (opravené 2026-09-02) ────────────
@@ -2715,6 +2717,11 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
       setDateEnd('');
       setJourneyPick(false);
       setDrawManually(false);
+      setChips((prev) => {
+        const rest = new Set(prev);
+        rest.delete(ROADTRIP_ACT);
+        return rest;
+      });
     }
   };
   const dayAskKey = isPlan ? 'pack.addTrip.step.dayModeAsk.plan' : 'pack.addTrip.step.dayModeAsk';
@@ -2741,6 +2748,18 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
           onClick={() => setDayMode(true)}
         >{t('pack.addTrip.step.moreDays')}</button>
       </div>
+      {/* ROADTRIP (Matej 8. 11. 2026, hárok `plany/nakresy/roadtrip-zapis-2026-11-08/`): riadok len
+          pri zápise viacdňového výletu. Ide do `acts` ako chip; stena ho ráta do Roadtripov, nie do Stanovačiek. */}
+      {APP_NEW && !isPlan && multiDay && !journeyPick && (
+        <div className="atl-toggle-row">
+          <button
+            type="button"
+            aria-pressed={chips.has(ROADTRIP_ACT)}
+            className={`atl-toggle-btn atl-daymode-rt${chips.has(ROADTRIP_ACT) ? ' on' : ''}`}
+            onClick={() => toggleSet(chips, setChips, ROADTRIP_ACT)}
+          ><img src="/icons/tripstats/roadtrip.webp" alt="" />{t('pack.addTrip.step.roadtrip')}</button>
+        </div>
+      )}
       {/* Magistrálu si nikto nekreslí po bodoch — 750 km Cesty hrdinov SNP leží hotových
           v `HERO_JOURNEYS`. Do 27. 8. sa zoznam otváral SÁM (aktivita „Putovanie"); dnes je
           to odkaz, aby človeku, ktorý má trasu rozkreslenú, nezmizla pod zoznamom. */}
@@ -5005,6 +5024,8 @@ const LOG_CSS = `
 .atl-diffbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
 .atl-diffbtn.on{background:rgba(61,122,78,0.26);border-color:${PICK};color:${T.onDark};box-shadow:inset 0 0 0 1px ${PICK};}
 .atl-toggle-row{display:flex;gap:8px;}
+.atl-toggle-btn.atl-daymode-rt{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;text-align:left;}
+.atl-daymode-rt img{width:32px;height:32px;flex:none;object-fit:contain;}
 /* ── OTÁZKA V DOKU NAD HOTOVOM (2026-08-27) ────────────────────────────────────────────
    Stojí NAD MAPOU, takže platí pravidlo doku: plná tmavá výplň nesie panel, tu ostáva len
    rozostup a popiska. Žiadny vlastný podklad — druhá plocha vnútri panela by z jedného
