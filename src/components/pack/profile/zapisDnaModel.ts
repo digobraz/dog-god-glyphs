@@ -35,6 +35,7 @@ export const ZTILES: readonly ZTile[] = [
   { id: 'swim',     emoji: '🏊', name: 'Swimming',    group: 'den' },
   { id: 'hare',     emoji: '🐇', name: 'Rabbit',      group: 'den' },
   { id: 'lazy',     emoji: '😴', name: 'Lazy day',    group: 'den' },
+  { id: 'sunset',   emoji: '🌅', name: 'Sunset together', group: 'den' },
   { id: 'mischief', emoji: '😈', name: 'Mischief',    group: 'den',
     subs: [['stole', 'stole something'], ['chewed', 'chewed'], ['ran', 'ran off'], ['carpet', 'carpet']] },
   { id: 'poop',     emoji: '💩', name: 'Poop event',  group: 'den',
