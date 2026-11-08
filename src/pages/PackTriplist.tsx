@@ -45,6 +45,8 @@ import { placeholderFor } from '@/lib/tripPlaceholder';
 import { pluralKey } from '@/lib/plural';
 import { readPlans } from '@/components/pack/packCommunity';
 import { COMMUNITY_CSS, TL_FLAT_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
+import { TriplistWall } from '@/components/pack/tripWall/TriplistWall';
+import { fmtNum } from '@/i18n/bcp47';
 import { flagUrl, trailCountry } from '@/lib/countryGeo';
 import { useMyTripParties, useTripParties, partyKey, type TripParty, type PartyMember } from '@/components/pack/triplist/useTripParty';
 import { useOpenTrips } from '@/components/pack/triplist/useOpenTrips';
@@ -975,6 +977,7 @@ export default function PackTriplist() {
           <div className={`tl-block-cover${cover ? '' : ' nophoto'}`}>
             {cover && <img className="tl-cover-img" src={sizedUrl(cover, COVER_PX)} alt="" loading="lazy" decoding="async" draggable={false} style={{ objectPosition: coverPos(trail ?? {}) }} />}
             <img className="tl-flag" src={flagUrl(trailCountry(trail))} alt="" loading="lazy" draggable={false} />
+            {APP_NEW && done && Number(trail.km) > 0 && <span className="tlw-km">{fmtNum(Math.round(Number(trail.km)), lang)} km</span>}
             {/* Kým výlet čaká na schválenie, badge NIE JE prepínač viditeľnosti —
                 prepínať nie je čo, pack ho aj tak nevidí. */}
             {canToggleVis && !mod ? (
@@ -1149,6 +1152,28 @@ export default function PackTriplist() {
               to bol jeden rad zoradený „najbližší vpredu" — lenže pri 72 prejdených zo 73
               to znamenalo, že jediná živá karta viedla dlhý sprievod spomienok.
               ⚠️ Delí sa podľa `done`, NIE podľa dátumu: výlet bez dátumu je stále PLÁN. */}
+          {APP_NEW ? (
+            <TriplistWall
+              upcoming={upcomingTrips}
+              walked={walkedTrips}
+              wishes={WISHES_LIVE ? wishes : null}
+              renderCard={renderMyCard}
+              coverOf={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)}
+              onOpenTrip={(tr) => navigate(tripPath(tr))}
+              onOpenWish={(w) => (mg ? mg.lock('wish') : navigate(`/pack/map?wish=${w.id}&ask=${w.status === 'missed' ? 'wish_missed' : 'wish_ask'}`))}
+              emptyWant={(
+                <div className="tl-emptybox">
+                  <span className="tl-empty">{t('pack.triplist.emptyWant')}</span>
+                  <button type="button" className="tl-emptybtn" onClick={() => navigate('/pack/map')}>{t('pack.triplist.browseTrips')}</button>
+                </div>
+              )}
+              emptyWish={<div className="tl-emptybox"><span className="tl-empty">{t('pack.triplist.wishEmpty')}</span></div>}
+              wantId={WIZ.tlWant}
+              wishId={WIZ.tlWish}
+              wishHelp={<MagnetInfoBubble k="wish" />}
+            />
+          ) : (
+          <>
           <div className="tl-section" id={WIZ.tlWant}>
             <div className="tl-sechead">
               <h3>{PLANNING_LIVE ? t('pack.triplist.myTripsUpcoming') : t('pack.triplist.myTripsWant')}<MagnetInfoBubble k="want" /></h3>
@@ -1251,6 +1276,9 @@ export default function PackTriplist() {
                 </div>
               )}
             </div>
+          )}
+
+          </>
           )}
 
           {/* PLÁNOVANIE V SKLADE (24. 9. 2026, `PLANNING_LIVE`) — OPEN TRIPS sa nekreslí. */}

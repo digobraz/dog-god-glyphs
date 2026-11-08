@@ -46,6 +46,8 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { trailCountry, flagUrl, countryName } from '@/lib/countryGeo';
 import { FlagCircle } from './FlagCircle';
 import { HeroBadges } from '@/components/pack/HeroBadges';
+import { TripStatsWall } from '@/components/pack/tripWall/TripStatsWall';
+import { APP_NEW } from '@/lib/packFlags';
 import { PackPopup } from '@/components/pack/PackPopup';
 import { TripProfileCard, partyMemberToProfileCardProps } from '@/components/pack/profile/TripProfileCard';
 import { useProfile } from '@/components/pack/profile/packProfile';
@@ -1728,6 +1730,57 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   ), [id.dogs, storeEpoch, t]);
   const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, ratings: myRatings, countries: countriesTraveled, notePoints: myNotePoints, eventsHeld: myEventCount, wishesDone: myWishCount, placePosts: myPlacePosts });
   const lvl = levelProgress(profilePoints.total);
+  // Škála pásiem + cenník + moje body: to isté okno na starej hlavičke aj na stene (APP_NEW).
+  const levelSheet = (
+    <>
+    <TierScale level={lvl.level} onDark={false} />
+    <span className="comm-pts-rule" />
+    {/* DVA STĹPCE: vľavo cenník (platí pre každého), vpravo MOJE body + TOTAL.
+        Sú to dve odpovede na dve rôzne otázky — „za čo sa dávajú" a „za čo mám ja" —
+        takže patria vedľa seba, nie pod seba oddelené linajkou. */}
+    <span className="comm-pts-cols">
+      <span className="comm-pts-col">
+        <span className="comm-pts-eyebrow">{t('pack.stats.howPointsWork')}</span>
+        {pointsLegend(t).map(([label, val]) => (
+          <span key={label} className="comm-pts-row">{label}<b>{val}</b></span>
+        ))}
+        {/* ⚠️ Ranky krajiny tu BOLI a sú PREČ (Matej 2026-08-06: „odtialto to coutry
+            zruš"). Žijú pri titule krajiny, kde ten rank aj svieti — mať ich na dvoch
+            miestach znamená dva zoznamy, ktoré sa raz rozídu. Nevracaj ich sem. */}
+      </span>
+      <span className="comm-pts-col">
+        <span className="comm-pts-eyebrow">{t('pack.stats.yourPoints')}</span>
+        {profilePoints.rows.length > 0 ? (
+          <>
+            {profilePoints.rows.map((r) => (
+              <span key={r.labelKey} className="comm-pts-row">{t(r.labelKey, r.labelParams)}<b>{r.points}</b></span>
+            ))}
+            <span className="comm-pts-rule" />
+            <span className="comm-pts-tot">{t('pack.stats.total')}<b>{profilePoints.total}</b></span>
+          </>
+        ) : (
+          <span className="comm-pts-none">{t('pack.stats.noPointsYet')}</span>
+        )}
+      </span>
+    </span>
+    </>
+  );
+
+  // STENA (Matej 8. 11. 2026): nová obrazovka len v testovacej appke, web ostáva.
+  if (APP_NEW) {
+    return (
+      <TripStatsWall
+        walkedTrails={walkedTrails}
+        ownerName={ownerName}
+        avatarUrl={id.avatarUrl}
+        lvl={lvl}
+        dogStats={dogStats}
+        showChko={isFounderEmail(id.session?.user?.email)}
+        onOpenTrip={onOpenTrip}
+        levelSheet={levelSheet}
+      />
+    );
+  }
 
   return (
     <>
@@ -1797,36 +1850,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
             {/* Popup zdola, nie dropdown (Matej 2. 11.). */}
             {tierOpen && (
               <PackPopup title={t('pack.stats.levelColours')} onClose={() => setTierOpen(false)}>
-                <TierScale level={lvl.level} onDark={false} />
-                <span className="comm-pts-rule" />
-                {/* DVA STĹPCE: vľavo cenník (platí pre každého), vpravo MOJE body + TOTAL.
-                    Sú to dve odpovede na dve rôzne otázky — „za čo sa dávajú" a „za čo mám ja" —
-                    takže patria vedľa seba, nie pod seba oddelené linajkou. */}
-                <span className="comm-pts-cols">
-                  <span className="comm-pts-col">
-                    <span className="comm-pts-eyebrow">{t('pack.stats.howPointsWork')}</span>
-                    {pointsLegend(t).map(([label, val]) => (
-                      <span key={label} className="comm-pts-row">{label}<b>{val}</b></span>
-                    ))}
-                    {/* ⚠️ Ranky krajiny tu BOLI a sú PREČ (Matej 2026-08-06: „odtialto to coutry
-                        zruš"). Žijú pri titule krajiny, kde ten rank aj svieti — mať ich na dvoch
-                        miestach znamená dva zoznamy, ktoré sa raz rozídu. Nevracaj ich sem. */}
-                  </span>
-                  <span className="comm-pts-col">
-                    <span className="comm-pts-eyebrow">{t('pack.stats.yourPoints')}</span>
-                    {profilePoints.rows.length > 0 ? (
-                      <>
-                        {profilePoints.rows.map((r) => (
-                          <span key={r.labelKey} className="comm-pts-row">{t(r.labelKey, r.labelParams)}<b>{r.points}</b></span>
-                        ))}
-                        <span className="comm-pts-rule" />
-                        <span className="comm-pts-tot">{t('pack.stats.total')}<b>{profilePoints.total}</b></span>
-                      </>
-                    ) : (
-                      <span className="comm-pts-none">{t('pack.stats.noPointsYet')}</span>
-                    )}
-                  </span>
-                </span>
+                {levelSheet}
               </PackPopup>
             )}
           </span>
