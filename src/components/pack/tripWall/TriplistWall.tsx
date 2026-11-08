@@ -31,7 +31,7 @@ const TLW_CSS = `
 .tlw-top img{width:24px;height:24px;border-radius:${PACK_R.pill}px;object-fit:cover;border:1.5px solid ${T.card};}
 .tlw-top u{text-decoration:none;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;background:${LAPIS.grad};color:${LAPIS.ink};font-size:${PACK_TEXT.micro}px;font-weight:600;line-height:1.2;}
 .tlw-tx{position:absolute;left:${S.md}px;right:${S.md}px;bottom:${S.xxxl}px;color:${T.card};}
-.tlw-tx b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;line-height:1.1;letter-spacing:.14em;} /* písmo: nadpis */
+.tlw-tx b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;line-height:1.1;letter-spacing:.02em;} /* písmo: nadpis */
 .tlw-tx small{display:block;margin-top:${S.xs}px;font-size:${PACK_TEXT.label}px;font-weight:500;}
 .tlw-cnt{position:absolute;right:${S.md}px;top:${S.md}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;background:rgba(24,14,4,.72);color:${T.card};font-size:${PACK_TEXT.micro}px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;}
 .tlw-empty{margin-top:${S.md}px;padding-bottom:${S.xxl}px;}
@@ -42,7 +42,7 @@ const TLW_CSS = `
 .tlw-dr{position:relative;flex:none;width:148px;height:184px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:${S.md}px ${S.sm}px;overflow:hidden;text-align:center;cursor:pointer;border-radius:${PACK_R.tile}px;border:1.5px solid ${T.cardEdge};background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_UI};}
 .tlw-dr svg{position:absolute;inset:0;width:100%;height:100%;}
 .tlw-df{position:absolute;left:50%;top:${S.lg}px;transform:translateX(-50%);width:64px;height:64px;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};}
-.tlw-dr b{position:relative;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;line-height:1.15;letter-spacing:.14em;} /* písmo: nadpis */
+.tlw-dr b{position:relative;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;line-height:1.15;letter-spacing:.02em;} /* písmo: nadpis */
 .tlw-dr small{position:relative;margin-top:${S.xs}px;font-size:${PACK_TEXT.micro}px;font-weight:500;opacity:.82;}
 .tlw-dr i{position:relative;margin-top:${S.sm}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.cardEdge};font-size:${PACK_TEXT.micro}px;font-weight:600;line-height:1;font-style:normal;}
 .tlw-grid{display:grid;grid-template-columns:1fr 1fr;gap:${S.sm}px;}

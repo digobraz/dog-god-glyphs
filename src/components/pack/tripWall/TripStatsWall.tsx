@@ -72,7 +72,7 @@ export const TW_CSS = `${PROGRESS_CSS}
 .tw-rec small{display:block;margin-top:${S.xs}px;font-size:${PACK_TEXT.micro}px;color:${T.inkWarm};}
 .tw-dog{display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.md}px;margin-bottom:${S.sm}px;}
 .tw-dog img{width:48px;height:48px;flex:none;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};}
-.tw-dog b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.14em;color:${T.inkStrong};} /* písmo: meno */
+.tw-dog b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: meno */
 .tw-dog small{display:block;margin-top:${S.xs}px;font-size:${PACK_TEXT.label}px;color:${T.inkWarm};font-variant-numeric:tabular-nums;}
 .tw-badges{display:flex;flex-direction:column;}
 .tw-badges .comm-dash-section-title{order:0;}
@@ -83,7 +83,7 @@ export const TW_CSS = `${PROGRESS_CSS}
 .tw-badges .comm-hero img{width:88px;}
 .tw-sh{display:flex;align-items:center;gap:${S.md}px;}
 .tw-sh img{width:64px;height:64px;flex:none;object-fit:contain;}
-.tw-sh h3{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1.15;letter-spacing:.14em;color:${T.inkStrong};} /* písmo: nadpis */
+.tw-sh h3{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1.15;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: nadpis */
 .tw-sh .tw-num{display:block;margin-top:${S.xs}px;}
 .tw-sh small{font-size:${PACK_TEXT.body}px;font-weight:500;color:${T.inkWarm};}
 .tw-sh .tw-hd2{display:block;margin-top:${S.xs}px;font-size:${PACK_TEXT.label}px;font-weight:500;color:${T.inkWarm};}
@@ -115,7 +115,7 @@ button.tw-row{cursor:pointer;}
 .tw-note{display:inline-flex;margin-top:${S.md}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};font-size:${PACK_TEXT.micro}px;font-weight:600;color:${T.inkWarm};}
 .tw-cc{padding:${S.md}px;margin-top:${S.sm}px;}
 .tw-sh + .tw-cc{margin-top:${S.md}px;}
-.tw-cc h4{display:flex;align-items:center;gap:${S.sm}px;margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1.1;letter-spacing:.14em;color:${T.inkStrong};} /* písmo: nadpis */
+.tw-cc h4{display:flex;align-items:center;gap:${S.sm}px;margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1.1;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: nadpis */
 .tw-cc h4 img{width:24px;height:24px;border-radius:${PACK_R.pill}px;object-fit:cover;}
 .tw-cc h4 small{margin-left:auto;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;font-weight:600;letter-spacing:.02em;color:${T.inkWarm};font-variant-numeric:tabular-nums;white-space:nowrap;}
 .tw-m{display:grid;grid-template-columns:repeat(4,1fr);gap:${S.xs}px;margin-top:${S.md}px;}
