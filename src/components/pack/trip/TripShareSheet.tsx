@@ -28,6 +28,8 @@ import { useT } from '@/i18n/LanguageContext';
 import logoGold from '@/assets/dogypt-logo-gold.webp';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { flagUrl } from '@/lib/flagUrl';
+import { IS_APP } from '@/lib/isApp';
+import { shareFile } from '@/lib/shareFile';
 import { ICON } from '@/components/pack/tripShared';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { FONT_TITLE, FONT_UI, PACK_BOX, PACK_SHADOW, PACK_THEME as T } from '@/components/pack/packTheme';
@@ -413,6 +415,11 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
     const b = blobRef.current;
     if (!b) return;
     const copied = copyLink();
+    // V appke natívny hárok: Android WebView nemá `navigator.share` a `a.download` tam ticho nespraví nič (Danka 8. 11.).
+    if (IS_APP) {
+      void shareFile(b, fname).then((ok) => { if (!ok) void copyOnly(); }).catch(() => void copyOnly());
+      return;
+    }
     const file = new File([b], fname, { type: 'image/png' });
     const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean };
     if (isTouch() && typeof navigator.share === 'function' && nav.canShare?.({ files: [file] })) {
