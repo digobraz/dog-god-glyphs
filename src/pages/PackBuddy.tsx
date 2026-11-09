@@ -26,6 +26,8 @@ import { SnifferHome } from '@/components/pack/buddy/SnifferHome';
 import { SnifferProfile } from '@/components/pack/buddy/SnifferProfile';
 import { SnifferOnboard, firstOnbStep, ONB_STEPS, type OnbStep } from '@/components/pack/buddy/SnifferOnboard';
 import { SnifferMyCard, SNIFFER_CARD_CSS } from '@/components/pack/buddy/SnifferCard';
+import { APP_NEW } from '@/lib/packFlags';
+import { SNIFFER_P3D_CSS } from '@/components/pack/buddy/snifferP3d';
 import { SnifferFullProfile } from '@/components/pack/buddy/SnifferFullProfile';
 import type { SnifferCardData } from '@/components/pack/buddy/snifferDeck';
 import { MessagingOverlayHost } from '@/components/pack/PackLayout';
@@ -222,6 +224,8 @@ const CSS = `
 }
 .bd-switch{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;font-family:${FONT_UI};
   font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
+
+${SNIFFER_P3D_CSS}
 `;
 
 export default function PackBuddy() {
@@ -505,7 +509,8 @@ export default function PackBuddy() {
               <div className="bd-grow">
                 <div>
                   <h2 className="bd-wordmark bd-reveal">
-                    <img src="/icons/sniffer/sniffer-napis.svg" alt={tx('pack.buddy.title', 'SNIFFER')} />
+                    {/* Papyrus 3D (P1): nápis Museum namiesto SVG; web ostáva na starom nápise */}
+                    {APP_NEW ? <span className="bd-wm">Sniffer</span> : <img src="/icons/sniffer/sniffer-napis.svg" alt={tx('pack.buddy.title', 'SNIFFER')} />}
                   </h2>
                   <p className="bd-tagline bd-reveal">{tx('pack.buddy.intro', 'Find buddies to sniff out the world with.')}</p>
                   {/* CTA V BLOKU pod textom, nie mimo (Matej 25. 9.: „to CTA daj do bloku pod text"). */}

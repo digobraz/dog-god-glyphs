@@ -30,6 +30,10 @@ const NOTE_MAX = 130; // 2 až 3 vety, viac sa na zadnú stranu nezmestí
 const CSS = `
 ${CARD_CSS}
 .ecp-title{margin:0;}
+html.papyrus3d .ecp-btn.sos-cta{width:100%;min-height:56px;padding:0 ${PACK_SPACE.lg}px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:var(--p3d-b3);font:400 ${PACK_TEXT.h2}px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;} /* písmo: cta */
+html.papyrus3d .ecp-btn--sm.sos-cta{min-height:48px;font-size:${PACK_TEXT.lead}px;}
+html.papyrus3d .ecp-title{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h1}px;letter-spacing:0;text-transform:none;} /* písmo: nadpis */
+html.papyrus3d .ecp-link{color:${LAPIS.edge};text-decoration:underline;}
 .ecp-prev{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;width:100%;max-width:480px;margin:0 auto;}
 .ecp-prev .ec-ph{cursor:grab;}
 .ecp-prev .ec-ph:active{cursor:grabbing;}
@@ -336,7 +340,7 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
       {status === 'error' && (
         <>
           <p className="ecp-note">{s('pack.sos.card.loadFail')}</p>
-          <button type="button" className="sos-cta" onClick={() => setReload((n) => n + 1)}>{s('pack.sos.card.retry')}</button>
+          <button type="button" className="sos-cta ecp-btn pk-b3 pk-b3--lapis" onClick={() => setReload((n) => n + 1)}>{s('pack.sos.card.retry')}</button>
         </>
       )}
       {status === 'ok' && (
@@ -349,8 +353,8 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
           {quick ? (
             <>
               {hasContact
-                ? <button type="button" className="sos-cta" disabled={busy} onClick={share}>{busy ? s('pack.sos.loading') : cardUi('share', lang)}</button>
-                : <button type="button" className="sos-cta" onClick={() => nav(editHref)}>{cardUi('setUp', lang)}</button>}
+                ? <button type="button" className="sos-cta ecp-btn pk-b3 pk-b3--lapis" disabled={busy} onClick={share}>{busy ? s('pack.sos.loading') : cardUi('share', lang)}</button>
+                : <button type="button" className="sos-cta ecp-btn pk-b3 pk-b3--lapis" onClick={() => nav(editHref)}>{cardUi('setUp', lang)}</button>}
               {hasContact && <button type="button" className="ecp-link" onClick={() => nav(editHref)}>{cardUi('edit', lang)}</button>}
             </>
           ) : (
@@ -363,7 +367,7 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
               </label>
               <p className="ecp-note">{cardUi('langHint', lang)}</p>
               <div className="ecp-photo" style={{ ...PACK_BOX.subblock }}>
-                <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={() => fileRef.current?.click()}>{s('pack.sos.card.photoChange')}</button>
+                <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm ecp-btn ecp-btn--sm pk-b3 pk-b3--paper" onClick={() => fileRef.current?.click()}>{s('pack.sos.card.photoChange')}</button>
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
                 <label className="ecp-zoom">
                   {s('pack.sos.card.photoZoom')}
@@ -386,7 +390,7 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
                   </div>
                 ))}
                 {data.contacts.length < CONTACTS_MAX && (
-                  <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={() => setContacts([...data.contacts, { name: '', phone: '' }])}>{cardUi('add', lang)}</button>
+                  <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm ecp-btn ecp-btn--sm pk-b3 pk-b3--paper" onClick={() => setContacts([...data.contacts, { name: '', phone: '' }])}>{cardUi('add', lang)}</button>
                 )}
                 <label className="sos-field">
                   <span>{tx.addr}</span>
@@ -397,11 +401,11 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
                   <textarea className="pf-field" rows={3} maxLength={NOTE_MAX} value={data.note} onChange={set('note')} />
                 </label>
               </div>
-              <button type="button" className="sos-cta" disabled={busy} onClick={download}>
+              <button type="button" className="sos-cta ecp-btn pk-b3 pk-b3--lapis" disabled={busy} onClick={download}>
                 {s(busy ? 'pack.sos.loading' : 'pack.sos.card.download')}
               </button>
-              <button type="button" className="sos-cta sos-cta--ghost" disabled={busy} onClick={share}>{cardUi('share', lang)}</button>
-              {hasDraft && <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={resetFromDogId}>{s('pack.sos.card.reset')}</button>}
+              <button type="button" className="sos-cta sos-cta--ghost ecp-btn pk-b3 pk-b3--paper" disabled={busy} onClick={share}>{cardUi('share', lang)}</button>
+              {hasDraft && <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm ecp-btn ecp-btn--sm pk-b3 pk-b3--paper" onClick={resetFromDogId}>{s('pack.sos.card.reset')}</button>}
               <p className="ecp-note">{s('pack.sos.card.private')}</p>
             </>
           )}

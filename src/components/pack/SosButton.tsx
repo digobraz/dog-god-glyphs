@@ -19,6 +19,7 @@ import { SysIcon } from './SysIcon';
 import { TopCircle } from './TopCircle';
 import { useSosActive, sosAgo } from './sosKit';
 import { sizedUrl } from '@/services/cloudinaryService';
+import { SOS_BUTTON_P3D_CSS } from './sos/sosP3d';
 import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_UI } from './packTheme';
 
 const T = PACK_THEME;
@@ -40,6 +41,7 @@ const CSS = `
 .sos-tx b{flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .sos-tx span{font:500 ${PACK_TEXT.label}px/1.3 ${FONT_UI};color:${T.inkDim};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .sos-mine{flex:none;font:600 ${PACK_TEXT.micro}px/1 ${FONT_UI};letter-spacing:.02em;text-transform:uppercase;color:${T.sosRed};}
+${SOS_BUTTON_P3D_CSS}
 `;
 
 const ROWS = [

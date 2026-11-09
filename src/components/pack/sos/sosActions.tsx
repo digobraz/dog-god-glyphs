@@ -7,6 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import { lostPhone, lostUrl } from '@/lib/sos';
 import { PackPopup } from '@/components/pack/PackPopup';
 import { PF_FIELD_CSS } from '@/components/pack/packTheme';
+import { APP_NEW } from '@/lib/packFlags';
 import { SOS_CSS, type SosT } from './sosShared';
 
 export async function copyLostLink(slug: string, s: SosT): Promise<void> {
@@ -49,12 +50,12 @@ export function CallPopup({ slug, name, s, onClose }: { slug: string; name: stri
         {phone === undefined ? (
           <>
             {err && <p className="sos-err">{err}</p>}
-            <button type="button" className="sos-cta" disabled={busy} onClick={reveal}>{err ? s('pack.sos.retry') : s('pack.sos.det.callOwner')}</button>
+            <button type="button" className={`sos-cta${APP_NEW ? ' sos-cta--red' : ''}`} disabled={busy} onClick={reveal}>{err ? s('pack.sos.retry') : s('pack.sos.det.callOwner')}</button>
           </>
         ) : phone ? (
           <>
             <p className="sos-dogname" style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 24 }}>{phone}</p>
-            <a className="sos-cta" href={`tel:${phone.replace(/[^\d+]/g, '')}`}>{s('pack.sos.det.call')}</a>
+            <a className={`sos-cta${APP_NEW ? ' sos-cta--red' : ''}`} href={`tel:${phone.replace(/[^\d+]/g, '')}`}>{s('pack.sos.det.call')}</a>
             <a className="sos-cta sos-cta--ghost" href={`sms:${phone.replace(/[^\d+]/g, '')}`}>{s('pack.sos.det.sms')}</a>
           </>
         ) : <p className="sos-err">{s('pack.sos.det.callNoNumber')}</p>}

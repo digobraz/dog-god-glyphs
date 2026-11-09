@@ -18,6 +18,7 @@ import {
 import { FONT_TITLE, FONT_UI, PACK_COL } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { SOS_TEXTS, type SosKey } from './sosTexts';
+import { SOS_P3D_CSS } from './sosP3d';
 
 // ── ŠAT: celý strom `/pack/sos` stojí na hladkom papyruse (kôš 2 aj 3) ────────────────────
 export const SOS_PAPER = /^\/pack\/sos(\/|$)/;
@@ -223,6 +224,7 @@ export const SOS_CSS = `
 .sos-diaryrow b{display:block;font-weight:600;font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 .sos-diaryrow small{display:block;font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
 .sos-pick.is-on{background:${LAPIS.fill};border-color:${LAPIS.edge};box-shadow:inset 0 0 0 1px ${LAPIS.halo};}
+${SOS_P3D_CSS}
 `;
 
 export const SOS_STYLES = [PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, SOS_CSS];

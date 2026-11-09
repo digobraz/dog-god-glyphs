@@ -151,10 +151,10 @@ function Modules({ tx, dogs, onlyDog }: { tx: Tx; dogs: Dog[] | null; onlyDog: s
                 {pct >= 100 ? (
                   <>
                     <button type="button" className="dfm-edit" onClick={() => go(m.key)}>{tx('pack.flow.ui.edit')}</button>
-                    <button type="button" className="dfl-cta sm" onClick={() => view(m.key)}>{tx(m.key === 'nature' ? 'pack.flow.ui.viewResult' : 'pack.flow.ui.viewDogId')}</button>
+                    <button type="button" className="dfl-cta sm pk-b3 pk-b3--lapis" onClick={() => view(m.key)}>{tx(m.key === 'nature' ? 'pack.flow.ui.viewResult' : 'pack.flow.ui.viewDogId')}</button>
                   </>
                 ) : (
-                  <button type="button" className="dfl-cta sm" onClick={() => go(m.key)}>{tx(pct ? 'pack.flow.ui.cont' : 'pack.flow.ui.start')}</button>
+                  <button type="button" className="dfl-cta sm pk-b3 pk-b3--lapis" onClick={() => go(m.key)}>{tx(pct ? 'pack.flow.ui.cont' : 'pack.flow.ui.start')}</button>
                 )}
               </div>
             </div>
@@ -461,8 +461,8 @@ function Flow({ mode, tx, dogs, jump }: { mode: 'base' | 'nature'; tx: Tx; dogs:
       </div>
       {err && <p className="dfl-err" role="alert">{tx('pack.flow.ui.saveErr')}</p>}
       <div className="dfl-foot">
-        <button type="button" className="dfl-skip" disabled={busy} onClick={() => { void skip(); }}>{tx('pack.flow.ui.skip')}</button>
-        <button type="button" className="dfl-cta" disabled={busy} onClick={() => { void next(); }}>{tx(idx + 1 >= screens.length ? 'pack.flow.ui.done' : 'pack.flow.ui.next')}</button>
+        <button type="button" className="dfl-skip pk-b3 pk-b3--paper" disabled={busy} onClick={() => { void skip(); }}>{tx('pack.flow.ui.skip')}</button>
+        <button type="button" className="dfl-cta pk-b3 pk-b3--lapis" disabled={busy} onClick={() => { void next(); }}>{tx(idx + 1 >= screens.length ? 'pack.flow.ui.done' : 'pack.flow.ui.next')}</button>
       </div>
     </div>
   );
@@ -740,7 +740,7 @@ function WeightPhotos({ s, tx, dogId, v, set }: { s: FlowScreen; tx: Tx; dogId: 
       </div>
       {state === 'sent'
         ? <Say text={P.sent} tx={tx} />
-        : <button type="button" className="dfl-cta sm" style={{ marginTop: 8 }} disabled={busy || !side || !top} onClick={() => { void send(); }}>{tx(busy ? 'pack.flow.ui.sending' : P.cta)}</button>}
+        : <button type="button" className="dfl-cta sm pk-b3 pk-b3--lapis" style={{ marginTop: 8 }} disabled={busy || !side || !top} onClick={() => { void send(); }}>{tx(busy ? 'pack.flow.ui.sending' : P.cta)}</button>}
       {state === 'err' && <p className="dfl-err" role="alert">{tx('pack.flow.ui.saveErr')}</p>}
     </div>
   );
@@ -761,7 +761,7 @@ function Intro({ s, tx, onBack, onStart }: { s: FlowScreen; tx: Tx; onBack: () =
         <div className="dfl-ax" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>{SPECIAL_KEYS.map((k) => <figure key={k}><img src={`/images/nature/spec-${k}.webp`} alt="" />{tx(NATURE_SPECIALS[k].i18n, NATURE_SPECIALS[k].labelEN)}</figure>)}</div>
       </div>
       {s.attr && <p className="dfl-attr">{tx(s.attr)}</p>}
-      <button type="button" className="dfl-cta w" onClick={onStart}>{tx(s.cta ?? 'pack.flow.ui.start')}</button>
+      <button type="button" className="dfl-cta w pk-b3 pk-b3--lapis" onClick={onStart}>{tx(s.cta ?? 'pack.flow.ui.start')}</button>
     </div>
   );
 }
@@ -787,7 +787,7 @@ function Result({ s, tx, dog, r, onBack, onAgain, onDone, dogRow }: {
       )}
       <div className="dfl-foot">
         <button type="button" className="dfl-lnk" onClick={onAgain}>{tx(s.cta2 ?? 'pack.flow.ui.again')}</button>
-        <button type="button" className="dfl-cta" style={{ marginLeft: 'auto' }} onClick={onDone}>{tx(s.cta ?? 'pack.flow.ui.done')}</button>
+        <button type="button" className="dfl-cta pk-b3 pk-b3--lapis" style={{ marginLeft: 'auto' }} onClick={onDone}>{tx(s.cta ?? 'pack.flow.ui.done')}</button>
       </div>
     </div>
   );
@@ -876,13 +876,13 @@ function Will({ tx, dogs }: { tx: Tx; dogs: Dog[] | null }) {
           <p className="dfl-s">{tx('pack.flow.ui.confirmSend')}</p>
           <div className="dfl-foot" style={{ marginTop: 0 }}>
             <button type="button" className="dfl-lnk" onClick={() => setState('idle')}>{tx('pack.flow.ui.notYet')}</button>
-            <button type="button" className="dfl-cta" style={{ marginLeft: 'auto' }} disabled={busy} onClick={() => { void send(); }}>{tx('pack.flow.ui.willSend')}</button>
+            <button type="button" className="dfl-cta pk-b3 pk-b3--lapis" style={{ marginLeft: 'auto' }} disabled={busy} onClick={() => { void send(); }}>{tx('pack.flow.ui.willSend')}</button>
           </div>
         </>
       ) : dirty || !emailOk || !form.heirName.trim() || !form.letter.trim() ? (
-        <div className="dfl-foot"><button type="button" className="dfl-cta w" disabled={busy || !dirty} onClick={() => { void save(); }}>{tx(L.save)}</button></div>
+        <div className="dfl-foot"><button type="button" className="dfl-cta w pk-b3 pk-b3--lapis" disabled={busy || !dirty} onClick={() => { void save(); }}>{tx(L.save)}</button></div>
       ) : (
-        <div className="dfl-foot"><span className="dfl-s" style={{ margin: 0 }}>{tx('pack.flow.ui.saved')}</span><button type="button" className="dfl-cta" style={{ marginLeft: 'auto' }} onClick={() => setState('ask')}>{tx(L.send)}</button></div>
+        <div className="dfl-foot"><span className="dfl-s" style={{ margin: 0 }}>{tx('pack.flow.ui.saved')}</span><button type="button" className="dfl-cta pk-b3 pk-b3--lapis" style={{ marginLeft: 'auto' }} onClick={() => setState('ask')}>{tx(L.send)}</button></div>
       )}
     </div>
   );

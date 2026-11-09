@@ -153,4 +153,31 @@ textarea.dfl-in{min-height:64px;}
  .dfm-mods{flex-direction:row;flex-wrap:wrap;}
  .dfm{flex:1 1 calc(50% - 8px);}
 }
+/* ── ŠAT PAPYRUS 3D (hárok map-herne-2026-11-09, O1 a O7 až O9) — len pod html.papyrus3d ── */
+html.papyrus3d .dfl{background:var(--p3d-paper);}
+html.papyrus3d .dfl-q,html.papyrus3d .dfm-h1{font-family:'LT Museum',serif;font-weight:400;font-size:${X.h1}px;letter-spacing:0;text-transform:none;} /* písmo: nadpis */
+html.papyrus3d .dfl-sec{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .dfl-lq{height:16px;border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
+html.papyrus3d .dfl-lq .pk-progress__fill{background:linear-gradient(90deg,var(--p3d-gold-solid),var(--p3d-gold));}
+html.papyrus3d .dfl-a,html.papyrus3d .dfl-sz,html.papyrus3d .dfl-bd,html.papyrus3d .dfl-mr{border:2.5px solid var(--p3d-ink);border-radius:${R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .dfl-a .tx{font-family:'LT Museum',serif;font-weight:400;font-size:${X.h2}px;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .dfl-c,html.papyrus3d .dfl-mo button,html.papyrus3d .dfl-dog{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:var(--p3d-lift);color:var(--p3d-ink);}
+html.papyrus3d .dfl-a.on,html.papyrus3d .dfl-c.on,html.papyrus3d .dfl-sz.on,html.papyrus3d .dfl-dog.on,html.papyrus3d .dfl-mo button.on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border-color:var(--p3d-ink);color:${LAPIS.ink};box-shadow:var(--p3d-lift);}
+html.papyrus3d .dfl-a.on .tx{color:${LAPIS.ink};}
+html.papyrus3d .dfl-a.none,html.papyrus3d .dfl-c.none{border-style:dashed;box-shadow:none;}
+html.papyrus3d .dfl-in{min-height:54px;border:2.5px solid var(--p3d-ink);border-radius:${R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);font-weight:500;}
+html.papyrus3d .dfl-in:focus{outline:2.5px solid ${LAPIS.edge};}
+html.papyrus3d .dfl-cta,html.papyrus3d .dfl-skip.pk-b3{min-height:56px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:var(--p3d-b3);font:400 ${X.h2}px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;padding:0 ${S.xl}px;} /* písmo: cta */
+html.papyrus3d .dfl-cta.sm{min-height:48px;padding:0 ${S.lg}px;font-size:${X.lead}px;}
+html.papyrus3d .dfl-skip.pk-b3{margin-left:0;padding:0 ${S.lg}px;}
+html.papyrus3d .dfl-foot{gap:${S.md}px;padding-bottom:${S.sm}px;}
+html.papyrus3d .dfl-foot .dfl-cta{flex:1;}
+html.papyrus3d .dfm{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:var(--p3d-b3);}
+html.papyrus3d .dfm h3{font-family:'LT Museum',serif;font-weight:400;font-size:${X.h2}px;letter-spacing:0;text-transform:none;} /* písmo: nadpis */
+html.papyrus3d .dfm .ic{border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);}
+html.papyrus3d .dfm.mute{border-style:dashed;box-shadow:none;}
+html.papyrus3d .dfm-ring b{font-family:'LT Museum',serif;font-weight:400;}
+html.papyrus3d .dfl-res .nm{font-family:'LT Museum',serif;font-weight:400;} /* písmo: meno */
+html.papyrus3d .dfl-res .tt{font-family:'LT Museum',serif;font-weight:400;letter-spacing:0;text-transform:none;} /* písmo: nadpis */
+html.papyrus3d .dfl-noteb{color:${LAPIS.edge};text-decoration:underline;}
 `;

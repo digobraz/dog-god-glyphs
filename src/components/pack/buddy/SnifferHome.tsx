@@ -19,6 +19,7 @@ import {
 } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { SnifferCard, SNIFFER_CARD_CSS } from './SnifferCard';
+import { APP_NEW } from '@/lib/packFlags';
 import { SnifferSearch } from './SnifferSearch';
 import { SnifferEmpty, SNIFFER_EMPTY_CSS } from './SnifferEmpty';
 import { SnifferMatchReveal } from './SnifferMatchReveal';
@@ -431,7 +432,7 @@ export function SnifferHome({ tx, me }: {
                 </div>
                 <div className="sh-act">
                   <button type="button" className={`sh-btn sh-btn--yes${hit === 'like' ? ' is-hit' : ''}`} aria-label={tx('pack.sniffer.yes', 'SNIFF')} onClick={() => void decide('like')}>
-                    <MaskIcon src="/icons/pack/nose.svg" size={30} color="#fff" />
+                    {APP_NEW ? <><img src="/icons/sys/pridaj-sniffer.webp" alt="" /><span className="sh-sniff">{tx('pack.sniffer.yes', 'SNIFF')}</span></> : <MaskIcon src="/icons/pack/nose.svg" size={30} color="#fff" />}
                   </button>
                   {tx('pack.sniffer.yes', 'Yes')}
                 </div>
@@ -514,7 +515,7 @@ export function SnifferHome({ tx, me }: {
                   <MaskIcon src="/icons/pack/cross.svg" size={26} color="#fff" />
                 </button>
                 <button type="button" className="sh-btn sh-btn--yes" aria-label={tx('pack.sniffer.yes', 'SNIFF')} onClick={() => void act(peek, 'like')}>
-                  <MaskIcon src="/icons/pack/nose.svg" size={30} color="#fff" />
+                  {APP_NEW ? <><img src="/icons/sys/pridaj-sniffer.webp" alt="" /><span className="sh-sniff">{tx('pack.sniffer.yes', 'SNIFF')}</span></> : <MaskIcon src="/icons/pack/nose.svg" size={30} color="#fff" />}
                 </button>
               </>
             )} />

@@ -17,6 +17,7 @@ import type { LevelProgress } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, BONES_TIER, type PackTier } from '@/lib/packTiers';
 import { devotionTier, devotionVars, NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
 import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel, type SealTier } from '@/components/pack/profile/dogSeal';
+import { b3Look } from '@/components/pack/profile/b3css';
 import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, STORY_RING_CSS, RING_V1, ARC_MAX, ARC_BELOW, arcDogs, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, LearnerBadge, LearnerPanel, useActiveDays } from '@/components/pack/profile/rankBadge';
 /** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
 
@@ -366,6 +367,106 @@ const FLAT_TALL = 20;
 const BADGE_SINK = { m: 20, pc: 19 };
 /* Bez rámu karty meria vzduch od okraja OKNA — fotka majiteľa na `PAGE_AIR` (16), šuplík v jej osi. */
 const FLAT_X = S.lg;
+
+/* ŠAT PAPYRUS 3D — HLAVIČKA JA podľa hárku L2 (Matej 9. 11. 2026): avatar v strede, pes ako veľký kruh vpravo vedľa neho,
+ * meno tesne pod nimi, odznaky rozložené pod menom, BEZ levelu (rovnako ako FEED). Len pod `html.papyrus3d` (APP_NEW),
+ * web ostáva na pôvodnom rozložení. Rozmery z rovnice: avatar zasahuje do titulky AV_UP, meno začína pod jeho spodkom. */
+const AV_UP = { m: 68, pc: 85 };
+/** Úvodné písmeno avatara (hárok 54, stupnica písma končí na 24, preto token mimo nej). */
+const INI_BIG = 48;
+const NM_TOP = { m: OWN.m - AV_UP.m + 14, pc: OWN.pc - AV_UP.pc + 14 };
+/** Výška rezervy pod titulkou: meno + rad odznakov (meno 28 + 24 vzduch + odznak 46 + 16 spodok). */
+const P3D_GAP = { m: NM_TOP.m + 28 + 24 + 46 + 16, pc: NM_TOP.pc + 28 + 24 + 46 + 16 };
+/** Výška lúčového pásu v rozkliku odznaku (vzduch hore + odznak 96 + vzduch dole). */
+const P3D_HERO = 136;
+const P3D_ME_CSS = `
+html.papyrus3d .me-flat .me-cover::before{-webkit-mask-image:none;mask-image:none;border-block:2.5px solid var(--p3d-ink);}
+html.papyrus3d .me-flat .me-own{left:50%;transform:translateX(-50%);top:-${AV_UP.m}px;padding:0;background:none;box-shadow:none;}
+html.papyrus3d .me-own::before,html.papyrus3d .me-own::after{display:none;}
+html.papyrus3d .me-own > button:first-child{border:4px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 5px 0 2px var(--p3d-ink);background:linear-gradient(180deg,${LAPIS.edge},${LAPIS.deep});}
+html.papyrus3d .me-own > button:first-child img{border:0;}
+html.papyrus3d .me-own .ini{font-family:'LT Museum',serif;font-weight:400;font-size:${INI_BIG}px;color:${LAPIS.ink};} /* písmo: nadpis */
+html.papyrus3d .me-own .me-arc .ad{left:92% !important;top:30% !important;width:74% !important;padding:0;background:none;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 4px 0 2px var(--p3d-ink);}
+html.papyrus3d .me-own .me-arc .ad img{border:0;}
+html.papyrus3d .me-own .me-arc .ad:nth-child(n+2){display:none;}
+html.papyrus3d .me-flat .me-mate{left:-66%;top:30%;width:74%;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 4px 0 2px var(--p3d-ink);}
+html.papyrus3d .me-flat .me-mate img,html.papyrus3d .me-flat .me-mate i{border:0;}
+html.papyrus3d .me-flat .me-foot,html.papyrus3d .me-flat.with-mate .me-foot{left:${FLAT_X}px;right:${FLAT_X}px;top:calc(100% + ${NM_TOP.m}px);bottom:auto;text-align:center;}
+html.papyrus3d .me-nm{font-family:'LT Museum',serif;font-weight:400;letter-spacing:0;text-transform:none;color:var(--p3d-ink);display:block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
+  font-size:clamp(${TX.lead}px,calc(100cqw / (var(--nl, 12) * .58)),${TX.h1}px);} /* písmo: meno */
+html.papyrus3d .me-with{color:var(--p3d-ink);}
+html.papyrus3d .me-flat .me-lv.rk-row,html.papyrus3d .me-flat.with-mate .me-foot .me-lv.rk-row{justify-content:space-between;margin-top:${S.xl}px;padding:0 ${S.xs}px;zoom:1;}
+html.papyrus3d .me-flat .me-lv.rk-row > .rk{--s:46px;}
+html.papyrus3d .me-flat .me-gap{height:${P3D_GAP.m}px;}
+html.papyrus3d .me-card.open.me-flat .me-gap{height:0;}
+html.papyrus3d .me-card.open.me-flat .me-drawer{padding-top:${P3D_GAP.m}px;}
+html.papyrus3d .me-flat .me-drow:first-child{padding-top:${S.md}px;}
+html.papyrus3d .me-dp{background:none;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink);}
+html.papyrus3d .me-dp img{border:0;}
+html.papyrus3d .me-hg .ba b{font-family:'Cinzel Decorative',serif;color:var(--p3d-ink);} /* písmo: meno */
+html.papyrus3d .me-dinfo p{color:var(--p3d-ink);}
+html.papyrus3d .me-dedit{border:2.5px solid var(--p3d-ink);color:var(--p3d-ink);border-radius:${PACK_R.tile}px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .me-cvbtn{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .me-stats{grid-template-columns:repeat(3,1fr);margin-top:${S.md}px;padding:${S.sm}px 0;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .me-stats button:nth-child(n+4){display:none;}
+html.papyrus3d .me-stats button + button{border-left:2px solid color-mix(in srgb,var(--p3d-gold-solid) 70%,transparent);}
+html.papyrus3d .me-stats b{font-size:${TX.h1}px;color:var(--p3d-ink);}
+html.papyrus3d .me-stats b.na{color:#C8202F;}
+html.papyrus3d .me-stats span{font-size:${TX.body}px;color:var(--p3d-ink);}
+html.papyrus3d .me-btns{gap:${S.md}px;margin-top:${S.xl}px;}
+${b3Look('.me-btns .pk-b3', 'paper', 'font-size:' + TX.h2 + 'px;padding:0 ' + S.sm + 'px;white-space:nowrap;')}
+html.papyrus3d .me-btns .pk-b3--lapis{--b3-a:color-mix(in srgb,${LAPIS.edge} 72%,white);--b3-b:${LAPIS.deep};--b3-p:color-mix(in srgb,${LAPIS.deep} 60%,black);--b3-l:${LAPIS.ink};--b3-i:${LAPIS.ink};}
+html.papyrus3d .me-role--label span{color:var(--p3d-gold-ink);}
+html.papyrus3d .me-role--label i{background:linear-gradient(90deg,var(--p3d-gold),transparent);}
+html.papyrus3d .me-bio p{color:var(--p3d-ink);font-size:${TX.lead}px;}
+html.papyrus3d .me-bio.empty p{color:var(--p3d-gold-ink);}
+html.papyrus3d .me-more{color:${LAPIS.edge};}
+html.papyrus3d .me-strip .pk-pill{border:2px solid var(--p3d-ink);color:var(--p3d-ink);background:var(--p3d-card);}
+html.papyrus3d .me-tabs{gap:${S.xs}px;margin-top:${S.xl}px;padding:${S.xs}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
+html.papyrus3d .me-tabs button{flex-direction:row;justify-content:center;gap:${S.sm}px;min-height:50px;padding:0;border:2.5px solid transparent;border-radius:${PACK_R.frame}px;font-family:'LT Museum',serif;font-weight:400;font-size:${TX.lead}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: cta */
+html.papyrus3d .me-tabs button img{opacity:1;}
+html.papyrus3d .me-tabs button.on{color:${LAPIS.ink};background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border-color:${LAPIS.ink};box-shadow:inset 0 2px 0 color-mix(in srgb,white 28%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),0 4px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);}
+html.papyrus3d .me-tabs button.on img{filter:none;}
+html.papyrus3d .me-grid{gap:${S.sm}px;}
+html.papyrus3d .me-grid button{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.tile}px;box-shadow:var(--p3d-lift);}
+html.papyrus3d .me-tag{border:2px solid var(--p3d-ink);}
+html.papyrus3d .me-empty{color:var(--p3d-gold-ink);}
+/* ROZKLIK ODZNAKU (L7, L8): karta so zlatým rámom, hore lúče lapisu s odznakom, pod nimi papyrus. */
+html.papyrus3d .me-rk{margin-top:${S.xl}px;padding:0 ${S.lg}px ${S.lg}px;border:3px solid var(--p3d-gold);border-radius:${PACK_R.card}px;background:var(--p3d-card) !important;box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-ink),0 13px 16px var(--p3d-sh);overflow:hidden;color:var(--p3d-ink);}
+html.papyrus3d .me-rk .rkp-hd{position:relative;flex-direction:column;align-items:center;gap:0;margin:0 -${S.lg}px ${S.sm}px;padding:${S.lg}px ${S.lg}px 0;}
+html.papyrus3d .me-rk .rkp-hd::before{content:'';position:absolute;left:0;right:0;top:0;height:${P3D_HERO}px;border-bottom:3px solid var(--p3d-gold);background:repeating-conic-gradient(from 0deg at 50% 60%,${LAPIS.deep} 0 7.5deg,color-mix(in srgb,${LAPIS.edge} 55%,#8a93b8) 7.5deg 15deg);}
+html.papyrus3d .me-rk .rkp-hd .im{position:relative;z-index:1;width:96px;height:96px;margin-bottom:${S.xl}px;}
+html.papyrus3d .me-rk .rkp-hd .im img{width:calc(96px * var(--k, 1.4));}
+html.papyrus3d .me-rk .rkp-hd .tx{position:relative;z-index:1;text-align:center;}
+html.papyrus3d .me-rk .rkp-hd h3{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h1}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .me-rk .rkp-hd p{color:var(--p3d-ink);}
+html.papyrus3d .me-rk .rkp-hd .ab{position:relative;z-index:1;margin-top:${S.xs}px;color:var(--p3d-gold-ink);}
+html.papyrus3d .me-rk .rkp-lbl{justify-content:center;text-align:center;color:var(--p3d-gold-ink);font-size:${TX.label}px;}
+html.papyrus3d .me-rk .rkp-lbl b{color:var(--p3d-ink);}
+html.papyrus3d .me-rk .rkp-bar{height:24px;border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
+html.papyrus3d .me-rk .rkp-bar span{color:var(--p3d-ink);text-shadow:none;}
+html.papyrus3d .me-rk .rkp-nx,html.papyrus3d .me-rk .rkp-cap,html.papyrus3d .me-rk .rkp-how,html.papyrus3d .me-rk .rkp-since p{color:var(--p3d-ink);}
+html.papyrus3d .me-rk .rkp-nx{justify-content:center;}
+html.papyrus3d .me-rk .rkp-since b{color:var(--p3d-ink);}
+html.papyrus3d .me-rk .rkp-nums{gap:${S.sm}px;margin-top:${S.md}px;}
+html.papyrus3d .me-rk .rkp-nums > div{padding:${S.sm}px ${S.xs}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .me-rk .rkp-nums b{font-size:${TX.h1}px;color:var(--p3d-ink);}
+html.papyrus3d .me-rk .rkp-nums span{font-size:${TX.label}px;color:var(--p3d-ink);}
+html.papyrus3d .me-rk .rkp-lad,html.papyrus3d .me-rk .bd-sec{border-top-color:var(--p3d-gold);}
+html.papyrus3d .me-rk .rkp-lad small{color:var(--p3d-ink);}
+html.papyrus3d .me-rk .rkp-lad .on small{color:var(--p3d-gold-ink);}
+${b3Look('.me-rk .rkp-act', 'paper', 'width:100%;margin-top:' + S.md + 'px;')}
+html.papyrus3d .me-rk .rkp-act svg,html.papyrus3d .me-rk .rkp-act img{filter:brightness(0);}
+@media (min-width:768px){
+  html.papyrus3d .me-flat .me-own{top:-${AV_UP.pc}px;}
+  html.papyrus3d .me-flat .me-foot,html.papyrus3d .me-flat.with-mate .me-foot{left:${S.xl}px;right:${S.xl}px;top:calc(100% + ${NM_TOP.pc}px);bottom:auto;}
+  html.papyrus3d .me-flat .me-gap{height:${P3D_GAP.pc}px;}
+  html.papyrus3d .me-card.open.me-flat .me-drawer{padding-top:${P3D_GAP.pc}px;}
+  html.papyrus3d .me-flat .me-cover::before{-webkit-mask-image:none;mask-image:none;}
+  html.papyrus3d .me-flat .me-lv.rk-row{max-width:none;gap:${S.xl}px;}
+}
+`;
+
 export const ME_FLAT_CSS = `
 .me-flat .me-nm{ font-weight:900; }
 .me-card.me-flat{ border:0; border-radius:0; background:none; box-shadow:none; margin:calc(-1 * ${TOP}) -${S.lg}px 0; }
@@ -393,6 +494,7 @@ export const ME_FLAT_CSS = `
     mask-image:${FLAT_FADE}, linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
     -webkit-mask-composite:source-in; mask-composite:intersect; }
 }
+${P3D_ME_CSS}
 `;
 
 
@@ -523,7 +625,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
         ))}
       </div>
       <div className="me-foot">
-        <h1 className="me-nm" style={{ ['--nm' as string]: Math.max(8, ...String(name ?? '').split(/\s+/).map((w) => w.length + (seal ? 1 : 0))) }}>{name}{seal && <DogSeal tier={seal} own={!foreign} label={sealText} size="0.8em" />}</h1>
+        <h1 className="me-nm" style={{ ['--nm' as string]: Math.max(8, ...String(name ?? '').split(/\s+/).map((w) => w.length + (seal ? 1 : 0))), ['--nl' as string]: Math.max(8, String(name ?? '').length + (seal ? 1 : 0)) }}>{name}{seal && <DogSeal tier={seal} own={!foreign} label={sealText} size="0.8em" />}</h1>
         {withName && <p className="me-with">&amp; {withName}</p>}
         {RANK_BADGE_ON && <style>{RANK_BADGE_CSS}</style>}
         {noRanks ? null : RANK_BADGE_ON ? (

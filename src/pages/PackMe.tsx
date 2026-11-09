@@ -395,10 +395,10 @@ export default function PackMe() {
           </div>
 
           <div className="me-btns">
-            <button type="button" className="me-cta" onClick={() => navigate('/pack/profile/edit')}>{tx('pack.me.editProfile', 'Edit profile')}</button>
+            <button type="button" className={`me-cta${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} onClick={() => navigate('/pack/profile/edit')}>{tx('pack.me.editProfile', 'Edit profile')}</button>
             {/* „Ako ma vidia" zrušené (Matej 23. 10.: „ako ma vidia je teda hlúposť") — na jeho mieste
                 POZVI: zdieľa kartu psa, z ktorej rastie číslo „brought in". */}
-            <button type="button" className="me-out" onClick={invite}>{tx('pack.me.invite', 'Invite')}</button>
+            <button type="button" className={`me-out${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={invite}>{tx('pack.me.invite', 'Invite')}</button>
           </div>
 
           {/* ROLA = NADPIS NAD BIO, nie pilulka (TEST_BUILD, Matej 25. 10.: *„pill pawtner sa mi nepáči, lebo je taký

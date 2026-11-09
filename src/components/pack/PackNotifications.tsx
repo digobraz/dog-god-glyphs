@@ -18,6 +18,7 @@ import { SNIFFER_HEART } from './buddy/SnifferLogo';
 import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
 import { TopCircle, TOP_CIRCLE_PX } from './TopCircle';
 import { LAPIS } from './navGoldSkin';
+import { NTF_P3D_CSS } from './notifP3d';
 // Lazy, rovnaký dôvod ako pri `packAlerts`: `packHumans` ťahá `packStore`.
 const respondWalkInviteLazy = (id: string, accept: boolean) =>
   import('@/lib/packHumans').then((m) => m.respondWalkInvite(id, accept));
@@ -487,6 +488,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           tie isté, len stoja v papyrusovom skle pod blokom DOGYPT STATS. „Tep svorky" (prírastok
           dnes / za 30 dní / spolu) odišiel do bloku STATS. */}
       {open && createPortal(
+        <>
+        {APP_NEW && <style>{NTF_P3D_CSS}</style>}
         <NotifSheet ref={panelRef} onClose={closeSheet} hasReal={DEV_FULL && (hasListed || unreadConvs.length > 0)}
           oznam={APP_NEW ? { grown: grownAtOpen } : undefined}
           history={APP_NEW ? { has: hasOldAlerts, open: showOld, onOpen: () => setShowOld(true) } : undefined}>
@@ -568,7 +571,10 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                               padding: '4px 12px', borderRadius: 8, cursor: 'pointer',
                               ...(yes
                                 ? { background: LAPIS.grad, color: '#fff', border: `1px solid ${LAPIS.edge}` }
-                                : { background: 'none', color: T.inkDim, border: `1px solid ${T.hairline}` }),
+                                : APP_NEW
+                                  // Papyrus 3D: odmietnutie = celé červené (negatívne CTA)
+                                  ? { background: T.alertRed, color: '#fff', border: `1px solid ${T.alertRed}` }
+                                  : { background: 'none', color: T.inkDim, border: `1px solid ${T.hairline}` }),
                             }}
                           >
                             {t(yes ? 'pack.alerts.walkInviteYes' : 'pack.alerts.walkInviteNo')}
@@ -712,7 +718,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
               </ul>
                           </>
           )}
-        </NotifSheet>,
+        </NotifSheet>
+        </>,
         document.body,
       )}
     </div>

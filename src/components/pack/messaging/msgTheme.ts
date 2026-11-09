@@ -12,6 +12,7 @@
 // MOJA bublina = lapis (hlas „ja"), odosielacie tlačidlo tá istá rodina. Cudzia = bledý blok.
 // ════════════════════════════════════════════════════════════════════════════
 import { PACK_THEME, PAPER_BG } from '@/components/pack/packTheme';
+import { MSG_P3D_CSS } from './msgP3d';
 
 const T = PACK_THEME;
 
@@ -57,4 +58,5 @@ export const MSG_SKIN_CSS = `
 }
 /* PODKLAD STRÁNKY = plochý papyrus, BEZ tapety heroglyfov (ani ::before/::after). */
 .msg-skin{position:relative;background-color:var(--msg-page);color:var(--msg-ink);}
+${MSG_P3D_CSS}
 `;

@@ -162,7 +162,8 @@ export function Inbox({ onOpenThread, onClose, onOpenTrip, onOpenSniffer }: {
         {APP_NEW && convs.length > 0 && <div className="msg-sniff"><SnifferStrip onGo={onOpenSniffer} /></div>}
         {convs.length === 0 ? (
           <div className="msg-emptybox">
-            <BrandIcon name="chat" size={48} tint="gold" />
+            {/* Papyrus 3D (K2): obálka, nie bubliny */}
+            {APP_NEW ? <img className="msg-emptyimg" src="/icons/kruhy/spravy.webp" alt="" /> : <BrandIcon name="chat" size={48} tint="gold" />}
             <p className="msg-emptytitle">{t('pack.msg.emptyTitle')}</p>
             {/* Matej 28. 10.: „ak nebudú žiadne správy, nebude tam sniffer!“ — nová správa = „+“ v hlavičke. */}
           </div>

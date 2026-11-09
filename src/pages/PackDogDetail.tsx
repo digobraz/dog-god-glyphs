@@ -14,7 +14,7 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { DogPassport, type FixedRow } from '@/components/pack/DogPassport';
 import { WillPanel } from '@/components/pack/WillPanel';
-import { PACK_THEME, PILL_CSS, VEIL_CSS, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE, PACK_SHADOW, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PILL_CSS, VEIL_CSS, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE, PACK_SHADOW, PACK_R, FONT_UI } from '@/components/pack/packTheme';
 import { dogTripStats } from '@/lib/dogTripStats';
 import { readEvents, readLatest, onDogEventsChange } from '@/lib/dogEvents';
 import { TILT_CSS, TILT_PROPS } from '@/components/pack/packTilt';
@@ -165,6 +165,19 @@ const DOGID_CSS = `
 .did-angel{display:flex;align-items:center;justify-content:center;gap:8px;margin:24px auto 8px;padding:8px;background:none;border:0;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:14px;color:${T.alertRed};cursor:pointer;}
 .did-angel u{text-underline-offset:4px;}
 .did-angel img{width:28px;height:28px;object-fit:contain;filter:brightness(0) saturate(100%) invert(38%) sepia(27%) saturate(1070%) hue-rotate(327deg) brightness(93%) contrast(85%);}
+/* ── ŠAT PAPYRUS 3D (hárok map-herne-2026-11-09, O2 až O6) — len pod html.papyrus3d ── */
+html.papyrus3d .did-name--app{font-family:'LT Museum',serif;font-weight:400;letter-spacing:0;text-transform:none;} /* písmo: meno */
+html.papyrus3d .dic-card{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-b3);margin:0 0 ${PACK_SPACE.xl}px;}
+html.papyrus3d .dic-card.dic-dark{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border:2.5px solid var(--p3d-ink);margin:0 0 ${PACK_SPACE.xl}px;}
+html.papyrus3d .dic-card.dic-trio{margin:0 0 ${PACK_SPACE.xl}px;}
+html.papyrus3d .dic-ttl h3{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;letter-spacing:0;text-transform:none;} /* písmo: nadpis */
+html.papyrus3d .dic-coin{border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .dic-cta.pass-cta{--b3-a:color-mix(in srgb,${LAPIS.edge} 72%,white);--b3-b:${LAPIS.deep};--b3-p:color-mix(in srgb,${LAPIS.deep} 60%,black);--b3-l:${LAPIS.ink};--b3-i:${LAPIS.ink};--b3-r:${PACK_R.card}px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:var(--p3d-b3);font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;letter-spacing:0;text-transform:none;margin-bottom:${PACK_SPACE.xl}px;} /* písmo: cta */
+html.papyrus3d .did-dl{min-height:48px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:linear-gradient(180deg,#fff,var(--p3d-paper));color:var(--p3d-ink);box-shadow:var(--p3d-lift);font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;letter-spacing:0;text-transform:none;} /* písmo: cta */
+html.papyrus3d .did-dl--on{border-color:#EFD79A;background:linear-gradient(180deg,color-mix(in srgb,#16307A 72%,white),#0A1A4A);color:#EFD79A;}
+html.papyrus3d .did-angel{min-height:56px;padding:0 ${PACK_SPACE.lg}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:linear-gradient(180deg,color-mix(in srgb,#C8202F 62%,white),#C8202F);color:#fff;--angel-p:#9E1522;box-shadow:inset 0 2px 0 color-mix(in srgb,white 40%,transparent),0 5px 0 var(--angel-p);font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;} /* písmo: cta */
+html.papyrus3d .did-angel u{text-decoration:none;}
+html.papyrus3d .did-angel img{filter:brightness(0) invert(1);}
 `;
 
 // "labrador retriever" → "Labrador Retriever"

@@ -17,6 +17,7 @@
 // 🎨 HRAVÉ FARBY SÚ ZÁMER (Matej: „aj farby by som použil, nech je to hravé"), paleta žije len tu.
 //    Kresby sú Matejom vybrané kusy z kitu, kópie v `public/icons/sniffer/`, farbí ich CSS maska.
 import { useEffect, useState } from 'react';
+import { APP_NEW } from '@/lib/packFlags';
 
 export const ICONS: Array<{ file: string; color: string }> = [
   { file: 'smile', color: '#E86FB0' },
@@ -93,6 +94,13 @@ export function SnifferLogo({ size = 200, onDone }: { size?: number; onDone?: ()
     const id = window.setTimeout(onDone, reduce ? 0 : SNIFFER_LOGO_DONE_MS);
     return () => window.clearTimeout(id);
   }, [run, onDone]);
+  // Papyrus 3D (P1): statické srdce s nosom z hárku, bez animácie; `onDone` sa volá hneď (nápis a veta nabehnú na ďalší ťah).
+  useEffect(() => {
+    if (APP_NEW && onDone) onDone();
+  }, [onDone]);
+  if (APP_NEW) {
+    return <div className="bd-logo3d" role="img" aria-label="SNIFFER"><img src="/icons/sys/pridaj-sniffer.webp" alt="" /></div>;
+  }
   return (
     <>
       <style>{CSS}</style>

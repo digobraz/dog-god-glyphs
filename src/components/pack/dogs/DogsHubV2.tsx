@@ -18,7 +18,8 @@ import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel } from '@/components/pack/profil
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { PACK_THEME, PACK_HEAD } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_HEAD, PACK_TEXT, PACK_R, PACK_SPACE } from '@/components/pack/packTheme';
+import { LAPIS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { APP_NEW } from '@/lib/packFlags';
@@ -217,6 +218,32 @@ const CSS = `
 .dv2-yb i{height:auto;aspect-ratio:1}
 .dv2-ybr{position:absolute;left:0;bottom:0;height:2.5px;background:var(--g);border-radius:2px}
 .dv2-ybr::after{content:"";position:absolute;right:0;top:-3px;width:2.5px;height:8px;background:var(--g);border-radius:2px}
+/* ── ŠAT PAPYRUS 3D (hárok map-herne-2026-11-09, N1 až N3) — len pod html.papyrus3d, web ho nemá ── */
+html.papyrus3d .dv2-title{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h1}px !important;letter-spacing:0;text-transform:none;} /* písmo: nadpis */
+html.papyrus3d .dv2-head{border-bottom:0;}
+html.papyrus3d .dv2-add,html.papyrus3d .dv2-cta,html.papyrus3d .dv2-cta2,html.papyrus3d .dv2-out{border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);text-transform:none;letter-spacing:0;font:400 ${PACK_TEXT.lead}px/1 'LT Museum',serif;box-shadow:var(--p3d-b3);margin-top:0;} /* písmo: cta */
+html.papyrus3d .dv2-add{height:48px;padding:0 ${PACK_SPACE.md}px;}
+html.papyrus3d .dv2-cta,html.papyrus3d .dv2-out{height:56px;font-size:${PACK_TEXT.h2}px;}
+html.papyrus3d .dv2-cta2{height:48px;margin-top:${PACK_SPACE.md}px;}
+html.papyrus3d .dv2-tabs{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-gold-solid);background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
+html.papyrus3d .dv2-tab{height:50px;border-radius:${PACK_R.frame}px;}
+html.papyrus3d .dv2-tab.on{border:2.5px solid ${LAPIS.ink};background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});box-shadow:inset 0 2px 0 color-mix(in srgb,white 28%,transparent),0 4px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);}
+html.papyrus3d .dv2-tl{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;letter-spacing:0;text-transform:none;color:#EFD79A;} /* písmo: nadpis */
+html.papyrus3d .dv2-ring{border:3px solid var(--p3d-ink);background:var(--p3d-gold);}
+html.papyrus3d .dv2-st.sel .dv2-ring{box-shadow:0 0 0 3px var(--p3d-paper-hi),0 6px 0 var(--p3d-gold-solid);}
+html.papyrus3d .dv2-nm{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.label}px;} /* písmo: meno */
+html.papyrus3d .dv2-pct{border:2px solid var(--p3d-ink);}
+html.papyrus3d .dv2-solo,html.papyrus3d .dv2-solo.ok{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-b3);}
+html.papyrus3d .dv2-sp>b{font-size:${PACK_TEXT.h1}px;}
+html.papyrus3d .dv2-vit,html.papyrus3d .dv2-idc,html.papyrus3d .dv2-goal{border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-b3);}
+html.papyrus3d .dv2-goal{border-radius:${PACK_R.card}px;background:var(--p3d-card);}
+html.papyrus3d .dv2-goal button{border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift);background:var(--p3d-paper-hi);color:var(--p3d-ink);}
+html.papyrus3d .dv2-vt{font-family:'LT Museum',serif;font-weight:400;letter-spacing:0;} /* písmo: nadpis */
+html.papyrus3d .dv2-name{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h1}px;} /* písmo: meno */
+html.papyrus3d .dv2-tt b{font-family:'LT Museum',serif;font-weight:400;} /* písmo: meno */
+html.papyrus3d .dv2-no{border:2px solid ${LAPIS.ink};}
+html.papyrus3d .dv2-ph,html.papyrus3d .dv2-lf img{box-shadow:0 0 0 2.5px var(--p3d-ink);}
+html.papyrus3d .dv2 .c-ok,html.papyrus3d .dv2 .c-goal,html.papyrus3d .dv2 .c-br{box-shadow:inset 0 0 0 2px var(--p3d-ink);}
 `;
 
 /** Záložky — nová sekcia (KRMENIE, KALENDÁR…) = nový riadok tu. Ikonky z kitu Icons hand drawn. */
@@ -367,7 +394,7 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
 /** PRIDAŤ — v appke sa nekupuje (Apple IAP) a ani neodkazuje na web (31. 10. 2026): tlačidlo v appke nie je. */
 function AddDog({ tx }: { tx: Tx }) {
   if (IS_APP) return null;
-  return <Link to="/heroglyph" className="dv2-add">+ {tx('pack.dogs2.add', 'Add')}</Link>;
+  return <Link to="/heroglyph" className="dv2-add pk-b3 pk-b3--paper">+ {tx('pack.dogs2.add', 'Add')}</Link>;
 }
 
 function SoloInfo({ v, total, tx }: { v: View; total: number; tx: Tx }) {
@@ -389,7 +416,7 @@ function SoloInfo({ v, total, tx }: { v: View; total: number; tx: Tx }) {
       ) : (
         <>
           <p>{tx('pack.dogs2.left', '{n} questions left · about {m} min').replace('{n}', String(left)).replace('{m}', String(min))}</p>
-          <Link to={`/pack/dogs/dogid?dog=${v.dog.id}`} className="dv2-out">{tx('pack.dogs2.fill', 'Fill in')}</Link>
+          <Link to={`/pack/dogs/dogid?dog=${v.dog.id}`} className="dv2-out pk-b3 pk-b3--lapis">{tx('pack.dogs2.fill', 'Fill in')}</Link>
         </>
       )}
     </div>
@@ -420,7 +447,7 @@ function PackDogId({ dogs, latest, tx }: { dogs: DogsV2Dog[]; latest: Latest; tx
           </ul>
         </div>
       </div>
-      <Link to="/pack/dogs/dogid" className="dv2-cta">
+      <Link to="/pack/dogs/dogid" className="dv2-cta pk-b3 pk-b3--lapis">
         {dogs.length > 1 ? tx('pack.dogs2.fillAll', 'Fill in for all') : tx('pack.dogs2.fill', 'Fill in')}
       </Link>
     </>
@@ -460,10 +487,10 @@ function OneDogId({ v, solo, total, tx }: { v: View; solo: boolean; total: numbe
           </p>
         </>
       )}
-      <Link to={`/pack/dogs/${v.dog.id}`} className="dv2-cta">{tx('pack.dogs2.open', 'Open DOG ID')}</Link>
+      <Link to={`/pack/dogs/${v.dog.id}`} className="dv2-cta pk-b3 pk-b3--lapis">{tx('pack.dogs2.open', 'Open DOG ID')}</Link>
       {v.angel
         ? <p className="dv2-memo">{tx('pack.dogs2.forever', 'forever in the pack')}</p>
-        : !solo && v.pct < 100 && <Link to={`/pack/dogs/dogid?dog=${v.dog.id}`} className="dv2-cta2">{tx('pack.dogs2.complete', 'Complete')}</Link>}
+        : !solo && v.pct < 100 && <Link to={`/pack/dogs/dogid?dog=${v.dog.id}`} className="dv2-cta2 pk-b3 pk-b3--paper">{tx('pack.dogs2.complete', 'Complete')}</Link>}
     </>
   );
 }

@@ -8,6 +8,7 @@ import {
   PACK_THEME as T, PACK_BOX, PACK_HEAD, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, FONT_UI,
 } from '@/components/pack/packTheme';
 import { SNIFFER_HEART } from './SnifferLogo';
+import { APP_NEW } from '@/lib/packFlags';
 
 export const SNIFFER_EMPTY_CSS = `
 /* STĹPEC: obrázok hore celou šírkou, text pod ním. Obrázok sa zmenšuje LEN výškou
@@ -33,6 +34,20 @@ type Tx = (key: string, fallback: string, vars?: Record<string, string | number>
 /** `line` = veta pod UPS… — prázdne ZHODY nesú vlastnú (Matej 26. 9.: „bod 3 daj tam ten istý
  *  obrázok UPS čo sme už urobili"), obrázok aj oznam ostávajú rovnaké. */
 export function SnifferEmpty({ tx, line }: { tx: Tx; line?: string }) {
+  // Papyrus 3D (P9): jazvečík, Ups… a karta s oznamom; web ostáva na starom bloku.
+  if (APP_NEW) {
+    return (
+      <div className="se-p3d">
+        <img src="/icons/jazvecik-zadok.webp" alt="" />
+        <b className="se-oops">{tx('pack.sniffer.emptyOops', 'Oops…')}</b>
+        <strong>{line ?? tx('pack.sniffer.emptyTitle', 'Nobody here matches your preferences.')}</strong>
+        <div className="se-note" style={{ ...PACK_BOX.subblockDark }}>
+          <i style={{ ...PACK_HEAD.label }}>{tx('pack.sniffer.emptyNoteLabel', 'Notice')}</i>
+          <p>{tx('pack.sniffer.emptyNote', 'There are only a few of us, DOGYPT has only just been born… Bring your friends here and help us fill it.')}</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="se-box">
       <img src="/images/sniffer/empty-deck.webp" alt="" />

@@ -13,6 +13,7 @@ import { intlLocale } from '@/i18n/bcp47';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { lostUrl, sosClose, sosDiaryEvent, sosDiaryMark, sosResume, sosStillSearching, type LostOutcome, type LostPublic, type SosMine } from '@/lib/sos';
 import { PACK_BOX } from '@/components/pack/packTheme';
+import { APP_NEW } from '@/lib/packFlags';
 import { shareLostDog, sosInvalidate } from '@/components/pack/sosKit';
 import { MemorialControl } from '@/components/pack/MemorialControl';
 import { DiaryEntry, type DiaryEditTarget } from '@/components/pack/diary/DiaryEntry';
@@ -152,10 +153,21 @@ export default function PackSosDetail() {
   };
   const diaryTx = (k: string, fb: string) => { const v = t(k); return v === k ? fb : v; };
 
-  return (
-    <PackLayout onBack={back} backLabel={s('pack.sos.back')}>
-      <SosStyles />
-      <div className="sos-stack">
+  // Papyrus 3D (J4): fotka a pás STRATIL SA tvoria jeden blok hore, meno hneď pod ním (hárok), pod APP_NEW.
+  const photoEl = pub.photo
+    ? <img className="sos-photo" src={sizedUrl(pub.photo, 900)} alt={pub.dog_name} />
+    : <div className="sos-photo sos-photo--none" />;
+  const nameEl = (
+    <>
+      <h1 className="sos-dogname">{pub.dog_name}</h1>
+      {sub && <p className="sos-dogsub">{sub}</p>}
+      {status === 'found' && !own && pub.search_days != null && (
+        <p className="sos-dogsub">{pub.shares ? s('pack.sos.pub.searched', { days: count.days(pub.search_days), shares: count.shares(pub.shares) }) : s('pack.sos.pub.searched0', { days: count.days(pub.search_days) })}</p>
+      )}
+    </>
+  );
+  const band = (
+    <>
         {status === 'found' ? (
           <div className="sos-band sos-band--found"><b>{s('pack.sos.found')}</b><small>{own ? s('pack.sos.alive.thanks') : s('pack.sos.pub.foundText')}</small></div>
         ) : gone ? (
@@ -165,14 +177,28 @@ export default function PackSosDetail() {
         ) : (
           <div className="sos-band"><b>{s('pack.sos.lost')}</b><small>{placeWhen}</small></div>
         )}
+    </>
+  );
+
+  return (
+    <PackLayout onBack={back} backLabel={s('pack.sos.back')}>
+      <SosStyles />
+      <div className="sos-stack">
+        {APP_NEW ? <><div className="sos-hero">{photoEl}{band}</div>{nameEl}</> : band}
 
         {status === 'active' && own && FoundCta}
-        {!finished && !own && (
+        {!finished && !own && (APP_NEW ? (
+          // Papyrus 3D (J4): ZAVOLAŤ červené (význam), VIDEL SOM HO lapis, vedľa seba
+          <div className="sos-two">
+            <button type="button" className="sos-cta sos-cta--red" onClick={() => setPop('call')}>{s('pack.sos.det.call')}</button>
+            <button type="button" className="sos-cta" onClick={() => setPop('seen')}>{s('pack.sos.det.seen')}</button>
+          </div>
+        ) : (
           <>
             <button type="button" className="sos-cta" onClick={() => setPop('call')}>{s('pack.sos.det.call')}</button>
             <button type="button" className="sos-cta sos-cta--ghost" onClick={() => setPop('seen')}>{s('pack.sos.det.seen')}</button>
           </>
-        )}
+        ))}
         {status === 'ended' && own && mine && (
           <SosCard>
             <h2 className="sos-h2">{s('pack.sos.det.endedTitle')}</h2>
@@ -225,14 +251,8 @@ export default function PackSosDetail() {
           </SosCard>
         )}
 
-        {pub.photo
-          ? <img className="sos-photo" src={sizedUrl(pub.photo, 900)} alt={pub.dog_name} />
-          : <div className="sos-photo sos-photo--none" />}
-        <h1 className="sos-dogname">{pub.dog_name}</h1>
-        {sub && <p className="sos-dogsub">{sub}</p>}
-        {status === 'found' && !own && pub.search_days != null && (
-          <p className="sos-dogsub">{pub.shares ? s('pack.sos.pub.searched', { days: count.days(pub.search_days), shares: count.shares(pub.shares) }) : s('pack.sos.pub.searched0', { days: count.days(pub.search_days) })}</p>
-        )}
+        {!APP_NEW && photoEl}
+        {!APP_NEW && nameEl}
         {status === 'active' && <p className="sos-motto">{s('pack.sos.det.motto')}</p>}
 
         {status === 'active' && own && mine && (

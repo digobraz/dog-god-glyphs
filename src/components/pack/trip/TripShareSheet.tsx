@@ -433,6 +433,84 @@ async function render3d(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: R
   ctx.fillText(tx.motto, cx, mY);
 }
 
+/** PAPYRUS 3D šablóna KARTY PSA (hárok O12) — fotka s tvrdou hranou, lapisová pilulka s číslom na hrane, meno v Museum, heroglyf v rámiku. Len pod `APP_NEW`. */
+async function render3dDog(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: RenderOpts) {
+  const { w: W, h: H } = FMT[o.fmt], cx = W / 2, ig = o.fmt === 'ig';
+  const lg = await loadImg(logoGold);
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  if (!ctx) return;
+  const safeBot = ig ? H - 250 : H - 60;
+  const lgW = ig ? 230 : 190, lgH = lg ? lgW * lg.height / lg.width : 0;
+  const mY = ig ? safeBot + 40 : H - 64;
+  const lY = mY - 20 - lgH;
+  const slotH = 150, sY = lY - 36 - slotH;
+  const end = ig ? sY - 44 : lY - 92;
+  const big = ig ? 120 : 96;
+  const gW = o.glyph ? Math.min(760, (ig ? 230 : 190) * o.glyph.width / o.glyph.height) : 0;
+  const gH = o.glyph ? gW * o.glyph.height / o.glyph.width : 0;
+  const frameH = o.glyph ? gH + 48 : 0;
+  const tH = title3d(ctx, d.name, cx, 0, big, true);
+  const contentTop = end - tH - (o.glyph ? 36 + frameH : 0);
+  const pillH = ig ? 104 : 88;
+  const photoH = Math.max(300, contentTop - 28 - pillH / 2);
+
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, P3D.paperHi); bg.addColorStop(1, '#EBD7A8');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  cover(ctx, o.photo, 0, 0, W, photoH, o.off);
+  ctx.fillStyle = P3D.ink; ctx.fillRect(0, photoH, W, 6);
+  ctx.fillStyle = P3D.gold; ctx.fillRect(0, photoH + 6, W, 10);
+
+  // lapisová pilulka s číslom psa na hrane fotky (Space Grotesk: Museum ani Cinzel nemajú čitateľné číslice)
+  if (d.badge) {
+    const bfs = ig ? 40 : 34;
+    ctx.font = `600 ${bfs}px "Space Grotesk", sans-serif`;
+    const bw = ctx.measureText(d.badge).width + bfs * 2, bh = bfs * 2.2, bx = cx - bw / 2, by = photoH + 8 - bh / 2;
+    rr(ctx, bx, by + 10, bw, bh, bh / 2); ctx.fillStyle = '#060F2C'; ctx.fill();
+    const g = ctx.createLinearGradient(0, by, 0, by + bh); g.addColorStop(0, '#5B6FAE'); g.addColorStop(1, '#0A1A4A');
+    rr(ctx, bx, by, bw, bh, bh / 2); ctx.fillStyle = g; ctx.fill();
+    ctx.lineWidth = 6; ctx.strokeStyle = '#EFD79A'; ctx.stroke();
+    ctx.fillStyle = '#EFD79A'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(d.badge, cx, by + bh / 2 + 2);
+  }
+
+  const ty = title3d(ctx, d.name, cx, contentTop, big, false);
+  if (o.glyph) {
+    const fw = gW + 64, fx = cx - fw / 2, fy = ty + 36;
+    rr(ctx, fx, fy + 9, fw, frameH, 28); ctx.fillStyle = P3D.goldSolid; ctx.fill();
+    rr(ctx, fx, fy, fw, frameH, 28); ctx.fillStyle = P3D.paperHi; ctx.fill();
+    ctx.lineWidth = 6; ctx.strokeStyle = P3D.ink; ctx.stroke();
+    ctx.drawImage(o.glyph, cx - gW / 2, fy + 24, gW, gH);
+  }
+
+  if (ig) {
+    if (!o.exportMode) {
+      ctx.save(); ctx.setLineDash([22, 16]); ctx.lineWidth = 5; ctx.strokeStyle = SLOT_INK;
+      rr(ctx, cx - 310, sY, 620, slotH, 28); ctx.stroke(); ctx.restore();
+      ctx.fillStyle = SLOT_INK; ctx.globalAlpha = 0.75; ctx.font = `500 34px "Space Grotesk", ${FONT_EMOJI}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(`🔗  ${tx.slot}`, cx, sY + slotH / 2 + 2); ctx.globalAlpha = 1;
+    }
+  } else {
+    ctx.fillStyle = WARM; ctx.font = `500 28px "Space Grotesk", ${FONT_EMOJI}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(tx.fbLine, cx, lY - 56);
+  }
+  if (lg) {
+    const lc = document.createElement('canvas'); lc.width = lgW * 2; lc.height = lgH * 2;
+    const lx = lc.getContext('2d');
+    if (lx) {
+      lx.drawImage(lg, 0, 0, lc.width, lc.height);
+      lx.globalCompositeOperation = 'source-in'; lx.fillStyle = P3D.ink; lx.fillRect(0, 0, lc.width, lc.height);
+      ctx.drawImage(lc, cx - lgW / 2, lY, lgW, lgH);
+    }
+  }
+  ctx.fillStyle = P3D.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  let mfs = 34;
+  for (; mfs > 12; mfs -= 1) { ctx.font = `900 ${mfs}px ${MUSEUM}`; if (ctx.measureText(tx.motto).width <= lgW) break; }
+  ctx.fillText(tx.motto, cx, mY);
+}
+
 function slug(name: string): string {
   return name.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'trip';
@@ -486,7 +564,7 @@ html.papyrus3d .tsh-x .tsh-ic{width:24px;height:24px;}
 html.papyrus3d .tsh-lbl{color:var(--p3d-gold-ink);}
 html.papyrus3d .tsh-prev canvas{border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift);}
 html.papyrus3d .tsh-pills.pk-p3d-sw{display:grid;flex-direction:initial;}
-html.papyrus3d .tsh-pill{border:0;background:transparent;border-radius:14px;height:50px;padding:0 8px;gap:4px;white-space:nowrap;font:400 16px/1 'LT Museum',serif;color:var(--p3d-ink);}
+html.papyrus3d .tsh-pill{border:0;background:transparent;border-radius:14px;min-width:0;min-height:50px;padding:4px;gap:4px;white-space:normal;overflow-wrap:anywhere;text-align:center;font:400 14px/1.1 'LT Museum',serif;color:var(--p3d-ink);}
 html.papyrus3d .tsh-pill.on{border:2.5px solid var(--on-l);background:var(--on-bg);color:var(--on-l);box-shadow:var(--on-sh);}
 html.papyrus3d .tsh-ph{border:2.5px solid var(--p3d-ink);border-radius:16px;opacity:.6;}
 html.papyrus3d .tsh-ph.on{border-color:#16307A;opacity:1;}
@@ -575,8 +653,8 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
     let live = true;
     setReady(false);
     const o = { fmt, photo, off, glyph };
-    // APP_NEW + výlet = Papyrus 3D šablóna; web a karta psa ostávajú na pôvodnej `render`
-    const draw = APP_NEW && kind === 'trip' ? render3d : render;
+    // APP_NEW = Papyrus 3D šablóna (výlet `render3d`, karta psa `render3dDog`); web ostáva na pôvodnej `render`
+    const draw = APP_NEW ? (kind === 'trip' ? render3d : render3dDog) : render;
     void draw(cv, data, tx, { ...o, exportMode: false }).then(async () => {
       if (!live) return;
       const c = document.createElement('canvas');
