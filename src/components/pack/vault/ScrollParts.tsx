@@ -25,12 +25,16 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, AI_WORLD, BRAIN_STATE, aiWorld } from '@/components/pack/ainubisSkin';
-import { HandStar, HandPlus, HandPaw, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft, HandTrash, HandLock } from '@/components/pack/HandIcons';
+import { HandPlus, HandArrowLeft } from '@/components/pack/HandIcons';
+import { APP_NEW } from '@/lib/packFlags';
+import { LikeIc, SaveIc, LockIc, CheckIc, PencilIc, AlertIc, CameraIc, TrashIc, BackIc, NextIc } from '@/components/app/sysSwap';
 
 /** Kresba z kitu `/icons/pack/` cez masku (ten istý zápis ako v PackAinubis). */
-const Ic = ({ ic }: { ic: string }) => (
-  <i className="zv-ic" aria-hidden style={{ WebkitMaskImage: `url(/icons/pack/${ic}.svg)`, maskImage: `url(/icons/pack/${ic}.svg)` }} />
-);
+/** APP_NEW: kresby, ktoré továreň vybrala (play, chat), idú ako samolepka (`zv-ic--sys`, maska by farbu nevykreslila). */
+const IC_SYS: Record<string, string> = { play: 'prehraj', chat: 'komentar', 'chat-right-full': 'komentar' };
+const Ic = ({ ic }: { ic: string }) => (APP_NEW && IC_SYS[ic]
+  ? <i className="zv-ic zv-ic--sys" aria-hidden style={{ backgroundImage: `url(/icons/sys/${IC_SYS[ic]}.webp)` }} />
+  : <i className="zv-ic" aria-hidden style={{ WebkitMaskImage: `url(/icons/pack/${ic}.svg)`, maskImage: `url(/icons/pack/${ic}.svg)` }} />);
 import { BackButton } from '@/components/pack/BackButton';
 import { PackTopRight } from '@/components/pack/PackLayout';
 import { useMagnetPreview } from '@/components/pack/magnetPreview';
@@ -399,6 +403,7 @@ ${packColCSS('.zv-wrap')}
 .zv-done.is-done{background:var(--zv-read);border-color:var(--zv-read);color:#03140A;cursor:default;transform:none;}
 .zv-ic{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:${PACK_SPACE.xs}px;background:currentColor;
   -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;}
+.zv-ic--sys{-webkit-mask:none;mask:none;background-color:transparent;background-size:contain;background-position:center;background-repeat:no-repeat;transform:scale(1.3);}
 .zv-chip svg{vertical-align:-2px;margin-right:${PACK_SPACE.xs}px;}
 .zv-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.md}px);z-index:41;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;background:${AINUBIS.surfaceBase};
@@ -485,13 +490,13 @@ export function ScrollActions({ id, lang, onTalk, lock }: {
       <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={lock ?? (() => toggleLiked(id))} aria-label={u.like}>
         {/* LABKA, nie srdce — Matej 26. 10. pri FEEDe: lajk = labka všade, DOGSCROLL = „to isté, len v inom priečinku“
             (prebíja 4. 10. „dajme srdiečko“; nákres plany/nakres-feed-2026-10-26.html). */}
-        <HandPaw size={20} on={liked} color={AINUBIS.cyan} /><span className="zv-n">{likes}</span>
+        <LikeIc size={20} on={liked} color={AINUBIS.cyan} /><span className="zv-n">{likes}</span>
       </button>
       {/* PORADIE VŠADE: labka · komentár · ☆ (Matej 26. 10. 2026, lock architektura-pack §4.2). */}
       <button type="button" data-k="talk" className={`zv-act${talk > 0 ? ' is-on' : ''}`} onClick={lock ?? onTalk} aria-label={u.talk}>
         <Ic ic={talk > 0 ? 'chat-right-full' : 'chat'} /><span className="zv-n">{talk}</span>
       </button>
-      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={lock ?? (() => toggleSaved(id))} aria-label={u.save}><HandStar size={20} filled={saved} /><span className="zv-n">{saves}</span></button>
+      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={lock ?? (() => toggleSaved(id))} aria-label={u.save}><SaveIc size={20} filled={saved} /><span className="zv-n">{saves}</span></button>
     </div>
   );
 }
@@ -533,7 +538,7 @@ export function ScrollCard({ z, lang, worldName, onOpen, onShare, lock, locked, 
       <div className="akv-zvimg">
         {z.img && <img {...scrollThumb(z.img)} alt="" loading={eager ? 'eager' : 'lazy'} onClick={() => onOpen(z.id)} />}
         {locked
-          ? <span className="zv-lockbadge" aria-hidden><HandLock size={20} /></span>
+          ? <span className="zv-lockbadge" aria-hidden><LockIc size={20} /></span>
           : <ScrollActions id={z.id} lang={lang} onTalk={() => onOpen(z.id, 'talk')} lock={lock} />}
       </div>
       <div className="akv-zvt">
@@ -557,7 +562,7 @@ export function ScrollCard({ z, lang, worldName, onOpen, onShare, lock, locked, 
           {/* STAV JE V CTA (Matej 3. 10.: krúžok s ✓ „aplikovať priamo do CTA… zo začiatku sivé,
               po vypočutí/prečítaní sa označí farebne ako pri tripoch (prejdené)") — zelený tint. */}
           <button type="button" className={`zv-read${s === 2 ? ' is-done' : ''}`} onClick={() => onOpen(z.id)}>
-            {locked && <HandLock size={14} />}{s === 2 && <HandCheck size={14} />}{s === 2 ? u.readDone : u.read}
+            {locked && <LockIc size={14} />}{s === 2 && <CheckIc size={14} />}{s === 2 ? u.readDone : u.read}
           </button>
           {pod && !locked && <button type="button" className="akv-zvsec" onClick={() => onOpen(z.id, 'pod')}><Ic ic="play" />{u.listen} · {fmtSec(pod.sec)}</button>}
         </div>
@@ -772,12 +777,12 @@ function Gallery({ list, start, label, onClose }: { list: { src: string; cap: st
       onTouchStart={(e) => { x0.current = e.touches[0].clientX; }}
       onTouchEnd={(e) => { if (x0.current === null) return; const dx = e.changedTouches[0].clientX - x0.current; if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1); x0.current = null; }}>
       <BackButton tone="ainubis" onClick={onClose} label={label} className="zv-gback" />
-      {list.length > 1 && <button type="button" className="zv-gnav zv-gnav--prev" disabled={i === 0} onClick={() => go(-1)} aria-label="Prev"><HandArrowLeft size={20} /></button>}
+      {list.length > 1 && <button type="button" className="zv-gnav zv-gnav--prev" disabled={i === 0} onClick={() => go(-1)} aria-label="Prev"><BackIc size={20} /></button>}
       <figure>
         <img src={it.src} alt={it.cap} />
         <figcaption>{i + 1} / {list.length}{it.cap ? ` · ${it.cap}` : ''}</figcaption>
       </figure>
-      {list.length > 1 && <button type="button" className="zv-gnav zv-gnav--next" disabled={i === list.length - 1} onClick={() => go(1)} aria-label="Next"><HandArrowLeft size={20} style={{ transform: 'scaleX(-1)' }} /></button>}
+      {list.length > 1 && <button type="button" className="zv-gnav zv-gnav--next" disabled={i === list.length - 1} onClick={() => go(1)} aria-label="Next">{APP_NEW ? <NextIc size={20} /> : <HandArrowLeft size={20} style={{ transform: 'scaleX(-1)' }} />}</button>}
     </div>
 ,
     document.body,
@@ -874,7 +879,7 @@ export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse,
               <span className="zv-meta">{circleName(z, lang)} · {u.scroll} {z.n}/{z.total} · {x.min} {u.min}</span>
               <h1 className="zv-h">{x.t}</h1>
               <span className="zv-rule" aria-hidden />
-              {s === 2 && <span className="zv-badge"><HandCheck size={14} />{u.readDone}</span>}
+              {s === 2 && <span className="zv-badge"><CheckIc size={14} />{u.readDone}</span>}
             </div>
             <div className="zv-grp">
               <p className="zv-v">{x.v}</p>
@@ -927,14 +932,14 @@ export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse,
           <h3 className="zv-sec">{u.contrib}</h3>
           {/* Z troch tlačidiel jedno (Matej 3. 10.): NAVRHNÚŤ ZMENU → druh návrhu + text → AINUBIS posúdi. */}
           <button type="button" className={`zv-prop${propOpen ? ' is-open' : ''}`} onClick={() => { setPropOpen(v => !v); setPropSent(false); }}>
-            <HandPencil size={14} />{u.cEdit}
+            <PencilIc size={14} />{u.cEdit}
           </button>
           {propOpen && !propSent && (
             <form className="zv-cform" onSubmit={(e) => { e.preventDefault(); if (prop.trim()) { addProposal(z.id, kind, prop.trim()); setProp(''); setPropSent(true); } }}>
               <div className="zv-kinds" style={{ alignSelf: 'stretch' }}>
                 {(['add', 'wrong', 'own'] as ProposalKind[]).map((k, i) => (
                   <button key={k} type="button" className={`zv-kind${kind === k ? ' is-on' : ''}`} onClick={() => setKind(k)}>
-                    {k === 'add' ? <HandPlus size={12} /> : k === 'wrong' ? <HandAlert size={12} /> : <HandPencil size={12} />} {u.kinds[i]}
+                    {k === 'add' ? <HandPlus size={12} /> : k === 'wrong' ? <AlertIc size={12} /> : <PencilIc size={12} />} {u.kinds[i]}
                   </button>
                 ))}
               </div>
@@ -947,7 +952,7 @@ export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse,
 
           {/* „Označiť ako prečítané" (Matej 1. 11. 2026); odmena „Zapísané do mozgu" až po ťuku. */}
           {!lock && <button type="button" className={`zv-done${s === 2 ? ' is-done' : ''}`} onClick={() => markScroll(z.id, 2)}>
-            <b>{s === 2 && <HandCheck size={12} />} {s === 2 ? u.doneOk : u.done}</b>
+            <b>{s === 2 && <CheckIc size={12} />} {s === 2 ? u.doneOk : u.done}</b>
           </button>}
 
           {/* DISKUSIA — komentáre k celému článku, „ako také fórum" (Matej 3. 10.).
@@ -965,7 +970,7 @@ export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse,
                   {/* Lajk komentára s počtom od všetkých (`post_marks`). */}
                   <div className="zv-crow">
                     <button type="button" className={`zv-clike${c.liked ? ' is-on' : ''}`} onClick={() => toggleTalkLike(z.id, i)} aria-label={u.like}>
-                      <HandPaw size={16} on={!!c.liked} color={AINUBIS.cyan} />{c.likes ?? (c.liked ? 1 : 0)}
+                      <LikeIc size={16} on={!!c.liked} color={AINUBIS.cyan} />{c.likes ?? (c.liked ? 1 : 0)}
                     </button>
                     {/* Mazanie VLASTNÉHO komentára (Matej 6. 10.: „musí to fungovať"). Dva kroky
                         priamo v riadku — systémové okno `confirm()` by zablokovalo appku. */}
@@ -975,7 +980,7 @@ export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse,
                         <button type="button" className="zv-cdel" onClick={() => setDelAsk(null)}>{u.delNo}</button>
                       </span>
                     ) : (
-                      <button type="button" className="zv-cdel" onClick={() => setDelAsk(i)} aria-label={u.del}><HandTrash size={16} /></button>
+                      <button type="button" className="zv-cdel" onClick={() => setDelAsk(i)} aria-label={u.del}><TrashIc size={16} /></button>
                     ))}
                   </div>
                 </div></div>
@@ -990,7 +995,7 @@ export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse,
               <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={u.talkPh} rows={2} />
               {pic && <img className="zv-cprev" src={pic} alt="" />}
               <div className="zv-crow">
-                <label className="zv-cpic"><HandCamera size={16} />{u.photo}
+                <label className="zv-cpic"><CameraIc size={16} />{u.photo}
                   <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) shrinkPhoto(f).then(setPic).catch(() => undefined); e.target.value = ''; }} />
                 </label>
                 <button type="submit" className="zv-chip" disabled={sending || (!draft.trim() && !pic)}>{u.talkSend}</button>

@@ -34,6 +34,8 @@ import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, t
 import { RightGate } from '@/components/pack/RightGate';
 import { useMyDogRights } from '@/lib/dogRights';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from './navGoldSkin';
 import { TILT_CSS, TILT_PROPS } from './packTilt';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -402,7 +404,7 @@ export function DogPassport({
                 className={`pk-pill pk-pill--tap pass-edit${dark ? ' pk-pill--dark' : ''}`}
                 onClick={() => onEditPanel?.(group.editPanel!)}
               >
-                ✎ {tx('pack.pass.edit', 'edit')}
+                {APP_NEW ? <SysIcon name="ceruzka" size={18} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : '✎'} {tx('pack.pass.edit', 'edit')}
               </button>
               </RightGate>
             ) : (
@@ -413,7 +415,7 @@ export function DogPassport({
                   ? `${group.editHref}?dog=${dogId}`
                   : `/pack/dogs/quiz/${group.editSection}?dog=${dogId}&field=${group.fields[0]}`}
               >
-                ✎ {tx('pack.pass.edit', 'edit')}
+                {APP_NEW ? <SysIcon name="ceruzka" size={18} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : '✎'} {tx('pack.pass.edit', 'edit')}
               </Link>
               </RightGate>
             )}
@@ -493,7 +495,10 @@ const CH_CSS = `
 .dic-cta small{ display:block; margin-top:4px; font-family:${FONT_UI}; font-weight:500; font-size:12px; letter-spacing:.02em; text-transform:none; opacity:.85; }
 .dic-cta .dic-bar{ position:absolute; left:0; bottom:0; height:4px; border-radius:0; background:transparent; }
 .dic-cta .dic-bar > span{ display:block; border-radius:0; background:linear-gradient(90deg,#EDCE7C,${T.accentGold}); }
-.dic-card{ background:${T.cardGrad}; border:1px solid ${T.cardEdge}; border-radius:16px; box-shadow:${T.cardShadow}; margin-bottom:8px; }
+/* PLOCHA (9. 11. 2026): kapitola nie je karta, je to sekcia s vlasovou čiarou; karta ostáva len pre tmavý ZÁVET. */
+.dic-card{ background:none; border:0; border-bottom:1px solid ${T.cardEdge}; border-radius:0; box-shadow:none; margin-bottom:0; }
+.dic-card.dic-dark{ border:1px solid ${T.cardEdge}; border-radius:16px; margin:12px 0; }
+.dic-card.dic-trio{ border-bottom:0; margin-bottom:8px; }
 .dic-trio{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:16px 8px; text-align:center; margin-bottom:16px; }
 .dic-trio.two{ grid-template-columns:repeat(2,minmax(0,1fr)); }
 .dic-tr{ display:block; color:inherit; text-decoration:none; min-width:0; }
@@ -610,13 +615,13 @@ function DogIdChapters({
     group.editPanel ? (
       <RightGate right={group.key === 'will' ? 'will' : 'dogid.edit'} dogId={dogId}>
         <button type="button" className={`pk-pill pk-pill--tap pass-edit${dark ? ' pk-pill--dark' : ''}`} onClick={() => onEditPanel?.(group.editPanel!)}>
-          ✎ {tx('pack.pass.edit', 'edit')}
+          {APP_NEW ? <SysIcon name="ceruzka" size={18} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : '✎'} {tx('pack.pass.edit', 'edit')}
         </button>
       </RightGate>
     ) : (
       <RightGate right="dogid.edit" dogId={dogId}>
         <Link className="pk-pill pk-pill--tap pass-edit" to={`/pack/dogs/quiz/${group.editSection}?dog=${dogId}&field=${group.fields[0]}`}>
-          ✎ {tx('pack.pass.edit', 'edit')}
+          {APP_NEW ? <SysIcon name="ceruzka" size={18} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : '✎'} {tx('pack.pass.edit', 'edit')}
         </Link>
       </RightGate>
     )
@@ -625,7 +630,7 @@ function DogIdChapters({
   const row = (key: string, title: string, icon: string, sub: string, miss: boolean, done: boolean, dark: boolean, body: React.ReactNode) => (
     <div key={key} className={`dic-card${dark ? ' dic-dark' : ''}${open === key ? ' dic-open' : ''}`}>
       <button type="button" className="dic-hd" aria-expanded={open === key} onClick={() => setOpen(open === key ? '' : key)}>
-        <span className="dic-coin"><BrandIcon name={icon} size={24} style={{ filter: LAPIS_ICON }} /></span>
+        <span className="dic-coin"><BrandIcon name={icon} size={24} style={APP_NEW ? undefined : { filter: LAPIS_ICON }} /></span>
         <span className="dic-ttl"><h3>{title}</h3>{sub && <p className={miss ? 'miss' : ''}>{sub}</p>}</span>
         {done && <span className="dic-ok" />}
         <span className="dic-chev" />

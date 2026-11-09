@@ -25,6 +25,8 @@ import {
 } from './SnifferCard';
 import { SnifferCountryOutline } from './SnifferPin';
 import { tripNames, type SnifferCardData, type SnifferDog } from './snifferDeck';
+import { APP_NEW } from '@/lib/packFlags';
+import { PinMark } from '@/components/app/sysSwap';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 
@@ -173,7 +175,7 @@ export function SnifferFullProfile({ card, tx, actions }: { card: SnifferCardDat
         <section className="sfp-card" style={{ ...PACK_BOX.card }}>
           <span className="sfp-eb">{tx('pack.sniffer.full.patch', 'My patch')}</span>
           <SnifferCountryOutline iso={card.country} />
-          {place && <p className="sfp-place">📍 {place}</p>}
+          {place && <p className="sfp-place">{APP_NEW ? <PinMark /> : '📍'} {place}</p>}
           <div className="sfp-two">
             <div className="sfp-list" style={{ ...PACK_BOX.subblock }}>
               <span className="sfp-eb" style={{ border: 0, padding: 0 }}>TRIPLIST</span>

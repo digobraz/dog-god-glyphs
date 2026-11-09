@@ -29,7 +29,7 @@ import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { PackPopup } from '@/components/pack/PackPopup';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
-import { RatingPaws, ICON } from '@/components/pack/tripShared';
+import { RatingPaws, ICON, iconImg, iconImgStyle } from '@/components/pack/tripShared';
 import { POINTS } from '@/lib/tripPoints';
 import {
   PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT, PAGE_AIR, FONT_TITLE, FONT_UI,
@@ -258,7 +258,7 @@ function AddButton({ tx, points, onClick }: { tx: Tx; points: boolean; onClick: 
 function SideButton({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
   return (
     <button type="button" className="plc-btn2" onClick={onClick}>
-      <img src={ICON(icon)} alt="" aria-hidden />{label}
+      <img src={iconImg(icon)} style={iconImgStyle(icon, 16)} alt="" aria-hidden />{label}
     </button>
   );
 }
@@ -405,21 +405,21 @@ function PlaceDetail({ point, kind, name, posts, tx, onSave, onShare }: {
 
         <div className="plc-info" style={{ ...PACK_BOX.subblock }}>
           {where && (
-            <div><img src={ICON('map')} alt="" aria-hidden /><span>{where}</span></div>
+            <div><img src={iconImg('map')} style={iconImgStyle('map', 18)} alt="" aria-hidden /><span>{where}</span></div>
           )}
           <div>
-            <img src={ICON('pin')} alt="" aria-hidden />
+            <img src={iconImg('pin')} style={iconImgStyle('pin', 18)} alt="" aria-hidden />
             <span>{coords}</span>
             <button type="button" className="plc-link" onClick={copy}>{tx('pack.place.copy')}</button>
           </div>
           {point.elev != null && (
-            <div><img src={ICON('mountain')} alt="" aria-hidden /><span>{tx('pack.place.elev', { m: point.elev.toLocaleString(intlLocale(lang)) })}</span></div>
+            <div><img src={iconImg('mountain')} style={iconImgStyle('mountain', 18)} alt="" aria-hidden /><span>{tx('pack.place.elev', { m: point.elev.toLocaleString(intlLocale(lang)) })}</span></div>
           )}
           {point.phone && (
             <div><img src={ICON('chat')} alt="" aria-hidden /><a className="plc-link plc-link--l" href={`tel:${point.phone.replace(/\s+/g, '')}`}>{point.phone}</a></div>
           )}
           {point.web && (
-            <div><img src={ICON('link')} alt="" aria-hidden />
+            <div><img src={iconImg('link')} style={iconImgStyle('link', 18)} alt="" aria-hidden />
               <a className="plc-link plc-link--l" href={point.web.startsWith('http') ? point.web : `https://${point.web}`} target="_blank" rel="noopener noreferrer">
                 {point.web.replace(/^https?:\/\//, '').replace(/\/$/, '')}
               </a>
@@ -570,7 +570,7 @@ function PlacePostForm({ point, kind, name, drawing, scoredHere, onDone, onClose
           {photos.length < MAX_PHOTOS && Array.from({ length: MAX_PHOTOS - photos.length }).map((_, i) => (
             <button key={i} type="button" className="plc-slot plc-slot--add" onClick={() => fileRef.current?.click()}
               aria-label={tx('pack.place.addPhoto')}>
-              <img src={ICON('camera')} alt="" aria-hidden />
+              <img src={iconImg('camera')} style={iconImgStyle('camera', 24)} alt="" aria-hidden />
             </button>
           ))}
         </div>

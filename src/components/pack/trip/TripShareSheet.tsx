@@ -17,6 +17,8 @@
 //    by gesto minul a hárok by sa neotvoril (NotAllowedError).
 // ⚠️ Cloudinary aj flagcdn posielajú `access-control-allow-origin: *`, takže `crossOrigin`
 //    nepoškvrní canvas a `toBlob` prejde.
+import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
@@ -489,7 +491,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
                     </button>
                   ) : (
                     <button type="button" className="tsh-ph tsh-own" onClick={() => fileRef.current?.click()}>
-                      <span className="tsh-ic" style={{ '--ic': `url(${ICON('camera')})` } as React.CSSProperties} />
+                      {APP_NEW ? <SysIcon name="foto" size={28} /> : <span className="tsh-ic" style={{ '--ic': `url(${ICON('camera')})` } as React.CSSProperties} />}
                       {t('pack.trip.shareOwnTile')}
                     </button>
                   )}
@@ -519,7 +521,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
                 {t(pc ? 'pack.trip.shareCtaDownload' : fmt === 'ig' ? 'pack.trip.shareCtaIg' : 'pack.trip.shareCtaFb')}
               </button>
               <button type="button" className="tsh-link" onClick={copyOnly}>
-                <span className="tsh-ic" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
+                {APP_NEW ? <SysIcon name="zdielat" size={20} /> : <span className="tsh-ic" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />}
                 {t(K.copy)}
               </button>
               <ol className="tsh-steps">

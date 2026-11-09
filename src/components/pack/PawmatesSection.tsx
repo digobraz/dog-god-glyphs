@@ -29,6 +29,8 @@
 // odomkne ju až beh B8 po teste F7. Stavia sa za zamknutými dverami rovnako ako
 // panel v B5 — nestihnutie pred launchom potom nestojí nič.
 // ============================================================================
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
@@ -424,7 +426,7 @@ export function PawmatesSection({ bare = false }: { bare?: boolean } = {}) {
         {rightsEditor}
         {err && <p style={{ fontFamily: FONT_UI, fontSize: 12, color: '#8E2A20', margin: 0 }}>{err}</p>}
         <button type="button" className="pws-cta" onClick={send} disabled={busy || !looksLikeEmail(email) || pickedDogs.length === 0}>
-          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <HandKey size={15} />}
+          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : (APP_NEW ? <SysIcon name="kluc" size={21} /> : <HandKey size={15} />)}
           {tx('pack.mate.send', 'Send the invitation')}
         </button>
         <p style={{ fontFamily: FONT_UI, fontSize: 10, lineHeight: 1.5, color: T.inkWarm, margin: 0 }}>
@@ -484,7 +486,7 @@ export function PawmatesSection({ bare = false }: { bare?: boolean } = {}) {
             ) : (
               <button type="button" className="pws-cta" onClick={() => setConfirmKey(p.user_id)} disabled={busy}
                 style={{ background: 'none', color: '#8E2A20', borderColor: T.alertRed, boxShadow: 'none' }}>
-                <HandTrash size={14} />
+                {APP_NEW ? <SysIcon name="kos" size={20} /> : <HandTrash size={14} />}
                 {tx('pack.mates.removeAll', 'Remove from the pack')}
               </button>
             )
@@ -512,7 +514,7 @@ export function PawmatesSection({ bare = false }: { bare?: boolean } = {}) {
         </p>
         {err && <p style={{ fontFamily: FONT_UI, fontSize: 12, color: '#8E2A20', margin: 0 }}>{err}</p>}
         <button type="button" className="pws-cta" onClick={openInvite} disabled={freeDogs.length === 0}>
-          <HandKey size={15} />
+          {APP_NEW ? <SysIcon name="kluc" size={21} /> : <HandKey size={15} />}
           {tx('pack.mates.emptyCta', 'Add a pack member')}
         </button>
       </div>

@@ -12,7 +12,7 @@ import { canStepBack } from '@/lib/stepBack';
 import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
-import { PLANNING_LIVE } from '@/lib/packFlags';
+import { PLANNING_LIVE, APP_NEW } from '@/lib/packFlags';
 import { useParams, useSearchParams } from 'react-router-dom';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Polyline, Circle, Marker, useMap } from 'react-leaflet';
@@ -49,7 +49,7 @@ import { ToastAction } from '@/components/ui/toast';
 import { hasOnlyDeceasedDogs } from '@/components/pack/memorialTrips';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
-  ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
+  ICON, authorOf, REGION_OF, DiffMark, CrowdMark, RouteMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
   tripShareText, tripText, tripName, tripIdFromUrl, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing, coverPos, isGhostJourney, usePackWalked } from '@/components/pack/tripShared';
 import { GhostJourneyNote } from '@/components/pack/trip/GhostJourneyNote';
@@ -1824,10 +1824,10 @@ export default function PackTripArticle() {
                   `FONT_EMOJI` je povinný — bez neho Windows sadne na čiernobiely textový
                   variant a farebná dvojšípka vedľa neho vyzerá ako chyba. */}
               <b className="pta-route">
-                {trail.km?.trim() && <span><em style={{ fontFamily: FONT_EMOJI, fontStyle: 'normal' }}>↔️</em> {trail.km} km</span>}
+                {trail.km?.trim() && <span>{APP_NEW ? <RouteMark kind="vzdialenost" fallback="" /> : <em style={{ fontFamily: FONT_EMOJI, fontStyle: 'normal' }}>↔️</em>} {trail.km} km</span>}
                 {(trail as { ascentM?: number }).ascentM != null && (<>
                   <i />
-                  <span><em style={{ fontFamily: FONT_EMOJI, fontStyle: 'normal' }}>↗️</em> {(trail as { ascentM?: number }).ascentM} m</span>
+                  <span>{APP_NEW ? <RouteMark kind="stupanie" fallback="" /> : <em style={{ fontFamily: FONT_EMOJI, fontStyle: 'normal' }}>↗️</em>} {(trail as { ascentM?: number }).ascentM} m</span>
                 </>)}
               </b>
             </div>
@@ -1850,7 +1850,7 @@ export default function PackTripArticle() {
               className={`${agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}${showDiffStat && agg.difficulty ? '' : ' pta-stat--full'}`}
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.crowdBreakdown)}
             >
-              <b>{CROWD_EMOJI[agg.crowd]} {t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span>
+              <b><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /> {t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span>
             </div>
           )}
         </div>

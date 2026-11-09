@@ -62,6 +62,8 @@ import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
 import { mountBrain, type BrainHandle, type BrainLayer } from '@/components/pack/vault/brainEngine';
 import ainubisHead from '@/assets/ainubis-head.webp';
 import { HandArrowLeft, HandLock, HandSearch, HandPaw, HandStar, HandPlus, HandForward, HandCheck } from '@/components/pack/HandIcons';
+import { BackIc, LockIc, SearchIc, CheckIc } from '@/components/app/sysSwap';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 
 /* ⚠️ JEDNA HRANICA — tá istá ako na mape (`PackMap`: ≤1023 = mobilný pohľad
@@ -635,6 +637,14 @@ function AinubisApp() {
 }
 
 /** Rovina CHAT: celá obrazovka je úloha (rovnaké pravidlá ako maketa z 23. 9., len bez nej). */
+/* APPKA (APP_NEW, 9. 11. 2026): samolepky z továrne namiesto masiek (maska farebnú kresbu nevykreslí). Samolepka je o 4 px väčšia
+   než maska, záporný margin drží výšku pilulky. Pod `APP_NEW` sa vkladá až za CSS, mimo appky sa nevykreslí vôbec. */
+const APP_ICO_CSS = `
+.akv-ctlbtn i,.akv-ctlbtn[aria-expanded="true"] i{width:24px;height:24px;background:url(/icons/sys/vrstvy.webp) center/contain no-repeat;-webkit-mask:none;mask:none;}
+.akv-fbtn i{width:22px;height:22px;margin:-4px 0;background:url(/icons/sys/filter.webp) center/contain no-repeat;-webkit-mask:none;mask:none;}
+.akv-pos-b i,.akv-listen i{width:18px;height:18px;margin:-3px 0;background:url(/icons/sys/prehraj.webp) center/contain no-repeat;-webkit-mask:none;mask:none;}
+`;
+
 const CHATPLANE_CSS = `
 .akv-root[data-plane="chat"] .akv-brain,
 .akv-root[data-plane="chat"] .akv-top,
@@ -1077,7 +1087,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   };
   const search = (
     <label className="akv-search">
-      <HandSearch size={14} />
+      <SearchIc size={14} />
       <input
         type="search"
         value={q}
@@ -1171,7 +1181,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   const posBar = (cls: string) => curZ && (
     <div className={`akv-pos ${cls}`} style={aiWorld(curZ.world)}>
       <button type="button" className="akv-pos-b wp-back" aria-pressed title={tx('pack.ainubis.pos.worlds', 'Worlds')} onClick={closeWorld}>
-        <HandArrowLeft size={12} />
+        <BackIc size={12} />
         <span className="akv-pos-ic" aria-hidden style={mask(VAULT_WORLDS[curW].ic)} />
         <span>{names[curW]}</span>
       </button>
@@ -1209,7 +1219,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
                   className={`${i === curZ.okruh - 1 ? 'is-cur' : ''}${done ? ' is-done' : ''}`}
                   onClick={() => list.length && jumpTo(firstOpen(list).id)}>
                   <span>O{i + 1} · {circleName(curW, i)}</span>
-                  <b>{done && <HandCheck size={12} />}{list.filter(isRead).length}/{list.length}</b>
+                  <b>{done && <CheckIc size={12} />}{list.filter(isRead).length}/{list.length}</b>
                 </button>
               );
             })}
@@ -1227,6 +1237,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   return (
     <div className={`akv-root${SCROLL_DEMO ? ' has-zv' : ''}`} ref={rootRef} data-view={view} data-plane={plane2}>
       <style>{CSS}</style>
+      {APP_NEW && <style>{APP_ICO_CSS}</style>}
       {SCROLL_DEMO && <style>{SCROLL_CSS}{KNOW_CSS}</style>}
       {CHAT_LIVE && <style>{CHATPLANE_CSS}</style>}
       {WALL_MOCK && <style>{VAULT_WALL_CSS}</style>}
@@ -1358,8 +1369,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
                       <span className="akv-wic wp-ic" aria-hidden style={mask(w.ic)} />
                       <span className="wp-top">
                         <span className="wp-name">{names[i]}</span>
-                        {list.length > 0 && <span className="wp-go" aria-hidden><HandArrowLeft size={14} /></span>}
-                        {feed.length > 0 && !list.length && <span className="wp-lock" aria-hidden><HandLock size={14} /></span>}
+                        {list.length > 0 && <span className="wp-go" aria-hidden><BackIc size={14} /></span>}
+                        {feed.length > 0 && !list.length && <span className="wp-lock" aria-hidden><LockIc size={14} /></span>}
                       </span>
                     </>
                   );
@@ -1467,7 +1478,9 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           className="akv-mtoggle"
           onClick={() => setView((v) => (v === 'brain' ? 'scroll' : 'brain'))}
         >
-          <i aria-hidden style={mask(view === 'brain' ? 'menu' : 'idea')} />
+          {APP_NEW
+            ? <SysIcon name={view === 'brain' ? 'zoznam' : 'mozog'} size={22} />
+            : <i aria-hidden style={mask(view === 'brain' ? 'menu' : 'idea')} />}
           {view === 'brain'
             ? tx('pack.ainubis.view.dogscroll', 'Dogscroll')
             : tx('pack.ainubis.view.brain', 'Brain')}

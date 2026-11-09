@@ -18,7 +18,7 @@
 //    ste SPOLU (zelený rám). Brána na serveri chce `buddyPhoto`, takže sa nemení.
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { uploadBuddyPhoto, withTransform, bgImg } from '@/services/cloudinaryService';
-import { HandArrowLeft } from '@/components/pack/HandIcons';
+import { BackIc, NextIc } from '@/components/app/sysSwap';
 import { SnifferPinEditor, SnifferCountryChip, defaultCountry } from './SnifferPin';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_AVATAR, PACK_SHADOW, FONT_UI, FONT_TITLE, BRAND_GOLD_BTN,
@@ -603,11 +603,11 @@ function Pager({ tx, slides, fit, finish, missingSlide }: {
     <div className={`sp-pager${fit ? ' sp-pager--fit' : ''}`}>
       <div className="sp-nav">
         <button type="button" className="sp-arrow" disabled={page === 0} aria-label={tx('pack.sniffer.prev', 'Previous')} onClick={() => go(-1)}>
-          <HandArrowLeft size={14} solid />
+          <BackIc size={14} solid />
         </button>
         <span className="sp-count" aria-live="polite">{page + 1} / {n}</span>
         <button type="button" className="sp-arrow" disabled={last} aria-label={tx('pack.sniffer.next', 'Next')} onClick={() => go(1)}>
-          <HandArrowLeft size={14} solid style={{ transform: 'rotate(180deg)' }} />
+          <NextIc size={14} solid />
         </button>
       </div>
       <section key={s.key} className={`sp-card${start.current?.drag ? ' is-drag' : ''}`}

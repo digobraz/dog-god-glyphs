@@ -20,7 +20,7 @@ import { BackButton } from '@/components/pack/BackButton';
 import { PackTopRight } from '@/components/pack/PackLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useT } from '@/i18n/LanguageContext';
-import { HandCheck, HandHeart, HandStar } from '@/components/pack/HandIcons';
+import { CheckIc, LikeHeartIc, SaveIc } from '@/components/app/sysSwap';
 import { VAULT_WORLDS } from './worlds';
 import { VAULT_CIRCLES } from './circles';
 import { VAULT_BADGES } from './vaultBadges';
@@ -213,7 +213,7 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
       <button key={z.id} type="button" className="vk-row" onClick={() => onOpen(z.id)}>
         {z.img && <img {...scrollThumb(z.img)} alt="" loading="lazy" />}
         <span><em>{pickText(z, lang).t}</em><small>{cName(z)} · {z.n}/{z.total}</small>{extra}</span>
-        {isDone(r) && <span className="vk-ok"><HandCheck size={16} /></span>}
+        {isDone(r) && <span className="vk-ok"><CheckIc size={16} /></span>}
       </button>
     );
   };
@@ -323,12 +323,12 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
         )}
 
         <section className="zv-box">
-          <h3 className="zv-sec"><HandHeart size={16} on />{u.liked} · {s.liked.length}</h3>
+          <h3 className="zv-sec"><LikeHeartIc size={16} on />{u.liked} · {s.liked.length}</h3>
           {s.liked.length ? <div className="vk-list">{s.liked.map((z) => row(z))}</div> : <p className="vk-none">{u.noneLiked}</p>}
         </section>
 
         <section className="zv-box">
-          <h3 className="zv-sec"><HandStar size={16} filled />{u.saved} · {s.saved.length}</h3>
+          <h3 className="zv-sec"><SaveIc size={16} filled />{u.saved} · {s.saved.length}</h3>
           {s.saved.length ? <div className="vk-list">{s.saved.map((z) => row(z))}</div> : <p className="vk-none">{u.noneSaved}</p>}
         </section>
 

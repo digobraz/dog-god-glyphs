@@ -1,3 +1,5 @@
+import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { getMyAffiliate } from '@/lib/sharedFetch';
 import { useEffect, useState } from 'react';
 import { intlLocale } from '@/i18n/bcp47';
@@ -423,7 +425,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
                   boxShadow: PACK_SHADOW.panel,
                 }}
               >
-                {copied ? <HandCheck size={16} /> : <HandClipboard size={16} />}
+                {copied ? (APP_NEW ? <SysIcon name="fajka" size={20} /> : <HandCheck size={16} />) : (APP_NEW ? <SysIcon name="modul-zaklad" size={20} /> : <HandClipboard size={16} />)}
               </button>
             </div>
             <p

@@ -23,6 +23,8 @@ import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { AINUBIS_SHEET_CSS, AinubisWho } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BackButton } from '@/components/pack/BackButton';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { tripNames, tripNameSync } from './tripLabel';
 import {
   getConversation, getMe, joinGroup, markRead, reportContent, sendMessage, setPeerBlocked,
@@ -365,7 +367,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
               onClick={() => setModView('menu')}
               aria-label={t('pack.msg.reportBlockAriaLabel')}
               title={t('pack.msg.reportBlockTitle')}
-            >⋯</button>
+            >{APP_NEW ? <SysIcon name="menu" size={22} /> : '⋯'}</button>
           )}
         </div>
        </div>
@@ -438,7 +440,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
           </RightGate>
           <RightGate right="social">
           <button type="button" className="msg-sendbtn" onClick={() => void send()} disabled={!text.trim()} aria-label={t('pack.msg.sendMessageAriaLabel')}>
-            <BrandIcon name="feather" size={17} tint="white" />
+            {APP_NEW ? <SysIcon name="odoslat" size={21} /> : <BrandIcon name="feather" size={17} tint="white" />}
           </button>
           </RightGate>
         </div></div>

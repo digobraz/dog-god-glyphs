@@ -23,6 +23,8 @@
 // Writes are NEVER optimistic: insert/upsert/delete await the DB response, and on RLS rejection
 // (signed out, unpaid, DEV_NOAUTH) the popup shows an error instead of pretending it saved — same
 // rule as `sendMessage()` in packMessaging.ts.
+import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -227,9 +229,9 @@ function Pager({ page, totalPages, onPrev, onNext }: { page: number; totalPages:
   if (totalPages <= 1) return null;
   return (
     <div className="tcm-pager">
-      <button type="button" onClick={onPrev} disabled={page <= 1} aria-label={t('pack.trip.cm.prevPage')}>‹</button>
+      <button type="button" onClick={onPrev} disabled={page <= 1} aria-label={t('pack.trip.cm.prevPage')}>{APP_NEW ? <SysIcon name="spat" size={22} /> : '‹'}</button>
       <span>{page}/{totalPages}</span>
-      <button type="button" onClick={onNext} disabled={page >= totalPages} aria-label={t('pack.trip.cm.nextPage')}>›</button>
+      <button type="button" onClick={onNext} disabled={page >= totalPages} aria-label={t('pack.trip.cm.nextPage')}>{APP_NEW ? <SysIcon name="sipka" size={22} /> : '›'}</button>
     </div>
   );
 }

@@ -20,6 +20,7 @@
 // gate len vysvetľuje. Kto sem pridá nový gate, NEMÁ tým zabezpečený zápis —
 // pozri `lib/dogRights.ts`.
 // ============================================================================
+import { APP_NEW } from '@/lib/packFlags';
 import { cloneElement, isValidElement, type ReactElement, type ReactNode, type MouseEvent } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { toast } from '@/hooks/use-toast';
@@ -60,6 +61,12 @@ const GATE_CSS = `
   margin:0;padding:3px;
 }
 `;
+
+/** Appka: samolepka `zamok` z továrne (o 4 px väčšia), web ostáva na hand-drawn kresbe. */
+function LockMark({ size, className, title }: { size: number; className?: string; title?: string }) {
+  if (!APP_NEW) return <HandLock size={size} className={className} title={title} />;
+  return <img src="/icons/sys/zamok.webp" alt="" aria-hidden draggable={false} className={className} style={{ width: size + 4, height: size + 4, objectFit: 'contain' }} />;
+}
 
 let cssIn = false;
 function ensureCss(): void {
@@ -131,7 +138,7 @@ export function RightGate({ right, dogId, lock = 'inline', children }: RightGate
   if (!isValidElement(children) || typeof (children as ReactElement).type !== 'string') {
     return (
       <span className="rg-wrap" onClickCapture={explain} style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-        <HandLock size={13} className={lockClass} title={line} />
+        <LockMark size={13} className={lockClass} title={line} />
         {children}
       </span>
     );
@@ -165,7 +172,7 @@ export function RightGate({ right, dogId, lock = 'inline', children }: RightGate
   return cloneElement(
     el,
     props,
-    <HandLock key="rg-lock" size={lock === 'corner' ? 15 : 13} className={lockClass} title={line} />,
+    <LockMark key="rg-lock" size={lock === 'corner' ? 15 : 13} className={lockClass} title={line} />,
     el.props.children,
   );
 }

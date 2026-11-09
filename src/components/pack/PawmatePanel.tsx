@@ -26,6 +26,8 @@
 // pri prejdení myšou prilepil ku KARTE namiesto k oknu a panel by poskakoval.
 // `AddPopup` portál zámerne nemá — ten má prekryť blok; tento má prekryť stránku.
 // ============================================================================
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Loader2 } from 'lucide-react';
@@ -345,7 +347,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
         {rightsEditor}
         {err && <p style={{ fontFamily: FONT_UI, fontSize: 12, color: '#8E2A20', margin: 0 }}>{err}</p>}
         <button type="button" className="mate-cta" onClick={send} disabled={busy || !looksLikeEmail(email)}>
-          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <HandKey size={15} />}
+          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : (APP_NEW ? <SysIcon name="kluc" size={21} /> : <HandKey size={15} />)}
           {tx('pack.mate.send', 'Send the invitation')}
         </button>
         {/* Čo sa stane POTOM — pozvaný dostane mail a účet mu vznikne až vtedy, keď
@@ -419,7 +421,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
               <div className="flex" style={{ gap: 7 }}>
                 <button type="button" className="mate-btn" onClick={() => openEdit(m)}>{tx('pack.mate.edit', 'Change access')}</button>
                 <button type="button" className="mate-btn mate-btn--danger" onClick={() => setConfirmKey(m.user_id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <HandTrash size={12} />
+                  {APP_NEW ? <SysIcon name="kos" size={18} /> : <HandTrash size={12} />}
                   {tx('pack.mate.remove', 'Remove')}
                 </button>
               </div>
@@ -465,7 +467,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
 
         {slotFree ? (
           <button type="button" className="mate-cta" onClick={openInvite} style={{ marginTop: 4 }}>
-            <HandKey size={15} />
+            {APP_NEW ? <SysIcon name="kluc" size={21} /> : <HandKey size={15} />}
             {tx('pack.mate.inviteCta', 'Invite someone')}
           </button>
         ) : (

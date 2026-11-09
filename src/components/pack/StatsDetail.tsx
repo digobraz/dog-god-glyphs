@@ -17,6 +17,8 @@ import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { pokladnica, rozvojZostatok, type PrijemMesiac } from '@/lib/pokladnica';
 import { PokladnicaSheet, DALSI_UTULOK, VYPLATA_UTULKU, MILION, type Suplik } from './PokladnicaSheet';
 import { HandArrowLeft } from './HandIcons';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { countryISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import { localizeBreed } from '@/lib/breedDisplay';
 import { flagUrl } from '@/lib/flagUrl';
@@ -195,18 +197,18 @@ export function StatsDetail({ stats }: { stats: StatsDetailData | null }) {
         <div className="sd-sub" style={{ ...PACK_BOX.subblock }}>
           <span className="sd-lbl">{tx('pack.kasa.now', 'Treasury · now {sum}').replace('{sum}', eur(zostatok + pomoc + miska))}</span>
           <button type="button" className="sd-dr" onClick={() => setSuplik('rozvoj')}>
-            <i className="sd-dot" style={{ background: pRozvoj.color }} /><span className="nm">{t(pRozvoj.labelKey)}</span><span className="v">{eur(zostatok)}</span><span className="ch" aria-hidden><HandArrowLeft size={12} style={{ transform: 'scaleX(-1)' }} /></span>
+            <i className="sd-dot" style={{ background: pRozvoj.color }} /><span className="nm">{t(pRozvoj.labelKey)}</span><span className="v">{eur(zostatok)}</span><span className="ch" aria-hidden>{APP_NEW ? <SysIcon name="sipka" size={18} /> : <HandArrowLeft size={12} style={{ transform: 'scaleX(-1)' }} />}</span>
             <span className="s2"><span>{tx('pack.kasa.inOut', 'income {a} · costs {b}').replace('{a}', eur(kasa.prijem)).replace('{b}', eur(kasa.naklady))}</span></span>
           </button>
           <button type="button" className="sd-dr" onClick={() => setSuplik('pomoc')}>
-            <i className="sd-dot" style={{ background: pPomoc.color }} /><span className="nm">{t(pPomoc.labelKey)}</span><span className="v">{eur(pomoc)}</span><span className="ch" aria-hidden><HandArrowLeft size={12} style={{ transform: 'scaleX(-1)' }} /></span>
+            <i className="sd-dot" style={{ background: pPomoc.color }} /><span className="nm">{t(pPomoc.labelKey)}</span><span className="v">{eur(pomoc)}</span><span className="ch" aria-hidden>{APP_NEW ? <SysIcon name="sipka" size={18} /> : <HandArrowLeft size={12} style={{ transform: 'scaleX(-1)' }} />}</span>
             <span className="s2">
               <span className="pk-progress"><span className="pk-progress__fill" style={{ ...fillW(((pomoc % VYPLATA_UTULKU) / VYPLATA_UTULKU) * 100), background: pPomoc.color }} /></span>
               <span>{tx('pack.kasa.missing', 'missing {n} · {shelter}').replace('{n}', eur(VYPLATA_UTULKU - (pomoc % VYPLATA_UTULKU))).replace('{shelter}', `${DALSI_UTULOK.meno} ${DALSI_UTULOK.mesto}`)}</span>
             </span>
           </button>
           <button type="button" className="sd-dr" onClick={() => setSuplik('miska')}>
-            <i className="sd-dot" style={{ background: pMiska.color }} /><span className="nm">{t(pMiska.labelKey)}</span><span className="v">{eur(miska)}</span><span className="ch" aria-hidden><HandArrowLeft size={12} style={{ transform: 'scaleX(-1)' }} /></span>
+            <i className="sd-dot" style={{ background: pMiska.color }} /><span className="nm">{t(pMiska.labelKey)}</span><span className="v">{eur(miska)}</span><span className="ch" aria-hidden>{APP_NEW ? <SysIcon name="sipka" size={18} /> : <HandArrowLeft size={12} style={{ transform: 'scaleX(-1)' }} />}</span>
             <span className="s2"><span>{tx('pack.kasa.toMillion', 'to a million {n}').replace('{n}', eur(MILION - miska))}</span></span>
           </button>
         </div>

@@ -26,6 +26,8 @@ import { devotionLevel, DEVOTION_START, DEVOTION_TODAY_ON } from '@/lib/devotion
 import { RANK_BADGE_ON, RANK_BADGE_CSS, ServantBadge, PilgrimBadge, LearnerBadge } from '@/components/pack/profile/rankBadge';
 import { tierOfLevel, tierGradient } from '@/lib/packTiers';
 import { LAPIS } from '@/components/pack/navGoldSkin';
+import { APP_NEW } from '@/lib/packFlags';
+import { PinMark } from '@/components/app/sysSwap';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 
@@ -290,7 +292,7 @@ export function SnifferCard({ card, tx, back = false, className = '', style, onO
             {card.intents.map((i) => <span key={`i-${i}`} className="pk-pill pk-pill--dark">{tx(`pack.buddy.intent.${i}`, i)}</span>)}
           </div>
         )}
-        {place && <p className="sn-meta">📍 {place}</p>}
+        {place && <p className="sn-meta">{APP_NEW ? <PinMark /> : '📍'} {place}</p>}
         {!lean && card.bio?.trim() && <p className="sn-bio">{card.bio.trim()}</p>}
       </div>
     </div>

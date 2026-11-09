@@ -36,8 +36,11 @@ import {
   AI_BREATHE_CSS, aiWorld, AI_WORLD,
 } from '@/components/pack/ainubisSkin';
 import {
-  HandPaw, HandStar, HandForward, HandPlus, HandArrowLeft, HandSearch, HandAlert,
+  HandForward, HandPlus, HandArrowLeft,
 } from '@/components/pack/HandIcons';
+import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { LikeIc, SaveIc, SearchIc, AlertIc, BackIc } from '@/components/app/sysSwap';
 import ainubisFace from '@/assets/ainubis-badge.webp';
 import { VAULT_WORLDS } from './worlds';
 import { DEMO_WALL, shortOf, verdictParts, type WallPost, type SealKind } from './vaultWallDemo';
@@ -829,18 +832,18 @@ function Post({ post, onOpen }: { post: WallPost; onOpen: () => void }) {
         </div>
       </div>
       <div className="akw-met">
-        <s><HandPaw size={13} on={false} /><b>{post.paws}</b></s>
+        <s><LikeIc size={13} on={false} /><b>{post.paws}</b></s>
         {/* ODPOVEDE — Matej 24. 9. 2026 vybral z kitu `chat` nad skutočnou kartou
             (`ik-chat.png`). Do vtedy tu stálo holé slovo „replies“, lebo kresba
             neexistovala a brand lock zakazuje siahnuť po lucide.
             ⚠️ `chat` nesmie byť zamenené za `people`: ráta sa SPOLU s odpoveďou
                AINUBISA vyššie, nie iba ľudské hlasy.
             ⚠️ Popis ostáva slovom pre čítačku — ikonka je `aria-hidden`. */}
-        <s><i className="akw-rep" aria-hidden style={mask('chat')} /><b>{talk(post)}</b>
+        <s>{APP_NEW ? <SysIcon name="komentar" size={18} /> : <i className="akw-rep" aria-hidden style={mask('chat')} />}<b>{talk(post)}</b>
           <span className="akw-sr">replies</span></s>
         {clash(post) && (
           <s className="akw-clash" title="The vault says otherwise">
-            <HandAlert size={13} />disputed
+            <AlertIc size={13} />disputed
           </s>
         )}
         <u>open{chev}</u>
@@ -872,7 +875,7 @@ function PostFull({ post, onLibrary, onClose }: {
   return (
     <article className="akw-post akw-sheet" style={aiWorld(post.world)}>
       <button type="button" className="akw-x" aria-label="Close" onClick={onClose}>
-        <HandArrowLeft size={15} />
+        <BackIc size={15} />
       </button>
       <PostHead post={post} />
       <p className="akw-ptxt">{post.text}</p>
@@ -933,11 +936,11 @@ function PostFull({ post, onLibrary, onClose }: {
       <div className="akw-foot">
         <button type="button" className={`akw-act${paw ? ' is-on' : ''}`} onClick={() => setPaw((v) => !v)}
           aria-label="Paws">
-          <HandPaw size={14} on={paw} /><b>{post.paws + (paw ? 1 : 0)}</b>
+          <LikeIc size={14} on={paw} /><b>{post.paws + (paw ? 1 : 0)}</b>
         </button>
         <button type="button" className={`akw-act${saved ? ' is-on' : ''}`} onClick={() => setSaved((v) => !v)}
-          aria-label="Save"><HandStar size={14} /></button>
-        <button type="button" className="akw-act" aria-label="Send"><HandForward size={14} /></button>
+          aria-label="Save"><SaveIc size={14} filled={saved} /></button>
+        <button type="button" className="akw-act" aria-label="Send">{APP_NEW ? <SysIcon name="odoslat" size={18} /> : <HandForward size={14} />}</button>
         <button type="button" className="akw-act akw-reply">Reply</button>
       </div>
     </article>
@@ -1117,7 +1120,7 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
               <span className="akw-div" aria-hidden />
               <div className="akw-tools">
               <label className="akw-find">
-                <HandSearch size={15} />
+                <SearchIc size={15} />
                 <input type="search" value={find} placeholder="Search the board…"
                   aria-label="Search the board"
                   onChange={(e) => { setFind(e.target.value); setPage(0); }} />
@@ -1199,7 +1202,7 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                   <button type="button" className="akw-pg" disabled={pageSafe === pages - 1}
                     onClick={() => setPage(pageSafe + 1)} aria-label="Next">
                     <span className="akw-chev" aria-hidden style={{ transform: 'rotate(180deg)' }}>
-                      <HandArrowLeft size={12} />
+                      <BackIc size={12} />
                     </span>
                   </button>
                 </nav>
@@ -1246,7 +1249,7 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                 <button type="button" className="akw-sh akw-sh--seed"
                   aria-current={view === 'seed' ? 'true' : undefined}
                   onClick={() => setView(view === 'seed' ? null : 'seed')}>
-                  <i aria-hidden style={mask('idea')} />
+                  {APP_NEW ? <SysIcon name="mozog" size={18} /> : <i aria-hidden style={mask('idea')} />}
                   <ShelfName g={SEED_GROUP} />
                 </button>
                 <div className="akw-shsep" aria-hidden />

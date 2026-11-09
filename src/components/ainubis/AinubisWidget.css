@@ -1530,3 +1530,26 @@ html body .ainubis-panel.ainubis-panel--plane.ainubis-panel--plane.ainubis-panel
    rozpórka. ⚠️ OVER NA IPHONE (Matej, TestFlight) — iOS Safari je jediné miesto, kde sa to ukáže. */
 .ainubis-panel__body > * { flex-shrink: 0; }
 .ainubis-panel__body::after { content: ''; flex: 0 0 8px; }
+
+/* ── APPKA (APP_NEW, 9. 11. 2026): ikonky z továrne namiesto masiek ──────────────
+   Farby a tmavý šat chatu ostávajú, mení sa len kresba. Masky farebnú samolepku nevykreslia,
+   preto `background-image`. História, Nový rozhovor, Nastavenia chatu a Terč výber zatiaľ nemajú:
+   ostávajú na maske; keď pribudnú, stačí doplniť modifikátor `ainubis-sys--<id>` + riadok nižšie. */
+span.ainubis-sys {
+  -webkit-mask: none;
+  mask: none;
+  background-color: transparent;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+span.ainubis-sys--spat    { background-image: url(/icons/sys/spat.webp); }
+span.ainubis-sys--foto    { background-image: url(/icons/sys/foto.webp); }
+span.ainubis-sys--odoslat { background-image: url(/icons/sys/odoslat.webp); }
+span.ainubis-sys--mozog   { background-image: url(/icons/sys/mozog.webp); }
+span.ainubis-sys--misia   { background-image: url(/icons/sys/misia.webp); }
+/* samolepka má vzduch v obrázku: o 4 px väčšia, záporný margin drží výšku prvku */
+span.ainubis-tool-ico.ainubis-sys { width: 26px; height: 26px; margin: -2px; }
+span.ainubis-attach-ico.ainubis-sys { width: 24px; height: 24px; }
+span.ainubis-send-ico.ainubis-sys { width: 28px; height: 28px; margin: -2px; }
+span.ainubis-topic__ico.ainubis-sys { width: 20px; height: 20px; margin: -2px; }

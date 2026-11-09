@@ -30,6 +30,9 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { RightGate } from '@/components/pack/RightGate';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandCheck } from '@/components/pack/HandIcons';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
+
 import {
   PACK_THEME, PACK_BOX, PACK_HEAD, PACK_SPACE, PACK_TEXT, PACK_R, PACK_SHADOW, GOLD_BTN,
   FONT_TITLE, FONT_UI, PILL_CSS, PROGRESS_CSS,
@@ -155,7 +158,7 @@ export default function PackDogIdModules() {
           <div className="dm-soon">
             {soon.map((m) => (
               <span key={m.key} className="dm-soon-item">
-                <BrandIcon name={m.icon} size={PACK_TEXT.lead} tint="dim" />
+                <BrandIcon name={APP_NEW && m.icon === 'feather' ? 'dogid-will' : m.icon} size={PACK_TEXT.lead} tint="dim" />
                 <b>{tx(m.i18n, m.labelEN)}</b>
                 <span className="pk-pill pk-pill--locked dm-soon-pill">{tx('pack.dogid.soon', 'Soon')}</span>
               </span>
@@ -189,8 +192,8 @@ function TileHead({ mod, done, tx }: { mod: DogIdModule; done: boolean; tx: Tx }
   return (
     <div className="dm-th">
       <span className="dm-badge" aria-hidden>
-        <BrandIcon name={mod.icon} size={PACK_TEXT.h1} tint="gold" />
-        {done && <span className="dm-tick"><HandCheck size={PACK_TEXT.micro} /></span>}
+        <BrandIcon name={APP_NEW && mod.icon === 'feather' ? 'dogid-will' : mod.icon} size={PACK_TEXT.h1} tint="gold" />
+        {done && <span className="dm-tick">{APP_NEW ? <SysIcon name="fajka" size={18} /> : <HandCheck size={PACK_TEXT.micro} />}</span>}
       </span>
       <div style={{ minWidth: 0 }}>
         <h2 className="dm-h2">{tx(mod.i18n, mod.labelEN)}</h2>

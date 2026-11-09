@@ -1,3 +1,5 @@
+import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { useEffect, useState, type ReactNode } from 'react';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { createPortal } from 'react-dom';
@@ -529,7 +531,7 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
           <button type="button" onClick={handleCopy} disabled={!link} aria-label={tx('pack.network.copyLinkAria', 'Copy invite link')}
             className="pf-hit inline-flex items-center shrink-0"
             style={{ background: 'none', border: 'none', color: T.inkWarm, cursor: link ? 'pointer' : 'default', padding: 4 }}>
-            {copied ? <HandCheck size={14} /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? (APP_NEW ? <SysIcon name="fajka" size={18} /> : <HandCheck size={14} />) : <Copy className="h-3.5 w-3.5" />}
           </button>
         )}
       </div>

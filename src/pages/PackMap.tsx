@@ -96,7 +96,7 @@ import { intlLocale, fmtNum } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PoiLayer } from '@/components/geo/PoiLayer';
 import { WISH_PLACE_EVENT } from '@/components/geo/PlaceSheet';
-import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_TOPROW, PAGE_AIR, PACK_R, PACK_SHADOW } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_TOPROW, PAGE_AIR, PACK_R, PACK_SHADOW, PACK_SPACE, PACK_TEXT } from '@/components/pack/packTheme';
 import { BackIcon, ExpandIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { goldFrameCSS, goldPlateCSS, pickTintCSS, PICK_INK, SLAB, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, NAV_R, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
@@ -105,7 +105,7 @@ import ainubisFace from '@/assets/ainubis-head.webp';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import {
-  ICON, authorOf, REGION_OF, regionLabel, diffMarkShape, DiffMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
+  ICON, authorOf, REGION_OF, regionLabel, diffMarkShape, DiffMark, CrowdMark, RouteMark, TypeMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
   DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, coverPos, hasRouteMetrics, tripShareText, pluralKey,
   readLocalTrails, writeLocalTrails, updateLocalTrail, translateLocalTrailDesc, translateLocalTrailName, backfillLocalTrailTranslations, makeTripUrlSlug, tripName, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
@@ -186,9 +186,10 @@ import { useEvents, saveEvent, type EventItem } from '@/components/pack/events/e
 // zoznam eventov v ľavom paneli + piny na mape (krok 5, plany/zadanie-eventy-2026-08-06.md §9
 // krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
 // panel ostal viazaný len na TRIP vetvu).
-import { EVENTS_LIVE, PLANNING_LIVE, WISHES_LIVE } from '@/lib/packFlags';
+import { EVENTS_LIVE, PLANNING_LIVE, WISHES_LIVE, APP_NEW } from '@/lib/packFlags';
 import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_TO_UI, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
 import { AvatarRing, AV_D, AV_D_HEAD, photoAt } from '@/components/pack/AvatarRing';
+import { PilgrimBadge, RANK_BADGE_CSS } from '@/components/pack/profile/rankBadge';
 import { firstNameFrom } from '@/lib/pilgrimName';
 
 /* ── SŤAHUJE SA AŽ PO KLIKNUTÍ (audit /pack/map B7, 26. 9. 2026) ─────────────────────────
@@ -2585,6 +2586,32 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
    ⚠️ mask-image (rozplynutie do mapy) sa RUŠÍ — malo zmysel nad tmavým sklom, ale pod
    pevnou hranou by z nej spravilo vyblednutý pruh.
    ═══════════════════════════════════════════════════════════════════════════════════════ */
+/* ── APP_NEW (9. 11. 2026): vibe stats — papyrus bez prechodov, koľajnica, karty, okná z továrne ──────────
+   Pridané ZA PALE_* a len pod APP_NEW (blok sa nevykreslí, keď je flag vypnutý). Stupnice z packTheme. */
+const APP_NEW_CSS = `
+.trp-root img.trp-sysico{width:22px!important;height:22px!important;object-fit:contain;filter:none!important;opacity:1!important;}
+.trp-root .trp-mfilterbtn img.trp-sysico{width:20px!important;height:20px!important;}
+.trp-root .trp-zoomgroup button img.trp-sysico{width:22px!important;height:22px!important;}
+.trp-avs{display:flex;align-items:flex-end;flex:none;}
+.trp-av{width:48px;height:48px;flex:none;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};box-shadow:0 0 0 2px ${T.card},0 0 0 3px ${T.inkStrong};}
+.trp-avs .trp-avd{width:36px;height:36px;margin-left:-${PACK_SPACE.md}px;}
+.trp-av--initial{display:grid;place-items:center;background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.lead}px;}
+.trp-midentity--app{gap:${PACK_SPACE.sm}px;cursor:pointer;}
+.trp-midentity--app .rk{--s:22px;margin-right:-${PACK_SPACE.xs}px;}
+.trp-midentity--app .trp-mstats2 i{letter-spacing:.02em;}
+.trp-midentity--app .trp-mstats2 span{gap:${PACK_SPACE.xs}px;}
+.trp-midentity--app .trp-mstats2 b{font-size:${PACK_TEXT.body}px;}
+.trp-midentity--app .trp-av{width:40px;height:40px;}
+.trp-midentity--app .trp-avs .trp-avd{width:28px;height:28px;}
+@media (max-width:400px){.trp-midentity--app{gap:${PACK_SPACE.xs}px;}.trp-mheader-status .trp-headright{gap:0;}}
+.trp-topbar .trp-midentity--app .trp-level{display:none;}
+.trp-mheader{background:${T.card};}
+.trp-mheader::after{background:${T.cardEdge};box-shadow:none;}
+.trp-mheader-cats{background:rgba(255,255,255,.58);border:1.5px solid ${T.cardEdge};}
+.trp-mheader-cats button{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;}
+.trp-mheader-cats button.on{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
+`;
+
 const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
 @media (max-width:${PALE_PC_MIN - 1}px){
   .trp-mheader .trp-mapsug{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};box-shadow:${T.panelShadow};}
@@ -3202,7 +3229,7 @@ function LayersPanel({
         aria-label={t('pack.map.layersAriaLabel')}
         title={t('pack.map.layersAriaLabel')}
       >
-        <img src={ICON('layers')} alt="" />
+        <img src={APP_NEW ? '/icons/sys/vrstvy.webp' : ICON('layers')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
       </button>
       {open && (
         <>
@@ -5892,7 +5919,41 @@ export default function PackMap() {
   // scrolovať a info boli vidno").
   // V náhľade /magnet = VÝKLAD Matejovej identity (13. 10. 2026: *„ponechal to 1:1 ako to máme
   // vo vnútri… moje meno/iniciály aj údaje s výletov"*). Klik vedie do ŠTATISTÍK náhľadu.
-  const renderIdentity = () => (
+  /* APP_NEW (Matej 9. 11. 2026: *„fotka na /map by mala byť ako na stats"*): dvojica fotiek človek + pes
+     (`.tw-avs` zo `TripStatsWall`) a level planétkou s číslom (`PilgrimBadge`). Dva riadky km a výlety ostávajú. */
+  const renderIdentityApp = () => (
+    <div
+      role="button"
+      tabIndex={0}
+      className="trp-midentity trp-midentity--app"
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('[data-rank-toggle]')) { setLevelPanelOpen(true); return; }
+        navigate('/pack/map/triplist?tab=stats');
+      }}
+      onKeyDown={(e) => { if (e.key === 'Enter') navigate('/pack/map/triplist?tab=stats'); }}
+    >
+      <span className="trp-avs">
+        {id.avatarUrl ? <img className="trp-av" src={sizedUrl(id.avatarUrl, 160)} alt="" /> : <span className="trp-av trp-av--initial">{id.avatarInitial}</span>}
+        {id.dogs.filter((d) => d.cloudinary_main_url).slice(0, 3).map((d) => <img key={d.id} className="trp-av trp-avd" src={sizedUrl(d.cloudinary_main_url as string, 120)} alt="" />)}
+      </span>
+      <PilgrimBadge level={levelInfo.level} pct={levelInfo.pct} label={t('pack.map.levelAriaLabel', { level: levelInfo.level })} />
+      <span className="trp-midentity-txt">
+        <span className="trp-mstats2">
+          <span><b>{fmtKm(walkedKm)}</b><i>{t('pack.map.statKm')}</i></span>
+          <span><b>{walkedCount}</b><i>{t('pack.map.statTrips' + pluralKey(walkedCount))}</i></span>
+        </span>
+        <span className="trp-pcstats">
+          <span><b>{fmtKm(walkedKm)}</b><i>{t('pack.map.statKm')}</i></span>
+          <span className="trp-pcsep" aria-hidden />
+          <span><b>{walkedCount}</b><i>{t('pack.spotlight.pillTrips' + pluralKey(walkedCount))}</i></span>
+          <span className="trp-pcsep" aria-hidden />
+          <span><b>{walkedCountryCount}</b><i>{t('pack.spotlight.pillCountries' + pluralKey(walkedCountryCount))}</i></span>
+        </span>
+      </span>
+    </div>
+  );
+
+  const renderIdentity = () => APP_NEW ? renderIdentityApp() : (
     <button
       type="button"
       className="trp-midentity"
@@ -6396,7 +6457,7 @@ export default function PackMap() {
             {viaAct && (
               <div className="trp-bigcard-why">
                 <span className="trp-cbadge">
-                  <span className="trp-cbadge-e" style={{ fontFamily: FONT_EMOJI }}>{ACT_EMOJI[identity] ?? ''}</span>
+                  <span className="trp-cbadge-e" style={{ fontFamily: FONT_EMOJI }}><TypeMark cat={identity} fallback={ACT_EMOJI[identity] ?? ''} /></span>
                   {t(`pack.map.activityLabel.${identity}`)}
                 </span>
                 <span className="trp-cbadge trp-cbadge--via">
@@ -6444,6 +6505,7 @@ export default function PackMap() {
         />
       )}
       <style>{PALE_CSS}{PALE_MOBILE_CSS}{PALE_ADD_CSS}</style>
+      {APP_NEW && <style>{RANK_BADGE_CSS + APP_NEW_CSS}</style>}
       <style>{MAP_NOTES_CSS}</style>
       {/* Vlastný <style>, hoci ten istý blok nesie aj MAP_NOTES_CSS vyššie: značka udalosti
           nesmie visieť na tom, že je práve pripojená vrstva zápisov. Dvakrát vložené
@@ -6776,7 +6838,7 @@ export default function PackMap() {
             />
             <div className="trp-greet-filterwrap">
               <button type="button" className={`trp-greet-filter${mobileSort !== 'top' ? ' on' : ''}`} onClick={() => setSortOpen((v) => !v)} aria-label={t('pack.map.sortAndFilter')}>
-                <img src={ICON('sliders')} alt="" />
+                <img src={APP_NEW ? '/icons/sys/filter.webp' : ICON('sliders')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
               </button>
               {sortOpen && (
                 <div className="trp-sortpop trp-sortpop--desk">
@@ -6995,7 +7057,7 @@ export default function PackMap() {
               aria-label={t('pack.map.filters')}
               aria-expanded={filterSheetOpen}
             >
-              <img src={ICON('sliders')} alt="" />
+              <img src={APP_NEW ? '/icons/sys/filter.webp' : ICON('sliders')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
               <span>{activeFilterCount > 0 ? t('pack.map.filtersCount', { n: activeFilterCount }) : t('pack.map.filters')}</span>
             </button>
           </div>
@@ -7160,7 +7222,7 @@ export default function PackMap() {
                     options={CROWD_DATA_KEYS.map((sk) => ({
                       value: sk,
                       label: t(`pack.map.crowdLabel.${sk}`),
-                      icon: <span aria-hidden>{CROWD_EMOJI[CROWD_KEY_TO_CROWD[sk]]}</span>,
+                      icon: <span aria-hidden><CrowdMark crowd={CROWD_KEY_TO_CROWD[sk]} fallback={CROWD_EMOJI[CROWD_KEY_TO_CROWD[sk]]} /></span>,
                     }))}
                   />
                 </div>
@@ -7229,7 +7291,7 @@ export default function PackMap() {
           className="trp-mtoggle"
           onClick={() => setMobileView((v) => (v === 'map' ? 'list' : 'map'))}
         >
-          <img src={ICON(mobileView === 'map' ? 'menu' : 'map')} alt="" />
+          <img src={APP_NEW ? (mobileView === 'map' ? '/icons/sys/zoznam.webp' : '/icons/sys/mapa.webp') : ICON(mobileView === 'map' ? 'menu' : 'map')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
           {mobileView === 'map' ? t('pack.map.list') : t('pack.map.mapLabel')}
         </button>
       </div>
@@ -7724,7 +7786,7 @@ export default function PackMap() {
                   )}
                   {fmtNum(drawPeek.km, lang)} km
                   {typeof drawPeek.ascentM === 'number' && drawPeek.ascentM > 0 && (
-                    <><span className="trp-peek-sep">·</span>↑ {drawPeek.ascentM} m</>
+                    <><span className="trp-peek-sep">·</span>{APP_NEW ? <RouteMark kind="stupanie" fallback="" /> : '\u2191'} {drawPeek.ascentM} m</>
                   )}
                   {/* Čas je ODHAD tou istou normou ako pri kreslení (`lib/tripTime.ts`) — inak by
                       tá istá trasa mala dve rôzne čísla podľa toho, kde sa na ňu človek pozrie.
@@ -7857,7 +7919,7 @@ export default function PackMap() {
                   options={CROWD_DATA_KEYS.map((sk) => ({
                     value: sk,
                     label: t(`pack.map.crowdLabel.${sk}`),
-                    icon: <span className="trp-pickdd-emoji" style={{ fontFamily: FONT_EMOJI }}>{CROWD_EMOJI[CROWD_KEY_TO_CROWD[sk]]}</span>,
+                    icon: <span className="trp-pickdd-emoji" style={{ fontFamily: FONT_EMOJI }}><CrowdMark crowd={CROWD_KEY_TO_CROWD[sk]} fallback={CROWD_EMOJI[CROWD_KEY_TO_CROWD[sk]]} /></span>,
                   }))}
                 />
                 {/* Tagy sa 2026-08-26 vrátili do ľavého panela (.trp-georow) — sem prišli
@@ -7879,8 +7941,8 @@ export default function PackMap() {
                 fogCtx={fogCtx}
               />
               <div className="trp-zoomgroup">
-                <button type="button" onClick={() => leafletMapRef.current?.zoomIn()} aria-label={t('pack.map.zoomIn')}>+</button>
-                <button type="button" onClick={() => leafletMapRef.current?.zoomOut()} aria-label={t('pack.map.zoomOut')}>−</button>
+                <button type="button" onClick={() => leafletMapRef.current?.zoomIn()} aria-label={t('pack.map.zoomIn')}>{APP_NEW ? <img src="/icons/sys/plus.webp" alt="" className="trp-sysico" /> : '+'}</button>
+                <button type="button" onClick={() => leafletMapRef.current?.zoomOut()} aria-label={t('pack.map.zoomOut')}>{APP_NEW ? <img src="/icons/sys/minus.webp" alt="" className="trp-sysico" /> : '−'}</button>
               </div>
               <button
                 type="button"
@@ -7889,7 +7951,7 @@ export default function PackMap() {
                 aria-label={t('pack.map.myLocation')}
                 title={t('pack.map.myLocation')}
               >
-                <img src={ICON('locate')} alt="" />
+                <img src={APP_NEW ? '/icons/sys/poloha.webp' : ICON('locate')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
               </button>
             </div>
 

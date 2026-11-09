@@ -21,7 +21,8 @@ import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { HandClipboard, HandArrowLeft } from '@/components/pack/HandIcons';
-import { LikeMark, CommentMark } from '@/components/pack/SysIcon';
+import { LikeMark, CommentMark, SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { COMMUNITY_CSS, PhotoMetaPills } from '@/components/pack/packCommunityUI';
 import { crowdAggregate } from '@/components/pack/packCommunity';
@@ -234,8 +235,8 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
           <img className="pft-flag" src={flagUrl(country)} alt="" loading="lazy" />
           {n > 1 && <span className="pft-cnt">{idx + 1}/{n}</span>}
           {n > 1 && <>
-            <button type="button" className="pft-nav l" aria-label={t('pack.map.previousPhoto')} onClick={() => setIdx((i) => (i - 1 + n) % n)}><HandArrowLeft size={16} /></button>
-            <button type="button" className="pft-nav r" aria-label={t('pack.map.nextPhoto')} onClick={() => setIdx((i) => (i + 1) % n)}><HandArrowLeft size={16} style={{ transform: 'scaleX(-1)' }} /></button>
+            <button type="button" className="pft-nav l" aria-label={t('pack.map.previousPhoto')} onClick={() => setIdx((i) => (i - 1 + n) % n)}>{APP_NEW ? <SysIcon name="spat" size={20} /> : <HandArrowLeft size={16} />}</button>
+            <button type="button" className="pft-nav r" aria-label={t('pack.map.nextPhoto')} onClick={() => setIdx((i) => (i + 1) % n)}>{APP_NEW ? <SysIcon name="sipka" size={20} /> : <HandArrowLeft size={16} style={{ transform: 'scaleX(-1)' }} />}</button>
           </>}
           {!isWaterTrail(tr) && (
             <div className="pft-meta">

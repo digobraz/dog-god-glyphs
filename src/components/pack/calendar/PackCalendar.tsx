@@ -54,7 +54,7 @@ import { useLang } from '@/i18n/LanguageContext';
 import { APP_NEW } from '@/lib/packFlags';
 import { HandCheck } from '@/components/pack/HandIcons';
 import { loadZapisDays, KIND_EMOJI } from '@/components/pack/profile/zapisDnaModel';
-import { ZapisGlyph } from '@/components/pack/SysIcon';
+import { ZapisGlyph, SysIcon } from '@/components/pack/SysIcon';
 import { intlLocale } from '@/i18n/bcp47';
 import type { ElementKey } from '@/components/pack/natureQuiz';
 import {
@@ -757,9 +757,9 @@ function MonthGrid({
   return (
     <>
       <div className="cal-monav">
-        <button type="button" onClick={() => setMonth(month > 1 ? month - 1 : 12)} aria-label={tx('pack.cal.prevMonth', 'Predchádzajúci mesiac')}>‹</button>
+        <button type="button" onClick={() => setMonth(month > 1 ? month - 1 : 12)} aria-label={tx('pack.cal.prevMonth', 'Predchádzajúci mesiac')}>{APP_NEW ? <SysIcon name="spat" size={22} /> : '‹'}</button>
         <span className="cal-moname">{monthName(month)} {year}</span>
-        <button type="button" onClick={() => setMonth(month < 12 ? month + 1 : 1)} aria-label={tx('pack.cal.nextMonth', 'Ďalší mesiac')}>›</button>
+        <button type="button" onClick={() => setMonth(month < 12 ? month + 1 : 1)} aria-label={tx('pack.cal.nextMonth', 'Ďalší mesiac')}>{APP_NEW ? <SysIcon name="sipka" size={22} /> : '›'}</button>
         {onWriteToday && <button type="button" className="cal-wtoday" onClick={onWriteToday}>{tx('pack.cal.writeToday', 'Zapíš dnes')}</button>}
       </div>
 

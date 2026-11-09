@@ -18,7 +18,8 @@ import { PACK_THEME, GOLD_BTN, VEIL_CSS, PACK_SHADOW, FONT_UI } from './packThem
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { toast } from '@/hooks/use-toast';
-import { DEV_FULL } from '@/lib/packFlags';
+import { APP_NEW, DEV_FULL } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { HandCheck, HandLock } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
@@ -470,7 +471,7 @@ function PrayerRow({
             transition: 'all 0.15s',
           }}
         >
-          {checked ? <HandCheck size={16} /> : locked ? <HandLock size={14} /> : null}
+          {checked ? <HandCheck size={16} /> : locked ? APP_NEW ? <SysIcon name="zamok" size={18} /> : <HandLock size={14} /> : null}
         </button>
 
         {/* Text — middle */}
@@ -546,7 +547,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
         className="inline-flex items-center justify-center"
         style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(201,154,63,0.08)', border: `1px solid ${PACK_THEME.hairline}` }}
       >
-        <HandLock size={24} style={{ color: T.accentGold }} />
+        {APP_NEW ? <SysIcon name="zamok" size={28} /> : <HandLock size={24} style={{ color: T.accentGold }} />}
       </span>
       <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>
         {t('pack.dog.dailyPrayers')}
@@ -564,7 +565,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
           color: T.inkDim,
         }}
       >
-        <HandLock size={10} />
+        {APP_NEW ? <SysIcon name="zamok" size={18} style={{ margin: -4 }} /> : <HandLock size={10} />}
         {t('pack.dog.comingSoon')}
       </span>
       <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.5, color: T.inkDim, maxWidth: 280 }}>

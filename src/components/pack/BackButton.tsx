@@ -26,6 +26,8 @@ import { HandArrowLeft, HandForward } from '@/components/pack/HandIcons';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
+import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 
 const T = PACK_THEME;
 
@@ -99,6 +101,8 @@ export function backHoverCSS(tone: BackTone): string {
 
 /** Šípka v kruhu. Veľkosť sa NEPREDÁVA parametrom — je to lock, nie voľba. */
 export function BackIcon({ className, style }: { className?: string; style?: CSSProperties }) {
+  // Appka (APP_NEW): samolepka `spat` z továrne, o 4 px väčšia (vzduch v obrázku).
+  if (APP_NEW) return <SysIcon name="spat" size={BACK.icon + 4} style={style} />;
   return <HandArrowLeft size={BACK.icon} className={className} style={style} />;
 }
 
@@ -108,10 +112,13 @@ export function BackIcon({ className, style }: { className?: string; style?: CSS
  *  (`.trp-panelnav-btn`) vedľa seba — dve rôzne veľkosti by tam bolo vidno hneď.
  *  Nahradila textový znak `⤢` (Matej 16. 9. 2026). */
 export function ExpandIcon({ className, style }: { className?: string; style?: CSSProperties }) {
+  // Appka: `rozbalit` (väčší detail) z továrne.
+  if (APP_NEW) return <SysIcon name="rozbalit" size={BACK.icon + 4} style={style} />;
   return <HandForward size={BACK.icon} className={className} style={style} />;
 }
 
 export function BackLinkIcon({ className, style }: { className?: string; style?: CSSProperties }) {
+  if (APP_NEW) return <SysIcon name="spat" size={BACK.linkIcon + 5} style={style} />;
   return <HandArrowLeft size={BACK.linkIcon} className={className} style={style} />;
 }
 

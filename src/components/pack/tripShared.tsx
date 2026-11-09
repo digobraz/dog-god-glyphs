@@ -7,6 +7,8 @@ import type React from 'react';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { planPhase, readMissedPlans } from './planReminder';
 import { PACK_THEME } from '@/components/pack/packTheme';
+import { APP_NEW } from '@/lib/packFlags';
+import { SYS_ZA_KRESBU } from '@/components/pack/sysMap';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
 import { iso2ToISO3, trailCountry } from '@/lib/countryGeo';
@@ -18,6 +20,15 @@ import {
 import { missingOnTrail } from '@/components/pack/addtrip/addTripModel';
 
 export const ICON = (n: string) => `/icons/pack/${n}.svg`;
+/** Pre `<img src>` (NIE masku): v appke (APP_NEW) okno z továrne, ak má kresba pár (`sysMap`), inak pôvodné SVG. */
+export const iconImg = (n: string) => {
+  if (!APP_NEW) return ICON(n);
+  const sys = n === 'pin' ? 'pin' : SYS_ZA_KRESBU[n];
+  return sys ? `/icons/sys/${sys}.webp` : ICON(n);
+};
+/** Samolepka má vzduch v obrázku: v appke o 4 px väčšia, bez filtra a plnej krytia. */
+export const iconImgStyle = (n: string, size: number): React.CSSProperties | undefined =>
+  APP_NEW && (n === 'pin' || SYS_ZA_KRESBU[n]) ? { width: size + 4, height: size + 4, opacity: 1, filter: 'none' } : undefined;
 
 // autor fallback (iterácia 11 bod 1) — generovaný dataset (28 done tripov) nemá `author`;
 // zdieľané medzi karty/inline detail (PackMap) a článok (PackTripArticle).
@@ -205,7 +216,28 @@ export function tripShareText(tr: { name: string; nameEN?: string; km: string; d
   return parts.length ? `${name} — ${parts.join(', ')}` : name;
 }
 
+/** Appka (APP_NEW): náročnosť = okno z továrne (`public/icons/sys/narocnost-*.webp`), web ostáva na CSS tvaroch. */
+const DIFF_SYS: Record<string, string> = { Easy: 'narocnost-lahka', Moderate: 'narocnost-stredna', Hard: 'narocnost-tazka', Odyssey: 'narocnost-odysea' };
+/** Appka (APP_NEW): rušnosť, vzdialenosť a stúpanie = okná z továrne; na webe ostáva emoji (`fallback`). */
+const CROWD_SYS: Record<string, string> = { Empty: 'rusnost-prazdno', Calm: 'rusnost-pokoj', Busy: 'rusnost-rusno' };
+export function CrowdMark({ crowd, fallback }: { crowd: string; fallback: string }) {
+  if (APP_NEW && CROWD_SYS[crowd]) return <img src={`/icons/sys/${CROWD_SYS[crowd]}.webp`} alt="" aria-hidden draggable={false} style={{ width: 22, height: 22, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }} />;
+  return <>{fallback}</>;
+}
+export function RouteMark({ kind, fallback }: { kind: 'vzdialenost' | 'stupanie'; fallback: string }) {
+  if (APP_NEW) return <img src={`/icons/sys/${kind}.webp`} alt="" aria-hidden draggable={false} style={{ width: 22, height: 22, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }} />;
+  return <>{fallback}</>;
+}
+const TYPE_SYS: Record<string, string> = { hike: 'typ-turistika', activity: 'typ-aktivita', visit: 'typ-navsteva' };
+/** Typ výletu (turistika / aktivita / návšteva): v appke okno z továrne, inak emoji. */
+export function TypeMark({ cat, fallback }: { cat: string; fallback: string }) {
+  if (APP_NEW && TYPE_SYS[cat]) return <img src={`/icons/sys/${TYPE_SYS[cat]}.webp`} alt="" aria-hidden draggable={false} style={{ width: 18, height: 18, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }} />;
+  return <>{fallback}</>;
+}
 export function DiffMark({ diff }: { diff: string }) {
+  if (APP_NEW && DIFF_SYS[diff]) {
+    return <img src={`/icons/sys/${DIFF_SYS[diff]}.webp`} alt="" aria-hidden draggable={false} style={{ width: 20, height: 20, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }} />;
+  }
   return <span className={`trp-diffmark trp-diffmark--${diffMarkShape(diff)}${diff === 'Odyssey' ? ' trp-diffmark--odyssey' : ''}`} aria-hidden="true" />;
 }
 
@@ -327,6 +359,13 @@ export function RatingPaws({ stars, size = 15, gap = 4 }: { stars: number; size?
         const fillPct = Math.round(Math.max(0, Math.min(1, rounded - (n - 1))) * 100);
         return (
           <span key={n} style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+            {APP_NEW ? (
+              <>
+                {/* Appka: okno „hodnotenie" z továrne; nevyplnená časť = šedá, vyplnená = farebná orezaná na fillPct. */}
+                <img aria-hidden alt="" draggable={false} src="/icons/sys/hodnotenie.webp" style={{ position: 'absolute', inset: -2, width: size + 4, height: size + 4, maxWidth: 'none', objectFit: 'contain', filter: 'grayscale(1)', opacity: 0.45 }} />
+                {fillPct > 0 && <img aria-hidden alt="" draggable={false} src="/icons/sys/hodnotenie.webp" style={{ position: 'absolute', inset: -2, width: size + 4, height: size + 4, maxWidth: 'none', objectFit: 'contain', clipPath: `inset(0 ${100 - fillPct}% 0 0)` }} />}
+              </>
+            ) : (<>
             {/* ⚠️ FARBA IDE MASKOU, NIE FILTROM (15. 9. 2026) — tá istá mechanika, akú má
                 `addtrip/PawRating.tsx` od 27. 7. Filter `hue-rotate` vie farbu len
                 APROXIMOVAŤ, takže packy v článku svietili svetlou žltou a Matej ich na
@@ -361,6 +400,7 @@ export function RatingPaws({ stars, size = 15, gap = 4 }: { stars: number; size?
                 }}
               />
             )}
+            </>)}
           </span>
         );
       })}

@@ -20,6 +20,8 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PACK_THEME, PACK_HEAD } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { RoundQR } from '@/components/pack/dogs/RoundQR';
 import { PROGRESS_STEPS } from '@/components/pack/dogQuiz';
@@ -218,10 +220,10 @@ const CSS = `
 `;
 
 /** Záložky — nová sekcia (KRMENIE, KALENDÁR…) = nový riadok tu. Ikonky z kitu Icons hand drawn. */
-const TABS: { key: 'id' | 'z' | 'k'; icon: string; i18n: string; labelEN: string }[] = [
-  { key: 'id', icon: 'badge', i18n: 'pack.hub.profileTitle', labelEN: 'DOG ID' },
+const TABS: { key: 'id' | 'z' | 'k'; icon: string; sys?: string; i18n: string; labelEN: string }[] = [
+  { key: 'id', icon: 'badge', sys: 'dog-id', i18n: 'pack.hub.profileTitle', labelEN: 'DOG ID' },
   { key: 'z', icon: 'sand-clock', i18n: 'pack.dogs2.life', labelEN: 'Life' },
-  { key: 'k', icon: 'pencil', i18n: 'pack.dogs2.diary', labelEN: 'Diary' },
+  { key: 'k', icon: 'pencil', sys: 'den-kronika', i18n: 'pack.dogs2.diary', labelEN: 'Diary' },
 ];
 
 interface View {
@@ -337,7 +339,9 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
           return (
             <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} aria-label={label}
               className={`dv2-tab${tab === t.key ? ' on' : ''}`} onClick={() => setTab(t.key)}>
-              <i className="dv2-ti" style={{ ['--m' as string]: `url(/icons/pack/${t.icon}.svg)` }} />
+              {APP_NEW && t.sys
+                ? <SysIcon name={t.sys} size={28} off={tab !== t.key} />
+                : <i className="dv2-ti" style={{ ['--m' as string]: `url(/icons/pack/${t.icon}.svg)` }} />}
               <span className="dv2-tl">{label}</span>
             </button>
           );
@@ -408,7 +412,7 @@ function PackDogId({ dogs, latest, tx }: { dogs: DogsV2Dog[]; latest: Latest; tx
           <ul>
             {mods.map(({ m, p }) => (
               <li key={m.key}>
-                <span className="ic"><BrandIcon name={m.icon} size={16} tint="dark" /></span>
+                <span className="ic"><BrandIcon name={APP_NEW && m.icon === 'feather' ? 'dogid-will' : m.icon} size={16} tint="dark" /></span>
                 <span>{tx(m.i18n, m.labelEN)}</span>
                 <b className={p.done ? 'ok' : ''}>{p.pct} %</b>
               </li>

@@ -74,6 +74,8 @@ const toBranch = (v: unknown): Branch | undefined =>
  * nie lucide a nie prázdne miesto. Výmena = prepísať `d` nižšie a viewBox.
  * Zdroj: `HandStar` v `components/pack/HandIcons.tsx`.
  */
+/** Témy začiatku rozhovoru → samolepka z továrne (APP_NEW). Terč (problem) výber zatiaľ nemá, ostáva maska. */
+const TOPIC_SYS: Record<string, string> = { idea: 'mozog', help: 'misia' };
 const VIP_MARK_VIEWBOX = '0 0 482.829 482.829';
 const VIP_MARK_D =
   'M8.538,201.486c39.093,35.828,80.379,68.967,125.332,97.159c-14.82,50.318-30.976,100.194-48.287,149.715 c-3.171,9.074,2.963,15.34,10.296,16.747c3.671,2.233,8.34,2.498,13.114-0.909c43.445-31.026,88.065-60.352,132.004-90.678 c44.43,32.646,87.856,66.618,134.387,96.289c10.308,6.581,20.017-2.316,20.626-11.781c0.513-2.062,0.6-4.347-0.025-6.865 c-12.288-49.982-26.726-99.224-48.905-145.677c47.728-30.499,86.34-72.39,130.864-107.191c8.353-6.525,4.905-15.965-2.194-20.467 c-2.254-2.892-5.737-4.883-10.526-4.883H315.296c-20.043-50.403-40.497-100.633-56.782-152.418 c-4.845-15.419-27.048-11.077-27.683,2.453c-23.354,49.835-44.788,100.399-57.262,154.094 c-53.349-0.338-106.676-2.564-160.03-2.725C-2.674,174.301-4.307,196.771,8.538,201.486z M180.466,205.21 c1.236,0.005,2.371-0.147,3.435-0.386c6.21,0.898,12.637-1.919,14.3-9.912c9.569-45.907,26.052-89.261,45.011-131.809 c14.922,42.533,31.964,84.279,48.573,126.201c0.051,0.134,0.133,0.233,0.193,0.363c1.011,6.012,5.454,11.336,13.335,11.336 h125.649c-34.729,30.168-67.604,62.518-107.476,86.079c-2.955,1.747-4.829,4.042-5.84,6.546 c-2.498,3.844-3.271,8.841-0.594,14.051c19.393,37.795,32.575,77.855,43.574,118.662c-37.399-25.726-73.301-53.532-109.954-80.344 c-1.046-0.762-2.079-1.3-3.11-1.727c-3.781-2.641-8.752-3.22-13.858,0.325c-35.914,24.923-72.346,49.084-108.285,73.955 c13.363-39.694,25.989-79.617,37.714-119.83c1.872-6.423-0.645-11.466-4.801-14.421c-0.95-2.671-2.796-5.149-5.855-7.038 c-35.635-21.963-68.736-47.162-100.283-74.408C94.953,203.614,137.702,205.079,180.466,205.21z';
@@ -1656,7 +1658,7 @@ function AinubisWidgetInner() {
                 {plane && (
                   <button type="button" className="ainubis-panel__tool" onClick={(e) => { e.stopPropagation(); requestAinubisPlaneBack(); }}
                     aria-label={tx('ainubis.chat.back', 'Back')} title={tx('ainubis.chat.back', 'Back')}>
-                    <span className="ainubis-tool-ico ainubis-tool-ico--back" aria-hidden />
+                    <span className={`ainubis-tool-ico ainubis-tool-ico--back${APP_NEW ? ' ainubis-sys ainubis-sys--spat' : ''}`} aria-hidden />
                   </button>
                 )}
                 {/* HISTÓRIA A NOVÝ ROZHOVOR (appka MVP): ikonky z kitu (hodiny, plus) maskou. */}
@@ -1887,7 +1889,7 @@ function AinubisWidgetInner() {
             <div className="ainubis-topics">
               {TOPICS.map((k) => (
                 <button key={k} type="button" className="ainubis-topic" onClick={() => pickTopic(k)}>
-                  <span className={`ainubis-topic__ico ainubis-topic__ico--${k}`} aria-hidden />
+                  <span className={`ainubis-topic__ico ainubis-topic__ico--${k}${APP_NEW && TOPIC_SYS[k] ? ` ainubis-sys ainubis-sys--${TOPIC_SYS[k]}` : ''}`} aria-hidden />
                   {copy.topics[k].label}
                 </button>
               ))}
@@ -1967,7 +1969,7 @@ function AinubisWidgetInner() {
                 aria-label={copy.attachImage}
                 title={copy.attachImage}
               >
-                <span className="ainubis-attach-ico" aria-hidden />
+                <span className={`ainubis-attach-ico${APP_NEW ? ' ainubis-sys ainubis-sys--foto' : ''}`} aria-hidden />
               </button>
               <button
                 type="button"
@@ -2003,7 +2005,7 @@ function AinubisWidgetInner() {
                 aria-label={copy.send}
               >
                 {/* Papierové lietadlo z kitu (Matej 26. 9. 2026: ikonka odoslania nebola brand). */}
-                <span className="ainubis-send-ico" aria-hidden />
+                <span className={`ainubis-send-ico${APP_NEW ? ' ainubis-sys ainubis-sys--odoslat' : ''}`} aria-hidden />
               </button>
             </div>
           </div>
@@ -2014,7 +2016,7 @@ function AinubisWidgetInner() {
             <div className="ainubis-layer" onClick={(e) => e.stopPropagation()}>
               <div className="ainubis-layer__head">
                 <button type="button" className="ainubis-panel__tool" onClick={() => setPanelView(null)} aria-label={tx('ainubis.chat.back', 'Back')}>
-                  <span className="ainubis-tool-ico ainubis-tool-ico--back" aria-hidden />
+                  <span className={`ainubis-tool-ico ainubis-tool-ico--back${APP_NEW ? ' ainubis-sys ainubis-sys--spat' : ''}`} aria-hidden />
                 </button>
                 <b>{tx('ainubis.chat.history', 'Conversations')}</b>
               </div>
@@ -2041,7 +2043,7 @@ function AinubisWidgetInner() {
             <div className="ainubis-layer" onClick={(e) => e.stopPropagation()}>
               <div className="ainubis-layer__head">
                 <button type="button" className="ainubis-panel__tool" onClick={() => setPanelView(null)} aria-label={tx('ainubis.chat.back', 'Back')}>
-                  <span className="ainubis-tool-ico ainubis-tool-ico--back" aria-hidden />
+                  <span className={`ainubis-tool-ico ainubis-tool-ico--back${APP_NEW ? ' ainubis-sys ainubis-sys--spat' : ''}`} aria-hidden />
                 </button>
                 <b>{tx('ainubis.chat.cfgTitle', 'What AINUBIS may see')}</b>
               </div>

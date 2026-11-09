@@ -1,3 +1,5 @@
+import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { Circle, Sparkles } from 'lucide-react';
 import { useT } from '@/i18n/LanguageContext';
 import { BrandIcon } from './BrandIcon';
@@ -115,7 +117,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
                   boxShadow: '0 2px 6px -1px rgba(201,154,63,0.55)',
                 }}
               >
-                <HandCheck size={12} style={{ color: '#3A2A06' }} />
+                {APP_NEW ? <SysIcon name="fajka" size={16} /> : <HandCheck size={12} style={{ color: '#3A2A06' }} />}
               </span>
             ) : (
               <Circle className="h-4 w-4 shrink-0" style={{ color: T.inkFaint }} />

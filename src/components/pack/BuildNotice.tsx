@@ -7,6 +7,8 @@ import { uploadFeedbackPhoto } from '@/services/cloudinaryService';
 import { PACK_THEME, PACK_SHADOW, FONT_UI } from './packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import { HandCheck } from '@/components/pack/HandIcons';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 
 const T = PACK_THEME;
 
@@ -240,7 +242,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
                 opacity: message.trim() && status !== 'loading' ? 1 : 0.55,
               }}
             >
-              <BrandIcon name="feather" size={14} tint="white" />
+              {APP_NEW ? <SysIcon name="odoslat" size={18} /> : <BrandIcon name="feather" size={14} tint="white" />}
               {status === 'loading' ? (file ? t('pack.build.uploading') : t('pack.build.sending')) : t('pack.build.sendBtn')}
             </button>
           </form>

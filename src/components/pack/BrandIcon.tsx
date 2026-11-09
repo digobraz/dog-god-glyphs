@@ -1,6 +1,8 @@
 // Brand hand-drawn icon. Tints black source SVG to brand palette via CSS filter.
 // tint: 'gold' (default, content) | 'dark' (#5A3F12, on gold backgrounds) | 'white' | 'dim'
 import React from 'react';
+import { APP_NEW } from '@/lib/packFlags';
+import { SYS_ZA_KRESBU } from '@/components/pack/sysMap';
 
 type Tint = 'gold' | 'dark' | 'white' | 'dim' | 'danger' | 'good' | 'violet';
 
@@ -17,6 +19,14 @@ const FILTERS: Record<Tint, string> = {
 export function BrandIcon({ name, size = 16, tint = 'gold', className, style }: {
   name: string; size?: number; tint?: Tint; className?: string; style?: React.CSSProperties;
 }) {
+  // Appka: farebná samolepka z továrne, tint sa ignoruje. Samolepka má vzduch v obrázku, preto o 4 px väčšia.
+  const sys = APP_NEW ? SYS_ZA_KRESBU[name] : undefined;
+  if (sys) {
+    const s = Math.max(size + 4, 18);
+    return <img src={`/icons/sys/${sys}.webp`} alt="" aria-hidden draggable={false}
+      className={className}
+      style={{ width: s, height: s, objectFit: 'contain', ...(tint === 'dim' ? { filter: 'grayscale(1)', opacity: 0.55 } : null), ...style }} />;
+  }
   return <img src={`/icons/pack/${name}.svg`} alt="" aria-hidden
     className={className}
     style={{ width: size, height: size, objectFit: 'contain', filter: FILTERS[tint], ...style }} />;

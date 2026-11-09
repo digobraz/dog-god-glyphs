@@ -41,6 +41,7 @@ import ainubisFace from '@/assets/ainubis-badge.webp';
 import { mountBrain } from './brainEngine';
 import { VAULT_WORLDS } from './worlds';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
+import { MoreIc } from '@/components/app/sysSwap';
 import {
   DEMO_CHATS, DEMO_SCROLLS, DEMO_CONTEXT, DEMO_FORMS, FORM_ORDER,
   DEMO_PENDING, DEMO_REPLY, DEMO_STARTERS, DEMO_DOGS, SCOPE_GENERAL, scopeChoices, demoVerdict,
@@ -1094,7 +1095,7 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
                   </button>
                   <button type="button" className="akc-dots" aria-label="Conversation actions"
                     aria-expanded={menu === c.id}
-                    onClick={() => setMenu((v) => (v === c.id ? null : c.id))}>⋯</button>
+                    onClick={() => setMenu((v) => (v === c.id ? null : c.id))}><MoreIc /></button>
                   <div className="akc-menu" role="menu">
                     <button type="button" className="akc-mi" onClick={() => pinChat(c.id)}>
                       {c.pinned ? 'Unpin' : 'Pin to top'}

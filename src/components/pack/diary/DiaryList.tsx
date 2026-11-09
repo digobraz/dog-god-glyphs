@@ -18,6 +18,8 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useState } from 'react';
 import { HandPencil, HandTrash } from '@/components/pack/HandIcons';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { toast } from '@/hooks/use-toast';
 import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
@@ -127,8 +129,8 @@ export function DiaryItem({ row, dogName, tx, onEdit, inDay }: { row: DiaryRow; 
         {plan && <span className="dl-plan">{tx('pack.diary.planTag', 'Plan')}</span>}
         {editable && onEdit && (
           <span className="dl-acts">
-            <button type="button" aria-label={tx('pack.diary.edit', 'Edit')} onClick={() => onEdit(row)}><HandPencil size={16} /></button>
-            <button type="button" aria-label={tx('pack.diary.delete', 'Delete')} onClick={() => setAskDel(true)}><HandTrash size={16} /></button>
+            <button type="button" aria-label={tx('pack.diary.edit', 'Edit')} onClick={() => onEdit(row)}>{APP_NEW ? <SysIcon name="ceruzka" size={20} /> : <HandPencil size={16} />}</button>
+            <button type="button" aria-label={tx('pack.diary.delete', 'Delete')} onClick={() => setAskDel(true)}>{APP_NEW ? <SysIcon name="kos" size={20} /> : <HandTrash size={16} />}</button>
           </span>
         )}
       </div>

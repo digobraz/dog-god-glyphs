@@ -14,7 +14,8 @@ import { PACK_BOX, PACK_HEAD, PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PIL
 import { saveHuman } from './profile/packProfile';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
-import { DEV_FULL, PAWMATE_LIVE } from '@/lib/packFlags';
+import { APP_NEW, DEV_FULL, PAWMATE_LIVE } from '@/lib/packFlags';
+import { SysIcon } from './SysIcon';
 import { devotionLevel } from '@/lib/devotion';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { useLang, useT } from '@/i18n/LanguageContext';
@@ -343,7 +344,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
           aria-label={t('pack.hero.editProfile')}
           title={t('pack.hero.editProfile')}
         >
-          <HandPencil size={12} className="shrink-0" />
+          {APP_NEW ? <SysIcon name="ceruzka" size={18} style={{ margin: -3 }} /> : <HandPencil size={12} className="shrink-0" />}
           <span className="hidden sm:inline">{t('pack.hero.editProfileShort')}</span>
         </Link>
         {dogsHref && (
@@ -911,7 +912,7 @@ function PackNameRow({ label, fallback }: { label: string; fallback: string }) {
                 cursor: 'pointer', padding: 0,
               }}
             >
-              <HandPencil size={12} />
+              {APP_NEW ? <SysIcon name="ceruzka" size={18} /> : <HandPencil size={12} />}
             </button>
           </div>
 
@@ -1095,7 +1096,7 @@ function HeroPopup({
               boxShadow: LAPIS_BTN_SHADOW,
             }}
           >
-            <HandLink size={16} />
+            {APP_NEW ? <SysIcon name="zdielat" size={20} /> : <HandLink size={16} />}
             {t('pack.hero.popBonesCta')}
           </button>
         )}
@@ -1157,7 +1158,7 @@ function PackRoles() {
         </div>
         {/* PAWMATE aj s vysvetlivkou a šípka sú centrované na stred vnútorného bloku
             (Matej 26. 9. 2026), nie na os kruhov. */}
-        <HandForward size={16} style={{ color: T.cardEdge }} />
+        {APP_NEW ? <SysIcon name="sipka" size={20} /> : <HandForward size={16} style={{ color: T.cardEdge }} />}
         {role('add-user', 'PAWMATE', false, t('pack.hero.rolePawmate'))}
       </div>
       <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.4, color: T.inkWarm, margin: '12px 0 0' }}>
@@ -1326,12 +1327,12 @@ function AddPopup({ onClose, onPawmate }: {
               K PSOVI, takže by sekcia nemala ku komu pustiť. */}
           {onPawmate ? (
             <button type="button" style={DOOR} onClick={onPawmate}>
-              <DoorFace icon={<HandKey size={18} />} label={t('pack.add.pawmate')} sub={t('pack.add.pawmateSub')} />
+              <DoorFace icon={APP_NEW ? <SysIcon name="kluc" size={22} /> : <HandKey size={18} />} label={t('pack.add.pawmate')} sub={t('pack.add.pawmateSub')} />
             </button>
           ) : (
             <div style={DOOR_LOCKED} aria-disabled="true">
               <DoorFace
-                icon={<HandKey size={18} />}
+                icon={APP_NEW ? <SysIcon name="kluc" size={22} /> : <HandKey size={18} />}
                 label={t('pack.add.pawmate')}
                 sub={t('pack.add.pawmateSub')}
                 locked
@@ -1348,7 +1349,7 @@ function AddPopup({ onClose, onPawmate }: {
               soon"*. Novší pokyn platí — Pawmate aj Pawtner stoja ako ČOSKORO. */}
           <div style={DOOR_LOCKED} aria-disabled="true">
             <DoorFace
-              icon={<HandHouseHeart size={18} />}
+              icon={APP_NEW ? <SysIcon name="doma" size={22} /> : <HandHouseHeart size={18} />}
               label={t('pack.add.pawtner')}
               sub={t('pack.add.pawtnerSub')}
               locked

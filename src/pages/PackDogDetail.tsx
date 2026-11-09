@@ -5,6 +5,7 @@ import { fmtNum, intlLocale } from '@/i18n/bcp47';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Download, Loader2, Save, Sparkles, ChevronDown } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { RightGate } from '@/components/pack/RightGate';
 import { DEV_NOAUTH, DEV_MOCK_DOG_ROW } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
@@ -812,13 +813,13 @@ export default function PackDogDetail() {
                       ? <img src={sizedUrl(dog.cloudinary_main_url, 480)} alt={dogName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : (
                         <span className="flex flex-col items-center justify-center" style={{ color: T.inkStrong, fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.22em', gap: 4 }}>
-                          <HandCamera size={16} aria-hidden="true" />
+                          {APP_NEW ? <SysIcon name="foto" size={20} /> : <HandCamera size={16} aria-hidden="true" />}
                           {t('pack.dog.noPhoto')}
                         </span>
                       )}
                   />
                   <span className={`did-medalcam${uploadingMain ? ' on' : ''}`}>
-                    {uploadingMain ? <Loader2 className="h-5 w-5 animate-spin" /> : <HandCamera size={20} />}
+                    {uploadingMain ? <Loader2 className="h-5 w-5 animate-spin" /> : (APP_NEW ? <SysIcon name="foto" size={24} /> : <HandCamera size={20} />)}
                   </span>
                 </button>
                 </RightGate>
@@ -847,7 +848,7 @@ export default function PackDogDetail() {
                   className="flex flex-col items-center justify-center h-full"
                   style={{ color: T.inkFaint, fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.22em', gap: 4 }}
                 >
-                  <HandCamera size={16} aria-hidden="true" />
+                  {APP_NEW ? <SysIcon name="foto" size={20} /> : <HandCamera size={16} aria-hidden="true" />}
                   {t('pack.dog.noPhoto')}
                 </div>
               )}
@@ -855,7 +856,7 @@ export default function PackDogDetail() {
                 className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 style={{ background: 'rgba(10,10,10,0.55)', color: T.card, borderRadius: '50%' }}
               >
-                {uploadingMain ? <Loader2 className="h-5 w-5 animate-spin" /> : <HandCamera size={20} />}
+                {uploadingMain ? <Loader2 className="h-5 w-5 animate-spin" /> : (APP_NEW ? <SysIcon name="foto" size={24} /> : <HandCamera size={20} />)}
               </span>
             </button>
             </RightGate>
@@ -978,7 +979,7 @@ export default function PackDogDetail() {
                         className="inline-flex items-center gap-1.5"
                         style={{ fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkDim }}
                       >
-                        <Sparkles className="h-3 w-3" style={{ color: T.accentGold }} />
+                        {APP_NEW ? <SysIcon name="iskra" size={18} /> : <Sparkles className="h-3 w-3" style={{ color: T.accentGold }} />}
                         {t('pack.dog.livedBestLife', { poss: P.poss })}
                       </span>
                       <BestLifeBadge age={age} />
@@ -1005,7 +1006,7 @@ export default function PackDogDetail() {
                       className="inline-flex items-center gap-1.5"
                       style={{ fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkDim }}
                     >
-                      <Sparkles className="h-3 w-3" style={{ color: LAPIS.edge }} />
+                      {APP_NEW ? <SysIcon name="iskra" size={18} /> : <Sparkles className="h-3 w-3" style={{ color: LAPIS.edge }} />}
                       {t('pack.dog.livingBestLife')}
                     </span>
                     <BestLifeBadge age={age} />
@@ -1075,10 +1076,12 @@ export default function PackDogDetail() {
               >
                 <BrandIcon name="document" size={12} tint="gold" />
                 {showCert ? t('pack.dog.hideCertificate') : t('pack.dog.viewCertificate')}
-                <ChevronDown
+                {APP_NEW
+                  ? <SysIcon name="sipka" size={18} style={{ transform: showCert ? 'rotate(-90deg)' : 'rotate(90deg)', transition: 'transform 0.2s' }} />
+                  : <ChevronDown
                   className="h-3.5 w-3.5"
                   style={{ color: T.accentGold, transform: showCert ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-                />
+                />}
               </button>
               {showCert && (
                 <div
@@ -1133,7 +1136,7 @@ export default function PackDogDetail() {
                       opacity: regenerating ? 0.6 : 1,
                     }}
                   >
-                    {regenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <HandCycle size={12} />}
+                    {regenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : (APP_NEW ? <SysIcon name="znova" size={18} /> : <HandCycle size={12} />)}
                     {regenerating ? t('pack.dog.generating') : hasPdfs ? t('pack.dog.regeneratePdfs') : t('pack.dog.generatePdfs')}
                   </button>
                 );
@@ -1252,7 +1255,7 @@ export default function PackDogDetail() {
                               </div>
                             </div>
                             <button type="button" className="did-regen" onClick={handleRegenerate} disabled={regenerating}>
-                              {regenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <HandCycle size={12} />}
+                              {regenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : (APP_NEW ? <SysIcon name="znova" size={18} /> : <HandCycle size={12} />)}
                               {regenerating ? t('pack.dog.generating') : (dog.pdf_cert_url ? t('pack.dog.regeneratePdfs') : t('pack.dog.generatePdfs'))}
                             </button>
                           </>
@@ -1272,7 +1275,7 @@ export default function PackDogDetail() {
                               <span>{t('pack.dog.wallHint')}</span>
                               <RightGate right="grid.message" dogId={dog.id}>
                                 <button type="button" className="pk-pill pk-pill--tap pass-edit" onClick={() => setWallOpen(true)}>
-                                  ✎ {t('pack.pass.edit')}
+                                  {APP_NEW ? <SysIcon name="ceruzka" size={18} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : '✎'} {t('pack.pass.edit')}
                                 </button>
                               </RightGate>
                             </div>
@@ -1756,7 +1759,7 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
           className="inline-flex items-center justify-center"
           style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, border: `1px dashed ${T.border}` }}
         >
-          <img src="/icons/pack/plus.svg" alt="" style={{ width: 16, height: 16, filter: GOLD_FILTER }} />
+          {APP_NEW ? <SysIcon name="plus" size={20} /> : <img src="/icons/pack/plus.svg" alt="" style={{ width: 16, height: 16, filter: GOLD_FILTER }} />}
         </span>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, fontWeight: 700, color: T.ink, lineHeight: 1.1 }}>
@@ -2241,7 +2244,7 @@ function PrayerRow({
             transition: 'all 0.15s',
           }}
         >
-          {checked ? <HandCheck size={16} /> : locked ? <HandLock size={14} /> : null}
+          {checked ? (APP_NEW ? <SysIcon name="fajka" size={20} /> : <HandCheck size={16} />) : locked ? (APP_NEW ? <SysIcon name="zamok" size={18} /> : <HandLock size={14} />) : null}
         </button>
 
         {/* Text — middle */}
@@ -2352,10 +2355,12 @@ function HealthBadge({
       >
         {isHealthy ? <BrandIcon name="heart" size={12} tint="good" /> : <BrandIcon name="alert" size={12} tint="danger" />}
         {current.label}
-        <ChevronDown
+        {APP_NEW
+          ? <SysIcon name="sipka" size={18} style={{ transform: open ? 'rotate(-90deg)' : 'rotate(90deg)', transition: 'transform 0.2s' }} />
+          : <ChevronDown
           className="h-3 w-3 shrink-0"
           style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-        />
+        />}
       </button>
 
       {open && (
@@ -2393,7 +2398,7 @@ function HealthBadge({
                 <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, fontWeight: 600, color: T.ink }}>
                   {o.label}
                 </span>
-                {o.key === status && <HandCheck size={14} style={{ marginLeft: 'auto', color: o.color }} />}
+                {o.key === status && (APP_NEW ? <SysIcon name="fajka" size={18} style={{ marginLeft: 'auto' }} /> : <HandCheck size={14} style={{ marginLeft: 'auto', color: o.color }} />)}
               </button>
             ))}
           </div>
@@ -2789,7 +2794,7 @@ function PreviewRow({
                 color: T.inkFaint,
               }}
             >
-              <HandLock size={10} />
+              {APP_NEW ? <SysIcon name="zamok" size={18} /> : <HandLock size={10} />}
               {t('pack.dog.soon')}
             </span>
           )}
@@ -2818,7 +2823,7 @@ function VisionCallout({ title, body, tone = 'gold' }: { title: string; body: st
       }}
     >
       <div className="flex items-center gap-2" style={{ marginBottom: 5 }}>
-        <Sparkles className="h-3.5 w-3.5" style={{ color: accent }} />
+        {APP_NEW ? <SysIcon name="iskra" size={18} /> : <Sparkles className="h-3.5 w-3.5" style={{ color: accent }} />}
         <span
           style={{
             fontFamily: FONT_UI,
@@ -2882,7 +2887,7 @@ function OverviewFact({
           {value}
         </span>
         {live && <span style={{ width: 7, height: 7, borderRadius: '50%', background: T.growGreen, flexShrink: 0 }} />}
-        {soon && <HandLock size={10} className="shrink-0" style={{ color: T.inkFaint }} />}
+        {soon && (APP_NEW ? <SysIcon name="zamok" size={18} /> : <HandLock size={10} className="shrink-0" style={{ color: T.inkFaint }} />)}
         {hint && (
           <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkDim }}>· {hint}</span>
         )}
@@ -2982,7 +2987,7 @@ function TestChip({
           color: T.partHek,
         }}
       >
-        <HandLock size={10} />
+        {APP_NEW ? <SysIcon name="zamok" size={18} /> : <HandLock size={10} />}
         {cta}
       </span>
     </button>
@@ -3024,7 +3029,7 @@ function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: stri
           color: T.inkFaint,
         }}
       >
-        <HandLock size={10} />
+        {APP_NEW ? <SysIcon name="zamok" size={18} /> : <HandLock size={10} />}
         {t('pack.dog.soon')}
       </span>
       <span
@@ -3106,7 +3111,7 @@ function DownloadButton({
         </span>
         <span className="inline-flex items-center gap-1.5" style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
           {enabled ? 'PDF' : '…'}
-          <Download className="h-4 w-4" />
+          {APP_NEW ? <SysIcon name="stiahnut" size={20} /> : <Download className="h-4 w-4" />}
         </span>
       </>
     );
@@ -3139,7 +3144,7 @@ function DownloadButton({
   };
   const inner = (
     <>
-      {enabled ? <Download className="h-3.5 w-3.5" style={{ color: T.accentGold }} /> : <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+      {enabled ? (APP_NEW ? <SysIcon name="stiahnut" size={18} /> : <Download className="h-3.5 w-3.5" style={{ color: T.accentGold }} />) : <Loader2 className="h-3.5 w-3.5 animate-spin" />}
       {label}
     </>
   );

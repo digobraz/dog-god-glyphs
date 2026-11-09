@@ -39,6 +39,9 @@ import {
   type BalanceResult, type BalanceItem, type ElementKey,
 } from '@/components/pack/natureQuiz';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
+
 import { appendDogEvents, readLatestForDogs, type DogEventInput } from '@/lib/dogEvents';
 import ainubisBadge from '@/assets/ainubis-badge.webp';
 import { supabase } from '@/integrations/supabase/client';
@@ -1230,7 +1233,7 @@ function OptionRow({
   const someOn = onCount > 0 && !allOn;
   const Mark = (
     <span className="nq-mark" aria-hidden>
-      {allOn ? <HandCheck size={14} /> : (mark ?? '')}
+      {allOn ? (APP_NEW ? <SysIcon name="fajka" size={18} /> : <HandCheck size={14} />) : (mark ?? '')}
     </span>
   );
 
@@ -2208,7 +2211,7 @@ export default function PackNatureQuiz() {
         ))}
         <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button type="button" className="nq-ghost" onClick={startOver}>
-            <HandCycle size={14} /> {tx('pack.nature.result.again', 'Take it again')}
+            {APP_NEW ? <SysIcon name="znova" size={20} /> : <HandCycle size={14} />} {tx('pack.nature.result.again', 'Take it again')}
           </button>
           <button type="button" className="nq-gold" onClick={() => navigate(exitTo)}>
             {tx('pack.nature.result.done', 'Done')}
@@ -2335,7 +2338,7 @@ export default function PackNatureQuiz() {
                 disabled={phase === 'element' && idx === 0}
                 onClick={goBack}
               >
-                <ChevronLeft className="h-3.5 w-3.5" /> {tx('pack.nature.back', 'Back')}
+                {APP_NEW ? <SysIcon name="spat" size={20} /> : <ChevronLeft className="h-3.5 w-3.5" />} {tx('pack.nature.back', 'Back')}
               </button>
               <button
                 type="button"
@@ -2442,7 +2445,7 @@ export default function PackNatureQuiz() {
 
             <div className="nq-nav">
               <button type="button" className="nq-ghost" onClick={goBack}>
-                <ChevronLeft className="h-3.5 w-3.5" /> {tx('pack.nature.back', 'Back')}
+                {APP_NEW ? <SysIcon name="spat" size={20} /> : <ChevronLeft className="h-3.5 w-3.5" />} {tx('pack.nature.back', 'Back')}
               </button>
               {/* ĎALEJ nie je nikdy zhasnuté — prázdny zoznam je platná odpoveď. */}
               <button type="button" className="nq-gold" onClick={goNext}>
@@ -2522,7 +2525,7 @@ export default function PackNatureQuiz() {
                 className="nq-ghost"
                 onClick={goBack}
               >
-                <ChevronLeft className="h-3.5 w-3.5" /> {tx('pack.nature.back', 'Back')}
+                {APP_NEW ? <SysIcon name="spat" size={20} /> : <ChevronLeft className="h-3.5 w-3.5" />} {tx('pack.nature.back', 'Back')}
               </button>
               <button
                 type="button"
@@ -2581,7 +2584,7 @@ export default function PackNatureQuiz() {
       ))}
       <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
         <button type="button" className="nq-ghost" onClick={restart}>
-          <HandCycle size={14} /> {tx('pack.nature.result.again', 'Take it again')}
+          {APP_NEW ? <SysIcon name="znova" size={20} /> : <HandCycle size={14} />} {tx('pack.nature.result.again', 'Take it again')}
         </button>
         {!mg && (
           <button type="button" className="nq-gold" onClick={() => navigate(exitTo)}>
@@ -2603,7 +2606,7 @@ export default function PackNatureQuiz() {
       )}
       {saved && (
         <p style={{ fontFamily: FONT_UI, fontSize: 10, color: T.inkWarm, marginTop: 12, textAlign: 'center' }}>
-          <HandCheck size={12} />{' '}
+          {APP_NEW ? <SysIcon name="fajka" size={18} /> : <HandCheck size={12} />}{' '}
           {solo
             ? tx('pack.nature.result.saved', 'Saved to your dog’s card')
             : tx('pack.nature.result.savedAll', 'Saved to every dog’s card')}

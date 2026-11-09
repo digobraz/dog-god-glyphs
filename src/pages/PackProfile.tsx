@@ -31,6 +31,7 @@ import { countryLabel, countryOptions, normalizeCountryValue, COUNTRY_OTHER } fr
 import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import { STORIES_ON, PAWMATE_LIVE, APP_NEW } from '@/lib/packFlags';
 import { IS_APP } from '@/lib/isApp';
+import { SysIcon } from '@/components/pack/SysIcon';
 import {
   PAWMATE_RIGHTS, RIGHT_LABEL, invitePawmate, listMyPawmates, revokePawmate, revokeDogInvite, setPawmateAccess, setPawmateSuccessor,
   type MyPawmates, type PawmateRow, type PawmateRight, type PawmateRole,
@@ -271,6 +272,15 @@ const EDIT_CSS = `
 }
 `;
 
+// APP_NEW = PLOCHA: skupina nie je podblok (rám), len nadpis s vlasovou čiarou — vzor CELKOVO v TripStatsWall.
+const GRP_BOX = APP_NEW ? {} : { ...PACK_BOX.subblock };
+const GRP_FLAT_CSS = `
+.pe-grp{margin-top:${S.xl}px;padding:0;}
+.pe-ghb .pe-gl{flex:1;height:1px;background:linear-gradient(90deg, ${T.cardEdge}, transparent);}
+.pe-ghb .chev{flex:none;}
+@media (min-width:768px){ .pe-grp{padding:0;} }
+`;
+
 export default function PackProfile() {
   const t = useT();
   const { lang } = useLang();
@@ -485,6 +495,7 @@ export default function PackProfile() {
       <style>{ROWS_CSS}</style>
       <style>{ME_CSS}</style>
       {APP_NEW && <style>{ME_FLAT_CSS}</style>}
+      {APP_NEW && <style>{GRP_FLAT_CSS}</style>}
       <style>{EDIT_CSS}</style>
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
       <input ref={coverInputRef} type="file" accept="image/*" onChange={handleCoverChange} style={{ display: 'none' }} />
@@ -533,7 +544,7 @@ export default function PackProfile() {
               {/* Foťák = ALBUM TITULKY (`CoverSheet`: viac fotiek, striedanie po dni), Matej 23. 10.:
                   *„upraviť titulku v /edit sekcii"*. Ťahanie polohy ostáva na titulke. */}
               <button type="button" className="pe-cam" onClick={() => setCoverSheet(true)} disabled={coverUploading} aria-label={tx('pack.edit.changeCover', 'Change cover')}>
-                {coverUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}
+                {coverUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : (APP_NEW ? <SysIcon name="foto" size={22} /> : <HandCamera size={15} />)}
               </button>
             </span>
           }
@@ -553,7 +564,7 @@ export default function PackProfile() {
             dogPhotoLabel={tx('pack.me.dogPhoto', 'Change dog photo')}
             badge={
               <span className="pe-cam pe-own-cam" aria-hidden>
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HandCamera size={15} />}
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : (APP_NEW ? <SysIcon name="foto" size={22} /> : <HandCamera size={15} />)}
               </span>
             }
           />
@@ -562,7 +573,7 @@ export default function PackProfile() {
           {aboutDev && <DevotionSheet devotion={devotion} onClose={() => setAboutDev(false)} />}
 
           {/* ── 1 · O MNE — jediný nadpis skupiny. Poradie (Matej 23. 10.): mená · bio · fakty · povaha. ── */}
-          <div className={`pe-grp${shut.has('me') ? ' shut' : ''}`} style={{ ...PACK_BOX.subblock }}>
+          <div className={`pe-grp${shut.has('me') ? ' shut' : ''}`} style={GRP_BOX}>
             <GroupHead icon="person" label={tx('pack.edit.aboutMe', 'About me')} open={!shut.has('me')} onToggle={() => toggleGrp('me')} />
 
             {/* Na PC mená a bio VEDĽA SEBA (pri menách ostávalo vpravo prázdno), na mobile pod sebou. */}
@@ -647,7 +658,7 @@ export default function PackProfile() {
           {/* ── 2 · MOJA SVORKA — podľa Matejovej skice 23. 10.: v rámiku KAŽDÝ ČLEN = vlastný riadok
               s rozklikom (JA · psy · pawmati pod sebou), pod nimi lišta „+ PES / MATE", pod rámikom veta.
               Zosnulí psy stoja v tom istom zozname ako anjeli. Bez popupu. ── */}
-          <div className={`pe-grp${shut.has('pack') ? ' shut' : ''}`} style={{ ...PACK_BOX.subblock }}>
+          <div className={`pe-grp${shut.has('pack') ? ' shut' : ''}`} style={GRP_BOX}>
             <GroupHead icon="people" label={tx('pack.edit.mySvorka', 'My pack')} open={!shut.has('pack')} onToggle={() => toggleGrp('pack')} />
             <div className="pe-core">
               {/* K4c: vyradený pawmate žiada o zmazanie — rozhoduješ ty (nič sa nemaže samo) */}
@@ -686,13 +697,13 @@ export default function PackProfile() {
 
           {/* ── 3 · MISIA — pokladnica svorky a dar (Matej 24. 10. 2026: „sekcia v /profile … o mne · svorka · toto
               (misia) · účet“). Nákres plany/nakres-profil-misia-2026-10-24.html, telo v MisiaGroup.tsx. ── */}
-          {MISIA_ON && <div className={`pe-grp${shut.has('misia') ? ' shut' : ''}`} id="misia" style={{ ...PACK_BOX.subblock, scrollMarginTop: 96 }}>
+          {MISIA_ON && <div className={`pe-grp${shut.has('misia') ? ' shut' : ''}`} id="misia" style={{ ...GRP_BOX, scrollMarginTop: 96 }}>
             <GroupHead icon="heartpaw" label={tx('pack.misia.title', 'Mission')} open={!shut.has('misia')} onToggle={() => toggleGrp('misia')} />
             <MisiaBody />
           </div>}
 
           {/* ── 4 · ÚČET A APPKA ── */}
-          <div className={`pe-grp${shut.has('acc') ? ' shut' : ''}`} ref={accountRef} style={{ ...PACK_BOX.subblock, scrollMarginTop: 96 }}>
+          <div className={`pe-grp${shut.has('acc') ? ' shut' : ''}`} ref={accountRef} style={{ ...GRP_BOX, scrollMarginTop: 96 }}>
             <GroupHead icon="sliders" label={tx('pack.edit.secAccount', 'Account & app')} open={!shut.has('acc')} onToggle={() => toggleGrp('acc')} />
             {/* PODPORA = ďalšie riadky toho istého zoznamu (Matej 23. 10.: „urob to normálne, ako keby to len
                 pokračovalo, nie ako niečo úplne iné"). Tlačidlo má tvar ODHLÁSIŤ SA, e-mail tvar riadku E-MAIL. */}
@@ -1648,6 +1659,18 @@ function MateForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; o
 function GroupHead({ icon, label, open, onToggle }: { icon: string; label: string; open: boolean; onToggle: () => void }) {
   // Zbalená skupina je na mobile CELÝ obsah bloku — nadpis musí niesť riadok sám (Matej 25. 10.: *„ak sú
   // colapsnuté, prijal by som výraznejšie písmo a ikonku"*). Tvar sekcie (.22em, verzálky) ostáva, len silnejší.
+  const g = (useProfile().profile?.human?.gender ?? '').toString().toLowerCase();
+  if (APP_NEW) {
+    // Appka: samolepka z továrne (nie maska), O mne podľa pohlavia majiteľa (chýba = muž), nadpis + vlasová čiara.
+    const sys = icon === 'person' ? (g === 'female' || g === 'woman' ? 'ja-zena' : 'ja-muz') : icon === 'sliders' ? 'nastavenia' : icon === 'heartpaw' ? 'misia' : null;
+    return (
+      <button type="button" className="pe-ghb" onClick={onToggle} aria-expanded={open}>
+        <span>{sys ? <SysIcon name={sys} size={26} /> : <BrandIcon name={icon} size={22} tint="dark" />}<span style={{ ...PACK_HEAD.section, fontSize: PACK_TEXT.label, fontWeight: 600, color: T.inkStrong }}>{label}</span></span>
+        <span className="pe-gl" aria-hidden />
+        <span className="chev" aria-hidden><ChevronDown className="h-4 w-4" /></span>
+      </button>
+    );
+  }
   return (
     <button type="button" className="pe-ghb" onClick={onToggle} aria-expanded={open}>
       <span><BrandIcon name={icon} size={22} tint="dark" /><span style={{ ...PACK_HEAD.section, fontSize: PACK_TEXT.label, fontWeight: 600, color: T.inkStrong }}>{label}</span></span>

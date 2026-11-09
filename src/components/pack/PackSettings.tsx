@@ -1,3 +1,5 @@
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { readHuman, patchHuman, notifOff, devotionTimes } from '@/lib/humanPrefs';
 import { clearPushGeo } from '@/lib/appPushGeo';
@@ -249,7 +251,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
           {email}
         </span>
       </Field>
-      <Field icon={<HandKey size={16} />} label={t('pack.settings.password')}>
+      <Field icon={(APP_NEW ? <SysIcon name="kluc" size={22} /> : <HandKey size={16} />)} label={t('pack.settings.password')}>
         <button
           type="button"
           className="pf-tap"
@@ -372,7 +374,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
       <Field icon={<BrandIcon name="envelope" size={16} tint="gold" />} label={tx('pack.settings.contact', 'Contact')}>
         <a href="mailto:woof@dogypt.com" style={{ ...LINK_BTN, textDecoration: 'none', display: 'inline-block' }}>woof@dogypt.com</a>
       </Field>
-      <Field icon={<HandTrash size={16} />} label={tx('pack.settings.deleteRow', 'Deletion')}>
+      <Field icon={(APP_NEW ? <SysIcon name="kos" size={22} /> : <HandTrash size={16} />)} label={tx('pack.settings.deleteRow', 'Deletion')}>
         {/* Zmazanie účtu — Apple 5.1.1(v), GDPR (13. 10. 2026). 30 dní na rozmyslenie, pes ostáva. */}
         <DeleteAccountButton />
       </Field>
@@ -470,7 +472,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
                 className="inline-flex items-center justify-center gap-2"
                 style={{ background: T.ink, color: T.card, border: 'none', padding: '12px 16px', borderRadius: 10, fontFamily: FONT_TITLE, fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', opacity: (pwSaving || pwValue.length === 0) ? 0.6 : 1 }}
               >
-                {pwSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : pwDone ? <HandCheck size={12} /> : null}
+                {pwSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : pwDone ? (APP_NEW ? <SysIcon name="fajka" size={16} /> : <HandCheck size={12} />) : null}
                 {t('pack.settings.pwSubmit')}
               </button>
             </div>

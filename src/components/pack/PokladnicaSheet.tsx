@@ -4,6 +4,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BackButton } from './BackButton';
 import { HandArrowLeft } from './HandIcons';
+import { SysIcon } from './SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { PACK_BOX, PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_TOPROW, FONT_UI, FONT_TITLE, VEIL_CSS, PROGRESS_CSS } from './packTheme';
 import { type Mesiac, type Polozka } from '@/lib/pokladnica';
 
@@ -121,7 +123,7 @@ export function PokladnicaSheet(p: Props) {
           <div key={m.m} style={{ ...PACK_BOX.row }}>
             <button type="button" className={`kp-mo${isOpen ? ' open' : ''}`} style={{ background: 'none', border: 0 }}
               aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : m.m)}>
-              <span>{label}</span><b>{eur(m.prijem)}</b><b>{eur(m.naklady)}</b><i aria-hidden><HandArrowLeft size={12} style={{ transform: 'scaleX(-1)' }} /></i>
+              <span>{label}</span><b>{eur(m.prijem)}</b><b>{eur(m.naklady)}</b><i aria-hidden>{APP_NEW ? <SysIcon name="sipka" size={18} /> : <HandArrowLeft size={12} style={{ transform: 'scaleX(-1)' }} />}</i>
             </button>
             {isOpen && (
               <div className="kp-det">

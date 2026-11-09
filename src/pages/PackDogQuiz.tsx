@@ -35,6 +35,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
 import { HandCheck } from '@/components/pack/HandIcons';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 
 const T = PACK_THEME;
@@ -423,7 +425,7 @@ export default function PackDogQuiz() {
             aria-label={idx === 0 ? tx('pack.quiz.close', 'Close') : tx('pack.quiz.back', 'Back')}
             onClick={() => { if (idx === 0) { void finish(); } else { void flush(); setIdx(idx - 1); } }}
           >
-            <ChevronLeft className="h-3.5 w-3.5" />
+            {APP_NEW ? <SysIcon name="spat" size={20} /> : <ChevronLeft className="h-3.5 w-3.5" />}
             <span className="qz-back-word">{idx === 0 ? tx('pack.quiz.close', 'Close') : tx('pack.quiz.back', 'Back')}</span>
           </button>
           <span style={{ flex: 1 }} />
@@ -444,7 +446,7 @@ export default function PackDogQuiz() {
             }}
           >
             {idx + 1 >= total ? tx('pack.quiz.done', 'Done') : tx('pack.quiz.next', 'Next')}
-            {idx + 1 >= total ? <HandCheck size={14} /> : <ChevronRight className="h-3.5 w-3.5" />}
+            {idx + 1 >= total ? (APP_NEW ? <SysIcon name="fajka" size={20} /> : <HandCheck size={14} />) : (APP_NEW ? <SysIcon name="sipka" size={20} /> : <ChevronRight className="h-3.5 w-3.5" />)}
           </button>
         </div>
       </Card>
@@ -489,7 +491,7 @@ function FieldHistory({ step, rows, tx }: {
     <div className="qz-hist">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         {tx('pack.quiz.history', 'Changed {n}×').replace('{n}', String(list.length - 1))}
-        <ChevronRight className="h-3 w-3" style={{ transform: open ? 'rotate(90deg)' : undefined, transition: 'transform .15s' }} />
+        {APP_NEW ? <SysIcon name="sipka" size={18} style={{ transform: open ? 'rotate(90deg)' : undefined, transition: 'transform .15s' }} /> : <ChevronRight className="h-3 w-3" style={{ transform: open ? 'rotate(90deg)' : undefined, transition: 'transform .15s' }} />}
       </button>
       {open && (
         <ol>

@@ -5,6 +5,8 @@
 // svoje príspevky, označenie a POŽIADAŤ O ZMAZANIE. Rozhoduje pawtner (Moja svorka).
 // Hovorí AINUBIS — oznamy appky sú jeho (CLAUDE.md §Brand, `ainubisSkin.ts`).
 // Kto má vlastného psa alebo iný prístup, bránu nevidí: účet mu ostáva, stratil len tohto psa.
+import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/i18n/LanguageContext';
@@ -125,7 +127,7 @@ export function PawmateDepartureGate() {
                   className={`pd-th${on ? ' on' : ''}${p.requested ? ' sent' : ''}`}
                   onClick={() => !p.requested && toggle(p.id)}>
                   {p.photos[0] ? <img src={sizedUrl(p.photos[0], 240)} alt="" loading="lazy" /> : <p>{p.body}</p>}
-                  {!p.requested && <i>{on && <HandCheck size={14} />}</i>}
+                  {!p.requested && <i>{on && (APP_NEW ? <SysIcon name="fajka" size={18} /> : <HandCheck size={14} />)}</i>}
                   {p.requested && <b>{tx('pack.leave.sent', 'Requested')}</b>}
                 </button>
               );

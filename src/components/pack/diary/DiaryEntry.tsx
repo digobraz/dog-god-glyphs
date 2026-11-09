@@ -44,6 +44,8 @@ import { toast } from '@/hooks/use-toast';
 import {
   DIARY_CHIPS, asDiaryValue, chipOf, dayToRecordedAt, diaryEvent, isPlanDay, todayKey, type DiaryKind,
 } from './diaryModel';
+import { ZapisGlyph, SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { useBackClose } from './useBackClose';
 import { useKeyboardLift, kbLiftCSS } from './useKeyboardLift';
 
@@ -290,7 +292,7 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', edit, onClose, on
                 style={c.id === kind ? pickStyle : undefined}
                 onClick={() => { setKind(c.id); setErr(null); }}
               >
-                <span style={{ fontFamily: EMOJI_FONT }}>{c.emoji}</span>
+                <span style={{ fontFamily: EMOJI_FONT }}><ZapisGlyph mark={c.emoji} size={24} /></span>
                 {tx(c.labelKey, c.labelFallback)}
               </button>
             ))}
@@ -384,7 +386,7 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', edit, onClose, on
               </div>
             ) : (
               <button type="button" className="pk-pill pk-pill--tap dia-add" onClick={() => fileRef.current?.click()}>
-                <span style={{ fontFamily: EMOJI_FONT }}>📷</span>
+                <span style={{ fontFamily: EMOJI_FONT }}>{APP_NEW ? <SysIcon name="foto" size={22} /> : '📷'}</span>
                 {tx('pack.diary.photoAdd', 'Add a photo')}
               </button>
             )}

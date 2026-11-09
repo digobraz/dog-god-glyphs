@@ -12,6 +12,8 @@
 // Vytiahnuté 1:1 z `PackDogDetail.tsx` — z neho sa NEIMPORTUJE nič (~3200 riadkov, lazy).
 import React, { useState } from 'react';
 import { BrandIcon } from './BrandIcon';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { PACK_THEME, PACK_SHADOW, FONT_UI } from './packTheme';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -267,7 +269,7 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
           className="inline-flex items-center justify-center"
           style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, border: `1px dashed ${T.border}` }}
         >
-          <img src="/icons/pack/plus.svg" alt="" style={{ width: 16, height: 16, filter: GOLD_FILTER }} />
+          {APP_NEW ? <SysIcon name="plus" size={20} /> : <img src="/icons/pack/plus.svg" alt="" style={{ width: 16, height: 16, filter: GOLD_FILTER }} />}
         </span>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, fontWeight: 700, color: T.ink, lineHeight: 1.1 }}>

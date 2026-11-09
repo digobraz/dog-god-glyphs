@@ -50,6 +50,8 @@ import {
 import { PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandCheck } from '@/components/pack/HandIcons';
+import { SysIcon } from '@/components/pack/SysIcon';
+
 import { ChronicleBook } from '@/components/pack/diary/ChronicleBook';
 import { useDiaryRows } from '@/components/pack/diary/DiaryList';
 import { FlagCircle } from '@/components/pack/FlagCircle';
@@ -1154,7 +1156,7 @@ function DogIdCard({ latest, dogs, tx }: { latest: Latest; dogs: HubDog[]; tx: T
           </div>
           <p className="dic-donemods">
             {mods.map(({ m }) => (
-              <span key={m.key}>{tx(m.i18n, m.labelEN)} <HandCheck size={PACK_TEXT.label} /></span>
+              <span key={m.key}>{tx(m.i18n, m.labelEN)} {APP_NEW ? <SysIcon name="fajka" size={PACK_TEXT.label + 6} /> : <HandCheck size={PACK_TEXT.label} />}</span>
             ))}
           </p>
         </div>
@@ -1183,7 +1185,7 @@ function DogIdCard({ latest, dogs, tx }: { latest: Latest; dogs: HubDog[]; tx: T
                   Keď fajka ikonku nahradila, jin-jang Osobnosti sa stratil (Matej 8. 10.). */}
               <span className="dic-badge" aria-hidden>
                 <BrandIcon name={m.icon} size={PACK_TEXT.h2} tint="gold" />
-                {p.done && <span className="dic-tick"><HandCheck size={PACK_TEXT.micro} /></span>}
+                {p.done && <span className="dic-tick">{APP_NEW ? <SysIcon name="fajka" size={18} /> : <HandCheck size={PACK_TEXT.micro} />}</span>}
               </span>
               <span className="dic-mod-main">
                 <b>{tx(m.i18n, m.labelEN)}</b>

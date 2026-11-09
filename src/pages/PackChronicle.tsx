@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME, PACK_BOX, PACK_HEAD, PACK_SPACE } from '@/components/pack/packTheme';
 import { ChronicleBody } from '@/components/pack/diary/ChronicleBody';
+import { APP_NEW } from '@/lib/packFlags';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -35,7 +36,7 @@ export default function PackChronicle() {
 
   return (
     <PackLayout onBack={back} backLabel={tx('pack.chronicle.back', 'Back')}>
-      <section style={{ ...PACK_BOX.card, padding: PACK_SPACE.xl }}>
+      <section style={APP_NEW ? { padding: `0 ${PACK_SPACE.xs}px` } : { ...PACK_BOX.card, padding: PACK_SPACE.xl }}>
         {/* Šípka späť je v spoločnej hlavičke (PackTopRow), nie v karte — Matej 28. 10. 2026. */}
         <h1 style={{ ...PACK_HEAD.card, color: T.inkStrong, margin: `0 0 ${PACK_SPACE.lg}px` }}>{tx('pack.chronicle.title', 'Chronicle')}</h1>
         <ChronicleBody tx={tx} />
