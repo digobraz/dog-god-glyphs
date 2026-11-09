@@ -127,6 +127,20 @@ const CSS = `
 .pv-dog img{width:22px;height:22px;border-radius:${PACK_R.pill}px;object-fit:cover;}
 @keyframes pv-in{from{opacity:0;}to{opacity:1;}}
 @media (prefers-reduced-motion:reduce){.pv-root{animation:none;}}
+/* ŠAT PAPYRUS 3D (L, príspevok): rámy z hárku, akcie s nulou vyblednuté. Len pod html.papyrus3d. */
+html.papyrus3d .pv-top{border-bottom:3px solid var(--p3d-gold);}
+html.papyrus3d .pv-who b{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.lead}px;letter-spacing:0;color:var(--p3d-ink);} /* písmo: meno */
+html.papyrus3d .pv-who small,html.papyrus3d .pv-cm p small{color:var(--p3d-gold-ink);}
+html.papyrus3d .pv-av{border:2.5px solid var(--p3d-ink);}
+html.papyrus3d .pv-media{border-block:2.5px solid var(--p3d-ink);}
+html.papyrus3d .pv-acts button{color:var(--p3d-ink);}
+html.papyrus3d .pv-acts button.zero{opacity:.4;}
+html.papyrus3d .pv-acts button.on.like{opacity:1;}
+html.papyrus3d .pv-cm .sure{background:linear-gradient(180deg,color-mix(in srgb,#C8202F 62%,white),#C8202F);border:2px solid var(--p3d-ink);color:#fff;}
+html.papyrus3d .pv-add .pf-field{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
+html.papyrus3d .pv-send{border:2.5px solid ${LAPIS.ink};}
+html.papyrus3d .pv-ls .sh{border-top:3px solid var(--p3d-gold);}
+html.papyrus3d .pv-ls .hd h2{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
 `;
 
 export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, authorN = null, focusComment = null }: {
@@ -273,14 +287,14 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
           <div className="pv-dots" aria-hidden>{Array.from({ length: slides }, (_, k) => <i key={k} className={k === at ? 'on' : ''} />)}</div>
         )}
         <div className="pv-acts">
-          <button type="button" className={`like${soc.liked ? ' on' : ''}`} onClick={() => mark('like')} aria-pressed={soc.liked} aria-label={tx('pack.post.like', 'Like')}>
+          <button type="button" className={`like${soc.liked ? ' on' : ''}${soc.likes > 0 ? '' : ' zero'}`} onClick={() => mark('like')} aria-pressed={soc.liked} aria-label={tx('pack.post.like', 'Like')}>
             <LikeMark on={soc.liked} />{soc.likes > 0 && soc.likes}
           </button>
-          <button type="button" onClick={() => input.current?.focus()} aria-label={tx('pack.post.comment', 'Comment')}>
+          <button type="button" className={soc.comments > 0 ? undefined : 'zero'} onClick={() => input.current?.focus()} aria-label={tx('pack.post.comment', 'Comment')}>
             <CommentMark />{soc.comments > 0 && soc.comments}
           </button>
           <span className="sp" />
-          <button type="button" className={`save${soc.saved || wished ? ' on' : ''}`} onClick={() => setSaveOpen(true)} aria-label={tx('pack.post.save', 'Save')}>
+          <button type="button" className={`save${soc.saved || wished ? ' on' : ''}${soc.saves > 0 ? '' : ' zero'}`} onClick={() => setSaveOpen(true)} aria-label={tx('pack.post.save', 'Save')}>
             <SaveMark on={soc.saved || wished} />{soc.saves > 0 && soc.saves}
           </button>
         </div>

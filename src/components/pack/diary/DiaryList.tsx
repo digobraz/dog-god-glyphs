@@ -188,4 +188,13 @@ export const DIARY_LIST_CSS = `
    nezabrala celé okno; obraz sa vtedy zúži, neoreže. */
 .dl-photo{margin-top:${PACK_SPACE.md}px;width:fit-content;max-width:min(100%, 560px)}
 .pk-photo.dl-photo > img{width:auto;max-width:100%;height:auto;max-height:min(70vh, 560px);object-fit:contain}
+/* ── ŠAT PAPYRUS 3D (hárok N6, N8) — len pod html.papyrus3d ── */
+html.papyrus3d .dl-item:not(.dl-item--day){border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-b3);}
+html.papyrus3d .dl-item--day{border-top:2px solid var(--p3d-ink);}
+html.papyrus3d .dl-kind{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;} /* písmo: nadpis */
+html.papyrus3d .dl-text{color:var(--p3d-ink);}
+html.papyrus3d .dl-acts button{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.tile}px;background:linear-gradient(180deg,#fff,var(--p3d-paper));box-shadow:var(--p3d-lift);}
+html.papyrus3d .dl-ask button{min-height:44px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:linear-gradient(180deg,color-mix(in srgb,#C8202F 62%,white),#C8202F);color:#fff;font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;} /* písmo: cta */
+html.papyrus3d .dl-ask button.no{background:linear-gradient(180deg,#fff,var(--p3d-paper));color:var(--p3d-ink);}
+html.papyrus3d .dl-plan{border:2px solid var(--p3d-ink);color:var(--p3d-ink);}
 `;

@@ -47,6 +47,11 @@ const CSS = `
 @keyframes bs-up{from{transform:translateY(100%);}to{transform:none;}}
 @keyframes bs-fade{from{opacity:0;}to{opacity:1;}}
 @media (prefers-reduced-motion:reduce){.bs-sheet,.bs-root.pk-veil{animation:none;}}
+/* ŠAT PAPYRUS 3D (L10): šuplík so zlatým lemom, nadpis Museum, pás podľa hárku. Len pod html.papyrus3d. */
+html.papyrus3d .bs-sheet{border-top:3px solid var(--p3d-gold);}
+html.papyrus3d .bs-head h2{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h1}px;letter-spacing:0;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .bs-body{color:var(--p3d-ink);}
+html.papyrus3d .bs-body .pkb-bar{border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
 `;
 
 type Stats = { dogs?: number; total?: number };

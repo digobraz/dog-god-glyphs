@@ -33,7 +33,7 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SHADOW, GOLD_BTN, FONT_TITLE, FONT_UI, PF_FIELD_CSS,
+  PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, GOLD_BTN, FONT_TITLE, FONT_UI, PF_FIELD_CSS,
   MODAL_MAX_H,
 } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
@@ -760,7 +760,7 @@ function MonthGrid({
         <button type="button" onClick={() => setMonth(month > 1 ? month - 1 : 12)} aria-label={tx('pack.cal.prevMonth', 'Predchádzajúci mesiac')}>{APP_NEW ? <SysIcon name="spat" size={22} /> : '‹'}</button>
         <span className="cal-moname">{monthName(month)} {year}</span>
         <button type="button" onClick={() => setMonth(month < 12 ? month + 1 : 1)} aria-label={tx('pack.cal.nextMonth', 'Ďalší mesiac')}>{APP_NEW ? <SysIcon name="sipka" size={22} /> : '›'}</button>
-        {onWriteToday && <button type="button" className="cal-wtoday" onClick={onWriteToday}>{tx('pack.cal.writeToday', 'Zapíš dnes')}</button>}
+        {onWriteToday && <button type="button" className="cal-wtoday pk-b3 pk-b3--lapis" onClick={onWriteToday}>{tx('pack.cal.writeToday', 'Zapíš dnes')}</button>}
       </div>
 
       <div className="cal-band">
@@ -2318,4 +2318,17 @@ const CAL_CSS = `
   .cal-sec{padding-top:16px}
 }
 
+/* ── ŠAT PAPYRUS 3D (hárok map-herne-2026-11-09, N4 Denník) — len pod html.papyrus3d, len mesiac v appke ── */
+html.papyrus3d .cal-mo-only{padding:${PACK_SPACE.lg}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-b3);}
+html.papyrus3d .cal-mo-only .cal-moname{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .cal-mo-only .cal-monav button{width:44px;height:44px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.tile}px;background:linear-gradient(180deg,#fff,var(--p3d-paper));box-shadow:var(--p3d-lift);}
+html.papyrus3d .cal-mo-only .cal-wtoday{width:100%!important;height:56px!important;padding:0 ${PACK_SPACE.lg}px;border:2.5px solid var(--b3-l)!important;border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b))!important;color:var(--b3-i)!important;box-shadow:var(--p3d-b3);font:400 ${PACK_TEXT.h2}px/1 'LT Museum',serif!important;letter-spacing:0;text-transform:none;} /* písmo: cta */
+html.papyrus3d .cal-mo-only .cal-dow{color:var(--p3d-ink);font-weight:600;}
+html.papyrus3d .cal-mo-only .cal-mogrid{gap:${PACK_SPACE.xs}px;}
+html.papyrus3d .cal-mo-only .cal-mocell{min-height:56px;border:2px solid transparent;border-radius:${PACK_R.tile}px;background:none;box-shadow:none;}
+html.papyrus3d .cal-mo-only .cal-mocell.out{border:0;}
+html.papyrus3d .cal-mo-only .cal-monum{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;color:var(--p3d-ink);}
+html.papyrus3d .cal-mo-only .cal-mocell[style*="background"]{border:2px solid var(--p3d-ink)!important;background:var(--p3d-paper-hi)!important;box-shadow:var(--p3d-lift);}
+html.papyrus3d .cal-mo-only .cal-mocell.today{border:2.5px solid ${LAPIS.edge};box-shadow:none;}
+html.papyrus3d .cal-mo-only .cal-mocell.zpop{border-color:${LAPIS.edge};}
 `;

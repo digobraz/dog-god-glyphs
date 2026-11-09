@@ -407,10 +407,10 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', edit, onClose, on
         <div className="dia-btns">
           <button
             type="button"
-            className="dia-primary"
+            className={`dia-primary${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`}
             disabled={!canSave}
             onClick={() => void save()}
-            style={{
+            style={APP_NEW ? { cursor: canSave ? 'pointer' : 'default' } : {
               ...btnBase,
               background: LAPIS.grad,
               border: `1px solid ${GOLD_BTN.edge}`,
@@ -492,4 +492,14 @@ export const DIARY_CSS = `
   font-size:${PACK_TEXT.label}px;border:1.5px solid ${T.border};background:${T.card};color:${T.inkStrong}}
 .dia-ask button.no{border-color:${LAPIS.edge};color:${LAPIS.edge}}
 @media (max-width:720px){ .dia-btns > .dia-primary{flex:1 1 100%} }
+/* ── ŠAT PAPYRUS 3D (hárok map-herne-2026-11-09, N8 Upraviť zápis a okno zápisu) — len pod html.papyrus3d ── */
+html.papyrus3d .dia-pop h4{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h1}px;letter-spacing:0;text-transform:none;} /* písmo: nadpis */
+html.papyrus3d .dia-inp{min-height:54px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);font-weight:500;}
+html.papyrus3d .dia-lbl{color:var(--p3d-ink);font-weight:600;}
+html.papyrus3d .dia-row .pk-pill{min-height:44px;padding:0 ${PACK_SPACE.md}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);color:var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .dia-row .pk-pill.dia-on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});color:${LAPIS.ink};}
+html.papyrus3d .dia-primary.pk-b3{min-height:56px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:var(--p3d-b3);font:400 ${PACK_TEXT.h2}px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;padding:0 ${PACK_SPACE.lg}px;} /* písmo: cta */
+html.papyrus3d .dia-ask{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);}
+html.papyrus3d .dia-ask button{min-height:44px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:linear-gradient(180deg,color-mix(in srgb,#C8202F 62%,white),#C8202F);color:#fff;font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;} /* písmo: cta */
+html.papyrus3d .dia-ask button.no{background:linear-gradient(180deg,#fff,var(--p3d-paper));color:var(--p3d-ink);}
 `;

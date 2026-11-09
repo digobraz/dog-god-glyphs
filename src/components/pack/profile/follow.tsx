@@ -94,6 +94,8 @@ export const FOLLOW_CHIP_CSS = `
   background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};}
 .fchip.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}box-shadow:none;font-weight:500;}
 .fchip:disabled{opacity:.6;cursor:default;}
+html.papyrus3d .fchip{height:40px;padding:0 ${S.md}px;border:2.5px solid ${LAPIS.ink};border-radius:${PACK_R.frame}px;font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.body}px;letter-spacing:0;box-shadow:inset 0 2px 0 color-mix(in srgb,white 28%,transparent),0 4px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);} /* písmo: cta */
+html.papyrus3d .fchip.on{background:var(--p3d-card);color:var(--p3d-ink);border-color:var(--p3d-ink);box-shadow:var(--p3d-lift);}
 `;
 
 /** Skrytie (vlastné, bez čísla, katalóg) rieši volajúci: `n == null` ⇒ nič. Sledovaný = tichší tint. */
@@ -132,6 +134,9 @@ const LIST_CSS = `
 .fl-name{flex:1;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} /* písmo: meno */
 .fl-num{flex:none;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
 .fl-empty{font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkFaint};text-align:center;margin:${S.lg}px 0;font-style:italic;}
+html.papyrus3d .fl-row{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .fl-name{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;color:var(--p3d-ink);} /* písmo: meno */
+html.papyrus3d .fl-num,html.papyrus3d .fl-empty{color:var(--p3d-gold-ink);}
 `;
 
 /** Zoznam ľudí po ťuknutí na číslo. Ťuk na človeka = jeho profil. */

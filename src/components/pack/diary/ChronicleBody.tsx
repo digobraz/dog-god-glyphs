@@ -95,7 +95,7 @@ export function ChronicleBody({ tx }: { tx: Tx }) {
       {/* Jediné CTA NAPÍSAŤ (Matej 8. 10.: „bez CTA photo, iba write"). Kniha s packou nad ním
           zanikla 31. 10. 2026 — Matej: „nemusí tam byť tá kniha už" (`ChronicleBook.tsx` ostáva nepoužitý). */}
       <div className="chr-hero">
-        <button type="button" style={cta} onClick={() => setWrite(true)}>{tx('pack.chronicle.write', 'Write')}</button>
+        <button type="button" className={APP_NEW ? 'chr-write pk-b3 pk-b3--lapis' : undefined} style={APP_NEW ? undefined : cta} onClick={() => setWrite(true)}>{tx('pack.chronicle.write', 'Write')}</button>
       </div>
 
       {many && (
@@ -196,4 +196,12 @@ const CHRONICLE_CSS = `
 .chr-daylbl{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.body}px;color:${T.inkWarm}}
 .chr-daylbl::first-letter{text-transform:uppercase}
 .chr-month{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;margin-bottom:${PACK_SPACE.xl}px}
+/* ── ŠAT PAPYRUS 3D (hárok N6, N7 Kronika) — len pod html.papyrus3d ── */
+html.papyrus3d .chr-write{width:100%;min-height:56px;padding:0 ${PACK_SPACE.lg}px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:var(--p3d-b3);font:400 ${PACK_TEXT.h2}px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;} /* písmo: cta */
+html.papyrus3d .chr-pill{min-height:44px;padding:0 ${PACK_SPACE.md}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);color:var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .chr-pill.on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});color:${LAPIS.ink};}
+html.papyrus3d .chr-day{border:2.5px solid var(--p3d-ink)!important;border-radius:${PACK_R.card}px!important;background:var(--p3d-card)!important;box-shadow:var(--p3d-b3)!important;}
+html.papyrus3d .chr-daynum{border:2.5px solid var(--p3d-ink);background:var(--p3d-gold);box-shadow:var(--p3d-lift);}
+html.papyrus3d .chr-hint{color:var(--p3d-ink);text-align:center;}
+html.papyrus3d .chr-title{font-family:'LT Museum',serif!important;font-weight:400!important;font-size:${PACK_TEXT.h1}px!important;letter-spacing:0!important;text-transform:none!important;} /* písmo: nadpis */
 `;

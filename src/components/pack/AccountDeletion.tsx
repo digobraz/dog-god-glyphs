@@ -7,6 +7,7 @@ import { useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, VEIL_CSS, FONT_TITLE, FONT_UI } from './packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { BackButton } from './BackButton';
+import { APP_NEW } from '@/lib/packFlags';
 
 // ZMAZANIE ÚČTU — Apple 5.1.1(v) a GDPR čl. 17 (Matej 13. 10. 2026, voľba B).
 // Žiadosť → 30 dní na rozmyslenie → `purge-accounts` zmaže prihlásenie a osobné údaje.
@@ -113,7 +114,7 @@ export function DeleteAccountButton() {
 
   return (
     <>
-      <button type="button" className="pf-tap" onClick={() => setOpen(true)} style={btnSecondary}>
+      <button type="button" className={`pf-tap${APP_NEW ? ' pk-b3 pk-b3--red' : ''}`} onClick={() => setOpen(true)} style={APP_NEW ? undefined : btnSecondary}>
         {tx('pack.settings.delete', 'Delete account')}
       </button>
       {open && (
@@ -143,7 +144,8 @@ export function DeleteAccountButton() {
           </label>
           {err && <span style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.label, color: '#B25640' }}>{err}</span>}
           <button type="button" onClick={potvrd} disabled={busy || slovo.trim().toUpperCase() !== SLOVO}
-            style={btnLapis(busy || slovo.trim().toUpperCase() !== SLOVO)}>
+            className={APP_NEW ? 'pk-b3 pk-b3--red' : undefined}
+            style={APP_NEW ? { width: '100%' } : btnLapis(busy || slovo.trim().toUpperCase() !== SLOVO)}>
             {tx('pack.settings.deleteConfirm', 'Delete in 30 days')}
           </button>
         </Okno>
@@ -206,11 +208,11 @@ export function AccountDeletionGate() {
       </p>
       {!pawmate && <>
         <p style={textBody}>{tx('pack.deletion.stay', 'Want to stay? Cancel the deletion and everything stays as it was.')}</p>
-        <button type="button" onClick={zrus} disabled={busy} style={btnLapis(busy)}>
+        <button type="button" onClick={zrus} disabled={busy} className={APP_NEW ? 'pk-b3 pk-b3--lapis' : undefined} style={APP_NEW ? { width: '100%' } : btnLapis(busy)}>
           {tx('pack.deletion.cancel', 'Keep my account')}
         </button>
       </>}
-      <button type="button" onClick={odhlas} disabled={busy} style={{ ...btnSecondary, justifyContent: 'center' }}>
+      <button type="button" onClick={odhlas} disabled={busy} className={APP_NEW ? 'pk-b3 pk-b3--red' : undefined} style={APP_NEW ? { width: '100%' } : { ...btnSecondary, justifyContent: 'center' }}>
         {tx('pack.settings.signOut', 'Sign out')}
       </button>
     </Okno>

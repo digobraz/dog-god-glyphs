@@ -378,7 +378,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
         {/* Zmazanie účtu — Apple 5.1.1(v), GDPR (13. 10. 2026). 30 dní na rozmyslenie, pes ostáva. */}
         <DeleteAccountButton />
       </Field>
-      <Field icon={<HandExit size={16} />} label={t('pack.settings.signOut')} last={!after}>
+      <Field icon={<HandExit size={16} />} label={t('pack.settings.signOut')} last={!after} kind="out">
         <button
           type="button"
           className="pf-tap"
@@ -483,10 +483,10 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
   );
 }
 
-export function Field({ icon, label, children, last }: { icon: React.ReactNode; label: string; children: React.ReactNode; last?: boolean }) {
+export function Field({ icon, label, children, last, kind }: { icon: React.ReactNode; label: string; children: React.ReactNode; last?: boolean; kind?: 'out' }) {
   return (
     <div
-      className="flex items-center justify-between gap-4 py-3.5"
+      className={`flex items-center justify-between gap-4 py-3.5 pe-set${kind === 'out' ? ' pe-set--out' : ''}`}
       style={{ borderBottom: last ? 'none' : `1px solid ${T.hairline}` }}
     >
       <div className="flex items-center gap-3" style={{ color: T.inkDim }}>

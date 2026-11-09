@@ -270,6 +270,33 @@ const EDIT_CSS = `
   .pe-grp{padding:${S.lg}px ${S.xl}px;}
   .pe-mem .c{width:56px;height:56px;}
 }
+/* ŠAT PAPYRUS 3D (hárok M1 až M12): polia ako vdlabená doska, skupiny s Museum nadpisom, riadky nastavení ako karty 3D.
+   Len pod html.papyrus3d (APP_NEW). */
+html.papyrus3d .pe-cam{width:44px;height:44px;border:2.5px solid var(--p3d-ink);background:var(--p3d-card);color:var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .pe-own-cam{right:-${S.xs}px;bottom:${S.xs}px;}
+html.papyrus3d .pe-ghb > span > span{font-family:'LT Museum',serif !important;font-weight:400 !important;font-size:${PACK_TEXT.h2}px !important;letter-spacing:0 !important;text-transform:none !important;color:var(--p3d-ink) !important;} /* písmo: nadpis */
+html.papyrus3d .pe-ghb .pe-gl{background:linear-gradient(90deg,var(--p3d-gold),transparent);height:3px;}
+html.papyrus3d .pe-nl{color:var(--p3d-gold-ink);}
+html.papyrus3d .pe-nm{min-height:54px;margin-bottom:${S.sm}px;padding:0 ${S.md}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
+html.papyrus3d .pe-nm.on{border-color:${LAPIS.edge};}
+html.papyrus3d .pe-nm input{color:var(--p3d-ink);font-size:${PACK_TEXT.lead}px;}
+html.papyrus3d .pe-dot{border:2.5px solid var(--p3d-ink);}
+html.papyrus3d .pe-hint{color:var(--p3d-gold-ink);font-size:${PACK_TEXT.label}px;}
+html.papyrus3d .pe-bio .pf-field,html.papyrus3d .pe-card .pf-field{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);color:var(--p3d-ink);}
+html.papyrus3d .pe-fr .pf-field{border:0 !important;border-bottom:2.5px solid var(--p3d-ink) !important;border-radius:0 !important;box-shadow:none !important;background:none !important;}
+html.papyrus3d .pe-card .pk-pill{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);color:var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .pe-door{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);color:var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .pe-door.on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border-color:${LAPIS.ink};color:${LAPIS.ink};}
+html.papyrus3d .pe-warn{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);color:var(--p3d-ink);}
+html.papyrus3d .pe-danger{border-color:#C8202F !important;color:#C8202F !important;}
+html.papyrus3d .pe-set{margin-bottom:${S.md}px;padding:${S.md}px ${S.lg}px !important;border:2.5px solid var(--p3d-gold) !important;border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:0 0 0 2px var(--p3d-ink),var(--p3d-lift);}
+html.papyrus3d .pe-set > div:first-child{color:var(--p3d-ink) !important;}
+html.papyrus3d .pe-set > div:first-child span{color:var(--p3d-ink) !important;font-family:'LT Museum',serif !important;font-size:${PACK_TEXT.lead}px !important;letter-spacing:0 !important;text-transform:none !important;} /* písmo: nadpis */
+html.papyrus3d .pe-set > div:last-child span[style]{color:${LAPIS.edge};}
+html.papyrus3d .pe-set .pf-tap:not(.pk-b3),html.papyrus3d .pe-set a{border:2.5px solid var(--p3d-ink) !important;border-radius:${PACK_R.tile}px !important;background:var(--p3d-card) !important;color:var(--p3d-ink) !important;box-shadow:var(--p3d-lift);font-family:'LT Museum',serif !important;font-size:${PACK_TEXT.body}px !important;letter-spacing:0 !important;text-transform:none !important;} /* písmo: cta */
+html.papyrus3d .pe-set .pf-toggle{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
+html.papyrus3d .pe-set .pf-toggle__opt.is-on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});color:${LAPIS.ink};}
+html.papyrus3d .pe-set.pe-set--out .pf-tap:not(.pk-b3){background:linear-gradient(180deg,color-mix(in srgb,#C8202F 62%,white),#C8202F) !important;color:#fff !important;border-color:var(--p3d-ink) !important;}
 `;
 
 // APP_NEW = PLOCHA: skupina nie je podblok (rám), len nadpis s vlasovou čiarou — vzor CELKOVO v TripStatsWall.

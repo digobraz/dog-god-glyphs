@@ -39,6 +39,12 @@ export const POST_MENU_CSS = `
 .pm-sh li button:disabled{opacity:.5;cursor:default;}
 @keyframes pm-up{from{transform:translateY(100%);}to{transform:none;}}
 @media (min-width:768px){ .pm-sh.pk-veil{align-items:center;} .pm-sh .sh{width:480px;border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px;} }
+/* ŠAT PAPYRUS 3D: šuplík s lemom zlata, mazacie a blokovacie položky celé červené. Len pod html.papyrus3d. */
+html.papyrus3d .pm-sh .sh{border-top:3px solid var(--p3d-gold);}
+html.papyrus3d .pm-sh .hd h2{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .pm-sh ul{display:flex;flex-direction:column;gap:${S.md}px;}
+html.papyrus3d .pm-sh li button{justify-content:center;height:56px;padding:0 ${S.lg}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);color:var(--p3d-ink);box-shadow:var(--p3d-lift);font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;} /* písmo: cta */
+html.papyrus3d .pm-sh li button.bad{background:linear-gradient(180deg,color-mix(in srgb,#C8202F 62%,white),#C8202F);color:#fff;}
 `;
 
 /** Tri bodky — vlastná kresba (kruhy), nie lucide. */

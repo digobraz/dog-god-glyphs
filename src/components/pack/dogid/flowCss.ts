@@ -155,6 +155,7 @@ textarea.dfl-in{min-height:64px;}
 }
 /* ── ŠAT PAPYRUS 3D (hárok map-herne-2026-11-09, O1 a O7 až O9) — len pod html.papyrus3d ── */
 html.papyrus3d .dfl{background:var(--p3d-paper);}
+html.papyrus3d .dfl-main{padding-bottom:${S.sm}px;}
 html.papyrus3d .dfl-q,html.papyrus3d .dfm-h1{font-family:'LT Museum',serif;font-weight:400;font-size:${X.h1}px;letter-spacing:0;text-transform:none;} /* písmo: nadpis */
 html.papyrus3d .dfl-sec{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:var(--p3d-lift);}
 html.papyrus3d .dfl-lq{height:16px;border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
