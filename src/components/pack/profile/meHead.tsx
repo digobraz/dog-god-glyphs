@@ -388,6 +388,7 @@ html.papyrus3d .me-own > button:first-child img{border:0;}
 html.papyrus3d .me-own .ini{font-family:'LT Museum',serif;font-weight:400;font-size:${INI_BIG}px;color:${LAPIS.ink};} /* písmo: nadpis */
 html.papyrus3d .me-own .me-arc .ad{left:92% !important;top:30% !important;width:74% !important;padding:0;background:none;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 4px 0 2px var(--p3d-ink);}
 html.papyrus3d .me-own .me-arc .ad img{border:0;}
+html.papyrus3d .me-card.open .me-own .me-sat{left:calc(92% + 22%);bottom:auto;top:45%;transform:none;}
 html.papyrus3d .me-own .me-arc .ad:nth-child(n+2){display:none;}
 html.papyrus3d .me-flat .me-mate{left:-66%;top:30%;width:74%;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 4px 0 2px var(--p3d-ink);}
 html.papyrus3d .me-flat .me-mate img,html.papyrus3d .me-flat .me-mate i{border:0;}
@@ -395,7 +396,7 @@ html.papyrus3d .me-flat .me-foot,html.papyrus3d .me-flat.with-mate .me-foot{left
 html.papyrus3d .me-nm{font-family:'LT Museum',serif;font-weight:400;letter-spacing:0;text-transform:none;color:var(--p3d-ink);display:block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
   font-size:clamp(${TX.lead}px,calc(100cqw / (var(--nl, 12) * .58)),${TX.h1}px);} /* písmo: meno */
 html.papyrus3d .me-with{color:var(--p3d-ink);}
-html.papyrus3d .me-flat .me-lv.rk-row,html.papyrus3d .me-flat.with-mate .me-foot .me-lv.rk-row{justify-content:space-between;margin-top:${S.xl}px;padding:0 ${S.xs}px;zoom:1;}
+html.papyrus3d .me-flat .me-lv.rk-row,html.papyrus3d .me-flat.with-mate .me-foot .me-lv.rk-row{justify-content:space-around;margin-top:${S.xl}px;padding:0 ${S.xs}px;zoom:1;}
 html.papyrus3d .me-flat .me-lv.rk-row > .rk{--s:46px;}
 html.papyrus3d .me-flat .me-gap{height:${P3D_GAP.m}px;}
 html.papyrus3d .me-card.open.me-flat .me-gap{height:0;}
