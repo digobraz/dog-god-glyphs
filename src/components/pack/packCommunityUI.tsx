@@ -20,7 +20,7 @@ import { pluralKey } from '@/lib/plural';
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy aj triplist.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK } from '@/components/pack/navGoldSkin';
 import { HieroglyphBg } from '@/components/pack/PackLayout';
-import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER, isWaterTrail, hasRouteMetrics, regionName } from '@/components/pack/tripShared';
+import { ICON, RatingPaws, DiffMark, RouteMark, CrowdMark, GOLD_ICON_FILTER, isWaterTrail, hasRouteMetrics, regionName } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI,
@@ -1221,7 +1221,7 @@ export function PhotoMetaPills({ agg, km, ascentM, hasRoute = true }: { agg: Cro
           Ruch nižšie ostáva, ten sa vypĺňa vo všetkých kategóriách. */}
       {hasRoute && (<>
         <span className="comm-mpill">
-          ↔ {fmtNum(km, lang)} km{ascentM != null ? ` · ↑ ${fmtNum(ascentM, lang, 0)} m` : ''}
+          <RouteMark kind="vzdialenost" fallback="↔" /> {fmtNum(km, lang)} km{ascentM == null ? '' : APP_NEW ? <> · <RouteMark kind="stupanie" fallback="" /> {fmtNum(ascentM, lang, 0)} m</> : ` · ↑ ${fmtNum(ascentM, lang, 0)} m`}
         </span>
         <span
           className={`comm-mpill${hasDiffTip ? ' comm-hastip' : ''}`}
@@ -1235,7 +1235,7 @@ export function PhotoMetaPills({ agg, km, ascentM, hasRoute = true }: { agg: Cro
           className={`comm-mpill${hasCrowdTip ? ' comm-hastip' : ''}`}
           data-tip={hasCrowdTip ? `${t('pack.map.crowd')} — ${crowdTip(t, agg)}` : undefined}
         >
-          {CROWD_EMOJI[agg.crowd]} {crowdTx(t, agg.crowd)}
+          <CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /> {crowdTx(t, agg.crowd)}
         </span>
       )}
     </div>
