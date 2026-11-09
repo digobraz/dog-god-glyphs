@@ -217,15 +217,21 @@ export function tripShareText(tr: { name: string; nameEN?: string; km: string; d
 }
 
 /** Appka (APP_NEW): náročnosť = okno z továrne (`public/icons/sys/narocnost-*.webp`), web ostáva na CSS tvaroch. */
-const DIFF_SYS: Record<string, string> = { Easy: 'narocnost-lahka', Moderate: 'narocnost-stredna', Hard: 'narocnost-tazka', Odyssey: 'narocnost-odysea' };
+const DIFF_SYS: Record<string, string> = { Easy: 'nar-lahka', Moderate: 'nar-stredna', Hard: 'nar-tazka', Odyssey: 'nar-odysea' };
 /** Appka (APP_NEW): rušnosť, vzdialenosť a stúpanie = okná z továrne; na webe ostáva emoji (`fallback`). */
-const CROWD_SYS: Record<string, string> = { Empty: 'rusnost-prazdno', Calm: 'rusnost-pokoj', Busy: 'rusnost-rusno' };
+const CROWD_SYS: Record<string, string> = { Empty: 'rus-1', Calm: 'rus-2', Busy: 'rus-3' };
+/** Slovo ruchu v appke: nákres má krátke „Prázdne“, „Ľudoprázdne“ sa do dlaždice nezmestí (Matej 9. 11. 2026). */
+export function crowdWord(t: (k: string) => string, c: string): string {
+  const key = 'pack.map.crowdKind.EmptyApp';
+  if (APP_NEW && c === 'Empty') { const v = t(key); if (v !== key) return v; }
+  return t(`pack.map.crowdKind.${c}`);
+}
 export function CrowdMark({ crowd, fallback }: { crowd: string; fallback: string }) {
-  if (APP_NEW && CROWD_SYS[crowd]) return <img src={`/icons/sys/${CROWD_SYS[crowd]}.webp`} alt="" aria-hidden draggable={false} style={{ width: 22, height: 22, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }} />;
+  if (APP_NEW && CROWD_SYS[crowd]) return <img src={`/icons/sys/${CROWD_SYS[crowd]}.svg`} alt="" aria-hidden draggable={false} style={{ width: 22, height: 22, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }} />;
   return <>{fallback}</>;
 }
 export function RouteMark({ kind, fallback }: { kind: 'vzdialenost' | 'stupanie'; fallback: string }) {
-  if (APP_NEW) return <img src={`/icons/sys/${kind}.webp`} alt="" aria-hidden draggable={false} style={{ width: 22, height: 22, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }} />;
+  if (APP_NEW) return <img src={`/icons/sys/${kind === 'vzdialenost' ? 'vzd' : 'stu'}.svg`} alt="" aria-hidden draggable={false} style={{ width: 22, height: 22, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }} />;
   return <>{fallback}</>;
 }
 const TYPE_SYS: Record<string, string> = { hike: 'typ-turistika', activity: 'typ-aktivita', visit: 'typ-navsteva' };
@@ -236,7 +242,7 @@ export function TypeMark({ cat, fallback }: { cat: string; fallback: string }) {
 }
 export function DiffMark({ diff }: { diff: string }) {
   if (APP_NEW && DIFF_SYS[diff]) {
-    return <img src={`/icons/sys/${DIFF_SYS[diff]}.webp`} alt="" aria-hidden draggable={false} style={{ width: 20, height: 20, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }} />;
+    return <img src={`/icons/sys/${DIFF_SYS[diff]}.svg`} alt="" aria-hidden draggable={false} style={{ width: 20, height: 20, objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }} />;
   }
   return <span className={`trp-diffmark trp-diffmark--${diffMarkShape(diff)}${diff === 'Odyssey' ? ' trp-diffmark--odyssey' : ''}`} aria-hidden="true" />;
 }

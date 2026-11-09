@@ -51,7 +51,7 @@ import { trailCountry, flagEmoji } from '@/lib/countryGeo';
 import { countryLabel } from '@/lib/countryOptions';
 import { trailWCE } from '@/components/pack/triplist/triplist';
 import { pluralKey, ICON } from '@/components/pack/tripShared';
-import { DiffMark, DIFF_MARK_CSS } from '@/components/pack/tripShared';
+import { DiffMark, DIFF_MARK_CSS, crowdWord } from '@/components/pack/tripShared';
 import { dockFitPadding, dockPadX } from '@/components/pack/mapDockShape';
 import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
 import { GeometryPicker, defaultKindFor, findDuplicate, TRIP_HOLD_MIN_ZOOM, AREA_DEFAULT_M } from './GeometryPicker';
@@ -1604,7 +1604,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                           onClick={() => setCrowd(crowd === c ? '' : c)}
                         >
                           <span className="atl-chip-emoji" style={{ fontFamily: FONT_EMOJI }}>{CROWD_EMOJI[c]}</span>
-                          <span className="atl-chip-label">{t(`pack.map.crowdKind.${c}`)}</span>
+                          <span className="atl-chip-label">{crowdWord(t, c)}</span>
                         </button>
                       ))}
                     </div>

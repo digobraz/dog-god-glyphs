@@ -59,6 +59,8 @@ import { PawRating } from '@/components/pack/addtrip/PawRating';
 import { TRAVEL_MODES, type TravelMode, type TravelInfo } from '@/components/pack/addtrip/addTripModel';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { HandCheck } from '@/components/pack/HandIcons';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 
 /** Čo sa dá na PLÁNE prestaviť. `date` prázdny = „ešte neviem kedy" (flexibilný termín). */
 export type PlanEdit = { date: string; visibility: 'open' | 'private'; travel?: TravelInfo };
@@ -137,6 +139,57 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
 .tep-seats{display:flex;align-items:center;gap:8px;margin-top:8px;font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};}
 .tep-seats button{width:28px;height:28px;border-radius:8px;border:1px solid ${T.border};background:${PALE.field};color:${T.inkStrong};font-size:14px;line-height:1;cursor:pointer;}
 .tep-seats b{color:${T.inkStrong};font-size:14px;min-width:14px;text-align:center;}
+${APP_NEW ? `
+/* ════════════════════════════════════════════════════════════════════════
+   APPKA: PAPYRUS 3D (Matej 9. 11. 2026, hárok map-herne-2026-11-09, skupiny B a C: pole, chip, tlačidlo 3D, okno zdola).
+   Len pod html.papyrus3d, web tieto pravidlá nikdy nevidí. Obsah a funkcie sa nemenia, mení sa šat. */
+html.papyrus3d .tep-modal{background:var(--p3d-card);border:0;border-top:6px solid var(--p3d-gold);border-radius:24px 24px 0 0;box-shadow:0 -3px 0 var(--p3d-ink),0 -12px 20px var(--p3d-sh);}
+@media (min-width:768px){html.papyrus3d .tep-modal{border-radius:24px;border:2.5px solid var(--p3d-ink);border-top:6px solid var(--p3d-gold);box-shadow:0 6px 0 var(--p3d-ink),0 14px 18px var(--p3d-sh);}}
+html.papyrus3d .tep-top{background:var(--p3d-paper-hi);border-bottom:0;}
+html.papyrus3d .tep-grab{width:56px;height:6px;background:var(--p3d-gold);}
+html.papyrus3d .tep-title{font-family:'LT Museum',serif;font-weight:900;font-size:24px;line-height:1.12;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .tep-sub{font-size:14px;color:var(--p3d-gold-ink);}
+html.papyrus3d .tep-label{font-weight:600;font-size:12px;letter-spacing:.18em;color:var(--p3d-gold-ink);}
+html.papyrus3d .tep-hint{font-size:14px;letter-spacing:0;color:color-mix(in srgb,var(--p3d-ink) 58%,var(--p3d-paper));}
+html.papyrus3d .tep-label .tep-hint{font-size:12px;}
+html.papyrus3d .tep-input,html.papyrus3d .tep-textarea,html.papyrus3d .tep-input:focus,html.papyrus3d .tep-textarea:focus{box-sizing:border-box;min-height:54px;padding:12px 16px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);font-family:${FONT_UI};font-weight:500;font-size:16px;color:var(--p3d-ink);}
+html.papyrus3d .tep-textarea,html.papyrus3d .tep-textarea:focus{min-height:112px;}
+html.papyrus3d .tep-input[type="date"]{padding-right:16px;}
+html.papyrus3d .tep-modal .atl-photo-thumb{border:2.5px solid var(--p3d-ink);border-radius:16px;box-shadow:var(--p3d-lift);}
+html.papyrus3d .tep-modal .atl-photo-thumb.cover{border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .tep-modal .atl-photo-thumb button{border:2px solid var(--p3d-ink);background:var(--p3d-paper-hi);color:var(--p3d-ink);}
+html.papyrus3d .tep-modal .atl-photo-cover-badge{left:6px;top:6px;bottom:auto;padding:4px 8px;background:linear-gradient(180deg,color-mix(in srgb,#16307A 72%,white),#0A1A4A);color:#EFD79A;font-size:12px;letter-spacing:0;text-transform:none;}
+html.papyrus3d .atl-photo-ghost{border:2.5px solid var(--p3d-ink);border-radius:16px;}
+html.papyrus3d .tep-crop-preview{border:2.5px solid var(--p3d-ink);border-radius:16px;box-shadow:var(--p3d-lift);}
+html.papyrus3d .tep-crop-slider{accent-color:#16307A;}
+html.papyrus3d .tep-addphoto,html.papyrus3d .tep-opt,html.papyrus3d .tep-travel button,html.papyrus3d .tep-check,html.papyrus3d .tep-submit{
+  --b3-a:#fff;--b3-b:var(--p3d-paper);--b3-p:var(--p3d-gold-solid);--b3-l:var(--p3d-ink);--b3-i:var(--p3d-ink);
+  box-sizing:border-box;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -4px 0 rgba(0,0,0,.15),0 4px 0 var(--b3-p),0 8px 10px rgba(0,0,0,.28);
+  font-family:'LT Museum',serif;font-weight:400;font-size:16px;line-height:1.1;letter-spacing:0;text-transform:none;transition:transform .07s,box-shadow .07s;} /* písmo: cta */
+html.papyrus3d .tep-addphoto,html.papyrus3d .tep-opt,html.papyrus3d .tep-travel button,html.papyrus3d .tep-check{min-height:56px;gap:8px;}
+html.papyrus3d .tep-addphoto img,html.papyrus3d .tep-check img{width:28px;height:28px;flex:none;}
+html.papyrus3d .tep-addphoto:hover,html.papyrus3d .tep-opt:hover{border-color:var(--b3-l);color:var(--b3-i);}
+html.papyrus3d .tep-addphoto:active:not(:disabled),html.papyrus3d .tep-opt:active,html.papyrus3d .tep-travel button:active,html.papyrus3d .tep-check:active,html.papyrus3d .tep-submit:active:not(:disabled){transform:translateY(3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 1px 0 var(--b3-p);}
+html.papyrus3d .tep-opt.on,html.papyrus3d .tep-travel button.on,html.papyrus3d .tep-check.on,html.papyrus3d .tep-photo-drop.drag .tep-addphoto,html.papyrus3d .tep-submit{
+  --b3-a:color-mix(in srgb,${LAPIS.edge} 72%,white);--b3-b:${LAPIS.deep};--b3-p:color-mix(in srgb,${LAPIS.deep} 60%,black);--b3-l:${LAPIS.ink};--b3-i:${LAPIS.ink};
+  background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);border-style:solid;}
+html.papyrus3d .tep-submit{min-height:56px;padding:0 16px;font-size:20px;}
+html.papyrus3d .tep-submit:hover:not(:disabled){background:linear-gradient(180deg,var(--b3-a),var(--b3-b));}
+html.papyrus3d .tep-travel{gap:12px;}
+html.papyrus3d .tep-travel button{padding:8px 4px;overflow-wrap:anywhere;}
+html.papyrus3d .tep-travel b{font-size:24px;}
+html.papyrus3d .tep-check{padding:8px 16px;text-align:left;overflow-wrap:anywhere;}
+html.papyrus3d .tep-check b{width:28px;display:flex;align-items:center;justify-content:center;}
+html.papyrus3d .tep-check:not(.on) b img{display:none;}
+html.papyrus3d .tep-dogs{gap:12px;}
+html.papyrus3d .tep-dog-ph{width:32px;height:32px;border:2px solid var(--p3d-ink);}
+html.papyrus3d .tep-two{gap:12px;}
+html.papyrus3d .tep-seats{font-size:14px;color:var(--p3d-ink);}
+html.papyrus3d .tep-seats button{box-sizing:border-box;width:36px;height:36px;border:2.5px solid var(--p3d-ink);border-radius:12px;background:var(--p3d-paper-hi);color:var(--p3d-ink);font-size:20px;}
+html.papyrus3d .tep-seats b{font-size:20px;color:var(--p3d-ink);}
+html.papyrus3d .tep-err{font-size:14px;}
+` : ''}
 `;
 
 export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onReroute, onClose }: {
@@ -366,7 +419,7 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
               disabled={busy}
               onClick={() => fileRef.current?.click()}
               aria-label={t('pack.trip.edit.addPhoto')}
-            >+</button>
+            >{APP_NEW ? (<><SysIcon name="foto" size={28} />{t('pack.trip.edit.addPhoto')}</>) : '+'}</button>
           )}
           {photos.length > 1 && <p className="tep-hint" style={{ marginTop: 8 }}>{t('pack.addTrip.step.coverPick')}</p>}
           <input
@@ -479,7 +532,7 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
                   aria-pressed={pickup}
                   onClick={() => setPickup((v) => !v)}
                 >
-                  <b>{pickup ? '✓' : ''}</b>
+                  <b>{APP_NEW ? <SysIcon name="fajka" size={28} /> : (pickup ? '✓' : '')}</b>
                   <span>{t('pack.addTrip.plan.pickup')}</span>
                 </button>
                 {pickup && (
@@ -509,7 +562,7 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
             <div className="tep-dogs">
               {myDogs.map((d) => (
                 <button key={d.id} type="button" aria-pressed={crew.includes(d.id)} className={`tep-check${crew.includes(d.id) ? ' on' : ''}`} onClick={() => toggleCrew(d.id)}>
-                  <b>{crew.includes(d.id) && <HandCheck size={14} />}</b>
+                  <b>{APP_NEW ? <SysIcon name="fajka" size={28} /> : (crew.includes(d.id) && <HandCheck size={14} />)}</b>
                   {d.photo && <img src={sizedUrl(d.photo, 64)} alt="" className="tep-dog-ph" />}
                   <span>{d.name}</span>
                 </button>
@@ -521,7 +574,7 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
         {!isPlan && (
           <div className="tep-field" style={{ textAlign: 'center' }}>
             <label className="tep-label">{t('pack.trip.edit.rating')}</label>
-            <div className="tep-pawpick"><PawRating value={stars} onChange={setStars} size={30} /></div>
+            <div className="tep-pawpick"><PawRating value={stars} onChange={setStars} size={APP_NEW ? 44 : 30} /></div>
           </div>
         )}
 

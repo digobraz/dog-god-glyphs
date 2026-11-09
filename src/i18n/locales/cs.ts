@@ -2319,6 +2319,7 @@ export const cs: Partial<Dict> = {
   'pack.map.crowdKind.Busy': 'Rušné',
   'pack.map.crowdKind.Calm': 'Klidné',
   'pack.map.crowdKind.Empty': 'Liduprázdné',
+  'pack.map.crowdKind.EmptyApp': 'Prázdné',
   'pack.map.crowdLabel.Ľudoprázdne': 'Liduprázdné',
   'pack.map.crowdLabel.Pokojné': 'Klidné',
   'pack.map.crowdLabel.Rušné': 'Rušné',
@@ -7182,6 +7183,10 @@ export const cs: Partial<Dict> = {
   'pack.dogs2.usually': "se obvykle dožívá",
   'pack.dogs2.goal': "Náš cíl",
   'pack.dogs2.goalShort': "cíl",
+  'pack.dogs2.pctLived': "života prožito (průměr plemene)",
+  'pack.dogs2.pctLeft': "zbývá do průměru plemene",
+  'pack.dogs2.pctGoalLived': "prožito z našeho cíle",
+  'pack.dogs2.pctGoalLeft': "zbývá do našeho cíle",
   'pack.dogs2.diary': "Deník",
   'pack.dogs2.lifeIntro': "Kolik života mají tvoji psi za sebou — a kolik ještě mohou mít. Jeden blok = jeden rok. Ťukni na psa.",
   // Appka D·E·F (31. 10. 2026)

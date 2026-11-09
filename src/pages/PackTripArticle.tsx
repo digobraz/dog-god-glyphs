@@ -50,7 +50,7 @@ import { ToastAction } from '@/components/ui/toast';
 import { hasOnlyDeceasedDogs } from '@/components/pack/memorialTrips';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
-  ICON, authorOf, REGION_OF, DiffMark, CrowdMark, RouteMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
+  ICON, authorOf, REGION_OF, DiffMark, CrowdMark, crowdWord, RouteMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
   tripShareText, tripText, tripName, tripIdFromUrl, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing, coverPos, isGhostJourney, usePackWalked } from '@/components/pack/tripShared';
 import { GhostJourneyNote } from '@/components/pack/trip/GhostJourneyNote';
@@ -616,6 +616,8 @@ html.papyrus3d .pta-stat:last-child:nth-child(odd){grid-column:1 / -1;}
 html.papyrus3d .pta-stat>img{width:52px !important;height:52px !important;}
 html.papyrus3d .pta-sb-t{display:flex;flex-direction:column;gap:4px;min-width:0;}
 html.papyrus3d .pta-stat b{display:block;font-family:'LT Museum',serif;font-weight:900;font-size:20px;line-height:1;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .pta-stat b{overflow-wrap:anywhere;}
+@media (max-width:430px){html.papyrus3d .pta-stat b{font-size:16px;}html.papyrus3d .pta-stat>img{width:44px !important;height:44px !important;}}
 html.papyrus3d .pta-stat span{font-size:10px;letter-spacing:.14em;color:var(--p3d-gold-ink);}
 /* Ceruzka „upraviť výlet“: papyrusový kruh ako šípka späť, farebná samolepka namiesto bielej kresby. */
 html.papyrus3d .pta-edit{background:linear-gradient(180deg,#fff,var(--p3d-paper));border-color:var(--p3d-ink);box-shadow:var(--p3d-b3);}
@@ -1617,13 +1619,13 @@ export default function PackTripArticle() {
     const km = parseFloat(trail.km);
     const asc = (trail as { ascentM?: number }).ascentM;
     const route: SharePill = [];
-    if (hasRouteMetrics(trail) && km > 0) route.push({ icon: '/icons/sys/vzdialenost.webp', text: `${comma(km)} km` });
-    if (hasRouteMetrics(trail) && asc != null && asc > 0) route.push({ icon: '/icons/sys/stupanie.webp', text: `${asc} m` });
+    if (hasRouteMetrics(trail) && km > 0) route.push({ icon: '/icons/sys/vzd.svg', text: `${comma(km)} km` });
+    if (hasRouteMetrics(trail) && asc != null && asc > 0) route.push({ icon: '/icons/sys/stu.svg', text: `${asc} m` });
     if (route.length) out.push(route);
-    const diffIc: Record<string, string> = { Easy: 'narocnost-lahka', Moderate: 'narocnost-stredna', Hard: 'narocnost-tazka', Odyssey: 'narocnost-odysea' };
-    const crowdIc: Record<string, string> = { Empty: 'rusnost-prazdno', Calm: 'rusnost-pokoj', Busy: 'rusnost-rusno' };
-    if (showDiffStat && diffIc[agg.difficulty]) out.push([{ icon: `/icons/sys/${diffIc[agg.difficulty]}.webp` }]);
-    if (agg.crowd && crowdIc[agg.crowd]) out.push([{ icon: `/icons/sys/${crowdIc[agg.crowd]}.webp` }]);
+    const diffIc: Record<string, string> = { Easy: 'nar-lahka', Moderate: 'nar-stredna', Hard: 'nar-tazka', Odyssey: 'nar-odysea' };
+    const crowdIc: Record<string, string> = { Empty: 'rus-1', Calm: 'rus-2', Busy: 'rus-3' };
+    if (showDiffStat && diffIc[agg.difficulty]) out.push([{ icon: `/icons/sys/${diffIc[agg.difficulty]}.svg` }]);
+    if (agg.crowd && crowdIc[agg.crowd]) out.push([{ icon: `/icons/sys/${crowdIc[agg.crowd]}.svg` }]);
     return out;
   })();
 
@@ -1921,7 +1923,7 @@ export default function PackTripArticle() {
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.crowdBreakdown)}
             >
               {APP_NEW
-                ? <><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /><div className="pta-sb-t"><b>{t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span></div></>
+                ? <><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /><div className="pta-sb-t"><b>{crowdWord(t, agg.crowd)}</b><span>{t('pack.trip.stat.crowd')}</span></div></>
                 : <><b><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /> {t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span></>}
             </div>
           )}

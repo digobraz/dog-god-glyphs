@@ -20,7 +20,7 @@ import { pluralKey } from '@/lib/plural';
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy aj triplist.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK } from '@/components/pack/navGoldSkin';
 import { HieroglyphBg } from '@/components/pack/PackLayout';
-import { ICON, RatingPaws, DiffMark, RouteMark, CrowdMark, GOLD_ICON_FILTER, isWaterTrail, hasRouteMetrics, regionName } from '@/components/pack/tripShared';
+import { ICON, RatingPaws, DiffMark, RouteMark, CrowdMark, crowdWord, GOLD_ICON_FILTER, isWaterTrail, hasRouteMetrics, regionName } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI,
@@ -1113,7 +1113,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
  */
 type TFn = (key: string, vars?: Record<string, string | number>) => string;
 const diffTx = (t: TFn, v?: string | null) => (v ? t(`pack.map.diff.${v}`) : '');
-const crowdTx = (t: TFn, v?: string | null) => (v ? t(`pack.map.crowdKind.${v}`) : '');
+const crowdTx = (t: TFn, v?: string | null) => (v ? crowdWord(t, v) : '');
 
 function diffTip(t: TFn, agg: CrowdAgg): string { return agg.difficultyBreakdown.map((s) => `${s.pct}% ${diffTx(t, s.value)}`).join(' · '); }
 function crowdTip(t: TFn, agg: CrowdAgg): string { return agg.crowdBreakdown.map((s) => `${s.pct}% ${crowdTx(t, s.value)}`).join(' · '); }

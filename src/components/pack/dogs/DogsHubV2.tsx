@@ -187,7 +187,8 @@ const CSS = `
 .dv2-pc{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 16px}
 .dv2-pc div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:16px;background:rgba(255,255,255,.5);box-shadow:inset 0 0 0 1.5px var(--g)}
 .dv2-pc b{font:600 24px "Space Grotesk",system-ui;color:var(--ink)}
-.dv2-pc span{font:500 12px/1.2 "Space Grotesk",system-ui;color:var(--mut);text-align:center}
+.dv2-pc div{min-width:0}
+.dv2-pc span{font:500 12px/1.2 "Space Grotesk",system-ui;color:var(--mut);text-align:center;overflow-wrap:anywhere}
 html.papyrus3d .dv2-pc div{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
 .dv2-big{display:flex;align-items:baseline;gap:12px;margin:0 0 4px}
 .dv2-big b{font:600 24px "Space Grotesk",system-ui;color:var(--ink)}
@@ -272,6 +273,7 @@ interface View {
   med: number;            // priemer (medián) dĺžky života, základ percent „prežité / zostáva“
   basis: string;          // odkiaľ je pásmo (podmet vety)
   goal: number;
+  goalSet: boolean;       // cieľ zadal majiteľ (uložený alebo práve nastavený), nie predvolba hi+5
   bornLabel: string;
   breedLabel: string;
   el: ElementKey | null;
@@ -327,6 +329,7 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
       ageY,
       days: age ? age.totalDays : null,
       lo, hi, med, basis, goal,
+      goalSet: goals[dog.id] != null || bands.target?.high != null,
       bornLabel: by ? (bd && bm ? `${parseInt(bd, 10)}. ${parseInt(bm, 10)}. ${by}` : String(by)) : '',
       breedLabel,
       el: typeof elV === 'string' && elV in NATURE_ELEMENTS ? (elV as ElementKey) : null,
@@ -608,6 +611,7 @@ function OneLife({ v, tx, onGoal, latest }: { v: View; tx: Tx; onGoal: (g: numbe
       ? tx('pack.dogs2.whereIn', '{name} is right in that range.').replace('{name}', v.name)
       : tx('pack.dogs2.wherePast', '{name} has already beaten it.').replace('{name}', v.name);
   const livedPct = Math.min(100, Math.round((v.ageY / v.med) * 100));
+  const goalLivedPct = v.goal > 0 ? Math.min(100, Math.round((v.ageY / v.goal) * 100)) : 0;
   const rows = [];
   for (let y = 0; y < MAX_Y; y++) {
     const inb = y <= v.hi;
@@ -630,11 +634,18 @@ function OneLife({ v, tx, onGoal, latest }: { v: View; tx: Tx; onGoal: (g: numbe
           ? <>{tx('pack.dogs2.livedFor', 'Lived {y} years.').replace('{y}', String(yrs))} {v.basis} {tx('pack.dogs2.usually', 'usually lives')} <b>{v.lo}–{v.hi}</b>.</>
           : <>{tx('pack.dogs2.hasYears', 'Has {y} years behind them.').replace('{y}', String(yrs))} {v.basis} {tx('pack.dogs2.usually', 'usually lives')} <b>{v.lo}–{v.hi}</b> — {where}</>}
       </p>
-      {/* Dve percentá podľa priemeru plemena; bez dátumu narodenia sa nekreslia (Matej 9. 11. 2026, bod 17). */}
+      {/* Percentá (Matej 9. 11. 2026, bod 17): podľa priemeru plemena a podľa cieľa majiteľa (−/+ nižšie, prepočet hneď).
+          Bez dátumu narodenia sa nekreslia; bez zadaného cieľa len prvá dvojica; pri anjelovi len „prežité“. */}
       {v.days != null && v.med > 0 && (
         <div className="dv2-pc">
-          <div><b>{livedPct} %</b><span>{tx('pack.dogs2.pctLived', 'of an average life lived')}</span></div>
-          {!v.angel && <div><b>{100 - livedPct} %</b><span>{tx('pack.dogs2.pctLeft', 'left by the breed average')}</span></div>}
+          <div><b>{livedPct} %</b><span>{tx('pack.dogs2.pctLived', 'of average life lived')}</span></div>
+          {!v.angel && <div><b>{100 - livedPct} %</b><span>{tx('pack.dogs2.pctLeft', 'left to the breed average')}</span></div>}
+          {v.goalSet && v.goal > 0 && (
+            <>
+              <div><b>{goalLivedPct} %</b><span>{tx('pack.dogs2.pctGoalLived', 'of our goal lived')}</span></div>
+              {!v.angel && <div><b>{100 - goalLivedPct} %</b><span>{tx('pack.dogs2.pctGoalLeft', 'left to our goal')}</span></div>}
+            </>
+          )}
         </div>
       )}
       <div className="dv2-mg">{rows}</div>

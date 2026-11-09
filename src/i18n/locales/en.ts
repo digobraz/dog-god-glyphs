@@ -7531,6 +7531,10 @@ export const en = {
   'pack.dogs2.usually': "usually lives",
   'pack.dogs2.goal': "Our goal",
   'pack.dogs2.goalShort': "goal",
+  'pack.dogs2.pctLived': "of average life lived",
+  'pack.dogs2.pctLeft': "left to the breed average",
+  'pack.dogs2.pctGoalLived': "of our goal lived",
+  'pack.dogs2.pctGoalLeft': "left to our goal",
   'pack.dogs2.diary': "Diary",
   'pack.dogs2.lifeIntro': "How much life your dogs have behind them — and how much more they can have. One block = one year. Tap a dog.",
   // Appka D·E·F (31. 10. 2026)
