@@ -13,7 +13,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_AVATAR, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS } from '@/components/pack/ainubisSkin';
-import { HandPaw, HandStar, HandPlay } from '@/components/pack/HandIcons';
+import { HandPlay } from '@/components/pack/HandIcons';
+import { LikeIc, SaveIc } from '@/components/app/sysSwap';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { scrollThumb, pickText, pickPod, fmtSec, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import ainubisHead from '@/assets/ainubis-head.webp';
 import { APP_NEW } from '@/lib/packFlags';
@@ -24,7 +26,8 @@ const S = PACK_SPACE;
 const TX = PACK_TEXT;
 
 export const FEED_AI_CSS = `
-.fai{overflow:hidden;border-radius:${PACK_R.card}px;${AI_GLASS}}
+.fai{position:relative;overflow:hidden;border-radius:${PACK_R.card}px;${AI_GLASS}}
+.fai-x{position:absolute;z-index:2;top:${S.xs}px;right:${S.xs}px;width:44px;height:44px;display:grid;place-items:center;padding:0;border:0;background:none;cursor:pointer;}
 .fai-h{display:flex;align-items:center;gap:${S.sm}px;padding:${S.md}px;}
 .fai-av{flex:none;width:${PACK_AVATAR.head}px;height:${PACK_AVATAR.head}px;border-radius:${PACK_R.pill}px;background:${AINUBIS.bgDeep} center/cover no-repeat;
   border:2px solid ${AINUBIS.cyan};box-shadow:${AINUBIS.faceRing};}
@@ -81,9 +84,10 @@ export function AiHead({ sub }: { sub: string }) {
 }
 
 /** Hlavička + telo v šate AINUBISA. `media` ide od kraja po kraj medzi hlavičkou a pásom. */
-function AiPost({ sub, media, children }: { sub: string; media?: React.ReactNode; children: React.ReactNode }) {
+function AiPost({ sub, media, children, onHide, hideLabel }: { sub: string; media?: React.ReactNode; children: React.ReactNode; onHide?: () => void; hideLabel?: string }) {
   return (
     <article className="fai">
+      {onHide && <button type="button" className="fai-x" onClick={onHide} aria-label={hideLabel}><SysIcon name="krizik" size={24} /></button>}
       <AiHead sub={sub} />
       {media}
       <div className="fai-b">{children}</div>
@@ -101,7 +105,7 @@ function AiActs({ liked, saved, onLike, onSave, labels, onComment, comments = 0,
   return (
     <div className="zv-acts">
       <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={onLike} aria-pressed={liked} aria-label={labels.like}>
-        <HandPaw size={20} on={liked} color={AINUBIS.cyan} />
+        <LikeIc size={20} on={liked} color={AINUBIS.cyan} />
         <span className="zv-n">{likes}</span>
       </button>
       {onComment && (
@@ -111,7 +115,7 @@ function AiActs({ liked, saved, onLike, onSave, labels, onComment, comments = 0,
         </button>
       )}
       <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={onSave} aria-pressed={saved} aria-label={labels.save}>
-        <HandStar size={20} filled={saved} />
+        <SaveIc size={20} filled={saved} />
         <span className="zv-n">{saves}</span>
       </button>
     </div>
@@ -168,13 +172,13 @@ export function AiStory({ src, poster, title, body, sub, liked, saved, onLike, o
 }
 
 /** Odložené zvitky (☆ v DOGSCROLLe) — skutočný zoznam z `vault_reads`, nie pripomienka zo servera. */
-export function AiSaved({ list, lang, onOpen }: { list: DemoScroll[]; lang: string; onOpen: (id: string) => void }) {
+export function AiSaved({ list, lang, onOpen, onHide }: { list: DemoScroll[]; lang: string; onOpen: (id: string) => void; onHide?: () => void }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   if (!list.length) return null;
   const head = tx('pack.feed.saved.head', 'You put aside {n} scrolls. Got five minutes now?').replace('{n}', String(list.length));
   return (
-    <AiPost sub={tx('pack.feed.saved.sub', 'For later')}>
+    <AiPost sub={tx('pack.feed.saved.sub', 'For later')} onHide={onHide} hideLabel={tx('pack.feed.saved.hide', 'Hide')}>
       <p style={{ color: AINUBIS.ink }}>{head}</p>
       {list.slice(0, 3).map((z) => {
         const x = pickText(z, lang);

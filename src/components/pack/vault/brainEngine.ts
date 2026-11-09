@@ -68,6 +68,8 @@ export interface BrainOptions {
   head: string;
   /** Farebná kresba sveta namiesto výrezu z kitu (web /app). Bez nej ostáva výrez, ako vo VAULTe. */
   worldArt?: (w: VaultWorld) => string;
+  /** Appka: logo a kresby svetov bez kruhu, svit nesie obrys kresby (šat AINUBIS 3D). */
+  bare?: boolean;
   /** Mobilný pohľad — priblížené jadro a väčšie bubliny svetov. */
   isMobile: () => boolean;
   /** Rezerva hore a dole v px (horný pás; lišta + pilulka) — mozog sa centruje do zvyšku. */
@@ -478,11 +480,13 @@ export function mountBrain(o: BrainOptions): BrainHandle {
         const rr = p.sz * kB * (HOV === p ? 1.18 : 1);
         ctx.shadowBlur = HOV === p ? 36 : 24; ctx.shadowColor = 'rgba(91,224,240,.95)';
         ctx.fillStyle = 'rgba(91,224,240,1)';
-        ctx.beginPath(); ctx.arc(p.sx, p.sy, rr, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+        if (!o.bare) { ctx.beginPath(); ctx.arc(p.sx, p.sy, rr, 0, TAU); ctx.fill(); ctx.shadowBlur = 0; }
         /* HLAVA JE VNORENÁ DO CYAN KRUHU (Matej 5. 10. 2026: *„stredové logo viac
            obtiahnuť/vnoriť do cyan kruhu, je moc tenké vzhľadom na ostatné kruhy"*).
            Dovtedy lem 1,5 px — vedľa plných bublín svetov pôsobil ako čiara. */
-        if (HEAD.complete) {
+        if (HEAD.complete && o.bare) {
+          drawFit(ctx, HEAD, p.sx, p.sy, rr * 2.7, 'contain'); ctx.shadowBlur = 0;
+        } else if (HEAD.complete) {
           const hr = rr * 0.8;
           ctx.save(); ctx.beginPath(); ctx.arc(p.sx, p.sy, hr, 0, TAU); ctx.clip();
           drawFit(ctx, HEAD, p.sx, p.sy, hr * 2, 'cover'); ctx.restore();
@@ -494,9 +498,9 @@ export function mountBrain(o: BrainOptions): BrainHandle {
         ctx.save();
         ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(91,224,240,.55)';
         ctx.setLineDash([4, 5]); ctx.lineDashOffset = -TL * 6;
-        ctx.beginPath(); ctx.arc(p.sx, p.sy, rr * 1.22, 0, TAU); ctx.stroke();
+        ctx.beginPath(); ctx.arc(p.sx, p.sy, rr * (o.bare ? 1.72 : 1.22), 0, TAU); ctx.stroke();
         ctx.setLineDash([]);
-        const R2 = rr * 1.42, a0 = TL * 1.8;
+        const R2 = rr * (o.bare ? 1.92 : 1.42), a0 = TL * 1.8;
         ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(91,224,240,.18)';
         ctx.beginPath(); ctx.arc(p.sx, p.sy, R2, 0, TAU); ctx.stroke();
         ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(91,224,240,1)';
@@ -526,8 +530,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
         g.addColorStop(0, '#fff'); g.addColorStop(0.38, `rgb(${wc})`); g.addColorStop(1, `rgba(${wc},.78)`);
         ctx.fillStyle = g;
       }
-      ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, TAU); ctx.fill();
-      ctx.shadowBlur = 0;
+      if (!o.bare) { ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, TAU); ctx.fill(); ctx.shadowBlur = 0; }
       if (o.glow) {
         const a0 = TL * (1.1 + p.wi * 0.12) + p.wi;
         ctx.lineWidth = 2; ctx.strokeStyle = `rgba(${wc},.9)`; ctx.shadowBlur = 12; ctx.shadowColor = `rgba(${wc},1)`;
@@ -543,7 +546,8 @@ export function mountBrain(o: BrainOptions): BrainHandle {
         /* ⚠️ Ikona sa VYREZÁVA (`destination-out`), nekreslí — kit je zlatý a na modrej
            bubline by zlato bolo farbou bez významu. Tieň musí byť pred výrezom vypnutý. */
         ctx.globalCompositeOperation = o.worldArt ? 'source-over' : 'destination-out';
-        drawFit(ctx, im, p.sx, p.sy, r * 1.52, 'contain');
+        drawFit(ctx, im, p.sx, p.sy, o.bare ? r * 2.4 : r * 1.52, 'contain');
+        ctx.shadowBlur = 0;
         ctx.globalCompositeOperation = 'source-over';
       }
       /* MENO SVETA JE PRI BUBLINE STÁLE (Matej 22. 9.) — do vtedy len na dotyk.

@@ -35,7 +35,7 @@ import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { ScrollCard, SCROLL_CSS, SCROLL_CARD_CSS, scrollUI } from '@/components/pack/vault/ScrollParts';
-import { useDemoScrolls, useScrollSearchText, useSaved, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
+import { useDemoScrolls, useScrollSearchText, useSaved, useReadsReady, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { PostViewer } from '@/components/pack/profile/PostViewer';
 import { fetchMyPosts, onPostsChanged, isMoment, isAlbum, isTripStory, type MePost } from '@/components/pack/profile/mePosts';
@@ -68,6 +68,7 @@ const SCENES = 30;
 const PAGE = 12;
 /** Kde bol človek vo feede — návrat z výletu/Sniffera ho vráti na to isté miesto (krok späť = krok pred). */
 const POS_KEY = 'pkf-pos-v1';
+const SAVED_HIDE_KEY = 'pkf-saved-hidden';
 
 /** Témy → svety VAULTu: zvitky patria do feedu pod témou, ktorej sa týkajú (Znalosti = všetky). */
 const TOPIC_WORLDS: Record<string, string[] | 'all'> = {
@@ -364,7 +365,16 @@ export function PackFeed() {
     const k = (day * 7) % ok.length;
     return [...ok.slice(k), ...ok.slice(0, k)];
   }, [scrolls, lang, day]);
-  const savedScrolls = useMemo(() => savedIds.map((id) => scrolls.find((z) => z.id === id)).filter((z): z is DemoScroll => !!z), [savedIds, scrolls]);
+  /* Zoznam odložených sa berie raz, keď sa načíta (Matej 9. 11. 2026: „pri kliknutí na uložiť … sa preklikne ďalší v poradí“).
+     Uložený zvitok ostane vo feede na mieste a do „Na neskôr“ sa dostane až pri ďalšom otvorení. */
+  const readsReady = useReadsReady();
+  const [savedAtOpen, setSavedAtOpen] = useState<string[] | null>(null);
+  useEffect(() => { if (readsReady) setSavedAtOpen((v) => v ?? savedIds); }, [readsReady, savedIds]);
+  const savedScrolls = useMemo(() => (savedAtOpen ?? []).filter((id) => savedIds.includes(id)).map((id) => scrolls.find((z) => z.id === id)).filter((z): z is DemoScroll => !!z), [savedAtOpen, savedIds, scrolls]);
+  /* Krížik: blok zmizne, kým si človek neodloží iný zvitok. */
+  const savedSig = savedScrolls.map((z) => z.id).sort().join(',');
+  const [savedHidden, setSavedHidden] = useState<string | null>(() => { try { return localStorage.getItem(SAVED_HIDE_KEY); } catch { return null; } });
+  const hideSaved = () => { setSavedHidden(savedSig); try { localStorage.setItem(SAVED_HIDE_KEY, savedSig); } catch { /* len pohodlie */ } };
 
   // Meno navonok = to isté ako `shownName` na /pack/me (voľba „Zobraziť ako", potom meno z účtu / objednávky).
   const { profile } = useProfile();
@@ -415,9 +425,9 @@ export function PackFeed() {
       }, false);
     }
     const out: Item[] = [];
-    if (savedScrolls.length) out.push({ k: 'saved' });
+    if (savedScrolls.length && savedHidden !== savedSig) out.push({ k: 'saved' });
     out.push({ k: 'quote' });
-    const saved = new Set(savedIds);
+    const saved = new Set(savedAtOpen ?? []);
     return out.concat(weave({
       trip: tripIdx,
       scroll: allScrolls.filter((z) => !saved.has(z.id)),
@@ -425,7 +435,7 @@ export function PackFeed() {
       map: [...mapAdds],
     }, true, true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trips, publicPosts, allScrolls, savedScrolls.length, savedIds, mapAdds, topic, searching, query, lang, postDogs, ownName, dogs, scrollTexts]);
+  }, [trips, publicPosts, allScrolls, savedScrolls.length, savedHidden, savedSig, savedAtOpen, mapAdds, topic, searching, query, lang, postDogs, ownName, dogs, scrollTexts]);
 
   // DÁVKY: najprv PAGE kusov, ďalšie, keď sa strážca na konci zoznamu priblíži k oknu.
   const [shown, setShown] = useState(PAGE);
@@ -554,7 +564,7 @@ export function PackFeed() {
             likes={marks.get('story:hekthor').likes} saves={marks.get('story:hekthor').saves} />
         );
       case 'saved':
-        return <AiSaved list={savedScrolls} lang={lang} onOpen={(id) => openScroll(id)} />;
+        return <AiSaved list={savedScrolls} lang={lang} onOpen={(id) => openScroll(id)} onHide={APP_NEW ? hideSaved : undefined} />;
     }
   };
   const keyOf = (it: Item, n: number) =>

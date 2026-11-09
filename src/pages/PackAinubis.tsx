@@ -35,6 +35,7 @@
 //      obsah), DOLE POHĽAD = DOGSCROLL ⇄ BRAIN (ten istý obsah, iný pohľad).
 // 🚩 OTVORENÉ: chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania).
 // ════════════════════════════════════════════════════════════════════════════
+import { PAPER_BG } from '@/components/pack/packTheme';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
@@ -229,6 +230,9 @@ ${APP_NEW ? '' : `.akv-top [data-mg="msgs"],.akv-top [data-mg="notif"]{color:#ff
   background:transparent;color:${AINUBIS.inkDim};cursor:pointer;white-space:nowrap;
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;}
 .akv-ddb > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.akv-root{--pk-arrow:${PAPER_BG};}
+/* appka: šípky v AINUBISovi sú bledé, aj tie, čo si farbu nesú z ikonky (Matej 9. 11.) */
+html.papyrus3d .akv-root .wp-go svg{color:${PAPER_BG}!important;}
 .akv-ddb:disabled .akv-chev{opacity:0.35;}
 .akv-ddb .akv-chev{flex:0 0 auto;display:inline-flex;transform:rotate(-90deg);opacity:0.8;}
 .akv-dd.is-set .akv-ddb,.akv-dd.is-open .akv-ddb{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};
@@ -922,6 +926,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
       tip,
       worlds: VAULT_WORLDS,
       head: APP_NEW ? AI_LOGO : ainubisHead,
+      bare: APP_NEW,
+      worldArt: APP_NEW ? (w) => svetImg(w.key) : undefined,
       isMobile: () => !isPc(),
       worldName: (wi) => live.current.names[wi],
       circleName: (wi, oi) => live.current.circleName(wi, oi),
@@ -1060,9 +1066,10 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
         disabled={!CHAT_LIVE && !pv} title={CHAT_LIVE || pv ? undefined : soon}
         onClick={() => goPlane('chat')}>{APP_NEW && <SysIcon name="pridaj-chat" size={22} />}{plane('chat', 'Chat')}</button>
       {/* „čoskoro" len v tooltipe — v SK „NÁSTENKA ČOSKORO" pretiekla z pilulky (390 px aj PC 40 %). */}
-      <button type="button" className="akv-plane" aria-current={plane2 === 'wall' && wallTab !== 'lib' ? 'page' : undefined}
+      {/* Fórum v appke zatiaľ nie (Matej 9. 11. 2026: „forum daj preč zatial“). */}
+      {!APP_NEW && <button type="button" className="akv-plane" aria-current={plane2 === 'wall' && wallTab !== 'lib' ? 'page' : undefined}
         disabled={!WALL_MOCK && !pv} title={WALL_MOCK || pv ? undefined : soon}
-        onClick={() => goPlane('wall')}>{APP_NEW && <SysIcon name="svorka" size={22} />}{plane('wall', 'Forum')}</button>
+        onClick={() => goPlane('wall')}>{plane('wall', 'Forum')}</button>}
       {/* ZDROJE = štvrtá rovina (Matej 8. 10. 2026). Dovtedy záložka KNIŽNICA vnútri fóra;
           obrazovka je tá istá (`?plane=wall&tab=lib`), čip len skracuje cestu.
           Zamknutá rovnako ako fórum — zoznam je zatiaľ maketa s opísanými číslami. */}

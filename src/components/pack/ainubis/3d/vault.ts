@@ -12,20 +12,22 @@ const PC = '@media (min-width:1024px)';
 export const AI3D_VAULT_CSS = `
 /* ── HLAVIČKA = hlavička mapy (hárok .hd, .me, .av, .dg, .lv) ───────────────────────────────────── */
 ${MOB}{
-  ${R} .akv-top{left:0;right:0;top:0;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 18px;pointer-events:auto;${M3.head}}
+  ${R} .akv-top{left:0;right:0;top:0;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 16px;pointer-events:auto;${M3.head}}
   ${R} .akv-top::before,${R}[data-view="scroll"] .akv-top::before{display:none;}
   ${R} .akv-top:has(.akv-pos-dd){z-index:962;}
 }
-${R} .pkid--app{top:0;gap:8px;}
-${R} .pkid-app{position:relative;display:block;flex:none;width:104px;height:66px;padding:0;}
-${R} .pkid-app-av{position:absolute;left:0;top:0;box-sizing:border-box;width:66px;height:66px;border-radius:50%;object-fit:cover;border:3px solid rgb(${CY});
-  box-shadow:0 0 0 2px var(--ai-out);background:radial-gradient(circle at 35% 28%,#12233a,#01050A 74%);}
-${R} .pkid-app-av--init{display:grid;place-items:center;font:400 24px/1 'LT Museum',serif;color:${A.cyan};}
-${R} .pkid-app-dg{position:absolute;left:54px;top:38px;box-sizing:border-box;width:42px;height:42px;border-radius:50%;object-fit:cover;border:2.5px solid rgb(${CY});
-  box-shadow:0 0 0 1.5px var(--ai-out);background:#000;z-index:1;}
-${R} .pkid-app-lv{position:absolute;left:38px;top:-25px;width:74px;height:74px;z-index:2;pointer-events:none;}
-${R} .pkid-app-lv img{width:74px;height:74px;max-width:none;transform:scale(1.14);filter:drop-shadow(0 3px 2px var(--ai-sh));}
-${R} .pkid-app-lv b{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:400 20px/1 'LT Museum',serif;color:#fff;text-shadow:0 1px 2px #000,0 2px 5px #000;}
+/* 1:1 s hlavičkou /map (PackMap, .trp-mheader-status): riadok 40, fotka 40, pes 26, planétka 28. Mení sa len farba lemu. */
+${R} .pkid--app{top:0;height:40px;margin-bottom:12px;gap:8px;}
+${R} .pkid-app{position:relative;display:block;flex:0 0 72px;width:72px;height:40px;padding:0;cursor:pointer;}
+${R} .pkid-app-avs{position:absolute;inset:0;display:block;}
+${R} .pkid-app-av{position:absolute;left:0;top:0;box-sizing:border-box;width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgb(${CY});box-shadow:0 0 0 1px var(--ai-out),0 2px 0 1px var(--ai-out);background:radial-gradient(circle at 35% 28%,#12233a,#01050A 74%);}
+${R} .pkid-app-av--init{display:grid;place-items:center;font:600 16px/1 'Space Grotesk',sans-serif;color:${A.cyan};}
+${R} .pkid-app-dg{left:32px;top:15px;width:26px;height:26px;border-width:1.5px;z-index:5;}
+${R} .pkid-app .rk{--s:28px;position:absolute;left:26px;top:-8px;z-index:4;margin:0;display:block;width:40px;height:32px;}
+${R} .pkid-app .rk .ic{position:absolute;inset:0;width:auto;height:auto;}
+${R} .pkid-app .rk .cp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;width:auto;height:auto;min-width:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;z-index:3;}
+${R} .pkid-app .rk .fl{display:none;}
+${R} .pkid-app .rk .nb{position:static;font:600 12px/1 'Space Grotesk',sans-serif;color:#fff;text-shadow:0 1px 2px #000,0 2px 5px #000;}
 /* Kapsula SOS / správy / zvonček: ten istý komponent ako na mape (TopActions), len cyan lem na tmavom (hárok .tops). */
 ${R} .pk-p3d-tops.pk-tops{border-color:rgba(${CY},.45);background:rgba(${CY},.10);box-shadow:inset 0 3px 4px rgba(0,0,0,.5);}
 
@@ -36,16 +38,17 @@ ${R} .akv-search input{font:500 16px/1.35 'Space Grotesk',sans-serif;padding:0;}
 ${b3(`${R} .akv-fbtn`, 'or', '16px')}
 ${R} .akv-fbtn{min-height:54px;padding:0 16px;gap:8px;font-size:20px;}
 ${R} .akv-fbtn.is-set{filter:none;}
-${R} .akv-fbtn i{width:30px;height:30px;margin:0;}
+${R} .akv-fbtn i{width:24px;height:24px;margin:0;}
+${R} .akv-search img{width:24px;height:24px;}
 
 /* Prepínač 4 záložiek (hárok .sw): Fórum a Zdroje ostávajú vyblednuté, kým sú zamknuté */
-${R} .akv-planes{${M3.sw}flex:1 1 auto;min-width:0;}
-${R} .akv-plane{${M3.swBtn}padding:0 4px;flex:1 1 0;line-height:1;font-size:14px;overflow:visible;}
-${R} .akv-plane img,${R} .akv-plane svg{width:22px;height:22px;flex:none;}
+${R} .akv-planes{${M3.sw}flex:1 1 auto;min-width:0;padding:4px;border-radius:16px;}
+${R} .akv-plane{${M3.swBtn}height:54px;padding:0 4px;gap:4px;flex:1 1 0;line-height:1;font-size:20px;overflow:visible;}
+${R} .akv-plane img,${R} .akv-plane svg{width:28px !important;height:28px !important;flex:none;}
 ${R} .akv-plane[aria-current="page"]{${M3.swOn}}
 ${R} .akv-plane:disabled{color:${A.inkFaint};opacity:.6;}
 @media (max-width:380px){${R} .akv-search{padding:0 12px;gap:6px;}${R} .akv-fbtn{padding:0 12px;gap:4px;font-size:16px;}${R} .akv-fbtn i{width:24px;height:24px;}
-  ${R} .akv-plane{font-size:12px;gap:2px;}${R} .akv-plane img,${R} .akv-plane svg{width:18px;height:18px;}}
+  ${R} .akv-plane{font-size:16px;gap:4px;}${R} .akv-plane img,${R} .akv-plane svg{width:24px !important;height:24px !important;}}
 
 /* ── VÝBER SVETA: karta so svetovou kresbou, názvom, upútavkou, progresom a šípkou (hárok wcard) ─── */
 ${R} .wp-label{${M3.lab}}
@@ -106,8 +109,10 @@ ${R} .akv-pos-dd .akv-pos-sec{color:${A.cyan};}
 
 /* ── MOZOG: prepínač dole (hárok .go), tlačidlo Vrstvy (.bic) a panel Vrstvy (.bx) ──────────────── */
 ${b3(`${R} .akv-mtoggle`, 'or', '16px')}
-${R} .akv-mtoggle{height:62px;padding:0 24px;gap:8px;font-size:24px;}
-${R} .akv-mactions{bottom:calc(env(safe-area-inset-bottom,0px) + 132px);}
+/* 1:1 s Mapa/Zoznam na /map: tá istá výška, písmo, ikonka aj poloha nad dokom. */
+${R} .akv-mtoggle{height:62px;padding:0 24px;gap:8px;font-size:20px;}
+${R} .akv-mtoggle img{width:36px !important;height:36px !important;}
+${R} .akv-mactions{bottom:calc(var(--pack-nav-bottom,16px) + var(--pack-nav-h,84px) + 20px + 12px);}
 ${b3(`${R} .akv-ctlbtn`, 'nt', '16px')}
 ${R} .akv-ctlbtn{width:52px;height:52px;}
 ${R} .akv-ctlbtn[aria-expanded="true"]{background:linear-gradient(180deg,#123C4C,#0B2733);}
