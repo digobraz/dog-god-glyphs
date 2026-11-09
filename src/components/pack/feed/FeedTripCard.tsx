@@ -92,7 +92,7 @@ ${FOLLOW_CHIP_CSS}
 html.papyrus3d .pft-head .pk-medallion{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink);}
 html.papyrus3d .pft-who b{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;line-height:1.1;letter-spacing:0;color:var(--p3d-ink);} /* písmo: meno */
 html.papyrus3d .pft-ph{border-block:2.5px solid var(--p3d-ink);}
-html.papyrus3d .pft-nav{width:48px;height:48px;border:2.5px solid var(--p3d-ink);background:var(--p3d-card);
+html.papyrus3d .pft-nav{width:32px;height:32px;border:2px solid var(--p3d-ink);background:var(--p3d-card);
   box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),var(--p3d-lift);}
 html.papyrus3d .pft-nav:active{transform:translateY(calc(-50% + 3px));box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent);}
 html.papyrus3d .pft-body h3{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;letter-spacing:0;color:var(--p3d-ink);} /* písmo: nadpis */
@@ -257,8 +257,8 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
           <img className="pft-flag" src={flagUrl(country)} alt="" loading="lazy" />
           {n > 1 && <span className="pft-cnt">{idx + 1}/{n}</span>}
           {n > 1 && <>
-            <button type="button" className="pft-nav l" aria-label={t('pack.map.previousPhoto')} onClick={() => setIdx((i) => (i - 1 + n) % n)}>{APP_NEW ? <SysIcon name="spat" size={28} /> : <HandArrowLeft size={16} />}</button>
-            <button type="button" className="pft-nav r" aria-label={t('pack.map.nextPhoto')} onClick={() => setIdx((i) => (i + 1) % n)}>{APP_NEW ? <SysIcon name="sipka" size={28} /> : <HandArrowLeft size={16} style={{ transform: 'scaleX(-1)' }} />}</button>
+            <button type="button" className="pft-nav l" aria-label={t('pack.map.previousPhoto')} onClick={() => setIdx((i) => (i - 1 + n) % n)}>{APP_NEW ? <SysIcon name="spat" size={16} /> : <HandArrowLeft size={16} />}</button>
+            <button type="button" className="pft-nav r" aria-label={t('pack.map.nextPhoto')} onClick={() => setIdx((i) => (i + 1) % n)}>{APP_NEW ? <SysIcon name="sipka" size={16} /> : <HandArrowLeft size={16} style={{ transform: 'scaleX(-1)' }} />}</button>
           </>}
           {!isWaterTrail(tr) && (
             <div className="pft-meta">

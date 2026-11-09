@@ -237,6 +237,9 @@ export const learnerImg = (level: number) => `/icons/pack/rank/learner-${Math.ma
  *  `floor` = najvyšší dosiahnutý level z DB (`human.learner.level`) — level NIKDY NEKLESÁ, ani keď VAULT
  *  pribudne zvitkami a podiel sa zmenší. Do večera 6. 11. 2026 to držal `localStorage` (iný telefón začínal
  *  odznova a na spoločnom zariadení si druhý človek zdedil level prvého). Zápis robí `useLearner`. */
+/** Koľko zvitkov chýba do ďalšieho levelu (0 na vrchole). */
+export const learnerNeed = (read: number, total: number, level: number) => (level === 0 ? 1 : level < 10 ? Math.max(1, Math.ceil((L_FROM[level] / 100) * total) - read) : 0);
+
 export function learnerProgress(read: number, total: number, floor = 0): { level: number; pct: number; share: number } {
   const share = total > 0 ? (read / total) * 100 : 0;
   let level = read > 0 ? 1 + L_FROM.slice(1).filter((f) => share >= f).length : 0;
@@ -271,7 +274,7 @@ export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx
   read: number; total: number; floor?: number; liked: number; saved: number; onVault?: () => void; tx: Tx;
 }) {
   const { level, pct, share } = learnerProgress(read, total, floor);
-  const need = level === 0 ? 1 : level < 10 ? Math.max(1, Math.ceil((L_FROM[level] / 100) * total) - read) : 0;
+  const need = learnerNeed(read, total, level);
   const name = tx('pack.rank.learner', 'Disciple');
   return (
     <>

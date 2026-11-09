@@ -69,6 +69,7 @@ export const FEED_AI_CSS = `
 .fai-sv img{flex:none;width:48px;height:64px;border-radius:${PACK_R.field}px;object-fit:cover;}
 .fai-sv b{display:block;font-weight:600;font-size:${TX.body}px;line-height:1.3;}
 .fai-sv small{font-size:${TX.label}px;color:${AINUBIS.inkDim};}
+.fai-svt{display:inline-flex;align-items:center;gap:${S.xs}px;margin-top:${S.xs}px;}
 `;
 
 const AiName = () => <><span className="ai">AI</span>NUBIS</>;
@@ -188,7 +189,9 @@ export function AiSaved({ list, lang, onOpen, onHide }: { list: DemoScroll[]; la
             {z.img && <img {...scrollThumb(z.img)} alt="" loading="lazy" />}
             <span>
               <b>{x.t}</b>
-              <small>{x.min ? `${x.min} min` : ''}{x.min && pod ? ' · ' : ''}{pod && <><HandPlay size={10} /> {fmtSec(pod.sec)}</>}</small>
+              {APP_NEW
+                ? <small className="fai-svt">{pod ? <><HandPlay size={12} />{fmtSec(pod.sec)}</> : x.min ? `${x.min} min` : ''}</small>
+                : <small>{x.min ? `${x.min} min` : ''}{x.min && pod ? ' · ' : ''}{pod && <><HandPlay size={10} /> {fmtSec(pod.sec)}</>}</small>}
             </span>
           </button>
         );

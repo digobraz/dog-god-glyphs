@@ -156,7 +156,7 @@ ${H} .zv-ok{font:500 14px ${UI};color:${A.ok};}
 ${b3(`${H} .zv-done`, 'or')}
 ${b3(`${H} .zv-done.is-done`, 'gr')}
 ${H} .zv-done{min-height:58px;padding:8px 12px;gap:4px;width:100%;margin-top:24px;transform:none;}
-${H} .zv-done b{font:400 20px ${MU};letter-spacing:0;text-transform:none;}
+${H} .zv-done b{font:400 20px ${MU};letter-spacing:0;text-transform:none;color:inherit;}
 ${H} .zv-done small{font:500 12px ${UI};}
 
 /* diskusia */

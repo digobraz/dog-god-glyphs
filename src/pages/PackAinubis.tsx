@@ -55,6 +55,7 @@ import { useLearner } from '@/components/pack/vault/useLearner';
 import { RANK_BADGE_ON, learnerRingVars } from '@/components/pack/profile/rankBadge';
 import { SCROLL_DEMO, useDemoScrolls, usePublicScrolls, useScrollState, useReadsReady, useReads, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import { VaultKnowledge, KNOW_CSS } from '@/components/pack/vault/VaultKnowledge';
+import { firstNameFrom } from '@/lib/pilgrimName';
 import { ScrollCard, ScrollView, SCROLL_CSS, SCROLL_CARD_CSS, scrollUI, circleName as scrollCircle } from '@/components/pack/vault/ScrollParts';
 import { openAinubis, setPodcastNext, setAinubisPlaneHost, onAinubisPlaneBack } from '@/lib/ainubisBus';
 import { APP_NEW } from '@/lib/packFlags';
@@ -1542,6 +1543,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
       )}
       {SCROLL_DEMO && knowOpen && !openZ && (
         <VaultKnowledge scrolls={scrolls} lang={lang} avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial}
+          ownerName={id.session?.user?.email ? firstNameFrom(id.session.user.email, (id.session.user.user_metadata?.full_name || id.session.user.user_metadata?.name) as string | undefined) : id.avatarInitial}
           who={(id.dogs ?? []).map((d) => d.dog_name).filter(Boolean).join(' · ')}
           worldName={(key) => names[VAULT_WORLDS.findIndex((w) => w.key === key)] || key}
           onClose={() => navigate('/pack/ainubis')} onOpen={(i) => openScroll(i)} />

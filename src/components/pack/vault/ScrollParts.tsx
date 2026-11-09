@@ -27,6 +27,7 @@ import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CS
 import { AINUBIS, AI_GLASS, AI_WORLD, BRAIN_STATE, aiWorld } from '@/components/pack/ainubisSkin';
 import { HandPlus, HandArrowLeft } from '@/components/pack/HandIcons';
 import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { LikeIc, SaveIc, LockIc, CheckIc, PencilIc, AlertIc, CameraIc, TrashIc, BackIc, NextIc } from '@/components/app/sysSwap';
 
 /** Kresba z kitu `/icons/pack/` cez masku (ten istý zápis ako v PackAinubis). */
@@ -932,14 +933,16 @@ export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse,
           <h3 className="zv-sec">{u.contrib}</h3>
           {/* Z troch tlačidiel jedno (Matej 3. 10.): NAVRHNÚŤ ZMENU → druh návrhu + text → AINUBIS posúdi. */}
           <button type="button" className={`zv-prop${propOpen ? ' is-open' : ''}`} onClick={() => { setPropOpen(v => !v); setPropSent(false); }}>
-            <PencilIc size={14} />{u.cEdit}
+            {APP_NEW ? <SysIcon name="ceruzka" size={20} /> : <PencilIc size={14} />}{u.cEdit}
           </button>
           {propOpen && !propSent && (
             <form className="zv-cform" onSubmit={(e) => { e.preventDefault(); if (prop.trim()) { addProposal(z.id, kind, prop.trim()); setProp(''); setPropSent(true); } }}>
               <div className="zv-kinds" style={{ alignSelf: 'stretch' }}>
                 {(['add', 'wrong', 'own'] as ProposalKind[]).map((k, i) => (
                   <button key={k} type="button" className={`zv-kind${kind === k ? ' is-on' : ''}`} onClick={() => setKind(k)}>
-                    {k === 'add' ? <HandPlus size={12} /> : k === 'wrong' ? <AlertIc size={12} /> : <PencilIc size={12} />} {u.kinds[i]}
+                    {APP_NEW
+                      ? <SysIcon name={k === 'add' ? 'plus' : k === 'wrong' ? 'pozor' : 'ceruzka'} size={20} />
+                      : k === 'add' ? <HandPlus size={12} /> : k === 'wrong' ? <AlertIc size={12} /> : <PencilIc size={12} />} {u.kinds[i]}
                   </button>
                 ))}
               </div>

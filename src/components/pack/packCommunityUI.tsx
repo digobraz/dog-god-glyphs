@@ -822,6 +822,24 @@ ${VEIL_CSS}
 .comm-drop-chev{display:inline-block;width:7px;height:7px;border-right:1.5px solid ${P.dim};border-bottom:1.5px solid ${P.dim};transform:translateY(-2px) rotate(45deg);transition:transform .2s;}
 .comm-drop.on .comm-drop-chev{transform:translateY(1px) rotate(-135deg);}
 
+/* ŠAT PAPYRUS 3D — hodnotenie po prejdení a polia panelov (Matej 9. 11. 2026). Len pod APP_NEW. */
+html.papyrus3d .comm-label{margin-bottom:${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;color:var(--p3d-gold-ink);}
+html.papyrus3d .comm-seg{gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.card}px;border:2.5px solid var(--p3d-ink);background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
+html.papyrus3d .comm-seg button{flex:1 1 0;min-width:0;min-height:56px;flex-direction:column;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;white-space:normal;border:2.5px solid transparent;border-radius:${PACK_R.tile}px;background:none;color:var(--p3d-ink);font-size:${PACK_TEXT.label}px;font-weight:500;line-height:1.1;overflow-wrap:anywhere;}
+html.papyrus3d .comm-seg button.on{color:var(--p3d-paper-hi);border-color:var(--p3d-gold);background:${LAPIS.grad};box-shadow:0 3px 0 var(--p3d-ink);font-weight:600;}
+html.papyrus3d .comm-chips{gap:${PACK_SPACE.sm}px;}
+html.papyrus3d .comm-chip{min-height:44px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border:2.5px solid var(--p3d-ink);background:var(--p3d-card);color:var(--p3d-ink);font-size:${PACK_TEXT.body}px;box-shadow:var(--p3d-lift);}
+html.papyrus3d .comm-chip.on{background:color-mix(in srgb,${T.alertRed} 22%,var(--p3d-paper-hi));box-shadow:none;transform:translateY(3px);}
+html.papyrus3d .comm-textarea,html.papyrus3d .comm-input,html.papyrus3d .comm-selectinput{min-height:54px;padding:${PACK_SPACE.md}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);color:var(--p3d-ink);}
+html.papyrus3d .comm-hint{color:var(--p3d-ink);opacity:1;}
+html.papyrus3d .comm-submit,html.papyrus3d .comm-ghostbtn{min-height:54px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.card}px;border:2.5px solid var(--p3d-ink);font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;line-height:1.1;letter-spacing:0;text-transform:none;}
+html.papyrus3d .comm-submit{color:var(--p3d-paper-hi);border-color:var(--p3d-gold);background:${LAPIS.grad};box-shadow:0 6px 0 var(--p3d-ink),0 11px 14px var(--p3d-sh);}
+html.papyrus3d .comm-submit:active:not(:disabled){transform:translateY(5px);box-shadow:0 1px 0 var(--p3d-ink);}
+html.papyrus3d .comm-submit:disabled{color:var(--p3d-ink);border-color:var(--p3d-ink);background:var(--p3d-paper);box-shadow:none;opacity:.55;}
+html.papyrus3d .comm-ghostbtn{margin-top:${PACK_SPACE.md}px;color:var(--p3d-ink);background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .comm-reward{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:inset 0 0 0 3px var(--p3d-gold),var(--p3d-lift);}
+html.papyrus3d .comm-reward-eyebrow,html.papyrus3d .comm-reward-kind{color:var(--p3d-gold-ink);}
+html.papyrus3d .comm-reward-txt,html.papyrus3d .comm-reward-nexttxt{font-size:${PACK_TEXT.body}px;}
 `;
 
 // ── modal shell ──────────────────────────────────────────────────────────────────────────────
@@ -953,6 +971,11 @@ export function WalkRewardBlock({ trailName, reward, ratingPoints }: {
   );
 }
 
+/** Pod `APP_NEW` je hodnotenie po prejdení POPUP zdola s úchytom (Matej 9. 11. 2026: panel nebol v novom dizajne). */
+function WalkedSheet({ title, onClose, children }: { title: string; onClose: () => void; wide?: boolean; children: React.ReactNode }) {
+  return <PackPopup title={title} onClose={onClose} over>{children}</PackPopup>;
+}
+
 export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoints, reward, routeTrip = true }: {
   trailName: string; initial?: WalkedInput | null; onSubmit: (v: WalkedInput) => void; onClose: () => void;
   /**
@@ -983,8 +1006,9 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
   // fonte aj velkosti to centruj na stred a daj nazov tripu (EGREŠ)". Nadpis „Ohodnoť a získaj
   // body" hovoril to isté, čo papyrusový blok pod labkami, len horšie — a názov tripu bol
   // zbytočne odsunutý do podnadpisu. Teraz je názov JEDINÝ nadpis, `sub` sa už nepoužíva.
+  const Shell = APP_NEW ? WalkedSheet : Modal;
   return (
-    <Modal
+    <Shell
       title={trailName}
       onClose={onClose}
       wide
@@ -1032,7 +1056,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
           <div className="comm-seg">
             {CROWDS.map((v) => (
               <button key={v} type="button" className={crowd === v ? 'on' : ''} onClick={() => setCrowd(v)}>
-                {CROWD_EMOJI[v]} {crowdTx(t, v)}
+                <CrowdMark crowd={v} fallback={CROWD_EMOJI[v]} /> {crowdTx(t, v)}
               </button>
             ))}
           </div>
@@ -1076,7 +1100,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
           {t('pack.community.notNowBtn')}
         </button>
       ) : null}
-    </Modal>
+    </Shell>
   );
 }
 

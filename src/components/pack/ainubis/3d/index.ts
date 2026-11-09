@@ -5,5 +5,6 @@ import { AI3D_ZVITOK_CSS } from './zvitok';
 import { AI3D_CHAT_CSS } from './chat';
 import { AI3D_MAPA_CSS } from './mapa';
 import { AI3D_OSTATNE_CSS } from './ostatne';
+import { AI3D_ZNALOSTI_CSS } from './znalosti';
 
-export const AI3D_CSS = AI3D_ZAKLAD_CSS + AI3D_VAULT_CSS + AI3D_ZVITOK_CSS + AI3D_CHAT_CSS + AI3D_MAPA_CSS + AI3D_OSTATNE_CSS;
+export const AI3D_CSS = AI3D_ZAKLAD_CSS + AI3D_VAULT_CSS + AI3D_ZVITOK_CSS + AI3D_CHAT_CSS + AI3D_MAPA_CSS + AI3D_OSTATNE_CSS + AI3D_ZNALOSTI_CSS;

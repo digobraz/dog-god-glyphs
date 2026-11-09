@@ -13,7 +13,7 @@
 // Všetko sa RÁTA z `vault_reads` + `vault_requests` — žiadne číslo sa tu nepíše rukou.
 // Menovatele (zvitky sveta) sú z registra rozpadu (`VAULT_WORLDS`), rovnako ako v hlavičke.
 // ════════════════════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, PROGRESS_CSS, MEDALLION_CSS, PACK_AVATAR } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, BRAIN_STATE, WORLD_TINT } from '@/components/pack/ainubisSkin';
 import { BackButton } from '@/components/pack/BackButton';
@@ -22,13 +22,14 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useT } from '@/i18n/LanguageContext';
 import { CheckIc, LikeHeartIc, SaveIc } from '@/components/app/sysSwap';
 import { APP_NEW } from '@/lib/packFlags';
+import { PackPopup } from '@/components/pack/PackPopup';
 import { SysIcon } from '@/components/pack/SysIcon';
-import { svetImg } from '@/components/pack/ainubis/3d/zaklad';
+import { AI_LOGO, svetImg } from '@/components/pack/ainubis/3d/zaklad';
 import { VAULT_WORLDS } from './worlds';
 import { VAULT_CIRCLES } from './circles';
 import { VAULT_BADGES } from './vaultBadges';
 import { useLearner } from './useLearner';
-import { LearnerPanel, RANK_PANEL_CSS, RANK_BADGE_ON, learnerImg } from '@/components/pack/profile/rankBadge';
+import { LearnerPanel, RANK_PANEL_CSS, RANK_BADGE_ON, learnerImg, learnerNeed } from '@/components/pack/profile/rankBadge';
 import { scrollThumb, type DemoScroll, type ReadRow, pickText, scrollLang, fmtSec, useReads, useMyRequests, useEventSums, useEarnedBadges } from './vaultScrolls';
 
 type Lang = 'sk' | 'cs' | 'en';
@@ -45,6 +46,7 @@ const UI = {
     kinds: { lang: 'Žiadosť o jazyk', add: 'Nová znalosť', wrong: 'Chybné tvrdenie', own: 'Vlastný text' },
     status: { new: 'čaká na AINUBISA', accepted: 'prijaté', rejected: 'zamietnuté', done: 'hotové' },
     states: ['nevidené', 'videné', 'hotové'],
+    total: 'Celkovo', sRead: 'zvitkov', sHeard: 'podcastov', sLit: 'svetov', toLevel: 'ešte {n} do levelu {level}',
   },
   cs: {
     title: 'Moje znalosti', back: 'Zpět', eyebrow: 'AINUBIS · PSÍ ROZUM',
@@ -58,6 +60,7 @@ const UI = {
     kinds: { lang: 'Žádost o jazyk', add: 'Nová znalost', wrong: 'Chybné tvrzení', own: 'Vlastní text' },
     status: { new: 'čeká na AINUBISE', accepted: 'přijato', rejected: 'zamítnuto', done: 'hotovo' },
     states: ['neviděné', 'viděné', 'hotové'],
+    total: 'Celkem', sRead: 'svitků', sHeard: 'podcastů', sLit: 'světů', toLevel: 'ještě {n} do levelu {level}',
   },
   en: {
     title: 'My knowledge', back: 'Back', eyebrow: 'AINUBIS · DOG SENSE',
@@ -71,6 +74,7 @@ const UI = {
     kinds: { lang: 'Language request', add: 'New knowledge', wrong: 'Wrong claim', own: 'Own text' },
     status: { new: 'waiting for AINUBIS', accepted: 'accepted', rejected: 'declined', done: 'done' },
     states: ['unseen', 'seen', 'done'],
+    total: 'Overall', sRead: 'scrolls', sHeard: 'podcasts', sLit: 'worlds', toLevel: '{n} more to level {level}',
   },
 };
 
@@ -155,8 +159,10 @@ ${MEDALLION_CSS}
   background:radial-gradient(120% 100% at 0% 0%, #22306a 0%, #121a44 45%, #0a0d26 100%);border:1px solid ${AINUBIS.edgeStrong};}
 `;
 
-export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, worldName, onClose, onOpen }: {
-  scrolls: DemoScroll[]; lang: string; avatarUrl: string | null; avatarInitial: string; who: string;
+type KnowSheet = 'level' | 'worlds' | 'circles' | 'going' | 'liked' | 'saved' | 'mine';
+
+export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, ownerName, worldName, onClose, onOpen }: {
+  scrolls: DemoScroll[]; lang: string; avatarUrl: string | null; avatarInitial: string; who: string; ownerName: string;
   /** Meno sveta z i18n (`pack.ainubis.world.<key>`) — to isté, čo píše mozog. */
   worldName: (key: string) => string;
   onClose: () => void; onOpen: (id: string) => void;
@@ -169,6 +175,7 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
   const ev = useEventSums();
   const earnedAt = useEarnedBadges();
   const veil = useRef<HTMLDivElement>(null);
+  const [sheet, setSheet] = useState<KnowSheet | null>(null);
   const learner = useLearner();
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
@@ -224,6 +231,166 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
   };
   const fmtDate = (d: string) => new Date(d).toLocaleDateString(L === 'cs' ? 'cs-CZ' : L === 'sk' ? 'sk-SK' : 'en-GB');
 
+  const worldsBody = s.worlds.map(({ w, n }) => (
+    <div key={w.key} className="vk-world" style={{ ['--vk-w' as string]: WORLD_TINT[w.key] || AINUBIS.cyanRGB }}>
+      {APP_NEW
+        ? <img src={svetImg(w.key)} alt="" />
+        : <i className="zv-ic" aria-hidden style={{ WebkitMaskImage: `url(/icons/pack/${w.ic}.svg)`, maskImage: `url(/icons/pack/${w.ic}.svg)` }} />}
+      <em>{worldName(w.key)}</em>
+      <small>{n} / {w.scrolls}</small>
+      <div className="pk-progress"><div className="pk-progress__fill" style={fill(n / Math.max(1, w.scrolls))} /></div>
+    </div>
+  ));
+  const circlesBody = s.circles.map((list) => {
+    const n = list.filter((z) => isDone(reads[z.id])).length;
+    return (
+      <div key={`${list[0].world}-${list[0].okruh}`} className="vk-circle">
+        <header><span>{worldName(list[0].world)} · {cName(list[0])}</span><small>{n} / {list[0].total}</small></header>
+        <div className="vk-dots">
+          {list.map((z) => {
+            const r = reads[z.id];
+            const st = isDone(r) ? 2 : r?.seen_at ? 1 : 0;
+            return <button key={z.id} type="button" className="vk-dot" data-s={st} title={`${pickText(z, lang).t} · ${u.states[st]}`}
+              aria-label={`${pickText(z, lang).t} · ${u.states[st]}`} onClick={() => onOpen(z.id)}>{z.n}</button>;
+          })}
+        </div>
+      </div>
+    );
+  });
+  const badgesGot = s.badges.filter((x) => x.have >= x.b.goal).length;
+  const badgesBody = (
+    <>
+      <div className="vk-badges">
+        {s.badges.map(({ b, have }) => {
+          const got = have >= b.goal;
+          return (
+            <div key={b.id} className={`vk-badge${got ? ' is-got' : ''}`} title={b.how[L]}>
+              <span className="vk-bic">{APP_NEW && BADGE_SYS[b.id]
+                ? <SysIcon name={BADGE_SYS[b.id]} size={52} />
+                : <i style={{ ['--ic' as string]: `url(/icons/pack/${b.ic}.svg)` }} />}</span>
+              <b>{b.name[L]}</b>
+              <small>{got ? u.got : `${u.more} ${b.goal - have}`} · {b.how[L]}</small>
+              {!got && b.goal > 1 && <div className="pk-progress"><div className="pk-progress__fill" style={fill(have / b.goal)} /></div>}
+            </div>
+          );
+        })}
+      </div>
+      <p className="vk-draft">{u.draft}</p>
+    </>
+  );
+  const goingBody = (
+    <div className="vk-list">
+      {s.going.map(({ z, r, pct, len }) => row(z, (
+        <>
+          <small>{fmtSec(Math.min(r.listen_sec, len))} / {fmtSec(len)} · {pct} %</small>
+          <div className="pk-progress"><div className="pk-progress__fill" style={fill(pct / 100)} /></div>
+        </>
+      )))}
+    </div>
+  );
+  const likedBody = s.liked.length ? <div className="vk-list">{s.liked.map((z) => row(z))}</div> : <p className="vk-none">{u.noneLiked}</p>;
+  const savedBody = s.saved.length ? <div className="vk-list">{s.saved.map((z) => row(z))}</div> : <p className="vk-none">{u.noneSaved}</p>;
+  const mineBody = requests.length ? requests.map((q) => {
+    const z = scrolls.find((x) => x.id === q.scroll_id);
+    return (
+      <div key={q.id} className="vk-req">
+        <div>
+          <small>{u.kinds[q.kind]}{q.lang ? ` · ${q.lang.toUpperCase()}` : ''} · {fmtDate(q.created_at)}{APP_NEW ? '' : ` · ${u.status[q.status as keyof typeof u.status] || q.status}`}</small>
+          {z && <b>{pickText(z, lang).t}</b>}
+          {q.body && <p>{q.body}</p>}
+        </div>
+        {APP_NEW && <span className="vk-st" data-s={q.status}>{u.status[q.status as keyof typeof u.status] || q.status}</span>}
+      </div>
+    );
+  }) : <p className="vk-none">{u.noneMine}</p>;
+
+  /* APP_NEW: ťuk na level v AINUBISovi = stena postavená ako Tripstats (Matej 9. 11. 2026), v jeho šate. Ikonky z továrne sú zatiaľ dočasné. */
+  if (APP_NEW) {
+    const learnerName = tx('pack.rank.learner', 'Disciple');
+    const need = learnerNeed(learner.read, learner.total, learner.level);
+    const openLevel = () => setSheet('level');
+    const sheets: Record<Exclude<KnowSheet, 'level'>, [string, React.ReactNode]> = {
+      worlds: [u.worlds, worldsBody], circles: [u.circles, circlesBody], going: [u.going, goingBody],
+      liked: [u.liked, likedBody], saved: [u.saved, savedBody], mine: [u.mine, mineBody],
+    };
+    const tile = (key: Exclude<KnowSheet, 'level'>, ic: string, num: React.ReactNode, label: string, off = false) => (
+      <button type="button" className="vkw-tile" disabled={off} onClick={() => setSheet(key)}>
+        <SysIcon name={ic} size={56} />
+        <span><b>{num}</b><small>{label}</small></span>
+      </button>
+    );
+    return (
+      <div className="zv-veil" ref={veil} role="dialog" aria-modal="true" aria-label={u.title}>
+        <div className="zv-bg" aria-hidden />
+        {isMobile && (
+          <div className="zv-bar">
+            <BackButton tone="ainubis" onClick={onClose} label={u.back} />
+            <PackTopRight last24h={null} total={null} layout="inline" />
+          </div>
+        )}
+        <div className="zv-wrap pk-stage vk vkw">
+          <BackButton tone="ainubis" onClick={onClose} label={u.back} className="zv-back" />
+          <div className="vkw-wall">
+            <div className="vkw-sky" aria-hidden>
+              <img className="vkw-dog" src={AI_LOGO} alt="" />
+              {s.worlds.map(({ w, n }, i) => (
+                <img key={w.key} className={`vkw-w vkw-w${i}${n > 0 ? ' on' : ''}`} src={svetImg(w.key)} alt="" />
+              ))}
+            </div>
+            <div className="vkw-hud">
+              <button type="button" className="vkw-hudb" onClick={openLevel} aria-label={learnerName}>
+                {avatarUrl ? <img className="vkw-av" src={avatarUrl} alt="" /> : <span className="vkw-av">{avatarInitial}</span>}
+                <span className="vkw-who"><b>{ownerName}</b><small>{learnerName}</small></span>
+              </button>
+              <button type="button" className="vkw-lv" onClick={openLevel} aria-label={`${learnerName} ${learner.level}`}>
+                <img src={learnerImg(Math.max(1, learner.level))} alt="" style={learner.level ? undefined : { opacity: 0.5 }} />
+                <i>{learner.level}</i>
+              </button>
+            </div>
+            <button type="button" className="vkw-xp" onClick={openLevel} aria-label={learnerName}>
+              <span className="vkw-xpr">
+                <span>{learner.level}</span>
+                <span className="pk-progress"><span className="pk-progress__fill" style={fill(learner.pct / 100)} /></span>
+                <span className="nx">{Math.min(10, learner.level + 1)}</span>
+              </span>
+              <span className="vkw-xpt">
+                <span>{s.pct} % {u.vault}</span>
+                {learner.level < 10 && <span>{u.toLevel.replace('{n}', String(need)).replace('{level}', String(learner.level + 1))}</span>}
+              </span>
+            </button>
+          </div>
+          <div className="vkw-strip">
+            <button type="button" onClick={() => setSheet('circles')}><SysIcon name="dokument" size={48} /><b>{s.done}</b><small>{u.sRead}</small></button>
+            <button type="button" onClick={() => setSheet('going')}><SysIcon name="prehraj" size={48} /><b>{s.listened}</b><small>{u.sHeard}</small></button>
+            <button type="button" onClick={() => setSheet('worlds')}><SysIcon name="mozog" size={48} /><b>{s.lit}</b><small>{u.sLit}</small></button>
+          </div>
+          <div className="vkw-sec">{u.total}</div>
+          <div className="vkw-grid">
+            {tile('worlds', 'mozog', `${s.lit} / ${VAULT_WORLDS.length}`, u.worlds)}
+            {tile('circles', 'kluc', s.circles.length, u.circles, !s.circles.length)}
+            {tile('going', 'pauza', s.min, u.minutes, !s.going.length)}
+            {tile('liked', 'lajk', s.liked.length, u.liked)}
+            {tile('saved', 'ulozit', s.saved.length, u.saved)}
+            {tile('mine', 'ceruzka', requests.length, u.mine)}
+          </div>
+          <div className="vkw-sec">{u.badges}<em>{badgesGot} / {s.badges.length}</em></div>
+          {badgesBody}
+        </div>
+        {sheet === 'level' && (
+          <PackPopup title={`${learnerName} ${learner.level}`} onClose={() => setSheet(null)} className="vkw-sheet vk" over>
+            <style>{RANK_PANEL_CSS}</style>
+            <div className="vk-ucen">
+              <LearnerPanel read={learner.read} total={learner.total} floor={learner.floor} liked={s.liked.length} saved={s.saved.length} tx={tx} />
+            </div>
+          </PackPopup>
+        )}
+        {sheet && sheet !== 'level' && (
+          <PackPopup title={sheets[sheet][0]} onClose={() => setSheet(null)} className="vkw-sheet vk" over>{sheets[sheet][1]}</PackPopup>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="zv-veil" ref={veil} role="dialog" aria-modal="true" aria-label={u.title}>
       <div className="zv-bg" aria-hidden />
@@ -237,11 +404,9 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
       <div className="zv-wrap pk-stage vk">
         <BackButton tone="ainubis" onClick={onClose} label={u.back} className="zv-back" />
         <header className="vk-head">
-          {APP_NEW
-            ? <img className="vk-lv" src={learnerImg(Math.max(1, learner.level))} alt="" />
-            : <span className="pk-medallion pk-medallion--md" style={{ width: PACK_AVATAR.md, height: PACK_AVATAR.md }}>
-              {avatarUrl ? <img src={avatarUrl} alt="" /> : avatarInitial}
-            </span>}
+          <span className="pk-medallion pk-medallion--md" style={{ width: PACK_AVATAR.md, height: PACK_AVATAR.md }}>
+            {avatarUrl ? <img src={avatarUrl} alt="" /> : avatarInitial}
+          </span>
           <div>
             <span className="zv-meta">{u.eyebrow}</span>
             <h1 className="zv-h">{u.title}</h1>
@@ -266,98 +431,40 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
         {s.circles.length > 0 && (
           <section className="zv-box">
             <h3 className="zv-sec">{u.circles}</h3>
-            {s.circles.map((list) => {
-              const n = list.filter((z) => isDone(reads[z.id])).length;
-              return (
-                <div key={`${list[0].world}-${list[0].okruh}`} className="vk-circle">
-                  <header><span>{worldName(list[0].world)} · {cName(list[0])}</span><small>{n} / {list[0].total}</small></header>
-                  <div className="vk-dots">
-                    {list.map((z) => {
-                      const r = reads[z.id];
-                      const st = isDone(r) ? 2 : r?.seen_at ? 1 : 0;
-                      return <button key={z.id} type="button" className="vk-dot" data-s={st} title={`${pickText(z, lang).t} · ${u.states[st]}`}
-                        aria-label={`${pickText(z, lang).t} · ${u.states[st]}`} onClick={() => onOpen(z.id)}>{z.n}</button>;
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+            {circlesBody}
           </section>
         )}
 
         <section className="zv-box">
           <h3 className="zv-sec">{u.worlds}</h3>
-          {s.worlds.map(({ w, n }) => (
-            <div key={w.key} className="vk-world" style={{ ['--vk-w' as string]: WORLD_TINT[w.key] || AINUBIS.cyanRGB }}>
-              {APP_NEW
-                ? <img src={svetImg(w.key)} alt="" />
-                : <i className="zv-ic" aria-hidden style={{ WebkitMaskImage: `url(/icons/pack/${w.ic}.svg)`, maskImage: `url(/icons/pack/${w.ic}.svg)` }} />}
-              <em>{worldName(w.key)}</em>
-              <small>{n} / {w.scrolls}</small>
-              <div className="pk-progress"><div className="pk-progress__fill" style={fill(n / Math.max(1, w.scrolls))} /></div>
-            </div>
-          ))}
+          {worldsBody}
         </section>
 
         <section className="zv-box">
-          <h3 className="zv-sec">{u.badges} · {s.badges.filter((x) => x.have >= x.b.goal).length} / {s.badges.length}</h3>
-          <div className="vk-badges">
-            {s.badges.map(({ b, have }) => {
-              const got = have >= b.goal;
-              return (
-                <div key={b.id} className={`vk-badge${got ? ' is-got' : ''}`} title={b.how[L]}>
-                  <span className="vk-bic">{APP_NEW && BADGE_SYS[b.id]
-                    ? <SysIcon name={BADGE_SYS[b.id]} size={52} />
-                    : <i style={{ ['--ic' as string]: `url(/icons/pack/${b.ic}.svg)` }} />}</span>
-                  <b>{b.name[L]}</b>
-                  <small>{got ? u.got : `${u.more} ${b.goal - have}`} · {b.how[L]}</small>
-                  {!got && b.goal > 1 && <div className="pk-progress"><div className="pk-progress__fill" style={fill(have / b.goal)} /></div>}
-                </div>
-              );
-            })}
-          </div>
-          <p className="vk-draft">{u.draft}</p>
+          <h3 className="zv-sec">{u.badges} · {badgesGot} / {s.badges.length}</h3>
+          {badgesBody}
         </section>
 
         {s.going.length > 0 && (
           <section className="zv-box">
             <h3 className="zv-sec">{u.going}</h3>
-            <div className="vk-list">
-              {s.going.map(({ z, r, pct, len }) => row(z, (
-                <>
-                  <small>{fmtSec(Math.min(r.listen_sec, len))} / {fmtSec(len)} · {pct} %</small>
-                  <div className="pk-progress"><div className="pk-progress__fill" style={fill(pct / 100)} /></div>
-                </>
-              )))}
-            </div>
+            {goingBody}
           </section>
         )}
 
         <section className="zv-box">
           <h3 className="zv-sec"><LikeHeartIc size={16} on />{u.liked} · {s.liked.length}</h3>
-          {s.liked.length ? <div className="vk-list">{s.liked.map((z) => row(z))}</div> : <p className="vk-none">{u.noneLiked}</p>}
+          {likedBody}
         </section>
 
         <section className="zv-box">
           <h3 className="zv-sec"><SaveIc size={16} filled />{u.saved} · {s.saved.length}</h3>
-          {s.saved.length ? <div className="vk-list">{s.saved.map((z) => row(z))}</div> : <p className="vk-none">{u.noneSaved}</p>}
+          {savedBody}
         </section>
 
         <section className="zv-box zv-box--you">
           <h3 className="zv-sec">{u.mine} · {requests.length}</h3>
-          {requests.length ? requests.map((q) => {
-            const z = scrolls.find((x) => x.id === q.scroll_id);
-            return (
-              <div key={q.id} className="vk-req">
-                <div>
-                  <small>{u.kinds[q.kind]}{q.lang ? ` · ${q.lang.toUpperCase()}` : ''} · {fmtDate(q.created_at)}{APP_NEW ? '' : ` · ${u.status[q.status as keyof typeof u.status] || q.status}`}</small>
-                  {z && <b>{pickText(z, lang).t}</b>}
-                  {q.body && <p>{q.body}</p>}
-                </div>
-                {APP_NEW && <span className="vk-st" data-s={q.status}>{u.status[q.status as keyof typeof u.status] || q.status}</span>}
-              </div>
-            );
-          }) : <p className="vk-none">{u.noneMine}</p>}
+          {mineBody}
         </section>
       </div>
     </div>
