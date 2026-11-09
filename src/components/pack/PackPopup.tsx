@@ -42,6 +42,10 @@ export const PACK_POPUP_CSS = `
 @keyframes ppu-up{from{transform:translateY(100%);}to{transform:none;}}
 @keyframes ppu-fade{from{opacity:0;}to{opacity:1;}}
 @media (prefers-reduced-motion:reduce){.ppu-sheet,.ppu-root.pk-veil{animation:none;}}
+/* Šat Papyrus 3D: papierový plášť so zlatým vrchom (hárok, .sheet). */
+html.papyrus3d .ppu-sheet{background:var(--p3d-card);border-top:6px solid var(--p3d-gold);box-shadow:0 -3px 0 var(--p3d-ink),0 -12px 20px var(--p3d-sh);}
+html.papyrus3d .ppu-head h2{font-size:${PACK_TEXT.h2}px;letter-spacing:0;}
+@media (min-width:768px){html.papyrus3d .ppu-sheet{border:2.5px solid var(--p3d-ink);border-top:6px solid var(--p3d-gold);}}
 `;
 
 export function PackPopup({ title, label, onClose, children, className, over }: {

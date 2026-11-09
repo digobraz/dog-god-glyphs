@@ -44,6 +44,17 @@ export const FEED_SOS_CSS = `
 .fsos-card--ok .fsos-ph{border-color:${T.growGreen};}
 .fsos-card--ok .fsos-open{border-color:${T.growGreen};color:${T.growGreen};}
 .fsos-more{all:unset;cursor:pointer;align-self:center;font:600 ${PACK_TEXT.label}px/1 ${FONT_UI};letter-spacing:.14em;text-transform:uppercase;color:${T.sosRed};padding:${S.sm}px;}
+/* ŠAT PAPYRUS 3D (hárok H6): karta s tmavým lemom, červený pás, tlačidlá ako 3D (ZDIEĽAŤ zlaté, OTVORIŤ papierové). */
+html.papyrus3d .fsos-card{border:3px solid ${T.sosRed};background:var(--p3d-card);box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-ink),0 13px 16px var(--p3d-sh);}
+html.papyrus3d .fsos-card--ok{border-color:${T.growGreen};}
+html.papyrus3d .fsos-tx b{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;letter-spacing:0;color:var(--p3d-ink);} /* písmo: meno */
+html.papyrus3d .fsos-act{gap:${S.md}px;padding-bottom:${S.lg}px;}
+html.papyrus3d .fsos-act button{min-height:56px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);
+  box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),var(--p3d-pera);} /* písmo: cta */
+html.papyrus3d .fsos-act button:active{transform:translateY(5px);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent);}
+html.papyrus3d .fsos-share{background:linear-gradient(180deg,color-mix(in srgb,#EFD79A 72%,white),var(--p3d-gold));box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),0 6px 0 var(--p3d-gold-ink),0 11px 14px var(--p3d-sh);}
+html.papyrus3d .fsos-open,html.papyrus3d .fsos-card--ok .fsos-open{background:linear-gradient(180deg,#fff,var(--p3d-paper));color:var(--p3d-ink);}
+html.papyrus3d .fsos-row{border:2.5px solid ${T.sosRed};}
 `;
 
 function SosCard({ r }: { r: SosActiveRow }) {

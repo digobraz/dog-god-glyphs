@@ -61,6 +61,8 @@ export const FEED_TOPICS_CSS = `
 @keyframes pkt-halo{0%{box-shadow:0 0 0 2px ${PAPER_BG},0 0 0 5px var(--pg),0 0 0 0 color-mix(in srgb,var(--pg) 80%,transparent);}
   50%{box-shadow:0 0 0 2px ${PAPER_BG},0 0 0 5px var(--pg),0 0 24px 8px color-mix(in srgb,var(--pg) 60%,transparent);}}
 @media (prefers-reduced-motion:reduce){.pkt-a.on .pkt-ring,.pkt-a.on .pkt-g.pig{animation:none;}}
+/* ŠAT PAPYRUS 3D (hárok H1): kruh témy = papierové tlačidlo s tmavým lemom a perou. Vybraná téma si nechá žiaru (lock 26. 10.). */
+html.papyrus3d .pkt-a--k:not(.on) .pkt-ring i{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:0 4px 0 var(--p3d-gold-solid),0 7px 9px var(--p3d-sh);}
 `;
 
 /** „Všetko" = Horovo oko (Matej naklikal 26. 10. 2026; labka nie — „tú používame furt"). */

@@ -60,6 +60,17 @@ ${FOLLOW_CHIP_CSS}
 .pfp-tx b{font-weight:600;margin-right:${S.xs}px;}
 .pfp-pend{display:inline-block;margin-top:${S.xs}px;padding:2px ${S.sm}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.hairline};font:500 ${TX.micro}px/1.3 ${FONT_UI};color:${T.inkWarm};}
 .pfp-cm{display:block;background:none;border:0;cursor:pointer;padding:${S.xs}px ${S.md}px ${S.md}px;font:500 ${TX.label}px/1.3 ${FONT_UI};color:${T.inkWarm};}
+/* ŠAT PAPYRUS 3D (hárok H3): lem avatara, meno v Museu, akcie ako papierové tlačidlá, nulové akcie vyblednuté. */
+html.papyrus3d .pfp-head .pk-medallion{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink);}
+html.papyrus3d .pfp-who b{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;line-height:1.1;letter-spacing:0;color:var(--p3d-ink);} /* písmo: meno */
+html.papyrus3d .pfp-ph{border-block:2.5px solid var(--p3d-ink);}
+html.papyrus3d .pfp-acts{gap:${S.sm}px;padding:${S.md}px ${S.md}px 0;}
+html.papyrus3d .pfp-acts button{min-height:44px;padding:0 ${S.md}px 0 ${S.sm}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.tile}px;background:var(--p3d-card);color:var(--p3d-ink);
+  font-size:${TX.lead}px;box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),var(--p3d-lift);}
+html.papyrus3d .pfp-acts button:active{transform:translateY(3px);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent);}
+html.papyrus3d .pfp-acts button.fd{color:${T.inkWarm};}
+html.papyrus3d .pfp-acts button.fd img{filter:grayscale(1) opacity(.42) !important;}
+html.papyrus3d .pfp-acts .save.on{color:var(--p3d-gold-ink);}
 `;
 
 export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine = true, pending = false }: {
@@ -135,10 +146,10 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
         </div>
       )}
       <div className="pfp-acts">
-        <button type="button" onClick={() => mark('like')} aria-pressed={soc.liked} aria-label={tx('pack.feed.act.like', 'Like')}>
+        <button type="button" className={soc.likes > 0 || soc.liked ? undefined : 'fd'} onClick={() => mark('like')} aria-pressed={soc.liked} aria-label={tx('pack.feed.act.like', 'Like')}>
           <LikeMark on={soc.liked} />{soc.likes > 0 && soc.likes}
         </button>
-        <button type="button" onClick={() => onOpen(post)} aria-label={tx('pack.post.comment', 'Comment')}>
+        <button type="button" className={soc.comments > 0 ? undefined : 'fd'} onClick={() => onOpen(post)} aria-label={tx('pack.post.comment', 'Comment')}>
           <CommentMark />{soc.comments > 0 && soc.comments}
         </button>
         <span className="sp" />
@@ -147,7 +158,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
             {createEmoji('wish')}
           </button>
         ) : (
-          <button type="button" className={`save${soc.saved ? ' on' : ''}`} onClick={() => mark('save')} aria-pressed={soc.saved} aria-label={tx('pack.feed.act.save', 'Save')}>
+          <button type="button" className={`save${soc.saved ? ' on' : soc.saves > 0 ? '' : ' fd'}`} onClick={() => mark('save')} aria-pressed={soc.saved} aria-label={tx('pack.feed.act.save', 'Save')}>
             <SaveMark on={soc.saved} />{soc.saves > 0 && soc.saves}
           </button>
         )}

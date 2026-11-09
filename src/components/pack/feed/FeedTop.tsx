@@ -17,6 +17,8 @@ import { trailCountry, flagUrl } from '@/lib/countryGeo';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { tripTitle, type FeedTrip } from './feedData';
 import { SkelDogs } from './FeedSkeleton';
+import { LAPIS } from '@/components/pack/navGoldSkin';
+import { APP_NEW } from '@/lib/packFlags';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -48,6 +50,14 @@ export const FEED_TOP_CSS = `
 .pfs-trip .tt{display:block;padding:${S.sm}px;}
 .pfs-trip b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} /* písmo: meno */
 .pfs-trip small{display:block;margin-top:${S.xs}px;font-size:${TX.micro}px;color:${T.inkWarm};}
+/* ŠAT PAPYRUS 3D (hárok H1): výlet = karta s tmavým lemom a perou, názov v Museu. Pás potrebuje vzduch dole pre pero. */
+html.papyrus3d .pfs-strip{padding-top:${S.xs}px;padding-bottom:${S.lg}px;}
+html.papyrus3d .pfs-trip{border:3px solid var(--p3d-gold);border-radius:${PACK_R.card}px;background:var(--p3d-card);
+  box-shadow:0 0 0 2px var(--p3d-ink),0 6px 0 2px var(--p3d-gold-ink),0 12px 14px var(--p3d-sh);}
+html.papyrus3d .pfs-trip .ph{border-bottom:2.5px solid var(--p3d-ink);}
+html.papyrus3d .pfs-trip b{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.lead}px;letter-spacing:0;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .pfs-trip small{color:var(--p3d-ink);}
+html.papyrus3d .pfs-row button{color:${LAPIS.edge};text-decoration:underline;letter-spacing:.02em;text-transform:none;font-size:${TX.body}px;}
 `;
 
 const BAND_KM: Record<string, string> = { '0-5': '0–5 km', '5-10': '5–10 km', '10-25': '10–25 km', '25-50': '25–50 km', '50+': '50+ km' };
@@ -120,7 +130,7 @@ export function TripStrip({ trips }: { trips: FeedTrip[] }) {
       </div>
       <div className="pfs-strip">
         {trips.map(({ trail: tr }) => (
-          <button key={tr.id} type="button" className="pfs-trip" style={{ ...PACK_BOX.subblock }} onClick={() => navigate(tripPath(tr))}>
+          <button key={tr.id} type="button" className="pfs-trip" style={APP_NEW ? undefined : { ...PACK_BOX.subblock }} onClick={() => navigate(tripPath(tr))}>
             <span className="ph" style={{ backgroundImage: `url(${sizedUrl(tr.photos[0], 400)})`, backgroundPosition: `50% ${tr.coverY ?? 50}%` }}>
               <img src={flagUrl(trailCountry(tr))} alt="" loading="lazy" />
             </span>

@@ -88,6 +88,28 @@ ${FOLLOW_CHIP_CSS}
 .pft-acts button:active{transform:scale(.85);}
 .pft-acts .sp{flex:1;}
 .pft-acts button.on.list{color:${T.tripPurple};}
+/* ŠAT PAPYRUS 3D (hárok H4): lem avatara, Museum nadpisy, šípky a akcie ako papierové tlačidlá, CTA lapis, nulové akcie vyblednuté. */
+html.papyrus3d .pft-head .pk-medallion{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink);}
+html.papyrus3d .pft-who b{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;line-height:1.1;letter-spacing:0;color:var(--p3d-ink);} /* písmo: meno */
+html.papyrus3d .pft-ph{border-block:2.5px solid var(--p3d-ink);}
+html.papyrus3d .pft-nav{width:48px;height:48px;border:2.5px solid var(--p3d-ink);background:var(--p3d-card);
+  box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),var(--p3d-lift);}
+html.papyrus3d .pft-nav:active{transform:translateY(calc(-50% + 3px));box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent);}
+html.papyrus3d .pft-body h3{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;letter-spacing:0;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .pft-chips{gap:${S.sm}px;}
+html.papyrus3d .pft-chips .pk-pill{min-height:36px;padding:0 ${S.md}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.tile}px;background:var(--p3d-card);color:var(--p3d-ink);
+  font:600 ${TX.body}px/1 ${FONT_UI};box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),var(--p3d-lift);}
+html.papyrus3d .pft-map{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.tile}px;}
+html.papyrus3d .pft-cta.pk-b3{min-height:56px;padding:0 ${S.lg}px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);
+  background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 ${TX.h2}px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;} /* písmo: cta */
+html.papyrus3d .pft-acts{gap:${S.sm}px;}
+html.papyrus3d .pft-acts button{min-height:44px;padding:0 ${S.md}px 0 ${S.sm}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.tile}px;background:var(--p3d-card);color:var(--p3d-ink);
+  font-size:${TX.lead}px;box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),var(--p3d-lift);}
+html.papyrus3d .pft-acts button:active{transform:translateY(3px);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent);}
+html.papyrus3d .pft-acts button.fd{color:${T.inkWarm};}
+html.papyrus3d .pft-acts button.fd img{filter:grayscale(1) opacity(.42) !important;}
+html.papyrus3d .pft-acts button.fd svg{opacity:.42;}
+html.papyrus3d .pft-acts button.on.list{color:${T.tripPurple};}
 `;
 
 /**
@@ -235,8 +257,8 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
           <img className="pft-flag" src={flagUrl(country)} alt="" loading="lazy" />
           {n > 1 && <span className="pft-cnt">{idx + 1}/{n}</span>}
           {n > 1 && <>
-            <button type="button" className="pft-nav l" aria-label={t('pack.map.previousPhoto')} onClick={() => setIdx((i) => (i - 1 + n) % n)}>{APP_NEW ? <SysIcon name="spat" size={20} /> : <HandArrowLeft size={16} />}</button>
-            <button type="button" className="pft-nav r" aria-label={t('pack.map.nextPhoto')} onClick={() => setIdx((i) => (i + 1) % n)}>{APP_NEW ? <SysIcon name="sipka" size={20} /> : <HandArrowLeft size={16} style={{ transform: 'scaleX(-1)' }} />}</button>
+            <button type="button" className="pft-nav l" aria-label={t('pack.map.previousPhoto')} onClick={() => setIdx((i) => (i - 1 + n) % n)}>{APP_NEW ? <SysIcon name="spat" size={28} /> : <HandArrowLeft size={16} />}</button>
+            <button type="button" className="pft-nav r" aria-label={t('pack.map.nextPhoto')} onClick={() => setIdx((i) => (i + 1) % n)}>{APP_NEW ? <SysIcon name="sipka" size={28} /> : <HandArrowLeft size={16} style={{ transform: 'scaleX(-1)' }} />}</button>
           </>}
           {!isWaterTrail(tr) && (
             <div className="pft-meta">
@@ -266,23 +288,23 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
               <span className="go">{tx('pack.feed.trip.onMap', 'Open on the map')}</span>
             </button>
           )}
-          <button type="button" className="pft-cta" onClick={go}>{tx('pack.feed.trip.open', 'Open trip')}</button>
+          <button type="button" className={`pft-cta${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} onClick={go}>{tx('pack.feed.trip.open', 'Open trip')}</button>
         </div>
       </div>
 
       <div className="pft-acts">
         {/* Poradie VŠADE labka · komentár · uloženie (Matej 26. 10.). Labka = `feed_marks`, komentár = šuplík výletu. */}
-        <button type="button" onClick={onLike} aria-pressed={liked} aria-label={tx('pack.feed.act.like', 'Like')}>
+        <button type="button" className={likes > 0 || liked ? undefined : 'fd'} onClick={onLike} aria-pressed={liked} aria-label={tx('pack.feed.act.like', 'Like')}>
           <LikeMark on={liked} />{likes > 0 && likes}
         </button>
         {onComment && (
-          <button type="button" onClick={onComment} aria-label={tx('pack.feed.act.comment', 'Comments')}>
+          <button type="button" className={comments > 0 ? undefined : 'fd'} onClick={onComment} aria-label={tx('pack.feed.act.comment', 'Comments')}>
             <CommentMark />{comments > 0 && comments}
           </button>
         )}
         <span className="sp" />
-        <button type="button" className={`list${listed ? ' on' : ''}`} onClick={onList} aria-pressed={listed} aria-label="TRIPLIST" title="TRIPLIST">
-          <HandClipboard size={24} />{lists > 0 && lists}
+        <button type="button" className={`list${listed ? ' on' : lists > 0 ? '' : ' fd'}`} onClick={onList} aria-pressed={listed} aria-label="TRIPLIST" title="TRIPLIST">
+          {APP_NEW ? <img src="/icons/tripstats/triplist-lampa.webp" alt="" width={28} height={28} draggable={false} /> : <HandClipboard size={24} />}{lists > 0 && lists}
         </button>
       </div>
     </article>

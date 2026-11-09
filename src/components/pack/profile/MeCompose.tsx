@@ -86,6 +86,35 @@ const CSS = `
 .mc-ask button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${S.sm}px;padding:${S.lg}px ${S.md}px;border-radius:${PACK_R.tile}px;cursor:pointer;
   border:1.5px solid ${T.border};background:${T.card};color:${T.inkStrong};font-family:${FONT_UI};font-weight:600;font-size:${TX.body}px;}
 .mc-ask button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
+/* ŠAT PAPYRUS 3D (hárok I3, I4, I5): lišta s lapisovým tlačidlom, voľby ako papierové tlačidlá 3D, vybraná voľba lapis, otázka Zahodiť červená. */
+html.papyrus3d .mc-head{border-bottom:3px solid var(--p3d-gold);}
+html.papyrus3d .mc-head h2{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .mc-go{min-height:44px;padding:0 ${S.lg}px;border:2.5px solid ${LAPIS.ink};border-radius:${PACK_R.tile}px;font-family:'LT Museum',serif;font-weight:400;font-size:${TX.lead}px;letter-spacing:0;text-transform:none;
+  background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});color:${LAPIS.ink};
+  box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);} /* písmo: cta */
+html.papyrus3d .mc-go:active:not(:disabled){transform:translateY(3px);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent);}
+html.papyrus3d .mc-body{gap:${S.xl}px;}
+html.papyrus3d .mc-body .pf-field{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
+html.papyrus3d .mc-pick button,html.papyrus3d .mc-ask button{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);color:var(--p3d-ink);
+  font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;letter-spacing:0;text-transform:none;box-shadow:var(--p3d-b3);} /* písmo: cta */
+html.papyrus3d .mc-pick button{aspect-ratio:auto;min-height:96px;}
+html.papyrus3d .mc-pick button:active,html.papyrus3d .mc-ask button:active{transform:translateY(5px);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 1px 0 var(--p3d-gold-solid);}
+html.papyrus3d .mc-th{border:2.5px solid var(--p3d-ink);}
+html.papyrus3d .mc-th.on{border-color:${LAPIS.edge};box-shadow:0 0 0 2px var(--p3d-ink);}
+html.papyrus3d .mc-th.add{border:2.5px dashed var(--p3d-ink);}
+html.papyrus3d .mc-crop{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;box-shadow:var(--p3d-lift);}
+html.papyrus3d .mc-lbl{color:var(--p3d-gold-ink);}
+html.papyrus3d .mc-dog,html.papyrus3d .mc-vis button,html.papyrus3d .mc-tag{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);color:var(--p3d-ink);
+  box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),var(--p3d-lift);}
+html.papyrus3d .mc-vis{padding:${S.xs}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
+html.papyrus3d .mc-vis button{border:0;box-shadow:none;background:none;border-radius:${PACK_R.frame}px;font-size:${TX.body}px;min-height:44px;}
+html.papyrus3d .mc-dog.on,html.papyrus3d .mc-tag.on,html.papyrus3d .mc-ask button.on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border-color:${LAPIS.ink};color:${LAPIS.ink};
+  box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);}
+html.papyrus3d .mc-vis button.on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});color:${LAPIS.ink};box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent);}
+html.papyrus3d .mc-ask-discard{border:3px solid var(--p3d-gold);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:0 0 0 2px var(--p3d-ink);}
+html.papyrus3d .mc-ask-discard span{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .mc-ask-discard button.pk-b3{flex:1;min-height:48px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));
+  color:var(--b3-i);font:400 ${TX.lead}px/1 'LT Museum',serif;} /* písmo: cta */
 @media (min-width:768px){
   .mc-root{align-items:center;padding:${S.xl}px;}
   .mc-box{width:640px;max-height:90dvh;border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px;box-shadow:${T.panelShadow};}
@@ -260,8 +289,8 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
           {askDiscard && (
             <div className="mc-ask-discard" role="alertdialog" aria-label={tx('pack.compose.discardQ', 'Discard?')}>
               <span>{tx('pack.compose.discardQ', 'Discard?')}</span>
-              <button type="button" onClick={discard}>{tx('pack.compose.discard', 'Discard')}</button>
-              <button type="button" className="no" onClick={() => setAskDiscard(false)}>{tx('pack.compose.keepWriting', 'Keep writing')}</button>
+              <button type="button" className={APP_NEW ? 'pk-b3 pk-b3--red' : undefined} onClick={discard}>{tx('pack.compose.discard', 'Discard')}</button>
+              <button type="button" className={APP_NEW ? 'no pk-b3 pk-b3--lapis' : 'no'} onClick={() => setAskDiscard(false)}>{tx('pack.compose.keepWriting', 'Keep writing')}</button>
             </div>
           )}
           {blockedMate && <p className="mc-note">{tx('pack.mate.composeLocked', 'Your pawtner hasn\'t allowed you to post yet — they can turn it on in My pack.')}</p>}

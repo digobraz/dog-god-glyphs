@@ -15,6 +15,8 @@
 //   veta    pole „Čo dnes zažil?“ → ťuk otvorí PÍSACÍ PANEL na celú obrazovku nad klávesnicou (text + fotka + HOTOVO)
 //   dole    lapis ZAPÍSAŤ DEŇ · N → pečať s číslom dňa → pásy odznakov → šuplík zbehne, deň v kalendári dostane ✓
 //
+// 🔁 v6 (Matej 9. 11. 2026, hárok I6/I7, Papyrus 3D): RUTINA a pilulky nahradila jedna plná mriežka po troch (viď GRID nižšie).
+//
 // 🔴 Každý ťuk = riadok `devotion_events` (`grant-devotion`, kind 'claim'; body 0 — ☥ body sú zrušené, level = roky).
 //    Text → `dog_events` diary.note, míľnik → diary.milestone, váha → health.weightKg (existujúci zápis váhy).
 //    Výlet sa NEŤUKÁ: odznak VÝLETY ide len zo zapísaného výletu (`trip_walked`), dlaždica vedie do „Zapíš výlet".
@@ -42,7 +44,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { BADGE_FAMILIES } from './badgeRegister';
 import { KIND_FAMILY, loadMyActivity, badgeCounts } from './badgeShelf';
-import { ZTILES, loadZapisDays, type ZTile, type TileGroup } from './zapisDnaModel';
+import { ZTILES, loadZapisDays, type ZTile } from './zapisDnaModel';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -52,11 +54,14 @@ const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans
 interface TodayDog { id: string; name: string | null; photo: string | null; diet: 'kibble' | 'barf' | null; done: Record<string, number> }
 interface Today { day: string; dogs: TodayDog[] }
 
-/** Rutina = tri karty v rade. Krmenie z panela odišlo (Matej 31. 10.: „to sa mi zdá zbytočné“) — denná povinnosť
- *  nie je skutok; kind `feeding` a jeho odznak ostávajú v modeli, len sa tu neponúka. */
-const RUTINA = ['walk_short', 'walk', 'presence'];
-/** Pilulky rad radom: Hra prvá (z rutiny), potom okruhy deň · zdravie · ďalšie, medzi nimi len čiarka. */
-const PILL_ORDER: TileGroup[] = ['den', 'zdravie', 'dalsie'];
+/** MRIEŽKA DNA (hárok I6, I7; Matej 9. 11. 2026): krmenie zrušené (dlaždica sa neponúka, dáta a staršie zápisy ostávajú),
+ *  jedna plná mriežka po troch bez dier. Poradie = skupiny: pohyb · hra · zdravie · ostatné, každá jemne zafarbená. */
+const GRID: ReadonlyArray<readonly [group: string, ids: readonly string[]]> = [
+  ['g1', ['walk_short', 'walk', 'trip', 'presence']],
+  ['g2', ['play', 'training', 'swim', 'hare', 'sniff', 'contest']],
+  ['g3', ['vet', 'tick', 'spa', 'weight']],
+  ['g4', ['lazy', 'sunset', 'mischief', 'poop', 'abroad', 'milestone', 'away']],
+];
 
 const CSS = `
 .ppu-sheet.zd-pop{overflow:hidden;}
@@ -151,6 +156,32 @@ const CSS = `
 .zd-save:hover:not(:disabled){background:${LAPIS.gradHover};}
 .zd-save:disabled{opacity:.4;cursor:default;}
 .zd-empty{padding:${S.xl}px 0;text-align:center;font-size:${TX.label}px;color:${T.inkWarm};}
+
+/* ŠAT PAPYRUS 3D (hárok I6, I7): dlaždica = papierové tlačidlo 3D, skupiny jemne zafarbené, vybraná dlaždica je lapis. */
+html.papyrus3d .zd-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:${S.lg}px ${S.sm}px;margin-top:${S.lg}px;padding-bottom:${S.sm}px;}
+html.papyrus3d .zd-grid .zd-tile{--zt:transparent;height:96px;padding:${S.sm}px ${S.xs}px;gap:${S.xs}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--zt) 12%,white),color-mix(in srgb,var(--zt) 30%,var(--p3d-paper)));color:var(--p3d-ink);
+  box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),var(--p3d-lift);}
+html.papyrus3d .zd-grid .zd-g1{--zt:var(--p3d-gold);}
+html.papyrus3d .zd-grid .zd-g2{--zt:#3D7A4E;}
+html.papyrus3d .zd-grid .zd-g3{--zt:#B25640;}
+html.papyrus3d .zd-grid .zd-tile em{display:grid;place-items:center;}
+html.papyrus3d .zd-grid .zd-tile b{font:500 ${TX.label}px/1.1 ${FONT_UI};color:inherit;}
+html.papyrus3d .zd-grid .zd-tile:active:not(:disabled){transform:translateY(3px);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent);}
+html.papyrus3d .zd-grid .zd-tile.on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border-color:${LAPIS.ink};color:${LAPIS.ink};
+  box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);}
+html.papyrus3d .zd-grid .zd-tile.got{opacity:.5;}
+html.papyrus3d .zd-grid .zd-tile .ok{top:-${S.sm}px;right:-${S.xs}px;}
+html.papyrus3d .zd-dots u{background:var(--p3d-ink);opacity:.25;}
+html.papyrus3d .zd-grid .zd-tile.on .zd-dots u{background:${LAPIS.ink};}
+html.papyrus3d .zd-save{height:56px;border:2.5px solid ${LAPIS.ink};border-radius:${PACK_R.card}px;font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;letter-spacing:0;text-transform:none;
+  background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});color:${LAPIS.ink};
+  box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),0 6px 0 color-mix(in srgb,${LAPIS.deep} 60%,black),0 11px 14px var(--p3d-sh);} /* písmo: cta */
+html.papyrus3d .zd-save:active:not(:disabled){transform:translateY(5px);}
+html.papyrus3d .zd-foot{border-top:0;padding-bottom:calc(env(safe-area-inset-bottom,0px) + ${S.lg}px);}
+html.papyrus3d .zd-day{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h1}px;letter-spacing:0;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .zd-wfield{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
+html.papyrus3d .zd-dog.on{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink);}
 
 /* RITUÁL — emoji vyletia z dlaždíc do stredu → pečať s dňom → pásy odznakov → šuplík zbehne */
 .zd-rit{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${S.xl}px;padding:${S.lg}px;
@@ -465,39 +496,24 @@ export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pi
   const dayTitle = isToday ? tx('pack.zd.today', 'Today')
     : day === shiftDay(todayK, -1) ? tx('pack.zd.yesterday', 'Yesterday')
     : fmt(day, { weekday: 'short', day: 'numeric' }).replace(/\./g, '').toUpperCase();
-  /** Rutina = karta (bodky pri počítadle, ✓ pri jednom ťuku). Bez x/y odznaku — mýlilo sa za „koľkokrát dnes“. */
-  const rutCard = (tile: ZTile) => {
-    const n = eff(tile);
-    // Bodky: zlaté = dnes už zapísané (u psa, ktorý má najmenej), lapis = práve vybrané.
-    const done = picked.length ? Math.min(...picked.map((g) => g.done[tile.id] ?? 0)) : 0;
-    const got = room(tile) <= 0;
-    return (
-      <button key={tile.id} type="button" className={`zd-tile${n > 0 ? ' on' : ''}${got ? ' got' : ''}`}
-        disabled={got || !picked.length} aria-pressed={n > 0} onClick={() => hit(tile)}>
-        {n > 0 && !tile.multi && <span className="ok"><HandCheck size={12} /></span>}
-        <em><ZapisGlyph mark={tile.emoji} size={32} /></em>
-        <b>{tx(`pack.zd.t.${tile.id}`, tile.name)}</b>
-        {tile.multi && <span className="zd-dots" aria-hidden>{Array.from({ length: tile.multi }, (_, i) => <u key={i} className={i < done ? 'd' : i < done + n ? 'f' : ''} />)}</span>}
-      </button>
-    );
-  };
-  const pill = (tile: ZTile) => {
+  /** Dlaždica mriežky. Bodky pri troch ťukoch (venčenie), ✓ pri jednom ťuku, číslo pri väčšom počítadle. */
+  const gTile = (tile: ZTile, group: string) => {
     const n = eff(tile);
     const selected = tile.special ? (sel[tile.id] ?? 0) > 0 : n > 0;
     const got = !tile.special && room(tile) <= 0;
+    // Bodky: zlaté = dnes už zapísané (u psa, ktorý má najmenej), lapis = práve vybrané.
+    const done = picked.length ? Math.min(...picked.map((g) => g.done[tile.id] ?? 0)) : 0;
+    const dots = !!tile.multi && tile.multi <= 3;
     return (
-      <button key={tile.id} type="button" className={`zd-pill${selected ? ' on' : ''}${got ? ' got' : ''}`}
+      <button key={tile.id} type="button" className={`zd-tile zd-${group}${selected ? ' on' : ''}${got ? ' got' : ''}`}
         disabled={got || !picked.length} aria-pressed={selected} onClick={() => hit(tile)}>
-        {n > 1 && <span className="ok">{n}</span>}
-        <em><ZapisGlyph mark={tile.emoji} size={20} /></em>{tx(`pack.zd.t.${tile.id}`, tile.name)}
+        {selected && !dots && <span className="ok">{n > 1 ? n : <HandCheck size={12} />}</span>}
+        <em><ZapisGlyph mark={tile.emoji} size={40} /></em>
+        <b>{tx(`pack.zd.t.${tile.id}`, tile.name)}</b>
+        {dots && <span className="zd-dots" aria-hidden>{Array.from({ length: tile.multi ?? 0 }, (_, i) => <u key={i} className={i < done ? 'd' : i < done + n ? 'f' : ''} />)}</span>}
       </button>
     );
   };
-  const play = ZTILES.find((x) => x.id === 'play');
-  const pillGroups = PILL_ORDER.map((g) => {
-    const list = ZTILES.filter((x) => x.group === g && x.id !== 'play');
-    return g === 'den' && play ? [play, ...list] : list;
-  });
   const subTiles = ZTILES.filter((x) => x.subs && eff(x) > 0);
   const nChosen = chosen.length + (hasMile ? 1 : 0) + (hasWeight ? 1 : 0) + (hasText ? 1 : 0);
   const dogLabel = picked.map((g) => g.name).filter(Boolean).join(' · ');
@@ -545,14 +561,8 @@ export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pi
           {today === null ? <div className="zd-empty">…</div> : dogs.length === 0 ? (
             <div className="zd-empty">{tx('pack.zd.noDogs', 'The log is kept for living dogs in the pack.')}</div>
           ) : (<>
-            <div className="zd-sec">{tx('pack.zd.rutina', 'Routine')}</div>
-            <div className="zd-rut">{ZTILES.filter((x) => RUTINA.includes(x.id)).map(rutCard)}</div>
-
-            <div className="zd-pills">
-              {pillGroups.map((list, gi) => [
-                gi > 0 ? <i key={`sep-${gi}`} className="zd-sep" aria-hidden /> : null,
-                ...list.map(pill),
-              ])}
+            <div className="zd-grid">
+              {GRID.flatMap(([g, ids]) => ids.map((id) => ZTILES.find((x) => x.id === id)).filter((x): x is ZTile => !!x).map((x) => gTile(x, g)))}
             </div>
 
             {subTiles.map((x) => (

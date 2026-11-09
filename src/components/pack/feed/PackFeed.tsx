@@ -56,6 +56,7 @@ import { FeedMapCard, FEED_MAP_CSS, useMapAdds, type MapAdd } from './FeedMapCar
 import { postTopics } from './postTags';
 import { FeedTopics, FEED_TOPICS_CSS } from './FeedTopics';
 import { useBlockedOwners } from '@/components/pack/profile/moderation';
+import { APP_NEW } from '@/lib/packFlags';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -133,6 +134,17 @@ ${FEED_TOPICS_CSS}
 .pkf-end{padding:${S.xl}px ${S.lg}px;text-align:center;font-size:${TX.label}px;color:${T.inkWarm};}
 .pkf-end img{margin:0 auto;}
 .pkf-end b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;line-height:1.3;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};margin:${S.sm}px 0 ${S.xs}px;} /* písmo: nadpis */
+/* ŠAT PAPYRUS 3D (hárok plany/nakresy/map-herne-2026-11-09, H). Len pod html.papyrus3d (APP_NEW), web ho nemá.
+   Príspevok, výlet a značka = karta s tmavým lemom a perou; AINUBIS pásy (.pkf-it bez .pap) ostávajú v jeho šate. */
+html.papyrus3d .pkf-list{gap:${S.xl}px;}
+html.papyrus3d .pkf-it.pap{margin:0;overflow:hidden;border:3px solid var(--p3d-gold);border-radius:${PACK_R.card}px;background:var(--p3d-card);
+  box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-ink),0 13px 16px var(--p3d-sh);}
+html.papyrus3d .pkf-sb{height:54px;padding:0 ${S.lg}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
+html.papyrus3d .pkf-sb button{font-family:${FONT_UI};font-weight:600;color:${LAPIS.edge};}
+html.papyrus3d .pkf-end{padding:${S.xl}px 0;}
+html.papyrus3d .pkf-end img{display:block;width:120px;height:120px;object-fit:contain;}
+html.papyrus3d .pkf-end b{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;letter-spacing:0;text-transform:none;} /* písmo: nadpis */
+html.papyrus3d .pkf-end{font-size:${TX.body}px;color:var(--p3d-gold-ink);}
 `;
 
 type Item =
@@ -586,7 +598,7 @@ export function PackFeed() {
 
         {!searching && shown >= items.length && postsDone && <>
           {!topic && <div className="pkf-end">
-            <BrandIcon name="paw" size={32} tint="gold" />
+            {APP_NEW ? <img src="/icons/jazvecik-zadok.webp" alt="" draggable={false} /> : <BrandIcon name="paw" size={32} tint="gold" />}
             <b>{tx('pack.feed.end.title', 'You have seen it all')}</b>
             {tx('pack.feed.end.sub', 'A new quote tomorrow.')}
           </div>}

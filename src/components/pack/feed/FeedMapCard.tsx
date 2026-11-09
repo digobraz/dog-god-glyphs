@@ -18,7 +18,7 @@ import { likeMapNote, type MapNote } from '@/components/pack/mapnotes/mapNotesDa
 import { type WishPin } from '@/components/pack/mapnotes/wishData';
 import { fetchEvents, type EventItem } from '@/components/pack/events/eventStore';
 import { FONT_EMOJI, MARK_EMOJI, WISH_EMOJI, eventEmoji } from '@/components/pack/mapnotes/markEmoji';
-import { EVENTS_LIVE } from '@/lib/packFlags';
+import { EVENTS_LIVE, APP_NEW } from '@/lib/packFlags';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { agoLabel } from './feedData';
 
@@ -70,6 +70,19 @@ export const FEED_MAP_CSS = `
 .pfm-foot .sp{flex:1;}
 .pfm-go{border:1px solid ${LAPIS.deep};background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};border-radius:${PACK_R.field}px;cursor:pointer;
   padding:${S.sm}px ${S.md}px;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;} /* písmo: cta */
+/* ŠAT PAPYRUS 3D (hárok H5): lem avatara, Museum nadpisy, značka v kruhu, lajk a CTA ako papierové tlačidlá. */
+html.papyrus3d .pfm-head .pk-medallion{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink);}
+html.papyrus3d .pfm-who b{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;line-height:1.1;letter-spacing:0;color:var(--p3d-ink);} /* písmo: meno */
+html.papyrus3d .pfm-mark{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .pfm-tx h3{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;letter-spacing:0;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .pfm-foot{gap:${S.sm}px;}
+html.papyrus3d .pfm-foot .lk{min-height:44px;padding:0 ${S.md}px 0 ${S.sm}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.tile}px;background:var(--p3d-card);color:var(--p3d-ink);
+  font-size:${TX.lead}px;box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),var(--p3d-lift);}
+html.papyrus3d .pfm-foot .lk:active{transform:translateY(3px);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent);}
+html.papyrus3d .pfm-foot .lk.fd{color:${T.inkWarm};}
+html.papyrus3d .pfm-foot .lk.fd img{filter:grayscale(1) opacity(.42) !important;}
+html.papyrus3d .pfm-go.pk-b3{min-height:56px;padding:0 ${S.lg}px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);
+  background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 ${TX.lead}px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;} /* písmo: cta */
 `;
 
 export function FeedMapCard({ add, liked, likes = 0, onLike }: { add: MapAdd; liked: boolean; likes?: number; onLike: () => void }) {
@@ -127,11 +140,11 @@ export function FeedMapCard({ add, liked, likes = 0, onLike }: { add: MapAdd; li
         </div>
       </div>
       <div className="pfm-foot">
-        <button type="button" className="lk" onClick={pressLike} aria-pressed={isOn} aria-label={tx('pack.feed.act.like', 'Like')}>
+        <button type="button" className={`lk${isOn || (add.k === 'note' ? noteLike.n : likes) > 0 ? '' : ' fd'}`} onClick={pressLike} aria-pressed={isOn} aria-label={tx('pack.feed.act.like', 'Like')}>
           <LikeMark on={isOn} />{(add.k === 'note' ? noteLike.n : likes) > 0 && (add.k === 'note' ? noteLike.n : likes)}
         </button>
         <span className="sp" />
-        <button type="button" className="pfm-go" onClick={() => navigate(add.k === 'event' ? `/pack/map?event=${add.e.id}` : '/pack/map')}>
+        <button type="button" className={`pfm-go${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={() => navigate(add.k === 'event' ? `/pack/map?event=${add.e.id}` : '/pack/map')}>
           {tx('pack.feed.trip.onMap', 'Open on the map')}
         </button>
       </div>

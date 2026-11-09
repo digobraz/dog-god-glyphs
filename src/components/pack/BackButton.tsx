@@ -150,7 +150,9 @@ export function BackButton({ tone, onClick, label, className, style }: {
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         width: BACK.dia, height: BACK.dia, borderRadius: '50%',
-        background: c.bg, border: `${BACK.border}px solid ${c.border}`, color: c.ink,
+        ...(APP_NEW
+          ? { background: 'linear-gradient(180deg,#fff,var(--p3d-paper))', border: '2.5px solid var(--p3d-ink)', color: 'var(--p3d-ink)', boxShadow: 'var(--p3d-b3)' }
+          : { background: c.bg, border: `${BACK.border}px solid ${c.border}`, color: c.ink }),
         lineHeight: 1, cursor: 'pointer', flexShrink: 0, padding: 0,
         transition: 'border-color .15s,color .15s,background .15s',
         ...style,

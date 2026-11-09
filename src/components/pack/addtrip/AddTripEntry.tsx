@@ -11,7 +11,7 @@
 import { getPodcastNext } from '@/lib/ainubisBus';
 import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { PLATE_TILE_R, goldFrameCSS, LAPIS } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import { NotePalette, NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
@@ -546,4 +546,14 @@ body:has(.att-entry-backdrop) .ainubis-launcher{visibility:hidden;pointer-events
   .att-entry-grab::before{content:'';display:block;width:44px;height:4px;margin:0 auto;border-radius:999px;background:rgba(179,130,45,0.26);}
   .att-entry-grab:active{cursor:grabbing;}
 }
+/* ŠAT PAPYRUS 3D (hárok I1, I2): riadok panela = papierové tlačidlo 3D, názov v Museu. Zostáva emoji alebo kresba + názov,
+   bez podnadpisov a bez scrollu (lock architektura-pack). Pero 6 px berie medzera medzi riadkami. */
+html.papyrus3d .att-entry-list{gap:${PACK_SPACE.lg}px;}
+html.papyrus3d .att-entry-grp + .att-entry-grp{margin-top:${PACK_SPACE.lg}px;}
+html.papyrus3d .att-entry-row{min-height:56px;padding:0 ${PACK_SPACE.lg}px;gap:${PACK_SPACE.lg}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-b3);
+  transition:transform .07s,box-shadow .07s;}
+html.papyrus3d .att-entry-row:hover,html.papyrus3d .att-entry-row:focus-visible{border-color:var(--p3d-ink);}
+html.papyrus3d .att-entry-row:active{transform:translateY(5px);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 1px 0 var(--p3d-gold-solid);}
+html.papyrus3d .att-entry-title{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: cta */
+html.papyrus3d .att-entry-panel{padding-bottom:${PACK_SPACE.lg}px;}
 `;
