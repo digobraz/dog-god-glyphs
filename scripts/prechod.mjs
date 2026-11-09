@@ -52,12 +52,12 @@ const NEKLIKAJ = /sign ?out|log ?out|odhl[aá]s|delete|zmaž|vymaž|smaž|remove
 const BEZ_ROUTY = /^\/pack\/(_herolab|join\/:token|\*)$/;
 // Dynamická routa stačí 2× — tretí pes vyzerá ako druhý.
 const MAX_NA_VZOR = 2;
-const MAX_KLIKOV = 70, MAX_KLIKOV_OKNO = 14, HLBKA = 2;
+const MAX_KLIKOV = 70, MAX_KLIKOV_OKNO = 14, HLBKA = 2, MAX_INLINE = 12;
 const CITANIE_RPC = /^(get|list|my|fetch|search|count|has|is|can|nearby|find|load|read|check)_/;
 
 /** Čo je nález a čo je len dizajnový dlh (ten nezhodí beh, ale v reporte je). */
 const druhy = {
-  CHYBA_JS: 'Chyba v JavaScripte', SIET: 'Požiadavka zlyhala', OBRAZOK: 'Rozbitý obrázok',
+  PAD: 'Obrazovka spadla (Something went wrong)', CHYBA_JS: 'Chyba v JavaScripte', SIET: 'Požiadavka zlyhala', OBRAZOK: 'Rozbitý obrázok',
   KLUC: 'Surový kľúč prekladu', PRAZDNE: 'undefined / NaN v texte', VODOROVNE: 'Stránka sa hýbe do strany',
   PRESAH: 'Text vyšiel z bloku', OREZANY: 'Text je odrezaný', ZAKRYTE: 'Tlačidlo je zakryté', MRTVE: 'Tlačidlo nič nerobí',
   DUPLICITA: 'To isté dvakrát', DVE_ZATVORENIA: 'Dve zatvorenia', TROJBODKA: 'Trojbodka', NEZNAMA: 'Odkaz vedie na neexistujúcu routu',
@@ -69,6 +69,7 @@ const DLH = { STUPNICA: 'Písmo mimo stupnice', POLOMER: 'Polomer mimo stupnice'
 const IN_PAGE = () => {
   const SIZES = [10, 12, 14, 16, 20, 24], RAD = [0, 8, 12, 14, 16, 999];
   const FONTY = ['Cinzel', 'Cinzel Decorative', 'Space Grotesk', 'LT Museum']; // LT Museum = Papyrus 3D v testovacej appke (Matej 5. 11.)
+  const MAPA = '.leaflet-container,.maplibregl-map,.mapboxgl-map'; // značka na mape je údaj, má vlastný lock
   const DEV_VEC = /DevNav|lib\/nakres|ConsentBanner/;
   let mut = 0;
   document.addEventListener('DOMContentLoaded', () => new MutationObserver(l => { mut += l.length; }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, characterData: true }));
@@ -171,7 +172,10 @@ const IN_PAGE = () => {
         if (r.top < 0 || r.bottom > vh || r.left < 0 || r.right > innerWidth) continue;
         if (kde === 'hore' && r.bottom > vh * 0.7) continue;
         const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-        if (!hit || e.contains(hit) || hit.contains(e)) continue;
+        if (!hit || e.contains(hit) || hit.contains(e) || e.closest(MAPA)) continue;
+        // Tmavá vrstva cez celé okno je zámer (šuplík nad mapou), nie zakrytie.
+        const hr = hit.getBoundingClientRect();
+        if (getComputedStyle(hit).position === 'fixed' && hr.width * hr.height > innerWidth * vh * 0.6) continue;
         out.push({ druh: 'ZAKRYTE', txt: meno(e) || e.tagName, src: src(e), o: 'pod: ' + src(hit) });
       }
       return out;
@@ -181,6 +185,7 @@ const IN_PAGE = () => {
       const root = koren(), out = [], vw = innerWidth, mobil = vw < 700;
       const add = (druh, txt, e, o) => out.push({ druh, txt: String(txt).slice(0, 60), src: e ? src(e) : '', o });
 
+      if (/something went wrong|niečo sa pokazilo/i.test(root.innerText || '')) add('PAD', (root.innerText || '').trim().slice(0, 60), root.firstElementChild, window.__prechodChyba || '');
       if (root === document.body && document.documentElement.scrollWidth > vw + 1) {
         let naj = null, r0 = vw;
         for (const e of document.querySelectorAll('body *')) { if (!vis(e) || e.closest('.leaflet-container')) continue; const r = e.getBoundingClientRect(); if (r.right > r0 + 1) { r0 = r.right; naj = e; } }
@@ -197,7 +202,7 @@ const IN_PAGE = () => {
         const rodina = c.fontFamily.split(',')[0].replace(/['"]/g, '').trim();
         const emoji = !/\p{L}|\d/u.test(s.replace(/\p{Extended_Pictographic}/gu, ''));
 
-        if (/^[a-zA-Z_]+(\.[a-zA-Z0-9_]+){2,}$/.test(s)) add('KLUC', s, e);
+        if (/^[a-zA-Z_]+(\.[a-zA-Z0-9_]+){2,}$/.test(s) && !/\.(sk|cz|com|org|net|eu|de|at|hu|pl)$/i.test(s)) add('KLUC', s, e);
         if (/\bundefined\b|\bNaN\b|\[object |\{\{/.test(s)) add('PRAZDNE', s, e);
         if (/…|\.\.\./.test(s)) add('TROJBODKA', s, e);
         if (s.includes('—')) add('POMLCKA', s, e);
@@ -243,7 +248,7 @@ const IN_PAGE = () => {
       const rodiny = [];
       for (const e of hrac(root)) {
         const r = e.getBoundingClientRect(), c = getComputedStyle(e);
-        if (mobil && (r.height < 32 || r.width < 32) && !e.closest('p,li') && !e.matches('label')) add('MALE', meno(e) || e.tagName, e, `${Math.round(r.width)}×${Math.round(r.height)}`);
+        if (mobil && (r.height < 32 || r.width < 32) && !e.closest('p,li') && !e.matches('label') && !e.closest(MAPA)) add('MALE', meno(e) || e.tagName, e, `${Math.round(r.width)}×${Math.round(r.height)}`);
         const plne = c.backgroundImage !== 'none' || (c.backgroundColor !== 'rgba(0, 0, 0, 0)' && !/, 0\.?\d*\)$/.test(c.backgroundColor));
         const rola = /^(×|✕|x|close|zatvoriť|zavrieť)$/i.test(meno(e)) ? 'ZATVORIŤ' : /^(←|‹|back|späť|naspäť)$/i.test(meno(e)) ? 'SPÄŤ' : (r.width >= 120 && r.height >= 36 && plne ? 'CTA' : null);
         if (rola) rodiny.push({ rola, sig: `${c.fontFamily.split(',')[0].replace(/['"]/g, '')} ${c.fontSize}/${c.fontWeight} · r${c.borderTopLeftRadius} · v${Math.round(r.height)} · ${c.backgroundImage !== 'none' ? 'gradient' : c.backgroundColor}`, txt: meno(e), src: src(e) });
@@ -307,7 +312,7 @@ async function prihlas(browser, subor) {
 }
 
 // ─── prechod ───────────────────────────────────────────────────────────────
-const stav = { nalezy: [], rodiny: [], stavy: [], navstivene: new Map(), oknaVidene: new Set(), chyby: [], zablokovane: 0 };
+const stav = { inline: new Map(), nalezy: [], rodiny: [], stavy: [], navstivene: new Map(), oknaVidene: new Set(), chyby: [], zablokovane: 0 };
 const pridaj = (n, kontext) => stav.nalezy.push({ ...n, ...kontext });
 
 async function novyKontext(browser, subor, w, h) {
@@ -325,7 +330,8 @@ async function novyKontext(browser, subor, w, h) {
     if (u.host.includes('cloudinary') && m !== 'GET') { atrapa(); return route.fulfill({ status: 200, json: {} }); }
     if (!u.host.includes('supabase')) return route.continue();
     if (u.pathname.includes('/auth/v1/logout')) return route.fulfill({ status: 204 });
-    if (u.pathname.startsWith('/functions/v1/')) { if (/\/(get|list)-/.test(u.pathname)) return route.continue(); atrapa(); return route.fulfill({ status: 200, json: {} }); }
+    // Pri načítaní stránky funkcie len čítajú; atrapa iba po kliku, inak by sama zhodila obrazovku (listMyWills 9. 11.).
+    if (u.pathname.startsWith('/functions/v1/')) { if (!ctx.klikam || /\/(get|list)-/.test(u.pathname) || /"action":"(list|get|hint)"/.test(q.postData() || '')) return route.continue(); atrapa(); return route.fulfill({ status: 200, json: {} }); }
     // RPC pri načítaní stránky len číta; zápis môže prísť až po kliku.
     if (u.pathname.startsWith('/rest/v1/rpc/')) { if (!ctx.klikam || CITANIE_RPC.test(u.pathname.split('/').pop())) return route.continue(); atrapa(); return route.fulfill({ status: 200, json: [] }); }
     if ((u.pathname.startsWith('/rest/v1/') || u.pathname.startsWith('/storage/v1/')) && !['GET', 'HEAD'].includes(m)) { atrapa(); return route.fulfill({ status: 201, json: [] }); }
@@ -350,7 +356,8 @@ async function zmeraj(p, kontext, okno) {
   await p.screenshot({ path: path.join(OUT, snimka), type: 'jpeg', quality: 60 }).catch(() => {});
   const k = { ...kontext, okno, snimka };
   stav.stavy.push(k);
-  for (const n of [...cast.nalezy, ...dole, ...hore]) pridaj(n, k);
+  const poAtrape = Date.now() - (p.context().poslednaAtrapa || 0) < 4000;
+  for (const n of [...cast.nalezy, ...dole, ...hore]) if (!(n.druh === 'PAD' && poAtrape)) pridaj(n, k);
   for (const r of cast.rodiny) stav.rodiny.push({ ...r, stav: kontext.stav });
   for (const f of cast.subory) if (kontext.typ === 'okno') stav.oknaVidene.add(f);
 }
@@ -364,9 +371,10 @@ async function doStavu(p, url, retaz) {
   }
 }
 
-async function prejdiStav(p, ctx, url, cesta, retaz, nazov, okno, fronta, videneOkna) {
+async function prejdiStav(p, ctx, url, cesta, retaz, nazov, okno, fronta, videneOkna, znamed = new Set()) {
   const max = retaz.length ? MAX_KLIKOV_OKNO : MAX_KLIKOV;
-  const zoznam = (await p.evaluate(m => window.__prechod.spustace(m), max)).filter(c => !NEKLIKAJ.test(c.label) && !(retaz.length === 0 && c.nav && stav.navHotovo?.has(c.kostra)));
+  const zoznam = (await p.evaluate(m => window.__prechod.spustace(m), max)).filter(c => !NEKLIKAJ.test(c.label) && !(retaz.length === 0 && c.nav && stav.navHotovo?.has(c.kostra)) && !znamed.has(c.cesta));
+  const cesty = new Set([...znamed, ...zoznam.map(c => c.cesta)]);
   for (const t of zoznam) {
     if (Date.now() > stav.koniec) return;
     try {
@@ -374,7 +382,13 @@ async function prejdiStav(p, ctx, url, cesta, retaz, nazov, okno, fronta, videne
       let poz = 0; const poc = () => { poz++; }; p.on('request', poc); p.on('filechooser', poc);
       ctx.klikam = true;
       const ok = await p.evaluate(c => window.__prechod.klik(c), t.cesta).catch(() => false);
-      await wait(700);
+      for (let i = 0, t0 = Date.now(); i < 30; i++) {
+        await wait(100);
+        const x = await p.evaluate(() => ({ m: window.__prechod.mut(), n: window.__prechod.pocetNovych() })).catch(() => null);
+        if (!x || new URL(p.url()).pathname !== cesta) break;
+        if (x.n > pred.n) { await wait(400); break; } // okno sa otvorilo, necháme dobehnúť animáciu
+        if (Date.now() - t0 > (x.m !== pred.m ? 1500 : 2200)) break; // pod záťažou lazy chunk trvá; 700 ms prešlo len naprázdno
+      }
       ctx.klikam = false;
       p.off('request', poc); p.off('filechooser', poc);
       if (!ok) continue;
@@ -387,6 +401,7 @@ async function prejdiStav(p, ctx, url, cesta, retaz, nazov, okno, fronta, videne
         continue;
       }
       const po = await p.evaluate(() => ({ m: window.__prechod.mut(), n: window.__prechod.pocetNovych(), v: window.__prechod.popisVrstvy() }));
+      if (process.env.LADIT) console.log(`  ${nazov} ▸ ${t.label || t.cesta.slice(-40)} · nove ${pred.n}→${po.n} · mut ${po.m - pred.m} · req ${poz} · ${po.v?.titul || ''}`);
       if (po.n > pred.n && po.v) {
         const kluc = `${po.v.src}|${po.v.titul}`;
         if (!videneOkna.has(kluc) && retaz.length < HLBKA) {
@@ -399,6 +414,15 @@ async function prejdiStav(p, ctx, url, cesta, retaz, nazov, okno, fronta, videne
       } else if (po.m === pred.m && poz === 0 && t.label) {
         pridaj({ druh: 'MRTVE', txt: t.label, src: '' }, { stav: nazov, okno, typ: 'klik' });
       } else if (po.m !== pred.m) {
+        // Záložka, chip, rozbalenie: nové tlačidlá na mieste sú samostatný stav, inak by sa okná za nimi nikdy neotvorili.
+        const nove = (await p.evaluate(m => window.__prechod.spustace(m), MAX_KLIKOV)).filter(c => !cesty.has(c.cesta) && !NEKLIKAJ.test(c.label) && !c.nav);
+        const kluc = `${cesta}|${t.kostra}|${nove.slice(0, 3).map(c => c.label).join()}`;
+        if (nove.length && retaz.length < HLBKA && !videneOkna.has(kluc) && (stav.inline.get(cesta) || 0) < MAX_INLINE) {
+          videneOkna.add(kluc); stav.inline.set(cesta, (stav.inline.get(cesta) || 0) + 1);
+          const meno = `${nazov} › ${t.label || 'rozbalené'}`;
+          await zmeraj(p, { stav: meno, typ: 'stav' }, okno);
+          await prejdiStav(p, ctx, url, cesta, [...retaz, t.cesta], meno, okno, fronta, videneOkna, new Set(zoznam.map(c => c.cesta)));
+        }
         await doStavu(p, url, retaz);
       }
     } catch (e) {
@@ -430,7 +454,7 @@ async function behOkna(browser, subor, w, h) {
     let aktualna = '';
     // Chyba tesne po atrape je dôsledok atrapy, nie appky.
     p.on('pageerror', e => Date.now() - (ctx.poslednaAtrapa || 0) > 3000 && pridaj({ druh: 'CHYBA_JS', txt: e.message, src: '' }, { stav: aktualna, okno, typ: 'stranka' }));
-    p.on('console', m => { if (m.type() === 'error' && /^Warning:/.test(m.text())) pridaj({ druh: 'REACT', txt: m.text().slice(0, 60), src: '' }, { stav: aktualna, okno, typ: 'stranka' }); });
+    p.on('console', m => { if (m.type() === 'error') p.evaluate(t => { window.__prechodChyba = t; }, m.text().slice(0, 200)).catch(() => {}); if (m.type() === 'error' && /^Warning:/.test(m.text())) pridaj({ druh: 'REACT', txt: m.text().slice(0, 60), src: '' }, { stav: aktualna, okno, typ: 'stranka' }); });
     p.on('response', r => { if (r.status() >= 400 && /supabase|localhost/.test(r.url())) pridaj({ druh: 'SIET', txt: `${r.status()} ${r.url().replace(/^https?:\/\/[^/]+/, '').split('?')[0].slice(0, 50)}`, src: '' }, { stav: aktualna, okno, typ: 'stranka' }); });
     let prazdno = 0;
     while (Date.now() < stav.koniec) {
