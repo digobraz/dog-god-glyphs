@@ -806,7 +806,7 @@ export const FLOW_SCREENS: FlowScreen[] = [
    {
     "v": "unknown",
     "t": "pack.flow.z_psy.o.unknown",
-    "e": "❔"
+    "e": "❓"
    }
   ]
  },
@@ -866,7 +866,7 @@ export const FLOW_SCREENS: FlowScreen[] = [
    {
     "v": "unknown",
     "t": "pack.flow.z_deti.o.unknown",
-    "e": "❔"
+    "e": "❓"
    }
   ]
  },
@@ -922,7 +922,7 @@ export const FLOW_SCREENS: FlowScreen[] = [
    {
     "v": "unknown",
     "t": "pack.flow.z_macky.o.unknown",
-    "e": "❔"
+    "e": "❓"
    }
   ]
  },
@@ -982,7 +982,7 @@ export const FLOW_SCREENS: FlowScreen[] = [
    {
     "v": "unknown",
     "t": "pack.flow.z_cudzi.o.unknown",
-    "e": "❔"
+    "e": "❓"
    }
   ]
  },

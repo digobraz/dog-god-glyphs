@@ -8,6 +8,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
+import { GRAB_CSS } from '@/components/pack/packTheme';
 import { BackButton } from '@/components/pack/BackButton';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { useToast } from '@/hooks/use-toast';
@@ -23,13 +24,14 @@ const S = PACK_SPACE;
 const TX = PACK_TEXT;
 
 export const POST_MENU_CSS = `
+${GRAB_CSS}
 .pm-btn{flex:none;display:grid;place-items:center;width:40px;height:40px;margin-right:-${S.sm}px;background:none;border:0;padding:0;cursor:pointer;color:${T.inkStrong};border-radius:${PACK_R.pill}px;}
 .pm-btn:active{opacity:.6;}
 .pm-btn.cover{margin-right:0;background:rgba(0,0,0,.45);color:${T.onDark};}
 .pm-sh.pk-veil{z-index:1350;align-items:flex-end;padding:0;}
 .pm-sh .sh{width:100%;display:flex;flex-direction:column;background:${T.cardGrad};border-top:1.5px solid ${T.cardEdge};
   border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${T.panelShadow};animation:pm-up .32s cubic-bezier(.2,.8,.2,1) both;}
-.pm-sh .grab{flex:none;width:44px;height:4px;border-radius:${PACK_R.pill}px;background:${T.hairline};margin:${S.sm}px auto 0;}
+.pm-sh .grab{margin:${S.sm}px auto 0;}
 .pm-sh .hd{flex:none;display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.lg}px ${S.md}px;}
 .pm-sh .hd h2{margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;} /* písmo: nadpis */
 .pm-sh ul{list-style:none;margin:0;padding:0 ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);}
@@ -124,7 +126,7 @@ export function PostMenu({ postId, authorN, authorName, mine = false, onDelete, 
           onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
           <style>{VEIL_CSS}</style>
           <div className="sh" style={sw.sheetStyle}>
-            <span className="grab" aria-hidden {...sw.handle} />
+            <span className="grab pk-grab" aria-hidden {...sw.handle} />
             <div className="hd" {...sw.handle}>
               <h2>{mine ? tx('pack.me.post', 'Post') : who}</h2>
             </div>

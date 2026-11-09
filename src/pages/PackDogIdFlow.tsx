@@ -382,11 +382,14 @@ function Flow({ mode, tx, dogs, jump }: { mode: 'base' | 'nature'; tx: Tx; dogs:
     if (await flush()) setIdx(idx + 1);
   };
 
+  // Šípka hore (Matej 9. 11. 2026): vráti na obrazovku PRED testom, nie na predchádzajúci krok testu.
+  // Kroky sú len stav (nie história), takže navigate(-1) pristane tam, odkiaľ človek test otvoril.
+  // Bez histórie (priamy odkaz) padá na rozcestník DOG ID.
   const prev = async () => {
     await flush();
-    if (idx === 0) exit();
-    else if (s.kind === 'result') goIdx('s-spec');
-    else setIdx(idx - 1);
+    const hist = (window.history.state as { idx?: number } | null)?.idx;
+    if (typeof hist === 'number' && hist > 0) navigate(-1);
+    else exit();
   };
 
   const skip = async () => {
@@ -422,7 +425,7 @@ function Flow({ mode, tx, dogs, jump }: { mode: 'base' | 'nature'; tx: Tx; dogs:
     </div>
   );
 
-  if (s.kind === 'intro') return <Intro s={s} tx={tx} onBack={exit} onStart={() => setIdx(idx + 1)} />;
+  if (s.kind === 'intro') return <Intro s={s} tx={tx} onBack={() => { void prev(); }} onStart={() => setIdx(idx + 1)} />;
   if (s.kind === 'result') {
     return (
       <Result s={s} tx={tx} dog={dog} r={results[dog.id]} onBack={() => { void prev(); }}

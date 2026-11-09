@@ -356,6 +356,18 @@ export const PACK_BOX = {
 // keď niekto nevie, či to, čo stavia, je karta alebo panel.
 // ════════════════════════════════════════════════════════════════════════════
 
+// ── ÚCHYT (pomlčka) NAD VYSÚVACÍM PANELOM — JEDEN RECEPT (Matej 9. 11. 2026) ───────────────────────
+// Dovtedy bolo v kóde 11 vlastných (.akv-grab 40×4, .bs-grab/.cs-grab/.ppu-grab/.plc-grab/… 44×4, .trp-msheet-grab 38×4,
+// .tep-grab 56×6, .att-entry-grab::before 44×4) — každý inej šírky, výšky a farby.
+// PRAVIDLO: panel má `<span className="pk-grab" aria-hidden />` a v CSS `${GRAB_CSS}`. ROZMER A FARBU NEPÍŠE — tu je jediné
+// miesto. Vlastná trieda (`.bs-grab`…) smie niesť len OKRAJE a polohu. Farba na tmavom povrchu: `--pk-grab:<farba>` na paneli.
+// Gesto ťahania (`useSheetSwipe`) ostáva povinné — úchyt je sľub gesta. `PackPopup` ho nesie sám ⇒ nový panel cez PackPopup ho dostane
+// automaticky. Appka (html.papyrus3d): 56×6 brandová zlatá; web: 44×4 hairline.
+export const GRAB_CSS = `
+.pk-grab{display:block;flex:none;box-sizing:border-box;width:44px;height:4px;border-radius:${PACK_R.pill}px;background:var(--pk-grab,${PACK_THEME.hairline});}
+html.papyrus3d .pk-grab{width:56px;height:6px;background:var(--pk-grab,var(--p3d-gold-solid));}
+`;
+
 export const PACK_BLOCKS = {
   'TLAČIDLO 3D': {
     recept: 'B3_CSS · .pk-b3 + .pk-b3--lapis/gold/paper/green/red, len pod APP_NEW',
@@ -535,6 +547,14 @@ export const PACK_BLOCKS = {
     lock: 'Bez šípky späť a bez krížika — von stiahnutím za úchyt, ťukom vedľa alebo Esc. '
       + 'Kto kreslí úchyt, MUSÍ ťahať cez useSheetSwipe (úchyt je sľub gesta). Šípka späť '
       + 'patrí obrazovke (PackTopRow), nie oknu nad ňou.',
+  },
+  'ÚCHYT': {
+    recept: 'GRAB_CSS · trieda .pk-grab (jedna pre každý vysúvací panel)',
+    polomer: PACK_R.pill,
+    kedy: 'Pomlčka nad vysúvacím panelom (šuplík zdola). PackPopup ju nesie sám; vlastný panel vloží '
+      + '<span className="pk-grab" /> a do svojho CSS `${GRAB_CSS}`.',
+    lock: 'Rozmery a farbu NIKDY vo vlastnej triede (`.xyz-grab`) — len okraje/polohu. Farba na tmavom '
+      + 'povrchu = premenná --pk-grab na paneli. Matej 9. 11. 2026: „jeden vzhľad všade, nové panely ho dedia".',
   },
 } as const;
 

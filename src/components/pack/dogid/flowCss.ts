@@ -16,7 +16,7 @@ export const FLOW_CSS = `
 .dfl-art{position:absolute;left:0;right:0;bottom:0;height:64cqh;background-size:cover;background-position:center bottom;opacity:.11;filter:sepia(.55) saturate(.75);mix-blend-mode:multiply;-webkit-mask-image:linear-gradient(180deg,transparent 0%,black 42%);mask-image:linear-gradient(180deg,transparent 0%,black 42%);z-index:0;pointer-events:none;}
 .dfl-top{display:flex;align-items:center;gap:${S.sm}px;min-height:40px;}
 .dfl-sec{margin-left:auto;font-weight:500;font-size:${X.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkStrong};background:${T.card};border:1px solid ${T.cardEdge};border-radius:${R.pill}px;padding:${S.sm}px ${S.md}px;white-space:nowrap;}
-.dfl-em{font-family:${FONT_EMOJI};}
+.dfl-em{font-family:${FONT_EMOJI};filter:drop-shadow(0 0 .5px rgba(58,34,8,.95)) drop-shadow(0 0 .5px rgba(58,34,8,.55));} /* obrys: bledé emoji (sneh, kosť, stetoskop, ❓) na papyruse nezanikajú — Matej 9. 11. 2026 */
 .dfl-lq{height:12px;background:${T.hairline};}
 .dfl-lq.sm{height:8px;}
 .dfl-lq .pk-progress__fill{position:relative;min-width:12px;background:${LAPIS.grad};overflow:hidden;}

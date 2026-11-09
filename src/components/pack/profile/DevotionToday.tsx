@@ -67,7 +67,7 @@ const deedPts = (t: DeedType | null) => DEED_TYPES.find((d) => d.id === t)?.poin
 const CSS = `
 /* OKNO = <PackPopup> (audit appky 30. 10. 2026): úchyt, bez šípky; šat AINUBISA sa prenáša cez .dvt-pop. */
 .ppu-sheet.dvt-pop{background:${A.surface};color:${A.ink};border-color:${A.edgeStrong};}
-.dvt-pop .ppu-grab{background:${A.edge};}
+.dvt-pop .ppu-grab{--pk-grab:${A.edge};}
 .dvt-pop .ppu-body{padding:0;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
 .dvt-sheet{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;color:${A.ink};font-family:${FONT_UI};}
 .dvt-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:${S.sm}px ${S.lg}px ${S.lg}px;}
@@ -329,7 +329,7 @@ function DevotionReveal({ from, to, tx, onDone }: { from: number; to: number; tx
 /* OKNO „INÉ" — druhá vrstva nad panelom, ten istý šat AINUBISA. */
 const DEED_CSS = `
 .ppu-sheet.dvd-pop{background:${A.surface};color:${A.ink};border-color:${A.edgeStrong};}
-.dvd-pop .ppu-grab{background:${A.edge};}
+.dvd-pop .ppu-grab{--pk-grab:${A.edge};}
 .dvd-ask{display:flex;align-items:center;gap:${S.md}px;flex-wrap:wrap;margin:${S.lg}px 0 0;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${A.ctaEdge};background:${A.ctaTint};}
 .dvd-ask span{flex:1 1 100%;font-weight:600;font-size:${TX.body}px;}
 .dvd-ask button{appearance:none;border-radius:${PACK_R.field}px;cursor:pointer;padding:${S.sm}px ${S.lg}px;font:inherit;font-weight:600;font-size:${TX.label}px;border:1px solid ${A.edge};background:${A.raised};color:${A.ink};}

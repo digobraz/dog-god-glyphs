@@ -48,6 +48,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { PACK_THEME as T, PACK_BOX, PACK_SHADOW, FONT_TITLE, FONT_UI, VEIL_CSS, VEIL_PAD } from '@/components/pack/packTheme';
+import { GRAB_CSS } from '@/components/pack/packTheme';
 import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
@@ -67,6 +68,7 @@ export type PlanEdit = { date: string; visibility: 'open' | 'private'; travel?: 
 
 
 const TRIP_EDIT_CSS = `${VEIL_CSS}
+${GRAB_CSS}
 /* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha a odsadenie.
    ── BLEDÝ PANEL S LAPISOM (Matej 5. 10. 2026: „edit trip je starý dizajn! prerobiť na bledý
    s lapisom!") ── Doska = PACK_BOX.panel, písmo inkoust papyrusu, ZLATO = konštrukcia (rám),
@@ -76,7 +78,7 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
   background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};border-radius:${PACK_BOX.panel.borderRadius}px;box-shadow:${PACK_BOX.panel.boxShadow};}
 .tep-top{position:sticky;top:-24px;z-index:3;margin:-24px -24px 16px;padding:0 24px 12px;background:${PACK_BOX.panel.background};
   border-bottom:1px solid ${T.hairline};cursor:grab;}
-.tep-grab{display:block;width:44px;height:4px;border-radius:999px;background:${T.hairline};margin:0 auto;position:relative;top:8px;margin-bottom:24px;}
+.tep-grab{margin:0 auto;position:relative;top:8px;margin-bottom:24px;}
 .tep-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
 @media (min-width:768px){.tep-grab{visibility:hidden;margin-bottom:16px;}.tep-top{cursor:default;}}
 .tep-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkStrong};line-height:1.25;}
@@ -145,7 +147,6 @@ ${APP_NEW ? `
    Len pod html.papyrus3d, web tieto pravidlá nikdy nevidí. Obsah a funkcie sa nemenia, mení sa šat. */
 html.papyrus3d .tep-modal{background:var(--p3d-card);border:2.5px solid var(--p3d-ink);border-top:6px solid var(--p3d-gold);border-radius:16px;box-shadow:var(--p3d-pera);}
 html.papyrus3d .tep-top{background:var(--p3d-paper-hi);border-bottom:0;}
-html.papyrus3d .tep-grab{width:56px;height:6px;background:var(--p3d-gold);}
 html.papyrus3d .tep-title{font-family:'LT Museum',serif;font-weight:900;font-size:24px;line-height:1.12;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
 html.papyrus3d .tep-sub{font-size:14px;color:var(--p3d-gold-ink);}
 html.papyrus3d .tep-label{font-weight:600;font-size:12px;letter-spacing:.22em;color:var(--p3d-gold-ink);}
@@ -363,7 +364,7 @@ export function TripEditPanel({ trail, plan, myDogs, onSaved, onPlanSaved, onRer
             ísť preč"*). Na mobile okno vyplní výšku a „ťuk vedľa" by bol 16 px okraj — úchyt je sľub
             gesta POPUPU: stiahnutím dole sa okno zavrie (`useSheetSwipe`), krížik sa nevracia. */}
         <div className="tep-top" {...sw.handle}>
-        <span className="tep-grab" aria-hidden />
+        <span className="tep-grab pk-grab" aria-hidden />
         <div className="tep-head">
           <div>
             <div className="tep-title">{t(isPlan ? 'pack.trip.edit.planTitle' : 'pack.trip.edit.title')}</div>

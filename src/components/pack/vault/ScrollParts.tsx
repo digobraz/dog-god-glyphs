@@ -219,8 +219,8 @@ ${packColCSS('.zv-wrap')}
    „vždy možnosť vrátiť sa = sticky header"; PC ostáva blok). Ikonky biele ako na obrazovke AINUBISa. */
 .zv-bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;
   padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.sm}px) ${PACK_SPACE.md}px ${PACK_SPACE.sm}px;background:${AINUBIS.surfaceBase};}
-.zv-bar [data-mg="msgs"],.zv-bar [data-mg="notif"]{color:#fff !important;}
-.zv-bar [data-mg="msgs"] img{filter:brightness(0) invert(1) !important;}
+${APP_NEW ? '' : `.zv-bar [data-mg="msgs"],.zv-bar [data-mg="notif"]{color:#fff !important;}
+.zv-bar [data-mg="msgs"] img{filter:brightness(0) invert(1) !important;}`}
 @media (max-width:767px){
   .zv-wrap.pk-stage{width:100%;max-width:none;margin-top:0;border:0;border-radius:0;box-shadow:none;}
   .zv-wrap .zv-back{display:none !important;}

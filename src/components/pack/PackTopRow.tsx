@@ -23,13 +23,12 @@
 // ⚠️ `translate`, nie `transform` — hover kolieska píše `transform` a dedenie sa nesmie biť.
 import { useEffect, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { HubAinubis, PackNotifications } from './PackNotifications';
+import { HubAinubis } from './PackNotifications';
 import { BackButton } from './BackButton';
 import { PACK_TOPROW, PACK_COL_INNER, PACK_COL_PAD, PAPER_BG, PACK_SPACE, usePaperRoute } from './packTheme';
 import { APP_NEW, DEV_FULL } from '@/lib/packFlags';
 import { getPackStats } from '@/lib/sharedFetch';
-import { SOS_ON, VET_ER_ON } from '@/lib/env';
-import { SosButton } from './SosButton';
+import { TopActions } from './TopActions';
 
 // ── JEDNA HLAVIČKA (Matej 28. 10. 2026) ──────────────────────────────────────────────────
 // *„header musí mať stálu výšku a umiestnenie, ikonky nemôže mať každá obrazovka iné. Výnimkou je
@@ -53,19 +52,8 @@ function TopRowRight({ extra }: { extra?: ReactNode }) {
   return (
     <>
       {extra}
-      {/* SOS (4. 11. 2026): trojuholník vedľa správ, 1 ťuk odkiaľkoľvek (lock §1.2). Len SOS_ON; `task` ho nekreslí (kôš 3). */}
-      {/* Šat Papyrus 3D: SOS, správy a upozornenia v jednej kapsule (hárok, .tops). */}
-      {APP_NEW ? (
-        <div className="pk-p3d-tops">
-          {(VET_ER_ON || SOS_ON) && <SosButton />}
-          {DEV_FULL && <PackNotifications dark={!paper} last24h={stats.last24h} total={stats.total} layout="inline" capsule />}
-        </div>
-      ) : (
-        <>
-          {(VET_ER_ON || SOS_ON) && <SosButton />}
-          {DEV_FULL && <PackNotifications dark={!paper} last24h={stats.last24h} total={stats.total} layout="inline" capsule />}
-        </>
-      )}
+      {/* SOS + správy + upozornenia = JEDNA kapsula `TopActions` (9. 11. 2026), tá istá na každej obrazovke. Len SOS_ON; `task` ju nekreslí (kôš 3). */}
+      <TopActions dark={!paper} last24h={stats.last24h} total={stats.total} />
     </>
   );
 }
@@ -94,8 +82,6 @@ ${stickyRow('.pk-plain')}
 .pk-toprow > *{pointer-events:auto;}
 .pk-toprow-l{justify-self:start;display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
 .pk-toprow-r{justify-self:end;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;}
-${APP_NEW ? `/* Appka (9. 11. 2026): kapsula SOS + správy + upozornenia nižšia, výška 32 + 2×2 lem = 36 ako disk AINUBISA; odstup 12 drží dotyk 44 bez prekryvu. */
-.pk-toprow .pk-p3d-tops{padding:0 ${PACK_SPACE.sm}px;border-width:2px;gap:${PACK_SPACE.md}px;}` : ''}
 `;
 
 // 🎯 ÚLOHA = KÔŠ 3 (Matej 30. 10. 2026 nad onboardingom SNIFFERa: *„vadí mi sos, správy a chvost… nie je to

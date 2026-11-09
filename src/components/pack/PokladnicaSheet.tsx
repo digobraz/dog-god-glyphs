@@ -7,6 +7,7 @@ import { HandArrowLeft } from './HandIcons';
 import { SysIcon } from './SysIcon';
 import { APP_NEW } from '@/lib/packFlags';
 import { PACK_BOX, PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_TOPROW, FONT_UI, FONT_TITLE, VEIL_CSS, PROGRESS_CSS } from './packTheme';
+import { LAPIS } from './navGoldSkin';
 import { type Mesiac, type Polozka } from '@/lib/pokladnica';
 
 const T = PACK_THEME;
@@ -56,6 +57,23 @@ const CSS = `${PROGRESS_CSS}
 .kp-shel{padding:${PACK_SPACE.md}px;font-family:${FONT_UI};}
 .kp-shel b{display:block;font-size:${PACK_TEXT.body}px;font-weight:600;color:${T.inkStrong};}
 .kp-shel span{font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+/* ── ŠAT PAPYRUS 3D (Matej 9. 11. 2026: štatistiky z upozornení v najnovšom štýle) — len pod html.papyrus3d, web ho nemá ──
+   Rovnaký jazyk ako panel upozornení (notifP3d): bodkovaný lapis, papierové karty s čiernou perou, LT Museum, zlaté koľajnice. */
+html.papyrus3d .kp{border:0 !important;background:radial-gradient(circle at 1px 1px,color-mix(in srgb,${LAPIS.ink} 22%,transparent) 1px,transparent 1.6px) 0 0/22px 22px,linear-gradient(180deg,${LAPIS.edge},${LAPIS.deep}) !important;box-shadow:none !important;}
+html.papyrus3d .kp-top h2{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h1}px;letter-spacing:.02em;text-transform:none;color:${LAPIS.ink};} /* písmo: nadpis */
+html.papyrus3d .kp-sub,html.papyrus3d .kp-mrow,html.papyrus3d .kp-shel{border:2.5px solid var(--p3d-ink) !important;border-radius:${PACK_R.frame}px !important;background:var(--p3d-card) !important;box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 color-mix(in srgb,black 55%,transparent) !important;color:var(--p3d-ink);}
+html.papyrus3d .kp-kv div{border:2px solid var(--p3d-ink) !important;border-radius:${PACK_R.field}px !important;background:color-mix(in srgb,var(--p3d-gold) 18%,var(--p3d-paper)) !important;box-shadow:var(--p3d-inset) !important;}
+html.papyrus3d .kp-mh,html.papyrus3d .kp-body>.kp-lbl{color:${LAPIS.ink};}
+html.papyrus3d .kp-lbl{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;letter-spacing:.02em;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .kp-body>.kp-lbl{color:${LAPIS.ink};}
+html.papyrus3d .kp-mh{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:${PACK_TEXT.label}px;letter-spacing:.22em;}
+html.papyrus3d .kp-hero b{font-family:'LT Museum',serif;font-weight:400;color:var(--p3d-gold-ink);} /* písmo: meno */
+html.papyrus3d .kp-kv b{font-family:'LT Museum',serif;font-weight:400;color:var(--p3d-ink);} /* písmo: meno */
+html.papyrus3d .kp-mo{font-size:${PACK_TEXT.body}px;}
+html.papyrus3d .kp-mo b{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;}
+html.papyrus3d .kp-it{border-top:2px dashed color-mix(in srgb,var(--p3d-ink) 22%,transparent);font-size:${PACK_TEXT.body}px;}
+html.papyrus3d .kp .pk-progress{height:14px;border:2px solid var(--p3d-ink);border-radius:${PACK_R.pill}px;background:color-mix(in srgb,var(--p3d-gold) 18%,var(--p3d-paper));box-shadow:var(--p3d-inset);overflow:hidden;}
+html.papyrus3d .kp .pk-progress__fill{border-radius:${PACK_R.pill}px;box-shadow:inset 0 2px 0 color-mix(in srgb,white 45%,transparent);}
 `;
 
 type Props = {
@@ -120,7 +138,7 @@ export function PokladnicaSheet(p: Props) {
         const months = zluc.rozsah && m.m === zluc.rozsah[0]
           ? (Number(zluc.rozsah[1].slice(5)) - Number(zluc.rozsah[0].slice(5)) + 1) : 1;
         return (
-          <div key={m.m} style={{ ...PACK_BOX.row }}>
+          <div key={m.m} className="kp-mrow" style={{ ...PACK_BOX.row }}>
             <button type="button" className={`kp-mo${isOpen ? ' open' : ''}`} style={{ background: 'none', border: 0 }}
               aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : m.m)}>
               <span>{label}</span><b>{eur(m.prijem)}</b><b>{eur(m.naklady)}</b><i aria-hidden>{APP_NEW ? <SysIcon name="sipka" size={18} /> : <HandArrowLeft size={12} style={{ transform: 'scaleX(-1)' }} />}</i>

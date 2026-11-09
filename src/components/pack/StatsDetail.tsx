@@ -12,6 +12,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { PackGlobe, MILESTONES } from './GlobePulse';
 import { RankingBoardsModal } from './Ranking';
 import { PACK_BOX, PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI, PILL_CSS, PROGRESS_CSS } from './packTheme';
+import { AINUBIS } from './ainubisSkin';
 import { LAPIS, pickTintCSS, PICK_INK } from './navGoldSkin';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { pokladnica, rozvojZostatok, type PrijemMesiac } from '@/lib/pokladnica';
@@ -78,6 +79,36 @@ const CSS = `${PILL_CSS}${PROGRESS_CSS}
 .sd-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:${PACK_SPACE.sm}px;}
 .sd-pills .pk-pill{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;}
 .sd-pills b{font-weight:600;}
+/* ── ŠAT PAPYRUS 3D (Matej 9. 11. 2026: štatistiky z upozornení v najnovšom štýle) — len pod html.papyrus3d, web ho nemá ──
+   Papierové karty s perou nesie notifP3d (.ntf-all .sd-sub); tu je ich vnútro: nadpisy a čísla LT Museum, koľajnice s vtlačeným dnom
+   a zlatou výplňou, prepínač ako zapustený pás, pilulky a „všetky rebríčky" ako malé 3D tlačidlá. */
+html.papyrus3d .sd-lbl{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;letter-spacing:.02em;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .sd-num{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h1}px !important;color:var(--p3d-gold-ink);} /* písmo: meno */
+html.papyrus3d .sd .pk-progress{height:14px;border:2px solid var(--p3d-ink);border-radius:${PACK_R.pill}px;background:color-mix(in srgb,var(--p3d-gold) 18%,var(--p3d-paper));box-shadow:var(--p3d-inset);overflow:hidden;}
+html.papyrus3d .sd .pk-progress__fill{border-radius:${PACK_R.pill}px;background:linear-gradient(180deg,#F5C73D,#E69E1A);box-shadow:inset 0 2px 0 color-mix(in srgb,white 45%,transparent);}
+html.papyrus3d .sd-globe{width:80px;height:80px;}
+html.papyrus3d .sd-mis{gap:${PACK_SPACE.md}px;}
+html.papyrus3d .sd-step{grid-template-columns:88px minmax(0,1fr) 56px;font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+html.papyrus3d .sd-step.on .pk-progress__fill{min-width:12px;}
+html.papyrus3d .sd-step.done .pk-progress__fill{background:linear-gradient(180deg,color-mix(in srgb,${T.growGreen} 66%,white),${T.growGreen});}
+html.papyrus3d .sd-step.on{color:var(--p3d-ink);}
+html.papyrus3d .sd-step.on b{color:var(--p3d-gold-ink);}
+html.papyrus3d .sd-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
+html.papyrus3d .sd-tabs .pk-pill{height:40px;display:flex;align-items:center;justify-content:center;border:0;border-radius:${PACK_R.frame}px;background:transparent;box-shadow:none;font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.body}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: cta */
+html.papyrus3d .sd-tabs .pk-pill.on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border:2.5px solid ${LAPIS.ink};color:${LAPIS.ink};box-shadow:inset 0 2px 0 color-mix(in srgb,white 28%,transparent),0 3px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);}
+html.papyrus3d .sd-row{font-size:${PACK_TEXT.body}px;font-weight:500;}
+html.papyrus3d .sd-row i{font-weight:600;color:var(--p3d-gold-ink);}
+html.papyrus3d .sd-row b{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;color:var(--p3d-ink);}
+html.papyrus3d .sd-row img{height:14px;width:20px;border:1.5px solid var(--p3d-ink);}
+html.papyrus3d .sd-more{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border:2px solid var(--p3d-ink);border-radius:${PACK_R.field}px;background:linear-gradient(180deg,#fff,var(--p3d-paper));box-shadow:var(--p3d-lift);font-size:${PACK_TEXT.label}px;letter-spacing:.14em;color:var(--p3d-ink);}
+html.papyrus3d .sd-dr{border-top:2px dashed color-mix(in srgb,var(--p3d-ink) 22%,transparent);}
+html.papyrus3d .sd-dr .nm{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;letter-spacing:0;text-transform:none;} /* písmo: nadpis */
+html.papyrus3d .sd-dr .v{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;color:var(--p3d-ink);}
+html.papyrus3d .sd-dot{width:14px;height:14px;border:2px solid var(--p3d-ink);}
+html.papyrus3d .sd-dr .s2{font-size:${PACK_TEXT.label}px;}
+html.papyrus3d .sd-pills .pk-pill{border:2px solid var(--p3d-ink);background:linear-gradient(180deg,#fff,var(--p3d-paper));box-shadow:var(--p3d-lift);color:var(--p3d-ink);}
+html.papyrus3d .sd-pills .pk-pill:nth-child(2) b{color:${AINUBIS.glow} !important;}
+html.papyrus3d .sd-pills .pk-pill:nth-child(3) b{color:var(--p3d-gold-ink) !important;}
 `;
 
 export function StatsDetail({ stats }: { stats: StatsDetailData | null }) {
@@ -103,7 +134,7 @@ export function StatsDetail({ stats }: { stats: StatsDetailData | null }) {
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const eur = (n: number) => new Intl.NumberFormat(loc, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(Math.round(n));
 
-  const total = stats?.dogs ?? 0;
+  const total = stats?.dogs ?? stats?.total ?? 0; // rovnako ako číslo v hlavičke panela (`NotifSheet`)
   const countries = useMemo(() => {
     const by = new Map<string, number>();
     for (const r of stats?.topCountries ?? []) {
@@ -156,7 +187,7 @@ export function StatsDetail({ stats }: { stats: StatsDetailData | null }) {
             <span className="sd-num" style={{ fontSize: PACK_TEXT.h2 }}>{fmt(total)}</span>
           </div>
           {MILESTONES.map((m, i) => (
-            <div key={m.nameKey} className={`sd-step${i === activeIdx ? ' on' : ''}`}>
+            <div key={m.nameKey} className={`sd-step${i === activeIdx ? ' on' : ''}${i < activeIdx ? ' done' : ''}`}>
               <span>{t(m.nameKey)}</span>
               <span className="pk-progress">
                 {i <= activeIdx && <span className="pk-progress__fill" style={fillW(i < activeIdx ? 100 : Math.max(2, (total / m.target) * 100))} />}

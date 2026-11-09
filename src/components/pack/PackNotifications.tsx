@@ -17,7 +17,7 @@ import ainubisHead from '@/assets/ainubis-head.webp';
 // s bielym textom… červená zo sniffer“). Jedna červená v appke, nie nový odtieň.
 import { SNIFFER_HEART } from './buddy/SnifferLogo';
 import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
-import { TopCircle, TOP_CIRCLE_PX, TOP_BTN_PX, TOP_HIT_PX } from './TopCircle';
+import { TopCircle, TOP_CIRCLE_PX, TOP_BTN_PX, TOP_HIT_PX, TOP_CAPSULE } from './TopCircle';
 import { LAPIS } from './navGoldSkin';
 import { NTF_P3D_CSS } from './notifP3d';
 // Lazy, rovnaký dôvod ako pri `packAlerts`: `packHumans` ťahá `packStore`.
@@ -75,7 +75,8 @@ const CAPSULE: React.CSSProperties = {
 // má 40 px; tlačidlo ostáva 44 (dotyk), takže o 2 px presahuje rad hore aj dole — nevidno to.
 // Kapsula ostala LEN kolieska AINUBISA (`HubAinubis` nižšie) — to je jeho podobizeň, nie ikonka.
 // Farba podľa PODKLADU: na tmavom zlato, na papyruse tmavý atrament (zlato na zlatom zanikne).
-const ICON_ROW: React.CSSProperties = { zIndex: 12, gap: 4 };
+// Appka: rozostup ako medzi SOS a správami v kapsule (`TOP_CAPSULE.gap`), inak by obálka nesedela v strede.
+const ICON_ROW: React.CSSProperties = { zIndex: 12, gap: APP_NEW ? TOP_CAPSULE.gap : 4 };
 // Pod APP_NEW (9. 11. 2026) je tlačidlo veľkosti ikonky ako lupa (`TOP_BTN_PX`), dotyk 44 nesie presah v `TopCircle`.
 const CAP_PX = APP_NEW ? TOP_BTN_PX : TOP_HIT_PX;
 const capBtn = (active: boolean, dark: boolean): React.CSSProperties => ({

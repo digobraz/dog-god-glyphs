@@ -139,9 +139,10 @@ ${FEED_TOPICS_CSS}
 html.papyrus3d .pkf-list{gap:${S.xl}px;}
 html.papyrus3d .pkf-it.pap{margin:0;overflow:hidden;border:3px solid var(--p3d-gold);border-radius:${PACK_R.card}px;background:var(--p3d-card);
   box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-ink),0 13px 16px var(--p3d-sh);}
-/* Výlet na feede = cez celú šírku, bez rámu bloku (Matej 9. 11. 2026, bod 2): zlaté čiary hore a dole, po stranách nič. */
-html.papyrus3d .pkf-it.pap.trip{margin:0 -${PACK_COL_PAD.mobile}px;border-width:3px 0;border-radius:0;box-shadow:none;}
-@media (min-width:768px){html.papyrus3d .pkf-it.pap.trip{margin:0 -${S.xl}px;}}
+/* Výlet na feede = cez celú šírku, bez rámu bloku (Matej 9. 11. 2026, bod 2). Oddeľovacie čiary PREČ (9. 11., oprava appky):
+   výlety od seba delí vzduch (gap zoznamu 24 + spodný okraj 8 = 32), nie zlatá čiara hore a dole. */
+html.papyrus3d .pkf-it.pap.trip{margin:0 -${PACK_COL_PAD.mobile}px ${S.sm}px;border-width:0;border-radius:0;box-shadow:none;}
+@media (min-width:768px){html.papyrus3d .pkf-it.pap.trip{margin:0 -${S.xl}px ${S.sm}px;}}
 html.papyrus3d .pkf-sb{height:54px;padding:0 ${S.lg}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
 html.papyrus3d .pkf-sb button{font-family:${FONT_UI};font-weight:600;color:${LAPIS.edge};}
 html.papyrus3d .pkf-end{padding:${S.xl}px 0;}

@@ -16,7 +16,7 @@ import type React from 'react';
 import { forwardRef, lazy, Suspense, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BackButton, BackIcon, backCircleCSS, backHoverCSS } from './BackButton';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, STAGE_CSS, FONT_UI } from './packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, STAGE_CSS, FONT_UI, PROGRESS_CSS } from './packTheme';
 import { LAPIS } from './navGoldSkin';
 import { AINUBIS } from './ainubisSkin';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -156,7 +156,7 @@ function useNewestDogs(): NewDog[] {
   return dogs;
 }
 
-const CSS = `
+const CSS = `${PROGRESS_CSS}
 .ntf-root{position:fixed;inset:0;z-index:2100;display:flex;justify-content:flex-end;}
 .ntf-scrim{position:absolute;inset:0;background:rgba(0,0,0,0.32);animation:ntf-fade .3s ease both;}
 .ntf-sheet{position:relative;width:100%;height:100%;display:flex;flex-direction:column;color:${T.inkStrong};
@@ -277,6 +277,9 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
   const showOznam = !!oznam && oznam.grown > 0;
   const newest = useNewestDogs();
   const [di, setDi] = useState(0);
+  // Míľnik pod fotkou (Papyrus 3D): `MILESTONES` z GlobePulse sa ťahá lenivo, nech sa zemeguľa nenačíta so panelom.
+  const [ms, setMs] = useState<readonly { nameKey: string; target: number }[] | null>(null);
+  useEffect(() => { if (APP_NEW) void import('./GlobePulse').then((m) => setMs(m.MILESTONES)); }, []);
   const [touchX, setTouchX] = useState<number | null>(null);
   const cur = newest[di];
   const step = (d: number) => setDi((i) => Math.min(Math.max(i + d, 0), Math.max(newest.length - 1, 0)));
@@ -321,7 +324,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
     <div className="ntf-root" role="dialog" aria-modal="true" aria-label={t('pack.notif.sheetTitle')}>
       <style>{CSS}</style>
       <div className="ntf-scrim" onClick={onClose} />
-      <div ref={ref} className="ntf-sheet pk-stage">
+      <div ref={ref} className={`ntf-sheet pk-stage${APP_NEW && view === 'list' ? ' ntf-compact' : ''}`}>
         <div className="ntf-top">
           {/* Brandová šípka (`BackButton`), chvost v hlavičke zanikol (Matej 23. 10.: „šípka dozadu nie je
               v brande a ten chvost daj preč na tom paneli ho netreba"). */}
@@ -392,6 +395,19 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                 <span className="ntf-num"><b>{stats ? fmt(dogs) : '—'}</b><span>{t('pack.notif.dogsWord')}</span></span>
                 <span className="ntf-num"><b>{stats ? fmt(stats.total) : '—'}</b><span>{t('pack.notif.peopleWord')}</span></span>
               </span>
+              {/* Míľnik: kam sa DOGYPT práve blíži (Papyrus 3D). Počíta sa z rovnakých psov ako číslo hore. */}
+              {APP_NEW && stats && ms && (() => {
+                const m = ms.find((x) => dogs < x.target) ?? ms[ms.length - 1];
+                const w = `${Math.min(100, Math.max(5, (dogs / m.target) * 100))}%`;
+                return (
+                  <span className="ntf-prog">
+                    <span className="ntf-prog-l">{t(m.nameKey)}</span>
+                    <span className="pk-progress ntf-prog-bar"><span className="pk-progress__fill" style={{ display: 'block', width: w }} /></span>
+                    <b>{fmt(dogs)} / {m.target >= 1_000_000 ? '1 M' : fmt(m.target)}</b>
+                    <SysIcon name="sipka" size={18} />
+                  </span>
+                );
+              })()}
             </div>
             {/* Papyrus 3D (hárok K5): odkaz pod blokom, rovnaká akcia ako ťuk na blok. */}
             {APP_NEW && <button type="button" className="ntf-history ntf-allstats" onClick={() => setView('stats')}>{t('pack.notif.allStats')}</button>}
@@ -401,7 +417,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
               {tips.length > 0 && <div className="ntf-sec">{t('pack.notif.forYou')}</div>}
               {/* Papyrus 3D (hárok K5): tip je papierová karta s ikonkou z továrne a akciou vpravo, nie riadok AINUBISA. */}
               {APP_NEW && tips.map((tip) => (
-                <div key={tip.id} className="ntf-row ntf-row--tip">
+                <div key={tip.id} className={`ntf-row ntf-row--tip ntf-tip-${tip.id}`}>
                   <SysIcon name={TIP_ICON[tip.id] ?? 'ainubis'} size={46} />
                   <span className="ntf-txt">{tip.title}<small>{tip.sub}</small></span>
                   <button type="button" className="ntf-act" onClick={tip.go}>{tip.cta}</button>

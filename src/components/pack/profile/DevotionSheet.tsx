@@ -10,6 +10,7 @@ import { createPortal } from 'react-dom';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { BackButton } from '@/components/pack/BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS, GOLD_BTN } from '@/components/pack/packTheme';
+import { GRAB_CSS } from '@/components/pack/packTheme';
 import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { NIGHT, NIGHT_EDGE, NIGHT_INK, DEVOTION_TIERS, devotionVars } from '@/lib/devotionTiers';
 import { DEVOTION_LEVELS, DEVOTION_DAILY, DEVOTION_ONCE, DEVOTION_FEED, DEVOTION_DEED, DEVOTION_TRIP, DEVOTION_DAY_CAP, DEVOTION_STREAK, DEVOTION_TODAY_ON, devotionLevel } from '@/lib/devotion';
@@ -23,11 +24,12 @@ const S = PACK_SPACE;
 const TX = PACK_TEXT;
 
 const CSS = `
+${GRAB_CSS}
 .dvs-root.pk-veil{z-index:65;align-items:flex-end;padding:0;animation:dvs-fade .3s ease both;}
 .dvs-sheet{position:relative;width:100%;max-height:${MODAL_MAX_H};display:flex;flex-direction:column;background:${NIGHT};color:${NIGHT_INK};
   border-top:1.5px solid ${NIGHT_EDGE};border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${T.panelShadow};font-family:${FONT_UI};
   animation:dvs-up .38s cubic-bezier(.2,.8,.2,1) both;}
-.dvs-grab{flex:none;width:44px;height:4px;border-radius:${PACK_R.pill}px;background:${T.onDarkBorder};margin:${S.sm}px auto 0;}
+.dvs-grab{--pk-grab:${T.onDarkBorder};margin:${S.sm}px auto 0;}
 .dvs-head{flex:none;display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.lg}px ${S.md}px;}
 .dvs-head h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;color:${NIGHT_EDGE};}
 .dvs-body{overflow-y:auto;overscroll-behavior:contain;padding:0 ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);}
@@ -127,7 +129,7 @@ export function DevotionSheet({ devotion, onClose }: { devotion?: number; onClos
       <style>{VEIL_CSS}</style>
       <style>{CSS}</style>
       <div className="dvs-sheet" style={sw.sheetStyle}>
-        <span className="dvs-grab" aria-hidden {...sw.handle} />
+        <span className="dvs-grab pk-grab" aria-hidden {...sw.handle} />
         <div className="dvs-head" {...sw.handle}>
           <h2>{tx('pack.dvinfo.title', 'How you earn devotion')}</h2>
         </div>

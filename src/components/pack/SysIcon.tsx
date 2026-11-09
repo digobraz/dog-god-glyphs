@@ -7,6 +7,7 @@ import { APP_NEW } from '@/lib/packFlags';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandPaw, HandSearch, HandStar } from '@/components/pack/HandIcons';
 import { zapisSys } from '@/components/pack/profile/zapisDnaModel';
+import { ThinArrow, THIN_ARROW_NAMES } from '@/components/pack/ThinArrow';
 
 /** Značka zápisu dňa: v appke kresba, na webe emoji. Vstup je emoji dlaždice, aby kalendár a Kronika nemuseli meniť dáta. */
 export const ZapisGlyph = ({ mark, size, sys }: { mark: string; size: number; sys?: string }) => {
@@ -17,6 +18,8 @@ export const ZapisGlyph = ({ mark, size, sys }: { mark: string; size: number; sy
 export const sysSrc = (name: string) => `/icons/sys/${name}.webp`;
 
 export function SysIcon({ name, size = 24, off, style }: { name: string; size?: number; off?: boolean; style?: CSSProperties }) {
+  // Šípky (`spat`/`sipka`/`rozbalit`) už nie sú hrubé samolepky — tenká SVG čiara, jedna pre celú appku (ThinArrow.tsx).
+  if (APP_NEW && THIN_ARROW_NAMES[name]) return <ThinArrow dir={THIN_ARROW_NAMES[name]} size={size} style={{ ...style, ...(off ? { opacity: 0.45 } : null) }} />;
   return (
     <img
       src={sysSrc(name)}
@@ -30,7 +33,7 @@ export function SysIcon({ name, size = 24, off, style }: { name: string; size?: 
 
 /** Šípka dole (rozbaliť): v appke samolepka `sipka` otočená dole, na webe lucide. Rodič ju otáča ďalej (otvorené = hore). */
 export const ChevDown = ({ size = 16, style, up }: { size?: number; style?: CSSProperties; up?: boolean }) => (APP_NEW
-  ? <SysIcon name="sipka" size={size + 6} style={{ ...style, transform: up ? 'rotate(-90deg)' : 'rotate(90deg)' }} />
+  ? <ThinArrow dir={up ? 'up' : 'down'} size={size + 6} style={style} />
   : <ChevronDown aria-hidden className={size <= 12 ? 'h-3 w-3' : 'h-4 w-4'} style={{ ...style, ...(up ? { transform: 'rotate(180deg)' } : null) }} />);
 
 export const SearchMark = ({ size }: { size: number }) => (APP_NEW ? <SysIcon name="lupa" size={size + 6} /> : <HandSearch size={size} />);

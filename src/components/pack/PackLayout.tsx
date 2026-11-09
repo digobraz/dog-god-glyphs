@@ -15,6 +15,7 @@ import { TermsGuard } from '@/components/app/TermsGate';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
 import { intlLocale } from '@/i18n/bcp47';
 import { PackNotifications } from './PackNotifications';
+import { TopActions } from './TopActions';
 import { WIZ } from './wizAnchors';
 import { PackWizard } from './PackWizard';
 
@@ -218,6 +219,8 @@ export function PackTopRight({ last24h, total, className, layout }: { last24h: n
   // kto prezlečie stránku, pridá jej riadok do `PAPER_ROUTES` a hotovo, sem nesiaha.
   const paper = usePaperRoute(useLocation().pathname);
   if (!DEV_FULL) return null;
+  // Appka: jedna kapsula SOS + správy + upozornenia (`TopActions`); web ostáva len so správami a upozorneniami.
+  if (APP_NEW) return <TopActions dark={!paper} last24h={last24h} total={total} className={className} layout={layout} />;
   return <PackNotifications dark={!paper} last24h={last24h} total={total} className={className} layout={layout} capsule />;
 }
 
@@ -707,6 +710,10 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
       ?? dogs?.find((d) => d.cloudinary_main_url)?.cloudinary_main_url)
     : null;
   const avatarUrl = dogUrl || ownerUrl;
+  // Fotka psa v mini paneli JA: prvý živý pes s fotkou (ako v tlačidle na zozname psov).
+  const panelDog = dogs?.find((d) => d.cloudinary_main_url && (d.life_status ?? 'alive') === 'alive') ?? dogs?.find((d) => d.cloudinary_main_url) ?? dogs?.[0];
+  const firstDogUrl = panelDog?.cloudinary_main_url ?? null;
+  const firstDogInitial = (panelDog?.dog_name || '').trim().charAt(0).toUpperCase() || 'D';
   const [menu, setMenu] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   // pointerdown, nie mousedown: iPhone mousedown na neklikateľnej ploche nepošle a menu by ostalo otvorené.
@@ -784,7 +791,38 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
         )}
       </button>
 
-      {menu && (
+      {menu && APP_NEW && (
+        // MINI PANEL JA (Matej 9. 11. 2026, oprava appky): presne NAD fotkou v lište, BEZ mena, len dve fotky nad sebou
+        // (ja hore, pes dole) veľké ako fotka v lište (44). Vystredený na tlačidle (`left:50%`), nie `right:0` + pevný
+        // odstup od lišty ako starý panel — ten sedel mimo, najmä na mape (rezerva na ZOZNAM/PRIDAŤ), kde visel ďaleko nad fotkou.
+        // Názvy miest nesie `aria-label`. Miesto, kde už som, má zlatý lem (poloha = zlato).
+        <div
+          className="pack-avatar-menu pack-avatar-mini"
+          style={{
+            position: 'absolute', left: '50%', bottom: 'calc(100% + 8px)', transform: 'translateX(-50%)', zIndex: 50,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 4, borderRadius: 999,
+            border: '2.5px solid var(--p3d-ink)', background: 'var(--p3d-card)', boxShadow: 'var(--p3d-lift)',
+          }}
+        >
+          <button
+            type="button"
+            aria-label={t('pack.layout.navProfile')}
+            onClick={() => go('/pack/profile')}
+            style={{ padding: 0, border: 0, background: 'none', lineHeight: 0, cursor: 'pointer', borderRadius: '50%', outline: pathname.startsWith('/pack/profile') ? '2.5px solid var(--p3d-gold)' : 'none', outlineOffset: 1 }}
+          >
+            <MiniAvatar avatarUrl={ownerUrl} avatarInitial={avatarInitial} size={44} />
+          </button>
+          <button
+            type="button"
+            aria-label={t('pack.tree.title')}
+            onClick={() => go('/pack/dogs')}
+            style={{ padding: 0, border: 0, background: 'none', lineHeight: 0, cursor: 'pointer', borderRadius: '50%', outline: pathname.startsWith('/pack/dogs') ? '2.5px solid var(--p3d-gold)' : 'none', outlineOffset: 1 }}
+          >
+            <MiniAvatar avatarUrl={firstDogUrl} avatarInitial={firstDogInitial} size={44} />
+          </button>
+        </div>
+      )}
+      {menu && !APP_NEW && (
         <div
           className="pack-avatar-menu"
           style={{
@@ -818,19 +856,21 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
 }
 
 // Small circular owner-avatar thumbnail — Profile row.
-function MiniAvatar({ avatarUrl, avatarInitial }: { avatarUrl?: string | null; avatarInitial?: string }) {
+function MiniAvatar({ avatarUrl, avatarInitial, size = 24 }: { avatarUrl?: string | null; avatarInitial?: string; size?: number }) {
+  // `size` 44 = mini panel JA v appke (fotka ako v lište): lem ako fotka v lište (2.5 px `cardEdge`).
+  const ring = size > 24 ? `2.5px solid ${T.cardEdge}` : `1px solid ${T.border}`;
   return avatarUrl ? (
     <img
       src={sizedUrl(avatarUrl, 160)}
       alt=""
-      style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover', display: 'block', border: `1px solid ${T.border}`, flexShrink: 0 }}
+      style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', display: 'block', border: ring, flexShrink: 0, boxSizing: 'border-box' }}
     />
   ) : (
     <div style={{
-      width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-      background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
+      width: size, height: size, borderRadius: '50%', flexShrink: 0, boxSizing: 'border-box', border: size > 24 ? ring : undefined,
+      background: size > 24 ? LAPIS.grad : 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: FONT_UI, fontWeight: 600, fontSize: 10, color: '#1c160c',
+      fontFamily: FONT_UI, fontWeight: 600, fontSize: size > 24 ? 12 : 10, color: size > 24 ? LAPIS.ink : '#1c160c',
     }}>
       {avatarInitial || 'D'}
     </div>

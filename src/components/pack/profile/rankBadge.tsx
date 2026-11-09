@@ -15,6 +15,7 @@ import { LAPIS } from '@/components/pack/navGoldSkin';
 import { pluralKey } from '@/lib/plural';
 import { PILGRIM_FROM as P_FROM, stepOf, pilgrimColors, pilgrimImg } from '@/lib/packTiers';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { ThinArrow } from '@/components/pack/ThinArrow';
 import { BADGE_SHELF_CSS, BadgeShelf, BadgeDetail, badgeCounts, daysWithin, useMyActivity } from './badgeShelf';
 
 /** Odznaky namiesto pilulky DEVOTION + PÚTNIK. Členovia na webe ich nevidia. */
@@ -280,12 +281,16 @@ export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx
         {/* to isté zaokrúhlenie ako profil a AINUBIS: prvý zvitok nesmie ukázať 0 % */}
         <span className="ab">{read ? Math.max(1, Math.round(share)) : 0} %</span>
       </div>
-      <div className="rkp-lbl"><span>{level >= 10
-        ? tx('pack.rank.learnerTop', 'You have mastered all of Dog Sense.')
-        : tx('pack.rank.learnerToNext', '{n} more scrolls to level {level}').replace('{n}', String(need)).replace('{level}', String(level + 1))}</span></div>
-      <div className="rkp-bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
-        <i className="fl" style={{ width: `max(${Math.min(100, pct)}%, 20px)`, ...learnerFill(level) }} />
-        <span>{read} / {total}</span>
+      <div className="rkp-prog">
+        <div className="rkp-lbl"><span>{level >= 10
+          ? tx('pack.rank.learnerTop', 'You have mastered all of Dog Sense.')
+          : tx('pack.rank.learnerToNext', '{n} more scrolls to level {level}').replace('{n}', String(need)).replace('{level}', String(level + 1))}</span></div>
+        <div className="rkp-bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
+          <i className="fl" style={{ width: `max(${Math.min(100, pct)}%, 20px)`, ...learnerFill(level) }} />
+          <span>{read} / {total}</span>
+        </div>
+        {/* ĎALŠÍ LEVEL ako pri PÚTNIKOVI (Matej 9. 11. 2026) */}
+        {level < 10 && <div className="rkp-nx"><img src={learnerImg(level + 1)} alt="" />{name} {level + 1}</div>}
       </div>
       <div className="rkp-nums">
         <div><b>{read}</b><span>{tx('pack.rank.scrolls', 'scrolls')}</span></div>
@@ -301,7 +306,7 @@ export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx
         ))}
       </div>
       <p className="rkp-cap">{tx('pack.rank.learnerCap', 'share of Dog Sense')}</p>
-      {onVault && <button type="button" className="rkp-act" onClick={onVault}>{tx('pack.rank.openVault', 'My knowledge in Dog Sense')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>}
+      {onVault && <button type="button" className="rkp-act" onClick={onVault}>{tx('pack.rank.openVault', 'My knowledge in Dog Sense')}<NextArrow /></button>}
     </>
   );
 }
@@ -333,6 +338,7 @@ export const RANK_PANEL_CSS = `
 .rkp-bar .fl.full{ animation:rk-glow 2.4s ease-in-out infinite; }
 .rkp-bar span{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:${FONT_UI}; font-weight:600;
   font-size:12px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.85); }
+.rkp-prog{ display:block; }
 .rkp-nx{ display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; color:rgba(243,230,200,.75); }
 .rkp-nx img{ width:32px; height:32px; object-fit:contain; }
 /* SLUŽOBNÍK, PÚTNIK a UČEŇ majú na plátne miesto na top tier, bez zväčšenia by bol nižší stupeň v rebríku menší. */
@@ -364,6 +370,11 @@ export const RANK_PANEL_CSS = `
 .rkp-nums span{ font-size:10px; color:rgba(243,230,200,.6); }
 @media (prefers-reduced-motion:reduce){ .rkp-bar .fl::after, .rkp-bar .fl.full{ animation:none; } }
 `;
+
+/** Šípka „ďalej" v odkaze rozkliku: v appke tenká SVG (ThinArrow), na webe stará kresba. */
+const NextArrow = () => (APP_NEW
+  ? <ThinArrow dir="right" size={18} style={{ color: 'currentColor' }} />
+  : <BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} />);
 
 type Tx = (key: string, fallback: string) => string;
 const SERVANT_FILL = 'linear-gradient(180deg,#FFF6CC,#F2C24E 40%,#C88A22 75%,#8A5A12)';
@@ -429,7 +440,7 @@ export function ServantPanel({ years, days, toNext, onDogId, dogs = [], trips = 
       <p className="rkp-how">{tx('pack.rank.servantHow', 'The number counts full years with a dog, from “Together since” in DOG ID. The gold fills with every day you write something in the app.')}</p>
       {!blank && <SinceRows dogs={dogs} tx={tx} />}
       {years == null && onDogId && !dogs.length && (
-        <button type="button" className="rkp-act" onClick={onDogId}>{tx('pack.rank.servantNoDate', 'Add “Together since” in DOG ID')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>
+        <button type="button" className="rkp-act" onClick={onDogId}>{tx('pack.rank.servantNoDate', 'Add “Together since” in DOG ID')}<NextArrow /></button>
       )}
       <style>{BADGE_SHELF_CSS}</style>
       <BadgeShelf counts={counts} failed={st === 'error'} onRetry={retry} onOpen={setOpen} tx={tx} />
@@ -497,14 +508,16 @@ export function PilgrimPanel({ level, pct, points, floor, nextAt, trips, km, cou
         <div className="tx"><h3>{tx('pack.map.rankPilgrim', 'Pilgrim')} {level}</h3></div>
         <span className="ab">{fmtN(points)} {tx('pack.rank.pts', 'pts')}</span>
       </div>
-      <div className="rkp-lbl"><span>{tx('pack.tier.toNext', '{n} points to level {level}').replace('{n}', fmtN(nextAt - points)).replace('{level}', String(level + 1))}</span></div>
-      <div className="rkp-bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
-        <i className="fl" style={{ width: `max(${Math.min(100, pct)}%, 20px)`,
-          background: `linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,.08) 42%,rgba(0,0,0,0) 55%,rgba(0,0,0,.32)),linear-gradient(90deg,${c0},${c1})`,
-          boxShadow: `inset 0 -3px 5px rgba(0,0,0,.35), 0 0 10px ${c1}` }} />
-        <span>{fmtN(points - floor)} / {fmtN(nextAt - floor)}</span>
+      <div className="rkp-prog">
+        <div className="rkp-lbl"><span>{tx('pack.tier.toNext', '{n} points to level {level}').replace('{n}', fmtN(nextAt - points)).replace('{level}', String(level + 1))}</span></div>
+        <div className="rkp-bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
+          <i className="fl" style={{ width: `max(${Math.min(100, pct)}%, 20px)`,
+            background: `linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,.08) 42%,rgba(0,0,0,0) 55%,rgba(0,0,0,.32)),linear-gradient(90deg,${c0},${c1})`,
+            boxShadow: `inset 0 -3px 5px rgba(0,0,0,.35), 0 0 10px ${c1}` }} />
+          <span>{fmtN(points - floor)} / {fmtN(nextAt - floor)}</span>
+        </div>
+        <div className="rkp-nx"><img src={pilgrimImg(nt)} alt="" />{tx('pack.map.rankPilgrim', 'Pilgrim')} {level + 1}</div>
       </div>
-      <div className="rkp-nx"><img src={pilgrimImg(nt)} alt="" />{tx('pack.map.rankPilgrim', 'Pilgrim')} {level + 1}</div>
       <div className="rkp-nums">
         <div><b>{trips}</b><span>{tx('pack.rank.trips', 'trips')}</span></div>
         <div><b>{km}</b><span>km</span></div>
@@ -519,7 +532,7 @@ export function PilgrimPanel({ level, pct, points, floor, nextAt, trips, km, cou
         ))}
       </div>
       <p className="rkp-cap">{tx('pack.rank.ladderLevels', 'level')}</p>
-      {onStats && <button type="button" className="rkp-act" onClick={onStats}>{tx('pack.rank.openStats', 'Trip stats')}<BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)' }} /></button>}
+      {onStats && <button type="button" className="rkp-act" onClick={onStats}>{tx('pack.rank.openStats', 'Trip stats')}<NextArrow /></button>}
     </>
   );
 }

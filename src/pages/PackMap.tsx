@@ -59,7 +59,6 @@ import L from 'leaflet';
 import type { LatLngTuple } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { mapyTiles, MAPY_API_KEY, MAPY_BASE, SOS_ON, VET_ER_ON } from '@/lib/env';
-import { SosButton } from '@/components/pack/SosButton';
 import { SosMapLayer } from '@/components/pack/SosMapLayer';
 import { track } from '@/lib/analytics';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
@@ -75,7 +74,10 @@ import { COUNTRY_BORDERS } from '@/data/countryBorders';
 import { trailCountry, flagUrl, flagEmoji } from '@/lib/countryGeo';
 import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { SwipePhotos } from '@/components/pack/SwipePhotos';
+import { createPortal } from 'react-dom';
+import { TopActions } from '@/components/pack/TopActions';
 import { PackNotifications } from '@/components/pack/PackNotifications';
+import { SosButton } from '@/components/pack/SosButton';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
@@ -96,7 +98,7 @@ import { intlLocale, fmtNum } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PoiLayer } from '@/components/geo/PoiLayer';
 import { WISH_PLACE_EVENT } from '@/components/geo/PlaceSheet';
-import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_TOPROW, PAGE_AIR, PACK_R, PACK_SHADOW, PACK_SPACE, PACK_TEXT } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_TOPROW, PAGE_AIR, PACK_R, PACK_SHADOW, PACK_SPACE, PACK_TEXT, GRAB_CSS } from '@/components/pack/packTheme';
 import { BackIcon, ExpandIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { goldFrameCSS, goldPlateCSS, pickTintCSS, PICK_INK, SLAB, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, NAV_R, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
@@ -233,6 +235,13 @@ const PANEL_W = DOCK_COL_W; // .trp-sidebar width — used to offset the inline-
 // pravej strane celkom pri kraji… vrstvy mapy atď posunieme dolu pod crowd"). Panel 440 → 480
 // (= AINUBIS `--akv-panel`), lišta ide k pravému okraju a ovládanie mapy stojí POD ňou.
 // Výška lišty sa RÁTA, nemeria: pás identity 96 + medzera 10 + rad hľadania 42.
+// ── VRSTVENIE PONÚK NAD MAPOU (9. 11. 2026) ──────────────────────────────────────────────────────────
+// Okno Vrstvy sa schovávalo za tlačidlo Zoznam a štítok Mapy.com: ovládače mapy (`.trp-ctlstack`) majú z 800 a ich okno
+// je dieťa v TOM istom kontexte, takže ho prebil každý súrodenec nad ním (Zoznam 900, atribúcia 800 neskôr v DOM).
+// PRAVIDLO: ponuka nad mapou sa NEKRESLÍ vnútri vrstvy mapy (stacking kontext z 0) — okno ide cez portál do `.trp-root`
+// a z-index berie z `MAP_Z.popup`; ponuka v hlavičke zdvihne nositeľa na `MAP_Z.host` cez `:has()` (APP_NEW_CSS).
+// Číslo mimo tejto stupnice do z-indexu prvkov mapy nepíš.
+const MAP_Z = { controls: 800, bar: 900, host: 920, popup: 1300 } as const;
 const MAP_EDGE = 20;
 const TOPBAR_BOTTOM = MAP_EDGE + 96 + 10 + 42;
 // Fotka karty v zozname drží výšku, akú mala pri paneli 480 (karta 422 × 4:3 = 316). Širší panel
@@ -467,6 +476,14 @@ const EVENT_PIN = (kind: EventKind, hot: boolean) => L.divIcon({
 });
 /** Rozpracované PRIANIE — ten istý kruh ako hotový pin, vybraný (`--hot`), kým ho človek
  *  nepripne. Hotové priania kreslí `WishLayer`. */
+// Bod POLOHY používateľa po zameraní (terč). Mapový jazyk = kruhová značka s obrysom: lapisová výplň, papyrusový lem, zlatý
+// obrys a pulzujúca žiara (`.trp-me` v APP_NEW_CSS). Menšia než značky výletov a bez emoji, aby ju nebolo možné zameniť.
+const USER_POS_ICON = L.divIcon({
+  className: 'trp-me-wrap',
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+  html: '<span class="trp-me"><i></i><b></b></span>',
+});
 const WISH_DRAFT_ICON = L.divIcon({
   className: 'mk-wrap',
   html: stickerSrc('wish_target') ? stickerImg(stickerSrc('wish_target')!) : circleMarkHtml(WISH_EMOJI, WISH_RIM, ' mk-circle--hot'),
@@ -2087,7 +2104,8 @@ ${TRAIL_LINE_CSS}
      mapou (rovnaká vrstva ako .trp-mheader), nie papyrus. z-index nad .trp-mheader (900). */
   .trp-msheet-back{position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.55);backdrop-filter:blur(2px);}
   .trp-msheet{position:fixed;left:0;right:0;bottom:0;z-index:961;display:flex;flex-direction:column;max-height:86vh;background:rgba(10,9,6,0.97);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid ${T.onDarkBorder};border-radius:16px 16px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,0.6);padding-bottom:env(safe-area-inset-bottom,0px);}
-  .trp-msheet-grab{width:38px;height:4px;border-radius:999px;background:rgba(245,240,228,0.22);margin:9px auto 2px;flex:0 0 auto;}
+  ${GRAB_CSS}
+  .trp-msheet-grab{margin:9px auto 2px;}
   .trp-msheet-head{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 16px 12px;flex:0 0 auto;}
   .trp-msheet-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.22em;text-transform:uppercase;color:${GOLD};}
   /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
@@ -2595,6 +2613,14 @@ const APP_NEW_CSS = `
 .trp-avs{display:flex;align-items:flex-end;flex:none;}
 .trp-av{width:48px;height:48px;flex:none;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};box-shadow:0 0 0 2px ${T.card},0 0 0 3px ${T.inkStrong};}
 .trp-avs .trp-avd{width:36px;height:36px;margin-left:-${PACK_SPACE.md}px;}
+/* ponuka v hlavičke (návrhy hľadania, vysvetlivka) = nositeľ ide na MAP_Z.host, nad Zoznam, ktorý má z 900 */
+.trp-mheader:has(.trp-mapsug),.trp-mheader:has(.trp-eventshint){z-index:${MAP_Z.host};}
+.trp-me-wrap{background:none;border:0;pointer-events:none;}
+.trp-me{position:relative;display:block;width:32px;height:32px;}
+.trp-me i{position:absolute;inset:0;border-radius:50%;background:rgba(10,26,74,.28);animation:trp-me-pulse 2.2s ease-out infinite;}
+.trp-me b{position:absolute;left:8px;top:8px;width:16px;height:16px;box-sizing:border-box;border-radius:50%;background:${LAPIS.grad};border:3px solid ${T.card};outline:2px solid ${T.cardEdge};filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));}
+@keyframes trp-me-pulse{0%{transform:scale(.5);opacity:.9;}100%{transform:scale(1.25);opacity:0;}}
+@media (prefers-reduced-motion:reduce){.trp-me i{animation:none;}}
 .trp-av--initial{display:grid;place-items:center;background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.lead}px;}
 .trp-midentity--app{gap:${PACK_SPACE.sm}px;cursor:pointer;}
 .trp-midentity--app .rk{--s:22px;margin-right:-${PACK_SPACE.xs}px;}
@@ -2659,7 +2685,8 @@ html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
   html.papyrus3d .trp-mheader-status .trp-avs{position:absolute;inset:0;display:block;}
   html.papyrus3d .trp-mheader-status .trp-av{position:absolute;left:0;top:0;width:66px;height:66px;margin:0;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 4px 0 2px var(--p3d-ink);font-size:24px;}
   html.papyrus3d .trp-catpill{overflow-wrap:anywhere;hyphens:auto;line-height:1.15;}
-  html.papyrus3d .trp-mheader-status .trp-avs .trp-avd{left:54px;top:38px;width:42px;height:42px;border-width:2px;z-index:3;}
+  /* pes: spodok takmer v rovine so spodkom fotky človeka (66), dolná hrana planétky ostáva ZA ním (planéta z 4, pes z 5) */
+  html.papyrus3d .trp-mheader-status .trp-avs .trp-avd{left:54px;top:26px;width:42px;height:42px;border-width:2px;z-index:5;}
   html.papyrus3d .trp-mheader-status .trp-avs .trp-avd~.trp-avd{display:none;}
   html.papyrus3d .trp-mheader-status .trp-midentity--app .rk{--s:46px;position:absolute;left:44px;top:-18px;z-index:4;margin:0;display:block;width:64px;height:52px;}
   html.papyrus3d .trp-mheader-status .rk .ic{position:absolute;inset:0;width:auto;height:auto;}
@@ -2688,7 +2715,6 @@ html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
 
   /* miesto na mape (A6): spodný list s papyrus doskou, názov Museum, akcie 3D */
   html.papyrus3d .plc-peek{border:0;border-top:6px solid var(--p3d-gold);border-radius:16px 16px 0 0;background:var(--p3d-card);box-shadow:0 -3px 0 var(--p3d-ink),0 -12px 16px var(--p3d-sh);padding:0 16px calc(env(safe-area-inset-bottom,0px) + 24px);}
-  html.papyrus3d .plc-grab{width:56px;height:8px;background:var(--p3d-gold-solid);}
   html.papyrus3d .plc-kind{font:600 12px 'Space Grotesk',sans-serif;letter-spacing:.22em;color:var(--p3d-gold-ink);}
   html.papyrus3d .plc-name{font:400 24px/1.1 'LT Museum',serif;font-size:24px!important;letter-spacing:0;color:var(--p3d-ink);}
   html.papyrus3d .plc-meta{font-size:14px;color:var(--m-soft);}
@@ -2719,7 +2745,6 @@ html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
 /* okno Filtre (A4): papyrus doska so zlatým pásom hore, polia a tlačidlá 3D */
 html.papyrus3d .trp-msheet{background:var(--p3d-card);border:0;border-top:6px solid var(--p3d-gold);border-radius:16px 16px 0 0;box-shadow:0 -3px 0 var(--p3d-ink),0 -12px 16px var(--p3d-sh);}
 html.papyrus3d .trp-msheet::before{display:none;}
-html.papyrus3d .trp-msheet-grab{background:var(--p3d-gold-solid);height:8px;width:56px;}
 html.papyrus3d .trp-msheet-title{font:400 24px/1 'LT Museum',serif;font-size:24px!important;letter-spacing:0;text-transform:none;color:var(--p3d-ink);}
 html.papyrus3d .trp-msheet-body{gap:16px;padding:0 16px 24px;}
 html.papyrus3d .trp-msheet-label{font:500 12px 'Space Grotesk',sans-serif;letter-spacing:.22em;color:var(--p3d-gold-ink);}
@@ -2862,7 +2887,6 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
      zlatý pás HORE, lebo panel prichádza zdola. */
   .trp-msheet{${goldPlateCSS({ radius: 0 })}border-radius:16px 16px 0 0;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:0 -18px 50px rgba(0,0,0,0.5);border-top:${NAV_R.rim}px solid transparent;background-clip:padding-box;}
   .trp-msheet::before{content:'';position:absolute;left:0;right:0;top:0;height:${NAV_R.rim}px;border-radius:16px 16px 0 0;background:linear-gradient(180deg,#FCF0C2,#D8B052);box-shadow:0 1px 0 ${NAV_GOLD.edge};}
-  .trp-msheet-grab{background:rgba(42,22,8,0.28);}
   .trp-msheet-title{color:${P_INK};}
   .trp-msheet-label{color:${P_DIM};}
   .trp-msheet-chip{background:${P_SOFT};border:1px solid ${P_BORDER};color:${P_INK};}
@@ -3329,6 +3353,20 @@ function LayersPanel({
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  // Appka (9. 11. 2026): okno sa kreslí do `.trp-root` mimo vrstvy mapy (`.trp-mapfull` je stacking kontext z 0, takže z-index
+  // okna vnútri neprebije Zoznam ani atribúciu) a polohu si berie z tlačidla. Web ostáva pri starom vykreslení.
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  useEffect(() => {
+    if (!open || !APP_NEW) return;
+    const place = () => {
+      const r = btnRef.current?.getBoundingClientRect();
+      if (r) setPos({ top: r.top, right: window.innerWidth - r.left + 10 });
+    };
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -3343,6 +3381,7 @@ function LayersPanel({
   return (
     <div className="trp-layersdd">
       <button
+        ref={btnRef}
         type="button"
         className={`trp-stylebtn${open ? ' on' : ''}${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`}
         onClick={() => setOpen((v) => !v)}
@@ -3353,10 +3392,12 @@ function LayersPanel({
       >
         <img src={APP_NEW ? '/icons/sys/vrstvy.webp' : ICON('layers')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
       </button>
-      {open && (
+      {open && (() => {
+        const host = APP_NEW ? btnRef.current?.closest('.trp-root') : null;
+        const content = (
         <>
-          <span className="fixed inset-0" style={{ zIndex: 40 }} onClick={() => setOpen(false)} aria-hidden />
-          <div className="trp-layersdd-panel">
+          <span className="fixed inset-0" style={{ zIndex: host ? MAP_Z.popup - 1 : 40 }} onClick={() => setOpen(false)} aria-hidden />
+          <div className="trp-layersdd-panel" style={APP_NEW ? !pos ? { visibility: 'hidden' } : { position: 'fixed', top: pos.top, right: pos.right, zIndex: MAP_Z.popup, maxHeight: `calc(100dvh - ${pos.top + 12}px)`, overflowY: 'auto' } : undefined}>
             <div className="trp-layersdd-group">
               <span className="trp-tagdd-eyebrow">{t('pack.map.layersBaseGroup')}</span>
               {baseLayers.map((layer) => {
@@ -3402,7 +3443,9 @@ function LayersPanel({
             </div>
           </div>
         </>
-      )}
+        );
+        return host ? createPortal(content, host) : content;
+      })()}
     </div>
   );
 }
@@ -3887,6 +3930,8 @@ export default function PackMap() {
   // magistrály AJ bežné trasy rovnako — jedna množina pre hmlu aj pre čiary, žiadne dve pravidlá.
   const walkedTrailIds = useMemo(() => new Set(fog.trails.map((t) => t.id)), [fog.trails]);
   const [locating, setLocating] = useState(false);
+  // Poloha z posledného zamerania (terč) — bod ostáva na mape, kým človek nezamerá znova alebo neodíde.
+  const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const leafletMapRef = useRef<L.Map | null>(null);
   // TRIPSTATS Slice A (bod 3) — fallback flyTo target keď ?add= príde skôr, než leafletMapRef
   // stihne mount (MapRefBridge onReady ho skonzumuje pri domountovaní mapy).
@@ -4609,6 +4654,7 @@ export default function PackMap() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         leafletMapRef.current?.flyTo([pos.coords.latitude, pos.coords.longitude], 14, { duration: 1.2 });
+        if (APP_NEW) setUserPos([pos.coords.latitude, pos.coords.longitude]);
         setLocating(false);
       },
       () => setLocating(false),
@@ -6048,10 +6094,9 @@ export default function PackMap() {
       role="button"
       tabIndex={0}
       className="trp-midentity trp-midentity--app"
-      onClick={(e) => {
-        if ((e.target as HTMLElement).closest('[data-rank-toggle]')) { setLevelPanelOpen(true); return; }
-        navigate('/pack/map/triplist?tab=stats');
-      }}
+      // 9. 11. 2026 (Matej): fotka človeka, fotka psa aj planétka otvoria ŠTATISTIKY — jeden cieľ pre celý blok.
+      // Stará obrazovka levelu (`LevelPanel`) sa odtiaľto neotvára; level je odkaz v ploche štatistík (`TripStatsWall`).
+      onClick={() => navigate('/pack/map/triplist?tab=stats')}
       onKeyDown={(e) => { if (e.key === 'Enter') navigate('/pack/map/triplist?tab=stats'); }}
     >
       <span className="trp-avs">
@@ -6203,15 +6248,13 @@ export default function PackMap() {
           len tam do hlavičky“*). Zatiaľ len testovacia appka; LIVE až po jeho „ok“. */}
       {/* 4. 11. 2026: SOS je späť (obsah postavený) — len TEST_BUILD, vedľa kapsuly správ a upozornení. */}
       {/* Šat Papyrus 3D: SOS, správy a upozornenia v jednej kapsule (ako PackTopRow). */}
-      {APP_NEW ? (
-        <div className="pk-p3d-tops">
+      {/* Kapsulu kreslí `TopActions` (jeden zdroj geometrie pre feed, mapu aj AINUBIS; 9. 11. 2026). */}
+      {APP_NEW
+        ? <TopActions dark={dark} className="trp-header-notif" last24h={id.packToday} total={id.packTotal} />
+        : (<>
           {(VET_ER_ON || SOS_ON) && <SosButton />}
           <PackNotifications dark={dark} layout="inline" className="trp-header-notif" last24h={id.packToday} total={id.packTotal} capsule />
-        </div>
-      ) : (<>
-        {(VET_ER_ON || SOS_ON) && <SosButton />}
-        <PackNotifications dark={dark} layout="inline" className="trp-header-notif" last24h={id.packToday} total={id.packTotal} capsule />
-      </>)}
+        </>)}
     </div>
   );
 
@@ -7225,7 +7268,7 @@ export default function PackMap() {
           <div className="trp-msheet" role="dialog" aria-label={t('pack.map.filters')} style={filterSwipe.sheetStyle}>
             {/* POPUP bez šípky späť (26. 10. 2026) — von stiahnutím, ťukom vedľa (.trp-msheet-back). */}
             <div className="trp-msheet-top" {...filterSwipe.handle}>
-              <div className="trp-msheet-grab" aria-hidden />
+              <div className="trp-msheet-grab pk-grab" aria-hidden />
               <div className="trp-msheet-head">
                 <span className="trp-msheet-title">{t('pack.map.filters')}</span>
               </div>
@@ -7864,6 +7907,7 @@ export default function PackMap() {
               {/* SOS pátrania — fotka psa v červenom obruči + kruhy 500 m / 10 km (SosMapLayer.tsx). Len TEST_BUILD. */}
               {SOS_ON && !isCleanMode && <SosMapLayer interactive={!mg && !mapDrawing && !wishFlow} />}
               {wishDraft && <Marker position={[wishDraft.lat, wishDraft.lon]} icon={WISH_DRAFT_ICON} interactive={false} />}
+              {APP_NEW && userPos && <Marker position={userPos} icon={USER_POS_ICON} interactive={false} keyboard={false} zIndexOffset={900} />}
               {noteDraft && (
                 <AddMapNotePin
                   lat={noteDraft.lat}

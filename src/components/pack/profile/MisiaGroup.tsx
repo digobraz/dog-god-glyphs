@@ -14,6 +14,8 @@ import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type C
 import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { ThinArrow } from '@/components/pack/ThinArrow';
+import { b3Look, P3D_CARD } from '@/components/pack/profile/b3css';
 import { PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT as TX, FONT_TITLE, FONT_UI, VEIL_CSS, GOLD_BTN, PACK_SHADOW, VEIL_PAD } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { DALSI_UTULOK, VYPLATA_UTULKU } from '@/components/pack/PokladnicaSheet';
@@ -144,7 +146,9 @@ const CSS = `${VEIL_CSS}
 .mi-shel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none;}
 .mi-shel .after{clip-path:inset(0 0 0 var(--x));}
 .mi-shel .knob{position:absolute;top:0;bottom:0;left:var(--x);width:2px;margin-left:-1px;background:#FBF5E6;box-shadow:${PACK_SHADOW.lift};pointer-events:none;}
-.mi-shel .knob::after{content:"‹ ›";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:40px;height:40px;border-radius:${PACK_R.pill}px;background:${LAPIS.grad};border:1.5px solid ${GOLD_BTN.edge};color:${LAPIS.ink};font-family:${FONT_UI};font-weight:600;font-size:${TX.body}px;letter-spacing:.14em;}
+.mi-shel .knob::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:${PACK_R.pill}px;background:${LAPIS.grad};border:1.5px solid ${GOLD_BTN.edge};}
+.mi-shel .kn-ar{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1;display:flex;align-items:center;width:40px;justify-content:center;}
+.mi-shel .kn-ar svg{margin:0 -3px;}
 .mi-shel input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize;}
 .mi-shel .tag{position:absolute;bottom:${S.sm}px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;background:rgba(0,0,0,.55);color:#FBF5E6;font-size:${TX.micro}px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;pointer-events:none;}
 .mi-shel .tag.b{left:${S.sm}px;} .mi-shel .tag.a{right:${S.sm}px;}
@@ -204,6 +208,42 @@ const CSS = `${VEIL_CSS}
 .mi-fee{margin:0 0 ${S.md}px !important;text-align:center;font-size:${TX.label}px !important;color:${T.inkDim};}
 .mi-hint{margin:${S.sm}px 0 0 !important;text-align:center;font-size:${TX.micro}px !important;letter-spacing:.14em;text-transform:uppercase;color:${T.inkDim};}
 .mi-err{text-align:center;color:${PICK_INK.red};}
+/* ŠAT PAPYRUS 3D (9. 11. 2026) — obsah sa nemení, len vzhľad: karty = papyrus s tmavým obrysom a zlatou perou, tlačidlá 3D, šípky tenké.
+   Len pod html.papyrus3d (APP_NEW). */
+html.papyrus3d .mi-lead,html.papyrus3d .mi-lead b{color:var(--p3d-ink);}
+html.papyrus3d .mi-lead b{font-family:'LT Museum',serif;font-weight:400;letter-spacing:0;font-size:${TX.lead}px;} /* písmo: nadpis */
+html.papyrus3d .mi-card,html.papyrus3d .mi-transp,html.papyrus3d .mi-fixed,html.papyrus3d .mi-mine,html.papyrus3d .mi-paw{${P3D_CARD}}
+html.papyrus3d .mi-card:hover{transform:none;box-shadow:var(--p3d-lift);}
+html.papyrus3d .mi-card:active{transform:translateY(3px);box-shadow:none;}
+html.papyrus3d .mi-card,html.papyrus3d .mi-fixed > b,html.papyrus3d .mi-paw > b,html.papyrus3d .mi-mine p,html.papyrus3d .mi-transp b,html.papyrus3d .mi-transp .t{color:var(--p3d-ink);}
+html.papyrus3d .mi-card > small,html.papyrus3d .mi-fixed > small,html.papyrus3d .mi-mine span,html.papyrus3d .mi-transp,html.papyrus3d .mi-fixed > p,html.papyrus3d .mi-coinw > em{color:var(--p3d-gold-ink);}
+html.papyrus3d .mi-paw > b{font-family:'LT Museum',serif;font-weight:400;letter-spacing:0;} /* písmo: nadpis */
+html.papyrus3d .mi-paw > p,html.papyrus3d .mi-paw .ok{color:var(--p3d-ink);}
+html.papyrus3d .mi-li{border:2px solid var(--p3d-ink);background:var(--p3d-paper-hi);color:var(--p3d-ink);}
+html.papyrus3d .mi-li.soon{border-style:dashed;}
+html.papyrus3d .mi-more{display:inline-flex;align-items:center;justify-content:center;gap:${S.xs}px;color:var(--p3d-ink);}
+html.papyrus3d .mi-coin > span{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 5px 0 2px var(--p3d-ink);}
+html.papyrus3d .mi-fixgrid{color:var(--p3d-ink);}
+html.papyrus3d .mi-fixd summary,html.papyrus3d .mi-link{color:${LAPIS.edge};}
+html.papyrus3d .mi-shel figure{border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .mi-shel .knob::after{border-color:${LAPIS.ink};}
+html.papyrus3d .mi-paws span{border-color:var(--p3d-ink);}
+${b3Look('.mi-cta', 'lapis', 'font-size:' + TX.lead + 'px;')}
+html.papyrus3d .mi-cta.wide{display:flex;width:100%;}
+html.papyrus3d .mi-cta:hover{background:linear-gradient(180deg,var(--b3-a),var(--b3-b));}
+/* Okno Misie (popup v portáli): papyrus doska so zlatým rámom a ink obrysom, riadky ako karty 3D. */
+html.papyrus3d .mi-sheet{border:3px solid var(--p3d-gold);background:var(--p3d-card);box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-ink),0 13px 16px var(--p3d-sh);color:var(--p3d-ink);}
+html.papyrus3d .mi-sh-head h2{font-family:'LT Museum',serif;font-weight:400;letter-spacing:0;text-transform:none;font-size:${TX.h1}px;} /* písmo: nadpis */
+html.papyrus3d .mi-it,html.papyrus3d .mi-row,html.papyrus3d .mi-kv,html.papyrus3d .mi-bal span{border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);box-shadow:var(--p3d-lift);color:var(--p3d-ink);}
+html.papyrus3d .mi-it.soon,html.papyrus3d .mi-row.soon{border-style:dashed;box-shadow:none;}
+html.papyrus3d .mi-sec > h3{border-bottom:3px solid var(--p3d-gold);color:var(--p3d-ink);}
+html.papyrus3d .mi-it > div p,html.papyrus3d .mi-sec > h4,html.papyrus3d .mi-sec > h3 b,html.papyrus3d .mi-bal span,html.papyrus3d .mi-own,html.papyrus3d .mi-sign{color:var(--p3d-gold-ink);}
+html.papyrus3d .mi-bal span b,html.papyrus3d .mi-sh-body p{color:var(--p3d-ink);}
+html.papyrus3d .mi-bal span.k{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border-color:${LAPIS.ink};color:${LAPIS.ink};}
+html.papyrus3d .mi-tog{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
+html.papyrus3d .mi-tog button{border-radius:${PACK_R.frame}px;color:var(--p3d-ink);}
+html.papyrus3d .mi-tier,html.papyrus3d .mi-input,html.papyrus3d .mi-own input{border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);color:var(--p3d-ink);}
+html.papyrus3d .mi-tier span{color:var(--p3d-gold-ink);}
 `;
 
 export function MisiaBody() {
@@ -397,7 +437,7 @@ export function MisiaBody() {
           <small>{tx('pack.misia.in', 'Income')}</small>
           <b>{dash ? eur(inTotal) : '…'}</b>
           {ins.slice(0, 3).map((n) => <Li key={n.k} n={n} />)}
-          <span className="mi-more">{tx('pack.misia.more.cta', 'more')} ›</span>
+          <span className="mi-more">{tx('pack.misia.more.cta', 'more')} <ThinArrow dir="right" size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'currentColor' }} /></span>
         </button>
         <button type="button" className="mi-coinw" onClick={() => open('kasa')}>
           <span className="mi-coin" style={{ '--ring': ring } as CSSProperties}>
@@ -414,7 +454,7 @@ export function MisiaBody() {
           <b>{dash ? eur(outTotal) : '…'}</b>
           <Li label={tx('pack.misia.rozvoj', 'Growth')} eurV={run} icon="idea" color={T.partMkt} />
           <Li label={tx('pack.misia.pomoc', 'Help')} eurV={help} icon="house-heart" color={T.partHelp} />
-          <span className="mi-more">{tx('pack.misia.more.cta', 'more')} ›</span>
+          <span className="mi-more">{tx('pack.misia.more.cta', 'more')} <ThinArrow dir="right" size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'currentColor' }} /></span>
         </button>
       </div>
 
@@ -505,7 +545,7 @@ function Shelter({ tx }: { tx: Tx }) {
         <img className="after" src="/images/mission/shelter-after.webp" alt={tx('pack.misia.shel.a', 'A DOGYPT centre')} loading="lazy" />
         <span className="tag b">{tx('pack.misia.shel.b', 'Shelter today')}</span>
         <span className="tag a">{tx('pack.misia.shel.a', 'A DOGYPT centre')}</span>
-        <span className="knob" aria-hidden />
+        <span className="knob" aria-hidden><span className="kn-ar"><ThinArrow dir="left" size={16} style={{ color: LAPIS.ink }} /><ThinArrow dir="right" size={16} style={{ color: LAPIS.ink }} /></span></span>
         <input type="range" min={0} max={100} value={x} onChange={(e) => setX(Number(e.target.value))} aria-label={tx('pack.misia.shel.cap', 'Where help goes when there are more of us')} />
       </figure>
       <figcaption>{tx('pack.misia.shel.cap', 'Where help goes when there are more of us')}</figcaption>

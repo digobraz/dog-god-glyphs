@@ -44,6 +44,7 @@ import { useMagnetPreview, usePackNavigate, isFreeScrollCode, MagnetAinubisBlock
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_TOPROW, PAGE_AIR,
 } from '@/components/pack/packTheme';
+import { GRAB_CSS } from '@/components/pack/packTheme';
 import {
   AINUBIS, AI_GLASS, AI_BREATHE_CSS, AI_PANEL_SHADOW, AI_FOCUS, aiWorld, BRAIN_STATE, AI_WORLD,
 } from '@/components/pack/ainubisSkin';
@@ -89,14 +90,15 @@ const ZV_SIDE = 2 * PACK_SPACE.xl + 2 * PACK_SPACE.md + PACK_SPACE.lg;
 /** Posledný svet člena vo VAULTe: len pohodlie zariadenia, bez neho sa ukáže výber. */
 const WORLD_STORE = 'dogypt_vault_world';
 const CSS = `
+${GRAB_CSS}
 ${AI_BREATHE_CSS}
 ${STAGE_CSS}
 /* Som v AINUBISe ⇒ plávajúca guľa je duplikát a zavadzala filtrom (Matej 1. 11. 2026). */
 body:has(.akv-root) .ainubis-launcher{display:none;}
 /* Správy a upozornenia v AINUBISe BIELE, nie zlaté (Matej 1. 11. 2026: „žltá mi vadí"). Bodky
    (červená = členovia, cyan = AINUBIS) ostávajú. Prebíja inline farbu z PackNotifications. */
-.akv-top [data-mg="msgs"],.akv-top [data-mg="notif"]{color:#fff !important;}
-.akv-top [data-mg="msgs"] img{filter:brightness(0) invert(1) !important;}
+${APP_NEW ? '' : `.akv-top [data-mg="msgs"],.akv-top [data-mg="notif"]{color:#fff !important;}
+.akv-top [data-mg="msgs"] img{filter:brightness(0) invert(1) !important;}`}
 .akv-root{position:fixed;inset:0;overflow:hidden;background:${AINUBIS.surfaceBase};color:${AINUBIS.ink};
   font-family:${FONT_UI};--akv-panel:min(40vw,480px);}
 /* Podsvietený displej, nie čierny obdĺžnik — dve mriežky ako v nákrese (.bg .mesh / .mesh8). */
@@ -300,7 +302,7 @@ body:has(.akv-root) .ainubis-launcher{display:none;}
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.xl}px);
   border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;background:${AINUBIS.bg};border-top:1px solid ${AINUBIS.edgeStrong};}
 .akv-stop{display:flex;flex-direction:column;gap:inherit;cursor:grab;}
-.akv-grab{align-self:center;width:40px;height:4px;border:0;padding:0;border-radius:${PACK_R.pill}px;background:${AINUBIS.edge};}
+.akv-grab{align-self:center;--pk-grab:${AINUBIS.edge};}
 .akv-sttl{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
   text-transform:uppercase;color:${AINUBIS.ink};}
 .akv-sgrp{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
@@ -1459,7 +1461,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           <div className="akv-sback" onClick={() => setSheet(false)} aria-hidden />
           <div className="akv-sheet" role="dialog" aria-label={t('pack.map.filters')} style={sheetSwipe.sheetStyle}>
             <div className="akv-stop" {...sheetSwipe.handle}>
-              <span className="akv-grab" aria-hidden />
+              <span className="akv-grab pk-grab" aria-hidden />
               <div className="akv-sttl">{t('pack.map.filters')}</div>
             </div>
             {([['type', 'Type'], ['state', 'Status']] as const).map(([k, en]) => (

@@ -15,7 +15,7 @@
 // `calendar.bands`, ktorý číta kalendár (CalBandsSettings).
 // ════════════════════════════════════════════════════════════════════════════
 import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel } from '@/components/pack/profile/dogSeal';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PACK_THEME, PACK_HEAD, PACK_TEXT, PACK_R, PACK_SPACE } from '@/components/pack/packTheme';
@@ -184,12 +184,15 @@ const CSS = `
 .dv2-mrz span:first-child{flex:1;min-width:0;overflow:hidden}
 .dv2-memo{text-align:center;font:500 12px "Space Grotesk",system-ui;color:var(--mut);margin:12px 0 0}
 /* ŽIVOT */
-.dv2-pc{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 16px}
-.dv2-pc div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:16px;background:rgba(255,255,255,.5);box-shadow:inset 0 0 0 1.5px var(--g)}
-.dv2-pc b{font:600 24px "Space Grotesk",system-ui;color:var(--ink)}
-.dv2-pc div{min-width:0}
-.dv2-pc span{font:500 12px/1.2 "Space Grotesk",system-ui;color:var(--mut);text-align:center;overflow-wrap:anywhere}
-html.papyrus3d .dv2-pc div{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+.dv2-pc{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));gap:8px;margin:0 0 16px}
+.dv2-pc div{--c:var(--g);position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px 12px;min-width:0;border-radius:16px;overflow:hidden;
+ background:color-mix(in srgb,var(--c) 12%,rgba(255,255,255,.6));box-shadow:inset 0 0 0 1.5px var(--c)}
+.dv2-pc div::after{content:"";position:absolute;left:12px;right:12px;bottom:6px;height:4px;border-radius:2px;background:rgba(122,90,42,.16)}
+.dv2-pc div::before{content:"";position:absolute;left:12px;bottom:6px;height:4px;border-radius:2px;background:var(--c);width:calc((100% - 24px) * var(--p,0) / 100);z-index:1}
+.dv2-pc div.l{--c:#3D7A4E}.dv2-pc div.r{--c:var(--lap)}.dv2-pc div.g{--c:#B8741A}.dv2-pc div.gr{--c:#7A2FBF}
+.dv2-pc b{font:600 24px "Space Grotesk",system-ui;color:var(--c);white-space:nowrap}
+.dv2-pc span{font:500 10px/1.2 "Space Grotesk",system-ui;color:var(--mut);text-align:center;overflow-wrap:anywhere;padding-bottom:10px}
+html.papyrus3d .dv2-pc div{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:color-mix(in srgb,var(--c) 16%,var(--p3d-card));box-shadow:var(--p3d-lift);}
 .dv2-big{display:flex;align-items:baseline;gap:12px;margin:0 0 4px}
 .dv2-big b{font:600 24px "Space Grotesk",system-ui;color:var(--ink)}
 .dv2-mg{display:grid;grid-template-columns:24px 1fr;row-gap:3px;column-gap:8px}
@@ -270,7 +273,7 @@ interface View {
   ageY: number;           // vek v rokoch (desatinne)
   days: number | null;
   lo: number; hi: number; // dĺžka života plemena
-  med: number;            // priemer (medián) dĺžky života, základ percent „prežité / zostáva“
+  med: number;            // horná hranica dožitia plemena, základ percent „prežité / zostáva“
   basis: string;          // odkiaľ je pásmo (podmet vety)
   goal: number;
   goalSet: boolean;       // cieľ zadal majiteľ (uložený alebo práve nastavený), nie predvolba hi+5
@@ -309,7 +312,8 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
     const bands = asCalBands(L[CAL_BANDS_FIELD]?.value);
     const lo = bands.life?.low ?? Math.round(est.band.low);
     const hi = bands.life?.high ?? Math.round(est.band.high);
-    const med = bands.life ? (lo + hi) / 2 : est.band.median;
+    // Základ percent = HORNÁ hranica rozmedzia (Matej 9. 11. 2026: pri 9 až 12 rokoch sa počíta 12). Jediné miesto, kde sa med berie.
+    const med = hi;
     const goal = goals[dog.id] ?? bands.target?.high ?? Math.min(MAX_Y, hi + 5);
     const elV = L['nature.element']?.value, roV = L['nature.role']?.value;
     const isMix = breedEN.toLowerCase() === 'mixed';
@@ -637,13 +641,13 @@ function OneLife({ v, tx, onGoal, latest }: { v: View; tx: Tx; onGoal: (g: numbe
       {/* Percentá (Matej 9. 11. 2026, bod 17): podľa priemeru plemena a podľa cieľa majiteľa (−/+ nižšie, prepočet hneď).
           Bez dátumu narodenia sa nekreslia; bez zadaného cieľa len prvá dvojica; pri anjelovi len „prežité“. */}
       {v.days != null && v.med > 0 && (
-        <div className="dv2-pc">
-          <div><b>{livedPct} %</b><span>{tx('pack.dogs2.pctLived', 'of average life lived')}</span></div>
-          {!v.angel && <div><b>{100 - livedPct} %</b><span>{tx('pack.dogs2.pctLeft', 'left to the breed average')}</span></div>}
+        <div className="dv2-pc" style={{ ['--n' as string]: (v.angel ? 1 : 2) * (v.goalSet && v.goal > 0 ? 2 : 1) } as CSSProperties}>
+          <div className="l" style={{ ['--p' as string]: livedPct } as CSSProperties}><b>{livedPct} %</b><span>{tx('pack.dogs2.pctLived', 'of average life lived')}</span></div>
+          {!v.angel && <div className="r" style={{ ['--p' as string]: 100 - livedPct } as CSSProperties}><b>{100 - livedPct} %</b><span>{tx('pack.dogs2.pctLeft', 'left to the breed average')}</span></div>}
           {v.goalSet && v.goal > 0 && (
             <>
-              <div><b>{goalLivedPct} %</b><span>{tx('pack.dogs2.pctGoalLived', 'of our goal lived')}</span></div>
-              {!v.angel && <div><b>{100 - goalLivedPct} %</b><span>{tx('pack.dogs2.pctGoalLeft', 'left to our goal')}</span></div>}
+              <div className="g" style={{ ['--p' as string]: goalLivedPct } as CSSProperties}><b>{goalLivedPct} %</b><span>{tx('pack.dogs2.pctGoalLived', 'of our goal lived')}</span></div>
+              {!v.angel && <div className="gr" style={{ ['--p' as string]: 100 - goalLivedPct } as CSSProperties}><b>{100 - goalLivedPct} %</b><span>{tx('pack.dogs2.pctGoalLeft', 'left to our goal')}</span></div>}
             </>
           )}
         </div>

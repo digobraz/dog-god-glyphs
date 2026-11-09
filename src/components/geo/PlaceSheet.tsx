@@ -37,6 +37,7 @@ import {
   PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT, PAGE_AIR, FONT_TITLE, FONT_UI,
   PACK_BOX, PF_FIELD_CSS, PILL_CSS,
 } from '@/components/pack/packTheme';
+import { GRAB_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { FONT_EMOJI, POI_EMOJI, sleepEmoji } from '@/components/pack/mapnotes/markEmoji';
 import { SLEEP_CHIPS } from '@/components/pack/sleepChips';
@@ -310,7 +311,7 @@ function PlacePeek({ point, name, posts, tx, onOpen, onClose, actions }: {
       style={drag ? { transform: `translateY(${drag}px)`, transition: 'none' } : undefined}>
       <style>{PLACE_SHEET_CSS}</style>
       <div className="plc-peek-top" {...handle} style={{ touchAction: 'none' }}>
-        <span className="plc-grab" aria-hidden />
+        <span className="plc-grab pk-grab" aria-hidden />
         <div className="plc-peek-h">
           {photo && <img className="plc-thumb" src={photo} alt="" loading="lazy" />}
           <div className="plc-peek-tx">
@@ -623,13 +624,14 @@ const CTA_CSS = `display:flex;align-items:center;justify-content:center;gap:${S.
   box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;`;
 
 export const PLACE_SHEET_CSS = `
+${GRAB_CSS}
 .plc-peek{position:fixed;left:0;right:0;bottom:0;z-index:65;background:${T.cardGrad};color:${T.inkStrong};
   border-top:2px solid ${T.cardEdge};border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${T.panelShadow};
   padding:0 ${PAGE_AIR.side}px calc(env(safe-area-inset-bottom,0px) + ${S.lg}px);font-family:${FONT_UI};
   animation:plc-up .32s cubic-bezier(.2,.8,.2,1) both;transition:transform .2s ease;
   --rp-fill:#A3782B;--rp-empty:#A3782B;--rp-empty-op:0.28;}
 .plc-peek-top{cursor:grab;}
-.plc-grab{display:block;width:44px;height:4px;border-radius:${PACK_R.pill}px;background:${T.hairline};margin:${S.sm}px auto ${S.md}px;}
+.plc-grab{margin:${S.sm}px auto ${S.md}px;}
 .plc-peek-h{display:flex;gap:${S.md}px;align-items:flex-start;}
 .plc-thumb{width:84px;height:84px;border-radius:${PACK_R.tile}px;object-fit:cover;flex:none;border:1px solid ${T.cardEdge};}
 .plc-peek-tx{min-width:0;flex:1;}

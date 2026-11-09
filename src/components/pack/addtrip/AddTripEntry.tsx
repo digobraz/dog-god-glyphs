@@ -12,6 +12,7 @@ import { getPodcastNext } from '@/lib/ainubisBus';
 import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { GRAB_CSS } from '@/components/pack/packTheme';
 import { PLATE_TILE_R, goldFrameCSS, LAPIS } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import { NotePalette, NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
@@ -367,7 +368,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBl
           onPointerMove={onGrabMove}
           onPointerUp={onGrabUp}
           onPointerCancel={onGrabUp}
-        />
+        ><span className="pk-grab" style={{ margin: '0 auto' }} /></span>
         {/* ⚠️ KRÍŽIK ZANIKOL (Matej 2026-08-26: „odstráň krížik… stačí len klik vedľa").
             Zatvára sa klikom na podklad (`att-entry-backdrop` vyššie) a klávesou Escape —
             popup nemá žiadny nevratný účinok, takže východ nepotrebuje vlastný ovládací
@@ -460,6 +461,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBl
 }
 
 const ENTRY_CSS = `
+${GRAB_CSS}
 /* ══ PANEL + = PAPYRUS VYSUNUTÝ ZO SPODNEJ LIŠTY (Matej 22. 9. 2026) ════════════════════
    „popup pri + na každej obrazovke musí byť bledý štýl a musí sa vysunúť zo spodného navu
     v jeho šírke."
@@ -543,7 +545,6 @@ body:has(.att-entry-backdrop) .ainubis-launcher{visibility:hidden;pointer-events
 @media (max-width:640px){
   .att-entry-panel{padding:4px 12px 12px;}
   .att-entry-grab{display:block;width:100%;padding:8px 0 8px;background:none;border:0;cursor:grab;touch-action:none;}
-  .att-entry-grab::before{content:'';display:block;width:44px;height:4px;margin:0 auto;border-radius:999px;background:rgba(179,130,45,0.26);}
   .att-entry-grab:active{cursor:grabbing;}
 }
 /* ŠAT PAPYRUS 3D (hárok I1, I2): riadok panela = papierové tlačidlo 3D, názov v Museu. Zostáva emoji alebo kresba + názov,

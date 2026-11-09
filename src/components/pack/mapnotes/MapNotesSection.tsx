@@ -154,4 +154,9 @@ export const MAP_NOTES_SECTION_CSS = `
 .mns-body{margin:5px 0 0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:rgba(42,22,8,0.86);white-space:pre-wrap;word-break:break-word;}
 .mns-meta{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-top:6px;font-family:${FONT_UI};font-size:10px;color:${T.inkWarm};}
 .mns-author{font-family:${FONT_TITLE};font-weight:700;font-size:12px;color:${T.inkStrong};}
+/* APPKA (Papyrus 3D, 9. 11. 2026): ikonka zápisu je veľká, priesvitná a leží POD textom v pravom rohu karty
+   ako vodoznak — text (inkoust ~#2A1608 na papyruse) ju prekrýva a čitateľnosť nesie on, nie ona. Web ostáva bez zmeny. */
+html.papyrus3d .mns-item{position:relative;overflow:hidden;}
+html.papyrus3d .mns-icon{position:absolute;right:26px;top:50%;margin-top:-13px;transform:scale(3);opacity:.14;pointer-events:none;z-index:0;}
+html.papyrus3d .mns-main{position:relative;z-index:1;}
 `;

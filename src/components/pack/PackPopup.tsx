@@ -16,6 +16,7 @@ import { useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
+import { GRAB_CSS } from '@/components/pack/packTheme';
 import { MODAL_MAX_H } from '@/components/pack/packTheme';
 
 const T = PACK_THEME;
@@ -28,7 +29,8 @@ export const PACK_POPUP_CSS = `
   border-top:2px solid ${T.cardEdge};border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${T.panelShadow};
   font-family:${FONT_UI};animation:ppu-up .38s cubic-bezier(.2,.8,.2,1) both;}
 .ppu-top{flex:none;display:flex;flex-direction:column;cursor:grab;}
-.ppu-grab{flex:none;width:44px;height:4px;border-radius:${PACK_R.pill}px;background:${T.hairline};margin:${S.sm}px auto ${S.sm}px;}
+${GRAB_CSS}
+.ppu-grab{margin:${S.sm}px auto ${S.sm}px;}
 .ppu-head{padding:0 ${S.lg}px ${S.md}px;}
 .ppu-head h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.14em;color:${T.inkStrong};text-align:center;} /* písmo: nadpis */
 .ppu-body{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);}
@@ -84,7 +86,7 @@ export function PackPopup({ title, label, onClose, children, className, over }: 
       <style>{PACK_POPUP_CSS}</style>
       <div className={`ppu-sheet${className ? ` ${className}` : ''}`} style={sw.sheetStyle}>
         <div className="ppu-top" {...sw.handle}>
-          <span className="ppu-grab" aria-hidden />
+          <span className="ppu-grab pk-grab" aria-hidden />
           {title && <div className="ppu-head"><h2>{title}</h2></div>}
         </div>
         <div className="ppu-body">{children}</div>

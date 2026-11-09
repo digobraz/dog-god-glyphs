@@ -61,7 +61,7 @@ const druhy = {
   KLUC: 'Surový kľúč prekladu', PRAZDNE: 'undefined / NaN v texte', VODOROVNE: 'Stránka sa hýbe do strany',
   PRESAH: 'Text vyšiel z bloku', OREZANY: 'Text je odrezaný', ZAKRYTE: 'Tlačidlo je zakryté', MRTVE: 'Tlačidlo nič nerobí',
   DUPLICITA: 'To isté dvakrát', DVE_ZATVORENIA: 'Dve zatvorenia', TROJBODKA: 'Trojbodka', NEZNAMA: 'Odkaz vedie na neexistujúcu routu',
-  FONT: 'Font mimo brandu', BOLD: 'Falošný bold (Grotesk 700+)', MALE: 'Príliš malý cieľ prsta',
+  NESURODE: 'Ten istý prvok vyzerá na obrazovkách inak', FONT: 'Font mimo brandu', BOLD: 'Falošný bold (Grotesk 700+)', MALE: 'Príliš malý cieľ prsta',
 };
 const DLH = { STUPNICA: 'Písmo mimo stupnice', POLOMER: 'Polomer mimo stupnice', POMLCKA: 'Dlhá pomlčka v texte', REACT: 'Varovanie Reactu' };
 
@@ -164,6 +164,20 @@ const IN_PAGE = () => {
     hore: () => { const s = scroller(koren()); if (s) s.scrollTop = 0; },
     dole: () => { const s = scroller(koren()); if (s) s.scrollTop = s.scrollHeight; return !!s; },
 
+    /** Nové tlačidlo po kliku (ponuka Vrstvy a podobné) nesmie byť pod iným prvkom. */
+    zakryteNove: (cesty) => {
+      const out = [];
+      for (const c of cesty) {
+        const e = document.querySelector(c);
+        if (!e) continue;
+        const r = e.getBoundingClientRect();
+        if (r.top < 0 || r.bottom > innerHeight || r.left < 0 || r.right > innerWidth || e.closest(MAPA)) continue;
+        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        if (hit && !e.contains(hit) && !hit.contains(e)) out.push({ druh: 'ZAKRYTE', txt: meno(e) || e.tagName, src: src(e), o: 'nová ponuka pod: ' + src(hit) });
+      }
+      return out;
+    },
+
     /** Zakryté tlačidlá — volá sa na vrchu aj na spodku scrollu, inde je zakrytie len dočasné. */
     zakryte: (kde) => {
       const root = koren(), out = [], vh = innerHeight;
@@ -246,6 +260,21 @@ const IN_PAGE = () => {
       }
 
       const rodiny = [];
+      // Matej 9. 11.: horná pilulka, úchyt panela a šípka musia byť všade rovnaké.
+      if (root === document.body) {
+        const h = hrac(document.body), trio = ['SOS', 'Správy', 'Upozornenia'].map(m => h.find(e => meno(e) === m)).filter(Boolean);
+        if (trio.length === 3) {
+          const [a, b, c] = trio.map(e => e.getBoundingClientRect());
+          const m1 = Math.round(b.left - a.right), m2 = Math.round(c.left - b.right);
+          rodiny.push({ rola: 'PILULKA', sig: `tlačidlá ${Math.round(a.height)} · medzery ${m1}/${m2}`, txt: 'SOS + Správy + Upozornenia', src: src(trio[0]) });
+          if (Math.abs(m1 - m2) > 1) add('NESURODE', 'obálka nie je v strede pilulky', trio[1], `${m1}/${m2} px`);
+        }
+      }
+      for (const e of root.querySelectorAll('.pk-grab,[class*="grab"]')) {
+        if (!vis(e) || e.getBoundingClientRect().width > 120) continue;
+        const r = e.getBoundingClientRect(), c = getComputedStyle(e);
+        rodiny.push({ rola: 'ÚCHYT', sig: `${Math.round(r.width)}×${Math.round(r.height)} · ${c.backgroundColor}`, txt: e.className.toString().slice(0, 30), src: src(e) });
+      }
       for (const e of hrac(root)) {
         const r = e.getBoundingClientRect(), c = getComputedStyle(e);
         if (mobil && (r.height < 32 || r.width < 32) && !e.closest('p,li') && !e.matches('label') && !e.closest(MAPA)) add('MALE', meno(e) || e.tagName, e, `${Math.round(r.width)}×${Math.round(r.height)}`);
@@ -416,6 +445,7 @@ async function prejdiStav(p, ctx, url, cesta, retaz, nazov, okno, fronta, videne
       } else if (po.m !== pred.m) {
         // Záložka, chip, rozbalenie: nové tlačidlá na mieste sú samostatný stav, inak by sa okná za nimi nikdy neotvorili.
         const nove = (await p.evaluate(m => window.__prechod.spustace(m), MAX_KLIKOV)).filter(c => !cesty.has(c.cesta) && !NEKLIKAJ.test(c.label) && !c.nav);
+        for (const n of await p.evaluate(l => window.__prechod.zakryteNove(l), nove.map(c => c.cesta))) pridaj(n, { stav: `${nazov} › ${t.label}`, okno, typ: 'klik' });
         const kluc = `${cesta}|${t.kostra}|${nove.slice(0, 3).map(c => c.label).join()}`;
         if (nove.length && retaz.length < HLBKA && !videneOkna.has(kluc) && (stav.inline.get(cesta) || 0) < MAX_INLINE) {
           videneOkna.add(kluc); stav.inline.set(cesta, (stav.inline.get(cesta) || 0) + 1);
@@ -495,6 +525,10 @@ function report(zostalo) {
     const z = zlucene.get(k); z.krat++; z.kde.add(n.stav);
   }
   const vsetky = [...zlucene.values()];
+  for (const rola of ['PILULKA', 'ÚCHYT', 'SPÄŤ']) {
+    const sig = [...new Set(stav.rodiny.filter(r => r.rola === rola).map(r => r.sig))];
+    if (sig.length > 1) vsetky.push({ druh: 'NESURODE', txt: `${rola}: ${sig.length} podôb`, o: sig.join(' | ').slice(0, 200), src: '', krat: sig.length, kde: new Set(stav.rodiny.filter(r => r.rola === rola).map(r => r.stav)) });
+  }
   const tvrde = vsetky.filter(n => druhy[n.druh]), dlh = vsetky.filter(n => DLH[n.druh]);
   const nav = [...stav.navstivene.keys()].map(najdiRoutu);
   const neprejdene = ROUTY.filter(r => !nav.includes(r) && (!LEN || r.startsWith(LEN)));

@@ -22,6 +22,7 @@ import 'leaflet/dist/leaflet.css';
 import { mapyTiles } from '@/lib/env';
 import { BackButton } from '@/components/pack/BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_AVATAR, FONT_TITLE, FONT_UI, PAPER_BG, PF_FIELD_CSS, VEIL_CSS } from '@/components/pack/packTheme';
+import { GRAB_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, tintRGBA } from '@/components/pack/navGoldSkin';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { deletePost, fetchPostSocial, fetchComments, addComment, deleteComment, fetchLikers, mapyPointUrl, type PostLiker, type MePost, type PostSocial, type PostComment } from '@/components/pack/profile/mePosts';
@@ -53,6 +54,7 @@ const S = PACK_SPACE;
 const TX = PACK_TEXT;
 
 const CSS = `
+${GRAB_CSS}
 .pv-root{position:fixed;inset:0;z-index:1300;background:${PAPER_BG};overflow-y:auto;animation:pv-in .2s ease both;font-family:${FONT_UI};color:${T.inkStrong};}
 .pv-col{max-width:560px;margin:0 auto;padding-bottom:calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);}
 .pv-top{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:${S.sm}px;background:${PAPER_BG};
@@ -101,7 +103,7 @@ const CSS = `
 .pv-ls.pk-veil{z-index:1350;align-items:flex-end;padding:0;}
 .pv-ls .sh{width:100%;max-height:80dvh;display:flex;flex-direction:column;background:${T.cardGrad};border-top:1.5px solid ${T.cardEdge};
   border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${T.panelShadow};animation:pv-up .32s cubic-bezier(.2,.8,.2,1) both;}
-.pv-ls .grab{flex:none;width:44px;height:4px;border-radius:${PACK_R.pill}px;background:${T.hairline};margin:${S.sm}px auto 0;}
+.pv-ls .grab{margin:${S.sm}px auto 0;}
 .pv-ls .hd{flex:none;display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.lg}px ${S.md}px;}
 .pv-ls .hd h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;} /* písmo: nadpis */
 .pv-ls ul{list-style:none;margin:0;padding:0 ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);overflow-y:auto;}
@@ -417,7 +419,7 @@ function SaveSheet({ title, close, rows, onClose }: {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{VEIL_CSS}</style>
       <div className="sh" style={sw.sheetStyle}>
-        <span className="grab" aria-hidden {...sw.handle} />
+        <span className="grab pk-grab" aria-hidden {...sw.handle} />
         <div className="hd" {...sw.handle}>
           <h2>{title}</h2>
         </div>
@@ -446,7 +448,7 @@ function LikersSheet({ list, title, you, close, onClose, onPick }: {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{VEIL_CSS}</style>
       <div className="sh" style={sw.sheetStyle}>
-        <span className="grab" aria-hidden {...sw.handle} />
+        <span className="grab pk-grab" aria-hidden {...sw.handle} />
         <div className="hd" {...sw.handle}>
           <h2>{title}</h2>
         </div>

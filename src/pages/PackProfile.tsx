@@ -19,7 +19,8 @@ import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { ME_CSS, ME_FLAT_CSS, DOG_FONT, MeCover, MeOwn, MeRank, MeFlag } from '@/components/pack/profile/meHead';
 import { RANK_BADGE_ON, useServantSpan } from '@/components/pack/profile/rankBadge';
-import { useLearner } from '@/components/pack/vault/useLearner';
+import { useLearner, VAULT_TOTAL } from '@/components/pack/vault/useLearner';
+import { useLiked, useSaved } from '@/components/pack/vault/vaultScrolls';
 import { uploadAvatarPhoto, uploadCoverPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { compressFile } from '@/lib/photoIntake';
 import { coverAlbumOf, coverOfDay, changeDogMainPhoto, fetchMyPosts, isMoment, isLive } from '@/components/pack/profile/mePosts';
@@ -32,6 +33,8 @@ import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import { STORIES_ON, PAWMATE_LIVE, APP_NEW } from '@/lib/packFlags';
 import { IS_APP } from '@/lib/isApp';
 import { SysIcon, ChevDown } from '@/components/pack/SysIcon';
+import { ThinArrow } from '@/components/pack/ThinArrow';
+import { b3Look } from '@/components/pack/profile/b3css';
 import {
   PAWMATE_RIGHTS, RIGHT_LABEL, invitePawmate, listMyPawmates, revokePawmate, revokeDogInvite, setPawmateAccess, setPawmateSuccessor,
   type MyPawmates, type PawmateRow, type PawmateRight, type PawmateRole,
@@ -297,11 +300,39 @@ html.papyrus3d .pe-set .pf-tap:not(.pk-b3),html.papyrus3d .pe-set a{border:2.5px
 html.papyrus3d .pe-set .pf-toggle{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
 html.papyrus3d .pe-set .pf-toggle__opt.is-on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});color:${LAPIS.ink};}
 html.papyrus3d .pe-set.pe-set--out .pf-tap:not(.pk-b3){background:linear-gradient(180deg,color-mix(in srgb,#C8202F 62%,white),#C8202F) !important;color:#fff !important;border-color:var(--p3d-ink) !important;}
+html.papyrus3d .pe-card .pf-pill{border:2px solid var(--p3d-ink);background:var(--p3d-paper-hi);color:var(--p3d-ink);box-shadow:none;}
+html.papyrus3d .pe-card .pf-pill:hover:not(:disabled){transform:none;box-shadow:var(--p3d-lift);}
+html.papyrus3d .pe-card .pf-pill.is-selected{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border-color:${LAPIS.ink};color:${LAPIS.ink};box-shadow:0 2px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);}
+html.papyrus3d .pe-card .pf-hit{border:2.5px solid var(--p3d-ink) !important;background:var(--p3d-card) !important;box-shadow:var(--p3d-lift);}
+html.papyrus3d .pe-own{border:2px dashed var(--p3d-ink);color:var(--p3d-ink);}
+html.papyrus3d .pe-own input{color:var(--p3d-ink);}
+html.papyrus3d .pe-role{border:2px solid var(--p3d-ink);background:var(--p3d-card);color:var(--p3d-ink);}
+html.papyrus3d .pe-show{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.tile}px;background:var(--p3d-card);color:var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .pe-show:hover{background:var(--p3d-card);}
+html.papyrus3d .pe-check{border-bottom:2px solid color-mix(in srgb,var(--p3d-gold) 70%,transparent);color:var(--p3d-ink);}
+html.papyrus3d .pe-check input{border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);}
+html.papyrus3d .pe-check input:checked{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border-color:var(--p3d-ink);}
+html.papyrus3d .pe-dog + .pe-dog{border-top:2px solid color-mix(in srgb,var(--p3d-gold) 70%,transparent);}
+html.papyrus3d .pe-mem .c{background:none;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink);}
+html.papyrus3d .pe-mem .c img,html.papyrus3d .pe-mem .c i{border:0;}
+html.papyrus3d .pe-mem b,html.papyrus3d .pe-mem small{color:var(--p3d-ink);}
+html.papyrus3d .pe-mem.hu b{font-family:'LT Museum',serif;font-weight:400;letter-spacing:0;} /* písmo: meno */
+${b3Look('.pe-addbtn', 'lapis', 'width:100%;')}
 `;
 
 // OKO viditeľnosti: v appke sada samolepiek (`oko`, `oko-off`), na webe lucide. Farbu na samolepke nesie kresba.
+const EYE_OFF_RED = '#B25640'; // červená z palety (Matej 9. 11. 2026: prečiarknutie oka červené, nech je viditeľné)
 const EyeMark = ({ off, size, style }: { off: boolean; size: number; style?: React.CSSProperties }) => APP_NEW
-  ? <SysIcon name={off ? 'oko-off' : 'oko'} size={size + 6} />
+  ? (
+    <span style={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
+      <SysIcon name="oko" size={size + 6} />
+      {off && (
+        <svg viewBox="0 0 24 24" aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+          <line x1="4" y1="20" x2="20" y2="4" stroke={EYE_OFF_RED} strokeWidth="2.6" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+        </svg>
+      )}
+    </span>
+  )
   : off ? <EyeOff className={size === 12 ? 'h-3 w-3' : 'h-3.5 w-3.5'} style={style} /> : <Eye className="h-3.5 w-3.5" style={style} />;
 
 // Emoji z polí profilu, ku ktorým sada v appke má kresbu (pilulky tagov ostávajú emoji — rozhodnutie Mateja).
@@ -351,7 +382,7 @@ export default function PackProfile() {
     return new Set(q && (q.has('dakujeme') || q.has('zrusene') || q.has('odkaz')) ? ['pack', 'acc'] : ['pack', 'misia', 'acc']);
   });
   const toggleGrp = (k: string) => setShut((prev) => { const n = new Set(prev); if (n.has(k)) n.delete(k); else n.add(k); return n; });
-  const [rank, setRank] = useState<'dev' | 'pt' | null>(null);
+  const [rank, setRank] = useState<'dev' | 'pt' | 'study' | null>(null);
   const [mates, setMates] = useState<MyPawmates | null>(null);
   const [wills, setWills] = useState<WillRow[]>([]);
   const reloadMates = () => {
@@ -367,6 +398,10 @@ export default function PackProfile() {
   const isMate = loadedDogs.length > 0 && ownLoaded.length === 0;
   const { years: servantYears, days: servantDays, toNext: servantNext } = useServantSpan(ownLoaded, RANK_BADGE_ON);
   const learner = useLearner();
+  const liked = useLiked();
+  const saved = useSaved();
+  // UČEŇ: ten istý výpočet percent ako profil (prvý prečítaný zvitok nesmie ukázať 0 %).
+  const studyPct = learner.read ? Math.max(1, Math.round((learner.read / Math.max(1, VAULT_TOTAL)) * 100)) : 0;
   // Práve vymenené fotky psov — kým sa `usePackUser` nenačíta nanovo (hlava aj SVORKA ich ukážu hneď).
   const [dogPhoto, setDogPhoto] = useState<Record<string, string>>({});
   const [dogBusy, setDogBusy] = useState<string | null>(null);
@@ -569,6 +604,7 @@ export default function PackProfile() {
           pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
           onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
           onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
+          onStudy={() => setRank((r) => (r === 'study' ? null : 'study'))}
           study={{ level: learner.level, pct: learner.pct, label: tx('pack.rank.learner', 'Disciple') }}
           rank={rank}
           noRanks={isMate}
@@ -607,7 +643,7 @@ export default function PackProfile() {
             }
           />
           <div className="me-gap" />
-          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} servantYears={servantYears} servantDays={servantDays} servantNext={servantNext} sinceDogs={ownLoaded.filter((d) => d.life_status !== 'deceased').map((d) => ({ id: d.id, name: d.dog_name || '' }))} onDogId={dogs[0] ? () => navigate(`/pack/dogs/${dogs[0].id}`) : undefined} onStats={() => navigate('/pack/map/triplist?tab=stats')} onAbout={() => setAboutDev(true)} onClose={() => setRank(null)} tx={tx} />}
+          {rank && <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} servantYears={servantYears} servantDays={servantDays} servantNext={servantNext} sinceDogs={ownLoaded.filter((d) => d.life_status !== 'deceased').map((d) => ({ id: d.id, name: d.dog_name || '' }))} onDogId={dogs[0] ? () => navigate(`/pack/dogs/${dogs[0].id}`) : undefined} onStats={() => navigate('/pack/map/triplist?tab=stats')} onVault={() => navigate('/pack/ainubis/knowledge')} study={{ read: learner.read, total: VAULT_TOTAL, floor: learner.floor, pct: studyPct, liked: liked.length, saved: saved.length }} onAbout={() => setAboutDev(true)} onClose={() => setRank(null)} tx={tx} />}
           {aboutDev && <DevotionSheet devotion={devotion} onClose={() => setAboutDev(false)} />}
 
           {/* ── 1 · O MNE — jediný nadpis skupiny. Poradie (Matej 23. 10.): mená · bio · fakty · povaha. ── */}
@@ -1540,7 +1576,7 @@ function DogEditRow({ dog, attrs, onDogId }: { dog: PackDogFull; attrs: DogProfi
       </div>
       {/* Odkaz, nie pilulka — šípka hovorí, že ide na inú stránku (Matej 23. 10.). */}
       <button type="button" className="pe-link" onClick={onDogId}>
-        {tx('pack.edit.openDogId', 'Full DOG ID')}<BrandIcon name="back" size={12} tint="dim" style={{ transform: 'rotate(180deg)' }} />
+        {tx('pack.edit.openDogId', 'Full DOG ID')}{APP_NEW ? <ThinArrow dir="right" size={18} style={{ color: 'currentColor' }} /> : <BrandIcon name="back" size={12} tint="dim" style={{ transform: 'rotate(180deg)' }} />}
       </button>
     </MemberRow>
   );

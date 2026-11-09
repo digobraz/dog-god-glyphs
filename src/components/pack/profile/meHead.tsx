@@ -379,6 +379,8 @@ const INI_BIG = 48;
 const NM_TOP = { m: OWN.m - AV_UP.m + 14, pc: OWN.pc - AV_UP.pc + 14 };
 /** Výška rezervy pod titulkou: meno + rad odznakov (meno 28 + 24 vzduch + odznak 46 + 16 spodok). */
 const P3D_GAP = { m: NM_TOP.m + 28 + 24 + 46 + 16, pc: NM_TOP.pc + 28 + 24 + 46 + 16 };
+/** Rezerva pod titulkou len pre MENO (profil JA: odznaky sú pod šuplíkom psov). */
+const P3D_NAME_GAP = { m: NM_TOP.m + 28, pc: NM_TOP.pc + 28 };
 /** Výška lúčového pásu v rozkliku odznaku (vzduch hore + odznak 96 + vzduch dole). */
 const P3D_HERO = 136;
 const P3D_ME_CSS = `
@@ -404,6 +406,12 @@ html.papyrus3d .me-flat .me-gap{height:${P3D_GAP.m}px;}
 html.papyrus3d .me-card.open.me-flat .me-gap{height:0;}
 html.papyrus3d .me-card.open.me-flat .me-drawer{padding-top:${P3D_GAP.m}px;}
 html.papyrus3d .me-flat .me-drow:first-child{padding-top:${S.md}px;}
+/* PROFIL JA: šuplík psov sa otvára POD MENOM a NAD odznakmi (Matej 9. 11. 2026) — odznaky sú v toku za šuplíkom (MeBadges),
+   medzera pod titulkou nesie len meno. Rezerva P3D_GAP sa tak rozdelila na meno (P3D_NAME_GAP) + odznaky (margin xl + rad + 16). */
+html.papyrus3d .me-card.me-bout.me-flat .me-gap,html.papyrus3d .me-card.open.me-bout.me-flat .me-gap{height:${P3D_NAME_GAP.m}px;}
+html.papyrus3d .me-card.open.me-bout.me-flat .me-drawer{padding-top:0;}
+html.papyrus3d .me-bout.me-flat .me-lv.rk-row{margin-bottom:${S.lg}px;}
+html.papyrus3d .me-card.open.me-bout.me-flat .me-lv.rk-row{margin-top:0;}
 html.papyrus3d .me-dp{background:none;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink);}
 html.papyrus3d .me-dp img{border:0;}
 html.papyrus3d .me-hg .ba b{font-family:'Cinzel Decorative',serif;color:var(--p3d-ink);} /* písmo: meno */
@@ -441,9 +449,12 @@ html.papyrus3d .me-rk .rkp-hd::before{content:'';position:absolute;left:0;right:
 html.papyrus3d .me-rk .rkp-hd .im{position:relative;z-index:1;width:96px;height:96px;margin-bottom:${S.xl}px;}
 html.papyrus3d .me-rk .rkp-hd .im img{width:calc(96px * var(--k, 1.4));}
 html.papyrus3d .me-rk .rkp-hd .tx{position:relative;z-index:1;text-align:center;}
-html.papyrus3d .me-rk .rkp-hd h3{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h1}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .me-rk .rkp-hd h3{justify-content:center;text-align:center;font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h1}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
 html.papyrus3d .me-rk .rkp-hd p{color:var(--p3d-ink);}
 html.papyrus3d .me-rk .rkp-hd .ab{position:relative;z-index:1;margin-top:${S.xs}px;color:var(--p3d-gold-ink);}
+/* Pás postupu PÚTNIKA a UČŇA = zvýraznený blok ako číselné dlaždice (Matej 9. 11. 2026). */
+html.papyrus3d .me-rk .rkp-prog{margin-top:${S.md}px;padding:${S.md}px ${S.md}px ${S.sm}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .me-rk .rkp-prog .rkp-lbl{margin-top:0;}
 html.papyrus3d .me-rk .rkp-lbl{justify-content:center;text-align:center;color:var(--p3d-gold-ink);font-size:${TX.label}px;}
 html.papyrus3d .me-rk .rkp-lbl b{color:var(--p3d-ink);}
 html.papyrus3d .me-rk .rkp-bar{height:24px;border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
@@ -465,6 +476,8 @@ html.papyrus3d .me-rk .rkp-act svg,html.papyrus3d .me-rk .rkp-act img{filter:bri
   html.papyrus3d .me-flat .me-foot,html.papyrus3d .me-flat.with-mate .me-foot{left:${S.xl}px;right:${S.xl}px;top:calc(100% + ${NM_TOP.pc}px);bottom:auto;}
   html.papyrus3d .me-flat .me-gap{height:${P3D_GAP.pc}px;}
   html.papyrus3d .me-card.open.me-flat .me-drawer{padding-top:${P3D_GAP.pc}px;}
+  html.papyrus3d .me-card.me-bout.me-flat .me-gap,html.papyrus3d .me-card.open.me-bout.me-flat .me-gap{height:${P3D_NAME_GAP.pc}px;}
+  html.papyrus3d .me-card.open.me-bout.me-flat .me-drawer{padding-top:0;}
   html.papyrus3d .me-flat .me-cover::before{-webkit-mask-image:none;mask-image:none;}
   html.papyrus3d .me-flat .me-lv.rk-row{max-width:none;gap:${S.xl}px;}
 }
@@ -501,6 +514,31 @@ ${P3D_ME_CSS}
 `;
 
 
+/** RAD ODZNAKOV HODNOSTÍ (SLUŽOBNÍK · PÚTNIK · UČEŇ). Zvlášť, aby ho stránka mohla uložiť pod šuplík psov (`MeCover badgesOut`). */
+export function MeBadges({ pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', onDev, onPilgrim, onStudy, study, rank, foreign = false, className = '' }: {
+  pilgrimLevel: number;
+  pilgrimPct?: number;
+  servantYears?: number | null;
+  servantLabel?: string;
+  pilgrimRankLabel?: string;
+  onDev?: () => void;
+  onPilgrim?: () => void;
+  onStudy?: () => void;
+  study?: { level: number; pct: number; label: string } | null;
+  rank?: 'dev' | 'pt' | 'study' | null;
+  foreign?: boolean;
+  className?: string;
+}) {
+  const activeDays = useActiveDays(RANK_BADGE_ON && !foreign);
+  return (
+    <div className={`me-lv rk-row${study ? ' rk3' : ''}${className ? ` ${className}` : ''}`}>
+      <ServantBadge years={servantYears ?? null} activeDays={activeDays} on={rank === 'dev'} onClick={onDev} label={servantLabel} />
+      <PilgrimBadge level={pilgrimLevel} pct={pilgrimPct} on={rank === 'pt'} onClick={onPilgrim} label={`${pilgrimRankLabel} ${pilgrimLevel}`} />
+      {study && <LearnerBadge level={study.level} pct={study.pct} on={rank === 'study'} onClick={onStudy} label={`${study.label} ${study.level}`} />}
+    </div>
+  );
+}
+
 /** Poloha titulky v % (0 = horný okraj fotky, 100 = spodný). Prázdne = 35, ako doteraz. */
 export const COVER_Y_DEFAULT = 35;
 
@@ -508,7 +546,7 @@ export const COVER_Y_DEFAULT = 35;
  *  `onMoveY` = režim UPRAVIŤ: titulka sa ťahá prstom hore/dole a pri pustení sa poloha
  *  odovzdá von (`onMoveEnd`). Ťah je prepočítaný na skutočný presah fotky, aby fotka
  *  išla pod prstom 1:1, nie rýchlejšie ani pomalšie. */
-export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, onStudy, study, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false, foreign = false, withName, seal = null, sealText = '' }: {
+export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel, pilgrimLevel, pilgrimPct = 0, servantYears = null, servantLabel = 'Servant', pilgrimRankLabel = 'Pilgrim', bones, onBones, onDev, onPilgrim, onStudy, study, rank, stack = false, right, onMoveY, onMoveEnd, onCover, coverLabel, noRanks = false, foreign = false, badgesOut = false, withName, seal = null, sealText = '' }: {
   cover: string | null;
   /** Meno pawmata pod menom — „& Lenka“ (Matej 26. 10.: *„pod menom stachoman by mohol byť malým text a Lenka“* ·
    *„každý kto uvidí môj profil by videl aj foto aj názov a Lenka“*). Len tam, kde je aj fotka pawmata
@@ -522,6 +560,8 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   /** Cudzí profil — zlato SLUŽOBNÍKA sa NEčíta: `devotion_events` vidím len svoje, takže by ukázalo MOJE dni
    *  na cudzom odznaku (audit 26. 10. 2026). Kapsula ostane bez náplne. */
   foreign?: boolean;
+  /** Odznaky hodností sa v titulke nekreslia — stránka ich vloží sama (`MeBadges`), aby medzi meno a odznaky vošiel šuplík psov (Matej 9. 11. 2026). */
+  badgesOut?: boolean;
   coverY?: number;
   name: string;
   devLabel: string;
@@ -585,8 +625,6 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   };
   const editable = !!onMoveY && !!url;
   const pilgrimTier = tierOfLevel(pilgrimLevel);
-  const activeDays = useActiveDays(RANK_BADGE_ON && !foreign);
-
   return (
     <div
       ref={ref}
@@ -634,11 +672,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
         {noRanks ? null : RANK_BADGE_ON ? (
           // TEST_BUILD (25. 10. 2026): odznaky SLUŽOBNÍK + PÚTNIK namiesto pilulky DEVOTION + PÚTNIK.
           // Roky = DOG ID `basics.since` (useServantYears, volá stránka so psami).
-          <div className={`me-lv rk-row${study ? ' rk3' : ''}`}>
-            <ServantBadge years={servantYears ?? null} activeDays={activeDays} on={rank === 'dev'} onClick={onDev} label={servantLabel} />
-            <PilgrimBadge level={pilgrimLevel} pct={pilgrimPct} on={rank === 'pt'} onClick={onPilgrim} label={`${pilgrimRankLabel} ${pilgrimLevel}`} />
-            {study && <LearnerBadge level={study.level} pct={study.pct} on={rank === 'study'} onClick={onStudy} label={`${study.label} ${study.level}`} />}
-          </div>
+          badgesOut ? null : <MeBadges {...{ pilgrimLevel, pilgrimPct, servantYears, servantLabel, pilgrimRankLabel, onDev, onPilgrim, onStudy, study, rank, foreign }} />
         ) : (
         <div className={`me-lv${stack ? ' stack' : ''}`}>
           {/* Prázdny `devLabel` = DEVOTION cudzieho človeka appka nemá (cudzí profil) — pilulka sa nekreslí.

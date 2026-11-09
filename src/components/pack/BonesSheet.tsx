@@ -19,6 +19,7 @@ import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { PackNetwork } from '@/components/pack/PackNetwork';
 import { BackButton } from '@/components/pack/BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
+import { GRAB_CSS } from '@/components/pack/packTheme';
 import { BONES } from '@/components/pack/bonesSkin';
 import { getPackStats } from '@/lib/sharedFetch';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -31,11 +32,12 @@ const S = PACK_SPACE;
 const GOAL = 1_000_000;
 
 const CSS = `
+${GRAB_CSS}
 .bs-root.pk-veil{z-index:65;align-items:flex-end;padding:0;animation:bs-fade .3s ease both;}
 .bs-sheet{position:relative;width:100%;max-height:88dvh;display:flex;flex-direction:column;background:${T.cardGrad};color:${T.inkStrong};
   border-top:2px solid ${BONES.deep};border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${T.panelShadow};
   font-family:${FONT_UI};animation:bs-up .38s cubic-bezier(.2,.8,.2,1) both;}
-.bs-grab{flex:none;width:44px;height:4px;border-radius:${PACK_R.pill}px;background:${T.hairline};margin:${S.sm}px auto 0;}
+.bs-grab{margin:${S.sm}px auto 0;}
 .bs-head{flex:none;display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.lg}px ${S.md}px;}
 .bs-head h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.14em;color:${BONES.deep};}
 .bs-body{overflow-y:auto;overscroll-behavior:contain;padding:0 ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);}
@@ -99,7 +101,7 @@ function BonesSheetClassic({ avatarUrl, initial, onClose, onShare, shareLink }: 
       <style>{VEIL_CSS}</style>
       <style>{CSS}</style>
       <div className="bs-sheet" style={sw.sheetStyle}>
-        <span className="bs-grab" aria-hidden {...sw.handle} />
+        <span className="bs-grab pk-grab" aria-hidden {...sw.handle} />
         <div className="bs-head" {...sw.handle}>
           <h2>BONES</h2>
         </div>

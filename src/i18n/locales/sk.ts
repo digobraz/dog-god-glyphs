@@ -3625,6 +3625,8 @@ export const sk: Partial<Dict> = {
   'pack.trip.cm.addShort': "Pridať hodnotenie",
   'pack.trip.cm.walkedThen': "Prešiel si túto trasu? OHODNOŤ JU!",
   'pack.trip.cm.hide': "Skryť hodnotenia",
+  'pack.trip.cm.showMore': "Zobraziť ďalšie ({n})",
+  'pack.trip.cm.hideMore': "Skryť ďalšie",
   'pack.trip.cm.beFirstReview': "Túto trasu ešte nikto neohodnotil. Buď prvý.",
   'pack.trip.cm.yourReview': "Tvoje hodnotenie",
   'pack.trip.cm.tripAuthor': "Autor tripu",

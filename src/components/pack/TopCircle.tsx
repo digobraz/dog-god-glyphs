@@ -9,6 +9,14 @@ export const TOP_BTN_PX = 32;
 export const TOP_HIT_PX = 44;
 const TOP_ART_PX = 28;
 
+/** KAPSULA SOS + správy + upozornenia — JEDINÝ zdroj geometrie (Matej 9. 11. 2026: *„obálka presne v strede, rovnomerné
+ *  rozostupy, tá istá pilulka na všetkých stránkach"*). Tri rovnaké tlačidlá `TOP_BTN_PX` s rovnakým rozostupom `gap`
+ *  a súmerným `padX` ⇒ stredné tlačidlo (správy) je presne v strede. Výška = TOP_BTN_PX + 2×border = 36 = disk AINUBISA.
+ *  Kreslí ju VÝLUČNE `<TopActions />` (TopActions.tsx) — žiadna obrazovka si kapsulu nekreslí sama (nový povrch = ten
+ *  komponent). Rozostup medzi tlačidlami musí byť rovnaký aj vnútri `PackNotifications` (správy ↔ zvonček), preto ho
+ *  číta aj ten súbor. Čísla sú z `PACK_SPACE` (8). */
+export const TOP_CAPSULE = { gap: 8, padX: 8, border: 2 } as const;
+
 export function TopCircle({ name, className }: { name: string; className?: string }) {
   return (
     <span

@@ -24,7 +24,7 @@
 // (signed out, unpaid, DEV_NOAUTH) the popup shows an error instead of pretending it saved — same
 // rule as `sendMessage()` in packMessaging.ts.
 import { APP_NEW } from '@/lib/packFlags';
-import { SysIcon } from '@/components/pack/SysIcon';
+import { SysIcon, ChevDown } from '@/components/pack/SysIcon';
 import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -67,6 +67,8 @@ const T = PACK_THEME;
 const GOLD = T.cardEdge;
 const INK = T.ink;
 const PAGE_SIZE = 5;
+// Appka (Papyrus 3D, 9. 11. 2026): prvé tri komentáre každého druhu sú ROZBALENÉ, až zvyšok je za „zobraziť ďalšie“. Web: 0 = všetko za prepínačom, ako doteraz.
+const OPEN_N = APP_NEW ? 3 : 0;
 
 // DRAK → BRIGHT (2026-09-01): recenzie a rady stoja na DVOCH povrchoch — v článku
 // výletu a v paneli mapy (grep `<TripComments`). Oba sú dnes papyrusové, takže sa
@@ -523,8 +525,10 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   const horeCount = quoteThread ? adviceCount : reviewCount;
   useEffect(() => { onCountChange?.(horeCount); }, [horeCount, onCountChange]);
 
-  const reviewPages = Math.max(1, Math.ceil(reviewCount / PAGE_SIZE));
-  const advicePages = Math.max(1, Math.ceil(adviceCount / PAGE_SIZE));
+  const reviewRestCount = Math.max(0, reviewCount - OPEN_N);
+  const adviceRestCount = quoteThread ? adviceCount : Math.max(0, adviceCount - OPEN_N);
+  const reviewPages = Math.max(1, Math.ceil(reviewRestCount / PAGE_SIZE));
+  const advicePages = Math.max(1, Math.ceil(adviceRestCount / PAGE_SIZE));
 
   // clamp page if list shrinks (e.g. deleting my own review/question mid-page)
   useEffect(() => { if (tab === 'reviews' && page > reviewPages) setPage(reviewPages); }, [reviewPages, page, tab]);
@@ -621,7 +625,8 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
     ...otherReviews.map((review) => ({ kind: 'real' as const, review })),
   ];
   const reviewStart = (page - 1) * PAGE_SIZE;
-  const reviewPageItems = reviewItems.slice(reviewStart, reviewStart + PAGE_SIZE);
+  const reviewHeadItems = reviewItems.slice(0, OPEN_N);
+  const reviewPageItems = reviewItems.slice(OPEN_N).slice(reviewStart, reviewStart + PAGE_SIZE);
 
   type QuestionItem =
     | { kind: 'mine'; q: RealQuestion }
@@ -631,7 +636,10 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
     ...otherQuestions.map((q) => ({ kind: 'real' as const, q })),
   ];
   const adviceStart = (page - 1) * PAGE_SIZE;
-  const advicePageItems = questionItems.slice(adviceStart, adviceStart + PAGE_SIZE);
+  const adviceOpenN = quoteThread ? 0 : OPEN_N;
+  const adviceHeadItems = questionItems.slice(0, adviceOpenN);
+  const advicePageItems = questionItems.slice(adviceOpenN).slice(adviceStart, adviceStart + PAGE_SIZE);
+  const [adviceMoreOpen, setAdviceMoreOpen] = useState(false);
 
   // Komentár z upozornenia: nájdi ho (recenzia → záložka Hodnotenia, otázka → Rady), prepni stránku, odroluj, zvýrazni.
   useEffect(() => {
@@ -640,14 +648,108 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
     const qi = questionItems.findIndex((x) => x.q.id === focusId);
     if (ri < 0 && qi < 0) return;
     focusDone.current = focusId;
-    if (ri >= 0) { setTab('reviews'); setPage(Math.floor(ri / PAGE_SIZE) + 1); }
-    else { setTab('advice'); setPage(Math.floor(qi / PAGE_SIZE) + 1); }
+    if (ri >= 0) { setTab('reviews'); if (ri >= OPEN_N) { setReviewsOpen(true); setPage(Math.floor((ri - OPEN_N) / PAGE_SIZE) + 1); } }
+    else { setTab('advice'); if (qi >= adviceOpenN) { setAdviceMoreOpen(true); setPage(Math.floor((qi - adviceOpenN) / PAGE_SIZE) + 1); } }
     setHlId(focusId);
     const raf = window.setTimeout(() => document.querySelector(`[data-cid="${focusId}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120);
     const off = window.setTimeout(() => setHlId(null), 2600);
     return () => { window.clearTimeout(raf); window.clearTimeout(off); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusId, reviewItems.length, questionItems.length]);
+
+  // Jedna položka hodnotenia — spoločná pre vždy otvorené prvé tri (appka) aj zvyšok za prepínačom.
+  const renderReviewItem = (item: ReviewItem) => {
+          if (item.kind === 'author') {
+            /* ⚠️ Avatar je INICIÁLKA, nie fotka — a je to dočasné. Matej si pýtal
+               „fotka autora", ale dataset o autorovi nesie JEDINE meno
+               (`HeroTrail.author`, pri seed výletoch ani to — `AUTHOR_FALLBACK`),
+               a `list_trip_reviews()` vracia tiež len krstné meno a číslo v svorke.
+               Fotka sa teda nedá vziať odnikiaľ bez toho, aby sme ju vymysleli.
+               Zapojí sa, keď budú profily členov vracať avatar. */
+            const nm = authorName?.trim() || t('pack.trip.cm.dogyptian');
+            return (
+              <div className="tcm-review" key="author">
+                <span className="tcm-avatar">{nm.charAt(0).toUpperCase()}</span>
+                <div className="tcm-review-main">
+                  <div className="tcm-review-top">
+                    <span className="tcm-review-name">{nm}</span>
+                    <span className="tcm-review-badge">{t('pack.trip.cm.tripAuthor')}</span>
+                  </div>
+                  <Paws rating={authorRating} />
+                </div>
+              </div>
+            );
+          }
+          if (item.kind === 'mine') {
+            const r = item.review;
+            return (
+              <div className="tcm-review mine" key="mine" onClick={() => setReviewPopupOpen(true)}>
+                <span className="tcm-avatar"><BrandIcon name="paw" size={16} tint="dark" /></span>
+                <div className="tcm-review-main">
+                  <div className="tcm-review-top">
+                    <span className="tcm-review-name">You</span>
+                    <span className="tcm-review-badge">{t('pack.trip.cm.yourReview')}</span>
+                  </div>
+                  <Paws rating={r.paws} />
+                  {r.body && <div className="tcm-review-text">{linkify(r.body, openLink, 'tcm-link')}</div>}
+                  <ReviewPhotoStrip photos={r.photos} />
+                </div>
+              </div>
+            );
+          }
+          if (item.kind === 'real') {
+            const r = item.review;
+            const name = r.ownerFirst ?? t('pack.trip.cm.dogyptian');
+            return (
+              <div className={`tcm-review${hlId === r.id ? ' hl' : ''}`} data-cid={r.id} key={r.id}>
+                <span className="tcm-avatar">{name.charAt(0).toUpperCase()}</span>
+                <div className="tcm-review-main">
+                  <div className="tcm-review-top">
+                    <span className="tcm-review-name">{name}</span>
+                  </div>
+                  <Paws rating={r.paws} />
+                  {r.body && <div className="tcm-review-text">{linkify(r.body, openLink, 'tcm-link')}</div>}
+                  <ReviewPhotoStrip photos={r.photos} />
+                  {canWrite && (
+                    <div className="tcm-review-footer">
+                      <button type="button" className="tcm-reportlink" onClick={() => openReport(r.id)}>{t('pack.trip.cm.report')}</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          }
+          return null;
+  };
+
+  const renderAdviceItem = (item: QuestionItem) => {
+        if (item.kind === 'mine') {
+          return (
+            <div className={`tcm-advice mine${hlId === item.q.id ? ' hl' : ''}`} data-cid={item.q.id} key={item.q.id}>
+              <div className="tcm-advice-text">{linkify(item.q.body, openLink, 'tcm-link')}</div>
+              <div className="tcm-advice-meta">
+                <span>You</span>
+                <button type="button" className="tcm-advice-del" onClick={() => deleteQuestion(item.q.id)} aria-label={t('pack.trip.cm.deleteQuestion')}>✕</button>
+              </div>
+            </div>
+          );
+        }
+        if (item.kind === 'real') {
+          const name = item.q.ownerFirst ?? t('pack.trip.cm.dogyptian');
+          return (
+            <div className={`tcm-advice${hlId === item.q.id ? ' hl' : ''}`} data-cid={item.q.id} key={item.q.id}>
+              <div className="tcm-advice-text">{linkify(item.q.body, openLink, 'tcm-link')}</div>
+              <div className="tcm-advice-meta">
+                <span>{name}</span>
+                {canWrite && (
+                  <button type="button" className="tcm-reportlink" onClick={() => openReport(item.q.id)}>{t('pack.trip.cm.report')}</button>
+                )}
+              </div>
+            </div>
+          );
+        }
+        return null;
+  };
 
   return (
     <div className="tcm-wrap" aria-label={t('pack.trip.cm.aria', { name: tripName ?? t('pack.trip.cm.thisTrip') })}>
@@ -679,86 +781,28 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
               </button>
             </div>}
 
-            {reviewCount > 0 && (
+            {reviewHeadItems.map(renderReviewItem)}
+
+            {reviewRestCount > 0 && (
               <button type="button" className="tcm-collapse-toggle" onClick={() => setReviewsOpen((v) => !v)}>
                 {/* ⚠️ SKLOŇUJE SA (2026-09-13). Do dnes tu stál natvrdo anglický reťazec
                     s príponou `s`, takže v slovenčine sa prepínač čítal „Skryť hodnotenia"
                     ↔ „Show 1 review" — polovica z kľúča, polovica z kódu. Slovenčina má
                     tri tvary; ten istý vzor ako `pack.points.unit.*`. */}
-                {reviewsOpen
+                {OPEN_N > 0
+                  ? (reviewsOpen ? tx('pack.trip.cm.hideMore', 'Hide') : tx('pack.trip.cm.showMore', 'Show more').replace('{n}', String(reviewRestCount)))
+                  : reviewsOpen
                   ? t('pack.trip.cm.hide')
-                  : t(`pack.trip.cm.show${reviewCount === 1 ? 'One' : reviewCount < 5 ? 'Few' : 'Many'}`, { n: reviewCount })}
+                  : t(`pack.trip.cm.show${reviewRestCount === 1 ? 'One' : reviewRestCount < 5 ? 'Few' : 'Many'}`, { n: reviewRestCount })}
                 <span className={`tcm-collapse-chevron${reviewsOpen ? ' open' : ''}`}>⌄</span>
               </button>
             )}
 
             {reviewCount === 0 && <div className="tcm-empty">{t('pack.trip.cm.beFirstReview')}</div>}
 
-            {reviewsOpen && (
+            {reviewsOpen && reviewRestCount > 0 && (
               <>
-                {reviewPageItems.map((item) => {
-                  if (item.kind === 'author') {
-                    /* ⚠️ Avatar je INICIÁLKA, nie fotka — a je to dočasné. Matej si pýtal
-                       „fotka autora", ale dataset o autorovi nesie JEDINE meno
-                       (`HeroTrail.author`, pri seed výletoch ani to — `AUTHOR_FALLBACK`),
-                       a `list_trip_reviews()` vracia tiež len krstné meno a číslo v svorke.
-                       Fotka sa teda nedá vziať odnikiaľ bez toho, aby sme ju vymysleli.
-                       Zapojí sa, keď budú profily členov vracať avatar. */
-                    const nm = authorName?.trim() || t('pack.trip.cm.dogyptian');
-                    return (
-                      <div className="tcm-review" key="author">
-                        <span className="tcm-avatar">{nm.charAt(0).toUpperCase()}</span>
-                        <div className="tcm-review-main">
-                          <div className="tcm-review-top">
-                            <span className="tcm-review-name">{nm}</span>
-                            <span className="tcm-review-badge">{t('pack.trip.cm.tripAuthor')}</span>
-                          </div>
-                          <Paws rating={authorRating} />
-                        </div>
-                      </div>
-                    );
-                  }
-                  if (item.kind === 'mine') {
-                    const r = item.review;
-                    return (
-                      <div className="tcm-review mine" key="mine" onClick={() => setReviewPopupOpen(true)}>
-                        <span className="tcm-avatar"><BrandIcon name="paw" size={16} tint="dark" /></span>
-                        <div className="tcm-review-main">
-                          <div className="tcm-review-top">
-                            <span className="tcm-review-name">You</span>
-                            <span className="tcm-review-badge">{t('pack.trip.cm.yourReview')}</span>
-                          </div>
-                          <Paws rating={r.paws} />
-                          {r.body && <div className="tcm-review-text">{linkify(r.body, openLink, 'tcm-link')}</div>}
-                          <ReviewPhotoStrip photos={r.photos} />
-                        </div>
-                      </div>
-                    );
-                  }
-                  if (item.kind === 'real') {
-                    const r = item.review;
-                    const name = r.ownerFirst ?? t('pack.trip.cm.dogyptian');
-                    return (
-                      <div className={`tcm-review${hlId === r.id ? ' hl' : ''}`} data-cid={r.id} key={r.id}>
-                        <span className="tcm-avatar">{name.charAt(0).toUpperCase()}</span>
-                        <div className="tcm-review-main">
-                          <div className="tcm-review-top">
-                            <span className="tcm-review-name">{name}</span>
-                          </div>
-                          <Paws rating={r.paws} />
-                          {r.body && <div className="tcm-review-text">{linkify(r.body, openLink, 'tcm-link')}</div>}
-                          <ReviewPhotoStrip photos={r.photos} />
-                          {canWrite && (
-                            <div className="tcm-review-footer">
-                              <button type="button" className="tcm-reportlink" onClick={() => openReport(r.id)}>{t('pack.trip.cm.report')}</button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                })}
+                {reviewPageItems.map(renderReviewItem)}
                 <Pager page={page} totalPages={reviewPages} onPrev={() => setPage((p) => Math.max(1, p - 1))} onNext={() => setPage((p) => Math.min(reviewPages, p + 1))} />
               </>
             )}
@@ -787,36 +831,20 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
             {adviceCount === 0 ? (
               <div className="tcm-empty">{quoteThread ? t('pack.feed.quote.cm.none') : t('pack.trip.cm.noQuestions')}</div>
             ) : (
-              advicePageItems.map((item) => {
-                if (item.kind === 'mine') {
-                  return (
-                    <div className={`tcm-advice mine${hlId === item.q.id ? ' hl' : ''}`} data-cid={item.q.id} key={item.q.id}>
-                      <div className="tcm-advice-text">{linkify(item.q.body, openLink, 'tcm-link')}</div>
-                      <div className="tcm-advice-meta">
-                        <span>You</span>
-                        <button type="button" className="tcm-advice-del" onClick={() => deleteQuestion(item.q.id)} aria-label={t('pack.trip.cm.deleteQuestion')}>✕</button>
-                      </div>
-                    </div>
-                  );
-                }
-                if (item.kind === 'real') {
-                  const name = item.q.ownerFirst ?? t('pack.trip.cm.dogyptian');
-                  return (
-                    <div className={`tcm-advice${hlId === item.q.id ? ' hl' : ''}`} data-cid={item.q.id} key={item.q.id}>
-                      <div className="tcm-advice-text">{linkify(item.q.body, openLink, 'tcm-link')}</div>
-                      <div className="tcm-advice-meta">
-                        <span>{name}</span>
-                        {canWrite && (
-                          <button type="button" className="tcm-reportlink" onClick={() => openReport(item.q.id)}>{t('pack.trip.cm.report')}</button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              })
+              <>
+                {adviceHeadItems.map(renderAdviceItem)}
+                {adviceOpenN > 0 && adviceRestCount > 0 && (
+                  <button type="button" className="tcm-collapse-toggle" onClick={() => setAdviceMoreOpen((v) => !v)}>
+                    {adviceMoreOpen
+                      ? tx('pack.trip.cm.hideMore', 'Hide')
+                      : tx('pack.trip.cm.showMore', 'Show more').replace('{n}', String(adviceRestCount))}
+                    <ChevDown size={12} up={adviceMoreOpen} />
+                  </button>
+                )}
+                {(adviceOpenN === 0 || adviceMoreOpen) && advicePageItems.map(renderAdviceItem)}
+              </>
             )}
-            <Pager page={page} totalPages={advicePages} onPrev={() => setPage((p) => Math.max(1, p - 1))} onNext={() => setPage((p) => Math.min(advicePages, p + 1))} />
+            {(adviceOpenN === 0 || adviceMoreOpen) && <Pager page={page} totalPages={advicePages} onPrev={() => setPage((p) => Math.max(1, p - 1))} onNext={() => setPage((p) => Math.min(advicePages, p + 1))} />}
           </>
         )}
       </div>

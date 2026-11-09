@@ -13,6 +13,8 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_R, PACK_SPACE as S, PACK_TEXT, FONT_UI } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { ThinArrow } from '@/components/pack/ThinArrow';
+import { APP_NEW } from '@/lib/packFlags';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { trailCountry } from '@/lib/countryGeo';
@@ -281,7 +283,7 @@ export function BadgeDetail({ id, counts, fill, onBack, tx }: { id: string; coun
   const za = badgeFor(id, tx);
   return (
     <>
-      <button type="button" className="bd-back" onClick={onBack}><BrandIcon name="back" size={12} tint="gold" />{tx('pack.badge.title', 'Badges')}</button>
+      <button type="button" className="bd-back" onClick={onBack}>{APP_NEW ? <ThinArrow dir="left" size={18} style={{ color: 'currentColor' }} /> : <BrandIcon name="back" size={12} tint="gold" />}{tx('pack.badge.title', 'Badges')}</button>
       <div className="rkp-hd">
         <span className="im" style={{ ['--k' as string]: 1.4 }}><img src={badgeImg(f.symbol, s.tier)} alt="" style={s.i == null ? { filter: 'grayscale(1) brightness(.45)', opacity: .6 } : undefined} /></span>
         <div className="tx"><h3>{badgeName(id, tx)}</h3>{za && <p>{za.charAt(0).toUpperCase() + za.slice(1)}</p>}</div>

@@ -1677,9 +1677,10 @@ export default function PackTripArticle() {
                 aria-expanded={walkedMenuOpen}
                 aria-label={t('pack.trip.walkedAriaLabel')}
               >
-                <span className="pta-actbtn-icon">🐾</span>
-                <span className="pta-actbtn-label">{t('pack.trip.walkedCheck')}</span>
-                <span className="pta-caret">▾</span>
+                {/* Appka: JEDNA ikonka zo setu (fajka) namiesto 🐾 + ✓ v texte + ▾ (Matej 9. 11. 2026). */}
+                {APP_NEW ? <SysIcon name="fajka" size={24} /> : <span className="pta-actbtn-icon">🐾</span>}
+                <span className="pta-actbtn-label">{APP_NEW ? t('pack.trip.walkedCheck').replace(/\s*✓/, '') : t('pack.trip.walkedCheck')}</span>
+                {!APP_NEW && <span className="pta-caret">▾</span>}
               </button>
               {walkedMenuOpen && (
                 <div className="pta-actmenu" role="menu">
@@ -1805,7 +1806,7 @@ export default function PackTripArticle() {
             sekciou, a v rade pod titulom (triplist / prešiel som / zdieľať) by si konkurovala
             s vecami, ktoré robí ktokoľvek. Vidí ju len autor (`canEdit`). */}
         {canEdit && (
-          <button type="button" className="pta-edit" onClick={() => setEditOpen(true)} aria-label={t('pack.trip.edit.open')}>{APP_NEW ? <SysIcon name="ceruzka" size={28} /> : <HandPencil size={16} />}</button>
+          <button type="button" className="pta-edit" onClick={() => setEditOpen(true)} aria-label={t('pack.trip.edit.open')}>{APP_NEW ? <SysIcon name="ceruzka" size={20} /> : <HandPencil size={16} />}</button>
         )}
       </div>
 

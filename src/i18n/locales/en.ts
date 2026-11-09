@@ -3907,6 +3907,8 @@ export const en = {
   'pack.trip.cm.showMany': "Show {n} reviews",
   'pack.trip.cm.walkedThen': "Walked this trail? ADD REVIEW!",
   'pack.trip.cm.hide': "Hide reviews",
+  'pack.trip.cm.showMore': "Show {n} more",
+  'pack.trip.cm.hideMore': "Hide",
   'pack.trip.cm.beFirstReview': "Be the first Dogyptian to review this trail.",
   'pack.trip.cm.yourReview': "Your review",
   'pack.trip.cm.tripAuthor': "Trip author",

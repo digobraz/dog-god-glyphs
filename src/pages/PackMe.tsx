@@ -42,7 +42,7 @@ import { BonesSheet } from '@/components/pack/BonesSheet';
 import { TripShareSheet, type TripShareData } from '@/components/pack/trip/TripShareSheet';
 import { dogShareLink } from '@/lib/useShareCard';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { ME_CSS, ME_FLAT_CSS, MeCover, MeOwn, MeRank, MeDogRow, MeFlag } from '@/components/pack/profile/meHead';
+import { ME_CSS, ME_FLAT_CSS, MeCover, MeBadges, MeOwn, MeRank, MeDogRow, MeFlag } from '@/components/pack/profile/meHead';
 import { RANK_BADGE_ON, useServantSpan } from '@/components/pack/profile/rankBadge';
 import { StoryViewer } from '@/components/pack/profile/StoryViewer';
 import { PostViewer } from '@/components/pack/profile/PostViewer';
@@ -289,7 +289,7 @@ export default function PackMe() {
           {tx('pack.me.novicePreview', 'Preview: a brand-new member · back to my account')}
         </button>
       )}
-      <section className={`me-card${FLAT ? ' me-flat' : ''}${open ? ' open' : ''}${beside ? ' with-mate' : ''}`}>
+      <section className={`me-card${FLAT ? ' me-flat me-bout' : ''}${open ? ' open' : ''}${beside ? ' with-mate' : ''}`}>
         {/* TITULKA — BONES · meno · DEVOTION · PÚTNIK (spoločná s UPRAVIŤ PROFIL, `meHead.tsx`). */}
         <MeCover
           withName={beside?.label ?? null}
@@ -315,6 +315,7 @@ export default function PackMe() {
           study={{ level: learner.level, pct: learner.pct, label: tx('pack.rank.learner', 'Disciple') }}
           rank={rank}
           noRanks={isMate}
+          badgesOut={FLAT}
         />
 
         <div className="me-under">
@@ -339,12 +340,28 @@ export default function PackMe() {
             toggleLabel={open ? tx('pack.me.closeDogs', 'Hide dogs') : tx('pack.me.openDogs', 'Show dogs')}
           />
 
+          {FLAT && <div className="me-gap" />}
           <div className="me-drawer" aria-hidden={!open}>
             {dogs.map((d) => (
               <MeDogRow key={d.id} dog={d} attrs={profile?.dogs?.[d.id]} onClose={() => setOpen(false)} onDogId={() => navigate(`/pack/dogs/${d.id}`)} tx={tx} />
             ))}
           </div>
-          <div className="me-gap" />
+          {!FLAT && <div className="me-gap" />}
+          {/* ODZNAKY pod šuplíkom psov — heroglyf sa otvára pod menom a nad nimi (Matej 9. 11. 2026). */}
+          {FLAT && (
+            <MeBadges
+              pilgrimLevel={pilgrim.level.level}
+              pilgrimPct={pilgrim.level.pct}
+              servantYears={novice ? null : servantYears}
+              servantLabel={tx('pack.ladder.servant', 'Servant')}
+              pilgrimRankLabel={tx('pack.map.rankPilgrim', 'Pilgrim')}
+              onDev={() => setRank((r) => (r === 'dev' ? null : 'dev'))}
+              onPilgrim={() => setRank((r) => (r === 'pt' ? null : 'pt'))}
+              onStudy={() => setRank((r) => (r === 'study' ? null : 'study'))}
+              study={{ level: learner.level, pct: learner.pct, label: tx('pack.rank.learner', 'Disciple') }}
+              rank={rank}
+            />
+          )}
           {rank && (
             <MeRank kind={rank} devotion={devotion} pilgrim={pilgrim} tx={tx}
               servantYears={novice ? null : servantYears}
