@@ -2658,6 +2658,7 @@ html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
   html.papyrus3d .trp-mheader-status .trp-midentity-txt{display:none;}
   html.papyrus3d .trp-mheader-status .trp-avs{position:absolute;inset:0;display:block;}
   html.papyrus3d .trp-mheader-status .trp-av{position:absolute;left:0;top:0;width:66px;height:66px;margin:0;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 4px 0 2px var(--p3d-ink);font-size:24px;}
+  html.papyrus3d .trp-catpill{overflow-wrap:anywhere;hyphens:auto;line-height:1.15;}
   html.papyrus3d .trp-mheader-status .trp-avs .trp-avd{left:54px;top:38px;width:42px;height:42px;border-width:2px;z-index:3;}
   html.papyrus3d .trp-mheader-status .trp-avs .trp-avd~.trp-avd{display:none;}
   html.papyrus3d .trp-mheader-status .trp-midentity--app .rk{--s:46px;position:absolute;left:44px;top:-18px;z-index:4;margin:0;display:block;width:64px;height:52px;}

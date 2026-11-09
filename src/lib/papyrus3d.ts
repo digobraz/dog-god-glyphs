@@ -28,6 +28,17 @@ const VACSI_TEXT = `
 .tr-sheet{max-height:100dvh;overflow-y:auto;}
 /* AUDIT /pack 9. 11. 2026 (pripomienka 20): riadok „chýba: …“ v dlaždiciach DOG ID bol orezaný trojbodkou, text sa zalomí. */
 .dic-ttl p{white-space:normal !important;overflow:visible !important;text-overflow:clip !important;}
+/* AUDIT 2 (pripomienka 20, najdlhší preklad DE/FR/CS na 360): záložky Štatistiky | Triplist, záložky profilu a tlačidlá výletu. */
+.tl-tabs{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+.tl-tab{min-width:0;}
+.tl-tab-label{min-width:0;overflow-wrap:anywhere;hyphens:auto;text-align:center;}
+@media (max-width:400px){.tl-tab-label{font-size:16px !important;}}
+.me-tabs>button{min-width:0;white-space:normal !important;overflow-wrap:anywhere;hyphens:auto;line-height:1.1;}
+.pta-acts .pta-actbtn{padding-left:8px;padding-right:8px;}
+/* AUDIT 2: dlhé mená psov (24 znakov) sa zalomia namiesto orezania trojbodkou alebo pretečenia. */
+html.papyrus3d .dv2-st .dv2-nm{white-space:normal;max-width:100%;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;text-align:center;line-height:1.1;}
+html.papyrus3d .did-namelast{white-space:normal;}
+html.papyrus3d .me-hg .ba b{white-space:normal;overflow-wrap:anywhere;text-align:center;line-height:1.05;font-size:16px;min-width:0;max-width:100%;}
 ${BEZ_ZVACSENIA}{font-family:'Cinzel Decorative',serif !important;}
 `;
 

@@ -619,6 +619,7 @@ html.papyrus3d .pta-stat b{display:block;font-family:'LT Museum',serif;font-weig
 html.papyrus3d .pta-stat b{overflow-wrap:anywhere;}
 @media (max-width:430px){html.papyrus3d .pta-stat b{font-size:16px;}html.papyrus3d .pta-stat>img{width:44px !important;height:44px !important;}}
 html.papyrus3d .pta-stat span{font-size:10px;letter-spacing:.14em;color:var(--p3d-gold-ink);}
+@media (max-width:374px){html.papyrus3d .pta-stat{padding:12px 8px;gap:4px;}html.papyrus3d .pta-stat>img{width:40px !important;height:40px !important;}}
 /* Ceruzka „upraviť výlet“: papyrusový kruh ako šípka späť, farebná samolepka namiesto bielej kresby. */
 html.papyrus3d .pta-edit{background:linear-gradient(180deg,#fff,var(--p3d-paper));border-color:var(--p3d-ink);box-shadow:var(--p3d-b3);}
 /* Pilulky tagov ostávajú s emoji; len 3D šat. */

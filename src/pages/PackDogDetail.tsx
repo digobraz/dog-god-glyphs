@@ -170,7 +170,7 @@ html.papyrus3d .did-strip{gap:${PACK_SPACE.sm}px;padding:0;margin-bottom:${PACK_
 html.papyrus3d .did-strip div{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.xs}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
 html.papyrus3d .did-strip div+div{border-left:2.5px solid var(--p3d-ink);}
 html.papyrus3d .did-strip b{font-size:${PACK_TEXT.lead}px;line-height:1;}
-html.papyrus3d .did-strip span{font-size:${PACK_TEXT.micro}px;line-height:1.2;}
+html.papyrus3d .did-strip span{font-size:${PACK_TEXT.micro}px;line-height:1.2;max-width:100%;overflow-wrap:anywhere;hyphens:auto;}
 html.papyrus3d .did-name--app{font-family:'LT Museum',serif;font-weight:400;letter-spacing:0;text-transform:none;} /* písmo: meno */
 html.papyrus3d .dic-card{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-b3);margin:0 0 ${PACK_SPACE.xl}px;}
 html.papyrus3d .dic-card.dic-dark{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border:2.5px solid var(--p3d-ink);margin:0 0 ${PACK_SPACE.xl}px;}
