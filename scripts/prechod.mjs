@@ -173,7 +173,8 @@ const IN_PAGE = () => {
         const r = e.getBoundingClientRect();
         if (r.top < 0 || r.bottom > innerHeight || r.left < 0 || r.right > innerWidth || e.closest(MAPA)) continue;
         const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-        if (hit && !e.contains(hit) && !hit.contains(e)) out.push({ druh: 'ZAKRYTE', txt: meno(e) || e.tagName, src: src(e), o: 'nová ponuka pod: ' + src(hit) });
+        // Obsah pod spodnou lištou sa dá odrolovať, to nie je zakrytie ponuky.
+        if (hit && !e.contains(hit) && !hit.contains(e) && !/PackLayout|packDockMedal/.test(src(hit))) out.push({ druh: 'ZAKRYTE', txt: meno(e) || e.tagName, src: src(e), o: 'nová ponuka pod: ' + src(hit) });
       }
       return out;
     },

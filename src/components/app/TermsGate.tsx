@@ -16,7 +16,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/i18n/LanguageContext';
 import { HandHeart } from '@/components/pack/HandIcons';
 import { AlertIc, CheckIc } from '@/components/app/sysSwap';
-import ainubisFace from '@/assets/ainubis-head.webp';
+import ainubisHead from '@/assets/ainubis-head.webp';
+import { APP_NEW } from '@/lib/packFlags';
+import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
+const ainubisFace = APP_NEW ? AI_LOGO : ainubisHead;
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import {

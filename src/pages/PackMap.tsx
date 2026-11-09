@@ -2676,23 +2676,24 @@ html.papyrus3d .trp-root .trp-layersdd-row input[type=radio]:checked{background:
 html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
 @media (max-width:${PALE_PC_MIN - 1}px){
   /* hlavička VON (A1): papyrus, zlatá lišta pod ňou, tmavá línia a tieň */
-  html.papyrus3d .trp-mheader{background:var(--p3d-card);border:0;border-bottom:6px solid var(--p3d-gold);border-radius:0;box-shadow:0 3px 0 var(--p3d-ink),0 8px 12px var(--p3d-sh);padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 16px;gap:12px;mask-image:none;-webkit-mask-image:none;}
+  html.papyrus3d .trp-mheader{background:var(--p3d-card);border:0;border-bottom:6px solid var(--p3d-gold);border-radius:0;box-shadow:0 3px 0 var(--p3d-ink),0 8px 12px var(--p3d-sh);padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 16px;gap:12px;mask-image:none;-webkit-mask-image:none;}
   html.papyrus3d .trp-mheader::after{display:none;}
   /* veľký kruh človeka, vpravo dole pes, vpravo hore planéta levelu s číslom (bez riadkov km a výletov) */
-  html.papyrus3d .trp-mheader-status{top:0;height:66px;margin-bottom:12px;}
-  html.papyrus3d .trp-mheader-status .trp-midentity{position:relative;flex:0 0 104px;width:104px;height:66px;display:block;padding:0;}
+  /* 9. 11. 2026 (Matej): riadok má výšku radu feedu (PACK_TOPROW: vrch 8, výška 40), aby kapsula SOS + správy + upozornenia stála 1:1 ako na feede */
+  html.papyrus3d .trp-mheader-status{top:0;height:40px;margin-bottom:12px;}
+  html.papyrus3d .trp-mheader-status .trp-midentity{position:relative;flex:0 0 72px;width:72px;height:40px;display:block;padding:0;}
   html.papyrus3d .trp-mheader-status .trp-midentity-txt{display:none;}
   html.papyrus3d .trp-mheader-status .trp-avs{position:absolute;inset:0;display:block;}
-  html.papyrus3d .trp-mheader-status .trp-av{position:absolute;left:0;top:0;width:66px;height:66px;margin:0;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 4px 0 2px var(--p3d-ink);font-size:24px;}
+  html.papyrus3d .trp-mheader-status .trp-av{position:absolute;left:0;top:0;width:40px;height:40px;margin:0;border:2px solid var(--p3d-gold);box-shadow:0 0 0 1px var(--p3d-ink),0 2px 0 1px var(--p3d-ink);font-size:16px;}
   html.papyrus3d .trp-catpill{overflow-wrap:anywhere;hyphens:auto;line-height:1.15;}
-  /* pes: spodok takmer v rovine so spodkom fotky človeka (66), dolná hrana planétky ostáva ZA ním (planéta z 4, pes z 5) */
-  html.papyrus3d .trp-mheader-status .trp-avs .trp-avd{left:54px;top:26px;width:42px;height:42px;border-width:2px;z-index:5;}
+  /* pes: spodok takmer v rovine so spodkom fotky človeka (40), dolná hrana planétky ostáva ZA ním (planéta z 4, pes z 5) */
+  html.papyrus3d .trp-mheader-status .trp-avs .trp-avd{left:32px;top:15px;width:26px;height:26px;border-width:1.5px;z-index:5;}
   html.papyrus3d .trp-mheader-status .trp-avs .trp-avd~.trp-avd{display:none;}
-  html.papyrus3d .trp-mheader-status .trp-midentity--app .rk{--s:46px;position:absolute;left:44px;top:-18px;z-index:4;margin:0;display:block;width:64px;height:52px;}
+  html.papyrus3d .trp-mheader-status .trp-midentity--app .rk{--s:28px;position:absolute;left:26px;top:-8px;z-index:4;margin:0;display:block;width:40px;height:32px;}
   html.papyrus3d .trp-mheader-status .rk .ic{position:absolute;inset:0;width:auto;height:auto;}
   html.papyrus3d .trp-mheader-status .rk .cp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;width:auto;height:auto;min-width:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;z-index:3;}
   html.papyrus3d .trp-mheader-status .rk .fl{display:none;}
-  html.papyrus3d .trp-mheader-status .rk .nb{position:static;font:600 20px/1 'Space Grotesk',sans-serif;color:#fff;text-shadow:0 1px 2px var(--p3d-ink),0 2px 5px var(--p3d-ink);}
+  html.papyrus3d .trp-mheader-status .rk .nb{position:static;font:600 12px/1 'Space Grotesk',sans-serif;color:#fff;text-shadow:0 1px 2px var(--p3d-ink),0 2px 5px var(--p3d-ink);}
   html.papyrus3d .trp-mheader-status .trp-headright{gap:0;}
   /* hľadanie a Filtre */
   html.papyrus3d .trp-mheader-row2{gap:8px;}

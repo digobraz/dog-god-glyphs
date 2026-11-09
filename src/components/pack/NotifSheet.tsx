@@ -12,6 +12,7 @@
 // · TIPY hovorí AINUBIS (oznamy appky = jeho šat, brand §AINUBIS). Každý tip sa MERIA
 //   (DOG ID z dogEvents, výlety z tripShared, SNIFFER z assnif_settings) a zmizne sám, keď
 //   je splnený — nikdy nie zoznam natvrdo.
+import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 import type React from 'react';
 import { forwardRef, lazy, Suspense, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -425,7 +426,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
               ))}
               {!APP_NEW && tips.map((tip) => (
                 <div key={tip.id} className="ntf-row ntf-row--ai">
-                  <span className="ntf-av"><img src={ainubisHead} alt="" /></span>
+                  <span className="ntf-av"><img src={APP_NEW ? AI_LOGO : ainubisHead} alt="" /></span>
                   <span className="ntf-txt">
                     <span className="ntf-ai"><span>AI</span>NUBIS</span> · {tip.title}
                     <small>{tip.sub}</small>

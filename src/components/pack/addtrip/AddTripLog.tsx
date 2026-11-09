@@ -23,7 +23,7 @@
 // zaznač, až potom vyplň." Poradie krokov je jeho, doslova:
 //   1 TRASA · 2 ODKAZY NA TRASU · 3 ZÁKLAD · 4 O TRASE · 5 OSTATNÉ
 // Zadanie: `plany/zadanie-mapa-kroky-2026-08-23.md`
-import { AinubisBubble } from '@/components/pack/ainubisSheet';
+import { AinubisBubble, AINUBIS_FACE as ainubisFace } from '@/components/pack/ainubisSheet';
 import { AinubisGuide } from './AinubisGuide';
 import { openAinubis } from '@/lib/ainubisBus';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
@@ -68,7 +68,6 @@ import { CROWDS, CROWD_EMOJI, type Crowd } from '@/components/pack/packCommunity
 import { MARK_EMOJI, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { POINTS, NOTE_POINTS_TRIP_CAP } from '@/lib/tripPoints';
 import { GROUP_KINDS, groupOf, type NoteGroup, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
-import ainubisFace from '@/assets/ainubis-head.webp';
 import { GROUP_TINT, HAZARD_RED } from '@/components/pack/mapnotes/NotePalette';
 import { KindGrid } from '@/components/pack/mapnotes/KindGrid';
 import { PLANNING_LIVE } from '@/lib/packFlags';
@@ -5283,7 +5282,7 @@ html.papyrus3d .atl-log-title--big{font-size:24px;}
 html.papyrus3d .atl-log-title--big::after{display:none;}
 html.papyrus3d .atl-ask{font-size:24px;line-height:1.15;}
 html.papyrus3d .atl-ask-sub{font-size:14px;color:color-mix(in srgb,var(--p3d-ink) 58%,var(--p3d-paper));}
-html.papyrus3d .atl-log-back{${P3D_B3(0, 16)}--b3-r:50%;width:48px;height:48px;min-height:0;padding:0;border-radius:50%;box-shadow:var(--p3d-lift);}
+html.papyrus3d .atl-log-back{${P3D_B3(0, 16)}--b3-r:50%;width:36px;height:36px;min-height:0;padding:0;border-radius:50%;box-shadow:var(--p3d-lift);}
 html.papyrus3d .atl-log-back:hover{background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);border-color:var(--b3-l);}
 html.papyrus3d .atl-log-back:active{transform:translateY(3px);box-shadow:none;}
 /* KROKY: len kruhy (popisok sa nezobrazuje, ostáva pre čítačku), hotové zlaté, aktívny lapis */

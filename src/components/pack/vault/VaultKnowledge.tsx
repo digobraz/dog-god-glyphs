@@ -21,11 +21,14 @@ import { PackTopRight } from '@/components/pack/PackLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useT } from '@/i18n/LanguageContext';
 import { CheckIc, LikeHeartIc, SaveIc } from '@/components/app/sysSwap';
+import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { svetImg } from '@/components/pack/ainubis/3d/zaklad';
 import { VAULT_WORLDS } from './worlds';
 import { VAULT_CIRCLES } from './circles';
 import { VAULT_BADGES } from './vaultBadges';
 import { useLearner } from './useLearner';
-import { LearnerPanel, RANK_PANEL_CSS, RANK_BADGE_ON } from '@/components/pack/profile/rankBadge';
+import { LearnerPanel, RANK_PANEL_CSS, RANK_BADGE_ON, learnerImg } from '@/components/pack/profile/rankBadge';
 import { scrollThumb, type DemoScroll, type ReadRow, pickText, scrollLang, fmtSec, useReads, useMyRequests, useEventSums, useEarnedBadges } from './vaultScrolls';
 
 type Lang = 'sk' | 'cs' | 'en';
@@ -71,6 +74,8 @@ const UI = {
   },
 };
 
+/** APP_NEW: odznaky idú ako samolepky z `public/icons/sys/` (hárok AINUBIS 3D). */
+const BADGE_SYS: Record<string, string> = { first: 'fajka', ear: 'prehraj', seven: 'zamok', circle: 'trofej', heart: 'lajk', voice: 'ceruzka', tongues: 'jazyk', hero42: 'mapa' };
 const isDone = (r?: ReadRow) => !!(r && (r.read_at || r.listened_at));
 /** Šírka výplne PROGRESU (recept `.pk-progress`) — podiel 0…1 na percentá. */
 const fill = (part: number) => {
@@ -232,9 +237,11 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
       <div className="zv-wrap pk-stage vk">
         <BackButton tone="ainubis" onClick={onClose} label={u.back} className="zv-back" />
         <header className="vk-head">
-          <span className="pk-medallion pk-medallion--md" style={{ width: PACK_AVATAR.md, height: PACK_AVATAR.md }}>
-            {avatarUrl ? <img src={avatarUrl} alt="" /> : avatarInitial}
-          </span>
+          {APP_NEW
+            ? <img className="vk-lv" src={learnerImg(Math.max(1, learner.level))} alt="" />
+            : <span className="pk-medallion pk-medallion--md" style={{ width: PACK_AVATAR.md, height: PACK_AVATAR.md }}>
+              {avatarUrl ? <img src={avatarUrl} alt="" /> : avatarInitial}
+            </span>}
           <div>
             <span className="zv-meta">{u.eyebrow}</span>
             <h1 className="zv-h">{u.title}</h1>
@@ -282,7 +289,9 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
           <h3 className="zv-sec">{u.worlds}</h3>
           {s.worlds.map(({ w, n }) => (
             <div key={w.key} className="vk-world" style={{ ['--vk-w' as string]: WORLD_TINT[w.key] || AINUBIS.cyanRGB }}>
-              <i className="zv-ic" aria-hidden style={{ WebkitMaskImage: `url(/icons/pack/${w.ic}.svg)`, maskImage: `url(/icons/pack/${w.ic}.svg)` }} />
+              {APP_NEW
+                ? <img src={svetImg(w.key)} alt="" />
+                : <i className="zv-ic" aria-hidden style={{ WebkitMaskImage: `url(/icons/pack/${w.ic}.svg)`, maskImage: `url(/icons/pack/${w.ic}.svg)` }} />}
               <em>{worldName(w.key)}</em>
               <small>{n} / {w.scrolls}</small>
               <div className="pk-progress"><div className="pk-progress__fill" style={fill(n / Math.max(1, w.scrolls))} /></div>
@@ -297,7 +306,9 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
               const got = have >= b.goal;
               return (
                 <div key={b.id} className={`vk-badge${got ? ' is-got' : ''}`} title={b.how[L]}>
-                  <span className="vk-bic"><i style={{ ['--ic' as string]: `url(/icons/pack/${b.ic}.svg)` }} /></span>
+                  <span className="vk-bic">{APP_NEW && BADGE_SYS[b.id]
+                    ? <SysIcon name={BADGE_SYS[b.id]} size={52} />
+                    : <i style={{ ['--ic' as string]: `url(/icons/pack/${b.ic}.svg)` }} />}</span>
                   <b>{b.name[L]}</b>
                   <small>{got ? u.got : `${u.more} ${b.goal - have}`} · {b.how[L]}</small>
                   {!got && b.goal > 1 && <div className="pk-progress"><div className="pk-progress__fill" style={fill(have / b.goal)} /></div>}
@@ -338,9 +349,12 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
             const z = scrolls.find((x) => x.id === q.scroll_id);
             return (
               <div key={q.id} className="vk-req">
-                <small>{u.kinds[q.kind]}{q.lang ? ` · ${q.lang.toUpperCase()}` : ''} · {fmtDate(q.created_at)} · {u.status[q.status as keyof typeof u.status] || q.status}</small>
-                {z && <b>{pickText(z, lang).t}</b>}
-                {q.body && <p>{q.body}</p>}
+                <div>
+                  <small>{u.kinds[q.kind]}{q.lang ? ` · ${q.lang.toUpperCase()}` : ''} · {fmtDate(q.created_at)}{APP_NEW ? '' : ` · ${u.status[q.status as keyof typeof u.status] || q.status}`}</small>
+                  {z && <b>{pickText(z, lang).t}</b>}
+                  {q.body && <p>{q.body}</p>}
+                </div>
+                {APP_NEW && <span className="vk-st" data-s={q.status}>{u.status[q.status as keyof typeof u.status] || q.status}</span>}
               </div>
             );
           }) : <p className="vk-none">{u.noneMine}</p>}

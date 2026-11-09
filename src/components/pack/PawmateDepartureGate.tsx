@@ -5,6 +5,7 @@
 // svoje príspevky, označenie a POŽIADAŤ O ZMAZANIE. Rozhoduje pawtner (Moja svorka).
 // Hovorí AINUBIS — oznamy appky sú jeho (CLAUDE.md §Brand, `ainubisSkin.ts`).
 // Kto má vlastného psa alebo iný prístup, bránu nevidí: účet mu ostáva, stratil len tohto psa.
+import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 import { APP_NEW } from '@/lib/packFlags';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { useEffect, useState } from 'react';
@@ -109,6 +110,7 @@ export function PawmateDepartureGate() {
       <style>{CSS}</style>
       <div className="pd-col">
         <div className="pd-msg">
+          {APP_NEW && <img className="pd-logo" src={AI_LOGO} alt="" aria-hidden />}
           <span className="pd-name"><span>AI</span>NUBIS</span>
           <p>{fill(tx('pack.leave.removed', '{owner} removed you from {dog}’s pack.'))}</p>
           <span className="pd-days">{daysLabel}</span>

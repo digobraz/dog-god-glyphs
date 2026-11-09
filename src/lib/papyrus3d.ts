@@ -5,6 +5,8 @@
 // nepodstatných vecí, v ainubisovi je celkom dobrá veľkosť, ale pri /map zoznam je to dosť malé)".
 // `size-adjust` na rodine Cinzel zväčší každý nadpis a CTA naraz bez zásahu do 375 miest v kóde.
 // Decorative ho nemá, takže čo má ostať malé, stačí prehodiť naň (`BEZ_ZVACSENIA`).
+import { AI3D_CSS } from '@/components/pack/ainubis/3d';
+
 const SUBOR = '/fonts/g/ltmuseum-black-test-v1.woff2';
 const VAHY = [400, 500, 600, 700, 800, 900];
 const ZVACSENIE = '116%'; // 12 → 14 · 14 → 16 · 16 → 18,5 · 20 → 23
@@ -80,6 +82,6 @@ html.papyrus3d .pdel-no{--pdel-p:${P3D_PAGE.goldSolid};color:${P3D_PAGE.ink};bor
 export function zapniPapyrus3d() {
   document.documentElement.classList.add('papyrus3d');
   const s = document.createElement('style');
-  s.textContent = face('Cinzel', `size-adjust:${ZVACSENIE};`) + face('Cinzel Decorative') + face('LT Museum') + VACSI_TEXT + B3_CSS;
+  s.textContent = face('Cinzel', `size-adjust:${ZVACSENIE};`) + face('Cinzel Decorative') + face('LT Museum') + VACSI_TEXT + B3_CSS + AI3D_CSS;
   document.head.appendChild(s);
 }

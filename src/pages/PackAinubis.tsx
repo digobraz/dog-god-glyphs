@@ -66,6 +66,7 @@ import { HandArrowLeft, HandLock, HandSearch, HandPaw, HandStar, HandPlus, HandF
 import { BackIc, LockIc, SearchIc, CheckIc } from '@/components/app/sysSwap';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
+import { AI_LOGO, svetImg } from '@/components/pack/ainubis/3d/zaklad';
 
 /* ⚠️ JEDNA HRANICA — tá istá ako na mape (`PackMap`: ≤1023 = mobilný pohľad
    s pilulkou ZOZNAM). Dve čísla by znamenali šírku, kde má mapa pilulku a VAULT nie. */
@@ -642,7 +643,7 @@ function AinubisApp() {
 /* APPKA (APP_NEW, 9. 11. 2026): samolepky z továrne namiesto masiek (maska farebnú kresbu nevykreslí). Samolepka je o 4 px väčšia
    než maska, záporný margin drží výšku pilulky. Pod `APP_NEW` sa vkladá až za CSS, mimo appky sa nevykreslí vôbec. */
 const APP_ICO_CSS = `
-.akv-ctlbtn i,.akv-ctlbtn[aria-expanded="true"] i{width:24px;height:24px;background:url(/icons/sys/vrstvy.webp) center/contain no-repeat;-webkit-mask:none;mask:none;}
+.akv-ctlbtn i,.akv-ctlbtn[aria-expanded="true"] i{width:30px;height:30px;background:url(/icons/sys/vrstvy.webp) center/contain no-repeat;-webkit-mask:none;mask:none;}
 .akv-fbtn i{width:22px;height:22px;margin:-4px 0;background:url(/icons/sys/filter.webp) center/contain no-repeat;-webkit-mask:none;mask:none;}
 .akv-pos-b i,.akv-listen i{width:18px;height:18px;margin:-3px 0;background:url(/icons/sys/prehraj.webp) center/contain no-repeat;-webkit-mask:none;mask:none;}
 `;
@@ -865,6 +866,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   const [sheet, setSheet] = useState(false);
   // POPUP (26. 10. 2026): úchyt sa dal len ťuknúť, nie stiahnuť — teraz ťahá ako každý úchyt v /pack.
   const sheetSwipe = useSheetSwipe(() => setSheet(false));
+  /* APPKA (šat AINUBIS 3D): Okruhy sú panel zdola s úchytom, ktorý sa dá stiahnuť (lock POPUP). */
+  const posSwipe = useSheetSwipe(() => setPosDd(false));
 
   const rootRef = useRef<HTMLDivElement>(null);
   const cvRef = useRef<HTMLCanvasElement>(null);
@@ -918,7 +921,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
       canvas: cv,
       tip,
       worlds: VAULT_WORLDS,
-      head: ainubisHead,
+      head: APP_NEW ? AI_LOGO : ainubisHead,
       isMobile: () => !isPc(),
       worldName: (wi) => live.current.names[wi],
       circleName: (wi, oi) => live.current.circleName(wi, oi),
@@ -1047,7 +1050,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   const planes = (cls: string) => (
     <nav className={`akv-planes ${cls}`} aria-label="AINUBIS">
       <button type="button" className="akv-plane" aria-current={plane2 === 'vault' ? 'page' : undefined}
-        onClick={() => goPlane('vault')}>{plane('vault', 'Scrolls')}</button>
+        onClick={() => goPlane('vault')}>{APP_NEW && <SysIcon name="zoznam" size={22} />}{plane('vault', 'Scrolls')}</button>
       {/* CHAT = kôš 3. V PRODUKCII sa otvára tým istým kanálom ako doteraz
           (`ainubisBus`), takže beží presne ten chat, ktorý žije naostro.
           V DEVE sa prepne na MAKETU podľa nákresu v5 (`VaultChat`). */}
@@ -1055,17 +1058,17 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           vyblednuté („čoskoro"), kým ich neupraceme; naplno žijú len na DEVE. */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'chat' ? 'page' : undefined}
         disabled={!CHAT_LIVE && !pv} title={CHAT_LIVE || pv ? undefined : soon}
-        onClick={() => goPlane('chat')}>{plane('chat', 'Chat')}</button>
+        onClick={() => goPlane('chat')}>{APP_NEW && <SysIcon name="pridaj-chat" size={22} />}{plane('chat', 'Chat')}</button>
       {/* „čoskoro" len v tooltipe — v SK „NÁSTENKA ČOSKORO" pretiekla z pilulky (390 px aj PC 40 %). */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'wall' && wallTab !== 'lib' ? 'page' : undefined}
         disabled={!WALL_MOCK && !pv} title={WALL_MOCK || pv ? undefined : soon}
-        onClick={() => goPlane('wall')}>{plane('wall', 'Forum')}</button>
+        onClick={() => goPlane('wall')}>{APP_NEW && <SysIcon name="svorka" size={22} />}{plane('wall', 'Forum')}</button>
       {/* ZDROJE = štvrtá rovina (Matej 8. 10. 2026). Dovtedy záložka KNIŽNICA vnútri fóra;
           obrazovka je tá istá (`?plane=wall&tab=lib`), čip len skracuje cestu.
           Zamknutá rovnako ako fórum — zoznam je zatiaľ maketa s opísanými číslami. */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'wall' && wallTab === 'lib' ? 'page' : undefined}
         disabled={!SOURCES_MOCK && !pv} title={SOURCES_MOCK || pv ? undefined : soon}
-        onClick={openLibrary}>{plane('sources', 'Sources')}</button>
+        onClick={openLibrary}>{APP_NEW && <SysIcon name="dokument" size={22} />}{plane('sources', 'Sources')}</button>
     </nav>
   );
 
@@ -1182,11 +1185,22 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   );
   const posBar = (cls: string) => curZ && (
     <div className={`akv-pos ${cls}`} style={aiWorld(curZ.world)}>
-      <button type="button" className="akv-pos-b wp-back" aria-pressed title={tx('pack.ainubis.pos.worlds', 'Worlds')} onClick={closeWorld}>
-        <BackIc size={12} />
-        <span className="akv-pos-ic" aria-hidden style={mask(VAULT_WORLDS[curW].ic)} />
-        <span>{names[curW]}</span>
-      </button>
+      {APP_NEW ? (
+        <>
+          <button type="button" className="akv-pos-b wp-back akv-pos-back" title={tx('pack.ainubis.pos.worlds', 'Worlds')}
+            aria-label={tx('pack.ainubis.pos.worlds', 'Worlds')} onClick={closeWorld}>
+            <SysIcon name="spat" size={22} />
+          </button>
+          <img className="akv-pos-img" src={svetImg(VAULT_WORLDS[curW].key)} alt="" aria-hidden draggable={false} />
+          <span className="akv-pos-w3">{names[curW]}</span>
+        </>
+      ) : (
+        <button type="button" className="akv-pos-b wp-back" aria-pressed title={tx('pack.ainubis.pos.worlds', 'Worlds')} onClick={closeWorld}>
+          <BackIc size={12} />
+          <span className="akv-pos-ic" aria-hidden style={mask(VAULT_WORLDS[curW].ic)} />
+          <span>{names[curW]}</span>
+        </button>
+      )}
       <span className="akv-pos-c" title={scrollCircle(curZ, lang)}>O{curZ.okruh} · {scrollCircle(curZ, lang)}</span>
       <span className="akv-pos-n">{inWorld.indexOf(curZ) + 1}/{inWorld.length}</span>
       <div className="akv-pos-acts">
@@ -1212,7 +1226,13 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
       {posDd && (
         <>
           <span style={{ position: 'fixed', inset: 0, zIndex: -1 }} onClick={() => setPosDd(false)} aria-hidden />
-          <div className="akv-pos-dd" role="listbox">
+          <div className="akv-pos-dd" role="listbox" style={APP_NEW ? posSwipe.sheetStyle : undefined}>
+            {APP_NEW && (
+              <div className="akv-stop" {...posSwipe.handle}>
+                <span className="akv-grab pk-grab" aria-hidden />
+                <div className="akv-sttl">{tx('pack.ainubis.pos.circles', 'Circles')}</div>
+              </div>
+            )}
             {circlesOf.map((list, i) => {
               const done = list.length > 0 && list.every(isRead);
               return (
@@ -1368,12 +1388,15 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
                   const list = feed.filter((z) => z.world === w.key);
                   const head = (
                     <>
-                      <span className="akv-wic wp-ic" aria-hidden style={mask(w.ic)} />
+                      {APP_NEW
+                        ? <img className="wp-img" src={svetImg(w.key)} alt="" aria-hidden draggable={false} />
+                        : <span className="akv-wic wp-ic" aria-hidden style={mask(w.ic)} />}
                       <span className="wp-top">
                         <span className="wp-name">{names[i]}</span>
                         {list.length > 0 && <span className="wp-go" aria-hidden><BackIc size={14} /></span>}
                         {feed.length > 0 && !list.length && <span className="wp-lock" aria-hidden><LockIc size={14} /></span>}
                       </span>
+                      {APP_NEW && <span className="wp-tease">{tx(`pack.ainubis.tease.${w.key}`, w.tease)}</span>}
                     </>
                   );
                   if (!list.length) return (
@@ -1481,7 +1504,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           onClick={() => setView((v) => (v === 'brain' ? 'scroll' : 'brain'))}
         >
           {APP_NEW
-            ? <SysIcon name={view === 'brain' ? 'zoznam' : 'mozog'} size={22} />
+            ? <SysIcon name={view === 'brain' ? 'zoznam' : 'mozog'} size={38} />
             : <i aria-hidden style={mask(view === 'brain' ? 'menu' : 'idea')} />}
           {view === 'brain'
             ? tx('pack.ainubis.view.dogscroll', 'Dogscroll')

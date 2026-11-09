@@ -14,6 +14,7 @@ import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { APP_NEW } from '@/lib/packFlags';
+import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 import { AinubisSheet } from '@/components/pack/ainubisSheet';
 import { FLOW_CSS } from '@/components/pack/dogid/flowCss';
 import {
@@ -175,6 +176,7 @@ function Modules({ tx, dogs, onlyDog }: { tx: Tx; dogs: Dog[] | null; onlyDog: s
 function Say({ text, tx }: { text: string; tx: Tx }) {
   return (
     <div className="dfl-say">
+      {APP_NEW && <img className="dfl-logo" src={AI_LOGO} alt="" aria-hidden />}
       <span className="who"><span>AI</span>NUBIS</span>
       <span dangerouslySetInnerHTML={{ __html: tx(text) }} />
     </div>
@@ -188,6 +190,7 @@ function Tip({ title, texts, tx }: { title?: string; texts: string[]; tx: Tx }) 
   return (
     <>
       <button type="button" className="dfl-tip" onClick={() => setOpen(true)}>
+        {APP_NEW && <img className="dfl-logo" src={AI_LOGO} alt="" aria-hidden />}
         <span className="who"><span>AI</span>NUBIS</span>
         <span className="tt">{title ? tx(title) : ''}</span>
         <BrandIcon name="back" size={12} tint="gold" style={{ transform: 'rotate(180deg)', flex: 'none' }} />

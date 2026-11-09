@@ -42,6 +42,8 @@ import { APP_NEW } from '@/lib/packFlags';
 import { SosButton } from './SosButton';
 import { AvatarRing, AV_D, AV_D_HEAD, PHOTO, photoAt } from './AvatarRing';
 import { firstNameFrom } from '@/lib/pilgrimName';
+import { sizedUrl } from '@/services/cloudinaryService';
+import { learnerImg } from './profile/rankBadge';
 
 /** Krstné meno — PORADIE AKO blok JA v `Pack.tsx` (`displayName`): účet (full_name
  *  z /pack/profile) → meno z objednávky psa (`dogs.owner_name`, kartuša) → e-mail.
@@ -159,6 +161,27 @@ export function PackIdentityBar({ id, middle, stats, primary, onMe, pcStats, mSt
   usePublishPilgrimLevel(view.ready ? view.level.level : null);
 
   const lv = view.level;
+  /* APPKA (APP_NEW, 9. 11. 2026, šat AINUBIS 3D): hlavička ako na mape. Fotka človeka, fotka psa a level planétkou
+     s číslom v strede; štatistiky (km, zvitky, %) preč. Rozmery a CSS: `components/pack/ainubis/3d/vault.ts` (`.pkid-app`). */
+  if (APP_NEW) {
+    const lvl = ring ? ring.level : lv.level;
+    const dog = (id.dogs ?? []).find((d) => d.cloudinary_main_url);
+    return (
+      <div className="pkid pkid--app">
+        <style>{CSS}</style>
+        <button type="button" className="pkid-me pkid-app" onClick={onMe ?? (() => navigate('/pack/map/triplist?tab=stats'))}
+          aria-label={ring ? ring.aria : t('pack.map.levelAriaLabel', { level: lv.level })}>
+          {id.avatarUrl
+            ? <img className="pkid-app-av" src={sizedUrl(id.avatarUrl, 160)} alt="" />
+            : <span className="pkid-app-av pkid-app-av--init">{id.avatarInitial}</span>}
+          {dog && <img className="pkid-app-dg" src={sizedUrl(dog.cloudinary_main_url as string, 120)} alt="" />}
+          <span className="pkid-app-lv"><img src={learnerImg(lvl)} alt="" style={{ opacity: lvl ? 1 : .5 }} /><b>{lvl}</b></span>
+        </button>
+        <div className="pkid-mid">{middle}</div>
+        <div className="pkid-right"><PackTopRight last24h={id.packToday} total={id.packTotal} layout="inline" /></div>
+      </div>
+    );
+  }
   return (
     <div className={pcStats ? 'pkid pkid--head' : 'pkid'}>
       <style>{CSS}</style>

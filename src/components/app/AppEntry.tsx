@@ -14,7 +14,10 @@ import {
 } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
 import { sizedUrl } from '@/services/cloudinaryService';
-import ainubisFace from '@/assets/ainubis-head.webp';
+import ainubisHead from '@/assets/ainubis-head.webp';
+import { APP_NEW } from '@/lib/packFlags';
+import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
+const ainubisFace = APP_NEW ? AI_LOGO : ainubisHead;
 import doorImg from '@/assets/app/brana-dvere.webp';
 import pawImg from '@/assets/app/dotyk-labka.webp';
 import handImg from '@/assets/app/dotyk-ruka.webp';

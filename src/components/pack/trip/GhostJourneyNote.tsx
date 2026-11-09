@@ -8,7 +8,8 @@
 // magistrála čiernobiela (`isGhostJourney`). Blok = AI-PALUBA z katalógu `PACK_BLOCKS` —
 // hovorí AINUBIS, nie papyrus. Recept je ten istý ako `.cal-longev` v kalendári (hlava
 // v kruhu, meno <span>AI</span>NUBIS); CTA je jeho zlato-oranžové, tvar 8 px ako každé CTA.
-import ainubisFace from '@/assets/ainubis-head.webp';
+import { AINUBIS_FACE as ainubisFace } from '@/components/pack/ainubisSheet';
+import { APP_NEW } from '@/lib/packFlags';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { PACK_R, PACK_SHADOW, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
@@ -36,7 +37,7 @@ export function GhostJourneyNote({ onClaim }: { onClaim: () => void }) {
       <style>{CSS}</style>
       <span className="gjn-face" aria-hidden><img src={ainubisFace} alt="" /></span>
       <p className="gjn-txt">
-        <span className="gjn-ai"><span>AI</span>NUBIS</span>{': '}
+        <span className="gjn-ai"><span>AI</span>NUBIS</span>{APP_NEW ? null : ': '}
         {t('pack.trip.ghost.body')}
       </p>
       <button type="button" className="gjn-cta" onClick={onClaim}>{t('pack.trip.ghost.cta')}</button>

@@ -799,7 +799,8 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
         <div
           className="pack-avatar-menu pack-avatar-mini"
           style={{
-            position: 'absolute', left: '50%', bottom: 'calc(100% + 8px)', transform: 'translateX(-50%)', zIndex: 50,
+            // `width: max-content`: fixovaný `left:50%` má dostupnú len polovicu rodiča a telefón by fotky zúžil.
+            position: 'absolute', left: '50%', bottom: 'calc(100% + 8px)', transform: 'translateX(-50%)', zIndex: 50, width: 'max-content',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 4, borderRadius: 999,
             border: '2.5px solid var(--p3d-ink)', background: 'var(--p3d-card)', boxShadow: 'var(--p3d-lift)',
           }}
@@ -808,7 +809,7 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
             type="button"
             aria-label={t('pack.layout.navProfile')}
             onClick={() => go('/pack/profile')}
-            style={{ padding: 0, border: 0, background: 'none', lineHeight: 0, cursor: 'pointer', borderRadius: '50%', outline: pathname.startsWith('/pack/profile') ? '2.5px solid var(--p3d-gold)' : 'none', outlineOffset: 1 }}
+            style={{ width: 44, height: 44, flex: 'none', padding: 0, border: 0, background: 'none', lineHeight: 0, cursor: 'pointer', borderRadius: '50%', outline: pathname.startsWith('/pack/profile') ? '2.5px solid var(--p3d-gold)' : 'none', outlineOffset: 1 }}
           >
             <MiniAvatar avatarUrl={ownerUrl} avatarInitial={avatarInitial} size={44} />
           </button>
@@ -816,7 +817,7 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
             type="button"
             aria-label={t('pack.tree.title')}
             onClick={() => go('/pack/dogs')}
-            style={{ padding: 0, border: 0, background: 'none', lineHeight: 0, cursor: 'pointer', borderRadius: '50%', outline: pathname.startsWith('/pack/dogs') ? '2.5px solid var(--p3d-gold)' : 'none', outlineOffset: 1 }}
+            style={{ width: 44, height: 44, flex: 'none', padding: 0, border: 0, background: 'none', lineHeight: 0, cursor: 'pointer', borderRadius: '50%', outline: pathname.startsWith('/pack/dogs') ? '2.5px solid var(--p3d-gold)' : 'none', outlineOffset: 1 }}
           >
             <MiniAvatar avatarUrl={firstDogUrl} avatarInitial={firstDogInitial} size={44} />
           </button>
@@ -863,7 +864,7 @@ function MiniAvatar({ avatarUrl, avatarInitial, size = 24 }: { avatarUrl?: strin
     <img
       src={sizedUrl(avatarUrl, 160)}
       alt=""
-      style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', display: 'block', border: ring, flexShrink: 0, boxSizing: 'border-box' }}
+      style={{ width: size, height: size, maxWidth: 'none', borderRadius: '50%', objectFit: 'cover', display: 'block', border: ring, flexShrink: 0, boxSizing: 'border-box' }}
     />
   ) : (
     <div style={{

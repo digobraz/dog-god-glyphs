@@ -856,7 +856,7 @@ export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse,
   }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="zv-veil" ref={veil} role="dialog" aria-modal="true" aria-label={x.t}>
+    <div className="zv-veil" ref={veil} role="dialog" aria-modal="true" aria-label={x.t} style={APP_NEW ? aiWorld(z.world) : undefined}>
       <div className="zv-bg" aria-hidden />
       {gal !== null && gallery.length > 0 && <Gallery list={gallery} start={gal} label={u.back} onClose={() => setGal(null)} />}
       {isMobile && (

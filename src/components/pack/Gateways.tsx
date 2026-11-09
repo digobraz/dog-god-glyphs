@@ -32,6 +32,8 @@ import { markConstitutionOpened } from '@/lib/constitutionRead';
 import { Link } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import ainubisHead from '@/assets/ainubis-head.webp';
+import { APP_NEW } from '@/lib/packFlags';
+import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 
 const T = PACK_THEME;
 
@@ -307,7 +309,7 @@ export function Gateways() {
             v kostre a povedaný dvakrát je z neho ospravedlňovanie (nákres 21. 9.:
             „čip na dlaždici AINUBIS — nahradí ho banner v kostre"). */}
         <Link className="gw gw-ainubis pack-card-hover" to="/pack/ainubis">
-          <span className="gw-art"><img src={ainubisHead} alt="" aria-hidden /></span>
+          <span className="gw-art"><img src={APP_NEW ? AI_LOGO : ainubisHead} alt="" aria-hidden /></span>
           <span className="gw-body">
             {/* Meno sa NEPREKLADÁ a delí sa na dve farby priamo v markupe — „AI" je stroj,
                 „NUBIS" strážca. Rovnaký span ako v hlavičke widgetu (`.ainubis-ai`). */}

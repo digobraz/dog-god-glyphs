@@ -383,8 +383,16 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
         <AinubisSheet onClose={() => setAskCancel(false)}>
           <div className="msg-modtitle">{t('pack.event.cancelAskTitle')}</div>
           <div className="msg-modsub">{t('pack.event.cancelAskText')}</div>
-          <button type="button" className="msg-modsend" disabled={busy} onClick={() => void doCancel()}>{t('pack.event.cancelConfirm')}</button>
-          <button type="button" className="msg-modcancel" onClick={() => setAskCancel(false)}>{t('pack.event.cancelKeep')}</button>
+          {/* APP_NEW (šat AINUBIS 3D): ničivé Zrušiť a neutrálne Nechať tak vedľa seba, web ostáva pod sebou */}
+          {(() => {
+            const btns = (
+              <>
+                <button type="button" className={`msg-modsend${APP_NEW ? ' msg-modsend--rd' : ''}`} disabled={busy} onClick={() => void doCancel()}>{t('pack.event.cancelConfirm')}</button>
+                <button type="button" className={`msg-modcancel${APP_NEW ? ' msg-modcancel--nt' : ''}`} onClick={() => setAskCancel(false)}>{t('pack.event.cancelKeep')}</button>
+              </>
+            );
+            return APP_NEW ? <div className="msg-modg2">{btns}</div> : btns;
+          })()}
         </AinubisSheet>
       )}
     </div>

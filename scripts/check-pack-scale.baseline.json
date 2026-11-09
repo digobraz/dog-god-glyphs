@@ -793,7 +793,7 @@
   },
   "components/pack/level/TierScale.tsx": {
     "radius": 1,
-    "font": 3,
+    "font": 0,
     "zavoj": 0,
     "progres": 0,
     "ram": 0,

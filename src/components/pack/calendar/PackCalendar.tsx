@@ -29,6 +29,7 @@
 // nie deň, kedy si šiel. Preto sú tu len výlety, ktoré prešli cez PRIDAJ VÝLET
 // alebo plán s dátumom. Riadok „KEDY" v popupe po ✓ je ďalší krok.
 // ════════════════════════════════════════════════════════════════════════════
+import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -1596,7 +1597,7 @@ function LifeGrid({
               a v mene sú jeho jediné dve písmená v cyane. Kruh je ten istý recept
               ako v medailóne: `faceBg` radiála + `faceRing`. */}
           <span className="cal-longev-face" aria-hidden>
-            <img src={ainubisFace} alt="" />
+            <img src={APP_NEW ? AI_LOGO : ainubisFace} alt="" />
           </span>
           <div className="cal-longev-txt">
             <b>{tx('pack.cal.life.protoTitle', 'Longevity protokol')}</b>

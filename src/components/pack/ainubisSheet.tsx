@@ -12,11 +12,18 @@
 // odteraz ten istý panel, nie vlastnú papyrusovú kópiu.
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
+import { FONT_TITLE, FONT_UI, GOLD_BTN, GRAB_CSS } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
-import ainubisFace from '@/assets/ainubis-head.webp';
+import ainubisHead from '@/assets/ainubis-head.webp';
+import { APP_NEW } from '@/lib/packFlags';
+import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
+import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 
 const A = AINUBIS;
+
+/** Tvár AINUBISA: v appke (`APP_NEW`) pes s cyan očami (šat AINUBIS 3D), web ostáva na pôvodnej hlave. Berú ju aj ostatné povrchy, kde hovorí on. */
+export const AINUBIS_FACE = APP_NEW ? AI_LOGO : ainubisHead;
+const ainubisFace = AINUBIS_FACE;
 
 export const AINUBIS_SHEET_CSS = `
 .msg-modsheet{position:fixed;inset:0;z-index:1400;background:rgba(2,6,11,0.74);display:flex;align-items:flex-end;justify-content:center;}
@@ -65,11 +72,14 @@ export function AinubisWho() {
  * Portál do <body>: v článku výletu by ho inak prekryla bočná lišta (`.pta-acts`).
  */
 export function AinubisSheet({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  // Úchyt je sľub gesta (lock POPUP): v appke sa panel dá stiahnuť. Web ostáva bez neho.
+  const sw = useSheetSwipe(onClose);
   return createPortal((
     <>
-      <style>{AINUBIS_SHEET_CSS}</style>
+      <style>{AINUBIS_SHEET_CSS}{APP_NEW ? GRAB_CSS : ''}</style>
       <div className="msg-modsheet" role="dialog" aria-modal="true" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-        <div className="msg-modpanel">
+        <div className="msg-modpanel" style={APP_NEW ? sw.sheetStyle : undefined}>
+          {APP_NEW && <div className="msg-modtop" {...sw.handle}><span className="pk-grab" aria-hidden /></div>}
           <AinubisWho />
           {children}
         </div>

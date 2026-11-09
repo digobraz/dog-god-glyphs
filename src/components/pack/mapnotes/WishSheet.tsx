@@ -26,7 +26,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import ainubisFace from '@/assets/ainubis-head.webp';
+import { AINUBIS_FACE as ainubisFace, AinubisWho } from '@/components/pack/ainubisSheet';
+import { APP_NEW } from '@/lib/packFlags';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, FONT_UI,
 } from '@/components/pack/packTheme';
@@ -75,18 +76,37 @@ export function WishSheet({ text, onClose, closeLabel, children }: {
       <style>{WISH_SHEET_CSS}</style>
       <div className="ws-wrap" role="dialog" aria-modal="false">
         <div className="ws-deck">
-          <div className="ws-head">
-            <img className="ws-face" src={ainubisFace} alt="" aria-hidden="true" />
-            <p className="ws-text" aria-live="polite">
-              <span aria-hidden="true">{shown}</span>
-              {typing && <i className="ws-caret" aria-hidden="true" />}
-              <span className="ws-sr">{text}</span>
-            </p>
-            <button type="button" className="ws-x" onClick={onClose} aria-label={closeLabel} title={closeLabel}>
-              <HandExit size={17} />
-            </button>
-          </div>
-          <div className="ws-pale" style={{ ...PACK_BOX.subblock }}>
+          {APP_NEW ? (
+            // Šat AINUBIS 3D: meno nad otázkou v boxe s lištou (hárok STEP), krížik ostáva (správanie sa nemení).
+            <>
+              <div className="ws-head">
+                <AinubisWho />
+                <button type="button" className="ws-x" onClick={onClose} aria-label={closeLabel} title={closeLabel}>
+                  <HandExit size={17} />
+                </button>
+              </div>
+              <div className="ws-ask">
+                <p className="ws-text" aria-live="polite">
+                  <span aria-hidden="true">{shown}</span>
+                  {typing && <i className="ws-caret" aria-hidden="true" />}
+                  <span className="ws-sr">{text}</span>
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="ws-head">
+              <img className="ws-face" src={ainubisFace} alt="" aria-hidden="true" />
+              <p className="ws-text" aria-live="polite">
+                <span aria-hidden="true">{shown}</span>
+                {typing && <i className="ws-caret" aria-hidden="true" />}
+                <span className="ws-sr">{text}</span>
+              </p>
+              <button type="button" className="ws-x" onClick={onClose} aria-label={closeLabel} title={closeLabel}>
+                <HandExit size={17} />
+              </button>
+            </div>
+          )}
+          <div className="ws-pale" style={APP_NEW ? undefined : { ...PACK_BOX.subblock }}>
             {children}
           </div>
         </div>

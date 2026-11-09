@@ -12,8 +12,12 @@ import {
   ACCESS_KEYS, clearHistory, listHistory, readAccess, writeAccess,
   type Access, type AccessKey, type HistoryItem,
 } from './ainubisHistory';
-import ainubisFace from '@/assets/ainubis-badge.webp';
+import ainubisBadge from '@/assets/ainubis-badge.webp';
+import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 import './AinubisWidget.css';
+
+/** Logo AINUBISA: v appke (APP_NEW) pes s cyan očami, na webe pôvodný badge. */
+const ainubisFace = APP_NEW ? AI_LOGO : ainubisBadge;
 import { captureViewport, targetContext, type TargetMark } from './ainubisTarget';
 
 /**
@@ -1664,11 +1668,11 @@ function AinubisWidgetInner() {
                 {/* HISTÓRIA A NOVÝ ROZHOVOR (appka MVP): ikonky z kitu (hodiny, plus) maskou. */}
                 <button type="button" className="ainubis-panel__tool" onClick={(e) => { e.stopPropagation(); openHistory(); }}
                   aria-label={tx('ainubis.chat.history', 'Conversations')} title={tx('ainubis.chat.history', 'Conversations')}>
-                  <span className="ainubis-tool-ico ainubis-tool-ico--clock" aria-hidden />
+                  <span className={`ainubis-tool-ico ainubis-tool-ico--clock${APP_NEW ? ' ainubis-sys ainubis-sys--historia' : ''}`} aria-hidden />
                 </button>
                 <button type="button" className="ainubis-panel__tool" onClick={(e) => { e.stopPropagation(); startNewConversation(); }}
                   aria-label={tx('ainubis.chat.new', 'New conversation')} title={tx('ainubis.chat.new', 'New conversation')}>
-                  <span className="ainubis-tool-ico ainubis-tool-ico--plus" aria-hidden />
+                  <span className={`ainubis-tool-ico ainubis-tool-ico--plus${APP_NEW ? ' ainubis-sys ainubis-sys--plus' : ''}`} aria-hidden />
                 </button>
               </span>
             ) : (
@@ -1703,7 +1707,7 @@ function AinubisWidgetInner() {
               {mvp && (
                 <button type="button" className="ainubis-panel__tool" onClick={(e) => { e.stopPropagation(); openSettings(); }}
                   aria-label={tx('ainubis.chat.settings', 'What AINUBIS may see')} title={tx('ainubis.chat.settings', 'What AINUBIS may see')}>
-                  <span className="ainubis-tool-ico ainubis-tool-ico--cog" aria-hidden />
+                  <span className={`ainubis-tool-ico ainubis-tool-ico--cog${APP_NEW ? ' ainubis-sys ainubis-sys--nastavenia' : ''}`} aria-hidden />
                 </button>
               )}
               {!plane && (
@@ -1794,7 +1798,7 @@ function AinubisWidgetInner() {
                       onClick={() => setTarget('aim')}
                       aria-label={copy.targetStart}
                     >
-                      <span className="ainubis-target-ico" aria-hidden />
+                      <span className={`ainubis-target-ico${APP_NEW ? ' ainubis-sys ainubis-sys--poloha' : ''}`} aria-hidden />
                     </button>
                   )}
                   {isUser ? shownContent : linkify(shownContent, openInternalLink)}
@@ -1979,7 +1983,7 @@ function AinubisWidgetInner() {
                 title={copy.targetStart}
               >
                 {/* Terč z kitu (`target-hand-drawn-circle`) maskou — farbu berie z tlačidla. */}
-                <span className="ainubis-target-ico" aria-hidden />
+                <span className={`ainubis-target-ico${APP_NEW ? ' ainubis-sys ainubis-sys--poloha' : ''}`} aria-hidden />
               </button>
 
               <textarea
@@ -2013,7 +2017,7 @@ function AinubisWidgetInner() {
           {/* VRSTVY VNÚTRI PANELA (appka MVP): história rozhovorov a koliesko. Vrstva, nie nová obrazovka —
               zavrie sa šípkou vľavo hore a človek ostane v tom istom rozhovore. */}
           {mvp && panelView === 'hist' && (
-            <div className="ainubis-layer" onClick={(e) => e.stopPropagation()}>
+            <div className="ainubis-layer" onClick={(e) => { e.stopPropagation(); if (APP_NEW && e.target === e.currentTarget) setPanelView(null); }}>
               <div className="ainubis-layer__head">
                 <button type="button" className="ainubis-panel__tool" onClick={() => setPanelView(null)} aria-label={tx('ainubis.chat.back', 'Back')}>
                   <span className={`ainubis-tool-ico ainubis-tool-ico--back${APP_NEW ? ' ainubis-sys ainubis-sys--spat' : ''}`} aria-hidden />
@@ -2040,7 +2044,7 @@ function AinubisWidgetInner() {
           )}
 
           {mvp && panelView === 'cfg' && (
-            <div className="ainubis-layer" onClick={(e) => e.stopPropagation()}>
+            <div className="ainubis-layer" onClick={(e) => { e.stopPropagation(); if (APP_NEW && e.target === e.currentTarget) setPanelView(null); }}>
               <div className="ainubis-layer__head">
                 <button type="button" className="ainubis-panel__tool" onClick={() => setPanelView(null)} aria-label={tx('ainubis.chat.back', 'Back')}>
                   <span className={`ainubis-tool-ico ainubis-tool-ico--back${APP_NEW ? ' ainubis-sys ainubis-sys--spat' : ''}`} aria-hidden />
@@ -2112,6 +2116,7 @@ function AinubisWidgetInner() {
           onClick={(e) => void shootTarget({ x: e.clientX, y: e.clientY })}
         >
           <div className="ainubis-target-bar" onClick={(e) => e.stopPropagation()}>
+            {APP_NEW && <img className="ainubis-target-face" src={AI_LOGO} alt="" aria-hidden="true" />}
             <span>{copy.targetHint}</span>
             <button type="button" onClick={() => void shootTarget(null)}>{copy.targetWhole}</button>
             <button type="button" onClick={() => setTarget('off')}>{copy.targetCancel}</button>

@@ -1,4 +1,5 @@
 import type React from 'react';
+import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 import { Fragment } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -539,7 +540,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                   // AINUBIS ODPÍSAL (27. 10. 2026) — jeho šat (`ntf-row--ai` z NotifSheet), ťuk = vlákno citátu.
                   <li key={al.id} className="ntf-li-ai">
                     <div className="ntf-row ntf-row--ai">
-                      <span className="ntf-av"><img src={ainubisHead} alt="" /></span>
+                      <span className="ntf-av"><img src={APP_NEW ? AI_LOGO : ainubisHead} alt="" /></span>
                       <span className="ntf-txt">
                         <span className="ntf-ai"><span>AI</span>NUBIS</span> {t('pack.alerts.ainubisReply')}
                         <small style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>„{al.tripName}“</small>
@@ -809,7 +810,7 @@ export function HubAinubis() {
         style={APP_NEW ? { width: 44, height: 44, padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' } : { ...CAPSULE, width: 40, height: 40, padding: 0, cursor: 'pointer' }}
       >
         <img
-          src={APP_NEW ? ainubisHead : ainubisFace}
+          src={APP_NEW ? AI_LOGO : ainubisFace}
           alt=""
           aria-hidden
           style={APP_NEW

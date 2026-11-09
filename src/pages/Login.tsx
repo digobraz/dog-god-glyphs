@@ -1,7 +1,8 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { DEV_FULL, isFullPackEmail } from "@/lib/packFlags";
+import { DEV_FULL, isFullPackEmail, APP_NEW } from "@/lib/packFlags";
+import { AI_LOGO } from "@/components/pack/ainubis/3d/zaklad";
 import { useT, useLang } from "@/i18n/LanguageContext";
 import { PageTopBar } from "@/components/PageTopBar";
 import { FLOW_PALE_CSS } from "@/components/screens/flowPaleSkin";
@@ -406,7 +407,7 @@ function WebLogin() {
         <div className="w-full lg-col flex flex-col items-center">
           <article className="hf-block lg-card" style={{ marginTop: 0 }} aria-live="polite">
             <div className="lg-crest" aria-hidden="true">
-              <div className="lg-face"><img src={ainubisEmblem} alt="" /></div>
+              <div className="lg-face"><img src={APP_NEW ? AI_LOGO : ainubisEmblem} alt="" /></div>
             </div>
             <div className="hf-plate">
               {/* Meno strážcu má tvar: `AI` v jeho tyrkyse, v markupe, nie v preklade. */}

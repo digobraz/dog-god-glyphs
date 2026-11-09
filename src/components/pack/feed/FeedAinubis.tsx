@@ -16,6 +16,8 @@ import { AINUBIS, AI_GLASS } from '@/components/pack/ainubisSkin';
 import { HandPaw, HandStar, HandPlay } from '@/components/pack/HandIcons';
 import { scrollThumb, pickText, pickPod, fmtSec, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import ainubisHead from '@/assets/ainubis-head.webp';
+import { APP_NEW } from '@/lib/packFlags';
+import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -72,7 +74,7 @@ const AiName = () => <><span className="ai">AI</span>NUBIS</>;
 export function AiHead({ sub }: { sub: string }) {
   return (
     <div className="fai-h">
-      <span className="fai-av" style={{ backgroundImage: `url(${ainubisHead})` }} aria-hidden />
+      <span className="fai-av" style={{ backgroundImage: `url(${APP_NEW ? AI_LOGO : ainubisHead})` }} aria-hidden />
       <div className="fai-who"><b><AiName /></b><small>{sub}</small></div>
     </div>
   );

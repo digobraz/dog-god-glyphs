@@ -304,7 +304,7 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
         )}
         <span className="sp" />
         <button type="button" className={`list${listed ? ' on' : lists > 0 ? '' : ' fd'}`} onClick={onList} aria-pressed={listed} aria-label="TRIPLIST" title="TRIPLIST">
-          {APP_NEW ? <img src="/icons/tripstats/triplist-lampa.webp" alt="" width={28} height={28} draggable={false} /> : <HandClipboard size={24} />}{lists > 0 && lists}
+          {APP_NEW ? <img src="/icons/sys/triplist.webp" alt="" width={28} height={28} draggable={false} /> : <HandClipboard size={24} />}{lists > 0 && lists}
         </button>
       </div>
     </article>
