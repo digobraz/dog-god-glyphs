@@ -3146,6 +3146,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
       <style>{STEP_CSS}</style>
       {/* MUSÍ BYŤ POSLEDNÝ — prebíja všetky bloky vyššie pri rovnakej špecificite. */}
       <style>{PALE_LOG_CSS}</style>
+      {/* Šat Papyrus 3D (APP_NEW): posledný, prebíja PALE. */}
+      {APP_NEW && <style>{P3D_LOG_CSS}</style>}
       {/* VÝBER AKTIVITY MÁ VLASTNÚ HLAVIČKU (Matej 2026-08-23: „šípku dozadu do stredu hore
           a pod to väčší nápis — nie čo ste robili, ale vyber aktivitu"). Je to prvá obrazovka
           celého pridávania, takže sa správa ako titulná strana: návrat v strede, veľký nadpis
@@ -5249,6 +5251,107 @@ export default AddTripLog;
 // Plochy podľa matrice PACK_BOX (packTheme.ts): panel = úroveň 4, sekcia = úroveň 2,
 // pole = úroveň 5 (plochý papyrus, do svetla sa píše). Vlastné odtiene sa tu nevymýšľajú.
 const { ink: P_INK, dim: P_DIM, edge: P_EDGE, deep: P_DEEP, border: P_BORDER, field: P_FIELD, soft: P_SOFT } = PALE;
+
+// ══ ŠAT PAPYRUS 3D (Matej 9. 11. 2026, hárok plany/nakresy/map-herne-2026-11-09, skupina B) ══
+// Vrstva POD `APP_NEW`: každé pravidlo má predponu `html.papyrus3d` (triedu pridáva `zapniPapyrus3d`),
+// takže web ostáva nedotknutý. Tlačidlá a chipy sú TLAČIDLO 3D (`pk-b3`) cez premenné `--b3-*`, nie nový
+// vzhľad: farby a tiene idú z `--p3d-*` (lib/papyrus3d.ts). Vlastný blok je v DOM POSLEDNÝ, aby prebil PALE.
+const P3D_V = {
+  paper: '--b3-a:#fff;--b3-b:var(--p3d-paper);--b3-p:var(--p3d-gold-solid);--b3-l:var(--p3d-ink);--b3-i:var(--p3d-ink);',
+  lapis: `--b3-a:color-mix(in srgb,${LAPIS.edge} 72%,white);--b3-b:${LAPIS.deep};--b3-p:color-mix(in srgb,${LAPIS.deep} 60%,black);--b3-l:${LAPIS.ink};--b3-i:${LAPIS.ink};`,
+  green: '--b3-a:color-mix(in srgb,#3D7A4E 66%,white);--b3-b:#3D7A4E;--b3-p:color-mix(in srgb,#3D7A4E 62%,black);--b3-l:var(--p3d-ink);--b3-i:#fff;',
+};
+/** Tvar tlačidla 3D bez triedy: výška, polomer, tieň a písmo z premenných. `fs` = veľkosť písma zo stupnice. */
+const P3D_B3 = (h: number, fs: number) => `box-sizing:border-box;min-height:${h}px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);
+  --b3-sh:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -4px 0 rgba(0,0,0,.15),0 4px 0 var(--b3-p),0 8px 10px rgba(0,0,0,.28);--b3-dn:inset 0 2px 0 rgba(255,255,255,.55),0 1px 0 var(--b3-p);box-shadow:var(--b3-sh);
+  font-family:'LT Museum',serif;font-weight:400;font-size:${fs}px;line-height:1.1;letter-spacing:0;text-transform:none;transition:transform .07s,box-shadow .07s;`;
+const P3D_DOWN = 'transform:translateY(3px);box-shadow:var(--b3-dn);';
+
+const P3D_LOG_CSS = !APP_NEW ? '' : `
+html.papyrus3d .atl-log{${P3D_V.paper}}
+@media (max-width:${PALE_PC_MIN - 1}px){
+  html.papyrus3d .atl-log{background:radial-gradient(120% 80% at 50% 0%,var(--p3d-paper-hi),var(--p3d-paper));}
+}
+/* hlavička a nadpisy: Museum, veta, nie VERZÁLKY */
+html.papyrus3d .atl-log-title,html.papyrus3d .atl-ask,html.papyrus3d .atl-tile-label,html.papyrus3d .atl-odyssey-txt b,html.papyrus3d .atl-journey-name{font-family:'LT Museum',serif;font-weight:400;text-transform:none;letter-spacing:0;color:var(--p3d-ink);}
+html.papyrus3d .atl-log-title--big{font-size:24px;}
+html.papyrus3d .atl-log-title--big::after{display:none;}
+html.papyrus3d .atl-ask{font-size:24px;line-height:1.15;}
+html.papyrus3d .atl-ask-sub{font-size:14px;color:color-mix(in srgb,var(--p3d-ink) 58%,var(--p3d-paper));}
+html.papyrus3d .atl-log-back{${P3D_B3(0, 16)}--b3-r:50%;width:48px;height:48px;min-height:0;padding:0;border-radius:50%;box-shadow:var(--p3d-lift);}
+html.papyrus3d .atl-log-back:hover{background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);border-color:var(--b3-l);}
+html.papyrus3d .atl-log-back:active{transform:translateY(3px);box-shadow:none;}
+/* KROKY: len kruhy (popisok sa nezobrazuje, ostáva pre čítačku), hotové zlaté, aktívny lapis */
+html.papyrus3d .atl-steps:not(.atl-steps--onmap){justify-content:flex-start;gap:8px;padding:8px 16px;}
+html.papyrus3d .atl-steps:not(.atl-steps--onmap)::after{display:none;}
+html.papyrus3d .atl-step,html.papyrus3d .atl-steps:not(.atl-steps--onmap) .atl-step:not(.on){flex:0 0 auto;padding:0;border:0;border-radius:50%;background:none;box-shadow:none;}
+html.papyrus3d .atl-step.on{background:none;border:0;box-shadow:none;}
+html.papyrus3d .atl-step span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+html.papyrus3d .atl-step b{box-sizing:border-box;width:32px;height:32px;border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);color:var(--p3d-ink);font-family:${FONT_UI};font-weight:600;font-size:14px;}
+html.papyrus3d .atl-step.done b,html.papyrus3d .atl-step.ok b{background:var(--p3d-gold);border-color:var(--p3d-ink);color:var(--p3d-ink);}
+html.papyrus3d .atl-step.on b{${P3D_V.lapis}background:linear-gradient(180deg,var(--b3-a),var(--b3-b));border-color:var(--b3-l);color:var(--b3-i);box-shadow:0 3px 0 var(--b3-p);}
+/* DLAŽDICE VÝBERU (krok 0): karta s hrubým obrysom a spodnou perou */
+html.papyrus3d .atl-tile{border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-card);box-shadow:var(--p3d-pera);}
+html.papyrus3d .atl-tile:hover{border-color:var(--p3d-ink);box-shadow:var(--p3d-pera);background:var(--p3d-card);}
+html.papyrus3d .atl-tile-label{font-size:24px;}
+html.papyrus3d .atl-tile-note{font-size:14px;color:color-mix(in srgb,var(--p3d-ink) 72%,var(--p3d-paper));}
+html.papyrus3d .atl-tile-tag{font-size:12px;padding:4px 12px;color:var(--p3d-ink);border:1.5px solid var(--p3d-gold);background:none;}
+html.papyrus3d .atl-tiles{gap:24px;}
+html.papyrus3d .atl-tile-wrap.is-open{--p3d-open:0 6px 0 ${LAPIS.deep},0 11px 14px var(--p3d-sh);border:2.5px solid ${LAPIS.ink};border-radius:16px;box-shadow:var(--p3d-open);}
+/* VOĽBY (chip, náročnosť, doprava, prepínače): TLAČIDLO 3D, vybraná je lapis */
+html.papyrus3d .atl-chip,html.papyrus3d .atl-diffbtn,html.papyrus3d .atl-travel-btn,html.papyrus3d .atl-check,html.papyrus3d .atl-toggle-btn,html.papyrus3d .atl-journey-item,html.papyrus3d .atl-ntrack-i{${P3D_V.paper}${P3D_B3(44, 16)}padding:0 16px;cursor:pointer;}
+html.papyrus3d .atl-chip:hover,html.papyrus3d .atl-travel-btn:hover,html.papyrus3d .atl-seats button:hover,html.papyrus3d .atl-toggle-btn:hover{border-color:var(--b3-l);}
+html.papyrus3d .atl-chip:active,html.papyrus3d .atl-diffbtn:active,html.papyrus3d .atl-travel-btn:active,html.papyrus3d .atl-check:active,html.papyrus3d .atl-toggle-btn:active{${P3D_DOWN}}
+html.papyrus3d .atl-chip.on,html.papyrus3d .atl-diffbtn.on,html.papyrus3d .atl-travel-btn.on,html.papyrus3d .atl-check.on,html.papyrus3d .atl-toggle-btn.on,html.papyrus3d .atl-toggle-row > .atl-toggle-btn.on,html.papyrus3d .atl-journey-item.on,html.papyrus3d .atl-ntrack-i.on{${P3D_V.lapis}background:linear-gradient(180deg,var(--b3-a),var(--b3-b));border-color:var(--b3-l);color:var(--b3-i);box-shadow:var(--b3-sh);}
+html.papyrus3d .atl-ntrack-i.ok{${P3D_V.green}background:linear-gradient(180deg,var(--b3-a),var(--b3-b));border-color:var(--b3-l);color:var(--b3-i);box-shadow:var(--b3-sh);}
+html.papyrus3d .atl-ntrack-i.miss{--b3-a:color-mix(in srgb,#C8202F 62%,white);--b3-b:#C8202F;--b3-p:#9E1522;--b3-l:var(--p3d-ink);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));border-color:var(--b3-l);color:#fff;box-shadow:var(--b3-sh);}
+html.papyrus3d .atl-ntrack-i{padding:0 8px;gap:4px;}
+html.papyrus3d .atl-ntrack-i span{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0;text-transform:none;}
+html.papyrus3d .atl-ntrack-i b{width:auto;height:auto;background:none;border:0;color:inherit;}
+html.papyrus3d .atl-chip.atl-chip--own{border-style:solid;}
+html.papyrus3d .atl-chip-label,html.papyrus3d .atl-diffbtn span,html.papyrus3d .atl-travel-btn span,html.papyrus3d .atl-check span{font-family:'LT Museum',serif;font-weight:400;font-size:16px;letter-spacing:0;line-height:1.1;text-transform:none;}
+html.papyrus3d .atl-chips{gap:8px;}
+html.papyrus3d .atl-diffbtn{padding:0 8px;gap:4px;}
+html.papyrus3d .atl-diffbtn span{font-size:14px;}
+html.papyrus3d .atl-chips--picks{display:flex;flex-wrap:wrap;}
+html.papyrus3d .atl-chips--picks .atl-chip{height:auto;min-height:48px;}
+html.papyrus3d .atl-chip-emoji{font-size:20px;width:24px;flex:0 0 24px;}
+html.papyrus3d .atl-toggle-row,html.papyrus3d .atl-diffrow{gap:12px;}
+html.papyrus3d .atl-travel{gap:12px;}
+html.papyrus3d .atl-travel-btn{min-height:56px;}
+html.papyrus3d .atl-seats button{box-sizing:border-box;width:36px;height:36px;border:2.5px solid var(--p3d-ink);border-radius:12px;background:var(--p3d-paper-hi);color:var(--p3d-ink);}
+/* POLIA: recept pk-p3d-input (výška 54, r16, vtlačený tieň) */
+html.papyrus3d .atl-input,html.papyrus3d .atl-textarea,html.papyrus3d .atl-input:focus{box-sizing:border-box;min-height:54px;padding:12px 16px;border:2.5px solid var(--p3d-ink);border-radius:16px;background-color:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);font-family:${FONT_UI};font-weight:500;font-size:16px;color:var(--p3d-ink);}
+html.papyrus3d .atl-input[type="date"]{padding-right:48px;}
+html.papyrus3d .atl-textarea{padding:12px 16px;}
+html.papyrus3d .atl-input::placeholder{color:color-mix(in srgb,var(--p3d-ink) 50%,var(--p3d-paper));opacity:1;}
+html.papyrus3d .atl-field label,html.papyrus3d .atl-daymode-ask{font-weight:600;font-size:12px;letter-spacing:.22em;color:var(--p3d-gold-ink);margin-bottom:8px;}
+html.papyrus3d .atl-field-hint,html.papyrus3d .atl-log-hint,html.papyrus3d .atl-daterange-hint,html.papyrus3d .atl-daycount,html.papyrus3d .atl-daymode-link,html.papyrus3d .atl-steps-lock{font-size:14px;color:color-mix(in srgb,var(--p3d-ink) 58%,var(--p3d-paper));opacity:1;}
+html.papyrus3d .atl-name-tip{font-size:14px;}
+html.papyrus3d .atl-name-sug,html.papyrus3d .atl-expand,html.papyrus3d .atl-journey-link,html.papyrus3d .atl-daymode-link{color:${LAPIS.edge};}
+html.papyrus3d .atl-field label .atl-field-hint{letter-spacing:0;font-weight:400;}
+html.papyrus3d .atl-log-body{gap:16px;}
+/* HODNOTENIE: nezvolené vyblednuté, farba až po ťuku (PawRating); riadok bez škatule, číslo vedľa */
+html.papyrus3d .atl-rate{border:0;background:none;padding:0;}
+html.papyrus3d .atl-rate-val{font-family:${FONT_UI};font-size:20px;color:color-mix(in srgb,var(--p3d-ink) 40%,var(--p3d-paper));}
+html.papyrus3d .atl-rate-val.on{color:var(--p3d-gold-ink);}
+/* FOTKY */
+html.papyrus3d .atl-file-btn{${P3D_V.paper}${P3D_B3(56, 20)}padding:0 16px;gap:12px;}
+html.papyrus3d .atl-file-btn:hover:not(:disabled){border-color:var(--b3-l);color:var(--b3-i);}
+html.papyrus3d .atl-photo-thumb{border:2.5px solid var(--p3d-ink);border-radius:16px;box-shadow:var(--p3d-lift);}
+html.papyrus3d .atl-photo-thumb.cover{border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift);}
+/* PÄTA: Späť = papier, hlavné CTA = lapis, výška 56 */
+html.papyrus3d .atl-log-foot{margin:16px;gap:12px;}
+html.papyrus3d .atl-nav{gap:12px;}
+html.papyrus3d .atl-nav .atl-toggle-btn{${P3D_V.paper}${P3D_B3(56, 20)}flex:0 0 32%;}
+html.papyrus3d .atl-log-foot .btn-gold,html.papyrus3d .atl-editor .btn-gold{${P3D_V.lapis}${P3D_B3(56, 20)}width:100%;padding:0 16px;}
+html.papyrus3d .atl-log-foot .btn-gold:hover:not(:disabled),html.papyrus3d .atl-editor .btn-gold:hover:not(:disabled){transform:none;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));box-shadow:var(--b3-sh);}
+html.papyrus3d .atl-log-foot .btn-gold:active:not(:disabled){${P3D_DOWN}}
+html.papyrus3d .atl-log-foot .btn-gold:disabled{opacity:.55;box-shadow:var(--b3-sh);}
+/* ZAHODENIE ROZROBENÉHO VÝLETU je červené celé (nevratná akcia) */
+html.papyrus3d .atl-abort:not(.atl-abort--ainubis) .atl-abort-quit{--b3-a:color-mix(in srgb,#C8202F 62%,white);--b3-b:#C8202F;--b3-p:#9E1522;--b3-l:var(--p3d-ink);${P3D_B3(48, 16)}color:#fff;padding:0 16px;}
+html.papyrus3d .atl-abort:not(.atl-abort--ainubis){border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-card);box-shadow:var(--p3d-pera);}
+`;
 
 const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   /* ── hlavička kroku ─────────────────────────────────────────────────────────────────── */

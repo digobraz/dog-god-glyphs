@@ -9,6 +9,7 @@
 //  · nemá KRÍŽIK (lock CLAUDE.md: PACK_BOX.panel) — von sa ide klikom mimo alebo Esc.
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
+import { APP_NEW } from '@/lib/packFlags';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
 import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { LAPIS, MAPY, MAPY_BTN_SHADOW } from '@/components/pack/navGoldSkin';
@@ -89,6 +90,15 @@ const GO_CSS = `${VEIL_CSS}
 .tgo-cta--trail{background:${MAPY.grad};color:${MAPY.ink};border:1px solid ${MAPY.edge};box-shadow:${MAPY_BTN_SHADOW};}
 .tgo-cta--trail:hover{background:${MAPY.gradHover};}
 a.tgo-cta{text-decoration:none;}
+/* APPKA: PAPYRUS 3D (Matej 9. 11. 2026, hárok C2): Vyraziť = lapis, Trasa v Mapy.com = papier, obe TLAČIDLO 3D. Len pod html.papyrus3d. */
+html.papyrus3d .tgo-panel{background:var(--p3d-card);border:0;border-top:6px solid var(--p3d-gold);box-shadow:0 -4px 0 var(--p3d-ink);}
+html.papyrus3d .tgo-title{font-family:'LT Museum',serif;font-weight:900;font-size:20px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .tgo-ctas{gap:16px;margin-bottom:8px;}
+html.papyrus3d .tgo-cta.pk-b3,html.papyrus3d .tgo-split-caret.pk-b3{height:56px;padding:0 16px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 20px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;box-shadow:var(--p3d-b3);} /* písmo: cta */
+html.papyrus3d .tgo-cta.pk-b3:hover{background:linear-gradient(180deg,var(--b3-a),var(--b3-b));}
+html.papyrus3d .tgo-split-main.pk-b3{border-radius:16px 0 0 16px;border-right:0;}
+html.papyrus3d .tgo-split-caret.pk-b3{width:56px;padding:0;border-radius:0 16px 16px 0;}
+html.papyrus3d .tgo-item{border:2px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-paper-hi);color:var(--p3d-ink);font-size:14px;box-shadow:var(--p3d-lift);}
 /* DELENÉ TLAČIDLO: jeden zelený odliatok, rez tenkou tmavou čiarou. Tvar a výška z .tgo-cta,
    šípka dostane vlastný kraj s rovnakým rádiusom. Menu je PACK_BOX.panel (plávajúci panel). */
 .tgo-split{position:relative;display:flex;}
@@ -202,7 +212,7 @@ export function TripGoButtons({ trail, onDrive }: { trail: HeroTrail; onDrive: (
     <>
       <style>{GO_CSS}</style>
       <div className="tgo-ctas" style={hasRoute ? undefined : { gridTemplateColumns: '1fr' }}>
-        <button type="button" className="tgo-cta tgo-cta--park" onClick={onDrive}>
+        <button type="button" className={`tgo-cta tgo-cta--park${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} onClick={onDrive}>
           <span className="tgo-ic">🅿️</span>
           {t('pack.trip.go.cta')}
         </button>
@@ -213,13 +223,13 @@ export function TripGoButtons({ trail, onDrive }: { trail: HeroTrail; onDrive: (
             Šípka je nakreslená v CSS, nie lucide — stráž ikoniek smie len klesať. */}
         {mapy ? (
           <div className="tgo-split" ref={splitRef}>
-            <a className="tgo-cta tgo-cta--trail tgo-split-main" href={mapy} target="_blank" rel="noopener noreferrer">
+            <a className={`tgo-cta tgo-cta--trail tgo-split-main${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} href={mapy} target="_blank" rel="noopener noreferrer">
               <span className="tgo-ic">🥾</span>
               {t('pack.trip.go.ctaRoute')}
             </a>
             <button
               type="button"
-              className="tgo-cta--trail tgo-split-caret"
+              className={`tgo-cta--trail tgo-split-caret${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`}
               aria-label={t('pack.trip.go.more')}
               aria-expanded={menu}
               onClick={() => setMenu((v) => !v)}
@@ -241,7 +251,7 @@ export function TripGoButtons({ trail, onDrive }: { trail: HeroTrail; onDrive: (
             )}
           </div>
         ) : hasRoute && (
-          <button type="button" className="tgo-cta tgo-cta--trail" onClick={() => downloadGpx(trail)}>
+          <button type="button" className={`tgo-cta tgo-cta--trail${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={() => downloadGpx(trail)}>
             <span className="tgo-ic">🥾</span>
             {t('pack.trip.go.gpx')}
           </button>

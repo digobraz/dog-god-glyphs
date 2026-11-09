@@ -32,6 +32,7 @@
 
 import { FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, PALE } from '@/components/pack/navGoldSkin';
+import { APP_NEW } from '@/lib/packFlags';
 
 export const REVEAL_CSS = `
 .rv{position:fixed;inset:0;z-index:2500;overflow:hidden;
@@ -471,5 +472,57 @@ export const REVEAL_CSS = `
   .rv-eyebrow,.rv-when,.rv-plannote,
   .rv-photos,.rv-scene-rank,.rv-pillwrap,.rv-slot--dog .rv-ph{opacity:1 !important;transform:none !important;}
   .rv-fx,.rv-ring,.rv-flash{display:none !important;}
+}
+`;
+
+// ══ ŠAT PAPYRUS 3D — reveal po zápise výletu (Matej 9. 11. 2026, hárok B10 až B12) ═══════════════
+// Len pod `APP_NEW`, predpona `html.papyrus3d`. Plná papyrusová obrazovka namiesto lapisového závoja, bloky
+// ako karta s hrubým obrysom a perou, tlačidlá 3D. Body: PEČAŤ (`.rv-seal`, kód animácie z hárku B11/B12),
+// potom sa pečať zbalí a ostane riadok Za čo +N (`.rv-why`), rozpis sa ukáže až na ťuk.
+// Veľké číslo v pečati ide cez `--rv-seal-fs`: titulné číslo je mimo stupnice písma (24 max), rieši sa tokenom.
+export const REVEAL_P3D_CSS = !APP_NEW ? '' : `
+html.papyrus3d .rv{--rv-seal-fs:38px;--b3-a:#fff;--b3-b:var(--p3d-paper);--b3-p:var(--p3d-gold-solid);--b3-l:var(--p3d-ink);--b3-i:var(--p3d-ink);}
+html.papyrus3d .rv-scrim{background:radial-gradient(120% 80% at 50% 0%,var(--p3d-paper-hi),var(--p3d-paper));backdrop-filter:none;-webkit-backdrop-filter:none;}
+html.papyrus3d .rv-hdr,html.papyrus3d .rv-blok{background:var(--p3d-card);border:2.5px solid var(--p3d-ink);border-image:none;border-radius:16px;box-shadow:var(--p3d-pera);}
+html.papyrus3d .rv-hdr::before,html.papyrus3d .rv-hdr::after,html.papyrus3d .rv-blok::before,html.papyrus3d .rv-blok::after{display:none;}
+html.papyrus3d .rv-av{border:2.5px solid var(--p3d-ink);}
+html.papyrus3d .rv-rank,html.papyrus3d .rv-name{font-family:'LT Museum',serif;font-weight:400;letter-spacing:0;color:var(--p3d-ink);}
+html.papyrus3d .rv-bar{border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-inset);}
+html.papyrus3d .rv-thumb{border:2.5px solid var(--p3d-ink);}
+html.papyrus3d .rv-stat{border:2px solid var(--p3d-ink);background:var(--p3d-paper-hi);box-shadow:none;}
+/* PEČAŤ: lapisová minca, ktorá sa zarazí na papier (anSt z hárku), potom sa zbalí */
+html.papyrus3d .rv-seal{position:relative;width:132px;height:132px;margin:8px auto;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;box-sizing:border-box;
+  background:radial-gradient(circle at 35% 30%,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border:4px solid ${LAPIS.ink};box-shadow:0 0 0 3px var(--p3d-ink),0 8px 0 3px var(--p3d-ink);
+  animation:rvSealIn .9s cubic-bezier(.2,.8,.2,1) .56s both;transition:height .5s ease,margin .5s ease,opacity .35s ease,transform .5s ease;}
+html.papyrus3d .rv-seal span{font-family:'LT Museum',serif;font-weight:400;font-size:var(--rv-seal-fs);line-height:1;color:${LAPIS.ink};}
+html.papyrus3d .rv-seal.is-gone{height:0;width:0;margin:0 auto;opacity:0;transform:scale(.4);border-width:0;box-shadow:none;animation:none;overflow:hidden;}
+@keyframes rvSealIn{0%{transform:scale(3.2);opacity:0}30%{transform:scale(1) rotate(-8deg);opacity:1}38%{transform:scale(1.08) rotate(-8deg)}50%,100%{transform:scale(1) rotate(-8deg);opacity:1}}
+/* otras pri dopade pečate */
+html.papyrus3d .rv-core{animation:rvSealShake .5s ease .9s 1;}
+@keyframes rvSealShake{0%,100%{transform:none}30%{transform:translate(-4px,3px)}60%{transform:translate(4px,-3px)}}
+/* nový level: číslo v hlavičke sa zarazí pečaťou (bez konfiet) */
+html.papyrus3d .rv-hdr.rv-lvhit .rv-chip{animation:rvSealHit .8s cubic-bezier(.2,.8,.2,1) both;}
+@keyframes rvSealHit{0%{transform:scale(3.2);opacity:0}30%{transform:scale(1);opacity:1}38%{transform:scale(1.12)}50%,100%{transform:none;opacity:1}}
+/* RIADOK ZA ČO +N: rozpis až na ťuk */
+html.papyrus3d .rv-why{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;min-height:48px;padding:0 16px;border:2.5px solid var(--p3d-gold);border-radius:16px;background:var(--p3d-paper-hi);color:var(--p3d-ink);cursor:pointer;
+  font-family:'LT Museum',serif;font-weight:400;font-size:16px;text-align:left;opacity:0;transform:translateY(6px);transition:opacity .4s ease,transform .4s ease;}
+html.papyrus3d .rv-why.is-on{opacity:1;transform:none;}
+html.papyrus3d .rv-why span{flex:1 1 auto;}
+html.papyrus3d .rv-why span::first-letter{text-transform:uppercase;}
+html.papyrus3d .rv-why b{font-family:${FONT_UI};font-weight:600;font-size:20px;color:${LAPIS.edge};font-variant-numeric:tabular-nums;}
+html.papyrus3d .rv-why i{width:8px;height:8px;flex:none;border-right:2.5px solid ${LAPIS.edge};border-bottom:2.5px solid ${LAPIS.edge};transform:rotate(45deg);margin:0 4px 4px 4px;transition:transform .15s;}
+html.papyrus3d .rv-why[aria-expanded="true"] i{transform:rotate(-135deg);margin:4px 4px 0 4px;}
+html.papyrus3d .rv-whylist{width:100%;text-align:left;}
+html.papyrus3d .rv-whylist span{text-align:left;}
+/* TLAČIDLÁ: hlavné lapis, druhé papier (TLAČIDLO 3D cez --b3-*) */
+html.papyrus3d .rv-btn-gold,html.papyrus3d .rv-btn-ghost{box-sizing:border-box;min-height:56px;padding:0 16px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);
+  --b3-sh:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -4px 0 rgba(0,0,0,.15),0 4px 0 var(--b3-p),0 8px 10px rgba(0,0,0,.28);box-shadow:var(--b3-sh);font-family:'LT Museum',serif;font-weight:400;font-size:20px;letter-spacing:0;text-transform:none;transition:transform .07s,box-shadow .07s;}
+html.papyrus3d .rv-btn-gold{--b3-a:color-mix(in srgb,${LAPIS.edge} 72%,white);--b3-b:${LAPIS.deep};--b3-p:color-mix(in srgb,${LAPIS.deep} 60%,black);--b3-l:${LAPIS.ink};--b3-i:${LAPIS.ink};}
+html.papyrus3d .rv-btn-gold:hover,html.papyrus3d .rv-btn-ghost:hover{background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);border-color:var(--b3-l);}
+html.papyrus3d .rv-btn-gold:active,html.papyrus3d .rv-btn-ghost:active{transform:translateY(3px);box-shadow:0 1px 0 var(--b3-p);}
+html.papyrus3d .rv-cta{gap:12px;}
+@media (prefers-reduced-motion:reduce){
+  html.papyrus3d .rv-why{opacity:1 !important;transform:none !important;}
+  html.papyrus3d .rv-seal{animation:none;}
 }
 `;

@@ -35,7 +35,8 @@ import { useT } from '@/i18n/LanguageContext';
 import type { LevelProgress, TripPointsResult } from '@/lib/tripPoints';
 import { tierOfLevel, tierVars, crossedTier } from '@/lib/packTiers';
 import { PointsBreakdown } from './PointsBreakdown';
-import { REVEAL_CSS } from './revealCss';
+import { REVEAL_CSS, REVEAL_P3D_CSS } from './revealCss';
+import { APP_NEW } from '@/lib/packFlags';
 // Fotky sa kreslia v 66–112 px — originál z Cloudinary (často 3–4 MB) sa sem nesťahuje.
 import { sizedUrl } from '@/services/cloudinaryService';
 
@@ -123,6 +124,10 @@ export function TripReveal({
 
   const [closing, setClosing] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
+  // Šat Papyrus 3D: pečať s bodmi sa po dopade zbalí (`settled`), rozpis sa otvára ťukom na riadok Za čo (`whyOpen`).
+  const [settled, setSettled] = useState(false);
+  const [whyOpen, setWhyOpen] = useState(false);
+  const [lvHit, setLvHit] = useState(false);
   const [sceneOn, setSceneOn] = useState(false);
   const [sceneOut, setSceneOut] = useState(false);
   /** level, ktorý práve ukazuje pilulka v scéne — mení sa až v momente zásahu */
@@ -202,8 +207,18 @@ export function TripReveal({
     const after = 800 + points.rows.length * 140 + 150;
     // lišta sa rozsvieti až keď je súčet na mieste
     later(() => el.querySelector('.rv-bar')?.classList.add('lit'), after);
-    later(() => el.querySelector('.rv-cta')?.classList.add('rv-in'), after + (leveledUp ? 6800 : 800));
-    if (leveledUp) later(() => setSceneOn(true), after + 1150);
+    if (APP_NEW) {
+      // PEČAŤ (hárok B11/B12): bez tmavej scény s konfetami. Pečať dopadne, zbalí sa do riadku Za čo,
+      // pri novom leveli sa číslo v hlavičke zarazí rovnakou pečaťou.
+      later(() => setSettled(true), after + 700);
+      if (leveledUp) {
+        later(() => { setLvHit(true); setSceneLevel(levelAfter.level); setHeaderLevel(levelAfter.level); }, after + 900);
+      }
+      later(() => el.querySelector('.rv-cta')?.classList.add('rv-in'), after + (leveledUp ? 1800 : 800));
+    } else {
+      later(() => el.querySelector('.rv-cta')?.classList.add('rv-in'), after + (leveledUp ? 6800 : 800));
+      if (leveledUp) later(() => setSceneOn(true), after + 1150);
+    }
 
     return () => { timers.current.forEach(clearTimeout); timers.current = []; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -361,7 +376,7 @@ export function TripReveal({
       onMouseDown={handleBackdropDown}
       onClick={handleBackdropClick}
     >
-      <style>{REVEAL_CSS}</style>
+      <style>{REVEAL_CSS}{REVEAL_P3D_CSS}</style>
       <div className="rv-scrim" />
 
       {/* FOTKA NA CESTE DO HLAVIČKY MAPY — súrodenec bloku, nie jeho potomok (viď handleClose) */}
@@ -385,7 +400,7 @@ export function TripReveal({
 
       <div className="rv-shell">
         {/* HEADER — ten istý prvok, len väčší; po zavretí sa scvrkne hore */}
-        <div className="rv-hdr">
+        <div className={`rv-hdr${lvHit ? ' rv-lvhit' : ''}`}>
           <div className="rv-hdrow">
             <div className="rv-avatars">
               {ownerAvatarUrl
@@ -443,22 +458,49 @@ export function TripReveal({
             )}
             {/* KEDY SA VYRÁŽA — riadok príde hotový, viď prop `plan`. */}
             {plan && <div className="rv-when">{plan.whenLine}</div>}
-            <div className="rv-scorewrap">
-              {/* ⚠️ `~`, NIE `+` — pri pláne sa nič nepripísalo. Vlnovka nesie to isté, čo
-                  hovorí veta pod číslom: je to odhad podľa nakreslenej trasy. */}
-              <div className="rv-score">{isPlan ? '~' : '+'}{counter}</div>
-              <span className="rv-unit">{t('pack.reveal.pointsUnit')}</span>
-            </div>
-            {isPlan && <p className="rv-plannote">{t('pack.reveal.plan.pointsNote')}</p>}
-            <button className="rv-sumlink" onClick={() => setShowSheet(true)}>
-              {/* ⓘ je KRESLENÁ ikona, nie písmeno „i" v krúžku — Matej: „i musí vyzerať ako i" */}
-              <svg viewBox="0 0 20 20" width="13" height="13" aria-hidden="true">
-                <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" strokeWidth="1.6" />
-                <circle cx="10" cy="5.6" r="1.25" fill="currentColor" />
-                <path d="M10 8.9v5.6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-              </svg>
-              <span>{t(isPlan ? 'pack.reveal.plan.whyLink' : 'pack.reveal.whyLink')}</span>
-            </button>
+            {APP_NEW ? (
+              <>
+                {/* PEČAŤ + riadok Za čo +N: čísla výhradne z `points.rows` (calculateTripPoints), nič sa tu nepočíta. */}
+                <div className={`rv-seal${settled ? ' is-gone' : ''}`} aria-hidden="true">
+                  <span>{isPlan ? '~' : '+'}{counter}</span>
+                </div>
+                {isPlan && <p className="rv-plannote">{t('pack.reveal.plan.pointsNote')}</p>}
+                <button
+                  type="button"
+                  className={`rv-why${settled ? ' is-on' : ''}`}
+                  aria-expanded={whyOpen}
+                  onClick={() => setWhyOpen((o) => !o)}
+                >
+                  <span>{t(isPlan ? 'pack.reveal.plan.whyLink' : 'pack.reveal.whyLink')}</span>
+                  <b>{isPlan ? '~' : '+'}{points.total}</b>
+                  <i aria-hidden="true" />
+                </button>
+                {whyOpen && (
+                  <div className="rv-whylist">
+                    <PointsBreakdown rows={points.rows} onDark={false} highlightKey="pack.points.newRange" />
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+              <div className="rv-scorewrap">
+                {/* ⚠️ `~`, NIE `+` — pri pláne sa nič nepripísalo. Vlnovka nesie to isté, čo
+                    hovorí veta pod číslom: je to odhad podľa nakreslenej trasy. */}
+                <div className="rv-score">{isPlan ? '~' : '+'}{counter}</div>
+                <span className="rv-unit">{t('pack.reveal.pointsUnit')}</span>
+              </div>
+              {isPlan && <p className="rv-plannote">{t('pack.reveal.plan.pointsNote')}</p>}
+              <button className="rv-sumlink" onClick={() => setShowSheet(true)}>
+                {/* ⓘ je KRESLENÁ ikona, nie písmeno „i" v krúžku — Matej: „i musí vyzerať ako i" */}
+                <svg viewBox="0 0 20 20" width="13" height="13" aria-hidden="true">
+                  <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                  <circle cx="10" cy="5.6" r="1.25" fill="currentColor" />
+                  <path d="M10 8.9v5.6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+                </svg>
+                <span>{t(isPlan ? 'pack.reveal.plan.whyLink' : 'pack.reveal.whyLink')}</span>
+              </button>
+              </>
+            )}
           </div>
 
           {/* ── SPRÁVA O KONCEPTE SA PRESŤAHOVALA PRED ODOSLANIE (Matej 2026-08-26) ─────────

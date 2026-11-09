@@ -33,7 +33,7 @@ import { BackButton } from '@/components/pack/BackButton';
 import { MAP_SKIN, PALE, LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import {
   EVENT_KINDS, EVENT_KIND_LABEL_KEYS, missingEventFields, endsBeforeStarts, normalizeSourceUrl,
-  type AddEventDraft, type EventKind, type EventOrigin,
+  EVENT_KIND_ICON, type AddEventDraft, type EventKind, type EventOrigin,
 } from './eventModel';
 
 const GOLD = T.cardEdge;
@@ -300,7 +300,7 @@ export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, ma
         {APP_NEW && !initial && (
           <div className="aev-pills">
             {(['own', 'tip'] as const).map((o) => (
-              <button key={o} type="button" className={`aev-pill${origin === o ? ' on' : ''}`} onClick={() => setOriginPick(o)}>
+              <button key={o} type="button" className={`aev-pill${origin === o ? ' on' : ''}${APP_NEW ? ' pk-b3 pk-b3--' + (origin === o ? 'lapis' : 'paper') : ''}`} onClick={() => setOriginPick(o)}>
                 {t(o === 'own' ? 'pack.addEvent.originOwn' : 'pack.addEvent.originTip')}
               </button>
             ))}
@@ -345,9 +345,9 @@ export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, ma
               <button
                 key={k}
                 type="button"
-                className={`aev-pill${kind === k ? ' on' : ''}`}
+                className={`aev-pill${kind === k ? ' on' : ''}${APP_NEW ? ' pk-b3 pk-b3--' + (kind === k ? 'lapis' : 'paper') : ''}`}
                 onClick={() => setKind(k)}
-              >{t(EVENT_KIND_LABEL_KEYS[k])}</button>
+              >{APP_NEW && <img className="aev-kindico" src={EVENT_KIND_ICON[k]} alt="" />}{t(EVENT_KIND_LABEL_KEYS[k])}</button>
             ))}
           </div>
         </div>
@@ -419,7 +419,7 @@ export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, ma
             <label>{t('pack.addEvent.photoLabel')}</label>
             <input ref={photoRef} type="file" accept="image/*" hidden onChange={(e) => void pickPhoto(e)} />
             {photoUrl && <div className="aev-photo"><img src={sizedUrl(photoUrl, 800)} alt="" loading="lazy" /></div>}
-            <button type="button" className="aev-pill" disabled={photoBusy} onClick={() => photoRef.current?.click()}>
+            <button type="button" className={`aev-pill${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} disabled={photoBusy} onClick={() => photoRef.current?.click()}>
               {photoBusy ? t('pack.event.photoUploading') : photoUrl ? t('pack.event.photoChange') : t('pack.event.photoAdd')}
             </button>
           </div>
@@ -440,7 +440,7 @@ export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, ma
         )}
       </div>
       <div className="aev-foot">
-        <button type="button" className="btn-gold" disabled={!canSubmit || busy || photoBusy} onClick={() => void handleSubmit()}>
+        <button type="button" className={APP_NEW ? 'btn-gold pk-b3 pk-b3--lapis' : 'btn-gold'} disabled={!canSubmit || busy || photoBusy} onClick={() => void handleSubmit()}>
           {busy ? t('pack.event.saving') : initial ? t('pack.event.saveChanges') : t('pack.addEvent.submit')}
         </button>
         {/* ⚠️ DVE RÔZNE PREKÁŽKY, DVE RÔZNE VETY. `missingHint` vypisuje zoznam chýbajúcich
@@ -452,7 +452,7 @@ export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, ma
           : dateBad && <p className="aev-error">{t('pack.addEvent.datesHint')}</p>}
         {submitError && <p className="aev-error">{submitError}</p>}
         {duplicateId && onShowExisting && (
-          <button type="button" className="aev-pill" onClick={() => onShowExisting(duplicateId)}>{t('pack.event.showExisting')}</button>
+          <button type="button" className={`aev-pill${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={() => onShowExisting(duplicateId)}>{t('pack.event.showExisting')}</button>
         )}
       </div>
     </div>
@@ -541,6 +541,23 @@ const PALE_AEV_CSS = MAP_SKIN !== 'pale' ? '' : `
 .aev-filled{border-color:${LAPIS.edge};}
 .aev-photo{height:120px;border-radius:12px;overflow:hidden;margin-bottom:8px;border:1px solid ${PALE.border};}
 .aev-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+
+/* ── PAPYRUS 3D (D5): nadpis Museum, polia a pilulky typov 3D, typy majú ikonky ─────────────── */
+html.papyrus3d .aev-title{font:400 24px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;color:var(--p3d-ink);}
+html.papyrus3d .aev-body{gap:16px;padding:4px 16px 24px;}
+html.papyrus3d .aev-field label{font:500 12px 'Space Grotesk',sans-serif;letter-spacing:.22em;color:var(--p3d-gold-ink);margin-bottom:8px;}
+html.papyrus3d .aev-input{min-height:54px;padding:0 16px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);font:500 16px 'Space Grotesk',sans-serif;color:var(--p3d-ink);}
+html.papyrus3d .aev-textarea{padding:16px;min-height:120px;}
+html.papyrus3d .aev-input::placeholder{color:color-mix(in srgb,var(--p3d-ink) 55%,transparent);}
+html.papyrus3d .aev-filled{border-color:var(--p3d-gold-ink);}
+html.papyrus3d .aev-pills{gap:12px;}
+html.papyrus3d .aev-pill.pk-b3{height:44px;padding:0 12px;gap:8px;border:2.5px solid var(--b3-l);border-radius:12px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),0 6px 0 var(--b3-p),0 11px 14px var(--p3d-sh);font:400 16px/1 'LT Museum',serif;font-size:16px;letter-spacing:0;text-transform:none;}
+html.papyrus3d .aev-pill.pk-b3.on{font-weight:400;}
+html.papyrus3d .aev-kindico{width:28px;height:28px;object-fit:contain;}
+html.papyrus3d .aev-foot{margin:0 16px 24px;}
+html.papyrus3d .aev-foot .btn-gold.pk-b3{height:56px;padding:0 24px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),0 6px 0 var(--b3-p),0 11px 14px var(--p3d-sh);font:400 20px/1 'LT Museum',serif;font-size:20px;letter-spacing:0;text-transform:none;}
+html.papyrus3d .aev-foot .btn-gold.pk-b3:hover:not(:disabled){transform:none;box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),0 6px 0 var(--b3-p),0 11px 14px var(--p3d-sh);}
+html.papyrus3d .aev-foot .btn-gold.pk-b3:disabled{opacity:.55;}
 `;
 
 export default AddEvent;

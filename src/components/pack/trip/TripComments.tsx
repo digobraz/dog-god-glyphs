@@ -173,6 +173,26 @@ export const TRIP_COMMENTS_CSS = `${VEIL_CSS}
 .tcm-deletebtn{width:100%;margin-top:9px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:12px;border-radius:12px;background:rgba(178,38,30,0.14);color:#E0796D;border:1px solid ${T.alertRed};cursor:pointer;}
 .tcm-deletebtn:hover{background:rgba(178,38,30,0.22);}
 
+/* APPKA: PAPYRUS 3D (Matej 9. 11. 2026, hárok C2). Len pod html.papyrus3d. */
+html.papyrus3d .tcm-wrap{border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+/* záložky Hodnotenia / Rady = prepínač dvoch volieb, zvolená je lapis */
+html.papyrus3d .tcm-tabs{--on-l:#EFD79A;--on-bg:linear-gradient(180deg,color-mix(in srgb,#16307A 72%,white),#0A1A4A);--on-sh:inset 0 2px 0 rgba(255,255,255,.3),0 4px 0 color-mix(in srgb,#0A1A4A 60%,black),0 7px 9px var(--p3d-sh);display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:8px;margin:12px 12px 0;border-radius:16px;border:2.5px solid var(--p3d-ink);background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
+html.papyrus3d .tcm-tab{height:50px;padding:0 8px;border-radius:14px;font:400 20px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;color:var(--p3d-ink);}
+html.papyrus3d .tcm-tab.on{border:2.5px solid var(--on-l);background:var(--on-bg);color:var(--on-l);box-shadow:var(--on-sh);}
+/* CTA v kartách a popupe = TLAČIDLO 3D */
+html.papyrus3d .tcm-btn-brandgold.pk-b3,html.papyrus3d .tcm-submit.pk-b3,html.papyrus3d .tcm-deletebtn.pk-b3,html.papyrus3d .tcm-postbtn.pk-b3{width:100%;height:56px;padding:0 16px;margin-top:0;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 20px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;box-shadow:var(--p3d-b3);} /* písmo: cta */
+html.papyrus3d .tcm-postbtn.pk-b3{width:auto;}
+html.papyrus3d .tcm-deletebtn.pk-b3{margin-top:16px;}
+html.papyrus3d .tcm-btn-brandgold.pk-b3:hover:not(:disabled),html.papyrus3d .tcm-deletebtn.pk-b3:hover{background:linear-gradient(180deg,var(--b3-a),var(--b3-b));box-shadow:var(--p3d-b3);}
+/* popup */
+html.papyrus3d .tcm-modal{background:var(--p3d-card);border:0;border-top:6px solid var(--p3d-gold);border-radius:16px;box-shadow:0 6px 0 var(--p3d-ink),0 14px 18px var(--p3d-sh);}
+html.papyrus3d .tcm-modal-title{font-family:'LT Museum',serif;font-weight:900;font-size:20px;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .tcm-label{color:var(--p3d-gold-ink);}
+html.papyrus3d .tcm-textarea{border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);color:var(--p3d-ink);}
+/* nezvolené hodnotenie je vyblednuté, farba až po ťuku */
+html.papyrus3d .tcm-pawpick.is-none{opacity:.4;}
+html.papyrus3d .tcm-pawpick{transition:opacity .15s;}
+
 /* nenápadné "Report" na cudzom (reálnom, nie mock) komentári — issue #54 */
 .tcm-reportlink{background:none;border:none;padding:0;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;color:${T.inkWarm};cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
 .tcm-reportlink:hover{color:${GOLD};}
@@ -216,7 +236,7 @@ function Paws({ rating }: { rating: number }) {
 // TripComments tým netrpí (je to čistý komponent bez kontextu, ako `BrandIcon` vedľa).
 function PawPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   return (
-    <div className="tcm-pawpick">
+    <div className={`tcm-pawpick${value === 0 ? ' is-none' : ''}`}>
       {/* ⚠️ `onDark` ZRUŠENÉ 15. 9. 2026 — popup je papyrusový, svetlá žltá na ňom zanikla. */}
       <PawRating value={value} onChange={onChange} size={30} />
     </div>
@@ -308,11 +328,11 @@ function ReviewPopup({ slug, trailName, initial, canWrite, saving, error, myDogs
             </div>
           </div>
         )}
-        <button type="button" className="tcm-submit" disabled={!canSubmit} onClick={() => canSubmit && onSubmit({ paws, text: text.trim() || undefined, photos, dogIds: askDogs && crew.length ? crew : undefined })}>
+        <button type="button" className={`tcm-submit${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} disabled={!canSubmit} onClick={() => canSubmit && onSubmit({ paws, text: text.trim() || undefined, photos, dogIds: askDogs && crew.length ? crew : undefined })}>
           {saving ? 'Saving…' : initial ? t('pack.trip.cm.update') : t('pack.trip.cm.post')}
         </button>
         {initial && onDelete && (
-          <button type="button" className="tcm-deletebtn" disabled={saving} onClick={onDelete}>{t('pack.trip.cm.delete')}</button>
+          <button type="button" className={`tcm-deletebtn${APP_NEW ? ' pk-b3 pk-b3--red' : ''}`} disabled={saving} onClick={onDelete}>{t('pack.trip.cm.delete')}</button>
         )}
         {!canWrite && <div className="tcm-gatehint">{t('pack.trip.cm.signInReview')}</div>}
         {error && <div className="tcm-gatehint" style={{ color: '#E0796D' }}>{error}</div>}
@@ -650,7 +670,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                   walked" (onRequestWalk). Po walked submitte sa z neho stane bežné Add/Edit review. */}
               <button
                 type="button"
-                className="tcm-btn-brandgold"
+                className={`tcm-btn-brandgold${APP_NEW ? ' pk-b3 pk-b3--gold' : ''}`}
                 onClick={() => (walked ? setReviewPopupOpen(true) : onRequestWalk?.())}
               >
                 {walked ? (myReview ? t('pack.trip.cm.editMine') : t('pack.trip.cm.addShort')) : t('pack.trip.cm.walkedThen')}
@@ -754,7 +774,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                 placeholder={quoteThread ? t('pack.feed.quote.cm.placeholder') : t('pack.trip.cm.askPlaceholder')}
               />
               <div className="tcm-ask-actions">
-                <button type="button" className="tcm-postbtn" disabled={!askText.trim() || !canWrite || questionPosting} onClick={postQuestion}>
+                <button type="button" className={`tcm-postbtn${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} disabled={!askText.trim() || !canWrite || questionPosting} onClick={postQuestion}>
                   {questionPosting ? t('pack.trip.cm.postQuestion') + '…' : t('pack.trip.cm.postQuestion')}
                 </button>
               </div>

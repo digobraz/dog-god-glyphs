@@ -358,6 +358,17 @@ const CSS = `
 .tl-modal-submit{width:100%;margin-top:16px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
 .tl-modal-submit:hover:not(:disabled){background:${LAPIS.gradHover};}
 .tl-modal-submit:disabled{opacity:.4;cursor:default;}
+/* ŠAT PAPYRUS 3D (Matej 9. 11. 2026, hárok E1 až E3): len pod html.papyrus3d (APP_NEW), web ho nemá.
+   Prepínač je recept .pk-p3d-sw (kapsula s vtlačenou dráhou), aktívna karta nesie .pk-b3--lapis. */
+html.papyrus3d .tl-flat .tl-tabs{padding:8px;gap:8px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:inset 0 4px 5px var(--p3d-sh);}
+html.papyrus3d .tl-flat .tl-tab{min-height:50px;border-radius:14px;padding:4px 8px;}
+html.papyrus3d .tl-flat .tl-tab-label{font-family:'LT Museum',serif;font-weight:400;font-size:20px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);}
+html.papyrus3d .tl-flat .tl-tab.on{background:linear-gradient(180deg,var(--b3-a),var(--b3-b));border:2.5px solid var(--b3-l);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 var(--b3-p);}
+html.papyrus3d .tl-flat .tl-tab.on .tl-tab-label{color:var(--b3-i);}
+html.papyrus3d .tl-block{border:2.5px solid var(--p3d-ink);border-radius:14px;background:var(--p3d-card);box-shadow:0 4px 0 var(--p3d-gold-solid);}
+html.papyrus3d .tl-block.is-done{border-color:var(--p3d-ink);box-shadow:0 4px 0 ${T.growGreen};}
+html.papyrus3d .tl-block:hover,html.papyrus3d .tl-block:focus-visible{border-color:var(--p3d-ink);}
+html.papyrus3d .tl-block-name{font-size:14px;color:var(--p3d-ink);}
 `;
 
 // status pilulka. done = walked (prejdené) má prednosť pred statusom.
@@ -1050,10 +1061,10 @@ export default function PackTriplist() {
         {/* dve karty-prepínače (Matej 2026-07-23): naše ikony (paw/trophy), žiadne emoji, žiadne nadpisy nad.
             Matej 2026-07-26: poradie otočené — Tripstats vľavo, Triplist vpravo. */}
         <div className="tl-tabs">
-          <button type="button" className={`tl-tab${view === 'stats' ? ' on' : ''}`} onClick={() => setView('stats')}>
+          <button type="button" className={`tl-tab${view === 'stats' ? ' on' + (APP_NEW ? ' pk-b3 pk-b3--lapis' : '') : ''}`} onClick={() => setView('stats')}>
             <span className="tl-tab-label">{APP_NEW ? <img className="tl-tab-art" src="/icons/tripstats/tripstats.webp" alt="" /> : <span className="tl-tab-ic" style={{ '--ic': `url(${ICON('trophy')})` } as React.CSSProperties} />}{t('pack.triplist.tabTripstats')}</span>
           </button>
-          <button type="button" className={`tl-tab${view === 'list' ? ' on' : ''}`} onClick={() => setView('list')}>
+          <button type="button" className={`tl-tab${view === 'list' ? ' on' + (APP_NEW ? ' pk-b3 pk-b3--lapis' : '') : ''}`} onClick={() => setView('list')}>
             <span className="tl-tab-label">{APP_NEW ? <img className="tl-tab-art" src="/icons/tripstats/triplist-lampa.webp" alt="" /> : <span className="tl-tab-ic" style={{ '--ic': `url(${ICON('clipboard')})` } as React.CSSProperties} />}{t('pack.triplist.tabTriplist')}</span>
           </button>
         </div>

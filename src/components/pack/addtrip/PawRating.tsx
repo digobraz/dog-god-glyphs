@@ -41,6 +41,7 @@ import React, { useRef, useState } from 'react';
 import { ICON } from '@/components/pack/tripShared';
 import { PACK_THEME as T } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
+import { APP_NEW } from '@/lib/packFlags';
 
 const GOLD_ON_DARK = '#F5C73D'; // CLAUDE.md gold-cta-bg-rule — tmavé pozadie
 // ⚠️ STMAVENÉ 15. 9. 2026 (Matej: „pridaj hodnotenie takmer nie je vidno tá žltá…
@@ -69,6 +70,8 @@ const EMPTY_OPACITY_ON_LIGHT = 0.55;
 function PawShape({ filled, color, size, emptyOpacity }: {
   filled: boolean; color: string; size: number; emptyOpacity: number;
 }) {
+  // Šat Papyrus 3D (Matej 9. 11. 2026): nezvolené hodnotenie je vyblednuté a bez farby, farba až po ťuku.
+  if (APP_NEW && !filled) { color = T.inkStrong; emptyOpacity = 0.28; }
   const url = `url(${ICON(filled ? 'paw-full' : 'paw')})`;
   return (
     <span

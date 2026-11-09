@@ -182,4 +182,14 @@ ${MAP_SKIN !== 'pale' ? '' : `
   .np-name{color:${PALE.ink};}
   .np-text{color:${PALE.dim};}
 `}
+/* ŠAT PAPYRUS 3D (Matej 9. 11. 2026, hárok G1 a G2): len pod html.papyrus3d (APP_NEW), web ho nemá.
+   Dlaždica odkazu je papierové TLAČIDLO 3D, názov nesie Museum (nadpis), emoji ostáva. */
+html.papyrus3d .np-item{min-height:64px;padding:8px 16px;border:2.5px solid var(--p3d-ink);background:var(--p3d-card);color:var(--p3d-ink);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 var(--p3d-gold-solid);}
+html.papyrus3d .np-wrap--blocks .np-item{border-radius:16px;}
+html.papyrus3d .np-item:hover{border-color:var(--p3d-ink);background:var(--p3d-card);}
+html.papyrus3d .np-item--off{box-shadow:none;}
+html.papyrus3d .np-wrap{gap:16px;padding-bottom:8px;}
+html.papyrus3d .np-name{font-family:'LT Museum',serif;font-weight:400;font-size:20px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);}
+html.papyrus3d .np-text{color:var(--p3d-ink);}
+html.papyrus3d .np-mark{width:36px !important;height:36px !important;font-size:24px !important;}
 `;

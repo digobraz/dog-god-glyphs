@@ -41,6 +41,20 @@ export const EVENT_KIND_LABEL_KEYS: Record<EventKind, string> = {
   expo: 'pack.addEvent.kind.expo',
 };
 
+// ── IKONKY TYPOV (Papyrus 3D, 9. 11. 2026) ───────────────────────────────────────────────────
+// Typy podujatí majú v appke kresbu namiesto emoji (hárok D5). `Record<EventKind, …>` rovnako ako
+// kľúče vyššie: nový typ neprejde, kým nedostane ikonku. Tréning berie kresbu zo sady dní.
+export const EVENT_KIND_ICON: Record<EventKind, string> = {
+  race: '/icons/events/preteky.webp',
+  show: '/icons/events/vystava.webp',
+  training: '/icons/sys/den-training.webp',
+  lecture: '/icons/events/prednaska.webp',
+  social_walk: '/icons/events/prechadzka.webp',
+  charity: '/icons/events/charita.webp',
+  camp: '/icons/events/kemp.webp',
+  expo: '/icons/events/veltrh.webp',
+};
+
 // Jeden ročník (event_editions riadok) + denormalizovaný `title`/`kind`/`country` zo série —
 // formulár pracuje s jedným objektom, na sériu a ročník ho rozloží až `save_event` v DB.
 export type AddEventDraft = {

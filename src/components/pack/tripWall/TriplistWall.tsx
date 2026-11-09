@@ -54,6 +54,15 @@ const TLW_CSS = `
 .tlw-all{display:flex;align-items:center;justify-content:center;width:100%;margin-top:${S.md}px;padding:${S.lg}px ${S.xl}px;border:0;border-radius:${PACK_R.field}px;background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;} /* písmo: cta */
 .tlw-pop .tw-fl button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
 .tlw-pop .tlw-grid{margin-top:${S.md}px;}
+/* ŠAT PAPYRUS 3D (Matej 9. 11. 2026, hárok E1 až E3): len pod html.papyrus3d, web ho nemá. */
+html.papyrus3d .tlw-top img{border:0;box-shadow:0 0 0 2px var(--p3d-ink);}
+html.papyrus3d .tlw-top u{padding:${S.sm}px ${S.md}px;border:2.5px solid ${LAPIS.ink};border-radius:${PACK_R.card}px;background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});font-size:${PACK_TEXT.body}px;box-shadow:0 4px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);}
+html.papyrus3d .tlw-drs{padding-bottom:${S.md}px;}
+html.papyrus3d .tlw-dr{border:2.5px solid ${LAPIS.ink};border-radius:${PACK_R.card}px;box-shadow:0 5px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);}
+html.papyrus3d .tlw-df{border:2.5px solid var(--p3d-gold);}
+html.papyrus3d .tlw-dr i{border:1.5px solid ${LAPIS.ink};}
+html.papyrus3d .tlw-km{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});color:${LAPIS.ink};}
+html.papyrus3d .tlw-grid{gap:${S.lg}px ${S.sm}px;}
 `;
 
 const STARS = Array.from({ length: 22 }, (_, i) => ({ x: (i * 67 + 11) % 148, y: (i * 41 + 7) % 110, r: i % 5 ? 0.7 : 1.2, o: i % 3 ? 0.4 : 0.8 }));

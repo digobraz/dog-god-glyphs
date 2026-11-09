@@ -20,7 +20,7 @@
 // ============================================================================
 import { useEffect, useRef, useState } from 'react';
 import type { Map as LeafletMap } from 'leaflet';
-import { PACK_THEME as T, PACK_R, PACK_SPACE, FONT_UI, PF_FIELD_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI, PF_FIELD_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import { WishSheet } from './WishSheet';
@@ -211,4 +211,15 @@ export const ADD_WISH_CSS = `
 .aw-pts{align-self:flex-start;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.14em;color:${T.inkStrong};background:${T.tileBg};border:1px solid ${T.cardEdge};border-radius:${PACK_R.pill}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;}
 .aw-sub{font-family:${FONT_UI};font-size:14px;line-height:1.45;color:${T.inkWarm};}
 .aw-err{font-family:${FONT_UI};font-size:12px;color:${PICK_INK.red};}
+/* ŠAT PAPYRUS 3D (Matej 9. 11. 2026, hárok G3 až G6): len pod html.papyrus3d (APP_NEW), web ho nemá.
+   Pole = recept .pk-p3d-input, chipy papierové s perou, jediné CTA lapis. Bublinu AINUBISA nemení. */
+html.papyrus3d .aw-chip{min-height:44px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);color:var(--p3d-ink);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 var(--p3d-gold-solid);}
+html.papyrus3d .aw-chip.on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border-color:${LAPIS.ink};color:${LAPIS.ink};box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);}
+html.papyrus3d .aw-chips{padding-bottom:${PACK_SPACE.sm}px;}
+html.papyrus3d .aw-input{min-height:54px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);color:var(--p3d-ink);}
+html.papyrus3d .aw-cta{min-height:56px;border:2.5px solid ${LAPIS.ink};border-radius:${PACK_R.card}px;background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 6px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;letter-spacing:0;text-transform:none;}
+html.papyrus3d .aw-ghost{min-height:44px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);color:var(--p3d-ink);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 var(--p3d-gold-solid);}
+html.papyrus3d .aw-back{width:44px;height:44px;border:2.5px solid var(--p3d-ink);background:var(--p3d-card);color:var(--p3d-ink);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 var(--p3d-gold-solid);}
+html.papyrus3d .aw-search input{min-height:54px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);color:var(--p3d-ink);}
+html.papyrus3d .aw-tag{border:2px solid var(--p3d-ink);color:var(--p3d-ink);}
 `;

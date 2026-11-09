@@ -44,7 +44,7 @@ import { HandPencil } from '@/components/pack/HandIcons';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
 import { useToast } from '@/hooks/use-toast';
-import { TripShareButton } from '@/components/pack/trip/TripShareSheet';
+import { TripShareButton, type SharePill } from '@/components/pack/trip/TripShareSheet';
 import { ToastAction } from '@/components/ui/toast';
 import { hasOnlyDeceasedDogs } from '@/components/pack/memorialTrips';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
@@ -584,6 +584,42 @@ body.pta-mapfull .pta-shell{z-index:1100;}
 /* Ghost už nikto nevolá — trieda ostáva len ako bezpečná výplň, keby na ňu niekde
    ostal odkaz; vyzerá ako SHARE, teda nikdy ako diera. */
 .pta-actbtn--ghost{background:rgba(255,255,255,0.42);color:${T.inkStrong};border-color:${T.border};}
+/* ════════════════════════════════════════════════════════════════════════
+   APPKA: PAPYRUS 3D (Matej 9. 11. 2026, hárok map-herne-2026-11-09, C1 a C2).
+   Len pod html.papyrus3d; web tieto pravidlá nikdy nevidí. Obsah a funkcie sa nemenia, mení sa šat. */
+/* Fotka: tvrdá hrana so zlatou linkou, nie rozplynutie do papyrusu. */
+html.papyrus3d .pta-hero{-webkit-mask-image:none;mask-image:none;border-bottom:6px solid var(--p3d-gold);}
+html.papyrus3d .pta-title{font-size:24px;line-height:1.1;color:var(--p3d-ink);}
+html.papyrus3d .pta-loc{color:var(--p3d-gold-ink);}
+/* Hodnotenie vpravo: číslo pred packami, ako v hárku. */
+html.papyrus3d .pta-byrating b{order:-1;font-size:20px;color:var(--p3d-ink);}
+html.papyrus3d .pta-author{font-size:14px;color:var(--p3d-ink);}
+/* Akčný rad = TLAČIDLO 3D (výška 56, pera dole). Reset väčšiny vlastností .pta-actbtn, ktoré by prebili .pk-b3. */
+html.papyrus3d .pta-acts{gap:12px;align-items:flex-start;padding-bottom:8px;}
+html.papyrus3d .pta-actbtn.pk-b3{height:56px;padding:0 16px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 20px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;box-shadow:var(--p3d-b3);} /* písmo: cta */
+html.papyrus3d .pta-actbtn.pk-b3:active:not(:disabled){transform:translateY(5px);}
+html.papyrus3d .pta-actbtn.pk-b3 .pta-ic-mask{width:24px;height:24px;}
+html.papyrus3d .pta-actwrap{flex:1;}
+@media (max-width:760px){
+  html.papyrus3d .pta-acts .pta-actbtn--gold,html.papyrus3d .pta-acts .pta-actbtn--blue{flex:0 0 56px;padding:0;}
+  html.papyrus3d .pta-acts .pta-actbtn--lapis .pts-pill{top:-14px;}
+  html.papyrus3d .pta-acts .pta-actbtn.pta-share2{flex:0 0 auto;padding:0 12px;}
+  html.papyrus3d .pta-acts .pta-actbtn--lapis.pk-b3,html.papyrus3d .pta-acts .pta-actbtn--green.pk-b3{font-size:16px;}
+  html.papyrus3d .pta-acts .pta-actbtn--lapis .pta-actbtn-label{text-overflow:clip;}
+}
+/* Štyri dlaždice 2 × 2: papyrusová karta, tmavý obrys, ikona vľavo. Osamelá posledná ide na celú šírku. */
+html.papyrus3d .pta-statrow{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:24px;background:none;}
+html.papyrus3d .pta-stat{padding:12px 12px;text-align:left;align-items:flex-start;gap:4px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .pta-stat::before{display:none !important;}
+html.papyrus3d .pta-stat:last-child:nth-child(odd){grid-column:1 / -1;}
+html.papyrus3d .pta-stat b{font-family:'LT Museum',serif;font-weight:900;font-size:20px;color:var(--p3d-ink);gap:8px;justify-content:flex-start;} /* písmo: nadpis */
+html.papyrus3d .pta-stat b img{width:40px !important;height:40px !important;}
+html.papyrus3d .pta-stat span{color:var(--p3d-gold-ink);padding-left:48px;}
+html.papyrus3d .pta-stat b:only-child{min-height:44px;}
+/* Pilulky tagov ostávajú s emoji; len 3D šat. */
+html.papyrus3d .pta-tag{border:2px solid var(--p3d-ink);background:var(--p3d-paper-hi);color:var(--p3d-ink);box-shadow:var(--p3d-lift);font-size:14px;margin-bottom:4px;}
+/* Počet hodnotení čitateľne v inkouste. */
+html.papyrus3d .pta-bycount{color:var(--p3d-ink);}
 .pta-notfound{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:${T.inkWarm};font-family:${FONT_UI};text-align:center;padding:16px;}
 ${DIFF_MARK_CSS}
 `;
@@ -1569,6 +1605,25 @@ export default function PackTripArticle() {
     return out;
   })();
 
+  /* APPKA (Papyrus 3D): pilulky na zdieľacej karte = ikony z továrne, náročnosť a rušnosť bez slov (Matej 9. 11.).
+     Trasa (km + stúpanie) je jedna pilulka. Web ide cez `shareChips` a tieto pilulky ignoruje. */
+  const sharePills: SharePill[] = (() => {
+    if (!APP_NEW) return [];
+    const out: SharePill[] = [];
+    const comma = (n: number) => (lang === 'en' ? n.toFixed(1) : n.toFixed(1).replace('.', ','));
+    const km = parseFloat(trail.km);
+    const asc = (trail as { ascentM?: number }).ascentM;
+    const route: SharePill = [];
+    if (hasRouteMetrics(trail) && km > 0) route.push({ icon: '/icons/sys/vzdialenost.webp', text: `${comma(km)} km` });
+    if (hasRouteMetrics(trail) && asc != null && asc > 0) route.push({ icon: '/icons/sys/stupanie.webp', text: `${asc} m` });
+    if (route.length) out.push(route);
+    const diffIc: Record<string, string> = { Easy: 'narocnost-lahka', Moderate: 'narocnost-stredna', Hard: 'narocnost-tazka', Odyssey: 'narocnost-odysea' };
+    const crowdIc: Record<string, string> = { Empty: 'rusnost-prazdno', Calm: 'rusnost-pokoj', Busy: 'rusnost-rusno' };
+    if (showDiffStat && diffIc[agg.difficulty]) out.push([{ icon: `/icons/sys/${diffIc[agg.difficulty]}.webp` }]);
+    if (agg.crowd && crowdIc[agg.crowd]) out.push([{ icon: `/icons/sys/${crowdIc[agg.crowd]}.webp` }]);
+    return out;
+  })();
+
   // Akčný rad ako premenná — na mobile ho po odscrollovaní fotky renderujeme PORTÁLOM do
   // document.body (nie na mieste). Dôvod: rodičovský .pk-glass má backdrop-filter, ktorý robí
   // containing block pre position:fixed — rail by sa inak ukotvil o glass panel a plával
@@ -1578,7 +1633,7 @@ export default function PackTripArticle() {
           {!walkedIds.has(trail.id) && (
             <button
               type="button"
-              className={`pta-actbtn pta-actbtn--gold${favIds.has(trail.id) ? ' on' : ''}`}
+              className={`pta-actbtn pta-actbtn--gold${favIds.has(trail.id) ? ' on' : ''}${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`}
               onClick={() => toggleFav(trail.id)}
               aria-label={favIds.has(trail.id) ? t('pack.trip.inTriplist') : t('pack.trip.addToTriplist')}
             >
@@ -1598,7 +1653,7 @@ export default function PackTripArticle() {
           {storiesOn && !walkedIds.has(trail.id) && !id.loading && hasOnlyDeceasedDogs(id.dogs) && (
             <button
               type="button"
-              className="pta-actbtn pta-actbtn--blue"
+              className={`pta-actbtn pta-actbtn--blue${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`}
               onClick={() => { if (mg) { mg.lock('action'); return; } setMemorialWrite(true); setWriteOpen(true); }}
               aria-label={t('pack.trip.memorialStory')}
             >
@@ -1610,7 +1665,7 @@ export default function PackTripArticle() {
             <div className="pta-actwrap" ref={walkedMenuRef}>
               <button
                 type="button"
-                className="pta-actbtn pta-actbtn--green"
+                className={`pta-actbtn pta-actbtn--green${APP_NEW ? ' pk-b3 pk-b3--green' : ''}`}
                 onClick={() => setWalkedMenuOpen((o) => !o)}
                 aria-haspopup="menu"
                 aria-expanded={walkedMenuOpen}
@@ -1658,7 +1713,7 @@ export default function PackTripArticle() {
           ) : (
             <button
               type="button"
-              className="pta-actbtn pta-actbtn--lapis"
+              className={`pta-actbtn pta-actbtn--lapis${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`}
               /**
                * ⚠️ VLASTNÝ NEPREJDENÝ PLÁN IDE DO SPRIEVODCU, NIE DO POPUPU (2026-09-02).
                * Mapa aj inline detail to tak robia od zavedenia `openWalkPlan()` — komentár
@@ -1684,7 +1739,7 @@ export default function PackTripArticle() {
               <PointsPill value={walkPointsFor(trail)} />
             </button>
           )}
-          <button type="button" className="pta-actbtn pta-actbtn--blue" onClick={handleShare} aria-label={t('pack.trip.share')}>
+          <button type="button" className={`pta-actbtn pta-actbtn--blue${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={handleShare} aria-label={t('pack.trip.share')}>
             {/* Ikonka reťaze je na modrom tlačidle maskovaná na farbu textu (SHARE = papyrusový outline). */}
             <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
             <span className="pta-actbtn-label">{t('pack.trip.share')}</span>
@@ -1699,6 +1754,9 @@ export default function PackTripArticle() {
             fallbackPhoto: cover,
             country: trailCountry(trail),
             chips: shareChips,
+            rating: shownRating,
+            ratingText: lang === 'en' ? shownRating.toFixed(1) : shownRating.toFixed(1).replace('.', ','),
+            pills: sharePills,
           }} />
         </div>
   );
@@ -1813,7 +1871,14 @@ export default function PackTripArticle() {
               ⚠️ SAMOTNÉ `km?.trim()` NESTAČÍ (2026-08-31): okruh nesie poctivé `km: "0.0"`,
               takže podmienkou prešiel a článok kreslil riadok `↔️ 0.0 km`. Pýtame sa preto na
               GEOMETRIU (`hasRouteMetrics`) — bez nakreslenej čiary niet čo merať. */}
-          {hasRouteMetrics(trail) && (trail.km?.trim() || (trail as { ascentM?: number }).ascentM != null) && (
+          {/* APPKA (Papyrus 3D, hárok C1): dĺžka a stúpanie sú dve samostatné dlaždice s veľkou ikonou — nie jeden pás. */}
+          {APP_NEW && hasRouteMetrics(trail) && trail.km?.trim() && (
+            <div className="pta-stat"><b><RouteMark kind="vzdialenost" fallback="" /> {trail.km} km</b></div>
+          )}
+          {APP_NEW && hasRouteMetrics(trail) && (trail as { ascentM?: number }).ascentM != null && (
+            <div className="pta-stat"><b><RouteMark kind="stupanie" fallback="" /> {(trail as { ascentM?: number }).ascentM} m</b></div>
+          )}
+          {!APP_NEW && hasRouteMetrics(trail) && (trail.km?.trim() || (trail as { ascentM?: number }).ascentM != null) && (
             <div className="pta-stat pta-stat--full">
               {/* ⚠️ OBE ČÍSLA NESÚ EMOJI, NIE JEDNO (Matej 2026-08-25: „dvojšípka znázorňujúca
                   km je emoji = musí byť aj prevýšenie"). Do teraz tu stálo textové `↑` vedľa

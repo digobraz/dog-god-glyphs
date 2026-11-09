@@ -44,6 +44,58 @@ const STRIP_H = 120;
 export const WALL_TOTAL = WALL_H + SKY_UP;
 export const STRIP_HALF = STRIP_H / 2;
 
+/** Veľké titulné číslo Celkovo (Matej 9. 11. 2026, F2: veľké čísla pri Celkovo, Rekordy menšie). Hárok má 34, stupnica `PACK_TEXT` končí na 24, preto token mimo nej. */
+const NUM_BIG = 32;
+
+/** ŠAT PAPYRUS 3D pre steny Tripstats a Triplist (hárok plany/nakresy/map-herne-2026-11-09, E a F).
+ *  Len pod `html.papyrus3d` (APP_NEW), web ho nemá. Farby a tiene idú cez premenné z `lib/papyrus3d.ts`. */
+const P3D_PERA_SM = `inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 var(--p3d-gold-solid)`;
+const P3D_LAPIS_ON = `background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border-color:${LAPIS.ink};color:${LAPIS.ink};box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);`;
+const P3D_TW_CSS = `
+html.papyrus3d .tw-wall,html.papyrus3d .tlw-wall{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-ink),0 13px 16px var(--p3d-sh);}
+html.papyrus3d .tw-av{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink);}
+html.papyrus3d .tw-who b{text-transform:none;letter-spacing:.02em;font-size:${PACK_TEXT.h1}px;color:var(--p3d-ink);}
+html.papyrus3d .tw-who.tight b{font-size:${PACK_TEXT.h2}px;}
+html.papyrus3d .tw-who small{color:var(--p3d-ink);opacity:1;}
+html.papyrus3d .tw-xp{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.frame}px;background:var(--p3d-card);box-shadow:0 4px 0 var(--p3d-gold-solid);color:var(--p3d-ink);}
+html.papyrus3d .tw-xp .pk-progress{height:16px;border:2px solid var(--p3d-ink);background:var(--p3d-paper-hi);}
+html.papyrus3d .tw-xp .pk-progress__fill{background:linear-gradient(90deg,${LAPIS.edge},color-mix(in srgb,${LAPIS.edge} 40%,white) 70%,white);}
+html.papyrus3d .tw-strip button.pk-stage{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-b3);}
+html.papyrus3d .tw-strip .tw-num{color:var(--p3d-ink);}
+html.papyrus3d .tw-strip .tw-lbl{color:var(--p3d-gold-ink);}
+html.papyrus3d .tw-grid{gap:${S.lg}px ${S.sm}px;}
+html.papyrus3d .tw-tile,html.papyrus3d .tw-rec,html.papyrus3d .tw-dog{border:2.5px solid var(--p3d-ink) !important;border-radius:${PACK_R.card}px !important;background:var(--p3d-card) !important;box-shadow:var(--p3d-b3) !important;}
+html.papyrus3d .tw-dog{margin-bottom:${S.lg}px;}
+html.papyrus3d .tw-chev{display:none;}
+html.papyrus3d .tw-tile{min-height:88px;}
+html.papyrus3d .tw-tile img{width:64px;height:64px;}
+html.papyrus3d .tw-tile .tw-num{font-size:${NUM_BIG}px;color:var(--p3d-ink);}
+html.papyrus3d .tw-tile .tw-t2{font-size:${PACK_TEXT.body}px;color:var(--p3d-ink);}
+html.papyrus3d .tw-rec{min-height:72px;}
+html.papyrus3d .tw-rec b{font-size:${PACK_TEXT.h2}px;color:var(--p3d-ink);}
+html.papyrus3d .tw-rec small{font-size:${PACK_TEXT.label}px;color:var(--p3d-ink);}
+html.papyrus3d .tw-sh h3{color:var(--p3d-ink);}
+html.papyrus3d .tw-fl{padding-bottom:${S.sm}px;}
+html.papyrus3d .tw-fl button{min-height:44px;padding:${S.sm}px ${S.md}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);color:var(--p3d-ink);box-shadow:${P3D_PERA_SM};font-size:${PACK_TEXT.body}px;font-weight:600;}
+html.papyrus3d .tw-fl button.on{${P3D_LAPIS_ON}}
+html.papyrus3d .tw-fl img{box-shadow:0 0 0 2px var(--p3d-ink);}
+html.papyrus3d .tw-fl.sub button{min-height:40px;}
+html.papyrus3d .tw-row{border:0;border-radius:0;background:none;padding:${S.sm}px 0;color:var(--p3d-ink);}
+html.papyrus3d .tw-row.lock{border:0;opacity:.5;}
+html.papyrus3d .tw-row .nm{font-size:${PACK_TEXT.lead}px;}
+html.papyrus3d .tw-row .mt{font-size:${PACK_TEXT.body}px;color:${LAPIS.edge};}
+html.papyrus3d .tw-row.on{background:none;border:0;box-shadow:none;}
+html.papyrus3d .tw-tick{border:2.5px solid var(--p3d-ink);}
+html.papyrus3d .tw-mark,html.papyrus3d .tlw-all{min-height:56px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);color:var(--p3d-ink);box-shadow:var(--p3d-b3);font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;letter-spacing:0;text-transform:none;}
+html.papyrus3d .tw-lvh{border:2.5px solid var(--p3d-ink);box-shadow:0 4px 0 var(--p3d-gold-solid);}
+html.papyrus3d .tw-lvh h3{letter-spacing:.02em;text-transform:none;}
+html.papyrus3d .tw-xp.static{background:var(--p3d-card);}
+html.papyrus3d .tw-cc{border:2.5px solid var(--p3d-ink) !important;background:var(--p3d-card) !important;box-shadow:0 4px 0 var(--p3d-gold-solid) !important;}
+html.papyrus3d .tw-hd2,html.papyrus3d .tw-why{color:var(--p3d-ink);}
+html.papyrus3d .tw-next .pk-progress{height:16px;border:2px solid var(--p3d-ink);background:var(--p3d-paper-hi);}
+html.papyrus3d .tw-next .pk-progress__fill{background:linear-gradient(90deg,${LAPIS.edge},color-mix(in srgb,${LAPIS.edge} 40%,white) 70%,white);}
+`;
+
 export const TW_CSS = `${PROGRESS_CSS}
 ${STAGE_CSS}
 ${PF_FIELD_CSS}
@@ -177,6 +229,7 @@ button.tw-row{cursor:pointer;}
 .tw-m b{display:block;font-size:${PACK_TEXT.lead}px;font-weight:600;line-height:1;}
 .tw-m span{font-size:${PACK_TEXT.micro}px;color:${T.inkWarm};}
 @media (prefers-reduced-motion:reduce){.tw-xp .pk-progress__fill{transition:none;}}
+${P3D_TW_CSS}
 `;
 
 export function WallCount({ n }: { n: number }) {

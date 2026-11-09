@@ -23,7 +23,8 @@ import { eventEmoji, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { optimizePhoto, takeUploadBlob } from '@/components/pack/addtrip/photoOptimize';
 import { uploadEventPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { pluralKey } from '@/lib/plural';
-import { EVENT_KIND_LABEL_KEYS } from './eventModel';
+import { EVENT_KIND_LABEL_KEYS, EVENT_KIND_ICON } from './eventModel';
+import { APP_NEW } from '@/lib/packFlags';
 import {
   setRsvp, cancelEvent, deleteEvent, confirmHeld, fetchAttendees, fetchComments, postComment,
   deleteComment, invalidateMyEventPoints,
@@ -229,7 +230,11 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
               : <span className="pev-typechip">{t('pack.eventsList.typeEvent')}</span>}
         </div>
         <div className="pev-kindrow">
-          <span className="pev-kindchip"><span style={{ fontFamily: FONT_EMOJI }}>{eventEmoji(item.kind)}</span> {kindLabel}</span>
+          <span className="pev-kindchip">
+            {APP_NEW && EVENT_KIND_ICON[item.kind]
+              ? <img className="pev-kindico" src={EVENT_KIND_ICON[item.kind]} alt="" />
+              : <span style={{ fontFamily: FONT_EMOJI }}>{eventEmoji(item.kind)}</span>} {kindLabel}
+          </span>
         </div>
         <div className="pev-name">{item.title}</div>
         {item.venueName && <div className="pev-venue">{item.venueName}</div>}
@@ -268,10 +273,10 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
 
           {canRsvp && (
             <div className="pev-rsvp">
-              <button type="button" className={`pev-go${item.myState === 'going' ? ' on' : ''}`} disabled={busy} onClick={() => void pick('going')}>
+              <button type="button" className={`pev-go${item.myState === 'going' ? ' on' : ''}${APP_NEW ? (item.myState === 'interested' ? ' pk-b3 pk-b3--paper' : ' pk-b3 pk-b3--lapis') : ''}`} disabled={busy} onClick={() => void pick('going')}>
                 {t(item.myState === 'going' ? 'pack.event.goingOn' : 'pack.event.going')}
               </button>
-              <button type="button" className={`pev-maybe${item.myState === 'interested' ? ' on' : ''}`} disabled={busy} onClick={() => void pick('interested')}>
+              <button type="button" className={`pev-maybe${item.myState === 'interested' ? ' on' : ''}${APP_NEW ? (item.myState === 'interested' ? ' pk-b3 pk-b3--lapis' : ' pk-b3 pk-b3--paper') : ''}`} disabled={busy} onClick={() => void pick('interested')}>
                 {t(item.myState === 'interested' ? 'pack.event.interestedOn' : 'pack.event.interested')}
               </button>
             </div>
@@ -317,7 +322,7 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
                 placeholder={t('pack.event.commentPlaceholder')}
                 onChange={(e) => setDraftComment(e.target.value)}
               />
-              <button type="button" className="pev-send" disabled={busy || !draftComment.trim()} onClick={() => void send()}>
+              <button type="button" className={`pev-send${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} disabled={busy || !draftComment.trim()} onClick={() => void send()}>
                 {t('pack.event.send')}
               </button>
             </div>
@@ -330,8 +335,8 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
               <div className="pev-hint">{t('pack.event.heldWhy')}</div>
               {!heldOpen ? (
                 <div className="pev-rsvp">
-                  <button type="button" className="pev-go" onClick={() => setHeldOpen(true)}>{t('pack.event.heldYes')}</button>
-                  <button type="button" className="pev-maybe" onClick={() => setAskCancel(true)}>{t('pack.event.heldNo')}</button>
+                  <button type="button" className={`pev-go${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} onClick={() => setHeldOpen(true)}>{t('pack.event.heldYes')}</button>
+                  <button type="button" className={`pev-maybe${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={() => setAskCancel(true)}>{t('pack.event.heldNo')}</button>
                 </div>
               ) : (
                 <div className="pev-write pev-write--col">
@@ -347,8 +352,8 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
                   <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => void pickRecapPhoto(e)} />
                   {recapPhoto
                     ? <div className="pk-photo pev-photo"><img src={sizedUrl(recapPhoto, 800)} alt="" loading="lazy" /></div>
-                    : <button type="button" className="pev-maybe" disabled={busy} onClick={() => fileRef.current?.click()}>{t('pack.event.recapAddPhoto')}</button>}
-                  <button type="button" className="pev-go" disabled={busy || !recap.trim() || !recapPhoto} onClick={() => void doConfirmHeld()}>
+                    : <button type="button" className={`pev-maybe${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} disabled={busy} onClick={() => fileRef.current?.click()}>{t('pack.event.recapAddPhoto')}</button>}
+                  <button type="button" className={`pev-go${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} disabled={busy || !recap.trim() || !recapPhoto} onClick={() => void doConfirmHeld()}>
                     {t('pack.event.recapConfirm')}
                   </button>
                 </div>
@@ -444,6 +449,28 @@ ${PHOTO_CSS}
 .pev-send{padding:8px 12px;border:1px solid ${LAPIS.edge};${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.12)}}
 .pev-own{display:flex;gap:16px;flex-wrap:wrap;}
 .pev-link{font-family:${FONT_UI};font-weight:500;font-size:12px;color:${P.deep};background:none;border:0;padding:4px 0;text-decoration:underline;cursor:pointer;}
+
+/* ── PAPYRUS 3D (D2, D4): karta v zlatom ráme, dátum a názov Museum, tlačidlá 3D ───────────── */
+html.papyrus3d .pev-card{border:3px solid var(--p3d-gold);border-radius:16px;background:var(--p3d-card);box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-solid),0 13px 16px var(--p3d-sh);}
+html.papyrus3d .pev-card + .pev-card{margin-top:24px;}
+html.papyrus3d .pev-card.hot{box-shadow:0 0 0 2px var(--p3d-ink),0 0 0 6px var(--p3d-gold),0 7px 0 6px var(--p3d-gold-solid);}
+html.papyrus3d .pev-head{padding:16px;display:flex;flex-direction:column;gap:8px;}
+html.papyrus3d .pev-toprow{margin-bottom:0;align-items:flex-start;}
+html.papyrus3d .pev-date{font:400 24px/1 'LT Museum',serif;color:var(--p3d-ink);}
+html.papyrus3d .pev-typechip{height:44px;display:inline-flex;align-items:center;padding:0 16px;border:2.5px solid var(--p3d-ink);border-radius:12px;background:linear-gradient(180deg,#fff,var(--p3d-paper));box-shadow:var(--p3d-lift);font:400 16px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;color:var(--p3d-ink);}
+html.papyrus3d .pev-typechip--off{opacity:.7;}
+html.papyrus3d .pev-kindrow{margin-bottom:0;}
+html.papyrus3d .pev-kindchip{display:inline-flex;align-items:center;gap:8px;padding:0;border:0;font:600 12px 'Space Grotesk',sans-serif;letter-spacing:.14em;color:var(--p3d-gold-ink);}
+html.papyrus3d .pev-kindico{width:24px;height:24px;object-fit:contain;}
+html.papyrus3d .pev-name{font:400 24px/1.1 'LT Museum',serif;color:var(--p3d-ink);}
+html.papyrus3d .pev-venue,html.papyrus3d .pev-meta{font:500 14px 'Space Grotesk',sans-serif;}
+html.papyrus3d .pev-body{padding:0 16px 16px;gap:12px;}
+html.papyrus3d .pev-desc{font:500 14px/1.4 'Space Grotesk',sans-serif;}
+html.papyrus3d .pev-rsvp{gap:16px;}
+html.papyrus3d .pev-go.pk-b3,html.papyrus3d .pev-maybe.pk-b3,html.papyrus3d .pev-send.pk-b3{height:56px;padding:0 12px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),0 6px 0 var(--b3-p),0 11px 14px var(--p3d-sh);font:400 20px/1 'LT Museum',serif;font-size:20px;letter-spacing:0;text-transform:none;}
+html.papyrus3d .pev-send.pk-b3{height:44px;font-size:16px;padding:0 16px;}
+html.papyrus3d .pev-field{min-height:54px;padding:12px 16px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);font:500 16px 'Space Grotesk',sans-serif;}
+html.papyrus3d .pev-label{font:500 12px 'Space Grotesk',sans-serif;letter-spacing:.22em;color:var(--p3d-gold-ink);}
 `;
 
 export default EventCard;

@@ -11,6 +11,7 @@ import { FONT_UI, FONT_TITLE } from '@/components/pack/packTheme';
 // jeden zdroj pre celý /pack, tie isté hodnoty drží bledý skin mapy.
 import { PALE as P, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
+import { APP_NEW } from '@/lib/packFlags';
 import { DELETE_BUTTON_CSS } from '@/components/pack/DeleteButton';
 import { EventCard, EVENT_CARD_CSS } from './EventCard';
 import type { EventItem } from './eventStore';
@@ -44,11 +45,11 @@ export function EventsPanel({ events, view, onViewChange, selectedId, expandedId
       <style>{DELETE_BUTTON_CSS}</style>
       {/* prepínač nadchádzajúce/archív — zámerne MALÝ segment, vizuálne podradený .trp-cat-pills
           (§ „malý pill/segment... nie ďalší trp-catpill"). Archív = FILTER, nič sa nemaže. */}
-      <div className="pev-tabs" role="tablist">
-        <button type="button" role="tab" aria-selected={view === 'upcoming'} className={view === 'upcoming' ? 'on' : ''} onClick={() => onViewChange('upcoming')}>
+      <div className={`pev-tabs${APP_NEW ? ' pk-p3d-sw' : ''}`} role="tablist">
+        <button type="button" role="tab" aria-selected={view === 'upcoming'} className={(view === 'upcoming' ? 'on' : '') + (APP_NEW && view === 'upcoming' ? ' pk-b3 pk-b3--lapis' : '')} onClick={() => onViewChange('upcoming')}>
           {t('pack.eventsList.upcoming')}
         </button>
-        <button type="button" role="tab" aria-selected={view === 'archive'} className={view === 'archive' ? 'on' : ''} onClick={() => onViewChange('archive')}>
+        <button type="button" role="tab" aria-selected={view === 'archive'} className={(view === 'archive' ? 'on' : '') + (APP_NEW && view === 'archive' ? ' pk-b3 pk-b3--lapis' : '')} onClick={() => onViewChange('archive')}>
           {t('pack.eventsList.archive')}
         </button>
       </div>
@@ -57,9 +58,10 @@ export function EventsPanel({ events, view, onViewChange, selectedId, expandedId
         <div className="pev-empty"><p>{t('pack.event.errorLoad')}</p></div>
       ) : events.length === 0 ? (
         <div className="pev-empty">
+          {APP_NEW && <img className="pev-emptyico" src="/icons/sys/pridaj-podujatie.webp" alt="" />}
           <p>{view === 'upcoming' ? t('pack.eventsList.emptyUpcoming') : t('pack.eventsList.emptyArchive')}</p>
           {view === 'upcoming' && (
-            <button type="button" className="pev-emptybtn" onClick={onAddEvent}>{t('pack.eventsList.emptyCta')}</button>
+            <button type="button" className={`pev-emptybtn${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} onClick={onAddEvent}>{t('pack.eventsList.emptyCta')}</button>
           )}
         </div>
       ) : (
@@ -98,6 +100,15 @@ const EVP_CSS = `
    z locku .btn-gold — mení sa výplň, nie tvar. Dvojička je .comm-emptybtn (packCommunityUI). */
 .pev-emptybtn{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:12px 24px;border-radius:8px;border:1px solid ${LAPIS.deep};background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
 .pev-emptybtn:hover{background:${LAPIS.gradHover};}
+
+/* ── PAPYRUS 3D (D2, D3): prepínač Nadchádzajúce / Archív a prázdny stav ───────────────────── */
+html.papyrus3d .pev-tabs.pk-p3d-sw{display:grid;align-self:stretch;margin-bottom:16px;gap:4px;padding:4px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));}
+html.papyrus3d .pev-tabs.pk-p3d-sw>button{height:54px;padding:0;border:2.5px solid transparent;border-radius:14px;background:none;box-shadow:none;font:400 20px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;color:var(--p3d-ink);}
+html.papyrus3d .pev-tabs.pk-p3d-sw>button.on{border-color:var(--b3-l);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 var(--b3-p),0 7px 9px var(--p3d-sh);}
+html.papyrus3d .pev-empty{gap:16px;padding:48px 16px;}
+html.papyrus3d .pev-emptyico{width:120px;height:120px;object-fit:contain;}
+html.papyrus3d .pev-empty p{font:500 16px/1.4 'Space Grotesk',sans-serif;font-style:normal;}
+html.papyrus3d .pev-emptybtn.pk-b3{align-self:stretch;height:56px;padding:0 24px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),0 6px 0 var(--b3-p),0 11px 14px var(--p3d-sh);font:400 20px/1 'LT Museum',serif;font-size:20px;letter-spacing:0;text-transform:none;}
 `;
 
 export default EventsPanel;

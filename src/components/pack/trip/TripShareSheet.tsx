@@ -54,7 +54,14 @@ export interface TripShareData {
   decorative?: boolean;
   /** Pilulka úplne hore („Som #1 z 1 000 000") — miesto psa v misii (Matej 23. 10.). */
   badge?: string;
+  /** APPKA (APP_NEW, Papyrus 3D 9. 11. 2026): hodnotenie výletu — hviezdy a číslo idú pod názov. 0/chýba = nič. */
+  rating?: number;
+  /** číslo hodnotenia už v jazyku rozhrania („5,0") */
+  ratingText?: string;
+  /** APPKA: 3D pilulky pod fotkou, každá = rad (ikona + text); text smie chýbať (ikona bez slova). Web ostáva na `chips`. */
+  pills?: SharePill[];
 }
+export type SharePill = { icon: string; text?: string }[];
 
 /** Čo sa zdieľa — mení len texty okna. Pes = karta psa z profilu JA a šuplíka BONES (23. 10. 2026,
  *  Matej: „pozvi na profile po kliknutí mechanizmus ako pri výletoch a zdieľaní na ig"). */
@@ -266,6 +273,166 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
   ctx.fillText(motto, cx, mY); ctx.letterSpacing = '0px';
 }
 
+// ── APPKA: PAPYRUS 3D (Matej 9. 11. 2026, hárok `map-herne-2026-11-09` C6) ─────────────────────────────
+// Len pod `APP_NEW` a len pre výlet. Web a karta psa idú starou `render()` vyššie, tá sa nemení.
+// Písmo LT Museum (Black) sa načíta cez `document.fonts.load` pred kreslením, inak by canvas sadol na serif.
+const P3D = { ink: '#2a1608', gold: '#C99A3F', goldSolid: '#A3782B', paper: '#F3E4C4', paperHi: '#F9F2E3', star: '#F5C73D', starOff: '#E4D6B4' };
+const MUSEUM = '"LT Museum", serif';
+/** Názov v LT Museum, bez veľkých písmen; najväčšie písmo, pri ktorom sa zmestí do dvoch riadkov. Vracia spodok. */
+function title3d(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, big: number, dry: boolean): number {
+  let size = big, lines: string[] = [];
+  for (; size >= 52; size -= 4) {
+    ctx.font = `900 ${size}px ${MUSEUM}`; lines = wrap(ctx, text, 940);
+    if (lines.length <= 2) break;
+  }
+  if (lines.length > 2) { lines = lines.slice(0, 2); lines[1] = `${lines[1].replace(/\s*\S*$/, '')}…`; }
+  const lh = size * 1.12;
+  if (!dry) {
+    ctx.fillStyle = P3D.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    lines.forEach((l, i) => ctx.fillText(l, cx, y + i * lh));
+  }
+  return y + lines.length * lh;
+}
+function starPath(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5, rad = i % 2 ? r * 0.5 : r;
+    ctx[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rad, y + Math.sin(a) * rad);
+  }
+  ctx.closePath();
+}
+/** Číslo hodnotenia a päť hviezd vedľa seba, vycentrované; hviezda sa plní podľa zlomku. Vracia šírku riadku. */
+function ratingRow(ctx: CanvasRenderingContext2D, value: number, label: string, cx: number, y: number, size: number, dry: boolean): number {
+  const r = size * 0.46, gap = size * 0.12, sw = r * 2 + gap;
+  ctx.font = `900 ${size}px ${MUSEUM}`;
+  const lw = ctx.measureText(label).width, tot = lw + size * 0.3 + sw * 5 - gap;
+  if (dry) return tot;
+  let x = cx - tot / 2;
+  ctx.fillStyle = P3D.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText(label, x, y + size / 2 + 2); x += lw + size * 0.3;
+  for (let i = 0; i < 5; i++) {
+    const sx = x + r + i * sw, sy = y + size / 2, fill = Math.max(0, Math.min(1, value - i));
+    ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(3, size * 0.07); ctx.strokeStyle = P3D.ink;
+    starPath(ctx, sx, sy, r); ctx.fillStyle = P3D.starOff; ctx.fill(); ctx.stroke();
+    if (fill > 0) {
+      ctx.save(); ctx.beginPath(); ctx.rect(sx - r, sy - r, r * 2 * fill, r * 2); ctx.clip();
+      starPath(ctx, sx, sy, r); ctx.fillStyle = P3D.star; ctx.fill(); ctx.restore();
+      starPath(ctx, sx, sy, r); ctx.stroke();
+    }
+  }
+  return tot;
+}
+/** 3D pilulky pod fotkou: papyrusová plocha, tmavý obrys, spodná pera. Vracia šírky pre vycentrovanie. */
+function pills3d(ctx: CanvasRenderingContext2D, pills: SharePill[], icons: Map<string, HTMLImageElement | null>, cx: number, y: number, h: number, dry: boolean) {
+  const fs = Math.round(h * 0.42), ic = Math.round(h * 0.62), padX = h * 0.34, gap = h * 0.14, between = 18;
+  ctx.font = `600 ${fs}px "Space Grotesk", sans-serif`;
+  const ws = pills.map((p) => padX * 2 + p.reduce((s, part, i) => s + ic + (part.text ? gap + ctx.measureText(part.text).width : 0) + (i ? gap * 1.5 : 0), 0));
+  if (dry) return;
+  const tot = ws.reduce((s, w) => s + w, 0) + between * (pills.length - 1);
+  let x = cx - tot / 2;
+  pills.forEach((p, pi) => {
+    const w = ws[pi];
+    rr(ctx, x, y + 9, w, h, 28); ctx.fillStyle = P3D.goldSolid; ctx.fill();
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.34)'; ctx.shadowBlur = 22; ctx.shadowOffsetY = 14;
+    rr(ctx, x, y, w, h, 28); ctx.fillStyle = P3D.goldSolid; ctx.fill(); ctx.restore();
+    const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#fff'); g.addColorStop(1, P3D.paper);
+    rr(ctx, x, y, w, h, 28); ctx.fillStyle = g; ctx.fill();
+    ctx.lineWidth = 6; ctx.strokeStyle = P3D.ink; ctx.stroke();
+    let px = x + padX;
+    p.forEach((part, i) => {
+      if (i) px += gap * 1.5;
+      const im = icons.get(part.icon);
+      if (im) ctx.drawImage(im, px, y + (h - ic) / 2, ic, ic);
+      px += ic;
+      if (part.text) {
+        px += gap; ctx.fillStyle = P3D.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = `600 ${fs}px "Space Grotesk", sans-serif`;
+        ctx.fillText(part.text, px, y + h / 2 + 2); px += ctx.measureText(part.text).width;
+      }
+    });
+    x += w + between;
+  });
+}
+
+/** PAPYRUS 3D šablóna výletu — fotka s tvrdou hranou a zlatou linkou, 3D pilulky, názov + hodnotenie, dole logo a motto. */
+async function render3d(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: RenderOpts) {
+  const { w: W, h: H } = FMT[o.fmt], cx = W / 2, ig = o.fmt === 'ig';
+  const iconSrcs = [...new Set((d.pills ?? []).flat().map((p) => p.icon))];
+  const [lg, fl, ...ims] = await Promise.all([
+    loadImg(logoGold),
+    d.country ? loadImg(flagUrl(d.country.toLowerCase(), 160)) : Promise.resolve(null),
+    ...iconSrcs.map((s) => loadImg(s)),
+  ]);
+  const icons = new Map<string, HTMLImageElement | null>(iconSrcs.map((s, i) => [s, ims[i]]));
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  if (!ctx) return;
+  const safeBot = ig ? H - 250 : H - 60;
+  const big = ig ? 88 : 72;
+  const lgW = ig ? 230 : 190, lgH = lg ? lgW * lg.height / lg.width : 0;
+  const mY = ig ? safeBot + 40 : H - 64;
+  const lY = mY - 20 - lgH;
+  const slotH = 150, sY = lY - 36 - slotH;
+  const end = ig ? sY - 44 : lY - 92;
+  const hasRating = !!d.rating && d.rating > 0;
+  const rSize = ig ? 76 : 64, pillH = ig ? 104 : 88, hasPills = !!d.pills?.length;
+  const tH = title3d(ctx, d.name, cx, 0, big, true);
+  const below = tH + (hasRating ? 24 + rSize : 0);
+  const contentTop = end - below;
+  const pillTop = contentTop - 28 - pillH;
+  const photoH = hasPills ? pillTop + pillH / 2 : contentTop - 28;
+
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, P3D.paperHi); bg.addColorStop(1, '#EBD7A8');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  // fotka bez rozplynutia: tvrdá hrana, tmavá linka a zlatý pás
+  cover(ctx, o.photo, 0, 0, W, photoH, o.off);
+  ctx.fillStyle = P3D.ink; ctx.fillRect(0, photoH, W, 6);
+  ctx.fillStyle = P3D.gold; ctx.fillRect(0, photoH + 6, W, 10);
+
+  if (fl) {
+    const r = ig ? 64 : 52, fx = W - 64 - r, fy = ig ? 330 : 64 + r;
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 16;
+    ctx.beginPath(); ctx.arc(fx, fy, r, 0, Math.PI * 2); ctx.fillStyle = P3D.paperHi; ctx.fill(); ctx.restore();
+    const ir = r - 10;
+    ctx.save(); ctx.beginPath(); ctx.arc(fx, fy, ir, 0, Math.PI * 2); ctx.clip();
+    const s = Math.max((ir * 2) / fl.width, (ir * 2) / fl.height);
+    ctx.drawImage(fl, fx - (fl.width * s) / 2, fy - (fl.height * s) / 2, fl.width * s, fl.height * s);
+    ctx.restore();
+    ctx.lineWidth = 6; ctx.strokeStyle = P3D.ink; ctx.beginPath(); ctx.arc(fx, fy, r, 0, Math.PI * 2); ctx.stroke();
+  }
+  if (hasPills) pills3d(ctx, d.pills ?? [], icons, cx, pillTop, pillH, false);
+
+  const ty = title3d(ctx, d.name, cx, contentTop, big, false);
+  if (hasRating) ratingRow(ctx, d.rating ?? 0, d.ratingText ?? (d.rating ?? 0).toFixed(1), cx, ty + 24, rSize, false);
+
+  if (ig) {
+    if (!o.exportMode) {
+      ctx.save(); ctx.setLineDash([22, 16]); ctx.lineWidth = 5; ctx.strokeStyle = SLOT_INK;
+      rr(ctx, cx - 310, sY, 620, slotH, 28); ctx.stroke(); ctx.restore();
+      ctx.fillStyle = SLOT_INK; ctx.globalAlpha = 0.75; ctx.font = `500 34px "Space Grotesk", ${FONT_EMOJI}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(`🔗  ${tx.slot}`, cx, sY + slotH / 2 + 2); ctx.globalAlpha = 1;
+    }
+  } else {
+    ctx.fillStyle = WARM; ctx.font = `500 28px "Space Grotesk", ${FONT_EMOJI}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(tx.fbLine, cx, lY - 56);
+  }
+  if (lg) {
+    const lc = document.createElement('canvas'); lc.width = lgW * 2; lc.height = lgH * 2;
+    const lx = lc.getContext('2d');
+    if (lx) {
+      lx.drawImage(lg, 0, 0, lc.width, lc.height);
+      lx.globalCompositeOperation = 'source-in'; lx.fillStyle = P3D.ink; lx.fillRect(0, 0, lc.width, lc.height);
+      ctx.drawImage(lc, cx - lgW / 2, lY, lgW, lgH);
+    }
+  }
+  // motto nikdy širšie ako logo (Matej 23. 10.)
+  ctx.fillStyle = P3D.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  let mfs = 34;
+  for (; mfs > 12; mfs -= 1) { ctx.font = `900 ${mfs}px ${MUSEUM}`; if (ctx.measureText(tx.motto).width <= lgW) break; }
+  ctx.fillText(tx.motto, cx, mY);
+}
+
 function slug(name: string): string {
   return name.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'trip';
@@ -310,6 +477,25 @@ const CSS = `
 .tsh-steps{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;}
 .tsh-steps li{display:flex;gap:12px;align-items:flex-start;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.inkStrong};}
 .tsh-steps b{flex:0 0 24px;height:24px;border-radius:999px;background:${LAPIS.edge};color:${T.card};display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;}
+/* APPKA: PAPYRUS 3D okno (Matej 9. 11. 2026, hárok C3). Len pod html.papyrus3d, web nemá ani jednu z týchto tried. */
+html.papyrus3d .tsh-panel{--on-l:#EFD79A;--on-bg:linear-gradient(180deg,color-mix(in srgb,#16307A 72%,white),#0A1A4A);--on-sh:inset 0 2px 0 rgba(255,255,255,.3),0 4px 0 color-mix(in srgb,#0A1A4A 60%,black),0 7px 9px var(--p3d-sh);background:var(--p3d-card);border:0;border-top:6px solid var(--p3d-gold);box-shadow:var(--p3d-lift);}
+html.papyrus3d .tsh-grip{background:var(--p3d-gold);width:56px;height:6px;}
+html.papyrus3d .tsh-head h2{font-family:'LT Museum',serif;font-weight:900;font-size:24px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .tsh-x.pk-b3{width:48px;height:48px;padding:0;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--p3d-ink);box-shadow:var(--p3d-b3);}
+html.papyrus3d .tsh-x .tsh-ic{width:24px;height:24px;}
+html.papyrus3d .tsh-lbl{color:var(--p3d-gold-ink);}
+html.papyrus3d .tsh-prev canvas{border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .tsh-pills.pk-p3d-sw{display:grid;flex-direction:initial;}
+html.papyrus3d .tsh-pill{border:0;background:transparent;border-radius:14px;height:50px;padding:0 8px;gap:4px;white-space:nowrap;font:400 16px/1 'LT Museum',serif;color:var(--p3d-ink);}
+html.papyrus3d .tsh-pill.on{border:2.5px solid var(--on-l);background:var(--on-bg);color:var(--on-l);box-shadow:var(--on-sh);}
+html.papyrus3d .tsh-ph{border:2.5px solid var(--p3d-ink);border-radius:16px;opacity:.6;}
+html.papyrus3d .tsh-ph.on{border-color:#16307A;opacity:1;}
+html.papyrus3d .tsh-own{border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);opacity:1;color:var(--p3d-ink);font:500 12px/1.2 'Space Grotesk',sans-serif;}
+html.papyrus3d .tsh-cta.pk-b3,html.papyrus3d .tsh-link.pk-b3{width:100%;height:56px;padding:0 16px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 20px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;box-shadow:var(--p3d-b3);} /* písmo: cta */
+html.papyrus3d .tsh-link.pk-b3{margin-top:16px;}
+html.papyrus3d .tsh-link img{width:28px;height:28px;}
+html.papyrus3d .tsh-steps li{font-size:14px;}
+html.papyrus3d .tsh-steps b{background:#16307A;color:var(--on-l);}
 @media(min-width:721px){
   .tsh-veil{align-items:center;padding:24px;}
   .tsh-panel{border-radius:16px;padding:24px;max-height:calc(100dvh - 48px);}
@@ -362,7 +548,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
   const dataKey = JSON.stringify(data);
 
   useEffect(() => {
-    Promise.all([document.fonts.load('700 80px Cinzel'), document.fonts.load('700 80px "Cinzel Decorative"'), document.fonts.load('500 38px "Space Grotesk"'), document.fonts.load('600 36px "Space Grotesk"')])
+    Promise.all([document.fonts.load('700 80px Cinzel'), document.fonts.load('700 80px "Cinzel Decorative"'), document.fonts.load('500 38px "Space Grotesk"'), document.fonts.load('600 36px "Space Grotesk"'), ...(APP_NEW ? [document.fonts.load('900 80px "LT Museum"')] : [])])
       .catch(() => undefined).finally(() => setFontsOk(true));
   }, []);
   useEffect(() => {
@@ -389,15 +575,17 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
     let live = true;
     setReady(false);
     const o = { fmt, photo, off, glyph };
-    void render(cv, data, tx, { ...o, exportMode: false }).then(async () => {
+    // APP_NEW + výlet = Papyrus 3D šablóna; web a karta psa ostávajú na pôvodnej `render`
+    const draw = APP_NEW && kind === 'trip' ? render3d : render;
+    void draw(cv, data, tx, { ...o, exportMode: false }).then(async () => {
       if (!live) return;
       const c = document.createElement('canvas');
-      await render(c, data, tx, { ...o, exportMode: true });
+      await draw(c, data, tx, { ...o, exportMode: true });
       c.toBlob((b) => { if (live && b) { blobRef.current = b; setReady(true); } }, 'image/png');
     });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fontsOk, fmt, photo, off, glyph, dataKey, txKey]);
+  }, [fontsOk, fmt, photo, off, glyph, dataKey, txKey, kind]);
 
   const fname = `dogypt-${slug(data.name)}-${fmt}.png`;
   const copyLink = useCallback(async () => {
@@ -464,7 +652,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
           <div className="tsh-grip" {...sw.handle} />
           <div className="tsh-head" {...sw.handle}>
             <h2>{t(K.title)}</h2>
-            <button type="button" className="tsh-x" onClick={onClose} aria-label={t('pack.trip.shareClose')}>
+            <button type="button" className={`tsh-x${APP_NEW ? ' pk-b3 pk-b3--paper pk-b3--round' : ''}`} onClick={onClose} aria-label={t('pack.trip.shareClose')}>
               <span className="tsh-ic" style={{ '--ic': `url(${ICON('cross')})` } as React.CSSProperties} />
             </button>
           </div>
@@ -473,7 +661,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
             <div>
               <div className="tsh-sec">
                 <div className="tsh-lbl">{t('pack.trip.shareWhere')}</div>
-                <div className="tsh-pills">
+                <div className={`tsh-pills${APP_NEW ? ' pk-p3d-sw' : ''}`}>
                   {(['ig', 'fb'] as ShareFmt[]).map((f) => (
                     <button key={f} type="button" className={`tsh-pill${fmt === f ? ' on' : ''}`} onClick={() => setFmt(f)}>
                       <span className="tsh-ic" style={{ '--ic': `url(${NET_ICON[f]})` } as React.CSSProperties} />
@@ -508,7 +696,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
               {data.glyph && (
                 <div className="tsh-sec">
                   <div className="tsh-lbl">{t('pack.dogShare.glyph')}</div>
-                  <div className="tsh-pills">
+                  <div className={`tsh-pills${APP_NEW ? ' pk-p3d-sw' : ''}`}>
                     {[true, false].map((on) => (
                       <button key={String(on)} type="button" className={`tsh-pill${withGlyph === on ? ' on' : ''}`} onClick={() => setWithGlyph(on)}>
                         {t(on ? 'pack.dogShare.glyphOn' : 'pack.dogShare.glyphOff')}
@@ -524,10 +712,10 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
               </div>
             </div>
             <div className="tsh-acts">
-              <button type="button" className="tsh-cta" onClick={share} disabled={!ready}>
+              <button type="button" className={`tsh-cta${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} onClick={share} disabled={!ready}>
                 {t(pc ? 'pack.trip.shareCtaDownload' : fmt === 'ig' ? 'pack.trip.shareCtaIg' : 'pack.trip.shareCtaFb')}
               </button>
-              <button type="button" className="tsh-link" onClick={copyOnly}>
+              <button type="button" className={`tsh-link${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={copyOnly}>
                 {APP_NEW ? <SysIcon name="zdielat" size={20} /> : <span className="tsh-ic" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />}
                 {t(K.copy)}
               </button>
@@ -548,7 +736,7 @@ export function TripShareButton({ data }: { data: TripShareData }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button type="button" className="pta-actbtn pta-actbtn--blue" onClick={() => setOpen(true)} aria-label={t('pack.trip.story')}>
+      <button type="button" className={`pta-actbtn pta-actbtn--blue${APP_NEW ? ' pk-b3 pk-b3--paper pta-share2' : ''}`} onClick={() => setOpen(true)} aria-label={t('pack.trip.story')}>
         <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${NET_ICON.ig})` } as React.CSSProperties} />
         <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${NET_ICON.fb})` } as React.CSSProperties} />
         <span className="pta-actbtn-label">{t('pack.trip.story')}</span>

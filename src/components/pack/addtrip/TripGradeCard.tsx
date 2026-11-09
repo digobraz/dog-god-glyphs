@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { PACK_THEME as T, PACK_BOX, PACK_SHADOW, BRAND_GOLD_BTN, PROGRESS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
+import { APP_NEW } from '@/lib/packFlags';
 import { GRADE_MAX, GRADE_POINTS, type GradePoint, type GradeResult, type TripGrade } from '@/lib/tripGrade';
 
 const MEDAL: Record<TripGrade, string> = {
@@ -34,7 +35,7 @@ export function TripGradeCard({ result, photoCount, onGo, t }: {
   const [open, setOpen] = useState(grade !== 'A');
   return (
     <div className="tgc-card" style={{ ...PACK_BOX.card }}>
-      <style>{PROGRESS_CSS}{TRIP_GRADE_CSS}</style>
+      <style>{PROGRESS_CSS}{TRIP_GRADE_CSS}{APP_NEW ? P3D_GRADE_CSS : ''}</style>
       <button type="button" className="tgc-head" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         <span className="tgc-medal" style={{ background: MEDAL[grade] }} aria-label={t('pack.addTrip.grade.aria', { grade })}>{grade}</span>
         <span className="tgc-meta">
@@ -108,4 +109,17 @@ const TRIP_GRADE_CSS = `
 .tgc-go{margin-left:auto;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.02em;color:${LAPIS.edge};white-space:nowrap;}
 .tgc-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
 .tgc-legend span{border-radius:999px;padding:4px 12px;font-size:12px;font-weight:500;border:1px solid ${T.border};color:${T.ink};background:${T.tileBg};}
+`;
+
+// ŠAT PAPYRUS 3D (Matej 9. 11. 2026, hárok B9): karta s hrubým obrysom a perou, známka ako mince, prázdne body červeným
+// obrysom (nie bodkočiarkou). Len pod `APP_NEW`, farby a tiene z `--p3d-*` (lib/papyrus3d.ts).
+const P3D_GRADE_CSS = `
+html.papyrus3d .tgc-card{border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-card);box-shadow:var(--p3d-pera);}
+html.papyrus3d .tgc-medal{border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .tgc-score{font-size:20px;letter-spacing:.02em;color:var(--p3d-ink);}
+html.papyrus3d .tgc-sub,html.papyrus3d .tgc-why,html.papyrus3d .tgc-val{font-size:14px;color:color-mix(in srgb,var(--p3d-ink) 62%,var(--p3d-paper));}
+html.papyrus3d .tgc-cell{border-radius:12px;font-size:14px;color:var(--p3d-ink);}
+html.papyrus3d .tgc-list li.y .tgc-cell{background:none;border:0;padding-left:0;}
+html.papyrus3d .tgc-list li.n .tgc-cell{background:var(--p3d-paper-hi);border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .tgc-legend span{border:1.5px solid var(--p3d-gold);background:none;color:var(--p3d-ink);}
 `;

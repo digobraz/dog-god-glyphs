@@ -21,6 +21,7 @@ import { useTrailPaths, fullPathOf } from '@/data/trailPaths';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
+import { APP_NEW } from '@/lib/packFlags';
 import { MAP_SKIN, PALE, PALE_PC_MIN, goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
@@ -1833,6 +1834,7 @@ export function GeometryPicker({
         <>
         <style>{MAP_DOCK_CSS}</style>
         <style>{DRAW_BAR_CSS}</style>
+        {APP_NEW && <style>{P3D_GEO_CSS}</style>}
         <style>{AINUBIS_GUIDE_CSS}</style>
         <style>{CIRCLE_MARK_CSS}</style>
         <style>{MINI_OVERVIEW_CSS}</style>
@@ -2205,6 +2207,36 @@ function ensureAnchorTagCss() {
   el.textContent = ANCHOR_TAG_CSS;
   document.head.appendChild(el);
 }
+
+// ══ ŠAT PAPYRUS 3D — spodný dok kreslenia (Matej 9. 11. 2026, hárok B3/B4), len pod `APP_NEW` ══
+// Predpona `html.papyrus3d` + `.trp-dock`: dok je portál tohto súboru, ostatné panely `.trp-dockpanel` sa nemenia.
+// Tlačidlá = TLAČIDLO 3D cez `--b3-*` (ako v AddTripLog), polia a prepínač = recept `pk-p3d-input` / `pk-p3d-sw`.
+const P3D_GEO_CSS = !APP_NEW ? '' : `
+html.papyrus3d .trp-dock .trp-dockpanel{background:radial-gradient(120% 80% at 50% 0%,var(--p3d-paper-hi),var(--p3d-paper));border-top:2.5px solid var(--p3d-ink);border-image:none;border-radius:16px 16px 0 0;box-shadow:0 -8px 24px var(--p3d-sh);}
+html.papyrus3d .trp-dkind{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;padding:8px;border-radius:16px;border:2.5px solid var(--p3d-ink);background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
+html.papyrus3d .trp-dkind-btn{height:48px;border:0;border-radius:12px;background:none;color:var(--p3d-ink);font-family:'LT Museum',serif;font-weight:400;font-size:20px;letter-spacing:0;text-transform:none;}
+html.papyrus3d .trp-dkind-btn:hover{background:none;color:var(--p3d-ink);}
+html.papyrus3d .trp-dkind-btn.on,html.papyrus3d .trp-dkind-btn.on:hover{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});color:${LAPIS.ink};box-shadow:0 0 0 2px ${LAPIS.ink},0 3px 0 2px ${LAPIS.deep};font-weight:400;}
+html.papyrus3d .trp-dbar-btn{--b3-a:#fff;--b3-b:var(--p3d-paper);--b3-p:var(--p3d-gold-solid);--b3-l:var(--p3d-ink);--b3-i:var(--p3d-ink);box-sizing:border-box;min-height:56px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);
+  --b3-sh:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -4px 0 rgba(0,0,0,.15),0 4px 0 var(--b3-p),0 8px 10px rgba(0,0,0,.28);box-shadow:var(--b3-sh);font-family:'LT Museum',serif;font-weight:400;font-size:16px;line-height:1.1;letter-spacing:0;text-transform:none;}
+html.papyrus3d .trp-dbar-btn:hover:not(:disabled){background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);border-color:var(--b3-l);}
+html.papyrus3d .trp-dbar-btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--b3-p);}
+html.papyrus3d .trp-dbar-btn:disabled{opacity:.55;}
+html.papyrus3d .trp-dbar-row--minor{gap:12px;}
+html.papyrus3d .trp-dbar-row--minor .trp-dbar-btn{min-height:48px;padding:0 12px;font-size:14px;}
+/* MAZANIE JE ČERVENÉ CELÉ (nevratná akcia) */
+html.papyrus3d .trp-dbar-row--minor .trp-dbar-btn:last-child{--b3-a:color-mix(in srgb,#C8202F 62%,white);--b3-b:#C8202F;--b3-p:#9E1522;--b3-l:var(--p3d-ink);--b3-i:#fff;}
+html.papyrus3d .trp-dbar-row--minor .trp-dbar-btn:last-child:hover:not(:disabled){background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);}
+html.papyrus3d .trp-dbar-done{--b3-a:color-mix(in srgb,${LAPIS.edge} 72%,white);--b3-b:${LAPIS.deep};--b3-p:color-mix(in srgb,${LAPIS.deep} 60%,black);--b3-l:${LAPIS.ink};--b3-i:${LAPIS.ink};box-sizing:border-box;min-height:56px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);
+  --b3-sh:inset 0 2px 0 rgba(255,255,255,.28),inset 0 -4px 0 rgba(0,0,0,.15),0 4px 0 var(--b3-p),0 8px 10px rgba(0,0,0,.28);box-shadow:var(--b3-sh);font-family:'LT Museum',serif;font-weight:400;font-size:20px;letter-spacing:0;text-transform:none;}
+html.papyrus3d .trp-dbar-done:hover:not(:disabled){background:linear-gradient(180deg,var(--b3-a),var(--b3-b));box-shadow:var(--b3-sh);}
+html.papyrus3d .trp-dbar-done:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--b3-p);}
+html.papyrus3d .trp-dbar-done--hero{padding:0 16px;font-size:20px;}
+html.papyrus3d .trp-dback{color:${LAPIS.edge};font-size:14px;}
+html.papyrus3d .trp-dback:hover{color:${LAPIS.edge};}
+html.papyrus3d .trp-dock .trp-ps-input{box-sizing:border-box;min-height:54px;padding:12px 16px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);font-family:${FONT_UI};font-weight:500;font-size:16px;color:var(--p3d-ink);}
+html.papyrus3d .trp-dock .trp-dockpanel .trp-dread-dim,html.papyrus3d .trp-dock .trp-dockpanel .trp-dbar-read{color:color-mix(in srgb,var(--p3d-ink) 58%,var(--p3d-paper));}
+`;
 
 const DRAW_BAR_CSS = `
 /* TRI DIELY: bodky vľavo · čítanie v strede · únik vpravo. Stredný diel je centrovaný voči

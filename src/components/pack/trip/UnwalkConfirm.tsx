@@ -14,6 +14,7 @@
 import { createPortal } from 'react-dom';
 import { useEffect, useRef } from 'react';
 import { useT, useLang } from '@/i18n/LanguageContext';
+import { APP_NEW } from '@/lib/packFlags';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS, VEIL_PAD } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 
@@ -29,6 +30,11 @@ const CSS = `${VEIL_CSS}
 .uwc-loss b{color:${DANGER};font-weight:600;}
 .uwc-keep{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
 .uwc-keep:hover{background:${LAPIS.gradHover};}
+/* APPKA: PAPYRUS 3D. Zachovať = lapis, zrušiť prejdenie (mazanie) = CELÉ ČERVENÉ TLAČIDLO 3D (Matej 9. 11. 2026). */
+html.papyrus3d .uwc-box{background:var(--p3d-card);border:0;border-top:6px solid var(--p3d-gold);box-shadow:0 6px 0 var(--p3d-ink),0 14px 18px var(--p3d-sh);}
+html.papyrus3d .uwc-title{font-family:'LT Museum',serif;font-weight:900;font-size:20px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .uwc-keep.pk-b3,html.papyrus3d .uwc-drop.pk-b3{width:100%;height:56px;padding:0 16px;margin-top:0;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 20px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;text-decoration:none;box-shadow:var(--p3d-b3);} /* písmo: cta */
+html.papyrus3d .uwc-drop.pk-b3{margin-top:16px;}
 .uwc-drop{margin-top:12px;background:none;border:0;padding:8px;font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:0.02em;color:${DANGER};text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
 `;
 
@@ -66,8 +72,8 @@ export function UnwalkConfirm({ name, points, km, onConfirm, onClose }: {
         <div className="uwc-title">{t('pack.map.unwalk.title')}</div>
         <div className="uwc-name">{name}</div>
         <p className="uwc-loss">{parts.map((p, i) => (i % 2 ? <b key={i}>{p}</b> : p))}</p>
-        <button ref={keepRef} type="button" className="uwc-keep" onClick={onClose}>{t('pack.map.unwalk.keep')}</button>
-        <button type="button" className="uwc-drop" onClick={() => { onConfirm(); onClose(); }}>{t('pack.map.unwalk.confirm')}</button>
+        <button ref={keepRef} type="button" className={`uwc-keep${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} onClick={onClose}>{t('pack.map.unwalk.keep')}</button>
+        <button type="button" className={`uwc-drop${APP_NEW ? ' pk-b3 pk-b3--red' : ''}`} onClick={() => { onConfirm(); onClose(); }}>{t('pack.map.unwalk.confirm')}</button>
       </div>
     </div>,
     document.body,
