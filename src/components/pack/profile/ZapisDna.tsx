@@ -103,6 +103,7 @@ const CSS = `
   font-family:${FONT_UI};font-weight:500;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;}
 .zd-dy b{font-weight:600;font-size:${TX.h2}px;letter-spacing:0;color:${T.inkStrong};line-height:1;}
 .zd-dy.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
+html.papyrus3d .zd-dy{width:auto;min-width:56px;padding:0 ${S.xs}px;letter-spacing:0;}
 .zd-dy svg{position:absolute;top:${S.xs}px;right:${S.xs}px;color:#3D7A4E;}
 .zd-dy--cal input{position:absolute;inset:0;opacity:0;cursor:pointer;}
 .zd-rut{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:${S.sm}px;}

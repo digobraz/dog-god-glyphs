@@ -49,7 +49,7 @@ ${H} .vkw-tile:disabled{opacity:.55;cursor:default;}
 ${H} .vkw-tile span{display:block;min-width:0;}
 ${H} .vkw-tile b{display:block;font:600 24px/1 ${UI};color:${A.ink};font-variant-numeric:tabular-nums;white-space:nowrap;}
 ${H} .vkw-tile small{display:block;margin-top:4px;font:500 14px/1.15 ${UI};color:${A.inkDim};}
-${H} .vkw-sheet{${M3.sheet}color:${A.ink};}
-${H} .vkw-sheet .ppu-head h2{font:400 24px/1.12 ${MU};letter-spacing:0;text-align:center;color:${A.ink};}
-${H} .vkw-sheet .pk-grab{${M3.grab}}
+${H} .ppu-sheet.vkw-sheet{${M3.sheet}color:${A.ink};}
+${H} .ppu-sheet.vkw-sheet .ppu-head h2{font:400 24px/1.12 ${MU};letter-spacing:0;text-align:center;color:${A.ink};}
+${H} .ppu-sheet.vkw-sheet .pk-grab{${M3.grab}}
 `;

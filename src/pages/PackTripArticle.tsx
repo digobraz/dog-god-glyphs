@@ -602,6 +602,7 @@ html.papyrus3d .pta-author{font-size:14px;color:var(--p3d-ink);}
 html.papyrus3d .pta-acts{gap:12px;align-items:flex-start;padding-bottom:8px;}
 html.papyrus3d .pta-actbtn.pk-b3{height:56px;padding:0 16px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 20px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;box-shadow:var(--p3d-b3);} /* písmo: cta */
 html.papyrus3d .pta-actbtn.pk-b3:active:not(:disabled){transform:translateY(5px);}
+html.papyrus3d .pta-acts .pta-actbtn-label{white-space:normal;overflow:visible;text-overflow:clip;text-align:center;line-height:1.05;font-size:16px;}
 html.papyrus3d .pta-actbtn.pk-b3 .pta-ic-mask{width:24px;height:24px;}
 html.papyrus3d .pta-actwrap{flex:1;}
 @media (max-width:760px){
