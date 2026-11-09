@@ -357,6 +357,12 @@ export const PACK_BOX = {
 // ════════════════════════════════════════════════════════════════════════════
 
 export const PACK_BLOCKS = {
+  'TLAČIDLO 3D': {
+    recept: 'B3_CSS · .pk-b3 + .pk-b3--lapis/gold/paper/green/red, len pod APP_NEW',
+    polomer: PACK_R.card,
+    kedy: 'Každé tlačidlo šatu Papyrus 3D v appke. Web ostáva na .btn-gold (r8).',
+    lock: 'Polomer 16 a hrubší rám sú rozhodnutie Mateja z 9. 11. 2026, plany/locky/pack-dizajn-system.md.',
+  },
   'D-BLOK': {
     recept: 'goldFrameCSS() — navGoldSkin.ts',
     polomer: PACK_R.frame,
@@ -635,6 +641,9 @@ export const BRAND_GOLD_BTN = {
   /** Dotyk: výplň o odtieň svetlejšia — nie iný gradient. */
   gradHover: 'linear-gradient(135deg,#D9AD55 0%,#B58A34 100%)',
 } as const;
+
+// TLAČIDLO 3D: recept žije v `lib/papyrus3d.ts` (vkladá sa pri štarte appky, aj na obrazovkách bez lišty).
+export { B3_CSS } from '@/lib/papyrus3d';
 
 // ════════════════════════════════════════════════════════════════════════════
 // PAPYRUSOVÁ STRÁNKA — podklad celého povrchu (DRAK → BRIGHT, 2026-09-01)

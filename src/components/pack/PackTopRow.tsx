@@ -26,7 +26,7 @@ import { useLocation } from 'react-router-dom';
 import { HubAinubis, PackNotifications } from './PackNotifications';
 import { BackButton } from './BackButton';
 import { PACK_TOPROW, PACK_COL_INNER, PACK_COL_PAD, PAPER_BG, PACK_SPACE, usePaperRoute } from './packTheme';
-import { DEV_FULL } from '@/lib/packFlags';
+import { APP_NEW, DEV_FULL } from '@/lib/packFlags';
 import { getPackStats } from '@/lib/sharedFetch';
 import { SOS_ON, VET_ER_ON } from '@/lib/env';
 import { SosButton } from './SosButton';
@@ -54,8 +54,18 @@ function TopRowRight({ extra }: { extra?: ReactNode }) {
     <>
       {extra}
       {/* SOS (4. 11. 2026): trojuholník vedľa správ, 1 ťuk odkiaľkoľvek (lock §1.2). Len SOS_ON; `task` ho nekreslí (kôš 3). */}
-      {(VET_ER_ON || SOS_ON) && <SosButton />}
-      {DEV_FULL && <PackNotifications dark={!paper} last24h={stats.last24h} total={stats.total} layout="inline" capsule />}
+      {/* Šat Papyrus 3D: SOS, správy a upozornenia v jednej kapsule (hárok, .tops). */}
+      {APP_NEW ? (
+        <div className="pk-p3d-tops">
+          {(VET_ER_ON || SOS_ON) && <SosButton />}
+          {DEV_FULL && <PackNotifications dark={!paper} last24h={stats.last24h} total={stats.total} layout="inline" capsule />}
+        </div>
+      ) : (
+        <>
+          {(VET_ER_ON || SOS_ON) && <SosButton />}
+          {DEV_FULL && <PackNotifications dark={!paper} last24h={stats.last24h} total={stats.total} layout="inline" capsule />}
+        </>
+      )}
     </>
   );
 }

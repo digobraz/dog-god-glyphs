@@ -512,7 +512,7 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
         pointerEvents: 'none',
       }}
     >
-    <nav ref={navRef} className="relative" style={{ pointerEvents: 'auto' }}>
+    <nav ref={navRef} className="relative" style={{ pointerEvents: 'auto', ...(APP_NEW ? { width: 'min(calc(100vw - 32px), 420px)' } : null) }}>
       <div className="relative">
         {/* Sklenená vrstva pill-u — VLASTNÝ element, nie pozadie riadku s ikonami.
             issue #51 (Instagram-style fade): horný okraj pill-u sa rozplýva do priehľadna
@@ -522,7 +522,7 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
             ⚠️ Maska NESMIE byť na kontajneri s obsahom: `mask-image` klipuje celý podstrom na
             svoj box, takže dropdown avatara (visí nad pill-om) sa vôbec nenamaľoval — DOM ho
             mal, geometriu mal správnu, ale bol odmaskovaný preč (Matej 2026-08-06). */}
-        {NAV_SKIN === 'gold' ? (
+        {APP_NEW ? <div aria-hidden className="pk-p3d-dock" /> : NAV_SKIN === 'gold' ? (
           <>
             {/* RÁM — tmavý obrys vonku, leštené zlato, svetlá hrana hore.
                 Maska sa tu NEPOUŽÍVA: fade horného okraja má zmysel na skle,
@@ -601,9 +601,10 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
           style={{
             display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center',
             gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4, padding: NAV_SKIN === 'gold' ? NAV_R.rim + 5 : 6,
+            ...(APP_NEW ? { height: 84, padding: '0 8px', gap: 0 } : null),
           }}
         >
-          <span className="flex items-center justify-center" style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4 }}>
+          <span className={`flex items-center ${APP_NEW ? 'justify-around' : 'justify-center'}`} style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4 }}>
             <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={APP_NEW ? sysSrc('domov') : iconHome} end />
             {/* `WIZ.navMap` — sem svieti krok prehliadky o mape (spotlight na IKONKU,
                 nie na blok stránky). Kotva sedí na obale, nie na `NavLink`: spotlight
@@ -620,7 +621,7 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
               `+` nesie kotvu na samotnom kotúči (obal by zlomil `align-self:stretch` slotu);
               ikonky vpravo majú obal `inline-flex` ako `WIZ.navMap`. */}
           <DockPlus id={WIZ.navAdd} label={tx('pack.layout.navAdd', 'Add')} onClick={() => setCreateOpen(true)} onLongPress={APP_NEW ? logDay : undefined} />
-          <span className="flex items-center justify-center" style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4 }}>
+          <span className={`flex items-center ${APP_NEW ? 'justify-around' : 'justify-center'}`} style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4 }}>
             <span id={WIZ.navAinubis} style={{ display: 'inline-flex', borderRadius: 999 }}>
               <AinubisNavLink label={t('pack.layout.navAinubis')} />
             </span>
@@ -744,8 +745,8 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
         onClick={onTap}
         aria-label={t('pack.layout.profileAriaLabel')}
         aria-expanded={menu}
-        className="flex items-center justify-center"
-        style={NAV_SKIN === 'gold' ? {
+        className={`flex items-center justify-center${APP_NEW && open ? ' pk-b3 pk-b3--gold pk-b3--round' : ''}`}
+        style={APP_NEW ? { lineHeight: 0, cursor: 'pointer', position: 'relative', ...(open ? { width: 58, height: 58 } : null) } : NAV_SKIN === 'gold' ? {
           // Šírka zlatého rámu aj priemer fotky sú Matejov výber z nákresu — `DOCK`,
           // nie čísla natvrdo (4. 9. 2026: „nech sa pohrám aj so šírkou toho orámovania").
           padding: DOCK.avRing, lineHeight: 0, borderRadius: '50%',
@@ -765,15 +766,15 @@ function AvatarNavButton({ avatarUrl: ownerUrl, avatarInitial, dogs }: { avatarU
             src={sizedUrl(avatarUrl, 160)}
             alt=""
             style={{
-              width: DOCK.avPhoto, height: DOCK.avPhoto, borderRadius: '50%', objectFit: 'cover', display: 'block',
-              border: NAV_SKIN === 'gold' ? '1px solid rgba(150,105,30,0.55)' : '1px solid rgba(201,154,63,0.45)',
+              width: APP_NEW ? 44 : DOCK.avPhoto, height: APP_NEW ? 44 : DOCK.avPhoto, borderRadius: '50%', objectFit: 'cover', display: 'block',
+              border: APP_NEW ? `2.5px solid ${T.cardEdge}` : NAV_SKIN === 'gold' ? '1px solid rgba(150,105,30,0.55)' : '1px solid rgba(201,154,63,0.45)',
             }}
           />
         ) : (
           <div style={{
-            width: DOCK.avPhoto, height: DOCK.avPhoto, borderRadius: '50%',
+            width: APP_NEW ? 44 : DOCK.avPhoto, height: APP_NEW ? 44 : DOCK.avPhoto, borderRadius: '50%',
             background: LAPIS.grad,
-            border: NAV_SKIN === 'gold' ? '1px solid rgba(150,105,30,0.55)' : 'none',
+            border: APP_NEW ? `2.5px solid ${T.cardEdge}` : NAV_SKIN === 'gold' ? '1px solid rgba(150,105,30,0.55)' : 'none',
             boxSizing: 'border-box',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: FONT_UI, fontWeight: 600, fontSize: 12, color: LAPIS.ink,
@@ -1164,7 +1165,10 @@ const NAV_ITEM_PAD = '12px 12px';
 const NAV_WING_GAP = 4;
 
 const pillStyle = (active: boolean): React.CSSProperties =>
-  NAV_SKIN === 'gold' ? {
+  APP_NEW ? (active
+    ? { width: 58, height: 58, position: 'relative' }
+    : { display: 'inline-flex', position: 'relative', textDecoration: 'none' })
+  : NAV_SKIN === 'gold' ? {
     padding: NAV_ITEM_PAD,
     // PLNÁ pilulka — v predlohe sú MAP aj G celkom okrúhle. Hranatý bol len bar.
     borderRadius: 999,
@@ -1204,7 +1208,7 @@ const pillLabelStyle: React.CSSProperties = {
 
 function BrandIcon({ src, active }: { src: string; active: boolean }) {
   // Farebná samolepka nesmie dostať čierny filter ani vyblednúť, aktívnu polohu nesie pilulka.
-  if (APP_NEW) return <img src={src} alt="" aria-hidden draggable={false} style={{ position: 'relative', width: 28, height: 28, objectFit: 'contain', display: 'block', flexShrink: 0 }} />;
+  if (APP_NEW) return <img src={src} alt="" aria-hidden draggable={false} style={{ position: 'relative', width: 40, height: 40, objectFit: 'contain', display: 'block', flexShrink: 0 }} />;
   return (
     <img
       src={src}
@@ -1281,12 +1285,12 @@ function FloatingNavLink({ to, label, icon, end }: { to: string; label: string; 
         retapTop();
       }}
       aria-label={label}
-      className="group flex items-center gap-2 transition-all"
+      className={({ isActive }) => (APP_NEW && isActive ? 'pk-b3 pk-b3--gold pk-b3--round' : 'group flex items-center gap-2 transition-all')}
       style={({ isActive }) => pillStyle(isActive)}
     >
       {({ isActive }) => (
         <>
-          {NAV_SKIN === 'gold' && isActive && <NavGrain radius={999} opacity={0.22} />}
+          {!APP_NEW && NAV_SKIN === 'gold' && isActive && <NavGrain radius={999} opacity={0.22} />}
           <BrandIcon src={icon} active={isActive} />
           {/* 🔴 MENOVKA ZANIKLA 21. 9. 2026 (Matej: „spodný nav nechajme len ikonky bez
               vysvetľovania DOMOV VON a pod..."). Do vtedy sa nad 640 px vypisovala

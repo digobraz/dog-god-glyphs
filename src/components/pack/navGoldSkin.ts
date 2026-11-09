@@ -9,6 +9,8 @@
 // nemeň ich odhadom, komentáre v PackLayout.tsx hovoria, čo ktoré kolo zistilo.
 
 /** Rozmery z predlohy, prepočítané na bar ~60 px. */
+import { APP_NEW } from '@/lib/packFlags';
+
 export const NAV_R = { frame: 14, rim: 6, plate: 8, line: 1 };
 
 /**
@@ -517,10 +519,17 @@ export const MAPY_BTN_SHADOW = [
 ].join(', ');
 
 /** Tieň hlavného CTA — odliatok ako nav, len v modrej: vrhnutý tieň + zlatá horná hrana. */
-export const LAPIS_BTN_SHADOW = [
+// Pod `APP_NEW` (šat Papyrus 3D) má každé lapisové CTA, aj nepreložené na `.pk-b3`, spodnú peru a svetlý obrys.
+export const LAPIS_BTN_SHADOW = (APP_NEW ? [
+  'inset 0 2px 0 rgba(255,255,255,.28)',
+  'inset 0 -4px 0 rgba(0,0,0,.15)',
+  '0 0 0 2px #EFD79A',
+  '0 6px 0 2px #060F2C',
+  '0 11px 14px rgba(0,0,0,.34)',
+] : [
   '0 4px 13px -3px rgba(5,15,48,0.6)',
   'inset 0 1px 0 rgba(201,154,63,0.30)',
-].join(', ');
+]).join(', ');
 
 // ── VÝBER JE PRIESVITNÝ TINT, NIE PLNÁ FARBA (2026-08-26, 3. kolo) ──────────
 // Matej: „výber PWT som chcel modré/zelené/červené, ale PRIESVITNÉ — nie modrá plná,

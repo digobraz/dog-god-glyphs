@@ -35,9 +35,9 @@ const T = PACK_THEME;
 export const BACK = {
   /** priemer kruhu (px). 36 → 38 (27. 9. 2026): vzorom je triplist (`.tl-back` 38),
    *  Matej: „zjednoť na každej stránke výšku aj veľkosť podľa triplistu". */
-  dia: 38,
+  dia: APP_NEW ? 52 : 38,
   /** veľkosť `HandArrowLeft` v kruhu (px) */
-  icon: 15,
+  icon: APP_NEW ? 26 : 15,
   /** hrúbka lemu (px) */
   border: 1,
   /** veľkosť ikonky v textovom odkaze — menšia, lebo stojí vedľa písma */
@@ -84,6 +84,13 @@ const TONE: Record<BackTone, { bg: string; border: string; ink: string; hoverBg:
  */
 export function backCircleCSS(tone: BackTone): string {
   const c = TONE[tone];
+  // Šat Papyrus 3D: šípka je TLAČIDLO 3D (`.pk-b3--paper`, okrúhle), bez ohľadu na podklad.
+  if (APP_NEW) return [
+    'display:inline-flex', 'align-items:center', 'justify-content:center',
+    `width:${BACK.dia}px`, `height:${BACK.dia}px`, 'border-radius:50%', 'flex-shrink:0', 'padding:0', 'cursor:pointer',
+    'border:2.5px solid var(--p3d-ink)', 'background:linear-gradient(180deg,#fff,var(--p3d-paper))', 'color:var(--p3d-ink)',
+    'box-shadow:var(--p3d-b3)',
+  ].join(';') + ';';
   return [
     'display:inline-flex', 'align-items:center', 'justify-content:center',
     `width:${BACK.dia}px`, `height:${BACK.dia}px`, 'border-radius:50%',

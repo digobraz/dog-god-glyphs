@@ -1,4 +1,5 @@
-import { zapniSkuskuPisma } from './lib/skuskaPisma';
+import { zapniPapyrus3d } from './lib/papyrus3d';
+import { APP_NEW } from './lib/packFlags';
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
@@ -90,8 +91,8 @@ if (FILM_PATHS.includes(location.pathname)) startEarlyGridDogs(); // film = home
 // Písma z Google Fonts sa zapínajú až teraz — viď komentár pri <link data-late-fonts> v index.html.
 document.querySelectorAll<HTMLLinkElement>('link[data-late-fonts]').forEach((l) => { l.media = 'all'; });
 
-// Skúška písma a veľkostí (`lib/skuskaPisma.ts`); dogypt.com, appka z obchodu ani dev servery ju nedostanú.
-if (import.meta.env.VITE_TEST_BUILD === '1') zapniSkuskuPisma();
+// Šat Papyrus 3D (`lib/papyrus3d.ts`): testovací kanál a natívna appka. Web na dogypt.com ho nedostane.
+if (APP_NEW) zapniPapyrus3d();
 
 // Aktívny jazyk (SK/CS/…) sa dotiahne pred prvým renderom, aby neblikla angličtina.
 // Pád chunku nesmie zhodiť appku — vtedy ide render hneď a `t()` padne na EN.

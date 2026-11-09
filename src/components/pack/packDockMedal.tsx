@@ -233,6 +233,13 @@ export function DockPlus({ label, onClick, onLongPress, id }: { label: string; o
     if (fired.current) { fired.current = false; return; }
     onClick();
   };
+  if (APP_NEW) return (
+    <span className="pk-medal-slot">
+      <button type="button" id={id} className="pk-b3 pk-b3--lapis pk-b3--round" aria-label={label} style={{ width: 88, height: 88, marginTop: -20 }} onClick={click} {...press}>
+        <img src={sysSrc('plus')} alt="" aria-hidden draggable={false} style={{ width: 50, height: 50, objectFit: 'contain', display: 'block' }} />
+      </button>
+    </span>
+  );
   return (
     <span className="pk-medal-slot">
       {/* `id` = kotva prehliadky (`WIZ.navAdd`) — na TLAČIDLE, nie na slote: slot je pás
