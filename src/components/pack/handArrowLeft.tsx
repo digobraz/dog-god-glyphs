@@ -2,6 +2,8 @@
 // PageTopBar); keby ju bral z HandIcons.tsx, Rollup by do hlavného balíka pribalil CELÝ HandIcons
 // (74 kB — všetky ikonky appky), lebo modul patrí do jedného kusu so všetkým, čo z neho chce
 // ktokoľvek. HandIcons.tsx ju ďalej exportuje (`export function HandArrowLeft` = register ikon).
+import { ThinArrow } from './ThinArrow';
+import { APP_NEW } from '@/lib/packFlags';
 import type { HandIconProps } from './HandIcons';
 
 /**
@@ -45,6 +47,8 @@ export function HandArrowLeftIcon({ size = 16, className, style, title, solid }:
   /** Plná silueta namiesto obrysu (`outerOnly`). Predvolene obrys, ako v kite. */
   solid?: boolean;
 }) {
+  // Appka: jedna tenká šípka (ThinArrow). Krabica je väčšia, lebo čiara zaberá ~60 % výšky.
+  if (APP_NEW) return <ThinArrow dir="left" size={size + 8} className={className} style={style} />;
   return (
     <svg viewBox="0 0 462.85 462.851" className={className} style={style} {...svgProps(size)} role={title ? 'img' : undefined} aria-hidden={title ? undefined : true}>
       {title ? <title>{title}</title> : null}

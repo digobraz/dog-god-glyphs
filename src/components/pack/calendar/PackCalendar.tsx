@@ -29,6 +29,7 @@
 // nie deň, kedy si šiel. Preto sú tu len výlety, ktoré prešli cez PRIDAJ VÝLET
 // alebo plán s dátumom. Riadok „KEDY" v popupe po ✓ je ďalší krok.
 // ════════════════════════════════════════════════════════════════════════════
+import { ThinArrow } from '@/components/pack/ThinArrow';
 import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
@@ -1487,11 +1488,11 @@ function LifeGrid({
           <button type="button" className="cal-recarrow left"
             aria-label={tx('pack.cal.life.recPrev', 'Predchádzajúci')}
             onClick={() => recRef.current?.scrollBy({ left: -recStep(), behavior: 'smooth' })}
-          >‹</button>
+          >{APP_NEW ? <ThinArrow dir="left" size={22} /> : '‹'}</button>
           <button type="button" className="cal-recarrow right"
             aria-label={tx('pack.cal.life.recNext', 'Ďalší')}
             onClick={() => recRef.current?.scrollBy({ left: recStep(), behavior: 'smooth' })}
-          >›</button>
+          >{APP_NEW ? <ThinArrow dir="right" size={22} /> : '›'}</button>
         <div className="cal-recgrid" ref={recRef}>
           {LIFE_RECORDS.map((r) => {
             // i18n kľúč pre rekordmana je `pack.cal.life.rec.<slug>` — slug je meno

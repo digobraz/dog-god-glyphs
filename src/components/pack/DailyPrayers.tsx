@@ -9,6 +9,7 @@
 //
 // Zbieranie devotion je zamknuté do 2027 (project_dogypt_devotion_ekonomika_stav_2026-08-06)
 // — táto komponenta sa preto nerozširuje, len sťahuje.
+import { ThinArrow } from '@/components/pack/ThinArrow';
 import { trackPack } from '@/lib/packAnalytics';
 import React, { useState } from 'react';
 import { ChevronDown, Sparkles } from 'lucide-react';
@@ -206,7 +207,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                 }}
                 right={
                   <span style={{ ...PTS_PILL, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                    {t('pack.dog.prayerChoose')} <ChevronDown className="h-3.5 w-3.5" />
+                    {t('pack.dog.prayerChoose')} {APP_NEW ? <ThinArrow dir="down" size={18} /> : <ChevronDown className="h-3.5 w-3.5" />}
                   </span>
                 }
               />

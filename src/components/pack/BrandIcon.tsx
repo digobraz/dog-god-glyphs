@@ -1,5 +1,7 @@
 // Brand hand-drawn icon. Tints black source SVG to brand palette via CSS filter.
 // tint: 'gold' (default, content) | 'dark' (#5A3F12, on gold backgrounds) | 'white' | 'dim'
+import { ThinArrow } from './ThinArrow';
+import { PAPER_BG } from './packTheme';
 import React from 'react';
 import { APP_NEW } from '@/lib/packFlags';
 import { SYS_ZA_KRESBU } from '@/components/pack/sysMap';
@@ -19,6 +21,8 @@ const FILTERS: Record<Tint, string> = {
 export function BrandIcon({ name, size = 16, tint = 'gold', className, style }: {
   name: string; size?: number; tint?: Tint; className?: string; style?: React.CSSProperties;
 }) {
+  // Appka: šípka je všade tá istá tenká čiara; na tmavom podklade (tint white) bledá.
+  if (APP_NEW && name === 'back') return <ThinArrow dir="left" size={size + 8} className={className} style={{ ...(tint === 'white' ? { color: PAPER_BG } : null), ...style }} />;
   // Appka: farebná samolepka z továrne, tint sa ignoruje. Samolepka má vzduch v obrázku, preto o 4 px väčšia.
   const sys = APP_NEW ? SYS_ZA_KRESBU[name] : undefined;
   if (sys) {

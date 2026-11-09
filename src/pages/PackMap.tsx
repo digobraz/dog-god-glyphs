@@ -47,6 +47,7 @@
 // (6) `<DiffMark>` (CSS tvar namiesto emoji) zdieľaný cez
 // components/pack/tripShared.tsx; (7) mobile header kompaktnejší, filter
 // ikonka = sliders (nie graph).
+import { ThinArrow } from '@/components/pack/ThinArrow';
 import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { usePublishPilgrimLevel } from '@/components/pack/usePilgrimStats';
@@ -2660,6 +2661,7 @@ html.papyrus3d .trp-root .trp-zoomgroup button+button,html.papyrus3d .trp-root .
 html.papyrus3d .trp-root .trp-zoomgroup button+button{border-top:2px solid var(--m-soft);}
 html.papyrus3d .trp-root .trp-ctlstack img.trp-sysico,html.papyrus3d .trp-root .trp-zoomgroup button img.trp-sysico{width:26px!important;height:26px!important;}
 /* ikonka fajky v tlačidle „Prešli sme" mala veľkosť len v mobilnom zozname — na PC sa v kartách bočného panela vykreslila v plnej veľkosti obrázka */
+html.papyrus3d .trp-bigcard-photobtn,html.papyrus3d .trp-bigcard-photobtn:hover{${backCircleCSS('pale')}width:26px;height:26px;}
 html.papyrus3d .trp-walkico{width:26px;height:26px;flex:none;margin-right:4px;}
 /* tripflow, kroky 1–2: hlavička mapy je skrytá (výška 0), hore stojí AINUBIS (fixný, z 1202) — ovládače začnú POD ním */
 @media (max-width:${PALE_PC_MIN - 1}px){
@@ -6534,13 +6536,13 @@ export default function PackMap() {
                 className="trp-bigcard-photobtn"
                 onClick={(e) => { e.stopPropagation(); cyclePhoto(tr.id, -1, tr.photos.length); }}
                 aria-label={t('pack.map.previousPhoto')}
-              >‹</button>
+              >{APP_NEW ? <ThinArrow dir="left" size={20} /> : '‹'}</button>
               <button
                 type="button"
                 className="trp-bigcard-photobtn"
                 onClick={(e) => { e.stopPropagation(); cyclePhoto(tr.id, 1, tr.photos.length); }}
                 aria-label={t('pack.map.nextPhoto')}
-              >›</button>
+              >{APP_NEW ? <ThinArrow dir="right" size={20} /> : '›'}</button>
             </div>
           )}
           {tr.photos.length > 1 && (
@@ -6800,8 +6802,8 @@ export default function PackMap() {
                   </div>
                   {dt.photos.length > 1 && (
                     <div className="trp-bigcard-photonav">
-                      <button type="button" className="trp-bigcard-photobtn" onClick={() => cyclePhoto(dt.id, -1, dt.photos.length)} aria-label={t('pack.map.previousPhoto')}>‹</button>
-                      <button type="button" className="trp-bigcard-photobtn" onClick={() => cyclePhoto(dt.id, 1, dt.photos.length)} aria-label={t('pack.map.nextPhoto')}>›</button>
+                      <button type="button" className="trp-bigcard-photobtn" onClick={() => cyclePhoto(dt.id, -1, dt.photos.length)} aria-label={t('pack.map.previousPhoto')}>{APP_NEW ? <ThinArrow dir="left" size={20} /> : '‹'}</button>
+                      <button type="button" className="trp-bigcard-photobtn" onClick={() => cyclePhoto(dt.id, 1, dt.photos.length)} aria-label={t('pack.map.nextPhoto')}>{APP_NEW ? <ThinArrow dir="right" size={20} /> : '›'}</button>
                     </div>
                   )}
                   {dt.photos.length > 1 && (

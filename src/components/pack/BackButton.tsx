@@ -90,8 +90,9 @@ const TONE: Record<BackTone, { bg: string; border: string; ink: string; hoverBg:
 export function backCircleCSS(tone: BackTone): string {
   const c = TONE[tone];
   // Šat Papyrus 3D: šípka je TLAČIDLO 3D (`.pk-b3--paper`, okrúhle), bez ohľadu na podklad.
+  // Kruh je bledý aj na tmavom AINUBISovi, preto šípka v ňom ostáva čierna.
   if (APP_NEW) return [
-    'display:inline-flex', 'align-items:center', 'justify-content:center',
+    '--pk-arrow:var(--p3d-ink,#2a1608)', 'display:inline-flex', 'align-items:center', 'justify-content:center',
     `width:${BACK.dia}px`, `height:${BACK.dia}px`, 'border-radius:50%', 'flex-shrink:0', 'padding:0', 'cursor:pointer',
     'border:2.5px solid var(--p3d-ink)', 'background:linear-gradient(180deg,#fff,var(--p3d-paper))', 'color:var(--p3d-ink)',
     'box-shadow:var(--p3d-b3)',
@@ -160,7 +161,7 @@ export function BackButton({ tone, onClick, label, className, style }: {
           : { background: c.bg, border: `${BACK.border}px solid ${c.border}`, color: c.ink }),
         lineHeight: 1, cursor: 'pointer', flexShrink: 0, padding: 0,
         transition: 'border-color .15s,color .15s,background .15s',
-        ...(APP_NEW ? { position: 'relative' as const } : null), // kotva presahu dotyku; volajúci `position` prepíše
+        ...(APP_NEW ? { position: 'relative' as const, '--pk-arrow': 'var(--p3d-ink, #2a1608)' } as CSSProperties : null), // kotva presahu dotyku; volajúci `position` prepíše
         ...style,
       }}
     >

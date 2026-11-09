@@ -1,3 +1,5 @@
+import { ThinArrow } from '@/components/pack/ThinArrow';
+import { APP_NEW } from '@/lib/packFlags';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { intlLocale } from '@/i18n/bcp47';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -581,7 +583,7 @@ function NavArrow({ dir, disabled, onClick }: { dir: 'left' | 'right'; disabled:
         transition: 'opacity 0.2s',
       }}
     >
-      {dir === 'left' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+      {APP_NEW ? <ThinArrow dir={dir === 'left' ? 'left' : 'right'} size={20} /> : dir === 'left' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
     </button>
   );
 }

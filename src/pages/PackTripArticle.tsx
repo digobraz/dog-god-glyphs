@@ -8,6 +8,7 @@
 // component state, ktorý sa pri navigácii sem zruší — tripShared.ts sessionStorage mirror
 // (readLocalTrails/readFavIds/readWalkedIds) drží ich konzistentné cez mount/unmount v rámci
 // tej istej browser session (žiadna Supabase perzistencia, tá je mimo rozsahu).
+import { ThinArrow } from '@/components/pack/ThinArrow';
 import { canStepBack } from '@/lib/stepBack';
 import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -320,6 +321,8 @@ const CSS = `
 /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
 .pta-lightbox-close{position:absolute;top:16px;left:16px;z-index:2;${backCircleCSS('pale')}}
 .pta-lightbox-close:hover{${backHoverCSS('pale')}}
+/* appka: prepínač fotiek = tá istá bledá šípka v kruhu ako návrat */
+html.papyrus3d .pta-lightbox-nav{${backCircleCSS('pale')}width:44px;height:44px;}
 .pta-lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid ${T.onDarkBorder};color:#fff;font-size:24px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .pta-lightbox-prev{left:16px;}
 .pta-lightbox-next{right:16px;}
@@ -1643,7 +1646,7 @@ export default function PackTripArticle() {
               onClick={() => toggleFav(trail.id)}
               aria-label={favIds.has(trail.id) ? t('pack.trip.inTriplist') : t('pack.trip.addToTriplist')}
             >
-              <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('clipboard')})` } as React.CSSProperties} />
+              {APP_NEW ? <SysIcon name="triplist" size={32} /> : <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('clipboard')})` } as React.CSSProperties} />}
               <span className="pta-actbtn-label">{favIds.has(trail.id) ? t('pack.trip.inTriplist') : t('pack.trip.addToTriplist')}</span>
             </button>
           )}
@@ -2303,7 +2306,7 @@ export default function PackTripArticle() {
               className="pta-lightbox-nav pta-lightbox-prev"
               onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => ((i ?? 0) - 1 + trail.photos.length) % trail.photos.length); }}
               aria-label={t('pack.trip.photoPrev')}
-            >‹</button>
+            >{APP_NEW ? <ThinArrow dir="left" size={24} /> : '‹'}</button>
           )}
           <img src={sizedUrl(trail.photos[lightboxIdx], 2000)} alt="" onClick={(e) => e.stopPropagation()} />
           {trail.photos.length > 1 && (
@@ -2312,7 +2315,7 @@ export default function PackTripArticle() {
               className="pta-lightbox-nav pta-lightbox-next"
               onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => ((i ?? 0) + 1) % trail.photos.length); }}
               aria-label={t('pack.trip.photoNext')}
-            >›</button>
+            >{APP_NEW ? <ThinArrow dir="right" size={24} /> : '›'}</button>
           )}
         </div>
       )}

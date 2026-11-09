@@ -9,6 +9,8 @@
 //     (`BackIcon`/`ExpandIcon`/`BackLinkIcon`, `BackIc`/`NextIc`, galérie, kvízy, kalendár, feed…) sú tenké samé.
 //   · `ChevDown` (SysIcon.tsx) — rozbaľovanie riadkov.
 //   · Nové miesto s šípkou: `<ThinArrow dir="right" size={20} />`. NIKDY nové `ArrowLeft`/`ChevronRight`/samolepku.
+// Matej 9. 11. 2026: *„tú čo je na detaile výletu, easy čierna malá = tú použi všade v appke, ak nepovieme inak … aj v AINUBISovi, tam ju ale sprav bledú"*.
+// Tmavý povrch nastaví na svojom koreni `--pk-arrow` (AINUBIS), jednotlivé miesta farbu nepíšu.
 // `size` je krabica (ako u samolepky, glyph zaberá ~60 % výšky). Farbu prepíš len cez `style.color`.
 import type { CSSProperties } from 'react';
 
@@ -33,7 +35,7 @@ export function ThinArrow({ dir = 'right', size = 20, style, className }: { dir?
       height={size}
       aria-hidden
       className={className}
-      style={{ display: 'block', flexShrink: 0, color: 'var(--p3d-ink, #2a1608)', ...style }}
+      style={{ display: 'block', flexShrink: 0, color: 'var(--pk-arrow, var(--p3d-ink, #2a1608))', ...style }}
     >
       <path d={PATH[dir]} fill="none" stroke="currentColor" strokeWidth={THIN_ARROW.stroke} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
     </svg>

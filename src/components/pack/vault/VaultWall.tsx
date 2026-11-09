@@ -26,6 +26,7 @@
 // ⚠️ DEVOTION SA TU LEN SĽUBUJE, NEPRIPISUJE. Rebríček a kalkulačka sú vlastná
 //    session (Matej 24. 9.: „rozoberieme"); `grant-devotion` sa nedotýka.
 // ════════════════════════════════════════════════════════════════════════════
+import { PAPER_BG } from '@/components/pack/packTheme';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, VEIL_CSS, PACK_TOPROW,
@@ -97,7 +98,7 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
    stĺpce po 419 px a nástenka sa dala rolovať do strany.
    minmax(0,1fr) drží stĺpec na šírke okna a preteká až obsah, ktorý na to
    má vlastné overflow. */
-.akw-root{position:absolute;z-index:3;inset:0;display:grid;
+.akw-root{--pk-arrow:${PAPER_BG};position:absolute;z-index:3;inset:0;display:grid;
   grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);
   overflow:hidden;background:${AINUBIS.surfaceBase};}
 /* ⚠️ Riadky mriežky priraďujem MENOM, nie poradím — presne tá pasca, ktorá

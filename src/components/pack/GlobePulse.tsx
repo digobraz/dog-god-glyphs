@@ -1,3 +1,5 @@
+import { ThinArrow } from '@/components/pack/ThinArrow';
+import { APP_NEW } from '@/lib/packFlags';
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import createGlobe from 'cobe';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -372,7 +374,7 @@ function MilestoneSwiper({
             className="pk-hit inline-flex items-center justify-center shrink-0"
             style={{ ...chevStyle, opacity: idx === 0 ? 0.3 : 1, cursor: idx === 0 ? 'default' : 'pointer' }}
           >
-            <ChevronLeft className="h-4 w-4" />
+            {APP_NEW ? <ThinArrow dir="left" size={20} /> : <ChevronLeft className="h-4 w-4" />}
           </button>
 
           <div className="flex-1 text-center" style={{ cursor: 'grab' }}>
@@ -443,7 +445,7 @@ function MilestoneSwiper({
             className="pk-hit inline-flex items-center justify-center shrink-0"
             style={{ ...chevStyle, opacity: idx === last ? 0.3 : 1, cursor: idx === last ? 'default' : 'pointer' }}
           >
-            <ChevronRight className="h-4 w-4" />
+            {APP_NEW ? <ThinArrow dir="right" size={20} /> : <ChevronRight className="h-4 w-4" />}
           </button>
         </div>
       </div>
