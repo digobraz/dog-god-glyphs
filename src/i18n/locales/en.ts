@@ -3853,6 +3853,8 @@ export const en = {
   'pack.addTrip.step.needDog': "Add at least one dog from your pack — a walk counts for the human and the dog.",
   'pack.trip.stat.difficulty': "Difficulty",
   'pack.trip.stat.crowd': "Crowd",
+  'pack.trip.stat.length': "Length",
+  'pack.trip.stat.ascent': "Ascent",
   'pack.trip.stat.rating': "Rating",
   'pack.trip.routeSoon': "Route map coming soon",
   'pack.trip.openFromPack': "Open trip from the pack",

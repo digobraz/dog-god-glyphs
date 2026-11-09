@@ -422,7 +422,7 @@ export function ReportSheet({ onClose, onSend, busy, error, sent, reasons = REPO
  * ⚠️ `authorRating = 0` znamená NEHODNOTENÉ, nie nula labiek — vtedy riadok nie je a počet
  * o neho nerastie. Rovnaké pravidlo ako `agg.rating > 0` v článku.
  */
-export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequestWalk, authorRating = 0, authorName, onCountChange, quoteThread, focusId: focusProp, myDogs }: {
+export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequestWalk, authorRating = 0, authorName, onCountChange, quoteThread, startOnAdvice, focusId: focusProp, myDogs }: {
   /** Moji psi (aj zosnulí) pre „Kto bol s tebou“ v okne recenzie. Chýba = riadok sa nevykreslí. */
   myDogs?: ReviewDog[];
   /** Pri `quoteThread` je `tripId` kľúč vlákna citátu dňa (`<id>-<deň>`). */
@@ -430,6 +430,8 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   /** Vlákno pod citátom vo feede: len zoznam komentárov + pole (bez recenzií a záložiek), tabuľka `quote_comments`. */
   /** Id komentára z upozornenia: otvorí jeho záložku a stránku, odroluje naň a krátko ho zvýrazní. */
   focusId?: string | null;
+  /** Šuplík vo feede otvára záložku s poľom na komentár (Rady), nie Hodnotenia: tam bez „prešli sme“ nie je čo stlačiť (Matej 9. 11. 2026, bod 11). */
+  startOnAdvice?: boolean;
   quoteThread?: boolean; tripName?: string; walked?: boolean; onMarkWalked?: () => void; onRequestWalk?: () => void;
   /** Labky autora výletu (`trail.stars`). 0 = nehodnotil. */
   authorRating?: number;
@@ -446,7 +448,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   // Náhľad /magnet: čítať sa dá, písať a nahlasovať nie (ťuk = popup „Ďalej idú len Dogypťania").
   const mg = useMagnetPreview();
   const dogRights = useMyDogRights();
-  const [tab, setTab] = useState<'reviews' | 'advice'>(quoteThread ? 'advice' : 'reviews');
+  const [tab, setTab] = useState<'reviews' | 'advice'>(quoteThread || startOnAdvice ? 'advice' : 'reviews');
   const [page, setPage] = useState(1);
   // Odkaz z upozornenia: parameter `?c=<id>` v článku výletu, alebo `focusId` zo šuplíka vo feede.
   const [urlParams] = useSearchParams();

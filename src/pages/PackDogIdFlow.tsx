@@ -12,6 +12,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { AinubisSheet } from '@/components/pack/ainubisSheet';
 import { FLOW_CSS } from '@/components/pack/dogid/flowCss';
 import {
@@ -142,7 +144,7 @@ function Modules({ tx, dogs, onlyDog }: { tx: Tx; dogs: Dog[] | null; onlyDog: s
             <div className="dfm" key={m.key}>
               <div className="bg" style={{ backgroundImage: `url(${ART(m.bg)})` }} />
               <div className="mt">
-                <span className="ic"><BrandIcon name={m.ic} size={32} /></span>
+                <span className="ic">{APP_NEW && m.ic === 'dogsphinx' ? <SysIcon name="modul-zaklad" size={36} /> : <BrandIcon name={APP_NEW && m.ic === 'feather' ? 'dogid-will' : m.ic} size={32} />}</span>
                 <div><h3>{tx(m.t)}</h3><p>{tx(m.d)}</p><p><b>{meta(m.key)}</b></p></div>
               </div>
               <div className="mb">

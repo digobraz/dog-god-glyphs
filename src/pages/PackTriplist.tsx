@@ -544,14 +544,15 @@ export default function PackTriplist() {
   // konsolidácia headera 4→2 pilulky). Header ✓/km pilulka linkuje sem s ?tab=stats.
   const [searchParams, setSearchParams] = useSearchParams();
   const view: 'list' | 'stats' = searchParams.get('tab') === 'stats' ? 'stats' : 'list';
-  // ⚠️ `replace: true` tu NESMIE byť (UX audit 14. 9. 2026). Prepnutie záložky ním
-  // neurobilo záznam v histórii, takže Späť zo ŠTATISTÍK preskočilo TRIPLIST rovno na mapu —
-  // človek stratil obrazovku, na ktorú sa chcel vrátiť. Obe volania sú klik na záložku, teda
-  // úmysel používateľa; `replace` patrí presmerovaniam, nie navigácii, ktorú si vypýtal.
-  // Guard na zhodný stav drží históriu čistú pri opakovanom kliku na už aktívnu záložku.
+  // ⚠️ `replace: APP_NEW` tu JE (Matej 9. 11. 2026: *„keď som na trip štatistikách a kliknem na triplist a potom
+  // dám šípku dozadu, vráti ma na štatistiky; šípka má vždy vracať na predchádzajúcu stránku, teda mapu"*).
+  // ŠTATISTIKY a TRIPLIST sú dva pohľady JEDNEJ obrazovky, nie dva kroky: prepnutie záložky nesmie
+  // pridať záznam do histórie, inak Späť obchádza obrazovku cez jej druhú záložku. Platí pre
+  // `navigate(-1)` aj pre `canStepBack()`. Len pod APP_NEW: web ostáva na pravidle z UX auditu 14. 9. 2026
+  // (`replace` zakázané, aby Späť zo štatistík nepreskočilo triplist).
   const setView = (v: 'list' | 'stats') => {
     if (v === view) return;
-    setSearchParams(v === 'stats' ? { tab: 'stats' } : {});
+    setSearchParams(v === 'stats' ? { tab: 'stats' } : {}, { replace: APP_NEW });
   };
 
   // TRIPSTATS dáta — prejdené (walked) tripy + km, rovnaký zdroj ako bývalý „Trippin'" dashboard.

@@ -1205,7 +1205,8 @@ export function BigRating({ rating, count, compact, mini }: { rating: number; co
 // ako v stat tabuľke článku (PackTripArticle .pta-route) — jeden vizuálny jazyk pre trasu.
 // Hazard TU NIE (ten je len v detaile vedľa tagov — HazardTags). Hover na pilulku = %-rozpad
 // hlasov členov. Zdieľané karta + inline detail. ──
-export function PhotoMetaPills({ agg, km, ascentM, hasRoute = true }: { agg: CrowdAgg; km: string; ascentM?: number; hasRoute?: boolean }) {
+/** `iconOnly` (len zoznam výletov v appke, hárok A2): náročnosť a ruch sú samotné okno bez slova, slovo ostáva v `title`. */
+export function PhotoMetaPills({ agg, km, ascentM, hasRoute = true, iconOnly = false }: { agg: CrowdAgg; km: string; ascentM?: number; hasRoute?: boolean; iconOnly?: boolean }) {
   const t = useT();
   const { lang } = useLang();
   // Prázdny breakdown (walkedCount 0, „začíname so všetkým do nuly") → žiadny %-rozpad na
@@ -1221,21 +1222,23 @@ export function PhotoMetaPills({ agg, km, ascentM, hasRoute = true }: { agg: Cro
           Ruch nižšie ostáva, ten sa vypĺňa vo všetkých kategóriách. */}
       {hasRoute && (<>
         <span className="comm-mpill">
-          <RouteMark kind="vzdialenost" fallback="↔" /> {fmtNum(km, lang)} km{ascentM == null ? '' : APP_NEW ? <> · <RouteMark kind="stupanie" fallback="" /> {fmtNum(ascentM, lang, 0)} m</> : ` · ↑ ${fmtNum(ascentM, lang, 0)} m`}
+          <RouteMark kind="vzdialenost" fallback="↔" /> {fmtNum(km, lang)} km{ascentM == null ? '' : APP_NEW ? <>{iconOnly ? <i className="comm-msep" aria-hidden /> : ' · '}<RouteMark kind="stupanie" fallback="" /> {fmtNum(ascentM, lang, 0)} m</> : ` · ↑ ${fmtNum(ascentM, lang, 0)} m`}
         </span>
         <span
-          className={`comm-mpill${hasDiffTip ? ' comm-hastip' : ''}`}
+          className={`comm-mpill${hasDiffTip ? ' comm-hastip' : ''}${iconOnly ? ' comm-mpill--ico' : ''}`}
           data-tip={hasDiffTip ? `${t('pack.map.difficulty')} — ${diffTip(t, agg)}` : undefined}
+          title={iconOnly ? diffTx(t, agg.difficulty) : undefined}
         >
-          <DiffMark diff={agg.difficulty} /> {diffTx(t, agg.difficulty)}
+          <DiffMark diff={agg.difficulty} />{iconOnly ? null : <> {diffTx(t, agg.difficulty)}</>}
         </span>
       </>)}
       {agg.crowd && (
         <span
-          className={`comm-mpill${hasCrowdTip ? ' comm-hastip' : ''}`}
+          className={`comm-mpill${hasCrowdTip ? ' comm-hastip' : ''}${iconOnly ? ' comm-mpill--ico' : ''}`}
           data-tip={hasCrowdTip ? `${t('pack.map.crowd')} — ${crowdTip(t, agg)}` : undefined}
+          title={iconOnly ? crowdTx(t, agg.crowd) : undefined}
         >
-          <CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /> {crowdTx(t, agg.crowd)}
+          <CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} />{iconOnly ? null : <> {crowdTx(t, agg.crowd)}</>}
         </span>
       )}
     </div>

@@ -14,7 +14,8 @@ import { HandExit, HandKey, HandTrash } from './HandIcons';
 import { DeleteAccountButton } from './AccountDeletion';
 import { BrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS, PF_FIELD_CSS } from './packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PILL_CSS, PF_FIELD_CSS } from './packTheme';
+import { LAPIS } from './navGoldSkin';
 import { useToast } from '@/hooks/use-toast';
 import { SOS_ON } from '@/lib/env';
 import { useT } from '@/i18n/LanguageContext';
@@ -22,12 +23,63 @@ import LanguagePicker from '@/components/LanguagePicker';
 import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
+const S = PACK_SPACE;
 
 // Odkazový „tlačidlový" tvar riadkov Podmienky / Súkromie / Kontakt — ten istý rám ako ODHLÁSIŤ SA nižšie.
 const LINK_BTN: React.CSSProperties = {
   background: 'none', border: `1px solid ${T.border}`, borderRadius: 8, padding: '8px 16px', fontFamily: FONT_UI,
   fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim, cursor: 'pointer',
 };
+
+
+// PREPÍNAČ ZAP/VYP (Matej 9. 11. 2026: „prepínače zapnutia vypnutia sa dajú urobiť aj bez textov").
+// Appka (APP_NEW): jeden spínač `.ps-sw` bez textu, názov nesie `aria-label`. Web: pôvodné dve tlačidlá On/Off.
+const SW_CSS = `
+.ps-sw{position:relative;flex:none;display:block;width:54px;height:30px;padding:0;border-radius:${PACK_R.pill}px;cursor:pointer;
+  border:2.5px solid var(--p3d-ink,${T.ink});background:var(--p3d-paper-hi,${T.card});box-shadow:var(--p3d-inset,none);}
+.ps-sw::after{content:'';position:absolute;left:2px;top:2px;width:21px;height:21px;border-radius:50%;
+  background:linear-gradient(180deg,#fff,var(--p3d-paper,${T.card}));border:2px solid var(--p3d-ink,${T.ink});transition:left .15s;}
+.ps-sw[aria-checked="true"]{background:${LAPIS.grad};}
+.ps-sw[aria-checked="true"]::after{left:25px;}
+.ps-sw:disabled{opacity:.55;cursor:default;}
+.ps-sw:focus-visible{outline:2px solid ${LAPIS.edge};outline-offset:2px;}
+`;
+
+function Toggle({ on, onChange, label, disabled, onLabel, offLabel }: {
+  on: boolean; onChange: (v: boolean) => void; label: string; disabled?: boolean; onLabel: string; offLabel: string;
+}) {
+  if (APP_NEW) {
+    return (
+      <button type="button" role="switch" aria-checked={on} aria-label={label} disabled={disabled}
+        className="ps-sw" onClick={() => onChange(!on)} />
+    );
+  }
+  return (
+    <div className="pf-toggle">
+      {([{ key: true, label: onLabel }, { key: false, label: offLabel }]).map((opt) => (
+        <button
+          key={String(opt.key)}
+          type="button"
+          onClick={() => onChange(opt.key)}
+          aria-pressed={on === opt.key}
+          disabled={disabled}
+          className={`pf-toggle__opt${on === opt.key ? ' is-on' : ''}`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// SPODOK NASTAVENÍ v appke: ODHLÁSIŤ SA a ZMAZAŤ ÚČET POD SEBOU, rovnaké písmo (`.pk-b3`, Museum), nie vedľa seba
+// (Matej 9. 11. 2026). Odhlásenie je papierové a veľké, zmazanie červené, menšie a s odstupom, aby sa nedali zameniť.
+const OUT_CSS = `
+.ps-out{display:flex;flex-direction:column;gap:${S.xl}px;margin-top:${S.lg}px;padding-bottom:${S.sm}px;}
+.ps-out .pk-b3{width:100%;}
+.ps-out .ps-signout{height:62px;}
+.ps-out .ps-del{height:48px;font-size:${PACK_TEXT.lead}px;}
+`;
 
 // Account / settings — email, password (modal), language, notifications, sign out.
 // Zdieľané: spodok homepage (/pack, LIVE) aj frozen profil (DEV_FULL).
@@ -233,6 +285,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
       <style>{PILL_CSS}</style>
       {/* Prepínač šatu stojí na `.pf-toggle` — jeho recept žije v `PF_FIELD_CSS`. */}
       <style>{PF_FIELD_CSS}</style>
+      {APP_NEW && <style>{SW_CSS + OUT_CSS}</style>}
       {!bare && <div
         style={{
           fontFamily: FONT_UI,
@@ -286,30 +339,15 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
       {/* Ikonka je `chat`, nie `envelope`: obálku už nesie riadok E-MAIL o kúsok vyššie
           a dve rovnaké ikonky v jednom paneli hovoria, že ide o to isté. Notifikácie
           sú dnes výhradne o SPRÁVACH vo svorke. Zvonček v hand-drawn kite nie je. */}
-      <Field icon={<BrandIcon name="chat" size={16} tint="gold" />} label={t('pack.settings.notifications')}>
-        <div className="pf-toggle">
-          {([
-            { key: true, label: tx('pack.settings.notifOn', 'On') },
-            { key: false, label: tx('pack.settings.notifOff', 'Off') },
-          ]).map((opt) => (
-            <button
-              key={String(opt.key)}
-              type="button"
-              onClick={() => prepniNotifikacie(opt.key)}
-              aria-pressed={notifOn === opt.key}
-              disabled={notifSaving}
-              className={`pf-toggle__opt${notifOn === opt.key ? ' is-on' : ''}`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+      <Field icon={APP_NEW ? <SysIcon name="zvoncek" size={22} /> : <BrandIcon name="chat" size={16} tint="gold" />} label={t('pack.settings.notifications')}>
+        <Toggle on={notifOn} onChange={(v) => void prepniNotifikacie(v)} disabled={notifSaving} label={t('pack.settings.notifications')}
+          onLabel={tx('pack.settings.notifOn', 'On')} offLabel={tx('pack.settings.notifOff', 'Off')} />
       </Field>
       {/* VEČERNÁ PRIPOMIENKA ODDANOSTI (23. 10. 2026) — prvý druh s vlastným prepínačom z registra
           `lib/notifRegister.ts`. Žije v `human.notif_off` + `human.devotion_times` (2× denne); ten istý
           prepínač je aj v paneli „Dnešok". Pod hlavným vypínačom: keď je pošta vypnutá, nechodí nič. */}
       {notifOn && DEVOTION_TODAY_ON && (
-        <Field icon={<BrandIcon name="sun" size={16} tint="gold" />} label={tx('pack.dvtoday.reminder', 'Evening reminder')}>
+        <Field icon={APP_NEW ? <SysIcon name="iskra" size={22} /> : <BrandIcon name="sun" size={16} tint="gold" />} label={tx('pack.dvtoday.reminder', 'Evening reminder')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             {[0, 1].map((i) => (
               <input key={i} type="time" step={900} value={remTime[i]} disabled={!remOn} className="pf-field"
@@ -320,61 +358,35 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
                   const next: [string, string] = [remTime[0], remTime[1]]; next[i] = e.target.value; void ulozPripomienku(remOn, next);
                 }} />
             ))}
-            <div className="pf-toggle">
-              {([
-                { key: true, label: tx('pack.settings.notifOn', 'On') },
-                { key: false, label: tx('pack.settings.notifOff', 'Off') },
-              ]).map((opt) => (
-                <button key={String(opt.key)} type="button" onClick={() => void ulozPripomienku(opt.key, remTime)}
-                  aria-pressed={remOn === opt.key} className={`pf-toggle__opt${remOn === opt.key ? ' is-on' : ''}`}>
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+            <Toggle on={remOn} onChange={(v) => void ulozPripomienku(v, remTime)} label={tx('pack.dvtoday.reminder', 'Evening reminder')}
+              onLabel={tx('pack.settings.notifOn', 'On')} offLabel={tx('pack.settings.notifOff', 'Off')} />
           </div>
         </Field>
       )}
       {notifOn && (
-        <Field icon={<BrandIcon name="ankh" size={16} tint="gold" />} label={tx('pack.settings.notifAinubis', 'AINUBIS notifications')}>
-          <div className="pf-toggle">
-            {([
-              { key: true, label: tx('pack.settings.notifOn', 'On') },
-              { key: false, label: tx('pack.settings.notifOff', 'Off') },
-            ]).map((opt) => (
-              <button key={String(opt.key)} type="button" onClick={() => void ulozAinubis(opt.key)}
-                aria-pressed={ainOn === opt.key} className={`pf-toggle__opt${ainOn === opt.key ? ' is-on' : ''}`}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
+        <Field icon={APP_NEW ? <SysIcon name="ainubis" size={22} /> : <BrandIcon name="ankh" size={16} tint="gold" />} label={tx('pack.settings.notifAinubis', 'AINUBIS notifications')}>
+          <Toggle on={ainOn} onChange={(v) => void ulozAinubis(v)} label={tx('pack.settings.notifAinubis', 'AINUBIS notifications')}
+            onLabel={tx('pack.settings.notifOn', 'On')} offLabel={tx('pack.settings.notifOff', 'Off')} />
         </Field>
       )}
       {notifOn && SOS_ON && (
-        <Field icon={<BrandIcon name="alert" size={16} tint="danger" />} label={tx('pack.settings.notifSos', 'Lost dogs nearby')}>
-          <div className="pf-toggle">
-            {([
-              { key: true, label: tx('pack.settings.notifOn', 'On') },
-              { key: false, label: tx('pack.settings.notifOff', 'Off') },
-            ]).map((opt) => (
-              <button key={String(opt.key)} type="button" onClick={() => void ulozSos(opt.key)}
-                aria-pressed={sosOn === opt.key} className={`pf-toggle__opt${sosOn === opt.key ? ' is-on' : ''}`}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
+        <Field icon={APP_NEW ? <SysIcon name="sos-strateny" size={22} /> : <BrandIcon name="alert" size={16} tint="danger" />} label={tx('pack.settings.notifSos', 'Lost dogs nearby')}>
+          <Toggle on={sosOn} onChange={(v) => void ulozSos(v)} label={tx('pack.settings.notifSos', 'Lost dogs nearby')}
+            onLabel={tx('pack.settings.notifOn', 'On')} offLabel={tx('pack.settings.notifOff', 'Off')} />
         </Field>
       )}
       {/* PRÁVNE + KONTAKT (Apple 5.1.1, 31. 10. 2026): /terms a /privacy ostávajú v appke (APP_PATHS), mailto otvorí poštu. */}
-      <Field icon={<BrandIcon name="document" size={16} tint="gold" />} label={tx('pack.settings.terms', 'Terms')}>
+      <Field icon={APP_NEW ? <SysIcon name="dokument" size={22} /> : <BrandIcon name="document" size={16} tint="gold" />} label={tx('pack.settings.terms', 'Terms')}>
         <button type="button" className="pf-tap" onClick={() => navigate('/terms')} style={LINK_BTN}>{tx('pack.settings.open', 'Open')}</button>
       </Field>
       <Field icon={<BrandIcon name="lock" size={16} tint="gold" />} label={tx('pack.settings.privacy', 'Privacy')}>
         <button type="button" className="pf-tap" onClick={() => navigate('/privacy')} style={LINK_BTN}>{tx('pack.settings.open', 'Open')}</button>
       </Field>
-      <Field icon={<BrandIcon name="envelope" size={16} tint="gold" />} label={tx('pack.settings.contact', 'Contact')}>
+      <Field icon={APP_NEW ? <SysIcon name="komentar" size={22} /> : <BrandIcon name="envelope" size={16} tint="gold" />} label={tx('pack.settings.contact', 'Contact')}>
         <a href="mailto:woof@dogypt.com" style={{ ...LINK_BTN, textDecoration: 'none', display: 'inline-block' }}>woof@dogypt.com</a>
       </Field>
-      <Field icon={(APP_NEW ? <SysIcon name="kos" size={22} /> : <HandTrash size={16} />)} label={tx('pack.settings.deleteRow', 'Deletion')}>
+      {!APP_NEW && <>
+      <Field icon={<HandTrash size={16} />} label={tx('pack.settings.deleteRow', 'Deletion')}>
         {/* Zmazanie účtu — Apple 5.1.1(v), GDPR (13. 10. 2026). 30 dní na rozmyslenie, pes ostáva. */}
         <DeleteAccountButton />
       </Field>
@@ -407,7 +419,18 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
           {t('pack.settings.signOut')}
         </button>
       </Field>
+      </>}
       {after}
+      {/* Appka: ODHLÁSIŤ SA a ZMAZAŤ ÚČET pod sebou, rovnaké písmo, zmazanie červené a menšie (Matej 9. 11. 2026). */}
+      {APP_NEW && (
+        <div className="ps-out">
+          <button type="button" className="pf-tap pk-b3 pk-b3--paper ps-signout" onClick={handleSignOut} disabled={signingOut}>
+            {signingOut && <Loader2 className="h-4 w-4 animate-spin" />}
+            {t('pack.settings.signOut')}
+          </button>
+          <DeleteAccountButton className="ps-del" />
+        </div>
+      )}
 
       {/* Password modal */}
       {pwModalOpen && (

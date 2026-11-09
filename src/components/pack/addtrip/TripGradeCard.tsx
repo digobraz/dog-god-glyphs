@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { PACK_THEME as T, PACK_BOX, PACK_SHADOW, BRAND_GOLD_BTN, PROGRESS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { GRADE_MAX, GRADE_POINTS, type GradePoint, type GradeResult, type TripGrade } from '@/lib/tripGrade';
 
 const MEDAL: Record<TripGrade, string> = {
@@ -54,7 +55,7 @@ export function TripGradeCard({ result, photoCount, onGo, t }: {
             const miss = missing.includes(p);
             const label = (
               <span className="tgc-row">
-                <span className="tgc-dot" aria-hidden="true" />
+                {APP_NEW && !miss ? <SysIcon name="fajka" size={22} /> : <span className="tgc-dot" aria-hidden="true" />}
                 <span>{t(`pack.addTrip.grade.point.${p}`)}</span>
                 {!miss && p === 'photos' && <span className="tgc-val">{photoCount}</span>}
               </span>

@@ -26,6 +26,8 @@ const VACSI_TEXT = `
 .trp-bigcard-loc,.trp-mheader-cats button,.comm-mpill,.pkf-th,.pfs-row h2,.dv2-title,.dv2-eb,.wp-label{font-size:12px !important;}
 .trp-bigcard-author,.tr-row,.tr-together,.vp-body,.vp-src,.vp-note{font-size:14px !important;}
 .tr-sheet{max-height:100dvh;overflow-y:auto;}
+/* AUDIT /pack 9. 11. 2026 (pripomienka 20): riadok „chýba: …“ v dlaždiciach DOG ID bol orezaný trojbodkou, text sa zalomí. */
+.dic-ttl p{white-space:normal !important;overflow:visible !important;text-overflow:clip !important;}
 ${BEZ_ZVACSENIA}{font-family:'Cinzel Decorative',serif !important;}
 `;
 

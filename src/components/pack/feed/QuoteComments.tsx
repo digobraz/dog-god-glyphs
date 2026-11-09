@@ -30,17 +30,18 @@ html.papyrus3d .pkq-head h3{font-family:'LT Museum',serif;font-weight:400;font-s
  *  hodnotenia + rady), aby 💬 pod kartou výletu vo feede človeka neodnieslo preč (lock §4.2). */
 export function QuoteComments({ quoteKey, tripId, focusId, onClose, onCount }: { quoteKey?: string; tripId?: string; focusId?: string | null; onClose: () => void; onCount: (n: number) => void }) {
   const t = useT();
-  const title = t('pack.feed.quote.cm.title');
+  // Šuplík výletu (tripId) nesie „Komentáre“, nie „Komentáre k citátu“ (9. 11. 2026, bod 11).
+  const title = t(tripId ? 'pack.feed.act.comment' : 'pack.feed.quote.cm.title');
   return createPortal((
     <div className="pk-veil pk-veil--modal pkq-veil" role="dialog" aria-modal="true" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{CSS}</style>
       <div className="pkq-sheet">
         <div className="pkq-head">
           <BackButton tone="pale" onClick={onClose} label={t('pack.trip.cm.close')} />
-          <h3>{title === 'pack.feed.quote.cm.title' ? 'Comments' : title}</h3>
+          <h3>{title === 'pack.feed.quote.cm.title' || title === 'pack.feed.act.comment' ? 'Comments' : title}</h3>
         </div>
         {tripId
-          ? <TripComments tripId={tripId} focusId={focusId} onCountChange={onCount} />
+          ? <TripComments tripId={tripId} startOnAdvice focusId={focusId} onCountChange={onCount} />
           : <TripComments tripId={quoteKey ?? ''} quoteThread focusId={focusId} onCountChange={onCount} />}
       </div>
     </div>

@@ -29,7 +29,8 @@ import { useKeyboardLift, kbLiftCSS } from '@/components/pack/diary/useKeyboardL
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, BRAND_GOLD_BTN, MODAL_MAX_H, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
-import { HandCamera, HandCheck } from '@/components/pack/HandIcons';
+import { HandCheck } from '@/components/pack/HandIcons';
+import { CameraIc } from '@/components/app/sysSwap';
 import { ZapisGlyph } from '@/components/pack/SysIcon';
 import { BackIcon, backCircleCSS } from '@/components/pack/BackButton';
 import { supabase } from '@/integrations/supabase/client';
@@ -65,6 +66,8 @@ const GRID: ReadonlyArray<readonly [group: string, ids: readonly string[]]> = [
 
 const CSS = `
 .ppu-sheet.zd-pop{overflow:hidden;}
+/* Úchyt je celý vrch šuplíka (52 px), nie 4 px prúžok: v teste 9. 11. 2026 sa panel nedal stiahnuť, lebo prst trafil telo (bod 12). */
+.zd-pop .ppu-grab{margin:${S.xl}px auto;}
 .zd-pop .ppu-body{padding:0;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
 .zd-sheet{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;color:${T.inkStrong};font-family:${FONT_UI};}
 .zd-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 ${S.lg}px ${S.md}px;}
@@ -597,7 +600,7 @@ export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pi
             <div className="zd-sec">{tx('pack.zd.sentenceLbl', 'A sentence for the chronicle')}</div>
             <button type="button" className="zd-wfield" style={{ marginTop: 0 }} onClick={() => setWriting(true)}>
               <span className={text.trim() ? '' : 'ph'}>{text.trim() || (isToday ? tx('pack.zd.write', 'What did you live today?') : tx('pack.zd.writePast', 'What did you live that day?'))}</span>
-              {photo ? <img src={photo.preview} alt="" /> : <HandCamera size={22} />}
+              {photo ? <img src={photo.preview} alt="" /> : <CameraIc size={22} />}
             </button>
           </>)}
         </div>
@@ -639,7 +642,7 @@ export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pi
                 placeholder={(isToday ? tx('pack.zd.write', 'What did you live today?') : tx('pack.zd.writePast', 'What did you live that day?'))} />
               <div className="zd-wr-ph">
                 <button type="button" className="zd-wr-slot" disabled={!primary} aria-label={tx('pack.diary.photoAdd', 'Add a photo')} onClick={() => fileRef.current?.click()}>
-                  {photo ? <img src={photo.preview} alt="" /> : <HandCamera size={26} />}
+                  {photo ? <img src={photo.preview} alt="" /> : <CameraIc size={26} />}
                 </button>
                 {photo && (
                   <div style={{ minWidth: 0 }}>

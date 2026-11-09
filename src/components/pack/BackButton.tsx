@@ -31,13 +31,18 @@ import { SysIcon } from '@/components/pack/SysIcon';
 
 const T = PACK_THEME;
 
+/** Dotyková plocha šípky pod APP_NEW (vizuál je menší než 44, Apple HIG minimum). */
+const BACK_HIT_PX = 44;
+
 /** Jediný zdroj rozmerov návratu. Ladené v `plany/nakres-triplist-2026-09-01.html` (tab A). */
 export const BACK = {
   /** priemer kruhu (px). 36 → 38 (27. 9. 2026): vzorom je triplist (`.tl-back` 38),
-   *  Matej: „zjednoť na každej stránke výšku aj veľkosť podľa triplistu". */
-  dia: APP_NEW ? 52 : 38,
+   *  Matej: „zjednoť na každej stránke výšku aj veľkosť podľa triplistu".
+   *  Appka (9. 11. 2026): 52 → 36 = disk AINUBISA (`TOP_CIRCLE_PX`); Matej: *„zmenši horné ikonky (správy, sos..
+   *  šípka vzad...) do veľkosti lupy, ainubisa“*. Dotyk 44 nesie presah `BACK_HIT_PX` v `BackButton`. */
+  dia: APP_NEW ? 36 : 38,
   /** veľkosť `HandArrowLeft` v kruhu (px) */
-  icon: APP_NEW ? 26 : 15,
+  icon: APP_NEW ? 16 : 15,
   /** hrúbka lemu (px) */
   border: 1,
   /** veľkosť ikonky v textovom odkaze — menšia, lebo stojí vedľa písma */
@@ -155,10 +160,14 @@ export function BackButton({ tone, onClick, label, className, style }: {
           : { background: c.bg, border: `${BACK.border}px solid ${c.border}`, color: c.ink }),
         lineHeight: 1, cursor: 'pointer', flexShrink: 0, padding: 0,
         transition: 'border-color .15s,color .15s,background .15s',
+        ...(APP_NEW ? { position: 'relative' as const } : null), // kotva presahu dotyku; volajúci `position` prepíše
         ...style,
       }}
     >
       <BackIcon />
+      {APP_NEW && BACK.dia < BACK_HIT_PX && (
+        <span aria-hidden style={{ position: 'absolute', left: '50%', top: '50%', width: BACK_HIT_PX, height: BACK_HIT_PX, transform: 'translate(-50%,-50%)' }} />
+      )}
     </button>
   );
 }

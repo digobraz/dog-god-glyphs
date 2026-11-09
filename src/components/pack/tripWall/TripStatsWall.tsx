@@ -559,17 +559,21 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
       <div className="tw-sh"><img src={ICO('krajiny')} alt="" /><div><h3>{t('pack.wall.countriesTitle')}</h3><span className="tw-num">{s.countries.length}</span></div></div>
       {s.countries.map(({ iso, trails }) => {
         const kmC = trails.reduce((a, x) => a + (Number(x.km) || 0), 0);
-        const m = (cat: CatKey, ic: string, items: WallItem[], label: string) => (
-          <button type="button" onClick={() => openCat(cat, iso)}>
-            <img src={ic} alt="" /><b>{items.filter((x) => x.iso === iso).length}</b><span>{label}</span>
-          </button>
-        );
+        // Pohoria a NP majú menovateľ „X/celkom" (Matej 9. 11. 2026), len keď ho krajina má v `WALL_UNITS`; inak ostáva holé číslo.
+        const m = (cat: CatKey, ic: string, items: WallItem[], label: string, units?: Record<string, string[]>) => {
+          const total = units?.[iso]?.length;
+          return (
+            <button type="button" onClick={() => openCat(cat, iso)}>
+              <img src={ic} alt="" /><b>{items.filter((x) => x.iso === iso).length}{total ? `/${total}` : ''}</b><span>{label}</span>
+            </button>
+          );
+        };
         return (
           <div key={iso} className="tw-cc" style={SUBBLOCK}>
             <h4><img src={flagUrl(iso)} alt="" />{regionName(iso)}<small>{n(trails.length)} · {n(kmC)} km</small></h4>
             <div className="tw-m">
-              {m('ranges', ICO('pohoria'), s.ranges, t('pack.stats.geo.ranges'))}
-              {m('parks', ICO('narodny-park'), s.parks, t('pack.wall.parksShort'))}
+              {m('ranges', ICO('pohoria'), s.ranges, t('pack.stats.geo.ranges'), WALL_UNITS.ranges)}
+              {m('parks', ICO('narodny-park'), s.parks, t('pack.wall.parksShort'), WALL_UNITS.parks)}
               {m('peaks', ICO('vrcholy'), s.peaks, t('pack.wall.peaks'))}
               {m('waters', ICO('jazero'), s.waters, t('pack.stats.geo.waters'))}
             </div>

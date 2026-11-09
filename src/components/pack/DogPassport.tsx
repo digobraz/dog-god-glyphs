@@ -485,6 +485,12 @@ const CH_ICON: Record<string, string> = {
   identity: 'dogid-identity', health: 'dogid-health', vax: 'dogid-vax', food: 'dogid-food', howWorks: 'dogid-works',
   social: 'dogid-social', temperament: 'dogid-temperament', contacts: 'dogid-contacts', will: 'dogid-will',
 };
+/** Appka (Matej 9. 11. 2026, bod 19): kapitoly DOG ID v novej sade `public/icons/sys/`. Závet ide cez BrandIcon (`dogid-will` → `modul-vola`),
+ *  `dogid-wall` kresba v sade nemá, ostáva stará. Nákres `plany/nakresy/map-herne-2026-11-09` skupina O (Detail psa, Kapitoly, Dokumenty). */
+const CH_SYS: Record<string, string> = {
+  'dogid-identity': 'dog-id', 'dogid-health': 'zdravie', 'dogid-vax': 'kalendar', 'dogid-food': 'krmenie', 'dogid-works': 'modul-zaklad',
+  'dogid-social': 'socializacia', 'dogid-temperament': 'modul-povaha', 'dogid-contacts': 'obalka', 'dogid-docs': 'certifikat',
+};
 /** Polia, ktoré hore nesú veľké emblémy, a preto ich kapitola Identita neopakuje. */
 const TRIO_FIELDS = ['nature.element', 'nature.role', 'nature.specials'];
 // Ten istý dopočítaný filter ako `lapis` v lab/NavMedallion: trafí LAPIS.edge, teda rgb(22,48,122).
@@ -630,7 +636,9 @@ function DogIdChapters({
   const row = (key: string, title: string, icon: string, sub: string, miss: boolean, done: boolean, dark: boolean, body: React.ReactNode) => (
     <div key={key} className={`dic-card${dark ? ' dic-dark' : ''}${open === key ? ' dic-open' : ''}`}>
       <button type="button" className="dic-hd" aria-expanded={open === key} onClick={() => setOpen(open === key ? '' : key)}>
-        <span className="dic-coin"><BrandIcon name={icon} size={24} style={APP_NEW ? undefined : { filter: LAPIS_ICON }} /></span>
+        <span className="dic-coin">{APP_NEW && CH_SYS[icon]
+          ? <SysIcon name={CH_SYS[icon]} size={30} />
+          : <BrandIcon name={icon} size={24} style={APP_NEW ? undefined : { filter: LAPIS_ICON }} />}</span>
         <span className="dic-ttl"><h3>{title}</h3>{sub && <p className={miss ? 'miss' : ''}>{sub}</p>}</span>
         {done && <span className="dic-ok" />}
         <span className="dic-chev" />
@@ -1051,7 +1059,7 @@ function GroupNote({
       ) : (
         <RightGate right="dogid.edit" dogId={dogId}>
         <button type="button" className="pass-noteadd" onClick={() => setEditing(true)}>
-          ✎ {tx('pack.pass.noteAdd', 'add a note in your own words')}
+          {APP_NEW ? <SysIcon name="ceruzka" size={18} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : '✎'} {tx('pack.pass.noteAdd', 'add a note in your own words')}
         </button>
         </RightGate>
       )}

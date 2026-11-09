@@ -8,10 +8,11 @@ import { BackButton } from './BackButton';
 import { toast } from 'sonner';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
-import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, FONT_TITLE, FONT_UI, PACK_SHADOW, MODAL_MAX_H } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, FONT_TITLE, FONT_UI, PACK_SHADOW, MODAL_MAX_H, PACK_TEXT } from '@/components/pack/packTheme';
 import { BonesCoin } from '@/components/pack/BonesCoin';
 import { BONES } from '@/components/pack/bonesSkin';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { b3Look } from '@/components/pack/profile/b3css';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { IS_APP } from '@/lib/isApp';
@@ -288,6 +289,29 @@ const NET_CSS = `
 .pkb-why summary i{font-style:normal;transition:transform .2s ease;}
 .pkb-why[open] summary i{transform:rotate(180deg);}
 .pkb-why div{padding:0 ${S.lg}px ${S.md}px;font-family:${FONT_UI};font-size:12px;line-height:1.55;color:${T.inkWarm};}
+/* ŠAT PAPYRUS 3D (hárok BONES, 9. 11. 2026): hrdina je papierová doska s tmavým obrysom (minca a pás ostávajú tyrkys),
+   riadky a kroky ako karty 3D, CTA lapisové tlačidlo 3D, nadpis Museum. Len pod html.papyrus3d (APP_NEW). */
+html.papyrus3d .pkb-hero{background:var(--p3d-card);color:var(--p3d-ink);border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift);}
+html.papyrus3d .pkb-hero::before{display:none;}
+html.papyrus3d .pkb-top small{color:var(--p3d-gold-ink);}
+html.papyrus3d .pkb-top b{color:var(--p3d-ink);}
+html.papyrus3d .pkb-top b span{color:var(--p3d-gold-ink);}
+html.papyrus3d .pkb-wal{background:var(--p3d-paper-hi);border:2.5px solid var(--p3d-ink);color:var(--p3d-ink);}
+html.papyrus3d .pkb-mis{border-top:3px solid var(--p3d-gold);}
+html.papyrus3d .pkb-mis .r,html.papyrus3d .pkb-mis p{color:var(--p3d-gold-ink);}
+html.papyrus3d .pkb-mis .r b{color:var(--p3d-ink);}
+html.papyrus3d .pkb-bar{background:var(--p3d-paper-hi);}
+html.papyrus3d .pkb-h span{color:var(--p3d-gold-ink);}
+html.papyrus3d .pkb-h button{color:${LAPIS.edge};}
+html.papyrus3d .pkb-h b{color:var(--p3d-ink);}
+html.papyrus3d .pkb-sub{color:var(--p3d-gold-ink);}
+html.papyrus3d .pkb-wny{font-family:'LT Museum',serif !important;font-weight:400 !important;font-size:${PACK_TEXT.h1}px !important;letter-spacing:0 !important;color:var(--p3d-ink) !important;} /* písmo: nadpis */
+html.papyrus3d .pkb-sec p{color:var(--p3d-ink) !important;}
+html.papyrus3d .pkb-step,html.papyrus3d .pkb-row{background:var(--p3d-card) !important;border:2.5px solid var(--p3d-ink) !important;border-radius:${R.card}px !important;box-shadow:var(--p3d-lift) !important;}
+html.papyrus3d .pkb-empty{background:var(--p3d-paper-hi) !important;border:2.5px dashed var(--p3d-gold-ink) !important;border-radius:${R.card}px !important;box-shadow:var(--p3d-inset);}
+html.papyrus3d .pkb-why{background:var(--p3d-paper-hi);border:2.5px solid var(--p3d-ink);border-radius:${R.card}px;box-shadow:var(--p3d-inset);}
+html.papyrus3d .pkb-why summary,html.papyrus3d .pkb-why div{color:var(--p3d-ink);}
+${b3Look('.pkb-cta', 'lapis', 'width:100%;margin-top:' + S.lg + 'px;font-family:\'LT Museum\',serif;font-weight:400;font-size:' + PACK_TEXT.h2 + 'px;letter-spacing:0;text-transform:none;')}
 `;
 
 // `bare` = bez vlastnej karty — blok žije v šuplíku MISIA na profile (`BonesSheet`, 23. 10. 2026),
@@ -575,7 +599,7 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
       {/* ④ AKO TO FUNGUJE — „WE NEED YOU!" + úvodná veta (Matejove texty) nad tromi krokmi. */}
       <div className="pkb-sec">
         <div className="pkb-h"><span>{tx('pack.network.eyebrow', 'DOGYPT grows because of you')}</span></div>
-        <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 20, color: T.inkStrong, margin: 0, letterSpacing: '0.02em' }}>
+        <h3 className="pkb-wny" style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 20, color: T.inkStrong, margin: 0, letterSpacing: '0.02em' }}>
           {tx('pack.network.weNeedYou', 'WE NEED YOU!')}
         </h3>
         <p
@@ -1104,7 +1128,7 @@ function Step({
 }) {
   return (
     <li
-      className="flex"
+      className="flex pkb-step"
       style={{
         gap: 13,
         // Úroveň 2 MATRICE (`PACK_BOX.subblock`). Tento recept vznikol tu 12. 8.
@@ -1191,7 +1215,7 @@ function RowNo({ n, dim }: { n: number; dim?: boolean }) {
 function EmptyRow({ no }: { no: number }) {
   return (
     <div
-      className="flex items-center"
+      className="flex items-center pkb-empty"
       style={{
         gap: 10,
         padding: '8px 8px',
@@ -1252,7 +1276,7 @@ function MemberRow({ m, lvl, full, no }: { m: Member; lvl: number; full?: boolea
   });
   return (
     <div
-      className="flex items-center"
+      className="flex items-center pkb-row"
       style={{
         gap: 10,
         padding: full ? '9px 12px' : '8px 10px',

@@ -3251,6 +3251,8 @@ export const cs: Partial<Dict> = {
   'pack.dogShare.glyphOn': "S heroglyfem",
   'pack.dogShare.glyph': "Heroglyf",
   'pack.trip.stat.crowd': 'Návštěvnost',
+  'pack.trip.stat.length': 'Délka',
+  'pack.trip.stat.ascent': 'Stoupání',
   'pack.trip.stat.difficulty': 'Náročnost',
   'pack.trip.stat.rating': 'Hodnocení',
   // ── Příběhy z cesty (kronika trasy) ──────────────────────────────────

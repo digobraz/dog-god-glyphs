@@ -8,5 +8,5 @@ export const SYS_ZA_KRESBU: Record<string, string> = {
   dogposter: 'dog-id', clipboard: 'modul-zaklad', food: 'krmenie', heart: 'zdravie',
   bone: 'kost', person: 'ja-muz', heartpaw: 'misia', 'add-user': 'pridaj-cloveka', envelope: 'obalka',
   globe: 'jazyk', mountain: 'hora', 'house-heart': 'doma', trophy: 'trofej', plus: 'plus', yinyang: 'modul-povaha',
-  'dogid-will': 'modul-vola',
+  'dogid-will': 'modul-vola', people: 'svorka', document: 'dokument',
 };

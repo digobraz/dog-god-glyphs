@@ -812,11 +812,11 @@ function MonthGrid({
               onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onDay(month, d); } }}
             >
               <span className="cal-monum">{d}</span>
-              {zapis && <span className="cal-chk" aria-label={tx('pack.cal.type.zapis', 'Zápis dňa')}><HandCheck size={14} /></span>}
+              {zapis && <span className="cal-chk" aria-label={tx('pack.cal.type.zapis', 'Zápis dňa')}>{APP_NEW ? <SysIcon name="fajka" size={16} /> : <HandCheck size={14} />}</span>}
               {mo && <span className="cal-momoon" style={{ background: mo === 'full' ? '#FFFDF5' : '#241a09' }} />}
               <span className="cal-momk" style={{ fontFamily: EMOJI_FONT }}>
-                {marks.slice(0, 3).map((m, i) => <ZapisGlyph key={i} mark={m} size={16} />)}
-                {marks.length > 3 && <u>+{marks.length - 3}</u>}
+                {marks.slice(0, APP_NEW ? 2 : 3).map((m, i) => <ZapisGlyph key={i} mark={m} size={16} />)}
+                {marks.length > (APP_NEW ? 2 : 3) && <u>+{marks.length - (APP_NEW ? 2 : 3)}</u>}
               </span>
             </div>
           );
@@ -2319,13 +2319,18 @@ const CAL_CSS = `
 }
 
 /* ── ŠAT PAPYRUS 3D (hárok map-herne-2026-11-09, N4 Denník) — len pod html.papyrus3d, len mesiac v appke ── */
-html.papyrus3d .cal-mo-only{padding:${PACK_SPACE.lg}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-b3);}
+/* Matej 9. 11. 2026, bod 18: denník nie v bloku, ale cez celú šírku; prepínač mesiacov bez ohraničenia; dni a ikonky s dychom. */
+html.papyrus3d .cal-mo-only{padding:0;border:0;border-radius:0;background:none;box-shadow:none;}
+html.papyrus3d .cal-mo-only .cal-monav{margin-bottom:${PACK_SPACE.lg}px;gap:${PACK_SPACE.md}px;}
 html.papyrus3d .cal-mo-only .cal-moname{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
-html.papyrus3d .cal-mo-only .cal-monav button{width:44px;height:44px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.tile}px;background:linear-gradient(180deg,#fff,var(--p3d-paper));box-shadow:var(--p3d-lift);}
+html.papyrus3d .cal-mo-only .cal-monav button:not(.cal-wtoday){width:44px;height:44px;border:0;background:none;box-shadow:none;}
 html.papyrus3d .cal-mo-only .cal-wtoday{width:100%!important;height:56px!important;padding:0 ${PACK_SPACE.lg}px;border:2.5px solid var(--b3-l)!important;border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b))!important;color:var(--b3-i)!important;box-shadow:var(--p3d-b3);font:400 ${PACK_TEXT.h2}px/1 'LT Museum',serif!important;letter-spacing:0;text-transform:none;} /* písmo: cta */
 html.papyrus3d .cal-mo-only .cal-dow{color:var(--p3d-ink);font-weight:600;}
-html.papyrus3d .cal-mo-only .cal-mogrid{gap:${PACK_SPACE.xs}px;}
-html.papyrus3d .cal-mo-only .cal-mocell{min-height:56px;border:2px solid transparent;border-radius:${PACK_R.tile}px;background:none;box-shadow:none;}
+html.papyrus3d .cal-mo-only .cal-mogrid{grid-template-columns:repeat(7,minmax(0,1fr));gap:${PACK_SPACE.sm}px;}
+html.papyrus3d .cal-mo-only .cal-dow{padding-bottom:${PACK_SPACE.sm}px;}
+html.papyrus3d .cal-mo-only .cal-momk{gap:${PACK_SPACE.xs}px;flex-wrap:nowrap;}
+html.papyrus3d .cal-mo-only .cal-momk img{width:14px!important;height:14px!important;}
+html.papyrus3d .cal-mo-only .cal-mocell{min-height:56px;aspect-ratio:auto;border:2px solid transparent;border-radius:${PACK_R.tile}px;background:none;box-shadow:none;}
 html.papyrus3d .cal-mo-only .cal-mocell.out{border:0;}
 html.papyrus3d .cal-mo-only .cal-monum{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;color:var(--p3d-ink);}
 html.papyrus3d .cal-mo-only .cal-mocell[style*="background"]{border:2px solid var(--p3d-ink)!important;background:var(--p3d-paper-hi)!important;box-shadow:var(--p3d-lift);}

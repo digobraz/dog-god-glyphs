@@ -3577,6 +3577,8 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.step.needDog': "Pridaj aspoň jedného psa zo svorky — výlet sa zapisuje človeku aj psovi.",
   'pack.trip.stat.difficulty': "Náročnosť",
   'pack.trip.stat.crowd': "Návštevnosť",
+  'pack.trip.stat.length': "Dĺžka",
+  'pack.trip.stat.ascent': "Stúpanie",
   'pack.trip.stat.rating': "Hodnotenie",
   'pack.trip.routeSoon': "Trasa pribudne čoskoro",
   'pack.trip.openFromPack': "Otvorený výlet od svorky",

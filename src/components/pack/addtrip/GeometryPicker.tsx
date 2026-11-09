@@ -22,6 +22,7 @@ import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { MAP_SKIN, PALE, PALE_PC_MIN, goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
@@ -1955,7 +1956,8 @@ export function GeometryPicker({
                   }}
                 />
                 <button type="button" className="trp-dbar-btn" onClick={() => gpxInputRef.current?.click()}>
-                  {t('pack.addTrip.geo.gpxBtn')}
+                  {APP_NEW && <SysIcon name="dokument" size={26} />}
+                  {APP_NEW ? t('pack.addTrip.geo.gpxBtn').replace(/^📂\s*/u, '') : t('pack.addTrip.geo.gpxBtn')}
                 </button>
                 {notice && <div className="trp-notice">{notice}</div>}
               </>
@@ -2222,6 +2224,7 @@ html.papyrus3d .trp-dbar-btn{--b3-a:#fff;--b3-b:var(--p3d-paper);--b3-p:var(--p3
 html.papyrus3d .trp-dbar-btn:hover:not(:disabled){background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);border-color:var(--b3-l);}
 html.papyrus3d .trp-dbar-btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--b3-p);}
 html.papyrus3d .trp-dbar-btn:disabled{opacity:.55;}
+html.papyrus3d .trp-dstart > .trp-dbar-btn{flex:0 0 auto;gap:8px;}
 html.papyrus3d .trp-dbar-row--minor{gap:12px;}
 html.papyrus3d .trp-dbar-row--minor .trp-dbar-btn{min-height:48px;padding:0 12px;font-size:14px;}
 /* MAZANIE JE ČERVENÉ CELÉ (nevratná akcia) */
@@ -2236,6 +2239,17 @@ html.papyrus3d .trp-dback{color:${LAPIS.edge};font-size:14px;}
 html.papyrus3d .trp-dback:hover{color:${LAPIS.edge};}
 html.papyrus3d .trp-dock .trp-ps-input{box-sizing:border-box;min-height:54px;padding:12px 16px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);font-family:${FONT_UI};font-weight:500;font-size:16px;color:var(--p3d-ink);}
 html.papyrus3d .trp-dock .trp-dockpanel .trp-dread-dim,html.papyrus3d .trp-dock .trp-dockpanel .trp-dbar-read{color:color-mix(in srgb,var(--p3d-ink) 58%,var(--p3d-paper));}
+/* ⚠️ 9. 11. 2026 (pripomienka 20): na 360×740 a nižšie sa pod hotovou trasou dole odrezal odkaz „Späť na mapu" (obsah 284 px proti 33vh = 242).
+   Panel ostáva 33vh ako DNO (lock z 24. 8. = výška, ktorá neskáče) a smie vyrásť do 46vh; na nízkom okne sa tlačidlá zhustia. */
+@media (max-width:${DOCK_MOBILE_MAX}px){
+  html.papyrus3d .trp-dock .trp-dockpanel{height:auto;min-height:33vh;max-height:46vh;}
+}
+@media (max-width:${DOCK_MOBILE_MAX}px) and (max-height:800px){
+  html.papyrus3d .trp-dock .trp-dockpanel{padding-top:12px;gap:8px;}
+  html.papyrus3d .trp-dbar-btn,html.papyrus3d .trp-dbar-done{min-height:48px;}
+  html.papyrus3d .trp-dbar-row--minor .trp-dbar-btn{min-height:44px;}
+  html.papyrus3d .trp-dbar{gap:8px;}
+}
 `;
 
 const DRAW_BAR_CSS = `

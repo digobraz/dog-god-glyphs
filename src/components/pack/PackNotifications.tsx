@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BrandIcon } from './BrandIcon';
 import { HandTail } from './HandIcons';
+import { SysIcon } from './SysIcon';
 import { NotifSheet } from './NotifSheet';
 import { PACK_THEME, PACK_AVATAR, PACK_TEXT, PACK_R, PACK_SPACE, FONT_UI } from './packTheme';
 import { pluralKey } from '@/lib/plural';
@@ -16,7 +17,7 @@ import ainubisHead from '@/assets/ainubis-head.webp';
 // s bielym textom… červená zo sniffer“). Jedna červená v appke, nie nový odtieň.
 import { SNIFFER_HEART } from './buddy/SnifferLogo';
 import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
-import { TopCircle, TOP_CIRCLE_PX } from './TopCircle';
+import { TopCircle, TOP_CIRCLE_PX, TOP_BTN_PX, TOP_HIT_PX } from './TopCircle';
 import { LAPIS } from './navGoldSkin';
 import { NTF_P3D_CSS } from './notifP3d';
 // Lazy, rovnaký dôvod ako pri `packAlerts`: `packHumans` ťahá `packStore`.
@@ -46,6 +47,10 @@ const SOCIAL_KEY: Record<string, string> = {
 
 const T = PACK_THEME;
 
+// Papyrus 3D (9. 11. 2026, hárok K5): systémový riadok upozornení nesie ikonku z továrne (SysIcon) namiesto chvosta.
+// Osoby (lajky, komentáre, nasledovanie) majú ďalej TVÁR človeka — tu sa ich nič netýka.
+const ntfSys = (kind: string) => (kind.startsWith('event_') ? 'pridaj-podujatie' : kind.startsWith('wish_') ? 'pridaj-tripwish' : kind.startsWith('trip_') ? 'pridaj-vylet' : 'zvoncek');
+
 /** Tvár človeka v riadku upozornenia; bez fotky prvé písmeno mena. */
 function PersonFace({ al }: { al: PackAlert }) {
   return (
@@ -71,9 +76,11 @@ const CAPSULE: React.CSSProperties = {
 // Kapsula ostala LEN kolieska AINUBISA (`HubAinubis` nižšie) — to je jeho podobizeň, nie ikonka.
 // Farba podľa PODKLADU: na tmavom zlato, na papyruse tmavý atrament (zlato na zlatom zanikne).
 const ICON_ROW: React.CSSProperties = { zIndex: 12, gap: 4 };
+// Pod APP_NEW (9. 11. 2026) je tlačidlo veľkosti ikonky ako lupa (`TOP_BTN_PX`), dotyk 44 nesie presah v `TopCircle`.
+const CAP_PX = APP_NEW ? TOP_BTN_PX : TOP_HIT_PX;
 const capBtn = (active: boolean, dark: boolean): React.CSSProperties => ({
-  width: 44,
-  height: 44,
+  width: CAP_PX,
+  height: CAP_PX,
   borderRadius: 999,
   border: 'none',
   background: active ? 'rgba(201,154,63,0.18)' : 'transparent',
@@ -93,7 +100,7 @@ const CAP_DOT: React.CSSProperties = {
 // Menšie a bez obruby (Matej 26. 10.: *„upozornenie bez ohraničenia skúsme a asi aj menšie… musia sa
 // zmestiť dve bodky pri chvoste aj správach"*) — 14 px, dve pod sebou sa zmestia do 40 px kapsuly.
 const capBadge = (cyan: boolean): React.CSSProperties => ({
-  position: 'absolute', ...(cyan ? { bottom: 4 } : { top: 4 }), right: 4, minWidth: 14, height: 14, padding: '0 4px', borderRadius: 999,
+  position: 'absolute', ...(cyan ? { bottom: 2 } : { top: 2 }), right: 2, minWidth: 14, height: 14, padding: '0 4px', borderRadius: 999,
   display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
   fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, fontWeight: 600,
   background: cyan ? AINUBIS.cyan : SNIFFER_HEART, color: cyan ? AINUBIS.bg : '#fff',
@@ -498,7 +505,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
               <div
                 style={{
                   fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, letterSpacing: '0.26em',
-                  textTransform: 'uppercase', color: T.inkDim, marginBottom: 8,
+                  textTransform: 'uppercase', color: APP_NEW ? LAPIS.ink : T.inkDim, marginBottom: 8,
                 }}
               >
                 {t('pack.alerts.title')}
@@ -507,13 +514,13 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                 {/* SOS (4. 11. 2026): stratený pes v krajine = PRIORITNÝ riadok navrchu, mimo „nové / skôr". Zanikne sám, keď pátranie skončí
                     (zdroj je `sosActive()`); prečítaním zmizne z počtu, nie zo zoznamu. */}
                 {alerts.filter(isSosAlert).map((al) => (
-                  <li key={al.id}>
+                  <li key={al.id} className={APP_NEW ? 'ntf-li-sos ntf-new' : undefined}>
                     <button type="button" onClick={() => { setOpen(false); navigate(al.tripPath); }}
                       className="flex items-center gap-3 w-full text-left"
                       style={{ cursor: 'pointer', font: 'inherit', padding: PACK_SPACE.sm, borderRadius: PACK_R.tile, border: `1px solid ${T.sosRed}`, background: T.sosRedSoft }}>
                       {al.photo
                         ? <img src={sizedUrl(al.photo, 96)} alt="" width={40} height={40} loading="lazy" style={{ flexShrink: 0, width: 40, height: 40, borderRadius: PACK_R.pill, objectFit: 'cover', border: `2px solid ${T.sosRed}` }} />
-                        : <BrandIcon name="alert" size={24} tint="danger" />}
+                        : APP_NEW ? <SysIcon name="sos-strateny" size={46} /> : <BrandIcon name="alert" size={24} tint="danger" />}
                       <span style={{ minWidth: 0, flex: 1 }}>
                         <span style={{ display: 'block', fontFamily: FONT_UI, fontWeight: 600, fontSize: PACK_TEXT.body, lineHeight: 1.35, color: T.sosRed }}>
                           {al.kind === 'sos_still'
@@ -544,7 +551,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                 ) : al.kind === 'walk_invite' ? (
                   // POZVÁNKA „bol si so mnou" (15. 10. 2026) — rozhoduje sa TU, nie na výlete:
                   // výlet môže ešte čakať na schválenie a pozvaný by ho nevedel otvoriť.
-                  <li key={al.id} className="flex items-start gap-3">
+                  <li key={al.id} className={`flex items-start gap-3${APP_NEW && newIds.has(al.id) ? ' ntf-new' : ''}`}>
                     <PersonFace al={al} />
                     <span style={{ minWidth: 0, flex: 1 }}>
                       <span style={{ display: 'block', fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, lineHeight: 1.35, color: T.inkStrong }}>
@@ -584,7 +591,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                     </span>
                   </li>
                 ) : (
-                  <li key={al.id}>
+                  <li key={al.id} className={APP_NEW && newIds.has(al.id) ? 'ntf-new' : undefined}>
                     <button
                       type="button"
                       onClick={() => {
@@ -594,13 +601,15 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                         // s kým ide, a pri prejdení má rovno tlačidlo zapísať si ho aj za seba.
                         navigate(al.kind === 'trip_request' ? '/pack/map/triplist' : al.tripPath);
                       }}
-                      className={`flex ${isPersonAlert(al) ? 'items-center gap-3' : 'items-start gap-2'} w-full text-left`}
+                      className={`flex ${isPersonAlert(al) || APP_NEW ? 'items-center gap-3' : 'items-start gap-2'} w-full text-left`}
                       style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}
                     >
                       {/* Sociálne = ako Instagram (Matej 28. 10.): vľavo TVÁR človeka, vpravo náhľad príspevku. Chvost ostáva len systémovým. */}
                       {isPersonAlert(al)
                         ? <PersonFace al={al} />
-                        : <HandTail size={14} style={{ flexShrink: 0, marginTop: 2, color: T.accentGold }} />}
+                        : APP_NEW
+                          ? <SysIcon name={ntfSys(al.kind)} size={46} />
+                          : <HandTail size={14} style={{ flexShrink: 0, marginTop: 2, color: T.accentGold }} />}
                       <span style={{ minWidth: 0, flex: 1 }}>
                         <span
                           style={{
@@ -663,7 +672,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
               <div
                 style={{
                   fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, letterSpacing: '0.26em',
-                  textTransform: 'uppercase', color: T.inkDim, marginBottom: 8,
+                  textTransform: 'uppercase', color: APP_NEW ? LAPIS.ink : T.inkDim, marginBottom: 8,
                 }}
               >
                 Messages

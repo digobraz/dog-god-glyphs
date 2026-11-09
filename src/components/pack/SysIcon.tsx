@@ -2,6 +2,7 @@
 // Farebná samolepka s obrysom, `public/icons/sys/`. Zatiaľ len appka (APP_NEW), web ostáva na hand-drawn kresbách.
 // Stav „nezapnuté" nesie šedá, samolepka by inak vyzerala zapnutá stále.
 import type { CSSProperties } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { APP_NEW } from '@/lib/packFlags';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandPaw, HandSearch, HandStar } from '@/components/pack/HandIcons';
@@ -26,6 +27,11 @@ export function SysIcon({ name, size = 24, off, style }: { name: string; size?: 
     />
   );
 }
+
+/** Šípka dole (rozbaliť): v appke samolepka `sipka` otočená dole, na webe lucide. Rodič ju otáča ďalej (otvorené = hore). */
+export const ChevDown = ({ size = 16, style, up }: { size?: number; style?: CSSProperties; up?: boolean }) => (APP_NEW
+  ? <SysIcon name="sipka" size={size + 6} style={{ ...style, transform: up ? 'rotate(-90deg)' : 'rotate(90deg)' }} />
+  : <ChevronDown aria-hidden className={size <= 12 ? 'h-3 w-3' : 'h-4 w-4'} style={{ ...style, ...(up ? { transform: 'rotate(180deg)' } : null) }} />);
 
 export const SearchMark = ({ size }: { size: number }) => (APP_NEW ? <SysIcon name="lupa" size={size + 6} /> : <HandSearch size={size} />);
 export const LikeMark =({ on }: { on: boolean }) => (APP_NEW ? <SysIcon name="lajk" size={28} off={!on} /> : <HandPaw size={24} on={on} />);

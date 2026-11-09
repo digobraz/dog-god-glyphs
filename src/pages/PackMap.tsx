@@ -2619,13 +2619,26 @@ const APP_P3D_CSS = `
 .trp-root{--m-edge:#EFD79A;--m-lapis-p:color-mix(in srgb,#0A1A4A 60%,black);--m-green-p:color-mix(in srgb,#3D7A4E 62%,black);--m-hi:color-mix(in srgb,white 55%,transparent);--m-lo:color-mix(in srgb,black 15%,transparent);--m-soft:color-mix(in srgb,var(--p3d-ink) 55%,transparent);
   --m-pera:inset 0 2px 0 var(--m-hi),inset 0 -4px 0 var(--m-lo),0 6px 0 var(--b3-p,var(--p3d-gold-solid)),0 11px 14px var(--p3d-sh);}
 /* ovládače mapy: vrstvy, plus a mínus, poloha = 3D paper */
-html.papyrus3d .trp-ctlstack{right:12px;gap:16px;}
-html.papyrus3d .trp-root .trp-stylebtn.pk-b3,html.papyrus3d .trp-root .trp-locatebtn.pk-b3{width:56px;height:56px;padding:0;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));box-shadow:var(--m-pera);}
-html.papyrus3d .trp-root .trp-zoomgroup{width:56px;display:flex;flex-direction:column;padding:0;border:2.5px solid var(--p3d-ink);border-radius:16px;background:linear-gradient(180deg,#fff,var(--p3d-paper));box-shadow:var(--m-pera);}
-html.papyrus3d .trp-root .trp-zoomgroup button{width:100%;height:51px;display:grid;place-items:center;padding:0;background:none;border:0;}
+/* ⚠️ 9. 11. 2026, Matej (pripomienka 20): ovládače mapy sú o 20 % menšie VŠADE (bolo 56, teraz 45 = 44,8). Škálujú sa rozmer, rám,
+   polomer, pera aj kresba (32 → 26), medzera 16 → 12. Zvislé tlačidlo zoomu má vizuál 41 px, preto mu priehľadný presah ::after
+   doplní dotykovú plochu na 44: horné rastie nahor, dolné nadol (v strede by si kradli klik). */
+html.papyrus3d .trp-ctlstack{right:12px;gap:12px;--m-pera-s:inset 0 2px 0 var(--m-hi),inset 0 -3px 0 var(--m-lo),0 5px 0 var(--b3-p,var(--p3d-gold-solid)),0 9px 11px var(--p3d-sh);}
+html.papyrus3d .trp-root .trp-stylebtn.pk-b3,html.papyrus3d .trp-root .trp-locatebtn.pk-b3{width:45px;height:45px;padding:0;border:2px solid var(--b3-l);border-radius:12px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));box-shadow:var(--m-pera-s);}
+html.papyrus3d .trp-root .trp-stylebtn::after,html.papyrus3d .trp-root .trp-locatebtn::after{inset:0;}
+html.papyrus3d .trp-root .trp-zoomgroup{width:45px;display:flex;flex-direction:column;padding:0;overflow:visible;border:2px solid var(--p3d-ink);border-radius:12px;background:linear-gradient(180deg,#fff,var(--p3d-paper));box-shadow:var(--m-pera-s);}
+html.papyrus3d .trp-root .trp-zoomgroup button{position:relative;width:100%;height:41px;display:grid;place-items:center;padding:0;background:none;border:0;}
+html.papyrus3d .trp-root .trp-zoomgroup button::after{content:'';position:absolute;left:0;right:0;top:0;bottom:0;}
+html.papyrus3d .trp-root .trp-zoomgroup button:first-child::after{top:-3px;}
+html.papyrus3d .trp-root .trp-zoomgroup button:last-child::after{bottom:-3px;}
 html.papyrus3d .trp-root .trp-zoomgroup button+button,html.papyrus3d .trp-root .trp-zoomgroup button:first-child{border-bottom:0;}
 html.papyrus3d .trp-root .trp-zoomgroup button+button{border-top:2px solid var(--m-soft);}
-html.papyrus3d .trp-root .trp-ctlstack img.trp-sysico{width:32px!important;height:32px!important;}
+html.papyrus3d .trp-root .trp-ctlstack img.trp-sysico,html.papyrus3d .trp-root .trp-zoomgroup button img.trp-sysico{width:26px!important;height:26px!important;}
+/* ikonka fajky v tlačidle „Prešli sme" mala veľkosť len v mobilnom zozname — na PC sa v kartách bočného panela vykreslila v plnej veľkosti obrázka */
+html.papyrus3d .trp-walkico{width:26px;height:26px;flex:none;margin-right:4px;}
+/* tripflow, kroky 1–2: hlavička mapy je skrytá (výška 0), hore stojí AINUBIS (fixný, z 1202) — ovládače začnú POD ním */
+@media (max-width:${PALE_PC_MIN - 1}px){
+  html.papyrus3d body:has(.ang-wrap) .trp-ctlstack{top:var(--ang-wrap-b,159px);}
+}
 html.papyrus3d .trp-root .trp-layersdd-panel{width:236px;padding:12px 16px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-card);box-shadow:0 6px 0 var(--p3d-gold-solid),0 12px 16px var(--p3d-sh);}
 html.papyrus3d .trp-root .trp-layersdd-panel .trp-tagdd-eyebrow{font:500 12px 'Space Grotesk',sans-serif;letter-spacing:.22em;color:var(--p3d-gold-ink);}
 html.papyrus3d .trp-root .trp-layersdd-row{gap:12px;padding:4px 0;font:500 16px 'Space Grotesk',sans-serif;color:var(--p3d-ink);}
@@ -2645,7 +2658,7 @@ html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
   html.papyrus3d .trp-mheader-status .trp-midentity-txt{display:none;}
   html.papyrus3d .trp-mheader-status .trp-avs{position:absolute;inset:0;display:block;}
   html.papyrus3d .trp-mheader-status .trp-av{position:absolute;left:0;top:0;width:66px;height:66px;margin:0;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 4px 0 2px var(--p3d-ink);font-size:24px;}
-  html.papyrus3d .trp-mheader-status .trp-avs .trp-avd{left:54px;top:38px;width:42px;height:42px;border-width:2px;z-index:3;}
+  html.papyrus3d .trp-mheader-status .trp-avs .trp-avd{left:-10px;top:-10px;width:42px;height:42px;border-width:2px;z-index:3;}
   html.papyrus3d .trp-mheader-status .trp-avs .trp-avd~.trp-avd{display:none;}
   html.papyrus3d .trp-mheader-status .trp-midentity--app .rk{--s:46px;position:absolute;left:44px;top:-18px;z-index:4;margin:0;display:block;width:64px;height:52px;}
   html.papyrus3d .trp-mheader-status .rk .ic{position:absolute;inset:0;width:auto;height:auto;}
@@ -2655,6 +2668,7 @@ html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
   html.papyrus3d .trp-mheader-status .trp-headright{gap:0;}
   /* hľadanie a Filtre */
   html.papyrus3d .trp-mheader-row2{gap:8px;}
+  html.papyrus3d .trp-mheader .trp-mapsearch input{text-overflow:ellipsis;}
   html.papyrus3d .trp-mheader .trp-mapsearch{height:54px;padding:0 16px;gap:8px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
   html.papyrus3d .trp-mheader .trp-mapsearch input{padding:0;font:500 16px 'Space Grotesk',sans-serif;color:var(--p3d-ink);}
   html.papyrus3d .trp-mheader .trp-mapsearch input::placeholder{color:var(--m-soft);}
@@ -2690,6 +2704,16 @@ html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
   html.papyrus3d .trp-mlist .trp-bigcard-name{font:400 24px/1.1 'LT Museum',serif;font-size:24px!important;color:var(--p3d-ink);}
   html.papyrus3d .trp-mlist .trp-bigcard-author{font-size:14px!important;color:var(--m-soft);}
   html.papyrus3d .trp-mlist .trp-bigcard-photoactbtn--walked.on{height:44px;padding:0 16px;border:2.5px solid var(--p3d-ink);border-radius:12px;background:linear-gradient(180deg,color-mix(in srgb,#3D7A4E 66%,white),#3D7A4E);color:#fff;box-shadow:inset 0 2px 0 var(--m-hi),0 4px 0 var(--m-green-p);font:400 16px/1 'LT Museum',serif;font-size:16px;letter-spacing:0;}
+  html.papyrus3d .trp-mlist .trp-walkico{width:26px;height:26px;flex:none;margin-right:4px;}
+  html.papyrus3d .trp-mlist .trp-bigcard-photoacts{right:10px;top:10px;}
+  html.papyrus3d .trp-mlist .trp-cardflag{left:10px;top:10px;width:38px;height:38px;border:2.5px solid var(--p3d-paper-hi);box-shadow:0 0 0 1.5px var(--p3d-ink);}
+  /* dolné pilulky na fotke (hárok A2): km a stúpanie v jednej, náročnosť a ruch samé okno */
+  html.papyrus3d .trp-mlist .trp-bigcard-photometa{left:10px;right:10px;bottom:10px;}
+  html.papyrus3d .trp-mlist .comm-photometa{gap:8px;}
+  html.papyrus3d .trp-mlist .comm-mpill{height:40px;gap:6px;padding:0 12px 0 8px;border:2px solid var(--p3d-ink);border-radius:12px;background:linear-gradient(180deg,#fff,var(--p3d-paper));color:var(--p3d-ink);box-shadow:0 3px 0 var(--p3d-ink);font:600 16px 'Space Grotesk',sans-serif;letter-spacing:0;}
+  html.papyrus3d .trp-mlist .comm-mpill img{width:28px!important;height:28px!important;}
+  html.papyrus3d .trp-mlist .comm-mpill--ico{padding:0 4px;gap:0;}
+  html.papyrus3d .trp-mlist .comm-msep{display:block;width:4px;flex:none;}
 }
 /* okno Filtre (A4): papyrus doska so zlatým pásom hore, polia a tlačidlá 3D */
 html.papyrus3d .trp-msheet{background:var(--p3d-card);border:0;border-top:6px solid var(--p3d-gold);border-radius:16px 16px 0 0;box-shadow:0 -3px 0 var(--p3d-ink),0 -12px 16px var(--p3d-sh);}
@@ -3326,7 +3350,7 @@ function LayersPanel({
         aria-label={t('pack.map.layersAriaLabel')}
         title={t('pack.map.layersAriaLabel')}
       >
-        <img src={ICON('layers')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
+        <img src={APP_NEW ? '/icons/sys/vrstvy.webp' : ICON('layers')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
       </button>
       {open && (
         <>
@@ -6504,7 +6528,7 @@ export default function PackMap() {
                   toggleWalked(tr.id);
                 }}
               >
-                ✓ {t('pack.map.walked')}
+                {APP_NEW ? <img src="/icons/sys/fajka.webp" alt="" className="trp-walkico" /> : '✓ '}{t('pack.map.walked')}
                 {/* Koľko bodov ten klik naozaj dá — SKUTOČNÉ číslo tejto trasy (5 + km +
                     stúpanie / pevná cena magistrály), nie paušál. Po odškrtnutí zmizne: body
                     už padli. */}
@@ -6534,7 +6558,7 @@ export default function PackMap() {
               : awaitingApproval
               ? <span className="trp-draftpill">⏳ {t('pack.trip.pending')}</span>
               : isWaterTrail(tr) ? null
-              : <PhotoMetaPills agg={agg} km={tr.km} ascentM={(tr as { ascentM?: number }).ascentM} hasRoute={hasRouteMetrics(tr)} />}
+              : <PhotoMetaPills agg={agg} km={tr.km} ascentM={(tr as { ascentM?: number }).ascentM} hasRoute={hasRouteMetrics(tr)} iconOnly={APP_NEW && narrow} />}
           </div>
         </div>
         {/* MIESTO, KDE SA KONCEPT DOPÍŠE. Bez neho je „doplň neskôr" sľub bez adresy —
@@ -7139,7 +7163,7 @@ export default function PackMap() {
         </div>
         <div className="trp-mheader-row2" ref={mPlaceBoxRef}>
           <div className={`trp-mapsearch${APP_NEW ? ' pk-p3d-input' : ''}`}>
-            <img src={APP_NEW ? '/icons/pack/lupa.svg' : ICON('globe')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
+            <img src={APP_NEW ? '/icons/sys/lupa.webp' : ICON('globe')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
             {/* Pole hladania bolo UPLNE NEME: bez placeholdera aj bez aria-label, takze
                 v hlavicke stala prazdna pilulka s ikonkou zemegule a clovek nemal ako
                 vediet, ze sa v nej hlada miesto. CSS pre ::placeholder pritom existuje
@@ -7162,7 +7186,7 @@ export default function PackMap() {
               aria-label={t('pack.map.filters')}
               aria-expanded={filterSheetOpen}
             >
-              <img src={ICON('sliders')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
+              <img src={APP_NEW ? '/icons/sys/filter.webp' : ICON('sliders')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
               <span>{activeFilterCount > 0 ? t('pack.map.filtersCount', { n: activeFilterCount }) : t('pack.map.filters')}</span>
             </button>
           </div>
@@ -8046,7 +8070,7 @@ export default function PackMap() {
                 fogCtx={fogCtx}
               />
               <div className="trp-zoomgroup">
-                <button type="button" onClick={() => leafletMapRef.current?.zoomIn()} aria-label={t('pack.map.zoomIn')}>{APP_NEW ? <img src="/icons/pack/plus-sign.svg" alt="" className="trp-sysico" /> : '+'}</button>
+                <button type="button" onClick={() => leafletMapRef.current?.zoomIn()} aria-label={t('pack.map.zoomIn')}>{APP_NEW ? <img src="/icons/sys/plus.webp" alt="" className="trp-sysico" /> : '+'}</button>
                 <button type="button" onClick={() => leafletMapRef.current?.zoomOut()} aria-label={t('pack.map.zoomOut')}>{APP_NEW ? <img src="/icons/sys/minus.webp" alt="" className="trp-sysico" /> : '−'}</button>
               </div>
               <button
@@ -8056,7 +8080,7 @@ export default function PackMap() {
                 aria-label={t('pack.map.myLocation')}
                 title={t('pack.map.myLocation')}
               >
-                <img src={ICON('locate')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
+                <img src={APP_NEW ? '/icons/sys/poloha.webp' : ICON('locate')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
               </button>
             </div>
 

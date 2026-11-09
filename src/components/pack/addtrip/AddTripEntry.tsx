@@ -164,7 +164,7 @@ export const createEmoji = (id: CreateId): string => (APP_NEW && EMOJI_APP[id]) 
 // Appka (Matej 8. 11. 2026): systémové ikonky z továrne `plany/ikonky/`, skupina Panel +. Web ostáva na emoji.
 const SYS_ICON: Partial<Record<CreateId, string>> = {
   devotion: 'pridaj-den', post: 'pridaj-post', trip: 'pridaj-vylet', sniffer: 'pridaj-sniffer', wish: 'pridaj-tripwish',
-  note: 'pridaj-odkaz', event: 'pridaj-podujatie', chat: 'pridaj-chat', podcast: 'pridaj-podcast',
+  note: 'pridaj-odkaz', event: 'pridaj-podujatie', chat: 'pridaj-chat', podcast: 'pridaj-podcast', photo: 'foto',
 };
 const PanelIcon = ({ id }: { id: CreateId }) => {
   const sys = APP_NEW ? SYS_ICON[id] : undefined;
@@ -555,5 +555,6 @@ html.papyrus3d .att-entry-row{min-height:56px;padding:0 ${PACK_SPACE.lg}px;gap:$
 html.papyrus3d .att-entry-row:hover,html.papyrus3d .att-entry-row:focus-visible{border-color:var(--p3d-ink);}
 html.papyrus3d .att-entry-row:active{transform:translateY(5px);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 1px 0 var(--p3d-gold-solid);}
 html.papyrus3d .att-entry-title{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: cta */
+@media (max-width:374px){html.papyrus3d .att-entry-title{font-size:${PACK_TEXT.body}px;}}
 html.papyrus3d .att-entry-panel{padding-bottom:${PACK_SPACE.lg}px;}
 `;

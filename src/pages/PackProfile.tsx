@@ -5,7 +5,7 @@ import { canStepBack } from '@/lib/stepBack';
 import { pilgrimAuthorName } from '@/lib/pilgrimName';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { ChevronDown, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
@@ -31,7 +31,7 @@ import { countryLabel, countryOptions, normalizeCountryValue, COUNTRY_OTHER } fr
 import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import { STORIES_ON, PAWMATE_LIVE, APP_NEW } from '@/lib/packFlags';
 import { IS_APP } from '@/lib/isApp';
-import { SysIcon } from '@/components/pack/SysIcon';
+import { SysIcon, ChevDown } from '@/components/pack/SysIcon';
 import {
   PAWMATE_RIGHTS, RIGHT_LABEL, invitePawmate, listMyPawmates, revokePawmate, revokeDogInvite, setPawmateAccess, setPawmateSuccessor,
   type MyPawmates, type PawmateRow, type PawmateRight, type PawmateRole,
@@ -298,6 +298,17 @@ html.papyrus3d .pe-set .pf-toggle{border:2.5px solid var(--p3d-ink);border-radiu
 html.papyrus3d .pe-set .pf-toggle__opt.is-on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});color:${LAPIS.ink};}
 html.papyrus3d .pe-set.pe-set--out .pf-tap:not(.pk-b3){background:linear-gradient(180deg,color-mix(in srgb,#C8202F 62%,white),#C8202F) !important;color:#fff !important;border-color:var(--p3d-ink) !important;}
 `;
+
+// OKO viditeľnosti: v appke sada samolepiek (`oko`, `oko-off`), na webe lucide. Farbu na samolepke nesie kresba.
+const EyeMark = ({ off, size, style }: { off: boolean; size: number; style?: React.CSSProperties }) => APP_NEW
+  ? <SysIcon name={off ? 'oko-off' : 'oko'} size={size + 6} />
+  : off ? <EyeOff className={size === 12 ? 'h-3 w-3' : 'h-3.5 w-3.5'} style={style} /> : <Eye className="h-3.5 w-3.5" style={style} />;
+
+// Emoji z polí profilu, ku ktorým sada v appke má kresbu (pilulky tagov ostávajú emoji — rozhodnutie Mateja).
+const FACT_SYS: Record<string, string> = { '🎂': 'narodeniny', '📍': 'pin' };
+const FactMark = ({ emoji, size }: { emoji: string; size: number }) => (APP_NEW && FACT_SYS[emoji]
+  ? <SysIcon name={FACT_SYS[emoji]} size={size} />
+  : <>{emoji}</>);
 
 // APP_NEW = PLOCHA: skupina nie je podblok (rám), len nadpis s vlasovou čiarou — vzor CELKOVO v TripStatsWall.
 const GRP_BOX = APP_NEW ? {} : { ...PACK_BOX.subblock };
@@ -736,7 +747,7 @@ export default function PackProfile() {
                 pokračovalo, nie ako niečo úplne iné"). Tlačidlo má tvar ODHLÁSIŤ SA, e-mail tvar riadku E-MAIL. */}
             <PackSettings bare after={<>
               {/* Len PODPORA (Matej 23. 10.: „dole daj len podpora, nie napíš nám — podpora otvorí AINUBIS chat"). */}
-              <Field icon={<BrandIcon name="question" size={16} tint="dim" />} label={tx('pack.edit.support', 'Support')} last>
+              <Field icon={APP_NEW ? <SysIcon name="otaznik" size={22} /> : <BrandIcon name="question" size={16} tint="dim" />} label={tx('pack.edit.support', 'Support')} last>
                 <button type="button" className="pf-tap" onClick={() => openAinubis()} style={ROW_BTN}>{tx('pack.edit.supportAi', 'Ask AINUBIS')}</button>
               </Field>
             </>} />
@@ -955,7 +966,7 @@ function HideWrap({ hidden, children }: { hidden: boolean; children: React.React
       style={{ opacity: 0.45 }}
     >
       {children}
-      <EyeOff className="h-3 w-3" style={{ color: T.inkFaint, marginLeft: 3 }} />
+      <EyeMark off size={12} style={{ color: T.inkFaint, marginLeft: 3 }} />
     </span>
   );
 }
@@ -1001,7 +1012,7 @@ function IdentityVisibilityEye({
           lineHeight: 1,
         }}
       >
-        {anyHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+        <EyeMark off={anyHidden} size={14} />
         {anyHidden && (
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10 }}>
             {hiddenKeys.length}
@@ -1065,16 +1076,16 @@ function IdentityVisibilityEye({
                     color: off ? T.inkFaint : T.ink,
                   }}
                 >
-                  <span aria-hidden>{f.emoji}</span>
+                  <span aria-hidden><FactMark emoji={f.emoji} size={20} /></span>
                   <span className="flex-1" style={{ textDecoration: off ? 'line-through' : 'none' }}>
                     {/* Rovnaký text ako placeholder toho poľa v riadku identity — jeden údaj,
                         jedno slovo. `HIDEABLE_IDENTITY_FIELDS` má kľúče `age` / `region`. */}
                     {tx(f.key === 'region' ? 'pack.profile.cityPlaceholder' : 'pack.profile.agePlaceholder', f.labelEN)}
                   </span>
                   {off ? (
-                    <EyeOff className="h-3.5 w-3.5" style={{ color: T.accentGold }} />
+                    <EyeMark off size={14} style={{ color: T.accentGold }} />
                   ) : (
-                    <Eye className="h-3.5 w-3.5" style={{ color: T.inkFaint }} />
+                    <EyeMark off={false} size={14} style={{ color: T.inkFaint }} />
                   )}
                 </button>
               );
@@ -1124,7 +1135,7 @@ function MiniChipInput({
   useEffect(() => setLocal(initial), [initial]);
   return (
     <MiniChip>
-      <span aria-hidden>{emoji}</span>
+      <span aria-hidden><FactMark emoji={emoji} size={20} /></span>
       <input
         type={type}
         min={type === 'number' ? 13 : undefined}
@@ -1182,7 +1193,7 @@ function NationalitySelect({ value, onChange }: { value: string; onChange: (v: s
       <span style={{ fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
         {iso2 ? iso2ToISO3(iso2) : tx('pack.profile.countryOtherShort', 'N/A')}
       </span>
-      <ChevronDown aria-hidden className="h-3 w-3 shrink-0" style={{ color: T.inkDim }} />
+      <ChevDown size={12} style={{ color: T.inkDim, flexShrink: 0 }} />
       {/* Natívny <select> leží priehľadný nad celým chipom — zoznam ostáva systémový
           (na mobile je to picker, ktorý človek pozná), viditeľný tvar je náš. */}
       <select
@@ -1371,7 +1382,7 @@ function MemberRow({ photo, initial, name, num, sub, angel = false, human = fals
           <button type="button" className="pe-dog-h" onClick={() => setOpen((o) => !o)} aria-expanded={open}>{head}</button>
           {aside}
           <button type="button" className="pe-chev" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={name}>
-            <ChevronDown className="h-4 w-4" />
+            <ChevDown />
           </button>
         </div>
         {open && <div className="pe-dog-b">{children}</div>}
@@ -1388,7 +1399,7 @@ function MemberRow({ photo, initial, name, num, sub, angel = false, human = fals
             {sub && <small>{sub}</small>}
           </span>
         </span>
-        <i aria-hidden><ChevronDown className="h-4 w-4" /></i>
+        <i aria-hidden><ChevDown /></i>
       </button>
       {open && <div className="pe-dog-b">{children}</div>}
     </div>
@@ -1474,7 +1485,7 @@ function AddMember({ isMate, dogDoor, open, onToggle, mateOpen, onMate, onDog }:
           <div className="pe-pick">
             {dogDoor && (
               <Link to="/heroglyph/name" onClick={onDog} className="pe-door pe-door2">
-                <span><BrandIcon name="dogsphinx" size={20} tint="dim" />{tx('pack.hero.roleDog', 'Dog')}</span>
+                <span>{APP_NEW ? <SysIcon name="dog-id" size={24} /> : <BrandIcon name="dogsphinx" size={20} tint="dim" />}{tx('pack.hero.roleDog', 'Dog')}</span>
                 <small>{tx('pack.edit.addDogHint', 'A new dog = its own heroglyph. You become its pawtner.')}</small>
               </Link>
             )}
@@ -1665,7 +1676,7 @@ function MateForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; o
             <BrandIcon name="add-user" size={16} tint="dim" />{tx('pack.mate.kindAccount', 'New DOGYPT account')}
           </button>
           <button type="button" className="pe-door" onClick={() => setKind('will')}>
-            <BrandIcon name="document" size={16} tint="dim" />{tx('pack.mate.kindWill', 'Access to the will')}
+            {APP_NEW ? <SysIcon name="dokument" size={22} /> : <BrandIcon name="document" size={16} tint="dim" />}{tx('pack.mate.kindWill', 'Access to the will')}
           </button>
         </div>
       </div>
@@ -1675,7 +1686,7 @@ function MateForm({ dogs, lang, onDone }: { dogs: PackDogFull[]; lang: string; o
     <div className="pe-mform">
       <button type="button" className="pe-role" style={{ alignSelf: 'stretch', justifyContent: 'space-between' }} onClick={() => setKind(null)}>
         {kind === 'account' ? tx('pack.mate.kindAccount', 'New DOGYPT account') : tx('pack.mate.kindWill', 'Access to the will')}
-        <ChevronDown aria-hidden className="h-3 w-3" style={{ transform: 'rotate(180deg)' }} />
+        <ChevDown size={12} up />
       </button>
       {kind === 'account' ? <AccountForm dogs={dogs} onDone={onDone} /> : <WillForm dogs={dogs} lang={lang} onDone={onDone} />}
     </div>
@@ -1689,19 +1700,19 @@ function GroupHead({ icon, label, open, onToggle }: { icon: string; label: strin
   const g = (useProfile().profile?.human?.gender ?? '').toString().toLowerCase();
   if (APP_NEW) {
     // Appka: samolepka z továrne (nie maska), O mne podľa pohlavia majiteľa (chýba = muž), nadpis + vlasová čiara.
-    const sys = icon === 'person' ? (g === 'female' || g === 'woman' ? 'ja-zena' : 'ja-muz') : icon === 'sliders' ? 'nastavenia' : icon === 'heartpaw' ? 'misia' : null;
+    const sys = icon === 'person' ? (g === 'female' || g === 'woman' ? 'ja-zena' : 'ja-muz') : icon === 'sliders' ? 'nastavenia' : icon === 'heartpaw' ? 'misia' : icon === 'people' ? 'svorka' : null;
     return (
       <button type="button" className="pe-ghb" onClick={onToggle} aria-expanded={open}>
         <span>{sys ? <SysIcon name={sys} size={26} /> : <BrandIcon name={icon} size={22} tint="dark" />}<span style={{ ...PACK_HEAD.section, fontSize: PACK_TEXT.label, fontWeight: 600, color: T.inkStrong }}>{label}</span></span>
         <span className="pe-gl" aria-hidden />
-        <span className="chev" aria-hidden><ChevronDown className="h-4 w-4" /></span>
+        <span className="chev" aria-hidden><ChevDown /></span>
       </button>
     );
   }
   return (
     <button type="button" className="pe-ghb" onClick={onToggle} aria-expanded={open}>
       <span><BrandIcon name={icon} size={22} tint="dark" /><span style={{ ...PACK_HEAD.section, fontSize: PACK_TEXT.label, fontWeight: 600, color: T.inkStrong }}>{label}</span></span>
-      <span className="chev" aria-hidden><ChevronDown className="h-4 w-4" /></span>
+      <span className="chev" aria-hidden><ChevDown /></span>
     </button>
   );
 }
@@ -1741,7 +1752,7 @@ function AccountForm({ dogs, onDone }: { dogs: PackDogFull[]; onDone: () => void
       <label className="pe-check">
         <input type="checkbox" checked={full} onChange={(e) => setFull(e.target.checked)} />
         <span>{tx('pack.edit.fullAccess', 'Full access')}</span>
-        <ChevronDown aria-hidden className="h-3 w-3" style={{ marginLeft: 'auto', transform: full ? 'none' : 'rotate(180deg)' }} />
+        <ChevDown size={12} up={!full} style={{ marginLeft: 'auto' }} />
       </label>
       {!full && (
         <div className="pe-rights">

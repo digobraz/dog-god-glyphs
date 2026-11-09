@@ -2,6 +2,8 @@
 // (`pages/PackMe.tsx`) aj UPRAVIŤ PROFIL (`pages/PackProfile.tsx`) — Matej 23. 10. 2026:
 // *„daj náhľad ako bude v realite = meno gradient atď... nech to má človek 1:1"*.
 // Úprava hlavy sa preto robí TU a prejaví sa na oboch obrazovkách naraz.
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_TOPROW, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
@@ -711,7 +713,7 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
               <button key={d.id} type="button" className="ad me-sdog" style={p} onClick={() => onDogPhoto(d)} disabled={dogBusy === d.id}
                 aria-label={`${dogPhotoLabel ?? ''} ${d.dog_name ?? ''}`.trim()}>
                 {d.cloudinary_main_url && <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" />}
-                <span className="cam">{dogBusy === d.id ? <BrandIcon name="cycle" size={14} tint="white" /> : <HandCamera size={15} />}</span>
+                <span className="cam">{dogBusy === d.id ? <BrandIcon name="cycle" size={14} tint="white" /> : APP_NEW ? <SysIcon name="foto" size={20} /> : <HandCamera size={15} />}</span>
               </button>
             );
           })}
@@ -736,7 +738,7 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
             <button key={d.id} type="button" className="s me-sdog" onClick={() => onDogPhoto(d)} disabled={dogBusy === d.id}
               aria-label={`${dogPhotoLabel ?? ''} ${d.dog_name ?? ''}`.trim()}>
               {d.cloudinary_main_url && <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" />}
-              <span className="cam">{dogBusy === d.id ? <BrandIcon name="cycle" size={14} tint="white" /> : <HandCamera size={15} />}</span>
+              <span className="cam">{dogBusy === d.id ? <BrandIcon name="cycle" size={14} tint="white" /> : APP_NEW ? <SysIcon name="foto" size={20} /> : <HandCamera size={15} />}</span>
             </button>
           ))}
         </span>

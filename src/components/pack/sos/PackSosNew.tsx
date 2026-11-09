@@ -35,7 +35,14 @@ const CSS = `
 /* minmax(0,1fr) + min-width:0: iOS dáva dátumu a času vlastnú šírku väčšiu než stĺpec, s holým 1fr pole vytieklo z karty (Matej 5. 11.). */
 .sosn-when{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${PACK_SPACE.sm}px;}
 .sosn-when .sos-field{min-width:0;}
-.sosn-when .pf-field{display:block;min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;}
+.sosn-when .pf-field{display:flex;align-items:center;height:48px;min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;line-height:normal;}
+/* DÁTUM A ČAS V iOS/ANDROID WEBVIEW (Matej 9. 11. 2026: „pri prihlásení pátrania dátum a čas na hornom okraji polička“).
+   Natívne pole kreslí hodnotu do vnútorného prvku, ktorý pri min-height (bez pevnej výšky) sedí hore. Preto PEVNÁ výška
+   (v šate Papyrus 3D 54, sosP3d.ts), flex na poli a vynulované okraje vnútorného prvku. */
+.sosn-when .pf-field::-webkit-date-and-time-value{margin:0;min-height:0;text-align:left;display:flex;align-items:center;}
+.sosn-when .pf-field::-webkit-datetime-edit{padding:0;margin:0;display:flex;align-items:center;}
+.sosn-when .pf-field::-webkit-datetime-edit-fields-wrapper{padding:0;}
+.sosn-when .pf-field::-webkit-calendar-picker-indicator{margin:0;}
 .sosn-swatch{display:inline-block;width:12px;height:12px;border-radius:${PACK_R.pill}px;border:1px solid ${T.sosRed};vertical-align:-1px;margin-right:${PACK_SPACE.xs}px;}
 `;
 

@@ -21,6 +21,8 @@
 // architektura-pack §4.2 🔖) · Poslať. Páči, Do výletu a Trasa sú ZRUŠENÉ. Tvar = obdĺžnik r8
 // (*„prečo ich robíš v kruhu???"*).
 // ============================================================================
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase as db } from '@/integrations/supabase/client';
@@ -570,7 +572,7 @@ function PlacePostForm({ point, kind, name, drawing, scoredHere, onDone, onClose
           {photos.length < MAX_PHOTOS && Array.from({ length: MAX_PHOTOS - photos.length }).map((_, i) => (
             <button key={i} type="button" className="plc-slot plc-slot--add" onClick={() => fileRef.current?.click()}
               aria-label={tx('pack.place.addPhoto')}>
-              <img src={iconImg('camera')} style={iconImgStyle('camera', 24)} alt="" aria-hidden />
+              {APP_NEW ? <SysIcon name="foto" size={28} /> : <img src={iconImg('camera')} style={iconImgStyle('camera', 24)} alt="" aria-hidden />}
             </button>
           ))}
         </div>

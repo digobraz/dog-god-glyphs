@@ -84,7 +84,7 @@ function Okno({ children, onClose }: { children: React.ReactNode; onClose?: () =
 }
 
 /** Riadok v nastaveniach: tlačidlo + potvrdzovacie okno. */
-export function DeleteAccountButton() {
+export function DeleteAccountButton({ className }: { className?: string } = {}) {
   const tx = useTx();
   const datum = useDatum();
   const [open, setOpen] = useState(false);
@@ -114,7 +114,7 @@ export function DeleteAccountButton() {
 
   return (
     <>
-      <button type="button" className={`pf-tap${APP_NEW ? ' pk-b3 pk-b3--red' : ''}`} onClick={() => setOpen(true)} style={APP_NEW ? undefined : btnSecondary}>
+      <button type="button" className={`pf-tap${APP_NEW ? ' pk-b3 pk-b3--red' : ''}${className ? ` ${className}` : ''}`} onClick={() => setOpen(true)} style={APP_NEW ? undefined : btnSecondary}>
         {tx('pack.settings.delete', 'Delete account')}
       </button>
       {open && (

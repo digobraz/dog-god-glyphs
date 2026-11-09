@@ -80,6 +80,7 @@ import {
 } from './addTripModel';
 import { TRIP_CATEGORIES, OWN_CHIP, ROADTRIP_ACT, chipsForCategory, chipsOf, otherChips, geometryForCategory, type TripChip } from '@/components/pack/tripCategories';
 import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 
 const GOLD = T.cardEdge;
 
@@ -347,6 +348,8 @@ const COUNTRY_OPTIONS = ['sk', 'cz', 'at', 'hu', 'pl', 'de', 'ch', 'it', 'si', '
  * Nákres `plany/nakres-zapis-typ-a-ine-2026-10-11.html`. Štítok je kľúč `tileTag.*`, kresba
  * ukazuje tvar z `tripCategories.ts` (hike = trasa · activity = trasa/okruh · visit = okruh).
  */
+/** APP_NEW: ikonka dlaždice výberu typu zápisu z továrne (hárok B, Čo zapisuješ). Web ostáva na emoji z `tripCategories.ts`. */
+const TILE_SYS: Record<string, string> = { hike: 'typ-turistika', activity: 'typ-aktivita', visit: 'typ-navsteva' };
 const TILE_TAGS: Record<string, string[]> = {
   hike: ['km', 'noCity'],
   activity: ['nature', 'city', 'anyLen'],
@@ -2097,6 +2100,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   // Matej: „pridaj na trasu ODKAZY (pri logu): parkovisko? — na každé bude vyzvaný, kde si
   // parkoval; bolo na trase nebezpečenstvo? tajné miesto, tip?" Tri otázky, každá
   // preskočiteľná. Existujúci systém zápisov sa len VYVOLÁ — nič nové sa nestavia.
+  const NOTE_EMOJI: Partial<Record<NoteGroup, string>> = { parking: '🅿️', warning: '⚠️', comment: '🐶' };
   const NOTE_ASKS: Array<{ group: NoteGroup; qKey: string; ctaKey: string }> = [
     { group: 'parking', qKey: 'pack.addTrip.step.askParking', ctaKey: 'pack.addTrip.step.markParking' },
     { group: 'warning', qKey: 'pack.addTrip.step.askWarning', ctaKey: 'pack.addTrip.step.markWarning' },
@@ -2320,7 +2324,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                Farbu skupiny nesie ďalej MAPA a dlaždice druhov (`KindGrid tint`) — tam
                žiadny iný význam nekonkuruje. */
           >
-            <b>{has ? '✓' : t(`pack.mapNotes.group.${a.group}`).slice(0, 1)}</b>
+            {/* APP_NEW (hárok B, 2 Odkazy): značka skupiny ako v nákrese (🅿️ ⚠️ 🐶), hotové = fajka z továrne; web ostáva na písmene */}
+            <b>{APP_NEW ? (has ? <SysIcon name="fajka" size={22} /> : <span className="atl-ntrack-em" aria-hidden="true" style={{ fontFamily: FONT_EMOJI }}>{NOTE_EMOJI[a.group] ?? ''}</span>) : (has ? '✓' : t(`pack.mapNotes.group.${a.group}`).slice(0, 1))}</b>
             <span>{t(`pack.mapNotes.group.${a.group}`)}</span>
             {(has || empty) && (
               <em className="atl-ntrack-pts">{has ? `+${POINTS.note}` : '0'}</em>
@@ -3248,7 +3253,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                   aria-expanded={noFork ? undefined : open}
                   onClick={() => (noFork ? pickActivity(a.id, 'walked') : setPendingActivity(open ? null : a.id))}
                 >
-                  <span className="atl-tile-emoji">{a.emoji}</span>
+                  <span className="atl-tile-emoji">{APP_NEW && TILE_SYS[a.id] ? <SysIcon name={TILE_SYS[a.id]} size={40} /> : a.emoji}</span>
                   {/* ⚠️ NÁZOV CEZ SLOVNÍK, NIE `a.label` — dataset nesie anglický názov ako kľúč a na
                       slovenskej obrazovke potom stálo „Hiking" pod nadpisom „Vyber aktivitu".
                       `pack.map.activityLabel.*` už existuje (používa ho filter na mape). */}
@@ -4047,7 +4052,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                       onClick={() => photoInputRef.current?.click()}
                       disabled={photos.length >= MAX_PHOTOS}
                     >
-                      📷 {t('pack.addTrip.step.choosePhotos')}
+                      {APP_NEW ? <SysIcon name="foto" size={22} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : '📷'} {t('pack.addTrip.step.choosePhotos')}
                     </button>
                     <input
                       ref={photoInputRef}
@@ -5297,6 +5302,13 @@ html.papyrus3d .atl-tile-label{font-size:24px;}
 html.papyrus3d .atl-tile-note{font-size:14px;color:color-mix(in srgb,var(--p3d-ink) 72%,var(--p3d-paper));}
 html.papyrus3d .atl-tile-tag{font-size:12px;padding:4px 12px;color:var(--p3d-ink);border:1.5px solid var(--p3d-gold);background:none;}
 html.papyrus3d .atl-tiles{gap:24px;}
+/* pripomienka 20: na nízkom okne (360×740) sa tretia dlaždica nezmestila — zhustenie, nie skrolovanie */
+@media (max-height:800px){
+  html.papyrus3d .atl-tiles{gap:12px;}
+  html.papyrus3d .atl-tile{padding:12px 16px;gap:12px;}
+  html.papyrus3d .atl-tile-label{font-size:20px;}
+  html.papyrus3d .atl-tile-txt{gap:2px;}
+}
 html.papyrus3d .atl-tile-wrap.is-open{--p3d-open:0 6px 0 ${LAPIS.deep},0 11px 14px var(--p3d-sh);border:2.5px solid ${LAPIS.ink};border-radius:16px;box-shadow:var(--p3d-open);}
 /* VOĽBY (chip, náročnosť, doprava, prepínače): TLAČIDLO 3D, vybraná je lapis */
 html.papyrus3d .atl-chip,html.papyrus3d .atl-diffbtn,html.papyrus3d .atl-travel-btn,html.papyrus3d .atl-check,html.papyrus3d .atl-toggle-btn,html.papyrus3d .atl-journey-item,html.papyrus3d .atl-ntrack-i{${P3D_V.paper}${P3D_B3(44, 16)}padding:0 16px;cursor:pointer;}
@@ -5308,6 +5320,14 @@ html.papyrus3d .atl-ntrack-i.miss{--b3-a:color-mix(in srgb,#C8202F 62%,white);--
 html.papyrus3d .atl-ntrack-i{padding:0 8px;gap:4px;}
 html.papyrus3d .atl-ntrack-i span{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0;text-transform:none;}
 html.papyrus3d .atl-ntrack-i b{width:auto;height:auto;background:none;border:0;color:inherit;}
+/* ⚠️ 9. 11. 2026 (pripomienka 20): v jednom riadku sa „Upozornenie" orezalo na „Upozorne…". Chip je stĺpec: značka hore, nápis pod ňou
+   sa smie zalomiť, body sú v rohu. Preklad sa nekráti. */
+html.papyrus3d .atl-ntrack{gap:8px;}
+html.papyrus3d .atl-ntrack-i{position:relative;flex-direction:column;justify-content:center;gap:0;min-height:68px;padding:8px 4px;}
+html.papyrus3d .atl-ntrack-i b{display:flex;align-items:center;justify-content:center;height:26px;}
+html.papyrus3d .atl-ntrack-i b .atl-ntrack-em{overflow:visible;font-size:20px;line-height:1;}
+html.papyrus3d .atl-ntrack-i > span{max-width:100%;white-space:normal;overflow:visible;text-overflow:clip;text-align:center;line-height:1.1;overflow-wrap:anywhere;}
+html.papyrus3d .atl-ntrack-pts{position:absolute;top:4px;right:4px;padding:4px 8px;font-size:12px;}
 html.papyrus3d .atl-chip.atl-chip--own{border-style:solid;}
 html.papyrus3d .atl-chip-label,html.papyrus3d .atl-diffbtn span,html.papyrus3d .atl-travel-btn span,html.papyrus3d .atl-check span{font-family:'LT Museum',serif;font-weight:400;font-size:16px;letter-spacing:0;line-height:1.1;text-transform:none;}
 html.papyrus3d .atl-chips{gap:8px;}
@@ -5323,6 +5343,12 @@ html.papyrus3d .atl-seats button{box-sizing:border-box;width:36px;height:36px;bo
 /* POLIA: recept pk-p3d-input (výška 54, r16, vtlačený tieň) */
 html.papyrus3d .atl-input,html.papyrus3d .atl-textarea,html.papyrus3d .atl-input:focus{box-sizing:border-box;min-height:54px;padding:12px 16px;border:2.5px solid var(--p3d-ink);border-radius:16px;background-color:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);font-family:${FONT_UI};font-weight:500;font-size:16px;color:var(--p3d-ink);}
 html.papyrus3d .atl-input[type="date"]{padding-right:48px;}
+/* pripomienka 20: dlhý placeholder („napr. Tatranská Lomnica – jednoduchý výlet") sa na 360 odrezal bez náznaku; dátum + „Nepamätám si" sa delia o jeden riadok */
+html.papyrus3d .atl-input{text-overflow:ellipsis;}
+@media (max-width:640px){
+  html.papyrus3d .atl-row2--date .atl-toggle-btn{padding:0 12px;font-size:14px;}
+  html.papyrus3d .atl-input[type="date"]{padding-left:12px;}
+}
 html.papyrus3d .atl-textarea{padding:12px 16px;}
 html.papyrus3d .atl-input::placeholder{color:color-mix(in srgb,var(--p3d-ink) 50%,var(--p3d-paper));opacity:1;}
 html.papyrus3d .atl-field label,html.papyrus3d .atl-daymode-ask{font-weight:600;font-size:12px;letter-spacing:.22em;color:var(--p3d-gold-ink);margin-bottom:8px;}

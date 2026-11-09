@@ -23,6 +23,7 @@ import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { HandExit } from '@/components/pack/HandIcons';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT } from '@/i18n/LanguageContext';
+import { APP_NEW } from '@/lib/packFlags';
 
 /** ms na znak — 22 je rýchlosť, pri ktorej sa veta stihne prečítať skôr, než dopíše. */
 const CHAR_MS = 22;
@@ -69,6 +70,25 @@ export function AinubisGuide({
   const [shown, setShown] = useState('');
   const [typing, setTyping] = useState(false);
   const timer = useRef<number | undefined>(undefined);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  // SPODOK BUBLINY IDE VON AKO --ang-wrap-b (9. 11. 2026, Matej: v tripflow nie je vidno bočné ovládače mapy).
+  // Bublina je na mobile `fixed` cez hornú tretinu okna a leží nad ovládačmi mapy (z 1202 proti 800); ovládače
+  // si podľa tejto premennej sadnú POD ňu (PackMap `.trp-ctlstack`). Merané, nie z čísla: text má 2–4 riadky.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || !APP_NEW) return;
+    const root = document.documentElement;
+    const apply = () => {
+      if (getComputedStyle(el).position !== 'fixed') { root.style.removeProperty('--ang-wrap-b'); return; }
+      root.style.setProperty('--ang-wrap-b', `${el.getBoundingClientRect().bottom}px`);
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    window.addEventListener('resize', apply);
+    return () => { ro.disconnect(); window.removeEventListener('resize', apply); root.style.removeProperty('--ang-wrap-b'); };
+  }, []);
 
   useEffect(() => {
     window.clearInterval(timer.current);
@@ -92,7 +112,7 @@ export function AinubisGuide({
   }, [text]);
 
   return (
-    <div className={`ang-wrap${edgeLeft ? ' ang-wrap--edge' : ''}`}>
+    <div ref={wrapRef} className={`ang-wrap${edgeLeft ? ' ang-wrap--edge' : ''}`}>
       <style>{AINUBIS_GUIDE_CSS}</style>
       <div className="ang-bar">
         <button

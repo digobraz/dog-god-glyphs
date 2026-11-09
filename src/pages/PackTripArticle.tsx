@@ -39,6 +39,7 @@ import { BackButton, BackIcon, backCircleCSS, backHoverCSS } from '@/components/
 // Lapisové hlavné CTA + priesvitný tint stavu — jeden zdroj pre celý /pack (2026-08-26/28).
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, PALE } from '@/components/pack/navGoldSkin';
 import { HandPencil } from '@/components/pack/HandIcons';
+import { SysIcon } from '@/components/pack/SysIcon';
 // Emoji v čísle výletu (km, prevýšenie) — bez tohto fontu sadne Windows na čiernobiely
 // textový variant. Ten istý zdroj, aký drží značky na mape.
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
@@ -609,13 +610,15 @@ html.papyrus3d .pta-actwrap{flex:1;}
 }
 /* Štyri dlaždice 2 × 2: papyrusová karta, tmavý obrys, ikona vľavo. Osamelá posledná ide na celú šírku. */
 html.papyrus3d .pta-statrow{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:24px;background:none;}
-html.papyrus3d .pta-stat{padding:12px 12px;text-align:left;align-items:flex-start;gap:4px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .pta-stat{padding:12px 12px;text-align:left;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
 html.papyrus3d .pta-stat::before{display:none !important;}
 html.papyrus3d .pta-stat:last-child:nth-child(odd){grid-column:1 / -1;}
-html.papyrus3d .pta-stat b{font-family:'LT Museum',serif;font-weight:900;font-size:20px;color:var(--p3d-ink);gap:8px;justify-content:flex-start;} /* písmo: nadpis */
-html.papyrus3d .pta-stat b img{width:40px !important;height:40px !important;}
-html.papyrus3d .pta-stat span{color:var(--p3d-gold-ink);padding-left:48px;}
-html.papyrus3d .pta-stat b:only-child{min-height:44px;}
+html.papyrus3d .pta-stat>img{width:52px !important;height:52px !important;}
+html.papyrus3d .pta-sb-t{display:flex;flex-direction:column;gap:4px;min-width:0;}
+html.papyrus3d .pta-stat b{display:block;font-family:'LT Museum',serif;font-weight:900;font-size:20px;line-height:1;color:var(--p3d-ink);} /* písmo: nadpis */
+html.papyrus3d .pta-stat span{font-size:10px;letter-spacing:.14em;color:var(--p3d-gold-ink);}
+/* Ceruzka „upraviť výlet“: papyrusový kruh ako šípka späť, farebná samolepka namiesto bielej kresby. */
+html.papyrus3d .pta-edit{background:linear-gradient(180deg,#fff,var(--p3d-paper));border-color:var(--p3d-ink);box-shadow:var(--p3d-b3);}
 /* Pilulky tagov ostávajú s emoji; len 3D šat. */
 html.papyrus3d .pta-tag{border:2px solid var(--p3d-ink);background:var(--p3d-paper-hi);color:var(--p3d-ink);box-shadow:var(--p3d-lift);font-size:14px;margin-bottom:4px;}
 /* Počet hodnotení čitateľne v inkouste. */
@@ -1741,7 +1744,7 @@ export default function PackTripArticle() {
           )}
           <button type="button" className={`pta-actbtn pta-actbtn--blue${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={handleShare} aria-label={t('pack.trip.share')}>
             {/* Ikonka reťaze je na modrom tlačidle maskovaná na farbu textu (SHARE = papyrusový outline). */}
-            <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
+            {APP_NEW ? <SysIcon name="odkaz" size={22} /> : <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />}
             <span className="pta-actbtn-label">{t('pack.trip.share')}</span>
           </button>
           {/* Reťaz = skopírovať odkaz (Matej 13. 10. 2026: „vrať tam zdieľanie, tu reťaz"). */}
@@ -1799,7 +1802,7 @@ export default function PackTripArticle() {
             sekciou, a v rade pod titulom (triplist / prešiel som / zdieľať) by si konkurovala
             s vecami, ktoré robí ktokoľvek. Vidí ju len autor (`canEdit`). */}
         {canEdit && (
-          <button type="button" className="pta-edit" onClick={() => setEditOpen(true)} aria-label={t('pack.trip.edit.open')}><HandPencil size={16} /></button>
+          <button type="button" className="pta-edit" onClick={() => setEditOpen(true)} aria-label={t('pack.trip.edit.open')}>{APP_NEW ? <SysIcon name="ceruzka" size={28} /> : <HandPencil size={16} />}</button>
         )}
       </div>
 
@@ -1873,10 +1876,10 @@ export default function PackTripArticle() {
               GEOMETRIU (`hasRouteMetrics`) — bez nakreslenej čiary niet čo merať. */}
           {/* APPKA (Papyrus 3D, hárok C1): dĺžka a stúpanie sú dve samostatné dlaždice s veľkou ikonou — nie jeden pás. */}
           {APP_NEW && hasRouteMetrics(trail) && trail.km?.trim() && (
-            <div className="pta-stat"><b><RouteMark kind="vzdialenost" fallback="" /> {trail.km} km</b></div>
+            <div className="pta-stat pta-stat--sb"><RouteMark kind="vzdialenost" fallback="" /><div className="pta-sb-t"><b>{trail.km} km</b><span>{t('pack.trip.stat.length')}</span></div></div>
           )}
           {APP_NEW && hasRouteMetrics(trail) && (trail as { ascentM?: number }).ascentM != null && (
-            <div className="pta-stat"><b><RouteMark kind="stupanie" fallback="" /> {(trail as { ascentM?: number }).ascentM} m</b></div>
+            <div className="pta-stat pta-stat--sb"><RouteMark kind="stupanie" fallback="" /><div className="pta-sb-t"><b>{(trail as { ascentM?: number }).ascentM} m</b><span>{t('pack.trip.stat.ascent')}</span></div></div>
           )}
           {!APP_NEW && hasRouteMetrics(trail) && (trail.km?.trim() || (trail as { ascentM?: number }).ascentM != null) && (
             <div className="pta-stat pta-stat--full">
@@ -1904,18 +1907,22 @@ export default function PackTripArticle() {
               voda SO stopou, teda by mu náročnosť prepustil. */}
           {showDiffStat && agg.difficulty && (
             <div
-              className={`${agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}${agg.crowd ? '' : ' pta-stat--full'}`}
+              className={`${agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}${agg.crowd ? '' : ' pta-stat--full'}${APP_NEW ? ' pta-stat--sb' : ''}`}
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.difficultyBreakdown)}
             >
-              <b><DiffMark diff={agg.difficulty} /> {t(`pack.map.diff.${agg.difficulty}`)}</b><span>{t('pack.trip.stat.difficulty')}</span>
+              {APP_NEW
+                ? <><DiffMark diff={agg.difficulty} /><div className="pta-sb-t"><b>{t(`pack.map.diff.${agg.difficulty}`)}</b><span>{t('pack.trip.stat.difficulty')}</span></div></>
+                : <><b><DiffMark diff={agg.difficulty} /> {t(`pack.map.diff.${agg.difficulty}`)}</b><span>{t('pack.trip.stat.difficulty')}</span></>}
             </div>
           )}
           {agg.crowd && (
             <div
-              className={`${agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}${showDiffStat && agg.difficulty ? '' : ' pta-stat--full'}`}
+              className={`${agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}${showDiffStat && agg.difficulty ? '' : ' pta-stat--full'}${APP_NEW ? ' pta-stat--sb' : ''}`}
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.crowdBreakdown)}
             >
-              <b><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /> {t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span>
+              {APP_NEW
+                ? <><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /><div className="pta-sb-t"><b>{t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span></div></>
+                : <><b><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /> {t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span></>}
             </div>
           )}
         </div>

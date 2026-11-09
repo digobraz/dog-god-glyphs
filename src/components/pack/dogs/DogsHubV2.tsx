@@ -184,6 +184,11 @@ const CSS = `
 .dv2-mrz span:first-child{flex:1;min-width:0;overflow:hidden}
 .dv2-memo{text-align:center;font:500 12px "Space Grotesk",system-ui;color:var(--mut);margin:12px 0 0}
 /* ŽIVOT */
+.dv2-pc{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 16px}
+.dv2-pc div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:16px;background:rgba(255,255,255,.5);box-shadow:inset 0 0 0 1.5px var(--g)}
+.dv2-pc b{font:600 24px "Space Grotesk",system-ui;color:var(--ink)}
+.dv2-pc span{font:500 12px/1.2 "Space Grotesk",system-ui;color:var(--mut);text-align:center}
+html.papyrus3d .dv2-pc div{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
 .dv2-big{display:flex;align-items:baseline;gap:12px;margin:0 0 4px}
 .dv2-big b{font:600 24px "Space Grotesk",system-ui;color:var(--ink)}
 .dv2-mg{display:grid;grid-template-columns:24px 1fr;row-gap:3px;column-gap:8px}
@@ -227,8 +232,9 @@ html.papyrus3d .dv2-cta,html.papyrus3d .dv2-out{height:56px;font-size:${PACK_TEX
 html.papyrus3d .dv2-cta2{height:48px;margin-top:${PACK_SPACE.md}px;}
 html.papyrus3d .dv2-tabs{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-gold-solid);background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
 html.papyrus3d .dv2-tab{height:50px;border-radius:${PACK_R.frame}px;}
-html.papyrus3d .dv2-tab.on{border:2.5px solid ${LAPIS.ink};background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});box-shadow:inset 0 2px 0 color-mix(in srgb,white 28%,transparent),0 4px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);}
-html.papyrus3d .dv2-tl{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;letter-spacing:0;text-transform:none;color:#EFD79A;} /* písmo: nadpis */
+/* Aktívna záložka = POLOHA („kde som") → ZLATO; lapis ostáva len na akcii (Vyplniť / Otvoriť), inak splývali (Matej 9. 11. 2026, bod 16). */
+html.papyrus3d .dv2-tab.on{border:2.5px solid var(--p3d-ink);background:linear-gradient(180deg,color-mix(in srgb,#EFD79A 72%,white),var(--p3d-gold));box-shadow:inset 0 2px 0 color-mix(in srgb,white 40%,transparent),0 4px 0 var(--p3d-gold-ink);}
+html.papyrus3d .dv2-tl{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
 html.papyrus3d .dv2-ring{border:3px solid var(--p3d-ink);background:var(--p3d-gold);}
 html.papyrus3d .dv2-st.sel .dv2-ring{box-shadow:0 0 0 3px var(--p3d-paper-hi),0 6px 0 var(--p3d-gold-solid);}
 html.papyrus3d .dv2-nm{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.label}px;} /* písmo: meno */
@@ -249,7 +255,7 @@ html.papyrus3d .dv2 .c-ok,html.papyrus3d .dv2 .c-goal,html.papyrus3d .dv2 .c-br{
 /** Záložky — nová sekcia (KRMENIE, KALENDÁR…) = nový riadok tu. Ikonky z kitu Icons hand drawn. */
 const TABS: { key: 'id' | 'z' | 'k'; icon: string; sys?: string; i18n: string; labelEN: string }[] = [
   { key: 'id', icon: 'badge', sys: 'dog-id', i18n: 'pack.hub.profileTitle', labelEN: 'DOG ID' },
-  { key: 'z', icon: 'sand-clock', i18n: 'pack.dogs2.life', labelEN: 'Life' },
+  { key: 'z', icon: 'sand-clock', sys: 'caka', i18n: 'pack.dogs2.life', labelEN: 'Life' },
   { key: 'k', icon: 'pencil', sys: 'den-kronika', i18n: 'pack.dogs2.diary', labelEN: 'Diary' },
 ];
 
@@ -263,6 +269,7 @@ interface View {
   ageY: number;           // vek v rokoch (desatinne)
   days: number | null;
   lo: number; hi: number; // dĺžka života plemena
+  med: number;            // priemer (medián) dĺžky života, základ percent „prežité / zostáva“
   basis: string;          // odkiaľ je pásmo (podmet vety)
   goal: number;
   bornLabel: string;
@@ -300,6 +307,7 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
     const bands = asCalBands(L[CAL_BANDS_FIELD]?.value);
     const lo = bands.life?.low ?? Math.round(est.band.low);
     const hi = bands.life?.high ?? Math.round(est.band.high);
+    const med = bands.life ? (lo + hi) / 2 : est.band.median;
     const goal = goals[dog.id] ?? bands.target?.high ?? Math.min(MAX_Y, hi + 5);
     const elV = L['nature.element']?.value, roV = L['nature.role']?.value;
     const isMix = breedEN.toLowerCase() === 'mixed';
@@ -318,7 +326,7 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
       done,
       ageY,
       days: age ? age.totalDays : null,
-      lo, hi, basis, goal,
+      lo, hi, med, basis, goal,
       bornLabel: by ? (bd && bm ? `${parseInt(bd, 10)}. ${parseInt(bm, 10)}. ${by}` : String(by)) : '',
       breedLabel,
       el: typeof elV === 'string' && elV in NATURE_ELEMENTS ? (elV as ElementKey) : null,
@@ -599,6 +607,7 @@ function OneLife({ v, tx, onGoal, latest }: { v: View; tx: Tx; onGoal: (g: numbe
     : v.ageY < v.hi
       ? tx('pack.dogs2.whereIn', '{name} is right in that range.').replace('{name}', v.name)
       : tx('pack.dogs2.wherePast', '{name} has already beaten it.').replace('{name}', v.name);
+  const livedPct = Math.min(100, Math.round((v.ageY / v.med) * 100));
   const rows = [];
   for (let y = 0; y < MAX_Y; y++) {
     const inb = y <= v.hi;
@@ -621,6 +630,13 @@ function OneLife({ v, tx, onGoal, latest }: { v: View; tx: Tx; onGoal: (g: numbe
           ? <>{tx('pack.dogs2.livedFor', 'Lived {y} years.').replace('{y}', String(yrs))} {v.basis} {tx('pack.dogs2.usually', 'usually lives')} <b>{v.lo}–{v.hi}</b>.</>
           : <>{tx('pack.dogs2.hasYears', 'Has {y} years behind them.').replace('{y}', String(yrs))} {v.basis} {tx('pack.dogs2.usually', 'usually lives')} <b>{v.lo}–{v.hi}</b> — {where}</>}
       </p>
+      {/* Dve percentá podľa priemeru plemena; bez dátumu narodenia sa nekreslia (Matej 9. 11. 2026, bod 17). */}
+      {v.days != null && v.med > 0 && (
+        <div className="dv2-pc">
+          <div><b>{livedPct} %</b><span>{tx('pack.dogs2.pctLived', 'of an average life lived')}</span></div>
+          {!v.angel && <div><b>{100 - livedPct} %</b><span>{tx('pack.dogs2.pctLeft', 'left by the breed average')}</span></div>}
+        </div>
+      )}
       <div className="dv2-mg">{rows}</div>
       {!v.angel && (
         <div className="dv2-goal">

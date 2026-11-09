@@ -23,6 +23,8 @@ import { BONES } from '@/components/pack/bonesSkin';
 import { getPackStats } from '@/lib/sharedFetch';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
+import { PackPopup } from '@/components/pack/PackPopup';
+import { APP_NEW } from '@/lib/packFlags';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -56,7 +58,7 @@ html.papyrus3d .bs-body .pkb-bar{border:2.5px solid var(--p3d-ink);background:va
 
 type Stats = { dogs?: number; total?: number };
 
-export function BonesSheet({ avatarUrl, initial, onClose, onShare, shareLink }: {
+function BonesSheetClassic({ avatarUrl, initial, onClose, onShare, shareLink }: {
   /** Zostatok nesie `PackNetwork` sám (živé RPC) — prop ostáva kvôli volajúcim. */
   bones: number;
   avatarUrl?: string | null;
@@ -121,4 +123,60 @@ export function BonesSheet({ avatarUrl, initial, onClose, onShare, shareLink }: 
     </div>,
     document.body,
   );
+}
+
+// APPKA: šuplík, gesto, závoj, nadpis a šat (Papyrus 3D) nesie spoločný `PackPopup` — vlastný šuplík tu zanikol (9. 11. 2026,
+// Matej: „panel je celý v starom šate, nejde ani sťahovanie prstom dolu"). Zostal len pás MISIE v tele.
+const APP_CSS = `
+.bs-body{color:${T.inkStrong};}
+html.papyrus3d .bs-body{color:var(--p3d-ink);}
+html.papyrus3d .bs-body .pkb-bar{border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
+`;
+
+function BonesSheetApp({ avatarUrl, initial, onClose, onShare, shareLink }: {
+  /** Zostatok nesie `PackNetwork` sám (živé RPC) — prop ostáva kvôli volajúcim. */
+  bones: number;
+  avatarUrl?: string | null;
+  initial?: string;
+  onClose: () => void;
+  /** ZDIEĽAJ ODKAZ → okno ZDIEĽAJ KARTU PSA (to isté, čo POZVI na profile). */
+  onShare?: () => void;
+  shareLink?: string;
+}) {
+  const t = useT();
+  const { lang } = useLang();
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  const [stats, setStats] = useState<Stats | null>(null);
+  useEffect(() => { getPackStats<Stats>().then(setStats).catch(() => {}); }, []);
+  const fmt = (n: number) => n.toLocaleString(intlLocale(lang));
+  // Verejný počet = psy s číslom (`dogs`), nie členovia — „číslo patrí psovi" (17. 10. 2026).
+  const dogs = stats?.dogs ?? stats?.total ?? 0;
+  const fillW = `${Math.min(100, (dogs / GOAL) * 100)}%`;
+
+  return (
+    <PackPopup title="BONES" onClose={onClose}>
+      <style>{APP_CSS}</style>
+      <div className="bs-body">
+        {/* MISIA sedí v tyrkysovom hrdinovi `PackNetwork` (23. 10. 2026) — jeden blok so stavom BONES. */}
+        <PackNetwork avatarUrl={avatarUrl} initial={initial} bare onShare={onShare} shareLink={shareLink} mission={
+          <>
+            <div className="r">
+              <span>{tx('pack.bones.mission', 'The mission')}</span>
+              <span><b>{stats ? fmt(dogs) : '—'}</b> / {fmt(GOAL)} {tx('pack.notif.dogsWord', 'dogs')}</span>
+            </div>
+            <div className="pkb-bar"><i style={{ width: fillW }} /></div>
+            <p>
+              {stats?.total != null && <>{fmt(stats.total)} {tx('pack.notif.peopleWord', 'people')} · </>}
+              {tx('pack.bones.line', 'Every dog you bring moves this line.')}
+            </p>
+          </>
+        } />
+      </div>
+    </PackPopup>
+  );
+}
+
+/** Appka (APP_NEW) = spoločný `PackPopup` (šat Papyrus 3D + stiahnutie za úchyt); web ostáva na pôvodnom šuplíku. */
+export function BonesSheet(props: Parameters<typeof BonesSheetClassic>[0]) {
+  return APP_NEW ? <BonesSheetApp {...props} /> : <BonesSheetClassic {...props} />;
 }

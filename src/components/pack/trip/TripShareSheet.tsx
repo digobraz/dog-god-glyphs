@@ -518,6 +518,8 @@ function slug(name: string): string {
 const isTouch = () => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
 /** Logá sietí (monochróm Simple Icons, `icons/brands/`) — Matej 13. 10.: „dal by som tam dve ikonky IG a FB logo namiesto nášho“. */
 const NET_ICON: Record<ShareFmt, string> = { ig: '/icons/brands/instagram.svg', fb: '/icons/brands/facebook.svg' };
+/** Appka (APP_NEW): sociálne siete = okná z továrne, web ostáva na čiernobielych logách. */
+const NET_SYS: Record<ShareFmt, string> = { ig: 'instagram', fb: 'facebook' };
 const cld = (u: string, px: number) => (u.includes('/upload/') ? sizedUrl(u, px) : u);
 
 const CSS = `
@@ -731,7 +733,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
           <div className="tsh-head" {...sw.handle}>
             <h2>{t(K.title)}</h2>
             <button type="button" className={`tsh-x${APP_NEW ? ' pk-b3 pk-b3--paper pk-b3--round' : ''}`} onClick={onClose} aria-label={t('pack.trip.shareClose')}>
-              <span className="tsh-ic" style={{ '--ic': `url(${ICON('cross')})` } as React.CSSProperties} />
+              {APP_NEW ? <SysIcon name="krizik" size={28} /> : <span className="tsh-ic" style={{ '--ic': `url(${ICON('cross')})` } as React.CSSProperties} />}
             </button>
           </div>
           <div className="tsh-grid">
@@ -742,7 +744,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
                 <div className={`tsh-pills${APP_NEW ? ' pk-p3d-sw' : ''}`}>
                   {(['ig', 'fb'] as ShareFmt[]).map((f) => (
                     <button key={f} type="button" className={`tsh-pill${fmt === f ? ' on' : ''}`} onClick={() => setFmt(f)}>
-                      <span className="tsh-ic" style={{ '--ic': `url(${NET_ICON[f]})` } as React.CSSProperties} />
+                      {APP_NEW ? <SysIcon name={NET_SYS[f]} size={28} /> : <span className="tsh-ic" style={{ '--ic': `url(${NET_ICON[f]})` } as React.CSSProperties} />}
                       {t(f === 'ig' ? 'pack.trip.shareIg' : 'pack.trip.shareFb')}
                     </button>
                   ))}
@@ -794,7 +796,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
                 {t(pc ? 'pack.trip.shareCtaDownload' : fmt === 'ig' ? 'pack.trip.shareCtaIg' : 'pack.trip.shareCtaFb')}
               </button>
               <button type="button" className={`tsh-link${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={copyOnly}>
-                {APP_NEW ? <SysIcon name="zdielat" size={20} /> : <span className="tsh-ic" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />}
+                {APP_NEW ? <SysIcon name="odkaz" size={28} /> : <span className="tsh-ic" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />}
                 {t(K.copy)}
               </button>
               <ol className="tsh-steps">
@@ -815,8 +817,13 @@ export function TripShareButton({ data }: { data: TripShareData }) {
   return (
     <>
       <button type="button" className={`pta-actbtn pta-actbtn--blue${APP_NEW ? ' pk-b3 pk-b3--paper pta-share2' : ''}`} onClick={() => setOpen(true)} aria-label={t('pack.trip.story')}>
-        <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${NET_ICON.ig})` } as React.CSSProperties} />
-        <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${NET_ICON.fb})` } as React.CSSProperties} />
+        {APP_NEW ? (<>
+          <SysIcon name={NET_SYS.ig} size={28} />
+          <SysIcon name={NET_SYS.fb} size={28} />
+        </>) : (<>
+          <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${NET_ICON.ig})` } as React.CSSProperties} />
+          <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${NET_ICON.fb})` } as React.CSSProperties} />
+        </>)}
         <span className="pta-actbtn-label">{t('pack.trip.story')}</span>
       </button>
       {open && <TripShareSheet data={data} onClose={() => setOpen(false)} />}

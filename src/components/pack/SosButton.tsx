@@ -16,7 +16,7 @@ import { APP_NEW } from '@/lib/packFlags';
 import { PackPopup } from './PackPopup';
 import { BrandIcon } from './BrandIcon';
 import { SysIcon } from './SysIcon';
-import { TopCircle } from './TopCircle';
+import { TopCircle, TOP_BTN_PX, TOP_HIT_PX } from './TopCircle';
 import { useSosActive, sosAgo } from './sosKit';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { SOS_BUTTON_P3D_CSS } from './sos/sosP3d';
@@ -25,8 +25,11 @@ import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_UI
 const T = PACK_THEME;
 const S = PACK_SPACE;
 
+// Pod APP_NEW má tlačidlo veľkosť ikonky ako lupa (32), dotyk 44 nesie presah v `TopCircle`.
+const SOS_BTN_PX = APP_NEW ? TOP_BTN_PX : TOP_HIT_PX;
+
 const CSS = `
-.sos-btn{all:unset;cursor:pointer;position:relative;box-sizing:border-box;width:44px;height:44px;display:grid;place-items:center;border-radius:${PACK_R.pill}px;}
+.sos-btn{all:unset;cursor:pointer;position:relative;box-sizing:border-box;width:${SOS_BTN_PX}px;height:${SOS_BTN_PX}px;display:grid;place-items:center;border-radius:${PACK_R.pill}px;}
 .sos-btn:active{background:${T.alertRedSoft};}
 .sos-btn i{position:absolute;top:${S.sm}px;right:${S.sm}px;width:${S.sm}px;height:${S.sm}px;border-radius:${PACK_R.pill}px;background:${T.sosRed};box-shadow:0 0 0 2px ${T.cardEdge};}
 .sos-list{display:flex;flex-direction:column;gap:${S.sm}px;}

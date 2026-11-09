@@ -24,7 +24,8 @@ import { intlLocale } from '@/i18n/bcp47';
 import { getPackStats } from '@/lib/sharedFetch';
 import { openAinubis } from '@/lib/ainubisBus';
 import { IS_APP } from '@/lib/isApp';
-import { BUDDY_LIVE } from '@/lib/packFlags';
+import { BUDDY_LIVE, APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from './SysIcon';
 import { supabase } from '@/integrations/supabase/client';
 import ainubisHead from '@/assets/ainubis-head.webp';
 import logo2026 from '@/assets/app/logo-2026.svg';
@@ -51,6 +52,9 @@ type Stats = {
   topCountries: { country: string; count: number }[];
   topBreeds: { breed: string; count: number }[];
 };
+
+/** Ikonky tipov v šate Papyrus 3D (SysIcon, `public/icons/sys/`). */
+const TIP_ICON: Record<string, string> = { dogid: 'dog-id', sniffer: 'pridaj-sniffer', trip: 'pridaj-vylet', test: 'ainubis' };
 
 type Tip = { id: string; title: string; sub: string; cta: string; go: () => void };
 
@@ -389,11 +393,21 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                 <span className="ntf-num"><b>{stats ? fmt(stats.total) : '—'}</b><span>{t('pack.notif.peopleWord')}</span></span>
               </span>
             </div>
+            {/* Papyrus 3D (hárok K5): odkaz pod blokom, rovnaká akcia ako ťuk na blok. */}
+            {APP_NEW && <button type="button" className="ntf-history ntf-allstats" onClick={() => setView('stats')}>{t('pack.notif.allStats')}</button>}
             <div className="ntf-list">
               {showOznam && <Suspense fallback={null}><AinubisOznam grown={oznam.grown} onClose={onClose} /></Suspense>}
               {hasReal && <div className="ntf-real">{children}</div>}
               {tips.length > 0 && <div className="ntf-sec">{t('pack.notif.forYou')}</div>}
-              {tips.map((tip) => (
+              {/* Papyrus 3D (hárok K5): tip je papierová karta s ikonkou z továrne a akciou vpravo, nie riadok AINUBISA. */}
+              {APP_NEW && tips.map((tip) => (
+                <div key={tip.id} className="ntf-row ntf-row--tip">
+                  <SysIcon name={TIP_ICON[tip.id] ?? 'ainubis'} size={46} />
+                  <span className="ntf-txt">{tip.title}<small>{tip.sub}</small></span>
+                  <button type="button" className="ntf-act" onClick={tip.go}>{tip.cta}</button>
+                </div>
+              ))}
+              {!APP_NEW && tips.map((tip) => (
                 <div key={tip.id} className="ntf-row ntf-row--ai">
                   <span className="ntf-av"><img src={ainubisHead} alt="" /></span>
                   <span className="ntf-txt">

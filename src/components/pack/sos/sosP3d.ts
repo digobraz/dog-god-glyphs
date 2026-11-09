@@ -71,6 +71,7 @@ html.papyrus3d .sosf-dirs svg{stroke:currentColor;}
 /* pole */
 html.papyrus3d .sos-field .pf-field,html.papyrus3d .vet-where select.pf-field{${INSET}min-height:54px;color:var(--p3d-ink);font-weight:500;}
 html.papyrus3d .sos-field textarea.pf-field{min-height:96px;}
+html.papyrus3d .sosn-when .pf-field{height:54px;}
 html.papyrus3d .sos-field .pf-field.is-bad{border-color:${T.sosRed};}
 /* fotka, mapa */
 html.papyrus3d .sos-photo,html.papyrus3d .sosn-map{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;}

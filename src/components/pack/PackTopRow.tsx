@@ -94,6 +94,8 @@ ${stickyRow('.pk-plain')}
 .pk-toprow > *{pointer-events:auto;}
 .pk-toprow-l{justify-self:start;display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
 .pk-toprow-r{justify-self:end;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;}
+${APP_NEW ? `/* Appka (9. 11. 2026): kapsula SOS + správy + upozornenia nižšia, výška 32 + 2×2 lem = 36 ako disk AINUBISA; odstup 12 drží dotyk 44 bez prekryvu. */
+.pk-toprow .pk-p3d-tops{padding:0 ${PACK_SPACE.sm}px;border-width:2px;gap:${PACK_SPACE.md}px;}` : ''}
 `;
 
 // 🎯 ÚLOHA = KÔŠ 3 (Matej 30. 10. 2026 nad onboardingom SNIFFERa: *„vadí mi sos, správy a chvost… nie je to

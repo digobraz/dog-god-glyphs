@@ -166,6 +166,11 @@ const DOGID_CSS = `
 .did-angel u{text-underline-offset:4px;}
 .did-angel img{width:28px;height:28px;object-fit:contain;filter:brightness(0) saturate(100%) invert(38%) sepia(27%) saturate(1070%) hue-rotate(327deg) brightness(93%) contrast(85%);}
 /* ── ŠAT PAPYRUS 3D (hárok map-herne-2026-11-09, O2 až O6) — len pod html.papyrus3d ── */
+html.papyrus3d .did-strip{gap:${PACK_SPACE.sm}px;padding:0;margin-bottom:${PACK_SPACE.xl}px;background:none;border:0;box-shadow:none;}
+html.papyrus3d .did-strip div{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.xs}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .did-strip div+div{border-left:2.5px solid var(--p3d-ink);}
+html.papyrus3d .did-strip b{font-size:${PACK_TEXT.lead}px;line-height:1;}
+html.papyrus3d .did-strip span{font-size:${PACK_TEXT.micro}px;line-height:1.2;}
 html.papyrus3d .did-name--app{font-family:'LT Museum',serif;font-weight:400;letter-spacing:0;text-transform:none;} /* písmo: meno */
 html.papyrus3d .dic-card{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-b3);margin:0 0 ${PACK_SPACE.xl}px;}
 html.papyrus3d .dic-card.dic-dark{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border:2.5px solid var(--p3d-ink);margin:0 0 ${PACK_SPACE.xl}px;}
@@ -1519,13 +1524,14 @@ const LIFE_CSS = `.did-life{display:grid;grid-template-columns:repeat(4,minmax(0
 function DogLifeStrip({ dogId, tx, deceased = false, deathDate = null }: { dogId: string; tx: (k: string, f: string) => string; deceased?: boolean; deathDate?: string | null }) {
   const { lang } = useLang();
   const { stats, notes, days } = useDogLife(dogId, deceased ? { deathDate } : undefined);
-  const cell = (label: string, value: string) => <div key={label}><b>{value}</b><span>{label}</span></div>;
+  // Ikonky z novej sady (bod 19, 9. 11. 2026); nákres O nemá pás číselne, preto skladané z prvkov hárka (karta s tvrdým tieňom).
+  const cell = (label: string, value: string, sys: string) => <div key={label}><SysIcon name={sys} size={28} /><b>{value}</b><span>{label}</span></div>;
   return (
     <div className="did-strip">
-      {cell(tx('pack.dog.trailsTrips', 'Trips'), String(stats.trips))}
-      {cell(tx('pack.dog.trailsKm', 'Kilometres'), fmtNum(stats.km, lang, 0))}
-      {cell(tx('pack.dog.lifeDays', 'Days together'), days === null ? '—' : fmtNum(days, lang, 0))}
-      {cell(tx('pack.dog.lifeNotes', 'Diary entries'), notes === null ? '—' : String(notes))}
+      {cell(tx('pack.dog.trailsTrips', 'Trips'), String(stats.trips), 'den-trip')}
+      {cell(tx('pack.dog.trailsKm', 'Kilometres'), fmtNum(stats.km, lang, 0), 'vzdialenost')}
+      {cell(tx('pack.dog.lifeDays', 'Days together'), days === null ? '—' : fmtNum(days, lang, 0), 'kalendar')}
+      {cell(tx('pack.dog.lifeNotes', 'Diary entries'), notes === null ? '—' : String(notes), 'den-kronika')}
     </div>
   );
 }
