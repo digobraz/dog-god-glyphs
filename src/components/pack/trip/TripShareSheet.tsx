@@ -30,6 +30,7 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { flagUrl } from '@/lib/flagUrl';
 import { IS_APP } from '@/lib/isApp';
 import { shareFile } from '@/lib/shareFile';
+import { canvasToBlob } from '@/lib/canvasBlob';
 import { ICON } from '@/components/pack/tripShared';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { FONT_TITLE, FONT_UI, PACK_BOX, PACK_SHADOW, PACK_THEME as T } from '@/components/pack/packTheme';
@@ -657,23 +658,28 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
     const o = { fmt, photo, off, glyph };
     // APP_NEW = Papyrus 3D šablóna (výlet `render3d`, karta psa `render3dDog`); web ostáva na pôvodnej `render`
     const draw = APP_NEW ? (kind === 'trip' ? render3d : render3dDog) : render;
-    void draw(cv, data, tx, { ...o, exportMode: false }).then(async () => {
-      if (!live) return;
-      const c = document.createElement('canvas');
-      await draw(c, data, tx, { ...o, exportMode: true });
-      c.toBlob((b) => { if (live && b) { blobRef.current = b; setReady(true); } }, 'image/png');
-    });
+    void (async () => {
+      let b: Blob | null = null;
+      try {
+        await draw(cv, data, tx, { ...o, exportMode: false });
+        if (!live) return;
+        const c = document.createElement('canvas');
+        await draw(c, data, tx, { ...o, exportMode: true });
+        b = await canvasToBlob(c);
+      } catch { /* bez obrázka ostane aspoň odkaz, tlačidlo nesmie ostať mŕtve (Danka 10. 11.) */ }
+      if (live) { blobRef.current = b; setReady(true); }
+    })();
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fontsOk, fmt, photo, off, glyph, dataKey, txKey, kind]);
 
-  const fname = `dogypt-${slug(data.name)}-${fmt}.png`;
+  const fileName = (b: Blob) => `dogypt-${slug(data.name)}-${fmt}.${b.type === 'image/jpeg' ? 'jpg' : 'png'}`;
   const copyLink = useCallback(async () => {
     try { await navigator.clipboard.writeText(data.url); return true; } catch { return false; }
   }, [data.url]);
   const download = (b: Blob) => {
     const u = URL.createObjectURL(b);
-    const a = document.createElement('a'); a.href = u; a.download = fname;
+    const a = document.createElement('a'); a.href = u; a.download = fileName(b);
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(u), 4000);
   };
@@ -681,14 +687,14 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
   // ⚠️ Žiadny `await` pred `navigator.share` — gesto by vypršalo (iOS).
   const share = () => {
     const b = blobRef.current;
-    if (!b) return;
+    if (!b) { void copyOnly(); return; }
     const copied = copyLink();
     // V appke natívny hárok: Android WebView nemá `navigator.share` a `a.download` tam ticho nespraví nič (Danka 8. 11.).
     if (IS_APP) {
-      void shareFile(b, fname).then((ok) => { if (!ok) void copyOnly(); }).catch(() => void copyOnly());
+      void shareFile(b, fileName(b)).then((ok) => { if (!ok) void copyOnly(); }).catch(() => void copyOnly());
       return;
     }
-    const file = new File([b], fname, { type: 'image/png' });
+    const file = new File([b], fileName(b), { type: b.type });
     const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean };
     if (isTouch() && typeof navigator.share === 'function' && nav.canShare?.({ files: [file] })) {
       navigator.share({ files: [file] }).catch((e: unknown) => {
