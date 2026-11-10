@@ -457,7 +457,7 @@ export default function AppWeb() {
 
   return (
     <div className="aw" data-bg={bg} data-pz="0" ref={rootRef}>
-      <Seo path="/app" title="DOGYPT — Play the life with your dog." description={c('sub')} noindex />
+      <Seo path="/app" title={L === 'sk' ? 'DOGYPT · Hraj život so psom' : 'DOGYPT · Play the life with your dog'} description={c('sub')} noindex />
       <style>{STAGE_CSS}</style>
       <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /><i className="pearl p1" /><i className="pearl p2" /></div>
 
