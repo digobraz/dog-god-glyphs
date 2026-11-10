@@ -30,10 +30,10 @@ const GodsGridLab = lazy(() => import('@/components/gods/GodsGridLab').then((m) 
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
 import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
-import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
 import { IgMock, IgIcon } from './appWeb/IgMock';
 import { AlbaCount, AlbaTrio, GlyphZones } from './appWeb/AlbaGlyph';
+import { BadgeDock } from './appWeb/BadgeDock';
 import { APP_CHIPS, APPS_TYPE_CSS } from '@/components/lab/filmAppsType';
 import './appWeb/appWeb.css';
 
@@ -46,13 +46,15 @@ const PILGRIM_LEVELS = ['1–3', '4–7', '8–12', '13–18', '19–25', '26–
 /** Pásma UČŇA = % VAULTU (schválené 6. 11., `plany/nakresy/pecat-odznaky-2026-11-06`). */
 const UCEN_PCT = ['1.', '2 %', '5 %', '10 %', '20 %', '30 %', '45 %', '60 %', '80 %', '100 %'];
 
-/** Štyri cesty v sekcii Odznaky — `mine` = úroveň vzorového psíčkara, tá istá ako v levitujúcich odznakoch v hero. */
-const PATHS = [
-  { ax: 'ax0', mine: 'dogyptan-2.webp', lvl: 't2' },  /* Kňaz = perleť s ružovým rámom (Matej 7. 11., plany/nakresy/odznaky-kie-2026-11-07/vyber.html); 4 = Faraón; 5 = Člen tímu sa do rebríčka nedáva — udeľujeme ho len my (Matej 7. 11.) */
-  { ax: 'ax1', mine: 'servant-2.webp', lvl: 'my1' },
-  { ax: 'ax2', mine: 'pilgrim-1.webp', lvl: 'my2' },  /* zelený: „prevláda modrá, musíme to oživiť“ (Matej 6. 11.) */
-  { ax: 'ax3', mine: 'ucen-4.webp', lvl: 'my3' },
+/** Tri levely pre vlastného psa — `start` = úroveň vzorového psíčkara, tá istá ako v levitujúcich odznakoch v hero. */
+const LEVELS: { ax: string; scene: string; start: number; n: number; img: (i: number) => string; cap: (i: number, c: (k: string) => string) => string }[] = [
+  { ax: 'ax1', scene: `${A}/vyjavy/sluzobnik.webp`, start: 2, n: SERVANT_YEARS.length, img: (i) => `servant-${i}.webp`, cap: (i, c) => `${SERVANT_YEARS[i]} ${c('cap_ax1')}` },
+  { ax: 'ax2', scene: '/images/magnet/vylety.webp', start: 1, n: PILGRIM_LEVELS.length, img: (i) => `pilgrim-${i}.webp`, cap: (i, c) => `${c('cap_ax2a')} ${PILGRIM_LEVELS[i]} ${c('cap_ax2b')}` },  /* zelený: „prevláda modrá, musíme to oživiť“ (Matej 6. 11.) */
+  { ax: 'ax3', scene: `${A}/vyjavy/ucen.webp`, start: 3, n: UCEN_PCT.length, img: (i) => `ucen-${i + 1}.webp`, cap: (i, c) => (i === 0 ? c('uc_first') : `${UCEN_PCT[i]} ${c('uc_vault')}`) },
 ];
+
+/** Vstupné pri Dogypťanovi: index = `dogyptan-N.webp` aj kľúč názvu `tN`. 2 = Kňaz, perleť s ružovým rámom (Matej 7. 11.); 4 = Faraón; 5 = Člen tímu sa do rebríčka nedáva. */
+const CITIZEN_PRICES = ['€0', '€3,99', '€7,99', '€11,99', '€111+'];
 
 /** Ikonky funkcií = kartuše z banky (`public/web-app/ikony/*.webp`, Matej 8. 11.: „funkcie na nete v kartuši“,
  *  zdroj plany/nakresy/banka-ikon-2026-11-08/rez/*-kartusa.webp). Odrážky `li` sa zatiaľ nekreslia — doladíme ich neskôr. */
@@ -395,7 +397,6 @@ export default function AppWeb() {
   const [vOn, setVOn] = useState<number | null>(null);
 
   /* odznaky */
-  const [ax, setAx] = useState<number | null>(null);
 
   /* ťuk na svet v lieviku doroluje k zvitkom */
   const scrollsRef = useRef<HTMLDivElement>(null);
@@ -564,6 +565,7 @@ export default function AppWeb() {
           <Rv className="alba-sec">
             <p className="eye">{c('e_alba')}</p>
             <h2 className="alba-h">{c('h_alba_a')} <span className="deco">{c('h_alba_b')}</span> {c('h_alba_c')}</h2>
+            <p className="lead alba-lead">{c('l_alba')}</p>
           </Rv>
           <Rv><AlbaTrio /></Rv>
           <Rv><AlbaCount c={c} /></Rv>
@@ -701,63 +703,53 @@ export default function AppWeb() {
 
       </section>
 
-      {/* 5 · ODZNAKY — štyri cesty vedľa seba (každá ukazuje MOJU úroveň), ťuk = celý rebríček tej cesty.
-          Matej 6. 11.: „dôležité je, aby ich človek videl najprv všetky“. */}
+      {/* 5 · ONLINE HRA, KTORÁ POMÁHA OFFLINE — tri levely pre vlastného psa a hneď pod nimi Dogypťan pre ostatných,
+          po ňom už len FAQ a planétka (Matej 10. 11.). Rozpad vstupného zatiaľ nie: „zatiaľ nedávajme žiadne delenie“. */}
       <section id="badges">
         <div className="wrap">
           <Rv className="sec-h">
-            <p className="eye">{c('e_badge')}</p>
-            <h2>{c('h_badge1')} <span className="deco">{c('h_badge2')}</span></h2>
+            <p className="eye">{c('h_badge1')} {c('h_badge2')}</p>
+            <h2>{c('h_play1')} <span className="deco">{c('h_play2')}</span></h2>
+            <p className="lead">{c('l_play')}</p>
           </Rv>
-          <div className="paths">
-            {PATHS.map((p, i) => (
-              <Rv key={p.ax} d={i} className={`path p${i}${ax === i ? ' on' : ''}`}>
-                <button type="button" aria-expanded={ax === i}
-                  onPointerEnter={e => { if (e.pointerType === 'mouse') setAx(i); }}
-                  onClick={e => { if (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === 'mouse') return; setAx(ax === i ? null : i); }}>
-                  <img src={`${A}/odznaky/${p.mine}`} alt="" loading="lazy" />
-                  <b>{c(p.ax)}</b>
-                  <small>{c(p.lvl)}</small>
-                </button>
+          <Rv className="lv-h"><h3>{c('h_lv_a')} <span className="deco">{c('h_lv_b')}</span> {c('h_lv_c')}</h3></Rv>
+          <div className="lv3">
+            {LEVELS.map((p, i) => (
+              <Rv key={p.ax} d={i} className="lv pk-stage">
+                <span className="lv-pic"><img src={p.scene} alt="" loading="lazy" /></span>
+                <b>{c(p.ax)}</b>
+                <p className="lv-txt">{c(`lt_${p.ax}`)}</p>
+                <BadgeDock start={p.start} items={Array.from({ length: p.n }, (_, k) => ({ src: `${A}/odznaky/${p.img(k)}`, cap: p.cap(k, c) }))} />
               </Rv>
             ))}
           </div>
-          {ax !== null && (
-            <div className="axis pk-stage on" key={ax}>
-              <h3>{c(PATHS[ax].ax)}</h3><p className="what">{c(`${PATHS[ax].ax}p`)}</p>
-              {ax === 0 && <div className="medals m5">{[0, 1, 2, 3, 4].map((i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/dogyptan-${i}.webp`} alt="" /><span>{c(`t${i}`)}</span></figure>)}</div>}
-              {ax === 1 && <div className="medals">{SERVANT_YEARS.map((y, i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/servant-${i}.webp`} alt="" /><span>{y}</span></figure>)}</div>}
-              {ax === 2 && <div className="medals m9">{PILGRIM_LEVELS.map((l, i) => <figure key={i} className={i > 1 ? 'lock' : ''}><img src={`${A}/odznaky/pilgrim-${i}.webp`} alt="" /><span>{l}</span></figure>)}</div>}
-              {ax === 3 && <div className="medals m10">{UCEN_PCT.map((p, i) => <figure key={i} className={i > 3 ? 'lock' : ''}><img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" /><span>{p}</span></figure>)}</div>}
-            </div>
-          )}
-        </div>
-      </section>
 
-      {/* 7 · PREČO JE TO ZADARMO — blok poďakovania s obrázkom, po ňom už len FAQ a planétka (Matej 10. 11.).
-          Video, DOGMA a Potrebujeme ťa idú do STORY. */}
-      <section id="good">
-        <div className="wrap">
-          <div className="gs-stack">
-            <div className="gs-slide good2 pk-card">
-              {/* planéta odseknutá ľavým a spodným okrajom karty (Matej 7. 11.) */}
-              <div className="pic"><img src="/images/vision/vision-unity.webp" alt="" loading="lazy" /></div>
-              <div>
-                <p className="eye">{c('e_free')}</p>
-                <h2>{c('h_free1')} <span className="deco">{c('h_free2')}</span></h2>
-                <p className="lead">{c('l_good')}</p>
-                <p className="lead">{c('l_free2')}</p>
-                {/* rozpad vstupného navonok 8 · 2 · 1 (lib/transparency.ts) — počet psov je v bloku POTREBUJEME ŤA */}
-                <div className="gs-split">
-                  <small>{c('split_h')}</small>
-                  <div className="gs-bar">{TRANSPARENCY_SPLIT.map((p) => <i key={p.labelKey} style={{ flex: p.share, background: p.color }} />)}</div>
-                  <ul>{TRANSPARENCY_SPLIT.map((p) => <li key={p.labelKey}><i style={{ background: p.color }} />{t(p.labelKey)}</li>)}</ul>
-                </div>
-                <a className="pk-cta" href="#">{c('give')}</a>
-                {nakres && <p style={{ margin: '16px 0 0' }}><Note k="n_good" flag /></p>}
-              </div>
+          <Rv className="cit pk-stage">
+            <div>
+              <h3>{c('h_cit1')} <span className="deco">{c('h_cit2')}</span> {c('h_cit3')}</h3>
+              <b className="cit-name">{c('ax0')}</b>
+              <p className="lead">{c('l_cit1')}</p>
+              <p className="lead">{c('l_cit2')}</p>
             </div>
+            <div className="pic"><img src={`${A}/vyjavy/obcan.webp`} alt="" loading="lazy" /></div>
+          </Rv>
+          <Rv className="cit-fee">
+            <b className="cit-name">{c('fee_h')}</b>
+            <p className="lead">{c('fee_p')}</p>
+          </Rv>
+          <div className="cit-ranks">
+            {CITIZEN_PRICES.map((price, k) => (
+              <Rv key={price} d={k} className={`cit-rank pk-stage${k === 2 ? ' rec' : ''}`}>
+                {k === 2 && <span className="cit-rec">{c('rec')}</span>}
+                <img src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" loading="lazy" />
+                <div className="cap"><b>{c(`t${k}`)}</b><i>{L === 'sk' ? price : price.replace(',', '.')}</i><p>{c(`tp${k}`)}</p></div>
+              </Rv>
+            ))}
           </div>
+          <Rv className="cit-cta">
+            <a className="pk-cta" href="#">{c('give')}</a>
+            {nakres && <p style={{ margin: '16px 0 0' }}><Note k="n_good" flag /></p>}
+          </Rv>
         </div>
       </section>
 
