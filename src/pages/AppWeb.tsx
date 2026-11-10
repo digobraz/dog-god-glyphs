@@ -56,31 +56,31 @@ const PATHS = [
 
 /** Ikonky funkcií = kartuše z banky (`public/web-app/ikony/*.webp`, Matej 8. 11.: „funkcie na nete v kartuši“,
  *  zdroj plany/nakresy/banka-ikon-2026-11-08/rez/*-kartusa.webp). Odrážky `li` sa zatiaľ nekreslia — doladíme ich neskôr. */
-type B = [Record<Lang2, string>, boolean?];
-const b = (en: string, sk: string, soon = false): B => [{ en, sk }, soon];
-const FEATS: { h: Record<Lang2, string>; p: string; cls?: string; ic: string; li: B[] }[] = [
-  { h: { en: 'Trails', sk: 'Výlety' }, p: 'f1', cls: 'trip', ic: 'vylety',
-    li: [b('Add a trip', 'Pridaj výlet'), b('Rate it in paws', 'Ohodnoť labkami'), b('Save it for later', 'Ulož si ho na neskôr'), b('Collect km and points', 'Zbieraj km a body'), b('Route to your phone', 'Trasa do mobilu')] },
-  { h: { en: 'Map', sk: 'Mapa' }, p: 'f8', ic: 'mapa',
-    li: [b('Events and group walks', 'Podujatia a spoločné výlety'), b('Dog-friendly places', 'Miesta, kam smie pes'), b('Services for dog people', 'Služby pre psíčkarov'), b('Vets and emergencies', 'Ordinácie a pohotovosti')] },
-  { h: { en: 'DOG ID', sk: 'DOG ID' }, p: 'f2', ic: 'dogid',
-    li: [b('Your dog’s ID card', 'Preukaz psa'), b('Personality quiz', 'Kvíz povahy'), b('Vaccines and health', 'Očkovanie a zdravie'), b('A will: who takes care of them', 'Závet: kto sa o neho postará')] },
-  { h: { en: 'Daily log', sk: 'Zápis dňa' }, p: 'f3', ic: 'zapis',
-    li: [b('One tap a day', 'Jeden ťuk denne'), b('A streak that keeps going', 'Séria, ktorá beží'), b('Diary and photos', 'Denník a fotky'), b('A chronicle of your life together', 'Kronika vášho života')] },
-  { h: { en: 'AINUBIS', sk: 'AINUBIS' }, p: 'f4', ic: 'ainubis',
-    li: [b('7 worlds of dog knowledge', '7 svetov poznania o psoch'), b('Scrolls in plain language', 'Zvitky v ľudskej reči'), b('A chat that knows your dog', 'Chat, ktorý pozná tvojho psa'), b('Verified sources', 'Overené zdroje')] },
-  { h: { en: 'Sniffer', sk: 'Sniffer' }, p: 'f5', ic: 'sniffer',
-    li: [b('Find a walking buddy', 'Nájdi parťáka na prechádzky'), b('Dog profile with photos', 'Profil psa s fotkami'), b('Swipe, match, walk', 'Swipe, zhoda, prechádzka')] },
-  { h: { en: 'SOS', sk: 'SOS' }, p: 'f6', cls: 'sos', ic: 'sos',
-    li: [b('Lost dog: the pack around you knows', 'Stratený pes: vie o tom svorka okolo'), b('Poster in one tap', 'Leták jedným ťukom'), b('Emergency vets', 'Pohotovosť'), b('First aid', 'Prvá pomoc', true), b('Report cruelty', 'Nahlás týranie', true)] },
-  { h: { en: 'Feed', sk: 'Feed' }, p: 'f7', ic: 'feed',
-    li: [b('Stories from the pack', 'Príbehy zo svorky'), b('Paws and comments', 'Labky a komentáre'), b('Tag your buddies', 'Označ parťákov')] },
+/** Texty funkcií sú v `appWeb/copy.ts` (kľúče `fx_<ikona>_h`, `fx_<ikona>_<n>`, `sx_<ikona>_h|p`), upravuje sa v balíku webu. */
+type B = [string, boolean?];
+const FEATS: { p: string; cls?: string; ic: string; li: B[] }[] = [
+  { p: 'f1', cls: 'trip', ic: 'vylety',
+    li: [['fx_vylety_1'], ['fx_vylety_2'], ['fx_vylety_3'], ['fx_vylety_4'], ['fx_vylety_5']] },
+  { p: 'f8', ic: 'mapa',
+    li: [['fx_mapa_1'], ['fx_mapa_2'], ['fx_mapa_3'], ['fx_mapa_4']] },
+  { p: 'f2', ic: 'dogid',
+    li: [['fx_dogid_1'], ['fx_dogid_2'], ['fx_dogid_3'], ['fx_dogid_4']] },
+  { p: 'f3', ic: 'zapis',
+    li: [['fx_zapis_1'], ['fx_zapis_2'], ['fx_zapis_3'], ['fx_zapis_4']] },
+  { p: 'f4', ic: 'ainubis',
+    li: [['fx_ainubis_1'], ['fx_ainubis_2'], ['fx_ainubis_3'], ['fx_ainubis_4']] },
+  { p: 'f5', ic: 'sniffer',
+    li: [['fx_sniffer_1'], ['fx_sniffer_2'], ['fx_sniffer_3']] },
+  { p: 'f6', cls: 'sos', ic: 'sos',
+    li: [['fx_sos_1'], ['fx_sos_2'], ['fx_sos_3'], ['fx_sos_4', true], ['fx_sos_5', true]] },
+  { p: 'f7', ic: 'feed',
+    li: [['fx_feed_1'], ['fx_feed_2'], ['fx_feed_3']] },
 ];
-const SOON: { h: Record<Lang2, string>; p: Record<Lang2, string>; ic: string }[] = [
-  { h: { en: 'Merch', sk: 'Merch' }, p: { en: 'Things for you and your dog, from the pack.', sk: 'Veci pre teba a psa, zo svorky.' }, ic: 'merch' },
-  { h: { en: 'GPS collar', sk: 'GPS obojok' }, p: { en: 'Know where they are. Walks log themselves.', sk: 'Vieš, kde je. Prechádzky sa zapíšu samy.' }, ic: 'gps' },
-  { h: { en: 'Our research', sk: 'Naše výskumy' }, p: { en: 'Studies we fund, so dogs live longer.', sk: 'Výskumy, ktoré platíme my — aby psi žili dlhšie.' }, ic: 'vyskumy' },
-  { h: { en: 'New-generation shelters', sk: 'Útulky novej generácie' }, p: { en: 'Shelters dogs leave faster — and happier.', sk: 'Útulky, z ktorých psi odchádzajú rýchlejšie a šťastnejší.' }, ic: 'centra' },
+const SOON: { ic: string }[] = [
+  { ic: 'merch' },
+  { ic: 'gps' },
+  { ic: 'vyskumy' },
+  { ic: 'centra' },
 ];
 
 function Phone({ src }: { src: string }) {
@@ -263,6 +263,7 @@ function Stores() {
 type TrailDog = { n: number; name: string; u: string };
 const TRAIL_MID = 14;
 const cldThumb = (u: string) => u.replace('/upload/', '/upload/c_fill,g_auto,w_180,h_180,q_auto,f_auto/');
+/* Dočasne bez použitia: blok Potrebujeme ťa ide do STORY (Matej 10. 11.). */
 function DogTrail({ goal }: { goal: string }) {
   const [ref, near] = useNear<HTMLDivElement>('400px');
   const [pack, setPack] = useState<TrailDog[]>([]);
@@ -310,7 +311,7 @@ function LivePlanet() {
   const [visRef, vis] = useNear<HTMLElement>('0px', false);
   return (
     <div ref={mountRef}>
-      <section className="planet-live theme-light" ref={visRef}>
+      <section id="join" className="planet-live theme-light" ref={visRef}>
         {/* `.aw .pop` (modal /app) zasiahne aj `.planet-root.pop` = guľa s otvorenou kartou psa → display:none, guľa zmizne.
             Tu ju vrátime na pôvodné hodnoty (rovnaké ako `.planet-root` v DogPlanetLab). */}
         {/* iPhone Safari radí 3D dlaždice gule podľa hĺbky a z-index ignoruje → karta sa cez guľu prerezala (Matej 7. 11., snímka WENSDY #103).
@@ -398,7 +399,8 @@ export default function AppWeb() {
 
   /* ťuk na svet v lieviku doroluje k zvitkom */
   const scrollsRef = useRef<HTMLDivElement>(null);
-  const pickWorld = () => { scrollsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  const [aiTab, setAiTab] = useState(0);
+  const pickWorld = () => { setAiTab(0); scrollsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
   const [ucOn, setUcOn] = useState(3);
   /* mozog Učňa: kým sa nikto nedotkne odznaku, prechádza úrovne sám (1 → 10 → znova) */
   const ucTouched = useRef(false);
@@ -431,9 +433,6 @@ export default function AppWeb() {
   const vScrolls = vault.reduce((s, w) => s + w.scrolls, 0);
   const vCircles = vault.reduce((s, w) => s + w.circles, 0);
 
-  /* Za hrou — text na rozklik */
-  const [loreOpen, setLoreOpen] = useState(false);
-
   const [proofRun, setProofRun] = useState(false);
   useEffect(() => { if (stats) setProofRun(true); }, [stats]);
   useEffect(() => { const t = setTimeout(() => setProofRun(true), 1500); return () => clearTimeout(t); }, []);
@@ -461,7 +460,7 @@ export default function AppWeb() {
         <div className="wrap">
           <a className="logo" href="#" aria-label="DOGYPT"><img src="/web-app/logo-napis.webp" alt="DOGYPT" /></a>
           <nav>
-            <a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#badges">{c('nav3')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#good">{c('nav5')}</a>
+            <a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/">{c('nav5')}</a>
           </nav>
           <button className="lang" onClick={() => setLang(L === 'sk' ? 'en' : 'sk')}>{L === 'sk' ? 'EN' : 'SK'}</button>
           <a className="pk-cta" href="#join">{c('getapp')}</a>
@@ -470,7 +469,7 @@ export default function AppWeb() {
         </div>
         {menu && (
           <div className="mmenu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); }}>
-            <nav><a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#badges">{c('nav3')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#good">{c('nav5')}</a></nav>
+            <nav><a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/">{c('nav5')}</a></nav>
             <p className="mm-h">{c('lang_h')}</p>
             <div className="mm-lang">{(['sk', 'en'] as const).map((l) => <button key={l} className={L === l ? 'on' : ''} onClick={() => { setLang(l); setMenu(false); }}>{l === 'sk' ? 'Slovenčina' : 'English'}</button>)}</div>
             <Stores />
@@ -610,55 +609,22 @@ export default function AppWeb() {
                   onPointerEnter={e => { if (e.pointerType === 'mouse') setOpenFeat(i); }}
                   onClick={() => setOpenFeat(openFeat === i ? null : i)}>
                   <span className="fti"><img src={`${A}/ikony/${f.ic}.webp`} alt="" loading="lazy" /></span>
-                  <h3>{f.h[L]}</h3><p>{c(f.p)}</p>
+                  <h3>{c(`fx_${f.ic}_h`)}</h3><p>{c(f.p)}</p>
                 </button>
-                <ul className="fmore">{f.li.map(([tx, soon], k) => <li key={k} className={soon ? 'soon' : ''}>{tx[L]}{soon && <em>{c('soon')}</em>}</li>)}</ul>
+                <ul className="fmore">{f.li.map(([tx, soon], k) => <li key={k} className={soon ? 'soon' : ''}>{c(tx)}{soon && <em>{c('soon')}</em>}</li>)}</ul>
               </Rv>
             ))}
           </div>
           <Rv as="p" className="soon-h">{c('soon_h')}</Rv>
           <div className="fgrid" data-tile={tile}>
             {SOON.map((f, i) => (
-              <Rv key={f.h.en} d={i} className="fcard soon">
+              <Rv key={f.ic} d={i} className="fcard soon">
                 <div className="fti"><img src={`${A}/ikony/${f.ic}.webp`} alt="" loading="lazy" /></div>
-                <h3>{f.h[L]}</h3><p>{f.p[L]}</p>
+                <h3>{c(`sx_${f.ic}_h`)}</h3><p>{c(`sx_${f.ic}_p`)}</p>
               </Rv>
             ))}
           </div>
           {nakres && <p style={{ textAlign: 'center', marginTop: 16 }}><Note k="n_ikony" flag /></p>}
-        </div>
-      </section>
-
-      {/* 5 · ODZNAKY — štyri cesty vedľa seba (každá ukazuje MOJU úroveň), ťuk = celý rebríček tej cesty.
-          Matej 6. 11.: „dôležité je, aby ich človek videl najprv všetky“. */}
-      <section id="badges">
-        <div className="wrap">
-          <Rv className="sec-h">
-            <p className="eye">{c('e_badge')}</p>
-            <h2>{c('h_badge1')} <span className="deco">{c('h_badge2')}</span></h2>
-          </Rv>
-          <div className="paths">
-            {PATHS.map((p, i) => (
-              <Rv key={p.ax} d={i} className={`path p${i}${ax === i ? ' on' : ''}`}>
-                <button type="button" aria-expanded={ax === i}
-                  onPointerEnter={e => { if (e.pointerType === 'mouse') setAx(i); }}
-                  onClick={e => { if (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === 'mouse') return; setAx(ax === i ? null : i); }}>
-                  <img src={`${A}/odznaky/${p.mine}`} alt="" loading="lazy" />
-                  <b>{c(p.ax)}</b>
-                  <small>{c(p.lvl)}</small>
-                </button>
-              </Rv>
-            ))}
-          </div>
-          {ax !== null && (
-            <div className="axis pk-stage on" key={ax}>
-              <h3>{c(PATHS[ax].ax)}</h3><p className="what">{c(`${PATHS[ax].ax}p`)}</p>
-              {ax === 0 && <div className="medals m5">{[0, 1, 2, 3, 4].map((i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/dogyptan-${i}.webp`} alt="" /><span>{c(`t${i}`)}</span></figure>)}</div>}
-              {ax === 1 && <div className="medals">{SERVANT_YEARS.map((y, i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/servant-${i}.webp`} alt="" /><span>{y}</span></figure>)}</div>}
-              {ax === 2 && <div className="medals m9">{PILGRIM_LEVELS.map((l, i) => <figure key={i} className={i > 1 ? 'lock' : ''}><img src={`${A}/odznaky/pilgrim-${i}.webp`} alt="" /><span>{l}</span></figure>)}</div>}
-              {ax === 3 && <div className="medals m10">{UCEN_PCT.map((p, i) => <figure key={i} className={i > 3 ? 'lock' : ''}><img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" /><span>{p}</span></figure>)}</div>}
-            </div>
-          )}
         </div>
       </section>
 
@@ -683,13 +649,17 @@ export default function AppWeb() {
             <p className="lead">{c('l_ai')} <span className="ai-still" tabIndex={0}>({c('still')})<span className="tip">{c('still_t')}</span></span></p>
           </Rv>
           <AiFlow L={L} c={c} onWorld={pickWorld} published={['nutrition', 'dogsPath', 'understanding', 'anatomy']} counter={(n, run) => <Counter to={n} run={run} />} learn={
-            <div className="ai-learn3">
-              <div className="ai-card ai-paluba wide" data-fa="5" ref={scrollsRef}>
+            <div className="ai-learn3 one" ref={scrollsRef}>
+              {/* zvitky, podcasty a chat = jedna ukážka so záložkami (Matej 10. 11.: skrátiť AINUBIS); bloky ostávajú pripojené, aby prepnutie nezastavilo podcast */}
+              <div className="ai-tabs" role="tablist" data-fa="4">
+                {['ai_t1', 'ai_t2', 'ai_t3'].map((k, i) => <button key={k} type="button" role="tab" aria-selected={aiTab === i} className={aiTab === i ? 'on' : ''} onClick={() => setAiTab(i)}>{c(k)}</button>)}
+              </div>
+              <div className="ai-card ai-paluba wide" hidden={aiTab !== 0}>
                 <Ic n="zvitky" cls="ai-cic" /><span className="k">{c('lr1k')}</span><h4>{c('lr1h')}</h4><p>{c('lr1p')}</p>
                 <AiScrolls L={L} c={c} />
               </div>
-              <div className="ai-card ai-paluba"><Ic n="podcast" cls="ai-cic" /><span className="k">{c('lr2k')}</span><h4>{c('lr2h')}</h4><p>{c('lr2p')}</p><AiPods L={L} c={c} /><div className="ai-wave fill" aria-hidden>{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></div>
-              <div className="ai-card ai-paluba"><Ic n="chat" cls="ai-cic" /><span className="k">{c('lr3k')}</span><h4>{c('lr3h')}</h4><p>{c('lr3p')}</p><AiChat L={L} c={c} head={AI_HEAD} /></div>
+              <div className="ai-card ai-paluba" hidden={aiTab !== 1}><Ic n="podcast" cls="ai-cic" /><span className="k">{c('lr2k')}</span><h4>{c('lr2h')}</h4><p>{c('lr2p')}</p><AiPods L={L} c={c} /><div className="ai-wave fill" aria-hidden>{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></div>
+              <div className="ai-card ai-paluba" hidden={aiTab !== 2}><Ic n="chat" cls="ai-cic" /><span className="k">{c('lr3k')}</span><h4>{c('lr3h')}</h4><p>{c('lr3p')}</p><AiChat L={L} c={c} head={AI_HEAD} /></div>
             </div>
           } />
           {/* PC: mozog vľavo veľký, vedľa text, veľké % a 2 rady po 5 odznakov (Matej 6. 11.: „aby to bolo vidno“) */}
@@ -731,8 +701,41 @@ export default function AppWeb() {
 
       </section>
 
-      {/* 7 · POĎAKOVANIE — tri bloky POD SEBOU v jednej šírke: poďakovanie · intro video · DOGMA
-          (Matej 7. 11.: „tieto bloky musia byť pod sebou v tej istej šírke“ — ruší vodorovný scroll zo 6. 11.) */}
+      {/* 5 · ODZNAKY — štyri cesty vedľa seba (každá ukazuje MOJU úroveň), ťuk = celý rebríček tej cesty.
+          Matej 6. 11.: „dôležité je, aby ich človek videl najprv všetky“. */}
+      <section id="badges">
+        <div className="wrap">
+          <Rv className="sec-h">
+            <p className="eye">{c('e_badge')}</p>
+            <h2>{c('h_badge1')} <span className="deco">{c('h_badge2')}</span></h2>
+          </Rv>
+          <div className="paths">
+            {PATHS.map((p, i) => (
+              <Rv key={p.ax} d={i} className={`path p${i}${ax === i ? ' on' : ''}`}>
+                <button type="button" aria-expanded={ax === i}
+                  onPointerEnter={e => { if (e.pointerType === 'mouse') setAx(i); }}
+                  onClick={e => { if (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === 'mouse') return; setAx(ax === i ? null : i); }}>
+                  <img src={`${A}/odznaky/${p.mine}`} alt="" loading="lazy" />
+                  <b>{c(p.ax)}</b>
+                  <small>{c(p.lvl)}</small>
+                </button>
+              </Rv>
+            ))}
+          </div>
+          {ax !== null && (
+            <div className="axis pk-stage on" key={ax}>
+              <h3>{c(PATHS[ax].ax)}</h3><p className="what">{c(`${PATHS[ax].ax}p`)}</p>
+              {ax === 0 && <div className="medals m5">{[0, 1, 2, 3, 4].map((i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/dogyptan-${i}.webp`} alt="" /><span>{c(`t${i}`)}</span></figure>)}</div>}
+              {ax === 1 && <div className="medals">{SERVANT_YEARS.map((y, i) => <figure key={i} className={i > 2 ? 'lock' : ''}><img src={`${A}/odznaky/servant-${i}.webp`} alt="" /><span>{y}</span></figure>)}</div>}
+              {ax === 2 && <div className="medals m9">{PILGRIM_LEVELS.map((l, i) => <figure key={i} className={i > 1 ? 'lock' : ''}><img src={`${A}/odznaky/pilgrim-${i}.webp`} alt="" /><span>{l}</span></figure>)}</div>}
+              {ax === 3 && <div className="medals m10">{UCEN_PCT.map((p, i) => <figure key={i} className={i > 3 ? 'lock' : ''}><img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" /><span>{p}</span></figure>)}</div>}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 7 · PREČO JE TO ZADARMO — blok poďakovania s obrázkom, po ňom už len FAQ a planétka (Matej 10. 11.).
+          Video, DOGMA a Potrebujeme ťa idú do STORY. */}
       <section id="good">
         <div className="wrap">
           <div className="gs-stack">
@@ -740,9 +743,10 @@ export default function AppWeb() {
               {/* planéta odseknutá ľavým a spodným okrajom karty (Matej 7. 11.) */}
               <div className="pic"><img src="/images/vision/vision-unity.webp" alt="" loading="lazy" /></div>
               <div>
-                <p className="eye">{c('e_good')}</p>
-                <h2>{c('h_good1')} <span className="deco">{c('h_good2')}</span></h2>
+                <p className="eye">{c('e_free')}</p>
+                <h2>{c('h_free1')} <span className="deco">{c('h_free2')}</span></h2>
                 <p className="lead">{c('l_good')}</p>
+                <p className="lead">{c('l_free2')}</p>
                 {/* rozpad vstupného navonok 8 · 2 · 1 (lib/transparency.ts) — počet psov je v bloku POTREBUJEME ŤA */}
                 <div className="gs-split">
                   <small>{c('split_h')}</small>
@@ -753,54 +757,7 @@ export default function AppWeb() {
                 {nakres && <p style={{ margin: '16px 0 0' }}><Note k="n_good" flag /></p>}
               </div>
             </div>
-            <div className="gs-slide gs-video pk-card">
-              <video src="/videos/vision-intro-montage.mp4" poster="/images/mission/intro-poster.webp" controls playsInline preload="none" />
-              <div>
-                <p className="eye">{c('e_lore')}</p>
-                <h2>{c('h_lore1')} <span className="deco">{c('h_lore2')}</span></h2>
-                <p className="lead">{c('l_lore')}</p>
-                {loreOpen && <p>{c('l_lore2')}</p>}
-                <button className="more" onClick={() => setLoreOpen(!loreOpen)}>{loreOpen ? c('less') : c('more')}</button>
-                <p><a className="link-gold" href="/">{c('story_cta')}</a></p>
-              </div>
-            </div>
-            <div className="gs-slide gs-dogma pk-card">
-              <div className="pic"><img src="/images/dogma-cover-lapis.webp" alt="DOGMA" loading="lazy" /></div>
-              <div>
-                <p className="eye">{c('e_dogma')}</p>
-                <h2>{c('h_dogma1')} <span className="deco">{c('h_dogma2')}</span></h2>
-                <p className="lead">{c('l_dogma')}</p>
-                <a className="pk-cta" href={L === 'sk' ? 'https://dogma.dogypt.com/' : 'https://dogma.dogypt.com/en/'}>{c('dogma_cta')}</a>
-                <p className="motto">{c('motto')}</p>
-              </div>
-            </div>
           </div>
-        </div>
-      </section>
-
-      {/* 8 · VSTÚP — faraón s ukazovákom „potrebujeme ťa“ z /onepage namiesto heroglyfu (Matej 6. 11.) */}
-      <section id="join" style={{ paddingTop: 0 }}>
-        <div className="wrap">
-          <Rv className="join">
-            <div>
-              <p className="eye" style={{ color: 'var(--lapis-ink)' }}>{c('e_need')}</p>
-              <h2>{c('h_need1')} <span className="deco">{c('h_need2')}</span></h2>
-              <p className="lead">{c('l_need')}</p>
-              {/* číslo a CTA v jednom riadku (Matej 6. 11.: „CTA v pridaj sa daj vedľa 15/1000000“) */}
-              <div className="join-goal">
-                <div>
-                  <p><b>{dogs.toLocaleString('sk-SK')}</b> <span>/ 1 000 000</span></p>
-                  <small>{c('dogs_now')}</small>
-                </div>
-                <a className="pk-cta" href="/heroglyph/name">{c('cta_join')}</a>
-              </div>
-            </div>
-            <div className="join-ph"><img src="/images/council-pharaoh.webp" alt="" loading="lazy" /></div>
-            {/* pás svorky cez celú šírku bloku, nad faraónom */}
-            <DogTrail goal={c('goal')} />
-            {/* mobil: CTA až pod progresom (Matej 7. 11.) */}
-            <a className="pk-cta join-cta-m" href="/heroglyph/name">{c('cta_join')}</a>
-          </Rv>
         </div>
       </section>
 
