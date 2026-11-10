@@ -170,7 +170,8 @@ import { NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
 import { DeleteButton, DELETE_BUTTON_CSS } from '@/components/pack/DeleteButton';
 // Kruhová značka — TÁ ISTÁ geometria ako hrozba/tip vo vrstve zápisov (hlavička circleMark.ts).
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
-import { stickerSrc, stickerImg } from '@/components/pack/mapnotes/mapStickers';
+import { stickerSrc, stickerImg, MAP_STICKERS_ON } from '@/components/pack/mapnotes/mapStickers';
+import { waterPlaceOf, shortName, type WaterPlace } from '@/components/pack/mapnotes/waterPlaces';
 import { EVENT_RIM, TRIP_TARGET_EMOJI, eventEmoji, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { gradeTrail, gradeRank } from '@/lib/tripGrade';
@@ -512,7 +513,7 @@ type FlyTarget = { ll: LatLngTuple; zoom: number };
 // rieš zhlukmi"). Nahrádza pôvodné oddelené pillIcon/waterIcon + dva samostatné <Marker> loopy
 // jedným systémom (viď <TripMarkers> nižšie pri mape), lebo zhlukovanie musí vidieť VŠETKY typy
 // bodov naraz (trip aj vodná plocha môžu spadnúť do tej istej pixelovej bunky). ──
-type MapPoint = { id: string; tr: HeroTrail; lat: number; lon: number; water: boolean; journey: boolean; ghost?: boolean };
+type MapPoint = { id: string; tr: HeroTrail; lat: number; lon: number; water: boolean; journey: boolean; ghost?: boolean; lake?: WaterPlace | null };
 
 // tri vrstvy podľa zoomu (zadanie 2.3): z<=9 len bodka · z10–11 bodka (diaľkové už pilulka) ·
 // z>=12 všetko pilulka.
@@ -530,7 +531,40 @@ const mapTier = (z: number): 0 | 1 | 2 => (z <= 9 ? 0 : z <= 11 ? 1 : 2);
 // na každej šírke okna. Pri z8 ich bolo v zábere jedenásť a prekrývali sa navzájom.
 const JOURNEY_KM_ZOOM = { min: 9, max: 11 };
 const pointIsPill = (p: MapPoint, zoom: number) =>
-  p.journey ? zoom >= JOURNEY_KM_ZOOM.min && zoom <= JOURNEY_KM_ZOOM.max : mapTier(zoom) === 2;
+  !p.lake && (p.journey ? zoom >= JOURNEY_KM_ZOOM.min && zoom <= JOURNEY_KM_ZOOM.max : mapTier(zoom) === 2);
+
+// Jazerá nesú názov už z diaľky, kým je na mape málo miest, a výlety sú väčšie vlajky (Matej 10. 11. 2026:
+// „musíme mapu oživiť"). Názov aj ikonka sa počítajú rovnicou z absolútnych pixelov, posun mapy rozhodnutie nezmení.
+const BIG_MARK_PX = 36;
+const LAKE_NAME_MIN_ZOOM = 7;
+const LAKE_CHAR_PX = 8.2;
+const LAKE_NAME_H = 16;
+const LAKE_NAME_GAP = 2;
+const lakeNameBox = (x: number, y: number, name: string) => ({
+  cx: x, cy: y + BIG_MARK_PX / 2 + LAKE_NAME_GAP + LAKE_NAME_H / 2, hw: (name.length * LAKE_CHAR_PX) / 2, hh: LAKE_NAME_H / 2,
+});
+type Box = { cx: number; cy: number; hw: number; hh: number };
+const boxesHit = (a: Box, b: Box) => Math.abs(a.cx - b.cx) < a.hw + b.hw && Math.abs(a.cy - b.cy) < a.hh + b.hh;
+
+/** Jazerá, ktoré stoja samostatne: id → či sa zmestí aj názov. Čo sa nezmestí ani ikonkou, ide do zhluku. */
+const lakeSpots = (points: MapPoint[], zoom: number, map: L.Map): Map<string, boolean> => {
+  const spots = new Map<string, boolean>();
+  if (zoom < LAKE_NAME_MIN_ZOOM) return spots;
+  const icons: Array<{ p: MapPoint; x: number; y: number; box: Box }> = [];
+  points.filter((p) => p.lake && !p.ghost).sort((a, b) => a.id.localeCompare(b.id)).forEach((p) => {
+    const { x, y } = map.project([p.lat, p.lon], zoom);
+    const box = { cx: x, cy: y, hw: BIG_MARK_PX / 2, hh: BIG_MARK_PX / 2 };
+    if (!icons.some((o) => boxesHit(o.box, box))) icons.push({ p, x, y, box });
+  });
+  const names: Box[] = [];
+  icons.forEach(({ p, x, y, box }) => {
+    const name = lakeNameBox(x, y, p.lake!.name);
+    const free = !names.some((n) => boxesHit(n, name)) && !icons.some((o) => o.box !== box && boxesHit(o.box, name));
+    if (free) names.push(name);
+    spots.set(p.id, free);
+  });
+  return spots;
+};
 
 /**
  * ── ČO STOJÍ V PILULKE — ŠTVRTÝ POVRCH TEJ ISTEJ LŽI (2026-09-02) ─────────────────────────
@@ -580,7 +614,23 @@ const pointTypeClass = (p: MapPoint): string => (p.journey ? '--journey' : p.wat
 // zopakovať — `transform` sa neskladá, prepisuje sa.
 // Zámok na značke výletu, ktorý v náhľade /magnet nie je zdarma (hand-drawn `lock.svg`, bielený CSS-kou).
 const LOCK_MARK = `<span class="trp-lockmark"><img src="${ICON('lock')}" alt="" draggable="false"/></span>`;
-const pointIcon = (p: MapPoint, hot: boolean, zoom: number, lang: string, locked = false) => {
+const pointIcon = (p: MapPoint, hot: boolean, zoom: number, lang: string, locked = false, lakeNamed = false) => {
+  const lakeSrc = p.lake && !p.ghost && !locked ? stickerSrc(`water_${p.lake.kind}`) : null;
+  if (p.lake && lakeSrc) {
+    return L.divIcon({
+      className: 'mk-wrap',
+      html: stickerImg(lakeSrc, ` mk-sticker--big${hot ? ' trp-lake-hot' : ''}`) + (lakeNamed ? `<div class="trp-lake-name">${escapeHtml(p.lake.name)}</div>` : ''),
+    });
+  }
+  // Bežný výlet = vlajka, náročnosť v rohu; z blízka pod ňou kilometre alebo meno miesta.
+  const flagSrc = !p.water && !p.journey && !p.ghost && !locked ? stickerSrc('trip_flag') : null;
+  if (flagSrc) {
+    const label = !pointIsPill(p, zoom) ? ''
+      : hasRouteMetrics(p.tr) ? `<div class="trp-lake-name trp-lake-name--num">${fmtNum(p.tr.km, lang)} km</div>`
+        : `<div class="trp-lake-name">${escapeHtml(shortName(p.tr.name))}</div>`;
+    const diff = p.tr.diff ? `<i class="trp-flag-diff"><span class="trp-diffmark trp-diffmark--${diffMarkShape(p.tr.diff)}"></span></i>` : '';
+    return L.divIcon({ className: 'mk-wrap', html: stickerImg(flagSrc, ` mk-sticker--big${hot ? ' trp-lake-hot' : ''}`) + diff + label });
+  }
   const type = pointTypeClass(p);
   if (pointIsPill(p, zoom)) {
     const label = pillLabel(p, lang);
@@ -589,8 +639,6 @@ const pointIcon = (p: MapPoint, hot: boolean, zoom: number, lang: string, locked
       html: `<div class="trp-pill${type ? ` trp-pill${type}` : ''}${p.ghost ? ' trp-ghost' : ''}${hot ? ' hot' : ''}">${pointPicto(p)}<span>${label}</span>${locked ? LOCK_MARK : ''}</div>`,
     });
   }
-  const vodaZnacka = p.water && !p.ghost && !locked ? stickerSrc(`water_${Math.min(3, Math.max(1, (p.tr as { waves?: number }).waves || 1))}`) : null;
-  if (vodaZnacka) return L.divIcon({ className: 'mk-wrap', html: stickerImg(vodaZnacka) });
   return L.divIcon({
     className: 'trp-pinwrap',
     html: `<div class="trp-dot${type ? ` trp-dot${type}` : ''}${p.ghost ? ' trp-ghost' : ''}${hot ? ' hot' : ''}">${pointPicto(p)}${locked ? LOCK_MARK : ''}</div>`,
@@ -643,7 +691,7 @@ const PILL_CHAR_PX = 6.6;
 const PILL_PAD_PX = 38;
 const PILL_H = 30;
 // bodka (.trp-dot) je 17 px + rám; bublina rastie s počtom
-const markSize = (n: number) => (n === 1 ? 19 : clusterSize(n));
+const markSize = (n: number) => (n === 1 ? (MAP_STICKERS_ON ? 30 : 19) : clusterSize(n));
 
 // reprezentatívny bod vodnej plochy = ťažisko nakreslených bodov (pri 1 bode = ten bod).
 const waterPoint = (path: LatLngTuple[]): LatLngTuple => {
@@ -1004,6 +1052,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
     return () => window.clearTimeout(id);
   }, [map]);
   const tier = mapTier(zoom);
+  const lakes = useMemo(() => lakeSpots(points, zoom, map), [points, zoom, map]);
 
   const items = useMemo<MapMarkerItem[]>(() => {
     // bounds filter platí pre VŠETKY vrstvy (zadanie 2.4: "len pre markery vo getBounds().pad(.35)"),
@@ -1017,7 +1066,8 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
     // a pohltenie do bubliny s počtom by ich z mapy zmazalo. Mimo toho pásma (celá Európa) sú to
     // už len bodky a zhlukujú sa ako všetko ostatné — inak sa na seba nakopia.
     const pillPts = vis.filter((p) => pointIsPill(p, zoom));
-    const rest = vis.filter((p) => !pointIsPill(p, zoom));
+    const lakePts = vis.filter((p) => lakes.has(p.id));
+    const rest = vis.filter((p) => !pointIsPill(p, zoom) && !lakes.has(p.id));
 
     // 1) hrubé zhluky — greedy podľa vzdialenosti v pixeloch (stabilné poradie zľava dole,
     //    nech ten istý výrez dá vždy ten istý výsledok a bubliny pri pane neposkakujú).
@@ -1049,7 +1099,11 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
       const pt = map.latLngToContainerPoint([p.lat, p.lon]);
       const w = pillLabel(p, lang).length * PILL_CHAR_PX + PILL_PAD_PX;
       return { cx: pt.x, cy: pt.y - PILL_H / 2, hw: w / 2 + PILL_GAP, hh: PILL_H / 2 + PILL_GAP };
-    });
+    }).concat(lakePts.flatMap((p) => {
+      const pt = map.latLngToContainerPoint([p.lat, p.lon]);
+      const icon = { cx: pt.x, cy: pt.y, hw: BIG_MARK_PX / 2 + PILL_GAP, hh: BIG_MARK_PX / 2 + PILL_GAP };
+      return lakes.get(p.id) ? [icon, lakeNameBox(pt.x, pt.y, p.lake!.name)] : [icon];
+    }));
     // Bublina je súhrn, nie konkrétna trasa — posunúť ju o pár pixelov je prijateľné.
     // Pilulka je konkrétny výlet a NEHÝBE SA. Bodka (zhluk s 1 bodom) tiež nie — je to reálna
     // poloha jedného výletu, radšej prekryv než lož o tom, kde ten výlet je.
@@ -1118,14 +1172,14 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
     cls.forEach(dodgeOne);
     settle();
 
-    const solo: MapMarkerItem[] = pillPts.map((p) => ({ kind: 'single', p }));
+    const solo: MapMarkerItem[] = pillPts.concat(lakePts).map((p) => ({ kind: 'single', p }));
     return solo.concat(cls.map((c): MapMarkerItem => {
       if (c.pts.length === 1) return { kind: 'single', p: c.pts[0] };
       const ll = map.containerPointToLatLng([c.x, c.y]);
       return { kind: 'cluster', lat: ll.lat, lon: ll.lng, count: c.pts.length };
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- moveTick je zámerný trigger prepočtu (pan), nie dáta sama
-  }, [points, tier, zoom, map, moveTick, lang]);
+  }, [points, lakes, tier, zoom, map, moveTick, lang]);
 
   return (
     <>
@@ -1140,7 +1194,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
         <Marker
           key={it.p.id}
           position={[it.p.lat, it.p.lon]}
-          icon={pointIcon(it.p, hoverId === it.p.id || inlineDetailId === it.p.id, zoom, lang, !!mg && !isFreeTrip(it.p.id))}
+          icon={pointIcon(it.p, hoverId === it.p.id || inlineDetailId === it.p.id, zoom, lang, !!mg && !isFreeTrip(it.p.id), !!lakes.get(it.p.id))}
           // pilulka nesie konkrétny údaj (km / názov plochy) a nehýbe sa, tak nech je aspoň
           // navrchu — prekryv s bublinou sa síce rieši ustúpením v bode 3, ale keď sa ustúpiť
           // nedá (NUDGE_MAX), nesmie skončiť tak, že číslo prekrojí polovica pilulky.
@@ -1151,7 +1205,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
           // `bringToFront()` v tej istej situácii.
           zIndexOffset={
             (hoverId === it.p.id || inlineDetailId === it.p.id) ? 100000
-              : pointIsPill(it.p, zoom) ? 1000 : 0
+              : pointIsPill(it.p, zoom) || lakes.has(it.p.id) ? 1000 : 0
           }
           eventHandlers={{
             mouseover: () => onHover(it.p.id),
@@ -1933,6 +1987,11 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 .trp-ghost.hot{opacity:1;}
 /* vodná bodka — zachováva pôvodný .trp-waterdot hover-pop (jediný CSS :hover efekt v pôvodnom
    kóde), teraz na zdieľanej .trp-dot základni. */
+.trp-lake-name{position:absolute;left:0;top:${BIG_MARK_PX / 2 + LAKE_NAME_GAP}px;transform:translateX(-50%);white-space:nowrap;font-family:${FONT_TITLE};font-weight:700;font-size:14px;line-height:${LAKE_NAME_H}px;color:${LAPIS.edge};cursor:pointer;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 4px #fff;} /* písmo: meno */
+.trp-lake-name--num{font-family:${FONT_UI};font-weight:600;}
+.mk-wrap .mk-sticker--big{width:${BIG_MARK_PX}px;height:${BIG_MARK_PX}px;}
+.trp-flag-diff{position:absolute;left:6px;top:4px;width:16px;height:16px;border-radius:999px;background:#fff;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.mk-sticker.trp-lake-hot{filter:drop-shadow(0 0 2px ${T.tripPurple}) drop-shadow(0 0 2px ${T.tripPurple});}
 .trp-dot--water{background:${WATER_COLOR};border-color:rgba(255,255,255,0.55);}
 .trp-dot--water:hover{transform:translate(-50%,-50%) scale(1.12);}
 .trp-dot--water.hot{background:${WATER_COLOR};border-color:#fff;}
@@ -4600,11 +4659,12 @@ export default function PackMap() {
       if (tr.id.startsWith('plan-') || tr.path.length === 0) return;
       if (isWaterTrail(tr)) {
         const [lat, lon] = waterPoint(tr.path);
-        pts.push({ id: tr.id, tr, lat, lon, water: true, journey: false });
+        pts.push({ id: tr.id, tr, lat, lon, water: true, journey: false, lake: waterPlaceOf(tr, true) });
       } else {
         const journey = !!tr.acts?.includes('journey');
-        const [lat, lon] = journey ? tr.path[Math.floor(tr.path.length / 2)] : tr.path[0];
-        pts.push({ id: tr.id, tr, lat, lon, water: false, journey, ghost: isGhostJourney(tr, packWalked) });
+        const lake = waterPlaceOf(tr, false);
+        const [lat, lon] = lake?.at ?? (journey ? tr.path[Math.floor(tr.path.length / 2)] : tr.path[0]);
+        pts.push({ id: tr.id, tr, lat, lon, water: false, journey, ghost: isGhostJourney(tr, packWalked), lake });
       }
     });
     return pts;

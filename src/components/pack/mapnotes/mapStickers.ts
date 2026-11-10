@@ -21,9 +21,12 @@ const STICKER_FILE: Record<string, string> = {
   sleep_bivak: 'bivak',
   castle: 'hrad',
   trip_target: 'cil',
-  // Vodná plocha na oddialenej mape, číslo = počet vlniek z OSM (veľkosť plochy).
-  water_1: 'rybnik',
-  water_3: 'priehrada',
+  trip_flag: 'vylet',
+  // Druh vodnej plochy, určuje ho waterPlaces.ts.
+  water_jazero: 'jazero',
+  water_horske: 'horske',
+  water_priehrada: 'priehrada',
+  water_rybnik: 'rybnik',
   wish_target: 'tripwish',
 };
 
