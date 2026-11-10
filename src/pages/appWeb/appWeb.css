@@ -1598,7 +1598,7 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .lv-pic{display:block;width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden}
 .aw .lv-pic img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s ease}
 .aw .lv:hover .lv-pic img{transform:scale(1.04)}
-.aw .lv>b,.aw .cit-name{font:500 24px/1.1 var(--font-title);color:var(--ink-strong);letter-spacing:.02em}
+.aw .lv>b,.aw .cit-name{font:500 30px/1.1 var(--font-title);color:var(--ink-strong);letter-spacing:.02em}
 .aw .cit-name{display:block;margin-bottom:var(--s-md)}
 .aw .dock{width:100%;box-sizing:border-box;padding:var(--s-sm) var(--s-md);border:1px solid color-mix(in srgb,var(--card-edge) 45%,transparent);border-radius:12px}
 .aw .dock-row{display:flex;align-items:center;height:88px;gap:2px}
@@ -1612,24 +1612,33 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .cit h3{margin:0 0 var(--s-lg);text-align:left;font-size:clamp(26px,5vw,36px);line-height:1.15}
 .aw .cit .pic img{width:100%;display:block;border-radius:12px}
 .aw .cit-fee{max-width:640px;margin:var(--s-xxl) auto var(--s-lg);text-align:center}
-.aw .cit-fee .cit-name{margin-bottom:0}
+.aw .cit-fee h3{margin:0;font-size:clamp(26px,5vw,36px);line-height:1.15}
+.aw .cit-vis{margin-top:var(--s-lg);text-decoration:none}
 .aw .cit-fee .lead{margin-top:var(--s-sm)}
 .aw .cit-ranks{display:grid;gap:var(--s-md);max-width:1040px;margin:0 auto}
 @media(min-width:1000px){.aw .cit-ranks{grid-template-columns:repeat(5,1fr)}}
-.aw .cit-rank{position:relative;display:flex;align-items:center;gap:var(--s-md);padding:var(--s-md)}
-.aw .cit-rank img{flex:none;width:80px;aspect-ratio:1;object-fit:contain;filter:brightness(1.08) saturate(1.1) drop-shadow(0 6px 10px rgba(0,0,0,.28));transition:transform .3s cubic-bezier(.3,1.5,.5,1)}
-.aw .cit-rank:hover img{transform:scale(1.14) rotate(-3deg)}
+.aw .cit-rank{position:relative;width:100%;height:100%;display:flex;align-items:center;gap:var(--s-md);padding:var(--s-md);box-sizing:border-box;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.aw .cit-rank:focus-visible{outline:2px solid var(--lapis-edge);outline-offset:2px}
+.aw .cit-rank img{flex:none;width:80px;aspect-ratio:1;object-fit:contain;filter:brightness(1.08) saturate(1.1) drop-shadow(0 6px 10px rgba(0,0,0,.28));transition:opacity .25s ease}
 .aw .cit-rank .cap{display:flex;flex-direction:column;gap:4px;min-width:0}
-.aw .cit-rank b{font:500 20px/1.15 var(--font-title);color:var(--ink-strong);letter-spacing:.02em}
+.aw .cit-rank b{font:500 24px/1.15 var(--font-title);color:var(--ink-strong);letter-spacing:.02em}
 .aw .cit-rank i{font:600 var(--t-lead)/1.2 var(--font-ui);font-style:normal;color:var(--gold-ink)}
-.aw .cit-rank p{margin:4px 0 0;font:400 var(--t-body)/1.4 var(--font-ui);color:var(--ink-body)}
+.aw .cit-rank .tp{display:block;max-height:0;overflow:hidden;opacity:0;font:400 var(--t-body)/1.4 var(--font-ui);color:var(--ink-body);transition:max-height .3s ease,opacity .25s ease}
+.aw .cit-rank.on .tp{max-height:120px;opacity:1}
 .aw .cit-rank.rec{outline:2px solid var(--lapis-edge);outline-offset:-2px}
 .aw .cit-rec{position:absolute;top:0;right:var(--s-md);transform:translateY(-50%);padding:4px 10px;border-radius:var(--r-pill);background:var(--lapis);color:var(--lapis-ink);font:600 var(--t-micro)/1.3 var(--font-ui);letter-spacing:.14em;text-transform:uppercase}
 @media(min-width:1000px){
   .aw .cit-rank{flex-direction:column;padding:var(--s-lg) var(--s-md)}
   .aw .cit-rank img{width:112px}
   .aw .cit-rank .cap{align-items:center;text-align:center}
+  /* Text sa objaví na mieste odznaku, aby rad blokov pri prejdení myšou neposkočil. */
+  .aw .cit-rank .tp,.aw .cit-rank.on .tp{position:absolute;top:var(--s-lg);left:var(--s-md);right:var(--s-md);height:112px;max-height:none;display:grid;place-items:center}
+  .aw .cit-rank.on img{opacity:.1}
   .aw .cit-rec{right:auto;left:50%;transform:translate(-50%,-50%);white-space:nowrap}
+}
+@media(min-width:1000px) and (hover:hover){
+  .aw .cit-rank:hover img{opacity:.1}
+  .aw .cit-rank:hover .tp{opacity:1}
 }
 .aw .cit-cta{margin-top:var(--s-xl);text-align:center}
 .aw .cit-cta .pk-cta{text-decoration:none}

@@ -55,6 +55,8 @@ const LEVELS: { ax: string; scene: string; start: number; n: number; img: (i: nu
 
 /** Vstupné pri Dogypťanovi: index = `dogyptan-N.webp` aj kľúč názvu `tN`. 2 = Kňaz, perleť s ružovým rámom (Matej 7. 11.); 4 = Faraón; 5 = Člen tímu sa do rebríčka nedáva. */
 const CITIZEN_PRICES = ['€0', '€3,99', '€7,99', '€11,99', '€111+'];
+/** CTA pri Dogypťanovi: keď vznikne `/story`, patrí sem `/story#vision` (Matej 10. 11.). */
+const VISION_HREF = '/#vision';
 
 /** Ikonky funkcií = kartuše z banky (`public/web-app/ikony/*.webp`, Matej 8. 11.: „funkcie na nete v kartuši“,
  *  zdroj plany/nakresy/banka-ikon-2026-11-08/rez/*-kartusa.webp). Odrážky `li` sa zatiaľ nekreslia — doladíme ich neskôr. */
@@ -395,6 +397,7 @@ export default function AppWeb() {
 
   /* funkcie — na dotyk sa karta rozbalí */
   const [vOn, setVOn] = useState<number | null>(null);
+  const [tierOn, setTierOn] = useState<number | null>(null);
 
   /* odznaky */
 
@@ -523,7 +526,7 @@ export default function AppWeb() {
       {/* 2 · ŽI PSÍ ŽIVOT */}
       <section id="life" className="life">
         <div className="wrap split">
-          <Rv className="fresco"><img src="/images/magnet/vylety.webp" alt="" loading="lazy" /></Rv>
+          <Rv className="fresco"><img src={`${A}/vyjavy/zivot-hrou.webp`} alt="" loading="lazy" /></Rv>
           <Rv d={1} className="life-txt">
             <p className="eye">{c('e_life3')}</p>
             <h2><span className="l1">{c('h_life2a')}</span><span className="l1"><span className="deco big">{c('h_life2b')}</span></span></h2>
@@ -730,19 +733,22 @@ export default function AppWeb() {
               <b className="cit-name">{c('ax0')}</b>
               <p className="lead">{c('l_cit1')}</p>
               <p className="lead">{c('l_cit2')}</p>
+              <a className="pk-cta cit-vis" href={VISION_HREF}>{c('cta_vision')}</a>
             </div>
             <div className="pic"><img src={`${A}/vyjavy/obcan.webp`} alt="" loading="lazy" /></div>
           </Rv>
           <Rv className="cit-fee">
-            <b className="cit-name">{c('fee_h')}</b>
+            <h3><span className="deco">{c('fee_h')}</span> {c('fee_h2')}</h3>
             <p className="lead">{c('fee_p')}</p>
           </Rv>
           <div className="cit-ranks">
             {CITIZEN_PRICES.map((price, k) => (
-              <Rv key={price} d={k} className={`cit-rank pk-stage${k === 2 ? ' rec' : ''}`}>
-                {k === 2 && <span className="cit-rec">{c('rec')}</span>}
-                <img src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" loading="lazy" />
-                <div className="cap"><b>{c(`t${k}`)}</b><i>{L === 'sk' ? price : price.replace(',', '.')}</i><p>{c(`tp${k}`)}</p></div>
+              <Rv key={price} d={k}>
+                <button type="button" className={`cit-rank pk-stage${k === 2 ? ' rec' : ''}${tierOn === k ? ' on' : ''}`} onClick={() => setTierOn(tierOn === k ? null : k)}>
+                  {k === 2 && <span className="cit-rec">{c('rec')}</span>}
+                  <img src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" loading="lazy" />
+                  <span className="cap"><b>{c(`t${k}`)}</b><i>{L === 'sk' ? price : price.replace(',', '.')}</i><span className="tp">{c(`tp${k}`)}</span></span>
+                </button>
               </Rv>
             ))}
           </div>

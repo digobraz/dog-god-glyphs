@@ -68,6 +68,8 @@ export const sourceHref = (s: ScrollSource) => (s.doi ? `https://doi.org/${s.doi
 /** Ľahký náhľad obrazu zvitku (`scripts/vault-nahlady.mjs`): ~70 kB namiesto 450–670 kB. Plný jpg ostáva galérii
  *  a zálohe, keď náhľad na serveri ešte nie je. */
 export const scrollThumb = (img: string) => ({
+  // WebKit (iPhone) pri predvolenom asynchrónnom dekódovaní nechával obraz ako pásik hore (zmerané 10. 11. 2026: 3 z 6 behov, so sync 0 zo 6).
+  decoding: 'sync' as const,
   src: img.replace(/(dogypt-media\.dogypt\.workers\.dev\/.*-34)\.jpg$/, '$1.webp'),
   onError: (e: { currentTarget: HTMLImageElement }) => { if (e.currentTarget.src !== img) e.currentTarget.src = img; },
 });

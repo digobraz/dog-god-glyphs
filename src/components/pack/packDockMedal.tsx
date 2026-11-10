@@ -270,6 +270,10 @@ export const DOCK_MEDAL_CSS = `
    istá desiatka žila v dvoch súboroch a pri prvom doladení v nákrese sa rozišla.
    Platí len kým je nav namountovaný — presne vtedy, keď medailón existuje. */
 :root{--pack-medal-x:${DOCK.medalX}px;}
+/* Matej 10. 11. 2026: mini panel JA musí byť vždy vpredu. Panel je zavretý vo vrstve lišty a na mape
+   má prepínač pohľadu 900 proti lište 100, preto sa pri otvorenom paneli zdvihne celá lišta.
+   Predpona html je nutná, pravidlo mapy pre lištu má rovnakú váhu. */
+html .pk-dock-band:has(.pack-avatar-mini){z-index:1000;}
 /* O KOĽKO KOTÚČ VYSTUPUJE NAD LIŠTU. Absolútne pozicovaný medailón výšku navu
    NEZVÄČŠUJE, takže čokoľvek, čo si nad lištou robí miesto (dvojica ZOZNAM/PRIDAŤ
    na /pack/map, rozbaľovačka avatara), by ho inak prekrylo — a to sa 4. 9. aj stalo.
