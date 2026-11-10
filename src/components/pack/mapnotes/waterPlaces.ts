@@ -3,7 +3,9 @@
 // takže kačku rybníka dostala každá voda vrátane Zugersee.
 import { MAP_STICKERS_ON } from './mapStickers';
 
-export type WaterKind = 'jazero' | 'horske' | 'priehrada' | 'rybnik';
+// Tri stupne podľa továrne (Matej 10. 11. 2026: „máme len tieto, ostatné nie"): malý rybník · väčšie jazero ·
+// najväčšie jazero alebo priehrada. Horské plesá ako Oeschinensee padli do tretieho, kresba s horami im sedí.
+export type WaterKind = 'jazero' | 'priehrada' | 'rybnik';
 export type WaterPlace = { kind: WaterKind; name: string; at?: [number, number] };
 
 // Len to, čo sa z názvu výletu odvodiť nedá. Nový výlet ide cez kindFromName a shortName.
@@ -16,11 +18,11 @@ const PLACES: Record<string, Partial<WaterPlace>> = {
   'local-1792067318523-0': { name: 'Rybník Bohunice' },
   // Švajčiarske túry: trasa ostáva trasou, len značka sedí na jazere, nie na parkovisku.
   // Súradnice z OSM (Nominatim), Fälensee = chata Bollenwees na brehu.
-  'local-1791195300552-7467': { kind: 'horske', name: 'Oeschinensee', at: [46.4985, 7.7268] },
-  seealpsee: { kind: 'horske', name: 'Seealpsee', at: [47.2683, 9.4008] },
-  'local-1791717315327-13795': { kind: 'horske', name: 'Fälensee', at: [47.2543, 9.4255] },
-  'local-1794157996029-12385': { kind: 'horske', name: 'Lungerersee', at: [46.7982, 8.1594] },
-  'local-1791482895259-0': { kind: 'horske', name: 'Melchsee', at: [46.7704, 8.272] },
+  'local-1791195300552-7467': { kind: 'priehrada', name: 'Oeschinensee', at: [46.4985, 7.7268] },
+  seealpsee: { kind: 'priehrada', name: 'Seealpsee', at: [47.2683, 9.4008] },
+  'local-1791717315327-13795': { kind: 'priehrada', name: 'Fälensee', at: [47.2543, 9.4255] },
+  'local-1794157996029-12385': { kind: 'priehrada', name: 'Lungerersee', at: [46.7982, 8.1594] },
+  'local-1791482895259-0': { kind: 'priehrada', name: 'Melchsee', at: [46.7704, 8.272] },
 };
 
 const kindFromName = (name: string): WaterKind =>

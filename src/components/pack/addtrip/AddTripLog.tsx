@@ -355,28 +355,37 @@ const TILE_TAGS: Record<string, string[]> = {
   visit: ['nature', 'city', 'onePlace'],
 };
 const SK_P = T.tripPurple;
-const SK_DOT = { fill: '#FFF', stroke: SK_P, strokeWidth: 2 } as const;
-const SK_LINE = { fill: 'none', stroke: SK_P, strokeWidth: 2, strokeDasharray: '4 3' } as const;
-const SK_AREA = { fill: `rgba(${T.tripPurpleRGB},0.12)`, stroke: SK_P, strokeWidth: 2, strokeDasharray: '4 3' } as const;
+// Jedna hrúbka čiary (2), jeden rozmer plátna (80×56) a jedna veľkosť kruhu oblasti (r 14) vo
+// všetkých troch kresbách — hike = plynulá trasa so štartom a cieľom, activity = trasa ALEBO
+// oblasť, visit = jeden bod s prerušovaným kruhom (Matej 10. 11. 2026: „dá sa to lepšie").
+const SK_W = 2;
+const SK_DOT = { fill: '#FFF', stroke: SK_P, strokeWidth: SK_W } as const;
+const SK_LINE = { fill: 'none', stroke: SK_P, strokeWidth: SK_W, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+const SK_AREA = { fill: `rgba(${T.tripPurpleRGB},0.12)`, stroke: SK_P, strokeWidth: SK_W, strokeDasharray: '3 3', strokeLinecap: 'round' } as const;
+const SK_BOX = { width: 64, height: 45, viewBox: '0 0 80 56' } as const;
 const TILE_SKETCH: Record<string, JSX.Element> = {
   hike: (
-    <svg width="72" height="48" viewBox="0 0 72 48">
-      <path d="M6 40 L22 18 L40 28 L54 8 L66 22" {...SK_LINE} />
-      {[[6, 40], [22, 18], [40, 28], [54, 8], [66, 22]].map(([x, y]) => <circle key={x} cx={x} cy={y} r={3.5} {...SK_DOT} />)}
+    <svg {...SK_BOX}>
+      <path d="M10 46 C16 36 20 26 28 26 C38 26 38 38 48 36 C56 34 58 22 66 16" {...SK_LINE} />
+      <circle cx={10} cy={46} r={4} fill={SK_P} />
+      <circle cx={28} cy={26} r={3} {...SK_DOT} />
+      <circle cx={48} cy={36} r={3} {...SK_DOT} />
+      <path d="M66 16 V4 L76 8 L66 12" {...SK_LINE} fill={SK_P} />
     </svg>
   ),
   activity: (
-    <svg width="72" height="48" viewBox="0 0 72 48">
-      <path d="M5 38 L15 20 L29 30" {...SK_LINE} />
-      {[[5, 38], [15, 20], [29, 30]].map(([x, y]) => <circle key={x} cx={x} cy={y} r={3} {...SK_DOT} />)}
-      <circle cx={56} cy={24} r={13} {...SK_AREA} />
-      <circle cx={56} cy={24} r={3} fill={SK_P} />
+    <svg {...SK_BOX}>
+      <path d="M8 44 C14 34 18 30 24 32 C30 34 32 28 36 24" {...SK_LINE} />
+      <circle cx={8} cy={44} r={4} fill={SK_P} />
+      <circle cx={24} cy={32} r={3} {...SK_DOT} />
+      <circle cx={60} cy={28} r={14} {...SK_AREA} />
+      <circle cx={60} cy={28} r={3} fill={SK_P} />
     </svg>
   ),
   visit: (
-    <svg width="72" height="48" viewBox="0 0 72 48">
-      <circle cx={36} cy={24} r={19} {...SK_AREA} />
-      <circle cx={36} cy={24} r={3.5} fill={SK_P} />
+    <svg {...SK_BOX}>
+      <circle cx={40} cy={28} r={14} {...SK_AREA} />
+      <circle cx={40} cy={28} r={4} fill={SK_P} />
     </svg>
   ),
 };
@@ -3252,7 +3261,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                   aria-expanded={noFork ? undefined : open}
                   onClick={() => (noFork ? pickActivity(a.id, 'walked') : setPendingActivity(open ? null : a.id))}
                 >
-                  <span className="atl-tile-emoji">{APP_NEW && TILE_SYS[a.id] ? <SysIcon name={TILE_SYS[a.id]} size={40} /> : a.emoji}</span>
+                  <span className="atl-tile-emoji">{APP_NEW && TILE_SYS[a.id] ? <SysIcon name={TILE_SYS[a.id]} size={128} /> : a.emoji}</span>
                   {/* ⚠️ NÁZOV CEZ SLOVNÍK, NIE `a.label` — dataset nesie anglický názov ako kľúč a na
                       slovenskej obrazovke potom stálo „Hiking" pod nadpisom „Vyber aktivitu".
                       `pack.map.activityLabel.*` už existuje (používa ho filter na mape). */}
@@ -4819,7 +4828,7 @@ const LOG_CSS = `
 .atl-tile-txt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:5px;}
 .atl-tile-note{font-family:${FONT_UI};font-weight:400;font-size:12px;line-height:1.4;letter-spacing:0;text-transform:none;color:${T.onDarkDim};}
 .atl-tile-caret{flex:0 0 auto;font-family:${FONT_UI};font-size:16px;line-height:1;color:${T.onDarkDim};}
-.atl-tile-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.atl-tile-tags{display:flex;flex-wrap:nowrap;gap:4px;margin-top:4px;min-width:0;}
 .atl-tile-tag{font-family:${FONT_UI};font-weight:500;font-size:10px;line-height:1;letter-spacing:0.02em;text-transform:none;padding:4px 8px;border-radius:999px;border:1px solid ${T.border};background:rgba(201,154,63,0.10);color:${GOLD};white-space:nowrap;}
 .atl-tile-sketch{flex:0 0 auto;display:flex;}
 .atl-own{grid-column:1/-1;display:flex;flex-direction:column;gap:4px;}
@@ -5297,10 +5306,16 @@ html.papyrus3d .atl-step.on b{${P3D_V.lapis}background:linear-gradient(180deg,va
 /* DLAŽDICE VÝBERU (krok 0): karta s hrubým obrysom a spodnou perou */
 html.papyrus3d .atl-tile{border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-card);box-shadow:var(--p3d-pera);}
 html.papyrus3d .atl-tile:hover{border-color:var(--p3d-ink);box-shadow:var(--p3d-pera);background:var(--p3d-card);}
-html.papyrus3d .atl-tile-label{font-size:24px;}
-html.papyrus3d .atl-tile-note{font-size:14px;color:color-mix(in srgb,var(--p3d-ink) 72%,var(--p3d-paper));}
-html.papyrus3d .atl-tile-tag{font-size:12px;padding:4px 12px;color:var(--p3d-ink);border:1.5px solid var(--p3d-gold);background:none;}
+html.papyrus3d .atl-tile-label{font-size:20px;}
+html.papyrus3d .atl-tile-note{font-size:12px;line-height:1.3;color:color-mix(in srgb,var(--p3d-ink) 72%,var(--p3d-paper));}
+html.papyrus3d .atl-tile-tag{font-size:10px;padding:4px 8px;color:var(--p3d-ink);border:1.5px solid var(--p3d-gold);background:none;}
 html.papyrus3d .atl-tiles{gap:24px;}
+/* Dlaždica výberu typu zápisu: ikonka je veľký priesvitný podklad (nie stĺpec), pilulky v jednom riadku,
+   fialová kresba vpravo; všetko sa musí zmestiť bez scrollu aj na 375×667 (Matej 10. 11. 2026). */
+html.papyrus3d .atl-tile{position:relative;overflow:hidden;gap:8px;}
+html.papyrus3d .atl-tile-emoji{position:absolute;left:-16px;top:50%;transform:translateY(-50%);opacity:0.22;pointer-events:none;z-index:0;line-height:0;}
+html.papyrus3d .atl-tile-txt,html.papyrus3d .atl-tile-sketch{position:relative;z-index:1;}
+html.papyrus3d .atl-tile-sketch{margin-left:auto;}
 /* pripomienka 20: na nízkom okne (360×740) sa tretia dlaždica nezmestila — zhustenie, nie skrolovanie */
 @media (max-height:800px){
   html.papyrus3d .atl-tiles{gap:12px;}
