@@ -28,8 +28,9 @@ const STICKER_FILE: Record<string, string> = {
   water_rybnik: 'rybnik',
   wish_target: 'tripwish',
   // Zápisy svorky (Matej 10. 11. 2026: „upozornenia sú v starej grafike - vretenice... oprav!"). Výstraha =
-  // červený kruh s kresbou, výbery z továrne (`mapa-*`). Kliešť s potvrdenou chorobou zatiaľ bez vlastnej kresby.
+  // červený kruh s kresbou, výbery z továrne (`mapa-*`).
   note_ticks: 'kliest',
+  note_ticks_sick: 'kliest-nakazeny',
   note_wildlife: 'zver',
   note_viper: 'had',
   note_bear: 'medved',

@@ -114,7 +114,8 @@ export function noteMarkHtml(kind: NoteKind, extra = '', dataset = false, diseas
   // hlasovanie a dá sa zmazať. Prameň z OSM nič z toho nemá. Keby vyzeral rovnako,
   // mapa by tvrdila, že za ním stojí člen.
   // Appka kreslí vlastné samolepky z továrne, emoji v kruhu ostáva webu (10. 11. 2026).
-  const sticker = stickerSrc(`note_${kind}`);
+  // Kliešť s potvrdenou chorobou má vlastnú značku (Matej 10. 11. 2026: „kliešť urob nejakú značku s nakazeným").
+  const sticker = stickerSrc(kind === 'ticks' && disease ? 'note_ticks_sick' : `note_${kind}`);
   if (sticker) return stickerImg(sticker, extra, dataset ? undefined : NOTE_STICKER_PX);
   if (dataset) {
     return `<div class="mn-mark mn-mark--emoji${extra}"><i>${MARK_EMOJI[kind] ?? ''}</i></div>`;
