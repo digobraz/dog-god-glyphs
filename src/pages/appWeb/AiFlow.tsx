@@ -110,7 +110,7 @@ export function AiFlow({ L, c, counter, learn, onWorld, published }: {
       /* zrod — hustota podľa poschodia, horúce ×4 */
       P.forEach((p, k) => {
         const on = h >= 0 && (p.a === h || p.b === h);
-        const rate = (p.tier === 0 ? 1.6 : p.tier === 3 ? 1.1 : 1.3) * (on ? 4 : 1);
+        const rate = (p.tier === 0 ? 1.6 : p.tier === 2 ? 1.1 : 1.3) * (on ? 4 : 1);
         const v = (acc.get(k) ?? Math.random()) + rate * dt;
         if (v >= 1) { parts.push({ path: k, t: 0, v: (0.55 + Math.random() * 0.35) * (on ? 1.5 : 1), s: 1.4 + Math.random() * 1.4 }); acc.set(k, v - 1); }
         else acc.set(k, v);
@@ -176,21 +176,16 @@ export function AiFlow({ L, c, counter, learn, onWorld, published }: {
           <div key={k} className="af-tile" data-fa="0" style={{ ['--fc' as string]: SRC_COL[i] }}><Ic n={ic as string} /><b>{counter(n as number, run)}</b><span>{c(k as string)}</span><small>{c(s as string)}</small></div>
         ))}
       </div>
-      <div className="af-row r4">
-        {[['≈ 12 500', 'a4_1', 'strany'], ['1,25 m', 'a4_2', 'vyska'], ['3,7 km', 'a4_3', 'cesta'], ['47', 'a4_4', 'dni']].map(([n, k, ic]) => (
-          <div key={k} className="af-tile" data-fa="1"><Ic n={ic} /><b>{L === 'en' ? n.replace(',', '.').replace('12 500', '12,500') : n}</b><span>{c(k)}</span></div>
-        ))}
-      </div>
       <div className="af-row r2">
-        <div className="af-tile big cy" data-fa="2"><Ic n="tvrdenia" /><b>{counter(13864, run)}</b><span>{c('ring1b')}</span></div>
-        <div className="af-tile big cy" data-fa="2"><Ic n="spochybnene" /><b>{counter(2106, run)}</b><span>{c('ring2b')}</span><small>{c('ring2s')}</small></div>
+        <div className="af-tile big cy" data-fa="1"><Ic n="tvrdenia" /><b>{counter(13864, run)}</b><span>{c('ring1b')}</span></div>
+        <div className="af-tile big cy" data-fa="1"><Ic n="spochybnene" /><b>{counter(2106, run)}</b><span>{c('ring2b')}</span><small>{c('ring2s')}</small></div>
       </div>
       <div className="af-row r7">
         {VAULT_WORLDS.map((w, k) => {
           const n = VAULT_COUNTS[w.key];
           const live = published.includes(w.key);
           return (
-            <button key={w.key} type="button" className="af-world" data-fa="3" data-w={w.key} onClick={() => onWorld(w.key)}
+            <button key={w.key} type="button" className="af-world" data-fa="2" data-w={w.key} onClick={() => onWorld(w.key)}
               style={{ ['--wc' as string]: wc(w.key), ['--k' as string]: k }}>
               <span className="orb"><i /><img src={`/web-app/ikony/svet-${w.key}.webp`} alt="" loading="lazy" /></span>
               <span className="nm">{worldName(w.key)}</span>
@@ -200,7 +195,7 @@ export function AiFlow({ L, c, counter, learn, onWorld, published }: {
         })}
       </div>
       <div className="af-row r1">
-        <div className="af-sum" data-fa="4">
+        <div className="af-sum" data-fa="3">
           <button type="button" className="af-circ" aria-expanded={openC} onClick={() => setOpenC((v) => !v)}>
             <b>{counter(nCircles, run)}</b> {c('ai_circles')} <em>{openC ? '−' : '+'}</em>
           </button>
