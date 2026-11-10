@@ -29,6 +29,7 @@ import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
 const GodsGridLab = lazy(() => import('@/components/gods/GodsGridLab').then((m) => ({ default: m.GodsGridLab })));
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
+import { flagUrl } from '@/lib/flagUrl';
 import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
 import { IgMock, IgIcon } from './appWeb/IgMock';
@@ -153,6 +154,13 @@ function TripsSection({ c }: { c: (k: string) => string }) {
                 <span className="tr-p">{c(`ts${n}p`)}</span>
               </button>
             ))}
+          {nums && (
+            <div className="tr-nums">
+              <span><b>{nums[0]}</b>{c('tn1')}</span>
+              <span><b>{nums[1].toLocaleString('sk-SK')}</b>{c('tn2')}</span>
+              <span><b>{nums[2]}</b>{c('tn3')}</span>
+            </div>
+          )}
           </Rv>
           <Rv d={1} className={`tr-phone s${step}`}>
             <div className="phone">
@@ -166,13 +174,6 @@ function TripsSection({ c }: { c: (k: string) => string }) {
           </Rv>
         </div>
         <Rv className="tr-foot">
-          {nums && (
-            <div className="tr-nums">
-              <span><b>{nums[0]}</b>{c('tn1')}</span>
-              <span><b>{nums[1].toLocaleString('sk-SK')}</b>{c('tn2')}</span>
-              <span><b>{nums[2]}</b>{c('tn3')}</span>
-            </div>
-          )}
           <a className="pk-cta" href="/map" target="_blank" rel="noopener">{c('t_cta')}</a>
           <p className="tr-sub">{c('t_cta_s')}</p>
         </Rv>
@@ -464,18 +465,18 @@ export default function AppWeb() {
         <div className="wrap">
           <a className="logo" href="#" aria-label="DOGYPT"><img src="/web-app/logo-napis.webp" alt="DOGYPT" /></a>
           <nav>
-            <a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/">{c('nav5')}</a>
+            <a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/">{c('nav5')}</a>
           </nav>
-          <button className="lang" onClick={() => setLang(L === 'sk' ? 'en' : 'sk')}>{L === 'sk' ? 'EN' : 'SK'}</button>
+          <button className="lang" onClick={() => setLang(L === 'sk' ? 'en' : 'sk')}><img src={flagUrl(L === 'sk' ? 'gb' : 'sk', 40)} alt="" />{L === 'sk' ? 'EN' : 'SK'}</button>
           <a className="pk-cta" href="#join">{c('getapp')}</a>
           {/* mobil: hamburger — sekcie, jazyky, GET THE APP (Matej 6. 11., vzor MysteryHike) */}
           <button className={`burger${menu ? ' on' : ''}`} aria-label={c('menu')} aria-expanded={menu} onClick={() => setMenu(!menu)}><i /><i /><i /></button>
         </div>
         {menu && (
           <div className="mmenu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); }}>
-            <nav><a href="#life">{c('nav1')}</a><a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/">{c('nav5')}</a></nav>
+            <nav><a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/">{c('nav5')}</a></nav>
             <p className="mm-h">{c('lang_h')}</p>
-            <div className="mm-lang">{(['sk', 'en'] as const).map((l) => <button key={l} className={L === l ? 'on' : ''} onClick={() => { setLang(l); setMenu(false); }}>{l === 'sk' ? 'Slovenčina' : 'English'}</button>)}</div>
+            <div className="mm-lang">{(['sk', 'en'] as const).map((l) => <button key={l} className={L === l ? 'on' : ''} onClick={() => { setLang(l); setMenu(false); }}><img src={flagUrl(l === 'sk' ? 'sk' : 'gb', 40)} alt="" />{l === 'sk' ? 'Slovenčina' : 'English'}</button>)}</div>
             <Stores />
           </div>
         )}

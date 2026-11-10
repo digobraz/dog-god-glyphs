@@ -11,8 +11,8 @@ export const COPY: Record<string, Record<Lang2, string>> = {
   "sk": "Funkcie"
  },
  "nav3": {
-  "en": "Badges",
-  "sk": "Odznaky"
+  "en": "Levels",
+  "sk": "Levely"
  },
  "nav5": {
   "en": "Story",
@@ -733,7 +733,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  ai_try: { en: 'Live app — scroll, tap, open a world', sk: 'Živá appka — scrolluj, ťukaj, otvor svet' },
  l_alba: { en: 'DOGYPT is all true originals. No fake accounts!', sk: 'V DOGYPTE sú len samé originálne kúsky. Žiadne fake kontá!' },
  h_play1: { en: 'An online game that helps', sk: 'Online hra, ktorá pomáha' }, h_play2: { en: 'OFFLINE.', sk: 'OFFLINE.' },
- l_play: { en: 'The more you care for your dog, the more points you have!', sk: 'Čím viac sa psovi venuješ, tým viac bodov máš!' },
+ l_play: { en: 'The more you care for your dog, the more points you earn.', sk: 'Čím viac sa psovi venuješ, tým viac bodov získaš.' },
  h_lv_a: { en: 'Three levels for', sk: 'Tri levely za' }, h_lv_b: { en: 'your', sk: 'tvojho' }, h_lv_c: { en: 'dog', sk: 'psa' },
  lt_ax1: { en: 'As many years as you\'ve picked up dog poop, that\'s how many times you are a Servant. Every dog gives us more than we know.', sk: 'Koľko rokov zbieraš psie hovná, toľkokrát si Služobníkom. Každý pes, ktorému slúžime, nám dáva viac, než tušíme.' },
  lt_ax2: { en: 'A dog naturally pulls you outside and is often the reason for life\'s best adventures. Every kilometre counts.', sk: 'Pes ťa prirodzene vytiahne von a je často dôvodom tých najkrajších dobrodružstiev. Každý kilometer sa ráta.' },
