@@ -14,7 +14,8 @@ import { APP_NEW } from '@/lib/packFlags';
 
 // JEDNOTNÉ KRUHY v appke (Matej 8. 11. 2026, továreň `plany/ikonky/`, verzia C): témy *„všetko, vylety, zábava, výcvik
 // zdravie pomoc"*, farebná kresba s lemom namiesto vytesaného znaku. Ostatné témy ostávajú v `POST_TAGS` pri písaní príspevku.
-const KRUH: Record<string, string> = { '': 'all', 't:trip': 'trip', 't:fun': 'fun', 't:train': 'train', 't:health': 'health', 't:help': 'help' };
+// Téma Výlety a príroda = strom (Matej 10. 11. 2026), vlajka ostáva pre výlet ako vec (Panel +, záložka na mape).
+const KRUH: Record<string, string> = { '': 'all', 't:trip': 'trip-strom', 't:fun': 'fun', 't:train': 'train', 't:health': 'health', 't:help': 'help' };
 
 const T = PACK_THEME;
 const S = PACK_SPACE;

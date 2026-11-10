@@ -24,7 +24,7 @@ import { HandClipboard, HandArrowLeft } from '@/components/pack/HandIcons';
 import { LikeMark, CommentMark, SysIcon } from '@/components/pack/SysIcon';
 import { APP_NEW } from '@/lib/packFlags';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { COMMUNITY_CSS, PhotoMetaPills } from '@/components/pack/packCommunityUI';
+import { COMMUNITY_CSS, PhotoMetaPills, photoMeta3dCSS } from '@/components/pack/packCommunityUI';
 import { crowdAggregate } from '@/components/pack/packCommunity';
 import { categoriesOf, chipsOf, ACT_TAG_EMOJI, TAG_EMOJI, TAG_I18N } from '@/components/pack/tripCategories';
 import { tripPath, tripText, hasRouteMetrics, isWaterTrail, coverPos, TRAIL_LINE, regionName } from '@/components/pack/tripShared';
@@ -89,6 +89,8 @@ ${FOLLOW_CHIP_CSS}
 .pft-acts .sp{flex:1;}
 .pft-acts button.on.list{color:${T.tripPurple};}
 /* ŠAT PAPYRUS 3D (hárok H4): lem avatara, Museum nadpisy, šípky a akcie ako papierové tlačidlá, CTA lapis, nulové akcie vyblednuté. */
+html.papyrus3d .pft-meta{left:10px;right:10px;bottom:10px;}
+${photoMeta3dCSS('.pft-meta')}
 html.papyrus3d .pft-head .pk-medallion{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink);}
 html.papyrus3d .pft-who b{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;line-height:1.1;letter-spacing:0;color:var(--p3d-ink);} /* písmo: meno */
 html.papyrus3d .pft-ph{border-block:2.5px solid var(--p3d-ink);}
@@ -262,7 +264,7 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
           </>}
           {!isWaterTrail(tr) && (
             <div className="pft-meta">
-              <PhotoMetaPills agg={agg} km={tr.km} ascentM={tr.ascentM} hasRoute={hasRouteMetrics(tr)} />
+              <PhotoMetaPills agg={agg} km={tr.km} ascentM={tr.ascentM} hasRoute={hasRouteMetrics(tr)} iconOnly={APP_NEW} />
             </div>
           )}
         </div>

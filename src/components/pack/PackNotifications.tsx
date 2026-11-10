@@ -18,7 +18,7 @@ import ainubisHead from '@/assets/ainubis-head.webp';
 // s bielym textom… červená zo sniffer“). Jedna červená v appke, nie nový odtieň.
 import { SNIFFER_HEART } from './buddy/SnifferLogo';
 import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
-import { TopCircle, TOP_CIRCLE_PX, TOP_BTN_PX, TOP_HIT_PX, TOP_CAPSULE } from './TopCircle';
+import { TopCircle, TOP_BTN_PX, TOP_HIT_PX, TOP_CAPSULE } from './TopCircle';
 import { LAPIS } from './navGoldSkin';
 import { NTF_P3D_CSS } from './notifP3d';
 // Lazy, rovnaký dôvod ako pri `packAlerts`: `packHumans` ťahá `packStore`.
@@ -814,7 +814,7 @@ export function HubAinubis() {
           alt=""
           aria-hidden
           style={APP_NEW
-            ? { width: TOP_CIRCLE_PX, height: TOP_CIRCLE_PX, borderRadius: 999, border: `2px solid ${T.accentGold}`, objectFit: 'cover', background: T.pageBg, boxSizing: 'border-box' }
+            ? { width: 44, height: 44, objectFit: 'contain' } /* bez kruhu a väčší (Matej 10. 11. 2026) */
             : { width: 32, height: 32, borderRadius: 999, border: `1.5px solid ${AINUBIS.edgeStrong}`, objectFit: 'cover', background: T.pageBg }}
         />
         {unread > 0 && (

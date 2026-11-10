@@ -66,7 +66,8 @@ import { mountBrain, type BrainHandle, type BrainLayer } from '@/components/pack
 import ainubisHead from '@/assets/ainubis-head.webp';
 import { HandArrowLeft, HandLock, HandSearch, HandPaw, HandStar, HandPlus, HandForward, HandCheck } from '@/components/pack/HandIcons';
 import { BackIc, LockIc, SearchIc, CheckIc } from '@/components/app/sysSwap';
-import { SysIcon } from '@/components/pack/SysIcon';
+import { SysIcon, SearchMark } from '@/components/pack/SysIcon';
+import { useHideWhileScrolling } from '@/hooks/useHideWhileScrolling';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { AI_LOGO, svetImg } from '@/components/pack/ainubis/3d/zaklad';
 
@@ -650,6 +651,8 @@ function AinubisApp() {
 const APP_ICO_CSS = `
 .akv-ctlbtn i,.akv-ctlbtn[aria-expanded="true"] i{width:30px;height:30px;background:url(/icons/sys/vrstvy.webp) center/contain no-repeat;-webkit-mask:none;mask:none;}
 .akv-fbtn i{width:22px;height:22px;margin:-4px 0;background:url(/icons/sys/filter.webp) center/contain no-repeat;-webkit-mask:none;mask:none;}
+.akv-lupa{flex:none;display:grid;place-items:center;width:44px;height:40px;padding:0;border:0;background:none;cursor:pointer;}
+@media (min-width:${PC_MIN}px){.akv-lupa{display:none;}}
 .akv-pos-b i,.akv-listen i{width:18px;height:18px;margin:-3px 0;background:url(/icons/sys/prehraj.webp) center/contain no-repeat;-webkit-mask:none;mask:none;}
 `;
 
@@ -837,6 +840,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   /* POČÚVAJ ZA SEBOU — článok sa otvára s podcastom, ktorý hrá sám a po konci pustí ďalší. */
   const [queue, setQueue] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const mactionsRef = useRef<HTMLDivElement>(null);
+  const hideToggle = useHideWhileScrolling(mactionsRef);
   const [flash, setFlash] = useState<string | null>(null);
   const pickWorld = (key: string) => {
     startFor.current = null;
@@ -859,6 +864,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   }, [worldKey, feed]);
   /* Hľadanie nad menami a upútavkami svetov; vrstvy (panel pri pravom kraji); šuplík filtrov (mobil). */
   const [q, setQ] = useState('');
+  // Appka: pole hľadania otvára lupa pri fotke, ako na /map.
+  const [searchOpen, setSearchOpen] = useState(false);
   const [lyrOpen, setLyrOpen] = useState(false);
 
   /* 🔴 KTORÝ POHĽAD MOZOG KRESLÍ (Matej 24. 9. 2026). Základ = farby svetov;
@@ -1107,10 +1114,16 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
         onChange={(e) => onSearch(e.target.value)}
         placeholder={tx('pack.ainubis.searchWorld', 'Search this world')}
         aria-label={tx('pack.ainubis.searchWorld', 'Search this world')}
+        autoFocus={APP_NEW && searchOpen}
       />
     </label>
   );
   const filtersLabel = t('pack.map.filters');
+  const filterBtn = (
+    <button type="button" className="akv-fbtn" aria-label={filtersLabel} aria-expanded={sheet} onClick={() => setSheet(true)}>
+      <i aria-hidden />{!APP_NEW && filtersLabel}
+    </button>
+  );
   /* Postup vo VAULTE — dnes nula, lebo žiadny svet ešte nie je otvorený. Keď pribudne
      čítanie, čísla prídu z neho; menovatele sú súčty z rozpadu svetov.
      🔒 Matej 23. 9. 2026: menovatele 62 okruhov / 569 zvitkov OSTÁVAJÚ viditeľné aj
@@ -1373,7 +1386,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           {SCROLL_DEMO && posBar('akv-pos--l')}
         </header>
 
-        <div className="akv-list" ref={listRef} data-retap-top>
+        <div className="akv-list" ref={listRef} data-retap-top onScroll={hideToggle}>
         <div className="akv-col">
           {SCROLL_DEMO && listenBtn('akv-listen akv-listen--m')}
           {worldKey && feed.length > 0 && feedShown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
@@ -1444,6 +1457,12 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
       <div className="akv-top" ref={topRef}>
         {!pv && <PackIdentityBar
           id={id}
+          middle={APP_NEW && worldKey ? (
+            <button type="button" className="akv-lupa" aria-label={tx('pack.ainubis.searchWorld', 'Search this world')} aria-expanded={searchOpen}
+              onClick={() => { if (searchOpen) setQ(''); setSearchOpen((v) => !v); }}>
+              <SearchMark size={24} />
+            </button>
+          ) : undefined}
           primary={vaultPrimary}
           stats={vaultStats}
           mStats={[
@@ -1475,14 +1494,11 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
                žijú v ľavom bloku — to je vlastné rozhodnutie z toho istého rána
                („OSTÁVA TAK, presun hore aj na PC zamietnutý"). Presúva sa poradie
                v DOM, nie miesto rovín. */}
-        {worldKey && <div className="akv-mtools">
+        {worldKey && (!APP_NEW || searchOpen) && <div className="akv-mtools">
           {search}
-          <button type="button" className="akv-fbtn"
-            aria-expanded={sheet} onClick={() => setSheet(true)}>
-            <i aria-hidden />{filtersLabel}
-          </button>
+          {!APP_NEW && filterBtn}
         </div>}
-        <div className="akv-toprow">{planes('akv-planes-t')}</div>
+        {!(APP_NEW && worldKey && searchOpen) && <div className="akv-toprow">{planes('akv-planes-t')}{APP_NEW && worldKey && filterBtn}</div>}
         {SCROLL_DEMO && posBar('akv-pos--t')}
       </div>
 
@@ -1505,7 +1521,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
       )}
 
       {/* ── DOLE POHĽAD (len mobil) — ikonka aj text ukazujú CIEĽ, nie stav ──── */}
-      <div className="akv-mactions">
+      <div className="akv-mactions" ref={mactionsRef}>
         <button
           type="button"
           className="akv-mtoggle"

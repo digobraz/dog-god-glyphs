@@ -125,7 +125,7 @@ import { useCrowdOthers, refreshCrowdOthers } from '@/components/pack/crowdOther
 import { packStorage, readLocalTrailMeta } from '@/lib/packStore';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import {
-  COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup,
+  COMMUNITY_CSS, BigRating, PhotoMetaPills, photoMeta3dCSS, HazardTags, WalkedPopup,
   EventsView,
   type WalkedInput, type WalkReward, type Companion,
 } from '@/components/pack/packCommunityUI';
@@ -134,7 +134,8 @@ import { deletePackTrip, attributeDogTrips, setDogTripCrew, clearDogTrip, claimJ
 import { tagWalked, crewHumanIds, inviteWalked, crewInviteIds } from '@/lib/packHumans';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { upsertMyTrip, removeMyTrip, ensureMyTrip } from '@/components/pack/triplist/triplist';
-import { SysIcon } from '@/components/pack/SysIcon';
+import { SysIcon, SearchMark } from '@/components/pack/SysIcon';
+import { useHideWhileScrolling } from '@/hooks/useHideWhileScrolling';
 import { walkRevealPoints } from '@/components/pack/level/walkReveal';
 import { supabase } from '@/integrations/supabase/client';
 import { planDateLabel, parsePlanDate, planStart } from '@/components/pack/addtrip/planDate'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
@@ -2683,11 +2684,11 @@ html.papyrus3d .trp-root .trp-layersdd-row input[type=radio]:checked{background:
 html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
 @media (max-width:${PALE_PC_MIN - 1}px){
   /* hlavička VON (A1): papyrus, zlatá lišta pod ňou, tmavá línia a tieň */
-  html.papyrus3d .trp-mheader{background:var(--p3d-card);border:0;border-bottom:6px solid var(--p3d-gold);border-radius:0;box-shadow:0 3px 0 var(--p3d-ink),0 8px 12px var(--p3d-sh);padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 16px;gap:12px;mask-image:none;-webkit-mask-image:none;}
+  html.papyrus3d .trp-mheader{background:var(--p3d-card);border:0;border-bottom:6px solid var(--p3d-gold);border-radius:0;box-shadow:0 3px 0 var(--p3d-ink),0 8px 12px var(--p3d-sh);padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 10px;gap:8px;flex-direction:row;flex-wrap:wrap;align-items:stretch;mask-image:none;-webkit-mask-image:none;}
   html.papyrus3d .trp-mheader::after{display:none;}
   /* veľký kruh človeka, vpravo dole pes, vpravo hore planéta levelu s číslom (bez riadkov km a výletov) */
   /* 9. 11. 2026 (Matej): riadok má výšku radu feedu (PACK_TOPROW: vrch 8, výška 40), aby kapsula SOS + správy + upozornenia stála 1:1 ako na feede */
-  html.papyrus3d .trp-mheader-status{top:0;height:40px;margin-bottom:12px;}
+  html.papyrus3d .trp-mheader-status{top:0;height:40px;margin-bottom:0;flex:0 0 100%;}
   html.papyrus3d .trp-mheader-status .trp-midentity{position:relative;flex:0 0 72px;width:72px;height:40px;display:block;padding:0;}
   html.papyrus3d .trp-mheader-status .trp-midentity-txt{display:none;}
   html.papyrus3d .trp-mheader-status .trp-avs{position:absolute;inset:0;display:block;}
@@ -2703,23 +2704,30 @@ html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
   html.papyrus3d .trp-mheader-status .rk .nb{position:static;font:600 12px/1 'Space Grotesk',sans-serif;color:#fff;text-shadow:0 1px 2px var(--p3d-ink),0 2px 5px var(--p3d-ink);}
   html.papyrus3d .trp-mheader-status .trp-headright{gap:0;}
   /* hľadanie a Filtre */
-  html.papyrus3d .trp-mheader-row2{gap:8px;}
+  html.papyrus3d .trp-mheader-row2{gap:8px;order:3;flex:0 0 auto;}
   html.papyrus3d .trp-mheader .trp-mapsearch input{text-overflow:ellipsis;}
-  html.papyrus3d .trp-mheader .trp-mapsearch{height:54px;padding:0 16px;gap:8px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
+  html.papyrus3d .trp-mheader .trp-mapsearch{flex:1 1 auto;height:48px;padding:0 16px;gap:8px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
   html.papyrus3d .trp-mheader .trp-mapsearch input{padding:0;font:500 16px 'Space Grotesk',sans-serif;color:var(--p3d-ink);}
   html.papyrus3d .trp-mheader .trp-mapsearch input::placeholder{color:var(--m-soft);}
   html.papyrus3d .trp-mheader .trp-mapsearch img.trp-sysico{width:24px!important;height:24px!important;opacity:1;}
-  html.papyrus3d .trp-mheader .trp-mfilterbtn.pk-b3{height:54px;padding:0 16px;gap:8px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:var(--m-pera);font:400 20px/1 'LT Museum',serif;text-transform:none;letter-spacing:0;}
+  html.papyrus3d .trp-mheader .trp-mfilterbtn.pk-b3{position:relative;width:48px;height:48px;padding:0;gap:0;justify-content:center;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:var(--m-pera);font:400 20px/1 'LT Museum',serif;text-transform:none;letter-spacing:0;}
   html.papyrus3d .trp-mheader .trp-mfilterbtn img.trp-sysico{width:24px!important;height:24px!important;}
   /* prepínač Výlety / Podujatia: vybraná voľba je lapis 3D s ikonkou */
-  html.papyrus3d .trp-mheader-cats.pk-p3d-sw{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:inset 0 4px 5px color-mix(in srgb,var(--p3d-ink) 30%,transparent);}
-  html.papyrus3d .trp-mheader-cats.pk-p3d-sw>button{height:54px;min-width:0;padding:0;gap:8px;border:2.5px solid transparent;border-radius:14px;background:none;box-shadow:none;font:400 20px/1 'LT Museum',serif;font-size:20px!important;letter-spacing:0;text-transform:none;color:var(--p3d-ink);}
+  html.papyrus3d .trp-mheader-cats.pk-p3d-sw{order:2;flex:1 1 0;min-width:0;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:inset 0 4px 5px color-mix(in srgb,var(--p3d-ink) 30%,transparent);}
+  html.papyrus3d .trp-mheader-cats.pk-p3d-sw>button{height:36px;min-width:0;padding:0;gap:4px;border:2.5px solid transparent;border-radius:12px;background:none;box-shadow:none;font:400 16px/1 'LT Museum',serif;font-size:16px!important;letter-spacing:0;text-transform:none;color:var(--p3d-ink);}
   html.papyrus3d .trp-mheader-cats.pk-p3d-sw>button.on{border-color:var(--b3-l);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:inset 0 2px 0 var(--m-hi),0 4px 0 var(--b3-p),0 7px 9px var(--p3d-sh);}
-  html.papyrus3d .trp-mheader-cats.pk-p3d-sw>button img.trp-sysico{width:32px!important;height:32px!important;}
+  html.papyrus3d .trp-mheader-cats.pk-p3d-sw>button img.trp-sysico{width:24px!important;height:24px!important;}
+  /* Matej 10. 11. 2026: nižšia hlavička. Filter bez názvu stojí vedľa prepínača, počet nesie odznak, lupa otvorí pole namiesto prepínača. */
+  html.papyrus3d .trp-mheader.is-search .trp-mheader-cats{display:none;}
+  html.papyrus3d .trp-mlist{padding-top:calc(var(--trp-mheader-h,159px) + 12px);}
+  html.papyrus3d .trp-mheader.is-search .trp-mheader-row2{order:2;flex:1 1 100%;min-width:0;}
+  html.papyrus3d .trp-mlupa{flex:none;display:grid;place-items:center;width:44px;height:40px;margin:0 auto 0 8px;padding:0;border:0;background:none;cursor:pointer;}
+  html.papyrus3d .trp-mfcount{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 4px;border-radius:999px;display:grid;place-items:center;background:${LAPIS.grad};color:${LAPIS.ink};font:600 12px/1 'Space Grotesk',sans-serif;}
   /* Zoznam a Mapa: stoja NAD dokom, plus vytŕča 20 px nad lištu (84 + 20) a tlačidlo ho nesmie prekryť */
-  html.papyrus3d .trp-mactions{bottom:calc(var(--pack-nav-bottom,16px) + var(--pack-nav-h,84px) + 20px + 12px);}
-  html.papyrus3d .trp-mtoggle.pk-b3{height:62px;padding:0 24px;gap:8px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:var(--m-pera);font:400 20px/1 'LT Museum',serif;text-transform:none;letter-spacing:0;}
-  html.papyrus3d .trp-mtoggle img.trp-sysico{width:36px!important;height:36px!important;}
+  html.papyrus3d .trp-mactions{left:auto;right:16px;transform:none;bottom:calc(var(--pack-nav-bottom,16px) + var(--pack-nav-h,84px) + 8px);transition:opacity .15s ease;}
+  html.papyrus3d .trp-mactions.is-scrolling{opacity:0;pointer-events:none;}
+  html.papyrus3d .trp-mtoggle.pk-b3{height:44px;padding:0 12px;gap:4px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:var(--m-pera);font:400 16px/1 'LT Museum',serif;text-transform:none;letter-spacing:0;}
+  html.papyrus3d .trp-mtoggle img.trp-sysico{width:24px!important;height:24px!important;}
 
   /* miesto na mape (A6): spodný list s papyrus doskou, názov Museum, akcie 3D */
   html.papyrus3d .plc-peek{border:0;border-top:6px solid var(--p3d-gold);border-radius:16px 16px 0 0;background:var(--p3d-card);box-shadow:0 -3px 0 var(--p3d-ink),0 -12px 16px var(--p3d-sh);padding:0 16px calc(env(safe-area-inset-bottom,0px) + 24px);}
@@ -2744,11 +2752,7 @@ html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
   html.papyrus3d .trp-mlist .trp-cardflag{left:10px;top:10px;width:38px;height:38px;border:2.5px solid var(--p3d-paper-hi);box-shadow:0 0 0 1.5px var(--p3d-ink);}
   /* dolné pilulky na fotke (hárok A2): km a stúpanie v jednej, náročnosť a ruch samé okno */
   html.papyrus3d .trp-mlist .trp-bigcard-photometa{left:10px;right:10px;bottom:10px;}
-  html.papyrus3d .trp-mlist .comm-photometa{gap:8px;}
-  html.papyrus3d .trp-mlist .comm-mpill{height:40px;gap:6px;padding:0 12px 0 8px;border:2px solid var(--p3d-ink);border-radius:12px;background:linear-gradient(180deg,#fff,var(--p3d-paper));color:var(--p3d-ink);box-shadow:0 3px 0 var(--p3d-ink);font:600 16px 'Space Grotesk',sans-serif;letter-spacing:0;}
-  html.papyrus3d .trp-mlist .comm-mpill img{width:28px!important;height:28px!important;}
-  html.papyrus3d .trp-mlist .comm-mpill--ico{padding:0 4px;gap:0;}
-  html.papyrus3d .trp-mlist .comm-msep{display:block;width:4px;flex:none;}
+  ${photoMeta3dCSS('.trp-mlist')}
 }
 /* okno Filtre (A4): papyrus doska so zlatým pásom hore, polia a tlačidlá 3D */
 html.papyrus3d .trp-msheet{background:var(--p3d-card);border:0;border-top:6px solid var(--p3d-gold);border-radius:16px 16px 0 0;box-shadow:0 -3px 0 var(--p3d-ink),0 -12px 16px var(--p3d-sh);}
@@ -3901,6 +3905,8 @@ export default function PackMap() {
   }, [walkedIds]);
 
   const [placeQuery, setPlaceQuery] = useState('');
+  // Appka: pole hľadania sa otvára lupou vedľa fotky a na ten čas nahradí prepínač Výlety / Podujatia.
+  const [mSearchOpen, setMSearchOpen] = useState(false);
   const [placeSug, setPlaceSug] = useState<PlaceSug[]>([]);
   /**
    * 🔴 HĽADANIE MLČALO PRI NULE (audit `/map`, opravené 17. 9. 2026). Ponuka sa
@@ -4838,6 +4844,7 @@ export default function PackMap() {
   // ⚠️ Keď rad nie je vidno (`body.trp-draw-lock` ho skrýva pri kreslení), rect je nulový
   //    a premenná sa ODOBERÁ, nie zapisuje — `innerHeight - 0` by atribúciu vystrelilo na vrch.
   const mactionsRef = useRef<HTMLDivElement>(null);
+  const hideToggle = useHideWhileScrolling(mactionsRef);
   useEffect(() => {
     const el = mactionsRef.current;
     if (!el) return;
@@ -6247,6 +6254,7 @@ export default function PackMap() {
                 setMapTarget({ ll: [s.lat, s.lon], zoom: placeZoom(s.type) });
                 setPlaceQuery(s.name);
                 setPlaceSug([]);
+                setMSearchOpen(false);
               }}
             >
               <div className="trp-mapsug-name">{s.name}</div>
@@ -7207,7 +7215,7 @@ export default function PackMap() {
           .trp-status-row" logika, i15 bod 1 — km/✓/★/ADD TRIP), (2) search +
           Activity/Difficulty/Crowd + FILTER (sort) icon. Replaces the floating .trp-topbar on
           ≤760px. Visible in BOTH mobile map/list views. */}
-      <div className={`trp-mheader${placeSug.length > 0 || placeEmpty ? ' has-sug' : ''}`} ref={mheaderRef}>
+      <div className={`trp-mheader${placeSug.length > 0 || placeEmpty ? ' has-sug' : ''}${APP_NEW && mSearchOpen ? ' is-search' : ''}`} ref={mheaderRef}>
         {/* 2026-08-03 (Matej: „na mobil je toho veľa... potrebujem to vylepšiť tak aby to viac
             dýchalo"): mobilný status riadok UŽ NIE JE zdieľaný trojdielny split z desktopu.
             Desktop (.trp-topbar) ostáva 1:1 ako bol („na PC je to v skutku fajn"), mobil dostal
@@ -7227,6 +7235,13 @@ export default function PackMap() {
         <div className="trp-mheader-status">
           {/* tá istá identita ako na PC — `renderIdentity()` vyššie */}
           {renderIdentity()}
+          {/* Matej 10. 11. 2026: hlavička sa nezmestila nad zoznam, lupa ide hore k fotke ako na feede. */}
+          {APP_NEW && (
+            <button type="button" className="trp-mlupa" aria-label={t('pack.map.searchPlace')} aria-expanded={mSearchOpen}
+              onClick={() => { if (mSearchOpen) setPlaceQuery(''); setMSearchOpen((v) => !v); }}>
+              <SearchMark size={24} />
+            </button>
+          )}
           {/* ⛔ TRIPLIST Z MOBILNEJ HLAVIČKY ODIŠIEL 3. 10. 2026 (Matej: *„tlačidlo triplist zrušme
               s hlavičky"*; 28. 8. ho tu chcel). Ťuk na fotku vľavo otvorí ŠTATISTIKY a TRIPLIST
               je vedľa ako záložka — jeden ťuk navyše, hlavička voľnejšia. PC pilulka ostáva. */}
@@ -7240,7 +7255,7 @@ export default function PackMap() {
           {renderHeaderRight(MAP_SKIN !== 'pale')}
         </div>
         <div className="trp-mheader-row2" ref={mPlaceBoxRef}>
-          <div className={`trp-mapsearch${APP_NEW ? ' pk-p3d-input' : ''}`}>
+          {(!APP_NEW || mSearchOpen) && <div className={`trp-mapsearch${APP_NEW ? ' pk-p3d-input' : ''}`}>
             <img src={APP_NEW ? '/icons/sys/lupa.webp' : ICON('globe')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
             {/* Pole hladania bolo UPLNE NEME: bez placeholdera aj bez aria-label, takze
                 v hlavicke stala prazdna pilulka s ikonkou zemegule a clovek nemal ako
@@ -7251,8 +7266,9 @@ export default function PackMap() {
               onChange={(e) => setPlaceQuery(e.target.value)}
               placeholder={t('pack.map.searchPlace')}
               aria-label={t('pack.map.searchPlace')}
+              autoFocus={APP_NEW}
             />
-          </div>
+          </div>}
           {renderPlaceSug()}
           {/* Matej 2026-07-27: jedna „Filters · N" pilulka namiesto troch selectov — všetky
               filtre (včetane country/region/tagov, ktoré na mobile chýbali ÚPLNE) žijú v sheete. */}
@@ -7265,7 +7281,9 @@ export default function PackMap() {
               aria-expanded={filterSheetOpen}
             >
               <img src={APP_NEW ? '/icons/sys/filter.webp' : ICON('sliders')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
-              <span>{activeFilterCount > 0 ? t('pack.map.filtersCount', { n: activeFilterCount }) : t('pack.map.filters')}</span>
+              {APP_NEW
+                ? activeFilterCount > 0 && <b className="trp-mfcount">{activeFilterCount}</b>
+                : <span>{activeFilterCount > 0 ? t('pack.map.filtersCount', { n: activeFilterCount }) : t('pack.map.filters')}</span>}
             </button>
           </div>
         </div>
@@ -7504,7 +7522,7 @@ export default function PackMap() {
       </div>
 
       {/* full-page card list (mobile 'list' view — replaces the map, not an overlay) */}
-      <div className="trp-mlist" data-retap-top ref={mlistRef} onScroll={(e) => { if (mobileView === 'list') mlistScrollTop = e.currentTarget.scrollTop; }}>
+      <div className="trp-mlist" data-retap-top ref={mlistRef} onScroll={(e) => { if (mobileView === 'list') { mlistScrollTop = e.currentTarget.scrollTop; hideToggle(); } }}>
         <div className="trp-cards">
           {activeCat === 'trips'
             ? (narrow && mobileView === 'list' ? renderTripList(false) : null)

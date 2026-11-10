@@ -1224,6 +1224,15 @@ export function BigRating({ rating, count, compact, mini }: { rating: number; co
   );
 }
 
+/** Dolný pruh fotky výletu v šate Papyrus 3D: ten istý zápis pre zoznam na /map aj feed (Matej 10. 11. 2026). */
+export const photoMeta3dCSS = (scope: string) => `
+  html.papyrus3d ${scope} .comm-photometa{gap:8px;}
+  html.papyrus3d ${scope} .comm-mpill{height:40px;gap:6px;padding:0 12px 0 8px;border:2px solid var(--p3d-ink);border-radius:12px;background:linear-gradient(180deg,#fff,var(--p3d-paper));color:var(--p3d-ink);box-shadow:0 3px 0 var(--p3d-ink);font:600 16px 'Space Grotesk',sans-serif;letter-spacing:0;}
+  html.papyrus3d ${scope} .comm-mpill img{width:28px!important;height:28px!important;}
+  html.papyrus3d ${scope} .comm-mpill--ico{padding:0 4px;gap:0;}
+  html.papyrus3d ${scope} .comm-msep{display:block;width:4px;flex:none;}
+`;
+
 // ── PhotoMetaPills — dolný pruh fotky, TRI pilulky vedľa seba (Matej 2026-07-27; predtým dve
 // stacknuté v pravom rohu): trasa (↔ km · ↑ m) │ náročnosť │ popularita. Glyfy ↔/↑ sú tie isté
 // ako v stat tabuľke článku (PackTripArticle .pta-route) — jeden vizuálny jazyk pre trasu.

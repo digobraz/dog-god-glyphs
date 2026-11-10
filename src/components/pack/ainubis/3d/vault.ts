@@ -49,6 +49,16 @@ ${R} .akv-plane[aria-current="page"]{${M3.swOn}}
 ${R} .akv-plane:disabled{color:${A.inkFaint};opacity:.6;}
 @media (max-width:380px){${R} .akv-search{padding:0 12px;gap:6px;}${R} .akv-fbtn{padding:0 12px;gap:4px;font-size:16px;}${R} .akv-fbtn i{width:24px;height:24px;}
   ${R} .akv-plane{font-size:16px;gap:4px;}${R} .akv-plane img,${R} .akv-plane svg{width:24px !important;height:24px !important;}}
+/* Matej 10. 11. 2026: nižšia hlavička, rovnako ako /map. Lupa pri fotke, filter bez názvu vedľa prepínača. */
+${MOB}{
+  ${R} .akv-top{gap:8px;padding-bottom:10px;}
+  ${R} .pkid--app{margin-bottom:0;}
+  ${R} .pkid--app .pkid-mid{justify-content:flex-start;}
+  ${R} .akv-search{min-height:48px;}
+  ${R} .akv-fbtn{width:48px;min-height:48px;padding:0;gap:0;justify-content:center;}
+  ${R} .akv-planes-t .akv-plane{height:36px;font-size:16px;}
+  ${R} .akv-planes-t .akv-plane img,${R} .akv-planes-t .akv-plane svg{width:24px !important;height:24px !important;}
+}
 
 /* ── VÝBER SVETA: karta so svetovou kresbou, názvom, upútavkou, progresom a šípkou (hárok wcard) ─── */
 ${R} .wp-label{${M3.lab}}
@@ -110,9 +120,11 @@ ${R} .akv-pos-dd .akv-pos-sec{color:${A.cyan};}
 /* ── MOZOG: prepínač dole (hárok .go), tlačidlo Vrstvy (.bic) a panel Vrstvy (.bx) ──────────────── */
 ${b3(`${R} .akv-mtoggle`, 'or', '16px')}
 /* 1:1 s Mapa/Zoznam na /map: tá istá výška, písmo, ikonka aj poloha nad dokom. */
-${R} .akv-mtoggle{height:62px;padding:0 24px;gap:8px;font-size:20px;}
-${R} .akv-mtoggle img{width:36px !important;height:36px !important;}
-${R} .akv-mactions{bottom:calc(var(--pack-nav-bottom,16px) + var(--pack-nav-h,84px) + 20px + 12px);}
+${R} .akv-mtoggle{height:44px;padding:0 12px;gap:4px;font-size:16px;}
+${R} .akv-mtoggle img{width:24px !important;height:24px !important;}
+/* Matej 10. 11. 2026: menšie, vpravo nad lištou, počas rolovania preč. */
+${R} .akv-mactions{left:auto;right:16px;transform:none;bottom:calc(var(--pack-nav-bottom,16px) + var(--pack-nav-h,84px) + 8px);transition:opacity .15s ease;}
+${R} .akv-mactions.is-scrolling{opacity:0;pointer-events:none;}
 ${b3(`${R} .akv-ctlbtn`, 'nt', '16px')}
 ${R} .akv-ctlbtn{width:52px;height:52px;}
 ${R} .akv-ctlbtn[aria-expanded="true"]{background:linear-gradient(180deg,#123C4C,#0B2733);}
