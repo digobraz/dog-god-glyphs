@@ -159,12 +159,12 @@ export const COPY: Record<string, Record<Lang2, string>> = {
   "sk": "páči sa mame a 2 ďalším"
  },
  "cap1": {
-  "en": "a dog profile on Instagram",
-  "sk": "psí profil na Instagrame"
+  "en": "A profile like this is a joke: it's a clever idea from owners, but in an algorithm built for humans it adds no value.",
+  "sk": "Takýto profil je na smiech: je to pekná vynaliezavosť majiteľov, ale v algoritme pre ľudí bez pridanej hodnoty."
  },
  "cap2": {
-  "en": "a dog profile on DOGYPT",
-  "sk": "psí profil v DOGYPTe"
+  "en": "An app built (and constantly improved) for dog lovers and their dogs. Your dog deserves more than Instagram.",
+  "sk": "Appka je vytvorená (a stále vylepšovaná) pre potreby psíčkarov a ich psov. Tvoj pes si zaslúži viac než Instagram."
  },
  "e_feat": {
   "en": "A crossbreed of top apps",
@@ -255,8 +255,8 @@ export const COPY: Record<string, Record<Lang2, string>> = {
   "sk": "Koľko, čo a kedy pre tvojho psa."
  },
  "e_badge": {
-  "en": "Badges",
-  "sk": "Odznaky"
+  "en": "Better owner every day",
+  "sk": "Každý deň lepší majiteľ"
  },
  "h_badge1": {
   "en": "Three ways to",
@@ -271,24 +271,24 @@ export const COPY: Record<string, Record<Lang2, string>> = {
   "sk": "Služobník"
  },
  "ax1p": {
-  "en": "Years with your dogs. Every year a new badge.",
-  "sk": "Roky so psami. Každý rok nový odznak."
+  "en": "As many years as you've been picking up dog poop, that's how many times you are a Servant. For our dogs we would move heaven and earth, whatever the circumstances. But every dog we lovingly serve gives us more than we can realise.",
+  "sk": "Koľko rokov zbieraš psie hovná, toľkokrát si Služobníkom. Pre našich psov by sme zniesli modré z neba bez ohľadu na okolnosti. Každý pes, ktorému s láskou slúžime, nám však dáva viac, než si dokážeme uvedomiť."
  },
  "ax2": {
   "en": "Pilgrim",
   "sk": "Pútnik"
  },
  "ax2p": {
-  "en": "Kilometres and countries walked together.",
-  "sk": "Kilometre a krajiny prejdené spolu."
+  "en": "A dog naturally pulls you outside and is often the reason for the most beautiful adventures of your life. Wandering together in nature is not only about unforgettable experiences, but also about meeting new people, discovering new places and better health.",
+  "sk": "Pes ťa prirodzene vytiahne von a je často dôvodom tých najkrajších dobrodružstiev v živote. Spoločné putovanie v prírode nie je len o nezabudnuteľných zážitkoch, ale aj o spoznávaní nových ľudí, lokalít a pevnejšom zdraví."
  },
  "ax3": {
   "en": "Student",
   "sk": "Študent"
  },
  "ax3p": {
-  "en": "AINUBIS scrolls you read. The more you know, the better for your dog.",
-  "sk": "Prečítané zvitky AINUBISa. Čím viac vieš, tým lepšie pre psa."
+  "en": "Feeling helpless at the vet is every dog person's nightmare. That's why every Dogyptian is entitled to learning through play. Verified, practical knowledge translated into human language, which will extend your life together and improve its quality.",
+  "sk": "Bezmocnosť u veterinára je nočnou morou každého psíčkara. Každý Dogypťan má preto nárok na školu hrou. Overené, praktické a do ľudskej reči preložené znalosti, ktoré predĺžia váš spoločný život a zlepšia jeho kvalitu."
  },
  "e_ai": {
   "en": "AI guide",
@@ -347,20 +347,20 @@ export const COPY: Record<string, Record<Lang2, string>> = {
   "sk": "Spýtaj sa AINUBISa"
  },
  "e_good": {
-  "en": "Free for every dog",
-  "sk": "Zadarmo pre každého psa"
+  "en": "Thank-you",
+  "sk": "Poďakovanie"
  },
  "h_good1": {
-  "en": "In this universe, dog is god.",
-  "sk": "V tomto vesmíre je pes boh."
+  "en": "To all",
+  "sk": "Pre všetkých"
  },
  "h_good2": {
-  "en": "Every dog gets in.",
-  "sk": "Každý má prístup."
+  "en": "DOGS",
+  "sk": "PSOV"
  },
  "l_good": {
-  "en": "That's why the app is free for every dog, forever. Your gift is what lets us grow — and part of it goes straight to shelter bowls.",
-  "sk": "Preto je appka zadarmo pre každého psa, navždy. Vďaka milodaru vieme ďalej rásť — a časť z neho ide rovno do misiek v útulkoch."
+  "en": "DOGYPT was born as a sincere thank-you to the dog kind. It is meant to highlight the uniqueness of our bond, improve the quality of our shared lives and make sure this love lasts into the digital times to come.",
+  "sk": "DOGYPT vznikol ako úprimné poďakovanie psej rase. Má vyzdvihnúť jedinečnosť nášho puta, zlepšiť kvalitu našich spoločných životov a zabezpečiť, aby táto láska pretrvala aj v nasledujúcich, digitálnych časoch."
  },
  "b1": {
   "en": "to play",
@@ -495,8 +495,8 @@ export const COPY: Record<string, Record<Lang2, string>> = {
   "sk": "HRANICA"
  },
  "l_dogma": {
-  "en": "Our constitution. Absurd, sincere and true. Fits on top of any faith.",
-  "sk": "Naša ústava. Absurdná, úprimná a pravdivá. Sadne na akúkoľvek vieru."
+  "en": "This is not an ordinary project, it is a movement with a clear inner code. And even though we like animals more than people, we know that if we dog people unite, we will have greater power to help the whole dog kind together and with love.",
+  "sk": "Toto nie je obyčajný projekt, je to hnutie s jasným vnútorným kódexom. A aj keď máme radšej zvieratá než ľudí, vieme, že ak sa ako psíčkari spojíme, budeme mať väčšiu moc pomáhať celej psej rase spoločne a s láskou."
  },
  "dogma_cta": {
   "en": "Read the DOGMA →",
@@ -612,24 +612,24 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  h1c: { en: 'DOG.', sk: 'PSOM.' },
  sub: { en: 'You play offline, you collect points online.\nYour whole life in one useful app, free.', sk: 'Hráš offline, body zbieraš online.\nCelý váš život v jednej užitočnej appke, zadarmo.' },
  fl1a: { en: 'Mountain trip', sk: 'Výlet na horách' }, fl1b: { en: '+46 points', sk: '+46 bodov' },
- fl2a: { en: 'Servant 9', sk: 'Služobník 9' }, fl2b: { en: '3 285 poops picked up', sk: '3 285 zdvihnutých kôpok' },
- fl3a: { en: 'Disciple 4', sk: 'Učeň 4' }, fl3b: { en: '10 % of Dog Sense', sk: '10 % psieho rozumu' },
+ fl2a: { en: 'Servant level 9', sk: 'Služobník level 9' }, fl2b: { en: '3,285 days of dutifully picking up poops', sk: '3 285 dní poslušne zdvíhaš kôpky' },
+ fl3a: { en: 'Eternal Disciple', sk: 'Večný učeň' }, fl3b: { en: 'Self-study of Dog Sense that you\'ll fall in love with!', sk: 'Samoštúdium psieho rozumu, ktoré si zamiluješ!' },
  p1: { en: 'dogs', sk: 'psov' }, p2: { en: 'people', sk: 'ľudí' }, p3: { en: 'countries', sk: 'krajín' },
  fl1: { en: 'Mountain trip · +46 points', sk: 'Výlet na horách · +46 bodov' },
- fl1t: { en: 'Pilgrim: every trip with your dog adds kilometres and points.', sk: 'Pútnik: každý výlet so psom pridá kilometre a body.' },
+ fl1t: { en: 'Every trip with your dog levels up your PILGRIM.', sk: 'Každý výlet so psom zvyšuje tvoj level PÚTNIK.' },
  fl2: { en: 'Servant 9 · 3 285 poops picked up', sk: 'Služobník 9 · 3 285 zdvihnutých kôpok' },
- fl2t: { en: 'Servant: years with your dog. Nine years, one bag a day.', sk: 'Služobník: roky so psom. Deväť rokov, jedno vrecko denne.' },
+ fl2t: { en: 'This level can only be earned through years of service.', sk: 'Tento level si musíš zaslúžiť len rokmi služby' },
  fl3: { en: 'Disciple 4 · 10 % of Dog Sense', sk: 'Učeň 4 · 10 % psieho rozumu' },
- fl3t: { en: 'Disciple: scrolls you read in AINUBIS. The more you know, the longer your dog lives.', sk: 'Učeň: zvitky prečítané v AINUBISovi. Čím viac vieš, tým dlhšie tvoj pes žije.' },
+ fl3t: { en: 'Scroll through dog knowledge and level up your DISCIPLE!', sk: 'Scrolluj poznatky o psoch a vylepši svoj level UČEŇ!' },
  nav1: { en: 'Dog life', sk: 'Psí život' },
- e_life3: { en: 'Multiplayer: you and your dog', sk: 'Multiplayer: ty a tvoj pes' },
+ e_life3: { en: 'The best Multiplayer', sk: 'Najlepší Multiplayer' },
  e_life2: { en: 'Every sh*t counts!', sk: 'Každé hovno sa počíta!' },
  h_life2a: { en: 'Life as a', sk: 'Život' }, h_life2b: { en: 'GAME', sk: 'HROU' },
- l_life2: { en: 'Every day together counts! Your actions say what kind of dog person you are.', sk: 'Každý deň spolu sa počíta! To, aký si psíčkar, za teba prezradia činy.' },
- v1: { en: 'Go on trips', sk: 'Výletuj' }, v1p: { en: 'Trails, hills, new countries.', sk: 'Trasy, kopce, nové krajiny.' },
- v2: { en: 'Be there for them', sk: 'Venuj sa mu' }, v2p: { en: 'Every walk, every day.', sk: 'Každá prechádzka, každý deň.' },
- v3: { en: 'Learn', sk: 'Študuj' }, v3p: { en: 'So they live longer and better.', sk: 'Aby žil dlhšie a lepšie.' },
- v4: { en: 'Share', sk: 'Zdieľaj' }, v4p: { en: 'In a social network made for dogs.', sk: 'V sociálnej sieti pre psov.' },
+ l_life2: { en: 'An ordinary person will never understand the life of a dog person. We live life for two, and from now on we earn points for it!', sk: 'Bežný človek nikdy nepochopí život psíčkara. Žijeme život za dvoch a od teraz už za to zbierame body!' },
+ v1: { en: 'Go on a trip!', sk: 'Poď na výlet!' }, v1p: { en: 'Discover new trails, hills and countries.', sk: 'Objavuj nové trasy, kopce či krajiny.' },
+ v2: { en: 'Serve them faithfully', sk: 'Slúž mu verne' }, v2p: { en: 'Every day together counts', sk: 'Každý deň spolu sa počíta' },
+ v3: { en: 'Scroll and learn', sk: 'Scrolluj a uč sa' }, v3p: { en: 'So they live longer and better.', sk: 'Aby žil dlhšie a lepšie.' },
+ v4: { en: 'Share it', sk: 'Zdieľaj to' }, v4p: { en: 'With a community that will appreciate it', sk: 'Do komunity, ktorá to ocení' },
  v5: { en: 'Have fun', sk: 'Bav sa' }, v5p: { en: 'Badges, levels, a pack around you.', sk: 'Odznaky, levely, svorka okolo teba.' },
  v6: { en: 'Help', sk: 'Pomáhaj' }, v6p: { en: 'Lost dogs, shelters, dogs in need.', sk: 'Strateným psom, útulkom, psom v núdzi.' },
  loop: { en: 'Log it → Level up → Help', sk: 'Zapisuj → Stúpaj → Pomáhaj' },
@@ -652,34 +652,34 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  ig3_ing: { en: '4 120', sk: '4 120' },
  ig3_name: { en: 'Luna', sk: 'Luna' },
  ig3_bio: { en: 'chasing snow, not deadlines', sk: 'naháňam sneh, nie termíny' },
- cap1: { en: 'A profile like this is ridiculous for a dog: a separate account for every one, lost in an algorithm built for humans.', sk: 'Takýto profil je pre psa smiešny: zvlášť účet pre každého a všetko v algoritme stavanom pre ľudí.' },
- cap2: { en: 'An app designed (and still growing) for dog lovers and their dogs.', sk: 'Appka vytvorená (a stále vylepšovaná) pre psíčkarov a ich psov.' },
+ cap1: { en: 'A profile like this is a joke: it\'s a clever idea from owners, but in an algorithm built for humans it adds no value.', sk: 'Takýto profil je na smiech: je to pekná vynaliezavosť majiteľov, ale v algoritme pre ľudí bez pridanej hodnoty.' },
+ cap2: { en: 'An app built (and constantly improved) for dog lovers and their dogs. Your dog deserves more than Instagram.', sk: 'Appka je vytvorená (a stále vylepšovaná) pre potreby psíčkarov a ich psov. Tvoj pes si zaslúži viac než Instagram.' },
  e_alba: { en: 'The same name. A different dog. A unique symbol.', sk: 'To isté meno. Iný pes. Jedinečný symbol.' },
  h_alba_a: { en: "Dog name isn't unique.", sk: 'Meno psa nie je unikát.' },
  h_alba_b: { en: 'HEROGLYPH', sk: 'HEROGLYF' },
  h_alba_c: { en: 'is!', sk: 'je!' },
  h_soul1: { en: 'Instagram is for people.', sk: 'Instagram je pre ľudí.' }, h_soul2: { en: 'for dog lovers.', sk: 'pre psíčkarov.' },
- l_soul: { en: 'A social network where every dog is a true original.', sk: 'Psociálna sieť, kde je každý pes naozajstný unikát.' },
+ l_soul: { en: 'A social network where every dog is a true original, with VIP access.', sk: 'Psociálna sieť, kde je každý pes naozajstný unikát s VIP prístupom.' },
  e_glyph: { en: 'Made for dogs. With a soul.', sk: 'Navrhnuté pre psov. S dušou.' },
  h_glyph: { en: 'No fakes. Only originals.', sk: 'Žiadny fejk. Len originály.' },
  l_glyph: { en: 'Every dog gets a heroglyph — a symbol nobody else has. The big frame is the dog: sex, colour, origin, bloodline, silhouette and two traits of character. You sit inside it, in the small frame — because here the dog comes first.', sk: 'Každý pes dostane heroglyf — symbol, ktorý nemá nikto iný. Veľký rámik je pes: pohlavie, farba, pôvod, pokrvná línia, silueta a dve povahové črty. Ty sedíš vo vnútri, v malom rámiku — lebo tu je pes na prvom mieste.' },
  h_feat_a: { en: 'Everything a', sk: 'Všetko, čo' }, h_feat_b: { en: 'dog lover needs.', sk: 'psíčkar potrebuje.' },
  alba_cnt_a: { en: 'There are roughly', sk: 'Na svete je približne' },
- alba_cnt_n: { en: '144,572', sk: '144 572' },
+ alba_cnt_n: { en: '124,572', sk: '124 572' },
  alba_cnt_b: { en: 'dogs named Alba in the world. Not one has the same heroglyph!', sk: 'psov s menom Alba. Heroglyf nemá ani jedna rovnaký!' },
  alba_cnt_tip: { en: 'AINUBIS’s rough guess :)', sk: 'Hrubý odhad AINUBISa :)' },
  h_feat2: { en: 'One ecosystem instead of ten apps.', sk: 'Jeden ekosystém namiesto desiatich appiek.' },
  soon_h: { en: 'Coming next', sk: 'Čoskoro' },
- e_badge: { en: 'Achievement unlocked', sk: 'Achievement odomknutý' }, h_badge1: { en: 'The 4 paths of a', sk: '4 cesty' }, h_badge2: { en: 'DOGYPTIAN', sk: 'DOGYPŤANA' },
+ e_badge: { en: 'Better owner every day', sk: 'Každý deň lepší majiteľ' }, h_badge1: { en: 'The 4 paths of a', sk: '4 cesty' }, h_badge2: { en: 'DOGYPTIAN', sk: 'DOGYPŤANA' },
  my1: { en: '9 years together', sk: '9 rokov spolu' }, my2: { en: 'level 2', sk: 'level 2' }, my3: { en: '10 % of Dog Sense', sk: '10 % psieho rozumu' },
  ax0: { en: 'Citizen', sk: 'Občan' },
- ax0p: { en: 'Everyone is a Believer. Those who support the mission rise: Acolyte, Priest, Vizier.', sk: 'Veriaci je každý. Kto podporí misiu, stúpa: Akolyta, Kňaz, Vezír.' },
+ ax0p: { en: 'A Believer is anyone who lives by the motto: In Dog We Trust! Full access to the app is free. But for the project to grow, we need the voluntary support of the most faithful. Only that way will DOGYPT survive and thrive.', sk: 'Veriaci je každý, kto sa riadi heslom: Veríme v psa! Plný prístup do appky je bezplatný. Aby však projekt mohol rásť, potrebujeme dobrovoľnú podporu tých najvernejších. Len tak DOGYPT prežije a bude prosperovať.' },
  ax1: { en: 'Servant', sk: 'Služobník' },
- ax1p: { en: 'How many years you’ve been picking up after them. Every year together, a new badge.', sk: 'Koľko rokov zbieraš kôpky. Každý rok spolu, nový odznak.' },
+ ax1p: { en: 'As many years as you\'ve been picking up dog poop, that\'s how many times you are a Servant. For our dogs we would move heaven and earth, whatever the circumstances. But every dog we lovingly serve gives us more than we can realise.', sk: 'Koľko rokov zbieraš psie hovná, toľkokrát si Služobníkom. Pre našich psov by sme zniesli modré z neba bez ohľadu na okolnosti. Každý pes, ktorému s láskou slúžime, nám však dáva viac, než si dokážeme uvedomiť.' },
  ax2: { en: 'Pilgrim', sk: 'Pútnik' },
- ax2p: { en: 'The more adventures, the richer the life together — one you’ll never forget.', sk: 'Čím viac dobrodružstiev, tým bohatší spoločný život, na ktorý nikdy nezabudnete.' },
+ ax2p: { en: 'A dog naturally pulls you outside and is often the reason for the most beautiful adventures of your life. Wandering together in nature is not only about unforgettable experiences, but also about meeting new people, discovering new places and better health.', sk: 'Pes ťa prirodzene vytiahne von a je často dôvodom tých najkrajších dobrodružstiev v živote. Spoločné putovanie v prírode nie je len o nezabudnuteľných zážitkoch, ale aj o spoznávaní nových ľudí, lokalít a pevnejšom zdraví.' },
  ax3: { en: 'Disciple', sk: 'Učeň' },
- ax3p: { en: 'Verified, collected, practical knowledge translated into human language — so your life together is longer and better.', sk: 'Overené, zozbierané, praktické a do ľudskej reči preložené znalosti, ktoré predĺžia váš spoločný život a zlepšia jeho kvalitu.' },
+ ax3p: { en: 'Feeling helpless at the vet is every dog person\'s nightmare. That\'s why every Dogyptian is entitled to learning through play. Verified, practical knowledge translated into human language, which will extend your life together and improve its quality.', sk: 'Bezmocnosť u veterinára je nočnou morou každého psíčkara. Každý Dogypťan má preto nárok na školu hrou. Overené, praktické a do ľudskej reči preložené znalosti, ktoré predĺžia váš spoločný život a zlepšia jeho kvalitu.' },
  t0: { en: 'Believer', sk: 'Veriaci' }, t1: { en: 'Acolyte', sk: 'Akolyta' }, t2: { en: 'Priest', sk: 'Kňaz' }, t3: { en: 'Vizier', sk: 'Vezír' }, t4: { en: 'Pharaoh', sk: 'Faraón' },
  e_ai: { en: 'Your personal mentor', sk: 'Tvoj osobný mentor' },
  h_ai_a: { en: 'Dog science. In', sk: 'Psia veda. V' }, h_ai_b: { en: 'plain', sk: 'ľudskej' }, h_ai_c: { en: 'language.', sk: 'reči.' },
@@ -731,9 +731,9 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  uc_first: { en: 'first scroll', sk: 'prvý zvitok' }, uc_vault: { en: 'of Dog Sense', sk: 'psieho rozumu' },
  ai_worlds: { en: 'worlds', sk: 'svetov' }, ai_circles: { en: 'circles', sk: 'okruhov' }, ai_scrolls: { en: 'scrolls', sk: 'zvitkov' },
  ai_try: { en: 'Live app — scroll, tap, open a world', sk: 'Živá appka — scrolluj, ťukaj, otvor svet' },
- e_good: { en: 'Free forever', sk: 'Navždy zadarmo' },
- h_good1: { en: 'A thank-you to', sk: 'Poďakovanie' }, h_good2: { en: 'dogs.', sk: 'psom.' },
- l_good: { en: 'DOGYPT was born as a thank-you to the dog kind. The idea is for it to stay here after us, to keep dogs’ lives beautiful and our bond lasting. So that technology doesn’t split our path, but joins it.', sk: 'DOGYPT vznikol ako poďakovanie psej rase. Myšlienka je, aby tu ostal aj po nás a zabezpečil psom krásny život a nám trvalé spojenie. Aby technológia našu cestu nerozdelila, ale spojila.' },
+ e_good: { en: 'Thank-you', sk: 'Poďakovanie' },
+ h_good1: { en: 'To all', sk: 'Pre všetkých' }, h_good2: { en: 'DOGS', sk: 'PSOV' },
+ l_good: { en: 'DOGYPT was born as a sincere thank-you to the dog kind. It is meant to highlight the uniqueness of our bond, improve the quality of our shared lives and make sure this love lasts into the digital times to come.', sk: 'DOGYPT vznikol ako úprimné poďakovanie psej rase. Má vyzdvihnúť jedinečnosť nášho puta, zlepšiť kvalitu našich spoločných životov a zabezpečiť, aby táto láska pretrvala aj v nasledujúcich, digitálnych časoch.' },
  l_good2: { en: 'That’s why the app is free for every dog, forever. We run on gifts: a voluntary entry fee, if you want. Every euro is public: where it went and how much.', sk: 'Preto je appka zadarmo pre každého psa, navždy. Fungujeme z milodarov: dobrovoľné vstupné, ak chceš. Každé euro je verejné: kam išlo a koľko.' },
  b1: { en: 'to play', sk: 'na hranie' },
  b2v: { en: '€3.99 · 7.99 · 11.99', sk: '€3,99 · 7,99 · 11,99' }, b2: { en: 'voluntary entry', sk: 'dobrovoľné vstupné' },
@@ -745,39 +745,39 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  or_app: { en: 'or download the app first', sk: 'alebo si najprv stiahni appku' },
  /* FAQ 4 + 4 (Matej 6. 11.): vľavo prakticky, vpravo zmysel a ľudia, kontakt posledný; verzie A z návrhu */
  fq_free: { en: 'Is it really free?', sk: 'Je to naozaj zadarmo?' },
- fa_free: { en: 'Yes. Every feature, for every dog, forever. If you want, you pay a voluntary entry fee. If you don’t, you walk on with us and nobody barks at you for it.', sk: 'Áno, všetky funkcie pre každého psa, navždy. Kto chce, zaplatí dobrovoľné vstupné. Kto nechce, ide s nami ďalej a nikto ho za to neštekne.' },
- fq_dog: { en: 'Do I need a dog?', sk: 'Potrebujem psa?' },
- fa_dog: { en: 'Yes. Without a dog it’s football without a ball. Every account starts with a dog and their heroglyph. Cat people may quietly envy us for now.', sk: 'Áno, bez psa je to ako futbal bez lopty. Každý účet začína psom a jeho heroglyfom. Mačkári môžu zatiaľ potichu závidieť.' },
- fq_off: { en: 'Does it work offline?', sk: 'Funguje to offline?' },
- fa_off: { en: 'You walk offline. The forest needs no signal and your dog needs it even less. The trip is saved once you’re back online, and the points don’t get lost, even if you do.', sk: 'Vonku ideš offline, les signál nepotrebuje a pes ho nepotrebuje už vôbec. Výlet sa zapíše, keď si znova online. Body sa nestratia, ani keď sa stratíš ty.' },
+ fa_free: { en: 'Yes, all the main features for every dog, forever. The main goal of the project is to help every dog selflessly. At the same time we depend only on the voluntary entry fee, which powers the whole project. If you don\'t want to pay, you walk on with us and nobody will bite you for it :).', sk: 'Áno, všetky hlavné funkcie pre každého psa, navždy. Hlavným cieľom projektu je poskytnúť pomoc každému psovi nezištne. Zároveň sme odkázaní len na dobrovoľné vstupné, ktoré celý projekt poháňa. Kto nechce, ide s nami ďalej a nikto ho za to nepohryzie :).' },
+ fq_dog: { en: 'Do I need a dog to enter the app?', sk: 'Potrebujem na vstup do appky psa?' },
+ fa_dog: { en: 'Yes, without a dog it\'s like playing football without a ball. Every account starts with a dog and their personal heroglyph. The unique symbol ensures only real dogs and their owners: no fake accounts, only true dog-hearted people.', sk: 'Áno, bez psa je to ako hrať futbal bez lopty. Každý účet začína psom a jeho osobným heroglyfom. Unikátny symbol zabezpečí len reálnych psov a ich majiteľov: žiadne fake účty, len naozajstní srdciari.' },
+ fq_off: { en: 'Does it work offline?', sk: 'Funguje to aj offline?' },
+ fa_off: { en: 'Our app is a bit of a hybrid. Out there you live life with your dog offline, and when you get back you just document it and collect points online. And of course, some useful features, like offline first aid for your dog, work even without a signal!', sk: 'Naša appka je tak trochu hybrid. Vonku žiješ život so psom offline a keď sa vrátiš, len ho zadokumentuješ a zbieraš body online. Samozrejme, niektoré užitočné funkcie, ako offline prvá pomoc pre psa, sú dostupné aj mimo signálu!' },
  fq_cult: { en: 'Is this a cult?', sk: 'Je to sekta?' },
- fa_cult: { en: 'Half joke, half truth. Dogyptism is a dog religion that fits on top of any faith and asks one thing: be good to your dog. The only offerings we accept are treats.', sk: 'Napoly vtip, napoly pravda. Dogyptizmus je psie náboženstvo, ktoré sedí na akúkoľvek vieru a žiada jediné: buď dobrý k svojmu psovi. Obete prinášame len vo forme piškót.' },
+ fa_cult: { en: 'Yes, a cult that picks up its dogs\' poop every day with a smile. A cult that smiles at every dog. A cult that doesn\'t care much for people, but if they\'re part of our cult that loves dogs, they\'re our people. It\'s really not about us, it\'s about our dogs, who make us better people.', sk: 'Áno, sekta, ktorá každý deň zbiera hovná svojich psov s úsmevom. Sekta, ktorá sa na každého psa usmeje. Sekta, ktorá ľudí moc nemusí, ale ak sú súčasťou našej sekty, ktorá miluje psov, sú to naši ľudia. Tu vlastne nejde o nás, ide o našich psov, ktorí z nás robia lepších ľudí.' },
  fq_why: { en: 'What is all this for?', sk: 'Načo to celé je?' },
- fa_why: { en: 'In 2018 came a vision: save every dog on Earth. All it takes is to “just” unite one million dog people into one pack, stronger than any state. Then, instead of shelters, we want to build centres where dogs have meaningful work and the people caring for them are paid by us.', sk: 'V roku 2018 prišla vízia zachrániť každého psa na Zemi. Stačí na to „len“ spojiť milión psíčkarov do jednej svorky, ktorá bude silnejšia než akýkoľvek štát. Potom chceme namiesto útulkov postaviť strediská, kde majú psy zmysluplnú prácu a ľudí, ktorých platíme my.' },
+ fa_why: { en: 'In 2018 came a vision: to save every dog on Earth. The premise is that it takes "just" a million dog people united in one community, with a better global reach for saving dogs than any state. Then, instead of shelters, we want to build centres where dogs have meaningful work and the people caring for them are paid by us... All step by step. The game app is just the "hook" :)', sk: 'V roku 2018 prišla vízia zachrániť každého psa na Zemi. Predpokladom je, že stačí spojiť „iba“ milión psíčkarov do jednej komunity, ktorá bude mať lepší globálny dosah na záchranu psov než akýkoľvek štát. Potom chceme namiesto útulkov postaviť strediská, kde majú psy zmysluplnú prácu a ľudí, ktorých platíme my... Všetko krok za krokom. Herná appka je len „hook“ :)' },
  fq_fund: { en: 'Who pays for it?', sk: 'Kto to financuje?' },
- fa_fund: { en: 'So far the one who came up with it, plus everyone who paid the voluntary entry fee. No corporation, no ads, and we don’t sell your data. If you see potential and want to invest, write to us.', sk: 'Zatiaľ ten, kto to vymyslel, plus ľudia, ktorí zaplatili dobrovoľné vstupné. Žiadna korporácia, žiadne reklamy a tvoje dáta nepredávame. Ak vidíš potenciál a chceš investovať, napíš nám.' },
- fq_who: { en: 'Who is behind it?', sk: 'Kto za tým stojí?' },
- fa_who: { en: 'Matej and his dog Hektor, number 1, from Slovakia. They’re helped by a team of AI agents who don’t sleep, don’t eat and don’t ask for a salary. It was all started by a shelter dog.', sk: 'Matej a jeho pes Hektor, číslo 1, zo Slovenska. Pomáha im tím AI agentov, ktorí nespia, nežerú a nepýtajú výplatu. Celé to začal pes z útulku.' },
- fa_contact: { en: 'A human answers, not a bot. In a hurry? AINUBIS in the app can help right away.', sk: 'Odpovedá človek, nie bot. Keď sa ponáhľaš, AINUBIS v appke vie poradiť hneď.' },
+ fa_fund: { en: 'So far mainly Hektor\'s owner, the founder dog, and the first people who backed the idea. There is no corporation behind the project, no investors, no expensive ads... If you see potential and want to invest time or money in us, know that we will certainly work something out, write to us.', sk: 'Zatiaľ najmä majiteľ Hektora, psa zakladateľa, a prví ľudia, ktorí podporili myšlienku. Za projektom nestojí žiadna korporácia, žiadni investori ani drahé reklamy... Ak vidíš potenciál a chceš do nás investovať čas či peniaze, vedz, že sa určite dohodneme, napíš nám.' },
+ fq_who: { en: 'Who is behind the project?', sk: 'Kto za projektom stojí?' },
+ fa_who: { en: 'It\'s all the doing of a black shelter dog, Hektor. If you believe there are no coincidences, our story should convince you to join, because that way you help the dog kind. The idea of Dogypt matured for years and only thanks to AI did it see the light of day. We are at the beginning and we need every paw!', sk: 'Všetko má na svedomí čierny pes z útulku, Hektor. Ak veríš tomu, že náhody neexistujú, náš príbeh by ťa mal presvedčiť pridať sa, pretože tak pomôžeš psej rase. Myšlienka Dogyptu zrela dlhé roky a až vďaka AI uzrela svetlo sveta. Sme na začiatku a potrebujeme každú labku!' },
+ fa_contact: { en: 'If you want to support the idea of this movement, join, or just bark hello... Write to us at: woof@dogypt.com.', sk: 'Ak chcete podporiť myšlienku tohto hnutia, pridať sa alebo len zaštekať... Napíšte nám na e-mail: woof@dogypt.com.' },
  e_lore: { en: 'Behind the game', sk: 'Za hrou' },
  h_lore: { en: 'It started with one dog.', sk: 'Začalo to jedným psom.' },
- l_lore: { en: 'Hektor. A shelter dog. 2017. Then 42 days on foot across Slovakia, a book, a movement and a dog religion.', sk: 'Hektor. Pes z útulku. 2017. Potom 42 dní pešo cez Slovensko, kniha, hnutie a psie náboženstvo.' },
+ l_lore: { en: 'One (un)ordinary black shelter dog whose mission was to change one person\'s life and, through it, create a global movement.', sk: 'Jeden (ne)obyčajný čierny pes z útulku, ktorého poslaním bolo zmeniť život jednému človeku a tým vytvoriť globálne hnutie.' },
  l_lore2: { en: 'Dogyptism is a religion where the dog is god. Half joke, half truth: it fits on top of any faith and asks one thing: be good to your dog. The goal is one million Dogyptians: one pack across the world that helps dogs in need.', sk: 'Dogyptizmus je náboženstvo, v ktorom je pes boh. Napoly vtip, napoly pravda: sadne na akúkoľvek vieru a žiada jediné: buď dobrý k svojmu psovi. Cieľ je milión Dogypťanov: jedna svorka naprieč svetom, ktorá pomáha psom v núdzi.' },
  more: { en: 'Read more', sk: 'Čítaj viac' }, less: { en: 'Less', sk: 'Menej' },
  goal: { en: 'Goal: one million Dogyptians', sk: 'Cieľ: milión Dogypťanov' },
  nav5: { en: 'Story', sk: 'Príbeh' },
  /* blok VSTÚP = POTREBUJEME ŤA (Matej 6. 11.; texty z /onepage obrazu WE NEED YOU) · poďakovanie bez počtu psov, s rozpadom vstupného */
- e_need: { en: 'A movement that loves dogs', sk: 'Hnutie, ktoré miluje psov' },
+ e_need: { en: 'A movement of loving dog people', sk: 'Hnutie milujúcich psíčkarov' },
  h_need1: { en: 'We need', sk: 'Potrebujeme' }, h_need2: { en: 'you.', sk: 'ťa.' },
- l_need: { en: 'Imagine one million people standing by their dogs. The power to do so much good.', sk: 'Predstav si milión ľudí, ktorí stoja pri psoch. Obrovská sila komunity, ktorá koná dobro.' },
+ l_need: { en: 'Imagine a million people standing by their dogs. The enormous power of a community that does good together, no matter what the world around it says.', sk: 'Predstav si milión ľudí, ktorí stoja pri psoch. Obrovská sila komunity, ktorá spoločne koná dobro bez ohľadu na okolitý svet.' },
  cta_join: { en: 'Join us', sk: 'Pridaj sa' },
  split_h: { en: 'Where your entry fee goes', sk: 'Kam ide tvoje vstupné' },
  q_contact: { en: 'How do I reach you?', sk: 'Ako vás kontaktovať?' }, privacy: { en: 'Privacy', sk: 'Ochrana súkromia' },
  /* blok poďakovania = 3 snímky vodorovne (Matej 6. 11.): poďakovanie · intro video · DOGMA; „Za hrou“ sa v ňom rozpustil */
- h_lore1: { en: 'It started with one', sk: 'Začalo to jedným' }, h_lore2: { en: 'dog.', sk: 'psom.' },
- e_dogma: { en: 'The constitution', sk: 'Ústava' },
- h_dogma1: { en: 'Read the', sk: 'Prečítaj si' }, h_dogma2: { en: 'DOGMA.', sk: 'DOGMU.' },
- l_dogma: { en: 'Our constitution. Five layers, twelve parts, one idea: the dog is god. Half joke, half truth, and it fits on top of any faith.', sk: 'Naša ústava. Päť vrstiev, dvanásť častí, jedna myšlienka: pes je boh. Napoly vtip, napoly pravda, a sedí na akúkoľvek vieru.' },
+ h_lore1: { en: 'A story based on true events', sk: 'Príbeh podľa skutočných udalostí' }, h_lore2: { en: 'dog.', sk: 'psom.' },
+ e_dogma: { en: 'A project with a soul', sk: 'Projekt s dušou' },
+ h_dogma1: { en: 'The Bible for dog people:', sk: 'Biblia pre psíčkarov:' }, h_dogma2: { en: 'DOGMA', sk: 'DOGMA' },
+ l_dogma: { en: 'This is not an ordinary project, it is a movement with a clear inner code. And even though we like animals more than people, we know that if we dog people unite, we will have greater power to help the whole dog kind together and with love.', sk: 'Toto nie je obyčajný projekt, je to hnutie s jasným vnútorným kódexom. A aj keď máme radšej zvieratá než ľudí, vieme, že ak sa ako psíčkari spojíme, budeme mať väčšiu moc pomáhať celej psej rase spoločne a s láskou.' },
  dogs_now: { en: 'dogs already in', sk: 'psov už je s nami' },
  sl_good: { en: 'Thank you', sk: 'Poďakovanie' }, sl_video: { en: 'Intro', sk: 'Intro' }, sl_dogma: { en: 'DOGMA', sk: 'DOGMA' },
  menu: { en: 'Menu', sk: 'Menu' }, lang_h: { en: 'Language', sk: 'Jazyk' },
