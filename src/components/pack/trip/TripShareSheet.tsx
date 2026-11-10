@@ -569,6 +569,8 @@ html.papyrus3d .tsh-prev canvas{border:2.5px solid var(--p3d-ink);box-shadow:var
 html.papyrus3d .tsh-pills.pk-p3d-sw{display:grid;flex-direction:initial;}
 html.papyrus3d .tsh-pill{border:0;background:transparent;border-radius:14px;min-width:0;min-height:50px;padding:4px;gap:4px;white-space:normal;overflow-wrap:anywhere;text-align:center;font:400 14px/1.1 'LT Museum',serif;color:var(--p3d-ink);}
 html.papyrus3d .tsh-pill.on{border:2.5px solid var(--on-l);background:var(--on-bg);color:var(--on-l);box-shadow:var(--on-sh);}
+html.papyrus3d .tsh-where{margin-bottom:12px;}
+html.papyrus3d .tsh-where .tsh-pill{white-space:nowrap;overflow-wrap:normal;}
 html.papyrus3d .tsh-ph{border:2.5px solid var(--p3d-ink);border-radius:16px;opacity:.6;}
 html.papyrus3d .tsh-ph.on{border-color:#16307A;opacity:1;}
 html.papyrus3d .tsh-own{border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);opacity:1;color:var(--p3d-ink);font:500 12px/1.2 'Space Grotesk',sans-serif;}
@@ -723,6 +725,19 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
   // PC: hárok Macu/Windowsu IG neponúka ⇒ tlačidlo sa volá podľa toho, čo naozaj urobí (Matej 13. 10.:
   // „CTA je zdieľať na IG FB, ale po kliku sa fotka stiahne… nemalo by tam byť stiahnuť fotku?“)
   const pc = !isTouch();
+  const whereSec = (
+    <div className="tsh-sec tsh-where">
+      <div className="tsh-lbl">{t('pack.trip.shareWhere')}</div>
+      <div className={`tsh-pills${APP_NEW ? ' pk-p3d-sw' : ''}`}>
+        {(['ig', 'fb'] as ShareFmt[]).map((f) => (
+          <button key={f} type="button" className={`tsh-pill${fmt === f ? ' on' : ''}`} onClick={() => setFmt(f)}>
+            {APP_NEW ? <SysIcon name={NET_SYS[f]} size={28} /> : <span className="tsh-ic" style={{ '--ic': `url(${NET_ICON[f]})` } as React.CSSProperties} />}
+            {t(f === 'ig' ? 'pack.trip.shareIg' : 'pack.trip.shareFb')}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
   const steps = pc
     ? [t(K.step1), t('pack.trip.shareStepPc2'), t(fmt === 'ig' ? 'pack.trip.shareStepIg3' : K.fb3)]
     : fmt === 'ig'
@@ -742,20 +757,12 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
               {APP_NEW ? <SysIcon name="krizik" size={28} /> : <span className="tsh-ic" style={{ '--ic': `url(${ICON('cross')})` } as React.CSSProperties} />}
             </button>
           </div>
+          {/* Appka: KAM cez celú šírku, v stĺpci sa ikonka s textom lámali (Matej 10. 11.). */}
+          {APP_NEW && whereSec}
           <div className="tsh-grid">
             <div className="tsh-prev"><canvas ref={cvRef} /></div>
             <div>
-              <div className="tsh-sec">
-                <div className="tsh-lbl">{t('pack.trip.shareWhere')}</div>
-                <div className={`tsh-pills${APP_NEW ? ' pk-p3d-sw' : ''}`}>
-                  {(['ig', 'fb'] as ShareFmt[]).map((f) => (
-                    <button key={f} type="button" className={`tsh-pill${fmt === f ? ' on' : ''}`} onClick={() => setFmt(f)}>
-                      {APP_NEW ? <SysIcon name={NET_SYS[f]} size={28} /> : <span className="tsh-ic" style={{ '--ic': `url(${NET_ICON[f]})` } as React.CSSProperties} />}
-                      {t(f === 'ig' ? 'pack.trip.shareIg' : 'pack.trip.shareFb')}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {!APP_NEW && whereSec}
               <div className="tsh-sec">
                 <div className="tsh-lbl">{t('pack.trip.sharePhoto')}</div>
                 <div className="tsh-photos">
