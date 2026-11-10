@@ -1672,7 +1672,9 @@ export default function PackTripArticle() {
   // uprostred článku namiesto viewportu. Rovnaký vzor ako HeroBadges.tsx.
   const actsRow = (
         <div className="pta-acts">
-          {!walkedIds.has(trail.id) && (!APP_NEW || !agg.crowd) && (
+          {/* Appka: rad = TRI CTA — Triplist · Prešli sme · Zdieľať (Matej 10. 11. 2026: *„TRIPLIST, označiť za
+              prejdené, zdieľanie… nech sú len 3 cta"*). Triplist stojí PRED „Prešli sme", nie v dlaždici Rušnosť. */}
+          {!walkedIds.has(trail.id) && (
             <button
               type="button"
               className={`pta-actbtn pta-actbtn--gold${favIds.has(trail.id) ? ' on' : ''}${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`}
@@ -1782,11 +1784,12 @@ export default function PackTripArticle() {
               <PointsPill value={walkPointsFor(trail)} />
             </button>
           )}
-          <button type="button" className={`pta-actbtn pta-actbtn--blue${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={handleShare} aria-label={t('pack.trip.share')}>
+          {/* Appka: reťaz odišla do okna Zdieľať (kopírovať odkaz je tam), web ju má ďalej. */}
+          {!APP_NEW && <button type="button" className="pta-actbtn pta-actbtn--blue" onClick={handleShare} aria-label={t('pack.trip.share')}>
             {/* Ikonka reťaze je na modrom tlačidle maskovaná na farbu textu (SHARE = papyrusový outline). */}
-            {APP_NEW ? <SysIcon name="odkaz" size={22} /> : <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />}
+            <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
             <span className="pta-actbtn-label">{t('pack.trip.share')}</span>
-          </button>
+          </button>}
           {/* Reťaz = skopírovať odkaz (Matej 13. 10. 2026: „vrať tam zdieľanie, tu reťaz"). */}
           {/* STORY → okno ZDIEĽAJ VÝLET (IG príbeh / FB, vlastná fotka, odkaz do schránky) —
               nákres `plany/nakres-zdielanie-2026-10-11`, Matej 11. 10.: „berieme bledá verzia". */}
@@ -1961,7 +1964,7 @@ export default function PackTripArticle() {
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.crowdBreakdown)}
             >
               {APP_NEW
-                ? <><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /><div className="pta-sb-t"><b>{crowdWord(t, agg.crowd)}</b><span>{t('pack.trip.stat.crowd')}</span></div>{!walkedIds.has(trail.id) && <button type="button" className={`pta-tlbtn pk-b3 ${favIds.has(trail.id) ? 'pk-b3--gold' : 'pk-b3--paper'}`} onClick={() => toggleFav(trail.id)} aria-label={favIds.has(trail.id) ? t('pack.trip.inTriplist') : t('pack.trip.addToTriplist')} aria-pressed={favIds.has(trail.id)}><SysIcon name="triplist" size={32} /></button>}</>
+                ? <><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /><div className="pta-sb-t"><b>{crowdWord(t, agg.crowd)}</b><span>{t('pack.trip.stat.crowd')}</span></div></>
                 : <><b><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /> {t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span></>}
             </div>
           )}

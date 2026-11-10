@@ -113,7 +113,9 @@ function AiActs({ liked, saved, onLike, onSave, labels, onComment, onShare, comm
       </button>
       {onComment && (
         <button type="button" data-k="talk" className={`zv-act${comments > 0 ? ' is-on' : ''}`} onClick={onComment} aria-label={labels.comment}>
-          <i className="zv-ic" aria-hidden style={{ WebkitMaskImage: `url(/icons/pack/${comments > 0 ? 'chat-right-full' : 'chat'}.svg)`, maskImage: `url(/icons/pack/${comments > 0 ? 'chat-right-full' : 'chat'}.svg)` }} />
+          {APP_NEW
+            ? <SysIcon name="komentar" size={28} />
+            : <i className="zv-ic" aria-hidden style={{ WebkitMaskImage: `url(/icons/pack/${comments > 0 ? 'chat-right-full' : 'chat'}.svg)`, maskImage: `url(/icons/pack/${comments > 0 ? 'chat-right-full' : 'chat'}.svg)` }} />}
           <span className="zv-n">{comments}</span>
         </button>
       )}

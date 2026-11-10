@@ -829,15 +829,13 @@ export function TripShareButton({ data }: { data: TripShareData }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button type="button" className={`pta-actbtn pta-actbtn--blue${APP_NEW ? ' pk-b3 pk-b3--paper pta-share2' : ''}`} onClick={() => setOpen(true)} aria-label={t('pack.trip.story')}>
-        {APP_NEW ? (<>
-          <SysIcon name={NET_SYS.ig} size={28} />
-          <SysIcon name={NET_SYS.fb} size={28} />
-        </>) : (<>
+      <button type="button" className={`pta-actbtn pta-actbtn--blue${APP_NEW ? ' pk-b3 pk-b3--paper pta-share2' : ''}`} onClick={() => setOpen(true)} aria-label={APP_NEW ? t('pack.trip.share') : t('pack.trip.story')}>
+        {/* Appka: JEDNO tlačidlo Zdieľať namiesto reťaze + IG + FB; okno má obrázok, odkaz aj hárok (Matej 10. 11. 2026). */}
+        {APP_NEW ? <SysIcon name="zdielat" size={28} /> : (<>
           <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${NET_ICON.ig})` } as React.CSSProperties} />
           <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${NET_ICON.fb})` } as React.CSSProperties} />
         </>)}
-        <span className="pta-actbtn-label">{t('pack.trip.story')}</span>
+        <span className="pta-actbtn-label">{APP_NEW ? t('pack.trip.share') : t('pack.trip.story')}</span>
       </button>
       {open && <TripShareSheet data={data} onClose={() => setOpen(false)} />}
     </>
