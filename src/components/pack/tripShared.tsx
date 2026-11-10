@@ -909,7 +909,9 @@ export const hasLiveDog = (dogs: ReadonlyArray<{ life_status?: string | null }>)
 // prejdená trasa). Ostatné magistrály neprejdené.
 // POZOR: `packCommunity.ts` má DRUHÚ kópiu tohto zoznamu (`FOUNDER_WALKED_JOURNEY_IDS`) — obe
 // musia byť ručne držané v zhode.
-export const FOUNDER_WALKED_JOURNEY_IDS = ['snp-cesta-hrdinov', 'poloniny'];
+// + Nízkotatranská hrebeňovka (Matej 10. 11. 2026): prešli ju s Hektorom v septembri 2021, 5 dní, ešte pred SNP —
+// pescezles.sk/blog/cesta-snp-so-psom-pociatok-1-cast. V DB `trip_walked` 2021-09-15.
+export const FOUNDER_WALKED_JOURNEY_IDS = ['snp-cesta-hrdinov', 'poloniny', 'nizkotatranska-hrebenovka'];
 
 /**
  * MAGISTRÁLY NA PREVZATIE (Matej 5. 10. 2026: „všetky odysey, ktoré som pridal len pre

@@ -21,7 +21,8 @@ const isCancel = (e: unknown) => {
 export const shareFile = (blob: Blob, name: string) => shareFiles([{ blob, name }]);
 
 /** Viac súborov = jeden systémový hárok. Dva hárky po sebe by druhý telefón zahodil. */
-export async function shareFiles(items: { blob: Blob; name: string }[]): Promise<boolean> {
+/** `text` = popis k súborom (príspevok z FEEDu: text + odkaz), web pri sťahovaní ho nepoužije. */
+export async function shareFiles(items: { blob: Blob; name: string }[], text?: string): Promise<boolean> {
   const title = items[0].name;
   if (IS_APP) {
     const { Capacitor } = await import('@capacitor/core');
@@ -29,12 +30,12 @@ export async function shareFiles(items: { blob: Blob; name: string }[]): Promise
       const [{ Filesystem, Directory }, { Share }] = await Promise.all([import('@capacitor/filesystem'), import('@capacitor/share')]);
       const files = await Promise.all(items.map(async ({ blob, name }) =>
         (await Filesystem.writeFile({ path: name, data: await toBase64(blob), directory: Directory.Cache })).uri));
-      await Share.share({ title, files }).catch((e) => { if (!isCancel(e)) throw e; });
+      await Share.share({ title, text, files }).catch((e) => { if (!isCancel(e)) throw e; });
       return true;
     }
     const files = items.map(({ blob, name }) => new File([blob], name, { type: blob.type }));
     if (!navigator.canShare?.({ files })) return false;
-    await navigator.share({ files, title }).catch((e) => { if (e?.name !== 'AbortError') throw e; });
+    await navigator.share({ files, title, text }).catch((e) => { if (e?.name !== 'AbortError') throw e; });
     return true;
   }
   for (const [i, { blob, name }] of items.entries()) {

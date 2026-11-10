@@ -7067,6 +7067,8 @@ export const sk: Partial<Dict> = {
   'pack.feed.end.sub': "Zajtra nový citát.",
   'pack.feed.act.like': "Páči sa mi",
   'pack.feed.act.save': "Uložiť",
+  'pack.feed.share.copied': "Skopírované. Vlož to, kam chceš.",
+  'pack.feed.share.fail': "Zdieľanie nevyšlo. Skús znova.",
   'pack.feed.act.use': "Pridať do mojich výletov",
   'pack.feed.act.share': "Poslať",
   'pack.feed.toast.saved': "Uložené",

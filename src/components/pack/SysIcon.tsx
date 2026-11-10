@@ -39,4 +39,6 @@ export const ChevDown = ({ size = 16, style, up }: { size?: number; style?: CSSP
 export const SearchMark = ({ size }: { size: number }) => (APP_NEW ? <SysIcon name="lupa" size={size + 6} /> : <HandSearch size={size} />);
 export const LikeMark =({ on }: { on: boolean }) => (APP_NEW ? <SysIcon name="lajk" size={28} off={!on} /> : <HandPaw size={24} on={on} />);
 export const CommentMark = () => (APP_NEW ? <SysIcon name="komentar" size={28} /> : <BrandIcon name="chat" size={24} tint="dark" />);
+// Zdieľanie nemá hand-drawn kresbu, takže aj web berie systémovú samolepku.
+export const ShareMark = () => <SysIcon name="zdielat" size={APP_NEW ? 28 : 24} />;
 export const SaveMark = ({ on }: { on: boolean }) => (APP_NEW ? <SysIcon name="ulozit" size={28} off={!on} /> : <HandStar size={24} filled={on} />);

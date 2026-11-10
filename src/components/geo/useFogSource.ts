@@ -2,7 +2,7 @@
 //
 // 🔴 NAJDÔLEŽITEJŠIE PRAVIDLO (spec-hmla.md §2, §9 bod 1): hmla sa skladá VÝHRADNE z trás
 // s potvrdeným prejdením — NIKDY z `allTrails`. Z 11 magistrál sú reálne prejdené len DVE
-// (`FOUNDER_WALKED_JOURNEY_IDS` v tripShared.tsx = ['snp-cesta-hrdinov', 'poloniny']).
+// (`FOUNDER_WALKED_JOURNEY_IDS` v tripShared.tsx).
 // Neprejdená magistrála v hmle by tvrdila „tadiaľto sme šli" — klamstvo, nie dekorácia.
 //
 // Hlavná cesta = agregačná RPC `get_pack_walked_slugs()` (celok DOGYPTu naprieč všetkými

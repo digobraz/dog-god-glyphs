@@ -14,7 +14,8 @@ import { FollowChip, FOLLOW_CHIP_CSS } from '@/components/pack/profile/follow';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
-import { LikeMark, CommentMark, SaveMark } from '@/components/pack/SysIcon';
+import { LikeMark, CommentMark, SaveMark, ShareMark } from '@/components/pack/SysIcon';
+import { shareFiles } from '@/lib/shareFile';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { toggleMark } from '@/components/pack/story/storyData';
 import { fetchPostSocial, isNature, type MePost, type PostSocial } from '@/components/pack/profile/mePosts';
@@ -104,6 +105,23 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
     const got = await toggleMark(post.id, kind, on);
     if (got !== on) setSoc((s) => (kind === 'like' ? { ...s, liked: got, likes: s.likes + (got ? 1 : -1) } : { ...s, saved: got, saves: Math.max(0, s.saves + (got ? 1 : -1)) }));
   };
+  // Zdieľanie vedľa komentárov (Matej 10. 11. 2026). Príspevok je len pre členov a verejnú adresu nemá,
+  // preto ide von fotka + text + dogypt.com cez systémový hárok. Bez fotky len text, inak skopírovaný text.
+  const share = async () => {
+    const text = `${post.body ? `${post.body}\n\n` : ''}DOGYPT · https://dogypt.com`;
+    try {
+      const src = post.photos[idx] ?? post.photos[0];
+      if (src) {
+        const blob = await (await fetch(sizedUrl(src, 1080))).blob();
+        if (await shareFiles([{ blob, name: 'dogypt.jpg' }], text)) return;
+      }
+      if (typeof navigator.share === 'function') { await navigator.share({ text }); return; }
+      await navigator.clipboard.writeText(text);
+      toast({ title: tx('pack.feed.share.copied', 'Copied. Paste it wherever you like.') });
+    } catch (e) {
+      if ((e as { name?: string })?.name !== 'AbortError') toast({ title: tx('pack.feed.share.fail', 'Sharing did not work. Try again.') });
+    }
+  };
   const wish = async () => {
     if (wished) return;
     if (place?.lat == null || place?.lon == null) {
@@ -151,6 +169,9 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
         </button>
         <button type="button" className={soc.comments > 0 ? undefined : 'fd'} onClick={() => onOpen(post)} aria-label={tx('pack.post.comment', 'Comment')}>
           <CommentMark />{soc.comments > 0 && soc.comments}
+        </button>
+        <button type="button" onClick={share} aria-label={tx('pack.feed.act.share', 'Share')}>
+          <ShareMark />
         </button>
         <span className="sp" />
         {nature ? (

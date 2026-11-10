@@ -7374,6 +7374,8 @@ export const en = {
   'pack.feed.end.sub': "A new quote tomorrow.",
   'pack.feed.act.like': "Like",
   'pack.feed.act.save': "Save",
+  'pack.feed.share.copied': "Copied. Paste it wherever you like.",
+  'pack.feed.share.fail': "Sharing did not work. Try again.",
   'pack.feed.act.use': "Add to my trips",
   'pack.feed.act.share': "Share",
   'pack.feed.toast.saved': "Saved",

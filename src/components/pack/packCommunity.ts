@@ -192,7 +192,9 @@ export interface CrowdAgg {
 // zoznamu a dnes navyše obsahuje `'stefanikova-magistrala'` (nesprávne) — needituje sa tu (import
 // odtiaľ by nezaviedol cyklus, ale kým sa tá kópia neopraví, obe musia byť ručne držané v zhode;
 // tá oprava patrí ďalšej vlne, nie tomuto súboru).
-const FOUNDER_WALKED_JOURNEY_IDS: string[] = ['snp-cesta-hrdinov', 'poloniny'];
+// + Nízkotatranská hrebeňovka (Matej 10. 11. 2026): prešli ju s Hektorom v septembri 2021, 5 dní, ešte pred SNP —
+// pescezles.sk/blog/cesta-snp-so-psom-pociatok-1-cast. V DB `trip_walked` 2021-09-15.
+const FOUNDER_WALKED_JOURNEY_IDS: string[] = ['snp-cesta-hrdinov', 'poloniny', 'nizkotatranska-hrebenovka'];
 
 // Koľko zakladateľských (Matej + Hekthor) hlasov trasa má. 0 keď:
 //  · je to magistrála/journey (Odyssey), ktorú zakladatelia neprešli (nie je v zozname vyššie),
