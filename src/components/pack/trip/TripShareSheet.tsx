@@ -525,12 +525,15 @@ const cld = (u: string, px: number) => (u.includes('/upload/') ? sizedUrl(u, px)
 
 const CSS = `
 .tsh-veil{position:fixed;inset:0;z-index:1400;background:rgba(10,8,4,0.62);display:flex;align-items:flex-end;justify-content:center;}
-.tsh-panel{width:100%;max-width:832px;max-height:calc(100dvh - 24px);overflow-y:auto;box-sizing:border-box;
-  border-bottom-left-radius:0;border-bottom-right-radius:0;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px);}
+.tsh-panel{width:100%;max-width:832px;max-height:calc(100dvh - 24px);display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;
+  border-bottom-left-radius:0;border-bottom-right-radius:0;padding:0;}
+/* Vrch STOJÍ a ťahá sa, telo roluje pod ním (ako POPUP). Keď rolovalo celé okno, úchyt bol 4 px čiarka
+   vo vnútri rolovania a šuplík sa nedal stiahnuť (Matej 10. 11. 2026). */
+.tsh-top{flex:none;padding:12px 16px 0;cursor:grab;}
+.tsh-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 16px);}
 .tsh-grip{width:48px;height:4px;border-radius:999px;background:${T.border};margin:0 auto 12px;}
-.tsh-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
+.tsh-head{display:flex;align-items:center;justify-content:center;gap:8px;padding-bottom:12px;}
 .tsh-head h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
-.tsh-x{width:32px;height:32px;border-radius:999px;border:1px solid ${T.border};background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;color:${T.inkWarm};}
 .tsh-ic{display:inline-block;width:16px;height:16px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;flex-shrink:0;}
 /* MOBIL = náhľad VEDĽA volieb, akcie pod nimi cez celú šírku (Matej 13. 10.: „náhľadový obrázok
    na jednej strane a obsah na druhej, lebo je to na scroll… vyzerá to nesúrodo“). */
@@ -562,8 +565,6 @@ const CSS = `
 html.papyrus3d .tsh-panel{--on-l:#EFD79A;--on-bg:linear-gradient(180deg,color-mix(in srgb,#16307A 72%,white),#0A1A4A);--on-sh:inset 0 2px 0 rgba(255,255,255,.3),0 4px 0 color-mix(in srgb,#0A1A4A 60%,black),0 7px 9px var(--p3d-sh);background:var(--p3d-card);border:0;border-top:6px solid var(--p3d-gold);box-shadow:var(--p3d-lift);}
 html.papyrus3d .tsh-grip{background:var(--p3d-gold);width:56px;height:6px;}
 html.papyrus3d .tsh-head h2{font-family:'LT Museum',serif;font-weight:900;font-size:24px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
-html.papyrus3d .tsh-x.pk-b3{width:48px;height:48px;padding:0;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--p3d-ink);box-shadow:var(--p3d-b3);}
-html.papyrus3d .tsh-x .tsh-ic{width:24px;height:24px;}
 html.papyrus3d .tsh-lbl{color:var(--p3d-gold-ink);}
 html.papyrus3d .tsh-prev canvas{border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift);}
 html.papyrus3d .tsh-pills.pk-p3d-sw{display:grid;flex-direction:initial;}
@@ -581,7 +582,9 @@ html.papyrus3d .tsh-steps li{font-size:14px;}
 html.papyrus3d .tsh-steps b{background:#16307A;color:var(--on-l);}
 @media(min-width:721px){
   .tsh-veil{align-items:center;padding:24px;}
-  .tsh-panel{border-radius:16px;padding:24px;max-height:calc(100dvh - 48px);}
+  .tsh-panel{border-radius:16px;max-height:calc(100dvh - 48px);}
+  .tsh-top{padding:24px 24px 0;cursor:default;}
+  .tsh-body{padding:0 24px 24px;}
   .tsh-grip{display:none;}
   .tsh-grid{grid-template-columns:auto minmax(0,1fr);gap:16px 24px;}
   .tsh-prev{grid-row:1 / span 2;}
@@ -750,13 +753,12 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
       <div className="tsh-veil" role="dialog" aria-modal="true" aria-label={t(K.title)}
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
         <div className="tsh-panel" style={{ ...PACK_BOX.panel, ...sw.sheetStyle }}>
-          <div className="tsh-grip" {...sw.handle} />
-          <div className="tsh-head" {...sw.handle}>
-            <h2>{t(K.title)}</h2>
-            <button type="button" className={`tsh-x${APP_NEW ? ' pk-b3 pk-b3--paper pk-b3--round' : ''}`} onClick={onClose} aria-label={t('pack.trip.shareClose')}>
-              {APP_NEW ? <SysIcon name="krizik" size={28} /> : <span className="tsh-ic" style={{ '--ic': `url(${ICON('cross')})` } as React.CSSProperties} />}
-            </button>
+          {/* Bez krížika: von = stiahnuť za vrch, ťuk vedľa, Esc (lock POPUP 26. 10.; Matej 10. 11.: „to x by som dal preč"). */}
+          <div className="tsh-top" {...sw.handle}>
+            <div className="tsh-grip" />
+            <div className="tsh-head"><h2>{t(K.title)}</h2></div>
           </div>
+          <div className="tsh-body">
           {/* Appka: KAM cez celú šírku, v stĺpci sa ikonka s textom lámali (Matej 10. 11.). */}
           {APP_NEW && whereSec}
           <div className="tsh-grid">
@@ -816,6 +818,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
                 {steps.map((s, i) => <li key={i}><b>{i + 1}</b><span>{s}</span></li>)}
               </ol>
             </div>
+          </div>
           </div>
         </div>
       </div>
