@@ -6782,6 +6782,8 @@ export const en = {
   'pack.me.tabReels': "Reels",
   'pack.me.tabTrips': "Trips",
   'pack.me.tagTrip': "Trip",
+  'pack.me.tagQuote': "Quote",
+  'pack.me.tagScroll': "Scroll",
   'pack.me.postsEmpty': "No posts yet. Your trip stories will show up here.",
   'pack.me.reelsEmpty': "Reels arrive with the FEED.",
   'pack.me.tripsEmpty': "No walked trips yet.",

@@ -6563,6 +6563,8 @@ export const cs: Partial<Dict> = {
   'pack.me.tabReels': "Reels",
   'pack.me.tabTrips': "Výlety",
   'pack.me.tagTrip': "Výlet",
+  'pack.me.tagQuote': "Citát",
+  'pack.me.tagScroll': "Svitek",
   'pack.me.postsEmpty': "Zatím žádné příspěvky. Objeví se tu tvé příběhy z výletů.",
   'pack.me.reelsEmpty': "Reels přijdou spolu s FEEDem.",
   'pack.me.tripsEmpty': "Zatím žádný prošlý výlet.",

@@ -29,7 +29,8 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { usePilgrimStats, usePublishPilgrimLevel, usePublishProfileStats } from '@/components/pack/usePilgrimStats';
 import { useProfile, customPills, roleLabels, humanPills } from '@/components/pack/profile/packProfile';
-import { useLiked, useSaved } from '@/components/pack/vault/vaultScrolls';
+import { useLiked, useSaved, useReads, useDemoScrolls, pickText, scrollThumb, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
+import { FEED_QUOTES, feedQuoteText, type FeedQuote } from '@/data/feedQuotes';
 import { useLearner, VAULT_TOTAL } from '@/components/pack/vault/useLearner';
 import { devotionLevel, DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
@@ -200,6 +201,71 @@ export default function PackMe() {
     const walked = readWalkedIds();
     return all.filter((tr) => walked.has(tr.id));
   }, []);
+
+  // ── ULOŽENÉ (zámok): 🔖 z feedu. Príspevky = `post_marks`, výlety a citáty = `feed_marks` (`trip:` / `quote:`),
+  // zvitky = `useSaved()`. Mapové značky a príbeh AINUBISa sa tu zatiaľ nekreslia. RLS: každý číta len svoje riadky.
+  const reads = useReads();
+  const demoScrolls = useDemoScrolls();
+  const [savedRows, setSavedRows] = useState<{ posts: Array<{ p: MePost; at: string; mine: boolean }>; marks: Array<{ target: string; at: string }> } | null>(null);
+  const [savedReading, setSavedReading] = useState<{ p: MePost; mine: boolean } | null>(null);
+  useEffect(() => {
+    if (!uid || tab !== 'private') return;
+    let alive = true;
+    const dbx = supabase as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    (async () => {
+      const [pm, fm] = await Promise.all([
+        dbx.from('post_marks').select('post_id, at').eq('user_id', uid).eq('kind', 'save').order('at', { ascending: false }).limit(100),
+        dbx.from('feed_marks').select('target, at').eq('user_id', uid).eq('kind', 'save').order('at', { ascending: false }).limit(200),
+      ]);
+      const pRows = (pm.data ?? []) as Array<{ post_id: string; at: string }>;
+      const ids = pRows.map((r) => r.post_id);
+      const got = ids.length
+        ? await dbx.from('posts').select('id, body, photos, tags, attach, visibility, created_at, author_id, hidden_at').in('id', ids)
+        : { data: [] };
+      const byId = new Map<string, Record<string, unknown>>(((got.data ?? []) as Array<Record<string, unknown>>).map((r) => [String(r.id), r]));
+      const posts = pRows.flatMap((r) => {
+        const x = byId.get(r.post_id);
+        if (!x) return [];
+        const p: MePost = {
+          id: String(x.id), body: typeof x.body === 'string' ? x.body : '',
+          photos: Array.isArray(x.photos) ? (x.photos as unknown[]).filter((u): u is string => typeof u === 'string') : [],
+          tags: Array.isArray(x.tags) ? (x.tags as string[]) : [],
+          attach: (x.attach ?? {}) as MePost['attach'],
+          visibility: x.visibility === 'public' ? 'public' : 'private',
+          createdAt: String(x.created_at), actedBy: null, actedName: null,
+          hiddenAt: typeof x.hidden_at === 'string' ? x.hidden_at : null,
+        };
+        return [{ p, at: r.at, mine: x.author_id === uid }];
+      });
+      if (alive) setSavedRows({ posts, marks: (fm.data ?? []) as Array<{ target: string; at: string }> });
+    })().catch(() => { if (alive) setSavedRows({ posts: [], marks: [] }); });
+    return () => { alive = false; };
+  }, [uid, tab]);
+
+  type SavedItem =
+    | { k: 'post'; at: string; p: MePost; mine: boolean }
+    | { k: 'trip'; at: string; tr: HeroTrail }
+    | { k: 'quote'; at: string; q: FeedQuote }
+    | { k: 'scroll'; at: string; z: DemoScroll };
+  const savedItems = useMemo<SavedItem[]>(() => {
+    if (!savedRows) return [];
+    const all: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];
+    const out: SavedItem[] = savedRows.posts.filter((r) => r.p.photos.length > 0).map((r) => ({ k: 'post', at: r.at, p: r.p, mine: r.mine }));
+    for (const m of savedRows.marks) {
+      if (m.target.startsWith('trip:')) {
+        const tr = all.find((x) => x.id === m.target.slice(5));
+        if (tr) out.push({ k: 'trip', at: m.at, tr });
+      } else if (m.target.startsWith('quote:')) {
+        const q = FEED_QUOTES.find((x) => String(x.id) === m.target.slice(6));
+        if (q) out.push({ k: 'quote', at: m.at, q });
+      }
+    }
+    for (const id of saved) {
+      const z = demoScrolls.find((x) => x.id === id);
+      if (z) out.push({ k: 'scroll', at: reads[id]?.updated_at ?? '', z });
+    }
+    return out.sort((a, b) => Date.parse(b.at || '0') - Date.parse(a.at || '0'));
+  }, [savedRows, saved, demoScrolls, reads]);
 
   const bio = human?.dogVoiceBio?.trim() || human?.bio?.trim() || '';
   // „more" len vtedy, keď text naozaj presiahne 3 riadky.
@@ -525,7 +591,42 @@ export default function PackMe() {
           {/* LEN JA = len ULOŽENÉ. Denník (KRONIKA) odtiaľto odišiel 31. 10. 2026 — Matej: „ok nechaj to v dogs“.
               Zápisy sú psie (ostávajú pri psovi aj po zmazaní účtu), na profile boli druhou kópiou /pack/dogs. */}
           {tab === 'private' && (
-            <div className="me-empty">{tx('pack.me.savedEmpty', 'What you save will wait here. Only you can see it.')}</div>
+            savedItems.length > 0 ? (
+              <div className="me-grid">
+                {savedItems.map((it) => {
+                  switch (it.k) {
+                    case 'post': return (
+                      <button key={`p${it.p.id}`} type="button" onClick={() => setSavedReading({ p: it.p, mine: it.mine })}>
+                        <img src={sizedUrl(it.p.photos[0], 320)} alt="" loading="lazy" />
+                        {it.p.photos.length > 1 && <span className="me-tag">{it.p.photos.length}</span>}
+                      </button>
+                    );
+                    case 'trip': return (
+                      <button key={`t${it.tr.id}`} type="button" onClick={() => navigate(tripPath(it.tr))}>
+                        {it.tr.photos?.[0] && <img src={sizedUrl(it.tr.photos[0], 320)} alt="" loading="lazy" />}
+                        <span className="me-tag">{tx('pack.me.tagTrip', 'Trip')}</span>
+                        <span className="cap">{lang !== 'sk' && it.tr.nameEN ? it.tr.nameEN : it.tr.name}</span>
+                      </button>
+                    );
+                    case 'quote': return (
+                      <button key={`q${it.q.id}`} type="button">
+                        <span className="me-tag">{tx('pack.me.tagQuote', 'Quote')}</span>
+                        <span className="cap">{feedQuoteText(it.q, lang)}</span>
+                      </button>
+                    );
+                    default: return (
+                      <button key={`z${it.z.id}`} type="button" onClick={() => navigate(`/pack/ainubis/zvitok/${it.z.id}`, { state: { back: '/pack/me' } })}>
+                        {it.z.img && <img {...scrollThumb(it.z.img)} alt="" loading="lazy" />}
+                        <span className="me-tag">{tx('pack.me.tagScroll', 'Scroll')}</span>
+                        <span className="cap">{pickText(it.z, lang)?.t}</span>
+                      </button>
+                    );
+                  }
+                })}
+              </div>
+            ) : (
+              <div className="me-empty">{savedRows == null && uid ? '·' : tx('pack.me.savedEmpty', 'What you save will wait here. Only you can see it.')}</div>
+            )
           )}
         </div>
       </section>
@@ -533,6 +634,10 @@ export default function PackMe() {
       {todayOpen && <DevotionToday onClose={() => setTodayOpen(false)} />}
       {reading && (
         <PostViewer post={reading} name={shownName} avatar={avatarUrl} dogs={dogs} mine lang={lang} onClose={() => setReading(null)} />
+      )}
+      {savedReading && (
+        <PostViewer post={savedReading.p} name={savedReading.mine ? shownName : tx('pack.feed.member', 'Member')} avatar={savedReading.mine ? avatarUrl : null}
+          dogs={savedReading.mine ? dogs : []} mine={savedReading.mine} lang={lang} onClose={() => setSavedReading(null)} />
       )}
       {viewing && (
         <StoryViewer items={viewing.items} start={viewing.start} name={shownName} avatar={avatarUrl} dogs={dogs}
