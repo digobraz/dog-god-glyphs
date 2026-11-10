@@ -7026,6 +7026,8 @@ export const cs: Partial<Dict> = {
   "pack.feed.act.save": "Uložit",
   "pack.feed.act.use": "Přidat do mých výletů",
   "pack.feed.act.share": "Poslat",
+  "pack.feed.share.copied": "Zkopírováno. Vlož to, kam chceš.",
+  "pack.feed.share.fail": "Sdílení nevyšlo. Zkus to znovu.",
   "pack.feed.toast.saved": "Uloženo",
   "pack.feed.toast.unsaved": "Odebráno z uložených",
   "pack.feed.toast.planned": "Přidáno do tvých výletů",
