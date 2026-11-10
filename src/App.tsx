@@ -7,6 +7,7 @@ import { APP_NEW, DEV_FULL, BUDDY_LIVE, hasStoredSessionOrAuthReturn } from "@/l
 import { SOS_ON, VET_ER_ON } from "@/lib/env";
 // Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
 import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
+import { PackLoader } from "@/components/pack/PackLoader";
 import { LanguageProvider, useLang, ensurePackDict } from "@/i18n/LanguageContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { captureRefFromSearch } from "@/lib/refCapture";
@@ -241,7 +242,10 @@ const DogShare = lazy(() => import("./pages/DogShare.tsx"));
 // ďalšieho povrchu sa dopĺňa TAM, nie tu.
 const RouteFallback = () => {
   const { pathname } = useLocation();
-  return <div style={{ position: "fixed", inset: 0, background: usePaperRoute(pathname) ? PAPER_BG : "#000" }} />;
+  const paper = usePaperRoute(pathname);
+  // Appka medzi stránkami (10. 11. 2026). Homepage nie: po nej ide papyrusová kostra FEEDu, modrá by blikla navyše.
+  if (APP_NEW && pathname.startsWith("/pack/")) return <PackLoader />;
+  return <div style={{ position: "fixed", inset: 0, background: paper ? PAPER_BG : "#000" }} />;
 };
 
 

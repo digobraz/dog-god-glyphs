@@ -2,6 +2,7 @@ import type { Dict } from '../LanguageContext';
 /** DOGYPT i18n — NLD dictionary (machine translation 2026-06-17, pending human review). Partial<Dict>: missing key falls back to EN. */
 export const nld: Partial<Dict> = {
   "vision.hero.title": "De Visie",
+  'ainubis.recalculating': "HERBEREKENEN",
   "vision.hero.watch": "Bekijk de DOGYPT introfilm",
   "vision.hero.videoTitle": "DOGYPT Introfilm",
   "vision.hero.playLabel": "Speel DOGYPT introfilm af",

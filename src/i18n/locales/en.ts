@@ -7571,6 +7571,7 @@ export const en = {
   'ainubis.chat.cfgTitle': "What AINUBIS may see",
   'ainubis.chat.back': "Back",
   'ainubis.chat.histLoading': "Loading…",
+  'ainubis.recalculating': "RECALCULATING",
   'ainubis.chat.histFail': "Could not load. Try again in a moment.",
   'ainubis.chat.histEmpty': "No earlier conversations yet.",
   'ainubis.chat.noPreview': "Conversation",

@@ -30,6 +30,7 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import { useTrailPaths } from '@/data/trailPaths';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/pack/PackLayout';
+import { PackLoader } from '@/components/pack/PackLoader';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
 import { useMagnetPreview, usePackNavigate, isFreeTrip, magnetPath, MAGNET_MEMBER_TRAILS } from '@/components/pack/magnetPreview';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
@@ -1485,6 +1486,7 @@ export default function PackTripArticle() {
   const [memorialWrite, setMemorialWrite] = useState(false);
 
   if (id.loading) {
+    if (APP_NEW) return <PackLoader />;
     return (
       /* ⚠️ NAČÍTAVACIA OBRAZOVKA SA PREZLIEKA SPOLU SO STRÁNKOU (Matej 1. 9. 2026:
          „sekunda pred načítaním sa stále zobrazuje tmavé pozadie a slovo načítavam").

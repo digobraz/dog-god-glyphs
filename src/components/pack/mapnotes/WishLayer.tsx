@@ -20,12 +20,14 @@
 //    karta ako pri odkaze, nie druhý dizajn. Vlastné sú len riadky ľudí a akcie.
 // ============================================================================
 import { sizedUrl } from '@/services/cloudinaryService';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Marker, Popup, useMap, useMapEvent } from 'react-leaflet';
 import { PACK_THEME as T, PACK_SHADOW, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
+import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { circleMarkHtml } from './circleMark';
 import { stickerSrc, stickerImg } from './mapStickers';
 import { clusterByPixels, clusterPx, clusterRadiusForZoom } from './clusterPoints';
@@ -39,6 +41,10 @@ import { startWishDM } from '@/components/pack/messaging/packMessaging';
 
 const POPUP_PAD_TOP = 170;
 const POPUP_PAD_BOTTOM = 110;
+
+/** Panel v appke (Matej 10. 11. 2026): kresba druhu výletu. Web ostáva na štítkoch textom. */
+const WISH_KIND_ICON: Record<WishPin['tripKind'], string> = { short: 'den-walk', day: 'typ-turistika', multi: 'den-sunset', roadtrip: 'mapa', abroad: 'den-abroad' };
+const WISH_ICON = 'pridaj-tripwish';
 
 type Group = { key: string; lat: number; lon: number; place: string; items: WishPin[] };
 
@@ -87,6 +93,21 @@ function PersonRow({ w, onChanged }: { w: WishPin; onChanged: () => void }) {
   const [meToo, setMeToo] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const map = useMap();
+  const whenRef = useRef<HTMLDivElement>(null);
+  // Popup rastie len nahor, takže voľba termínu by vytlačila panel pod hlavičku a chipy by ostali pod zlomom zoznamu.
+  useEffect(() => {
+    const when = whenRef.current;
+    if (!APP_NEW || !meToo || !when) return;
+    const list = when.closest('.wl-people');
+    const shell = when.closest('.leaflet-popup-content-wrapper');
+    if (list) {
+      const over = when.getBoundingClientRect().bottom - list.getBoundingClientRect().bottom + 8;
+      if (over > 0) list.scrollTop += over;
+    }
+    const up = shell ? POPUP_PAD_TOP - shell.getBoundingClientRect().top : 0;
+    if (up > 0) map.panBy([0, -up]);
+  }, [meToo, map]);
   const who = [w.ownerFirst ?? t('pack.triplist.fallbackDogyptian'), w.dogName ? `${w.dogDeceased ? '🕊 ' : ''}${w.dogName}` : null]
     .filter(Boolean).join(' + ');
 
@@ -107,6 +128,45 @@ function PersonRow({ w, onChanged }: { w: WishPin; onChanged: () => void }) {
     setBusy(true);
     try { await cancelWishPin(w.id); onChanged(); } catch { setMsg(t('pack.wish.failed')); } finally { setBusy(false); }
   };
+
+  if (APP_NEW) return (
+    <div className="wl3-person">
+      <div className="wl3-who">
+        {w.dogPhoto
+          ? <img className="wl3-face" src={sizedUrl(w.dogPhoto, 160)} alt="" loading="lazy" />
+          : <span className="wl3-face wl3-face--empty">{(w.dogName ?? w.ownerFirst ?? '?').slice(0, 1)}</span>}
+        <span className="wl3-name">{w.isMine ? t('pack.wish.you') : who}</span>
+        {w.packNumber != null && !w.isMine && <span className="wl3-num">#{w.packNumber}</span>}
+      </div>
+      <div className="wl3-facts">
+        <span className="wl3-fact"><SysIcon name={WISH_KIND_ICON[w.tripKind]} size={24} />{t(`pack.wish.kind.${w.tripKind}`)}</span>
+        <span className="wl3-fact"><SysIcon name="kalendar" size={24} />{wishWhenLabel(t, w)}</span>
+        {!w.seeking && <span className="wl3-fact"><SysIcon name="zamok" size={24} />{t('pack.wish.private')}</span>}
+      </div>
+      {w.note && <p className="wl3-note">{w.note}</p>}
+      <div className="wl3-acts">
+        {w.isMine ? (
+          <button type="button" className="pk-b3 pk-b3--paper wl3-btn" disabled={busy} onClick={cancel}><SysIcon name="kos" size={20} />{t('pack.wish.cancel')}</button>
+        ) : (
+          <>
+            <button type="button" className="pk-b3 pk-b3--lapis wl3-btn" disabled={busy} onClick={write}><SysIcon name="obalka" size={20} />{t('pack.wish.write')}</button>
+            <button type="button" className={`pk-b3 pk-b3--paper wl3-btn${meToo ? ' is-down' : ''}`} disabled={busy} onClick={() => setMeToo((v) => !v)}><SysIcon name={WISH_ICON} size={20} />{t('pack.wish.meToo')}</button>
+          </>
+        )}
+      </div>
+      {meToo && (
+        <div className="wl3-when" ref={whenRef}>
+          <span className="wl3-when-q">{t('pack.wish.guide.meTooWhen', { place: w.placeName })}</span>
+          <div className="wl3-chips">
+            {WISH_WHENS.map((wh) => (
+              <button key={wh} type="button" className="wl3-chip" disabled={busy} onClick={() => copy(wh)}>{t(`pack.wish.when.${wh}`)}</button>
+            ))}
+          </div>
+        </div>
+      )}
+      {msg && <div className="wl-msg">{msg}</div>}
+    </div>
+  );
 
   return (
     <div className="wl-person">
@@ -168,8 +228,17 @@ export function WishLayer({ wishes, onChanged, interactive = true }: {
   // = „Maximum update depth exceeded"; audit 27. 9. 2026, rovnaký zámok ako `geo/PoiLayer.tsx`).
   const popupOpen = useRef(false);
   const onMoveEnd = useCallback(() => { if (!popupOpen.current) setMoveTick((n) => n + 1); }, []);
-  const onPopupOpen = useCallback(() => { popupOpen.current = true; }, []);
-  const onPopupClose = useCallback(() => { popupOpen.current = false; setMoveTick((n) => n + 1); }, []);
+  // Panel v appke je cez celú šírku, ovládače mapy a AINUBIS by mu ležali na okraji (`WISH_LAYER_CSS`, `html.wl3-open`).
+  const onPopupOpen = useCallback((e: L.PopupEvent) => {
+    popupOpen.current = true;
+    if (e.popup.options.className?.includes('wl3')) document.documentElement.classList.add('wl3-open');
+  }, []);
+  const onPopupClose = useCallback(() => {
+    popupOpen.current = false;
+    document.documentElement.classList.remove('wl3-open');
+    setMoveTick((n) => n + 1);
+  }, []);
+  useEffect(() => () => document.documentElement.classList.remove('wl3-open'), []);
   useMapEvent('moveend', onMoveEnd);
   useMapEvent('popupopen', onPopupOpen);
   useMapEvent('popupclose', onPopupClose);
@@ -205,19 +274,28 @@ export function WishLayer({ wishes, onChanged, interactive = true }: {
         <Marker key={`w:${it.g.key}`} position={[it.g.lat, it.g.lon]} icon={pinIcon(it.g.items.length)} interactive={interactive}>
           {interactive && (
             <Popup
-              className="mn-popup"
+              className={APP_NEW ? 'mn-popup wl3' : 'mn-popup'}
               closeButton={false}
+              // Zub stojí pod spodnou perou panela a nad lampou, nie na nej. Podmienka je okolo celej vlastnosti: `offset: undefined` by Leaflet zhodil.
+              {...(APP_NEW ? { offset: [0, -16] as [number, number] } : {})}
               autoPanPaddingTopLeft={[24, POPUP_PAD_TOP]}
               autoPanPaddingBottomRight={[24, POPUP_PAD_BOTTOM]}
               keepInView
             >
               <div className="mn-bubble">
+                {APP_NEW ? (
+                  <div className="wl3-head">
+                    <SysIcon name={WISH_ICON} size={40} />
+                    <span className="wl3-place">{it.g.place}</span>
+                  </div>
+                ) : (
                 <div className="mn-bubble-head">
                   <span className="mn-bubble-mark" style={{ borderColor: WISH_RIM }}>
                     <i className="mn-bubble-em">{WISH_EMOJI}</i>
                   </span>
                   <span className="mn-bubble-kind" style={{ color: T.inkStrong }}>{it.g.place}</span>
                 </div>
+                )}
                 {it.g.items.length > 1 && (
                   <div className="wl-crowd">{t('pack.wish.crowd', { n: it.g.items.length, place: it.g.place })}</div>
                 )}
@@ -257,4 +335,30 @@ export const WISH_LAYER_CSS = `
 .wl-chip{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.02em;text-transform:uppercase;color:${T.inkStrong};background:transparent;border:1px solid ${T.border};border-radius:999px;padding:4px 8px;cursor:pointer;}
 .wl-chip:hover{border-color:${LAPIS.edge};background:${LAPIS.fill};color:${LAPIS.edge};}
 .wl-msg{margin-top:8px;font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};}
+/* ── ŠAT PAPYRUS 3D, len appka (Matej 10. 11. 2026: „v starom dizajne, urob ho krajší a nový s našimi ikonkami, väčší, prehľadnejší"). */
+.mn-popup.wl3 .leaflet-popup-content-wrapper{background:var(--p3d-card);border:2.5px solid var(--p3d-ink);border-radius:16px;box-shadow:inset 0 0 0 3px var(--p3d-gold),var(--p3d-pera);}
+.mn-popup.wl3 .leaflet-popup-content{min-width:min(288px,calc(100vw - 48px));max-width:min(288px,calc(100vw - 48px));padding:12px;}
+.mn-popup.wl3 .leaflet-popup-tip-container{margin-top:5px;}
+.mn-popup.wl3 .leaflet-popup-tip{background:var(--p3d-gold-solid);border:2.5px solid var(--p3d-ink);}
+.wl3-head{display:flex;align-items:center;gap:8px;}
+.wl3-place{flex:1;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:20px;line-height:1.1;color:var(--p3d-ink);overflow-wrap:anywhere;} /* písmo: nadpis */
+.mn-popup.wl3 .wl-crowd{font-size:12px;margin:4px 0 0;}
+html.wl3-open .trp-ctlstack,html.wl3-open .trp-mactions,html.wl3-open .ainubis-launcher{visibility:hidden;}
+.mn-popup.wl3 .wl-people{max-height:min(480px,calc(100dvh - 420px));overscroll-behavior:contain;margin:0 -8px;padding:0 8px;}
+.wl3-person{margin-top:8px;padding-top:8px;border-top:2px solid var(--p3d-gold);}
+.wl3-who{display:flex;align-items:center;gap:8px;}
+.wl3-face{flex:0 0 auto;width:40px;height:40px;border-radius:999px;object-fit:cover;box-sizing:border-box;border:2.5px solid var(--p3d-ink);box-shadow:0 0 0 2px var(--p3d-gold);background:var(--p3d-paper);}
+.wl3-face--empty{display:inline-flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:16px;color:var(--p3d-ink);}
+.wl3-name{flex:1;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:16px;line-height:1.15;color:var(--p3d-ink);overflow-wrap:anywhere;} /* písmo: meno */
+.wl3-num{flex:0 0 auto;font-family:${FONT_UI};font-weight:600;font-size:12px;color:#EFD79A;background:linear-gradient(180deg,#16307A,#0A1A4A);border-radius:999px;padding:4px 8px;}
+.wl3-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px;}
+.wl3-fact{display:flex;align-items:center;gap:4px;min-height:36px;box-sizing:border-box;padding:4px 8px;border-radius:12px;border:2px solid var(--p3d-gold);background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);font-family:${FONT_UI};font-weight:600;font-size:12px;line-height:1.15;color:var(--p3d-ink);overflow-wrap:anywhere;min-width:0;}
+.wl3-note{margin:8px 0 0;font-family:${FONT_UI};font-size:14px;line-height:1.4;color:var(--p3d-ink);white-space:pre-wrap;overflow-wrap:anywhere;}
+.wl3-acts{display:flex;flex-wrap:wrap;gap:12px 8px;margin:12px 0;}
+.wl3-btn{flex:1 1 40%;min-height:44px;padding:4px;font-size:16px;white-space:nowrap;}
+.wl3-when{margin-top:12px;padding-bottom:8px;}
+.wl3-when-q{display:block;margin-bottom:4px;font-family:${FONT_UI};font-weight:500;font-size:12px;color:var(--p3d-ink);}
+.wl3-chips{display:flex;flex-wrap:wrap;gap:8px 4px;}
+.wl3-chip{min-height:32px;padding:4px 8px;border-radius:999px;border:2px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:var(--p3d-lift);font-family:${FONT_UI};font-weight:600;font-size:12px;color:var(--p3d-ink);cursor:pointer;}
+.wl3-chip:disabled{opacity:.55;}
 `;

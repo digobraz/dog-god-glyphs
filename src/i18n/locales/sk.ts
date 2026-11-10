@@ -7264,6 +7264,7 @@ export const sk: Partial<Dict> = {
   'ainubis.chat.cfgTitle': "Čo smie AINUBIS vidieť",
   'ainubis.chat.back': "Späť",
   'ainubis.chat.histLoading': "Načítavam…",
+  'ainubis.recalculating': "PREPOČÍTAVAM",
   'ainubis.chat.histFail': "Nepodarilo sa načítať. Skús to o chvíľu.",
   'ainubis.chat.histEmpty': "Zatiaľ žiadne staršie rozhovory.",
   'ainubis.chat.noPreview': "Rozhovor",

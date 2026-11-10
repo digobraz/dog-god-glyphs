@@ -2,6 +2,7 @@ import type { Dict } from '../LanguageContext';
 /** DOGYPT i18n — TUR dictionary (machine translation 2026-06-17, pending human review). Partial<Dict>: missing key falls back to EN. */
 export const tur: Partial<Dict> = {
   "vision.hero.title": "Vizyon",
+  'ainubis.recalculating': "YENİDEN HESAPLANIYOR",
   "vision.hero.watch": "Dogypt Tanıtım Filmini İzle",
   "vision.hero.videoTitle": "DOGYPT Tanıtım Filmi",
   "vision.hero.playLabel": "Dogypt Tanıtım Filmini Oynat",

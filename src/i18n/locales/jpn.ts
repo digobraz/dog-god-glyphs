@@ -2,6 +2,7 @@ import type { Dict } from '../LanguageContext';
 /** DOGYPT i18n — JPN dictionary (machine translation 2026-06-17, pending human review). Partial<Dict>: missing key falls back to EN. */
 export const jpn: Partial<Dict> = {
   "vision.hero.title": "ビジョン",
+  'ainubis.recalculating': "再計算中",
   "vision.hero.watch": "DOGYPT イントロムービーを見る",
   "vision.hero.videoTitle": "DOGYPT イントロムービー",
   "vision.hero.playLabel": "DOGYPT イントロムービーを再生",

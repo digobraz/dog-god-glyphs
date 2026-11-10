@@ -74,6 +74,7 @@ import { SVK_BORDER } from '@/data/svkBorder';
 import { COUNTRY_BORDERS } from '@/data/countryBorders';
 import { trailCountry, flagUrl, flagEmoji } from '@/lib/countryGeo';
 import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/pack/PackLayout';
+import { PackLoader } from '@/components/pack/PackLoader';
 import { SwipePhotos } from '@/components/pack/SwipePhotos';
 import { createPortal } from 'react-dom';
 import { TopActions } from '@/components/pack/TopActions';
@@ -4870,6 +4871,7 @@ export default function PackMap() {
 
   // Mapa sa kreslí hneď, keď je známe prihlásenie — psy dobehnú (audit B4, `sessionReady`).
   if (id.loading && !id.sessionReady) {
+    if (APP_NEW) return <PackLoader />;
     return (
       <div className="min-h-[100dvh] flex items-center justify-center relative" style={{ backgroundColor: T.pageBg }}>
         <HieroglyphBg />

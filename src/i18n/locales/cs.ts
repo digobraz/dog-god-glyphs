@@ -7221,6 +7221,7 @@ export const cs: Partial<Dict> = {
   'ainubis.chat.cfgTitle': "Co smí AINUBIS vidět",
   'ainubis.chat.back': "Zpět",
   'ainubis.chat.histLoading': "Načítám…",
+  'ainubis.recalculating': "PŘEPOČÍTÁVÁM",
   'ainubis.chat.histFail': "Nepodařilo se načíst. Zkus to za chvíli.",
   'ainubis.chat.histEmpty': "Zatím žádné starší rozhovory.",
   'ainubis.chat.noPreview': "Rozhovor",

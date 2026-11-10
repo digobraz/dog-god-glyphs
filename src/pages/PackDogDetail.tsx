@@ -11,6 +11,7 @@ import { DEV_NOAUTH, DEV_MOCK_DOG_ROW } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
+import { PackLoader } from '@/components/pack/PackLoader';
 import { PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { DogPassport, type FixedRow } from '@/components/pack/DogPassport';
 import { WillPanel } from '@/components/pack/WillPanel';
@@ -633,6 +634,7 @@ export default function PackDogDetail() {
   }, [dog]);
 
   if (status === 'loading') {
+    if (APP_NEW) return <PackLoader />;
     return (
       <PackLayout>
         <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>

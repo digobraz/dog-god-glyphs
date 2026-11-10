@@ -3,6 +3,7 @@ import type { Dict } from '../LanguageContext';
 export const pol: Partial<Dict> = {
   // ── /vision — hero ──
   'vision.hero.title': 'Wizja',
+  'ainubis.recalculating': "PRZELICZAM",
   'vision.hero.watch': 'Obejrzyj film intro Dogypt',
   'vision.hero.videoTitle': 'Film intro DOGYPT',
   'vision.hero.playLabel': 'Odtwórz film intro Dogypt',

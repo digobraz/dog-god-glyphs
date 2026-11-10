@@ -9,6 +9,7 @@ import { PACK_THEME, PACK_COL, PACK_COL_INNER, PACK_TOPROW_PAD, usePaperRoute, P
 import { PackTopRow } from './PackTopRow';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
+import { PackLoader } from './PackLoader';
 import { sysSrc } from '@/components/pack/SysIcon';
 import { FeedSkeleton } from './feed/FeedSkeleton';
 import { TermsGuard } from '@/components/app/TermsGate';
@@ -99,6 +100,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel, topLe
   const plain = APP_NEW && (PLAIN_ROUTES.some((r) => r.test(pathname)) || PLAIN_HOME.test(pathname)) ? ' pk-plain' : '';
 
   if (loading) {
+    if (APP_NEW && pathname !== '/pack') return <PackLoader />;
     return (
       <div
         className={`min-h-[100dvh] flex items-center justify-center relative${paperPage ? ` pk-paper${plain}` : ''}`}

@@ -21,6 +21,7 @@ import { gradeTrail, GRADE_MAX, GRADE_POINTS, type GradePoint, type TripGrade } 
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
+import { PackLoader } from '@/components/pack/PackLoader';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
 import { useMagnetPreview, usePackNavigate, MAGNET_MEMBER_TRAILS, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetInfoBubble } from '@/components/pack/magnetPreview';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
@@ -917,6 +918,7 @@ export default function PackTriplist() {
   };
 
   if (id.loading) {
+    if (APP_NEW) return <PackLoader />;
     return (
       /* ⚠️ NAČÍTAVACIA OBRAZOVKA SA PREZLIEKA SPOLU SO STRÁNKOU (Matej 1. 9. 2026:
          „sekunda pred načítaním sa stále zobrazuje tmavé pozadie a slovo načítavam").

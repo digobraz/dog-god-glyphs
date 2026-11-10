@@ -2,6 +2,7 @@ import type { Dict } from '../LanguageContext';
 /** DOGYPT i18n — CHN dictionary (machine translation 2026-06-17, pending human review). Partial<Dict>: missing key falls back to EN. */
 export const chn: Partial<Dict> = {
   "vision.hero.title": "愿景",
+  'ainubis.recalculating': "正在重新计算",
   "vision.hero.watch": "观看 Dogypt 介绍影片",
   "vision.hero.videoTitle": "DOGYPT 介绍影片",
   "vision.hero.playLabel": "播放 Dogypt 介绍影片",

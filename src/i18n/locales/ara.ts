@@ -2,6 +2,7 @@ import type { Dict } from '../LanguageContext';
 /** DOGYPT i18n — ARA dictionary (machine translation 2026-06-17, pending human review). Partial<Dict>: missing key falls back to EN. */
 export const ara: Partial<Dict> = {
   "vision.hero.title": "الرؤية",
+  'ainubis.recalculating': "جارٍ إعادة الحساب",
   "vision.hero.watch": "شاهد فيلم DOGYPT التعريفي",
   "vision.hero.videoTitle": "فيلم DOGYPT التعريفي",
   "vision.hero.playLabel": "تشغيل فيلم DOGYPT التعريفي",

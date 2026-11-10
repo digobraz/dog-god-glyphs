@@ -33,6 +33,7 @@ import { countryLabel } from '@/lib/countryOptions';
 import { supabase } from '@/integrations/supabase/client';
 import { ProfileSkeleton } from '@/components/pack/profile/ProfileSkeleton';
 import { PackLayout } from '@/components/pack/PackLayout';
+import { PackLoader } from '@/components/pack/PackLoader';
 import { PACK_THEME, PACK_SPACE, PACK_TEXT, PF_FIELD_CSS, PILL_CSS, FONT_UI, PACK_TOPROW } from '@/components/pack/packTheme';
 import type { PackDogFull } from '@/hooks/usePackUser';
 import { customPills, roleLabels, humanPills } from '@/components/pack/profile/packProfile';
@@ -126,6 +127,7 @@ export default function PublicProfile() {
   }, [bio, bioFull]);
 
   if (!sessionChecked) {
+    if (APP_NEW) return <PackLoader />;
     return (
       <PackLayout>
         <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>

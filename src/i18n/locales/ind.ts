@@ -2,6 +2,7 @@ import type { Dict } from '../LanguageContext';
 /** DOGYPT i18n — IND dictionary (machine translation 2026-06-17, pending human review). Partial<Dict>: missing key falls back to EN. */
 export const ind: Partial<Dict> = {
   "vision.hero.title": "दृष्टि",
+  'ainubis.recalculating': "MENGHITUNG ULANG",
   "vision.hero.watch": "DOGYPT परिचय फ़िल्म देखें",
   "vision.hero.videoTitle": "DOGYPT परिचय फ़िल्म",
   "vision.hero.playLabel": "DOGYPT परिचय फ़िल्म चलाएं",

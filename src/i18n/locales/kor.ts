@@ -2,6 +2,7 @@ import type { Dict } from '../LanguageContext';
 /** DOGYPT i18n — KOR dictionary (machine translation 2026-06-17, pending human review). Partial<Dict>: missing key falls back to EN. */
 export const kor: Partial<Dict> = {
   "vision.hero.title": "비전",
+  'ainubis.recalculating': "다시 계산 중",
   "vision.hero.watch": "DOGYPT 인트로 영상 보기",
   "vision.hero.videoTitle": "DOGYPT 인트로 영상",
   "vision.hero.playLabel": "DOGYPT 인트로 영상 재생",
