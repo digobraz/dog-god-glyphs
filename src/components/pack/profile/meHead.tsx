@@ -318,6 +318,15 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
   font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; line-height:1.2; color:${LAPIS.ink}; }
 .me-grid--story button{ aspect-ratio:9/16; }
 .me-tag{ position:absolute; left:4px; top:4px; font-family:${FONT_UI}; font-size:${TX.micro}px; letter-spacing:.14em; background:${LAPIS.grad}; color:${LAPIS.ink}; padding:0 ${S.sm}px; border-radius:${PACK_R.pill}px; }
+.me-by{ position:absolute; left:0; right:0; bottom:0; display:flex; align-items:center; gap:${S.xs}px; padding:${S.lg}px ${S.xs}px ${S.xs}px; min-width:0;
+  background:linear-gradient(180deg, transparent, color-mix(in srgb, ${T.pageBg} 80%, transparent)); }
+.me-by .pk-medallion{ flex:none; font:600 ${TX.micro}px/1 ${FONT_UI}; color:${T.inkWarm}; }
+.me-by .nm{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; color:${LAPIS.ink}; }
+.me-sv{ display:flex; flex-direction:column; gap:${S.sm}px; align-items:stretch; }
+.me-sv video{ width:100%; border-radius:${PACK_R.field}px; background:${T.tileBg}; }
+.me-sv .q{ margin:0; font-family:${FONT_UI}; font-size:${TX.body}px; line-height:1.5; color:${T.inkStrong}; white-space:pre-line; }
+.me-sv small{ font-family:${FONT_UI}; font-size:${TX.label}px; color:${T.inkWarm}; }
+.me-sv .rm{ align-self:center; margin-top:${S.sm}px; background:none; border:0; cursor:pointer; padding:${S.sm}px ${S.md}px; font-family:${FONT_UI}; font-weight:600; font-size:${TX.label}px; color:${T.inkWarm}; text-decoration:underline; }
 .me-empty{ padding:${S.xl}px ${S.lg}px; text-align:center; font-family:${FONT_UI}; font-size:${TX.body}px; color:${T.inkWarm}; }
 
 @media (min-width:768px){

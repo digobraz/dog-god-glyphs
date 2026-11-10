@@ -47,10 +47,12 @@ import { ME_CSS, ME_FLAT_CSS, MeCover, MeBadges, MeOwn, MeRank, MeDogRow, MeFlag
 import { RANK_BADGE_ON, useServantSpan } from '@/components/pack/profile/rankBadge';
 import { StoryViewer } from '@/components/pack/profile/StoryViewer';
 import { PostViewer } from '@/components/pack/profile/PostViewer';
+import { PackPopup } from '@/components/pack/PackPopup';
+import { fetchFeedPost } from '@/components/pack/feed/feedData';
 import { DevotionToday } from '@/components/pack/profile/DevotionToday';
 import { DevotionSheet } from '@/components/pack/profile/DevotionSheet';
 import { levelProgress } from '@/lib/tripPoints';
-import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbum, isLive, isTripStory, type MePost } from '@/components/pack/profile/mePosts';
+import { fetchMyPosts, onPostsChanged, openCompose, coverOfDay, isMoment, isAlbum, isLive, isTripStory, fetchPostSocial, type MePost } from '@/components/pack/profile/mePosts';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryLabel } from '@/lib/countryOptions';
@@ -203,11 +205,30 @@ export default function PackMe() {
   }, []);
 
   // ── ULOŽENÉ (zámok): 🔖 z feedu. Príspevky = `post_marks`, výlety a citáty = `feed_marks` (`trip:` / `quote:`),
-  // zvitky = `useSaved()`. Mapové značky a príbeh AINUBISa sa tu zatiaľ nekreslia. RLS: každý číta len svoje riadky.
+  // zvitky = `useSaved()`. Príbeh AINUBISa = `story:hekthor`. Mapové značky (`map:`) sa neukladajú: karta na mape ☆ nemá, uložiť sa dá len lajk. RLS: každý číta len svoje riadky.
   const reads = useReads();
   const demoScrolls = useDemoScrolls();
-  const [savedRows, setSavedRows] = useState<{ posts: Array<{ p: MePost; at: string; mine: boolean }>; marks: Array<{ target: string; at: string }> } | null>(null);
-  const [savedReading, setSavedReading] = useState<{ p: MePost; mine: boolean } | null>(null);
+  // Cudzí uložený príspevok nesie autora (`who`) z `get_feed_post` — ten istý zdroj ako otvorenie vo FEEDe.
+  type Who = { name: string; avatar: string | null; ownerN: number | null };
+  const [savedRows, setSavedRows] = useState<{ posts: Array<{ p: MePost; at: string; mine: boolean; who?: Who }>; marks: Array<{ target: string; at: string }> } | null>(null);
+  const [savedReading, setSavedReading] = useState<{ p: MePost; mine: boolean; who?: Who } | null>(null);
+  const [savedQuote, setSavedQuote] = useState<FeedQuote | null>(null);
+  const [savedStory, setSavedStory] = useState(false);
+  // Odobratie z uložených: položka zmizne hneď (optimisticky), zápis ide na server.
+  const dropMark = (target: string) => {
+    setSavedRows((r) => (r ? { ...r, marks: r.marks.filter((m) => m.target !== target) } : r));
+    if (!uid) return;
+    void (supabase as any).from('feed_marks').delete().eq('target', target).eq('user_id', uid).eq('kind', 'save'); // eslint-disable-line @typescript-eslint/no-explicit-any
+  };
+  // Zavretie príspevku: ak som ☆ v ňom vypol, zmizne zo zoznamu (stav berie server, nie odhad).
+  const closeSavedReading = () => {
+    const id = savedReading?.p.id;
+    setSavedReading(null);
+    if (!id) return;
+    void fetchPostSocial(id).then((s) => {
+      if (!s.saved) setSavedRows((r) => (r ? { ...r, posts: r.posts.filter((x) => x.p.id !== id) } : r));
+    }).catch(() => {});
+  };
   useEffect(() => {
     if (!uid || tab !== 'private') return;
     let alive = true;
@@ -223,9 +244,17 @@ export default function PackMe() {
         ? await dbx.from('posts').select('id, body, photos, tags, attach, visibility, created_at, author_id, hidden_at').in('id', ids)
         : { data: [] };
       const byId = new Map<string, Record<string, unknown>>(((got.data ?? []) as Array<Record<string, unknown>>).map((r) => [String(r.id), r]));
+      // Autori cudzích príspevkov: `get_feed_post` (meno, avatar, číslo majiteľa). Nevydá = zablokovaný / už nie verejný ⇒ preč.
+      const whoById = new Map<string, Who | null>();
+      await Promise.all(ids.filter((id) => byId.has(id) && byId.get(id)!.author_id !== uid).map(async (id) => {
+        const f = await fetchFeedPost(id).catch(() => null);
+        whoById.set(id, f ? { name: f.name, avatar: f.avatar, ownerN: f.ownerN } : null);
+      }));
       const posts = pRows.flatMap((r) => {
         const x = byId.get(r.post_id);
         if (!x) return [];
+        const mineP = x.author_id === uid;
+        if (!mineP && !whoById.get(r.post_id)) return [];
         const p: MePost = {
           id: String(x.id), body: typeof x.body === 'string' ? x.body : '',
           photos: Array.isArray(x.photos) ? (x.photos as unknown[]).filter((u): u is string => typeof u === 'string') : [],
@@ -235,7 +264,7 @@ export default function PackMe() {
           createdAt: String(x.created_at), actedBy: null, actedName: null,
           hiddenAt: typeof x.hidden_at === 'string' ? x.hidden_at : null,
         };
-        return [{ p, at: r.at, mine: x.author_id === uid }];
+        return [{ p, at: r.at, mine: mineP, who: mineP ? undefined : whoById.get(r.post_id) ?? undefined }];
       });
       if (alive) setSavedRows({ posts, marks: (fm.data ?? []) as Array<{ target: string; at: string }> });
     })().catch(() => { if (alive) setSavedRows({ posts: [], marks: [] }); });
@@ -243,14 +272,15 @@ export default function PackMe() {
   }, [uid, tab]);
 
   type SavedItem =
-    | { k: 'post'; at: string; p: MePost; mine: boolean }
+    | { k: 'post'; at: string; p: MePost; mine: boolean; who?: Who }
+    | { k: 'story'; at: string }
     | { k: 'trip'; at: string; tr: HeroTrail }
     | { k: 'quote'; at: string; q: FeedQuote }
     | { k: 'scroll'; at: string; z: DemoScroll };
   const savedItems = useMemo<SavedItem[]>(() => {
     if (!savedRows) return [];
     const all: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];
-    const out: SavedItem[] = savedRows.posts.filter((r) => r.p.photos.length > 0).map((r) => ({ k: 'post', at: r.at, p: r.p, mine: r.mine }));
+    const out: SavedItem[] = savedRows.posts.filter((r) => r.p.photos.length > 0).map((r) => ({ k: 'post', at: r.at, p: r.p, mine: r.mine, who: r.who }));
     for (const m of savedRows.marks) {
       if (m.target.startsWith('trip:')) {
         const tr = all.find((x) => x.id === m.target.slice(5));
@@ -258,6 +288,8 @@ export default function PackMe() {
       } else if (m.target.startsWith('quote:')) {
         const q = FEED_QUOTES.find((x) => String(x.id) === m.target.slice(6));
         if (q) out.push({ k: 'quote', at: m.at, q });
+      } else if (m.target === 'story:hekthor') {
+        out.push({ k: 'story', at: m.at });
       }
     }
     for (const id of saved) {
@@ -596,9 +628,15 @@ export default function PackMe() {
                 {savedItems.map((it) => {
                   switch (it.k) {
                     case 'post': return (
-                      <button key={`p${it.p.id}`} type="button" onClick={() => setSavedReading({ p: it.p, mine: it.mine })}>
+                      <button key={`p${it.p.id}`} type="button" onClick={() => setSavedReading({ p: it.p, mine: it.mine, who: it.who })}>
                         <img src={sizedUrl(it.p.photos[0], 320)} alt="" loading="lazy" />
                         {it.p.photos.length > 1 && <span className="me-tag">{it.p.photos.length}</span>}
+                        {it.who && (
+                          <span className="me-by">
+                            <span className="pk-medallion pk-medallion--xs">{it.who.avatar ? <img src={sizedUrl(it.who.avatar, 48)} alt="" /> : (it.who.name || '?').charAt(0).toUpperCase()}</span>
+                            <span className="nm">{it.who.name || tx('pack.feed.member', 'Member')}</span>
+                          </span>
+                        )}
                       </button>
                     );
                     case 'trip': return (
@@ -609,9 +647,16 @@ export default function PackMe() {
                       </button>
                     );
                     case 'quote': return (
-                      <button key={`q${it.q.id}`} type="button">
+                      <button key={`q${it.q.id}`} type="button" onClick={() => setSavedQuote(it.q)}>
                         <span className="me-tag">{tx('pack.me.tagQuote', 'Quote')}</span>
                         <span className="cap">{feedQuoteText(it.q, lang)}</span>
+                      </button>
+                    );
+                    case 'story': return (
+                      <button key="story" type="button" onClick={() => setSavedStory(true)}>
+                        <img src="/videos/WHO_IS_HEKTHOR.webp" alt="" loading="lazy" />
+                        <span className="me-tag">{tx('pack.feed.story.label', 'Story')}</span>
+                        <span className="cap">{`${t('heroglyph.flow.name.whoTitle')} ${t('heroglyph.flow.name.whoTitleName')}`}</span>
                       </button>
                     );
                     default: return (
@@ -636,8 +681,29 @@ export default function PackMe() {
         <PostViewer post={reading} name={shownName} avatar={avatarUrl} dogs={dogs} mine lang={lang} onClose={() => setReading(null)} />
       )}
       {savedReading && (
-        <PostViewer post={savedReading.p} name={savedReading.mine ? shownName : tx('pack.feed.member', 'Member')} avatar={savedReading.mine ? avatarUrl : null}
-          dogs={savedReading.mine ? dogs : []} mine={savedReading.mine} lang={lang} onClose={() => setSavedReading(null)} />
+        <PostViewer post={savedReading.p} name={savedReading.mine ? shownName : savedReading.who?.name || tx('pack.feed.member', 'Member')}
+          avatar={savedReading.mine ? avatarUrl : savedReading.who?.avatar ?? null}
+          dogs={savedReading.mine ? dogs : []} mine={savedReading.mine} authorN={savedReading.mine ? null : savedReading.who?.ownerN ?? null}
+          lang={lang} onClose={closeSavedReading} />
+      )}
+      {savedQuote && (
+        <PackPopup label={tx('pack.me.tagQuote', 'Quote')} onClose={() => setSavedQuote(null)}>
+          <div className="me-sv">
+            <p className="q">{`„${feedQuoteText(savedQuote, lang)}“`}</p>
+            {savedQuote.author && <small>{savedQuote.author}</small>}
+            <button type="button" className="rm" onClick={() => { dropMark(`quote:${savedQuote.id}`); setSavedQuote(null); }}>{tx('pack.me.unsave', 'Remove from saved')}</button>
+          </div>
+        </PackPopup>
+      )}
+      {savedStory && (
+        <PackPopup label={tx('pack.feed.story.label', 'Story')} onClose={() => setSavedStory(false)}>
+          <div className="me-sv">
+            <video src="/videos/WHO_IS_HEKTHOR.mp4" poster="/videos/WHO_IS_HEKTHOR.webp" controls playsInline preload="none" />
+            <p className="q">{`${t('heroglyph.flow.name.whoTitle')} ${t('heroglyph.flow.name.whoTitleName')}`}</p>
+            <p>{t('heroglyph.flow.name.whoBody')}</p>
+            <button type="button" className="rm" onClick={() => { dropMark('story:hekthor'); setSavedStory(false); }}>{tx('pack.me.unsave', 'Remove from saved')}</button>
+          </div>
+        </PackPopup>
       )}
       {viewing && (
         <StoryViewer items={viewing.items} start={viewing.start} name={shownName} avatar={avatarUrl} dogs={dogs}
