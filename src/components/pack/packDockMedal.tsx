@@ -236,7 +236,7 @@ export function DockPlus({ label, onClick, onLongPress, id }: { label: string; o
   if (APP_NEW) return (
     <span className="pk-medal-slot">
       <button type="button" id={id} className="pk-b3 pk-b3--lapis pk-b3--round" aria-label={label} style={{ width: 88, height: 88, marginTop: -20 }} onClick={click} {...press}>
-        <img src={sysSrc('plus')} alt="" aria-hidden draggable={false} style={{ width: 50, height: 50, objectFit: 'contain', display: 'block' }} />
+        <img src={sysSrc('akcia')} alt="" aria-hidden draggable={false} style={{ width: 50, height: 50, objectFit: 'contain', display: 'block' }} />
       </button>
     </span>
   );
@@ -250,7 +250,7 @@ export function DockPlus({ label, onClick, onLongPress, id }: { label: string; o
             {/* Kresba z kitu MASKOU, nie `<img>` s filtrom: filter farbu aproximuje, maska
                 ju trafí presne. Zástupná, kým Matej nenakreslí vlastnú (zadanie §6). */}
             {APP_NEW
-              ? <img src={sysSrc('plus')} alt="" aria-hidden draggable={false} style={{ position: 'relative', width: '64%', height: '64%', objectFit: 'contain', display: 'block' }} />
+              ? <img src={sysSrc('akcia')} alt="" aria-hidden draggable={false} style={{ position: 'relative', width: '64%', height: '64%', objectFit: 'contain', display: 'block' }} />
               : <span className="pk-medal-plus" aria-hidden />}
             <span className="pk-medal-grain" />
             <span className="pk-medal-gloss" />

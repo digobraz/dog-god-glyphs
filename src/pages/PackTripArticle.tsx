@@ -58,10 +58,17 @@ import { GhostJourneyNote } from '@/components/pack/trip/GhostJourneyNote';
 import { TripGoPanel, TripGoButtons } from '@/components/pack/trip/TripGoPanel';
 import {
   crowdAggregate, founderWalkers, founderDogyptians, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
-  walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText, isFounderEmail,
+  walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText, isFounderEmail, profileLevelFor,
   type TripVote, type TripPlan, type PartnerEvent, type CrowdSlice,
 } from '@/components/pack/packCommunity';
 import { TripWalkers } from '@/components/pack/trip/TripWalkers';
+import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
+import { useMyEventCount } from '@/components/pack/events/eventStore';
+import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
+import { useMyPlacePostCount } from '@/components/geo/placePosts';
+import { firstNameFrom } from '@/lib/pilgrimName';
+import { walkRevealPoints } from '@/components/pack/level/walkReveal';
+import type { TripPointsResult, LevelProgress } from '@/lib/tripPoints';
 import { readLocalTrailMeta, readTrailOverrides, readMyClaims, readDogTrips, onPackStoreHydrated, isPackStoreHydrated } from '@/lib/packStore';
 import { useCrowdOthers, refreshCrowdOthers } from '@/components/pack/crowdOthers';
 import {
@@ -86,6 +93,7 @@ const TRIP_PROBLEM_REASONS: ReportReasonOption[] = [
 import { TripEditPanel, type PlanEdit } from '@/components/pack/trip/TripEditPanel';
 import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
 // Panel `+` je ťažký (register, všetky toky) — načíta sa až pri prvom „pridaj odkaz“, ako v lište.
+const TripReveal = lazy(() => import('@/components/pack/level/TripReveal').then((m) => ({ default: m.TripReveal })));
 const AddTripEntry = lazy(() => import('@/components/pack/addtrip/AddTripEntry').then((m) => ({ default: m.AddTripEntry })));
 // ZÁPISY DO MAPY (2026-08-20) — v článku sú ROZBALENÉ, v mape schované pod ikonkou.
 // Ktoré sem patria, rozhoduje geometria (notesForTrail), nie uložený kľúč.
@@ -619,6 +627,7 @@ html.papyrus3d .pta-stat::before{display:none !important;}
 html.papyrus3d .pta-stat:last-child:nth-child(odd){grid-column:1 / -1;}
 html.papyrus3d .pta-stat>img{width:52px !important;height:52px !important;}
 html.papyrus3d .pta-sb-t{display:flex;flex-direction:column;gap:4px;min-width:0;}
+html.papyrus3d .pta-tlbtn{--b3-r:12px;flex:none;margin-left:auto;width:44px;height:44px;padding:0;}
 html.papyrus3d .pta-stat b{display:block;font-family:'LT Museum',serif;font-weight:900;font-size:20px;line-height:1;color:var(--p3d-ink);} /* písmo: nadpis */
 html.papyrus3d .pta-stat b{overflow-wrap:anywhere;}
 @media (max-width:430px){html.papyrus3d .pta-stat b{font-size:16px;}html.papyrus3d .pta-stat>img{width:44px !important;height:44px !important;}}
@@ -1225,6 +1234,12 @@ export default function PackTripArticle() {
   // Odmena za práve zapísané prejdenie (§3b) — spätne sa nedá dopočítať, bonus závisí od stavu
   // PRED klikom.
   const [walkedReward, setWalkedReward] = useState<WalkReward | null>(null);
+  // Animácia po uložení hodnotenia. Level sa ráta tou istou funkciou ako hlavička mapy.
+  const [walkReveal, setWalkReveal] = useState<{ points: TripPointsResult; before: LevelProgress; after: LevelProgress } | null>(null);
+  const myNotePoints = useMyNotePoints();
+  const myEventCount = useMyEventCount();
+  const myWishCount = useMyWishCount();
+  const myPlacePosts = useMyPlacePostCount();
   // Zelené WALKED ✓ nie je toggle — klik otvorí menu (Add to triplist / Remove walked).
   // Dôvod (Matej 2026-07-27): odznačenie zmaže aj hlas o obtiažnosti, nesmie sa stať omylom.
   const [walkedMenuOpen, setWalkedMenuOpen] = useState(false);
@@ -1307,9 +1322,7 @@ export default function PackTripArticle() {
       ? { tid, ...walkRewardBase(tr), bonuses: discoveryBonusFor(tr, allTrails.filter((x) => walkedIds.has(x.id))) }
       : null;
     setWalkedReward(reward);
-    setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
-    // Ponuka hodnotenia ide VŽDY (2026-08-06) — rovnako ako na mape. Odmenu aj objavenia
-    // ukáže samotný popup, takže toast by len zdvojoval to isté číslo.
+    // Zápis až po uložení hodnotenia v `submitWalked` (Matej 10. 11. 2026: krok späť výlet nepripisuje).
     setWalkedPopupOpen(true);
   };
   // Jedna cesta pre hlavné tlačidlo aj CTA v recenziách (stráže v toggleWalked ostávajú).
@@ -1333,6 +1346,21 @@ export default function PackTripArticle() {
   const submitWalked = (v: WalkedInput) => {
     if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!trail) return;
+    if (!walkedIds.has(trail.id)) {
+      const walkedBefore = allTrails.filter((x) => walkedIds.has(x.id));
+      const email = id.session?.user?.email ?? '';
+      const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
+      const level = (walkedTrails: HeroTrail[], vts: Record<string, TripVote>) => profileLevelFor({
+        walkedTrails, localTrailIds: readLocalTrails().map((tr) => tr.id), votes: vts, email,
+        ownerName: firstNameFrom(email, (meta.full_name || meta.name) as string | undefined),
+        notePoints: myNotePoints, eventsHeld: myEventCount, wishesDone: myWishCount, placePosts: myPlacePosts,
+      }).level;
+      setWalkReveal({
+        points: walkRevealPoints(trail, walkedBefore, true),
+        before: level(walkedBefore, votes),
+        after: level([trail, ...walkedBefore], { ...votes, [trail.id]: { tripId: trail.id, ...v, at: nowMs } }),
+      });
+    }
     setVotes((prev) => ({ ...prev, [trail.id]: { tripId: trail.id, ...v, at: nowMs } }));
     void reviewFromWalk(trail.id, v.rating, v.comment); // komentár = verejná recenzia (Matej 6. 10.)
     setWalkedIds((prev) => { const n = new Set(prev); n.add(trail.id); return n; });
@@ -1640,7 +1668,7 @@ export default function PackTripArticle() {
   // uprostred článku namiesto viewportu. Rovnaký vzor ako HeroBadges.tsx.
   const actsRow = (
         <div className="pta-acts">
-          {!walkedIds.has(trail.id) && (
+          {!walkedIds.has(trail.id) && (!APP_NEW || !agg.crowd) && (
             <button
               type="button"
               className={`pta-actbtn pta-actbtn--gold${favIds.has(trail.id) ? ' on' : ''}${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`}
@@ -1929,7 +1957,7 @@ export default function PackTripArticle() {
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.crowdBreakdown)}
             >
               {APP_NEW
-                ? <><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /><div className="pta-sb-t"><b>{crowdWord(t, agg.crowd)}</b><span>{t('pack.trip.stat.crowd')}</span></div></>
+                ? <><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /><div className="pta-sb-t"><b>{crowdWord(t, agg.crowd)}</b><span>{t('pack.trip.stat.crowd')}</span></div>{!walkedIds.has(trail.id) && <button type="button" className={`pta-tlbtn pk-b3 ${favIds.has(trail.id) ? 'pk-b3--gold' : 'pk-b3--paper'}`} onClick={() => toggleFav(trail.id)} aria-label={favIds.has(trail.id) ? t('pack.trip.inTriplist') : t('pack.trip.addToTriplist')} aria-pressed={favIds.has(trail.id)}><SysIcon name="triplist" size={32} /></button>}</>
                 : <><b><CrowdMark crowd={agg.crowd} fallback={CROWD_EMOJI[agg.crowd]} /> {t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span></>}
             </div>
           )}
@@ -2360,6 +2388,23 @@ export default function PackTripArticle() {
       {/* ── ZÁPIS ODKAZU Z ČLÁNKU (Matej 2026-08-21) ──────────────────────────
           Panely žijú MIMO <MapContainer> — formulár nie je vrstva mapy (viď hlavičku
           AddMapNote.tsx). Poradie krokov je rovnaké ako na celkovej mape. */}
+      {walkReveal && (
+        <Suspense fallback={null}>
+          <TripReveal
+            tripName={tripName(trail, lang)}
+            tripMeta={[hasRouteMetrics(trail) && trail.km ? `${trail.km} km` : '', trail.region].filter(Boolean).join(' · ')}
+            tripPhoto={trail.photos?.[0] ?? null}
+            points={walkReveal.points}
+            levelBefore={walkReveal.before}
+            levelAfter={walkReveal.after}
+            ownerAvatarUrl={id.avatarUrl}
+            ownerInitial={id.avatarInitial}
+            dogs={id.dogs.map((d) => ({ id: d.id, name: d.dog_name ?? t('pack.map.myDogFallback'), photo: d.cloudinary_main_url }))}
+            onAddAnother={() => { setWalkReveal(null); navigate('/pack/map'); }}
+            onClose={() => setWalkReveal(null)}
+          />
+        </Suspense>
+      )}
       {notePick && !noteDraft && (
         /* TEN ISTÝ PANEL AKO `+` → RÝCHLY ODKAZ, otvorený rovno na druhej úrovni (Matej 5. 10. 2026:
            „to sme určite zrušili ten spodný blok! a ešte je aj čierny“). Do 5. 10. tu stála

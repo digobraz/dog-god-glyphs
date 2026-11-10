@@ -135,6 +135,7 @@ import { tagWalked, crewHumanIds, inviteWalked, crewInviteIds } from '@/lib/pack
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { upsertMyTrip, removeMyTrip, ensureMyTrip } from '@/components/pack/triplist/triplist';
 import { SysIcon } from '@/components/pack/SysIcon';
+import { walkRevealPoints } from '@/components/pack/level/walkReveal';
 import { supabase } from '@/integrations/supabase/client';
 import { planDateLabel, parsePlanDate, planStart } from '@/components/pack/addtrip/planDate'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
 // #41 — kto tento výlet vypísal. `useOpenTrips` dá cudzie inzeráty (user_trips),
@@ -2664,6 +2665,9 @@ html.papyrus3d .trp-root .trp-ctlstack img.trp-sysico,html.papyrus3d .trp-root .
 /* ikonka fajky v tlačidle „Prešli sme" mala veľkosť len v mobilnom zozname — na PC sa v kartách bočného panela vykreslila v plnej veľkosti obrázka */
 html.papyrus3d .trp-bigcard-photobtn,html.papyrus3d .trp-bigcard-photobtn:hover{${backCircleCSS('pale')}width:26px;height:26px;}
 html.papyrus3d .trp-walkico{width:26px;height:26px;flex:none;margin-right:4px;}
+html.papyrus3d .trp-bigcard-photoactbtn.pk-b3{height:44px;padding:0 16px;border:2.5px solid var(--b3-l);border-radius:12px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 16px/1 'LT Museum',serif;letter-spacing:0;gap:8px;} /* písmo: cta */
+html.papyrus3d .trp-tlbtn{--b3-r:12px;position:absolute;right:10px;bottom:10px;z-index:3;width:44px;height:44px;padding:0;}
+html.papyrus3d .trp-bigcard-photo:has(> .trp-tlbtn) .trp-bigcard-photometa{right:64px;}
 /* tripflow, kroky 1–2: hlavička mapy je skrytá (výška 0), hore stojí AINUBIS (fixný, z 1202) — ovládače začnú POD ním */
 @media (max-width:${PALE_PC_MIN - 1}px){
   html.papyrus3d body:has(.ang-wrap) .trp-ctlstack{top:var(--ang-wrap-b,159px);}
@@ -3769,6 +3773,8 @@ export default function PackMap() {
     draftMissing?: string[];
     /** neprázdne = reveal PLÁNU (body sú odhad, level sa nehýbe) — viď `openPlanRevealFor` */
     plan?: { whenLine: string };
+    /** ✓ z karty: po zavretí ostáva človek na mieste, sprievodca sa neotvára */
+    fromCard?: boolean;
   } | null>(null);
 
   /**
@@ -5004,15 +5010,13 @@ export default function PackMap() {
       ? { tid, ...walkRewardBase(tr), bonuses: discoveryBonusFor(tr, allTrails.filter((x) => walkedIds.has(x.id))) }
       : null;
     setWalkedReward(reward);
-    setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
+    // Zápis, psie km aj prianie až po uložení hodnotenia v `submitWalked` (Matej 10. 11. 2026: krok späť výlet nepripisuje).
     /**
      * PSIE KM (B20, Matej 17. 9. 2026) — ✓ na karte nehovorí, KTORÝ pes išiel, takže
      * sa výlet pripíše všetkým ŽIVÝM psom účtu. Je to ODHAD, nie tvrdenie: kto to chce
      * povedať presne, zapíše výlet sprievodcom a vyberie posádku (`setDogTripCrew`).
      * ⚠️ Pútnik sa tým NEDELÍ — `walkedIds` vyššie ostáva človeku a body sa rátajú z neho.
      */
-    attributeDogTrips(tid, id.dogs.filter((d) => (d.life_status ?? 'alive') !== 'deceased').map((d) => d.id));
-    if (tr) queueWishMatch(tr);
     // Ponuka hodnotenia ide VŽDY (tiché obdobie zrušené 2026-08-06, viď packCommunity.ts) —
     // hodnotenie je platené bodmi, takže je to príležitosť, nie otrava. Toast s odmenou tu
     // preto už netreba: to isté číslo aj prípadné objavenie ukáže popup, ktorý sa práve otvára.
@@ -5036,6 +5040,26 @@ export default function PackMap() {
     if (mg) { mg.lock('action'); return; } // náhľad /magnet = maketa, nič sa nezapisuje
     if (!walkedPopupId) return;
     const tid = walkedPopupId;
+    if (!walkedIds.has(tid)) {
+      attributeDogTrips(tid, id.dogs.filter((d) => (d.life_status ?? 'alive') !== 'deceased').map((d) => d.id));
+      const tr = trailsById(tid);
+      if (tr) {
+        queueWishMatch(tr);
+        const stats = revealStats(tr, [
+          tr.km && Number(tr.km) > 0 ? { value: fmtNum(tr.km, lang), unit: 'km' } : null,
+          (tr as { ascentM?: number }).ascentM ? { value: String((tr as { ascentM?: number }).ascentM), unit: 'm ↑' } : null,
+        ]);
+        setReveal({
+          tripName: tr.name,
+          tripMeta: stats.map((x) => [x.value, x.unit].filter(Boolean).join(' ')).join(' · '),
+          tripStats: stats,
+          tripPhoto: tr.photos?.[0] ?? null,
+          points: walkRevealPoints(tr, allTrails.filter((x) => walkedIds.has(x.id)), true),
+          levelBefore: levelInfo,
+          fromCard: true,
+        });
+      }
+    }
     setVotes((prev) => ({ ...prev, [tid]: { tripId: tid, ...v, at: nowMs } }));
     void reviewFromWalk(tid, v.rating, v.comment); // komentár = verejná recenzia (Matej 6. 10.)
     setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
@@ -6562,7 +6586,7 @@ export default function PackMap() {
             {(!isUnwalkedPlan || isMine) && (
               <button
                 type="button"
-                className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(tr.id) ? ' on' : ''}`}
+                className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(tr.id) ? ' on' : ''}${APP_NEW && !walkedIds.has(tr.id) ? ' pk-b3 pk-b3--lapis' : ''}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   /* ⚠️ VLASTNÝ NEPREJDENÝ PLÁN IDE TRIPFLOWOM, NIE POPUPOM (Matej 2026-08-25).
@@ -6576,21 +6600,24 @@ export default function PackMap() {
                   toggleWalked(tr.id);
                 }}
               >
-                {APP_NEW ? <img src="/icons/sys/fajka.webp" alt="" className="trp-walkico" /> : '✓ '}{t('pack.map.walked')}
+                {APP_NEW && !walkedIds.has(tr.id) ? t('pack.trip.markWalked') : <>{APP_NEW ? <img src="/icons/sys/fajka.webp" alt="" className="trp-walkico" /> : '✓ '}{t('pack.map.walked')}</>}
                 {/* Koľko bodov ten klik naozaj dá — SKUTOČNÉ číslo tejto trasy (5 + km +
                     stúpanie / pevná cena magistrály), nie paušál. Po odškrtnutí zmizne: body
                     už padli. */}
                 {!walkedIds.has(tr.id) && <PointsPill value={walkPointsFor(tr)} />}
               </button>
             )}
-            {!walkedIds.has(tr.id) && (
+            {!APP_NEW && !walkedIds.has(tr.id) && (
               <button
                 type="button"
                 className={`trp-bigcard-photoactbtn${favIds.has(tr.id) ? ' on' : ''}`}
                 onClick={(e) => { e.stopPropagation(); toggleFav(tr.id); }}
-              ><SysIcon name="triplist" size={20} />{t('pack.map.triplist')}</button>
+              >★ {t('pack.map.triplist')}</button>
             )}
           </div>
+          {APP_NEW && !walkedIds.has(tr.id) && (
+            <button type="button" className={`trp-tlbtn pk-b3 ${favIds.has(tr.id) ? 'pk-b3--gold' : 'pk-b3--paper'}`} aria-label={t(favIds.has(tr.id) ? 'pack.map.inTriplist' : 'pack.map.triplist')} aria-pressed={favIds.has(tr.id)} onClick={(e) => { e.stopPropagation(); toggleFav(tr.id); }}><SysIcon name="triplist" size={32} /></button>
+          )}
           {/* bod 3: náročnosť · km + popularita + hazard(červený) — dolný ľavý roh fotky.
               Plán = žiadne meta (výlet sa neodohral), len „Planned" pilulka. */}
           <div className="trp-bigcard-photometa">
@@ -6771,7 +6798,7 @@ export default function PackMap() {
                     {(!isUnwalkedPlan || isMine) && (
                       <button
                         type="button"
-                        className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(dt.id) ? ' on' : ''}`}
+                        className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(dt.id) ? ' on' : ''}${APP_NEW && !walkedIds.has(dt.id) ? ' pk-b3 pk-b3--lapis' : ''}`}
                         onClick={() => {
                           // Rovnaká vidlica ako na karte — viď komentár tam.
                           if (isUnwalkedPlan && isMine) { openWalkPlan(dt.id); return; }
@@ -6780,18 +6807,21 @@ export default function PackMap() {
                           toggleWalked(dt.id);
                         }}
                       >
-                        ✓ {walkedIds.has(dt.id) ? t('pack.map.walked') : t('pack.map.markWalked')}
+                        {APP_NEW && !walkedIds.has(dt.id) ? t('pack.trip.markWalked') : <>✓ {walkedIds.has(dt.id) ? t('pack.map.walked') : t('pack.map.markWalked')}</>}
                         {!walkedIds.has(dt.id) && <PointsPill value={walkPointsFor(dt)} />}
                       </button>
                     )}
-                    {!walkedIds.has(dt.id) && (
+                    {!APP_NEW && !walkedIds.has(dt.id) && (
                       <button
                         type="button"
                         className={`trp-bigcard-photoactbtn${favIds.has(dt.id) ? ' on' : ''}`}
                         onClick={() => toggleFav(dt.id)}
-                      ><SysIcon name="triplist" size={20} />{favIds.has(dt.id) ? t('pack.map.inTriplist') : t('pack.map.triplist')}</button>
+                      >★ {favIds.has(dt.id) ? t('pack.map.inTriplist') : t('pack.map.triplist')}</button>
                     )}
                   </div>
+                  {APP_NEW && !walkedIds.has(dt.id) && (
+                    <button type="button" className={`trp-tlbtn pk-b3 ${favIds.has(dt.id) ? 'pk-b3--gold' : 'pk-b3--paper'}`} aria-label={t(favIds.has(dt.id) ? 'pack.map.inTriplist' : 'pack.map.triplist')} aria-pressed={favIds.has(dt.id)} onClick={() => toggleFav(dt.id)}><SysIcon name="triplist" size={32} /></button>
+                  )}
                   {/* náročnosť · km + popularita + hazard(červený) — dolný ľavý roh fotky.
                       Plán = žiadne meta, len „Planned" pilulka. */}
                   <div className="trp-bigcard-photometa">
@@ -8314,7 +8344,7 @@ export default function PackMap() {
             // Zatvorenie prúžku je POSLEDNÝ krok toku, takže práve tu platí pravidlo návratu:
             // kto začal na DOMOVE, skončí na DOMOVE (lock §1.1.1). Uložený objekt sa NEOTVÁRA
             // sám — prúžok ponúka ZOBRAZIŤ a klikne naň ten, kto tam ísť chce (§4.2).
-            onClose={() => { setReveal(null); if (backToOrigin()) return; setCoachOpen(!coachMuted()); }}
+            onClose={() => { const card = reveal.fromCard; setReveal(null); if (card || backToOrigin()) return; setCoachOpen(!coachMuted()); }}
           />
         </Suspense>
       )}

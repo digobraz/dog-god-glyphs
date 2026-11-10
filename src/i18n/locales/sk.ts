@@ -3944,7 +3944,7 @@ export const sk: Partial<Dict> = {
   'pack.community.updateVoteBtn': "Upraviť moje hodnotenie",
   'pack.community.logWalkBtn': "Zapísať tento výlet",
   'pack.community.rateRewardTitle': "Ohodnoť a získaj body",
-  'pack.community.rewardEyebrow': "Získal si",
+  'pack.community.rewardEyebrow': "Po uložení získaš",
   'pack.community.rewardNextRating': "Pridaj hodnotenie a získaj ďalšie body",
   'pack.community.notNowBtn': "Teraz nie",
   'pack.profileCard.removeTag': "Odstrániť {tag}",

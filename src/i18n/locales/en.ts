@@ -4238,7 +4238,7 @@ export const en = {
   // 2026-08-05: číslo vyšlo z nadpisu von do béžovej pilulky nad labkami (Matej: „to rate it
   // +3? je úplne stratené"). Nadpis ostal vetou — bez `{n}`.
   'pack.community.rateRewardTitle': "Rate it and earn points",
-  'pack.community.rewardEyebrow': "You earned",
+  'pack.community.rewardEyebrow': "Save to earn",
   'pack.community.rewardNextRating': "Add a rating and earn more points",
   'pack.community.notNowBtn': "Not now",
   // Prázdny stav zoznamu MOJICH inzerátov (`packCommunityUI.tsx`). ⚠️ Veta nesmie znieť

@@ -4406,7 +4406,7 @@ export const cs: Partial<Dict> = {
   'pack.community.notNowBtn': 'Teď ne',
   'pack.community.pawsAriaLabel': '{n} tlapky',
   'pack.community.rateRewardTitle': 'Ohodnoť a získej body',
-  'pack.community.rewardEyebrow': 'Získal jsi',
+  'pack.community.rewardEyebrow': 'Po uložení získáš',
   'pack.community.rewardNextRating': 'Přidej hodnocení a získej další body',
   'pack.community.updateVoteBtn': 'Upravit moje hodnocení',
   'pack.community.walkedRatingLabel': 'Hodnocení',
