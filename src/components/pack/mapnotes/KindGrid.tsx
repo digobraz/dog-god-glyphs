@@ -19,6 +19,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
 import type { NoteKind } from './mapNotesData';
 import { FONT_EMOJI, threatEmoji } from './markEmoji';
+import { stickerSrc } from './mapStickers';
 
 export function KindGrid({
   kinds,
@@ -86,7 +87,10 @@ export function KindGrid({
              „vybraté", ale nie „vybraté ČO". */
           style={selected === k ? { background: tintRGBA(tint, 0.24), borderColor: tint } : undefined}
         >
-          <i>{threatEmoji(k)}</i>
+          {/* V appke tá istá samolepka ako na mape (10. 11. 2026), emoji ostáva webu. */}
+          {stickerSrc(`note_${k}`)
+            ? <img className="kg-sticker" src={stickerSrc(`note_${k}`)!} alt="" draggable={false} />
+            : <i>{threatEmoji(k)}</i>}
           <em>{t(`pack.mapNotes.kind.${k}`)}</em>
         </button>
       ))}
@@ -144,6 +148,8 @@ export const KIND_GRID_CSS = `
    o skrolovací stĺpec. Dovnútra ho vidno rovnako. */
 .mnk-tile:focus-visible{outline:2px solid ${T.onDark};outline-offset:-2px;}
 .mnk-tile i{font-style:normal;font-family:${FONT_EMOJI};font-size:20px;line-height:1;}
+.mnk-tile .kg-sticker{width:32px;height:32px;display:block;}
+.mnk-grid--row .mnk-tile .kg-sticker{width:24px;height:24px;}
 /* Space Grotesk je načítaný len 300–600 ⇒ strop 600, inak fake bold (CLAUDE.md). */
 .mnk-tile em{font-style:normal;font-family:${FONT_UI};font-size:10px;font-weight:500;line-height:1.2;text-align:center;color:${T.onDarkDim};}
 .mnk-tile.on em{color:#FFFFFF;}

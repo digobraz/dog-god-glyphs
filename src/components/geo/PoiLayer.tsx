@@ -34,7 +34,7 @@ import L from 'leaflet';
 import { TRAIL_POI, POI_ATTRIBUTION, type TrailPoi } from '@/data/trailPoi.generated';
 import { FONT_UI, PACK_THEME as T, PACK_R } from '@/components/pack/packTheme';
 import { POI_EMOJI, sleepEmoji, WORLD_RIM } from '@/components/pack/mapnotes/markEmoji';
-import { MAP_STICKERS_ON, stickerSrc, stickerImg } from '@/components/pack/mapnotes/mapStickers';
+import { MAP_STICKERS_ON, stickerSrc, stickerImg, poiStickerPx } from '@/components/pack/mapnotes/mapStickers';
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import { usePoiTiles, type PoiTilePoint } from './usePoiTiles';
 import { PlaceCard, PLACE_CARD_CSS } from './PlaceCard';
@@ -113,12 +113,12 @@ const MARK_H = MAP_STICKERS_ON ? 32 : 26;
 //
 // ⚠️ Kruh sa NESTAVIA tu — `circleMarkHtml()` je jediný staviteľ pre všetky kruhové
 // značky mapy. Vlastný `<div>` s tými istými rozmermi by bol štvrtá kópia geometrie.
-const poiIcon = (t: string, done = false) => {
+const poiIcon = (t: string, zoom: number, done = false) => {
   const src = stickerSrc(t);
   return L.divIcon({
     className: 'mk-wrap',
     html: src
-      ? stickerImg(src, done ? PLACE_DONE_CLASS : '')
+      ? stickerImg(src, done ? PLACE_DONE_CLASS : '', poiStickerPx(zoom))
       : circleMarkHtml(markEmojiFor(t), WORLD_RIM, ` mk-circle--world${done ? PLACE_DONE_CLASS : ''}`),
   });
 };
@@ -264,7 +264,7 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false, drawing = fals
             <Marker
               key={`poi-${p.t}-${p.lat}-${p.lon}`}
               position={[p.lat, p.lon]}
-              icon={poiIcon(p.t, done)}
+              icon={poiIcon(p.t, zoom, done)}
               zIndexOffset={-600}   // POI nesmie prebiť trip pin ani vizuálne, ani klikom
               title={label}
               // ⚠️ Klik na značku do mapy NEPREPADNE (Leaflet `bubblingMouseEvents:false`
@@ -277,7 +277,7 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false, drawing = fals
           <Marker
             key={`poi-${p.t}-${p.lat}-${p.lon}`}
             position={[p.lat, p.lon]}
-            icon={poiIcon(p.t)}
+            icon={poiIcon(p.t, zoom)}
             zIndexOffset={-600}
             title={label}
           >

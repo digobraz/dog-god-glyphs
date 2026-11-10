@@ -384,8 +384,8 @@ const TILE_SKETCH: Record<string, JSX.Element> = {
   ),
   visit: (
     <svg {...SK_BOX}>
-      <circle cx={40} cy={28} r={14} {...SK_AREA} />
-      <circle cx={40} cy={28} r={4} fill={SK_P} />
+      <circle cx={60} cy={28} r={14} {...SK_AREA} />
+      <circle cx={60} cy={28} r={4} fill={SK_P} />
     </svg>
   ),
 };
@@ -5312,9 +5312,14 @@ html.papyrus3d .atl-tile-tag{font-size:10px;padding:4px 8px;color:var(--p3d-ink)
 html.papyrus3d .atl-tiles{gap:24px;}
 /* Dlaždica výberu typu zápisu: ikonka je veľký priesvitný podklad (nie stĺpec), pilulky v jednom riadku,
    fialová kresba vpravo; všetko sa musí zmestiť bez scrollu aj na 375×667 (Matej 10. 11. 2026). */
-html.papyrus3d .atl-tile{position:relative;overflow:hidden;gap:8px;}
-html.papyrus3d .atl-tile-emoji{position:absolute;left:-16px;top:50%;transform:translateY(-50%);opacity:0.22;pointer-events:none;z-index:0;line-height:0;}
-html.papyrus3d .atl-tile-txt,html.papyrus3d .atl-tile-sketch{position:relative;z-index:1;}
+html.papyrus3d .atl-tile{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;row-gap:4px;}
+html.papyrus3d .atl-tile-txt{display:contents;}
+html.papyrus3d .atl-tile-label{grid-column:1;grid-row:1;position:relative;z-index:1;}
+html.papyrus3d .atl-tile-note,html.papyrus3d .atl-tile-tags{grid-column:1/-1;position:relative;z-index:1;}
+html.papyrus3d .atl-tile-sketch{grid-column:2;grid-row:1;}
+html.papyrus3d .atl-tile-sketch svg{width:56px;height:39px;display:block;}
+html.papyrus3d .atl-tile-emoji{position:absolute;left:-16px;top:50%;transform:translateY(-50%);opacity:0.18;pointer-events:none;z-index:0;line-height:0;}
+html.papyrus3d .atl-tile-sketch{position:relative;z-index:1;}
 html.papyrus3d .atl-tile-sketch{margin-left:auto;}
 /* pripomienka 20: na nízkom okne (360×740) sa tretia dlaždica nezmestila — zhustenie, nie skrolovanie */
 @media (max-height:800px){
