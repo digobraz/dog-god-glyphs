@@ -15,7 +15,7 @@ import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_AVATAR, FONT_TITLE, FON
 import { AINUBIS, AI_GLASS } from '@/components/pack/ainubisSkin';
 import { HandPlay } from '@/components/pack/HandIcons';
 import { LikeIc, SaveIc } from '@/components/app/sysSwap';
-import { SysIcon } from '@/components/pack/SysIcon';
+import { SysIcon, ShareMark } from '@/components/pack/SysIcon';
 import { scrollThumb, pickText, pickPod, fmtSec, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import ainubisHead from '@/assets/ainubis-head.webp';
 import { APP_NEW } from '@/lib/packFlags';
@@ -98,8 +98,10 @@ function AiPost({ sub, media, children, onHide, hideLabel }: { sub: string; medi
 
 /** Labka · komentár · ☆ v pilulke DOGSCROLLu, každá s počtom (`feed_social`, Matej 27. 10.:
  *  *„počet pri labkách, komentoch aj uloženiach"*). */
-function AiActs({ liked, saved, onLike, onSave, labels, onComment, comments = 0, likes = 0, saves = 0 }: {
-  liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string; comment?: string };
+function AiActs({ liked, saved, onLike, onSave, labels, onComment, onShare, comments = 0, likes = 0, saves = 0 }: {
+  liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string; comment?: string; share?: string };
+  /** Zdieľanie (Matej 10. 11. 2026) — hneď za komentárom, bez komentára za labkou. */
+  onShare?: () => void;
   /** Komentáre — zatiaľ len pod citátom. Poradie vždy labka · komentár · ☆ (lock architektura-pack §4.2). */
   onComment?: () => void; comments?: number; likes?: number; saves?: number;
 }) {
@@ -115,6 +117,11 @@ function AiActs({ liked, saved, onLike, onSave, labels, onComment, comments = 0,
           <span className="zv-n">{comments}</span>
         </button>
       )}
+      {onShare && (
+        <button type="button" data-k="share" className="zv-act" onClick={onShare} aria-label={labels.share}>
+          <ShareMark />
+        </button>
+      )}
       <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={onSave} aria-pressed={saved} aria-label={labels.save}>
         <SaveIc size={20} filled={saved} />
         <span className="zv-n">{saves}</span>
@@ -123,10 +130,10 @@ function AiActs({ liked, saved, onLike, onSave, labels, onComment, comments = 0,
   );
 }
 
-export function AiQuote({ text, author, bg, variant, sub, liked, saved, onLike, onSave, labels, onComment, comments, likes, saves }: {
+export function AiQuote({ text, author, bg, variant, sub, liked, saved, onLike, onSave, labels, onComment, onShare, comments, likes, saves }: {
   text: string; author: string; bg: string; variant: 'a' | 'b'; sub: string;
-  liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string; comment?: string };
-  onComment?: () => void; comments?: number; likes?: number; saves?: number;
+  liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string; comment?: string; share?: string };
+  onComment?: () => void; onShare?: () => void; comments?: number; likes?: number; saves?: number;
 }) {
   return (
     <AiPost sub={sub} media={(
@@ -137,15 +144,15 @@ export function AiQuote({ text, author, bg, variant, sub, liked, saved, onLike, 
         </div>
       </div>
     )}>
-      <AiActs liked={liked} saved={saved} onLike={onLike} onSave={onSave} labels={labels} onComment={onComment} comments={comments} likes={likes} saves={saves} />
+      <AiActs liked={liked} saved={saved} onLike={onLike} onSave={onSave} labels={labels} onComment={onComment} onShare={onShare} comments={comments} likes={likes} saves={saves} />
     </AiPost>
   );
 }
 
-export function AiStory({ src, poster, title, body, sub, liked, saved, onLike, onSave, labels, likes, saves }: {
+export function AiStory({ src, poster, title, body, sub, liked, saved, onLike, onSave, labels, onShare, likes, saves }: {
   src: string; poster: string; title: string; body: string; sub: string;
-  liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string; more: string };
-  likes?: number; saves?: number;
+  liked: boolean; saved: boolean; onLike: () => void; onSave: () => void; labels: { like: string; save: string; more: string; share?: string };
+  onShare?: () => void; likes?: number; saves?: number;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [open, setOpen] = useState(false);
@@ -167,7 +174,7 @@ export function AiStory({ src, poster, title, body, sub, liked, saved, onLike, o
       <h3>{title}</h3>
       <p className={open ? '' : 'cut'}>{body}</p>
       {!open && body.length > 140 && <button type="button" className="fai-more" onClick={() => setOpen(true)}>{labels.more}</button>}
-      <AiActs liked={liked} saved={saved} onLike={onLike} onSave={onSave} labels={labels} likes={likes} saves={saves} />
+      <AiActs liked={liked} saved={saved} onLike={onLike} onSave={onSave} labels={labels} onShare={onShare} likes={likes} saves={saves} />
     </AiPost>
   );
 }

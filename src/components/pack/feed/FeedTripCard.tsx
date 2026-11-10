@@ -21,17 +21,19 @@ import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { HandClipboard, HandArrowLeft } from '@/components/pack/HandIcons';
-import { LikeMark, CommentMark, SysIcon } from '@/components/pack/SysIcon';
+import { LikeMark, CommentMark, ShareMark, SysIcon } from '@/components/pack/SysIcon';
 import { APP_NEW } from '@/lib/packFlags';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { COMMUNITY_CSS, PhotoMetaPills, photoMeta3dCSS } from '@/components/pack/packCommunityUI';
 import { crowdAggregate } from '@/components/pack/packCommunity';
 import { categoriesOf, chipsOf, ACT_TAG_EMOJI, TAG_EMOJI, TAG_I18N } from '@/components/pack/tripCategories';
-import { tripPath, tripText, hasRouteMetrics, isWaterTrail, coverPos, TRAIL_LINE, regionName } from '@/components/pack/tripShared';
+import { tripPath, tripShareText, tripText, hasRouteMetrics, isWaterTrail, coverPos, TRAIL_LINE, regionName } from '@/components/pack/tripShared';
 import { mapyTiles } from '@/lib/env';
 import { trailCountry, flagUrl } from '@/lib/countryGeo';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { FollowChip, FOLLOW_CHIP_CSS } from '@/components/pack/profile/follow';
+import { shareOut } from './feedShare';
+import { magnetPath } from '@/components/pack/magnetPreview';
 import { agoLabel, tripTitle, useSwipe, type FeedTrip } from './feedData';
 
 const T = PACK_THEME;
@@ -224,6 +226,12 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
   ], [tr, t]);
   const desc = tripText(tr, 'desc', lang);
   const go = () => navigate(tripPath(tr));
+  // Odkaz ako v článku výletu (`tripPath`); výlet zdarma má aj verejnú adresu cez `magnetPath`, ten ide radšej.
+  const share = () => shareOut({
+    text: tripShareText(tr, lang),
+    url: `${window.location.origin}${magnetPath(tripPath(tr)) || tripPath(tr)}`,
+    photo: tr.photos[idx] ?? tr.photos[0],
+  }, tx);
   const swipe = useSwipe(n, (d) => setIdx((i) => (i + d + n) % n));
   // Široká ostáva široká; vysoká sa oreže na 4:5 (strop výšky ako na IG). Kým sa nenačíta, 4:3.
   const aspect = ratio ? Math.min(Math.max(ratio, 4 / 5), 2) : 4 / 3;
@@ -304,6 +312,9 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
             <CommentMark />{comments > 0 && comments}
           </button>
         )}
+        <button type="button" onClick={share} aria-label={tx('pack.feed.act.share', 'Share')}>
+          <ShareMark />
+        </button>
         <span className="sp" />
         <button type="button" className={`list${listed ? ' on' : lists > 0 ? '' : ' fd'}`} onClick={onList} aria-pressed={listed} aria-label="TRIPLIST" title="TRIPLIST">
           {APP_NEW ? <img src="/icons/sys/triplist.webp" alt="" width={28} height={28} draggable={false} /> : <HandClipboard size={24} />}{lists > 0 && lists}

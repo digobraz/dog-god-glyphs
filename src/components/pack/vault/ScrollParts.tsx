@@ -27,7 +27,7 @@ import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CS
 import { AINUBIS, AI_GLASS, AI_WORLD, BRAIN_STATE, aiWorld } from '@/components/pack/ainubisSkin';
 import { HandPlus, HandArrowLeft } from '@/components/pack/HandIcons';
 import { APP_NEW } from '@/lib/packFlags';
-import { SysIcon } from '@/components/pack/SysIcon';
+import { SysIcon, ShareMark } from '@/components/pack/SysIcon';
 import { LikeIc, SaveIc, LockIc, CheckIc, PencilIc, AlertIc, CameraIc, TrashIc, BackIc, NextIc } from '@/components/app/sysSwap';
 
 /** Kresba z kitu `/icons/pack/` cez masku (ten istý zápis ako v PackAinubis). */
@@ -469,8 +469,10 @@ export function EvidenceBadge({ sd, lang, corner = false }: { sd: number; lang: 
   );
 }
 
-export function ScrollActions({ id, lang, onTalk, lock }: {
+export function ScrollActions({ id, lang, onTalk, lock, onShare }: {
   id: string; lang: string; onTalk: () => void;
+  /** FEED (10. 11. 2026): zdieľanie hneď za komentárom. DOGSCROLL ho nepredáva, tam ostáva bez neho. */
+  onShare?: () => void;
   /** NÁHĽAD /magnet (12. 10. 2026): akcie nič nezapisujú, každá otvorí popup pre Dogypťanov. */
   lock?: () => void;
 }) {
@@ -497,13 +499,16 @@ export function ScrollActions({ id, lang, onTalk, lock }: {
       <button type="button" data-k="talk" className={`zv-act${talk > 0 ? ' is-on' : ''}`} onClick={lock ?? onTalk} aria-label={u.talk}>
         <Ic ic={talk > 0 ? 'chat-right-full' : 'chat'} /><span className="zv-n">{talk}</span>
       </button>
+      {onShare && <button type="button" data-k="share" className="zv-act" onClick={lock ?? onShare} aria-label={u.share}><ShareMark /></button>}
       <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={lock ?? (() => toggleSaved(id))} aria-label={u.save}><SaveIc size={20} filled={saved} /><span className="zv-n">{saves}</span></button>
     </div>
   );
 }
 
 /** Karta zvitku v zozname. Videné = karta aspoň 2 s z polovice na obrazovke. */
-export function ScrollCard({ z, lang, worldName, onOpen, onShare, lock, locked, head, eager }: {
+export function ScrollCard({ z, lang, worldName, onOpen, onShare, showShare, lock, locked, head, eager }: {
+  /** FEED (10. 11. 2026): ukáž tlačidlo zdieľania v akciách. DOGSCROLL ho nemá (`onShare` tam slúži len detailu). */
+  showShare?: boolean;
   /** Karta na vrchu zoznamu: obraz sa ťahá hneď, nie až po vykreslení. */
   eager?: boolean;
   z: DemoScroll; lang: string;
@@ -540,7 +545,7 @@ export function ScrollCard({ z, lang, worldName, onOpen, onShare, lock, locked, 
         {z.img && <img {...scrollThumb(z.img)} alt="" loading={eager ? 'eager' : 'lazy'} onClick={() => onOpen(z.id)} />}
         {locked
           ? <span className="zv-lockbadge" aria-hidden><LockIc size={20} /></span>
-          : <ScrollActions id={z.id} lang={lang} onTalk={() => onOpen(z.id, 'talk')} lock={lock} />}
+          : <ScrollActions id={z.id} lang={lang} onTalk={() => onOpen(z.id, 'talk')} lock={lock} onShare={showShare ? () => onShare(z.id) : undefined} />}
       </div>
       <div className="akv-zvt">
         {/* ZNÁMKA V ROHU TEXTOVÉHO BLOKU, NIE KARTY (Matej 5. 10. 2026: *„relevantnosť nesmie byť

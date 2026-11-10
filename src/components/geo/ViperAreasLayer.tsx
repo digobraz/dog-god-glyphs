@@ -18,8 +18,10 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Marker, Popup, useMap, useMapEvent } from 'react-leaflet';
 import L from 'leaflet';
-import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, FONT_TITLE, FONT_UI, PACK_SPACE, PACK_SHADOW } from '@/components/pack/packTheme';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
+import { stickerSrc, stickerImg, NOTE_STICKER_PX } from '@/components/pack/mapnotes/mapStickers';
+import { CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import { useT } from '@/i18n/LanguageContext';
 import { VIPER_POINTS, VIPER_SOURCE, VIPER_FINDS_TOTAL } from '@/data/viperAreas';
 import { clusterByPixels, clusterPx, clusterRadiusForZoom } from '@/components/pack/mapnotes/clusterPoints';
@@ -51,15 +53,20 @@ const VIPER_EMOJI_PX = 19;
 // Pevných 28 px tu stálo do 22. 8. a pri z10 nechávalo zo 107 bodov 103 bubliniek.
 
 const VIPER_MARK = `position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:${VIPER_DOT_PX}px;height:${VIPER_DOT_PX}px;border-radius:999px;background:#FFFFFF;border:2.5px solid ${HAZARD_RED};box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);font-family:${FONT_EMOJI};font-size:${VIPER_EMOJI_PX}px;line-height:1;cursor:pointer;`;
-const viperIcon = () => L.divIcon({ className: 'vp-wrap', html: `<div style="${VIPER_MARK}">🐍</div>` });
+// V appke tá istá samolepka ako zápis svorky „vretenica" (Matej 10. 11. 2026: „ikonky vretenic sú stále staré!!!!").
+// Emoji 🐍 v iPhone vyzerá ako kreslený had, preto si ho nikto nevšimol pri prvej výmene.
+const VIPER_STICKER = stickerSrc('note_viper');
+const viperIcon = () => L.divIcon({ className: VIPER_STICKER ? 'mk-wrap' : 'vp-wrap', html: VIPER_STICKER ? stickerImg(VIPER_STICKER, '', NOTE_STICKER_PX) : `<div style="${VIPER_MARK}">🐍</div>` });
 
 // Zhluk — ten istý biely kruh s červeným lemom, len s POČTOM namiesto 🐍
 // (Matej 2026-08-22: „z diaľky to budú len biele kruhy z červeným lemom a číslom
 // vo vnútri a pri vačšom zoome sa rozpadnú na jednotlivé ikonky").
 const clusterMark = (px: number) =>
   `position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:${px}px;height:${px}px;border-radius:999px;background:#FFFFFF;border:2.5px solid ${HAZARD_RED};box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);font-family:${FONT_TITLE};font-weight:700;font-size:${px < 36 ? 12 : px < 48 ? 13 : 15}px;color:${HAZARD_RED};`;
-const viperClusterIcon = (n: number) =>
-  L.divIcon({ className: 'vp-wrap', html: `<div style="${clusterMark(clusterPx(n))}">${n}</div>` });
+// V appke zhluk = samolepka vretenice s červeným počtom v rohu, ako zhluk výletov (vlajka + lapis počet).
+const viperClusterIcon = (n: number) => L.divIcon(VIPER_STICKER
+  ? { className: 'mk-wrap', html: `<div class="vp-cl">${stickerImg(VIPER_STICKER, '', NOTE_STICKER_PX + 4)}<span class="vp-cl-n" style="left:${Math.round((NOTE_STICKER_PX + 4) * 0.36)}px;top:${-Math.round((NOTE_STICKER_PX + 4) * 0.3)}px">${n}</span></div>` }
+  : { className: 'vp-wrap', html: `<div style="${clusterMark(clusterPx(n))}">${n}</div>` });
 
 export function ViperAreasLayer({ lang }: { lang: string }) {
   const t = useT();
@@ -109,7 +116,9 @@ export function ViperAreasLayer({ lang }: { lang: string }) {
         {/* Krúžok aj v bubline — tá istá zmena ako pri zápisoch svorky
             (Matej 2026-08-22). Bublina je to, na čo človek klikol; holé
             emoji by v nej čítalo ako iná vec než značka pod prstom. */}
-        <span className="vp-mark" aria-hidden="true"><i className="vp-em">🐍</i></span>
+        {VIPER_STICKER
+          ? <img className="vp-sticker" src={VIPER_STICKER} alt="" aria-hidden="true" draggable={false} />
+          : <span className="vp-mark" aria-hidden="true"><i className="vp-em">🐍</i></span>}
         <span className="vp-kind">{t('pack.viper.title')}</span>
       </div>
       <p className="vp-area">{sk ? p.name : p.nameEN}</p>
@@ -180,6 +189,7 @@ export function ViperAreasLayer({ lang }: { lang: string }) {
 // Papyrus, rovnako ako bublina zápisu (mn-popup) — dve bubliny nad tou istou
 // mapou nesmú byť z dvoch svetov. Leaflet si aj tu nesie vlastný biely chrome.
 const VIPER_CSS = `
+${CIRCLE_MARK_CSS}
 .vp-popup .leaflet-popup-content-wrapper{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:0;}
 .vp-popup .leaflet-popup-content{margin:0;padding:12px 14px;width:auto!important;min-width:240px;max-width:320px;}
 /* V šuplíku je miesta dosť — text čitateľný, nie bublinkový. */
@@ -192,6 +202,9 @@ const VIPER_CSS = `
 .vp-wrap{background:none;border:0;}
 .vp-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
 .vp-mark{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:999px;background:#FFFFFF;border:2px solid ${HAZARD_RED};box-sizing:border-box;}
+.vp-sticker{display:block;flex:none;width:28px;height:28px;}
+.vp-cl{position:relative;cursor:pointer;}
+.vp-cl-n{position:absolute;transform:translate(-50%,-50%);min-width:22px;height:22px;padding:0 ${PACK_SPACE.sm}px;border-radius:999px;background:${HAZARD_RED};color:#fff;font-family:${FONT_UI};font-weight:600;font-size:12px;display:flex;align-items:center;justify-content:center;box-shadow:${PACK_SHADOW.card};pointer-events:none;}
 .vp-em{font-style:normal;font-family:${FONT_EMOJI};font-size:15px;line-height:1;}
 .vp-kind{font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${HAZARD_RED};}
 .vp-area{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:13px;line-height:1.3;color:${T.inkStrong};}

@@ -32,7 +32,7 @@ import { GROUP_TINT, HAZARD_RED, noteTint } from './NotePalette';
 // Kruh (rozmery + staviteľ + CSS) je od 22. 8. spoločný s udalosťami v PackMap.tsx —
 // dôvod, prečo sa vysťahoval z tohto súboru, je v hlavičke `circleMark.ts`.
 import { circleMarkHtml, CIRCLE_MARK_CSS } from './circleMark';
-import { stickerSrc, stickerImg, NOTE_STICKER_PX } from './mapStickers';
+import { noteStickerSrc, stickerImg, NOTE_STICKER_PX } from './mapStickers';
 import { FONT_EMOJI, MARK_EMOJI, threatEmoji } from './markEmoji';
 
 // Pod týmto priblížením sa vrstva NEKRESLÍ. Zápis je bod na konkrétnom mieste;
@@ -115,7 +115,7 @@ export function noteMarkHtml(kind: NoteKind, extra = '', dataset = false, diseas
   // mapa by tvrdila, že za ním stojí člen.
   // Appka kreslí vlastné samolepky z továrne, emoji v kruhu ostáva webu (10. 11. 2026).
   // Kliešť s potvrdenou chorobou má vlastnú značku (Matej 10. 11. 2026: „kliešť urob nejakú značku s nakazeným").
-  const sticker = stickerSrc(kind === 'ticks' && disease ? 'note_ticks_sick' : `note_${kind}`);
+  const sticker = noteStickerSrc(kind, disease);
   if (sticker) return stickerImg(sticker, extra, dataset ? undefined : NOTE_STICKER_PX);
   if (dataset) {
     return `<div class="mn-mark mn-mark--emoji${extra}"><i>${MARK_EMOJI[kind] ?? ''}</i></div>`;
@@ -363,9 +363,13 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
                 V bubline je LEN konkrétna hrozba, bez ⚠️ (Matej 2026-08-21:
                 „stačí už len vretenica"): na mape ⚠️ nesie skupinu, lebo tam je
                 emoji jediný nosič významu — tu ju nesie vypísaný názov hneď vedľa. */}
-            <span className="mn-bubble-mark" style={{ borderColor: noteTint(n.kind, n.disease) }} aria-hidden="true">
-              <i className="mn-bubble-em">{MARK_EMOJI[n.kind] ?? ''}</i>
-            </span>
+            {noteStickerSrc(n.kind, n.disease)
+              ? <img className="mn-bubble-sticker" src={noteStickerSrc(n.kind, n.disease)!} alt="" aria-hidden="true" draggable={false} />
+              : (
+                <span className="mn-bubble-mark" style={{ borderColor: noteTint(n.kind, n.disease) }} aria-hidden="true">
+                  <i className="mn-bubble-em">{MARK_EMOJI[n.kind] ?? ''}</i>
+                </span>
+              )}
             <span className="mn-bubble-kind" style={{ color: noteTint(n.kind, n.disease) }}>
               {t(`pack.mapNotes.kind.${n.kind}`)}
             </span>
@@ -580,6 +584,7 @@ ${CIRCLE_MARK_CSS}
    pravda vedľa tej z JS. */
 .mn-bubble-mark{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:999px;background:#FFFFFF;border:2px solid ${T.border};box-sizing:border-box;}
 .mn-bubble-em{font-style:normal;font-family:${FONT_EMOJI};font-size:16px;line-height:1;-webkit-user-select:none;user-select:none;}
+.mn-bubble-sticker{display:block;flex:none;width:28px;height:28px;}
 .mn-bubble-kind{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;}
 .mn-bubble-tag{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkWarm};border:1px solid ${T.border};border-radius:999px;padding:4px 8px;}
 .mn-bubble-stale{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkWarm};}

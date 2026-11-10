@@ -15,6 +15,7 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import { groupOf, type MapNote, type NoteKind, type TickDisease } from './mapNotesData';
 import { notesForTrail, isDatasetNote } from './mapNotesGeo';
 import { FONT_EMOJI, MARK_EMOJI, threatEmoji } from './markEmoji';
+import { noteStickerSrc } from './mapStickers';
 import { GROUP_TINT, HAZARD_RED, noteTint } from './NotePalette';
 
 const GOLD = T.cardEdge;
@@ -83,7 +84,8 @@ export function MapNotesSection({ trail, notes, locale = 'en-US', onAdd }: MapNo
                   nemá žiadnu podložku, takže by ju nemal mať ani zoznam.
                   Kruh s lemom skladá `WarnMark` nad `threatEmoji()` — jeden zdroj pre oba povrchy. */}
               <span className="mns-icon" aria-hidden="true">
-                {groupOf(n.kind) === 'warning'
+                {noteStickerSrc(n.kind, n.disease) ? <img className="mns-sticker" src={noteStickerSrc(n.kind, n.disease)!} alt="" draggable={false} />
+                  : groupOf(n.kind) === 'warning'
                   ? <WarnMark kind={n.kind} disease={n.disease} />
                   : groupOf(n.kind) === 'comment'
                     ? <span className="mns-threat mns-threat--tip"><i className="mns-em">{MARK_EMOJI[n.kind]}</i></span>
@@ -140,6 +142,7 @@ export const MAP_NOTES_SECTION_CSS = `
    bez ohľadu na druh zápisu; s obsahovou šírkou by sa riadky s upozornením odsadili. */
 .mns-icon{flex-shrink:0;width:34px;height:26px;display:flex;align-items:center;justify-content:center;}
 .mns-em{font-style:normal;font-family:${FONT_EMOJI};font-size:16px;line-height:1;}
+.mns-sticker{display:block;width:32px;height:32px;}
 /* Kruh je zmenšenina mapovej značky (28 px → 24 px) — riadok zoznamu je nižší
    než voľná mapa, ale tvar aj lem musia ostať rozpoznateľné ako tá istá vec. */
 .mns-threat{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;background:#FFFFFF;border:2px solid ${HAZARD_RED};box-sizing:border-box;}

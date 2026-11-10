@@ -44,6 +44,7 @@ import { persistFav } from '@/lib/packStore';
 import { feedQuoteForDay, feedQuoteText } from '@/data/feedQuotes';
 import { firstWord, tripTitle, useFeedTrips, type FeedTrip, useFeedMarks, useFeedPosts, useFeedPostDogs, useTripAuthors, fetchFeedPost, type FeedPost } from './feedData';
 import { FeedTripCard, FEED_TRIP_CSS } from './FeedTripCard';
+import { shareOut } from './feedShare';
 import { FeedPostCard, FEED_POST_CSS } from './FeedPostCard';
 import { AiHead, AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
 import { FeedSosBlock } from './FeedSosCard';
@@ -142,6 +143,7 @@ html.papyrus3d .pkf-it.pap{margin:0;overflow:hidden;border:3px solid var(--p3d-g
   box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-ink),0 13px 16px var(--p3d-sh);}
 /* Výlet na feede = cez celú šírku, bez rámu bloku (Matej 9. 11. 2026, bod 2). Oddeľovacie čiary PREČ (9. 11., oprava appky):
    výlety od seba delí vzduch (gap zoznamu 24 + spodný okraj 8 = 32), nie zlatá čiara hore a dole. */
+/* Príspevok člena tiež (Matej 10. 11. 2026: „príspevky obyčajné nie sú v bloku ale na celú šírku!“, kolo 4 z 26. 10.). */
 html.papyrus3d .pkf-it.pap.trip{margin:0 -${PACK_COL_PAD.mobile}px ${S.sm}px;border-width:0;border-radius:0;box-shadow:none;}
 @media (min-width:768px){html.papyrus3d .pkf-it.pap.trip{margin:0 -${S.xl}px ${S.sm}px;}}
 html.papyrus3d .pkf-sb{height:54px;padding:0 ${S.lg}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
@@ -519,7 +521,13 @@ export function PackFeed() {
   const [tripCmOpen, setTripCmOpen] = useState<string | null>(null);
   const [tripCm, setTripCm] = useState<Record<string, number>>({});
 
-  const aiLabels = { like: tx('pack.feed.act.like', 'Like'), comment: tx('pack.feed.act.comment', 'Comments'), save: tx('pack.feed.act.save', 'Save'), more: tx('pack.feed.more', 'more') };
+  const aiLabels = { share: tx('pack.feed.act.share', 'Share'), like: tx('pack.feed.act.like', 'Like'), comment: tx('pack.feed.act.comment', 'Comments'), save: tx('pack.feed.act.save', 'Save'), more: tx('pack.feed.more', 'more') };
+
+  // Zvitok: odkaz ako v DOGSCROLLe (`shareScroll` v PackAinubis) — člen sa dostane rovno na zvitok.
+  const shareScrollOut = (id: string) => {
+    const z = scrolls.find((x) => x.id === id);
+    void shareOut({ text: z ? pickText(z, lang).t : undefined, url: `${window.location.origin}/pack/ainubis/zvitok/${id}` }, tx);
+  };
 
   const render = (it: Item) => {
     switch (it.k) {
@@ -530,7 +538,8 @@ export function PackFeed() {
             liked={marks.get(`quote:${quote.id}`).liked} onLike={() => marks.toggle(`quote:${quote.id}`, 'like')}
             saved={marks.get(`quote:${quote.id}`).saved} onSave={() => marks.toggle(`quote:${quote.id}`, 'save')}
             likes={marks.get(`quote:${quote.id}`).likes} saves={marks.get(`quote:${quote.id}`).saves}
-            onComment={() => setCmKey(quoteKey)} comments={quoteCm} />
+            onComment={() => setCmKey(quoteKey)} comments={quoteCm}
+            onShare={() => shareOut({ text: `„${quoteText}“${quote.author ? `\n${quote.author}` : ''}` }, tx)} />
         );
       case 'trip': {
         const ft = trips[it.i];
@@ -545,7 +554,7 @@ export function PackFeed() {
         );
       }
       case 'scroll':
-        return <ScrollCard z={it.z} lang={lang} worldName={worldName(it.z.world)} onOpen={openScroll} onShare={() => {}}
+        return <ScrollCard z={it.z} lang={lang} worldName={worldName(it.z.world)} onOpen={openScroll} showShare onShare={shareScrollOut}
           head={<AiHead sub={scrollUI(lang).scroll} />} />;
       case 'post':
         return it.p.who
@@ -561,7 +570,8 @@ export function PackFeed() {
             body={t('heroglyph.flow.name.whoBody')} sub={tx('pack.feed.story.label', 'Story')} labels={aiLabels}
             liked={marks.get('story:hekthor').liked} onLike={() => marks.toggle('story:hekthor', 'like')}
             saved={marks.get('story:hekthor').saved} onSave={() => marks.toggle('story:hekthor', 'save')}
-            likes={marks.get('story:hekthor').likes} saves={marks.get('story:hekthor').saves} />
+            likes={marks.get('story:hekthor').likes} saves={marks.get('story:hekthor').saves}
+            onShare={() => shareOut({ text: `${t('heroglyph.flow.name.whoTitle')} ${t('heroglyph.flow.name.whoTitleName')}` }, tx)} />
         );
       case 'saved':
         return <AiSaved list={savedScrolls} lang={lang} onOpen={(id) => openScroll(id)} onHide={APP_NEW ? hideSaved : undefined} />;
@@ -601,7 +611,7 @@ export function PackFeed() {
 
         <div className="pkf-list">
           {rendered.map((it, n) => (
-            <div key={keyOf(it, n)} className={`pkf-it${isPaper(it) ? ' pap' : ''}${it.k === 'trip' ? ' trip' : ''}`}>{render(it)}</div>
+            <div key={keyOf(it, n)} className={`pkf-it${isPaper(it) ? ' pap' : ''}${it.k === 'trip' || it.k === 'post' ? ' trip' : ''}`}>{render(it)}</div>
           ))}
           {firstLoad && <SkelPost />}
         </div>

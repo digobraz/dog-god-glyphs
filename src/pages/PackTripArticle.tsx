@@ -628,7 +628,9 @@ html.papyrus3d .pta-stat::before{display:none !important;}
 html.papyrus3d .pta-stat:last-child:nth-child(odd){grid-column:1 / -1;}
 html.papyrus3d .pta-stat>img{width:52px !important;height:52px !important;}
 html.papyrus3d .pta-sb-t{display:flex;flex-direction:column;gap:4px;min-width:0;}
-html.papyrus3d .pta-tlbtn{--b3-r:12px;flex:none;margin-left:auto;width:44px;height:44px;padding:0;}
+/* Triplist sedí na rohu dlaždice Rušnosť, nie vedľa textu (Matej 10. 11. 2026: tlačidlo tlačilo na „CROWD“). */
+html.papyrus3d .pta-stat:has(.pta-tlbtn){position:relative;overflow:visible;}
+html.papyrus3d .pta-tlbtn{--b3-r:12px;position:absolute;top:-12px;right:-8px;z-index:1;width:44px;height:44px;padding:0;}
 html.papyrus3d .pta-stat b{display:block;font-family:'LT Museum',serif;font-weight:900;font-size:20px;line-height:1;color:var(--p3d-ink);} /* písmo: nadpis */
 html.papyrus3d .pta-stat b{overflow-wrap:anywhere;}
 @media (max-width:430px){html.papyrus3d .pta-stat b{font-size:16px;}html.papyrus3d .pta-stat>img{width:44px !important;height:44px !important;}}

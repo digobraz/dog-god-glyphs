@@ -1,8 +1,8 @@
 // PRÍSPEVOK ČLENA VO FEEDE — FEED 2 (nákres blok 5). Uloženie sa riadi odpoveďou pri pridaní
 // (Matej 26. 10. 2026: *„triplist ukladá výlety ktoré už v dogypte sú, tripwish sú len rýchle označenia napr.
 // z príspevku, ktorý je len fotka výletu bez vytvoreného výletu"*):
-//   · štítok `nature` (fotka z výletu / z prírody) ⇒ 🎯 TRIPWISH — `addWishPin` na miesto príspevku
-//   · inak ⇒ ☆ do Uložených v profile — `post_marks` (kind `save`)
+//   · 🔁 10. 11. 2026 ZRUŠENÉ: štítok `nature` dával 🎯 TRIPWISH (Matej: *„nedáva zmysel... a dokonca je tam terč!“*)
+//   · každý príspevok ⇒ ☆ do Uložených v profile — `post_marks` (kind `save`) · vedľa komentárov zdieľanie
 // Labka = `post_marks` (kind `like`), ten istý stav ako v `PostViewer`. Komentáre otvorí `PostViewer`.
 //
 // ⚠️ Dnes tu sú LEN MOJE príspevky: cudzí autor potrebuje RPC s menom a fotkou (zoznam migrácií).
@@ -12,15 +12,12 @@ import { useNavigate } from 'react-router-dom';
 import { linkify } from '@/components/ainubis/ainubisLinkify';
 import { FollowChip, FOLLOW_CHIP_CSS } from '@/components/pack/profile/follow';
 import { useLang, useT } from '@/i18n/LanguageContext';
-import { useToast } from '@/hooks/use-toast';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
 import { LikeMark, CommentMark, SaveMark, ShareMark } from '@/components/pack/SysIcon';
-import { shareFiles } from '@/lib/shareFile';
+import { shareOut } from './feedShare';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { toggleMark } from '@/components/pack/story/storyData';
 import { fetchPostSocial, isNature, type MePost, type PostSocial } from '@/components/pack/profile/mePosts';
-import { addWishPin } from '@/components/pack/mapnotes/wishData';
-import { createEmoji } from '@/components/pack/addtrip/AddTripEntry';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { agoLabel, useSwipe } from './feedData';
 import { PostMenu } from '@/components/pack/profile/PostMenu';
@@ -54,8 +51,6 @@ ${FOLLOW_CHIP_CSS}
   font:600 ${TX.label}px/1 ${FONT_UI};transition:transform .12s ease;}
 .pfp-acts button:active{transform:scale(.85);}
 .pfp-acts .sp{flex:1;}
-.pfp-acts .wish{font-size:${TX.h2}px;line-height:1;opacity:.55;}
-.pfp-acts .wish.on{opacity:1;}
 .pfp-acts .save.on{color:${T.accentGold};}
 .pfp-tx{margin:0;padding:${S.sm}px ${S.md}px 0;font-size:${TX.body}px;line-height:1.45;color:${T.inkStrong};white-space:pre-line;}
 .pfp-tx b{font-weight:600;margin-right:${S.xs}px;}
@@ -84,11 +79,9 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { lang } = useLang();
-  const { toast } = useToast();
   const navigate = useNavigate();
   const [soc, setSoc] = useState<PostSocial>({ likes: 0, comments: 0, liked: false, saved: false, saves: 0 });
   const [ratio, setRatio] = useState<number | null>(null);
-  const [wished, setWished] = useState(false);
   const [idx, setIdx] = useState(0);
   const np = post.photos.length;
   const swipe = useSwipe(np, (d) => setIdx((i) => (i + d + np) % np));
@@ -107,35 +100,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
   };
   // Zdieľanie vedľa komentárov (Matej 10. 11. 2026). Príspevok je len pre členov a verejnú adresu nemá,
   // preto ide von fotka + text + dogypt.com cez systémový hárok. Bez fotky len text, inak skopírovaný text.
-  const share = async () => {
-    const text = `${post.body ? `${post.body}\n\n` : ''}DOGYPT · https://dogypt.com`;
-    try {
-      const src = post.photos[idx] ?? post.photos[0];
-      if (src) {
-        const blob = await (await fetch(sizedUrl(src, 1080))).blob();
-        if (await shareFiles([{ blob, name: 'dogypt.jpg' }], text)) return;
-      }
-      if (typeof navigator.share === 'function') { await navigator.share({ text }); return; }
-      await navigator.clipboard.writeText(text);
-      toast({ title: tx('pack.feed.share.copied', 'Copied. Paste it wherever you like.') });
-    } catch (e) {
-      if ((e as { name?: string })?.name !== 'AbortError') toast({ title: tx('pack.feed.share.fail', 'Sharing did not work. Try again.') });
-    }
-  };
-  const wish = async () => {
-    if (wished) return;
-    if (place?.lat == null || place?.lon == null) {
-      toast({ title: tx('pack.feed.wish.noPlace', 'This post has no place on the map yet.') });
-      return;
-    }
-    try {
-      await addWishPin({ lat: place.lat, lon: place.lon, placeName: place.name || '', placeKind: 'point', tripKind: 'short', when: 'year', seeking: false, note: null });
-      setWished(true);
-      toast({ title: tx('pack.wish.guide.donePost', 'Saved. You’ll find it on the Map in your profile, under TRIPWISH.') });
-    } catch {
-      toast({ title: tx('pack.profile.toastUnknownError', 'Unknown error'), variant: 'destructive' });
-    }
-  };
+  const share = () => shareOut({ text: post.body || undefined, photo: post.photos[idx] ?? post.photos[0] }, tx);
 
   const authorPath = mine ? '/pack/profile' : authorN != null ? `/pack/u/${authorN}` : null;
   const openAuthor = () => { if (authorPath) navigate(authorPath); };
@@ -174,15 +139,11 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
           <ShareMark />
         </button>
         <span className="sp" />
-        {nature ? (
-          <button type="button" className={`wish${wished ? ' on' : ''}`} onClick={wish} aria-label="TRIPWISH" title="TRIPWISH">
-            {createEmoji('wish')}
-          </button>
-        ) : (
-          <button type="button" className={`save${soc.saved ? ' on' : soc.saves > 0 ? '' : ' fd'}`} onClick={() => mark('save')} aria-pressed={soc.saved} aria-label={tx('pack.feed.act.save', 'Save')}>
-            <SaveMark on={soc.saved} />{soc.saves > 0 && soc.saves}
-          </button>
-        )}
+        {/* TRIPWISH s terčom pri príspevku zrušený (Matej 10. 11. 2026: „pri normálnych príspevkoch na feede je
+            tripwish - čo nedáva zmysel... a dokonca je tam terč!“). Príspevok sa ukladá, prianie patrí výletu. */}
+        <button type="button" className={`save${soc.saved ? ' on' : soc.saves > 0 ? '' : ' fd'}`} onClick={() => mark('save')} aria-pressed={soc.saved} aria-label={tx('pack.feed.act.save', 'Save')}>
+          <SaveMark on={soc.saved} />{soc.saves > 0 && soc.saves}
+        </button>
       </div>
       {post.body && <p className="pfp-tx" onClick={(e) => e.stopPropagation()}><b>{name}</b>{linkify(post.body, (path) => navigate(path), 'pfp-link')}</p>}
       {soc.comments > 0

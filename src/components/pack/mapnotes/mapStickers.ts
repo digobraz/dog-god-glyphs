@@ -55,6 +55,10 @@ export const stickerImg = (src: string, extra = '', px?: number): string =>
   `<img class="mk-sticker${extra}" src="${src}" alt="" draggable="false"${px ? ` style="width:${px}px;height:${px}px"` : ''}>`;
 
 /** Bod zo sveta (prameň, útulňa…) podľa zoomu: hlavná mapa ich ukazuje od z15, článok výletu od z13. */
+/** Samolepka zápisu svorky pre zoznamy, bubliny a karty — tá istá ako na mape (kliešť s chorobou má vlastnú). */
+export const noteStickerSrc = (kind: string, disease?: unknown): string | null =>
+  stickerSrc(kind === 'ticks' && disease ? 'note_ticks_sick' : `note_${kind}`);
+
 /** Zápis svorky na mape: o kus väčší než bod zo sveta, lebo za ním stojí človek. */
 export const NOTE_STICKER_PX = 40;
 

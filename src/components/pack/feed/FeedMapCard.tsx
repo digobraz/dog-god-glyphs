@@ -12,15 +12,17 @@ import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
-import { LikeMark } from '@/components/pack/SysIcon';
+import { LikeMark, ShareMark } from '@/components/pack/SysIcon';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { likeMapNote, type MapNote } from '@/components/pack/mapnotes/mapNotesData';
 import { type WishPin } from '@/components/pack/mapnotes/wishData';
 import { fetchEvents, type EventItem } from '@/components/pack/events/eventStore';
 import { FONT_EMOJI, MARK_EMOJI, WISH_EMOJI, eventEmoji } from '@/components/pack/mapnotes/markEmoji';
+import { noteStickerSrc } from '@/components/pack/mapnotes/mapStickers';
 import { EVENTS_LIVE, APP_NEW } from '@/lib/packFlags';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { agoLabel } from './feedData';
+import { shareOut } from './feedShare';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -73,6 +75,7 @@ export const FEED_MAP_CSS = `
 /* ŠAT PAPYRUS 3D (hárok H5): lem avatara, Museum nadpisy, značka v kruhu, lajk a CTA ako papierové tlačidlá. */
 html.papyrus3d .pfm-head .pk-medallion{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink);}
 html.papyrus3d .pfm-who b{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;line-height:1.1;letter-spacing:0;color:var(--p3d-ink);} /* písmo: meno */
+.pfm-sticker{display:block;width:40px;height:40px;}
 html.papyrus3d .pfm-mark{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:var(--p3d-lift);}
 html.papyrus3d .pfm-tx h3{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;letter-spacing:0;color:var(--p3d-ink);} /* písmo: nadpis */
 html.papyrus3d .pfm-foot{gap:${S.sm}px;}
@@ -94,11 +97,12 @@ export function FeedMapCard({ add, liked, likes = 0, onLike }: { add: MapAdd; li
   const [noteLike, setNoteLike] = useState(add.k === 'note' ? { on: add.n.myLike, n: add.n.likes } : { on: false, n: 0 });
 
   let first = ''; let dog = ''; let photo: string | null = null;
-  let emoji = ''; let title = ''; let text = ''; let sub = '';
+  let emoji = ''; let sticker: string | null = null; let title = ''; let text = ''; let sub = '';
   if (add.k === 'note') {
     const n = add.n;
     first = n.authorFirst ?? ''; photo = n.authorPhoto;
     emoji = MARK_EMOJI[n.kind] ?? MARK_EMOJI.note;
+    sticker = noteStickerSrc(n.kind, n.disease);
     title = tx(`pack.mapNotes.kind.${n.kind}`, n.kind);
     text = n.body; sub = tx('pack.feed.map.note', 'Left a note on the map');
   } else if (add.k === 'wish') {
@@ -133,7 +137,7 @@ export function FeedMapCard({ add, liked, likes = 0, onLike }: { add: MapAdd; li
         </div>
       </div>
       <div className="pfm-body">
-        <span className="pfm-mark" aria-hidden>{emoji}</span>
+        <span className="pfm-mark" aria-hidden>{sticker ? <img className="pfm-sticker" src={sticker} alt="" draggable={false} /> : emoji}</span>
         <div className="pfm-tx">
           <h3>{title}</h3>
           {text && <p>{text}</p>}
@@ -142,6 +146,9 @@ export function FeedMapCard({ add, liked, likes = 0, onLike }: { add: MapAdd; li
       <div className="pfm-foot">
         <button type="button" className={`lk${isOn || (add.k === 'note' ? noteLike.n : likes) > 0 ? '' : ' fd'}`} onClick={pressLike} aria-pressed={isOn} aria-label={tx('pack.feed.act.like', 'Like')}>
           <LikeMark on={isOn} />{(add.k === 'note' ? noteLike.n : likes) > 0 && (add.k === 'note' ? noteLike.n : likes)}
+        </button>
+        <button type="button" className="lk" onClick={() => shareOut({ text: [title, text].filter(Boolean).join('\n') }, tx)} aria-label={tx('pack.feed.act.share', 'Share')}>
+          <ShareMark />
         </button>
         <span className="sp" />
         <button type="button" className={`pfm-go${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={() => navigate(add.k === 'event' ? `/pack/map?event=${add.e.id}` : '/pack/map')}>

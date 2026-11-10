@@ -23,6 +23,7 @@
 // zaznač, až potom vyplň." Poradie krokov je jeho, doslova:
 //   1 TRASA · 2 ODKAZY NA TRASU · 3 ZÁKLAD · 4 O TRASE · 5 OSTATNÉ
 // Zadanie: `plany/zadanie-mapa-kroky-2026-08-23.md`
+import { noteStickerSrc } from '@/components/pack/mapnotes/mapStickers';
 import { AinubisBubble, AINUBIS_FACE as ainubisFace } from '@/components/pack/ainubisSheet';
 import { AinubisGuide } from './AinubisGuide';
 import { openAinubis } from '@/lib/ainubisBus';
@@ -4416,7 +4417,9 @@ function PlacedNotes({ notes, t, emptyKey, onRemove }: {
               ? `${t(`pack.mapNotes.kind.${n.kind}`)} — ${t(on ? 'pack.addTrip.step.noteRemove' : 'pack.addTrip.step.noteArm')}`
               : undefined}
           >
-            <span className="atl-chip-emoji" style={{ fontFamily: FONT_EMOJI }}>{MARK_EMOJI[n.kind as NoteKind]}</span>
+            {noteStickerSrc(n.kind, (n as { disease?: unknown }).disease)
+              ? <img className="atl-chip-sticker" src={noteStickerSrc(n.kind, (n as { disease?: unknown }).disease)!} alt="" draggable={false} />
+              : <span className="atl-chip-emoji" style={{ fontFamily: FONT_EMOJI }}>{MARK_EMOJI[n.kind as NoteKind]}</span>}
             <span className="atl-chip-label">{t(`pack.mapNotes.kind.${n.kind}`)}</span>
             {on && <i className="atl-chip-x" aria-hidden="true">×</i>}
           </span>
@@ -5144,6 +5147,7 @@ const LOG_CSS = `
 .atl-chip{display:inline-flex;align-items:center;height:28px;font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;padding:0 12px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
 .atl-chip.on{background:rgba(61,122,78,0.28);border-color:${PICK};color:${T.onDark};box-shadow:inset 0 0 0 1px ${PICK};}
 .atl-chip-emoji{display:inline-flex;align-items:center;justify-content:center;width:15px;flex:0 0 15px;line-height:1;font-size:14px;margin-right:5px;}
+.atl-chip-sticker{display:block;width:24px;height:24px;flex:0 0 24px;margin-right:4px;}
 .atl-chip-label{line-height:1;}
 .atl-chip-add{border-style:dashed;}
 /* ── DRUHÝ, ZBALENÝ RAD CHIPOV (2026-08-31) ────────────────────────────────────────────
