@@ -61,7 +61,7 @@ const GRID: ReadonlyArray<readonly [group: string, ids: readonly string[]]> = [
   ['g1', ['walk_short', 'walk', 'trip', 'presence']],
   ['g2', ['play', 'training', 'swim', 'hare', 'sniff', 'contest']],
   ['g3', ['vet', 'tick', 'spa', 'weight']],
-  ['g4', ['lazy', 'sunset', 'mischief', 'poop', 'abroad', 'milestone', 'away']],
+  ['g4', ['lazy', 'sunset', 'mischief', 'abroad', 'milestone', 'away']],
 ];
 
 const CSS = `

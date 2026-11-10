@@ -134,6 +134,7 @@ import { deletePackTrip, attributeDogTrips, setDogTripCrew, clearDogTrip, claimJ
 import { tagWalked, crewHumanIds, inviteWalked, crewInviteIds } from '@/lib/packHumans';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { upsertMyTrip, removeMyTrip, ensureMyTrip } from '@/components/pack/triplist/triplist';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { planDateLabel, parsePlanDate, planStart } from '@/components/pack/addtrip/planDate'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
 // #41 — kto tento výlet vypísal. `useOpenTrips` dá cudzie inzeráty (user_trips),
@@ -6587,7 +6588,7 @@ export default function PackMap() {
                 type="button"
                 className={`trp-bigcard-photoactbtn${favIds.has(tr.id) ? ' on' : ''}`}
                 onClick={(e) => { e.stopPropagation(); toggleFav(tr.id); }}
-              >★ {t('pack.map.triplist')}</button>
+              ><SysIcon name="triplist" size={20} />{t('pack.map.triplist')}</button>
             )}
           </div>
           {/* bod 3: náročnosť · km + popularita + hazard(červený) — dolný ľavý roh fotky.
@@ -6788,7 +6789,7 @@ export default function PackMap() {
                         type="button"
                         className={`trp-bigcard-photoactbtn${favIds.has(dt.id) ? ' on' : ''}`}
                         onClick={() => toggleFav(dt.id)}
-                      >★ {favIds.has(dt.id) ? t('pack.map.inTriplist') : t('pack.map.triplist')}</button>
+                      ><SysIcon name="triplist" size={20} />{favIds.has(dt.id) ? t('pack.map.inTriplist') : t('pack.map.triplist')}</button>
                     )}
                   </div>
                   {/* náročnosť · km + popularita + hazard(červený) — dolný ľavý roh fotky.
