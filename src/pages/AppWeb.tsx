@@ -582,7 +582,7 @@ export default function AppWeb() {
       {/* 4 · FUNKCIE */}
       <section id="features">
         <div className="wrap">
-          <Rv className="sec-h"><p className="eye">{c('e_feat')}</p><h2>{c('h_feat_a')} <span className="blk">{c('h_feat_b')}</span></h2></Rv>
+          <Rv className="sec-h"><p className="eye">{c('e_feat')}</p><h2>{c('h_feat_a')} <span className="deco">{c('h_feat_b')}</span></h2></Rv>
           {/* karty B — ikonka na dlaždici trčí nad kartou, bez animácie (Matej 6. 11.); dlaždica lapis (Matej 6. 11.: „toto vráť do lapisu“) / papyrus = `?tile=papyrus` */}
           {/* slučka appiek ako na /onepage (FilmApps) — jeden zdroj APP_CHIPS + APPS_TYPE_CSS, zmena pohne oboma.
               Nadpisy skonsolidované (Matej 6. 11., návrh A): nadnadpis · nadpis · „aj to, o čom ešte ani nevie.“ (nad pásom, Matej 6. 11.) · pilulky */}
@@ -651,7 +651,7 @@ export default function AppWeb() {
             <div className="ai-logo" aria-hidden><span className="r2" /><span className="r1" /><img src={AI_HEAD} alt="" /></div>
             <div className="ai-logo-nm"><span className="ai-name"><b>AI</b>NUBIS</span></div>
             <p className="ai-kick">{c('ai_kick')}</p>
-            <h2 className="ai-h2">{c('h_ai1')}<br />{c('h_ai2')}<br />{c('h_ai3a')} <span className="ai-deco">{c('h_ai3b')}</span></h2>
+            <h2 className="ai-h2">{c('h_ai1')}<br />{c('h_ai2')} <span className="ai-deco">{c('h_ai3b')}</span></h2>
             <p className="lead">{c('l_ai')} <span className="ai-still" tabIndex={0}>({c('still')})<span className="tip">{c('still_t')}</span></span></p>
           </Rv>
           <AiFlow L={L} c={c} onWorld={pickWorld} published={['nutrition', 'dogsPath', 'understanding', 'anatomy']} counter={(n, run) => <Counter to={n} run={run} />} learn={
@@ -739,7 +739,7 @@ export default function AppWeb() {
             <div className="pic"><img src={`${A}/vyjavy/obcan.webp`} alt="" loading="lazy" /></div>
           </Rv>
           <Rv className="cit-fee">
-            <h3><span className="deco">{c('fee_h')}</span> {c('fee_h2')}</h3>
+            <h3>{c('fee_h')} <span className="deco">{c('fee_h2')}</span></h3>
             <p className="lead">{c('fee_p')}</p>
           </Rv>
           <div className="cit-ranks">
@@ -754,6 +754,7 @@ export default function AppWeb() {
             ))}
           </div>
           <Rv className="cit-cta">
+            <p className="lead" style={{ margin: '0 auto 24px', maxWidth: 640 }}>{c('fee_tiers')}</p>
             <a className="pk-cta" href="#">{c('give')}</a>
             {nakres && <p style={{ margin: '16px 0 0' }}><Note k="n_good" flag /></p>}
           </Rv>
