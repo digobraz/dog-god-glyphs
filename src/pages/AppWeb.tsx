@@ -468,6 +468,8 @@ export default function AppWeb() {
             <a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/">{c('nav5')}</a>
           </nav>
           <button className="lang" onClick={() => setLang(L === 'sk' ? 'en' : 'sk')}><img src={flagUrl(L === 'sk' ? 'gb' : 'sk', 40)} alt="" />{L === 'sk' ? 'EN' : 'SK'}</button>
+          {/* planétka (ikonka VON z appky) = verejná mapa výletov bez registrácie, nová karta; na mobile len ikonka (Matej 11. 11.) */}
+          <a className="trips-btn" href="/map" target="_blank" rel="noopener" aria-label={c('nav_trips')}><img src="/icons/sys/von.webp" alt="" /><span>{c('nav_trips')}</span></a>
           <a className="pk-cta" href="#join">{c('getapp')}</a>
           {/* mobil: hamburger — sekcie, jazyky, GET THE APP (Matej 6. 11., vzor MysteryHike) */}
           <button className={`burger${menu ? ' on' : ''}`} aria-label={c('menu')} aria-expanded={menu} onClick={() => setMenu(!menu)}><i /><i /><i /></button>
