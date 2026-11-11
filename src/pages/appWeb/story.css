@@ -1,0 +1,210 @@
+/* /story — prevzaté z nákresu kolo 4 (plany/nakresy/web-story-2026-11-11/index.html, 11. 11. 2026).
+   Triedy majú predponu sx-: appWeb.css má kolidujúce .ch .q .ph .in .on .rv .dg. */
+/* ── hlavička: priehľadná na fotke, papyrus po scrolle ── */
+.aw .top{position:fixed;left:0;right:0;top:0}
+.aw .top.sx-onphoto nav a,.aw .top.sx-onphoto .lang{color:var(--paper)}
+.aw .top.sx-onphoto nav a.sx-on{color:var(--lapis-ink)}
+.aw .top.sx-onphoto .lang{border-color:rgba(243,228,196,.5)}
+.aw .top nav a.sx-on{color:var(--ink-strong)}
+
+/* ── odhalenie pri scrolle ── */
+.sx-rv{opacity:0;transform:translateY(40px);filter:blur(6px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1.1s cubic-bezier(.2,.7,.2,1),filter 1s;transition-delay:var(--d,0s)}
+.sx-rv.sx-in{opacity:1;transform:none;filter:none}
+@media (prefers-reduced-motion:reduce){.sx-rv{opacity:1;transform:none;filter:none;transition:none}}
+
+/* ── 1 · HERO: ostrá fotka ── */
+.sx-hx{position:relative;height:100svh;min-height:600px;overflow:hidden;background:var(--page-dark)}
+.sx-hx>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:60% 50%}
+.sx-hx::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(24,14,4,.6) 0%,transparent 20%,transparent 45%,rgba(24,14,4,.9) 100%)}
+.sx-hx-t{position:absolute;z-index:2;left:0;right:0;bottom:clamp(48px,10vh,104px)}
+.sx-hx-t .eye{color:var(--lapis-ink);opacity:0;animation:sx-up 1s .1s forwards}
+.sx-hx h1{color:var(--paper);font-weight:500;font-size:clamp(42px,7.6vw,104px);line-height:1.04;max-width:11em}
+.sx-hx h1 .deco{font-weight:900;background:var(--ai-cta);-webkit-background-clip:text;background-clip:text;padding-bottom:.14em;margin-bottom:-.14em}
+.sx-hx h1 .sx-w{display:inline-block;opacity:0;transform:translateY(.4em);animation:sx-up 1s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(.25s + var(--i) * .12s)}
+@keyframes sx-up{to{opacity:1;transform:none}}
+.sx-hx-t p{margin:var(--s-lg) 0 0;max-width:34em;color:var(--on-dark);font:400 var(--t-lead)/1.55 var(--font-ui);opacity:0;animation:sx-up 1s 1.1s forwards}
+.sx-down{position:absolute;z-index:2;left:50%;bottom:var(--s-lg);width:1.5px;height:40px;background:linear-gradient(var(--lapis-ink),transparent);animation:sx-down 2s infinite}
+@keyframes sx-down{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ── kapitola ── */
+.sx-ch{position:relative;padding:clamp(72px,12vh,140px) 0}
+.sx-num{font:500 var(--t-label)/1 var(--font-ui);letter-spacing:.26em;text-transform:uppercase;color:var(--gold-ink);display:flex;align-items:center;gap:var(--s-md)}
+.sx-num::before{content:'';width:40px;height:1.5px;background:var(--card-edge)}
+.sx-year{font:900 clamp(72px,14vw,200px)/.9 var(--font-title);background:var(--gold-text);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-.02em;padding-bottom:.06em}
+.sx-year.sx-sm{font-size:clamp(56px,10vw,150px)}
+.sx-ch h2{font-size:clamp(32px,4.6vw,60px);line-height:1.08;margin-top:var(--s-lg)}
+.sx-ch h2 .deco{padding-bottom:.1em}
+.sx-ch .lead{font-size:18px;max-width:34em}
+.sx-ph{position:relative;border-radius:var(--r-card);overflow:hidden;box-shadow:0 24px 60px -18px rgba(70,40,8,.55),0 0 0 1.5px var(--card-edge);background:var(--paper)}
+.sx-ph img{width:100%;height:100%;object-fit:cover;transition:transform 1.4s cubic-bezier(.2,.7,.2,1)}
+.sx-ph:hover img{transform:scale(1.05)}
+.sx-ph figcaption{position:absolute;left:var(--s-md);bottom:var(--s-md);padding:var(--s-xs) var(--s-md);border-radius:var(--r-pill);background:rgba(24,14,4,.6);backdrop-filter:blur(6px);color:var(--paper);font:500 var(--t-label)/1.4 var(--font-ui)}
+.sx-ph.sx-empty{display:grid;place-items:center;border:2px dashed var(--card-edge);box-shadow:none;background:rgba(201,154,63,.08);color:var(--gold-ink);font:500 var(--t-label)/1.4 var(--font-ui);letter-spacing:.2em;text-transform:uppercase;text-align:center;padding:var(--s-lg)}
+.sx-split{display:grid;gap:var(--s-xxxl);align-items:center}
+@media(min-width:900px){.sx-split{grid-template-columns:1fr 1fr;gap:72px}.sx-split.sx-rev>:first-child{order:2}}
+
+/* vejár fotiek: kôpka sa pri scrolle rozloží */
+.sx-fan{position:relative;aspect-ratio:1/1;max-width:560px;width:100%;margin:0 auto}
+.sx-fan .sx-ph{position:absolute;left:50%;top:50%;width:52%;aspect-ratio:1/1;transform:translate(-50%,-50%) rotate(var(--r0,0deg));transition:transform 1.3s cubic-bezier(.2,.8,.2,1);transition-delay:var(--d,0s);z-index:var(--z,1);cursor:zoom-in}
+.sx-fan.sx-in .sx-ph{transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(var(--r))}
+.sx-fan .sx-ph:hover{z-index:20;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(0) scale(1.12)!important;transition-delay:0s}
+.sx-fan.sx-dark .sx-ph{width:44%}
+@media(max-width:767px){.sx-fan .sx-ph{width:46%}.sx-fan.sx-dark .sx-ph{width:40%}}
+.sx-fan.sx-dark .sx-ph{box-shadow:0 24px 60px -18px rgba(0,0,0,.8),0 0 0 1.5px rgba(201,154,63,.6)}
+
+/* ── 2017: I DON'T WANT A DOG! ── */
+.sx-q{position:relative;padding:clamp(96px,16vh,180px) 0;background:var(--page-dark);color:var(--on-dark);overflow:hidden}
+.sx-q::before{content:'';position:absolute;inset:0;background:radial-gradient(60% 50% at 50% 30%,rgba(201,154,63,.16),transparent 70%)}
+.sx-q .wrap{position:relative}
+.sx-q .sx-c{text-align:center}
+.sx-q .eye{color:var(--lapis-ink)}
+.sx-qbig{font:900 clamp(48px,10.5vw,152px)/1 var(--font-title);color:var(--paper);margin:var(--s-xl) 0 0;letter-spacing:-.01em}
+.sx-qbig .sx-w{display:inline-block;opacity:.12;transition:opacity .5s,color .5s}
+.sx-qbig .sx-w.sx-on{opacity:1}
+.sx-qbig .sx-no{position:relative}
+.sx-qbig .sx-no::after{content:'';position:absolute;left:-4%;right:-4%;top:52%;height:.09em;border-radius:99px;background:var(--ai-cta);transform:scaleX(0) rotate(-4deg);transform-origin:left;transition:transform .9s cubic-bezier(.7,0,.2,1)}
+.sx-q.sx-strike .sx-qbig .sx-no::after{transform:scaleX(1) rotate(-4deg)}
+.sx-q.sx-strike .sx-qbig .sx-no{color:rgba(245,240,228,.4)}
+.sx-q .sx-split{margin-top:88px}
+.sx-q .lead{color:var(--on-dark);font-size:19px;line-height:1.6}
+.sx-q .lead b{color:var(--lapis-ink);font-weight:500}
+
+/* ── 2019: čísla ── */
+.sx-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s-lg);margin-top:var(--s-xxl)}
+.sx-nums div{border-top:1.5px solid var(--card-edge);padding-top:var(--s-md)}
+.sx-nums b{display:block;font:900 clamp(36px,5vw,64px)/1 var(--font-title);color:var(--ink-strong)}
+.sx-nums span{font:500 var(--t-label)/1.3 var(--font-ui);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft)}
+
+/* ── 2022: pás z Expo ── */
+.sx-strip{margin-top:72px;overflow:hidden;-webkit-mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.sx-strip-in{display:flex;gap:var(--s-lg);width:max-content;animation:sx-marq 36s linear infinite}
+.sx-strip:hover .sx-strip-in{animation-play-state:paused}
+.sx-strip .sx-ph{width:clamp(220px,24vw,320px);aspect-ratio:1/1;flex:none}
+@keyframes sx-marq{to{transform:translateX(calc(-50% - var(--s-lg) / 2))}}
+
+/* ── 2023: tichší tón ── */
+.sx-low{background:linear-gradient(180deg,transparent,rgba(42,22,8,.07) 30%,rgba(42,22,8,.07) 70%,transparent)}
+.sx-low .sx-year{background:linear-gradient(100deg,#5a4630,#8a7458);-webkit-background-clip:text;background-clip:text}
+
+/* ── cesta od krabice k miliónu ── */
+.sx-road{position:relative;max-width:1040px;margin:0 auto}
+.sx-road-line,.sx-road-fill{position:absolute;left:47px;top:48px;width:3px;border-radius:9px}
+.sx-road-line{bottom:48px;background:rgba(201,154,63,.22)}
+.sx-road-fill{height:var(--p,0%);max-height:calc(100% - 96px);background:linear-gradient(var(--card-edge),var(--gold-ink));box-shadow:0 0 14px rgba(201,154,63,.7)}
+.sx-rs{position:relative;display:grid;grid-template-columns:96px 1fr;gap:var(--s-xl);align-items:center;padding:var(--s-lg) 0}
+.sx-dot{position:relative;z-index:1;width:96px;height:96px;border-radius:50%;overflow:hidden;background:var(--paper);border:3px solid var(--card-edge);display:grid;place-items:center;font:900 var(--t-h2)/1 var(--font-title);color:var(--gold-ink);transform:scale(.55);opacity:.4;transition:transform .8s cubic-bezier(.3,1.5,.5,1),opacity .6s,box-shadow .8s}
+.sx-dot img{width:100%;height:100%;object-fit:cover;transform:scale(1.4);transition:transform 1.4s cubic-bezier(.2,.7,.2,1)}
+.sx-rs.sx-in .sx-dot{transform:scale(1);opacity:1;box-shadow:0 0 0 8px rgba(201,154,63,.16),0 18px 40px -14px rgba(70,40,8,.5)}
+.sx-rs.sx-in .sx-dot img{transform:scale(1)}
+.sx-rs .sx-txt{opacity:0;transform:translateX(-16px);transition:opacity .7s .15s,transform .7s .15s}
+.sx-rs.sx-in .sx-txt{opacity:1;transform:none}
+.sx-txt em{font:900 clamp(24px,3vw,36px)/1 var(--font-title);font-style:normal;color:var(--ink-strong)}
+.sx-txt b{display:block;margin-top:var(--s-xs);font:500 18px/1.3 var(--font-ui);color:var(--ink-strong)}
+.sx-txt span{font:400 var(--t-body)/1.4 var(--font-ui);color:var(--ink-body)}
+.sx-rs.sx-fut .sx-dot{border-style:dashed;background:transparent}
+.sx-rs.sx-fut .sx-txt em{color:var(--gold-ink)}
+/* DNES = rozbalená karta s priebehom */
+.sx-now .sx-dot{border-color:var(--lapis-edge)}
+.sx-rs.sx-now.sx-in .sx-dot{box-shadow:0 0 0 6px var(--paper),0 0 0 9px var(--lapis-edge),0 0 40px rgba(22,48,122,.5);animation:sx-beat 2.4s 1s infinite}
+@keyframes sx-beat{50%{box-shadow:0 0 0 6px var(--paper),0 0 0 14px rgba(22,48,122,.25),0 0 40px rgba(22,48,122,.5)}}
+.sx-nowc{grid-column:1/-1;display:grid;gap:var(--s-xl);padding:var(--s-xl);margin:var(--s-sm) 0;overflow:hidden;position:relative;z-index:1}
+@media(min-width:760px){.sx-nowc{grid-template-columns:1fr 240px;padding:var(--s-xxl)}}
+.sx-nowc .eye{color:var(--lapis-edge)}
+.sx-big{font:900 clamp(48px,7vw,84px)/1 var(--font-title);color:var(--ink-strong)}
+.sx-big small{font:500 18px/1 var(--font-ui);color:var(--ink-soft);margin-left:var(--s-sm)}
+.sx-bar{height:10px;border-radius:99px;background:rgba(201,154,63,.2);overflow:hidden;margin-top:var(--s-lg)}
+.sx-bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--lapis);transition:width 2s cubic-bezier(.2,.7,.2,1) .4s}
+.sx-in .sx-bar i{width:var(--w)}
+.sx-barl{display:flex;justify-content:space-between;margin-top:var(--s-sm);font:500 var(--t-label)/1.3 var(--font-ui);color:var(--ink-soft)}
+.sx-nowc .sx-ctas{display:flex;flex-wrap:wrap;gap:var(--s-md);margin-top:var(--s-xl)}
+.sx-nowc .pk-cta{padding:14px 24px;text-decoration:none}
+.sx-nowc img.sx-face{width:100%;height:100%;max-height:300px;object-fit:contain;object-position:bottom;align-self:end}
+@media(min-width:900px){
+  .sx-road-line,.sx-road-fill{left:50%;margin-left:-1.5px}
+  .sx-rs{grid-template-columns:1fr 96px 1fr;gap:var(--s-xxl)}
+  .sx-rs .sx-txt{grid-column:3;grid-row:1}.sx-rs .sx-dot{grid-column:2;grid-row:1}
+  .sx-rs:nth-child(odd) .sx-txt{grid-column:1;text-align:right;transform:translateX(16px)}
+  .sx-rs.sx-in:nth-child(odd) .sx-txt{transform:none}
+  .sx-now .sx-nowc{grid-row:2}
+}
+
+/* ── vízia ── */
+.sx-vis{display:grid;gap:var(--s-xxxl);align-items:center}
+@media(min-width:900px){.sx-vis{grid-template-columns:.9fr 1.1fr;gap:72px}}
+.sx-vis-art{position:relative;max-width:440px;margin:0 auto}
+.sx-vis-art img{width:100%;border-radius:50%;animation:sx-float 9s ease-in-out infinite;filter:drop-shadow(0 30px 40px rgba(70,40,8,.25))}
+.sx-vis-art::before{content:'';position:absolute;inset:-8%;border-radius:50%;border:1.5px dashed rgba(201,154,63,.55);animation:sx-spin 80s linear infinite}
+@keyframes sx-float{50%{transform:translateY(-14px)}}
+@keyframes sx-spin{to{transform:rotate(360deg)}}
+.sx-bign{font:900 clamp(56px,9vw,120px)/1 var(--font-title);background:var(--gold-text);-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:var(--s-lg)}
+
+/* ── DOGMA: pokojná ── */
+.sx-dg{display:grid;gap:var(--s-xxxl);align-items:center;padding:clamp(32px,6vw,72px)}
+@media(min-width:900px){.sx-dg{grid-template-columns:.8fr 1.2fr;gap:72px}}
+.sx-book{max-width:320px;margin:0 auto;width:100%;border-radius:6px 12px 12px 6px;box-shadow:-14px 24px 44px -10px rgba(10,26,74,.5)}
+.sx-motto{margin-top:var(--s-xxl);font:900 clamp(28px,4vw,44px)/1.1 var(--font-title);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-strong)}
+.sx-motto span{background:var(--gold-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ── PÄTIČKA ── */
+.aw .sx-ft{background:var(--page-dark);color:var(--on-dark);padding:96px 0 32px;border-top:0;position:relative;overflow:hidden}
+.sx-ft::before{content:'';position:absolute;inset:0;background:radial-gradient(50% 60% at 15% 0,rgba(201,154,63,.12),transparent 70%),radial-gradient(40% 50% at 90% 10%,rgba(91,224,240,.08),transparent 70%)}
+.aw .sx-ft .wrap{position:relative;display:block;font-size:inherit}
+.aw .sx-ft a{opacity:1}
+.sx-ftg{display:grid;gap:var(--s-xxl)}
+@media(min-width:960px){.sx-ftg{grid-template-columns:1fr 1.25fr 1fr;gap:var(--s-xxxl)}}
+.sx-ft h3{font:500 var(--t-label)/1 var(--font-ui);letter-spacing:.26em;text-transform:uppercase;color:var(--lapis-ink);margin:0 0 var(--s-lg)}
+.sx-ft .sx-logo{height:56px;width:auto;margin-bottom:var(--s-lg)}
+.sx-ft p{margin:0;font:400 var(--t-body)/1.6 var(--font-ui)}
+.sx-ft a{color:var(--paper)}
+.sx-links{display:grid;gap:var(--s-sm);margin-top:var(--s-lg)}
+.sx-links a{display:flex;align-items:center;gap:var(--s-md);text-decoration:none;font:500 var(--t-lead)/1.3 var(--font-ui);padding:var(--s-sm) 0;border-bottom:1px solid rgba(201,154,63,.18)}
+.sx-links a:hover{color:var(--lapis-ink)}
+.sx-links a i{font-style:normal;color:var(--card-edge);width:20px;text-align:center}
+.sx-ftmotto{margin-top:var(--s-xl)!important;font:900 var(--t-h2)/1 var(--font-title)!important;letter-spacing:.14em;text-transform:uppercase;color:var(--paper)}
+.sx-ftmotto span{color:var(--card-edge)}
+/* AINUBIS chat (vlastný brand: tmavá, cyan, zlato-oranžové CTA) */
+.sx-ai{border-radius:var(--r-card);background:var(--ai-bg);border:1px solid var(--ai-edge);box-shadow:var(--ai-shadow);overflow:hidden;display:flex;flex-direction:column;min-height:340px}
+.sx-ai-h{display:flex;align-items:center;gap:var(--s-md);padding:var(--s-lg);border-bottom:1px solid var(--ai-edge);background:var(--ai-surface)}
+.sx-ai-h img{width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px var(--ai-cyan),0 0 18px rgba(91,224,240,.4)}
+.sx-ai-h b{display:block;font:900 var(--t-lead)/1 var(--font-title);letter-spacing:.08em;color:var(--ai-ink)}
+.sx-ai-h b span{color:var(--ai-cyan)}
+.sx-ai-h small{font:400 var(--t-label)/1.3 var(--font-ui);color:var(--ai-dim)}
+.sx-ai-h small::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#3fdc8a;margin-right:6px;box-shadow:0 0 8px #3fdc8a}
+.sx-ai-b{flex:1;padding:var(--s-lg);display:flex;flex-direction:column;gap:var(--s-md);font:400 var(--t-body)/1.5 var(--font-ui)}
+.sx-msg{max-width:85%;padding:var(--s-md) var(--s-lg);border-radius:14px 14px 14px 4px;background:rgba(91,224,240,.08);border:1px solid var(--ai-edge);color:var(--ai-ink)}
+.sx-msg.sx-me{align-self:flex-end;border-radius:14px 14px 4px 14px;background:rgba(245,199,61,.12);border-color:rgba(245,199,61,.35)}
+.sx-chips{display:flex;flex-wrap:wrap;gap:var(--s-sm)}
+.sx-chips button{cursor:pointer;border-radius:var(--r-pill);border:1px solid var(--ai-edge-strong);background:transparent;color:var(--ai-cyan);padding:var(--s-sm) var(--s-md);font:500 var(--t-label)/1 var(--font-ui)}
+.sx-ai-f{display:flex;gap:var(--s-sm);padding:var(--s-md);border-top:1px solid var(--ai-edge)}
+.sx-ai-f input{flex:1;min-width:0;border-radius:var(--r-field);border:1px solid var(--ai-edge);background:rgba(255,255,255,.04);color:var(--ai-ink);padding:var(--s-md);font:400 var(--t-body)/1.3 var(--font-ui)}
+.sx-ai-f button{border:0;cursor:pointer;border-radius:var(--r-field);background:var(--ai-cta);color:var(--ai-cta-ink);padding:0 var(--s-lg);font:900 var(--t-body)/1 var(--font-title)}
+/* práve teraz */
+.sx-live{display:grid;gap:var(--s-xs)}
+.sx-stat{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s-md);padding:var(--s-md) 0;border-bottom:1px solid rgba(201,154,63,.18)}
+.sx-stat span{font:400 var(--t-body)/1.3 var(--font-ui);color:var(--on-dark)}
+.sx-stat b{font:900 var(--t-h1)/1 var(--font-title);color:var(--paper);white-space:nowrap}
+.sx-stat b small{font:500 var(--t-label)/1 var(--font-ui);color:var(--card-edge);margin-left:4px}
+.sx-spark{display:flex;align-items:flex-end;gap:3px;height:48px;margin-top:var(--s-md)}
+.sx-spark i{flex:1;background:linear-gradient(var(--card-edge),rgba(201,154,63,.3));border-radius:2px 2px 0 0;min-height:2px}
+.sx-upd{font:400 var(--t-label)/1.4 var(--font-ui)!important;color:rgba(245,240,228,.55);margin-top:var(--s-sm)!important}
+.sx-upd::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#3fdc8a;margin-right:6px;animation:sx-blink 1.6s infinite}
+@keyframes sx-blink{50%{opacity:.25}}
+.sx-ftb{margin-top:72px;padding-top:var(--s-lg);border-top:1px solid rgba(201,154,63,.18);display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--s-md);font:400 var(--t-label)/1.4 var(--font-ui);color:rgba(245,240,228,.5)}
+.sx-ftb a{color:rgba(245,240,228,.7);text-decoration:none;margin-left:var(--s-lg)}
+
+/* postup hore */
+.sx-prog{position:fixed;left:0;top:0;height:2px;z-index:60;width:calc(var(--sp,0) * 100%);background:linear-gradient(90deg,var(--card-edge),var(--gold-ink))}
+
+
+/* hlavička na fotke: priehľadná, bez pásu (Matej: „vadí mi to oddelenie“) */
+.aw .top.sx-onphoto{background:transparent;border-bottom-color:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
+.aw .top.sx-onphoto .burger i{background:var(--paper)}
+
+/* hero video: statický záber, dážď, blesk — poster je tá istá fotka, takže bez videa sa nič nezmení */
+.sx-hx>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:60% 50%}
+
+/* AINUBIS v pätičke: odpoveď sa objaví s krátkym oneskorením */
+.sx-msg{animation:sx-up .4s both}
+.sx-ai-b{max-height:420px;overflow-y:auto}
+/* mobil: výrez na Hekthora (stojí v strede fotky, 60 % ho na úzkom okne odreže) */
+@media(max-width:767px){.sx-hx>img,.sx-hx>video{object-position:50% 40%}}

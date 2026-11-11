@@ -61,8 +61,8 @@ const LEVELS: { ax: string; scene: string; start: number; n: number; img: (i: nu
 
 /** Vstupné pri Dogypťanovi: index = `dogyptan-N.webp` aj kľúč názvu `tN`. 2 = Kňaz, perleť s ružovým rámom (Matej 7. 11.); 4 = Faraón; 5 = Člen tímu sa do rebríčka nedáva. */
 const CITIZEN_PRICES = ['€0', '€3,99', '€7,99', '€11,99', '€111+'];
-/** CTA pri Dogypťanovi: keď vznikne `/story`, patrí sem `/story#vision` (Matej 10. 11.). */
-const VISION_HREF = '/#vision';
+/** CTA pri Dogypťanovi vedie na víziu v `/story` (Matej 10. 11.). */
+const VISION_HREF = '/story#vision';
 
 /** Ikonky funkcií = kartuše z banky (`public/web-app/ikony/*.webp`, Matej 8. 11.: „funkcie na nete v kartuši“,
  *  zdroj plany/nakresy/banka-ikon-2026-11-08/rez/*-kartusa.webp). Odrážky `li` sa zatiaľ nekreslia — doladíme ich neskôr. */
@@ -537,7 +537,7 @@ export default function AppWeb() {
         <div className="wrap">
           <a className="logo" href="#" aria-label="DOGYPT"><img src="/web-app/logo-napis.webp" alt="DOGYPT" /></a>
           <nav>
-            <a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/">{c('nav5')}</a>
+            <a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/story">{c('nav5')}</a>
           </nav>
           <div className="lang-wrap">
             <button className="lang" aria-expanded={langOpen} onClick={() => setLangOpen(!langOpen)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.code.slice(0, 2).toUpperCase()}</button>
@@ -555,7 +555,7 @@ export default function AppWeb() {
         </div>
         {menu && (
           <div className="mmenu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); }}>
-            <nav><a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/">{c('nav5')}</a></nav>
+            <nav><a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/story">{c('nav5')}</a></nav>
             <p className="mm-h">{c('lang_h')}</p>
             <div className="mm-lang">{WEB_LANGS.map((x) => <button key={x.code} className={x.code === lang ? 'on' : ''} onClick={() => { setLang(x.code); setMenu(false); }}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}</div>
             <Stores />
