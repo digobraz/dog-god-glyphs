@@ -1653,17 +1653,15 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .cit-sup .pk-cta.alt:hover{background:var(--lapis);color:var(--lapis-ink)}
 .aw .cit-sup .tr-sub{margin-top:var(--s-sm)}
 
-/* 11. 11. — planétka vedľa STIAHNI: verejná mapa výletov (/map) */
-.aw .top .trips-btn{flex:none;display:inline-flex;align-items:center;gap:var(--s-sm);padding:4px 14px 4px 4px;border:1px solid var(--hairline);border-radius:var(--r-pill);font:600 var(--t-body)/1 var(--font-ui);color:var(--ink-strong);text-decoration:none;transition:transform .2s ease}
-.aw .top .trips-btn:hover{transform:translateY(-1px)}
-.aw .top .trips-btn img{width:32px;height:32px;display:block}
-.aw .top.dark .trips-btn{color:var(--ai-ink);border-color:var(--ai-edge-strong)}
+/* 11. 11. — planétka ZA tlačidlom STIAHNI (vzor MysteryHike): verejná mapa výletov /map, len ikonka vo výške tlačidla */
+.aw .top .trips-btn{flex:none;display:block;line-height:0;transition:transform .2s ease}
+.aw .top .trips-btn:hover{transform:translateY(-2px) rotate(-8deg)}
+.aw .top .trips-btn img{width:52px;height:52px;display:block;filter:drop-shadow(0 4px 8px rgba(26,18,6,.3))}
 @media(max-width:999px){
-  .aw .top .trips-btn{margin-left:auto;padding:0;border:0}
-  .aw .top .trips-btn span{display:none}
-  .aw .top .trips-btn img{width:36px;height:36px}
-  .aw .top .trips-btn+.pk-cta{margin-left:var(--s-sm);white-space:nowrap}
+  .aw .top .wrap>.pk-cta{white-space:nowrap}
+  .aw .top .trips-btn img{width:40px;height:40px}
+  .aw .top .trips-btn+.burger{margin-left:var(--s-sm)}
 }
 /* logo sa nesmie stlačiť kvôli planétke; na najužších telefónoch ustúpi odsadenie tlačidla */
 .aw .top .logo{flex:none}
-@media(max-width:360px){.aw .top .wrap{gap:var(--s-sm)}.aw .top .wrap>.pk-cta{padding:10px}.aw .logo img{height:32px}.aw .top .trips-btn img{width:32px;height:32px}}
+@media(max-width:360px){.aw .top .wrap{gap:var(--s-sm)}.aw .top .wrap>.pk-cta{padding:10px}.aw .logo img{height:32px}.aw .top .trips-btn img{width:34px;height:34px}}
