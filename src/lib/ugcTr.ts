@@ -6,13 +6,13 @@
 // Žiadosti z jednej obrazovky sa zlejú do jedného volania (30 ms okno), výsledok drží pamäť do
 // zatvorenia appky. Kým preklad nedorazí, alebo keď chýba, ukáže sa originál.
 //
-// 🚩 Zatiaľ len testovacia appka (`TEST_BUILD`) — na dogypt.com a v obchodnej appke až na Matejovo slovo.
+// 🚩 Len appka (`APP_NEW`) — web na dogypt.com ho nemá, kým Matej nepovie.
 import { useEffect, useState } from 'react';
 import { useLang } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { TEST_BUILD } from '@/lib/env';
+import { APP_NEW } from '@/lib/packFlags';
 
-export const UGC_TR_ON = TEST_BUILD;
+export const UGC_TR_ON = APP_NEW;
 
 export type UgcKind = 'review' | 'question' | 'quote' | 'post' | 'post_comment' | 'event_comment' | 'note';
 
