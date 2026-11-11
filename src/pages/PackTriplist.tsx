@@ -217,7 +217,7 @@ const CSS = `
 .tl-block-cover.nophoto{background:radial-gradient(120% 90% at 50% 15%,${T.hairline},rgba(234,214,166,0.95) 72%),${T.panelGrad};}
 .tl-block-cover.nophoto::after{content:'';position:absolute;left:50%;top:50%;width:36%;height:36%;transform:translate(-50%,-50%);background:url('/icons/pack/mountain.svg') no-repeat center/contain;filter:${GOLD_ICON_FILTER};opacity:.55;pointer-events:none;}
 /* vlajka do kruhu — ľavý horný roh, vzor z /wall .card-flag */
-.tl-walkedbadge{position:absolute;top:8px;right:8px;z-index:2;display:inline-flex;border:2px solid ${T.card};border-radius:50%;box-shadow:${PACK_SHADOW.lift};}
+.tl-walkedbadge{position:absolute;top:8px;right:8px;z-index:2;display:inline-flex;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45));} /* medailón má vlastný zlatý lem */
 .tl-flag{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;object-fit:cover;border:1.5px solid ${T.card};box-shadow:${PACK_SHADOW.lift};background:#1a1a1a;z-index:2;}
 /* OPEN TRIPS uhne vlajku doprava — ľavý roh preberá menovka organizátora (nižšie) */
 .tl-flag--r{left:auto;right:7px;}
@@ -994,7 +994,7 @@ export default function PackTriplist() {
           <div className={`tl-block-cover${cover ? '' : ' nophoto'}`}>
             {cover && <img className="tl-cover-img" src={sizedUrl(cover, COVER_PX)} alt="" loading="lazy" decoding="async" draggable={false} style={{ objectPosition: coverPos(trail ?? {}) }} />}
             <img className="tl-flag" src={flagUrl(trailCountry(trail))} alt="" loading="lazy" draggable={false} />
-            {APP_NEW && done && <span className="tl-walkedbadge"><WalkedCheck size={28} /></span>}
+            {APP_NEW && done && <span className="tl-walkedbadge"><WalkedCheck size={36} /></span>}
             {APP_NEW && done && Number(trail.km) > 0 && <span className="tlw-km">{fmtNum(Math.round(Number(trail.km)), lang)} km</span>}
             {/* Kým výlet čaká na schválenie, badge NIE JE prepínač viditeľnosti —
                 prepínať nie je čo, pack ho aj tak nevidí. */}

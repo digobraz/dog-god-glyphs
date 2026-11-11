@@ -624,7 +624,7 @@ html.papyrus3d .pta-acts .pta-actbtn-label{white-space:normal;overflow:visible;t
 html.papyrus3d .pta-actbtn.pk-b3 .pta-ic-mask{width:24px;height:24px;}
 html.papyrus3d .pta-actwrap{flex:1;}
 /* A1 (Matej 11. 11. 2026): hotové „Prejdené" = plochý papyrusový riadok, nie tlačidlo. Rám zelený, bez odliatku. */
-html.papyrus3d .pta-walkedrow{flex:1;display:flex;align-items:center;gap:8px;min-height:56px;padding:0 16px;border-radius:8px;background:#FBF6EC;border:1px solid ${T.growGreen};color:var(--p3d-ink);font-family:${FONT_UI};font-size:14px;font-weight:500;cursor:pointer;text-align:left;box-shadow:none;}
+html.papyrus3d .pta-walkedrow{flex:1;display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px 0 12px;border-radius:16px;background:var(--p3d-card);border:2.5px solid var(--p3d-ink);color:var(--p3d-ink);font-family:${FONT_UI};font-size:16px;font-weight:600;cursor:pointer;text-align:left;box-shadow:none;} /* jazyk dlaždíc .pta-stat (obrys 2,5 ink, r16, papyrus), BEZ 3D spodku = vybavené, nie akcia (Matej 11. 11.) */
 @media (max-width:760px){
   html.papyrus3d .pta-acts .pta-actbtn--gold,html.papyrus3d .pta-acts .pta-actbtn--blue{flex:0 0 56px;padding:0;}
   html.papyrus3d .pta-acts .pta-actbtn--lapis .pts-pill{top:-14px;}
@@ -1728,7 +1728,7 @@ export default function PackTripArticle() {
                 aria-label={t('pack.trip.walkedAriaLabel')}
               >
                 {/* Appka: JEDNA ikonka zo setu (fajka) namiesto 🐾 + ✓ v texte + ▾ (Matej 9. 11. 2026). */}
-                {APP_NEW ? <WalkedCheck size={24} /> : <span className="pta-actbtn-icon">🐾</span>}
+                {APP_NEW ? <WalkedCheck size={36} /> : <span className="pta-actbtn-icon">🐾</span>}
                 <span className={APP_NEW ? undefined : 'pta-actbtn-label'}>{APP_NEW ? `${t('pack.trip.walkedCheck').replace(/\s*✓/, '')}${walkedDayLabel(readWalkedAt()[trail.id], lang)}` : t('pack.trip.walkedCheck')}</span>
                 {!APP_NEW && <span className="pta-caret">▾</span>}
               </button>
