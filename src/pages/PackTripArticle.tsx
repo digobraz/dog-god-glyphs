@@ -32,7 +32,7 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackLoader } from '@/components/pack/PackLoader';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
-import { useMagnetPreview, usePackNavigate, isFreeTrip, magnetPath, MAGNET_MEMBER_TRAILS } from '@/components/pack/magnetPreview';
+import { useMagnetPreview, usePackNavigate, isFreeTrip, magnetPath, useMagnetMemberTrails } from '@/components/pack/magnetPreview';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, HIT_CSS, PACK_SPACE, PACK_SHADOW, BRAND_GOLD_BTN, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
@@ -752,7 +752,8 @@ export default function PackTripArticle() {
     return () => { off(); window.clearTimeout(tm); };
   }, []);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const allTrails = useMemo(() => [...(mg ? MAGNET_MEMBER_TRAILS : []), ...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS], [hydVer, mg]);
+  const pubTrails = useMagnetMemberTrails(!!mg);
+  const allTrails = useMemo(() => [...(mg ? pubTrails : []), ...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS], [hydVer, mg, pubTrails]);
   // Adresa nesie id ALEBO čitateľný `urlSlug` (8. 10. 2026) — ďalej v súbore je `slug` vždy id,
   // lebo ním kľúčujú prejdenia, hlasy a partie.
   // ── NÁHĽAD 1:1 PRE HORSKÚ CHATU (Matej 11. 10. 2026) ──────────────────────────────────

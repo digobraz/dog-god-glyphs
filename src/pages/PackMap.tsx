@@ -83,7 +83,7 @@ import { SosButton } from '@/components/pack/SosButton';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
-import { onPublicMap, useMagnetPreview, usePackNavigate, isFreeTrip, MAGNET_MEMBER_TRAILS, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetAinubisBlock } from '@/components/pack/magnetPreview';
+import { onPublicMap, useMagnetPreview, usePackNavigate, isFreeTrip, useMagnetMemberTrails, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetAinubisBlock } from '@/components/pack/magnetPreview';
 import { HandLock } from '@/components/pack/HandIcons';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { useToast } from '@/hooks/use-toast';
@@ -266,11 +266,16 @@ const MOBILE_BP = 1023;
 const FORCE_M = onPublicMap();
 const mobCSS = (mq: string, css: string) => (FORCE_M ? css : `@media ${mq}{${css}}`);
 const pcCSS = (mq: string, css: string) => (FORCE_M ? '' : `@media ${mq}{${css}}`);
-// Zoznam na PC: panel vľavo nad mapou, mapa ostáva vidieť (variant A: „zoznam sa vysunie zľava po ťuku na Zoznam“).
+// Zoznam na verejnej mape: od 1024 px PEVNÝ panel vľavo (šírka PANEL_W, s ňou ráta aj rámovanie mapy), prepínač zmizne;
+// 768–1023 px sa otvára prepínačom ako panel nad mapou.
 const FORCE_M_PC_CSS = `@media (min-width:768px){
   .trp-root.mlist-active .trp-mapregion{display:block;}
-  .trp-root .trp-mlist{inset:auto;left:16px;top:calc(var(--trp-mheader-h,159px) + 8px);bottom:16px;width:440px;padding:12px 12px 96px;border-radius:16px;overflow-x:hidden;}
+  .trp-root .trp-mlist{inset:auto;left:16px;top:calc(var(--trp-mheader-h,159px) + 8px);bottom:16px;width:440px;padding:12px 12px 32px;border-radius:16px;overflow-x:hidden;}
   html.papyrus3d .trp-root .trp-mlist{padding-top:12px;}
+}
+@media (min-width:1024px){
+  .trp-root .trp-mlist{display:block;width:${PANEL_W}px;}
+  .trp-root .trp-mtoggle{display:none;}
 }`;
 
 
@@ -747,7 +752,7 @@ const waterPoint = (path: LatLngTuple[]): LatLngTuple => {
  * kreslení trasy; toto je jeho dvojička pre bežnú mapu (iná hranica aj iná šírka panela).
  */
 const mapPadX = (): [number, number] =>
-  (typeof window !== 'undefined' && (FORCE_M || window.innerWidth <= MOBILE_BP)) ? [24, 24] : [PANEL_W + 60, 90];
+  (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP) ? [24, 24] : [PANEL_W + 60, 90];
 
 /**
  * Prílet na miesto vybraté v hľadaní.
@@ -816,7 +821,7 @@ function FitBounds({ path, offset, dock, hold, view }: { path: LatLngTuple[] | n
     // necháva miesto na ~440px panel vľavo + topbar hore + nav dole; mobile (panel skrytý)
     // len na header hore + nav/toggle dole. maxZoom len pri výbere jedného tripu (offset),
     // nech sa krátka trasa neodzoomuje zbytočne blízko; celé Slovensko sa zmestí bez capu.
-    const mobile = typeof window !== 'undefined' && (FORCE_M || window.innerWidth <= MOBILE_BP);
+    const mobile = typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP;
     // Mobilný padding drží HORNÝ blok (avatar+search+pilulky ≈ 180px) a dolnú navigáciu (≈ 96px)
     // — nie symetrických 150/150. Symetria brala 300px z 844px výšky a zároveň hore nezakryla
     // dosť, takže SR skončilo pod panelom a nad ním svietilo Poľsko.
@@ -4483,9 +4488,11 @@ export default function PackMap() {
   useEffect(() => { mapMountedInDocument = true; }, []);
   // Rozloženie: pod 1024 px je sidebar skrytý, nad ním zoznam. Kreslí sa len ten, ktorý človek vidí (dovtedy všetky karty dvakrát).
   const [narrow, setNarrow] = useState(() => FORCE_M || window.matchMedia('(max-width: 1023px)').matches);
+  // Verejná mapa na PC: zoznam je PEVNÝ panel vľavo, prepínač Zoznam/Mapa tam nie je (Matej 11. 11.: „na PC bude len verzia ZOZNAM“).
+  const [pcPanel, setPcPanel] = useState(() => FORCE_M && !window.matchMedia('(max-width: 1023px)').matches);
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1023px)');
-    const on = () => setNarrow(FORCE_M || mq.matches);
+    const on = () => { setNarrow(FORCE_M || mq.matches); setPcPanel(FORCE_M && !mq.matches); };
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);
   }, []);
@@ -4689,7 +4696,8 @@ export default function PackMap() {
     setWishAsk({ id: wid, kind: ask });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
-  const allTrails = useMemo(() => [...(mg ? MAGNET_MEMBER_TRAILS : []), ...visibleLocalTrails(localTrails), ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails, mg]);
+  const pubTrails = useMagnetMemberTrails(!!mg);
+  const allTrails = useMemo(() => [...(mg ? pubTrails : []), ...visibleLocalTrails(localTrails), ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails, mg, pubTrails]);
   // Magistrály na prevzatie sú čiernobiele, kým ich niekto zo svorky neprejde (`isGhostJourney`).
   const packWalked = usePackWalked(walkedIds);
   // Množina členských id — raz za zmenu zoznamu, nie pri každej karte (inak by sa
@@ -7637,7 +7645,7 @@ export default function PackMap() {
       <div className="trp-mlist" data-retap-top ref={mlistRef} onScroll={(e) => { if (mobileView === 'list') { mlistScrollTop = e.currentTarget.scrollTop; hideToggle(); } }}>
         <div className="trp-cards">
           {activeCat === 'trips'
-            ? (narrow && mobileView === 'list' ? renderTripList(false) : null)
+            ? (narrow && (mobileView === 'list' || pcPanel) ? renderTripList(false) : null)
             : (<>
                 {/* mobile — rovnaký zoznam, bez card-refov (withRef=false, žiadny hover-scroll na touch). */}
                 <Suspense fallback={null}>

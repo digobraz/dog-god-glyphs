@@ -42,6 +42,24 @@ import memberTrails from '@/data/magnetMemberTrails.json';
  * Úprava výletu autorkou sa sem sama NEPREPÍŠE; pri väčšej zmene snímku obnov.
  */
 export const MAGNET_MEMBER_TRAILS = memberTrails as unknown as HeroTrail[];
+/**
+ * VŠETKY schválené výlety členov pre náhľad (/map, /magnet) — Matej 11. 11. 2026: „nevidím Oeschinensee a iné jazerá vo Swiss“.
+ * Anonym ich z DB nevidí, preto statický súbor `public/data/verejne-vylety.json` (obnova: `bash scripts/gen-verejne-vylety.sh`).
+ * Sťahuje sa až v náhľade, do balíka appky nejde (424 KB). Kým nepríde, platí malá snímka MAGNET_MEMBER_TRAILS.
+ */
+let pubTrailsCache: HeroTrail[] | null = null;
+let pubTrailsReq: Promise<HeroTrail[]> | null = null;
+export function useMagnetMemberTrails(on: boolean): HeroTrail[] {
+  const [list, setList] = useState<HeroTrail[]>(() => pubTrailsCache ?? MAGNET_MEMBER_TRAILS);
+  useEffect(() => {
+    if (!on || pubTrailsCache) return;
+    pubTrailsReq ??= fetch('/data/verejne-vylety.json').then((r) => (r.ok ? r.json() : MAGNET_MEMBER_TRAILS)).catch(() => MAGNET_MEMBER_TRAILS);
+    let live = true;
+    pubTrailsReq.then((a: HeroTrail[]) => { pubTrailsCache = a; if (live) setList(a); });
+    return () => { live = false; };
+  }, [on]);
+  return list;
+}
 
 /** Desať výletov zdarma — výber z nákresu 12. 10.; 13. 10. Chtelnica → Dankin Fälensee
  *  (Malé Karpaty ostávajú cez Majdán). */
@@ -115,7 +133,9 @@ export const MAGNET_FOUNDER = {
 /** Identita náhľadu = výklad Matejovho účtu BEZ session (nič sa nenačíta ani nezapíše).
  *  Jedna pre všetky obrazovky — `usePackIdentity()` by anonyma poslal na /login. */
 export const MAGNET_IDENTITY: PackIdentity = {
-  session: null, loading: false, sessionReady: true, dogs: [], devotion: 0, bones: 0,
+  session: null, loading: false, sessionReady: true, devotion: 0, bones: 0,
+  // Hektor #1 v hlavičke vedľa Mateja (Matej 11. 11. 2026: „chýba mi tam hektor!“) — údaje z LIVE `dogs` (pack_number 1).
+  dogs: [{ id: 'bd7d15c9-3422-4e22-b410-76e568b4f207', dog_name: 'Hekthor', cloudinary_main_url: 'https://res.cloudinary.com/dz8lolmod/image/upload/c_fill,g_auto,w_200,h_200,q_auto,f_auto/v1780676154/dogs/hektor/u1pmfdh8hpyctq0tqq5r.jpg', life_status: 'alive' }],
   // Fotka zakladateľa (Matej 7. 11. 2026: *„na /map daj môj profil 1:1 … daj tam aj moju foto“) — tá istá ako v jeho účte.
   avatarUrl: 'https://res.cloudinary.com/dz8lolmod/image/upload/c_fill,g_face,w_200,h_200,q_auto,f_auto/v1780678253/owners/matej/pyjw64j1wc7jscp91z8i.png',
   avatarInitial: MAGNET_FOUNDER.initial, packTotal: null, packToday: null,
