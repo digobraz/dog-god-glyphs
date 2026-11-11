@@ -33,9 +33,14 @@ export const shortName = (name: string): string =>
   name.split(/\s[–—-]\s|:\s/)[0].replace(/\p{Extended_Pictographic}|️/gu, '').trim() || name;
 
 /** Vodná značka výletu, alebo null, keď výlet na mape vodou nie je (a na webe vždy). */
-export const waterPlaceOf = (tr: { id: string; name: string }, isWater: boolean): WaterPlace | null => {
+// Švajčiarsko = veľké alpské jazerá, všetky s plachetnicou (Matej 11. 11. 2026: „prečo je Zugersee iná ikonka ako ostatné…
+// vo Swiss sú a budú všetko obrovské jazerá, kde je plachetnica“). Ikonka s plachetnicou je druh `priehrada`.
+const BIG_LAKE_COUNTRIES = new Set(['ch']);
+
+export const waterPlaceOf = (tr: { id: string; name: string; country?: string }, isWater: boolean): WaterPlace | null => {
   if (!MAP_STICKERS_ON) return null;
   const place = PLACES[tr.id];
   if (!place?.kind && !isWater) return null;
-  return { kind: place?.kind ?? kindFromName(tr.name), name: place?.name ?? shortName(tr.name), at: place?.at };
+  const kind = place?.kind ?? (BIG_LAKE_COUNTRIES.has((tr.country ?? '').toLowerCase()) ? 'priehrada' : kindFromName(tr.name));
+  return { kind, name: place?.name ?? shortName(tr.name), at: place?.at };
 };

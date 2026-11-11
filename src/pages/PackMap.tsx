@@ -303,6 +303,9 @@ const FORCE_M_PC_CSS = `@media (min-width:768px){
   html.papyrus3d .trp-root .trp-mheader .trp-mstatsbtn img{width:28px;height:28px;}
   html.papyrus3d .trp-root .trp-mheader-row2{display:flex;align-items:center;gap:8px;flex:none;}
   html.papyrus3d .trp-root .trp-ctlstack{top:156px;}
+  /* Filter sa vysunie POD panel v jeho šírke, nie cez celé okno (Matej 11. 11.). Šírku a spodok panela meria efekt pcPanel. */
+  html.papyrus3d .trp-msheet{left:auto;right:16px;bottom:auto;top:calc(var(--trp-hd-b,140px) + 16px);width:var(--trp-hd-w,640px);max-height:calc(100vh - var(--trp-hd-b,140px) - 32px);border:3px solid var(--p3d-gold);border-radius:20px;box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-solid),0 13px 18px var(--p3d-sh);}
+  html.papyrus3d .trp-msheet .trp-msheet-top .pk-grab,html.papyrus3d .trp-msheet .pk-grab{display:none;}
 }`;
 
 
@@ -4518,6 +4521,16 @@ export default function PackMap() {
   const [narrow, setNarrow] = useState(() => FORCE_M || window.matchMedia('(max-width: 1023px)').matches);
   // Verejná mapa na PC: zoznam je PEVNÝ panel vľavo, prepínač Zoznam/Mapa tam nie je (Matej 11. 11.: „na PC bude len verzia ZOZNAM“).
   const [pcPanel, setPcPanel] = useState(() => FORCE_M && !window.matchMedia('(max-width: 1023px)').matches);
+  // Šírka a spodok plávajúceho panela pre filter, ktorý sa vysúva pod ním (len verejná mapa na PC).
+  useEffect(() => {
+    if (!pcPanel) return;
+    const el = document.querySelector<HTMLElement>('.trp-root .trp-mheader');
+    if (!el) return;
+    const put = () => { const r = el.getBoundingClientRect(); document.documentElement.style.setProperty('--trp-hd-w', `${Math.round(r.width)}px`); document.documentElement.style.setProperty('--trp-hd-b', `${Math.round(r.bottom)}px`); };
+    put();
+    const ro = new ResizeObserver(put); ro.observe(el);
+    return () => ro.disconnect();
+  }, [pcPanel]);
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1023px)');
     const on = () => { setNarrow(FORCE_M || mq.matches); setPcPanel(FORCE_M && !mq.matches); };
