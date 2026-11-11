@@ -135,7 +135,8 @@ import { deletePackTrip, attributeDogTrips, setDogTripCrew, clearDogTrip, claimJ
 import { tagWalked, crewHumanIds, inviteWalked, crewInviteIds } from '@/lib/packHumans';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { upsertMyTrip, removeMyTrip, ensureMyTrip } from '@/components/pack/triplist/triplist';
-import { SysIcon, SearchMark } from '@/components/pack/SysIcon';
+import { SysIcon, SearchMark, sysSrc } from '@/components/pack/SysIcon';
+import { WalkedCheck } from '@/components/pack/WalkedCheck';
 import { useHideWhileScrolling } from '@/hooks/useHideWhileScrolling';
 import { walkRevealPoints } from '@/components/pack/level/walkReveal';
 import { supabase } from '@/integrations/supabase/client';
@@ -278,8 +279,30 @@ const FORCE_M_PC_CSS = `@media (min-width:768px){
      s poriadnym okrajom; hlavička len nad mapou vpravo od neho. */
   .trp-root .trp-mlist{display:block;inset:0 auto 0 0;width:${PANEL_W}px;padding:16px 16px 32px;border-radius:0;z-index:950;box-sizing:border-box;}
   html.papyrus3d .trp-root .trp-mlist{padding-top:16px;background:var(--p3d-paper);background-image:var(--p3d-card);border-right:3px solid var(--p3d-gold);box-shadow:2px 0 0 var(--p3d-ink),8px 0 18px var(--p3d-sh);}
-  .trp-root .trp-mheader{left:${PANEL_W}px;}
   .trp-root .trp-mtoggle{display:none;}
+  /* VARIANT A (Matej 11. 11., nákres plany/nakresy/web-map-pc-2026-11-11): hlavička = levitujúci panel vpravo hore.
+     Bez prepínača Výlety/Podujatia a bez SOS/správ/zvončeka; fotky 2×, planétka väčšia, pes menší; km · výlety · krajiny;
+     Štatistiky · lupa · filter. Tlačidlá mapy (vrstvy, zoom, poloha) idú POD panel. */
+  html.papyrus3d .trp-root .trp-mheader{left:auto;right:16px;top:16px;width:auto;max-width:calc(100% - ${PANEL_W + 32}px);flex-direction:row;flex-wrap:nowrap;align-items:center;gap:16px;padding:12px 16px 12px 20px;border:3px solid var(--p3d-gold);border-radius:20px;box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-solid),0 13px 18px var(--p3d-sh);-webkit-mask-image:none;mask-image:none;}
+  html.papyrus3d .trp-root .trp-mheader-cats,html.papyrus3d .trp-root .trp-mheader .trp-headright{display:none!important;}
+  html.papyrus3d .trp-root .trp-mheader-status{flex:none;height:auto;top:0;display:flex;align-items:center;gap:16px;}
+  html.papyrus3d .trp-root .trp-mheader-status .trp-midentity{flex:none;width:auto;height:84px;display:flex;align-items:center;gap:24px;}
+  html.papyrus3d .trp-root .trp-mheader-status .trp-avs{position:relative;inset:auto;flex:none;width:104px;height:84px;display:block;}
+  html.papyrus3d .trp-root .trp-mheader-status .trp-av{top:4px;width:80px;height:80px;border-width:3px;box-shadow:0 0 0 2px var(--p3d-ink),0 3px 0 2px var(--p3d-ink);}
+  html.papyrus3d .trp-root .trp-mheader-status .trp-avs .trp-avd{left:62px;top:50px;width:36px;height:36px;border-width:2px;}
+  html.papyrus3d .trp-root .trp-mheader-status .trp-midentity--app .rk{--s:64px;left:48px;top:-18px;width:80px;height:68px;}
+  html.papyrus3d .trp-root .trp-mheader-status .rk .nb{font-size:22px;}
+  html.papyrus3d .trp-root .trp-mheader-status .trp-midentity-txt{display:flex;align-items:center;}
+  html.papyrus3d .trp-root .trp-mheader .trp-mstats2{display:none;}
+  html.papyrus3d .trp-root .trp-mheader .trp-pcstats{display:flex;align-items:center;gap:16px;white-space:nowrap;}
+  html.papyrus3d .trp-root .trp-mheader .trp-pcstats>span:not(.trp-pcsep){display:flex;flex-direction:column;align-items:center;line-height:1.05;}
+  html.papyrus3d .trp-root .trp-mheader .trp-pcstats b{font:400 24px 'LT Museum',serif;color:var(--p3d-ink);}
+  html.papyrus3d .trp-root .trp-mheader .trp-pcstats i{font:600 12px 'Space Grotesk',sans-serif;font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:var(--p3d-gold-ink);}
+  html.papyrus3d .trp-root .trp-mheader .trp-pcsep{display:block;width:2px;height:40px;background:var(--p3d-gold);}
+  html.papyrus3d .trp-root .trp-mheader .trp-mstatsbtn,html.papyrus3d .trp-root .trp-mheader .trp-mlupa.pk-b3{width:48px;height:48px;padding:0;display:grid;place-items:center;}
+  html.papyrus3d .trp-root .trp-mheader .trp-mstatsbtn img{width:28px;height:28px;}
+  html.papyrus3d .trp-root .trp-mheader-row2{display:flex;align-items:center;gap:8px;flex:none;}
+  html.papyrus3d .trp-root .trp-ctlstack{top:156px;}
 }`;
 
 
@@ -2785,6 +2808,7 @@ html.papyrus3d .trp-root .trp-ctlstack img.trp-sysico,html.papyrus3d .trp-root .
 /* ikonka fajky v tlačidle „Prešli sme" mala veľkosť len v mobilnom zozname — na PC sa v kartách bočného panela vykreslila v plnej veľkosti obrázka */
 html.papyrus3d .trp-bigcard-photobtn,html.papyrus3d .trp-bigcard-photobtn:hover{${backCircleCSS('pale')}width:26px;height:26px;}
 html.papyrus3d .trp-walkico{width:26px;height:26px;flex:none;margin-right:4px;}
+html.papyrus3d .trp-bigcard-photoactbtn--walked.on.trp-walkbadge,html.papyrus3d .trp-mlist .trp-bigcard-photoactbtn--walked.on.trp-walkbadge{height:auto;padding:0;border:0;border-radius:999px;background:none;box-shadow:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45));} /* L1: prejdené = medailón v rohu fotky, nie 3D tlačidlo (Matej 11. 11.); ťuk stále ponúkne zrušiť */
 html.papyrus3d .trp-bigcard-photoactbtn.pk-b3{height:44px;padding:0 16px;border:2.5px solid var(--b3-l);border-radius:12px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 16px/1 'LT Museum',serif;letter-spacing:0;gap:8px;} /* písmo: cta */
 html.papyrus3d .trp-tlbtn{--b3-r:12px;position:absolute;right:10px;bottom:10px;z-index:3;width:44px;height:44px;padding:0;}
 html.papyrus3d .trp-bigcard-photo:has(> .trp-tlbtn) .trp-bigcard-photometa{right:64px;}
@@ -6718,7 +6742,8 @@ export default function PackMap() {
             {(!isUnwalkedPlan || isMine) && (
               <button
                 type="button"
-                className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(tr.id) ? ' on' : ''}${APP_NEW && !walkedIds.has(tr.id) ? ' pk-b3 pk-b3--lapis' : ''}`}
+                className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(tr.id) ? ' on' : ''}${APP_NEW && walkedIds.has(tr.id) ? ' trp-walkbadge' : ''}${APP_NEW && !walkedIds.has(tr.id) ? ' pk-b3 pk-b3--lapis' : ''}`}
+                aria-label={walkedIds.has(tr.id) ? t('pack.trip.walkedAriaLabel') : undefined}
                 onClick={(e) => {
                   e.stopPropagation();
                   /* ⚠️ VLASTNÝ NEPREJDENÝ PLÁN IDE TRIPFLOWOM, NIE POPUPOM (Matej 2026-08-25).
@@ -6732,7 +6757,7 @@ export default function PackMap() {
                   toggleWalked(tr.id);
                 }}
               >
-                {APP_NEW && !walkedIds.has(tr.id) ? t('pack.trip.markWalked') : <>{APP_NEW ? <img src="/icons/sys/fajka.webp" alt="" className="trp-walkico" /> : '✓ '}{t('pack.map.walked')}</>}
+                {APP_NEW && !walkedIds.has(tr.id) ? t('pack.trip.markWalked') : APP_NEW ? <WalkedCheck size={40} /> : <>{'✓ '}{t('pack.map.walked')}</>}
                 {/* Koľko bodov ten klik naozaj dá — SKUTOČNÉ číslo tejto trasy (5 + km +
                     stúpanie / pevná cena magistrály), nie paušál. Po odškrtnutí zmizne: body
                     už padli. */}
@@ -6930,7 +6955,8 @@ export default function PackMap() {
                     {(!isUnwalkedPlan || isMine) && (
                       <button
                         type="button"
-                        className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(dt.id) ? ' on' : ''}${APP_NEW && !walkedIds.has(dt.id) ? ' pk-b3 pk-b3--lapis' : ''}`}
+                        className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(dt.id) ? ' on' : ''}${APP_NEW && walkedIds.has(dt.id) ? ' trp-walkbadge' : ''}${APP_NEW && !walkedIds.has(dt.id) ? ' pk-b3 pk-b3--lapis' : ''}`}
+                aria-label={walkedIds.has(dt.id) ? t('pack.trip.walkedAriaLabel') : undefined}
                         onClick={() => {
                           // Rovnaká vidlica ako na karte — viď komentár tam.
                           if (isUnwalkedPlan && isMine) { openWalkPlan(dt.id); return; }
@@ -6939,7 +6965,7 @@ export default function PackMap() {
                           toggleWalked(dt.id);
                         }}
                       >
-                        {APP_NEW && !walkedIds.has(dt.id) ? t('pack.trip.markWalked') : <>✓ {walkedIds.has(dt.id) ? t('pack.map.walked') : t('pack.map.markWalked')}</>}
+                        {APP_NEW && !walkedIds.has(dt.id) ? t('pack.trip.markWalked') : APP_NEW ? <WalkedCheck size={40} /> : <>✓ {walkedIds.has(dt.id) ? t('pack.map.walked') : t('pack.map.markWalked')}</>}
                         {!walkedIds.has(dt.id) && <PointsPill value={walkPointsFor(dt)} />}
                       </button>
                     )}
@@ -7360,8 +7386,14 @@ export default function PackMap() {
           {/* tá istá identita ako na PC — `renderIdentity()` vyššie */}
           {renderIdentity()}
           {/* Matej 10. 11. 2026: hlavička sa nezmestila nad zoznam, lupa ide hore k fotke ako na feede. */}
+          {/* verejná mapa na PC: Štatistiky ako samostatné tlačidlo pred lupou (variant A, Matej 11. 11.) */}
+          {pcPanel && (
+            <button type="button" className="trp-mstatsbtn pk-b3 pk-b3--gold" aria-label={t('pack.triplist.tabTripstats')} onClick={() => navigate('/pack/map/triplist?tab=stats')}>
+              <img src={sysSrc('tripstats')} alt="" />
+            </button>
+          )}
           {APP_NEW && (
-            <button type="button" className="trp-mlupa" aria-label={t('pack.map.searchPlace')} aria-expanded={mSearchOpen}
+            <button type="button" className={`trp-mlupa${pcPanel ? ' pk-b3 pk-b3--gold' : ''}`} aria-label={t('pack.map.searchPlace')} aria-expanded={mSearchOpen}
               onClick={() => { if (mSearchOpen) setPlaceQuery(''); setMSearchOpen((v) => !v); }}>
               <SearchMark size={24} />
             </button>
