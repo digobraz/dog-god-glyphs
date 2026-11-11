@@ -7,6 +7,12 @@
 // Decorative ho nemá, takže čo má ostať malé, stačí prehodiť naň (`BEZ_ZVACSENIA`).
 import { AI3D_CSS } from '@/components/pack/ainubis/3d';
 import { BEZ_KOPIROVANIA_CSS, zapniBezKopirovania } from '@/lib/bezKopirovania';
+import { FIRA_UI_FACES } from '@/lib/firaUi';
+
+// UI písmo: Fira Sans namiesto Space Grotesk (Matej 11. 11. 2026). Rodina ostáva menom,
+// faces sú vložené až po fonts-v1.css, takže prebijú Space Grotesk bez zásahu do FONT_UI.
+// Čísla rovné a rovnako široké, aby štatistiky neskákali (Fira má tnum, LT Museum ho ignoruje).
+const FIRA_CISLA = '.papyrus3d body{font-variant-numeric:lining-nums tabular-nums}';
 
 const SUBOR = '/fonts/g/ltmuseum-black-test-v1.woff2';
 const VAHY = [400, 500, 600, 700, 800, 900];
@@ -83,7 +89,7 @@ html.papyrus3d .pdel-no{--pdel-p:${P3D_PAGE.goldSolid};color:${P3D_PAGE.ink};bor
 export function zapniPapyrus3d() {
   document.documentElement.classList.add('papyrus3d');
   const s = document.createElement('style');
-  s.textContent = face('Cinzel', `size-adjust:${ZVACSENIE};`) + face('Cinzel Decorative') + face('LT Museum') + VACSI_TEXT + B3_CSS + AI3D_CSS + BEZ_KOPIROVANIA_CSS;
+  s.textContent = face('Cinzel', `size-adjust:${ZVACSENIE};`) + face('Cinzel Decorative') + face('LT Museum') + FIRA_UI_FACES + FIRA_CISLA + VACSI_TEXT + B3_CSS + AI3D_CSS + BEZ_KOPIROVANIA_CSS;
   document.head.appendChild(s);
   zapniBezKopirovania();
 }
