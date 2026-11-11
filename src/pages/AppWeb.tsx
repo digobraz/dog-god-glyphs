@@ -40,7 +40,7 @@ import './appWeb/appWeb.css';
 
 const A = '/web-app';
 
-const CAROUSEL: [string, string][] = [['map', '11-vretenica-mapa'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', '8-ainubis'], ['feed', 'feed']];
+const CAROUSEL: [string, string][] = [['map', '11-vretenica-mapa'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', 'ai-mozog'], ['feed', 'feed']];
 
 const SERVANT_YEARS = ['0–3', '4–8', '9–13', '14–18', '19–23', '24–29', '30–39', '40+'];
 const PILGRIM_LEVELS = ['1–3', '4–7', '8–12', '13–18', '19–25', '26–33', '34–42', '43–52', '53+'];
@@ -51,7 +51,7 @@ const UCEN_PCT = ['1.', '2 %', '5 %', '10 %', '20 %', '30 %', '45 %', '60 %', '8
 const LEVELS: { ax: string; scene: string; start: number; n: number; img: (i: number) => string; cap: (i: number, c: (k: string) => string) => string }[] = [
   { ax: 'ax1', scene: `${A}/vyjavy/sluzobnik.webp`, start: 2, n: SERVANT_YEARS.length, img: (i) => `servant-${i}.webp`, cap: (i, c) => `${SERVANT_YEARS[i]} ${c('cap_ax1')}` },
   { ax: 'ax2', scene: '/images/magnet/vylety.webp', start: 1, n: PILGRIM_LEVELS.length, img: (i) => `pilgrim-${i}.webp`, cap: (i, c) => `${c('cap_ax2a')} ${PILGRIM_LEVELS[i]} ${c('cap_ax2b')}` },  /* zelený: „prevláda modrá, musíme to oživiť“ (Matej 6. 11.) */
-  { ax: 'ax3', scene: `${A}/vyjavy/ucen.webp`, start: 3, n: UCEN_PCT.length, img: (i) => `ucen-${i + 1}.webp`, cap: (i, c) => (i === 0 ? c('uc_first') : `${UCEN_PCT[i]} ${c('uc_vault')}`) },
+  { ax: 'ax3', scene: `${A}/vyjavy/ucen.webp`, start: 0, n: UCEN_PCT.length, img: (i) => `ucen-${i + 1}.webp`, cap: (i, c) => (i === 0 ? c('uc_first') : `${UCEN_PCT[i]} ${c('uc_vault')}`) },
 ];
 
 /** Vstupné pri Dogypťanovi: index = `dogyptan-N.webp` aj kľúč názvu `tN`. 2 = Kňaz, perleť s ružovým rámom (Matej 7. 11.); 4 = Faraón; 5 = Člen tímu sa do rebríčka nedáva. */
@@ -88,11 +88,15 @@ const SOON: { ic: string }[] = [
   { ic: 'centra' },
 ];
 
+/** Snímka appky v jazyku webu: SK = `<src>.webp`, inak anglická `<src>-en.webp` (11. 11. 2026). */
+const useShot = () => { const { lang } = useLang(); return (src: string) => `${A}/snimky/${src}${lang === 'sk' ? '' : '-en'}.webp`; };
+
 function Phone({ src }: { src: string }) {
+  const shot = useShot();
   return (
     <div className="phone">
       <img className="fr" src={`${A}/phone.svg`} alt="" />
-      <div className="scr"><img src={`${A}/snimky/${src}.webp`} alt="" loading="lazy" decoding="async" /></div>
+      <div className="scr"><img src={shot(src)} alt="" loading="lazy" decoding="async" /></div>
     </div>
   );
 }
@@ -122,6 +126,7 @@ function Tilt({ set, src, onOpen, className = '' }: { set: string; src: string; 
  *  (lazy import — 400 KB dát nesmie zaťažiť prvé načítanie stránky). */
 const TRIP_SHOTS = ['11-vretenica-mapa', 'plus-von', 'tripstats-cela'];
 function TripsSection({ c }: { c: (k: string) => string }) {
+  const shot = useShot();
   const [ref, near] = useNear<HTMLDivElement>('400px');
   const [step, setStep] = useState(0);
   const [nums, setNums] = useState<[number, number, number] | null>(null);
@@ -167,7 +172,7 @@ function TripsSection({ c }: { c: (k: string) => string }) {
               <img className="fr" src={`${A}/phone.svg`} alt="" />
               <div className="scr">
                 {TRIP_SHOTS.map((src, i) => (
-                  <img key={src} className={`tr-shot${i === 2 ? ' tall' : ''}${step === i ? ' on' : ''}`} src={`${A}/snimky/${src}.webp`} alt="" loading="lazy" decoding="async" />
+                  <img key={src} className={`tr-shot${i === 2 ? ' tall' : ''}${step === i ? ' on' : ''}`} src={shot(src)} alt="" loading="lazy" decoding="async" />
                 ))}
               </div>
             </div>
@@ -522,7 +527,7 @@ export default function AppWeb() {
             ))}
             <span className={`flt f1${tipOn === 1 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 1 ? 0 : 1); }}><img className="xl" src={`${A}/odznaky/pilgrim-1.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
             <span className={`flt f2${tipOn === 2 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 2 ? 0 : 2); }}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
-            <span className={`flt f3${tipOn === 3 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 3 ? 0 : 3); }}><img className="xl" src={`${A}/odznaky/ucen-4.webp`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
+            <span className={`flt f3${tipOn === 3 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 3 ? 0 : 3); }}><img className="xl" src={`${A}/odznaky/ucen-1.webp`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
           </div>
         </div>
       </section>

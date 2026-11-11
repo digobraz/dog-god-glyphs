@@ -614,7 +614,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  sub: { en: 'An app for dog people, free for every dog.\nYou play outside with your dog, you collect points on your phone.', sk: 'Appka pre psíčkarov, zadarmo pre každého psa.\nHráš vonku so psom, body zbieraš v mobile.' },
  fl1a: { en: 'Mountain trip', sk: 'Výlet na horách' }, fl1b: { en: '+46 points', sk: '+46 bodov' },
  fl2a: { en: 'Servant level 9', sk: 'Služobník level 9' }, fl2b: { en: '3,285 days of dutifully picking up poops', sk: '3 285 dní poslušne zdvíhaš kôpky' },
- fl3a: { en: 'Eternal Disciple', sk: 'Večný učeň' }, fl3b: { en: 'Self-study of Dog Sense that you\'ll fall in love with!', sk: 'Samoštúdium psieho rozumu, ktoré si zamiluješ!' },
+ fl3a: { en: 'Eternal Disciple level 1', sk: 'Večný učeň level 1' }, fl3b: { en: 'Self-study of Dog Sense that you\'ll fall in love with!', sk: 'Samoštúdium psieho rozumu, ktoré si zamiluješ!' },
  p1: { en: 'dogs', sk: 'psov' }, p2: { en: 'people', sk: 'ľudí' }, p3: { en: 'countries', sk: 'krajín' },
  fl1: { en: 'Mountain trip · +46 points', sk: 'Výlet na horách · +46 bodov' },
  fl1t: { en: 'Every trip with your dog levels up your PILGRIM.', sk: 'Každý výlet so psom zvyšuje tvoj level PÚTNIK.' },
