@@ -208,3 +208,6 @@
 .sx-ai-b{max-height:420px;overflow-y:auto}
 /* mobil: výrez na Hekthora (stojí v strede fotky, 60 % ho na úzkom okne odreže) */
 @media(max-width:767px){.sx-hx>img,.sx-hx>video{object-position:50% 40%}}
+/* pomalý push-in na Hekthora (video ho nemá — pripnutý prvý aj posledný frame drží záber), tam a späť, aby slučka neposkočila */
+@media(prefers-reduced-motion:no-preference){.sx-hx>video{transform-origin:50% 40%;animation:sx-push 20s ease-in-out infinite alternate}}
+@keyframes sx-push{from{transform:scale(1)}to{transform:scale(1.06)}}
