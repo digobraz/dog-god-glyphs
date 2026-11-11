@@ -202,7 +202,7 @@ export function FlowRevealScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_INTRO_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{REVEAL_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_INTRO_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{REVEAL_CSS}{REVEAL_P3D_CSS}</style>
       <input
         ref={hiddenInputRef}
         type="text"
@@ -217,7 +217,7 @@ export function FlowRevealScreen() {
       </div>
 
       <div className="hf-stage">
-        <div className="w-full max-w-xl flex flex-col items-center">
+        <div className="w-full max-w-xl flex flex-col items-center rv-col">
 
           <AnimatePresence mode="wait">
           {phase === 'hero' ? (
@@ -657,5 +657,34 @@ html[data-flow-full] .rv-corner { width: 44px; height: 44px; }
 }
 @media (max-width: 559px) and (min-height: 701px) {
   .rv-stack .hf-plate { padding: 26px 22px; gap: 12px; }
+}
+`;
+
+/**
+ * ODHALENIE v šate Papyrus 3D (11. 11. 2026). Zdroj: `flowP3dSkin.ts` nesmieme meniť, preto
+ * reveal-špecifické pravidlá žijú tu a majú o triedu vyššiu špecificitu (`.rv-stack`).
+ * Matej 11. 11.: *„ten heroglyph nechaj tak ako bol pôvodne, na mobile sú teraz moc malinké
+ * tie symboly"* + *„na PC je to divne malý heroglyf a všetko na sebe divne prilepené"*.
+ *  - Rám heroglyfu berie CELÚ šírku stĺpca (PC stĺpec 640 = šírka progresu a CTA) — ryté rohy
+ *    sedia v odsadení okolo rámu, nie nad ním; odsadenie rámu je ako pred vrstvou (24/28, mobil 18/14).
+ *  - Medzery medzi psom, rámom, nadpisom, vetou, poľom a CTA sú 12 → 16 (PACK_SPACE), na nízkom okne
+ *    ustúpi OBSAH (pole, medzery), nie rezerva od okraja (PAGE_AIR).
+ *  - Pole odkazu bez žiary a tieňa (ani pri focuse), CTA veľkými.
+ */
+const REVEAL_P3D_CSS = `
+html[data-flow-full] .hf-pale .rv-col { max-width: 640px; }
+html[data-flow-full] .hf-pale .rv-stack .hf-plate { gap: 16px; }
+html[data-flow-full] .hf-pale .rv-stack .rv-orn { --rv-glyph-w: 100%; padding: 24px 28px; }
+html[data-flow-full] .hf-pale .rv-stack .rv-corner { width: 28px; height: 28px; }
+html[data-flow-full] .hf-pale .rv-stack .rv-count { margin: -12px 0 0; }
+html[data-flow-full] .hf-pale .rv-stack .rv-ta,
+html[data-flow-full] .hf-pale .rv-stack .rv-ta:focus { box-shadow: none; outline: none; }
+html[data-flow-full] .hf-pale .rv-stack .hf-cta { text-transform: uppercase; letter-spacing: .04em; }
+@media (max-width: 559px) {
+  html[data-flow-full] .hf-pale .rv-stack .rv-orn { padding: 18px 14px; }
+}
+@media (max-height: 800px) and (min-width: 560px) {
+  html[data-flow-full] .hf-pale .rv-stack .rv-ta { height: 80px; }
+  html[data-flow-full] .hf-pale .rv-stack .rv-orn { padding: 20px 28px; }
 }
 `;
