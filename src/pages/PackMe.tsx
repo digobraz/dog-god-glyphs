@@ -200,10 +200,18 @@ export default function PackMe() {
   }, []);
 
   const bio = human?.dogVoiceBio?.trim() || human?.bio?.trim() || '';
-  // „more" len vtedy, keď text naozaj presiahne 3 riadky.
+  // „more" len vtedy, keď text naozaj presiahne 3 riadky. Meria sa znova pri zmene šírky
+  // a po načítaní písma — jediné meranie pri prvom vykreslení na telefóne prebehlo ešte
+  // so záložným písmom a tlačidlo nevzniklo (Danka 6. a 10. 11. 2026: „nedá sa čítať celý text“).
   useLayoutEffect(() => {
     const el = bioRef.current;
-    if (el && !bioFull) setBioLong(el.scrollHeight > el.clientHeight + 1);
+    if (!el || bioFull) return;
+    const measure = () => setBioLong(el.scrollHeight > el.clientHeight + 1);
+    measure();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    ro?.observe(el);
+    document.fonts?.ready.then(measure).catch(() => {});
+    return () => ro?.disconnect();
   }, [bio, bioFull]);
 
   const firstDog = dogs.find((d) => d.pack_number != null) ?? dogs[0] ?? null;
