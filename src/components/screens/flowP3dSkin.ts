@@ -70,7 +70,7 @@ ${ROOT} [style*="brand-gradient"] .text-amber-300 { font-family: ${MUSEUM} !impo
 /* ── MEDAILÓN: fotka v tmavom obryse so zlatým prstencom ───────────────────── */
 ${ROOT} .fm-face {
   border: 2.5px solid var(--p3d-ink);
-  box-shadow: 0 0 0 2px var(--p3d-gold), 0 0 0 4px var(--p3d-ink), 0 8px 12px var(--p3d-sh);
+  box-shadow: 0 0 0 2px var(--p3d-gold), 0 5px 0 2px var(--p3d-gold-solid), 0 8px 12px var(--p3d-sh);
 }
 
 /* ── BUBLINA: karta papyrus 3D (obrys, spodná pera), chvost v tej istej farbe ── */
