@@ -367,9 +367,11 @@ export function RatingPaws({ stars, size = 15, gap = 4 }: { stars: number; size?
           <span key={n} style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
             {APP_NEW ? (
               <>
-                {/* Appka: okno „hodnotenie" z továrne; nevyplnená časť = šedá, vyplnená = farebná orezaná na fillPct. */}
-                <img aria-hidden alt="" draggable={false} src="/icons/sys/hodnotenie.webp" style={{ position: 'absolute', inset: -2, width: size + 4, height: size + 4, maxWidth: 'none', objectFit: 'contain', filter: 'grayscale(1)', opacity: 0.45 }} />
-                {fillPct > 0 && <img aria-hidden alt="" draggable={false} src="/icons/sys/hodnotenie.webp" style={{ position: 'absolute', inset: -2, width: size + 4, height: size + 4, maxWidth: 'none', objectFit: 'contain', clipPath: `inset(0 ${100 - fillPct}% 0 0)` }} />}
+                {/* Appka: PACKY namiesto hviezd (Matej 11. 11. 2026, vlastný návrh v creatore
+                    plany/nakresy/packa-farby-2026-11-11: vnútro #FFBB00, lem lapis, obrys čierny).
+                    Prázdna = vlastný vyblednutý obrázok, plná orezaná na fillPct. */}
+                <img aria-hidden alt="" draggable={false} src="/icons/sys/hodnotenie-packa-prazdna.webp" style={{ position: 'absolute', inset: -2, width: size + 4, height: size + 4, maxWidth: 'none', objectFit: 'contain' }} />
+                {fillPct > 0 && <img aria-hidden alt="" draggable={false} src="/icons/sys/hodnotenie-packa.webp" style={{ position: 'absolute', inset: -2, width: size + 4, height: size + 4, maxWidth: 'none', objectFit: 'contain', clipPath: `inset(0 ${100 - fillPct}% 0 0)` }} />}
               </>
             ) : (<>
             {/* ⚠️ FARBA IDE MASKOU, NIE FILTROM (15. 9. 2026) — tá istá mechanika, akú má

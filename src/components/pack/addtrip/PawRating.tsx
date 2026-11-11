@@ -69,12 +69,12 @@ const EMPTY_OPACITY_ON_LIGHT = 0.55;
 function PawShape({ filled, color, size, emptyOpacity }: {
   filled: boolean; color: string; size: number; emptyOpacity: number;
 }) {
-  // Šat Papyrus 3D (Matej 9. 11. 2026): okno „hodnotenie“ z továrne (tá istá samolepka ako RatingPaws);
-  // nezvolené je šedé a vyblednuté, farba až po ťuku.
+  // Šat Papyrus 3D: od 11. 11. 2026 PACKY (Matejov návrh, tie isté obrázky ako RatingPaws);
+  // nezvolená = vyblednutý obrázok, farba až po ťuku.
   if (APP_NEW) {
     return (
-      <img aria-hidden alt="" draggable={false} src="/icons/sys/hodnotenie.webp"
-        style={{ width: size + 4, height: size + 4, margin: -2, maxWidth: 'none', display: 'block', objectFit: 'contain', transition: 'opacity .12s ease, filter .12s ease', ...(filled ? null : { filter: 'grayscale(1)', opacity: 0.45 }) }} />
+      <img aria-hidden alt="" draggable={false} src={filled ? '/icons/sys/hodnotenie-packa.webp' : '/icons/sys/hodnotenie-packa-prazdna.webp'}
+        style={{ width: size + 4, height: size + 4, margin: -2, maxWidth: 'none', display: 'block', objectFit: 'contain' }} />
     );
   }
   const url = `url(${ICON(filled ? 'paw-full' : 'paw')})`;
