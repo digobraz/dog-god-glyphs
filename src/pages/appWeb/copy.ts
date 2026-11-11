@@ -880,7 +880,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  fx_ainubis_3: { en: 'A chat that knows your dog', sk: 'Chat, ktorý pozná tvojho psa' },
  fx_ainubis_4: { en: 'Verified sources', sk: 'Overené zdroje' },
  fx_sniffer_h: { en: 'Sniffer', sk: 'Sniffer' },
- fx_sniffer_1: { en: "Dating for dog people", sk: "Zoznamka pre psíčkarov" },
+ fx_sniffer_1: { en: "Dating for dog lovers", sk: "Zoznamka pre psíčkarov" },
  fx_sniffer_2: { en: "Meet new Dogyptians", sk: "Spoznaj nových Dogypťanov" },
  fx_sniffer_3: { en: 'Swipe, match, walk', sk: 'Swipe, zhoda, prechádzka' },
  fx_sos_h: { en: 'SOS', sk: 'SOS' },
