@@ -14,6 +14,8 @@ import { COPY, COPY3, type Lang2 } from './appWeb/copy';
 import { WEB_LANGS } from './appWeb/langs';
 import { STORY } from './appWeb/storyCopy';
 import PULSE from '@/data/onepagePulse.json';
+import AI_HEAD from '@/assets/ainubis-head.webp';
+import { Stores } from './appWeb/Stores';
 import './appWeb/appWeb.css';
 import './appWeb/story.css';
 
@@ -160,6 +162,10 @@ export default function StoryWeb() {
   const upd = PULSE.updated.replace(/^(\d+)-(\d+)-(\d+)$/, (_m, _y, mo, dd) => `${+dd}. ${+mo}.`);
   const pmax = Math.max(1, ...PULSE.days.map((x) => x.h));
   const ch = (i: string) => `${t('ch')} ${i}`;
+  /* priemer na deň od začiatku merania (dnešok vrátane) */
+  const runDays = Math.max(1, Math.round((new Date(PULSE.updated).getTime() - new Date(PULSE.since).getTime()) / 864e5) + 1);
+  const avgH = Math.round(PULSE.total / runDays);
+  const sinceTxt = new Date(PULSE.since).toLocaleDateString(loc, { day: 'numeric', month: 'numeric', year: 'numeric' });
 
   return (
     <div className="aw" data-bg="1" data-pz="0" ref={rootRef}>
@@ -193,7 +199,7 @@ export default function StoryWeb() {
 
       <main>
         {/* 1 · HERO — ostrá fotka (Kie nano-banana-pro 4K); video = statický záber, dážď, blesk v pozadí */}
-        <section className="sx-hx" ref={hxRef}>
+        <section className="sx-hx" ref={hxRef} data-no-paw>
           <img src={`${S}/hero.webp`} srcSet={`${S}/hero-1200.webp 1200w, ${S}/hero.webp 2400w`} sizes="100vw" alt="" {...({ fetchpriority: 'high' } as Record<string, string>)} />
           <video autoPlay muted loop playsInline preload="auto" poster={`${S}/hero.webp`} aria-hidden onError={(e) => e.currentTarget.remove()}>
             <source src={`${S}/hero-loop.webm`} type="video/webm" />
@@ -221,7 +227,7 @@ export default function StoryWeb() {
         </Chapter>
 
         {/* II · 2017 — „I don't want a dog!“, slová sa rozsvecujú scrollom, „don't“ sa prečiarkne */}
-        <section className="sx-q" ref={qRef}>
+        <section className="sx-q" ref={qRef} data-no-paw>
           <div className="wrap">
             <div className="sx-c">
               <p className="eye sx-rv">{ch('II')} · 2017</p>
@@ -253,22 +259,17 @@ export default function StoryWeb() {
           <p className="lead sx-rv" style={d(0.4)}>{t('c3_p2')}</p>
         </Chapter>
 
-        {/* IV · 2019 */}
-        <Chapter n={ch('IV')} year="2019" top0 h={t('c4_h')}
+        {/* IV · 2019–21 — život v lese (Matej 11. 11.) */}
+        <Chapter n={ch('IV')} year="2019–21" small top0 h={t('c4_h')}
           side={<Fan pics={[
             { src: '2c', x: '-22%', y: '-22%', r: '-6deg' },
-            { src: '3b', x: '24%', y: '-14%', r: '5deg', d: '.1s' },
-            { src: '3a', x: '-2%', y: '24%', r: '-2deg', d: '.2s', z: 3, cap: t('c4_cap') },
+            { src: '3c', x: '24%', y: '-14%', r: '5deg', d: '.1s' },
+            { src: '3b', x: '-2%', y: '24%', r: '-2deg', d: '.2s', z: 3 },
           ]} />}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c4_p')}</p>
-          <div className="sx-nums sx-rv" style={d(0.4)}>
-            <div><b data-n="42">0</b><span>{t('c4_days')}</span></div>
-            <div><b data-n="800">0</b><span>{t('c4_km')}</span></div>
-            <div><b data-n="1">0</b><span>{t('c4_book')}</span></div>
-          </div>
         </Chapter>
 
-        {/* V · 2022 + pás z Expo */}
+        {/* V · 2022 — zlomový rok: Cesta s Hrdinom + Expo Dubai */}
         <section className="sx-ch" style={{ paddingTop: 0 }}>
           <div className="wrap sx-split sx-rev">
             <div>
@@ -276,32 +277,33 @@ export default function StoryWeb() {
               <div className="sx-year sx-rv" style={d(0.1)}>2022</div>
               <h2 className="sx-rv" style={d(0.2)}><Mark s={t('c5_h')} /></h2>
               <p className="lead sx-rv" style={d(0.3)}>{t('c5_p')}</p>
+              <div className="sx-nums sx-rv" style={d(0.4)}>
+                <div><b data-n="42">0</b><span>{t('c5_days')}</span></div>
+                <div><b data-n="800">0</b><span>{t('c5_km')}</span></div>
+              </div>
             </div>
-            <figure className="sx-ph sx-rv" style={{ aspectRatio: '1/1' }}><img src={ph('4a')} alt="" loading="lazy" /></figure>
+            <figure className="sx-ph sx-rv" style={{ aspectRatio: '1/1' }}><img src={ph('4a')} alt="" loading="lazy" /><figcaption>{t('c5_cap')}</figcaption></figure>
           </div>
           <div className="sx-strip sx-rv"><div className="sx-strip-in">
-            {['4b', '4c', '4d', '4e', '4a', '4b', '4c', '4d', '4e', '4a'].map((s, i) => (
+            {['4b', '4c', '4d', '4e', '3a', '4b', '4c', '4d', '4e', '3a'].map((s, i) => (
               <figure key={i} className="sx-ph" aria-hidden={i >= 5 || undefined}><img src={ph(s)} alt="" loading="lazy" /></figure>
             ))}
           </div></div>
         </section>
 
-        {/* VI · 2023 — tichší tón */}
+        {/* VI · 2023 — kniha vydaná, peniaze do appky, ktorú nedodali; tichší tón */}
         <Chapter n={ch('VI')} year="2023" low h={t('c6_h')}
-          side={<figure className="sx-ph sx-empty sx-rv" style={{ aspectRatio: '4/3' }}>{t('c6_ph')}</figure>}>
+          side={<figure className="sx-ph sx-rv" style={{ aspectRatio: '1/1' }}><img src={ph('3a')} alt="" loading="lazy" /><figcaption>{t('c6_cap')}</figcaption></figure>}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c6_p')}</p>
         </Chapter>
 
-        {/* VII · 2024–25 */}
+        {/* VII · 2024–25 — krátka pauza */}
         <Chapter n={ch('VII')} year="2024–25" small rev top0 h={t('c7_h')}
-          side={<Fan pics={[
-            { x: '-20%', y: '-16%', r: '-5deg', empty: t('c7_ph1') },
-            { x: '20%', y: '16%', r: '4deg', d: '.12s', z: 2, empty: t('c7_ph2') },
-          ]} />}>
+          side={<figure className="sx-ph sx-empty sx-rv" style={{ aspectRatio: '4/3' }}>{t('c7_ph')}</figure>}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c7_p')}</p>
         </Chapter>
 
-        {/* VIII · 2026 */}
+        {/* VIII · 2026 — AI a stavba; hodiny = súčet `stroj` z plany/praca-log.json (gen-praca-stats → onepagePulse.json) */}
         <Chapter n={ch('VIII')} year="2026" top0 h={t('c8_h')}
           side={<Fan pics={[
             { src: '2d', x: '-24%', y: '-20%', r: '-6deg', cap: t('c8_cap') },
@@ -309,6 +311,12 @@ export default function StoryWeb() {
             { src: '5a', x: '0%', y: '24%', r: '-2deg', d: '.2s', z: 3 },
           ]} />}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c8_p')}</p>
+          <div className="sx-nums sx-rv" style={d(0.4)}>
+            <div><b data-n={PULSE.total}>0</b><span>{t('c8_hrs')}</span></div>
+            <div><b data-n={avgH}>0</b><span>{t('c8_avg')}</span></div>
+            <div><b data-n={runDays}>0</b><span>{t('c8_since')} {sinceTxt}</span></div>
+          </div>
+          <p className="sx-who sx-rv" style={d(0.5)}>{t('c8_who')}</p>
         </Chapter>
 
         {/* od krabice k miliónu + DNES s aktuálnym priebehom */}
@@ -317,9 +325,9 @@ export default function StoryWeb() {
             <div className="sec-h sx-rv"><p className="eye">{t('rd_eye')}</p><h2><Mark s={t('rd_h')} /></h2></div>
             <div className="sx-road" ref={roadRef}>
               <i className="sx-road-line" /><i className="sx-road-fill" ref={fillRef} />
-              {([['1b', '2016', 'r1'], ['2a', '2017', 'r2'], ['3a', '2019', 'r3'], ['4a', '2022', 'r4'], [null, '2023', 'r5'], ['2d', t('r6_y'), 'r6']] as const).map(([img, y, k]) => (
+              {([['1b', '2016', 'r1'], ['2a', '2017', 'r2'], ['2c', '2019–21', 'r3'], ['4a', '2022', 'r4'], ['3a', '2023', 'r5'], ['2d', t('r6_y'), 'r6']] as const).map(([img, y, k]) => (
                 <div className="sx-rs" key={k}>
-                  <span className="sx-dot">{img ? <img src={ph(img)} alt="" loading="lazy" /> : '!'}</span>
+                  <span className="sx-dot"><img src={ph(img)} alt="" loading="lazy" /></span>
                   <div className="sx-txt"><em>{y}</em><b>{t(`${k}_b`)}</b><span>{t(`${k}_s`)}</span></div>
                 </div>
               ))}
@@ -352,7 +360,7 @@ export default function StoryWeb() {
         {/* VÍZIA — cieľ CTA „Vízia DOGYPTU“ z /app */}
         <section className="sx-ch" id="vision" style={{ paddingTop: 0 }}>
           <div className="wrap sx-vis">
-            <div className="sx-vis-art sx-rv"><img src="/images/vision/vision-unity.webp" alt="" loading="lazy" /></div>
+            <div className="sx-vis-art sx-rv"><img src="/images/council-pharaoh.webp" alt="We need you" loading="lazy" /></div>
             <div>
               <p className="sx-num sx-rv">{t('vi_eye')}</p>
               <h2 className="sx-rv" style={{ ...d(0.1), fontSize: 'clamp(32px,4.6vw,60px)', lineHeight: 1.08 }}><Mark s={t('vi_h')} /></h2>
@@ -381,7 +389,7 @@ export default function StoryWeb() {
       </main>
 
       {/* PÄTIČKA — kontakty · AINUBIS · živý priebeh práce (onepagePulse.json, gen-praca-stats pri deployi) */}
-      <footer className="sx-ft">
+      <footer className="sx-ft" data-no-paw>
         <div className="wrap">
           <div className="sx-ftg">
             <div>
@@ -394,13 +402,14 @@ export default function StoryWeb() {
                 <a href="https://youtube.com/@dogypt" target="_blank" rel="noopener"><i>▶</i>YouTube</a>
                 <a href={dogmaUrl}><i>☥</i>DOGMA</a>
               </div>
+              <Stores />
               <p className="sx-ftmotto"><Mark s={t('motto')} as="span" /></p>
             </div>
 
             <div>
               <h3>{t('ft_ask')}</h3>
               <div className="sx-ai">
-                <div className="sx-ai-h"><img src="/web-app/app-icon.png" alt="" /><div><b><span>AI</span>NUBIS</b><small>{t('ai_on')}</small></div></div>
+                <div className="sx-ai-h"><img src={AI_HEAD} alt="" /><div><b><span>AI</span>NUBIS</b><small>{t('ai_on')}</small></div></div>
                 <div className="sx-ai-b" ref={chatRef}>
                   <div className="sx-msg">{t('ai_hi')}</div>
                   {chat.map((m, i) => <div key={i} className={`sx-msg${m.me ? ' sx-me' : ''}`}>{m.raw ?? t(m.k)}</div>)}

@@ -211,3 +211,12 @@
 /* pomalý push-in na Hekthora (video ho nemá — pripnutý prvý aj posledný frame drží záber), tam a späť, aby slučka neposkočila */
 @media(prefers-reduced-motion:no-preference){.sx-hx>video{transform-origin:50% 40%;animation:sx-push 20s ease-in-out infinite alternate}}
 @keyframes sx-push{from{transform:scale(1)}to{transform:scale(1.06)}}
+
+/* rok na jeden riadok aj pri rozsahu („2024–25“, Matej 11. 11.) */
+.sx-year{white-space:nowrap}
+.sx-year.sx-sm{font-size:clamp(48px,7.4vw,112px)}
+/* hodiny práce 2026 — vysvetlivka pod číslami */
+.sx-who{margin:var(--s-md) 0 0;font:400 var(--t-label)/1.4 var(--font-ui);color:var(--ink-soft)}
+/* VÍZIA: „We need you“ — faraón s kocúrmi a Hekthorom (výrez bez pozadia), bez kruhu */
+.sx-vis-art::before{display:none}
+.sx-vis-art img{border-radius:0}

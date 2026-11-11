@@ -46,7 +46,7 @@ const cursorSvg = (size: number, rot: number, ai = false) =>
     `<path d="${PAW_SOLID}" fill="url(#l)" stroke="${ai ? "#E6FAFF" : "#EFD79A"}" stroke-width="10" stroke-opacity=".7"/></g></svg>`);
 
 /** Cesty, kde packa smie bežať (verejný web). */
-const ALLOWED = /^\/(app|wall|terms|privacy|login|dog|d|lost|will|zavet)?(\/|$)/;
+const ALLOWED = /^\/(app|story|wall|terms|privacy|login|dog|d|lost|will|zavet)?(\/|$)/;
 const DENIED = /^\/(pack|admin|magnet|heroglyph|checkout|payment|welcome|lab|entry|cert-render|invoice-render|share-render)(\/|$)/;
 
 /** Nikdy pozadie: ovládače, médiá, hlavička a výslovne vyňaté miesta. Karty chytá meranie podkladu. */
