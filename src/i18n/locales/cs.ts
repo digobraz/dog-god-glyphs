@@ -5967,6 +5967,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.name.alert': 'Tohle jméno nosí tisíce psů na světě.',
   'heroglyph.flow.name.createCta': 'Vytvořit heroglyf',
   'heroglyph.flow.name.promise': 'Jméno psa zapsané v návrhu, který nikdo jiný nemá.',
+  'heroglyph.flow.dogs.fillHint': 'Doplň fotku a narozeniny: klepni na psa.',
   'heroglyph.flow.dogs.packTitle': 'Tvá smečka',
   'heroglyph.flow.dogs.orderLabel': 'Pořadí v tvém životě',
   'heroglyph.flow.dogs.orderHint': 'táhni ⋮⋮ · klepni na číslo',
