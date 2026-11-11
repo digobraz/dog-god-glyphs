@@ -283,7 +283,7 @@ const FORCE_M_PC_CSS = `@media (min-width:768px){
   /* VARIANT A (Matej 11. 11., nákres plany/nakresy/web-map-pc-2026-11-11): hlavička = levitujúci panel vpravo hore.
      Bez prepínača Výlety/Podujatia a bez SOS/správ/zvončeka; fotky 2×, planétka väčšia, pes menší; km · výlety · krajiny;
      Štatistiky · lupa · filter. Tlačidlá mapy (vrstvy, zoom, poloha) idú POD panel. */
-  html.papyrus3d .trp-root .trp-mheader{left:auto;right:16px;top:16px;width:auto;max-width:calc(100% - ${PANEL_W + 32}px);flex-direction:row;flex-wrap:nowrap;align-items:center;gap:16px;padding:12px 16px 12px 20px;border:3px solid var(--p3d-gold);border-radius:20px;box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-solid),0 13px 18px var(--p3d-sh);-webkit-mask-image:none;mask-image:none;}
+  html.papyrus3d .trp-root .trp-mheader{left:auto;right:16px;top:16px;width:auto;max-width:calc(100% - ${PANEL_W + 32}px);flex-direction:row;flex-wrap:nowrap;align-items:center;gap:16px;padding:12px 16px 12px 24px;border:3px solid var(--p3d-gold);border-radius:16px;box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-solid),0 13px 18px var(--p3d-sh);-webkit-mask-image:none;mask-image:none;}
   html.papyrus3d .trp-root .trp-mheader-cats,html.papyrus3d .trp-root .trp-mheader .trp-headright{display:none!important;}
   html.papyrus3d .trp-root .trp-mheader-status{flex:none;height:auto;top:0;display:flex;align-items:center;gap:16px;}
   html.papyrus3d .trp-root .trp-mheader-status .trp-midentity{flex:none;width:auto;height:84px;display:flex;align-items:center;gap:24px;}
@@ -291,7 +291,7 @@ const FORCE_M_PC_CSS = `@media (min-width:768px){
   html.papyrus3d .trp-root .trp-mheader-status .trp-av{top:4px;width:80px;height:80px;border-width:3px;box-shadow:0 0 0 2px var(--p3d-ink),0 3px 0 2px var(--p3d-ink);}
   html.papyrus3d .trp-root .trp-mheader-status .trp-avs .trp-avd{left:62px;top:50px;width:36px;height:36px;border-width:2px;}
   html.papyrus3d .trp-root .trp-mheader-status .trp-midentity--app .rk{--s:64px;left:48px;top:-18px;width:80px;height:68px;}
-  html.papyrus3d .trp-root .trp-mheader-status .rk .nb{font-size:22px;}
+  html.papyrus3d .trp-root .trp-mheader-status .rk .nb{font-size:24px;}
   html.papyrus3d .trp-root .trp-mheader-status .trp-midentity-txt{display:flex;align-items:center;}
   html.papyrus3d .trp-root .trp-mheader .trp-mstats2{display:none;}
   html.papyrus3d .trp-root .trp-mheader .trp-pcstats{display:flex;align-items:center;gap:16px;white-space:nowrap;}
@@ -304,7 +304,7 @@ const FORCE_M_PC_CSS = `@media (min-width:768px){
   html.papyrus3d .trp-root .trp-mheader-row2{display:flex;align-items:center;gap:8px;flex:none;}
   html.papyrus3d .trp-root .trp-ctlstack{top:156px;}
   /* Filter sa vysunie POD panel v jeho šírke, nie cez celé okno (Matej 11. 11.). Šírku a spodok panela meria efekt pcPanel. */
-  html.papyrus3d .trp-msheet{left:auto;right:16px;bottom:auto;top:calc(var(--trp-hd-b,140px) + 16px);width:var(--trp-hd-w,640px);max-height:calc(100vh - var(--trp-hd-b,140px) - 32px);border:3px solid var(--p3d-gold);border-radius:20px;box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-solid),0 13px 18px var(--p3d-sh);}
+  html.papyrus3d .trp-msheet{left:auto;right:16px;bottom:auto;top:calc(var(--trp-hd-b,140px) + 16px);width:var(--trp-hd-w,640px);max-height:calc(100vh - var(--trp-hd-b,140px) - 32px);border:3px solid var(--p3d-gold);border-radius:16px;box-shadow:0 0 0 2px var(--p3d-ink),0 7px 0 2px var(--p3d-gold-solid),0 13px 18px var(--p3d-sh);}
   html.papyrus3d .trp-msheet .trp-msheet-top .pk-grab,html.papyrus3d .trp-msheet .pk-grab{display:none;}
 }`;
 

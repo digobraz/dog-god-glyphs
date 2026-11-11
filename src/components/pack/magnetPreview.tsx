@@ -283,16 +283,16 @@ ${VEIL_CSS}
 /* ŠAT AINUBIS 3D (Matej 11. 11. 2026: „ainubis je stále starý dizajn“) — ten istý šat ako AINUBIS v appke, len pod APP_NEW
    (verejná /map ho má vždy). Tvary a farby z ainubis/3d/zaklad.ts, nič sa nepíše druhýkrát. */
 html.papyrus3d .pk-veil--modal:has(.mgp-card--ai){${M3.scrim}}
-html.papyrus3d .mgp-card--ai{max-width:420px;padding:28px 24px 24px;${M3.card}}
-html.papyrus3d .mgp-card--ai .mgp-face{width:96px;height:96px;margin:0 auto 8px;border:3px solid var(--ai-edge);box-shadow:0 0 0 2px var(--ai-out),0 0 24px -4px rgb(${AINUBIS.cyanRGB});background:none;}
-html.papyrus3d .mgp-card--ai .mgp-who{font:700 16px 'Space Grotesk',sans-serif;letter-spacing:.08em;}
+html.papyrus3d .mgp-card--ai{max-width:420px;padding:24px;${M3.card}}
+html.papyrus3d .mgp-card--ai .mgp-face{width:96px;height:96px;margin:0 auto 8px;border:3px solid var(--ai-edge);outline:2px solid var(--ai-out);filter:drop-shadow(0 0 12px rgb(${AINUBIS.cyanRGB}));background:none;}
+html.papyrus3d .mgp-card--ai .mgp-who{font:700 16px 'Space Grotesk',sans-serif;letter-spacing:.02em;}
 html.papyrus3d .mgp-card--ai .mgp-eye{${M3.lab}margin-top:4px;}
 html.papyrus3d .mgp-card--ai .mgp-h{${M3.h}color:#fff;margin:8px 0 0;}
 html.papyrus3d .mgp-card--ai .mgp-p{font:400 15px/1.45 'Space Grotesk',sans-serif;margin:8px 0 20px;}
 ${b3('html.papyrus3d .mgp-card--ai .mgp-cta', 'or', '14px')}
-html.papyrus3d .mgp-card--ai .mgp-cta{min-height:52px;font-size:18px;}
+html.papyrus3d .mgp-card--ai .mgp-cta{min-height:52px;font-size:20px;}
 ${b3('html.papyrus3d .mgp-card--ai .mgp-ghost', 'nt', '14px', 4)}
-html.papyrus3d .mgp-card--ai .mgp-ghost{min-height:48px;font:600 14px 'Space Grotesk',sans-serif;letter-spacing:.1em;text-transform:uppercase;}
+html.papyrus3d .mgp-card--ai .mgp-ghost{min-height:48px;font:600 14px 'Space Grotesk',sans-serif;letter-spacing:.14em;text-transform:uppercase;}
 `;
 
 /** Popup „Ďalej idú len Dogypťania" — jeden pre všetky tri darčeky. */
