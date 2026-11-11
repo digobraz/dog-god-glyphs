@@ -6,7 +6,7 @@ import { IS_APP } from '@/lib/isApp';
 // Appka = len /pack (+ prihlásenie a právne texty). Čokoľvek iné je web: stena, DOGMA,
 // karta psa `/dog/…` — tie sa otvoria v systémovom prehliadači a appka ostane, kde bola.
 // Nákup sa v appke neotvorí VÔBEC, ani v prehliadači (Apple 3.1.1): `/checkout`, `/payment`, `/entry`,
-// `/welcome`, holé `/heroglyph` a z flowu pokladničné kroky `/heroglyph/stay` a `/heroglyph/welcome`.
+// `/welcome`, holé `/heroglyph` a z flowu pokladničné kroky `/heroglyph/stay`, `/heroglyph/vstupne` a `/heroglyph/welcome`.
 // 🆕 7. 11. 2026 (registrácia zadarmo): samotný HEROFLOW `/heroglyph/<krok>` appka PUSTÍ — vytvorenie
 // heroglyfu je zadarmo a končí hosťom + kódom na e-mail (`lib/appRegister.ts`), nie pokladňou.
 // Tlačidlo odhalenia v appke preto nejde na `/checkout` (viď `FlowRevealScreen`).
@@ -15,7 +15,7 @@ import { IS_APP } from '@/lib/isApp';
 // Na webe sa komponent nevykreslí vôbec.
 
 const APP_PATHS = /^\/(pack|login|privacy|terms|lost)(\/|$|\?)/;
-const PURCHASE = /^\/(checkout|payment|entry|welcome)(\/|$)|^\/heroglyph(\/?$|\/(stay|welcome)(\/|$))/;
+const PURCHASE = /^\/(checkout|payment|entry|welcome)(\/|$)|^\/heroglyph(\/?$|\/(stay|welcome|vstupne)(\/|$))/;
 const FLOW = /^\/heroglyph\/[^/]+/;
 
 function Guard() {

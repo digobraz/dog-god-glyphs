@@ -190,7 +190,8 @@ export function FlowRevealScreen() {
     if (i < 0) {
       // V appke sa nekupuje: hosť zadarmo + kód na e-mail → krok „Ulož heroglyf“ v `AppEntry` (7. 11. 2026).
       if (IS_APP) { void saveInApp(); return; }
-      navigate('/checkout');
+      // Web (11. 11. 2026): Dobrovoľné vstupné namiesto pokladne €11 — `FlowVstupneScreen`.
+      navigate('/heroglyph/vstupne');
       return;
     }
     setCur(i);

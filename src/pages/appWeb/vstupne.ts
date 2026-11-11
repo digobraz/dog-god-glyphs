@@ -25,10 +25,11 @@ async function call(body: Record<string, unknown>, auth: boolean) {
 export const loginUrl = () => `/login?next=${encodeURIComponent('/app#badges')}`;
 
 /** Prejde na Stripe. Vráti 'login' (treba sa prihlásiť) alebo 'error'; pri úspechu stránka odíde. */
-export async function startCheckout(rank: Rank, kind: 'month' | 'once', amount: number | undefined, lang: string): Promise<'login' | 'error' | 'ok'> {
-  const r = await call({ action: 'checkout', rank, kind, amount, lang, back: '/app' }, true);
+export async function startCheckout(rank: Rank, kind: 'month' | 'once', amount: number | undefined, lang: string, back = '/app'): Promise<'login' | 'error' | 'ok' | 'owned'> {
+  const r = await call({ action: 'checkout', rank, kind, amount, lang, back }, true);
   if (r.status === 401) return 'login';
-  if (r.status === 409) return openPortal(); // už platí mesačne → zmena hodnosti v portáli
+  // Už platí mesačne → zmena hodnosti v portáli. Z heroflowu (`back` ≠ /app) človeka z flowu nevyvádzame: hodnosť má, flow ide ďalej.
+  if (r.status === 409) return back === '/app' ? openPortal() : 'owned';
   if (typeof r.json.url === 'string') { window.location.href = r.json.url; return 'ok'; }
   return 'error';
 }

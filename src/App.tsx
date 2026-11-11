@@ -96,6 +96,10 @@ const FlowRevealScreen = lazy(() =>
 const FlowCheckoutScreen = lazy(() =>
   import("@/components/screens/FlowCheckoutScreen").then((m) => ({ default: m.FlowCheckoutScreen }))
 );
+// KONIEC FLOWU NA WEBE (11. 11. 2026): Dobrovoľné vstupné namiesto pokladne €11 — hosť + kód + hodnosť cez Stripe.
+const FlowVstupneScreen = lazy(() =>
+  import("@/components/screens/FlowVstupneScreen").then((m) => ({ default: m.FlowVstupneScreen }))
+);
 const FlowStayScreen = lazy(() =>
   import("@/components/screens/FlowStayScreen").then((m) => ({ default: m.FlowStayScreen }))
 );
@@ -551,6 +555,9 @@ const App = () => (
                   platí celú svorku (25. 9. 2026). LIVE ide ďalej dvojicou
                   `CheckoutScreen` → `PaymentScreen`. */}
               <Route path="/checkout" element={NEW_HEROFLOW ? <FlowCheckoutScreen /> : <CheckoutScreen />} />
+              {/* KONIEC FLOWU (11. 11. 2026): odhalenie vedie sem, nie na `/checkout`. Pokladňa €11 ostáva len ako
+                  priama adresa pre staré odkazy; v deň hodností na webe sa vypína (`plany/zadanie-platby-2026-11-11.md` §2). */}
+              {NEW_HEROFLOW && <Route path="/heroglyph/vstupne" element={<FlowVstupneScreen />} />}
               {/* C · ZADRŽANIE — „Nechcem platiť" z pokladne (len nový vstup). */}
               {NEW_HEROFLOW && <Route path="/heroglyph/stay" element={<FlowStayScreen />} />}
               <Route path="/payment" element={<PaymentScreen />} />

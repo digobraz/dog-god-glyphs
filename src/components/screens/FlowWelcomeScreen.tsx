@@ -7,7 +7,8 @@ import { clearFlowDraft } from '@/lib/flowDraft';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 import { LetterReveal, REVEAL_S, LETTER_S, FLOW_INTRO_CSS } from '@/components/screens/flowIntro';
-import { PACK_R } from '@/components/pack/packTheme';
+import { PACK_R, PAGE_AIR } from '@/components/pack/packTheme';
+import { B3_CSS } from '@/lib/papyrus3d';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { LAB } from '@/lib/labTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
@@ -49,7 +50,7 @@ type PrevDog = { n: number; name: string; photo: string };
 /** Minimálny čas, kým sa ukáže ďalšia veta (ms). */
 const LINE_MIN = 1400;
 
-function useWelcomeData(sessionId: string | null) {
+function useWelcomeData(sessionId: string | null, free = false) {
   const store = useDogyptStore();
   const fallback = useMemo(() => {
     const seed = import.meta.env.DEV ? readDevSeed() : null;
@@ -60,7 +61,8 @@ function useWelcomeData(sessionId: string | null) {
       id: d.flowId,
       name: d.dogName || (seed ? DEV_NAMES[(i - 1 + DEV_NAMES.length) % DEV_NAMES.length] : ''),
       photo: d.photo || '',
-      n: sessionId ? null : base + i,
+      // Hosť / hodnosť (`free`): číslo ešte nemá — príde pri schválení fotky (`seal_pack_number`), nie z dev seedu.
+      n: sessionId || free ? null : base + i,
       glyph: '',
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,10 +116,12 @@ function useWelcomeData(sessionId: string | null) {
 }
 
 /** Predošlí psi v poradí (verejná stena). Koľko: aby nový pes stál v strede. */
-function usePrevDogs(firstN: number | null, count: number, demoFill = false) {
+function usePrevDogs(firstN: number | null, count: number, demoFill = false, free = false) {
   const [prev, setPrev] = useState<PrevDog[] | null>(null);
+  // Hosť bez čísla (`free`) sa zaradí ZA všetkých, čo číslo majú.
+  const anchor = firstN ?? (free ? Number.MAX_SAFE_INTEGER : null);
   useEffect(() => {
-    if (firstN == null) return;
+    if (anchor == null) return;
     let alive = true;
     // `?tiers=all` — číslo má od 17. 10. 2026 aj schválený hosť; bez neho by v rade boli diery.
     fetch(`${EDGE_BASE}/get-grid-dogs?tiers=all`)
@@ -125,7 +129,7 @@ function usePrevDogs(firstN: number | null, count: number, demoFill = false) {
       .then((rows: Array<{ pack_number: number | null; dog_name: string | null; cloudinary_main_url: string | null }>) => {
         if (!alive) return;
         const list = rows
-          .filter((r) => r.pack_number != null && r.pack_number < firstN)
+          .filter((r) => r.pack_number != null && r.pack_number < anchor)
           .sort((a, b) => (a.pack_number as number) - (b.pack_number as number))
           .slice(-count)
           .map((r) => ({ n: r.pack_number as number, name: r.dog_name || '', photo: r.cloudinary_main_url || '' }));
@@ -138,7 +142,7 @@ function usePrevDogs(firstN: number | null, count: number, demoFill = false) {
           const DEMO = ['BRUNO', 'LUNA', 'MAX', 'BELLA', 'ROCKY', 'NELA', 'ARGO', 'KIRA', 'BOBO', 'DAISY', 'RÉX', 'MIA'];
           const have = new Set(list.map((d) => d.n));
           const fill: PrevDog[] = [];
-          for (let n = firstN - 1; n > 1 && fill.length + list.length < count; n--) {
+          for (let n = anchor - 1; n > 1 && fill.length + list.length < count; n--) {
             if (!have.has(n)) fill.unshift({ n, name: DEMO[n % DEMO.length], photo: '' });
           }
           const merged = [...list, ...fill].sort((a, b) => a.n - b.n).slice(-count);
@@ -149,7 +153,7 @@ function usePrevDogs(firstN: number | null, count: number, demoFill = false) {
       })
       .catch(() => { if (alive) setPrev([]); });
     return () => { alive = false; };
-  }, [firstN, count, demoFill]);
+  }, [anchor, count, demoFill]);
   return prev;
 }
 
@@ -166,7 +170,13 @@ export function FlowWelcomeScreen() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const sessionId = params.get('session_id');
-  const { dogs, owner, email, session, settled } = useWelcomeData(sessionId);
+  // KONIEC BEZ PLATBY ZA PSA (11. 11. 2026): `?free=1` = hosť (Veriaci €0), `?rank=<hodnosť>` = po Vstupnom cez Stripe.
+  // Pes nemá `session_id`; číslo mu pridelí schválenie fotky, nie táto obrazovka.
+  const rankParam = params.get('rank');
+  const rankPaid = rankParam && ['akolyta', 'knaz', 'vezir', 'farao'].includes(rankParam) ? rankParam : null;
+  const free = !sessionId && (params.has('free') || !!rankPaid);
+  const guestIds = useDogyptStore((s) => s.guestIds);
+  const { dogs, owner, email, session, settled } = useWelcomeData(sessionId, free);
 
   // ── FÁZA 1: HEKTOR ─────────────────────────────────────────────────────
   const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -196,7 +206,7 @@ export function FlowWelcomeScreen() {
   // riadok, logicky musíme pridať viac psov"*. Poradie berie VŠETKU voľnú výšku
   // dosky a stojí pri spodku (nový pes ≈ stred obrazovky); predošlých sa načíta
   // 12 a čo sa nezmestí, odreže horný okraj pod zošednutím.
-  const prev = usePrevDogs(firstN, 12, import.meta.env.DEV && !sessionId);
+  const prev = usePrevDogs(firstN, 12, import.meta.env.DEV && !sessionId && !free, free);
   // Koľko predošlých ukázať: poradie zaberie ~50 % výšky okna (pri pretečení ho ústup nižšie stiahne), nový pes (psi)
   // v ňom stojí dole ⇒ ≈ stred obrazovky. Zvyšok výšky dostane spodok, nie
   // prázdne miesto nad riadkami (Matej 26. 9.: *„hore je veľa miesta… nájdi v tom logiku"*).
@@ -252,6 +262,9 @@ export function FlowWelcomeScreen() {
   const sel = (session?.selections as Record<string, string>) || {};
   // Skryté rámy majiteľa čítajú store — po platbe na inom zariadení by bol prázdny.
   useEffect(() => {
+    if (free) clearFlowDraft();   // hosť je zapísaný, účet vznikol — koncept vstupu už netreba
+  }, [free]);
+  useEffect(() => {
     if (!session) return;
     clearFlowDraft();   // platba prešla — koncept vstupu už netreba (lib/flowDraft.ts)
     const s = useDogyptStore.getState();
@@ -283,7 +296,7 @@ export function FlowWelcomeScreen() {
 
   // ── VETY PO JEDNEJ ────────────────────────────────────────────────────
   // 1 profil (kým nepríde číslo) · 2 certifikát (kým nie je heroglyf) · 3 HOTOVO · 4 1M + progres + CTA.
-  const profileDone = firstN != null || settled;
+  const profileDone = firstN != null || settled || free;
   const certDone = !sessionId || (runJobs && job >= dogs.length);
   const [line, setLine] = useState(0);
   useEffect(() => {
@@ -292,9 +305,9 @@ export function FlowWelcomeScreen() {
     if (line >= 4 || !ready) return;
     // Po certifikáte rovno na poďakovanie — „Hotovo! Všetko máš v maile!" (riadok 3)
     // nahradil trvalý riadok o vstupnom odkaze (Matej 16. 10. 2026: *„urobiť poriadok"*).
-    const id = window.setTimeout(() => setLine((l) => (l === 2 ? 4 : l + 1)), line === 0 ? 200 : LINE_MIN);
+    const id = window.setTimeout(() => setLine((l) => (l === 2 || (free && l === 1) ? 4 : l + 1)), line === 0 ? 200 : LINE_MIN);
     return () => window.clearTimeout(id);
-  }, [joined, line, profileDone, certDone]);
+  }, [joined, line, profileDone, certDone, free]);
 
   const purchaseTracked = useRef(false);
   useEffect(() => {
@@ -306,6 +319,8 @@ export function FlowWelcomeScreen() {
   const toWall = () => {
     const [first, ...rest] = dogs;
     if (!first) return navigate('/');
+    // Hosť bez čísla: stena nemá čo zapečatiť, ukáže jeho kartu podľa id (ako ďakovačka hosťa, `/?dog=`).
+    if (free && first.n == null) return navigate(guestIds[first.id] ? `/wall?dog=${guestIds[first.id]}` : '/wall');
     const q = new URLSearchParams({ reveal: 'true', dogName: first.name, packNumber: String(first.n ?? 0) });
     if (first.photo) q.set('photoUrl', first.photo);
     // V dielni (bez platby) heroglyf nevznikne a stena by spálila len logo —
@@ -332,12 +347,12 @@ export function FlowWelcomeScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wantWall, ctaReady]);
 
-  const totalN = dogs.reduce((m, d) => Math.max(m, d.n ?? 0), 0);
+  const totalN = Math.max(dogs.reduce((m, d) => Math.max(m, d.n ?? 0), 0), free ? (prev ?? []).reduce((m, d) => Math.max(m, d.n), 0) : 0);
   const pct = Math.max(2, Math.min(100, (totalN / 1_000_000) * 100));
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_CARVE_CSS}{FLOW_MEDAL_CSS}{FLOW_INTRO_CSS}{WELCOME_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_CARVE_CSS}{FLOW_MEDAL_CSS}{FLOW_INTRO_CSS}{B3_CSS}{WELCOME_CSS}</style>
       {/* BEZ LOGA HORE (Matej 26. 9.: *„posledná stránka nebude mať horné logo…
           tým je väčšia na obsah práve kvôli pečati"*). Punc nesie pečať nad mottom. */}
       <div className={`hf-stage wl-page wl-tight-${tight}`} ref={stageRef}>
@@ -456,7 +471,13 @@ export function FlowWelcomeScreen() {
                         dvere do appky sú LEN v maile (magic link) — povedať to tu, s adresou,
                         na ktorú šiel, a s menom tlačidla presne ako v maile (`send-certificate`
                         `openMyProfile`). Slajdy „Čo ďalej? 1/5" na stene sú preto vypnuté. */}
-                    {joined && (
+                    {joined && free && (
+                      <motion.p className="wl-mail" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }}>
+                        {rankPaid && <b>{t('heroglyph.flow.vstupne.thanks')} {t(`pack.seal.${rankPaid}`)}.</b>}
+                        <span>{t(dogs.some((d) => d.n == null) ? (dogs.length > 1 ? 'heroglyph.flow.welcomeFree.waitMany' : 'heroglyph.flow.welcomeFree.wait') : 'heroglyph.flow.welcomeFree.saved')}</span>
+                      </motion.p>
+                    )}
+                    {joined && !free && (
                       <motion.p className="wl-mail" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }}>
                         <b>{t('heroglyph.flow.welcomeNew.mail')}</b>
                         {email && <span className="wl-mail-addr">{email}</span>}
@@ -465,7 +486,7 @@ export function FlowWelcomeScreen() {
                     )}
                     <motion.button
                       type="button"
-                      className="hf-cta wl-cta"
+                      className="pk-b3 pk-b3--lapis wl-cta"
                       onClick={() => (ctaReady ? toWall() : setWantWall(true))}
                       disabled={!joined || wantWall}
                       aria-busy={wantWall}
@@ -680,7 +701,11 @@ const WELCOME_CSS = `
 .wl-bar { width: 100%; height: 12px; border-radius: ${PACK_R.pill}px; background: rgba(22, 48, 122, 0.16); overflow: hidden; }
 .wl-bar > span { display: block; height: 100%; border-radius: inherit; background: ${LAPIS.grad}; }
 .wl-goal-t { font-family: 'Space Grotesk', sans-serif; font-size: 12px; letter-spacing: .08em; color: ${LAB.inkBody}; }
-.wl-cta { width: 100%; }
+.wl-cta { width: 100%; height: 52px; font-weight: 900; }
+/* Na celú obrazovku (\`FLOW_FULL\`) stráži javisko miesto pre pripnuté CTA (104 px) — Vitaj ho nepripína, CTA je v toku,
+   a \`.wl-stack\` si výšku počíta sám. Bez tohto pretiekol o presne tých 104 px a ústup zhodil celé poradie. */
+html[data-flow-full] .hf-pale .hf-stage.wl-page { padding-bottom: ${PAGE_AIR.min}px; }
+@media (min-width: 768px) { html[data-flow-full] .hf-pale .hf-stage.wl-page { padding-bottom: ${PAGE_AIR.md}px; } }
 @media (max-width: 600px) {
   .wl-row { height: 48px; } .wl-row.is-new { height: 56px; } .wl-row.is-new.is-many { height: 48px; }
   .wl-name { font-size: 14px; } .wl-row.is-new .wl-name, .wl-row.is-new .wl-num { font-size: 16px; }

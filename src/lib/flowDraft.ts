@@ -31,6 +31,8 @@ const FIELDS = [
   'patronCategory', 'patronSvg', 'breed', 'isMix', 'patronCategory2', 'patronSvg2',
   'certCropData', 'gridCropData', 'extraPhotos', 'gdprConsent', 'draftId',
   'lifeStatus', 'deathDate', 'extraDogs', 'mainDogPos', 'dogOrderStart', 'dogEssence',
+  // Hosť zapísaný pred Vstupným (11. 11. 2026): návrat zo Stripe je nové načítanie stránky, a bez id psov by Vitaj nevedelo, na koho ukázať.
+  'guestIds', 'guestEmail',
 ] as const;
 
 const isBlob = (u: unknown) => typeof u === 'string' && u.startsWith('blob:');

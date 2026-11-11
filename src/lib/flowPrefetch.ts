@@ -25,6 +25,7 @@ const LOADERS: Record<string, () => Promise<unknown>> = {
   '/heroglyph/owner-info': () => import('@/components/screens/OwnerScreen'),
   '/heroglyph/reveal': () => import('@/components/screens/FlowRevealScreen'),
   '/checkout': () => import('@/components/screens/FlowCheckoutScreen'),
+  '/heroglyph/vstupne': () => import('@/components/screens/FlowVstupneScreen'),
 };
 
 const done = new Set<string>();
