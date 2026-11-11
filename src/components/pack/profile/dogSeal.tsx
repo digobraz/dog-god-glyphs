@@ -1,20 +1,26 @@
 // PEČAŤ PSA — os DOGYPŤAN (LOCK 6. 11. 2026, nákres `plany/nakresy/pecat-odznaky-2026-11-06/`).
 // Matej: *„odznak dostane PES, aj zakladateľský“* · *„dajme 11 [vĺn], ale s našou brand packou“* · v3 *„zatiaľ ok“*.
 // Stojí hneď za menom psa ako IG verified. Úroveň = farba, prémiovosť (tieň, lesk, iskra) rastie s úrovňou.
-//   VERIACI €0 = prerušovaný obrys, VIDÍ HO LEN MAJITEĽ (ponuka podpory) · AKOLYTA papyrus · KŇAZ lapis ·
-//   VEZÍR zlato · ZAKLADATEĽ čierna + zlato-oranžová žiara (mimo osi, navždy).
+//   VERIACI €0 = prerušovaný obrys, VIDÍ HO LEN MAJITEĽ (ponuka podpory) · ZAKLADATEĽ čierna + zlato-oranžová
+//   žiara (mimo osi, navždy).
+//   🎨 Od 11. 11. 2026 farby podľa WEBU (`public/web-app/odznaky/dogyptan-1..4.webp`, Matej: „tu je pravda“):
+//   AKOLYTA perleť + hnedá packa · KŇAZ perleť tyrkys/ružová + ružová packa · VEZÍR zlato + čierna packa ·
+//   FARAÓN lapis + zlatá packa. Perleť = základ + dúhový závoj (`pearl`).
 // SVG je presný prevod generátora z nákresu — tvar a packa sa NEKRESLIA nanovo.
 import { useId, type CSSProperties } from 'react';
 import { useDogSeal, useMemberSeal, useMySeal } from './sealStore';
 
-export type SealTier = 'veriaci' | 'akolyta' | 'knaz' | 'vezir' | 'zakladatel';
+export type SealTier = 'veriaci' | 'akolyta' | 'knaz' | 'vezir' | 'farao' | 'zakladatel';
 
-type T = { p: number; g: string[] | null; stroke: string; paw: string; ring?: boolean; glow?: string };
+type T = { p: number; g: string[] | null; stroke: string; paw: string; ring?: boolean; glow?: string; pearl?: string[]; inner?: string };
 const TIERS: Record<SealTier, T> = {
   veriaci:    { p: 0, g: null, stroke: '#7a5a2a', paw: 'rgba(31,26,14,.35)' },
-  akolyta:    { p: 1, g: ['#FFFBF0', '#F2E5C7', '#D9C59C'], stroke: '#7a5a2a', paw: '#7a5a2a' },
-  knaz:       { p: 2, g: ['#2A4CA8', '#16307A', '#0A1A4A'], stroke: '#C99A3F', paw: '#E2BC6A' },
-  vezir:      { p: 3, g: ['#F6D98E', '#C99A3F', '#8E6420'], stroke: '#7A5418', paw: '#2a1608' },
+  akolyta:    { p: 1, g: ['#FFFDF7', '#F4E9D8', '#E2CFB2'], stroke: '#A8682A', paw: '#7A4A1E',
+                pearl: ['#FFF4E2', '#E6F3EE', '#F7E4EE', '#FFF1D6'] },
+  knaz:       { p: 2, g: ['#E8FCFF', '#8FE3F0', '#E9A8EA'], stroke: '#F0307E', paw: '#FF1F7A', inner: 'rgba(255,255,255,.7)',
+                pearl: ['#7FE6F2', '#F2FBFF', '#F59AD6', '#A9BDF8'] },
+  vezir:      { p: 3, g: ['#FBE38F', '#E9B92E', '#B98610'], stroke: '#141414', paw: '#0E0E0E' },
+  farao:      { p: 4, g: ['#4C7BEA', '#1D47C2', '#0A2272'], stroke: 'url(#G)', paw: 'url(#G)', inner: '#E2BC6A' },
   zakladatel: { p: 4, g: ['#2a2a2a', '#0b0b0b', '#000'], stroke: 'url(#O)', paw: 'url(#O)', ring: true, glow: '#F0A81E' },
 };
 
@@ -38,7 +44,7 @@ export const sealOfHuman = (hasDog: boolean): SealTier => (hasDog ? SEAL_OF_LIST
 
 /** Meno úrovne pre aria-label / tooltip. */
 export const sealLabel = (tier: SealTier, tx: (k: string, f: string) => string) =>
-  tx(`pack.seal.${tier}`, { veriaci: 'Believer', akolyta: 'Acolyte', knaz: 'Priest', vezir: 'Vizier', zakladatel: 'Founder' }[tier]);
+  tx(`pack.seal.${tier}`, { veriaci: 'Believer', akolyta: 'Acolyte', knaz: 'Priest', vezir: 'Vizier', farao: 'Pharaoh', zakladatel: 'Founder' }[tier]);
 
 function wave(n: number, a: number, R: number) {
   let d = '';
@@ -59,15 +65,18 @@ function svg(t: T, id: string, dark: boolean) {
   const defs = `<defs>
 <radialGradient id="b${id}" cx="38%" cy="30%" r="80%">${t.g ? t.g.map((c, i) => `<stop offset="${[0, .55, 1][i]}" stop-color="${c}"/>`).join('') : ''}</radialGradient>
 <linearGradient id="O${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD65A"/><stop offset=".5" stop-color="#F5C73D"/><stop offset="1" stop-color="#E69E1A"/></linearGradient>
+<linearGradient id="G${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FBE6A6"/><stop offset=".5" stop-color="#E2BC6A"/><stop offset="1" stop-color="#B8862E"/></linearGradient>
+${t.pearl ? `<linearGradient id="p${id}" x1="0" y1="0" x2="1" y2="1">${t.pearl.map((c, i, a) => `<stop offset="${(i / (a.length - 1)).toFixed(2)}" stop-color="${c}"/>`).join('')}</linearGradient>` : ''}
 <linearGradient id="gl${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
 <filter id="s${id}" x="-40%" y="-40%" width="180%" height="180%">${glow}${shadow}${t.glow ? '<feMerge><feMergeNode in="gw"/><feMergeNode in="sh"/></feMerge>' : ''}</filter>
 <filter id="e${id}"><feDropShadow dx="0" dy="-1.2" stdDeviation=".4" flood-color="#fff" flood-opacity="${t.p >= 2 ? .35 : .2}"/><feDropShadow dx="0" dy="1.6" stdDeviation=".6" flood-color="#000" flood-opacity=".45"/></filter>
 <clipPath id="c${id}"><path d="${D11}"/></clipPath></defs>`;
-  const O = (c: string) => c.replace('url(#O)', `url(#O${id})`);
+  const O = (c: string) => c.replace('url(#O)', `url(#O${id})`).replace('url(#G)', `url(#G${id})`);
   const base = t.p === 0
     ? `<path d="${D11}" fill="none" stroke="${dark ? 'rgba(245,240,228,.55)' : t.stroke}" stroke-width="4" stroke-dasharray="7 6" stroke-linejoin="round" opacity=".7"/>`
     : `<g filter="url(#s${id})"><path d="${D11}" fill="url(#b${id})" stroke="${O(t.stroke)}" stroke-width="${t.p >= 3 ? 3.5 : 3}" stroke-linejoin="round"/></g>`
-      + (t.p >= 2 ? `<path d="${D11_IN}" fill="none" stroke="${t.p === 2 ? '#C99A3F' : 'rgba(255,255,255,.45)'}" stroke-width="1.2" opacity=".8"/>` : '')
+      + (t.pearl ? `<path d="${D11}" fill="url(#p${id})" opacity=".6" style="mix-blend-mode:multiply"/>` : '')
+      + (t.p >= 2 ? `<path d="${D11_IN}" fill="none" stroke="${O(t.inner ?? 'rgba(255,255,255,.45)')}" stroke-width="1.2" opacity=".8"/>` : '')
       + (t.ring ? `<circle cx="50" cy="50" r="30" fill="none" stroke="url(#O${id})" stroke-width="2.5"/>` : '')
       + (t.p >= 2 ? `<g clip-path="url(#c${id})"><ellipse cx="44" cy="22" rx="34" ry="18" fill="url(#gl${id})" opacity="${[0, 0, .35, .55, .3][t.p]}"/></g>` : '')
       + (t.p >= 3 ? '<path d="M76 20 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#fff" opacity=".9"/>' : '');

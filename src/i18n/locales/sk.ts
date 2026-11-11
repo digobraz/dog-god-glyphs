@@ -6549,6 +6549,7 @@ export const sk: Partial<Dict> = {
   'pack.seal.akolyta': "Akolyta",
   'pack.seal.knaz': "Kňaz",
   'pack.seal.vezir': "Vezír",
+  'pack.seal.farao': "Faraón",
   'pack.seal.zakladatel': "Zakladateľ",
   'pack.rank.learnerToNext': "Ešte {n} zvitkov do levelu {level}",
   'pack.rank.learnerTop': "Uzavrel si celý psí rozum.",

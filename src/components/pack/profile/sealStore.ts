@@ -16,7 +16,7 @@ import type { SealTier } from './dogSeal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
-const TIERS = new Set<SealTier>(['veriaci', 'akolyta', 'knaz', 'vezir', 'zakladatel']);
+const TIERS = new Set<SealTier>(['veriaci', 'akolyta', 'knaz', 'vezir', 'farao', 'zakladatel']);
 
 const byNumber = new Map<number, SealTier>();
 const byDog = new Map<string, SealTier>();
@@ -30,9 +30,7 @@ let version = 0;
 const listeners = new Set<() => void>();
 const notify = () => { version++; listeners.forEach((l) => l()); };
 
-// FARAÓN zatiaľ nemá kresbu pečate — kreslí sa ako najvyššia na osi.
-const asTier = (v: unknown): SealTier | undefined =>
-  v === 'farao' ? 'vezir' : TIERS.has(v as SealTier) ? (v as SealTier) : undefined;
+const asTier = (v: unknown): SealTier | undefined => (TIERS.has(v as SealTier) ? (v as SealTier) : undefined);
 
 function schedule() {
   if (off || timer) return;

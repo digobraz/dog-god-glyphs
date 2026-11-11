@@ -6855,6 +6855,7 @@ export const en = {
   'pack.seal.akolyta': "Acolyte",
   'pack.seal.knaz': "Priest",
   'pack.seal.vezir': "Vizier",
+  'pack.seal.farao': "Pharaoh",
   'pack.seal.zakladatel': "Founder",
   'pack.rank.learnerToNext': "{n} more scrolls to level {level}",
   'pack.rank.learnerTop': "You have mastered all of Dog Sense.",
