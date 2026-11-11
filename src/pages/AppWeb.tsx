@@ -35,6 +35,7 @@ import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
 import { IgMock, IgIcon } from './appWeb/IgMock';
 import { AlbaCount, AlbaTrio, GlyphZones } from './appWeb/AlbaGlyph';
 import { BadgeDock } from './appWeb/BadgeDock';
+import { FARAO_AMOUNTS, RANK_OF_CARD, loginUrl, myRank, openPortal, paidRank, startCheckout } from './appWeb/vstupne';
 import { APP_CHIPS, APPS_TYPE_CSS } from '@/components/lab/filmAppsType';
 import './appWeb/appWeb.css';
 
@@ -406,6 +407,41 @@ export default function AppWeb() {
   const [tierOn, setTierOn] = useState<number | null>(null);
   const [trOn, setTrOn] = useState(false);
 
+  /* VSTUPNÉ (E4, 11. 11.): ťuk na kartu = výber (lapis rám) + otočenie; CTA platí za vybranú hodnosť.
+     Predvolený KŇAZ (odporúčané). Faraón: suma + mesačne / raz a navždy. */
+  const [pick, setPick] = useState(2);
+  const [fAmt, setFAmt] = useState<number>(111);
+  const [fKind, setFKind] = useState<'month' | 'once'>('month');
+  const [payBusy, setPayBusy] = useState(false);
+  const [payErr, setPayErr] = useState(false);
+  const [rankNow, setRankNow] = useState<string | null>(null);
+  const [thanks, setThanks] = useState<string | null>(null);
+  useEffect(() => {
+    const sid = qs.get('vstupne');
+    if (sid && /^cs_(test|live)_/.test(sid)) {
+      paidRank(sid).then((r) => { if (r) setThanks(r); }).catch(() => {});
+      window.history.replaceState(null, '', '/app#badges');
+      setTimeout(() => document.getElementById('badges')?.scrollIntoView(), 300);
+    }
+    myRank().then(setRankNow).catch(() => {});
+  }, [qs]);
+  const pay = async () => {
+    const rank = RANK_OF_CARD[pick];
+    if (!rank || payBusy) return;
+    setPayBusy(true); setPayErr(false);
+    const kind = rank === 'farao' ? fKind : 'month';
+    const r = await startCheckout(rank, kind, rank === 'farao' ? fAmt : undefined, L).catch(() => 'error' as const);
+    if (r === 'login') window.location.href = loginUrl();
+    else if (r === 'error') { setPayErr(true); setPayBusy(false); }
+  };
+  const manage = async () => {
+    setPayBusy(true);
+    const r = await openPortal().catch(() => 'error' as const);
+    if (r === 'login') window.location.href = loginUrl();
+    else if (r === 'error') { setPayErr(true); setPayBusy(false); }
+  };
+  const eur = (n: string) => (L === 'sk' ? n : n.replace(',', '.'));
+
   /* odznaky */
 
   /* ťuk na svet v lieviku doroluje k zvitkom */
@@ -760,7 +796,7 @@ export default function AppWeb() {
                 {/* PREDNÁ strana: pečať + meno + cena + VISAČKA (pootočený štítok v odtieni pečate) · ťuk = karta sa OTOČÍ
                     a na rube sú výhody (Matej 11. 11.: „texting do bloku pootočeného, v odtieni odznaku… taká visačka“,
                     „detaily po ťuknutí sú nemastné neslané… na prvý pohľad veľa textu“). */}
-                <button type="button" className={`cit-rank t${k}${k === 2 ? ' rec' : ''}${tierOn === k ? ' on' : ''}`} onClick={() => setTierOn(tierOn === k ? null : k)} aria-expanded={tierOn === k}>
+                <button type="button" className={`cit-rank t${k}${k === 2 ? ' rec' : ''}${pick === k ? ' pick' : ''}${tierOn === k ? ' on' : ''}`} onClick={() => { setPick(k); setPayErr(false); setTierOn(tierOn === k ? null : k); }} aria-expanded={tierOn === k} aria-pressed={pick === k}>
                   <span className="cit-face pk-stage">
                     {k === 2 && <span className="cit-rec">{c('rec')}</span>}
                     <img src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" loading="lazy" />
@@ -780,7 +816,29 @@ export default function AppWeb() {
           </div>
           <Rv className="cit-cta">
             <p className="lead" style={{ margin: '0 auto 24px', maxWidth: 640 }}>{c('fee_tiers')}</p>
-            <a className="pk-cta" href="#">{c('give')}</a>
+            {thanks && <p className="cit-thanks pk-stage" role="status">{c('pay_thanks')} <b>{c(`t${RANK_OF_CARD.indexOf(thanks as never)}`)}</b>.</p>}
+            {pick === 4 && (
+              <div className="cit-opts" role="group" aria-label={c('t4')}>
+                <div className="cit-row">{FARAO_AMOUNTS.map((a) => (
+                  <button key={a} type="button" className={`cit-opt${fAmt === a ? ' pk-pick' : ''}`} aria-pressed={fAmt === a} onClick={() => setFAmt(a)}>€{a}</button>
+                ))}</div>
+                <div className="cit-row">{(['month', 'once'] as const).map((k2) => (
+                  <button key={k2} type="button" className={`cit-opt${fKind === k2 ? ' pk-pick' : ''}`} aria-pressed={fKind === k2} onClick={() => setFKind(k2)}>{c(k2 === 'month' ? 'pay_month' : 'pay_once')}</button>
+                ))}</div>
+              </div>
+            )}
+            {pick === 0
+              ? <a className="pk-cta" href="#">{c('give')}</a>
+              : (
+                <button type="button" className="pk-cta" onClick={pay} disabled={payBusy}>
+                  {c('pay_as')} {c(`t${pick}`)} · {pick === 4 ? `€${fAmt}${fKind === 'month' ? ` ${c('per_mo')}` : ''}` : `${eur(CITIZEN_PRICES[pick])} ${c('per_mo')}`}
+                </button>
+              )}
+            {pick > 0 && <p className="tr-sub cit-note">{c(pick === 4 && fKind === 'once' ? 'pay_note_once' : 'pay_note')}</p>}
+            {payErr && <p className="tr-sub cit-err" role="alert">{c('pay_err')}</p>}
+            {rankNow && rankNow !== 'veriaci' && rankNow !== 'zakladatel' && (
+              <p className="cit-manage"><button type="button" className="tr-dot" onClick={manage} disabled={payBusy}>{c('pay_manage')}</button></p>
+            )}
             {nakres && <p style={{ margin: '16px 0 0' }}><Note k="n_good" flag /></p>}
           </Rv>
           {/* jednorazová podpora bez konta (Matej 11. 11.): kto nechce hrať, môže prispieť; odkaz čaká na Stripe */}

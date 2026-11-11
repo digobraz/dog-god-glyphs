@@ -175,7 +175,8 @@ function WebLogin() {
     // the profile (set-password) screen. PackLayout deep-links use ?return=<path>.
     // Guard to in-app /pack paths only — never allow open redirects to external URLs.
     const nextParam = params.get("next") ?? params.get("return");
-    const safeNext = nextParam && nextParam.startsWith("/pack") ? nextParam : null;
+    // `/app` pribudlo 11. 11. 2026 — vstupné na webe posiela neprihláseného sem a po prihlásení späť k hodnostiam.
+    const safeNext = nextParam && (nextParam.startsWith("/pack") || nextParam.startsWith("/app")) ? nextParam : null;
     const targetAfter = safeNext ?? (dogId ? `/pack/dogs/${dogId}` : "/pack");
 
     // Listen for supabase auto-processing #access_token from hash fragment.
