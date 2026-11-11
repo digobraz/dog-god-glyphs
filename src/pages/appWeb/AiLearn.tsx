@@ -71,8 +71,8 @@ export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
     <article key={k} className="zs-card" style={{ ['--wc' as string]: wc(s.w) }} aria-hidden={k.startsWith('b') || undefined}>
       <div className="ph"><img src={s.img} alt="" loading="lazy" draggable={false} /></div>
       <span className="w">{c(WKEY[s.w])}</span>
-      <h5>{s.t[L]}</h5>
-      <p>{s.v[L]}</p>
+      <h5>{c(`ai_t_${s.id}`) || s.t[L]}</h5>
+      <p>{c(`ai_v_${s.id}`) || s.v[L]}</p>
     </article>
   );
   return (
@@ -154,7 +154,7 @@ export function AiChat({ L, c, head }: { L: Lang2; c: C; head: string }) {
             <span className="lbl">{c('ch_src')}</span>
             {AI_CHAT_REFS.slice(0, 3).map((r, i) => (
               <div key={r.id} className="ch-ref" style={{ ['--wc' as string]: wc(r.w), ['--i' as string]: i }}>
-                <img src={r.img} alt="" loading="lazy" /><span><small>{c(WKEY[r.w])}</small>{r.t[L]}</span>
+                <img src={r.img} alt="" loading="lazy" /><span><small>{c(WKEY[r.w])}</small>{c(`ai_t_${r.id}`) || r.t[L]}</span>
               </div>
             ))}
           </div>

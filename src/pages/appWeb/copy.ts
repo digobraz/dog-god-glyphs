@@ -606,6 +606,7 @@ export const NOTES: Record<string, string> = {
 /** v3 (6. 11. 2026, Matejove pripomienky k prvej stavbe) — nové a prepísané texty.
  *  Prebíjajú COPY pri rovnakom kľúči. */
 export const COPY3: Record<string, Record<Lang2, string>> = {
+ seo_t: { en: 'Play the life with your dog', sk: 'Hraj život so svojím psom' },
  h1a: { en: 'Play the', sk: 'Hraj život' },
  h1b: { en: 'life with', sk: 'so svojím' },
  h1y: { en: 'your', sk: '' },

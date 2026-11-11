@@ -208,7 +208,7 @@ export function AiFlow({ L, c, counter, learn, onWorld, published }: {
           {VAULT_WORLDS.map((w) => (
             <div key={w.key} className="glowb" style={{ ['--wc' as string]: wc(w.key), ['--gc' as string]: wc(w.key) }}>
               <h5>{worldName(w.key)}</h5>
-              <ol>{(VAULT_CIRCLES[w.key] ?? []).map((o, i) => <li key={i}>{o[L]}</li>)}</ol>
+              <ol>{(VAULT_CIRCLES[w.key] ?? []).map((o, i) => <li key={i}>{c(`vc_${w.key}_${i}`) || o[L]}</li>)}</ol>
             </div>
           ))}
         </div>

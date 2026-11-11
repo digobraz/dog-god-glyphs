@@ -151,6 +151,15 @@
 .aw .lang{margin-left:auto;display:inline-flex;align-items:center;gap:var(--s-xs);font:600 var(--t-label)/1 var(--font-ui);border:1px solid var(--hairline);border-radius:var(--r-pill);padding:6px 10px;background:transparent;color:var(--ink-soft);cursor:pointer}
 .aw .lang img,.aw .mm-lang img{width:18px;height:12px;object-fit:cover;border-radius:2px;display:block}
 @media(min-width:1000px){.aw .top nav{display:flex}.aw .lang{margin-left:0}}
+/* výber z 18 jazykov (11. 11.): ťuk na vlajku = zoznam pod ňou, rovnaký ako v mobilnom menu */
+.aw .lang-wrap{position:relative;margin-left:auto;display:flex}
+.aw .lang-wrap .lang{margin-left:0}
+.aw .lang-pop{position:absolute;top:calc(100% + var(--s-sm));right:0;z-index:60;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-xs);width:max-content;max-width:min(380px,calc(100vw - 32px));padding:var(--s-sm);background:var(--paper);border:1px solid var(--hairline);border-radius:var(--r-tile);box-shadow:0 24px 40px -24px rgba(26,18,6,.45)}
+.aw .lang-pop button{display:flex;align-items:center;gap:var(--s-sm);min-height:36px;padding:0 var(--s-md);border:1px solid transparent;border-radius:var(--r-pill);background:transparent;font:500 var(--t-body)/1 var(--font-ui);color:var(--ink-soft);cursor:pointer;text-align:start;white-space:nowrap}
+.aw .lang-pop button:hover{color:var(--ink-strong)}
+.aw .lang-pop button.on{color:var(--ink-strong);background:color-mix(in srgb,var(--lapis) 10%,transparent);border-color:var(--lapis-edge)}
+.aw .lang-pop img{width:18px;height:12px;object-fit:cover;border-radius:2px;display:block}
+@media(min-width:1000px){.aw .lang-wrap{margin-left:0}}
 @media(max-width:420px){.aw .logo span{display:none}}
 
 /* STORE */
@@ -1352,12 +1361,12 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .mmenu{display:none}
 @media(max-width:999px){
   .aw .burger{display:flex}
-  .aw .top .lang,.aw .top .wrap>.pk-cta{display:none}
+  .aw .top .lang-wrap,.aw .top .wrap>.pk-cta{display:none}
   .aw .mmenu{display:grid;gap:var(--s-md);padding:var(--s-lg) var(--s-lg) var(--s-xl);background:var(--paper);border-bottom:1px solid var(--hairline);box-shadow:0 24px 40px -24px rgba(26,18,6,.45);max-height:calc(100svh - 64px);overflow-y:auto}
   .aw .mmenu nav{display:grid}
   .aw .mmenu nav a{padding:var(--s-md) 0;border-bottom:1px solid var(--hairline);font:500 var(--t-lead)/1 var(--font-title);color:var(--ink-strong);text-decoration:none}
   .aw .mm-h{margin:var(--s-sm) 0 0;font:600 var(--t-micro)/1 var(--font-ui);letter-spacing:.22em;text-transform:uppercase;color:var(--gold-ink)}
-  .aw .mm-lang{display:flex;flex-wrap:wrap;gap:var(--s-sm)}
+  .aw .mm-lang{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-sm)}
   .aw .mm-lang button{display:inline-flex;align-items:center;gap:var(--s-sm);min-height:40px;padding:0 var(--s-lg);border-radius:var(--r-pill);border:1px solid var(--hairline);background:transparent;font:500 var(--t-body)/1 var(--font-ui);color:var(--ink-soft);cursor:pointer}
   .aw .mm-lang button.on{color:var(--ink-strong);background:color-mix(in srgb,var(--lapis) 10%,transparent);border-color:var(--lapis-edge)}
   .aw .mmenu .stores{margin-top:var(--s-sm)}

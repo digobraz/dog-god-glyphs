@@ -32,6 +32,8 @@ import { getPackStats } from '@/lib/sharedFetch';
 import { flagUrl } from '@/lib/flagUrl';
 import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
+import { WEB_LANGS, loadLang } from './appWeb/langs';
+import { intlLocale } from '@/i18n/bcp47';
 import { IgMock, IgIcon } from './appWeb/IgMock';
 import { AlbaCount, AlbaTrio, GlyphZones } from './appWeb/AlbaGlyph';
 import { BadgeDock } from './appWeb/BadgeDock';
@@ -128,6 +130,7 @@ function Tilt({ set, src, onOpen, className = '' }: { set: string; src: string; 
 const TRIP_SHOTS = ['11-vretenica-mapa', 'plus-von', 'tripstats-cela'];
 function TripsSection({ c }: { c: (k: string) => string }) {
   const shot = useShot();
+  const { lang } = useLang();
   const [ref, near] = useNear<HTMLDivElement>('400px');
   const [step, setStep] = useState(0);
   const [nums, setNums] = useState<[number, number, number] | null>(null);
@@ -163,7 +166,7 @@ function TripsSection({ c }: { c: (k: string) => string }) {
           {nums && (
             <div className="tr-nums">
               <span><b>{nums[0]}</b>{c('tn1')}</span>
-              <span><b>{nums[1].toLocaleString('sk-SK')}</b>{c('tn2')}</span>
+              <span><b>{nums[1].toLocaleString(intlLocale(lang))}</b>{c('tn2')}</span>
               <span><b>{nums[2]}</b>{c('tn3')}</span>
             </div>
           )}
@@ -189,6 +192,7 @@ function TripsSection({ c }: { c: (k: string) => string }) {
 }
 
 function Counter({ to, run, suffix }: { to: number; run: boolean; suffix?: ReactNode }) {
+  const { lang } = useLang();
   const [v, setV] = useState(0);
   useEffect(() => {
     if (!run) return;
@@ -202,7 +206,7 @@ function Counter({ to, run, suffix }: { to: number; run: boolean; suffix?: React
     raf = requestAnimationFrame(f);
     return () => cancelAnimationFrame(raf);
   }, [to, run]);
-  return <>{v.toLocaleString('sk-SK')}{suffix}</>;
+  return <>{v.toLocaleString(intlLocale(lang))}{suffix}</>;
 }
 
 /** Sleduje, či je prvok pri obrazovke (raz = `once`, inak priebežne). */
@@ -340,7 +344,14 @@ export default function AppWeb() {
   const { lang, setLang } = useLang();
   const t = useT();
   const L: Lang2 = lang === 'sk' ? 'sk' : 'en';
-  const c = (k: string) => COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
+  /* ostatných 16 jazykov: slovník sa stiahne až pri prepnutí; kým nepríde (a pri chýbajúcom kľúči), ide EN */
+  const [X, setX] = useState<Record<string, string> | null>(null);
+  useEffect(() => { let on = true; setX(null); loadLang(lang).then((d) => { if (on) setX(d); }); return () => { on = false; }; }, [lang]);
+  const c = (k: string) => X?.[k] ?? COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
+  const loc = intlLocale(lang);
+  const [langOpen, setLangOpen] = useState(false);
+  useEffect(() => { if (!langOpen) return; const off = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest('.lang-wrap')) setLangOpen(false); }; document.addEventListener('pointerdown', off); return () => document.removeEventListener('pointerdown', off); }, [langOpen]);
+  const curLang = WEB_LANGS.find((x) => x.code === lang) ?? WEB_LANGS[0];
   const qs = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), []);
   const nakres = qs.has('varianty');
   const Note = ({ k, flag }: { k: string; flag?: boolean }) => (nakres ? <span className={`note${flag ? ' flag' : ''}`}>{NOTES[k]}</span> : null);
@@ -444,7 +455,7 @@ export default function AppWeb() {
     if (r === 'login') window.location.href = loginUrl();
     else if (r === 'error') { setPayErr(true); setPayBusy(false); }
   };
-  const eur = (n: string) => (L === 'sk' ? n : n.replace(',', '.'));
+  const eur = (n: string) => (L === 'sk' ? n : n.replace(',', '.'));  // suma ostáva v zápise EN mimo SK
 
   /* odznaky */
 
@@ -503,7 +514,7 @@ export default function AppWeb() {
 
   return (
     <div className="aw" data-bg={bg} data-pz="0" ref={rootRef}>
-      <Seo path="/app" title={L === 'sk' ? 'DOGYPT · Hraj život so svojím psom' : 'DOGYPT · Play the life with your dog'} description={c('sub')} noindex />
+      <Seo path="/app" title={`DOGYPT · ${c('seo_t')}`} description={c('sub')} noindex />
       <style>{STAGE_CSS}</style>
       <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /><i className="pearl p1" /><i className="pearl p2" /></div>
 
@@ -513,7 +524,14 @@ export default function AppWeb() {
           <nav>
             <a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/">{c('nav5')}</a>
           </nav>
-          <button className="lang" onClick={() => setLang(L === 'sk' ? 'en' : 'sk')}><img src={flagUrl(L === 'sk' ? 'gb' : 'sk', 40)} alt="" />{L === 'sk' ? 'EN' : 'SK'}</button>
+          <div className="lang-wrap">
+            <button className="lang" aria-expanded={langOpen} onClick={() => setLangOpen(!langOpen)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.code.slice(0, 2).toUpperCase()}</button>
+            {langOpen && (
+              <div className="lang-pop" onClick={() => setLangOpen(false)}>
+                {WEB_LANGS.map((x) => <button key={x.code} className={x.code === lang ? 'on' : ''} onClick={() => setLang(x.code)}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}
+              </div>
+            )}
+          </div>
           {/* planétka (ikonka VON z appky) = verejná mapa výletov bez registrácie, nová karta; ZA tlačidlom, len veľká ikonka bez rámu, vzor MysteryHike (Matej 11. 11.) */}
           <a className="pk-cta" href="#join">{c('getapp')}</a>
           <a className="trips-btn" href="/map" target="_blank" rel="noopener" aria-label={c('nav_trips')} title={c('nav_trips')}><img src="/icons/sys/von.webp" alt="" /></a>
@@ -524,7 +542,7 @@ export default function AppWeb() {
           <div className="mmenu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); }}>
             <nav><a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/">{c('nav5')}</a></nav>
             <p className="mm-h">{c('lang_h')}</p>
-            <div className="mm-lang">{(['sk', 'en'] as const).map((l) => <button key={l} className={L === l ? 'on' : ''} onClick={() => { setLang(l); setMenu(false); }}><img src={flagUrl(l === 'sk' ? 'sk' : 'gb', 40)} alt="" />{l === 'sk' ? 'Slovenčina' : 'English'}</button>)}</div>
+            <div className="mm-lang">{WEB_LANGS.map((x) => <button key={x.code} className={x.code === lang ? 'on' : ''} onClick={() => { setLang(x.code); setMenu(false); }}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}</div>
             <Stores />
           </div>
         )}
@@ -728,10 +746,10 @@ export default function AppWeb() {
             <div className="ai-ucside">
               <p className="ai-uctx"><b>{c('uc_a')}</b> {c('uc_b')}</p>
               <p className="ai-ucbig">
-                <b>{ucLive == null ? (UCEN_PCT[ucOn] === '1.' ? '1' : UCEN_PCT[ucOn]) : `${(ucLive * 100).toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB', { maximumFractionDigits: 1 })} %`}</b>
+                <b>{ucLive == null ? (UCEN_PCT[ucOn] === '1.' ? '1' : UCEN_PCT[ucOn]) : `${(ucLive * 100).toLocaleString(loc, { maximumFractionDigits: 1 })} %`}</b>
                 <span>{c('ax3')} {ucOn + 1} · {ucLive == null && UCEN_PCT[ucOn] === '1.' ? c('uc_first') : c('uc_vault')}</span>
               </p>
-              <p className="ai-ucscr"><b>{c('uc_scrolled')}: {Math.round((ucLive ?? (UCEN_PCT[ucOn] === '1.' ? 0 : parseFloat(UCEN_PCT[ucOn]) / 100)) * vScrolls).toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB')}</b> {c('uc_of')} {vScrolls.toLocaleString(L === 'sk' ? 'sk-SK' : 'en-GB')} {c('uc_scrolls')}</p>
+              <p className="ai-ucscr"><b>{c('uc_scrolled')}: {Math.round((ucLive ?? (UCEN_PCT[ucOn] === '1.' ? 0 : parseFloat(UCEN_PCT[ucOn]) / 100)) * vScrolls).toLocaleString(loc)}</b> {c('uc_of')} {vScrolls.toLocaleString(loc)} {c('uc_scrolls')}</p>
               <div className="ai-ucrow">{UCEN_PCT.map((pc, i) => (
               <button key={i} type="button" className={`${ucOn === i ? 'on' : ''}${ucLive != null && i > ucOn ? ' off' : ''}`} onPointerEnter={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onFocus={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onClick={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }}>
                 <img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" loading="lazy" />
