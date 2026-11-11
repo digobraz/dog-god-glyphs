@@ -42,6 +42,8 @@ import { APP_CHIPS, APPS_TYPE_CSS } from '@/components/lab/filmAppsType';
 import './appWeb/appWeb.css';
 
 const A = '/web-app';
+/** Šírka nadpisu v „latinských znakoch“: znak CJK/kana/hangul je široký ako ~1,8 latinského (inak japonský nadpis vyjde o polovicu širší než okno). */
+const wlen = (s: string) => [...s].reduce((n, ch) => n + (/[\u2E80-\u9FFF\uAC00-\uD7AF\uFF00-\uFFEF]/.test(ch) ? 1.8 : 1), 0);
 
 const CAROUSEL: [string, string][] = [['map', '11-vretenica-mapa'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', 'ai-mozog'], ['feed', 'feed']];
 
@@ -555,7 +557,7 @@ export default function AppWeb() {
             <p className="eye">{c('e_life2')}</p>
             {/* DOMINANTA: tri riadky, čo najväčšie písmo — veľkosť z najdlhšieho riadka (Matej 6. 11.: „čo najväčší text
                 na dva riadky resp. aj na 3: play the · life with · your dog“). Zlaté slovo psa ostáva na krivo. */}
-            <h1 style={{ ['--hc' as string]: Math.max(c('h1a').length, c('h1b').length, (c('h1y') ? c('h1y').length + 1 : 0) + c('h1c').length * 0.9) } as CSSProperties}>
+            <h1 style={{ ['--hc' as string]: Math.max(wlen(c('h1a')), wlen(c('h1b')), (c('h1y') ? wlen(c('h1y')) + 1 : 0) + wlen(c('h1c'))) } as CSSProperties}>
               <span className="l1">{c('h1a')}</span>
               <span className="l1">{c('h1b')}</span>
               <span className="l1">{c('h1y') && <>{c('h1y')} </>}<span className="deco big">{c('h1c')}</span></span>
