@@ -50,12 +50,13 @@ ${WALL} { background: var(--p3d-paper); background-color: var(--p3d-paper); }
 /* PC (Matej 11. 11.: „na celú šírku aj výšku, 1:1"): obrázok na CELÚ šírku okna v prirodzenom pomere, ukotvený dole — vidno len spodnú časť. */
 @media (min-width: 768px) {
   ${WALL} { overflow: hidden; }
-  /* Škatuľa = celé okno, obrázok na 100 % šírky v prirodzenom pomere ukotvený dole (vidno spodok), prechod do priesvitnosti ZAČÍNA NA HORNEJ HRANE okna. */
+  /* Škatuľa = celé okno, obrázok na 100 % šírky v prirodzenom pomere ukotvený dole (vidno spodok).
+     Hore plná farba papyrusu, kresba presvitá až v dolnej časti (Matej 11. 11.: „PRED je lepší = hore nie je vidno nič… presvitá to až dolu“). */
   ${WALL}::before {
     top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: auto !important; height: auto !important;
     background-image: var(--bg-light) !important; background-size: 100% auto !important; background-repeat: no-repeat !important; background-position: center bottom !important;
     opacity: .12; filter: none !important;
-    -webkit-mask-image: linear-gradient(180deg, transparent, #000 45%); mask-image: linear-gradient(180deg, transparent, #000 45%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 50%, #000 92%); mask-image: linear-gradient(180deg, transparent 50%, #000 92%);
   }
 }
 
