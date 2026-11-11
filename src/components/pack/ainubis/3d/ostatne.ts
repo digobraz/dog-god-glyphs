@@ -130,4 +130,39 @@ ${P} .ntf-row--ai{${M3.box}background:var(--ai-card);border:2.5px solid var(--ai
 ${P} .ntf-av{width:40px;height:40px;border-radius:0;background:none;box-shadow:none;overflow:visible;}
 ${P} .ntf-av img{width:100%;height:100%;object-fit:contain;}
 ${P} .ntf-row--ai .ntf-ai span{${AI}}
+
+/* ── ZÁPIS DŇA OTVORENÝ V AINUBISOVI (Matej 11. 11. 2026: „panel zapísať má ešte starý panel v bledom šate“) ──
+   Panel „+“ je v AINUBISovi tmavý, okno zápisu doň patrí tiež — ten istý precedens ako popup steny (vkw-sheet).
+   Okno je portál do body, preto rozsah body:has(.akv-root). Mimo AINUBISa ostáva Papyrus 3D. */
+${P} body:has(.akv-root) .ppu-sheet.zd-pop{${M3.sheet}color:${A.ink};}
+${P} body:has(.akv-root) .zd-pop .pk-grab{${M3.grab}}
+${P} body:has(.akv-root) .zd-sheet{color:${A.ink};}
+${P} body:has(.akv-root) .zd-day{${M3.h}}
+${P} body:has(.akv-root) .zd-date,${P} body:has(.akv-root) .zd-empty,${P} body:has(.akv-root) .zd-wr-s,${P} body:has(.akv-root) .zd-wr-ph p{color:${A.inkDim};}
+${P} body:has(.akv-root) .zd-sec,${P} body:has(.akv-root) .zd-subs > b,${P} body:has(.akv-root) .zd-ask b{${M3.lab}}
+${P} body:has(.akv-root) .zd-wr-t{${M3.hXs}}
+${P} body:has(.akv-root) .zd-link{color:${A.cyan};}
+${P} body:has(.akv-root) .zd-dog{border-color:var(--ai-edge);background:var(--ai-fld);}
+${P} body:has(.akv-root) .zd-dog i{color:${A.ink};}
+${P} body:has(.akv-root) .zd-dog.on{border:3px solid ${A.cyan};box-shadow:0 0 0 2px var(--ai-out);}
+${b3(`${P} body:has(.akv-root) .zd-dy`, 'nt', '16px', 4)}
+${P} body:has(.akv-root) .zd-dy b{color:inherit;}
+${b3(`${P} body:has(.akv-root) .zd-dy.on`, 'cy', '16px', 4)}
+${b3(`${P} body:has(.akv-root) .zd-grid .zd-tile`, 'nt', '16px', 4)}
+${P} body:has(.akv-root) .zd-grid .zd-tile{font-family:'Space Grotesk',sans-serif;}
+${P} body:has(.akv-root) .zd-grid .zd-tile:not(.on){background:linear-gradient(180deg,color-mix(in srgb,var(--zt) 22%,#16324A),#0A1622);}
+${b3(`${P} body:has(.akv-root) .zd-grid .zd-tile.on`, 'cy', '16px', 4)}
+${P} body:has(.akv-root) .zd-grid .zd-tile.on .zd-dots u{background:#04121A;}
+${P} body:has(.akv-root) .zd-dots u{background:${A.ink};}
+${b3(`${P} body:has(.akv-root) .zd-pill`, 'nt', '999px', 3)}
+${b3(`${P} body:has(.akv-root) .zd-pill.on`, 'cy', '999px', 3)}
+${b3(`${P} body:has(.akv-root) .zd-chip`, 'nt', '999px', 3)}
+${b3(`${P} body:has(.akv-root) .zd-chip.on`, 'cy', '999px', 3)}
+${P} body:has(.akv-root) .zd-pill,${P} body:has(.akv-root) .zd-chip{font-family:'Space Grotesk',sans-serif;}
+${P} body:has(.akv-root) .zd-wfield,${P} body:has(.akv-root) .zd-pop .pf-field,${P} body:has(.akv-root) .zd-wr textarea{${M3.field}}
+${P} body:has(.akv-root) .zd-wfield span.ph{color:${A.inkFaint};}
+${P} body:has(.akv-root) .zd-wr-slot{border-color:var(--ai-edge);background:var(--ai-fld);}
+${P} body:has(.akv-root) .zd-wr,${P} body:has(.akv-root) .zd-rit{background:var(--ai-sheet);}
+${b3(`${P} body:has(.akv-root) .zd-save`, 'or')}
+${P} body:has(.akv-root) .zd-save{height:56px;font-size:20px;}
 `;

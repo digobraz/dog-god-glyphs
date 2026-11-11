@@ -13,6 +13,10 @@ const STRIP = 120;
 const SVETY = [[20, 158], [40, 150], [60, 150], [80, 158], [30, 222], [50, 216], [70, 222]];
 
 export const AI3D_ZNALOSTI_CSS = `
+/* Horný rad (PackTopRow) lepí na vrch; čiara a žiara hlavičky až pri rolovaní (Matej 11. 11. 2026). */
+${H} .vkw-top{position:sticky;top:0;z-index:5;padding-top:calc(env(safe-area-inset-top,0px) + 8px);background:var(--ai-head);background-origin:border-box;border-bottom:3px solid transparent;transition:border-color .2s,box-shadow .2s;}
+${H} .vkw-top[data-scrolled]{border-bottom-color:var(--ai-edge);box-shadow:0 2px 0 var(--ai-out),0 0 26px -6px rgba(${CY},.55);}
+${H} .vkw-top + .zv-wrap{margin-top:0;}
 ${H} .vkw-wall{position:relative;height:${WALL}px;display:flex;flex-direction:column;overflow:hidden;${M3.card}}
 ${H} .vkw-sky{position:absolute;inset:0;background:radial-gradient(60% 46% at 50% 62%,rgba(${CY},.34),transparent 72%),radial-gradient(1.5px 1.5px at 18% 44%,#fff,transparent),radial-gradient(1.5px 1.5px at 82% 40%,#fff,transparent),radial-gradient(1px 1px at 64% 32%,#fff,transparent),radial-gradient(1px 1px at 38% 36%,#fff,transparent),linear-gradient(180deg,#0B1B33,#050B16);}
 ${H} .vkw-dog{position:absolute;left:50%;top:128px;width:208px;height:208px;object-fit:contain;transform:translateX(-50%);opacity:.26;}

@@ -15,6 +15,9 @@ ${MOB}{
   ${R} .akv-top{left:0;right:0;top:0;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 16px;pointer-events:auto;${M3.head}}
   ${R} .akv-top::before,${R}[data-view="scroll"] .akv-top::before{display:none;}
   ${R} .akv-top:has(.akv-pos-dd){z-index:962;}
+  /* Čiara a žiara hlavičky až pri rolovaní (Matej 11. 11. 2026), v úvode sa biela s prvým blokom. */
+  ${R}:not([data-scrolled]) .akv-top{border-bottom-color:transparent;box-shadow:none;}
+  ${R} .akv-top{transition:border-color .2s,box-shadow .2s;background-origin:border-box;}
 }
 /* 1:1 s hlavičkou /map (PackMap, .trp-mheader-status): riadok 40, fotka 40, pes 26, planétka 28. Mení sa len farba lemu. */
 ${R} .pkid--app{top:0;height:40px;margin-bottom:12px;gap:8px;}

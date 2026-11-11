@@ -18,6 +18,7 @@ import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, PROGRESS
 import { AINUBIS, AI_GLASS, BRAIN_STATE, WORLD_TINT } from '@/components/pack/ainubisSkin';
 import { BackButton } from '@/components/pack/BackButton';
 import { PackTopRight } from '@/components/pack/PackLayout';
+import { PackTopRow } from '@/components/pack/PackTopRow';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useT } from '@/i18n/LanguageContext';
 import { CheckIc, LikeHeartIc, SaveIc } from '@/components/app/sysSwap';
@@ -46,7 +47,7 @@ const UI = {
     kinds: { lang: 'Žiadosť o jazyk', add: 'Nová znalosť', wrong: 'Chybné tvrdenie', own: 'Vlastný text' },
     status: { new: 'čaká na AINUBISA', accepted: 'prijaté', rejected: 'zamietnuté', done: 'hotové' },
     states: ['nevidené', 'videné', 'hotové'],
-    total: 'Celkovo', sRead: 'zvitkov', sHeard: 'podcastov', sLit: 'svetov', toLevel: 'ešte {n} do levelu {level}',
+    total: 'Celkovo', sRead: 'zvitkov', sHeard: 'podcastov', sLit: 'svetov', sCircles: 'okruhov', readList: 'Prečítané zvitky', noneRead: 'Prečítaný zvitok sa ukáže tu.', pods: 'Podcasty', podsSub: 'vypočutých · {m} min', toLevel: 'ešte {n} do levelu {level}',
   },
   cs: {
     title: 'Moje znalosti', back: 'Zpět', eyebrow: 'AINUBIS · PSÍ ROZUM',
@@ -60,7 +61,7 @@ const UI = {
     kinds: { lang: 'Žádost o jazyk', add: 'Nová znalost', wrong: 'Chybné tvrzení', own: 'Vlastní text' },
     status: { new: 'čeká na AINUBISE', accepted: 'přijato', rejected: 'zamítnuto', done: 'hotovo' },
     states: ['neviděné', 'viděné', 'hotové'],
-    total: 'Celkem', sRead: 'svitků', sHeard: 'podcastů', sLit: 'světů', toLevel: 'ještě {n} do levelu {level}',
+    total: 'Celkem', sRead: 'svitků', sHeard: 'podcastů', sLit: 'světů', sCircles: 'okruhů', readList: 'Přečtené svitky', noneRead: 'Přečtený svitek se ukáže tady.', pods: 'Podcasty', podsSub: 'poslechnutých · {m} min', toLevel: 'ještě {n} do levelu {level}',
   },
   en: {
     title: 'My knowledge', back: 'Back', eyebrow: 'AINUBIS · DOG SENSE',
@@ -74,7 +75,7 @@ const UI = {
     kinds: { lang: 'Language request', add: 'New knowledge', wrong: 'Wrong claim', own: 'Own text' },
     status: { new: 'waiting for AINUBIS', accepted: 'accepted', rejected: 'declined', done: 'done' },
     states: ['unseen', 'seen', 'done'],
-    total: 'Overall', sRead: 'scrolls', sHeard: 'podcasts', sLit: 'worlds', toLevel: '{n} more to level {level}',
+    total: 'Overall', sRead: 'scrolls', sHeard: 'podcasts', sLit: 'worlds', sCircles: 'circles', readList: 'Scrolls read', noneRead: 'A scroll you finish shows up here.', pods: 'Podcasts', podsSub: 'heard · {m} min', toLevel: '{n} more to level {level}',
   },
 };
 
@@ -159,7 +160,7 @@ ${MEDALLION_CSS}
   background:radial-gradient(120% 100% at 0% 0%, #22306a 0%, #121a44 45%, #0a0d26 100%);border:1px solid ${AINUBIS.edgeStrong};}
 `;
 
-type KnowSheet = 'level' | 'worlds' | 'circles' | 'going' | 'liked' | 'saved' | 'mine';
+type KnowSheet = 'level' | 'read' | 'worlds' | 'circles' | 'going' | 'liked' | 'saved' | 'mine';
 
 export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, ownerName, worldName, onClose, onOpen }: {
   scrolls: DemoScroll[]; lang: string; avatarUrl: string | null; avatarInitial: string; who: string; ownerName: string;
@@ -175,6 +176,7 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, o
   const ev = useEventSums();
   const earnedAt = useEarnedBadges();
   const veil = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<KnowSheet | null>(null);
   const learner = useLearner();
   const t = useT();
@@ -210,7 +212,8 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, o
       done: done.length, listened: listened.length, min: Math.round(sec / 60), total,
       pct: done.length ? Math.max(1, Math.round((done.length / total) * 100)) : 0,
       worlds, lit: worlds.filter((x) => x.n > 0).length, circles: [...circles.values()], going,
-      liked: pick((r) => r.liked), saved: pick((r) => r.saved),
+      liked: pick((r) => r.liked), saved: pick((r) => r.saved), readList: pick(isDone),
+      circlesRead: [...circles.values()].filter((l) => l.some((z) => isDone(reads[z.id]))).length,
       badges: VAULT_BADGES.map((b) => ({ b, have: Math.max(b.have({ reads: rows, scrolls, requests, ev }), earnedAt[b.id] ? b.goal : 0) })),
     };
   }, [reads, scrolls, requests, ev, earnedAt]);
@@ -310,7 +313,9 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, o
     const need = learnerNeed(learner.read, learner.total, learner.level);
     const openLevel = () => setSheet('level');
     const sheets: Record<Exclude<KnowSheet, 'level'>, [string, React.ReactNode]> = {
-      worlds: [u.worlds, worldsBody], circles: [u.circles, circlesBody], going: [u.going, goingBody],
+      read: [u.readList, s.readList.length ? <div className="vk-list">{s.readList.map((z) => row(z))}</div> : <p className="vk-none">{u.noneRead}</p>],
+      worlds: [u.worlds, worldsBody], circles: [u.circles, circlesBody],
+      going: [u.pods, s.going.length ? goingBody : <p className="vk-none">{s.listened} {u.podsSub.replace('{m}', String(s.min))}</p>],
       liked: [u.liked, likedBody], saved: [u.saved, savedBody], mine: [u.mine, mineBody],
     };
     const tile = (key: Exclude<KnowSheet, 'level'>, ic: string, num: React.ReactNode, label: string, off = false) => (
@@ -320,16 +325,15 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, o
       </button>
     );
     return (
-      <div className="zv-veil" ref={veil} role="dialog" aria-modal="true" aria-label={u.title}>
+      <div className="zv-veil" ref={veil} role="dialog" aria-modal="true" aria-label={u.title}
+        onScroll={(e) => topRef.current?.toggleAttribute('data-scrolled', e.currentTarget.scrollTop > 4)}>
         <div className="zv-bg" aria-hidden />
-        {isMobile && (
-          <div className="zv-bar">
-            <BackButton tone="ainubis" onClick={onClose} label={u.back} />
-            <PackTopRight last24h={null} total={null} layout="inline" />
-          </div>
-        )}
+        {/* HORNÝ RAD = ten istý ako TRIPSTATS (Matej 11. 11. 2026): AINUBIS vľavo, šípka v strede, ikonky vpravo
+            na osi ostatných obrazoviek. Lepí sa hore, čiaru dostane až pri rolovaní (`data-scrolled`, ainubis/3d/znalosti.ts). */}
+        <div className="vkw-top" ref={topRef}>
+          <PackTopRow onBack={onClose} backLabel={u.back} />
+        </div>
         <div className="zv-wrap pk-stage vk vkw">
-          <BackButton tone="ainubis" onClick={onClose} label={u.back} className="zv-back" />
           <div className="vkw-wall">
             <div className="vkw-sky" aria-hidden>
               <img className="vkw-dog" src={AI_LOGO} alt="" />
@@ -359,16 +363,16 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, o
               </span>
             </button>
           </div>
+          {/* HORE TRI MIERY POSTUPU = ZVITKY · OKRUHY · SVETY (Matej 11. 11. 2026). Dlaždice pod nimi ich NEOPAKUJÚ —
+              nesú to, čo s postupom robíš: počúvanie, srdiečka, odložené a vlastné príspevky. */}
           <div className="vkw-strip">
-            <button type="button" onClick={() => setSheet('circles')}><SysIcon name="dokument" size={48} /><b>{s.done}</b><small>{u.sRead}</small></button>
-            <button type="button" onClick={() => setSheet('going')}><SysIcon name="prehraj" size={48} /><b>{s.listened}</b><small>{u.sHeard}</small></button>
+            <button type="button" onClick={() => setSheet('read')}><SysIcon name="zoznam" size={48} /><b>{s.done}</b><small>{u.sRead}</small></button>
+            <button type="button" onClick={() => setSheet('circles')} disabled={!s.circles.length}><SysIcon name="kluc" size={48} /><b>{s.circlesRead}</b><small>{u.sCircles}</small></button>
             <button type="button" onClick={() => setSheet('worlds')}><SysIcon name="mozog" size={48} /><b>{s.lit}</b><small>{u.sLit}</small></button>
           </div>
           <div className="vkw-sec">{u.total}</div>
           <div className="vkw-grid">
-            {tile('worlds', 'mozog', `${s.lit} / ${VAULT_WORLDS.length}`, u.worlds)}
-            {tile('circles', 'kluc', s.circles.length, u.circles, !s.circles.length)}
-            {tile('going', 'pauza', s.min, u.minutes, !s.going.length)}
+            {tile('going', 'prehraj', s.listened, `${u.pods} · ${s.min} min`, !s.going.length && !s.listened)}
             {tile('liked', 'lajk', s.liked.length, u.liked)}
             {tile('saved', 'ulozit', s.saved.length, u.saved)}
             {tile('mine', 'ceruzka', requests.length, u.mine)}

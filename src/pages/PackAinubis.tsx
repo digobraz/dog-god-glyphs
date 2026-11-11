@@ -1386,7 +1386,9 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           {SCROLL_DEMO && posBar('akv-pos--l')}
         </header>
 
-        <div className="akv-list" ref={listRef} data-retap-top onScroll={hideToggle}>
+        {/* Čiara pod hlavičkou až pri rolovaní (Matej 11. 11. 2026: „v úvode sa prekrýva s blokom“) — `data-scrolled` číta `ainubis/3d/vault.ts`. */}
+        <div className="akv-list" ref={listRef} data-retap-top
+          onScroll={(e) => { hideToggle(); rootRef.current?.toggleAttribute('data-scrolled', e.currentTarget.scrollTop > 4); }}>
         <div className="akv-col">
           {SCROLL_DEMO && listenBtn('akv-listen akv-listen--m')}
           {worldKey && feed.length > 0 && feedShown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
