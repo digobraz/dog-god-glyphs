@@ -134,7 +134,8 @@ function TripsSection({ c }: { c: (k: string) => string }) {
   const shot = useShot();
   const { lang } = useLang();
   const [ref, near] = useNear<HTMLDivElement>('400px');
-  const [step, setStep] = useState(0);
+  /* Mobil (pod 768 px sú kroky pod telefónom, prepínanie nevidno) začína hneď ŠTATISTIKAMI — Matej 11. 11. */
+  const [step, setStep] = useState(() => (window.matchMedia('(max-width: 767px)').matches ? 2 : 0));
   const [nums, setNums] = useState<[number, number, number] | null>(null);
   useEffect(() => {
     if (!near) return;
