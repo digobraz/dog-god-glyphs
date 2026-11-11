@@ -748,7 +748,7 @@ export default function AppWeb() {
                 <button type="button" className={`cit-rank pk-stage${k === 2 ? ' rec' : ''}${tierOn === k ? ' on' : ''}`} onClick={() => setTierOn(tierOn === k ? null : k)}>
                   {k === 2 && <span className="cit-rec">{c('rec')}</span>}
                   <img src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" loading="lazy" />
-                  <span className="cap"><b>{c(`t${k}`)}</b><i>{L === 'sk' ? price : price.replace(',', '.')}{k > 0 && <small> {c(k < 4 ? 'per_mo' : 'once')}</small>}</i><span className="tp">{c(`tp${k}`)}</span></span>
+                  <span className="cap"><b>{c(`t${k}`)}</b><i>{L === 'sk' ? price : price.replace(',', '.')}{k > 0 && <small> {c(k < 4 ? 'per_mo' : 'mo_or_once')}</small>}</i><span className="tw">{c(`tw${k}`)}</span><span className="tp">{c(`tp${k}`)}</span></span>
                 </button>
               </Rv>
             ))}

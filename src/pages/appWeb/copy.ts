@@ -753,9 +753,15 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  tp1: { en: 'More trip photos and PAWMATE: a second person for your dog.', sk: 'Viac fotiek z výletov a PAWMATE: druhý človek k tvojmu psovi.' },
  tp2: { en: 'Plus a tailored diet plan and more questions for AINUBIS.', sk: 'K tomu výživa na mieru a viac otázok pre AINUBISa.' },
  tp3: { en: 'The highest limits for AINUBIS and photos. You keep the app alive.', sk: 'Najvyššie stropy na AINUBISa a fotky. Držíš appku pri živote.' },
- tp4: { en: 'A one-time contribution. Vizier benefits forever, the highest seal and the thanks of the whole empire.', sk: 'Jednorazový príspevok. Výhody Vezíra navždy, najvyššia pečať a vďaka celej ríše.' },
+ tp4: { en: 'Monthly, or once and forever. Vizier benefits, the highest seal and the thanks of the whole empire.', sk: 'Mesačne, alebo raz a navždy. Výhody Vezíra, najvyššia pečať a vďaka celej ríše.' },
+ // ČO TÝMTO ROBÍŠ — mini veta pod cenou, vidno stále (Matej 11. 11.: „ku každému by patrila veta, toto vyber, ak chápeš“)
+ tw0: { en: 'You use the app for you and your dog.', sk: 'Appku používaš pre seba a svojho psa.' },
+ tw1: { en: 'You help cover the running costs: servers, maps, AI.', sk: 'Pomáhaš platiť prevádzku: servery, mapy, AI.' },
+ tw2: { en: 'Running costs and development. New features exist thanks to you.', sk: 'Prevádzka aj vývoj. Vďaka tebe pribúdajú nové funkcie.' },
+ tw3: { en: 'The app grows, and dogs in need get a bowl and a vet. Every month.', sk: 'Appka rastie a psy v\u00a0núdzi dostanú misku aj veterinára. Každý mesiac.' },
+ tw4: { en: 'You are building a temple that will outlive us all.', sk: 'Staviaš chrám, ktorý prežije nás všetkých.' },
  /* Matej 11. 11. 2026: hodnosti = predplatné; jednorazová podpora zvlášť, bez konta a bez hry */
- per_mo: { en: '/ mo', sk: '/ mes.' }, once: { en: 'one-time', sk: 'jednorazovo' },
+ per_mo: { en: '/ mo', sk: '/ mes.' }, once: { en: 'one-time', sk: 'jednorazovo' }, mo_or_once: { en: '/ mo or one-time', sk: '/ mes. alebo raz' },
  sup_h: { en: 'Not into games? You can still', sk: 'Nehráš? Aj tak môžeš' }, sup_h2: { en: 'HELP', sk: 'POMÔCŤ' },
  sup_p: { en: 'No account, no dog, no levels. A one-time contribution goes to running DOGYPT and to dogs in need. You get no rank for it, just our thanks.', sk: 'Bez konta, bez psa, bez levelov. Jednorazový príspevok ide na prevádzku DOGYPTU a psom v núdzi. Hodnosť zaň nedostaneš, len našu vďaku.' },
  sup_cta: { en: 'Contribute once', sk: 'Prispieť jednorazovo' },
