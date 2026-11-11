@@ -1064,7 +1064,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   const planes = (cls: string) => (
     <nav className={`akv-planes ${cls}`} aria-label="AINUBIS">
       <button type="button" className="akv-plane" aria-current={plane2 === 'vault' ? 'page' : undefined}
-        onClick={() => goPlane('vault')}>{APP_NEW && <SysIcon name="zoznam" size={22} />}{plane('vault', 'Scrolls')}</button>
+        onClick={() => goPlane('vault')}>{APP_NEW && <SysIcon name="dogscroll" size={22} />}{plane('vault', 'Scrolls')}</button>
       {/* CHAT = kôš 3. V PRODUKCII sa otvára tým istým kanálom ako doteraz
           (`ainubisBus`), takže beží presne ten chat, ktorý žije naostro.
           V DEVE sa prepne na MAKETU podľa nákresu v5 (`VaultChat`). */}
@@ -1083,7 +1083,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           Zamknutá rovnako ako fórum — zoznam je zatiaľ maketa s opísanými číslami. */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'wall' && wallTab === 'lib' ? 'page' : undefined}
         disabled={!SOURCES_MOCK && !pv} title={SOURCES_MOCK || pv ? undefined : soon}
-        onClick={openLibrary}>{APP_NEW && <SysIcon name="dokument" size={22} />}{plane('sources', 'Sources')}</button>
+        onClick={openLibrary}>{APP_NEW && <SysIcon name="zdroje" size={22} />}{plane('sources', 'Sources')}</button>
     </nav>
   );
 
@@ -1483,10 +1483,10 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
         {/* PC: hľadanie a filtre POD hlavičkou nad mozgom, ako na /map (Matej 22. 9.). */}
         {worldKey && <div className="akv-ptools">
           {search}
-          <div className="akv-filters">
+          {!APP_NEW && <div className="akv-filters">
             {lockedDd('type', 'Type')}
             {lockedDd('state', 'Status')}
-          </div>
+          </div>}
         </div>}
         {/* 🔴 PORADIE NA MOBILE = PORADIE NA `/map` (Matej 23. 9. 2026):
             *„mobil zobrazenie na /map by sa mal zhodovať a mal by si podľa neho urobiť
@@ -1500,7 +1500,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           {search}
           {!APP_NEW && filterBtn}
         </div>}
-        {!(APP_NEW && worldKey && searchOpen) && <div className="akv-toprow">{planes('akv-planes-t')}{APP_NEW && worldKey && filterBtn}</div>}
+        {/* V appke filter zatiaľ nie je (Matej 11. 11. 2026: „pri ainubisovi v apke zatiaľ filter nemusí byť"). */}
+        {!(APP_NEW && worldKey && searchOpen) && <div className="akv-toprow">{planes('akv-planes-t')}</div>}
         {SCROLL_DEMO && posBar('akv-pos--t')}
       </div>
 
@@ -1530,7 +1531,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           onClick={() => setView((v) => (v === 'brain' ? 'scroll' : 'brain'))}
         >
           {APP_NEW
-            ? <SysIcon name={view === 'brain' ? 'zoznam' : 'mozog'} size={38} />
+            ? <SysIcon name={view === 'brain' ? 'dogscroll' : 'mozog'} size={38} />
             : <i aria-hidden style={mask(view === 'brain' ? 'menu' : 'idea')} />}
           {view === 'brain'
             ? tx('pack.ainubis.view.dogscroll', 'Dogscroll')

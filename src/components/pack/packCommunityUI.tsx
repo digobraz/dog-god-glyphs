@@ -152,8 +152,11 @@ ${VEIL_CSS}
    závoj gesto nepustí ďalej a rolovanie pod ním na dotyku stojí. Mesiac ako natívny vstup na iPhone by inak mohol rozšíriť stĺpec. */
 .comm-overlay{z-index:1200;padding:${VEIL_PAD};touch-action:none;}
 .comm-modal{width:100%;max-width:420px;max-height:${MODAL_MAX_H};overflow-x:hidden;overflow-y:auto;overscroll-behavior:none;touch-action:pan-y;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
-.comm-modal .comm-walked-grid > *{min-width:0;}
-.comm-modal input[type="month"]{max-width:100%;}
+/* Platí aj pre POPUP v appke (WalkedSheet), nie len pre starý modal — tam pole mesiaca pretekalo doprava (Matej 11. 11. 2026).
+   Natívne pole mesiaca má na iPhone vlastnú minimálnu šírku, ktorú width:100% neprebije; appearance:none ju zruší, výber ostáva. */
+.comm-walked-grid > *{min-width:0;}
+.comm-input[type="month"]{display:block;max-width:100%;-webkit-appearance:none;appearance:none;text-align:left;}
+.comm-input[type="month"]::-webkit-date-and-time-value{text-align:left;}
 @media (hover:none){body.comm-modal-open [data-retap-top]{overflow:hidden;}}
 .comm-modal.wide{max-width:640px;}
 /* Matej 2026-08-06 („konsolidujeme zjednodušujeme"): nadpis je CENTROVANÝ a nesie priamo názov
@@ -246,7 +249,8 @@ ${VEIL_CSS}
 .comm-chips{display:flex;flex-wrap:wrap;gap:7px;}
 .comm-chip{padding:8px 12px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .comm-chip:hover{border-color:${T.cardEdge};background:${T.card};}
-.comm-chip.on{${pickTintCSS(T.alertRed, PICK_INK.red, 0.14)}font-weight:600;}
+/* Matej 11. 11. 2026: „kliknutie na nástrahy by mali vyfarbiť celé tlačidlo viac na červeno". Plná červená, nie tint — je to varovanie. */
+.comm-chip.on{background:${T.alertRed};border-color:${T.alertRed};color:#fff;font-weight:600;}
 
 
 /* ── crowd meta (agregát na karte + inline detaile) ── */
@@ -829,7 +833,7 @@ html.papyrus3d .comm-seg button{flex:1 1 0;min-width:0;min-height:56px;flex-dire
 html.papyrus3d .comm-seg button.on{color:var(--p3d-paper-hi);border-color:var(--p3d-gold);background:${LAPIS.grad};box-shadow:0 3px 0 var(--p3d-ink);font-weight:600;}
 html.papyrus3d .comm-chips{gap:${PACK_SPACE.sm}px;}
 html.papyrus3d .comm-chip{min-height:44px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border:2.5px solid var(--p3d-ink);background:var(--p3d-card);color:var(--p3d-ink);font-size:${PACK_TEXT.body}px;box-shadow:var(--p3d-lift);}
-html.papyrus3d .comm-chip.on{background:color-mix(in srgb,${T.alertRed} 22%,var(--p3d-paper-hi));box-shadow:none;transform:translateY(3px);}
+html.papyrus3d .comm-chip.on{background:${T.alertRed};color:#fff;font-weight:600;box-shadow:none;transform:translateY(3px);}
 html.papyrus3d .comm-textarea,html.papyrus3d .comm-input,html.papyrus3d .comm-selectinput{min-height:54px;padding:${PACK_SPACE.md}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);color:var(--p3d-ink);}
 html.papyrus3d .comm-hint{color:var(--p3d-ink);opacity:1;}
 html.papyrus3d .comm-submit,html.papyrus3d .comm-ghostbtn{min-height:54px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.card}px;border:2.5px solid var(--p3d-ink);font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;line-height:1.1;letter-spacing:0;text-transform:none;}

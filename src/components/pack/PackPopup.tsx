@@ -33,7 +33,9 @@ ${GRAB_CSS}
 .ppu-grab{margin:${S.sm}px auto ${S.sm}px;}
 .ppu-head{padding:0 ${S.lg}px ${S.md}px;}
 .ppu-head h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.14em;color:${T.inkStrong};text-align:center;} /* písmo: nadpis */
-.ppu-body{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);}
+/* overflow-x:hidden — Matej 11. 11. 2026: „obsah sa dá celý pohybovať aj mimo obrazovky, ako keby všetko plávalo".
+   overflow-y:auto bez neho pustí aj vodorovné rolovanie, keď niečo vnútri pretečie (pole mesiaca v hodnotení výletu). */
+.ppu-body{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 ${S.lg}px calc(env(safe-area-inset-bottom,0px) + ${S.xl}px);}
 @media (min-width:768px){
   .ppu-root.pk-veil{align-items:center;padding:${S.xl}px;}
   .ppu-sheet{width:640px;max-height:86dvh;border:2px solid ${T.cardEdge};border-radius:${PACK_R.card}px;}
