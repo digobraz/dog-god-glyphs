@@ -1618,34 +1618,49 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .cit-fee .lead{margin-top:var(--s-sm)}
 .aw .cit-ranks{display:grid;gap:var(--s-md);max-width:1040px;margin:0 auto}
 @media(min-width:1000px){.aw .cit-ranks{grid-template-columns:repeat(5,1fr)}}
-.aw .cit-rank{position:relative;width:100%;height:100%;display:flex;align-items:center;gap:var(--s-md);padding:var(--s-md);box-sizing:border-box;font:inherit;color:inherit;text-align:left;cursor:pointer}
-.aw .cit-rank:focus-visible{outline:2px solid var(--lapis-edge);outline-offset:2px}
-.aw .cit-rank img{flex:none;width:80px;aspect-ratio:1;object-fit:contain;filter:brightness(1.08) saturate(1.1) drop-shadow(0 6px 10px rgba(0,0,0,.28));transition:opacity .25s ease}
-.aw .cit-rank .cap{display:flex;flex-direction:column;gap:4px;min-width:0}
+.aw .cit-ranks{perspective:1200px}
+/* KARTA HODNOSTI (11. 11.) — dve strany. Predok: pečať, meno, cena, visačka. Rub (ťuk): výhody na podklade farby pečate. */
+.aw .cit-rank{position:relative;display:grid;width:100%;height:100%;padding:0;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,1.3,.5,1)}
+.aw .cit-rank:focus-visible{outline:2px solid var(--lapis-edge);outline-offset:4px;border-radius:16px}
+.aw .cit-rank.on{transform:rotateY(180deg)}
+.aw .cit-face,.aw .cit-back{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-sizing:border-box;border-radius:16px}
+.aw .cit-face{position:relative;display:grid;grid-template-columns:80px 1fr;column-gap:var(--s-md);row-gap:var(--s-sm);align-items:center;padding:var(--s-lg) var(--s-md) var(--s-xl)}
+.aw .cit-rank.rec .cit-face{outline:2px solid var(--lapis-edge);outline-offset:-2px}
+.aw .cit-face img{grid-row:1;width:80px;aspect-ratio:1;object-fit:contain;filter:brightness(1.08) saturate(1.1) drop-shadow(0 6px 10px rgba(0,0,0,.28));transition:transform .3s ease}
+.aw .cit-face .cap{display:flex;flex-direction:column;gap:4px;min-width:0}
 .aw .cit-rank b{font:500 24px/1.15 var(--font-title);color:var(--ink-strong);letter-spacing:.02em}
 .aw .cit-rank i{font:600 var(--t-lead)/1.2 var(--font-ui);font-style:normal;color:var(--gold-ink)}
-.aw .cit-rank .tp{display:block;max-height:0;overflow:hidden;opacity:0;font:400 var(--t-body)/1.4 var(--font-ui);color:var(--ink-body);transition:max-height .3s ease,opacity .25s ease}
-.aw .cit-rank.on .tp{max-height:120px;opacity:1}
-/* čo týmto robíš (11. 11.) — vidno stále, pod cenou */
-.aw .cit-rank .tw{display:block;font:400 var(--t-body)/1.4 var(--font-ui);color:var(--ink-body)}
-.aw .cit-rank.rec{outline:2px solid var(--lapis-edge);outline-offset:-2px}
+.aw .cit-rank i small{font-weight:400;font-size:var(--t-body);color:var(--ink-body)}
+/* VISAČKA — štítok s dierkou, pootočený, v odtieni pečate */
+.aw .cit-rank .tw{grid-column:1/-1;justify-self:center;position:relative;display:block;max-width:240px;padding:var(--s-sm) var(--s-md) var(--s-sm) 28px;border-radius:8px;font:500 var(--t-body)/1.35 var(--font-ui);text-align:left;background:var(--tg-bg);color:var(--tg-ink);box-shadow:0 6px 14px -6px rgba(60,36,8,.45),inset 0 1px 0 rgba(255,255,255,.45);transform:rotate(var(--tg-rot));transition:transform .3s ease}
+.aw .cit-rank .tw::before{content:'';position:absolute;left:10px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:999px;background:var(--paper,#F4E8CC);box-shadow:inset 0 1px 2px rgba(0,0,0,.45)}
+.aw .cit-rank.t0{--tg-bg:transparent;--tg-ink:var(--ink-body);--tg-rot:-2deg;--bk-bg:linear-gradient(160deg,#FBF4E2,#EAD9B4);--bk-ink:var(--ink-strong)}
+.aw .cit-rank.t0 .tw{border:1.5px dashed rgba(122,90,42,.55);box-shadow:none}
+.aw .cit-rank.t1{--tg-bg:linear-gradient(135deg,#FFFBF2,#F1E3CF 55%,#E3D0B6);--tg-ink:#5A3714;--tg-rot:2deg;--bk-bg:linear-gradient(160deg,#FFFBF2,#EAD6BC);--bk-ink:#4A2C0E}
+.aw .cit-rank.t2{--tg-bg:linear-gradient(135deg,#BFF6F2,#F7D3EC 60%,#FF9ACD);--tg-ink:#4A0A2E;--tg-rot:-3deg;--bk-bg:linear-gradient(160deg,#C9F7F3,#F6CFE8 55%,#FFA6D4);--bk-ink:#3E0826}
+.aw .cit-rank.t3{--tg-bg:linear-gradient(135deg,#FFE7A0,#E9B43C 55%,#B88418);--tg-ink:#1A1206;--tg-rot:2.5deg;--bk-bg:linear-gradient(160deg,#FFE7A0,#D9A12C 60%,#9E6D12);--bk-ink:#140D03}
+.aw .cit-rank.t4{--tg-bg:linear-gradient(135deg,#2A4CA8,#16307A 55%,#0A1A4A);--tg-ink:#F3D58A;--tg-rot:-2.5deg;--bk-bg:radial-gradient(120% 90% at 30% 20%,#2A4CA8,#0A1A4A);--bk-ink:#F3D58A}
+.aw .cit-rank.t4 .tw{box-shadow:0 6px 16px -6px rgba(10,26,74,.7),inset 0 0 0 1px rgba(243,213,138,.55)}
+/* RUB — podklad v odtieni pečate, pečať veľká a priesvitná za textom */
+.aw .cit-back{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s-sm);padding:var(--s-lg);text-align:center;background:var(--bk-bg);color:var(--bk-ink);transform:rotateY(180deg);box-shadow:0 12px 28px -10px rgba(60,36,8,.5)}
+.aw .cit-back img{position:absolute;right:-24px;bottom:-24px;width:120px;opacity:.22;transform:rotate(-12deg);pointer-events:none}
+.aw .cit-back b{position:relative;color:inherit}
+.aw .cit-back .tp{position:relative;font:500 var(--t-lead)/1.4 var(--font-ui)}
 .aw .cit-rec{position:absolute;top:0;right:var(--s-md);transform:translateY(-50%);padding:4px 10px;border-radius:var(--r-pill);background:var(--lapis);color:var(--lapis-ink);font:600 var(--t-micro)/1.3 var(--font-ui);letter-spacing:.14em;text-transform:uppercase}
 @media(min-width:1000px){
-  .aw .cit-rank{flex-direction:column;padding:var(--s-lg) var(--s-md)}
-  .aw .cit-rank img{width:112px}
-  .aw .cit-rank .cap{align-items:center;text-align:center}
-  /* Text sa objaví na mieste odznaku, aby rad blokov pri prejdení myšou neposkočil. */
-  .aw .cit-rank .tp,.aw .cit-rank.on .tp{position:absolute;top:var(--s-lg);left:var(--s-md);right:var(--s-md);height:112px;max-height:none;display:grid;place-items:center}
-  .aw .cit-rank.on img{opacity:.1}
+  .aw .cit-face{grid-template-columns:1fr;grid-template-rows:auto auto 1fr;align-content:stretch;justify-items:center;padding:var(--s-lg) var(--s-md) var(--s-xl)}
+  .aw .cit-face .tw{align-self:end}
+  .aw .cit-face img{width:112px}
+  .aw .cit-face .cap{align-items:center;text-align:center}
   .aw .cit-rec{right:auto;left:50%;transform:translate(-50%,-50%);white-space:nowrap}
 }
-@media(min-width:1000px) and (hover:hover){
-  .aw .cit-rank:hover img{opacity:.1}
-  .aw .cit-rank:hover .tp{opacity:1}
+@media(hover:hover){
+  .aw .cit-rank:not(.on):hover .cit-face img{transform:translateY(-4px) rotate(-4deg)}
+  .aw .cit-rank:not(.on):hover .tw{transform:rotate(calc(var(--tg-rot) * -1))}
 }
+@media(prefers-reduced-motion:reduce){.aw .cit-rank,.aw .cit-face img,.aw .cit-rank .tw{transition:none}}
 .aw .cit-cta{margin-top:var(--s-xl);text-align:center}
 .aw .cit-cta .pk-cta{text-decoration:none}
-.aw .cit-rank i small{font-weight:400;font-size:var(--t-body);color:var(--ink-body)}
 .aw .cit-sup{max-width:640px;margin:var(--s-xxl) auto 0;padding:var(--s-xl) var(--s-lg);text-align:center;box-sizing:border-box}
 .aw .cit-sup h3{margin:0;font-size:clamp(22px,4vw,28px);line-height:1.2}
 .aw .cit-sup .lead{margin:var(--s-sm) auto var(--s-lg)}

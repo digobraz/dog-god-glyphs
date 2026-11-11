@@ -747,10 +747,21 @@ export default function AppWeb() {
           <div className="cit-ranks">
             {CITIZEN_PRICES.map((price, k) => (
               <Rv key={price} d={k}>
-                <button type="button" className={`cit-rank pk-stage${k === 2 ? ' rec' : ''}${tierOn === k ? ' on' : ''}`} onClick={() => setTierOn(tierOn === k ? null : k)}>
-                  {k === 2 && <span className="cit-rec">{c('rec')}</span>}
-                  <img src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" loading="lazy" />
-                  <span className="cap"><b>{c(`t${k}`)}</b><i>{L === 'sk' ? price : price.replace(',', '.')}{k > 0 && <small> {c(k < 4 ? 'per_mo' : 'mo_or_once')}</small>}</i><span className="tw">{c(`tw${k}`)}</span><span className="tp">{c(`tp${k}`)}</span></span>
+                {/* PREDNÁ strana: pečať + meno + cena + VISAČKA (pootočený štítok v odtieni pečate) · ťuk = karta sa OTOČÍ
+                    a na rube sú výhody (Matej 11. 11.: „texting do bloku pootočeného, v odtieni odznaku… taká visačka“,
+                    „detaily po ťuknutí sú nemastné neslané… na prvý pohľad veľa textu“). */}
+                <button type="button" className={`cit-rank t${k}${k === 2 ? ' rec' : ''}${tierOn === k ? ' on' : ''}`} onClick={() => setTierOn(tierOn === k ? null : k)} aria-expanded={tierOn === k}>
+                  <span className="cit-face pk-stage">
+                    {k === 2 && <span className="cit-rec">{c('rec')}</span>}
+                    <img src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" loading="lazy" />
+                    <span className="cap"><b>{c(`t${k}`)}</b><i>{L === 'sk' ? price : price.replace(',', '.')}{k > 0 && <small> {c(k < 4 ? 'per_mo' : 'mo_or_once')}</small>}</i></span>
+                    <span className="tw">{c(`tw${k}`)}</span>
+                  </span>
+                  <span className="cit-back">
+                    <img src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" loading="lazy" />
+                    <b>{c(`t${k}`)}</b>
+                    <span className="tp">{c(`tp${k}`)}</span>
+                  </span>
                 </button>
               </Rv>
             ))}
