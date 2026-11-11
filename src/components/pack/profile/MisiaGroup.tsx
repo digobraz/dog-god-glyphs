@@ -282,8 +282,8 @@ export function MisiaBody() {
     // Čísla VŽDY z ostrej pokladnice (Matej 24. 10.: *„použime reálne a live dáta“*) — aj v deve; verejný GET, nič nezapisuje.
     fetch(`${LIVE_EDGE_BASE}/get-dashboard-stats`).then((r) => r.json()).then(setDash).catch(() => {});
     const sid = params.get('dakujeme');
-    if (sid) call<Thanks>({ action: 'session', session_id: sid }).then((th) => setSheet({ kind: 'thanks', t: th })).catch(() => {});
-    if (params.has('odkaz')) setSheet({ kind: 'manage' });
+    if (sid && !IS_APP) call<Thanks>({ action: 'session', session_id: sid }).then((th) => setSheet({ kind: 'thanks', t: th })).catch(() => {});
+    if (params.has('odkaz') && !IS_APP) setSheet({ kind: 'manage' });
     // Odkaz z mailu D1 (`misia-labka`): rovno formulár daru — len na webe, v appke sa nedaruje (Apple 3.1.1).
     if (params.has('dar') && !IS_APP) setSheet({ kind: 'gift' });
   }, [params]);
@@ -478,8 +478,9 @@ export function MisiaBody() {
 
       {notice && <p className="mi-hint">{notice}</p>}
       {/* PRILOŽÍM LABKU K DIELU (Matej 26. 10. 2026: *„pri misii chýba CTA — tlačítko, ktoré odošle e-mail s infom
-          a linkom na platbu"*). Appka aj web; text tlačidla a „Svorku nesieme spolu" vybral Matej 25. 10. (A). */}
-      {paw !== 'later' && (
+          a linkom na platbu"*). Appka aj web; text tlačidla a „Svorku nesieme spolu" vybral Matej 25. 10. (A).
+          V appke NIE (f-o-3-1, Apple 3.1.1): mail vedie na platbu mimo appky, 1.0 je bez nákupu. */}
+      {!IS_APP && paw !== 'later' && (
         <div className="mi-paw">
           <b>{tx('pack.misia.paw.lead', 'We carry the pack together.')}</b>
           {paw === 'sent' || paw === 'already' ? (
