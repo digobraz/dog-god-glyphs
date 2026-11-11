@@ -354,6 +354,18 @@ export default function AppWeb() {
   const loc = intlLocale(lang);
   const [langOpen, setLangOpen] = useState(false);
   useEffect(() => { if (!langOpen) return; const off = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest('.lang-wrap')) setLangOpen(false); }; document.addEventListener('pointerdown', off); return () => document.removeEventListener('pointerdown', off); }, [langOpen]);
+  /* STENA (GodsGridLab na konci) a jej okná píšu Cinzelom priamo v kóde (vanilla DOM, ~100 miest) —
+     na novom webe sa preto prekryje rodina: Cinzel → Museum Medium (nadpisy webu), Cinzel Decorative
+     → Museum Black (meno psa = zlaté slovo). Len kým je táto stránka otvorená; po flipe ide s ňou (Matej 11. 11.). */
+  useEffect(() => {
+    const face = (fam: string, file: string) => [400, 500, 600, 700, 800, 900]
+      .map((w) => `@font-face{font-family:'${fam}';font-weight:${w};font-style:normal;font-display:swap;src:url(/fonts/${file}.woff2) format('woff2')}`).join('');
+    const el = document.createElement('style');
+    el.id = 'aw-wall-fonts';
+    el.textContent = face('Cinzel', 'museum-medium') + face('Cinzel Decorative', 'museum-black');
+    document.head.appendChild(el);
+    return () => el.remove();
+  }, []);
   const curLang = WEB_LANGS.find((x) => x.code === lang) ?? WEB_LANGS[0];
   const qs = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), []);
   const nakres = qs.has('varianty');
