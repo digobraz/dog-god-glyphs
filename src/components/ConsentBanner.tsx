@@ -7,7 +7,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { IS_APP } from '@/lib/isApp';
-import { APP_NEW } from '@/lib/packFlags';
 import { useLocation } from 'react-router-dom';
 import { HandArrowLeftIcon as HandArrowLeft } from '@/components/pack/handArrowLeft';
 import { useT } from '@/i18n/LanguageContext';
@@ -22,6 +21,9 @@ import { getConsent, saveConsent, applyConsent, hasChoice } from '@/lib/consent'
 // baked across the bottom (2026-07-16). No consent UI (and no analytics) has any
 // business on a route whose only job is to be photographed.
 // `/lost/` z iného dôvodu: nálezca prišiel z QR na ulici a lišta so závojom by mu zakryla telefón na majiteľa.
+// Rozsah šatu Papyrus 3D pre lištu: appka/testovacia appka (APP_NEW) aj nový web /app (koreň .aw).
+const P3D = ':is(html.papyrus3d, body:has(.aw))';
+
 const RENDER_ROUTES = ['/cert-render', '/invoice-render', '/share-render', '/lost/'];
 
 export function ConsentBanner() {
@@ -207,6 +209,9 @@ export function ConsentBanner() {
           font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
           letter-spacing: 0.14em; text-transform: uppercase; color: ${T.inkStrong}; margin-right: 4px;
         }
+        .consent-bone.consent-cookie { display: none; }
+        ${P3D} .consent-bone-kit { display: none; }
+        ${P3D} .consent-bone.consent-cookie { display: block; }
         .consent-bone { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-right: 8px; }
         .consent-actions { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0; }
         .consent-btn-primary, .consent-btn-secondary, .consent-split-main, .consent-split-arrow {
@@ -350,60 +355,69 @@ export function ConsentBanner() {
         /* ── ŠAT PAPYRUS 3D (Matej 11. 11. 2026: „poriešme aj cookies v novom dizajne") ──
            Len pod html.papyrus3d (APP_NEW), web ostáva vyššie. Zlomená sušienka-kosť z Kie
            (plany/ikonky/gen-cookie-kost.mjs) namiesto kosti z kitu, tlačidlá = TLAČIDLO 3D
-           (lapis + papyrus) z lib/papyrus3d.ts, nadpis LT Museum. */
-        html.papyrus3d .consent-banner {
+           (lapis + papyrus) z lib/papyrus3d.ts, nadpis LT Museum.
+           NOVÝ WEB /app (Matej 11. 11.: „daj to aj na nový web nech to funguje pri flipe") je na
+           LIVE bez html.papyrus3d, preto rozsah P3D chytí aj stránku s koreňom .aw — po FLIPe pôjde
+           /app na / a lišta ide s ním. Farby šatu sú tu doslova (P3D_PAGE v lib/papyrus3d.ts),
+           lebo na webe premenné --p3d-* nikto nedefinuje. Váha 900: web má LT Museum v 300–900,
+           400 by vybrala Light; v appke sú všetky váhy Black. */
+        ${P3D} .consent-banner {
+          --p3d-ink: #2a1608; --p3d-gold-solid: #A3782B; --p3d-paper: #F3E4C4; --p3d-paper-hi: #F9F2E3;
+          --p3d-card: linear-gradient(180deg, #F9F2E3, #F3E4C4); --p3d-inset: inset 0 4px 5px rgba(42,22,8,.26);
+        }
+        ${P3D} .consent-banner {
           background: var(--p3d-card); border: 2.5px solid var(--p3d-ink); border-bottom: none;
           border-radius: 16px 16px 0 0; box-shadow: 0 -8px 28px rgba(0,0,0,0.4); padding-top: 16px;
         }
-        html.papyrus3d .consent-body { font-size: 14px; line-height: 1.45; color: var(--p3d-ink); }
-        html.papyrus3d .consent-body b {
-          display: block; margin: 0 0 4px; font-family: 'LT Museum', serif; font-weight: 400;
+        ${P3D} .consent-body { font-size: 14px; line-height: 1.45; color: var(--p3d-ink); }
+        ${P3D} .consent-body b {
+          display: block; margin: 0 0 4px; font-family: 'LT Museum', serif; font-weight: 900;
           font-size: 20px; line-height: 1.1; letter-spacing: 0; text-transform: none; color: var(--p3d-ink);
         }
-        html.papyrus3d .consent-bone {
+        ${P3D} .consent-bone {
           float: left; width: 64px; height: 64px; margin: -4px 12px 0 -4px;
           filter: drop-shadow(0 3px 2px rgba(42,22,8,0.3));
         }
-        html.papyrus3d .consent-actions { gap: 12px; padding-bottom: 6px; }
-        html.papyrus3d .consent-btn-primary, html.papyrus3d .consent-btn-secondary,
-        html.papyrus3d .consent-split-main, html.papyrus3d .consent-split-arrow {
-          min-height: 48px; font-family: 'LT Museum', serif; font-weight: 400; font-size: 16px;
+        ${P3D} .consent-actions { gap: 12px; padding-bottom: 6px; }
+        ${P3D} .consent-btn-primary, ${P3D} .consent-btn-secondary,
+        ${P3D} .consent-split-main, ${P3D} .consent-split-arrow {
+          min-height: 48px; font-family: 'LT Museum', serif; font-weight: 900; font-size: 16px;
           letter-spacing: 0; text-transform: none; color: var(--p3d-ink);
           border: 2.5px solid var(--p3d-ink); background: linear-gradient(180deg, #fff, var(--p3d-paper));
           box-shadow: inset 0 2px 0 rgba(255,255,255,0.55), inset 0 -4px 0 rgba(0,0,0,0.15), 0 6px 0 var(--p3d-gold-solid);
           transition: transform .07s, box-shadow .07s;
         }
-        html.papyrus3d .consent-btn-primary {
+        ${P3D} .consent-btn-primary {
           color: #EFD79A; border-color: #EFD79A; border-radius: 16px;
           background: linear-gradient(180deg, color-mix(in srgb, #16307A 72%, white), #0A1A4A);
           box-shadow: inset 0 2px 0 rgba(255,255,255,0.28), inset 0 -4px 0 rgba(0,0,0,0.15), 0 6px 0 color-mix(in srgb, #0A1A4A 60%, black);
         }
-        html.papyrus3d .consent-btn-secondary { border-radius: 16px; }
-        html.papyrus3d .consent-split-main { border-right: none; border-radius: 16px 0 0 16px; }
-        html.papyrus3d .consent-split-arrow { border-radius: 0 16px 16px 0; }
-        html.papyrus3d .consent-btn-primary:hover { background: linear-gradient(180deg, color-mix(in srgb, #16307A 62%, white), #0A1A4A); }
-        html.papyrus3d .consent-btn-secondary:hover, html.papyrus3d .consent-split-main:hover,
-        html.papyrus3d .consent-split-arrow:hover { background: linear-gradient(180deg, #fff, var(--p3d-paper-hi)); }
-        html.papyrus3d .consent-btn-primary:active, html.papyrus3d .consent-btn-secondary:active,
-        html.papyrus3d .consent-split-main:active, html.papyrus3d .consent-split-arrow:active { transform: translateY(5px); box-shadow: none; }
-        html.papyrus3d .consent-menu { border: 2.5px solid var(--p3d-ink); border-radius: 16px; background: var(--p3d-paper-hi); }
-        html.papyrus3d .consent-toggle-label { font-family: 'LT Museum', serif; font-weight: 400; font-size: 16px; letter-spacing: 0; color: var(--p3d-ink); }
-        html.papyrus3d .consent-toggle-desc { color: var(--p3d-ink); }
-        html.papyrus3d .consent-switch { border: 2.5px solid var(--p3d-ink); height: 28px; width: 50px; box-shadow: var(--p3d-inset); }
-        html.papyrus3d .consent-switch[data-on="true"] { background: #16307A; border-color: var(--p3d-ink); }
-        html.papyrus3d .consent-switch-knob { top: 2px; left: 2px; width: 19px; height: 19px; }
+        ${P3D} .consent-btn-secondary { border-radius: 16px; }
+        ${P3D} .consent-split-main { border-right: none; border-radius: 16px 0 0 16px; }
+        ${P3D} .consent-split-arrow { border-radius: 0 16px 16px 0; }
+        ${P3D} .consent-btn-primary:hover { background: linear-gradient(180deg, color-mix(in srgb, #16307A 62%, white), #0A1A4A); }
+        ${P3D} .consent-btn-secondary:hover, ${P3D} .consent-split-main:hover,
+        ${P3D} .consent-split-arrow:hover { background: linear-gradient(180deg, #fff, var(--p3d-paper-hi)); }
+        ${P3D} .consent-btn-primary:active, ${P3D} .consent-btn-secondary:active,
+        ${P3D} .consent-split-main:active, ${P3D} .consent-split-arrow:active { transform: translateY(5px); box-shadow: none; }
+        ${P3D} .consent-menu { border: 2.5px solid var(--p3d-ink); border-radius: 16px; background: var(--p3d-paper-hi); }
+        ${P3D} .consent-toggle-label { font-family: 'LT Museum', serif; font-weight: 900; font-size: 16px; letter-spacing: 0; color: var(--p3d-ink); }
+        ${P3D} .consent-toggle-desc { color: var(--p3d-ink); }
+        ${P3D} .consent-switch { border: 2.5px solid var(--p3d-ink); height: 28px; width: 50px; box-shadow: var(--p3d-inset); }
+        ${P3D} .consent-switch[data-on="true"] { background: #16307A; border-color: var(--p3d-ink); }
+        ${P3D} .consent-switch-knob { top: 2px; left: 2px; width: 19px; height: 19px; }
         @media (max-width: 759px) {
-          html.papyrus3d .consent-banner { padding-top: 12px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
-          html.papyrus3d .consent-bone { width: 52px; height: 52px; margin: -2px 8px 0 -4px; }
-          html.papyrus3d .consent-body { font-size: 12px; }
-          html.papyrus3d .consent-body b { font-size: 16px; }
+          ${P3D} .consent-banner { padding-top: 12px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+          ${P3D} .consent-bone { width: 52px; height: 52px; margin: -2px 8px 0 -4px; }
+          ${P3D} .consent-body { font-size: 12px; }
+          ${P3D} .consent-body b { font-size: 16px; }
         }
         @media (min-width: 1024px) {
-          html.papyrus3d .consent-banner {
+          ${P3D} .consent-banner {
             border: 2.5px solid var(--p3d-ink); border-radius: 16px;
             box-shadow: inset 0 2px 0 rgba(255,255,255,0.55), 0 8px 0 var(--p3d-gold-solid), 0 16px 28px rgba(0,0,0,0.45);
           }
-          html.papyrus3d .consent-bone { width: 72px; height: 72px; }
+          ${P3D} .consent-bone { width: 72px; height: 72px; }
         }
       `}</style>
 
@@ -412,7 +426,9 @@ export function ConsentBanner() {
           <p className="consent-body">
             {/* Kosť z kitu — cookie, ktorá JE na jedenie, vedľa vety o tých, čo nie sú
                 (Matej 22. 9.). Veľkosť písma, aby riadok nenarástol. */}
-            <img className="consent-bone" src={APP_NEW ? '/icons/sys/cookie-kost.webp' : '/icons/pack/bone.svg'} alt="" aria-hidden />
+            {/* Sušienku vs. kosť rozhoduje CSS rozsah P3D, nie cesta: /app sa pri FLIPe presunie na /. */}
+            <img className="consent-bone consent-bone-kit" src="/icons/pack/bone.svg" alt="" aria-hidden />
+            <img className="consent-bone consent-cookie" src="/icons/sys/cookie-kost.webp" alt="" aria-hidden />
             <b>{t('consent.title')}</b>{t('consent.body')}
           </p>
 
