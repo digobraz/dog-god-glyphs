@@ -36,6 +36,7 @@ import { flagUrl, countryISO2, flagEmojiFromISO2 } from '@/lib/countryGeo';
 import { EDGE_BASE } from '@/lib/env';
 import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
 import { DogSeal, sealOf, sealLabel } from '@/components/pack/profile/dogSeal';
+import { useDogSeal } from '@/components/pack/profile/sealStore';
 import NavMedallion, { NAV_MEDALLION_CSS } from '@/components/lab/NavMedallion';
 import angelIconUrl from '@/assets/angel-icon.svg';
 import { exportDogIdPdf } from '@/components/pack/dogIdPdf';
@@ -296,6 +297,7 @@ export default function PackDogDetail() {
   const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
   const { id } = useParams<{ id: string }>();
   const [dog, setDog] = useState<DogRow | null>(null);
+  const dogSeal = useDogSeal(dog?.id, sealOf(dog));
   const [status, setStatus] = useState<Status>('loading');
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [regenerating, setRegenerating] = useState(false);
@@ -899,7 +901,7 @@ export default function PackDogDetail() {
                   <span className="did-namelast">
                     {nameLast}
                     {/* PEČAŤ (6. 11. 2026) — DOG ID je vlastný pes, preto aj prerušovaný VERIACI. */}
-                    <DogSeal tier={sealOf(dog)} own label={sealLabel(sealOf(dog), (k, f) => { const v = t(k); return v === k ? f : v; })} />
+                    <DogSeal tier={dogSeal} own label={sealLabel(dogSeal, (k, f) => { const v = t(k); return v === k ? f : v; })} />
                     <span className="did-flagin">
                       <FlagCircle src={dogFlagUrl} iso2={flagIso} label={origin || t('pack.dog.defaultCountry')} />
                     </span>

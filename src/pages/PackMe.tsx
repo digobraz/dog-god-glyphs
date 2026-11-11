@@ -20,6 +20,7 @@
 //    albumy a uložené prídu so session FEED — karta ostáva, obsah je prázdny stav.
 //    Pomlčka nie je nula: nula by tvrdila, že ťa nikto nesleduje.
 import { sealOfHuman, sealLabel } from '@/components/pack/profile/dogSeal';
+import { useMySeal } from '@/components/pack/profile/sealStore';
 import { pilgrimAuthorName } from '@/lib/pilgrimName';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -124,6 +125,7 @@ export default function PackMe() {
   }, [location.key, location.search]);
   const uid = session?.user?.id ?? null;
   const { dogs } = usePackUser(uid);
+  const mySeal = useMySeal(sealOfHuman(dogs.length > 0));
   // PAWMATE = vidí psov, ale žiadny nie je jeho (Matej 26. 10. 2026, test „Lenka"). Meno ani hodnosti
   // si od majiteľa psa nepožičiava — dovtedy niesol meno z objednávky a roky služby jeho psa.
   const ownDogs = dogs.filter((d) => !d.user_id || d.user_id === uid);
@@ -391,8 +393,8 @@ export default function PackMe() {
         {/* TITULKA — BONES · meno · DEVOTION · PÚTNIK (spoločná s UPRAVIŤ PROFIL, `meHead.tsx`). */}
         <MeCover
           withName={beside?.label ?? null}
-          seal={novice ? 'veriaci' : sealOfHuman(dogs.length > 0)}
-          sealText={sealLabel(novice ? 'veriaci' : sealOfHuman(dogs.length > 0), tx)}
+          seal={novice ? 'veriaci' : mySeal}
+          sealText={sealLabel(novice ? 'veriaci' : mySeal, tx)}
           cover={coverSrc}
           coverY={human?.coverY}
           name={shownName}

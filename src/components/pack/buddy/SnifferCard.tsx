@@ -11,7 +11,7 @@
 //    ⇒ HORE levely + štatistika · DOLE meno | 👁 · + pes · Hľadám · 📍 · bio. Záľuby z karty
 //    odišli (sú v celom profile) — „Hľadám" nesie len zámery.
 // Ťuk vľavo/vpravo v hornej polovici = predošlá/ďalšia fotka (pásiky hore).
-import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel } from '@/components/pack/profile/dogSeal';
+import { MemberSeal } from '@/components/pack/profile/dogSeal';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { withTransform, bgImg as bgImgSized } from '@/services/cloudinaryService';
 import {
@@ -270,12 +270,12 @@ export function SnifferCard({ card, tx, back = false, className = '', style, onO
           {onOpenFull ? (
             <button type="button" className="sn-id is-tap" aria-label={tx('pack.sniffer.fullProfile', 'Full profile')}
               onClick={(e) => { e.stopPropagation(); onOpenFull(); }}>
-              <span className="sn-nm">{card.name}<DogSeal tier={SEAL_OF_LISTED_DOG} label={sealLabel(SEAL_OF_LISTED_DOG, tx)} size="0.8em" />{card.age ? <>, <span>{card.age}</span></> : null}</span>
+              <span className="sn-nm">{card.name}<MemberSeal n={card.member} tx={tx} size="0.8em" />{card.age ? <>, <span>{card.age}</span></> : null}</span>
               <SnifferLevels card={card} tx={tx} />
             </button>
           ) : (
             <span className="sn-id">
-              <p className="sn-nm">{card.name}<DogSeal tier={SEAL_OF_LISTED_DOG} label={sealLabel(SEAL_OF_LISTED_DOG, tx)} size="0.8em" />{card.age ? <>, <span>{card.age}</span></> : null}</p>
+              <p className="sn-nm">{card.name}<MemberSeal n={card.member} tx={tx} size="0.8em" />{card.age ? <>, <span>{card.age}</span></> : null}</p>
               <SnifferLevels card={card} tx={tx} />
             </span>
           )}

@@ -22,6 +22,7 @@
 // žiadne `trip`-tier polia nerenderujeme vôbec (viď report — spĺňa „skry trip-tier" bez potreby
 // shared-trip výpočtu). Psí BIO + tagy = vždy verejné (fixné pravidlo, nie cez getTier()).
 import { sealOfHuman, sealLabel } from '@/components/pack/profile/dogSeal';
+import { useMemberSeal } from '@/components/pack/profile/sealStore';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -91,6 +92,7 @@ export default function PublicProfile() {
   // v prvom okamihu tvrdila „taký člen nie je" a až potom sa opravila.
   const askedNumber = id && /^\d+$/.test(id) ? Number(id) : null;
   const [member, setMember] = useState<MemberProfile | null | undefined>(undefined);
+  const memberSeal = useMemberSeal(member?.memberNumber, sealOfHuman(member?.memberNumber != null));
   useEffect(() => {
     if (!sessionChecked || isSelf || askedNumber == null) { setMember(null); return; }
     let alive = true;
@@ -259,8 +261,8 @@ export default function PublicProfile() {
         )}
         <MeCover
           withName={beside?.label ?? null}
-          seal={sealOfHuman(member.memberNumber != null)}
-          sealText={sealLabel(sealOfHuman(member.memberNumber != null), tx)}
+          seal={memberSeal}
+          sealText={sealLabel(memberSeal, tx)}
           noRanks={false}
           foreign={!isSelf}
           cover={coverSrc}

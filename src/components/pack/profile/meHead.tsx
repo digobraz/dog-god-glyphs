@@ -18,7 +18,7 @@ import { DEVOTION_LEVELS, devotionLevel } from '@/lib/devotion';
 import type { LevelProgress } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient, BONES_TIER, type PackTier } from '@/lib/packTiers';
 import { devotionTier, devotionVars, NIGHT, NIGHT_EDGE, NIGHT_INK } from '@/lib/devotionTiers';
-import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel, type SealTier } from '@/components/pack/profile/dogSeal';
+import { DogSeal, DogSealOf, sealLabel, type SealTier } from '@/components/pack/profile/dogSeal';
 import { b3Look } from '@/components/pack/profile/b3css';
 import { RANK_BADGE_ON, RANK_BADGE_CSS, RANK_PANEL_CSS, STORY_RING_CSS, RING_V1, ARC_MAX, ARC_BELOW, arcDogs, ServantBadge, PilgrimBadge, BonesBadge, ServantPanel, PilgrimPanel, LearnerBadge, LearnerPanel, useActiveDays } from '@/components/pack/profile/rankBadge';
 /** BONES = TYRKYS (Matej 23. 10.: „bones pills daj tyrkysovou“) — farba z tej istej sady ako pásma pútnika. */
@@ -1078,7 +1078,7 @@ export function MeDogRow({ dog, attrs, onClose, onDogId, tx }: {
         <span className="fa">
           {dog.heroglyph_png_url ? <img src={dog.heroglyph_png_url} alt="" /> : <span className="empty">{name}</span>}
         </span>
-        <span className="ba"><b>{name}<DogSeal tier={SEAL_OF_LISTED_DOG} label={sealLabel(SEAL_OF_LISTED_DOG, tx)} /></b>{num}</span>
+        <span className="ba"><b>{name}<DogSealOf dogId={dog.id} tx={tx} /></b>{num}</span>
       </button>
       <div className="me-dinfo">
           {bio ? <p>{bio}</p> : onDogId ? (

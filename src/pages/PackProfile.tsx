@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { sealOfHuman, sealLabel } from '@/components/pack/profile/dogSeal';
+import { useMySeal } from '@/components/pack/profile/sealStore';
 import { DeleteRequests } from '@/components/pack/DeleteRequests';
 import { canStepBack } from '@/lib/stepBack';
 import { pilgrimAuthorName } from '@/lib/pilgrimName';
@@ -393,6 +394,7 @@ export default function PackProfile() {
   useEffect(() => { reloadMates(); }, []);
   const resetFlow = useDogyptStore((st) => st.reset);
   const { dogs: loadedDogs } = usePackUser(session?.user?.id ?? null);
+  const mySeal = useMySeal(sealOfHuman(loadedDogs.length > 0));
   // PAWMATE (žiadny pes nie je jeho) — bez hodností a bez mena z cudzej objednávky (26. 10. 2026).
   const ownLoaded = loadedDogs.filter((d) => !d.user_id || d.user_id === session?.user?.id);
   const isMate = loadedDogs.length > 0 && ownLoaded.length === 0;
@@ -589,8 +591,8 @@ export default function PackProfile() {
       <section className={`me-card pe-card${APP_NEW ? ' me-flat' : ''}${beside ? ' with-mate' : ''}`}>
         {/* NÁHĽAD 1:1 — tá istá hlava ako profil. Titulka sa ťahá, foťák ju mení. */}
         <MeCover
-          seal={sealOfHuman(loadedDogs.length > 0)}
-          sealText={sealLabel(sealOfHuman(loadedDogs.length > 0), tx)}
+          seal={mySeal}
+          sealText={sealLabel(mySeal, tx)}
           cover={coverSrc}
           coverY={coverY ?? human?.coverY}
           name={shownName}

@@ -8,7 +8,7 @@
 // 🐕 Psí blok (kolo 2, 26. 9.): MENO psa → HEROGLYF (mimo fotky) → album, za prvou fotkou
 //    fotky z denníka psa. Samostatné úložisko fotiek psa neexistuje (createRegistry.ts `photo`).
 // 🔒 Orientácia prichádza zo servera len so súhlasom človeka (`orientationPublic`).
-import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel } from '@/components/pack/profile/dogSeal';
+import { MemberSeal } from '@/components/pack/profile/dogSeal';
 import type { ReactNode } from 'react';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI,
@@ -80,12 +80,12 @@ const CSS = `
 
 const opt = (list: Array<{ value: string; labelEN: string; emoji?: string }>, v?: string) => list.find((o) => o.value === v);
 
-function DogAlbum({ dog, tx }: { dog: SnifferDog; tx: Tx }) {
+function DogAlbum({ dog, member, tx }: { dog: SnifferDog; member: number; tx: Tx }) {
   const photos = [dog.photo, ...(dog.album ?? []).filter((u) => u && u !== dog.photo)].filter(Boolean).slice(0, 7) as string[];
   const [first, ...rest] = photos;
   return (
     <div className="sfp-dog">
-      {dog.name && <p className="sfp-dogname">{dog.name}<DogSeal tier={SEAL_OF_LISTED_DOG} label={sealLabel(SEAL_OF_LISTED_DOG, tx)} /></p>}
+      {dog.name && <p className="sfp-dogname">{dog.name}<MemberSeal n={member} tx={tx} /></p>}
       {dog.heroglyph && <img className="sfp-hg" src={img(dog.heroglyph, 520)} alt="" />}
       <div className="sfp-alb">
         <div className={`sfp-wall sn-slide${rest.length ? '' : ' is-solo'}`}>
@@ -198,7 +198,7 @@ export function SnifferFullProfile({ card, tx, actions }: { card: SnifferCardDat
         <section className="sfp-card" style={{ ...PACK_BOX.card }}>
           <span className="sfp-eb">{tx('pack.sniffer.full.dogs', 'Dogs')}</span>
           {card.dogs.length
-            ? card.dogs.map((d, n) => <DogAlbum key={n} dog={d} tx={tx} />)
+            ? card.dogs.map((d, n) => <DogAlbum key={n} dog={d} member={card.member} tx={tx} />)
             : <p className="sfp-bio">{tx('pack.sniffer.full.none', 'Nothing yet')}</p>}
         </section>
       </div>

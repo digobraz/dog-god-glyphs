@@ -6,7 +6,7 @@
 // Labka = `post_marks` (kind `like`), ten istý stav ako v `PostViewer`. Komentáre otvorí `PostViewer`.
 //
 // ⚠️ Dnes tu sú LEN MOJE príspevky: cudzí autor potrebuje RPC s menom a fotkou (zoznam migrácií).
-import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel } from '@/components/pack/profile/dogSeal';
+import { MemberSeal, MySeal } from '@/components/pack/profile/dogSeal';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { linkify } from '@/components/ainubis/ainubisLinkify';
@@ -114,7 +114,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
           <span className="pk-medallion">{avatar ? <img src={sizedUrl(avatar, 80)} alt="" /> : name.charAt(0).toUpperCase()}</span>
         </button>
         <div className="pfp-who">
-          <b role="link" tabIndex={0} onClick={openAuthor} onKeyDown={(e) => { if (e.key === 'Enter') openAuthor(); }}>{name}{(mine || authorN != null) && <DogSeal tier={SEAL_OF_LISTED_DOG} label={sealLabel(SEAL_OF_LISTED_DOG, tx)} size="0.9em" />}</b>
+          <b role="link" tabIndex={0} onClick={openAuthor} onKeyDown={(e) => { if (e.key === 'Enter') openAuthor(); }}>{name}{mine ? <MySeal tx={tx} size="0.9em" /> : authorN != null && <MemberSeal n={authorN} tx={tx} size="0.9em" />}</b>
           <small>{[place?.name, agoLabel(Date.parse(post.createdAt), lang)].filter(Boolean).join(' · ')}</small>
           {pending && <span className="pfp-pend">{tx('pack.feed.pending', 'Awaiting review')}</span>}
         </div>

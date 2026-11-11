@@ -12,7 +12,7 @@
 //
 // 🔖 ULOŽENIE = TRIPLIST (lock §4.2 REVÍZIA 26. 10.): výlet už v DOGYPTe je ⇒ ikonka triplistu
 // (clipboard s ✓), nie hviezda. Zapisuje `trip_fav` cez `persistFav` — ten istý zoznam ako ★ v článku.
-import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel } from '@/components/pack/profile/dogSeal';
+import { MemberSeal, MySeal } from '@/components/pack/profile/dogSeal';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { HeroTrail } from '@/data/heroTrails.generated';
@@ -251,7 +251,7 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
           </span>
         </button>
         <div className="pft-who">
-          <b role="link" tabIndex={0} onClick={openAuthor} onKeyDown={(e) => { if (e.key === 'Enter') openAuthor(); }}>{shownAuthor || tx('pack.feed.member', 'Member')}{(ft.mine || authorN != null) && <DogSeal tier={SEAL_OF_LISTED_DOG} label={sealLabel(SEAL_OF_LISTED_DOG, tx)} size="0.9em" />}</b>
+          <b role="link" tabIndex={0} onClick={openAuthor} onKeyDown={(e) => { if (e.key === 'Enter') openAuthor(); }}>{shownAuthor || tx('pack.feed.member', 'Member')}{ft.mine ? <MySeal tx={tx} size="0.9em" /> : authorN != null && <MemberSeal n={authorN} tx={tx} size="0.9em" />}</b>
           {/* „Nový výlet“ len prvé 3 dni (Matej 30. 10.), potom ostane len čas. */}
           <small>{[isFresh ? tx('pack.feed.trip.new', 'New trip') : '', agoLabel(ft.at, lang)].filter(Boolean).join(' · ')}</small>
         </div>

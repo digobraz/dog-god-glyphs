@@ -13,7 +13,7 @@
 //    TRIPWISH = JEDEN ŤUK, bez formulára (Matej: *„nemá to zmysel… skrátka len uložiť do tripwishu a hotovo"*):
 //    prianie s predvolbou krátky výlet · tento rok · len pre mňa, potom potvrdenie AINUBISA so závojom.
 //    Do triplistu ide PRIANIE (`addWishPin`) s predvolbou krátky výlet · tento rok — doladí sa v triplistu.
-import { DogSeal, SEAL_OF_LISTED_DOG, sealLabel } from '@/components/pack/profile/dogSeal';
+import { MemberSeal, MySeal } from '@/components/pack/profile/dogSeal';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -273,7 +273,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
           <BackButton tone="pale" onClick={onClose} label={tx('pack.network.close', 'Close')} />
           {avatar && <img className="pv-av" src={sizedUrl(avatar, 80)} alt="" />}
           <span className="pv-who">
-            <b>{name}{(mine || authorN != null) && <DogSeal tier={SEAL_OF_LISTED_DOG} label={sealLabel(SEAL_OF_LISTED_DOG, tx)} size="0.9em" />}</b><small>{date}</small>
+            <b>{name}{mine ? <MySeal tx={tx} size="0.9em" /> : authorN != null && <MemberSeal n={authorN} tx={tx} size="0.9em" />}</b><small>{date}</small>
             {place?.name && (pin
               ? <button type="button" className="pl" onClick={openMapy}>{place.name}</button>
               : <span className="pl">{place.name}</span>)}

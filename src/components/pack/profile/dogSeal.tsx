@@ -5,6 +5,7 @@
 //   VEZÍR zlato · ZAKLADATEĽ čierna + zlato-oranžová žiara (mimo osi, navždy).
 // SVG je presný prevod generátora z nákresu — tvar a packa sa NEKRESLIA nanovo.
 import { useId, type CSSProperties } from 'react';
+import { useDogSeal, useMemberSeal, useMySeal } from './sealStore';
 
 export type SealTier = 'veriaci' | 'akolyta' | 'knaz' | 'vezir' | 'zakladatel';
 
@@ -17,14 +18,16 @@ const TIERS: Record<SealTier, T> = {
   zakladatel: { p: 4, g: ['#2a2a2a', '#0b0b0b', '#000'], stroke: 'url(#O)', paw: 'url(#O)', ring: true, glow: '#F0A81E' },
 };
 
-/** Kto akú pečať nesie. 🔴 DNES: zaplatený pes = ZAKLADATEĽ (88 psov, ktorí platili €11 — „zakladatelia navždy“),
+/** ⚠️ Od 11. 11. 2026 len NÁHRADA, kým odpovie DB (`sealStore.ts` → `seals_for`). Pravdu počíta `seal_of_dog`.
+ *  Kto akú pečať nesie. 🔴 DNES: zaplatený pes = ZAKLADATEĽ (88 psov, ktorí platili €11 — „zakladatelia navždy“),
  *  ostatní VERIACI. AKOLYTA/KŇAZ/VEZÍR prídu s dobrovoľným vstupným (tabuľka úrovne, Stripe + Apple/Google).
  *  ⚠️ Keď sa vypne predaj €11, zakladateľ sa musí zamknúť dátumom — inak by ďalšia platba vyrobila zakladateľa. */
 export function sealOf(dog: { payment_status?: string | null } | null | undefined): SealTier {
   return dog?.payment_status === 'paid' ? 'zakladatel' : 'veriaci';
 }
 
-/** Pes, ktorého appka ukazuje v svorke, na profile, cudzom profile a SNIFFERi, je dnes VŽDY zaplatený —
+/** ⚠️ Od 11. 11. 2026 len NÁHRADA, kým odpovie DB (`DogSealOf` / `MemberSeal` / `MySeal`).
+ *  Pes, ktorého appka ukazuje v svorke, na profile, cudzom profile a SNIFFERi, je dnes VŽDY zaplatený —
  *  `usePackUser`, `get_member_profiles` aj `sniffer_card` filtrujú `payment_status='paid'`. Preto ZAKLADATEĽ.
  *  🔴 Keď pribudnú free psy alebo vstupné, toto sa nahradí skutočnou úrovňou psa z DB. */
 export const SEAL_OF_LISTED_DOG: SealTier = 'zakladatel';
@@ -86,4 +89,27 @@ export function DogSeal({ tier, size = '0.95em', own = false, dark = false, labe
       // Statický SVG z vlastných konštánt (žiadny vstup od používateľa).
       dangerouslySetInnerHTML={{ __html: svg(TIERS[tier], id, dark) }} />
   );
+}
+
+// PEČAŤ Z DB (11. 11. 2026, `sealStore.ts`) — obaly, aby sa dala volať aj v zozname (hook v slučke nie).
+// `fallback` = to, čo appka ukazovala pred DB (pes v appke = ZAKLADATEĽ); platí, kým DB neodpovie.
+type Tx = (k: string, f: string) => string;
+type Wrap = { size?: number | string; own?: boolean; dark?: boolean; style?: CSSProperties; tx: Tx; fallback?: SealTier };
+
+/** Pečať psa podľa `dogs.id`. */
+export function DogSealOf({ dogId, fallback = SEAL_OF_LISTED_DOG, tx, ...p }: Wrap & { dogId: string | null | undefined }) {
+  const tier = useDogSeal(dogId, fallback);
+  return <DogSeal tier={tier} label={sealLabel(tier, tx)} {...p} />;
+}
+
+/** Pečať človeka podľa čísla člena (cudzí profil, autor vo FEEDe, SNIFFER). */
+export function MemberSeal({ n, fallback = SEAL_OF_LISTED_DOG, tx, ...p }: Wrap & { n: number | null | undefined }) {
+  const tier = useMemberSeal(n, fallback);
+  return <DogSeal tier={tier} label={sealLabel(tier, tx)} {...p} />;
+}
+
+/** Moja pečať. */
+export function MySeal({ fallback = SEAL_OF_LISTED_DOG, tx, ...p }: Wrap) {
+  const tier = useMySeal(fallback);
+  return <DogSeal tier={tier} label={sealLabel(tier, tx)} {...p} />;
 }

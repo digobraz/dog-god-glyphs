@@ -7,6 +7,7 @@
 // Čo smie PRIDÁVAŤ, nastavuje pawtner v MOJA SVORKA (Matej 26. 10.: *„veď keď bude mať odo mňa povolenie,
 // môže pridávať"*) — bez práva len prezerá, návrhy na schválenie NEEXISTUJÚ (K5 zrušené).
 import { sealOfHuman, sealLabel } from '@/components/pack/profile/dogSeal';
+import { useMemberSeal } from '@/components/pack/profile/sealStore';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PackDogFull } from '@/hooks/usePackUser';
@@ -88,6 +89,7 @@ export function MateHome({ dogs, me, onInvite, flat }: {
   // Zablokovaný pawtner (tri bodky v detaile príspevku) = jeho príspevky sa tu nekreslia.
   const grid = (ownerNumber != null && blocked.has(ownerNumber) ? [] : posts ?? []).filter((p) => !isMoment(p) && p.photos.length > 0);
   const first = ownerName;
+  const seal = useMemberSeal(ownerNumber, sealOfHuman(ownerNumber != null));
 
   return (
     <>
@@ -95,8 +97,8 @@ export function MateHome({ dogs, me, onInvite, flat }: {
       <section className={`me-card me-zdedeny${flat ? ' me-flat' : ''}${open ? ' open' : ''} with-mate`}>
         <MeCover
           withName={me.name}
-          seal={sealOfHuman(ownerNumber != null)}
-          sealText={sealLabel(sealOfHuman(ownerNumber != null), tx)}
+          seal={seal}
+          sealText={sealLabel(seal, tx)}
           foreign
           cover={coverSrc}
           coverY={human?.coverY}
