@@ -420,3 +420,15 @@ html.is-app { --pack-dock-b: max(12px, calc(env(safe-area-inset-bottom, 0px) - 4
    spodným okrajom. Jedno číslo → žiadna hláška sa nemôže vrátiť pod výrez. */
 :root { --pk-toast-b: calc(var(--pack-dock-b) + var(--pack-nav-h, 0px) + 12px); }
 .pk-toast-viewport { bottom: var(--pk-toast-b); top: auto; }
+
+/* 🐾 KURZOR = PACKA (Matej 11. 11. 2026: „na webe zmeň kurzor myši na packu, tú čo máme pri hodnotení,
+   modrý lem a žlté vnútro"). Obrázok je tá istá packa ako hodnotenie (icons/sys/hodnotenie-packa.webp),
+   32 px + 64 px pre Retinu, ťuk v strede packy. Len pre myš (`pointer: fine`), telefón kurzor nemá.
+   `!important`, lebo komponenty majú inline `cursor: pointer` a packa má byť všade rovnaká;
+   polia na písanie si nechávajú textový kurzor. */
+@media (pointer: fine) {
+  html, html *:not(input):not(textarea):not([contenteditable="true"]):not([contenteditable=""]) {
+    cursor: url('/cursor-packa.png') 16 16, auto !important;
+    cursor: -webkit-image-set(url('/cursor-packa.png') 1x, url('/cursor-packa@2x.png') 2x) 16 16, auto !important;
+  }
+}
