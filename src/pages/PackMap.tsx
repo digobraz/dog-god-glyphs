@@ -274,7 +274,11 @@ const FORCE_M_PC_CSS = `@media (min-width:768px){
   html.papyrus3d .trp-root .trp-mlist{padding-top:12px;}
 }
 @media (min-width:1024px){
-  .trp-root .trp-mlist{display:block;width:${PANEL_W}px;}
+  /* Matej 11. 11.: panel cez celú výšku, zapustený k ľavému okraju, plný (mapa nesmie presvitať zboku ani zospodu),
+     s poriadnym okrajom; hlavička len nad mapou vpravo od neho. */
+  .trp-root .trp-mlist{display:block;inset:0 auto 0 0;width:${PANEL_W}px;padding:16px 16px 32px;border-radius:0;z-index:950;box-sizing:border-box;}
+  html.papyrus3d .trp-root .trp-mlist{padding-top:16px;background:var(--p3d-paper);background-image:var(--p3d-card);border-right:3px solid var(--p3d-gold);box-shadow:2px 0 0 var(--p3d-ink),8px 0 18px var(--p3d-sh);}
+  .trp-root .trp-mheader{left:${PANEL_W}px;}
   .trp-root .trp-mtoggle{display:none;}
 }`;
 
