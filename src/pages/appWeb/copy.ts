@@ -750,7 +750,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  // VSTUPNÉ E4 (11. 11.): CTA platí za vybranú kartu
  pay_as: { en: 'Enter as', sk: 'Vstúpiť ako' },
  pay_month: { en: 'Monthly', sk: 'Mesačne' }, pay_once: { en: 'Once, forever', sk: 'Raz a navždy' },
- pay_note: { en: 'Card payment via Stripe. Cancel any time, your rank stays until the end of the paid month.', sk: 'Platba kartou cez Stripe. Zrušíš kedykoľvek, hodnosť ti ostane do konca zaplateného mesiaca.' },
+ pay_note: { en: 'Card payment via Stripe. Cancel any time.', sk: 'Platba kartou cez Stripe. Zrušíš kedykoľvek.' },
  pay_note_once: { en: 'Card payment via Stripe. Paid once, the rank is yours forever.', sk: 'Platba kartou cez Stripe. Zaplatíš raz a hodnosť je tvoja navždy.' },
  pay_err: { en: 'The payment did not start. Try again in a moment.', sk: 'Platba sa nespustila. Skús to o chvíľu znova.' },
  pay_manage: { en: 'Change or cancel your entry', sk: 'Zmeniť alebo zrušiť vstupné' },
