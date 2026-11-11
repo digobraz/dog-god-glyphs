@@ -1643,3 +1643,10 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 }
 .aw .cit-cta{margin-top:var(--s-xl);text-align:center}
 .aw .cit-cta .pk-cta{text-decoration:none}
+.aw .cit-rank i small{font-weight:400;font-size:var(--t-body);color:var(--ink-body)}
+.aw .cit-sup{max-width:640px;margin:var(--s-xxl) auto 0;padding:var(--s-xl) var(--s-lg);text-align:center;box-sizing:border-box}
+.aw .cit-sup h3{margin:0;font-size:clamp(22px,4vw,28px);line-height:1.2}
+.aw .cit-sup .lead{margin:var(--s-sm) auto var(--s-lg)}
+.aw .cit-sup .pk-cta.alt{display:inline-flex;width:auto;padding-left:var(--s-xl);padding-right:var(--s-xl);background:transparent;color:var(--lapis-edge);box-shadow:none;border-color:var(--lapis-edge);text-decoration:none}
+.aw .cit-sup .pk-cta.alt:hover{background:var(--lapis);color:var(--lapis-ink)}
+.aw .cit-sup .tr-sub{margin-top:var(--s-sm)}

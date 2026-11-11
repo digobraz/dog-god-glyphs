@@ -748,7 +748,7 @@ export default function AppWeb() {
                 <button type="button" className={`cit-rank pk-stage${k === 2 ? ' rec' : ''}${tierOn === k ? ' on' : ''}`} onClick={() => setTierOn(tierOn === k ? null : k)}>
                   {k === 2 && <span className="cit-rec">{c('rec')}</span>}
                   <img src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" loading="lazy" />
-                  <span className="cap"><b>{c(`t${k}`)}</b><i>{L === 'sk' ? price : price.replace(',', '.')}</i><span className="tp">{c(`tp${k}`)}</span></span>
+                  <span className="cap"><b>{c(`t${k}`)}</b><i>{L === 'sk' ? price : price.replace(',', '.')}{k > 0 && <small> {c(k < 4 ? 'per_mo' : 'once')}</small>}</i><span className="tp">{c(`tp${k}`)}</span></span>
                 </button>
               </Rv>
             ))}
@@ -757,6 +757,13 @@ export default function AppWeb() {
             <p className="lead" style={{ margin: '0 auto 24px', maxWidth: 640 }}>{c('fee_tiers')}</p>
             <a className="pk-cta" href="#">{c('give')}</a>
             {nakres && <p style={{ margin: '16px 0 0' }}><Note k="n_good" flag /></p>}
+          </Rv>
+          {/* jednorazová podpora bez konta (Matej 11. 11.): kto nechce hrať, môže prispieť; odkaz čaká na Stripe */}
+          <Rv className="cit-sup pk-stage">
+            <h3>{c('sup_h')} <span className="deco">{c('sup_h2')}</span></h3>
+            <p className="lead">{c('sup_p')}</p>
+            <a className="pk-cta alt" href="#">{c('sup_cta')}</a>
+            <p className="tr-sub">{c('sup_s')}</p>
           </Rv>
         </div>
       </section>
