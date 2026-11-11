@@ -56,8 +56,8 @@ ${H} .zv-act img{width:32px;height:32px;}
 ${H} .zv-veil{background:linear-gradient(180deg,#071019,#03070C);}
 ${H} .zv-wrap.pk-stage{background:none;}
 ${H} .zv-bar{${M3.head}padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;}
-/* článok: šípka a kapsula plávajú na obraze (BAR z hárku), Moje znalosti majú hlavičku v toku */
-${H} .zv-veil:has(.zv-hero) > .zv-bar{background:none;border:0;box-shadow:none;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 0;height:calc(env(safe-area-inset-top,0px) + 64px);margin-bottom:calc(-1 * (env(safe-area-inset-top,0px) + 64px));pointer-events:none;}
+/* článok: hlavička ostáva V TOKU nad obrazom (Matej 11. 11. 2026: „zvitok preteká = vrch sa nedá prečítať“) —
+   plávajúca šípka a kapsula z hárku prekryli nadpis zvitku a obraz začínal pod hodinami telefónu. */
 ${H} .zv-bar > *{pointer-events:auto;}
 ${ROUND(`${H} .zv-bar > button`)}
 ${ROUND(`${H} .zv-back`)}

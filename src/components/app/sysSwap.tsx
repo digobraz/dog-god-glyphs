@@ -20,13 +20,13 @@ export const SearchIc = ({ size = 16, style }: P) =>
   APP_NEW ? <SysIcon name="lupa" size={big(size)} style={style} /> : <HandSearch size={size} style={style} />;
 export const CheckIc = ({ size = 16, style }: P) =>
   APP_NEW ? <SysIcon name="fajka" size={big(size)} style={style} /> : <HandCheck size={size} style={style} />;
-/** Lajk (packa). Stav „nezapnuté“ nesie šedá samolepka. `color` je farba starej kresby, samolepka ju nemá. */
-export const LikeIc = ({ size = 16, on, color, style }: P & { on?: boolean; color?: string }) =>
-  APP_NEW ? <SysIcon name="lajk" size={big(size)} off={!on} style={style} /> : <HandPaw size={size} on={on} color={color} style={style} />;
+/** Lajk (packa). Šedá samolepka = POČET 0 (`n`, Matej 11. 11. 2026); bez `n` rozhoduje môj klik. `color` je farba starej kresby. */
+export const LikeIc = ({ size = 16, on, n, color, style }: P & { on?: boolean; n?: number; color?: string }) =>
+  APP_NEW ? <SysIcon name="lajk" size={big(size)} off={n === undefined ? !on : n === 0 && !on} style={style} /> : <HandPaw size={size} on={on} color={color} style={style} />;
 export const LikeHeartIc = ({ size = 16, on, style }: P & { on?: boolean }) =>
   APP_NEW ? <SysIcon name="lajk" size={big(size)} off={!on} style={style} /> : <HandHeart size={size} on={on} style={style} />;
-export const SaveIc = ({ size = 16, filled, style }: P & { filled?: boolean }) =>
-  APP_NEW ? <SysIcon name="ulozit" size={big(size)} off={!filled} style={style} /> : <HandStar size={size} filled={filled} style={style} />;
+export const SaveIc = ({ size = 16, filled, n, style }: P & { filled?: boolean; n?: number }) =>
+  APP_NEW ? <SysIcon name="ulozit" size={big(size)} off={n === undefined ? !filled : n === 0 && !filled} style={style} /> : <HandStar size={size} filled={filled} style={style} />;
 export const PencilIc = ({ size = 16, style }: P) =>
   APP_NEW ? <SysIcon name="ceruzka" size={big(size)} style={style} /> : <HandPencil size={size} style={style} />;
 export const AlertIc = ({ size = 16, style }: P) =>

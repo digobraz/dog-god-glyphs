@@ -131,10 +131,10 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
       )}
       <div className="pfp-acts">
         <button type="button" className={soc.likes > 0 || soc.liked ? undefined : 'fd'} onClick={() => mark('like')} aria-pressed={soc.liked} aria-label={tx('pack.feed.act.like', 'Like')}>
-          <LikeMark on={soc.liked} />{soc.likes > 0 && soc.likes}
+          <LikeMark on={soc.liked} n={soc.likes} />{soc.likes > 0 && soc.likes}
         </button>
         <button type="button" className={soc.comments > 0 ? undefined : 'fd'} onClick={() => onOpen(post)} aria-label={tx('pack.post.comment', 'Comment')}>
-          <CommentMark />{soc.comments > 0 && soc.comments}
+          <CommentMark n={soc.comments} />{soc.comments > 0 && soc.comments}
         </button>
         <button type="button" onClick={share} aria-label={tx('pack.feed.act.share', 'Share')}>
           <ShareMark />
@@ -143,7 +143,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
         {/* TRIPWISH s terčom pri príspevku zrušený (Matej 10. 11. 2026: „pri normálnych príspevkoch na feede je
             tripwish - čo nedáva zmysel... a dokonca je tam terč!“). Príspevok sa ukladá, prianie patrí výletu. */}
         <button type="button" className={`save${soc.saved ? ' on' : soc.saves > 0 ? '' : ' fd'}`} onClick={() => mark('save')} aria-pressed={soc.saved} aria-label={tx('pack.feed.act.save', 'Save')}>
-          <SaveMark on={soc.saved} />{soc.saves > 0 && soc.saves}
+          <SaveMark on={soc.saved} n={soc.saves} />{soc.saves > 0 && soc.saves}
         </button>
       </div>
       {post.body && <UgcText kind="post" id={post.id} text={post.body} mine={mine}>{(s, tg) => <p className="pfp-tx" onClick={(e) => e.stopPropagation()}><b>{name}</b>{linkify(s, (path) => navigate(path), 'pfp-link')}{tg}</p>}</UgcText>}

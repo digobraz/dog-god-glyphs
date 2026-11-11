@@ -37,8 +37,11 @@ export const ChevDown = ({ size = 16, style, up }: { size?: number; style?: CSSP
   : <ChevronDown aria-hidden className={size <= 12 ? 'h-3 w-3' : 'h-4 w-4'} style={{ ...style, ...(up ? { transform: 'rotate(180deg)' } : null) }} />);
 
 export const SearchMark = ({ size }: { size: number }) => (APP_NEW ? <SysIcon name="lupa" size={size + 6} /> : <HandSearch size={size} />);
-export const LikeMark =({ on }: { on: boolean }) => (APP_NEW ? <SysIcon name="lajk" size={28} off={!on} /> : <HandPaw size={24} on={on} />);
-export const CommentMark = () => (APP_NEW ? <SysIcon name="komentar" size={28} /> : <BrandIcon name="chat" size={24} tint="dark" />);
+/** ZHASNUTÁ = POČET 0 (Matej 11. 11. 2026: „vyblednuté ikonky srdce, komenty a uloženia, ak nebude aspoň jedno“).
+ *  `n` = počet od všetkých; bez neho rozhoduje len môj klik (`on`). Platí pre labku, komentár aj uloženie. */
+const zero = (on: boolean, n?: number) => (n === undefined ? !on : n === 0 && !on);
+export const LikeMark =({ on, n }: { on: boolean; n?: number }) => (APP_NEW ? <SysIcon name="lajk" size={28} off={zero(on, n)} /> : <HandPaw size={24} on={on} />);
+export const CommentMark = ({ n }: { n?: number }) => (APP_NEW ? <SysIcon name="komentar" size={28} off={n === 0} /> : <BrandIcon name="chat" size={24} tint="dark" />);
 // Zdieľanie nemá hand-drawn kresbu, takže aj web berie systémovú samolepku.
 export const ShareMark = () => <SysIcon name="zdielat" size={APP_NEW ? 28 : 24} />;
-export const SaveMark = ({ on }: { on: boolean }) => (APP_NEW ? <SysIcon name="ulozit" size={28} off={!on} /> : <HandStar size={24} filled={on} />);
+export const SaveMark = ({ on, n }: { on: boolean; n?: number }) => (APP_NEW ? <SysIcon name="ulozit" size={28} off={zero(on, n)} /> : <HandStar size={24} filled={on} />);

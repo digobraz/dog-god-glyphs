@@ -33,8 +33,9 @@ import { LikeIc, SaveIc, LockIc, CheckIc, PencilIc, AlertIc, CameraIc, TrashIc, 
 /** Kresba z kitu `/icons/pack/` cez masku (ten istý zápis ako v PackAinubis). */
 /** APP_NEW: kresby, ktoré továreň vybrala (play, chat), idú ako samolepka (`zv-ic--sys`, maska by farbu nevykreslila). */
 const IC_SYS: Record<string, string> = { play: 'prehraj', chat: 'komentar', 'chat-right-full': 'komentar' };
-const Ic = ({ ic }: { ic: string }) => (APP_NEW && IC_SYS[ic]
-  ? <i className="zv-ic zv-ic--sys" aria-hidden style={{ backgroundImage: `url(/icons/sys/${IC_SYS[ic]}.webp)` }} />
+/** `off` = šedá samolepka ako pri `SysIcon` (komentár pri počte 0, Matej 11. 11. 2026). */
+const Ic = ({ ic, off }: { ic: string; off?: boolean }) => (APP_NEW && IC_SYS[ic]
+  ? <i className="zv-ic zv-ic--sys" aria-hidden style={{ backgroundImage: `url(/icons/sys/${IC_SYS[ic]}.webp)`, ...(off ? { filter: 'grayscale(1)', opacity: 0.55 } : null) }} />
   : <i className="zv-ic" aria-hidden style={{ WebkitMaskImage: `url(/icons/pack/${ic}.svg)`, maskImage: `url(/icons/pack/${ic}.svg)` }} />);
 import { BackButton } from '@/components/pack/BackButton';
 import { PackTopRight } from '@/components/pack/PackLayout';
@@ -493,14 +494,14 @@ export function ScrollActions({ id, lang, onTalk, lock, onShare }: {
       <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={lock ?? (() => toggleLiked(id))} aria-label={u.like}>
         {/* LABKA, nie srdce — Matej 26. 10. pri FEEDe: lajk = labka všade, DOGSCROLL = „to isté, len v inom priečinku“
             (prebíja 4. 10. „dajme srdiečko“; nákres plany/nakres-feed-2026-10-26.html). */}
-        <LikeIc size={20} on={liked} color={AINUBIS.cyan} /><span className="zv-n">{likes}</span>
+        <LikeIc size={20} on={liked} n={likes} color={AINUBIS.cyan} /><span className="zv-n">{likes}</span>
       </button>
       {/* PORADIE VŠADE: labka · komentár · ☆ (Matej 26. 10. 2026, lock architektura-pack §4.2). */}
       <button type="button" data-k="talk" className={`zv-act${talk > 0 ? ' is-on' : ''}`} onClick={lock ?? onTalk} aria-label={u.talk}>
-        <Ic ic={talk > 0 ? 'chat-right-full' : 'chat'} /><span className="zv-n">{talk}</span>
+        <Ic ic={talk > 0 ? 'chat-right-full' : 'chat'} off={talk === 0} /><span className="zv-n">{talk}</span>
       </button>
       {onShare && <button type="button" data-k="share" className="zv-act" onClick={lock ?? onShare} aria-label={u.share}><ShareMark /></button>}
-      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={lock ?? (() => toggleSaved(id))} aria-label={u.save}><SaveIc size={20} filled={saved} /><span className="zv-n">{saves}</span></button>
+      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={lock ?? (() => toggleSaved(id))} aria-label={u.save}><SaveIc size={20} filled={saved} n={saves} /><span className="zv-n">{saves}</span></button>
     </div>
   );
 }
@@ -978,7 +979,7 @@ export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse,
                   {/* Lajk komentára s počtom od všetkých (`post_marks`). */}
                   <div className="zv-crow">
                     <button type="button" className={`zv-clike${c.liked ? ' is-on' : ''}`} onClick={() => toggleTalkLike(z.id, i)} aria-label={u.like}>
-                      <LikeIc size={16} on={!!c.liked} color={AINUBIS.cyan} />{c.likes ?? (c.liked ? 1 : 0)}
+                      <LikeIc size={16} on={!!c.liked} n={c.likes ?? (c.liked ? 1 : 0)} color={AINUBIS.cyan} />{c.likes ?? (c.liked ? 1 : 0)}
                     </button>
                     {/* Mazanie VLASTNÉHO komentára (Matej 6. 10.: „musí to fungovať"). Dva kroky
                         priamo v riadku — systémové okno `confirm()` by zablokovalo appku. */}

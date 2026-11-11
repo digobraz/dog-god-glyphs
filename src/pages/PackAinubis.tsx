@@ -45,7 +45,8 @@ import { useMagnetPreview, usePackNavigate, isFreeScrollCode, MagnetAinubisBlock
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_TOPROW, PAGE_AIR,
 } from '@/components/pack/packTheme';
-import { GRAB_CSS } from '@/components/pack/packTheme';
+import { GRAB_CSS, PACK_BOX } from '@/components/pack/packTheme';
+import { PackPopup } from '@/components/pack/PackPopup';
 import {
   AINUBIS, AI_GLASS, AI_BREATHE_CSS, AI_PANEL_SHADOW, AI_FOCUS, aiWorld, BRAIN_STATE, AI_WORLD,
 } from '@/components/pack/ainubisSkin';
@@ -96,6 +97,12 @@ const WORLD_STORE = 'dogypt_vault_world';
 const CSS = `
 ${GRAB_CSS}
 ${AI_BREATHE_CSS}
+/* TÉMY UZLA MOZGU — popup so zvitkami sveta alebo okruhu (mobil, 11. 11. 2026). */
+.akv-syn-grp{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+.akv-syn-grp + .akv-syn-grp{margin-top:${PACK_SPACE.lg}px;}
+.akv-syn-h{margin:0;font:500 ${PACK_TEXT.label}px ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;opacity:.7;}
+.akv-syn-row{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;width:100%;min-height:48px;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;font:500 ${PACK_TEXT.body}px/1.35 ${FONT_UI};color:inherit;text-align:left;cursor:pointer;}
 ${STAGE_CSS}
 /* Som v AINUBISe ⇒ plávajúca guľa je duplikát a zavadzala filtrom (Matej 1. 11. 2026). */
 body:has(.akv-root) .ainubis-launcher{display:none;}
@@ -910,8 +917,16 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   /* Postup sa načíta až po postavení mozgu — pri každej zmene sa zrná prefarbia. */
   useEffect(() => { brain.current?.refresh(); }, [zstate]);
 
+  /* TÉMY UZLA (Matej 11. 11. 2026: „kliknutím na uzol sa neotvorí daný zvitok a z tej obrazovky sa nedá nikde
+     dostať… 1. kliknutie otvorí témy synapsie v zozname a druhý klik na konkrétnu tému otvorí zvitok“).
+     Mobil: ťuk na svet alebo okruh = popup so zvitkami toho uzla. PC má zoznam vedľa mozgu, tam sa nič nemení. */
+  const [synPick, setSynPick] = useState<{ wi: number; oi?: number } | null>(null);
+  /* Otvára sa až po doznení ťuku: prst po zdvihnutí pošle ešte `click`, ktorý by padol na závoj
+     práve otvoreného popupu a hneď ho zavrel. Mozog medzitým uzol priblíži. */
+  const openSyn = (p: { wi: number; oi?: number }) => window.setTimeout(() => setSynPick(p), 320);
   const openWorld = (wi: number) => {
     const key = VAULT_WORLDS[wi].key;
+    if (window.innerWidth < PC_MIN && feed.some((z) => z.world === key)) openSyn({ wi });
     /* Klik na svet v mozgu vyberie svet. Od 22. 9. uzol mozog PRIBLÍŽI a vycentruje (brainEngine focus):
        na PC stojí zoznam vedľa a hneď sa prepne, na mobile by prepnutie priblíženie schovalo,
        tam sa k zoznamu ide pilulkou. Svet bez zvitkov sa nevyberá, povie to bublina mozgu. */
@@ -922,6 +937,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
   };
   const openWorldRef = useRef(openWorld);
   openWorldRef.current = openWorld;
+  const openSynRef = useRef(openSyn);
+  openSynRef.current = openSyn;
 
   // ── MOZOG — mount raz, keď je plátno v DOM ────────────────────────────────
   useEffect(() => {
@@ -973,7 +990,10 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
       },
       onScroll: (wi, oi, zo) => { const z = findZ(wi, oi, zo); if (z) live.current.open(z.id); },
       onCircle: (wi, oi) => {
-        if (window.innerWidth < PC_MIN) return;
+        if (window.innerWidth < PC_MIN) {
+          if (live.current.feed.some((z) => z.world === VAULT_WORLDS[wi].key && z.okruh === oi + 1)) openSynRef.current({ wi, oi });
+          return;
+        }
         const key = VAULT_WORLDS[wi].key, list = live.current.feed.filter((z) => z.world === key && z.okruh === oi + 1);
         const z = list.find((q) => (liveState.current[q.id] || 0) !== 2) ?? list[0];
         if (z) live.current.jump(z.id);
@@ -1555,6 +1575,30 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
       {plane2 === 'vault' && !pv && !knowOpen && !openZ && (
         <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
       )}
+      {synPick && (() => {
+        const key = VAULT_WORLDS[synPick.wi].key;
+        const list = feed.filter((z) => z.world === key && (synPick.oi === undefined || z.okruh === synPick.oi + 1));
+        const groups = synPick.oi === undefined
+          ? Array.from({ length: VAULT_WORLDS[synPick.wi].circles }, (_, i) => ({ oi: i, list: list.filter((z) => z.okruh === i + 1) })).filter((g) => g.list.length)
+          : [{ oi: synPick.oi, list }];
+        return (
+          <PackPopup title={synPick.oi === undefined ? names[synPick.wi] : (circleName(synPick.wi, synPick.oi) || names[synPick.wi])}
+            onClose={() => setSynPick(null)} className="akv-syn">
+            {groups.map((g) => (
+              <div key={g.oi} className="akv-syn-grp">
+                {synPick.oi === undefined && <h3 className="akv-syn-h">{circleName(synPick.wi, g.oi)}</h3>}
+                {g.list.map((z) => (
+                  <button key={z.id} type="button" className="akv-syn-row" style={{ ...PACK_BOX.row }}
+                    onClick={() => { setSynPick(null); openScroll(z.id); }}>
+                    <span>{pickText(z, lang).t}</span>
+                    {isRead(z) && <CheckIc size={16} />}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </PackPopup>
+        );
+      })()}
       {SCROLL_DEMO && openZ && (
         <ScrollView z={openZ} all={scrolls} lang={lang} focus={scrollFocus}
           onClose={closeScroll} onOpen={(i) => openScroll(i)} onUse={askAinubis} onShare={shareScroll}

@@ -145,7 +145,7 @@ export function FeedMapCard({ add, liked, likes = 0, onLike }: { add: MapAdd; li
       </div>
       <div className="pfm-foot">
         <button type="button" className={`lk${isOn || (add.k === 'note' ? noteLike.n : likes) > 0 ? '' : ' fd'}`} onClick={pressLike} aria-pressed={isOn} aria-label={tx('pack.feed.act.like', 'Like')}>
-          <LikeMark on={isOn} />{(add.k === 'note' ? noteLike.n : likes) > 0 && (add.k === 'note' ? noteLike.n : likes)}
+          <LikeMark on={isOn} n={add.k === 'note' ? noteLike.n : likes} />{(add.k === 'note' ? noteLike.n : likes) > 0 && (add.k === 'note' ? noteLike.n : likes)}
         </button>
         <button type="button" className="lk" onClick={() => shareOut({ text: [title, text].filter(Boolean).join('\n') }, tx)} aria-label={tx('pack.feed.act.share', 'Share')}>
           <ShareMark />

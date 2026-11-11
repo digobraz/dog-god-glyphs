@@ -291,14 +291,14 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
         )}
         <div className="pv-acts">
           <button type="button" className={`like${soc.liked ? ' on' : ''}${soc.likes > 0 ? '' : ' zero'}`} onClick={() => mark('like')} aria-pressed={soc.liked} aria-label={tx('pack.post.like', 'Like')}>
-            <LikeMark on={soc.liked} />{soc.likes > 0 && soc.likes}
+            <LikeMark on={soc.liked} n={soc.likes} />{soc.likes > 0 && soc.likes}
           </button>
           <button type="button" className={soc.comments > 0 ? undefined : 'zero'} onClick={() => input.current?.focus()} aria-label={tx('pack.post.comment', 'Comment')}>
-            <CommentMark />{soc.comments > 0 && soc.comments}
+            <CommentMark n={soc.comments} />{soc.comments > 0 && soc.comments}
           </button>
           <span className="sp" />
           <button type="button" className={`save${soc.saved || wished ? ' on' : ''}${soc.saves > 0 ? '' : ' zero'}`} onClick={() => setSaveOpen(true)} aria-label={tx('pack.post.save', 'Save')}>
-            <SaveMark on={soc.saved || wished} />{soc.saves > 0 && soc.saves}
+            <SaveMark on={soc.saved || wished} n={soc.saves} />{soc.saves > 0 && soc.saves}
           </button>
         </div>
         {likers.length > 0 && lead && (

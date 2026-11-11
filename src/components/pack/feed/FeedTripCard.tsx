@@ -305,11 +305,11 @@ export function FeedTripCard({ ft, youImg, authorImg = null, authorN = null, aut
       <div className="pft-acts">
         {/* Poradie VŠADE labka · komentár · uloženie (Matej 26. 10.). Labka = `feed_marks`, komentár = šuplík výletu. */}
         <button type="button" className={likes > 0 || liked ? undefined : 'fd'} onClick={onLike} aria-pressed={liked} aria-label={tx('pack.feed.act.like', 'Like')}>
-          <LikeMark on={liked} />{likes > 0 && likes}
+          <LikeMark on={liked} n={likes} />{likes > 0 && likes}
         </button>
         {onComment && (
           <button type="button" className={comments > 0 ? undefined : 'fd'} onClick={onComment} aria-label={tx('pack.feed.act.comment', 'Comments')}>
-            <CommentMark />{comments > 0 && comments}
+            <CommentMark n={comments} />{comments > 0 && comments}
           </button>
         )}
         <button type="button" onClick={share} aria-label={tx('pack.feed.act.share', 'Share')}>

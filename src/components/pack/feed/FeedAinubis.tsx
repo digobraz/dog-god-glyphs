@@ -108,13 +108,13 @@ function AiActs({ liked, saved, onLike, onSave, labels, onComment, onShare, comm
   return (
     <div className="zv-acts">
       <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={onLike} aria-pressed={liked} aria-label={labels.like}>
-        <LikeIc size={20} on={liked} color={AINUBIS.cyan} />
+        <LikeIc size={20} on={liked} n={likes} color={AINUBIS.cyan} />
         <span className="zv-n">{likes}</span>
       </button>
       {onComment && (
         <button type="button" data-k="talk" className={`zv-act${comments > 0 ? ' is-on' : ''}`} onClick={onComment} aria-label={labels.comment}>
           {APP_NEW
-            ? <SysIcon name="komentar" size={28} />
+            ? <SysIcon name="komentar" size={28} off={comments === 0} />
             : <i className="zv-ic" aria-hidden style={{ WebkitMaskImage: `url(/icons/pack/${comments > 0 ? 'chat-right-full' : 'chat'}.svg)`, maskImage: `url(/icons/pack/${comments > 0 ? 'chat-right-full' : 'chat'}.svg)` }} />}
           <span className="zv-n">{comments}</span>
         </button>
@@ -125,7 +125,7 @@ function AiActs({ liked, saved, onLike, onSave, labels, onComment, onShare, comm
         </button>
       )}
       <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={onSave} aria-pressed={saved} aria-label={labels.save}>
-        <SaveIc size={20} filled={saved} />
+        <SaveIc size={20} filled={saved} n={saves} />
         <span className="zv-n">{saves}</span>
       </button>
     </div>

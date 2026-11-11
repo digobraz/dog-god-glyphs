@@ -871,14 +871,14 @@ function Post({ post, onOpen }: { post: WallPost; onOpen: () => void }) {
         </div>
       </div>
       <div className="akw-met">
-        <s><LikeIc size={13} on={false} /><b>{post.paws}</b></s>
+        <s><LikeIc size={13} on={false} n={post.paws} /><b>{post.paws}</b></s>
         {/* ODPOVEDE — Matej 24. 9. 2026 vybral z kitu `chat` nad skutočnou kartou
             (`ik-chat.png`). Do vtedy tu stálo holé slovo „replies“, lebo kresba
             neexistovala a brand lock zakazuje siahnuť po lucide.
             ⚠️ `chat` nesmie byť zamenené za `people`: ráta sa SPOLU s odpoveďou
                AINUBISA vyššie, nie iba ľudské hlasy.
             ⚠️ Popis ostáva slovom pre čítačku — ikonka je `aria-hidden`. */}
-        <s>{APP_NEW ? <SysIcon name="komentar" size={18} /> : <i className="akw-rep" aria-hidden style={mask('chat')} />}<b>{talk(post)}</b>
+        <s>{APP_NEW ? <SysIcon name="komentar" size={18} off={talk(post) === 0} /> : <i className="akw-rep" aria-hidden style={mask('chat')} />}<b>{talk(post)}</b>
           <span className="akw-sr">replies</span></s>
         {clash(post) && (
           <s className="akw-clash" title="The vault says otherwise">
@@ -975,7 +975,7 @@ function PostFull({ post, onLibrary, onClose }: {
       <div className="akw-foot">
         <button type="button" className={`akw-act${paw ? ' is-on' : ''}`} onClick={() => setPaw((v) => !v)}
           aria-label="Paws">
-          <LikeIc size={14} on={paw} /><b>{post.paws + (paw ? 1 : 0)}</b>
+          <LikeIc size={14} on={paw} n={post.paws + (paw ? 1 : 0)} /><b>{post.paws + (paw ? 1 : 0)}</b>
         </button>
         <button type="button" className={`akw-act${saved ? ' is-on' : ''}`} onClick={() => setSaved((v) => !v)}
           aria-label="Save"><SaveIc size={14} filled={saved} /></button>
