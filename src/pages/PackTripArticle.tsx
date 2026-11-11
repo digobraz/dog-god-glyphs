@@ -14,6 +14,8 @@ import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { PLANNING_LIVE, APP_NEW } from '@/lib/packFlags';
+import { readWalkedAt } from '@/lib/packStore';
+import { WalkedCheck } from '@/components/pack/WalkedCheck';
 import { useParams, useSearchParams } from 'react-router-dom';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Polyline, Circle, Marker, useMap } from 'react-leaflet';
@@ -130,6 +132,13 @@ import { useMyDogRights } from '@/lib/dogRights';
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
 const T = PACK_THEME;
+
+/** „ · 3. 11." z `trip_walked.walked_at` (ms); bez dátumu prázdne. */
+const walkedDayLabel = (ms: number | undefined, lang: string): string => {
+  if (!ms) return '';
+  const loc = lang === 'sk' ? 'sk-SK' : lang === 'cs' ? 'cs-CZ' : 'en-GB';
+  return ` · ${new Date(ms).toLocaleDateString(loc, { day: 'numeric', month: 'numeric' })}`;
+};
 
 // ALIAS, NIE KÓPIA. Zoznam je jeden — `components/pack/tripCategories.ts`. Meno tu ostáva
 // kvôli volajúcim nižšie. Predtým tu stála vlastná tabuľka a chýbalo v nej `journey`, takže
@@ -606,7 +615,7 @@ html.papyrus3d .pta-title{font-size:24px;line-height:1.1;color:var(--p3d-ink);}
 html.papyrus3d .pta-loc{color:var(--p3d-gold-ink);}
 /* Hodnotenie vpravo: číslo pred packami, ako v hárku. */
 html.papyrus3d .pta-byrating b{order:-1;font-size:20px;color:var(--p3d-ink);}
-html.papyrus3d .pta-author{font-size:14px;color:var(--p3d-ink);}
+html.papyrus3d .pta-author{font-size:12px;color:var(--p3d-ink);}
 /* Akčný rad = TLAČIDLO 3D (výška 56, pera dole). Reset väčšiny vlastností .pta-actbtn, ktoré by prebili .pk-b3. */
 html.papyrus3d .pta-acts{gap:12px;align-items:flex-start;padding-bottom:8px;}
 html.papyrus3d .pta-actbtn.pk-b3{height:56px;padding:0 16px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 20px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;box-shadow:var(--p3d-b3);} /* písmo: cta */
@@ -614,6 +623,8 @@ html.papyrus3d .pta-actbtn.pk-b3:active:not(:disabled){transform:translateY(5px)
 html.papyrus3d .pta-acts .pta-actbtn-label{white-space:normal;overflow:visible;text-overflow:clip;text-align:center;line-height:1.05;font-size:16px;}
 html.papyrus3d .pta-actbtn.pk-b3 .pta-ic-mask{width:24px;height:24px;}
 html.papyrus3d .pta-actwrap{flex:1;}
+/* A1 (Matej 11. 11. 2026): hotové „Prejdené" = plochý papyrusový riadok, nie tlačidlo. Rám zelený, bez odliatku. */
+html.papyrus3d .pta-walkedrow{flex:1;display:flex;align-items:center;gap:8px;min-height:56px;padding:0 16px;border-radius:8px;background:#FBF6EC;border:1px solid ${T.growGreen};color:var(--p3d-ink);font-family:${FONT_UI};font-size:14px;font-weight:500;cursor:pointer;text-align:left;box-shadow:none;}
 @media (max-width:760px){
   html.papyrus3d .pta-acts .pta-actbtn--gold,html.papyrus3d .pta-acts .pta-actbtn--blue{flex:0 0 56px;padding:0;}
   html.papyrus3d .pta-acts .pta-actbtn--lapis .pts-pill{top:-14px;}
@@ -1710,15 +1721,15 @@ export default function PackTripArticle() {
             <div className="pta-actwrap" ref={walkedMenuRef}>
               <button
                 type="button"
-                className={`pta-actbtn pta-actbtn--green${APP_NEW ? ' pk-b3 pk-b3--green' : ''}`}
+                className={APP_NEW ? 'pta-walkedrow' : 'pta-actbtn pta-actbtn--green'}
                 onClick={() => setWalkedMenuOpen((o) => !o)}
                 aria-haspopup="menu"
                 aria-expanded={walkedMenuOpen}
                 aria-label={t('pack.trip.walkedAriaLabel')}
               >
                 {/* Appka: JEDNA ikonka zo setu (fajka) namiesto 🐾 + ✓ v texte + ▾ (Matej 9. 11. 2026). */}
-                {APP_NEW ? <SysIcon name="fajka" size={24} /> : <span className="pta-actbtn-icon">🐾</span>}
-                <span className="pta-actbtn-label">{APP_NEW ? t('pack.trip.walkedCheck').replace(/\s*✓/, '') : t('pack.trip.walkedCheck')}</span>
+                {APP_NEW ? <WalkedCheck size={24} /> : <span className="pta-actbtn-icon">🐾</span>}
+                <span className={APP_NEW ? undefined : 'pta-actbtn-label'}>{APP_NEW ? `${t('pack.trip.walkedCheck').replace(/\s*✓/, '')}${walkedDayLabel(readWalkedAt()[trail.id], lang)}` : t('pack.trip.walkedCheck')}</span>
                 {!APP_NEW && <span className="pta-caret">▾</span>}
               </button>
               {walkedMenuOpen && (
