@@ -83,7 +83,7 @@ import { SosButton } from '@/components/pack/SosButton';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
 import { usePackIdentity, type PackIdentity } from '@/components/pack/usePackIdentity';
-import { useMagnetPreview, usePackNavigate, isFreeTrip, MAGNET_MEMBER_TRAILS, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetAinubisBlock } from '@/components/pack/magnetPreview';
+import { onPublicMap, useMagnetPreview, usePackNavigate, isFreeTrip, MAGNET_MEMBER_TRAILS, MAGNET_FOUNDER, MAGNET_IDENTITY, MagnetAinubisBlock } from '@/components/pack/magnetPreview';
 import { HandLock } from '@/components/pack/HandIcons';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { useToast } from '@/hooks/use-toast';
@@ -260,6 +260,20 @@ const CARD_PHOTO_H = 316;
 // tiež) a medzi 1024–1400px je kompaktný desktop (užší panel, skrátené labely).
 // MUSÍ sedieť s `@media (max-width:1023px)` v CSS nižšie.
 const MOBILE_BP = 1023;
+// 🗺️ VEREJNÁ MAPA `/map` NA PC = ROZLOŽENIE APPKY (Matej 11. 11. 2026, variant A). Verejná mapa sa otvára vo VLASTNEJ
+// karte (planétka na webe /app), preto stačí rozhodnúť pri načítaní modulu: mobilné pravidlá sa vtedy vložia bez media
+// query a desktopové vypadnú. Pre každého iného je výsledné CSS doslova to isté ako pred zmenou (žiadna kópia pravidiel).
+const FORCE_M = onPublicMap();
+const mobCSS = (mq: string, css: string) => (FORCE_M ? css : `@media ${mq}{${css}}`);
+const pcCSS = (mq: string, css: string) => (FORCE_M ? '' : `@media ${mq}{${css}}`);
+// Zoznam na PC: panel vľavo nad mapou, mapa ostáva vidieť (variant A: „zoznam sa vysunie zľava po ťuku na Zoznam“).
+const FORCE_M_PC_CSS = `@media (min-width:768px){
+  .trp-root.mlist-active .trp-mapregion{display:block;}
+  .trp-root .trp-mlist{inset:auto;left:16px;top:calc(var(--trp-mheader-h,159px) + 8px);bottom:16px;width:440px;padding:12px 12px 96px;border-radius:16px;overflow-x:hidden;}
+  html.papyrus3d .trp-root .trp-mlist{padding-top:12px;}
+}`;
+
+
 // (bod 4) so the selected trail centers in the map area actually visible next to the panel.
 
 // journeys (multi-day) + hikes zdieľajú ten istý zoznam/mapu — journey je len HeroTrail
@@ -733,7 +747,7 @@ const waterPoint = (path: LatLngTuple[]): LatLngTuple => {
  * kreslení trasy; toto je jeho dvojička pre bežnú mapu (iná hranica aj iná šírka panela).
  */
 const mapPadX = (): [number, number] =>
-  (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP) ? [24, 24] : [PANEL_W + 60, 90];
+  (typeof window !== 'undefined' && (FORCE_M || window.innerWidth <= MOBILE_BP)) ? [24, 24] : [PANEL_W + 60, 90];
 
 /**
  * Prílet na miesto vybraté v hľadaní.
@@ -802,7 +816,7 @@ function FitBounds({ path, offset, dock, hold, view }: { path: LatLngTuple[] | n
     // necháva miesto na ~440px panel vľavo + topbar hore + nav dole; mobile (panel skrytý)
     // len na header hore + nav/toggle dole. maxZoom len pri výbere jedného tripu (offset),
     // nech sa krátka trasa neodzoomuje zbytočne blízko; celé Slovensko sa zmestí bez capu.
-    const mobile = typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP;
+    const mobile = typeof window !== 'undefined' && (FORCE_M || window.innerWidth <= MOBILE_BP);
     // Mobilný padding drží HORNÝ blok (avatar+search+pilulky ≈ 180px) a dolnú navigáciu (≈ 96px)
     // — nie symetrických 150/150. Symetria brala 300px z 844px výšky a zároveň hore nezakryla
     // dosť, takže SR skončilo pod panelom a nad ním svietilo Poľsko.
@@ -1998,15 +2012,15 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 /* NÁHĽAD /magnet — obal BLOKU AINUBISA (MagnetAinubisBlock), tvar a farby nesie on sám. */
 .trp-mginfo{margin:0 0 8px;}
 .trp-mginfo--dock{display:none;}
-@media (min-width:1024px){
+${pcCSS('(min-width:1024px)', `
   .trp-mginfo--list{display:none;}
   .trp-mginfo--dock{display:block;position:absolute;z-index:700;margin:0;
     left:${MAP_EDGE + DOCK_COL_W + MAP_EDGE}px;right:${MAP_EDGE}px;bottom:${MAP_EDGE}px;}
   .trp-root--mg .leaflet-bottom{bottom:calc(var(--mg-dock-h, 0px) + ${MAP_EDGE + 8}px);}
-}
-@media (min-width:1024px) and (max-width:1400px){
+`)}
+${pcCSS('(min-width:1024px) and (max-width:1400px)', `
   .trp-mginfo--dock{left:400px;}
-}
+`)}
 .trp-lockbadge{position:absolute;top:8px;left:40px;z-index:2;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(11,9,6,.88);border:1.5px solid ${T.cardEdge};color:#F6F1E4;pointer-events:none;}
 .trp-dot{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
 .trp-dot.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);border-color:rgba(${PACK_THEME.tripPurpleRGB},0.6);box-shadow:0 0 0 2px rgba(179,107,255,0.3),0 2px 6px rgba(0,0,0,0.4);}
@@ -2050,14 +2064,14 @@ ${TRAIL_LINE_CSS}
    left:50%/translateX untouched); only its bottom offset is pinned so it
    lines up with the floating panel's bottom edge (both 20px). Scoped under
    .trp-root so it never touches other /pack pages. ── */
-@media (min-width:1024px){
+${pcCSS('(min-width:1024px)', `
   .trp-root .fixed.z-40{ bottom:20px !important; }
   /* NAV V STREDE MAPY, NIE OKNA (výnimka z locku pack-blok1-nav, Matej 5. 10. 2026: „nebolo
      by lepšie ak by spodný nav nebol v strede obrazovky ale v strede priestoru mapy" → „ano
      vynimka by bola na pc pri map a ainubisovi"). Pás ostáva pás, len začína tam, kde
      horná lišta — kotúč tak stojí pod jej stredom. */
   .trp-root .pk-dock-band{ left:${MAP_EDGE + DOCK_COL_W + MAP_EDGE}px !important; right:${MAP_EDGE}px !important; }
-}
+`)}
 @media (min-width:1401px){
   .trp-bigcard-photo{aspect-ratio:auto;height:${CARD_PHOTO_H}px;}
 }
@@ -2069,7 +2083,7 @@ ${TRAIL_LINE_CSS}
    stĺpca a natiekol na mapu. Tu sa panel zúži na 360px, topbar sa odvodí od
    NEHO (žiadne pevné 480), a labely, ktoré nesú info aj bez textu (Triplist =
    clipboard ikonka, „Add trip" → „Add"), sa skrátia. Nad 1400px = plný layout. */
-@media (min-width:1024px) and (max-width:1400px){
+${pcCSS('(min-width:1024px) and (max-width:1400px)', `
   .trp-sidebar{width:360px;}
   .trp-addhost{width:360px;}
   .trp-topbar{left:400px;right:${MAP_EDGE}px;}
@@ -2088,7 +2102,7 @@ ${TRAIL_LINE_CSS}
   .trp-topsearchrow{gap:8px;}
   .trp-floatsearch{flex:1 1 160px;min-width:140px;}
   .trp-tagdd-btn{flex:1 1 100px;min-width:92px;padding:8px 12px;font-size:12px;}
-}
+`)}
 
 /* ── mobile (≤760px) — bod 5, iterácia 11: map-first + LIST/MAP toggle +
    full-width liquid-glass header. Nahradzuje starý floating .trp-topbar
@@ -2096,7 +2110,7 @@ ${TRAIL_LINE_CSS}
    desktop-only, mobile detail ide priamo na full-page článok — PackTripArticle,
    iterácia 12 bod 5). Nav stays centered + fixed, untouched (PackBottomNav
    default). ── */
-@media (max-width:1023px){
+${mobCSS('(max-width:1023px)', `
   .trp-topbar{display:none;}
   .trp-sidebar{display:none;}
 
@@ -2302,7 +2316,7 @@ ${TRAIL_LINE_CSS}
      dve kópie formulára tu stáli do 23. 8. a rozišli sa hneď, ako pribudol autosave. */
   .trp-addhost{position:fixed;inset:0;top:0;left:0;width:auto;max-width:none;border:0;border-radius:0;box-shadow:none;background:#0a0a0a;backdrop-filter:none;-webkit-backdrop-filter:none;z-index:950;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
   .trp-addhost .trp-addsetup{background:transparent;}
-}
+`)}
 
 `;
 
@@ -2342,7 +2356,7 @@ const P_SOFT = 'rgba(255,251,240,0.55)';        // nečinná pilulka — svetlej
 const P_HOT = 'rgba(201,154,63,0.20)';          // hover/označené
 
 const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
-@media (min-width:${PALE_PC_MIN}px){
+${pcCSS(`(min-width:${PALE_PC_MIN}px)`, `
 
   /* ── 1. RÁMY ──────────────────────────────────────────────────────────────────────────
      Tri plochy, jeden materiál: ľavý panel, hostiteľ formulára pridávania a stavový riadok
@@ -2685,7 +2699,7 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-sidebar .trp-cards-scroll::-webkit-scrollbar{width:8px;}
   .trp-sidebar .trp-cards-scroll::-webkit-scrollbar-thumb{background:rgba(179,130,45,0.42);border-radius:999px;}
   .trp-sidebar .trp-cards-scroll::-webkit-scrollbar-track{background:transparent;}
-}
+`)}
 `;
 
 /* ═══════════════════════════════════════════════════════════════════════════════════════
@@ -2766,9 +2780,9 @@ html.papyrus3d .trp-bigcard-photoactbtn.pk-b3{height:44px;padding:0 16px;border:
 html.papyrus3d .trp-tlbtn{--b3-r:12px;position:absolute;right:10px;bottom:10px;z-index:3;width:44px;height:44px;padding:0;}
 html.papyrus3d .trp-bigcard-photo:has(> .trp-tlbtn) .trp-bigcard-photometa{right:64px;}
 /* tripflow, kroky 1–2: hlavička mapy je skrytá (výška 0), hore stojí AINUBIS (fixný, z 1202) — ovládače začnú POD ním */
-@media (max-width:${PALE_PC_MIN - 1}px){
+${mobCSS(`(max-width:${PALE_PC_MIN - 1}px)`, `
   html.papyrus3d body:has(.ang-wrap) .trp-ctlstack{top:var(--ang-wrap-b,159px);}
-}
+`)}
 html.papyrus3d .trp-root .trp-layersdd-panel{width:236px;padding:12px 16px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-card);box-shadow:0 6px 0 var(--p3d-gold-solid),0 12px 16px var(--p3d-sh);}
 html.papyrus3d .trp-root .trp-layersdd-panel .trp-tagdd-eyebrow{font:500 12px 'Space Grotesk',sans-serif;letter-spacing:.22em;color:var(--p3d-gold-ink);}
 html.papyrus3d .trp-root .trp-layersdd-row{gap:12px;padding:4px 0;font:500 16px 'Space Grotesk',sans-serif;color:var(--p3d-ink);}
@@ -2778,7 +2792,7 @@ html.papyrus3d .trp-root .trp-layersdd-row input[type=radio]{border-radius:50%;}
 html.papyrus3d .trp-root .trp-layersdd-row input:checked{background:linear-gradient(180deg,#16307A,#0A1A4A);}
 html.papyrus3d .trp-root .trp-layersdd-row input[type=radio]:checked{background:radial-gradient(circle,#0A1A4A 0 4px,var(--p3d-paper-hi) 5px);}
 html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
-@media (max-width:${PALE_PC_MIN - 1}px){
+${mobCSS(`(max-width:${PALE_PC_MIN - 1}px)`, `
   /* hlavička VON (A1): papyrus, zlatá lišta pod ňou, tmavá línia a tieň */
   html.papyrus3d .trp-mheader{background:var(--p3d-card);border:0;border-bottom:6px solid var(--p3d-gold);border-radius:0;box-shadow:0 3px 0 var(--p3d-ink),0 8px 12px var(--p3d-sh);padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 10px;gap:8px;flex-direction:row;flex-wrap:wrap;align-items:stretch;mask-image:none;-webkit-mask-image:none;}
   html.papyrus3d .trp-mheader::after{display:none;}
@@ -2849,7 +2863,7 @@ html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
   /* dolné pilulky na fotke (hárok A2): km a stúpanie v jednej, náročnosť a ruch samé okno */
   html.papyrus3d .trp-mlist .trp-bigcard-photometa{left:10px;right:10px;bottom:10px;}
   ${photoMeta3dCSS('.trp-mlist')}
-}
+`)}
 /* okno Filtre (A4): papyrus doska so zlatým pásom hore, polia a tlačidlá 3D */
 html.papyrus3d .trp-msheet{background:var(--p3d-card);border:0;border-top:6px solid var(--p3d-gold);border-radius:16px 16px 0 0;box-shadow:0 -3px 0 var(--p3d-ink),0 -12px 16px var(--p3d-sh);}
 html.papyrus3d .trp-msheet::before{display:none;}
@@ -2868,7 +2882,7 @@ html.papyrus3d .trp-msheet-clear.pk-b3:disabled{opacity:.55;}
 `;
 
 const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
-@media (max-width:${PALE_PC_MIN - 1}px){
+${mobCSS(`(max-width:${PALE_PC_MIN - 1}px)`, `
   .trp-mheader .trp-mapsug{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};box-shadow:${T.panelShadow};}
   .trp-mheader .trp-mapsug-item{border-bottom:1px solid ${P_HAIR};}
   .trp-mheader .trp-mapsug-item:hover{background:${P_HOT};}
@@ -3095,7 +3109,7 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
      tam ho nikto nevidel, lebo koncept vzniká na mobile. Svetlý inkoust na papyruse je
      neviditeľný, tak dostáva ten istý dim ako podpis. ⚠️ PC má tú istú dieru. */
   .trp-mlist .trp-draftmiss{color:${P_DIM};}
-}
+`)}
 `;
 
 
@@ -3122,7 +3136,7 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
    rozhodnutie, aké 28. 8. dostala mobilná hlavička („na mobile nemusíme dávať ten rámikový
    nav ako má PC lebo by zaberal priestor"). Lem okolo celej obrazovky nie je rám bloku,
    je to len zjedený riadok na oboch stranách. */
-@media (min-width:${PALE_PC_MIN}px){
+${pcCSS(`(min-width:${PALE_PC_MIN}px)`, `
   .trp-addhost{${goldFrameCSS({ radius: SLAB.radius, rim: SLAB.rim })}backdrop-filter:none;-webkit-backdrop-filter:none;}
   /* ── AINUBIS NAD RÁMOM (Matej 15. 10. 2026: „ainubis pri tripflow má svoje miesto nad
      dblokom ako je to napr pri kroku 1") ─────────────────────────────────────────────────
@@ -3132,10 +3146,10 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
      o úroveň nižšie. overflow:visible, aby sa dosvit bubliny neodrezal o hranu stĺpca. */
   .trp-addhost:has(> .atl-guide){border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;gap:12px;}
   .trp-addhost:has(> .atl-guide) > .atl-log{${goldFrameCSS({ radius: SLAB.radius, rim: SLAB.rim })}overflow:hidden;}
-}
-@media (max-width:${PALE_PC_MIN - 1}px){
+`)}
+${mobCSS(`(max-width:${PALE_PC_MIN - 1}px)`, `
   .trp-addhost{${goldPlateCSS({ radius: 0 })}box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
-}
+`)}
 
   /* ── 7. FORMULÁR PRIDÁVANIA (add trip) ────────────────────────────────────────────────
      Písacie povrchy ostávajú PLOCHÝ papyrus (".pf-field--flat"), nie gradient — lock hovorí,
@@ -4468,10 +4482,10 @@ export default function PackMap() {
   const [mobileView, setMobileView] = useState<'map' | 'list'>(() => (mapMountedInDocument && entryState?.mview === 'list' ? 'list' : 'map'));
   useEffect(() => { mapMountedInDocument = true; }, []);
   // Rozloženie: pod 1024 px je sidebar skrytý, nad ním zoznam. Kreslí sa len ten, ktorý človek vidí (dovtedy všetky karty dvakrát).
-  const [narrow, setNarrow] = useState(() => window.matchMedia('(max-width: 1023px)').matches);
+  const [narrow, setNarrow] = useState(() => FORCE_M || window.matchMedia('(max-width: 1023px)').matches);
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1023px)');
-    const on = () => setNarrow(mq.matches);
+    const on = () => setNarrow(FORCE_M || mq.matches);
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);
   }, []);
@@ -4654,7 +4668,7 @@ export default function PackMap() {
     setSelectedEventId(eid);
     setExpandedEventId(eid);
     // Na mobile je zoznam samostatný pohľad — karta by bola pod mapou neviditeľná.
-    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches) setMobileView('list');
+    if (typeof window !== 'undefined' && (FORCE_M || window.matchMedia('(max-width: 760px)').matches)) setMobileView('list');
   };
   // `?event=<id>` — odkaz z NOS a z mailu. Čaká na prvé načítanie zoznamu, aby vedel, či je
   // podujatie v nadchádzajúcich alebo v archíve.
@@ -5003,7 +5017,7 @@ export default function PackMap() {
     //    `setAddFlow(null)` zahodil sprievodcu a ostala visieť len bublina „Parkovisko — klikni…",
     //    na ktorú už nič nereagovalo. Parkovisko sa kladie práve pri štarte, teda na tie pilulky.
     if (addFlow || notePlacing) return;
-    if (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP) {
+    if (typeof window !== 'undefined' && (FORCE_M || window.innerWidth <= MOBILE_BP)) {
       saveReturnView(leafletMapRef.current);
       // V náhľade bez segmentu krajiny — `usePackNavigate` pozná len dvojpísmenový (`/pack/map/sk/…`), nie ISO3.
       navigate(mg ? `/pack/map/${tr.id}` : tripPath(tr));
@@ -6804,7 +6818,7 @@ export default function PackMap() {
 
   return (
     <div className={`trp-root${mobileView === 'list' ? ' mlist-active' : ''}${mg ? ' trp-root--mg' : ''}`}>
-      <style>{CSS}</style>
+      <style>{FORCE_M ? CSS + FORCE_M_PC_CSS : CSS}</style>
       {unwalk && (
         <UnwalkConfirm
           name={unwalk.name}

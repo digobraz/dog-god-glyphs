@@ -202,4 +202,7 @@ export const ALBUMS_ON = false;
 // `APP_NEW` = test kanál (TEST_BUILD) ALEBO natívna appka. Web na dogypt.com ostáva,
 // kým Matej neschváli prepnutie aj tam (LIVE web len so súhlasom). MISIA ostáva na
 // TEST_BUILD — nemá ošetrené sumy v appke.
-export const APP_NEW: boolean = TEST_BUILD || IS_APP;
+// 🗺️ VEREJNÁ MAPA `/map` (otvára ju planétka z webu /app v novej karte) nesie nový šat aj na webe — Matej 11. 11. 2026:
+// „treba to upraviť do dnešnej podoby nového dizajnu apky“. Rozhoduje adresa pri NAČÍTANÍ karty, nie routa po nej.
+const PUBLIC_MAP_TAB = typeof window !== 'undefined' && /^\/map(\/|$)/.test(window.location.pathname);
+export const APP_NEW: boolean = TEST_BUILD || IS_APP || PUBLIC_MAP_TAB;
