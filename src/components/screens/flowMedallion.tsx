@@ -191,6 +191,8 @@ type Props = {
   size?: number;
   alt?: string;
   className?: string;
+  /** Otáznik na pravej hrane obruče, otvára popup (Matej 11. 11. 2026). */
+  ask?: { id: string; label: string; onClick: () => void; expanded?: boolean };
 };
 
 /**
@@ -239,8 +241,13 @@ export function useSpeakMedal(): number {
   return box.h < 600 ? 60 : 80;
 }
 
-export function FlowMedallion({ src, size = 132, alt = 'HEKTHOR', className }: Props) {
+export function FlowMedallion({ src, size = 132, alt = 'HEKTHOR', className, ask }: Props) {
   const rim = Math.max(4, Math.round((RING.ow / 100) * size));
+  // Jemné zapulzovanie otáznika LEN pri prvom zobrazení v relácii (Matej 11. 11. 2026).
+  const [pulse] = useState(() => {
+    if (!ask) return false;
+    try { const k = `fq-seen:${ask.id}`; if (sessionStorage.getItem(k)) return false; sessionStorage.setItem(k, '1'); return true; } catch { return false; }
+  });
   return (
     <span className={`fm${className ? ` ${className}` : ''}`} style={{ width: size, height: size }}>
       <span className="fm-ring" style={{ background: goldRing(RING.light) }} />
@@ -257,6 +264,11 @@ export function FlowMedallion({ src, size = 132, alt = 'HEKTHOR', className }: P
         <img className="fm-img" src={src} alt={alt} />
       </span>
       <span className="fm-well" style={{ inset: rim }} />
+      {ask && (
+        <button type="button" className={`fq-mark${pulse ? ' fq-pulse' : ''}`} aria-label={ask.label} aria-expanded={ask.expanded} onClick={ask.onClick}>
+          <img src="/icons/sys/otaznik.webp" alt="" draggable={false} />
+        </button>
+      )}
     </span>
   );
 }
@@ -266,6 +278,17 @@ export function FlowMedallion({ src, size = 132, alt = 'HEKTHOR', className }: P
  *     zapustenie. Fazeta a lesk musia byť NAD kresbou (osvetľujú aj kamene)
  *     a zapustenie NAD fotkou (je to tieň, ktorý obruč hádže dovnútra). */
 export const FLOW_MEDAL_CSS = `
+/* Otáznik na pravej hrane obruče (Matej 11. 11. 2026): brandová ikonka z kitu, 3D zdvih, ťukací cieľ 44+ px. */
+.fq-mark {
+  position: absolute; z-index: 6; top: -2px; right: -16px; width: 44px; height: 44px; padding: 0; border: 0; background: none; cursor: pointer;
+  filter: drop-shadow(0 3px 0 rgba(138, 90, 20, .95)) drop-shadow(0 7px 6px rgba(0, 0, 0, .28)); transition: transform .08s;
+}
+.fq-mark img { width: 100%; height: 100%; display: block; pointer-events: none; }
+.fq-mark:active { transform: translateY(2px); }
+@media (min-width: 900px) { .fq-mark { width: 48px; height: 48px; right: -20px; } }
+@keyframes fq-pulse { 0%, 100% { transform: scale(1); } 35% { transform: scale(1.22); } 65% { transform: scale(1); } }
+.fq-pulse { animation: fq-pulse 1.1s ease-in-out 2; }
+@media (prefers-reduced-motion: reduce) { .fq-pulse { animation: none; } }
 .fm { position: relative; display: block; border-radius: 50%; flex: none; }
 .fm-ring {
   position: absolute; inset: 0; border-radius: 50%;

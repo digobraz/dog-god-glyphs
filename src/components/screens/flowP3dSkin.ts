@@ -46,23 +46,16 @@ ${P} body { font-variant-numeric: lining-nums tabular-nums; }
 
 /* ── STENA: jednoliaty papyrus + kresba dole v PRIRODZENOM pomere (žiadne natiahnutie ani zoom) ── */
 ${WALL} { background: var(--p3d-paper); background-color: var(--p3d-paper); }
-${WALL}::before {
-  top: auto !important; left: 50% !important; right: auto !important; bottom: 0 !important;
-  transform: translateX(-50%); aspect-ratio: 1280 / 892; width: auto !important; height: min(46%, 69.7vw) !important;
-  background-image: var(--bg-light) !important;
-  background-size: contain !important; background-repeat: no-repeat !important; background-position: center bottom !important;
-  filter: none !important; opacity: .12;
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 40%), linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(180deg, transparent, #000 40%), linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); mask-composite: intersect;
-}
+/* MOBIL: stena ostáva presne ako pred šatom (flowFullSkin: kresba 220 % šírky dole, jemný prechod zhora). */
 /* PC (Matej 11. 11.: „na celú šírku aj výšku, 1:1"): obrázok na CELÚ šírku okna v prirodzenom pomere, ukotvený dole — vidno len spodnú časť. */
 @media (min-width: 768px) {
   ${WALL} { overflow: hidden; }
+  /* Škatuľa = celé okno, obrázok na 100 % šírky v prirodzenom pomere ukotvený dole (vidno spodok), prechod do priesvitnosti ZAČÍNA NA HORNEJ HRANE okna. */
   ${WALL}::before {
-    left: 0 !important; right: 0 !important; transform: none; width: auto !important; height: auto !important;
-    aspect-ratio: 1280 / 892; background-size: 100% 100% !important; opacity: .11;
-    -webkit-mask-image: linear-gradient(180deg, transparent 40%, #000 95%); mask-image: linear-gradient(180deg, transparent 40%, #000 95%);
-    -webkit-mask-composite: initial; mask-composite: initial;
+    top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: auto !important; height: auto !important;
+    background-image: var(--bg-light) !important; background-size: 100% auto !important; background-repeat: no-repeat !important; background-position: center bottom !important;
+    opacity: .12; filter: none !important;
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 45%); mask-image: linear-gradient(180deg, transparent, #000 45%);
   }
 }
 
@@ -184,7 +177,7 @@ ${ROOT} .ch-traits .ch-trait .lb { font-family: ${UI} !important; font-weight: 7
 ${ROOT} .ch-traits .ch-trait.on .lb { color: #0A1A4A; }
 
 /* ── VZDUCH A ROZLOŽENIE: obsah na STRED medzi progresom a CTA (margin:auto na dieťati, nie justify-center) ── */
-${WALL} .hf-stage { padding-top: 24px; }
+${WALL} .hf-stage { padding-top: 40px; }
 ${WALL} .hf-stage:not(.wl-page) > * { margin-top: 0; margin-bottom: 0; }
 ${WALL} .hf-stage:not(.wl-page) > :first-child { margin-top: auto; }
 ${WALL} .hf-stage:not(.wl-page) > :last-child { margin-bottom: auto; }
@@ -237,6 +230,13 @@ ${P} .fm-card :is(.mi-close, .name-modal-done, .zs-switch) { align-self: stretch
 }
 @media (min-width: 900px) and (max-height: 780px) { ${WALL} { --p3d-ph: 120px; } ${WALL} .hf-medin .fm { width: 150px !important; height: 150px !important; } }
 
+/* NATURE na nízkom PC: ustúpi obsah, nie vzduch pod progresom */
+@media (min-width: 900px) and (max-height: 780px) {
+  ${WALL} .hf-stage:has(.ch-traits) .hf-speak:not(.st-speak) > .fm { width: 92px !important; height: 92px !important; }
+  ${WALL} .ch-traits .ch-trait { padding: 4px; }
+  ${WALL} .ch-traits .ch-trait img { width: 30px; height: 30px; }
+}
+
 /* ── DOPLŇ FOTO A NARODENINY: veta nad dolným CTA + jemne zvýraznené chýbajúce chipy ── */
 ${WALL} .hf-hint {
   position: fixed; z-index: 39; margin: 0; text-align: center; font-size: 13px; font-weight: 600; color: var(--p3d-gold-ink); text-decoration: none; text-transform: none; letter-spacing: 0;
@@ -249,16 +249,14 @@ ${WALL} :is(.hf-pic.add, .hf-dpill.miss) { animation: p3d-nudge 1.8s ease-out in
 
 /* ── POPUP „KTO JE HEKTHOR": kompaktný, dlaždice papyrus 3D, na PC dve polovice ── */
 ${P} .nm-who.fm-card { gap: 8px; padding: 14px 16px; }
-${P} .nm-who .nm-who-v { max-height: 30dvh; object-position: center 55%; border: 2.5px solid var(--p3d-ink); border-radius: 14px; }
+${P} .nm-who .nm-who-v { aspect-ratio: 1 / 1; max-height: 38dvh; object-position: center 50%; border: 2.5px solid var(--p3d-ink); border-radius: 14px; }
 ${P} .nm-who-h { font-size: 22px; }
 ${P} .nm-who-tx { font-size: 14px; line-height: 1.4; font-weight: 400; }
-${P} .nm-who-facts { gap: 8px; }
-${P} .nm-who-facts div {
-  padding: 6px 4px; border: 2.5px solid var(--p3d-ink); border-radius: 14px; background: var(--p3d-card);
-  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55), 0 3px 0 var(--p3d-gold-solid);
-}
-${P} .nm-who-facts dt { font-family: ${UI} !important; font-weight: 600; font-size: 10px; letter-spacing: .12em; color: var(--p3d-gold-ink); }
-${P} .nm-who-facts dd { font-family: ${UI} !important; font-weight: 700; font-size: 16px; color: var(--p3d-ink); }
+${P} .nm-who .nm-who-facts { display: flex; grid-template-columns: none; gap: 0; justify-content: space-between; padding: 4px 0; border-top: 2px solid var(--p3d-gold-solid); border-bottom: 2px solid var(--p3d-gold-solid); }
+${P} .nm-who .nm-who-facts div { flex: 1 1 0; min-width: 0; grid-column: auto; padding: 2px 4px; border: 0; border-radius: 0; background: none; box-shadow: none; gap: 0; }
+${P} .nm-who .nm-who-facts div + div { border-left: 2px solid color-mix(in srgb, var(--p3d-gold-solid) 55%, transparent); }
+${P} .nm-who-facts dt { font-family: ${UI} !important; font-weight: 600; font-size: 10px; letter-spacing: .1em; color: var(--p3d-gold-ink); }
+${P} .nm-who-facts dd { font-family: ${UI} !important; font-weight: 700; font-size: 14px; color: var(--p3d-ink); }
 @media (min-width: 900px) {
   ${P} .nm-who.fm-card {
     max-width: 880px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto;
@@ -272,6 +270,8 @@ ${P} .nm-who-facts dd { font-family: ${UI} !important; font-weight: 700; font-si
 
 /* CTA veľkými všade (aj tlačidlá .pk-b3 na Vstupnom/Vitaj) */
 ${P} .pk-b3 { text-transform: uppercase; letter-spacing: .04em; }
+
+${WALL} .hf-speak .fq-mark { top: -12px; right: -26px; }
 
 /* ── PROGRES (FlowProgress v flowRedress.tsx): hrubá pilulka s obrysom, zlatá výplň ── */
 ${P} .fp-track { height: 16px !important; box-sizing: border-box; border: 2.5px solid var(--p3d-ink); background: var(--p3d-paper-hi) !important; box-shadow: var(--p3d-inset), 0 3px 0 var(--p3d-gold-solid); }

@@ -356,7 +356,7 @@ export function OwnerScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28 }}
           >
-            <FlowMedallion src={hekthorFace('owner-info')} size={medal} />
+            <FlowMedallion src={hekthorFace('owner-info')} size={medal} ask={{ id: 'owner-egypt', label: t('heroglyph.flow.ownerFinal.infoAria'), onClick: () => setEgypt((v) => !v), expanded: egypt }} />
             <span className="say">
               {/* Otázka podkroku, ako na podstate — Hektor sa pýta, doska odpovedá. */}
               <AnimatePresence mode="wait" initial={false}>
@@ -372,13 +372,6 @@ export function OwnerScreen() {
                 </motion.h2>
               </AnimatePresence>
             </span>
-            <button
-              type="button"
-              className={`ow-info${egypt ? ' on' : ''}`}
-              aria-label={t('heroglyph.flow.ownerFinal.infoAria')}
-              aria-expanded={egypt}
-              onClick={() => setEgypt((v) => !v)}
-            >i</button>
           </motion.div>
 
           {/* ── 2. BLOK: RÁM → PORADIE → KTO SI → NARODENIE ──────────────── */}

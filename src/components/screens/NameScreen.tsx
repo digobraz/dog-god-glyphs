@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
@@ -461,18 +460,6 @@ export function NameScreen() {
             {/* 28. 9. 2026 — Matej: *„vymaž krížik (i) na úvodnej obrazovke"*.
                 Otvorená karta o Hektorovi sa zatvára ŤUKNUTÍM NA ŇU, nie krížikom;
                 ikonka (i) je preto vidno len vtedy, keď je karta zatvorená. */}
-            {phase === 'form' && (
-            <button
-              className="absolute top-3 right-3 z-20 flex items-center justify-center"
-              style={{ width: 44, height: 44 }}
-              aria-label={t('heroglyph.flow.name.infoAria')}
-              onClick={() => setShowInfo((p) => !p)}
-            >
-              <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
-                <Info className="h-4 w-4 text-white/80" />
-              </span>
-            </button>
-            )}
 
             {/* 🔴 PREDNÁ STRANA OSTÁVA V TOKU VŽDY — len zhasne. Ona drží výšku
                 bubliny, takže zadná (info) ju nemôže naťahovať. Dovtedy sa obe
@@ -513,6 +500,7 @@ export function NameScreen() {
                         src={hekthorFace('name')}
                         size={phase === 'hero' ? heroMedallion : formMedallion}
                         className="hf-medal"
+                        ask={phase === 'form' ? { id: 'name-who', label: t('heroglyph.flow.name.infoAria'), onClick: () => setShowInfo((p) => !p), expanded: showInfo } : undefined}
                       />
                     </motion.div>
                   ) : (
