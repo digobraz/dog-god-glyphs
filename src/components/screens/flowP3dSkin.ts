@@ -19,18 +19,20 @@ import { APP_NEW } from '@/lib/packFlags';
 //
 // ⚠️ Vrstva stojí NAD `flowFullSkin.ts` (rovnaké `html[data-flow-full]`, o jeden atribút
 //    špecifickejšia) — tá sa nemení. Pokladňa, STAY a WELCOME (`FlowCheckout/Stay/WelcomeScreen`)
-//    sú z vrstvy VYŇATÉ (`P3D_VYNIMKY`), lebo ich práve prerába iný agent; zapnutie = vymazať cestu.
+//    a STAY sú z vrstvy VYŇATÉ (`P3D_VYNIMKY`); Vitaj a Vstupné (`FlowWelcomeScreen`, `FlowVstupneScreen`) vrstvu od 11. 11. majú.
 // ⚠️ CTA a pick/chip používajú tie isté premenné ako `.pk-b3--lapis` / `.pk-b3--paper`
 //    (`--b3-*`), tvar je 1:1 z `B3_CSS`; triedy sa do 7 obrazoviek nepridávajú, `.hf-dock` ich nesie sám.
 // ════════════════════════════════════════════════════════════════════════════
 
 /** Cesty, kde vrstva NEBEŽÍ (pokladňa a to, čo za ňou nasleduje — rieši ich iný agent). */
-const P3D_VYNIMKY = ['/checkout', '/payment', '/welcome', '/heroglyph/stay', '/heroglyph/welcome'];
+const P3D_VYNIMKY = ['/checkout', '/payment', '/welcome', '/heroglyph/stay'];
 
 export const flowP3dOn = (pathname: string) => !P3D_VYNIMKY.some((p) => pathname.startsWith(p));
 
 const P = 'html[data-flow-p3d]';
-const ROOT = `${P} :is(.dark-bg, .hf-pale)`;
+const WALL = `${P} :is(.dark-bg, .hf-pale)`;
+/** Obrazovky + okná nad nimi (`FlowModal`, textové okno, zodiak) — okná sú v portáli mimo `.hf-pale`. */
+const ROOT = `${P} :is(.dark-bg, .hf-pale, .fm-root, .name-modal-root, .zs-root)`;
 const TXT = ':is(div, span, p, h1, h2, h3, h4, button, input, textarea, select, label, b, strong, i, a, li, small, em)';
 const UI = "'Space Grotesk', sans-serif";
 const MUSEUM = "'LT Museum', serif";
@@ -42,9 +44,16 @@ const WEB_ONLY = APP_NEW ? '' : FIRA_UI_FACES + B3_CSS.replace(/html\.papyrus3d/
 export const FLOW_P3D_CSS = `${WEB_ONLY}
 ${P} body { font-variant-numeric: lining-nums tabular-nums; }
 
-/* ── STENA: jednoliaty papyrus ako appka, bez kresby ───────────────────────── */
-${ROOT} { background: var(--p3d-paper); background-color: var(--p3d-paper); }
-${ROOT}::before { display: none !important; }
+/* ── STENA: jednoliaty papyrus + kresba dole v PRIRODZENOM pomere (žiadne natiahnutie ani zoom) ── */
+${WALL} { background: var(--p3d-paper); background-color: var(--p3d-paper); }
+${WALL}::before {
+  top: auto !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  width: auto !important; height: 46% !important;
+  background-image: var(--bg-light) !important;
+  background-size: contain !important; background-repeat: no-repeat !important; background-position: center bottom !important;
+  filter: none !important; opacity: .12;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 40%); mask-image: linear-gradient(180deg, transparent, #000 40%);
+}
 
 /* ── PÍSMO: telo Fira (Space Grotesk), nadpis / meno / CTA LT Museum Black ──── */
 ${ROOT} ${TXT}:not(.em) { font-family: ${UI} !important; font-weight: 500; }
@@ -67,11 +76,13 @@ ${ROOT} :is([style*="brand-gradient"], .hf-speak) .text-amber-300 {
 }
 ${ROOT} [style*="brand-gradient"] .text-amber-300 { font-family: ${MUSEUM} !important; font-weight: 900; }
 
-/* ── MEDAILÓN: fotka v tmavom obryse so zlatým prstencom ───────────────────── */
-${ROOT} .fm-face {
-  border: 2.5px solid var(--p3d-ink);
-  box-shadow: 0 0 0 2px var(--p3d-gold), 0 5px 0 2px var(--p3d-gold-solid), 0 8px 12px var(--p3d-sh);
+/* ── MEDAILÓN: fotka v tmavom obryse, prstenec = faraónske zlato 3D (jasné žlto-zlaté + spodná pera) ── */
+${WALL} .fm > .fm-ring {
+  display: block !important; position: absolute; inset: -6px; border-radius: 50%;
+  background: linear-gradient(180deg, #FFE27A 0%, #F5C73D 45%, #E69E1A 100%) !important;
+  border: 2.5px solid var(--p3d-ink); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .6), 0 5px 0 var(--p3d-gold-ink), 0 9px 12px var(--p3d-sh);
 }
+${WALL} .fm-face { border: 2.5px solid var(--p3d-ink); box-shadow: none; }
 
 /* ── BUBLINA: karta papyrus 3D (obrys, spodná pera), chvost v tej istej farbe ── */
 ${ROOT} .hf-speak:not(.st-speak) .say {
@@ -161,7 +172,43 @@ ${ROOT} .rv-h1 { font-family: ${MUSEUM} !important; font-weight: 900; text-trans
 ${ROOT} .ch-traits .ch-trait .lb { font-family: ${UI} !important; font-weight: 700; color: var(--p3d-ink); }
 ${ROOT} .ch-traits .ch-trait.on .lb { color: #0A1A4A; }
 
-/* ── PROGRES (FlowProgress v flowRedress.tsx): pilulka s obrysom, zlatá výplň ── */
-${P} .fp-track { height: 8px !important; box-sizing: border-box; border: 2px solid var(--p3d-ink); background: var(--p3d-paper-hi) !important; box-shadow: var(--p3d-inset); }
-${P} .fp-fill { background: linear-gradient(180deg, color-mix(in srgb, #EFD79A 72%, white), var(--p3d-gold)) !important; border-right: 2px solid var(--p3d-ink); box-sizing: border-box; }
-`;
+/* ── VZDUCH A ROZLOŽENIE: obsah na STRED medzi progresom a CTA (margin:auto na dieťati, nie justify-center) ── */
+${WALL} .hf-stage { padding-top: 24px; }
+${WALL} .hf-stage:not(.wl-page) > * { margin-top: 0; margin-bottom: 0; }
+${WALL} .hf-stage:not(.wl-page) > :first-child { margin-top: auto; }
+${WALL} .hf-stage:not(.wl-page) > :last-child { margin-bottom: auto; }
+
+/* ── E-MAIL: veľká fotka v strede, bublina pod ňou ─────────────────────────── */
+${WALL} .hf-stage:has(.hf-skip) .hf-speak:not(.st-speak) { flex-direction: column; align-items: center; gap: 16px; }
+${WALL} .hf-stage:has(.hf-skip) .hf-speak:not(.st-speak) > .fm { width: 120px !important; height: 120px !important; }
+${WALL} .hf-stage:has(.hf-skip) .hf-speak:not(.st-speak) .say { width: 100%; text-align: center; }
+${WALL} .hf-stage:has(.hf-skip) .hf-speak:not(.st-speak) .say::before { left: 50%; top: -11px; margin: 0 0 0 -8px; border: 8px solid transparent; border-top: 0; border-bottom: 9px solid var(--p3d-ink); }
+${WALL} .hf-stage:has(.hf-skip) .hf-speak:not(.st-speak) .say::after { left: 50%; top: -7px; margin: 0 0 0 -7px; border: 7px solid transparent; border-top: 0; border-bottom: 8px solid var(--p3d-paper-hi); }
+
+/* ── INFO IKONKA (i): tmavá, viditeľná na papyruse ───────────────────────── */
+${WALL} button.absolute.top-3.right-3 > span { border-color: var(--p3d-ink); background: var(--p3d-paper-hi); box-shadow: 0 2px 0 var(--p3d-gold-solid); }
+${WALL} button.absolute.top-3.right-3 svg { color: var(--p3d-ink) !important; }
+${WALL} .ow-info { border: 2px solid var(--p3d-ink); color: var(--p3d-ink); background: var(--p3d-paper-hi); box-shadow: 0 2px 0 var(--p3d-gold-solid); }
+${WALL} .ow-info.on { border-color: #16307A; color: #16307A; }
+
+/* ── POLE MENA: bez žiary, NEXT pod poľom na celý riadok ──────────────────── */
+${WALL} :is(.name-preview-wrap, .hf-ring, .hf-field-wrap) { box-shadow: none !important; }
+${WALL} :is(.name-preview-wrap, .hf-ring)::before, ${WALL} :is(.name-preview-wrap, .hf-ring)::after { display: none !important; }
+${WALL} .nm-row { flex-direction: column; align-items: stretch; gap: 12px; }
+${WALL} .nm-row .name-preview-wrap { flex: 0 0 auto !important; width: 100%; }
+${WALL} .nm-row .nm-next { width: 100%; min-height: 44px; }
+
+/* ── OKNÁ NAD OBRAZOVKOU (FlowModal, textové okno, zodiak, viac info): karta papyrus 3D, zarovnané na stred ── */
+${P} :is(.fm-card, .name-modal-card, .zs-card) {
+  background: var(--p3d-card); border: 2.5px solid var(--p3d-ink); border-radius: 16px;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55), 0 6px 0 var(--p3d-gold-ink), 0 14px 24px var(--p3d-sh);
+}
+${P} :is(.fm-card, .name-modal-card, .zs-card) :is(h1, h2, h3, p, .mi-eye, .mi-text, .fp-head, .zs-title, .name-modal-title) { text-align: center; }
+${P} :is(.fm-card, .name-modal-card, .zs-card) :is(h1, h2, h3, .mi-text h3, .ow-egypt-h, .fp-head, .zs-title, .name-modal-title, .mi-money b) {
+  font-family: ${MUSEUM} !important; font-weight: 900; text-transform: none; letter-spacing: .01em; color: var(--p3d-ink);
+}
+${P} .fm-card :is(.mi-close, .name-modal-done, .zs-switch) { align-self: stretch; }
+
+/* ── PROGRES (FlowProgress v flowRedress.tsx): hrubá pilulka s obrysom, zlatá výplň ── */
+${P} .fp-track { height: 16px !important; box-sizing: border-box; border: 2.5px solid var(--p3d-ink); background: var(--p3d-paper-hi) !important; box-shadow: var(--p3d-inset), 0 3px 0 var(--p3d-gold-solid); }
+${P} .fp-fill { background: linear-gradient(180deg, #FFE27A 0%, #F5C73D 50%, #E69E1A 100%) !important; border-right: 2.5px solid var(--p3d-ink); box-sizing: border-box; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55); }
