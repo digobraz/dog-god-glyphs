@@ -490,7 +490,7 @@ export const fra: Partial<Dict> = {
     'Et c’est ainsi qu’est né le Heroglyph — un symbole destiné à unir les amoureux des chiens du monde entier dans la plus grande communauté que le monde ait jamais connue. Une communauté qui se dressera pour nous, pour nos chiens et pour les générations à venir — pour ceux qui n’ont pas peur d’admettre qu’un chien n’est pas seulement un animal, mais un être qui nous rend meilleurs.',
   'about.crawl.p5':
     'En ce moment même, le voyage vers le premier jalon commence — créer 1 000 000 de Heroglyphs. Et tu peux en faire partie. Car les seuls assez fous pour croire qu’ils peuvent changer le monde sont ceux qui le font.',
-  'about.crawl.p6': 'Nous croyons au chien.',
+  'about.crawl.p6': "Nous croyons au chien.",
 
   // ── /about — timeline (5 milestones) ──
   'about.timeline.heading': 'L’Histoire de Dogypt',
@@ -955,12 +955,12 @@ export const fra: Partial<Dict> = {
   "login.recovery.submit": "Définir le nouveau mot de passe",
   "login.recovery.submitting": "Enregistrement…",
   "login.recovery.success": "Mot de passe mis à jour — connexion en cours…",
-  "religion.preamble.headlineGrad": "Nous Croyons",
-  "religion.preamble.headlineLine": "Au Chien",
+  "religion.preamble.headlineGrad": "au chien",
+  "religion.preamble.headlineLine": "Nous croyons",
   "religion.book.titleThe": "La",
   "religion.book.titleBrand": "Dogypt",
   "religion.book.titleConstitution": "Constitution",
-  "religion.book.trust": "Nous Croyons au Chien",
+  "religion.book.trust": "Nous croyons au chien",
   "payment.transparency.title": "100 % Transparence",
   "payment.transparency.hint": "Touchez une catégorie pour voir les détails.",
   "payment.transparency.eyebrow": "Où va l’argent ?",
@@ -975,7 +975,7 @@ export const fra: Partial<Dict> = {
   "transparency.part.directHelp.note": "Droit aux chiens dans le besoin — refuges, nourriture, frais vétérinaires et missions de sauvetage. Aucun intermédiaire, aucuns frais de fonctionnement : cette part va là où est la souffrance, et chaque centime est documenté, justifié et rendu public pour toute la meute.",
   "transparency.part.hekthorBowl.note": "Le chien fondateur qui a tout déclenché. Cette part est une récompense transparente pour Hekthor et son humain — tout simplement leur salaire. Leur objectif : devenir millionnaires — un million de chiens dans la meute. Sans Hekthor, DOGYPT n’aurait jamais existé — cette gamelle est un merci.",
   "legal.eyebrow": "DOGYPT · Mentions légales",
-  "legal.motto": "DOGYPT · Nous Croyons au Chien",
+  "legal.motto": "DOGYPT · Nous croyons au chien",
   "about.council.formTitle": "Rejoindre la Mission",
   "about.council.consent": "En soumettant ce formulaire, j'accepte de recevoir des e-mails de DOGYPT — pas de pub, juste la mobilisation de la meute et la communication.",
   "about.footer.motto": "Nous croyons au chien.",
@@ -1451,7 +1451,7 @@ export const fra: Partial<Dict> = {
   'heroglyph.sales.transparency.tribute': 'Ton entrée — €11, une seule fois',
   'heroglyph.sales.transparency.footer': 'Chaque euro reste à la vue de tous, visible par chaque membre. Tu ne paies pas une entreprise — tu nourris la meute.',
   'entry.declare.eyebrow': 'Par la présente, je déclare',
-  'entry.title': 'Au Chien je crois',
+  'entry.title': "Je crois au chien",
   'entry.subtitle': 'Ce n’est pas une plaisanterie. Toute religion sérieuse doit déclarer ces choses.',
   'entry.criteria.theology.title': 'Théologie',
   'entry.criteria.theology.body': 'Meilleur ami, gardien, professeur, partenaire de chaque aventure. Le chien donne son amour sans conditions — et marcher à ses côtés nous rend plus humains.',
@@ -5336,7 +5336,7 @@ export const fra: Partial<Dict> = {
   'wall.photo.change': "Changer la photo",
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
-  'religion.preamble.headlineVerbFirst': '',
+  'religion.preamble.headlineVerbFirst': "1",
   'heroglyph.flow.breed.required': "Choisis une race ou indique croisé",
   'heroglyph.flow.breed.own': "Utiliser « {name} »",
   'dogPage.statusLbl': "Statut",

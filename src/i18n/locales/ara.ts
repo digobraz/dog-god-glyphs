@@ -487,8 +487,8 @@ export const ara: Partial<Dict> = {
   "religion.aria.preamble": "الديباجة",
   "religion.aria.sacredIndex": "الفهرس المقدس",
   "religion.aria.scrollDown": "انتقل للأسفل",
-  "religion.preamble.headlineGrad": "نؤمن",
-  "religion.preamble.headlineLine": "بالكلب",
+  "religion.preamble.headlineGrad": "بالكلب",
+  "religion.preamble.headlineLine": "نؤمن",
   "religion.preamble.text": "نحن، أمة محبّي الكلاب — إذ نعلم بـ<strong>الولاء اللانهائي</strong> و<strong>الحب الحقيقي</strong> و<strong>الروح النقية</strong> لكل كلب على وجه الأرض — سعياً لرفع مكانة الكلاب في المجتمع البشري، وبناء <strong>مجتمع</strong> لهم، و<strong>تحسين</strong> حياتهم، و<strong>إعادة كتابة</strong> مصير كل كلب محتاج، نمنح أنفسنا هذا الدستور.",
   "religion.preamble.oath": "قَسَم القطيع",
   "religion.bookTitle": "\"الكتاب المقدس\" لمحبّي الكلاب",
@@ -1262,7 +1262,7 @@ export const ara: Partial<Dict> = {
   "heroglyph.sales.transparency.tribute": "دخولك — €11، تُدفع مرة واحدة",
   "heroglyph.sales.transparency.footer": "كل يورو يبقى في العلن، ليراه كل عضو. أنت لا تدفع لشركة — بل تُطعم القطيع.",
   "entry.declare.eyebrow": "أُعلن بموجب هذا",
-  "entry.title": "نؤمن بالكلب",
+  "entry.title": "أؤمن بالكلب",
   "entry.subtitle": "هذه ليست مزحة. كل دينٍ جادّ عليه أن يُعلن هذه الأمور.",
   "entry.criteria.theology.title": "اللاهوت",
   "entry.criteria.theology.body": "أعزّ صديق، وحارس، ومعلّم، ورفيق في كل مغامرة. الكلب يمنح الحب بلا شروط — والسير بجانبه يجعلنا أكثر إنسانية.",
@@ -5147,7 +5147,7 @@ export const ara: Partial<Dict> = {
   'wall.photo.change': "غيّر الصورة",
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
-  'religion.preamble.headlineVerbFirst': '',
+  'religion.preamble.headlineVerbFirst': "1",
   'heroglyph.flow.breed.required': "اختر سلالة أو حدّد أنه هجين",
   'heroglyph.flow.breed.own': "استخدم «{name}»",
   'dogPage.statusLbl': "الحالة",

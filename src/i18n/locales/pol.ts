@@ -477,7 +477,7 @@ export const pol: Partial<Dict> = {
     'I tak narodził się Heroglyph — symbol, który ma zjednoczyć miłośników psów na całym świecie w największą społeczność, jaką świat kiedykolwiek znał. Społeczność, która stanie za nami, za naszymi psami i za pokoleniami, które przyjdą — za ludźmi, którzy nie boją się przyznać, że pies to nie tylko zwierzę, ale istota, która czyni nas lepszymi ludźmi.',
   'about.crawl.p5':
     'Właśnie teraz zaczyna się droga do pierwszego kamienia milowego — stworzyć 1 000 000 Heroglyphów. A ty możesz być przy tym. Bo świat zmieniają tylko ci, którzy są na tyle szaleni, by wierzyć, że potrafią.',
-  'about.crawl.p6': 'Wierzymy w psa.',
+  'about.crawl.p6': "Wierzymy w psa.",
 
   // ── /about — timeline (5 míľnikov) ──
   'about.timeline.heading': 'Historia Dogypt',
@@ -938,8 +938,8 @@ export const pol: Partial<Dict> = {
   "login.recovery.submit": "Ustaw nowe hasło",
   "login.recovery.submitting": "Zapisywanie…",
   "login.recovery.success": "Hasło zaktualizowane — logowanie…",
-  "religion.preamble.headlineGrad": "Wierzymy",
-  "religion.preamble.headlineLine": "w psa",
+  "religion.preamble.headlineGrad": "w psa",
+  "religion.preamble.headlineLine": "Wierzymy",
   "religion.book.titleThe": "The",
   "religion.book.titleBrand": "Dogypt",
   "religion.book.titleConstitution": "Constitution",
@@ -1434,7 +1434,7 @@ export const pol: Partial<Dict> = {
   'heroglyph.sales.transparency.tribute': 'Twoje wejście — €11, raz',
   'heroglyph.sales.transparency.footer': 'Każde euro pozostaje jawne, na oczach każdego członka. Nie płacisz firmie — karmisz sforę.',
   'entry.declare.eyebrow': 'Niniejszym oświadczam',
-  'entry.title': 'In Dog I Trust',
+  'entry.title': "Wierzę w psa",
   'entry.subtitle': 'To nie żart. Każda poważna religia musi zadeklarować te rzeczy.',
   'entry.criteria.theology.title': 'Teologia',
   'entry.criteria.theology.body': 'Najlepszy przyjaciel, strażnik, nauczyciel, towarzysz każdej przygody. Pies daje miłość bez warunków — a idąc u jego boku, stajemy się bardziej ludzcy.',
@@ -5319,7 +5319,7 @@ export const pol: Partial<Dict> = {
   'wall.photo.change': "Zmień zdjęcie",
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
-  'religion.preamble.headlineVerbFirst': '',
+  'religion.preamble.headlineVerbFirst': "1",
   'heroglyph.flow.breed.required': "Wybierz rasę lub zaznacz mieszańca",
   'heroglyph.flow.breed.own': "Użyj „{name}”",
   'dogPage.statusLbl': "Status",

@@ -1934,7 +1934,7 @@ export const cs: Partial<Dict> = {
   "heroglyph.sales.transparency.tribute": "Tvůj vstup — €11, jednou",
   "heroglyph.sales.transparency.footer": "Každé euro zůstává na očích, aby ho viděl každý člen. Neplatíš firmě — sytíš smečku.",
   "entry.declare.eyebrow": "Tímto prohlašuji",
-  "entry.title": "In Dog I Trust",
+  "entry.title": "Věřím ve psa",
   "entry.subtitle": "Tohle není vtip. Každé vážně míněné náboženství musí tyhle věci prohlásit.",
   "entry.criteria.theology.title": "Teologie",
   "entry.criteria.theology.body": "Nejlepší přítel, ochránce, učitel, parťák v každém dobrodružství. Pes dává lásku bez podmínek — a když jdeme po jeho boku, stáváme se lidštějšími.",

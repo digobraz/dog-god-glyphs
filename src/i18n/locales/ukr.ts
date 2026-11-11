@@ -488,7 +488,7 @@ export const ukr: Partial<Dict> = {
     'І так народився Heroglyph — символ, покликаний об\'єднати любителів собак усюди в найбільшу спільноту, яку коли-небудь знав світ. Спільноту, що стане за нас, за наших псів і за прийдешні покоління — за людей, які не бояться визнати, що пес — це не просто тварина, а істота, яка робить нас кращими людьми.',
   'about.crawl.p5':
     'Прямо зараз починається подорож до першого рубежу — створити 1 000 000 Heroglyph. І ти можеш бути частиною цього. Бо лише ті, хто достатньо божевільний, щоб вірити, що може змінити світ, його справді змінюють.',
-  'about.crawl.p6': 'Віримо в пса.',
+  'about.crawl.p6': "Віримо в пса.",
 
   // ── /about — timeline (5 milestones) ──
   'about.timeline.heading': 'Історія Dogypt',
@@ -615,7 +615,7 @@ export const ukr: Partial<Dict> = {
   'whatNext.close': 'Закрити',
   'whatNext.prev': "Назад",
   'whatNext.next': "Далі",
-  'whatNext.motto': "На пса уповаємо.",
+  'whatNext.motto': "Віримо в пса.",
   'whatNext.s1.title': 'Перший Крок',
   'whatNext.s1.hook': 'Один малий крок для людини — один гігантський стрибок для псячого роду.',
   'whatNext.s1.body': 'Твій Heroglyph щойно проголосив тебе частиною руху, що шанує псів по всьому світу. <b>Перший крок зроблено.</b>',
@@ -954,12 +954,12 @@ export const ukr: Partial<Dict> = {
   "login.recovery.submit": "Встановити новий пароль",
   "login.recovery.submitting": "Збереження…",
   "login.recovery.success": "Пароль оновлено — виконується вхід…",
-  "religion.preamble.headlineGrad": "На Пса",
-  "religion.preamble.headlineLine": "Уповаємо",
+  "religion.preamble.headlineGrad": "в пса",
+  "religion.preamble.headlineLine": "Віримо",
   "religion.book.titleThe": "The",
   "religion.book.titleBrand": "Dogypt",
   "religion.book.titleConstitution": "Constitution",
-  "religion.book.trust": "На Пса Уповаємо",
+  "religion.book.trust": "Віримо в пса",
   "payment.transparency.title": "100% Прозорість",
   "payment.transparency.hint": "Натисни на категорію, щоб дізнатися деталі.",
   "payment.transparency.eyebrow": "Куди йдуть гроші?",
@@ -974,10 +974,10 @@ export const ukr: Partial<Dict> = {
   "transparency.part.directHelp.note": "Прямо до псів у біді — притулки, корм, ветеринарні рахунки та рятувальні місії. Жодних посередників, жодних накладних витрат: ця частка йде туди, де є страждання, і кожен цент задокументований, підтверджений квитанцією та відкритий для всієї зграї.",
   "transparency.part.hekthorBowl.note": "Пес-засновник, який усе це почав. Ця частка — прозора винагорода для Hekthor і його господаря, просто їхня зарплата. Їхня мета — стати мільйонерами: мільйон псів у зграї. Без Hekthor DOGYPT ніколи б не з'явився — ця миска і є подяка.",
   "legal.eyebrow": "DOGYPT · Legal",
-  "legal.motto": "DOGYPT · На Пса Уповаємо",
+  "legal.motto": "DOGYPT · Віримо в пса",
   "about.council.formTitle": "Долучитися до місії",
   "about.council.consent": "Надсилаючи форму, я погоджуюся отримувати листи від DOGYPT — без реклами, лише мобілізація зграї та комунікація.",
-  "about.footer.motto": "На пса уповаємо.",
+  "about.footer.motto": "Віримо в пса.",
 
   // ── PACK (klientská zóna) i18n — 2026-06-24 ──
   // pack.dog
@@ -1450,7 +1450,7 @@ export const ukr: Partial<Dict> = {
   "heroglyph.sales.transparency.tribute": "Твій вхід — €11, один раз",
   "heroglyph.sales.transparency.footer": "Кожне євро залишається на видноті, доступне кожному членові. Ти платиш не компанії — ти годуєш зграю.",
   "entry.declare.eyebrow": "Цим я проголошую",
-  "entry.title": "На Пса Уповаю",
+  "entry.title": "Вірю в пса",
   "entry.subtitle": "Це не жарт. Кожна серйозна релігія мусить проголосити ці речі.",
   "entry.criteria.theology.title": "Теологія",
   "entry.criteria.theology.body": "Найкращий друг, охоронець, учитель, партнер у кожній пригоді. Пес дарує любов без умов — а йдучи поруч із ним, ми стаємо людянішими.",
@@ -5335,7 +5335,7 @@ export const ukr: Partial<Dict> = {
   'wall.photo.change': "Змінити фото",
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
-  'religion.preamble.headlineVerbFirst': '',
+  'religion.preamble.headlineVerbFirst': "1",
   'heroglyph.flow.breed.required': "Обери породу або познач метиса",
   'heroglyph.flow.breed.own': "Використати «{name}»",
   'dogPage.statusLbl': "Статус",

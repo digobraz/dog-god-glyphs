@@ -488,7 +488,7 @@ export const ita: Partial<Dict> = {
     'E così nacque l\'Heroglyph — un simbolo destinato a unire gli amanti dei cani di ogni dove nella più grande comunità che il mondo abbia mai conosciuto. Una comunità che starà al nostro fianco, per i nostri cani e per le generazioni a venire — per le persone che non hanno paura di ammettere che un cane non è solo un animale, ma un essere che ci rende esseri umani migliori.',
   'about.crawl.p5':
     'Proprio ora inizia il viaggio verso il primo traguardo — creare 1 000 000 di Heroglyph. E tu puoi farne parte. Perché gli unici abbastanza folli da credere di poter cambiare il mondo sono quelli che lo fanno.',
-  'about.crawl.p6': 'Crediamo nel cane.',
+  'about.crawl.p6': "Crediamo nel cane.",
 
   // ── /about — timeline (5 milestones) ──
   'about.timeline.heading': 'La Storia di Dogypt',
@@ -617,7 +617,7 @@ export const ita: Partial<Dict> = {
   'whatNext.close': 'Chiudi',
   'whatNext.prev': "Indietro",
   'whatNext.next': "Avanti",
-  'whatNext.motto': "In cane noi confidiamo.",
+  'whatNext.motto': "Crediamo nel cane.",
   'whatNext.s1.title': 'Il Primo Passo',
   'whatNext.s1.hook': 'Un piccolo passo per un umano — un balzo gigante per il mondo dei cani.',
   'whatNext.s1.body': 'Il tuo Heroglyph ti ha appena dichiarato parte di un movimento che onora i cani nel mondo intero. <b>Il primo passo è fatto.</b>',
@@ -954,12 +954,12 @@ export const ita: Partial<Dict> = {
   "login.recovery.submit": "Imposta nuova password",
   "login.recovery.submitting": "Salvataggio…",
   "login.recovery.success": "Password aggiornata — accesso in corso…",
-  "religion.preamble.headlineGrad": "In Cane",
-  "religion.preamble.headlineLine": "Noi Confidiamo",
+  "religion.preamble.headlineGrad": "nel cane",
+  "religion.preamble.headlineLine": "Crediamo",
   "religion.book.titleThe": "La",
   "religion.book.titleBrand": "Dogypt",
   "religion.book.titleConstitution": "Costituzione",
-  "religion.book.trust": "In Cane Noi Confidiamo",
+  "religion.book.trust": "Crediamo nel cane",
   "payment.transparency.title": "100% Trasparenza",
   "payment.transparency.hint": "Tocca una categoria per i dettagli.",
   "payment.transparency.eyebrow": "Dove vanno i soldi?",
@@ -974,10 +974,10 @@ export const ita: Partial<Dict> = {
   "transparency.part.directHelp.note": "Dritto ai cani in difficoltà — canili, cibo, spese veterinarie e missioni di salvataggio. Niente intermediari, niente costi di gestione: questa quota va dove c'è la sofferenza, e ogni singolo centesimo è documentato, con ricevuta, e reso pubblico perché tutto il branco lo veda.",
   "transparency.part.hekthorBowl.note": "Il cane fondatore che ha dato inizio a tutto. Questa quota è una ricompensa trasparente per Hekthor e il suo padrone — semplicemente il loro stipendio. Il loro obiettivo è diventare milionari — un milione di cani nel branco. Senza Hekthor, DOGYPT non sarebbe mai esistito — questa ciotola è un grazie.",
   "legal.eyebrow": "DOGYPT · Legale",
-  "legal.motto": "DOGYPT · In CANE Noi Confidiamo",
+  "legal.motto": "DOGYPT · Crediamo nel cane",
   "about.council.formTitle": "Unisciti alla Missione",
   "about.council.consent": "Inviando, accetto di ricevere email da DOGYPT — nessuna pubblicità, solo mobilitazione del branco e comunicazioni.",
-  "about.footer.motto": "In cane noi confidiamo.",
+  "about.footer.motto": "Crediamo nel cane.",
 
   // ── PACK (klientská zóna) i18n — 2026-06-24 ──
   // pack.dog
@@ -1450,7 +1450,7 @@ export const ita: Partial<Dict> = {
   'heroglyph.sales.transparency.tribute': 'Il tuo ingresso — €11, una volta sola',
   'heroglyph.sales.transparency.footer': 'Ogni euro resta alla luce del sole, visibile a ogni membro. Non paghi un\'azienda — nutri il branco.',
   'entry.declare.eyebrow': 'Con la presente dichiaro',
-  'entry.title': 'In cane io confido',
+  'entry.title': "Credo nel cane",
   'entry.subtitle': 'Non è uno scherzo. Ogni religione seria deve dichiarare queste cose.',
   'entry.criteria.theology.title': 'Teologia',
   'entry.criteria.theology.body': 'Migliore amico, guardiano, maestro, compagno in ogni avventura. Il cane dona amore senza condizioni — e camminargli accanto ci rende più umani.',
@@ -5335,7 +5335,7 @@ export const ita: Partial<Dict> = {
   'wall.photo.change': "Cambia foto",
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
-  'religion.preamble.headlineVerbFirst': '',
+  'religion.preamble.headlineVerbFirst': "1",
   'heroglyph.flow.breed.required': "Scegli una razza o indica meticcio",
   'heroglyph.flow.breed.own': "Usa «{name}»",
   'dogPage.statusLbl': "Status",

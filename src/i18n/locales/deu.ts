@@ -488,7 +488,7 @@ export const deu: Partial<Dict> = {
     'Und so wurde der Heroglyph geboren — ein Symbol, das Hundeliebhaber überall zur größten Gemeinschaft vereinen soll, die die Welt je gekannt hat. Eine Gemeinschaft, die für uns, für unsere Hunde und für die kommenden Generationen einsteht — für Menschen, die sich nicht scheuen zuzugeben, dass ein Hund nicht nur ein Tier ist, sondern ein Wesen, das uns zu besseren Menschen macht.',
   'about.crawl.p5':
     'Genau jetzt beginnt die Reise zum ersten Meilenstein — 1 000 000 Heroglyphs zu erschaffen. Und du kannst ein Teil davon sein. Denn die Einzigen, die verrückt genug sind zu glauben, sie könnten die Welt verändern, sind diejenigen, die es tun.',
-  'about.crawl.p6': 'Wir glauben an den Hund.',
+  'about.crawl.p6': "Wir glauben an den Hund.",
 
   // ── /about — timeline (5 milestones) ──
   'about.timeline.heading': 'Die Geschichte von Dogypt',
@@ -963,8 +963,8 @@ export const deu: Partial<Dict> = {
   "login.recovery.submit": "Neues Passwort festlegen",
   "login.recovery.submitting": "Wird gespeichert…",
   "login.recovery.success": "Passwort aktualisiert — du wirst angemeldet…",
-  "religion.preamble.headlineGrad": "Wir glauben",
-  "religion.preamble.headlineLine": "an den Hund",
+  "religion.preamble.headlineGrad": "an den Hund",
+  "religion.preamble.headlineLine": "Wir glauben",
   "religion.book.titleThe": "Die",
   "religion.book.titleBrand": "Dogypt",
   "religion.book.titleConstitution": "Verfassung",
@@ -1459,7 +1459,7 @@ export const deu: Partial<Dict> = {
   'heroglyph.sales.transparency.tribute': 'Dein Eintritt — €11, einmalig',
   'heroglyph.sales.transparency.footer': 'Jeder Euro bleibt sichtbar, für jedes Mitglied einsehbar. Du bezahlst kein Unternehmen — du nährst das Rudel.',
   'entry.declare.eyebrow': 'Hiermit erkläre ich',
-  'entry.title': 'In Dog I Trust',
+  'entry.title': "Ich glaube an den Hund",
   'entry.subtitle': 'Das ist kein Scherz. Jede ernsthafte Religion muss diese Dinge erklären.',
   'entry.criteria.theology.title': 'Theologie',
   'entry.criteria.theology.body': 'Bester Freund, Wächter, Lehrer, Partner in jedem Abenteuer. Der Hund schenkt Liebe ohne Bedingungen — und an seiner Seite zu gehen macht uns menschlicher.',
@@ -5344,7 +5344,7 @@ export const deu: Partial<Dict> = {
   'wall.photo.change': "Foto ändern",
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
-  'religion.preamble.headlineVerbFirst': '',
+  'religion.preamble.headlineVerbFirst': "1",
   "heroglyph.flow.dogs.continueOne": "Mit einem Hund weiter",
   "heroglyph.flow.dogs.laterNote": "Weitere Hunde kannst du jederzeit später zu deinem Rudel hinzufügen.",
   "heroglyph.invite.title": "Das Gesicht deines Hundes",

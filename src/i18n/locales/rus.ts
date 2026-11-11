@@ -477,7 +477,7 @@ export const rus: Partial<Dict> = {
     'Так родился Heroglyph — символ, призванный объединить любителей собак по всему миру в крупнейшее сообщество, какое когда-либо знал мир. Сообщество, которое встанет за нас, за наших собак и за грядущие поколения — за людей, не боящихся признать, что собака — не просто животное, а существо, делающее нас лучшими людьми.',
   'about.crawl.p5':
     'Прямо сейчас начинается путь к первой вехе — создать 1 000 000 Heroglyph. И ты можешь стать его частью. Ведь изменить мир способны лишь те, кто достаточно безумен, чтобы верить, что им это под силу.',
-  'about.crawl.p6': 'Верим в пса.',
+  'about.crawl.p6': "Верим в пса.",
 
   // ── /about — timeline (5 míľnikov) ──
   'about.timeline.heading': 'История Dogypt',
@@ -936,8 +936,8 @@ export const rus: Partial<Dict> = {
   "login.recovery.submit": "Задать новый пароль",
   "login.recovery.submitting": "Сохраняем…",
   "login.recovery.success": "Пароль обновлён — выполняем вход…",
-  "religion.preamble.headlineGrad": "Верим",
-  "religion.preamble.headlineLine": "в пса",
+  "religion.preamble.headlineGrad": "в пса",
+  "religion.preamble.headlineLine": "Верим",
   "religion.book.titleThe": "The",
   "religion.book.titleBrand": "Dogypt",
   "religion.book.titleConstitution": "Constitution",
@@ -1432,7 +1432,7 @@ export const rus: Partial<Dict> = {
   'heroglyph.sales.transparency.tribute': 'Твой вход — €11, один раз',
   'heroglyph.sales.transparency.footer': 'Каждый евро остаётся на виду, чтобы каждый участник мог его видеть. Ты платишь не компании — ты кормишь стаю.',
   'entry.declare.eyebrow': 'Настоящим заявляю',
-  'entry.title': 'Верю в пса',
+  'entry.title': "Верю в пса",
   'entry.subtitle': 'Это не шутка. Каждая серьёзная религия обязана заявить об этом.',
   'entry.criteria.theology.title': 'Богословие',
   'entry.criteria.theology.body': 'Лучший друг, защитник, учитель, спутник в каждом приключении. Собака дарит любовь без условий — и, идя рядом с ней, мы становимся человечнее.',
@@ -5317,7 +5317,7 @@ export const rus: Partial<Dict> = {
   'wall.photo.change': "Сменить фото",
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
-  'religion.preamble.headlineVerbFirst': '',
+  'religion.preamble.headlineVerbFirst': "1",
   'heroglyph.flow.breed.required': "Выбери породу или отметь метиса",
   'heroglyph.flow.breed.own': "Использовать «{name}»",
   'dogPage.statusLbl': "Статус",

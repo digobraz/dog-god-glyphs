@@ -488,7 +488,7 @@ export const esp: Partial<Dict> = {
     'Y así nació el Heroglyph — un símbolo destinado a unir a los amantes de los perros de todas partes en la mayor comunidad que el mundo haya conocido jamás. Una comunidad que estará por nosotros, por nuestros perros y por las generaciones venideras — por personas que no temen admitir que un perro no es solo un animal, sino un ser que nos hace mejores seres humanos.',
   'about.crawl.p5':
     'Ahora mismo comienza el camino hacia el primer hito — crear 1 000 000 de Heroglyphs. Y tú puedes ser parte de ello. Porque los únicos lo bastante locos para creer que pueden cambiar el mundo son los que lo cambian.',
-  'about.crawl.p6': 'Creemos en el perro.',
+  'about.crawl.p6': "Creemos en el perro.",
 
   // ── /about — timeline (5 milestones) ──
   'about.timeline.heading': 'La Historia de Dogypt',
@@ -617,7 +617,7 @@ export const esp: Partial<Dict> = {
   'whatNext.close': 'Cerrar',
   'whatNext.prev': "Anterior",
   'whatNext.next': "Siguiente",
-  'whatNext.motto': "En perro confiamos.",
+  'whatNext.motto': "Creemos en el perro.",
   'whatNext.s1.title': 'El Primer Paso',
   'whatNext.s1.hook': 'Un pequeño paso para un humano — un salto gigante para la especie canina.',
   'whatNext.s1.body': 'Tu Heroglyph te ha declarado parte de un movimiento que honra a los perros en todo el mundo. <b>El primer paso está hecho.</b>',
@@ -955,12 +955,12 @@ export const esp: Partial<Dict> = {
   "login.recovery.submit": "Establecer nueva contraseña",
   "login.recovery.submitting": "Guardando…",
   "login.recovery.success": "Contraseña actualizada — iniciando sesión…",
-  "religion.preamble.headlineGrad": "En Perro",
-  "religion.preamble.headlineLine": "Confiamos",
+  "religion.preamble.headlineGrad": "en el perro",
+  "religion.preamble.headlineLine": "Creemos",
   "religion.book.titleThe": "La",
   "religion.book.titleBrand": "Dogypt",
   "religion.book.titleConstitution": "Constitución",
-  "religion.book.trust": "En Perro Confiamos",
+  "religion.book.trust": "Creemos en el perro",
   "payment.transparency.title": "100% Transparencia",
   "payment.transparency.hint": "Toca una categoría para ver los detalles.",
   "payment.transparency.eyebrow": "¿Adónde va el dinero?",
@@ -975,10 +975,10 @@ export const esp: Partial<Dict> = {
   "transparency.part.directHelp.note": "Directo a los perros necesitados — refugios, comida, facturas del veterinario y misiones de rescate. Sin intermediarios, sin gastos de gestión: esta parte va donde está el sufrimiento, y cada céntimo queda documentado, con su recibo y a la vista de toda la jauría.",
   "transparency.part.hekthorBowl.note": "El perro fundador que lo empezó todo. Esta parte es una recompensa transparente para Hekthor y su dueño — simplemente su sueldo. Su meta es hacerse millonarios — un millón de perros en la jauría. Sin Hekthor, DOGYPT nunca habría existido — este cuenco es un agradecimiento.",
   "legal.eyebrow": "DOGYPT · Legal",
-  "legal.motto": "DOGYPT · En Perro Confiamos",
+  "legal.motto": "DOGYPT · Creemos en el perro",
   "about.council.formTitle": "Únete a la Misión",
   "about.council.consent": "Al enviar, acepto recibir correos de DOGYPT — sin anuncios, solo movilización de la jauría y comunicación.",
-  "about.footer.motto": "En perro confiamos.",
+  "about.footer.motto": "Creemos en el perro.",
 
   // ── PACK (klientská zóna) i18n — 2026-06-24 ──
   // pack.dog
@@ -1451,7 +1451,7 @@ export const esp: Partial<Dict> = {
   'heroglyph.sales.transparency.tribute': 'Tu entrada — €11, una sola vez',
   'heroglyph.sales.transparency.footer': 'Cada euro queda a la vista, para que todo miembro lo vea. No pagas a una empresa — alimentas a la jauría.',
   'entry.declare.eyebrow': 'Por la presente declaro',
-  'entry.title': 'En el perro confío',
+  'entry.title': "Creo en el perro",
   'entry.subtitle': 'Esto no es una broma. Toda religión seria debe declarar estas cosas.',
   'entry.criteria.theology.title': 'Teología',
   'entry.criteria.theology.body': 'Mejor amigo, guardián, maestro, compañero en cada aventura. El perro da amor sin condiciones — y caminar a su lado nos hace más humanos.',
@@ -5336,7 +5336,7 @@ export const esp: Partial<Dict> = {
   'wall.photo.change': "Cambiar foto",
 
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
-  'religion.preamble.headlineVerbFirst': '',
+  'religion.preamble.headlineVerbFirst': "1",
   'heroglyph.flow.breed.required': "Elige una raza o marca mestizo",
   'heroglyph.flow.breed.own': "Usar «{name}»",
   'dogPage.statusLbl': "Estado",
