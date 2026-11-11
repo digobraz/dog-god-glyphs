@@ -9,6 +9,7 @@ import { FLOW_WALL_IMAGE, FLOW_WALL_VEIL } from '@/components/screens/flowPaleSk
 import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { prefetchFlowStep } from '@/lib/flowPrefetch';
 import { FLOW_FULL, FLOW_FULL_CSS, FLOW_PROGRESS_FILL } from '@/components/screens/flowFullSkin';
+import { FLOW_P3D_CSS, flowP3dOn } from '@/components/screens/flowP3dSkin';
 
 // ════════════════════════════════════════════════════════════════════════════
 // PREZLEČENIE STARÝCH OBRAZOVIEK VSTUPU (31. 8. 2026)
@@ -408,10 +409,13 @@ export function FlowRedress() {
     // Celá obrazovka (7. 11. 2026): vrstva `flowFullSkin.ts` nad bledým šatom.
     if (onFlow && skin === 'pale' && FLOW_FULL) root.dataset.flowFull = '1';
     else delete root.dataset.flowFull;
+    // Šat Papyrus 3D (11. 11. 2026, `flowP3dSkin.ts`): len na obrazovkách vstupu, nie na pokladni.
+    if (onFlow && skin === 'pale' && FLOW_FULL && flowP3dOn(pathname)) root.dataset.flowP3d = '1';
+    else delete root.dataset.flowP3d;
     // Odchod z routy MUSÍ atribút zložiť — inak prezlečenie ostane visieť
     // na ďalšej stránke, ktorá `.dark-bg` používa na niečo iné.
-    return () => { delete root.dataset.flowSkin; delete root.dataset.flowFull; };
-  }, [onFlow, skin]);
+    return () => { delete root.dataset.flowSkin; delete root.dataset.flowFull; delete root.dataset.flowP3d; };
+  }, [onFlow, skin, pathname]);
 
   // Krok N si na pozadí stiahne kód aj ksicht kroku N+1 (`lib/flowPrefetch.ts`).
   // Za odhalením nasleduje pokladňa, ktorá v poradí pruhu nie je.
@@ -424,7 +428,7 @@ export function FlowRedress() {
   if (!onFlow) return null;
   return (
     <>
-      <style>{REDRESS_CSS + FLOW_MEDAL_CSS + (FLOW_FULL ? FLOW_FULL_CSS : '')}</style>
+      <style>{REDRESS_CSS + FLOW_MEDAL_CSS + (FLOW_FULL ? FLOW_FULL_CSS + FLOW_P3D_CSS : '')}</style>
       {skin === 'pale' && <FlowProgress pathname={pathname} />}
     </>
   );
@@ -539,8 +543,9 @@ function FlowProgress({ pathname }: { pathname: string }) {
         ...(FLOW_FULL ? { left: 'max(16px, calc(50% - 320px))', right: 'max(16px, calc(50% - 320px))', paddingTop: 8 } : {}),
       }}
     >
-      <div style={{ height: 6, background: 'rgba(201,154,63,0.38)', ...(FLOW_FULL ? { borderRadius: 999, overflow: 'hidden' } : {}) }}>
+      <div className="fp-track" style={{ height: 6, background: 'rgba(201,154,63,0.38)', ...(FLOW_FULL ? { borderRadius: 999, overflow: 'hidden' } : {}) }}>
         <div
+          className="fp-fill"
           style={{
             height: '100%', width: `${pct}%`,
             background: FLOW_FULL ? FLOW_PROGRESS_FILL : LAPIS.grad,
