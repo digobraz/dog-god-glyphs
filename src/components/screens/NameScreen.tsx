@@ -255,19 +255,10 @@ export function NameScreen() {
     if (i === step) return 'todo';
     return seen[k] ? 'miss' : 'todo';
   };
-  /** Pomocné ĎALEJ v podkroku — ZLATÉ, nie lapis (Matej 26. 9.: *„lapis môže byť
-   *  vždy len jedno hlavné CTA"*). Po vyplnení všetkých troch chipov zelené HOTOVO. */
   const allDone = TOPICS.every(doneOf);
-  const helper = (ok: boolean, k: NameTopic) => (
-    <button
-      type="button"
-      className={`nm-next${allDone ? ' is-done' : ''}`}
-      disabled={!ok}
-      onClick={() => advance(k)}
-    >
-      {allDone ? t('heroglyph.flow.message.done') : t('heroglyph.flow.owner.next')}
-    </button>
-  );
+  // JEDNO CTA (Matej 11. 11. 2026: „keď sú dve je to mätúce"): dolné hlavné tlačidlo je ĎALEJ, kým nie sú
+  // vyplnené všetky tri podkroky (posunie na ďalší), a POKRAČOVAŤ, keď sú. Samostatné ĎALEJ pod poľom zaniklo.
+  const ctaAction = () => { if (allDone) handleSend(); else if (doneOf(topic)) advance(topic); };
   const chipLabels: Record<NameTopic, string> = {
     name: t('heroglyph.flow.name.chipName'),
     born: t('heroglyph.flow.name.chipBorn'),
@@ -333,7 +324,7 @@ export function NameScreen() {
           ref={desktopInputRef}
           value={input}
           onChange={(e) => setInput(e.target.value.toUpperCase().slice(0, 30))}
-          onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
+          onKeyDown={(e) => { if (e.key === 'Enter') ctaAction(); }}
           placeholder={t('heroglyph.flow.name.placeholder')}
           maxLength={30}
           autoComplete="off"
@@ -640,7 +631,6 @@ export function NameScreen() {
                     {topic === 'name' && (
                       <div className="nm-row">
                         {nameField}
-                        {helper(nameValid, 'name')}
                       </div>
                     )}
 
@@ -662,7 +652,6 @@ export function NameScreen() {
                           skin="pale"
                           onChange={handleDateChange}
                         />
-                        {helper(dateValid, 'born')}
                       </div>
                     )}
 
@@ -692,8 +681,8 @@ export function NameScreen() {
                   (rohy 12), ktorý flowRedress prefarboval na lapis a pri
                   nedostupnosti na plochý papyrus — iný vzhľad než na každom
                   ďalšom kroku. Obrazovka FLOW_PALE_CSS nevkladá, preto nm-cta. */}
-              <button type="button" className="nm-cta hf-dock" onClick={handleSend} disabled={!canContinue}>
-                {t('heroglyph.flow.name.continue')}
+              <button type="button" className="nm-cta hf-dock" onClick={ctaAction} disabled={allDone ? !canContinue : !doneOf(topic)}>
+                {allDone ? t('heroglyph.flow.name.continue') : t('heroglyph.flow.owner.next')}
               </button>
             </div>
             ) : (

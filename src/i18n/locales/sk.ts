@@ -226,6 +226,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.dogs.sameNat': 'Rovnaká ako u ostatných — {flag} {country}',
   'heroglyph.flow.dogs.remove': 'Odobrať tohto psa',
   'heroglyph.flow.dogs.done': 'Hotovo',
+  'heroglyph.flow.dogs.fillHint': 'Doplň foto a narodeniny: klikni na psa.',
   'heroglyph.flow.dogs.phDay': 'Deň',
   'heroglyph.flow.dogs.phMonth': 'Mesiac',
   'heroglyph.flow.dogs.phYear': 'Rok',

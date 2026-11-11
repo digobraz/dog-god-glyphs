@@ -509,6 +509,7 @@ export function DogsScreen() {
               {/* JEDEN PES = povedz nahlas, že to stačí (Matej 8. 10. 2026: *„stačilo by pri
                   tom kroku dať že pridať psa neskôr"*). Otázka „máš aj ďalšieho psa?" bez
                   zjavnej odpovede NIE zastavila jediného človeka, ktorý sem z IG došiel. */}
+              {!allDone && <p className="hf-hint" role="status">{t('heroglyph.flow.dogs.fillHint')}</p>}
               <button type="button" className="hf-cta hf-dock" onClick={handleContinue} disabled={!allDone}>
                 {rows.length > 1 ? t('heroglyph.flow.name.continue') : t('heroglyph.flow.dogs.continueOne')}
               </button>

@@ -285,6 +285,7 @@ export const en = {
   'heroglyph.flow.dogs.sameNat': 'Same as the others — {flag} {country}',
   'heroglyph.flow.dogs.remove': 'Remove this dog',
   'heroglyph.flow.dogs.done': 'Done',
+  'heroglyph.flow.dogs.fillHint': 'Add a photo and birthday: tap the dog.',
   'heroglyph.flow.dogs.phDay': 'Day',
   'heroglyph.flow.dogs.phMonth': 'Month',
   'heroglyph.flow.dogs.phYear': 'Year',
