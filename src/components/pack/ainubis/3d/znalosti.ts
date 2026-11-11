@@ -19,6 +19,8 @@ ${H} .vkw-top[data-scrolled]{border-bottom-color:var(--ai-edge);box-shadow:0 2px
 ${H} .vkw-top + .zv-wrap{margin-top:0;}
 ${H} .vkw-wall{position:relative;height:${WALL}px;display:flex;flex-direction:column;overflow:hidden;${M3.card}}
 ${H} .vkw-sky{position:absolute;inset:0;background:radial-gradient(60% 46% at 50% 62%,rgba(${CY},.34),transparent 72%),radial-gradient(1.5px 1.5px at 18% 44%,#fff,transparent),radial-gradient(1.5px 1.5px at 82% 40%,#fff,transparent),radial-gradient(1px 1px at 64% 32%,#fff,transparent),radial-gradient(1px 1px at 38% 36%,#fff,transparent),linear-gradient(180deg,#0B1B33,#050B16);}
+${H} .vkw-lib{background:#0D0B1C;}
+${H} .vkw-lib svg{position:absolute;inset:0;width:100%;height:100%;display:block;}
 ${H} .vkw-dog{position:absolute;left:50%;top:128px;width:208px;height:208px;object-fit:contain;transform:translateX(-50%);opacity:.26;}
 ${H} .vkw-w{position:absolute;width:64px;height:64px;object-fit:contain;transform:translateX(-50%);filter:grayscale(1) brightness(.7) drop-shadow(0 3px 2px var(--ai-sh));}
 ${H} .vkw-w.on{filter:drop-shadow(0 0 10px rgba(${CY},.8)) drop-shadow(0 3px 2px var(--ai-sh));}

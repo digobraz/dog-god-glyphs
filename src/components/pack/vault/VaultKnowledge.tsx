@@ -25,7 +25,8 @@ import { CheckIc, LikeHeartIc, SaveIc } from '@/components/app/sysSwap';
 import { APP_NEW } from '@/lib/packFlags';
 import { PackPopup } from '@/components/pack/PackPopup';
 import { SysIcon } from '@/components/pack/SysIcon';
-import { AI_LOGO, svetImg } from '@/components/pack/ainubis/3d/zaklad';
+import { svetImg } from '@/components/pack/ainubis/3d/zaklad';
+import { kniznicaSvg } from '@/components/pack/ainubis/3d/kniznica';
 import { VAULT_WORLDS } from './worlds';
 import { VAULT_CIRCLES } from './circles';
 import { VAULT_BADGES } from './vaultBadges';
@@ -312,6 +313,7 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, o
     const learnerName = tx('pack.rank.learner', 'Disciple');
     const need = learnerNeed(learner.read, learner.total, learner.level);
     const openLevel = () => setSheet('level');
+    const libSvg = kniznicaSvg(s.worlds.map(({ w, n }) => n / Math.max(1, w.scrolls)));
     const sheets: Record<Exclude<KnowSheet, 'level'>, [string, React.ReactNode]> = {
       read: [u.readList, s.readList.length ? <div className="vk-list">{s.readList.map((z) => row(z))}</div> : <p className="vk-none">{u.noneRead}</p>],
       worlds: [u.worlds, worldsBody], circles: [u.circles, circlesBody],
@@ -335,12 +337,9 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, o
         </div>
         <div className="zv-wrap pk-stage vk vkw">
           <div className="vkw-wall">
-            <div className="vkw-sky" aria-hidden>
-              <img className="vkw-dog" src={AI_LOGO} alt="" />
-              {s.worlds.map(({ w, n }, i) => (
-                <img key={w.key} className={`vkw-w vkw-w${i}${n > 0 ? ' on' : ''}`} src={svetImg(w.key)} alt="" />
-              ))}
-            </div>
+            {/* ČARODEJNÍCKA KNIŽNICA (Matej 11. 11. 2026) — sedem kníh = sedem svetov, rozčítaná svieti farbou sveta. */}
+            <div className="vkw-sky vkw-lib" aria-hidden
+              dangerouslySetInnerHTML={{ __html: libSvg }} />
             <div className="vkw-hud">
               <button type="button" className="vkw-hudb" onClick={openLevel} aria-label={learnerName}>
                 {avatarUrl ? <img className="vkw-av" src={avatarUrl} alt="" /> : <span className="vkw-av">{avatarInitial}</span>}

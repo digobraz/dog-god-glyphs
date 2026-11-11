@@ -152,6 +152,12 @@ ${R} .pk-dock-band .pk-b3--gold.pk-b3--round{--b3-a:#FFD65A;--b3-b:${A.ctaB};--b
 ${R} .att-entry-backdrop{${M3.scrim}}
 ${R} .att-entry-panel{background:var(--ai-sheet);border:3px solid var(--ai-edge);border-radius:20px;box-shadow:0 0 0 2px var(--ai-out),0 7px 0 2px var(--ai-lip),0 13px 16px var(--ai-sh),0 0 40px -14px rgba(${CY},.7);}
 ${R} .att-entry-panel::before,${R} .att-entry-panel::after{content:none;}
+/* ── ZDROJE / FÓRUM: horný rad PackTopRow (Matej 11. 11. 2026), hlavička v šate, čiara až pri rolovaní ── */
+${R} .akw-head{padding-top:calc(env(safe-area-inset-top,0px) + 8px);background:var(--ai-head);background-origin:border-box;border-bottom:3px solid transparent;transition:border-color .2s,box-shadow .2s;}
+${R} .akw-root[data-scrolled] .akw-head{border-bottom-color:var(--ai-edge);box-shadow:0 2px 0 var(--ai-out),0 0 26px -6px rgba(${CY},.55);}
+${R} .akw-htop h1{${M3.hSm}}
+/* Na mobile šuplík zdola ako na papyruse (hárok I1), len v AINUBISovom šate. */
+@media (max-width:767px){${R} .att-entry-panel{${M3.sheet}border-width:6px 0 0;}}
 ${R} .att-entry-row{background:linear-gradient(180deg,#16324A,#0A1622);border:2.5px solid var(--ai-edge);box-shadow:inset 0 2px 0 rgba(${CY},.32),0 6px 0 #020509,0 11px 14px var(--ai-sh);}
 ${R} .att-entry-row:hover,${R} .att-entry-row:focus-visible{border-color:var(--ai-edge);}
 ${R} .att-entry-row:active{box-shadow:inset 0 2px 0 rgba(${CY},.32),0 1px 0 #020509;}

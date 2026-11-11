@@ -51,6 +51,44 @@ import {
   SEED_GROUP, SHELF_GROUPS, SEED_SOURCES,
   SOURCES_CLAUSE, WEB_RESEARCH_EXISTS, consensusPct, hiddenNote, type VaultSource,
 } from './vaultSources';
+import { VAULT_SOURCES_SK, SOURCE_GROUPS_SK, SOURCES_CLAUSE_SK, SOURCE_KINDS_SK, HIDDEN_NOTE_SK } from './vaultSourcesSk';
+import { useLang } from '@/i18n/LanguageContext';
+import { PackTopRow } from '@/components/pack/PackTopRow';
+
+/* ZDROJE PO SLOVENSKY (Matej 11. 11. 2026: „urob aj zdroje“). Opisy kníh sú vo `vaultSourcesSk.ts`, ovládanie tu.
+   Čeština padá na angličtinu ako v celom /pack. */
+const LIB_UI = {
+  en: {
+    sources: 'Sources', forum: 'Forum', back: 'Back', docs: '{d} documents · {s} scrolls', add: 'Add a source', pp: 'pp',
+    original: 'original · link soon', addedBy: 'added by', waiting: 'waiting {n} days', scrolls: 'scrolls',
+    inProgress: 'scrolls in progress', settled: 'settled', less: 'Less', take: 'What we take from it', catch: 'The catch',
+    disagrees: 'Where the evidence disagrees',
+    disagreesP: 'These are the author’s claims, not confirmed. For most of them the research points the other way; where nobody has measured it yet, we say so.',
+    shelf: 'What that means on the shelf', adding: 'What are you adding?', webH: 'Web research',
+    webP: 'None. AINUBIS cannot search the internet — everything above came in as a document.',
+    legC: 'settled — the field agrees', legT: 'tradition — true inside its own system', legA: 'author’s own view — carries a counterweight',
+  },
+  sk: {
+    sources: 'Zdroje', forum: 'Fórum', back: 'Späť', docs: '{d} dokumentov · {s} zvitkov', add: 'Pridať zdroj', pp: 's.',
+    original: 'originál · odkaz čoskoro', addedBy: 'pridal', waiting: 'čaká {n} dní', scrolls: 'zvitkov',
+    inProgress: 'zvitky sa píšu', settled: 'konsenzus', less: 'Menej', take: 'Čo z toho berieme', catch: 'Háčik',
+    disagrees: 'Kde sa dôkazy rozchádzajú',
+    disagreesP: 'Toto tvrdí autor, nie je to overené. Pri väčšine z toho výskum ukazuje opak; kde to ešte nikto nezmeral, povieme to.',
+    shelf: 'Čo to znamená na polici', adding: 'Čo pridávaš?', webH: 'Hľadanie na webe',
+    webP: 'Žiadne. AINUBIS nevie hľadať na internete, všetko vyššie prišlo ako dokument.',
+    legC: 'konsenzus: odbor sa zhoduje', legT: 'tradícia: platí vo svojom systéme', legA: 'názor autora: nesie protiváhu',
+  },
+} as const;
+const useLib = () => {
+  const sk = useLang().lang === 'sk';
+  return { sk, u: sk ? LIB_UI.sk : LIB_UI.en };
+};
+/** Zdroj v jazyku čitateľa: SK prepíše len polia, ktoré má preložené. */
+/** Druh zdroja v riadku pod menom. */
+const KIND_SK: Record<string, string> = { book: 'kniha', guide: 'príručka', 'e-book': 'e-kniha', slides: 'prezentácia', 'in-house': 'vlastný text', course: 'kurz', article: 'článok', video: 'video' };
+const srcIn = (s: VaultSource, sk: boolean): VaultSource => (sk ? { ...s, ...VAULT_SOURCES_SK[s.key] } : s);
+const groupIn = <G extends { key: string; label: string; empty: string }>(g: G, sk: boolean): G =>
+  (sk && SOURCE_GROUPS_SK[g.key] ? { ...g, ...SOURCE_GROUPS_SK[g.key] } : g);
 
 /* 🔴 STROP MRIEŽKY JE POVINNÝ (nákres v5, r. 707): bez neho vznikne na 27"
    piaty stĺpec s kartami po 300 px a z nástenky je tabuľka. */
@@ -948,14 +986,16 @@ function PostFull({ post, onLibrary, onClose }: {
   );
 }
 
-function SourceCard({ s }: { s: VaultSource }) {
+function SourceCard({ s: s0 }: { s: VaultSource }) {
   const [open, setOpen] = useState(false);
+  const { sk, u } = useLib();
+  const s = srcIn(s0, sk);
   const pct = consensusPct(s);
   const all = s.split.consensus + s.split.traditional + s.split.author;
   const seg = (n: number) => (all > 0 ? `${(n / all) * 100}%` : '0%');
   /* Riadok pod menom: autor · rok · STRANY · rozsah · druh. Strany sú tie
      nášho dokumentu, nie tlačeného vydania — viď poznámku pri `pages`. */
-  const meta = [s.author, s.year, s.pages ? `${s.pages} pp` : null, s.extent, s.kind]
+  const meta = [s.author, s.year, s.pages ? `${s.pages} ${u.pp}` : null, s.extent, sk ? KIND_SK[s.kind] ?? s.kind : s.kind]
     .filter(Boolean).join(' · ');
   return (
     <article className={`akw-src${s.pending ? ' is-pending' : ''}`}>
@@ -970,15 +1010,15 @@ function SourceCard({ s }: { s: VaultSource }) {
         </div>
         {/* Odkaz na originál patrí len tomu, čo sa dá kúpiť — vlastný text ani
             slovenské skriptá sa na Amazone nedajú objednať. */}
-        {!s.pending && s.kind === 'book' && <span className="akw-buy">original · link soon</span>}
+        {!s.pending && s.kind === 'book' && <span className="akw-buy">{u.original}</span>}
       </div>
 
       <p className="akw-about">{s.about}</p>
 
       {s.pending ? (
         <div className="akw-mt" style={{ marginTop: PACK_SPACE.md }}>
-          <span>added by {s.addedBy}</span>
-          <span>waiting {s.waiting} days</span>
+          <span>{u.addedBy} {s.addedBy}</span>
+          <span>{u.waiting.replace('{n}', String(s.waiting))}</span>
           {s.devotion != null && <span className="akw-devo">+{s.devotion} devotion when it passes</span>}
         </div>
       ) : (
@@ -990,10 +1030,10 @@ function SourceCard({ s }: { s: VaultSource }) {
           </div>
           <div className="akw-mt">
             {/* 0 zvitkov pri prijatom zdroji = prečítaný, zvitky sa ešte píšu. */}
-            {s.scrolls > 0 ? <span><b>{s.scrolls}</b> scrolls</span> : <span>scrolls in progress</span>}
-            {pct != null && <span><s>{pct} %</s> settled</span>}
+            {s.scrolls > 0 ? <span><b>{s.scrolls}</b> {u.scrolls}</span> : <span>{u.inProgress}</span>}
+            {pct != null && <span><s>{pct} %</s> {u.settled}</span>}
             <span>{s.tags.join(' · ')}</span>
-            {s.addedBy && <span>added by {s.addedBy}</span>}
+            {s.addedBy && <span>{u.addedBy} {s.addedBy}</span>}
           </div>
           {/* 🔴 HÁČIK AŽ PO ROZKLIKNUTÍ. Na karte by z každého zdroja spravil
               podozrivého; za klikom je to, čo si človek pred kúpou chce prečítať. */}
@@ -1001,14 +1041,14 @@ function SourceCard({ s }: { s: VaultSource }) {
             <>
               <button type="button" className="akw-open" aria-expanded={open}
                 onClick={() => setOpen((v) => !v)}>
-                {open ? 'Less' : 'What we take from it'}{chev}
+                {open ? u.less : u.take}{chev}
               </button>
-              {open && <div className="akw-caveat"><b>The catch</b>{s.caveat}</div>}
+              {open && <div className="akw-caveat"><b>{u.catch}</b>{s.caveat}</div>}
               {/* KDE SA AUTOR ROZCHÁDZA S DÔKAZMI — nemlčíme o tom, čo sme nevzali. */}
               {open && s.disputed && (
                 <div className="akw-caveat akw-disp">
-                  <b>Where the evidence disagrees</b>
-                  <p>These are the author’s claims, not confirmed. For most of them the research points the other way; where nobody has measured it yet, we say so.</p>
+                  <b>{u.disagrees}</b>
+                  <p>{u.disagreesP}</p>
                   <ul>{s.disputed.map((d) => (
                     <li key={d.claim}><i>{d.claim}</i>{d.evidence}</li>
                   ))}</ul>
@@ -1033,6 +1073,7 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
   post: string | null;
   onPost: (id: string | null) => void;
 }) {
+  const { sk, u } = useLib();
   /** Filter je VRSTVA nad tým istým obsahom, nie ďalšia záložka (lock §1.3). */
   /* Filter je VRSTVA nad tým istým obsahom (lock §1.3) — a od 24. 9. 2026 znesie
      VIAC svetov naraz. Prázdna množina = všetko, nie „nič". */
@@ -1093,17 +1134,19 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
   return (
     <section className="akw-root" aria-label="Board">
       <header className="akw-head">
+        {/* APPKA: horný rad ako všade v /pack (Matej 11. 11. 2026) — AINUBIS vľavo, šípka v strede, ikonky vpravo. */}
+        {APP_NEW && <PackTopRow onBack={onBack} backLabel={u.back} />}
         <div className="akw-hin">
         <div className="akw-htop">
-          <button type="button" className="akw-back" onClick={onBack} aria-label="Back">
+          {!APP_NEW && <button type="button" className="akw-back" onClick={onBack} aria-label={u.back}>
             <BackIcon />
-          </button>
+          </button>}
           {/* 8. 10. 2026: BOARD → FORUM (čip hore sa volá FÓRUM). Knižnica je od toho dňa
               vlastný čip ZDROJE — tá istá obrazovka, iný nadpis a bez záložiek fóra. */}
-          <h1>{tab === 'lib' ? 'Sources' : 'Forum'}</h1>
+          <h1>{tab === 'lib' ? u.sources : u.forum}</h1>
           {tab === 'lib' && (
             <span className="akw-count">
-              {VAULT_SOURCE_TOTALS.documents} documents · {VAULT_SOURCE_TOTALS.scrolls} scrolls
+              {u.docs.replace('{d}', String(VAULT_SOURCE_TOTALS.documents)).replace('{s}', String(VAULT_SOURCE_TOTALS.scrolls))}
             </span>
           )}
         </div>
@@ -1173,7 +1216,8 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
         </div>
       </header>
 
-      <div className="akw-list">
+      <div className="akw-list"
+        onScroll={(e) => e.currentTarget.closest('.akw-root')?.toggleAttribute('data-scrolled', e.currentTarget.scrollTop > 4)}>
         <div className="akw-in">
           {tab === 'pack' && (
             <>
@@ -1251,7 +1295,7 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                   aria-current={view === 'seed' ? 'true' : undefined}
                   onClick={() => setView(view === 'seed' ? null : 'seed')}>
                   {APP_NEW ? <SysIcon name="mozog" size={18} /> : <i aria-hidden style={mask('idea')} />}
-                  <ShelfName g={SEED_GROUP} />
+                  <ShelfName g={groupIn(SEED_GROUP, sk)} />
                 </button>
                 <div className="akw-shsep" aria-hidden />
                 {SHELF_GROUPS.map((g) => {
@@ -1260,7 +1304,7 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                     <button type="button" className="akw-sh" key={g.key}
                       aria-current={view === g.key ? 'true' : undefined}
                       onClick={() => setView(view === g.key ? null : g.key)}>
-                      <ShelfName g={g} /><em>{n}</em>
+                      <ShelfName g={groupIn(g, sk)} /><em>{n}</em>
                     </button>
                   );
                 })}
@@ -1268,7 +1312,7 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                 <button type="button" className="akw-sh akw-sh--add"
                   aria-current={view === 'add' ? 'true' : undefined}
                   onClick={() => setView(view === 'add' ? null : 'add')}>
-                  <HandPlus size={14} />Add a source
+                  <HandPlus size={14} />{u.add}
                 </button>
               </div>
 
@@ -1280,6 +1324,48 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                        vedľa seba: je to jedna odpoveď na jednu otázku. */}
                 {view === 'seed' && (
                   <article className="akw-post akw-doc">
+                    {sk ? (
+                    <div className="akw-docgrid">
+                      <section>
+                        <h2>Ako <i>AI</i>NUBIS premýšľa</h2>
+                        <p>Odpovedá z tejto knižnice a z ničoho iného. <b>Nevie hľadať na internete</b>: všetko,
+                          čo vie, prišlo ako dokument, ktorý mu niekto podal, a každý z nich je tu uvedený.</p>
+                        <p>Keď sa dva zdroje nezhodnú, nevyberie ten hlasnejší. Povie, že sa nezhodujú,
+                          a povie aj, <b>aký druh tvrdenia je ktoré</b>.</p>
+                        <ul className="akw-pill-list">
+                          <li><b>Najprv pes, nie ego.</b> Zdroje sa vážia proti sebe, nie podľa toho, kto ich napísal.</li>
+                          <li><b>Vlastnými slovami, nikdy prepis.</b> Skeny do appky nejdú; čo vojde do mozgu,
+                            je prepísané a s menom zdroja.</li>
+                          <li><b>„Neviem“ je odpoveď.</b> Keď knižnica k otázke nič nemá, povie to a dieru nezaplní.</li>
+                        </ul>
+                        <div className="akw-stops">
+                          <h3>Kde sa zastaví</h3>
+                          <ul>
+                            <li>Nediagnostikuje. Pomenovať chorobu je práca veterinára.</li>
+                            <li>Nedáva dávky, ani liekov, ani byliniek.</li>
+                            <li>Čokoľvek, čo vyzerá súrne, končí rozhovor: <b>choď hneď k veterinárovi</b>.
+                              Bez váženia a bez druhého názoru.</li>
+                            <li>Nikdy ti nevyhovára to, čo ti povedal tvoj veterinár.</li>
+                          </ul>
+                        </div>
+                      </section>
+
+                      <section>
+                        <h2>Ako funguje táto knižnica</h2>
+                        <p>Je to miesto, kam sa zbiera, čo sa o psoch vie. <b>AINUBIS váži zdroje proti sebe</b>
+                          a ukáže, kde sa zhodujú a kde nie. Spolu staviame poznanie, ktoré slúži psovi, bez ľudského ega.</p>
+                        <p>Prednosť majú relevantné zdroje a vedecké práce. Zároveň veríme, že <b>pes číta energiu</b>
+                          a nasáva naše nálady a stres, čo mnohí vedci nikdy neprijmú. Rozhodnutie je na tebe: vlastné srdce,
+                          alebo ľudia, ktorí dôkaz ešte nenašli.</p>
+                        <p>{SOURCES_CLAUSE_SK}</p>
+                        <div className="akw-leg">
+                          <span><u style={{ background: AINUBIS.ok }} />{u.legC}</span>
+                          <span><u style={{ background: AINUBIS.glow }} />{u.legT}</span>
+                          <span><u style={{ background: AINUBIS.ctaA }} />{u.legA}</span>
+                        </div>
+                      </section>
+                    </div>
+                    ) : (
                     <div className="akw-docgrid">
                       <section>
                         <h2>How <i>AI</i>NUBIS thinks</h2>
@@ -1319,22 +1405,23 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                           stress — something many scientists will never accept. That one is yours
                           to settle: your own heart, or the people who have not found the proof
                           yet.</p>
-                        <p>{SOURCES_CLAUSE}</p>
+                        <p>{sk ? SOURCES_CLAUSE_SK : SOURCES_CLAUSE}</p>
                         {/* LEGENDA PRUHU — číslo nehovorí, aká je kniha DOBRÁ; hovorí, koľko
                             z toho, čo sme z nej vzali, je zhoda odboru a koľko názor autora. */}
                         <div className="akw-leg">
-                          <span><u style={{ background: AINUBIS.ok }} />settled — the field agrees</span>
-                          <span><u style={{ background: AINUBIS.glow }} />tradition — true inside its own system</span>
-                          <span><u style={{ background: AINUBIS.ctaA }} />author’s own view — carries a counterweight</span>
+                          <span><u style={{ background: AINUBIS.ok }} />{u.legC}</span>
+                          <span><u style={{ background: AINUBIS.glow }} />{u.legT}</span>
+                          <span><u style={{ background: AINUBIS.ctaA }} />{u.legA}</span>
                         </div>
                       </section>
                     </div>
+                    )}
 
                     {/* DÔKAZ NA KONCI, NIE TVRDENIE NA ZAČIATKU — tých 88 zvitkov
                         je tretí najväčší zdroj v mozgu a napísali sme ich my. */}
                     {SEED_SOURCES.length > 0 && (
                       <>
-                        <div className="akw-grp">What that means on the shelf</div>
+                        <div className="akw-grp">{u.shelf}</div>
                         <div className="akw-books">
                           {SEED_SOURCES.map((d) => <SourceCard key={d.key} s={d} />)}
                         </div>
@@ -1346,14 +1433,15 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                 {/* DETAIL 2 — PRIDÁVANIE. Tá istá mustra: jeden panel, celá šírka. */}
                 {view === 'add' && (
                   <article className="akw-post akw-doc">
-                    <div className="akw-grp">What are you adding?</div>
+                    <div className="akw-grp">{u.adding}</div>
                     <div className="akw-kinds">
                       {SOURCE_KINDS.map((k) => (
                         <button type="button" className="akw-kbtn" key={k.key}>
                           <i className="akw-kic" aria-hidden style={mask(k.ic)} />
-                          <b>{k.label}</b><em>{k.hint}</em>
+                          <b>{sk ? SOURCE_KINDS_SK[k.key]?.label ?? k.label : k.label}</b><em>{sk ? SOURCE_KINDS_SK[k.key]?.hint ?? k.hint : k.hint}</em>
                           {/* ⚠️ Číslo, ktoré ešte nepadlo, sa NEVYMÝŠĽA — povie sa to. */}
-                          <u>{k.devotion != null ? `+${k.devotion} devotion` : 'devotion tbd'}</u>
+                          {/* DEVOTION je zrušená (7. 11. 2026): po slovensky sa nesľubuje. */}
+                          {!sk && <u>{k.devotion != null ? `+${k.devotion} devotion` : 'devotion tbd'}</u>}
                         </button>
                       ))}
                     </div>
@@ -1367,9 +1455,9 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                   const inGroup = LIBRARY_SOURCES.filter((d) => d.group === g.key);
                   return (
                     <Fragment key={g.key}>
-                      <div className="akw-grp"><ShelfName g={g} /></div>
+                      <div className="akw-grp"><ShelfName g={groupIn(g, sk)} /></div>
                       {inGroup.length === 0
-                        ? <p className="akw-gempty">{g.empty}</p>
+                        ? <p className="akw-gempty">{groupIn(g, sk).empty}</p>
                         : <div className="akw-books">
                           {inGroup.map((d) => <SourceCard key={d.key} s={d} />)}
                         </div>}
@@ -1380,13 +1468,13 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                 {/* 🔴 NEEXISTUJÚCI ZDROJ SA NEPÍŠE AKO NULA. */}
                 {!WEB_RESEARCH_EXISTS && !shelf && (
                   <div className="akw-none">
-                    <h2>Web research</h2>
-                    <p>None. AINUBIS cannot search the internet — everything above came in as a document.</p>
+                    <h2>{u.webH}</h2>
+                    <p>{u.webP}</p>
                   </div>
                 )}
 
                 {/* 🔴 ZDROJ, KTORÝ ZOZNAM NEUVÁDZA, SA NEZAMLČÍ. */}
-                {hiddenNote() && !shelf && <p className="akw-foot-note">{hiddenNote()}</p>}
+                {hiddenNote() && !shelf && <p className="akw-foot-note">{sk ? HIDDEN_NOTE_SK() : hiddenNote()}</p>}
                 </>
                 )}
               </div>

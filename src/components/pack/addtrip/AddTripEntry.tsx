@@ -357,7 +357,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBl
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
-        style={drag ? { transform: `translate(-50%, ${drag}px)`, transition: 'none', animation: 'none' } : undefined}
+        style={drag ? { transform: APP_NEW && window.innerWidth < 768 ? `translateY(${drag}px)` : `translate(-50%, ${drag}px)`, transition: 'none', animation: 'none' } : undefined}
       >
         {/* ÚCHYT — na mobile je to jediná vec nad zoznamom a dá sa ním šuplík stiahnuť dolu.
             Na PC ho CSS skryje: tam je panel v strede okna a zatvára sa klikom vedľa. */}
@@ -558,4 +558,17 @@ html.papyrus3d .att-entry-row:active{transform:translateY(5px);box-shadow:inset 
 html.papyrus3d .att-entry-title{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: cta */
 @media (max-width:374px){html.papyrus3d .att-entry-title{font-size:${PACK_TEXT.body}px;}}
 html.papyrus3d .att-entry-panel{padding-bottom:${PACK_SPACE.lg}px;}
+/* RÁM PANELA = ŠUPLÍK Z HÁRKU (I1, I2; Matej 11. 11. 2026: „na bledom pozadí je ten panel ešte starý — zlaté okraje, kameň“).
+   Zlatý odliatok goldFrameCSS() je web. V appke: papierový plášť so zlatým vrchom, ten istý ako POPUP (.ppu-sheet). */
+html.papyrus3d .att-entry-backdrop{background:color-mix(in srgb,var(--p3d-ink) 55%,transparent);}
+html.papyrus3d .att-entry-panel{background:var(--p3d-card);border:2.5px solid var(--p3d-ink);border-top:6px solid var(--p3d-gold);border-radius:${PACK_R.card}px;
+  box-shadow:0 -3px 0 var(--p3d-ink),0 12px 20px var(--p3d-sh);}
+html.papyrus3d .att-entry-panel::before,html.papyrus3d .att-entry-panel::after{content:none;}
+@media (max-width:767px){
+  html.papyrus3d .att-entry-panel{left:0;right:0;bottom:0;width:auto;max-height:88dvh;transform:none;border-width:6px 0 0;
+    border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:0 -3px 0 var(--p3d-ink),0 -12px 20px var(--p3d-sh);
+    padding:${PACK_SPACE.xs}px ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.xl}px);animation:att-sheet-up .3s cubic-bezier(.2,.8,.2,1);}
+  html.papyrus3d .att-entry-grab{display:block;width:100%;padding:${PACK_SPACE.sm}px 0;background:none;border:0;cursor:grab;touch-action:none;}
+}
+@keyframes att-sheet-up{from{transform:translateY(100%);}to{transform:none;}}
 `;
