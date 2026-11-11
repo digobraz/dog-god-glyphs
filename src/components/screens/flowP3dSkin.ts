@@ -47,12 +47,13 @@ ${P} body { font-variant-numeric: lining-nums tabular-nums; }
 /* ── STENA: jednoliaty papyrus + kresba dole v PRIRODZENOM pomere (žiadne natiahnutie ani zoom) ── */
 ${WALL} { background: var(--p3d-paper); background-color: var(--p3d-paper); }
 ${WALL}::before {
-  top: auto !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-  width: auto !important; height: 46% !important;
+  top: auto !important; left: 50% !important; right: auto !important; bottom: 0 !important;
+  transform: translateX(-50%); aspect-ratio: 1280 / 892; width: auto !important; height: min(46%, 69.7vw) !important;
   background-image: var(--bg-light) !important;
   background-size: contain !important; background-repeat: no-repeat !important; background-position: center bottom !important;
   filter: none !important; opacity: .12;
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 40%); mask-image: linear-gradient(180deg, transparent, #000 40%);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 40%), linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(180deg, transparent, #000 40%), linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); mask-composite: intersect;
 }
 
 /* ── PÍSMO: telo Fira (Space Grotesk), nadpis / meno / CTA LT Museum Black ──── */
@@ -122,11 +123,11 @@ ${ROOT} .hf-pick:not(.on) .tx { color: var(--p3d-ink); text-shadow: none; }
 ${ROOT} .hf-pick.on .well { background: color-mix(in srgb, #16307A 16%, var(--p3d-paper-hi)); border-color: #16307A; }
 
 /* ── POLIA: vsadená jamka (.pk-p3d-input) ────────────────────────────────── */
-${ROOT} :is(.hf-field, .rv-ta, .name-preview-btn) {
+${ROOT} :is(.hf-field, .rv-ta, .name-preview-btn, .vs-input) {
   border: 2.5px solid var(--p3d-ink); border-radius: 16px; background: var(--p3d-paper-hi);
   box-shadow: var(--p3d-inset); color: var(--p3d-ink); font-weight: 500;
 }
-${ROOT} :is(.hf-field, .rv-ta, .name-preview-btn):focus { border-color: #16307A; box-shadow: var(--p3d-inset), 0 0 0 3px rgba(22, 48, 122, .25); }
+${ROOT} :is(.hf-field, .rv-ta, .name-preview-btn, .vs-input):focus { border-color: #16307A; box-shadow: var(--p3d-inset); }
 ${ROOT} .hf-field.is-valid { border-color: #16307A; background: ${LAPIS_TINT}; }
 
 /* ── RIADKY PSOV, POČET, PRIDAŤ, ZAŠKRTÁVADLO ───────────────────────────── */
@@ -194,6 +195,8 @@ ${WALL} .ow-info.on { border-color: #16307A; color: #16307A; }
 /* ── POLE MENA: bez žiary, NEXT pod poľom na celý riadok ──────────────────── */
 ${WALL} :is(.name-preview-wrap, .hf-ring, .hf-field-wrap) { box-shadow: none !important; }
 ${WALL} :is(.name-preview-wrap, .hf-ring)::before, ${WALL} :is(.name-preview-wrap, .hf-ring)::after { display: none !important; }
+${WALL} .name-preview-btn { border-color: var(--p3d-ink) !important; box-shadow: var(--p3d-inset) !important; outline: none; }
+${WALL} .name-preview-wrap.is-filled .name-preview-btn { border-color: #16307A !important; }
 ${WALL} .nm-row { flex-direction: column; align-items: stretch; gap: 12px; }
 ${WALL} .nm-row .name-preview-wrap { flex: 0 0 auto !important; width: 100%; }
 ${WALL} .nm-row .nm-next { width: 100%; min-height: 44px; }
@@ -212,3 +215,4 @@ ${P} .fm-card :is(.mi-close, .name-modal-done, .zs-switch) { align-self: stretch
 /* ── PROGRES (FlowProgress v flowRedress.tsx): hrubá pilulka s obrysom, zlatá výplň ── */
 ${P} .fp-track { height: 16px !important; box-sizing: border-box; border: 2.5px solid var(--p3d-ink); background: var(--p3d-paper-hi) !important; box-shadow: var(--p3d-inset), 0 3px 0 var(--p3d-gold-solid); }
 ${P} .fp-fill { background: linear-gradient(180deg, #FFE27A 0%, #F5C73D 50%, #E69E1A 100%) !important; border-right: 2.5px solid var(--p3d-ink); box-sizing: border-box; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55); }
+`;
