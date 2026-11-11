@@ -744,9 +744,9 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  l_cit1: { en: 'A Dogyptian is anyone who believes in dog. One person saves one dog. A million people change how the world treats dogs.', sk: 'Dogypťan je každý, kto verí v psa. Jeden človek zachráni jedného psa. Milión ľudí zmení, ako sa svet k psom správa.' },
  l_cit2: { en: 'We want the app to serve every dog person it can help, so entry is voluntary. But to run, grow and develop, DOGYPT depends on gifts and the support of its most faithful.', sk: 'Zámerom je, aby appka slúžila každému psíčkarovi, ktorému vie pomôcť, preto je vstup dobrovoľný. Aby však DOGYPT mohol fungovať, rásť a vyvíjať sa, je odkázaný na milodary a podporu tých najvernejších.' },
  fee_h: { en: 'You can enter the temple for', sk: 'Do chrámu vstúpiš aj za' }, fee_h2: { en: 'ZERO', sk: 'NULU' },
- fee_tiers: { en: 'A Believer has all the main features. Higher ranks get more AI credits and bigger photo storage, plus the good feeling of a good deed :)', sk: 'Veriaci má všetky hlavné funkcie. Vyššie stupne majú viac AI kreditov a väčšie úložisko na fotky + lepší pocit z dobrého skutku :)' },
+ fee_tiers: { en: 'Believers get all the main features, higher ranks more AI and photos, plus a good feeling :)', sk: 'Veriaci má všetky hlavné funkcie, vyššie hodnosti viac AI a fotiek + dobrý pocit :)' },
  give: { en: 'Enter for free', sk: 'Vstúp zdarma' },
- fee_p: { en: 'Running DOGYPT currently costs about €250 a month. A rank is a monthly subscription you can cancel anytime. Whatever is left over goes to development and to dogs in need!', sk: 'Aktuálna prevádzka DOGYPTU stojí približne 250 € mesačne. Hodnosť je mesačné predplatné, ktoré kedykoľvek zrušíš. To, čo zostane navyše, ide do vývoja a psom v núdzi!' },
+ fee_p: { en: 'Running DOGYPT costs about €250 a month. A rank is a subscription you can cancel anytime, and the surplus goes to development and dogs in need.', sk: 'Prevádzka DOGYPTU stojí asi 250 € mesačne. Hodnosť je predplatné, ktoré kedykoľvek zrušíš, a prebytok ide do vývoja a psom v núdzi.' },
  cta_vision: { en: 'The DOGYPT vision', sk: 'Vízia DOGYPTU' },
  rec: { en: 'Recommended', sk: 'Odporúčané' },
  tp0: { en: 'All the main features for free. Faith is tax-exempt.', sk: 'Všetky hlavné funkcie zadarmo. Viera sa nezdaňuje.' },
@@ -759,7 +759,14 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  tw1: { en: 'You help cover the running costs: servers, maps, AI.', sk: 'Pomáhaš platiť prevádzku: servery, mapy, AI.' },
  tw2: { en: 'Running costs and development. New features exist thanks to you.', sk: 'Prevádzka aj vývoj. Vďaka tebe pribúdajú nové funkcie.' },
  tw3: { en: 'The app grows, and dogs in need get a bowl and a vet. Every month.', sk: 'Appka rastie a psy v\u00a0núdzi dostanú misku aj veterinára. Každý mesiac.' },
- tw4: { en: 'You are building a temple that will outlive us all.', sk: 'Staviaš chrám, ktorý prežije nás všetkých.' },
+ tw4: { en: 'You are building a temple that will outlive us all: the app, Dog Sense and help for dogs in need.', sk: 'Staviaš chrám, ktorý prežije nás všetkých: appku, psí rozum aj pomoc psom v núdzi.' },
+ // RUB KARTY = odrážky ✓/✗ (Matej 11. 11.: „rozpísať pochopiteľnejšie… ten, čo to vidí prvý raz… do odrážok check a x“).
+ // Formát: položky oddelené „|“, prvý znak + = má, - = nemá. Čísla len rozhodnuté (fotky na výlet 5 / 15).
+ bk0: { en: '+The whole app: trips, map, DOG ID, SOS|+5 photos per trip|+AINUBIS with a basic limit|-PAWMATE: a second person for your dog|-Tailored diet plan', sk: '+Celá appka: výlety, mapa, DOG ID, SOS|+5 fotiek na jeden výlet|+AINUBIS so základným limitom|-PAWMATE: druhý človek k psovi|-Výživa na mieru' },
+ bk1: { en: '+Everything a Believer has|+15 photos per trip|+PAWMATE: a second person for your dog, with their own account|+More questions for AINUBIS|-Tailored diet plan', sk: '+Všetko, čo má Veriaci|+15 fotiek na jeden výlet|+PAWMATE: druhý človek k tvojmu psovi s vlastným kontom|+Viac otázok pre AINUBISa|-Výživa na mieru' },
+ bk2: { en: '+Everything an Acolyte has|+A diet plan tailored to your dog|+Even more questions for AINUBIS|+Bigger photo storage', sk: '+Všetko, čo má Akolyta|+Výživa na mieru pre tvojho psa|+Ešte viac otázok pre AINUBISa|+Väčšie úložisko na fotky' },
+ bk3: { en: '+Everything a Priest has|+The highest limits for AINUBIS and photos|+Part of your fee feeds dogs in need', sk: '+Všetko, čo má Kňaz|+Najvyššie limity na AINUBISa aj fotky|+Časť tvojho vstupného nakŕmi psy v núdzi' },
+ bk4: { en: '+Everything a Vizier has|+The highest seal in the whole empire|+Monthly, or once and forever|+The thanks of the whole empire', sk: '+Všetko, čo má Vezír|+Najvyššia pečať v celej ríši|+Mesačne, alebo raz a navždy|+Vďaka celej ríše' },
  /* Matej 11. 11. 2026: hodnosti = predplatné; jednorazová podpora zvlášť, bez konta a bez hry */
  per_mo: { en: '/ mo', sk: '/ mes.' }, once: { en: 'one-time', sk: 'jednorazovo' }, mo_or_once: { en: '/ mo or one-time', sk: '/ mes. alebo raz' },
  sup_h: { en: 'Not into games? You can still', sk: 'Nehráš? Aj tak môžeš' }, sup_h2: { en: 'HELP', sk: 'POMÔCŤ' },

@@ -1612,8 +1612,8 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 @media(min-width:900px){.aw .cit{grid-template-columns:1.1fr 1fr;gap:var(--s-xxl);padding:var(--s-xl)}}
 .aw .cit h3{margin:0 0 var(--s-lg);text-align:left;font-size:clamp(26px,5vw,36px);line-height:1.15}
 .aw .cit .pic img{width:100%;display:block;border-radius:12px}
-.aw .cit-fee{max-width:640px;margin:var(--s-xxl) auto var(--s-lg);text-align:center}
-.aw .cit-fee h3{margin:0;font-size:clamp(26px,5vw,36px);line-height:1.15}
+.aw .cit-fee{max-width:760px;margin:var(--s-xxl) auto var(--s-lg);text-align:center}
+.aw .cit-fee h3{margin:0;font-size:clamp(32px,6vw,48px);line-height:1.1}
 .aw .cit-vis{margin-top:var(--s-lg);text-decoration:none}
 .aw .cit-fee .lead{margin-top:var(--s-sm)}
 .aw .cit-ranks{display:grid;gap:var(--s-md);max-width:1040px;margin:0 auto}
@@ -1645,7 +1645,14 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .cit-back{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s-sm);padding:var(--s-lg);text-align:center;background:var(--bk-bg);color:var(--bk-ink);transform:rotateY(180deg);box-shadow:0 12px 28px -10px rgba(60,36,8,.5)}
 .aw .cit-back img{position:absolute;right:-24px;bottom:-24px;width:120px;opacity:.22;transform:rotate(-12deg);pointer-events:none}
 .aw .cit-back b{position:relative;color:inherit}
-.aw .cit-back .tp{position:relative;font:500 var(--t-lead)/1.4 var(--font-ui)}
+.aw .cit-back{justify-content:flex-start;align-items:stretch;text-align:left}
+.aw .cit-back b{text-align:center}
+.aw .cit-back .bk{position:relative;display:flex;flex-direction:column;gap:6px;font:500 var(--t-body)/1.35 var(--font-ui)}
+.aw .cit-back .bk span{position:relative;padding-left:24px}
+.aw .cit-back .bk span::before{position:absolute;left:0;top:0;width:18px;text-align:center;font-weight:700}
+.aw .cit-back .bk .y::before{content:'✓'}
+.aw .cit-back .bk .n{opacity:.55;text-decoration:line-through;text-decoration-thickness:1px}
+.aw .cit-back .bk .n::before{content:'✕';text-decoration:none}
 .aw .cit-rec{position:absolute;top:0;right:var(--s-md);transform:translateY(-50%);padding:4px 10px;border-radius:var(--r-pill);background:var(--lapis);color:var(--lapis-ink);font:600 var(--t-micro)/1.3 var(--font-ui);letter-spacing:.14em;text-transform:uppercase}
 @media(min-width:1000px){
   .aw .cit-face{grid-template-columns:1fr;grid-template-rows:auto auto 1fr;align-content:stretch;justify-items:center;padding:var(--s-lg) var(--s-md) var(--s-xl)}
@@ -1660,8 +1667,12 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 }
 @media(prefers-reduced-motion:reduce){.aw .cit-rank,.aw .cit-face img,.aw .cit-rank .tw{transition:none}}
 .aw .cit-cta{margin-top:var(--s-xl);text-align:center}
+/* veta pod ponukou: kurzíva, menšia, na PC jeden riadok (Matej 11. 11.) */
+.aw .cit-cta > .lead:first-child{font-style:italic;font-size:var(--t-body)}
+@media(min-width:1000px){.aw .cit-cta > .lead:first-child{white-space:nowrap;max-width:none!important}}
 .aw .cit-cta .pk-cta{text-decoration:none}
 .aw .cit-sup{max-width:640px;margin:var(--s-xxl) auto 0;padding:var(--s-xl) var(--s-lg);text-align:center;box-sizing:border-box}
+.aw .cit-sup-ic{display:block;width:96px;height:96px;margin:0 auto var(--s-md);object-fit:contain;filter:drop-shadow(0 8px 14px rgba(60,36,8,.35));transform:rotate(-4deg)}
 .aw .cit-sup h3{margin:0;font-size:clamp(22px,4vw,28px);line-height:1.2}
 .aw .cit-sup .lead{margin:var(--s-sm) auto var(--s-lg)}
 .aw .cit-sup .pk-cta.alt{display:inline-flex;width:auto;padding-left:var(--s-xl);padding-right:var(--s-xl);background:transparent;color:var(--lapis-edge);box-shadow:none;border-color:var(--lapis-edge);text-decoration:none}

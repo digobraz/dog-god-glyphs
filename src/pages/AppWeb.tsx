@@ -760,7 +760,9 @@ export default function AppWeb() {
                   <span className="cit-back">
                     <img src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" loading="lazy" />
                     <b>{c(`t${k}`)}</b>
-                    <span className="tp">{c(`tp${k}`)}</span>
+                    <span className="bk">{c(`bk${k}`).split('|').map((x) => (
+                      <span key={x} className={x[0] === '+' ? 'y' : 'n'}>{x.slice(1)}</span>
+                    ))}</span>
                   </span>
                 </button>
               </Rv>
@@ -773,6 +775,7 @@ export default function AppWeb() {
           </Rv>
           {/* jednorazová podpora bez konta (Matej 11. 11.): kto nechce hrať, môže prispieť; odkaz čaká na Stripe */}
           <Rv className="cit-sup pk-stage">
+            <img className="cit-sup-ic" src={`${A}/ikony/centra.webp`} alt="" loading="lazy" />
             <h3>{c('sup_h')} <span className="deco">{c('sup_h2')}</span></h3>
             <p className="lead">{c('sup_p')}</p>
             <a className="pk-cta alt" href="#">{c('sup_cta')}</a>
