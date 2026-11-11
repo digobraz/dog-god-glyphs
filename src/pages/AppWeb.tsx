@@ -399,6 +399,7 @@ export default function AppWeb() {
   /* funkcie — na dotyk sa karta rozbalí */
   const [vOn, setVOn] = useState<number | null>(null);
   const [tierOn, setTierOn] = useState<number | null>(null);
+  const [trOn, setTrOn] = useState(false);
 
   /* odznaky */
 
@@ -742,7 +743,11 @@ export default function AppWeb() {
           </Rv>
           <Rv className="cit-fee">
             <h3>{c('fee_h')} <span className="deco">{c('fee_h2')}</span></h3>
-            <p className="lead">{c('fee_p')}</p>
+            {/* 100 % TRANSPARENTNOSŤ — tučne, bodkovane podčiarknuté; dotyk/hover ukáže blok o spoločnej pokladnici (Matej 11. 11.) */}
+            <p className="lead">{c('fee_p')}{' '}
+              <button type="button" className={`tr-dot${trOn ? ' on' : ''}`} aria-expanded={trOn} onClick={() => setTrOn(!trOn)}>{c('fee_tr')}</button>
+            </p>
+            <p className={`tr-pop pk-stage${trOn ? ' on' : ''}`} role="note">{c('fee_tr_i')}</p>
           </Rv>
           <div className="cit-ranks">
             {CITIZEN_PRICES.map((price, k) => (

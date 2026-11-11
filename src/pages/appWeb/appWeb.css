@@ -1616,6 +1616,12 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .cit-fee h3{margin:0;font-size:clamp(32px,6vw,48px);line-height:1.1}
 .aw .cit-vis{margin-top:var(--s-lg);text-decoration:none}
 .aw .cit-fee .lead{margin-top:var(--s-sm)}
+/* 100 % transparentnosť — tučné, bodky pod; ťuk/hover = blok o pokladnici */
+.aw .tr-dot{display:inline;padding:0;border:0;background:none;font:inherit;font-weight:700;color:var(--ink-strong);text-decoration:underline dotted;text-decoration-thickness:2px;text-underline-offset:4px;cursor:pointer}
+.aw .tr-dot:focus-visible{outline:2px solid var(--lapis-edge);outline-offset:2px;border-radius:4px}
+.aw .tr-pop{max-width:520px;max-height:0;margin:0 auto;padding:0 var(--s-lg);overflow:hidden;opacity:0;box-sizing:border-box;font:400 var(--t-body)/1.45 var(--font-ui);color:var(--ink-body);text-align:center;transition:max-height .3s ease,opacity .25s ease,padding .3s ease,margin .3s ease}
+.aw .tr-pop.on{max-height:160px;opacity:1;padding:var(--s-md) var(--s-lg);margin-top:var(--s-md)}
+@media(hover:hover){.aw .cit-fee:has(.tr-dot:hover) .tr-pop{max-height:160px;opacity:1;padding:var(--s-md) var(--s-lg);margin-top:var(--s-md)}}
 .aw .cit-ranks{display:grid;gap:var(--s-md);max-width:1040px;margin:0 auto}
 @media(min-width:1000px){.aw .cit-ranks{grid-template-columns:repeat(5,1fr)}}
 .aw .cit-ranks{perspective:1200px}
