@@ -3087,6 +3087,8 @@ export const cs: Partial<Dict> = {
   'pack.trip.cm.photoAdd': "Přidat fotku",
   'pack.trip.cm.photoDrop': "Odebrat fotku",
   'pack.trip.cm.photoFail': "Fotka se nenahrála. Zkus to znovu.",
+  'pack.trip.cm.showMore': 'Zobrazit další ({n})',
+  'pack.trip.cm.hideMore': 'Skrýt další',
   'pack.trip.cm.showFew': 'Zobrazit {n} hodnocení',
   'pack.trip.cm.showMany': 'Zobrazit {n} hodnocení',
   'pack.trip.cm.showOne': 'Zobrazit {n} hodnocení',

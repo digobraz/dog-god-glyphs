@@ -80,15 +80,14 @@ export function TierScale({ level, onDark = true, large = false }: TierScaleProp
                 fontSize: large ? 12 : 11.5,
                 letterSpacing: '.02em',
                 color: isHere || (large && i < here) ? ink : dim,
-                // „tu si“ ide POD rozsah, nie vedľa — vedľa sa rozsah lámal na 3 riadky a nápis vyliezal
-                // z rámu (26. 10. 2026, mená pásiem „Above the Clouds“ sú dlhšie než farby).
+                // „tu si“ stojí v stĺpci s fajkami (vpravo), nie pod rozsahom ani vedľa neho — rozsah ostáva
+                // sám na riadku (Matej 9. 11. 2026).
                 minWidth: 0,
-                display: 'flex',
-                flexDirection: 'column',
                 whiteSpace: 'nowrap',
               }}
             >
               {t('pack.tier.levelRange', { range: tierRangeLabel(tier) })}
+            </span>
             {isHere && (
               <span
                 style={{
@@ -99,13 +98,13 @@ export function TierScale({ level, onDark = true, large = false }: TierScaleProp
                   whiteSpace: 'nowrap',
                   textTransform: 'uppercase',
                   color: large ? LAPIS.ink : tier.a,
-                  ...(large ? { alignSelf: 'flex-start', marginTop: 4, padding: '4px 8px', borderRadius: 999, background: LAPIS.grad } : null),
+                  flex: 'none',
+                  ...(large ? { padding: '4px 8px', borderRadius: 999, background: LAPIS.grad } : null),
                 }}
               >
                 {t('pack.tier.youAreHere')}
               </span>
             )}
-            </span>
             {large && i < here && (
               <img src="/icons/sys/fajka.webp" alt="" aria-hidden style={{ flex: 'none', width: 32, height: 32, objectFit: 'contain' }} />
             )}

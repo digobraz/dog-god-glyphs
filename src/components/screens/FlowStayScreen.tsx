@@ -8,7 +8,7 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS, HF } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 import { LAPIS } from '@/components/pack/navGoldSkin';
-import { PACK_R } from '@/components/pack/packTheme';
+import { PACK_R, PACK_THEME } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
 import { BRAND_GOLD_BTN } from '@/components/pack/packTheme';
@@ -479,6 +479,14 @@ const STAY_CSS = `
 .st-confirm:disabled { opacity: .4; cursor: default; }
 .st-done-cta { margin-top: 16px; max-width: 320px; }
 .st-wrap .hf-chk { border-radius: ${PACK_R.tile}px; }
+/* 🔴 CELÁ OBRAZOVKA (11. 11. 2026, smoke test): flowFullSkin zruší dosku, takže zoznam,
+   rytina, pilulky a CTA pod bublinou ležali priamo na stmavenom závoji panelu (tmavohnedý
+   text na sivom, nečitateľné). Doska ostáva papyrusovým PODBLOKOM (PACK_BOX.subblock:
+   výplň, zlatý rám, radius 12) — text je znova na papyruse. */
+html[data-flow-full] :is(.dark-bg, .hf-pale) .hf-stage :is(.st-board, .gt-stack) .hf-plate {
+  padding: 16px; background: ${PACK_THEME.panelGrad}; border: 1px solid ${PACK_THEME.cardEdge};
+  border-radius: ${PACK_R.tile}px; box-shadow: 0 1px 3px rgba(122, 90, 42, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.40);
+}
 /* Nízke PC okno (1477×724): hlavička popupu ustúpi prvá, obsah (voľby, CTA) nie. */
 @media (min-width: 601px) and (max-height: 800px) {
   .st-board .hf-plate { gap: 10px; }

@@ -238,12 +238,22 @@ async function uploadPdfBlob(blob: Blob, folder: string, publicId: string): Prom
       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       apikey: SUPABASE_ANON_KEY,
       'Content-Type': 'application/pdf',
-      'x-upsert': 'true',
     },
     body: blob,
   });
   if (!res.ok) {
     const err = await res.text();
+    // 🔴 11. 11. 2026 (smoke test nového heroflowu): bucket `pdfs` má pre anon len INSERT + SELECT
+    //    (DEV aj LIVE rovnako), žiadny UPDATE. `x-upsert: true` pri už existujúcom súbore
+    //    (opätovné načítanie /welcome, druhý beh pipeline na tej istej platbe) skončilo
+    //    `new row violates row-level security policy`. Bez upsertu server povie „Duplicate" —
+    //    súbor tej istej platby (kľúč = session + pes) už v úložisku je, takže to berieme ako hotové.
+    if (/Duplicate|already exists/i.test(err)) {
+      return {
+        publicId: path,
+        secureUrl: `${SUPABASE_URL}/storage/v1/object/public/${PDF_BUCKET}/${path}`,
+      };
+    }
     throw new Error(`Supabase pdf ${res.status}: ${err}`);
   }
   return {

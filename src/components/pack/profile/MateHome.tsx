@@ -142,8 +142,10 @@ export function MateHome({ dogs, me, onInvite, flat }: {
             <MeRank kind="pt" devotion={0} pilgrim={pilgrimPanel} onClose={() => setRank(null)} tx={tx} />
           )}
 
-          {/* SI PAWMATE — jeden pruh, aby nikto nemyslel, že sa pozerá na vlastný profil. */}
-          <div style={{ ...PACK_BOX.subblock, display: 'flex', alignItems: 'center', gap: PACK_SPACE.md, padding: `${PACK_SPACE.md}px ${PACK_SPACE.lg}px`, margin: `0 0 ${PACK_SPACE.lg}px` }}>
+          {/* SI PAWMATE — jeden pruh, aby nikto nemyslel, že sa pozerá na vlastný profil.
+              Horný odstup = psí kruh (satelit) visí pod `.me-gap` a bez neho sedel zlatý krúžok na rohu pruhu a na prvom riadku
+              textu (Daniela, 10. 11. 2026) — v starom aj novom dizajne; meria sa v pásme 360–500 px. */}
+          <div style={{ ...PACK_BOX.subblock, display: 'flex', alignItems: 'center', gap: PACK_SPACE.md, padding: `${PACK_SPACE.md}px ${PACK_SPACE.lg}px`, margin: `${PACK_SPACE.lg}px 0 ${PACK_SPACE.lg}px` }}>
             <BrandIcon name="eye" size={20} tint="dark" />
             <p style={{ margin: 0, fontFamily: FONT_UI, fontSize: PACK_TEXT.label, lineHeight: 1.45, color: PACK_THEME.inkDim }}>
               {tx('pack.mate.banner', "You're a pawmate. This is your pawtner's profile ({name}) — what you may add, they set in My pack.").split('{name}').join(first)}

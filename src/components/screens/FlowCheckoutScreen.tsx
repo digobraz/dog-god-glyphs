@@ -596,6 +596,17 @@ const CHECKOUT_CSS = `
   filter: drop-shadow(0 6px 12px rgba(60, 40, 10, 0.35));
 }
 .co-stack .hf-plate { padding-top: calc(var(--seal) * 0.42 + 8px); }
+/* 🔴 CELÁ OBRAZOVKA (11. 11. 2026, smoke test): vo \`html[data-flow-full]\` doska zaniká
+   (\`flowFullSkin\`: bez rámu, bez paddingu), takže pečať, ktorá visela na hornej hrane
+   dosky (\`top: 0; translate -58%\`), trčala nad javisko pod lištu a prekrývala meno /
+   e-mail a ZMENIŤ. Bez dosky nemá o čo visieť — pečať ide do toku nad obsah, ako punc
+   záveru, a tlačí obsah dole (nič sa nezakrýva, scroll ostáva vo \`.hf-stage\`). */
+html[data-flow-full] .co-stack { --seal: clamp(80px, 13dvh, 120px); margin-top: 0; }
+html[data-flow-full] .co-stack--many { --seal: clamp(64px, 10dvh, 96px); }
+html[data-flow-full] .co-stack .co-seal {
+  position: relative; left: auto; top: auto; display: block;
+  margin: 0 auto 12px; transform: rotate(-5deg);
+}
 /* Viac psov = viac riadkov kariet ⇒ pečať sa scvrkne (Matej 25. 9. 2026). */
 .co-stack--many { --seal: clamp(80px, 12dvh, 128px); }
 @media (max-height: 700px) {
