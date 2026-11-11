@@ -17,7 +17,7 @@ const wc = (key: string) => `rgb(${WORLD_TINT[key] ?? '91,224,240'})`;
 export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
   const box = useRef<HTMLDivElement>(null);
   const row = useRef<HTMLDivElement>(null);
-  const st = useRef({ x: 0, v: 0, drag: false, hov: false, fling: false, lx: 0, lt: 0, moved: 0 });
+  const st = useRef({ x: 0, v: 0, drag: false, hov: false, fling: false, lx: 0, lt: 0, moved: 0, until: 0 });
   useEffect(() => {
     const r = row.current; if (!r) return;
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -39,7 +39,8 @@ export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
       if (!half) return;
       if (!S.drag) {
         /* myš na páse = STOJÍ hneď (Matej: „pri dotyku zvitky nezastanú“); dobieha len švih po pustení */
-        const auto = S.hov || still ? 0 : -42;           /* px/s */
+        /* prst prevezme pás; po pustení dobehne švih a pás 3 s stojí, potom ide sám (Matej 11. 11.) */
+        const auto = S.hov || still || now < S.until ? 0 : -42;           /* px/s */
         if (S.hov && !S.fling) S.v = 0;
         else { S.v += (auto - S.v) * Math.min(1, dt * (S.hov ? 3.2 : 2.2)); if (Math.abs(S.v) < 4) S.fling = false; }
         S.x += S.v * dt;
@@ -51,7 +52,7 @@ export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
     return () => { cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); };
   }, []);
   const down = (e: React.PointerEvent) => {
-    const S = st.current; S.drag = true; S.lx = e.clientX; S.lt = performance.now(); S.v = 0; S.moved = 0;
+    const S = st.current; S.drag = true; S.lx = e.clientX; S.lt = performance.now(); S.v = 0; S.moved = 0; S.until = Infinity;
     box.current?.setPointerCapture(e.pointerId);
   };
   const move = (e: React.PointerEvent) => {
@@ -59,7 +60,7 @@ export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
     const now = performance.now(), dx = e.clientX - S.lx;
     S.x += dx * 1.3; S.moved += Math.abs(dx); S.v = (dx * 1.6) / Math.max(0.008, (now - S.lt) / 1000); S.lx = e.clientX; S.lt = now;
   };
-  const up = () => { st.current.drag = false; st.current.fling = true; };
+  const up = () => { const S = st.current; if (!S.drag) return; S.drag = false; S.fling = true; S.until = performance.now() + 3000; };
   /* trackpad do strany posúva pás rovno (deltaX); zvislé koliesko patrí stránke */
   useEffect(() => {
     const b = box.current; if (!b) return;
@@ -77,7 +78,7 @@ export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
   );
   return (
     <div className="zs" ref={box} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
-      onPointerEnter={() => { st.current.hov = true; }} onPointerLeave={() => { st.current.hov = false; st.current.drag = false; }}>
+      onPointerEnter={(e) => { if (e.pointerType === 'mouse') st.current.hov = true; }} onPointerLeave={(e) => { st.current.hov = false; if (e.pointerType === 'mouse') up(); }}>
       <div className="zs-loop" ref={row}>
         {AI_SCROLLS.map((s) => card(s, `a${s.id}`))}
         {AI_SCROLLS.map((s) => card(s, `b${s.id}`))}
