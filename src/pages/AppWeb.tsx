@@ -631,7 +631,7 @@ export default function AppWeb() {
             </Rv>
             <Rv d={1} className="mid">VS</Rv>
             <Rv d={2} className="vs-col">
-              <Tilt set="profile" src="svorka-danka" />
+              <Tilt set="profile" src="profil-heroglyf" />  {/* profil s HEROGLYFOM (Matej 11. 11., snímka z jeho telefónu) */}
               <div className="vs-tag dg"><img className="vs-ico" src="/web-app/app-icon.png" alt="DOGYPT" /><p>{c('cap2')}</p></div>
             </Rv>
           </div>
