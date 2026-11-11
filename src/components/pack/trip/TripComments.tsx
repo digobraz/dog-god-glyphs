@@ -32,6 +32,7 @@ import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackBut
 import { useT } from '@/i18n/LanguageContext';
 import { guardMessage } from '@/components/pack/contentGuardError';
 import { linkify } from '@/components/ainubis/ainubisLinkify';
+import { UgcText, UGC_TEXT_CSS } from '@/components/pack/UgcText';
 import { useMagnetPreview } from '@/components/pack/magnetPreview';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN, VEIL_CSS, VEIL_PAD } from '@/components/pack/packTheme';
 import { MODAL_MAX_H } from '@/components/pack/packTheme';
@@ -708,7 +709,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                     <span className="tcm-review-name">{name}</span>
                   </div>
                   <Paws rating={r.paws} />
-                  {r.body && <div className="tcm-review-text">{linkify(r.body, openLink, 'tcm-link')}</div>}
+                  {r.body && <UgcText kind="review" id={r.id} text={r.body}>{(s, tg) => <div className="tcm-review-text">{linkify(s, openLink, 'tcm-link')}{tg}</div>}</UgcText>}
                   <ReviewPhotoStrip photos={r.photos} />
                   {canWrite && (
                     <div className="tcm-review-footer">
@@ -738,7 +739,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
           const name = item.q.ownerFirst ?? t('pack.trip.cm.dogyptian');
           return (
             <div className={`tcm-advice${hlId === item.q.id ? ' hl' : ''}`} data-cid={item.q.id} key={item.q.id}>
-              <div className="tcm-advice-text">{linkify(item.q.body, openLink, 'tcm-link')}</div>
+              <UgcText kind={quoteThread ? 'quote' : 'question'} id={item.q.id} text={item.q.body}>{(s, tg) => <div className="tcm-advice-text">{linkify(s, openLink, 'tcm-link')}{tg}</div>}</UgcText>
               <div className="tcm-advice-meta">
                 <span>{name}</span>
                 {canWrite && (
@@ -753,7 +754,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
 
   return (
     <div className="tcm-wrap" aria-label={t('pack.trip.cm.aria', { name: tripName ?? t('pack.trip.cm.thisTrip') })}>
-      <style>{TRIP_COMMENTS_CSS}</style>
+      <style>{TRIP_COMMENTS_CSS + UGC_TEXT_CSS}</style>
       {!quoteThread && <div className="tcm-tabs">
         <button type="button" className={`tcm-tab${tab === 'reviews' ? ' on' : ''}`} onClick={() => changeTab('reviews')}>
           {t('pack.trip.cm.reviews', { n: reviewCount })}

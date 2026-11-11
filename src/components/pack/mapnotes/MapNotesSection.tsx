@@ -10,6 +10,7 @@
 // ostatné do 150 m od stopy. Parkovisko pri štarte teda vidia VŠETKY výlety,
 // ktoré odtiaľ vychádzajú — presne to bol dôvod, prečo väzba nie je uložená.
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { UgcText, UGC_TEXT_CSS } from '@/components/pack/UgcText';
 import { useT } from '@/i18n/LanguageContext';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { groupOf, type MapNote, type NoteKind, type TickDisease } from './mapNotesData';
@@ -103,7 +104,7 @@ export function MapNotesSection({ trail, notes, locale = 'en-US', onAdd }: MapNo
                   )}
                   {n.isStale && <span className="mns-stale">{t('pack.mapNotes.unconfirmed')}</span>}
                 </div>
-                {!!n.body && <p className="mns-body">{n.body}</p>}
+                {!!n.body && <UgcText kind="note" id={n.id} text={n.body} mine={n.isMine || isDatasetNote(n)}>{(s, tg) => <p className="mns-body">{s}{tg}</p>}</UgcText>}
                 {!isDatasetNote(n) && (
                   <div className="mns-meta">
                     {n.authorFirst && <span className="mns-author">{n.authorFirst}</span>}
@@ -125,7 +126,7 @@ export function MapNotesSection({ trail, notes, locale = 'en-US', onAdd }: MapNo
 // „ZÁPISY DO MAPY" bol po prezlečení karty prakticky neviditeľný.
 // Zlatá je `#8a5a14`, nie brandová `#C99A3F`: tá je na svetlom podklade len o odtieň
 // tmavšia než sám papyrus.
-export const MAP_NOTES_SECTION_CSS = `
+export const MAP_NOTES_SECTION_CSS = `${UGC_TEXT_CSS}
 .mns-wrap{margin-top:18px;}
 .mns-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
 .mns-title{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}

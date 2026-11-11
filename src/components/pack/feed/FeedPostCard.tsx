@@ -13,6 +13,7 @@ import { linkify } from '@/components/ainubis/ainubisLinkify';
 import { FollowChip, FOLLOW_CHIP_CSS } from '@/components/pack/profile/follow';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
+import { UgcText, UGC_TEXT_CSS } from '@/components/pack/UgcText';
 import { LikeMark, CommentMark, SaveMark, ShareMark } from '@/components/pack/SysIcon';
 import { shareOut } from './feedShare';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -27,7 +28,7 @@ const T = PACK_THEME;
 const S = PACK_SPACE;
 const TX = PACK_TEXT;
 
-export const FEED_POST_CSS = `
+export const FEED_POST_CSS = `${UGC_TEXT_CSS}
 ${FOLLOW_CHIP_CSS}
 .pfp-link{color:inherit;text-decoration:underline;word-break:break-all;}
 .pfp{overflow:hidden;}
@@ -145,7 +146,7 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
           <SaveMark on={soc.saved} />{soc.saves > 0 && soc.saves}
         </button>
       </div>
-      {post.body && <p className="pfp-tx" onClick={(e) => e.stopPropagation()}><b>{name}</b>{linkify(post.body, (path) => navigate(path), 'pfp-link')}</p>}
+      {post.body && <UgcText kind="post" id={post.id} text={post.body} mine={mine}>{(s, tg) => <p className="pfp-tx" onClick={(e) => e.stopPropagation()}><b>{name}</b>{linkify(s, (path) => navigate(path), 'pfp-link')}{tg}</p>}</UgcText>}
       {soc.comments > 0
         ? <button type="button" className="pfp-cm" onClick={() => onOpen(post)}>{tx('pack.feed.comments', 'View {n} comments').replace('{n}', String(soc.comments))}</button>
         : <div style={{ height: S.md }} />}

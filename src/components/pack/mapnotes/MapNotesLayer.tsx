@@ -23,6 +23,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Marker, Circle, Popup, useMap, useMapEvent } from 'react-leaflet';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { UgcText, UGC_TEXT_CSS } from '@/components/pack/UgcText';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { useT } from '@/i18n/LanguageContext';
 import { groupOf, type MapNote, type NoteKind, type TickDisease } from './mapNotesData';
@@ -381,7 +382,7 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
             {n.isStale && <span className="mn-bubble-stale">{t('pack.mapNotes.unconfirmed')}</span>}
           </div>
 
-          {!!n.body && <p className="mn-bubble-body">{bodyWithLinks(n.body)}</p>}
+          {!!n.body && <UgcText kind="note" id={n.id} text={n.body} mine={n.isMine || dataset}>{(s, tg) => <p className="mn-bubble-body">{bodyWithLinks(s)}{tg}</p>}</UgcText>}
 
           {/* Dátum svieti vždy — Matej 2026-08-20: „poznámka neumiera svieti tam dátum". */}
           {!dataset && (
@@ -508,7 +509,7 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
 // ⚠️ Leaflet Popup si nesie vlastný biely chrome (`.leaflet-popup-content-wrapper`,
 // `-tip`) — bez explicitného prebitia by na tmavej mape svietil biely obdĺžnik.
 // Preto sa prepisujú aj tie triedy, nielen vlastné `.mn-*`.
-export const MAP_NOTES_CSS = `
+export const MAP_NOTES_CSS = `${UGC_TEXT_CSS}
 .mn-wrap{background:none;border:0;}
 .mn-mark{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;}
 .mn-mark:hover{transform:translate(-50%,-50%) scale(1.12);}

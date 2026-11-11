@@ -23,6 +23,7 @@ import { mapyTiles } from '@/lib/env';
 import { BackButton } from '@/components/pack/BackButton';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_AVATAR, FONT_TITLE, FONT_UI, PAPER_BG, PF_FIELD_CSS, VEIL_CSS } from '@/components/pack/packTheme';
 import { GRAB_CSS } from '@/components/pack/packTheme';
+import { UgcText, UGC_TEXT_CSS } from '@/components/pack/UgcText';
 import { LAPIS, LAPIS_BTN_SHADOW, tintRGBA } from '@/components/pack/navGoldSkin';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { deletePost, fetchPostSocial, fetchComments, addComment, deleteComment, fetchLikers, mapyPointUrl, type PostLiker, type MePost, type PostSocial, type PostComment } from '@/components/pack/profile/mePosts';
@@ -266,7 +267,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
   return createPortal(
     <div className="pv-root" role="dialog" aria-modal="true" aria-label={tx('pack.me.post', 'Post')}>
       <style>{PF_FIELD_CSS}</style>
-      <style>{CSS}</style>
+      <style>{CSS + UGC_TEXT_CSS}</style>
       <div className="pv-col">
         <div className="pv-top">
           <BackButton tone="pale" onClick={onClose} label={tx('pack.network.close', 'Close')} />
@@ -309,13 +310,13 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
             </span>
           </button>
         )}
-        {post.body && <p className="pv-body"><b>{name}</b>{linkify(post.body, openLink, 'pv-link')}</p>}
+        {post.body && <UgcText kind="post" id={post.id} text={post.body} mine={mine}>{(s, tg) => <p className="pv-body"><b>{name}</b>{linkify(s, openLink, 'pv-link')}{tg}</p>}</UgcText>}
         {cms.length > 0 && (
           <ul className="pv-cm">
             {cms.map((c) => (
               <li key={c.id} data-cid={c.id} className={hlId === c.id ? 'hl' : undefined}>
                 {c.photo ? <img className="av" src={sizedUrl(c.photo, 60)} alt="" /> : <span className="av">{(c.name || '#')[0]}</span>}
-                <p><b>{c.name || (c.ownerN ? `#${c.ownerN}` : '')}</b>{(c.actedBy || c.actedName) && <><ActedBy id={c.actedBy} name={c.actedName} /> </>}{linkify(c.body, openLink, 'pv-link')}</p>
+                <UgcText kind="post_comment" id={c.id} text={c.body} mine={c.mine}>{(s, tg) => <p><b>{c.name || (c.ownerN ? `#${c.ownerN}` : '')}</b>{(c.actedBy || c.actedName) && <><ActedBy id={c.actedBy} name={c.actedName} /> </>}{linkify(s, openLink, 'pv-link')}{tg}</p>}</UgcText>
                 {/* Pri komentári dátum nie je (Matej 28. 10. 2026) — len meno a text. */}
                 {!c.mine && (
                   <button type="button" className="rl" onClick={() => { setReportId(c.id); setRepSent(false); setRepErr(null); }}>{tx('pack.trip.cm.report', 'Report')}</button>

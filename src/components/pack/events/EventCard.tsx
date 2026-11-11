@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, PACK_SHADOW, PHOTO_CSS } from '@/components/pack/packTheme';
+import { UgcText, UGC_TEXT_CSS } from '@/components/pack/UgcText';
 import { PALE as P, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { DeleteButton } from '@/components/pack/DeleteButton';
 import { AinubisSheet } from '@/components/pack/ainubisSheet';
@@ -307,7 +308,7 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
                 {comments.map((c) => (
                   <li key={c.id}>
                     <div className="pev-cwho">{whoLine(c.first, c.dog, c.number) || t('pack.event.someone')}</div>
-                    <div className="pev-ctext">{c.body}</div>
+                    <UgcText kind="event_comment" id={c.id} text={c.body} mine={c.isMine}>{(s, tg) => <div className="pev-ctext">{s}{tg}</div>}</UgcText>
                     {c.isMine && <button type="button" className="pev-link" onClick={() => void removeComment(c.id)}>{t('pack.event.deleteComment')}</button>}
                   </li>
                 ))}
@@ -403,7 +404,7 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
 // ⚠️ HODNOTY SÚ NA STUPNICIACH `packTheme.ts` (písmo 10/12/14/16 · polomer 8/12/16/999 ·
 //    odsadenie 4/8/12/16 · rozstrel .02/.14/.22). Rámy a tiene cez tokeny, nie doslovne.
 // ⚠️ Karta a karta výletu (`.trp-bigcard`) sú súrodenci v jednom zozname — papyrus + zlatý rám.
-export const EVENT_CARD_CSS = `
+export const EVENT_CARD_CSS = `${UGC_TEXT_CSS}
 ${PHOTO_CSS}
 .pev-card{display:block;border-radius:16px;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};box-shadow:${PACK_SHADOW.lift};transition:border-color .15s;}
 .pev-card:hover,.pev-card.hot{border-color:${P.deep};}
