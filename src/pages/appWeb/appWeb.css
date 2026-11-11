@@ -1686,6 +1686,7 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .cit-note{max-width:520px;margin:var(--s-sm) auto 0}
 .aw .cit-err{margin-top:var(--s-sm);color:#B25640}
 .aw .cit-manage{margin:var(--s-md) 0 0}
+.aw .cit-mine{display:inline-block;margin:0;padding:var(--s-md) var(--s-xl);border-radius:12px;font:600 var(--t-lead)/1.2 var(--font-ui);color:var(--ink-strong)}
 .aw .cit-thanks{display:inline-block;margin:0 auto var(--s-lg);padding:var(--s-md) var(--s-lg);border-radius:12px;font:500 var(--t-lead)/1.4 var(--font-ui)}
 .aw .cit-sup{max-width:640px;margin:var(--s-xxl) auto 0;padding:var(--s-xl) var(--s-lg);text-align:center;box-sizing:border-box}
 .aw .cit-sup-ic{display:block;width:96px;height:96px;margin:0 auto var(--s-md);object-fit:contain;filter:drop-shadow(0 8px 14px rgba(60,36,8,.35));transform:rotate(-4deg)}

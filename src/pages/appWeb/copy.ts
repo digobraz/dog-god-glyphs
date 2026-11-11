@@ -754,6 +754,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  pay_err: { en: 'The payment did not start. Try again in a moment.', sk: 'Platba sa nespustila. Skús to o chvíľu znova.' },
  pay_manage: { en: 'Change or cancel your entry', sk: 'Zmeniť alebo zrušiť vstupné' },
  pay_thanks: { en: 'Thank you. From today you are', sk: 'Ďakujeme. Odteraz si' },
+ pay_mine: { en: 'This is your rank', sk: 'Toto je tvoja hodnosť' },
  fee_p: { en: 'DOGYPT lives on a voluntary entry fee. A rank helps us grow. Every euro goes to running costs, development and dogs in need.', sk: 'DOGYPT žije z dobrovoľného vstupného. Hodnosť nám pomáha rásť. Každé euro ide na prevádzku, do vývoja a psom v núdzi.' },
  fee_tr: { en: '100% transparency.', sk: '100\u00a0% transparentnosť.' },
  fee_tr_i: { en: 'Every DOGYPT member sees the shared treasury in the app: what came in, what running the app cost and how much went to dogs in need.', sk: 'Každý člen DOGYPTU vidí v appke spoločnú pokladnicu: koľko prišlo, koľko stála prevádzka a koľko išlo psom v núdzi.' },

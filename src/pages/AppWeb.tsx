@@ -423,7 +423,11 @@ export default function AppWeb() {
       window.history.replaceState(null, '', '/app#badges');
       setTimeout(() => document.getElementById('badges')?.scrollIntoView(), 300);
     }
-    myRank().then(setRankNow).catch(() => {});
+    myRank().then((r) => {
+      setRankNow(r);
+      const k = RANK_OF_CARD.indexOf(r as never);
+      if (k > 0) setPick(k); // platiaci vidí vybranú svoju hodnosť
+    }).catch(() => {});
   }, [qs]);
   const pay = async () => {
     const rank = RANK_OF_CARD[pick];
@@ -829,12 +833,14 @@ export default function AppWeb() {
             )}
             {pick === 0
               ? <a className="pk-cta" href="#">{c('give')}</a>
-              : (
+              : RANK_OF_CARD[pick] === rankNow && !(pick === 4 && fKind === 'once')
+                ? <p className="cit-mine pk-stage">{c('pay_mine')}</p>
+                : (
                 <button type="button" className="pk-cta" onClick={pay} disabled={payBusy}>
                   {c('pay_as')} {c(`t${pick}`)} · {pick === 4 ? `€${fAmt}${fKind === 'month' ? ` ${c('per_mo')}` : ''}` : `${eur(CITIZEN_PRICES[pick])} ${c('per_mo')}`}
                 </button>
               )}
-            {pick > 0 && <p className="tr-sub cit-note">{c(pick === 4 && fKind === 'once' ? 'pay_note_once' : 'pay_note')}</p>}
+            {pick > 0 && RANK_OF_CARD[pick] !== rankNow && <p className="tr-sub cit-note">{c(pick === 4 && fKind === 'once' ? 'pay_note_once' : 'pay_note')}</p>}
             {payErr && <p className="tr-sub cit-err" role="alert">{c('pay_err')}</p>}
             {rankNow && rankNow !== 'veriaci' && rankNow !== 'zakladatel' && (
               <p className="cit-manage"><button type="button" className="tr-dot" onClick={manage} disabled={payBusy}>{c('pay_manage')}</button></p>
