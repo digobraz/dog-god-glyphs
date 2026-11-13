@@ -225,7 +225,7 @@
 /* VÍZIA: „We need you“ — faraón s kocúrmi a Hekthorom (výrez bez pozadia), bez kruhu */
 .sx-vis-art::before{display:none}
 .sx-vis-art img{border-radius:0}
-.sx-bigph{width:100%;max-width:600px;aspect-ratio:1/1;margin:0 auto}
+.sx-bigph{width:fit-content;max-width:min(600px,100%);margin:0 auto}.sx-bigph img{display:block;width:auto;max-width:100%;height:auto;max-height:76vh}
 /* pás: sám ide, dá sa ťahať a rolovať (StoryWeb Strip) + šípky; popup fotky (Lightbox) — 13. 11. 2026 */
 .sx-strip{position:relative}
 .sx-strip-in{animation:none;width:auto;overflow-x:auto;scrollbar-width:none;cursor:grab;user-select:none;-webkit-user-select:none}
