@@ -52,6 +52,7 @@ function Fan({ pics, dark }: { pics: Pic[]; dark?: boolean }) {
 }
 
 const d = (s: number) => ({ '--d': `${s}s` } as CSSProperties);
+const VAULT = (PULSE.work as { name: string; count?: { scrolls?: number; goal?: number } }[]).find((w) => w.name === 'vault');
 
 /* Fotky kapitol = `public/web-app/story/r/<rok>-….webp`, popisy píše Matej v nákrese
    `plany/nakresy/web-story-2026-11-11/popisy.html` → `appWeb/storyFoto.json` (13. 11. 2026).
@@ -234,8 +235,9 @@ export default function StoryWeb() {
 
   /* živý počet psov (verejný = všetky psy s číslom) */
   const [dogs, setDogs] = useState(121);
+  const [new30, setNew30] = useState<number | null>(null);
   useEffect(() => {
-    getPackStats<{ dogs?: number; total?: number }>().then((s) => { const n = s.dogs ?? s.total; if (n) setDogs(n); }).catch(() => {});
+    getPackStats<{ dogs?: number; total?: number; last30d?: number }>().then((s) => { const n = s.dogs ?? s.total; if (n) setDogs(n); if (s.last30d != null) setNew30(s.last30d); }).catch(() => {});
   }, []);
   const pct = Math.min(100, (dogs / 1000) * 100);
 
@@ -327,9 +329,7 @@ export default function StoryWeb() {
   const dayMs = (a: string, b: string) => Math.round((new Date(b).getTime() - new Date(a).getTime()) / 864e5);
   const merDays = Math.max(1, dayMs(PULSE.since, PULSE.updated) + 1);
   const avgH = Math.round(PULSE.total / merDays);
-  const runDays = dayMs(OD, PULSE.updated) + 1;
   const estTotal = Math.round((PULSE.total + (PULSE.total / merDays) * dayMs(OD, PULSE.since)) / 100) * 100;
-  const sinceTxt = new Date(OD).toLocaleDateString(loc, { day: 'numeric', month: 'numeric', year: 'numeric' });
 
   return (
     <OpenCtx.Provider value={(list, i) => setLb({ list, i })}>
@@ -457,12 +457,11 @@ export default function StoryWeb() {
         <Chapter n={ch('VIII')} year="2026" top0 h={t('c8_h')}
           side={<Phones L={L} />} below={<Strip pics={F26.strip} />}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c8_p')}</p>
-          <div className="sx-nums sx-rv" style={d(0.4)}>
-            <div><b data-n={estTotal} data-pre="~">0</b><span>{t('c8_hrs')}</span></div>
+          <p className="sx-who sx-rv" style={d(0.4)}>{t('c8_who')}</p>
+          <div className="sx-nums sx-rv" style={d(0.45)}>
             <div><b data-n={avgH}>0</b><span>{t('c8_avg')}</span></div>
-            <div><b data-n={runDays}>0</b><span>{t('c8_since')} {sinceTxt}</span></div>
+            <div><b data-n={estTotal} data-pre="~">0</b><span>{t('c8_hrs')}</span></div>
           </div>
-          <p className="sx-who sx-rv" style={d(0.5)}>{t('c8_who')}</p>
         </Chapter>
 
         {/* od krabice k miliónu + DNES s aktuálnym priebehom */}
@@ -471,14 +470,14 @@ export default function StoryWeb() {
             <div className="sec-h sx-rv"><p className="eye">{t('rd_eye')}</p><h2><Mark s={t('rd_h')} /></h2></div>
             <div className="sx-road" ref={roadRef}>
               <i className="sx-road-line" /><i className="sx-road-fill" ref={fillRef} />
-              {([['1b', '2016', 'r1'], ['2a', '2017', 'r2'], ['2c', '2019–21', 'r3'], ['4a', '2022', 'r4'], ['3a', '2023', 'r5'], ['2d', t('r6_y'), 'r6']] as const).map(([img, y, k]) => (
+              {([['1b', '2016', 'r1'], ['2a', '2017', 'r2'], ['2c', '2019–21', 'r3'], ['4a', '2022', 'r4'], ['3a', '2023', 'r5'], ['planeta', t('r6_y'), 'r6']] as const).map(([img, y, k]) => (
                 <div className="sx-rs" key={k}>
                   <span className="sx-dot"><img src={ph(img)} alt="" loading="lazy" /></span>
                   <div className="sx-txt"><em>{y}</em><b>{t(`${k}_b`)}</b><span>{t(`${k}_s`)}</span></div>
                 </div>
               ))}
               <div className="sx-rs sx-now">
-                <span className="sx-dot"><img src="/web-app/app-icon.png" alt="" /></span>
+                <span className="sx-dot sx-appdot"><img src="/web-app/app-icon.png" alt="" /></span>
                 <div className="sx-txt"><em style={{ color: 'var(--lapis-edge)' }}>{t('r7_y')}</em><b>{t('r7_b')}</b><span>{t('r7_s')}</span></div>
                 <div className="pk-card sx-nowc">
                   <div>
@@ -489,14 +488,13 @@ export default function StoryWeb() {
                     <p className="lead">{t('now_p')}</p>
                     <div className="sx-ctas">
                       <a className="pk-cta" href="/app#badges">{t('now_join')}</a>
-                      <a className="pk-cta" href="/app#join" style={{ background: 'var(--paper)', color: 'var(--ink-strong)', borderColor: 'var(--card-edge)' }}>{t('now_app')}</a>
                     </div>
                   </div>
                   <img className="sx-face" src="/images/kontakt-matej-hektor-cut.webp" alt="Matej & Hekthor" loading="lazy" />
                 </div>
               </div>
               {([['1K', 1000, 'f1'], ['10K', 10000, 'f2'], ['100K', 100000, 'f3']] as const).map(([dot, n, k]) => (
-                <div className="sx-rs sx-fut" key={k}><span className="sx-dot">{dot}</span><div className="sx-txt"><em>{fmt(n)}</em><b>{t(`${k}_b`)}</b><span>{t(`${k}_s`)}</span></div></div>
+                <div className="sx-rs sx-fut" key={k} data-dot={dot}><span className="sx-dot"><img className="sx-qm" src="/icons/sys/otaznik.webp" alt="" /></span><div className="sx-txt"><em>{fmt(n)}</em><b>{t(`${k}_b`)}</b><span>{t(`${k}_s`)}</span></div></div>
               ))}
               <div className="sx-rs sx-fut"><span className="sx-dot"><img src="/images/vision/vision-unity.webp" alt="" loading="lazy" /></span><div className="sx-txt"><em>{fmt(1000000)}</em><b>{t('f4_b')}</b><span>{t('f4_s')}</span></div></div>
             </div>
@@ -510,9 +508,8 @@ export default function StoryWeb() {
             <div>
               <p className="sx-num sx-rv">{t('vi_eye')}</p>
               <h2 className="sx-rv" style={{ ...d(0.1), fontSize: 'clamp(32px,4.6vw,60px)', lineHeight: 1.08 }}><Mark s={t('vi_h')} /></h2>
-              <div className="sx-bign sx-rv" style={d(0.2)} data-n="1000000">0</div>
-              <p className="eye sx-rv" style={{ ...d(0.25), marginTop: 'var(--s-xs)' }}>{t('vi_n')}</p>
-              <p className="lead sx-rv" style={{ ...d(0.3), fontSize: 18 }}>{t('vi_p')}</p>
+              <p className="lead sx-rv" style={{ ...d(0.2), fontSize: 18 }}>{t('vi_p')}</p>
+              <p className="lead sx-rv" style={{ ...d(0.3), fontSize: 18 }}><b>{t('vi_p2')}</b></p>
             </div>
           </div>
         </section>
@@ -537,23 +534,36 @@ export default function StoryWeb() {
       {/* PÄTIČKA — kontakty · AINUBIS · živý priebeh práce (onepagePulse.json, gen-praca-stats pri deployi) */}
       <footer className="sx-ft" data-no-paw>
         <div className="wrap">
-          <div className="sx-ftg">
+          <div className="sx-fthead">
             <div>
               <img className="sx-logo" src="/web-app/logo-napis.webp" alt="DOGYPT" />
-              <p>{t('ft_about')}</p>
-              <div className="sx-links">
-                <a href="mailto:woof@dogypt.com"><i><img src="/icons/sys/obalka.webp" alt="" /></i>woof@dogypt.com</a>
-                <a href="https://instagram.com/dogypt" target="_blank" rel="noopener"><i><img src="/icons/sys/instagram.webp" alt="" /></i>Instagram</a>
-                <a href="https://www.facebook.com/dogypt.official/" target="_blank" rel="noopener"><i><img src="/icons/sys/facebook.webp" alt="" /></i>Facebook</a>
-                <a href="https://youtube.com/@dogypt" target="_blank" rel="noopener"><i><img src="/icons/sys/prehraj.webp" alt="" /></i>YouTube</a>
-                <a href={dogmaUrl}><i>☥</i>DOGMA</a>
+              <p className="sx-claim">{t('ft_about')}</p>
+            </div>
+            <Stores />
+          </div>
+
+          <div className="sx-ftg">
+            {/* ČO JE NOVÉ — noví psi (get-pack-stats.last30d), na čom pracujeme (onepagePulse.work), hodiny za 7 dní */}
+            <div className="sx-news">
+              <h3>{t('ft_now')}</h3>
+              <div className="sx-newdogs">
+                <b>+{fmt(new30 ?? 0)}</b>
+                <span>{t('ft_new')}<small>{fmt(dogs)} {t('now_dogs')}</small></span>
               </div>
-              <Stores />
-              <p className="sx-ftmotto"><Mark s={t('motto')} as="span" /></p>
+              <a className="sx-all" href="/wall">{t('ft_all')} <img src="/icons/sys/sipka.webp" alt="" /></a>
+              <h4>{t('ft_build')}</h4>
+              <ul className="sx-build">
+                <li><b>{t('ft_w_app')}</b><span>{t('ft_w_due')}</span></li>
+                <li><b>{t('ft_w_vault')}</b><span>{fmt(VAULT?.count?.scrolls ?? 0)} / {fmt(VAULT?.count?.goal ?? 0)}</span></li>
+                <li><b>{t('ft_w_world')}</b></li>
+              </ul>
+              <div className="sx-stat"><span>{t('ft_week')}</span><b>{fmt(PULSE.hours)}<small>h</small></b></div>
+              <div className="sx-spark">{PULSE.days.map((x) => <i key={x.d} title={`${x.d}: ${x.h} h`} style={{ height: `${(x.h / pmax) * 100}%` }} />)}</div>
+              <p className="sx-upd">{t('ft_upd')} {upd}</p>
             </div>
 
             <div>
-              <h3>{t('ft_ask')}</h3>
+              <h3 className="sx-aih3">{t('ft_ask')}</h3>
               <div className="sx-ai">
                 <div className="sx-ai-h"><img src={AI_HEAD} alt="" /><div><b><span>AI</span>NUBIS</b><small>{t('ai_on')}</small></div></div>
                 <div className="sx-ai-b" ref={chatRef}>
@@ -569,15 +579,15 @@ export default function StoryWeb() {
             </div>
 
             <div>
-              <h3>{t('ft_now')}</h3>
-              <div className="sx-live">
-                <div className="sx-stat"><span>{t('ft_dogs')}</span><b>{fmt(dogs)}</b></div>
-                <div className="sx-stat"><span>{t('ft_week')}</span><b>{fmt(PULSE.hours)}<small>h</small></b></div>
-                <div>
-                  <div className="sx-spark">{PULSE.days.map((x) => <i key={x.d} title={`${x.d}: ${x.h} h`} style={{ height: `${(x.h / pmax) * 100}%` }} />)}</div>
-                  <p className="sx-upd">{t('ft_upd')} {upd}</p>
-                </div>
+              <h3>{t('ft_contact')}</h3>
+              <div className="sx-links">
+                <a href="mailto:woof@dogypt.com"><i><img src="/icons/sys/obalka.webp" alt="" /></i>woof@dogypt.com</a>
+                <a href="https://instagram.com/dogypt" target="_blank" rel="noopener"><i><img src="/icons/sys/instagram.webp" alt="" /></i>Instagram</a>
+                <a href="https://www.facebook.com/dogypt.official/" target="_blank" rel="noopener"><i><img src="/icons/sys/facebook.webp" alt="" /></i>Facebook</a>
+                <a href="https://youtube.com/@dogypt" target="_blank" rel="noopener"><i><img src="/icons/sys/prehraj.webp" alt="" /></i>YouTube</a>
+                <a href={dogmaUrl}><i>☥</i>DOGMA</a>
               </div>
+              <p className="sx-ftmotto"><Mark s={t('motto')} as="span" /></p>
             </div>
           </div>
           <div className="sx-ftb"><span>© 2026 DOGYPT</span><span><a href="/terms">{t('ft_terms')}</a><a href="/privacy">{t('ft_privacy')}</a></span></div>
