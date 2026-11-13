@@ -77,7 +77,7 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   f2_b: { sk: 'Svorka rastie', en: 'The pack grows' },
   f2_s: { sk: 'Sekta, ktorú začína byť počuť.', en: 'A sect people start to hear about.' },
   f3_b: { sk: 'Psia ríša', en: 'The dog empire' },
-  f3_s: { sk: 'Niečo ako nová éra Pokémonov.', en: 'Something like a new Pokémon era.' },
+  f3_s: { sk: 'Vznikajú dogyptské centrá a členovia financujú chod útulkov novej generácie, výskumy dlhovekosti či vývoj gearu.', en: 'DOGYPT centres open and members fund next-generation shelters, longevity research and gear development.' },
   f4_b: { sk: 'Dejiny psov sa prepisujú', en: 'Dog history is rewritten' },
   f4_s: { sk: 'Projekt, ktorý pomáha miliónom psov v núdzi.', en: 'A project that helps millions of dogs in need.' },
 
