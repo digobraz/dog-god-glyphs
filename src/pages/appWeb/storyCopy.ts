@@ -11,7 +11,7 @@ export const STORY: Record<string, { sk: string; en: string }> = {
 
   ch: { sk: 'Kapitola', en: 'Chapter' },
 
-  c1_h: { sk: 'Bol posledný, alebo *nechcený?*', en: 'The last one, or the *unwanted* one?' },
+  c1_h: { sk: 'Zostal *posledný.*', en: 'He was the *last one.*' },
   c1_p: { sk: 'Do útulku priniesli osem čiernych šteniat. Niekto ich vyhodil v jednej krabici, v strede Európy. Sedem z nich si našlo domov. Toho najväčšieho nechcel nikto. V útulku čakal celý rok. Volal sa Hekthor.', en: 'Eight black puppies were brought to the shelter. Someone had dumped them in a single box, in the middle of Europe. Seven of them found a home. Nobody wanted the biggest one. He waited in the shelter for a whole year. His name was Hekthor.' },
 
   c2_q: { sk: '„Nechcem *psa!*“', en: '“I *don’t* want a dog!”' },
