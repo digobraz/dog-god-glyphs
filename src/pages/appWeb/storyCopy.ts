@@ -91,7 +91,7 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   dg_p: { sk: 'Toto nie je obyčajný projekt, je to hnutie s jasným vnútorným kódexom. A aj keď máme radšej zvieratá než ľudí, vieme, že ak sa ako psíčkari spojíme, budeme mať väčšiu moc spoločne a s láskou pomáhať celej psej rase.', en: 'This is not an ordinary project, it is a movement with a clear inner code. And even though we like animals more than people, we know that if dog people unite, we will have more power to help the whole dog race, together and with love.' },
   dg_cta: { sk: 'Prečítaj si DOGMU', en: 'Read the DOGMA' },
 
-  ft_about: { sk: 'Globálne hnutie psíčkarov, ktorí uctievajú psa a hrajú s ním jeho najlepší život.', en: 'A global movement of dog people who worship the dog and play its best life together with it.' },
+  ft_about: { sk: 'Psie náboženstvo. Najlepší život pre tvojho psa.', en: 'The dog religion. Your dog’s best life.' },
   ft_ask: { sk: 'Opýtaj sa nás', en: 'Ask us' },
   ai_on: { sk: 'online, odpovie hneď', en: 'online, replies right away' },
   ai_hi: { sk: 'Ahoj, som AINUBIS, strážca DOGYPTu. Opýtaj sa ma na príbeh, appku alebo na to, ako sa pridať.', en: 'Hi, I’m AINUBIS, the guardian of DOGYPT. Ask me about the story, the app or how to join.' },
