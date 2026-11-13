@@ -19,6 +19,10 @@
 .sx-hx-t{position:absolute;z-index:2;left:0;right:0;bottom:clamp(48px,10vh,104px)}
 .sx-hx-t .eye{color:var(--lapis-ink);opacity:0;animation:sx-up 1s .1s forwards}
 .sx-hx h1{color:var(--paper);font-weight:500;font-size:clamp(42px,7.6vw,104px);line-height:1.04;max-width:11em}
+/* nadpis s ` | `: každá veta na jeden riadok, písmo podľa šírky stĺpca (cqw), nie okna */
+.sx-hx-t .wrap{container-type:inline-size}
+.sx-hx h1:has(.sx-hl){font-size:min(7.4cqw,88px);max-width:none}
+.sx-hx h1 .sx-hl{display:block;white-space:nowrap}
 .sx-hx h1 .deco{font-weight:900;background:var(--ai-cta);-webkit-background-clip:text;background-clip:text;padding-bottom:.14em;margin-bottom:-.14em}
 .sx-hx h1 .sx-w{display:inline-block;opacity:0;transform:translateY(.4em);animation:sx-up 1s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(.25s + var(--i) * .12s)}
 @keyframes sx-up{to{opacity:1;transform:none}}

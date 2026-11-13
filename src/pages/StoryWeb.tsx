@@ -151,7 +151,9 @@ export default function StoryWeb() {
   };
   useEffect(() => { if (chat.length) chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' }); }, [chat]);
 
-  const hxWords = t('hx_h').split(' ');
+  // ` | ` v hx_h = nový riadok; každá veta drží jeden riadok (`.sx-hl` nowrap)
+  let hxN = 0;
+  const hxLines = t('hx_h').split(' | ').map((ln) => ln.split(' ').map((x) => ({ x, i: hxN++ })));
   const qWords = t('c2_q').split(' ');
   const dogmaUrl = L === 'sk' ? 'https://dogma.dogypt.com/' : 'https://dogma.dogypt.com/en/';
   const navLinks = (
@@ -207,11 +209,12 @@ export default function StoryWeb() {
           </video>
           <div className="sx-hx-t"><div className="wrap">
             <p className="eye">{t('hx_eye')}</p>
-            <h1>{hxWords.map((x, i) => {
-              if (x === '|') return <br key={i} />;
-              const deco = /^\*.*\*$/.test(x);
-              return <Fragment key={i}><span className={`sx-w${deco ? ' deco' : ''}`} style={{ '--i': i } as CSSProperties}>{x.replace(/\*/g, '')}</span>{' '}</Fragment>;
-            })}</h1>
+            <h1>{hxLines.map((line, li) => (
+              <span key={li} className="sx-hl">{line.map(({ x, i }) => {
+                const deco = /^\*.*\*$/.test(x);
+                return <Fragment key={i}><span className={`sx-w${deco ? ' deco' : ''}`} style={{ '--i': i } as CSSProperties}>{x.replace(/\*/g, '')}</span>{' '}</Fragment>;
+              })}</span>
+            ))}</h1>
             <p>{t('hx_p')}</p>
           </div></div>
           <span className="sx-down" />
