@@ -23,11 +23,13 @@
  },
  "2024": {
   "sk": "Jama levova 2024",
-  "en": ""
+  "en": "",
+  "vpredu": true
  },
  "2025": {
   "sk": "Vo voľnom čase zachraňujeme mačky",
-  "en": ""
+  "en": "",
+  "pas": true
  },
  "2026": {
   "sk": "",
@@ -146,7 +148,8 @@
  },
  "2023-3a": {
   "sk": "Naša prvá knižka",
-  "en": ""
+  "en": "",
+  "velky": true
  },
  "2023-b": {
   "sk": "",
@@ -155,11 +158,13 @@
  },
  "2023-kn": {
   "sk": "Detská kniha?",
-  "en": ""
+  "en": "",
+  "pas": true
  },
  "2023-krst": {
   "sk": "Krst knihy",
-  "en": ""
+  "en": "",
+  "pas": true
  },
  "2023-markiza": {
   "sk": "Boli sme v telke 1.0",
@@ -168,11 +173,13 @@
  },
  "2023-pod": {
   "sk": "Boli sme v podcastoch",
-  "en": ""
+  "en": "",
+  "pas": true
  },
  "2023-stv": {
   "sk": "Boli sme v telke 2.0",
-  "en": ""
+  "en": "",
+  "pas": true
  },
  "2024-1": {
   "sk": "",
@@ -206,7 +213,8 @@
  },
  "2025-f": {
   "sk": "Exkurzie na farme a Hektor ako hlavný sprievodca",
-  "en": ""
+  "en": "",
+  "pas": true
  },
  "2025-farma": {
   "sk": "Farmári",
@@ -222,8 +230,7 @@
  },
  "2025my": {
   "sk": "Moje šelmy",
-  "en": "",
-  "vpredu": true
+  "en": ""
  },
  "2026-1": {
   "sk": "",
