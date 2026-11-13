@@ -45,7 +45,7 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   c8_hrs: { sk: 'hodín práce', en: 'hours of work' },
   c8_avg: { sk: 'hodín denne', en: 'hours a day' },
   c8_since: { sk: 'dní od', en: 'days since' },
-  c8_who: { sk: 'Ja a AI agenti spolu, presne zmerané k dnešku.', en: 'Me and AI agents together, measured to the day.' },
+  c8_who: { sk: 'Ja a AI agenti spolu. Od augusta merané, za marec až júl odhad podľa dnešného tempa.', en: 'Me and AI agents together. Measured since August, March to July estimated at today’s pace.' },
   c8_cap: { sk: 'Prvý heroglyf', en: 'The first heroglyph' },
 
   rd_eye: { sk: 'Náš postup', en: 'Our progress' },

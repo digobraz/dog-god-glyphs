@@ -4,7 +4,7 @@
  * Poradie: hero → kapitoly 2016–2026 → od krabice k miliónu (+ karta DNES) → vízia → DOGMA → pätička.
  * Texty `appWeb/storyCopy.ts`, štýl `appWeb/story.css` (triedy `sx-`), tokeny a hlavička z `appWeb.css`.
  */
-import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { createContext, Fragment, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Seo } from '@/components/Seo';
 import { useLang } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
@@ -32,11 +32,16 @@ function Mark({ s, as = 'deco' }: { s: string; as?: 'deco' | 'b' | 'span' }) {
 }
 
 type Pic = { src?: string; x: string; y: string; r: string; r0?: string; d?: string; z?: number; cap?: string; empty?: string };
+type Shot = { src: string; cap?: string };
+/** Ťuk na fotku = popup s celou fotkou a popisom (Matej 13. 11.); šípky listujú v rámci kapitoly. */
+const OpenCtx = createContext<(list: Shot[], i: number) => void>(() => {});
 function Fan({ pics, dark }: { pics: Pic[]; dark?: boolean }) {
+  const open = useContext(OpenCtx);
+  const list = pics.filter((p) => p.src).map((p) => ({ src: p.src!, cap: p.cap }));
   return (
     <div className={`sx-fan${dark ? ' sx-dark' : ''}`}>
       {pics.map((p, i) => (
-        <figure key={i} className={`sx-ph${p.empty ? ' sx-empty' : ''}`}
+        <figure key={i} className={`sx-ph${p.empty ? ' sx-empty' : ''}`} onClick={p.src ? () => open(list, list.findIndex((x) => x.src === p.src)) : undefined}
           style={{ '--x': p.x, '--y': p.y, '--r': p.r, '--r0': p.r0 ?? '0deg', '--d': p.d ?? '0s', '--z': p.z ?? 1 } as CSSProperties}>
           {p.empty ?? <img src={ph(p.src!)} alt="" loading="lazy" decoding="async" />}
           {p.cap && <figcaption>{p.cap}</figcaption>}
@@ -51,8 +56,9 @@ const d = (s: number) => ({ '--d': `${s}s` } as CSSProperties);
 /* Fotky kapitol = `public/web-app/story/r/<rok>-….webp`, popisy píše Matej v nákrese
    `plany/nakresy/web-story-2026-11-11/popisy.html` → `appWeb/storyFoto.json` (13. 11. 2026).
    Rok = prvé 4 znaky mena; ★ vpredu = predná fotka vejára; prvých 5 ide do vejára, zvyšok do pásu.
-   ▢ veľký = fotka sama namiesto vejára (koláž 2019–21, Matej 13. 11.), všetky ostatné idú do pásu. */
-type Foto = { sk?: string; en?: string; vpredu?: boolean; skryt?: boolean; velky?: boolean };
+   ▢ veľký = fotka sama namiesto vejára (koláž 2019–21, Matej 13. 11.), všetky ostatné idú do pásu.
+   pas = fotka ide rovno do pásu, nie do vejára. */
+type Foto = { sk?: string; en?: string; vpredu?: boolean; skryt?: boolean; velky?: boolean; pas?: boolean };
 const FAN_POS: Pic[][] = [
   [{ x: '0%', y: '0%', r: '-2deg' }],
   [{ x: '-22%', y: '-16%', r: '-6deg' }, { x: '18%', y: '18%', r: '4deg', d: '.1s' }],
@@ -60,31 +66,135 @@ const FAN_POS: Pic[][] = [
   [{ x: '-28%', y: '-26%', r: '-9deg', r0: '-2deg' }, { x: '28%', y: '-24%', r: '7deg', r0: '3deg', d: '.08s' }, { x: '-26%', y: '26%', r: '5deg', r0: '-4deg', d: '.16s' }, { x: '24%', y: '22%', r: '-3deg', d: '.24s' }],
   [{ x: '-28%', y: '-26%', r: '-9deg', r0: '-2deg' }, { x: '28%', y: '-24%', r: '7deg', r0: '3deg', d: '.08s' }, { x: '-30%', y: '26%', r: '5deg', r0: '-4deg', d: '.16s' }, { x: '30%', y: '24%', r: '-6deg', r0: '2deg', d: '.24s' }, { x: '0%', y: '0%', r: '-1deg', d: '.32s' }],
 ];
-function fotky(roky: string[], L: Lang2) {
+function fotky(roky: string[], L: Lang2, vsetkoDoPasu = false) {
   const all = Object.entries(FOTO as Record<string, Foto>).filter(([id, x]) => roky.includes(id.slice(0, 4)) && !x.skryt)
-    .map(([id, x]) => ({ src: `r/${id}`, cap: (L === 'sk' ? x.sk : x.en || x.sk) || undefined, front: !!x.vpredu, big: !!x.velky }));
+    .map(([id, x]) => ({ src: `r/${id}`, cap: (L === 'sk' ? x.sk : x.en || x.sk) || undefined, front: !!x.vpredu, big: !!x.velky, pas: !!x.pas }));
+  if (vsetkoDoPasu) return { big: undefined, fan: [] as Pic[], strip: all };
   const big = all.find((x) => x.big);
   if (big) return { big, fan: [] as Pic[], strip: all.filter((x) => x !== big) };
-  const front = all.find((x) => x.front) ?? all[0];
-  const rest = all.filter((x) => x !== front);
-  const fanRest = rest.slice(0, 4), strip = rest.slice(4);
-  const inFan = front ? [...fanRest, front] : fanRest;
+  const pool = all.filter((x) => !x.pas);
+  const front = pool.find((x) => x.front) ?? pool[0];
+  const rest = pool.filter((x) => x !== front);
+  const inFan = front ? [...rest.slice(0, 4), front] : rest.slice(0, 4);
   const fan: Pic[] = inFan.map((f, i) => ({ ...FAN_POS[inFan.length - 1][i], src: f.src, cap: f.cap, z: i === inFan.length - 1 ? 5 : 1 }));
-  return { big: undefined, fan, strip };
+  return { big: undefined, fan, strip: [...all.filter((x) => x.pas), ...rest.slice(4)] };
 }
 function Side({ f }: { f: ReturnType<typeof fotky> }) {
+  const open = useContext(OpenCtx);
   if (!f.big) return <Fan pics={f.fan} />;
-  return <figure className="sx-ph sx-rv sx-big"><img src={ph(f.big.src)} alt="" loading="lazy" />{f.big.cap && <figcaption>{f.big.cap}</figcaption>}</figure>;
+  const big = f.big;
+  return <figure className="sx-ph sx-rv sx-bigph" onClick={() => open([big], 0)}><img src={ph(big.src)} alt="" loading="lazy" />{big.cap && <figcaption>{big.cap}</figcaption>}</figure>;
 }
-function Strip({ pics }: { pics: { src: string; cap?: string }[] }) {
-  if (!pics.length) return null;
-  const n = pics.length, loop = Array.from({ length: Math.max(2, Math.ceil(10 / n)) * n }, (_, i) => pics[i % n]);
+/** Pás fotiek: sám pomaly ide, dá sa ťahať prstom/myšou, rolovať touchpadom aj šípkami (Matej 13. 11.:
+ *  „ponechaj možnosť slajdovať aj manuálne“). Zoznam je dvakrát za sebou, takže koniec plynule prejde na začiatok. */
+function Strip({ pics }: { pics: Shot[] }) {
+  const open = useContext(OpenCtx);
+  const ref = useRef<HTMLDivElement>(null);
+  const n = pics.length, few = n < 4, base = few ? pics : Array.from({ length: Math.max(1, Math.ceil(6 / Math.max(1, n))) * n }, (_, i) => pics[i % n]);
+  const loop = few ? pics : [...base, ...base];
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || few) return;
+    const period = () => (el.children[base.length] as HTMLElement).offsetLeft - (el.children[0] as HTMLElement).offsetLeft;
+    let raf = 0, x = 0, hold = 0, hover = false, drag: { x: number; s: number; moved: boolean } | null = null;
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const wrap = () => { const P = period(); if (el.scrollLeft >= P) el.scrollLeft -= P; else if (el.scrollLeft <= 0) el.scrollLeft += P; };
+    const tick = () => {
+      if (!still && !hover && !drag && performance.now() > hold) {
+        const P = period(); x += 0.5; if (x >= P) x -= P; el.scrollLeft = x;
+      } else x = el.scrollLeft;
+      raf = requestAnimationFrame(tick);
+    };
+    const pause = () => { hold = performance.now() + 4000; };
+    const onScroll = () => { if (performance.now() < hold || drag) wrap(); };
+    const down = (e: PointerEvent) => { if (e.pointerType !== 'mouse') { pause(); return; } drag = { x: e.clientX, s: el.scrollLeft, moved: false }; };
+    const move = (e: PointerEvent) => { if (!drag) return; const dx = e.clientX - drag.x; if (Math.abs(dx) > 4) drag.moved = true; el.scrollLeft = drag.s - dx; };
+    const up = () => { if (drag?.moved) el.dataset.dragged = '1'; drag = null; pause(); setTimeout(() => { delete el.dataset.dragged; }, 0); };
+    const enter = () => { hover = true; }, leave = () => { hover = false; };
+    el.scrollLeft = 1; x = 1;
+    el.addEventListener('scroll', onScroll, { passive: true });
+    el.addEventListener('pointerdown', down);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    el.addEventListener('wheel', pause, { passive: true });
+    el.addEventListener('touchstart', pause, { passive: true });
+    el.addEventListener('mouseenter', enter);
+    el.addEventListener('mouseleave', leave);
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener('scroll', onScroll); el.removeEventListener('pointerdown', down);
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up);
+      el.removeEventListener('wheel', pause); el.removeEventListener('touchstart', pause);
+      el.removeEventListener('mouseenter', enter); el.removeEventListener('mouseleave', leave);
+    };
+  }, [n, few, base.length]);
+  if (!n) return null;
+  const step = (dir: number) => {
+    const el = ref.current;
+    if (!el) return;
+    const w = (el.children[1] as HTMLElement).offsetLeft - (el.children[0] as HTMLElement).offsetLeft;
+    el.dispatchEvent(new Event('wheel'));
+    el.scrollBy({ left: dir * w, behavior: 'smooth' });
+  };
   return (
-    <div className="sx-strip sx-rv"><div className="sx-strip-in">
-      {loop.map((p, i) => (
-        <figure key={i} className="sx-ph" aria-hidden={i >= n || undefined}><img src={ph(p.src)} alt="" loading="lazy" />{p.cap && <figcaption>{p.cap}</figcaption>}</figure>
+    <div className={`sx-strip sx-rv${few ? ' sx-few' : ''}`}>
+      <div className="sx-strip-in" ref={ref}>
+        {loop.map((p, i) => (
+          <figure key={i} className="sx-ph" aria-hidden={i >= n || undefined}
+            onClick={() => { if (!ref.current?.dataset.dragged) open(pics, i % n); }}>
+            <img src={ph(p.src)} alt="" loading="lazy" draggable={false} />{p.cap && <figcaption>{p.cap}</figcaption>}
+          </figure>
+        ))}
+      </div>
+      {!few && <button className="sx-arr sx-prev" aria-label="prev" onClick={() => step(-1)}><img src="/icons/sys/sipka.webp" alt="" /></button>}
+      {!few && <button className="sx-arr sx-next" aria-label="next" onClick={() => step(1)}><img src="/icons/sys/sipka.webp" alt="" /></button>}
+    </div>
+  );
+}
+/** Popup fotky: celá fotka (nie orez), popis, šípky/klávesy, Esc a ťuk mimo zavrie. */
+function Lightbox({ st, set }: { st: { list: Shot[]; i: number } | null; set: (v: { list: Shot[]; i: number } | null) => void }) {
+  const sx = useRef<number | null>(null);
+  useEffect(() => {
+    if (!st) return;
+    const k = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') set(null);
+      if (e.key === 'ArrowRight') set({ ...st, i: (st.i + 1) % st.list.length });
+      if (e.key === 'ArrowLeft') set({ ...st, i: (st.i - 1 + st.list.length) % st.list.length });
+    };
+    document.addEventListener('keydown', k);
+    const o = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    return () => { document.removeEventListener('keydown', k); document.body.style.overflow = o; };
+  }, [st, set]);
+  if (!st) return null;
+  const p = st.list[st.i], many = st.list.length > 1;
+  const go = (dir: number) => set({ ...st, i: (st.i + dir + st.list.length) % st.list.length });
+  return (
+    <div className="sx-lb" data-no-paw onClick={() => set(null)}
+      onTouchStart={(e) => { sx.current = e.touches[0].clientX; }}
+      onTouchEnd={(e) => { if (sx.current == null) return; const dx = e.changedTouches[0].clientX - sx.current; if (many && Math.abs(dx) > 40) go(dx < 0 ? 1 : -1); sx.current = null; }}>
+      <figure onClick={(e) => e.stopPropagation()}>
+        <img src={ph(p.src)} alt={p.cap ?? ''} />
+        {p.cap && <figcaption>{p.cap}</figcaption>}
+      </figure>
+      <button className="sx-lb-x" aria-label="close" onClick={() => set(null)}><img src="/icons/sys/krizik.webp" alt="" /></button>
+      {many && <button className="sx-arr sx-prev" aria-label="prev" onClick={(e) => { e.stopPropagation(); go(-1); }}><img src="/icons/sys/sipka.webp" alt="" /></button>}
+      {many && <button className="sx-arr sx-next" aria-label="next" onClick={(e) => { e.stopPropagation(); go(1); }}><img src="/icons/sys/sipka.webp" alt="" /></button>}
+    </div>
+  );
+}
+/** Telefóny s appkou namiesto fotiek v 2026 — tie isté snímky ako hero na /app (Matej 13. 11.). */
+function Phones({ L }: { L: Lang2 }) {
+  const shot = (src: string) => `/web-app/snimky/${src}${L === 'sk' ? '' : '-en'}.webp`;
+  return (
+    <div className="duo sx-rv">
+      {['B-profil-top', 'feed'].map((src) => (
+        <div key={src} className="tilt"><div className="phone">
+          <img className="fr" src="/web-app/phone.svg" alt="" />
+          <div className="scr"><img src={shot(src)} alt="" loading="lazy" decoding="async" /></div>
+        </div></div>
       ))}
-    </div></div>
+    </div>
   );
 }
 
@@ -111,7 +221,9 @@ export default function StoryWeb() {
   const { lang, setLang } = useLang();
   const L: Lang2 = lang === 'sk' ? 'sk' : 'en';
   const t = (k: string) => STORY[k]?.[L] ?? '';
-  const [F16, F17, F18, F19, F22, F23, F24, F26] = [['2016'], ['2017'], ['2018'], ['2019', '2020', '2021'], ['2022'], ['2023'], ['2024', '2025'], ['2026']].map((r) => fotky(r, L));
+  const [F16, F17, F18, F19, F22, F23, F24] = [['2016'], ['2017'], ['2018'], ['2019', '2020', '2021'], ['2022'], ['2023'], ['2024', '2025']].map((r) => fotky(r, L));
+  const F26 = fotky(['2026'], L, true);
+  const [lb, setLb] = useState<{ list: Shot[]; i: number } | null>(null);
   const w = (k: string) => COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
   const loc = intlLocale(lang);
   const fmt = (n: number) => n.toLocaleString(loc);
@@ -140,10 +252,10 @@ export default function StoryWeb() {
     const root = rootRef.current; if (!root) return;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const count = (el: HTMLElement) => {
-      const n = +(el.dataset.n ?? 0);
-      if (reduce) { el.textContent = fmt(n); return; }
+      const n = +(el.dataset.n ?? 0), pre = el.dataset.pre ?? '';
+      if (reduce) { el.textContent = pre + fmt(n); return; }
       const t1 = performance.now(), D = n > 1000 ? 2200 : 1400;
-      const s = (tt: number) => { const p = Math.min(1, (tt - t1) / D); el.textContent = fmt(Math.round(n * (1 - Math.pow(1 - p, 4)))); if (p < 1) requestAnimationFrame(s); };
+      const s = (tt: number) => { const p = Math.min(1, (tt - t1) / D); el.textContent = pre + fmt(Math.round(n * (1 - Math.pow(1 - p, 4)))); if (p < 1) requestAnimationFrame(s); };
       requestAnimationFrame(s);
     };
     const io = new IntersectionObserver((es) => es.forEach((e) => {
@@ -208,11 +320,19 @@ export default function StoryWeb() {
   const pmax = Math.max(1, ...PULSE.days.map((x) => x.h));
   const ch = (i: string) => `${t('ch')} ${i}`;
   /* priemer na deň od začiatku merania (dnešok vrátane) */
-  const runDays = Math.max(1, Math.round((new Date(PULSE.updated).getTime() - new Date(PULSE.since).getTime()) / 864e5) + 1);
-  const avgH = Math.round(PULSE.total / runDays);
-  const sinceTxt = new Date(PULSE.since).toLocaleDateString(loc, { day: 'numeric', month: 'numeric', year: 'numeric' });
+  /* Hodiny merané od `PULSE.since` (14. 8.); od 1. 3. 2026 (začiatok práce, Matej 13. 11.: „dajme od marca,
+     vypočítajme približne podľa toho ako je to vypočítané teraz“) sa dni pred meraním dopočítajú dnešným priemerom.
+     Súčet je preto ODHAD, zaokrúhlený na stovky, a text pod číslami to hovorí. */
+  const OD = '2026-03-01';
+  const dayMs = (a: string, b: string) => Math.round((new Date(b).getTime() - new Date(a).getTime()) / 864e5);
+  const merDays = Math.max(1, dayMs(PULSE.since, PULSE.updated) + 1);
+  const avgH = Math.round(PULSE.total / merDays);
+  const runDays = dayMs(OD, PULSE.updated) + 1;
+  const estTotal = Math.round((PULSE.total + (PULSE.total / merDays) * dayMs(OD, PULSE.since)) / 100) * 100;
+  const sinceTxt = new Date(OD).toLocaleDateString(loc, { day: 'numeric', month: 'numeric', year: 'numeric' });
 
   return (
+    <OpenCtx.Provider value={(list, i) => setLb({ list, i })}>
     <div className="aw" data-bg="1" data-pz="0" ref={rootRef}>
       <Seo path="/story" title={`DOGYPT · ${t('seo_t')}`} description={t('seo_d')} noindex />
       <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /><i className="pearl p1" /><i className="pearl p2" /></div>
@@ -322,7 +442,7 @@ export default function StoryWeb() {
         </section>
 
         {/* VI · 2023 — kniha vydaná, peniaze do appky, ktorú nedodali; tichší tón */}
-        <Chapter n={ch('VI')} year="2023" low h={t('c6_h')}
+        <Chapter n={ch('VI')} year="2023" h={t('c6_h')}
           side={<Side f={F23} />} below={<Strip pics={F23.strip} />}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c6_p')}</p>
         </Chapter>
@@ -335,10 +455,10 @@ export default function StoryWeb() {
 
         {/* VIII · 2026 — AI a stavba; hodiny = súčet `stroj` z plany/praca-log.json (gen-praca-stats → onepagePulse.json) */}
         <Chapter n={ch('VIII')} year="2026" top0 h={t('c8_h')}
-          side={<Side f={F26} />} below={<Strip pics={F26.strip} />}>
+          side={<Phones L={L} />} below={<Strip pics={F26.strip} />}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c8_p')}</p>
           <div className="sx-nums sx-rv" style={d(0.4)}>
-            <div><b data-n={PULSE.total}>0</b><span>{t('c8_hrs')}</span></div>
+            <div><b data-n={estTotal} data-pre="~">0</b><span>{t('c8_hrs')}</span></div>
             <div><b data-n={avgH}>0</b><span>{t('c8_avg')}</span></div>
             <div><b data-n={runDays}>0</b><span>{t('c8_since')} {sinceTxt}</span></div>
           </div>
@@ -422,10 +542,10 @@ export default function StoryWeb() {
               <img className="sx-logo" src="/web-app/logo-napis.webp" alt="DOGYPT" />
               <p>{t('ft_about')}</p>
               <div className="sx-links">
-                <a href="mailto:woof@dogypt.com"><i>✉</i>woof@dogypt.com</a>
-                <a href="https://instagram.com/dogypt" target="_blank" rel="noopener"><i>◎</i>Instagram</a>
-                <a href="https://www.facebook.com/dogypt.official/" target="_blank" rel="noopener"><i>f</i>Facebook</a>
-                <a href="https://youtube.com/@dogypt" target="_blank" rel="noopener"><i>▶</i>YouTube</a>
+                <a href="mailto:woof@dogypt.com"><i><img src="/icons/sys/obalka.webp" alt="" /></i>woof@dogypt.com</a>
+                <a href="https://instagram.com/dogypt" target="_blank" rel="noopener"><i><img src="/icons/sys/instagram.webp" alt="" /></i>Instagram</a>
+                <a href="https://www.facebook.com/dogypt.official/" target="_blank" rel="noopener"><i><img src="/icons/sys/facebook.webp" alt="" /></i>Facebook</a>
+                <a href="https://youtube.com/@dogypt" target="_blank" rel="noopener"><i><img src="/icons/sys/prehraj.webp" alt="" /></i>YouTube</a>
                 <a href={dogmaUrl}><i>☥</i>DOGMA</a>
               </div>
               <Stores />
@@ -463,6 +583,8 @@ export default function StoryWeb() {
           <div className="sx-ftb"><span>© 2026 DOGYPT</span><span><a href="/terms">{t('ft_terms')}</a><a href="/privacy">{t('ft_privacy')}</a></span></div>
         </div>
       </footer>
+      <Lightbox st={lb} set={setLb} />
     </div>
+    </OpenCtx.Provider>
   );
 }

@@ -13,7 +13,8 @@
  },
  "2022": {
   "sk": "Pescezles",
-  "en": ""
+  "en": "",
+  "vpredu": true
  },
  "2023": {
   "sk": "",
@@ -65,6 +66,11 @@
   "sk": "Najprv som chcel robiť psie busty...",
   "en": ""
  },
+ "2018my": {
+  "sk": "",
+  "en": "",
+  "vpredu": true
+ },
  "2019-21-2c": {
   "sk": "",
   "en": "",
@@ -103,33 +109,35 @@
   "sk": " Súľovské skaly, Slovensko",
   "en": ""
  },
- "2022-1": {
-  "sk": "Cesta SNP (760km)",
+ "2022-b": {
+  "sk": "Balkan trip",
   "en": ""
  },
  "2022-4a": {
   "sk": "Faraóni",
   "en": ""
  },
- "2022-4b": {
-  "sk": "Ja som Dogypťan!",
-  "en": ""
- },
- "2022-4c": {
-  "sk": "Hlavná atrakcia",
+ "2022-1": {
+  "sk": "Cesta SNP (760km)",
   "en": ""
  },
  "2022-4d": {
   "sk": "So sestrou",
   "en": ""
  },
+ "2022-4b": {
+  "sk": "Ja som Dogypťan!",
+  "en": "",
+  "pas": true
+ },
  "2022-4e": {
   "sk": "",
   "en": ""
  },
- "2022-b": {
-  "sk": "Balkan trip",
-  "en": ""
+ "2022-4c": {
+  "sk": "Hlavná atrakcia",
+  "en": "",
+  "skryt": true
  },
  "2023-1": {
   "sk": "",
@@ -142,7 +150,8 @@
  },
  "2023-b": {
   "sk": "",
-  "en": ""
+  "en": "",
+  "skryt": true
  },
  "2023-kn": {
   "sk": "Detská kniha?",
@@ -154,7 +163,8 @@
  },
  "2023-markiza": {
   "sk": "Boli sme v telke 1.0",
-  "en": ""
+  "en": "",
+  "pas": true
  },
  "2023-pod": {
   "sk": "Boli sme v podcastoch",
@@ -171,11 +181,13 @@
  },
  "2024-2": {
   "sk": "Detský domov besiedka s Hektorom",
-  "en": ""
+  "en": "",
+  "pas": true
  },
  "2024-k": {
   "sk": "Besiedka v Kremnickej knižnici s Hektorom",
-  "en": ""
+  "en": "",
+  "pas": true
  },
  "2024-krem": {
   "sk": "",
@@ -189,11 +201,8 @@
  },
  "2024-yby": {
   "sk": "Náš druhý adoptovaný kocúr - Yby",
-  "en": ""
- },
- "2025-1": {
-  "sk": "Moje šelmy",
-  "en": ""
+  "en": "",
+  "pas": true
  },
  "2025-f": {
   "sk": "Exkurzie na farme a Hektor ako hlavný sprievodca",
@@ -212,9 +221,9 @@
   "en": ""
  },
  "2025my": {
-  "sk": "",
+  "sk": "Moje šelmy",
   "en": "",
-  "skryt": true
+  "vpredu": true
  },
  "2026-1": {
   "sk": "",
