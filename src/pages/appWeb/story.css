@@ -275,7 +275,6 @@
 .sx-rs .sx-appdot img{border-radius:26%;transform:rotate(-8deg)!important;box-shadow:0 0 0 3px var(--lapis-edge),0 18px 40px -12px rgba(22,48,122,.55)}
 .sx-rs.sx-now.sx-in .sx-appdot{box-shadow:none;animation:none}
 /* budúce míľniky = otáznik (brand kit) */
-.sx-fut .sx-dot img.sx-qm{width:56%;height:56%;object-fit:contain;opacity:.85}
 /* pätička v3: ČO JE NOVÉ cez celú šírku (3 rovnaké stĺpce), pod ním AINUBIS | KONTAKT rovnakým dielom */
 .sx-news{margin-bottom:var(--s-xxxl)}
 .sx-news-g{display:grid;gap:var(--s-xl)}
@@ -288,3 +287,4 @@
 .sx-lastdog b{font:700 var(--t-lead)/1.2 var(--font-title);color:#E6FAFF}
 .sx-lastdog em{font:500 var(--t-label)/1 var(--font-ui);font-style:normal;color:#5BE0F0}
 .sx-contact .sx-links a{padding:var(--s-md) 0}
+.sx-fut .sx-dot{cursor:zoom-in}

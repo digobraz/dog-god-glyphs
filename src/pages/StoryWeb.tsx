@@ -226,6 +226,7 @@ export default function StoryWeb() {
   const [F16, F17, F18, F19, F22, F23, F24] = [['2016'], ['2017'], ['2018'], ['2019', '2020', '2021'], ['2022'], ['2023'], ['2024', '2025']].map((r) => fotky(r, L));
   const F26 = fotky(['2026'], L, true);
   const [lb, setLb] = useState<{ list: Shot[]; i: number } | null>(null);
+  const openLb = (list: Shot[], i: number) => setLb({ list, i });
   const w = (k: string) => COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
   const loc = intlLocale(lang);
   const fmt = (n: number) => n.toLocaleString(loc);
@@ -503,10 +504,11 @@ export default function StoryWeb() {
                   <img className="sx-face" src="/images/kontakt-matej-hektor-cut.webp" alt="Matej & Hekthor" loading="lazy" />
                 </div>
               </div>
-              {([['1K', 1000, 'f1'], ['10K', 10000, 'f2'], ['100K', 100000, 'f3']] as const).map(([dot, n, k]) => (
-                <div className="sx-rs sx-fut" key={k} data-dot={dot}><span className="sx-dot"><img className="sx-qm" src="/icons/sys/otaznik.webp" alt="" /></span><div className="sx-txt"><em>{fmt(n)}</em><b>{t(`${k}_b`)}</b><span>{t(`${k}_s`)}</span></div></div>
+              {/* míľniky = ikonky v štýle presklenej pyramídy (Kie nano-banana-pro s `ikony/centra.webp` ako vzorom, 13. 11. 2026) */}
+              {([['zakladatelia', 1000, 'f1'], ['svorka', 10000, 'f2'], ['risa', 100000, 'f3']] as const).map(([dot, n, k]) => (
+                <div className="sx-rs sx-fut" key={k}><span className="sx-dot" onClick={() => openLb([{ src: `m-${dot}-full`, cap: t(`${k}_b`) }], 0)}><img src={ph(`m-${dot}`)} alt="" loading="lazy" /></span><div className="sx-txt"><em>{fmt(n)}</em><b>{t(`${k}_b`)}</b><span>{t(`${k}_s`)}</span></div></div>
               ))}
-              <div className="sx-rs sx-fut"><span className="sx-dot"><img src="/images/vision/vision-unity.webp" alt="" loading="lazy" /></span><div className="sx-txt"><em>{fmt(1000000)}</em><b>{t('f4_b')}</b><span>{t('f4_s')}</span></div></div>
+              <div className="sx-rs sx-fut"><span className="sx-dot" onClick={() => openLb([{ src: 'm-milion-full', cap: t('f4_b') }], 0)}><img src={ph('m-milion')} alt="" loading="lazy" /></span><div className="sx-txt"><em>{fmt(1000000)}</em><b>{t('f4_b')}</b><span>{t('f4_s')}</span></div></div>
             </div>
           </div>
         </section>
