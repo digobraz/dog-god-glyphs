@@ -223,9 +223,9 @@ export default function StoryWeb() {
         {/* I · 2016 */}
         <Chapter n={ch('I')} year="2016" h={t('c1_h')}
           side={<Fan pics={[
-            { src: '1b', x: '-26%', y: '-22%', r: '-8deg', r0: '-3deg' },
-            { src: '1c', x: '26%', y: '-18%', r: '6deg', r0: '4deg', d: '.1s' },
-            { src: '1d', x: '0%', y: '24%', r: '-2deg', r0: '-1deg', d: '.2s', z: 3, cap: 'Hekthor' },
+            { src: '1b', x: '-34%', y: '-24%', r: '-8deg', r0: '-3deg' },
+            { src: '1d', x: '34%', y: '-20%', r: '6deg', r0: '4deg', d: '.1s', cap: 'Hekthor' },
+            { src: '1c', x: '0%', y: '28%', r: '-2deg', r0: '-1deg', d: '.2s', z: 3 },
           ]} />}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c1_p')}</p>
         </Chapter>

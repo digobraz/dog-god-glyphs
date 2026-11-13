@@ -5,14 +5,14 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   seo_t: { sk: 'Príbeh', en: 'The story' },
   seo_d: { sk: 'Jeden (ne)obyčajný čierny pes z útulku a hnutie, ktoré okolo neho vzniklo.', en: 'One (not so) ordinary black shelter dog and the movement that grew around him.' },
 
-  hx_eye: { sk: 'Podľa skutočných udalostí', en: 'Based on true events' },
+  hx_eye: { sk: 'Misia psa z útulku', en: 'A shelter dog’s mission' },
   hx_h: { sk: 'Nikto ho nechcel. | Teraz zakladá *náboženstvo.*', en: 'Nobody wanted him. | Now he’s founding a *religion.*' },
-  hx_p: { sk: 'Jeden (ne)obyčajný čierny pes z útulku a hnutie, ktoré okolo neho vzniklo.', en: 'One (not so) ordinary black shelter dog and the movement that grew around him.' },
+  hx_p: { sk: 'Príbeh podľa skutočnej udalosti, ktorý sa práve deje.', en: 'A story based on true events, and it’s happening right now.' },
 
   ch: { sk: 'Kapitola', en: 'Chapter' },
 
-  c1_h: { sk: 'Sedem našlo domov. *On nie.*', en: 'Seven found a home. *He didn’t.*' },
-  c1_p: { sk: 'Do útulku priniesli osem čiernych šteniat. Niekto ich vyhodil v jednej krabici, v strede Európy. Sedem z nich si našlo domov. Toho najväčšieho nechcel nikto a v útulku čakal celý rok. Volal sa Hekthor.', en: 'Eight black puppies were brought to the shelter. Someone had dumped them in a single box, in the middle of Europe. Seven of them found a home. Nobody wanted the biggest one, and he waited in the shelter for a whole year. His name was Hekthor.' },
+  c1_h: { sk: 'Bol posledný, alebo *nechcený?*', en: 'The last one, or the *unwanted* one?' },
+  c1_p: { sk: 'Do útulku priniesli osem čiernych šteniat. Niekto ich vyhodil v jednej krabici, v strede Európy. Sedem z nich si našlo domov. Toho najväčšieho nechcel nikto. V útulku čakal celý rok. Volal sa Hekthor.', en: 'Eight black puppies were brought to the shelter. Someone had dumped them in a single box, in the middle of Europe. Seven of them found a home. Nobody wanted the biggest one. He waited in the shelter for a whole year. His name was Hekthor.' },
 
   c2_q: { sk: '„Nechcem *psa!*“', en: '“I *don’t* want a dog!”' },
   c2_p1: { sk: 'Psa som nechcel. Moja ex ho ale chcela za dvoch. Na internete ju zaujala malá biela fenka z útulku. Prišli sme sa na ňu pozrieť… a zamilovali sme sa do veľkého čierneho psa.', en: 'I didn’t want a dog. My ex wanted one enough for both of us. Online she fell for a small white female from a shelter. We went to see her… and fell in love with a big black dog.' },
