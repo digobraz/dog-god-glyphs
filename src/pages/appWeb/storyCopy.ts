@@ -1,17 +1,17 @@
 /** Texty `/story` (nákres kolo 4, `plany/nakresy/web-story-2026-11-11/`, 11. 11. 2026).
- *  `*slovo*` = zlaté slovo nadpisu (`.deco`). SK je Matejov zdroj, EN preklad; ostatné jazyky padajú na EN.
+ *  `*slovo*` = zlaté slovo · ` | ` v hx_h = zlom riadku nadpisu (`.deco`). SK je Matejov zdroj, EN preklad; ostatné jazyky padajú na EN.
  *  Texty kapitol = Matejova verzia 13. 11. 2026. */
 export const STORY: Record<string, { sk: string; en: string }> = {
   seo_t: { sk: 'Príbeh', en: 'The story' },
   seo_d: { sk: 'Jeden (ne)obyčajný čierny pes z útulku a hnutie, ktoré okolo neho vzniklo.', en: 'One (not so) ordinary black shelter dog and the movement that grew around him.' },
 
-  hx_eye: { sk: '2016 · osem šteniat v jednej krabici', en: '2016 · eight puppies in one box' },
-  hx_h: { sk: 'Príbeh podľa *skutočných* udalostí', en: 'A story based on *true* events' },
+  hx_eye: { sk: 'Podľa skutočných udalostí', en: 'Based on true events' },
+  hx_h: { sk: 'Nikto ho nechcel. | Teraz zakladá *náboženstvo.*', en: 'Nobody wanted him. | Now he’s founding a *religion.*' },
   hx_p: { sk: 'Jeden (ne)obyčajný čierny pes z útulku a hnutie, ktoré okolo neho vzniklo.', en: 'One (not so) ordinary black shelter dog and the movement that grew around him.' },
 
   ch: { sk: 'Kapitola', en: 'Chapter' },
 
-  c1_h: { sk: 'Nikto ho *nechcel.*', en: 'Nobody *wanted him.*' },
+  c1_h: { sk: 'Sedem našlo domov. *On nie.*', en: 'Seven found a home. *He didn’t.*' },
   c1_p: { sk: 'Do útulku priniesli osem čiernych šteniat. Niekto ich vyhodil v jednej krabici, v strede Európy. Sedem z nich si našlo domov. Toho najväčšieho nechcel nikto a v útulku čakal celý rok. Volal sa Hekthor.', en: 'Eight black puppies were brought to the shelter. Someone had dumped them in a single box, in the middle of Europe. Seven of them found a home. Nobody wanted the biggest one, and he waited in the shelter for a whole year. His name was Hekthor.' },
 
   c2_q: { sk: '„Nechcem *psa!*“', en: '“I *don’t* want a dog!”' },

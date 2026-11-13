@@ -208,6 +208,7 @@ export default function StoryWeb() {
           <div className="sx-hx-t"><div className="wrap">
             <p className="eye">{t('hx_eye')}</p>
             <h1>{hxWords.map((x, i) => {
+              if (x === '|') return <br key={i} />;
               const deco = /^\*.*\*$/.test(x);
               return <Fragment key={i}><span className={`sx-w${deco ? ' deco' : ''}`} style={{ '--i': i } as CSSProperties}>{x.replace(/\*/g, '')}</span>{' '}</Fragment>;
             })}</h1>
