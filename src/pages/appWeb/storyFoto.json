@@ -4,32 +4,34 @@
   "en": ""
  },
  "2020": {
-  "sk": "",
+  "sk": "Náš prvý adoptovaný kocúr - Garry",
   "en": ""
  },
  "2021": {
-  "sk": "",
+  "sk": "Naše obľúbené miesto",
   "en": ""
  },
  "2022": {
-  "sk": "",
+  "sk": "Pescezles",
   "en": ""
  },
  "2023": {
   "sk": "",
-  "en": ""
+  "en": "",
+  "skryt": true
  },
  "2024": {
-  "sk": "",
+  "sk": "Jama levova 2024",
   "en": ""
  },
  "2025": {
-  "sk": "",
+  "sk": "Vo voľnom čase zachraňujeme mačky",
   "en": ""
  },
  "2026": {
   "sk": "",
-  "en": ""
+  "en": "",
+  "skryt": true
  },
  "2016-1b": {
   "sk": "",
@@ -65,14 +67,15 @@
  },
  "2019-21-2c": {
   "sk": "",
-  "en": ""
+  "en": "",
+  "velky": true
  },
  "2020-2b": {
   "sk": "",
   "en": ""
  },
  "2020-3": {
-  "sk": "",
+  "sk": "Vápeč, Slovensko",
   "en": ""
  },
  "2020-g": {
@@ -80,43 +83,44 @@
   "en": ""
  },
  "2020-o": {
-  "sk": "",
+  "sk": "Ohnište, Slovensko",
   "en": ""
  },
  "2020-zp": {
-  "sk": "",
+  "sk": "Zelené pleso,  Slovensko",
   "en": ""
  },
  "2021-dal": {
   "sk": "",
-  "en": ""
+  "en": "",
+  "skryt": true
  },
  "2021-nt": {
-  "sk": "",
+  "sk": "Nízke Tatry, Slovensko",
   "en": ""
  },
  "2021-s": {
-  "sk": "",
+  "sk": " Súľovské skaly, Slovensko",
   "en": ""
  },
  "2022-1": {
-  "sk": "",
+  "sk": "Cesta SNP (760km)",
   "en": ""
  },
  "2022-4a": {
-  "sk": "",
+  "sk": "Faraóni",
   "en": ""
  },
  "2022-4b": {
-  "sk": "",
+  "sk": "Ja som Dogypťan!",
   "en": ""
  },
  "2022-4c": {
-  "sk": "",
+  "sk": "Hlavná atrakcia",
   "en": ""
  },
  "2022-4d": {
-  "sk": "",
+  "sk": "So sestrou",
   "en": ""
  },
  "2022-4e": {
@@ -124,15 +128,16 @@
   "en": ""
  },
  "2022-b": {
-  "sk": "",
+  "sk": "Balkan trip",
   "en": ""
  },
  "2023-1": {
   "sk": "",
-  "en": ""
+  "en": "",
+  "skryt": true
  },
  "2023-3a": {
-  "sk": "",
+  "sk": "Naša prvá knižka",
   "en": ""
  },
  "2023-b": {
@@ -140,59 +145,62 @@
   "en": ""
  },
  "2023-kn": {
-  "sk": "",
+  "sk": "Detská kniha?",
   "en": ""
  },
  "2023-krst": {
-  "sk": "",
+  "sk": "Krst knihy",
   "en": ""
  },
  "2023-markiza": {
-  "sk": "",
+  "sk": "Boli sme v telke 1.0",
   "en": ""
  },
  "2023-pod": {
-  "sk": "",
+  "sk": "Boli sme v podcastoch",
   "en": ""
  },
  "2023-stv": {
-  "sk": "",
+  "sk": "Boli sme v telke 2.0",
   "en": ""
  },
  "2024-1": {
   "sk": "",
-  "en": ""
+  "en": "",
+  "skryt": true
  },
  "2024-2": {
-  "sk": "",
+  "sk": "Detský domov besiedka s Hektorom",
   "en": ""
  },
  "2024-k": {
-  "sk": "",
+  "sk": "Besiedka v Kremnickej knižnici s Hektorom",
   "en": ""
  },
  "2024-krem": {
   "sk": "",
-  "en": ""
+  "en": "",
+  "skryt": true
  },
  "2024-y": {
   "sk": "",
-  "en": ""
+  "en": "",
+  "skryt": true
  },
  "2024-yby": {
-  "sk": "",
+  "sk": "Náš druhý adoptovaný kocúr - Yby",
   "en": ""
  },
  "2025-1": {
-  "sk": "",
+  "sk": "Moje šelmy",
   "en": ""
  },
  "2025-f": {
-  "sk": "",
+  "sk": "Exkurzie na farme a Hektor ako hlavný sprievodca",
   "en": ""
  },
  "2025-farma": {
-  "sk": "",
+  "sk": "Farmári",
   "en": ""
  },
  "2025-m": {
@@ -200,19 +208,20 @@
   "en": ""
  },
  "2025-motyl": {
-  "sk": "",
+  "sk": "Páriaci sa motýli a Hektor",
   "en": ""
  },
  "2025my": {
   "sk": "",
-  "en": ""
+  "en": "",
+  "skryt": true
  },
  "2026-1": {
   "sk": "",
   "en": ""
  },
  "2026-b": {
-  "sk": "",
+  "sk": "Oeschinesee, Švajčiarsko",
   "en": ""
  },
  "2026-s": {

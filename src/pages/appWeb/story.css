@@ -225,3 +225,4 @@
 /* VÍZIA: „We need you“ — faraón s kocúrmi a Hekthorom (výrez bez pozadia), bez kruhu */
 .sx-vis-art::before{display:none}
 .sx-vis-art img{border-radius:0}
+.sx-big{width:100%;max-width:600px;aspect-ratio:1/1;margin:0 auto}
