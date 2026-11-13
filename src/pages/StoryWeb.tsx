@@ -57,8 +57,8 @@ const d = (s: number) => ({ '--d': `${s}s` } as CSSProperties);
    `plany/nakresy/web-story-2026-11-11/popisy.html` → `appWeb/storyFoto.json` (13. 11. 2026).
    Rok = prvé 4 znaky mena; ★ vpredu = predná fotka vejára; prvých 5 ide do vejára, zvyšok do pásu.
    ▢ veľký = fotka sama namiesto vejára (koláž 2019–21, Matej 13. 11.), všetky ostatné idú do pásu.
-   pas = fotka ide rovno do pásu, nie do vejára. */
-type Foto = { sk?: string; en?: string; vpredu?: boolean; skryt?: boolean; velky?: boolean; pas?: boolean };
+   pas = fotka ide rovno do pásu, nie do vejára · ajPas = vo vejári aj v páse (2022, Matej 13. 11.). */
+type Foto = { sk?: string; en?: string; vpredu?: boolean; skryt?: boolean; velky?: boolean; pas?: boolean; ajPas?: boolean };
 const FAN_POS: Pic[][] = [
   [{ x: '0%', y: '0%', r: '-2deg' }],
   [{ x: '-22%', y: '-16%', r: '-6deg' }, { x: '18%', y: '18%', r: '4deg', d: '.1s' }],
@@ -68,7 +68,7 @@ const FAN_POS: Pic[][] = [
 ];
 function fotky(roky: string[], L: Lang2, vsetkoDoPasu = false) {
   const all = Object.entries(FOTO as Record<string, Foto>).filter(([id, x]) => roky.includes(id.slice(0, 4)) && !x.skryt)
-    .map(([id, x]) => ({ src: `r/${id}`, cap: (L === 'sk' ? x.sk : x.en || x.sk) || undefined, front: !!x.vpredu, big: !!x.velky, pas: !!x.pas }));
+    .map(([id, x]) => ({ src: `r/${id}`, cap: (L === 'sk' ? x.sk : x.en || x.sk) || undefined, front: !!x.vpredu, big: !!x.velky, pas: !!x.pas, aj: !!x.ajPas }));
   if (vsetkoDoPasu) return { big: undefined, fan: [] as Pic[], strip: all };
   const big = all.find((x) => x.big);
   if (big) return { big, fan: [] as Pic[], strip: all.filter((x) => x !== big) };
@@ -77,7 +77,7 @@ function fotky(roky: string[], L: Lang2, vsetkoDoPasu = false) {
   const rest = pool.filter((x) => x !== front);
   const inFan = front ? [...rest.slice(0, 4), front] : rest.slice(0, 4);
   const fan: Pic[] = inFan.map((f, i) => ({ ...FAN_POS[inFan.length - 1][i], src: f.src, cap: f.cap, z: i === inFan.length - 1 ? 5 : 1 }));
-  return { big: undefined, fan, strip: [...all.filter((x) => x.pas), ...rest.slice(4)] };
+  return { big: undefined, fan, strip: [...all.filter((x) => x.pas), ...rest.slice(4), ...inFan.filter((x) => x.aj)] };
 }
 function Side({ f }: { f: ReturnType<typeof fotky> }) {
   const open = useContext(OpenCtx);

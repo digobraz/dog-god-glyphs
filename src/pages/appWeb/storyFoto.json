@@ -14,7 +14,8 @@
  "2022": {
   "sk": "Pescezles",
   "en": "",
-  "vpredu": true
+  "vpredu": true,
+  "ajPas": true
  },
  "2023": {
   "sk": "",
@@ -24,7 +25,7 @@
  "2024": {
   "sk": "Jama levova 2024",
   "en": "",
-  "vpredu": true
+  "velky": true
  },
  "2025": {
   "sk": "Vo voľnom čase zachraňujeme mačky",
@@ -113,11 +114,13 @@
  },
  "2022-b": {
   "sk": "Balkan trip",
-  "en": ""
+  "en": "",
+  "ajPas": true
  },
  "2022-4a": {
   "sk": "Faraóni",
-  "en": ""
+  "en": "",
+  "ajPas": true
  },
  "2022-1": {
   "sk": "Cesta SNP (760km)",
@@ -125,7 +128,8 @@
  },
  "2022-4d": {
   "sk": "So sestrou",
-  "en": ""
+  "en": "",
+  "ajPas": true
  },
  "2022-4b": {
   "sk": "Ja som Dogypťan!",
