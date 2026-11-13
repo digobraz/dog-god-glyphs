@@ -1,46 +1,47 @@
 /** Texty `/story` (nákres kolo 4, `plany/nakresy/web-story-2026-11-11/`, 11. 11. 2026).
  *  `*slovo*` = zlaté slovo nadpisu (`.deco`). SK je Matejov zdroj, EN preklad; ostatné jazyky padajú na EN.
- *  ⚠️ Texty kapitol 2017–2026 sú ešte len návrh — čakajú Matejovu kontrolu. */
+ *  Texty kapitol = Matejova verzia 13. 11. 2026. */
 export const STORY: Record<string, { sk: string; en: string }> = {
   seo_t: { sk: 'Príbeh', en: 'The story' },
-  seo_d: { sk: 'Jeden čierny pes z útulku, ktorý zmenil život jednému človeku a tým založil hnutie.', en: 'One black shelter dog who changed one man’s life and started a movement.' },
+  seo_d: { sk: 'Jeden (ne)obyčajný čierny pes z útulku a hnutie, ktoré okolo neho vzniklo.', en: 'One (not so) ordinary black shelter dog and the movement that grew around him.' },
 
   hx_eye: { sk: '2016 · osem šteniat v jednej krabici', en: '2016 · eight puppies in one box' },
   hx_h: { sk: 'Príbeh podľa *skutočných* udalostí', en: 'A story based on *true* events' },
-  hx_p: { sk: 'Jeden (ne)obyčajný čierny pes z útulku, ktorého poslaním bolo zmeniť život jednému človeku a tým vytvoriť globálne hnutie.', en: 'One (not so) ordinary black dog from a shelter, whose mission was to change one man’s life and, through it, start a global movement.' },
+  hx_p: { sk: 'Jeden (ne)obyčajný čierny pes z útulku a hnutie, ktoré okolo neho vzniklo.', en: 'One (not so) ordinary black shelter dog and the movement that grew around him.' },
 
   ch: { sk: 'Kapitola', en: 'Chapter' },
 
-  c1_h: { sk: 'Toho najväčšieho *nikto nechcel.*', en: 'Nobody wanted *the biggest one.*' },
-  c1_p: { sk: 'Do útulku prišlo osem čiernych šteniat v jednej krabici. Sedem z nich si našlo domov. Toho najväčšieho nikto nechcel a v útulku čakal celý rok. Volal sa Hekthor.', en: 'Eight black puppies arrived at the shelter in one box. Seven of them found a home. Nobody wanted the biggest one, and he waited a whole year. His name was Hekthor.' },
+  c1_h: { sk: 'Nikto ho *nechcel.*', en: 'Nobody *wanted him.*' },
+  c1_p: { sk: 'Do útulku priniesli osem čiernych šteniat. Niekto ich vyhodil v jednej krabici, v strede Európy. Sedem z nich si našlo domov. Toho najväčšieho nechcel nikto a v útulku čakal celý rok. Volal sa Hekthor.', en: 'Eight black puppies were brought to the shelter. Someone had dumped them in a single box, in the middle of Europe. Seven of them found a home. Nobody wanted the biggest one, and he waited in the shelter for a whole year. His name was Hekthor.' },
 
-  c2_q: { sk: '„I *don’t* want a dog!“', en: '“I *don’t* want a dog!”' },
-  c2_p1: { sk: 'Moje slová v roku 2017. Priateľke som vysvetľoval, že pes je zlý nápad. Do útulku sme išli po malú bielu fenku a ja som bol len šofér. Hekthor bol práve v jej koterci.', en: 'My words in 2017. I kept telling my girlfriend a dog was a bad idea. We went to the shelter for a small white female and I was only the driver. Hekthor happened to be in her kennel.' },
-  c2_p2: { sk: '*O týždeň sme boli spolu.* Zhodou náhod sme spolu ostali my dvaja, ja a Hekthor. A založili sme hnutie.', en: '*A week later we were together.* By a twist of fate it ended up being the two of us, me and Hekthor. And we started a movement.' },
+  c2_q: { sk: '„Nechcem *psa!*“', en: '“I *don’t* want a dog!”' },
+  c2_p1: { sk: 'Psa som nechcel. Moja ex ho ale chcela za dvoch. Na internete ju zaujala malá biela fenka z útulku. Prišli sme sa na ňu pozrieť… a zamilovali sme sa do veľkého čierneho psa.', en: 'I didn’t want a dog. My ex wanted one enough for both of us. Online she fell for a small white female from a shelter. We went to see her… and fell in love with a big black dog.' },
+  c2_p2: { sk: '*O týždeň už bol u nás.* O rok neskôr sme ostali len dvaja: ja a Hekthor.', en: '*A week later he was living with us.* A year after that, it was just the two of us: me and Hekthor.' },
 
-  c3_h: { sk: 'Puto *navždy.*', en: 'A bond *forever.*' },
-  c3_p1: { sk: 'Previedol ma najťažším úsekom môjho života bez jediného slova. Každý psíčkar to pozná: podržia ťa presne vtedy, keď padáš.', en: 'He walked me through the hardest stretch of my life without a single word. Every dog person knows it: they hold you up exactly when you fall.' },
-  c3_p2: { sk: 'V tom roku prišla aj vízia: zachrániť každého psa na Zemi.', en: 'That year the vision came too: save every dog on Earth.' },
+  c3_h: { sk: 'Zachránil mi *život.*', en: 'He saved *my life.*' },
+  c3_p1: { sk: 'Hekthor ma previedol najťažším úsekom môjho života. Vytiahol ma von a ukázal mi svet z psej perspektívy.', en: 'Hekthor walked me through the hardest stretch of my life. He got me outside and showed me the world from a dog’s point of view.' },
+  c3_p2: { sk: 'Vtedy prišla vízia: spojiť ľudí, ktorí milujú psy, a spolu pomôcť každému psovi, ktorý to potrebuje. Lebo každý pes má v sebe silu urobiť niekomu život lepším.', en: 'That was when the vision came: bring together the people who love dogs and, together, help every dog in need. Because every dog has the power to make someone’s life better.' },
 
-  c4_h: { sk: 'Spoločné *dobrodružstvá.*', en: 'Adventures *together.*' },
-  c4_p: { sk: 'Život v lese, výpravy a dni, keď sme boli len my dvaja a príroda.', en: 'Life in the woods, expeditions and days when it was just the two of us and nature.' },
+  c4_h: { sk: 'Les, náš druhý *domov.*', en: 'The forest, our second *home.*' },
+  c4_p: { sk: 'Spolu sme objavovali celé Slovensko. Len my dvaja a príroda.', en: 'Together we explored all of Slovakia. Just the two of us and nature.' },
 
   c5_h: { sk: 'Zlomový *rok.*', en: 'The turning *point.*' },
   c5_days: { sk: 'dní na ceste', en: 'days on the road' },
   c5_km: { sk: 'km', en: 'km' },
   c5_cap: { sk: 'Expo Dubai 2022', en: 'Expo Dubai 2022' },
   c6_cap: { sk: 'Kniha Cesta s Hrdinom', en: 'The book Journey with a Hero' },
-  c5_p: { sk: 'Spolu sme prešli celé Slovensko, z tej cesty vznikla kniha Cesta s Hrdinom. A na Expo Dubai som si v kostýme faraóna odobril nápad, z ktorého je DOGYPT: pyramídy, mystika Egypta a nekonečná psia láska.', en: 'Together we walked across all of Slovakia, and that journey became the book Journey with a Hero. And at Expo Dubai, dressed as a pharaoh, I approved the idea that became DOGYPT: pyramids, the mystique of Egypt and endless dog love.' },
+  c5_p: { sk: 'Našu bláznivú víziu sme začali zdieľať na internete. Prešli sme celé Slovensko, vyzbierali peniaze pre útulky a napísali o tom knihu.', en: 'We started sharing our crazy vision online. We walked across all of Slovakia, raised money for shelters and wrote a book about it.' },
+  c5_p2: { sk: 'Myšlienka, ktorá spája večný Egypt a lásku k psom, bola pre mnohých nepochopiteľná. Tak som dostal ďalší bláznivý nápad: predstaviť DOGYPT ako faraón priamo na Expe v Dubaji. Pre introverta obrovský krok mimo komfortu. Ale nemal som na výber.', en: 'An idea that joins eternal Egypt with our love for dogs made no sense to many people. So I had another crazy idea: present DOGYPT as a pharaoh, right at Expo in Dubai. For an introvert, a huge step out of my comfort zone. But I had no choice.' },
 
-  c6_h: { sk: 'Kniha a *appka.*', en: 'A book and *an app.*' },
-  c6_p: { sk: 'Vydali sme knihu a predali ju. Všetky peniaze z nej išli do vývoja appky, ktorú nám nikdy nedodali. Prišla chuť to celé vzdať.', en: 'We published the book and sold it. All the money went into building an app that was never delivered. I wanted to give it all up.' },
+  c6_h: { sk: 'Kniha a sen o *appke.*', en: 'A book and a dream *app.*' },
+  c6_p: { sk: 'Vydali sme knihu Cesta s Hrdinom. Peniaze z predaja a takmer všetky úspory som dal agentúre, ktorá nám mala postaviť vysnívanú aplikáciu.', en: 'We published the book Journey with a Hero. The money from sales and almost all my savings went to an agency that was supposed to build the app we dreamed of.' },
 
-  c7_h: { sk: 'Krátka *pauza.*', en: 'A short *pause.*' },
-  c7_p: { sk: 'Nechuť, veľké náklady a život popri tom. Hekthor stále pri nás a myšlienka v šuplíku, nie v koši.', en: 'Reluctance, big costs and life going on. Hekthor always with us, and the idea in a drawer, not in the bin.' },
+  c7_h: { sk: 'Prišla *facka.*', en: 'The *slap.*' },
+  c7_p: { sk: 'Agentúra appku nedodala a peniaze sa nevrátili. Nápad išiel do šuflíka. Ponuku zarábať v zahraničí rozprávkové peniaze som odmietol, bez Hekthora by som nešiel. Namiesto toho sme prevádzkovali farmu a zachraňovali zvieratá. Krásna kapitola, len bez zárobku.', en: 'The agency never delivered the app and the money never came back. The idea went into a drawer. I turned down an offer to earn fairy-tale money abroad, because I wouldn’t go without Hekthor. Instead we ran a farm and rescued animals. A beautiful chapter, just without an income.' },
   c7_ph: { sk: 'Fotka 2024–25', en: 'Photo 2024–25' },
 
-  c8_h: { sk: 'Prišla *AI.*', en: 'Then came *AI.*' },
-  c8_p: { sk: 'Naučil som sa stavať s AI a čo sa roky nedalo postaviť, sa zrazu dalo. V júni dostali prví psi heroglyf a hnutie odštartovalo. Odvtedy staviame každý deň.', en: 'I learned to build with AI, and what couldn’t be built for years suddenly could. In June the first dogs got their heroglyph and the movement began. Since then we build every day.' },
+  c8_h: { sk: 'AI to *zmenila.*', en: 'AI *changed it.*' },
+  c8_p: { sk: 'Jedného dňa som si povedal, že tú appku skúsim urobiť sám. V júni vznikol web, generátor heroglyfov a do DOGYPTU prišli prví psi. Aby som na tom mohol pracovať každý deň, odišiel som z práce a žijem z úspor. Stavil som všetko.', en: 'One day I told myself I’d try to build the app on my own. In June came the website, the heroglyph generator and the first dogs in DOGYPT. To work on it every day, I quit my job and live on savings. I bet everything on it.' },
   c8_hrs: { sk: 'hodín práce', en: 'hours of work' },
   c8_avg: { sk: 'hodín denne', en: 'hours a day' },
   c8_since: { sk: 'dní od', en: 'days since' },
@@ -80,10 +81,10 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   f4_b: { sk: 'Milión Dogypťanov', en: 'A million Dogyptians' },
   f4_s: { sk: 'Strediská namiesto útulkov.', en: 'Centres instead of shelters.' },
 
-  vi_eye: { sk: 'Vízia', en: 'Vision' },
-  vi_h: { sk: 'Zachrániť každého *psa.*', en: 'Save every *dog.*' },
+  vi_eye: { sk: 'O čom to celé je?', en: 'What is it all about?' },
+  vi_h: { sk: 'Globálne hnutie *psíčkarov.*', en: 'A global movement of *dog people.*' },
   vi_n: { sk: 'psíčkarov v jednej komunite', en: 'dog people in one community' },
-  vi_p: { sk: 'Stačí spojiť „iba“ milión psíčkarov do jednej komunity, ktorá bude mať lepší globálny dosah na záchranu psov než akýkoľvek štát. Potom chceme namiesto útulkov postaviť strediská, kde majú psy zmysluplnú prácu a ľudí, ktorých platíme my. Všetko krok za krokom. Herná appka je len „hook“ :)', en: 'All it takes is to bring “just” a million dog people into one community, with a bigger global reach for saving dogs than any state. Then, instead of shelters, we want to build centres where dogs have meaningful work and people we pay ourselves. Step by step. The game app is just the “hook” :)' },
+  vi_p: { sk: 'Spojiť psíčkarov celého sveta do jednej komunity. Priestor, ktorý nám uľahčí život, pobaví nás a umožní pomáhať tam, kde je to treba. Transparentný svet, v ktorého strede sú psy a ich ľudia.', en: 'Bring the world’s dog people together into one community. A place that makes our lives easier, keeps us entertained and lets us help wherever help is needed. A transparent world with dogs and their people at its heart.' },
 
   dg_eye: { sk: 'Projekt s dušou', en: 'A project with a soul' },
   dg_h: { sk: 'Biblia pre psíčkarov: *DOGMA*', en: 'A bible for dog people: *DOGMA*' },
