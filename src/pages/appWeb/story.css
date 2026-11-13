@@ -108,6 +108,7 @@
 .sx-txt span{font:400 var(--t-body)/1.4 var(--font-ui);color:var(--ink-body)}
 .sx-rs.sx-fut .sx-dot{border-style:dashed;background:transparent}
 .sx-rs.sx-fut .sx-txt em{color:var(--gold-ink)}
+.sx-txt .sx-share{display:block;margin-top:var(--s-xs);font:500 12px/1.2 var(--font-ui);font-style:normal;letter-spacing:.02em;color:var(--ink-body)}
 /* DNES = rozbalená karta s priebehom */
 .sx-now .sx-dot{border-color:var(--lapis-edge)}
 .sx-rs.sx-now.sx-in .sx-dot{box-shadow:0 0 0 6px var(--paper),0 0 0 9px var(--lapis-edge),0 0 40px rgba(22,48,122,.5);animation:sx-beat 2.4s 1s infinite}

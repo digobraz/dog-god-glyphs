@@ -72,6 +72,7 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   now_p: { sk: 'Každý nový pes nás posúva bližšie k prvej tisícke. Ty a tvoj pes môžete byť ďalší.', en: 'Every new dog brings us closer to the first thousand. You and your dog could be next.' },
   now_join: { sk: 'Pridaj sa', en: 'Join us' },
   now_app: { sk: 'Stiahni appku', en: 'Get the app' },
+  fut_share: { sk: 'psov sveta', en: "of the world's dogs" },
   f1_b: { sk: 'Zakladatelia', en: 'Founders' },
   f1_s: { sk: 'Prví blázni, ktorí veria v psa. Najťažšia časť!', en: 'The first fools who believe in dog. The hardest part!' },
   f2_b: { sk: 'Svorka rastie', en: 'The pack grows' },

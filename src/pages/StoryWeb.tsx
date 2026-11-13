@@ -229,6 +229,8 @@ export default function StoryWeb() {
   const w = (k: string) => COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
   const loc = intlLocale(lang);
   const fmt = (n: number) => n.toLocaleString(loc);
+  // podiel psov sveta pri míľniku — odhad ~900 mil. psov (Matej 13. 11. 2026: „dajme %“)
+  const share = (n: number) => `${(n / 9e6).toLocaleString(loc, { maximumSignificantDigits: 2 })} % ${t('fut_share')}`;
   const curLang = WEB_LANGS.find((x) => x.code === lang) ?? WEB_LANGS[0];
   const [langOpen, setLangOpen] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -505,9 +507,9 @@ export default function StoryWeb() {
               </div>
               {/* míľniky = ikonky v štýle presklenej pyramídy (Kie nano-banana-pro s `ikony/centra.webp` ako vzorom, 13. 11. 2026) */}
               {([['zakladatelia', 1000, 'f1'], ['svorka', 10000, 'f2'], ['risa', 100000, 'f3']] as const).map(([dot, n, k]) => (
-                <div className="sx-rs sx-fut" key={k}><span className="sx-dot"><img src={ph(`m-${dot}`)} alt="" loading="lazy" /></span><div className="sx-txt"><em>{fmt(n)}</em><b>{t(`${k}_b`)}</b><span>{t(`${k}_s`)}</span></div></div>
+                <div className="sx-rs sx-fut" key={k}><span className="sx-dot"><img src={ph(`m-${dot}`)} alt="" loading="lazy" /></span><div className="sx-txt"><em>{fmt(n)}</em><i className="sx-share">{share(n)}</i><b>{t(`${k}_b`)}</b><span>{t(`${k}_s`)}</span></div></div>
               ))}
-              <div className="sx-rs sx-fut"><span className="sx-dot"><img src={ph('m-milion')} alt="" loading="lazy" /></span><div className="sx-txt"><em>{fmt(1000000)}</em><b>{t('f4_b')}</b><span>{t('f4_s')}</span></div></div>
+              <div className="sx-rs sx-fut"><span className="sx-dot"><img src={ph('m-milion')} alt="" loading="lazy" /></span><div className="sx-txt"><em>{fmt(1000000)}</em><i className="sx-share">{share(1000000)}</i><b>{t('f4_b')}</b><span>{t('f4_s')}</span></div></div>
             </div>
           </div>
         </section>
