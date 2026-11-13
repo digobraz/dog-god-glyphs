@@ -16,6 +16,7 @@ import { STORY } from './appWeb/storyCopy';
 import PULSE from '@/data/onepagePulse.json';
 import AI_HEAD from '@/assets/ainubis-head.webp';
 import { Stores } from './appWeb/Stores';
+import FOTO from './appWeb/storyFoto.json';
 import './appWeb/appWeb.css';
 import './appWeb/story.css';
 
@@ -47,8 +48,41 @@ function Fan({ pics, dark }: { pics: Pic[]; dark?: boolean }) {
 
 const d = (s: number) => ({ '--d': `${s}s` } as CSSProperties);
 
-function Chapter({ n, year, small, rev, low, h, children, side, top0 }: {
-  n: string; year: string; small?: boolean; rev?: boolean; low?: boolean; h: string; children: ReactNode; side: ReactNode; top0?: boolean;
+/* Fotky kapitol = `public/web-app/story/r/<rok>-….webp`, popisy píše Matej v nákrese
+   `plany/nakresy/web-story-2026-11-11/popisy.html` → `appWeb/storyFoto.json` (13. 11. 2026).
+   Rok = prvé 4 znaky mena; ★ vpredu = predná fotka vejára; prvých 5 ide do vejára, zvyšok do pásu. */
+type Foto = { sk?: string; en?: string; vpredu?: boolean; skryt?: boolean };
+const FAN_POS: Pic[][] = [
+  [{ x: '0%', y: '0%', r: '-2deg' }],
+  [{ x: '-22%', y: '-16%', r: '-6deg' }, { x: '18%', y: '18%', r: '4deg', d: '.1s' }],
+  [{ x: '-34%', y: '-24%', r: '-8deg', r0: '-3deg' }, { x: '34%', y: '-20%', r: '6deg', r0: '4deg', d: '.1s' }, { x: '0%', y: '28%', r: '-2deg', r0: '-1deg', d: '.2s' }],
+  [{ x: '-28%', y: '-26%', r: '-9deg', r0: '-2deg' }, { x: '28%', y: '-24%', r: '7deg', r0: '3deg', d: '.08s' }, { x: '-26%', y: '26%', r: '5deg', r0: '-4deg', d: '.16s' }, { x: '24%', y: '22%', r: '-3deg', d: '.24s' }],
+  [{ x: '-28%', y: '-26%', r: '-9deg', r0: '-2deg' }, { x: '28%', y: '-24%', r: '7deg', r0: '3deg', d: '.08s' }, { x: '-30%', y: '26%', r: '5deg', r0: '-4deg', d: '.16s' }, { x: '30%', y: '24%', r: '-6deg', r0: '2deg', d: '.24s' }, { x: '0%', y: '0%', r: '-1deg', d: '.32s' }],
+];
+function fotky(roky: string[], L: Lang2) {
+  const all = Object.entries(FOTO as Record<string, Foto>).filter(([id, x]) => roky.includes(id.slice(0, 4)) && !x.skryt)
+    .map(([id, x]) => ({ src: `r/${id}`, cap: (L === 'sk' ? x.sk : x.en || x.sk) || undefined, front: !!x.vpredu }));
+  const front = all.find((x) => x.front) ?? all[0];
+  const rest = all.filter((x) => x !== front);
+  const fanRest = rest.slice(0, 4), strip = rest.slice(4);
+  const inFan = front ? [...fanRest, front] : fanRest;
+  const fan: Pic[] = inFan.map((f, i) => ({ ...FAN_POS[inFan.length - 1][i], src: f.src, cap: f.cap, z: i === inFan.length - 1 ? 5 : 1 }));
+  return { fan, strip };
+}
+function Strip({ pics }: { pics: { src: string; cap?: string }[] }) {
+  if (!pics.length) return null;
+  const n = pics.length, loop = Array.from({ length: Math.max(2, Math.ceil(10 / n)) * n }, (_, i) => pics[i % n]);
+  return (
+    <div className="sx-strip sx-rv"><div className="sx-strip-in">
+      {loop.map((p, i) => (
+        <figure key={i} className="sx-ph" aria-hidden={i >= n || undefined}><img src={ph(p.src)} alt="" loading="lazy" />{p.cap && <figcaption>{p.cap}</figcaption>}</figure>
+      ))}
+    </div></div>
+  );
+}
+
+function Chapter({ n, year, small, rev, low, h, children, side, top0, below }: {
+  n: string; year: string; small?: boolean; rev?: boolean; low?: boolean; h: string; children: ReactNode; side: ReactNode; top0?: boolean; below?: ReactNode;
 }) {
   return (
     <section className={`sx-ch${low ? ' sx-low' : ''}`} style={top0 ? { paddingTop: 0 } : undefined}>
@@ -61,6 +95,7 @@ function Chapter({ n, year, small, rev, low, h, children, side, top0 }: {
         </div>
         {side}
       </div>
+      {below}
     </section>
   );
 }
@@ -69,6 +104,7 @@ export default function StoryWeb() {
   const { lang, setLang } = useLang();
   const L: Lang2 = lang === 'sk' ? 'sk' : 'en';
   const t = (k: string) => STORY[k]?.[L] ?? '';
+  const [F16, F17, F18, F19, F22, F23, F24, F26] = [['2016'], ['2017'], ['2018'], ['2019', '2020', '2021'], ['2022'], ['2023'], ['2024', '2025'], ['2026']].map((r) => fotky(r, L));
   const w = (k: string) => COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
   const loc = intlLocale(lang);
   const fmt = (n: number) => n.toLocaleString(loc);
@@ -222,11 +258,7 @@ export default function StoryWeb() {
 
         {/* I · 2016 */}
         <Chapter n={ch('I')} year="2016" h={t('c1_h')}
-          side={<Fan pics={[
-            { src: '1b', x: '-34%', y: '-24%', r: '-8deg', r0: '-3deg' },
-            { src: '1d', x: '34%', y: '-20%', r: '6deg', r0: '4deg', d: '.1s', cap: 'Hekthor' },
-            { src: '1c', x: '0%', y: '28%', r: '-2deg', r0: '-1deg', d: '.2s', z: 3 },
-          ]} />}>
+          side={<Fan pics={F16.fan} />} below={<Strip pics={F16.strip} />}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c1_p')}</p>
         </Chapter>
 
@@ -245,31 +277,21 @@ export default function StoryWeb() {
                 <p className="lead sx-rv">{t('c2_p1')}</p>
                 <p className="lead sx-rv" style={d(0.15)}><Mark s={t('c2_p2')} as="b" /></p>
               </div>
-              <Fan dark pics={[
-                { src: '1d', x: '-28%', y: '-26%', r: '-9deg', r0: '-2deg' },
-                { src: '3b', x: '28%', y: '-24%', r: '7deg', r0: '3deg', d: '.08s' },
-                { src: '2b', x: '-30%', y: '26%', r: '5deg', r0: '-4deg', d: '.16s' },
-                { src: '3c', x: '30%', y: '24%', r: '-6deg', r0: '2deg', d: '.24s' },
-                { src: '2a', x: '0%', y: '0%', r: '-1deg', d: '.32s', z: 5 },
-              ]} />
+              <Fan dark pics={F17.fan} />
             </div>
           </div>
         </section>
 
         {/* III · 2018 */}
         <Chapter n={ch('III')} year="2018" rev h={t('c3_h')}
-          side={<figure className="sx-ph sx-rv" style={{ aspectRatio: '1/1' }}><img src={ph('2b')} alt="" loading="lazy" /></figure>}>
+          side={<Fan pics={F18.fan} />} below={<Strip pics={F18.strip} />}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c3_p1')}</p>
           <p className="lead sx-rv" style={d(0.4)}>{t('c3_p2')}</p>
         </Chapter>
 
         {/* IV · 2019–21 — život v lese (Matej 11. 11.) */}
         <Chapter n={ch('IV')} year="2019–21" small top0 h={t('c4_h')}
-          side={<Fan pics={[
-            { src: '2c', x: '-22%', y: '-22%', r: '-6deg' },
-            { src: '3c', x: '24%', y: '-14%', r: '5deg', d: '.1s' },
-            { src: '3b', x: '-2%', y: '24%', r: '-2deg', d: '.2s', z: 3 },
-          ]} />}>
+          side={<Fan pics={F19.fan} />} below={<Strip pics={F19.strip} />}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c4_p')}</p>
         </Chapter>
 
@@ -287,34 +309,26 @@ export default function StoryWeb() {
                 <div><b data-n="800">0</b><span>{t('c5_km')}</span></div>
               </div>
             </div>
-            <figure className="sx-ph sx-rv" style={{ aspectRatio: '1/1' }}><img src={ph('4a')} alt="" loading="lazy" /><figcaption>{t('c5_cap')}</figcaption></figure>
+            <Fan pics={F22.fan} />
           </div>
-          <div className="sx-strip sx-rv"><div className="sx-strip-in">
-            {['4b', '4c', '4d', '4e', '3a', '4b', '4c', '4d', '4e', '3a'].map((s, i) => (
-              <figure key={i} className="sx-ph" aria-hidden={i >= 5 || undefined}><img src={ph(s)} alt="" loading="lazy" /></figure>
-            ))}
-          </div></div>
+          <Strip pics={F22.strip} />
         </section>
 
         {/* VI · 2023 — kniha vydaná, peniaze do appky, ktorú nedodali; tichší tón */}
         <Chapter n={ch('VI')} year="2023" low h={t('c6_h')}
-          side={<figure className="sx-ph sx-rv" style={{ aspectRatio: '1/1' }}><img src={ph('3a')} alt="" loading="lazy" /><figcaption>{t('c6_cap')}</figcaption></figure>}>
+          side={<Fan pics={F23.fan} />} below={<Strip pics={F23.strip} />}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c6_p')}</p>
         </Chapter>
 
         {/* VII · 2024–25 — krátka pauza */}
         <Chapter n={ch('VII')} year="2024–25" small rev top0 h={t('c7_h')}
-          side={<figure className="sx-ph sx-empty sx-rv" style={{ aspectRatio: '4/3' }}>{t('c7_ph')}</figure>}>
+          side={<Fan pics={F24.fan} />} below={<Strip pics={F24.strip} />}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c7_p')}</p>
         </Chapter>
 
         {/* VIII · 2026 — AI a stavba; hodiny = súčet `stroj` z plany/praca-log.json (gen-praca-stats → onepagePulse.json) */}
         <Chapter n={ch('VIII')} year="2026" top0 h={t('c8_h')}
-          side={<Fan pics={[
-            { src: '2d', x: '-24%', y: '-20%', r: '-6deg', cap: t('c8_cap') },
-            { src: '5', x: '24%', y: '-16%', r: '6deg', d: '.1s' },
-            { src: '5a', x: '0%', y: '24%', r: '-2deg', d: '.2s', z: 3 },
-          ]} />}>
+          side={<Fan pics={F26.fan} />} below={<Strip pics={F26.strip} />}>
           <p className="lead sx-rv" style={d(0.3)}>{t('c8_p')}</p>
           <div className="sx-nums sx-rv" style={d(0.4)}>
             <div><b data-n={PULSE.total}>0</b><span>{t('c8_hrs')}</span></div>

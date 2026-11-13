@@ -52,6 +52,7 @@
 .sx-fan .sx-ph{position:absolute;left:50%;top:50%;width:52%;aspect-ratio:1/1;transform:translate(-50%,-50%) rotate(var(--r0,0deg));transition:transform 1.3s cubic-bezier(.2,.8,.2,1);transition-delay:var(--d,0s);z-index:var(--z,1);cursor:zoom-in}
 .sx-fan.sx-in .sx-ph{transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(var(--r))}
 .sx-fan .sx-ph:hover{z-index:20;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(0) scale(1.12)!important;transition-delay:0s}
+.sx-fan .sx-ph figcaption{transition:opacity .3s}.sx-fan .sx-ph:not(:last-child):not(:hover) figcaption{opacity:0}
 .sx-fan.sx-dark .sx-ph{width:44%}
 @media(max-width:767px){.sx-fan .sx-ph{width:46%}.sx-fan.sx-dark .sx-ph{width:40%}}
 .sx-fan.sx-dark .sx-ph{box-shadow:0 24px 60px -18px rgba(0,0,0,.8),0 0 0 1.5px rgba(201,154,63,.6)}
