@@ -8,6 +8,7 @@ import { createContext, Fragment, useContext, useEffect, useRef, useState, type 
 import { Seo } from '@/components/Seo';
 import { useLang } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
+import { LIVE_EDGE_BASE } from '@/lib/env';
 import { flagUrl } from '@/lib/flagUrl';
 import { intlLocale } from '@/i18n/bcp47';
 import { COPY, COPY3, type Lang2 } from './appWeb/copy';
@@ -236,8 +237,17 @@ export default function StoryWeb() {
   /* živý počet psov (verejný = všetky psy s číslom) */
   const [dogs, setDogs] = useState(121);
   const [new30, setNew30] = useState<number | null>(null);
+  const [liveDogs, setLiveDogs] = useState<number | null>(null);
+  const [lastDog, setLastDog] = useState<{ n: number; name: string; img: string } | null>(null);
   useEffect(() => {
-    getPackStats<{ dogs?: number; total?: number; last30d?: number }>().then((s) => { const n = s.dogs ?? s.total; if (n) setDogs(n); if (s.last30d != null) setNew30(s.last30d); }).catch(() => {});
+    getPackStats<{ dogs?: number; total?: number }>().then((s) => { const n = s.dogs ?? s.total; if (n) setDogs(n); }).catch(() => {});
+    /* Pätička ukazuje SKUTOČNÚ stenu aj v deve (Matej 13. 11.: „daj tu reálnu databázu, je ich 135“) — verejné,
+       read-only endpointy, tie isté ako `/` a `/wall`; v produkcii je LIVE_EDGE_BASE totožný s EDGE_BASE. */
+    fetch(`${LIVE_EDGE_BASE}/get-pack-stats`).then((r) => r.json()).then((s: { dogs?: number; last30d?: number }) => { if (s.dogs) setLiveDogs(s.dogs); if (s.last30d != null) setNew30(s.last30d); }).catch(() => {});
+    fetch(`${LIVE_EDGE_BASE}/get-grid-dogs?tiers=all`).then((r) => r.json()).then((list: { pack_number: number | null; dog_name: string; cloudinary_main_url: string | null }[]) => {
+      const last = list.filter((x) => x.pack_number && x.cloudinary_main_url).sort((a, b) => (b.pack_number ?? 0) - (a.pack_number ?? 0))[0];
+      if (last) setLastDog({ n: last.pack_number!, name: last.dog_name, img: last.cloudinary_main_url!.replace(/\/upload\/(?:[a-z]_[^/]+\/)?/, '/upload/c_fill,g_auto,w_320,h_320,f_auto,q_auto/') });
+    }).catch(() => {});
   }, []);
   const pct = Math.min(100, (dogs / 1000) * 100);
 
@@ -509,7 +519,6 @@ export default function StoryWeb() {
               <p className="sx-num sx-rv">{t('vi_eye')}</p>
               <h2 className="sx-rv" style={{ ...d(0.1), fontSize: 'clamp(32px,4.6vw,60px)', lineHeight: 1.08 }}><Mark s={t('vi_h')} /></h2>
               <p className="lead sx-rv" style={{ ...d(0.2), fontSize: 18 }}>{t('vi_p')}</p>
-              <p className="lead sx-rv" style={{ ...d(0.3), fontSize: 18 }}><b>{t('vi_p2')}</b></p>
             </div>
           </div>
         </section>
@@ -542,28 +551,45 @@ export default function StoryWeb() {
             <Stores />
           </div>
 
-          <div className="sx-ftg">
-            {/* ČO JE NOVÉ — noví psi (get-pack-stats.last30d), na čom pracujeme (onepagePulse.work), hodiny za 7 dní */}
-            <div className="sx-news">
-              <h3>{t('ft_now')}</h3>
-              <div className="sx-newdogs">
-                <b>+{fmt(new30 ?? 0)}</b>
-                <span>{t('ft_new')}<small>{fmt(dogs)} {t('now_dogs')}</small></span>
+          {/* ČO JE NOVÉ — celá šírka, tri rovnaké stĺpce: psi · na čom robíme · práca */}
+          <div className="sx-news">
+            <h3>{t('ft_now')}</h3>
+            <div className="sx-news-g">
+              <div className="sx-nc">
+                <div className="sx-newdogs">
+                  <b>+{fmt(new30 ?? 0)}</b>
+                  <span>{t('ft_new')}<small>{fmt(liveDogs ?? dogs)} {t('now_dogs')}</small></span>
+                </div>
+                {lastDog && (
+                  <a className="sx-lastdog" href="/wall">
+                    <img src={lastDog.img} alt={lastDog.name} loading="lazy" />
+                    <span><small>{t('ft_last')}</small><b>{lastDog.name}</b><em>#{lastDog.n}</em></span>
+                  </a>
+                )}
+                <a className="sx-all" href="/wall">{t('ft_all')} <img src="/icons/sys/sipka.webp" alt="" /></a>
               </div>
-              <a className="sx-all" href="/wall">{t('ft_all')} <img src="/icons/sys/sipka.webp" alt="" /></a>
-              <h4>{t('ft_build')}</h4>
-              <ul className="sx-build">
-                <li><b>{t('ft_w_app')}</b><span>{t('ft_w_due')}</span></li>
-                <li><b>{t('ft_w_vault')}</b><span>{fmt(VAULT?.count?.scrolls ?? 0)} / {fmt(VAULT?.count?.goal ?? 0)}</span></li>
-                <li><b>{t('ft_w_world')}</b></li>
-              </ul>
-              <div className="sx-stat"><span>{t('ft_week')}</span><b>{fmt(PULSE.hours)}<small>h</small></b></div>
-              <div className="sx-spark">{PULSE.days.map((x) => <i key={x.d} title={`${x.d}: ${x.h} h`} style={{ height: `${(x.h / pmax) * 100}%` }} />)}</div>
-              <p className="sx-upd">{t('ft_upd')} {upd}</p>
+              <div className="sx-nc">
+                <h4>{t('ft_build')}</h4>
+                <ul className="sx-build">
+                  <li><b>{t('ft_w_app')}</b><span>{t('ft_w_due')}</span></li>
+                  <li><b>{t('ft_w_vault')}</b><span>{fmt(VAULT?.count?.scrolls ?? 0)} / {fmt(VAULT?.count?.goal ?? 0)}</span></li>
+                  <li><b>{t('ft_w_world')}</b></li>
+                </ul>
+              </div>
+              <div className="sx-nc">
+                <h4>{t('ft_work')}</h4>
+                <div className="sx-stat"><span>{t('ft_year')}</span><b>~{fmt(estTotal)}<small>h</small></b></div>
+                <div className="sx-stat"><span>{t('ft_week')}</span><b>{fmt(PULSE.hours)}<small>h</small></b></div>
+                <div className="sx-spark">{PULSE.days.map((x) => <i key={x.d} title={`${x.d}: ${x.h} h`} style={{ height: `${(x.h / pmax) * 100}%` }} />)}</div>
+                <p className="sx-upd">{t('ft_upd')} {upd}</p>
+              </div>
             </div>
+          </div>
 
+          {/* AINUBIS · KONTAKT — dve rovnaké polovice */}
+          <div className="sx-ftg">
             <div>
-              <h3 className="sx-aih3">{t('ft_ask')}</h3>
+              <h3>{t('ft_ask')}</h3>
               <div className="sx-ai">
                 <div className="sx-ai-h"><img src={AI_HEAD} alt="" /><div><b><span>AI</span>NUBIS</b><small>{t('ai_on')}</small></div></div>
                 <div className="sx-ai-b" ref={chatRef}>
@@ -578,7 +604,7 @@ export default function StoryWeb() {
               </div>
             </div>
 
-            <div>
+            <div className="sx-contact">
               <h3>{t('ft_contact')}</h3>
               <div className="sx-links">
                 <a href="mailto:woof@dogypt.com"><i><img src="/icons/sys/obalka.webp" alt="" /></i>woof@dogypt.com</a>

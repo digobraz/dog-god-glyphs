@@ -85,7 +85,6 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   vi_h: { sk: 'Globálne hnutie milujúcich *psíčkarov.*', en: 'A global movement of loving *dog people.*' },
   vi_n: { sk: 'psíčkarov v jednej komunite', en: 'dog people in one community' },
   vi_p: { sk: 'Predstav si, že sa spojí milión psíčkarov, ktorí držia spolu a cez DOGYPT systematicky pomáhajú. Jeden ekosystém, ktorý mení dejiny psov aj ľudí.', en: 'Imagine a million dog people joining forces, sticking together and helping systematically through DOGYPT. One ecosystem that changes the history of dogs and people.' },
-  vi_p2: { sk: 'A aj keď máme radšej zvieratá než ľudí, vieme, že ak sa ako psíčkari spojíme, pre psov urobíme to najkrajšie gesto v našich dejinách.', en: 'And even though we prefer animals to people, we know that if we dog people unite, we will make the most beautiful gesture for dogs in our history.' },
 
   dg_eye: { sk: 'Projekt s dušou', en: 'A project with a soul' },
   dg_h: { sk: 'Biblia pre psíčkarov: *DOGMA*', en: 'A bible for dog people: *DOGMA*' },
@@ -109,6 +108,9 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   ft_now: { sk: 'Čo je nové', en: 'What’s new' },
   ft_new: { sk: 'nových psov za 30 dní', en: 'new dogs in 30 days' },
   ft_all: { sk: 'Pozri si všetkých', en: 'See them all' },
+  ft_last: { sk: 'Najnovší v DOGYPTe', en: 'Newest in DOGYPT' },
+  ft_work: { sk: 'Koľko na tom pracujeme', en: 'How much we work on it' },
+  ft_year: { sk: 'hodín práce v roku 2026', en: 'hours of work in 2026' },
   ft_build: { sk: 'Na čom práve robíme', en: 'What we are building' },
   ft_w_app: { sk: 'Appka do App Store a Google Play', en: 'The app in App Store and Google Play' },
   ft_w_due: { sk: 'do februára 2027', en: 'by February 2027' },

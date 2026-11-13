@@ -156,7 +156,7 @@
 .aw .sx-ft .wrap{position:relative;display:block;font-size:inherit}
 .aw .sx-ft a{opacity:1}
 .sx-ftg{display:grid;gap:var(--s-xxl)}
-@media(min-width:960px){.sx-ftg{grid-template-columns:1fr 1.25fr 1fr;gap:var(--s-xxxl)}}
+@media(min-width:960px){.sx-ftg{grid-template-columns:1fr 1fr;gap:var(--s-xxxl)}}
 .sx-ft h3{font:500 var(--t-label)/1 var(--font-ui);letter-spacing:.26em;text-transform:uppercase;color:var(--lapis-ink);margin:0 0 var(--s-lg)}
 .sx-ft .sx-logo{height:56px;width:auto;margin-bottom:var(--s-lg)}
 .sx-ft p{margin:0;font:400 var(--t-body)/1.6 var(--font-ui)}
@@ -276,3 +276,15 @@
 .sx-rs.sx-now.sx-in .sx-appdot{box-shadow:none;animation:none}
 /* budúce míľniky = otáznik (brand kit) */
 .sx-fut .sx-dot img.sx-qm{width:56%;height:56%;object-fit:contain;opacity:.85}
+/* pätička v3: ČO JE NOVÉ cez celú šírku (3 rovnaké stĺpce), pod ním AINUBIS | KONTAKT rovnakým dielom */
+.sx-news{margin-bottom:var(--s-xxxl)}
+.sx-news-g{display:grid;gap:var(--s-xl)}
+@media(min-width:960px){.sx-news-g{grid-template-columns:repeat(3,1fr);gap:var(--s-xxl)}.sx-nc+.sx-nc{border-left:1px solid rgba(91,224,240,.14);padding-left:var(--s-xxl)}}
+.sx-nc h4{margin-top:0}
+.aw .sx-ft a.sx-lastdog{display:flex;align-items:center;gap:var(--s-md);margin-top:var(--s-lg);padding:var(--s-sm);border-radius:var(--r-tile);background:rgba(91,224,240,.06);border:1px solid rgba(91,224,240,.18);text-decoration:none}
+.sx-lastdog img{width:64px;height:64px;border-radius:var(--r-field);object-fit:cover;box-shadow:0 0 0 1.5px #F5C73D}
+.sx-lastdog span{display:flex;flex-direction:column;gap:2px}
+.sx-lastdog small{font:500 var(--t-micro)/1 var(--font-ui);letter-spacing:.22em;text-transform:uppercase;color:rgba(207,243,250,.6)}
+.sx-lastdog b{font:700 var(--t-lead)/1.2 var(--font-title);color:#E6FAFF}
+.sx-lastdog em{font:500 var(--t-label)/1 var(--font-ui);font-style:normal;color:#5BE0F0}
+.sx-contact .sx-links a{padding:var(--s-md) 0}
