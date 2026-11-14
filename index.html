@@ -5,6 +5,22 @@
     <!-- Appka hovorí 18 jazykmi sama — prekladač prehliadača (Android Chrome) ju len kazil. 14. 10. 2026 -->
     <meta name="google" content="notranslate" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- FOTKY CEZ CACHE CLOUDFLARE (14. 11. 2026): `res.cloudinary.com/dz8lolmod/…` → `/cdn/…` (Worker `cdn`).
+         Jedno pravidlo pre skripty nižšie (predbežné sťahovanie dlaždíc) aj src/lib/cdnFoto.ts.
+         Vypnuté: localhost (DEV), robot (webdriver), `localStorage.priamoFoto = '1'`. Appka ide cez dogypt.com. -->
+    <script>
+      (function () {
+        var h = location.hostname, C = '';
+        try {
+          var nas = location.protocol === 'https:' && (h === 'dogypt.com' || h === 'www.dogypt.com' || /\.workers\.dev$/.test(h));
+          var app = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+          var vyp = false; try { vyp = localStorage.getItem('priamoFoto') === '1'; } catch (e) {}
+          if ((nas || app) && !navigator.webdriver && !vyp) C = (nas ? location.origin : 'https://dogypt.com') + '/cdn/';
+        } catch (e) {}
+        window.__cdn = C;
+        window.__cdnU = function (u) { return C && u ? String(u).split('https://res.cloudinary.com/dz8lolmod/').join(C) : u; };
+      })();
+    </script>
     <!-- APPKA (Capacitor, 19. 10. 2026): appka = len /pack pre členov. Natívny obal otvára `/`,
          čo je na webe stena — v appke ide hneď na /pack (a odtiaľ bez session na /login nižšie).
          `window.Capacitor` vloží natívna strana pred skriptmi stránky; na webe neexistuje. -->
@@ -106,7 +122,7 @@
             var p = u.split('/image/upload/'), first = p[1].split('/')[0];
             if (!/(^|,)(c_|w_|h_|f_auto|q_auto|dpr_)/.test(first)) u = p[0] + '/image/upload/c_fill,w_' + w + ',h_' + w + ',g_auto,f_auto,q_auto/' + p[1];
             var l = document.createElement('link');
-            l.rel = 'preload'; l.as = 'image'; l.href = u; l.setAttribute('fetchpriority', 'high');
+            l.rel = 'preload'; l.as = 'image'; l.href = window.__cdnU(u); l.setAttribute('fetchpriority', 'high');
             document.head.appendChild(l);
             return;
           }
@@ -242,7 +258,7 @@
               // dvakrát — pri zmene meň všetky tri. Na guli sú Hektor + členovia od #2.
               window.__gridEarly.then(function (dogs) {
                 var px = window.innerWidth <= 768 ? 120 : 160, seen = {};
-                var pre = function (u) { if (seen[u]) return; seen[u] = 1; var im = new Image(); im.decoding = 'async'; im.src = u; };
+                var pre = function (u) { if (seen[u]) return; seen[u] = 1; var im = new Image(); im.decoding = 'async'; im.src = window.__cdnU(u); };
                 pre('/images/hektor-grid-tile.webp');
                 for (var i = 0; i < dogs.length; i++) {
                   var d = dogs[i], u = d && d.cloudinary_main_url;

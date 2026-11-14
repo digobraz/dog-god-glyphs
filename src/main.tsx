@@ -16,6 +16,8 @@ import { startAppPush } from "./lib/appPush";
 import "./lib/devSeedApply";
 // Robot v DEVe (webdriver) dostane fotky z Cloudinary zmenšené — telo za `import.meta.env.DEV`.
 import "./lib/devUsporneFoto";
+// Na LIVE idú fotky z Cloudinary cez cache Cloudflare (/cdn/*) — Free Cloudinary má 25 kreditov.
+import "./lib/cdnFoto";
 
 // Opona v index.html sa podľa tohto času rozhoduje, či film zlyhal (poistka „film nie je 6 s po štarte“).
 (window as Window & { __appBooted?: number }).__appBooted = Date.now();
