@@ -150,8 +150,20 @@ export const upgradeToTier1 = () => {
   run((ph) => {
     ph.set_config({ persistence: 'localStorage+cookie' });
     if (isSelf()) ph.register({ internal: true }); // zmena persistence volá clear() — značka by zmizla
-    ph.startSessionRecording();
+    // Audit 14. 11. 2026: nahrávky len vzorkou ~20 % sedení (rozhodnutie raz za sedenie), eventy ostávajú všetky.
+    if (recordThisSession()) ph.startSessionRecording();
   });
+};
+
+const REC_SAMPLE = 0.2;
+const recordThisSession = (): boolean => {
+  try {
+    const k = sessionStorage.getItem('dogypt_rec');
+    if (k) return k === '1';
+    const yes = Math.random() < REC_SAMPLE;
+    sessionStorage.setItem('dogypt_rec', yes ? '1' : '0');
+    return yes;
+  } catch { return Math.random() < REC_SAMPLE; }
 };
 
 // Volá sa keď user v Cookie settings VYPNE analytics po tom, čo bol predtým Tier1

@@ -573,7 +573,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                               setAnswering(al.id);
                               const ok = await respondWalkInviteLazy(al.inviteId, yes);
                               setAnswering(null);
-                              if (ok) setAlerts((prev) => prev.filter((x) => x.id !== al.id));
+                              if (ok) { setAlerts((prev) => prev.filter((x) => x.id !== al.id)); void alertsMod.loadAlerts(true); }
                             }}
                             style={{
                               fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, fontWeight: 600,

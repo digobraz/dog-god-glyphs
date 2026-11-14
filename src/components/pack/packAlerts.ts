@@ -42,6 +42,8 @@ import { fetchMemberProfiles, memberAvatarUrl, memberDisplayName } from '@/compo
 // `types.ts` tabuľky /packu nepozná (migrácie sú novšie než generovaný súbor).
 const db = supabase as any;
 
+/** Najviac jedna obnova upozornení za minútu (okrem `loadAlerts(true)`). */
+const ALERTS_TTL_MS = 60_000;
 const SEEN_KEY = 'pack-alerts-seen';
 /** Koľko id si pamätáme. Nad tým sa najstaršie zahadzujú — upozornenie spred stoviek udalostí
  *  už aj tak nie je čo „znovu ukázať", a neorezaný zoznam by rástol donekonečna. */
@@ -302,8 +304,10 @@ interface EventAlertRow {
  * si pýtala 5 dotazov sama. Okno 1,5 s pokryje súbežný mount; po akcii (prijatie žiadosti)
  * ide ďalšie volanie už na sieť.
  */
-export function loadAlerts(): Promise<PackAlert[]> {
-  return shared('pack-alerts', loadAlertsNow, 1500);
+export function loadAlerts(force = false): Promise<PackAlert[]> {
+  // Audit 14. 11. 2026: 12 dotazov pri KAŽDOM prechode obrazovky. Teraz jeden zdieľaný výsledok
+  // na 60 s (mount hlavičky aj návrat do appky ho berú z pamäte); `force` = po vlastnej akcii.
+  return shared('pack-alerts', loadAlertsNow, force ? 0 : ALERTS_TTL_MS);
 }
 
 async function loadAlertsNow(): Promise<PackAlert[]> {

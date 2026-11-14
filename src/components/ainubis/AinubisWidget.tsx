@@ -601,6 +601,9 @@ function AinubisWidgetInner() {
   const [historyReady, setHistoryReady] = useState(() => !safeLocalStorageGet(LS_CONV) && conversationFromUrl() === null);
   /** Okamžitý tik pollu — pri otvorení panela sa nečaká 20 s na zavretý interval. */
   const pollNowRef = useRef<(() => void) | null>(null);
+  /** Poll beží len kým člen čaká na odpoveď (po odoslaní správy, 5 min) — inak žiadne volania (audit 14. 11. 2026). */
+  const waitUntilRef = useRef(0);
+  const wakePollRef = useRef<(() => void) | null>(null);
   /** Beží uvítacia sekvencia — drží indikátor „…píše" medzi bublinami. */
   const [welcomeTyping, setWelcomeTyping] = useState(false);
   /** Aby sa uvítanie neprehralo druhýkrát pri zavretí a znovuotvorení panela. */
@@ -1056,7 +1059,8 @@ function AinubisWidgetInner() {
     }
   }
 
-  // ── Poll ainubis-poll: 3s otvorené / 20s zavreté, zastavené keď je tab skrytý.
+  // ── Poll ainubis-poll: len po odoslaní otázky (3s otvorené / 20s zavreté, max 5 min), inak jeden
+  // tik pri otvorení panela a pri návrate na kartu. Zastavené keď je tab skrytý.
   useEffect(() => {
     if (!conversationId || !sessionToken) return;
     let cancelled = false;
@@ -1099,6 +1103,7 @@ function AinubisWidgetInner() {
         timer = undefined; // poll sa zastavuje, kým je záložka skrytá
         return;
       }
+      if (Date.now() > waitUntilRef.current) { timer = undefined; return; } // nikto nečaká na odpoveď — nič sa nepýta
       timer = window.setTimeout(runOnce, openRef.current ? 3000 : 20000);
     }
 
@@ -1114,6 +1119,7 @@ function AinubisWidgetInner() {
       if (!document.hidden && timer === undefined && !cancelled) runOnce();
     }
 
+    wakePollRef.current = () => { if (!cancelled && timer === undefined && !inFlight) scheduleNext(); };
     pollNowRef.current = () => {
       if (cancelled || inFlight || document.hidden) return;
       if (timer !== undefined) window.clearTimeout(timer);
@@ -1128,6 +1134,7 @@ function AinubisWidgetInner() {
     return () => {
       cancelled = true;
       pollNowRef.current = null;
+      wakePollRef.current = null;
       document.removeEventListener('visibilitychange', onVisibility);
       if (timer !== undefined) window.clearTimeout(timer);
     };
@@ -1208,6 +1215,8 @@ function AinubisWidgetInner() {
     const text = input.trim();
     if ((!text && !pendingImage) || sending) return;
     setSending(true);
+    waitUntilRef.current = Date.now() + 5 * 60_000; // čakáme na odpoveď (aj ľudskú) — poll beží najviac 5 min
+    wakePollRef.current?.();
     const imageToSend = pendingImage;
     // Predpona témy ide na server len s PRVOU správou po voľbe.
     const outgoing = topicPrefixRef.current ? `${topicPrefixRef.current} — ${text}` : text;
@@ -1270,6 +1279,8 @@ function AinubisWidgetInner() {
     setGateError(false);
     if (!pending) return;
     setSending(true);
+    waitUntilRef.current = Date.now() + 5 * 60_000;
+    wakePollRef.current?.();
     setWaitingReply(true);
     await sendToBackend(pending.text, pending.image, false);
     setWaitingReply(false);

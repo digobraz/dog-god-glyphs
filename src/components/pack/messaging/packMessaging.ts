@@ -360,6 +360,7 @@ async function refreshDMs(): Promise<void> {
       cache.conversations[fresh.id] = fresh;
     }
     emitChange();
+    if (realtimeWanted) startRealtime(); // množina mojich vlákien sa mohla zmeniť ⇒ nový filter
   } catch {
     // offline / RLS / neprihlásený — vlákna sa jednoducho neukážu, appka beží ďalej
   }
@@ -402,14 +403,30 @@ async function loadDMMessages(convId: string, silent = false): Promise<void> {
 // ── realtime: doručenie na druhé zariadenie bez refreshu ──
 // `postgres_changes` rešpektuje RLS na SELECT, takže sem dorazia výhradne
 // správy z vlákien, ktorých som člen — filter na klientovi by bol clona.
-let realtimeStarted = false;
+// Audit 14. 11. 2026: kanál bol bez filtra a bez odpojenia. Teraz: filter na MOJE konverzácie
+// (`conv_id=in.(…)`, max 100), odpojenie keď je appka skrytá, znovu pripojenie + `refreshDMs`
+// pri návrate (nové vlákno od niekoho iného sa objaví tam, nie živo).
+let realtimeWanted = false;
+let rtChannel: unknown = null;
+let rtKey = '';
+
+function stopRealtime(): void {
+  if (rtChannel) { try { void supabase.removeChannel(rtChannel as never); } catch { /* ignore */ } }
+  rtChannel = null; rtKey = '';
+}
 
 function startRealtime(): void {
-  if (realtimeStarted) return;
-  realtimeStarted = true;
+  realtimeWanted = true;
+  if (typeof document !== 'undefined' && document.hidden) return; // skrytá appka nepočúva
+  const ids = Object.values(cache.conversations).filter((c) => c.kind === 'dm').map((c) => c.id).slice(-100);
+  const key = ids.join(',');
+  if (rtChannel && key === rtKey) return;
+  stopRealtime();
+  if (!ids.length) return; // nie je čo počúvať; vlákno sa objaví cez refreshDMs
+  rtKey = key;
   try {
-    db.channel('pack-messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pack_messages' },
+    rtChannel = db.channel('pack-messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pack_messages', filter: `conv_id=in.(${key})` },
         (payload: { new: MsgRow }) => {
           const row = payload.new;
           const conv = cache.conversations[row.conv_id];
@@ -435,8 +452,15 @@ function startRealtime(): void {
   } catch {
     // realtime nedostupný (offline / blokovaný websocket) — správy stále chodia
     // pri každom otvorení Inboxu cez refreshDMs(), len nie okamžite
-    realtimeStarted = false;
+    rtChannel = null; rtKey = '';
   }
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopRealtime();
+    else if (realtimeWanted) void refreshDMs().then(() => startRealtime());
+  });
 }
 
 /**
