@@ -14,6 +14,15 @@ import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { APP_NEW } from '@/lib/packFlags';
+
+/** Pilulka časti hore v kvíze nesie v appke kresbu z továrne namiesto emoji (Matej 15. 11. 2026: *„tam hore
+ *  who they are … ano zapoj ale predtým mi to ukaž“*). Chipy odpovedí ostávajú emoji. Časť bez kresby = emoji. */
+const SEC_SYS: Record<string, string> = {
+  'pack.flow.sec.Ktoje': 'dog-id', 'pack.flow.sec.Pohyb': 'den-walk', 'pack.flow.sec.Rezim': 'kalendar',
+  'pack.flow.sec.Vztahy': 'socializacia', 'pack.flow.sec.Povaha': 'modul-povaha', 'pack.flow.sec.Zdravie': 'zdravie',
+  'pack.flow.sec.Strava': 'krmenie', 'pack.flow.sec.Kontakty': 'obalka', 'pack.flow.sec.Uloha': 'trofej',
+  'pack.flow.sec.Zvlastnauloha': 'iskra', 'pack.flow.sec.Element': 'iskra',
+};
 import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 import { AinubisSheet } from '@/components/pack/ainubisSheet';
 import { FLOW_CSS } from '@/components/pack/dogid/flowCss';
@@ -447,7 +456,7 @@ function Flow({ mode, tx, dogs, jump }: { mode: 'base' | 'nature'; tx: Tx; dogs:
       {s.art && <div className="dfl-art" style={{ backgroundImage: `url(${ART(s.art)})` }} />}
       <div className="dfl-top">
         <BackButton tone="pale" onClick={() => { void prev(); }} label={tx('pack.quiz.back', 'Back')} />
-        {s.sec && <span className="dfl-sec">{s.secE && <span className="dfl-em">{s.secE} </span>}{tx(s.sec)}</span>}
+        {s.sec && <span className="dfl-sec">{APP_NEW && SEC_SYS[s.sec] ? <SysIcon name={SEC_SYS[s.sec]} size={24} /> : s.secE && <span className="dfl-em">{s.secE} </span>}{tx(s.sec)}</span>}
       </div>
       <div className="dfl-prog">
         <div className="dfl-progl"><span>{at + 1} / {list.length}</span><span>{Math.round(pct)} %</span></div>
