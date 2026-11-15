@@ -83,7 +83,9 @@ export function MomentHost() {
           {pecat ? (
             // PEČAŤ NA PAPYRUSOVEJ KARTE (Matej 15. 11.: „navrh pekný“) — zlaté na hnedom závoji bolo „slabo vidieť“.
             <div className="pkm-card">
-              <div className="pkm-seal" aria-hidden><b>{m.cislo ?? ''}</b>{m.pecatText && <small>{m.pecatText}</small>}</div>
+              <div className="pkm-seal" aria-hidden><b>{m.cislo ?? ''}</b>{m.pecatText && <small>{m.pecatText}</small>}
+                {/* Ikonka udalosti ako nálepka (Matej 15. 11.: „pri zápise by to chcelo aj nejakú ikonku“). */}
+                {m.ikona && <img className="pkm-ico" src={m.ikona} alt="" />}</div>
               <Nadpis html={m.nadpis} />
               {m.podnadpis && <p className="pkm-sub">{m.podnadpis}</p>}
             </div>

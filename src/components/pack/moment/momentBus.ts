@@ -9,6 +9,8 @@ export interface MomentData {
   obrazok?: string;
   /** Veľké číslo na pečati alebo v obrade (deň v rade, poradové číslo, roky). */
   cislo?: string | number;
+  /** Ikonka udalosti na pečati (nálepka v rohu) — tá istá, ktorou sa úloha spúšťa (zápis dňa = `/icons/sys/pridaj-den.webp`). */
+  ikona?: string;
   /** Malý text na pečati pod číslom („DEŇ V RADE“). */
   pecatText?: string;
   /** Stuha pod medailou („UČEŇ 4“, „STUPEŇ II“). */

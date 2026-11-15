@@ -36,6 +36,8 @@ export const MOMENT_CSS = `
 .pkm-seal{width:120px;height:120px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;position:relative;color:${INK};
   background:radial-gradient(circle at 35% 30%,#d9b25a,${GOLD_SOLID});border:3px solid ${INK};
   box-shadow:0 5px 0 ${INK},inset 0 0 0 7px rgba(249,242,227,.35);animation:pkmSlam .55s cubic-bezier(.2,1.5,.4,1) both}
+.pkm-ico{position:absolute;right:-24px;top:-12px;width:52px;height:52px;object-fit:contain;filter:drop-shadow(0 3px 0 rgba(42,22,8,.35));
+  animation:pkmSlam .5s cubic-bezier(.2,1.5,.4,1) .45s both}
 .pkm-seal b{font:400 42px/1 ${TITLE}}
 .pkm-seal small{position:absolute;bottom:20px;font-size:${PACK_TEXT.micro}px;font-weight:600;letter-spacing:.18em}
 .pkm-medal{width:150px;height:150px;border-radius:${PACK_R.pill}px;border:3px solid ${INK};display:grid;place-items:center;position:relative;overflow:hidden;
