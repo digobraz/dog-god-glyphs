@@ -400,6 +400,7 @@ html.papyrus3d .me-own > button:first-child{border:4px solid var(--p3d-gold);box
 html.papyrus3d .me-own > button:first-child img{border:0;}
 html.papyrus3d .me-own .ini{font-family:'LT Museum',serif;font-weight:400;font-size:${INI_BIG}px;color:${LAPIS.ink};} /* písmo: nadpis */
 html.papyrus3d .me-own .me-arc .ad{left:92% !important;top:30% !important;width:74% !important;padding:0;background:none;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 4px 0 2px var(--p3d-ink);}
+html.papyrus3d .me-own .me-arc .ad .ad-ini{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:var(--p3d-card);font-family:'LT Museum',serif;font-weight:400;font-size:${INI_BIG}px;color:var(--p3d-ink);} /* písmo: meno */
 html.papyrus3d .me-own .me-arc .ad img{border:0;}
 html.papyrus3d .me-card.open .me-own .me-sat{left:calc(92% + 22%);bottom:auto;top:45%;transform:none;}
 html.papyrus3d .me-own .me-arc .ad:nth-child(n+2){display:none;}
@@ -711,6 +712,13 @@ function arcFor(count: number, withMate: boolean): CSSProperties[] {
 }
 
 /** FOTKA MAJITEĽA + SATELIT PSOV. Bez `onToggle` je satelit len obraz (náhľad v UPRAVIŤ). */
+/** Fotka v hlavičke profilu; keď chýba alebo sa NENAČÍTA, ukáže náhradu (písmeno). Bez toho ostal
+ *  plný modrý kruh a prázdny krúžok psa (sken cudzieho profilu 15. 11.). */
+function Ph({ src, w, fb }: { src: string | null | undefined; w: number; fb: ReactNode }) {
+  const [bad, setBad] = useState(false);
+  return src && !bad ? <img src={sizedUrl(src, w)} alt="" onError={() => setBad(true)} /> : <>{fb}</>;
+}
+
 export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, photoLabel, toggleLabel, badge, story, onAdd, addLabel, onDogPhoto, dogBusy, dogPhotoLabel, mate }: {
   photo: string | null;
   /** PAWMATE ukázaný vedľa majiteľa (26. 10. 2026). Bez neho sa hlava kreslí ako dovtedy. */
@@ -741,12 +749,12 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
     return (
       <div className={`me-own${story ? ` st-${story}` : ''}`}>
         <button type="button" onClick={onPhoto} aria-label={photoLabel}>
-          {photo ? <img src={sizedUrl(photo, 320)} alt="" /> : <span className="ini">{initial}</span>}
+          <Ph src={photo} w={320} fb={<span className="ini">{initial}</span>} />
         </button>
         {badge}
         {mate && (
           <button type="button" className="me-mate" onClick={mate.onClick} disabled={!mate.onClick} aria-label={mate.label}>
-            {mate.photo ? <img src={sizedUrl(mate.photo, 200)} alt="" /> : <i>{mate.initial}</i>}
+            <Ph src={mate.photo} w={200} fb={<i>{mate.initial}</i>} />
           </button>
         )}
         <span className="me-arc">
@@ -755,7 +763,7 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
             return (
               <button key={d.id} type="button" className="ad me-sdog" style={p} onClick={() => onDogPhoto(d)} disabled={dogBusy === d.id}
                 aria-label={`${dogPhotoLabel ?? ''} ${d.dog_name ?? ''}`.trim()}>
-                {d.cloudinary_main_url && <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" />}
+                <Ph src={d.cloudinary_main_url} w={140} fb={null} />
                 <span className="cam">{dogBusy === d.id ? <BrandIcon name="cycle" size={14} tint="white" /> : APP_NEW ? <SysIcon name="foto" size={20} /> : <HandCamera size={15} />}</span>
               </button>
             );
@@ -768,19 +776,19 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
     return (
       <div className={`me-own${story ? ` st-${story}` : ''}`}>
         <button type="button" onClick={onPhoto} aria-label={photoLabel}>
-          {photo ? <img src={sizedUrl(photo, 320)} alt="" /> : <span className="ini">{initial}</span>}
+          <Ph src={photo} w={320} fb={<span className="ini">{initial}</span>} />
         </button>
         {badge}
         {mate && (
           <button type="button" className="me-mate" onClick={mate.onClick} disabled={!mate.onClick} aria-label={mate.label}>
-            {mate.photo ? <img src={sizedUrl(mate.photo, 200)} alt="" /> : <i>{mate.initial}</i>}
+            <Ph src={mate.photo} w={200} fb={<i>{mate.initial}</i>} />
           </button>
         )}
         <span className="me-sat">
           {dogs.slice(0, 3).map((d) => (
             <button key={d.id} type="button" className="s me-sdog" onClick={() => onDogPhoto(d)} disabled={dogBusy === d.id}
               aria-label={`${dogPhotoLabel ?? ''} ${d.dog_name ?? ''}`.trim()}>
-              {d.cloudinary_main_url && <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" />}
+              <Ph src={d.cloudinary_main_url} w={140} fb={null} />
               <span className="cam">{dogBusy === d.id ? <BrandIcon name="cycle" size={14} tint="white" /> : APP_NEW ? <SysIcon name="foto" size={20} /> : <HandCamera size={15} />}</span>
             </button>
           ))}
@@ -793,7 +801,7 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
   ) : (
     <>
       {dogs.slice(0, 2).map((d) => (
-        <span key={d.id} className="s">{d.cloudinary_main_url && <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" />}</span>
+        <span key={d.id} className="s"><Ph src={d.cloudinary_main_url} w={140} fb={null} /></span>
       ))}
       {dogs.length > 2 && <span className="cnt">{dogs.length}</span>}
     </>
@@ -807,12 +815,12 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
   return (
     <div className={`me-own${story ? ` st-${story}` : ''}`}>
       <button type="button" onClick={onPhoto} aria-label={photoLabel}>
-        {photo ? <img src={sizedUrl(photo, 320)} alt="" /> : <span className="ini">{initial}</span>}
+        <Ph src={photo} w={320} fb={<span className="ini">{initial}</span>} />
       </button>
       {badge}
       {mate && (
         <button type="button" className="me-mate" onClick={mate.onClick} disabled={!mate.onClick} aria-label={mate.label}>
-          {mate.photo ? <img src={sizedUrl(mate.photo, 200)} alt="" /> : <i>{mate.initial}</i>}
+          <Ph src={mate.photo} w={200} fb={<i>{mate.initial}</i>} />
         </button>
       )}
       {arc && (
@@ -822,7 +830,7 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
             const d = dogs[k];
             return more
               ? <span key="cnt" className="ad cnt" style={p}>+{dogs.length - (ARC_MAX - 1)}</span>
-              : <span key={d.id} className="ad" style={p}>{d.cloudinary_main_url && <img src={sizedUrl(d.cloudinary_main_url, 140)} alt="" />}</span>;
+              : <span key={d.id} className="ad" style={p}><Ph src={d.cloudinary_main_url} w={140} fb={<b className="ad-ini">{(d.dog_name ?? '').charAt(0).toUpperCase()}</b>} /></span>;
           })}
         </button>
       )}

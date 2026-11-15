@@ -156,7 +156,11 @@ export default function PublicProfile() {
       <PackLayout onBack={goBack} backLabel={t('pack.publicProfile.backToPack')}>
         <div
           className="flex flex-col items-center text-center gap-3"
-          style={{
+          style={APP_NEW ? {
+            // Appka: karta Papyrus 3D ako ostatné panely (sken 15. 11.: tu ostal starý tenký rám).
+            background: 'var(--p3d-card)', border: '2.5px solid var(--p3d-ink)', borderTop: '6px solid var(--p3d-gold)',
+            borderRadius: 16, boxShadow: 'var(--p3d-pera)', padding: '48px 24px', marginTop: 16,
+          } : {
             background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
             boxShadow: T.cardShadow,
             padding: '48px 24px', marginTop: 16,
@@ -176,7 +180,8 @@ export default function PublicProfile() {
           </p>
           <Link
             to="/pack"
-            style={{
+            className={APP_NEW ? 'pk-b3 pk-b3--lapis' : undefined}
+            style={APP_NEW ? { marginTop: 8, minHeight: 56, padding: '0 24px' } : {
               marginTop: 8, fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 12, letterSpacing: '0.14em',
               textTransform: 'uppercase', color: LAPIS.ink, background: LAPIS.grad, boxShadow: LAPIS_BTN_SHADOW,
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44,
@@ -324,11 +329,11 @@ export default function PublicProfile() {
               obrysom (ťuk = prestať) a hlavnou akciou sa stane NAPÍSAŤ.
               Pawmate nemá číslo — nesleduje sa a nepíše sa mu, oboje len majiteľovi. */}
           <div className="me-btns">
-            <button type="button" className={fol.info?.iFollow ? 'me-out' : 'me-cta'} onClick={fol.toggle}
+            <button type="button" className={`${fol.info?.iFollow ? 'me-out' : 'me-cta'}${APP_NEW ? (fol.info?.iFollow ? ' pk-b3 pk-b3--paper' : ' pk-b3 pk-b3--lapis') : ''}`} onClick={fol.toggle}
               disabled={!fol.info || fol.busy || member.memberNumber == null} aria-pressed={!!fol.info?.iFollow}>
               {fol.info?.iFollow ? `✓ ${tx('pack.publicProfile.followingBtn', 'Following')}` : tx('pack.publicProfile.follow', 'Follow')}
             </button>
-            <button type="button" className={fol.info?.iFollow ? 'me-cta' : 'me-out'} onClick={writeTo} disabled={dmBusy || member.memberNumber == null}>
+            <button type="button" className={`${fol.info?.iFollow ? 'me-cta' : 'me-out'}${APP_NEW ? (fol.info?.iFollow ? ' pk-b3 pk-b3--lapis' : ' pk-b3 pk-b3--paper') : ''}`} onClick={writeTo} disabled={dmBusy || member.memberNumber == null}>
               {tx('pack.publicProfile.message', 'Message')}
             </button>
           </div>
