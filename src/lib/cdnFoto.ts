@@ -10,15 +10,25 @@
 // nech nemíňajú požiadavky Workera) a `localStorage.priamoFoto = '1'` (núdzový vypínač) — rozhoduje index.html.
 
 const PRIAMO = 'https://res.cloudinary.com/dz8lolmod/';
-const VSETKY = /https:\/\/res\.cloudinary\.com\/dz8lolmod\//g;
+const VSETKY = /https:\/\/res\.cloudinary\.com\/dz8lolmod\/(image\/upload\/)?/g;
 
 // Základ adresy aj vypínače rozhoduje skript v index.html (`window.__cdn`) — to isté pravidlo
 // potrebuje už predbežné sťahovanie dlaždíc, ktoré beží pred týmto modulom. Prázdny = priamo.
 const CDN = typeof window !== 'undefined' ? ((window as Window & { __cdn?: string }).__cdn || '') : '';
+const CDN_I = typeof window !== 'undefined' ? ((window as Window & { __cdnI?: string }).__cdnI || '') : '';
+// 15. 11. 2026: fotky (`image/upload/`) idú cez Cloudflare Image Transformations (`/cdn-cgi/image/format=auto/<cloudinary>`,
+// bez Workera), video a ostatné cez Worker `/cdn/`. Už prepísaná URL nesie pôvodnú za `format=auto/` — preskočiť.
+const SPAT = /https:\/\/[^/\s"')]+\/cdn-cgi\/image\/format=auto\/(https:\/\/res\.cloudinary\.com\/dz8lolmod\/)/g;
+let bezPrepisu = false;
 
 if (import.meta.env.PROD && CDN) {
   const prepis = (v: unknown): unknown =>
-    typeof v === 'string' && v.includes(PRIAMO) ? v.replace(VSETKY, CDN) : v;
+    typeof v === 'string' && !bezPrepisu && v.includes(PRIAMO)
+      ? v.replace(VSETKY, (m: string, img: string | undefined, off: number, str: string) => {
+          if (str.slice(Math.max(0, off - 12), off) === 'format=auto/') return m;
+          return img && CDN_I ? CDN_I : CDN;
+        })
+      : v;
   const obal = (proto: object, meno: string) => {
     const d = Object.getOwnPropertyDescriptor(proto, meno);
     if (!d?.set) return;
@@ -43,4 +53,15 @@ if (import.meta.env.PROD && CDN) {
   const f = window.fetch;
   window.fetch = (vstup: RequestInfo | URL, init?: RequestInit) =>
     f(typeof vstup === 'string' ? (prepis(vstup) as string) : vstup, init);
+
+  // Záloha: fotka cez /cdn-cgi/image sa nenačíta (chyba 9422 nad limitom, výpadok) → raz priamo z res.cloudinary.com.
+  const spat = (v: string) => v.replace(SPAT, '$1');
+  document.addEventListener('error', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLImageElement) || t.dataset.cdnZaloha) return;
+    if (!t.src.includes('/cdn-cgi/image/') && !t.srcset.includes('/cdn-cgi/image/')) return;
+    t.dataset.cdnZaloha = '1';
+    bezPrepisu = true;
+    try { if (t.srcset) t.srcset = spat(t.srcset); t.src = spat(t.src); } finally { bezPrepisu = false; }
+  }, true);
 }
