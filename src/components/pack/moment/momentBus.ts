@@ -1,7 +1,7 @@
 // ZBERNICA MOMENTOV — `ukazMoment()` a `iskra()` volá udalosť, `MomentHost` (namontovaný raz v PackLayout) kreslí.
 // Samostatný súbor, aby MomentHost.tsx exportoval len komponent (fast refresh).
 import { moment, type MomentId } from '@/lib/momenty';
-import { TEST_BUILD } from '@/lib/env';
+import { MOMENTY_ON } from '@/lib/env';
 
 export interface MomentData {
   id: MomentId;
@@ -45,4 +45,4 @@ export function iskra(el: Element | null | undefined, id: MomentId): void {
 
 
 // Testovací kanál: moment sa dá vyvolať z konzoly (`dogyptMoment({ id: 'ucen', nadpis: 'Nový <em>level</em>' })`).
-if (TEST_BUILD && typeof window !== 'undefined') (window as unknown as { dogyptMoment: typeof ukazMoment }).dogyptMoment = ukazMoment;
+if (MOMENTY_ON && typeof window !== 'undefined') (window as unknown as { dogyptMoment: typeof ukazMoment }).dogyptMoment = ukazMoment;
