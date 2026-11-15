@@ -249,7 +249,10 @@ const BACK_DAYS = 30;
 
 /** `pickDay` = otvorené z KRONIKY (NAPÍSAŤ): hore pás dní, predvybraté VČERA, zápis ide na ten deň.
  *  Z labky (panel +) je to vždy dnešok bez pásu (Matej 31. 10.: „len dnešok“). */
-export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pickDay?: boolean }) {
+/** `den` = otvorené z DENNÍKA ťukom na konkrétny deň v kalendári (Matej 15. 11.: ťukol na prázdny 14. a nedalo sa
+ *  ho zapísať). Deň je predvybratý a pás dní je hore, aby sa dal prepnúť. Mimo 30 dní dozadu sa neotvára. */
+export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClose: () => void; pickDay?: boolean; den?: string }) {
+  const pickDay = pickDayProp || !!den;
   const navigate = useNavigate();
   const t = useT();
   const { lang } = useLang();
@@ -263,7 +266,7 @@ export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pi
   const [miles, setMiles] = useState('');
   const [writing, setWriting] = useState(false);
   const todayK = useMemo(() => todayKey(), []);
-  const [day, setDay] = useState(() => (pickDay ? shiftDay(todayK, -1) : todayK));
+  const [day, setDay] = useState(() => (den && den <= todayK && den >= shiftDay(todayK, -BACK_DAYS) ? den : pickDay ? shiftDay(todayK, -1) : todayK));
   const isToday = day === todayK;
   /** Čo je na vybraný MINULÝ deň už zapísané (`devotion_today` vie len dnešok) — z vlastných riadkov `devotion_events`. */
   const [pastDone, setPastDone] = useState<Record<string, Record<string, number>> | null>(null);

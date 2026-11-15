@@ -186,7 +186,7 @@ function dowNames(locale: string): string[] {
  *  stĺpcoch na ~250 px sa dvojciferné čísla pri 10 px prekrývajú. */
 const DAY_TICKS = new Set([1, 5, 10, 15, 20, 25, 31]);
 
-export function PackCalendar({ dogs, latest, tx, onAddToDay, monthOnly, onWriteToday }: {
+export function PackCalendar({ dogs, latest, tx, onAddToDay, canAddToDay, monthOnly, onWriteToday }: {
   dogs: CalendarDogRow[];
   latest: Latest;
   tx: Tx;
@@ -197,6 +197,8 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay, monthOnly, onWriteT
    * rozpísaného textu. Kalendár preto len hlási DEŇ; okno vlastní stránka.
    */
   onAddToDay?: (dayKey: string) => void;
+  /** Ktorý deň smie dostať „Pridať k tomuto dňu“ (zápis dňa v appke len 30 dní dozadu, nie budúcnosť). Bez neho každý. */
+  canAddToDay?: (dayKey: string) => boolean;
   /**
    * DENNÍK v appke (`APP_NEW`, 31. 10. 2026): len MESIAC so zápismi, bez karty, prepínača pohľadov, vrstiev
    * a legendy. Dáta aj bunky sú tie isté ako v plnom kalendári. Tlačidlo ZAPÍŠ DNES vedľa mesiaca volá `onWriteToday`.
@@ -585,7 +587,7 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay, monthOnly, onWriteT
           seniorSelected={seniorSelected} layers={layers}
           entries={entriesOn(open.m, open.d)} moon={moonOn(open.m, open.d)}
           onClose={() => setOpen(null)}
-          onAdd={onAddToDay && dogs.length > 0
+          onAdd={onAddToDay && dogs.length > 0 && (!canAddToDay || canAddToDay(`${year}-${String(open.m).padStart(2, '0')}-${String(open.d).padStart(2, '0')}`))
             ? () => {
                 const p2 = (x: number) => String(x).padStart(2, '0');
                 onAddToDay(`${year}-${p2(open.m)}-${p2(open.d)}`);

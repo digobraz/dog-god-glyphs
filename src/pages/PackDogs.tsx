@@ -42,7 +42,7 @@
 //  • AINUBIS má meno ako nadpis + tagline; ostáva „Čoskoro" a NIKAM nevedie —
 //    plán sa nestavia. (Chat AINUBISA beží zvlášť ako plávajúci widget.)
 import { sizedUrl } from '@/services/cloudinaryService';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
 import {
@@ -57,6 +57,7 @@ import { useDiaryRows } from '@/components/pack/diary/DiaryList';
 import { FlagCircle } from '@/components/pack/FlagCircle';
 import { PackCalendar } from '@/components/pack/calendar/PackCalendar';
 import { DevotionToday } from '@/components/pack/profile/DevotionToday';
+import { todayKey } from '@/components/pack/diary/diaryModel';
 import { DiaryEntry } from '@/components/pack/diary/DiaryEntry';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK } from '@/components/pack/navGoldSkin';
 import {
@@ -486,6 +487,16 @@ const LATEST_COPY = 'dogs-latest-v1';
 type Tx = (key: string, fallback: string) => string;
 
 
+const ZapisDna = lazy(() => import('@/components/pack/profile/ZapisDna').then((m) => ({ default: m.ZapisDna })));
+
+/** Zápis dňa ide najviac 30 dní dozadu (strop servera `grant-devotion`) a nikdy do budúcnosti. */
+function zapisDnaMozno(den: string): boolean {
+  const dnes = todayKey();
+  const d = new Date(); d.setDate(d.getDate() - 30);
+  const p2 = (x: number) => String(x).padStart(2, '0');
+  return den <= dnes && den >= `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+}
+
 export default function PackDogs() {
   const t = useT();
   /* Šat stránky — od 11. 9. prepínateľný v nastaveniach (`packSkin.ts`).
@@ -507,6 +518,8 @@ export default function PackDogs() {
   const [diary, setDiary] = useState<{ day?: string; mode: 'write' | 'photo' } | null>(null);
   // ZÁPIS DŇA z DENNÍKA (appka): tlačidlo ZAPÍŠ DNES pri mesiaci otvára to isté okno ako „Zapíš dnešok" na domovskej.
   const [zapisOpen, setZapisOpen] = useState(false);
+  /** Deň z kalendára DENNÍKA, na ktorý sa zapisuje (Matej 15. 11.: ťuk na prázdny 14. nedal zapísať nič). */
+  const [zapisDen, setZapisDen] = useState<string | null>(null);
   const [latest, setLatest] = useState<Latest>({});
   // Kým progres nie je načítaný, kvízový blok sa NEVYKRESLÍ ani v jednom stave —
   // inak by majiteľovi s hotovým kvízom najprv bliklo veľké hero a až potom by
@@ -574,11 +587,13 @@ export default function PackDogs() {
         {/* DENNÍK: hore mesiac so ✓ + emoji dňa (ten istý PackCalendar, len mesiac), pod ním KRONIKA. */}
         <DogsHubV2 dogs={dogs} latest={latest} tx={tx} chronicle={(
           <>
-            <PackCalendar monthOnly dogs={dogs} latest={latest} tx={tx} onWriteToday={() => setZapisOpen(true)} />
+            <PackCalendar monthOnly dogs={dogs} latest={latest} tx={tx} onWriteToday={() => setZapisOpen(true)}
+              onAddToDay={setZapisDen} canAddToDay={zapisDnaMozno} />
             <div style={{ marginTop: PACK_SPACE.md }}><ChronicleTeaser dogs={dogs} tx={tx} /></div>
           </>
         )} />
         {zapisOpen && <DevotionToday onClose={() => setZapisOpen(false)} />}
+        {zapisDen && <Suspense fallback={null}><ZapisDna den={zapisDen} onClose={() => setZapisDen(null)} /></Suspense>}
       </PackLayout>
     );
   }
