@@ -2825,7 +2825,7 @@ html.papyrus3d .trp-root .trp-layersdd-row{gap:12px;padding:4px 0;font:500 16px 
 html.papyrus3d .trp-root .trp-layersdd-hint{font-size:12px;color:var(--m-soft);}
 html.papyrus3d .trp-root .trp-layersdd-row input{appearance:none;-webkit-appearance:none;width:24px;height:24px;flex:none;margin:0;border:2.5px solid var(--p3d-ink);border-radius:8px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
 html.papyrus3d .trp-root .trp-layersdd-row input[type=radio]{border-radius:50%;}
-html.papyrus3d .trp-root .trp-layersdd-row input:checked{background:linear-gradient(180deg,#16307A,#0A1A4A);}
+html.papyrus3d .trp-root .trp-layersdd-row input:checked{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat,linear-gradient(180deg,#16307A,#0A1A4A);}
 html.papyrus3d .trp-root .trp-layersdd-row input[type=radio]:checked{background:radial-gradient(circle,#0A1A4A 0 4px,var(--p3d-paper-hi) 5px);}
 html.papyrus3d .trp-root .trp-layersdd-group+.trp-layersdd-group{border-top:0;}
 ${mobCSS(`(max-width:${PALE_PC_MIN - 1}px)`, `
