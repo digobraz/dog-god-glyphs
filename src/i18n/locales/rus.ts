@@ -2323,7 +2323,7 @@ export const rus: Partial<Dict> = {
   "pack.cal.labDesc": "копрология, анализ крови",
   "pack.cal.ticksDesc": "апрель – октябрь",
   "pack.cal.wholePack": "вся стая",
-  "pack.cal.emptyDay": "Этот день пока пуст. Это не долг — это просто день.",
+  "pack.cal.emptyDay": "Этот день пока пуст. Это не долг, это просто день.",
   "pack.cal.birthdayLine": "{name} исполняется {years}.",
   "pack.cal.humanYearLine": "один из семи. Запланируй что-нибудь.",
   "pack.cal.protWindow": "Окно протокола",
@@ -6261,4 +6261,6 @@ export const rus: Partial<Dict> = {
   'pack.dog.wallHint': "Текст у фото собаки на www.dogypt.com",
   'pack.dog.wallEmpty': "Послания пока нет.",
   'pack.moment.continue': 'Далее',
+  'pack.zd.prevDay': 'Предыдущий день',
+  'pack.zd.nextDay': 'Следующий день',
 };

@@ -2157,7 +2157,7 @@ export const ind: Partial<Dict> = {
   "pack.cal.labDesc": "कॉप्रोलॉजी, ब्लड टेस्ट",
   "pack.cal.ticksDesc": "अप्रैल – अक्टूबर",
   "pack.cal.wholePack": "पूरा झुंड",
-  "pack.cal.emptyDay": "यह दिन अभी भी खाली है। यह कोई कर्ज़ नहीं है — यह बस एक दिन है।",
+  "pack.cal.emptyDay": "यह दिन अभी भी खाली है। यह कोई कर्ज़ नहीं है, यह बस एक दिन है।",
   "pack.cal.birthdayLine": "{name} {years} का हो गया।",
   "pack.cal.humanYearLine": "सात में से एक। कुछ योजना बनाएं।",
   "pack.cal.protWindow": "प्रोटोकॉल विंडो",
@@ -6095,4 +6095,6 @@ export const ind: Partial<Dict> = {
   'pack.dog.wallHint': "Teks di samping foto anjing di www.dogypt.com",
   'pack.dog.wallEmpty': "Belum ada pesan.",
   'pack.moment.continue': 'Lanjut',
+  'pack.zd.prevDay': 'पिछला दिन',
+  'pack.zd.nextDay': 'अगला दिन',
 };

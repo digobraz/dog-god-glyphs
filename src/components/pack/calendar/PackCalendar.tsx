@@ -945,7 +945,7 @@ function DayPopup({
 
         {empty && (
           <p className="cal-note" style={{ marginBottom: 12 }}>
-            {tx('pack.cal.emptyDay', 'Tento deň je zatiaľ prázdny. To nie je dlh — je to len deň.')}
+            {tx('pack.cal.emptyDay', 'Tento deň je zatiaľ prázdny. To nie je dlh, je to len deň.')}
           </p>
         )}
 
@@ -1015,9 +1015,12 @@ function DayPopup({
           </button>
         )}
 
-        <p className="cal-note" style={{ marginTop: 12, textAlign: 'center' }}>
-          {tx('pack.cal.closeHint', 'Klikni mimo bloku alebo Esc')}
-        </p>
+        {/* V appke nie je klávesnica ani myš — „klikni mimo alebo Esc“ tam nedáva zmysel (Matej 15. 11.). */}
+        {!APP_NEW && (
+          <p className="cal-note" style={{ marginTop: 12, textAlign: 'center' }}>
+            {tx('pack.cal.closeHint', 'Klikni mimo bloku alebo Esc')}
+          </p>
+        )}
       </div>
     </div>
   );

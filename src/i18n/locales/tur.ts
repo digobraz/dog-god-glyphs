@@ -2156,7 +2156,7 @@ export const tur: Partial<Dict> = {
   "pack.cal.labDesc": "koproloji, kan tahlili",
   "pack.cal.ticksDesc": "nisan – ekim",
   "pack.cal.wholePack": "tüm sürü",
-  "pack.cal.emptyDay": "Bu gün hâlâ boş. Bu bir borç değil — sadece bir gün.",
+  "pack.cal.emptyDay": "Bu gün hâlâ boş. Bu bir borç değil, sadece bir gün.",
   "pack.cal.birthdayLine": "{name} {years} yaşına giriyor.",
   "pack.cal.humanYearLine": "yedide biri. Bir şey planla.",
   "pack.cal.protWindow": "Protokol penceresi",
@@ -6094,4 +6094,6 @@ export const tur: Partial<Dict> = {
   'pack.dog.wallHint': "www.dogypt.com'da köpeğin fotoğrafının yanındaki metin",
   'pack.dog.wallEmpty': "Henüz mesaj yok.",
   'pack.moment.continue': 'Devam',
+  'pack.zd.prevDay': 'Önceki gün',
+  'pack.zd.nextDay': 'Sonraki gün',
 };

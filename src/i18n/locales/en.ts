@@ -5552,7 +5552,7 @@ export const en = {
   'pack.cal.labDesc': "coprology, blood work",
   'pack.cal.ticksDesc': "April – October",
   'pack.cal.wholePack': "the whole pack",
-  'pack.cal.emptyDay': "This day is still empty. That's not a debt — it's just a day.",
+  'pack.cal.emptyDay': "This day is still empty. That's not a debt, it's just a day.",
   'pack.cal.birthdayLine': "{name} turns {years}.",
   'pack.cal.humanYearLine': "one of seven. Plan something.",
   'pack.cal.protWindow': "Protocol window",
@@ -8774,4 +8774,6 @@ export const en = {
   'heroglyph.flow.welcomeState.failedSub': 'Reload the page in a moment. The link to your profile is also in your e-mail.',
   'heroglyph.flow.welcomeState.retry': 'Try again',
   'pack.moment.continue': 'Continue',
+  'pack.zd.prevDay': 'Previous day',
+  'pack.zd.nextDay': 'Next day',
 } as const;

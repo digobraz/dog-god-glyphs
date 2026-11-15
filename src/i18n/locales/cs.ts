@@ -2827,7 +2827,7 @@ export const cs: Partial<Dict> = {
   'pack.cal.labDesc': 'koprologie, biochemie',
   'pack.cal.ticksDesc': 'duben – říjen',
   'pack.cal.wholePack': 'celá smečka',
-  'pack.cal.emptyDay': 'Tento den je zatím prázdný. Není to dluh — je to jen den.',
+  'pack.cal.emptyDay': 'Tento den je zatím prázdný. Není to dluh, je to jen den.',
   'pack.cal.birthdayLine': '{name} má {years}.',
   'pack.cal.humanYearLine': 'jeden ze sedmi. Naplánuj něco.',
   'pack.cal.protWindow': 'Okno protokolu',
@@ -8383,4 +8383,6 @@ export const cs: Partial<Dict> = {
   "pack.dog.memorial.confirmBody.f": "Tímto označíš {name} jako fenku, která odešla. Počítadlo dní se zastaví a začne plynout čas v andělské podobě.",
   // ⟦/pack.sos⟧
   'pack.moment.continue': 'Pokračovat',
+  'pack.zd.prevDay': 'Předchozí den',
+  'pack.zd.nextDay': 'Další den',
 };

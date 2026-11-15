@@ -2156,7 +2156,7 @@ export const nld: Partial<Dict> = {
   "pack.cal.labDesc": "coprologie, bloedonderzoek",
   "pack.cal.ticksDesc": "april – oktober",
   "pack.cal.wholePack": "de hele roedel",
-  "pack.cal.emptyDay": "Deze dag is nog leeg. Dat is geen schuld — het is gewoon een dag.",
+  "pack.cal.emptyDay": "Deze dag is nog leeg. Dat is geen schuld, het is gewoon een dag.",
   "pack.cal.birthdayLine": "{name} wordt {years}.",
   "pack.cal.humanYearLine": "een van de zeven. Plan iets.",
   "pack.cal.protWindow": "Protocolvenster",
@@ -6094,4 +6094,6 @@ export const nld: Partial<Dict> = {
   'pack.dog.wallHint': "Tekst bij de hondenfoto op www.dogypt.com",
   'pack.dog.wallEmpty': "Nog geen bericht.",
   'pack.moment.continue': 'Verder',
+  'pack.zd.prevDay': 'Vorige dag',
+  'pack.zd.nextDay': 'Volgende dag',
 };

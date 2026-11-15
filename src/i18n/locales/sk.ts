@@ -5241,7 +5241,7 @@ export const sk: Partial<Dict> = {
   'pack.cal.labDesc': "koprológia, biochémia",
   'pack.cal.ticksDesc': "apríl – október",
   'pack.cal.wholePack': "celá svorka",
-  'pack.cal.emptyDay': "Tento deň je zatiaľ prázdny. To nie je dlh — je to len deň.",
+  'pack.cal.emptyDay': "Tento deň je zatiaľ prázdny. To nie je dlh, je to len deň.",
   'pack.cal.birthdayLine': "{name} má {years}.",
   'pack.cal.humanYearLine': "jeden zo siedmich. Naplánuj niečo.",
   'pack.cal.protWindow': "Okno protokolu",
@@ -8467,4 +8467,6 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.welcomeState.failedSub': 'O chvíľu obnov stránku. Odkaz na tvoj profil máš aj v e-maile.',
   'heroglyph.flow.welcomeState.retry': 'Skúsiť znova',
   'pack.moment.continue': 'Pokračovať',
+  'pack.zd.prevDay': 'Predchádzajúci deň',
+  'pack.zd.nextDay': 'Nasledujúci deň',
 };

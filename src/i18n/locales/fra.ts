@@ -2342,7 +2342,7 @@ export const fra: Partial<Dict> = {
   "pack.cal.labDesc": "coprologie, bilan sanguin",
   "pack.cal.ticksDesc": "avril – octobre",
   "pack.cal.wholePack": "toute la meute",
-  "pack.cal.emptyDay": "Ce jour est encore vide. Ce n'est pas une dette — c'est juste un jour.",
+  "pack.cal.emptyDay": "Ce jour est encore vide. Ce n'est pas une dette, c'est juste un jour.",
   "pack.cal.birthdayLine": "{name} fête ses {years} ans.",
   "pack.cal.humanYearLine": "une sur sept. Planifie quelque chose.",
   "pack.cal.protWindow": "Fenêtre de protocole",
@@ -6280,4 +6280,6 @@ export const fra: Partial<Dict> = {
   'pack.dog.wallHint': "Texte à côté de la photo du chien sur www.dogypt.com",
   'pack.dog.wallEmpty': "Pas encore de message.",
   'pack.moment.continue': 'Continuer',
+  'pack.zd.prevDay': 'Jour précédent',
+  'pack.zd.nextDay': 'Jour suivant',
 };

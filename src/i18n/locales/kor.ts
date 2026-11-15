@@ -6094,4 +6094,6 @@ export const kor: Partial<Dict> = {
   'pack.dog.wallHint': "www.dogypt.com의 강아지 사진 옆 글",
   'pack.dog.wallEmpty': "아직 메시지가 없습니다.",
   'pack.moment.continue': '계속',
+  'pack.zd.prevDay': '이전 날',
+  'pack.zd.nextDay': '다음 날',
 };

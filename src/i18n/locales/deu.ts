@@ -2350,7 +2350,7 @@ export const deu: Partial<Dict> = {
   "pack.cal.labDesc": "Koprologie, Blutwerte",
   "pack.cal.ticksDesc": "April – Oktober",
   "pack.cal.wholePack": "das ganze Rudel",
-  "pack.cal.emptyDay": "Dieser Tag ist noch leer. Das ist keine Schuld — es ist einfach ein Tag.",
+  "pack.cal.emptyDay": "Dieser Tag ist noch leer. Das ist keine Schuld, es ist einfach ein Tag.",
   "pack.cal.birthdayLine": "{name} wird {years}.",
   "pack.cal.humanYearLine": "eins von sieben. Plane etwas.",
   "pack.cal.protWindow": "Protokollfenster",
@@ -6280,4 +6280,6 @@ export const deu: Partial<Dict> = {
   'pack.dog.wallHint': "Text neben dem Hundefoto auf www.dogypt.com",
   'pack.dog.wallEmpty': "Noch keine Botschaft.",
   'pack.moment.continue': 'Weiter',
+  'pack.zd.prevDay': 'Vorheriger Tag',
+  'pack.zd.nextDay': 'Nächster Tag',
 };

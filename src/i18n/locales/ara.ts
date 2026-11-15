@@ -2153,7 +2153,7 @@ export const ara: Partial<Dict> = {
   "pack.cal.labDesc": "فحص البراز، فحص الدم",
   "pack.cal.ticksDesc": "أبريل – أكتوبر",
   "pack.cal.wholePack": "القطيع كاملًا",
-  "pack.cal.emptyDay": "هذا اليوم لا يزال فارغًا. ليس هذا دَينًا — إنه مجرد يوم.",
+  "pack.cal.emptyDay": "هذا اليوم لا يزال فارغًا. ليس هذا دَينًا، إنه مجرد يوم.",
   "pack.cal.birthdayLine": "{name} يبلغ {years}.",
   "pack.cal.humanYearLine": "واحدة من سبع. خطِّط لشيء ما.",
   "pack.cal.protWindow": "نافذة البروتوكول",
@@ -6091,4 +6091,6 @@ export const ara: Partial<Dict> = {
   'pack.dog.wallHint': "نص بجانب صورة الكلب على www.dogypt.com",
   'pack.dog.wallEmpty': "لا توجد رسالة بعد.",
   'pack.moment.continue': 'متابعة',
+  'pack.zd.prevDay': 'اليوم السابق',
+  'pack.zd.nextDay': 'اليوم التالي',
 };

@@ -33,6 +33,7 @@ import { HandCheck } from '@/components/pack/HandIcons';
 import { CameraIc } from '@/components/app/sysSwap';
 import { ZapisGlyph } from '@/components/pack/SysIcon';
 import { BackIcon, backCircleCSS } from '@/components/pack/BackButton';
+import { ThinArrow } from '@/components/pack/ThinArrow';
 import { supabase } from '@/integrations/supabase/client';
 import { grantDevotion } from '@/lib/devotionGrant';
 import { appendDogEvents } from '@/lib/dogEvents';
@@ -76,6 +77,10 @@ const CSS = `
 .zd-top .zd-dogs{margin:0;}
 .zd-top .zd-dog{width:56px;height:56px;}
 .zd-day{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h1}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};} /* písmo: nadpis */
+.zd-daynav{flex:1;min-width:0;display:flex;align-items:center;gap:${S.sm}px;}
+.zd-daynav>div{flex:1;min-width:0;}
+.zd-dnav{${backCircleCSS('pale')}flex:none;}
+.zd-dnav:disabled{opacity:.3;cursor:default;}
 .zd-date{margin:0;font-family:${FONT_UI};font-weight:500;font-size:${TX.label}px;color:${T.inkWarm};}
 .zd-dogs{display:flex;gap:${S.sm}px;}
 .zd-dog{appearance:none;display:grid;place-items:center;width:40px;height:40px;padding:0;border-radius:${PACK_R.pill}px;cursor:pointer;overflow:hidden;
@@ -545,9 +550,17 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
                 ))}
               </div>
             )}
-            <div>
-              <h2 className="zd-day">{dayTitle}</h2>
-              <p className="zd-date">{dateText}</p>
+            {/* ŠÍPKY DŇA (Matej 15. 11.: „hore ako je dátum by sa dalo prepínať dozadu dopredu… bolo by to lepšie než ísť
+                zdlhavo“). Ruší „len dnešok“ z labky (31. 10.): predvybraný je dnešok, šípka ide najviac 30 dní dozadu, nie do budúcnosti. */}
+            <div className="zd-daynav">
+              <button type="button" className="zd-dnav" aria-label={tx('pack.zd.prevDay', 'Previous day')}
+                disabled={busy || day <= shiftDay(todayK, -BACK_DAYS)} onClick={() => setDay(shiftDay(day, -1))}><ThinArrow dir="left" size={20} /></button>
+              <div>
+                <h2 className="zd-day">{dayTitle}</h2>
+                <p className="zd-date">{dateText}</p>
+              </div>
+              <button type="button" className="zd-dnav" aria-label={tx('pack.zd.nextDay', 'Next day')}
+                disabled={busy || day >= todayK} onClick={() => setDay(shiftDay(day, 1))}><ThinArrow dir="right" size={20} /></button>
             </div>
           </div>
 

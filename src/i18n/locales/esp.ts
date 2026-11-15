@@ -2342,7 +2342,7 @@ export const esp: Partial<Dict> = {
   "pack.cal.labDesc": "coprología, análisis de sangre",
   "pack.cal.ticksDesc": "abril – octubre",
   "pack.cal.wholePack": "toda la jauría",
-  "pack.cal.emptyDay": "Este día todavía está vacío. No es una deuda — es solo un día.",
+  "pack.cal.emptyDay": "Este día todavía está vacío. No es una deuda, es solo un día.",
   "pack.cal.birthdayLine": "{name} cumple {years}.",
   "pack.cal.humanYearLine": "uno de siete. Planea algo.",
   "pack.cal.protWindow": "Ventana de protocolo",
@@ -6280,4 +6280,6 @@ export const esp: Partial<Dict> = {
   'pack.dog.wallHint': "Texto junto a la foto del perro en www.dogypt.com",
   'pack.dog.wallEmpty': "Aún no hay mensaje.",
   'pack.moment.continue': 'Continuar',
+  'pack.zd.prevDay': 'Día anterior',
+  'pack.zd.nextDay': 'Día siguiente',
 };

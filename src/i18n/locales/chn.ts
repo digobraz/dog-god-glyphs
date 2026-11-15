@@ -2153,7 +2153,7 @@ export const chn: Partial<Dict> = {
   "pack.cal.labDesc": "粪便检验、血液检查",
   "pack.cal.ticksDesc": "4 月 – 10 月",
   "pack.cal.wholePack": "整个犬群",
-  "pack.cal.emptyDay": "这一天还是空的。那不是欠下的债——只是一个普通的日子。",
+  "pack.cal.emptyDay": "这一天还是空的。那不是欠下的债，只是一个普通的日子。",
   "pack.cal.birthdayLine": "{name} 满 {years} 岁了。",
   "pack.cal.humanYearLine": "七分之一。计划点什么吧。",
   "pack.cal.protWindow": "协议窗口",
@@ -6091,4 +6091,6 @@ export const chn: Partial<Dict> = {
   'pack.dog.wallHint': "www.dogypt.com 上狗狗照片旁的文字",
   'pack.dog.wallEmpty': "还没有留言。",
   'pack.moment.continue': '继续',
+  'pack.zd.prevDay': '前一天',
+  'pack.zd.nextDay': '后一天',
 };
