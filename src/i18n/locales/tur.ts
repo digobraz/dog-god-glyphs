@@ -6093,4 +6093,6 @@ export const tur: Partial<Dict> = {
   'pack.dog.wallTitle': "Duvardaki mesaj",
   'pack.dog.wallHint': "www.dogypt.com'da köpeğin fotoğrafının yanındaki metin",
   'pack.dog.wallEmpty': "Henüz mesaj yok.",
+  'pack.moment.share': 'Paylaş',
+  'pack.moment.continue': 'Devam',
 };

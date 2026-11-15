@@ -9,7 +9,8 @@
 //   3,0 s  scéna zmizne → priletia dve fotky · 3,6 s dotknú sa · 4,0 s zapadnú do seba (prekryv ~1/3)
 //   4,3 s  „Zavetrili ste sa!" · 4,6 s mená · 4,9 s tlačidlá
 // Ťuk na scénu = prehrať znova. Kto má vypnuté pohyby, vidí rovno konečný stav (spojené fotky).
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { moment, uder } from '@/lib/momenty';
 import { withTransform } from '@/services/cloudinaryService';
 import { PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
@@ -85,6 +86,13 @@ export function SnifferMatchReveal({ me, them, title, names, children }: {
   children: ReactNode;
 }) {
   const [run, setRun] = useState(0);
+  // MOMENT (register lib/momenty): úspech pri otvorení, ťuk pri srdiečkach (1,7 s) a dopad, keď sa fotky dotknú (3,6 s).
+  // Meria sa len prvé prehranie, opakovanie ťukom na scénu je hra, nie nová zhoda.
+  useEffect(() => {
+    if (run === 0) moment('sniffer'); else uder('tuk');
+    const t = [window.setTimeout(() => uder('tuk'), 1700), window.setTimeout(() => uder('dopad'), 3600)];
+    return () => t.forEach(clearTimeout);
+  }, [run]);
   return (
     <div className="mr" key={run}>
       <style>{CSS}</style>

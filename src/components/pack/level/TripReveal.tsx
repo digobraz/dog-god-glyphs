@@ -37,6 +37,7 @@ import { tierOfLevel, tierVars, crossedTier } from '@/lib/packTiers';
 import { PointsBreakdown } from './PointsBreakdown';
 import { REVEAL_CSS, REVEAL_P3D_CSS } from './revealCss';
 import { APP_NEW } from '@/lib/packFlags';
+import { moment } from '@/lib/momenty';
 // Fotky sa kreslia v 66–112 px — originál z Cloudinary (často 3–4 MB) sa sem nesťahuje.
 import { sizedUrl } from '@/services/cloudinaryService';
 
@@ -207,6 +208,9 @@ export function TripReveal({
     const after = 800 + points.rows.length * 140 + 150;
     // lišta sa rozsvieti až keď je súčet na mieste
     later(() => el.querySelector('.rv-bar')?.classList.add('lit'), after);
+    // MOMENT (register lib/momenty): haptika + meranie. Výlet je odhalenie, nový level PÚTNIKA druhý moment.
+    later(() => moment('vylet', { body: points.total, levelUp: leveledUp }), 560);
+    if (leveledUp) later(() => moment('putnik', { level: levelAfter.level }), after + (APP_NEW ? 900 : 3750));
     if (APP_NEW) {
       // PEČAŤ (hárok B11/B12): bez tmavej scény s konfetami. Pečať dopadne, zbalí sa do riadku Za čo,
       // pri novom leveli sa číslo v hlavičke zarazí rovnakou pečaťou.

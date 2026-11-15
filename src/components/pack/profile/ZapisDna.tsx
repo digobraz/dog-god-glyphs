@@ -46,6 +46,7 @@ import { intlLocale } from '@/i18n/bcp47';
 import { BADGE_FAMILIES } from './badgeRegister';
 import { KIND_FAMILY, loadMyActivity, badgeCounts } from './badgeShelf';
 import { ZTILES, loadZapisDays, type ZTile } from './zapisDnaModel';
+import { moment, uder } from '@/lib/momenty';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -228,7 +229,8 @@ const pctW = (pct: number) => {
   return { width: w };
 };
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-const buzz = () => { try { navigator.vibrate?.(12); } catch { /* iOS web nevie */ } };
+// Haptika ide cez spoločné jadro momentov — na iPhone cez @capacitor/haptics, inde navigator.vibrate.
+const buzz = () => uder('tuk');
 const reduced = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 interface PhotoState { preview: string; url: string | null; busy: boolean; blob: Blob; forDog: string }
@@ -477,6 +479,7 @@ export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pi
     }
     // 2 · pečať
     sheet.querySelector('.zd-seal')?.classList.add('in');
+    moment('zapis', { odznak: rows.some((r) => r.hit) });
     await wait(fast ? 150 : 500);
     // 3 · pásy odznakov sa posunú
     const els = [...sheet.querySelectorAll<HTMLElement>('.zd-prog .zd-pg')];
@@ -488,6 +491,7 @@ export function ZapisDna({ onClose, pickDay = false }: { onClose: () => void; pi
       const span = Math.max(1, r.nx - r.lo);
       if (fill) fill.style.width = pctW(((r.after - r.lo) / span) * 100).width;
       if (v) v.textContent = r.hit ? tx('pack.zd.new', 'NEW!') : `${r.after}/${r.nx}`;
+      if (r.hit) uder('uspech');
     }
     await wait(fast ? 600 : 1600);
     // 4 · šuplík zbehne (zatvorí rodič); kalendár dostane signál `dogypt:zapis` → ✓ + pop

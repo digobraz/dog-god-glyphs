@@ -39,6 +39,8 @@ const SKIP = [
   'components/pack/ainubisSheet.tsx',       //   …a jeho panel hlásení + oznamov (21. 9. 2026)
   'components/pack/PackShareCard.tsx',      // share karta sa renderuje do OBRÁZKA —
   'components/pack/level/revealCss.ts',     //   z papyrusového locku vyňatá v CLAUDE.md
+  'components/pack/moment/momentCss.ts',    // MOMENT (pečať · odhalenie · obrad) = tá istá rodina ako reveal výletu: veľké číslo a medaila
+                                            //   z prehliadky momentov (Matej „koncept sedí“ + „sprav“ 15. 11. 2026)
   'components/pack/mapnotes/circleMark.ts', // geometria značky na mape (28/2.5 px lock)
   'components/pack/mapDockShape.ts',        // tvar doku nad mapou (lock 24. 8. 2026)
   'components/pack/navGoldSkin.ts',         // D-BLOK — čísla sú NAV_R zo spodného navu

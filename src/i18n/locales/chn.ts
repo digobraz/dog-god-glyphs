@@ -6090,4 +6090,6 @@ export const chn: Partial<Dict> = {
   'pack.dog.wallTitle': "墙上的留言",
   'pack.dog.wallHint': "www.dogypt.com 上狗狗照片旁的文字",
   'pack.dog.wallEmpty': "还没有留言。",
+  'pack.moment.share': '分享',
+  'pack.moment.continue': '继续',
 };

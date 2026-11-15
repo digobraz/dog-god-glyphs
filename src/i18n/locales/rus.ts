@@ -6260,4 +6260,6 @@ export const rus: Partial<Dict> = {
   'pack.dog.wallTitle': "Послание на стене",
   'pack.dog.wallHint': "Текст у фото собаки на www.dogypt.com",
   'pack.dog.wallEmpty': "Послания пока нет.",
+  'pack.moment.share': 'Поделиться',
+  'pack.moment.continue': 'Далее',
 };

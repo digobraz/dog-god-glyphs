@@ -6094,4 +6094,6 @@ export const ind: Partial<Dict> = {
   'pack.dog.wallTitle': "Pesan di dinding",
   'pack.dog.wallHint': "Teks di samping foto anjing di www.dogypt.com",
   'pack.dog.wallEmpty': "Belum ada pesan.",
+  'pack.moment.share': 'Bagikan',
+  'pack.moment.continue': 'Lanjut',
 };

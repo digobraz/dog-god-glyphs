@@ -42,6 +42,8 @@ import { openAinubis } from '@/lib/ainubisBus';
 import { patchHuman } from '@/lib/humanPrefs';
 import { toast } from '@/hooks/use-toast';
 import { onOpenCompose, type ComposeMode } from './profile/mePosts';
+import { MomentHost } from './moment/MomentHost';
+import { MOMENTY_ON } from '@/lib/env';
 
 // Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: HERO_TRAILS 1,5 MB,
 // HERO_JOURNEYS) ťahal do PackLayout chunku vždy, aj keď overlay na LIVE
@@ -128,6 +130,8 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel, topLe
       {paperPage ? <style>{PAPER_PAGE_CSS}</style> : <HieroglyphBg />}
       {/* PRAVIDLÁ SVORKY (31. 10.): v appke kto ešte nesúhlasil s aktuálnou verziou podmienok, dostane okno nad všetkým. */}
       {APP_NEW && session && <TermsGuard />}
+      {/* MOMENTY (15. 11. 2026): jeden hostiteľ pečatí, odhalení a obradov pre celú appku. */}
+      {MOMENTY_ON && session && <MomentHost />}
 
       {/* FLOATING STATUS HUB — fixed top, slim single-row pill. DEV_FULL target model
           (D4 nav rework) drops this entirely — identity moved to the bottom nav avatar,

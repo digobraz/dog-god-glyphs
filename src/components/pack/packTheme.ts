@@ -369,6 +369,13 @@ html.papyrus3d .pk-grab{width:56px;height:6px;background:var(--pk-grab,var(--p3d
 `;
 
 export const PACK_BLOCKS = {
+  MOMENT: {
+    recept: 'MomentHost + MOMENT_CSS (components/pack/moment) · veľkosť z registra lib/momenty',
+    polomer: PACK_R.pill,
+    kedy: 'Odmena za udalosť: ISKRA (prvok pukne) · PEČAŤ (dokončená úloha) · ODHALENIE (level, odznak, '
+      + 'medaila + stuha + ZDIEĽAŤ) · OBRAD (celá obrazovka, zvuk). Nový reveal = riadok v registri, nie vlastný komponent.',
+    lock: 'Matej 15. 11. 2026 nad prehliadkou momentov: „koncept sedí“ → „sprav“ (plany/nakresy/momenty-appky-2026-11-15).',
+  },
   'TLAČIDLO 3D': {
     recept: 'B3_CSS · .pk-b3 + .pk-b3--lapis/gold/paper/green/red, len pod APP_NEW',
     polomer: PACK_R.card,

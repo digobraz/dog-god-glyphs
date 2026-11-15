@@ -56,6 +56,9 @@ export const SOS_PUBLIC_ON = true;
 // kde je `SOS_ON` vypnutý. Zapína len `TEST_BUILD`; na LIVE ostáva mimo, kým Matej nepovie „ostro“.
 // 🟢 6. 11. 2026 do obchodnej appky (Matej: „do apky ide všetko z toho“); web bez zmeny.
 export const VET_ER_ON = TEST_BUILD || IS_APP;
+// MOMENTY (15. 11. 2026, hárok Zážitok appky + prehliadka momentov): spoločný komponent odmeny `MomentHost`.
+// Rozostavané ⇒ len testovací kanál. Do obchodnej appky (`|| IS_APP`) až na Matejovo „ostro“.
+export const MOMENTY_ON = TEST_BUILD;
 const PINNED = import.meta.env.PROD && !APP_DEV;
 
 export const SUPABASE_URL = PINNED
