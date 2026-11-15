@@ -394,6 +394,7 @@ const P3D_NAME_GAP = { m: NM_TOP.m + 28, pc: NM_TOP.pc + 28 };
 const P3D_HERO = 136;
 const P3D_ME_CSS = `
 html.papyrus3d .me-flat .me-cover::before{-webkit-mask-image:none;mask-image:none;border-block:2.5px solid var(--p3d-ink);}
+html.papyrus3d .me-cover.no-cov::before{background:url('/images/bg-dark.webp') center/cover no-repeat;}
 html.papyrus3d .me-flat .me-own{left:50%;transform:translateX(-50%);top:-${AV_UP.m}px;padding:0;background:none;box-shadow:none;}
 html.papyrus3d .me-own::before,html.papyrus3d .me-own::after{display:none;}
 html.papyrus3d .me-own > button:first-child{border:4px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 5px 0 2px var(--p3d-ink);background:linear-gradient(180deg,${LAPIS.edge},${LAPIS.deep});}
@@ -612,7 +613,17 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
   const [drag, setDrag] = useState<{ y0: number; p0: number } | null>(null);
   const y = coverY ?? COVER_Y_DEFAULT;
-  const url = cover ? sizedUrl(cover, 1200) : null;
+  const url0 = cover ? sizedUrl(cover, 1200) : null;
+  // Fotka, ktorá sa nenačíta, nesmie nechať prázdnu titulku (sken cudzieho profilu 15. 11.) — appka
+  // vtedy ukáže chrámovú tapetu (`.no-cov`), rovnako ako keď titulka nemá žiadnu fotku.
+  const [bad, setBad] = useState<string | null>(null);
+  const url = url0 && bad !== url0 ? url0 : null;
+  useEffect(() => {
+    if (!url0) return;
+    const img = new Image();
+    img.onerror = () => setBad(url0);
+    img.src = url0;
+  }, [url0]);
 
   useEffect(() => {
     if (!url || !onMoveY) return;
@@ -638,7 +649,7 @@ export function MeCover({ cover, coverY, name, devLabel, devLevel, pilgrimLabel,
   return (
     <div
       ref={ref}
-      className={`me-cover${editable ? ' drag' : onCover ? ' pick' : ''}${drag ? ' on' : ''}`}
+      className={`me-cover${editable ? ' drag' : onCover ? ' pick' : ''}${drag ? ' on' : ''}${url ? '' : ' no-cov'}`}
       style={url ? ({ '--me-cover': `url(${url})`, '--me-cover-y': `${y}%` } as CSSProperties) : undefined}
       onPointerDown={editable ? (e) => {
         if ((e.target as HTMLElement).closest('button')) return;

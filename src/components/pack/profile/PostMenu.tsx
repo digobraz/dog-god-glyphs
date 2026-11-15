@@ -9,7 +9,7 @@ import { lazy, Suspense, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
 import { GRAB_CSS } from '@/components/pack/packTheme';
-import { BackButton } from '@/components/pack/BackButton';
+import { BackButton, backCircleCSS } from '@/components/pack/BackButton';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { useToast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
@@ -28,6 +28,8 @@ ${GRAB_CSS}
 .pm-btn{flex:none;display:grid;place-items:center;width:40px;height:40px;margin-right:-${S.sm}px;background:none;border:0;padding:0;cursor:pointer;color:${T.inkStrong};border-radius:${PACK_R.pill}px;}
 .pm-btn:active{opacity:.6;}
 .pm-btn.cover{margin-right:0;background:rgba(0,0,0,.45);color:${T.onDark};}
+/* Appka: tmavý kruh na papyruse bol sivý fľak (sken cudzieho profilu 15. 11.) — ··· je TLAČIDLO 3D ako šípka späť. */
+html.papyrus3d .pm-btn.cover{${backCircleCSS('pale')}}
 .pm-sh.pk-veil{z-index:1350;align-items:flex-end;padding:0;}
 .pm-sh .sh{width:100%;display:flex;flex-direction:column;background:${T.cardGrad};border-top:1.5px solid ${T.cardEdge};
   border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;box-shadow:${T.panelShadow};animation:pm-up .32s cubic-bezier(.2,.8,.2,1) both;}
