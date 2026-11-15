@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PageTopBar } from "@/components/PageTopBar";
+import { SMALL_P3D_CSS, SP_PAPER, SmallTop } from "@/components/legal/smallPageKit";
+import { APP_NEW } from "@/lib/packFlags";
 import { useT } from "@/i18n/LanguageContext";
 
 // ── /404 — "Hekthor's Run" v novom brande (Matej 11. 11. 2026) ──────────
@@ -397,10 +398,10 @@ const NotFound = ({ lead }: { lead?: string } = {}) => {
   }, []);
 
   return (
-    <div className="nf">
-      <style>{NF_CSS}</style>
+    <div className={`nf${APP_NEW ? ` ${SP_PAPER}` : ""}`}>
+      <style>{(APP_NEW ? SMALL_P3D_CSS : "") + NF_CSS}</style>
       <header className="nf-top">
-        <PageTopBar />
+        <SmallTop backLabel={t("nav.aria.back")} />
       </header>
 
       <main className="nf-main">
