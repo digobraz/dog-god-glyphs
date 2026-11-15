@@ -4138,7 +4138,7 @@ export default function PackMap() {
   // nedotknutý — používajú ho GeometryPicker/AddEvent imperatívne.
   const dateLocale = intlLocale(lang);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
-  const mapNotesLive = useMapNotes(true);
+  const mapNotesLive = useMapNotes(true, { bounded: true }); // B2: len výrez mapy + rezerva (setView)
   // NÁHĽAD /magnet = MAKETA: značky sa len čítajú. Pridanie dostane lokálne id (zhrnutie v skúšobnom
   // zápise), mazanie a hlasovanie sú naprázdno — do DB z náhľadu nejde nič (Matej 13. 10. 2026:
   // *„uisti sa, že je to len maketa a prototyp — nie naše živé dáta"*).
@@ -4563,6 +4563,9 @@ export default function PackMap() {
   // aktuálny výrez mapy (hlási <ViewportWatcher>) — riadi rozdelenie ľavého zoznamu na
   // „v tomto výreze" / „inde na mape". null = mapa ešte nedomountovala → zoznam bez delenia.
   const [viewBox, setViewBox] = useState<ViewBox | null>(null);
+  // značky ZÁPISOV sa pýtajú len pre výrez + rezervu; pri posune sa dotiahne len nový výrez (B2, 15. 11. 2026)
+  const setNotesView = mapNotesLive.setView;
+  useEffect(() => { if (viewBox) setNotesView(viewBox); }, [viewBox, setNotesView]);
   // hrúbka „svetelného meča" podľa zoomu (issue #49) — plní SaberScaleWatcher vnútri mapy
   const [saberScale, setSaberScale] = useState(1);
   const handleViewport = useCallback((b: ViewBox) => {

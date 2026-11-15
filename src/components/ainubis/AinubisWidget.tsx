@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { linkify } from './ainubisLinkify';
 import { X, Move } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { getUserShared, shared } from '@/lib/sharedFetch';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { getAinubisCopy } from './ainubisCopy';
 import { AINUBIS_OPEN_EVENT, setAinubisUnread, getAinubisPlaneHost, onAinubisPlaneHost, requestAinubisPlaneBack } from '@/lib/ainubisBus';
@@ -415,15 +416,15 @@ function useMemberDogNames(email: string | null, openNowRef: { current: boolean 
     }
     (async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getUserShared(); // B2: jedna cesta na auth server na okno
         if (!user) return;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (supabase as any)
+        const { data, error } = await shared(`ainubis-dogs:${user.id}`, () => (supabase as any)
           .from('dogs')
           .select('id, dog_name, life_status')
           .eq('user_id', user.id)
           .eq('payment_status', 'paid')
-          .order('pack_number', { ascending: true }) as {
+          .order('pack_number', { ascending: true }), 30_000) as {
             data: { id: string; dog_name: string | null; life_status: string | null }[] | null; error: unknown;
           };
         if (!mounted || error || !data || openNowRef.current) return;

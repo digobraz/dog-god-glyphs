@@ -25,6 +25,12 @@ export function shared<T>(key: string, run: () => Promise<T>, ttl = TTL_MS): Pro
   return p;
 }
 
+// B2 (audit záťaže 15. 11. 2026): 5 s okno stačilo len na „dvaja naraz", nie na návštevu —
+// pri prechádzke appkou išlo `get-pack-stats` 10× a `get_or_create_my_affiliate` 10× za 5 minút.
+// Verejné čísla svorky sa menia raz za pár minút, BONES po pozvánke či výlete — preto 2 min / 1 min.
+const STATS_TTL_MS = 120_000;
+const AFFILIATE_TTL_MS = 60_000;
+
 /** `get-pack-stats` — verejné čísla svorky (počty, top krajiny a plemená). */
 export function getPackStats<T = unknown>(): Promise<T> {
   return shared('pack-stats', () =>
@@ -32,6 +38,7 @@ export function getPackStats<T = unknown>(): Promise<T> {
       if (!r.ok) throw new Error(`get-pack-stats ${r.status}`);
       return r.json() as Promise<T>;
     }),
+    STATS_TTL_MS,
   );
 }
 
@@ -41,5 +48,25 @@ export function getMyAffiliate<T = unknown>(): Promise<{ data: T[] | null; error
     const { data, error } = await supabase.rpc('get_or_create_my_affiliate');
     if (error) throw error;
     return { data: data as T[] | null, error: null };
-  }).catch((e: { message?: string }) => ({ data: null, error: { message: e?.message ?? String(e) } }));
+  }, AFFILIATE_TTL_MS).catch((e: { message?: string }) => ({ data: null, error: { message: e?.message ?? String(e) } }));
+}
+
+/** Zahodí pamäť BONES — volaj po akcii, po ktorej sa body menia (pozvánka, odmena). */
+export function invalidateMyAffiliate(): void {
+  cache.delete('my-affiliate');
+}
+
+let authWatch = false;
+/**
+ * Prihlásený používateľ z `auth.getUser()` — jedna cesta na auth server na okno, nie na komponent
+ * (14× za 5 min prechádzky). Pamäť sa zahodí pri KAŽDEJ zmene auth stavu (USER_UPDATED po úprave
+ * profilu či súhlasu, prihlásenie, odhlásenie, obnova tokenu), takže čerstvé `user_metadata`
+ * po zápise neostane staré; inak platí okno 60 s.
+ */
+export function getUserShared() {
+  if (!authWatch) {
+    authWatch = true;
+    supabase.auth.onAuthStateChange(() => { cache.delete('auth-user'); });
+  }
+  return shared('auth-user', () => supabase.auth.getUser(), 60_000);
 }

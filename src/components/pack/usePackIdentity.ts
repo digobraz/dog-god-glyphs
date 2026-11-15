@@ -3,7 +3,7 @@ import { DEVOTION_START, DEVOTION_TODAY_ON } from '@/lib/devotion';
 import type { Session } from '@supabase/supabase-js';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { getMyAffiliate, getPackStats } from '@/lib/sharedFetch';
+import { getMyAffiliate, getPackStats, shared } from '@/lib/sharedFetch';
 import { hydratePackStore } from '@/lib/packStore';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
@@ -190,8 +190,11 @@ export function usePackIdentity(): PackIdentity {
               ? identityQuery.in('id', accessIds)
               : identityQuery.eq('user_id', s.user.id);
           }
+          // B2 (15. 11. 2026): hook žije v každom `PackLayout`, teda sa spúšťa pri každom prechode
+          // medzi obrazovkami — psy išli na server 25× za 5 min prechádzky. Okno 30 s (zdieľaný sľub);
+          // kópia v zariadení ukazuje psov hneď, takže čerstvosť stačí na tomto rádovo.
           const { data: dogRows } = identityQuery
-            ? await identityQuery.order('created_at', { ascending: true }) as { data: PackDog[] | null }
+            ? await shared(`identity-dogs:${s.user.id}`, () => identityQuery.order('created_at', { ascending: true }) as Promise<{ data: PackDog[] | null }>, 30_000)
             : { data: null };
           if (dogRows) {
             const fresh = dogRows.map(d => ({

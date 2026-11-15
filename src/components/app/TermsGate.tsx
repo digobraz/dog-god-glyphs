@@ -13,6 +13,7 @@ import { clearCardDrafts } from '@/components/pack/dogCard/cardDraft';
 import { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { getUserShared } from '@/lib/sharedFetch';
 import { useT } from '@/i18n/LanguageContext';
 import { HandHeart } from '@/components/pack/HandIcons';
 import { AlertIc, CheckIc } from '@/components/app/sysSwap';
@@ -117,7 +118,7 @@ export function TermsGuard() {
   const [need, setNeed] = useState(false);
   useEffect(() => {
     let off = false;
-    void supabase.auth.getUser().then(({ data }) => { if (!off && data.user && !termsOk(data.user)) setNeed(true); });
+    void getUserShared().then(({ data }) => { if (!off && data.user && !termsOk(data.user)) setNeed(true); });
     return () => { off = true; };
   }, []);
   return need ? <RulesSheet onDone={() => setNeed(false)} /> : null;

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { intlLocale } from '@/i18n/bcp47';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { getUserShared } from '@/lib/sharedFetch';
 import { PACK_THEME, PACK_SHADOW, FONT_UI } from './packTheme';
 import imgMobileApp from '@/assets/pack-survey/mobile-app.webp';
 import imgHealth from '@/assets/pack-survey/health.webp';
@@ -84,7 +85,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getUserShared();
       if (!user) return;
       const { data } = await (supabase as unknown as {
         from: (t: string) => {

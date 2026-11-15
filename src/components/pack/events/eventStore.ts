@@ -10,9 +10,10 @@
 //
 // Klient cez `supabase as any` ako `packAlerts.ts` — `types.ts` tieto RPC nepozná.
 // Supabase premenné prostredia sa tu nečítajú (tech-stack lock) — klient si ich berie sám cez `@/lib/env`.
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { hasSession } from '@/lib/hasSession';
+import { shared } from '@/lib/sharedFetch';
 import { EVENTS_LIVE } from '@/lib/packFlags';
 import type { AddEventDraft, EventKind, EventOrigin } from './eventModel';
 
@@ -112,10 +113,15 @@ function toItem(r: EditionRow): EventItem {
   };
 }
 
-export async function fetchEvents(archive: boolean): Promise<EventItem[]> {
+// B2 (15. 11. 2026): zoznam podujatí išiel 9× za 5 min prechádzky (každý mount panelu).
+// Okno 60 s cez `shared()`; `force` (ručné obnovenie, po zápise) ide vždy na sieť.
+export async function fetchEvents(archive: boolean, force = false): Promise<EventItem[]> {
   if (!(await hasSession())) return []; // anonym: RPC je len pre členov (hasSession.ts)
-  const { data, error } = await db.rpc('list_event_editions', { p_archive: archive });
-  if (error) throw new Error(error.message);
+  const data = await shared(`events:${archive}`, async () => {
+    const r = await db.rpc('list_event_editions', { p_archive: archive });
+    if (r.error) throw new Error(r.error.message); // chyba sa nezdieľa dopredu (shared ju zahodí)
+    return r.data;
+  }, force ? 0 : 60_000);
   return ((data ?? []) as EditionRow[]).map(toItem);
 }
 
@@ -129,10 +135,14 @@ export function useEvents(enabled: boolean) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const firstLoad = useRef(true);
   const reload = useCallback(async () => {
     if (!enabled) return;
+    // Prvé načítanie panelu smie ísť z okna 30 s; každé ďalšie (ručné obnovenie, po zápise) ide čerstvé.
+    const force = !firstLoad.current;
+    firstLoad.current = false;
     try {
-      const [u, a] = await Promise.all([fetchEvents(false), fetchEvents(true)]);
+      const [u, a] = await Promise.all([fetchEvents(false, force), fetchEvents(true, force)]);
       setUpcoming(u);
       setArchive(a);
       setError(null);

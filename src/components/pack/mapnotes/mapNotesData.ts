@@ -272,27 +272,37 @@ function fromRow(r: NoteRow): MapNote {
   };
 }
 
+/** Výrez mapy v stupňoch (rovnaký tvar ako `ViewBox` v `PackMap.tsx`). */
+export interface MapBox { n: number; s: number; e: number; w: number }
+
 /**
- * Načíta VŠETKY zápisy naraz — nie per-výlet.
+ * Načíta zápisy z RPC `list_map_notes`.
  *
- * Je to zámer, nie lenivosť: väzba zápisu na výlet je geometrická a počíta sa
- * v prehliadači (`notesForTrail()` v `mapNotesGeo.ts`), takže server nemá ako
- * vedieť, ktoré zápisy k výletu patria. Mapa ich navyše potrebuje všetky naraz
- * na vykreslenie vrstvy, takže per-výlet dotaz by znamenal dve rôzne cesty
- * k tým istým dátam.
+ * Bez argumentov = VŠETKY naraz (článok výletu a zoznam výletov: väzba zápisu na výlet je
+ * geometrická a počíta sa v prehliadači — `notesForTrail()` v `mapNotesGeo.ts`).
+ * `box` = len zápisy vo výreze (mapa; B2, 15. 11. 2026 — migrácia 20261215_list_map_notes_bbox).
+ * `onlyMine` = len moje (body za odkazy do levelu nepotrebujú cudzie značky).
+ * ⚠️ Na LIVE, kým migrácia nebeží, RPC parametre ignoruje/odmietne — nasadzuj migráciu PRED klientom.
  */
-export async function fetchMapNotes(): Promise<MapNote[]> {
+export async function fetchMapNotes(box?: MapBox, onlyMine = false): Promise<MapNote[]> {
   if (DEV_NOAUTH) return devListNotes();
   if (!(await hasSession())) return []; // anonym: RPC je len pre členov (hasSession.ts)
-  const { data, error } = await db.rpc('list_map_notes');
+  const args = box || onlyMine
+    ? {
+        ...(box ? { p_min_lat: box.s, p_max_lat: box.n, p_min_lon: box.w, p_max_lon: box.e } : {}),
+        ...(onlyMine ? { p_only_mine: true } : {}),
+      }
+    : undefined;
+  const { data, error } = await db.rpc('list_map_notes', args);
   if (error) throw error;
   const notes = ((data ?? []) as NoteRow[]).map(fromRow);
-  void writeDeviceCopy(NOTES_COPY, notes);
+  if (!box && !onlyMine) void writeDeviceCopy(NOTES_COPY, notes);
   return notes;
 }
 
 /** Značky z posledného otvorenia: na mape sú hneď, `fetchMapNotes` ich potom obnoví. */
 const NOTES_COPY = 'map-notes-v1';
+export const writeStoredMapNotes = (notes: MapNote[]) => writeDeviceCopy(NOTES_COPY, notes);
 export const readStoredMapNotes = () => readDeviceCopy<MapNote[]>(NOTES_COPY);
 
 export interface NewMapNote {

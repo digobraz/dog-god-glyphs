@@ -174,12 +174,10 @@ const PawmateDepartureGate = lazy(() => import("@/components/pack/PawmateDepartu
 const MapGate = lazyPack(() => import("@/components/pack/MapGate").then((m) => ({ default: m.MapGate })));
 const Terms = lazy(() => import("./pages/Terms.tsx"));
 const Privacy = lazy(() => import("./pages/Privacy.tsx"));
-// /magnet — predajná stránka len cez odkaz (12. 10. 2026): noindex, nikde neprelinkovaná.
-const Magnet = lazy(() => import("./pages/Magnet.tsx"));
 // /app — nový web = výkladná skriňa FREE appky (6. 11. 2026, nákres v2): noindex, kým `/` ostáva film.
 const AppWeb = lazy(() => import("./pages/AppWeb.tsx"));
 const StoryWeb = lazy(() => import("./pages/StoryWeb.tsx"));
-// /magnet/* — darčeky 1:1 s /pack bez navu (v8, 12. 10. 2026): tie isté obrazovky v režime náhľadu.
+// MagnetPreview — obal /pack obrazoviek v režime náhľadu; dnes ho nesie verejná /map.
 const MagnetPreview = lazyPack(() => import("@/components/pack/magnetPreview").then((m) => ({ default: m.MagnetPreview })));
 const Pack = lazyPack(() => import("./pages/Pack.tsx"));
 const PackDogDetail = lazyPack(() => import("./pages/PackDogDetail.tsx"));
@@ -208,6 +206,9 @@ const PackChronicle = lazyPack(() => import("./pages/PackChronicle.tsx")); // KR
 const PackDogIdModules = lazyPack(() => import("./pages/PackDogIdModules.tsx")); // DOG ID = moduly (8. 10. 2026)
 const PackDogIdFlow = lazyPack(() => import("./pages/PackDogIdFlow.tsx")); // kvízy DOG ID v appke (nákres 1. 11., Matejove úpravy 2. 11.)
 const DogIdQuizRoute = lazyPack(() => import("./pages/PackDogIdFlow.tsx").then((m) => ({ default: m.DogIdQuizRoute })));
+// /magnet ZANIKOL (Matej 15. 11. 2026: „/magnet zaniká nebudeme ho potrebovať keďže sme free“).
+// Staré odkazy: výlety → verejná /map (tá istá obrazovka), všetko ostatné → /app.
+const MagnetZanikol = () => { const { pathname, search } = useLocation(); const v = pathname.match(/^\/magnet\/vylety(\/.*)?$/); return <Navigate to={v ? `/map${v[1] || ''}${search}` : '/app'} replace />; };
 const NatureRoute = () => { const [q] = useSearchParams(); return q.get('view') === 'result' ? <PackNatureQuiz /> : <PackDogIdFlow mode="nature" />; };
 const PackNatureQuiz = lazyPack(() => import("./pages/PackNatureQuiz.tsx")); // osobnostný kvíz element+úloha (zadanie-osobnostny-kviz-2026-08-06)
 const Login = lazyPack(() => import("./pages/Login.tsx"));
@@ -568,21 +569,16 @@ const App = () => (
               )}
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
-              <Route path="/magnet" element={<Magnet />} />
               <Route path="/app" element={<AppWeb />} />
               {/* /story — príbeh Hekthora, podstránka nového webu (nákres kolo 4, 11. 11. 2026) */}
               <Route path="/story" element={<StoryWeb />} />
-              <Route path="/magnet/vylety" element={<MagnetPreview kind="trips"><PackMap /></MagnetPreview>} />
-              <Route path="/magnet/vylety/triplist" element={<MagnetPreview kind="trips"><PackTriplist /></MagnetPreview>} />
-              <Route path="/magnet/vylety/:country/:slug" element={<MagnetPreview kind="trips"><PackTripArticle /></MagnetPreview>} />
-              <Route path="/magnet/vylety/:slug" element={<MagnetPreview kind="trips"><PackTripArticle /></MagnetPreview>} />
               {/* /map — verejná mapa výletov 1:1 s appkou (nákres 7. 11. 2026): všetky výlety na čítanie, zápis = popup appky */}
               <Route path="/map" element={<MagnetPreview kind="map"><PackMap /></MagnetPreview>} />
               <Route path="/map/triplist" element={<MagnetPreview kind="map"><PackTriplist /></MagnetPreview>} />
               <Route path="/map/:country/:slug" element={<MagnetPreview kind="map"><PackTripArticle /></MagnetPreview>} />
               <Route path="/map/:slug" element={<MagnetPreview kind="map"><PackTripArticle /></MagnetPreview>} />
-              <Route path="/magnet/ainubis/*" element={<MagnetPreview kind="ainubis"><PackAinubis /></MagnetPreview>} />
-              <Route path="/magnet/kviz" element={<MagnetPreview kind="quiz"><PackNatureQuiz /></MagnetPreview>} />
+              <Route path="/magnet/*" element={<MagnetZanikol />} />
+              <Route path="/magnet" element={<MagnetZanikol />} />
 
               {/* Pack backoffice auth — magic link callback */}
               <Route path="/login" element={<Login />} />

@@ -13,7 +13,7 @@ import { withTransform } from '@/services/cloudinaryService';
 import { IS_APP } from '@/lib/isApp';
 import { shareFile } from '@/lib/shareFile';
 
-const TTL = 30_000;
+const TTL = 60_000; // B2 (15. 11. 2026): 30 → 60 s; po zmene ide `sosInvalidate()`
 const EVT = 'dogypt:sos-changed';
 
 let cache: { at: number; p: Promise<SosActiveRow[]> } | null = null;

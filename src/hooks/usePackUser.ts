@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DEVOTION_START, DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { supabase } from '@/integrations/supabase/client';
+import { getUserShared } from '@/lib/sharedFetch';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 
 export interface PackDogFull {
@@ -107,7 +108,7 @@ export function usePackUser(userId: string | null): PackUserData {
       // `getUser()` (čerstvé user_metadata: devotion, bones, avatar) a zoznam psov idú NARAZ —
       // psy potrebujú len `userId`, ktorý už máme. Do 30. 10. 2026 čakali psy na `getUser()`.
       const dogsP = loadDogs(userId).catch(() => null);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getUserShared(); // B2: okno 60 s, zahodí sa pri zmene auth stavu
       if (!mounted || !user) {
         if (mounted) setState(s => ({ ...s, loading: false }));
         return;

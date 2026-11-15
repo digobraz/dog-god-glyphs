@@ -10,8 +10,7 @@
 // „v zápise som nedostal body za ODKAZY (9 bodov)"), hoci ich appka sľubuje na troch
 // miestach. Toto je tá chýbajúca polovica.
 //
-// Migrácia netreba: `list_map_notes()` vracia celú vrstvu aj s príznakom `isMine`,
-// takže počet mojich zápisov je v prehliadači k dispozícii bez ďalšieho dotazu.
+// Od B2 (15. 11. 2026) sa pýta `list_map_notes(p_only_mine)` — len moje značky s príznakom `isMine`.
 import { useEffect, useState } from 'react';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { fetchMapNotes, type MapNote } from './mapNotesData';
@@ -34,11 +33,11 @@ export function invalidateMyNotePoints(): void {
   inflight = null;
 }
 
-/** Zdieľané načítanie vrstvy — to isté volá aj `useMapNotes` pri PRVOM načítaní (audit B6). */
+/** Zdieľané načítanie MOJICH značiek pre level (celú vrstvu číta `useMapNotes`, nie toto). */
 export async function loadNotes(): Promise<MapNote[]> {
   if (cache) return cache;
   if (!inflight) {
-    inflight = fetchMapNotes()
+    inflight = fetchMapNotes(undefined, true) // B2: stačia moje značky, nie celá vrstva
       .then((n) => { cache = n; return n; })
       // Zlyhanie = nula bodov navyše, nie rozbitý level. Rovnaké pravidlo ako v `useMapNotes`:
       // odkazy sú doplnok, ich výpadok nesmie zhodiť povrch, ktorý ich len pripočítava.
