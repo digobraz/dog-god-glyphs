@@ -3359,6 +3359,7 @@ export const en = {
   'pack.addTrip.entry.kind.trip.titleApp': "Add a trip",
   'pack.addTrip.entry.kind.trip.text': "Share your spot with the pack",
   'pack.addTrip.entry.kind.event.title': "EVENT",
+  'pack.addTrip.entry.kind.event.titleApp': "Event",
   'pack.addTrip.entry.kind.event.text': "Something happening on a date",
   'pack.addTrip.entry.kind.service.title': "SERVICE",
   'pack.addTrip.entry.kind.service.text': "Someone who helps you and your dog",

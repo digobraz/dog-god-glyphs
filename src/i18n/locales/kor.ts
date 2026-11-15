@@ -1622,6 +1622,7 @@ export const kor: Partial<Dict> = {
   "pack.addTrip.entry.kind.trip.title": "여행",
   "pack.addTrip.entry.kind.trip.text": "무리와 당신의 장소를 공유하세요",
   "pack.addTrip.entry.kind.event.title": "행사",
+  'pack.addTrip.entry.kind.event.titleApp': "행사",
   "pack.addTrip.entry.kind.event.text": "특정 날짜에 열리는 어떤 것",
   "pack.addTrip.entry.kind.service.title": "서비스",
   "pack.addTrip.entry.kind.service.text": "당신과 반려견을 도와주는 사람",

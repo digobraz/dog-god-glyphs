@@ -1623,6 +1623,7 @@ export const ind: Partial<Dict> = {
   "pack.addTrip.entry.kind.trip.title": "यात्रा",
   "pack.addTrip.entry.kind.trip.text": "अपनी जगह झुंड के साथ शेयर करें",
   "pack.addTrip.entry.kind.event.title": "इवेंट",
+  'pack.addTrip.entry.kind.event.titleApp': "इवेंट",
   "pack.addTrip.entry.kind.event.text": "किसी तारीख़ को होने वाली कोई चीज़",
   "pack.addTrip.entry.kind.service.title": "सेवा",
   "pack.addTrip.entry.kind.service.text": "कोई जो आपकी और आपके कुत्ते की मदद करे",

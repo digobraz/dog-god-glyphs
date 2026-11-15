@@ -1619,6 +1619,7 @@ export const jpn: Partial<Dict> = {
   "pack.addTrip.entry.kind.trip.title": "外出",
   "pack.addTrip.entry.kind.trip.text": "群れと自分の場所をシェアしよう",
   "pack.addTrip.entry.kind.event.title": "イベント",
+  'pack.addTrip.entry.kind.event.titleApp': "イベント",
   "pack.addTrip.entry.kind.event.text": "決まった日に開催される何か",
   "pack.addTrip.entry.kind.service.title": "サービス",
   "pack.addTrip.entry.kind.service.text": "あなたと愛犬を助けてくれる人",

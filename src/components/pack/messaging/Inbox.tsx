@@ -73,7 +73,8 @@ export const INBOX_CSS = `
 .msg-dot.is-founder{background:${AINUBIS.cyan};}
 .msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
-.msg-avatar.is-sniffer{position:relative;}
+.msg-avatar{position:relative;}
+.msg-avatar-img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;}
 .msg-origin{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:${T.card};border:1px solid ${T.cardEdge};padding:0;box-sizing:border-box;object-fit:contain;}
 .msg-tagchip--click:hover{background:var(--msg-chip-hot);border-color:${T.cardEdge};}
 /* PRÁZDNY STAV — bez bloku: ikonka, veta, nápoveda a jedno lapis CTA. */
@@ -195,11 +196,13 @@ export function Inbox({ onOpenThread, onClose, onOpenTrip, onOpenSniffer }: {
                   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openThread(); }
                 }}
               >
-                <span
-                  className={`msg-avatar${conv.tag?.label === 'SNIFFER' ? ' is-sniffer' : ''}`}
-                  style={!isGroup && other?.avatarUrl ? { backgroundImage: `url('${sizedUrl(other.avatarUrl, 160)}')` } : undefined}
-                >
-                  {(isGroup || !other?.avatarUrl) && initial}
+                <span className={`msg-avatar${conv.tag?.label === 'SNIFFER' ? ' is-sniffer' : ''}`}>
+                  {/* Písmeno je VŽDY pod fotkou: keď sa fotka nenačíta, ostal by prázdny krúžok (sken 15. 11.). */}
+                  {initial}
+                  {!isGroup && other?.avatarUrl && (
+                    <img className="msg-avatar-img" src={sizedUrl(other.avatarUrl, 160)} alt="" aria-hidden="true"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  )}
                   {/* PÔVOD vlákna (Matej 26. 9.: „správy budú mať ikonky odkiaľ sa píše — či sniffer
                       alebo nie"). Výlet má vlastný štítok pod správou; SNIFFER nesie znak na avatare. */}
                   {conv.tag?.label === 'SNIFFER' && (

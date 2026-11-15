@@ -3051,6 +3051,7 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.entry.kind.trip.titleApp': "Pridať výlet",
   'pack.addTrip.entry.kind.trip.text': "Podeľ sa o svoje miesto so svorkou",
   'pack.addTrip.entry.kind.event.title': "PODUJATIE",
+  'pack.addTrip.entry.kind.event.titleApp': "Podujatie",
   'pack.addTrip.entry.kind.event.text': "Niečo, čo sa koná v konkrétny termín",
   'pack.addTrip.entry.kind.service.title': "SLUŽBA",
   'pack.addTrip.entry.kind.service.text': "Niekto, kto pomáha tebe a tvojmu psovi",

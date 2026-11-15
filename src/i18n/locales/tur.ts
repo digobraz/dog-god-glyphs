@@ -1622,6 +1622,7 @@ export const tur: Partial<Dict> = {
   "pack.addTrip.entry.kind.trip.title": "GEZİ",
   "pack.addTrip.entry.kind.trip.text": "Yerini sürüyle paylaş",
   "pack.addTrip.entry.kind.event.title": "ETKİNLİK",
+  'pack.addTrip.entry.kind.event.titleApp': "Etkinlik",
   "pack.addTrip.entry.kind.event.text": "Belli bir tarihte olan bir şey",
   "pack.addTrip.entry.kind.service.title": "HİZMET",
   "pack.addTrip.entry.kind.service.text": "Sana ve köpeğine yardım eden biri",

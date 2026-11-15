@@ -7,6 +7,8 @@ import { useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI } from '@/components/pack/packTheme';
 import { HandTrash } from '@/components/pack/HandIcons';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { APP_NEW } from '@/lib/packFlags';
 import { optimizePhoto, takeUploadBlob } from '@/components/pack/addtrip/photoOptimize';
 import { uploadTripReviewPhoto, sizedUrl } from '@/services/cloudinaryService';
 
@@ -20,6 +22,8 @@ const CSS = `
 .rvp-ph button{position:absolute;right:${PACK_SPACE.xs}px;top:${PACK_SPACE.xs}px;width:22px;height:22px;border-radius:${PACK_R.pill}px;cursor:pointer;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDark};display:flex;align-items:center;justify-content:center;padding:0;}
 .rvp-add{width:100%;margin-top:${PACK_SPACE.sm}px;cursor:pointer;border:1px dashed ${T.border};border-radius:${PACK_R.field}px;background:none;padding:${PACK_SPACE.md}px;color:${T.inkWarm};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;}
 .rvp-add:disabled{opacity:.5;cursor:default;}
+/* Appka: TLAČIDLO 3D z kitu (.pk-b3) — .rvp-add má rovnakú váhu a prebíjal mu rám aj písmo. */
+.rvp-add.pk-b3{min-height:56px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font-family:'LT Museum',serif;font-weight:400;font-size:16px;} /* písmo: cta */
 .rvp-note{margin-top:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.label}px;color:#B25640;}
 .rvp-strip{display:flex;gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.sm}px;}
 .rvp-strip .rvp-ph{width:72px;aspect-ratio:1;}
@@ -77,8 +81,9 @@ export function ReviewPhotoPicker({ slug, photos, onChange }: {
       {photos.length < REVIEW_MAX_PHOTOS && (
         <>
           <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={add} />
-          <button type="button" className="rvp-add" disabled={busy} onClick={() => fileRef.current?.click()}>
-            {busy ? '…' : t('pack.trip.cm.photoAdd')}
+          {/* Appka: to isté tlačidlo ako „Pridať fotku“ v Upraviť výlet (sken 15. 11.: čiarkovaný rámik vyzeral vypnutý). */}
+          <button type="button" className={`rvp-add${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} disabled={busy} onClick={() => fileRef.current?.click()}>
+            {busy ? '…' : APP_NEW ? <><SysIcon name="foto" size={28} />{t('pack.trip.cm.photoAdd')}</> : t('pack.trip.cm.photoAdd')}
           </button>
         </>
       )}

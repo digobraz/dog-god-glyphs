@@ -291,7 +291,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBl
         }}
       >
         <PanelIcon id={k.kind as CreateId} />
-        <span className="att-entry-title">{t(APP_NEW && k.kind === 'trip' ? 'pack.addTrip.entry.kind.trip.titleApp' : k.titleKey)}</span>
+        <span className="att-entry-title">{t(APP_NEW && (k.kind === 'trip' || k.kind === 'event') ? `pack.addTrip.entry.kind.${k.kind}.titleApp` : k.titleKey)}</span>
         {/* JEDNOTKA MUSÍ BYŤ PRI ČÍSLE a SKLOŇUJE SA (Matej 24. 8.): dlaždice nesú 20 / 10 / 3,
             teda dva slovenské tvary naraz. */}
         {/* PODUJATIE dáva body až PO USKUTOČNENÍ (Matej 24. 9. 2026) — „+10 bodov" pri

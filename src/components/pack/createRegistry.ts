@@ -257,7 +257,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
   },
   {
     id: 'event',
-    labelKey: 'pack.addTrip.entry.kind.event.title',
+    labelKey: APP_NEW ? 'pack.addTrip.entry.kind.event.titleApp' : 'pack.addTrip.entry.kind.event.title',
     labelFallback: 'EVENT',
     hintKey: 'pack.addTrip.entry.kind.event.text',
     hintFallback: 'Something happening on a date',

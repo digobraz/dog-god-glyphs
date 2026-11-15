@@ -1619,6 +1619,7 @@ export const chn: Partial<Dict> = {
   "pack.addTrip.entry.kind.trip.title": "出游",
   "pack.addTrip.entry.kind.trip.text": "和犬群分享你的位置",
   "pack.addTrip.entry.kind.event.title": "活动",
+  'pack.addTrip.entry.kind.event.titleApp': "活动",
   "pack.addTrip.entry.kind.event.text": "在某个日期举行的活动",
   "pack.addTrip.entry.kind.service.title": "服务",
   "pack.addTrip.entry.kind.service.text": "能够帮助你和你的狗的人",

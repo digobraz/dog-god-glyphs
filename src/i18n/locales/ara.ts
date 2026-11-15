@@ -1619,6 +1619,7 @@ export const ara: Partial<Dict> = {
   "pack.addTrip.entry.kind.trip.title": "رحلة",
   "pack.addTrip.entry.kind.trip.text": "شارك موقعك مع القطيع",
   "pack.addTrip.entry.kind.event.title": "فعالية",
+  'pack.addTrip.entry.kind.event.titleApp': "فعالية",
   "pack.addTrip.entry.kind.event.text": "شيء يحدث في تاريخ معيّن",
   "pack.addTrip.entry.kind.service.title": "خدمة",
   "pack.addTrip.entry.kind.service.text": "شخص يساعدك أنت وكلبك",

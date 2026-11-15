@@ -1807,6 +1807,7 @@ export const ukr: Partial<Dict> = {
   "pack.addTrip.entry.kind.trip.title": "ПОХІД",
   "pack.addTrip.entry.kind.trip.text": "Поділись своїм місцем зі зграєю",
   "pack.addTrip.entry.kind.event.title": "ПОДІЯ",
+  'pack.addTrip.entry.kind.event.titleApp': "Подія",
   "pack.addTrip.entry.kind.event.text": "Щось, що відбувається в конкретну дату",
   "pack.addTrip.entry.kind.service.title": "ПОСЛУГА",
   "pack.addTrip.entry.kind.service.text": "Хтось, хто допомагає тобі і твоєму псу",

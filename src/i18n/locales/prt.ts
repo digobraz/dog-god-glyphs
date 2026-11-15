@@ -1811,6 +1811,7 @@ export const prt: Partial<Dict> = {
   "pack.addTrip.entry.kind.trip.title": "VIAGEM",
   "pack.addTrip.entry.kind.trip.text": "Partilha o teu lugar com a matilha",
   "pack.addTrip.entry.kind.event.title": "EVENTO",
+  'pack.addTrip.entry.kind.event.titleApp': "Evento",
   "pack.addTrip.entry.kind.event.text": "Algo que acontece numa data",
   "pack.addTrip.entry.kind.service.title": "SERVIÇO",
   "pack.addTrip.entry.kind.service.text": "Alguém que ajuda a ti e ao teu cão",

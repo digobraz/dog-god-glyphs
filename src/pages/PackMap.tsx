@@ -7658,7 +7658,7 @@ export default function PackMap() {
             </div>
 
             <div className="trp-msheet-foot">
-              <button type="button" className={`trp-msheet-clear${APP_NEW ? ' pk-b3 pk-b3--red' : ''}`} disabled={activeFilterCount === 0} onClick={clearAllFilters}>{t('pack.map.clear')}</button>
+              <button type="button" className={`trp-msheet-clear${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} disabled={activeFilterCount === 0} onClick={clearAllFilters}>{t('pack.map.clear')}</button>
               <button type="button" className={`trp-msheet-show${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} onClick={() => setFilterSheetOpen(false)}>
                 {t('pack.map.show', { n: sortedVisibleHeroTrails.length })}
               </button>

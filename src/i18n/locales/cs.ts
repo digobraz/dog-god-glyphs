@@ -3514,6 +3514,7 @@ export const cs: Partial<Dict> = {
   'pack.addTrip.entry.event.tip.title': 'Z ODKAZU',
   'pack.addTrip.entry.kind.event.text': 'Něco, co se koná v konkrétní termín',
   'pack.addTrip.entry.kind.event.title': 'AKCE',
+  'pack.addTrip.entry.kind.event.titleApp': 'Akce',
   'pack.addTrip.entry.kind.note.text': 'Co má smečka o místě vědět',
   'pack.addTrip.entry.kind.note.title': 'Rychlý odkaz',
   'pack.addTrip.entry.kind.service.text': 'Někdo, kdo pomáhá tobě a tvému psovi',
