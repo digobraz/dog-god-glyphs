@@ -8744,6 +8744,7 @@ export const en = {
     'nf.eye': "Error 404",
   'nf.h1a': "This page ran",
   'nf.h1b': "off-leash.",
+  'nf.lostLead': "This dog is already home, or the link is wrong.",
   'nf.sub': "Hekthor went looking for it and found a hare instead. Help him catch it.",
   'nf.tiltAlt': "Hekthor, puzzled",
   'nf.titleA': "Hekthor's",

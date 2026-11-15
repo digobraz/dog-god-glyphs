@@ -62,7 +62,7 @@ function trim(img: HTMLImageElement): Sprite {
   return { img, sx: x0, sy: y0, sw: x1 - x0 + 1, sh: y1 - y0 + 1 };
 }
 
-const NotFound = () => {
+const NotFound = ({ lead }: { lead?: string } = {}) => {
   const t = useT();
   const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -408,7 +408,7 @@ const NotFound = () => {
           <img className="nf-tilt" src={`${A}hekthor-tilt.webp`} width={512} height={512} alt={tx("nf.tiltAlt", "Hekthor, puzzled")} />
           <div>
             <p className="nf-eye">{tx("nf.eye", "Error 404")}</p>
-            <h1 className="nf-404">{tx("nf.h1a", "This page ran")} <span>{tx("nf.h1b", "off-leash.")}</span></h1>
+            {lead ? <h1 className="nf-404 nf-lead">{lead}</h1> : <h1 className="nf-404">{tx("nf.h1a", "This page ran")} <span>{tx("nf.h1b", "off-leash.")}</span></h1>}
             <p className="nf-sub">{tx("nf.sub", "Hekthor went looking for it and found a hare instead. Help him catch it.")}</p>
           </div>
         </div>
@@ -492,6 +492,7 @@ const NF_CSS = `
 .nf-tilt{width:120px;height:120px;flex:none;filter:drop-shadow(0 8px 14px rgba(110,71,16,0.28))}
 .nf-eye{margin:0 0 4px;font:500 12px/1.4 'Space Grotesk',sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--gold-ink)}
 .nf-404{margin:0;font:900 clamp(28px,6.4vw,52px)/1.02 'LT Museum',serif;color:var(--ink)}
+.nf-404.nf-lead{font-size:clamp(24px,5vw,40px);line-height:1.1}
 .nf-404 span,.nf-title span{background:var(--gold-text);-webkit-background-clip:text;background-clip:text;color:transparent}
 .nf-sub{margin:8px 0 0;font-size:16px;line-height:1.5;color:var(--ink-soft)}
 

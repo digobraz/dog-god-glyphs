@@ -424,12 +424,11 @@ export function FlowWelcomeScreen() {
             ) : (
               <motion.div
                 key="rank"
-                className="hf-block hf-carved wl-stack"
+                className="wl-stack"
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
               >
-                <span className="hf-carved-rim" aria-hidden />
                 <div className="hf-plate">
                   {/* PORADIE — predošlí hore rozmazaní, nový pes (psi) pod nimi. */}
                   <div className="wl-rank">
@@ -648,14 +647,9 @@ const W = 'html[data-flow-p3d] .hf-pale .wl-page';
 const MUSEUM = "'LT Museum', 'Cinzel', serif"; /* písmo: nadpis */
 const DOG_NAME = "'Cinzel Decorative', 'Cinzel', serif"; /* písmo: meno */
 const WELCOME_P3D_CSS = `
-/* Doska poradia = karta Papyrus 3D (flowFullSkin ju inak zruší na holé pozadie). Výška počíta aj horný vzduch javiska (40 px). */
-${W} .wl-stack.hf-block {
-  background: var(--p3d-card) !important; border: 2.5px solid var(--p3d-ink) !important; border-radius: ${PACK_R.card}px !important;
-  box-shadow: var(--p3d-pera) !important; padding: ${PACK_SPACE.lg}px !important;
-  min-height: min(calc(100dvh - 72px), 900px);
-}
-@media (min-width: 768px) { ${W} .wl-stack.hf-block { padding: ${PACK_SPACE.xl}px !important; min-height: min(calc(100dvh - 64px), 900px); } }
-${W} .wl-stack .hf-carved-rim { display: none; }
+/* Poradie leží na celej obrazovke (15. 11. 2026: heroflow nie je v blokoch) — bez karty, výška počíta aj horný vzduch javiska (40 px). */
+${W} .wl-stack.hf-block, ${W} .wl-stack { background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; padding: 0 !important; min-height: min(calc(100dvh - 72px), 900px); }
+@media (min-width: 768px) { ${W} .wl-stack { min-height: min(calc(100dvh - 64px), 900px); } }
 ${W} .wl-stack .hf-plate { padding: 0 !important; }
 
 /* Riadky psov: obrys, papyrus, fotka v jamke. Meno psa je identita (Decorative), číslo UI. */
@@ -680,8 +674,8 @@ ${W} .wl-rule { opacity: 1; }
 ${W} .wl-bar { box-sizing: border-box; height: 16px; border: 2.5px solid var(--p3d-ink); background: var(--p3d-paper-hi); box-shadow: var(--p3d-inset), 0 3px 0 var(--p3d-gold-solid); }
 ${W} .wl-bar > span { background: linear-gradient(180deg, #FFE27A 0%, #F5C73D 50%, #E69E1A 100%); border-right: 2.5px solid var(--p3d-ink); box-sizing: border-box; }
 
-/* Hektorov príchod = karta, nie fialový gradient */
-${W} .wl-hero { background: var(--p3d-card); color: var(--p3d-ink); border: 2.5px solid var(--p3d-ink); border-radius: ${PACK_R.card}px; box-shadow: var(--p3d-pera); }
+/* Hektorov príchod = celá obrazovka, bez karty */
+${W} .wl-hero { background: none; color: var(--p3d-ink); border: 0; border-radius: 0; box-shadow: none; }
 ${W} .wl-hero-h { font-family: ${MUSEUM} !important; font-weight: 900; color: var(--p3d-ink); text-transform: none; letter-spacing: .01em; }
 ${W} .wl-hero-h .hf-letter { font-family: ${MUSEUM} !important; font-weight: 900; color: var(--p3d-ink) !important; }
 ${W} .wl-hero-h .hf-letter.text-amber-300 { color: var(--p3d-gold-ink) !important; }
@@ -691,7 +685,6 @@ ${W} .wl-state-wrap { margin: auto 0; }
 .wl-state {
   width: 100%; display: flex; flex-direction: column; align-items: center; gap: ${PACK_SPACE.lg}px; text-align: center;
   padding: ${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;
-  background: var(--p3d-card); border: 2.5px solid var(--p3d-ink); border-radius: ${PACK_R.card}px; box-shadow: var(--p3d-pera);
 }
 ${W} .wl-state-h { margin: 0; font-family: ${MUSEUM} !important; font-weight: 900; font-size: 24px; line-height: 1.2; color: var(--p3d-ink); text-transform: none; letter-spacing: .01em; text-wrap: balance; }
 ${W} .wl-state-p { margin: 0; max-width: 360px; font-size: 16px; line-height: 1.4; font-weight: 500; color: var(--p3d-ink); }

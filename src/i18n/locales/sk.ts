@@ -8437,6 +8437,7 @@ export const sk: Partial<Dict> = {
     'nf.eye': "Chyba 404",
   'nf.h1a': "Táto stránka ušla",
   'nf.h1b': "z vôdzky.",
+  'nf.lostLead': "Tento pes už je doma, alebo odkaz nesedí.",
   'nf.sub': "Hekthor ju išiel hľadať a našiel zajaca. Pomôž mu ho chytiť.",
   'nf.tiltAlt': "Hekthor, zmätený",
   'nf.titleA': "Hekthorov",

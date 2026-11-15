@@ -55,6 +55,7 @@ function LostPublicInner({ slug }: { slug: string }) {
   const t = useT();
   const home = () => { const v = t('pack.join.home'); return v === 'pack.join.home' ? 'BACK TO DOGYPT' : v; };
   const back = () => (window.history.length > 1 ? nav(-1) : nav('/'));
+  const lostLead = () => { const v = t('nf.lostLead'); return v === 'nf.lostLead' ? 'This dog is already home, or the link is wrong.' : v; };
 
   useEffect(() => { void ensurePackDict(); }, []);
   useEffect(() => {
@@ -78,6 +79,9 @@ function LostPublicInner({ slug }: { slug: string }) {
   const closed = row?.status === 'closed';   // nežije: navonok len „ukončené“, bez dôvodu
   const title = row ? `${row.dog_name} · ${row.status === 'found' ? s('pack.sos.found') : closed ? s('pack.sos.det.endedPublic') : s('pack.sos.lost')}` : 'DOGYPT';
   const live = !!row && (row.status === 'active' || row.status === 'ended');   // telefón, videnie a leták žijú ďalej len pri active + ended
+
+  // Zlý / neplatný odkaz (nie chyba siete): 404 hra so zajacom a vlastnou vetou nad ňou.
+  if (row === null && !failed) return <NotFound lead={lostLead()} />;
 
   return (
     <div className={`${APP_NEW ? SP_PAPER : 'hf-pale lp-flat'} min-h-screen flex flex-col`}>
