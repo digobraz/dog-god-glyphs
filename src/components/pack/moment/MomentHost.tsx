@@ -18,6 +18,10 @@ import { MOMENTY, maZdielanie, moment, uder } from '@/lib/momenty';
 import { listeners, fronta, type Listener, type MomentData } from './momentBus';
 import { useT } from '@/i18n/LanguageContext';
 import { MOMENT_CSS } from './momentCss';
+import { MomentSkuska } from './MomentSkuska';
+
+/** Panel skúšky momentov: `/pack?momenty=1` (len pod MOMENTY_ON, lebo len vtedy sa hostiteľ montuje). */
+const SKUSKA = typeof location !== 'undefined' && new URLSearchParams(location.search).has('momenty');
 
 /** Povolené je len `<em>` (zlaté slovo); všetko ostatné je text, nie HTML. */
 function Nadpis({ html }: { html: string }) {
@@ -66,12 +70,13 @@ export function MomentHost() {
     }, 350);
   }
 
-  if (!m || !def) return null;
+  if (!m || !def) return SKUSKA ? <><style>{MOMENT_CSS}</style><MomentSkuska /></> : null;
   const share = maZdielanie(m.id) && m.zdielat;
   const pecat = def.velkost === 'pecat';
   return createPortal(
     <>
       <style>{MOMENT_CSS}</style>
+      {SKUSKA && <MomentSkuska />}
       <div className={`pkm pkm--${def.velkost}${out ? ' out' : ''}`} role="dialog" aria-modal="true"
         aria-label={m.nadpis.replace(/<\/?em>/g, '')} onClick={pecat ? zavri : undefined}>
         <div className="pkm-col">
