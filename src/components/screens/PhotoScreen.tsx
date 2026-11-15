@@ -519,7 +519,9 @@ export function PhotoScreen() {
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       {/* Header */}
-      <PageTopBar onBack={() => (sub > 0 ? goTo(sub - 1) : navigate('/heroglyph/name'))} />
+      <div className="hf-topbar flex-shrink-0">
+        <PageTopBar brandBack={NEW_HEROFLOW} onBack={() => (sub > 0 ? goTo(sub - 1) : navigate('/heroglyph/name'))} />
+      </div>
 
       {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">

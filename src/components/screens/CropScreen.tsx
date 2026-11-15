@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
+import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { CropArea, canvasCropAndUpload, BackNextButtons } from '@/components/screens/photoCrop';
 import hekthorImg from '@/assets/hekthor.png';
 import { useT } from '@/i18n/LanguageContext';
@@ -60,7 +61,9 @@ export function CropScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <PageTopBar onBack={() => navigate('/heroglyph/dog-character')} />
+      <div className="hf-topbar flex-shrink-0">
+        <PageTopBar brandBack={NEW_HEROFLOW} onBack={() => navigate('/heroglyph/dog-character')} />
+      </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
         <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">

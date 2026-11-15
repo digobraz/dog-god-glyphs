@@ -7,11 +7,12 @@ import { useT, useLang } from "@/i18n/LanguageContext";
 import { PageTopBar } from "@/components/PageTopBar";
 import { FLOW_PALE_CSS } from "@/components/screens/flowPaleSkin";
 import { LAPIS, goldFrameCSS } from "@/components/pack/navGoldSkin";
-import { PACK_HEAD, PACK_SPACE, PACK_TEXT } from "@/components/pack/packTheme";
+import { PACK_HEAD, PACK_R, PACK_SPACE, PACK_TEXT } from "@/components/pack/packTheme";
 import { LAB } from "@/lib/labTheme";
 import { IS_APP } from "@/lib/isApp";
 import { AINUBIS } from "@/components/pack/ainubisSkin";
 import ainubisEmblem from "@/assets/ainubis-head.webp";
+import { BackButton } from "@/components/pack/BackButton";
 
 // ── ŠAT: D-BLOK + LAPIS (Matej 26. 9. 2026: „prihlasovaciu stránku musíme prerobiť
 // na brand v dbloku + lapis") ─────────────────────────────────────────────────
@@ -105,6 +106,48 @@ const LOGIN_CSS = `
   font-size: ${PACK_TEXT.label}px; line-height: 1.5; color: ${LAB.inkSoft}; text-wrap: balance;
 }
 .lg-gate a { white-space: nowrap; color: ${LAPIS.edge}; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+`;
+
+// ── ŠAT PAPYRUS 3D (Matej 15. 11. 2026: „prihlásenie nie je v brande … oprav to") ──
+// Len pod `APP_NEW` (selektor `html.papyrus3d` existuje len tam), web LIVE ostáva na D-BLOKU + LAPIS vyššie.
+// Karta = papyrus s tmavým obrysom a spodnou perou (`--p3d-card`/`--p3d-pera`), polia `.pk-p3d-input`,
+// CTA `.pk-b3--lapis`, vedľajšie akcie `.pk-b3--paper` (namiesto drobných podčiarknutých odkazov),
+// brána je VNÚTRI karty, tmavá pilulka AINUBISA je tichý štítok. Zdieľané triedy sa nemenia, len sa používajú.
+const P3D_LOGIN_CSS = `
+html.papyrus3d .lg-login .hf-block {
+  background: var(--p3d-card); border: 2.5px solid var(--p3d-ink); border-radius: ${PACK_R.card}px;
+  box-shadow: var(--p3d-pera);
+}
+html.papyrus3d .lg-login .lg-crest {
+  background: var(--p3d-card); border: 2.5px solid var(--p3d-ink); border-radius: 999px;
+  box-shadow: var(--p3d-lift);
+}
+html.papyrus3d .lg-login .lg-face { width: calc(100% - ${PACK_SPACE.md}px); height: calc(100% - ${PACK_SPACE.md}px); }
+html.papyrus3d .lg-login .lg-eyebrow {
+  background: none; border: none; padding: 0; color: var(--p3d-gold-ink);
+}
+html.papyrus3d .lg-login .lg-eyebrow .lg-ai { color: var(--p3d-ink); }
+html.papyrus3d .lg-login .lg-eyebrow .lg-ai > span { color: inherit; text-shadow: none; }
+html.papyrus3d .lg-login .lg-in { width: 100%; text-align: left; outline: none; }
+html.papyrus3d .lg-login .lg-in::placeholder { color: ${LAB.inkMuted}; }
+html.papyrus3d .lg-login .lg-in:focus { box-shadow: var(--p3d-inset), 0 0 0 3px ${LAPIS.halo}; }
+html.papyrus3d .lg-login .lg-pw .lg-in { padding: 0 ${PACK_SPACE.xxxl}px 0 ${PACK_SPACE.lg}px; }
+html.papyrus3d .lg-login .lg-pw--long .lg-in::placeholder { font-size: ${PACK_TEXT.label}px; }
+html.papyrus3d .lg-login .lg-eye { color: var(--p3d-ink); opacity: .7; right: ${PACK_SPACE.md}px; }
+html.papyrus3d .lg-login .lg-b3 { width: 100%; height: 54px; padding: 0 ${PACK_SPACE.lg}px; font-size: ${PACK_TEXT.h2}px; text-align: center; }
+html.papyrus3d .lg-login .lg-b3--sm { height: 44px; font-size: ${PACK_TEXT.lead}px; }
+html.papyrus3d .lg-login form.lg-stack .lg-b3 { margin-top: 0; }
+html.papyrus3d .lg-login .lg-stack { gap: ${PACK_SPACE.md}px; }
+html.papyrus3d .lg-login .lg-links { flex-direction: column; align-items: stretch; gap: ${PACK_SPACE.md}px; margin-top: ${PACK_SPACE.xs}px; }
+html.papyrus3d .lg-login .hf-alert { font-size: ${PACK_TEXT.body}px; }
+html.papyrus3d .lg-login .lg-gate {
+  margin: ${PACK_SPACE.xs}px 0 0; padding-top: ${PACK_SPACE.md}px; border-top: 1.5px solid rgba(42,22,8,.22);
+  font-size: ${PACK_TEXT.body}px; color: ${LAB.inkSoft};
+}
+html.papyrus3d .lg-login .lg-gate a { color: ${LAPIS.edge}; }
+html.papyrus3d .lg-top { position: relative; }
+html.papyrus3d .lg-top .lg-back { left: max(${PACK_SPACE.lg}px, calc(50% - 288px)); top: 17px; z-index: 3; }
+@media (min-width: 768px) { html.papyrus3d .lg-top .lg-back { top: 31px; } }
 `;
 
 type Status = "verifying" | "success" | "expired" | "invalid" | "network" | "missing" | "recovery";
@@ -396,13 +439,32 @@ function WebLogin() {
     </svg>
   );
 
+  // Šat Papyrus 3D (len `APP_NEW`): polia, hlavné a vedľajšie tlačidlá. Web ostáva na `hf-*`.
+  const fieldCls = APP_NEW ? "pk-p3d-input lg-in" : "hf-field";
+  const ctaCls = APP_NEW ? "pk-b3 pk-b3--lapis lg-b3" : "hf-cta";
+  const linkCls = APP_NEW ? "pk-b3 pk-b3--paper lg-b3 lg-b3--sm" : "hf-skip";
+  const gate = status === "missing" && !dogIdPresent && !IS_APP && (
+    <p className="lg-gate">
+      {t('login.gate.line')}{' '}
+      <Link to="/heroglyph/name">{t('login.gate.cta')}</Link>
+    </p>
+  );
+
   return (
     <div className="hf-pale lg-login flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{LOGIN_CSS}</style>
+      <style>{FLOW_PALE_CSS}{LOGIN_CSS}{APP_NEW ? P3D_LOGIN_CSS : ""}</style>
 
-      <div className="hf-topbar flex-shrink-0">
-        <PageTopBar brandBack onBack={() => navigate("/")} backAriaLabel={t('login.homeAria')} />
-      </div>
+      {APP_NEW ? (
+        /* Hlavička ako v /pack: logo v strede, kruhová šípka `BackButton` vľavo. */
+        <div className="hf-topbar lg-top flex-shrink-0">
+          <PageTopBar />
+          <BackButton tone="pale" className="lg-back" style={{ position: 'absolute' }} onClick={() => navigate("/")} label={t('login.homeAria')} />
+        </div>
+      ) : (
+        <div className="hf-topbar flex-shrink-0">
+          <PageTopBar brandBack onBack={() => navigate("/")} backAriaLabel={t('login.homeAria')} />
+        </div>
+      )}
 
       <div className="hf-stage">
         <div className="w-full lg-col flex flex-col items-center">
@@ -450,14 +512,14 @@ function WebLogin() {
                           placeholder={t('login.forgot.placeholder')}
                           required
                           autoComplete="email"
-                          className="hf-field"
+                          className={fieldCls}
                         />
-                        <button type="submit" disabled={forgotSending} className="hf-cta">
+                        <button type="submit" disabled={forgotSending} className={ctaCls}>
                           {forgotSending ? t('login.forgot.submitting') : t('login.forgot.submit')}
                         </button>
                       </form>
                     )}
-                    <button type="button" onClick={() => setShowForgot(false)} className="hf-skip">
+                    <button type="button" onClick={() => setShowForgot(false)} className={linkCls}>
                       {t('login.forgot.back')}
                     </button>
                   </div>
@@ -474,7 +536,7 @@ function WebLogin() {
                       placeholder={t('login.magicLink.placeholder')}
                       required
                       autoComplete="email"
-                      className="hf-field"
+                      className={fieldCls}
                     />
                     <div className="lg-pw">
                       <input
@@ -484,7 +546,7 @@ function WebLogin() {
                         placeholder={t('login.password.placeholder')}
                         required
                         autoComplete="current-password"
-                        className="hf-field"
+                        className={fieldCls}
                       />
                       <button
                         type="button"
@@ -496,18 +558,18 @@ function WebLogin() {
                       </button>
                     </div>
                     {passwordError && <p className="hf-alert">{passwordError}</p>}
-                    <button type="submit" disabled={passwordSending} className="hf-cta">
+                    <button type="submit" disabled={passwordSending} className={ctaCls}>
                       {passwordSending ? t('login.password.submitting') : t('login.password.submit')}
                     </button>
 
                     <div className="lg-links">
-                      <button type="button" onClick={() => setShowForgot(true)} className="hf-skip">
+                      <button type="button" onClick={() => setShowForgot(true)} className={linkCls}>
                         {t('login.password.forgotPassword')}
                       </button>
-                      <span aria-hidden>·</span>
+                      {!APP_NEW && <span aria-hidden>·</span>}
                       <button
                         type="button"
-                        className="hf-skip"
+                        className={linkCls}
                         onClick={() => {
                           // ⚠️ Prázdne pole NESMIE skončiť tichým `return`. Presne to sa stalo
                           //    Matejovi 15. 9. 2026 na ostrom /login: klikol a nestalo sa NIČ —
@@ -565,7 +627,7 @@ function WebLogin() {
                         required
                         minLength={8}
                         autoComplete="new-password"
-                        className="hf-field"
+                        className={fieldCls}
                       />
                       <button
                         type="button"
@@ -576,7 +638,7 @@ function WebLogin() {
                         {eye(showRecoveryPassword)}
                       </button>
                     </div>
-                    <button type="submit" disabled={recoverySending || recoveryPassword.length < 8} className="hf-cta">
+                    <button type="submit" disabled={recoverySending || recoveryPassword.length < 8} className={ctaCls}>
                       {recoverySending ? t('login.recovery.submitting') : t('login.recovery.submit')}
                     </button>
                   </form>
@@ -585,16 +647,18 @@ function WebLogin() {
 
               {showResend && (
                 <div className="lg-stack">
-                  <button type="button" onClick={handleResend} disabled={resending || resendSent} className="hf-cta">
+                  <button type="button" onClick={handleResend} disabled={resending || resendSent} className={ctaCls}>
                     {resendSent ? t('login.resend.sent') : resending ? t('login.resend.sending') : t('login.resend.idle')}
                   </button>
-                  <Link to="/" className="hf-skip">{t('login.backHome')}</Link>
+                  <Link to="/" className={linkCls}>{t('login.backHome')}</Link>
                 </div>
               )}
 
               {errorDetail && status !== "verifying" && status !== "success" && (
                 <p className="lg-err">{errorDetail}</p>
               )}
+
+              {APP_NEW && gate}
             </div>
           </article>
 
@@ -602,12 +666,7 @@ function WebLogin() {
               pre všetkých — obrazovka nesmie prezradiť, či adresa u nás je; DOGS
               dostanú rozdiel mailom (`auth-no-account`, karta `no-account-dogs`). */}
           {/* Appka: nákup len na webe (Apple 3.1.1), odkaz na heroflow sa v nej neukazuje. */}
-          {status === "missing" && !dogIdPresent && !IS_APP && (
-            <p className="lg-gate">
-              {t('login.gate.line')}{' '}
-              <Link to="/heroglyph/name">{t('login.gate.cta')}</Link>
-            </p>
-          )}
+          {!APP_NEW && gate}
         </div>
       </div>
     </div>

@@ -98,7 +98,7 @@ ${ROOT} .hf-speak:not(.st-speak) .say::before { left: -11px; border-right-color:
 ${ROOT} .hf-speak:not(.st-speak) .say::after { left: -7px; border-right-color: var(--p3d-paper-hi); }
 
 /* ── ZÁLOŽKY TÉM (pomocné: name · born · status, who · name · stars, kategórie patrónov) ──
-   Tiché: tenký zlatý obrys, malé písmená, bez pery. Aktívna = zlatá výplň (zlato = konštrukcia a poloha).
+   Tiché: tenký zlatý obrys, malé písmená, bez pery. Aktívna = lapis tint (voľba = lapis, 15. 11. 2026; plná zlatá bola chyba).
    Odpovede (.hf-pick) sú 3D papyrus tlačidlá s lapis tintom po výbere — zámerne iné než záložky. */
 ${ROOT} :is(.ftc-chip, .pt-chip, .pt-mix) {
   border: 2px solid color-mix(in srgb, var(--p3d-gold-solid) 75%, transparent); border-radius: 999px; min-height: 36px;
@@ -108,8 +108,8 @@ ${ROOT} :is(.ftc-chip, .pt-chip, .pt-mix) {
 ${ROOT} :is(.ftc-chip, .pt-chip, .pt-mix):hover { background: color-mix(in srgb, var(--p3d-gold) 14%, transparent); }
 ${ROOT} :is(.ftc-chip, .pt-chip, .pt-mix):active { transform: none; }
 ${ROOT} :is(.ftc-chip, .pt-chip, .pt-mix).on {
-  background: linear-gradient(180deg, #FFE27A 0%, #F5C73D 55%, #E69E1A 100%); border-color: var(--p3d-ink); color: var(--p3d-ink);
-  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55);
+  background: ${LAPIS_TINT}; border-color: #16307A; color: #0A1A4A;
+  box-shadow: inset 0 0 0 1px rgba(22, 48, 122, .45);
 }
 /* Brandová fajka (žlto-modrá, public/icons/sys/fajka.webp) namiesto kreslenej. */
 ${ROOT} .ftc-st { flex: 0 0 18px; width: 18px; height: 18px; }
@@ -277,4 +277,37 @@ ${WALL} .hf-speak .fq-mark { top: -12px; right: -26px; }
 /* ── PROGRES (FlowProgress v flowRedress.tsx): hrubá pilulka s obrysom, zlatá výplň ── */
 ${P} .fp-track { height: 16px !important; box-sizing: border-box; border: 2.5px solid var(--p3d-ink); background: var(--p3d-paper-hi) !important; box-shadow: var(--p3d-inset), 0 3px 0 var(--p3d-gold-solid); }
 ${P} .fp-fill { background: linear-gradient(180deg, #FFE27A 0%, #F5C73D 50%, #E69E1A 100%) !important; border-right: 2.5px solid var(--p3d-ink); box-sizing: border-box; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55); }
+
+/* ── KARTA OBSAHU (15. 11. 2026, Matej: „oprav to všetko" — heroflow nebol v brande) ──
+   Obsah kroku = JEDNA papyrusová karta (obrys 2,5 px, pera, radius 16). Vrstva `flowFullSkin` (7. 11.)
+   bloky zrušila, aby obsah ležal na tapete — to je tu vrátené. Starý zlatý odliatok (`goldFrameCSS`) a
+   rytá obruba mizne. Vnorený blok (karta v karte) sa vráti na plocho. */
+${WALL} :is(.hf-block, .hf-carved, .papyrus-bg) {
+  background: var(--p3d-card) !important; border: 2.5px solid var(--p3d-ink) !important; border-radius: 16px !important;
+  box-shadow: var(--p3d-pera) !important; padding: 16px !important;
+}
+${WALL} :is(.hf-block, .hf-carved, .papyrus-bg) :is(.hf-block, .hf-carved, .papyrus-bg) {
+  background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; border-radius: 0 !important;
+}
+${WALL} .hf-carved-rim { display: none !important; }
+${WALL} .hf-stage .hf-block { margin-top: 0; }
+${WALL} .hf-plate { padding: 0 !important; }
+
+/* ── STARÉ KROKY (fotka, výrez, odkaz): šípka späť = kruhový .pk-b3--paper, CTA = lapis aj pri :disabled ── */
+${WALL} :is(.btn-gold, button.bg-primary) {
+  --b3-p: color-mix(in srgb, #0A1A4A 60%, black);
+  background: linear-gradient(180deg, color-mix(in srgb, #16307A 72%, white), #0A1A4A) !important; color: #EFD79A !important;
+  border: 2.5px solid #EFD79A !important; border-radius: 16px; font-size: 14px; letter-spacing: .04em; text-transform: uppercase;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .28), inset 0 -4px 0 rgba(0, 0, 0, .15), 0 6px 0 var(--b3-p), 0 11px 14px var(--p3d-sh) !important;
+}
+${WALL} :is(.btn-gold, button.bg-primary):hover:not(:disabled) { background: linear-gradient(180deg, color-mix(in srgb, #16307A 72%, white), #0A1A4A) !important; transform: none; }
+${WALL} :is(.btn-gold, button.bg-primary):active:not(:disabled) {
+  transform: translateY(5px);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .28), inset 0 -2px 0 rgba(0, 0, 0, .15), 0 1px 0 var(--b3-p), 0 2px 4px var(--p3d-sh) !important;
+}
+${WALL} :is(.btn-gold, button.bg-primary):disabled {
+  background: linear-gradient(180deg, color-mix(in srgb, #16307A 72%, white), #0A1A4A) !important; color: #EFD79A !important;
+  border: 2.5px solid #EFD79A !important; opacity: .55; cursor: default;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .28), inset 0 -4px 0 rgba(0, 0, 0, .15), 0 6px 0 var(--b3-p), 0 11px 14px var(--p3d-sh) !important;
+}
 `;
