@@ -5,6 +5,10 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { CropArea, canvasCropAndUpload, BackNextButtons } from '@/components/screens/photoCrop';
+import { PH_CSS } from '@/components/screens/PhotoScreen';
+import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
+import { hekthorFace } from '@/lib/hekthorFaces';
 import hekthorImg from '@/assets/hekthor.png';
 import { useT } from '@/i18n/LanguageContext';
 import { track } from '@/lib/analytics';
@@ -58,6 +62,31 @@ export function CropScreen() {
   }, [flowOk, dogPhotoUrl, navigate]);
 
   if (!flowOk || !dogPhotoUrl) return null;
+
+  // Celá obrazovka (Matej 15. 11. 2026: heroflow nie je v blokoch) — rozloženie 1:1 s krokom fotky.
+  if (NEW_HEROFLOW) {
+    return (
+      <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
+        <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{PH_CSS}</style>
+        <div className="hf-topbar flex-shrink-0">
+          <PageTopBar brandBack onBack={() => navigate('/heroglyph/dog-character')} />
+        </div>
+        <div className="hf-stage">
+          <div className="ph-col">
+            <FlowMedallion src={hekthorFace('crop')} size={96} className="hf-medal" />
+            <h2 className="ph-h">{t('heroglyph.flow.photo.adjustTitle')}</h2>
+            <p className="ph-p">{t('heroglyph.flow.photo.adjustHint')}</p>
+            <div className="ph-plate ph-crop">
+              <CropArea src={dogPhotoUrl} shape="circle" value={crop} onChange={setCrop} />
+            </div>
+          </div>
+        </div>
+        <button type="button" className="hf-cta hf-dock" onClick={finish} disabled={saving}>
+          {saving ? t('heroglyph.flow.photo.saving') : t('heroglyph.flow.photo.next')}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

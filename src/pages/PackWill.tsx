@@ -69,6 +69,10 @@ export default function PackWill() {
       {/* Karta v strede — `margin:auto` na dieťati, nie justify-center (lock PAGE_AIR). */}
       <div className="relative" style={{ zIndex: 1, width: '100%', maxWidth: 560, margin: 'auto', padding: `${S.lg}px ${S.lg}px ${S.xxl}px`, boxSizing: 'border-box' }}>
         <section className={APP_NEW ? 'sp-card' : undefined} style={{ ...(APP_NEW ? null : PACK_BOX.card), padding: S.xl, color: T.ink, textAlign: 'center' }}>
+          {/* Ikonka z továrne (Matej 15. 11. 2026: „závet tiež by sa hodila ikonka“) — zvitok s pečaťou, vo všetkých stavoch okrem načítania. */}
+          {phase.k !== 'loading' && (
+            <img src="/icons/sys/certifikat.webp" alt="" width={88} height={88} style={{ display: 'block', margin: `0 auto ${S.md}px`, width: 88, height: 88, objectFit: 'contain' }} />
+          )}
           {phase.k === 'loading' && <Line>{tx('will.loading', 'Opening the will')}</Line>}
 
           {phase.k === 'dead' && (

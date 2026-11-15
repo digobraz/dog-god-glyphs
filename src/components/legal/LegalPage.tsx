@@ -198,12 +198,15 @@ html.papyrus3d .lg-swwrap{display:flex;flex-direction:column;align-items:center;
 html.papyrus3d .lg-sw{width:100%;max-width:480px;}
 html.papyrus3d .lg-sw>button{height:auto;min-height:50px;padding:8px;font-size:16px;line-height:1.1;text-align:center;}
 html.papyrus3d .lg-cookie{border:0;background:none;cursor:pointer;padding:8px;font:500 14px/1 'Space Grotesk',sans-serif;color:var(--p3d-gold-ink);text-decoration:underline;text-underline-offset:4px;}
-html.papyrus3d .lg-card{background:var(--p3d-card);border:2.5px solid var(--p3d-ink);border-radius:16px;box-shadow:var(--p3d-pera);}
+/* Matej 15. 11. 2026: „podmienky a ochrana daj na celú obrazovku nie blok“ — text leží priamo na papyruse, bez karty. */
+html.papyrus3d .lg-card{background:none;border:0;border-radius:0;box-shadow:none;padding:0;}
+html.papyrus3d .lg-main{padding-bottom:48px;}
+@media (min-width:768px){html.papyrus3d .lg-p3d .lg-main{padding-top:24px;}}
 html.papyrus3d .lg-eyebrow,html.papyrus3d .lg-meta{font:500 12px/1.4 'Space Grotesk',sans-serif;letter-spacing:.02em;text-transform:uppercase;color:var(--p3d-gold-ink);}
 html.papyrus3d .lg-h1{font-family:'LT Museum',serif;font-weight:400;font-size:24px;letter-spacing:.01em;text-transform:none;color:var(--p3d-ink);}
 html.papyrus3d .lg-h1::after{background:var(--p3d-gold);height:2.5px;}
 html.papyrus3d .lg-note{color:var(--p3d-ink);}
-html.papyrus3d .lg-toc{background:var(--p3d-paper-hi);border:2.5px solid var(--p3d-ink);border-radius:16px;box-shadow:var(--p3d-inset);}
+html.papyrus3d .lg-toc{background:none;border:0;border-top:1.5px solid var(--p3d-gold);border-bottom:1.5px solid var(--p3d-gold);border-radius:0;box-shadow:none;padding:16px 0;}
 html.papyrus3d .lg-sec h2{font-family:'LT Museum',serif;font-weight:400;font-size:20px;letter-spacing:.01em;text-transform:none;color:var(--p3d-ink);}
 html.papyrus3d .lg-motto{font-family:'LT Museum',serif;font-weight:400;font-size:16px;letter-spacing:.01em;text-transform:none;color:var(--p3d-ink);}
 html.papyrus3d .lg-other{font-family:'LT Museum',serif;font-weight:400;font-size:16px;letter-spacing:.01em;text-transform:none;}

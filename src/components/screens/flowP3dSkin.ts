@@ -295,4 +295,10 @@ ${WALL} :is(.btn-gold, button.bg-primary):disabled {
   border: 2.5px solid #EFD79A !important; opacity: .55; cursor: default;
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, .28), inset 0 -4px 0 rgba(0, 0, 0, .15), 0 6px 0 var(--b3-p), 0 11px 14px var(--p3d-sh) !important;
 }
+
+/* ── KROK FOTKY (PhotoScreen, celá obrazovka): nadpis LT Museum, zlato na jedno slovo ── */
+${ROOT} .ph-h { font-family: ${MUSEUM} !important; font-weight: 900; text-transform: none; letter-spacing: .01em; color: var(--p3d-ink); }
+${ROOT} .ph-hl { color: var(--p3d-gold-ink); }
+${ROOT} .ph-plate { border-color: var(--p3d-gold-solid); color: var(--p3d-gold-ink); }
+${ROOT} .ph-thumb { border-color: var(--p3d-gold-solid); }
 `;

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Plus, X, Loader2 } from 'lucide-react';
@@ -13,6 +13,9 @@ import { useT } from '@/i18n/LanguageContext';
 import { track } from '@/lib/analytics';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
+import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
+import { hekthorFace } from '@/lib/hekthorFaces';
 
 /* ───── helpers ───── */
 
@@ -316,6 +319,26 @@ function BackNextButtons({
 }
 
 /* ───── MAIN COMPONENT ───── */
+/** Plná obrazovka kroku fotky (`NEW_HEROFLOW`): bez karty, obsah cez celú výšku. */
+export const PH_CSS = `
+.ph-col { flex: 1 1 auto; min-height: 0; width: 100%; max-width: 576px; margin: 0 !important; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.ph-h { margin: 0; text-align: center; text-wrap: balance; font-size: 20px; line-height: 1.2; letter-spacing: .04em; text-transform: uppercase; color: #000; } /* písmo: nadpis */
+@media (min-width: 768px) { .ph-h { font-size: 24px; } }
+.ph-hl { color: #8a6420; }
+.ph-p { margin: 0; text-align: center; font-size: 14px; line-height: 1.4; color: #1a1208; }
+.ph-plate { flex: 1 1 0; min-height: 96px; width: 100%; max-height: 360px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 2px dashed rgba(138, 100, 32, .6); border-radius: 16px; background: transparent; color: #8a6420; }
+.ph-drop { cursor: pointer; font-size: 14px; }
+.ph-crop { border: 0; padding: 0; overflow: hidden; max-height: none; }
+.ph-thumb { width: min(100%, 40cqh, 200px); max-height: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 50%; border: 2px solid #8a6420; min-height: 0; }
+.ph-file { max-width: 100%; padding: 0 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: #1a1208; }
+.ph-link { background: none; border: 0; padding: 0; font-size: 12px; text-decoration: underline; color: #1a1208; cursor: pointer; }
+.ph-err { color: #B25640; }
+.ph-st { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+.ph-ok { color: #3D7A4E; }
+.ph-tip { margin: 0; text-align: center; font-size: 12px; line-height: 1.4; color: #1a1208; }
+.ph-yes { color: #3D7A4E; } .ph-no { color: #B25640; }
+`;
+
 type UploadState = 'idle' | 'uploading' | 'done' | 'error';
 
 export function PhotoScreen() {
@@ -349,6 +372,13 @@ export function PhotoScreen() {
   const fileRef = useRef<HTMLInputElement>(null);
   const extraRef = useRef<HTMLInputElement>(null);
   const cropApplied = useRef(false);
+
+  const [winH, setWinH] = useState(() => (typeof window === 'undefined' ? 800 : window.innerHeight));
+  useEffect(() => {
+    const on = () => setWinH(window.innerHeight);
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
 
   const goTo = (next: number) => {
     setDir(next > sub ? 1 : -1);
@@ -515,6 +545,83 @@ export function PhotoScreen() {
   const screens = [renderUpload, renderCrop];
 
   if (!flowOk) return null;
+
+  // ───── CELÁ OBRAZOVKA (Matej 15. 11. 2026: „tvár boha by som dal na celú obrazovku, nie blok") ─────
+  // Heroflow nie je v blokoch: medailón, nadpis, text, plocha na nahratie a CTA ležia priamo na tapete
+  // cez celú výšku. Nahrávacia plocha = čiarkovaný obrys, žiadna karta ani rám. CTA je `.hf-cta.hf-dock`
+  // (rovnaká poloha a šírka ako ĎALEJ na kroku mena). Medailón sa zmenšuje podľa výšky okna, nie vzduch.
+  if (NEW_HEROFLOW) {
+    const medalSize = winH < 640 ? 72 : winH < 760 ? 96 : winH < 880 ? 128 : 160;
+    const isCrop = sub === 1;
+    return (
+      <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
+        <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{PH_CSS}</style>
+        <div className="hf-topbar flex-shrink-0">
+          <PageTopBar brandBack onBack={() => (sub > 0 ? goTo(sub - 1) : navigate('/heroglyph/name'))} />
+        </div>
+        <div className="hf-stage">
+          <div className="ph-col">
+            <FlowMedallion src={hekthorFace('photo')} size={medalSize} className="hf-medal" />
+            <h2 className="ph-h">
+              {isCrop ? t('heroglyph.flow.photo.adjustTitle') : (
+                <>{t('heroglyph.flow.photo.faceOfGodPrefix') && <>{t('heroglyph.flow.photo.faceOfGodPrefix')} </>}<span className="ph-hl">{t('heroglyph.flow.photo.faceOfGodWord')}</span> {t('heroglyph.flow.photo.faceOfGodSuffix')}</>
+              )}
+            </h2>
+            <p className="ph-p">
+              {isCrop
+                ? t('heroglyph.flow.photo.adjustHint')
+                : t('heroglyph.flow.photo.uploadHint', { dogName: dogName || t('heroglyph.flow.photo.yourDog') })}
+            </p>
+
+            {isCrop ? (
+              <div className="ph-plate ph-crop">
+                {photoUrl && <CropArea src={photoUrl} shape="circle" value={certCrop} onChange={setCertCrop} />}
+              </div>
+            ) : !photoUrl ? (
+              <button type="button" className="ph-plate ph-drop" onClick={() => fileRef.current?.click()}>
+                <Upload size={40} strokeWidth={1.5} />
+                <span>{t('heroglyph.flow.photo.tapToUpload')}</span>
+              </button>
+            ) : (
+              <div className="ph-plate ph-done">
+                <img src={photoUrl} alt="Dog" className="ph-thumb" />
+                <span className="ph-file">{fileName}</span>
+                <button type="button" className="ph-link" onClick={() => fileRef.current?.click()}>
+                  {t('heroglyph.flow.photo.changePhoto')}
+                </button>
+                {uploadState === 'uploading' && (
+                  <span className="ph-st"><Loader2 className="h-3 w-3 animate-spin" /> {t('heroglyph.flow.photo.sealing')}</span>
+                )}
+                {uploadState === 'done' && <span className="ph-st ph-ok">{t('heroglyph.flow.photo.sealed')}</span>}
+                {uploadState === 'error' && (
+                  <button type="button" className="ph-link ph-err" onClick={retryMainUpload}>{t('heroglyph.flow.photo.uploadFailed')}</button>
+                )}
+              </div>
+            )}
+
+            {!isCrop && (
+              <p className="ph-tip">
+                <span className="ph-yes">✓</span> {t('heroglyph.flow.photo.tipForward')}
+                {' · '}
+                <span className="ph-no">✗</span> {t('heroglyph.flow.photo.tipSide')}
+                <br />
+                {t('heroglyph.flow.photo.tipBest')}
+              </p>
+            )}
+          </div>
+        </div>
+        <button
+          type="button"
+          className="hf-cta hf-dock"
+          onClick={isCrop ? finish : () => goTo(1)}
+          disabled={isCrop ? finishing : !photoUrl}
+        >
+          {isCrop && finishing ? t('heroglyph.flow.photo.saving') : t('heroglyph.flow.photo.next')}
+        </button>
+        {renderUpload()}
+      </div>
+    );
+  }
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
