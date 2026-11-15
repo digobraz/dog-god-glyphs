@@ -24,7 +24,6 @@ const LOADERS: Record<string, () => Promise<unknown>> = {
   '/heroglyph/dog-character': () => import('@/components/screens/CharacterScreen'),
   '/heroglyph/owner-info': () => import('@/components/screens/OwnerScreen'),
   '/heroglyph/reveal': () => import('@/components/screens/FlowRevealScreen'),
-  '/checkout': () => import('@/components/screens/FlowCheckoutScreen'),
   '/heroglyph/vstupne': () => import('@/components/screens/FlowVstupneScreen'),
 };
 
