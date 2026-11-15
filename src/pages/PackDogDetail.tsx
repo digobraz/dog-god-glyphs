@@ -184,7 +184,8 @@ html.papyrus3d .did-dl{min-height:48px;border:2.5px solid var(--p3d-ink);border-
 html.papyrus3d .did-dl--on{border-color:#EFD79A;background:linear-gradient(180deg,color-mix(in srgb,#16307A 72%,white),#0A1A4A);color:#EFD79A;}
 html.papyrus3d .did-angel{min-height:56px;padding:0 ${PACK_SPACE.lg}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:linear-gradient(180deg,color-mix(in srgb,#C8202F 62%,white),#C8202F);color:#fff;--angel-p:#9E1522;box-shadow:inset 0 2px 0 color-mix(in srgb,white 40%,transparent),0 5px 0 var(--angel-p);font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;} /* písmo: cta */
 html.papyrus3d .did-angel u{text-decoration:none;}
-html.papyrus3d .did-angel img{filter:brightness(0) invert(1);}
+/* Psí anjel je farebná kresba z továrne (15. 11. 2026) — nepreferbovať. */
+html.papyrus3d .did-angel img{filter:none;width:32px;height:32px;}
 `;
 
 // "labrador retriever" → "Labrador Retriever"
@@ -1013,7 +1014,7 @@ export default function PackDogDetail() {
                         className="inline-flex items-center gap-1.5"
                         style={{ fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkDim }}
                       >
-                        🕊 {t('pack.dog.inAngelForm')}
+                        {APP_NEW ? <SysIcon name="psi-anjel" size={20} /> : '🕊'} {t('pack.dog.inAngelForm')}
                       </span>
                       <AngelBadge days={angelDays} sinceLabel={deathDateLabel} />
                     </div>
@@ -1217,7 +1218,7 @@ export default function PackDogDetail() {
                     cursor: 'pointer',
                   }}
                 >
-                  🕊{' '}
+                  {APP_NEW ? <SysIcon name="psi-anjel" size={20} /> : '🕊'}{' '}
                   {isDeceased
                     ? awaitingDeathDate
                       ? t('pack.dog.memorial.addDate', { name: dogName })
@@ -1316,7 +1317,8 @@ export default function PackDogDetail() {
                             setMemorialOpen(true);
                           }}
                         >
-                          <img src={angelIconUrl} alt="" />
+                          {/* Psí anjel z továrne (Matej 15. 11. 2026: holubica + anjel = jeden symbol, voľba 1A). */}
+                          <img src={APP_NEW ? '/icons/sys/psi-anjel.webp' : angelIconUrl} alt="" />
                           <u>
                             {isDeceased
                               ? awaitingDeathDate

@@ -10,6 +10,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
 import { MODAL_MAX_H } from '@/components/pack/packTheme';
 import { LAPIS, MAPY, MAPY_BTN_SHADOW } from '@/components/pack/navGoldSkin';
@@ -92,6 +93,7 @@ const GO_CSS = `${VEIL_CSS}
 a.tgo-cta{text-decoration:none;}
 /* APPKA: PAPYRUS 3D (Matej 9. 11. 2026, hárok C2): Vyraziť = lapis, Trasa v Mapy.com = papier, obe TLAČIDLO 3D. Len pod html.papyrus3d. */
 html.papyrus3d .tgo-panel{background:var(--p3d-card);border:0;border-top:6px solid var(--p3d-gold);box-shadow:0 -4px 0 var(--p3d-ink);}
+html.papyrus3d .tgo-where{display:flex;align-items:center;gap:8px;}
 html.papyrus3d .tgo-title{font-family:'LT Museum',serif;font-weight:900;font-size:20px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
 html.papyrus3d .tgo-ctas{gap:16px;margin-bottom:8px;}
 html.papyrus3d .tgo-cta.pk-b3,html.papyrus3d .tgo-split-caret.pk-b3{height:56px;padding:0 16px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 20px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;box-shadow:var(--p3d-b3);} /* písmo: cta */
@@ -121,6 +123,15 @@ const APPS: Array<{ id: NavApp; logo: string }> = [
 ];
 
 /** Panel rieši už len cestu autom na parkovisko — trasa ide priamo odkazom (TripGoButtons). */
+/** Ikonka v paneli „Vyraziť“: appka kreslí naše kresby, web ostáva pri emoji (Matej 15. 11. 2026:
+ *  *„trasa daj tu vlajku čo máme aj pri výletoch nesmie byť tu ikonka bohatá“*). P = značka parkoviska z mapy. */
+function GoIc({ emoji, sys }: { emoji: string; sys: 'parking' | string }) {
+  if (!APP_NEW) return <span className="tgo-ic">{emoji}</span>;
+  return sys === 'parking'
+    ? <img className="tgo-logo" src="/map-marks/parking.webp" alt="" aria-hidden="true" />
+    : <SysIcon name={sys} size={24} />;
+}
+
 export function TripGoPanel({ trail, onClose }: { trail: HeroTrail; onClose: () => void }) {
   const t = useT();
   const target = navTarget(trail);
@@ -144,7 +155,7 @@ export function TripGoPanel({ trail, onClose }: { trail: HeroTrail; onClose: () 
           {/* ⚠️ ROZDIEL SA POMENÚVA, NEZAMLČÍ. Parkovisko je overené miesto, štart stopy je len
               prvý bod trasy — a tam sa nemusí dať zaparkovať. Kto to nevie, obviní z toho appku. */}
           <div className="tgo-where">
-            {target.parking ? `🅿️ ${t('pack.trip.go.parking')}` : t('pack.trip.go.fromStart')}
+            {target.parking ? <>{APP_NEW ? <GoIc emoji="🅿️" sys="parking" /> : '🅿️'} {t('pack.trip.go.parking')}</> : t('pack.trip.go.fromStart')}
             {target.note ? ` · ${target.note}` : ''}
           </div>
 
@@ -213,7 +224,7 @@ export function TripGoButtons({ trail, onDrive }: { trail: HeroTrail; onDrive: (
       <style>{GO_CSS}</style>
       <div className="tgo-ctas" style={hasRoute ? undefined : { gridTemplateColumns: '1fr' }}>
         <button type="button" className={`tgo-cta tgo-cta--park${APP_NEW ? ' pk-b3 pk-b3--lapis' : ''}`} onClick={onDrive}>
-          <span className="tgo-ic">🅿️</span>
+          <GoIc emoji="🅿️" sys="parking" />
           {t('pack.trip.go.cta')}
         </button>
         {/* ⚠️ DELENÉ TLAČIDLO (Matej 21. 9. 2026: „priamo v tlačítku by bola na kraji ikonka
@@ -224,7 +235,7 @@ export function TripGoButtons({ trail, onDrive }: { trail: HeroTrail; onDrive: (
         {mapy ? (
           <div className="tgo-split" ref={splitRef}>
             <a className={`tgo-cta tgo-cta--trail tgo-split-main${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} href={mapy} target="_blank" rel="noopener noreferrer">
-              <span className="tgo-ic">🥾</span>
+              <GoIc emoji="🥾" sys="pin" />
               {t('pack.trip.go.ctaRoute')}
             </a>
             <button
@@ -237,14 +248,14 @@ export function TripGoButtons({ trail, onDrive }: { trail: HeroTrail; onDrive: (
             {menu && (
               <div className="tgo-menu" role="menu">
                 <button type="button" role="menuitem" className="tgo-item" onClick={() => { downloadGpx(trail); setMenu(false); }}>
-                  <span className="tgo-ic">📥</span>
+                  <GoIc emoji="📥" sys="stiahnut" />
                   <span>
                     {t('pack.trip.go.gpx')}
                     <span className="tgo-sub">{t('pack.trip.go.gpxSub')}</span>
                   </span>
                 </button>
                 <button type="button" role="menuitem" className="tgo-item" onClick={copy}>
-                  <span className="tgo-ic">🔗</span>
+                  <GoIc emoji="🔗" sys="zdielat" />
                   {copied ? t('pack.trip.go.copied') : t('pack.trip.go.copyLink')}
                 </button>
               </div>
@@ -252,7 +263,7 @@ export function TripGoButtons({ trail, onDrive }: { trail: HeroTrail; onDrive: (
           </div>
         ) : hasRoute && (
           <button type="button" className={`tgo-cta tgo-cta--trail${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={() => downloadGpx(trail)}>
-            <span className="tgo-ic">🥾</span>
+            <GoIc emoji="🥾" sys="pin" />
             {t('pack.trip.go.gpx')}
           </button>
         )}

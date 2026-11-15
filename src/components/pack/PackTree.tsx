@@ -12,7 +12,8 @@ import { dogLifeLine } from '@/lib/dogAge';
 import { flagUrl, countryISO2 } from '@/lib/countryGeo';
 import { Sparkles } from 'lucide-react';
 import { HEALTH_COLORS, healthKeyOf, healthLabelKey } from '@/lib/dogHealth';  // bodka statusu v mriežke/stene
-import { DEV_FULL } from '@/lib/packFlags';
+import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
+import { SysIcon } from '@/components/pack/SysIcon';
 
 const T = PACK_THEME;
 
@@ -122,7 +123,7 @@ function LifeLine({ dog, center = false }: { dog: DogNode; center?: boolean }) {
         style={{ fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkDim }}
       >
         {life.isAngel ? (
-          <>🕊 {t('pack.dog.inAngelForm')}</>
+          <>{APP_NEW ? <SysIcon name="psi-anjel" size={20} /> : '🕊'} {t('pack.dog.inAngelForm')}</>
         ) : (
           <>
             <Sparkles className="h-3 w-3" style={{ color: T.accentGold }} />
