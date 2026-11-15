@@ -19,7 +19,7 @@ export function MomentSkuska({ rozbaleny = false }: { rozbaleny?: boolean }) {
   const [open, setOpen] = useState(rozbaleny);
   if (!open) return (
     <button type="button" onClick={() => setOpen(true)}
-      style={{ position: 'fixed', left: 0, top: '42%', zIndex: 2147482000, padding: '8px 6px', borderRadius: '0 8px 8px 0', writingMode: 'vertical-rl',
+      style={{ position: 'fixed', left: 0, top: '42%', zIndex: 2147482000, padding: '8px 4px', borderRadius: '0 8px 8px 0', writingMode: 'vertical-rl',
         background: 'rgba(249,242,227,.96)', border: '1px solid var(--p3d-ink)', borderLeft: 0, fontSize: 12, fontWeight: 600 }}>Momenty</button>
   );
   return (
