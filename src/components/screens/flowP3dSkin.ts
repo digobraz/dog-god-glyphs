@@ -168,7 +168,7 @@ ${ROOT} :is(.hf-cta, .nm-cta):active:not(:disabled) {
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, .28), inset 0 -2px 0 rgba(0, 0, 0, .15), 0 1px 0 var(--b3-p), 0 2px 4px var(--p3d-sh);
 }
 ${ROOT} :is(.hf-cta, .nm-cta):is(:disabled, .is-off) {
-  opacity: .55; cursor: default;
+  opacity: .7; cursor: default;
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, .28), inset 0 -4px 0 rgba(0, 0, 0, .15), 0 6px 0 var(--b3-p), 0 11px 14px var(--p3d-sh);
 }
 
@@ -279,19 +279,19 @@ ${P} .fp-track { height: 16px !important; box-sizing: border-box; border: 2.5px 
 ${P} .fp-fill { background: linear-gradient(180deg, #FFE27A 0%, #F5C73D 50%, #E69E1A 100%) !important; border-right: 2.5px solid var(--p3d-ink); box-sizing: border-box; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55); }
 
 /* ── KARTA OBSAHU (15. 11. 2026, Matej: „oprav to všetko" — heroflow nebol v brande) ──
-   Obsah kroku = JEDNA papyrusová karta (obrys 2,5 px, pera, radius 16). Vrstva `flowFullSkin` (7. 11.)
-   bloky zrušila, aby obsah ležal na tapete — to je tu vrátené. Starý zlatý odliatok (`goldFrameCSS`) a
+   Obsah kroku = JEDNA papyrusová karta (obrys 2,5 px, pera, radius 16). Vrstva flowFullSkin (7. 11.)
+   bloky zrušila, aby obsah ležal na tapete — to je tu vrátené. Starý zlatý odliatok (goldFrameCSS) a
    rytá obruba mizne. Vnorený blok (karta v karte) sa vráti na plocho. */
-${WALL} :is(.hf-block, .hf-carved, .papyrus-bg) {
+${WALL} :is(.hf-block, .hf-carved, .papyrus-bg), ${WALL} .hf-stage:not(.wl-page) :is(.hf-block, .hf-carved, .papyrus-bg) {
   background: var(--p3d-card) !important; border: 2.5px solid var(--p3d-ink) !important; border-radius: 16px !important;
   box-shadow: var(--p3d-pera) !important; padding: 16px !important;
 }
-${WALL} :is(.hf-block, .hf-carved, .papyrus-bg) :is(.hf-block, .hf-carved, .papyrus-bg) {
+${WALL} :is(.hf-block, .hf-carved, .papyrus-bg) :is(.hf-block, .hf-carved, .papyrus-bg), ${WALL} .hf-stage:not(.wl-page) :is(.hf-block, .hf-carved, .papyrus-bg) :is(.hf-block, .hf-carved, .papyrus-bg) {
   background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; border-radius: 0 !important;
 }
 ${WALL} .hf-carved-rim { display: none !important; }
-${WALL} .hf-stage .hf-block { margin-top: 0; }
 ${WALL} .hf-plate { padding: 0 !important; }
+${WALL} .papyrus-bg textarea { border: 2.5px solid var(--p3d-ink); border-radius: 16px; background: var(--p3d-paper-hi); box-shadow: var(--p3d-inset); color: var(--p3d-ink); }
 
 /* ── STARÉ KROKY (fotka, výrez, odkaz): šípka späť = kruhový .pk-b3--paper, CTA = lapis aj pri :disabled ── */
 ${WALL} :is(.btn-gold, button.bg-primary) {

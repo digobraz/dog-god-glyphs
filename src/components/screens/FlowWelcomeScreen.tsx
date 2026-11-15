@@ -7,7 +7,7 @@ import { clearFlowDraft } from '@/lib/flowDraft';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 import { LetterReveal, REVEAL_S, LETTER_S, FLOW_INTRO_CSS } from '@/components/screens/flowIntro';
-import { PACK_R, PAGE_AIR } from '@/components/pack/packTheme';
+import { PACK_R, PACK_SPACE, PAGE_AIR } from '@/components/pack/packTheme';
 import { B3_CSS } from '@/lib/papyrus3d';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { LAB } from '@/lib/labTheme';
@@ -23,6 +23,7 @@ import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { ShareCard } from '@/components/ShareCard';
 import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
+import { cleanText, withFallback } from '@/components/screens/welcomeText';
 
 // ════════════════════════════════════════════════════════════════════════════
 // FINÁLE PO PLATBE nového vstupu — `/heroglyph/welcome` (26. 9. 2026)
@@ -165,8 +166,11 @@ const Ph = ({ src }: { src: string }) => (
   </span>
 );
 
+const clean = cleanText;
+
 export function FlowWelcomeScreen() {
   const t = useT();
+  const tx = withFallback(t);
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const sessionId = params.get('session_id');
@@ -350,6 +354,45 @@ export function FlowWelcomeScreen() {
   const totalN = Math.max(dogs.reduce((m, d) => Math.max(m, d.n ?? 0), 0), free ? (prev ?? []).reduce((m, d) => Math.max(m, d.n), 0) : 0);
   const pct = Math.max(2, Math.min(100, (totalN / 1_000_000) * 100));
 
+  // ── STAVY BEZ PSA (Matej 15. 11. 2026: „oprav to všetko“) ──────────────────
+  // Bez mena psa nemá obrazovka čo ukázať. Dovtedy z toho zostala holá pilulka „#73“
+  // na prázdnej stránke (číslo z dielne, nie od kupca). Tri stavy, každý karta + cesta ďalej:
+  //   loading = ide `get-session-data` · failed = vyčerpané pokusy · empty = adresa bez `session_id`.
+  const view: 'loading' | 'failed' | 'empty' | null = dogs.some((d) => d.name) ? null
+    : sessionId ? (settled ? 'failed' : 'loading') : 'empty';
+  if (view) {
+    return (
+      <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
+        <style>{FLOW_PALE_CSS}{FLOW_CARVE_CSS}{FLOW_MEDAL_CSS}{B3_CSS}{WELCOME_CSS}</style>
+        <div className="hf-stage wl-page">
+          <div className="w-full max-w-xl flex flex-col items-center wl-state-wrap">
+            <motion.div className="wl-state" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} aria-busy={view === 'loading'}>
+              <span className="hf-medin"><FlowMedallion src={hekthorFace('welcome')} size={heroMedallion} className="hf-medal" /></span>
+              <h2 className="wl-state-h">
+                {view === 'loading' ? clean(t('welcome.cta.preparing')).toLowerCase().replace(/^./, (c) => c.toUpperCase())
+                  : view === 'failed' ? tx('heroglyph.flow.welcomeState.failedTitle', 'We could not load your entry')
+                  : tx('heroglyph.flow.welcomeState.emptyTitle', 'There is nothing to show here yet')}
+              </h2>
+              {view !== 'loading' && (
+                <p className="wl-state-p">
+                  {view === 'failed'
+                    ? tx('heroglyph.flow.welcomeState.failedSub', 'Reload the page in a moment. The link to your profile is also in your e-mail.')
+                    : tx('heroglyph.flow.welcomeState.emptySub', 'This page opens after you join. Start with your dog and your heroglyph.')}
+                </p>
+              )}
+              {view === 'loading' && <span className="wl-state-dots" aria-hidden><i /><i /><i /></span>}
+              {view !== 'loading' && (
+                <button type="button" className="pk-b3 pk-b3--lapis wl-cta" onClick={() => (view === 'failed' ? window.location.reload() : navigate('/heroglyph'))}>
+                  {view === 'failed' ? tx('heroglyph.flow.welcomeState.retry', 'Try again') : t('wall.hero.cta')}
+                </button>
+              )}
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
       <style>{FLOW_PALE_CSS}{FLOW_CARVE_CSS}{FLOW_MEDAL_CSS}{FLOW_INTRO_CSS}{B3_CSS}{WELCOME_CSS}</style>
@@ -418,7 +461,7 @@ export function FlowWelcomeScreen() {
                       >
                         <Ph src={d.photo} />
                         <span className="wl-name">{d.name}</span>
-                        <span className="wl-num">{d.n != null ? `#${d.n}` : '#…'}</span>
+                        <span className="wl-num">{d.n != null ? `#${d.n}` : '#?'}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -432,12 +475,12 @@ export function FlowWelcomeScreen() {
                     <div className="wl-lines" aria-live="polite">
                       {line >= 1 && line < 3 && (
                         <motion.p className="wl-line" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-                          {t('heroglyph.flow.welcomeNew.l1')}
+                          {clean(t('heroglyph.flow.welcomeNew.l1'))}
                         </motion.p>
                       )}
                       {line === 2 && (
                         <motion.p className="wl-line" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-                          {t('heroglyph.flow.welcomeNew.l2')}{dogs.length > 1 && runJobs ? ` ${Math.min(job + 1, dogs.length)}/${dogs.length}` : ''}
+                          {clean(t('heroglyph.flow.welcomeNew.l2'))}{dogs.length > 1 && runJobs ? ` ${Math.min(job + 1, dogs.length)}/${dogs.length}` : ''}
                         </motion.p>
                       )}
                       {line >= 4 && (
@@ -481,7 +524,7 @@ export function FlowWelcomeScreen() {
                       <motion.p className="wl-mail" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }}>
                         <b>{t('heroglyph.flow.welcomeNew.mail')}</b>
                         {email && <span className="wl-mail-addr">{email}</span>}
-                        <span>{t('heroglyph.flow.welcomeNew.mailBtn')}</span>
+                        <span>{clean(t('heroglyph.flow.welcomeNew.mailBtn'))}</span>
                       </motion.p>
                     )}
                     <motion.button
@@ -495,7 +538,7 @@ export function FlowWelcomeScreen() {
                       transition={{ delay: joined ? 0.3 : 0, duration: 0.4 }}
                       style={{ visibility: joined ? 'visible' : 'hidden' }}
                     >
-                      {wantWall ? t('heroglyph.flow.welcomeNew.ctaWait') : t('heroglyph.flow.welcomeNew.cta')}
+                      {wantWall ? clean(t('heroglyph.flow.welcomeNew.ctaWait')) : t('heroglyph.flow.welcomeNew.cta')}
                     </motion.button>
                   </div>
                 </div>
@@ -597,6 +640,69 @@ function DogCertJob({ dog, sessionId, email, owner, fallbackSelections, fallback
     </div>
   );
 }
+
+/** ŠAT PAPYRUS 3D (15. 11. 2026). Visí na `html[data-flow-p3d]` — ten FlowRedress zapína len na obrazovkách vstupu,
+ *  takže pravidlá nemajú ako zasiahnuť nič mimo neho. Premenné `--p3d-*` dodáva flowP3dSkin (web) alebo `html.papyrus3d` (appka).
+ *  Telo vrstvy flowP3dSkin vynucuje písmo UI na každý span cez `!important`, preto menné a nadpisové prvky ho tu berú späť. */
+const W = 'html[data-flow-p3d] .hf-pale .wl-page';
+const MUSEUM = "'LT Museum', 'Cinzel', serif"; /* písmo: nadpis */
+const DOG_NAME = "'Cinzel Decorative', 'Cinzel', serif"; /* písmo: meno */
+const WELCOME_P3D_CSS = `
+/* Doska poradia = karta Papyrus 3D (flowFullSkin ju inak zruší na holé pozadie). Výška počíta aj horný vzduch javiska (40 px). */
+${W} .wl-stack.hf-block {
+  background: var(--p3d-card) !important; border: 2.5px solid var(--p3d-ink) !important; border-radius: ${PACK_R.card}px !important;
+  box-shadow: var(--p3d-pera) !important; padding: ${PACK_SPACE.lg}px !important;
+  min-height: min(calc(100dvh - 72px), 900px);
+}
+@media (min-width: 768px) { ${W} .wl-stack.hf-block { padding: ${PACK_SPACE.xl}px !important; min-height: min(calc(100dvh - 64px), 900px); } }
+${W} .wl-stack .hf-carved-rim { display: none; }
+${W} .wl-stack .hf-plate { padding: 0 !important; }
+
+/* Riadky psov: obrys, papyrus, fotka v jamke. Meno psa je identita (Decorative), číslo UI. */
+${W} .wl-row { border: 2.5px solid var(--p3d-ink); border-radius: ${PACK_R.card}px; background: var(--p3d-paper-hi); box-shadow: none; }
+${W} .wl-row.is-new { border-color: var(--p3d-gold); background: #FFFBF1; }
+${W} .wl-ph { border: 2px solid var(--p3d-ink); background: color-mix(in srgb, var(--p3d-gold) 26%, var(--p3d-paper)); box-shadow: none; }
+${W} .wl-row.is-new .wl-ph { box-shadow: none; }
+${W} .wl-name { font-family: ${DOG_NAME} !important; font-weight: 700; color: var(--p3d-ink); }
+${W} .wl-num { font-family: 'Space Grotesk', sans-serif !important; font-weight: 700; color: var(--p3d-ink); }
+${W} .wl-row.is-new .wl-num { color: var(--p3d-gold-ink); }
+
+/* Vety, poďakovanie, motto */
+${W} .wl-line { font-weight: 500; color: var(--p3d-ink); }
+${W} .wl-thanks, ${W} .wl-motto { font-family: ${MUSEUM} !important; font-weight: 900; text-transform: none; }
+${W} .wl-thanks { color: var(--p3d-ink); }
+${W} .wl-motto { color: var(--p3d-gold-ink); letter-spacing: .06em; text-transform: uppercase; }
+${W} .wl-mail, ${W} .wl-mail span { color: var(--p3d-ink); }
+${W} .wl-goal-t { font-weight: 600; color: var(--p3d-ink); }
+${W} .wl-rule { opacity: 1; }
+
+/* Progres k 1M: hrubá pilulka s obrysom, zlatá výplň (ako .fp-track) */
+${W} .wl-bar { box-sizing: border-box; height: 16px; border: 2.5px solid var(--p3d-ink); background: var(--p3d-paper-hi); box-shadow: var(--p3d-inset), 0 3px 0 var(--p3d-gold-solid); }
+${W} .wl-bar > span { background: linear-gradient(180deg, #FFE27A 0%, #F5C73D 50%, #E69E1A 100%); border-right: 2.5px solid var(--p3d-ink); box-sizing: border-box; }
+
+/* Hektorov príchod = karta, nie fialový gradient */
+${W} .wl-hero { background: var(--p3d-card); color: var(--p3d-ink); border: 2.5px solid var(--p3d-ink); border-radius: ${PACK_R.card}px; box-shadow: var(--p3d-pera); }
+${W} .wl-hero-h { font-family: ${MUSEUM} !important; font-weight: 900; color: var(--p3d-ink); text-transform: none; letter-spacing: .01em; }
+${W} .wl-hero-h .hf-letter { font-family: ${MUSEUM} !important; font-weight: 900; color: var(--p3d-ink) !important; }
+${W} .wl-hero-h .hf-letter.text-amber-300 { color: var(--p3d-gold-ink) !important; }
+
+/* STAVY BEZ PSA: načítavanie, chyba, prázdna adresa */
+${W} .wl-state-wrap { margin: auto 0; }
+.wl-state {
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: ${PACK_SPACE.lg}px; text-align: center;
+  padding: ${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;
+  background: var(--p3d-card); border: 2.5px solid var(--p3d-ink); border-radius: ${PACK_R.card}px; box-shadow: var(--p3d-pera);
+}
+${W} .wl-state-h { margin: 0; font-family: ${MUSEUM} !important; font-weight: 900; font-size: 24px; line-height: 1.2; color: var(--p3d-ink); text-transform: none; letter-spacing: .01em; text-wrap: balance; }
+${W} .wl-state-p { margin: 0; max-width: 360px; font-size: 16px; line-height: 1.4; font-weight: 500; color: var(--p3d-ink); }
+.wl-state .wl-cta { max-width: 360px; }
+.wl-state-dots { display: flex; gap: ${PACK_SPACE.sm}px; }
+.wl-state-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--p3d-gold); border: 2px solid var(--p3d-ink); animation: wl-dot 1s ease-in-out infinite; }
+.wl-state-dots i:nth-child(2) { animation-delay: .15s; } .wl-state-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes wl-dot { 0%, 100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(-6px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .wl-state-dots i { animation: none; } }
+@media (max-height: 700px) { ${W} .wl-state .hf-medin .fm { width: 96px !important; height: 96px !important; } }
+`;
 
 /** ⚠️ Bez spätných apostrofov: CSS je v template literáli. */
 const WELCOME_CSS = `
@@ -716,4 +822,5 @@ html[data-flow-full] .hf-pale .hf-stage.wl-page { padding-bottom: ${PAGE_AIR.min
   .wl-stack .hf-plate { gap: 12px; }
   .wl-foot { gap: 8px; } .wl-lines { min-height: 48px; }
 }
+${WELCOME_P3D_CSS}
 `;

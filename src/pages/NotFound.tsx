@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { PageTopBar } from "@/components/PageTopBar";
 import { FLOW_PALE_CSS } from "@/components/screens/flowPaleSkin";
+import { SMALL_P3D_CSS, SP_PAPER } from "@/components/legal/smallPageKit";
+import { APP_NEW } from "@/lib/packFlags";
+import { useT } from "@/i18n/LanguageContext";
 import dogSilhouette from "@/assets/patroni/l11-hekthor.svg";
 
 // ── /404 — "Hekthor's Run" ──────────────────────────────────────────────
@@ -19,9 +22,9 @@ const JUMP_V = -13.6;
 const INK = "#3a2a15";       // dog + ground ink on papyrus
 const INK_SOFT = "#6b4e22";
 
-// Rank ladder — every 6 points promotes Hekthor one holy rank.
+// Rank ladder — every 6 points promotes Hekthor one holy rank. Names live in i18n (`nf.rank0..5`), EN is the fallback.
 const RANKS = ["PUPPY", "GOOD BOY", "VERY GOOD BOY", "WHO'S A GOOD BOY", "LEGEND", "GOOD BOY OF THE MILLENNIUM"];
-const rankFor = (s: number) => RANKS[Math.min(Math.floor(s / 6), RANKS.length - 1)];
+const rankFor = (s: number) => Math.min(Math.floor(s / 6), RANKS.length - 1);
 
 type Kind = "tick" | "awn" | "syringe";
 type Obstacle = { x: number; w: number; h: number; kind: Kind; passed?: boolean };
@@ -29,13 +32,15 @@ type Ball = { x: number; y: number; got?: boolean };
 type Pop = { x: number; y: number; life: number; text: string };
 
 const NotFound = () => {
+  const t = useT();
+  const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dogImg = useRef<HTMLCanvasElement | null>(null); // pre-inked silhouette
 
   const [phase, setPhase] = useState<"idle" | "running" | "over">("idle");
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(0);
-  const [rank, setRank] = useState(RANKS[0]);
+  const [rank, setRank] = useState(0);
 
   const world = useRef({
     dogY: 0, dogV: 0,
@@ -321,7 +326,7 @@ const NotFound = () => {
   const start = useCallback(() => {
     const w = world.current;
     Object.assign(w, { dogY: 0, dogV: 0, obs: [], balls: [], pops: [], speed: 5.2, obSpawn: 45, ballSpawn: 90, score: 0, frame: 0, running: true });
-    setScore(0); setRank(RANKS[0]); setPhase("running");
+    setScore(0); setRank(0); setPhase("running");
     cancelAnimationFrame(w.raf);
     w.raf = requestAnimationFrame(loop);
   }, [loop]);
@@ -346,50 +351,57 @@ const NotFound = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const rankName = tx(`nf.rank${rank}`, RANKS[rank]);
   const onPointer = () => { if (phase === "running") jump(); else start(); };
 
   return (
-    <div className="nf-page hf-pale">
-      <style>{FLOW_PALE_CSS}</style>
+    <div className={`nf-page ${APP_NEW ? SP_PAPER : "hf-pale"}`}>
+      <style>{APP_NEW ? SMALL_P3D_CSS : FLOW_PALE_CSS}</style>
       <div className="hf-topbar"><PageTopBar /></div>
 
       <main className="nf-main">
         <section className="nf-block">
           <h1 className="nf-404">404</h1>
-          <p className="nf-lead">This page ran off-leash.</p>
+          <p className="nf-lead">{tx("nf.lead", "This page ran off-leash.")}</p>
 
-          <div className="nf-stage" onPointerDown={onPointer} role="button" aria-label="Jump">
+          <div className="nf-stage" onPointerDown={onPointer} role="button" aria-label={tx("nf.jump", "Jump")}>
             <canvas ref={canvasRef} className="nf-canvas" />
             {phase === "idle" && (
               <div className="nf-overlay">
-                <p className="nf-big">HEKTHOR'S RUN</p>
-                <p className="nf-hint"><kbd>SPACE</kbd> / tap — leap the ticks, snatch the balls</p>
+                <p className="nf-big">{tx("nf.run", "HEKTHOR'S RUN")}</p>
+                <p className="nf-hint"><kbd>SPACE</kbd> {tx("nf.hint", "/ tap: leap the ticks, snatch the balls")}</p>
               </div>
             )}
             {phase === "over" && (
               <div className="nf-overlay">
-                <p className="nf-big">Caught you.</p>
-                <p className="nf-hint">{rank} · {score} pts — <kbd>SPACE</kbd> / tap to run again</p>
+                <p className="nf-big">{tx("nf.over", "Caught you.")}</p>
+                <p className="nf-hint">{rankName} · {score} {tx("nf.pts", "pts")} · <kbd>SPACE</kbd> {tx("nf.overHint", "/ tap to run again")}</p>
               </div>
             )}
           </div>
 
           <div className="nf-hud">
-            <span><b>{score}</b> pts</span>
-            <span className="nf-rank">{rank}</span>
-            <span>best <b>{best}</b></span>
+            <span><b>{score}</b> {tx("nf.pts", "pts")}</span>
+            <span className="nf-rank">{rankName}</span>
+            <span>{tx("nf.best", "best")} <b>{best}</b></span>
           </div>
 
           <div className="nf-actions">
-            <a href="/" className="btn-gold">Fetch the homepage</a>
-            <a href="/heroglyph/name" className="nf-link">or become a Dogyptian →</a>
+            <a href="/" className={APP_NEW ? "pk-b3 pk-b3--lapis nf-cta" : "btn-gold"}>{tx("nf.home", "Fetch the homepage")}</a>
+            <a href="/heroglyph/name" className="nf-link">{tx("nf.join", "or become a Dogyptian →")}</a>
           </div>
         </section>
       </main>
 
       <style>{`
-        .nf-page.hf-pale { min-height: 100dvh; display: flex; flex-direction: column; }
+        .nf-page.hf-pale, .nf-page.pk-paper { min-height: 100dvh; display: flex; flex-direction: column; }
         .nf-page.hf-pale::before { position: fixed; }
+        .nf-cta { min-height: 56px; padding: 0 24px; text-align: center; }
+        html.papyrus3d .nf-block { background: var(--p3d-card); border: 2.5px solid var(--p3d-ink); border-radius: 16px; box-shadow: var(--p3d-pera); }
+        html.papyrus3d .nf-404, html.papyrus3d .nf-lead, html.papyrus3d .nf-big { font-family: 'LT Museum', serif; font-weight: 400; letter-spacing: 0.01em; text-transform: none; text-shadow: none; color: var(--p3d-ink); }
+        html.papyrus3d .nf-stage { border: 2.5px solid var(--p3d-ink); border-radius: 16px; box-shadow: var(--p3d-inset); }
+        html.papyrus3d .nf-rank { border: 2.5px solid var(--p3d-ink); background: var(--p3d-paper-hi); color: var(--p3d-ink); }
+        html.papyrus3d .nf-link { color: var(--p3d-gold-ink); }
         .nf-main {
           flex: 1; z-index: 1; display: flex; align-items: center; justify-content: center;
           padding: 24px 16px 40px;

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { IS_APP } from '@/lib/isApp';
+import { APP_NEW } from '@/lib/packFlags';
+import { useT } from '@/i18n/LanguageContext';
 import { shareFile } from '@/lib/shareFile';
 import { toast } from '@/hooks/use-toast';
 import { PageTopBar } from '@/components/PageTopBar';
+import { SMALL_P3D_CSS, SP_PAPER, SmallTop } from '@/components/legal/smallPageKit';
 import { Seo } from '@/components/Seo';
 import NotFound from '@/pages/NotFound';
 import { SOS_PUBLIC_ON } from '@/lib/env';
@@ -35,6 +37,9 @@ const CSS = `
 .lp-flyer{width:100%;display:block;border-radius:8px;box-shadow:0 8px 24px rgba(40,20,0,.3);background:#fff;}
 .lp-link{display:inline-block;margin-top:16px;font-family:'Space Grotesk',sans-serif;font-size:12px;color:rgba(42,22,8,.6);text-align:center;text-decoration:none;}
 .lp-link:hover{color:#16307A;}
+.lp-home{display:flex;align-items:center;justify-content:center;text-decoration:none;text-align:center;}
+html.papyrus3d .lp-main{padding-top:16px;}
+html.papyrus3d .lp-lost .sos-h2{font-size:24px;line-height:1.25;}
 `;
 
 function LostPublicInner({ slug }: { slug: string }) {
@@ -47,6 +52,9 @@ function LostPublicInner({ slug }: { slug: string }) {
   const s = useSosT(row?.dog_gender);
   const [pop, setPop] = useState<'call' | 'seen' | null>(null);
   const nav = useNavigate();
+  const t = useT();
+  const home = () => { const v = t('pack.join.home'); return v === 'pack.join.home' ? 'BACK TO DOGYPT' : v; };
+  const back = () => (window.history.length > 1 ? nav(-1) : nav('/'));
 
   useEffect(() => { void ensurePackDict(); }, []);
   useEffect(() => {
@@ -72,16 +80,23 @@ function LostPublicInner({ slug }: { slug: string }) {
   const live = !!row && (row.status === 'active' || row.status === 'ended');   // telefón, videnie a leták žijú ďalej len pri active + ended
 
   return (
-    <div className="hf-pale lp-flat min-h-screen flex flex-col">
+    <div className={`${APP_NEW ? SP_PAPER : 'hf-pale lp-flat'} min-h-screen flex flex-col`}>
       <Seo title={title} description={row?.place_label ?? ''} path={`/lost/${slug}`} noindex ogImage={(live ? row?.flyer_url : null) ?? (row?.photo ? sizedUrl(row.photo, 1200) : undefined)} />
-      <style>{FLOW_PALE_CSS + SOS_CSS + CSS}</style>
-      <div className="hf-topbar"><PageTopBar /></div>
+      <style>{(APP_NEW ? SMALL_P3D_CSS : FLOW_PALE_CSS) + SOS_CSS + CSS}</style>
+      {APP_NEW ? <SmallTop onBack={back} backLabel={t('nav.aria.back')} /> : <div className="hf-topbar"><PageTopBar /></div>}
       <main className="lp-main">
         <div className="lp-col sos-stack">
-          {IS_APP && <button type="button" className="sos-cta sos-cta--ghost" onClick={() => nav(-1)}>{s('pack.sos.back')}</button>}
           {row === undefined && <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.loading')}</p>}
-          {row === null && !failed && <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.notFound')}</p>}
-          {row === null && failed && (
+          {row === null && APP_NEW && (
+            // Karta v šate 3D: text + cesta domov (predtým holý text na tapete bez východu).
+            <div className="sos-card lp-lost">
+              <h1 className="sos-h2" style={{ textAlign: 'center' }}>{failed ? s('pack.sos.offline') : s('pack.sos.notFound')}</h1>
+              {failed && <button type="button" className="sos-cta" onClick={() => setTick((n) => n + 1)}>{s('pack.sos.retry')}</button>}
+              <a className="sos-cta pk-b3--lapis lp-home" href="/">{home()}</a>
+            </div>
+          )}
+          {row === null && !APP_NEW && !failed && <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.notFound')}</p>}
+          {row === null && !APP_NEW && failed && (
             <>
               <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.offline')}</p>
               <button type="button" className="sos-cta" onClick={() => setTick((n) => n + 1)}>{s('pack.sos.retry')}</button>

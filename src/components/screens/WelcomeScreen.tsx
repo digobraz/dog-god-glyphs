@@ -14,10 +14,15 @@ import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { HandCamera } from '@/components/pack/HandIcons';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { APP_NEW } from '@/lib/packFlags';
+import { PACK_R, PACK_SPACE } from '@/components/pack/packTheme';
+import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
+import { hekthorFace } from '@/lib/hekthorFaces';
+import { cleanText, withFallback } from '@/components/screens/welcomeText';
 
 
 function useSessionData(sessionId: string | null, fallbackStore: { dogName: string; ownerName: string; email: string; selections: Record<string, string>; dogPhotoUrl: string; patronSvg: string; patronSvg2: string }) {
-  const [data, setData] = useState<typeof fallbackStore & { packNumber: number | null }>({ ...fallbackStore, packNumber: null });
+  const [data, setData] = useState<typeof fallbackStore & { packNumber: number | null; settled: boolean }>({ ...fallbackStore, packNumber: null, settled: false });
   const fetched = useRef(false);
   const sessionResolved = useRef(false);
 
@@ -47,6 +52,7 @@ function useSessionData(sessionId: string | null, fallbackStore: { dogName: stri
           patronSvg: d.patronSvg ?? '',
           patronSvg2: d.patronSvg2 ?? '',
           packNumber: typeof d.packNumber === 'number' ? d.packNumber : null,
+          settled: true,
         });
       } catch (e) {
         if (!alive) return;
@@ -54,6 +60,7 @@ function useSessionData(sessionId: string | null, fallbackStore: { dogName: stri
           setTimeout(() => { if (alive) void attempt(n + 1); }, delays[n]);
         } else {
           console.error('[welcome] get-session-data failed after retries:', e);
+          setData(prev => ({ ...prev, settled: true }));
           // Fallback store data (mirrored by the other effect) stays in place.
         }
       }
@@ -78,6 +85,7 @@ function useSessionData(sessionId: string | null, fallbackStore: { dogName: stri
       patronSvg: fallbackStore.patronSvg || prev.patronSvg,
       patronSvg2: fallbackStore.patronSvg2 || prev.patronSvg2,
       packNumber: prev.packNumber,
+      settled: prev.settled,
     }));
   }, [sessionId, fallbackStore.dogName, fallbackStore.ownerName, fallbackStore.email, fallbackStore.dogPhotoUrl, fallbackStore.selections, fallbackStore.patronSvg, fallbackStore.patronSvg2]);
 
@@ -121,6 +129,69 @@ const GRADIENT_CARD: React.CSSProperties = {
   background: 'var(--brand-gradient)',
   border: '1px solid hsl(45 80% 60% / 0.2)',
 };
+
+/** ŠAT PAPYRUS 3D pre `/welcome` (15. 11. 2026). Tokeny `--p3d-*` nesie `html.papyrus3d` (appka, `APP_NEW`).
+ *  ⚠️ Bez spätných apostrofov: CSS je v template literáli. */
+const WELCOME_P3D_CSS = `
+.wc-page { min-height: 100dvh; display: flex; flex-direction: column; background: var(--p3d-paper); color: var(--p3d-ink); font-family: 'Space Grotesk', sans-serif; overflow-x: hidden; }
+.wc-wrap { flex: 1; display: flex; padding: ${PACK_SPACE.sm}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px; }
+@media (min-width: 768px) { .wc-wrap { padding-bottom: ${PACK_SPACE.xl}px; } }
+.wc-card {
+  width: 100%; max-width: 480px; margin: auto; display: flex; flex-direction: column; align-items: center; gap: ${PACK_SPACE.lg}px;
+  padding: ${PACK_SPACE.xl}px ${PACK_SPACE.lg}px; text-align: center;
+  background: var(--p3d-card); border: 2.5px solid var(--p3d-ink); border-radius: ${PACK_R.card}px; box-shadow: var(--p3d-pera);
+}
+
+/* Číslo psa + cieľ + progres */
+.wc-goal { width: 100%; display: flex; flex-direction: column; gap: ${PACK_SPACE.md}px; }
+.wc-goal-row { display: flex; align-items: center; justify-content: space-between; gap: ${PACK_SPACE.md}px; min-height: 32px; }
+.wc-num { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 24px; line-height: 1; color: var(--p3d-gold-ink); font-variant-numeric: tabular-nums; }
+.wc-goal-t { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
+.wc-goal-t span { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--p3d-gold-ink); }
+.wc-goal-t b { font-size: 14px; font-weight: 700; color: var(--p3d-ink); }
+.wc-bar { width: 100%; box-sizing: border-box; height: 16px; border-radius: ${PACK_R.pill}px; overflow: hidden; border: 2.5px solid var(--p3d-ink); background: var(--p3d-paper-hi); box-shadow: var(--p3d-inset); }
+.wc-bar > span { display: block; height: 100%; background: linear-gradient(180deg, #FFE27A 0%, #F5C73D 50%, #E69E1A 100%); border-right: 2.5px solid var(--p3d-ink); box-sizing: border-box; }
+
+/* Fotka: tmavý obrys + zlatý prstenec (poloha), bez závoja */
+.wc-photo { width: clamp(120px, 26dvh, 184px); aspect-ratio: 1; border-radius: 50%; overflow: hidden; flex: none; border: 2.5px solid var(--p3d-ink); box-shadow: 0 0 0 5px var(--p3d-gold), 0 0 0 7.5px var(--p3d-ink), 0 9px 0 5px var(--p3d-gold-ink); margin: 7px 0 ${PACK_SPACE.sm}px; }
+.wc-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+.wc-photo--empty { display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--p3d-gold) 26%, var(--p3d-paper)); box-shadow: var(--p3d-inset); color: var(--p3d-ink); margin: 0; width: clamp(96px, 20dvh, 144px); }
+.wc-miss { display: flex; flex-direction: column; gap: 4px; max-width: 320px; }
+.wc-miss b { font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; color: var(--p3d-ink); } /* písmo: nadpis */
+.wc-miss span { font-size: 14px; line-height: 1.4; font-weight: 500; color: var(--p3d-ink); }
+
+/* Identita: pozdrav, meno psa, titul */
+.wc-id { width: 100%; display: flex; flex-direction: column; align-items: center; gap: ${PACK_SPACE.sm}px; padding: ${PACK_SPACE.md}px 0; border-top: 2px solid var(--p3d-gold-solid); border-bottom: 2px solid var(--p3d-gold-solid); }
+.wc-cong { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--p3d-ink); }
+.wc-cong b { font-weight: 700; }
+.wc-dog { font-family: 'Cinzel Decorative', serif; font-weight: 700; font-size: clamp(28px, 9vw, 40px); line-height: 1.05; text-transform: uppercase; color: var(--p3d-ink); max-width: 100%; overflow-wrap: anywhere; } /* písmo: meno */
+.wc-god { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 0 ${PACK_SPACE.sm}px; font-size: 14px; font-weight: 500; color: var(--p3d-ink); }
+.wc-god b { font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; color: var(--p3d-gold-ink); } /* písmo: nadpis */
+.wc-god i { font-style: normal; font-size: 12px; font-weight: 600; color: var(--p3d-gold-ink); }
+.wc-mission { margin: 0; font-size: 14px; line-height: 1.4; font-weight: 500; color: var(--p3d-ink); }
+
+/* CTA = lapis, hotové aj počas kovania (bez vyblednutia, stav nesú bodky) */
+.wc-act { width: 100%; display: flex; flex-direction: column; align-items: center; gap: ${PACK_SPACE.md}px; }
+.wc-cta { width: 100%; height: 52px; text-transform: uppercase; letter-spacing: .04em; font-weight: 900; }
+.wc-cta:disabled { opacity: 1; cursor: progress; }
+.wc-cta[aria-busy=true] { font-size: 16px; white-space: nowrap; }
+@media (max-width: 400px) { .wc-cta[aria-busy=true] { font-size: 14px; } }
+/* Logo hore: tmavé na papyruse (Logo 2026), nie zlaté */
+.wc-page img[alt=DOGYPT] { filter: brightness(0) opacity(.85); }
+.wc-hint { margin: 0; font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--p3d-ink); }
+
+/* Stavy bez psa */
+.wc-state { max-width: 440px; }
+.wc-h { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 24px; line-height: 1.2; color: var(--p3d-ink); text-wrap: balance; } /* písmo: nadpis */
+.wc-sub { margin: 0; max-width: 360px; font-size: 16px; line-height: 1.4; font-weight: 500; color: var(--p3d-ink); }
+.wc-dots { display: inline-flex; gap: ${PACK_SPACE.sm}px; align-items: center; }
+.wc-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--p3d-gold); border: 2px solid var(--p3d-ink); animation: wc-dot 1s ease-in-out infinite; }
+.wc-dots i:nth-child(2) { animation-delay: .15s; } .wc-dots i:nth-child(3) { animation-delay: .3s; }
+.wc-dots--btn { margin-left: ${PACK_SPACE.sm}px; } .wc-dots--btn i { width: 8px; height: 8px; background: #EFD79A; border-color: #EFD79A; }
+@keyframes wc-dot { 0%, 100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(-4px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .wc-dots i { animation: none; } }
+@media (max-height: 760px) { .wc-card { gap: ${PACK_SPACE.md}px; padding: ${PACK_SPACE.lg}px; } .wc-id { padding: ${PACK_SPACE.sm}px 0; } }
+`;
 
 export function WelcomeScreen() {
   const t = useT();
@@ -246,6 +317,151 @@ export function WelcomeScreen() {
   }, [heroglyphPngUrl, packNumber]);
   const canEnter = packNumber !== null && (!!heroglyphPngUrl || forgeTimedOut);
 
+
+  const hiddenTargets = (
+    <>
+    {/* Hidden PDF render targets — off-screen, rendered for html-to-image.
+        translate="no" + .notranslate are LOAD-BEARING, do not remove: these
+        nodes are captured from the BUYER's browser, so Chrome auto-translate
+        rewrites them before toPng sees them. It translates the dog's name too
+        — BELGA became BELGICKO ("Belgium") on share card #42, 2026-07-16. */}
+    <div aria-hidden="true" translate="no" className="notranslate" style={{ position: 'fixed', left: -10000, top: 0, pointerEvents: 'none', opacity: 1 }}>
+      <div ref={certRef}>
+        <CertificateCard
+          dogName={dogName}
+          ownerName={certData.ownerName}
+          photoUrl={photoUrl}
+          heroglyphCode={heroglyphCode}
+          certNumber={certNumber}
+          issuedDate={issuedDate}
+        />
+      </div>
+      <div ref={verticalRef} style={{ width: 800, height: 1131, background: 'transparent', color: '#000' }}>
+        <VerticalHeroglyphFrame />
+      </div>
+      <div ref={horizontalRef} style={{ width: 1200, height: 321, background: 'transparent', color: '#000' }}>
+        <HeroglyphFrame showOwner />
+      </div>
+      {/* Share card render target — mounted always (so shareRef.current exists
+          for the pipeline's initial gate) but the ShareCard itself only once
+          heroglyphPngUrl exists: it needs a real (uploaded) heroglyph source
+          to fetch + recolor gold, and packNumber must be resolved. */}
+      <div ref={shareRef}>
+        {heroglyphPngUrl && packNumber !== null && (
+          <ShareCard
+            packNumber={packNumber}
+            dogName={dogName}
+            photoUrl={photoUrl}
+            heroglyphUrl={heroglyphPngUrl}
+          />
+        )}
+      </div>
+    </div>
+    </>
+  );
+
+  // ── ŠAT PAPYRUS 3D (15. 11. 2026) ───────────────────────────────────────────
+  // Matej 15. 11.: „oprav to všetko“ — sken ukázal, že /welcome nie je v brande (fialovo-zlatý gradient pod
+  // papyrusovým závojom, rozstrelený Cinzel, sivé tlačidlo s trojbodkou). Len pod `APP_NEW`; web LIVE
+  // ide nižšie starou vetvou, nedotknutou. Vrstva `FlowRedress` na /welcome ťahá fonty a blokové pravidlá
+  // na `.dark-bg`/`.hf-pale`, preto nový povrch ani jednu z tried nenosí.
+  if (APP_NEW) {
+    const tx = withFallback(t);
+    const view: 'loading' | 'failed' | 'empty' | null = dogName ? null
+      : sessionId ? (certData.settled ? 'failed' : 'loading') : 'empty';
+    const stateMedal = Math.round(Math.max(96, Math.min(160, window.innerHeight * 0.2)));
+    const cta = packNumber === null
+      ? cleanText(t('welcome.cta.preparing'))
+      : (!heroglyphPngUrl && !forgeTimedOut) ? cleanText(t('welcome.cta.forging')) : t('welcome.cta.enter');
+    const goalLabel = cleanText(t('welcome.goal.label'));
+    const pct = packNumber ? Math.max(2, Math.min(100, (packNumber / 1000000) * 100)) : 0;
+    return (
+      <div className="wc-page">
+        <style>{FLOW_MEDAL_CSS}{WELCOME_P3D_CSS}</style>
+        <PageTopBar />
+        <div className="wc-wrap">
+          {view ? (
+            <motion.div className="wc-card wc-state" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} aria-busy={view === 'loading'}>
+              <span className="hf-medin"><FlowMedallion src={hekthorFace('welcome')} size={stateMedal} className="hf-medal" /></span>
+              <h1 className="wc-h">
+                {view === 'loading' ? cleanText(t('welcome.cta.preparing')).toLowerCase().replace(/^./, (c) => c.toUpperCase())
+                  : view === 'failed' ? tx('heroglyph.flow.welcomeState.failedTitle', 'We could not load your entry')
+                  : tx('heroglyph.flow.welcomeState.emptyTitle', 'There is nothing to show here yet')}
+              </h1>
+              {view === 'loading' ? <span className="wc-dots" aria-hidden><i /><i /><i /></span> : (
+                <>
+                  <p className="wc-sub">
+                    {view === 'failed'
+                      ? tx('heroglyph.flow.welcomeState.failedSub', 'Reload the page in a moment. The link to your profile is also in your e-mail.')
+                      : tx('heroglyph.flow.welcomeState.emptySub', 'This page opens after you join. Start with your dog and your heroglyph.')}
+                  </p>
+                  <button type="button" className="pk-b3 pk-b3--lapis wc-cta" onClick={() => (view === 'failed' ? window.location.reload() : navigate('/heroglyph'))}>
+                    {view === 'failed' ? tx('heroglyph.flow.welcomeState.retry', 'Try again') : t('wall.hero.cta')}
+                  </button>
+                </>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div className="wc-card" initial={reduced ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
+              {/* Číslo psa a cieľ — jeden riadok, pod ním progres */}
+              <div className="wc-goal">
+                <div className="wc-goal-row">
+                  {packNumber === null ? (
+                    <span className="wc-dots" aria-label={t('welcome.cta.preparing')}><i /><i /><i /></span>
+                  ) : (
+                    <motion.span className="wc-num" animate={landed ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 0.35 }}>
+                      #{packDisplay.toLocaleString()}
+                    </motion.span>
+                  )}
+                  <span className="wc-goal-t">
+                    <span>{goalLabel}</span>
+                    <b>{t('welcome.goal.target')}</b>
+                  </span>
+                </div>
+                <div className="wc-bar" role="progressbar" aria-valuemin={0} aria-valuemax={1000000} aria-valuenow={packNumber ?? 0}>
+                  <motion.span initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }} />
+                </div>
+              </div>
+
+              {/* Fotka psa, alebo značka „tvár ešte chýba“ (po platbe sa fotka doplní v DOG ID, nie tu) */}
+              {photoUrl && !photoFailed ? (
+                <div className="wc-photo">
+                  <img src={photoUrl} alt={dogName} onError={() => setPhotoFailed(true)} />
+                </div>
+              ) : (
+                <>
+                  <div className="wc-photo wc-photo--empty"><HandCamera size={32} style={{ color: 'currentColor' }} /></div>
+                  <div className="wc-miss">
+                    <b>{t('welcome.photoMissing.title')}</b>
+                    <span>{cleanText(t('welcome.photoMissing.sub'))}</span>
+                  </div>
+                </>
+              )}
+
+              <div className="wc-id">
+                <span className="wc-cong">{t('welcome.congratsPrefix')}<b>{t('welcome.congratsName', { name: ownerFirstName })}</b></span>
+                <span className="wc-dog" translate="no">{dogName}</span>
+                <span className="wc-god">
+                  {t('welcome.officiallyA')} <b>“{t('welcome.godWord')}”</b>{t('welcome.godPun') && <i>{t('welcome.godPun')}</i>}
+                </span>
+              </div>
+
+              <p className="wc-mission">{cleanText(t('welcome.missionLine1'))}</p>
+
+              <div className="wc-act">
+                <button type="button" className="pk-b3 pk-b3--lapis wc-cta" onClick={handleEnterPack} disabled={!canEnter} aria-busy={!canEnter}>
+                  {cta}
+                  {!canEnter && <span className="wc-dots wc-dots--btn" aria-hidden><i /><i /><i /></span>}
+                </button>
+                <p className="wc-hint">{cleanText(t('welcome.emailHint'))}</p>
+              </div>
+            </motion.div>
+          )}
+        </div>
+        {hiddenTargets}
+      </div>
+    );
+  }
 
   return (
     <div className="dark-bg min-h-[100dvh] overflow-y-auto overflow-x-hidden relative">
@@ -447,43 +663,7 @@ export function WelcomeScreen() {
       </div>
       </motion.div>
 
-      {/* Hidden PDF render targets — off-screen, rendered for html-to-image.
-          translate="no" + .notranslate are LOAD-BEARING, do not remove: these
-          nodes are captured from the BUYER's browser, so Chrome auto-translate
-          rewrites them before toPng sees them. It translates the dog's name too
-          — BELGA became BELGICKO ("Belgium") on share card #42, 2026-07-16. */}
-      <div aria-hidden="true" translate="no" className="notranslate" style={{ position: 'fixed', left: -10000, top: 0, pointerEvents: 'none', opacity: 1 }}>
-        <div ref={certRef}>
-          <CertificateCard
-            dogName={dogName}
-            ownerName={certData.ownerName}
-            photoUrl={photoUrl}
-            heroglyphCode={heroglyphCode}
-            certNumber={certNumber}
-            issuedDate={issuedDate}
-          />
-        </div>
-        <div ref={verticalRef} style={{ width: 800, height: 1131, background: 'transparent', color: '#000' }}>
-          <VerticalHeroglyphFrame />
-        </div>
-        <div ref={horizontalRef} style={{ width: 1200, height: 321, background: 'transparent', color: '#000' }}>
-          <HeroglyphFrame showOwner />
-        </div>
-        {/* Share card render target — mounted always (so shareRef.current exists
-            for the pipeline's initial gate) but the ShareCard itself only once
-            heroglyphPngUrl exists: it needs a real (uploaded) heroglyph source
-            to fetch + recolor gold, and packNumber must be resolved. */}
-        <div ref={shareRef}>
-          {heroglyphPngUrl && packNumber !== null && (
-            <ShareCard
-              packNumber={packNumber}
-              dogName={dogName}
-              photoUrl={photoUrl}
-              heroglyphUrl={heroglyphPngUrl}
-            />
-          )}
-        </div>
-      </div>
+      {hiddenTargets}
     </div>
   );
 }

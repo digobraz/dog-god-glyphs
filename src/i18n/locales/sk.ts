@@ -8422,4 +8422,27 @@ export const sk: Partial<Dict> = {
   "pack.dog.memorial.addDate.f": "Doplniť deň, keď {name} odišla",
   "pack.dog.memorial.confirmBody.f": "Týmto označíš {name} ako fenku, ktorá odišla. Počítadlo dní tu sa zastaví a začne plynúť čas v anjelskej podobe.",
   // ⟦/pack.sos⟧
+  // ⟦nf⟧ 404 (Hekthor's Run)
+  'nf.lead': "Táto stránka ušla z vôdzky.",
+  'nf.jump': "Skoč",
+  'nf.run': "HEKTHOROV BEH",
+  'nf.hint': "/ ťuk: preskoč kliešte, chyť loptičky",
+  'nf.over': "Chytil ťa.",
+  'nf.overHint': "/ ťuk a bežíš znova",
+  'nf.pts': "b.",
+  'nf.best': "rekord",
+  'nf.home': "Aportuj domovskú stránku",
+  'nf.join': "alebo sa staň Dogyptianom →",
+  'nf.rank0': "ŠTEŇA",
+  'nf.rank1': "DOBRÝ PES",
+  'nf.rank2': "VEĽMI DOBRÝ PES",
+  'nf.rank3': "KTO JE DOBRÝ PES",
+  'nf.rank4': "LEGENDA",
+  'nf.rank5': "DOBRÝ PES TISÍCROČIA",
+  // ⟦/nf⟧
+  'heroglyph.flow.welcomeState.emptyTitle': 'Zatiaľ tu nič nie je',
+  'heroglyph.flow.welcomeState.emptySub': 'Táto stránka sa otvorí, keď sa pridáš. Začni psom a jeho heroglyfom.',
+  'heroglyph.flow.welcomeState.failedTitle': 'Tvoj zápis sa nepodarilo načítať',
+  'heroglyph.flow.welcomeState.failedSub': 'O chvíľu obnov stránku. Odkaz na tvoj profil máš aj v e-maile.',
+  'heroglyph.flow.welcomeState.retry': 'Skúsiť znova',
 };

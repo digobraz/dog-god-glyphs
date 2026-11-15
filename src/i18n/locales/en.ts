@@ -8729,4 +8729,27 @@ export const en = {
   "pack.dog.memorial.addDate.f": "Add the day {name} left",
   "pack.dog.memorial.confirmBody.f": "This marks {name} as having passed away. The days-here counter stops, and their time in angel form begins.",
   // ⟦/pack.sos⟧
+  // ⟦nf⟧ 404 (Hekthor's Run)
+  'nf.lead': "This page ran off-leash.",
+  'nf.jump': "Jump",
+  'nf.run': "HEKTHOR'S RUN",
+  'nf.hint': "/ tap: leap the ticks, snatch the balls",
+  'nf.over': "Caught you.",
+  'nf.overHint': "/ tap to run again",
+  'nf.pts': "pts",
+  'nf.best': "best",
+  'nf.home': "Fetch the homepage",
+  'nf.join': "or become a Dogyptian →",
+  'nf.rank0': "PUPPY",
+  'nf.rank1': "GOOD BOY",
+  'nf.rank2': "VERY GOOD BOY",
+  'nf.rank3': "WHO'S A GOOD BOY",
+  'nf.rank4': "LEGEND",
+  'nf.rank5': "GOOD BOY OF THE MILLENNIUM",
+  // ⟦/nf⟧
+  'heroglyph.flow.welcomeState.emptyTitle': 'There is nothing to show here yet',
+  'heroglyph.flow.welcomeState.emptySub': 'This page opens after you join. Start with your dog and your heroglyph.',
+  'heroglyph.flow.welcomeState.failedTitle': 'We could not load your entry',
+  'heroglyph.flow.welcomeState.failedSub': 'Reload the page in a moment. The link to your profile is also in your e-mail.',
+  'heroglyph.flow.welcomeState.retry': 'Try again',
 } as const;

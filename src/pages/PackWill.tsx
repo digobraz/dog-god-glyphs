@@ -13,6 +13,8 @@ import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import { PACK_BOX, PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { HieroglyphBg } from '@/components/pack/PackLayout';
+import { APP_NEW } from '@/lib/packFlags';
+import { SMALL_P3D_CSS, SP_PAPER } from '@/components/legal/smallPageKit';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { willAct, willHint, type WillHint, type WillOpen, type WillReason } from '@/lib/willAccess';
@@ -60,19 +62,20 @@ export default function PackWill() {
   return (
     // TMAVÝ CHRÁM (Matej 23. 10., kolo 4: „pozadie bude tmavý chrám"). Brand v4.1: temple = len pozadie,
     // text sedí na papyrusovej karte (`PACK_BOX.card`).
-    <div className="relative" style={{ fontFamily: FONT_UI, display: 'flex', flexDirection: 'column', minHeight: '100dvh', backgroundColor: T.pageBg }}>
-      <HieroglyphBg />
+    // V šate Papyrus 3D (`APP_NEW`, 15. 11. 2026) je podklad papyrusová tapeta ako v /pack, nie chrám.
+    <div className={`relative${APP_NEW ? ` ${SP_PAPER}` : ''}`} style={{ fontFamily: FONT_UI, display: 'flex', flexDirection: 'column', minHeight: '100dvh', ...(APP_NEW ? null : { backgroundColor: T.pageBg }) }}>
+      {APP_NEW ? <style>{SMALL_P3D_CSS + WILL_P3D_CSS}</style> : <HieroglyphBg />}
       <div className="relative" style={{ zIndex: 1 }}><PageTopBar /></div>
       {/* Karta v strede — `margin:auto` na dieťati, nie justify-center (lock PAGE_AIR). */}
       <div className="relative" style={{ zIndex: 1, width: '100%', maxWidth: 560, margin: 'auto', padding: `${S.lg}px ${S.lg}px ${S.xxl}px`, boxSizing: 'border-box' }}>
-        <section style={{ ...PACK_BOX.card, padding: S.xl, color: T.ink, textAlign: 'center' }}>
+        <section className={APP_NEW ? 'sp-card' : undefined} style={{ ...(APP_NEW ? null : PACK_BOX.card), padding: S.xl, color: T.ink, textAlign: 'center' }}>
           {phase.k === 'loading' && <Line>{tx('will.loading', 'Opening the will')}</Line>}
 
           {phase.k === 'dead' && (
             <>
               <Title>{tx('will.deadTitle', 'This will is not available')}</Title>
               <Line>{tx('will.deadBody', 'The link is not valid, or the pawtner cancelled the will.')}</Line>
-              <button type="button" style={cta(false)} onClick={() => navigate('/')}>{tx('pack.join.home', 'BACK TO DOGYPT')}</button>
+              <button type="button" className={APP_NEW ? 'pk-b3 pk-b3--lapis wl-btn' : undefined} style={cta(false)} onClick={() => navigate('/')}>{tx('pack.join.home', 'BACK TO DOGYPT')}</button>
             </>
           )}
 
@@ -85,8 +88,8 @@ export default function PackWill() {
               <Line>{tx('will.gateQ', 'Is it truly necessary to open it now?')}</Line>
               <p style={{ ...sub, marginTop: S.sm }}>{tx('will.gateNote', '{owner} gets a notice that you opened it.').replace('{owner}', phase.h.owner)}</p>
               {err && <p style={{ ...sub, color: T.alertRed, marginTop: S.sm }}>{err}</p>}
-              <button type="button" style={cta(false)} onClick={() => setPhase({ k: 'why', h: phase.h })}>{tx('will.gateYes', 'Yes, open the will')}</button>
-              <button type="button" style={ghost} onClick={() => navigate('/')}>{tx('will.gateNo', 'Not now')}</button>
+              <button type="button" className={APP_NEW ? 'pk-b3 pk-b3--lapis wl-btn' : undefined} style={cta(false)} onClick={() => setPhase({ k: 'why', h: phase.h })}>{tx('will.gateYes', 'Yes, open the will')}</button>
+              <button type="button" className={APP_NEW ? 'pk-b3 pk-b3--paper wl-btn' : undefined} style={ghost} onClick={() => navigate('/')}>{tx('will.gateNo', 'Not now')}</button>
             </>
           )}
 
@@ -96,7 +99,7 @@ export default function PackWill() {
               <Title>{tx('will.whyTitle', 'What happened to the owner?')}</Title>
               <p style={{ ...sub, marginBottom: S.sm }}>{tx('will.whyNote', '{owner} will see your answer.').replace('{owner}', phase.h.owner)}</p>
               {REASONS.map(([r, k, f]) => (
-                <button key={r} type="button" style={{ ...ghost, opacity: busy ? 0.6 : 1 }} disabled={busy} onClick={() => act('open', r)}>{tx(k, f)}</button>
+                <button key={r} type="button" className={APP_NEW ? 'pk-b3 pk-b3--paper wl-btn' : undefined} style={{ ...ghost, opacity: busy ? 0.6 : 1 }} disabled={busy} onClick={() => act('open', r)}>{tx(k, f)}</button>
               ))}
               {err && <p style={{ ...sub, color: T.alertRed, marginTop: S.sm }}>{err}</p>}
             </>
@@ -166,7 +169,7 @@ function cta(off: boolean): React.CSSProperties {
     display: 'block', width: '100%', marginTop: S.lg, padding: `${S.md}px ${S.lg}px`, minHeight: 44,
     background: LAPIS.grad, color: LAPIS.ink, border: 'none', borderRadius: PACK_R.field,
     fontFamily: FONT_TITLE, fontWeight: 700, fontSize: PACK_TEXT.body, letterSpacing: '.02em',
-    textTransform: 'uppercase', cursor: off ? 'default' : 'pointer', opacity: off ? 0.6 : 1, boxShadow: LAPIS_BTN_SHADOW,
+    textTransform: 'uppercase', cursor: off ? 'default' : 'pointer', opacity: off ? 0.6 : 1, boxShadow: APP_NEW ? undefined : LAPIS_BTN_SHADOW,   // pod šatom 3D nesie pery `.pk-b3`
   };
 }
 const ghost: React.CSSProperties = {
@@ -174,3 +177,9 @@ const ghost: React.CSSProperties = {
   color: LAPIS.edge, border: `1.5px solid ${LAPIS.edge}`, borderRadius: PACK_R.field, fontFamily: FONT_TITLE, fontWeight: 700,
   fontSize: PACK_TEXT.label, letterSpacing: '.02em', textTransform: 'uppercase', cursor: 'pointer',
 };
+
+// Šat PAPYRUS 3D: tlačidlá berú tvar z `.pk-b3`, inline štýl ostáva len pre rozloženie (farbu, rám a tieň prebíja trieda).
+const WILL_P3D_CSS = `
+html.papyrus3d .wl-btn{display:flex !important;width:100%;min-height:56px;padding:8px 16px !important;background:linear-gradient(180deg,var(--b3-a),var(--b3-b)) !important;border:2.5px solid var(--b3-l) !important;border-radius:16px !important;color:var(--b3-i) !important;font:400 16px/1.2 'LT Museum',serif !important;letter-spacing:0 !important;text-transform:none !important;}
+html.papyrus3d .wl-btn:active:not(:disabled){transform:translateY(5px);}
+`;

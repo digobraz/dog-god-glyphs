@@ -16,6 +16,8 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { LAB } from '@/lib/labTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PACK_BOX, PACK_HEAD, PACK_THEME as T } from '@/components/pack/packTheme';
+import { APP_NEW } from '@/lib/packFlags';
+import { SMALL_P3D_CSS, SP_PAPER, SmallTop } from './smallPageKit';
 
 type Kind = 'privacy' | 'terms';
 
@@ -48,11 +50,27 @@ export default function LegalPage({ kind, count, skip = [], ids = {} }: {
   const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   return (
-    <div className="lg-root">
-      <PageTopBar brandBack onBack={back} backAriaLabel={t('nav.aria.back')} />
+    <div className={`lg-root${APP_NEW ? ` ${SP_PAPER} lg-p3d` : ''}`}>
+      {APP_NEW ? <SmallTop onBack={back} backLabel={t('nav.aria.back')} /> : <PageTopBar brandBack onBack={back} backAriaLabel={t('nav.aria.back')} />}
 
       <main className="lg-main">
         {/* Prepínač dokumentov — poloha = zlato (konštrukcia), nie lapis. */}
+        {APP_NEW ? (
+          <nav aria-label="Legal" className="lg-swwrap">
+            {/* Prepínač dokumentov v šate 3D: dva stavy (privacy | terms), nastavenie cookies je samostatný odkaz. */}
+            <div className="pk-p3d-sw lg-sw">
+              {DOCS.map((d) => (
+                <button key={d.kind} type="button" className={d.kind === kind ? 'on' : ''}
+                  aria-current={d.kind === kind ? 'page' : undefined} onClick={() => d.kind !== kind && navigate(d.path)}>
+                  {t(d.title)}
+                </button>
+              ))}
+            </div>
+            <button type="button" className="lg-cookie" onClick={() => window.dispatchEvent(new Event('dogypt:open-consent'))}>
+              {t('consent.footerLink')}
+            </button>
+          </nav>
+        ) : (
         <nav className="lg-tabs" aria-label="Legal">
           {DOCS.map((d) => (
             <Link key={d.kind} to={d.path} className={`lg-tab${d.kind === kind ? ' is-on' : ''}`}
@@ -64,17 +82,18 @@ export default function LegalPage({ kind, count, skip = [], ids = {} }: {
             {t('consent.footerLink')}
           </button>
         </nav>
+        )}
 
-        <article className="lg-card" style={{ ...PACK_BOX.card }}>
+        <article className="lg-card" style={APP_NEW ? undefined : { ...PACK_BOX.card }}>
           <header className="lg-head">
-            <p className="lg-eyebrow" style={{ ...PACK_HEAD.label }}>{t('legal.eyebrow')}</p>
-            <h1 className="lg-h1" style={{ ...PACK_HEAD.card }}>{t(`${kind}.title`)}</h1>
+            <p className="lg-eyebrow" style={APP_NEW ? undefined : { ...PACK_HEAD.label }}>{t('legal.eyebrow')}</p>
+            <h1 className="lg-h1" style={APP_NEW ? undefined : { ...PACK_HEAD.card }}>{t(`${kind}.title`)}</h1>
             <p className="lg-meta">{t('legal.updated')}</p>
             <p className="lg-note">{t('legal.langNote')}</p>
           </header>
 
           {/* Obsah — 13/14 sekcií sa bez neho čítať nedá; klik zroluje na sekciu. */}
-          <ol className="lg-toc" style={{ ...PACK_BOX.subblock }}>
+          <ol className="lg-toc" style={APP_NEW ? undefined : { ...PACK_BOX.subblock }}>
             {sections.map((s) => (
               <li key={s.id}>
                 <button type="button" onClick={() => jump(s.id)}><i>{s.n}</i><span>{s.title}</span></button>
@@ -92,7 +111,7 @@ export default function LegalPage({ kind, count, skip = [], ids = {} }: {
           </div>
 
           <footer className="lg-foot">
-            <p className="lg-motto" style={{ ...PACK_HEAD.label }}>{t('legal.motto')}</p>
+            <p className="lg-motto" style={APP_NEW ? undefined : { ...PACK_HEAD.label }}>{t('legal.motto')}</p>
             <Link to={kind === 'privacy' ? '/terms' : '/privacy'} className="lg-other">
               {t(kind === 'privacy' ? 'privacy.linkTerms' : 'terms.linkPrivacy')}
             </Link>
@@ -101,6 +120,7 @@ export default function LegalPage({ kind, count, skip = [], ids = {} }: {
         <p className="lg-copy">© 2026 DOGYPT</p>
       </main>
 
+      {APP_NEW && <style>{SMALL_P3D_CSS + LG_P3D_CSS}</style>}
       <style>{`
         .lg-root { min-height: 100vh; background: ${LAB.pageBg}; position: relative; color: ${T.ink}; }
         .lg-root::before { content: ''; position: fixed; inset: 0; background: ${LAB.pageBackdrop}; pointer-events: none; }
@@ -168,3 +188,24 @@ export default function LegalPage({ kind, count, skip = [], ids = {} }: {
     </div>
   );
 }
+
+// Šat PAPYRUS 3D (len `APP_NEW`): karta a obsah v receptu appky, nadpisy LT Museum bez rozstrelu.
+// Pravidlá nesú `html.papyrus3d`, takže web ich nezasiahne ani náhodou.
+const LG_P3D_CSS = `
+html.papyrus3d .lg-p3d{background-color:var(--p3d-paper);}
+html.papyrus3d .lg-p3d .lg-main{padding-top:16px;}
+html.papyrus3d .lg-swwrap{display:flex;flex-direction:column;align-items:center;gap:12px;}
+html.papyrus3d .lg-sw{width:100%;max-width:480px;}
+html.papyrus3d .lg-sw>button{height:auto;min-height:50px;padding:8px;font-size:16px;line-height:1.1;text-align:center;}
+html.papyrus3d .lg-cookie{border:0;background:none;cursor:pointer;padding:8px;font:500 14px/1 'Space Grotesk',sans-serif;color:var(--p3d-gold-ink);text-decoration:underline;text-underline-offset:4px;}
+html.papyrus3d .lg-card{background:var(--p3d-card);border:2.5px solid var(--p3d-ink);border-radius:16px;box-shadow:var(--p3d-pera);}
+html.papyrus3d .lg-eyebrow,html.papyrus3d .lg-meta{font:500 12px/1.4 'Space Grotesk',sans-serif;letter-spacing:.02em;text-transform:uppercase;color:var(--p3d-gold-ink);}
+html.papyrus3d .lg-h1{font-family:'LT Museum',serif;font-weight:400;font-size:24px;letter-spacing:.01em;text-transform:none;color:var(--p3d-ink);}
+html.papyrus3d .lg-h1::after{background:var(--p3d-gold);height:2.5px;}
+html.papyrus3d .lg-note{color:var(--p3d-ink);}
+html.papyrus3d .lg-toc{background:var(--p3d-paper-hi);border:2.5px solid var(--p3d-ink);border-radius:16px;box-shadow:var(--p3d-inset);}
+html.papyrus3d .lg-sec h2{font-family:'LT Museum',serif;font-weight:400;font-size:20px;letter-spacing:.01em;text-transform:none;color:var(--p3d-ink);}
+html.papyrus3d .lg-motto{font-family:'LT Museum',serif;font-weight:400;font-size:16px;letter-spacing:.01em;text-transform:none;color:var(--p3d-ink);}
+html.papyrus3d .lg-other{font-family:'LT Museum',serif;font-weight:400;font-size:16px;letter-spacing:.01em;text-transform:none;}
+@media (max-width:768px){html.papyrus3d .lg-main{padding-top:8px;}}
+`;
