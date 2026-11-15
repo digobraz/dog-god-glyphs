@@ -8,13 +8,14 @@
 //   ukazMoment({ id: 'ucen', obrazok: '/icons/pack/rank/learner-4.webp', stuha: 'UČEŇ 4', nadpis: 'Nový <em>level</em>' })
 //   iskra(element, 'lajk')   // ISKRA: prvok pukne, ľahký ťuk — nič nezakryje, nič neotvorí
 //
-// Pravidlá z hárku Zážitok appky: ZDIEĽAŤ na každom odhalení a obrade (`maZdielanie`) · zvuk len pri obrade ·
+// Pravidlá z hárku Zážitok appky: zvuk len pri obrade · ZDIEĽAŤ NIE JE (Matej 15. 11.: „zdielať netreba
+// nemyslim si že by to niekto zdielal“, ruší voľbu zdielanie = a) ·
 // odhalenie a obrad čakajú na človeka, pečať sa zbalí sama · moment človeka nikdy neodnesie inam (lock §4.2).
 // ⚠️ Montuje sa len pod `MOMENTY_ON` (= TEST_BUILD), kým etapa 2 nenapojí udalosti a Matej nepovie „ostro“.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { MOMENTY, maZdielanie, moment, uder } from '@/lib/momenty';
+import { MOMENTY, moment, uder } from '@/lib/momenty';
 import { listeners, fronta, type Listener, type MomentData } from './momentBus';
 import { useT } from '@/i18n/LanguageContext';
 import { MOMENT_CSS } from './momentCss';
@@ -71,7 +72,6 @@ export function MomentHost() {
   }
 
   if (!m || !def) return <><style>{MOMENT_CSS}</style><MomentSkuska rozbaleny={ROZBALENY} /></>;
-  const share = maZdielanie(m.id) && m.zdielat;
   const pecat = def.velkost === 'pecat';
   return createPortal(
     <>
@@ -81,18 +81,25 @@ export function MomentHost() {
         <div className="pkm-col">
           {!pecat && <span className="pkm-rays" aria-hidden />}
           {pecat ? (
-            <div className="pkm-seal" aria-hidden><b>{m.cislo ?? ''}</b>{m.pecatText && <small>{m.pecatText}</small>}</div>
+            // PEČAŤ NA PAPYRUSOVEJ KARTE (Matej 15. 11.: „navrh pekný“) — zlaté na hnedom závoji bolo „slabo vidieť“.
+            <div className="pkm-card">
+              <div className="pkm-seal" aria-hidden><b>{m.cislo ?? ''}</b>{m.pecatText && <small>{m.pecatText}</small>}</div>
+              <Nadpis html={m.nadpis} />
+              {m.podnadpis && <p className="pkm-sub">{m.podnadpis}</p>}
+            </div>
           ) : m.obrazok ? (
             <div className={`pkm-medal${m.lapis ? ' pkm-medal--lapis' : ''}`} aria-hidden><img src={m.obrazok} alt="" /></div>
-          ) : m.cislo != null ? <div className="pkm-num">{m.cislo}</div> : null}
-          {m.stuha && <div className="pkm-ribbon">{m.stuha}</div>}
-          {m.eyebrow && <span className="pkm-eb">{m.eyebrow}</span>}
-          <Nadpis html={m.nadpis} />
-          {m.podnadpis && <p className="pkm-sub">{m.podnadpis}</p>}
+          ) : m.cislo != null ? (
+            // Číslo psa ako POSTUP k severke (Matej 15. 11.: „nie je vidno ten progres /1M“), tak ako na homepage.
+            <div className="pkm-num">{m.cislo}{m.zCelku && <span className="pkm-of">/ {m.zCelku}</span>}</div>
+          ) : null}
+          {!pecat && m.stuha && <div className="pkm-ribbon">{m.stuha}</div>}
+          {!pecat && m.eyebrow && <span className="pkm-eb">{m.eyebrow}</span>}
+          {!pecat && <Nadpis html={m.nadpis} />}
+          {!pecat && m.podnadpis && <p className="pkm-sub">{m.podnadpis}</p>}
           {!pecat && (
             <div className="pkm-acts">
-              {share && <button type="button" className="pk-b3 pk-b3--lapis" onClick={() => m.zdielat?.()}>{tx('pack.moment.share', 'Share')}</button>}
-              <button type="button" className="pk-b3 pk-b3--paper" onClick={zavri}>{tx('pack.moment.continue', 'Continue')}</button>
+              <button type="button" className="pk-b3 pk-b3--lapis" onClick={zavri}>{tx('pack.moment.continue', 'Continue')}</button>
             </div>
           )}
         </div>

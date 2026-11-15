@@ -6279,6 +6279,5 @@ export const deu: Partial<Dict> = {
   'pack.dog.wallTitle': "Botschaft an der Wand",
   'pack.dog.wallHint': "Text neben dem Hundefoto auf www.dogypt.com",
   'pack.dog.wallEmpty': "Noch keine Botschaft.",
-  'pack.moment.share': 'Teilen',
   'pack.moment.continue': 'Weiter',
 };

@@ -6279,6 +6279,5 @@ export const esp: Partial<Dict> = {
   'pack.dog.wallTitle': "Mensaje en el muro",
   'pack.dog.wallHint': "Texto junto a la foto del perro en www.dogypt.com",
   'pack.dog.wallEmpty': "Aún no hay mensaje.",
-  'pack.moment.share': 'Compartir',
   'pack.moment.continue': 'Continuar',
 };

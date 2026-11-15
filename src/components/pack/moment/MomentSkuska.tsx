@@ -8,11 +8,11 @@ import { useState } from 'react';
 import { ukazMoment, iskra, type MomentData } from './momentBus';
 
 const UKAZKY: Array<[string, MomentData]> = [
-  ['Pečať · zápis dňa', { id: 'zapis', cislo: 12, pecatText: 'DEŇ V RADE', nadpis: '<em>Zapísané</em>' }],
-  ['Odhalenie · UČEŇ', { id: 'ucen', obrazok: '/icons/pack/rank/learner-4.webp', stuha: 'UČEŇ 4', nadpis: 'Nový <em>level</em>', podnadpis: 'Zrno po zrne. Ďalší level je za 25 zvitkov.', zdielat: () => undefined }],
-  ['Odhalenie · séria', { id: 'seria', obrazok: '/icons/pack/badges/a0-6.webp', stuha: '30 DNÍ', nadpis: '30 dní v <em>rade</em>', podnadpis: 'Séria je tvrdá. Vynechaný deň ju vráti na nulu.', zdielat: () => undefined }],
-  ['Obrad · číslo psa', { id: 'cislo', cislo: '#122', eyebrow: 'Poradové číslo', nadpis: 'Hekthor je <em>číslo</em> v svorke', podnadpis: 'Pozri sa na stenu, tu sa zapisuje každý pes.', zdielat: () => undefined }],
-  ['Obrad · výročie', { id: 'vyrocie', obrazok: '/icons/pack/rank/servant-2.webp', stuha: 'SLUŽOBNÍK · 3. ROK', nadpis: 'Tri roky <em>spolu</em>', podnadpis: 'Služobník rastie rokmi. Každý deň sa počíta.', zdielat: () => undefined }],
+  ['Pečať · zápis dňa', { id: 'zapis', cislo: 12, pecatText: 'DEŇ V RADE', nadpis: '<em>Zapísané</em>', podnadpis: 'Hekthor ďakuje. Zajtra deň 13.' }],
+  ['Odhalenie · UČEŇ', { id: 'ucen', obrazok: '/icons/pack/rank/learner-4.webp', stuha: 'UČEŇ 4', nadpis: 'Nový <em>level</em>', podnadpis: 'Zrno po zrne. Ďalší level je za 25 zvitkov.' }],
+  ['Odhalenie · séria', { id: 'seria', obrazok: '/icons/pack/badges/a0-6.webp', stuha: '30 DNÍ', nadpis: '30 dní v <em>rade</em>', podnadpis: 'Séria je tvrdá. Vynechaný deň ju vráti na nulu.' }],
+  ['Obrad · číslo psa', { id: 'cislo', cislo: '122', zCelku: '1 000 000', eyebrow: 'Poradové číslo', nadpis: 'Hekthor je <em>číslo</em> v svorke', podnadpis: 'Pozri sa na stenu, tu sa zapisuje každý pes.' }],
+  ['Obrad · výročie', { id: 'vyrocie', obrazok: '/icons/pack/rank/servant-2.webp', stuha: 'SLUŽOBNÍK · 3. ROK', nadpis: 'Tri roky <em>spolu</em>', podnadpis: 'Služobník rastie rokmi. Každý deň sa počíta.' }],
 ];
 
 export function MomentSkuska({ rozbaleny = false }: { rozbaleny?: boolean }) {

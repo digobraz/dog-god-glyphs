@@ -6090,6 +6090,5 @@ export const ara: Partial<Dict> = {
   'pack.dog.wallTitle': "رسالة على الجدار",
   'pack.dog.wallHint': "نص بجانب صورة الكلب على www.dogypt.com",
   'pack.dog.wallEmpty': "لا توجد رسالة بعد.",
-  'pack.moment.share': 'مشاركة',
   'pack.moment.continue': 'متابعة',
 };

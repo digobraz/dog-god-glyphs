@@ -8466,6 +8466,5 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.welcomeState.failedTitle': 'Tvoj zápis sa nepodarilo načítať',
   'heroglyph.flow.welcomeState.failedSub': 'O chvíľu obnov stránku. Odkaz na tvoj profil máš aj v e-maile.',
   'heroglyph.flow.welcomeState.retry': 'Skúsiť znova',
-  'pack.moment.share': 'Zdieľať',
   'pack.moment.continue': 'Pokračovať',
 };

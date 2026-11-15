@@ -13,9 +13,9 @@
 //   odhalenie  3 s   · nový level, odznak, pásmo · medaila + stuha + ZDIEĽAŤ
 //   obrad      6 s   · raz za čas (heroglyf, číslo psa, výročie, wrap) · celá obrazovka + ZVUK
 //
-// Voľby, ktoré tu platia: haptika všade, zvuk LEN pri obrade, dá sa vypnúť (haptika = a) ·
-// ZDIEĽAŤ na každom odhalení a obrade (zdielanie = a) · séria je TVRDÁ (seria = b).
-// Zmena veľkosti, haptiky alebo zdieľania = zmena TU, nie v komponente udalosti.
+// Voľby, ktoré tu platia: haptika všade, zvuk LEN pri obrade, dá sa vypnúť (haptika = a) · séria je TVRDÁ (seria = b).
+// ZDIEĽAŤ NEMÁ ŽIADNY MOMENT — Matej 15. 11. nad testovacou appkou: *„zdielať netreba nemyslim si že by to niekto
+// zdielal“* (ruší voľbu zdielanie = a z toho istého dňa). Zmena veľkosti alebo haptiky = zmena TU, nie v komponente udalosti.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type MomentVelkost = 'iskra' | 'pecat' | 'odhalenie' | 'obrad';
@@ -83,12 +83,6 @@ export const MOMENTY: Record<MomentId, MomentDef> = {
   bones: { velkost: 'pecat', push: true, etapa: 3 },
   svorka: { velkost: 'odhalenie', etapa: 3 },
   hodnost: { velkost: 'obrad', etapa: 3 },
-};
-
-/** Zdieľať má každé odhalenie a obrad (voľba zdielanie = a). */
-export const maZdielanie = (id: MomentId) => {
-  const v = MOMENTY[id].velkost;
-  return v === 'odhalenie' || v === 'obrad';
 };
 
 /** Zvuk len pri obrade (voľba haptika = a). */

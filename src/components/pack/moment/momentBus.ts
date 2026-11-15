@@ -17,8 +17,8 @@ export interface MomentData {
   /** Nadpis — jedno slovo smie byť zlaté cez `<em>` (zlaté = len jedno slovo, Matej 6. 11.). */
   nadpis: string;
   podnadpis?: string;
-  /** Zdieľať — volajúci dodá kartu na zdieľanie. Bez neho tlačidlo nie je. */
-  zdielat?: () => void;
+  /** Celok, ku ktorému číslo smeruje („1 000 000“) — číslo psa sa ukazuje ako postup k severke, nie samo. */
+  zCelku?: string;
   /** Medaila je lapisová (level, hodnosť), inak zlatá. */
   lapis?: boolean;
   /** Po zatvorení. */

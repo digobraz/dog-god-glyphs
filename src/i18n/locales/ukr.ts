@@ -6278,6 +6278,5 @@ export const ukr: Partial<Dict> = {
   'pack.dog.wallTitle': "Послання на стіні",
   'pack.dog.wallHint': "Текст біля фото собаки на www.dogypt.com",
   'pack.dog.wallEmpty': "Послання ще немає.",
-  'pack.moment.share': 'Поділитися',
   'pack.moment.continue': 'Далі',
 };

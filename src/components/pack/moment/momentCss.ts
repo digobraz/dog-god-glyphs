@@ -2,7 +2,7 @@
 // (`plany/nakresy/momenty-appky-2026-11-15/core.css`: m-seal, m-medal, m-rays, m-ribbon), prevedené na šat
 // Papyrus 3D: premenné `--p3d-*` z lib/papyrus3d.ts, písmo LT Museum, tlačidlo `.pk-b3`.
 // Súbor je v SKIP stráže check:pack ako revealCss.ts — veľké číslo (64) a pečať (42) sú obraz, nie text stránky.
-import { PACK_R, PACK_SPACE, PACK_TEXT } from '@/components/pack/packTheme';
+import { FONT_UI, PACK_R, PACK_SPACE, PACK_TEXT } from '@/components/pack/packTheme';
 
 const INK = 'var(--p3d-ink,#2a1608)';
 const GOLD = 'var(--p3d-gold,#C99A3F)';
@@ -19,7 +19,12 @@ export const MOMENT_CSS = `
 
 .pkm{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;
   padding:max(${PACK_SPACE.xl}px,env(safe-area-inset-top)) ${PACK_SPACE.lg}px max(${PACK_SPACE.xl}px,env(safe-area-inset-bottom));animation:pkmFade .3s both}
-.pkm--pecat{background:rgba(42,22,8,.45)}
+.pkm--pecat{background:rgba(42,22,8,.35);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.pkm-card{width:100%;display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;
+  border-radius:${PACK_R.card}px;border:2.5px solid ${INK};background:var(--p3d-card,linear-gradient(180deg,#F9F2E3,#F3E4C4));box-shadow:var(--p3d-pera);animation:pkmRise .3s ease-out both}
+.pkm-card .pkm-h{color:${INK}}
+.pkm-card .pkm-h em{color:${GOLD_INK}}
+.pkm-card .pkm-sub{color:var(--p3d-ink-soft,#5b4630)}
 .pkm--odhalenie{background:radial-gradient(circle at 50% 35%,#2a1d0c,#000 78%)}
 .pkm--obrad{background:radial-gradient(circle at 50% 30%,#24449c,#0A1A4A 80%)}
 .pkm.out{animation:pkmOut .35s both}
@@ -40,7 +45,8 @@ export const MOMENT_CSS = `
 .pkm-medal img{width:82%;height:82%;object-fit:contain}
 .pkm-medal::after{content:"";position:absolute;top:-20%;bottom:-20%;left:-60%;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);
   transform:skewX(-20deg);animation:pkmShine .9s ease-out .8s both}
-.pkm-num{font:400 64px/1 ${TITLE};color:${HI};animation:pkmSlam .55s cubic-bezier(.2,1.5,.4,1) .2s both}
+.pkm-num{display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.xs}px;font:400 64px/1 ${TITLE};color:${HI};animation:pkmSlam .55s cubic-bezier(.2,1.5,.4,1) .2s both}
+.pkm-of{font:500 ${PACK_TEXT.lead}px/1 ${FONT_UI};letter-spacing:.08em;color:rgba(239,215,154,.75)}
 .pkm-ribbon{margin-top:-18px;z-index:1;padding:6px 18px;border-radius:${PACK_R.field}px;border:2.5px solid ${INK};background:${GOLD};color:${INK};
   font:400 ${PACK_TEXT.lead}px ${TITLE};box-shadow:0 4px 0 ${GOLD_INK};animation:pkmRise .4s ease-out .9s both}
 .pkm-eb{font-size:${PACK_TEXT.label}px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:${GOLD};animation:pkmRise .4s ease-out .5s both}

@@ -8382,6 +8382,5 @@ export const cs: Partial<Dict> = {
   "pack.dog.memorial.addDate.f": "Doplnit den, kdy {name} odešla",
   "pack.dog.memorial.confirmBody.f": "Tímto označíš {name} jako fenku, která odešla. Počítadlo dní se zastaví a začne plynout čas v andělské podobě.",
   // ⟦/pack.sos⟧
-  'pack.moment.share': 'Sdílet',
   'pack.moment.continue': 'Pokračovat',
 };

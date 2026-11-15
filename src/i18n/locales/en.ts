@@ -8773,6 +8773,5 @@ export const en = {
   'heroglyph.flow.welcomeState.failedTitle': 'We could not load your entry',
   'heroglyph.flow.welcomeState.failedSub': 'Reload the page in a moment. The link to your profile is also in your e-mail.',
   'heroglyph.flow.welcomeState.retry': 'Try again',
-  'pack.moment.share': 'Share',
   'pack.moment.continue': 'Continue',
 } as const;

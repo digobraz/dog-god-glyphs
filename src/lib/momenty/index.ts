@@ -8,7 +8,7 @@ import { trackPack } from '@/lib/packAnalytics';
 import { MOMENTY, maZvuk, type MomentId } from './register';
 import { haptika, gong, type Uder } from './haptika';
 
-export { MOMENTY, maZdielanie, maZvuk } from './register';
+export { MOMENTY, maZvuk } from './register';
 export type { MomentId, MomentVelkost } from './register';
 export { haptika, gong, haptikaZapnuta, zvukZapnuty, nastavHaptiku, nastavZvuk } from './haptika';
 

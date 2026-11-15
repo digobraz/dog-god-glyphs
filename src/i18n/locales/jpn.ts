@@ -6090,6 +6090,5 @@ export const jpn: Partial<Dict> = {
   'pack.dog.wallTitle': "壁のメッセージ",
   'pack.dog.wallHint': "www.dogypt.com の犬の写真の横に載る文章",
   'pack.dog.wallEmpty': "まだメッセージはありません。",
-  'pack.moment.share': 'シェア',
   'pack.moment.continue': '続ける',
 };

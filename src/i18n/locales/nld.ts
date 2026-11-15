@@ -6093,6 +6093,5 @@ export const nld: Partial<Dict> = {
   'pack.dog.wallTitle': "Bericht op de muur",
   'pack.dog.wallHint': "Tekst bij de hondenfoto op www.dogypt.com",
   'pack.dog.wallEmpty': "Nog geen bericht.",
-  'pack.moment.share': 'Delen',
   'pack.moment.continue': 'Verder',
 };
