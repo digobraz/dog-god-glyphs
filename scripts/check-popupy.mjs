@@ -30,10 +30,13 @@
  *
  * Beh:  npm run check:popupy               plný beh (18 jazykov × 4 okná)
  *       npm run check:popupy -- --rychle   SK, EN, DE, FR, NL, ES × PC + mobil (pred deployom)
- *       --len /pack/map                    len jedna routa
+ *       --len /pack/map,/terms             len vymenované routy (čiarkou) — po zásahu do jedného popupu
  *       --base http://127.0.0.1:8080       použiť už bežiaci server (inak si spustí vlastný na 8093)
  *       STRAZ_SKUSKA=1                     do popupu členstva vráti nowrap — stráž MUSÍ zasvietiť
- * Výstup: 0 = čisté · 1 = nález (vypíše routu, jazyk, okno, popup, text) · 2 = stráž nebežala
+ * Výstup: 0 = čisté · 1 = nález (vypíše routu, jazyk, okno, popup, text) · 2 = stráž nebežala / prerušená
+ *
+ * ⏱️ `--rychle` trvá desiatky minút (samotný objav na `/` ~12 min). V session ho púšťaj NA POZADÍ — popredie
+ * ho po limite zabije a vyzerá to ako pád stráže („browser has been closed" v newCtx, 2.–15. 11. 2026).
  */
 import { setriCloudinary } from './setri-cloudinary.mjs';
 import { chromium } from 'playwright';
@@ -52,8 +55,9 @@ const LANGS = process.env.POPUPY_LANGS ? process.env.POPUPY_LANGS.split(',') : R
 const SIZES = process.env.POPUPY_SIZE ? [process.env.POPUPY_SIZE.split('x').map(Number)] : RYCHLE ? [[1477, 724], [390, 844]] : [[1477, 724], [1920, 1080], [390, 844], [360, 640]];
 
 // Povrchy, kde žijú popupy. Heroflow kroky bez stavu môžu presmerovať — vtedy sa zmeria, kam dopadli.
-const ROUTES = arg('--len') ? [arg('--len')] : [
-  '/', '/magnet', '/terms', // /wall = ten istý OnePage ako /
+const ROUTES = arg('--len') ? arg('--len').split(',').map(r => r.trim()).filter(Boolean) : [
+  // /magnet zanikol 15. 11. 2026 (presmeruje na /app) — výkladná skriňa je /app.
+  '/', '/app', '/terms', // /wall = ten istý OnePage ako /
   // heroflow (NEW_HEROFLOW): poradie vstupu; stav dodá dev seed nižšie
   '/heroglyph/name', '/heroglyph/photo', '/heroglyph/dogs', '/heroglyph/email', '/heroglyph/essence',
   '/heroglyph/breed', '/heroglyph/owner-info', '/heroglyph/dog-character', '/heroglyph/crop',
@@ -90,7 +94,8 @@ async function ensureServer() {
 async function up(base) { try { const r = await fetch(base + '/', { signal: AbortSignal.timeout(2000) }); return r.ok; } catch { return false; } }
 function stopServer() { if (server) try { process.kill(-server.pid); } catch {} }
 process.on('exit', stopServer);
-process.on('SIGINT', () => { stopServer(); process.exit(2); });
+// Prerušenie (Ctrl+C, časový limit session) NIE JE nález ani pád — povedz to, nech sa nerieši ako chyba stráže.
+for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sig, () => { console.log(`\n✗ stráž PRERUŠENÁ (${sig}) — nedobehla, nie je to nález. Pusti ju na pozadí alebo s --len.`); stopServer(); process.exit(2); });
 
 // ─── v stránke ─────────────────────────────────────────────────────────────
 // Všetko, čo beží v prehliadači, je v jednom init skripte, aby to videl každý evaluate.
@@ -258,8 +263,8 @@ async function merajVrstvu(p, info, nalezy, inner) {
 }
 
 // Jeden priechod routy v jednom jazyku a okne. triggers = null → objav (len SK), inak prehraj.
-async function priechod(browser, base, route, lang, w, h, nalezy, triggers) {
-  const { ctx, p } = await newCtx(browser, lang, w, h);
+async function priechod(_b, base, route, lang, w, h, nalezy, triggers) {
+  const { ctx, p } = await newCtx(await prehliadac(), lang, w, h);
   const url = base + route, okno = `${w}×${h}`;
   const found = [], videne = new Set();
   try {
@@ -287,21 +292,34 @@ async function priechod(browser, base, route, lang, w, h, nalezy, triggers) {
 async function pool(items, n, fn) { const q = [...items]; await Promise.all(Array.from({ length: n }, async () => { while (q.length) await fn(q.shift()); })); }
 const PARALEL = +(process.env.POPUPY_PARALEL || 4);
 
+// Prehliadač, ktorý počas behu spadne, sa naštartuje znova — inak by každý ďalší priechod
+// zlyhal na „browser has been closed" a stráž by hlásila slepé meranie namiesto výsledku.
+// Štart drží jeden prísľub — štyri súbežné priechody nesmú naraz spustiť štyri prehliadače.
+let browser = null, startuje = null;
+async function prehliadac() {
+  if (browser?.isConnected()) return browser;
+  if (!startuje) {
+    if (browser) console.log('  ⚠️ prehliadač spadol — štartujem nový');
+    startuje = chromium.launch().then(b => { browser = setriCloudinary(b); startuje = null; return browser; });
+  }
+  return startuje;
+}
+
 const t0 = Date.now();
 let base;
 try { base = await ensureServer(); } catch (e) { console.log('✗ stráž nebežala: ' + e.message); process.exit(2); }
-const browser = setriCloudinary(await chromium.launch());
 const nalezy = [];
 let popupov = 0;
 for (const [w, h] of SIZES) {
   for (const route of ROUTES) {
-    const trig = await priechod(browser, base, route, LANGS[0], w, h, nalezy, null);
+    const tr = Date.now();
+    const trig = await priechod(null, base, route, LANGS[0], w, h, nalezy, null);
     popupov += trig.length;
-    console.log(`· ${route} ${w}px — ${trig.length} popupov${trig.length ? ': ' + trig.map(t => t.label || '?').slice(0, 6).join(' | ') : ''}`);
-    if (trig.length) await pool(LANGS.slice(1), PARALEL, lang => priechod(browser, base, route, lang, w, h, nalezy, trig));
+    if (trig.length) await pool(LANGS.slice(1), PARALEL, lang => priechod(null, base, route, lang, w, h, nalezy, trig));
+    console.log(`· ${route} ${w}px — ${trig.length} popupov (${Math.round((Date.now() - tr) / 1000)} s)${trig.length ? ': ' + trig.map(t => t.label || '?').slice(0, 6).join(' | ') : ''}`);
   }
 }
-await browser.close();
+await browser?.close();
 stopServer();
 
 const min = ((Date.now() - t0) / 60000).toFixed(1);
