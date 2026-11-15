@@ -17,11 +17,13 @@ import { APP_NEW } from '@/lib/packFlags';
 
 /** Pilulka časti hore v kvíze nesie v appke kresbu z továrne namiesto emoji (Matej 15. 11. 2026: *„tam hore
  *  who they are … ano zapoj ale predtým mi to ukaž“*). Chipy odpovedí ostávajú emoji. Časť bez kresby = emoji. */
+// Každá pilulka má VLASTNÝ súbor `kviz-*`: továreň (Systémové › DOG ID a psy › Kvíz) zapisuje výber priamo do súboru,
+// spoločný `dog-id` by sa zmenil aj inde.
 const SEC_SYS: Record<string, string> = {
-  'pack.flow.sec.Ktoje': 'dog-id', 'pack.flow.sec.Pohyb': 'den-walk', 'pack.flow.sec.Rezim': 'kalendar',
-  'pack.flow.sec.Vztahy': 'socializacia', 'pack.flow.sec.Povaha': 'modul-povaha', 'pack.flow.sec.Zdravie': 'zdravie',
-  'pack.flow.sec.Strava': 'krmenie', 'pack.flow.sec.Kontakty': 'obalka', 'pack.flow.sec.Uloha': 'trofej',
-  'pack.flow.sec.Zvlastnauloha': 'iskra', 'pack.flow.sec.Element': 'iskra',
+  'pack.flow.sec.Ktoje': 'kviz-ktoje', 'pack.flow.sec.Pohyb': 'kviz-pohyb', 'pack.flow.sec.Rezim': 'kviz-rezim',
+  'pack.flow.sec.Vztahy': 'kviz-vztahy', 'pack.flow.sec.Povaha': 'kviz-povaha', 'pack.flow.sec.Zdravie': 'kviz-zdravie',
+  'pack.flow.sec.Strava': 'kviz-strava', 'pack.flow.sec.Kontakty': 'kviz-kontakty', 'pack.flow.sec.Uloha': 'kviz-uloha',
+  'pack.flow.sec.Zvlastnauloha': 'kviz-zvlastnauloha', 'pack.flow.sec.Element': 'kviz-element',
 };
 import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 import { AinubisSheet } from '@/components/pack/ainubisSheet';

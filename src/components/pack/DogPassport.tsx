@@ -486,11 +486,11 @@ const CH_ICON: Record<string, string> = {
   social: 'dogid-social', temperament: 'dogid-temperament', contacts: 'dogid-contacts', will: 'dogid-will',
 };
 /** Appka (Matej 9. 11. 2026, bod 19): kapitoly DOG ID v novej sade `public/icons/sys/`. Závet ide cez BrandIcon (`dogid-will` → `modul-vola`),
- *  Odkaz na stene = obálka (Matej 15. 11. 2026: *„dajme obálku na stene“*), tá istá ako Kontakty. Nákres `plany/nakresy/map-herne-2026-11-09` skupina O (Detail psa, Kapitoly, Dokumenty). */
+ *  Odkaz na stene = vlastný súbor `odkaz-na-stene` (obálku Matej 15. 11. vrátil: *„vadí mi to“*), výber v továrni. Nákres `plany/nakresy/map-herne-2026-11-09` skupina O (Detail psa, Kapitoly, Dokumenty). */
 const CH_SYS: Record<string, string> = {
   'dogid-identity': 'dog-id', 'dogid-health': 'zdravie', 'dogid-vax': 'kalendar', 'dogid-food': 'krmenie', 'dogid-works': 'modul-zaklad',
   'dogid-social': 'socializacia', 'dogid-temperament': 'modul-povaha', 'dogid-contacts': 'obalka', 'dogid-docs': 'certifikat',
-  'dogid-wall': 'obalka',
+  'dogid-wall': 'odkaz-na-stene',
 };
 /** Polia, ktoré hore nesú veľké emblémy, a preto ich kapitola Identita neopakuje. */
 const TRIO_FIELDS = ['nature.element', 'nature.role', 'nature.specials'];
