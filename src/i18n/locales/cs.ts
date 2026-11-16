@@ -3017,6 +3017,7 @@ export const cs: Partial<Dict> = {
   'pack.msg.reportBlockAriaLabel': 'Nahlásit nebo zablokovat tohohle člověka',
   'pack.msg.reportBlockTitle': 'Nahlásit nebo zablokovat',
   'pack.msg.reportConversation': 'Nahlásit tuhle konverzaci',
+  'pack.msg.reportMessage': "Nahlásit tuhle zprávu",
   'pack.msg.reportFailed': 'Nahlášení se nepodařilo odeslat. Zkontroluj připojení a zkus to znovu.',
   'pack.msg.reportNotePlaceholder': 'Cokoliv, co by měl Matej vědět (nepovinné)',
   'pack.msg.reportReasonHarassment': 'Obtěžování nebo napadání',

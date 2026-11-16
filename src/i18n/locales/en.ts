@@ -4236,6 +4236,7 @@ export const en = {
   'pack.msg.joinPack': "Join this pack",
   'pack.msg.modMenuExplain': "Blocking is instant and works both ways — neither of you can write to the other. Reporting punishes no one: the thread goes quietly to the pack's keepers, who step in only if there is something to sort out.",
   'pack.msg.reportConversation': "Report this conversation",
+  'pack.msg.reportMessage': "Report this message",
   'pack.msg.blocking': "Blocking…",
   'pack.msg.blockButton': "Block {name}",
   'pack.msg.cancel': "Cancel",

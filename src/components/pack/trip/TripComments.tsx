@@ -58,6 +58,8 @@ import {
 // Nahlásenie (issue #54) — infra (RPC `report_content` + `pack_reports`) žije v messaging module,
 // odtiaľ sa len importuje (needituje sa, iní agenti na ňom pracujú súbežne).
 import { reportContent, type ReportReason } from '@/components/pack/messaging/packMessaging';
+import { blockMember } from '@/components/pack/profile/moderation';
+import { useToast } from '@/hooks/use-toast';
 import { AinubisSheet } from '@/components/pack/ainubisSheet';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { useMyDogRights } from '@/lib/dogRights';
@@ -103,6 +105,7 @@ export const TRIP_COMMENTS_CSS = `${VEIL_CSS}
 .tcm-advice.mine{border:1px solid ${T.border};background:rgba(201,154,63,0.07);border-radius:12px;padding:12px 12px;margin-bottom:4px;}
 .tcm-advice-text{font-size:12px;line-height:1.5;color:rgba(42,22,8,0.86);}
 .tcm-link{color:inherit;text-decoration:underline;word-break:break-all;}
+.tcm-advice-acts{display:flex;gap:12px;}
 .tcm-advice-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10px;color:${T.inkWarm};margin-top:5px;}
 .tcm-advice-del{flex-shrink:0;background:none;border:none;color:${T.inkWarm};font-size:14px;line-height:1;cursor:pointer;padding:0 4px;}
 .tcm-advice-del:hover{color:#E0796D;}
@@ -121,7 +124,7 @@ export const TRIP_COMMENTS_CSS = `${VEIL_CSS}
 .tcm-collapse-chevron.open{transform:rotate(180deg);}
 
 /* per-review like/heart */
-.tcm-review-footer{display:flex;justify-content:flex-end;margin-top:6px;}
+.tcm-review-footer{display:flex;justify-content:flex-end;gap:12px;margin-top:6px;}
 
 /* add review CTA */
 .tcm-addrow{margin-bottom:14px;}
@@ -594,6 +597,28 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
     }
   };
 
+  // Zablokovanie autora (Apple 1.2), vzor z PostViewer: prvé ťuknutie pýta „znova", druhé zablokuje.
+  // Server blokovaného v `list_trip_reviews` / `list_trip_questions` už nevydá (20261030_blok_vsade.sql), preto stačí obnoviť zoznam.
+  const { toast } = useToast();
+  const [blockSureId, setBlockSureId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!blockSureId) return;
+    const tm = window.setTimeout(() => setBlockSureId(null), 4000);
+    return () => window.clearTimeout(tm);
+  }, [blockSureId]);
+  const blockAuthor = async (id: string, ownerN: number | null, name: string) => {
+    if (ownerN == null) return;
+    if (mg) { mg.lock('action'); return; }
+    if (blockSureId !== id) { setBlockSureId(id); return; }
+    setBlockSureId(null);
+    try {
+      await blockMember(ownerN, true);
+      setRealReviews((x) => x.filter((r) => r.packNumber !== ownerN));
+      setRealQuestions((x) => x.filter((q) => q.packNumber !== ownerN));
+      toast({ title: t('pack.mod.blocked', { name }) });
+      void refreshReviews(); void refreshQuestions();
+    } catch { toast({ title: t('pack.profile.toastUnknownError'), variant: 'destructive' }); }
+  };
   const openReport = (ref: string) => { if (mg) { mg.lock('action'); return; } setReportRef(ref); setReportSent(false); setReportError(null); };
   const closeReport = () => setReportRef(null);
   const sendReport = async (reason: ReportReason, note?: string) => {
@@ -714,6 +739,11 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                   {canWrite && (
                     <div className="tcm-review-footer">
                       <button type="button" className="tcm-reportlink" onClick={() => openReport(r.id)}>{t('pack.trip.cm.report')}</button>
+                      {r.packNumber != null && (
+                        <button type="button" className="tcm-reportlink" onClick={() => blockAuthor(r.id, r.packNumber, name)}>
+                          {blockSureId === r.id ? t('pack.mod.blockSureShort') : t('pack.mod.blockShort')}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -743,7 +773,14 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
               <div className="tcm-advice-meta">
                 <span>{name}</span>
                 {canWrite && (
-                  <button type="button" className="tcm-reportlink" onClick={() => openReport(item.q.id)}>{t('pack.trip.cm.report')}</button>
+                  <span className="tcm-advice-acts">
+                    <button type="button" className="tcm-reportlink" onClick={() => openReport(item.q.id)}>{t('pack.trip.cm.report')}</button>
+                    {item.q.packNumber != null && (
+                      <button type="button" className="tcm-reportlink" onClick={() => blockAuthor(item.q.id, item.q.packNumber, name)}>
+                        {blockSureId === item.q.id ? t('pack.mod.blockSureShort') : t('pack.mod.blockShort')}
+                      </button>
+                    )}
+                  </span>
                 )}
               </div>
             </div>

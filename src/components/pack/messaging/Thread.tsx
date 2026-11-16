@@ -67,6 +67,7 @@ export const THREAD_CSS = `
 .msg-thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px 0;${PACK_COL_FIT}margin:0 auto;display:flex;flex-direction:column;position:relative;z-index:2;}
 .msg-bubblewrap{display:flex;flex-direction:column;align-items:flex-start;margin-bottom:11px;max-width:82%;}
 .msg-bubblewrap.me{align-items:flex-end;align-self:flex-end;}
+.msg-bubblerep{background:none;border:none;padding:4px 0 0;margin-left:32px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;color:var(--msg-block-ink);opacity:.7;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
 /* FOTKA TOHO, KTO PÍŠE, VEDĽA BUBLINY (Matej 1. 9. 2026: „vedľa bublinky by mala byť
    ikonka fotka"). Cudzia správa má fotku vľavo, moja vpravo — teda na tej strane, kde
    bublina aj stojí; zrkadlí to row-reverse, nie druhá sada pravidiel. */
@@ -150,6 +151,8 @@ ${packColCSS('.msg-thread-headinner,.msg-thread-body,.msg-thread-send,.msg-threa
 `;
 
 // Dôvody nahlásenia — label sa berie cez t() v komponente, mapa drží len kľúč (i18n fáza A).
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const REPORT_REASONS: Array<{ id: ReportReason; labelKey: string }> = [
   { id: 'harassment', labelKey: 'pack.msg.reportReasonHarassment' },
   { id: 'spam', labelKey: 'pack.msg.reportReasonSpam' },
@@ -168,6 +171,9 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   const [sendErr, setSendErr] = useState<string | null>(null);
   // moderácia (#54): 'menu' = voľby, 'report' = výber dôvodu, 'sent' = potvrdenie
   const [modView, setModView] = useState<null | 'menu' | 'report' | 'sent'>(null);
+  // Nahlásenie JEDNEJ správy (Apple 1.2): ťuk na cudziu bublinu ukáže odkaz, ten otvorí ten istý výber dôvodu.
+  const [pickMsg, setPickMsg] = useState<string | null>(null);
+  const [reportMsg, setReportMsg] = useState<string | null>(null);
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [reportNote, setReportNote] = useState('');
   const [modBusy, setModBusy] = useState(false);
@@ -294,7 +300,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   };
 
   // ── moderácia (#54) ──
-  const closeMod = () => { setModView(null); setReason(null); setReportNote(''); setModErr(null); };
+  const closeMod = () => { setModView(null); setReason(null); setReportNote(''); setModErr(null); setReportMsg(null); };
 
   const handleBlock = async (blocked: boolean) => {
     setModBusy(true);
@@ -317,7 +323,10 @@ export function Thread({ convId, onClose, onOpenTrip }: {
     setModBusy(true);
     setModErr(null);
     try {
-      await reportContent('conversation', convId, reason, reportNote.trim() || undefined);
+      await (reportMsg
+        ? reportContent('message', reportMsg, reason, reportNote.trim() || undefined)
+        : reportContent('conversation', convId, reason, reportNote.trim() || undefined));
+      setPickMsg(null);
       setModView('sent');
     } catch {
       setModErr(t('pack.msg.reportFailed'));
@@ -385,6 +394,8 @@ export function Thread({ convId, onClose, onOpenTrip }: {
           const who = mine ? (sender ?? me) : sender;
           const avatar = mine ? (me.avatarUrl ?? sender?.avatarUrl) : who?.avatarUrl;
           const initial = (who?.name ?? '?').charAt(0).toUpperCase();
+          // len cudzia správa, ktorá už je v DB (lokálny koncept a náhľad nemajú uuid)
+          const canReportMsg = !mine && UUID_RE.test(m.id);
           return (
             <div key={m.id} className={`msg-bubblewrap${mine ? ' me' : ''}`}>
               {isGroup && !mine && (
@@ -404,8 +415,16 @@ export function Thread({ convId, onClose, onOpenTrip }: {
                 >
                   {!avatar && initial}
                 </span>
-                <div className={`msg-bubble${mine ? ' me' : ''}`}>{m.text}</div>
+                <div
+                  className={`msg-bubble${mine ? ' me' : ''}`}
+                  onClick={canReportMsg ? () => setPickMsg((x) => (x === m.id ? null : m.id)) : undefined}
+                >{m.text}</div>
               </div>
+              {canReportMsg && pickMsg === m.id && (
+                <button type="button" className="msg-bubblerep" onClick={() => { setReportMsg(m.id); setModView('report'); }}>
+                  {t('pack.msg.reportMessage')}
+                </button>
+              )}
             </div>
           );
         })}

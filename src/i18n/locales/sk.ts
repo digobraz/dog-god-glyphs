@@ -3943,6 +3943,7 @@ export const sk: Partial<Dict> = {
   'pack.msg.joinPack': "Pridaj sa k tejto partii",
   'pack.msg.modMenuExplain': "Blokovanie je okamžité a platí na obe strany — ani jeden z vás už tomu druhému nenapíše. Nahlásenie nikoho netrestá: konverzáciu si v tichosti prečíta správa svorky a ozve sa len vtedy, keď bude čo riešiť.",
   'pack.msg.reportConversation': "Nahlásiť túto konverzáciu",
+  'pack.msg.reportMessage': "Nahlásiť túto správu",
   // ⚠️ Dopísané 15. 9. 2026 — dovtedy SK tieto dva kľúče NEMALA a padala na EN,
   // takže Matejovi v slovenskom rozhraní vyskočilo „Matej reads every report himself".
   'pack.msg.reportSentTitle': "Nahlásenie odoslané",
