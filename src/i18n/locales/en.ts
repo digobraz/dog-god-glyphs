@@ -2017,7 +2017,7 @@ export const en = {
     'Full analytics and session replays — so we see where dog lovers get stuck.',
   'consent.marketing.label': 'Marketing',
   'consent.marketing.desc':
-    'Ad cookies (like the Meta Pixel) to reach new dog lovers. Off for now.',
+    'Ad cookies (like the Meta Pixel) to reach new dog lovers. We don’t use any yet; your choice will apply once we do.',
   'consent.footerLink': 'Cookie settings',
 
   // ── /about — Council (We Need You) ──
@@ -7593,7 +7593,7 @@ export const en = {
   'pack.dogs2.lifeIntro': "How much life your dogs have behind them — and how much more they can have. One block = one year. Tap a dog.",
   // Appka D·E·F (31. 10. 2026)
   'pack.hub.emptyApp': "No dog on your leash yet. Dogs appear here once they have a heroglyph.",
-  'pack.settings.deleteStays2': "Your dog stays on the wall with its heroglyph and number, and so do the entries about the dog (DOG ID answers, diary, will) — without your name. The invoice stays too — the law requires it.",
+  'pack.settings.deleteStays2': "Your dog stays on the wall with its heroglyph and number, and so do the entries about the dog (DOG ID answers, diary) without your name. Your will and the contacts of other people (heir, vet, backup contact) are deleted. The invoice stays: the law requires it.",
   'pack.settings.notifAinubis': "AINUBIS notifications",
   'pack.settings.notifSos': "Lost dogs nearby",
   'pack.settings.terms': "Terms",

@@ -1189,7 +1189,7 @@ export const cs: Partial<Dict> = {
     'Plná analytika a záznamy relací — abychom viděli, kde se pejskaři zaseknou.',
   'consent.marketing.label': 'Marketing',
   'consent.marketing.desc':
-    'Reklamní cookies (jako Meta Pixel) k oslovení nových pejskařů. Zatím vypnuto.',
+    'Reklamní cookies (jako Meta Pixel) k oslovení nových pejskařů. Zatím žádné nepoužíváme; vaše volba bude platit, až je zapneme.',
   'consent.footerLink': 'Nastavení cookies',
 
   // ── /about — Council (We Need You) — STROJOVÝ PŘEKLAD, čeká review ──
@@ -7245,7 +7245,7 @@ export const cs: Partial<Dict> = {
   'pack.dogs2.lifeIntro': "Kolik života mají tvoji psi za sebou — a kolik ještě mohou mít. Jeden blok = jeden rok. Ťukni na psa.",
   // Appka D·E·F (31. 10. 2026)
   'pack.hub.emptyApp': "Zatím nemáš na vodítku žádného psa. Psi se tu zobrazí, až budou mít heroglyf.",
-  'pack.settings.deleteStays2': "Tvůj pes zůstane na zdi se svým heroglyfem a číslem a zůstanou i zápisy o psovi (odpovědi DOG ID, deník, závěť) — bez tvého jména. Zůstane i faktura — tu vyžaduje zákon.",
+  'pack.settings.deleteStays2': "Tvůj pes zůstane na zdi se svým heroglyfem a číslem a zůstanou i zápisy o psovi (odpovědi DOG ID, deník) bez tvého jména. Závěť a kontakty jiných lidí (dědic, veterinář, záložní kontakt) se smažou. Zůstane i faktura, tu vyžaduje zákon.",
   'pack.settings.notifAinubis': "Upozornění AINUBISe",
   'pack.settings.notifSos': "Ztracení psi v okolí",
   'pack.settings.terms': "Podmínky",

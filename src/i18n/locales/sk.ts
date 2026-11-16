@@ -1762,7 +1762,7 @@ export const sk: Partial<Dict> = {
     'Plná analytika a záznamy relácií — aby sme videli, kde sa psíčkari zaseknú.',
   'consent.marketing.label': 'Marketing',
   'consent.marketing.desc':
-    'Reklamné cookies (ako Meta Pixel) na oslovenie nových psíčkarov. Zatiaľ vypnuté.',
+    'Reklamné cookies (ako Meta Pixel) na oslovenie nových psíčkarov. Zatiaľ žiadne nepoužívame; vaša voľba bude platiť, keď ich zapneme.',
   'consent.footerLink': 'Nastavenia cookies',
 
   // ── /about — Council (We Need You) — STROJOVÝ PREKLAD, čaká review ──
@@ -7286,7 +7286,7 @@ export const sk: Partial<Dict> = {
   'pack.dogs2.lifeIntro': "Koľko života majú tvoji psi za sebou — a koľko ešte môžu mať. Jeden blok = jeden rok. Ťukni na psa.",
   // Appka D·E·F (31. 10. 2026)
   'pack.hub.emptyApp': "Zatiaľ nemáš na vôdzke žiadneho psa. Psy sa tu zobrazia, keď majú heroglyf.",
-  'pack.settings.deleteStays2': "Tvoj pes ostane na stene so svojím heroglyfom a číslom a ostanú aj zápisy o psovi (odpovede DOG ID, denník, závet) — bez tvojho mena. Ostane aj faktúra — tú vyžaduje zákon.",
+  'pack.settings.deleteStays2': "Tvoj pes ostane na stene so svojím heroglyfom a číslom a ostanú aj zápisy o psovi (odpovede DOG ID, denník) bez tvojho mena. Závet a kontakty iných ľudí (dedič, veterinár, záložný kontakt) sa zmažú. Ostane aj faktúra, tú vyžaduje zákon.",
   'pack.settings.notifAinubis': "Upozornenia AINUBISa",
   'pack.settings.notifSos': "Stratené psy v okolí",
   'pack.settings.terms': "Podmienky",
