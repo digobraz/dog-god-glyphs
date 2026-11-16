@@ -24,7 +24,7 @@ type Tx = (key: string, fallback: string) => string;
 
 /** Rodiny, ktoré majú zdroj UŽ DNES. Od 31. 10. 2026 (ZÁPIS DŇA v4) aj všetkých 13 rodín, ktoré kŕmia nové druhy
  *  `devotion_events` (`KIND_FAMILY`). */
-const LIVE = new Set(['rad', 'dni', 'vencenie', 'prechadzky', 'vylety', 'pritomnost', 'vault', 'zahranicie', 'tvorca',
+const LIVE = new Set(['rad', 'vencenie', 'prechadzky', 'vylety', 'pritomnost', 'zahranicie', 'tvorca',
   'ocuchanie', 'veterina', 'plavanie', 'spa', 'zapad', 'leny', 'prusvih', 'hra', 'trening', 'sutaz', 'krmenie']);
 
 /** Druh skutku v `devotion_events` → rodina odznaku, ktorú kŕmi. Jedno miesto pre počty aj pre okno ZÁPISU DŇA. */
@@ -37,7 +37,6 @@ export const KIND_FAMILY: Readonly<Record<string, string>> = {
 /** EN fallback mien a „za čo". SK = sk.ts (pack.badge.<id> · pack.badge.<id>.for), mená z register.json. */
 const EN: Record<string, [string, string]> = {
   rad: ['Days in a row', 'how many days in a row you were active (at least 1 entry)'],
-  dni: ['Days with a dog', 'how many days together in total (not necessarily in a row)'],
   vencenie: ['Quick walks', 'a short walk under 20 min'],
   prechadzky: ['Walks', 'a walk of 20+ min'],
   vylety: ['Trips', 'a logged trip'],
@@ -49,7 +48,6 @@ const EN: Record<string, [string, string]> = {
   zapad: ['Sunset together', 'a sunset watched together with the dog'],
   leny: ['Lazy day', 'just slept — that is a day too'],
   prusvih: ['Mischief', 'stole, chewed, ran off, pooped on the carpet'],
-  vault: ['Wisdom', 'scrolls read in Dog Sense'],
   zahranicie: ['Abroad', 'a country visited with the dog'],
   tvorca: ['Creator', 'a post in the feed'],
   hra: ['Play', 'fetch, tug of war, chasing'],
@@ -179,13 +177,11 @@ export function badgeCounts(a: MyActivity, trips: number, abroad: number, home: 
   const dbAbroad = a.countries.filter((c) => c !== home.toLowerCase()).length;
   return {
     rad: longestStreak(a.days),
-    dni: a.days.size,
     vencenie: a.kinds.walk_short ?? 0,
     prechadzky: a.kinds.walk ?? 0,
     vylety: Math.max(trips, a.trips),
     pritomnost: a.kinds.presence ?? 0,
     ...Object.fromEntries(Object.entries(KIND_FAMILY).filter(([k]) => !['walk_short', 'walk', 'presence'].includes(k)).map(([k, f]) => [f, a.kinds[k] ?? 0])),
-    vault: a.scrolls,
     zahranicie: Math.max(abroad, dbAbroad),
     tvorca: a.posts,
   };

@@ -4,10 +4,9 @@
 
 export interface BadgeFamily { id: string; symbol: string; prahy: readonly number[] }
 
-/** 20 rodín s radom prahov, v poradí registra. */
+/** 18 rodín s radom prahov, v poradí registra. */
 export const BADGE_FAMILIES: readonly BadgeFamily[] = [
   { id: "rad", symbol: "z-streak", prahy: [7, 14, 30, 60, 90, 120, 150, 200] },
-  { id: "dni", symbol: "e5", prahy: [1, 10, 30, 60, 100, 200, 365, 500, 730, 1000] },
   { id: "vencenie", symbol: "z-walk_short", prahy: [1, 25, 50, 100, 250, 500, 750, 1000] },
   { id: "prechadzky", symbol: "z-walk", prahy: [5, 25, 50, 100, 200, 300, 500] },
   { id: "vylety", symbol: "z-trip", prahy: [1, 5, 10, 25, 50, 100, 200, 300, 500] },
@@ -19,7 +18,6 @@ export const BADGE_FAMILIES: readonly BadgeFamily[] = [
   { id: "zapad", symbol: "z-sunset", prahy: [1, 3, 5, 10, 20, 30, 50, 75, 100] },
   { id: "leny", symbol: "z-lazy", prahy: [5, 25, 50, 100, 200, 300, 500] },
   { id: "prusvih", symbol: "z-mischief", prahy: [5, 10, 25, 50, 100, 150, 200, 300] },
-  { id: "vault", symbol: "a7", prahy: [5, 25, 50, 100, 200, 300, 500] },
   { id: "zahranicie", symbol: "z-abroad", prahy: [1, 2, 3, 5, 7, 10, 15, 20, 30] },
   { id: "tvorca", symbol: "z-tvorca", prahy: [5, 25, 50, 100, 200, 300, 500] },
   { id: "hra", symbol: "z-play", prahy: [5, 25, 50, 100, 200, 300, 500] },
