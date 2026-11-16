@@ -1680,6 +1680,8 @@ export const cs: Partial<Dict> = {
   "pack.badge.plavanie.for": "řeka, jezero, moře",
   "pack.badge.spa": "Salon a spa",
   "pack.badge.spa.for": "stříhání, koupel v salonu, wellness",
+  "pack.badge.zapad": "Společný západ slunce",
+  "pack.badge.zapad.for": "západ slunce spolu se psem",
   "pack.badge.leny": "Líný den",
   "pack.badge.leny.for": "jen spal — i to je den",
   "pack.badge.prusvih": "Průšvih",

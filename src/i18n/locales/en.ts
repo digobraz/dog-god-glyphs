@@ -6949,6 +6949,8 @@ export const en = {
   'pack.badge.plavanie.for': "river, lake, sea",
   'pack.badge.spa': "Salon & spa",
   'pack.badge.spa.for': "grooming, a bath at the salon, wellness",
+  'pack.badge.zapad': "Sunset together",
+  'pack.badge.zapad.for': "a sunset watched together with the dog",
   'pack.badge.leny': "Lazy day",
   'pack.badge.leny.for': "just slept — that is a day too",
   'pack.badge.prusvih': "Mischief",

@@ -6643,6 +6643,8 @@ export const sk: Partial<Dict> = {
   'pack.badge.plavanie.for': "rieka, jazero, more",
   'pack.badge.spa': "Salón a spa",
   'pack.badge.spa.for': "strihanie, kúpeľ v salóne, wellness",
+  'pack.badge.zapad': "Spoločný západ slnka",
+  'pack.badge.zapad.for': "západ slnka spolu so psom",
   'pack.badge.leny': "Lenivý deň",
   'pack.badge.leny.for': "len spal — aj to je deň",
   'pack.badge.prusvih': "Prúšvih",

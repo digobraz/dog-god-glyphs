@@ -25,13 +25,13 @@ type Tx = (key: string, fallback: string) => string;
 /** Rodiny, ktoré majú zdroj UŽ DNES. Od 31. 10. 2026 (ZÁPIS DŇA v4) aj všetkých 13 rodín, ktoré kŕmia nové druhy
  *  `devotion_events` (`KIND_FAMILY`). */
 const LIVE = new Set(['rad', 'dni', 'vencenie', 'prechadzky', 'vylety', 'pritomnost', 'vault', 'zahranicie', 'kronika', 'tvorca',
-  'ocuchanie', 'veterina', 'kliest', 'plavanie', 'spa', 'leny', 'prusvih', 'hovienko', 'hra', 'trening', 'sutaz', 'zajac', 'krmenie']);
+  'ocuchanie', 'veterina', 'kliest', 'plavanie', 'spa', 'zapad', 'leny', 'prusvih', 'hovienko', 'hra', 'trening', 'sutaz', 'zajac', 'krmenie']);
 
 /** Druh skutku v `devotion_events` → rodina odznaku, ktorú kŕmi. Jedno miesto pre počty aj pre okno ZÁPISU DŇA. */
 export const KIND_FAMILY: Readonly<Record<string, string>> = {
   walk_short: 'vencenie', walk: 'prechadzky', presence: 'pritomnost', feeding: 'krmenie',
   play: 'hra', training: 'trening', sniff: 'ocuchanie', swim: 'plavanie', hare: 'zajac', lazy: 'leny',
-  mischief: 'prusvih', poop: 'hovienko', vet: 'veterina', tick: 'kliest', spa: 'spa', contest: 'sutaz',
+  mischief: 'prusvih', poop: 'hovienko', vet: 'veterina', tick: 'kliest', spa: 'spa', contest: 'sutaz', sunset: 'zapad',
 };
 
 /** EN fallback mien a „za čo". SK = sk.ts (pack.badge.<id> · pack.badge.<id>.for), mená z register.json. */
@@ -47,6 +47,7 @@ const EN: Record<string, [string, string]> = {
   kliest: ['Ticks', 'a tick pulled out'],
   plavanie: ['Swimming', 'river, lake, sea'],
   spa: ['Salon & spa', 'grooming, a bath at the salon, wellness'],
+  zapad: ['Sunset together', 'a sunset watched together with the dog'],
   leny: ['Lazy day', 'just slept — that is a day too'],
   prusvih: ['Mischief', 'stole, chewed, ran off, pooped on the carpet'],
   hovienko: ['Poop event', 'only the exceptional: diarrhoea, ate something, in the rain, a record…'],
