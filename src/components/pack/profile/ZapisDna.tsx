@@ -44,7 +44,8 @@ import { readTriplist } from '@/components/pack/triplist/triplist';
 import { toast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { BADGE_FAMILIES } from './badgeRegister';
+import { BADGE_FAMILIES, badgeImg, badgeTier } from './badgeRegister';
+import { APP_NEW } from '@/lib/packFlags';
 import { KIND_FAMILY, loadMyActivity, badgeCounts } from './badgeShelf';
 import { ZTILES, loadZapisDays, type ZTile } from './zapisDnaModel';
 import { moment, uder } from '@/lib/momenty';
@@ -215,6 +216,40 @@ html.papyrus3d .zd-dog.on{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px 
 .zd-pg .v{flex:0 0 52px;text-align:right;font-weight:600;font-size:${TX.label}px;}
 .zd-pg.new .v{color:#3D7A4E;}
 .zd-fly{position:absolute;z-index:6;pointer-events:none;font-size:${TX.h1}px;font-family:${EMOJI_FONT};}
+/* ZÍSKANÁ MEDAILA (appka) — pop + lesk + stuha ~1,7 s; vyšší stupeň = preklopenie + iskry (nákres odznaky-audit 14. 11.) */
+.zd-wons{display:flex;gap:${S.md}px;justify-content:center;}
+.zd-won{position:relative;display:none;flex-direction:column;align-items:center;gap:${S.xs}px;width:120px;}
+.zd-won-rays{position:absolute;left:50%;top:48px;width:160px;height:160px;margin:-80px 0 0 -80px;border-radius:${PACK_R.pill}px;opacity:0;
+  background:repeating-conic-gradient(rgba(201,154,63,.38) 0 6deg,transparent 6deg 18deg);
+  -webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%);}
+.zd-won-m{position:relative;z-index:1;width:96px;height:96px;}
+.zd-won-m img{width:96px;height:96px;object-fit:contain;display:block;}
+.zd-won-shine{position:absolute;inset:0;border-radius:${PACK_R.pill}px;overflow:hidden;pointer-events:none;}
+.zd-won-shine::after{content:"";position:absolute;top:-20%;bottom:-20%;width:40%;left:-60%;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,rgba(255,250,230,.85),transparent);}
+.zd-won-nm{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.label}px;letter-spacing:.14em;text-transform:uppercase;text-align:center;} /* písmo: meno */
+.zd-won-rb{opacity:0;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.field}px;background:${BRAND_GOLD_BTN.grad};color:${BRAND_GOLD_BTN.ink};
+  font-family:${FONT_UI};font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;}
+.zd-won-rb span{display:inline-block;}
+.zd-won-sp{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:${PACK_R.pill}px;background:#C99A3F;opacity:0;}
+.zd-won.go{display:flex;}
+.zd-won.go .zd-won-rays{animation:zd-w-rays .5s .55s ease-out forwards,zd-spin 8s .55s linear infinite;}
+.zd-won.go .zd-won-m{animation:zd-w-pop .75s cubic-bezier(.3,1.6,.5,1) both;}
+.zd-won.go .zd-won-m img{animation:zd-w-ink .5s .15s ease-out both;}
+.zd-won.go .zd-won-shine::after{animation:zd-w-sweep .7s 1s ease-in-out both;}
+.zd-won.go .zd-won-rb{animation:zd-w-drop .4s 1.25s cubic-bezier(.3,1.6,.5,1) both;}
+.zd-won.up.go .zd-won-m{animation:zd-w-thump .5s ease-out both;}
+.zd-won.up.go .zd-won-m img{animation:none;}
+.zd-won.up.go .zd-won-rb{animation:zd-w-drop .4s .2s ease-out both;}
+.zd-won.up.go .zd-won-rb span{animation:zd-w-flip .5s .45s ease-in-out both;}
+.zd-won.up.go .zd-won-sp{animation:zd-w-burst .7s .25s ease-out both;}
+@keyframes zd-w-pop{0%{transform:scale(.4) translateY(30px)}60%{transform:scale(1.12) translateY(-6px)}100%{transform:none}}
+@keyframes zd-w-ink{from{filter:brightness(0) sepia(1) brightness(.35);opacity:.3}to{filter:none;opacity:1}}
+@keyframes zd-w-rays{to{opacity:1}}
+@keyframes zd-w-sweep{from{left:-60%}to{left:120%}}
+@keyframes zd-w-drop{from{opacity:0;transform:translateY(-14px) scale(.6)}to{opacity:1;transform:none}}
+@keyframes zd-w-thump{0%,100%{transform:none}40%{transform:scale(1.08)}}
+@keyframes zd-w-flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+@keyframes zd-w-burst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(.4)}}
 @keyframes zd-seal{to{transform:scale(1);}}
 @keyframes zd-spin{to{transform:rotate(360deg);}}
 @media (min-width:768px){
@@ -225,6 +260,9 @@ html.papyrus3d .zd-dog.on{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px 
   .zd-seal.in,.zd-rays{animation:none;}
   .zd-seal{transform:scale(1);}
   .zd-pg,.zd-pg .bar .pk-progress__fill{display:block;transition:none;}
+  .zd-won.go *,.zd-won.go{animation:none !important;}
+  .zd-won-rb,.zd-won-rays{opacity:1;}
+  .zd-won-sp{display:none;}
 }
 `;
 
@@ -239,7 +277,9 @@ const buzz = () => uder('tuk');
 const reduced = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 interface PhotoState { preview: string; url: string | null; busy: boolean; blob: Blob; forDog: string }
-interface Row { fam: string; emoji: string; before: number; after: number; lo: number; nx: number; hit: boolean }
+interface Row { fam: string; emoji: string; before: number; after: number; lo: number; nx: number; hit: boolean;
+  /** Získaný odznak: obrázok medaily, nový stupeň a či ide o vyšší stupeň (už mal nižší). */
+  img: string; up: boolean }
 
 /** Deň `YYYY-MM-DD` posunutý o `n` dní (miestny čas — ten istý ako `todayKey`). */
 function shiftDay(key: string, n: number): string {
@@ -442,7 +482,10 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
         const lo = [0, ...f.prahy].filter((p) => p <= before).pop() ?? 0;
         const nx = f.prahy.find((p) => p > before) ?? f.prahy[f.prahy.length - 1];
         const emoji = ZTILES.find((x) => KIND_FAMILY[x.id] === fam)?.emoji ?? '';
-        return [{ fam, emoji, before, after, lo, nx, hit: f.prahy.some((p) => before < p && after >= p) }];
+        const idx = (c: number) => f.prahy.reduce((a, p, j) => (c >= p ? j : a), -1);
+        const i0 = idx(before), i1 = idx(after);
+        const img = badgeImg(f.symbol, badgeTier(Math.max(0, i1), f.prahy.length));
+        return [{ fam, emoji, before, after, lo, nx, hit: f.prahy.some((p) => before < p && after >= p), img, up: i0 >= 0 }];
       }).sort((a, b) => Number(b.hit) - Number(a.hit)).slice(0, 5);
       await ritualRun(rowsRef.current);
       window.dispatchEvent(new CustomEvent('dogypt:zapis', { detail: { day } }));
@@ -498,6 +541,12 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
       if (fill) fill.style.width = pctW(((r.after - r.lo) / span) * 100).width;
       if (v) v.textContent = r.hit ? tx('pack.zd.new', 'NEW!') : `${r.after}/${r.nx}`;
       if (r.hit) uder('uspech');
+    }
+    // 3b · získaná medaila (len appka): pop + lesk + stuha, pri vyššom stupni preklopenie + iskry
+    const won = sheet.querySelector<HTMLElement>('.zd-won');
+    if (APP_NEW && won && rows.some((r) => r.hit)) {
+      won.classList.add('go');
+      await wait(fast ? 900 : 2200);
     }
     await wait(fast ? 600 : 1600);
     // 4 · šuplík zbehne (zatvorí rodič); kalendár dostane signál `dogypt:zapis` → ✓ + pop
@@ -641,6 +690,20 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
                 </div>
               ))}
             </div>
+            {APP_NEW && (
+              <div className="zd-wons">
+                {rowsRef.current.filter((r) => r.hit).slice(0, 2).map((r, k) => (
+                  <div key={r.fam} className={`zd-won${r.up ? ' up' : ''}${k === 0 ? '' : ' d2'}`} data-testid="zd-won">
+                    <span className="zd-won-rays" />
+                    <span className="zd-won-m"><img src={r.img} alt="" /><span className="zd-won-shine" />
+                      {Array.from({ length: 6 }, (_, q) => <i key={q} className="zd-won-sp" style={{ ['--x' as string]: `${Math.round(Math.cos(q * 1.05) * 56)}px`, ['--y' as string]: `${Math.round(Math.sin(q * 1.05) * 56)}px` }} />)}
+                    </span>
+                    <span className="zd-won-nm">{tx(`pack.badge.${r.fam}`, r.fam)}</span>
+                    <span className="zd-won-rb"><span>{r.up ? tx('pack.zd.wonUp', 'HIGHER LEVEL!') : tx('pack.zd.won', 'BADGE EARNED!')}</span></span>
+                  </div>
+                ))}
+              </div>
+            )}
           </>)}
         </div>
         {writing && (

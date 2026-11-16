@@ -214,7 +214,7 @@ export const BADGE_SHELF_CSS = `
 .bd b{ max-width:100%; margin-top:${S.xs}px; font-family:${FONT_UI}; font-weight:500; font-size:${PACK_TEXT.micro}px; letter-spacing:.02em;
   line-height:1.2; min-height:2.4em; overflow-wrap:anywhere; display:flex; align-items:center; }
 .bd small{ font-family:${FONT_UI}; font-weight:600; font-size:${PACK_TEXT.micro}px; color:#E7C46C; }
-.bd.off img{ filter:grayscale(1) brightness(.75); opacity:.8; }
+.bd.off img{ filter:${APP_NEW ? 'brightness(0) sepia(1) saturate(2) hue-rotate(-10deg) brightness(.35)' : 'grayscale(1) brightness(.75)'}; opacity:${APP_NEW ? .35 : .8}; } /* appka: tieň atramentom */
 .bd.off b, .bd.off small{ color:rgba(243,230,200,.5); }
 .bd-later{ display:flex; flex-direction:column; gap:${S.xs}px; margin-top:${S.md}px; }
 .bd-later span{ font-size:${PACK_TEXT.micro}px; color:rgba(243,230,200,.5); }
@@ -277,7 +277,7 @@ export function BadgeDetail({ id, counts, fill, onBack, tx }: { id: string; coun
     <>
       <button type="button" className="bd-back" onClick={onBack}>{APP_NEW ? <ThinArrow dir="left" size={18} style={{ color: 'currentColor' }} /> : <BrandIcon name="back" size={12} tint="gold" />}{tx('pack.badge.title', 'Badges')}</button>
       <div className="rkp-hd">
-        <span className="im" style={{ ['--k' as string]: 1.4 }}><img src={badgeImg(f.symbol, s.tier)} alt="" style={s.i == null ? { filter: 'grayscale(1) brightness(.45)', opacity: .6 } : undefined} /></span>
+        <span className="im" style={{ ['--k' as string]: 1.4 }}><img src={badgeImg(f.symbol, s.tier)} alt="" style={s.i == null ? { filter: APP_NEW ? 'brightness(0) sepia(1) saturate(2) hue-rotate(-10deg) brightness(.35)' : 'grayscale(1) brightness(.45)', opacity: APP_NEW ? .35 : .6 } : undefined} /></span>
         <div className="tx"><h3>{badgeName(id, tx)}</h3>{za && <p>{za.charAt(0).toUpperCase() + za.slice(1)}</p>}</div>
       </div>
       <div className="rkp-lbl"><span>{s.next != null ? tx('pack.badge.toNext', 'To the next badge') : tx('pack.badge.top', 'The whole row is yours.')}</span><b>{s.next != null ? `${s.c} / ${s.next}` : s.c}</b></div>

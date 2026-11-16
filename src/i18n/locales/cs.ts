@@ -5188,6 +5188,8 @@ export const cs: Partial<Dict> = {
   "pack.zd.older": "Dříve",
   "pack.zd.olderDay": "Starší den",
   "pack.zd.new": "NOVÝ!",
+  "pack.zd.won": "ODZNAK ZÍSKÁN!",
+  "pack.zd.wonUp": "VYŠŠÍ STUPEŇ!",
   "pack.zd.sealToday": "DNES",
   "pack.zd.sealDone": "ZAPSÁNO",
   "pack.zd.diaryFail": "Zapsáno, ale věta se do kroniky nedostala.",

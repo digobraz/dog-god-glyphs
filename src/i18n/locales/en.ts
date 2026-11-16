@@ -7259,6 +7259,8 @@ export const en = {
   'pack.zd.done': "Done",
   'pack.zd.sentenceLbl': "A line for the chronicle",
   'pack.zd.new': "NEW!",
+  'pack.zd.won': "BADGE EARNED!",
+  'pack.zd.wonUp': "HIGHER LEVEL!",
   'pack.zd.sealToday': "TODAY",
   'pack.zd.sealDone': "LOGGED",
   'pack.zd.diaryFail': "Saved, but the note did not reach the chronicle.",

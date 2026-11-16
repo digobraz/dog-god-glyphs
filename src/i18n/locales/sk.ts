@@ -6952,6 +6952,8 @@ export const sk: Partial<Dict> = {
   'pack.zd.done': "Hotovo",
   'pack.zd.sentenceLbl': "Veta do kroniky",
   'pack.zd.new': "NOVÝ!",
+  'pack.zd.won': "ODZNAK ZÍSKANÝ!",
+  'pack.zd.wonUp': "VYŠŠÍ STUPEŇ!",
   'pack.zd.sealToday': "DNES",
   'pack.zd.sealDone': "ZAPÍSANÉ",
   'pack.zd.diaryFail': "Zapísané, ale veta sa do kroniky nedostala.",
