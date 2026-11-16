@@ -24,14 +24,14 @@ type Tx = (key: string, fallback: string) => string;
 
 /** Rodiny, ktoré majú zdroj UŽ DNES. Od 31. 10. 2026 (ZÁPIS DŇA v4) aj všetkých 13 rodín, ktoré kŕmia nové druhy
  *  `devotion_events` (`KIND_FAMILY`). */
-const LIVE = new Set(['rad', 'dni', 'vencenie', 'prechadzky', 'vylety', 'pritomnost', 'vault', 'zahranicie', 'kronika', 'tvorca',
-  'ocuchanie', 'veterina', 'kliest', 'plavanie', 'spa', 'zapad', 'leny', 'prusvih', 'hovienko', 'hra', 'trening', 'sutaz', 'zajac', 'krmenie']);
+const LIVE = new Set(['rad', 'dni', 'vencenie', 'prechadzky', 'vylety', 'pritomnost', 'vault', 'zahranicie', 'tvorca',
+  'ocuchanie', 'veterina', 'plavanie', 'spa', 'zapad', 'leny', 'prusvih', 'hra', 'trening', 'sutaz', 'krmenie']);
 
 /** Druh skutku v `devotion_events` → rodina odznaku, ktorú kŕmi. Jedno miesto pre počty aj pre okno ZÁPISU DŇA. */
 export const KIND_FAMILY: Readonly<Record<string, string>> = {
   walk_short: 'vencenie', walk: 'prechadzky', presence: 'pritomnost', feeding: 'krmenie',
-  play: 'hra', training: 'trening', sniff: 'ocuchanie', swim: 'plavanie', hare: 'zajac', lazy: 'leny',
-  mischief: 'prusvih', poop: 'hovienko', vet: 'veterina', tick: 'kliest', spa: 'spa', contest: 'sutaz', sunset: 'zapad',
+  play: 'hra', training: 'trening', sniff: 'ocuchanie', swim: 'plavanie', lazy: 'leny',
+  mischief: 'prusvih', vet: 'veterina', spa: 'spa', contest: 'sutaz', sunset: 'zapad',
 };
 
 /** EN fallback mien a „za čo". SK = sk.ts (pack.badge.<id> · pack.badge.<id>.for), mená z register.json. */
@@ -44,21 +44,17 @@ const EN: Record<string, [string, string]> = {
   pritomnost: ['Presence', 'the prayer of presence'],
   ocuchanie: ['Sniffing', 'a new dog, a new friend'],
   veterina: ['Vet', 'a visit, a vaccination, a check-up'],
-  kliest: ['Ticks', 'a tick pulled out'],
   plavanie: ['Swimming', 'river, lake, sea'],
   spa: ['Salon & spa', 'grooming, a bath at the salon, wellness'],
   zapad: ['Sunset together', 'a sunset watched together with the dog'],
   leny: ['Lazy day', 'just slept — that is a day too'],
   prusvih: ['Mischief', 'stole, chewed, ran off, pooped on the carpet'],
-  hovienko: ['Poop event', 'only the exceptional: diarrhoea, ate something, in the rain, a record…'],
   vault: ['Wisdom', 'scrolls read in Dog Sense'],
   zahranicie: ['Abroad', 'a country visited with the dog'],
-  kronika: ['Chronicle', 'an entry in the dog’s chronicle'],
   tvorca: ['Creator', 'a post in the feed'],
   hra: ['Play', 'fetch, tug of war, chasing'],
   trening: ['Training', 'any training (agility, obedience, running…)'],
   sutaz: ['Competition', 'taking part in a competition or race'],
-  zajac: ['Rabbit', 'hunting instinct — chasing a rabbit'],
   krmenie: ['Feeding', 'the routine set in DOG ID'],
 };
 const badgeName = (id: string, tx: Tx) => tx(`pack.badge.${id}`, EN[id]?.[0] ?? id);
@@ -191,7 +187,6 @@ export function badgeCounts(a: MyActivity, trips: number, abroad: number, home: 
     ...Object.fromEntries(Object.entries(KIND_FAMILY).filter(([k]) => !['walk_short', 'walk', 'presence'].includes(k)).map(([k, f]) => [f, a.kinds[k] ?? 0])),
     vault: a.scrolls,
     zahranicie: Math.max(abroad, dbAbroad),
-    kronika: a.diary,
     tvorca: a.posts,
   };
 }

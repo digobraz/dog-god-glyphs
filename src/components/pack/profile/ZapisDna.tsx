@@ -432,18 +432,16 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
         }
       }
       buzz();
-      // Odznaky: čo sa pohlo (ťuky + veta/míľnik do KRONIKY).
+      // Odznaky: čo sa pohlo (ťuky). Kronika odznak nemá — je to miesto, kam zápis odletí (Matej 15. 11.).
       const added: Record<string, number> = {};
       for (const x of chosen) { const f = KIND_FAMILY[x.id]; if (f) added[f] = (added[f] ?? 0) + eff(x); }
-      const diaryN = (noteOn ? ids.length : 0) + (hasMile ? ids.length : 0);
-      if (diaryN) added.kronika = diaryN;
       rowsRef.current = Object.entries(added).flatMap(([fam, c]): Row[] => {
         const f = BADGE_FAMILIES.find((x) => x.id === fam);
         if (!f || !counts) return [];
         const before = counts[fam] ?? 0, after = before + c;
         const lo = [0, ...f.prahy].filter((p) => p <= before).pop() ?? 0;
         const nx = f.prahy.find((p) => p > before) ?? f.prahy[f.prahy.length - 1];
-        const emoji = fam === 'kronika' ? '✍️' : ZTILES.find((x) => KIND_FAMILY[x.id] === fam)?.emoji ?? '';
+        const emoji = ZTILES.find((x) => KIND_FAMILY[x.id] === fam)?.emoji ?? '';
         return [{ fam, emoji, before, after, lo, nx, hit: f.prahy.some((p) => before < p && after >= p) }];
       }).sort((a, b) => Number(b.hit) - Number(a.hit)).slice(0, 5);
       await ritualRun(rowsRef.current);
@@ -637,7 +635,7 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
             <div className="zd-prog">
               {rowsRef.current.map((r) => (
                 <div key={r.fam} className={`zd-pg${r.hit ? ' new' : ''}`}>
-                  <em><ZapisGlyph mark={r.emoji} size={24} sys={r.fam === 'kronika' ? 'den-kronika' : undefined} /></em><span className="nm">{tx(`pack.badge.${r.fam}`, r.fam)}</span>
+                  <em><ZapisGlyph mark={r.emoji} size={24} /></em><span className="nm">{tx(`pack.badge.${r.fam}`, r.fam)}</span>
                   <span className="bar pk-progress"><span className="pk-progress__fill" style={pctW(Math.max(3, ((r.before - r.lo) / Math.max(1, r.nx - r.lo)) * 100))} /></span>
                   <span className="v">{r.before}/{r.nx}</span>
                 </div>

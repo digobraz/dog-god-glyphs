@@ -4,7 +4,7 @@
 
 export interface BadgeFamily { id: string; symbol: string; prahy: readonly number[] }
 
-/** 24 rodín s radom prahov, v poradí registra. */
+/** 20 rodín s radom prahov, v poradí registra. */
 export const BADGE_FAMILIES: readonly BadgeFamily[] = [
   { id: "rad", symbol: "z-streak", prahy: [7, 14, 30, 60, 90, 120, 150, 200] },
   { id: "dni", symbol: "e5", prahy: [1, 10, 30, 60, 100, 200, 365, 500, 730, 1000] },
@@ -14,21 +14,17 @@ export const BADGE_FAMILIES: readonly BadgeFamily[] = [
   { id: "pritomnost", symbol: "z-presence", prahy: [1, 25, 50, 100, 200, 365, 500, 1000] },
   { id: "ocuchanie", symbol: "z-sniff", prahy: [5, 25, 50, 100, 200, 300, 500] },
   { id: "veterina", symbol: "z-vet", prahy: [1, 3, 5, 10, 20, 30, 50, 75, 100] },
-  { id: "kliest", symbol: "d2", prahy: [1, 3, 5, 10, 20, 30, 50, 75, 100] },
   { id: "plavanie", symbol: "z-swim", prahy: [1, 5, 10, 25, 50, 100, 200, 300, 500] },
   { id: "spa", symbol: "z-spa", prahy: [1, 3, 5, 10, 20, 30, 50, 75, 100] },
   { id: "zapad", symbol: "z-sunset", prahy: [1, 3, 5, 10, 20, 30, 50, 75, 100] },
   { id: "leny", symbol: "z-lazy", prahy: [5, 25, 50, 100, 200, 300, 500] },
   { id: "prusvih", symbol: "z-mischief", prahy: [5, 10, 25, 50, 100, 150, 200, 300] },
-  { id: "hovienko", symbol: "sym2", prahy: [1, 3, 5, 10, 20, 30, 50, 75, 100] },
   { id: "vault", symbol: "a7", prahy: [5, 25, 50, 100, 200, 300, 500] },
   { id: "zahranicie", symbol: "z-abroad", prahy: [1, 2, 3, 5, 7, 10, 15, 20, 30] },
-  { id: "kronika", symbol: "b1", prahy: [5, 25, 50, 100, 200, 300, 500] },
   { id: "tvorca", symbol: "z-tvorca", prahy: [5, 25, 50, 100, 200, 300, 500] },
   { id: "hra", symbol: "z-play", prahy: [5, 25, 50, 100, 200, 300, 500] },
   { id: "trening", symbol: "z-training", prahy: [5, 25, 50, 100, 200, 300, 500] },
   { id: "sutaz", symbol: "z-contest", prahy: [1, 3, 5, 10, 20, 30, 50, 75, 100] },
-  { id: "zajac", symbol: "b5", prahy: [1, 3, 5, 10, 20, 30, 50, 75, 100] },
   { id: "krmenie", symbol: "z-feeding", prahy: [1, 10, 30, 60, 100, 200, 365, 500, 730, 1000] },
 ];
 
