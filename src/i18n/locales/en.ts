@@ -7159,6 +7159,8 @@ export const en = {
   'pack.mod.block': "Block {name}",
   'pack.mod.unblock': "Unblock {name}",
   'pack.mod.blockSure': "Tap again to block {name}",
+  'pack.mod.blockShort': "Block",
+  'pack.mod.blockSureShort': "Tap again to block",
   'pack.mod.blocked': "{name} is blocked. Their posts are hidden.",
   'pack.mod.unblocked': "{name} is unblocked.",
   'pack.mod.thisMember': "this member",

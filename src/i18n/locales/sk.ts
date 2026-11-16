@@ -6852,6 +6852,8 @@ export const sk: Partial<Dict> = {
   'pack.mod.block': "Zablokovať {name}",
   'pack.mod.unblock': "Odblokovať {name}",
   'pack.mod.blockSure': "Ťukni znova a zablokujem {name}",
+  'pack.mod.blockShort': "Zablokovať",
+  'pack.mod.blockSureShort': "Ťukni znova",
   'pack.mod.blocked': "{name} je zablokovaný. Jeho príspevky sa skryli.",
   'pack.mod.unblocked': "{name} je odblokovaný.",
   'pack.mod.thisMember': "tohto člena",

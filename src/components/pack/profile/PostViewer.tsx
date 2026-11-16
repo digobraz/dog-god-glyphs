@@ -40,6 +40,7 @@ import { ADD_WISH_CSS } from '@/components/pack/mapnotes/AddWish';
 import { WishSheet } from '@/components/pack/mapnotes/WishSheet';
 import { addWishPin } from '@/components/pack/mapnotes/wishData';
 import { useToast } from '@/hooks/use-toast';
+import { blockMember } from './moderation';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import type { PackDogFull } from '@/hooks/usePackUser';
@@ -232,6 +233,23 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
     } catch { setRepErr(tx('pack.mod.reportErr', 'Could not send the report. Check your connection and try again.')); }
     finally { setRepBusy(false); }
   };
+  // Zablokovanie autora komentára (Apple 1.2): prvé ťuknutie pýta „znova", druhé zablokuje a komentár zmizne (server ho blokovanému už nevydá).
+  const [blockSureId, setBlockSureId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!blockSureId) return;
+    const tm = window.setTimeout(() => setBlockSureId(null), 4000);
+    return () => window.clearTimeout(tm);
+  }, [blockSureId]);
+  const blockAuthor = async (c: { id: string; ownerN: number | null; name: string }) => {
+    if (c.ownerN == null) return;
+    if (blockSureId !== c.id) { setBlockSureId(c.id); return; }
+    setBlockSureId(null);
+    try {
+      await blockMember(c.ownerN, true);
+      setCms((x) => x.filter((y) => y.ownerN !== c.ownerN));
+      toast({ title: tx('pack.mod.blocked', '{name} is blocked. Their posts are hidden.').replace('{name}', c.name || `#${c.ownerN}`) });
+    } catch { toast({ title: tx('pack.profile.toastUnknownError', 'Unknown error'), variant: 'destructive' }); }
+  };
   const dropComment = async (id: string) => {
     setSureId(null);
     setCms((c) => c.filter((x) => x.id !== id));
@@ -320,6 +338,11 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
                 {/* Pri komentári dátum nie je (Matej 28. 10. 2026) — len meno a text. */}
                 {!c.mine && (
                   <button type="button" className="rl" onClick={() => { setReportId(c.id); setRepSent(false); setRepErr(null); }}>{tx('pack.trip.cm.report', 'Report')}</button>
+                )}
+                {!c.mine && c.ownerN != null && (
+                  <button type="button" className="rl" onClick={() => blockAuthor(c)}>
+                    {blockSureId === c.id ? tx('pack.mod.blockSureShort', 'Tap again to block') : tx('pack.mod.blockShort', 'Block')}
+                  </button>
                 )}
                 {c.canDelete && (sureId === c.id
                   ? <button type="button" className="sure" onClick={() => dropComment(c.id)}>{tx('pack.post.commentSure', 'Really?')}</button>
