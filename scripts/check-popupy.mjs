@@ -323,7 +323,10 @@ await browser?.close();
 stopServer();
 
 const min = ((Date.now() - t0) / 60000).toFixed(1);
-if (!popupov) { console.log('✗ stráž nenašla ANI JEDEN popup — meranie je slepé, nie čisté'); process.exit(2); }
+// S `--len` (výber rout) je „0 popupov“ platný výsledok (napr. /heroglyph/email popup nemá) —
+// slepota sa dá posúdiť len na plnom behu.
+if (!popupov && arg('--len')) console.log('✓ vybrané routy: 0 popupov (nič na meranie)');
+else if (!popupov) { console.log('✗ stráž nenašla ANI JEDEN popup — meranie je slepé, nie čisté'); process.exit(2); }
 // Zlúč rovnaký nález naprieč oknami/jazykmi do jedného riadku.
 const g = new Map();
 for (const n of nalezy) {
