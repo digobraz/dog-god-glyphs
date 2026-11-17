@@ -57,6 +57,14 @@ export const MOMENT_CSS = `
 .pkm-sub{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.45;color:rgba(239,215,154,.85);max-width:30ch;animation:pkmRise .5s ease-out .75s both}
 .pkm-acts{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;width:100%;margin-top:${PACK_SPACE.md}px;animation:pkmRise .4s ease-out 1.2s both}
 .pkm-acts .pk-b3{height:52px;width:100%}
+/* DVERE KOMNATY (17. 11. 2026): zamknuté → otvorené → odznak v otvore. Poloha odznaku je ZMERANÁ na kresbe
+   dvere-otvorene (otvor x 50–99, y 44–140 zo 160 px) a na kresbe odznaku (obsah 72 % plochy): box 44 %, ľavý 24,7 %, horný 37,3 %. */
+.pkm-dvere{position:relative;width:200px;height:200px}
+.pkm-dvere img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.pkm-dvere .pkm-dv-z{animation:pkmOut .35s ease-in .9s both}
+.pkm-dvere .pkm-dv-o{opacity:0;animation:pkmFade .35s ease-out .9s both}
+.pkm-dvere .pkm-dv-odz{left:24.7%;top:37.3%;width:44%;height:44%;opacity:0;animation:pkmIskraIn .5s cubic-bezier(.3,1.6,.5,1) 1.35s both}
+@keyframes pkmIskraIn{0%{opacity:0;transform:scale(.4)}60%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
 @keyframes pkmFade{from{opacity:0}to{opacity:1}}
 @keyframes pkmOut{to{opacity:0}}
 @keyframes pkmRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}

@@ -90,6 +90,12 @@ export function MomentHost() {
               <Nadpis html={m.nadpis} />
               {m.podnadpis && <p className="pkm-sub">{m.podnadpis}</p>}
             </div>
+          ) : m.dvere && m.obrazok ? (
+            <div className="pkm-dvere" aria-hidden>
+              <img className="pkm-dv-z" src={m.dvere.zamknute} alt="" />
+              <img className="pkm-dv-o" src={m.dvere.otvorene} alt="" />
+              <img className="pkm-dv-odz" src={m.obrazok} alt="" />
+            </div>
           ) : m.obrazok ? (
             <div className={`pkm-medal${m.lapis ? ' pkm-medal--lapis' : ''}`} aria-hidden><img src={m.obrazok} alt="" /></div>
           ) : m.cislo != null ? (

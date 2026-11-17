@@ -111,8 +111,8 @@ const K_CSS = `
 .kmn-dv{display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.xs}px;font:600 ${PACK_TEXT.micro}px ${FONT_UI};color:${AINUBIS.inkDim};text-transform:uppercase;letter-spacing:.02em;text-align:center;}
 .kmn-portal{position:relative;width:72px;height:72px;}
 .wzc-welcome .kmn-portal img.dv{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:none;}
-/* Odznak stojí v OTVORE dverí (otvor je vľavo od krídla): stred x 43 %, y 55 %, šírka 40 %. */
-.wzc-welcome .kmn-portal img.odz{position:absolute;left:23%;top:35%;width:40%;height:40%;object-fit:contain;filter:none;}
+/* Odznak stojí v OTVORE dverí — zmerané na kresbách (otvor x 50–99, y 44–140 zo 160 px; obsah odznaku 72 % jeho plochy). */
+.wzc-welcome .kmn-portal img.odz{position:absolute;left:24.7%;top:37.3%;width:44%;height:44%;object-fit:contain;filter:none;}
 .kmn-dv b{font-weight:600;color:${AINUBIS.cyan};}
 .kmn-pocet{font:600 ${PACK_TEXT.body}px ${FONT_UI};color:${AINUBIS.cyan};}
 .kmn-q{margin:${PACK_SPACE.lg}px 0 ${PACK_SPACE.xl}px;font:400 ${PACK_TEXT.lead}px/1.5 ${FONT_UI};color:${AINUBIS.ink};}
@@ -341,7 +341,7 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
     const src = (await obrazokOk(kom.odznak.obrazok)) ? kom.odznak.obrazok : fallbackFor(kom.id);
     const vsetky = KOMNATY.every((x) => x.id === kom.id || seenNow.has(`odz:${x.id}`));
     ukazMoment({
-      id: 'wizard', obrazok: src, eyebrow: t('pack.wizard.k.eyebrow'), nadpis: t(kom.odznak.nazov), podnadpis: t('pack.wizard.k.badgeSub'),
+      id: 'wizard', obrazok: src, dvere: { zamknute: DVERE_ZAM, otvorene: DVERE_OTV }, eyebrow: t('pack.wizard.k.eyebrow'), nadpis: t(kom.odznak.nazov), podnadpis: t('pack.wizard.k.badgeSub'),
       hotovo: () => {
         if (!vsetky) { setPolica(kom.id); return; }
         void obrazokOk(ZNALEC.obrazok).then((ok) => ukazMoment({
