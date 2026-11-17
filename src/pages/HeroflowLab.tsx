@@ -139,28 +139,12 @@ const GROUPS: Group[] = [
       // d4cf1ee6): stavy ostávajú „done" — výšky zjednotené na PODSTATU, info a plemeno
       // sú popupy nad oknom (FlowModal), pokladňa pýta e-mail. Otvorené: fotky Hektora z labu.
       { name: '9 · Odhalenie + odkaz', path: '/heroglyph/reveal', state: 'done' },
-      { name: '10 · Pokladňa', path: '/checkout', state: 'done' },
-      // 26. 9. 2026: zadržanie je POPUP v pokladni (preto 10a, nie 11 — Matej: „nie je to nová obrazovka“), `/heroglyph/stay` bez
-      // parametra len presmeruje sem.
-      { name: '10a · Zadržanie (popup)', path: '/checkout?stay=1', state: 'done' },
-      // Ďakovačka hosťa €0 (Matej 26. 9.: *„chýba mi heroflow obrazovka HOTOVO
-      // nezaplatený, aby som tam vedel zmeniť fotku"*). Vlastný kľúč fotky
-      // `stay-done`, nie `stay` — popup a ďakovačka sa menia nezávisle.
-      // Od 26. 9. večer je to STAV zadržania (vymení sa dolná doska), nie stránka.
-      // 3. 10. 2026: POZRIEŤ STENU mieri na psa hosťa (`/?dog=<id>`), po verdikte
-      // AINUBISA mu ide mail (`send-guest-mail`), PRIDAŤ SA preklopí toho istého psa.
-      { name: '10b · Hotovo nezaplatený (stav zadržania)', path: '/checkout?stay=done', state: 'done' },
-      // FINÁLE PO PLATBE (Matej 26. 9. 2026 večer, zadanie
-      // `plany/zadanie-heroflow-po-platbe-2026-09-26/`): jedna obrazovka s dvoma
-      // fázami ako krok 9 — Hektor víta (majiteľ + psi), potom poradie, štyri
-      // vety, progres k 1M a NA STENU (stena zapečatí psov postupne). Ťuk na
-      // Hektora preskočí na poradie. V dielni bez platby: psi zo storu, čísla zo seedu.
-      // 26. 9. neskoro: bez loga, pečať + motto, ústup pri pretečení (1–6 psov cez
-      // „Koľko psov“) a certifikát pre KAŽDÉHO psa (pipeline po psoch, overené
-      // platbou na DEV). V dielni pipeline nebeží — heroglyf na stene je Hektorov.
-      // 15. 10. 2026 prezreté: WelcomeScreen 2512666f (CTA lapis r8, pozdrav bez fake bold) — stav sa nemení.
-      // 16. 10. 2026 prezreté: CTA uvítania premenované na „Zapísať na stenu“ (18 jazykov, web 7e465fa2) — stav sa nemení.
-      { name: '11 · Vitaj → Poradie → NA STENU', path: '/heroglyph/welcome', state: 'done' },
+      // 17. 11. 2026 — Matejov test v testovacej appke: POKLADŇA €11 a ZADRŽANIE sú od 15. 11. preč
+      // (`/checkout` presmeruje na členské). Koniec flowu = DOBROVOĽNÉ ČLENSKÉ (Veriaci · Posol · Staviteľ ·
+      // Vezír · Faraón, predvolený Posol) → VITAJ s „Otvoriť appku“ (/pack; po vydaní /get, `lib/appStores.ts`).
+      // „Zapísať na stenu“ zaniklo: /wall nový web presmeroval na FAQ. Stav WIP, kým to Matej neprejde znova.
+      { name: '10 · Dobrovoľné členské', path: '/heroglyph/vstupne', state: 'wip' },
+      { name: '11 · Vitaj → Otvoriť appku', path: '/heroglyph/welcome?free=1', state: 'wip' },
     ],
   },
   // 🔴 SKUPINY „Koniec flow — zatiaľ staré" (/welcome) a „Na porovnanie"
