@@ -11,7 +11,7 @@
 // ⚠️ `mapa-v1.json` ostáva na disku pre staré buildy appky (`public/` sa neháše); nový kód číta v2.
 import { useEffect, useState } from 'react';
 import type { SosT } from '@/components/pack/sos/sosShared';
-import { VET_EMERGENCY, closesAt, isOpenAt, opensAt, vetNavUrl, type VetPlace } from '@/lib/vetEmergency';
+import { VET_EMERGENCY, closesAt, isOpenAt, opensAt, vetNavUrl, type NavApp, type VetPlace } from '@/lib/vetEmergency';
 
 const DATA_URL = '/vet/mapa-v2.json';
 
@@ -81,7 +81,13 @@ export function useClinic(cid: string | undefined): MapVet | null | undefined {
   return c;
 }
 
-export const clinicPath = (cid: string) => `/pack/klinika/${encodeURIComponent(cid)}`;
+/** Navigácia do kliniky v Google / Waze / Mapy.com. Pohotovosť podľa SOS (overený bod alebo adresa),
+ *  bežný veterinár podľa bodu z Google (`place_id` poloha je na dom). */
+export function clinicNavUrl(app: NavApp, v: MapVet): string | null {
+  return vetNavUrl(app, v.er ?? { at: v.at, address: v.address, exact: true } as VetPlace);
+}
+
+export const clinicPath =(cid: string) => `/pack/klinika/${encodeURIComponent(cid)}`;
 
 const hm = (h: number) => { const x = h % 24; return `${Math.floor(x)}:${String(Math.round((x % 1) * 60)).padStart(2, '0')}`; };
 

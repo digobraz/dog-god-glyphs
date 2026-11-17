@@ -26,7 +26,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { distanceKm } from '@/lib/vetEmergency';
-import { googleReviews, hoursLabel, useClinic, type MapVet } from '@/lib/clinics';
+import { clinicNavUrl, googleReviews, hoursLabel, useClinic, type MapVet } from '@/lib/clinics';
+import type { NavApp } from '@/lib/vetEmergency';
 import { uploadPlaceFile } from '@/components/geo/placePosts';
 import {
   CLINIC_VISIT_CHIPS, confirmClinicClaim, deleteClinicRating, rateClinic, reportClinicPost, replyClinicPost,
@@ -34,6 +35,12 @@ import {
   type ClinicInfo, type ClinicPost,
 } from '@/components/geo/clinicPosts';
 
+// Logá v `public/nav-apps/` — to isté poradie ako výber v SOS (`PackSosVet.tsx`).
+const NAV_APPS: { id: NavApp; name: string; logo: string }[] = [
+  { id: 'google', name: 'Google Maps', logo: '/nav-apps/google.svg' },
+  { id: 'waze', name: 'Waze', logo: '/nav-apps/waze.svg' },
+  { id: 'mapy', name: 'Mapy.com', logo: '/nav-apps/mapy.svg' },
+];
 const MAX_PHOTOS = 4;
 const BODY_MAX = 1200;
 const BEFORE_MAX = 600;
@@ -93,6 +100,9 @@ const CSS = `
 .kl-acts{display:flex;flex-direction:column;gap:${S.md}px;}
 .kl-acts2{display:grid;grid-template-columns:1fr 1fr;gap:${S.md}px;}
 .kl-acts .pk-b3,.kl-acts2 .pk-b3{width:100%;min-height:52px;padding:0 ${S.md}px;font-size:${PACK_TEXT.lead}px;text-align:center;}
+.kl-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:${S.sm}px;}
+.kl-nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${S.xs}px;min-height:56px;padding:${S.sm}px;border-radius:${PACK_R.field}px;border:1.5px solid ${T.cardEdge};background:${T.tileBg};font-size:${PACK_TEXT.micro}px;font-weight:600;color:${T.inkStrong};text-align:center;text-decoration:none;}
+.kl-nav img{width:24px;height:24px;display:block;}
 .kl-more{margin:0;font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
 .kl-more a{color:inherit;text-decoration:underline;}
 .kl-sec{display:flex;flex-direction:column;gap:${S.sm}px;}
@@ -184,6 +194,7 @@ function KlinikaBody({ v }: { v: MapVet }) {
   const { posts, info, reload } = useClinicProfile(v.cid);
   const stats = useClinicStats();
   const [sheet, setSheet] = useState<Sheet>(null);
+  const [navOpen, setNavOpen] = useState(false); // výber navigácie ako v SOS (Google · Waze · Mapy.com)
   const [now, setNow] = useState(() => new Date());
   const [eta, setEta] = useState<string | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
@@ -234,6 +245,7 @@ function KlinikaBody({ v }: { v: MapVet }) {
   const admin = !!info?.iAmAdmin;
   const tel = v.tels[0];
   const moreTels = v.tels.slice(1);
+  const canNav = clinicNavUrl('google', v) !== null;
   const close = useCallback(() => setSheet(null), []);
   const saved = useCallback(() => { setSheet(null); reload(); toast({ description: s('pack.sos.er.clSaved') }); }, [reload, toast, s]);
 
@@ -297,11 +309,20 @@ function KlinikaBody({ v }: { v: MapVet }) {
           <a className="pk-b3 pk-b3--lapis" href={`tel:${tel.replace(/\s/g, '')}`}>{s('pack.sos.er.callBtn')} · {tel}</a>
         )}
         <div className="kl-acts2">
-          {v.navUrl
-            ? <a className="pk-b3 pk-b3--paper" href={v.navUrl} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.navBtn')}</a>
+          {canNav
+            ? <button type="button" className="pk-b3 pk-b3--paper" aria-expanded={navOpen} onClick={() => setNavOpen((o) => !o)}>{s('pack.sos.er.navBtn')}</button>
             : <span />}
           <button type="button" className="pk-b3 pk-b3--paper" onClick={() => setSheet('rate')}>{s('pack.sos.er.clRate')}</button>
         </div>
+        {canNav && navOpen && (
+          <div className="kl-nav" role="group" aria-label={s('pack.sos.er.navOpen')}>
+            {NAV_APPS.map((a) => (
+              <a key={a.id} href={clinicNavUrl(a.id, v)!} target="_blank" rel="noopener noreferrer" onClick={() => setNavOpen(false)}>
+                <img src={a.logo} alt="" aria-hidden="true" />{a.name}
+              </a>
+            ))}
+          </div>
+        )}
         {moreTels.length > 0 && (
           <p className="kl-more">
             {moreTels.map((t, i) => (

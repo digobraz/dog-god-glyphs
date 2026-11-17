@@ -79,6 +79,9 @@ export const mapAttrLiftCSS = (maxWidth: number) => `
     bottom:calc(var(--trp-mactions-h, 149px) + 10px);}
   body.trp-draw-lock .leaflet-control-scale{
     bottom:calc(${DOCK_VH * 100}vh + 10px);}
+  /* Otvorená karta bodu (veterinár, miesto) siaha až k spodku a mierka (pane ovládania leží
+     NAD panelom bublín) by jej prešla cez tlačidlo — zistené 17. 11. 2026 na karte VetLINE. */
+  .leaflet-container:has(.leaflet-popup) .leaflet-control-scale{visibility:hidden;}
   /* ── ATRIBÚCIA NA MOBILE HORE POD HLAVIČKOU, VEDĽA SEBA A MENŠIA (Matej 3. 10. 2026:
      *„na mobile by som dal info o poi a mapy cz hore pod lištu horného headra — vedľa seba
      a menším"*). Dole súperila o pás s radom ZOZNAM, AINUBISOM a navom (tri stupne zdvihu
