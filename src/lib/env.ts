@@ -56,6 +56,9 @@ export const SOS_PUBLIC_ON = true;
 // kde je `SOS_ON` vypnutý. Zapína len `TEST_BUILD`; na LIVE ostáva mimo, kým Matej nepovie „ostro“.
 // 🟢 6. 11. 2026 do obchodnej appky (Matej: „do apky ide všetko z toho“); web bez zmeny.
 export const VET_ER_ON = TEST_BUILD || IS_APP;
+// PRVÁ POMOC (17. 11. 2026): 22 kariet v balíku appky (`sos/aid/`), nečíta DB. Testovací kanál; do obchodnej
+// appky (`|| IS_APP`) až po kontrole obsahu veterinárom a Matejovom „ostro“.
+export const AID_ON = TEST_BUILD;
 // MOMENTY (15. 11. 2026, hárok Zážitok appky + prehliadka momentov): spoločný komponent odmeny `MomentHost`.
 // Rozostavané ⇒ len testovací kanál. Do obchodnej appky (`|| IS_APP`) až na Matejovo „ostro“.
 export const MOMENTY_ON = TEST_BUILD;

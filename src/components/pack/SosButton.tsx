@@ -4,14 +4,14 @@
 // Ťuk = POPUP (šuplík zdola, lock pack-dizajn-system §POPUP):
 //   · STRATIL SA MI PES — červené tlačidlo, VŽDY prvé a nikdy nezmizne → `/pack/sos/new`
 //   · NAHLÁSIŤ TÝRANIE — zatiaľ „čoskoro“ (pod Stratil sa mi pes, nad Prvou pomocou)
-//   · PRVÁ POMOC · NAJBLIŽŠÍ VETERINÁR — zatiaľ „čoskoro"
+//   · PRVÁ POMOC → `/pack/sos/prva-pomoc` (pod AID_ON, 17. 11. 2026) · NAJBLIŽŠÍ VETERINÁR → `/pack/sos/pohotovost`
 //   · AKTUÁLNE PÁTRANIE — pod nimi zoznam z `sosActive()` (len krajina člena), moje prvé; ťuk → `/pack/sos/<slug>`.
 //     Bez pátraní nadpis nie je. Keď beží MOJA strata, trojuholník nesie malú červenú bodku.
 // 🔴 Mount len za `TEST_BUILD` (4. 11. 2026, revízia locku architektura-pack §1.2) a nie v koši 3 (`PackTopRow task`).
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
-import { SOS_ON } from '@/lib/env';
+import { AID_ON, SOS_ON } from '@/lib/env';
 import { APP_NEW } from '@/lib/packFlags';
 import { PackPopup } from './PackPopup';
 import { BrandIcon } from './BrandIcon';
@@ -95,11 +95,12 @@ export function SosButton() {
               <b>{tx('pack.sos.btn.abuse', 'Report abuse')}</b>
               <small>{tx('pack.sos.soon', 'Soon')}</small>
             </button>
-            {SOS_ON && ROWS.map((r) => (
-              <button key={r.key} type="button" className={`sos-row ${r.key}`} style={{ ...PACK_BOX.row }}>
+            {/* Prvá pomoc (17. 11. 2026): kde je AID_ON, otvorí rozcestník; inde ostáva „čoskoro“. */}
+            {(SOS_ON || AID_ON) && ROWS.map((r) => (
+              <button key={r.key} type="button" className={`sos-row ${r.key}`} style={{ ...PACK_BOX.row }} onClick={AID_ON ? () => go('/pack/sos/prva-pomoc') : undefined}>
                 {APP_NEW ? <SysIcon name="sos-pomoc" size={32} /> : <BrandIcon name={r.icon} size={24} tint="gold" />}
                 <b>{tx(r.k, r.fb)}</b>
-                <small>{tx('pack.sos.soon', 'Soon')}</small>
+                {!AID_ON && <small>{tx('pack.sos.soon', 'Soon')}</small>}
               </button>
             ))}
           </div>

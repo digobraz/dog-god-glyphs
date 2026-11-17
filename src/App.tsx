@@ -4,7 +4,7 @@ import { PHOTO_INVITE_NEEDED } from "@/lib/photoInvite";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import { APP_NEW, DEV_FULL, BUDDY_LIVE, hasStoredSessionOrAuthReturn } from "@/lib/packFlags";
-import { SOS_ON, VET_ER_ON } from "@/lib/env";
+import { AID_ON, SOS_ON, VET_ER_ON } from "@/lib/env";
 // Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
 import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
 import { PackLoader } from "@/components/pack/PackLoader";
@@ -194,6 +194,7 @@ const PackSosDetail = lazyPack(() => import("@/components/pack/sos/PackSosDetail
 const PackSosFlyer = lazyPack(() => import("@/components/pack/sos/PackSosFlyer")); // kôš 3
 const PackSosPlan = lazyPack(() => import("@/components/pack/sos/PackSosPlan")); // kôš 2
 const PackSosVet = lazyPack(() => import("@/components/pack/sos/PackSosVet")); // kôš 3
+const PackSosAid = lazyPack(() => import("@/components/pack/sos/PackSosAid")); // kôš 3 — prvá pomoc (17. 11. 2026)
 const PackKlinika = lazyPack(() => import("@/components/pack/klinika/PackKlinika")); // kôš 2 — profil kliniky
 const PackSosCard = lazyPack(() => import("@/components/pack/dogCard/PackSosCard")); // kôš 3
 const PackDogCard = lazyPack(() => import("@/components/pack/dogCard/PackDogCard")); // kôš 3
@@ -666,6 +667,9 @@ const App = () => (
               <Route path="/pack/sniffer" element={DEV_FULL && BUDDY_LIVE ? <PackBuddy /> : <Navigate to="/pack/map" replace />} />
               {/* SOS — stratený pes (TEST_BUILD). Statické `new` vyhráva nad `:slug`. */}
               {VET_ER_ON && <Route path="/pack/sos/pohotovost" element={<PackSosVet />} />}
+              {/* PRVÁ POMOC — rozcestník + karta, obsah v balíku (funguje bez signálu). */}
+              {AID_ON && <Route path="/pack/sos/prva-pomoc" element={<PackSosAid />} />}
+              {AID_ON && <Route path="/pack/sos/prva-pomoc/:id" element={<PackSosAid />} />}
               {/* PROFIL KLINIKY — kôš 2 POZERÁM SA (lišta ustúpi), hodnotenie Dogypťanov + správca kliniky. */}
               {VET_ER_ON && <Route path="/pack/klinika/:cid" element={<PackKlinika />} />}
               {APP_NEW && <Route path="/pack/sos/karticka" element={<PackSosCard />} />}

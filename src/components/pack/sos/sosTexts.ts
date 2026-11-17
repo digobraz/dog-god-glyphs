@@ -383,6 +383,23 @@ export const SOS_TEXTS = {
   'pack.sos.er.homeNonstop': T('Non-stop, comes to you', 'Nonstop, príde k tebe', 'Nonstop, přijede k tobě'),
   'pack.sos.er.myLoc': T('My location', 'Moja poloha', 'Moje poloha'),
 
+  // ── prvá pomoc (Matej 17. 11. 2026, nákres plany/nakresy/prva-pomoc-2026-11-16) — obsah kariet je v aid/aid*.ts ──
+  'pack.sos.aid.offline': T('Works without signal', 'Funguje aj bez signálu', 'Funguje i bez signálu'),
+  'pack.sos.aid.g.A': T('Minutes count', 'Ide o minúty', 'Jde o minuty'),
+  'pack.sos.aid.g.B': T('Outdoors', 'Príroda', 'Příroda'),
+  'pack.sos.aid.g.C': T('Injuries', 'Úrazy', 'Úrazy'),
+  'pack.sos.aid.g.D': T('Helper cards', 'Pomocné karty', 'Pomocné karty'),
+  'pack.sos.aid.spoznas': T('How you can tell', 'Spoznáš to', 'Poznáš to'),
+  'pack.sos.aid.kroky': T('Steps', 'Kroky', 'Kroky'),
+  'pack.sos.aid.zoznam': T('Pack', 'Zbaľ si', 'Sbal si'),
+  'pack.sos.aid.nikdy': T('Never', 'Nikdy', 'Nikdy'),
+  'pack.sos.aid.nosig': T('No signal', 'Bez signálu', 'Bez signálu'),
+  'pack.sos.aid.prog': T('{n} of {all} done · tap a step', '{n} z {all} hotové · ťukni na krok', '{n} z {all} hotovo · ťukni na krok'),
+  'pack.sos.aid.call': T('Call the emergency vet', 'Zavolať pohotovosť', 'Zavolat pohotovost'),
+  'pack.sos.aid.nearest': T('Nearest emergency vet', 'Najbližšia pohotovosť', 'Nejbližší pohotovost'),
+  'pack.sos.aid.bad': T('VENOMOUS', 'JEDOVATÁ', 'JEDOVATÁ'),
+  'pack.sos.aid.good': T('HARMLESS', 'NEŠKODNÁ', 'NEŠKODNÁ'),
+
   // ── núdzová kartička (Matej 5. 11. 2026) ─────────────────────────────────
   'pack.sos.card.title': T('Emergency card', 'Núdzová kartička', 'Nouzová kartička'),
   'pack.sos.card.frontTitle': T('My dog is home alone', 'Môj pes je doma sám', 'Můj pes je doma sám'),
