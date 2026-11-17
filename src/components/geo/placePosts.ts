@@ -99,7 +99,8 @@ export function loadPlacePosts(): Promise<PlacePost[]> {
       if (DEV_NOAUTH || !(await hasSession())) return [];
       const { data, error } = await rpc('list_place_posts');
       if (error) throw error;
-      return ((data ?? []) as Row[]).map(fromRow);
+      // Hodnotenie kliniky (`place_kind='vet'`) sa páruje podľa ID, nie súradnice → `clinicPosts.ts`.
+      return ((data ?? []) as Row[]).filter((r) => r.place_kind !== 'vet').map(fromRow);
     })()
       .then((p) => { cache = p; listeners.forEach((fn) => fn(p)); return p; })
       .catch(() => [] as PlacePost[])

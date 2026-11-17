@@ -8,6 +8,9 @@ import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { driveTimes, type DriveTime } from '@/components/pack/addtrip/mapProxyClient';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { SosTaskShell } from './SosTaskShell';
+import { ClinicPawsLine, CLINIC_PAWS_CSS } from '@/components/geo/ClinicPawsLine';
+import { useClinicStats } from '@/components/geo/clinicPosts';
+import { clinicPath } from '@/lib/clinics';
 import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { kmText, useBack, useSosT, type SosT } from './sosShared';
@@ -120,6 +123,7 @@ export default function PackSosVet() {
   const { lang } = useLang();
   const loc = intlLocale(lang);
   const onBack = useBack('/pack');
+  const stats = useClinicStats(); // packy Dogypťanov: jedno volanie pre všetky karty
   const [gps, setGps] = useState<[number, number] | null>(null);
   // wait = čakáme na GPS · denied = zamietnuté (nepýtame sa znova) · fail = timeout / bez signálu (tlačidlo ostáva)
   const [gpsState, setGpsState] = useState<'wait' | 'ok' | 'denied' | 'fail'>('wait');
@@ -240,6 +244,7 @@ export default function PackSosVet() {
               · {reviewsLabel(p.google, s, loc)}
             </a>
           )}
+          <ClinicPawsLine cid={p.id} stat={stats[p.id]} s={s} loc={loc} />
           <a className="vet-web" href={p.web} target="_blank" rel="noopener noreferrer">{hostOf(p.web)}</a>
           <span className={`vet-pill${p.clientsOnly || typeof p.hours !== 'string' || p.hours === 'ask' ? ' vet-pill--soft' : ''}`}>{hoursLabel(p, s, now)}</span>
           {open === p.id && (
@@ -276,6 +281,7 @@ export default function PackSosVet() {
   return (
     <SosTaskShell onBack={onBack} backLabel={s('pack.sos.back')} wide>
       <style>{CSS}</style>
+      <style>{CLINIC_PAWS_CSS}</style>
       <h1 className="sos-h2">{s('pack.sos.er.title')}</h1>
       <div className="vet-chips">
         {([['near', 'pack.sos.er.near'], ['nonstop', 'pack.sos.er.nonstopChip'], ['home', 'pack.sos.er.homeChip']] as const).map(([k, l]) => (

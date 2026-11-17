@@ -114,6 +114,8 @@ export const WIZ_SCREENS: WizScreen[] = [
   // ── KÔŠ 3 a technické routy — wizard nikdy ──
   { key: 'sosNew', routes: ['/pack/sos/new'], basket: 3, status: 'nie', why: 'úloha — vyhlásenie straty, pokyn nesie formulár', steps: [] },
   { key: 'sosFlyer', routes: ['/pack/sos/:slug/letak'], basket: 3, status: 'nie', why: 'úloha — editor letáku', steps: [] },
+  { key: 'sosVet', routes: ['/pack/sos/pohotovost'], basket: 2, status: 'nie', why: 'veterinárna pohotovosť — v núdzi sa nič nevysvetľuje, zoznam a volanie', steps: [] },
+  { key: 'klinika', routes: ['/pack/klinika/:cid'], basket: 2, status: 'nie', why: 'profil kliniky — čítanie, volanie a postrehy; nič na vysvetlenie', steps: [] },
   { key: 'sosPage', routes: ['/pack/sos/:slug'], basket: 2, status: 'nie', why: 'stratený pes — v núdzi sa nič nevysvetľuje, nepoužíva sa prvýkrát len na čítanie', steps: [] },
   { key: 'sosPlan', routes: ['/pack/sos/:slug/plan'], basket: 2, status: 'nie', why: 'SOS plán — zoznam kontaktov, nič na vysvetlenie', steps: [] },
   { key: 'addTrip', routes: ['/pack/add/trip', '/pack/add'], basket: 3, status: 'nie', why: 'úloha — pokyn nesie pilulka toku', steps: [] },

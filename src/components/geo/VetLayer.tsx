@@ -1,7 +1,7 @@
 // VRSTVA VETERINÁROV na mape — Matej 17. 11. 2026. Zadanie: `plany/zadanie-veterinari-mapa-2026-11-17.md`.
 //
 // ── DVA ZDROJE, JEDNA ZNAČKA ────────────────────────────────────────────────
-// BEŽNÝ VETERINÁR  — `public/vet/mapa-v1.json` (⚙️ `plany/veterinari/gen-vet-mapa.mjs`), stiahne
+// BEŽNÝ VETERINÁR  — `public/vet/mapa-v2.json` cez `lib/clinics.ts` (⚙️ `plany/veterinari/gen-vet-mapa.mjs`), stiahne
 //                    sa raz, až keď je mapa priblížená nad prah.
 // POHOTOVOSŤ       — `VET_EMERGENCY` z balíka appky (tá istá, čo v SOS). Na mape nesie červený
 //                    lem žiary a ťuk ponúkne aj cestu do SOS, kde je karta s fotkou a časom jazdy.
@@ -21,12 +21,15 @@ import { FONT_UI, PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT as TX } fr
 import { MAP_STICKERS_ON, stickerImg, poiStickerPx } from '@/components/pack/mapnotes/mapStickers';
 import { CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import { PLACE_CARD_CSS } from './PlaceCard';
-import { kmText, useSosT, type SosT } from '@/components/pack/sos/sosShared';
+import { kmText, useSosT } from '@/components/pack/sos/sosShared';
 import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { VET_EMERGENCY, closesAt, distanceKm, isOpenAt, opensAt, vetNavUrl, type VetPlace } from '@/lib/vetEmergency';
+import { distanceKm } from '@/lib/vetEmergency';
+import { ER_CLINICS, clinicPath, googleReviews, hoursLabel, loadMapVets, type MapVet } from '@/lib/clinics';
 import { driveTimes, type DriveTime } from '@/components/pack/addtrip/mapProxyClient';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
+import { ClinicPawsLine, CLINIC_PAWS_CSS } from './ClinicPawsLine';
+import { useClinicStats } from './clinicPosts';
 
 /** Od tohto priblíženia sa veterinári kreslia. Nižšie než spacie miesta (15): veterinára človek
  *  hľadá na úrovni mesta, nie chodníka — a rozostup v pixeloch nedovolí, aby sa nakopili. */
@@ -34,50 +37,11 @@ export const VET_MIN_ZOOM = 12;
 const VET_MAX_RENDER = 120;
 const MARK_PX = 34; // rozostup dvoch značiek, o kus menej než samolepka: mesto má ambulancie husto
 const STICKER = '/icons/sys/sos-vet.webp';
-const DATA_URL = '/vet/mapa-v1.json';
 const PAN_TL: [number, number] = [20, 180];
 const PAN_BR: [number, number] = [20, 110];
 
-type Sched = NonNullable<VetPlace['sched']>;
-/** Riadok `mapa-v1.json` — krátke kľúče, súbor ide po sieti. */
-/** `p` = fotka v `public/vet/m/` (z webu ambulancie alebo z Google profilu); bez nej kreslený obrázok. */
-type Raw = { p?: string; id: string; n: string; a: string; at: [number, number]; t?: string[]; h?: 'nonstop' | 'onsite' | 'ask'; s?: Sched; r?: number; c?: number; g: string; w?: string };
-type MapVet = {
-  id: string; name: string; address: string; at: [number, number]; tels: string[];
-  /** tvar, ktorému rozumejú `isOpenAt` / `closesAt` / `opensAt` z pohotovosti */
-  clock: Pick<VetPlace, 'hours' | 'sched' | 'weekdays'>;
-  google?: { rating: number; count?: number }; googleUrl?: string; navUrl: string | null;
-  sos: boolean; nonstop: boolean; photo: string;
-};
-// Ambulancia bez vlastnej fotky: tá istá zjavne vymyslená kresba ako v SOS (Matej 5. 11. 2026).
-const NO_PHOTO = '/vet/_bez-fotky.jpg';
-
-let filePromise: Promise<MapVet[]> | null = null;
-function loadFile(): Promise<MapVet[]> {
-  filePromise ||= fetch(DATA_URL)
-    .then((r) => (r.ok ? r.json() : { vets: [] }))
-    .then((j: { vets: Raw[] }) => j.vets.map((v): MapVet => ({
-      id: v.id, name: v.n, address: v.a, at: v.at, tels: v.t ?? [],
-      clock: v.s ? { hours: [0, 0], sched: v.s } : { hours: v.h ?? 'ask' },
-      ...(v.r ? { google: { rating: v.r, count: v.c } } : {}),
-      googleUrl: v.g,
-      navUrl: `https://www.google.com/maps/dir/?api=1&destination=${v.at[0]},${v.at[1]}`,
-      sos: false, nonstop: v.h === 'nonstop' || v.h === 'onsite', photo: v.p ? `/vet/m/${v.p}` : NO_PHOTO,
-    })))
-    // Zlyhanie je tiché: chýbajúci veterinár na mape je menšie zlo než hlásenie o sieti nad mapou.
-    // Sľub sa zahodí, aby sa pri ďalšom priblížení skúsilo znova.
-    .catch(() => { filePromise = null; return []; });
-  return filePromise;
-}
-
 /** Pohotovosti zo SOS. Výjazdoví veterinári (`home`) nemajú miesto, kam sa dá prísť — na mapu nejdú. */
-const SOS_VETS: MapVet[] = VET_EMERGENCY.filter((p) => !p.home).map((p) => ({
-  id: p.id, name: p.name, address: p.address, at: p.at, tels: [p.tel, ...(p.telBy?.map((x) => x.tel) ?? [])],
-  clock: { hours: p.hours, sched: p.sched, weekdays: p.weekdays },
-  ...(p.google ? { google: { rating: p.google.rating, count: p.google.count }, googleUrl: p.google.url } : {}),
-  navUrl: vetNavUrl('google', p),
-  sos: true, nonstop: p.hours === 'onsite' || p.hours === 'nonstop', photo: p.photo?.src ?? NO_PHOTO,
-}));
+const SOS_VETS: MapVet[] = ER_CLINICS.filter((c) => !c.er?.home);
 
 const icon = (v: MapVet, zoom: number) => {
   const px = poiStickerPx(zoom);
@@ -110,32 +74,13 @@ function etaLabel(d: DriveTime, loc: string): string {
   return `${dist} km · ${min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${min % 60} min`}`;
 }
 
-const hm = (h: number) => { const x = h % 24; return `${Math.floor(x)}:${String(Math.round((x % 1) * 60)).padStart(2, '0')}`; };
-
-/** Stav hodín pre pilulku. `on` = zelená (teraz otvorené), inak tichá. */
-function hoursLabel(v: MapVet, s: SosT, now: Date): { text: string; on: boolean } {
-  const p = v.clock as VetPlace;
-  if (p.hours === 'onsite') return { text: s('pack.sos.er.onsite'), on: true };
-  if (p.hours === 'nonstop') return { text: s('pack.sos.er.nonstop'), on: true };
-  if (p.hours === 'call') return { text: s('pack.sos.er.call'), on: true };
-  if (p.hours === 'ask') return { text: s('pack.sos.er.ask'), on: false };
-  const open = isOpenAt(p, now);
-  const at = open ? closesAt(p, now) : opensAt(p, now);
-  if (at == null) return { text: s('pack.sos.er.closed'), on: false };
-  return { text: s(open ? 'pack.sos.er.until' : 'pack.sos.er.from', { time: hm(at) }), on: open };
-}
-
-function reviews(n: number, s: SosT, loc: string): string {
-  const cat = new Intl.PluralRules(loc).select(n);
-  return s(cat === 'one' ? 'pack.sos.er.gRevOne' : cat === 'few' ? 'pack.sos.er.gRevFew' : 'pack.sos.er.gRevMany', { count: n.toLocaleString(loc) });
-}
-
 export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) {
   const map = useMap();
   const s = useSosT();
   const { lang } = useLang();
   const loc = intlLocale(lang);
   const navigate = useNavigate();
+  const stats = useClinicStats(); // jedno volanie pre všetky karty
   // DEV: rukoväť na mapu pre kontrolu z konzoly — to isté ako v `PoiLayer.tsx`, do produkcie nejde.
   if (import.meta.env.DEV) (window as unknown as { __MAP?: unknown }).__MAP = map;
   const [zoom, setZoom] = useState(() => map.getZoom());
@@ -154,7 +99,7 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
     void myPosition().then((pos) => {
       if (!pos) return;
       setMe(pos);
-      void driveTimes(pos, [v.at]).then(([d]) => { if (d) setDrive((x) => ({ ...x, [v.id]: d })); });
+      void driveTimes(pos, [v.at]).then(([d]) => { if (d) setDrive((x) => ({ ...x, [v.cid]: d })); });
     });
   }, []);
   const onPopupClose = useCallback(() => { popupOpen.current = false; setMoveTick((n) => n + 1); }, []);
@@ -167,7 +112,7 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
   useEffect(() => {
     if (!on || file.length) return;
     let alive = true;
-    loadFile().then((v) => { if (alive) setFile(v); });
+    loadMapVets().then((v) => { if (alive) setFile(v); });
     return () => { alive = false; };
   }, [on, file.length]);
 
@@ -198,16 +143,17 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
       <style>{CIRCLE_MARK_CSS}</style>
       <style>{PLACE_CARD_CSS}</style>
       <style>{VET_CSS}</style>
+      <style>{CLINIC_PAWS_CSS}</style>
       {items.map((v) => {
         const hours = hoursLabel(v, s, now);
         return (
-          <Marker key={`vet-${v.id}`} position={v.at} icon={icon(v, zoom)} zIndexOffset={v.sos ? -400 : -500} title={v.name} eventHandlers={{ popupopen: () => askDrive(v) }}>
+          <Marker key={`vet-${v.cid}`} position={v.at} icon={icon(v, zoom)} zIndexOffset={v.sos ? -400 : -500} title={v.name} eventHandlers={{ popupopen: () => askDrive(v) }}>
             <Popup className="poi-popup vm-popup" closeButton={false} autoPanPaddingTopLeft={PAN_TL} autoPanPaddingBottomRight={PAN_BR}>
               <div className="pcard">
                 <div className="vm-photo">
                   <img className="pcard-photo" src={v.photo} alt="" loading="lazy" decoding="async" />
                   {me && (
-                    <span className="vm-eta">{drive[v.id] ? etaLabel(drive[v.id], loc) : s('pack.sos.er.airKm', { km: kmText(distanceKm(me, v.at), loc) })}</span>
+                    <span className="vm-eta">{drive[v.cid] ? etaLabel(drive[v.cid], loc) : s('pack.sos.er.airKm', { km: kmText(distanceKm(me, v.at), loc) })}</span>
                   )}
                 </div>
                 <div className="pcard-body">
@@ -219,7 +165,7 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
                     <a className="vm-g" href={v.googleUrl} target="_blank" rel="noopener noreferrer">
                       {v.google.rating.toLocaleString(loc, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                       <img src="/nav-apps/google-g.svg" alt="Google" />
-                      {v.google.count ? <>· {reviews(v.google.count, s, loc)}</> : null}
+                      {v.google.count ? <>· {googleReviews(v.google.count, s, loc)}</> : null}
                     </a>
                   )}
                   {!v.google && v.googleUrl && (
@@ -227,6 +173,7 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
                       <img src="/nav-apps/google-g.svg" alt="" />{s('pack.sos.er.mapGoogle')}
                     </a>
                   )}
+                  <ClinicPawsLine cid={v.cid} stat={stats[v.cid]} s={s} loc={loc} />
                   <div className="vm-acts">
                     {v.tels.map((t) => (
                       <a key={t} className="pk-b3 pk-b3--lapis vm-btn" href={`tel:${t.replace(/\s/g, '')}`}>{t}</a>
@@ -235,6 +182,7 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
                     {v.navUrl && (
                       <a className="pk-b3 pk-b3--paper vm-btn" href={v.navUrl} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.navBtn')}</a>
                     )}
+                    <button type="button" className="pk-b3 pk-b3--paper vm-btn" onClick={() => navigate(clinicPath(v.cid))}>{s('pack.sos.er.clOpen')}</button>
                     {v.sos && (
                       <button type="button" className="pk-b3 pk-b3--red vm-btn" onClick={() => navigate('/pack/sos/pohotovost')}>{s('pack.sos.er.mapSos')}</button>
                     )}
