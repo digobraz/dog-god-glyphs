@@ -427,11 +427,18 @@ export default function AppWeb() {
   const [payErr, setPayErr] = useState(false);
   const [rankNow, setRankNow] = useState<string | null>(null);
   const [thanks, setThanks] = useState<string | null>(null);
+  // Kotva z inej stránky (`/wall` → `/#join`, odkazy zo /story) — SPA ju sama neodroluje.
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (!id || qs.get('vstupne')) return;
+    const t = setTimeout(() => document.getElementById(id)?.scrollIntoView(), 400);
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const sid = qs.get('vstupne');
     if (sid && /^cs_(test|live)_/.test(sid)) {
       paidRank(sid).then((r) => { if (r) setThanks(r); }).catch(() => {});
-      window.history.replaceState(null, '', '/app#badges');
+      window.history.replaceState(null, '', '/#badges');
       setTimeout(() => document.getElementById('badges')?.scrollIntoView(), 300);
     }
     myRank().then((r) => {
@@ -514,7 +521,7 @@ export default function AppWeb() {
 
   return (
     <div className="aw" data-bg={bg} data-pz="0" ref={rootRef}>
-      <Seo path="/app" title={`DOGYPT · ${c('seo_t')}`} description={c('sub')} noindex />
+      <Seo path="/" title={`DOGYPT · ${c('seo_t')}`} description={c('sub')} />
       <style>{STAGE_CSS}</style>
       <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /><i className="pearl p1" /><i className="pearl p2" /></div>
 

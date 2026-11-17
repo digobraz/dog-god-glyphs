@@ -87,7 +87,8 @@ export default defineConfig(({ mode }) => ({
         //    predsťahuje sa Login, nie 30 súborov appky (merané: /pack LCP 5,9 → 7,1 s, keď sa ťahala appka).
         const ROUTES: [string, RegExp, boolean][] = [
           // [regex cesty (beží v prehliadači), zdrojové moduly, treba preklady appky?]
-          ["^/(wall|onepage|vision|religion|about|spiral|grid|betavision)?/?$", /\/src\/components\/lab\/(OnePage|AboutLab)\.tsx$/, false],
+          // FLIP 17. 11. 2026: `/` = nový web (AppWeb), film OnePage zanikol.
+          ["^/(app)?/?$", /\/src\/pages\/AppWeb\.tsx$/, false],
           ["^/terms/?$", /\/src\/pages\/Terms\.tsx$/, false],
           ["^/privacy/?$", /\/src\/pages\/Privacy\.tsx$/, false],
           ["^/login/?$", /\/src\/pages\/Login\.tsx$/, true],

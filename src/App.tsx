@@ -18,7 +18,7 @@ import { NEW_HEROFLOW } from "@/lib/flowMode";
 import { PawTrail } from "@/components/PawTrail";
 
 // Route-level code-split (P0 2026-07 perf pass). NotFound je od 7. 10. 2026 tiež lazy; od FLIPu
-// 7. 10. 2026 je homepage film (OnePage) — aj /wall, tmavý GodsGrid zanikol; everything else behind /heroglyph, /pack, /admin, legacy /spiral, etc.
+// 17. 11. 2026 je homepage NOVÝ WEB (AppWeb), /wall = jeho sekcia join; everything else behind /heroglyph, /pack, /admin, legacy /spiral, etc.
 // loads on demand. Screens under components/screens/ + SpiralLanding are named
 // exports — pages/* are default exports.
 // AINUBIS chat widget — lazy, aby nezaťažil homepage bundle (perf je otvorená téma).
@@ -205,7 +205,10 @@ const PackDogIdFlow = lazyPack(() => import("./pages/PackDogIdFlow.tsx")); // kv
 const DogIdQuizRoute = lazyPack(() => import("./pages/PackDogIdFlow.tsx").then((m) => ({ default: m.DogIdQuizRoute })));
 // /magnet ZANIKOL (Matej 15. 11. 2026: „/magnet zaniká nebudeme ho potrebovať keďže sme free“).
 // Staré odkazy: výlety → verejná /map (tá istá obrazovka), všetko ostatné → /app.
-const MagnetZanikol = () => { const { pathname, search } = useLocation(); const v = pathname.match(/^\/magnet\/vylety(\/.*)?$/); return <Navigate to={v ? `/map${v[1] || ''}${search}` : '/app'} replace />; };
+const MagnetZanikol = () => { const { pathname, search } = useLocation(); const v = pathname.match(/^\/magnet\/vylety(\/.*)?$/); return <Navigate to={v ? `/map${v[1] || ''}${search}` : '/'} replace />; };
+// /app → / (FLIP 17. 11. 2026): nový web je hlavná stránka. Dotaz a kotva idú ďalej —
+// návrat zo Stripe (`?vstupne=cs_…`), portál a odkazy `/app#badges` z mailov a zo /story.
+const AppNaKoren = () => { const { search, hash } = useLocation(); return <Navigate to={`/${search}${hash}`} replace />; };
 const NatureRoute = () => { const [q] = useSearchParams(); return q.get('view') === 'result' ? <PackNatureQuiz /> : <PackDogIdFlow mode="nature" />; };
 const PackNatureQuiz = lazyPack(() => import("./pages/PackNatureQuiz.tsx")); // osobnostný kvíz element+úloha (zadanie-osobnostny-kviz-2026-08-06)
 const Login = lazyPack(() => import("./pages/Login.tsx"));
@@ -220,9 +223,7 @@ const HeroLab = lazy(() => import("./pages/HeroLab.tsx"));
 // pod ním posúva vodorovne. Všetky štyri *-lab cesty mieria na TEN ISTÝ element,
 // takže React rám nechá stáť a prepne sa len panel (žiadne načítanie stránky).
 const LabShell = lazy(() => import("./components/lab/LabShell"));
-// ONEPAGE — druhý koncept toho istého webu: celý film v jednom zvislom scrolle
-// (Matej 26. 8. 2026). Beží VEDĽA LabShellu, nie namiesto neho.
-const OnePage = lazy(() => import("./components/lab/OnePage"));
+// ONEPAGE (film) zanikol s FLIPom 17. 11. 2026 — konzerva je vetva `version1` vo vystupy/web.
 const Entry = lazy(() => import("./pages/Entry.tsx"));
 // Výzva „TVÁR TVOJHO PSA" — jeden vstup do nového heroflowu (WE NEED YOU, zrušený výber fotky na portáli).
 const PhotoInvite = lazy(() => import("./components/gods/PhotoInvite.tsx"));
@@ -404,16 +405,18 @@ const App = () => (
                   nie grid. „/wall je grid, na ktorý sa človek dostane zo spodného navu."
                   Staré verejné stránky (/vision, /religion, /about, /spiral) sú dnes
                   súčasťou filmu — presmerované, aby žil každý odkaz v rozoslaných mailoch. */}
-              <Route path="/" element={<OnePage />} />
+              {/* FLIP 17. 11. 2026 (Matej): hlavná stránka = NOVÝ WEB (predtým `/app`), film zanikol. */}
+              <Route path="/" element={<AppWeb />} />
               <Route path="/onepage" element={<Navigate to="/" replace />} />
               {/* /wall = ten istý film, otvorený rovno na BLEDEJ stene (Matej 7. 10.:
                   „tmavá aktuálna stena zaniká… pracujeme len s tým novým bledým dizajnom"). */}
-              <Route path="/wall" element={<OnePage />} />
+              {/* Od FLIPu 17. 11. je stena sekcia `#join` nového webu (Matej: „wall zostáva, je to databáza fotiek psov“). */}
+              <Route path="/wall" element={<Navigate to="/#join" replace />} />
               <Route path="/grid" element={<Navigate to="/wall" replace />} />
               <Route path="/spiral" element={<Navigate to="/" replace />} />
-              <Route path="/vision" element={<Navigate to="/#vision" replace />} />
-              <Route path="/religion" element={<Navigate to="/#religion" replace />} />
-              <Route path="/about" element={<Navigate to="/#founder" replace />} />
+              <Route path="/vision" element={<Navigate to="/" replace />} />
+              <Route path="/religion" element={<Navigate to="/" replace />} />
+              <Route path="/about" element={<Navigate to="/" replace />} />
               <Route path="/betavision" element={<Navigate to="/" replace />} />
               {/* LAB — svetlý (papyrusový) web, dev-only pieskovisko.
                   `/wall-lab` = homepage (GLOBE + spodná lišta), ostatné cesty sú
@@ -569,7 +572,7 @@ const App = () => (
               )}
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
-              <Route path="/app" element={<AppWeb />} />
+              <Route path="/app" element={<AppNaKoren />} />
               {/* /story — príbeh Hekthora, podstránka nového webu (nákres kolo 4, 11. 11. 2026) */}
               <Route path="/story" element={<StoryWeb />} />
               {/* /map — verejná mapa výletov 1:1 s appkou (nákres 7. 11. 2026): všetky výlety na čítanie, zápis = popup appky */}
