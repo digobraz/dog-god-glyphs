@@ -287,6 +287,11 @@ export const SOS_TEXTS = {
   'pack.sos.er.far': T('The nearest open one is {km} km away. Call on the way.', 'Najbližšia otvorená je {km} km. Zavolaj cestou.', 'Nejbližší otevřená je {km} km. Zavolej cestou.'),
   'pack.sos.er.noHome': T('Nobody near you makes home visits. Take the dog by car.', 'Vo tvojom okolí nikto nechodí domov. Vezmi psa autom.', 'Ve tvém okolí nikdo nejezdí domů. Vezmi psa autem.'),
   'pack.sos.er.closed': T('Closed now', 'Teraz zatvorené', 'Teď zavřeno'),
+  // vrstva veterinárov na mape (`geo/VetLayer.tsx`, 17. 11. 2026)
+  'pack.sos.er.mapKind': T('Vet', 'Veterinár', 'Veterinář'),
+  'pack.sos.er.mapSos': T('OPEN IN SOS', 'OTVORIŤ V SOS', 'OTEVŘÍT V SOS'),
+  'pack.sos.er.mapNoTel': T('No phone number listed.', 'Telefón neuvádzajú.', 'Telefon neuvádějí.'),
+  'pack.sos.er.mapGoogle': T('Open in Google', 'Otvoriť v Google', 'Otevřít v Google'),
   'pack.sos.er.source': T('Checked on their websites on 5 Nov 2026. Hours may change, always call first.', 'Overené na ich weboch 5. 11. 2026. Hodiny sa môžu zmeniť, vždy najprv zavolaj.', 'Ověřeno na jejich webech 5. 11. 2026. Hodiny se mohou změnit, vždy nejdřív zavolej.'),
   'pack.sos.er.noteBranch': T('Ask which branch is on duty.', 'Spýtaj sa, ktorá pobočka má službu.', 'Zeptej se, která pobočka má službu.'),
   'pack.sos.er.noteMayClose': T('They warn the service may sometimes be unavailable.', 'Sami upozorňujú, že služba môže byť občas nedostupná.', 'Sami upozorňují, že služba může být občas nedostupná.'),

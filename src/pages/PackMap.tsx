@@ -99,6 +99,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale, fmtNum } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PoiLayer } from '@/components/geo/PoiLayer';
+import { VetLayer } from '@/components/geo/VetLayer';
 import { WISH_PLACE_EVENT } from '@/components/geo/PlaceSheet';
 import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_TOPROW, PAGE_AIR, PACK_R, PACK_SHADOW, PACK_SPACE, PACK_TEXT, GRAB_CSS } from '@/components/pack/packTheme';
 import { BackIcon, ExpandIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
@@ -8009,6 +8010,9 @@ export default function PackMap() {
                   než 738 spacích miest; idú do tých istých dlaždíc, keď na ne príde rad.
                   Atribúcia (`<MapAttribution poi />` nižšie) je podmienka licencie ODbL. */}
               {!isCleanMode && overlayOn.sleep && <PoiLayer tiles minZoom={SLEEP_MIN_ZOOM} drawing={mapDrawing} />}
+              {/* VETERINÁRI (17. 11. 2026) — vlastný súbor a pohotovosti zo SOS, nie dlaždice OSM; počas
+                  kreslenia trasy mlčia, aby ťuk na ambulanciu nezobral kotvu trasy. Len appka (samolepky). */}
+              {!isCleanMode && !mapDrawing && <VetLayer />}
               {/* trip markery (pilulky s km, bodky-piktogramy, zhlukové bubliny s počtom) —
                   DOGYPT čistý vizuál (2026-08-04, Matej: „iba hmla a svetelné meče... žiadne
                   písmo ani vysvetlivky") ich celé skrýva, nesú číslo/piktogram na každom bode. */}
