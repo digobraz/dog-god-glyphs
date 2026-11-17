@@ -150,7 +150,10 @@ export interface DogyptState {
    */
   guestIds: Record<string, string>;
   guestEmail: string;
+  /** Číslo hosťa (`dogs.id` → `pack_number`) — pridelí ho už zápis (17. 11. 2026), nie schválenie fotky. */
+  guestNumbers: Record<string, number>;
   setGuest: (ids: Record<string, string>, email: string) => void;
+  setGuestNumbers: (n: Record<string, number>) => void;
   setMainDogPos: (v: number) => void;
   setDogOrderStart: (v: number) => void;
   reset: () => void;
@@ -187,6 +190,7 @@ const freshState = () => ({
   deathDate: null as string | null,
   guestIds: {} as Record<string, string>,
   guestEmail: '',
+  guestNumbers: {} as Record<string, number>,
 });
 
 export const useDogyptStore = create<DogyptState>()(
@@ -221,6 +225,7 @@ export const useDogyptStore = create<DogyptState>()(
       setDeathDate: (v) => set({ deathDate: v }),
       setExtraDogs: (v) => set({ extraDogs: v }),
       setGuest: (ids, email) => set({ guestIds: ids, guestEmail: email }),
+      setGuestNumbers: (n) => set({ guestNumbers: n }),
       setMainDogPos: (v) => set({ mainDogPos: v }),
       setDogOrderStart: (v) => set({ dogOrderStart: v }),
       reset: () => set(freshState()),

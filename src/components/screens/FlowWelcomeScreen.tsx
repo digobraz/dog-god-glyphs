@@ -63,8 +63,8 @@ function useWelcomeData(sessionId: string | null, free = false) {
       id: d.flowId,
       name: d.dogName || (seed ? DEV_NAMES[(i - 1 + DEV_NAMES.length) % DEV_NAMES.length] : ''),
       photo: d.photo || '',
-      // Hosť / hodnosť (`free`): číslo ešte nemá — príde pri schválení fotky (`seal_pack_number`), nie z dev seedu.
-      n: sessionId || free ? null : base + i,
+      // Hosť / hodnosť (`free`): číslo pridelil už zápis (`create-checkout`, 17. 11. 2026), nie dev seed.
+      n: sessionId ? null : free ? (store.guestNumbers[store.guestIds[d.flowId]] ?? null) : base + i,
       glyph: '',
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -461,7 +461,7 @@ export function FlowWelcomeScreen() {
                       >
                         <Ph src={d.photo} />
                         <span className="wl-name">{d.name}</span>
-                        <span className="wl-num">{d.n != null ? `#${d.n}` : '#?'}</span>
+                        <span className="wl-num">{d.n != null ? `#${d.n}` : ''}</span>
                       </motion.div>
                     ))}
                   </div>

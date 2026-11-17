@@ -96,6 +96,7 @@ export async function registerFreeInApp(lang: string): Promise<{ ok: boolean; er
       Object.fromEntries(stable.map((d, i) => [d.flowId, ids[i]]).filter(([, id]) => !!id)),
       email,
     );
+    if (data.numbers && typeof data.numbers === 'object') useDogyptStore.getState().setGuestNumbers(data.numbers);
   } catch (e) {
     console.error('app register (guest) error:', e);
     return { ok: false, error: 'save' };
