@@ -839,6 +839,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  dogs_now: { en: 'dogs already in', sk: 'psov už je s nami' },
  sl_good: { en: 'Thank you', sk: 'Poďakovanie' }, sl_video: { en: 'Intro', sk: 'Intro' }, sl_dogma: { en: 'DOGMA', sk: 'DOGMA' },
  menu: { en: 'Menu', sk: 'Menu' }, lang_h: { en: 'Language', sk: 'Jazyk' },
+ start: { en: 'Start playing', sk: 'Začni hrať' }, have_acc: { en: 'Already playing?', sk: 'Už hráš?' }, login: { en: 'Log in', sk: 'Prihlás sa' },
  h_faq1: { en: 'Still', sk: 'Čo si ešte' }, h_faq2: { en: 'sniffing?', sk: 'nevyňuchal?' },
  uc_scrolled: { en: 'Scrolled', sk: 'Preskrolované' }, uc_of: { en: 'of', sk: 'z' }, uc_scrolls: { en: 'scrolls', sk: 'zvitkov' },
  /* VÝLETY — pilotná funkcia (nákres 7. 11. 2026): tri kroky + vysvedčenie (TRIPSTATS) + verejná /map */

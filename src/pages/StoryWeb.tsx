@@ -362,7 +362,7 @@ export default function StoryWeb() {
               </div>
             )}
           </div>
-          <a className="pk-cta" href="/app#join">{w('getapp')}</a>
+          <a className="pk-cta" href="/heroglyph/name">{w('start')}</a>
           <button className={`burger${menu ? ' on' : ''}`} aria-label={w('menu')} aria-expanded={menu} onClick={() => setMenu(!menu)}><i /><i /><i /></button>
         </div>
         {menu && (

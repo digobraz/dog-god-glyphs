@@ -250,7 +250,8 @@
         // Bez opony appka štartuje hneď (window.__startApp vkladá produkčný build, viď vite.config.ts).
         // Výnimka: stránka s hotovým HTML (scripts/prerender.mjs nastaví __preDefer) — tú spustí
         // výberový skript za #root až PO prvom vykreslení, nech JS nestojí pred textom.
-        if (['/', '/wall', '/onepage', '/vision', '/religion', '/about', '/spiral', '/grid', '/betavision'].indexOf(location.pathname) < 0) { if (window.__startApp && !window.__preDefer) window.__startApp(); return; }
+        // FLIP 17. 11. 2026: film (OnePage) zanikol, nový web opona nepotrebuje — stál by pod ňou až 9 s.
+        if (true) { if (window.__startApp && !window.__preDefer) window.__startApp(); return; }
         // 🔴 ZOZNAM PSOV PRE GUĽU SA PÝTA UŽ TERAZ (7. 10. 2026, plán s Fable 5) — nie až po
         // stiahnutí a vykonaní hlavného balíka. Cloudflare `/api/dogs` odpovie z cache (~50 ms).
         // Preberá ho src/lib/earlyFetch.ts; mimo dogypt.com a pri ?focus/?dog (čerstvo zaplatený

@@ -120,6 +120,10 @@
 .aw h1,.aw h2,.aw h3{font-family:var(--font-title);font-weight:900;color:var(--ink-strong);margin:0}
 .aw .deco{font-family:var(--font-title);background:var(--gold-text);-webkit-background-clip:text;background-clip:text;color:transparent}
 .aw .lead{font:400 var(--t-lead)/1.5 var(--font-ui);color:var(--ink-body);margin:var(--s-lg) 0 0}
+/* FLIP 17. 11.: jedno CTA hlavnej stránky = heroflow; prihlásenie je tichý odkaz pod ním, nie druhé tlačidlo. */
+.aw .hero-go{display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-md);margin-top:var(--s-xl)}
+.aw .hero-login,.aw .mm-login{font:400 var(--t-body)/1.4 var(--font-ui);color:var(--ink-soft);text-decoration:none}
+.aw .hero-login b,.aw .mm-login b{font-weight:600;color:var(--lapis);text-decoration:underline;text-underline-offset:3px}
 .aw section{padding:var(--s-xxxl) 0}
 @media(min-width:768px){.aw section{padding:96px 0}}
 .aw .sec-h{text-align:center;max-width:760px;margin:0 auto var(--s-xxl)}
@@ -1370,6 +1374,12 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
   .aw .mm-lang button{display:inline-flex;align-items:center;gap:var(--s-sm);min-height:40px;padding:0 var(--s-lg);border-radius:var(--r-pill);border:1px solid var(--hairline);background:transparent;font:500 var(--t-body)/1 var(--font-ui);color:var(--ink-soft);cursor:pointer}
   .aw .mm-lang button.on{color:var(--ink-strong);background:color-mix(in srgb,var(--lapis) 10%,transparent);border-color:var(--lapis-edge)}
   .aw .mmenu .stores{margin-top:var(--s-sm)}
+  .aw .mm-cur{display:flex;align-items:center;gap:var(--s-sm);min-height:44px;padding:0 var(--s-lg);border-radius:var(--r-pill);border:1px solid var(--hairline);background:transparent;font:500 var(--t-body)/1 var(--font-ui);color:var(--ink-strong);cursor:pointer;justify-self:start}
+  .aw .mm-cur img{width:18px;height:12px;object-fit:cover;border-radius:2px;display:block}
+  .aw .mm-cur i{width:8px;height:8px;margin-left:var(--s-xs);border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+  .aw .mm-cur.on i{transform:translateY(2px) rotate(-135deg)}
+  .aw .mmenu>.pk-cta{margin-top:var(--s-sm)}
+  .aw .mmenu .mm-login{justify-self:center}
   .aw .top.dark .mmenu{background:#05090F;border-color:var(--ai-edge-strong)}
   .aw .top.dark .mmenu nav a{color:var(--ai-ink);border-color:var(--ai-edge)}
 }

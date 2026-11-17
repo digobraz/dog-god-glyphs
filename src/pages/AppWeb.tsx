@@ -308,6 +308,9 @@ function DogTrail({ goal }: { goal: string }) {
   );
 }
 
+/** Vstup do heroflowu — jediné CTA hlavnej stránky (FLIP 17. 11. 2026). */
+const START = '/heroglyph/name';
+
 /** Živá planétka z `/` — montuje sa až pri obrazovke a mimo nej stojí. */
 function LivePlanet() {
   const [mountRef, near] = useNear<HTMLDivElement>('1500px');
@@ -485,6 +488,7 @@ export default function AppWeb() {
   const [darkHead, setDarkHead] = useState(false);
   const [onPlanet, setOnPlanet] = useState(false);
   const [menu, setMenu] = useState(false);
+  const [mmLang, setMmLang] = useState(false);
   useEffect(() => {
     const planet = document.querySelector('.aw .planet-live');
     let raf = 0;
@@ -540,7 +544,8 @@ export default function AppWeb() {
             )}
           </div>
           {/* planétka (ikonka VON z appky) = verejná mapa výletov bez registrácie, nová karta; ZA tlačidlom, len veľká ikonka bez rámu, vzor MysteryHike (Matej 11. 11.) */}
-          <a className="pk-cta" href="#join">{c('getapp')}</a>
+          {/* FLIP 17. 11. (Matej): najprv heroflow, až potom appka — jedno CTA všade. */}
+          <a className="pk-cta" href={START}>{c('start')}</a>
           <a className="trips-btn" href="/map" target="_blank" rel="noopener" aria-label={c('nav_trips')} title={c('nav_trips')}><img src="/icons/sys/von.webp" alt="" /></a>
           {/* mobil: hamburger — sekcie, jazyky, GET THE APP (Matej 6. 11., vzor MysteryHike) */}
           <button className={`burger${menu ? ' on' : ''}`} aria-label={c('menu')} aria-expanded={menu} onClick={() => setMenu(!menu)}><i /><i /><i /></button>
@@ -548,9 +553,11 @@ export default function AppWeb() {
         {menu && (
           <div className="mmenu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); }}>
             <nav><a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/story">{c('nav5')}</a></nav>
-            <p className="mm-h">{c('lang_h')}</p>
-            <div className="mm-lang">{WEB_LANGS.map((x) => <button key={x.code} className={x.code === lang ? 'on' : ''} onClick={() => { setLang(x.code); setMenu(false); }}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}</div>
-            <Stores />
+            {/* jazyk = JEDEN riadok s aktuálnym, zoznam až po ťuknutí (Matej 17. 11.) */}
+            <button className={`mm-cur${mmLang ? ' on' : ''}`} aria-expanded={mmLang} onClick={() => setMmLang(!mmLang)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.name}<i aria-hidden /></button>
+            {mmLang && <div className="mm-lang">{WEB_LANGS.filter((x) => x.code !== lang).map((x) => <button key={x.code} onClick={() => { setLang(x.code); setMmLang(false); setMenu(false); }}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}</div>}
+            <a className="pk-cta" href={START}>{c('start')}</a>
+            <a className="mm-login" href="/login">{c('have_acc')} <b>{c('login')}</b></a>
           </div>
         )}
       </header>
@@ -568,7 +575,10 @@ export default function AppWeb() {
               <span className="l1">{c('h1y') && <>{c('h1y')} </>}<span className="deco big">{c('h1c')}</span></span>
             </h1>
             <p className="lead">{c('sub')}</p>
-            <Stores />
+            <div className="hero-go">
+              <a className="pk-cta" href={START}>{c('start')}</a>
+              <a className="hero-login" href="/login">{c('have_acc')} <b>{c('login')}</b></a>
+            </div>
             <div className="proof">
               <div><b><Counter to={dogs} run={proofRun} /></b><span>{c('p1')}</span></div>
               <div><b>{stats?.people ? <Counter to={stats.people} run={proofRun} /> : '—'}</b><span>{c('p2')}</span></div>
