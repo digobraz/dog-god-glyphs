@@ -21,7 +21,7 @@ import { FONT_UI, PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT as TX } fr
 import { MAP_STICKERS_ON, stickerImg, poiStickerPx } from '@/components/pack/mapnotes/mapStickers';
 import { CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import { PLACE_CARD_CSS } from './PlaceCard';
-import { useSosT, type SosT } from '@/components/pack/sos/sosShared';
+import { kmText, useSosT, type SosT } from '@/components/pack/sos/sosShared';
 import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { VET_EMERGENCY, closesAt, distanceKm, isOpenAt, opensAt, vetNavUrl, type VetPlace } from '@/lib/vetEmergency';
@@ -105,8 +105,7 @@ function myPosition(): Promise<[number, number] | null> {
 }
 /** „8 km · 12 min" — zhodné s kartou pohotovosti; kým trasa nedorazí, vzdušná čiara. */
 function etaLabel(d: DriveTime, loc: string): string {
-  const km = d.lengthM / 1000;
-  const dist = km < 1 ? km.toLocaleString(loc, { maximumFractionDigits: 1 }) : String(Math.round(km));
+  const dist = kmText(d.lengthM / 1000, loc);
   const min = Math.max(1, Math.round(d.durationS / 60));
   return `${dist} km · ${min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${min % 60} min`}`;
 }
@@ -208,7 +207,7 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
                 <div className="vm-photo">
                   <img className="pcard-photo" src={v.photo} alt="" loading="lazy" decoding="async" />
                   {me && (
-                    <span className="vm-eta">{drive[v.id] ? etaLabel(drive[v.id], loc) : s('pack.sos.er.airKm', { km: Math.round(distanceKm(me, v.at)) })}</span>
+                    <span className="vm-eta">{drive[v.id] ? etaLabel(drive[v.id], loc) : s('pack.sos.er.airKm', { km: kmText(distanceKm(me, v.at), loc) })}</span>
                   )}
                 </div>
                 <div className="pcard-body">
@@ -256,7 +255,6 @@ const VET_CSS = `
 .vm-popup .leaflet-popup-content{margin:0;padding:0;width:auto!important;min-width:260px;}
 .vm-popup .leaflet-popup-tip{background:${T.cardGrad};border:1.5px solid ${T.cardEdge};}
 .vm-popup a.leaflet-popup-close-button{display:none;}
-.mk-sticker.vm-sos{filter:drop-shadow(0 0 2px ${T.sosRed}) drop-shadow(0 0 2px ${T.sosRed});}
 .vm-247{position:absolute;left:0;transform:translateX(-50%);pointer-events:none;font-style:normal;font-family:${FONT_UI};font-weight:600;font-size:${TX.micro}px;line-height:1;white-space:nowrap;
   padding:${S.xs}px ${S.xs}px;border-radius:${PACK_R.pill}px;color:#fff;background:${T.sosRed};border:1.5px solid var(--p3d-paper-hi);}
 .vm-photo{position:relative;}

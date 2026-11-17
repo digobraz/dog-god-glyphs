@@ -10,7 +10,7 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { SosTaskShell } from './SosTaskShell';
 import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { useBack, useSosT, type SosT } from './sosShared';
+import { kmText, useBack, useSosT, type SosT } from './sosShared';
 import { CITIES, VET_EMERGENCY, closesAt, distanceKm, isOpenAt, opensAt, telAt, vetNavUrl, type NavApp, type VetPlace } from '@/lib/vetEmergency';
 
 // Klinika bez vlastnej fotky: zjavne vymyslená kresba (Matej 5. 11. 2026, nákres plany/nakresy/nakres-klinika-placeholder-2026-11-05).
@@ -92,8 +92,7 @@ function googleDate(g: NonNullable<VetPlace['google']>, loc: string): string {
 }
 /** „8 km · 12 min“, s ≈ ak nemáme presný bod kliniky, len adresu alebo mesto. */
 function etaLabel(d: DriveTime, exact: boolean | undefined, loc: string): string {
-  const km = d.lengthM / 1000;
-  const dist = km < 1 ? km.toLocaleString(loc, { maximumFractionDigits: 1 }) : String(Math.round(km));
+  const dist = kmText(d.lengthM / 1000, loc);
   const min = Math.max(1, Math.round(d.durationS / 60));
   const time = min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${min % 60} min`;
   return `${exact ? '' : '≈ '}${dist} km · ${time}`;
@@ -179,7 +178,10 @@ export default function PackSosVet() {
   }, [me]);
 
   const rows = useMemo(() => {
-    const all = VET_EMERGENCY.map((p) => ({ p, km: me ? Math.round(distanceKm(me, p.at)) : null, on: isOpenAt(p, now) }));
+    const all = VET_EMERGENCY.map((p) => {
+      const air = me ? distanceKm(me, p.at) : null;
+      return { p, km: air === null ? null : Math.round(air), air, on: isOpenAt(p, now) };
+    });
     const picked = filter === 'home' ? all.filter((r) => r.p.home && (r.km === null || r.km <= HOME_KM))
       : filter === 'nonstop' ? all.filter((r) => typeof r.p.hours === 'string' && r.p.hours !== 'ask')
         : all;
@@ -215,7 +217,7 @@ export default function PackSosVet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me, rows]);
 
-  const row = ({ p, km, on: isOn }: (typeof rows)[number]) => {
+  const row = ({ p, km, air, on: isOn }: (typeof rows)[number]) => {
     const canNav = vetNavUrl('google', p) !== null;
     return (
     <div key={p.id} data-vet={p.id} className={`vet-row${isOn ? '' : ' off'}`} style={{ ...PACK_BOX.subblock }}>
@@ -224,7 +226,7 @@ export default function PackSosVet() {
           <img className={PHOTO_ZOOM[p.id]} src={p.photo?.src ?? NO_PHOTO} alt="" loading="lazy" decoding="async" />
         </button>
         {!p.home && canNav && (drive[p.id] || km !== null) && (
-          <span className="vet-eta">{drive[p.id] ? etaLabel(drive[p.id], p.exact, loc) : s('pack.sos.er.airKm', { km: km as number })}</span>
+          <span className="vet-eta">{drive[p.id] ? etaLabel(drive[p.id], p.exact, loc) : s('pack.sos.er.airKm', { km: kmText(air as number, loc) })}</span>
         )}
         <div className="vet-top">
           <button type="button" className="vet-tap" onClick={() => setOpen(open === p.id ? null : p.id)} aria-expanded={open === p.id}>

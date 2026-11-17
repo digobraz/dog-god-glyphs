@@ -37,6 +37,11 @@ const interpolate = (s: string, vars?: Record<string, string | number>) =>
 
 export type SosT = (key: SosKey, vars?: Record<string, string | number>) => string;
 
+/** Vzdialenosť do textu: pod 1 km s desatinou („0,6"), inak celé km. Jedno pravidlo pre trasu aj
+ *  vzdušnú čiaru — vzdušná sa zaokrúhľovala na celé km a pri klinike za rohom písala „0 km". */
+export const kmText = (km: number, loc: string): string =>
+  km < 1 ? km.toLocaleString(loc, { maximumFractionDigits: 1 }) : String(Math.round(km));
+
 /** Slovník prebíja; EN z `sosTexts.ts` je poistka, keď kus s textami appky ešte nedoletel. */
 export function useSosT(dogGender?: string | null): SosT {
   const t = useT();
