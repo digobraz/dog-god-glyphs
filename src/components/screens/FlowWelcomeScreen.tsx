@@ -24,6 +24,7 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { ShareCard } from '@/components/ShareCard';
 import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
 import { cleanText, withFallback } from '@/components/screens/welcomeText';
+import { APP_IN_STORES, appTarget } from '@/lib/appStores';
 
 // ════════════════════════════════════════════════════════════════════════════
 // FINÁLE PO PLATBE nového vstupu — `/heroglyph/welcome` (26. 9. 2026)
@@ -513,10 +514,15 @@ export function FlowWelcomeScreen() {
                         dvere do appky sú LEN v maile (magic link) — povedať to tu, s adresou,
                         na ktorú šiel, a s menom tlačidla presne ako v maile (`send-certificate`
                         `openMyProfile`). Slajdy „Čo ďalej? 1/5" na stene sú preto vypnuté. */}
+                    {/* KONIEC HOSŤA = DVERE DO APPKY (Matej 17. 11. 2026: „vyhodilo ma na FAQ… navrhujem, že tam bude
+                        tlačítko stiahnuť appku"). „Zapísať na stenu" viedlo na /wall, ktoré nový web presmeroval na
+                        sekciu join. Prihlásenie = ten istý e-mail a kód, nie číslo psa (to príde mailom po schválení fotky). */}
                     {joined && free && (
                       <motion.p className="wl-mail" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }}>
                         {rankPaid && <b>{t('heroglyph.flow.vstupne.thanks')} {t(`pack.seal.${rankPaid}`)}.</b>}
                         <span>{t(dogs.some((d) => d.n == null) ? (dogs.length > 1 ? 'heroglyph.flow.welcomeFree.waitMany' : 'heroglyph.flow.welcomeFree.wait') : 'heroglyph.flow.welcomeFree.saved')}</span>
+                        <span>{t('heroglyph.flow.welcomeFree.howIn')}</span>
+                        {email && <span className="wl-mail-addr">{email}</span>}
                       </motion.p>
                     )}
                     {joined && !free && (
@@ -526,6 +532,22 @@ export function FlowWelcomeScreen() {
                         <span>{clean(t('heroglyph.flow.welcomeNew.mailBtn'))}</span>
                       </motion.p>
                     )}
+                    {free ? (
+                      <motion.a
+                        className="pk-b3 pk-b3--lapis wl-cta"
+                        href={appTarget().href}
+                        onClick={(e) => {
+                          track('flow_end_app', { store: appTarget().store });
+                          if (!appTarget().store) { e.preventDefault(); navigate(appTarget().href); }
+                        }}
+                        initial={false}
+                        animate={{ opacity: joined ? 1 : 0, y: joined ? 0 : 8 }}
+                        transition={{ delay: joined ? 0.3 : 0, duration: 0.4 }}
+                        style={{ visibility: joined ? 'visible' : 'hidden' }}
+                      >
+                        {t(APP_IN_STORES ? 'heroglyph.flow.welcomeFree.ctaStore' : 'heroglyph.flow.welcomeFree.ctaApp')}
+                      </motion.a>
+                    ) : (
                     <motion.button
                       type="button"
                       className="pk-b3 pk-b3--lapis wl-cta"
@@ -539,6 +561,7 @@ export function FlowWelcomeScreen() {
                     >
                       {wantWall ? clean(t('heroglyph.flow.welcomeNew.ctaWait')) : t('heroglyph.flow.welcomeNew.cta')}
                     </motion.button>
+                    )}
                   </div>
                 </div>
               </motion.div>
