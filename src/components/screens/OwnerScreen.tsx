@@ -171,7 +171,8 @@ export function OwnerScreen() {
   // Pole mena: na dotykovej obrazovke modal (iOS otvorí klávesnicu len na už
   // pripojenom vstupe), na myši priame písanie do poľa. Ten istý rozsudok ako
   // na kroku 2 — preto aj ten istý komponent modalu.
-  const isMobile = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
+  // 17. 11. 2026 — meno sa píše priamo do poľa aj na telefóne (Matej: „zrušme ten popup“), okno s menom sa neotvára.
+  const isMobile = false;
   const [nameModalOpen, setNameModalOpen] = useState(false);
   const nameModalRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);

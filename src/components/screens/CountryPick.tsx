@@ -109,16 +109,32 @@ export function CountryPick({ value, onChange, placeholder }: CountryPickProps) 
     };
   }, [open]);
 
-  /** Zmeria miesto pod poľom a nad ním — volá sa pri otvorení, nie priebežne. */
+  /** Zmeria miesto pod poľom a nad ním — pri otvorení a znova, keď klávesnica zmení okno. */
+  // 🔴 DNO NIE JE OKRAJ OKNA (17. 11. 2026). Dolné CTA (`.hf-dock`) a veta nad ním (`.hf-hint`) sú prilepené
+  //    k oknu a ležia NAD ponukou — Matej: *„táto obrazovka sa pokazí po otvorení krajín"* (zoznam pretekal pod
+  //    tlačidlo a cez vetu). Dno je teda horná hrana prvého z nich; keď pod poľom nevyjde miesto, ponuka ide nahor.
   const place = () => {
     const r = wrapRef.current?.getBoundingClientRect();
     if (!r) return;
-    const below = window.innerHeight - r.bottom - 14;
+    let floor = window.visualViewport?.height ?? window.innerHeight;
+    document.querySelectorAll('.hf-dock, .vs-dock, .hf-hint').forEach((el) => {
+      const b = el.getBoundingClientRect();
+      if (b.height > 0 && b.top >= r.bottom) floor = Math.min(floor, b.top);
+    });
+    const below = floor - r.bottom - 14;
     const above = r.top - 14;
     const useUp = below < 150 && above > below;
     setUp(useUp);
     setRoom(Math.max(120, Math.min(MENU_MAX, useUp ? above : below)));
   };
+  useEffect(() => {
+    if (!open) return;
+    const vv = window.visualViewport;
+    const again = () => window.setTimeout(place, 60);
+    vv?.addEventListener('resize', again);
+    return () => vv?.removeEventListener('resize', again);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const pick = (name: string) => {
     onChange(name);

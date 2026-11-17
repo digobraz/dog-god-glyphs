@@ -66,6 +66,9 @@ ${ROOT} :is(b, strong) { font-weight: 700; }
 ${ROOT} :is(h1, h2, h3, .fdh-name, .hf-cta, .nm-cta, .btn-gold, button.bg-primary, .hf-pick .tx, [style*="brand-gradient"] p) {
   font-family: ${MUSEUM} !important; font-weight: 900; text-transform: none; letter-spacing: .01em; color: var(--p3d-ink);
 }
+/* CTA .pk-b3 (Vstupné, Vitaj, Poslať kód) a názvy hodnosti: LT Museum, farbu si nesú samy (17. 11. 2026 — pravidlo o tele
+   im dalo tenkú Firu, Matej: „poslať kód je v nejakom čudnom fonte“ · „CTA má tiež tenký font“). */
+${ROOT} :is(.pk-b3, .name-modal-done, .vs-row b, .vs-chip) { font-family: ${MUSEUM} !important; font-weight: 900; }
 ${ROOT} .hf-speak:not(.st-speak) h2 { text-transform: none; letter-spacing: .01em; }
 ${ROOT} [style*="brand-gradient"] .text-white { text-transform: none; color: var(--p3d-ink) !important; }
 ${ROOT} .hf-speak:not(.st-speak) p { color: var(--p3d-ink); }
@@ -74,7 +77,11 @@ ${ROOT} :is(.fdh-photo, .fdh-photo--empty) { font-family: ${MUSEUM} !important; 
   border: 2px solid var(--p3d-ink); background: var(--p3d-paper-hi); box-shadow: 0 2px 0 var(--p3d-gold-solid); }
 
 /* ── ZVÝRAZNENÉ SLOVO: zlato zostáva jediné, dostane tmavší krok pre kontrast na papyruse ── */
-${ROOT} :is(.hf-speak:not(.st-speak), .hf-bubble) :is(b, strong),
+/* 17. 11. 2026 — Matej: „pri povahe je zlatým Povaha, ale predtým napr. patrón nebol, ujasnime to tak, aby to buď bolo všade,
+   alebo nikde“ ⇒ NIKDE: otázky Hektora (h2 v bubline) aj nadpis odhalenia sú jednou farbou. Zlaté ostáva len meno HEKTHOR. */
+${ROOT} :is(h1, h2, h3) :is(b, strong, span):not(.em) { font-family: inherit !important; font-weight: inherit; }
+${ROOT} .hf-speak:not(.st-speak) h2 :is(b, strong), ${ROOT} .rv-h1 b { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: inherit !important; }
+${ROOT} :is(.hf-speak:not(.st-speak), .hf-bubble) :is(p, div) :is(b, strong),
 ${ROOT} :is([style*="brand-gradient"], .hf-speak) .text-amber-300 {
   background: linear-gradient(100deg, #6E4A12 0%, var(--p3d-gold-solid) 40%, var(--p3d-gold) 55%, var(--p3d-gold-solid) 70%, #6E4A12 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent !important;
@@ -115,6 +122,8 @@ ${ROOT} :is(.ftc-chip, .pt-chip, .pt-mix).on {
 ${ROOT} .ftc-st { flex: 0 0 18px; width: 18px; height: 18px; }
 ${ROOT} .ftc-chip.done .ftc-st { background: url(/icons/sys/fajka.webp) center / contain no-repeat; }
 ${ROOT} .ftc-chip.done .ftc-st svg { display: none; }
+/* Nevyplnená téma: tá istá fajka, vyblednutá (Matej 17. 11. 2026: „mala by byť vidno, lebo teraz to vyzerá neúplne“). */
+${ROOT} .ftc-chip.todo .ftc-st { visibility: visible; background: url(/icons/sys/fajka.webp) center / contain no-repeat; opacity: .3; filter: grayscale(1); }
 
 /* ── VOĽBY (.hf-pick): karta s obrysom, ikonka v jamke, vybraná lapis tint ─── */
 ${ROOT} .hf-pick {
@@ -122,11 +131,13 @@ ${ROOT} .hf-pick {
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55), 0 4px 0 var(--p3d-gold-solid);
 }
 ${ROOT} .hf-pick:hover { border-color: var(--p3d-ink); }
-${ROOT} .hf-pick .well { background: color-mix(in srgb, var(--p3d-gold) 26%, var(--p3d-paper)); border: 2px solid var(--p3d-ink); box-shadow: var(--p3d-inset); }
+/* Ikonka BEZ kruhu (Matej 17. 11. 2026: „ten kruh mi tam vadí, pri dúhe je malý a ikonka preteká“) — kresba berie celé miesto jamky. */
+${ROOT} .hf-pick .well, ${ROOT} .hf-pick.on .well { background: none; border: 0; border-radius: 0; box-shadow: none; }
+${ROOT} .hf-pick .well img { max-width: 100%; max-height: 100%; object-fit: contain; }
+${ROOT} .ow-q .ow-gender .well, ${ROOT} .ow-q .ow-gender .well img { width: 64px; height: 64px; }
 ${ROOT} .hf-pick.on { border-color: #16307A; background: ${LAPIS_TINT}; box-shadow: inset 0 0 0 1px rgba(22, 48, 122, .45), 0 4px 0 #0A1A4A; }
 ${ROOT} .hf-pick.on .tx { color: #0A1A4A; text-shadow: none; }
 ${ROOT} .hf-pick:not(.on) .tx { color: var(--p3d-ink); text-shadow: none; }
-${ROOT} .hf-pick.on .well { background: color-mix(in srgb, #16307A 16%, var(--p3d-paper-hi)); border-color: #16307A; }
 
 /* ── POLIA: vsadená jamka (.pk-p3d-input) ────────────────────────────────── */
 ${ROOT} :is(.hf-field, .rv-ta, .name-preview-btn, .vs-input) {
@@ -182,6 +193,11 @@ ${WALL} .hf-stage { padding-top: 40px; }
 ${WALL} .hf-stage:not(.wl-page) > * { margin-top: 0; margin-bottom: 0; }
 ${WALL} .hf-stage:not(.wl-page) > :first-child { margin-top: auto; }
 ${WALL} .hf-stage:not(.wl-page) > :last-child { margin-bottom: auto; }
+
+/* ── KLÁVESNICA (17. 11. 2026): pole sa píše priamo na obrazovke. Čo klávesnica zobrala (--flow-kb, plní
+   useFlowKeyboardFix), o to sa obrazovka skráti a dolné CTA vystúpi nad ňu. Bez klávesnice je to 0. */
+${WALL} { height: calc(100dvh - var(--flow-kb, 0px)) !important; }
+${ROOT} :is(.hf-dock, .vs-dock) { bottom: calc(max(24px, env(safe-area-inset-bottom)) + var(--flow-kb, 0px) + var(--dock-up, 0px)) !important; }
 
 /* ── E-MAIL: veľká fotka v strede, bublina pod ňou ─────────────────────────── */
 ${WALL} .hf-stage:has(:is(.hf-skip, .hf-dogfit)) .hf-speak:not(.st-speak) { flex-direction: column; align-items: center; gap: 16px; }

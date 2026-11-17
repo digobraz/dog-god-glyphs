@@ -24,10 +24,38 @@ export function useFlowKeyboardFix() {
     window.addEventListener('focusout', resetScroll);
     window.visualViewport?.addEventListener('resize', resetScroll);
 
+    // ── POLE SA PÍŠE PRIAMO NA OBRAZOVKE (17. 11. 2026) ─────────────────────────
+    // Matej: *„po kliknutí na meno — zrušme ten popup a nechajme to klasicky, ako to býva v appkách"*.
+    // iOS klávesnica nemení `dvh` ani layout viewport (viď `useKeyboardLift`), takže by pole aj dolné CTA
+    // ostali POD ňou. Koľko okna klávesnica zobrala, ide do `--flow-kb`; šat vstupu (`flowP3dSkin`) o to
+    // skráti obrazovku a zdvihne CTA. Kde sa okno zmenší samo (Android), vyjde 0 a nič sa nedeje.
+    const vv = window.visualViewport;
+    const root = document.documentElement;
+    const syncKb = () => {
+      if (!vv) return;
+      const kb = Math.max(0, window.innerHeight - vv.height);
+      root.style.setProperty('--flow-kb', kb > 80 ? `${Math.round(kb)}px` : '0px');
+    };
+    let seeTimer: number | undefined;
+    const seeField = (e: FocusEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (!el || !/^(INPUT|TEXTAREA)$/.test(el.tagName) || el.getAttribute('aria-hidden') === 'true') return;
+      window.clearTimeout(seeTimer);
+      // Až keď klávesnica dosadne a obrazovka sa skráti — skôr by sa rolovalo na starú polohu.
+      seeTimer = window.setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 350);
+    };
+    syncKb();
+    vv?.addEventListener('resize', syncKb);
+    window.addEventListener('focusin', seeField);
+
     return () => {
       releaseLock();
       window.removeEventListener('focusout', resetScroll);
       window.visualViewport?.removeEventListener('resize', resetScroll);
+      vv?.removeEventListener('resize', syncKb);
+      window.removeEventListener('focusin', seeField);
+      window.clearTimeout(seeTimer);
+      root.style.removeProperty('--flow-kb');
     };
   }, []);
 }

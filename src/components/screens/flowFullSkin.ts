@@ -142,13 +142,14 @@ ${ROOT} .hf-stage .fdh-name { color: #000; }
 /* ── POVAHA: mriežka 3 + 3 + 2 namiesto vodorovného radu (Matej 7. 11., 4. kolo) ── */
 ${ROOT} .hf-scroll .hf-snav { display: none !important; }
 ${ROOT} .ch-traits { display: flex !important; flex-wrap: wrap; justify-content: center; gap: 8px; overflow: visible !important; padding: 0 !important; margin: 0 !important; }
-${ROOT} .ch-traits .ch-trait { width: calc((100% - 16px) / 3); padding: 12px 4px; }
+/* 2 × 4 (Matej 17. 11. 2026: „pri povahe daj 2x4, lebo text je teraz pod CTA“) — tretí rad zanikol, popis vlastnosti sa zmestí nad CTA. */
+${ROOT} .ch-traits .ch-trait { width: calc((100% - 24px) / 4); padding: 12px 2px; }
 ${ROOT} .ch-traits .ch-trait img { width: 44px; height: 44px; }
-${ROOT} .ch-traits .ch-trait .lb { font-weight: 900; color: #000; letter-spacing: .06em; }
+${ROOT} .ch-traits .ch-trait .lb { font-weight: 900; color: #000; letter-spacing: 0; }
 ${ROOT} .ch-traits .ch-trait.on .lb { color: #16307A; }
 @media (max-height: 700px) {
   ${ROOT} .ch-traits { gap: 4px; }
-  ${ROOT} .ch-traits .ch-trait { width: calc((100% - 8px) / 3); padding: 4px; gap: 0; }
+  ${ROOT} .ch-traits .ch-trait { width: calc((100% - 12px) / 4); padding: 4px 2px; gap: 0; }
   ${ROOT} .ch-traits .ch-trait img { width: 32px; height: 32px; }
 }
 

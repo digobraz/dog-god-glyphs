@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { DateDropdowns } from '@/components/DateDropdowns';
-import legendIconUrl from '@/assets/legend-icon.svg';
-import angelIconUrl from '@/assets/angel-icon.svg';
+// Farebné kresby z továrne ikon (Matej 17. 11. 2026: „pôjdu tam nové farebné, už máme v továrni“) —
+// okná „Žijúca legenda“ a „Psí anjel“ zapisujú priamo tieto súbory.
+const legendIconUrl = '/icons/sys/zivuca-legenda.webp';
+const angelIconUrl = '/icons/sys/psi-anjel.webp';
 import { PICK_INK, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { HF } from './flowPaleSkin';
 import { useT } from '@/i18n/LanguageContext';
@@ -40,25 +42,7 @@ import { useT } from '@/i18n/LanguageContext';
 /** Najstarší rok v ponuke dátumu odchodu — tá istá hodnota ako v IntroScreen. */
 const MIN_DEATH_YEAR = 1990;
 
-/** Inkoust nezvolenej ikonky. Doska je papyrus, takže tlmená hnedá z `LAB`,
- *  nie `--muted-foreground` (tá je z tmavého šatu a na papyruse zmizne). */
-const LAB_MUTED = 'rgba(60,40,12,0.52)';
-
 export type LifeStatus = 'alive' | 'deceased';
-
-function iconStyle(url: string, color: string): React.CSSProperties {
-  return {
-    // 24. 9. 2026: ikonka sedí VNÚTRI rytej jamky (`.hf-pick .well`, 34 px),
-    // takže samotná kresba je o dva stupne menšia — inak by sa dotýkala jej
-    // okraja a jamka by prestala byť jamkou.
-    width: 22,
-    height: 22,
-    flex: 'none',
-    background: color,
-    WebkitMask: `url(${url}) center / contain no-repeat`,
-    mask: `url(${url}) center / contain no-repeat`,
-  };
-}
 
 export function LifeStatusPick({
   value,
@@ -94,9 +78,6 @@ export function LifeStatusPick({
   //    bledé ako sme sa dohodli"* ⇒ `.is-pale` (bledá + lapisový výber, ako podstata
   //    a majiteľ). Novší pokyn prebíja 25. 9. *„do zlatých tlačítok"*; vybraná
   //    kresba berie lapisový inkoust výberu.
-  const ink = (mine: LifeStatus) =>
-    value === mine ? PICK_INK.lapis : LAB_MUTED;
-
   return (
     <div className="w-full flex flex-col gap-2">
       {!hideLegend && (
@@ -113,7 +94,7 @@ export function LifeStatusPick({
           className={`hf-pick is-pale${value === 'alive' ? ' on' : ''}`}
         >
           <span className="well">
-            <span aria-hidden style={iconStyle(legendIconUrl, ink('alive'))} />
+            <img src={legendIconUrl} alt="" />
           </span>
           <span className="tx">{t('heroglyph.flow.dogs.statusAlive')}</span>
         </button>
@@ -127,7 +108,7 @@ export function LifeStatusPick({
           className={`hf-pick is-pale${value === 'deceased' ? ' on' : ''}`}
         >
           <span className="well">
-            <span aria-hidden style={iconStyle(angelIconUrl, ink('deceased'))} />
+            <img src={angelIconUrl} alt="" />
           </span>
           <span className="tx">{t('heroglyph.flow.dogs.statusAngel')}</span>
         </button>

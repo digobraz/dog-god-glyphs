@@ -18,8 +18,9 @@ import { hekthorFace } from '@/lib/hekthorFaces';
 import { intakePhoto, finishPhotoChoice, mainPhotoTarget, type PhotoTarget } from '@/lib/photoIntake';
 import { openPhotoConfirm } from '@/components/gods/photoConfirm';
 import { uploadPackDogPhoto } from '@/services/cloudinaryService';
-import legendIconUrl from '@/assets/legend-icon.svg';
-import angelIconUrl from '@/assets/angel-icon.svg';
+// Farebné kresby z továrne ikon (17. 11. 2026) — tie isté ako `LifeStatusPick`.
+const legendIconUrl = '/icons/sys/zivuca-legenda.webp';
+const angelIconUrl = '/icons/sys/psi-anjel.webp';
 
 // ── /heroglyph/dogs — krok 3: TVOJA SVORKA
 //

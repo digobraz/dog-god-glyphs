@@ -192,7 +192,10 @@ export function NameScreen() {
     : (winH < 700 ? 96 : winH < 820 ? 118 : 148);
 
   const [showInfo, setShowInfo] = useState(false);
-  const isMobile = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
+  // 17. 11. 2026 — Matej: *„po kliknutí na meno — zrušme ten popup a nechajme to klasicky, ako to býva v appkách"*.
+  // Nový vstup píše meno priamo do poľa aj na telefóne; nad klávesnicu ho dvíha `useFlowKeyboardFix` (`--flow-kb`).
+  // Okno s menom (`FlowTextModal`) ostáva len starému vstupu.
+  const isMobile = useMemo(() => !NEW_HEROFLOW && window.matchMedia('(pointer: coarse)').matches, []);
   const [nameModalOpen, setNameModalOpen] = useState(false);
   const nameModalRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -619,6 +622,8 @@ export function NameScreen() {
                     {topic === 'name' && (
                       <div className="nm-row">
                         {nameField}
+                        {/* Matej 17. 11. 2026: *„pod text area info, že ak má človek viac psov, zvolí ich v ďalšom kroku"*. */}
+                        <p className="nm-hint">{t('heroglyph.flow.name.moreDogsHint')}</p>
                       </div>
                     )}
 
@@ -855,6 +860,7 @@ const NAME_TOPIC_CSS = `
 .nm-q { width: 100%; min-height: 64px; display: flex; align-items: center; }
 .nm-qin { width: 100%; }
 .nm-row { display: flex; align-items: center; gap: 8px; }
+.nm-hint { margin: 0; text-align: center; font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.4; color: ${LAB.inkBody}; }
 /* NARODENIE na JEDEN riadok — rolety a vedľa nich ĎALEJ (Matej 26. 9.). */
 .nm-born { display: flex; align-items: center; gap: 8px; width: 100%; }
 .nm-born > div:first-child { flex: 1; min-width: 0; }

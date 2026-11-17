@@ -398,8 +398,9 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 }
 .hf-dpill.ok   { border-color: #3D7A4E; background: rgba(61,122,78,.12);  color: #2E5C3B; }
 .hf-dpill.miss { border-color: #B25640; background: rgba(178,86,64,.12);  color: #8E3F2C; }
-/* Ikonka legendy/anjela je čierna kresba — na oboch výplniach drží kontrast. */
-.hf-dpill img { width: 15px; height: 15px; object-fit: contain; filter: brightness(0); }
+/* Ikonka legendy/anjela je farebná kresba z továrne (17. 11. 2026). Čierny filter tu zanikol —
+   začiernil aj vlajku krajiny (FlagCircle je tiež img). */
+.hf-dpill img { width: 18px; height: 18px; object-fit: contain; }
 /* Emoji (vlajka, torta) nesmie dediť font okolia — na Windows/Androide by sadol
    čiernobiely textový variant. Ten istý dôvod aj stack ako \`FONT_EMOJI\` na mape. */
 .hf-dpill .em {

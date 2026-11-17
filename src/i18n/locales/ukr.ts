@@ -147,6 +147,7 @@ export const ukr: Partial<Dict> = {
   'heroglyph.flow.name.greetingPrefix': "Привіт, я",
   'heroglyph.flow.name.greetingQuestion': "Як звати твого пса?",
   'heroglyph.flow.name.placeholder': "Впиши ім'я свого пса...",
+  'heroglyph.flow.name.moreDogsHint': "Маєш кількох собак? Додаси їх на наступному кроці. Кожен пес має власний профіль.",
   'heroglyph.flow.name.dogCountry': "Батьківщина",
   'heroglyph.flow.name.birthday': "Коли народився твій пес?",
   'heroglyph.flow.name.continue': "Продовжити",

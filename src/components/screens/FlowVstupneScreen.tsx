@@ -280,8 +280,8 @@ function Ranks({ cancelled }: { cancelled: boolean }) {
   const navigate = useNavigate();
   const t = useT();
   const { lang } = useLang();
-  /** Predvolený KŇAZ (Matej 7. 11.); Veriaci = pokračovanie zadarmo. */
-  const [pick, setPick] = useState(2);
+  /** Predvolený AKOLYTA (Matej 17. 11. 2026: „dajme výber na akolytu, nie na kňaza“; do 17. 11. Kňaz). Veriaci = pokračovanie zadarmo. */
+  const [pick, setPick] = useState(1);
   const [amt, setAmt] = useState<number>(FARAO_AMOUNTS[0]);
   const [kind, setKind] = useState<'month' | 'once'>('month');
   const [busy, setBusy] = useState(false);
@@ -351,11 +351,13 @@ function Ranks({ cancelled }: { cancelled: boolean }) {
       {(cancelled || fail) && <p role="alert" className="vs-err">{t(`${K}${fail ? 'err' : 'cancelled'}`)}</p>}
       <p className="vs-fine">{t(`${K}fine`)}<button type="button" className="vs-link vs-link--inl" onClick={() => setKam(true)}>{t(`${K}fineLink`)}</button></p>
       <motion.button
-        type="button" className="pk-b3 pk-b3--lapis vs-dock" disabled={busy} onClick={() => void proceed()}
+        type="button" className="pk-b3 pk-b3--lapis vs-dock has-later" disabled={busy} onClick={() => void proceed()}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }}
       >
         {pick === 0 ? t(`${K}ctaFree`) : t(`${K}ctaPay`, { suma })}
       </motion.button>
+      {/* Matej 17. 11. 2026: „dolu pod CTA by mala byť info, že podporiť nás môžeš aj neskôr v appke“. */}
+      <p className="vs-later">{t(`${K}later`)}</p>
 
       {/* KAM IDÚ PENIAZE — popup „Financovanie" (texty z nákresu, bez čísel). */}
       <FlowModal open={kam} label={t(`${K}kamTitle`)} onClose={() => setKam(false)} className="vs-kam">
@@ -415,6 +417,11 @@ const VSTUPNE_CSS = `
 .vs-dock { position: fixed; z-index: 40; height: 52px; font-weight: 900;
   left: max(${PACK_SPACE.lg}px, calc(50% - 320px)); right: max(${PACK_SPACE.lg}px, calc(50% - 320px));
   bottom: max(${PACK_SPACE.xl}px, env(safe-area-inset-bottom)); }
+/* Veta pod CTA: CTA o jej výšku vystúpi (\`--dock-up\` číta dok v šate vstupu). */
+.vs-dock.has-later { --dock-up: ${PACK_SPACE.lg}px; bottom: calc(max(${PACK_SPACE.xl}px, env(safe-area-inset-bottom)) + ${PACK_SPACE.lg}px); }
+.vs-later { position: fixed; z-index: 40; margin: 0; text-align: center; font-size: ${PACK_TEXT.label}px; line-height: 1.3; color: ${LAB.inkBody};
+  left: max(${PACK_SPACE.lg}px, calc(50% - 320px)); right: max(${PACK_SPACE.lg}px, calc(50% - 320px));
+  bottom: max(${PACK_SPACE.md}px, env(safe-area-inset-bottom)); }
 /* ── POPUP FINANCOVANIE ── */
 .vs-kam { display: flex; flex-direction: column; gap: ${PACK_SPACE.md}px; }
 .vs-kam-h { margin: 0; text-align: center; font-size: ${PACK_TEXT.h2}px; text-transform: uppercase; color: #000; }
