@@ -9,7 +9,7 @@ import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 import ainubisHead from '@/assets/ainubis-head.webp';
 import { APP_NEW } from '@/lib/packFlags';
 import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
-const ainubisFace = APP_NEW ? AI_LOGO : ainubisHead;
+export const ainubisFace = APP_NEW ? AI_LOGO : ainubisHead;
 import { WIZ_ROUND } from './wizAnchors';
 import { screenFor, stepsFor, WIZ_SCREENS, type WizStep } from './wizSteps';
 import { AINUBIS } from './ainubisSkin';
@@ -42,7 +42,7 @@ const SEEN_KEY = 'dogypt_wz_seen';
 const LEGACY_KEY = 'dogypt_wz';
 const LEGACY_IDS = ['home.welcome', 'home.hero', 'home.dogs', 'home.navOut'];
 
-function readSeenLocal(): Set<string> {
+export function readSeenLocal(): Set<string> {
   try {
     const s = new Set<string>(JSON.parse(localStorage.getItem(SEEN_KEY) || '[]') as string[]);
     if (localStorage.getItem(LEGACY_KEY) === 'done') LEGACY_IDS.forEach((id) => s.add(id));
@@ -52,10 +52,10 @@ function readSeenLocal(): Set<string> {
     return new Set(WIZ_SCREENS.flatMap((x) => x.steps.map((st) => st.id)));
   }
 }
-function writeSeenLocal(s: Set<string>) {
+export function writeSeenLocal(s: Set<string>) {
   try { localStorage.setItem(SEEN_KEY, JSON.stringify([...s])); } catch { /* súkromné okno */ }
 }
-async function pushSeenToAccount(s: Set<string>) {
+export async function pushSeenToAccount(s: Set<string>) {
   try {
     const { data } = await supabase.auth.getSession();
     if (!data.session) return;
@@ -64,7 +64,7 @@ async function pushSeenToAccount(s: Set<string>) {
 }
 
 /** `wiz_off` už pri PRVOM vykreslení — z uloženej session, aby privítanie robotovi ani neblyslo. */
-function wizOffLocal(): boolean {
+export function wizOffLocal(): boolean {
   try {
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i) || '';
@@ -131,7 +131,7 @@ async function grantFirstSteps() {
 const DIM = 'rgba(1,5,10,0.93)';
 /** Vzduch okolo výrezu, aby ho prstenec neorezal. */
 const PAD = PACK_SPACE.sm;
-const WIZ_CSS = `
+export const WIZ_CSS = `
 .wzc{position:fixed;inset:0;z-index:1500;}
 .wzc-hole{position:fixed;pointer-events:none;border-radius:${PACK_R.card}px;
   box-shadow:0 0 0 9999px ${DIM},0 0 0 2px ${AINUBIS.edgeStrong},0 0 30px rgba(${AINUBIS.cyanRGB},0.45);
@@ -311,9 +311,13 @@ export function PackWizard({ dogName, hasDog }: { dogName: string | null; hasDog
 }
 
 // ─── Výrez + bublina ─────────────────────────────────────────────────────────
-function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing }: {
-  step: WizStep; body: string; dots: { n: number; at: number } | null;
+export function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing, okLabel, naostro }: {
+  step: Pick<WizStep, 'id' | 'anchor' | 'handoff'>; body: string; dots: { n: number; at: number } | null;
   onNext: (action?: WizAction) => void; onSkip: () => void; onShown: () => void; onMissing: () => void;
+  /** Komnaty (17. 11. 2026): vlastný nápis tlačidla („Hotovo“). */
+  okLabel?: string;
+  /** Akcia naostro: ťuk na prvok vo výreze prejde do appky a posunie krok; mimo výrezu sa ťuk zahodí. */
+  naostro?: boolean;
 }) {
   const t = useT();
   const [box, setBox] = useState<DOMRect | null>(null);
@@ -321,6 +325,8 @@ function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing }: {
   useEffect(() => { missRef.current = onMissing; }, [onMissing]);
   const shownRef = useRef(onShown);
   useEffect(() => { shownRef.current = onShown; }, [onShown]);
+  const nextRef = useRef(onNext);
+  useEffect(() => { nextRef.current = onNext; }, [onNext]);
   const anchor = step.anchor as string;
 
   // Kotva sa hľadá v kolách (dáta psov dobehnú o chvíľu neskôr); ~1,5 s a nikde → krok sa
@@ -328,6 +334,13 @@ function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing }: {
   // Po nájdení: posun do stredu okna a sledovanie polohy — diera sa hýbe s prvkom.
   useEffect(() => {
     let raf = 0; let tries = 0; let el: HTMLElement | null = null; let alive = true;
+    // Naostro: ťuk na prvok prejde (odkaz naozaj otvorí), krok sa posunie; ťuk vedľa sa zahodí.
+    const tapNaostro = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (el && el.contains(t)) { nextRef.current(); return; }
+      if ((t as Element).closest?.('.mcoach-bubble')) return;
+      e.preventDefault(); e.stopPropagation();
+    };
     const follow = () => {
       if (!alive || !el) return;
       // Mapa po dobehnutí dát zhluky PREKRESLÍ — držaný prvok vypadne z DOM-u a jeho rect je 0,0
@@ -346,10 +359,11 @@ function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing }: {
         if (offscreen && !WIZ_ROUND.includes(anchor)) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
         shownRef.current();
         follow();
+        if (naostro) document.addEventListener('click', tapNaostro, true);
       } else if (++tries > 12) { clearInterval(iv); missRef.current(); }
     }, 120);
-    return () => { alive = false; clearInterval(iv); cancelAnimationFrame(raf); };
-  }, [anchor]);
+    return () => { alive = false; clearInterval(iv); cancelAnimationFrame(raf); document.removeEventListener('click', tapNaostro, true); };
+  }, [anchor, naostro]);
 
   if (!box) {
     // Prvok sa ešte hľadá: tma ostáva (výrez stojí na predošlom mieste), bublina zatiaľ nie.
@@ -379,10 +393,10 @@ function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing }: {
   const pos = below ? { top: Math.min(bottom + 14, vh - 200) } : { bottom: Math.min(vh - top + 14, vh - 200) };
 
   return createPortal(
-    <div className="wzc" role="dialog" aria-modal="true">
+    <div className="wzc" role="dialog" aria-modal="true" style={naostro ? { pointerEvents: 'none' } : undefined}>
       <style>{MAP_COACH_CSS}{WIZ_CSS}</style>
       <div className={`wzc-hole${WIZ_ROUND.includes(anchor) ? ' is-round' : ''}`} style={{ top, left, width: w, height: h }} />
-      <div className="mcoach-bubble" style={{ left: bubbleLeft, width: bw, ...pos }}>
+      <div className="mcoach-bubble" style={{ left: bubbleLeft, width: bw, ...pos, ...(naostro ? { pointerEvents: 'auto' } : null) }}>
         <span className={`mcoach-arrow${below ? ' up' : ' down'}`} style={{ left: Math.min(Math.max(left + w / 2, 28), vw - 28) }} aria-hidden="true" />
         {dots && <div className="wzc-dots">{Array.from({ length: dots.n }).map((_, i) => <i key={i} className={i === dots.at ? 'on' : ''} />)}</div>}
         <img className="mcoach-face" src={ainubisFace} alt="" aria-hidden="true" />
@@ -399,7 +413,7 @@ function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing }: {
           ) : (
             <>
               <button type="button" className="mcoach-mute" onClick={onSkip}>{t('pack.wizard.skip')}</button>
-              <button type="button" className="mcoach-ok" onClick={() => onNext()}>{t('pack.wizard.next')}</button>
+              {!naostro && <button type="button" className="mcoach-ok" onClick={() => onNext()}>{okLabel ?? t('pack.wizard.next')}</button>}
             </>
           )}
         </div>

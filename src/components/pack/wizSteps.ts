@@ -152,3 +152,93 @@ export function stepsFor(s: WizScreen | null, preview = false): WizStep[] {
   if (!s || !(s.status === 'kroky' || (preview && s.status === 'caka'))) return [];
   return s.steps.filter((x) => x.on !== false);
 }
+
+// ─── SYSTÉM KOMNÁT (17. 11. 2026) ────────────────────────────────────────────
+// Matej 17. 11.: *„úvodný ainubis wizard sa ukončí odznakom, ale bude vidno aj ďalšie odznaky a aj to navrhne:
+// máš čas? ukážem ti každú komnatu teraz alebo až pri používaní?“* · „ano“ na systém komnát · *„skús to postaviť
+// nech to vidím v test appke“*. Nákres + mapa: `plany/nakresy/wizard-appka-2026-11-17/` (simulacia.html, mapa.html).
+// Komnata = skupina krokov s poradím, spúšťačom a odznakom. Kroky žijú TU, nie vo WIZ_SCREENS: staré prehliadky
+// obrazoviek ostávajú pre web (dogypt.com), komnaty bežia pod `KOMNATY_ON` (testovací kanál).
+// ⚠️ Id kroku sa NEPREMENÚVA — „videl som“ = id v `wiz_seen` (user_metadata + localStorage), rovnako ako vyššie.
+//    Získaný odznak = `odz:<id>` v tom istom zozname. Žiadne nové miesto na údaje o človeku.
+
+export type KomnataId = 'uvod' | 'pes' | 'ja' | 'sos' | 'mapa' | 'sniffer' | 'ainubis';
+
+export type Krok = Omit<WizStep, 'since'> & {
+  /** Akcia naostro: krok pokračuje až ťuknutím na skutočný prvok (nie „Ďalej“). Ťuk prejde do appky. */
+  naostro?: boolean;
+};
+
+export type Komnata = {
+  id: KomnataId;
+  poradie: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  /** Kedy sa zjaví: `prve-otvorenie` sama · `po-uvode` cez „Teraz“ alebo AINUBISa · `prva-navsteva` kľúčik svieti. */
+  spustac: 'prve-otvorenie' | 'po-uvode' | 'prva-navsteva';
+  /** Kde žije (vzor ako v `<Route path>`). Kľúčik svieti, keď je človek na niektorej z nich. */
+  routes: string[];
+  /** Kam ísť, keď sa komnata spustí odinakiaľ („Teraz“, pripomienka). */
+  start: string;
+  /** Max 5 výrezov (+ privítanie). */
+  kroky: Krok[];
+  odznak: { id: string; nazov: string; obrazok: string };
+};
+
+const ODZ = (n: string) => `/icons/sys/odznak-${n}.webp`;
+
+export const KOMNATY: Komnata[] = [
+  { id: 'uvod', poradie: 0, spustac: 'prve-otvorenie', routes: ['/pack'], start: '/pack',
+    odznak: { id: 'uvod', nazov: 'pack.wizard.k.odz.uvod', obrazok: ODZ('uvodny-kluc') },
+    kroky: [
+      { id: 'k0.vitaj', anchor: 'welcome', text: 'pack.wizard.k0.vitaj' },
+      { id: 'k0.feed', anchor: WIZ.navHome, text: 'pack.wizard.k0.feed' },
+      { id: 'k0.mapa', anchor: WIZ.navMap, text: 'pack.wizard.k0.mapa' },
+      { id: 'k0.labka', anchor: WIZ.navAdd, text: 'pack.wizard.k0.labka' },
+      { id: 'k0.ainubis', anchor: WIZ.navAinubis, text: 'pack.wizard.k0.ainubis' },
+      { id: 'k0.menu', anchor: WIZ.navMe, text: 'pack.wizard.k0.menu' },
+    ] },
+  { id: 'pes', poradie: 1, spustac: 'po-uvode', routes: ['/pack/dogs'], start: '/pack/dogs',
+    odznak: { id: 'pes', nazov: 'pack.wizard.k.odz.pes', obrazok: ODZ('strazca-psa') },
+    kroky: [
+      { id: 'k1.fotka', anchor: '.dv2-ring', text: 'pack.wizard.k1.fotka' },
+      { id: 'k1.zivot', anchor: '.dv2-tab:nth-child(2)', text: 'pack.wizard.k1.zivot' },
+      { id: 'k1.dennik', anchor: '.dv2-tab:nth-child(3)', text: 'pack.wizard.k1.dennik' },
+      { id: 'k1.vyplnit', anchor: '.dv2-out', text: 'pack.wizard.k1.vyplnit', naostro: true },
+    ] },
+  { id: 'ja', poradie: 2, spustac: 'prva-navsteva', routes: ['/pack/profile'], start: '/pack/profile',
+    odznak: { id: 'ja', nazov: 'pack.wizard.k.odz.ja', obrazok: ODZ('kronikar') },
+    kroky: [
+      { id: 'k2.levely', anchor: '.me-lv', text: 'pack.wizard.k2.levely' },
+      { id: 'k2.zapis', anchor: WIZ.navAdd, text: 'pack.wizard.k2.zapis' },
+    ] },
+  { id: 'sos', poradie: 3, spustac: 'prva-navsteva', routes: ['/pack'], start: '/pack',
+    odznak: { id: 'sos', nazov: 'pack.wizard.k.odz.sos', obrazok: ODZ('bezpecie') },
+    kroky: [
+      { id: 'k3.pas', anchor: '.pk-tops', text: 'pack.wizard.k3.pas' },
+    ] },
+  { id: 'mapa', poradie: 4, spustac: 'prva-navsteva', routes: ['/pack/map'], start: '/pack/map',
+    odznak: { id: 'mapa', nazov: 'pack.wizard.k.odz.mapa', obrazok: ODZ('kartograf') },
+    kroky: [
+      { id: 'k4.vrstvy', anchor: '.trp-layersdd', text: 'pack.wizard.k4.vrstvy' },
+      { id: 'k4.vylety', anchor: '.trp-mheader-cats, .trp-sidebar-top', text: 'pack.wizard.k4.vylety' },
+      { id: 'k4.labka', anchor: WIZ.navAdd, text: 'pack.wizard.k4.labka' },
+    ] },
+  { id: 'sniffer', poradie: 5, spustac: 'prva-navsteva', routes: ['/pack/sniffer'], start: '/pack/sniffer',
+    odznak: { id: 'sniffer', nazov: 'pack.wizard.k.odz.sniffer', obrazok: ODZ('partak') },
+    kroky: [
+      { id: 'k5.cta', anchor: '.bd-cta', text: 'pack.wizard.k5.cta' },
+    ] },
+  { id: 'ainubis', poradie: 6, spustac: 'prva-navsteva', routes: ['/pack/ainubis/*'], start: '/pack/ainubis',
+    odznak: { id: 'ainubis', nazov: 'pack.wizard.k.odz.ainubis', obrazok: ODZ('ucenec') },
+    kroky: [
+      { id: 'k6.planes', anchor: '.akv-planes', text: 'pack.wizard.k6.planes' },
+      { id: 'k6.zvitky', anchor: '.akv-mactions, .akv-zv', text: 'pack.wizard.k6.zvitky' },
+    ] },
+];
+
+/** ZNALEC CHRÁMU = všetky komnaty prejdené. Nie je komnata, počíta sa zo siedmich. */
+export const ZNALEC = { id: 'znalec', nazov: 'pack.wizard.k.odz.znalec', obrazok: ODZ('znalec') };
+
+/** Komnata pre cestu, ktorej ešte niečo chýba (kľúčik svieti). Prvá podľa poradia. */
+export function komnataFor(pathname: string, done: (k: Komnata) => boolean): Komnata | null {
+  return KOMNATY.find((k) => !done(k) && k.routes.some((r) => routeRe(r).test(pathname))) ?? null;
+}

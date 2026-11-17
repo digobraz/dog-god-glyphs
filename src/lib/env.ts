@@ -62,6 +62,9 @@ export const AID_ON = TEST_BUILD;
 // MOMENTY (15. 11. 2026, hárok Zážitok appky + prehliadka momentov): spoločný komponent odmeny `MomentHost`.
 // Rozostavané ⇒ len testovací kanál. Do obchodnej appky (`|| IS_APP`) až na Matejovo „ostro“.
 export const MOMENTY_ON = TEST_BUILD;
+// SYSTÉM KOMNÁT (17. 11. 2026, Matej „ano“ + „skús to postaviť nech to vidím v test appke“): nová prehliadka
+// appky po komnatách s odznakmi a kľúčikom pri AINUBISovi. Len testovací kanál; register `wizSteps.ts` KOMNATY.
+export const KOMNATY_ON = TEST_BUILD;
 const PINNED = import.meta.env.PROD && !APP_DEV;
 
 export const SUPABASE_URL = PINNED

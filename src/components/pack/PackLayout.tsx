@@ -19,6 +19,8 @@ import { PackNotifications } from './PackNotifications';
 import { TopActions } from './TopActions';
 import { WIZ } from './wizAnchors';
 import { PackWizard } from './PackWizard';
+import { PackKomnaty, KomnataKluc } from './PackKomnaty';
+import { KOMNATY_ON } from '@/lib/env';
 
 const WIZ_ON_HOST = typeof window !== 'undefined' && /^(www\.)?dogypt\.com$/.test(window.location.hostname);
 import iconHome from '@/assets/icons/nav-home.svg';
@@ -614,7 +616,9 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
           }}
         >
           <span className={`flex items-center ${APP_NEW ? 'justify-around' : 'justify-center'}`} style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4 }}>
-            <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={APP_NEW ? sysSrc('domov') : iconHome} end />
+            <span id={WIZ.navHome} style={{ display: 'inline-flex', borderRadius: 999 }}>
+              <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={APP_NEW ? sysSrc('domov') : iconHome} end />
+            </span>
             {/* `WIZ.navMap` — sem svieti krok prehliadky o mape (spotlight na IKONKU,
                 nie na blok stránky). Kotva sedí na obale, nie na `NavLink`: spotlight
                 pridáva `position:relative` + `z-index`, a to by prebilo štýl pillu.
@@ -631,8 +635,10 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
               ikonky vpravo majú obal `inline-flex` ako `WIZ.navMap`. */}
           <DockPlus id={WIZ.navAdd} label={tx('pack.layout.navAdd', 'Add')} onClick={() => setCreateOpen(true)} onLongPress={APP_NEW ? logDay : undefined} />
           <span className={`flex items-center ${APP_NEW ? 'justify-around' : 'justify-center'}`} style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4 }}>
-            <span id={WIZ.navAinubis} style={{ display: 'inline-flex', borderRadius: 999 }}>
+            <span id={WIZ.navAinubis} style={{ display: 'inline-flex', borderRadius: 999, position: 'relative' }}>
               <AinubisNavLink label={t('pack.layout.navAinubis')} />
+              {/* Kľúčik = nevidená komnata na tejto obrazovke; ťuk ju spustí (Matej 17. 11.: „i“ k AINUBISovi). */}
+              {KOMNATY_ON && <KomnataKluc />}
             </span>
             <span id={WIZ.navMe} style={{ display: 'inline-flex', borderRadius: 999 }}>
               <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
@@ -648,7 +654,11 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
         a kto preskočil") — každý krok sa zapisuje do denníka `wizard_events`. */}
     {/* PREHLIADKA len na dogypt.com — na deve a náhľade preč (Matej 23. 10. 2026: „prehliadku na teraz
         na deve celkom ignorujme… výsledkom bude nová verzia s novou prehliadkou"). */}
-    {WIZ_ON_HOST && <PackWizard hasDog={(dogs ?? []).length > 0} dogName={dogs?.[0]?.dog_name ?? null} />}
+    {/* SYSTÉM KOMNÁT (17. 11. 2026, Matej: „skús to postaviť nech to vidím v test appke“) — testovací kanál
+        dostane novú prehliadku namiesto starej; dogypt.com ostáva na starej. Register `wizSteps.ts` KOMNATY. */}
+    {KOMNATY_ON
+      ? <PackKomnaty dogs={dogs ?? []} avatarUrl={avatarUrl ?? null} />
+      : WIZ_ON_HOST && <PackWizard hasDog={(dogs ?? []).length > 0} dogName={dogs?.[0]?.dog_name ?? null} />}
     {/* ── PANEL `+` JE SÚRODENEC PÁSU, NIE JEHO POTOMOK ─────────────────────────────────
         🔴 DVA DÔVODY, OBA MERATEĽNÉ:
         1. VRSTVENIE. Pás je `fixed z-40`, teda VLASTNÝ stacking kontext — čokoľvek v ňom

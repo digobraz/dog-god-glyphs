@@ -16,6 +16,8 @@ export const WIZ = {
   gateways: 'wiz-gateways',
   /** Planéta + míľniky (`GlobePulse`). */
   globe: 'wiz-globe',
+  /** Ikonka DOMOV (FEED) v lište — komnata 0 (17. 11. 2026). */
+  navHome: 'wiz-nav-home',
   /** Ikonka MAPA v spodnej plávajúcej lište (`PackBottomNav`). */
   navMap: 'wiz-nav-map',
   /** Lapisový kotúč `+` v strede lišty (`DockPlus`). */
@@ -32,7 +34,7 @@ export const WIZ = {
 
 /** Kotvy, ktoré sú OKRÚHLE/pilulkové — spotlight im nesmie dať 18px radius
  *  (Matej 24. 8.: „zasvietiť v navigácii tú ikonku"). */
-export const WIZ_ROUND: readonly string[] = [WIZ.navMap, WIZ.navAdd, WIZ.navAinubis, WIZ.navMe];
+export const WIZ_ROUND: readonly string[] = [WIZ.navHome, WIZ.navMap, WIZ.navAdd, WIZ.navAinubis, WIZ.navMe];
 
 export type WizAnchor = typeof WIZ[keyof typeof WIZ];
 
