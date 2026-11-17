@@ -104,7 +104,7 @@ function obrazokOk(src: string): Promise<boolean> {
 }
 
 const K_CSS = `
-.kmn-dvere{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:${PACK_SPACE.md}px ${PACK_SPACE.sm}px;width:100%;margin:${PACK_SPACE.lg}px 0;max-height:52vh;overflow-y:auto;padding:${PACK_SPACE.sm}px ${PACK_SPACE.xs}px;}
+.kmn-dvere{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:${PACK_SPACE.md}px ${PACK_SPACE.sm}px;width:320px;max-width:100%;margin:${PACK_SPACE.lg}px 0;max-height:52vh;overflow-y:auto;padding:${PACK_SPACE.sm}px ${PACK_SPACE.xs}px;}
 .kmn-dv{display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.xs}px;font:600 ${PACK_TEXT.micro}px ${FONT_UI};color:${AINUBIS.inkDim};text-transform:uppercase;letter-spacing:.02em;text-align:center;}
 .kmn-portal{position:relative;width:60px;height:80px;display:grid;place-items:center;border:2px solid ${AINUBIS.edge};
   border-radius:${PACK_R.pill}px ${PACK_R.pill}px ${PACK_R.field}px ${PACK_R.field}px;background:${AINUBIS.raised};}
