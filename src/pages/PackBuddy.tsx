@@ -31,6 +31,9 @@ import { SNIFFER_P3D_CSS } from '@/components/pack/buddy/snifferP3d';
 import { SnifferFullProfile } from '@/components/pack/buddy/SnifferFullProfile';
 import type { SnifferCardData } from '@/components/pack/buddy/snifferDeck';
 import { MessagingOverlayHost } from '@/components/pack/PackLayout';
+import { PackKomnaty } from '@/components/pack/PackKomnaty';
+import { MomentHost } from '@/components/pack/moment/MomentHost';
+import { KOMNATY_ON } from '@/lib/env';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR, PACK_TOPROW, PACK_TOPROW_PAD,
   PACK_SHADOW, PACK_AVATAR, PACK_COL_INNER, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, VEIL_CSS, FONT_TITLE, FONT_UI,
@@ -687,6 +690,10 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, task, c
       </main>
       {/* Vlákno po zhode — stránka nemountuje PackLayout (kôš 3), tak si hostiteľa správ nesie sama. */}
       <MessagingOverlayHost />
+      {/* SYSTÉM KOMNÁT (17. 11. 2026): SNIFFER nemá lištu (kôš 3), tak si prehliadku a moment odznaku nesie sám —
+          komnata 5 sa tu spustí pri prvej návšteve (kľúčik pri AINUBISovi tu nie je). */}
+      {KOMNATY_ON && <PackKomnaty dogs={[]} avatarUrl={null} />}
+      {KOMNATY_ON && <MomentHost />}
     </div>
   );
 }

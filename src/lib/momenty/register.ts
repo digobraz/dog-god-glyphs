@@ -47,7 +47,7 @@ export const MOMENTY: Record<MomentId, MomentDef> = {
   kod: { velkost: 'iskra', etapa: 2 },
   vitaj: { velkost: 'odhalenie', etapa: 2 },
   cislo: { velkost: 'obrad', push: true, etapa: 2 },
-  wizard: { velkost: 'pecat', etapa: 2 },
+  wizard: { velkost: 'odhalenie', etapa: 2 }, // 17. 11.: odznak komnaty = kresba + meno + veta (pečať kreslila prázdny kotúč)
 
   prvykrat: { velkost: 'odhalenie', etapa: 2 },
   'dogid-modul': { velkost: 'pecat', etapa: 2 },

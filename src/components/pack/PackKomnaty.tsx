@@ -71,7 +71,10 @@ export function resetKomnaty(start = true, vsetko = false) {
   [...s].forEach((id) => { if (ids.has(id) || (vsetko && id.startsWith('odz:'))) s.delete(id); });
   writeSeenLocal(s);
   void pushSeenToAccount(s);
-  if (vsetko) [K_FIRST, K_AUTO, K_REM].forEach(ls.del);
+  if (vsetko) {
+    [K_FIRST, K_AUTO, K_REM].forEach(ls.del);
+    KOMNATY.forEach((k) => ls.del(`${K_AUTO}:${k.id}`));
+  }
   window.dispatchEvent(new CustomEvent('dogypt:wizard'));
   if (start) startKomnata('uvod');
 }
@@ -226,6 +229,15 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
     setAkt('uvod');
   }, [off, consentDone, akt, polica, pathname, done, k0, setAkt]);
 
+  // Obrazovka bez lišty (SNIFFER): komnata sa spustí sama pri prvej návšteve, raz za deň.
+  useEffect(() => {
+    if (off || !consentDone || akt || polica) return;
+    const kb = KOMNATY.find((x) => x.bezListy && !done(x) && x.routes.includes(pathname));
+    if (!kb || ls.get(`${K_AUTO}:${kb.id}`) === dnes()) return;
+    ls.set(`${K_AUTO}:${kb.id}`, dnes());
+    setAkt(kb.id);
+  }, [off, consentDone, akt, polica, pathname, done, setAkt]);
+
   // Pripomienka DOG ID: deň 1 · 3 · 7, potom týždenne, max 1× za deň, po 3 odmietnutiach ticho.
   const kPes = KOMNATY[1];
   useEffect(() => {
@@ -285,8 +297,21 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
   // Komnata dobehla (alebo jej chýbajú kotvy) → zavrieť; odznak dá efekt „dlh“ vyššie.
   useEffect(() => { if (k && !krok) setAkt(null); }, [k, krok, setAkt]);
 
-  const next = useCallback(() => { if (krok) mark([krok.id]); }, [krok, mark]);
-  const zavri = useCallback(() => setAkt(null), [setAkt]);
+  const klikni = (sel?: string) => { if (sel) (document.querySelector(sel) as HTMLElement | null)?.click(); };
+  const next = useCallback(() => {
+    if (!krok) return;
+    mark([krok.id]);
+    klikni(krok.po);
+  }, [krok, mark]);
+  // Krok s `klik` najprv otvorí, o čom hovorí (menu, záložka, panel); výrez sa hľadá až potom.
+  const [pripraveny, setPripraveny] = useState<string | null>(null);
+  useEffect(() => {
+    if (!krok) { setPripraveny(null); return undefined; }
+    if (!krok.klik) { setPripraveny(krok.id); return undefined; }
+    const t0 = window.setTimeout(() => { klikni(krok.klik); setPripraveny(krok.id); }, 300);
+    return () => window.clearTimeout(t0);
+  }, [krok]);
+  const zavri = useCallback(() => { klikni(krok?.po); setAkt(null); }, [setAkt, krok]);
 
   const pocet = KOMNATY.filter((x) => seen.has(`odz:${x.id}`)).length;
   const portal = (node: JSX.Element) => createPortal(<>{node}<style>{MAP_COACH_CSS}{WIZ_CSS}{K_CSS}</style></>, document.body);
@@ -371,6 +396,7 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
     );
   }
 
+  if (pripraveny !== krok.id) return null;
   const spots = k.kroky.filter((x) => x.anchor !== 'welcome');
   const at = spots.findIndex((x) => x.id === krok.id);
   return (

@@ -167,6 +167,10 @@ export type KomnataId = 'uvod' | 'pes' | 'ja' | 'sos' | 'mapa' | 'sniffer' | 'ai
 export type Krok = Omit<WizStep, 'since'> & {
   /** Akcia naostro: krok pokračuje až ťuknutím na skutočný prvok (nie „Ďalej“). Ťuk prejde do appky. */
   naostro?: boolean;
+  /** Pred krokom ťukni na tento prvok (otvor menu, prepni záložku, otvor panel), aby svietilo to, o čom krok hovorí. */
+  klik?: string;
+  /** Po kroku ťukni sem (zavri panel, ktorý `klik` otvoril). */
+  po?: string;
 };
 
 export type Komnata = {
@@ -178,6 +182,8 @@ export type Komnata = {
   routes: string[];
   /** Kam ísť, keď sa komnata spustí odinakiaľ („Teraz“, pripomienka). */
   start: string;
+  /** Obrazovka bez spodnej lišty (kľúčik tam nie je) → komnata sa spustí sama pri prvej návšteve. */
+  bezListy?: boolean;
   /** Max 5 výrezov (+ privítanie). */
   kroky: Krok[];
   odznak: { id: string; nazov: string; obrazok: string };
@@ -194,21 +200,21 @@ export const KOMNATY: Komnata[] = [
       { id: 'k0.mapa', anchor: WIZ.navMap, text: 'pack.wizard.k0.mapa' },
       { id: 'k0.labka', anchor: WIZ.navAdd, text: 'pack.wizard.k0.labka' },
       { id: 'k0.ainubis', anchor: WIZ.navAinubis, text: 'pack.wizard.k0.ainubis' },
-      { id: 'k0.menu', anchor: WIZ.navMe, text: 'pack.wizard.k0.menu' },
+      { id: 'k0.menu', anchor: '.pack-avatar-menu', klik: `#${WIZ.navMe} button`, po: `#${WIZ.navMe} button`, text: 'pack.wizard.k0.menu' },
     ] },
   { id: 'pes', poradie: 1, spustac: 'po-uvode', routes: ['/pack/dogs'], start: '/pack/dogs',
     odznak: { id: 'pes', nazov: 'pack.wizard.k.odz.pes', obrazok: ODZ('strazca-psa') },
     kroky: [
       { id: 'k1.fotka', anchor: '.dv2-ring', text: 'pack.wizard.k1.fotka' },
-      { id: 'k1.zivot', anchor: '.dv2-tab:nth-child(2)', text: 'pack.wizard.k1.zivot' },
-      { id: 'k1.dennik', anchor: '.dv2-tab:nth-child(3)', text: 'pack.wizard.k1.dennik' },
-      { id: 'k1.vyplnit', anchor: '.dv2-out', text: 'pack.wizard.k1.vyplnit', naostro: true },
+      { id: 'k1.zivot', anchor: '.dv2-sheet', klik: '.dv2-tab:nth-child(2)', text: 'pack.wizard.k1.zivot' },
+      { id: 'k1.dennik', anchor: '.dv2-sheet', klik: '.dv2-tab:nth-child(3)', text: 'pack.wizard.k1.dennik' },
+      { id: 'k1.vyplnit', anchor: '.dv2-out', klik: '.dv2-tab:nth-child(1)', text: 'pack.wizard.k1.vyplnit', naostro: true },
     ] },
   { id: 'ja', poradie: 2, spustac: 'prva-navsteva', routes: ['/pack/profile'], start: '/pack/profile',
     odznak: { id: 'ja', nazov: 'pack.wizard.k.odz.ja', obrazok: ODZ('kronikar') },
     kroky: [
       { id: 'k2.levely', anchor: '.me-lv', text: 'pack.wizard.k2.levely' },
-      { id: 'k2.zapis', anchor: WIZ.navAdd, text: 'pack.wizard.k2.zapis' },
+      { id: 'k2.zapis', anchor: '.att-entry-panel .att-entry-row', klik: `#${WIZ.navAdd}`, po: '.att-entry-backdrop', text: 'pack.wizard.k2.zapis' },
     ] },
   { id: 'sos', poradie: 3, spustac: 'prva-navsteva', routes: ['/pack'], start: '/pack',
     odznak: { id: 'sos', nazov: 'pack.wizard.k.odz.sos', obrazok: ODZ('bezpecie') },
@@ -222,7 +228,7 @@ export const KOMNATY: Komnata[] = [
       { id: 'k4.vylety', anchor: '.trp-mheader-cats, .trp-sidebar-top', text: 'pack.wizard.k4.vylety' },
       { id: 'k4.labka', anchor: WIZ.navAdd, text: 'pack.wizard.k4.labka' },
     ] },
-  { id: 'sniffer', poradie: 5, spustac: 'prva-navsteva', routes: ['/pack/sniffer'], start: '/pack/sniffer',
+  { id: 'sniffer', poradie: 5, spustac: 'prva-navsteva', routes: ['/pack/sniffer'], start: '/pack/sniffer', bezListy: true,
     odznak: { id: 'sniffer', nazov: 'pack.wizard.k.odz.sniffer', obrazok: ODZ('partak') },
     kroky: [
       { id: 'k5.cta', anchor: '.bd-cta', text: 'pack.wizard.k5.cta' },
@@ -231,7 +237,7 @@ export const KOMNATY: Komnata[] = [
     odznak: { id: 'ainubis', nazov: 'pack.wizard.k.odz.ainubis', obrazok: ODZ('ucenec') },
     kroky: [
       { id: 'k6.planes', anchor: '.akv-planes', text: 'pack.wizard.k6.planes' },
-      { id: 'k6.zvitky', anchor: '.akv-mactions, .akv-zv', text: 'pack.wizard.k6.zvitky' },
+      { id: 'k6.zvitky', anchor: '.akv-world', text: 'pack.wizard.k6.zvitky' },
     ] },
 ];
 
