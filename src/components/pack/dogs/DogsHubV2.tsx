@@ -33,9 +33,12 @@ import { appendDogEvents, hasValue, type LatestValue } from '@/lib/dogEvents';
 import { computeAge } from '@/lib/dogAge';
 import { estimateLife } from '@/data/breedLifespan';
 import { localizeBreed } from '@/lib/breedDisplay';
-import { sizedUrl } from '@/services/cloudinaryService';
+import { sizedUrl, uploadExtraPhoto } from '@/services/cloudinaryService';
 import { IS_APP } from '@/lib/isApp';
 import { useLang } from '@/i18n/LanguageContext';
+import { KOMNATY_ON, EDGE_BASE } from '@/lib/env';
+import { supabase } from '@/integrations/supabase/client';
+import { compressFile } from '@/lib/photoIntake';
 
 const T = PACK_THEME;
 type Tx = (key: string, fallback: string) => string;
@@ -293,6 +296,31 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
   const { lang } = useLang();
   const solo = dogs.length === 1;
   const [sel, setSel] = useState<number>(solo ? 0 : -1);
+  // ŤUK NA FOTKU = NOVÁ FOTKA (komnata 1, Matej 17. 11.: „klikni sem a vyber fotku psa“). Ten istý postup ako
+  // hlavná fotka na DOG ID (`PackDogDetail.handleMainPhotoChange`): zmenšiť → Cloudinary → `dogs` → certifikát nanovo.
+  const fotoRef = useRef<HTMLInputElement>(null);
+  const [fotky, setFotky] = useState<Record<string, string>>({});
+  const [fotoPes, setFotoPes] = useState<string | null>(null);
+  const novaFotka = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    const id = fotoPes;
+    if (!file || !id) return;
+    try {
+      const { blob } = await compressFile(file);
+      const r = await uploadExtraPhoto(blob, id, 0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- update s .select() typy `dogs` neprepustia
+      const { data } = await (supabase as any).from('dogs').update({ cloudinary_main_url: r.secureUrl }).eq('id', id).select('id');
+      if (!data?.length) return;
+      setFotky((f) => ({ ...f, [id]: r.secureUrl }));
+      const { data: { session } } = await supabase.auth.getSession();
+      void fetch(`${EDGE_BASE}/generate-pdfs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+        body: JSON.stringify({ dogId: id }),
+      }).catch(() => undefined);
+    } catch { /* fotka ostáva stará */ }
+  };
   const [tab, setTab] = useState<'id' | 'z' | 'k'>('id');
   const [goals, setGoals] = useState<Record<string, number>>({});
   const total = PROGRESS_STEPS.length;
@@ -326,7 +354,7 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
     return {
       dog,
       name: dog.dog_name || '—',
-      img: sizedUrl(dog.cloudinary_main_url, 320),
+      img: sizedUrl(fotky[dog.id] ?? dog.cloudinary_main_url, 320),
       angel,
       pct: Math.round((done / total) * 100),
       done,
@@ -339,7 +367,15 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
       el: typeof elV === 'string' && elV in NATURE_ELEMENTS ? (elV as ElementKey) : null,
       ro: typeof roV === 'string' && roV in NATURE_ROLES ? (roV as RoleKey) : null,
     };
-  }), [dogs, latest, goals, total, lang, tx]);
+  }), [dogs, latest, goals, total, lang, tx, fotky]);
+
+  // SYSTÉM KOMNÁT (17. 11. 2026): odznak STRÁŽCA PSA až pri 100 % DOG ID — prehliadka si číta najvyššie
+  // percento živého psa z tohto istého výpočtu (ten istý, ktorý kreslí kartu DOG ID), nič neráta nanovo.
+  useEffect(() => {
+    const max = Math.max(0, ...views.filter((v) => !v.angel).map((v) => v.pct));
+    try { localStorage.setItem('dogypt_k_dogid', String(max)); } catch { /* */ }
+    window.dispatchEvent(new CustomEvent('dogypt:dogid-pct', { detail: max }));
+  }, [views]);
 
   // Pes zmizol zo zoznamu (zmena poradia, smrť…) → späť na svorku.
   useEffect(() => { if (!solo && sel >= views.length) setSel(-1); }, [solo, sel, views.length]);
@@ -359,7 +395,10 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
             key={d.dog.id}
             type="button"
             className={`dv2-st${d.angel ? ' angel' : ''}${sel === i ? ' sel' : ''}${sel >= 0 && sel !== i ? ' off' : ''}`}
-            onClick={() => { if (!solo) setSel(sel === i ? -1 : i); }}
+            onClick={() => {
+              if (KOMNATY_ON && solo && !d.angel) { setFotoPes(d.dog.id); fotoRef.current?.click(); return; }
+              if (!solo) setSel(sel === i ? -1 : i);
+            }}
           >
             {!solo && <span className={`dv2-pct${d.pct >= 100 ? ' ok' : ''}`}>{d.angel ? '†' : `${d.pct} %`}</span>}
             <span className="dv2-ring">
@@ -373,6 +412,7 @@ export function DogsHubV2({ dogs, latest, tx, chronicle }: { dogs: DogsV2Dog[]; 
         {solo && v && !v.angel && v.pct < 100 && <SoloInfo v={v} total={total} tx={tx} />}
       </div>
 
+      {KOMNATY_ON && <input ref={fotoRef} type="file" accept="image/*" onChange={(e) => { void novaFotka(e); }} style={{ display: 'none' }} />}
       <div className="dv2-band">
       <div className="dv2-tabwrap">
       <div className="dv2-tabs" role="tablist">

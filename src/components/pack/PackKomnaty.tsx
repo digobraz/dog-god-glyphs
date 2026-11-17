@@ -49,6 +49,14 @@ const RAM = '/icons/komnaty/ram.webp';
 const ZAMOK = '/icons/sys/zamok.webp';
 const KLUC = '/icons/sys/kluc.webp';
 const KLUC_AINUBIS = '/icons/sys/kluc-ainubis.webp';
+const ZAMOK_OTV = '/icons/sys/zamok-otvoreny.webp';
+/** Od tohto dňa beží nová prehliadka; starší účet dostane namiesto komnaty 0 „Čo je nové“. */
+const KOMNATY_OD = '2026-11-18';
+const K_NOVY = 'dogypt_k_novy';
+const K_DOGID = 'dogypt_k_dogid';
+/** Iné okno (pravidlá, moment, list) je otvorené → prehliadka počká, okná idú po jednom. */
+const cudzieOkno = () => [...document.querySelectorAll('[role="dialog"][aria-modal="true"]')].some((e) => !e.closest('.wzc, .wzc-welcome'));
+const dogidPct = () => Number(ls.get(K_DOGID) ?? '0') || 0;
 
 const dnes = () => new Date().toISOString().slice(0, 10);
 const ls = {
@@ -73,6 +81,7 @@ export function resetKomnaty(start = true, vsetko = false) {
   void pushSeenToAccount(s);
   if (vsetko) {
     [K_FIRST, K_AUTO, K_REM].forEach(ls.del);
+    ls.set(K_NOVY, '1'); // tester chce vidieť cestu NOVÉHO člena, nie „Čo je nové“
     KOMNATY.forEach((k) => ls.del(`${K_AUTO}:${k.id}`));
   }
   window.dispatchEvent(new CustomEvent('dogypt:wizard'));
@@ -95,10 +104,15 @@ function obrazokOk(src: string): Promise<boolean> {
 }
 
 const K_CSS = `
-.kmn-polica{display:grid;grid-template-columns:repeat(4,1fr);gap:${PACK_SPACE.md}px;width:100%;margin:${PACK_SPACE.lg}px 0;}
-.kmn-odz{display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.xs}px;font:600 ${PACK_TEXT.micro}px ${FONT_UI};color:${AINUBIS.inkDim};text-transform:uppercase;letter-spacing:.02em;text-align:center;}
-.wzc-welcome .kmn-odz img{width:56px;height:56px;object-fit:contain;filter:none;}
-.wzc-welcome .kmn-odz.zamk img{filter:grayscale(1);opacity:.5;}
+.kmn-dvere{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:${PACK_SPACE.md}px ${PACK_SPACE.sm}px;width:100%;margin:${PACK_SPACE.lg}px 0;max-height:52vh;overflow-y:auto;padding:${PACK_SPACE.sm}px ${PACK_SPACE.xs}px;}
+.kmn-dv{display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.xs}px;font:600 ${PACK_TEXT.micro}px ${FONT_UI};color:${AINUBIS.inkDim};text-transform:uppercase;letter-spacing:.02em;text-align:center;}
+.kmn-portal{position:relative;width:60px;height:80px;display:grid;place-items:center;border:2px solid ${AINUBIS.edge};
+  border-radius:${PACK_R.pill}px ${PACK_R.pill}px ${PACK_R.field}px ${PACK_R.field}px;background:${AINUBIS.raised};}
+.kmn-dv.otv .kmn-portal{border-color:${AINUBIS.cyan};}
+.wzc-welcome .kmn-portal img.zam{width:32px;height:32px;object-fit:contain;filter:none;}
+.wzc-welcome .kmn-portal img.odz{position:absolute;right:-${PACK_SPACE.sm}px;bottom:-${PACK_SPACE.sm}px;width:32px;height:32px;object-fit:contain;filter:none;}
+.wzc-welcome .kmn-dv:not(.otv) img.odz{filter:grayscale(1);opacity:.55;}
+.kmn-dv b{font-weight:600;color:${AINUBIS.cyan};}
 .kmn-pocet{font:600 ${PACK_TEXT.body}px ${FONT_UI};color:${AINUBIS.cyan};}
 .kmn-q{margin:${PACK_SPACE.lg}px 0 ${PACK_SPACE.xl}px;font:400 ${PACK_TEXT.lead}px/1.5 ${FONT_UI};color:${AINUBIS.ink};}
 .kmn-duo{display:flex;gap:${PACK_SPACE.md}px;align-items:center;justify-content:center;}
@@ -141,6 +155,41 @@ export function KomnataKluc() {
   );
 }
 
+// ─── DVERE KOMNÁT ────────────────────────────────────────────────────────────
+// Matej 17. 11.: *„nebude to polica odznakov, ale ako keby dvere so zámkom — komnaty, tie môžu časom
+// pribúdať“*. Počet je VŽDY z registra; mriežka unesie aj 12 dverí. Kresba dverí v továrni zatiaľ nie je
+// (okno `dvere-komnaty`), preto portál zo stupníc appky + zámok z továrne a odznak, ktorý v komnate čaká.
+export function DvereKomnat({ seen }: { seen: Set<string> }) {
+  const t = useT();
+  const pct = dogidPct();
+  const vsetky = KOMNATY.every((x) => seen.has(`odz:${x.id}`));
+  return (
+    <div className="kmn-dvere">
+      {KOMNATY.map((x) => {
+        const otv = seen.has(`odz:${x.id}`);
+        const caka = x.id === 'pes' && !otv && hotova(seen)(x);
+        return (
+          <div key={x.id} className={`kmn-dv${otv ? ' otv' : ''}`}>
+            <span className="kmn-portal">
+              <OdzImg className="zam" src={otv ? ZAMOK_OTV : ZAMOK} fallback={otv ? KLUC : ZAMOK} alt="" />
+              <OdzImg className="odz" src={x.odznak.obrazok} fallback={fallbackFor(x.id)} alt="" />
+            </span>
+            {t(`pack.wizard.k.kom.${x.id}`)}
+            {caka && <b>{pct} %</b>}
+          </div>
+        );
+      })}
+      <div className={`kmn-dv${vsetky ? ' otv' : ''}`}>
+        <span className="kmn-portal">
+          <OdzImg className="zam" src={vsetky ? ZAMOK_OTV : ZAMOK} fallback={ZAMOK} alt="" />
+          <OdzImg className="odz" src={ZNALEC.obrazok} fallback={RAM} alt="" />
+        </span>
+        {t(ZNALEC.nazov)}
+      </div>
+    </div>
+  );
+}
+
 // ─── PREHLIADKA PO KOMNATÁCH ─────────────────────────────────────────────────
 export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: string | null }) {
   const t = useT();
@@ -154,6 +203,21 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
   const setPolica = useCallback((id: KomnataId | null) => { ss.set(K_POLICA, id); setPolicaRaw(id); }, []);
   const [pripomienka, setPripomienka] = useState(false);
   const [off, setOff] = useState(wizOffLocal);
+  const [stary, setStary] = useState<boolean | null>(null);
+  const [novinky, setNovinky] = useState(false);
+  const [ukazKluc, setUkazKluc] = useState(false);
+  const [volno, setVolno] = useState(false);
+  const [pct, setPct] = useState(dogidPct);
+  // Okná po jednom: kým je otvorené iné (pravidlá, moment, list), prehliadka čaká.
+  useEffect(() => {
+    const iv = setInterval(() => setVolno(!cudzieOkno()), 500);
+    return () => clearInterval(iv);
+  }, []);
+  useEffect(() => {
+    const on = (e: Event) => setPct(Number((e as CustomEvent<number>).detail) || 0);
+    window.addEventListener('dogypt:dogid-pct', on);
+    return () => window.removeEventListener('dogypt:dogid-pct', on);
+  }, []);
   const [ja, setJa] = useState<{ meno: string; cislo: number | null; pes: string; foto: string | null }>({ meno: '', cislo: null, pes: '', foto: null });
   const done = useMemo(() => hotova(seen), [seen]);
   const pes = dogs[0];
@@ -163,6 +227,10 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
     void supabase.auth.getSession().then(({ data }) => {
       const meta = data.session?.user?.user_metadata;
       if (meta?.wiz_off === true) setOff(true);
+      // Starý člen = účet spred prehliadky alebo už videl starú prehliadku. Tester po resete ide cestou nového.
+      const created = data.session?.user?.created_at ?? '';
+      const videlStaru = Array.isArray(meta?.wiz_seen) && (meta.wiz_seen as string[]).some((id) => id.startsWith('home.'));
+      setStary(ls.get(K_NOVY) === '1' ? false : (!!created && created.slice(0, 10) < KOMNATY_OD) || videlStaru);
       if (!Array.isArray(meta?.wiz_seen)) return;
       setSeen((cur) => { const m = new Set(cur); (meta.wiz_seen as string[]).forEach((id) => m.add(id)); writeSeenLocal(m); return m; });
     });
@@ -222,26 +290,26 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
   // Komnata 0 sa zjaví sama pri prvom vstupe na FEED (raz za deň, kým ju človek neprejde).
   const k0 = KOMNATY[0];
   useEffect(() => {
-    if (off || !consentDone || akt || polica || pathname !== '/pack' || done(k0)) return;
+    if (off || !consentDone || !volno || stary === null || akt || polica || novinky || pathname !== '/pack' || done(k0)) return;
     if (ls.get(K_AUTO) === dnes()) return;
     ls.set(K_AUTO, dnes());
     if (!ls.get(K_FIRST)) ls.set(K_FIRST, dnes());
-    setAkt('uvod');
-  }, [off, consentDone, akt, polica, pathname, done, k0, setAkt]);
+    if (stary) setNovinky(true); else setAkt('uvod');
+  }, [off, consentDone, volno, stary, akt, polica, novinky, pathname, done, k0, setAkt]);
 
   // Obrazovka bez lišty (SNIFFER): komnata sa spustí sama pri prvej návšteve, raz za deň.
   useEffect(() => {
-    if (off || !consentDone || akt || polica) return;
+    if (off || !consentDone || !volno || akt || polica) return;
     const kb = KOMNATY.find((x) => x.bezListy && !done(x) && x.routes.includes(pathname));
     if (!kb || ls.get(`${K_AUTO}:${kb.id}`) === dnes()) return;
     ls.set(`${K_AUTO}:${kb.id}`, dnes());
     setAkt(kb.id);
-  }, [off, consentDone, akt, polica, pathname, done, setAkt]);
+  }, [off, consentDone, volno, akt, polica, pathname, done, setAkt]);
 
   // Pripomienka DOG ID: deň 1 · 3 · 7, potom týždenne, max 1× za deň, po 3 odmietnutiach ticho.
   const kPes = KOMNATY[1];
   useEffect(() => {
-    if (off || !consentDone || akt || polica || pathname !== '/pack' || done(kPes) || !done(k0)) return;
+    if (off || !consentDone || !volno || akt || polica || pathname !== '/pack' || (done(kPes) && pct >= 100) || !done(k0)) return;
     const first = ls.get(K_FIRST);
     if (!first) return;
     let rem: { last?: string; ign?: number } = {};
@@ -252,7 +320,7 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
     if (!due) return;
     ls.set(K_REM, JSON.stringify({ ...rem, last: dnes() }));
     setPripomienka(true);
-  }, [off, consentDone, akt, polica, pathname, done, kPes, k0]);
+  }, [off, consentDone, volno, akt, polica, pathname, done, kPes, k0, pct]);
 
   // Človek odišiel z miesta komnaty (napr. naostro ťuk otvoril DOG ID) → komnata sa zavrie, videné ostáva.
   const k = akt ? KOMNATY.find((x) => x.id === akt) ?? null : null;
@@ -287,11 +355,12 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
   // zhasol s ňou; keď sa komponent medzitým odmontuje, odznak príde na najbližšej obrazovke s lištou.
   useEffect(() => {
     if (akt || polica) return undefined;
-    const dlh = KOMNATY.find((x) => done(x) && !seen.has(`odz:${x.id}`));
+    // STRÁŽCA PSA až pri 100 % DOG ID (Matej 17. 11.); dovtedy dvere ukazujú postup.
+    const dlh = KOMNATY.find((x) => done(x) && !seen.has(`odz:${x.id}`) && (x.id !== 'pes' || pct >= 100));
     if (!dlh) return undefined;
     const t0 = window.setTimeout(() => void odmena(dlh, seen), 700);
     return () => window.clearTimeout(t0);
-  }, [akt, polica, done, seen, odmena]);
+  }, [akt, polica, done, seen, odmena, pct]);
 
   const krok = k?.kroky.find((x) => !seen.has(x.id) && !missing.has(x.id));
   // Komnata dobehla (alebo jej chýbajú kotvy) → zavrieť; odznak dá efekt „dlh“ vyššie.
@@ -324,33 +393,55 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
         <div>
           <div className="wm"><span>AI</span>NUBIS</div>
           <h2>{t('pack.wizard.k.polica')}</h2>
-          <div className="kmn-polica">
-            {KOMNATY.map((x) => {
-              const ma = seen.has(`odz:${x.id}`);
-              return (
-                <div key={x.id} className={`kmn-odz${ma ? '' : ' zamk'}`}>
-                  {ma ? <OdzImg src={x.odznak.obrazok} fallback={fallbackFor(x.id)} alt="" /> : <img src={ZAMOK} alt="" />}
-                  {t(x.odznak.nazov)}
-                </div>
-              );
-            })}
-            <div className={`kmn-odz${pocet === KOMNATY.length ? '' : ' zamk'}`}>
-              {pocet === KOMNATY.length ? <OdzImg src={ZNALEC.obrazok} fallback={RAM} alt="" /> : <img src={ZAMOK} alt="" />}
-              {t(ZNALEC.nazov)}
-            </div>
-          </div>
+          <DvereKomnat seen={seen} />
           <div className="kmn-pocet">{t('pack.wizard.k.pocet', { n: String(pocet), t: String(KOMNATY.length) })}</div>
           {poUvode ? (
             <>
               <p className="kmn-q">{t('pack.wizard.k.otazka')}</p>
               <button type="button" className="mcoach-ok" onClick={() => { setPolica(null); startKomnata('pes'); }}>{t('pack.wizard.k.teraz')}</button>
-              <button type="button" className="mcoach-mute" onClick={() => setPolica(null)}>{t('pack.wizard.k.postupne')}</button>
+              <button type="button" className="mcoach-mute" onClick={() => { setPolica(null); setUkazKluc(true); }}>{t('pack.wizard.k.postupne')}</button>
             </>
           ) : (
             <button type="button" className="mcoach-ok" style={{ marginTop: PACK_SPACE.xl }} onClick={() => setPolica(null)}>{t('pack.wizard.k.dalej')}</button>
           )}
         </div>
       </div>,
+    );
+  }
+
+  // ── ČO JE NOVÉ (starý člen) — namiesto komnaty 0; za ňu dostane ÚVODNÝ KĽÚČ ──
+  if (novinky) {
+    return portal(
+      <div className="wzc-welcome" role="dialog" aria-modal="true">
+        <div>
+          <img src={ainubisFace} alt="" aria-hidden="true" />
+          <div className="wm"><span>AI</span>NUBIS</div>
+          <h2>{t('pack.wizard.k.novinky.title')}</h2>
+          <p>{t('pack.wizard.k.novinky.body')}</p>
+          <DvereKomnat seen={seen} />
+          <button type="button" className="mcoach-ok" onClick={() => { setNovinky(false); mark(k0.kroky.map((x) => x.id)); }}>{t('pack.wizard.k.novinky.ok')}</button>
+        </div>
+      </div>,
+    );
+  }
+
+  // ── „POSTUPNE“: ukáž kľúčik, ktorý bude odteraz volať ──
+  if (ukazKluc && !akt) {
+    return (
+      <>
+        <style>{K_CSS}</style>
+        <Spot
+          key="k.kluc"
+          step={{ id: 'k.kluc', anchor: '.kmn-kluc' }}
+          body={t('pack.wizard.k.klucHint')}
+          dots={null}
+          okLabel={t('pack.wizard.k.rozumiem')}
+          onNext={() => setUkazKluc(false)}
+          onSkip={() => setUkazKluc(false)}
+          onShown={() => undefined}
+          onMissing={() => setUkazKluc(false)}
+        />
+      </>
     );
   }
 

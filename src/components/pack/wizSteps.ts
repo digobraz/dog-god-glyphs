@@ -205,9 +205,10 @@ export const KOMNATY: Komnata[] = [
   { id: 'pes', poradie: 1, spustac: 'po-uvode', routes: ['/pack/dogs'], start: '/pack/dogs',
     odznak: { id: 'pes', nazov: 'pack.wizard.k.odz.pes', obrazok: ODZ('strazca-psa') },
     kroky: [
-      { id: 'k1.fotka', anchor: '.dv2-ring', text: 'pack.wizard.k1.fotka' },
       { id: 'k1.zivot', anchor: '.dv2-sheet', klik: '.dv2-tab:nth-child(2)', text: 'pack.wizard.k1.zivot' },
       { id: 'k1.dennik', anchor: '.dv2-sheet', klik: '.dv2-tab:nth-child(3)', text: 'pack.wizard.k1.dennik' },
+      // Ťuk na fotku naozaj otvorí výber fotky (DogsHubV2); po návrate pokračuje CTA Vyplniť DOG ID.
+      { id: 'k1.fotka', anchor: '.dv2-ring', klik: '.dv2-tab:nth-child(1)', text: 'pack.wizard.k1.fotka', naostro: true },
       { id: 'k1.vyplnit', anchor: '.dv2-out', klik: '.dv2-tab:nth-child(1)', text: 'pack.wizard.k1.vyplnit', naostro: true },
     ] },
   { id: 'ja', poradie: 2, spustac: 'prva-navsteva', routes: ['/pack/profile'], start: '/pack/profile',

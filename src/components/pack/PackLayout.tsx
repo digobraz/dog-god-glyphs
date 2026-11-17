@@ -133,7 +133,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel, topLe
       {/* PRAVIDLÁ SVORKY (31. 10.): v appke kto ešte nesúhlasil s aktuálnou verziou podmienok, dostane okno nad všetkým. */}
       {APP_NEW && session && <TermsGuard />}
       {/* MOMENTY (15. 11. 2026): jeden hostiteľ pečatí, odhalení a obradov pre celú appku. */}
-      {MOMENTY_ON && session && <MomentHost />}
+      {(MOMENTY_ON || KOMNATY_ON) && session && <MomentHost />}
 
       {/* FLOATING STATUS HUB — fixed top, slim single-row pill. DEV_FULL target model
           (D4 nav rework) drops this entirely — identity moved to the bottom nav avatar,

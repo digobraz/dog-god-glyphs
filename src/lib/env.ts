@@ -64,7 +64,9 @@ export const AID_ON = TEST_BUILD;
 export const MOMENTY_ON = TEST_BUILD;
 // SYSTÉM KOMNÁT (17. 11. 2026, Matej „ano“ + „skús to postaviť nech to vidím v test appke“): nová prehliadka
 // appky po komnatách s odznakmi a kľúčikom pri AINUBISovi. Len testovací kanál; register `wizSteps.ts` KOMNATY.
-export const KOMNATY_ON = TEST_BUILD;
+// 17. 11. (Matej: „pripraviť na flip bez kompromisov“): beží aj v OBCHODNEJ appke (IS_APP = vždy APP_NEW),
+// web dogypt.com ostáva na starej prehliadke.
+export const KOMNATY_ON = TEST_BUILD || IS_APP;
 const PINNED = import.meta.env.PROD && !APP_DEV;
 
 export const SUPABASE_URL = PINNED
