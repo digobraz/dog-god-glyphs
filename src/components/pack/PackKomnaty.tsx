@@ -49,10 +49,8 @@ const RAM = '/icons/komnaty/ram.webp';
 const ZAMOK = '/icons/sys/zamok.webp';
 const KLUC = '/icons/sys/kluc.webp';
 const KLUC_AINUBIS = '/icons/sys/kluc-ainubis.webp';
-const ZAMOK_OTV = '/icons/sys/zamok-otvoreny.webp';
 // Matej 17. 11.: *„tie dvere si predstavujem asi drevené a zatvorené so zámkom, otvorené a vnútri nich bude odznak“*.
 const DVERE_ZAM = '/icons/sys/dvere-zamknute.webp';
-const DVERE_OTV = '/icons/sys/dvere-otvorene.webp';
 /** Od tohto dňa beží nová prehliadka; starší účet dostane namiesto komnaty 0 „Čo je nové“. */
 const KOMNATY_OD = '2026-11-18';
 const K_NOVY = 'dogypt_k_novy';
@@ -111,8 +109,10 @@ const K_CSS = `
 .kmn-dv{display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.xs}px;font:600 ${PACK_TEXT.micro}px ${FONT_UI};color:${AINUBIS.inkDim};text-transform:uppercase;letter-spacing:.02em;text-align:center;}
 .kmn-portal{position:relative;width:72px;height:72px;}
 .wzc-welcome .kmn-portal img.dv{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:none;}
-/* Odznak stojí v OTVORE dverí — zmerané na kresbách (otvor x 50–99, y 44–140 zo 160 px; obsah odznaku 72 % jeho plochy). */
-.wzc-welcome .kmn-portal img.odz{position:absolute;left:24.7%;top:37.3%;width:44%;height:44%;object-fit:contain;filter:none;}
+/* PREJDENÁ komnata (Matej 17. 11.): tie isté dvere vyblednuté v pozadí, odznak VEĽKÝ v popredí so zlatou žiarou
+   (farba GOLD_BTN.glow ako drop-shadow, aby kopírovala tvar odznaku). */
+.wzc-welcome .kmn-dv.otv .kmn-portal img.dv{opacity:.35;}
+.wzc-welcome .kmn-portal img.odz{position:absolute;left:6%;top:6%;width:88%;height:88%;object-fit:contain;filter:drop-shadow(0 0 10px rgba(230,158,26,.8));}
 .kmn-dv b{font-weight:600;color:${AINUBIS.cyan};}
 .kmn-pocet{font:600 ${PACK_TEXT.body}px ${FONT_UI};color:${AINUBIS.cyan};}
 .kmn-q{margin:${PACK_SPACE.lg}px 0 ${PACK_SPACE.xl}px;font:400 ${PACK_TEXT.lead}px/1.5 ${FONT_UI};color:${AINUBIS.ink};}
@@ -159,7 +159,7 @@ export function KomnataKluc() {
 // ─── DVERE KOMNÁT ────────────────────────────────────────────────────────────
 // Matej 17. 11.: *„nebude to polica odznakov, ale ako keby dvere so zámkom — komnaty, tie môžu časom
 // pribúdať“*. Počet je VŽDY z registra; mriežka unesie aj 12 dverí. Kresby dverí sú z továrne
-// (okno `dvere-komnaty` → `dvere-zamknute` / `dvere-otvorene`); odznak stojí v otvore odomknutých dverí.
+// (`dvere-zamknute`); prejdená komnata = tie isté dvere vyblednuté + veľký žiariaci odznak. `dvere-otvorene` sa nevolá.
 export function DvereKomnat({ seen }: { seen: Set<string> }) {
   const t = useT();
   const pct = dogidPct();
@@ -172,7 +172,7 @@ export function DvereKomnat({ seen }: { seen: Set<string> }) {
         return (
           <div key={x.id} className={`kmn-dv${otv ? ' otv' : ''}`}>
             <span className="kmn-portal">
-              <OdzImg className="dv" src={otv ? DVERE_OTV : DVERE_ZAM} fallback={otv ? ZAMOK_OTV : ZAMOK} alt="" />
+              <OdzImg className="dv" src={DVERE_ZAM} fallback={ZAMOK} alt="" />
               {otv && <OdzImg className="odz" src={x.odznak.obrazok} fallback={fallbackFor(x.id)} alt="" />}
             </span>
             {t(`pack.wizard.k.kom.${x.id}`)}
@@ -182,7 +182,7 @@ export function DvereKomnat({ seen }: { seen: Set<string> }) {
       })}
       <div className={`kmn-dv${vsetky ? ' otv' : ''}`}>
         <span className="kmn-portal">
-          <OdzImg className="dv" src={vsetky ? DVERE_OTV : DVERE_ZAM} fallback={vsetky ? ZAMOK_OTV : ZAMOK} alt="" />
+          <OdzImg className="dv" src={DVERE_ZAM} fallback={ZAMOK} alt="" />
           {vsetky && <OdzImg className="odz" src={ZNALEC.obrazok} fallback={RAM} alt="" />}
         </span>
         {t(ZNALEC.nazov)}
@@ -341,7 +341,7 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
     const src = (await obrazokOk(kom.odznak.obrazok)) ? kom.odznak.obrazok : fallbackFor(kom.id);
     const vsetky = KOMNATY.every((x) => x.id === kom.id || seenNow.has(`odz:${x.id}`));
     ukazMoment({
-      id: 'wizard', obrazok: src, dvere: { zamknute: DVERE_ZAM, otvorene: DVERE_OTV }, eyebrow: t('pack.wizard.k.eyebrow'), nadpis: t(kom.odznak.nazov), podnadpis: t('pack.wizard.k.badgeSub'),
+      id: 'wizard', obrazok: src, dvere: DVERE_ZAM, eyebrow: t('pack.wizard.k.eyebrow'), nadpis: t(kom.odznak.nazov), podnadpis: t('pack.wizard.k.badgeSub'),
       hotovo: () => {
         if (!vsetky) { setPolica(kom.id); return; }
         void obrazokOk(ZNALEC.obrazok).then((ok) => ukazMoment({

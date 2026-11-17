@@ -92,8 +92,7 @@ export function MomentHost() {
             </div>
           ) : m.dvere && m.obrazok ? (
             <div className="pkm-dvere" aria-hidden>
-              <img className="pkm-dv-z" src={m.dvere.zamknute} alt="" />
-              <img className="pkm-dv-o" src={m.dvere.otvorene} alt="" />
+              <img className="pkm-dv-z" src={m.dvere} alt="" />
               <img className="pkm-dv-odz" src={m.obrazok} alt="" />
             </div>
           ) : m.obrazok ? (

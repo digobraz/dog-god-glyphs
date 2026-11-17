@@ -21,8 +21,8 @@ export interface MomentData {
   podnadpis?: string;
   /** Celok, ku ktorému číslo smeruje („1 000 000“) — číslo psa sa ukazuje ako postup k severke, nie samo. */
   zCelku?: string;
-  /** Odznak za ODOMKNUTÚ KOMNATU (17. 11. 2026): dvere sa otvoria a `obrazok` dopadne do otvoru (namiesto medaily). */
-  dvere?: { zamknute: string; otvorene: string };
+  /** Odznak za PREJDENÚ KOMNATU (17. 11. 2026): zamknuté dvere vyblednú do pozadia a `obrazok` vyrastie do popredia so žiarou. */
+  dvere?: string;
   /** Medaila je lapisová (level, hodnosť), inak zlatá. */
   lapis?: boolean;
   /** Po zatvorení. */
