@@ -41,6 +41,8 @@ const NAV_APPS: { id: NavApp; name: string; logo: string }[] = [
   { id: 'waze', name: 'Waze', logo: '/nav-apps/waze.svg' },
   { id: 'mapy', name: 'Mapy.com', logo: '/nav-apps/mapy.svg' },
 ];
+/** „Toto je moja klinika“ — Matej 17. 11. 2026: „daj zatiaľ celkom preč“. Odkaz z mailu (prevzatie) žije ďalej. */
+const CLAIM_ON = false;
 const MAX_PHOTOS = 4;
 const BODY_MAX = 1200;
 const BEFORE_MAX = 600;
@@ -365,7 +367,7 @@ function KlinikaBody({ v }: { v: MapVet }) {
         </div>
       </section>
 
-      {!admin && (
+      {CLAIM_ON && !admin && (
         <button type="button" className="kl-claim" onClick={() => setSheet('claim')}>
           <SysIcon name="kluc" size={22} />{s('pack.sos.er.clClaim')}
         </button>

@@ -71,7 +71,8 @@ export function MomentHost() {
     }, 350);
   }
 
-  if (!m || !def) return <><style>{MOMENT_CSS}</style><MomentSkuska rozbaleny={ROZBALENY} /></>;
+  // Pilulka „Momenty“ pri kraji preč (Matej 17. 11. 2026: „tie momenty na kraji daj preč“) — skúška len cez `?momenty=1`.
+  if (!m || !def) return <><style>{MOMENT_CSS}</style>{ROZBALENY && <MomentSkuska rozbaleny />}</>;
   const pecat = def.velkost === 'pecat';
   return createPortal(
     <>
