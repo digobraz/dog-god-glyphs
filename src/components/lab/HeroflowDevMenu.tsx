@@ -55,7 +55,9 @@ const GROUPS: Group[] = [
       // Podstata je od 24. 9. postavená a App.tsx cestu má (26. 9. doplnené podľa
       // sondy `scripts/done-povrchy.mjs` — menu zaostalo za dielňou HeroflowLab).
       { kind: 'route', path: '/heroglyph/essence', name: '6 · Podstata', done: true },
-      { kind: 'route', path: '/heroglyph/welcome', name: '11 · Vitaj → Poradie → NA STENU', done: true },
+      // 17. 11. 2026: koniec flowu = členské → Vitaj s „Otvoriť appku“ (pokladňa €11 vypnutá 15. 11.).
+      { kind: 'route', path: '/heroglyph/vstupne', name: '10 · Dobrovoľné členské' },
+      { kind: 'route', path: '/heroglyph/welcome?free=1', name: '11 · Vitaj → Otvoriť appku' },
     ],
   },
   {
