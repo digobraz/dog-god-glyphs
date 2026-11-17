@@ -32,6 +32,10 @@ import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { ClinicPawsLine, CLINIC_PAWS_CSS } from './ClinicPawsLine';
 import { useClinicStats } from './clinicPosts';
 import { clusterByPixels } from '@/components/pack/mapnotes/clusterPoints';
+import { useFeedMarks } from '@/components/pack/feed/feedData';
+import { SaveMark } from '@/components/pack/SysIcon';
+import { useToast } from '@/hooks/use-toast';
+import { vetTarget } from './savedPlaces';
 
 /** Od tohto priblíženia sa veterinári kreslia — z diaľky v ZHLUKOCH (Matej 17. 11. 2026: „mohli by sme ich
  *  zobrazovať už s väčšej diaľky v zhluku nech je mapa viac plná"). Pôvodne 12 a čo sa prekrylo, zmizlo. */
@@ -93,6 +97,8 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
   const loc = intlLocale(lang);
   const navigate = useNavigate();
   const stats = useClinicStats(); // jedno volanie pre všetky karty
+  const marks = useFeedMarks(); // 🔖 uložiť → polica „Uložené miesta" v triplistu (`savedPlaces.ts`)
+  const { toast } = useToast();
   // DEV: rukoväť na mapu pre kontrolu z konzoly — to isté ako v `PoiLayer.tsx`, do produkcie nejde.
   if (import.meta.env.DEV) (window as unknown as { __MAP?: unknown }).__MAP = map;
   const [zoom, setZoom] = useState(() => map.getZoom());
@@ -114,7 +120,7 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
       void driveTimes(pos, [v.at]).then(([d]) => { if (d) setDrive((x) => ({ ...x, [v.cid]: d })); });
     });
   }, []);
-  const openVet = useCallback((v: MapVet) => { setSel(v); askDrive(v); }, [askDrive]);
+  const openVet = useCallback((v: MapVet) => { setSel(v); askDrive(v); marks.want([vetTarget(v.cid)]); }, [askDrive, marks]);
   const close = useCallback(() => setSel(null), []);
   useEffect(() => {
     if (!sel) return;
@@ -158,6 +164,13 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
   const now = new Date();
   const v = sel;
   const hours = v ? hoursLabel(v, s, now) : null;
+  const saved = v ? marks.get(vetTarget(v.cid)).saved : false;
+  // Akcia neodnesie človeka preč (lock architektura-pack §4.2) — len toast, kam sa to uložilo.
+  const toggleSave = () => {
+    if (!v) return;
+    marks.toggle(vetTarget(v.cid), 'save');
+    toast({ description: s(saved ? 'pack.sos.er.mapUnsavedToast' : 'pack.sos.er.mapSavedToast') });
+  };
   const host = (map.getContainer().closest('.trp-root') as HTMLElement | null) ?? document.body;
   return (
     <>
@@ -179,6 +192,10 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
             <div className="pcard vm-card" role="dialog" aria-label={v.name}>
               <div className="vm-photo">
                 <img className="pcard-photo" src={v.photo} alt="" loading="lazy" decoding="async" />
+                <button type="button" className="vm-save" onClick={toggleSave} aria-pressed={saved}
+                  aria-label={s(saved ? 'pack.sos.er.mapSavedBtn' : 'pack.sos.er.mapSave')} title={s(saved ? 'pack.sos.er.mapSavedBtn' : 'pack.sos.er.mapSave')}>
+                  <SaveMark on={saved} />
+                </button>
                 {me && (
                   <span className="vm-eta">{drive[v.cid] ? etaLabel(drive[v.cid], loc) : s('pack.sos.er.airKm', { km: kmText(distanceKm(me, v.at), loc) })}</span>
                 )}
@@ -233,6 +250,8 @@ const VET_CSS = `
   bottom:calc(var(--pack-nav-bottom,0px) + var(--pack-nav-h,84px) + ${S.md}px);display:flex;align-items:center;justify-content:center;pointer-events:none;}
 .vm-card{pointer-events:auto;flex:none;width:min(340px,calc(100vw - ${S.xxl}px));max-height:100%;overflow-y:auto;overscroll-behavior:contain;
   background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.tile}px;box-shadow:${T.panelShadow};}
+.vm-save{position:absolute;right:${S.sm}px;top:${S.sm}px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;padding:0;
+  border-radius:${PACK_R.pill}px;background:var(--p3d-paper-hi,#fff);border:1.5px solid ${T.cardEdge};box-shadow:${T.panelShadow};cursor:pointer;}
 .vm-n{position:absolute;font-style:normal;pointer-events:none;min-width:24px;height:24px;padding:0 ${S.xs}px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;
   font-family:${FONT_UI};font-weight:600;font-size:${TX.label}px;line-height:1;border-radius:${PACK_R.pill}px;color:${T.inkStrong};background:var(--p3d-paper-hi,#fff);border:1.5px solid ${T.inkStrong};}
 .vm-247{position:absolute;left:0;transform:translateX(-50%);pointer-events:none;font-style:normal;font-family:${FONT_UI};font-weight:600;font-size:${TX.micro}px;line-height:1;white-space:nowrap;

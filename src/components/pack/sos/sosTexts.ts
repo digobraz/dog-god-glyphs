@@ -292,6 +292,13 @@ export const SOS_TEXTS = {
   'pack.sos.er.mapSos': T('OPEN IN SOS', 'OTVORIŤ V SOS', 'OTEVŘÍT V SOS'),
   'pack.sos.er.mapNoTel': T('No phone number listed.', 'Telefón neuvádzajú.', 'Telefon neuvádějí.'),
   'pack.sos.er.mapGoogle': T('Open in Google', 'Otvoriť v Google', 'Otevřít v Google'),
+  // 🔖 uložiť + polica v triplistu + vypínač vo vrstvách (Matej 17. 11. 2026: „ano uložené miesta správne aj filter")
+  'pack.sos.er.mapSave': T('SAVE', 'ULOŽIŤ', 'ULOŽIT'),
+  'pack.sos.er.mapSavedBtn': T('SAVED', 'ULOŽENÉ', 'ULOŽENO'),
+  'pack.sos.er.mapSavedToast': T('Saved to Triplist, Saved places', 'Uložené do triplistu, Uložené miesta', 'Uloženo do triplistu, Uložená místa'),
+  'pack.sos.er.mapUnsavedToast': T('Removed from saved places', 'Odobraté z uložených miest', 'Odebráno z uložených míst'),
+  'pack.sos.er.savedPlaces': T('Saved places', 'Uložené miesta', 'Uložená místa'),
+  'pack.sos.er.mapLayer': T('Vets', 'Veterinári', 'Veterináři'),
   // profil kliniky + hodnotenie Dogypťanov + správca (`/pack/klinika/:cid`, 17. 11. 2026)
   // „vy" = človek a pes spolu, nie vykanie (pamäť feedback_vy_dvaja_nie_vykanie).
   'pack.sos.er.clKind': T('Clinic', 'Klinika', 'Klinika'),

@@ -66,6 +66,9 @@ import { RightGate } from '@/components/pack/RightGate';
 import { PackTopRow } from '@/components/pack/PackTopRow';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { fetchMyWishes, type MyWish } from '@/components/pack/mapnotes/wishData';
+import { fetchSavedVets } from '@/components/geo/savedPlaces';
+import { clinicPath, type MapVet } from '@/lib/clinics';
+import { useSosT } from '@/components/pack/sos/sosShared';
 import { WISHES_LIVE, APP_NEW } from '@/lib/packFlags';
 import { WIZ } from '@/components/pack/wizAnchors';
 
@@ -797,6 +800,16 @@ export default function PackTriplist() {
       .catch(() => { if (alive) setWishes([]); });
     return () => { alive = false; };
   }, [storeEpoch]);
+  // ── ULOŽENÉ MIESTA (Matej 17. 11. 2026: „ano uložené miesta správne") — 🔖 z karty veterinára na mape.
+  // Polica sa nekreslí, kým je prázdna (ten istý dôvod ako PREJDENÉ nižšie). Ťuk = profil kliniky.
+  const sosT = useSosT();
+  const [savedPlaces, setSavedPlaces] = useState<MapVet[]>([]);
+  useEffect(() => {
+    if (mg) return;
+    let alive = true;
+    fetchSavedVets().then((v) => { if (alive) setSavedPlaces(v); }).catch(() => {});
+    return () => { alive = false; };
+  }, [storeEpoch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [closeOffer, setCloseOffer] = useState<{ slug: string; who: string | null } | null>(null);
   const incoming = useIncomingRequests(reqEpoch);
@@ -1270,6 +1283,33 @@ export default function PackTriplist() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {savedPlaces.length > 0 && (
+            <div className="tl-section">
+              <div className="tl-sechead">
+                <h3>{sosT('pack.sos.er.savedPlaces')}</h3>
+              </div>
+              <div className="tl-hscroll">
+                {savedPlaces.map((v) => {
+                  const open = () => navigate(clinicPath(v.cid));
+                  return (
+                    <div key={v.cid} className="tl-mycard">
+                      <div className="tl-block" role="button" tabIndex={0} onClick={open}
+                        onKeyDown={(e) => { if (e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); open(); }}>
+                        <div className="tl-block-cover">
+                          <img className="tl-cover-img" src={v.photo} alt="" loading="lazy" decoding="async" draggable={false} />
+                        </div>
+                        <div className="tl-block-info">
+                          <div className="tl-block-name">{v.name}</div>
+                          <div className="tl-block-pendhint">{v.address}</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 

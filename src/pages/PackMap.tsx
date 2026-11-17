@@ -3270,7 +3270,7 @@ ${mobCSS(`(max-width:${PALE_PC_MIN - 1}px)`, `
 // JSX. PODKLAD (base) je vždy PRÁVE JEDEN aktívny (radio); OVERLAY (overlay) sa dá zapnúť viac
 // naraz (checkbox).
 type MapBaseId = 'outdoor' | 'aerial' | 'dogypt';
-type MapOverlayId = 'names' | 'vipers' | 'threats' | 'sleep' | 'wish';
+type MapOverlayId = 'names' | 'vipers' | 'threats' | 'sleep' | 'wish' | 'vets';
 
 /** Kontext, ktorý layer potrebuje na vyhodnotenie `disabledReason` — fog stav (prázdny/loading,
  *  spec §4 bod 4) + `isCleanMode` (Matej 2026-08-04: „pri DOGYPT zobrazení bude vidno iba hmla
@@ -3359,6 +3359,14 @@ const MAP_LAYERS: MapLayerDef[] = [
     labelKey: 'pack.map.layer.sleep',
     disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
   },
+  // VETERINÁRI (Matej 17. 11. 2026: „možno by to stálo aj za filter vo vrstvách?" → „ano … aj filter").
+  // Zapnutí od začiatku; vrstva sa kreslí len v appke (`MAP_STICKERS_ON`), preto aj vypínač len tam.
+  ...(MAP_STICKERS_ON ? [{
+    id: 'vets' as const,
+    type: 'overlay' as const,
+    labelKey: 'pack.sos.er.mapLayer',
+    disabledReason: (ctx: MapLayerCtx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
+  }] : []),
   // PRIANIA (BUDDY krok 2, 24. 9. 2026) — 🎯 kam chcú ľudia ísť. Zapnuté od začiatku:
   // je to vrstva, kvôli ktorej sa plánovanie presunulo sem (zadanie-assnif §2).
   // Za `WISHES_LIVE` (26. 9.): na LIVE do FLIPu by prepínač zapínal prázdnu vrstvu.
@@ -3412,7 +3420,7 @@ const placeZoom = (type?: string): number => {
 // `threats: true` — upozornenia svorky sú dôvod, prečo vrstva zápisov existuje;
 // vypínač je tu na to, aby si ich človek vedel odpratať, nie aby si ich musel
 // hľadať.
-const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, vipers: true, threats: true, sleep: true, wish: true };
+const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, vipers: true, threats: true, sleep: true, wish: true, vets: true };
 
 // Satelit (aerial) má dlaždice len do z19 na SK / z13 vo svete (overené v Mapy.com API
 // dokumentácii, spec-hmla.md bod 5 zadania) — nad tým dlaždica NEEXISTUJE a mapa sa vysype na
@@ -8012,7 +8020,7 @@ export default function PackMap() {
               {!isCleanMode && overlayOn.sleep && <PoiLayer tiles minZoom={SLEEP_MIN_ZOOM} drawing={mapDrawing} />}
               {/* VETERINÁRI (17. 11. 2026) — vlastný súbor a pohotovosti zo SOS, nie dlaždice OSM; počas
                   kreslenia trasy mlčia, aby ťuk na ambulanciu nezobral kotvu trasy. Len appka (samolepky). */}
-              {!isCleanMode && !mapDrawing && <VetLayer />}
+              {!isCleanMode && !mapDrawing && overlayOn.vets && <VetLayer />}
               {/* trip markery (pilulky s km, bodky-piktogramy, zhlukové bubliny s počtom) —
                   DOGYPT čistý vizuál (2026-08-04, Matej: „iba hmla a svetelné meče... žiadne
                   písmo ani vysvetlivky") ich celé skrýva, nesú číslo/piktogram na každom bode. */}
