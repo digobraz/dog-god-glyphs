@@ -49,7 +49,7 @@ type Tx = (key: string, fallback: string, vars?: Record<string, string | number>
 // nesie kontrast života, nie zákaz, takže copy ostane pravdivé aj po zapnutí
 // kampaní.
 //
-// BONES = affiliate mena. 10 BONES = €1. L1 +20 · L2 +10.
+// BONES = interná mena svorky (17. 11. 2026: bez € hodnoty, nekupuje sa, nevypláca). L1 +20 · L2 +10.
 // Dáta: get_my_network() + get_or_create_my_affiliate().
 // NOTE: Hekthor's Bowl (root-only €-counter) PARKED 2026-06-16 — data
 //   (net.founder_points / is_root) ostávajú v odpovedi, UI ich nekreslí.
@@ -64,8 +64,6 @@ const RED_EDGE = 'rgba(160,64,64,0.45)';
 // hrdina, počet línie nadpis zoznamu (`bonesSkin.ts`).
 
 const APP_ORIGIN = 'https://dogypt.com';
-const BONES_PER_EUR = 10;
-const eur = (bones: number) => (bones / BONES_PER_EUR).toFixed(2);
 // Odmeny za pozvanie — L1/L2 čísla ostávajú konštanty v kóde (nemenia sa medzi
 // jazykmi), do prekladu ide len okolitý text cez interpoláciu {l1}/{l2}.
 const L1_BONES = 20;
@@ -515,9 +513,7 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
             <b>
               {shownBones == null ? '—' : shownBones.toLocaleString(intlLocale(lang))}
               <span>
-                {IS_APP ? null : shownBones != null && shownBones > 0
-                  ? `≈ €${eur(shownBones)}`
-                  : tx('pack.network.bonesRate', '{n} bones = €1', { n: BONES_PER_EUR })}
+                {/* 17. 11. 2026: BONES = interná mena, bez € hodnoty (Matej). */}
               </span>
             </b>
           </div>
@@ -634,9 +630,7 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
             <Chain l1={l1} l2={l2} avatarUrl={avatarUrl} initial={initial} loading={loading} />
           </Step>
           <Step n={3} icon="bone" title={tx('pack.network.step3Title', 'Spend them inside DOGYPT')}>
-            {IS_APP
-              ? tx('pack.network.step3BodyApp', 'Spend them inside DOGYPT — helping dogs, claiming merch, and paying other members for what they make.')
-              : tx('pack.network.step3Body', '{n} BONES = €1. The money goes back into the mission — helping dogs, merch, and paying other members for what they make.', { n: BONES_PER_EUR })}
+            {tx('pack.network.step3Body', 'They can’t be bought or paid out. Later you will be able to get something for them, for example merch.')}
           </Step>
         </ol>
 
@@ -736,7 +730,7 @@ function WalletPanel({
                 {balance.toLocaleString(intlLocale(lang))}
               </span>
               <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, color: T.inkWarm, marginTop: 3 }}>
-                BONES{IS_APP ? '' : ` · ≈ €${(balance / BONES_PER_EUR).toFixed(2)}`}
+                BONES
               </span>
               <button type="button" onClick={onInfo} style={{ background: 'none', border: 'none', padding: 0, marginTop: 4, fontFamily: FONT_UI, fontSize: 12, color: T.cardEdge, textDecoration: 'underline', textUnderlineOffset: 3, cursor: 'pointer' }}>
                 {tx('pack.network.whatIsBones', 'What is BONES?')}
@@ -951,7 +945,7 @@ function SendStep({
             className="flex items-baseline justify-between"
             style={{ marginTop: 11, paddingTop: 8, borderTop: `1px solid ${T.hairline}`, fontFamily: FONT_UI, fontSize: 12, color: T.inkFaint }}
           >
-            {IS_APP ? <span /> : <span>≈ €<b style={{ fontFamily: FONT_UI, fontWeight: 600, fontSize: 14, color: T.inkStrong }}>{(v / BONES_PER_EUR).toFixed(2)}</b></span>}
+            <span />
             <span style={{ color: T.inkWarm }}>
               +<b style={{ fontFamily: FONT_UI, fontWeight: 600, fontSize: 14, color: T.accentGold }}>{granted.toLocaleString(intlLocale(lang))}</b> {tx('pack.network.devotionWord', 'devotion')}
             </span>
@@ -1679,16 +1673,15 @@ const INFO = {
     capKey: 'pack.network.info.bones.cap', capFallback: 'What is BONES?',
     bodyKey: 'pack.network.info.bones.body',
     bodyFallback:
-      'BONES is DOGYPT’s internal currency — a playful name for a real thing. A dog pays in bones; '
-      + 'so do we. You <b>earn</b> them by bringing dog lovers into the pack and by moving the movement '
-      + 'forward, and you <b>spend</b> them inside DOGYPT: backing shelter collections, claiming merch, and '
-      + 'later paying other Dogyptians for what they make. <b>{n} BONES = €1.</b>',
+      'BONES are the pack’s internal currency. You <b>earn</b> them through activity for the pack, such as '
+      + 'bringing dog people in. They can’t be bought or paid out. Later you will be able to get something '
+      + 'for them, for example merch.',
   },
 } as const;
 
 const INFO_BONES_APP =
-  'BONES is DOGYPT’s internal currency — a playful name for a real thing. You <b>earn</b> them by bringing dog lovers into the pack '
-  + 'and by moving the movement forward, and you <b>spend</b> them inside DOGYPT.';
+  'BONES are the pack’s internal currency. You <b>earn</b> them through activity for the pack, such as bringing dog people in. '
+  + 'They can’t be bought or paid out. Later you will be able to get something for them, for example merch.';
 
 function InfoPanel({ variant, onClose }: { variant: 'why' | 'bones'; onClose: () => void }) {
   const t = useT();
@@ -1702,7 +1695,7 @@ function InfoPanel({ variant, onClose }: { variant: 'why' | 'bones'; onClose: ()
     ? tx(c.bodyKey, c.bodyFallback, { l1: L1_BONES, l2: L2_BONES })
     : IS_APP
       ? tx('pack.network.info.bones.bodyApp', INFO_BONES_APP)
-      : tx(c.bodyKey, c.bodyFallback, { n: BONES_PER_EUR });
+      : tx(c.bodyKey, c.bodyFallback);
   return (
     // z-[70]: rovnaký dôvod ako vo `WalletPanel` — nad `.ainubis-launcher` (z-index 60).
     <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true">

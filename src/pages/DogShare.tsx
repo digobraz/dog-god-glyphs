@@ -440,7 +440,7 @@ export default function DogShare() {
                   {t('dogPage.joinUs')}
                 </a>
                 {/* ── +20 KOSTÍ — LEN pri členovi (hosť nemá profil). ⚠️ Druhý riadok je povinný:
-                    kosti pristanú na účte MAJITEĽA (10 BONES = 1 €), transparentnosť je pilier misie. */}
+                    kosti pristanú na účte MAJITEĽA (BONES = interná mena, bez € hodnoty), transparentnosť je pilier misie. */}
                 {!isGuest && (
                   <div className="dogshare-bones">
                     <span className="dogshare-bones-main">

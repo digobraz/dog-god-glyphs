@@ -1060,7 +1060,7 @@ export const cs: Partial<Dict> = {
   'transparency.part.development.note':
     'Budujeme národ a financujeme všechno, na čem stojí — lidi, kteří DOGYPT ženou kupředu, i služby, nástroje a servery za nimi. To je motor celého hnutí a každý jednotlivý výdaj bude doložený a zveřejněný úplně otevřeně.',
   'transparency.part.affiliate.note':
-    'Žádné reklamy — lidi. Tohle jde rovnou na účty Dogypťanů, kteří šíří víru, vyplacené v BONES: utrať je později uvnitř DOGYPT, nebo je daruj psům v nouzi. Investujeme do smečky, nikdy do drahého marketingu — smečka roznese slovo mnohem dál.',
+    'Ne reklamy, lidé. Tohle jde přímo Dogyptanům, kteří šíří víru, v BONES, vnitřní měně smečky. Investujeme do smečky, ne do drahého marketingu: smečka nese poselství mnohem dál.',
   'transparency.part.directHelp.note':
     'Rovnou psům v nouzi — útulkům, na žrádlo, veterinu a záchranné mise. Žádní prostředníci, žádná režie: tenhle podíl jde tam, kde se trpí, a každý jediný haléř je doložený, doklady k němu existují a vidí ho celá smečka.',
   'transparency.part.hekthorBowl.note':
@@ -1801,7 +1801,7 @@ export const cs: Partial<Dict> = {
   "pack.invite.examplePart4": "vyděláš",
   "pack.invite.examplePart5": "navíc.",
   "pack.invite.examplePart6": "Tvá linie ti platí dál — tlapka po tlapce.",
-  "pack.invite.bonesRate": "10 BONES = 1 € — utrať je uvnitř DOGYPT.",
+  "pack.invite.bonesRate": "BONES jsou vnitřní měna smečky. Nedají se koupit ani vyplatit.",
   "pack.invite.brings": "přivede",
   // pack.settings
   "pack.settings.account": "Účet",
@@ -4672,7 +4672,7 @@ export const cs: Partial<Dict> = {
   'pack.hero.editProfile': 'Upravit profil',
   'pack.hero.editProfileShort': 'Profil',
   'pack.hero.popBones1': 'BONES jsou měnou DOGYPTU. Dneska je získáš tak, že sem přivedeš někoho dalšího — za přítele +20 🦴, a když přivede dalšího on, ještě +10 🦴. Vidíš je tady, na téhle pilulce.',
-  'pack.hero.popBones2': 'Utratit se budou dát později — merch, podpora útulků a sbírek, AI kredity. Nic, co nasbíráš teď, se neztratí.',
+  'pack.hero.popBones2': 'Později se za ně bude dát něco získat, například merch. Nic, co nasbíráš teď, se neztratí.',
   'pack.hero.popBonesCta': 'Pozvi přítele',
   'pack.hero.popBonesEyebrow': 'Měna',
   'pack.hero.popClose': 'Zavřít',
@@ -4840,7 +4840,7 @@ export const cs: Partial<Dict> = {
   'pack.network.allBones': 'Všechno {n}',
   'pack.network.back': 'Zpět',
   'pack.network.bonesLabel': 'Tvoje BONES',
-  'pack.network.bonesRate': '{n} BONES = 1 €',
+  'pack.network.bonesRate': 'Vnitřní měna, není na prodej.',
   'pack.network.bonesUnit': 'bones',
   'pack.network.capHintLog': 'Strop 1:1 — dar dokáže vyrovnat jen to, co jsi už odžil.',
   'pack.network.capHintRow': 'Strop 1:1 — dar vyrovnává to, co jsi odžil',
@@ -4859,7 +4859,7 @@ export const cs: Partial<Dict> = {
   'pack.network.generatingLink': 'Generujeme tvůj odkaz…',
   'pack.network.groupDirect': 'přímo',
   'pack.network.groupTheirBrings': 'jejich pozvání',
-  'pack.network.info.bones.body': 'BONES je vnitřní měna DOGYPT — hravé jméno pro reálnou věc. Pes platí kostmi; my taky. <b>Vyděláváš</b> je tím, že přivádíš pejskaře do smečky a posouváš hnutí vpřed, a <b>utratíš</b> je uvnitř DOGYPT: podporou sbírek pro útulky, získáním merche a později platbou ostatním Dogyptianům za to, co tvoří. <b>{n} BONES = 1 €.</b>',
+  'pack.network.info.bones.body': 'BONES jsou vnitřní měna smečky. <b>Získáváš</b> je aktivitou pro smečku, například přivedením pejskařů. Nedají se koupit ani vyplatit. Později se za ně bude dát něco získat, například merch.',
   'pack.network.info.bones.cap': 'Co jsou BONES?',
   'pack.network.info.why.body': 'Hnutí téhle velikosti se nedá koupit — žádný rozpočet neosloví cizího člověka tak, jak jeden Dogyptian osloví přítele. Proto smečka dává odměnu tam, kde je dosah — k tobě. Když se někdo přidá přes tvůj odkaz, dostaneš <b>{l1} BONES</b>; když přivede dalšího, dostaneš ještě <b>{l2}</b>. Každý Dogyptian, který šíří slovo, není prodejce — je misionář, a téhle práce si vážíme.',
   'pack.network.info.why.cap': 'Proč tě žádáme',
@@ -4893,9 +4893,9 @@ export const cs: Partial<Dict> = {
   'pack.network.step1Title': 'Sdílej svůj odkaz',
   'pack.network.step2Body': 'Pokud si přes tvůj odkaz někdo vytvoří <strong style="color:#2a1608;font-weight:600">HEROGLYF</strong>, získáš <strong style="color:#2a1608;font-weight:600">{l1} BONES</strong>. Pokud tenhle člen taky někoho přivede, on získá {l1} a <strong style="color:#2a1608;font-weight:600">ty {l2} BONES</strong>.',
   'pack.network.step2Title': 'Přidají se — dostaneš BONES',
-  'pack.network.step3Body': '{n} BONES = 1 €. Peníze se vracejí zpátky do mise — pomoc psům, merch a platby ostatním členům za to, co tvoří.',
-  'pack.network.step3BodyApp': "Utrácej je uvnitř DOGYPT — pomáhej psům, získávej merch a plať ostatním členům za to, co vytvářejí.",
-  'pack.network.info.bones.bodyApp': "BONES je vnitřní měna DOGYPT — hravé jméno pro reálnou věc. Pes platí kostmi; my taky. <b>Vyděláváš</b> je tím, že přivádíš pejskaře do smečky a posouváš hnutí vpřed, a <b>utratíš</b> je uvnitř DOGYPT: podporou sbírek pro útulky, získáním merche a později platbou ostatním Dogyptianům za to, co tvoří.",
+  'pack.network.step3Body': 'Nedají se koupit ani vyplatit. Později se za ně bude dát něco získat, například merch.',
+  'pack.network.step3BodyApp': "Nedají se koupit ani vyplatit. Později se za ně bude dát něco získat, například merch.",
+  'pack.network.info.bones.bodyApp': "BONES jsou vnitřní měna smečky. <b>Získáváš</b> je aktivitou pro smečku, například přivedením pejskařů. Nedají se koupit ani vyplatit. Později se za ně bude dát něco získat, například merch.",
   'pack.network.step3Title': 'Utratíš je uvnitř DOGYPT',
   'pack.network.toast.cappedSuffix': ' (strop)',
   'pack.network.toast.copiedDesc': 'Sdílej ho a rozrůstej svoji linii.',

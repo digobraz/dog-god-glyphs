@@ -74,6 +74,7 @@ const SRC_W = 340;
 const THREAD_W = 760;
 
 /** Ozvena mozgu za vláknom (D1, 24. 9.) — vypnutá 8. 10. 2026, za chatom je mriežka. */
+const SHOW_CREDITS_MOCK = false; // 17. 11. 2026: maketa kreditov skrytá, kým nie sú reálne limity
 const ECHO = false;
 
 export const VAULT_CHAT_CSS = `
@@ -1308,6 +1309,9 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
               stane pri nule — a maketa radšej prizná, že nepočíta, než aby
               ukázala číslo, ktoré si vymyslela.
               [[feedback_maketa_radsej_prizna_ze_nehlada]] */}
+          {/* 17. 11. 2026: maketa kreditov SKRYTÁ (Matej: AI kredity nie sú napojené na reálny limit).
+              Vráť, až keď platia limity po flipe. */}
+          {SHOW_CREDITS_MOCK && (
           <div className="akc-sec">
             <div className="akc-eb">credits</div>
             <p>
@@ -1315,6 +1319,7 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
               questions a member gets, and what happens at zero, is still open.
             </p>
           </div>
+          )}
 
           <div className="akc-sec">
             <div className="akc-eb">conversations</div>
