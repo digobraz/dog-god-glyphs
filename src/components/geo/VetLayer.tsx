@@ -24,7 +24,9 @@ import { PLACE_CARD_CSS } from './PlaceCard';
 import { useSosT, type SosT } from '@/components/pack/sos/sosShared';
 import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { VET_EMERGENCY, closesAt, isOpenAt, opensAt, vetNavUrl, type VetPlace } from '@/lib/vetEmergency';
+import { VET_EMERGENCY, closesAt, distanceKm, isOpenAt, opensAt, vetNavUrl, type VetPlace } from '@/lib/vetEmergency';
+import { driveTimes, type DriveTime } from '@/components/pack/addtrip/mapProxyClient';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 
 /** Od tohto priblíženia sa veterinári kreslia. Nižšie než spacie miesta (15): veterinára človek
  *  hľadá na úrovni mesta, nie chodníka — a rozostup v pixeloch nedovolí, aby sa nakopili. */
@@ -38,14 +40,17 @@ const PAN_BR: [number, number] = [20, 110];
 
 type Sched = NonNullable<VetPlace['sched']>;
 /** Riadok `mapa-v1.json` — krátke kľúče, súbor ide po sieti. */
-type Raw = { id: string; n: string; a: string; at: [number, number]; t?: string[]; h?: 'nonstop' | 'onsite' | 'ask'; s?: Sched; r?: number; c?: number; g: string; w?: string };
+/** `p` = fotka v `public/vet/m/` (z webu ambulancie alebo z Google profilu); bez nej kreslený obrázok. */
+type Raw = { p?: string; id: string; n: string; a: string; at: [number, number]; t?: string[]; h?: 'nonstop' | 'onsite' | 'ask'; s?: Sched; r?: number; c?: number; g: string; w?: string };
 type MapVet = {
   id: string; name: string; address: string; at: [number, number]; tels: string[];
   /** tvar, ktorému rozumejú `isOpenAt` / `closesAt` / `opensAt` z pohotovosti */
   clock: Pick<VetPlace, 'hours' | 'sched' | 'weekdays'>;
   google?: { rating: number; count?: number }; googleUrl?: string; navUrl: string | null;
-  sos: boolean; nonstop: boolean;
+  sos: boolean; nonstop: boolean; photo: string;
 };
+// Ambulancia bez vlastnej fotky: tá istá zjavne vymyslená kresba ako v SOS (Matej 5. 11. 2026).
+const NO_PHOTO = '/vet/_bez-fotky.jpg';
 
 let filePromise: Promise<MapVet[]> | null = null;
 function loadFile(): Promise<MapVet[]> {
@@ -57,7 +62,7 @@ function loadFile(): Promise<MapVet[]> {
       ...(v.r ? { google: { rating: v.r, count: v.c } } : {}),
       googleUrl: v.g,
       navUrl: `https://www.google.com/maps/dir/?api=1&destination=${v.at[0]},${v.at[1]}`,
-      sos: false, nonstop: v.h === 'nonstop' || v.h === 'onsite',
+      sos: false, nonstop: v.h === 'nonstop' || v.h === 'onsite', photo: v.p ? `/vet/m/${v.p}` : NO_PHOTO,
     })))
     // Zlyhanie je tiché: chýbajúci veterinár na mape je menšie zlo než hlásenie o sieti nad mapou.
     // Sľub sa zahodí, aby sa pri ďalšom priblížení skúsilo znova.
@@ -71,7 +76,7 @@ const SOS_VETS: MapVet[] = VET_EMERGENCY.filter((p) => !p.home).map((p) => ({
   clock: { hours: p.hours, sched: p.sched, weekdays: p.weekdays },
   ...(p.google ? { google: { rating: p.google.rating, count: p.google.count }, googleUrl: p.google.url } : {}),
   navUrl: vetNavUrl('google', p),
-  sos: true, nonstop: p.hours === 'onsite' || p.hours === 'nonstop',
+  sos: true, nonstop: p.hours === 'onsite' || p.hours === 'nonstop', photo: p.photo?.src ?? NO_PHOTO,
 }));
 
 const icon = (v: MapVet, zoom: number) => {
@@ -81,6 +86,30 @@ const icon = (v: MapVet, zoom: number) => {
     html: stickerImg(STICKER, v.sos ? ' vm-sos' : '', px) + (v.nonstop ? `<i class="vm-247" style="top:${px / 2 - 4}px">24/7</i>` : ''),
   });
 };
+
+// ── KM A MINÚTY (Matej 17. 11. 2026: „koľko km/min sú od človeka ako pri pohotovosti") ─────
+// Poloha sa berie LEN keď ju človek appke už povolil — bublina na mape nesmie sama vyvolať
+// systémovú otázku na polohu (v SOS je to núdza a pýta sa rovno; tu si človek len prezerá mapu).
+let mePromise: Promise<[number, number] | null> | null = null;
+function myPosition(): Promise<[number, number] | null> {
+  mePromise ||= (async () => {
+    try {
+      if (!navigator.geolocation || !navigator.permissions) return null;
+      const st = await navigator.permissions.query({ name: 'geolocation' });
+      if (st.state !== 'granted') return null;
+      return await new Promise<[number, number] | null>((res) => navigator.geolocation.getCurrentPosition(
+        (p) => res([p.coords.latitude, p.coords.longitude]), () => res(null), { timeout: 8000, maximumAge: 300000 }));
+    } catch { return null; }
+  })();
+  return mePromise;
+}
+/** „8 km · 12 min" — zhodné s kartou pohotovosti; kým trasa nedorazí, vzdušná čiara. */
+function etaLabel(d: DriveTime, loc: string): string {
+  const km = d.lengthM / 1000;
+  const dist = km < 1 ? km.toLocaleString(loc, { maximumFractionDigits: 1 }) : String(Math.round(km));
+  const min = Math.max(1, Math.round(d.durationS / 60));
+  return `${dist} km · ${min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${min % 60} min`}`;
+}
 
 const hm = (h: number) => { const x = h % 24; return `${Math.floor(x)}:${String(Math.round((x % 1) * 60)).padStart(2, '0')}`; };
 
@@ -119,6 +148,16 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
   const onZoomEnd = useCallback(() => setZoom(map.getZoom()), [map]);
   const onMoveEnd = useCallback(() => { if (!popupOpen.current) setMoveTick((n) => n + 1); }, []);
   const onPopupOpen = useCallback(() => { popupOpen.current = true; }, []);
+  // Otvorená karta: poloha (ak je povolená) → hneď vzdušná čiara, potom čas autom. Jeden dopyt na kartu.
+  const [me, setMe] = useState<[number, number] | null>(null);
+  const [drive, setDrive] = useState<Record<string, DriveTime>>({});
+  const askDrive = useCallback((v: MapVet) => {
+    void myPosition().then((pos) => {
+      if (!pos) return;
+      setMe(pos);
+      void driveTimes(pos, [v.at]).then(([d]) => { if (d) setDrive((x) => ({ ...x, [v.id]: d })); });
+    });
+  }, []);
   const onPopupClose = useCallback(() => { popupOpen.current = false; setMoveTick((n) => n + 1); }, []);
   useMapEvent('zoomend', onZoomEnd);
   useMapEvent('moveend', onMoveEnd);
@@ -163,9 +202,15 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
       {items.map((v) => {
         const hours = hoursLabel(v, s, now);
         return (
-          <Marker key={`vet-${v.id}`} position={v.at} icon={icon(v, zoom)} zIndexOffset={v.sos ? -400 : -500} title={v.name}>
+          <Marker key={`vet-${v.id}`} position={v.at} icon={icon(v, zoom)} zIndexOffset={v.sos ? -400 : -500} title={v.name} eventHandlers={{ popupopen: () => askDrive(v) }}>
             <Popup className="poi-popup vm-popup" closeButton={false} autoPanPaddingTopLeft={PAN_TL} autoPanPaddingBottomRight={PAN_BR}>
               <div className="pcard">
+                <div className="vm-photo">
+                  <img className="pcard-photo" src={v.photo} alt="" loading="lazy" decoding="async" />
+                  {me && (
+                    <span className="vm-eta">{drive[v.id] ? etaLabel(drive[v.id], loc) : s('pack.sos.er.airKm', { km: Math.round(distanceKm(me, v.at)) })}</span>
+                  )}
+                </div>
                 <div className="pcard-body">
                   <div className="pcard-kind">{s(v.sos ? 'pack.sos.er.title' : 'pack.sos.er.mapKind')}</div>
                   <div className="pcard-name">{v.name}</div>
@@ -214,6 +259,8 @@ const VET_CSS = `
 .mk-sticker.vm-sos{filter:drop-shadow(0 0 2px ${T.sosRed}) drop-shadow(0 0 2px ${T.sosRed});}
 .vm-247{position:absolute;left:0;transform:translateX(-50%);pointer-events:none;font-style:normal;font-family:${FONT_UI};font-weight:600;font-size:${TX.micro}px;line-height:1;white-space:nowrap;
   padding:${S.xs}px ${S.xs}px;border-radius:${PACK_R.pill}px;color:#fff;background:${T.sosRed};border:1.5px solid var(--p3d-paper-hi);}
+.vm-photo{position:relative;}
+.vm-eta{position:absolute;left:${S.sm}px;top:${S.sm}px;display:inline-flex;align-items:center;min-height:24px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;background:${AINUBIS.ctaGrad};color:${T.inkStrong};font-size:${TX.label}px;line-height:1.2;font-weight:600;white-space:nowrap;}
 .vm-pill{align-self:flex-start;display:inline-flex;align-items:center;min-height:24px;padding:${S.xs}px ${S.sm}px;border-radius:${PACK_R.pill}px;
   font-size:${TX.micro}px;font-weight:600;letter-spacing:.02em;line-height:1.2;background:${T.tileBg};border:1px solid ${T.cardEdge};color:${T.inkWarm};}
 .vm-pill.on{background:${T.growGreen};border-color:${T.growGreen};color:#fff;}
