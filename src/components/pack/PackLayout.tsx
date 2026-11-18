@@ -86,9 +86,12 @@ interface PackLayoutProps {
   topLeft?: ReactNode;
   /** Stred horného radu (FEED: číslo verzie appky pre zakladateľa a testerov). */
   topCenter?: ReactNode;
+  /** Kôš 3 (ROBÍM ÚLOHU) = bez spodnej lišty, len šípka späť. Lock architektura-pack §3:
+   *  editor profilu — Matej: „pri /profile by nebol spodný nav, ale len krok späť“ (18. 11. 2026 pre `/pack/profile/edit`). */
+  noNav?: boolean;
 }
 
-export function PackLayout({ children, title, subtitle, onBack, backLabel, topLeft, topCenter }: PackLayoutProps) {
+export function PackLayout({ children, title, subtitle, onBack, backLabel, topLeft, topCenter, noNav = false }: PackLayoutProps) {
   const t = useT();
   const navigate = useNavigate();
   const { session, loading, dogs, devotion, bones, avatarUrl, avatarInitial, packTotal, packToday } = usePackIdentity();
@@ -207,7 +210,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel, topLe
 
       {/* Floating pill nav — dolný (Home · Map · Avatar, D4 nav rework). LIVE: skryté
           (orezaný pack). */}
-      <PackBottomNav avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
+      {!noNav && <PackBottomNav avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />}
       <MessagingOverlayHost />
     </div>
   );

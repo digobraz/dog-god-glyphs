@@ -564,7 +564,7 @@ export default function PackProfile() {
   const soon = () => toast({ title: tx('pack.edit.soon', 'Coming soon.') }); // len web (v appke je AddMember skrytý)
 
   return (
-    <PackLayout onBack={() => (canStepBack() ? navigate(-1) : navigate('/pack/profile'))} backLabel={tx('pack.edit.back', 'Back')}>
+    <PackLayout onBack={() => (canStepBack() ? navigate(-1) : navigate('/pack/profile'))} backLabel={tx('pack.edit.back', 'Back')} noNav>
       <style>{PILL_CSS}</style>
       <style>{PF_FIELD_CSS}</style>
       <style>{ROWS_CSS}</style>
