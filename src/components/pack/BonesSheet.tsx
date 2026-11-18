@@ -135,6 +135,10 @@ html.papyrus3d .bs-body{color:var(--p3d-ink);}
 html.papyrus3d .bs-body .pkb-bar{border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
 `;
 
+const BONES_WHAT =
+  'BONES are the pack’s internal currency. You <b>earn</b> them through activity for the pack, such as bringing dog people in. '
+  + 'They can’t be bought or paid out. Later you will be able to get something for them, for example merch.';
+
 function BonesSheetApp({ avatarUrl, initial, onClose, onShare, shareLink }: {
   /** Zostatok nesie `PackNetwork` sám (živé RPC) — prop ostáva kvôli volajúcim. */
   bones: number;
@@ -146,32 +150,16 @@ function BonesSheetApp({ avatarUrl, initial, onClose, onShare, shareLink }: {
   shareLink?: string;
 }) {
   const t = useT();
-  const { lang } = useLang();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
-  const [stats, setStats] = useState<Stats | null>(null);
-  useEffect(() => { getPackStats<Stats>().then(setStats).catch(() => {}); }, []);
-  const fmt = (n: number) => n.toLocaleString(intlLocale(lang));
-  // Verejný počet = psy s číslom (`dogs`), nie členovia — „číslo patrí psovi" (17. 10. 2026).
-  const dogs = stats?.dogs ?? stats?.total ?? 0;
-  const fillW = `${Math.min(100, (dogs / GOAL) * 100)}%`;
 
   return (
     <PackPopup title="BONES" onClose={onClose}>
       <style>{APP_CSS}</style>
       <div className="bs-body">
-        {/* MISIA sedí v tyrkysovom hrdinovi `PackNetwork` (23. 10. 2026) — jeden blok so stavom BONES. */}
+        {/* Pod zostatkom jedna veta, ČO BONES SÚ — misia odišla do upozornení (Matej 18. 11. 2026:
+            „tu by som nedával info o našej misii, to bude v upozorneniach"). Text = schválený `info.bones.body`, preložený vo všetkých jazykoch. */}
         <PackNetwork avatarUrl={avatarUrl} initial={initial} bare onShare={onShare} shareLink={shareLink} mission={
-          <>
-            <div className="r">
-              <span>{tx('pack.bones.mission', 'The mission')}</span>
-              <span><b>{stats ? fmt(dogs) : '—'}</b> / {fmt(GOAL)} {tx('pack.notif.dogsWord', 'dogs')}</span>
-            </div>
-            <div className="pkb-bar"><i style={{ width: fillW }} /></div>
-            <p>
-              {stats?.total != null && <>{fmt(stats.total)} {tx('pack.notif.peopleWord', 'people')} · </>}
-              {tx('pack.bones.line', 'Every dog you bring moves this line.')}
-            </p>
-          </>
+          <p dangerouslySetInnerHTML={{ __html: tx('pack.network.info.bones.body', BONES_WHAT) }} />
         } />
       </div>
     </PackPopup>
