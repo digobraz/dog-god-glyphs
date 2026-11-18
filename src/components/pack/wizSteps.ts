@@ -249,7 +249,7 @@ export const KOMNATY: Komnata[] = [
   { id: 'ja', poradie: 2, spustac: 'prva-navsteva', routes: ['/pack/profile'], start: '/pack',
     odznak: { id: 'ja', nazov: 'pack.wizard.k.odz.ja', obrazok: ODZ('kronikar') },
     uci: [
-      { id: 'levely', uk: 'k2.levely' }, { id: 'bones', uk: 'k2.bones' }, { id: 'upravit', uk: 'k2.upravit' }, { id: 'zapis', uk: 'k2.labkaTuk' },
+      { id: 'levely', uk: 'k2.levely' }, { id: 'bones', uk: 'k2.bones' }, { id: 'upravit', uk: 'k2.upravit' }, { id: 'zapis', uk: 'k2.labkaTuk', since: '2026-11-18' },
     ],
     kroky: [
       { id: 'k2.navFotka', anchor: WIZ.navMe, na: '/pack', tuk: true, text: tx('k2.navFotka') },

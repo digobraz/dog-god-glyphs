@@ -4,7 +4,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getConsent } from '@/lib/consent';
-import { ukazMoment } from './moment/momentBus';
+import { ukazMoment, listeners } from './moment/momentBus';
+import { MomentHost } from './moment/MomentHost';
 import { KOMNATY, ZNALEC, komnataFor, komnataHotova, novePolozky, type Komnata, type KomnataId } from './wizSteps';
 import { Spot, WIZ_CSS, ainubisFace, forgetShown, logWiz, pushSeenToAccount, readSeenLocal, writeSeenLocal, wizOffLocal, type WizAction } from './PackWizard';
 import { MAP_COACH_CSS } from './MapCoach';
@@ -199,8 +200,8 @@ ${PROGRESS_CSS}
 @media (max-height:720px){.wzc-welcome.kmn-ov .wm{display:none;}}
 /* Znalec chrámu = cieľ pod dverami s progresom. */
 .kmn-goal{display:flex;align-items:center;gap:${PACK_SPACE.md}px;width:100%;box-sizing:border-box;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border:1px solid ${AINUBIS.ctaEdge};border-radius:${PACK_R.tile}px;text-align:left;}
-.wzc-welcome .kmn-goal img{width:40px;height:40px;flex:none;filter:none;opacity:.5;}
-.wzc-welcome .kmn-goal.ok img{opacity:1;filter:drop-shadow(0 0 8px rgba(230,158,26,.8));}
+.wzc-welcome.kmn-ov .kmn-goal img{width:40px;height:40px;flex:none;filter:none;opacity:.5;}
+.wzc-welcome.kmn-ov .kmn-goal.ok img{opacity:1;filter:drop-shadow(0 0 8px rgba(230,158,26,.8));}
 .kmn-goal b{display:block;color:${AINUBIS.ctaA};font:700 ${PACK_TEXT.body}px ${FONT_UI};}
 .kmn-goal small{display:block;color:${AINUBIS.inkDim};font:500 ${PACK_TEXT.label}px ${FONT_UI};}
 .kmn-goal .pk-progress{margin-top:${PACK_SPACE.xs}px;background:${AINUBIS.edge};}
@@ -215,12 +216,12 @@ ${PROGRESS_CSS}
   border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.xl}px);box-shadow:${AINUBIS.panelShadow};text-align:left;animation:wzc-in .3s ease;}
 .kmn-grip{width:40px;height:4px;border-radius:${PACK_R.pill}px;background:${AINUBIS.edgeStrong};margin:0 auto ${PACK_SPACE.md}px;}
 .kmn-sheet h4{display:flex;align-items:center;gap:${PACK_SPACE.md}px;margin:0 0 ${PACK_SPACE.md}px;font:700 ${PACK_TEXT.h2}px ${FONT_TITLE};color:${AINUBIS.ink};} /* písmo: nadpis */
-.kmn-sheet h4 img{width:52px;height:52px;object-fit:contain;}
+.wzc-welcome.kmn-ov .kmn-sheet h4 img{width:52px;height:52px;object-fit:contain;}
 .kmn-sheet h4 small{display:block;font:600 ${PACK_TEXT.micro}px ${FONT_UI};color:${AINUBIS.ctaA};letter-spacing:.22em;text-transform:uppercase;}
 .kmn-chk{list-style:none;margin:0 0 ${PACK_SPACE.lg}px;padding:0;}
 .kmn-chk li{display:flex;gap:${PACK_SPACE.sm}px;align-items:center;padding:${PACK_SPACE.sm}px 0;border-bottom:1px solid ${AINUBIS.edge};font:400 ${PACK_TEXT.body}px ${FONT_UI};color:${AINUBIS.ink};}
 .kmn-chk li i{font-style:normal;width:22px;height:22px;flex:0 0 22px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;font:700 ${PACK_TEXT.label}px ${FONT_UI};}
-.kmn-chk li i img{width:16px;height:16px;object-fit:contain;}
+.wzc-welcome.kmn-ov .kmn-chk li i img{width:16px;height:16px;object-fit:contain;}
 .kmn-chk li.ok i{background:${AINUBIS.okTint};}
 .kmn-chk li.no i{border:1px solid ${AINUBIS.edgeStrong};}
 .kmn-chk li.new i{background:${AINUBIS.ctaGrad};color:${AINUBIS.ctaInk};}
@@ -351,7 +352,18 @@ function KomnataSheet({ k, seen, onClose, onStart }: { k: Komnata; seen: Set<str
 }
 
 // ─── PREHLIADKA PO KOMNATÁCH ─────────────────────────────────────────────────
-export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: string | null }) {
+/** Obálka: obrazovky bez hostiteľa momentov (mapa, rovina AINUBIS) by odznak nikdy neukázali — vtedy si ho montujeme sami. */
+export function PackKomnaty(props: { dogs: PackDog[]; avatarUrl: string | null }) {
+  const [vlastnyHost, setVlastnyHost] = useState(false);
+  return (
+    <>
+      <PackKomnatyJadro {...props} potrebujeHosta={() => { if (!listeners.size) setVlastnyHost(true); }} />
+      {vlastnyHost && <MomentHost />}
+    </>
+  );
+}
+
+function PackKomnatyJadro({ dogs, avatarUrl, potrebujeHosta }: { dogs: PackDog[]; avatarUrl: string | null; potrebujeHosta: () => void }) {
   const t = useT();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -502,6 +514,7 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
   const odmena = useCallback(async (kom: Komnata, seenNow: Set<string>) => {
     if (seenNow.has(`odz:${kom.id}`) || readSeenLocal().has(`odz:${kom.id}`)) return;
     mark([`odz:${kom.id}`]);
+    potrebujeHosta();
     const src = (await obrazokOk(kom.odznak.obrazok)) ? kom.odznak.obrazok : fallbackFor(kom.id);
     const vsetky = KOMNATY.every((x) => x.id === kom.id || seenNow.has(`odz:${x.id}`));
     ukazMoment({
@@ -514,7 +527,7 @@ export function PackKomnaty({ dogs, avatarUrl }: { dogs: PackDog[]; avatarUrl: s
         }));
       },
     });
-  }, [mark, t, setPolica]);
+  }, [mark, t, setPolica, potrebujeHosta]);
 
   // Hotová komnata bez odznaku → odznak. Až o chvíľu: ťuk práve otvára inú stránku a moment by zhasol s ňou;
   // keď sa komponent medzitým odmontuje, odznak príde na najbližšej obrazovke s lištou.
