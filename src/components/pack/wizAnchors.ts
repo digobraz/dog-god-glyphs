@@ -36,7 +36,7 @@ export const WIZ = {
 
 /** Kotvy, ktoré sú OKRÚHLE/pilulkové — spotlight im nesmie dať 18px radius
  *  (Matej 24. 8.: „zasvietiť v navigácii tú ikonku"). */
-export const WIZ_ROUND: readonly string[] = [WIZ.navHome, WIZ.navMap, WIZ.navAdd, WIZ.navAinubis, WIZ.navMe, WIZ.aiTerc, '.ainubis-launcher', '.sos-btn'];
+export const WIZ_ROUND: readonly string[] = [WIZ.navHome, WIZ.navMap, WIZ.navAdd, WIZ.navAinubis, WIZ.navMe, WIZ.aiTerc, '.pk-hub-ainubis', '.sos-btn'];
 
 export type WizAnchor = typeof WIZ[keyof typeof WIZ];
 
