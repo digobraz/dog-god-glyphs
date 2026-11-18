@@ -639,7 +639,8 @@ export default function PackProfile() {
             dogBusy={dogBusy}
             dogPhotoLabel={tx('pack.me.dogPhoto', 'Change dog photo')}
             badge={
-              <span className="pe-cam pe-own-cam" aria-hidden>
+              // Leží NAD fotkou (z-4) ako súrodenec tlačidla — bez vlastnej akcie ťuk na fotoaparát nerobil nič (audit 18. 11.).
+              <span className="pe-cam pe-own-cam" aria-hidden onClick={() => fileInputRef.current?.click()}>
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : (APP_NEW ? <SysIcon name="foto" size={22} /> : <HandCamera size={15} />)}
               </span>
             }
