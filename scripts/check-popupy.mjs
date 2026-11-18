@@ -196,6 +196,15 @@ const IN_PAGE = (vynimky) => {
 
 // ─── beh ───────────────────────────────────────────────────────────────────
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
+// 18. 11. 2026: pevné čakanie nestačí — pod záťažou meral panel UPROSTRED vjazdu (ntf-in .38s) a nález
+// skákal medzi jazykmi (noc: 14 v 13 jazykoch, hneď nato 3 v iných 2). Počkaj, kým dobehnú KONEČNÉ
+// animácie; nekonečné (bežiaci pás) sa nečakajú. Strop 3 s, potom sa meria tak či tak.
+const dobeh = (p) => p.evaluate(() => Promise.race([
+  Promise.all(document.getAnimations()
+    .filter(a => a.playState === 'running' && a.effect?.getComputedTiming().iterations !== Infinity)
+    .map(a => a.finished.catch(() => {}))),
+  new Promise(r => setTimeout(r, 3000)),
+])).catch(() => {});
 async function newCtx(browser, lang, w, h) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
   await ctx.addInitScript(l => { try { localStorage.setItem('dogypt_lang', l); localStorage.setItem('dogypt_consent', 'denied'); } catch {} }, lang);
@@ -253,6 +262,7 @@ async function merajVrstvu(p, info, nalezy, inner) {
       const ok = await p.evaluate(kk => window.__popupy.klik(kk, true), key).catch(() => false);
       if (!ok) break;
       await wait(420);
+      await dobeh(p);
       if (!(await p.evaluate(() => window.__popupy.nove().length).catch(() => 0))) return { pod: prvy.pod, inner: uzitocne }; // popup zavrelo
       if (!(await zmeraj()).nove) break;
       k = i + 1;
@@ -276,6 +286,7 @@ async function priechod(_b, base, route, lang, w, h, nalezy, triggers) {
       const ok = await p.evaluate(k => window.__popupy.klik(k), t.path).catch(() => false);
       if (!ok) continue;
       await wait(550);
+      await dobeh(p);
       if (p.url().split('#')[0] !== finalUrl.split('#')[0]) { await load(p, url); await p.evaluate(() => window.__popupy.oznac()).catch(() => {}); continue; }
       if (!(await p.evaluate(() => window.__popupy.nove().length).catch(() => 0))) continue;
       const r = await merajVrstvu(p, { route, lang, okno, spustac: t.label }, nalezy, triggers ? t.inner : null);
