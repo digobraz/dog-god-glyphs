@@ -91,10 +91,14 @@ export function startWizard(screenKey = 'home') {
 // Každý okamih = riadok v `wizard_events` (migrácia 20261029). Stav „videné" ostáva v
 // `wiz_seen`; denník je len história — bez neho sa „ďalej" a „preskočil" nedajú rozlíšiť.
 // Zlyhanie zápisu prehliadku nikdy nezastaví.
-type WizAction = 'shown' | 'next' | 'skip' | 'missing' | 'chat' | 'later';
+// Komnaty (18. 11. 2026) pridali `tap` (splnený ťukací krok), `done` (komnata dokončená, step_id = id odznaku)
+// a `replay` (↺ znova / Prejsť znova); `screen` je `kom:<komnata>`.
+export type WizAction = 'shown' | 'next' | 'skip' | 'missing' | 'chat' | 'later' | 'tap' | 'done' | 'replay';
 const loggedShown = new Set<string>();
-function logWiz(screen: string, stepId: string, action: WizAction) {
-  if (action === 'shown') { if (loggedShown.has(stepId)) return; loggedShown.add(stepId); }
+/** Nový beh komnaty (↺ znova) ukáže krok ešte raz — „shown“ sa má zapísať znova. */
+export function forgetShown(screen: string) { [...loggedShown].filter((k) => k.startsWith(`${screen}|`)).forEach((k) => loggedShown.delete(k)); }
+export function logWiz(screen: string, stepId: string, action: WizAction) {
+  if (action === 'shown') { const key = `${screen}|${stepId}`; if (loggedShown.has(key)) return; loggedShown.add(key); }
   void (async () => {
     try {
       const { data } = await supabase.auth.getSession();
@@ -159,6 +163,22 @@ export const WIZ_CSS = `
 .wzc-welcome .mcoach-ok{width:100%;}
 .wzc-welcome .mcoach-mute{margin-top:${PACK_SPACE.lg}px;}
 @keyframes wzc-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+/* ŤUKACÍ KROK (nákres wizard-v2, 18. 11. 2026): šípka skáče k cieľu, prst príde, stlačí a z miesta ide vlna — dokola, kým človek neťukne. */
+.wzc-tuk .mcoach-arrow{display:none;}
+.wzc-hint{font:600 ${PACK_TEXT.label}px ${FONT_UI};color:${AINUBIS.cyan};}
+.wzc-arrow{position:fixed;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;pointer-events:none;filter:drop-shadow(0 0 6px rgba(${AINUBIS.cyanRGB},0.8));}
+.wzc-arrow.dn{border-top:20px solid ${AINUBIS.cyan};animation:wzc-hop-d 1s ease-in-out infinite;}
+.wzc-arrow.up{border-bottom:20px solid ${AINUBIS.cyan};animation:wzc-hop-u 1s ease-in-out infinite;}
+@keyframes wzc-hop-d{0%,100%{transform:translateY(0);}50%{transform:translateY(8px);}}
+@keyframes wzc-hop-u{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.wzc-tap{position:fixed;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:${PACK_R.pill}px;border:3px solid ${AINUBIS.cyan};pointer-events:none;opacity:0;animation:wzc-vlna 2s ease-out infinite;}
+.wzc-tap.t2{animation-delay:.25s;}
+@keyframes wzc-vlna{0%,45%{transform:scale(.4);opacity:0;}50%{opacity:1;}100%{transform:scale(3);opacity:0;}}
+.wzc-prst{position:fixed;width:44px;height:52px;margin:0 0 0 -18px;pointer-events:none;animation:wzc-prst 2s cubic-bezier(.3,.7,.3,1) infinite;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.6));z-index:2;}
+.wzc-prst.zhora{animation-name:wzc-prst-h;}
+@keyframes wzc-prst{0%{transform:translate(40px,90px);opacity:0;}15%{opacity:1;}40%{transform:translate(0,0) scale(1);}48%{transform:translate(0,2px) scale(.86);}58%{transform:translate(0,0) scale(1);}85%{opacity:1;}100%{transform:translate(0,0);opacity:0;}}
+@keyframes wzc-prst-h{0%{transform:translate(40px,-90px);opacity:0;}15%{opacity:1;}40%{transform:translate(0,0) scale(1);}48%{transform:translate(0,2px) scale(.86);}58%{transform:translate(0,0) scale(1);}85%{opacity:1;}100%{transform:translate(0,0);opacity:0;}}
+@media (prefers-reduced-motion:reduce){.wzc-arrow,.wzc-tap,.wzc-prst{animation:none;}.wzc-tap{opacity:.8;}}
 `;
 
 /** Posledná poloha výrezu. Medzi krokmi sa nový prvok ešte hľadá (~120 ms) — tma musí OSTAŤ
@@ -311,15 +331,17 @@ export function PackWizard({ dogName, hasDog }: { dogName: string | null; hasDog
 }
 
 // ─── Výrez + bublina ─────────────────────────────────────────────────────────
-export function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing, okLabel, naostro }: {
+export function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing, okLabel, tuk }: {
   step: Pick<WizStep, 'id' | 'anchor' | 'handoff'>; body: string; dots: { n: number; at: number } | null;
   onNext: (action?: WizAction) => void; onSkip: () => void; onShown: () => void; onMissing: () => void;
   /** Komnaty (17. 11. 2026): vlastný nápis tlačidla („Hotovo“). */
   okLabel?: string;
-  /** Akcia naostro: ťuk na prvok vo výreze prejde do appky a posunie krok; mimo výrezu sa ťuk zahodí. */
-  naostro?: boolean;
+  /** ŤUKACÍ KROK: bez „Ďalej“, ťuk na prvok vo výreze prejde do appky a posunie krok (`onNext('tap')`);
+   *  mimo výrezu sa ťuk zahodí. Výrez nesie šípku, prst a vlnu. */
+  tuk?: boolean;
 }) {
   const t = useT();
+  const naostro = !!tuk;
   const [box, setBox] = useState<DOMRect | null>(null);
   const missRef = useRef(onMissing);
   useEffect(() => { missRef.current = onMissing; }, [onMissing]);
@@ -337,7 +359,7 @@ export function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing, okL
     // Naostro: ťuk na prvok prejde (odkaz naozaj otvorí), krok sa posunie; ťuk vedľa sa zahodí.
     const tapNaostro = (e: MouseEvent) => {
       const t = e.target as Node;
-      if (el && el.contains(t)) { nextRef.current(); return; }
+      if (el && el.contains(t)) { nextRef.current('tap'); return; }
       if ((t as Element).closest?.('.mcoach-bubble')) return;
       e.preventDefault(); e.stopPropagation();
     };
@@ -390,12 +412,27 @@ export function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing, okL
   const below = vh - bottom >= top;
   const bw = Math.min(430, vw - 24);
   const bubbleLeft = Math.min(Math.max(12, left + w / 2 - bw / 2), Math.max(12, vw - bw - 12));
-  const pos = below ? { top: Math.min(bottom + 14, vh - 200) } : { bottom: Math.min(vh - top + 14, vh - 200) };
+  // Ťukací krok: medzi výrezom a bublinou sa vojde šípka (20 px + skok), preto väčší odstup.
+  const gap = tuk ? 44 : 14;
+  const pos = below ? { top: Math.min(bottom + gap, vh - 200) } : { bottom: Math.min(vh - top + gap, vh - 200) };
+  // Cieľ v dolnej polovici okna: šípka ukazuje zhora nadol a prst prichádza zdola; inak naopak.
+  const cx = left + w / 2; const cy = top + h / 2;
+  const dole = cy > vh / 2;
 
   return createPortal(
-    <div className="wzc" role="dialog" aria-modal="true" style={naostro ? { pointerEvents: 'none' } : undefined}>
+    <div className={`wzc${tuk ? ' wzc-tuk' : ''}`} role="dialog" aria-modal="true" style={naostro ? { pointerEvents: 'none' } : undefined}>
       <style>{MAP_COACH_CSS}{WIZ_CSS}</style>
       <div className={`wzc-hole${WIZ_ROUND.includes(anchor) ? ' is-round' : ''}`} style={{ top, left, width: w, height: h }} />
+      {tuk && (
+        <>
+          <div className={`wzc-arrow ${dole ? 'dn' : 'up'}`} style={{ left: cx - 14, top: dole ? top - 30 : top + h + 10 }} aria-hidden="true" />
+          <div className="wzc-tap" style={{ left: cx, top: cy }} aria-hidden="true" />
+          <div className="wzc-tap t2" style={{ left: cx, top: cy }} aria-hidden="true" />
+          <svg className={`wzc-prst${dole ? '' : ' zhora'}`} style={{ left: cx, top: cy }} viewBox="0 0 44 52" aria-hidden="true">
+            <path d="M14 4a4 4 0 0 1 8 0v18l2-1a4 4 0 0 1 5 2l1-.5a4 4 0 0 1 5 2l1-.3a4 4 0 0 1 5 3.3V40c0 7-5 12-12 12h-5c-4 0-7-2-9-5L5 34a4 4 0 0 1 6-5l3 3z" fill={AINUBIS.ink} stroke={AINUBIS.bgDeep} strokeWidth="2.4" strokeLinejoin="round" />
+          </svg>
+        </>
+      )}
       <div className="mcoach-bubble" style={{ left: bubbleLeft, width: bw, ...pos, ...(naostro ? { pointerEvents: 'auto' } : null) }}>
         <span className={`mcoach-arrow${below ? ' up' : ' down'}`} style={{ left: Math.min(Math.max(left + w / 2, 28), vw - 28) }} aria-hidden="true" />
         {dots && <div className="wzc-dots">{Array.from({ length: dots.n }).map((_, i) => <i key={i} className={i === dots.at ? 'on' : ''} />)}</div>}
@@ -413,7 +450,9 @@ export function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing, okL
           ) : (
             <>
               <button type="button" className="mcoach-mute" onClick={onSkip}>{t('pack.wizard.skip')}</button>
-              {!naostro && <button type="button" className="mcoach-ok" onClick={() => onNext()}>{okLabel ?? t('pack.wizard.next')}</button>}
+              {tuk
+                ? <span className="wzc-hint">{t('pack.wizard.k.tukHint')}</span>
+                : <button type="button" className="mcoach-ok" onClick={() => onNext()}>{okLabel ?? t('pack.wizard.next')}</button>}
             </>
           )}
         </div>

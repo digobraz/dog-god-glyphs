@@ -165,12 +165,25 @@ export function stepsFor(s: WizScreen | null, preview = false): WizStep[] {
 export type KomnataId = 'uvod' | 'pes' | 'ja' | 'sos' | 'mapa' | 'sniffer' | 'ainubis';
 
 export type Krok = Omit<WizStep, 'since'> & {
-  /** Akcia naostro: krok pokračuje až ťuknutím na skutočný prvok (nie „Ďalej“). Ťuk prejde do appky. */
-  naostro?: boolean;
-  /** Pred krokom ťukni na tento prvok (otvor menu, prepni záložku, otvor panel), aby svietilo to, o čom krok hovorí. */
+  /** ŤUKACÍ KROK (18. 11. 2026): bublina bez „Ďalej“, výrez prepúšťa ťuk do appky a krok postúpi až skutočným
+   *  ťuknutím na cieľ (pulzujúci výrez + šípka + prst). Ťuk mimo cieľa sa zahodí, Preskočiť funguje vždy. */
+  tuk?: boolean;
+  /** Kde krok žije (cesta presne ako `pathname`). Keď je človek inde, prehliadka ho tam zavedie. */
+  na?: string;
+  /** Pred krokom ťukni na tento prvok (otvor záložku, panel), aby svietilo to, o čom krok hovorí. */
   klik?: string;
-  /** Po kroku ťukni sem (zavri panel, ktorý `klik` otvoril). */
+  /** Po kroku ťukni sem (zavri menu, panel, chat, ktorý predošlý krok otvoril). */
   po?: string;
+};
+
+/** Riadok checklistu komnaty = jedna vec, ktorú komnata človeka naučí. Text žije v i18n
+ *  `pack.wizard.k.uci.<komnata>.<id>`, `uk` je krok, na ktorý skočí „↺ znova“ (a od ktorého ide komnata). */
+export type UciPolozka = {
+  id: string;
+  uk: string;
+  /** Kedy vec pribudla (RRRR-MM-DD). Položka s `since` u človeka, čo komnatu už má, svieti NOVÉ a kľúčik
+   *  zasvieti len pre ňu. Dnes nie je nová žiadna — pole je pripravené. Položka bez `since` je pôvodná. */
+  since?: string;
 };
 
 export type Komnata = {
@@ -184,61 +197,102 @@ export type Komnata = {
   start: string;
   /** Obrazovka bez spodnej lišty (kľúčik tam nie je) → komnata sa spustí sama pri prvej návšteve. */
   bezListy?: boolean;
-  /** Max 5 výrezov (+ privítanie). */
+  /** Nová vec = nový riadok tu (a v `uci`), nie zásah do enginu. */
   kroky: Krok[];
+  /** Checklist komnaty (šuplík po ťuku na dvere). */
+  uci: UciPolozka[];
   odznak: { id: string; nazov: string; obrazok: string };
 };
 
 const ODZ = (n: string) => `/icons/sys/odznak-${n}.webp`;
+/** Panel `+`: riadok objektu z registra (`data-create-id`). */
+const RIADOK = (id: string): `.${string}` => `.att-entry-row[data-create-id="${id}"]`;
+const MENU_PROFIL = '.pack-avatar-menu button:first-of-type';
+const MENU_SVORKA = '.pack-avatar-menu button:last-of-type';
+const AI_ZAVRI = '.ainubis-launcher[aria-expanded="true"]';
+const tx = (id: string) => `pack.wizard.${id}`;
 
 export const KOMNATY: Komnata[] = [
   { id: 'uvod', poradie: 0, spustac: 'prve-otvorenie', routes: ['/pack'], start: '/pack',
     odznak: { id: 'uvod', nazov: 'pack.wizard.k.odz.uvod', obrazok: ODZ('uvodny-kluc') },
+    uci: [
+      { id: 'feed', uk: 'k0.feed' }, { id: 'mapa', uk: 'k0.mapa' }, { id: 'labka', uk: 'k0.labka' },
+      { id: 'ainubis', uk: 'k0.ainubis' }, { id: 'fotka', uk: 'k0.fotkaTuk' }, { id: 'pomoc', uk: 'k0.aiTuk' },
+    ],
     kroky: [
-      { id: 'k0.vitaj', anchor: 'welcome', text: 'pack.wizard.k0.vitaj' },
-      { id: 'k0.feed', anchor: WIZ.navHome, text: 'pack.wizard.k0.feed' },
-      { id: 'k0.mapa', anchor: WIZ.navMap, text: 'pack.wizard.k0.mapa' },
-      { id: 'k0.labka', anchor: WIZ.navAdd, text: 'pack.wizard.k0.labka' },
-      { id: 'k0.ainubis', anchor: WIZ.navAinubis, text: 'pack.wizard.k0.ainubis' },
-      { id: 'k0.menu', anchor: '.pack-avatar-menu', klik: `#${WIZ.navMe} button`, po: `#${WIZ.navMe} button`, text: 'pack.wizard.k0.menu' },
+      { id: 'k0.vitaj', anchor: 'welcome', text: tx('k0.vitaj') },
+      { id: 'k0.feed', anchor: WIZ.navHome, na: '/pack', text: tx('k0.feed') },
+      { id: 'k0.mapa', anchor: WIZ.navMap, na: '/pack', text: tx('k0.mapa') },
+      { id: 'k0.labka', anchor: WIZ.navAdd, na: '/pack', text: tx('k0.labka') },
+      { id: 'k0.ainubis', anchor: WIZ.navAinubis, na: '/pack', text: tx('k0.ainubis') },
+      { id: 'k0.fotkaTuk', anchor: WIZ.navMe, na: '/pack', tuk: true, text: tx('k0.fotkaTuk') },
+      { id: 'k0.menu', anchor: '.pack-avatar-menu', na: '/pack', po: `#${WIZ.navMe} button`, text: tx('k0.menu') },
+      { id: 'k0.aiTuk', anchor: '.ainubis-launcher', na: '/pack', tuk: true, text: tx('k0.aiTuk') },
+      { id: 'k0.preslov', anchor: WIZ.aiTerc, na: '/pack', po: AI_ZAVRI, text: tx('k0.preslov') },
     ] },
-  { id: 'pes', poradie: 1, spustac: 'po-uvode', routes: ['/pack/dogs'], start: '/pack/dogs',
+  { id: 'pes', poradie: 1, spustac: 'po-uvode', routes: ['/pack/dogs'], start: '/pack',
     odznak: { id: 'pes', nazov: 'pack.wizard.k.odz.pes', obrazok: ODZ('strazca-psa') },
+    uci: [
+      { id: 'fotka', uk: 'k1.fotka' }, { id: 'zivot', uk: 'k1.zivotTuk' }, { id: 'dennik', uk: 'k1.dennikTuk' }, { id: 'dogid', uk: 'k1.dogTuk' },
+    ],
     kroky: [
-      { id: 'k1.zivot', anchor: '.dv2-sheet', klik: '.dv2-tab:nth-child(2)', text: 'pack.wizard.k1.zivot' },
-      { id: 'k1.dennik', anchor: '.dv2-sheet', klik: '.dv2-tab:nth-child(3)', text: 'pack.wizard.k1.dennik' },
-      // Ťuk na fotku naozaj otvorí výber fotky (DogsHubV2); po návrate pokračuje CTA Vyplniť DOG ID.
-      { id: 'k1.fotka', anchor: '.dv2-ring', klik: '.dv2-tab:nth-child(1)', text: 'pack.wizard.k1.fotka', naostro: true },
-      { id: 'k1.vyplnit', anchor: '.dv2-out', klik: '.dv2-tab:nth-child(1)', text: 'pack.wizard.k1.vyplnit', naostro: true },
+      { id: 'k1.navFotka', anchor: WIZ.navMe, na: '/pack', tuk: true, text: tx('k1.navFotka') },
+      { id: 'k1.navSvorka', anchor: MENU_SVORKA, na: '/pack', tuk: true, text: tx('k1.navSvorka') },
+      { id: 'k1.fotka', anchor: '.dv2-ring', na: '/pack/dogs', text: tx('k1.fotka') },
+      { id: 'k1.zivotTuk', anchor: '.dv2-tab:nth-child(2)', na: '/pack/dogs', tuk: true, text: tx('k1.zivotTuk') },
+      { id: 'k1.zivot', anchor: '.dv2-sheet', na: '/pack/dogs', text: tx('k1.zivot') },
+      { id: 'k1.dennikTuk', anchor: '.dv2-tab:nth-child(3)', na: '/pack/dogs', tuk: true, text: tx('k1.dennikTuk') },
+      { id: 'k1.dennik', anchor: '.dv2-sheet', na: '/pack/dogs', text: tx('k1.dennik') },
+      { id: 'k1.dogTuk', anchor: '.dv2-tab:nth-child(1)', na: '/pack/dogs', tuk: true, text: tx('k1.dogTuk') },
+      { id: 'k1.vyplnit', anchor: '.dv2-out', na: '/pack/dogs', tuk: true, text: tx('k1.vyplnit') },
     ] },
-  { id: 'ja', poradie: 2, spustac: 'prva-navsteva', routes: ['/pack/profile'], start: '/pack/profile',
+  { id: 'ja', poradie: 2, spustac: 'prva-navsteva', routes: ['/pack/profile'], start: '/pack',
     odznak: { id: 'ja', nazov: 'pack.wizard.k.odz.ja', obrazok: ODZ('kronikar') },
+    uci: [
+      { id: 'levely', uk: 'k2.levely' }, { id: 'bones', uk: 'k2.bones' }, { id: 'upravit', uk: 'k2.upravit' }, { id: 'zapis', uk: 'k2.labkaTuk' },
+    ],
     kroky: [
-      { id: 'k2.levely', anchor: '.me-lv', text: 'pack.wizard.k2.levely' },
-      { id: 'k2.zapis', anchor: '.att-entry-panel .att-entry-row', klik: `#${WIZ.navAdd}`, po: '.att-entry-backdrop', text: 'pack.wizard.k2.zapis' },
+      { id: 'k2.navFotka', anchor: WIZ.navMe, na: '/pack', tuk: true, text: tx('k2.navFotka') },
+      { id: 'k2.navProfil', anchor: MENU_PROFIL, na: '/pack', tuk: true, text: tx('k2.navProfil') },
+      { id: 'k2.levely', anchor: '.me-lv', na: '/pack/profile', text: tx('k2.levely') },
+      { id: 'k2.bones', anchor: '.rk--bones', na: '/pack/profile', text: tx('k2.bones') },
+      { id: 'k2.pozvi', anchor: '.me-out', na: '/pack/profile', text: tx('k2.pozvi') },
+      { id: 'k2.upravit', anchor: '.me-cta', na: '/pack/profile', text: tx('k2.upravit') },
+      { id: 'k2.labkaTuk', anchor: WIZ.navAdd, na: '/pack/profile', tuk: true, text: tx('k2.labkaTuk') },
+      { id: 'k2.zapis', anchor: RIADOK('devotion'), na: '/pack/profile', po: '.att-entry-backdrop', text: tx('k2.zapis') },
     ] },
   { id: 'sos', poradie: 3, spustac: 'prva-navsteva', routes: ['/pack'], start: '/pack',
     odznak: { id: 'sos', nazov: 'pack.wizard.k.odz.sos', obrazok: ODZ('bezpecie') },
+    uci: [{ id: 'pas', uk: 'k3.pas' }, { id: 'koleso', uk: 'k3.kolesoTuk' }],
     kroky: [
-      { id: 'k3.pas', anchor: '.pk-tops', text: 'pack.wizard.k3.pas' },
+      { id: 'k3.pas', anchor: '.pk-tops', na: '/pack', text: tx('k3.pas') },
+      { id: 'k3.kolesoTuk', anchor: '.sos-btn', na: '/pack', tuk: true, text: tx('k3.kolesoTuk') },
+      { id: 'k3.koleso', anchor: '.ppu-sheet', na: '/pack', po: '.ppu-root', text: tx('k3.koleso') },
     ] },
-  { id: 'mapa', poradie: 4, spustac: 'prva-navsteva', routes: ['/pack/map'], start: '/pack/map',
+  { id: 'mapa', poradie: 4, spustac: 'prva-navsteva', routes: ['/pack/map'], start: '/pack',
     odznak: { id: 'mapa', nazov: 'pack.wizard.k.odz.mapa', obrazok: ODZ('kartograf') },
+    uci: [{ id: 'vrstvy', uk: 'k4.vrstvy' }, { id: 'vylety', uk: 'k4.vylety' }, { id: 'vlastny', uk: 'k4.labka' }],
     kroky: [
-      { id: 'k4.vrstvy', anchor: '.trp-layersdd', text: 'pack.wizard.k4.vrstvy' },
-      { id: 'k4.vylety', anchor: '.trp-mheader-cats, .trp-sidebar-top', text: 'pack.wizard.k4.vylety' },
-      { id: 'k4.labka', anchor: WIZ.navAdd, text: 'pack.wizard.k4.labka' },
+      { id: 'k4.navTuk', anchor: WIZ.navMap, na: '/pack', tuk: true, text: tx('k4.navTuk') },
+      { id: 'k4.vrstvy', anchor: '.trp-layersdd', na: '/pack/map', text: tx('k4.vrstvy') },
+      { id: 'k4.vylety', anchor: '.trp-mheader-cats, .trp-sidebar-top', na: '/pack/map', text: tx('k4.vylety') },
+      { id: 'k4.labka', anchor: WIZ.navAdd, na: '/pack/map', text: tx('k4.labka') },
     ] },
-  { id: 'sniffer', poradie: 5, spustac: 'prva-navsteva', routes: ['/pack/sniffer'], start: '/pack/sniffer', bezListy: true,
+  { id: 'sniffer', poradie: 5, spustac: 'prva-navsteva', routes: ['/pack/sniffer'], start: '/pack', bezListy: true,
     odznak: { id: 'sniffer', nazov: 'pack.wizard.k.odz.sniffer', obrazok: ODZ('partak') },
+    uci: [{ id: 'partak', uk: 'k5.labkaTuk' }],
     kroky: [
-      { id: 'k5.cta', anchor: '.bd-cta', text: 'pack.wizard.k5.cta' },
+      { id: 'k5.labkaTuk', anchor: WIZ.navAdd, na: '/pack', tuk: true, text: tx('k5.labkaTuk') },
+      { id: 'k5.panelTuk', anchor: RIADOK('sniffer'), na: '/pack', tuk: true, text: tx('k5.panelTuk') },
+      { id: 'k5.cta', anchor: '.bd-cta', na: '/pack/sniffer', text: tx('k5.cta') },
     ] },
-  { id: 'ainubis', poradie: 6, spustac: 'prva-navsteva', routes: ['/pack/ainubis/*'], start: '/pack/ainubis',
+  { id: 'ainubis', poradie: 6, spustac: 'prva-navsteva', routes: ['/pack/ainubis/*'], start: '/pack',
     odznak: { id: 'ainubis', nazov: 'pack.wizard.k.odz.ainubis', obrazok: ODZ('ucenec') },
+    uci: [{ id: 'planes', uk: 'k6.planes' }, { id: 'progres', uk: 'k6.zvitky' }],
     kroky: [
-      { id: 'k6.planes', anchor: '.akv-planes', text: 'pack.wizard.k6.planes' },
-      { id: 'k6.zvitky', anchor: '.akv-world', text: 'pack.wizard.k6.zvitky' },
+      { id: 'k6.navTuk', anchor: WIZ.navAinubis, na: '/pack', tuk: true, text: tx('k6.navTuk') },
+      { id: 'k6.planes', anchor: '.akv-planes', na: '/pack/ainubis', text: tx('k6.planes') },
+      { id: 'k6.zvitky', anchor: '.akv-world', na: '/pack/ainubis', text: tx('k6.zvitky') },
     ] },
 ];
 
@@ -249,3 +303,14 @@ export const ZNALEC = { id: 'znalec', nazov: 'pack.wizard.k.odz.znalec', obrazok
 export function komnataFor(pathname: string, done: (k: Komnata) => boolean): Komnata | null {
   return KOMNATY.find((k) => !done(k) && k.routes.some((r) => routeRe(r).test(pathname))) ?? null;
 }
+
+/** Položky komnaty, ktoré sú pre človeka NOVÉ: má už odznak komnaty, položka má `since` a jej krok ešte nevidel. */
+export function novePolozky(k: Komnata, seen: Set<string>): UciPolozka[] {
+  if (!seen.has(`odz:${k.id}`)) return [];
+  return k.uci.filter((p) => !!p.since && !seen.has(p.uk));
+}
+
+/** Komnata je hotová, keď je prejdená celá, alebo keď má odznak a nechýba jej žiadna NOVÁ položka
+ *  (kroky pridané neskôr tak starú komnatu „neodomknú“ naspäť — kľúčik zasvieti len pre novinku). */
+export const komnataHotova = (seen: Set<string>) => (k: Komnata): boolean =>
+  seen.has(`odz:${k.id}`) ? novePolozky(k, seen).length === 0 : k.kroky.every((x) => seen.has(x.id));

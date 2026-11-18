@@ -322,6 +322,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBl
       <button
         key={o.id}
         type="button"
+        data-create-id={o.id}
         className={`att-entry-row${ready ? '' : ' att-entry-row--soon'}`}
         disabled={!ready}
         aria-disabled={!ready}

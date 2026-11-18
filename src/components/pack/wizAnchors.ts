@@ -26,6 +26,8 @@ export const WIZ = {
   navAinubis: 'wiz-nav-ainubis',
   /** Avatar JA v lište (`AvatarNavButton`). */
   navMe: 'wiz-nav-me',
+  /** Terč „odfoť obrazovku a označ problém“ v chate AINUBISA (`AinubisWidget`) — komnata 0, preslov. */
+  aiTerc: 'wiz-ai-terc',
   /** Triplist — sekcia „Chcem ísť" (`PackTriplist`). */
   tlWant: 'wiz-tl-want',
   /** Triplist — sekcia TRIPWISH (`PackTriplist`). Trieda `.tl-section` je tam 4×, preto id. */
@@ -34,7 +36,7 @@ export const WIZ = {
 
 /** Kotvy, ktoré sú OKRÚHLE/pilulkové — spotlight im nesmie dať 18px radius
  *  (Matej 24. 8.: „zasvietiť v navigácii tú ikonku"). */
-export const WIZ_ROUND: readonly string[] = [WIZ.navHome, WIZ.navMap, WIZ.navAdd, WIZ.navAinubis, WIZ.navMe];
+export const WIZ_ROUND: readonly string[] = [WIZ.navHome, WIZ.navMap, WIZ.navAdd, WIZ.navAinubis, WIZ.navMe, WIZ.aiTerc, '.ainubis-launcher', '.sos-btn'];
 
 export type WizAnchor = typeof WIZ[keyof typeof WIZ];
 

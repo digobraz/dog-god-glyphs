@@ -38,7 +38,7 @@ import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, visibleLocalTrails, tripPath } from '@/components/pack/tripShared';
 import { PILL_CSS, PACK_SPACE } from '@/components/pack/packTheme';
-import { resetKomnaty } from '@/components/pack/PackKomnaty';
+import { resetKomnaty, ukazPrehlad } from '@/components/pack/PackKomnaty';
 import { KOMNATY_ON } from '@/lib/env';
 import { STORIES_ON, ALBUMS_ON, APP_NEW } from '@/lib/packFlags';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -726,6 +726,7 @@ export default function PackMe() {
       {/* SYSTÉM KOMNÁT (17. 11. 2026): prehliadka znova · reset pre testera (Matej to skúša opakovane). */}
       {KOMNATY_ON && (
         <div className="me-komnaty" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: PACK_SPACE.sm, margin: `${PACK_SPACE.xl}px 0` }}>
+          <button type="button" className="pk-pill pk-pill--tap" onClick={() => ukazPrehlad()}>{t('pack.wizard.k.prehlad.title')}</button>
           <button type="button" className="pk-pill pk-pill--tap" onClick={() => resetKomnaty(true)}>{t('pack.wizard.k.znovu')}</button>
           <button type="button" className="pk-pill pk-pill--tap" onClick={() => resetKomnaty(true, true)}>{t('pack.wizard.k.reset')}</button>
         </div>

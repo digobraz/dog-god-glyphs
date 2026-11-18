@@ -15,6 +15,7 @@ import {
 } from './ainubisHistory';
 import ainubisBadge from '@/assets/ainubis-badge.webp';
 import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
+import { WIZ } from '@/components/pack/wizAnchors';
 import './AinubisWidget.css';
 
 /** Logo AINUBISA: v appke (APP_NEW) pes s cyan očami, na webe pôvodný badge. */
@@ -158,6 +159,8 @@ interface AinubisMessage {
   created_at: string;
   meta?: AinubisMeta | null;
   imagePreviewUrl?: string;
+  /** Odpoveď sa týka komnaty prehliadky (edge `ainubis-chat`, 18. 11. 2026): pod správou tlačidlo „Ukáž komnatu“. */
+  komnata?: { id: string; prejdena: boolean } | null;
 }
 
 interface AinubisChatResponse {
@@ -168,6 +171,7 @@ interface AinubisChatResponse {
   /** Vetva, v ktorej vlákno beží na SERVERI. `null` = vlákno spred vetiev. */
   branch?: string | null;
   meta?: AinubisMeta | null;
+  komnata?: { id: string; prejdena: boolean } | null;
 }
 
 interface AinubisWireMessage {
@@ -1203,7 +1207,7 @@ function AinubisWidgetInner() {
       const replyId = `assistant-${Date.now()}`;
       setMessages((prev) => [
         ...prev,
-        { id: replyId, role: 'assistant', content: res.reply, created_at: new Date().toISOString(), meta: res.meta ?? null },
+        { id: replyId, role: 'assistant', content: res.reply, created_at: new Date().toISOString(), meta: res.meta ?? null, komnata: res.komnata ?? null },
       ]);
       startTypewriter(replyId, res.reply);
       if (!openRef.current) setUnreadCount((c) => c + 1);
@@ -1815,6 +1819,18 @@ function AinubisWidgetInner() {
                   )}
                   {isUser ? shownContent : linkify(shownContent, openInternalLink)}
                   {!isUser && renderReview(m)}
+                  {/* Komnata prehliadky: zatvor chat a pošli udalosť, ktorú počúva `PackKomnaty` (detail = id komnaty). */}
+                  {!isUser && m.komnata && (
+                    <div className="ainubis-review">
+                      <div className="ainubis-review__row">
+                        <button type="button" className="ainubis-review__btn ainubis-review__btn--cta" onClick={() => {
+                          const kid = m.komnata!.id;
+                          if (!plane) { setOpen(false); safeLocalStorageSet(LS_OPEN, '0'); }
+                          window.dispatchEvent(new CustomEvent('dogypt:komnata', { detail: kid }));
+                        }}>{t(m.komnata.prejdena ? 'pack.wizard.k.chat.znova' : 'pack.wizard.k.chat.ukaz', { name: t(`pack.wizard.k.kom.${m.komnata.id}`) })}</button>
+                      </div>
+                    </div>
+                  )}
                   {/* Pozor na `&&` s číslom: pri devotion === 0 vracia `0`, a React
                       nulu vykreslí — na konci odpovede potom visela holá „0".
                       Preto explicitné porovnanie, nie truthy test. */}
@@ -1989,6 +2005,7 @@ function AinubisWidgetInner() {
               </button>
               <button
                 type="button"
+                id={WIZ.aiTerc}
                 className="ainubis-composer__icon-btn"
                 onClick={() => setTarget('aim')}
                 aria-label={copy.targetStart}
