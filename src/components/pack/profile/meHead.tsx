@@ -53,7 +53,7 @@ const GAP = RANK_BADGE_ON
   ? { m: OWN_DROP + Math.round(OWN.m * ARC_BELOW), pc: PACK_SPACE.lg + Math.round(OWN.pc * ARC_BELOW) }
   : { m: OWN_DROP + SAT_DROP.m + PACK_SPACE.sm - PACK_SPACE.md, pc: PACK_SPACE.lg + SAT_DROP.pc + PACK_SPACE.sm - PACK_SPACE.md };
 /* Fotka psa v šuplíku stojí v OSI fotky majiteľa (Matej 22. 10.) — odsadenie z rovnice. */
-const DOG_D = { m: 60, pc: 96 };
+const DOG_D = { m: 88, pc: 120 };
 const DOG_X = { m: OWN_X.m + OWN.m / 2 - DOG_D.m / 2, pc: OWN_X.pc + OWN.pc / 2 - DOG_D.pc / 2 };
 const RING_OLD = `conic-gradient(from 200deg,${LAPIS.edge},${LAPIS.deep},${T.cardEdge},#A3782B,${LAPIS.edge})`;
 /* OBRUČ V1 „Slnko a Níl" (25. 10. 2026, len TEST_BUILD): Matej po 4 kolách nákresu `plany/nakresy/obruc/ig.html`
@@ -244,6 +244,7 @@ ${RANK_BADGE_ON ? STORY_RING_CSS : ''}
 .me-dp{ position:relative; flex:none; width:${DOG_D.m}px; height:${DOG_D.m}px; border-radius:${PACK_R.pill}px; padding:${S.xs}px; background:${RING};
   box-shadow:${T.panelShadow}; border:0; cursor:pointer; }
 .me-dp img{ width:100%; height:100%; border-radius:${PACK_R.pill}px; object-fit:cover; display:block; border:2px solid ${T.card}; }
+.me-dp-ini{ display:grid; place-items:center; width:100%; height:100%; border-radius:${PACK_R.pill}px; background:${T.card}; font-family:${FONT_UI}; font-weight:600; font-size:${TX.h1}px; color:${T.inkWarm}; }
 .me-no{ display:inline-flex; align-items:center; background:${LAPIS.grad}; color:${LAPIS.ink}; box-shadow:${LAPIS_BTN_SHADOW};
   font-family:${FONT_UI}; font-weight:600; font-size:${TX.micro}px; letter-spacing:.02em; padding:0 ${S.sm}px; border-radius:${PACK_R.pill}px;
   border:1.5px solid ${T.card}; white-space:nowrap; }
@@ -394,7 +395,7 @@ const P3D_NAME_GAP = { m: NM_TOP.m + 28, pc: NM_TOP.pc + 28 };
 const P3D_HERO = 136;
 const P3D_ME_CSS = `
 html.papyrus3d .me-flat .me-cover::before{-webkit-mask-image:none;mask-image:none;border-block:2.5px solid var(--p3d-ink);}
-html.papyrus3d .me-cover.no-cov::before{background:url('/images/bg-dark.webp') center/cover no-repeat;}
+html.papyrus3d .me-cover.no-cov::before{background:linear-gradient(color-mix(in srgb,var(--p3d-paper,#F3E4C4) 62%,transparent),color-mix(in srgb,var(--p3d-paper,#F3E4C4) 62%,transparent)),url('/images/bg-dark.webp') center/cover no-repeat;} /* Matej 19. 11.: pozadie nemá byť také tmavé — papyrusový závoj */
 html.papyrus3d .me-flat .me-own{left:50%;transform:translateX(-50%);top:-${AV_UP.m}px;padding:0;background:none;box-shadow:none;}
 html.papyrus3d .me-own::before,html.papyrus3d .me-own::after{display:none;}
 html.papyrus3d .me-own > button:first-child{border:4px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 5px 0 2px var(--p3d-ink);background:linear-gradient(180deg,${LAPIS.edge},${LAPIS.deep});}
@@ -405,6 +406,7 @@ html.papyrus3d .me-own .me-arc .ad .ad-ini{display:grid;place-items:center;width
 html.papyrus3d .me-own .me-arc .ad img{border:0;}
 html.papyrus3d .me-card.open .me-own .me-sat{left:calc(92% + 22%);bottom:auto;top:45%;transform:none;}
 html.papyrus3d .me-own .me-arc .ad:nth-child(n+2){display:none;}
+html.papyrus3d .me-own .me-arc .ad.me-sdog{left:104% !important;} /* UPRAVIŤ PROFIL: psí medailón nesmie zasahovať do avatara (Matej 19. 11.) */
 html.papyrus3d .me-flat .me-mate{left:-66%;top:30%;width:74%;border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink),0 4px 0 2px var(--p3d-ink);}
 html.papyrus3d .me-flat .me-mate img,html.papyrus3d .me-flat .me-mate i{border:0;}
 html.papyrus3d .me-flat .me-foot,html.papyrus3d .me-flat.with-mate .me-foot{left:${FLAT_X}px;right:${FLAT_X}px;top:calc(100% + ${NM_TOP.m}px);bottom:auto;text-align:center;}
@@ -774,7 +776,7 @@ export function MeOwn({ photo, initial, dogs, open = false, onToggle, onPhoto, p
             return (
               <button key={d.id} type="button" className="ad me-sdog" style={p} onClick={() => onDogPhoto(d)} disabled={dogBusy === d.id}
                 aria-label={`${dogPhotoLabel ?? ''} ${d.dog_name ?? ''}`.trim()}>
-                <Ph src={d.cloudinary_main_url} w={140} fb={null} />
+                <Ph src={d.cloudinary_main_url} w={140} fb={<b className="ad-ini">{(d.dog_name ?? '').charAt(0).toUpperCase()}</b>} />
                 <span className="cam">{dogBusy === d.id ? <BrandIcon name="cycle" size={14} tint="white" /> : APP_NEW ? <SysIcon name="foto" size={20} /> : <HandCamera size={15} />}</span>
               </button>
             );
@@ -1090,7 +1092,7 @@ export function MeDogRow({ dog, attrs, onClose, onDogId, tx }: {
   return (
     <div className={`me-drow${flip ? ' flip' : ''}`}>
       <button type="button" className="me-dp" onClick={onClose} aria-label={tx('pack.me.closeDogs', 'Hide dogs')}>
-        {src && <img src={sizedUrl(src, 200)} alt="" />}
+        {src ? <img src={sizedUrl(src, 240)} alt="" /> : <span className="me-dp-ini">{name.charAt(0).toUpperCase()}</span>}
         {num}
       </button>
       <button type="button" className="me-hg" onClick={() => setFlip((f) => !f)} aria-expanded={flip} aria-label={name}>

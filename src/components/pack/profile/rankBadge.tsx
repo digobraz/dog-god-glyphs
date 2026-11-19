@@ -260,7 +260,7 @@ const learnerFill = (level: number): CSSProperties => (level >= 10
 export function LearnerBadge({ level, pct, on, onClick, label }: BadgeBtn & { level: number; pct: number }) {
   return (
     <button type="button" data-rank-toggle className={`rk${on ? ' on' : ''}`} style={{ ['--cp' as string]: L_CP[Math.max(0, level - 1)] }} onClick={onClick} aria-expanded={on} aria-label={label}>
-      <span className="ic" style={{ ['--k' as string]: L_K, opacity: level ? 1 : .5 }}><img src={learnerImg(level)} alt="" /></span>
+      <span className="ic" style={{ ['--k' as string]: L_K, opacity: 1 }}><img src={learnerImg(level)} alt="" /></span>
       <span className="cp">
         <span className={`fl${level >= 10 ? ' full' : ''}`} style={{ width: fillWidth(pct), ...learnerFill(level) }} />
         <span className="nb">{level}</span>
@@ -279,7 +279,7 @@ export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx
   return (
     <>
       <div className="rkp-hd">
-        <span className="im" style={{ ['--k' as string]: L_K }}><img src={learnerImg(level)} alt="" style={{ opacity: level ? 1 : .5 }} /></span>
+        <span className="im" style={{ ['--k' as string]: L_K }}><img src={learnerImg(level)} alt="" style={{ opacity: 1 }} /></span>
         <div className="tx"><h3>{name} {level}</h3></div>
         {/* to isté zaokrúhlenie ako profil a AINUBIS: prvý zvitok nesmie ukázať 0 % */}
         <span className="ab">{read ? Math.max(1, Math.round(share)) : 0} %</span>

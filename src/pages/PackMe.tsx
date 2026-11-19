@@ -346,7 +346,11 @@ export default function PackMe() {
     badge: t('pack.dogShare.badge', { n: String(firstDog.pack_number) }),
     chips: [],
   } : null;
-  const invite = () => { if (shareData) setShareOpen(true); };
+  // Bez poradového čísla psa nemá okno čo zdieľať (odkaz nesie `ref=<číslo>`) — ticho nestačí, človek by si myslel, že tlačidlo nefunguje.
+  const invite = () => {
+    if (shareData) { setShareOpen(true); return; }
+    toast({ description: tx('pack.me.inviteNoNumber', 'Invite unlocks once your dog gets its number — right after its photo is approved.') });
+  };
 
   // K3 · PAWMATE vidí PAWTNEROV profil, nie vlastný (model A, Matej 26. 10. 2026) — `MateHome.tsx`.
   // POZVI zdieľa kartu pawtnerovho psa (`firstDog` je jeho), BONES teda idú pawtnerovi.
