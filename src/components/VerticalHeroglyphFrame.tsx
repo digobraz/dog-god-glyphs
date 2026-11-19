@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { initialLetter } from '@/lib/initialLetter';
 
@@ -157,8 +158,21 @@ function SlotImage({ x, y, w, h, src }: { x: number; y: number; w: number; h: nu
   );
 }
 
+/** Slot ako súčasť animácie „kreslí sa“ (`lit`): zlatý podklad + znak sa rozsvieti podľa poradia `i`. CSS dodáva obrazovka (FlowVstupneScreen). Bez `lit` nič nepridá. */
+function Lit({ lit, i, x, y, w, h, children }: { lit?: boolean; i: number; x: number; y: number; w: number; h: number; children: ReactNode }) {
+  if (!lit) return <>{children}</>;
+  return (
+    <g className="hg-lit" style={{ ['--i' as string]: i }}>
+      <rect className="hg-bed" x={x} y={y} width={w} height={h} rx={40} fill="#C99A3F" />
+      <g className="hg-glyph">{children}</g>
+    </g>
+  );
+}
+
 interface VerticalHeroglyphFrameProps {
   className?: string;
+  /** Animácia ukladania: 12 znakov sa po jednom rozsvecuje (poradie: 7 psa, 5 majiteľa); orez na rám bez okrajov strany. */
+  lit?: boolean;
   /** When provided, overrides the Zustand store — use for rendering arbitrary dog heroglyphs */
   data?: {
     selections: Record<string, string>;
@@ -167,7 +181,7 @@ interface VerticalHeroglyphFrameProps {
   };
 }
 
-export function VerticalHeroglyphFrame({ className = '', data }: VerticalHeroglyphFrameProps) {
+export function VerticalHeroglyphFrame({ className = '', lit, data }: VerticalHeroglyphFrameProps) {
   const store = useDogyptStore();
   const { selections, ownerName, patronSvg } = data || store;
 
@@ -189,7 +203,7 @@ export function VerticalHeroglyphFrame({ className = '', data }: VerticalHerogly
 
   return (
     <svg
-      viewBox="0 0 2480 3504"
+      viewBox={lit ? '780 355 920 3420' : '0 0 2480 3504'}
       className={className}
       xmlns="http://www.w3.org/2000/svg"
       style={{ width: '100%', height: 'auto' }}
@@ -209,32 +223,32 @@ export function VerticalHeroglyphFrame({ className = '', data }: VerticalHerogly
 
       {/* Dog slots mapped to vertical layout */}
       {/* Dog Gender - top left */}
-      <SlotImage x={898.453} y={475} w={323.19} h={224.091} src={dogGenderSrc} />
+      <Lit lit={lit} i={0} x={898.453} y={475} w={323.19} h={224.091}><SlotImage x={898.453} y={475} w={323.19} h={224.091} src={dogGenderSrc} /></Lit>
       {/* Dog Colour - top right */}
-      <SlotImage x={1313.13} y={475} w={224.039} h={224.091} src={dogColourSrc} />
+      <Lit lit={lit} i={1} x={1313.13} y={475} w={224.039} h={224.091}><SlotImage x={1313.13} y={475} w={224.039} h={224.091} src={dogColourSrc} /></Lit>
       {/* Dog Fate - middle left */}
-      <SlotImage x={898.767} y={751.933} w={322.889} h={313.596} src={dogFateSrc} />
+      <Lit lit={lit} i={2} x={898.767} y={751.933} w={322.889} h={313.596}><SlotImage x={898.767} y={751.933} w={322.889} h={313.596} src={dogFateSrc} /></Lit>
       {/* Dog Bloodline - middle right */}
-      <SlotImage x={1268.43} y={751.933} w={313.561} h={312.991} src={dogBloodlineSrc} />
+      <Lit lit={lit} i={3} x={1268.43} y={751.933} w={313.561} h={312.991}><SlotImage x={1268.43} y={751.933} w={313.561} h={312.991} src={dogBloodlineSrc} /></Lit>
       {/* Dog Shape - big center */}
-      <SlotImage x={898.807} y={1116.58} w={682.7} h={534.378} src={dogShapeSrc} />
+      <Lit lit={lit} i={4} x={898.807} y={1116.58} w={682.7} h={534.378}><SlotImage x={898.807} y={1116.58} w={682.7} h={534.378} src={dogShapeSrc} /></Lit>
 
       {/* Owner slots in inner cartouche */}
       {/* Owner gender - tall left */}
-      <SlotImage x={948.932} y={1755.42} w={188.442} h={409.417} src={ownerGenderSrc} />
+      <Lit lit={lit} i={7} x={948.932} y={1755.42} w={188.442} h={409.417}><SlotImage x={948.932} y={1755.42} w={188.442} h={409.417} src={ownerGenderSrc} /></Lit>
       {/* Chinese zodiac - top middle */}
-      <SlotImage x={1157.84} y={1756.02} w={202.167} h={193.755} src={chineseZodiacSrc} />
+      <Lit lit={lit} i={8} x={1157.84} y={1756.02} w={202.167} h={193.755}><SlotImage x={1157.84} y={1756.02} w={202.167} h={193.755} src={chineseZodiacSrc} /></Lit>
       {/* Western zodiac - top right */}
-      <SlotImage x={1380.51} y={1756.02} w={150.407} h={193.81} src={westernZodiacSrc} />
+      <Lit lit={lit} i={9} x={1380.51} y={1756.02} w={150.407} h={193.81}><SlotImage x={1380.51} y={1756.02} w={150.407} h={193.81} src={westernZodiacSrc} /></Lit>
       {/* Owner initial - bottom middle */}
-      <SlotImage x={1157.51} y={1970.04} w={202.91} h={194.803} src={ownerInitialSrc} />
+      <Lit lit={lit} i={10} x={1157.51} y={1970.04} w={202.91} h={194.803}><SlotImage x={1157.51} y={1970.04} w={202.91} h={194.803} src={ownerInitialSrc} /></Lit>
       {/* Ranking - bottom right */}
-      <RankingSlot x={1380.51} y={1970.62} w={150.407} h={193.055} value={selections.ranking} />
+      <Lit lit={lit} i={11} x={1380.51} y={1970.62} w={150.407} h={193.055}><RankingSlot x={1380.51} y={1970.62} w={150.407} h={193.055} value={selections.ranking} /></Lit>
 
       {/* Character 1 - bottom area */}
-      <SlotImage x={898.459} y={2268.7} w={683.547} h={353.512} src={dogChar1Src} />
+      <Lit lit={lit} i={5} x={898.459} y={2268.7} w={683.547} h={353.512}><SlotImage x={898.459} y={2268.7} w={683.547} h={353.512} src={dogChar1Src} /></Lit>
       {/* Character 2 - bottom area */}
-      <SlotImage x={898.459} y={2675.15} w={683.777} h={353.396} src={dogChar2Src} />
+      <Lit lit={lit} i={6} x={898.459} y={2675.15} w={683.777} h={353.396}><SlotImage x={898.459} y={2675.15} w={683.777} h={353.396} src={dogChar2Src} /></Lit>
     </svg>
   );
 }

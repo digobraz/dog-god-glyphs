@@ -18,6 +18,7 @@ import { track } from '@/lib/analytics';
 import { callLogin, readPending, registerFreeInApp, savePending, type Sent } from '@/lib/appRegister';
 import { FARAO_AMOUNTS, RANK_OF_CARD, paidRank, startCheckout } from '@/pages/appWeb/vstupne';
 import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
+import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 
 // ════════════════════════════════════════════════════════════════════════════
 // KONIEC FLOWU NA WEBE — DOBROVOĽNÉ VSTUPNÉ (11. 11. 2026)
@@ -49,6 +50,9 @@ import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const K = 'heroglyph.flow.vstupne.';
 const BACK = '/heroglyph/vstupne';
+/** Animácia ukladania: 12 znakov sa rozsvieti za ~1,6 s; kratšie ukladanie ju nechá dobehnúť (nech to neblikne). */
+const SAVE_MIN_MS = 1700;
+const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 type Phase = 'boot' | 'mail' | 'saving' | 'code' | 'ranks';
 type SaveErr = 'photo' | 'email' | 'save' | 'send';
@@ -84,7 +88,11 @@ function Vstupne() {
   const save = useCallback(async () => {
     setErr(null);
     setPhase('saving');
+    const t0 = Date.now();
     const r = await registerFreeInApp(lang);
+    // Ukladanie je hotové; len UI nechá animáciu dobehnúť jeden cyklus (nezdržuje zápis).
+    const rest = SAVE_MIN_MS - (Date.now() - t0);
+    if (r.ok && rest > 0 && !reducedMotion()) await new Promise((res) => setTimeout(res, rest));
     if (r.ok) {
       const p = readPending();
       if (p) { setSent(p); setPhase('code'); return; }
@@ -131,8 +139,7 @@ function Vstupne() {
       </div>
       <div className="hf-stage">
         <div className="vs-col">
-          {phase === 'boot' && <p className="vs-sub" aria-busy>{t(`${K}saving`)}</p>}
-          {phase === 'saving' && !err && <p className="vs-sub" aria-busy role="status">{t(`${K}saving`)}</p>}
+          {(phase === 'boot' || (phase === 'saving' && !err)) && <Saving />}
           {phase === 'saving' && err && <SaveError err={err} onRetry={() => void save()} />}
           {phase === 'mail' && <MailStep err={err === 'email'} onGo={() => void save()} />}
           {phase === 'code' && sent && (
@@ -145,6 +152,24 @@ function Vstupne() {
           {phase === 'ranks' && <Ranks cancelled={ret === 'zrusene'} />}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── UKLADÁM HEROGLYF: heroglyf psa sa kreslí, znak po znaku ──────────────────
+function Saving() {
+  const t = useT();
+  const dogName = useDogyptStore((s) => s.dogName);
+  const selections = useDogyptStore((s) => s.selections);
+  const ownerName = useDogyptStore((s) => s.ownerName);
+  const patronSvg = useDogyptStore((s) => s.patronSvg);
+  const name = dogName.trim();
+  return (
+    <div className="vs-save" role="status" aria-busy>
+      <div className="vs-save-glyph" aria-hidden>
+        <VerticalHeroglyphFrame lit className="vs-save-svg" data={{ selections, ownerName, patronSvg }} />
+      </div>
+      <p className="vs-sub" translate="no">{name ? t(`${K}savingDog`, { name }) : t(`${K}saving`)}</p>
     </div>
   );
 }
@@ -387,6 +412,18 @@ const VSTUPNE_CSS = `
   text-decoration: underline; text-underline-offset: 3px; }
 .vs-link--inl { display: inline; padding: 0; font-size: inherit; }
 .vs-link:disabled { opacity: .55; cursor: default; text-decoration: none; }
+/* ── UKLADÁM: znaky heroglyfu sa rozsvecujú po jednom (zlatý podklad + znak), v slučke ── */
+.vs-save { display: flex; flex-direction: column; align-items: center; gap: ${PACK_SPACE.md}px; margin: auto 0; }
+.vs-save-glyph { height: min(48dvh, 380px); aspect-ratio: 920 / 3420; color: #000; }
+.vs-save-svg { width: 100% !important; height: 100% !important; display: block; }
+.hg-lit .hg-glyph { opacity: .14; animation: hg-glyph 3.4s ease-in-out infinite; animation-delay: calc(var(--i) * .11s); }
+.hg-lit .hg-bed { opacity: 0; animation: hg-bed 3.4s ease-in-out infinite; animation-delay: calc(var(--i) * .11s); }
+@keyframes hg-glyph { 0%, 100% { opacity: .14; } 9%, 88% { opacity: 1; } }
+@keyframes hg-bed { 0%, 100% { opacity: 0; } 5% { opacity: .85; } 18%, 88% { opacity: .22; } }
+@media (prefers-reduced-motion: reduce) {
+  .hg-lit .hg-glyph { animation: none; opacity: 1; }
+  .hg-lit .hg-bed { animation: none; opacity: 0; }
+}
 /* ── HODNOSTI: riadok = papyrusový podblok, vybraný = lapisový tint, šuplík je JEDEN blok s riadkom ── */
 .vs-tiers { display: flex; flex-direction: column; gap: ${PACK_SPACE.sm}px; }
 .vs-tier { ${SUBBLOCK} overflow: hidden; }

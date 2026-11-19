@@ -76,6 +76,26 @@ function useWelcomeData(sessionId: string | null, free = false) {
   /** Pokusy o čísla sa minuli — obrazovka ide ďalej s tým, čo má (nezasekne sa). */
   const [settled, setSettled] = useState(false);
 
+  // Hosť / hodnosť: číslo pridelil zápis, ale návrat zo Stripe je nové načítanie a store `guestNumbers` stratil
+  // (koncept ho nenesie) ⇒ dočítaj z verejnej steny podľa `wall_id` (id psa). Slúži len ako poistka; číslo nikdy nevymýšľa.
+  useEffect(() => {
+    if (sessionId || !free) return;
+    const ids = Object.values(useDogyptStore.getState().guestIds);
+    if (!ids.length || !fallback.some((d) => d.n == null)) return;
+    let alive = true;
+    fetch(`${EDGE_BASE}/get-grid-dogs?tiers=all`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows: Array<{ wall_id?: string; pack_number: number | null }>) => {
+        if (!alive || !Array.isArray(rows)) return;
+        const byId = new Map(rows.filter((r) => r.wall_id && r.pack_number != null).map((r) => [r.wall_id as string, r.pack_number as number]));
+        const gi = useDogyptStore.getState().guestIds;
+        setDogs((cur) => cur.map((d) => (d.n == null && byId.has(gi[d.id]) ? { ...d, n: byId.get(gi[d.id]) as number } : d)));
+      })
+      .catch(() => null);
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (!sessionId) return;
     let alive = true;
@@ -520,7 +540,7 @@ export function FlowWelcomeScreen() {
                     {joined && free && (
                       <motion.p className="wl-mail" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }}>
                         {rankPaid && <b>{t('heroglyph.flow.vstupne.thanks')} {t(`pack.seal.${rankPaid}`)}.</b>}
-                        <span>{t(dogs.some((d) => d.n == null) ? (dogs.length > 1 ? 'heroglyph.flow.welcomeFree.waitMany' : 'heroglyph.flow.welcomeFree.wait') : 'heroglyph.flow.welcomeFree.saved')}</span>
+                        <span>{t(dogs.some((d) => d.n == null) ? (dogs.length > 1 ? 'heroglyph.flow.welcomeFree.waitMany' : 'heroglyph.flow.welcomeFree.wait') : (dogs.length > 1 ? 'heroglyph.flow.welcomeFree.numberOkMany' : 'heroglyph.flow.welcomeFree.numberOk'))}</span>
                         <span>{t('heroglyph.flow.welcomeFree.howIn')}</span>
                         {email && <span className="wl-mail-addr">{email}</span>}
                       </motion.p>
