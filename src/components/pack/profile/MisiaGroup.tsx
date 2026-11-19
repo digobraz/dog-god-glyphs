@@ -154,6 +154,8 @@ const CSS = `${VEIL_CSS}
 .mi-paw > b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: nadpis */
 .mi-paw > p{margin:0;font-size:${TX.label}px;line-height:1.5;color:${T.ink};}
 .mi-paw .mi-badge{width:96px;height:96px;object-fit:contain;}
+.mi-paw .mi-eye{font-weight:500;font-size:${TX.micro}px;letter-spacing:.26em;text-transform:uppercase;color:${T.inkWarm};}
+.mi-paw .mi-price{font-family:${FONT_UI};font-weight:600;font-size:${TX.body}px;letter-spacing:.02em;color:${T.inkWarm};}
 .mi-paw .mi-quiet{font-size:${TX.micro}px;color:${T.inkDim};}
 .mi-paw-b{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:${S.md}px;margin-top:${S.xs}px;}
 .mi-paw .ok{font-weight:600;font-size:${TX.body}px;color:${T.inkStrong};}
@@ -399,8 +401,12 @@ export function MisiaBody() {
         {payingRank ? (
           <>
             <img className="mi-badge" src={`/web-app/odznaky/dogyptan-${{ akolyta: 1, knaz: 2, vezir: 3, farao: 4 }[seal as 'akolyta' | 'knaz' | 'vezir' | 'farao']}.webp`} alt="" />
-            <b>{tx('pack.misia.member.lead', 'You are a {rank}.').replace('{rank}', sealLabel(seal, tx))}</b>
-            <p>{tx('pack.misia.member.p', 'Every month you carry a piece of the pack. Your membership keeps the servers, AINUBIS and the app in your hand running. Thank you.')}</p>
+            {/* Matej 19. 11.: hore malým „členstvo“, potom hodnosť a suma; text „podieľaš sa na prevádzke“. Suma len na webe:
+                v appke by cena členstva kúpeného mimo Apple pôsobila ako odkaz na platbu (3.1.1) — vráti sa s IAP po flipe. */}
+            <small className="mi-eye">{tx('pack.misia.member.eye', 'Membership')}</small>
+            <b>{sealLabel(seal, tx)}</b>
+            {!IS_APP && <span className="mi-price">{seal === 'farao' ? tx('pack.misia.member.once', 'one-off') : tx('pack.misia.member.price', '{p} a month').replace('{p}', { akolyta: '3,99 €', knaz: '7,99 €', vezir: '11,99 €' }[seal as 'akolyta' | 'knaz' | 'vezir'])}</span>}
+            <p>{tx('pack.misia.member.p', 'You help run DOGYPT! Your membership keeps the servers, AINUBIS and the app in your hand running. Thank you.')}</p>
           </>
         ) : (
           <>
