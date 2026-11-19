@@ -203,7 +203,7 @@ export function VerticalHeroglyphFrame({ className = '', lit, data }: VerticalHe
 
   return (
     <svg
-      viewBox={lit ? '780 355 920 3420' : '0 0 2480 3504'}
+      viewBox={lit ? '780 355 920 2794' : '0 0 2480 3504'}
       className={className}
       xmlns="http://www.w3.org/2000/svg"
       style={{ width: '100%', height: 'auto' }}

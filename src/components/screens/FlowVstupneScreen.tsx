@@ -169,7 +169,7 @@ function Saving() {
       <div className="vs-save-glyph" aria-hidden>
         <VerticalHeroglyphFrame lit className="vs-save-svg" data={{ selections, ownerName, patronSvg }} />
       </div>
-      <p className="vs-sub" translate="no">{name ? t(`${K}savingDog`, { name }) : t(`${K}saving`)}</p>
+      <p className="vs-save-line" translate="no">{name ? t(`${K}savingDog`, { name }) : t(`${K}saving`)}</p>
     </div>
   );
 }
@@ -414,12 +414,14 @@ const VSTUPNE_CSS = `
 .vs-link:disabled { opacity: .55; cursor: default; text-decoration: none; }
 /* ── UKLADÁM: znaky heroglyfu sa rozsvecujú po jednom (zlatý podklad + znak), v slučke ── */
 .vs-save { display: flex; flex-direction: column; align-items: center; gap: ${PACK_SPACE.md}px; margin: auto 0; }
-.vs-save-glyph { height: min(48dvh, 380px); aspect-ratio: 920 / 3420; color: #000; }
+.vs-save-glyph { height: min(48dvh, 380px); aspect-ratio: 920 / 2794; color: #000; }
 .vs-save-svg { width: 100% !important; height: 100% !important; display: block; }
-.hg-lit .hg-glyph { opacity: .14; animation: hg-glyph 3.4s ease-in-out infinite; animation-delay: calc(var(--i) * .11s); }
+/* Pod heroglyfom tesne a čitateľne (Matej 19. 11.: doladiť) — vlastná trieda, aby ju nízke okno nezmenšilo ako .vs-sub. */
+.vs-save-line { margin: 0; max-width: 280px; text-align: center; font-size: ${PACK_TEXT.lead}px; font-weight: 500; line-height: 1.35; color: #000; }
+.hg-lit .hg-glyph { opacity: .12; animation: hg-glyph 3.4s ease-in-out infinite; animation-delay: calc(var(--i) * .11s); }
 .hg-lit .hg-bed { opacity: 0; animation: hg-bed 3.4s ease-in-out infinite; animation-delay: calc(var(--i) * .11s); }
-@keyframes hg-glyph { 0%, 100% { opacity: .14; } 9%, 88% { opacity: 1; } }
-@keyframes hg-bed { 0%, 100% { opacity: 0; } 5% { opacity: .85; } 18%, 88% { opacity: .22; } }
+@keyframes hg-glyph { 0%, 100% { opacity: .12; } 9%, 88% { opacity: 1; } }
+@keyframes hg-bed { 0%, 100% { opacity: 0; } 5% { opacity: 1; } 18%, 88% { opacity: .5; } }
 @media (prefers-reduced-motion: reduce) {
   .hg-lit .hg-glyph { animation: none; opacity: 1; }
   .hg-lit .hg-bed { animation: none; opacity: 0; }
