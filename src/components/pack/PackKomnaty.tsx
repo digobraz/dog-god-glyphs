@@ -241,18 +241,10 @@ ${PROGRESS_CSS}
 // ─── KĽÚČIK PRI AINUBISOVI ───────────────────────────────────────────────────
 // Svieti, keď obrazovka má nevidenú komnatu alebo novinku v tej, čo človek už má. Ťuk spustí tú komnatu
 // (AINUBISov odkaz pod ním neotvorí). Význam kľúčika vysvetľuje preslov v komnate 0 (`k0.preslov`).
-export function KomnataKluc({ dole = false }: { dole?: boolean }) {
+export function KomnataKluc() {
   const { pathname } = useLocation();
   const t = useT();
-  // Hore pri AINUBISovi (`HubAinubis`) je hlavné miesto; dole v lište len na obrazovkách, kde horný rad nie je.
-  const [horeJe, setHoreJe] = useState(() => document.body.classList.contains('has-hub-ainubis'));
-  useEffect(() => {
-    if (!dole) return undefined;
-    const mo = new MutationObserver(() => setHoreJe(document.body.classList.contains('has-hub-ainubis')));
-    mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-    setHoreJe(document.body.classList.contains('has-hub-ainubis'));
-    return () => mo.disconnect();
-  }, [dole, pathname]);
+  // Len hore pri AINUBISovi (`HubAinubis`) — v spodnej lište nie je (Matej 19. 11.).
   const [seen, setSeen] = useState<Set<string>>(readSeenLocal);
   useEffect(() => {
     const sync = () => setSeen(readSeenLocal());
@@ -261,7 +253,7 @@ export function KomnataKluc({ dole = false }: { dole?: boolean }) {
   }, []);
   useEffect(() => setSeen(readSeenLocal()), [pathname]);
   const k = komnataFor(pathname, hotova(seen));
-  if (!k || (dole && horeJe)) return null;
+  if (!k) return null;
   return (
     <button
       type="button"

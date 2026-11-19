@@ -640,8 +640,7 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
           <span className={`flex items-center ${APP_NEW ? 'justify-around' : 'justify-center'}`} style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4 }}>
             <span id={WIZ.navAinubis} style={{ display: 'inline-flex', borderRadius: 999, position: 'relative' }}>
               <AinubisNavLink label={t('pack.layout.navAinubis')} />
-              {/* Kľúčik = nevidená komnata na tejto obrazovke; ťuk ju spustí (Matej 17. 11.: „i“ k AINUBISovi). */}
-              {KOMNATY_ON && <KomnataKluc dole />}
+              {/* Kľúčik v spodnej lište NIE JE (Matej 19. 11.: „kľúčik nebude v dolnom nave... vôbec“) — žije len hore pri AINUBISovi (`HubAinubis`). */}
             </span>
             <span id={WIZ.navMe} style={{ display: 'inline-flex', borderRadius: 999 }}>
               <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
