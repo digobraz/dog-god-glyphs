@@ -135,8 +135,9 @@ export const MAPY_API_KEY = 'GoBI7Tac9Hjr0cCbkAiUl28bZyrPYz_ZHb90sFkTCG0';
 export const MAPY_BASE = import.meta.env.DEV
   ? '/mapyapi'
   // Appka beží na capacitor://localhost, mimo referrer-locku kľúča ⇒ cez proxy Workera (scripts/cloudflare/worker.js).
-  // VITE_MAPY_BASE len DOGYPT DEV: skúša zmeny Workera na náhľade, kým nie sú na dogypt.com.
-  : IS_APP ? (import.meta.env.VITE_MAPY_BASE || 'https://dogypt.com/mapyapi') : 'https://api.mapy.com';
+  // VITE_MAPY_BASE len DOGYPT DEV (.env.appdev): platí aj v Safari, nielen v appke — appdev-*.workers.dev
+  // nie je v referrer-locku kľúča, priamy api.mapy.com tam vracia 403 a mapa ostane bez podkladu.
+  : import.meta.env.VITE_MAPY_BASE || (IS_APP ? 'https://dogypt.com/mapyapi' : 'https://api.mapy.com');
 
 export const mapyTiles = (style: string = 'outdoor') =>
   `${MAPY_BASE}/v1/maptiles/${style}/256/{z}/{x}/{y}?apikey=${MAPY_API_KEY}`;
