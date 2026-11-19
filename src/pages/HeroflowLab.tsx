@@ -143,6 +143,9 @@ const GROUPS: Group[] = [
       // (`/checkout` presmeruje na členské). Koniec flowu = DOBROVOĽNÉ ČLENSKÉ (Veriaci · Posol · Staviteľ ·
       // Vezír · Faraón, predvolený Posol) → VITAJ s „Otvoriť appku“ (/pack; po vydaní /get, `lib/appStores.ts`).
       // „Zapísať na stenu“ zaniklo: /wall nový web presmeroval na FAQ. Stav WIP, kým to Matej neprejde znova.
+      // 19. 11. 2026 — po Matejovom teste na appdev: meno v otázkach NARODENIE/STAV, svorka bez pilulky krajiny
+      // + šípka na fotku, plemeno „povinné“, výrez fotky na vlastnú adresu, animácia ukladania (bez zlata),
+      // Vitaj s číslom psa (web 61e89a85, 43ce880c, 7d31fbd6). Kroky 1–9 ostávajú „done“, 10–11 WIP do telefónu.
       { name: '10 · Dobrovoľné členské', path: '/heroglyph/vstupne', state: 'wip' },
       { name: '11 · Vitaj → Otvoriť appku', path: '/heroglyph/welcome?free=1', state: 'wip' },
     ],
