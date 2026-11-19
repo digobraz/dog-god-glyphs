@@ -21,6 +21,8 @@ const fillW = (pct: number) => {
 };
 
 const CSS = `
+/* rezerva nad spodnou lištou: lišta + miesto pre hlášku, aby neprekryli posledné tlačidlo */
+.sosp-stack{padding-bottom:calc(var(--pack-dock-b, 0px) + var(--pack-nav-h, 0px) + ${PACK_SPACE.xxxl + PACK_SPACE.xl}px);}
 .sosp-prog{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .sosp-prog b{font-size:${PACK_TEXT.label}px;font-weight:600;color:${T.inkWarm};letter-spacing:.02em;}
 .sosp-step{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;padding:0;overflow:hidden;}
@@ -181,7 +183,7 @@ export default function PackSosPlan() {
   const smsBody = pub ? s('pack.sos.plan.smsText', { name: pub.dog_name, place: pub.place_label ?? '', url }) : '';
 
   const copy = async (text: string) => {
-    try { await navigator.clipboard.writeText(text); toast({ title: s('pack.sos.plan.copied') }); } catch { toast({ title: text }); }
+    try { await navigator.clipboard.writeText(text); toast({ title: s('pack.sos.plan.copied'), duration: 1500 }); } catch { toast({ title: text }); }
   };
   const doShare = async () => {
     if (!pub || !mine) return;
@@ -240,7 +242,7 @@ export default function PackSosPlan() {
   return (
     <PackLayout onBack={back} backLabel={s('pack.sos.back')}>
       <SosStyles /><style>{PROGRESS_CSS + CSS}</style>
-      <div className="sos-stack">
+      <div className="sos-stack sosp-stack">
         <h1 className="sos-h2">{s('pack.sos.plan.title')}</h1>
         {load.state === 'loading' && <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.loading')}</p>}
         {(load.state === 'missing' || load.state === 'error') && <p className="sos-err" style={{ textAlign: 'center' }}>{load.state === 'missing' ? s('pack.sos.notFound') : s('pack.sos.error')}</p>}

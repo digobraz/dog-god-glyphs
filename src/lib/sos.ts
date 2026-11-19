@@ -7,7 +7,7 @@
 // Čakané chyby servera: bad_phone · bad_coords · bad_time · bad_state · bad_url · rate_limited ·
 // no_access · not_authenticated. Čítaj ich cez `sosErrorCode`.
 import { supabase } from '@/integrations/supabase/client';
-import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
+import { APP_DEV, EDGE_BASE, SUPABASE_ANON_KEY, TEST_BUILD } from '@/lib/env';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rpc = (name: string, args?: Record<string, unknown>) => (supabase as any).rpc(name, args);
@@ -258,4 +258,10 @@ export async function lostPhone(slug: string): Promise<string | null> {
 export const lostShare = (slug: string) => call<void>('lost_share', { p_slug: slug });
 
 /** Odkaz, ktorý ide na leták a do zdieľania. Slug sa po vzniku nikdy nemení. */
-export const lostUrl = (slug: string) => `https://dogypt.com/lost/${slug}`;
+// Na DEV / testovacom builde (web) vedie odkaz na vlastný origin — DEV záznamy na dogypt.com neexistujú.
+// Natívna appka (capacitor://) a LIVE ostávajú na dogypt.com.
+export const lostUrl = (slug: string) => {
+  const o = typeof window !== 'undefined' ? window.location.origin : '';
+  const own = (APP_DEV || TEST_BUILD) && /^https?:\/\//.test(o) ? o : 'https://dogypt.com';
+  return `${own}/lost/${slug}`;
+};

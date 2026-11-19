@@ -24,11 +24,11 @@ const SK_CENTER: [number, number] = [48.7, 19.7];
 const CSS = `
 .sos-card.sos-card--flat{padding:${PACK_SPACE.xl}px 0;border-bottom:1px solid ${T.border};}
 .sos-card.sos-card--flat:last-child{border-bottom:0;}
-.sosn-dogs{display:grid;grid-template-columns:repeat(3,1fr);gap:${PACK_SPACE.sm}px;}
-.sosn-dog{display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.xs}px;min-height:96px;
+.sosn-dogs{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:${PACK_SPACE.sm}px;}
+.sosn-dog{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px ${PACK_SPACE.sm}px ${PACK_SPACE.sm}px;min-height:56px;
   border-radius:${PACK_R.tile}px;min-width:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;}
-.sosn-dog span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;} /* písmo: meno */
-.sosn-av{width:52px;height:52px;border-radius:${PACK_R.pill}px;object-fit:cover;background:${T.tileBg};border:2px solid ${T.cardEdge};flex:none;}
+.sosn-dog span{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;} /* písmo: meno */
+.sosn-av{width:40px;height:40px;border-radius:${PACK_R.pill}px;object-fit:cover;background:${T.tileBg};border:2px solid ${T.cardEdge};flex:none;}
 .sosn-map{position:relative;width:100%;height:320px;border-radius:${PACK_R.tile}px;overflow:hidden;border:1px solid ${T.border};}
 .sosn-map .sosn-canvas{position:absolute;inset:0;cursor:crosshair;}
 .sosn-loc{position:absolute;left:${PACK_SPACE.sm}px;top:${PACK_SPACE.sm}px;z-index:800;}
@@ -73,7 +73,12 @@ function PickMap({ center, zoom, pt, onPick, locateTick }: {
   }, []);
 
   // stred zvonku (GPS, výber psa) — nie pri každom prekreslení
-  useEffect(() => { mapRef.current?.setView(center, zoom); }, [center, zoom, locateTick]);
+  // Pri GPS sa ukáže CELÝ okruh 10 km s rezervou (Matej 19. 11.: kruh nesmie vyplniť celú mapu).
+  useEffect(() => {
+    const map = mapRef.current; if (!map) return;
+    if (zoom >= 14) map.fitBounds(L.circle(center, { radius: 10000 }).getBounds(), { padding: [PACK_SPACE.xl, PACK_SPACE.xl] });
+    else map.setView(center, zoom);
+  }, [center, zoom, locateTick]);
 
   // značka + dva kruhy v SKUTOČNÝCH METROCH (L.circle): 10 km svetlý pod 500 m tmavým
   useEffect(() => {
@@ -84,7 +89,10 @@ function PickMap({ center, zoom, pt, onPick, locateTick }: {
     L.circle(pt, { radius: 10000, color: T.sosRed, weight: 1.5, opacity: 0.55, fillColor: T.sosRed, fillOpacity: 0.1, interactive: false }).addTo(g);
     L.circle(pt, { radius: 500, color: T.sosRed, weight: 2, fillColor: T.sosRed, fillOpacity: 0.35, interactive: false }).addTo(g);
     L.circleMarker(pt, { radius: 6, color: '#fff', weight: 2, fillColor: T.sosRed, fillOpacity: 1, interactive: false }).addTo(g);
-    if (map.getZoom() < 12) map.setView(pt, 13); // aby bol vidno aspoň 500 m kruh
+    // celý 10 km kruh s rezervou; len ak je mapa bližšie (užívateľ si odzoomovať smie sám)
+    const bounds = L.circle(pt, { radius: 10000 }).getBounds();
+    const pad = L.point(PACK_SPACE.xl, PACK_SPACE.xl);
+    if (map.getZoom() > map.getBoundsZoom(bounds, false, pad)) map.fitBounds(bounds, { padding: [PACK_SPACE.xl, PACK_SPACE.xl] });
   }, [pt]);
 
   return <div className="sosn-canvas" ref={el} />;

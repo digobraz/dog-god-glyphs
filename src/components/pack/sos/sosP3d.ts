@@ -61,7 +61,7 @@ html.papyrus3d .sos-pill{border:2.5px solid var(--p3d-ink);background:var(--p3d-
 html.papyrus3d .sos-pick{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.tile}px;background:var(--p3d-card);color:var(--p3d-ink);box-shadow:${PERA_SM};}
 html.papyrus3d .sos-pick.is-on{${LAPIS_ON}}
 html.papyrus3d .sosn-dog span{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;}
-html.papyrus3d .sosn-dog{min-height:112px;}
+html.papyrus3d .sosn-dog{min-height:56px;}
 html.papyrus3d .sosn-av{border:2.5px solid var(--p3d-ink);}
 html.papyrus3d .sosf-look{${INSET}padding:${S.xs}px;gap:${S.xs}px;}
 html.papyrus3d .sosf-look button.sos-pick{border:0;box-shadow:none;background:none;border-radius:${PACK_R.tile}px;min-height:48px;font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;}
