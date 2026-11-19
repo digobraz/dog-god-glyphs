@@ -28,6 +28,7 @@ import { pokladnica, type PrijemMesiac } from '@/lib/pokladnica';
 import { GIFT_TIERS, GIFT_DEFAULT, GIFT_MIN, GIFT_MAX, giftFee, prevadzkaMesacne } from '@/lib/prispevok';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { useMySeal } from '@/components/pack/profile/sealStore';
+import { DogSeal, sealLabel } from '@/components/pack/profile/dogSeal';
 
 /** Najnižšia platená hodnosť (Posol, `vstupne.ts` priceTable) — z nej sa rátajú mesačné náklady (Matej 19. 11.: „dajme ten tier 3,99“). */
 const POSOL_EUR = 3.99;
@@ -152,6 +153,8 @@ const CSS = `${VEIL_CSS}
 .mi-paw{display:flex;flex-direction:column;align-items:center;gap:${S.sm}px;margin-top:${S.lg}px;padding:${S.lg}px ${S.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.cardEdge};background:${T.tileBg};font-family:${FONT_UI};text-align:center;}
 .mi-paw > b{font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;color:${T.inkStrong};} /* písmo: nadpis */
 .mi-paw > p{margin:0;font-size:${TX.label}px;line-height:1.5;color:${T.ink};}
+.mi-paw .mi-badge{width:96px;height:96px;object-fit:contain;}
+.mi-paw .mi-quiet{font-size:${TX.micro}px;color:${T.inkDim};}
 .mi-paw-b{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:${S.md}px;margin-top:${S.xs}px;}
 .mi-paw .ok{font-weight:600;font-size:${TX.body}px;color:${T.inkStrong};}
 .mi-links{display:flex;justify-content:center;flex-wrap:wrap;gap:${S.lg}px;margin-top:${S.md}px;}
@@ -244,6 +247,7 @@ export function MisiaBody() {
   // Platiaci člen (aktívna hodnosť z DB `seal_of_user`) tlačidlo nevidí, vidí poďakovanie. Kým LIVE hodnosť nepozná = neplatiaci.
   const seal = useMySeal('veriaci');
   const payingRank = seal === 'akolyta' || seal === 'knaz' || seal === 'vezir' || seal === 'farao';
+  const founder = seal === 'zakladatel';
   const lendPaw = async () => {
     setPaw('busy');
     try {
@@ -347,7 +351,7 @@ export function MisiaBody() {
           ['svorka', dash?.dogs, tx('pack.misia.st.dogs', 'Dogs'), false],
           ['ja-muz', dash?.people, tx('pack.misia.st.people', 'People'), false],
           ['trofej', dash?.supporters, tx('pack.misia.st.supporters', 'Members'), false],
-          ['kost', dash?.monthly_eur, tx('pack.misia.st.month', '€ / month'), true],
+          ['peniaze', dash?.monthly_eur, tx('pack.misia.st.month', '€ / month'), true],
         ] as [string, number | undefined, string, boolean][]).map(([icon, v, label, isEur]) => (
           <span key={icon}>
             <SysIcon name={icon} size={28} />
@@ -394,17 +398,25 @@ export function MisiaBody() {
       <div className="mi-paw">
         {payingRank ? (
           <>
-            <b>{tx('pack.misia.member.lead', 'You are {rank}.').replace('{rank}', tx(`pack.seal.${seal}`, seal))}</b>
-            <p>{tx('pack.misia.member.p', 'Thank you for carrying the pack.')}</p>
+            <img className="mi-badge" src={`/web-app/odznaky/dogyptan-${{ akolyta: 1, knaz: 2, vezir: 3, farao: 4 }[seal as 'akolyta' | 'knaz' | 'vezir' | 'farao']}.webp`} alt="" />
+            <b>{tx('pack.misia.member.lead', 'You are a {rank}.').replace('{rank}', sealLabel(seal, tx))}</b>
+            <p>{tx('pack.misia.member.p', 'Every month you carry a piece of the pack. Your membership keeps the servers, AINUBIS and the app in your hand running. Thank you.')}</p>
           </>
         ) : (
           <>
-            <b>{tx('pack.misia.paw.lead', 'We carry the pack together.')}</b>
+            {founder ? (
+              <>
+                <DogSeal tier="zakladatel" size={96} label={sealLabel('zakladatel', tx)} style={{ marginLeft: 0, verticalAlign: 'baseline' }} />
+                <b>{tx('pack.misia.founder.lead', 'You are a Founder.')}</b>
+                <p>{tx('pack.misia.founder.p', 'You came among the first, when nobody knew DOGYPT yet. This badge stays with you and your dog forever, and it will come with benefits.')}</p>
+                {paw !== 'sent' && paw !== 'already' && <p className="mi-quiet">{IS_APP ? tx('pack.misia.founder.app', "If you want to keep carrying the pack, we'll e-mail you.") : tx('pack.misia.founder.web', 'You can also support the pack regularly.')}</p>}
+              </>
+            ) : <b>{tx('pack.misia.paw.lead', 'We carry the pack together.')}</b>}
             {paw === 'sent' || paw === 'already' ? (
               <span className="ok">{paw === 'sent' ? tx('pack.misia.paw.sent', 'Check your inbox ✓') : tx('pack.misia.paw.already', 'The e-mail is already in your inbox ✓')}</span>
             ) : (
               <>
-                <p>{tx('pack.misia.paw.sub', 'We will get in touch by e-mail with instructions.')}</p>
+                {!founder && <p>{tx('pack.misia.paw.sub', 'We will get in touch by e-mail with instructions.')}</p>}
                 <div className="mi-paw-b">
                   <button type="button" className="mi-cta" disabled={paw === 'busy'} onClick={lendPaw}>{tx('pack.misia.paw.cta', 'I want to help')}</button>
                   {!IS_APP && <button type="button" className="mi-cta" onClick={() => { setNotice(null); setSheet({ kind: 'gift' }); }}>{tx('pack.misia.give', 'Give')}</button>}
