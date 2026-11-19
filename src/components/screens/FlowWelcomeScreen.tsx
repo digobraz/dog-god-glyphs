@@ -539,10 +539,9 @@ export function FlowWelcomeScreen() {
                         sekciu join. Prihlásenie = ten istý e-mail a kód, nie číslo psa (to príde mailom po schválení fotky). */}
                     {joined && free && (
                       <motion.p className="wl-mail" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }}>
-                        {rankPaid && <b>{t('heroglyph.flow.vstupne.thanks')} {t(`pack.seal.${rankPaid}`)}.</b>}
-                        <span>{t(dogs.some((d) => d.n == null) ? (dogs.length > 1 ? 'heroglyph.flow.welcomeFree.waitMany' : 'heroglyph.flow.welcomeFree.wait') : (dogs.length > 1 ? 'heroglyph.flow.welcomeFree.numberOkMany' : 'heroglyph.flow.welcomeFree.numberOk'))}</span>
-                        <span>{t('heroglyph.flow.welcomeFree.howIn')}</span>
-                        {email && <span className="wl-mail-addr">{email}</span>}
+                        {/* Nákres 19. 11. 2026 (Matej: „stačí, že tam bude, čo sa bude diať“): poďakovanie za hodnosť
+                            a veta o kontrole fotky preč, ostáva len ako sa dostať do appky — s adresou v tej istej vete. */}
+                        <span>{t('heroglyph.flow.welcomeFree.howIn')}{email && <> <span className="wl-mail-addr">{email}</span></>}</span>
                       </motion.p>
                     )}
                     {joined && !free && (

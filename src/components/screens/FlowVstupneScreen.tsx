@@ -236,6 +236,16 @@ function CodeStep({ sent, onSent, onIn }: { sent: Sent; onSent: (s: Sent) => voi
     } catch { setErr(t('appEntry.err.net')); }
     setBusy(false);
   };
+  // Vloženie z mailu (Matej 19. 11. 2026: dlhý ťuk do poľa na iPhone nevyvolal „Vložiť“ — pole je priesvitné pod políčkami).
+  const paste = async () => {
+    try {
+      const c = (await navigator.clipboard.readText()).replace(/\D/g, '').slice(0, N);
+      if (!c) return;
+      setCode(c);
+      if (c.length === N) void submit(c);
+    } catch { inputRef.current?.focus(); }
+  };
+
   const resend = async () => {
     setErr('');
     try { await callLogin({ action: 'send', lang, email: sent.email }); setAgain(true); } catch { setErr(t('appEntry.err.net')); }
@@ -283,6 +293,7 @@ function CodeStep({ sent, onSent, onIn }: { sent: Sent; onSent: (s: Sent) => voi
             />
           </label>
           {err && <p role="alert" className="vs-err">{err}</p>}
+          <button type="button" className="vs-link" onClick={() => void paste()}>{t('appEntry.code.paste')}</button>
           <button type="button" className="vs-link" onClick={resend} disabled={again}>{again ? t('appEntry.code.sent') : t('appEntry.code.again')}</button>
           <button type="submit" className="pk-b3 pk-b3--lapis vs-dock" disabled={code.length !== N || busy}>{t('appEntry.save.confirm')}</button>
         </>
