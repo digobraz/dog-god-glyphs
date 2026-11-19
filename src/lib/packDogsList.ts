@@ -38,7 +38,7 @@ export async function loadPackDogs<T>(select: string): Promise<T[]> {
   // vráti tú istú množinu; pri `null` (RPC zlyhala) ostáva filter na vlastníka.
   const accessIds = await getAccessibleDogIds();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let q = (supabase as any).from('dogs').select(select).eq('payment_status', 'paid');
+  let q = (supabase as any).from('dogs').select(select).in('payment_status', ['paid', 'guest']);
   q = accessIds ? q.in('id', accessIds) : q.eq('user_id', uid);
   const [{ data }, order] = await Promise.all([
     q.order('pack_number', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),

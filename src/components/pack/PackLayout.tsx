@@ -641,7 +641,7 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
             <span id={WIZ.navAinubis} style={{ display: 'inline-flex', borderRadius: 999, position: 'relative' }}>
               <AinubisNavLink label={t('pack.layout.navAinubis')} />
               {/* Kľúčik = nevidená komnata na tejto obrazovke; ťuk ju spustí (Matej 17. 11.: „i“ k AINUBISovi). */}
-              {KOMNATY_ON && <KomnataKluc />}
+              {KOMNATY_ON && <KomnataKluc dole />}
             </span>
             <span id={WIZ.navMe} style={{ display: 'inline-flex', borderRadius: 999 }}>
               <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />

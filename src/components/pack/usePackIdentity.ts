@@ -180,11 +180,12 @@ export function usePackIdentity(): PackIdentity {
           let identityQuery = DEV_NOAUTH ? null : (supabase as any)
             .from('dogs')
             .select('id, dog_name, cloudinary_main_url, created_at, life_status')
-            // paid only — link_my_dogs also links abandoned checkout drafts by
+            // paid + guest (hosť má psa, číslo a stenu; Matej 19. 11. 2026: „klikol som na foto psa — nemám žiadneho psa“),
+            // nie draft — link_my_dogs also links abandoned checkout drafts by
             // email, so without this the header switcher lists a dog once per
             // attempt (BELGA showed 3×: 1 paid + 2 drafts). Pack.tsx already
             // filters the same way; keep the two in sync.
-            .eq('payment_status', 'paid');
+            .in('payment_status', ['paid', 'guest']);
           if (identityQuery) {
             identityQuery = accessIds
               ? identityQuery.in('id', accessIds)

@@ -854,7 +854,7 @@ async function migrateLocalToServer(uid: string, local: CentralProfile): Promise
   const dogIds = Object.keys(local.dogs);
   if (dogIds.length) {
     const { data: mine } = await supabase
-      .from('dogs').select('id').eq('user_id', uid).eq('payment_status', 'paid');
+      .from('dogs').select('id').eq('user_id', uid).in('payment_status', ['paid', 'guest']);
     const ownIds = new Set((mine ?? []).map((d: { id: string }) => d.id));
     const rows = dogIds
       .filter((id) => ownIds.has(id))

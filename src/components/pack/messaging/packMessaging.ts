@@ -200,7 +200,7 @@ function hydrateMe(): Promise<void> {
             .from('dogs')
             .select('cloudinary_main_url')
             .eq('user_id', user.id)
-            .eq('payment_status', 'paid')
+            .in('payment_status', ['paid', 'guest'])
             .order('pack_number', { ascending: true, nullsFirst: false })
             .limit(1)
             .maybeSingle();

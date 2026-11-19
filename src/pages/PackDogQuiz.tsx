@@ -152,7 +152,7 @@ export default function PackDogQuiz() {
       let q = (supabase as any)
         .from('dogs')
         .select('id, dog_name, cloudinary_main_url')
-        .eq('payment_status', 'paid')
+        .in('payment_status', ['paid', 'guest'])
         .order('created_at', { ascending: true });
       q = accessIds ? q.in('id', accessIds) : q.eq('user_id', uid);
       if (onlyDogId) q = q.eq('id', onlyDogId);

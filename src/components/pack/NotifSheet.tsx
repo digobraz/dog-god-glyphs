@@ -79,7 +79,7 @@ function useTips(open: boolean, close: () => void): Tip[] {
       if (uid) {
         try {
           const { data: dogs } = await supabase.from('dogs').select('id, dog_name, pack_number')
-            .eq('user_id', uid).eq('payment_status', 'paid').order('pack_number', { ascending: true });
+            .eq('user_id', uid).in('payment_status', ['paid', 'guest']).order('pack_number', { ascending: true });
           const dog = dogs?.[0];
           if (dog) {
             const [{ readLatestForDogs, hasValue }, { PROGRESS_STEPS }] = await Promise.all([

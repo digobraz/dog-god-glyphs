@@ -35,6 +35,8 @@ import { emitOpenInbox, emitOpenThread } from './messaging/openBridge';
 import type { PackAlert } from './packAlerts';
 import { useNavigate } from 'react-router-dom';
 import { sizedUrl } from '@/services/cloudinaryService';
+import { KOMNATY_ON } from '@/lib/env';
+import { KomnataKluc } from './PackKomnaty';
 
 /** SOS riadky chvosta (`sos_lost`, `sos_still`) — prioritné, mimo zoznamu „nové / skôr“. */
 const isSosAlert = (a: PackAlert) => a.kind === 'sos_lost' || a.kind === 'sos_still';
@@ -799,7 +801,7 @@ export function HubAinubis() {
     };
   }, []);
   return (
-    <>
+    <span style={{ position: 'relative', display: 'inline-flex' }}>
       <style>{HUB_AINUBIS_CSS}</style>
       <button
         type="button"
@@ -825,6 +827,9 @@ export function HubAinubis() {
           </span>
         )}
       </button>
-    </>
+      {/* Kľúčik = nevidená komnata prehliadky; svieti pri AINUBISovi HORE (Matej 19. 11. 2026: „má pulzovať pri AINUBISovi,
+          ikonka na feede je hore v nave“). Dole v lište ho ukáže `PackLayout` len tam, kde tento rad nie je. */}
+      {KOMNATY_ON && <KomnataKluc />}
+    </span>
   );
 }

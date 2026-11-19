@@ -1937,7 +1937,7 @@ export default function PackNatureQuiz() {
       let q = (supabase as any)
         .from('dogs')
         .select('id, dog_name, cloudinary_main_url, heroglyph_png_url')
-        .eq('payment_status', 'paid')
+        .in('payment_status', ['paid', 'guest'])
         .order('created_at', { ascending: true });
       // B3c: zoznam ide z práv (`my_dog_rights()`), nie z vlastníctva. Majiteľovi
       // vráti tú istú množinu; pri `null` (RPC zlyhala) ostáva dnešný filter.

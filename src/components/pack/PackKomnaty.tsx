@@ -51,6 +51,8 @@ const K_REM = 'dogypt_k_rem';
 const K_AKT = 'dogypt_k_akt';
 const K_POS = 'dogypt_k_pos';
 const K_REP = 'dogypt_k_rep';
+/** Človek zvolil „Postupne“: komnata sa spustí sama, až keď sám otvorí jej sekciu (Matej 19. 11. 2026). */
+const K_POSTUPNE = 'dogypt_k_postupne';
 const K_POLICA = 'dogypt_k_polica';
 /** Prehľad otvorený ručne (nie po komnate) — vlastná hodnota vedľa id komnaty. */
 const PREHLAD = '*';
@@ -86,7 +88,7 @@ const naOk = (na: string | undefined, p: string) => {
 };
 
 /** Kde komnata začne: prvý nevidený krok (pokračuje, kde prestal); hotová komnata od začiatku (bez privítania). */
-function kurzor(k: Komnata, seen: Set<string>, p: string, o: { uk?: string; kluc?: boolean }): { pos: number; rep: boolean } {
+function kurzor(k: Komnata, seen: Set<string>, p: string, o: { uk?: string; kluc?: boolean }): { pos: number; rep: boolean } | null {
   if (o.uk) return { pos: Math.max(0, k.kroky.findIndex((x) => x.id === o.uk)), rep: true };
   const nove = novePolozky(k, seen);
   if (nove.length) return { pos: Math.max(0, k.kroky.findIndex((x) => x.id === nove[0].uk)), rep: true };
@@ -94,9 +96,12 @@ function kurzor(k: Komnata, seen: Set<string>, p: string, o: { uk?: string; kluc
   const rep = i < 0;
   if (rep) i = k.kroky[0].anchor === 'welcome' ? 1 : 0;
   // Kľúčik na stránke komnaty: nevoď človeka preč kvôli krokom „ťukni sem, aby si sa tu dostal“.
+  // Kľúčik ani automatický štart NIKDY neprenesú človeka inam (Matej 19. 11. 2026: „otvorilo map a človek nerozumie,
+  // na akej je obrazovke“): ak komnata tu nemá žiadny krok, nespustí sa vôbec.
   if (o.kluc && !naOk(k.kroky[i].na, p)) {
     const j = k.kroky.findIndex((x, n) => n > i && naOk(x.na, p));
-    if (j >= 0) i = j;
+    if (j < 0) return null;
+    i = j;
   }
   return { pos: i, rep };
 }
@@ -106,6 +111,7 @@ export function startKomnata(id: KomnataId = 'uvod', o: { uk?: string; kluc?: bo
   const k = KOMNATY.find((x) => x.id === id);
   if (!k) return;
   const c = kurzor(k, readSeenLocal(), window.location.pathname, o);
+  if (!c) return;
   ss.set(K_AKT, id); ss.set(K_POS, String(c.pos)); ss.set(K_REP, c.rep ? '1' : '0');
   ss.set(K_POLICA, null);
   if (o.uk) { forgetShown(scr(id)); logWiz(scr(id), o.uk, 'replay'); }
@@ -127,7 +133,7 @@ export function resetKomnaty(start = true, vsetko = false) {
   writeSeenLocal(s);
   void pushSeenToAccount(s);
   if (vsetko) {
-    [K_FIRST, K_AUTO, K_REM].forEach(ls.del);
+    [K_FIRST, K_AUTO, K_REM, K_POSTUPNE].forEach(ls.del);
     KOMNATY.forEach((k) => ls.del(`${K_AUTO}:${k.id}`));
   }
   window.dispatchEvent(new CustomEvent('dogypt:wizard'));
@@ -235,9 +241,18 @@ ${PROGRESS_CSS}
 // ─── KĽÚČIK PRI AINUBISOVI ───────────────────────────────────────────────────
 // Svieti, keď obrazovka má nevidenú komnatu alebo novinku v tej, čo človek už má. Ťuk spustí tú komnatu
 // (AINUBISov odkaz pod ním neotvorí). Význam kľúčika vysvetľuje preslov v komnate 0 (`k0.preslov`).
-export function KomnataKluc() {
+export function KomnataKluc({ dole = false }: { dole?: boolean }) {
   const { pathname } = useLocation();
   const t = useT();
+  // Hore pri AINUBISovi (`HubAinubis`) je hlavné miesto; dole v lište len na obrazovkách, kde horný rad nie je.
+  const [horeJe, setHoreJe] = useState(() => document.body.classList.contains('has-hub-ainubis'));
+  useEffect(() => {
+    if (!dole) return undefined;
+    const mo = new MutationObserver(() => setHoreJe(document.body.classList.contains('has-hub-ainubis')));
+    mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    setHoreJe(document.body.classList.contains('has-hub-ainubis'));
+    return () => mo.disconnect();
+  }, [dole, pathname]);
   const [seen, setSeen] = useState<Set<string>>(readSeenLocal);
   useEffect(() => {
     const sync = () => setSeen(readSeenLocal());
@@ -246,7 +261,7 @@ export function KomnataKluc() {
   }, []);
   useEffect(() => setSeen(readSeenLocal()), [pathname]);
   const k = komnataFor(pathname, hotova(seen));
-  if (!k) return null;
+  if (!k || (dole && horeJe)) return null;
   return (
     <button
       type="button"
@@ -482,6 +497,19 @@ function PackKomnatyJadro({ dogs, avatarUrl, potrebujeHosta }: { dogs: PackDog[]
     startKomnata(kb.id, { kluc: true });
   }, [off, consentDone, volno, akt, polica, pathname, done]);
 
+  // „POSTUPNE“ (Matej 19. 11. 2026): komnata sekcie sa spustí, až keď človek sám otvorí jej obrazovku (ťukne na planétku →
+  // /map → začne prehliadka mapy). Feed (`/pack`) sa nepočíta — tam komnaty volá kľúčik. Raz za deň na komnatu.
+  useEffect(() => {
+    if (off || !consentDone || !volno || akt || polica || !ls.get(K_POSTUPNE) || !done(k0)) return undefined;
+    const kp = komnataFor(pathname, done);
+    if (!kp || kp.routes.includes('/pack') || ls.get(`${K_AUTO}:${kp.id}`) === dnes()) return undefined;
+    const t0 = window.setTimeout(() => {
+      ls.set(`${K_AUTO}:${kp.id}`, dnes());
+      startKomnata(kp.id, { kluc: true });
+    }, 700);
+    return () => window.clearTimeout(t0);
+  }, [off, consentDone, volno, akt, polica, pathname, done, k0]);
+
   // Pripomienka DOG ID: deň 1 · 3 · 7, potom týždenne, max 1× za deň, po 3 odmietnutiach ticho.
   const kPes = KOMNATY[1];
   useEffect(() => {
@@ -615,7 +643,7 @@ function PackKomnatyJadro({ dogs, avatarUrl, potrebujeHosta }: { dogs: PackDog[]
               <p className="kmn-q" style={{ margin: `${PACK_SPACE.sm}px 0 0`, fontSize: PACK_TEXT.label }}>{t('pack.wizard.k.otazka')}</p>
               <div className="kmn-row">
                 <button type="button" className="mcoach-ok" onClick={() => { startKomnata('pes'); }}>{t('pack.wizard.k.teraz')}</button>
-                <button type="button" className="mcoach-mute" onClick={() => { logWiz(scr('uvod'), 'polica', 'later'); setPolica(null); }}>{t('pack.wizard.k.postupne')}</button>
+                <button type="button" className="mcoach-mute" onClick={() => { logWiz(scr('uvod'), 'polica', 'later'); ls.set(K_POSTUPNE, dnes()); setPolica(null); }}>{t('pack.wizard.k.postupne')}</button>
               </div>
             </>
           ) : (

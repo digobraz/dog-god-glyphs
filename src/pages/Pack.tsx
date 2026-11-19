@@ -246,7 +246,7 @@ function PackLegacy() {
       let dogsQuery = (supabase as any)
         .from('dogs')
         .select('id, dog_name, owner_name, cloudinary_main_url, share_card_url, country, pack_number, created_at, owner_gender:selections->>ownerGender')
-        .eq('payment_status', 'paid');
+        .in('payment_status', ['paid', 'guest']);
       dogsQuery = accessIds ? dogsQuery.in('id', accessIds) : dogsQuery.eq('user_id', u.id);
       // Poradie = psie číslo vzostupne (13. 10. 2026, Danka #42: „pri mojom profile
       // nech je Belga“ — mala pri sebe Adu #45, lebo sa radilo podľa pridania).

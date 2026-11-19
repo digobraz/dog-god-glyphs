@@ -187,7 +187,7 @@ async function loadDogs(uid: string): Promise<PackDogFull[] | null> {
   let dogsQuery = (supabase as any)
     .from('dogs')
     .select('id, user_id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url, owner_name, country, life_status, death_date')
-    .eq('payment_status', 'paid');
+    .in('payment_status', ['paid', 'guest']);
   dogsQuery = ids ? dogsQuery.in('id', ids) : dogsQuery.eq('user_id', uid);
   const { data: dogRows } = await dogsQuery
     .order('pack_number', { ascending: true }) as { data: PackDogFull[] | null };
