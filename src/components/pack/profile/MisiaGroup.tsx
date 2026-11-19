@@ -411,12 +411,12 @@ export function MisiaBody() {
                 <p>{tx('pack.misia.founder.p', 'You came among the first, when nobody knew DOGYPT yet. This badge stays with you and your dog forever, and it will come with benefits.')}</p>
                 {paw !== 'sent' && paw !== 'already' && <p className="mi-quiet">{IS_APP ? tx('pack.misia.founder.app', "If you want to keep carrying the pack, we'll e-mail you.") : tx('pack.misia.founder.web', 'You can also support the pack regularly.')}</p>}
               </>
-            ) : <b>{tx('pack.misia.paw.lead', 'We carry the pack together.')}</b>}
+            ) : <b>{tx('pack.misia.paw.lead', 'Lend a paw.')}</b>}
             {paw === 'sent' || paw === 'already' ? (
               <span className="ok">{paw === 'sent' ? tx('pack.misia.paw.sent', 'Check your inbox ✓') : tx('pack.misia.paw.already', 'The e-mail is already in your inbox ✓')}</span>
             ) : (
               <>
-                {!founder && <p>{tx('pack.misia.paw.sub', 'We will get in touch by e-mail with instructions.')}</p>}
+                {!founder && <p>{tx('pack.misia.paw.sub', 'We\'ll write to you about ways to help. Not only with money.')}</p>}
                 <div className="mi-paw-b">
                   <button type="button" className="mi-cta" disabled={paw === 'busy'} onClick={lendPaw}>{tx('pack.misia.paw.cta', 'I want to help')}</button>
                   {!IS_APP && <button type="button" className="mi-cta" onClick={() => { setNotice(null); setSheet({ kind: 'gift' }); }}>{tx('pack.misia.give', 'Give')}</button>}
