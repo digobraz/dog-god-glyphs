@@ -107,6 +107,8 @@ export const nld: Partial<Dict> = {
   "heroglyph.flow.name.placeholder": "Typ de naam van je hond...",
   "heroglyph.flow.name.dogCountry": "Thuisland",
   "heroglyph.flow.name.birthday": "Wanneer is je hond geboren?",
+  "heroglyph.flow.name.birthdayNamed": "Wanneer is {name} jarig?",
+  "heroglyph.flow.name.statusNamed": "Is {name} nog bij je?",
   "heroglyph.flow.name.continue": "Doorgaan",
   "heroglyph.flow.name.infoAria": "Info over Hekthor",
   "heroglyph.flow.name.whoTitle": "WIE IS",
@@ -5277,6 +5279,7 @@ export const nld: Partial<Dict> = {
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': "1",
   'heroglyph.flow.breed.required': "Kies een ras of markeer kruising",
+  'heroglyph.flow.breed.mandatory': "verplicht",
   'heroglyph.flow.breed.own': "„{name}” gebruiken",
   'dogPage.statusLbl': "Status",
   'dogPage.stateLbl': "Stand",

@@ -150,6 +150,8 @@ export const esp: Partial<Dict> = {
   'heroglyph.flow.name.moreDogsHint': "¿Tienes más perros? Los añades en el siguiente paso. Cada perro tiene su propio perfil.",
   'heroglyph.flow.name.dogCountry': "Hogar",
   'heroglyph.flow.name.birthday': "¿Cuándo nació tu perro?",
+  "heroglyph.flow.name.birthdayNamed": "¿Cuándo es el cumpleaños de {name}?",
+  "heroglyph.flow.name.statusNamed": "¿{name} sigue a tu lado?",
   'heroglyph.flow.name.continue': "Continuar",
   'heroglyph.flow.name.infoAria': "Información sobre Hekthor",
   'heroglyph.flow.name.whoTitle': "¿QUIÉN ES",
@@ -5441,6 +5443,7 @@ export const esp: Partial<Dict> = {
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': "1",
   'heroglyph.flow.breed.required': "Elige una raza o marca mestizo",
+  'heroglyph.flow.breed.mandatory': "obligatorio",
   'heroglyph.flow.breed.own': "Usar «{name}»",
   'dogPage.statusLbl': "Estado",
   'dogPage.stateLbl': "Condición",

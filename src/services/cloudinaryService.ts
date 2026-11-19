@@ -38,6 +38,13 @@ export const uploadMainPhoto = (blob: Blob, sessionId: string) =>
 export const uploadCroppedPhoto = (blob: Blob, sessionId: string) =>
   uploadBlob(blob, `tmp/${sessionId}`, 'main_crop');
 
+// VÝREZ Z POPUPU FOTKY (heroflow, 19. 11. 2026). 🔴 `public_id` nesie ČAS, nie `main` ani id psa:
+//    unsigned preset neprepisuje, výrez na tej istej adrese ako originál vrátil URL ORIGINÁLU
+//    (rovnaká `v…` verzia) a v store skončila neorezaná fotka — Matej: „výrez sa mi neuložil".
+//    Priečinok `tmp/<session>/crop` ostáva pod session, takže ho zametač riadi tým istým odkazom.
+export const uploadCropVariant = (blob: Blob, sessionId: string) =>
+  uploadBlob(blob, `tmp/${sessionId}/crop`, `c-${Date.now().toString(36)}`);
+
 export const uploadExtraPhoto = (blob: Blob, sessionId: string, index: number) =>
   uploadBlob(blob, `tmp/${sessionId}/extras`, String(index).padStart(2, '0'));
 

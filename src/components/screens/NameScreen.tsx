@@ -266,10 +266,14 @@ export function NameScreen() {
     born: t('heroglyph.flow.name.chipBorn'),
     status: t('heroglyph.flow.name.chipStatus'),
   };
+  // Po napísaní mena nesú otázky NARODENIE a STAV meno psa (Matej 19. 11. 2026: *„v narodenie a stav by malo byť
+  // meno psa nie personalizovaná otázka"*). Pohlavie tu ešte nepoznáme a meno sa neskloňuje, takže vety sú
+  // rodovo neutrálne a meno stojí ako podmet. Zobrazuje sa tak, ako ho ukazuje doska (veľkými).
+  const askName = trimmed.toUpperCase();
   const asks: Record<NameTopic, string> = {
     name: t('heroglyph.flow.name.greetingQuestion'),
-    born: t('heroglyph.flow.name.birthday'),
-    status: t('intro.question'),
+    born: nameValid ? t('heroglyph.flow.name.birthdayNamed', { name: askName }) : t('heroglyph.flow.name.birthday'),
+    status: nameValid ? t('heroglyph.flow.name.statusNamed', { name: askName }) : t('intro.question'),
   };
 
   const handleSend = () => {

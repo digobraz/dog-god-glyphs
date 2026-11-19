@@ -1,4 +1,4 @@
-import { uploadMainPhoto, withTransform, type CloudinaryResult } from '@/services/cloudinaryService';
+import { uploadMainPhoto, uploadCropVariant, withTransform, type CloudinaryResult } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
 
 /**
@@ -74,6 +74,15 @@ export const mainPhotoTarget = (): PhotoTarget => ({
 });
 
 /**
+ * ORIGINÁL PRE VÝREZ (19. 11. 2026). Výrez z popupu je v pixeloch PÔVODNÉHO súboru
+ * (`naturalWidth` blobu), no keď dobehne nahrávanie, `target.read()` už vráti Cloudinary
+ * adresu KOMPRIMOVANEJ kópie (max 1200 px) — rovnaký obdĺžnik by sa na nej zrezal vedľa.
+ * Preto si cieľ pamätá blob, z ktorého popup rátal. Kľúč je objekt cieľa, takže sa nemení
+ * žiadne volanie (`intakePhoto(file, target)` → `finishPhotoChoice(rect, up, target)`).
+ */
+const originalBlob = new WeakMap<PhotoTarget, string>();
+
+/**
  * Prijmi súbor: ukáž HNEĎ → zapíš do storu → skomprimuj a nahraj na pozadí.
  *
  * 🔴 NÁHĽAD JE PÔVODNÝ SÚBOR, NIE VÝSTUP KOMPRESIE — a je to zámer, nie lenivosť.
@@ -94,6 +103,7 @@ export function intakePhoto(file: File, target: PhotoTarget = mainPhotoTarget())
   const prev = target.read();
 
   const previewUrl = URL.createObjectURL(file);
+  originalBlob.set(target, previewUrl);
   if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
   target.write(previewUrl);
 
@@ -156,7 +166,10 @@ export async function finishPhotoChoice(
   }
 
   try {
-    const src = target.read();
+    const cur = target.read();
+    // Originál (blob) len kým v cieli leží ON alebo jeho nahraná kópia — inak je to už iná fotka.
+    const orig = originalBlob.get(target);
+    const src = orig && (cur === orig || (cur && !cur.startsWith('blob:'))) ? orig : cur;
     if (!src) return;
     const blob = await cropToSquare(src, rect);
     if (!blob) return;
@@ -165,7 +178,10 @@ export async function finishPhotoChoice(
     target.write(preview);
     if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
 
-    const { publicId, secureUrl } = await target.upload(blob, sessionId);
+    // 🔴 Výrez ide na VLASTNÚ adresu, nie cez `target.upload` — ten píše na adresu originálu
+    //    (`…/main`, `…/pack/<id>`) a unsigned preset ju neprepíše, takže späť by prišla
+    //    neorezaná fotka. `uploadCropVariant` nesie v názve čas.
+    const { publicId, secureUrl } = await uploadCropVariant(blob, sessionId);
     target.writePublicId(publicId);
     if (target.read() === preview) target.write(secureUrl);
   } catch (err) {

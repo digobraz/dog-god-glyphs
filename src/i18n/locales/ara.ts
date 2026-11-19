@@ -107,6 +107,8 @@ export const ara: Partial<Dict> = {
   "heroglyph.flow.name.placeholder": "اكتب اسم كلبك…",
   "heroglyph.flow.name.dogCountry": "البلد",
   "heroglyph.flow.name.birthday": "متى وُلد كلبك؟",
+  "heroglyph.flow.name.birthdayNamed": "متى عيد ميلاد {name}؟",
+  "heroglyph.flow.name.statusNamed": "هل {name} لا يزال بجانبك؟",
   "heroglyph.flow.name.continue": "متابعة",
   "heroglyph.flow.name.infoAria": "معلومات عن Hekthor",
   "heroglyph.flow.name.whoTitle": "من هو",
@@ -5266,6 +5268,7 @@ export const ara: Partial<Dict> = {
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': "1",
   'heroglyph.flow.breed.required': "اختر سلالة أو حدّد أنه هجين",
+  'heroglyph.flow.breed.mandatory': "مطلوب",
   'heroglyph.flow.breed.own': "استخدم «{name}»",
   'dogPage.statusLbl': "الحالة",
   'dogPage.stateLbl': "الوضع",

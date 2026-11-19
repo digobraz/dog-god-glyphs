@@ -108,6 +108,8 @@ export const ind: Partial<Dict> = {
   "heroglyph.flow.name.placeholder": "अपने कुत्ते का नाम लिखें...",
   "heroglyph.flow.name.dogCountry": "देश",
   "heroglyph.flow.name.birthday": "आपका कुत्ता कब पैदा हुआ?",
+  "heroglyph.flow.name.birthdayNamed": "Kapan ulang tahun {name}?",
+  "heroglyph.flow.name.statusNamed": "Apakah {name} masih ada di sisimu?",
   "heroglyph.flow.name.continue": "जारी रखें",
   "heroglyph.flow.name.infoAria": "Hekthor के बारे में जानकारी",
   "heroglyph.flow.name.whoTitle": "कौन है",
@@ -5270,6 +5272,7 @@ export const ind: Partial<Dict> = {
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': "",
   'heroglyph.flow.breed.required': "नस्ल चुनें या मिश्रित नस्ल चिह्नित करें",
+  'heroglyph.flow.breed.mandatory': "अनिवार्य",
   'heroglyph.flow.breed.own': "“{name}” लिखें",
   'dogPage.statusLbl': "Status",
   'dogPage.stateLbl': "स्थिति",

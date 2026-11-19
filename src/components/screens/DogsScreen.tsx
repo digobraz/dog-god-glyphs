@@ -133,9 +133,6 @@ export function DogsScreen() {
   // Odhad ide z prehliadača (pásmo → región jazyka → jazyk stránky), nie zo siete —
   // detail a dôvod v `lib/guessCountry.ts`. Uložená voľba vždy vyhráva nad odhadom.
   const [nat, setNat] = useState<string>(() => selections.country || guessCountryName(lang) || '');
-  // „Platí pre všetkých" má zmysel až od DRUHÉHO psa — pri jednom je to políčko
-  // bez obsahu a robí z jednoduchej obrazovky formulár (LAB).
-  const [natAll, setNatAll] = useState(() => extraDogs.every((d) => d.country === null));
   /** Kľúč otvoreného panela; `null` = zavretý. */
   const [openKey, setOpenKey] = useState<string | null>(null);
   /** Otvorené pole „koľký pes v živote je prvý riadok". */
@@ -318,6 +315,8 @@ export function DogsScreen() {
   });
   const dogDone = (d: Row) => Object.values(dogFlags(d)).every(Boolean);
   const allDone = rows.every(dogDone);
+  /** Šípka ukazuje na JEDEN krúžok, prvý bez fotky - viac šípok naraz by kričalo. */
+  const firstNoPhoto = rows.find((r) => !r.photo)?.key;
 
   const [params] = useSearchParams();
   const backToOwner = params.get('back') === 'owner';
@@ -447,6 +446,7 @@ export function DogsScreen() {
                       done={dogDone(d)}
                       flags={dogFlags(d)}
                       nat={nat}
+                      pointPhoto={!d.photo && d.key === firstNoPhoto}
                       onOpen={() => setOpenKey(d.key)}
                       onPhoto={() => askPhoto(d)}
                       onOrder={() => setOrdEdit((p) => !p)}
@@ -459,6 +459,10 @@ export function DogsScreen() {
               <button type="button" className="hf-addrow" onClick={addDog}>
                 <b>+</b>{t('heroglyph.flow.dogs.add')}
               </button>
+
+              {/* Veta o doplnení stojí HNEĎ pod blokom psov; červená šípka v riadku ukazuje na krúžok fotky
+                  (Matej 19. 11. 2026). */}
+              {!allDone && <p className="hf-photohint" role="status">{t('heroglyph.flow.dogs.fillHint')}</p>}
 
               {/* ŤUKNUTIE NA ČÍSLO — jedna otázka pre celý zoznam.
                   Ťahanie určuje vzájomné poradie, číslo určuje, kde tá skupina
@@ -484,33 +488,16 @@ export function DogsScreen() {
                 </div>
               )}
 
-              {/* ── NÁRODNOSŤ — jedna hodnota pre celý vstup, JEDEN riadok ───
-                  Od 23. 9. sa pýta LEN TU: z kroku 2 odišla, aby tá istá otázka
-                  neprišla dvakrát a dve odpovede si neprotirečili. */}
-              <div className="hf-natline">
-                <CountryPick value={nat} onChange={setNat} />
-                <button
-                  type="button"
-                  className={`hf-chk hf-chk--inline${natAll ? ' on' : ''}`}
-                  onClick={() => {
-                    const next = !natAll;
-                    setNatAll(next);
-                    // Zapnutie zruší vlastné krajiny — inak by políčko tvrdilo niečo,
-                    // čo v dátach neplatí.
-                    if (next) setExtraDogs(extraDogs.map((d) => ({ ...d, country: null })));
-                  }}
-                >
-                  {checkBox}
-                  <span className="lbl">{t('heroglyph.flow.dogs.allSameShort')}</span>
-                </button>
-              </div>
+              {/* ── NÁRODNOSŤ — bez riadku na hlavnej obrazovke (Matej 19. 11. 2026: *„tvoja svorka sa mi zdá
+                  mätúca, dal by som preč tie 2 pilsy"*). Krajina je 15. segment heroglyfu, takže z dát NEZMIZLA:
+                  predvolená `nat` (z pripojenia) platí pre celú svorku (`country: null`), zmení sa v karte
+                  psa (legenda `heroglyph.flow.dogs.nationality`). */}
 
               {/* Zámok vysvetľujú pilulky a farba riadkov vyššie — veta pod
                   tlačidlom by hovorila to isté tretíkrát. */}
               {/* JEDEN PES = povedz nahlas, že to stačí (Matej 8. 10. 2026: *„stačilo by pri
                   tom kroku dať že pridať psa neskôr"*). Otázka „máš aj ďalšieho psa?" bez
                   zjavnej odpovede NIE zastavila jediného človeka, ktorý sem z IG došiel. */}
-              {!allDone && <p className="hf-hint" role="status">{t('heroglyph.flow.dogs.fillHint')}</p>}
               <button type="button" className="hf-cta hf-dock" onClick={handleContinue} disabled={!allDone}>
                 {rows.length > 1 ? t('heroglyph.flow.name.continue') : t('heroglyph.flow.dogs.continueOne')}
               </button>
@@ -637,9 +624,6 @@ export function DogsScreen() {
                   className={`hf-chk${open.country === null ? ' on' : ''}`}
                   onClick={() => {
                     const own = open.country === null;
-                    // Vyviazanie psa ruší aj spoločné políčko — inak by tvrdilo
-                    // niečo, čo v dátach už neplatí.
-                    if (own) setNatAll(false);
                     patch(open, { country: own ? (nat || '') : null });
                   }}
                 >
@@ -685,7 +669,7 @@ export function DogsScreen() {
 // 🔴 ŤAHÁ SA LEN ZA ÚCHYT (`dragListener={false}`). Riadok je zároveň klikateľný
 //    (otvára panel) a fotka je tlačidlo; keby ťahal celý riadok, na dotykovom
 //    zariadení by sa klik nedal odlíšiť od začiatku ťahania.
-function DogRow({ row, order, first, slim, done, flags, nat, onOpen, onPhoto, onOrder, t }: {
+function DogRow({ row, order, first, slim, done, flags, nat, pointPhoto, onOpen, onPhoto, onOrder, t }: {
   row: Row;
   order: number;
   first: boolean;
@@ -694,6 +678,8 @@ function DogRow({ row, order, first, slim, done, flags, nat, onOpen, onPhoto, on
   done: boolean;
   flags: { photo: boolean; name: boolean; born: boolean; gone: boolean; country: boolean };
   nat: string;
+  /** Pes bez fotky, na ktorý ukazuje červená šípka. */
+  pointPhoto: boolean;
   onOpen: () => void;
   onPhoto: () => void;
   onOrder: () => void;
@@ -729,14 +715,22 @@ function DogRow({ row, order, first, slim, done, flags, nat, onOpen, onPhoto, on
             psa. Keby zmizla úplne, pes by sa nedal dokončiť a tlačidlo
             POKRAČOVAŤ by ostalo zamknuté bez cesty von. */}
         {!slim && (
-          <button
-            type="button"
-            className={`hf-pic${row.photo ? '' : ' add'}`}
-            onClick={onPhoto}
-            aria-label={t('heroglyph.flow.dogs.photoAdd')}
-          >
-            {row.photo ? <img src={row.photo} alt="" /> : '+'}
-          </button>
+          <span className="hf-picwrap">
+            <button
+              type="button"
+              className={`hf-pic${row.photo ? '' : ' add'}`}
+              onClick={onPhoto}
+              aria-label={t('heroglyph.flow.dogs.photoAdd')}
+            >
+              {row.photo ? <img src={row.photo} alt="" /> : '+'}
+            </button>
+            {pointPhoto && (
+              <svg className="hf-picarrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+                strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M12 21 V5 M5 11 L12 4 L19 11" />
+              </svg>
+            )}
+          </span>
         )}
 
         <button type="button" className="hf-dogmid" onClick={onOpen} aria-label={t('heroglyph.flow.dogs.editAria')}>

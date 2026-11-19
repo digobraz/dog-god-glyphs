@@ -107,6 +107,8 @@ export const jpn: Partial<Dict> = {
   "heroglyph.flow.name.placeholder": "愛犬の名前を入力...",
   "heroglyph.flow.name.dogCountry": "ふるさと",
   "heroglyph.flow.name.birthday": "愛犬はいつ生まれましたか？",
+  "heroglyph.flow.name.birthdayNamed": "{name} の誕生日はいつですか？",
+  "heroglyph.flow.name.statusNamed": "{name} はまだあなたのそばにいますか？",
   "heroglyph.flow.name.continue": "続ける",
   "heroglyph.flow.name.infoAria": "Hekthorについて",
   "heroglyph.flow.name.whoTitle": "",
@@ -5266,6 +5268,7 @@ export const jpn: Partial<Dict> = {
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': "",
   'heroglyph.flow.breed.required': "犬種を選ぶか、ミックスを選択してください",
+  'heroglyph.flow.breed.mandatory': "必須",
   'heroglyph.flow.breed.own': "「{name}」を使う",
   'dogPage.statusLbl': "ステータス",
   'dogPage.stateLbl': "区分",

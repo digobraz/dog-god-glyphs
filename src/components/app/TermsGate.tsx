@@ -15,8 +15,7 @@ import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { getUserShared } from '@/lib/sharedFetch';
 import { useT } from '@/i18n/LanguageContext';
-import { HandHeart } from '@/components/pack/HandIcons';
-import { AlertIc, CheckIc } from '@/components/app/sysSwap';
+import { AlertIc, CheckIc, LikeHeartIc } from '@/components/app/sysSwap';
 import ainubisHead from '@/assets/ainubis-head.webp';
 import { APP_NEW } from '@/lib/packFlags';
 import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
@@ -86,7 +85,7 @@ export function RulesSheet({ onDone }: { onDone: () => void }) {
         <ul className="tr-list">
           {row(<CheckIc size={20} />, tx('appEntry.rules.h1', 'Be fair.'),
             tx('appEntry.rules.r1', 'Collect points **honestly** and **don\'t lie**. Suspicious activity will be uncovered by AINUBIS :)'))}
-          {row(<HandHeart size={20} />, tx('appEntry.rules.h2', 'Respect.'),
+          {row(<LikeHeartIc size={20} on />, tx('appEntry.rules.h2', 'Respect.'),
             tx('appEntry.rules.r2', 'We don\'t tolerate **insults, violence, stalking or spam**.'))}
           {row(<AlertIc size={20} />, tx('appEntry.rules.h3', 'Report & block'),
             tx('appEntry.rules.r3', '**anything inappropriate** — you help us spot problems sooner :)'))}

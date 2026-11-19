@@ -107,6 +107,8 @@ export const kor: Partial<Dict> = {
   "heroglyph.flow.name.placeholder": "반려견 이름을 입력하세요...",
   "heroglyph.flow.name.dogCountry": "고향",
   "heroglyph.flow.name.birthday": "반려견은 언제 태어났나요?",
+  "heroglyph.flow.name.birthdayNamed": "{name}의 생일은 언제인가요?",
+  "heroglyph.flow.name.statusNamed": "{name}: 아직 곁에 있나요?",
   "heroglyph.flow.name.continue": "계속",
   "heroglyph.flow.name.infoAria": "Hekthor 소개",
   "heroglyph.flow.name.whoTitle": "",
@@ -5269,6 +5271,7 @@ export const kor: Partial<Dict> = {
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': "",
   'heroglyph.flow.breed.required': "견종을 선택하거나 믹스로 표시하세요",
+  'heroglyph.flow.breed.mandatory': "필수",
   'heroglyph.flow.breed.own': "“{name}” 사용",
   'dogPage.statusLbl': "상태",
   'dogPage.stateLbl': "구분",

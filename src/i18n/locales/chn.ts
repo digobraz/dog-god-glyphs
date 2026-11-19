@@ -107,6 +107,8 @@ export const chn: Partial<Dict> = {
   "heroglyph.flow.name.placeholder": "输入你的狗的名字...",
   "heroglyph.flow.name.dogCountry": "家乡",
   "heroglyph.flow.name.birthday": "你的狗是哪天出生的？",
+  "heroglyph.flow.name.birthdayNamed": "{name} 的生日是什么时候？",
+  "heroglyph.flow.name.statusNamed": "{name} 还在你身边吗？",
   "heroglyph.flow.name.continue": "继续",
   "heroglyph.flow.name.infoAria": "关于 Hekthor",
   "heroglyph.flow.name.whoTitle": "谁是",
@@ -5266,6 +5268,7 @@ export const chn: Partial<Dict> = {
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': "1",
   'heroglyph.flow.breed.required': "选择品种或标记为混血",
+  'heroglyph.flow.breed.mandatory': "必填",
   'heroglyph.flow.breed.own': "使用“{name}”",
   'dogPage.statusLbl': "状态",
   'dogPage.stateLbl': "身份",

@@ -150,6 +150,8 @@ export const ukr: Partial<Dict> = {
   'heroglyph.flow.name.moreDogsHint': "Маєш кількох собак? Додаси їх на наступному кроці. Кожен пес має власний профіль.",
   'heroglyph.flow.name.dogCountry': "Батьківщина",
   'heroglyph.flow.name.birthday': "Коли народився твій пес?",
+  "heroglyph.flow.name.birthdayNamed": "Коли день народження у {name}?",
+  "heroglyph.flow.name.statusNamed": "{name} досі поруч із тобою?",
   'heroglyph.flow.name.continue': "Продовжити",
   'heroglyph.flow.name.infoAria': "Інформація про Hekthor",
   'heroglyph.flow.name.whoTitle': "ХТО ТАКИЙ",
@@ -5440,6 +5442,7 @@ export const ukr: Partial<Dict> = {
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': "1",
   'heroglyph.flow.breed.required': "Обери породу або познач метиса",
+  'heroglyph.flow.breed.mandatory': "обов’язково",
   'heroglyph.flow.breed.own': "Використати «{name}»",
   'dogPage.statusLbl': "Статус",
   'dogPage.stateLbl': "Стан",

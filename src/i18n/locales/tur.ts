@@ -107,6 +107,8 @@ export const tur: Partial<Dict> = {
   "heroglyph.flow.name.placeholder": "Köpeğinin adını yaz…",
   "heroglyph.flow.name.dogCountry": "Memleket",
   "heroglyph.flow.name.birthday": "Köpeğin ne zaman doğdu?",
+  "heroglyph.flow.name.birthdayNamed": "{name} ne zaman doğdu?",
+  "heroglyph.flow.name.statusNamed": "{name} hâlâ yanında mı?",
   "heroglyph.flow.name.continue": "Devam",
   "heroglyph.flow.name.infoAria": "Hekthor hakkında",
   "heroglyph.flow.name.whoTitle": "KİM BU",
@@ -5277,6 +5279,7 @@ export const tur: Partial<Dict> = {
   // ── doplnené 15. 10. 2026 (481 kľúčov: web, /pack, /magnet) ──
   'religion.preamble.headlineVerbFirst': "",
   'heroglyph.flow.breed.required': "Bir ırk seç veya melez olarak işaretle",
+  'heroglyph.flow.breed.mandatory': "zorunlu",
   'heroglyph.flow.breed.own': "“{name}” kullan",
   'dogPage.statusLbl': "Durum",
   'dogPage.stateLbl': "Konum",

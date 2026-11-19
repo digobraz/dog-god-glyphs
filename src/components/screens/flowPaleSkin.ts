@@ -560,6 +560,16 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 }
 .hf-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .hf-pic.add { border-style: dashed; border-color: #B25640; background: rgba(178,86,64,.10); color: #B25640; }
+/* Červená šípka pod krúžkom bez fotky ukazuje, kam kliknúť (19. 11. 2026). Červená = rovnaká ako „< 100 %". */
+.hf-picwrap { position: relative; display: flex; flex: 0 0 auto; }
+.hf-picarrow {
+  position: absolute; left: 50%; top: calc(100% + 2px); width: 24px; height: 24px; margin-left: -12px;
+  color: #B25640; pointer-events: none; z-index: 2; animation: hf-arrow-bob 1.2s ease-in-out infinite;
+}
+@keyframes hf-arrow-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .hf-picarrow { animation: none; } }
+/* Veta o doplnení hneď pod blokom psov. */
+.hf-photohint { margin: 8px 0 0; width: 100%; text-align: center; font-size: 14px; font-weight: 600; color: #B25640; letter-spacing: 0; text-transform: none; }
 /* ZELENÝ BLOK = PES JE HOTOVÝ (Matej 23. 9.: „celý blok so psom bude na zeleno
    ak bude celý vyplnený"). Doteraz to hovorili len pilulky — štyri malé značky
    namiesto jednej odpovede. Zámok tlačidla POKRAČOVAŤ je presne súčet zelených

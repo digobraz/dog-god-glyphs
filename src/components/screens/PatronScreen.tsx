@@ -388,7 +388,21 @@ export function PatronScreen() {
    */
   const handover = canGo && missing >= 0;
 
+  /** 🔴 19. 11. 2026 — Matej: *„ak som klikol na ikonku tak nejde ďalej, lebo výber plemena je
+   *  povinný = treba to nejak označiť"*. Patrón je vybraný, plemeno chýba → CTA zostáva klikateľné
+   *  (vyzerá vypnuté) a ťuk človeka zavedie k poľu: zroluje, zafokusuje a pole zatrasie. */
+  const chipRef = useRef<HTMLButtonElement>(null);
+  const [shake, setShake] = useState(false);
+  const nudgeBreed = () => {
+    const el = chipRef.current;
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    el?.focus({ preventScroll: true });
+    setShake(false);
+    requestAnimationFrame(() => setShake(true));
+  };
+
   const go = () => {
+    if (chybaPlemeno) { nudgeBreed(); return; }
     if (!canGo) return;
     if (handover) { setCur(missing); return; }
     // Do globálneho store ide PRVÝ pes — ostatní žijú v `dogEssence`, kým
@@ -506,13 +520,16 @@ export function PatronScreen() {
                   popupu, nie formulár v doske. */}
               <button
                 type="button"
-                className={`pt-breedchip${breedShown ? ' is-set' : ''}`}
+                ref={chipRef}
+                className={`pt-breedchip${breedShown ? ' is-set' : ''}${chybaPlemeno ? ' is-need' : ''}${shake ? ' is-shake' : ''}`}
                 onClick={() => setBreedOpen(true)}
+                onAnimationEnd={() => setShake(false)}
                 aria-haspopup="dialog"
+                aria-required={!mix}
               >
                 <HandSearch size={14} className="ic" />
                 <span className="tx">{breedShown || t('heroglyph.flow.breed.pick')}</span>
-                {breedShown ? <HandCheck size={14} className="ok" /> : null}
+                {breedShown ? <HandCheck size={14} className="ok" /> : (!mix && <span className="req">{t('heroglyph.flow.breed.mandatory')}</span>)}
               </button>
 
               <FlowModal open={breedOpen} className="pt-breedpanel" label={t('heroglyph.flow.breed.popTitle', { name: dog?.name || heroName })} onClose={() => setBreedOpen(false)}>
@@ -613,7 +630,7 @@ export function PatronScreen() {
                   {t('heroglyph.flow.breed.required')}
                 </button>
               )}
-              <button type="button" className="hf-cta hf-dock" disabled={!canGo} onClick={go}>
+              <button type="button" className={`hf-cta hf-dock${canGo ? '' : ' is-off'}`} disabled={!canGo && !chybaPlemeno} aria-disabled={!canGo} onClick={go}>
                 {handover ? t('heroglyph.flow.multi.nextDog') : t('heroglyph.flow.breed.continue')}
               </button>
             </div>
@@ -635,6 +652,9 @@ export function PatronScreen() {
  *    teda rezerva 83 px. Kto pridá ďalší prvok, ju vyčerpá — a vtedy sa
  *    ZMENŠUJE OBSAH, nie rezerva od okraja (lock 24. 9.).
  */
+// Červená pre chýbajúci údaj, ten istý odtieň ako DOG ID pod 100 % (.dogblk-fill).
+const NEED_RED = '#B25640';
+
 const PATRON_CSS = `
 /* Bublina: stupeň písma viazaný na ŠÍRKU BUBLINY (cqw), nie na okno — inak
    nadpis pri zmene šírky ticho pretečie. Tá istá dvojica hodnôt ako PODSTATA,
@@ -661,7 +681,13 @@ const PATRON_CSS = `
   background: #FFFDF7; color: ${LAB.ink};
   font-family: 'Space Grotesk', sans-serif; font-size: 14px;
 }
-.pt-need { display: block; margin: 0 auto 8px; padding: 0; border: 0; background: none; font: 500 12px 'Space Grotesk', sans-serif; color: ${LAPIS.edge}; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.pt-need { display: block; margin: 0 auto 8px; padding: 0; border: 0; background: none; font: 600 12px 'Space Grotesk', sans-serif; color: ${NEED_RED}; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+/* Povinné pole: štítok v pilulke, pri chýbajúcom plemene (po výbere patróna) červený lem. */
+.pt-breedchip .req { flex: none; font: 600 10px 'Space Grotesk', sans-serif; letter-spacing: .02em; color: ${NEED_RED}; padding: 2px 6px; border-radius: ${PACK_R.pill}px; border: 1px solid ${NEED_RED}; }
+.pt-breedchip.is-need { border-color: ${NEED_RED}; box-shadow: 0 0 0 3px rgba(178, 86, 64, .18); }
+.pt-breedchip.is-shake { animation: pt-shake .45s ease-in-out; }
+@keyframes pt-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
+@media (prefers-reduced-motion: reduce) { .pt-breedchip.is-shake { animation: none; } }
 .pt-breedchip .tx { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pt-breedchip .ic { flex: none; color: ${LAB.inkMuted}; }
 .pt-breedchip .ok { flex: none; color: #2E5C3B; }
