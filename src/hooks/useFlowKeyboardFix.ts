@@ -20,8 +20,13 @@ export function useFlowKeyboardFix() {
     // the same time, leaving the page permanently frozen. See useBodyScrollLock.
     const releaseLock = acquireScrollLock(true);
 
-    const resetScroll = () => window.scrollTo(0, 0);
-    window.addEventListener('focusout', resetScroll);
+    // ⚠️ Návrat hore LEN keď klávesnica zmizne. Dovtedy sa volal pri KAŽDEJ zmene viewportu — aj počas písania,
+    //    keď iOS sám posúva ku kurzoru — a obrazovka poskočila hore a späť (Matej 19. 11. 2026: „seká to… na
+    //    mikrosekundu to vyzerá ako pokazené“). Tri ruky na jednom posune: iOS, toto a `seeField`.
+    const kbOpen = () => !!window.visualViewport && window.innerHeight - window.visualViewport.height > 80;
+    const resetScroll = () => { if (!kbOpen() && window.scrollY !== 0) window.scrollTo(0, 0); };
+    const onFocusOut = () => window.setTimeout(resetScroll, 50);
+    window.addEventListener('focusout', onFocusOut);
     window.visualViewport?.addEventListener('resize', resetScroll);
 
     // ── POLE SA PÍŠE PRIAMO NA OBRAZOVKE (17. 11. 2026) ─────────────────────────
@@ -31,10 +36,20 @@ export function useFlowKeyboardFix() {
     // skráti obrazovku a zdvihne CTA. Kde sa okno zmenší samo (Android), vyjde 0 a nič sa nedeje.
     const vv = window.visualViewport;
     const root = document.documentElement;
+    // Raz za snímku a len pri skutočnej zmene: iOS hlási `resize` počas celej animácie klávesnice
+    // a každý zápis premennej preskladá celú obrazovku.
+    let lastKb = '';
+    let kbFrame = 0;
     const syncKb = () => {
-      if (!vv) return;
-      const kb = Math.max(0, window.innerHeight - vv.height);
-      root.style.setProperty('--flow-kb', kb > 80 ? `${Math.round(kb)}px` : '0px');
+      if (!vv || kbFrame) return;
+      kbFrame = window.requestAnimationFrame(() => {
+        kbFrame = 0;
+        const kb = Math.max(0, window.innerHeight - vv.height);
+        const v = kb > 80 ? `${Math.round(kb)}px` : '0px';
+        if (v === lastKb) return;
+        lastKb = v;
+        root.style.setProperty('--flow-kb', v);
+      });
     };
     let seeTimer: number | undefined;
     const seeField = (e: FocusEvent) => {
@@ -42,7 +57,12 @@ export function useFlowKeyboardFix() {
       if (!el || !/^(INPUT|TEXTAREA)$/.test(el.tagName) || el.getAttribute('aria-hidden') === 'true') return;
       window.clearTimeout(seeTimer);
       // Až keď klávesnica dosadne a obrazovka sa skráti — skôr by sa rolovalo na starú polohu.
-      seeTimer = window.setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 350);
+      // Len keď pole naozaj nie je vidno — inak zbytočný posun obrazovky, ktorá sa práve skracuje.
+      seeTimer = window.setTimeout(() => {
+        const r = el.getBoundingClientRect();
+        const h = window.visualViewport?.height ?? window.innerHeight;
+        if (r.top < 0 || r.bottom > h) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }, 350);
     };
     syncKb();
     vv?.addEventListener('resize', syncKb);
@@ -50,7 +70,8 @@ export function useFlowKeyboardFix() {
 
     return () => {
       releaseLock();
-      window.removeEventListener('focusout', resetScroll);
+      window.removeEventListener('focusout', onFocusOut);
+      window.cancelAnimationFrame(kbFrame);
       window.visualViewport?.removeEventListener('resize', resetScroll);
       vv?.removeEventListener('resize', syncKb);
       window.removeEventListener('focusin', seeField);

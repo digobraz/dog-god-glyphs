@@ -1,0 +1,15 @@
+import { chromium, devices } from 'playwright';
+const url = process.argv[2], sel = process.argv[3];
+const b = await chromium.launch(); const ctx = await b.newContext({ ...devices['iPhone 13'] });
+const p = await ctx.newPage(); const cdp = await ctx.newCDPSession(p);
+await p.goto(url, { waitUntil: 'networkidle' }).catch(()=>{});
+await p.waitForTimeout(3000);
+await p.getByText(/Allow all|Povoliť všetko/).first().click({timeout:4000}).catch(()=>{});
+await p.waitForTimeout(800);
+await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+await p.evaluate(() => { window.__lt=[]; window.__ls=0; new PerformanceObserver(l=>l.getEntries().forEach(e=>window.__lt.push(Math.round(e.duration)))).observe({type:'longtask',buffered:false}); new PerformanceObserver(l=>l.getEntries().forEach(e=>{ if(!e.hadRecentInput) window.__ls+=e.value; })).observe({type:'layout-shift'}); window.__ev=[]; new PerformanceObserver(l=>l.getEntries().forEach(e=>window.__ev.push(Math.round(e.duration)))).observe({type:'event', durationThreshold:16}); });
+const el = p.locator(sel).first(); await el.click({ timeout: 5000, force: true }).catch(e=>console.log('noclick', e.message.slice(0,80)));
+await p.keyboard.type('HEKTHOR BELLA', { delay: 120 });
+await p.waitForTimeout(1500);
+console.log(JSON.stringify(await p.evaluate(() => ({ longtasks: window.__lt, cls: +window.__ls.toFixed(3), slowEvents: window.__ev }))));
+await b.close();

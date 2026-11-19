@@ -693,8 +693,12 @@ function AinubisWidgetInner() {
     const vv = window.visualViewport;
     const el = panelRef.current;
     if (!open || !vv || !el) return;
+    let last = '';
     const sync = () => {
       const bottom = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      const key = `${Math.round(vv.offsetTop)}|${Math.round(bottom)}`;
+      if (key === last) return; // bez zmeny nepreskladávaj panel (iOS hlási scroll aj pri písaní)
+      last = key;
       const kb = bottom > 80;
       el.classList.toggle('ainubis-panel--kb', kb);
       el.style.setProperty('--ainubis-vv-top', `${Math.round(vv.offsetTop)}px`);

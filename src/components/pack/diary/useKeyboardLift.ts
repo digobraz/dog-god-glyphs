@@ -10,9 +10,15 @@ export function useKeyboardLift() {
     const vv = window.visualViewport;
     if (!vv) return;
     const root = document.documentElement;
+    // Len pri skutočnej zmene: iOS hlási resize/scroll počas celej animácie klávesnice aj pri písaní
+    // a každý zápis premennej preskladá obrazovku (Matej 19. 11. 2026: „pri písaní to seká“).
+    let last = '';
     const sync = () => {
       const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      root.style.setProperty('--dia-kb', kb > 80 ? `${Math.round(kb)}px` : '0px');
+      const v = kb > 80 ? `${Math.round(kb)}px` : '0px';
+      if (v === last) return;
+      last = v;
+      root.style.setProperty('--dia-kb', v);
     };
     sync();
     vv.addEventListener('resize', sync);

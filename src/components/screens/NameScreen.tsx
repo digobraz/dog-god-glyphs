@@ -344,11 +344,13 @@ export function NameScreen() {
             fontFamily: "'Space Grotesk', sans-serif",
             fontSize: '16px',
             textAlign: 'center',
-            textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
-            letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
+            // Veľké písmená a rozostup STÁLE (placeholder ich ruší v CSS nižšie) — prepnutie pri prvom písmene
+            // preskladalo riadok a s prechodom farieb pôsobilo ako prelínanie (Matej 19. 11. 2026: „seká to“).
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
             background: trimmed.length > 0 ? filledBg : 'hsl(var(--card))',
             borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
-            color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
+            color: 'hsl(var(--foreground))',
             outline: 'none',
           }}
         />
@@ -357,6 +359,7 @@ export function NameScreen() {
         @property --name-prev-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
         .name-preview-wrap { position: relative; border-radius: 0.75rem; box-shadow: 0 0 10px rgba(47, 107, 255, 0.14); }
         .name-preview-btn { position: relative; z-index: 1; }
+        input.name-preview-btn::placeholder { text-transform: none; letter-spacing: normal; color: hsl(var(--muted-foreground) / 0.5); }
         .name-preview-wrap::before {
           content: ''; position: absolute; inset: -2px; border-radius: 14px; z-index: 0;
           pointer-events: none; padding: 2px;
@@ -400,16 +403,19 @@ export function NameScreen() {
           obraz; ovládanie prichádza až s tým, čo treba ovládať.
           ⚠️ Lišta sa NEODSTRAŇUJE, len sa nekreslí — v starom vstupe a po
           príchode je presne tam, kde bola. */}
-      {phase === 'form' && (
-        <motion.div
-          className="hf-topbar"
-          initial={playIntro ? { opacity: 0 } : false}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.18 }}
-        >
-          <PageTopBar brandBack onBack={() => navigate(NEW_HEROFLOW ? '/' : '/heroglyph/intro')} />
-        </motion.div>
-      )}
+      {/* ⚠️ Miesto lišty je VYHRADENÉ od začiatku, počas príchodu je len neviditeľná. Keď sa dovtedy
+          vkladala až po príchode, zatlačila celú obrazovku o 63 px nadol — skok pri štarte vstupu
+          (Matej 19. 11. 2026: „seká to hneď v úvode po začatí heroflowu“, zmerané CLS 0,099). */}
+      <motion.div
+        className="hf-topbar"
+        aria-hidden={phase !== 'form'}
+        style={{ visibility: phase === 'form' ? 'visible' : 'hidden', pointerEvents: phase === 'form' ? undefined : 'none' }}
+        initial={playIntro ? { opacity: 0 } : false}
+        animate={{ opacity: phase === 'form' ? 1 : 0 }}
+        transition={{ duration: 0.3, delay: phase === 'form' ? 0.18 : 0 }}
+      >
+        <PageTopBar brandBack onBack={() => navigate(NEW_HEROFLOW ? '/' : '/heroglyph/intro')} />
+      </motion.div>
 
       {/* Príchod kroku 2 — otočenie medailónu a vypisovanie otázky.
           ⚠️ Bez spätných apostrofov: CSS vnútri template literalu. */}
