@@ -146,6 +146,9 @@ const GROUPS: Group[] = [
       // 19. 11. 2026 — po Matejovom teste na appdev: meno v otázkach NARODENIE/STAV, svorka bez pilulky krajiny
       // + šípka na fotku, plemeno „povinné“, výrez fotky na vlastnú adresu, animácia ukladania (bez zlata),
       // Vitaj s číslom psa (web 61e89a85, 43ce880c, 7d31fbd6). Kroky 1–9 ostávajú „done“, 10–11 WIP do telefónu.
+      // 19. 11. 2026 večer — druhý test od nuly: dosky krokov 1–9 sa vysúvajú cez `top` (fixed dok CTA sa už nevezie =
+      // záblesk), šat pred 1. snímkou, veta kroku 2 podľa chýbajúceho, Vitaj podľa nákresu + „Vložiť kód“ na členskom,
+      // Stripe vracia rovno na Vitaj (web c4fd566c, fedeb0e5). Stavy krokov bez zmeny, 10–11 WIP do telefónu.
       { name: '10 · Dobrovoľné členské', path: '/heroglyph/vstupne', state: 'wip' },
       { name: '11 · Vitaj → Otvoriť appku', path: '/heroglyph/welcome?free=1', state: 'wip' },
     ],
