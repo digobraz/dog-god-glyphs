@@ -16,6 +16,10 @@ import { b3Look } from '@/components/pack/profile/b3css';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { IS_APP } from '@/lib/isApp';
+import { DogSeal, sealLabel, type SealTier } from '@/components/pack/profile/dogSeal';
+
+const SEALS: readonly string[] = ['veriaci', 'akolyta', 'knaz', 'vezir', 'farao', 'zakladatel'];
+const isSeal = (v: string | null | undefined): v is SealTier => !!v && SEALS.includes(v);
 // Len pre ukážkovú líniu (`?netdemo=62`) — reálne psy z WALLu, aby simulácia
 // vyzerala ako skutočný zoznam. Súbor je zoznam mien a názvov súborov, nie dáta
 // s obrázkami; do bundlu pridá jednotky kB.
@@ -74,6 +78,9 @@ interface Member {
   owner_name: string | null;
   created_at: string;
   points: number;
+  /** BONES v2 (19. 11. 2026): odmena za tohto človeka ešte ČAKÁ (60 dní) · jeho pečať hodnosti. */
+  waiting?: boolean;
+  seal?: string | null;
   // `avatar` a `dog_no` RPC vracia od 21. 10. 2026 (migrácia 20261021_network_avatars.sql,
   // fotka psa = tá istá, čo je verejne na stene). `email` ostáva súkromný.
   // 🔴 PÔVODNE ICH RPC NEVRACALO. `get_my_network()` posielalo len štyri polia vyššie
@@ -260,6 +267,8 @@ const NET_CSS = `
 .pkb-top small{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${BONES.onDeepDim};}
 .pkb-top b{display:block;font-family:${FONT_UI};font-weight:600;font-size:24px;line-height:1.1;color:${BONES.onDeep};}
 .pkb-top b span{font-family:${FONT_UI};font-weight:500;font-size:12px;color:${BONES.onDeepDim};margin-left:${S.xs}px;}
+.pkb-wait{flex:none;font-family:${FONT_UI};font-size:12px;font-weight:600;color:${BONES.onDeepDim};white-space:nowrap;}
+html.papyrus3d .pkb-wait{color:var(--p3d-gold-ink);}
 .pkb-wal{flex:none;display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.md}px;border-radius:${R.pill}px;cursor:pointer;
   background:${BONES.grad};color:${BONES.ink};border:0;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.02em;}
 .pkb-mis{position:relative;margin-top:${S.lg}px;padding-top:${S.md}px;border-top:1px solid ${BONES.heroLine};}
@@ -354,6 +363,8 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
   // prvého `reloadWallet()`. Keď migrácia na LIVE prebehne, prvý ďalší reload uspeje a
   // peňaženka ožije sama — bez ďalšieho deploya frontendu.
   const [walletReady, setWalletReady] = useState<boolean | null>(null);
+  // BONES v2: koľko ešte ČAKÁ (odmena dozrie po 60 dňoch). Sadzbu človek nevidí, len výsledok.
+  const [pending, setPending] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -384,6 +395,10 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
     // po prevode musí prekresliť. Dva zapisovatelia jednej hodnoty = ťažko dohľadateľný stav.
     const affRow = (aff.data as { points?: number; code?: string }[] | null)?.[0];
     if (affRow) setBones(Number(affRow.points) || 0);
+    // BONES v2 — kniha je zdroj čísla (`get_my_bones`, migrácia 20261223). Kým na projekte nie je, ostáva cache vyššie.
+    const mine = await rpc('get_my_bones');
+    const b = mine.data as { balance?: number; pending?: number } | null;
+    if (!mine.error && b) { setBones(Number(b.balance) || 0); setPending(Number(b.pending) || 0); }
   };
 
   // Pozývací kód má VLASTNÉ volanie — nesmie padnúť s peňaženkou. `get_or_create_my_affiliate`
@@ -517,6 +532,11 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
               </span>
             </b>
           </div>
+          {pending > 0 && (
+            <span className="pkb-wait">
+              +{pending.toLocaleString(intlLocale(lang))} {tx('pack.network.pending', 'on the way')}
+            </span>
+          )}
           {walletReady === true && (
             <button type="button" className="pkb-wal" onClick={() => setWallet(true)}>
               {tx('pack.network.openWallet', 'Open wallet')} →
@@ -618,12 +638,11 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
               style={{ display: 'block', marginBottom: 10 }}
               dangerouslySetInnerHTML={{
                 /* Text hovorí aj to, čo dostane TEN DRUHÝ (Matej 12. 9.). */
+                /* BONES v2 (Matej 19. 11. 2026): sadzba je tajomstvo — text hovorí ŽE, nie KOĽKO. */
                 __html: tx(
                   'pack.network.step2Body',
-                  'If someone forges a <strong style="color:#2a1608;font-weight:600">Heroglyph</strong> through your link, '
-                    + 'you get <strong style="color:#2a1608;font-weight:600">{l1} BONES</strong>. '
-                    + 'If that member brings someone too, they get {l1} and <strong style="color:#2a1608;font-weight:600">you get {l2} more</strong>.',
-                  { l1: L1_BONES, l2: L2_BONES },
+                  'When someone joins DOGYPT through your link, <strong style="color:#2a1608;font-weight:600">you both get BONES</strong>. '
+                    + 'The more they get involved, the more you get.',
                 ),
               }}
             />
@@ -1246,7 +1265,8 @@ function EmptyRow({ no }: { no: number }) {
           whiteSpace: 'nowrap',
         }}
       >
-        +{L1_BONES}
+        {/* BONES v2: suma je tajomstvo — prázdny riadok ukazuje len kosť, nie číslo. */}
+        <BrandIcon name="bone" size={9} tint="dim" />
       </span>
     </div>
   );
@@ -1290,6 +1310,8 @@ function MemberRow({ m, lvl, full, no }: { m: Member; lvl: number; full?: boolea
           style={{ fontFamily: "'Cinzel Decorative', 'Cinzel', serif", fontWeight: 700, fontSize: 12, color: T.inkStrong, lineHeight: 1.2 }}
         >
           {m.dog_name || '—'}
+          {/* Pečať hodnosti pozvaného (Matej 18. 11.: „v zozname ľudí by mali aj odznaky“). VERIACI cudzím nevidno. */}
+          {isSeal(m.seal) && <DogSeal tier={m.seal} label={sealLabel(m.seal, tx)} />}
         </span>
         <span className="block truncate" style={{ fontFamily: FONT_UI, fontSize: 10, color: T.inkWarm, marginTop: 1 }}>
           {m.owner_name || '—'}
@@ -1341,7 +1363,10 @@ function MemberRow({ m, lvl, full, no }: { m: Member; lvl: number; full?: boolea
           padding: '4px 8px',
           gap: 4,
           whiteSpace: 'nowrap',
+          // Odmena ešte čaká (60 dní) — bledšia pilulka, vysvetlenie v title.
+          opacity: m.waiting ? 0.55 : 1,
         }}
+        title={m.waiting ? tx('pack.network.pending', 'on the way') : undefined}
       >
         +{m.points}
         <BrandIcon name="bone" size={9} tint="dark" />
@@ -1483,7 +1508,7 @@ function Chain({
           reťaz lámala po jednotlivých prvkoch a pilulka `+10` končila osamote na
           konci riadku bez uzla. Zalamuje sa teda medzi skupinami, nie vnútri nich. */}
       <span className="flex items-center" style={{ gap: 8 }}>
-      <Link20 pill={`+${L1_BONES}`} />
+      <Link20 pill={<>+<BrandIcon name="bone" size={9} tint="dark" /></>} />
 
       <span className="flex flex-col items-center" style={{ gap: 5 }}>
         {loading ? (
@@ -1504,30 +1529,22 @@ function Chain({
       </span>
       </span>
 
-      <span className="flex items-center" style={{ gap: 8 }}>
-      <Link20 pill={`+${L2_BONES}`} small />
-
-      <span className="flex flex-col items-center" style={{ gap: 5 }}>
-        <span className="flex" style={{ gap: 4 }}>
-          {l2.length > 0
-            ? l2.slice(0, 4).map((m, i) => <Node key={i} xs member={m} />)
-            : [0, 1, 2].map((i) => <Node key={i} xs ghost faint seed={i + 2} />)}
-        </span>
-        <Lab dim>{tx('pack.network.chainWhoever', 'whoever they bring')}</Lab>
-      </span>
-      </span>
+      {/* Druhá labka v BONES v2 nič nedáva (19. 11. 2026) — reťaz končí pri prvom pozvanom. */}
     </span>
   );
 }
 
 // Spojka medzi uzlami — zlatá pilulka na vodorovnej stonke. Rovnaký vizuál ako
 // DAYS_PILL (PackTree): vertikálny gradient, tmavý text, Cinzel 700 bez uppercase.
-function Link20({ pill, small }: { pill: string; small?: boolean }) {
+function Link20({ pill, small }: { pill: ReactNode; small?: boolean }) {
   return (
     <span className="flex flex-col items-center shrink-0" style={{ gap: 3, minWidth: 46 }}>
       <span
         className="pknet-pill"
         style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 2,
           fontFamily: FONT_UI,
           fontWeight: 600,
           fontSize: small ? 10 : 11,
