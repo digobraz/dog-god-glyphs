@@ -540,6 +540,14 @@ const USER_POS_ICON = L.divIcon({
   iconAnchor: [16, 16],
   html: '<span class="trp-me"><i></i><b></b></span>',
 });
+// Tá istá značka s FOTKOU PROFILU (Matej 2026-11-19: „na mape bude vidno avatar“) — kruh 36 px so zlatým obrysom
+// a pulzom; bez fotky ostáva bodka `USER_POS_ICON`.
+const userPosAvatarIcon = (url: string) => L.divIcon({
+  className: 'trp-me-wrap',
+  iconSize: [36, 36],
+  iconAnchor: [18, 18],
+  html: `<span class="trp-me trp-me--av"><i></i><img src="${url.replace(/"/g, '%22')}" alt="" /></span>`,
+});
 const WISH_DRAFT_ICON = L.divIcon({
   className: 'mk-wrap',
   html: stickerSrc('wish_target') ? stickerImg(stickerSrc('wish_target')!) : circleMarkHtml(WISH_EMOJI, WISH_RIM, ' mk-circle--hot'),
@@ -2767,6 +2775,8 @@ const APP_NEW_CSS = `
 .trp-mheader:has(.trp-mapsug),.trp-mheader:has(.trp-eventshint){z-index:${MAP_Z.host};}
 .trp-me-wrap{background:none;border:0;pointer-events:none;}
 .trp-me{position:relative;display:block;width:32px;height:32px;}
+.trp-me--av{width:36px;height:36px;}
+.trp-me--av img{position:absolute;inset:0;width:36px;height:36px;box-sizing:border-box;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};outline:2px solid ${T.card};filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));}
 .trp-me i{position:absolute;inset:0;border-radius:50%;background:rgba(10,26,74,.28);animation:trp-me-pulse 2.2s ease-out infinite;}
 .trp-me b{position:absolute;left:8px;top:8px;width:16px;height:16px;box-sizing:border-box;border-radius:50%;background:${LAPIS.grad};border:3px solid ${T.card};outline:2px solid ${T.cardEdge};filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));}
 @keyframes trp-me-pulse{0%{transform:scale(.5);opacity:.9;}100%{transform:scale(1.25);opacity:0;}}
@@ -8143,7 +8153,7 @@ export default function PackMap() {
               {/* SOS pátrania — fotka psa v červenom obruči + kruhy 500 m / 10 km (SosMapLayer.tsx). Len TEST_BUILD. */}
               {SOS_ON && !isCleanMode && <SosMapLayer interactive={!mg && !mapDrawing && !wishFlow} />}
               {wishDraft && <Marker position={[wishDraft.lat, wishDraft.lon]} icon={WISH_DRAFT_ICON} interactive={false} />}
-              {APP_NEW && userPos && <Marker position={userPos} icon={USER_POS_ICON} interactive={false} keyboard={false} zIndexOffset={900} />}
+              {APP_NEW && userPos && <Marker position={userPos} icon={id.avatarUrl ? userPosAvatarIcon(sizedUrl(id.avatarUrl, 120)) : USER_POS_ICON} interactive={false} keyboard={false} zIndexOffset={900} />}
               {noteDraft && (
                 <AddMapNotePin
                   lat={noteDraft.lat}
