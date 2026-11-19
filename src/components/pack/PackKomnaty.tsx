@@ -79,6 +79,19 @@ const ls = {
   del(k: string) { try { localStorage.removeItem(k); } catch { /* */ } },
 };
 
+/** Stav prehliadky v prehliadači patrí ÚČTU, ktorý ho zapísal. Iný (aj nový) účet v tom istom Safari by inak
+ *  zdedil „prejdené“ a prehliadka by sa nespustila (Matej 19. 11. 2026 po teste od nuly). Vlastný pokrok
+ *  sa nestratí: hneď po vymazaní sa prileje `user_metadata.wiz_seen` z účtu. */
+const K_UID = 'dogypt_k_uid';
+function cudziStav(uid: string): boolean {
+  if (ls.get(K_UID) === uid) return false;
+  ['dogypt_wz_seen', 'dogypt_wz', K_FIRST, K_AUTO, K_REM, K_POSTUPNE, K_DOGID].forEach((k) => ls.del(k));
+  [K_AKT, K_POS, K_REP, K_POLICA].forEach((k) => ss.set(k, null));
+  ls.set(K_UID, uid);
+  try { window.dispatchEvent(new Event('dogypt:wizard')); } catch { /* */ }
+  return true;
+}
+
 const scr = (id: string) => `kom:${id}`;
 /** Je človek na stránke, kde krok žije? `/pack` presne, ostatné aj s podstránkou. */
 const naOk = (na: string | undefined, p: string) => {
@@ -407,6 +420,8 @@ function PackKomnatyJadro({ dogs, avatarUrl, potrebujeHosta }: { dogs: PackDog[]
   // Stav z účtu sa prileje k lokálnemu (iné zariadenie); `wiz_off` = roboty bez automatickej prehliadky.
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {
+      const uid = data.session?.user?.id;
+      if (uid && cudziStav(uid)) { setSeen(new Set()); setAktRaw(null); setPosRaw(0); setRepRaw(false); setPolicaRaw(null); setPct(0); }
       const meta = data.session?.user?.user_metadata;
       if (meta?.wiz_off === true) setOff(true);
       if (!Array.isArray(meta?.wiz_seen)) return;

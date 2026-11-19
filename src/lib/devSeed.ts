@@ -70,6 +70,10 @@ export function writeDevSeed(seed: DevSeed): void {
 export function readDevSeed(): DevSeed | null {
   if (!import.meta.env.DEV) return null;
   try {
+    // `?demo=1` (nákres, 19. 11. 2026): obrazovka konca vstupu bez prejdeného flowu je prázdna — naplň ju psom s fotkou.
+    if (!localStorage.getItem(DEV_SEED_KEY) && new URLSearchParams(location.search).has('demo')) {
+      writeDevSeed({ ...DEV_SEED_DEFAULT, packNumber: 4, photoUrl: '/images/hektor-grid.webp', photoLabel: 'Hektor' });
+    }
     const raw = localStorage.getItem(DEV_SEED_KEY);
     if (!raw) return null;
     return { ...DEV_SEED_DEFAULT, ...(JSON.parse(raw) as Partial<DevSeed>) };
