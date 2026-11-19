@@ -26,6 +26,11 @@ import { EDGE_BASE, LIVE_EDGE_BASE, TEST_BUILD } from '@/lib/env';
 import { supabase } from '@/integrations/supabase/client';
 import { pokladnica, type PrijemMesiac } from '@/lib/pokladnica';
 import { GIFT_TIERS, GIFT_DEFAULT, GIFT_MIN, GIFT_MAX, giftFee, prevadzkaMesacne } from '@/lib/prispevok';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { useMySeal } from '@/components/pack/profile/sealStore';
+
+/** Najnižšia platená hodnosť (Posol, `vstupne.ts` priceTable) — z nej sa rátajú mesačné náklady (Matej 19. 11.: „dajme ten tier 3,99“). */
+const POSOL_EUR = 3.99;
 
 /** 🔴 LIVE LEN NA MATEJOVO VÝSLOVNÉ „OK" (24. 10. 2026: *„nabudúce to takto nerob bez výslovného súhlasu a návrhu
  *  na live web"*). Kým je `false`, blok vidno len v `vite` deve a v testovacej appke (`TEST_BUILD`) — go-live inej session ho nevyvezie.
@@ -93,8 +98,8 @@ const CSS = `${VEIL_CSS}
 .mi-stats small{font-size:${TX.micro}px;letter-spacing:.02em;color:${T.inkWarm};}
 /* AKTUÁLNE MESAČNÉ NÁKLADY — mriežka labiek (53 × 5 €), rozpis služieb na rozklik (Matej 24. 10.: „schovaj a urob mriežku paciek“). */
 .mi-paws{display:flex;flex-wrap:wrap;justify-content:center;gap:${S.xs}px;max-width:560px;margin:0 auto;}
-.mi-paws span{display:grid;place-items:center;width:20px;height:20px;border-radius:${PACK_R.pill}px;border:1px solid ${T.cardEdge};animation:mi-paw 3.6s ease-in-out infinite;}
-.mi-paws span.on{background:${LAPIS.grad};border-color:${LAPIS.edge};animation:none;}
+.mi-paws span{display:grid;place-items:center;width:20px;height:20px;animation:mi-paw 3.6s ease-in-out infinite;}
+.mi-paws span.on{animation:none;}
 @keyframes mi-paw{0%,100%{opacity:.55}50%{opacity:1}}
 .mi-fixd{margin-top:${S.md}px;text-align:left;}
 .mi-fixd summary{cursor:pointer;text-align:center;list-style:none;font-size:${TX.micro}px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:${LAPIS.edge};}
@@ -204,7 +209,6 @@ html.papyrus3d .mi-fixgrid{color:var(--p3d-ink);}
 html.papyrus3d .mi-fixd summary,html.papyrus3d .mi-link{color:${LAPIS.edge};}
 html.papyrus3d .mi-shel figure{border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift);}
 html.papyrus3d .mi-shel .knob::after{border-color:${LAPIS.ink};}
-html.papyrus3d .mi-paws span{border-color:var(--p3d-ink);}
 ${b3Look('.mi-cta', 'lapis', 'font-size:' + TX.lead + 'px;')}
 html.papyrus3d .mi-cta.wide{display:flex;width:100%;}
 html.papyrus3d .mi-cta:hover{background:linear-gradient(180deg,var(--b3-a),var(--b3-b));}
@@ -236,9 +240,10 @@ export function MisiaBody() {
   const [notice, setNotice] = useState<string | null>(params.get('zrusene') ? tx('carry.canceled', 'Payment cancelled. Nothing was charged.') : null);
   // PRILOŽÍM LABKU → mail D1 s možnosťami pomoci a odkazom na dar (edge `misia-labka`). NESKÔR len skryje výzvu
   // v tomto prehliadači — pripomienky (D0/D2) sa riadia mailom, nie týmto.
-  const [paw, setPaw] = useState<'idle' | 'busy' | 'sent' | 'already' | 'fail' | 'later'>(() => {
-    try { return localStorage.getItem('dg-misia-paw-later') === '1' ? 'later' : 'idle'; } catch { return 'idle'; }
-  });
+  const [paw, setPaw] = useState<'idle' | 'busy' | 'sent' | 'already' | 'fail'>('idle');
+  // Platiaci člen (aktívna hodnosť z DB `seal_of_user`) tlačidlo nevidí, vidí poďakovanie. Kým LIVE hodnosť nepozná = neplatiaci.
+  const seal = useMySeal('veriaci');
+  const payingRank = seal === 'akolyta' || seal === 'knaz' || seal === 'vezir' || seal === 'farao';
   const lendPaw = async () => {
     setPaw('busy');
     try {
@@ -252,7 +257,6 @@ export function MisiaBody() {
       setPaw(r.ok && j.ok ? (j.already ? 'already' : 'sent') : 'fail');
     } catch { setPaw('fail'); }
   };
-  const later = () => { setPaw('later'); try { localStorage.setItem('dg-misia-paw-later', '1'); } catch { /* len na túto návštevu */ } };
 
   useEffect(() => {
     // Čísla VŽDY z ostrej pokladnice (Matej 24. 10.: *„použime reálne a live dáta“*) — aj v deve; verejný GET, nič nezapisuje.
@@ -271,9 +275,10 @@ export function MisiaBody() {
   const help: number | null = null;
   // Členské = aktívne mesačné hodnosti; kým to LIVE nevie (pred flipom), `null` = „príde“, nie 0.
   const ranksEur = dash?.ranks_monthly_eur ?? null;
+  // V appke riadok Dary vôbec nie je (Apple 3.1.1 — pôsobil by ako výzva platiť mimo appky).
   const ins: Node[] = [
     { k: 'rank', icon: 'star', color: T.cardEdge, eur: ranksEur },
-    { k: 'gift', icon: 'heartpaw', color: T.partHek, eur: gifts },
+    ...(IS_APP ? [] : [{ k: 'gift', icon: 'heartpaw', color: T.partHek, eur: gifts } as Node]),
     { k: 'merch', icon: 'badge', color: T.inkDim, eur: null },
     { k: 'more', icon: 'plus', color: T.inkDim, eur: null },
   ];
@@ -294,14 +299,14 @@ export function MisiaBody() {
     { k: 'vet', icon: 'vet', color: T.partHelp, eur: null },
   ];
   const run1 = prevadzkaMesacne();
-  // Koľko ľudí po 5 € mesačne zaplatí paušálne výdaje (čisté po poplatku Stripe) — „veľa ľudí, málo peňazí“.
-  const goalN = Math.ceil(run1.spolu / (GIFT_DEFAULT - giftFee(GIFT_DEFAULT, true)));
-  const givers = Math.min(dash?.givers ?? 0, goalN);
+  // Koľko členov na najnižšej hodnosti (Posol 3,99 € mesačne, čisté po poplatku Stripe) zaplatí paušálne výdaje; dnes = platiaci členovia.
+  const goalN = Math.ceil(run1.spolu / (POSOL_EUR - giftFee(POSOL_EUR, true)));
+  const givers = Math.min(dash?.supporters ?? 0, goalN);
 
   // V appke bez cenníka (Apple 3.1.1, Matej 25. 10. 2026) — riadok bez sumy ukáže „—“.
   const NODE_TXT: Record<NodeKey, [string, string]> = {
-    rank: [tx('pack.misia.rank', 'Membership (ranks)'), IS_APP ? '—' : tx('pack.misia.rank.s', 'voluntary, monthly')],
-    gift: [tx('pack.misia.gift', 'Gifts'), IS_APP ? '—' : tx('pack.misia.gift.s', 'voluntary, from €3')],
+    rank: [tx('pack.misia.rank', 'Membership (ranks)'), '—'],
+    gift: [tx('pack.misia.gift', 'Gifts'), '—'],
     merch: [tx('pack.misia.merch', 'Merch'), tx('pack.misia.soon', 'coming')],
     more: [tx('pack.misia.more', 'More sources'), tx('pack.misia.soon', 'coming')],
     run: [tx('pack.misia.run', 'Running'), tx('pack.misia.run.s', 'servers, AI, mail')],
@@ -339,13 +344,13 @@ export function MisiaBody() {
       {/* HORNÝ RIAD ŠTYROCH ČÍSEL (19. 11. 2026) — živé z `get-dashboard-stats`; kým ho LIVE nevie, pomlčka. */}
       <div className="mi-stats">
         {([
-          ['paw', dash?.dogs, tx('pack.misia.st.dogs', 'Dogs'), false],
-          ['person', dash?.people, tx('pack.misia.st.people', 'People'), false],
-          ['heart', dash?.supporters, tx('pack.misia.st.supporters', 'Supporters'), false],
-          ['money', dash?.monthly_eur, tx('pack.misia.st.month', '€ / month'), true],
+          ['svorka', dash?.dogs, tx('pack.misia.st.dogs', 'Dogs'), false],
+          ['ja-muz', dash?.people, tx('pack.misia.st.people', 'People'), false],
+          ['trofej', dash?.supporters, tx('pack.misia.st.supporters', 'Members'), false],
+          ['kost', dash?.monthly_eur, tx('pack.misia.st.month', '€ / month'), true],
         ] as [string, number | undefined, string, boolean][]).map(([icon, v, label, isEur]) => (
           <span key={icon}>
-            <BrandIcon name={icon} size={20} tint="dim" />
+            <SysIcon name={icon} size={28} />
             <b>{v == null ? '—' : isEur ? `${v.toLocaleString(loc, { maximumFractionDigits: 2 })} €` : v.toLocaleString(loc)}</b>
             <small>{label}</small>
           </span>
@@ -369,12 +374,10 @@ export function MisiaBody() {
       <div className="mi-fixed">
         <small>{tx('pack.misia.fixed', 'Current monthly costs')}</small>
         <b>{eur(run1.spolu)}</b>
-        {!IS_APP && (<>
-        <p>{tx('pack.misia.fixed.p', '{n} people at €5 a month cover them — today there are {g}.').replace('{n}', String(goalN)).replace('{g}', String(givers))}</p>
+        <p>{tx('pack.misia.fixed.p', '{n} members at €3.99 a month cover them. Today there are {g}.').replace('{n}', String(goalN)).replace('{g}', String(givers))}</p>
         <div className="mi-paws" aria-hidden>
-          {Array.from({ length: goalN }, (_, i) => <span key={i} className={i < givers ? 'on' : ''} style={{ animationDelay: `${(i % 11) * 0.12}s` }}><BrandIcon name="paw" size={12} tint={i < givers ? 'white' : 'dim'} /></span>)}
+          {Array.from({ length: goalN }, (_, i) => <span key={i} className={i < givers ? 'on' : ''} style={{ animationDelay: `${(i % 11) * 0.12}s` }}><SysIcon name={i < givers ? 'hodnotenie-packa' : 'hodnotenie-packa-prazdna'} size={20} /></span>)}
         </div>
-        </>)}
         <details className="mi-fixd">
           <summary>{tx('pack.misia.fixed.list', 'What we pay')}</summary>
           <div className="mi-fixgrid">
@@ -385,37 +388,33 @@ export function MisiaBody() {
       </div>
 
       {notice && <p className="mi-hint">{notice}</p>}
-      {/* PRILOŽÍM LABKU K DIELU (Matej 26. 10. 2026: *„pri misii chýba CTA — tlačítko, ktoré odošle e-mail s infom
-          a linkom na platbu"*). Appka aj web; text tlačidla a „Svorku nesieme spolu" vybral Matej 25. 10. (A).
-          V appke NIE (f-o-3-1, Apple 3.1.1): mail vedie na platbu mimo appky, 1.0 je bez nákupu. */}
-      {!IS_APP && paw !== 'later' && (
-        <div className="mi-paw">
-          <b>{tx('pack.misia.paw.lead', 'We carry the pack together.')}</b>
-          {paw === 'sent' || paw === 'already' ? (
-            <span className="ok">{paw === 'sent' ? tx('pack.misia.paw.sent', 'Check your inbox ✓') : tx('pack.misia.paw.already', 'The e-mail is already in your inbox ✓')}</span>
-          ) : (
-            <>
-              <p>{tx('pack.misia.paw.sub', 'We will send you an e-mail with ways to help — a gift is one of them.')}</p>
-              <div className="mi-paw-b">
-                <button type="button" className="mi-cta" disabled={paw === 'busy'} onClick={lendPaw}>{tx('pack.misia.paw.cta', 'Lend a paw')}</button>
-                <button type="button" className="mi-link" onClick={later}>{tx('pack.misia.paw.later', 'Later')}</button>
-              </div>
-              {paw === 'fail' && <p>{tx('pack.misia.paw.fail', 'It did not go through. Try again in a moment.')}</p>}
-            </>
-          )}
-        </div>
-      )}
-      {/* V appke riadok „Môj dar“ nie je vôbec — ani veta o dogypt.com (Apple 3.1.1 = výzva platiť mimo appky).
-          Nahradí ho tlačidlo „Priložím labku“ → mail D1 (pipeline daru, Matej 25. 10. 2026). */}
-      {!IS_APP && (
-        <div className="mi-mine">
-          <div>
-            <span>{tx('pack.misia.mine', 'My gift')}</span>
-            <p>{tx('pack.misia.mine.s', 'Monthly or once, from €3')}</p>
-          </div>
-          <button type="button" className="mi-cta" onClick={() => { setNotice(null); setSheet({ kind: 'gift' }); }}>{tx('pack.misia.give', 'Give')}</button>
-        </div>
-      )}
+      {/* JEDEN BLOK POMOCI (19. 11. 2026, Matej: „tie dva posledné bloky nemôžu byť … kvôli aplu … jedno tlačidlo že chcem pomôcť … my sa ozveme mailom“).
+          Tlačidlo spustí mail s inštrukciami (`misia-labka`). Platiaci člen ho nevidí, vidí poďakovanie bez ceny. Na webe pribudne vedľa neho Darovať;
+          v appke žiadna suma ani odkaz na platbu (Apple 3.1.1). */}
+      <div className="mi-paw">
+        {payingRank ? (
+          <>
+            <b>{tx('pack.misia.member.lead', 'You are {rank}.').replace('{rank}', tx(`pack.seal.${seal}`, seal))}</b>
+            <p>{tx('pack.misia.member.p', 'Thank you for carrying the pack.')}</p>
+          </>
+        ) : (
+          <>
+            <b>{tx('pack.misia.paw.lead', 'We carry the pack together.')}</b>
+            {paw === 'sent' || paw === 'already' ? (
+              <span className="ok">{paw === 'sent' ? tx('pack.misia.paw.sent', 'Check your inbox ✓') : tx('pack.misia.paw.already', 'The e-mail is already in your inbox ✓')}</span>
+            ) : (
+              <>
+                <p>{tx('pack.misia.paw.sub', 'We will get in touch by e-mail with instructions.')}</p>
+                <div className="mi-paw-b">
+                  <button type="button" className="mi-cta" disabled={paw === 'busy'} onClick={lendPaw}>{tx('pack.misia.paw.cta', 'I want to help')}</button>
+                  {!IS_APP && <button type="button" className="mi-cta" onClick={() => { setNotice(null); setSheet({ kind: 'gift' }); }}>{tx('pack.misia.give', 'Give')}</button>}
+                </div>
+                {paw === 'fail' && <p>{tx('pack.misia.paw.fail', 'It did not go through. Try again in a moment.')}</p>}
+              </>
+            )}
+          </>
+        )}
+      </div>
       <div className="mi-links">
         <button type="button" className="mi-link" onClick={() => setSheet({ kind: 'vision' })}>{tx('pack.misia.vision', 'Our idea')}</button>
       </div>
