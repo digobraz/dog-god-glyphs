@@ -200,6 +200,9 @@ export function FlowWelcomeScreen() {
   const rankParam = params.get('rank');
   const rankPaid = rankParam && ['akolyta', 'knaz', 'vezir', 'farao'].includes(rankParam) ? rankParam : null;
   const free = !sessionId && (params.has('free') || !!rankPaid);
+  // Návrat zo Stripe ide od 19. 11. 2026 rovno sem (`?rank=…&vstupne=cs_…`), meranie ostáva to isté.
+  const paidRet = params.get('vstupne');
+  useEffect(() => { if (paidRet && /^cs_(test|live)_/.test(paidRet)) track('vstupne_paid_return'); }, [paidRet]);
   const guestIds = useDogyptStore((s) => s.guestIds);
   const { dogs, owner, email, session, settled } = useWelcomeData(sessionId, free);
 
