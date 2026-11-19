@@ -484,10 +484,9 @@ const NF_CSS = `
   --lapis:linear-gradient(180deg,#16307A,#0A1A4A);--lapis-hover:linear-gradient(180deg,#1E3C90,#0F2560);
   --lapis-shadow:0 4px 13px -3px rgba(5,15,48,0.6),inset 0 1px 0 rgba(201,154,63,0.30);
   min-height:100dvh;display:flex;flex-direction:column;color:var(--ink);font-family:'Space Grotesk',sans-serif;
-  background:#F3E4C4 radial-gradient(125% 100% at 50% 38%,#FDF8EC 0%,#F8EDD6 34%,#F1E1BE 64%,#E6D2A6 100%) fixed}
+  background:#F3E4C4 radial-gradient(125% 100% at 50% 38%,#FDF8EC 0%,#F8EDD6 34%,#F1E1BE 64%,#E6D2A6 100%)}
 .nf *{box-sizing:border-box}
-.nf-top{display:flex;justify-content:center;padding:16px 16px 0}
-.nf-top img{width:132px;height:auto;display:block}
+.nf-top{width:100%}
 .nf-main{flex:1;width:100%;max-width:880px;margin:0 auto;padding:16px 16px 48px;display:flex;flex-direction:column;gap:24px}
 .nf-head{display:flex;align-items:center;gap:16px}
 .nf-tilt{width:120px;height:120px;flex:none;filter:drop-shadow(0 8px 14px rgba(110,71,16,0.28))}
