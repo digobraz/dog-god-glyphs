@@ -267,7 +267,8 @@ export function MisiaBody() {
   const ledger = useMemo(() => (dash?.revenue_by_month ? pokladnica(dash.revenue_by_month) : null), [dash]);
   const gifts = dash ? Object.values(dash.gifts_by_month ?? {}).reduce((a, b) => a + b, 0) : null;
   const run = ledger?.naklady ?? null;
-  const help = dash?.treasuries?.help ?? null;
+  // `treasuries.help` je 2 €/heroglyf zo zrušeného delenia €11 (Matej 19. 11.: „ani starý príjem nenechajme“) — kým nie je skutočná pomoc, „príde“.
+  const help: number | null = null;
   // Členské = aktívne mesačné hodnosti; kým to LIVE nevie (pred flipom), `null` = „príde“, nie 0.
   const ranksEur = dash?.ranks_monthly_eur ?? null;
   const ins: Node[] = [
