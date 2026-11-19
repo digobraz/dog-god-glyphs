@@ -690,7 +690,7 @@ function DevotionTodayWeb({ onClose }: { onClose: () => void }) {
                 aria-label={tx('pack.dvtoday.remWhen', 'Every day at')} />
             ))}
             <button type="button" className={`dvt-sw${remOn ? ' on' : ''}`} role="switch" aria-checked={remOn}
-              aria-label={tx('pack.dvtoday.reminder', 'Evening reminder')} onClick={() => void saveRem(!remOn, remTime)} />
+              aria-label={tx('pack.dvtoday.reminder', 'Daily log')} onClick={() => void saveRem(!remOn, remTime)} />
           </div>
         </div>
       </div>

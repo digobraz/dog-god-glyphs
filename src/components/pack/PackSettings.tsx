@@ -347,7 +347,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
           `lib/notifRegister.ts`. Žije v `human.notif_off` + `human.devotion_times` (2× denne); ten istý
           prepínač je aj v paneli „Dnešok". Pod hlavným vypínačom: keď je pošta vypnutá, nechodí nič. */}
       {notifOn && DEVOTION_TODAY_ON && (
-        <Field icon={APP_NEW ? <SysIcon name="iskra" size={22} /> : <BrandIcon name="sun" size={16} tint="gold" />} label={tx('pack.dvtoday.reminder', 'Evening reminder')}>
+        <Field icon={APP_NEW ? <SysIcon name="pridaj-den" size={22} /> : <BrandIcon name="sun" size={16} tint="gold" />} label={tx('pack.dvtoday.reminder', 'Daily log')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             {[0, 1].map((i) => (
               <input key={i} type="time" step={900} value={remTime[i]} disabled={!remOn} className="pf-field"
@@ -358,7 +358,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
                   const next: [string, string] = [remTime[0], remTime[1]]; next[i] = e.target.value; void ulozPripomienku(remOn, next);
                 }} />
             ))}
-            <Toggle on={remOn} onChange={(v) => void ulozPripomienku(v, remTime)} label={tx('pack.dvtoday.reminder', 'Evening reminder')}
+            <Toggle on={remOn} onChange={(v) => void ulozPripomienku(v, remTime)} label={tx('pack.dvtoday.reminder', 'Daily log')}
               onLabel={tx('pack.settings.notifOn', 'On')} offLabel={tx('pack.settings.notifOff', 'Off')} />
           </div>
         </Field>

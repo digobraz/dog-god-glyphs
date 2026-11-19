@@ -537,11 +537,6 @@ export function PackNetwork({ avatarUrl, initial, bare = false, mission, onShare
               +{pending.toLocaleString(intlLocale(lang))} {tx('pack.network.pending', 'on the way')}
             </span>
           )}
-          {walletReady === true && (
-            <button type="button" className="pkb-wal" onClick={() => setWallet(true)}>
-              {tx('pack.network.openWallet', 'Open wallet')} →
-            </button>
-          )}
         </div>
         {mission && <div className="pkb-mis">{mission}</div>}
       </div>
