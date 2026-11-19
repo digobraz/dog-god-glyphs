@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
 import { useLocation } from 'react-router-dom';
 import { LAB } from '@/lib/labTheme';
 import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
@@ -402,7 +402,10 @@ export function FlowRedress() {
   const skin = useFlowSkin();
   const onFlow = FLOW_PATHS.some((p) => pathname.startsWith(p));
 
-  useEffect(() => {
+  // ⚠️ useLayoutEffect, nie useEffect: atribúty musia byť na <html> PRED prvým vykreslením. Inak prvý snímok
+  //    nemal šat — dok CTA (`.hf-dock`, fixed len v šate) stál v toku cez pole mena a o snímku neskôr
+  //    odskočil dole (Matej 19. 11. 2026: „prvý záblesk bol hneď po načítaní“).
+  useLayoutEffect(() => {
     const root = document.documentElement;
     if (onFlow && skin === 'pale') root.dataset.flowSkin = 'pale';
     else delete root.dataset.flowSkin;

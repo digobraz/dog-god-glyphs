@@ -107,6 +107,8 @@ function Vstupne() {
   useEffect(() => {
     if (!ret || !/^cs_(test|live)_/.test(ret)) return;
     track('vstupne_paid_return');
+    // Kód Vitaj sa sťahuje SÚBEŽNE s overením hodnosti, nie až po ňom (Matej 19. 11. 2026: „po platbe 5–7 s je priveľa“).
+    void import('@/components/screens/FlowWelcomeScreen').catch(() => null);
     void paidRank(ret).catch(() => null).then((rank) => {
       navigate(`/heroglyph/welcome?${rank ? `rank=${rank}` : 'free=1'}`, { replace: true });
     });

@@ -120,8 +120,9 @@ export function CropScreen() {
 
           <motion.div
             className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex-shrink-0"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
+            style={{ position: 'relative' }}
+            initial={{ opacity: 0, top: 12 }}
+            animate={{ opacity: 1, top: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
             <div className="flex flex-col gap-2 md:gap-3 items-center">

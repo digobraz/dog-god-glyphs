@@ -161,8 +161,8 @@ export function EmailScreen() {
             // `hf-carved` + rytá obruba (recept z kroku 2, `FLOW_CARVE_CSS`) —
             // Matej 24. 9.: „tie rytiny a štýl prenes z prvého kroku aj na ďalšie".
             className="hf-block hf-carved"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, top: 12 }}
+            animate={{ opacity: 1, top: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
             <span className="hf-carved-rim" aria-hidden />

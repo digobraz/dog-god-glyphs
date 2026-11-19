@@ -315,6 +315,13 @@ export function DogsScreen() {
   });
   const dogDone = (d: Row) => Object.values(dogFlags(d)).every(Boolean);
   const allDone = rows.every(dogDone);
+  const fillHintKey = (() => {
+    const miss = { photo: false, born: false, other: false };
+    rows.forEach((r) => { const f = dogFlags(r); if (!f.photo) miss.photo = true; if (!f.born) miss.born = true; if (!f.name || !f.gone || !f.country) miss.other = true; });
+    if (miss.other) return 'heroglyph.flow.dogs.fillHintOther';
+    if (miss.photo && miss.born) return 'heroglyph.flow.dogs.fillHint';
+    return miss.photo ? 'heroglyph.flow.dogs.fillHintPhoto' : 'heroglyph.flow.dogs.fillHintBorn';
+  })();
   /** Šípka ukazuje na JEDEN krúžok, prvý bez fotky - viac šípok naraz by kričalo. */
   const firstNoPhoto = rows.find((r) => !r.photo)?.key;
 
@@ -407,8 +414,8 @@ export function DogsScreen() {
             // `hf-carved` + rytá obruba (recept z kroku 2, `FLOW_CARVE_CSS`) —
             // Matej 24. 9.: „tie rytiny a štýl prenes z prvého kroku aj na ďalšie".
             className="hf-block hf-carved"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, top: 12 }}
+            animate={{ opacity: 1, top: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
             <span className="hf-carved-rim" aria-hidden />
@@ -462,7 +469,8 @@ export function DogsScreen() {
 
               {/* Veta o doplnení stojí HNEĎ pod blokom psov; červená šípka v riadku ukazuje na krúžok fotky
                   (Matej 19. 11. 2026). */}
-              {!allDone && <p className="hf-photohint" role="status">{t('heroglyph.flow.dogs.fillHint')}</p>}
+              {/* Veta pýta len to, čo naozaj chýba (Matej 19. 11. 2026: „píše doplň foto a narodeniny, a pritom narodeniny som vyplnil“). */}
+              {!allDone && <p className="hf-photohint" role="status">{t(fillHintKey)}</p>}
 
               {/* ŤUKNUTIE NA ČÍSLO — jedna otázka pre celý zoznam.
                   Ťahanie určuje vzájomné poradie, číslo určuje, kde tá skupina

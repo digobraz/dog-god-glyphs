@@ -253,8 +253,9 @@ export function FlowRevealScreen() {
           <motion.div
             key="plate"
             className="w-full flex flex-col items-center"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
+            style={{ position: 'relative' }}
+            initial={{ opacity: 0, top: 24 }}
+            animate={{ opacity: 1, top: 0 }}
             transition={{ duration: 0.4 }}
           >
           {/* Nadpis ostáva MALÝM písmom nad doskou, bez Hektora. */}
@@ -263,8 +264,8 @@ export function FlowRevealScreen() {
           {/* ── 2. BLOK: PES → DIZAJN → ODKAZ → ĎALEJ ─────────────────────── */}
           <motion.div
             className="hf-block hf-carved rv-stack"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, top: 12 }}
+            animate={{ opacity: 1, top: 0 }}
             transition={{ duration: 0.35 }}
           >
             <span className="hf-carved-rim" aria-hidden />

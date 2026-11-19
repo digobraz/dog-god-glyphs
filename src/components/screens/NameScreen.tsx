@@ -602,8 +602,12 @@ export function NameScreen() {
             // (24. 9. 2026, recept vo `FLOW_CARVE_CSS`). Doska tým prestáva byť
             // plochý obdĺžnik a dostane hĺbku bez druhého rámu.
             className="hf-carved w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex-shrink-0"
-            initial={NEW_HEROFLOW ? { opacity: 0, y: 48 } : { opacity: 0, x: 40 }}
-            animate={NEW_HEROFLOW ? { opacity: 1, y: 0 } : { opacity: 1, x: 0 }}
+            // ⚠️ Nový vstup vysúva dosku cez `top`, NIE `y` (transform). Transform robí z dosky rám pre `position:fixed`,
+            //    takže dok CTA (je v doske) sa počas príchodu viezol s ňou cez pole mena a na konci skočil dole
+            //    (Matej 19. 11. 2026: „prvý záblesk bol hneď po načítaní“). `top` pri `relative` dok neuväzní.
+            style={NEW_HEROFLOW ? { position: 'relative' } : undefined}
+            initial={NEW_HEROFLOW ? { opacity: 0, top: 48 } : { opacity: 0, x: 40 }}
+            animate={NEW_HEROFLOW ? { opacity: 1, top: 0 } : { opacity: 1, x: 0 }}
             transition={NEW_HEROFLOW
               ? { duration: 0.46, ease: [0.2, 0.8, 0.3, 1] }
               : { duration: 0.35, delay: 0.1 }}

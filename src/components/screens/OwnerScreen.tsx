@@ -378,8 +378,8 @@ export function OwnerScreen() {
           {/* ── 2. BLOK: RÁM → PORADIE → KTO SI → NARODENIE ──────────────── */}
           <motion.div
             className="hf-block hf-carved ow-stack"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, top: 12 }}
+            animate={{ opacity: 1, top: 0 }}
             transition={{ duration: 0.35 }}
           >
             <span className="hf-carved-rim" aria-hidden />

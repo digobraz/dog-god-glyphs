@@ -488,12 +488,33 @@ function PackKomnatyJadro({ dogs, avatarUrl, potrebujeHosta }: { dogs: PackDog[]
 
   // Komnata 0 sa zjaví sama pri prvom vstupe na FEED (raz za deň, kým ju človek neprejde). Pre všetkých rovnako.
   const k0 = KOMNATY[0];
+  // NIE HNEĎ (Matej 19. 11. 2026: „wizard by mal naskočiť za 5 sekúnd, nie úplne hneď, ale po prvom pohybe
+  // užívateľa“): najskôr 5 s od príchodu A až keď sa človek prvý raz pohne (ťuk, posun, kláves).
+  const [pohnuty, setPohnuty] = useState(false);
   useEffect(() => {
-    if (off || !consentDone || !volno || akt || polica || pathname !== '/pack' || done(k0)) return;
+    if (pohnuty) return undefined;
+    const t0 = Date.now();
+    let pohol = false;
+    let timer: number | undefined;
+    const skus = () => {
+      if (!pohol) return;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setPohnuty(true), Math.max(600, 5000 - (Date.now() - t0)));
+    };
+    const onMove = () => { if (pohol) return; pohol = true; skus(); };
+    const ev = ['pointerdown', 'touchstart', 'wheel', 'scroll', 'keydown'] as const;
+    ev.forEach((e) => window.addEventListener(e, onMove, { passive: true, capture: true }));
+    return () => {
+      ev.forEach((e) => window.removeEventListener(e, onMove, { capture: true }));
+      window.clearTimeout(timer);
+    };
+  }, [pohnuty]);
+  useEffect(() => {
+    if (!pohnuty || off || !consentDone || !volno || akt || polica || pathname !== '/pack' || done(k0)) return;
     if (ls.get(K_AUTO) === dnes()) return;
     ls.set(K_AUTO, dnes());
     startKomnata('uvod');
-  }, [off, consentDone, volno, akt, polica, pathname, done, k0]);
+  }, [pohnuty, off, consentDone, volno, akt, polica, pathname, done, k0]);
 
   // Obrazovka bez lišty (SNIFFER): komnata sa spustí sama pri prvej návšteve, raz za deň — od kroku tejto obrazovky.
   useEffect(() => {
