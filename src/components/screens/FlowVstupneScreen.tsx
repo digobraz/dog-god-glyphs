@@ -419,9 +419,9 @@ const VSTUPNE_CSS = `
 /* Pod heroglyfom tesne a čitateľne (Matej 19. 11.: doladiť) — vlastná trieda, aby ju nízke okno nezmenšilo ako .vs-sub. */
 .vs-save-line { margin: 0; max-width: 280px; text-align: center; font-size: ${PACK_TEXT.lead}px; font-weight: 500; line-height: 1.35; color: #000; }
 .hg-lit .hg-glyph { opacity: .12; animation: hg-glyph 3.4s ease-in-out infinite; animation-delay: calc(var(--i) * .11s); }
-.hg-lit .hg-bed { opacity: 0; animation: hg-bed 3.4s ease-in-out infinite; animation-delay: calc(var(--i) * .11s); }
+/* Bez zlatého podkladu (Matej 19. 11.: „skús to bez zlatého pozadia“) — znaky sa len postupne objavia. */
+.hg-lit .hg-bed { display: none; }
 @keyframes hg-glyph { 0%, 100% { opacity: .12; } 9%, 88% { opacity: 1; } }
-@keyframes hg-bed { 0%, 100% { opacity: 0; } 5% { opacity: 1; } 18%, 88% { opacity: .5; } }
 @media (prefers-reduced-motion: reduce) {
   .hg-lit .hg-glyph { animation: none; opacity: 1; }
   .hg-lit .hg-bed { animation: none; opacity: 0; }
