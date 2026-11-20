@@ -8682,6 +8682,7 @@ export const en = {
   "pack.sos.plan.kmUnder1": "within 1 km",
   "pack.sos.plan.km": "approx. {km} km",
   "pack.sos.btn.abuse": "Report abuse",
+  "pack.sos.btn.dogio": "Dog rescue, shelters, fundraisers",
   "pack.sos.plan.web": "WEBSITE",
   "pack.sos.plan.report": "Report a mistake or ask for removal",
   "pack.sos.plan.report.subject": "SOS contact: {name}",

@@ -8375,6 +8375,7 @@ export const sk: Partial<Dict> = {
   "pack.sos.plan.kmUnder1": "do 1 km",
   "pack.sos.plan.km": "cca {km} km",
   "pack.sos.btn.abuse": "Nahlásiť týranie",
+  "pack.sos.btn.dogio": "Záchrana psov, útulky, zbierky",
   "pack.sos.plan.web": "WEB",
   "pack.sos.plan.report": "Nahlásiť chybu alebo žiadosť o vymazanie",
   "pack.sos.plan.report.subject": "SOS kontakt: {name}",

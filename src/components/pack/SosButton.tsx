@@ -89,12 +89,6 @@ export function SosButton() {
                 <b>{tx('pack.sos.card.title', 'Emergency card')}</b>
               </button>
             )}
-            {/* Nahlásiť týranie: zatiaľ bez akcie, vyzerá ako ostatné „čoskoro“ (nie červeno). */}
-            <button type="button" className="sos-row abuse" style={{ ...PACK_BOX.row }}>
-              {APP_NEW ? <SysIcon name="sos-tyranie" size={32} /> : <BrandIcon name="stop-rhomb" size={24} tint="gold" />}
-              <b>{tx('pack.sos.btn.abuse', 'Report abuse')}</b>
-              <small>{tx('pack.sos.soon', 'Soon')}</small>
-            </button>
             {/* Prvá pomoc (17. 11. 2026): kde je AID_ON, otvorí rozcestník; inde ostáva „čoskoro“. */}
             {(SOS_ON || AID_ON) && ROWS.map((r) => (
               <button key={r.key} type="button" className={`sos-row ${r.key}`} style={{ ...PACK_BOX.row }} onClick={AID_ON ? () => go('/pack/sos/prva-pomoc') : undefined}>
@@ -103,6 +97,21 @@ export function SosButton() {
                 {!AID_ON && <small>{tx('pack.sos.soon', 'Soon')}</small>}
               </button>
             ))}
+            {/* DOGIO (Matej 20. 11.): záchrana psov, útulky, zbierky — naše meno namiesto odkazu na Donio. Zatiaľ „čoskoro“. */}
+            <button type="button" className="sos-row dogio" style={{ ...PACK_BOX.row }}>
+              <BrandIcon name="house-heart" size={APP_NEW ? 32 : 24} tint="gold" />
+              <span className="sos-tx">
+                <b>DOGIO</b>
+                <span>{tx('pack.sos.btn.dogio', 'Dog rescue, shelters, fundraisers')}</span>
+              </span>
+              <small>{tx('pack.sos.soon', 'Soon')}</small>
+            </button>
+            {/* Nahlásiť týranie (úplne dole, Matej 20. 11.): zatiaľ bez akcie, vyzerá ako ostatné „čoskoro“ (nie červeno). */}
+            <button type="button" className="sos-row abuse" style={{ ...PACK_BOX.row }}>
+              {APP_NEW ? <SysIcon name="sos-tyranie" size={32} /> : <BrandIcon name="stop-rhomb" size={24} tint="gold" />}
+              <b>{tx('pack.sos.btn.abuse', 'Report abuse')}</b>
+              <small>{tx('pack.sos.soon', 'Soon')}</small>
+            </button>
           </div>
           {SOS_ON && active.length > 0 && (
             <>

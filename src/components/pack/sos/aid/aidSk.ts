@@ -167,8 +167,8 @@ export const AID_SK: AidCard[] = [
  {
   id: "krce",
   group: "A",
-  tile: "Kŕče",
-  title: "Kŕče, záchvat",
+  tile: "Záchvat",
+  title: "Záchvat, kŕče",
   img: "/prva-pomoc/krce-cas.webp",
   imgCap: "nedrž ho, meraj čas",
   spoznas: [

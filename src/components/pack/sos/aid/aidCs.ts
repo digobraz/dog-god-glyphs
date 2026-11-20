@@ -86,8 +86,8 @@ export const AID_CS: AidCard[] = [
     nikdy: ['nečekej, jestli to přejde', 'žádné kapky proti nadýmání', 'nic nepropichuj'],
   },
   {
-    id: 'krce', group: 'A', tile: 'Křeče',
-    title: 'Křeče, záchvat',
+    id: 'krce', group: 'A', tile: 'Záchvat',
+    title: 'Záchvat, křeče',
     img: '/prva-pomoc/krce-cas.webp', imgCap: 'nedrž ho, měř čas',
     vet: { h: 'Hned k veterináři, pokud', items: [
       'záchvat trvá víc než 2 minuty (volej)', 'víc než 5 minut (jde o život)', 'druhý záchvat ten samý den',
