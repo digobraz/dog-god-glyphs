@@ -154,7 +154,7 @@ export function DangerPoster({ data, format, onReady }: { data: PosterData; form
       <style>{CSS}</style>
       <div className="dpo-in" data-ready={ready ? '1' : '0'}>
         <div className="dpo-top">
-          <h2 className="dpo-h">{s(poison ? 'pack.sos.danger.poster.headPoison' : 'pack.sos.danger.poster.headAbuse')}</h2>
+          <div className="dpo-h">{s(poison ? 'pack.sos.danger.poster.headPoison' : 'pack.sos.danger.poster.headAbuse')}</div>
           <p className="dpo-sub">{s(poison ? 'pack.sos.danger.poster.subPoison' : 'pack.sos.danger.poster.subAbuse', { place })}</p>
         </div>
         {format === 'story' ? (
