@@ -12,6 +12,7 @@
 // dary = `gifts_by_month`, prevádzka = `pokladnica()` (sluzby.js), psy v núdzi = `treasuries.help`. Čo ešte neexistuje (LIVE pred flipom), nesie „—" / „príde", nie vymyslené číslo.
 // 19. 11. 2026 (Matej): heroglyf je ZADARMO — rozpad 8·2·1, riadky starého príjmu, kruh „Pokladnica svorky" a bilancia ZRUŠENÉ.
 import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { APP_NEW } from '@/lib/packFlags';
 import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -329,11 +330,11 @@ export function MisiaBody() {
   const open = (sec: Sec) => setSheet({ kind: 'all', sec });
 
   // Riadok v karte na ploche — nie je samostatné tlačidlo, klikne sa celá karta (Matej: „budú len 3“).
-  const Li = ({ n, label, eurV, icon, color }: { n?: Node; label?: string; eurV?: number | null; icon?: string; color?: string }) => {
+  const Li = ({ n, label, eurV, icon, sys, color }: { n?: Node; label?: string; eurV?: number | null; icon?: string; sys?: string; color?: string }) => {
     const v = n ? n.eur : eurV ?? null;
     return (
       <span className={`mi-li${v == null ? ' soon' : ''}`} data-flow={n?.k ?? label} data-on={v && v > 0 ? '1' : ''} style={{ '--c': n?.color ?? color } as CSSProperties}>
-        <span className="ic"><BrandIcon name={n?.icon ?? icon ?? 'paw'} size={14} tint="dim" /></span>
+        <span className="ic"><MiIcon sys={n?.k ?? sys} brand={n?.icon ?? icon ?? 'paw'} size={14} /></span>
         <b>{n ? NODE_TXT[n.k][0] : label}</b><i>{n ? sub(n) : v != null && v > 0 ? eur(v) : '—'}</i>
       </span>
     );
@@ -371,8 +372,8 @@ export function MisiaBody() {
         </button>
         <button type="button" className="mi-card out" onClick={() => open('out')}>
           <small>{tx('pack.misia.out', 'Spending')}</small>
-          <Li label={tx('pack.misia.rozvoj', 'Growth')} eurV={run} icon="idea" color={T.partMkt} />
-          <Li label={tx('pack.misia.pomoc', 'Help')} eurV={help} icon="house-heart" color={T.partHelp} />
+          <Li label={tx('pack.misia.rozvoj', 'Growth')} eurV={run} icon="idea" sys="rozvoj" color={T.partMkt} />
+          <Li label={tx('pack.misia.pomoc', 'Help')} eurV={help} icon="house-heart" sys="pomoc" color={T.partHelp} />
           <span className="mi-more">{tx('pack.misia.more.cta', 'more')} <ThinArrow dir="right" size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'currentColor' }} /></span>
         </button>
       </div>
@@ -440,7 +441,8 @@ export function MisiaBody() {
               : sheet.kind === 'thanks' ? tx('carry.thanks.h', 'Thank you')
                 : sheet.kind === 'manage' ? tx('carry.thanks.manage', 'Change or cancel')
                   : tx('pack.misia.giftTitle', 'Gift')
-        } icon={sheet.kind === 'all' ? 'money' : sheet.kind === 'vision' ? 'ankh' : 'heartpaw'}>
+        } icon={sheet.kind === 'all' ? 'money' : sheet.kind === 'vision' ? 'ankh' : 'heartpaw'}
+          sys={sheet.kind === 'all' ? (sheet.sec === 'in' ? 'hlava-prijem' : 'hlava-vydaj') : sheet.kind === 'vision' ? 'hlava-predstava' : 'hlava-dar'}>
           {sheet.kind === 'all' && (
             <AllBody sec={sheet.sec} tx={tx} eur={eur} ins={ins} rozvoj={rozvoj} pomoc={pomoc} NODE_TXT={NODE_TXT}
               onGive={IS_APP ? undefined : () => setSheet({ kind: 'gift' })} />
@@ -475,7 +477,7 @@ function Shelter({ tx }: { tx: Tx }) {
   );
 }
 
-function MiSheet({ title, icon, onClose, children, wide }: { title: string; icon: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+function MiSheet({ title, icon, sys, onClose, children, wide }: { title: string; icon: string; sys?: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -489,7 +491,7 @@ function MiSheet({ title, icon, onClose, children, wide }: { title: string; icon
       <div className="mi-sheet" style={wide ? { maxWidth: 720 } : undefined}>
         <div className="mi-sh-head" style={{ paddingTop: S.md }}>
           <BackButton tone="pale" onClick={onClose} label={title} />
-          <h2><BrandIcon name={icon} size={20} tint="dim" />{title}</h2>
+          <h2><MiIcon sys={sys} brand={icon} size={20} />{title}</h2>
         </div>
         <div className="mi-sh-body">{children}</div>
       </div>
@@ -524,7 +526,7 @@ function AllBody({ sec, tx, eur, ins, rozvoj, pomoc, NODE_TXT, onGive }: {
   };
   const It = ({ n }: { n: Node }) => (
     <div className={`mi-it${n.eur == null ? ' soon' : ''}`} style={{ '--c': n.color } as CSSProperties}>
-      <span className="ic"><BrandIcon name={n.icon} size={16} tint="dim" /></span>
+      <span className="ic"><MiIcon sys={n.k} brand={n.icon} size={16} /></span>
       <div><b>{NODE_TXT[n.k][0]}</b>{P[n.k] && <p>{P[n.k]}</p>}</div>
       <i>{n.eur != null && n.eur > 0 ? eur(n.eur) : n.eur == null ? tx('pack.misia.later', 'When there are more of us') : '0 €'}</i>
       {n.k === 'run' && (
@@ -558,6 +560,13 @@ function AllBody({ sec, tx, eur, ins, rozvoj, pomoc, NODE_TXT, onGive }: {
       <p className="mi-note">{tx('pack.misia.live', 'The numbers come live from the treasury, nothing is typed by hand.')}</p>
     </>
   );
+}
+
+// IKONKY MISIE (Matej 20. 11. 2026: „veľa hand-drawn ikoniek … otvor mi továreň … ja ich všetky vymením“).
+// V appke vlastná kresba `public/icons/sys/misia-<kľúč>.webp` — vymieňa sa v továrni (`plany/ikonky`, stránka Profil · Naša misia),
+// teda bez dopadu na tie isté SVG inde. Web mimo APP_NEW ostáva na kite.
+function MiIcon({ sys, brand, size }: { sys?: string; brand: string; size: number }) {
+  return APP_NEW && sys ? <SysIcon name={`misia-${sys}`} size={size} /> : <BrandIcon name={brand} size={size} tint="dim" />;
 }
 
 function Vision({ tx }: { tx: Tx }) {

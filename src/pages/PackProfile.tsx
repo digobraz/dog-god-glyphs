@@ -288,6 +288,10 @@ html.papyrus3d .pe-dot{border:2.5px solid var(--p3d-ink);}
 html.papyrus3d .pe-hint{color:var(--p3d-gold-ink);font-size:${PACK_TEXT.label}px;}
 html.papyrus3d .pe-bio .pf-field,html.papyrus3d .pe-card .pf-field{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);color:var(--p3d-ink);}
 html.papyrus3d .pe-fr .pf-field{border:0 !important;border-bottom:2.5px solid var(--p3d-ink) !important;border-radius:0 !important;box-shadow:none !important;background:none !important;}
+/* ŠÍPKA ROZBAĽOVACÍCH POLÍ v O mne (Matej 20. 11.: „šípky sú biele na bledom podklade = miznú, musia byť tmavé“).
+   Natívny select kreslí šípku podľa farebnej schémy telefónu — v tmavom režime bielu. Vlastná tmavá šípka + light schéma;
+   selektor je silnejší než background:none !important vyššie (aj v šate Papyrus 3D). */
+.pe-fr select.pf-selpad.pf-field,html.papyrus3d .pe-fr select.pf-selpad.pf-field{-webkit-appearance:none;appearance:none;color-scheme:light;padding-right:${S.xl}px !important;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%232a1608' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\") !important;background-repeat:no-repeat !important;background-position:right ${S.sm}px center !important;background-size:12px 12px !important;}
 html.papyrus3d .pe-card .pk-pill{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);color:var(--p3d-ink);box-shadow:var(--p3d-lift);}
 html.papyrus3d .pe-door{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);color:var(--p3d-ink);box-shadow:var(--p3d-lift);}
 html.papyrus3d .pe-door.on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border-color:${LAPIS.ink};color:${LAPIS.ink};}
