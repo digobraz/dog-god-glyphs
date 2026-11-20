@@ -8,7 +8,7 @@
 //   · AKTUÁLNE PÁTRANIE — pod nimi zoznam z `sosActive()` (len krajina člena), moje prvé; ťuk → `/pack/sos/<slug>`.
 //     Bez pátraní nadpis nie je. Keď beží MOJA strata, trojuholník nesie malú červenú bodku.
 // 🔴 Mount len za `TEST_BUILD` (4. 11. 2026, revízia locku architektura-pack §1.2) a nie v koši 3 (`PackTopRow task`).
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { AID_ON, SOS_ON } from '@/lib/env';
@@ -38,6 +38,7 @@ const CSS = `
 .sos-row small{font:500 ${PACK_TEXT.label}px/1 ${FONT_UI};color:${T.inkWarm};}
 .sos-row.lost b{color:#FFFFFF;}
 .sos-row.lost:active{filter:brightness(.9);}
+.sos-soon-p{margin:-${S.xs}px 0 ${S.xs}px;padding:0 ${S.md}px;font:400 ${PACK_TEXT.body}px/1.45 ${FONT_UI};color:${T.inkStrong};}
 .sos-sec{margin:${S.lg}px 0 ${S.sm}px;font:${PACK_HEAD.section.fontWeight} ${PACK_HEAD.section.fontSize}px/1.2 ${FONT_UI};letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${T.sosRed};}
 .sos-ph{flex:none;width:44px;height:44px;border-radius:${PACK_R.pill}px;border:2px solid ${T.sosRed};background:${T.tileBg} center/cover no-repeat;}
 .sos-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:${S.xs}px;}
@@ -46,6 +47,14 @@ const CSS = `
 .sos-mine{flex:none;font:600 ${PACK_TEXT.micro}px/1 ${FONT_UI};letter-spacing:.02em;text-transform:uppercase;color:${T.sosRed};}
 ${SOS_BUTTON_P3D_CSS}
 `;
+
+// Riadky „čoskoro“ (Matej 20. 11.): zbierky na liečbu psa a útulky/adopcie. Po flipe brainstorming (názov aj pre EN trh, kto smie zakladať).
+const SOON_ROWS = [
+  { key: 'fund', icon: 'heartpaw', k: 'pack.sos.soon.fund', fb: 'Fundraisers for dogs',
+    fbP: 'When a dog needs costly treatment, its human starts a fundraiser with the story and the pack chips in with one tap. Campaigns will show up in the FEED.' },
+  { key: 'shelter', icon: 'house-heart', k: 'pack.sos.soon.shelter', fb: 'Shelters and adoption',
+    fbP: 'Shelters and rescues in one place: how they are doing, what they need right now and the dogs waiting for a home.' },
+];
 
 const ROWS = [
   { key: 'aid', icon: 'bolt', k: 'pack.sos.firstAid', fb: 'First aid' },
@@ -57,6 +66,7 @@ export function SosButton() {
   const nav = useNavigate();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const [open, setOpen] = useState(false);
+  const [soonOpen, setSoonOpen] = useState<string | null>(null);
   const active = useSosActive();
   const mineRunning = active.some((r) => r.is_mine);
   const go = (to: string) => { setOpen(false); nav(to); };
@@ -71,24 +81,6 @@ export function SosButton() {
       {open && (
         <PackPopup title="SOS" onClose={() => setOpen(false)}>
           <div className="sos-list">
-            {/* Vždy prvé, nikdy nezmizne — riadky pátraní ho nesmú nahradiť. */}
-            {SOS_ON && (
-              <button type="button" className="sos-row lost" style={{ ...PACK_BOX.row, background: T.sosRed, borderColor: T.sosRedDark }} onClick={() => go('/pack/sos/new')}>
-                {APP_NEW ? <SysIcon name="sos-strateny" size={32} /> : <BrandIcon name="dogposter" size={24} tint="white" />}
-                <b>{tx('pack.sos.btn.lost', 'My dog is lost')}</b>
-              </button>
-            )}
-            <button type="button" className="sos-row vet" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/pohotovost')}>
-              {APP_NEW ? <SysIcon name="sos-vet" size={32} /> : <BrandIcon name="vet" size={24} tint="gold" />}
-              <b>{tx('pack.sos.er.btn', 'Emergency vet')}</b>
-            </button>
-            {/* Rýchly prístup ku kartičke, nastavenie ostáva v DOG ID (Matej 5. 11.). */}
-            {APP_NEW && (
-              <button type="button" className="sos-row card" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/karticka')}>
-                <SysIcon name="sos-karta" size={32} />
-                <b>{tx('pack.sos.card.title', 'Emergency card')}</b>
-              </button>
-            )}
             {/* Prvá pomoc (17. 11. 2026): kde je AID_ON, otvorí rozcestník; inde ostáva „čoskoro“. */}
             {(SOS_ON || AID_ON) && ROWS.map((r) => (
               <button key={r.key} type="button" className={`sos-row ${r.key}`} style={{ ...PACK_BOX.row }} onClick={AID_ON ? () => go('/pack/sos/prva-pomoc') : undefined}>
@@ -97,15 +89,35 @@ export function SosButton() {
                 {!AID_ON && <small>{tx('pack.sos.soon', 'Soon')}</small>}
               </button>
             ))}
-            {/* DOGIO (Matej 20. 11.): záchrana psov, útulky, zbierky — naše meno namiesto odkazu na Donio. Zatiaľ „čoskoro“. */}
-            <button type="button" className="sos-row dogio" style={{ ...PACK_BOX.row }}>
-              <BrandIcon name="house-heart" size={APP_NEW ? 32 : 24} tint="gold" />
-              <span className="sos-tx">
-                <b>DOGIO</b>
-                <span>{tx('pack.sos.btn.dogio', 'Dog rescue, shelters, fundraisers')}</span>
-              </span>
-              <small>{tx('pack.sos.soon', 'Soon')}</small>
+            <button type="button" className="sos-row vet" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/pohotovost')}>
+              {APP_NEW ? <SysIcon name="sos-vet" size={32} /> : <BrandIcon name="vet" size={24} tint="gold" />}
+              <b>{tx('pack.sos.er.btn', 'Emergency vet')}</b>
             </button>
+            {/* Tretie (Matej 20. 11.: prvá pomoc, pohotovosť, stratil sa mi pes, kartička, týranie). Nikdy nezmizne — riadky pátraní ho nesmú nahradiť. */}
+            {SOS_ON && (
+              <button type="button" className="sos-row lost" style={{ ...PACK_BOX.row, background: T.sosRed, borderColor: T.sosRedDark }} onClick={() => go('/pack/sos/new')}>
+                {APP_NEW ? <SysIcon name="sos-strateny" size={32} /> : <BrandIcon name="dogposter" size={24} tint="white" />}
+                <b>{tx('pack.sos.btn.lost', 'My dog is lost')}</b>
+              </button>
+            )}
+            {/* Rýchly prístup ku kartičke, nastavenie ostáva v DOG ID (Matej 5. 11.). */}
+            {APP_NEW && (
+              <button type="button" className="sos-row card" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/karticka')}>
+                <SysIcon name="sos-karta" size={32} />
+                <b>{tx('pack.sos.card.title', 'Emergency card')}</b>
+              </button>
+            )}
+            {/* Čoskoro (Matej 20. 11.): zbierky pre psov a útulky. Názvy pracovné, celé až po flipe po brainstormingu. Ťuk = 2–3 riadky o tom, čo príde. */}
+            {SOON_ROWS.map((r) => (
+              <Fragment key={r.key}>
+                <button type="button" className={`sos-row soon ${r.key}`} style={{ ...PACK_BOX.row }} aria-expanded={soonOpen === r.key} onClick={() => setSoonOpen((o) => (o === r.key ? null : r.key))}>
+                  <BrandIcon name={r.icon} size={APP_NEW ? 32 : 24} tint="gold" />
+                  <b>{tx(r.k, r.fb)}</b>
+                  <small>{tx('pack.sos.soon', 'Soon')}</small>
+                </button>
+                {soonOpen === r.key && <p className="sos-soon-p">{tx(`${r.k}.p`, r.fbP)}</p>}
+              </Fragment>
+            ))}
             {/* Nahlásiť týranie (úplne dole, Matej 20. 11.): zatiaľ bez akcie, vyzerá ako ostatné „čoskoro“ (nie červeno). */}
             <button type="button" className="sos-row abuse" style={{ ...PACK_BOX.row }}>
               {APP_NEW ? <SysIcon name="sos-tyranie" size={32} /> : <BrandIcon name="stop-rhomb" size={24} tint="gold" />}
