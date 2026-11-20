@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { AID_ON, SOS_ON } from '@/lib/env';
 import { APP_NEW } from '@/lib/packFlags';
+import { IS_APP } from '@/lib/isApp';
 import { PackPopup } from './PackPopup';
 import { BrandIcon } from './BrandIcon';
 import { SysIcon } from './SysIcon';
@@ -36,8 +37,10 @@ const CSS = `
 .sos-row{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:${S.md}px;padding:${S.md}px;}
 .sos-row b{flex:1;font:600 ${PACK_TEXT.body}px/1.3 ${FONT_UI};color:${T.inkStrong};}
 .sos-row small{font:500 ${PACK_TEXT.label}px/1 ${FONT_UI};color:${T.inkWarm};}
-.sos-row.lost b{color:#FFFFFF;}
-.sos-row.lost:active{filter:brightness(.9);}
+/* ČERVENÝ riadok = prvá pomoc (Matej 20. 11.: „stratil sa mi pes daj normálne, červenou daj prvú pomoc“). */
+.sos-row.red b{color:#FFFFFF;}
+.sos-row.red:active{filter:brightness(.9);}
+.sos-row.red small.sos-offl{border:1px solid #FFFFFF;border-radius:${PACK_R.pill}px;padding:${S.xs}px ${S.sm}px;color:#FFFFFF;letter-spacing:.02em;}
 .sos-soon-p{margin:-${S.xs}px 0 ${S.xs}px;padding:0 ${S.md}px;font:400 ${PACK_TEXT.body}px/1.45 ${FONT_UI};color:${T.inkStrong};}
 .sos-sec{margin:${S.lg}px 0 ${S.sm}px;font:${PACK_HEAD.section.fontWeight} ${PACK_HEAD.section.fontSize}px/1.2 ${FONT_UI};letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${T.sosRed};}
 .sos-ph{flex:none;width:44px;height:44px;border-radius:${PACK_R.pill}px;border:2px solid ${T.sosRed};background:${T.tileBg} center/cover no-repeat;}
@@ -83,10 +86,10 @@ export function SosButton() {
           <div className="sos-list">
             {/* Prvá pomoc (17. 11. 2026): kde je AID_ON, otvorí rozcestník; inde ostáva „čoskoro“. */}
             {(SOS_ON || AID_ON) && ROWS.map((r) => (
-              <button key={r.key} type="button" className={`sos-row ${r.key}`} style={{ ...PACK_BOX.row }} onClick={AID_ON ? () => go('/pack/sos/prva-pomoc') : undefined}>
-                {APP_NEW ? <SysIcon name="sos-pomoc" size={32} /> : <BrandIcon name={r.icon} size={24} tint="gold" />}
+              <button key={r.key} type="button" className={`sos-row red ${r.key}`} style={{ ...PACK_BOX.row, background: T.sosRed, borderColor: T.sosRedDark }} onClick={AID_ON ? () => go('/pack/sos/prva-pomoc') : undefined}>
+                {APP_NEW ? <SysIcon name="sos-pomoc" size={32} /> : <BrandIcon name={r.icon} size={24} tint="white" />}
                 <b>{tx(r.k, r.fb)}</b>
-                {!AID_ON && <small>{tx('pack.sos.soon', 'Soon')}</small>}
+                {AID_ON ? (IS_APP && <small className="sos-offl">OFFLINE</small>) : <small>{tx('pack.sos.soon', 'Soon')}</small>}
               </button>
             ))}
             <button type="button" className="sos-row vet" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/pohotovost')}>
@@ -95,8 +98,8 @@ export function SosButton() {
             </button>
             {/* Tretie (Matej 20. 11.: prvá pomoc, pohotovosť, stratil sa mi pes, kartička, týranie). Nikdy nezmizne — riadky pátraní ho nesmú nahradiť. */}
             {SOS_ON && (
-              <button type="button" className="sos-row lost" style={{ ...PACK_BOX.row, background: T.sosRed, borderColor: T.sosRedDark }} onClick={() => go('/pack/sos/new')}>
-                {APP_NEW ? <SysIcon name="sos-strateny" size={32} /> : <BrandIcon name="dogposter" size={24} tint="white" />}
+              <button type="button" className="sos-row lost" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/new')}>
+                {APP_NEW ? <SysIcon name="sos-strateny" size={32} /> : <BrandIcon name="dogposter" size={24} tint="gold" />}
                 <b>{tx('pack.sos.btn.lost', 'My dog is lost')}</b>
               </button>
             )}
@@ -118,11 +121,14 @@ export function SosButton() {
                 {soonOpen === r.key && <p className="sos-soon-p">{tx(`${r.k}.p`, r.fbP)}</p>}
               </Fragment>
             ))}
-            {/* Nahlásiť týranie (úplne dole, Matej 20. 11.): postup + čísla na jeden ťuk, /pack/sos/tyranie. Pôvodne bez akcie, vyzerá ako ostatné „čoskoro“ (nie červeno). */}
-            <button type="button" className="sos-row abuse" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/tyranie')}>
+            {/* Nahlásiť týranie (úplne dole, Matej 20. 11.): ČOSKORO + 2–3 riadky ako pri zbierkach. Obrazovka /pack/sos/tyranie
+                je postavená (postup + čísla na jeden ťuk), z menu sa otvorí, až keď ju Matej pustí. */}
+            <button type="button" className="sos-row soon abuse" style={{ ...PACK_BOX.row }} aria-expanded={soonOpen === 'abuse'} onClick={() => setSoonOpen((o) => (o === 'abuse' ? null : 'abuse'))}>
               {APP_NEW ? <SysIcon name="sos-tyranie" size={32} /> : <BrandIcon name="stop-rhomb" size={24} tint="gold" />}
               <b>{tx('pack.sos.btn.abuse', 'Report abuse')}</b>
+              <small>{tx('pack.sos.soon', 'Soon')}</small>
             </button>
+            {soonOpen === 'abuse' && <p className="sos-soon-p">{tx('pack.sos.soon.abuse.p', 'Reporting cruelty made simple: the exact steps and the numbers to call with one tap. Do not look away.')}</p>}
           </div>
           {SOS_ON && active.length > 0 && (
             <>

@@ -8686,6 +8686,7 @@ export const en = {
   "pack.sos.soon.fund.p": "When a dog needs costly treatment, its human starts a fundraiser with the story and the pack chips in with one tap. Campaigns will show up in the FEED.",
   "pack.sos.soon.shelter": "Shelters and adoption",
   "pack.sos.soon.shelter.p": "Shelters and rescues in one place: how they are doing, what they need right now and the dogs waiting for a home.",
+  "pack.sos.soon.abuse.p": "Reporting cruelty made simple: the exact steps and the numbers to call with one tap. Do not look away.",
   "pack.sos.plan.web": "WEBSITE",
   "pack.sos.plan.report": "Report a mistake or ask for removal",
   "pack.sos.plan.report.subject": "SOS contact: {name}",

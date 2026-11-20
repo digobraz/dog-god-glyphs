@@ -112,10 +112,11 @@ html.papyrus3d .vet-warn{border:2.5px solid ${T.sosRed};}
 export const SOS_BUTTON_P3D_CSS = `
 html.papyrus3d .sos-list{gap:${S.lg}px;}
 html.papyrus3d .sos-list .sos-row{${ROW}min-height:64px;}
-html.papyrus3d .sos-list .sos-row.lost{${RED_V}${B3.replace(/;/g, ' !important;')}}
-html.papyrus3d .sos-list .sos-row.lost:active{filter:none;transform:translateY(5px);}
+html.papyrus3d .sos-list .sos-row.red{${RED_V}${B3.replace(/;/g, ' !important;')}}
+html.papyrus3d .sos-list .sos-row.red:active{filter:none;transform:translateY(5px);}
 html.papyrus3d .sos-list .sos-row b{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;color:var(--p3d-ink);}
-html.papyrus3d .sos-list .sos-row.lost b{color:white;}
+html.papyrus3d .sos-list .sos-row.red b{color:white;}
+html.papyrus3d .sos-list .sos-row.red small.sos-offl{background:transparent;border:1.5px solid white;color:white;}
 html.papyrus3d .sos-list .sos-row small{padding:${S.xs}px ${S.md}px;border-radius:${PACK_R.pill}px;background:${LAPIS.deep};color:${LAPIS.ink};font-weight:600;}
 html.papyrus3d .sos-list .sos-row.act{${ROW}}
 html.papyrus3d .sos-list .sos-mine{color:${LAPIS.edge};font-size:${PACK_TEXT.body}px;}

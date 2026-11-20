@@ -8343,6 +8343,7 @@ export const cs: Partial<Dict> = {
   "pack.sos.soon.fund.p": "Když pes potřebuje drahou léčbu, jeho člověk založí sbírku s příběhem a smečka se složí jedním ťuknutím. Kampaně uvidíš i ve FEEDu.",
   "pack.sos.soon.shelter": "Útulky a adopce",
   "pack.sos.soon.shelter.p": "Útulky a záchranné stanice na jednom místě: jak se jim daří, co právě potřebují a psi, kteří čekají na domov.",
+  "pack.sos.soon.abuse.p": "Jednoduché nahlášení týrání: přesný postup krok za krokem a čísla, která zavoláš jedním ťuknutím. Nebuď lhostejný.",
   "pack.sos.plan.web": "WEB",
   "pack.sos.plan.report": "Nahlásit chybu nebo žádost o vymazání",
   "pack.sos.plan.report.subject": "SOS kontakt: {name}",
