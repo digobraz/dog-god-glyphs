@@ -1178,9 +1178,13 @@ body:has(.ainubis-panel--away) .ainubis-launcher { visibility: hidden; }
 
 /* ── /onepage: guľa a panel VĽAVO (Matej 5. 10. 2026 „ok vľavo“) ─────────────
    Vpravo dole sú šípky filmu a cookie lišta. Na mobile je panel aj tak sheet
-   cez celú šírku, takže `--left` mení len kotvu na PC. */
+   cez celú šírku, takže `--left` mení len kotvu na PC.
+   ⚠️ Panel len od 768 px: 0-2-0 prebíjal mobilné left/right 8 px a sheet sa na 360 px
+   roztiahol podľa obsahu za okraj (check:popupy 19. 11. 2026, bublina o 8–14 px von). */
 .ainubis-launcher.ainubis-launcher--left { left: 16px; right: auto; }
-.ainubis-panel.ainubis-panel--left { left: 16px; right: auto; }
+@media (min-width: 768px) {
+  .ainubis-panel.ainubis-panel--left { left: 16px; right: auto; }
+}
 
 /* ── Brána na e-mail (rozhodnutie „2A“) ──────────────────────────────────────
    Prvá správa hosťa ostane v chate, odíde až s adresou. Zlato = rám otázky,
