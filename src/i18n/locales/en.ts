@@ -7201,6 +7201,7 @@ export const en = {
   'pack.misia.v6': "*A safe place for us and our dogs.*",
   'pack.misia.fixed': "Current monthly costs",
   'pack.misia.fixed.p': "{n} members at €3.99 a month cover them. Today there are\u00a0{g}.",
+  'pack.misia.fixed.app': "{n} members cover them. Today there are\u00a0{g}.",
   'pack.misia.fixed.list': "What we pay for",
   'pack.misia.out': "Spending",
   'pack.misia.shel.b': "Shelter today",

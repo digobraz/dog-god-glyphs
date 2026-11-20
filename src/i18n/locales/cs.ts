@@ -6851,6 +6851,7 @@ export const cs: Partial<Dict> = {
   'pack.misia.v6': "*Safe place pro nás a naše psy.*",
   'pack.misia.fixed': "Aktuální měsíční náklady",
   'pack.misia.fixed.p': "Pokryje je {n} členů po 3,99\u00a0€ měsíčně. Dnes jich je\u00a0{g}.",
+  'pack.misia.fixed.app': "Pokryje je {n} členů. Dnes jich je\u00a0{g}.",
   'pack.misia.fixed.list': "Za co platíme",
   'pack.misia.out': "Výdaj",
   'pack.misia.shel.b': "Útulek dnes",

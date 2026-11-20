@@ -380,7 +380,7 @@ export function MisiaBody() {
       <div className="mi-fixed">
         <small>{tx('pack.misia.fixed', 'Current monthly costs')}</small>
         <b>{eur(run1.spolu)}</b>
-        <p>{tx('pack.misia.fixed.p', '{n} members at €3.99 a month cover them. Today there are {g}.').replace('{n}', String(goalN)).replace('{g}', String(givers))}</p>
+        <p>{(IS_APP ? tx('pack.misia.fixed.app', '{n} members cover them. Today there are {g}.') : tx('pack.misia.fixed.p', '{n} members at €3.99 a month cover them. Today there are {g}.')).replace('{n}', String(goalN)).replace('{g}', String(givers))}</p>
         <div className="mi-paws" aria-hidden>
           {Array.from({ length: goalN }, (_, i) => <span key={i} className={i < givers ? 'on' : ''} style={{ animationDelay: `${(i % 11) * 0.12}s` }}><SysIcon name={i < givers ? 'hodnotenie-packa' : 'hodnotenie-packa-prazdna'} size={20} /></span>)}
         </div>

@@ -6895,6 +6895,7 @@ export const sk: Partial<Dict> = {
   'pack.misia.v6': "*Safe place pre nás a naše psy.*",
   'pack.misia.fixed': "Aktuálne mesačné náklady",
   'pack.misia.fixed.p': "Pokryje ich {n} členov po 3,99\u00a0€ mesačne. Dnes ich je\u00a0{g}.",
+  'pack.misia.fixed.app': "Pokryje ich {n} členov. Dnes ich je\u00a0{g}.",
   'pack.misia.fixed.list': "Za čo platíme",
   'pack.misia.out': "Výdaj",
   'pack.misia.shel.b': "Útulok dnes",
