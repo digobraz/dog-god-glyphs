@@ -2,7 +2,7 @@
 // aj v exporte (`nodeToPng` v `sosFlyerExport.ts`). Vzor: `sos/SosFlyer.tsx` (statická mapa Mapy.com ako blob, RoundQR).
 // Zdieľa sa s verejnou stránkou `/danger/:slug` (`DangerMap`).
 //
-// 🔴 TÝRANIE NESIE LEN OBEC + OKRUH: žiadna fotka, žiadna adresa; stred mapy zaokrúhlený na 2 desatinné (~1 km) a okruh ≥ 500 m
+// 🔴 TÝRANIE NESIE LEN OBEC + OKRUH: žiadna fotka, žiadna adresa; stred mapy zaokrúhlený na 2 desatinné (~1 km) a okruh ≥ 1000 m (ako verejná stránka; zaokrúhlenie posunie bod až o ~660 m)
 //    (Matej, rozhodnutie 7 zo 20. 11. 2026). To vynucuje `posterView`, nie volajúci.
 // 🔴 MAPA = OBRÁZOK stiahnutý `fetch` → blob (CORS), inak by export do PNG padol; pri zlyhaní nakreslená záložná mapka.
 // 🔴 Export čaká na `data-ready="1"` (mapa aj fotka dohrané).
@@ -30,10 +30,10 @@ export interface PosterData {
   photo: string | null;
 }
 
-/** Čo smie plagát ukázať: týranie bez fotky, bod zaokrúhlený, okruh ≥ 500 m. */
+/** Čo smie plagát ukázať: týranie bez fotky, bod zaokrúhlený, okruh ≥ 1000 m (ako verejná stránka; zaokrúhlenie posunie bod až o ~660 m). */
 export function posterView(d: PosterData) {
   if (d.kind === 'abuse') {
-    return { lat: Math.round(d.lat * 100) / 100, lng: Math.round(d.lng * 100) / 100, radius: Math.max(500, d.radius_m ?? 0), photo: null as string | null, what: [] as string[] };
+    return { lat: Math.round(d.lat * 100) / 100, lng: Math.round(d.lng * 100) / 100, radius: Math.max(1000, d.radius_m ?? 0), photo: null as string | null, what: [] as string[] };
   }
   return { lat: d.lat, lng: d.lng, radius: Math.min(500, Math.max(100, d.radius_m ?? 150)), photo: d.photo, what: d.what };
 }

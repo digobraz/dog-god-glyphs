@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLang } from '@/i18n/LanguageContext';
+import { TEST_BUILD } from '@/lib/env';
 import {
   dangerCase, dangerComplaintCreate, dangerErrorCode, dangerLastPhone, dangerOfficialText,
   type DangerCase, type DangerOfficialTextInput,
@@ -122,7 +123,7 @@ export default function PackDangerComplaint() {
       await dangerComplaintCreate({
         case_id: c?.id ?? null, country, place_label: address.trim(), authority_code: code,
         raw: raw.trim(), official: text, phone: tel, sign_name: signed && name.trim() ? name.trim() : null,
-        cc_linka: linka, photos,
+        cc_linka: country === 'SK' && linka, photos,
       });
       setSent(true);
     } catch (e) {
@@ -138,6 +139,8 @@ export default function PackDangerComplaint() {
         <style>{CSS}</style>
         <h1 className="sos-h2">{s('pack.sos.danger.complaint.sentTitle')}</h1>
         <p className="sos-p">{s('pack.sos.danger.complaint.sentSub')}</p>
+        {/* Kým nie je DANGER_SEND_REAL, podnet ide len na sos@ (inkvizítor 20. 11.): človek to musí vedieť. */}
+        {TEST_BUILD && <p className="sos-p"><b>{s('pack.sos.danger.complaint.testNote')}</b></p>}
         <SosCard>
           <p className="sos-eyebrow">{s('pack.sos.danger.complaint.nextEyebrow')}</p>
           <ul className="dpc-tl">
@@ -256,10 +259,13 @@ export default function PackDangerComplaint() {
           )}
           <p className="sos-small">{s('pack.sos.danger.complaint.whoHint')}</p>
 
-          <label className="dpc-chk">
-            <input type="checkbox" checked={linka} onChange={(e) => setLinka(e.target.checked)} />
-            <span><b>{s('pack.sos.danger.complaint.linka')}</b><small>{s('pack.sos.danger.complaint.linkaHint')}</small></span>
-          </label>
+          {/* Linka proti krutosti je slovenská: pri CZ podnete sa neponúka. */}
+          {country === 'SK' && (
+            <label className="dpc-chk">
+              <input type="checkbox" checked={linka} onChange={(e) => setLinka(e.target.checked)} />
+              <span><b>{s('pack.sos.danger.complaint.linka')}</b><small>{s('pack.sos.danger.complaint.linkaHint')}</small></span>
+            </label>
+          )}
 
           {err && <p className="sos-err" role="alert">{err}</p>}
           <button type="button" className="sos-cta" disabled={busy} onClick={() => void send()}>
