@@ -13,7 +13,7 @@ import {
 } from '@/lib/danger';
 import { authorityByCode, rvpsForDistrict } from '@/data/dangerAuthorities';
 import { SysIcon } from '@/components/pack/SysIcon';
-import { PACK_SPACE as S } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_SPACE as S } from '@/components/pack/packTheme';
 import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
 import type { SosKey } from '../sosTexts';
@@ -32,8 +32,8 @@ const CSS = `
 .dpc-chk b{display:block;font-weight:600;font-size:14px;}
 .dpc-chk small{display:block;font-size:12px;opacity:.75;line-height:1.4;}
 .dpc-tl{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:${S.md}px;font-size:14px;line-height:1.45;}
-.dpc-life{border:1.5px solid #C8202F;}
-.dpc-fights{background:rgba(200,32,47,.10);border:1.5px solid #C8202F;}
+.dpc-life{border:1.5px solid ${T.sosRed};}
+.dpc-fights{background:${T.sosRedSoft};border:1.5px solid ${T.sosRed};}
 `;
 
 const COUNTRIES = ['SK', 'CZ'] as const;
@@ -52,6 +52,7 @@ export default function PackDangerComplaint() {
   const [tick, setTick] = useState(0);
   const [country, setCountry] = useState<Cc>('SK');
   const [picked, setPicked] = useState('');
+  const [manual, setManual] = useState(false);
   const [address, setAddress] = useState('');
   const [raw, setRaw] = useState('');
   const [official, setOfficial] = useState('');
@@ -80,7 +81,7 @@ export default function PackDangerComplaint() {
   useEffect(() => { dangerLastPhone().then((p) => p && setPhone((x) => x || p)).catch(() => undefined); }, []);
 
   const auto = useMemo(() => (country === 'CZ' ? authorityByCode('CZ-SVS') : rvpsForDistrict(c?.district)), [country, c?.district]);
-  const code = picked || auto?.code || '';
+  const code = picked || (manual ? '' : auto?.code ?? '');
   const authority = authorityByCode(code);
   const fights = !!c?.what.includes('dog_fights');
   const photos = (c?.photos ?? []).slice(0, 5);
@@ -168,17 +169,17 @@ export default function PackDangerComplaint() {
       {c !== undefined && (
         <>
           {fights && (
-            <SosCard className="dpc-fights">
+            <section className="sos-card dpc-fights">
               <p className="sos-p"><b>{s('pack.sos.danger.complaint.fights')}</b></p>
               <a className="sos-cta sos-cta--red" href="tel:158">{s('pack.sos.danger.complaint.call158')}</a>
-            </SosCard>
+            </section>
           )}
 
           {!c && (
             <div className="sos-chips" role="group" aria-label={s('pack.sos.danger.complaint.country')}>
               {COUNTRIES.map((k) => (
                 <button key={k} type="button" className={`sos-pill sos-pick${country === k ? ' is-on' : ''}`} aria-pressed={country === k}
-                  onClick={() => { setCountry(k); setPicked(''); }}>
+                  onClick={() => { setCountry(k); setPicked(''); setManual(false); }}>
                   {s(`pack.sos.danger.complaint.country${k}` as SosKey)}
                 </button>
               ))}
@@ -196,10 +197,10 @@ export default function PackDangerComplaint() {
                 </div>
               </>
             ) : null}
-            {(!auto || picked) && <AuthorityPick country={country} value={code} onChange={setPicked} />}
-            {auto && !picked && (
+            {(!auto || manual) && <AuthorityPick country={country} value={code} onChange={setPicked} />}
+            {auto && !manual && (
               <button type="button" className="sos-small" style={{ background: 'none', border: 0, padding: 0, textAlign: 'left', textDecoration: 'underline', cursor: 'pointer' }}
-                onClick={() => setPicked(' ')}>
+                onClick={() => setManual(true)}>
                 {s('pack.sos.danger.complaint.authorityPick')}
               </button>
             )}
@@ -273,7 +274,7 @@ export default function PackDangerComplaint() {
               <li>{s('pack.sos.danger.complaint.t7')}</li>
             </ul>
           </SosCard>
-          <SosCard className="dpc-life"><p className="sos-p"><b>{s('pack.sos.danger.complaint.life')}</b></p></SosCard>
+          <section className="sos-card dpc-life"><p className="sos-p"><b>{s('pack.sos.danger.complaint.life')}</b></p></section>
           <button type="button" className="sos-cta sos-cta--ghost" onClick={() => nav('/pack/sos/nebezpecenstvo/krajina')}>{s('pack.sos.danger.complaint.otherCountry')}</button>
         </>
       )}

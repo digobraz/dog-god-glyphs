@@ -10,11 +10,11 @@ import { nodeToPng } from '../sosFlyerExport';
 import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
 import { DangerPoster, POSTER_SIZE, type PosterFormat } from './DangerPoster';
-import { PACK_SPACE as S } from '@/components/pack/packTheme';
+import { PACK_SPACE as S, PACK_SHADOW } from '@/components/pack/packTheme';
 
 const CSS = `
 .dpp-pick{display:grid;grid-template-columns:1fr 1fr;gap:${S.sm}px;}
-.dpp-stage{width:100%;margin:0 auto;border-radius:8px;overflow:hidden;box-shadow:0 8px 24px rgba(40,20,0,.3);}
+.dpp-stage{width:100%;margin:0 auto;border-radius:8px;overflow:hidden;box-shadow:${PACK_SHADOW.card};}
 .dpp-stage--story{max-width:300px;}
 .dpp-stage--post{max-width:420px;}
 `;

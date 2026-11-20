@@ -108,7 +108,7 @@ const CSS = `
 .dpo-photo{width:76cqw;height:26cqw;}
 .dpo-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:1.4cqw;}
 .dpo-chip{font:600 2.7cqw/1 'Space Grotesk',sans-serif;border:.5cqw solid #2A1608;border-radius:999px;padding:1.2cqw 2.4cqw;}
-.dpo-rad{font:600 2.8cqw/1.2 'Space Grotesk',sans-serif;letter-spacing:.06em;margin:0;opacity:.8;text-align:center;}
+.dpo-rad{font:600 2.8cqw/1.2 'Space Grotesk',sans-serif;letter-spacing:.02em;margin:0;opacity:.8;text-align:center;}
 .dpo--post .dpo-body{flex-direction:row;justify-content:space-between;gap:4cqw;padding:2.6cqw 6cqw;}
 .dpo--post .dpo-map,.dpo--post .dpo-map--wide{width:56cqw;height:56cqw;}
 .dpo--post .dpo-photo{width:100%;height:24cqw;}
