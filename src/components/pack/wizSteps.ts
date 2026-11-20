@@ -118,6 +118,8 @@ export const WIZ_SCREENS: WizScreen[] = [
   { key: 'klinika', routes: ['/pack/klinika/:cid'], basket: 2, status: 'nie', why: 'profil kliniky — čítanie, volanie a postrehy; nič na vysvetlenie', steps: [] },
   { key: 'sosPage', routes: ['/pack/sos/:slug'], basket: 2, status: 'nie', why: 'stratený pes — v núdzi sa nič nevysvetľuje, nepoužíva sa prvýkrát len na čítanie', steps: [] },
   { key: 'sosPlan', routes: ['/pack/sos/:slug/plan'], basket: 2, status: 'nie', why: 'SOS plán — zoznam kontaktov, nič na vysvetlenie', steps: [] },
+  { key: 'danger', routes: ['/pack/sos/nebezpecenstvo', '/pack/sos/nebezpecenstvo/tyranie', '/pack/sos/nebezpecenstvo/tyranie/miesto', '/pack/sos/nebezpecenstvo/otrava', '/pack/sos/nebezpecenstvo/priroda', '/pack/sos/nebezpecenstvo/podnet', '/pack/sos/nebezpecenstvo/krajina', '/pack/sos/nebezpecenstvo/p/:id/plagat', '/pack/sos/tyranie'], basket: 3, status: 'nie', why: 'úloha v núdzi — nahlásenie nebezpečenstva, pokyn nesie formulár', steps: [] },
+  { key: 'dangerCase', routes: ['/pack/sos/nebezpecenstvo/p/:id'], basket: 2, status: 'nie', why: 'detail nahláseného nebezpečenstva — čítanie, svedok, komentár; nič na vysvetlenie', steps: [] },
   { key: 'addTrip', routes: ['/pack/add/trip', '/pack/add'], basket: 3, status: 'nie', why: 'úloha — pokyn nesie pilulka toku', steps: [] },
   { key: 'quiz', routes: ['/pack/dogs/quiz/:key'], basket: 3, status: 'nie', why: 'úloha — kvíz sa vysvetľuje sám', steps: [] },
   { key: 'join', routes: ['/pack/join/:token'], basket: 3, status: 'nie', why: 'pozvánka — ešte nie je člen', steps: [] },

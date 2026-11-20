@@ -59,6 +59,9 @@ export const VET_ER_ON = TEST_BUILD || IS_APP;
 // PRVÁ POMOC (17. 11. 2026): 22 kariet v balíku appky (`sos/aid/`), nečíta DB. Testovací kanál; do obchodnej
 // appky (`|| IS_APP`) až po kontrole obsahu veterinárom a Matejovom „ostro“.
 export const AID_ON = TEST_BUILD;
+// NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026): týranie · otrava · príroda · podnet úradu · plagát · verejná `/danger/:slug`.
+// Len testovací kanál; ostrá appka a dogypt.com nič nevidia, kým Matej nepovie „ostro“.
+export const DANGER_ON = TEST_BUILD;
 // MOMENTY (15. 11. 2026, hárok Zážitok appky + prehliadka momentov): spoločný komponent odmeny `MomentHost`.
 // Rozostavané ⇒ len testovací kanál. Do obchodnej appky (`|| IS_APP`) až na Matejovo „ostro“.
 export const MOMENTY_ON = TEST_BUILD;

@@ -4,7 +4,7 @@ import { PHOTO_INVITE_NEEDED } from "@/lib/photoInvite";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import { APP_NEW, DEV_FULL, BUDDY_LIVE, hasStoredSessionOrAuthReturn } from "@/lib/packFlags";
-import { AID_ON, SOS_ON, VET_ER_ON } from "@/lib/env";
+import { AID_ON, DANGER_ON, SOS_ON, VET_ER_ON } from "@/lib/env";
 // Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
 import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
 import { PackLoader } from "@/components/pack/PackLoader";
@@ -196,10 +196,19 @@ const PackSosPlan = lazyPack(() => import("@/components/pack/sos/PackSosPlan"));
 const PackSosVet = lazyPack(() => import("@/components/pack/sos/PackSosVet")); // kôš 3
 const PackSosAid = lazyPack(() => import("@/components/pack/sos/PackSosAid")); // kôš 3 — prvá pomoc (17. 11. 2026)
 const PackSosAbuse = lazyPack(() => import("@/components/pack/sos/PackSosAbuse")); // kôš 3 — nahlásiť týranie (20. 11. 2026)
+// NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026, DANGER_ON = TEST_BUILD): rozcestie · nahlásenie · príroda · podnet · krajina · detail · plagát.
+const PackDangerHub = lazyPack(() => import("@/components/pack/sos/danger/PackDangerHub")); // kôš 3
+const PackDangerReport = lazyPack(() => import("@/components/pack/sos/danger/PackDangerReport")); // kôš 3
+const PackDangerNature = lazyPack(() => import("@/components/pack/sos/danger/PackDangerNature")); // kôš 3
+const PackDangerComplaint = lazyPack(() => import("@/components/pack/sos/danger/PackDangerComplaint")); // kôš 3
+const PackDangerCountry = lazyPack(() => import("@/components/pack/sos/danger/PackDangerCountry")); // kôš 3
+const PackDangerCase = lazyPack(() => import("@/components/pack/sos/danger/PackDangerCase")); // kôš 2
+const PackDangerPoster = lazyPack(() => import("@/components/pack/sos/danger/PackDangerPoster")); // kôš 3
 const PackKlinika = lazyPack(() => import("@/components/pack/klinika/PackKlinika")); // kôš 2 — profil kliniky
 const PackSosCard = lazyPack(() => import("@/components/pack/dogCard/PackSosCard")); // kôš 3
 const PackDogCard = lazyPack(() => import("@/components/pack/dogCard/PackDogCard")); // kôš 3
 const LostPublic = lazy(() => import("./pages/LostPublic.tsx")); // verejná, bez prihlásenia, noindex
+const DangerPublic = lazy(() => import("./pages/DangerPublic.tsx")); // verejná, bez prihlásenia, noindex (DANGER_ON)
 const PackAinubis = lazyPack(() => import("./pages/PackAinubis.tsx")); // kostra AINUBISA — `/pack/ainubis` (rozhodnutia 4A+5A, 21. 9. 2026)
 const PackDogQuiz = lazyPack(() => import("./pages/PackDogQuiz.tsx")); // fullscreen kvíz (zadanie-mypack-petpas-2026-08-06 §6)
 const PackChronicle = lazyPack(() => import("./pages/PackChronicle.tsx")); // KRONIKA = denník + galéria (8. 10. 2026)
@@ -674,7 +683,23 @@ const App = () => (
               {/* PROFIL KLINIKY — kôš 2 POZERÁM SA (lišta ustúpi), hodnotenie Dogypťanov + správca kliniky. */}
               {VET_ER_ON && <Route path="/pack/klinika/:cid" element={<PackKlinika />} />}
               {APP_NEW && <Route path="/pack/sos/karticka" element={<PackSosCard />} />}
-              <Route path="/pack/sos/tyranie" element={<PackSosAbuse />} />
+              {DANGER_ON ? (
+                <>
+                  {/* NAHLÁSIŤ NEBEZPEČENSTVO — statické segmenty vyhrávajú nad `/pack/sos/:slug`. */}
+                  <Route path="/pack/sos/tyranie" element={<Navigate to="/pack/sos/nebezpecenstvo/tyranie" replace />} />
+                  <Route path="/pack/sos/nebezpecenstvo" element={<PackDangerHub />} />
+                  <Route path="/pack/sos/nebezpecenstvo/tyranie" element={<PackSosAbuse />} />
+                  <Route path="/pack/sos/nebezpecenstvo/tyranie/miesto" element={<PackDangerReport mode="abuse" />} />
+                  <Route path="/pack/sos/nebezpecenstvo/otrava" element={<PackDangerReport mode="poison" />} />
+                  <Route path="/pack/sos/nebezpecenstvo/priroda" element={<PackDangerNature />} />
+                  <Route path="/pack/sos/nebezpecenstvo/podnet" element={<PackDangerComplaint />} />
+                  <Route path="/pack/sos/nebezpecenstvo/krajina" element={<PackDangerCountry />} />
+                  <Route path="/pack/sos/nebezpecenstvo/p/:id" element={<PackDangerCase />} />
+                  <Route path="/pack/sos/nebezpecenstvo/p/:id/plagat" element={<PackDangerPoster />} />
+                </>
+              ) : (
+                <Route path="/pack/sos/tyranie" element={<PackSosAbuse />} />
+              )}
               {SOS_ON && (
                 <>
                   <Route path="/pack/sos/new" element={<PackSosNew />} />
@@ -701,6 +726,7 @@ const App = () => (
               <Route path="/dog/:slug" element={<DogShare />} />
               {/* SOS — verejná stránka straty, bez prihlásenia (TEST_BUILD; na LIVE ju `LostPublic` sám vráti ako 404) */}
               <Route path="/lost/:slug" element={<LostPublic />} />
+              {DANGER_ON && <Route path="/danger/:slug" element={<DangerPublic />} />}
 
               {/* /admin — read-only backoffice (admin-email gated) */}
               <Route path="/admin" element={<Admin />} />

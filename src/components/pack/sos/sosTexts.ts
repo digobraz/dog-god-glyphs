@@ -7,7 +7,15 @@ export type SosText = { en: string; sk: string; cs: string };
 
 const T = (en: string, sk: string, cs: string): SosText => ({ en, sk, cs });
 
+// NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026): tri časti v sos/danger/txt/, každá s vlastným T (bez kruhu).
+import { DANGER_REPORT_TEXTS } from './danger/txt/reportTexts';
+import { DANGER_COMPLAINT_TEXTS } from './danger/txt/complaintTexts';
+import { DANGER_CASE_TEXTS } from './danger/txt/caseTexts';
+
 export const SOS_TEXTS = {
+  ...DANGER_REPORT_TEXTS,
+  ...DANGER_COMPLAINT_TEXTS,
+  ...DANGER_CASE_TEXTS,
   // ── spoločné ─────────────────────────────────────────────────────────────
   'pack.sos.back': T('Back', 'Späť', 'Zpět'),
   'pack.sos.close': T('Close', 'Zavrieť', 'Zavřít'),
