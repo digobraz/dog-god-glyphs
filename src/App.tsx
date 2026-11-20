@@ -195,6 +195,7 @@ const PackSosFlyer = lazyPack(() => import("@/components/pack/sos/PackSosFlyer")
 const PackSosPlan = lazyPack(() => import("@/components/pack/sos/PackSosPlan")); // kôš 2
 const PackSosVet = lazyPack(() => import("@/components/pack/sos/PackSosVet")); // kôš 3
 const PackSosAid = lazyPack(() => import("@/components/pack/sos/PackSosAid")); // kôš 3 — prvá pomoc (17. 11. 2026)
+const PackSosAbuse = lazyPack(() => import("@/components/pack/sos/PackSosAbuse")); // kôš 3 — nahlásiť týranie (20. 11. 2026)
 const PackKlinika = lazyPack(() => import("@/components/pack/klinika/PackKlinika")); // kôš 2 — profil kliniky
 const PackSosCard = lazyPack(() => import("@/components/pack/dogCard/PackSosCard")); // kôš 3
 const PackDogCard = lazyPack(() => import("@/components/pack/dogCard/PackDogCard")); // kôš 3
@@ -673,6 +674,7 @@ const App = () => (
               {/* PROFIL KLINIKY — kôš 2 POZERÁM SA (lišta ustúpi), hodnotenie Dogypťanov + správca kliniky. */}
               {VET_ER_ON && <Route path="/pack/klinika/:cid" element={<PackKlinika />} />}
               {APP_NEW && <Route path="/pack/sos/karticka" element={<PackSosCard />} />}
+              <Route path="/pack/sos/tyranie" element={<PackSosAbuse />} />
               {SOS_ON && (
                 <>
                   <Route path="/pack/sos/new" element={<PackSosNew />} />

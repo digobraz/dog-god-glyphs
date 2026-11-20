@@ -118,11 +118,10 @@ export function SosButton() {
                 {soonOpen === r.key && <p className="sos-soon-p">{tx(`${r.k}.p`, r.fbP)}</p>}
               </Fragment>
             ))}
-            {/* Nahlásiť týranie (úplne dole, Matej 20. 11.): zatiaľ bez akcie, vyzerá ako ostatné „čoskoro“ (nie červeno). */}
-            <button type="button" className="sos-row abuse" style={{ ...PACK_BOX.row }}>
+            {/* Nahlásiť týranie (úplne dole, Matej 20. 11.): postup + čísla na jeden ťuk, /pack/sos/tyranie. Pôvodne bez akcie, vyzerá ako ostatné „čoskoro“ (nie červeno). */}
+            <button type="button" className="sos-row abuse" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/tyranie')}>
               {APP_NEW ? <SysIcon name="sos-tyranie" size={32} /> : <BrandIcon name="stop-rhomb" size={24} tint="gold" />}
               <b>{tx('pack.sos.btn.abuse', 'Report abuse')}</b>
-              <small>{tx('pack.sos.soon', 'Soon')}</small>
             </button>
           </div>
           {SOS_ON && active.length > 0 && (
