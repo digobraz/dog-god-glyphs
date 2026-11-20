@@ -43,7 +43,7 @@ import { emitCreate, type CreateIntent } from '@/lib/createBus';
 import { openAinubis } from '@/lib/ainubisBus';
 import { patchHuman } from '@/lib/humanPrefs';
 import { toast } from '@/hooks/use-toast';
-import { onOpenCompose, type ComposeMode } from './profile/mePosts';
+import { onOpenCompose, takePendingCompose, type ComposeMode } from './profile/mePosts';
 import { MomentHost } from './moment/MomentHost';
 import { MOMENTY_ON } from '@/lib/env';
 
@@ -379,7 +379,12 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
   const [todayOpen, setTodayOpen] = useState(false);
   // TVORBA (príspevok · story · album) — otvára ju panel `+` aj `+` na fotke v profile JA.
   const [compose, setCompose] = useState<ComposeMode | null>(null);
-  useEffect(() => onOpenCompose((m) => { setCreateOpen(false); setCompose(m); }), []);
+  useEffect(() => {
+    const off = onOpenCompose((m) => { takePendingCompose(); setCreateOpen(false); setCompose(m); });
+    const m = takePendingCompose();   // otvorenie požiadané zo stránky mimo lišty (napr. „Zdieľať do FEEDu“ pri nájdenom psovi)
+    if (m) setCompose(m);
+    return off;
+  }, []);
   // BOL DNES V APPKE — raz za deň `human.seen_day`. Popoludňajšia pripomienka AINUBISA príde len tomu,
   // kto dnes ešte nebol (Matej 23. 10. 2026: *„ok AK V APKE NEBOL"*, `pending_devotion_reminders`).
   useEffect(() => {

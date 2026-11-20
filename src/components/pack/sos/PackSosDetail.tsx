@@ -7,6 +7,7 @@
 //    `deceased` (nežije, verejne `closed`) = úprimné slová, žiadna zelená, žiadne zdieľanie, telefón/leták/VIDEL SOM HO preč.
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { openCompose } from '@/components/pack/profile/mePosts';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
@@ -225,7 +226,9 @@ export default function PackSosDetail() {
                 <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" style={{ width: 'auto' }} onClick={() => setDiaryEdit(true)}>{s('pack.sos.alive.diaryEdit')}</button>
               </div>
             )}
-            <button type="button" className="sos-cta sos-cta--gold" onClick={() => void shareLostDog({ slug: pub.slug, name: pub.dog_name, flyerUrl: null, text: s('pack.sos.alive.shareText', { name: pub.dog_name }), copiedText: s('pack.sos.det.copied') })}>{s('pack.sos.alive.share')}</button>
+            {/* Dobrá správa (Matej 20. 11.): najprv DO NÁŠHO FEEDU (príspevok s fotkou a textom, človek ho ešte upraví), potom odkaz von. */}
+            <button type="button" className="sos-cta sos-cta--gold" onClick={() => { openCompose('post', { body: s('pack.sos.alive.shareText', { name: pub.dog_name }), photoUrl: pub.photo ? sizedUrl(pub.photo, 1600) : null, dogIds: mine ? [mine.dog_id] : undefined }); navigate('/pack'); }}>{s('pack.sos.alive.shareFeed')}</button>
+            <button type="button" className="sos-cta sos-cta--ghost" onClick={() => void shareLostDog({ slug: pub.slug, name: pub.dog_name, flyerUrl: null, text: s('pack.sos.alive.shareText', { name: pub.dog_name }), copiedText: s('pack.sos.det.copied') })}>{s('pack.sos.alive.shareOut')}</button>
             {mine && (
               <>
                 <p className="sos-small">{s('pack.sos.det.foundMistake')}</p>

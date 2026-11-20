@@ -192,7 +192,18 @@ export function coverOfDay(h: Pick<HumanProfile, 'coverPhoto' | 'coverAlbum' | '
 // Composer mountuje LIŠTA (`PackLayout`), nie stránka — ten istý vzor ako denník: akcia nikoho
 // neodnesie preč (lock §4.2) a profil nemusí vedieť, kto ho otvoril.
 const OPEN = 'dogypt:compose';
-export const openCompose = (mode: ComposeMode) => window.dispatchEvent(new CustomEvent<ComposeMode>(OPEN, { detail: mode }));
+// PREDVYPLNENIE (Matej 20. 11. 2026: dobrú správu o nájdenom psovi zdieľať aj DO NÁŠHO FEEDU, nie len von):
+// text, fotka a pes idú do okna príspevku, človek ich ešte upraví a odošle sám. `pending` drží otvorenie,
+// kým lišta (`PackLayout`) nie je na scéne — stránka pátrania beží mimo nej, preto sa najprv ide na /pack.
+export type ComposePrefill = { body?: string; photoUrl?: string | null; dogIds?: string[] };
+let prefill: ComposePrefill | null = null;
+let pending: ComposeMode | null = null;
+export const takeComposePrefill = (): ComposePrefill | null => { const p = prefill; prefill = null; return p; };
+export const takePendingCompose = (): ComposeMode | null => { const m = pending; pending = null; return m; };
+export const openCompose = (mode: ComposeMode, fill?: ComposePrefill) => {
+  if (fill) { prefill = fill; pending = mode; }
+  window.dispatchEvent(new CustomEvent<ComposeMode>(OPEN, { detail: mode }));
+};
 export function onOpenCompose(fn: (mode: ComposeMode) => void): () => void {
   const h = (e: Event) => fn((e as CustomEvent<ComposeMode>).detail);
   window.addEventListener(OPEN, h);

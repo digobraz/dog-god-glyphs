@@ -8,6 +8,7 @@
 // číslami, ktoré naozaj meriame (dni, zdieľania, upozornené zariadenia). Tá istá krajina ako červená, bez pushu navyše;
 // pri obnovení pátrania zmizne a vráti sa červená. Pri „nežije“ sa nezobrazí NIČ (výstraha ticho zmizne).
 import { useState } from 'react';
+import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
@@ -39,7 +40,8 @@ export const FEED_SOS_CSS = `
 .fsos-open{border:1px solid ${T.sosRed};background:transparent;color:${T.sosRed};}
 .fsos-row{all:unset;cursor:pointer;display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.md}px;border:1px solid ${T.sosRed};border-radius:${PACK_R.tile}px;background:${T.cardGrad};}
 .fsos-row .fsos-ph{width:48px;height:48px;border-width:2px;}
-.fsos-card--ok{border-color:${T.growGreen};}
+.fsos-card--ok{border-color:${T.growGreen};position:relative;}
+.fsos-x{all:unset;cursor:pointer;position:absolute;top:0;right:0;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#FFFFFF;}
 .fsos-card--ok .fsos-bar{background:${T.growGreen};}
 .fsos-card--ok .fsos-ph{border-color:${T.growGreen};}
 .fsos-card--ok .fsos-open{border-color:${T.growGreen};color:${T.growGreen};}
@@ -96,7 +98,12 @@ function SosCard({ r }: { r: SosActiveRow }) {
   );
 }
 
-function FoundCard({ r }: { r: SosFoundRow }) {
+// Zelený oznam „našiel sa“ sa dá zavrieť krížikom (Matej 20. 11.: „stále správa o nájdenom Hektorovi a nedá sa zrušiť“).
+// Skrytie je pohodlie jedného zariadenia (localStorage), nie stav v DB — oznam aj tak sám odíde, keď vyprší.
+const HIDDEN_KEY = 'dogypt_sos_found_hidden';
+const readHidden = (): string[] => { try { const v = JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]'); return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []; } catch { return []; } };
+
+function FoundCard({ r, onHide }: { r: SosFoundRow; onHide: () => void }) {
   const nav = useNavigate();
   const t = useT();
   const s = useSosT(r.dog_gender);
@@ -105,6 +112,7 @@ function FoundCard({ r }: { r: SosFoundRow }) {
   return (
     <div className="fsos-card fsos-card--ok">
       <div className="fsos-bar">{s('pack.sos.feed.bar')}</div>
+      <button type="button" className="fsos-x" aria-label={s('pack.sos.feed.hide')} onClick={onHide}><X size={20} /></button>
       <div className="fsos-body">
         <span className="fsos-ph" style={r.photo ? { backgroundImage: `url(${sizedUrl(r.photo, 160)})` } : undefined} />
         <span className="fsos-tx">
@@ -139,9 +147,12 @@ export function FeedSosBlock({ rows }: { rows: SosActiveRow[] }) {
   const t = useT();
   const [all, setAll] = useState(false);
   const [bigId, setBigId] = useState<string | null>(null);
-  const found = useSosFound();
+  const foundAll = useSosFound();
+  const [hidden, setHidden] = useState<string[]>(readHidden);
+  const found = foundAll.filter((r) => !hidden.includes(r.id));
+  const hide = (id: string) => setHidden((h) => { const n = [...h, id].slice(-50); try { localStorage.setItem(HIDDEN_KEY, JSON.stringify(n)); } catch { /* bez úložiska ostane skryté do obnovy */ } return n; });
   if (!rows.length && !found.length) return null;
-  const greens = found.slice(0, MAX).map((r) => <FoundCard key={r.id} r={r} />);
+  const greens = found.slice(0, MAX).map((r) => <FoundCard key={r.id} r={r} onHide={() => hide(r.id)} />);
   if (!rows.length) return <div className="fsos"><style>{FEED_SOS_CSS}</style>{greens}</div>;
   const big = rows.find((r) => r.id === bigId) ?? rows[0];
   const others = rows.filter((r) => r.id !== big.id);

@@ -9,6 +9,7 @@
 //    fotiek (na iPhone tá istá mriežka ako vo Fotkách). Vlastná mriežka galérie ako na IG príde až
 //    v natívnej appke (Capacitor plugin na knižnicu fotiek) — tento súbor sa vtedy zmení len vo výbere.
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { takeComposePrefill } from './mePosts';
 import { createPortal } from 'react-dom';
 import { BackButton } from '@/components/pack/BackButton';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -187,6 +188,15 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
       }
     } catch { /* súkromné okno / poškodený zápis — bez konceptu */ }
     drafted.current = true;
+    // Predvyplnenie (napr. dobrá správa z pátrania) prebije koncept; fotka sa stiahne do File, aby šla tou istou cestou ako z galérie.
+    const fill = takeComposePrefill();
+    if (fill) {
+      if (fill.body) setBody(fill.body);
+      if (fill.dogIds?.length) setDogIds(fill.dogIds);
+      if (fill.photoUrl) {
+        fetch(fill.photoUrl).then((r) => r.blob()).then((b) => setFiles([new File([b], 'dogypt.jpg', { type: b.type || 'image/jpeg' })])).catch(() => {});
+      }
+    }
   }, [draftKey]);
   useEffect(() => {
     if (!drafted.current || sending.current) return;
