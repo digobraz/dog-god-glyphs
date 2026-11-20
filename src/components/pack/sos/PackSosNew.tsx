@@ -20,11 +20,16 @@ import { SosTaskShell } from './SosTaskShell';
 import type { SosKey } from './sosTexts';
 
 const SK_CENTER: [number, number] = [48.7, 19.7];
+// Okruh 10 km ako hranice mapy. NIE `L.circle(...).getBounds()` — kruh mimo mapy nemá `_map` a Leaflet spadne
+// (Matej 20. 11.: klik do mapy aj Moja poloha = „Something went wrong“). `toBounds` berie stranu štvorca v metroch.
+const ringBounds = (p: [number, number]) => L.latLng(p[0], p[1]).toBounds(20000);
 
 const CSS = `
-.sos-card.sos-card--flat{padding:${PACK_SPACE.xl}px 0;border-bottom:1px solid ${T.border};}
+.sos-card.sos-card--flat{padding:${PACK_SPACE.sm}px 0;}
 .sos-card.sos-card--flat:last-child{border-bottom:0;}
-.sosn-dogs{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:${PACK_SPACE.sm}px;}
+.sosn-dogs{display:flex;gap:${PACK_SPACE.sm}px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:${PACK_SPACE.xs}px 0;}
+.sosn-dogs::-webkit-scrollbar{display:none;}
+.sosn-dogs .sosn-dog{flex:0 0 auto;width:200px;scroll-snap-align:start;}
 .sosn-dog{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px ${PACK_SPACE.sm}px ${PACK_SPACE.sm}px;min-height:56px;
   border-radius:${PACK_R.tile}px;min-width:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;}
 .sosn-dog span{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;} /* písmo: meno */
@@ -76,7 +81,7 @@ function PickMap({ center, zoom, pt, onPick, locateTick }: {
   // Pri GPS sa ukáže CELÝ okruh 10 km s rezervou (Matej 19. 11.: kruh nesmie vyplniť celú mapu).
   useEffect(() => {
     const map = mapRef.current; if (!map) return;
-    if (zoom >= 14) map.fitBounds(L.circle(center, { radius: 10000 }).getBounds(), { padding: [PACK_SPACE.xl, PACK_SPACE.xl] });
+    if (zoom >= 14) map.fitBounds(ringBounds(center), { padding: [PACK_SPACE.xl, PACK_SPACE.xl] });
     else map.setView(center, zoom);
   }, [center, zoom, locateTick]);
 
@@ -90,7 +95,7 @@ function PickMap({ center, zoom, pt, onPick, locateTick }: {
     L.circle(pt, { radius: 500, color: T.sosRed, weight: 2, fillColor: T.sosRed, fillOpacity: 0.35, interactive: false }).addTo(g);
     L.circleMarker(pt, { radius: 6, color: '#fff', weight: 2, fillColor: T.sosRed, fillOpacity: 1, interactive: false }).addTo(g);
     // celý 10 km kruh s rezervou; len ak je mapa bližšie (užívateľ si odzoomovať smie sám)
-    const bounds = L.circle(pt, { radius: 10000 }).getBounds();
+    const bounds = ringBounds(pt);
     const pad = L.point(PACK_SPACE.xl, PACK_SPACE.xl);
     if (map.getZoom() > map.getBoundsZoom(bounds, false, pad)) map.fitBounds(bounds, { padding: [PACK_SPACE.xl, PACK_SPACE.xl] });
   }, [pt]);
@@ -231,7 +236,6 @@ export default function PackSosNew() {
           <p className="sos-p">{s('pack.sos.new.noDogs')}</p>
         ) : (
           <>
-            <p className="sos-eyebrow">{s('pack.sos.new.pickDog')}</p>
             <div className="sosn-dogs">
               {dogs.map((d) => (
                 <button key={d.id} type="button" className={`sosn-dog sos-pick${d.id === dogId ? ' is-on' : ''}`} aria-pressed={d.id === dogId} onClick={() => setDogId(d.id)}>
@@ -268,16 +272,15 @@ export default function PackSosNew() {
             </div>
             {locErr && <p className="sos-err">{locErr}</p>}
             <p className="sos-small"><i className="sosn-swatch" style={{ background: T.sosRed }} />{s('pack.sos.new.legend')}</p>
-            <p className="sos-small">{s('pack.sos.new.mapNote')}</p>
             {errs.coords && <p className="sos-err">{errs.coords}</p>}
-          </SosCard>
-
-          <SosCard flat={APP_NEW}>
             <label className="sos-field"><span>{s('pack.sos.new.place')}</span>
               <input className={`pf-field${errs.place ? ' is-bad' : ''}`} value={place} maxLength={200} placeholder={s('pack.sos.new.placeHint')}
                 onChange={(e) => { placeTouched.current = true; setPlace(e.target.value); }} />
             </label>
             {errs.place && <p className="sos-err">{errs.place}</p>}
+          </SosCard>
+
+          <SosCard flat={APP_NEW}>
             <div>
               <p className="sos-eyebrow">{s('pack.sos.new.when')}</p>
               <div className="sosn-when">

@@ -5,12 +5,40 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
  *
  * Wraps <Routes> in App.tsx — without this, ANY uncaught render throw (e.g. a
  * missing translation shape, a bad prop) whitescreens the whole app. Texts are
- * hardcoded EN (no i18n dependency), since the i18n context itself could be
+ * hardcoded (no i18n dependency), since the i18n context itself could be
  * the thing that threw.
+ *
+ * Šat (Matej 20. 11. 2026: „čierna stránka s reloadom je ešte starý brand prvok“):
+ * papyrus + lapisové CTA (na bledom podklade je hlavné CTA LAPIS), nie čierna so zlatým tlačidlom.
+ * Hodnoty sú opísané z `PACK_THEME` a `LAPIS` zámerne — poistka nesmie ťahať moduly, ktoré mohli spadnúť.
  */
 
 type Props = { children: ReactNode };
 type State = { hasError: boolean };
+
+const TEXT: Record<string, { title: string; reload: string; back: string }> = {
+  sk: { title: 'Niečo sa pokazilo.', reload: 'Načítať znova', back: 'Späť' },
+  cs: { title: 'Něco se pokazilo.', reload: 'Načíst znovu', back: 'Zpět' },
+  en: { title: 'Something went wrong.', reload: 'Reload', back: 'Back' },
+};
+
+function pickText() {
+  let l = '';
+  try { l = localStorage.getItem('dogypt_lang') || ''; } catch { /* bez úložiska ide jazyk prehliadača */ }
+  if (!l && typeof document !== 'undefined') l = document.documentElement.lang || '';
+  if (!l && typeof navigator !== 'undefined') l = navigator.language || '';
+  return TEXT[l.slice(0, 2).toLowerCase()] ?? TEXT.en;
+}
+
+const BTN = {
+  fontFamily: "'Cinzel', serif",
+  fontWeight: 700,
+  fontSize: '16px',
+  borderRadius: '8px',
+  padding: '0 24px',
+  height: '48px',
+  cursor: 'pointer',
+} as const;
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
@@ -25,49 +53,40 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      const t = pickText();
       return (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            background: '#000',
+            background: 'linear-gradient(180deg, #F2E5C7, #E5D5B3)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '24px',
-            padding: '24px',
+            padding: '16px',
             textAlign: 'center',
             zIndex: 9999,
           }}
         >
-          <h1
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontWeight: 700,
-              color: '#C99A3F',
-              fontSize: '24px',
-              margin: 0,
-            }}
-          >
-            Something went wrong.
+          <h1 style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, color: '#2a1608', fontSize: '24px', margin: 0 }}>{/* písmo: nadpis */}
+            {t.title}
           </h1>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontWeight: 700,
-              color: '#000',
-              background: 'linear-gradient(135deg, #F5C73D, #E69E1A)',
-              border: '1px solid rgba(250, 244, 236, 0.30)',
-              borderRadius: '8px',
-              padding: '12px 28px',
-              fontSize: '15px',
-              cursor: 'pointer',
-            }}
-          >
-            Reload
-          </button>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button
+              onClick={() => { if (window.history.length > 1) window.history.back(); else window.location.assign('/pack'); setTimeout(() => window.location.reload(), 150); }}
+              style={{ ...BTN, color: '#2a1608', background: 'transparent', border: '1px solid rgba(42,22,8,.35)' }}
+            >{/* písmo: cta */}
+              {t.back}
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              style={{ ...BTN, color: '#EFD79A', background: 'linear-gradient(180deg,#16307A,#0A1A4A)', border: '1px solid #0A1A4A' }}
+            >{/* písmo: cta */}
+              {t.reload}
+            </button>
+          </div>
         </div>
       );
     }
