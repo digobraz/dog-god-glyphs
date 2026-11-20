@@ -212,6 +212,7 @@ export const SOS_TEXTS = {
   'pack.sos.plan.nationwide': T('nationwide', 'celá krajina', 'celá země'),
   'pack.sos.plan.kmUnder1': T('within 1 km', 'do 1 km', 'do 1 km'),
   'pack.sos.plan.km': T('approx. {km} km', 'cca {km} km', 'cca {km} km'),
+  'pack.sos.btn.danger': T('Report a danger', 'Nahlásiť nebezpečenstvo', 'Nahlásit nebezpečí'),
   'pack.sos.btn.abuse': T('Report abuse', 'Nahlásiť týranie', 'Nahlásit týrání'),
   'pack.sos.plan.web': T('WEBSITE', 'WEB', 'WEB'),
   'pack.sos.plan.report': T('Report a mistake or ask for removal', 'Nahlásiť chybu alebo žiadosť o vymazanie', 'Nahlásit chybu nebo žádost o vymazání'),

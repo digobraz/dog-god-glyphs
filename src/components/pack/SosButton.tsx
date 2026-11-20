@@ -3,7 +3,7 @@
 // Lock `architektura-pack.md` §1.2: SOS je GLOBÁL, max 1 ťuk odkiaľkoľvek, nikdy tab.
 // Ťuk = POPUP (šuplík zdola, lock pack-dizajn-system §POPUP):
 //   · STRATIL SA MI PES — červené tlačidlo, VŽDY prvé a nikdy nezmizne → `/pack/sos/new`
-//   · NAHLÁSIŤ TÝRANIE — zatiaľ „čoskoro“ (pod Stratil sa mi pes, nad Prvou pomocou)
+//   · NAHLÁSIŤ NEBEZPEČENSTVO — pri DANGER_ON → `/pack/sos/nebezpecenstvo`, inak „čoskoro“ (týranie)
 //   · PRVÁ POMOC → `/pack/sos/prva-pomoc` (pod AID_ON, 17. 11. 2026) · NAJBLIŽŠÍ VETERINÁR → `/pack/sos/pohotovost`
 //   · AKTUÁLNE PÁTRANIE — pod nimi zoznam z `sosActive()` (len krajina člena), moje prvé; ťuk → `/pack/sos/<slug>`.
 //     Bez pátraní nadpis nie je. Keď beží MOJA strata, trojuholník nesie malú červenú bodku.
@@ -11,7 +11,7 @@
 import { Fragment, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang, useT } from '@/i18n/LanguageContext';
-import { AID_ON, SOS_ON } from '@/lib/env';
+import { AID_ON, DANGER_ON, SOS_ON } from '@/lib/env';
 import { APP_NEW } from '@/lib/packFlags';
 import { IS_APP } from '@/lib/isApp';
 import { PackPopup } from './PackPopup';
@@ -121,14 +121,23 @@ export function SosButton() {
                 {soonOpen === r.key && <p className="sos-soon-p">{tx(`${r.k}.p`, r.fbP)}</p>}
               </Fragment>
             ))}
-            {/* Nahlásiť týranie (úplne dole, Matej 20. 11.): ČOSKORO + 2–3 riadky ako pri zbierkach. Obrazovka /pack/sos/tyranie
-                je postavená (postup + čísla na jeden ťuk), z menu sa otvorí, až keď ju Matej pustí. */}
-            <button type="button" className="sos-row soon abuse" style={{ ...PACK_BOX.row }} aria-expanded={soonOpen === 'abuse'} onClick={() => setSoonOpen((o) => (o === 'abuse' ? null : 'abuse'))}>
-              {APP_NEW ? <SysIcon name="sos-tyranie" size={32} /> : <BrandIcon name="stop-rhomb" size={24} tint="gold" />}
-              <b>{tx('pack.sos.btn.abuse', 'Report abuse')}</b>
-              <small>{tx('pack.sos.soon', 'Soon')}</small>
-            </button>
-            {soonOpen === 'abuse' && <p className="sos-soon-p">{tx('pack.sos.soon.abuse.p', 'Reporting cruelty made simple: the exact steps and the numbers to call with one tap. Do not look away.')}</p>}
+            {/* Nahlásiť nebezpečenstvo (úplne dole, 20. 11. 2026): pri DANGER_ON otvorí rozcestie týranie · otrava · príroda,
+                inak ostáva ČOSKORO + 2–3 riadky ako pri zbierkach (obrazovka /pack/sos/nebezpecenstvo/tyranie existuje len za flagom). */}
+            {DANGER_ON ? (
+              <button type="button" className="sos-row danger" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/nebezpecenstvo')}>
+                {APP_NEW ? <SysIcon name="sos-tyranie" size={32} /> : <BrandIcon name="stop-rhomb" size={24} tint="gold" />}
+                <b>{tx('pack.sos.btn.danger', 'Report a danger')}</b>
+              </button>
+            ) : (
+              <>
+                <button type="button" className="sos-row soon abuse" style={{ ...PACK_BOX.row }} aria-expanded={soonOpen === 'abuse'} onClick={() => setSoonOpen((o) => (o === 'abuse' ? null : 'abuse'))}>
+                  {APP_NEW ? <SysIcon name="sos-tyranie" size={32} /> : <BrandIcon name="stop-rhomb" size={24} tint="gold" />}
+                  <b>{tx('pack.sos.btn.abuse', 'Report abuse')}</b>
+                  <small>{tx('pack.sos.soon', 'Soon')}</small>
+                </button>
+                {soonOpen === 'abuse' && <p className="sos-soon-p">{tx('pack.sos.soon.abuse.p', 'Reporting cruelty made simple: the exact steps and the numbers to call with one tap. Do not look away.')}</p>}
+              </>
+            )}
           </div>
           {SOS_ON && active.length > 0 && (
             <>

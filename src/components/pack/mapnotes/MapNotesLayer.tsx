@@ -20,13 +20,16 @@
 // a nedajú sa mazať.
 import { ActedBy } from '@/components/pack/profile/ActedBy';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import { Marker, Circle, Popup, useMap, useMapEvent } from 'react-leaflet';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { UgcText, UGC_TEXT_CSS } from '@/components/pack/UgcText';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { useT } from '@/i18n/LanguageContext';
-import { groupOf, type MapNote, type NoteKind, type TickDisease } from './mapNotesData';
+import { DANGER_ON } from '@/lib/env';
+import { LAPIS } from '@/components/pack/navGoldSkin';
+import { groupOf, isDangerKind, type MapNote, type NoteKind, type TickDisease } from './mapNotesData';
 import { isDatasetNote } from './mapNotesGeo';
 import { clusterByPixels, clusterPx, clusterRadiusForZoom } from './clusterPoints';
 import { GROUP_TINT, HAZARD_RED, noteTint } from './NotePalette';
@@ -237,6 +240,8 @@ function bodyWithLinks(body: string) {
 
 export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showThreats = true, interactive = true, popupPad, centerPopup = false }: MapNotesLayerProps) {
   const t = useT();
+  const nav = useNavigate();
+  const tOpen = (() => { const v = t('pack.sos.danger.case.open'); return v === 'pack.sos.danger.case.open' ? 'Open' : v; })();
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
   const [moveTick, setMoveTick] = useState(0);
@@ -383,6 +388,13 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
           </div>
 
           {!!n.body && <UgcText kind="note" id={n.id} text={n.body} mine={n.isMine || dataset}>{(s, tg) => <p className="mn-bubble-body">{bodyWithLinks(s)}{tg}</p>}</UgcText>}
+
+          {/* NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026): otrava a týranie majú detail s komentármi a svedkami. */}
+          {isDangerKind(n.kind) && DANGER_ON && (
+            <button type="button" className="mn-bubble-open" onClick={() => nav(`/pack/sos/nebezpecenstvo/p/${n.id}`)}>
+              {tOpen}
+            </button>
+          )}
 
           {/* Dátum svieti vždy — Matej 2026-08-20: „poznámka neumiera svieti tam dátum". */}
           {!dataset && (
@@ -613,4 +625,5 @@ ${CIRCLE_MARK_CSS}
 .mn-vote b{font-weight:600;}
 .mn-bubble-del{margin-top:8px;width:100%;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${T.inkWarm};background:transparent;border:0;padding:4px;cursor:pointer;}
 .mn-bubble-del:hover{color:${HAZARD_RED};}
+.mn-bubble-open{margin-top:8px;width:100%;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:${LAPIS.ink};background:${LAPIS.grad};border:1px solid ${LAPIS.edge};border-radius:8px;padding:8px 12px;cursor:pointer;}
 `;

@@ -70,6 +70,9 @@ export const uploadMemberPostPhoto = (blob: Blob, userId: string, stamp: string)
 export const uploadMemberDogPhoto = (blob: Blob, dogId: string) =>
   uploadBlob(blob, `pack-dogs/${dogId}`, `main-${Date.now()}`);
 
+// FOTKY NAHLÁSENIA NEBEZPEČENSTVA (20. 11. 2026) — priečinok `danger/`. 🔴 Fotky týrania (tváre, ŠPZ, adresa) sú na neuhádnuteľnej, ale verejnej URL; riziko zapísané, rozhodne Matej.
+export const uploadDangerPhoto = (blob: Blob, id: string) => uploadBlob(blob, 'danger', id);
+
 export const uploadBuddyPhoto =(blob: Blob, userId: string, stamp: number) =>
   uploadBlob(blob, `buddy/${userId}`, String(stamp));
 

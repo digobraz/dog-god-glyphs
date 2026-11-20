@@ -55,7 +55,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 const todayStr = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const timeStr = (d = new Date()) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
-function PickMap({ center, zoom, pt, onPick, locateTick }: {
+export function PickMap({ center, zoom, pt, onPick, locateTick }: {
   center: [number, number]; zoom: number; pt: [number, number] | null;
   onPick: (p: [number, number]) => void; locateTick: number;
 }) {

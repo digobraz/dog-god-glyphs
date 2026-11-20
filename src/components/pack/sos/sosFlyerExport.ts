@@ -12,7 +12,7 @@ export const FLYER_CSS_W = FLYER_W / 2;
 
 const FONT_PROBES = ["800 40px 'Cinzel'", "900 40px 'Cinzel Decorative'", "700 40px 'Cinzel Decorative'", "400 40px 'Space Grotesk'", "600 40px 'Space Grotesk'", "800 40px 'Space Grotesk'"];
 
-async function waitReady(node: HTMLElement, ms = 12000): Promise<void> {
+export async function waitReady(node: HTMLElement, ms = 12000): Promise<void> {
   const t0 = Date.now();
   while (node.querySelector('[data-ready]')?.getAttribute('data-ready') !== '1') {
     if (Date.now() - t0 > ms) throw new Error('flyer_not_ready');
@@ -102,4 +102,28 @@ export async function flyerDownload(png: Blob, slug: string): Promise<boolean> {
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
   pdf.addImage(dataUrl, 'PNG', 0, 0, 210, 297, undefined, 'FAST');
   return shareFiles([{ blob: pdf.output('blob'), name: `dogypt-sos-${slug}.pdf` }, { blob: png, name: `dogypt-sos-${slug}.png` }]);
+}
+
+/** Plagát „Nebezpečenstvo“ (story 9:16, príspevok 4:5): ľubovoľný uzol → PNG presne `w`×`h`. Uzol je v `cqw`, takže
+ *  mierka = pixelRatio. Čaká na `data-ready="1"`, fonty a dekódovanie obrázkov; `flyerToPng` sa tým nemení. */
+export async function nodeToPng(node: HTMLElement, w: number, h: number): Promise<Blob> {
+  await waitReady(node);
+  const { toBlob } = await import('html-to-image');
+  const cssW = node.offsetWidth || 1;
+  const cssH = Math.round((cssW * h) / w);
+  await Promise.all([...node.querySelectorAll('img')].map((i) => i.decode().catch(() => undefined)));
+  let blob: Blob | null = null;
+  for (let pokus = 0; pokus < 2; pokus++) {   // WebKit pri prvom kreslení obrázky nedokreslí (ako pri letáku)
+    blob = await toBlob(node, { pixelRatio: w / cssW, width: cssW, height: cssH, cacheBust: false, skipFonts: false });
+    if (blob) break;
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  if (!blob) throw new Error('poster_empty');
+  const bmp = await createImageBitmap(blob);
+  if (bmp.width === w && bmp.height === h) { bmp.close(); return blob; }
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  c.getContext('2d')!.drawImage(bmp, 0, 0, w, h);
+  bmp.close();
+  return await new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('poster_empty'))), 'image/png'));
 }

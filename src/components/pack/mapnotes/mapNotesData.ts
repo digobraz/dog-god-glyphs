@@ -32,7 +32,7 @@ import { DEV_NOAUTH, devAddNote, devLikeNote, devListNotes, devRemoveNote, devVo
 const db = supabase as any;
 
 /** Druhy zápisov — hodnoty stĺpca `kind`, teda aj CHECK v migrácii. */
-export const NOTE_KINDS = ['parking', 'hazard', 'note', 'water', 'viewpoint', 'wildlife', 'ticks', 'viper', 'bear', 'sheepdog', 'noentry', 'ladders', 'algae', 'cablecar'] as const;
+export const NOTE_KINDS = ['parking', 'hazard', 'note', 'water', 'viewpoint', 'wildlife', 'ticks', 'viper', 'bear', 'sheepdog', 'noentry', 'ladders', 'algae', 'cablecar', 'poison', 'abuse'] as const;
 export type NoteKind = (typeof NOTE_KINDS)[number];
 
 // ── PALETA: TRI SKUPINY, NIE SEDEM TLAČIDIEL (Matej 2026-08-20) ─────────────
@@ -78,7 +78,12 @@ export const GROUP_KINDS: Record<NoteGroup, NoteKind[]> = {
   comment: ['note', 'cablecar'],
 };
 
-const WARNING_KINDS = new Set<NoteKind>(GROUP_KINDS.warning);
+/** NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026): otrava a týranie sú upozornenia, ale v palete „+“ NIE SÚ.
+ *  Značku zakladá len DB (`danger_report` / `danger_set_review`), `add_map_note` ich odmieta (`danger_via_report`). */
+export const DANGER_KINDS = ['poison', 'abuse'] as const satisfies readonly NoteKind[];
+export const isDangerKind = (k: string): k is (typeof DANGER_KINDS)[number] => (DANGER_KINDS as readonly string[]).includes(k);
+
+const WARNING_KINDS = new Set<NoteKind>([...GROUP_KINDS.warning, ...DANGER_KINDS]);
 
 /** Do ktorej skupiny druh patrí (aj pre staré zápisy a datasetové body). */
 export function groupOf(kind: NoteKind): NoteGroup {

@@ -56,6 +56,9 @@ export const MARK_EMOJI: Record<NoteKind, string> = {
   algae: '🦠',
   noentry: '🚫',
   hazard: '⚠️',
+  // NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026): mapa smie emoji. ☠️ otrava (okruh, 14 dní), 🚨 týranie (presný bod, len členovia).
+  poison: '☠️',
+  abuse: '🚨',
   note: '🐶',
   // 2. podtyp TIPU (Matej 12. 10. 2026) — kruh so zeleným lemom ako TIP, len emoji lanovky.
   cablecar: '🚡',
