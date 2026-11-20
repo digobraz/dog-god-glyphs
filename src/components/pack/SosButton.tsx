@@ -40,7 +40,7 @@ const CSS = `
 /* ČERVENÝ riadok = prvá pomoc (Matej 20. 11.: „stratil sa mi pes daj normálne, červenou daj prvú pomoc“). */
 .sos-row.red b{color:#FFFFFF;}
 .sos-row.red:active{filter:brightness(.9);}
-.sos-row.red small.sos-offl{border:1px solid #FFFFFF;border-radius:${PACK_R.pill}px;padding:${S.xs}px ${S.sm}px;color:#FFFFFF;letter-spacing:.02em;}
+.sos-row.red small.sos-offl{border:1px solid currentColor;border-radius:${PACK_R.pill}px;padding:${S.xs}px ${S.sm}px;color:#FFFFFF;letter-spacing:.02em;}
 .sos-soon-p{margin:-${S.xs}px 0 ${S.xs}px;padding:0 ${S.md}px;font:400 ${PACK_TEXT.body}px/1.45 ${FONT_UI};color:${T.inkStrong};}
 .sos-sec{margin:${S.lg}px 0 ${S.sm}px;font:${PACK_HEAD.section.fontWeight} ${PACK_HEAD.section.fontSize}px/1.2 ${FONT_UI};letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${T.sosRed};}
 .sos-ph{flex:none;width:44px;height:44px;border-radius:${PACK_R.pill}px;border:2px solid ${T.sosRed};background:${T.tileBg} center/cover no-repeat;}
