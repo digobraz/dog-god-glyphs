@@ -95,7 +95,8 @@ export default function PackDangerComplaint() {
       const input: DangerOfficialTextInput = {
         kind: c?.kind ?? 'abuse', raw: raw.trim(), what: c?.what ?? [], how_often: c?.how_often ?? null,
         place_label: address.trim(), municipality: c?.municipality ?? null, country,
-        authority_name: authority?.name ?? '', lang,
+        // Úrad číta svoj jazyk, nie jazyk appky (tester 20. 11.: RVPS dostala EN prepis).
+        authority_name: authority?.name ?? '', lang: country === 'CZ' ? 'cs' : 'sk',
       };
       const r = await dangerOfficialText(input);
       setOfficial(r.text);

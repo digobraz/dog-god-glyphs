@@ -135,7 +135,9 @@ export default function PackDangerCase() {
   const sent = c.complaints.filter((x) => x.sent_at);
   const toRate = c.is_mine ? sent.find((x) => !x.outcome) : undefined;
   const rated = c.complaints.find((x) => x.outcome);
-  const where = [c.place_label, c.municipality].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(', ');
+  // Obec sa pripíše len vtedy, keď ju adresa ešte nenesie („Hlavná 12, Trenčín, Trenčín“).
+  const where = c.place_label && c.municipality && c.place_label.includes(c.municipality) ? c.place_label
+    : [c.place_label, c.municipality].filter(Boolean).join(', ');
 
   const witness = async () => {
     if (busy) return;
