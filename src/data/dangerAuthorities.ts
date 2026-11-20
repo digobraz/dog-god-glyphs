@@ -22,7 +22,66 @@ export interface DangerAuthority {
 }
 
 export const DANGER_AUTHORITIES: DangerAuthority[] = [
-  // balík A doplní všetkých 40 RVPS + ŠVPS + enviropolíciu + mimovládky + CZ
+  // ── ŠVPS SR (nadriadená RVPS; research §1.1 B/6) ──
+  { code: 'SK-SVPS', kind: 'svps', country: 'SK', name: 'Štátna veterinárna a potravinová správa SR', phone: '02 602 57 307', email: 'podatelna@svps.sk', web: 'https://podania.svps.sk/index.php?page=podnety&id=2' },
+  // ── 40 RVPS (research §1.3, svps.sk/rvps). Okres → RVPS: okresy bez vlastnej RVPS patria pod susednú (79 okresov / 40 správ);
+  //    pridelenie okresov bez vlastnej RVPS je z geografie, NIE z research (over na svps.sk/rvps pred ostrým odoslaním). ──
+  { code: 'SK-RVPS-BA', kind: 'rvps', country: 'SK', name: 'RVPS Bratislava-mesto', phone: '02 6446 1209', protectionPhone: '02 6446 1207', email: 'podatelna.BA@svps.sk', healthEmail: 'ZdravieZvierat.BA@svps.sk', districts: ['Bratislava', 'Malacky'] },
+  { code: 'SK-RVPS-SC', kind: 'rvps', country: 'SK', name: 'RVPS Senec', phone: '02 4592 6212', protectionPhone: null, email: 'podatelna.SC@svps.sk', healthEmail: 'ZdravieZvierat.SC@svps.sk', districts: ['Senec', 'Pezinok'] },
+  { code: 'SK-RVPS-DS', kind: 'rvps', country: 'SK', name: 'RVPS Dunajská Streda', phone: '031 552 4870', protectionPhone: null, email: 'podatelna.DS@svps.sk', healthEmail: 'ZdravieZvierat.DS@svps.sk', districts: ['Dunajská Streda'] },
+  { code: 'SK-RVPS-GA', kind: 'rvps', country: 'SK', name: 'RVPS Galanta', phone: '031 780 2011', protectionPhone: null, email: 'podatelna.GA@svps.sk', healthEmail: 'ZdravieZvierat.GA@svps.sk', districts: ['Galanta'] },
+  { code: 'SK-RVPS-TT', kind: 'rvps', country: 'SK', name: 'RVPS Trnava', phone: '033 592 2111', protectionPhone: '033 592 2133', email: 'podatelna.TT@svps.sk', healthEmail: 'ZdravieZvierat.TT@svps.sk', districts: ['Trnava', 'Hlohovec', 'Piešťany'] },
+  { code: 'SK-RVPS-SE', kind: 'rvps', country: 'SK', name: 'RVPS Senica', phone: '034 651 2881', protectionPhone: null, email: 'podatelna.SE@svps.sk', healthEmail: 'ZdravieZvierat.SE@svps.sk', districts: ['Senica', 'Skalica'] },
+  { code: 'SK-RVPS-KN', kind: 'rvps', country: 'SK', name: 'RVPS Komárno', phone: '035 773 1235', protectionPhone: '035 790 3913', email: 'podatelna.KN@svps.sk', healthEmail: 'ZdravieZvierat.KN@svps.sk', districts: ['Komárno'] },
+  { code: 'SK-RVPS-NZ', kind: 'rvps', country: 'SK', name: 'RVPS Nové Zámky', phone: '035 642 8309', protectionPhone: null, email: 'podatelna.NZ@svps.sk', healthEmail: 'ZdravieZvierat.NZ@svps.sk', districts: ['Nové Zámky'] },
+  { code: 'SK-RVPS-LV', kind: 'rvps', country: 'SK', name: 'RVPS Levice', phone: '036 631 2352', protectionPhone: null, email: 'podatelna.LV@svps.sk', healthEmail: 'ZdravieZvierat.LV@svps.sk', districts: ['Levice'] },
+  { code: 'SK-RVPS-NR', kind: 'rvps', country: 'SK', name: 'RVPS Nitra', phone: '037 653 6202', protectionPhone: '037 653 6202', email: 'podatelna.NR@svps.sk', healthEmail: 'ZdravieZvierat.NR@svps.sk', districts: ['Nitra', 'Zlaté Moravce'] },
+  { code: 'SK-RVPS-TO', kind: 'rvps', country: 'SK', name: 'RVPS Topoľčany', phone: '038 532 2536', protectionPhone: null, email: 'podatelna.TO@svps.sk', healthEmail: 'ZdravieZvierat.TO@svps.sk', districts: ['Topoľčany'] },
+  { code: 'SK-RVPS-SA', kind: 'rvps', country: 'SK', name: 'RVPS Šaľa', phone: '031 770 2170', protectionPhone: '031 770 2170', email: 'podatelna.SA@svps.sk', healthEmail: 'ZdravieZvierat.SA@svps.sk', districts: ['Šaľa'] },
+  { code: 'SK-RVPS-NM', kind: 'rvps', country: 'SK', name: 'RVPS Nové Mesto nad Váhom', phone: '032 285 6012', protectionPhone: null, email: 'podatelna.NM@svps.sk', healthEmail: 'ZdravieZvierat.NM@svps.sk', districts: ['Nové Mesto nad Váhom', 'Myjava'] },
+  { code: 'SK-RVPS-TN', kind: 'rvps', country: 'SK', name: 'RVPS Trenčín', phone: '032 650 9921', protectionPhone: '032 652 2123', email: 'podatelna.TN@svps.sk', healthEmail: 'ZdravieZvierat.TN@svps.sk', districts: ['Trenčín', 'Ilava'] },
+  { code: 'SK-RVPS-PD', kind: 'rvps', country: 'SK', name: 'RVPS Prievidza', phone: '046 542 2247', protectionPhone: null, email: 'podatelna.PD@svps.sk', healthEmail: 'ZdravieZvierat.PD@svps.sk', districts: ['Prievidza', 'Partizánske', 'Bánovce nad Bebravou'] },
+  { code: 'SK-RVPS-PU', kind: 'rvps', country: 'SK', name: 'RVPS Púchov', phone: '042 463 4218', protectionPhone: null, email: 'podatelna.PU@svps.sk', healthEmail: 'ZdravieZvierat.PU@svps.sk', districts: ['Púchov', 'Považská Bystrica'] },
+  { code: 'SK-RVPS-ZH', kind: 'rvps', country: 'SK', name: 'RVPS Žiar nad Hronom', phone: '045 673 3192', protectionPhone: null, email: 'podatelna.ZH@svps.sk', healthEmail: 'ZdravieZvierat.ZH@svps.sk', districts: ['Žiar nad Hronom', 'Žarnovica', 'Banská Štiavnica'] },
+  { code: 'SK-RVPS-ZV', kind: 'rvps', country: 'SK', name: 'RVPS Zvolen', phone: '045 520 3999', protectionPhone: '045 520 3929', email: 'podatelna.ZV@svps.sk', healthEmail: 'ZdravieZvierat.ZV@svps.sk', districts: ['Zvolen', 'Detva', 'Krupina'] },
+  { code: 'SK-RVPS-VK', kind: 'rvps', country: 'SK', name: 'RVPS Veľký Krtíš', phone: '047 481 2931', protectionPhone: null, email: 'podatelna.VK@svps.sk', healthEmail: 'ZdravieZvierat.VK@svps.sk', districts: ['Veľký Krtíš'] },
+  { code: 'SK-RVPS-LC', kind: 'rvps', country: 'SK', name: 'RVPS Lučenec', phone: '047 432 2431', protectionPhone: null, email: 'podatelna.LC@svps.sk', healthEmail: 'ZdravieZvierat.LC@svps.sk', districts: ['Lučenec', 'Poltár'] },
+  { code: 'SK-RVPS-RS', kind: 'rvps', country: 'SK', name: 'RVPS Rimavská Sobota', phone: '047 581 1138', protectionPhone: null, email: 'podatelna.RS@svps.sk', healthEmail: 'ZdravieZvierat.RS@svps.sk', districts: ['Rimavská Sobota', 'Revúca'] },
+  { code: 'SK-RVPS-BB', kind: 'rvps', country: 'SK', name: 'RVPS Banská Bystrica', phone: '048 472 2411', protectionPhone: '048 611 4696', email: 'podatelna.BB@svps.sk', healthEmail: 'ZdravieZvierat.BB@svps.sk', districts: ['Banská Bystrica', 'Brezno'] },
+  { code: 'SK-RVPS-MT', kind: 'rvps', country: 'SK', name: 'RVPS Martin', phone: '043 422 1481', protectionPhone: null, email: 'podatelna.MT@svps.sk', healthEmail: 'ZdravieZvierat.MT@svps.sk', districts: ['Martin', 'Turčianske Teplice'] },
+  { code: 'SK-RVPS-LM', kind: 'rvps', country: 'SK', name: 'RVPS Liptovský Mikuláš', phone: '044 552 3814', protectionPhone: null, email: 'podatelna.LM@svps.sk', healthEmail: 'ZdravieZvierat.LM@svps.sk', districts: ['Liptovský Mikuláš', 'Ružomberok'] },
+  { code: 'SK-RVPS-ZA', kind: 'rvps', country: 'SK', name: 'RVPS Žilina', phone: '041 763 1235', protectionPhone: null, email: 'podatelna.ZA@svps.sk', healthEmail: 'ZdravieZvierat.ZA@svps.sk', districts: ['Žilina', 'Bytča'] },
+  { code: 'SK-RVPS-CA', kind: 'rvps', country: 'SK', name: 'RVPS Čadca', phone: '041 433 3247', protectionPhone: null, email: 'podatelna.CA@svps.sk', healthEmail: 'ZdravieZvierat.CA@svps.sk', districts: ['Čadca', 'Kysucké Nové Mesto'] },
+  { code: 'SK-RVPS-DK', kind: 'rvps', country: 'SK', name: 'RVPS Dolný Kubín', phone: '043 582 0930', protectionPhone: '043 582 0932', email: 'podatelna.DK@svps.sk', healthEmail: 'ZdravieZvierat.DK@svps.sk', districts: ['Dolný Kubín', 'Námestovo', 'Tvrdošín'] },
+  { code: 'SK-RVPS-RV', kind: 'rvps', country: 'SK', name: 'RVPS Rožňava', phone: '058 732 3183', protectionPhone: null, email: 'podatelna.RV@svps.sk', healthEmail: 'ZdravieZvierat.RV@svps.sk', districts: ['Rožňava'] },
+  { code: 'SK-RVPS-SN', kind: 'rvps', country: 'SK', name: 'RVPS Spišská Nová Ves', phone: '053 481 3201', protectionPhone: null, email: 'podatelna.SN@svps.sk', healthEmail: 'ZdravieZvierat.SN@svps.sk', districts: ['Spišská Nová Ves', 'Gelnica'] },
+  { code: 'SK-RVPS-KE', kind: 'rvps', country: 'SK', name: 'RVPS Košice-mesto', phone: '055 796 1811', protectionPhone: null, email: 'podatelna.KE@svps.sk', healthEmail: 'ZdravieZvierat.KE@svps.sk', districts: ['Košice'] },
+  { code: 'SK-RVPS-KS', kind: 'rvps', country: 'SK', name: 'RVPS Košice-okolie', phone: '055 622 2267', protectionPhone: '055 729 4391', email: 'podatelna.KS@svps.sk', healthEmail: 'ZdravieZvierat.KS@svps.sk', districts: ['Košice-okolie'] },
+  { code: 'SK-RVPS-TV', kind: 'rvps', country: 'SK', name: 'RVPS Trebišov', phone: '056 672 2764', protectionPhone: null, email: 'podatelna.TV@svps.sk', healthEmail: 'ZdravieZvierat.TV@svps.sk', districts: ['Trebišov'] },
+  { code: 'SK-RVPS-MI', kind: 'rvps', country: 'SK', name: 'RVPS Michalovce', phone: '056 687 0411', protectionPhone: null, email: 'podatelna.MI@svps.sk', healthEmail: 'ZdravieZvierat.MI@svps.sk', districts: ['Michalovce', 'Sobrance'] },
+  { code: 'SK-RVPS-PP', kind: 'rvps', country: 'SK', name: 'RVPS Poprad', phone: '052 772 3085', protectionPhone: null, email: 'podatelna.PP@svps.sk', healthEmail: 'ZdravieZvierat.PP@svps.sk', districts: ['Poprad', 'Kežmarok', 'Levoča'] },
+  { code: 'SK-RVPS-SL', kind: 'rvps', country: 'SK', name: 'RVPS Stará Ľubovňa', phone: '052 432 2687', protectionPhone: '052 432 2687', email: 'podatelna.SL@svps.sk', healthEmail: 'ZdravieZvierat.SL@svps.sk', districts: ['Stará Ľubovňa'] },
+  { code: 'SK-RVPS-PO', kind: 'rvps', country: 'SK', name: 'RVPS Prešov', phone: '051 749 3650', protectionPhone: '051 749 3650', email: 'podatelna.PO@svps.sk', healthEmail: 'ZdravieZvierat.PO@svps.sk', districts: ['Prešov', 'Sabinov'] },
+  { code: 'SK-RVPS-VT', kind: 'rvps', country: 'SK', name: 'RVPS Vranov nad Topľou', phone: '057 442 3064', protectionPhone: '057 442 3064', email: 'podatelna.VT@svps.sk', healthEmail: 'ZdravieZvierat.VT@svps.sk', districts: ['Vranov nad Topľou'] },
+  { code: 'SK-RVPS-BJ', kind: 'rvps', country: 'SK', name: 'RVPS Bardejov', phone: '054 474 8725', protectionPhone: null, email: 'podatelna.BJ@svps.sk', healthEmail: 'ZdravieZvierat.BJ@svps.sk', districts: ['Bardejov'] },
+  { code: 'SK-RVPS-SK', kind: 'rvps', country: 'SK', name: 'RVPS Svidník', phone: '054 286 1084', protectionPhone: '054 286 1084', email: 'podatelna.SK@svps.sk', healthEmail: 'ZdravieZvierat.SK@svps.sk', districts: ['Svidník', 'Stropkov'] },
+  { code: 'SK-RVPS-HE', kind: 'rvps', country: 'SK', name: 'RVPS Humenné', phone: '057 775 2962', protectionPhone: null, email: 'podatelna.HE@svps.sk', healthEmail: 'ZdravieZvierat.HE@svps.sk', districts: ['Humenné', 'Snina', 'Medzilaborce'] },
+  // ── enviropolícia (trestné oznámenie, celoslovenská pôsobnosť; research §1.1 C). Telefón v research nie je. ──
+  { code: 'SK-ENVIRO-BA', kind: 'enviro', country: 'SK', name: 'Enviropolícia Bratislava', phone: null, email: 'enviropolicia.ba@minv.sk' },
+  { code: 'SK-ENVIRO-TN', kind: 'enviro', country: 'SK', name: 'Enviropolícia Trenčín', phone: null, email: 'enviropolicia.tn@minv.sk' },
+  { code: 'SK-ENVIRO-NR', kind: 'enviro', country: 'SK', name: 'Enviropolícia Nitra', phone: null, email: 'enviropolicia.nr@minv.sk' },
+  { code: 'SK-ENVIRO-BB', kind: 'enviro', country: 'SK', name: 'Enviropolícia Banská Bystrica', phone: null, email: 'enviropolicia.bb@minv.sk' },
+  { code: 'SK-ENVIRO-ZA', kind: 'enviro', country: 'SK', name: 'Enviropolícia Žilina', phone: null, email: 'enviropolicia.za@minv.sk' },
+  { code: 'SK-ENVIRO-KE', kind: 'enviro', country: 'SK', name: 'Enviropolícia Košice', phone: null, email: 'enviropolicia.ke@minv.sk' },
+  { code: 'SK-ENVIRO-PO', kind: 'enviro', country: 'SK', name: 'Enviropolícia Prešov', phone: null, email: 'enviropolicia.po@minv.sk' },
+  // ── mimovládky SK (research §1.4) ──
+  { code: 'SK-LINKA', kind: 'ngo', country: 'SK', name: 'Sloboda zvierat, Linka proti krutosti', phone: '0917 662 030', email: 'linkaprotikrutosti@gmail.com' },
+  { code: 'SK-SOS-LINKA', kind: 'ngo', country: 'SK', name: 'SOS linka pre zvieratá v núdzi', phone: '0907 332 835', email: 'sosinspektori@gmail.com' },
+  { code: 'SK-OMBUDSMAN', kind: 'ngo', country: 'SK', name: 'Zvierací ombudsman', phone: '0948 022 121', email: 'info@zvieraciombudsman.sk' },
+  // ── Česko (research §2.1, §2.3). Telefón SVS v research nie je (je len Městská veterinární správa v Praze). ──
+  { code: 'CZ-SVS', kind: 'cz_svs', country: 'CZ', name: 'Státní veterinární správa', phone: null, email: 'epodatelna@svscr.cz', web: 'https://svs.gov.cz/kontaktni-formular/' },
+  { code: 'CZ-OBRAZ', kind: 'cz_ngo', country: 'CZ', name: 'OBRAZ, Obránci zvířat', phone: '+420 775 038 883', email: 'info@obrancizvirat.cz', web: 'https://obrancizvirat.cz/nahlasit-tyrani-zvirat' },
+  { code: 'CZ-NADACE', kind: 'cz_ngo', country: 'CZ', name: 'Nadace na ochranu zvířat', phone: '+420 222 135 460', email: 'nadace@ochranazvirat.cz' },
 ];
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^okres\s+/, '').trim();
