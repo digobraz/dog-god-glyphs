@@ -81,6 +81,10 @@ export const CIRCLE_MARK_CSS = `
 .mk-wrap{background:none;border:0;}
 .mk-sticker{display:block;width:${STICKER_PX}px;height:${STICKER_PX}px;transform:translate(-50%,-50%);cursor:pointer;transition:transform .15s;-webkit-user-select:none;user-select:none;}
 .mk-sticker:hover{transform:translate(-50%,-50%) scale(1.12);}
+/* SOS (týranie, Matej 21. 11. 2026: „slovná SOS, na mape bude svietiť“): červená žiara pulzuje, aby výzva o pomoc nesplynula s výstrahami. */
+.mk-sticker[src$="/sos.webp"]{animation:mk-sos 1.6s ease-in-out infinite;}
+@keyframes mk-sos{0%,100%{filter:drop-shadow(0 0 2px rgba(200,32,47,.7));}50%{filter:drop-shadow(0 0 10px rgba(255,59,31,.95));}}
+@media (prefers-reduced-motion:reduce){.mk-sticker[src$="/sos.webp"]{animation:none;filter:drop-shadow(0 0 6px rgba(255,59,31,.9));}}
 .mk-circle{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;width:${CIRCLE_PX}px;height:${CIRCLE_PX}px;border-radius:999px;background:#FFFFFF;border:${RIM_PX}px solid #000;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);}
 .mk-circle:hover{transform:translate(-50%,-50%) scale(1.12);}
 /* <i> je len nosič, nie kurzíva. Emoji MUSÍ mať vlastný font stack: zdedený Cinzel

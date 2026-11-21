@@ -22,6 +22,7 @@
     "check:popupy": "node scripts/check-popupy.mjs",
     "prechod": "node scripts/prechod.mjs",
     "app:sync": "npm run build && npx cap sync",
+    "capacitor:copy:after": "node scripts/app-bez-poi.mjs",
     "app:android": "cd android && JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ./gradlew assembleProdDebug",
     "app:ios": "cd ios/App && xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -derivedDataPath build CODE_SIGNING_ALLOWED=NO build",
     "build:appdev": "(test -f .env.appdev || (echo \"chýba .env.appdev (DEV Supabase, kópia z .env.development)\" >&2; exit 1)) && vite build --mode appdev --outDir dist-appdev",

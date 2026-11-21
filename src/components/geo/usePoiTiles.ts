@@ -15,6 +15,7 @@
 // každom takom kroku. Takto sa každá stiahne raz na životnosť stránky.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Map as LeafletMap } from 'leaflet';
+import { IS_APP } from '@/lib/isApp';
 
 /** Musí sedieť s `TILE_DEG` v `plany/gen-poi-tiles.mjs` — je to jediné číslo, ktoré si
  *  generátor a načítavač veria naslepo. Kontrola je nižšie: index nesie `tileDeg` a pri
@@ -30,7 +31,7 @@ const MAX_PARALLEL = 6;
  *  nič nekreslí. */
 const MAX_TILES_PER_VIEW = 24;
 
-/** `t`: sleep_hut · sleep_camp · sleep_bivak · spring · viewpoint.
+/** `t`: sleep_hut · sleep_camp · sleep_bivak · spring · viewpoint · castle · water_jazero|water_priehrada|water_rybnik.
  *  `sleep` = dá sa tu prespať (len `sleep_bivak`: basic_hut áno, ostatné prístrešky nie).
  *  `range` = pohorie, `district` = okres (bez „okres "), pečené z polygónov OSM pri generovaní.
  *  `desc` = popis z OSM (`description:sk` › `description`), `descEn` = `description:en` — ~400 bodov. */
@@ -41,11 +42,17 @@ export type PoiTilePoint = {
 };
 
 /** Piaty prvok záznamu v dlaždici (v2) — je tam LEN keď niečo nesie. */
-type PoiTileExtra = { s?: 1; p?: string; w?: string; r?: string; o?: string; d?: string; de?: string };
+type PoiTileExtra = { s?: 1; p?: string; w?: string; r?: string; o?: string; d?: string; de?: string; lt?: 'j' | 'p' | 'r'; ha?: number };
+
+/** Jazero (21. 11. 2026, `plany/zadanie-osm-susedia-2026-11-21.md`): dlaždica nesie `lake` + druh vody `lt`,
+ *  appka z neho robí typ samolepky, ktorý už pozná z výletov (`water_*` v `mapStickers.ts`). */
+const LAKE_T = { j: 'water_jazero', p: 'water_priehrada', r: 'water_rybnik' } as const;
 
 type TileIndex = { v: number; tileDeg: number; types: string[]; attribution: string; tiles: string[] };
 
-const BASE = '/poi/v2';
+// 📱 Appka dlaždice NEMÁ v balíku (`scripts/app-bez-poi.mjs`, R3 21. 11. 2026) — ťahá ich z webu.
+// `VITE_POI_BASE` = test appky proti náhľadu (`go-live --preview`) skôr, než dáta pôjdu na dogypt.com.
+const BASE = IS_APP ? ((import.meta.env.VITE_POI_BASE as string) || 'https://dogypt.com/poi/v2') : '/poi/v2';
 
 const tileCache = new Map<string, PoiTilePoint[]>();
 const inFlight = new Set<string>();
@@ -100,7 +107,7 @@ async function fetchTile(id: string): Promise<void> {
     for (const [t, arr] of Object.entries(raw)) {
       for (const [lat, lon, name, elev, x] of arr) {
         pts.push({
-          t, lat, lon,
+          t: t === 'lake' ? LAKE_T[x?.lt ?? 'j'] : t, lat, lon,
           ...(name ? { name } : {}),
           ...(elev != null ? { elev } : {}),
           ...(x?.s ? { sleep: true } : {}),

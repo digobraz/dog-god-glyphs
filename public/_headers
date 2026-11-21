@@ -59,3 +59,9 @@
   Cache-Control: no-store
 /app-version.json
   Cache-Control: no-store
+
+# Dlaždice OSM bodov (21. 11. 2026): appka ich NEBALÍ a ťahá z dogypt.com (capacitor://localhost,
+# https://localhost) ⇒ potrebujú CORS. Čerstvosť ako ostatná statika — verzia je v ceste (v2).
+/poi/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=3600, stale-while-revalidate=2592000

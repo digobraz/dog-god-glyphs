@@ -37,7 +37,9 @@ const { minNative } = JSON.parse(readFileSync(join(WEB, 'app-native.json'), 'utf
 // certifikátu. Appka štartuje z index.html; ostatné .html sú web pre Google.
 const SKIP = (p) =>
   p === 'app-update.json' || p === 'app-version.json' || p.startsWith('_') ||
-  p.startsWith('pre/') || (p.endsWith('.html') && p !== 'index.html') || p.endsWith('.DS_Store');
+  p.startsWith('pre/') || (p.endsWith('.html') && p !== 'index.html') || p.endsWith('.DS_Store') ||
+  // Dlaždice OSM bodov appka ťahá z dogypt.com, nebalí ich (scripts/app-bez-poi.mjs) — aktualizácia ich nesmie dotiahnuť.
+  p.startsWith('poi/');
 
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
