@@ -1,11 +1,13 @@
 // `/pack/sos/nebezpecenstvo/priroda` — PRÍRODA (nákres scr 12): druhá brána k TÝM ISTÝM upozorneniam, ktoré člen pridáva na mape cez plus.
 // Jeden zoznam (`GROUP_KINDS.warning`), jedno API (`addMapNote`), PackMap ani mapnotes sa nemenia. Okruh podľa pravidla druhu (`radiusRule`).
+// Prvá položka zoznamu = Otrava a nástrahy (odkaz na `/otrava`, Matej 21. 11. 2026).
 // Názvy druhov a nápovedy berie z existujúcich `pack.mapNotes.kind.*` / `pack.mapNotes.add.placeholder.*`.
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { MapAttribution, MAP_ATTR_CSS } from '@/components/pack/mapAttribution';
 import { addMapNote, defaultRadius, GROUP_KINDS, radiusRule, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
 import { DANGER_FORM_CSS, DangerMap, GeoStatus, useGeoPick, type GeoPick } from './PackDangerReport';
@@ -93,6 +95,10 @@ export default function PackDangerNature() {
 
       <SosCard>
         <div className="sos-chips">
+          {/* Otrava a nástrahy: vlastný tok s okruhom a upozornením okolia (`/otrava`), preto odkaz, nie druh */}
+          <button type="button" className="sos-pill sos-pick dgr-chip" onClick={() => navigate('/pack/sos/nebezpecenstvo/otrava')}>
+            <SysIcon name="pozor" size={20} />{s('pack.sos.danger.hub.poison')}
+          </button>
           {kinds.map((k) => (
             <button key={k} type="button" className={`sos-pill sos-pick dgr-chip${kind === k ? ' is-on' : ''}`} aria-pressed={kind === k} onClick={() => choose(k)}>
               {tx(`pack.mapNotes.kind.${k}`, k)}

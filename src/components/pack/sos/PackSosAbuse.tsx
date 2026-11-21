@@ -1,5 +1,5 @@
-// `/pack/sos/nebezpecenstvo/tyranie` — NAHLÁSIŤ TÝRANIE (Matej 20. 11. 2026, upratané 21. 11. 2026: jedno lapisové CTA).
-// Postup: lead → jeden rad čísel na zavolanie (158 · 159/156 · 112) → „Označ miesto“ (jediné lapisové CTA) → varovanie → „Pomôžu ti“ (SK).
+// `/pack/sos/nebezpecenstvo/tyranie` — NAHLÁSIŤ TÝRANIE (Matej 20. 11. 2026, upratané 21. 11. 2026: jedno červené CTA).
+// Postup: lead → jeden rad čísel na zavolanie (158 · 159/156 · 112) → „Označ miesto“ (jediné červené CTA) → varovanie → „Pomôžu ti“ (SK).
 // Čísla overené 20. 11. 2026: polícia 158 (SK aj CZ), tiesňová 112, mestská polícia SK 159 / CZ 156.
 // Zdroj postupu: zvieraciombudsman.sk/mam-podnet-co-robit (Matej 21. 11. 2026). Podnet úradu ide VŽDY spolu s miestom (`/tyranie/miesto`).
 // Krajina sa NEVYBERÁ: z polohy (ak je povolená, timeout 4 s, rgeocode ako `PackDangerReport`), kým nie je, podľa jazyka.
@@ -16,19 +16,19 @@ import { SosTaskShell } from './SosTaskShell';
 import type { SosKey } from './sosTexts';
 
 type Region = 'SK' | 'CZ' | 'OTHER';
-type Call = { tel: string; label: SosKey; red?: boolean };
+type Call = { tel: string; label: SosKey };
 const CALLS: Record<Region, Call[]> = {
   SK: [
-    { tel: '158', label: 'pack.sos.danger.abuse.police', red: true },
+    { tel: '158', label: 'pack.sos.danger.abuse.police' },
     { tel: '159', label: 'pack.sos.danger.abuse.municipal' },
     { tel: '112', label: 'pack.sos.danger.abuse.emergency' },
   ],
   CZ: [
-    { tel: '158', label: 'pack.sos.danger.abuse.police', red: true },
+    { tel: '158', label: 'pack.sos.danger.abuse.police' },
     { tel: '156', label: 'pack.sos.danger.abuse.municipal' },
     { tel: '112', label: 'pack.sos.danger.abuse.emergency' },
   ],
-  OTHER: [{ tel: '112', label: 'pack.sos.danger.abuse.emergency', red: true }],
+  OTHER: [{ tel: '112', label: 'pack.sos.danger.abuse.emergency' }],
 };
 
 // Krajina z polohy: len keď je povolenie už udelené (nič sa nevypýta); inak ostáva odhad podľa jazyka.
@@ -64,7 +64,6 @@ const CSS = `
 .abu-calls .sos-cta{flex-direction:column;gap:${S.xs}px;min-height:72px;padding:${S.sm}px;text-decoration:none;}
 .abu-calls .sos-cta b{font-size:${PACK_TEXT.h2}px;line-height:1;}
 .abu-calls .sos-cta span{font-size:${PACK_TEXT.label}px;line-height:1.2;text-align:center;}
-.abu-never{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.45;font-weight:500;color:${T.sosRedDark};}
 .abu-now{display:flex;flex-direction:column;gap:${S.sm}px;}
 .abu-help{display:flex;flex-direction:column;gap:${S.sm}px;}
 .abu-help .sos-chips a{text-decoration:none;}
@@ -88,7 +87,7 @@ export default function PackSosAbuse() {
         <p className="sos-eyebrow">{s('pack.sos.danger.abuse.nowEyebrow')}</p>
         <div className={`abu-calls${CALLS[region].length === 1 ? ' one' : ''}`}>
           {CALLS[region].map((c) => (
-            <a key={c.tel} className={`sos-cta${c.red ? ' sos-cta--red' : ' sos-cta--ghost'}`} href={`tel:${c.tel}`}>
+            <a key={c.tel} className="sos-cta sos-cta--ghost" href={`tel:${c.tel}`}>
               <b>{c.tel}</b><span>{s(c.label)}</span>
             </a>
           ))}
@@ -97,11 +96,10 @@ export default function PackSosAbuse() {
       </div>
       <SosCard>
         <p className="sos-p"><b>{s('pack.sos.danger.abuse.markLead')}</b></p>
-        <button type="button" className="sos-cta" onClick={() => navigate('/pack/sos/nebezpecenstvo/tyranie/miesto')}>
+        <button type="button" className="sos-cta sos-cta--red" onClick={() => navigate('/pack/sos/nebezpecenstvo/tyranie/miesto')}>
           <SysIcon name="sos-signal" size={28} />{s('pack.sos.danger.abuse.mark')}
         </button>
       </SosCard>
-      <p className="abu-never">{s('pack.sos.danger.abuse.never')}</p>
       {lang === 'sk' && (
         <div className="abu-help">
           <p className="sos-eyebrow">{s('pack.sos.danger.abuse.help')}</p>

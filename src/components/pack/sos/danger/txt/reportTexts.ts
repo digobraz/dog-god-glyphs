@@ -12,7 +12,7 @@ export const DANGER_REPORT_TEXTS = {
   'pack.sos.danger.hub.poison': T('Poison and traps', 'Otrava a nástrahy', 'Otrava a nástrahy'),
   'pack.sos.danger.hub.poison.sub': T('Poison, bait, nails, glass, traps', 'Jed, návnady, klince, sklo, pasce', 'Jed, návnady, hřebíky, sklo, pasti'),
   'pack.sos.danger.hub.nature': T('Nature', 'Príroda', 'Příroda'),
-  'pack.sos.danger.hub.nature.sub': T('Bear, viper, ticks, blue-green algae', 'Medveď, vretenica, kliešte, sinice', 'Medvěd, zmije, klíšťata, sinice'),
+  'pack.sos.danger.hub.nature.sub': T('Poison and traps, ticks, wildlife and other warnings in nature.', 'Otrava a nástrahy, kliešte, zver a ďalšie výstrahy v prírode.', 'Otrava a nástrahy, klíšťata, zvěř a další výstrahy v přírodě.'),
   'pack.sos.danger.hub.motto': T('We will not look away. Dogypt members nearby will see what you mark.', 'Nebudeme ľahostajní. Čo označíš, uvidia Dogypťania v okolí.', 'Nebudeme lhostejní. Co označíš, uvidí Dogypťané v okolí.'),
   'pack.sos.danger.hub.country': T('I am in another country', 'Som v inej krajine', 'Jsem v jiné zemi'),
 
@@ -33,7 +33,6 @@ export const DANGER_REPORT_TEXTS = {
   'pack.sos.danger.abuse.step3': T('Not urgent? Report it to the official veterinary authority or animal welfare inspector where it is happening. Send photos and a description.', 'Nie je to akútne? Podaj podnet úradnému veterinárovi (RVPS) v okrese, kde sa to deje. Pošli mu fotky a popis.', 'Není to akutní? Podej podnět krajské veterinární správě (KVS) v kraji, kde se to děje. Pošli jí fotky a popis.'),
   'pack.sos.danger.abuse.step4': T('Note whom you told and when. If nothing happens, follow up.', 'Zapamätaj si, komu a kedy si to nahlásil. Ak sa nič nedeje, ozvi sa znova.', 'Zapamatuj si, komu a kdy jsi to nahlásil. Pokud se nic neděje, ozvi se znovu.'),
   'pack.sos.danger.abuse.vet': T('Find your veterinary office', 'Nájdi svoju RVPS', 'Najdi svou KVS'),
-  'pack.sos.danger.abuse.never': T('Do not enter private property or confront the owner. Until you have reported it, do not post it online, it would warn them.', 'Nevstupuj na cudzí pozemok a nehádaj sa s majiteľom. Kým to nenahlásiš, nezverejňuj to na sieťach, varoval by si ho.', 'Nevstupuj na cizí pozemek a nehádej se s majitelem. Dokud to nenahlásíš, nezveřejňuj to na sítích, varoval bys ho.'),
   // 21. 11. 2026 (Matej, zdroj zvieraciombudsman.sk/mam-podnet-co-robit): jeden rad čísel, jedno CTA, podnet ide vždy
   'pack.sos.danger.abuse.nowEyebrow': T('What can you do right now?', 'Čo môžeš urobiť hneď?', 'Co můžeš udělat hned?'),
   'pack.sos.danger.abuse.crime': T('Animal badly hurt or dead? Call 158, it is a crime.', 'Zviera je vážne zranené alebo mŕtve? Volaj 158, ide o trestný čin.', 'Zvíře je vážně zraněné nebo mrtvé? Volej 158, jde o trestný čin.'),
@@ -95,6 +94,14 @@ export const DANGER_REPORT_TEXTS = {
   'pack.sos.danger.report.submit.poison': T('Warn the area', 'Varovať okolie', 'Varovat okolí'),
   'pack.sos.danger.report.sending': T('Sending…', 'Odosielam…', 'Odesílám…'),
   'pack.sos.danger.report.uploading': T('Uploading photos…', 'Nahrávam fotky…', 'Nahrávám fotky…'),
+  // ── týranie: pilulky „Čo sa deje“ a plagát po odoslaní (2. kolo, 21. 11. 2026) ──
+  'pack.sos.danger.report.pill.beating': T('Cruelty', 'Týranie', 'Týrání'),
+  'pack.sos.danger.report.pill.dog_fights': T('Dog fights', 'Zápasy psov', 'Zápasy psů'),
+  'pack.sos.danger.report.pill.puppy_mill': T('Puppy mill', 'Množiareň', 'Množírna'),
+  'pack.sos.danger.report.pill.other': T('Other', 'Iné', 'Jiné'),
+  'pack.sos.danger.report.sent.poster': T('Poster for social media: once we approve the case, you can create a poster and every member of the pack can share it. It shows only the town and the area, never the address.', 'Plagát na siete: keď prípad schválime, vytvoríš plagát a môže ho zdieľať každý v svorke. Je na ňom len obec a okruh, nikdy adresa.', 'Plakát na sítě: až případ schválíme, vytvoříš plakát a může ho sdílet každý ve smečce. Je na něm jen obec a okruh, nikdy adresa.'),
+  'pack.sos.danger.report.sent.posterBtn': T('Create a poster', 'Vytvoriť plagát', 'Vytvořit plakát'),
+
   'pack.sos.danger.report.chip.beating': T('Beating a dog', 'Bije psa', 'Bije psa'),
   'pack.sos.danger.report.chip.chain': T('On a chain', 'Na reťazi', 'Na řetězu'),
   'pack.sos.danger.report.chip.no_water_shelter': T('No water or shelter', 'Bez vody a búdy', 'Bez vody a boudy'),

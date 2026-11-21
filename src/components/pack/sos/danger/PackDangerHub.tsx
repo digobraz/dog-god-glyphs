@@ -1,6 +1,6 @@
-// `/pack/sos/nebezpecenstvo` — NAHLÁSIŤ NEBEZPEČENSTVO: rozcestník (nákres scr 2). Tri dvere: Týranie · Otrava a nástrahy · Príroda,
-// pod nimi odkaz pre inú krajinu než SK/CZ. Kôš 3 (SosTaskShell). Ikonky len existujúce samolepky (SysIcon):
-// týranie `sos-tyranie`, otrava `pozor` (náhrada, vlastná ikonka chýba), príroda `zver` (náhrada, vlastná ikonka chýba).
+// `/pack/sos/nebezpecenstvo` — NAHLÁSIŤ NEBEZPEČENSTVO: rozcestník (nákres scr 2). LEN DVOJE dvere: Týranie · Príroda (Matej 21. 11. 2026).
+// Otrava a nástrahy je prvá položka zoznamu v Prírode (toku `/otrava` sa to nedotklo). Kôš 3 (SosTaskShell). Ikonky len existujúce
+// samolepky (SysIcon): týranie `sos-tyranie`, príroda `zver` (náhrada, vlastná ikonka chýba).
 import { useNavigate } from 'react-router-dom';
 import { PACK_BOX, PACK_R, PACK_SPACE as S, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
 import { SysIcon } from '@/components/pack/SysIcon';
@@ -10,7 +10,6 @@ import type { SosKey } from '../sosTexts';
 
 const DOORS: { to: string; icon: string; t: SosKey; sub: SosKey; red?: boolean }[] = [
   { to: '/pack/sos/nebezpecenstvo/tyranie', icon: 'sos-tyranie', t: 'pack.sos.danger.hub.abuse', sub: 'pack.sos.danger.hub.abuse.sub', red: true },
-  { to: '/pack/sos/nebezpecenstvo/otrava', icon: 'pozor', t: 'pack.sos.danger.hub.poison', sub: 'pack.sos.danger.hub.poison.sub', red: true },
   { to: '/pack/sos/nebezpecenstvo/priroda', icon: 'zver', t: 'pack.sos.danger.hub.nature', sub: 'pack.sos.danger.hub.nature.sub' },
 ];
 
@@ -36,7 +35,6 @@ export default function PackDangerHub() {
         </button>
       ))}
       <p className="sos-p">{s('pack.sos.danger.hub.motto')}</p>
-      <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={() => navigate('/pack/sos/nebezpecenstvo/krajina')}>{s('pack.sos.danger.hub.country')}</button>
     </SosTaskShell>
   );
 }

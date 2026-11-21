@@ -29,6 +29,8 @@ import { CharCount, addImageFiles, cleanPhone, clearDraft, loadDraft, regionOf, 
 const SK_CENTER: [number, number] = [48.7, 19.7];
 const MAX_PHOTOS = 5;
 const HOME_COUNTRIES = ['SVK', 'CZE'];
+// pilulky „Čo sa deje“ pri týraní (Matej 21. 11. 2026): server `what` tieto hodnoty pozná
+const ABUSE_PILLS = ['beating', 'dog_fights', 'puppy_mill', 'other'] as const;
 
 // ── MAPA S JEDNÝM BODOM (a voliteľným okruhom v skutočných metroch) ──────────────────────────────
 export function DangerMap({ center, zoom, pt, radius, onPick, locateTick, onTiles }: {
@@ -330,20 +332,23 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
     if (field) fe.flag(field);
   };
 
+  // týranie: neznáma krajina = SK, podnet úradu ide všade okrem istého OTHER
+  const abuseHome = geo.country ? regionOf(geo.country) !== 'OTHER' : true;
   const submit = () => lock(async () => {
     if (busy) return;
     if (gate !== 'ok') { window.scrollTo?.({ top: 0, behavior: 'smooth' }); return; }
     setErrLink(false); fe.clear();
     if (!pt) { fail('map', s('pack.sos.danger.report.err.bad_coords')); return; }
-    if (mode === 'poison' && !what.length) { fail('what', s('pack.sos.danger.report.err.what')); return; }
+    if (!what.length) { fail('what', s('pack.sos.danger.report.err.what')); return; }
     if (mode === 'abuse' && body.trim().length < 5) { fail('body', s('pack.sos.danger.report.err.ownWords')); return; }
     // krajinu NEHÁDAME (žiadne `?? 'SVK'`): kým ju geokód nezistil, vyberá ju človek
-    if (!geo.country) { fail('country', s('pack.sos.danger.report.err.country')); return; }
+    // pri týraní ostáva neznáma krajina ako SK (telefón a podnet sa ukazujú vždy, kým nie je mimo SK/CZ); otrava krajinu stále vyžaduje
+    if (!geo.country && mode !== 'abuse') { fail('country', s('pack.sos.danger.report.err.country')); return; }
     if (geo.country === 'OTHER') { fail('country', s('pack.sos.danger.report.otherCountry'), true); return; }
     if (geoState === 'fail' && !geo.municipality?.trim()) { fail('muni', s('pack.sos.danger.report.err.muni')); return; }
     // podnet úradu ide pri týraní VŽDY (SK/CZ): telefón je povinný ešte pred odoslaním
-    const tel = mode === 'abuse' && regionOf(geo.country) !== 'OTHER' ? cleanPhone(phone) : null;
-    if (mode === 'abuse' && regionOf(geo.country) !== 'OTHER' && !tel) { fail('phone', s('pack.sos.danger.complaint.err.phone')); return; }
+    const tel = mode === 'abuse' && abuseHome ? cleanPhone(phone) : null;
+    if (mode === 'abuse' && abuseHome && !tel) { fail('phone', s('pack.sos.danger.complaint.err.phone')); return; }
     setErr('');
     setBusy('send');
     try {
@@ -360,7 +365,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
         const r = await dangerReport({
           kind, lat: pt[0], lng: pt[1], country: geo.country,
           place_label: geo.place.trim() || null, municipality: geo.municipality?.trim() || null, district: geo.district,
-          radius_m: mode === 'poison' ? radius : null, what: mode === 'abuse' ? [] : what,
+          radius_m: mode === 'poison' ? radius : null, what,
           how_often: null, body: body.trim() || null, photos,
         });
         if (tel) {
