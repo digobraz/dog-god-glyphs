@@ -33,6 +33,7 @@ const rel = (f) => f.slice(KOREN.length + 1);
 // Pridávaj len s dôvodom. Nález, ktorý je v appke naozaj dosiahnuteľný, sem NEPATRÍ — oprav ho.
 const VEDOME = [
   { subor: 'src/lib/appRegister.ts', obsahuje: 'create-checkout', dovod: "tier:'guest' = zápis psa zadarmo (€0), bez Stripe a bez ceny — registrácia v appke 7. 11. 2026" },
+  { subor: 'src/components/pack/sos/sosTexts.ts', obsahuje: "'pack.sos.fl.rewardPh'", dovod: 'ukážka odmeny za nájdeného psa na letáku SOS, nič sa nekupuje (21. 11. 2026)' },
   { subor: 'src/lib/vetEmergency.ts', obsahuje: '"fee":', dovod: 'príplatok cudzej veterinárnej kliniky, v appke sa nič nekupuje' },
   { subor: 'src/components/PageTopBar.tsx', obsahuje: '/heroglyph/', dovod: 'len porovnanie cesty na vzhľad lišty, nič neotvára' },
   { subor: 'src/components/PageTopBar.tsx', obsahuje: "'/checkout'", dovod: 'len porovnanie cesty na vzhľad lišty, nič neotvára' },
