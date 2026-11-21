@@ -3870,6 +3870,7 @@ export const cs: Partial<Dict> = {
   'pack.addTrip.step.noNotesYet': 'Zatím nic označeno.',
   'pack.addTrip.step.noteArm': 'klepnutím vybereš ke smazání',
   'pack.addTrip.step.noteRemove': 'dalším klepnutím smažeš',
+  'pack.addTrip.step.noteOnMap': 'na mapě',
   'pack.addTrip.step.notesDone': 'To jsou všechny tři. Další můžeš přidat kdykoliv.',
   'pack.addTrip.step.notesLead': 'Poskytni cenné rady komunitě a buď odměněn!',
   'pack.addTrip.step.notesNone': 'Škoda — neoznačil jsi nic. Připravil ses o body a smečku o cenné rady. Vrátit se můžeš kdykoliv.',
