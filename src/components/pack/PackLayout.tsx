@@ -252,6 +252,21 @@ export function MessagingOverlayHost() {
   // ⚠️ hook MUSÍ byť nad `if (!DEV_FULL …) return null` nižšie — pod ním by sa poradie
   // hookov medzi rendermi menilo (Rules of Hooks) a overlay by zhodil stránku.
   const navigate = useNavigate();
+  const { pathname, search } = useLocation();
+
+  // Ťuk na push o novej správe (21. 11. 2026): server posiela `data.url = /pack?msg=<conv_id>` (`notify-push`),
+  // appka ho otvorí cez `history.pushState` + `popstate`. Parameter otvorí vlákno a hneď sa zmaže z adresy,
+  // aby ho obnovenie stránky neotváralo znova. Správy nemajú vlastnú routu (overlay), preto query.
+  useEffect(() => {
+    if (!DEV_FULL) return;
+    const sp = new URLSearchParams(search);
+    const m = sp.get('msg');
+    if (!m) return;
+    sp.delete('msg');
+    const rest = sp.toString();
+    navigate({ pathname, search: rest ? `?${rest}` : '' }, { replace: true });
+    setOverlay(/^[0-9a-f-]{36}$/i.test(m) ? { mode: 'thread', convId: m } : { mode: 'inbox' });
+  }, [search, pathname, navigate]);
 
   useEffect(() => {
     if (!DEV_FULL) return;
