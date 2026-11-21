@@ -38,7 +38,7 @@ const MAX_TILES_PER_VIEW = 24;
 export type PoiTilePoint = {
   t: string; lat: number; lon: number; name?: string; elev?: number;
   sleep?: boolean; phone?: string; web?: string; range?: string; district?: string;
-  desc?: string; descEn?: string;
+  desc?: string; descEn?: string; ha?: number;
 };
 
 /** Piaty prvok záznamu v dlaždici (v2) — je tam LEN keď niečo nesie. */
@@ -117,6 +117,7 @@ async function fetchTile(id: string): Promise<void> {
           ...(x?.o ? { district: x.o } : {}),
           ...(x?.d ? { desc: x.d } : {}),
           ...(x?.de ? { descEn: x.de } : {}),
+          ...(x?.ha ? { ha: x.ha } : {}),
         });
       }
     }

@@ -68,11 +68,18 @@ const POI_PRIORITY: Record<string, number> = {
 // ⚠️ PRÍSTREŠOK BEZ SPANIA USTÚPI PRAMEŇU (31. 10. 2026). So zlúčením bivaku a prístreška je
 // `sleep_bivak` 3 823 bodov, z toho len 149 sa dá prespať — zvyšok sú altánky na dážď. S prioritou
 // spacieho miesta by zatienili vodu, ktorá je pre psa na trase najdôležitejšia.
-const prio = (t: string, sleep?: boolean) =>
-  t === 'sleep_bivak' && !sleep ? 0.5 : POI_PRIORITY[t] ?? 99;
+// 🌊 VEĽKÉ VYHRÁ, MALÉ VYJDÚ PRI PRIBLÍŽENÍ (Matej 21. 11. 2026): *„keď bude mapa obsahovať veľa bodov,
+// ukážu sa len tie najväčšie a pri zoomovaní budú vychádzať ostatné body"*. Rozostup nižšie je greedy —
+// kto je v poradí skôr, ten miesto dostane. Jazero od 100 ha (Lipno, Mara, Orava) preto ide pred
+// všetkým, menšie podľa plochy; rybník pri dedine ustúpi a ukáže sa, keď sa značky roztiahnu.
+// Postupne sa takto zoradia aj ostatné druhy — pravidlo je v `plany/zadanie-osm-susedia-2026-11-21.md` §7.
+const LAKE_BIG_HA = 100;
+const prio = (t: string, sleep?: boolean, ha?: number) =>
+  t.startsWith('water_') && (ha ?? 0) >= LAKE_BIG_HA ? -6
+    : t === 'sleep_bivak' && !sleep ? 0.5 : POI_PRIORITY[t] ?? 99;
 
 /** Bod ktoréhokoľvek z oboch zdrojov. `TrailPoi` má zúžený `t`, dlaždice nesú aj `sleep_*`. */
-type AnyPoi = { t: string; lat: number; lon: number; name?: string; elev?: number; sleep?: boolean };
+type AnyPoi = { t: string; lat: number; lon: number; name?: string; elev?: number; sleep?: boolean; ha?: number };
 
 /** Emoji podľa zdroja typu. Sady sú DVE (`POI_EMOJI` pre OSM body, `SLEEP_EMOJI` pre spacie
  *  miesta) zámerne — spacie miesta si Matej vyberá zvlášť a majú na mape iné postavenie. */
@@ -218,7 +225,7 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false, drawing = fals
     // body sa objavia samy — takže sa nič nestráca, len sa to nekopí.
     const placed: { x: number; y: number }[] = [];
     const out: AnyPoi[] = [];
-    for (const p of [...vis].sort((a, b) => prio(a.t, a.sleep) - prio(b.t, b.sleep) || (b.name ? 1 : 0) - (a.name ? 1 : 0))) {
+    for (const p of [...vis].sort((a, b) => prio(a.t, a.sleep, a.ha) - prio(b.t, b.sleep, b.ha) || (b.ha ?? 0) - (a.ha ?? 0) || (b.name ? 1 : 0) - (a.name ? 1 : 0))) {
       const pt = map.latLngToContainerPoint([p.lat, p.lon]);
       if (placed.some((q) => Math.abs(q.x - pt.x) < MARK_W && Math.abs(q.y - pt.y) < MARK_H)) continue;
       placed.push({ x: pt.x, y: pt.y });
