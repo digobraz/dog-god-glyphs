@@ -13,7 +13,7 @@
 // Ťuk vľavo/vpravo v hornej polovici = predošlá/ďalšia fotka (pásiky hore).
 import { MemberSeal } from '@/components/pack/profile/dogSeal';
 import { useEffect, useState, type CSSProperties } from 'react';
-import { withTransform, bgImg as bgImgSized } from '@/services/cloudinaryService';
+import { withTransform, bgImg as bgImgSized, ladderPx } from '@/services/cloudinaryService';
 import {
   PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, FONT_UI, FONT_TITLE, BRAND_GOLD_BTN,
 } from '@/components/pack/packTheme';
@@ -38,7 +38,7 @@ export const HEROGLYPH_GLOW = 'brightness(0) invert(1) sepia(1) saturate(8) hue-
   + 'drop-shadow(0 0 14px rgba(201,154,63,0.95)) drop-shadow(0 0 32px rgba(201,154,63,0.55))';
 
 /** FIT (nezoreže, len ohraničí) — heroglyf a iné assety s vlastným pomerom strán, nie fotky na oreznutie. */
-export const img = (u: string | null | undefined, w = 900) => withTransform(u, `c_limit,w_${w},f_auto,q_auto`);
+export const img = (u: string | null | undefined, w = 900) => withTransform(u, `c_limit,w_${ladderPx(w)},f_auto,q_auto`);
 
 /** FOTKA NA PLOCHU — audit SNIFFER C1/C2 (26. 9. 2026): `c_fill,g_auto` PODĽA DPR displeja,
  *  reťazené ZA prípadný uložený výrez (`sizedUrl`/`fillUrl` v `cloudinaryService.ts`), nie

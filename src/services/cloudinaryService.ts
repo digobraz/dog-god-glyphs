@@ -138,6 +138,21 @@ export const uploadVaultTalkPhoto = (blob: Blob, scrollId: string, stamp: string
 export const uploadEventPhoto = (blob: Blob, editionId: string, stamp: string) =>
   uploadBlob(blob, `pack-events/${editionId}`, stamp);
 
+// 🪜 REBRÍK VEĽKOSTÍ (bezpečnostná previerka 21. 11. 2026, kolo 3). Šírka sa rátala z rozmeru prvku
+// (`w_347`, `w_351`…), takže Cloudinary nevedel, ktoré transformácie sú naše, a *Strict transformations*
+// sa zapnúť nedalo — bez neho si ktokoľvek vyrobí `w_1, w_2, w_3…` a každá je nový výpočet za kredit.
+// Každá veľkosť sa preto zaokrúhli NAHOR na najbližší stupeň (ostrosť sa nestratí, prenos stúpne max o tretinu)
+// a pomer strán výrezu na najbližší z pár pomerov. Zoznam stupňov = zoznam pre Strict v konzole Cloudinary.
+export const SIZE_LADDER = [80, 120, 160, 240, 320, 480, 640, 800, 1080, 1200, 1600] as const;
+export const ladderPx = (px: number): number => SIZE_LADDER.find((s) => s >= px) ?? SIZE_LADDER[SIZE_LADDER.length - 1];
+const RATIOS = [1, 4 / 3, 3 / 4, 3 / 2, 2 / 3, 16 / 9, 9 / 16, 2, 1 / 2, 3, 1 / 3] as const;
+/** Šírka zo stupňa, výška z najbližšieho pomeru (výrez `c_fill` zvyšok dorovná — prvok má `object-fit: cover`). */
+export const ladderBox = (w: number, h: number): [number, number] => {
+  const r = RATIOS.reduce((a, b) => (Math.abs(Math.log(b / (w / h))) < Math.abs(Math.log(a / (w / h))) ? b : a));
+  const lw = ladderPx(Math.max(w, h * r));
+  return [lw, Math.round(lw / r)];
+};
+
 // Delivery URLs (on-the-fly transformations)
 export const certPreviewUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_400,h_400,r_max,f_auto,q_auto/${publicId}`;
@@ -146,7 +161,7 @@ export const certPdfUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_1200,h_1200,r_max,f_auto,q_auto/${publicId}`;
 
 export const gridTileUrl = (publicId: string, size = 800) =>
-  `${BASE_URL}/c_fill,w_${size},h_${size},f_auto,q_auto/${publicId}`;
+  `${BASE_URL}/c_fill,w_${ladderPx(size)},h_${ladderPx(size)},f_auto,q_auto/${publicId}`;
 
 // Heroglyf na WALL karte — surové PNG z heroflow má 2400 px na šírku a ~90 kB, pritom sa
 // kreslí do rámca ~330 CSS px (hover) resp. 48 % karty (otvorený prekryv). Merané na LIVE
@@ -155,7 +170,7 @@ export const gridTileUrl = (publicId: string, size = 800) =>
 // `f_auto` dá webp/avif aj s alfou, `q_auto` je bezpečné, lebo CSS filter z obrázka aj tak
 // robí jednofarebnú zlatú siluetu.
 export const heroglyphTileUrl = (publicId: string, size = 720) =>
-  `${BASE_URL}/c_fit,w_${size},f_auto,q_auto/${publicId}`;
+  `${BASE_URL}/c_fit,w_${ladderPx(size)},f_auto,q_auto/${publicId}`;
 
 // Transformácia pre URL, ktorú už máme hotovú v DB (`share_card_url`, `cloudinary_main_url`),
 // teda bez publicId po ruke. Vloží segment hneď za `/image/upload/`.
@@ -187,7 +202,8 @@ export const sizedUrl = (url: string | null | undefined, px: number): string => 
   let i = 0;
   // Fázy transformácie idú pred verziou (`v123`) a pred public_id; spoznáme ich podľa `x_`.
   while (i < casti.length - 1 && !/^v\d+$/.test(casti[i]) && /(^|,)[a-z]{1,3}_/.test(casti[i])) i++;
-  casti.splice(i, 0, `c_limit,w_${px},h_${px},f_auto,q_auto`);
+  const lp = ladderPx(px);
+  casti.splice(i, 0, `c_limit,w_${lp},h_${lp},f_auto,q_auto`);
   return `${pred}/image/upload/${casti.join('/')}`;
 };
 
@@ -218,7 +234,8 @@ export const fillUrl = (url: string | null | undefined, w: number, h: number): s
   const casti = za.split('/');
   let i = 0;
   while (i < casti.length - 1 && !/^v\d+$/.test(casti[i]) && /(^|,)[a-z]{1,3}_/.test(casti[i])) i++;
-  casti.splice(i, 0, `c_fill,g_auto,w_${Math.max(1, Math.round(w))},h_${Math.max(1, Math.round(h))},f_auto,q_auto`);
+  const [lw, lh] = ladderBox(Math.max(1, w), Math.max(1, h));
+  casti.splice(i, 0, `c_fill,g_auto,w_${lw},h_${lh},f_auto,q_auto`);
   return `${pred}/image/upload/${casti.join('/')}`;
 };
 
