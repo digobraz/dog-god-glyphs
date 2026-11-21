@@ -109,7 +109,7 @@ function useWelcomeData(sessionId: string | null, free = false) {
         if (!alive) return;
         setSession(d);
         setOwner(d.ownerName || '');
-        setEmail(d.email || '');
+        setEmail(store.email || d.email || '');   // server vracia e-mail maskovaný (bezpečnosť kolo 4) — vlastný z obchodu je celý
         const list: NewDog[] = Array.isArray(d.dogs) && d.dogs.length
           ? d.dogs.map((x: Record<string, unknown>) => ({
             id: String(x.id), name: String(x.dogName || ''), photo: String(x.dogPhotoUrl || ''),

@@ -276,8 +276,8 @@ export default function InvoiceRender() {
       if (!id) { setError('missing id'); return; }
       try {
         const r = await fetch(
-          `${EDGE_BASE}/get-render-data?id=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}&include=invoice`,
-          { headers: { Authorization: `Bearer ${SUPABASE_ANON_KEY}`, apikey: SUPABASE_ANON_KEY } },
+          `${EDGE_BASE}/get-render-data?id=${encodeURIComponent(id)}&include=invoice`,
+          { headers: { Authorization: `Bearer ${SUPABASE_ANON_KEY}`, apikey: SUPABASE_ANON_KEY, 'x-render-key': key } },
         );
         if (!r.ok) { setError(`fetch ${r.status}`); return; }
         const data = (await r.json()) as InvoiceDog;

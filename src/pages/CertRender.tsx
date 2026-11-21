@@ -89,8 +89,8 @@ export default function CertRender() {
       }
       try {
         const r = await fetch(
-          `${EDGE_BASE}/get-render-data?id=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}`,
-          { headers: { Authorization: `Bearer ${SUPABASE_ANON_KEY}`, apikey: SUPABASE_ANON_KEY } },
+          `${EDGE_BASE}/get-render-data?id=${encodeURIComponent(id)}`,
+          { headers: { Authorization: `Bearer ${SUPABASE_ANON_KEY}`, apikey: SUPABASE_ANON_KEY, 'x-render-key': key } },
         );
         if (!r.ok) {
           setError(`fetch ${r.status}`);
