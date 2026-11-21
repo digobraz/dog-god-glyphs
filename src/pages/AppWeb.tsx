@@ -319,7 +319,7 @@ function DogTrail({ goal }: { goal: string }) {
 const START = '/heroglyph/name';
 
 /** Živá planétka z `/` — montuje sa až pri obrazovke a mimo nej stojí. */
-function LivePlanet({ v2 }: { v2?: { eye: string; cta: string; soon: string } }) {
+function LivePlanet() {
   const [mountRef, near] = useNear<HTMLDivElement>('1500px');
   const [visRef, vis] = useNear<HTMLElement>('0px', false);
   return (
@@ -332,10 +332,7 @@ function LivePlanet({ v2 }: { v2?: { eye: string; cta: string; soon: string } })
         <style>{`.aw .planet-live .planet-root.pop{display:flex;position:fixed;inset:0;z-index:80;padding:0;animation:none;align-items:center;justify-content:center}.aw .planet-live .planet-root.pop{transform-style:preserve-3d}.aw .planet-live .planet-root.pop .pp-panel{z-index:20;translate:0 0 2000px}.aw .planet-live .planet-root .planet-stage{z-index:1}`}</style>
         {near && <Suspense fallback={null}><GodsGridLab embedded paused={!vis} planetAnywhere /></Suspense>}
         {/* odkazy do obchodov sa presťahovali z bloku POTREBUJEME ŤA sem, vľavo dole (Matej 6. 11.) */}
-        {v2 ? (<>
-          {/* CLAIM 2 (nákres, voľba „pocita“): štítok „počíta sa“ nad tým istým CTA + odznaky ako v hero */}
-          <div className="planet-go"><div className="goal-w"><p className="eye planet-eye">{v2.eye}</p><a className="pk-cta" href={START}>{v2.cta}</a><Stores soon={v2.soon} /></div></div>
-        </>) : <div className="planet-stores"><Stores /></div>}
+        <div className="planet-stores"><Stores /></div>
       </section>
     </div>
   );
@@ -968,7 +965,7 @@ export default function AppWeb() {
       </section>
 
       {/* 11 · ŽIVÁ PLANÉTKA — finále */}
-      <LivePlanet v2={V2 ? { eye: c('pl_eye'), cta: c('pl_cta'), soon: c('soon') } : undefined} />
+      <LivePlanet />
 
 
       {nakres && (
