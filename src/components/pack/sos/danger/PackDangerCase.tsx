@@ -13,9 +13,9 @@ import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { sizedUrl } from '@/services/cloudinaryService';
 import {
-  dangerAccessIssue, dangerCase, dangerComments, dangerCommentAdd, dangerCommentDelete, dangerErrorCode, dangerHasSession, dangerMine,
+  dangerAccessIssue, dangerCase, dangerComments, dangerCommentAdd, dangerCommentDelete, dangerErrorCode, dangerHasSession, dangerMine, dangerReviewNotes,
   dangerNotFound, dangerOutcome, dangerWitness, isDangerUuid,
-  type DangerAccess, type DangerCase, type DangerComment, type DangerComplaintBrief, type DangerComplaintState, type DangerOutcome,
+  type DangerAccess, type DangerCase, type DangerComment, type DangerComplaintBrief, type DangerComplaintState, type DangerOutcome, type DangerReviewNotes,
 } from '@/lib/danger';
 import { AccessCard, CharCount, regionOf, useSubmitLock } from './dangerForm';
 import { authorityByCode } from '@/data/dangerAuthorities';
@@ -117,6 +117,7 @@ export default function PackDangerCase() {
   const back = useBack('/pack/map');
   const [c, setC] = useState<DangerCase | null>(null);
   const [mine, setMine] = useState<DangerComplaintBrief[]>([]);   // moje podnety k prípadu vrátane zamietnutých (`danger_case` ich nevydá)
+  const [notes, setNotes] = useState<DangerReviewNotes | null>(null);   // dôvod zamietnutia, len autorovi
   const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error' | DangerAccess>('loading');
   const [confirmMore, setConfirmMore] = useState(false);
   const lock = useSubmitLock();
@@ -133,6 +134,7 @@ export default function PackDangerCase() {
       const r = await dangerCase(id);
       setC(r); setState(r ? 'ready' : 'missing');
       if (r) await dangerMine().then((rows) => setMine(rows.find((x) => x.id === r.id)?.complaints ?? [])).catch(() => setMine([]));
+      if (r) void dangerReviewNotes(r.id).then(setNotes).catch(() => setNotes(null));
     } catch (e) {
       const acc = await dangerAccessIssue(e);
       setState(acc ?? (dangerNotFound(e) ? 'missing' : 'error'));
@@ -204,7 +206,7 @@ export default function PackDangerCase() {
             {!abuse && c.radius_m != null && <span>{s(K('radius'), { m: c.radius_m })}</span>}
           </div>
           {pending && <><b className="sos-small">{s(K('pending'))}</b><p className="sos-p">{s(K(regionOf(c.country) === 'OTHER' ? 'pending.p.other' : 'pending.p'))}</p></>}
-          {rejected && <><b className="sos-small">{s(K('rejected'))}</b><p className="sos-p">{s(K('rejected.p'))}</p></>}
+          {rejected && <><b className="sos-small">{s(K('rejected'))}</b>{notes?.case && <p className="sos-p">{s(K('rejected.note'), { note: notes.case })}</p>}<p className="sos-p">{s(K(notes?.case ? 'rejected.pNote' : 'rejected.p'))}</p></>}
           {expired && !pending && !rejected && <p className="sos-small">{s(K('expired'))}</p>}
           {where && (
             <div className="sos-fact"><small>{s(K('place'))}</small><span>{where}</span></div>
@@ -262,7 +264,8 @@ export default function PackDangerCase() {
                   {/* doplnok je MIMO riadka `.sos-fact` (flex): v ňom sa text stlačil do stĺpca písmen široký 12 až 69 px */}
                   {st === 'rejected' && (
                     <div className="dgc-cp-more">
-                      <p className="sos-small">{s(K('cstate.rejected.p'))}</p>
+                      {notes?.complaints[x.id] && <p className="sos-small">{s(K('rejected.note'), { note: notes.complaints[x.id] })}</p>}
+                      <p className="sos-small">{s(K(notes?.complaints[x.id] ? 'cstate.rejected.pNote' : 'cstate.rejected.p'))}</p>
                       <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={goComplaint}>{s(K('cstate.again'))}</button>
                     </div>
                   )}

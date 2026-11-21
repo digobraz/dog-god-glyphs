@@ -229,6 +229,10 @@ export async function dangerCase(id: string): Promise<DangerCase | null> {
 
 export const dangerMine = () => call<DangerMineRow[]>('danger_mine');
 
+/** Dôvod zamietnutia (poznámka dispečera) — LEN autorovi: prípad jeho autorovi, podnet tomu, kto ho podal. */
+export type DangerReviewNotes = { case: string | null; complaints: Record<string, string> };
+export const dangerReviewNotes = (caseId: string) => call<DangerReviewNotes | null>('danger_review_notes', { p_case: caseId });
+
 export const dangerWitness = (caseId: string, on: boolean) => call<number>('danger_witness', { p_case: caseId, p_on: on });
 
 export const dangerComments = (caseId: string) => call<DangerComment[]>('danger_comments', { p_case: caseId });

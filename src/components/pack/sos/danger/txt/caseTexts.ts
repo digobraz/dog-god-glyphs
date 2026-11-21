@@ -57,6 +57,10 @@ export const DANGER_CASE_TEXTS = {
   'pack.sos.danger.case.complaint.auto': T('Authority chosen by us', 'Úrad vyberieme my', 'Úřad vybereme my'),
   'pack.sos.danger.case.complaint.add': T('Hand over my own case too', 'Odovzdať aj môj prípad', 'Předat i můj případ'),
   'pack.sos.danger.case.complaint.addMine': T('Hand over the case', 'Odovzdať prípad', 'Předat případ'),
+  // 21. 11. 2026: dôvod zamietnutia (poznámka dispečera) vidí autor; s poznámkou odpadá odkaz na sos@
+  'pack.sos.danger.case.rejected.note': T('Reason: {note}', 'Dôvod: {note}', 'Důvod: {note}'),
+  'pack.sos.danger.case.rejected.pNote': T('We did not publish this case. You can still hand it over to the authority.', 'Tento prípad sme nezverejnili. Úradu ho môžeš odovzdať aj tak.', 'Tento případ jsme nezveřejnili. Úřadu ho můžeš předat i tak.'),
+  'pack.sos.danger.case.cstate.rejected.pNote': T('We did not pass it on to the authority. You can hand the case over again.', 'Úradu sme ho neposlali. Prípad môžeš odovzdať znova.', 'Úřadu jsme ho nepředali. Případ můžeš předat znovu.'),
   'pack.sos.danger.case.complaint.rejectedCase': T('The case was not published, but you can still hand it over to the authority.', 'Prípad sme nezverejnili, ale úradu ho môžeš odovzdať aj tak.', 'Případ jsme nezveřejnili, ale úřadu ho můžeš předat i tak.'),
   'pack.sos.danger.case.complaint.add.p': T('More complaints from different people carry more weight.', 'Viac podnetov od rôznych ľudí váži viac.', 'Více podnětů od různých lidí váží víc.'),
   'pack.sos.danger.case.cstate.submitted': T('The case is with us, we are checking it', 'Prípad je u nás, kontrolujeme ho', 'Případ je u nás, kontrolujeme ho'),
