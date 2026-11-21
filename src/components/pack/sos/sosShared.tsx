@@ -13,6 +13,7 @@ import { canStepBack } from '@/lib/stepBack';
 import { localizeBreed } from '@/lib/breedDisplay';
 import { hasStoredSessionOrAuthReturn } from '@/lib/packFlags';
 import { DEV_NOAUTH } from '@/lib/devMockDogs';
+import { storedUserId } from './sosLocal';
 
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR, PACK_TOPROW, PACK_TOPROW_PAD, PACK_SHADOW,
@@ -118,7 +119,10 @@ export function useSosAuth(): SosAuth {
   useEffect(() => {
     if (DEV_NOAUTH) return;
     let alive = true;
-    void supabase.auth.getSession().then(({ data }) => { if (alive) setA(data.session ? 'in' : 'out'); }).catch(() => { if (alive) setA('out'); });
+    // Bez signálu getSession nevie obnoviť token a vráti prázdnu reláciu: uložená relácia v zariadení vtedy stačí
+    // (kartička a strata majú lokálnu kópiu), inak by SOS offline poslal človeka na prihlásenie. Odhlásenie token zmaže.
+    const offlineIn = (err: unknown) => !!storedUserId() && (!!err || !navigator.onLine);
+    void supabase.auth.getSession().then(({ data, error }) => { if (alive) setA(data.session || offlineIn(error) ? 'in' : 'out'); }).catch((e) => { if (alive) setA(offlineIn(e ?? true) ? 'in' : 'out'); });
     return () => { alive = false; };
   }, []);
   return a;
