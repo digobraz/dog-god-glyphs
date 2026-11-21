@@ -58,7 +58,9 @@ async function register() {
   // ŤUK NA NOTIFIKÁCIU (30. 10. 2026) — server posiela `data.url` (napr. `/pack/profile?dnes=1`),
   // dovtedy ťuk len otvoril appku tam, kde bola. BrowserRouter počúva `popstate`, preto pushState + event.
   await PushNotifications.addListener('pushNotificationActionPerformed', ({ notification }) => {
-    const url = (notification?.data as { url?: unknown } | undefined)?.url;
+    // 21. 11. 2026: AINUBIS posiela `route`, FEED (lajk, komentár) `path` — dovtedy ťuk na ne nikam neviedol.
+    const d = notification?.data as { url?: unknown; route?: unknown; path?: unknown } | undefined;
+    const url = d?.url ?? d?.route ?? d?.path;
     if (typeof url !== 'string' || !url.startsWith('/')) return;
     window.history.pushState({}, '', url);
     window.dispatchEvent(new PopStateEvent('popstate'));
