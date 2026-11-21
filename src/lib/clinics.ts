@@ -13,7 +13,8 @@ import { useEffect, useState } from 'react';
 import type { SosT } from '@/components/pack/sos/sosShared';
 import { VET_EMERGENCY, closesAt, isOpenAt, opensAt, vetNavUrl, type NavApp, type VetPlace } from '@/lib/vetEmergency';
 
-const DATA_URL = '/vet/mapa-v2.json';
+/** Jeden súbor na krajinu (Česko od 21. 11. 2026), rovnaký tvar; stiahnu sa naraz a zlejú. */
+const DATA_URLS = ['/vet/mapa-v2.json', '/vet/mapa-v2-cz.json'];
 
 type Sched = NonNullable<VetPlace['sched']>;
 /** Riadok `mapa-v2.json` — krátke kľúče, súbor ide po sieti. `id` = 10 znakov `place_id` (fotka), `cid` = stále ID. */
@@ -35,9 +36,13 @@ export const NO_PHOTO = '/vet/_bez-fotky.jpg';
 let filePromise: Promise<MapVet[]> | null = null;
 /** Bežní veterinári. Zlyhanie je tiché (prázdny zoznam); sľub sa zahodí, aby sa skúsilo znova. */
 export function loadMapVets(): Promise<MapVet[]> {
-  filePromise ||= fetch(DATA_URL)
-    .then((r) => (r.ok ? r.json() : { vets: [] }))
-    .then((j: { vets: Raw[] }) => j.vets.map((v): MapVet => ({
+  filePromise ||= Promise.all(DATA_URLS.map((u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)))
+    .then((all: ({ vets: Raw[] } | null)[]) => {
+      // Krajina, ktorá nedošla, sa skúsi pri ďalšom volaní znova; tá, čo došla, sa ukáže hneď.
+      if (all.some((j) => !j)) filePromise = null;
+      return all.flatMap((j) => j?.vets ?? []);
+    })
+    .then((vets) => vets.map((v): MapVet => ({
       cid: v.cid, name: v.n, address: v.a, at: v.at, tels: v.t ?? [],
       clock: v.s ? { hours: [0, 0], sched: v.s } : { hours: v.h ?? 'ask' },
       ...(v.r ? { google: { rating: v.r, count: v.c } } : {}),
