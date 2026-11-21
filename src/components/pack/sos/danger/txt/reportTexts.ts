@@ -8,11 +8,11 @@ export const DANGER_REPORT_TEXTS = {
   // ── rozcestník ───────────────────────────────────────────────────────────
   'pack.sos.danger.hub.title': T('What is happening?', 'Čo sa deje?', 'Co se děje?'),
   'pack.sos.danger.hub.abuse': T('Cruelty', 'Týranie', 'Týrání'),
-  'pack.sos.danger.hub.abuse.sub': T('Cruelty, dog fights, puppy mills and more', 'Týranie, zápasy psov, množiarne a ďalšie', 'Týrání, zápasy psů, množírny a další'),
+  'pack.sos.danger.hub.abuse.sub': T('Undignified treatment of dogs', 'Nedôstojné zaobchádzanie so psami', 'Nedůstojné zacházení se psy'),
   'pack.sos.danger.hub.poison': T('Poison and traps', 'Otrava a nástrahy', 'Otrava a nástrahy'),
   'pack.sos.danger.hub.poison.sub': T('Poison, bait, nails, glass, traps', 'Jed, návnady, klince, sklo, pasce', 'Jed, návnady, hřebíky, sklo, pasti'),
   'pack.sos.danger.hub.nature': T('Other hazards', 'Iné nástrahy', 'Jiné nástrahy'),
-  'pack.sos.danger.hub.nature.sub': T('Poison, ticks, wildlife and other warnings in nature.', 'Otrava, kliešte, zver a ďalšie výstrahy v prírode.', 'Otrava, klíšťata, zvěř a další výstrahy v přírodě.'),
+  'pack.sos.danger.hub.nature.sub': T('Danger right out in the field', 'Nebezpečenstvo priamo v teréne', 'Nebezpečí přímo v terénu'),
   'pack.sos.danger.hub.motto': T('We will not look away. Dogypt members nearby will see what you mark.', 'Nebudeme ľahostajní. Čo označíš, uvidia Dogypťania v okolí.', 'Nebudeme lhostejní. Co označíš, uvidí Dogypťané v okolí.'),
   'pack.sos.danger.hub.country': T('I am in another country', 'Som v inej krajine', 'Jsem v jiné zemi'),
 

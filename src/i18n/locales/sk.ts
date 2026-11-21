@@ -8201,11 +8201,11 @@ export const sk: Partial<Dict> = {
   // ⟦pack.sos⟧ generované (scripts/gen-sos-i18n.mjs) z components/pack/sos/sosTexts.ts, needituj ručne
   "pack.sos.danger.hub.title": "Čo sa deje?",
   "pack.sos.danger.hub.abuse": "Týranie",
-  "pack.sos.danger.hub.abuse.sub": "Týranie, zápasy psov, množiarne a ďalšie",
+  "pack.sos.danger.hub.abuse.sub": "Nedôstojné zaobchádzanie so psami",
   "pack.sos.danger.hub.poison": "Otrava a nástrahy",
   "pack.sos.danger.hub.poison.sub": "Jed, návnady, klince, sklo, pasce",
   "pack.sos.danger.hub.nature": "Iné nástrahy",
-  "pack.sos.danger.hub.nature.sub": "Otrava, kliešte, zver a ďalšie výstrahy v prírode.",
+  "pack.sos.danger.hub.nature.sub": "Nebezpečenstvo priamo v teréne",
   "pack.sos.danger.hub.motto": "Nebudeme ľahostajní. Čo označíš, uvidia Dogypťania v okolí.",
   "pack.sos.danger.hub.country": "Som v inej krajine",
   "pack.sos.danger.abuse.title": "Týranie",

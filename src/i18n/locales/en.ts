@@ -8508,11 +8508,11 @@ export const en = {
   // ⟦pack.sos⟧ generované (scripts/gen-sos-i18n.mjs) z components/pack/sos/sosTexts.ts, needituj ručne
   "pack.sos.danger.hub.title": "What is happening?",
   "pack.sos.danger.hub.abuse": "Cruelty",
-  "pack.sos.danger.hub.abuse.sub": "Cruelty, dog fights, puppy mills and more",
+  "pack.sos.danger.hub.abuse.sub": "Undignified treatment of dogs",
   "pack.sos.danger.hub.poison": "Poison and traps",
   "pack.sos.danger.hub.poison.sub": "Poison, bait, nails, glass, traps",
   "pack.sos.danger.hub.nature": "Other hazards",
-  "pack.sos.danger.hub.nature.sub": "Poison, ticks, wildlife and other warnings in nature.",
+  "pack.sos.danger.hub.nature.sub": "Danger right out in the field",
   "pack.sos.danger.hub.motto": "We will not look away. Dogypt members nearby will see what you mark.",
   "pack.sos.danger.hub.country": "I am in another country",
   "pack.sos.danger.abuse.title": "Cruelty",
