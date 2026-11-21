@@ -97,7 +97,7 @@ export default function PackDangerNature() {
         <div className="sos-chips">
           {/* Otrava a nástrahy: vlastný tok s okruhom a upozornením okolia (`/otrava`), preto odkaz, nie druh */}
           <button type="button" className="sos-pill sos-pick dgr-chip" onClick={() => navigate('/pack/sos/nebezpecenstvo/otrava')}>
-            <SysIcon name="pozor" size={20} />{s('pack.sos.danger.hub.poison')}
+            <SysIcon name="sos-otrava" size={24} />{s('pack.sos.danger.hub.poison')}
           </button>
           {kinds.map((k) => (
             <button key={k} type="button" className={`sos-pill sos-pick dgr-chip${kind === k ? ' is-on' : ''}`} aria-pressed={kind === k} onClick={() => choose(k)}>

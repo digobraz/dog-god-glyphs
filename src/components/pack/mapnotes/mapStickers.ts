@@ -39,6 +39,7 @@ const STICKER_FILE: Record<string, string> = {
   note_algae: 'sinice',
   note_noentry: 'zakaz',
   note_hazard: 'nebezpecenstvo',
+  note_poison: 'otrava',   // mäso s lebkou v ráme výstrah (Matej 21. 11. 2026: „asi tá lebka“)
   note_abuse: 'sos',   // týranie = slovné SOS ako signál stroskotancov (Matej 21. 11. 2026), žiara v circleMark.ts
   note_note: 'komentar',
   note_parking: 'parking',
