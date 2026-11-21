@@ -1806,4 +1806,7 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .gbb-pill:hover{transform:translateY(-1px)}
 .aw .gbb-pill.on{background:linear-gradient(135deg,#C99A3F 0%,#A3782B 100%);border-color:#8C6014}
 /* mobil: AINUBIS sedí vpravo dole → lišta sa prisunie doľava a pilulky zhustia, aby ho neprekryli */
-@media(max-width:600px){.aw .gods-bottom-bar.gbb-pills{left:var(--s-md);right:auto;margin:0}.aw .gbb-pill{padding:0 var(--s-md);letter-spacing:.04em}}
+@media(max-width:600px){.aw .gods-bottom-bar.gbb-pills{left:var(--s-md);right:auto;margin:0;gap:6px}.aw .gbb-pill{height:40px;padding:0 var(--s-sm);font-size:var(--t-micro);letter-spacing:.04em}}
+/* CLAIM 2 — guľa → sieň bez animácie (Matej 21. 11.: „strašne seká ten prechod“): sieň sa postaví vopred pod guľou
+   a prepne sa okamžite; 420/620 ms hasnutia a oddialenia sa skladali spolu s prvým vykreslením siene */
+.aw .planet-live.v2 .planet-root:not(.open),.aw .planet-live.v2 .planet-root:not(.open) .planet-stage{transition:none}

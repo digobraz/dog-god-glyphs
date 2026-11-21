@@ -513,7 +513,7 @@ interface GodsGridLabProps {
    * heroflow, nie výber fotky) a spodná lišta = dve pilulky „Vyhľadaj svojho psa“ · „Sieň psov“
    * namiesto ikoniek. Stena má adresu `/hall` (predtým `/wall`). Bez neho po starom.
    */
-  v2?: { enter: string; href: string; find: string; hall: string; back: string };
+  v2?: { enter: string; href: string; find: string; hall: string; back: string; center: string };
 }
 
 export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHref = '/heroglyph/name', portalDock = false, dockHostId, paused = false, onWallChange, planetAnywhere = false, v2 }: GodsGridLabProps = {}) {
@@ -559,6 +559,14 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   // (alebo hneď, keď sa štartuje stenou / reveal po platbe) a potom už ostáva.
   const [wallWanted, setWallWanted] = useState(!planetOpen);
   useEffect(() => { if (!planetOpen) setWallWanted(true); }, [planetOpen]);
+  // CLAIM 2 (Matej 21. 11.: „strašne seká ten prechod“): stena sa stavala AŽ počas prechodu gule (záseky 200 + 270 ms
+  // uprostred animácie). Pilulka „Sieň psov“ ju preto postaví vopred — už pri nabehnutí myši/prsta — a prechod pustí
+  // až keď je postavená a fotky majú chvíľu na dekódovanie (stena leží pod nepriehľadnou guľou, nikto ju nevidí).
+  const goHall = () => {
+    if (wallWanted) { setPlanetOpen(false); return; }
+    setWallWanted(true);
+    requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => setPlanetOpen(false), 250)));
+  };
   // ── KARTA PSA NA STENE (Matej 3. 10. 2026: „s návrhmi súhlasím") ──────────
   // Klik na psa už NEOTVÁRA tmavý závoj vnútri dlaždice (orezal číslo, text aj
   // DOG PAGE a zakryl fotku). Otvorí bledú kartu z DogCard.tsx — tú istú ako
@@ -4059,11 +4067,14 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           : v2 ? (
             /* CLAIM 2: dve pilulky namiesto ikoniek (Matej 21. 11. 2026) — hľadanie psa a prepínač guľa ⇄ sieň */
             <div className="gods-bottom-bar gbb-pills">
-              <button type="button" className={`gbb-pill${filterOpen ? ' on' : ''}`} onClick={() => setFilterOpen(f => !f)}>{v2.find}</button>
               {/* Zo siene sa NEPREPÍNA späť na guľu — guľa sa vykreslila cez sieň a rozbila ju (Matej 21. 11.: „malo by tam byť späť na main stránku“).
                   „Späť“ preto načíta hlavnú stránku nanovo (s tým istým `?…`), guľa štartuje čistá. */}
+              {/* „Vycentrovať“ = bývalý terč (Matej 21. 11.: „z hall zmizla možnosť centrovať… pridaj na začiatok“).
+                  Musí byť v DOM-e už pri stavbe steny (tá si naň pripína klik podľa id), preto len `hidden` na guli. */}
+              <button type="button" className="gbb-pill" id="gods-center-btn-mobile" hidden={planetOpen}>{v2.center}</button>
+              <button type="button" className={`gbb-pill${filterOpen ? ' on' : ''}`} onClick={() => setFilterOpen(f => !f)}>{v2.find}</button>
               {planetOpen
-                ? <button type="button" className="gbb-pill" onClick={() => setPlanetOpen(false)}>{v2.hall}</button>
+                ? <button type="button" className="gbb-pill" onPointerEnter={() => setWallWanted(true)} onClick={goHall}>{v2.hall}</button>
                 : <button type="button" className="gbb-pill" onClick={() => window.location.assign('/' + window.location.search)}>{v2.back}</button>}
             </div>
           ) : (

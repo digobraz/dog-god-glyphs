@@ -319,12 +319,12 @@ function DogTrail({ goal }: { goal: string }) {
 const START = '/heroglyph/name';
 
 /** Živá planétka z `/` — montuje sa až pri obrazovke a mimo nej stojí. */
-function LivePlanet({ v2 }: { v2?: { enter: string; href: string; find: string; hall: string; back: string } }) {
+function LivePlanet({ v2 }: { v2?: { enter: string; href: string; find: string; hall: string; back: string; center: string } }) {
   const [mountRef, near] = useNear<HTMLDivElement>('1500px');
   const [visRef, vis] = useNear<HTMLElement>('0px', false);
   return (
     <div ref={mountRef}>
-      <section id="join" className="planet-live theme-light" ref={visRef}>
+      <section id="join" className={`planet-live theme-light${v2 ? ' v2' : ''}`} ref={visRef}>
         {/* `.aw .pop` (modal /app) zasiahne aj `.planet-root.pop` = guľa s otvorenou kartou psa → display:none, guľa zmizne.
             Tu ju vrátime na pôvodné hodnoty (rovnaké ako `.planet-root` v DogPlanetLab). */}
         {/* iPhone Safari radí 3D dlaždice gule podľa hĺbky a z-index ignoruje → karta sa cez guľu prerezala (Matej 7. 11., snímka WENSDY #103).
@@ -966,7 +966,7 @@ export default function AppWeb() {
       </section>
 
       {/* 11 · ŽIVÁ PLANÉTKA — finále */}
-      <LivePlanet v2={V2 ? { enter: c('start'), href: START, find: c('pl_find'), hall: c('pl_hall'), back: c('pl_back') } : undefined} />
+      <LivePlanet v2={V2 ? { enter: c('start'), href: START, find: c('pl_find'), hall: c('pl_hall'), back: c('pl_back'), center: c('pl_center') } : undefined} />
 
 
       {nakres && (
