@@ -48,6 +48,9 @@ const A = '/web-app';
 const wlen = (s: string) => [...s].reduce((n, ch) => n + (/[\u2E80-\u9FFF\uAC00-\uD7AF\uFF00-\uFFEF]/.test(ch) ? 1.8 : 1), 0);
 
 const CAROUSEL: [string, string][] = [['map', '11-vretenica-mapa'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', 'ai-mozog'], ['feed', 'feed']];
+/** CLAIM 2: prvá pomoc hneď vedľa mapy = vážna stránka appky v prvom zábere (Matej 21. 11.: „doplnil mockup prvej pomoci, napr. nedýcha“).
+ *  Snímka z testovacej appky /pack/sos/prva-pomoc/nedycha (390×844 @ 900 px, SK + -en). */
+const CAROUSEL_V2: [string, string][] = [['map', '11-vretenica-mapa'], ['aid', 'prva-pomoc-nedycha'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', 'ai-mozog'], ['feed', 'feed']];
 
 const SERVANT_YEARS = ['0–3', '4–8', '9–13', '14–18', '19–23', '24–29', '30–39', '40+'];
 const PILGRIM_LEVELS = ['1–3', '4–7', '8–12', '13–18', '19–25', '26–33', '34–42', '43–52', '53+'];
@@ -408,15 +411,16 @@ export default function AppWeb() {
 
   /* karusel */
   const [ci, setCi] = useState(0);
+  const CAR = V2 ? CAROUSEL_V2 : CAROUSEL;
   const hov = useRef(false);
   const carOn = useOnScreen('.aw .car');
   useEffect(() => {
-    const id = setInterval(() => { if (!hov.current && carOn.current) setCi((i) => (i + 1) % CAROUSEL.length); }, 4200);
+    const id = setInterval(() => { if (!hov.current && carOn.current) setCi((i) => (i + 1) % CAR.length); }, 4200);
     return () => clearInterval(id);
   }, []);
   const sx = useRef<number | null>(null);
   const pos = (i: number) => {
-    const n = CAROUSEL.length;
+    const n = CAR.length;
     return i === ci ? 'cur' : i === (ci - 1 + n) % n ? 'prev' : i === (ci + 1) % n ? 'next' : 'off';
   };
 
@@ -664,9 +668,10 @@ export default function AppWeb() {
           {/* planétka (ikonka VON z appky) = verejná mapa výletov bez registrácie, nová karta; ZA tlačidlom, len veľká ikonka bez rámu, vzor MysteryHike (Matej 11. 11.) */}
           {/* FLIP 17. 11. (Matej): najprv heroflow, až potom appka — jedno CTA všade. */}
           {/* prihlásenie patrí do hlavičky, nie pod CTA v hero (Matej 21. 11.: „vadí mi to tam“); mobil ho má v menu */}
-          {V2 && <a className="top-login" href="/login">{c('login')}</a>}
+          {/* prihlásenie = ikonka KĽÚČA (heroglyf je kľúč do appky), popis v title (Matej 21. 11.: „header je moc plný“) */}
+          {V2 && <a className="top-login" href="/login" aria-label={c('login')} title={c('login')}><img src="/icons/sys/kluc.webp" alt="" /></a>}
           {/* úzka hlavička: krátky popis, inak dlhšie CTA vytlačí hamburger za okraj */}
-          <a className="pk-cta" href={START}>{V2 ? <><span className="cta-lg">{c('start')}</span><span className="cta-sm">{c('start_s')}</span></> : c('start')}</a>
+          <a className="pk-cta" href={START}>{V2 ? c('start_s') : c('start')}</a>
           <a className="trips-btn" href="/map" target="_blank" rel="noopener" aria-label={c('nav_trips')} title={c('nav_trips')}><img src="/icons/sys/von.webp" alt="" /></a>
           {/* mobil: hamburger — sekcie, jazyky, GET THE APP (Matej 6. 11., vzor MysteryHike) */}
           <button className={`burger${menu ? ' on' : ''}`} aria-label={c('menu')} aria-expanded={menu} onClick={() => setMenu(!menu)}><i /><i /><i /></button>
@@ -734,16 +739,16 @@ export default function AppWeb() {
             onTouchEnd={(e) => {
               if (sx.current == null) return;
               const dx = e.changedTouches[0].clientX - sx.current;
-              if (Math.abs(dx) > 40) setCi((i) => (i + (dx < 0 ? 1 : -1) + CAROUSEL.length) % CAROUSEL.length);
+              if (Math.abs(dx) > 40) setCi((i) => (i + (dx < 0 ? 1 : -1) + CAR.length) % CAR.length);
               sx.current = null;
             }}
           >
-            {CAROUSEL.map(([set, src], i) => (
+            {CAR.map(([set, src], i) => (
               <Tilt key={set} set={set} src={src} className={`ph ${pos(i)}`} onOpen={() => setCi(i)} />
             ))}
             <span className={`flt f1${tipOn === 1 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 1 ? 0 : 1); }}><img className="xl" src={`${A}/odznaky/pilgrim-1.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
             <span className={`flt f2${tipOn === 2 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 2 ? 0 : 2); }}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
-            <span className={`flt f3${tipOn === 3 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 3 ? 0 : 3); }}><img className="xl" src={`${A}/odznaky/ucen-1.webp`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
+            <span className={`flt f3${tipOn === 3 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 3 ? 0 : 3); }}><img className="xl" src={`${A}/odznaky/${V2 ? 'ucen-4' : 'ucen-1'}.webp`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
           </div>
         </div>
       </section>

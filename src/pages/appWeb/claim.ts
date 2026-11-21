@@ -87,4 +87,10 @@ export const CLAIM: Record<string, Row> = {
   kor: '인스타그램의 강아지 계정은 귀여운 아이디어예요. 다만 사람을 위한 알고리즘은 결코 알아주지 않죠.',
   ind: 'Instagram पर कुत्ते की प्रोफ़ाइल एक प्यारा विचार है। बस इंसानों के लिए बना एल्गोरिदम इसकी क़द्र कभी नहीं करेगा।',
  },
+ /* ODZNAKY PRI TELEFÓNOCH (Matej 21. 11.: „doladiť texting a popis k tým odznakom“) — názov = level, popis = čo sa počíta. Čísla sedia s ikonkou: pilgrim-1 = pásmo 4–7, servant-2 = 9–13 rokov, ucen-4 = 10 % */
+ fl1a: { sk: 'Pútnik level 5', en: 'Pilgrim level 5', cs: 'Poutník level 5', deu: 'Pilger Level 5', pol: 'Pielgrzym level 5' },
+ fl1b: { sk: 'Každý kilometer sa počíta', en: 'Every kilometre counts', cs: 'Každý kilometr se počítá', deu: 'Jeder Kilometer zählt', pol: 'Każdy kilometr się liczy' },
+ fl2b: { sk: '3 285 dní zbierania kôpok', en: '3,285 days of picking up poop', cs: '3 285 dní sbírání hromádek', deu: '3.285 Tage Häufchen sammeln', pol: '3 285 dni sprzątania kupek' },
+ fl3a: { sk: 'Učeň level 4', en: 'Disciple level 4', cs: 'Učeň level 4', deu: 'Schüler Level 4', pol: 'Uczeń level 4' },
+ fl3b: { sk: '10 % psieho rozumu prečítaných', en: '10 % of Dog Sense read', cs: '10 % psího rozumu přečteno', deu: '10 % Hundeverstand gelesen', pol: '10 % psiego rozumu przeczytane' },
 };
