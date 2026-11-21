@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLang } from '@/i18n/LanguageContext';
-import { TEST_BUILD } from '@/lib/env';
+import { DANGER_TEST_NOTE } from '@/lib/env';
 import {
   dangerCase, dangerComplaintCreate, dangerErrorCode, dangerLastPhone, dangerOfficialText,
   type DangerCase, type DangerOfficialTextInput,
@@ -141,7 +141,7 @@ export default function PackDangerComplaint() {
         <h1 className="sos-h2">{s('pack.sos.danger.complaint.sentTitle')}</h1>
         <p className="sos-p">{s('pack.sos.danger.complaint.sentSub')}</p>
         {/* Kým nie je DANGER_SEND_REAL, podnet ide len na sos@ (inkvizítor 20. 11.): človek to musí vedieť. */}
-        {TEST_BUILD && <p className="sos-p"><b>{s('pack.sos.danger.complaint.testNote')}</b></p>}
+        {DANGER_TEST_NOTE && <p className="sos-p"><b>{s('pack.sos.danger.complaint.testNote')}</b></p>}
         <SosCard>
           <p className="sos-eyebrow">{s('pack.sos.danger.complaint.nextEyebrow')}</p>
           <ul className="dpc-tl">

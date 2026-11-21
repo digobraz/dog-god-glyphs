@@ -62,6 +62,9 @@ export const AID_ON = TEST_BUILD;
 // NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026): týranie · otrava · príroda · podnet úradu · plagát · verejná `/danger/:slug`.
 // Len testovací kanál; ostrá appka a dogypt.com nič nevidia, kým Matej nepovie „ostro“.
 export const DANGER_ON = TEST_BUILD;
+// Podnet zatiaľ nejde skutočnému úradu (server: `DANGER_SEND_REAL`) ⇒ obrazovka podnetu to povie vetou.
+// Zhasni spolu s ostrým odosielaním, nie s `DANGER_ON`.
+export const DANGER_TEST_NOTE = TEST_BUILD;
 // MOMENTY (15. 11. 2026, hárok Zážitok appky + prehliadka momentov): spoločný komponent odmeny `MomentHost`.
 // Rozostavané ⇒ len testovací kanál. Do obchodnej appky (`|| IS_APP`) až na Matejovo „ostro“.
 export const MOMENTY_ON = TEST_BUILD;
