@@ -69,6 +69,9 @@ const digits = (p: string) => p.replace(/[^\d+]/g, '');
 const isMobile = (p: string) => /^(?:(?:\+|00)421|0)9(?!6)|^(?:(?:\+|00)420)?[67]/.test(digits(p));
 const mmYYYY = (d: string) => { const m = /^(\d{4})-(\d{2})/.exec(d); return m ? `${m[2]}/${m[1]}` : d; };
 
+/** Kontakt ďalej než toto sa neponúka ako „najbližší“ (OO PZ 17 553 km od miesta straty je omyl, nie pomoc). */
+const NEAR_KM = 150;
+
 const skippedKey = (slug?: string) => `sos-plan-skipped:${slug ?? ''}`;
 const loadSkipped = (slug?: string): Set<string> => {
   try { return new Set(JSON.parse(localStorage.getItem(skippedKey(slug)) ?? '[]') as string[]); } catch { return new Set(); }
@@ -152,6 +155,8 @@ export default function PackSosPlan() {
     if (mine) void sosSetPlan(mine.id, [...next]).catch(() => {});
   }, [mine]);
 
+  // Miesto bez jediného miestneho kontaktu do 150 km (mimo SK a CZ): žiadne „najbližšie“ z iného kontinentu, len veta a 112.
+  const noLocal = rows !== null && !rows.some((r) => !r.nationwide && r.distance_km != null && r.distance_km <= NEAR_KM);
   const total = STEPS.length;
   const doneCount = STEPS.filter(isDone).length;
   const firstPending = STEPS.find((st) => !isDone(st) && !skipped.has(st)) ?? null;
@@ -201,7 +206,7 @@ export default function PackSosPlan() {
   const renderContacts = (st: Step) => {
     const cfg = CONTACT[st];
     if (!cfg) return null;
-    const all = (rows ?? []).filter((r) => r.typ === cfg.typ);
+    const all = noLocal ? [] : (rows ?? []).filter((r) => r.typ === cfg.typ && (r.nationwide || r.distance_km == null || r.distance_km <= NEAR_KM));
     // Celoštátne tímy s číslom vždy prvé, potom najbližšie, skupiny bez čísla nakoniec.
     const near = all.filter((r) => !r.nationwide);
     const closest = near.slice(0, cfg.base + (extra[st] ?? 0));
@@ -216,14 +221,15 @@ export default function PackSosPlan() {
     const act = () => setAway(st);
     return (
       <>
-        {st === 'police' && (
+        {(st === 'police' || noLocal) && (
           <div className="sosp-fixed">
-            {(pub?.country === 'SVK' || pub?.country === 'CZE') && <a className="sos-cta sos-cta--red" href="tel:158" onClick={act}>158 · {s('pack.sos.plan.police158')}</a>}
+            {st === 'police' && !noLocal && (pub?.country === 'SVK' || pub?.country === 'CZE') && <a className="sos-cta sos-cta--red" href="tel:158" onClick={act}>158 · {s('pack.sos.plan.police158')}</a>}
             <a className="sos-cta sos-cta--red" href="tel:112" onClick={act}>112 · {s('pack.sos.plan.emergency112')}</a>
           </div>
         )}
+        {noLocal && <p className="sos-small">{s('pack.sos.plan.noLocal')}</p>}
         {shown.map((c, i) => <Contact key={`${c.name}-${i}`} c={c} smsBody={smsBody} s={s} onAct={act} />)}
-        {rows && all.length === 0 && st !== 'police' && <p className="sos-small">{s('pack.sos.plan.empty')}</p>}
+        {rows && !noLocal && all.length === 0 && st !== 'police' && <p className="sos-small">{s('pack.sos.plan.empty')}</p>}
         {noMore === st && <p className="sos-small">{s('pack.sos.plan.ret.noMore')}</p>}
         {asking === st && (
           <div className="sosp-ret">

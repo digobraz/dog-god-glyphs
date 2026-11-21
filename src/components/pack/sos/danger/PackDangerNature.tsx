@@ -1,27 +1,41 @@
 // `/pack/sos/nebezpecenstvo/priroda` — PRÍRODA (nákres scr 12): druhá brána k TÝM ISTÝM upozorneniam, ktoré člen pridáva na mape cez plus.
 // Jeden zoznam (`GROUP_KINDS.warning`), jedno API (`addMapNote`), PackMap ani mapnotes sa nemenia. Okruh podľa pravidla druhu (`radiusRule`).
 // Názvy druhov a nápovedy berie z existujúcich `pack.mapNotes.kind.*` / `pack.mapNotes.add.placeholder.*`.
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { MapAttribution, MAP_ATTR_CSS } from '@/components/pack/mapAttribution';
 import { addMapNote, defaultRadius, GROUP_KINDS, radiusRule, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
 import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
-import { DANGER_FORM_CSS, DangerMap, useGeoPick } from './PackDangerReport';
+import { DANGER_FORM_CSS, DangerMap, GeoStatus, useGeoPick, type GeoPick } from './PackDangerReport';
+import { CharCount, clearDraft, loadDraft, saveDraft } from './dangerForm';
+
+const BODY_MAX = 600;
+const DRAFT_KEY = 'nature';
+interface NatureDraft { pt: [number, number] | null; geo: GeoPick; kind: NoteKind; body: string; radius: number }
 
 export default function PackDangerNature() {
   const s = useSosT();
   const t = useT();
   const navigate = useNavigate();
   const back = useBack('/pack/sos/nebezpecenstvo');
-  const { pt, geo, center, zoom, locateTick, locErr, pick, locate, setPlace } = useGeoPick();
-  const [kind, setKind] = useState<NoteKind>(GROUP_KINDS.warning[0]);
-  const [body, setBody] = useState('');
-  const [radius, setRadius] = useState<number>(defaultRadius(GROUP_KINDS.warning[0]) ?? 150);
+  // rozpísané prežije „späť → vpred“ aj obnovenie stránky (sessionStorage), po pridaní na mapu sa zmaže
+  const draft = useMemo(() => {
+    const d = loadDraft<NatureDraft>(DRAFT_KEY);
+    return d && d.kind && GROUP_KINDS.warning.includes(d.kind) ? d : null;
+  }, []);
+  const { pt, geo, center, zoom, locateTick, locErr, pick, locate, setPlace, geoState, tilesFail, onTiles } = useGeoPick(draft ? { pt: draft.pt ?? null, geo: draft.geo ?? null } : null);
+  const [kind, setKind] = useState<NoteKind>(draft?.kind ?? GROUP_KINDS.warning[0]);
+  const [body, setBody] = useState(draft?.body ?? '');
+  const [radius, setRadius] = useState<number>(draft?.radius ?? defaultRadius(draft?.kind ?? GROUP_KINDS.warning[0]) ?? 150);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (!done) saveDraft(DRAFT_KEY, { pt, geo, kind, body, radius } satisfies NatureDraft);
+  }, [done, pt, geo, kind, body, radius]);
 
   const rule = radiusRule(kind);
   const withRadius = rule.mode !== 'none';
@@ -37,6 +51,7 @@ export default function PackDangerNature() {
     setErr(''); setBusy(true);
     try {
       await addMapNote({ kind, lat: pt[0], lon: pt[1], body: body.trim(), radiusM: withRadius ? radius : null });
+      clearDraft(DRAFT_KEY);
       setDone(true);
     } catch (x) {
       const m = String((x as { message?: string })?.message ?? '');
@@ -74,11 +89,12 @@ export default function PackDangerNature() {
         </div>
         <p className="sos-p">{s('pack.sos.danger.report.mapHint')}</p>
         <div className="dgr-map">
-          <DangerMap center={center} zoom={zoom} pt={pt} radius={withRadius ? radius : null} onPick={pick} locateTick={locateTick} />
+          <DangerMap center={center} zoom={zoom} pt={pt} radius={withRadius ? radius : null} onPick={pick} locateTick={locateTick} onTiles={onTiles} />
           <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm dgr-loc" onClick={locate}>{s('pack.sos.danger.report.myLocation')}</button>
           <MapAttribution />
         </div>
         {locText && <p className="sos-err">{locText}</p>}
+        <GeoStatus pt={pt} geoState={geoState} tilesFail={tilesFail} />
         <label className="sos-field"><span>{s('pack.sos.danger.report.place')}</span>
           <input className="pf-field" value={geo.place} maxLength={200} placeholder={s('pack.sos.danger.report.placeHint')} onChange={(e) => setPlace(e.target.value)} />
         </label>
@@ -88,8 +104,9 @@ export default function PackDangerNature() {
           </label>
         )}
         <label className="sos-field"><span>{s('pack.sos.danger.report.body')}</span>
-          <textarea className="pf-field dgr-ta" rows={4} maxLength={600} value={body} onChange={(e) => setBody(e.target.value)}
+          <textarea className="pf-field dgr-ta" rows={4} maxLength={BODY_MAX} value={body} onChange={(e) => setBody(e.target.value)}
             placeholder={tx(`pack.mapNotes.add.placeholder.${kind}`, s('pack.sos.danger.nature.bodyHint'))} />
+          <CharCount len={body.length} max={BODY_MAX} />
         </label>
       </SosCard>
 

@@ -15,6 +15,7 @@ import { lostPublic, type LostPublic as LostRow } from '@/lib/sos';
 import { FLOW_PALE_CSS } from '@/components/screens/flowPaleSkin';
 import { shareLostDog } from '@/components/pack/sosKit';
 import { CallPopup, SeenPopup } from '@/components/pack/sos/sosActions';
+import { SosPhotoNone } from '@/components/pack/sos/sosNoPhoto';
 import { SOS_CSS, colorWord, useBreedLabel, useSosCount, useSosT, useWhen } from '@/components/pack/sos/sosShared';
 
 /**
@@ -117,7 +118,7 @@ function LostPublicInner({ slug }: { slug: string }) {
               ) : (
                 <div className="sos-band"><b>{s('pack.sos.lost')}</b><small>{[row.place_label, when(row.last_seen_at)].filter(Boolean).join(' · ')}</small></div>
               )}
-              {row.photo ? <img className="sos-photo" src={sizedUrl(row.photo, 900)} alt={row.dog_name} /> : <div className="sos-photo sos-photo--none" />}
+              {row.photo ? <img className="sos-photo" src={sizedUrl(row.photo, 900)} alt={row.dog_name} /> : <SosPhotoNone breed={row.breed} />}
               <h1 className="sos-dogname">{row.dog_name}</h1>
               {(row.breed || row.color) && <p className="sos-dogsub">{[breedLabel(row.breed), colorWord(row.color, s)].filter(Boolean).join(' · ')}</p>}
               {row.status === 'found' && row.search_days != null && (
@@ -126,7 +127,8 @@ function LostPublicInner({ slug }: { slug: string }) {
 
               {live && (
                 <>
-                  <p className="sos-motto">{s('pack.sos.det.motto')}</p>
+                  {/* „Čím viac zdieľaní…“ len pri bežiacom pátraní; ukončené (ended) už nikoho nenaháňa */}
+                  {row.status === 'active' && <p className="sos-motto">{s('pack.sos.det.motto')}</p>}
                   <button type="button" className="sos-cta" onClick={() => setPop('call')}>{s('pack.sos.det.callOwner')}</button>
                   <button type="button" className="sos-cta sos-cta--ghost" onClick={() => setPop('seen')}>{s('pack.sos.det.seen')}</button>
                   <p className="sos-p" style={{ textAlign: 'center' }}>{s('pack.sos.pub.dontChase')}</p>

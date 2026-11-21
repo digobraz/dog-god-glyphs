@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { sosUpdate, type SosFlyer as FlyerFields } from '@/lib/sos';
 import { SosCard, sosErrCode, useBack, useSosLost, useSosT } from './sosShared';
+import { SOS_TEXTS } from './sosTexts';
 import { SosFlyer, flyerDefaults, nearestDir, type FlyerData, type FlyerLook } from './SosFlyer';
 import { sosInvalidate } from '@/components/pack/sosKit';
 import { flyerDownload, flyerToPng, flyerUpload, FLYER_CSS_W } from './sosFlyerExport';
@@ -27,13 +28,34 @@ const CSS = `
 
 const DIRS = [0, 45, 90, 135, 180, 225, 270, 315] as const;
 
+/** Server (`sos_check_phone`): jedno číslo, 6 až 15 číslic, najviac 20 znakov, len číslice a + ( ) . / - medzera. Klient to overí PRED nahratím letáku. */
+const phoneOk = (p: string) => {
+  const t = p.trim();
+  const n = t.replace(/\D/g, '').length;
+  return n >= 6 && n <= 15 && t.length <= 20 && /^[0-9+()./ -]+$/.test(t);
+};
+
+type TextKey = 'headline' | 'about' | 'reward' | 'thanks';
+const TEXT_KEYS: TextKey[] = ['headline', 'about', 'reward', 'thanks'];
+const DEF_KEY: Record<TextKey, 'pack.sos.fl.defHeadline' | 'pack.sos.fl.defAbout' | 'pack.sos.fl.defReward' | 'pack.sos.fl.defThanks'> = {
+  headline: 'pack.sos.fl.defHeadline', about: 'pack.sos.fl.defAbout', reward: 'pack.sos.fl.defReward', thanks: 'pack.sos.fl.defThanks',
+};
+/** Je uložená hodnota len predvolený text v niektorom jazyku? Predvolené sa neukladajú, takže sa po prepnutí jazyka prepíšu aj staré uloženia. */
+const isDefaultText = (k: TextKey, v: string) => {
+  const d = SOS_TEXTS[DEF_KEY[k]];
+  return v === d.en || v === d.sk || v === d.cs;
+};
+
 export default function PackSosFlyer() {
   const { slug: slugParam } = useParams<{ slug: string }>();
   const load = useSosLost(slugParam);
   const s = useSosT(load.state === 'ready' ? load.pub.dog_gender : null);
   const back = useBack(sosPath.page(slugParam ?? ''));
   const [look, setLook] = useState<FlyerLook>('papyrus');
-  const [f, setF] = useState<{ headline: string; place: string; about: string; phone: string; reward: string; thanks: string; deg: number | null } | null>(null);
+  // Texty `null` = predvolené (v jazyku, v ktorom leták práve vidíš); ukladá sa len to, čo človek naozaj prepísal.
+  const [f, setF] = useState<{ headline: string | null; place: string; about: string | null; phone: string; reward: string | null; thanks: string | null; deg: number | null } | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const uploaded = useRef<{ key: string; url: string } | null>(null);   // už nahraný PNG: opakované uloženie ho použije znova
   const [busy, setBusy] = useState<'save' | 'dl' | null>(null);
   const [err, setErr] = useState('');
   const [exporting, setExporting] = useState(false);
@@ -42,13 +64,16 @@ export default function PackSosFlyer() {
   // predvolené texty podľa jazyka majiteľa; uložené hodnoty ich prebíjajú (aj prázdny reťazec = vedome prázdne)
   useEffect(() => {
     if (load.state !== 'ready' || !load.mine || f) return;
-    const def = flyerDefaults(s);
     const fl = load.mine.flyer ?? {};
+    const own = (k: TextKey, max: number): string | null => {
+      const v = fl[k];
+      return typeof v === 'string' && !isDefaultText(k, v) ? v.slice(0, max) : null;   // aj prázdny reťazec = vedome prázdne
+    };
     setF({
-      headline: (fl.headline ?? def.headline).slice(0, 28), about: fl.about ?? def.about, reward: (fl.reward ?? def.reward).slice(0, 40), thanks: fl.thanks ?? def.thanks,
+      headline: own('headline', 28), about: own('about', 120), reward: own('reward', 40), thanks: own('thanks', 120),
       place: load.mine.place_label ?? '', phone: load.mine.phone ?? '', deg: typeof fl.direction_deg === 'number' ? nearestDir(fl.direction_deg) : null,
     });
-  }, [load, f, s]);
+  }, [load, f]);
 
   const data = useMemo<FlyerData | null>(() => {
     if (load.state !== 'ready' || !load.mine || !f) return null;
@@ -56,11 +81,13 @@ export default function PackSosFlyer() {
     return {
       slug: m.slug, name: m.dog_name, dogGender: m.dog_gender, photo: m.photo, breed: m.breed, color: m.color, place: f.place, lastSeen: m.last_seen_at,
       lat: m.lat, lng: m.lng, phone: f.phone,
-      flyer: { headline: f.headline, about: f.about, reward: f.reward, thanks: f.thanks, direction_deg: f.deg },
+      // `undefined` = leták si vezme predvolený text v aktuálnom jazyku (`SosFlyer`)
+      flyer: { headline: f.headline ?? undefined, about: f.about ?? undefined, reward: f.reward ?? undefined, thanks: f.thanks ?? undefined, direction_deg: f.deg },
     };
   }, [load, f]);
 
-  const set = <K extends keyof NonNullable<typeof f>>(k: K, v: NonNullable<typeof f>[K]) => setF((p) => (p ? { ...p, [k]: v } : p));
+  const set = <K extends keyof NonNullable<typeof f>>(k: K, v: NonNullable<typeof f>[K]) => { setDirty(true); setF((p) => (p ? { ...p, [k]: v } : p)); };
+  const def = flyerDefaults(s);
 
   // PNG z neviditeľného uzla v pevnej šírke 1240 px — nezávisí od šírky obrazovky
   const renderPng = async () => {
@@ -85,12 +112,25 @@ export default function PackSosFlyer() {
   const mine = load.mine!;
 
   const save = async () => {
-    setBusy('save'); setErr('');
+    setErr('');
+    // Nič sa nezmenilo a leták už je uložený: nový súbor na Cloudinary nevzniká (unsigned preset neprepisuje, každé nahratie = nový súbor).
+    if (!dirty && mine.flyer_url) { toast({ title: s('pack.sos.fl.unchanged') }); back(); return; }
+    // Telefón najprv na klientovi, potom na serveri, až potom PNG na Cloudinary: zlé číslo nesmie nechať sirotu.
+    if (!phoneOk(f.phone)) { setErr(s('pack.sos.err.bad_phone')); return; }
+    setBusy('save');
     try {
-      const png = await renderPng();
-      const url = await flyerUpload(png, mine.slug);
-      const flyer: FlyerFields = { headline: f.headline, about: f.about, reward: f.reward, thanks: f.thanks, direction_deg: f.deg };
-      await sosUpdate(mine.id, { flyer, flyerUrl: url, phone: f.phone.trim(), place: f.place.trim() });
+      await sosUpdate(mine.id, { phone: f.phone.trim(), place: f.place.trim() });   // server číslo overí; nezaplatená chyba = žiadne nahratie
+      const flyer: FlyerFields = { direction_deg: f.deg };
+      TEXT_KEYS.forEach((k) => { if (f[k] !== null) flyer[k] = f[k]!; });
+      // ten istý obsah už raz nahratý (zlyhalo až uloženie do DB): použi existujúci súbor
+      const key = JSON.stringify([look, f, mine.slug]);
+      let url = uploaded.current?.key === key ? uploaded.current.url : null;
+      if (!url) {
+        const png = await renderPng();
+        url = await flyerUpload(png, mine.slug);
+        uploaded.current = { key, url };
+      }
+      await sosUpdate(mine.id, { flyer, flyerUrl: url });
       sosInvalidate();
       toast({ title: s('pack.sos.fl.saved') });
       back();
@@ -110,7 +150,7 @@ export default function PackSosFlyer() {
 
   const field = (k: 'headline' | 'place' | 'phone' | 'reward' | 'thanks', label: SosKey, extra?: { hint?: SosKey; type?: string }) => (
     <label className="sos-field"><span>{s(label)}</span>
-      <input className="pf-field" type={extra?.type ?? 'text'} value={f[k]} maxLength={k === 'phone' ? 20 : k === 'headline' ? 28 : k === 'reward' ? 40 : 120} onChange={(e) => set(k, e.target.value)} />
+      <input className="pf-field" type={extra?.type ?? 'text'} value={k === 'place' || k === 'phone' ? f[k] : f[k] ?? def[k]} maxLength={k === 'phone' ? 20 : k === 'headline' ? 28 : k === 'reward' ? 40 : 120} onChange={(e) => set(k, e.target.value)} />
       {extra?.hint && <span className="sos-small" style={{ textTransform: 'none', letterSpacing: 0, marginTop: 4 }}>{s(extra.hint)}</span>}
     </label>
   );
@@ -123,7 +163,7 @@ export default function PackSosFlyer() {
         <p className="sos-eyebrow">{s('pack.sos.fl.look')}</p>
         <div className="sosf-look">
           {(['papyrus', 'print'] as const).map((k) => (
-            <button key={k} type="button" className={`sos-pick${look === k ? ' is-on' : ''}`} aria-pressed={look === k} onClick={() => setLook(k)}>
+            <button key={k} type="button" className={`sos-pick${look === k ? ' is-on' : ''}`} aria-pressed={look === k} onClick={() => { setDirty(true); setLook(k); }}>
               {s(k === 'papyrus' ? 'pack.sos.fl.lookPapyrus' : 'pack.sos.fl.lookPrint')}
             </button>
           ))}
@@ -136,8 +176,8 @@ export default function PackSosFlyer() {
         {field('headline', 'pack.sos.fl.headline')}
         {field('place', 'pack.sos.fl.place')}
         <label className="sos-field"><span>{s('pack.sos.fl.about')}</span>
-          <textarea className="pf-field" rows={3} maxLength={120} value={f.about} onChange={(e) => set('about', e.target.value)} />
-          <span className="sos-small" style={{ textTransform: 'none', letterSpacing: 0 }}>{f.about.length}/120</span>
+          <textarea className="pf-field" rows={3} maxLength={120} value={f.about ?? def.about} onChange={(e) => set('about', e.target.value)} />
+          <span className="sos-small" style={{ textTransform: 'none', letterSpacing: 0 }}>{(f.about ?? def.about).length}/120</span>
         </label>
         {field('phone', 'pack.sos.fl.phone', { type: 'tel' })}
         {field('reward', 'pack.sos.fl.reward', { hint: 'pack.sos.fl.rewardHint' })}

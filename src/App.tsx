@@ -196,6 +196,7 @@ const PackSosPlan = lazyPack(() => import("@/components/pack/sos/PackSosPlan"));
 const PackSosVet = lazyPack(() => import("@/components/pack/sos/PackSosVet")); // kôš 3
 const PackSosAid = lazyPack(() => import("@/components/pack/sos/PackSosAid")); // kôš 3 — prvá pomoc (17. 11. 2026)
 const PackSosAbuse = lazyPack(() => import("@/components/pack/sos/PackSosAbuse")); // kôš 3 — nahlásiť týranie (20. 11. 2026)
+const PackSosHub = lazyPack(() => import("@/components/pack/sos/PackSosHub")); // kôš 3 — SOS rozcestník pre odhláseného (21. 11. 2026)
 // NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026, DANGER_ON = TEST_BUILD): rozcestie · nahlásenie · príroda · podnet · krajina · detail · plagát.
 const PackDangerHub = lazyPack(() => import("@/components/pack/sos/danger/PackDangerHub")); // kôš 3
 const PackDangerReport = lazyPack(() => import("@/components/pack/sos/danger/PackDangerReport")); // kôš 3
@@ -677,6 +678,8 @@ const App = () => (
               <Route path="/pack/sniffer" element={DEV_FULL && BUDDY_LIVE ? <PackBuddy /> : <Navigate to="/pack/map" replace />} />
               {/* SOS — stratený pes (TEST_BUILD). Statické `new` vyhráva nad `:slug`. */}
               {VET_ER_ON && <Route path="/pack/sos/pohotovost" element={<PackSosVet />} />}
+              {/* SOS rozcestník: kam sa vráti ODHLÁSENÝ z prvej pomoci / pohotovosti (nie na prihlásenie). Bez `:slug`, preto nekoliduje. */}
+              {(AID_ON || VET_ER_ON) && <Route path="/pack/sos" element={<PackSosHub />} />}
               {/* PRVÁ POMOC — rozcestník + karta, obsah v balíku (funguje bez signálu). */}
               {AID_ON && <Route path="/pack/sos/prva-pomoc" element={<PackSosAid />} />}
               {AID_ON && <Route path="/pack/sos/prva-pomoc/:id" element={<PackSosAid />} />}

@@ -4,10 +4,10 @@
 //
 // 🔴 Adresu, telefón, fotky týrania ani text podnetu nevydá žiadny anon RPC. `dangerPublic` vráti len druh,
 //    obec a okruh (týranie: stred zaokrúhlený, okruh ≥ 500 m, bez fotky a adresy).
+// Kontrakt po opravách: plany/danger-kontrakt-2026-11-21.md. Podnet = len vlastné slová človeka, úradný text píšeme my (21. 11. 2026).
 // Čakané chyby servera: not_authenticated · no_access · rate_limited · bad_kind · bad_coords · bad_radius ·
 // bad_phone · bad_text · bad_state · danger_via_report. Čítaj ich cez `dangerErrorCode`.
 import { supabase } from '@/integrations/supabase/client';
-import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rpc = (name: string, args?: Record<string, unknown>) => (supabase as any).rpc(name, args);
@@ -33,9 +33,13 @@ export type DangerPoisonChip = (typeof DANGER_POISON_CHIPS)[number];
 /** Polomer otravy drží lock značiek: 100–500 m, predvoľba 150. */
 export const DANGER_RADIUS = { min: 100, max: 500, def: 150 } as const;
 
+export type DangerComplaintState = 'submitted' | 'approved_waiting' | 'sent' | 'failed' | 'rejected';
+
 export interface DangerComplaintBrief {
   id: string;
+  /** `'AUTO'` = úrad určíme my */
   authority_code: string;
+  state?: DangerComplaintState;
   sent_at: string | null;
   outcome: DangerOutcome | null;
   review: DangerReview;
@@ -82,13 +86,15 @@ export interface DangerMineRow {
 
 export interface DangerComment {
   id: string;
-  user_id: string;
+  /** `null` pri komentári nahlasovateľa týrania (server ho nevydá) */
+  user_id: string | null;
   body: string;
   created_at: string;
   is_mine: boolean;
   author_first: string | null;
   author_photo: string | null;
   pack_number: number | null;
+  is_reporter?: boolean;
 }
 
 /** Verejná stránka `/danger/:slug` — nič, čo by prezradilo adresu alebo nahlasovateľa. */
@@ -126,31 +132,55 @@ export interface DangerComplaintInput {
   case_id: string | null;
   country: string;
   place_label: string;
-  authority_code: string;
+  /** prázdne = úrad vyberie dispečer (server uloží 'AUTO') */
+  authority_code: string | null;
+  /** vlastné slová človeka (5 až 3000 znakov); úradný text píšeme my */
   raw: string;
-  official: string;
   phone: string;
   sign_name: string | null; // null = „DOGYPT za mňa“
   cc_linka: boolean;
   photos: string[];
 }
 
-export interface DangerOfficialTextInput {
-  kind: DangerKind;
-  raw: string;
-  what: string[];
-  how_often: DangerHowOften | null;
-  place_label: string;
-  municipality: string | null;
-  country: string;
-  authority_name: string;
-  lang: string;
-}
+const KNOWN_ERRORS = [
+  'not_authenticated', 'no_access', 'rate_limited', 'limit_reports', 'bad_kind', 'bad_coords', 'bad_radius', 'bad_phone', 'bad_text',
+  'bad_state', 'bad_country', 'bad_contact', 'danger_via_report', 'own_case', 'not_found', 'expired', 'duplicate_open',
+];
 
+/** Kód chyby servera (`raise exception 'rate_limited'`). Najprv známe kódy, potom čokoľvek v tvare `snake_case`. */
 export function dangerErrorCode(e: unknown): string {
   const m = String((e as { message?: string })?.message ?? e ?? '');
-  const hit = m.match(/[a-z_]{4,}/g);
-  return hit?.find((w) => w.includes('_') || w === 'rate_limited') ?? 'error';
+  const known = KNOWN_ERRORS.find((k) => m.includes(k));
+  if (known) return known;
+  const hit = m.match(/[a-z]+_[a-z_]+/g);
+  return hit?.[0] ?? 'error';
+}
+
+/** Neplatné alebo neexistujúce ID (`/p/abc`): server hlási `invalid input syntax for type uuid`. To NIE JE chyba siete. */
+export const isDangerUuid = (id: string | null | undefined) => !!id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+export function dangerNotFound(e: unknown): boolean {
+  const x = e as { code?: string; message?: string };
+  return x?.code === '22P02' || /invalid input syntax|not_found/i.test(String(x?.message ?? ''));
+}
+
+// ── predbežná kontrola: ešte PRED nahrávaním fotiek ─────────────────────────────────────────────
+// Server odmietne nečlena a limit až pri zápise, no fotky by dovtedy už boli na Cloudinary (sirota). Preto sa pýtame vopred.
+// `danger_precheck(p_kind)` → `{ ok, reason, remaining }`, nikdy nevyhadzuje chybu (kontrakt 21. 11. 2026).
+export type DangerGate = 'ok' | 'not_authenticated' | 'no_access' | 'rate_limited';
+export type DangerPrecheckKind = DangerKind | 'tip' | 'complaint' | 'comment';
+export async function dangerPrecheck(kind: DangerPrecheckKind): Promise<DangerGate> {
+  try {
+    const { data: sess } = await supabase.auth.getSession();
+    if (!sess.session) return 'not_authenticated';
+    const { data, error } = await rpc('danger_precheck', { p_kind: kind });
+    if (error) {
+      const c = dangerErrorCode(error);
+      return c === 'no_access' || c === 'rate_limited' ? c : 'ok';
+    }
+    const r = (Array.isArray(data) ? data[0] : data) as { ok?: boolean; reason?: string | null } | null;
+    if (!r || r.ok !== false) return 'ok';
+    return r.reason === 'not_authenticated' || r.reason === 'no_access' || r.reason === 'rate_limited' ? r.reason : 'ok';
+  } catch { return 'ok'; }   // chyba siete nie je dôvod zablokovať formulár; zápis to rozhodne sám
 }
 
 // ── člen ────────────────────────────────────────────────────────────────────
@@ -179,7 +209,7 @@ export const dangerCommentDelete = (id: string) => call<void>('danger_comment_de
 
 export const dangerComplaintCreate = (p: DangerComplaintInput) => call<string>('danger_complaint_create', {
   p_case: p.case_id, p_country: p.country, p_place_label: p.place_label, p_authority: p.authority_code,
-  p_raw: p.raw, p_official: p.official, p_phone: p.phone, p_sign_name: p.sign_name, p_cc_linka: p.cc_linka,
+  p_raw: p.raw, p_official: '' /* server ho ignoruje: úradný text píšeme my */, p_phone: p.phone, p_sign_name: p.sign_name, p_cc_linka: p.cc_linka,
   p_photos: p.photos,
 });
 
@@ -193,21 +223,6 @@ export const dangerLastPhone = () => call<string | null>('danger_last_phone');
 export async function dangerPublic(slug: string): Promise<DangerPublic | null> {
   const rows = await call<DangerPublic[]>('danger_public', { p_slug: slug });
   return rows?.[0] ?? null;
-}
-
-// ── edge: AI prepis podnetu (nič neukladá) ──────────────────────────────────
-export async function dangerOfficialText(p: DangerOfficialTextInput): Promise<{ text: string; missing: string[] }> {
-  const { data: s } = await supabase.auth.getSession();
-  const token = s.session?.access_token;
-  if (!token) throw new Error('not_authenticated');
-  const r = await fetch(`${EDGE_BASE}/danger-official-text`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, apikey: SUPABASE_ANON_KEY },
-    body: JSON.stringify(p),
-  });
-  if (r.status === 429) throw new Error('rate_limited');
-  if (!r.ok) throw new Error('error');
-  return r.json();
 }
 
 /** Verejný odkaz prípadu (plagát, QR). */

@@ -42,11 +42,13 @@ async function photoDrawn(png: Blob, node: HTMLElement, photoSelector: string): 
 /** Nakreslí uzol do JPEG/PNG s opakovaním, kým sa fotka nezobrazí. */
 export async function drawNode(node: HTMLElement, o: {
   photoSelector?: string; jpeg?: boolean; pixelRatio: number; width?: number; height?: number; style?: Record<string, string>;
+  /** Písma pre SVG (`brandFontEmbedCSS`): bez nej `html-to-image` sťahuje aj Google Fonts (Inter, JetBrains Mono). Prázdny reťazec = predvolené správanie. */
+  fontEmbedCSS?: string;
 }): Promise<{ dataUrl: string; photoOk: boolean }> {
   await document.fonts.ready;
   await Promise.all([...node.querySelectorAll('img')].map((i) => i.decode().catch(() => undefined)));
   const { toBlob, toCanvas } = await import('html-to-image');
-  const opts = { pixelRatio: o.pixelRatio, cacheBust: false, backgroundColor: '#FFFFFF', width: o.width, height: o.height, style: o.style };
+  const opts = { pixelRatio: o.pixelRatio, cacheBust: false, backgroundColor: '#FFFFFF', width: o.width, height: o.height, style: o.style, ...(o.fontEmbedCSS ? { fontEmbedCSS: o.fontEmbedCSS } : {}) };
   let blob: Blob | null = null;
   let photoOk = false;
   for (let pokus = 0; pokus < 4; pokus++) {

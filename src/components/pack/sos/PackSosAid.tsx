@@ -13,7 +13,7 @@ import { PACK_R, PACK_SPACE as S, PACK_TEXT, PACK_THEME as T } from '@/component
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { SosTaskShell } from './SosTaskShell';
-import { useBack, useSosT } from './sosShared';
+import { useBack, useSosHome, useSosT } from './sosShared';
 import { AID_GROUPS, AID_ICON, AID_ICON_DEFAULT, aidContent, type AidCard, type AidLinks } from './aid/aidData';
 
 export const AID_PATH = '/pack/sos/prva-pomoc';
@@ -94,6 +94,9 @@ const CSS = `
 .aid-nosig{padding:${S.md}px ${S.lg}px;border-radius:${PACK_R.card}px;border:2.5px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:${PERA};}
 .aid-nosig b{display:block;font-family:${HEAD};font-weight:400;font-size:${PACK_TEXT.h2}px;line-height:1.15;color:var(--p3d-ink);}
 .aid-nosig p{margin:${S.sm}px 0 0;font-size:${PACK_TEXT.lead}px;line-height:1.45;color:var(--p3d-ink);}
+/* rezerva pod obsahom: prilepené CTA nesmie zakryť spodný rad dlaždíc (360 × 640) */
+.aid-pad{flex:none;height:calc(56px + ${S.md}px * 2 + env(safe-area-inset-bottom));}
+.aid-missing{margin:0;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:2px solid ${T.sosRedDark};background:var(--p3d-paper-hi);font-size:${PACK_TEXT.body}px;font-weight:500;line-height:1.4;color:${T.sosRedDark};}
 /* dole prilepené CTA */
 .aid-dock{position:sticky;bottom:0;z-index:2;margin:auto -${S.md}px 0;padding:${S.md}px ${S.md}px calc(${S.md}px + env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent,var(--p3d-paper) 24%);}
 `;
@@ -127,7 +130,8 @@ export default function PackSosAid() {
   const nav = useNavigate();
   const { cards, links } = useMemo(() => aidContent(lang), [lang]);
   const card = id ? cards.find((c) => c.id === id) : undefined;
-  const onBack = useBack(card ? AID_PATH : '/pack');
+  const home = useSosHome();   // odhlásený ostáva v SOS (rozcestník), nie na prihlásení
+  const onBack = useBack(card ? AID_PATH : home);
   const open = (to: string) => { nav(`${AID_PATH}/${to}`); window.scrollTo(0, 0); };
   const title = t('pack.sos.firstAid') === 'pack.sos.firstAid' ? 'First aid' : t('pack.sos.firstAid');
 
@@ -136,6 +140,7 @@ export default function PackSosAid() {
       <style>{CSS}</style>
       {card ? <AidCardView key={card.id} c={card} links={links} open={open} /> : (
         <>
+          {id && <p className="aid-missing" role="status">{s('pack.sos.aid.missing')}</p>}
           {/* Nadpis a OFFLINE v jednom riadku (Matej 20. 11.) — celé „funguje bez signálu“ ostáva v title pre čítačku. */}
           <div className="aid-top">
             <h1 className="aid-h1">{title}</h1>
@@ -144,6 +149,7 @@ export default function PackSosAid() {
           <AidHome cards={cards} open={open} />
         </>
       )}
+      <div className="aid-pad" aria-hidden />
       <div className="aid-dock">
         <button type="button" className={`sos-cta${card?.group === 'A' ? ' sos-cta--red' : ''}`} onClick={() => nav(ER_PATH)}>
           {s(card ? 'pack.sos.aid.call' : 'pack.sos.aid.nearest')}
@@ -199,13 +205,13 @@ function AidCardView({ c, links, open }: { c: AidCard; links: AidLinks; open: (i
     <>
       <h1 className="aid-h1">{c.title}</h1>
       {c.sub && <p className="aid-sub">{c.sub}</p>}
-      <div className="aid-media"><img src={c.img} alt="" /><span className="aid-cap">{c.imgCap}</span></div>
+      <div className="aid-media"><img src={c.img} alt={c.title} /><span className="aid-cap">{c.imgCap}</span></div>
       {c.fotky && (
         <div className="aid-fotky">
           {c.fotky.map((f) => (
             <figure key={f.src}>
               {f.znak && <span className={`aid-znak ${f.znak}`}>{s(f.znak === 'zle' ? 'pack.sos.aid.bad' : 'pack.sos.aid.good')}</span>}
-              <img src={f.src} alt="" loading="lazy" />
+              <img src={f.src} alt={f.cap} loading="lazy" />
               <figcaption>{f.cap}</figcaption>
             </figure>
           ))}
@@ -214,14 +220,14 @@ function AidCardView({ c, links, open }: { c: AidCard; links: AidLinks; open: (i
       {c.porovnanie && (
         <div className="aid-rule">
           <b>{c.porovnanie.h}</b>
-          <div className="aid-media"><img src={c.porovnanie.img} alt="" loading="lazy" /><span className="aid-znak zle">{c.porovnanie.l}</span><span className="aid-znak ok r">{c.porovnanie.r}</span></div>
+          <div className="aid-media"><img src={c.porovnanie.img} alt={c.porovnanie.h} loading="lazy" /><span className="aid-znak zle">{c.porovnanie.l}</span><span className="aid-znak ok r">{c.porovnanie.r}</span></div>
           <div>{c.porovnanie.t}</div>
         </div>
       )}
       {c.dalsi?.map((d) => (
         <div key={d.img} className="aid-rule">
           <b>{d.h}</b>
-          <div className="aid-media"><img src={d.img} alt="" loading="lazy" /></div>
+          <div className="aid-media"><img src={d.img} alt={d.h} loading="lazy" /></div>
           {d.t && <div>{d.t}</div>}
         </div>
       ))}
@@ -268,7 +274,7 @@ function AidCardView({ c, links, open }: { c: AidCard; links: AidLinks; open: (i
       {c.posledne && (
         <div className="aid-rule warn">
           <b>{c.posledne.h}</b>
-          <div className="aid-media"><img src={c.posledne.img} alt="" loading="lazy" /></div>
+          <div className="aid-media"><img src={c.posledne.img} alt={c.posledne.h} loading="lazy" /></div>
           <div>{c.posledne.t}</div>
         </div>
       )}

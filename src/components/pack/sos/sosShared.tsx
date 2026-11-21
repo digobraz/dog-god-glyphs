@@ -11,6 +11,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { lostPublic, sosMineBySlug, type LostPublic, type SosMine } from '@/lib/sos';
 import { canStepBack } from '@/lib/stepBack';
 import { localizeBreed } from '@/lib/breedDisplay';
+import { hasStoredSessionOrAuthReturn } from '@/lib/packFlags';
+import { DEV_NOAUTH } from '@/lib/devMockDogs';
+
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR, PACK_TOPROW, PACK_TOPROW_PAD, PACK_SHADOW,
   PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PAPER_ROUTES_EXTRA, BRAND_GOLD_BTN,
@@ -42,16 +45,18 @@ export type SosT = (key: SosKey, vars?: Record<string, string | number>) => stri
 export const kmText = (km: number, loc: string): string =>
   km < 1 ? km.toLocaleString(loc, { maximumFractionDigits: 1 }) : String(Math.round(km));
 
-/** Slovník prebíja; EN z `sosTexts.ts` je poistka, keď kus s textami appky ešte nedoletel. */
+/** Slovník prebíja; text z `sosTexts.ts` je poistka, keď kus s textami appky ešte nedoletel alebo ešte nebol vygenerovaný.
+ *  Poistka ide v jazyku rozhrania (sk · cs), inak EN — nový kľúč tak v SK/CS nikdy neprebliskne po anglicky. */
 export function useSosT(dogGender?: string | null): SosT {
   const t = useT();
+  const { lang } = useLang();
   const fem = dogGender === 'queen';
   return useCallback((key, vars) => {
     const f = `${key}.f`;
     const k = (fem && f in SOS_TEXTS ? f : key) as SosKey;
     const v = t(k, vars);
-    return v !== k ? v : interpolate(SOS_TEXTS[k].en, vars);
-  }, [t, fem]);
+    return v !== k ? v : interpolate(SOS_TEXTS[k][lang === 'sk' || lang === 'cs' ? lang : 'en'], vars);
+  }, [t, fem, lang]);
 }
 
 /** Čísla s tvarom podľa jazyka: 1 deň · 3 dni · 5 dní (sk, cs) / 1 day · 3 days (en). Slovo je v slovníku (`pack.sos.n.*`), tu je len výber tvaru. */
@@ -68,6 +73,8 @@ export function useSosCount() {
     /** „po 3 dňoch“ (lokál): 1 → „1 dni“, inak „dňoch“. */
     daysAfter: (n: number) => s(`pack.sos.n.daysAfter.${n === 1 ? 'one' : 'other'}` as SosKey, { n }),
     shares: (n: number) => s(`pack.sos.n.shares.${cat(n)}` as SosKey, { n }),
+    /** Počet odkrytí čísla (ťuk na ZAVOLAŤ), nie hovorov: telefón sa môže odkryť bez toho, aby niekto zavolal. */
+    views: (n: number) => s(`pack.sos.n.views.${cat(n)}` as SosKey, { n }),
     alerted: (n: number) => s('pack.sos.n.alerted', { n }),
   }), [s, cat]);
 }
@@ -88,14 +95,47 @@ export function useWhen(): (iso: string | Date) => string {
 
 export function sosErrCode(e: unknown): string {
   const m = String((e as { message?: string } | null)?.message ?? '');
-  const hit = /bad_phone|bad_coords|bad_time|bad_state|bad_url|rate_limited|no_access|not_authenticated/.exec(m);
+  const hit = /bad_phone|bad_coords|bad_region|too_old|bad_time|bad_state|bad_url|rate_limited|no_access|not_authenticated/.exec(m);
   return hit ? hit[0] : 'error';
 }
 
-/** Plemeno v jazyku rozhrania (rovnaký slovník ako DOG ID: `breeds.json`, `Mixed` → Kríženec). */
+/** Chýba prihlásenie (401, vypršaná relácia), nie sieť? PostgREST vracia `status: 401`, `PGRST30x` alebo `JWT expired`. */
+export function isAuthError(e: unknown): boolean {
+  const x = e as { status?: number; code?: string; message?: string } | null;
+  return x?.status === 401 || /^PGRST30[123]$/.test(String(x?.code ?? '')) || /JWT|not_authenticated|42501/.test(String(x?.message ?? '') + String(x?.code ?? ''));
+}
+
+/** Prihlásenie pre SOS obrazovky: `loading` (je uložená relácia, overuje sa) · `in` · `out`. Dev s `VITE_PACK_NOAUTH` = `in`.
+ *  Prvá pomoc a pohotovosť fungujú aj pri `out`; vyhlásenie straty, kartička a plán nie. */
+export type SosAuth = 'loading' | 'in' | 'out';
+export function useSosAuth(): SosAuth {
+  const [a, setA] = useState<SosAuth>(() => (DEV_NOAUTH ? 'in' : hasStoredSessionOrAuthReturn() ? 'loading' : 'out'));
+  useEffect(() => {
+    if (DEV_NOAUTH) return;
+    let alive = true;
+    void supabase.auth.getSession().then(({ data }) => { if (alive) setA(data.session ? 'in' : 'out'); }).catch(() => { if (alive) setA('out'); });
+    return () => { alive = false; };
+  }, []);
+  return a;
+}
+
+/** Kam vedie „späť“, keď predošlý krok nie je: prihlásený na `/pack`, odhlásený do SOS rozcestníka (nie na prihlásenie). */
+export const SOS_HUB = '/pack/sos';
+export const useSosHome = (): string => (useSosAuth() === 'out' ? SOS_HUB : '/pack');
+
+export const loginPath = (ret: string) => `/login?return=${encodeURIComponent(ret)}`;
+
+/** CS: `breeds.json` má len SK a EN, no tokeny `Mixed` · `Unknown` · `Other` sa v češtine nesmú ukázať po anglicky. */
+const CS_SPECIAL: Record<string, string> = { mixed: 'Kříženec', unknown: 'Neznámé', other: 'Jiné' };
+
+/** Plemeno v jazyku rozhrania (rovnaký slovník ako DOG ID: `breeds.json`, `Mixed` → Kríženec · Kříženec). */
 export function useBreedLabel(): (breed: string | null | undefined) => string {
   const { lang } = useLang();
-  return useCallback((b) => localizeBreed(b, lang), [lang]);
+  return useCallback((b) => {
+    if (lang !== 'cs') return localizeBreed(b, lang);
+    if (!b) return '';
+    return b.split(',').map((part) => CS_SPECIAL[part.trim().toLowerCase()] ?? part.trim()).filter(Boolean).join(', ');
+  }, [lang]);
 }
 
 /** Farba srsti z `dogs.selections.dogColour` (`bright` · `dark` · `mix`) na slovo. */
@@ -176,6 +216,9 @@ export const SOS_CSS = `
 .sos-motto{margin:0;text-align:center;font-size:${PACK_TEXT.lead}px;font-weight:600;color:${T.sosRed};}
 .sos-photo{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:${PACK_R.card}px;display:block;background:${T.tileBg};border:1.5px solid ${T.cardEdge};}
 .sos-photo--none{display:flex;align-items:center;justify-content:center;}
+.sos-photo--none img{width:48%;height:auto;max-height:72%;object-fit:contain;display:block;opacity:.85;}
+.sos-ph--none,.sosn-av--none{display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.sos-ph--none img,.sosn-av--none img{width:68%;height:68%;object-fit:contain;display:block;opacity:.85;}
 /* CTA — tvar btn-gold: radius 8, NIE pilulka. Lapis na bledom, červené len SOS, zelené = splnené. */
 .sos-cta{display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;width:100%;min-height:56px;padding:0 ${PACK_SPACE.lg}px;
   border-radius:${PACK_R.field}px;font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;text-transform:uppercase;text-align:center;

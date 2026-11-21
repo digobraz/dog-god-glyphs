@@ -13,14 +13,16 @@ import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { sizedUrl } from '@/services/cloudinaryService';
 import {
-  dangerCase, dangerComments, dangerCommentAdd, dangerCommentDelete, dangerOutcome, dangerWitness,
+  dangerCase, dangerComments, dangerCommentAdd, dangerCommentDelete, dangerErrorCode, dangerNotFound, dangerOutcome, dangerWitness, isDangerUuid,
   type DangerCase, type DangerComment, type DangerOutcome,
 } from '@/lib/danger';
+import { CharCount } from './dangerForm';
 import { authorityByCode } from '@/data/dangerAuthorities';
 import { SosCard, SosStyles, useBack, useSosT, type SosT } from '../sosShared';
 import type { SosKey } from '../sosTexts';
 
 const K = (k: string) => `pack.sos.danger.case.${k}` as SosKey;
+const COMMENT_MAX = 600;
 const OUTCOMES: DangerOutcome[] = ['inspected', 'fined', 'removed', 'nothing'];
 
 const CSS = `
@@ -71,7 +73,9 @@ function Comments({ c, s }: { c: DangerCase; s: SosT }) {
     const body = text.trim();
     if (!body || busy) return;
     setBusy(true); setErr('');
-    try { await dangerCommentAdd(c.id, body); setText(''); load(); } catch { setErr(s(K('err'))); } finally { setBusy(false); }
+    try { await dangerCommentAdd(c.id, body); setText(''); load(); }
+    catch (e) { setErr(dangerErrorCode(e) === 'rate_limited' ? s(K('err.rate')) : s(K('err'))); }
+    finally { setBusy(false); }
   };
   const del = async (id: string) => { try { await dangerCommentDelete(id); load(); } catch { setErr(s(K('err'))); } };
   return (
@@ -81,7 +85,7 @@ function Comments({ c, s }: { c: DangerCase; s: SosT }) {
       <div className="sos-stack" style={{ gap: S.sm }}>
         {(rows ?? []).map((r) => (
           <div key={r.id} className="dgc-cm" style={{ ...PACK_BOX.row, cursor: 'default' }}>
-            <b>{r.author_first ?? '?'}{r.pack_number != null ? ` #${r.pack_number}` : ''}</b>
+            <b>{r.author_first ?? (r.is_reporter ? s(K('reporter')) : s(K('member')))}{r.pack_number != null ? ` #${r.pack_number}` : ''}</b>
             <small>{ago(r.created_at)}</small>
             <p>{r.body}</p>
             {r.is_mine && <button type="button" onClick={() => void del(r.id)}>{s(K('comment.delete'))}</button>}
@@ -90,7 +94,8 @@ function Comments({ c, s }: { c: DangerCase; s: SosT }) {
       </div>
       <div className="dgc-add">
         <label className="sos-field">
-          <textarea className="pf-field" rows={2} maxLength={600} value={text} placeholder={s(K('comment.ph'))} onChange={(e) => setText(e.target.value)} />
+          <textarea className="pf-field" rows={2} maxLength={COMMENT_MAX} value={text} placeholder={s(K('comment.ph'))} onChange={(e) => setText(e.target.value)} />
+          <CharCount len={text.length} max={COMMENT_MAX} />
         </label>
         {err && <p className="sos-err">{err}</p>}
         <button type="button" className="sos-cta sos-cta--sm" disabled={busy || !text.trim()} onClick={() => void send()}>{s(K('comment.send'))}</button>
@@ -109,10 +114,12 @@ export default function PackDangerCase() {
   const [c, setC] = useState<DangerCase | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
   const [busy, setBusy] = useState(false);
+  const [werr, setWerr] = useState('');
 
   const load = useCallback(() => {
-    if (!id) { setState('missing'); return; }
-    dangerCase(id).then((r) => { setC(r); setState(r ? 'ready' : 'missing'); }).catch(() => setState('error'));
+    // neplatné ID (`/p/abc`) = „prípad neexistuje“, nie „bez pripojenia“; chyba siete je len to, čo nie je ani jedno
+    if (!id || !isDangerUuid(id)) { setState('missing'); return; }
+    dangerCase(id).then((r) => { setC(r); setState(r ? 'ready' : 'missing'); }).catch((e) => setState(dangerNotFound(e) ? 'missing' : 'error'));
   }, [id]);
   useEffect(load, [load]);
 
@@ -142,7 +149,10 @@ export default function PackDangerCase() {
   const witness = async () => {
     if (busy) return;
     setBusy(true);
-    try { await dangerWitness(c.id, !c.i_witnessed); load(); } finally { setBusy(false); }
+    setWerr('');
+    try { await dangerWitness(c.id, !c.i_witnessed); load(); }
+    catch (e) { setWerr(s(K(dangerErrorCode(e) === 'expired' ? 'witness.expired' : 'err'))); }
+    finally { setBusy(false); }
   };
   const rate = async (cid: string, o: DangerOutcome) => {
     setBusy(true);
@@ -199,12 +209,14 @@ export default function PackDangerCase() {
           </SosCard>
         )}
 
-        {c.review === 'approved' && !expired && (
+        {/* autor svedkom vlastného prípadu nebýva (server to odmietne: `own_case`) */}
+        {c.review === 'approved' && !expired && !c.is_mine && (
           <SosCard>
             <button type="button" className={`sos-cta${c.i_witnessed ? ' sos-cta--tint' : ''}`} disabled={busy} onClick={() => void witness()}>
               <SysIcon name="oko" size={24} />{s(K(abuse ? 'witness.abuse' : 'witness.poison'))}
             </button>
             <p className="sos-small">{c.i_witnessed ? s(K('witness.done')) : s(K('witness.p'))}</p>
+            {werr && <p className="sos-err" role="alert">{werr}</p>}
           </SosCard>
         )}
 
@@ -213,7 +225,7 @@ export default function PackDangerCase() {
             <h2 className="sos-eyebrow">{s(K('complaint.title'))}</h2>
             {c.complaints.map((x) => (
               <div key={x.id} className="sos-fact">
-                <small>{authorityByCode(x.authority_code)?.name ?? x.authority_code}</small>
+                <small>{authorityByCode(x.authority_code)?.name ?? (x.authority_code === 'AUTO' ? s(K('complaint.auto')) : x.authority_code)}</small>
                 <span>{x.sent_at ? s(K('complaint.sent'), { date: date(x.sent_at) }) : s(K('complaint.waiting'))}</span>
               </div>
             ))}
@@ -230,7 +242,10 @@ export default function PackDangerCase() {
             )}
             {!expired && <p className="sos-small">{s(K('complaint.add.p'))}</p>}
             <button type="button" className="sos-cta sos-cta--tint" onClick={() => navigate(`/pack/sos/nebezpecenstvo/podnet?case=${c.id}`)}>{s(K('complaint.add'))}</button>
-            <button type="button" className="sos-cta sos-cta--ghost" onClick={() => navigate(`/pack/sos/nebezpecenstvo/p/${c.id}/plagat`)}>{s(K('poster'))}</button>
+            {/* plagát má zmysel len pri schválenom prípade (čakajúci a zamietnutý nemá čo ukázať) */}
+            {c.review === 'approved' && (
+              <button type="button" className="sos-cta sos-cta--ghost" onClick={() => navigate(`/pack/sos/nebezpecenstvo/p/${c.id}/plagat`)}>{s(K('poster'))}</button>
+            )}
           </SosCard>
         )}
 

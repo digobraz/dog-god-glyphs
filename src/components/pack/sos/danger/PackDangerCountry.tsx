@@ -1,14 +1,17 @@
 // `/pack/sos/nebezpecenstvo/krajina?c=PL` — INÁ KRAJINA než SK/CZ (scr 10 + 11, kôš 3 · ROBÍM ÚLOHU).
 // Všeobecná kostra postupu + 112 + jedno textové pole „pomôž krajine“ + kontakt → `dangerTip` (tabuľka `danger_tips`).
 // Krajina sa berie z `?c=` (ISO-2), inak sa vyberie; meno krajiny dá `Intl.DisplayNames` v jazyku rozhrania.
-import { useMemo, useState } from 'react';
+// 21. 11. 2026: krajina je POVINNÁ (nikdy sa neuloží `XX`) a dá sa kedykoľvek zmeniť; kontakt = platný telefón ALEBO e-mail;
+// rozpísané ostáva v `sessionStorage`.
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { dangerTip } from '@/lib/danger';
+import { dangerErrorCode, dangerPrecheck, dangerTip, type DangerGate } from '@/lib/danger';
 import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
 import type { SosKey } from '../sosTexts';
+import { CharCount, cleanContact, clearDraft, loadDraft, saveDraft } from './dangerForm';
 
 const CODES = ['PL', 'HU', 'AT', 'DE', 'UA', 'RO', 'HR', 'SI', 'IT', 'ES', 'FR', 'GB', 'NL', 'BE', 'PT', 'GR', 'BG', 'RS'];
 
@@ -21,34 +24,71 @@ const CSS = `
 .dpk-call span{font-size:12px;}
 `;
 
+const BODY_MAX = 4000;
+const DRAFT_KEY = 'country';
+interface CountryDraft { step: 'info' | 'form'; body: string; contact: string }
+
 export default function PackDangerCountry() {
   const s = useSosT();
   const { lang } = useLang();
   const back = useBack('/pack/sos/nebezpecenstvo/tyranie');
   const [qs, setQs] = useSearchParams();
-  const code = (qs.get('c') ?? '').toUpperCase().slice(0, 2);
-  const [step, setStep] = useState<'info' | 'form'>('info');
-  const [body, setBody] = useState('');
-  const [contact, setContact] = useState('');
+  const rawCode = (qs.get('c') ?? '').toUpperCase();
+  const code = /^[A-Z]{2}$/.test(rawCode) ? rawCode : '';
+  const draft = useMemo(() => loadDraft<CountryDraft>(DRAFT_KEY), []);
+  const [step, setStep] = useState<'info' | 'form'>(draft?.step === 'form' ? 'form' : 'info');
+  const [body, setBody] = useState(draft?.body ?? '');
+  const [contact, setContact] = useState(draft?.contact ?? '');
+  const [gate, setGate] = useState<DangerGate>('ok');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (!done) saveDraft(DRAFT_KEY, { step, body, contact } satisfies CountryDraft);
+  }, [done, step, body, contact]);
+  // predbežná kontrola pri vstupe na formulár (nečlen sa to dozvie hneď, nie po napísaní)
+  useEffect(() => {
+    if (step !== 'form') return;
+    let alive = true;
+    dangerPrecheck('tip').then((g) => { if (alive) setGate(g); });
+    return () => { alive = false; };
+  }, [step]);
 
   const names = useMemo(() => {
     try { return new Intl.DisplayNames([intlLocale(lang)], { type: 'region' }); } catch { return null; }
   }, [lang]);
   const country = (c: string) => (names?.of(c) ?? c);
   const label = code ? country(code) : s('pack.sos.danger.country.other');
-  const sorted = useMemo(() => [...CODES].sort((a, b) => country(a).localeCompare(country(b), lang)), [names, lang]); // eslint-disable-line react-hooks/exhaustive-deps
+  // krajina z `?c=` mimo zoznamu (napr. SK) sa pridá, aby sa vybraná hodnota nikdy nestratila
+  const sorted = useMemo(() => [...new Set(code ? [...CODES, code] : CODES)].sort((a, b) => country(a).localeCompare(country(b), lang)), [names, lang, code]); // eslint-disable-line react-hooks/exhaustive-deps
+  const pickCountry = (c: string) => setQs(c ? { c } : {}, { replace: true });
+  const countrySelect = (
+    <label className="sos-field">
+      <span>{s('pack.sos.danger.country.pick')}</span>
+      <select className="pf-field" value={code} onChange={(e) => pickCountry(e.target.value)}>
+        <option value="">{s('pack.sos.danger.country.pickPh')}</option>
+        {sorted.map((c) => <option key={c} value={c}>{country(c)}</option>)}
+      </select>
+    </label>
+  );
 
   const send = async () => {
     if (busy) return;
+    if (gate !== 'ok') return;
+    if (!code) { setErr(s('pack.sos.danger.country.err.country')); return; }
     if (body.trim().length < 5) { setErr(s('pack.sos.danger.country.err.body')); return; }
-    if (!contact.trim()) { setErr(s('pack.sos.danger.country.err.contact')); return; }
+    const kontakt = cleanContact(contact);
+    if (!kontakt) { setErr(s('pack.sos.danger.country.err.contact')); return; }
     setBusy(true); setErr('');
-    try { await dangerTip(code || 'XX', body.trim(), contact.trim()); setDone(true); }
-    catch { setErr(s('pack.sos.danger.country.err.error')); }
-    finally { setBusy(false); }
+    try {
+      await dangerTip(code, body.trim(), kontakt);
+      clearDraft(DRAFT_KEY);
+      setDone(true);
+    } catch (e) {
+      const k = dangerErrorCode(e);
+      setErr(k === 'rate_limited' || k === 'no_access' || k === 'not_authenticated' ? s(`pack.sos.danger.complaint.err.${k}` as SosKey) : s('pack.sos.danger.country.err.error'));
+    } finally { setBusy(false); }
   };
 
   return (
@@ -57,15 +97,7 @@ export default function PackDangerCountry() {
       {step === 'info' && (
         <>
           <h1 className="sos-h2">{label}</h1>
-          {!code && (
-            <label className="sos-field">
-              <span>{s('pack.sos.danger.country.pick')}</span>
-              <select className="pf-field" value="" onChange={(e) => e.target.value && setQs({ c: e.target.value }, { replace: true })}>
-                <option value="" />
-                {sorted.map((c) => <option key={c} value={c}>{country(c)}</option>)}
-              </select>
-            </label>
-          )}
+          {countrySelect}
           <p className="sos-p">{s('pack.sos.danger.country.lead')}</p>
           <a className="sos-cta sos-cta--red dpk-call" href="tel:112"><b>112</b><span>{s('pack.sos.danger.country.emergency')}</span></a>
           <ol className="dpk-steps">
@@ -85,15 +117,18 @@ export default function PackDangerCountry() {
           ) : (
             <>
               <p className="sos-p">{s('pack.sos.danger.country.formLead')}</p>
+              {gate !== 'ok' && <p className="sos-err" role="alert">{s(`pack.sos.danger.complaint.err.${gate}` as SosKey)}</p>}
+              {countrySelect}
               <label className="sos-field">
-                <textarea className="pf-field" rows={8} maxLength={4000} value={body} placeholder={s('pack.sos.danger.country.bodyPh')} onChange={(e) => setBody(e.target.value)} />
+                <textarea className="pf-field" rows={8} maxLength={BODY_MAX} value={body} placeholder={s('pack.sos.danger.country.bodyPh')} onChange={(e) => setBody(e.target.value)} />
+                <CharCount len={body.length} max={BODY_MAX} />
               </label>
               <label className="sos-field">
                 <span>{s('pack.sos.danger.country.contact')}</span>
-                <input className="pf-field" maxLength={200} value={contact} autoComplete="email" onChange={(e) => setContact(e.target.value)} />
+                <input className="pf-field" maxLength={200} value={contact} autoComplete="email" inputMode="email" onChange={(e) => setContact(e.target.value)} />
               </label>
               {err && <p className="sos-err" role="alert">{err}</p>}
-              <button type="button" className="sos-cta" disabled={busy} onClick={() => void send()}>{s('pack.sos.danger.country.send')}</button>
+              <button type="button" className="sos-cta" disabled={busy || gate !== 'ok'} onClick={() => void send()}>{s('pack.sos.danger.country.send')}</button>
             </>
           )}
         </>

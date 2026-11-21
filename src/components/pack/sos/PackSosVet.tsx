@@ -13,7 +13,7 @@ import { useClinicStats } from '@/components/geo/clinicPosts';
 import { clinicPath } from '@/lib/clinics';
 import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { kmText, useBack, useSosT, type SosT } from './sosShared';
+import { kmText, useBack, useSosHome, useSosT, type SosT } from './sosShared';
 import { CITIES, VET_EMERGENCY, closesAt, distanceKm, isOpenAt, opensAt, telAt, vetNavUrl, type NavApp, type VetPlace } from '@/lib/vetEmergency';
 
 // Klinika bez vlastnej fotky: zjavne vymyslená kresba (Matej 5. 11. 2026, nákres plany/nakresy/nakres-klinika-placeholder-2026-11-05).
@@ -122,7 +122,7 @@ export default function PackSosVet() {
   const s = useSosT();
   const { lang } = useLang();
   const loc = intlLocale(lang);
-  const onBack = useBack('/pack');
+  const onBack = useBack(useSosHome());   // odhlásený sa nevracia na prihlásenie, ale do SOS rozcestníka
   const stats = useClinicStats(); // packy Dogypťanov: jedno volanie pre všetky karty
   const [gps, setGps] = useState<[number, number] | null>(null);
   // wait = čakáme na GPS · denied = zamietnuté (nepýtame sa znova) · fail = timeout / bez signálu (tlačidlo ostáva)
@@ -149,6 +149,11 @@ export default function PackSosVet() {
     () => (city ? CITIES.find((c) => c.name === city)?.at ?? null : gps),
     [gps, city],
   );
+  // Žiadna klinika zo zoznamu do 150 km (New York, Londýn, 6 572 km od pražskej mobilnej služby): nie „najbližšia“, ale veta a rada.
+  // Zoznam SK kliník ostáva pod tým zbalený. Nezávisí od otvorenia, meria sa najbližšia ktorákoľvek.
+  const noCover = useMemo(() => !!me && !VET_EMERGENCY.some((p) => distanceKm(me, p.at) <= OUT_KM), [me]);
+  const [showAll, setShowAll] = useState(false);
+  useEffect(() => { setShowAll(false); }, [me]);
   // Obrazovka môže ležať otvorená celú noc: hodiny sa prepočítajú aj bez ťuku.
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -171,15 +176,15 @@ export default function PackSosVet() {
   meRef.current = me;
   useEffect(() => {
     setDrive({}); setRank({}); asked.current = new Set();
-    if (!me) return;
+    if (!me || noCover) return;   // 6 000 km trasu nepýtame
     const near = VET_EMERGENCY
-      .filter((p) => vetNavUrl('google', p) !== null && !p.home)
+      .filter((p) => vetNavUrl('google', p) !== null && !p.home && distanceKm(me, p.at) <= OUT_KM)
       .sort((a, b) => Number(isOpenAt(b, new Date())) - Number(isOpenAt(a, new Date())) || distanceKm(me, a.at) - distanceKm(me, b.at))
       .slice(0, DRIVE_FIRST);
     near.forEach((p) => asked.current.add(p.id));
     void fetchDrive(me, near, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [me]);
+  }, [me, noCover]);
 
   const rows = useMemo(() => {
     const all = VET_EMERGENCY.map((p) => {
@@ -191,13 +196,11 @@ export default function PackSosVet() {
         : all;
     return picked.sort((a, b) => Number(!!a.p.clientsOnly) - Number(!!b.p.clientsOnly) || (rank[a.p.id] ?? Infinity) - (rank[b.p.id] ?? Infinity) || (a.km ?? 0) - (b.km ?? 0));
   }, [me, filter, now, rank]);
-  const on = rows.filter((r) => r.on);
-  const off = rows.filter((r) => !r.on);
-  // Mimo pokrytia: nič otvorené do 150 km (to zahŕňa aj polohu mimo SK a Prahy), nezávisle od filtra.
-  const outside = useMemo(() => {
-    if (!me) return false;
-    return !VET_EMERGENCY.some((p) => isOpenAt(p, now) && distanceKm(me, p.at) <= OUT_KM);
-  }, [me, now]);
+  // Kliniky ďalej než 150 km sa nikdy neukazujú ako „najbližšie“: ostávajú pod zbaleným prepínačom (bez polohy sa ukazuje všetko ako doteraz).
+  const near = rows.filter((r) => r.km === null || r.km <= OUT_KM);
+  const far = me ? rows.filter((r) => r.km !== null && r.km > OUT_KM) : [];
+  const on = near.filter((r) => r.on);
+  const off = near.filter((r) => !r.on);
 
   // Ostatné kliniky: čas sa zráta, až keď karta príde na obrazovku.
   const listRef = useRef<HTMLDivElement>(null);
@@ -299,18 +302,24 @@ export default function PackSosVet() {
       {!me && gpsState === 'wait' && <p className="vet-more">{s('pack.sos.er.locating')}</p>}
       {!me && gpsState === 'fail' && <p className="vet-more">{s('pack.sos.er.gpsFail')}</p>}
       {!me && gpsState !== 'wait' && <p className="vet-more">{s('pack.sos.er.pick')}</p>}
-      {outside && (
+      {noCover && me && (
         <>
-          <p className="vet-warn">{s('pack.sos.er.outside')}</p>
-          <a className="sos-cta" href={`https://mapy.com/en/zakladni?q=${encodeURIComponent('vet emergency')}&x=${me![1]}&y=${me![0]}&z=13`} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.searchMaps')}</a>
+          <p className="vet-warn">{s('pack.sos.er.noCover')}</p>
+          <p className="vet-more">{s('pack.sos.er.noCoverAdvice')}</p>
+          <a className="sos-cta" href={`https://mapy.com/en/zakladni?q=${encodeURIComponent(s('pack.sos.er.mapQuery'))}&x=${me[1]}&y=${me[0]}&z=13`} target="_blank" rel="noopener noreferrer">{s('pack.sos.er.mapSearch')}</a>
+          <a className="sos-cta sos-cta--red" href="tel:112">{s('pack.sos.hub.call112')}</a>
         </>
       )}
-      {!outside && filter !== 'home' && on[0] && on[0].km !== null && on[0].km > FAR_KM && <p className="vet-warn">{s('pack.sos.er.far', { km: on[0].km })}</p>}
+      {!noCover && filter !== 'home' && on[0] && on[0].km !== null && on[0].km > FAR_KM && <p className="vet-warn">{s('pack.sos.er.far', { km: on[0].km })}</p>}
       {filter === 'home' && me && rows.length === 0 && <p className="vet-warn">{s('pack.sos.er.noHome')}</p>}
       <div ref={listRef} style={{ display: 'contents' }}>
         {on.length > 0 && <div className="vet-list">{on.map((r) => row(r))}</div>}
         {off.length > 0 && <h2 className="vet-sec">{s('pack.sos.er.closed')}</h2>}
         {off.length > 0 && <div className="vet-list">{off.map((r) => row(r))}</div>}
+        {far.length > 0 && (
+          <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" aria-expanded={showAll} onClick={() => setShowAll((v) => !v)}>{s(showAll ? 'pack.sos.er.hideSk' : 'pack.sos.er.showSk')}</button>
+        )}
+        {showAll && far.length > 0 && <div className="vet-list">{far.map((r) => row(r))}</div>}
       </div>
       <p className="vet-src">{s('pack.sos.er.source')}</p>
     </SosTaskShell>

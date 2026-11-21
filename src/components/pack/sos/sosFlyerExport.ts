@@ -4,6 +4,7 @@
 //    (CORS ošetrené v `SosFlyer`), inak by canvas padol.
 import { uploadSosFlyer } from '@/services/cloudinaryService';
 import { shareFiles } from '@/lib/shareFile';
+import { brandFontEmbedCSS } from '@/lib/brandFontEmbed';
 
 export const FLYER_W = 2480;
 export const FLYER_H = 3508;
@@ -53,11 +54,13 @@ export async function flyerToPng(node: HTMLElement): Promise<Blob> {
   const flyer = node.querySelector<HTMLElement>('.sfl') ?? node;
   const h = Math.round((FLYER_CSS_W * 297) / 210);
   await Promise.all([...flyer.querySelectorAll('img')].map((i) => i.decode().catch(() => undefined)));
+  // Písma len z vlastného pôvodu (brand), nie Inter a JetBrains Mono z Google Fonts. Prázdne = predvolené správanie knižnice.
+  const fontEmbedCSS = await brandFontEmbedCSS(flyer);
   // 🔴 WebKit (iPhone) pri prvom kreslení obrázky do SVG často nedokreslí a leták vyjde bez fotky (test 4. 11. 2026).
   let blob: Blob | null = null;
   let drawn = false;
   for (let pokus = 0; pokus < 4 && !drawn; pokus++) {
-    blob = await toBlob(flyer, { pixelRatio: 2, width: FLYER_CSS_W, height: h, cacheBust: false, skipFonts: false });
+    blob = await toBlob(flyer, { pixelRatio: 2, width: FLYER_CSS_W, height: h, cacheBust: false, skipFonts: false, ...(fontEmbedCSS ? { fontEmbedCSS } : {}) });
     drawn = !!blob && await imagesDrawn(blob, flyer);
     if (!drawn) await new Promise((r) => setTimeout(r, 250));
   }

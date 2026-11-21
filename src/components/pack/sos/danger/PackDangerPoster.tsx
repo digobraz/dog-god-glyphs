@@ -3,7 +3,7 @@
 // Export: `nodeToPng` → PNG presne 1080×1920 / 1080×1350 → `shareFiles` (web stiahne, appka otvorí systémový hárok).
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { dangerCase, dangerUrl, type DangerCase } from '@/lib/danger';
+import { dangerCase, dangerNotFound, dangerUrl, isDangerUuid, type DangerCase } from '@/lib/danger';
 import { shareFiles } from '@/lib/shareFile';
 import { toast } from '@/hooks/use-toast';
 import { nodeToPng } from '../sosFlyerExport';
@@ -34,7 +34,9 @@ export default function PackDangerPoster() {
   useEffect(() => {
     let alive = true;
     setC(undefined); setFailed(false);
-    dangerCase(id).then((r) => alive && setC(r)).catch(() => { if (alive) { setC(null); setFailed(true); } });
+    // neplatné ID = „prípad neexistuje“, nie „bez pripojenia“
+    if (!isDangerUuid(id)) { setC(null); return; }
+    dangerCase(id).then((r) => alive && setC(r)).catch((e) => { if (alive) { setC(null); setFailed(!dangerNotFound(e)); } });
     return () => { alive = false; };
   }, [id, tick]);
   useEffect(() => { setReady(false); }, [fmt, c?.id]);
@@ -62,8 +64,8 @@ export default function PackDangerPoster() {
       {c === undefined && <p className="sos-p">{s('pack.sos.loading')}</p>}
       {c === null && (
         <SosCard>
-          <p className="sos-err">{failed ? s('pack.sos.offline') : s('pack.sos.danger.poster.loadErr')}</p>
-          <button type="button" className="sos-cta" onClick={() => setTick((n) => n + 1)}>{s('pack.sos.retry')}</button>
+          <p className="sos-err">{failed ? s('pack.sos.offline') : s('pack.sos.danger.case.missing')}</p>
+          {failed && <button type="button" className="sos-cta" onClick={() => setTick((n) => n + 1)}>{s('pack.sos.retry')}</button>}
         </SosCard>
       )}
       {c && waiting && <SosCard><p className="sos-p">{s('pack.sos.danger.poster.pending')}</p></SosCard>}

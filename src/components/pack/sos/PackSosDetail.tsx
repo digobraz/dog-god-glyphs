@@ -24,6 +24,7 @@ import type { SosKey } from './sosTexts';
 import { AskPopup, CallPopup, SeenPopup, copyLostLink } from './sosActions';
 import { ClosePopup, GonePopup, SosNumbers, type GoneStep } from './sosClose';
 import { readSosMilestone, writeSosMilestone } from './sosDiary';
+import { SosPhotoNone } from './sosNoPhoto';
 import { SosCard, SosStyles, colorWord, useBreedLabel, sosErrCode, sosPath, useBack, useSosCount, useSosLost, useSosT, useWhen, type SosT } from './sosShared';
 
 const TL: Record<string, string> = { green: 'Mastered', amber: 'Depends', red: 'Still learning' };
@@ -157,7 +158,7 @@ export default function PackSosDetail() {
   // Papyrus 3D (J4): fotka a pás STRATIL SA tvoria jeden blok hore, meno hneď pod ním (hárok), pod APP_NEW.
   const photoEl = pub.photo
     ? <img className="sos-photo" src={sizedUrl(pub.photo, 900)} alt={pub.dog_name} />
-    : <div className="sos-photo sos-photo--none" />;
+    : <SosPhotoNone breed={pub.breed} />;   // pes bez fotky: silueta patróna / pečať, nie prázdny blok
   const nameEl = (
     <>
       <h1 className="sos-dogname">{pub.dog_name}</h1>
@@ -275,7 +276,7 @@ export default function PackSosDetail() {
 
         {!finished && <Facts pub={pub} s={s} when={when} t={t} />}
 
-        {own && mine && !finished && <OwnerBlock mine={mine} s={s} when={when} navigate={navigate} />}
+        {own && mine && !finished && <OwnerBlock mine={mine} s={s} when={when} navigate={navigate} count={count} />}
       </div>
 
       {pop === 'call' && <CallPopup slug={pub.slug} name={pub.dog_name} s={s} onClose={() => setPop(null)} />}
@@ -316,7 +317,7 @@ function diaryFoundText(s: SosT, count: ReturnType<typeof useSosCount>, name: st
 }
 
 /** Len pre majiteľa: SOS plán, „takto to vidí nálezca“, videnia, počty. */
-function OwnerBlock({ mine, s, when, navigate }: { mine: SosMine; s: SosT; when: (i: string) => string; navigate: (p: string) => void }) {
+function OwnerBlock({ mine, s, when, navigate, count }: { mine: SosMine; s: SosT; when: (i: string) => string; navigate: (p: string) => void; count: ReturnType<typeof useSosCount> }) {
   return (
     <>
       <p className="sos-eyebrow">{s('pack.sos.det.next')}</p>
@@ -325,7 +326,7 @@ function OwnerBlock({ mine, s, when, navigate }: { mine: SosMine; s: SosT; when:
           <span className="grow"><b>{s('pack.sos.det.finderView')}</b><small>{lostUrl(mine.slug).replace(/^https?:\/\//, '')}</small></span>
         </Link>
       </div>
-      <p className="sos-small">{s('pack.sos.det.stats', { shares: mine.shares, calls: mine.phone_reveals })}</p>
+      <p className="sos-small">{s('pack.sos.det.stats', { shares: count.shares(mine.shares), views: count.views(mine.phone_reveals) })}</p>
       <p className="sos-eyebrow">{s('pack.sos.det.sightings')}</p>
       {mine.sightings.length === 0 ? <p className="sos-p">{s('pack.sos.det.noSightings')}</p> : (
         <div className="sos-stack" style={{ gap: 8 }}>

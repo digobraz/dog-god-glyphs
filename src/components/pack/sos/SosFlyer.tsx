@@ -12,7 +12,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { withTransform } from '@/services/cloudinaryService';
 import { lostUrl, type SosFlyer as FlyerFields } from '@/lib/sos';
-import breedsData from '@/data/breeds.json';
+import { patronFor } from './sosNoPhoto';
 import { RoundQR } from '@/components/pack/dogs/RoundQR';
 import { PACK_THEME as T } from '@/components/pack/packTheme';
 import { colorWord, useBreedLabel, useSosT, useWhen, type SosT } from './sosShared';
@@ -34,14 +34,6 @@ export interface FlyerData {
   phone: string;
   flyer: FlyerFields;
 }
-
-/** Silueta patróna z plemena (`breeds.json` → `public/patrons/<kat>-<nn>.svg`); kríženec / neznáme plemeno = null. */
-const patronFor = (breed: string | null): string | null => {
-  const first = (breed ?? '').split(',')[0].trim().toLowerCase();
-  if (!first) return null;
-  const hit = (breedsData as { breeds: Array<{ en: string; patron?: string }> }).breeds.find((b) => b.en.trim().toLowerCase() === first);
-  return hit?.patron ? `/patrons/${hit.patron}.svg` : null;
-};
 
 export const MAP_ZOOM = 15;
 const MAP_PX = 600;

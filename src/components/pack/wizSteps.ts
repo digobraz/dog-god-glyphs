@@ -121,6 +121,7 @@ export const WIZ_SCREENS: WizScreen[] = [
   { key: 'dogCardPage', routes: ['/pack/dogs/:id/karticka'], basket: 2, status: 'nie', why: 'kartička psa — čítanie a tlač, nič na vysvetlenie', steps: [] },
   { key: 'profileEdit', routes: ['/pack/profile/edit'], basket: 3, status: 'nie', why: 'úloha — editor profilu, pokyn nesie formulár', steps: [] },
   { key: 'sosAid', routes: ['/pack/sos/prva-pomoc', '/pack/sos/prva-pomoc/:id'], basket: 2, status: 'nie', why: 'prvá pomoc — v núdzi sa nič nevysvetľuje, kroky nesie obrazovka', steps: [] },
+  { key: 'sosHub', routes: ['/pack/sos'], basket: 3, status: 'nie', why: 'SOS rozcestník pre odhláseného — v núdzi sa nič nevysvetľuje, len čo smie (prvá pomoc, pohotovosť, 112)', steps: [] },
   { key: 'sosCard', routes: ['/pack/sos/karticka'], basket: 2, status: 'nie', why: 'kartička pre núdzu — čítanie, nič na vysvetlenie', steps: [] },
   { key: 'danger', routes: ['/pack/sos/nebezpecenstvo', '/pack/sos/nebezpecenstvo/tyranie', '/pack/sos/nebezpecenstvo/tyranie/miesto', '/pack/sos/nebezpecenstvo/otrava', '/pack/sos/nebezpecenstvo/priroda', '/pack/sos/nebezpecenstvo/podnet', '/pack/sos/nebezpecenstvo/krajina', '/pack/sos/nebezpecenstvo/p/:id/plagat', '/pack/sos/tyranie'], basket: 3, status: 'nie', why: 'úloha v núdzi — nahlásenie nebezpečenstva, pokyn nesie formulár', steps: [] },
   { key: 'dangerCase', routes: ['/pack/sos/nebezpecenstvo/p/:id'], basket: 2, status: 'nie', why: 'detail nahláseného nebezpečenstva — čítanie, svedok, komentár; nič na vysvetlenie', steps: [] },
