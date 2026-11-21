@@ -6,7 +6,16 @@ const PlaySvg = () => <svg viewBox="0 0 24 24"><path d="M3.6 1.8 13.5 12l-9.9 10
 const STORE_IOS = '#';
 const STORE_PLAY = '#';
 
-export function Stores() {
+/** `soon` = popis „čoskoro“: kým odkaz do obchodu neexistuje, odznak je obrázok, nie odkaz (Matej 20. 11.: „neklikacie ikonky“). */
+export function Stores({ soon }: { soon?: string }) {
+  const off = !!soon && STORE_IOS === '#' && STORE_PLAY === '#';
+  if (off) return (
+    <div className="stores off">
+      <span className="store"><AppleSvg /><span><small>Download on the</small><b>App Store</b></span></span>
+      <span className="store"><PlaySvg /><span><small>GET IT ON</small><b>Google Play</b></span></span>
+      <em>{soon}</em>
+    </div>
+  );
   return (
     <div className="stores">
       <a className="store" href={STORE_IOS}><AppleSvg /><span><small>Download on the</small><b>App Store</b></span></a>

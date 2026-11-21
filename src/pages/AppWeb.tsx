@@ -32,6 +32,7 @@ import { getPackStats } from '@/lib/sharedFetch';
 import { flagUrl } from '@/lib/flagUrl';
 import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
+import { CLAIM } from './appWeb/claim';
 import { WEB_LANGS, loadLang } from './appWeb/langs';
 import { intlLocale } from '@/i18n/bcp47';
 import { IgMock, IgIcon } from './appWeb/IgMock';
@@ -338,7 +339,10 @@ export default function AppWeb() {
   /* ostatných 16 jazykov: slovník sa stiahne až pri prepnutí; kým nepríde (a pri chýbajúcom kľúči), ide EN */
   const [X, setX] = useState<Record<string, string> | null>(null);
   useEffect(() => { let on = true; setX(null); loadLang(lang).then((d) => { if (on) setX(d); }); return () => { on = false; }; }, [lang]);
-  const c = (k: string) => X?.[k] ?? COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
+  /* CLAIM 2 (Matej 21. 11.) — nový hlavný claim, texty a poradie slajdov. Zatiaľ LEN za `?claim`; na LIVE až po jeho „ok“
+     (vtedy V2 = true a staré vetvy preč). Texty `appWeb/claim.ts` prebíjajú všetky jazyky. */
+  const V2 = useMemo(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('claim'), []);
+  const c = (k: string) => (V2 && CLAIM[k] ? CLAIM[k][lang] ?? CLAIM[k].en : undefined) ?? X?.[k] ?? COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
   const loc = intlLocale(lang);
   const [langOpen, setLangOpen] = useState(false);
   useEffect(() => { if (!langOpen) return; const off = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest('.lang-wrap')) setLangOpen(false); }; document.addEventListener('pointerdown', off); return () => document.removeEventListener('pointerdown', off); }, [langOpen]);
@@ -523,97 +527,14 @@ export default function AppWeb() {
     return () => { idle.disconnect(); mid.disconnect(); };
   }, []);
 
-  return (
-    <div className="aw" data-bg={bg} data-pz="0" ref={rootRef}>
-      <Seo path="/" title={`DOGYPT · ${c('seo_t')}`} description={c('sub')} />
-      <style>{STAGE_CSS}</style>
-      <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /><i className="pearl p1" /><i className="pearl p2" /></div>
-
-      <header className={`top${stuck ? ' stuck' : ''}${darkHead ? ' dark' : ''}${onPlanet ? ' away' : ''}`}>
-        <div className="wrap">
-          <a className="logo" href="#" aria-label="DOGYPT"><img src="/web-app/logo-napis.webp" alt="DOGYPT" /></a>
-          <nav>
-            <a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/story">{c('nav5')}</a>
-          </nav>
-          <div className="lang-wrap">
-            <button className="lang" aria-expanded={langOpen} onClick={() => setLangOpen(!langOpen)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.code.slice(0, 2).toUpperCase()}</button>
-            {langOpen && (
-              <div className="lang-pop" onClick={() => setLangOpen(false)}>
-                {WEB_LANGS.map((x) => <button key={x.code} className={x.code === lang ? 'on' : ''} onClick={() => setLang(x.code)}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}
-              </div>
-            )}
-          </div>
-          {/* planétka (ikonka VON z appky) = verejná mapa výletov bez registrácie, nová karta; ZA tlačidlom, len veľká ikonka bez rámu, vzor MysteryHike (Matej 11. 11.) */}
-          {/* FLIP 17. 11. (Matej): najprv heroflow, až potom appka — jedno CTA všade. */}
-          <a className="pk-cta" href={START}>{c('start')}</a>
-          <a className="trips-btn" href="/map" target="_blank" rel="noopener" aria-label={c('nav_trips')} title={c('nav_trips')}><img src="/icons/sys/von.webp" alt="" /></a>
-          {/* mobil: hamburger — sekcie, jazyky, GET THE APP (Matej 6. 11., vzor MysteryHike) */}
-          <button className={`burger${menu ? ' on' : ''}`} aria-label={c('menu')} aria-expanded={menu} onClick={() => setMenu(!menu)}><i /><i /><i /></button>
-        </div>
-        {menu && (
-          <div className="mmenu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); }}>
-            <nav><a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/story">{c('nav5')}</a></nav>
-            {/* jazyk = JEDEN riadok s aktuálnym, zoznam až po ťuknutí (Matej 17. 11.) */}
-            <button className={`mm-cur${mmLang ? ' on' : ''}`} aria-expanded={mmLang} onClick={() => setMmLang(!mmLang)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.name}<i aria-hidden /></button>
-            {mmLang && <div className="mm-lang">{WEB_LANGS.filter((x) => x.code !== lang).map((x) => <button key={x.code} onClick={() => { setLang(x.code); setMmLang(false); setMenu(false); }}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}</div>}
-            <a className="pk-cta" href={START}>{c('start')}</a>
-            <a className="mm-login" href="/login">{c('have_acc')} <b>{c('login')}</b></a>
-          </div>
-        )}
-      </header>
-
-      {/* 1 · HERO */}
-      <section className="hero">
-        <div className="wrap">
-          <div className="hero-txt">
-            <p className="eye">{c('e_life2')}</p>
-            {/* DOMINANTA: tri riadky, čo najväčšie písmo — veľkosť z najdlhšieho riadka (Matej 6. 11.: „čo najväčší text
-                na dva riadky resp. aj na 3: play the · life with · your dog“). Zlaté slovo psa ostáva na krivo. */}
-            <h1 style={{ ['--hc' as string]: Math.max(wlen(c('h1a')), wlen(c('h1b')), (c('h1y') ? wlen(c('h1y')) + 1 : 0) + wlen(c('h1c'))) } as CSSProperties}>
-              <span className="l1">{c('h1a')}</span>
-              <span className="l1">{c('h1b')}</span>
-              <span className="l1">{c('h1y') && <>{c('h1y')} </>}<span className="deco big">{c('h1c')}</span></span>
-            </h1>
-            <p className="lead">{c('sub')}</p>
-            <div className="hero-go">
-              <a className="pk-cta" href={START}>{c('start')}</a>
-              <a className="hero-login" href="/login">{c('have_acc')} <b>{c('login')}</b></a>
-            </div>
-            <div className="proof">
-              <div><b><Counter to={dogs} run={proofRun} /></b><span>{c('p1')}</span></div>
-              <div><b>{stats?.people ? <Counter to={stats.people} run={proofRun} /> : '—'}</b><span>{c('p2')}</span></div>
-              <div><b><Counter to={stats?.countries || 8} run={proofRun} /></b><span>{c('p3')}</span></div>
-            </div>
-          </div>
-          <div
-            className="car"
-            onMouseEnter={() => { hov.current = true; }}
-            onMouseLeave={() => { hov.current = false; }}
-            onTouchStart={(e) => { sx.current = e.touches[0].clientX; }}
-            onTouchEnd={(e) => {
-              if (sx.current == null) return;
-              const dx = e.changedTouches[0].clientX - sx.current;
-              if (Math.abs(dx) > 40) setCi((i) => (i + (dx < 0 ? 1 : -1) + CAROUSEL.length) % CAROUSEL.length);
-              sx.current = null;
-            }}
-          >
-            {CAROUSEL.map(([set, src], i) => (
-              <Tilt key={set} set={set} src={src} className={`ph ${pos(i)}`} onOpen={() => setCi(i)} />
-            ))}
-            <span className={`flt f1${tipOn === 1 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 1 ? 0 : 1); }}><img className="xl" src={`${A}/odznaky/pilgrim-1.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
-            <span className={`flt f2${tipOn === 2 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 2 ? 0 : 2); }}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
-            <span className={`flt f3${tipOn === 3 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 3 ? 0 : 3); }}><img className="xl" src={`${A}/odznaky/ucen-1.webp`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
-          </div>
-        </div>
-      </section>
-
+  const secLife = (<>
       {/* 2 · ŽI PSÍ ŽIVOT */}
       <section id="life" className="life">
         <div className="wrap split">
           <Rv className="fresco"><img src={`${A}/vyjavy/zivot-hrou.webp`} alt="" loading="lazy" /></Rv>
           <Rv d={1} className="life-txt">
             <p className="eye">{c('e_life3')}</p>
-            <h2><span className="l1">{c('h_life2a')}</span><span className="l1"><span className="deco big">{c('h_life2b')}</span></span></h2>
+            <h2 className={V2 ? 'v2' : undefined}><span className="l1">{c('h_life2a')}</span><span className="l1"><span className="deco big">{c('h_life2b')}</span></span>{V2 && <span className="l3">{c('h_life2c')}</span>}</h2>
             <p className="lead">{c('l_life2')}</p>
             <div className="verbs">
               {VERBS.map((n, i) => (
@@ -629,7 +550,8 @@ export default function AppWeb() {
           </Rv>
         </div>
       </section>
-
+  </>);
+  const secIg = (<>
       {/* 3 · PRE PSOV, S DUŠOU */}
       <section>
         <div className="wrap">
@@ -661,7 +583,8 @@ export default function AppWeb() {
           </Rv>
         </div>
       </section>
-
+  </>);
+  const secFeat = (<>
       {/* 4 · FUNKCIE */}
       <section id="features">
         <div className="wrap">
@@ -716,6 +639,111 @@ export default function AppWeb() {
           {nakres && <p style={{ textAlign: 'center', marginTop: 16 }}><Note k="n_ikony" flag /></p>}
         </div>
       </section>
+  </>);
+
+  return (
+    <div className="aw" data-bg={bg} data-pz="0" ref={rootRef}>
+      <Seo path="/" title={`DOGYPT · ${c('seo_t')}`} description={c('sub')} />
+      <style>{STAGE_CSS}</style>
+      <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /><i className="pearl p1" /><i className="pearl p2" /></div>
+
+      <header className={`top${stuck ? ' stuck' : ''}${darkHead ? ' dark' : ''}${onPlanet ? ' away' : ''}`}>
+        <div className="wrap">
+          <a className="logo" href="#" aria-label="DOGYPT"><img src="/web-app/logo-napis.webp" alt="DOGYPT" /></a>
+          <nav>
+            <a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/story">{c('nav5')}</a>
+          </nav>
+          <div className="lang-wrap">
+            <button className="lang" aria-expanded={langOpen} onClick={() => setLangOpen(!langOpen)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.code.slice(0, 2).toUpperCase()}</button>
+            {langOpen && (
+              <div className="lang-pop" onClick={() => setLangOpen(false)}>
+                {WEB_LANGS.map((x) => <button key={x.code} className={x.code === lang ? 'on' : ''} onClick={() => setLang(x.code)}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}
+              </div>
+            )}
+          </div>
+          {/* planétka (ikonka VON z appky) = verejná mapa výletov bez registrácie, nová karta; ZA tlačidlom, len veľká ikonka bez rámu, vzor MysteryHike (Matej 11. 11.) */}
+          {/* FLIP 17. 11. (Matej): najprv heroflow, až potom appka — jedno CTA všade. */}
+          {/* prihlásenie patrí do hlavičky, nie pod CTA v hero (Matej 21. 11.: „vadí mi to tam“); mobil ho má v menu */}
+          {V2 && <a className="top-login" href="/login">{c('login')}</a>}
+          {/* úzka hlavička: krátky popis, inak dlhšie CTA vytlačí hamburger za okraj */}
+          <a className="pk-cta" href={START}>{V2 ? <><span className="cta-lg">{c('start')}</span><span className="cta-sm">{c('start_s')}</span></> : c('start')}</a>
+          <a className="trips-btn" href="/map" target="_blank" rel="noopener" aria-label={c('nav_trips')} title={c('nav_trips')}><img src="/icons/sys/von.webp" alt="" /></a>
+          {/* mobil: hamburger — sekcie, jazyky, GET THE APP (Matej 6. 11., vzor MysteryHike) */}
+          <button className={`burger${menu ? ' on' : ''}`} aria-label={c('menu')} aria-expanded={menu} onClick={() => setMenu(!menu)}><i /><i /><i /></button>
+        </div>
+        {menu && (
+          <div className="mmenu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); }}>
+            <nav><a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/story">{c('nav5')}</a></nav>
+            {/* jazyk = JEDEN riadok s aktuálnym, zoznam až po ťuknutí (Matej 17. 11.) */}
+            <button className={`mm-cur${mmLang ? ' on' : ''}`} aria-expanded={mmLang} onClick={() => setMmLang(!mmLang)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.name}<i aria-hidden /></button>
+            {mmLang && <div className="mm-lang">{WEB_LANGS.filter((x) => x.code !== lang).map((x) => <button key={x.code} onClick={() => { setLang(x.code); setMmLang(false); setMenu(false); }}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}</div>}
+            <a className="pk-cta" href={START}>{c('start')}</a>
+            <a className="mm-login" href="/login">{c('have_acc')} <b>{c('login')}</b></a>
+          </div>
+        )}
+      </header>
+
+      {/* 1 · HERO */}
+      <section className={`hero${V2 ? ' v2' : ''}`}>
+        <div className="wrap">
+          <div className="hero-txt">
+            <p className="eye">{c('e_life2')}</p>
+            {/* DOMINANTA: tri riadky, čo najväčšie písmo — veľkosť z najdlhšieho riadka (Matej 6. 11.: „čo najväčší text
+                na dva riadky resp. aj na 3: play the · life with · your dog“). Zlaté slovo psa ostáva na krivo. */}
+            <h1 style={{ ['--hc' as string]: Math.max(wlen(c('h1a')), wlen(c('h1b')), (c('h1y') ? wlen(c('h1y')) + 1 : 0) + wlen(c('h1c')) * (V2 ? 1.18 : 1)) } as CSSProperties}>
+              <span className="l1">{c('h1a')}</span>
+              <span className="l1">{c('h1b')}</span>
+              <span className="l1">{c('h1y') && <>{c('h1y')} </>}<span className="deco big">{c('h1c')}</span></span>
+            </h1>
+            <p className="lead">{c('sub')}</p>
+            {V2 ? (
+              /* CTA + cieľ pod ním NA ŠÍRKU TLAČIDLA (Matej 21. 11.: „progresbar pod CTA a na šírku tlačidla, nech to vyzerá súmerne“);
+                 odznaky obchodov sú neklikacie, kým appka nie je vonku */
+              <div className="hero-go v2">
+                <div className="goal-w">
+                  <a className="pk-cta" href={START}>{c('start')}</a>
+                  <div className="pk-progress"><div className="pk-progress__fill" style={{ width: `${Math.max(3, dogs / 10000)}%` }} /></div>
+                  <p className="goal-t">{c('goal')} <b><Counter to={dogs} run={proofRun} /></b> / {(1000000).toLocaleString(loc)} {c('p1')}</p>
+                </div>
+                <Stores soon={c('soon')} />
+              </div>
+            ) : (<>
+            <div className="hero-go">
+              <a className="pk-cta" href={START}>{c('start')}</a>
+              <a className="hero-login" href="/login">{c('have_acc')} <b>{c('login')}</b></a>
+            </div>
+            <div className="proof">
+              <div><b><Counter to={dogs} run={proofRun} /></b><span>{c('p1')}</span></div>
+              <div><b>{stats?.people ? <Counter to={stats.people} run={proofRun} /> : '—'}</b><span>{c('p2')}</span></div>
+              <div><b><Counter to={stats?.countries || 8} run={proofRun} /></b><span>{c('p3')}</span></div>
+            </div>
+            </>)}
+          </div>
+          <div
+            className="car"
+            onMouseEnter={() => { hov.current = true; }}
+            onMouseLeave={() => { hov.current = false; }}
+            onTouchStart={(e) => { sx.current = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              if (sx.current == null) return;
+              const dx = e.changedTouches[0].clientX - sx.current;
+              if (Math.abs(dx) > 40) setCi((i) => (i + (dx < 0 ? 1 : -1) + CAROUSEL.length) % CAROUSEL.length);
+              sx.current = null;
+            }}
+          >
+            {CAROUSEL.map(([set, src], i) => (
+              <Tilt key={set} set={set} src={src} className={`ph ${pos(i)}`} onOpen={() => setCi(i)} />
+            ))}
+            <span className={`flt f1${tipOn === 1 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 1 ? 0 : 1); }}><img className="xl" src={`${A}/odznaky/pilgrim-1.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
+            <span className={`flt f2${tipOn === 2 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 2 ? 0 : 2); }}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
+            <span className={`flt f3${tipOn === 3 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 3 ? 0 : 3); }}><img className="xl" src={`${A}/odznaky/ucen-1.webp`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
+          </div>
+        </div>
+      </section>
+
+      {/* PORADIE SLAJDOV — CLAIM 2: úžitok (funkcie) hneď za hero, hra až po ňom, Instagram za AINUBISOM.
+          Sekcie sú konštanty nad `return`, aby sa dali preskladať bez kópie. */}
+      {V2 ? <>{secFeat}{secLife}</> : <>{secLife}{secIg}{secFeat}</>}
 
       {/* 5b · VÝLETY — pilotná funkcia (nákres 7. 11.): tri kroky v telefóne, vysvedčenie = TRIPSTATS, CTA na verejnú /map */}
       <TripsSection c={c} />
@@ -789,6 +817,8 @@ export default function AppWeb() {
         </div>
 
       </section>
+
+      {V2 && secIg}
 
       {/* 5 · ONLINE HRA, KTORÁ POMÁHA OFFLINE — tri levely pre vlastného psa a hneď pod nimi Dogypťan pre ostatných,
           po ňom už len FAQ a planétka (Matej 10. 11.). Rozpad vstupného zatiaľ nie: „zatiaľ nedávajme žiadne delenie“. */}
