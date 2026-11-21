@@ -4267,7 +4267,9 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           ref={appRef}
           role="application"
           className={revealData.active && revealStep < 4 ? `rev-wall${revZoomOn ? ' rev-zoom' : ''}` : undefined}
-          style={{ position: 'fixed', inset: 0, overflow: 'hidden', transform: revZoomOn ? `scale(${revZoomScale})` : undefined }}
+          // CLAIM 2: na webe má guľa PRIEHĽADNÉ pozadie, takže stena postavená vopred pod ňou presvitala a prehliadač
+          // kreslil obe naraz (Matej 21. 11., snímka: „stále to seká… nefunguje ako má“). Kým je guľa otvorená, stena je skrytá.
+          style={{ position: 'fixed', inset: 0, overflow: 'hidden', transform: revZoomOn ? `scale(${revZoomScale})` : undefined, visibility: v2 && planetOpen ? 'hidden' : undefined }}
         >
           <div ref={canvasRef} id="gods-canvas" />
         </div>
