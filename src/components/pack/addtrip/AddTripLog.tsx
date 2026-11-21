@@ -67,7 +67,7 @@ import { TripGradeCard } from './TripGradeCard';
 import { gradeFromInputs, type GradePoint, descOk, DESC_MIN_CHARS } from '@/lib/tripGrade';
 import { CROWDS, CROWD_EMOJI, type Crowd } from '@/components/pack/packCommunity';
 import { MARK_EMOJI, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
-import { POINTS, NOTE_POINTS_TRIP_CAP } from '@/lib/tripPoints';
+import { NOTE_POINTS_TRIP_CAP } from '@/lib/tripPoints';
 import { GROUP_KINDS, groupOf, type NoteGroup, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
 import { GROUP_TINT, HAZARD_RED } from '@/components/pack/mapnotes/NotePalette';
 import { KindGrid } from '@/components/pack/mapnotes/KindGrid';
@@ -750,11 +750,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    * krok 1 a človek kreslí trasu, ktorú už má.
    */
   const [step, setStep] = useState(1);
-  /**
-   * Krok 2 sa pýta TRI otázky za sebou (parkovisko → nebezpečenstvo → tip), každá
-   * preskočiteľná. `noteAsk` je index do `NOTE_ASKS`; keď prejde za koniec, krok je hotový.
-   */
-  const [noteAsk, setNoteAsk] = useState(0);
 
   // ── polia formulára (kroky 3–5) ───────────────────────────────────────────────────────────
   const [name, setName] = useState('');
@@ -876,7 +871,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     // ⚠️ LEN ZÁPIS. Plán aktivity sa kreslí ako doteraz — chip je spomienka na to, čo sa
     //    STALO, a na výlete o mesiac ju nikto nemá (Matej 1. 9. 2026: plán aktivite ostáva).
     setStep(CHIP_FIRST.includes(id) && mode !== 'planned' ? 7 : 1);
-    setNoteAsk(0);
     setExistingTripId(undefined);
     setDrawManually(false);
     setJourneyFilter('');
@@ -1831,7 +1825,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     }
     if (p === 'desc') { setPhotoCard(false); setStep(5); return; }
     if (p === 'route') { setStep(1); return; }
-    setNoteAsk(p === 'parking' ? 0 : 1);
     setStep(2);
   };
   const finalApproval: ApprovalStatus = missing.toApprove.length === 0 ? 'pending' : 'draft';
@@ -2116,11 +2109,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   // parkoval; bolo na trase nebezpečenstvo? tajné miesto, tip?" Tri otázky, každá
   // preskočiteľná. Existujúci systém zápisov sa len VYVOLÁ — nič nové sa nestavia.
   const NOTE_EMOJI: Partial<Record<NoteGroup, string>> = { parking: '🅿️', warning: '⚠️', comment: '🐶' };
-  const NOTE_ASKS: Array<{ group: NoteGroup; qKey: string; ctaKey: string }> = [
-    { group: 'parking', qKey: 'pack.addTrip.step.askParking', ctaKey: 'pack.addTrip.step.markParking' },
-    { group: 'warning', qKey: 'pack.addTrip.step.askWarning', ctaKey: 'pack.addTrip.step.markWarning' },
-    { group: 'comment', qKey: 'pack.addTrip.step.askTip', ctaKey: 'pack.addTrip.step.markTip' },
-  ];
+  const NOTE_GROUPS_ORDER: NoteGroup[] = ['parking', 'warning', 'comment'];
   /**
    * ── VIACERO ZNAČIEK ZA SEBOU (Matej 2026-08-27) ──────────────────────────────────────────
    *
@@ -2139,12 +2128,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    * tlačidlo „pokračovať" cez celý krok).
    */
   const placedCount = placedNotes?.length ?? 0;
-  /** koľko značiek už leží v PRÁVE otvorenej otázke — z toho sa mení text vedľajšieho tlačidla */
-  const placedInGroup = (g: NoteGroup): number =>
-    (placedNotes ?? []).filter((n) => groupOf(n.kind as NoteKind) === g).length;
-  /** Ako `placedInGroup`, ale aj so značkami, ktoré k upravovanému výletu patria už predtým. */
-  const haveInGroup = (g: NoteGroup): number =>
-    placedInGroup(g) + (existingNotes ?? []).filter((n) => groupOf(n.kind as NoteKind) === g).length;
 
   /**
    * ── KROK SA OTVÁRAL V STAVE, KTORÝ SI SÁM ZAKAZOVAL (Matej 2026-08-27, oprava 28. 8.) ──
@@ -2238,8 +2221,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   // deväť druhov hrozby sa vynorilo až v paneli PO umiestnení bodu.
   // Platí len pre skupiny, kde je naozaj z čoho vyberať — parkovisko a tip majú jeden druh,
   // takže mriežka s jednou dlaždicou by bola ozdoba a nie voľba.
-  const askGroup = NOTE_ASKS[Math.min(noteAsk, NOTE_ASKS.length - 1)].group;
-  const askKinds = GROUP_KINDS[askGroup];
 
   /**
    * ── RÁMOVANIE OBOCH MAPOVÝCH KROKOV MÁ JEDNÉHO VLASTNÍKA ──────────────────────────────
@@ -2260,175 +2241,48 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    * a práve to vyzeralo, že mapa „ujde" sama od seba.
    */
   /**
-   * ⚠️ DLAŽDICA HROZBY UŽ NIE JE VÝBER, JE TO AKCIA — a preto sa ani nezvýrazňuje
-   * (2026-08-28). Odkedy ťuk do nej rovno spúšťa označovanie (`startPlacing`), nemá čo držať
-   * „vybratý druh": stav toho, čo sa práve zapichuje, žije počas označovania v `placingKind`
-   * v PackMap a panel je v tej chvíli skrytý. Zvýraznenie z panela sa s ním rozchádzalo —
-   * kto si druh prepol v lište nad mapou, našiel po návrate podsvietený ten predošlý.
-   * Rad hrozieb sa tak číta rovnako ako chipy nad ním: ponuka úkonov, nie prepínač.
+   * ── KROK 2 = JEDEN PANEL, TRI RÔZNE TLAČIDLÁ (Matej 21. 11. 2026) ─────────────────────
+   * „vadí mi to pridávanie upozornení, musíme to zjednodušiť, lebo sám neviem, čo mám robiť,
+   *  a to som to postavil". Zanikli tri otázky po sebe (P → N → T), stopa pilulák modrá /
+   *  červená / zelená aj body `+3` v tomto kroku — body ostávajú len v rozpise odmeny na konci.
+   *
+   * Otázka je jedna („Čo má vedieť ďalší?"), odpoveď sú tri rovnocenné tlačidlá. Ťuk = rovno
+   * označovanie na mape (`startPlacing`). Druh nebezpečenstva sa vyberá AŽ po zapichnutí
+   * (formulár značky ho ponúka a predvolené je všeobecné ⚠️ `hazard`); parkovisko a tip majú
+   * jeden druh. Ľubovoľný počet značiek, žiadne poradie. ĎALEJ je vždy aktívne — bez značiek
+   * znamená „nič na hlásenie".
    */
-  // ── KOĽKO ICH JE A KDE STOJÍM (Matej 2026-08-24) ──────────────────────────────────────
-  // „v 2. kroku je to chaoticky, musí tam byť jasný postup P-N-T (parkovisko, nebezpečenstvo,
-  //  tip), aby človek mal prehľad čo pridáva, lebo som sa tam zamotal."
-  //
-  // Otázky sa striedali jedna po druhej a nikde nebolo vidno, že sú TRI ani ktorá je na rade.
-  // Krok tak vyzeral ako nekonečná rada otázok — človek nevedel, či odpovedaním niečo končí,
-  // alebo len otvára ďalšiu.
-  // ⚠️ Nie sú to bodky 1–5 zhora. Tie hovoria, v ktorom kroku sprievodcu človek stojí; toto
-  // hovorí, kde stojí VNÚTRI kroku 2. Preto iný tvar (písmeno + názov, nie číslo v krúžku) —
-  // dva rovnaké prúžky nad sebou by si konkurovali.
-  /**
-   * ── ZELENÁ = HOTOVO A ZAPLATENÉ, ČERVENÁ = PREJDENÉ NAPRÁZDNO (Matej 2026-08-24) ──────
-   *
-   * „po označení parkoviska, upozornenia a tipu si predstavujem, že tie označené a hotovo,
-   *  tak treba tie pils vyfarbiť na zeleno, aby bolo jasné, že to je OK hotovo, a možno dať
-   *  do malého chipu aj +3 body; a ak nebude vyplnené, tak na červeno a 0 bodov."
-   *
-   * Do teraz sa pilulka zlatila podľa toho, či otázka UŽ BOLA na rade — teda podľa postupu,
-   * nie podľa výsledku. Preskočené parkovisko vyzeralo presne ako označené a človek sa
-   * o rozdiele dozvedel až v kroku 4.
-   *
-   * ⚠️ STAV SA ČÍTA ZO ZNAČIEK, NIE Z `noteAsk`. Kto sa vráti na už zodpovedanú otázku a
-   * značku pridá (alebo ju zmaže z chipu nižšie), musí vidieť zmenu okamžite.
-   *
-   * ── TRI FARBY, ŽIADNA NEUTRÁLNA (Matej 2026-08-26, druhé kolo) ─────────────────────────
-   * „2. krok všetky nevyplnené chipy budú modré alebo červené alebo zelené — výber modré,
-   *  červené neoznačené a zelené hotové."
-   *
-   * ⚠️ TOTO RUŠÍ PRAVIDLO Z 24. 8., KTORÉ TU STÁLO: „nedotknutá (ešte pred ňou) je neutrálna
-   * — červená by človeku vyčítala, že neurobil niečo, k čomu sa ešte nedostal." Matej to
-   * prebil výslovne a dôvod sedí: neutrálna a splnená sa na papyruse od seba nedali odlíšiť
-   * na prvý pohľad, takže tri chipy vyzerali ako jeden stav. Odteraz je červená stav „ešte
-   * nie", nie výčitka — a keďže je JEDINÝ ďalší stav modrý (práve na rade) alebo zelený
-   * (hotové), rad chipov je čitateľný periférne.
-   *
-   * Body sú `POINTS.note` z bodovej ekonomiky (lib/tripPoints.ts), nie číslo napísané sem —
-   * cena odkazu žije na jednom mieste a chip ju len ukazuje.
-   */
-  const noteHave = useMemo(() => {
-    const set = new Set<NoteGroup>();
-    for (const n of [...(placedNotes ?? []), ...(existingNotes ?? [])]) set.add(groupOf(n.kind as NoteKind));
-    return set;
-  }, [placedNotes, existingNotes]);
-
-  const noteTrack = (
-    <div className="atl-ntrack" role="list" aria-label={t('pack.addTrip.step.name.notes')}>
-      {NOTE_ASKS.map((a, i) => {
-        const has = noteHave.has(a.group);
-        // Červená je KAŽDÁ neoznačená okrem tej, na ktorej človek práve stojí — tá je modrá.
-        // (Do 26. 8. tu bolo `i < noteAsk`, teda len otázky nechané za sebou.)
-        const empty = !has && i !== noteAsk;
-        return (
-          <button
-            key={a.group}
-            type="button"
-            role="listitem"
-            className={`atl-ntrack-i${i === noteAsk ? ' on' : ''}${has ? ' ok' : ''}${empty ? ' miss' : ''}`}
-            /* ⚠️ ŤUK NA CHIP JE CELÁ AKCIA (viď `startPlacing`). Pri upozornení len otvorí
-               rad hrozieb — označovanie tam spustí až vybraná hrozba, aby kurzor niesol
-               medveďa a nie rozcestník ⚠️ (dôvod v `MapNoteCursor.tsx`). */
-            onClick={() => {
-              setNoteAsk(i);
-              if (GROUP_KINDS[a.group].length === 1) startPlacing(a.group);
-            }}
-            aria-current={i === noteAsk ? 'step' : undefined}
-            /* ── FARBA HOVORÍ STAV, NIE SKUPINU (Matej 2026-08-26, druhé kolo) ───────────
-               Ráno tu ešte stálo, že aktívnu možnosť farbí jej skupina (`--ntk` z
-               `GROUP_TINT`: parkovisko modré, upozornenie červené, tip zelený). Na rade
-               troch chipov to nefungovalo: „upozornenie, na ktorom práve stojím" bolo
-               červené a „tip, na ktorom práve stojím" zelený — teda presne tie dve farby,
-               ktoré v tom istom rade znamenajú NEOZNAČENÉ a HOTOVÉ. Skupinová farba tak
-               tvrdila stav, ktorý neplatil.
-               Farbu skupiny nesie ďalej MAPA a dlaždice druhov (`KindGrid tint`) — tam
-               žiadny iný význam nekonkuruje. */
-          >
-            {/* APP_NEW (hárok B, 2 Odkazy): značka skupiny ako v nákrese (🅿️ ⚠️ 🐶), hotové = fajka z továrne; web ostáva na písmene */}
-            <b>{APP_NEW ? (has ? <SysIcon name="fajka" size={22} /> : <span className="atl-ntrack-em" aria-hidden="true" style={{ fontFamily: FONT_EMOJI }}>{NOTE_EMOJI[a.group] ?? ''}</span>) : (has ? '✓' : t(`pack.mapNotes.group.${a.group}`).slice(0, 1))}</b>
-            <span>{t(`pack.mapNotes.group.${a.group}`)}</span>
-            {/* body len za značku z TOHTO pridávania — už existujúca ich znova nenesie */}
-            {((has && placedInGroup(a.group) > 0) || empty) && (
-              <em className="atl-ntrack-pts">{has ? `+${POINTS.note}` : '0'}</em>
-            )}
-          </button>
-        );
-      })}
-    </div>
-  );
-
-  /* ⚠️ FÁZA „VŠETKY TRI OTÁZKY SÚ ZA MNOU" ZANIKLA (Matej 2026-08-28) ────────────────────
-     Bola to obrazovka s vetou „hotovo", odkazom „označiť ešte" a zlatým POKRAČOVAŤ — teda
-     tretí klik navyše za tým, čo už človek povedal treťou odpoveďou. Tlačidlo panela vedie
-     odteraz rovno do kroku 3 — od 1. 9. 2026 z KTOREJKOĽVEK otázky, nielen z tretej.
-     ⚠️ ČO S ŇOU PADLO: AInubisova reakcia na výsledok z 25. 8. („škoda, že si nič neoznačil"
-     / pochvala za označené). Vety `step.notesNone` a `step.notesPraise` ostávajú v slovníku,
-     ale nemá ich kto povedať — v krokoch 3–5 sprievodca nestojí (`drawBar.active`).
-     Spätná väzba o značkách tým nezmizla úplne: rozpis odmeny na konci výletu ich menuje
-     samostatnou položkou („3 značky na mape +9"). 🚩 Ak má vetu povedať aj AInubis, potrebuje
-     nosič v kroku 3 — to je samostatné rozhodnutie, nie vedľajší účinok tejto úpravy. */
   const notesBody = (
     <>
-      {noteTrack}
-      <>
-          {/* ⚠️ OTÁZKA TU UŽ NESTOJÍ — hovorí ju AInubis hore (Matej 24. 8. 2026: „tá otázka
-              kde si parkoval je dole zbytočná, dajme ju ainubisovi"). V paneli ostáva len to,
-              čím sa odpovedá. Ušetrený riadok je presne ten, kvôli ktorému sa muselo skrolovať
-              na „Späť na trasu". */}
-          {askKinds.length > 1 && (
-            <KindGrid
-              row
-              scroll
-              kinds={askKinds}
-              selected={null}
-              tint={GROUP_TINT[askGroup]}
-              /* Ťuk do dlaždice ZAPICHUJE — obrátenie pravidla z 24. 8. („ťuk len vyberá,
-                 potom OZNAČIŤ"). Dôvod, pre ktorý vtedy vzniklo, bol, že skupina s jedným
-                 druhom mala CTA a skupina s deviatimi nie — teda dva spôsoby tej istej veci.
-                 Dnes ho nemá ANI JEDNA: všade je to jeden ťuk do toho, čo označujem. */
-              onPick={(k) => startPlacing(askGroup, k)}
-            />
-          )}
-          <div className="atl-noteask-btns">
-            {/* ⚠️ JEDNO TLAČIDLO ZAVRIE CELÝ KROK (Matej 2026-09-01, po otázke „zliať tri
-                otázky ODKAZOV do jednej obrazovky?"): „Bublina sa ďalej pýta podľa chipu,
-                na ktorom stojíš — ale dole je JEDNO tlačidlo, ktoré krok zavrie."
-                Kto nemá čo označiť, klikne RAZ namiesto troch ráz.
-
-                ⚠️ ČO TÝM ZANIKLO: dve slová toho istého tlačidla (`step.skip` „Preskočiť"
-                a `step.nextAsk` „Ďalej“) aj jeho posun na ďalšiu otázku (`setNoteAsk(i+1)`).
-                Tri otázky NEZANIKLI — bublina ich hovorí ďalej, len sa medzi nimi chodí
-                RADOM CHIPOV nad tlačidlom (`noteTrack`, ťuk = `setNoteAsk(i)`), ktorý je
-                vidno po celý krok a farbou hovorí, čo ostalo neoznačené. Vedenie za ruku
-                tak drží bublina a farba chipu, nie postupnosť klikov.
-                Kľúče `step.skip` a `step.nextAsk` ostávajú v slovníku — tu ich nemá kto
-                povedať. Text je vždy `step.doneNotes` („Pokračovať"), lebo tlačidlo robí
-                vždy to isté: ide sa z kroku von.
-
-                ⚠️ HISTÓRIA, ABY SA NEVRÁTILA: do 27. 8. tu boli DVE slová podľa toho, či
-                už človek v skupine niečo označil („preskočiť" by po položenej značke tvrdilo,
-                že o ňu príde), a do 28. 8. viedlo tlačidlo na ďalšiu otázku, takže tretia
-                mala vlastný text. Obe pravidlá padli s posledným klikom, ktorý ich držal.
-
-                ⚠️ A JE TO LAPIS, NIE BLEDÉ TLAČIDLO (Matej 2026-08-28: „tu to Ďalej nie je
-                vôbec vidno! CTA musí byť lapisové a dobre viditeľné"). Je to JEDINÉ CTA
-                panela, takže plná farebná plocha mu patrí — zvyšok kroku sú chipy v tinte.
-                Trieda je tá istá, akú nesie HOTOVO v kroku 1 (`.trp-dbar-done`), nie druhý
-                recept na to isté. */}
-            <button
-              type="button"
-              className="trp-dbar-done trp-dbar-done--hero"
-              onClick={() => setStep(3)}
-            >
-              {t('pack.addTrip.step.doneNotes')}
-            </button>
-            {/* ⚠️ TLAČIDLO OZNAČ TU UŽ NIE JE (Matej 2026-08-27: „chip → OZNAČ sú dva kliky
-                na jednu vec"). Označovanie zapína ťuk do chipu skupiny, resp. do dlaždice
-                hrozby — viď `startPlacing`. Zostáva jediné tlačidlo, a to je cesta ĎALEJ:
-                zlatá `.trp-dbar-done` sa tak v kroku 2 objaví až pod treťou otázkou, kde
-                naozaj patrí. Kľúč `step.markShort` ostáva v slovníku (zhrnutie kroku 4).
-                Cesta VON z označovania je × v AInubisovej bubline, tá sa nemení. */}
-          </div>
-      </>
-      <PlacedNotes notes={placedNotes} t={t} emptyKey="pack.addTrip.step.noNotesYet" onRemove={onRemoveNote} />
+      <p className="atl-noteq">{t('pack.addTrip.step.notesQ')}</p>
+      <div className="atl-ntrack" role="group" aria-label={t('pack.addTrip.step.name.notes')}>
+        {NOTE_GROUPS_ORDER.map((g) => (
+          <button
+            key={g}
+            type="button"
+            className="atl-ntrack-i"
+            /* ŤUK JE CELÁ AKCIA. Pri upozornení ide druh `hazard` (všeobecné), konkrétny
+               si človek vyberie vo formulári značky po zapichnutí. */
+            onClick={() => startPlacing(g, g === 'warning' ? 'hazard' : undefined)}
+          >
+            <b><span className="atl-ntrack-em" aria-hidden="true" style={{ fontFamily: FONT_EMOJI }}>{NOTE_EMOJI[g] ?? ''}</span></b>
+            <span>{t(`pack.mapNotes.group.${g}`)}</span>
+          </button>
+        ))}
+      </div>
+      {(placedNotes?.length ?? 0) > 0 && (
+        <PlacedNotes notes={placedNotes} t={t} emptyKey="pack.addTrip.step.noNotesYet" onRemove={onRemoveNote} xAlways />
+      )}
+      <div className="atl-noteask-btns">
+        {/* JEDNO CTA = LAPIS, tá istá trieda ako HOTOVO v kroku 1 (`.trp-dbar-done`). */}
+        <button
+          type="button"
+          className="trp-dbar-done trp-dbar-done--hero"
+          onClick={() => setStep(3)}
+        >
+          {t('pack.addTrip.step.doneNotes')}
+        </button>
+      </div>
     </>
   );
   const notesPanel = (
@@ -2930,33 +2784,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
        * ⚠️ Toto je zároveň náhradný nosič za reakciu na výsledok, ktorá zanikla s medzi-
        * obrazovkou (`step.notesNone` / `notesPraise`) — hovorí sa v paneli, kde človek stojí.
        */
-      ? (haveInGroup(askGroup) > 0
+      ? (placedCount > 0 || (existingNotes?.length ?? 0) > 0
           ? t('pack.addTrip.step.askMoreOrNext')
-          : noteAsk === 0
-            // ⚠️ ČÍSLA IDÚ Z EKONOMIKY, NEPÍŠU SA DO VETY (Matej 2026-08-25: „musí ainubis
-            //    hore povedať že tvoj postreh bude odmenený 3 bodmi, dokopy môžeš získať až
-            //    9 bodov"). Odmena aj strop už v `tripPoints.ts` existujú a sedia — chýbalo
-            //    len to povedať. Napísané v texte by sa pri prvej zmene cenníka rozišli
-            //    a AInubis by sľuboval body, ktoré appka nepripíše.
-            /**
-             * ⚠️ ÚVOD BOL NA PÄŤ RIADKOV (Matej 2026-08-25, screenshot z telefónu: „musíme
-             * rozdeliť tú úvodnú vetu o bodoch, lebo je to veľmi dlhé… nemôže to byť na
-             * 5 riadkov"). Bublina visí NAD mapou — každý jej riadok berie mapu, na ktorú
-             * sa v tom kroku pichajú značky, takže dĺžka tu nie je vec vkusu.
-             *
-             * Rez podľa toho, čo je POVEDANÉ RAZ a čo pri každej otázke:
-             *  · úvod = PREČO („buď odmenený") — raz
-             *  · návod „Ťukni na OZNAČ" = AKO — tiež raz, pri prvej otázke; pri druhej to
-             *    človek už vie a bola by to tá istá veta trikrát
-             *  · cena `(+3 body)` = pri KAŽDEJ otázke, lebo sa vzťahuje na ňu
-             * Celkový strop (9) z vety vypadol — vyplýva z troch otázok po troch bodoch
-             * a nestojí za dva riadky nad mapou.
-             */
-            ? `${t('pack.addTrip.step.notesLead')} ${t(NOTE_ASKS[0].qKey)} ${t('pack.addTrip.step.askHowTo')} ${t('pack.addTrip.step.askPts', { pts: ptsWord(POINTS.note) })}`
-            // ⚠️ TÁ ISTÁ POISTKA AKO PRI `askGroup` (r. ~1522): `noteAsk` smie na okamih
-            //    ukázať ZA koniec zoznamu (posledné PRESKOČIŤ ho zvýši a krok sa mení až
-            //    v tom istom cykle) a nezaistený index zhodí celý sprievodca na bielu stranu.
-            : `${t(NOTE_ASKS[Math.min(noteAsk, NOTE_ASKS.length - 1)].qKey)} ${t('pack.addTrip.step.askPts', { pts: ptsWord(POINTS.note) })}`)
+          : `${t('pack.addTrip.step.notesLead')} ${t('pack.addTrip.step.askHowTo')}`)
       : undefined,
     onAbort: () => setAbortAsk(true),
     steps: stepDots,
@@ -3980,7 +3810,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                       značky na výlet sa neukladá (odvodzuje sa zo súradnice) — po čase by
                       zhrnutie ukazovalo cudzie okolie namiesto toho, čo si vtedy zapichol. */}
                   {!finishingDraft && (
-                    <button type="button" className="atl-journey-link" onClick={() => { setNoteAsk(0); setStep(2); }}>
+                    <button type="button" className="atl-journey-link" onClick={() => setStep(2)}>
                       {t('pack.addTrip.step.backToNotes')}
                     </button>
                   )}
@@ -4378,7 +4208,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
  * Emoji aj názov si berie z tých istých zdrojov ako mapa (`MARK_EMOJI`, `pack.mapNotes.kind.*`),
  * takže sa značka v zozname a značka na mape nikdy nerozídu.
  */
-function PlacedNotes({ notes, t, emptyKey, onRemove }: {
+function PlacedNotes({ notes, t, emptyKey, onRemove, xAlways }: {
   notes?: TripNoteRef[];
   t: (k: string, v?: Record<string, string | number>) => string;
   emptyKey: string;
@@ -4394,6 +4224,8 @@ function PlacedNotes({ notes, t, emptyKey, onRemove }: {
    * značky nemenia.
    */
   onRemove?: (id: string) => void;
+  /** Krok 2: × je vidno stále a ťuk na × maže hneď (Matej 21. 11. 2026) — bez odisťovania. */
+  xAlways?: boolean;
 }) {
   const [armed, setArmed] = useState<string | null>(null);
   // Odistenie sa nesmie prežiť zmenu zoznamu: po zmazaní by ostalo viset na indexe,
@@ -4417,21 +4249,21 @@ function PlacedNotes({ notes, t, emptyKey, onRemove }: {
             className={`atl-chip on${can ? ' atl-chip--del' : ''}${on ? ' armed' : ''}`}
             role={can ? 'button' : undefined}
             tabIndex={can ? 0 : undefined}
-            onClick={can ? () => { if (on) onRemove?.(n.id); else setArmed(key); } : undefined}
+            onClick={can ? () => { if (on || xAlways) onRemove?.(n.id); else setArmed(key); } : undefined}
             onKeyDown={can ? (e) => {
               if (e.key !== 'Enter' && e.key !== ' ') return;
               e.preventDefault();
-              if (on) onRemove?.(n.id); else setArmed(key);
+              if (on || xAlways) onRemove?.(n.id); else setArmed(key);
             } : undefined}
             aria-label={can
-              ? `${t(`pack.mapNotes.kind.${n.kind}`)} — ${t(on ? 'pack.addTrip.step.noteRemove' : 'pack.addTrip.step.noteArm')}`
+              ? `${t(`pack.mapNotes.kind.${n.kind}`)} — ${t(on || xAlways ? 'pack.addTrip.step.noteRemove' : 'pack.addTrip.step.noteArm')}`
               : undefined}
           >
             {noteStickerSrc(n.kind, (n as { disease?: unknown }).disease)
               ? <img className="atl-chip-sticker" src={noteStickerSrc(n.kind, (n as { disease?: unknown }).disease)!} alt="" draggable={false} />
               : <span className="atl-chip-emoji" style={{ fontFamily: FONT_EMOJI }}>{MARK_EMOJI[n.kind as NoteKind]}</span>}
             <span className="atl-chip-label">{t(`pack.mapNotes.kind.${n.kind}`)}</span>
-            {on && <i className="atl-chip-x" aria-hidden="true">×</i>}
+            {(on || (xAlways && can)) && <i className="atl-chip-x" aria-hidden="true">×</i>}
           </span>
         );
       })}
@@ -4564,56 +4396,18 @@ const STEP_CSS = `
 .atl-miss > label{color:#E08A7A;}
 .atl-miss .atl-input,.atl-miss .atl-diffrow,.atl-miss .atl-chips,.atl-miss .atl-photos{border-radius:8px;box-shadow:0 0 0 1px ${T.alertRed};}
 .atl-donepill{margin-left:8px;padding:4px 8px;border-radius:999px;background:rgba(${T.tripPurpleRGB},0.22);border:1px solid rgba(179,107,255,0.55);color:#E9D8FF;font-size:10px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase;white-space:nowrap;}
-/* ── STOPA P · N · T ───────────────────────────────────────────────────────────
-   Tri diely na celú šírku (rad prvkov = celá šírka kontajnera, rovnaké diely).
-   Prejdené sa dajú kliknúť späť — človek, ktorý parkovisko preskočil a spomenul si,
-   nemá inú cestu, ako celý krok zopakovať odznova. */
-.atl-ntrack{display:flex;gap:6px;}
-.atl-ntrack-i{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:999px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};cursor:pointer;}
-.atl-ntrack-i b{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:17px;height:17px;border-radius:50%;background:rgba(245,240,228,0.07);font-size:10px;font-weight:600;line-height:1;}
-/* ⚠️ TESNEJŠIE PREKLADANIE PÍSMEN NEŽ INDE (Matej 2026-08-26, druhé kolo). Odkedy je
-   neoznačená možnosť ČERVENÁ, nesie chip s bodmi KAŽDÁ z troch (predtým len tie, ktoré človek
-   nechal za sebou) — a na kompaktnom PC (stĺpec 360 px) sa z „PARKOVISKO" stalo „PARK…".
-   Rieši sa to preložením a výplňou pilulky s bodmi, nie skrytím tej pilulky: „0 bodov" pri
-   neoznačenej si Matej vypýtal 24. 8. výslovne. */
-/* ⚠️ FOCUS RING IDE DOVNÚTRA (Matej 2026-08-28: „horný okraj chipu sa stráca a zreže sa
-   outline"). Prehliadačov outline sa kreslí MIMO hranice tlačidla, takže ho ľavý stĺpec
-   (.trp-dock--pc s overflow-y:auto) po kliknutí zhora oreže rovnou čiarou — presne tá istá
-   pasca, na akej sa 26. 8. rezala žiara AInubisovej bubliny. Záporný offset ho posadí na
-   vnútornú hranu, kde ho nemá čo orezať; viditeľnosť pre klávesnicu ostáva. */
+/* ── KROK 2: TRI ROVNOCENNÉ TLAČIDLÁ (Matej 21. 11. 2026) ───────────────────────────────
+   Parkovisko · Upozornenie · Tip vedľa seba, každé je akcia (ťuk = označovanie na mape).
+   Žiadny stav, farba ani body — tlačidlá sú všetky rovnaké. Výplň a rám sú ako pri ostatných
+   voľbách (chip, náročnosť); papyrus a 3D šat dopĺňajú bloky nižšie. */
+.atl-ntrack{display:flex;gap:8px;}
+.atl-ntrack-i{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;padding:8px 4px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};cursor:pointer;}
+.atl-ntrack-i b{display:flex;align-items:center;justify-content:center;height:28px;font-weight:400;}
+.atl-ntrack-i b .atl-ntrack-em{overflow:visible;font-size:24px;line-height:1;}
+.atl-ntrack-i > span{max-width:100%;text-align:center;font-size:12px;font-weight:600;line-height:1.1;overflow-wrap:anywhere;}
+/* ⚠️ FOCUS RING IDE DOVNÚTRA (Matej 2026-08-28) — lišta s overflow ho zvonka orezáva. */
 .atl-ntrack-i:focus-visible{outline:2px solid ${LAPIS.edge};outline-offset:-2px;}
-.atl-ntrack-i span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase;}
-/* ── VÝBER = MODRÁ, ALE PRIESVITNÁ (Matej 2026-08-26, tretie kolo) ─────────────────────
-   „výber PWT som chcel modré/zelené/červené, ale priesvitné — nie modrá plná, to sa bije
-    s CTA."
-   Farba ostáva: lapis je v redizajne /map „moja voľba a moja akcia" (navGoldSkin.ts), nie
-   mapová modrá — tá drží značky. Mení sa VÁHA. Plná lapisová výplň je rezervovaná pre
-   jediný prvok na doske — hlavné CTA; keď ju nesie aj chip, obrazovka má dve hlavné veci.
-   ⚠️ Recept je pickTintCSS, nie tri rgba čísla tu: rovnaký tint nesú aj chipy, náročnosť
-   a tagy o dva kroky ďalej a rozišli by sa pri prvej úprave. */
-.atl-ntrack-i.on{${pickTintCSS(LAPIS.edge, LAPIS.ink, 0.30)}}
-.atl-ntrack-i.on b{background:rgba(239,215,154,0.92);color:${LAPIS.deep};}
-/* ── VÝSLEDOK PREBÍJA POSTUP ──────────────────────────────────────────────────────────
-   Zlatá hovorí „tu si", zelená a červená hovoria „takto to dopadlo" — a to je dôležitejšie,
-   preto stoja NIŽŠIE v poradí a prebíjajú .on. Zelená je tá istá, akú na mape nesie TIP
-   (GROUP_TINT.comment), červená tá istá, akú nesie UPOZORNENIE — nezavádzajú sa nové farby.
-   Body v chipe sú POINTS.note, nie napísané číslo. */
-/* SPLNENÉ = ZELENÝ TINT. ⚠️ PREBÍJA aktívny stav ZÁMERNE: „hotové" je dôležitejšia
-   správa než „tu si".
-   ⚠️ NIE JE TO NÁVRAT PRED 26. 8. Vtedy tu bola zelená pri 14 % so SVETLÝM inkoustom a na
-   papyruse z toho ostal svetlý text na takmer bielom — to bol dôvod plnej výplne. Tint
-   sám nestačí: čitateľnosť nesie tmavý inkoust a plný farebný rám (viď pickTintCSS),
-   nie krytie výplne. Tmavý mobil dostáva svetlý inkoust v LOG_CSS o riadok nižšie. */
-.atl-ntrack-i.ok{${pickTintCSS(GROUP_TINT.comment, '#D8F2E0', 0.28)}}
-.atl-ntrack-i.ok b{background:rgba(216,242,224,0.22);border:1px solid ${GROUP_TINT.comment};color:#D8F2E0;}
-/* NEOZNAČENÉ = ČERVENÝ TINT, rovnaká váha ako zelený a modrý vedľa neho. */
-.atl-ntrack-i.miss{${pickTintCSS(HAZARD_RED, '#FFD9D2', 0.26)}}
-.atl-ntrack-i.miss b{background:rgba(255,217,210,0.22);border:1px solid ${HAZARD_RED};color:#FFD9D2;}
-/* Chip s bodmi. Malý a bez rámu — je to poznámka k pilulke, nie druhá pilulka v nej.
-   tabular-nums, aby sa „+3" a „0" nehojdali v rade vedľa seba. */
-.atl-ntrack-pts{flex:0 0 auto;font-style:normal;font-size:10px;font-weight:600;line-height:1;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding:4px 4px;border-radius:999px;}
-.atl-ntrack-i.ok .atl-ntrack-pts{background:rgba(61,122,78,0.30);color:#D8F2E0;}
-.atl-ntrack-i.miss .atl-ntrack-pts{background:rgba(206,75,60,0.30);color:#FFD9D2;}
+.atl-noteq{margin:0;font-family:${FONT_UI};font-size:14px;line-height:1.45;color:${T.onDark};}
 .atl-noteask{padding:12px 16px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};}
 .atl-noteask p{margin:0 0 10px;font-family:${FONT_UI};font-size:14px;line-height:1.45;color:${T.onDark};}
 .atl-noteask-btns{display:flex;gap:8px;}
@@ -5347,9 +5141,7 @@ html.papyrus3d .atl-tile-wrap.is-open{--p3d-open:0 6px 0 ${LAPIS.deep},0 11px 14
 html.papyrus3d .atl-chip,html.papyrus3d .atl-diffbtn,html.papyrus3d .atl-travel-btn,html.papyrus3d .atl-check,html.papyrus3d .atl-toggle-btn,html.papyrus3d .atl-journey-item,html.papyrus3d .atl-ntrack-i{${P3D_V.paper}${P3D_B3(44, 16)}padding:0 16px;cursor:pointer;}
 html.papyrus3d .atl-chip:hover,html.papyrus3d .atl-travel-btn:hover,html.papyrus3d .atl-seats button:hover,html.papyrus3d .atl-toggle-btn:hover{border-color:var(--b3-l);}
 html.papyrus3d .atl-chip:active,html.papyrus3d .atl-diffbtn:active,html.papyrus3d .atl-travel-btn:active,html.papyrus3d .atl-check:active,html.papyrus3d .atl-toggle-btn:active{${P3D_DOWN}}
-html.papyrus3d .atl-chip.on,html.papyrus3d .atl-diffbtn.on,html.papyrus3d .atl-travel-btn.on,html.papyrus3d .atl-check.on,html.papyrus3d .atl-toggle-btn.on,html.papyrus3d .atl-toggle-row > .atl-toggle-btn.on,html.papyrus3d .atl-journey-item.on,html.papyrus3d .atl-ntrack-i.on{${P3D_V.lapis}background:linear-gradient(180deg,var(--b3-a),var(--b3-b));border-color:var(--b3-l);color:var(--b3-i);box-shadow:var(--b3-sh);}
-html.papyrus3d .atl-ntrack-i.ok{${P3D_V.green}background:linear-gradient(180deg,var(--b3-a),var(--b3-b));border-color:var(--b3-l);color:var(--b3-i);box-shadow:var(--b3-sh);}
-html.papyrus3d .atl-ntrack-i.miss{--b3-a:color-mix(in srgb,#C8202F 62%,white);--b3-b:#C8202F;--b3-p:#9E1522;--b3-l:var(--p3d-ink);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));border-color:var(--b3-l);color:#fff;box-shadow:var(--b3-sh);}
+html.papyrus3d .atl-chip.on,html.papyrus3d .atl-diffbtn.on,html.papyrus3d .atl-travel-btn.on,html.papyrus3d .atl-check.on,html.papyrus3d .atl-toggle-btn.on,html.papyrus3d .atl-toggle-row > .atl-toggle-btn.on,html.papyrus3d .atl-journey-item.on{${P3D_V.lapis}background:linear-gradient(180deg,var(--b3-a),var(--b3-b));border-color:var(--b3-l);color:var(--b3-i);box-shadow:var(--b3-sh);}
 html.papyrus3d .atl-ntrack-i{padding:0 8px;gap:4px;}
 html.papyrus3d .atl-ntrack-i span{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0;text-transform:none;}
 html.papyrus3d .atl-ntrack-i b{width:auto;height:auto;background:none;border:0;color:inherit;}
@@ -5360,7 +5152,6 @@ html.papyrus3d .atl-ntrack-i{position:relative;flex-direction:column;justify-con
 html.papyrus3d .atl-ntrack-i b{display:flex;align-items:center;justify-content:center;height:26px;}
 html.papyrus3d .atl-ntrack-i b .atl-ntrack-em{overflow:visible;font-size:20px;line-height:1;}
 html.papyrus3d .atl-ntrack-i > span{max-width:100%;white-space:normal;overflow:visible;text-overflow:clip;text-align:center;line-height:1.1;overflow-wrap:anywhere;}
-html.papyrus3d .atl-ntrack-pts{position:absolute;top:4px;right:4px;padding:4px 8px;font-size:12px;}
 html.papyrus3d .atl-chip.atl-chip--own{border-style:solid;}
 html.papyrus3d .atl-chip-label,html.papyrus3d .atl-diffbtn span,html.papyrus3d .atl-travel-btn span,html.papyrus3d .atl-check span{font-family:'LT Museum',serif;font-weight:400;font-size:16px;letter-spacing:0;line-height:1.1;text-transform:none;}
 html.papyrus3d .atl-chips{gap:8px;}
@@ -5544,24 +5335,9 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-expand{color:#8A5F1E;}
   .atl-expand:hover{color:${P_INK};}
 
-  /* ── sledovanie značiek (krok 2) ────────────────────────────────────────────────────── */
-  /* ⚠️ VÝPLŇ A RÁM TROCH STAVOV SEM NEPATRIA — sú v STEP_CSS a sú na oboch povrchoch tie
-     isté. Tu sa mení LEN inkoust (viď nižšie): tento blok sa vkladá do DOM POSLEDNÝ, takže
-     čokoľvek, čo tu zdvojíš, ticho prebije opravu urobenú tam. */
-  .atl-ntrack-i{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
-  .atl-ntrack-i b{background:rgba(201,154,63,0.18);color:${P_DEEP};}
-  /* ⚠️ INKOUST TINTU SA NA PAPYRUSE OBRACIA. Tri stavy nesú v STEP_CSS priesvitnú výplň so
-     SVETLÝM písmom (tmavý mobil); na piesku by svetlé písmo zaniklo, tak sa mení na tmavý
-     odtieň tej istej farby. Výplň ani rám sa netýka — tie sú na oboch povrchoch tie isté,
-     a to je celý zmysel tintu. */
-  .atl-ntrack-i.on{color:${PICK_INK.lapis};}
-  .atl-ntrack-i.on b{background:rgba(22,48,122,0.16);color:${PICK_INK.lapis};}
-  .atl-ntrack-i.ok{color:${PICK_INK.green};}
-  .atl-ntrack-i.ok b{background:rgba(61,122,78,0.16);color:${PICK_INK.green};}
-  .atl-ntrack-i.ok .atl-ntrack-pts{background:rgba(61,122,78,0.22);color:${PICK_INK.green};}
-  .atl-ntrack-i.miss{color:${PICK_INK.red};}
-  .atl-ntrack-i.miss b{background:rgba(206,75,60,0.16);color:${PICK_INK.red};}
-  .atl-ntrack-i.miss .atl-ntrack-pts{background:rgba(206,75,60,0.22);color:${PICK_INK.red};}
+  /* ── tlačidlá značiek (krok 2): na papyruse tmavý inkoust, výplň a rám ako pri ostatných voľbách ── */
+  .atl-ntrack-i{background:${P_SOFT};border-color:${P_BORDER};color:${P_INK};}
+  .atl-noteq{color:${P_INK};}
 
   /* ── potvrdenie odchodu z toku ──────────────────────────────────────────────────────── */
   /* Rozlúčka s AINUBISOM (.atl-abort--ainubis) sa ZÁMERNE nemení: je to jeho vlastný modrý
