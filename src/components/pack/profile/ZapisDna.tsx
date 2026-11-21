@@ -16,6 +16,8 @@
 //   dole    lapis ZAPÍSAŤ DEŇ · N → pečať s číslom dňa → pásy odznakov → šuplík zbehne, deň v kalendári dostane ✓
 //
 // 🔁 v6 (Matej 9. 11. 2026, hárok I6/I7, Papyrus 3D): RUTINA a pilulky nahradila jedna plná mriežka po troch (viď GRID nižšie).
+// 🔁 v7 (Matej 21. 11. 2026: „tie bloky musíme zmenšiť, aby sa to celé vošlo bez scrollu na mobil“): mriežka po ŠTYROCH,
+//    5 radov × 76 px namiesto 7 × 96 px (obsah 955 → ~600 px). Na nízkom okne (≤ 700 px, iPhone SE) 66 px a bez štítku nad poľom.
 //
 // 🔴 Každý ťuk = riadok `devotion_events` (`grant-devotion`, kind 'claim'; body 0 — ☥ body sú zrušené, level = roky).
 //    Text → `dog_events` diary.note, míľnik → diary.milestone, váha → health.weightKg (existujúci zápis váhy).
@@ -59,7 +61,7 @@ interface TodayDog { id: string; name: string | null; photo: string | null; diet
 interface Today { day: string; dogs: TodayDog[] }
 
 /** MRIEŽKA DNA (hárok I6, I7; Matej 9. 11. 2026): krmenie zrušené (dlaždica sa neponúka, dáta a staršie zápisy ostávajú),
- *  jedna plná mriežka po troch bez dier. Poradie = skupiny: pohyb · hra · zdravie · ostatné, každá jemne zafarbená. */
+ *  jedna plná mriežka bez dier (v7 21. 11.: po štyroch, 20 dlaždíc = 5 radov). Poradie = skupiny: pohyb · hra · zdravie · ostatné, každá jemne zafarbená. */
 const GRID: ReadonlyArray<readonly [group: string, ids: readonly string[]]> = [
   ['g1', ['walk_short', 'walk', 'trip', 'presence']],
   ['g2', ['play', 'training', 'swim', 'hare', 'sniff', 'contest']],
@@ -70,13 +72,13 @@ const GRID: ReadonlyArray<readonly [group: string, ids: readonly string[]]> = [
 const CSS = `
 .ppu-sheet.zd-pop{overflow:hidden;}
 /* Úchyt je celý vrch šuplíka (52 px), nie 4 px prúžok: v teste 9. 11. 2026 sa panel nedal stiahnuť, lebo prst trafil telo (bod 12). */
-.zd-pop .ppu-grab{margin:${S.xl}px auto;}
+.zd-pop .ppu-grab{margin:${S.lg}px auto;}
 .zd-pop .ppu-body{padding:0;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
 .zd-sheet{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;color:${T.inkStrong};font-family:${FONT_UI};}
 .zd-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 ${S.lg}px ${S.md}px;}
-.zd-top{display:flex;align-items:center;gap:${S.md}px;padding:0 0 ${S.md}px;}
+.zd-top{display:flex;align-items:center;gap:${S.md}px;padding:0 0 ${S.sm}px;}
 .zd-top .zd-dogs{margin:0;}
-.zd-top .zd-dog{width:56px;height:56px;}
+.zd-top .zd-dog{width:48px;height:48px;}
 .zd-day{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.h1}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};} /* písmo: nadpis */
 .zd-daynav{flex:1;min-width:0;display:flex;align-items:center;gap:${S.sm}px;}
 .zd-daynav>div{flex:1;min-width:0;}
@@ -169,8 +171,8 @@ html.papyrus3d .zd-dy{width:auto;min-width:56px;padding:0 ${S.xs}px;letter-spaci
 .zd-empty{padding:${S.xl}px 0;text-align:center;font-size:${TX.label}px;color:${T.inkWarm};}
 
 /* ŠAT PAPYRUS 3D (hárok I6, I7): dlaždica = papierové tlačidlo 3D, skupiny jemne zafarbené, vybraná dlaždica je lapis. */
-html.papyrus3d .zd-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:${S.lg}px ${S.sm}px;margin-top:${S.lg}px;padding-bottom:${S.sm}px;}
-html.papyrus3d .zd-grid .zd-tile{--zt:transparent;height:96px;padding:${S.sm}px ${S.xs}px;gap:${S.xs}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;
+html.papyrus3d .zd-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:${S.md}px ${S.sm}px;margin-top:${S.sm}px;padding-bottom:${S.sm}px;}
+html.papyrus3d .zd-grid .zd-tile{--zt:transparent;height:76px;padding:${S.xs}px;gap:${S.xs}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;
   background:linear-gradient(180deg,color-mix(in srgb,var(--zt) 12%,white),color-mix(in srgb,var(--zt) 30%,var(--p3d-paper)));color:var(--p3d-ink);
   box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),var(--p3d-lift);}
 html.papyrus3d .zd-grid .zd-g1{--zt:var(--p3d-gold);}
@@ -178,6 +180,16 @@ html.papyrus3d .zd-grid .zd-g2{--zt:#3D7A4E;}
 html.papyrus3d .zd-grid .zd-g3{--zt:#B25640;}
 html.papyrus3d .zd-grid .zd-tile em{display:grid;place-items:center;}
 html.papyrus3d .zd-grid .zd-tile b{font:500 ${TX.label}px/1.1 ${FONT_UI};color:inherit;}
+/* Nízke okno (iPhone SE 375×667): ešte nižšie dlaždice a menšia samolepka, aby sa panel vošiel bez scrollu. */
+@media (max-height:700px){
+  html.papyrus3d .zd-grid{gap:${S.sm}px;}
+  html.papyrus3d .zd-grid .zd-tile{height:66px;gap:2px;}
+  html.papyrus3d .zd-grid .zd-tile em img{width:26px;height:26px;}
+  .zd-pop .ppu-grab{margin:${S.md}px auto;}
+  .zd-sec{display:none;}  /* štítok nad poľom — pole hovorí samo („Čo dnes zažil?“) */
+  .zd-wfield{margin-top:${S.md}px !important;}
+  html.papyrus3d .zd-save{height:52px;}
+}
 html.papyrus3d .zd-grid .zd-tile:active:not(:disabled){transform:translateY(3px);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent);}
 html.papyrus3d .zd-grid .zd-tile.on{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});border-color:${LAPIS.ink};color:${LAPIS.ink};
   box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);}
@@ -571,7 +583,7 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
       <button key={tile.id} type="button" className={`zd-tile zd-${group}${selected ? ' on' : ''}${got ? ' got' : ''}`}
         disabled={got || !picked.length} aria-pressed={selected} onClick={() => hit(tile)}>
         {selected && !dots && <span className="ok">{n > 1 ? n : <HandCheck size={12} />}</span>}
-        <em><ZapisGlyph mark={tile.emoji} size={40} /></em>
+        <em><ZapisGlyph mark={tile.emoji} size={32} /></em>
         <b>{tx(`pack.zd.t.${tile.id}`, tile.name)}</b>
         {dots && <span className="zd-dots" aria-hidden>{Array.from({ length: tile.multi ?? 0 }, (_, i) => <u key={i} className={i < done ? 'd' : i < done + n ? 'f' : ''} />)}</span>}
       </button>
