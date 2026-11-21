@@ -12,7 +12,7 @@ export const DANGER_REPORT_TEXTS = {
   'pack.sos.danger.hub.poison': T('Poison and traps', 'Otrava a nástrahy', 'Otrava a nástrahy'),
   'pack.sos.danger.hub.poison.sub': T('Poison, bait, nails, glass, traps', 'Jed, návnady, klince, sklo, pasce', 'Jed, návnady, hřebíky, sklo, pasti'),
   'pack.sos.danger.hub.nature': T('Other hazards', 'Iné nástrahy', 'Jiné nástrahy'),
-  'pack.sos.danger.hub.nature.sub': T('Poison and traps, ticks, wildlife and other warnings in nature.', 'Otrava a nástrahy, kliešte, zver a ďalšie výstrahy v prírode.', 'Otrava a nástrahy, klíšťata, zvěř a další výstrahy v přírodě.'),
+  'pack.sos.danger.hub.nature.sub': T('Poison, ticks, wildlife and other warnings in nature.', 'Otrava, kliešte, zver a ďalšie výstrahy v prírode.', 'Otrava, klíšťata, zvěř a další výstrahy v přírodě.'),
   'pack.sos.danger.hub.motto': T('We will not look away. Dogypt members nearby will see what you mark.', 'Nebudeme ľahostajní. Čo označíš, uvidia Dogypťania v okolí.', 'Nebudeme lhostejní. Co označíš, uvidí Dogypťané v okolí.'),
   'pack.sos.danger.hub.country': T('I am in another country', 'Som v inej krajine', 'Jsem v jiné zemi'),
 

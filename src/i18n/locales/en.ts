@@ -8512,7 +8512,7 @@ export const en = {
   "pack.sos.danger.hub.poison": "Poison and traps",
   "pack.sos.danger.hub.poison.sub": "Poison, bait, nails, glass, traps",
   "pack.sos.danger.hub.nature": "Other hazards",
-  "pack.sos.danger.hub.nature.sub": "Poison and traps, ticks, wildlife and other warnings in nature.",
+  "pack.sos.danger.hub.nature.sub": "Poison, ticks, wildlife and other warnings in nature.",
   "pack.sos.danger.hub.motto": "We will not look away. Dogypt members nearby will see what you mark.",
   "pack.sos.danger.hub.country": "I am in another country",
   "pack.sos.danger.abuse.title": "Cruelty",

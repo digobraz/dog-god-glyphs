@@ -8205,7 +8205,7 @@ export const sk: Partial<Dict> = {
   "pack.sos.danger.hub.poison": "Otrava a nástrahy",
   "pack.sos.danger.hub.poison.sub": "Jed, návnady, klince, sklo, pasce",
   "pack.sos.danger.hub.nature": "Iné nástrahy",
-  "pack.sos.danger.hub.nature.sub": "Otrava a nástrahy, kliešte, zver a ďalšie výstrahy v prírode.",
+  "pack.sos.danger.hub.nature.sub": "Otrava, kliešte, zver a ďalšie výstrahy v prírode.",
   "pack.sos.danger.hub.motto": "Nebudeme ľahostajní. Čo označíš, uvidia Dogypťania v okolí.",
   "pack.sos.danger.hub.country": "Som v inej krajine",
   "pack.sos.danger.abuse.title": "Týranie",
