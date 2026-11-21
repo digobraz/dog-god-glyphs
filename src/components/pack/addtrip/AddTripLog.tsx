@@ -232,6 +232,12 @@ export type AddTripLogProps = {
    */
   placedNotes?: TripNoteRef[];
   /**
+   * Značky, ktoré k upravovanému výletu UŽ patria (parkovisko, upozornenia, tipy — aj od iných
+   * autorov, väzba je zo súradnice, viď `mapNotesGeo.ts`). Len na čítanie: krok 2 podľa nich
+   * netvrdí „nie je", ale za ne neponúka body (tie nesie `placedNotes` = čo sa označilo TERAZ).
+   */
+  existingNotes?: TripNoteRef[];
+  /**
    * Zmazanie značky z chipu v zhrnutí kroku 2 (Matej 2026-08-24). Ide tou istou cestou ako
    * mazanie z mapy — bez toho by chip mohol zmiznúť zo zoznamu, ale značka by na mape ostala.
    */
@@ -677,7 +683,7 @@ function SoloCompanionAdd({ dog, selected, onChange }: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, onBackToEntry, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail, fromPlan, reroute, presetJourneyId }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, onBackToEntry, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, existingNotes, notePlacing, finishTrail, fromPlan, reroute, presetJourneyId }: AddTripLogProps) {
   const paleChrome = useIsPaleChrome();
   // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
@@ -1803,7 +1809,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   // ZNÁMKA VÝLETU — vstupy zo stavu sprievodcu; počíta ju LEN `gradeFromInputs` (lib/tripGrade.ts).
   // Parkovisko = položená značka skupiny parking, tip = warning alebo comment (krok 2).
   const gradeResult = useMemo(() => {
-    const kinds = new Set((placedNotes ?? []).map((n) => groupOf(n.kind as NoteKind)));
+    const kinds = new Set([...(placedNotes ?? []), ...(existingNotes ?? [])].map((n) => groupOf(n.kind as NoteKind)));
     return gradeFromInputs({
       desc: note,
       photos: photos.length,
@@ -1811,7 +1817,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
       parking: kinds.has('parking'),
       tip: kinds.has('warning') || kinds.has('comment'),
     });
-  }, [note, photos.length, geoDone, placedNotes]);
+  }, [note, photos.length, geoDone, placedNotes, existingNotes]);
   /** „Doplniť →": popis = krok 3, fotky = krok 5 (ten istý, kde stojí karta), trasa = 1, parkovisko a tip = 2. */
   const gradeGo = (p: GradePoint) => {
     // Fotky stoja v kroku 5 a známka má od 15. 10. vlastný krok — najprv tam, potom k poľu.
@@ -2136,6 +2142,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   /** koľko značiek už leží v PRÁVE otvorenej otázke — z toho sa mení text vedľajšieho tlačidla */
   const placedInGroup = (g: NoteGroup): number =>
     (placedNotes ?? []).filter((n) => groupOf(n.kind as NoteKind) === g).length;
+  /** Ako `placedInGroup`, ale aj so značkami, ktoré k upravovanému výletu patria už predtým. */
+  const haveInGroup = (g: NoteGroup): number =>
+    placedInGroup(g) + (existingNotes ?? []).filter((n) => groupOf(n.kind as NoteKind) === g).length;
 
   /**
    * ── KROK SA OTVÁRAL V STAVE, KTORÝ SI SÁM ZAKAZOVAL (Matej 2026-08-27, oprava 28. 8.) ──
@@ -2298,9 +2307,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    */
   const noteHave = useMemo(() => {
     const set = new Set<NoteGroup>();
-    for (const n of placedNotes ?? []) set.add(groupOf(n.kind as NoteKind));
+    for (const n of [...(placedNotes ?? []), ...(existingNotes ?? [])]) set.add(groupOf(n.kind as NoteKind));
     return set;
-  }, [placedNotes]);
+  }, [placedNotes, existingNotes]);
 
   const noteTrack = (
     <div className="atl-ntrack" role="list" aria-label={t('pack.addTrip.step.name.notes')}>
@@ -2336,7 +2345,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
             {/* APP_NEW (hárok B, 2 Odkazy): značka skupiny ako v nákrese (🅿️ ⚠️ 🐶), hotové = fajka z továrne; web ostáva na písmene */}
             <b>{APP_NEW ? (has ? <SysIcon name="fajka" size={22} /> : <span className="atl-ntrack-em" aria-hidden="true" style={{ fontFamily: FONT_EMOJI }}>{NOTE_EMOJI[a.group] ?? ''}</span>) : (has ? '✓' : t(`pack.mapNotes.group.${a.group}`).slice(0, 1))}</b>
             <span>{t(`pack.mapNotes.group.${a.group}`)}</span>
-            {(has || empty) && (
+            {/* body len za značku z TOHTO pridávania — už existujúca ich znova nenesie */}
+            {((has && placedInGroup(a.group) > 0) || empty) && (
               <em className="atl-ntrack-pts">{has ? `+${POINTS.note}` : '0'}</em>
             )}
           </button>
@@ -2461,7 +2471,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     // Matej má pravdu v tom, že oranžová dvojka je POZVÁNKA, nie výčitka: krok ostáva
     // nepovinný (dá sa ísť ďalej aj cez Preskočiť), len sa neoznačí za splnený, keď z neho
     // svorka nič nedostala. Jedna značka stačí — nevyžaduje sa komplet.
-    2: placedCount > 0 ? [] : ['pack.addTrip.field.notes'],
+    2: placedCount > 0 || (existingNotes?.length ?? 0) > 0 ? [] : ['pack.addTrip.field.notes'],
     // ⚠️ DÁTUM SI PÝTA TROJKA LEN PRI ZÁPISE (26. 8.). V pláne sa vypĺňa až v šestke —
     // hlásiť ho tu by znamenalo oranžovú dvojku v číselníku za pole, ktoré na tej obrazovke
     // nie je (presne ten omyl, ktorý 26. 8. spravilo hodnotenie medzi krokmi 4 a 5).
@@ -2514,7 +2524,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
      *    posielal človeka hľadať pole, ktoré tam pod tým menom nestojí.
      */
     7: effMainChip && !(effMainChip === OWN_CHIP.id && !ownAct.trim()) ? [] : [activity === 'activity' ? 'pack.addTrip.field.doing' : 'pack.addTrip.field.place'],
-  }), [geoDone, placedCount, name, dontRemember, date, isPlan, isChipFirst, isHikeLike, diff, terrain, crowd, tags, paws, effMainChip, ownAct, activity]);
+  }), [geoDone, placedCount, existingNotes, name, dontRemember, date, isPlan, isChipFirst, isHikeLike, diff, terrain, crowd, tags, paws, effMainChip, ownAct, activity]);
 
   /**
    * ČERVENÁ SA ZAPÍNA AŽ PO NÁVRATE, NIE PRI PRVOM PRÍCHODE.
@@ -2920,7 +2930,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
        * ⚠️ Toto je zároveň náhradný nosič za reakciu na výsledok, ktorá zanikla s medzi-
        * obrazovkou (`step.notesNone` / `notesPraise`) — hovorí sa v paneli, kde človek stojí.
        */
-      ? (placedInGroup(askGroup) > 0
+      ? (haveInGroup(askGroup) > 0
           ? t('pack.addTrip.step.askMoreOrNext')
           : noteAsk === 0
             // ⚠️ ČÍSLA IDÚ Z EKONOMIKY, NEPÍŠU SA DO VETY (Matej 2026-08-25: „musí ainubis

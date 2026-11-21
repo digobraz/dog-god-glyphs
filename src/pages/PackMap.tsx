@@ -179,7 +179,7 @@ import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { gradeTrail, gradeRank } from '@/lib/tripGrade';
 import { useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
 import { MapPlaceCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
-import { nearestTrailId, canAddParkingAt } from '@/components/pack/mapnotes/mapNotesGeo';
+import { nearestTrailId, canAddParkingAt, noteBelongsToTrail, parkingForTrail } from '@/components/pack/mapnotes/mapNotesGeo';
 import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
 import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
 import { TRIP_HOLD_MIN_ZOOM } from '@/components/pack/addtrip/addTripModel';
@@ -4472,6 +4472,19 @@ export default function PackMap() {
   const [finishReroute, setFinishReroute] = useState(false);
   /** Magistrála na PREVZATIE otvorená v sprievodcovi (trasa hotová, človek len vypĺňa). */
   const [claimJourneyId, setClaimJourneyId] = useState<string | null>(null);
+  /**
+   * ZNAČKY, KTORÉ UPRAVOVANÝ VÝLET UŽ MÁ (21. 11. 2026: Matej opravoval trasu Naháč - Prekážka a krok 2
+   * sa pýtal „Kde si parkoval?", hoci parkovisko k výletu už patrilo). Väzba = tá istá ako v článku
+   * (`noteBelongsToTrail`, `parkingForTrail`); parkovisko najviac jedno. Len čítanie.
+   */
+  const existingTripNotes = useMemo(() => {
+    const tr = finishTrailId ? localTrails.find((x) => x.id === finishTrailId) : null;
+    if (!tr) return [];
+    const park = parkingForTrail(mapNotes.notes, tr);
+    return mapNotes.notes
+      .filter((n) => (n.kind === 'parking' ? n.id === park?.id : noteBelongsToTrail(n, tr)))
+      .map((n) => ({ id: n.id, kind: n.kind as string }));
+  }, [finishTrailId, localTrails, mapNotes.notes]);
   useEffect(() => { writeLocalTrails(localTrails); }, [localTrails]);
   // DEV: výlety nakreslené na telefóne odošli na disk vývojára (`plany/prijate-vylety/`),
   // inak ostanú uväznené v localStorage toho zariadenia. V prod builde neexistuje.
@@ -7826,6 +7839,7 @@ export default function PackMap() {
                   setTripNotes((prev) => prev.filter((n) => n.id !== id));
                 }}
                 placedNotes={tripNotes}
+                existingNotes={existingTripNotes}
                 /* Kým človek ukazuje miesto ALEBO vypĺňa kartičku značky, panel kroku 2 ustúpi —
                    inak stoja dva panely na sebe a spodný hovorí o niečom inom než vrchný. */
                 notePlacing={notePlaceReady || !!noteDraft}
