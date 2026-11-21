@@ -99,8 +99,8 @@ export function SnifferLogo({ size = 200, onDone }: { size?: number; onDone?: ()
     if (APP_NEW && onDone) onDone();
   }, [onDone]);
   if (APP_NEW) {
-    // Znak loga (nos v obrátenom srdci), nie ikonka z panela + (Matej 21. 11. 2026: „sniffer máme iné logo nie?“).
-    return <div className="bd-logo3d" role="img" aria-label="SNIFFER"><img src="/icons/sniffer/sniffer-znak.svg" alt="" /></div>;
+    // Logo ako na novom webe /app (Matej 21. 11. 2026: „sniffer logo dajme to, čo je na webe (novom)“).
+    return <div className="bd-logo3d" role="img" aria-label="SNIFFER"><img src="/web-app/ikony/sniffer.webp" alt="" /></div>;
   }
   return (
     <>

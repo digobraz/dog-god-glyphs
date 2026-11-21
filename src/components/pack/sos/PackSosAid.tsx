@@ -24,7 +24,7 @@ const RED_PERA = `inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0
 const HEAD = `'LT Museum',serif`;
 
 const CSS = `
-.aid-top{display:flex;flex-wrap:wrap;row-gap:${S.sm}px;align-items:center;justify-content:space-between;gap:${S.md}px;}
+.aid-top{display:flex;align-items:center;justify-content:space-between;gap:${S.md}px;}
 .aid-top .aid-h1{min-width:0;}
 .aid-offl{flex:none;letter-spacing:.02em;display:flex;align-items:center;gap:${S.sm}px;min-height:32px;padding:0 ${S.md}px;border-radius:${PACK_R.pill}px;border:1.5px solid var(--p3d-gold);background:var(--p3d-paper-hi);font-size:${PACK_TEXT.label}px;font-weight:600;color:var(--p3d-ink);}
 .aid-offl::before{content:'';flex:none;width:8px;height:8px;border-radius:${PACK_R.pill}px;background:${T.growGreen};}
@@ -141,11 +141,10 @@ export default function PackSosAid() {
       {card ? <AidCardView key={card.id} c={card} links={links} open={open} /> : (
         <>
           {id && <p className="aid-missing" role="status">{s('pack.sos.aid.missing')}</p>}
-          {/* Nadpis a štítok bez signálu v jednom riadku (Matej 20. 11.); na úzkom okne štítok zalomí pod nadpis. */}
+          {/* Nadpis a OFFLINE v jednom riadku (Matej 20. 11.) — celé „funguje bez signálu“ ostáva v title pre čítačku. */}
           <div className="aid-top">
             <h1 className="aid-h1">{title}</h1>
-            {/* Celá veta namiesto „OFFLINE“ (Matej 21. 11. 2026: „prvá pomoc by mala byť na stiahnutie?“ — je v balíku appky, len to nebolo vidno). */}
-            {IS_APP && <span className="aid-offl">{s('pack.sos.aid.offline')}</span>}
+            {IS_APP && <span className="aid-offl" title={s('pack.sos.aid.offline')}>OFFLINE</span>}
           </div>
           <AidHome cards={cards} open={open} />
         </>

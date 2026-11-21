@@ -2110,6 +2110,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   // preskočiteľná. Existujúci systém zápisov sa len VYVOLÁ — nič nové sa nestavia.
   const NOTE_EMOJI: Partial<Record<NoteGroup, string>> = { parking: '🅿️', warning: '⚠️', comment: '🐶' };
   const NOTE_GROUPS_ORDER: NoteGroup[] = ['parking', 'warning', 'comment'];
+  /** Druh, ktorého samolepku nesie tlačidlo skupiny (tá istá ako na mape). */
+  const NOTE_KIND: Record<string, string> = { parking: 'parking', warning: 'hazard', comment: 'note' };
   /**
    * ── VIACERO ZNAČIEK ZA SEBOU (Matej 2026-08-27) ──────────────────────────────────────────
    *
@@ -2265,7 +2267,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                si človek vyberie vo formulári značky po zapichnutí. */
             onClick={() => startPlacing(g, g === 'warning' ? 'hazard' : undefined)}
           >
-            <b><span className="atl-ntrack-em" aria-hidden="true" style={{ fontFamily: FONT_EMOJI }}>{NOTE_EMOJI[g] ?? ''}</span></b>
+            {/* Samolepka z mapy (Matej 21. 11. 2026: „tip je emoji psa, ale my už máme tabuľku s packou“); emoji len na webe bez samolepiek. */}
+            <b>{noteStickerSrc(NOTE_KIND[g])
+              ? <img className="atl-ntrack-st" src={noteStickerSrc(NOTE_KIND[g])!} alt="" draggable={false} />
+              : <span className="atl-ntrack-em" aria-hidden="true" style={{ fontFamily: FONT_EMOJI }}>{NOTE_EMOJI[g] ?? ''}</span>}</b>
             <span>{t(`pack.mapNotes.group.${g}`)}</span>
           </button>
         ))}
@@ -4246,7 +4251,8 @@ function PlacedNotes({ notes, t, emptyKey, onRemove, xAlways }: {
         return (
           <span
             key={key}
-            className={`atl-chip on${can ? ' atl-chip--del' : ''}${on ? ' armed' : ''}`}
+            // V kroku 2 (`xAlways`) chip NIE JE `on` = papier, nie lapis — lapis je na obrazovke len jeden, Pokračovať (Matej 21. 11. 2026).
+            className={`atl-chip${xAlways ? '' : ' on'}${can ? ' atl-chip--del' : ''}${on ? ' armed' : ''}`}
             role={can ? 'button' : undefined}
             tabIndex={can ? 0 : undefined}
             onClick={can ? () => { if (on || xAlways) onRemove?.(n.id); else setArmed(key); } : undefined}
@@ -4404,6 +4410,7 @@ const STEP_CSS = `
 .atl-ntrack-i{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;padding:8px 4px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};cursor:pointer;}
 .atl-ntrack-i b{display:flex;align-items:center;justify-content:center;height:28px;font-weight:400;}
 .atl-ntrack-i b .atl-ntrack-em{overflow:visible;font-size:24px;line-height:1;}
+.atl-ntrack-i b .atl-ntrack-st{display:block;width:32px;height:32px;}
 .atl-ntrack-i > span{max-width:100%;text-align:center;font-size:12px;font-weight:600;line-height:1.1;overflow-wrap:anywhere;}
 /* ⚠️ FOCUS RING IDE DOVNÚTRA (Matej 2026-08-28) — lišta s overflow ho zvonka orezáva. */
 .atl-ntrack-i:focus-visible{outline:2px solid ${LAPIS.edge};outline-offset:-2px;}
@@ -5149,7 +5156,7 @@ html.papyrus3d .atl-ntrack-i b{width:auto;height:auto;background:none;border:0;c
    sa smie zalomiť, body sú v rohu. Preklad sa nekráti. */
 html.papyrus3d .atl-ntrack{gap:8px;}
 html.papyrus3d .atl-ntrack-i{position:relative;flex-direction:column;justify-content:center;gap:0;min-height:68px;padding:8px 4px;}
-html.papyrus3d .atl-ntrack-i b{display:flex;align-items:center;justify-content:center;height:26px;}
+html.papyrus3d .atl-ntrack-i b{display:flex;align-items:center;justify-content:center;height:32px;}
 html.papyrus3d .atl-ntrack-i b .atl-ntrack-em{overflow:visible;font-size:20px;line-height:1;}
 html.papyrus3d .atl-ntrack-i > span{max-width:100%;white-space:normal;overflow:visible;text-overflow:clip;text-align:center;line-height:1.1;overflow-wrap:anywhere;}
 html.papyrus3d .atl-chip.atl-chip--own{border-style:solid;}
