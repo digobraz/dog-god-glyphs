@@ -741,7 +741,9 @@ const pointIcon = (p: MapPoint, hot: boolean, zoom: number, lang: string, locked
         : `<div class="trp-lake-name" ${top}>${escapeHtml(shortName(p.tr.name))}</div>`;
     const diff = p.tr.diff ? `<i class="trp-flag-diff" style="left:${Math.round(px * 0.17)}px;top:${Math.round(px * 0.11)}px"><span class="trp-diffmark trp-diffmark--${diffMarkShape(p.tr.diff)}"></span></i>` : '';
     const cls = ` mk-sticker--big${hot ? ' trp-lake-hot' : ''}${p.ghost ? ' trp-ghost' : ''}`;
-    const done = p.walked ? `<img class="trp-flag-done" src="${WALKED_MARK}" alt="" style="left:${Math.round(px * 0.36)}px;top:${-Math.round(px * 0.3)}px;width:${Math.round(px * 0.42)}px;height:${Math.round(px * 0.42)}px">` : '';
+    // Fajka až od `MAP_NEAR_ZOOM`: v diaľke vlajka nesie kraj, nie výlet — samostatne stojaca (Poloniny) by ju mala
+    // ako jediná a vyzeralo to ako chyba (Matej 21. 11. 2026: „prečo je pri poloninách vidno aj zelený checkmark… daj ho preč").
+    const done = p.walked && zoom >= MAP_NEAR_ZOOM ? `<img class="trp-flag-done" src="${WALKED_MARK}" alt="" style="left:${Math.round(px * 0.36)}px;top:${-Math.round(px * 0.3)}px;width:${Math.round(px * 0.42)}px;height:${Math.round(px * 0.42)}px">` : '';
     return L.divIcon({ className: 'mk-wrap', html: stickerImg(flagSrc, cls, px) + diff + done + label });
   }
   const type = pointTypeClass(p);
