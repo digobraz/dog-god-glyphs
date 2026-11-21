@@ -8,7 +8,7 @@ export const DANGER_REPORT_TEXTS = {
   // ── rozcestník ───────────────────────────────────────────────────────────
   'pack.sos.danger.hub.title': T('What is happening?', 'Čo sa deje?', 'Co se děje?'),
   'pack.sos.danger.hub.abuse': T('Cruelty', 'Týranie', 'Týrání'),
-  'pack.sos.danger.hub.abuse.sub': T('Beating, chain, hunger, neglect', 'Bitie, reťaz, hlad, zanedbanie', 'Bití, řetěz, hlad, zanedbání'),
+  'pack.sos.danger.hub.abuse.sub': T('Cruelty, dog fights, puppy mills and more', 'Týranie, zápasy psov, množiarne a ďalšie', 'Týrání, zápasy psů, množírny a další'),
   'pack.sos.danger.hub.poison': T('Poison and traps', 'Otrava a nástrahy', 'Otrava a nástrahy'),
   'pack.sos.danger.hub.poison.sub': T('Poison, bait, nails, glass, traps', 'Jed, návnady, klince, sklo, pasce', 'Jed, návnady, hřebíky, sklo, pasti'),
   'pack.sos.danger.hub.nature': T('Nature', 'Príroda', 'Příroda'),

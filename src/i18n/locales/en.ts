@@ -8508,7 +8508,7 @@ export const en = {
   // ⟦pack.sos⟧ generované (scripts/gen-sos-i18n.mjs) z components/pack/sos/sosTexts.ts, needituj ručne
   "pack.sos.danger.hub.title": "What is happening?",
   "pack.sos.danger.hub.abuse": "Cruelty",
-  "pack.sos.danger.hub.abuse.sub": "Beating, chain, hunger, neglect",
+  "pack.sos.danger.hub.abuse.sub": "Cruelty, dog fights, puppy mills and more",
   "pack.sos.danger.hub.poison": "Poison and traps",
   "pack.sos.danger.hub.poison.sub": "Poison, bait, nails, glass, traps",
   "pack.sos.danger.hub.nature": "Nature",
