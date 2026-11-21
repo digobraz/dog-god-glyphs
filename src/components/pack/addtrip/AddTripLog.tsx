@@ -41,7 +41,7 @@ import { useKeyboardLift } from '@/components/pack/diary/useKeyboardLift';
 import { sizedUrl, heroPx } from '@/services/cloudinaryService';
 import { searchTripCompanions, INVITE_KEY_PREFIX, type TripCompanionHit } from '@/lib/packHumans';
 import { PhotoSortGrid } from './PhotoSortGrid';
-import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
+import { BackIcon, BackLinkIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW, PLATE_TILE_R, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useIsPaleChrome } from '@/components/pack/usePaleChrome';
 import { CompanionPicker, PackHumansRow, type Companion } from '@/components/pack/packCommunityUI';
@@ -2256,7 +2256,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    */
   const notesBody = (
     <>
-      <p className="atl-noteq">{t('pack.addTrip.step.notesQ')}</p>
+      {/* Bez otázky nad riadkami — tú istú vec hovorí AINUBIS v bubline hore (Matej 21. 11. 2026). */}
       {/* JEDEN RIADOK NA DRUH (Matej 21. 11. 2026: „prečo sú 3 vedľa seba a potom to isté aj pod sebou?“).
           Riadok je zároveň ponuka (ťuk = zapichni na mape) aj zoznam toho, čo už je zapichnuté (× zmaže).
           Tlačidlá a pod nimi chipy hovorili dvakrát to isté. */}
@@ -2291,7 +2291,11 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
           );
         })}
       </div>
+      {/* SPÄŤ A POKRAČOVAŤ V JEDNOM RADE (Matej 21. 11. 2026: „panel je moc veľký“) — odkaz pod panelom zanikol (`backInPanel`). */}
       <div className="atl-noteask-btns">
+        <button type="button" className="trp-dback atl-noteback" onClick={() => setStep(1)}>
+          <BackLinkIcon /> {t(isPlaceTrip ? 'pack.addTrip.step.backToPlace' : 'pack.addTrip.step.backToRoute')}
+        </button>
         {/* JEDNO CTA = LAPIS, tá istá trieda ako HOTOVO v kroku 1 (`.trp-dbar-done`). */}
         <button
           type="button"
@@ -2769,6 +2773,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     // parkoviska pribudla kotva trasy.
     paused: !drawingStep,
     panel: notesInBar ? notesPanel : undefined,
+    backInPanel: notesInBar,
     above: multiDayAsk,
     // V kroku 2 pokyn hovorí o značkách, nie o kreslení — inak by fialová pilulka radila
     // dlho podržať prst práve vtedy, keď to nič nespraví.
@@ -4428,10 +4433,11 @@ const STEP_CSS = `
 .atl-nrow-add{flex:none;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;border:1px solid currentColor;font-size:20px;line-height:1;}
 /* ⚠️ FOCUS RING IDE DOVNÚTRA (Matej 2026-08-28) — lišta s overflow ho zvonka orezáva. */
 .atl-nrow:focus-visible{outline:2px solid ${LAPIS.edge};outline-offset:-2px;}
-.atl-noteq{margin:0;font-family:${FONT_UI};font-size:14px;line-height:1.45;color:${T.onDark};}
 .atl-noteask{padding:12px 16px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};}
 .atl-noteask p{margin:0 0 10px;font-family:${FONT_UI};font-size:14px;line-height:1.45;color:${T.onDark};}
-.atl-noteask-btns{display:flex;gap:8px;}
+.atl-noteask-btns{display:flex;align-items:center;gap:8px;}
+.atl-noteask-btns .atl-noteback{flex:none;padding:4px 0;}
+.atl-noteask-btns .trp-dbar-done{flex:1 1 auto;min-width:0;}
 .atl-noteask-btns .atl-toggle-btn{flex:1 1 0;}
 /* KROK 2 V LIŠTE NAD MAPOU — lišta už rám aj podklad má, druhý dovnútra by vyrobil
    škatuľu v škatuli. Ostáva len rozostup medzi otázkou, zoznamom značiek a pokračovaním. */
@@ -5354,7 +5360,6 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
 
   /* ── tlačidlá značiek (krok 2): na papyruse tmavý inkoust, výplň a rám ako pri ostatných voľbách ── */
   .atl-nrow{background:${P_SOFT};border-color:${P_BORDER};color:${P_INK};}
-  .atl-noteq{color:${P_INK};}
 
   /* ── potvrdenie odchodu z toku ──────────────────────────────────────────────────────── */
   /* Rozlúčka s AINUBISOM (.atl-abort--ainubis) sa ZÁMERNE nemení: je to jeho vlastný modrý

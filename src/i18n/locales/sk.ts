@@ -3916,7 +3916,6 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.step.ptsFew': "{n} body",
   'pack.addTrip.step.ptsMany': "{n} bodov",
   'pack.addTrip.step.askHowTo': "Ťukni na to, čo označuješ, a ukáž miesto na mape.",
-  'pack.addTrip.step.notesQ': "Čo má vedieť ďalší?",
   'pack.addTrip.step.noteOnMap': "na mape",
   'pack.addTrip.step.askParking': "Kde si parkoval?",
   'pack.addTrip.step.askWarning': "Bolo tam nejaké nebezpečenstvo?",

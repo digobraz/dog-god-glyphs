@@ -226,6 +226,8 @@ export type GeometryPickerProps = {
     panel?: React.ReactNode;
     /** i18n kľúč pre návrat — mení sa s tým, kto lištu práve vlastní (viď `backLink`). */
     backLabel?: string;
+    /** Panel má návrat vo vlastnom rade vedľa CTA (krok 2, Matej 21. 11. 2026: „späť daj do jedného riadku s pokračovať“). */
+    backInPanel?: boolean;
     /**
      * ÚNIK Z KRESLENIA — červený krížik vpravo hore (Matej 2026-08-24: „mala by existovať
      * šanca na únik… červený krížik").
@@ -1973,7 +1975,8 @@ export function GeometryPicker({
           <div className="trp-dbar trp-dockpanel">
             {stepsInPanel}
             {drawBar.panel}
-            {backLink}
+            {/* Panel, ktorý si návrat nesie sám v rade s CTA (krok 2), ho tu nedostane druhýkrát. */}
+            {!drawBar.backInPanel && backLink}
           </div>
         ) : stage > 0 ? (
         <div className="trp-dbar trp-dockpanel">
