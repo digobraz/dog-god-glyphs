@@ -4747,6 +4747,7 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.entry.kind.sniffer.title': "Sniffuj",
   'pack.addTrip.entry.kind.sniffer.titleApp': "Vysniffuj parťáka",
   'pack.addTrip.entry.kind.wish.text': "Kam ťa to ťahá",
+  'pack.map.layer.mine': "Moje výlety",
   'pack.map.layer.wish': "Priania",
   'pack.wish.guide.place': "Kam ťa to ťahá? Vrchol, mesto aj celý štát.",
   'pack.wish.guide.kind': "{place}. Na koľko?",

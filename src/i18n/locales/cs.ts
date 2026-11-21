@@ -2404,6 +2404,7 @@ export const cs: Partial<Dict> = {
   'pack.addTrip.entry.kind.sniffer.title': "Otevřít SNIFFER",
   'pack.addTrip.entry.kind.sniffer.titleApp': "Vysniffuj parťáka",
   'pack.addTrip.entry.kind.wish.text': 'Kam tě to táhne',
+  'pack.map.layer.mine': 'Moje výlety',
   'pack.map.layer.wish': 'Přání',
   'pack.wish.guide.place': 'Kam tě to táhne? Vrchol, město i celý stát.',
   'pack.wish.guide.kind': '{place}. Na jak dlouho?',

@@ -5121,6 +5121,7 @@ export const en = {
   'pack.addTrip.entry.kind.sniffer.title': "Open SNIFFER",
   'pack.addTrip.entry.kind.sniffer.titleApp': "Sniff out a buddy",
   'pack.addTrip.entry.kind.wish.text': "Where it pulls you",
+  'pack.map.layer.mine': "My trips",
   'pack.map.layer.wish': "Wishes",
   'pack.wish.guide.place': "Where's it pulling you? A peak, a town, a whole country.",
   'pack.wish.guide.kind': "{place}. For how long?",

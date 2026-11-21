@@ -594,7 +594,7 @@ type FlyTarget = { ll: LatLngTuple; zoom: number };
 // rieš zhlukmi"). Nahrádza pôvodné oddelené pillIcon/waterIcon + dva samostatné <Marker> loopy
 // jedným systémom (viď <TripMarkers> nižšie pri mape), lebo zhlukovanie musí vidieť VŠETKY typy
 // bodov naraz (trip aj vodná plocha môžu spadnúť do tej istej pixelovej bunky). ──
-type MapPoint = { id: string; tr: HeroTrail; lat: number; lon: number; water: boolean; journey: boolean; ghost?: boolean; lake?: WaterPlace | null };
+type MapPoint = { id: string; tr: HeroTrail; lat: number; lon: number; water: boolean; journey: boolean; ghost?: boolean; lake?: WaterPlace | null; walked?: boolean };
 
 // tri vrstvy podľa zoomu (zadanie 2.3): z<=9 len bodka · z10–11 bodka (diaľkové už pilulka) ·
 // z>=12 všetko pilulka.
@@ -627,7 +627,14 @@ const lakePx = (p: MapPoint, z: number) => Math.round(flagPx(z) * (p.lake ? WATE
 const JOURNEY_PLUS = 8;
 const GHOST_MIN_ZOOM = 10;
 const CLUSTER_PLUS = 6;
-const LAKE_NAME_MIN_ZOOM = 7;
+// DIAĽKA = celé krajiny (Matej 21. 11. 2026: „zdiaľky … len ikonky výletov, vlajky, prípadne SOS … pri približovaní
+// sa začnú vynárať"). Pod `MAP_NEAR_ZOOM` stoja na mape LEN hranice, vlajky výletov, SOS a moja poloha; jazero pri
+// výlete je vtedy obyčajná vlajka. Od 9: jazerá, veterinári, vretenice, upozornenia, priania · od 13 ikonky
+// upozornení · od 15 body z OSM. Celé SK sa do okna zmestí práve pod z9 (viď `JOURNEY_KM_ZOOM`).
+const MAP_NEAR_ZOOM = 9;
+const LAKE_NAME_MIN_ZOOM = MAP_NEAR_ZOOM;
+/** Zelená fajka na vlajke prejdeného výletu — vidno vždy, nie len pri vrstve Moje výlety (Matej 21. 11. 2026: „ok"). */
+const WALKED_MARK = '/icons/sys/fajka-zelena.webp';
 const LAKE_CHAR_PX = 8.2;
 const LAKE_NAME_H = 16;
 const LAKE_NAME_GAP = 2;
@@ -707,7 +714,7 @@ const pointTypeClass = (p: MapPoint): string => (p.journey ? '--journey' : p.wat
 // Zámok na značke výletu, ktorý v náhľade /magnet nie je zdarma (hand-drawn `lock.svg`, bielený CSS-kou).
 const LOCK_MARK = `<span class="trp-lockmark"><img src="${ICON('lock')}" alt="" draggable="false"/></span>`;
 const pointIcon = (p: MapPoint, hot: boolean, zoom: number, lang: string, locked = false, lakeNamed = false) => {
-  const lakeSrc = p.lake && !p.ghost && !locked ? stickerSrc(`water_${p.lake.kind}`) : null;
+  const lakeSrc = p.lake && !p.ghost && !locked && zoom >= LAKE_NAME_MIN_ZOOM ? stickerSrc(`water_${p.lake.kind}`) : null;
   if (p.lake && lakeSrc) {
     const px = lakePx(p, zoom);
     return L.divIcon({
@@ -717,7 +724,7 @@ const pointIcon = (p: MapPoint, hot: boolean, zoom: number, lang: string, locked
   }
   // Výlet = vlajka, náročnosť v rohu; z blízka pod ňou kilometre alebo meno miesta. Magistrála je o kus väčšia
   // vlajka a km nesie od z8 (pilulka a bodka zanikli 10. 11.), magistrála na prevzatie ostáva čiernobiela.
-  const flagSrc = !p.water && !locked && (p.journey || !p.ghost) ? stickerSrc('trip_flag') : null;
+  const flagSrc = (!p.water || zoom < LAKE_NAME_MIN_ZOOM) && !locked && (p.journey || !p.ghost) ? stickerSrc('trip_flag') : null;
   if (flagSrc) {
     const px = flagPx(zoom) + (p.journey ? JOURNEY_PLUS : 0);
     const top = `style="top:${px / 2 + LAKE_NAME_GAP}px"`;
@@ -727,7 +734,8 @@ const pointIcon = (p: MapPoint, hot: boolean, zoom: number, lang: string, locked
         : `<div class="trp-lake-name" ${top}>${escapeHtml(shortName(p.tr.name))}</div>`;
     const diff = p.tr.diff ? `<i class="trp-flag-diff" style="left:${Math.round(px * 0.17)}px;top:${Math.round(px * 0.11)}px"><span class="trp-diffmark trp-diffmark--${diffMarkShape(p.tr.diff)}"></span></i>` : '';
     const cls = ` mk-sticker--big${hot ? ' trp-lake-hot' : ''}${p.ghost ? ' trp-ghost' : ''}`;
-    return L.divIcon({ className: 'mk-wrap', html: stickerImg(flagSrc, cls, px) + diff + label });
+    const done = p.walked ? `<img class="trp-flag-done" src="${WALKED_MARK}" alt="" style="left:${Math.round(px * 0.36)}px;top:${-Math.round(px * 0.3)}px;width:${Math.round(px * 0.42)}px;height:${Math.round(px * 0.42)}px">` : '';
+    return L.divIcon({ className: 'mk-wrap', html: stickerImg(flagSrc, cls, px) + diff + done + label });
   }
   const type = pointTypeClass(p);
   if (pointIsPill(p, zoom)) {
@@ -1011,6 +1019,10 @@ const CASING_FADE_START = 12;
 const CASING_FADE_END = 14;
 // metersPerPixel žije teraz v `src/components/geo/geoMath.ts` — zdieľané s <FogLayer/>
 // (predtým dve kópie, viď spec-hmla.md bod 6 zadania).
+// Hranice kreslí KAŽDÁ krajina, ktorú riešime (výlety, body z OSM, veterinári), nie len tá s výletom
+// (Matej 21. 11. 2026: „všade, kde budeme riešiť rôzne značky na mape, potrebujeme vykresliť aj hranice").
+// Do 21. 11. ich mali len SK, CH a SI; CZ, AT, HU a PL polygón mali, ale nekreslil sa.
+const BORDER_COUNTRIES = Object.keys(COUNTRY_BORDERS);
 function TerritoryBorders({ countries }: { countries: string[] }) {
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
@@ -2115,6 +2127,7 @@ ${pcCSS('(min-width:1024px) and (max-width:1400px)', `
 .trp-cluster{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;border-radius:999px;font-family:${FONT_UI};font-weight:600;color:${LAPIS.ink};background:${LAPIS.grad};border:1px solid rgba(201,154,63,0.6);box-shadow:0 3px 12px rgba(0,0,0,0.45);cursor:pointer;transition:transform .12s;}
 .trp-cluster:hover{transform:translate(-50%,-50%) scale(1.09);}
 .trp-flagcl{position:relative;cursor:pointer;}
+.trp-flag-done{position:absolute;transform:translate(-50%,-50%);pointer-events:none;}
 .trp-flagcl-n{position:absolute;transform:translate(-50%,-50%);min-width:22px;height:22px;padding:0 ${PACK_SPACE.sm}px;border-radius:999px;background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_UI};font-weight:600;font-size:12px;display:flex;align-items:center;justify-content:center;box-shadow:${PACK_SHADOW.card};pointer-events:none;}
 /* Farebná legenda mapy (.trp-legend / .trp-legrow / .trp-legdot) ZRUŠENÁ 2026-08-03 —
    Matej: „a folný blok s legendami daj preč celkom". Zaberala 126×93 px vpravo dole a na
@@ -3309,7 +3322,7 @@ ${mobCSS(`(max-width:${PALE_PC_MIN - 1}px)`, `
 // JSX. PODKLAD (base) je vždy PRÁVE JEDEN aktívny (radio); OVERLAY (overlay) sa dá zapnúť viac
 // naraz (checkbox).
 type MapBaseId = 'outdoor' | 'aerial' | 'dogypt';
-type MapOverlayId = 'names' | 'vipers' | 'threats' | 'sleep' | 'wish' | 'vets';
+type MapOverlayId = 'mine' | 'names' | 'vipers' | 'threats' | 'sleep' | 'wish' | 'vets';
 
 /** Kontext, ktorý layer potrebuje na vyhodnotenie `disabledReason` — fog stav (prázdny/loading,
  *  spec §4 bod 4) + `isCleanMode` (Matej 2026-08-04: „pri DOGYPT zobrazení bude vidno iba hmla
@@ -3345,6 +3358,9 @@ const MAP_LAYERS: MapLayerDef[] = [
       return null;
     },
   },
+  // MOJE VÝLETY (Matej 21. 11. 2026: „vrstvu moje výlety, aby človek videl tie, čo prešiel") — filter, nie nová
+  // vrstva značiek: zapnutá nechá na mape aj v zozname len prejdené výlety (`visibleHeroTrails`).
+  { id: 'mine', type: 'overlay', labelKey: 'pack.map.layer.mine' },
   {
     id: 'names',
     type: 'overlay',
@@ -3459,7 +3475,7 @@ const placeZoom = (type?: string): number => {
 // `threats: true` — upozornenia svorky sú dôvod, prečo vrstva zápisov existuje;
 // vypínač je tu na to, aby si ich človek vedel odpratať, nie aby si ich musel
 // hľadať.
-const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, vipers: true, threats: true, sleep: true, wish: true, vets: true };
+const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { mine: false, names: false, vipers: true, threats: true, sleep: true, wish: true, vets: true };
 
 // Satelit (aerial) má dlaždice len do z19 na SK / z13 vo svete (overené v Mapy.com API
 // dokumentácii, spec-hmla.md bod 5 zadania) — nad tým dlaždica NEEXISTUJE a mapa sa vysype na
@@ -4263,6 +4279,8 @@ export default function PackMap() {
    */
   const [placingKind, setPlacingKind] = useState<NoteKind | null>(null);
   const [noteZoom, setNoteZoom] = useState(0);
+  /** Diaľka (celé krajiny): len hranice, vlajky, SOS a poloha — viď `MAP_NEAR_ZOOM`. 0 = mapa ešte nehlásila zoom. */
+  const mapFar = noteZoom > 0 && noteZoom < MAP_NEAR_ZOOM;
 
   // Priblíženie ako STATE, nech lišta „ukáž miesto" vie prepnúť text na „priblíž
   // si mapu" v tej chvíli, keď človek odzoomuje — nie až po kliknutí naprázdno.
@@ -4822,16 +4840,16 @@ export default function PackMap() {
       if (tr.id.startsWith('plan-') || tr.path.length === 0) return;
       if (isWaterTrail(tr)) {
         const [lat, lon] = waterPoint(tr.path);
-        pts.push({ id: tr.id, tr, lat, lon, water: true, journey: false, lake: waterPlaceOf(tr, true) });
+        pts.push({ id: tr.id, tr, lat, lon, water: true, journey: false, lake: waterPlaceOf(tr, true), walked: walkedIds.has(tr.id) });
       } else {
         const journey = !!tr.acts?.includes('journey');
         const lake = waterPlaceOf(tr, false);
         const [lat, lon] = lake?.at ?? (journey ? tr.path[Math.floor(tr.path.length / 2)] : tr.path[0]);
-        pts.push({ id: tr.id, tr, lat, lon, water: false, journey, ghost: isGhostJourney(tr, packWalked), lake });
+        pts.push({ id: tr.id, tr, lat, lon, water: false, journey, ghost: isGhostJourney(tr, packWalked), lake, walked: walkedIds.has(tr.id) });
       }
     });
     return pts;
-  }, [allTrails, packWalked]);
+  }, [allTrails, packWalked, walkedIds]);
   // bbox každej trasy — predpočítané raz, porovnáva sa s výrezom mapy pri každom paneli (r. nižšie,
   // inViewTrails/elsewhereTrails). Trasa bez bodov (napr. plán bez pinu) sem nepatrí a berie sa
   // ako „nedá sa umiestniť" → ostáva v hornej skupine, nech ju viewport nikdy nezhodí dolu.
@@ -6536,6 +6554,7 @@ export default function PackMap() {
         // plánované výlety (neprešli sa) NEpatria do ľavého bloku „všetky výlety" — len na mapu (pin),
         // do Events a Triplistu. Po označení walked (autor) sa z plánu stane bežný trip a objaví sa tu.
         !(tr.id.startsWith('plan-') && !walkedIds.has(tr.id)) &&
+        (!overlayOn.mine || walkedIds.has(tr.id)) &&
         // 🔴 ODYSEA JE VLASTNÁ PRIEHRADKA, NIE STUPEŇ (Matej 2026-08-27, §12.4 kánonu).
         //    ODYSEA vracia VŠETKY viacdňové bez ohľadu na náročnosť; ostatné stupne naopak
         //    viacdňové NEVRACAJÚ.
@@ -7890,7 +7909,7 @@ export default function PackMap() {
                   eventHandlers={{ tileerror: () => trackTileError('names-overlay', 'overlay') }}
                 />
               )}
-              {!isCleanMode && overlayOn.vipers && <ViperAreasLayer lang={lang} />}
+              {!isCleanMode && !mapFar && overlayOn.vipers && <ViperAreasLayer lang={lang} />}
               {isCleanMode && <DogyptBaseLayer url={mapyTiles(tileStyle)} style={tileStyle} />}
               {/* Hmla — vnútri <MapContainer> (potrebuje useMap()), pod trasami/markermi (viď
                   poradie nižšie), nechytá klik (viď FogLayer.tsx). Panel dovolí prepnúť na DOGYPT
@@ -7908,7 +7927,7 @@ export default function PackMap() {
                   Krajina s trasou ale bez polygónu tu → dogeneruj cez scripts/gen_borders.py.
                   Cross-border legibility (Matej 2026-07-27, druhé kolo) → viď TerritoryBorders
                   vyššie (real-metrová priehľadná zóna namiesto dashArray, ktorý „nesadol"). */}
-              <TerritoryBorders countries={availableCountries} />
+              <TerritoryBorders countries={BORDER_COUNTRIES} />
               {/* mierka nesie čísla ("5 km") — v DOGYPT čistom vizuáli patrí medzi vysvetlivky. */}
               {!isCleanMode && <ScaleControl position="bottomleft" imperial={false} />}
               <FlyTo target={mapTarget} />
@@ -8077,7 +8096,7 @@ export default function PackMap() {
               {!isCleanMode && overlayOn.sleep && <PoiLayer tiles minZoom={SLEEP_MIN_ZOOM} drawing={mapDrawing} />}
               {/* VETERINÁRI (17. 11. 2026) — vlastný súbor a pohotovosti zo SOS, nie dlaždice OSM; počas
                   kreslenia trasy mlčia, aby ťuk na ambulanciu nezobral kotvu trasy. Len appka (samolepky). */}
-              {!isCleanMode && !mapDrawing && overlayOn.vets && <VetLayer />}
+              {!isCleanMode && !mapDrawing && !mapFar && overlayOn.vets && <VetLayer />}
               {/* trip markery (pilulky s km, bodky-piktogramy, zhlukové bubliny s počtom) —
                   DOGYPT čistý vizuál (2026-08-04, Matej: „iba hmla a svetelné meče... žiadne
                   písmo ani vysvetlivky") ich celé skrýva, nesú číslo/piktogram na každom bode. */}
@@ -8157,7 +8176,7 @@ export default function PackMap() {
               ))}
               {/* ZÁPISY DO MAPY — nad trip markermi (sú to konkrétne miesta, nie súhrn).
                   DOGYPT čistý vizuál ich skrýva rovnako ako ostatné značky s textom. */}
-              {!isCleanMode && (
+              {!isCleanMode && (!mapFar || !!addFlow) && (
                 <MapNotesLayer
                   notes={mapNotes.notes}
                   onVote={(id, v) => { if (mg) { mg.lock('action'); return; } void mapNotes.vote(id, v); }}
@@ -8194,7 +8213,7 @@ export default function PackMap() {
                 />
               )}
               {/* PRIANIA 🎯 — nad odkazmi, vidno na každom priblížení (WishLayer.tsx). */}
-              {!isCleanMode && overlayOn.wish && (
+              {!isCleanMode && !mapFar && overlayOn.wish && (
                 <WishLayer wishes={wishes} onChanged={reloadWishes} interactive={!mg && !mapDrawing && !wishFlow} />
               )}
               {/* SOS pátrania — fotka psa v červenom obruči + kruhy 500 m / 10 km (SosMapLayer.tsx). Len TEST_BUILD. */}
