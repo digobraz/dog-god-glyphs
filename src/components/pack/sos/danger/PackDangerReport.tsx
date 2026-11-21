@@ -1,6 +1,6 @@
 // NAHLÁSIŤ NEBEZPEČENSTVO: označ miesto (nákres scr 4+5 týranie, scr 8 otrava). Jeden súbor, dva režimy.
-//   mode='abuse'  → `/pack/sos/nebezpecenstvo/tyranie/miesto`: presný bod, chipy, ako často, text, fotky; po odoslaní „Odoslané“
-//                   na tej istej stránke (čaká na schválenie) a ponuka podnetu úradu.
+//   mode='abuse'  → `/pack/sos/nebezpecenstvo/tyranie/miesto` (21. 11. 2026): miesto + podnet v JEDNOM kroku: presný bod, jedno pole „vlastnými slovami“,
+//                   fotky, v SK/CZ povinný telefón. Po `dangerReport` ide hneď aj podnet úradu (`dangerComplaintCreate`, AUTO); „Odoslané“ na tej istej stránke.
 //   mode='poison' → `/pack/sos/nebezpecenstvo/otrava`: bod + okruh 100–500 m (predvoľba 150), chipy, text, fotky; značka ide na mapu HNEĎ.
 // Kôš 3 (SosTaskShell). Backend VÝHRADNE `lib/danger.ts`. Mapa = dlaždice Mapy.com ako `PackSosNew` (rgeocode vzor `PackSosNew.tsx` `pick`).
 // Exporty `DangerMap`, `useGeoPick`, `DANGER_FORM_CSS` používa aj `PackDangerNature`.
@@ -18,16 +18,15 @@ import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { uploadDangerPhoto } from '@/services/cloudinaryService';
 import {
-  DANGER_ABUSE_CHIPS, DANGER_POISON_CHIPS, DANGER_RADIUS, dangerErrorCode, dangerIsOffline, dangerPrecheck, dangerReport,
-  type DangerGate, type DangerHowOften, type DangerKind,
+  DANGER_POISON_CHIPS, DANGER_RADIUS, dangerComplaintCreate, dangerErrorCode, dangerIsOffline, dangerLastPhone, dangerPrecheck, dangerReport,
+  type DangerGate, type DangerKind,
 } from '@/lib/danger';
 import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
 import type { SosKey } from '../sosTexts';
-import { CharCount, addImageFiles, clearDraft, loadDraft, regionOf, saveDraft, useArmed, useFieldErr, useSubmitLock } from './dangerForm';
+import { CharCount, addImageFiles, cleanPhone, clearDraft, loadDraft, regionOf, saveDraft, useArmed, useFieldErr, useSubmitLock } from './dangerForm';
 
 const SK_CENTER: [number, number] = [48.7, 19.7];
-const OFTEN: DangerHowOften[] = ['once', 'repeat', 'months'];
 const MAX_PHOTOS = 5;
 const HOME_COUNTRIES = ['SVK', 'CZE'];
 
@@ -242,6 +241,7 @@ export const DANGER_FORM_CSS = `
 .dgr-ai{border:1.5px solid ${AINUBIS.edgeStrong};}
 .dgr-ai b{font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 .dgr-ai b span{color:${AINUBIS.cyan};}
+.dgr-tl{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:${S.md}px;font-size:${PACK_TEXT.body}px;line-height:1.45;}
 .dgr-links{display:flex;flex-wrap:wrap;gap:${S.sm}px;}
 .dgr-links button{all:unset;cursor:pointer;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;font-weight:600;color:${T.inkStrong};text-decoration:underline;text-underline-offset:2px;}
 `;
@@ -250,7 +250,7 @@ const ERRS = ['bad_coords', 'rate_limited', 'no_access', 'bad_text', 'not_authen
 const BODY_MAX = 1200;
 
 interface ReportDraft {
-  pt: [number, number] | null; geo: GeoPick; what: string[]; often: DangerHowOften | null; body: string; radius: number; photoCount: number;
+  pt: [number, number] | null; geo: GeoPick; what: string[]; body: string; radius: number; photoCount: number;
 }
 
 export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' }) {
@@ -263,7 +263,8 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
   const draft = useMemo(() => loadDraft<ReportDraft>(draftKey), [draftKey]);
   const { pt, geo, center, zoom, locateTick, locErr, pick, locate, setPlace, setMunicipality, setCountry, geoState, tilesFail, onTiles } = useGeoPick(draft ? { pt: draft.pt ?? null, geo: draft.geo ?? null } : null);
   const [what, setWhat] = useState<string[]>(draft?.what ?? []);
-  const [often, setOften] = useState<DangerHowOften | null>(draft?.often ?? null);
+  const [phone, setPhone] = useState('');
+  const [complaint, setComplaint] = useState<'sent' | 'fail' | null>(null);
   const [body, setBody] = useState(draft?.body ?? '');
   const [radius, setRadius] = useState<number>(draft?.radius ?? DANGER_RADIUS.def);
   const [files, setFiles] = useState<File[]>([]);
@@ -279,7 +280,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
   const [sent, setSent] = useState<{ id: string; slug: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const chips = mode === 'abuse' ? DANGER_ABUSE_CHIPS : DANGER_POISON_CHIPS;
+  const chips = DANGER_POISON_CHIPS;
   const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
   useEffect(() => () => previews.forEach((u) => URL.revokeObjectURL(u)), [previews]);
 
@@ -290,15 +291,18 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
     return () => { alive = false; };
   }, []);
 
+  // telefón z posledného podnetu (ako `PackDangerComplaint`)
+  useEffect(() => { dangerLastPhone().then((p) => p && setPhone((x) => x || p)).catch(() => undefined); }, []);
+
   // rozpísané do sessionStorage (po odoslaní sa zmaže)
-  const snap = { pt, geo, what, often, body, radius, photoCount: files.length || lostPhotos } satisfies ReportDraft;
+  const snap = { pt, geo, what, body, radius, photoCount: files.length || lostPhotos } satisfies ReportDraft;
   const snapRef = useRef(snap);
   snapRef.current = snap;
   useEffect(() => {
     if (sent) return;
     saveDraft(draftKey, snap);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sent, draftKey, pt, geo, what, often, body, radius, files.length, lostPhotos]);
+  }, [sent, draftKey, pt, geo, what, body, radius, files.length, lostPhotos]);
   // aj pri zatvorení karty / obnovení: posledný stav (napr. písmeno napísané tesne pred reloadom)
   const sentRef = useRef(false);
   sentRef.current = !!sent;
@@ -331,11 +335,15 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
     if (gate !== 'ok') { window.scrollTo?.({ top: 0, behavior: 'smooth' }); return; }
     setErrLink(false); fe.clear();
     if (!pt) { fail('map', s('pack.sos.danger.report.err.bad_coords')); return; }
-    if (!what.length) { fail('what', s('pack.sos.danger.report.err.what')); return; }
+    if (mode === 'poison' && !what.length) { fail('what', s('pack.sos.danger.report.err.what')); return; }
+    if (mode === 'abuse' && body.trim().length < 5) { fail('body', s('pack.sos.danger.report.err.ownWords')); return; }
     // krajinu NEHÁDAME (žiadne `?? 'SVK'`): kým ju geokód nezistil, vyberá ju človek
     if (!geo.country) { fail('country', s('pack.sos.danger.report.err.country')); return; }
     if (geo.country === 'OTHER') { fail('country', s('pack.sos.danger.report.otherCountry'), true); return; }
     if (geoState === 'fail' && !geo.municipality?.trim()) { fail('muni', s('pack.sos.danger.report.err.muni')); return; }
+    // podnet úradu ide pri týraní VŽDY (SK/CZ): telefón je povinný ešte pred odoslaním
+    const tel = mode === 'abuse' && regionOf(geo.country) !== 'OTHER' ? cleanPhone(phone) : null;
+    if (mode === 'abuse' && regionOf(geo.country) !== 'OTHER' && !tel) { fail('phone', s('pack.sos.danger.complaint.err.phone')); return; }
     setErr('');
     setBusy('send');
     try {
@@ -352,9 +360,20 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
         const r = await dangerReport({
           kind, lat: pt[0], lng: pt[1], country: geo.country,
           place_label: geo.place.trim() || null, municipality: geo.municipality?.trim() || null, district: geo.district,
-          radius_m: mode === 'poison' ? radius : null, what,
-          how_often: mode === 'abuse' ? often : null, body: body.trim() || null, photos,
+          radius_m: mode === 'poison' ? radius : null, what: mode === 'abuse' ? [] : what,
+          how_often: null, body: body.trim() || null, photos,
         });
+        if (tel) {
+          // prípad je už uložený: keď podnet zlyhá, ukáže sa „Odoslané“ s jemnou hláškou a odkazom na /podnet?case=<id>
+          try {
+            await dangerComplaintCreate({
+              case_id: r.id, country: (geo.country ?? 'SK') === 'CZE' ? 'CZ' : 'SK',
+              place_label: geo.place.trim() || geo.municipality?.trim() || `${pt[0].toFixed(5)}, ${pt[1].toFixed(5)}`,
+              authority_code: 'AUTO', raw: body.trim(), phone: tel, sign_name: null, cc_linka: regionOf(geo.country) === 'SK', photos,
+            });
+            setComplaint('sent');
+          } catch { setComplaint('fail'); }
+        }
         clearDraft(draftKey);
         sentRef.current = true;
         setSent(r);
@@ -376,13 +395,24 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
         <h1 className="sos-h2">{s('pack.sos.danger.report.sent')}</h1>
         {mode === 'abuse' ? (
           <>
-            <SosCard className="dgr-ai">
-              <b><span>AI</span>NUBIS</b>
-              <p className="sos-p">{s(regionOf(geo.country) === 'OTHER' ? 'pack.sos.danger.report.sent.abuse.other' : 'pack.sos.danger.report.sent.abuse')}</p>
-            </SosCard>
-            <p className="dgr-note">{s('pack.sos.danger.report.sent.abuseNext')}</p>
-            <button type="button" className="sos-cta" disabled={!armed} onClick={() => navigate(`/pack/sos/nebezpecenstvo/podnet?case=${sent.id}`)}>{s('pack.sos.danger.abuse.complaint')}</button>
-            <button type="button" className="sos-cta sos-cta--ghost" disabled={!armed} onClick={() => navigate('/pack/sos/nebezpecenstvo', { replace: true })}>{s('pack.sos.danger.report.sent.later')}</button>
+            <p className="sos-p">{s('pack.sos.danger.report.sentThanks')}</p>
+            {complaint === 'sent' && (
+              <SosCard>
+                <p className="sos-eyebrow">{s('pack.sos.danger.complaint.nextEyebrow')}</p>
+                <ul className="dgr-tl">
+                  <li>{s('pack.sos.danger.complaint.t0auto')}</li>
+                  <li>{s('pack.sos.danger.complaint.t3')}</li>
+                  <li>{s(regionOf(geo.country) === 'CZ' ? 'pack.sos.danger.complaint.t7cz' : 'pack.sos.danger.complaint.t7')}</li>
+                </ul>
+              </SosCard>
+            )}
+            {complaint === 'fail' && (
+              <>
+                <p className="dgr-note">{s('pack.sos.danger.report.sentComplaintFail')}</p>
+                <button type="button" className="sos-cta" disabled={!armed} onClick={() => navigate(`/pack/sos/nebezpecenstvo/podnet?case=${sent.id}`)}>{s('pack.sos.danger.report.sentComplaintRetry')}</button>
+              </>
+            )}
+            <button type="button" className={`sos-cta${complaint === 'fail' ? ' sos-cta--ghost' : ''}`} disabled={!armed} onClick={() => navigate('/pack/sos/nebezpecenstvo', { replace: true })}>{s('pack.sos.danger.complaint.done')}</button>
           </>
         ) : (
           <>
@@ -398,7 +428,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
   }
 
   const outside = !!geo.country && !HOME_COUNTRIES.includes(geo.country);
-  const fights = mode === 'abuse' && what.includes('dog_fights');
+  const showComplaint = mode === 'abuse' && !!geo.country && regionOf(geo.country) !== 'OTHER';
   const locText = locErr === 'denied' ? s('pack.sos.danger.report.locDenied') : locErr === 'fail' ? s('pack.sos.danger.report.locFail') : '';
   const label = busy === 'upload' ? s('pack.sos.danger.report.uploading') : busy === 'send' ? s('pack.sos.danger.report.sending') : s(`pack.sos.danger.report.submit.${mode}` as SosKey);
 
@@ -432,38 +462,24 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
       </SosCard>
 
       <SosCard>
-        <p className="sos-eyebrow">{s('pack.sos.danger.report.what')}</p>
-        <div className={`sos-chips${fe.bad === 'what' ? ' dgr-bad' : ''}`} ref={fe.reg('what')}>
-          {chips.map((c) => (
-            <button key={c} type="button" className={`sos-pill sos-pick dgr-chip${what.includes(c) ? ' is-on' : ''}`} aria-pressed={what.includes(c)} onClick={() => toggle(c)}>
-              {s(`pack.sos.danger.report.chip.${c}` as SosKey)}
-            </button>
-          ))}
-        </div>
-        {fights && (
+        {mode === 'poison' && (
           <>
-            {/* polícia 158 platí v SK aj CZ; inde je jediné číslo, ktoré sedí všade, 112 */}
-            <p className="dgr-note dgr-note--red">{s(regionOf(geo.country) === 'OTHER' ? 'pack.sos.danger.report.dogFights.other' : 'pack.sos.danger.report.dogFights')}</p>
-            <a className="sos-cta sos-cta--red" href={regionOf(geo.country) === 'OTHER' ? 'tel:112' : 'tel:158'} style={{ textDecoration: 'none' }}>{s(regionOf(geo.country) === 'OTHER' ? 'pack.sos.danger.report.call112' : 'pack.sos.danger.report.callPolice')}</a>
-          </>
-        )}
-        {mode === 'abuse' && (
-          <>
-            <p className="sos-eyebrow">{s('pack.sos.danger.report.often')}</p>
-            <div className="sos-chips">
-              {OFTEN.map((o) => (
-                <button key={o} type="button" className={`sos-pill sos-pick dgr-chip${often === o ? ' is-on' : ''}`} aria-pressed={often === o} onClick={() => setOften((cur) => (cur === o ? null : o))}>
-                  {s(`pack.sos.danger.report.often.${o}` as SosKey)}
+            <p className="sos-eyebrow">{s('pack.sos.danger.report.what')}</p>
+            <div className={`sos-chips${fe.bad === 'what' ? ' dgr-bad' : ''}`} ref={fe.reg('what')}>
+              {chips.map((c) => (
+                <button key={c} type="button" className={`sos-pill sos-pick dgr-chip${what.includes(c) ? ' is-on' : ''}`} aria-pressed={what.includes(c)} onClick={() => toggle(c)}>
+                  {s(`pack.sos.danger.report.chip.${c}` as SosKey)}
                 </button>
               ))}
             </div>
           </>
         )}
-        <label className="sos-field"><span>{s('pack.sos.danger.report.body')}</span>
+        <label className="sos-field"><span>{s(mode === 'abuse' ? 'pack.sos.danger.report.ownWords' : 'pack.sos.danger.report.body')}</span>
           <textarea ref={fe.reg('body')} className={`pf-field dgr-ta${fe.bad === 'body' ? ' is-bad' : ''}`} rows={4} maxLength={BODY_MAX} value={body} onChange={(e) => { fe.clear('body'); setBody(e.target.value); }}
-            placeholder={s(mode === 'abuse' ? 'pack.sos.danger.report.bodyAbuse' : 'pack.sos.danger.report.bodyPoison')} />
+            placeholder={s(mode === 'abuse' ? 'pack.sos.danger.report.ownWordsPh' : 'pack.sos.danger.report.bodyPoison')} />
           <CharCount len={body.length} max={BODY_MAX} />
         </label>
+        {mode === 'abuse' && <p className="sos-small">{s('pack.sos.danger.report.ownWordsHint')}</p>}
         {mode === 'poison' && (
           <label className="sos-field"><span>{s('pack.sos.danger.report.radius', { n: radius })}</span>
             <input className="dgr-range" type="range" min={DANGER_RADIUS.min} max={DANGER_RADIUS.max} step={50} value={radius} onChange={(e) => setRadius(Number(e.target.value))} />
@@ -494,6 +510,17 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
         {lostPhotos > 0 && files.length === 0 && <p className="sos-small" role="status">{s('pack.sos.danger.report.photosLost', { n: lostPhotos })}</p>}
         <p className="sos-small">{s(`pack.sos.danger.report.photoPrivacy.${mode}` as SosKey)}</p>
       </SosCard>
+
+      {showComplaint && (
+        <SosCard>
+          <p className="sos-p"><b>{s('pack.sos.danger.report.complaintAlways')}</b></p>
+          <p className="sos-small">{s('pack.sos.danger.report.complaintWho')}{regionOf(geo.country) === 'SK' ? ` ${s('pack.sos.danger.report.complaintCopySK')}` : ''}</p>
+          <label className="sos-field"><span>{s('pack.sos.danger.complaint.phone')}</span>
+            <input ref={fe.reg('phone')} className={`pf-field${fe.bad === 'phone' ? ' is-bad' : ''}`} type="tel" inputMode="tel" autoComplete="tel" maxLength={24} value={phone} onChange={(e) => { fe.clear('phone'); setPhone(e.target.value); }} />
+          </label>
+          <p className="sos-small">{s('pack.sos.danger.report.phoneHint')}</p>
+        </SosCard>
+      )}
 
       {mode === 'poison' && (
         <SosCard>

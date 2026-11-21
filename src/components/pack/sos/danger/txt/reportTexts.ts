@@ -18,7 +18,7 @@ export const DANGER_REPORT_TEXTS = {
 
   // ── týranie: postup (obrazovka 3) ────────────────────────────────────────
   'pack.sos.danger.abuse.title': T('Cruelty', 'Týranie', 'Týrání'),
-  'pack.sos.danger.abuse.lead': T('Do not look away. The law forbids cruelty to animals and anyone can report it.', 'Nebuď ľahostajný. Týranie zvieraťa zákon zakazuje a nahlásiť ho môže každý.', 'Nebuď lhostejný. Týrání zvířete zákon zakazuje a nahlásit ho může každý.'),
+  'pack.sos.danger.abuse.lead': T('Did you witness cruelty or mistreatment? Please do not look away. You may be holding a matter of life and death.', 'Bol si svedkom týrania alebo zlého zaobchádzania? Prosím, nebuď ľahostajný. Možno máš v rukách otázku života a smrti.', 'Byl jsi svědkem týrání nebo špatného zacházení? Prosím, nebuď lhostejný. Možná máš v rukou otázku života a smrti.'),
   'pack.sos.danger.abuse.now': T('Is it happening right now? Call first.', 'Deje sa to práve teraz? Najprv volaj.', 'Děje se to právě teď? Nejdřív volej.'),
   'pack.sos.danger.abuse.police': T('Police', 'Polícia', 'Policie'),
   'pack.sos.danger.abuse.emergency': T('Emergency', 'Tiesňová', 'Tísňová'),
@@ -34,6 +34,22 @@ export const DANGER_REPORT_TEXTS = {
   'pack.sos.danger.abuse.step4': T('Note whom you told and when. If nothing happens, follow up.', 'Zapamätaj si, komu a kedy si to nahlásil. Ak sa nič nedeje, ozvi sa znova.', 'Zapamatuj si, komu a kdy jsi to nahlásil. Pokud se nic neděje, ozvi se znovu.'),
   'pack.sos.danger.abuse.vet': T('Find your veterinary office', 'Nájdi svoju RVPS', 'Najdi svou KVS'),
   'pack.sos.danger.abuse.never': T('Do not enter private property or confront the owner. Until you have reported it, do not post it online, it would warn them.', 'Nevstupuj na cudzí pozemok a nehádaj sa s majiteľom. Kým to nenahlásiš, nezverejňuj to na sieťach, varoval by si ho.', 'Nevstupuj na cizí pozemek a nehádej se s majitelem. Dokud to nenahlásíš, nezveřejňuj to na sítích, varoval bys ho.'),
+  // 21. 11. 2026 (Matej, zdroj zvieraciombudsman.sk/mam-podnet-co-robit): jeden rad čísel, jedno CTA, podnet ide vždy
+  'pack.sos.danger.abuse.nowEyebrow': T('What can you do right now?', 'Čo môžeš urobiť hneď?', 'Co můžeš udělat hned?'),
+  'pack.sos.danger.abuse.crime': T('Animal badly hurt or dead? Call 158, it is a crime.', 'Zviera je vážne zranené alebo mŕtve? Volaj 158, ide o trestný čin.', 'Zvíře je vážně zraněné nebo mrtvé? Volej 158, jde o trestný čin.'),
+  'pack.sos.danger.abuse.markLead': T('Mark the place so Dogyptians can step in if the state does not.', 'Označ miesto, nech Dogypťania môžu zasiahnuť, ak by štát nekonal.', 'Označ místo, ať Dogypťané můžou zasáhnout, kdyby stát nekonal.'),
+  'pack.sos.danger.abuse.ombudsman': T('Animal ombudsman 0948 022 121', 'Zvierací ombudsman 0948 022 121', 'Zvierací ombudsman 0948 022 121'),
+  'pack.sos.danger.report.ownWords': T('In your own words', 'Vlastnými slovami', 'Vlastními slovy'),
+  'pack.sos.danger.report.ownWordsPh': T('What happened? Since when? What animal?', 'Čo sa dialo? Odkedy? Aké zviera?', 'Co se dělo? Od kdy? Jaké zvíře?'),
+  'pack.sos.danger.report.ownWordsHint': T('Tell us in your own words what happened. DOGYPT will write a professional official report from it and follow up on the reply.', 'Napíš nám vlastnými slovami, čo sa dialo. DOGYPT z toho napíše profesionálnu úradnú správu a bude kontrolovať odpoveď.', 'Napiš nám vlastními slovy, co se dělo. DOGYPT z toho napíše profesionální úřední zprávu a bude kontrolovat odpověď.'),
+  'pack.sos.danger.report.err.ownWords': T('Write at least a few words about what happened.', 'Napíš aspoň pár slov o tom, čo sa dialo.', 'Napiš alespoň pár slov o tom, co se dělo.'),
+  'pack.sos.danger.report.complaintAlways': T('We always send a firm complaint to the authority', 'Dôrazný podnet úradu pošleme vždy', 'Důrazný podnět úřadu pošleme vždy'),
+  'pack.sos.danger.report.complaintWho': T('We choose the authority by the place.', 'Úrad určíme podľa miesta.', 'Úřad určíme podle místa.'),
+  'pack.sos.danger.report.complaintCopySK': T('The Cruelty hotline gets a copy too.', 'Kópiu dostane aj Linka proti krutosti.', 'Kopii dostane i Linka proti krutosti.'),
+  'pack.sos.danger.report.phoneHint': T('The authority may call you.', 'Úrad ti môže zavolať.', 'Úřad ti může zavolat.'),
+  'pack.sos.danger.report.sentThanks': T('Thank you for not turning away. We will check the place and show it to Dogyptians nearby.', 'Ďakujeme, že si sa neotočil. Miesto skontrolujeme a ukážeme ho Dogypťanom v okolí.', 'Děkujeme, že ses neotočil. Místo zkontrolujeme a ukážeme ho Dogypťanům v okolí.'),
+  'pack.sos.danger.report.sentComplaintFail': T('The place is saved, but the complaint to the authority did not go through. You can send it from the next screen.', 'Miesto je uložené, ale podnet úradu sa nepodarilo odoslať. Môžeš ho odoslať na ďalšej obrazovke.', 'Místo je uložené, ale podnět úřadu se nepodařilo odeslat. Můžeš ho odeslat na další obrazovce.'),
+  'pack.sos.danger.report.sentComplaintRetry': T('Send the complaint', 'Odoslať podnet', 'Odeslat podnět'),
 
   // ── označ miesto / otrava (obrazovky 4, 5, 8) ────────────────────────────
   'pack.sos.danger.report.title.abuse': T('Mark the place', 'Označ miesto', 'Označ místo'),
