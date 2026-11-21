@@ -33,7 +33,7 @@ export default function PackSosCard() {
   const fresh = picked ?? alive[0]?.id ?? null;
   let last: string | null = null;
   try { last = userId ? localStorage.getItem(lastKey) : null; } catch { /* bez úložiska */ }
-  const id = fresh ?? (loading ? last : null);
+  const id = fresh ?? last;   // naposledy použitý pes ostáva aj keď sa zoznam nenačítal (bez signálu); „nemáš psa“ iba tomu, kto žiadneho nemal
   if (fresh && userId && fresh !== last) { try { localStorage.setItem(lastKey, fresh); } catch { /* nič */ } }
   if (!id) {
     return (

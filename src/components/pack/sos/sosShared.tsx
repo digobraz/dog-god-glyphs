@@ -187,7 +187,8 @@ export function useSosLost(slug: string | undefined): SosLoad & { reload: () => 
 /** Šípka späť = krok pred (lock 26. 10. 2026); bez predošlého kroku `fallback`. */
 export function useBack(fallback: string): () => void {
   const navigate = useNavigate();
-  return useCallback(() => { if (canStepBack()) navigate(-1); else navigate(fallback); }, [navigate, fallback]);
+  // Náhradná cesta NAHRADÍ aktuálny záznam (replace): inak karta → zoznam pridá zoznam do histórie a Späť zo zoznamu vráti na kartu (slučka).
+  return useCallback(() => { if (canStepBack()) navigate(-1); else navigate(fallback, { replace: true }); }, [navigate, fallback]);
 }
 
 // ── CSS ───────────────────────────────────────────────────────────────────────────────────
