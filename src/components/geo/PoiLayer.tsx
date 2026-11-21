@@ -62,8 +62,10 @@ const POI_MAX_RENDER = 200;      // strop na výrez — nad ním sa mapa mení n
 // práve ona je to, čo tam človek hľadá. Táborisko pri chate je jej príveskom, nie súperom.
 const POI_PRIORITY: Record<string, number> = {
   sleep_hut: -5, sleep_bivak: -3, sleep_camp: -2,
-  spring: 0, shelter: 1, saddle: 2, castle: 2.5, water_jazero: 2.6, water_priehrada: 2.6, water_rybnik: 2.7, waterfall: 3, tower: 4,
-  cave: 5, viewpoint: 6, firepit: 7, cliff: 8, bench: 9,
+  // 👁️ VÝHĽAD HNEĎ ZA VODOU A STRECHOU (Matej 21. 11. 2026): „pre nás sú podstatné výhľady, pramene, útulne
+  // a prístrešky". Do 21. 11. bol výhľad na 6 a ustupoval hradu aj vodopádu; jazerá a hrady idú za nimi.
+  spring: 0, shelter: 1, viewpoint: 1.2, saddle: 2, castle: 2.5, water_jazero: 2.6, water_priehrada: 2.6, water_rybnik: 2.7, waterfall: 3, tower: 4,
+  cave: 5, firepit: 7, cliff: 8, bench: 9,
 };
 // ⚠️ PRÍSTREŠOK BEZ SPANIA USTÚPI PRAMEŇU (31. 10. 2026). So zlúčením bivaku a prístreška je
 // `sleep_bivak` 3 823 bodov, z toho len 149 sa dá prespať — zvyšok sú altánky na dážď. S prioritou
@@ -71,11 +73,12 @@ const POI_PRIORITY: Record<string, number> = {
 // 🌊 VEĽKÉ VYHRÁ, MALÉ VYJDÚ PRI PRIBLÍŽENÍ (Matej 21. 11. 2026): *„keď bude mapa obsahovať veľa bodov,
 // ukážu sa len tie najväčšie a pri zoomovaní budú vychádzať ostatné body"*. Rozostup nižšie je greedy —
 // kto je v poradí skôr, ten miesto dostane. Jazero od 100 ha (Lipno, Mara, Orava) preto ide pred
-// všetkým, menšie podľa plochy; rybník pri dedine ustúpi a ukáže sa, keď sa značky roztiahnu.
+// ostatnými vodami a hradmi (nie pred útulňou, prameňom, prístreškom a výhľadom), menšie podľa plochy; rybník pri dedine ustúpi a ukáže sa, keď sa značky roztiahnu.
 // Postupne sa takto zoradia aj ostatné druhy — pravidlo je v `plany/zadanie-osm-susedia-2026-11-21.md` §7.
 const LAKE_BIG_HA = 100;
 const prio = (t: string, sleep?: boolean, ha?: number) =>
-  t.startsWith('water_') && (ha ?? 0) >= LAKE_BIG_HA ? -6
+  // veľké jazero pred malými vodami a hradom, ale ZA útulňou, prameňom, prístreškom a výhľadom (21. 11. večer)
+  t.startsWith('water_') && (ha ?? 0) >= LAKE_BIG_HA ? 1.5
     : t === 'sleep_bivak' && !sleep ? 0.5 : POI_PRIORITY[t] ?? 99;
 
 /** Bod ktoréhokoľvek z oboch zdrojov. `TrailPoi` má zúžený `t`, dlaždice nesú aj `sleep_*`. */
