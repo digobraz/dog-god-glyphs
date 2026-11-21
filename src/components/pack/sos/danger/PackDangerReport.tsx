@@ -24,7 +24,7 @@ import {
 import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
 import type { SosKey } from '../sosTexts';
-import { CharCount, addImageFiles, clearDraft, loadDraft, regionOf, saveDraft, useFieldErr, useSubmitLock } from './dangerForm';
+import { CharCount, addImageFiles, clearDraft, loadDraft, regionOf, saveDraft, useArmed, useFieldErr, useSubmitLock } from './dangerForm';
 
 const SK_CENTER: [number, number] = [48.7, 19.7];
 const OFTEN: DangerHowOften[] = ['once', 'repeat', 'months'];
@@ -101,7 +101,7 @@ export function useGeoPick(init?: GeoInit | null) {
   const [locateTick, setLocateTick] = useState(0);
   const [locErr, setLocErr] = useState<'fail' | 'denied' | null>(null);
   // `fail` = reverzný geokód nič nenašiel alebo zlyhal ⇒ obec si človek napíše sám
-  const [geoState, setGeoState] = useState<'idle' | 'loading' | 'ok' | 'fail'>(init?.pt ? (init?.geo?.municipality ? 'ok' : 'idle') : 'idle');
+  const [geoState, setGeoState] = useState<'idle' | 'loading' | 'ok' | 'fail'>(init?.pt ? (init?.geo?.municipality ? 'ok' : 'fail') : 'idle');
   const [tilesFail, setTilesFail] = useState(false);
   const seq = useRef(0);
   const touched = useRef(!!init?.geo?.place);
@@ -145,25 +145,43 @@ export function useGeoPick(init?: GeoInit | null) {
   const setPlace = (place: string) => { touched.current = true; setGeo((g) => ({ ...g, place })); };
   // ručne napísaná obec, keď ju geokódovanie nenašlo
   const setMunicipality = (municipality: string) => setGeo((g) => ({ ...g, municipality: municipality || null }));
+  // krajinu, ktorú geokód nezistil, vyberá človek (nikdy sa nehádá): 'OTHER' = iná než SK a CZ
+  const setCountry = (country: string) => setGeo((g) => ({ ...g, country: country || null }));
   const center = useMemo<[number, number]>(() => gps ?? init?.pt ?? SK_CENTER, [gps]); // eslint-disable-line react-hooks/exhaustive-deps
   const zoom = gps || init?.pt ? 15 : 7;
   const onTiles = useCallback((ok: boolean) => setTilesFail(!ok), []);
-  return { pt, geo, center, zoom, locateTick, locErr, pick, locate, setPlace, setMunicipality, geoState, tilesFail, onTiles };
+  return { pt, geo, center, zoom, locateTick, locErr, pick, locate, setPlace, setMunicipality, setCountry, geoState, tilesFail, onTiles };
 }
 
 /** Veta pod mapou: ktorý bod je zvolený (súradnice), a čo robiť, keď mapa alebo adresa nefunguje. Funguje aj bez dlaždíc. */
-export function GeoStatus({ pt, geoState, tilesFail, municipality, onMunicipality, muniRef, muniBad }: {
+export function GeoStatus({ pt, geoState, tilesFail, municipality, onMunicipality, muniRef, muniBad, country, onCountry, countryRef, countryBad }: {
   pt: [number, number] | null; geoState: 'idle' | 'loading' | 'ok' | 'fail'; tilesFail: boolean;
   /** `onMunicipality` bez hodnoty = obec sa nepýta (príroda ide cez `addMapNote` bez obce) */
   municipality?: string | null; onMunicipality?: (v: string) => void;
   muniRef?: (el: HTMLElement | null) => void; muniBad?: boolean;
+  /** výber krajiny, keď ju geokód nezistil (`country` = vybraté, `onCountry` = zmena) */
+  country?: string | null; onCountry?: (v: string) => void; countryRef?: (el: HTMLElement | null) => void; countryBad?: boolean;
 }) {
   const s = useSosT();
   const needMuni = !!pt && geoState === 'fail' && !!onMunicipality;
+  const needCountry = !!pt && !!onCountry && geoState !== 'loading' && !country;
   return (
     <>
       {tilesFail && <p className="dgr-note dgr-note--red">{s('pack.sos.danger.report.tilesFail')}</p>}
       {pt && <p className="sos-small">{s('pack.sos.danger.report.picked', { lat: pt[0].toFixed(5), lng: pt[1].toFixed(5) })}</p>}
+      {needCountry && (
+        <>
+          {!needMuni && <p className="dgr-note dgr-note--red">{s('pack.sos.danger.report.countryAsk')}</p>}
+          <label className="sos-field"><span>{s('pack.sos.danger.report.countryPick')}</span>
+            <select ref={countryRef} className={`pf-field${countryBad ? ' is-bad' : ''}`} value="" onChange={(e) => onCountry?.(e.target.value)}>
+              <option value="">{s('pack.sos.danger.country.pickPh')}</option>
+              <option value="SVK">{s('pack.sos.danger.complaint.countrySK')}</option>
+              <option value="CZE">{s('pack.sos.danger.complaint.countryCZ')}</option>
+              <option value="OTHER">{s('pack.sos.danger.country.other')}</option>
+            </select>
+          </label>
+        </>
+      )}
       {needMuni && (
         <>
           <p className="dgr-note dgr-note--red">{s('pack.sos.danger.report.geoFail')}</p>
@@ -243,7 +261,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
   const draftKey = `report.${mode}`;
   // rozpísané sa vráti po „späť → vpred“ aj po obnovení stránky (sessionStorage); fotky sa obnoviť nedajú
   const draft = useMemo(() => loadDraft<ReportDraft>(draftKey), [draftKey]);
-  const { pt, geo, center, zoom, locateTick, locErr, pick, locate, setPlace, setMunicipality, geoState, tilesFail, onTiles } = useGeoPick(draft ? { pt: draft.pt ?? null, geo: draft.geo ?? null } : null);
+  const { pt, geo, center, zoom, locateTick, locErr, pick, locate, setPlace, setMunicipality, setCountry, geoState, tilesFail, onTiles } = useGeoPick(draft ? { pt: draft.pt ?? null, geo: draft.geo ?? null } : null);
   const [what, setWhat] = useState<string[]>(draft?.what ?? []);
   const [often, setOften] = useState<DangerHowOften | null>(draft?.often ?? null);
   const [body, setBody] = useState(draft?.body ?? '');
@@ -302,6 +320,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
     setPhotoMsg(r.notImage ? s('pack.sos.danger.report.err.fileType') : r.tooMany ? s('pack.sos.danger.report.err.photoMax') : '');
   };
 
+  const armed = useArmed(!!sent);
   const fail = (field: string | null, msg: string, link = false) => {
     setErr(msg); setErrLink(link);
     if (field) fe.flag(field);
@@ -313,6 +332,9 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
     setErrLink(false); fe.clear();
     if (!pt) { fail('map', s('pack.sos.danger.report.err.bad_coords')); return; }
     if (!what.length) { fail('what', s('pack.sos.danger.report.err.what')); return; }
+    // krajinu NEHÁDAME (žiadne `?? 'SVK'`): kým ju geokód nezistil, vyberá ju človek
+    if (!geo.country) { fail('country', s('pack.sos.danger.report.err.country')); return; }
+    if (geo.country === 'OTHER') { fail('country', s('pack.sos.danger.report.otherCountry'), true); return; }
     if (geoState === 'fail' && !geo.municipality?.trim()) { fail('muni', s('pack.sos.danger.report.err.muni')); return; }
     setErr('');
     setBusy('send');
@@ -328,7 +350,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
       setBusy('send');
       try {
         const r = await dangerReport({
-          kind, lat: pt[0], lng: pt[1], country: geo.country ?? 'SVK',
+          kind, lat: pt[0], lng: pt[1], country: geo.country,
           place_label: geo.place.trim() || null, municipality: geo.municipality?.trim() || null, district: geo.district,
           radius_m: mode === 'poison' ? radius : null, what,
           how_often: mode === 'abuse' ? often : null, body: body.trim() || null, photos,
@@ -356,19 +378,19 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
           <>
             <SosCard className="dgr-ai">
               <b><span>AI</span>NUBIS</b>
-              <p className="sos-p">{s('pack.sos.danger.report.sent.abuse')}</p>
+              <p className="sos-p">{s(regionOf(geo.country) === 'OTHER' ? 'pack.sos.danger.report.sent.abuse.other' : 'pack.sos.danger.report.sent.abuse')}</p>
             </SosCard>
             <p className="dgr-note">{s('pack.sos.danger.report.sent.abuseNext')}</p>
-            <button type="button" className="sos-cta" onClick={() => navigate(`/pack/sos/nebezpecenstvo/podnet?case=${sent.id}`)}>{s('pack.sos.danger.abuse.complaint')}</button>
-            <button type="button" className="sos-cta sos-cta--ghost" onClick={() => navigate('/pack/sos/nebezpecenstvo', { replace: true })}>{s('pack.sos.danger.report.sent.later')}</button>
+            <button type="button" className="sos-cta" disabled={!armed} onClick={() => navigate(`/pack/sos/nebezpecenstvo/podnet?case=${sent.id}`)}>{s('pack.sos.danger.abuse.complaint')}</button>
+            <button type="button" className="sos-cta sos-cta--ghost" disabled={!armed} onClick={() => navigate('/pack/sos/nebezpecenstvo', { replace: true })}>{s('pack.sos.danger.report.sent.later')}</button>
           </>
         ) : (
           <>
             <SosCard className="dgr-ai">
               <b><span>AI</span>NUBIS</b>
-              <p className="sos-p">{s('pack.sos.danger.report.sent.poison')}</p>
+              <p className="sos-p">{s(regionOf(geo.country) === 'OTHER' ? 'pack.sos.danger.report.sent.poison.other' : 'pack.sos.danger.report.sent.poison')}</p>
             </SosCard>
-            <button type="button" className="sos-cta" onClick={() => navigate(`/pack/sos/nebezpecenstvo/p/${sent.id}`)}>{s('pack.sos.danger.report.sent.open')}</button>
+            <button type="button" className="sos-cta" disabled={!armed} onClick={() => navigate(`/pack/sos/nebezpecenstvo/p/${sent.id}`)}>{s('pack.sos.danger.report.sent.open')}</button>
           </>
         )}
       </SosTaskShell>
@@ -395,7 +417,8 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
           <MapAttribution />
         </div>
         {locText && <p className="sos-err">{locText}</p>}
-        <GeoStatus pt={pt} geoState={geoState} tilesFail={tilesFail} municipality={geo.municipality} onMunicipality={(v) => { fe.clear('muni'); setMunicipality(v); }} muniRef={fe.reg('muni')} muniBad={fe.bad === 'muni'} />
+        <GeoStatus pt={pt} geoState={geoState} tilesFail={tilesFail} municipality={geo.municipality} onMunicipality={(v) => { fe.clear('muni'); setMunicipality(v); }} muniRef={fe.reg('muni')} muniBad={fe.bad === 'muni'}
+          country={geo.country} onCountry={(v) => { fe.clear('country'); setErr(''); setCountry(v); }} countryRef={fe.reg('country')} countryBad={fe.bad === 'country'} />
         <label className="sos-field"><span>{s('pack.sos.danger.report.place')}</span>
           <input className="pf-field" value={geo.place} maxLength={200} placeholder={s('pack.sos.danger.report.placeHint')} onChange={(e) => setPlace(e.target.value)} />
         </label>

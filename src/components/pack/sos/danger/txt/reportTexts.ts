@@ -47,6 +47,8 @@ export const DANGER_REPORT_TEXTS = {
   'pack.sos.danger.report.geoFail': T('We could not find the address for this point. Write the town or village yourself.', 'Adresu pre tento bod sme nezistili. Napíš obec sám.', 'Adresu pro tento bod jsme nezjistili. Napiš obec sám.'),
   'pack.sos.danger.report.muni': T('Town or village', 'Obec', 'Obec'),
   'pack.sos.danger.report.muniHint': T('e.g. Trenčín', 'napr. Trenčín', 'např. Trenčín'),
+  'pack.sos.danger.report.countryPick': T('Country of the place', 'Krajina miesta', 'Země místa'),
+  'pack.sos.danger.report.countryAsk': T('We could not tell the country of this point. Choose it yourself.', 'Krajinu tohto bodu sme nezistili. Vyber ju sám.', 'Zemi tohoto bodu jsme nezjistili. Vyber ji sám.'),
   'pack.sos.danger.report.place': T('Place', 'Miesto', 'Místo'),
   'pack.sos.danger.report.placeHint': T('Street, house number or landmark', 'Ulica, číslo domu alebo orientačný bod', 'Ulice, číslo domu nebo orientační bod'),
   'pack.sos.danger.report.exact': T('Exact point. Only members see the address.', 'Presný bod. Adresu uvidia len členovia.', 'Přesný bod. Adresu uvidí jen členové.'),
@@ -105,14 +107,17 @@ export const DANGER_REPORT_TEXTS = {
   'pack.sos.danger.report.err.fileType': T('That file is not a picture. Add a photo (JPG, PNG or HEIC).', 'Tento súbor nie je obrázok. Pridaj fotku (JPG, PNG alebo HEIC).', 'Tento soubor není obrázek. Přidej fotku (JPG, PNG nebo HEIC).'),
   'pack.sos.danger.report.err.photoMax': T('Up to 5 photos. The rest was not added.', 'Najviac 5 fotiek. Ostatné sme nepridali.', 'Nejvýše 5 fotek. Ostatní jsme nepřidali.'),
   'pack.sos.danger.report.err.muni': T('Write the town or village by hand.', 'Napíš obec ručne.', 'Napiš obec ručně.'),
+  'pack.sos.danger.report.err.country': T('Choose the country of the place.', 'Vyber krajinu miesta.', 'Vyber zemi místa.'),
   'pack.sos.danger.report.err.error': T('Something went wrong. Try again.', 'Niečo sa pokazilo. Skús to znova.', 'Něco se pokazilo. Zkus to znovu.'),
 
   // ── po odoslaní (obrazovka 5) ────────────────────────────────────────────
   'pack.sos.danger.report.sent': T('Sent', 'Odoslané', 'Odesláno'),
   'pack.sos.danger.report.sent.abuse': T('We will take a look. After approval, Dogypt members within 10 km will see it and get a notice.', 'Pozrieme sa na to. Po schválení to uvidia Dogypťania do 10 km a dostanú upozornenie.', 'Podíváme se na to. Po schválení to uvidí Dogypťané do 10 km a dostanou upozornění.'),
+  'pack.sos.danger.report.sent.abuse.other': T('We will take a look. We will let you know when it is approved.', 'Pozrieme sa na to. Dáme ti vedieť, keď to schválime.', 'Podíváme se na to. Dáme ti vědět, až to schválíme.'),
   'pack.sos.danger.report.sent.abuseNext': T('One more step that helps the dog most.', 'Ešte jeden krok, ktorý psovi pomôže najviac.', 'Ještě jeden krok, který psovi pomůže nejvíc.'),
   'pack.sos.danger.report.sent.later': T('Later', 'Neskôr', 'Později'),
   'pack.sos.danger.report.sent.poison': T('The warning is on the map. Members nearby are being notified.', 'Varovanie je na mape. Členovia v okolí dostanú upozornenie.', 'Varování je na mapě. Členové v okolí dostanou upozornění.'),
+  'pack.sos.danger.report.sent.poison.other': T('The warning is on the map.', 'Varovanie je na mape.', 'Varování je na mapě.'),
   'pack.sos.danger.report.sent.open': T('Open the warning', 'Otvoriť varovanie', 'Otevřít varování'),
 
   // ── príroda (obrazovka 12) ───────────────────────────────────────────────

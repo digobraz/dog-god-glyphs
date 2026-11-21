@@ -9,8 +9,9 @@ import { addMapNote, defaultRadius, GROUP_KINDS, radiusRule, type NoteKind } fro
 import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
 import { DANGER_FORM_CSS, DangerMap, GeoStatus, useGeoPick, type GeoPick } from './PackDangerReport';
-import { CharCount, clearDraft, loadDraft, saveDraft, useFieldErr, useSubmitLock } from './dangerForm';
-import { dangerIsOffline } from '@/lib/danger';
+import { CharCount, clearDraft, loadDraft, saveDraft, useArmed, useFieldErr, useSubmitLock } from './dangerForm';
+import { dangerIsOffline, dangerPrecheck, type DangerGate } from '@/lib/danger';
+import type { SosKey } from '../sosTexts';
 
 const BODY_MAX = 600;
 const DRAFT_KEY = 'nature';
@@ -46,9 +47,17 @@ export default function PackDangerNature() {
   const choose = (k: NoteKind) => { setKind(k); setRadius(defaultRadius(k) ?? 150); };
 
   const lock = useSubmitLock();
+  const armed = useArmed(done);
+  // brána hneď pri vstupe (odhlásený / nečlen): `add_map_note` by ich odmietol až po vyplnení („Niečo sa pokazilo“). Limit hlásení sa tu netýka.
+  const [gate, setGate] = useState<'ok' | 'not_authenticated' | 'no_access'>('ok');
+  useEffect(() => {
+    let alive = true;
+    dangerPrecheck('poison').then((g: DangerGate) => { if (alive && (g === 'not_authenticated' || g === 'no_access')) setGate(g); });
+    return () => { alive = false; };
+  }, []);
   const fe = useFieldErr();
   const submit = () => lock(async () => {
-    if (busy) return;
+    if (busy || gate !== 'ok') return;
     if (!pt) { setErr(s('pack.sos.danger.report.err.bad_coords')); fe.flag('map'); return; }
     if (!body.trim()) { setErr(s('pack.sos.danger.nature.err.body')); fe.flag('body'); return; }
     setErr(''); fe.clear(); setBusy(true);
@@ -67,8 +76,8 @@ export default function PackDangerNature() {
       <SosTaskShell onBack={back} backLabel={s('pack.sos.back')}>
         <h1 className="sos-h2">{s('pack.sos.danger.nature.title')}</h1>
         <p className="sos-p">{s('pack.sos.danger.nature.done')}</p>
-        <button type="button" className="sos-cta" onClick={() => navigate('/pack/map')}>{s('pack.sos.danger.nature.openMap')}</button>
-        <button type="button" className="sos-cta sos-cta--ghost" onClick={() => { setDone(false); setBody(''); }}>{s('pack.sos.danger.nature.another')}</button>
+        <button type="button" className="sos-cta" disabled={!armed} onClick={() => navigate('/pack/map')}>{s('pack.sos.danger.nature.openMap')}</button>
+        <button type="button" className="sos-cta sos-cta--ghost" disabled={!armed} onClick={() => { setDone(false); setBody(''); }}>{s('pack.sos.danger.nature.another')}</button>
       </SosTaskShell>
     );
   }
@@ -79,6 +88,7 @@ export default function PackDangerNature() {
       <style>{DANGER_FORM_CSS}</style>
       <style>{MAP_ATTR_CSS}</style>
       <h1 className="sos-h2">{s('pack.sos.danger.nature.title')}</h1>
+      {gate !== 'ok' && <p className="dgr-note dgr-note--red" role="alert">{s(`pack.sos.danger.report.err.${gate}` as SosKey)}</p>}
       <p className="sos-p">{s('pack.sos.danger.nature.lead')}</p>
 
       <SosCard>
@@ -113,7 +123,7 @@ export default function PackDangerNature() {
       </SosCard>
 
       {err && <p className="sos-err">{err}</p>}
-      <button type="button" className="sos-cta" disabled={busy} onClick={submit}>{busy ? s('pack.sos.danger.nature.sending') : s('pack.sos.danger.nature.add')}</button>
+      <button type="button" className="sos-cta" disabled={busy || gate !== 'ok'} onClick={submit}>{busy ? s('pack.sos.danger.nature.sending') : s('pack.sos.danger.nature.add')}</button>
     </SosTaskShell>
   );
 }

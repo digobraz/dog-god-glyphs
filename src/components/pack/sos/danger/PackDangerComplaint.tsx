@@ -21,7 +21,7 @@ import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
 import type { SosKey } from '../sosTexts';
 import { AuthorityPick } from './AuthorityPick';
-import { AccessCard, CharCount, cleanPhone, clearDraft, loadDraft, regionOf, saveDraft, useFieldErr, useSubmitLock } from './dangerForm';
+import { AccessCard, CharCount, useArmed, cleanPhone, clearDraft, loadDraft, regionOf, saveDraft, useFieldErr, useSubmitLock } from './dangerForm';
 
 const CSS = `
 .dpc-auth b{display:block;font-weight:600;font-size:${PACK_TEXT.lead}px;}
@@ -76,6 +76,7 @@ export default function PackDangerComplaint() {
   const [access, setAccess] = useState<DangerAccess | null>(null);
   const lock = useSubmitLock();
   const fe = useFieldErr();
+  const armed = useArmed(sent);
 
   useEffect(() => {
     if (!caseId || !isDangerUuid(caseId)) return;
@@ -178,7 +179,7 @@ export default function PackDangerComplaint() {
             <a className="sos-cta sos-cta--red" href="tel:112">{s('pack.sos.danger.complaint.call112')}</a>
           </div>
         </section>
-        <button type="button" className="sos-cta" onClick={() => nav(caseId ? `/pack/sos/nebezpecenstvo/p/${caseId}` : '/pack/sos/nebezpecenstvo', { replace: true })}>
+        <button type="button" className="sos-cta" disabled={!armed} onClick={() => nav(caseId ? `/pack/sos/nebezpecenstvo/p/${caseId}` : '/pack/sos/nebezpecenstvo', { replace: true })}>
           {s('pack.sos.danger.complaint.done')}
         </button>
       </SosTaskShell>

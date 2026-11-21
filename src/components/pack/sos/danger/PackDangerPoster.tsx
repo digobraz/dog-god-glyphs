@@ -7,7 +7,7 @@ import { dangerAccessIssue, dangerCase, dangerHasSession, dangerNotFound, danger
 import { AccessCard } from './dangerForm';
 import { shareFiles } from '@/lib/shareFile';
 import { toast } from '@/hooks/use-toast';
-import { nodeToPng } from '../sosFlyerExport';
+import { posterToPng } from './posterExport';
 import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
 import { DangerPoster, POSTER_SIZE, type PosterFormat } from './DangerPoster';
@@ -59,7 +59,7 @@ export default function PackDangerPoster() {
     setBusy(true);
     try {
       const { w, h } = POSTER_SIZE[fmt];
-      const png = await nodeToPng(node.current, w, h);
+      const png = await posterToPng(node.current, w, h);
       const ok = await shareFiles([{ blob: png, name: `dogypt-nebezpecenstvo-${c.slug}-${fmt}.png` }], s('pack.sos.danger.poster.shareText', { place, url: dangerUrl(c.slug) }));
       if (!ok) toast({ title: s('pack.sos.fl.noShare') });
     } catch { toast({ title: s('pack.sos.danger.poster.fail') }); }

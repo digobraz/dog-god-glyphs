@@ -40,6 +40,8 @@ const CSS = `
 .dgc-cm small{font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
 .dgc-cm p{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.45;color:${T.inkStrong};white-space:pre-wrap;overflow-wrap:anywhere;}
 .dgc-cm button{all:unset;cursor:pointer;align-self:flex-start;font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
+.dgc-cp{display:flex;flex-direction:column;gap:${S.sm}px;min-width:0;}
+.dgc-cp-more{display:flex;flex-direction:column;align-items:stretch;gap:${S.sm}px;min-width:0;}
 .dgc-add{display:flex;flex-direction:column;gap:${S.sm}px;}
 `;
 
@@ -121,22 +123,22 @@ export default function PackDangerCase() {
   const [busy, setBusy] = useState(false);
   const [werr, setWerr] = useState('');
 
-  const load = useCallback(() => {
+  // Vráti Promise: akcie (svedok, hodnotenie) držia zámok, kým nedorazí nový stav, a rýchly ďalší ťuk nepošle negáciu starého stavu.
+  const load = useCallback(async (): Promise<void> => {
     // neplatné ID (`/p/abc`) = „prípad neexistuje“, nie „bez pripojenia“; chyba siete je len to, čo nie je ani jedno
     if (!id || !isDangerUuid(id)) { setState('missing'); return; }
     // odhlásený = výzva na prihlásenie, nečlen = „len členovia“; výpadok siete je až to, čo nie je nič z toho
-    void dangerHasSession().then((has) => {
-      if (!has) { setState('login'); return; }
-      dangerCase(id).then(async (r) => {
-        setC(r); setState(r ? 'ready' : 'missing');
-        if (r) dangerMine().then((rows) => setMine(rows.find((x) => x.id === r.id)?.complaints ?? [])).catch(() => setMine([]));
-      }).catch(async (e) => {
-        const acc = await dangerAccessIssue(e);
-        setState(acc ?? (dangerNotFound(e) ? 'missing' : 'error'));
-      });
-    });
+    if (!(await dangerHasSession())) { setState('login'); return; }
+    try {
+      const r = await dangerCase(id);
+      setC(r); setState(r ? 'ready' : 'missing');
+      if (r) await dangerMine().then((rows) => setMine(rows.find((x) => x.id === r.id)?.complaints ?? [])).catch(() => setMine([]));
+    } catch (e) {
+      const acc = await dangerAccessIssue(e);
+      setState(acc ?? (dangerNotFound(e) ? 'missing' : 'error'));
+    }
   }, [id]);
-  useEffect(load, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   if (state !== 'ready' || !c) {
     return (
@@ -147,7 +149,7 @@ export default function PackDangerCase() {
             {state === 'loading' ? s(K('loading')) : state === 'missing' ? s(K('missing')) : s('pack.sos.offline')}
           </p>
         )}
-        {state === 'error' && <button type="button" className="sos-cta" onClick={load}>{s('pack.sos.retry')}</button>}
+        {state === 'error' && <button type="button" className="sos-cta" onClick={() => void load()}>{s('pack.sos.retry')}</button>}
       </PackLayout>
     );
   }
@@ -174,13 +176,14 @@ export default function PackDangerCase() {
     if (busy) return;
     setBusy(true);
     setWerr('');
-    try { await dangerWitness(c.id, !c.i_witnessed); load(); }
+    const target = !c.i_witnessed;   // cieľový stav sa berie v okamihu ťuku, zámok drží, kým nedorazí nový stav
+    try { await dangerWitness(c.id, target); await load(); }
     catch (e) { setWerr(s(K(dangerErrorCode(e) === 'expired' ? 'witness.expired' : 'err'))); }
     finally { setBusy(false); }
   });
   const rate = (cid: string, o: DangerOutcome) => lock(async () => {
     setBusy(true);
-    try { await dangerOutcome(cid, o); load(); } finally { setBusy(false); }
+    try { await dangerOutcome(cid, o); await load(); } finally { setBusy(false); }
   });
   const goComplaint = () => navigate(`/pack/sos/nebezpecenstvo/podnet?case=${c.id}`);
 
@@ -200,7 +203,7 @@ export default function PackDangerCase() {
             {c.expires_at && !expired && <span>{s(K('validUntil'), { date: date(c.expires_at) })}</span>}
             {!abuse && c.radius_m != null && <span>{s(K('radius'), { m: c.radius_m })}</span>}
           </div>
-          {pending && <><b className="sos-small">{s(K('pending'))}</b><p className="sos-p">{s(K('pending.p'))}</p></>}
+          {pending && <><b className="sos-small">{s(K('pending'))}</b><p className="sos-p">{s(K(regionOf(c.country) === 'OTHER' ? 'pending.p.other' : 'pending.p'))}</p></>}
           {rejected && <><b className="sos-small">{s(K('rejected'))}</b><p className="sos-p">{s(K('rejected.p'))}</p></>}
           {expired && !pending && !rejected && <p className="sos-small">{s(K('expired'))}</p>}
           {where && (
@@ -251,14 +254,17 @@ export default function PackDangerCase() {
             {mine.map((x) => {
               const st = cstate(x);
               return (
-                <div key={x.id} className="sos-fact">
-                  <small>{authorityByCode(x.authority_code)?.name ?? (x.authority_code === 'AUTO' ? s(K('complaint.auto')) : x.authority_code)}</small>
-                  <span>{st === 'sent' && x.sent_at ? s(K('complaint.sent'), { date: date(x.sent_at) }) : s(K(`cstate.${st}`))}</span>
+                <div key={x.id} className="dgc-cp">
+                  <div className="sos-fact">
+                    <small>{authorityByCode(x.authority_code)?.name ?? (x.authority_code === 'AUTO' ? s(K('complaint.auto')) : x.authority_code)}</small>
+                    <span>{st === 'sent' && x.sent_at ? s(K('complaint.sent'), { date: date(x.sent_at) }) : s(K(`cstate.${st}`))}</span>
+                  </div>
+                  {/* doplnok je MIMO riadka `.sos-fact` (flex): v ňom sa text stlačil do stĺpca písmen široký 12 až 69 px */}
                   {st === 'rejected' && (
-                    <>
+                    <div className="dgc-cp-more">
                       <p className="sos-small">{s(K('cstate.rejected.p'))}</p>
                       <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={goComplaint}>{s(K('cstate.again'))}</button>
-                    </>
+                    </div>
                   )}
                 </div>
               );
@@ -277,8 +283,8 @@ export default function PackDangerCase() {
             )}
             {!expired && !hasOpen && !confirmMore && !(mine.length > 0 && mine.every((x) => cstate(x) === 'rejected')) && (
               <>
-                <p className="sos-small">{s(K('complaint.add.p'))}</p>
-                <button type="button" className="sos-cta sos-cta--tint" onClick={() => (lastSent?.sent_at ? setConfirmMore(true) : goComplaint())}>{s(K('complaint.add'))}</button>
+                <p className="sos-small">{s(K(rejected ? 'complaint.rejectedCase' : 'complaint.add.p'))}</p>
+                <button type="button" className="sos-cta sos-cta--tint" onClick={() => (lastSent?.sent_at ? setConfirmMore(true) : goComplaint())}>{s(K(c.is_mine ? 'complaint.addMine' : 'complaint.add'))}</button>
               </>
             )}
             {confirmMore && lastSent?.sent_at && (

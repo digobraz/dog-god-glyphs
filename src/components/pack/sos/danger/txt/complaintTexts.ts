@@ -123,7 +123,7 @@ export const DANGER_COMPLAINT_TEXTS = {
 
   // ── VEREJNÁ STRÁNKA /danger/:slug ───────────────────────────────────────────────────────
   'pack.sos.danger.public.titlePoison': T('Danger for dogs', 'Nebezpečenstvo pre psov', 'Nebezpečí pro psy'),
-  'pack.sos.danger.public.titleAbuse': T('Animal cruelty reported', 'Nahlásené týranie zvieraťa', 'Nahlášené týrání zvířete'),
+  'pack.sos.danger.public.titleAbuse': T('Cruelty reported', 'Nahlásené týranie zvieraťa', 'Nahlášené týrání zvířete'),
   'pack.sos.danger.public.near': T('Place: {place}', 'Miesto: {place}', 'Místo: {place}'),
   'pack.sos.danger.public.area': T('Area around: about {m} m', 'Okruh okolo: asi {m} m', 'Okruh okolo: asi {m} m'),
   'pack.sos.danger.public.active': T('Current report', 'Aktuálne hlásenie', 'Aktuální hlášení'),

@@ -1,7 +1,7 @@
 // SPOLOČNÉ POMôCKY formulárov „Nahlásiť nebezpečenstvo“ (21. 11. 2026, nálezy testu): rozpísaný text v `sessionStorage`
 // (späť → vpred a obnovenie stránky ho nestratia), validácia telefónu a kontaktu, bezpečné pridávanie fotiek, počítadlo znakov.
 // Žiadny backend: ten je len v `lib/danger.ts`.
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PACK_SPACE as S, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
 import type { DangerAccess } from '@/lib/danger';
@@ -127,4 +127,16 @@ export function AccessCard({ access }: { access: DangerAccess }) {
       )}
     </SosCard>
   );
+}
+
+// ── PO ÚSPECHU: navigačné tlačidlo na mieste odosielacieho chvíľu nereaguje ──────────────────────
+// Rýchly druhý ťuk alebo Enter inak „odošle“ už nové tlačidlo (Otvoriť mapu, Podať podnet) a človeka odnesie preč.
+export function useArmed(active: boolean, ms = 700) {
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    if (!active) { setArmed(false); return; }
+    const t = window.setTimeout(() => setArmed(true), ms);
+    return () => window.clearTimeout(t);
+  }, [active, ms]);
+  return armed;
 }
