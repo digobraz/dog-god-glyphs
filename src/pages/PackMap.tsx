@@ -2799,9 +2799,9 @@ const APP_NEW_CSS = `
 .trp-me{position:relative;display:block;width:32px;height:32px;}
 .trp-me--av{width:var(--me,36px);height:var(--me,36px);}
 .trp-me--av i{inset:-25%;}
-.trp-me-ring{position:absolute;inset:0;box-sizing:border-box;border-radius:${PACK_R.pill}px;padding:calc(var(--me,36px) * .09);background:linear-gradient(180deg,color-mix(in srgb,#EFD79A 72%,white),var(--p3d-gold));border:2.5px solid var(--p3d-ink);box-shadow:inset 0 2px 0 rgba(255,255,255,.6),inset 0 -3px 0 rgba(0,0,0,.18),0 calc(var(--me,36px) * .07) 0 var(--p3d-gold-ink),0 calc(var(--me,36px) * .13) calc(var(--me,36px) * .18) rgba(0,0,0,.45);}
+.trp-me-ring{position:absolute;inset:0;box-sizing:border-box;border-radius:${PACK_R.pill}px;padding:calc(var(--me,36px) * .09);background:linear-gradient(180deg,color-mix(in srgb,#EFD79A 72%,white),var(--p3d-gold));border:2.5px solid var(--p3d-ink);box-shadow:var(--p3d-lift),${PACK_SHADOW.panel};}
 .trp-me-ring img{display:block;width:100%;height:100%;box-sizing:border-box;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid var(--p3d-ink);}
-.trp-me-dog{position:absolute;right:-10%;bottom:-8%;width:42%;height:42%;box-sizing:border-box;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid var(--p3d-ink);outline:2px solid var(--p3d-gold);box-shadow:0 2px 4px rgba(0,0,0,.4);}
+.trp-me-dog{position:absolute;right:-10%;bottom:-8%;width:42%;height:42%;box-sizing:border-box;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid var(--p3d-ink);outline:2px solid var(--p3d-gold);box-shadow:${PACK_SHADOW.card};}
 .trp-me i{position:absolute;inset:0;border-radius:50%;background:rgba(10,26,74,.28);animation:trp-me-pulse 2.2s ease-out infinite;}
 .trp-me b{position:absolute;left:8px;top:8px;width:16px;height:16px;box-sizing:border-box;border-radius:50%;background:${LAPIS.grad};border:3px solid ${T.card};outline:2px solid ${T.cardEdge};filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));}
 @keyframes trp-me-pulse{0%{transform:scale(.5);opacity:.9;}100%{transform:scale(1.25);opacity:0;}}
