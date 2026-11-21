@@ -2,13 +2,30 @@
  *  Dovtedy mal /story vlastnú kópiu so starým CTA „Začni hrať“, bez kľúča a mapy.
  *  `base` = '' na homepage (kotvy na tej istej stránke), '/' inde (kotva vedie na homepage).
  *  Stav pásu (stuck · dark · away · sx-onphoto) určuje stránka cez `cls`, alebo ho prepína cez `ref`. */
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState, type MouseEvent as RME } from 'react';
 import { useLang } from '@/i18n/LanguageContext';
 import { flagUrl } from '@/lib/flagUrl';
 import { WEB_LANGS } from './langs';
 import { Stores } from './Stores';
 
 const START = '/heroglyph/name';
+
+/** Doroluje na sekciu a po dobehnutí ju DOROVNÁ. Sekcie nad cieľom počas rolovania ešte rastú
+ *  (dočítané obrázky, odhalenia), takže holý `scrollIntoView` skončil o kus vedľa — PSY napr.
+ *  ukázalo planétku len do polovice (Matej 21. 11.). Max 3 dorovnania. */
+export function scrollToId(id: string, smooth = true) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  let n = 0;
+  const go = (b: ScrollBehavior) => el.scrollIntoView({ behavior: b, block: 'start' });
+  const fix = () => {
+    const want = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+    if (Math.abs(el.getBoundingClientRect().top - want) > 4 && n++ < 3) { go('auto'); setTimeout(fix, 350); }
+  };
+  go(smooth ? 'smooth' : 'auto');
+  if ('onscrollend' in window && smooth) window.addEventListener('scrollend', () => setTimeout(fix, 120), { once: true });
+  else setTimeout(fix, smooth ? 900 : 350);
+}
 
 type Props = { c: (k: string) => string; v2: boolean; base?: string; cls?: string; active?: 'story' };
 
@@ -21,6 +38,11 @@ export const WebTop = forwardRef<HTMLElement, Props>(function WebTop({ c, v2, ba
   useEffect(() => { if (!langOpen) return; const off = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest('.lang-wrap')) setLangOpen(false); }; document.addEventListener('pointerdown', off); return () => document.removeEventListener('pointerdown', off); }, [langOpen]);
 
   /* PSY = posledná planétka so psami (Matej 21. 11.: „v menu by mal byť aj odkaz na poslednú planétku so psami“) */
+  const onNav = (e: RME) => {
+    const a = (e.target as HTMLElement).closest('a'); const h = a?.getAttribute('href') ?? '';
+    if (base || !h.startsWith('#') || h.length < 2) return;
+    e.preventDefault(); history.replaceState(null, '', `${location.search}${h}`); scrollToId(h.slice(1));
+  };
   const links = (
     <>
       <a href={`${base}#features`}>{c('nav2')}</a><a href={`${base}#trips`}>{c('nav_trips')}</a><a href={`${base}#ainubis`}>AINUBIS</a><a href={`${base}#badges`}>{c('nav3')}</a>
@@ -33,7 +55,7 @@ export const WebTop = forwardRef<HTMLElement, Props>(function WebTop({ c, v2, ba
     <header className={`top${v2 ? ' v2' : ''}${cls ? ` ${cls}` : ''}`} ref={ref}>
       <div className="wrap">
         <a className="logo" href={base || '#'} aria-label="DOGYPT"><img src="/web-app/logo-napis.webp" alt="DOGYPT" /></a>
-        <nav>{links}</nav>
+        <nav onClick={onNav}>{links}</nav>
         <div className="lang-wrap">
           <button className="lang" aria-expanded={langOpen} onClick={() => setLangOpen(!langOpen)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.code.slice(0, 2).toUpperCase()}</button>
           {langOpen && (
@@ -54,7 +76,7 @@ export const WebTop = forwardRef<HTMLElement, Props>(function WebTop({ c, v2, ba
       </div>
       {menu && (
         <div className="mmenu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); }}>
-          <nav>{links}</nav>
+          <nav onClick={onNav}>{links}</nav>
           {/* jazyk = JEDEN riadok s aktuálnym, zoznam až po ťuknutí (Matej 17. 11.) */}
           <button className={`mm-cur${mmLang ? ' on' : ''}`} aria-expanded={mmLang} onClick={() => setMmLang(!mmLang)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.name}<i aria-hidden /></button>
           {mmLang && <div className="mm-lang">{WEB_LANGS.filter((x) => x.code !== lang).map((x) => <button key={x.code} onClick={() => { setLang(x.code); setMmLang(false); setMenu(false); }}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}</div>}

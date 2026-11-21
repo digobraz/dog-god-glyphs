@@ -44,7 +44,7 @@ function Fan({ pics, dark }: { pics: Pic[]; dark?: boolean }) {
       {pics.map((p, i) => (
         <figure key={i} className={`sx-ph${p.empty ? ' sx-empty' : ''}`} onClick={p.src ? () => open(list, list.findIndex((x) => x.src === p.src)) : undefined}
           style={{ '--x': p.x, '--y': p.y, '--r': p.r, '--r0': p.r0 ?? '0deg', '--d': p.d ?? '0s', '--z': p.z ?? 1 } as CSSProperties}>
-          {p.empty ?? <img src={ph(p.src!)} alt="" loading="lazy" decoding="async" />}
+          {p.empty ?? <img loading="lazy" src={ph(p.src!)} alt="" decoding="async" />}
           {p.cap && <figcaption>{p.cap}</figcaption>}
         </figure>
       ))}
@@ -85,7 +85,7 @@ function Side({ f }: { f: ReturnType<typeof fotky> }) {
   const open = useContext(OpenCtx);
   if (!f.big) return <Fan pics={f.fan} />;
   const big = f.big;
-  return <figure className="sx-ph sx-rv sx-bigph" onClick={() => open([big], 0)}><img src={ph(big.src)} alt="" loading="lazy" />{big.cap && <figcaption>{big.cap}</figcaption>}</figure>;
+  return <figure className="sx-ph sx-rv sx-bigph" onClick={() => open([big], 0)}><img loading="lazy" src={ph(big.src)} alt="" />{big.cap && <figcaption>{big.cap}</figcaption>}</figure>;
 }
 /** Pás fotiek: sám pomaly ide, dá sa ťahať prstom/myšou, rolovať touchpadom aj šípkami (Matej 13. 11.:
  *  „ponechaj možnosť slajdovať aj manuálne“). Zoznam je dvakrát za sebou, takže koniec plynule prejde na začiatok. */
@@ -145,7 +145,7 @@ function Strip({ pics }: { pics: Shot[] }) {
         {loop.map((p, i) => (
           <figure key={i} className="sx-ph" aria-hidden={i >= n || undefined}
             onClick={() => { if (!ref.current?.dataset.dragged) open(pics, i % n); }}>
-            <img src={ph(p.src)} alt="" loading="lazy" draggable={false} />{p.cap && <figcaption>{p.cap}</figcaption>}
+            <img loading="lazy" src={ph(p.src)} alt="" draggable={false} />{p.cap && <figcaption>{p.cap}</figcaption>}
           </figure>
         ))}
       </div>
@@ -193,7 +193,7 @@ function Phones({ L }: { L: Lang2 }) {
       {['B-profil-top', 'feed'].map((src) => (
         <div key={src} className="tilt"><div className="phone">
           <img className="fr" src="/web-app/phone.svg" alt="" />
-          <div className="scr"><img src={shot(src)} alt="" loading="lazy" decoding="async" /></div>
+          <div className="scr"><img loading="lazy" src={shot(src)} alt="" decoding="async" /></div>
         </div></div>
       ))}
     </div>
@@ -459,7 +459,7 @@ export default function StoryWeb() {
               <i className="sx-road-line" /><i className="sx-road-fill" ref={fillRef} />
               {([['1b', '2016', 'r1'], ['2a', '2017', 'r2'], ['2c', '2019–21', 'r3'], ['4a', '2022', 'r4'], ['3a', '2023', 'r5'], ['planeta', t('r6_y'), 'r6']] as const).map(([img, y, k]) => (
                 <div className="sx-rs" key={k}>
-                  <span className="sx-dot"><img src={ph(img)} alt="" loading="lazy" /></span>
+                  <span className="sx-dot"><img loading="lazy" src={ph(img)} alt="" /></span>
                   <div className="sx-txt"><em>{y}</em><b>{t(`${k}_b`)}</b><span>{t(`${k}_s`)}</span></div>
                 </div>
               ))}
@@ -477,14 +477,14 @@ export default function StoryWeb() {
                       <a className="pk-cta" href="/app#badges">{t('now_join')}</a>
                     </div>
                   </div>
-                  <img className="sx-face" src="/images/kontakt-matej-hektor-cut.webp" alt="Matej & Hekthor" loading="lazy" />
+                  <img loading="lazy" className="sx-face" src="/images/kontakt-matej-hektor-cut.webp" alt="Matej & Hekthor" />
                 </div>
               </div>
               {/* míľniky = ikonky v štýle presklenej pyramídy (Kie nano-banana-pro s `ikony/centra.webp` ako vzorom, 13. 11. 2026) */}
               {([['zakladatelia', 1000, 'f1'], ['svorka', 10000, 'f2'], ['risa', 100000, 'f3']] as const).map(([dot, n, k]) => (
-                <div className="sx-rs sx-fut" key={k}><span className="sx-dot"><img src={ph(`m-${dot}`)} alt="" loading="lazy" /></span><div className="sx-txt"><em>{fmt(n)}</em><i className="sx-share">{share(n)}</i><b>{t(`${k}_b`)}</b><span>{t(`${k}_s`)}</span></div></div>
+                <div className="sx-rs sx-fut" key={k}><span className="sx-dot"><img loading="lazy" src={ph(`m-${dot}`)} alt="" /></span><div className="sx-txt"><em>{fmt(n)}</em><i className="sx-share">{share(n)}</i><b>{t(`${k}_b`)}</b><span>{t(`${k}_s`)}</span></div></div>
               ))}
-              <div className="sx-rs sx-fut"><span className="sx-dot"><img src={ph('m-milion')} alt="" loading="lazy" /></span><div className="sx-txt"><em>{fmt(1000000)}</em><i className="sx-share">{share(1000000)}</i><b>{t('f4_b')}</b><span>{t('f4_s')}</span></div></div>
+              <div className="sx-rs sx-fut"><span className="sx-dot"><img loading="lazy" src={ph('m-milion')} alt="" /></span><div className="sx-txt"><em>{fmt(1000000)}</em><i className="sx-share">{share(1000000)}</i><b>{t('f4_b')}</b><span>{t('f4_s')}</span></div></div>
             </div>
           </div>
         </section>
@@ -492,7 +492,7 @@ export default function StoryWeb() {
         {/* VÍZIA — cieľ CTA „Vízia DOGYPTU“ z /app */}
         <section className="sx-ch" id="vision" style={{ paddingTop: 0 }}>
           <div className="wrap sx-vis">
-            <div className="sx-vis-art sx-rv"><img src="/images/council-pharaoh.webp" alt="We need you" loading="lazy" /></div>
+            <div className="sx-vis-art sx-rv"><img loading="lazy" src="/images/council-pharaoh.webp" alt="We need you" /></div>
             <div>
               <p className="sx-num sx-rv">{t('vi_eye')}</p>
               <h2 className="sx-rv" style={{ ...d(0.1), fontSize: 'clamp(32px,4.6vw,60px)', lineHeight: 1.08 }}><Mark s={t('vi_h')} /></h2>
@@ -505,7 +505,7 @@ export default function StoryWeb() {
         <section className="sx-ch" style={{ paddingTop: 0 }}>
           <div className="wrap">
             <div className="pk-card sx-dg sx-rv">
-              <img className="sx-book" src="/images/dogma-cover-lapis.webp" alt="DOGMA" loading="lazy" />
+              <img loading="lazy" className="sx-book" src="/images/dogma-cover-lapis.webp" alt="DOGMA" />
               <div>
                 <p className="eye">{t('dg_eye')}</p>
                 <h2 style={{ fontSize: 'clamp(32px,4.2vw,52px)', lineHeight: 1.08 }}><Mark s={t('dg_h')} /></h2>
@@ -540,7 +540,7 @@ export default function StoryWeb() {
                 </div>
                 {lastDog && (
                   <a className="sx-lastdog" href="/hall">
-                    <img src={lastDog.img} alt={lastDog.name} loading="lazy" />
+                    <img loading="lazy" src={lastDog.img} alt={lastDog.name} />
                     <span><small>{t('ft_last')}</small><b>{lastDog.name}</b><em>#{lastDog.n}</em></span>
                   </a>
                 )}

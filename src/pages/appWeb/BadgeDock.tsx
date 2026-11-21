@@ -21,7 +21,7 @@ export function BadgeDock({ items, start }: { items: DockItem[]; start: number }
             style={{ flexGrow: WEIGHT[Math.min(Math.abs(i - on), WEIGHT.length - 1)] }}
             onFocus={() => setOn(i)}
             onClick={(e) => { if (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === 'mouse') return; setOn(i); }}>
-            <img src={it.src} alt="" loading="lazy" />
+            <img loading="lazy" src={it.src} alt="" />
           </button>
         ))}
       </div>

@@ -28,7 +28,7 @@ const bez = (p: Path['p'], t: number): Pt => {
 };
 
 /** Ikonka poschodia lievika: bohatá outlined kresba z továrne (`web-ai-*`, Matej 8. 11.). Veľkosť drží CSS, krivky sa merajú bez skoku. */
-export const Ic = ({ n, cls = 'af-ic' }: { n: string; cls?: string }) => <img className={cls} src={`/web-app/ikony/ai-${n}.webp`} alt="" loading="lazy" />;
+export const Ic = ({ n, cls = 'af-ic' }: { n: string; cls?: string }) => <img loading="lazy" className={cls} src={`/web-app/ikony/ai-${n}.webp`} alt="" />;
 
 export function AiFlow({ L, c, counter, learn, onWorld, published }: {
   L: Lang2; c: (k: string) => string;
@@ -187,7 +187,7 @@ export function AiFlow({ L, c, counter, learn, onWorld, published }: {
           return (
             <button key={w.key} type="button" className="af-world" data-fa="2" data-w={w.key} onClick={() => onWorld(w.key)}
               style={{ ['--wc' as string]: wc(w.key), ['--k' as string]: k }}>
-              <span className="orb"><i /><img src={`/web-app/ikony/svet-${w.key}.webp`} alt="" loading="lazy" /></span>
+              <span className="orb"><i /><img loading="lazy" src={`/web-app/ikony/svet-${w.key}.webp`} alt="" /></span>
               <span className="nm">{worldName(w.key)}</span>
               <span className="tip">{n ? `${n.circles} ${c('ai_circles')} · ${n.scrolls} ${c('ai_scrolls')}` : ''}<em>{live ? c('w_open') : c('w_soon')}</em></span>
             </button>

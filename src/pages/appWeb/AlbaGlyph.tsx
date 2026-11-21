@@ -78,9 +78,9 @@ export function AlbaTrio() {
     <div className="alba-trio">
       {ALBAS.map((a, i) => (
         <figure className="alba" key={a.n} style={{ ['--r' as string]: `${ROT[i]}deg` } as CSSProperties}>
-          <div className="alba-ph" onPointerMove={tilt} onPointerLeave={untilt}><img src={cldPhoto(a.photo)} alt={`ALBA #${a.n}`} loading="lazy" /></div>
+          <div className="alba-ph" onPointerMove={tilt} onPointerLeave={untilt}><img loading="lazy" src={cldPhoto(a.photo)} alt={`ALBA #${a.n}`} /></div>
           <figcaption><span className="alba-nm">ALBA</span><b>#{a.n}</b></figcaption>
-          <img className="alba-gl" src={cldGlyph(a.glyph)} alt={`heroglyph ALBA #${a.n}`} loading="lazy" />
+          <img loading="lazy" className="alba-gl" src={cldGlyph(a.glyph)} alt={`heroglyph ALBA #${a.n}`} />
         </figure>
       ))}
     </div>

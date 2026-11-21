@@ -32,7 +32,7 @@ import { getPackStats } from '@/lib/sharedFetch';
 import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
 import { CLAIM, isClaim } from './appWeb/claim';
-import { WebTop } from './appWeb/WebTop';
+import { WebTop, scrollToId } from './appWeb/WebTop';
 import { loadLang } from './appWeb/langs';
 import { intlLocale } from '@/i18n/bcp47';
 import { IgMock, IgIcon } from './appWeb/IgMock';
@@ -109,7 +109,7 @@ function Phone({ src }: { src: string }) {
   return (
     <div className="phone">
       <img className="fr" src={`${A}/phone.svg`} alt="" />
-      <div className="scr"><img src={shot(src)} alt="" loading="lazy" decoding="async" /></div>
+      <div className="scr"><img loading="lazy" src={shot(src)} alt="" decoding="async" /></div>
     </div>
   );
 }
@@ -169,7 +169,7 @@ function TripsSection({ c }: { c: (k: string) => string }) {
             {[1, 2, 3].map((n, i) => (
               <button key={n} type="button" className={`pk-stage tr-step${step === i ? ' on' : ''}`} aria-pressed={step === i}
                 onClick={() => setStep(i)} onPointerEnter={(e) => { if (e.pointerType === 'mouse') setStep(i); }}>
-                <span className="tr-ic"><img src={`${A}/ikony/kroky-${n}.webp`} alt="" loading="lazy" /></span>
+                <span className="tr-ic"><img loading="lazy" src={`${A}/ikony/kroky-${n}.webp`} alt="" /></span>
                 <b>{c(`ts${n}`)}</b>
                 <span className="tr-p">{c(`ts${n}p`)}</span>
               </button>
@@ -187,7 +187,7 @@ function TripsSection({ c }: { c: (k: string) => string }) {
               <img className="fr" src={`${A}/phone.svg`} alt="" />
               <div className="scr">
                 {TRIP_SHOTS.map((src, i) => (
-                  <img key={src} className={`tr-shot${i === 2 ? ' tall' : ''}${step === i ? ' on' : ''}`} src={shot(src)} alt="" loading="lazy" decoding="async" />
+                  <img loading="lazy" key={src} className={`tr-shot${i === 2 ? ' tall' : ''}${step === i ? ' on' : ''}`} src={shot(src)} alt="" decoding="async" />
                 ))}
               </div>
             </div>
@@ -443,7 +443,7 @@ export default function AppWeb() {
   useEffect(() => {
     const id = window.location.pathname === '/hall' ? 'join' : window.location.hash.slice(1);
     if (!id || qs.get('vstupne')) return;
-    const t = setTimeout(() => document.getElementById(id)?.scrollIntoView(), 400);
+    const t = setTimeout(() => scrollToId(id, false), 400);
     return () => clearTimeout(t);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -534,7 +534,7 @@ export default function AppWeb() {
       {/* 2 · ŽI PSÍ ŽIVOT */}
       <section id="life" className="life">
         <div className="wrap split">
-          <Rv className="fresco"><img src={`${A}/vyjavy/zivot-hrou.webp`} alt="" loading="lazy" /></Rv>
+          <Rv className="fresco"><img loading="lazy" src={`${A}/vyjavy/zivot-hrou.webp`} alt="" /></Rv>
           <Rv d={1} className="life-txt">
             <p className="eye">{c('e_life3')}</p>
             <h2 className={V2 ? 'v2' : undefined}><span className="l1">{c('h_life2a')}</span><span className="l1"><span className="deco big">{c('h_life2b')}</span></span>{V2 && <span className="l3">{c('h_life2c')}</span>}</h2>
@@ -543,7 +543,7 @@ export default function AppWeb() {
               {VERBS.map((n, i) => (
                 <Rv key={i} d={i + 1} className="verb-w">
                   <button type="button" className={`pk-stage verb ${vOn === i ? 'on' : ''}`} onClick={() => setVOn(vOn === i ? null : i)}>
-                    <span className="ic"><img src={`${A}/ikony/hra-${n}.webp`} alt="" loading="lazy" /></span>
+                    <span className="ic"><img loading="lazy" src={`${A}/ikony/hra-${n}.webp`} alt="" /></span>
                     <b>{c(`v${i + 1}`)}</b>
                     <span className="vp">{c(`v${i + 1}p`)}</span>
                   </button>
@@ -623,7 +623,7 @@ export default function AppWeb() {
                 <button type="button" className="fhit" aria-expanded={openFeat === i}
                   onPointerEnter={e => { if (e.pointerType === 'mouse') setOpenFeat(i); }}
                   onClick={() => setOpenFeat(openFeat === i ? null : i)}>
-                  <span className="fti"><img src={`${A}/ikony/${f.ic}.webp`} alt="" loading="lazy" /></span>
+                  <span className="fti"><img loading="lazy" src={`${A}/ikony/${f.ic}.webp`} alt="" /></span>
                   <h3>{c(`fx_${f.ic}_h`)}</h3><p>{c(f.p)}</p>
                 </button>
                 <ul className={`fmore${V2 && f.ic === 'sos' ? ' dense' : ''}`}>{(V2 && f.ic === 'sos' ? SOS_LI_V2 : f.li).map(([tx, soon], k) => <li key={k} className={soon ? 'soon' : ''}>{c(tx)}{soon && <em>{c('soon')}</em>}</li>)}</ul>
@@ -634,7 +634,7 @@ export default function AppWeb() {
           <div className="fgrid" data-tile={tile}>
             {SOON.map((f, i) => (
               <Rv key={f.ic} d={i} className="fcard soon">
-                <div className="fti"><img src={`${A}/ikony/${f.ic}.webp`} alt="" loading="lazy" /></div>
+                <div className="fti"><img loading="lazy" src={`${A}/ikony/${f.ic}.webp`} alt="" /></div>
                 <h3>{c(`sx_${f.ic}_h`)}</h3><p>{c(`sx_${f.ic}_p`)}</p>
               </Rv>
             ))}
@@ -773,7 +773,7 @@ export default function AppWeb() {
               <p className="ai-ucscr"><b>{c('uc_scrolled')}: {Math.round((ucLive ?? (UCEN_PCT[ucOn] === '1.' ? 0 : parseFloat(UCEN_PCT[ucOn]) / 100)) * vScrolls).toLocaleString(loc)}</b> {c('uc_of')} {vScrolls.toLocaleString(loc)} {c('uc_scrolls')}</p>
               <div className="ai-ucrow">{UCEN_PCT.map((pc, i) => (
               <button key={i} type="button" className={`${ucOn === i ? 'on' : ''}${ucLive != null && i > ucOn ? ' off' : ''}`} onPointerEnter={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onFocus={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onClick={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }}>
-                <img src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" loading="lazy" />
+                <img loading="lazy" src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" />
               </button>
             ))}</div>
               <p className="ai-uchint">{c('uc_hint')}</p>
@@ -786,7 +786,7 @@ export default function AppWeb() {
           <div className="ai-ben">
             {/* ikonky z Kie vo farbách AINUBISa (výber Mateja 6. 11., plany/nakresy/ikony-benefity-2026-11-06) */}
             {['vet', 'conf', 'calm', 'roky'].map((ic, i) => (
-              <Rv key={ic} d={i} className="ai-b glowb"><img src={`${A}/ikony/ben-${ic}.webp`} alt="" loading="lazy" /><h4>{c(`bn${i + 1}h`)}</h4><p>{c(`bn${i + 1}p`)}</p></Rv>
+              <Rv key={ic} d={i} className="ai-b glowb"><img loading="lazy" src={`${A}/ikony/ben-${ic}.webp`} alt="" /><h4>{c(`bn${i + 1}h`)}</h4><p>{c(`bn${i + 1}p`)}</p></Rv>
             ))}
           </div>
           <Rv as="p" className="ai-quote">{c('ai_quote')}<small><span className="ai-name"><b>AI</b>NUBIS</span></small></Rv>
@@ -809,7 +809,7 @@ export default function AppWeb() {
           <div className="lv3">
             {LEVELS.map((p, i) => (
               <Rv key={p.ax} d={i} className="lv pk-stage">
-                <span className="lv-pic"><img src={p.scene} alt="" loading="lazy" /></span>
+                <span className="lv-pic"><img loading="lazy" src={p.scene} alt="" /></span>
                 <b>{c(p.ax)}</b>
                 <p className="lv-txt">{c(`lt_${p.ax}`)}</p>
                 <BadgeDock start={p.start} items={Array.from({ length: p.n }, (_, k) => ({ src: `${A}/odznaky/${p.img(k)}`, cap: p.cap(k, c) }))} />
@@ -825,7 +825,7 @@ export default function AppWeb() {
               <p className="lead">{c('l_cit2')}</p>
               <a className="pk-cta cit-vis" href={VISION_HREF}>{c('cta_vision')}</a>
             </div>
-            <div className="pic"><img src={`${A}/vyjavy/obcan.webp`} alt="" loading="lazy" /></div>
+            <div className="pic"><img loading="lazy" src={`${A}/vyjavy/obcan.webp`} alt="" /></div>
           </Rv>
           <Rv className="cit-fee">
             <h3>{c('fee_h')} <span className="deco">{c('fee_h2')}</span></h3>
@@ -844,12 +844,12 @@ export default function AppWeb() {
                 <button type="button" className={`cit-rank t${k}${k === 2 ? ' rec' : ''}${pick === k ? ' pick' : ''}${tierOn === k ? ' on' : ''}`} onClick={() => { setPick(k); setPayErr(false); setTierOn(tierOn === k ? null : k); }} aria-expanded={tierOn === k} aria-pressed={pick === k}>
                   <span className="cit-face pk-stage">
                     {k === 2 && <span className="cit-rec">{c('rec')}</span>}
-                    <img src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" loading="lazy" />
+                    <img loading="lazy" src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" />
                     <span className="cap"><b>{c(`t${k}`)}</b><i>{L === 'sk' ? price : price.replace(',', '.')}{k > 0 && <small> {c(k < 4 ? 'per_mo' : 'mo_or_once')}</small>}</i></span>
                     <span className="tw">{c(`tw${k}`)}</span>
                   </span>
                   <span className="cit-back">
-                    <img src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" loading="lazy" />
+                    <img loading="lazy" src={`${A}/odznaky/dogyptan-${k}.webp`} alt="" />
                     <b>{c(`t${k}`)}</b>
                     <span className="bk">{c(`bk${k}`).split('|').map((x) => (
                       <span key={x} className={x[0] === '+' ? 'y' : 'n'}>{x.slice(1)}</span>
@@ -890,7 +890,7 @@ export default function AppWeb() {
           </Rv>
           {/* jednorazová podpora bez konta (Matej 11. 11.): kto nechce hrať, môže prispieť; odkaz čaká na Stripe */}
           <Rv className="cit-sup pk-stage">
-            <img className="cit-sup-ic" src={`${A}/ikony/centra.webp`} alt="" loading="lazy" />
+            <img loading="lazy" className="cit-sup-ic" src={`${A}/ikony/centra.webp`} alt="" />
             <h3>{c('sup_h')} <span className="deco">{c('sup_h2')}</span></h3>
             <p className="lead">{c('sup_p')}</p>
             <a className="pk-cta alt" href="#">{c('sup_cta')}</a>

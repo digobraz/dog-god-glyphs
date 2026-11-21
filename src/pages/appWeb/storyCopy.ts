@@ -52,7 +52,7 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   rd_h: { sk: 'Od krabice k *miliónu*', en: 'From a box to *a million*' },
   r1_b: { sk: 'Krabica', en: 'The box' },
   r1_s: { sk: 'Osem šteniat, jeden ostal.', en: 'Eight puppies, one left behind.' },
-  r2_b: { sk: '„I don’t want a dog!“', en: '“I don’t want a dog!”' },
+  r2_b: { sk: '„Nechcem psa!“', en: '“I don’t want a dog!”' },
   r2_s: { sk: 'Týždeň nato sme boli spolu.', en: 'A week later we were together.' },
   r3_b: { sk: 'Spoločné dobrodružstvá', en: 'Adventures together' },
   r3_s: { sk: 'Život v lese, len my dvaja.', en: 'Life in the woods, just the two of us.' },

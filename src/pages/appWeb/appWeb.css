@@ -1510,6 +1510,8 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .vs{margin-top:var(--s-xxl)}
 .aw section[id]{scroll-margin-top:88px}
 @media(min-width:900px){.aw section[id]{scroll-margin-top:104px}}
+/* planétka je na celú obrazovku a hlavička nad ňou odchádza — dosadne na hranu okna (PSY v menu) */
+.aw section.planet-live[id]{scroll-margin-top:0}
 /* 11 · svety v lieviku od seba (Matej: „moc na sebe“) */
 .aw .af-row.r7{max-width:1040px;column-gap:var(--s-xxl);row-gap:var(--s-xxl)}
 @media(max-width:899px){.aw .af-row.r7{column-gap:var(--s-lg);row-gap:var(--s-xxl)}}

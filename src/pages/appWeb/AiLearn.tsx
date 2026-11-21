@@ -70,7 +70,7 @@ export function AiScrolls({ L, c }: { L: Lang2; c: C }) {
   }, []);
   const card = (s: AiPick, k: string) => (
     <article key={k} className="zs-card" style={{ ['--wc' as string]: wc(s.w) }} aria-hidden={k.startsWith('b') || undefined}>
-      <div className="ph"><img src={s.img} alt="" loading="lazy" draggable={false} /></div>
+      <div className="ph"><img loading="lazy" src={s.img} alt="" draggable={false} /></div>
       <span className="w">{c(WKEY[s.w])}</span>
       <h5>{c(`ai_t_${s.id}`) || s.t[L]}</h5>
       <p>{c(`ai_v_${s.id}`) || s.v[L]}</p>
@@ -122,7 +122,7 @@ export function AiPods({ L, c }: { L: Lang2; c: C }) {
       </div>
       {AI_PODS.map((p) => (
         <button key={p.id} type="button" className={`pd-row${on === p.id ? ' on' : ''}`} onClick={() => toggle(p)} style={{ ['--wc' as string]: wc(p.w) }}>
-          <span className="pd-img"><img src={p.img} alt="" loading="lazy" /><i>{on === p.id ? <svg viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /></svg> : <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" /></svg>}</i></span>
+          <span className="pd-img"><img loading="lazy" src={p.img} alt="" /><i>{on === p.id ? <svg viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /></svg> : <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" /></svg>}</i></span>
           <span className="pd-tx"><b>{p.t[pl]}</b><small>{c(WKEY[p.w])} · {mmss(p.pod[pl]?.sec ?? 0)}</small>
             <span className="pd-bar"><span style={{ transform: `scaleX(${on === p.id ? pos : 0})` }} /></span></span>
           <span className={`pd-eq${on === p.id ? ' go' : ''}`} aria-hidden><i /><i /><i /><i /></span>
@@ -155,7 +155,7 @@ export function AiChat({ L, c, head }: { L: Lang2; c: C; head: string }) {
             <span className="lbl">{c('ch_src')}</span>
             {AI_CHAT_REFS.slice(0, 3).map((r, i) => (
               <div key={r.id} className="ch-ref" style={{ ['--wc' as string]: wc(r.w), ['--i' as string]: i }}>
-                <img src={r.img} alt="" loading="lazy" /><span><small>{c(WKEY[r.w])}</small>{c(`ai_t_${r.id}`) || r.t[L]}</span>
+                <img loading="lazy" src={r.img} alt="" /><span><small>{c(WKEY[r.w])}</small>{c(`ai_t_${r.id}`) || r.t[L]}</span>
               </div>
             ))}
           </div>
