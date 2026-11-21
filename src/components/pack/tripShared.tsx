@@ -15,7 +15,7 @@ import { iso2ToISO3, trailCountry } from '@/lib/countryGeo';
 import {
   packStorage, PACK_KEYS, readStringSet as readSet,
   persistWalked, persistFav, scheduleFounderSeed, queueLocalTripUpload,
-  readLocalTrailMeta, translateTripDesc, fetchPackWalkedSlugs,
+  readLocalTrailMeta, translateTripDesc, fetchPackWalkedSlugs, withStorageRoom, stashTripPhotos,
 } from '@/lib/packStore';
 import { missingOnTrail } from '@/components/pack/addtrip/addTripModel';
 
@@ -811,9 +811,8 @@ export function readLocalTrails(): HeroTrail[] {
 // neodošle (packStore `processTripUploadQueue` to rieši samo).
 export function writeLocalTrails(trails: HeroTrail[]): boolean {
   const prevIds = new Set(readLocalTrails().map((t) => t.id));
-  try {
-    trpStore.setItem(LOCAL_TRAILS_KEY, JSON.stringify(trails));
-  } catch { return false; /* private mode / quota — volajúci nech to ošetrí */ }
+  const raw = JSON.stringify(trails);
+  if (!withStorageRoom(() => trpStore.setItem(LOCAL_TRAILS_KEY, raw))) return false; /* private mode / quota — volajúci nech to ošetrí */
   const added = trails.filter((t) => !prevIds.has(t.id)).map((t) => t.id);
   if (added.length) queueLocalTripUpload(added);
   return true;
@@ -831,9 +830,15 @@ export function updateLocalTrail(id: string, patch: Partial<HeroTrail>): boolean
   const all = readLocalTrails();
   if (!all.some((t) => t.id === id)) return false;
   const next = all.map((t) => (t.id === id ? { ...t, ...patch } : t));
-  try {
-    trpStore.setItem(LOCAL_TRAILS_KEY, JSON.stringify(next));
-  } catch { return false; /* kvóta — volajúci nech to ošetrí, rovnako ako writeLocalTrails */ }
+  let ok = withStorageRoom(() => trpStore.setItem(LOCAL_TRAILS_KEY, JSON.stringify(next)));
+  // Ani po upratani sa nové fotky (base64) nezmestili: úprava sa uloží s fotkami, ktoré už sú
+  // na Cloudinary, a nové počkajú v pamäti na nahratie (`stashTripPhotos`, 21. 11. 2026).
+  if (!ok && patch.photos?.some((u) => u.startsWith('data:'))) {
+    const light = all.map((t) => (t.id === id ? { ...t, ...patch, photos: patch.photos!.filter((u) => !u.startsWith('data:')) } : t));
+    ok = withStorageRoom(() => trpStore.setItem(LOCAL_TRAILS_KEY, JSON.stringify(light)));
+    if (ok) stashTripPhotos(id, patch.photos);
+  }
+  if (!ok) return false; /* kvóta — volajúci nech to ošetrí, rovnako ako writeLocalTrails */
   queueLocalTripUpload([id]);
   return true;
 }

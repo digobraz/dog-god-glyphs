@@ -38,6 +38,7 @@ import { trackPack } from './packAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadPackTripPhoto } from '@/services/cloudinaryService';
 import { takeUploadBlob } from '@/components/pack/addtrip/photoOptimize';
+import { track } from '@/lib/analytics';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 
 // ── úložisko ────────────────────────────────────────────────────────────────
@@ -97,8 +98,50 @@ export function readJson<T>(key: string, fallback: T): T {
   catch { return fallback; }
 }
 export function writeJson(key: string, val: unknown): boolean {
-  try { packStorage.setItem(key, JSON.stringify(val)); return true; }
-  catch { return false; /* quota / private mode — volajúci nech to ošetrí */ }
+  const raw = JSON.stringify(val);
+  return withStorageRoom(() => { packStorage.setItem(key, raw); });
+}
+
+/**
+ * ── PLNÁ SCHRÁNKA SA UPRACE SAMA (Matej 21. 11. 2026: „nepodarilo sa uložiť, úložisko je plné…
+ * čo to má znamenať?") ─ localStorage v iPhone má ~5 MB a appka doň okrem rozpracovanej práce
+ * odkladá aj KÓPIE zo servera (zvitky, feed, kartičky psov s fotkou). Keď sa zaplní, padne zápis
+ * výletu aj jeho úprava. Pri páde sa preto zahodia kópie, ktoré si appka vie stiahnuť znova —
+ * v poradí od najmenej potrebnej — a zápis sa zopakuje. Rozpracované veci, fronta synchronizácie
+ * ani prihlásenie sa NEMAŽÚ. Zároveň sa zapíše, čo bolo najväčšie (`trp-storage-report`).
+ */
+const REFETCHABLE: ((k: string) => boolean)[] = [
+  (k) => k === 'vault-list-v1',
+  (k) => k === 'feed-posts-v1' || k === 'feed-nearby-v1',
+  (k) => k.startsWith('dogypt.ecard.cache.'),
+  (k) => k.startsWith('dogypt.ecard.photo.'),
+];
+export const STORAGE_REPORT_KEY = 'trp-storage-report';
+function reportStorage(): void {
+  try {
+    const rows: [string, number][] = [];
+    for (let i = 0; i < packStorage.length; i++) {
+      const k = packStorage.key(i);
+      if (k) rows.push([k, (packStorage.getItem(k) ?? '').length]);
+    }
+    rows.sort((a, b) => b[1] - a[1]);
+    const total = rows.reduce((n, r) => n + r[1], 0);
+    const top = rows.slice(0, 10).map(([k, n]) => `${k}:${Math.round(n / 1024)}k`);
+    packStorage.setItem(STORAGE_REPORT_KEY, JSON.stringify({ at: new Date().toISOString(), totalK: Math.round(total / 1024), top }));
+    track('storage_full', { totalK: Math.round(total / 1024), top: top.join(' ') });
+  } catch { /* hlásenie je len pomôcka */ }
+}
+export function withStorageRoom(write: () => void): boolean {
+  try { write(); return true; } catch { /* plné — skúsime upratať */ }
+  reportStorage();
+  for (const drop of REFETCHABLE) {
+    const keys: string[] = [];
+    for (let i = 0; i < packStorage.length; i++) { const k = packStorage.key(i); if (k && drop(k)) keys.push(k); }
+    if (!keys.length) continue;
+    keys.forEach((k) => { try { packStorage.removeItem(k); } catch { /* */ } });
+    try { write(); return true; } catch { /* ešte stále plné */ }
+  }
+  return false;
 }
 /** Stav členmi nahodeného výletu v moderácii (`pack_trips.status`) + či je môj. */
 export interface LocalTrailMeta { status: 'pending' | 'approved' | 'rejected' | string; mine: boolean }
@@ -818,7 +861,7 @@ export function stashTripPhotos(slug: string, photos: string[]): void {
 async function uploadTrailPhotos(slug: string): Promise<string[]> {
   const trail = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).find((t) => t.id === slug);
   const stashed = tripPhotoStash.get(slug);
-  const photos = [...(trail?.photos?.length ? trail.photos : stashed ?? [])];
+  const photos = [...(stashed ?? trail?.photos ?? [])];
   for (let i = 0; i < photos.length; i++) {
     if (!photos[i].startsWith('data:')) continue; // už URL (predchádzajúci beh / plánovaný trip bez fotky)
     const blob = takeUploadBlob(photos[i]) ?? dataUrlToBlob(photos[i]);
