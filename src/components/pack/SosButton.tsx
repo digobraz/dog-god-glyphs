@@ -122,25 +122,7 @@ export function SosButton() {
                 <b>{tx('pack.sos.btn.lost', 'My dog is lost')}</b>
               </button>
             )}
-            {/* Rýchly prístup ku kartičke, nastavenie ostáva v DOG ID (Matej 5. 11.). */}
-            {APP_NEW && (
-              <button type="button" className="sos-row card" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/karticka')}>
-                <SysIcon name="sos-karta" size={32} />
-                <b>{tx('pack.sos.card.title', 'Emergency card')}</b>
-              </button>
-            )}
-            {/* Čoskoro (Matej 20. 11.): zbierky pre psov a útulky. Názvy pracovné, celé až po flipe po brainstormingu. Ťuk = 2–3 riadky o tom, čo príde. */}
-            {SOON_ROWS.map((r) => (
-              <Fragment key={r.key}>
-                <button type="button" className={`sos-row soon ${r.key}`} style={{ ...PACK_BOX.row }} aria-expanded={soonOpen === r.key} onClick={() => setSoonOpen((o) => (o === r.key ? null : r.key))}>
-                  <BrandIcon name={r.icon} size={APP_NEW ? 32 : 24} tint="gold" />
-                  <b>{tx(r.k, tri(r.fb))}</b>
-                  <small>{tx('pack.sos.soon', 'Soon')}</small>
-                </button>
-                {soonOpen === r.key && <p className="sos-soon-p">{tx(`${r.k}.p`, tri(r.fbP))}</p>}
-              </Fragment>
-            ))}
-            {/* Nahlásiť nebezpečenstvo (úplne dole, 20. 11. 2026): pri DANGER_ON otvorí rozcestie týranie · otrava · príroda,
+            {/* Nahlásiť nebezpečenstvo (21. 11. 2026: nad kartičkou, pod stratou): pri DANGER_ON otvorí rozcestie týranie · otrava · príroda,
                 inak ostáva ČOSKORO + 2–3 riadky ako pri zbierkach (obrazovka /pack/sos/nebezpecenstvo/tyranie existuje len za flagom). */}
             {DANGER_ON ? (
               <button type="button" className="sos-row danger" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/nebezpecenstvo')}>
@@ -157,6 +139,24 @@ export function SosButton() {
                 {soonOpen === 'abuse' && <p className="sos-soon-p">{tx('pack.sos.soon.abuse.p', tri({ en: 'Reporting cruelty made simple: the exact steps and the numbers to call with one tap. Do not look away.', sk: 'Nahlásenie týrania jednoducho: presné kroky a čísla na zavolanie jedným ťukom. Nepozeraj sa inam.', cs: 'Nahlášení týrání jednoduše: přesné kroky a čísla k zavolání jedním klepnutím. Neodvracej pohled.' }))}</p>}
               </>
             )}
+            {/* Rýchly prístup ku kartičke, nastavenie ostáva v DOG ID (Matej 5. 11.). Posledná FUNKČNÁ karta, pod ňou len „čoskoro“ (Matej 21. 11.). */}
+            {APP_NEW && (
+              <button type="button" className="sos-row card" style={{ ...PACK_BOX.row }} onClick={() => go('/pack/sos/karticka')}>
+                <SysIcon name="sos-karta" size={32} />
+                <b>{tx('pack.sos.card.title', 'Emergency card')}</b>
+              </button>
+            )}
+            {/* Čoskoro (Matej 20. 11.): útulky a adopcie, POD nimi zbierky = úplne posledné (poradie Matej 21. 11.). Názvy pracovné, celé až po flipe po brainstormingu. Ťuk = 2–3 riadky o tom, čo príde. */}
+            {[...SOON_ROWS].reverse().map((r) => (
+              <Fragment key={r.key}>
+                <button type="button" className={`sos-row soon ${r.key}`} style={{ ...PACK_BOX.row }} aria-expanded={soonOpen === r.key} onClick={() => setSoonOpen((o) => (o === r.key ? null : r.key))}>
+                  <BrandIcon name={r.icon} size={APP_NEW ? 32 : 24} tint="gold" />
+                  <b>{tx(r.k, tri(r.fb))}</b>
+                  <small>{tx('pack.sos.soon', 'Soon')}</small>
+                </button>
+                {soonOpen === r.key && <p className="sos-soon-p">{tx(`${r.k}.p`, tri(r.fbP))}</p>}
+              </Fragment>
+            ))}
           </div>
           {SOS_ON && active.length > 0 && (
             <>
