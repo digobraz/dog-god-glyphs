@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { SosNoSignal } from '@/components/SosNoSignal';
 
 /**
  * Top-level render-error safety net (P1 2026-07 perf/hardening pass).
@@ -14,7 +15,13 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
  */
 
 type Props = { children: ReactNode };
-type State = { hasError: boolean };
+type State = { hasError: boolean; error: unknown };
+
+/** SOS cesta (`/pack/sos/…`) a zlyhané stiahnutie kódu / sieť: namiesto „Niečo sa pokazilo“ ide obrazovka „Si bez signálu“ s 112. */
+const isSosPath = () => typeof window !== 'undefined' && /^\/pack\/sos(\/|$)/.test(window.location.pathname);
+const isLoadFailure = (e: unknown) =>
+  (typeof navigator !== 'undefined' && navigator.onLine === false)
+  || /dynamically imported module|Importing a module script failed|Failed to fetch|ChunkLoadError|Load failed|Loading (CSS )?chunk/i.test(String((e as { message?: string } | null)?.message ?? e));
 
 const TEXT: Record<string, { title: string; reload: string; back: string }> = {
   sk: { title: 'Niečo sa pokazilo.', reload: 'Načítať znova', back: 'Späť' },
@@ -41,11 +48,23 @@ const BTN = {
 } as const;
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false };
+  state: State = { hasError: false, error: null };
 
-  static getDerivedStateFromError(): State {
-    return { hasError: true };
+  static getDerivedStateFromError(error: unknown): State {
+    return { hasError: true, error };
   }
+
+  /** Z obrazovky „Si bez signálu“ do už stiahnutej časti SOS: SPA prechod bez načítania stránky (offline by sa nenačítala). */
+  private goSos = (path: string) => {
+    window.history.pushState(null, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+    this.setState({ hasError: false, error: null });
+  };
+
+  // Šípka späť z obrazovky „Si bez signálu“: stav chyby sa zruší, inak by stránka ostala zaseknutá aj po návrate na funkčnú cestu.
+  private onPop = () => { if (this.state.hasError) this.setState({ hasError: false, error: null }); };
+  componentDidMount() { window.addEventListener('popstate', this.onPop); }
+  componentWillUnmount() { window.removeEventListener('popstate', this.onPop); }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('[ErrorBoundary] uncaught render error:', error, info.componentStack);
@@ -53,6 +72,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      if (isSosPath() && isLoadFailure(this.state.error)) return <SosNoSignal onGo={this.goSos} />;
       const t = pickText();
       return (
         <div

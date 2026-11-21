@@ -424,6 +424,7 @@ export const SOS_TEXTS = {
   'pack.sos.er.mapSearch': T('SEARCH EMERGENCY VETS ON THE MAP', 'HĽADAŤ POHOTOVOSŤ NA MAPE', 'HLEDAT POHOTOVOST NA MAPĚ'),
   'pack.sos.er.mapQuery': T('emergency vet', 'veterinárna pohotovosť', 'veterinární pohotovost'),
   'pack.sos.er.showSk': T('Show the clinics in Slovakia and Prague', 'Zobraziť kliniky na Slovensku a v Prahe', 'Zobrazit kliniky na Slovensku a v Praze'),
+  'pack.sos.er.showFar': T('Show clinics farther away', 'Zobraziť vzdialenejšie kliniky', 'Zobrazit vzdálenější kliniky'),
   'pack.sos.er.hideSk': T('Hide the list', 'Skryť zoznam', 'Skrýt seznam'),
   'pack.sos.er.searchMaps': T('SEARCH “VET EMERGENCY” IN MAPS', 'HĽADAŤ „VET EMERGENCY“ V MAPÁCH', 'HLEDAT „VET EMERGENCY“ V MAPÁCH'),
   'pack.sos.er.homeNonstop': T('Non-stop, comes to you', 'Nonstop, príde k tebe', 'Nonstop, přijede k tobě'),

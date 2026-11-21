@@ -43,6 +43,12 @@
   Cache-Control: public, max-age=3600, stale-while-revalidate=2592000
 /fonts/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
+# Prvá pomoc a fotky kliník (SOS, 21. 11. 2026): bez tohto pravidla šli obrázky s `max-age=0, must-revalidate`, takže po strate
+# signálu (prehliadač sa pri každom použití pýta servera) boli rozbité. Názvy bez hashu ⇒ deň čerstvosti + dlhé stale-while-revalidate.
+/prva-pomoc/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
+/vet/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
 
 # Zoznam súborov pre aktualizáciu appky (scripts/app-manifest.mjs, 20. 10. 2026) — appka sa ho
 # pýta pri každom štarte a musí dostať ten z POSLEDNÉHO nasadenia, nie hodinu starý.

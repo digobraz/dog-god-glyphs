@@ -115,6 +115,11 @@ const CSS = `
 .dpo--post .dpo-side{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:2cqw;align-items:stretch;}
 .dpo--post .dpo-chips{justify-content:flex-start;}
 .dpo--post .dpo-rad{text-align:left;}
+/* 4:5 bez fotky: jeden vycentrovaný stĺpec ako na 9:16 (mapa + okruh + štítky), nie mapa vľavo a prázdny pás vpravo */
+.dpo--post .dpo-body--col{flex-direction:column;justify-content:center;gap:2.2cqw;padding:1.6cqw 8cqw;}
+.dpo--post .dpo-body--col .dpo-map,.dpo--post .dpo-body--col .dpo-map--wide{width:54cqw;height:54cqw;}
+.dpo--post .dpo-body--col .dpo-rad{text-align:center;}
+.dpo--post .dpo-body--col .dpo-chips{justify-content:center;}
 .dpo-bot{background:#1A1006;color:#F4E7C8;padding:2.6cqw 6cqw;display:flex;align-items:center;gap:4cqw;flex:none;}
 .dpo-qr{width:17cqw;height:17cqw;background:#fff;padding:1.2cqw;border-radius:2.4cqw;box-sizing:border-box;flex:none;}
 .dpo-qr svg{width:100%;height:100%;display:block;}
@@ -159,8 +164,10 @@ export function DangerPoster({ data, format, onReady }: { data: PosterData; form
         </div>
         {format === 'story' ? (
           <div className="dpo-body">{photoBox}{mapBox}{rad}{chips}</div>
-        ) : (
+        ) : showPhoto ? (
           <div className="dpo-body">{mapBox}<div className="dpo-side">{photoBox}{rad}{chips}</div></div>
+        ) : (
+          <div className="dpo-body dpo-body--col">{mapBox}{rad}{chips}</div>
         )}
         <div className="dpo-bot">
           <div className="dpo-qr"><RoundQR value={url} ink="#1A1006" eye="#1A1006" /></div>

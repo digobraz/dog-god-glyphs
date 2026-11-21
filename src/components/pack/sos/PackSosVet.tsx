@@ -100,6 +100,8 @@ function etaLabel(d: DriveTime, exact: boolean | undefined, loc: string): string
   const time = min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${min % 60} min`;
   return `${exact ? '' : '≈ '}${dist} km · ${time}`;
 }
+/** Bez siete sa fotka kliniky nestiahne: rozbitý obrázok sa schová, karta ostane čitateľná. */
+const hideBroken = (e: { currentTarget: HTMLImageElement }) => { e.currentTarget.style.visibility = 'hidden'; };
 const hostOf = (url: string) => new URL(url).hostname.replace(/^www\./, '');
 
 function hoursLabel(p: VetPlace, s: SosT, now: Date): string {
@@ -230,7 +232,7 @@ export default function PackSosVet() {
     <div key={p.id} data-vet={p.id} className={`vet-row${isOn ? '' : ' off'}`} style={{ ...PACK_BOX.subblock }}>
       <div className="vet-band">
         <button type="button" className="vet-pic" tabIndex={-1} aria-hidden="true" onClick={() => setOpen(open === p.id ? null : p.id)}>
-          <img className={PHOTO_ZOOM[p.id]} src={p.photo?.src ?? NO_PHOTO} alt="" loading="lazy" decoding="async" />
+          <img className={PHOTO_ZOOM[p.id]} src={p.photo?.src ?? NO_PHOTO} alt="" loading="lazy" decoding="async" onError={hideBroken} />
         </button>
         {!p.home && canNav && (drive[p.id] || km !== null) && (
           <span className="vet-eta">{drive[p.id] ? etaLabel(drive[p.id], p.exact, loc) : s('pack.sos.er.airKm', { km: kmText(air as number, loc) })}</span>
@@ -243,7 +245,7 @@ export default function PackSosVet() {
           {p.google && (
             <a className="vet-g" href={p.google.url} target="_blank" rel="noopener noreferrer">
               {p.google.rating.toLocaleString(loc, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
-              <img src="/nav-apps/google-g.svg" alt="Google" />
+              <img src="/nav-apps/google-g.svg" alt="Google" onError={hideBroken} />
               · {reviewsLabel(p.google, s, loc)}
             </a>
           )}
@@ -317,7 +319,7 @@ export default function PackSosVet() {
         {off.length > 0 && <h2 className="vet-sec">{s('pack.sos.er.closed')}</h2>}
         {off.length > 0 && <div className="vet-list">{off.map((r) => row(r))}</div>}
         {far.length > 0 && (
-          <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" aria-expanded={showAll} onClick={() => setShowAll((v) => !v)}>{s(showAll ? 'pack.sos.er.hideSk' : 'pack.sos.er.showSk')}</button>
+          <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" aria-expanded={showAll} onClick={() => setShowAll((v) => !v)}>{s(showAll ? 'pack.sos.er.hideSk' : noCover ? 'pack.sos.er.showSk' : 'pack.sos.er.showFar')}</button>
         )}
         {showAll && far.length > 0 && <div className="vet-list">{far.map((r) => row(r))}</div>}
       </div>

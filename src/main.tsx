@@ -40,6 +40,9 @@ startAppPush();
 // stránku raz obnovíme (dostane nový index aj chunky). Poistka proti slučke: ďalší
 // reload najskôr o 30 s — keby chunk chýbal aj v novom builde, ukáže sa chyba ako doteraz.
 window.addEventListener("vite:preloadError", (event) => {
+  // Bez siete obnovenie nepomôže a ukáže chybu prehliadača (SOS bez signálu, 21. 11. 2026): chybu nechaj ErrorBoundary,
+  // ktorý na `/pack/sos/*` ukáže „Si bez signálu“ s 112.
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return;
   try {
     const last = Number(sessionStorage.getItem("dogypt_chunk_reload") || 0);
     if (Date.now() - last < 30_000) return;

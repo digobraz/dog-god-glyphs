@@ -10,6 +10,7 @@ import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
 import { PackLoader } from "@/components/pack/PackLoader";
 import { LanguageProvider, useLang, ensurePackDict } from "@/i18n/LanguageContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { QuietSuspense } from "@/components/QuietSuspense";
 import { captureRefFromSearch } from "@/lib/refCapture";
 import { trackPageview, setAnalyticsLang } from "@/lib/analytics";
 import { maskPath, trackPackRoute } from "@/lib/packAnalytics";
@@ -344,7 +345,7 @@ function PackGate() {
 /** Brána zmazania účtu len na /pack — inde (film, heroflow) sa Supabase klient nesťahuje. */
 function OnPackDeletionGate() {
   const { pathname } = useLocation();
-  return /^\/pack(\/|$)/.test(pathname) ? <Suspense fallback={null}><AccountDeletionGate /><PawmateDepartureGate /></Suspense> : null;
+  return /^\/pack(\/|$)/.test(pathname) ? <QuietSuspense><AccountDeletionGate /><PawmateDepartureGate /></QuietSuspense> : null;
 }
 
 function RefCapture() {
@@ -371,25 +372,25 @@ function RefCapture() {
 const App = () => (
   <HelmetProvider>
     <LanguageProvider>
-      <Suspense fallback={null}>
+      <QuietSuspense>
         <LateToasters />
-      </Suspense>
+      </QuietSuspense>
       <BrowserRouter>
         <RefCapture />
         <AppRouteGuard />
         <OnPackDeletionGate />
         {/* Psia packa + stopy na pozadí verejného webu (len myš; /pack, /admin a appka nie) */}
         <PawTrail />
-        <Suspense fallback={null}>
+        <QuietSuspense>
           <ConsentBanner />
-        </Suspense>
-        <Suspense fallback={null}>
+        </QuietSuspense>
+        <QuietSuspense>
           <LateAinubis />
-        </Suspense>
+        </QuietSuspense>
         {SHOW_DEVNAV && <Suspense fallback={null}><DevNav /></Suspense>}
-        <Suspense fallback={null}>
+        <QuietSuspense>
           <LatePhotoInvite />
-        </Suspense>
+        </QuietSuspense>
         {/* Bledý šat + progresbar pre STARÉ obrazovky flow. Bez neho by nové
             obrazovky (dogs, email, why) boli papyrusové a zvyšok čierny.
             Vrstva je zapuzdrená v `[data-flow-skin="pale"]`, takže netečie

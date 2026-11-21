@@ -1,15 +1,18 @@
 // KÔŠ 3 — ROBÍM ÚLOHU: obal obrazoviek SOS bez spodnej lišty. Zvlášť od `sosShared`, aby verejná `/lost/:slug`
 // nemusela ťahať `PackTopRow` a `PackLayout`.
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { PackTopRow } from '@/components/pack/PackTopRow';
 import { MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { SosStyles } from './sosShared';
+import { prefetchSosOffline } from './sosPrefetch';
 
 /**
  * KÔŠ 3 — ROBÍM ÚLOHU: bez spodnej lišty, hore AINUBIS + šípka späť, vpravo NIČ (žiadne správy, upozornenia, SOS).
  * Stavba ako SNIFFER (`PackBuddy.tsx` Shell): stránka nemountuje `PackLayout`.
  */
 export function SosTaskShell({ onBack, backLabel, wide, children }: { onBack: () => void; backLabel: string; wide?: boolean; children: ReactNode }) {
+  // Kto otvoril SOS obrazovku priamo (odkaz, push), nemal šancu cez `SosButton`: aj odtiaľ sa v pokoji stiahne prvá pomoc a pohotovosť na offline.
+  useEffect(() => { prefetchSosOffline(); }, []);
   return (
     <div className="pk-paper pk-plain sos-root">
       <SosStyles />

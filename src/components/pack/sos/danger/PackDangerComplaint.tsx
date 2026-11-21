@@ -180,7 +180,7 @@ export default function PackDangerComplaint() {
       {missingCase && (
         <SosCard>
           <p className="sos-p">{s('pack.sos.danger.complaint.caseMissing')}</p>
-          <button type="button" className="sos-cta" onClick={() => nav('/pack/sos/nebezpecenstvo', { replace: true })}>{s('pack.sos.danger.complaint.done')}</button>
+          <button type="button" className="sos-cta" onClick={() => nav('/pack/sos/nebezpecenstvo', { replace: true })}>{s('pack.sos.back')}</button>
         </SosCard>
       )}
 

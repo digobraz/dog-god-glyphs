@@ -217,8 +217,7 @@ export const SOS_CSS = `
 .sos-photo{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:${PACK_R.card}px;display:block;background:${T.tileBg};border:1.5px solid ${T.cardEdge};}
 .sos-photo--none{display:flex;align-items:center;justify-content:center;}
 .sos-photo--none img{width:48%;height:auto;max-height:72%;object-fit:contain;display:block;opacity:.85;}
-.sos-ph--none,.sosn-av--none{display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.sos-ph--none img,.sosn-av--none img{width:68%;height:68%;object-fit:contain;display:block;opacity:.85;}
+
 /* CTA — tvar btn-gold: radius 8, NIE pilulka. Lapis na bledom, červené len SOS, zelené = splnené. */
 .sos-cta{display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;width:100%;min-height:56px;padding:0 ${PACK_SPACE.lg}px;
   border-radius:${PACK_R.field}px;font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;text-transform:uppercase;text-align:center;

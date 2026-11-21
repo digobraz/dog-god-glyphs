@@ -15,7 +15,7 @@ import { STEP_BY_FIELD } from '@/components/pack/dogQuiz';
 import { passPlainValue } from '@/components/pack/DogPassport';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { compressFile } from '@/lib/photoIntake';
-import { FONT_UI, PACK_BOX, PACK_SPACE, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
+import { FONT_UI, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { SosTaskShell } from '@/components/pack/sos/SosTaskShell';
 import { useSosT } from '@/components/pack/sos/sosShared';
@@ -54,6 +54,9 @@ html.papyrus3d .ecp-link{color:${LAPIS.edge};text-decoration:underline;}
 /* OBRÁZOK NA ZDIEĽANIE: obe strany pod sebou, mimo obrazovky. */
 .ecshare{position:fixed;left:-99999px;top:0;width:648px;background:#FFFFFF;box-sizing:border-box;padding:24px;display:flex;flex-direction:column;gap:24px;}
 .ecp-contact{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.md}px;}
+.ecp-warn{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:${T.sosRedSoft};border:1px solid ${T.sosRed};}
+.ecp-warn b{font:600 ${PACK_TEXT.lead}px/1.3 ${FONT_UI};color:${T.sosRedDark};}
+.ecp-warn p{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.45;color:${T.inkStrong};}
 .ecp-link{all:unset;cursor:pointer;align-self:center;padding:${PACK_SPACE.sm}px;font:500 ${PACK_TEXT.label}px/1.4 ${FONT_UI};color:${T.inkWarm};text-decoration:underline;text-underline-offset:4px;}
 `;
 
@@ -215,6 +218,8 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
   const dogName = dog?.dog_name ?? '';
   const glyph: CardGlyph | null = dog?.selections ? { selections: dog.selections, ownerName: dog.owner_name ?? '', patronSvg: dog.patron_svg ?? '' } : null;
   const hasContact = data.contacts.some((c) => c.phone.trim());
+  // Kartička bez telefónu je prázdny blok na zadnej strane: pred stiahnutím / zdieľaním sa človek rozhodne vedome (doplní, alebo pokračuje bez kontaktu).
+  const [askNoContact, setAskNoContact] = useState<null | 'dl' | 'share'>(null);
   const set = (k: 'addr' | 'note') => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const v = e.target.value;
     edited.current = { ...edited.current, [k]: v };
@@ -329,6 +334,18 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
   };
 
   const editHref = `/pack/dogs/${id}/karticka`;
+  const guard = (kind: 'dl' | 'share') => {
+    if (!hasContact) { setAskNoContact(kind); return; }
+    setAskNoContact(null);
+    void (kind === 'dl' ? download() : share());
+  };
+  const proceedAnyway = () => { const k = askNoContact; setAskNoContact(null); if (k) void (k === 'dl' ? download() : share()); };
+  const addContact = () => {
+    setAskNoContact(null);
+    const el = document.querySelector<HTMLInputElement>('.ecp-fields input[type=tel]');
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    el?.focus({ preventScroll: true });
+  };
 
   return (
     <SosTaskShell onBack={onBack ?? (() => nav(`/pack/dogs/${id}`))} backLabel={s('pack.sos.back')}>
@@ -401,10 +418,18 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
                   <textarea className="pf-field" rows={3} maxLength={NOTE_MAX} value={data.note} onChange={set('note')} />
                 </label>
               </div>
-              <button type="button" className="sos-cta ecp-btn pk-b3 pk-b3--lapis" disabled={busy} onClick={download}>
+              {askNoContact && !hasContact && (
+                <div className="ecp-warn" role="alert">
+                  <b>{s('pack.sos.card.noContactTitle')}</b>
+                  <p>{s('pack.sos.card.noContactText')}</p>
+                  <button type="button" className="sos-cta ecp-btn ecp-btn--sm pk-b3 pk-b3--lapis" onClick={addContact}>{s('pack.sos.card.addContact')}</button>
+                  <button type="button" className="sos-cta sos-cta--ghost ecp-btn ecp-btn--sm pk-b3 pk-b3--paper" disabled={busy} onClick={proceedAnyway}>{s('pack.sos.card.anyway')}</button>
+                </div>
+              )}
+              <button type="button" className="sos-cta ecp-btn pk-b3 pk-b3--lapis" disabled={busy} onClick={() => guard('dl')}>
                 {s(busy ? 'pack.sos.loading' : 'pack.sos.card.download')}
               </button>
-              <button type="button" className="sos-cta sos-cta--ghost ecp-btn pk-b3 pk-b3--paper" disabled={busy} onClick={share}>{cardUi('share', lang)}</button>
+              <button type="button" className="sos-cta sos-cta--ghost ecp-btn pk-b3 pk-b3--paper" disabled={busy} onClick={() => guard('share')}>{cardUi('share', lang)}</button>
               {hasDraft && <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm ecp-btn ecp-btn--sm pk-b3 pk-b3--paper" onClick={resetFromDogId}>{s('pack.sos.card.reset')}</button>}
               <p className="ecp-note">{s('pack.sos.card.private')}</p>
             </>

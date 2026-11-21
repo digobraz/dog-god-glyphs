@@ -51,6 +51,8 @@ const CSS = `
   border-radius:${PACK_R.tile}px;min-width:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;}
 .sosn-dog > span:not(.sosn-av){flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;} /* písmo: meno */
 .sosn-av{width:40px;height:40px;border-radius:${PACK_R.pill}px;object-fit:cover;background:${T.tileBg};border:2px solid ${T.cardEdge};flex:none;}
+.sosn-av--none{display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.sosn-av--none img{width:68%;height:68%;object-fit:contain;display:block;opacity:.85;}
 .sosn-map{position:relative;width:100%;height:320px;border-radius:${PACK_R.tile}px;overflow:hidden;border:1px solid ${T.border};}
 .sosn-map .sosn-canvas{position:absolute;inset:0;cursor:crosshair;}
 .sosn-loc{position:absolute;left:${PACK_SPACE.sm}px;top:${PACK_SPACE.sm}px;z-index:800;}

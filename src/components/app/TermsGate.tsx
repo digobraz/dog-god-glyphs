@@ -11,6 +11,7 @@
 // pred týmto krokom alebo prišla nová verzia podmienok).
 import { clearCardDrafts } from '@/components/pack/dogCard/cardDraft';
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { getUserShared } from '@/lib/sharedFetch';
@@ -112,14 +113,18 @@ export function RulesSheet({ onDone }: { onDone: () => void }) {
   );
 }
 
-/** Strážca pre `/pack`: prihlásený člen bez súhlasu aktuálnej verzie dostane okno nad všetkým. */
+/** Strážca pre `/pack`: prihlásený člen bez súhlasu aktuálnej verzie dostane okno nad všetkým.
+ *  🔴 Výnimka: na SOS obrazovkách (`/pack/sos/*`) sa okno NEUKAZUJE (21. 11. 2026). Nový člen, ktorý hneď po vstupe vyhlásil
+ *  stratu psa, mal stránku straty zakrytú pravidlami. Núdza má prednosť; okno sa ukáže po odchode z SOS (`need` ostáva). */
 export function TermsGuard() {
   const [need, setNeed] = useState(false);
+  const { pathname } = useLocation();
   useEffect(() => {
     let off = false;
     void getUserShared().then(({ data }) => { if (!off && data.user && !termsOk(data.user)) setNeed(true); });
     return () => { off = true; };
   }, []);
+  if (/^\/pack\/sos(\/|$)/.test(pathname)) return null;
   return need ? <RulesSheet onDone={() => setNeed(false)} /> : null;
 }
 

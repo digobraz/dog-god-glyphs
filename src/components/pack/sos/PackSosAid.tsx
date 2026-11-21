@@ -94,8 +94,8 @@ const CSS = `
 .aid-nosig{padding:${S.md}px ${S.lg}px;border-radius:${PACK_R.card}px;border:2.5px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:${PERA};}
 .aid-nosig b{display:block;font-family:${HEAD};font-weight:400;font-size:${PACK_TEXT.h2}px;line-height:1.15;color:var(--p3d-ink);}
 .aid-nosig p{margin:${S.sm}px 0 0;font-size:${PACK_TEXT.lead}px;line-height:1.45;color:var(--p3d-ink);}
-/* rezerva pod obsahom: prilepené CTA nesmie zakryť spodný rad dlaždíc (360 × 640) */
-.aid-pad{flex:none;height:calc(56px + ${S.md}px * 2 + env(safe-area-inset-bottom));}
+/* rezerva pod obsahom: prilepené CTA nesmie dosadnúť na spodný rad dlaždíc (360 × 640); medzera 16 + gap stĺpca 16 */
+.aid-pad{flex:none;height:${S.lg}px;}
 .aid-missing{margin:0;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:2px solid ${T.sosRedDark};background:var(--p3d-paper-hi);font-size:${PACK_TEXT.body}px;font-weight:500;line-height:1.4;color:${T.sosRedDark};}
 /* dole prilepené CTA */
 .aid-dock{position:sticky;bottom:0;z-index:2;margin:auto -${S.md}px 0;padding:${S.md}px ${S.md}px calc(${S.md}px + env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent,var(--p3d-paper) 24%);}
