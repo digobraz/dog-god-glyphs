@@ -100,4 +100,6 @@ export const CLAIM: Record<string, Row> = {
  sos_fund: { sk: 'Zbierky, útulky a adopcie', en: 'Fundraisers, shelters and adoption', cs: 'Sbírky, útulky a adopce', deu: 'Spenden, Tierheime und Adoption', pol: 'Zbiórki, schroniska i adopcje' },
  sos_shelter: { sk: 'Útulky a adopcie', en: 'Shelters and adoption', cs: 'Útulky a adopce', deu: 'Tierheime und Adoption', pol: 'Schroniska i adopcje' },
  sos_abuse: { sk: 'Nahlás týranie', en: 'Report abuse', cs: 'Nahlas týrání', deu: 'Tierquälerei melden', pol: 'Zgłoś znęcanie' },
+ /* prihlásenie v mobilnom menu — „Už hráš?“ sedelo k starému „Začni hrať“ */
+ have_acc: { sk: 'Už máš účet?', en: 'Already have an account?', cs: 'Už máš účet?', deu: 'Schon ein Konto?', pol: 'Masz już konto?', ukr: 'Вже маєш акаунт?', esp: '¿Ya tienes cuenta?', fra: 'Déjà un compte ?', ita: 'Hai già un account?', prt: 'Já tens conta?', nld: 'Al een account?', tur: 'Hesabın var mı?', rus: 'Уже есть аккаунт?', ara: 'لديك حساب؟', chn: '已有账号？', jpn: 'アカウントをお持ちですか？', kor: '이미 계정이 있나요?', ind: 'पहले से खाता है?' },
 };

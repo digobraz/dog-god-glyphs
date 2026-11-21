@@ -1791,3 +1791,8 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .fmore.dense li{font-size:var(--t-label)}
 /* mobil: 7 riadkov SOS sa do výšky karty nezmestí — panel vyrastie nad aj pod kartu, obsah ostane v strede */
 @media(max-width:767px){.aw .fmore.dense{top:-32px;bottom:auto;min-height:calc(100% + 64px);padding:var(--s-md)}}
+/* mobilné menu CLAIM 2: odznaky obchodov pod CTA v jeho šírke, prihlásenie s kľúčom */
+.aw .mmenu .stores.off{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-sm);margin-top:var(--s-sm)}
+.aw .mmenu .stores.off .store{height:48px}
+.aw .mm-login.v2{display:flex;align-items:center;justify-content:center;gap:var(--s-sm);margin-top:var(--s-xs)}
+.aw .mm-login.v2 img{width:24px;height:24px}

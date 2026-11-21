@@ -686,7 +686,10 @@ export default function AppWeb() {
             <button className={`mm-cur${mmLang ? ' on' : ''}`} aria-expanded={mmLang} onClick={() => setMmLang(!mmLang)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.name}<i aria-hidden /></button>
             {mmLang && <div className="mm-lang">{WEB_LANGS.filter((x) => x.code !== lang).map((x) => <button key={x.code} onClick={() => { setLang(x.code); setMmLang(false); setMenu(false); }}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}</div>}
             <a className="pk-cta" href={START}>{c('start')}</a>
-            <a className="mm-login" href="/login">{c('have_acc')} <b>{c('login')}</b></a>
+            {/* CLAIM 2 (Matej 21. 11.: „v menu musí byť aj stiahnuť appku a prihlásenie na web“): odznaky obchodov
+                v šírke tlačidla + prihlásenie s kľúčom ako v hlavičke na PC */}
+            {V2 && <Stores soon={c('soon')} />}
+            <a className={`mm-login${V2 ? ' v2' : ''}`} href="/login">{V2 && <img src="/icons/sys/kluc.webp" alt="" />}{c('have_acc')} <b>{c('login')}</b></a>
           </div>
         )}
       </header>
