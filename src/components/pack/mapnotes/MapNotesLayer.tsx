@@ -334,7 +334,8 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
 
   const renderNote = (n: MapNote) => {
     const dataset = isDatasetNote(n);
-    const canVote = !!onVote && !dataset && !n.isMine;
+    // Značka nebezpečenstva sa potvrdzuje v detaile prípadu (danger_witness); priamy hlas server odmieta.
+    const canVote = !!onVote && !dataset && !n.isMine && !isDangerKind(n.kind);
     const canDelete = !!onDelete && !dataset && n.isMine;
     // Kreslí sa trasa → tá istá značka, len hluchá. Bublina sa nerenderuje vôbec; marker,
     // ktorý ju drží, by klik zožral aj so zavretým popupom.

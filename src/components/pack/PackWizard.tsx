@@ -295,7 +295,10 @@ export function PackWizard({ dogName, hasDog }: { dogName: string | null; hasDog
 
   if (!step || !consentDone || off) return null;
 
-  const body = t(hasDog || !step.textNoDog ? step.text : step.textNoDog, { dog: dogName || t('pack.wizard.myDog') });
+  // `body` ide do dangerouslySetInnerHTML (preklady nesú <b>) ⇒ meno psa z DB sa musí escapovať,
+  // inak by prvý preklad s `{dog}` spustil HTML z mena psa (bezpečnostná previerka 21. 11. 2026).
+  const escDog = (dogName || t('pack.wizard.myDog')).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+  const body = t(hasDog || !step.textNoDog ? step.text : step.textNoDog, { dog: escDog });
 
   if (step.anchor === 'welcome') {
     lastHole = null;

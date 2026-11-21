@@ -32,6 +32,7 @@ import { HandPlus, HandForward, HandStar, HandLink, HandHeart } from '../HandIco
 import { PackTopRow } from '../PackTopRow';
 import type { TripStory } from '../story/storyData';
 import { getConsent } from '@/lib/consent';
+import { safeHref } from '@/lib/safeHref';
 import { sizedUrl, heroPx } from '@/services/cloudinaryService';
 
 const T = PACK_THEME;
@@ -218,7 +219,8 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
      klik otvorí YouTube v novej karte. So súhlasom ide `youtube-nocookie`. */
   const playVideo = () => {
     if (getConsent()?.marketing) { setPlaying(true); return; }
-    window.open(story.attach.youtube, '_blank', 'noopener,noreferrer');
+    const yt = safeHref(story.attach.youtube);
+    if (yt) window.open(yt, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -275,15 +277,15 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
               {/* Kluc nesie INDEX, nie URL — tu istu fotku sa da do galerie nahrat dvakrat
                   a React by na dvoch rovnakych klucoch hlasil kolziu (zmerane 22. 9.). */}
               {story.photos.slice(1).map((src, i) => (
-                <button key={`${i}-${src}`} type="button" onClick={() => window.open(src, '_blank', 'noopener,noreferrer')}>
+                <button key={`${i}-${src}`} type="button" onClick={() => { const u = safeHref(src); if (u) window.open(u, '_blank', 'noopener,noreferrer'); }}>
                   <img src={sizedUrl(src, 600)} alt="" loading="lazy" />
                 </button>
               ))}
             </div>
           )}
 
-          {story.attach.link && (
-            <a className="psv-link" href={story.attach.link} target="_blank" rel="noopener noreferrer">
+          {safeHref(story.attach.link) && (
+            <a className="psv-link" href={safeHref(story.attach.link)} target="_blank" rel="noopener noreferrer">
               <HandLink size={14} />
               <b>{t('pack.trip.stories.authorLink')}</b>
               <span aria-hidden="true"><HandForward size={12} /></span>

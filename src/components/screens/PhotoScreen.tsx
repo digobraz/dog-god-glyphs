@@ -28,6 +28,9 @@ async function compressFile(file: File): Promise<{ url: string; blob: Blob }> {
     fileType: 'image/webp',
     initialQuality: 0.85,
     useWebWorker: true,
+    // Worker si knižnicu inak ťahá z cdn.jsdelivr.net — cudzí skript v appke (a vynútená CSP by ho zablokovala).
+    // Vlastná kópia z public/vendor/ (bezpečnostná previerka 21. 11. 2026); pri zmene verzie skopíruj nový súbor.
+    libURL: new URL('/vendor/browser-image-compression-2.0.2.js', window.location.href).href,
     exifOrientation: 1,
   });
   return { url: URL.createObjectURL(compressed), blob: compressed };
