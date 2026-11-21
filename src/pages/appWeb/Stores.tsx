@@ -11,9 +11,9 @@ export function Stores({ soon }: { soon?: string }) {
   const off = !!soon && STORE_IOS === '#' && STORE_PLAY === '#';
   if (off) return (
     <div className="stores off">
-      <span className="store"><AppleSvg /><span><small>Download on the</small><b>App Store</b></span></span>
-      <span className="store"><PlaySvg /><span><small>GET IT ON</small><b>Google Play</b></span></span>
-      <em>{soon}</em>
+      {/* „čoskoro“ sedí v odznaku namiesto „Download on the“, nie vedľa neho — stĺpec ostane v šírke tlačidla */}
+      <span className="store"><AppleSvg /><span><small>{soon}</small><b>App Store</b></span></span>
+      <span className="store"><PlaySvg /><span><small>{soon}</small><b>Google Play</b></span></span>
     </div>
   );
   return (

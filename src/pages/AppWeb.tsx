@@ -343,6 +343,8 @@ export default function AppWeb() {
      (vtedy V2 = true a staré vetvy preč). Texty `appWeb/claim.ts` prebíjajú všetky jazyky. */
   const V2 = useMemo(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('claim'), []);
   const c = (k: string) => (V2 && CLAIM[k] ? CLAIM[k][lang] ?? CLAIM[k].en : undefined) ?? X?.[k] ?? COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
+  /* horný riadok claimu: h1a + h1b (čínština a japončina bez medzery) */
+  const h2top = [c('h1a'), c('h1b')].filter(Boolean).join(lang === 'chn' || lang === 'jpn' ? '' : ' ');
   const loc = intlLocale(lang);
   const [langOpen, setLangOpen] = useState(false);
   useEffect(() => { if (!langOpen) return; const off = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest('.lang-wrap')) setLangOpen(false); }; document.addEventListener('pointerdown', off); return () => document.removeEventListener('pointerdown', off); }, [langOpen]);
@@ -690,22 +692,29 @@ export default function AppWeb() {
             <p className="eye">{c('e_life2')}</p>
             {/* DOMINANTA: tri riadky, čo najväčšie písmo — veľkosť z najdlhšieho riadka (Matej 6. 11.: „čo najväčší text
                 na dva riadky resp. aj na 3: play the · life with · your dog“). Zlaté slovo psa ostáva na krivo. */}
-            <h1 style={{ ['--hc' as string]: Math.max(wlen(c('h1a')), wlen(c('h1b')), (c('h1y') ? wlen(c('h1y')) + 1 : 0) + wlen(c('h1c')) * (V2 ? 1.18 : 1)) } as CSSProperties}>
+            <h1 style={{ ['--hc' as string]: Math.max(wlen(c('h1a')), wlen(c('h1b')), (c('h1y') ? wlen(c('h1y')) + 1 : 0) + wlen(c('h1c')) * (V2 ? 1.18 : 1), V2 ? wlen(h2top) : 0) } as CSSProperties}>
+              {V2 ? (<>
+                {/* CLAIM 2 na DVA riadky (Matej 21. 11.: „claim do 2 riadkov, 3 sú už veľa“) */}
+                <span className="l1">{h2top}</span>
+                <span className="l1"><span className="deco big">{c('h1c')}</span></span>
+              </>) : (<>
               <span className="l1">{c('h1a')}</span>
-              <span className="l1">{c('h1b')}</span>
-              <span className="l1">{c('h1y') && <>{c('h1y')} </>}<span className="deco big">{c('h1c')}</span></span>
+                <span className="l1">{c('h1b')}</span>
+                <span className="l1">{c('h1y') && <>{c('h1y')} </>}<span className="deco big">{c('h1c')}</span></span>
+              </>)}
             </h1>
             <p className="lead">{c('sub')}</p>
             {V2 ? (
               /* CTA + cieľ pod ním NA ŠÍRKU TLAČIDLA (Matej 21. 11.: „progresbar pod CTA a na šírku tlačidla, nech to vyzerá súmerne“);
                  odznaky obchodov sú neklikacie, kým appka nie je vonku */
-              <div className="hero-go v2">
+              <div className="hero-go v2" data-st={qs.get('st') || 'b'}>
                 <div className="goal-w">
                   <a className="pk-cta" href={START}>{c('start')}</a>
                   <div className="pk-progress"><div className="pk-progress__fill" style={{ width: `${Math.max(3, dogs / 10000)}%` }} /></div>
                   <p className="goal-t">{c('goal')} <b><Counter to={dogs} run={proofRun} /></b> / {(1000000).toLocaleString(loc)} {c('p1')}</p>
+                  {/* CTA, cieľ aj odznaky v JEDNEJ šírke (Matej 21. 11.); odznaky nesmú byť lapis, inak CTA zaniká */}
+                  <Stores soon={c('soon')} />
                 </div>
-                <Stores soon={c('soon')} />
               </div>
             ) : (<>
             <div className="hero-go">
