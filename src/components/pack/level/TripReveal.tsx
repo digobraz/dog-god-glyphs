@@ -443,7 +443,7 @@ export function TripReveal({
             tohto delenia by blok siahal od hlavičky po spodnú hranu, teda plocha, nie blok. */}
         <div className="rv-body">
          <div className="rv-blok">
-          <div className="rv-core">
+          <div className={`rv-core${whyOpen ? ' rv-core--why' : ''}`}>
             {tripPhoto
               ? <img className="rv-thumb" src={sizedUrl(tripPhoto, 240)} alt="" />
               : <div className="rv-thumb">🏞️</div>}

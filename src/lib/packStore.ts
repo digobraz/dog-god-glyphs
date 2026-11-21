@@ -800,11 +800,25 @@ async function processOverrideQueue(): Promise<void> {
   } finally { ovrProcessing = false; }
 }
 
+/**
+ * ── FOTKY, KTORÉ SA NEZMESTILI DO ÚLOŽISKA (Matej 21. 11. 2026: „fotky sa nenahrali, ktoré som
+ * tam dal! prečo?") ─ výlet „Ahoj/Banka" prišiel na server s `photos: []`. Plné localStorage
+ * v telefóne → poistka v PackMap uložila výlet bez fotiek (trasa je práca, fotky doplnok) — lenže
+ * fotky tým zanikli úplne, hoci ešte ležali v pamäti. Teraz ich poistka odloží SEM a nahrávanie
+ * ich zoberie odtiaľto; na server aj do úložiska potom idú už len krátke Cloudinary URL.
+ * ⚠️ Len v pamäti: kto appku zabije pred nahraním, o fotky príde (hláška to povie).
+ */
+const tripPhotoStash = new Map<string, string[]>();
+export function stashTripPhotos(slug: string, photos: string[]): void {
+  if (photos.length) tripPhotoStash.set(slug, photos);
+}
+
 /** Nahradí base64 fotky trasy `slug` Cloudinary URL-kami. Zapisuje priebežne (po každej fotke)
  *  do `trp-local-trails`, aby retry po výpadku siete neopakoval už hotové uploady. */
 async function uploadTrailPhotos(slug: string): Promise<string[]> {
   const trail = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).find((t) => t.id === slug);
-  const photos = [...(trail?.photos ?? [])];
+  const stashed = tripPhotoStash.get(slug);
+  const photos = [...(trail?.photos?.length ? trail.photos : stashed ?? [])];
   for (let i = 0; i < photos.length; i++) {
     if (!photos[i].startsWith('data:')) continue; // už URL (predchádzajúci beh / plánovaný trip bez fotky)
     const blob = takeUploadBlob(photos[i]) ?? dataUrlToBlob(photos[i]);
@@ -812,7 +826,9 @@ async function uploadTrailPhotos(slug: string): Promise<string[]> {
     photos[i] = secureUrl;
     const all = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []);
     writeJson(PACK_KEYS.localTrails, all.map((t) => (t.id === slug ? { ...t, photos } : t)));
+    if (stashed) tripPhotoStash.set(slug, photos);
   }
+  if (stashed) tripPhotoStash.delete(slug);
   return photos;
 }
 

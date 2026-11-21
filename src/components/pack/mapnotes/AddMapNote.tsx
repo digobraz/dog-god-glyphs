@@ -20,11 +20,12 @@
 // bolo obrátené: najprv spadol bod do stredu výrezu a typ sa vyberal až v paneli.
 // Rýchla cesta (dlhé podržanie) má poradie opačné a je to správne — tam začína
 // gesto na konkrétnom mieste, takže typ musí prísť po ňom.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import L from 'leaflet';
 import { Circle, Marker } from 'react-leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { MAP_SKIN, PALE, LAPIS, LAPIS_BTN_SHADOW, tintRGBA } from '@/components/pack/navGoldSkin';
+import { APP_NEW } from '@/lib/packFlags';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { GROUP_KINDS, NOTE_GROUPS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
@@ -452,6 +453,16 @@ export function AddMapNotePanel({
   const [error, setError] = useState<string | null>(null);
   const areaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  // ── POSUVNÍK ROZSAHU NA DOTYK (Matej 21. 11. 2026: „slider dobre nereaguje a posúva sa celý
+  // obsah") ─ natívny range na iOS chytí len ťuk presne do palca, inak gesto zoberie skrol panela.
+  // Prst kdekoľvek na dráhe teda nastaví hodnotu sám a ťah ju vedie; myš ostáva natívna.
+  const radiusFromPointer = (e: ReactPointerEvent<HTMLInputElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const f = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    const v = rule.min + Math.round((f * (rule.max - rule.min)) / rule.step) * rule.step;
+    onRadius(Math.min(rule.max, Math.max(rule.min, v)));
+  };
+
   // Na dotyku sa NEfokusuje samo: klávesnica by vyskočila cez pol obrazovky
   // a zakryla presne tú mapu, kvôli ktorej je panel nízky. Na PC fokus vadiť
   // nemôže, tam sa dá rovno písať.
@@ -523,7 +534,7 @@ export function AddMapNotePanel({
       <div className="mna-head">
         {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
         <button type="button" className="mna-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}><BackIcon /></button>
-        <span className="mna-title" style={{ color: GROUP_TINT[group] }}>
+        <span className="mna-title" style={{ color: GROUP_TINT[group], ['--mn-tint' as string]: GROUP_TINT[group] }}>
           {t(`pack.mapNotes.group.${group}`)}
           {subKinds.length > 1 && t(`pack.mapNotes.kind.${kind}`) !== t(`pack.mapNotes.group.${group}`) && <b className="mna-title-kind">{t(`pack.mapNotes.kind.${kind}`)}</b>}
         </span>
@@ -656,6 +667,14 @@ export function AddMapNotePanel({
               step={rule.step}
               value={radiusM}
               onChange={(e) => onRadius(Number(e.target.value))}
+              onPointerDown={(e) => {
+                if (e.pointerType !== 'touch') return;
+                e.currentTarget.setPointerCapture(e.pointerId);
+                radiusFromPointer(e);
+              }}
+              onPointerMove={(e) => {
+                if (e.pointerType === 'touch' && e.currentTarget.hasPointerCapture(e.pointerId)) radiusFromPointer(e);
+              }}
               style={{ ['--mn-tint' as string]: GROUP_TINT[group] }}
               aria-label={t('pack.mapNotes.radius.label')}
             />
@@ -802,7 +821,7 @@ export const ADD_NOTE_CSS = `
    názvom by jej pretlačil výšku aj skrol. */
 .mna-sheet > .mna-head{flex:0 0 auto;}
 .mna-sheet > .mna-actions{flex:0 0 auto;margin-top:10px;}
-.mna-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding-top:8px;}
+.mna-scroll{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;display:flex;flex-direction:column;gap:10px;padding-top:8px;}
 
 .mna-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;}
 .mna-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;}
@@ -860,7 +879,7 @@ export const ADD_NOTE_CSS = `
 .mna-radius-switch .mna-opt.on{color:${GOLD};border-color:${GOLD};background:rgba(201,154,63,0.12);}
 .mna-radius-val{margin-left:auto;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;color:${T.onDark};}
 .mna-radius-note{margin:6px 0 0;font-family:${FONT_UI};font-size:10px;line-height:1.4;color:${T.onDarkDim};}
-.mna-range{width:100%;margin:9px 0 0;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;}
+.mna-range{width:100%;margin:9px 0 0;touch-action:none;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;}
 .mna-range:focus{outline:none;}
 .mna-range::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:rgba(245,240,228,0.16);}
 .mna-range::-moz-range-track{height:4px;border-radius:999px;background:rgba(245,240,228,0.16);}
@@ -1030,5 +1049,68 @@ ${MAP_SKIN !== 'pale' ? '' : `
   .mna-hint{color:${PALE.dim};}
   .mnq-title{color:${PALE.ink};}
 `}
-
+${!APP_NEW ? '' : `
+/* ══ ŠAT PAPYRUS 3D (Matej 21. 11. 2026: „panel je v starej grafike kameňa ako aj v starom
+   brande, jedine CTA je nové = oprav to nech to ladí s novým dizajnom") ═══════════════════════
+   Ten istý recept ako dok kreslenia v GeometryPicker (P3D_GEO_CSS): papierová doska s tmavým
+   obrysom, pole pk-p3d-input, prepínač pk-p3d-sw, CTA = TLAČIDLO 3D lapis. Mramor/kameň zo
+   starého goldPlateCSS sa tu prekryje celou výplňou (background je skratka, berie aj obrázky). */
+/* Tiene šatu ako premenné na doske (vzor --b3-sh v GeometryPicker): jeden zdroj pre celý panel. */
+html.papyrus3d .mna-sheet{--mna-sh-cta:inset 0 2px 0 rgba(255,255,255,.28),inset 0 -4px 0 rgba(0,0,0,.15),0 4px 0 var(--b3-p),0 8px 10px rgba(0,0,0,.28);--mna-sh-focus:var(--p3d-inset),0 0 0 3px color-mix(in srgb,${LAPIS.edge} 40%,transparent);--mna-sh-track:inset 0 0 0 2px var(--p3d-ink),inset 0 3px 3px rgba(42,22,8,.25);--mna-sh-thumb:inset 0 2px 0 rgba(255,255,255,.45),0 3px 0 var(--p3d-ink);--mna-sh-lapis:inset 0 2px 0 rgba(255,255,255,.28),0 3px 0 #060F2C;--mna-sh-chipon:inset 0 2px 4px rgba(42,22,8,.22);--mna-sh-trackff:inset 0 0 0 2px var(--p3d-ink);--mna-sh-chip:0 3px 0 var(--p3d-gold-solid);--mna-sh-dock:0 -8px 24px var(--p3d-sh);--mna-sh-ink:0 3px 0 var(--p3d-ink);--mna-sh-down:0 1px 0 var(--b3-p);--mna-sh-off:0 4px 0 var(--b3-p);}
+html.papyrus3d .mna-sheet.trp-dockpanel{background:radial-gradient(120% 80% at 50% 0%,var(--p3d-paper-hi),var(--p3d-paper));background-blend-mode:normal;
+  border:0;border-top:2.5px solid var(--p3d-ink);border-image:none;border-radius:16px 16px 0 0;box-shadow:var(--mna-sh-dock);touch-action:pan-y;}
+@media (min-width:1024px){
+  html.papyrus3d .mna-sheet.trp-dockpanel{border:2.5px solid var(--p3d-ink);border-radius:16px;box-shadow:var(--p3d-pera);}
+}
+html.papyrus3d .mna-title{font-family:'LT Museum',serif;font-weight:400;font-size:20px;line-height:1.15;letter-spacing:0;text-transform:none;color:var(--p3d-ink) !important;} /* písmo: nadpis */
+html.papyrus3d .mna-title-kind{font-weight:400;opacity:1;color:var(--mn-tint);}
+html.papyrus3d .mna-scroll{gap:8px;padding-top:8px;}
+/* Hrubší šat je o pár riadkov vyšší — najvyšší stav (kliešť + okruh) by pri strope 420 px skroloval,
+   čo lock z 22. 8. zakazuje. Rásť je menšie zlo než rezať (viď 33vh vyššie). */
+@media (max-width:${DOCK_MOBILE_MAX}px){html.papyrus3d .mna-sheet{max-height:min(82vh,500px);}}
+/* Druhy = papierové pilulky 3D; vybraná je stlačená a nesie tint skupiny (inline výplň). */
+html.papyrus3d .mna-sheet .mnk-grid--row{gap:8px;margin-top:0;}
+/* Pás pilulek skroluje vodorovne a orezal by im spodnú peru (3 px) aj stlačenie — rezerva dole. */
+html.papyrus3d .mna-sheet .mnk-grid--rail{padding:4px 4px 8px;}
+html.papyrus3d .mna-sheet .mnk-tile{gap:8px;padding:4px 12px 4px 4px;border:2.5px solid var(--p3d-ink) !important;border-radius:999px;background:var(--p3d-card);box-shadow:var(--mna-sh-chip);transform:none;}
+html.papyrus3d .mna-sheet .mnk-tile:hover{transform:none;}
+html.papyrus3d .mna-sheet .mnk-tile.on{transform:translateY(3px);box-shadow:var(--mna-sh-chipon);}
+html.papyrus3d .mna-sheet .mnk-tile .kg-sticker{width:28px;height:28px;}
+html.papyrus3d .mna-sheet .mnk-tile em{font-family:${FONT_UI};font-weight:600;font-size:14px;color:var(--p3d-ink);}
+html.papyrus3d .mna-body{margin-top:0;min-height:56px;padding:8px 16px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);color:var(--p3d-ink);}
+html.papyrus3d .mna-body:focus{border-color:var(--p3d-ink);box-shadow:var(--mna-sh-focus);}
+html.papyrus3d .mna-body::placeholder{color:color-mix(in srgb,var(--p3d-ink) 50%,var(--p3d-paper));opacity:1;}
+/* Prepínače (bod/okruh, zadarmo/platené, výskyt/choroba) = žľab pk-p3d-sw, výber lapis. */
+html.papyrus3d .mna-paid,html.papyrus3d .mna-radius-switch,html.papyrus3d .mna-tick-switch{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;margin-top:0;padding:4px;border-radius:16px;border:2.5px solid var(--p3d-ink);background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
+html.papyrus3d .mna-radius-switch{flex:1 1 auto;}
+html.papyrus3d .mna-opt,html.papyrus3d .mna-radius-switch .mna-opt,html.papyrus3d .mna-tick-switch .mna-opt{min-height:36px;padding:4px 8px;border:2.5px solid transparent;border-radius:12px;background:none;color:var(--p3d-ink);font-family:${FONT_UI};font-weight:600;font-size:14px;letter-spacing:0;}
+html.papyrus3d .mna-opt.on,html.papyrus3d .mna-radius-switch .mna-opt.on{color:#EFD79A;background:linear-gradient(180deg,color-mix(in srgb,#16307A 72%,white),#0A1A4A);border-color:#EFD79A;box-shadow:var(--mna-sh-lapis);}
+html.papyrus3d .mna-opt--sight.on{color:#fff;background:${TICK_ORANGE};border-color:var(--p3d-ink);box-shadow:var(--mna-sh-ink);}
+html.papyrus3d .mna-opt--ill.on{color:#fff;background:${HAZARD_RED};border-color:var(--p3d-ink);box-shadow:var(--mna-sh-ink);}
+html.papyrus3d .mna-tick{margin-top:0;gap:8px;}
+html.papyrus3d .mna-select{min-height:48px;padding:8px 12px;border:2.5px solid var(--p3d-ink);border-radius:16px;background:var(--p3d-paper-hi);color:var(--p3d-ink);font-size:14px;box-shadow:var(--p3d-inset);}
+/* Rozsah: štítok + hodnota, pod nimi hrubá dráha a veľký palec (prst ho trafí). */
+html.papyrus3d .mna-radius{margin-top:0;}
+html.papyrus3d .mna-radius-head{gap:12px;}
+html.papyrus3d .mna-radius-label{font-size:12px;font-weight:600;color:color-mix(in srgb,var(--p3d-ink) 62%,var(--p3d-paper));}
+html.papyrus3d .mna-radius-val{font-size:16px;color:var(--p3d-ink);}
+html.papyrus3d .mna-range{height:36px;margin:0;}
+html.papyrus3d .mna-range::-webkit-slider-runnable-track{height:12px;border-radius:999px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--mna-sh-track);}
+html.papyrus3d .mna-range::-moz-range-track{height:12px;border-radius:999px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--mna-sh-trackff);}
+html.papyrus3d .mna-range::-webkit-slider-thumb{width:32px;height:32px;margin-top:-10px;border:3px solid var(--p3d-ink);background:var(--mn-tint,var(--p3d-gold));box-shadow:var(--mna-sh-thumb);}
+html.papyrus3d .mna-range::-moz-range-thumb{width:28px;height:28px;border:3px solid var(--p3d-ink);background:var(--mn-tint,var(--p3d-gold));box-shadow:var(--mna-sh-ink);}
+html.papyrus3d .mna-radius-note,html.papyrus3d .mna-sheet .mna-radius-note{margin:4px 0 0;font-size:12px;color:color-mix(in srgb,var(--p3d-ink) 62%,var(--p3d-paper));}
+html.papyrus3d .mna-pinned{color:color-mix(in srgb,var(--p3d-ink) 62%,var(--p3d-paper));}
+html.papyrus3d .mna-actions{gap:12px;margin-top:12px;}
+html.papyrus3d .mna-hint{font-size:12px;color:color-mix(in srgb,var(--p3d-ink) 62%,var(--p3d-paper));}
+html.papyrus3d .mna-hint--ok{color:${GROUP_TINT.comment};}
+html.papyrus3d .mna-hint--ok i{width:20px;height:20px;font-size:12px;color:#fff;border:2px solid var(--p3d-ink);box-sizing:border-box;}
+html.papyrus3d .mna-submit.btn-gold{--b3-a:color-mix(in srgb,${LAPIS.edge} 72%,white);--b3-b:${LAPIS.deep};--b3-p:color-mix(in srgb,${LAPIS.deep} 60%,black);
+  box-sizing:border-box;min-height:56px;padding:0 16px;border:2.5px solid ${LAPIS.ink};border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:${LAPIS.ink};
+  box-shadow:var(--mna-sh-cta);
+  font-family:'LT Museum',serif;font-weight:400;font-size:20px;letter-spacing:0;text-transform:none;} /* písmo: cta */
+html.papyrus3d .mna-submit.btn-gold:hover:not(:disabled){background:linear-gradient(180deg,var(--b3-a),var(--b3-b));}
+html.papyrus3d .mna-submit.btn-gold:active:not(:disabled){transform:translateY(3px);box-shadow:var(--mna-sh-down);}
+html.papyrus3d .mna-submit.btn-gold:disabled{opacity:.55;box-shadow:var(--mna-sh-off);}
+`}
 `;

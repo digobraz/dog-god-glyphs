@@ -133,7 +133,7 @@ import {
   type WalkedInput, type WalkReward, type Companion,
 } from '@/components/pack/packCommunityUI';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
-import { deletePackTrip, attributeDogTrips, setDogTripCrew, clearDogTrip, claimJourney, readMyClaims, translateTripDesc, readTrailOverrides, saveTrailOverride } from '@/lib/packStore';
+import { deletePackTrip, attributeDogTrips, setDogTripCrew, clearDogTrip, claimJourney, readMyClaims, translateTripDesc, readTrailOverrides, saveTrailOverride, stashTripPhotos } from '@/lib/packStore';
 import { tagWalked, crewHumanIds, inviteWalked, crewInviteIds } from '@/lib/packHumans';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { upsertMyTrip, removeMyTrip, ensureMyTrip } from '@/components/pack/triplist/triplist';
@@ -4050,6 +4050,10 @@ export default function PackMap() {
       setReveal(null);
       window.setTimeout(() => openDemoReveal(m), 50);
     };
+    // DEV náhľad panela značky bez klikania do mapy: `__noteDemo('warning', 'wildlife')`.
+    (window as unknown as { __noteDemo?: (g: NoteGroup, k?: NoteKind) => void }).__noteDemo = (g, k) => {
+      setNoteDraft({ lat: 48.6, lon: 17.9, group: g, kind: k ?? GROUP_KINDS[g][0], disease: null, radiusM: defaultRadius(k ?? GROUP_KINDS[g][0]), pinnedSlug: null });
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const { toast } = useToast();
@@ -6217,6 +6221,9 @@ export default function PackMap() {
       let saved = writeLocalTrails(next);
       let photosDropped = false;
       if (!saved && newTrail.photos.length > 0) {
+        // Fotky sa odložia v pamäti SKÔR, než zápis spustí nahrávanie (writeLocalTrails →
+        // queueLocalTripUpload) — inak by výlet odišiel na server s `photos: []` (21. 11. 2026).
+        stashTripPhotos(tid, newTrail.photos);
         next = [{ ...newTrail, photos: [] }, ...localTrails];
         saved = writeLocalTrails(next);
         photosDropped = saved;
@@ -6225,7 +6232,9 @@ export default function PackMap() {
         reportAddError(t('pack.map.errorPhotosStorage'));
         return false;
       }
-      reportAddError(photosDropped ? t('pack.map.errorPhotosDropped') : '');
+      // Fotky sa nahrajú z pamäte (stashTripPhotos) — výlet ich na serveri mať bude, hláška by klamala.
+      void photosDropped;
+      reportAddError('');
       setLocalTrails(next);
       translateLocalTrailDesc(tid, () => setLocalTrails(readLocalTrails()));
       translateLocalTrailName(tid, () => setLocalTrails(readLocalTrails()));

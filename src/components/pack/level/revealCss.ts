@@ -521,6 +521,21 @@ html.papyrus3d .rv-btn-gold{--b3-a:color-mix(in srgb,${LAPIS.edge} 72%,white);--
 html.papyrus3d .rv-btn-gold:hover,html.papyrus3d .rv-btn-ghost:hover{background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);border-color:var(--b3-l);}
 html.papyrus3d .rv-btn-gold:active,html.papyrus3d .rv-btn-ghost:active{transform:translateY(3px);box-shadow:0 1px 0 var(--b3-p);}
 html.papyrus3d .rv-cta{gap:12px;}
+/* ── CELÁ OBRAZOVKA V OKNE (Matej 21. 11. 2026: „po zápise výletu nie je obrazovka vo viewporte") ──
+   Hlavička stála na top:14px bez výrezu telefónu (lezie pod hodiny) a telo na pevných 212 px,
+   takže po rozbalení „Za čo" vyrástla karta o šesť riadkov a horná časť odišla mimo okna.
+   Teraz je obrazovka STĹPEC: hlavička · karta · nič navyše. Karta sa zmenší na rozpise bodov
+   (ten jediný skroluje vnútri), fotka pri otvorenom rozpise ustúpi a CTA ostáva vždy vidieť. */
+html.papyrus3d .rv-shell{display:flex;flex-direction:column;gap:12px;box-sizing:border-box;
+  padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(12px + env(safe-area-inset-bottom,0px));}
+html.papyrus3d .rv-hdr{position:relative;left:auto;right:auto;top:auto;flex:none;}
+html.papyrus3d .rv-body{position:relative;left:auto;right:auto;top:auto;bottom:auto;flex:1 1 auto;min-height:0;padding:0 0 8px;}
+html.papyrus3d .rv-blok{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;}
+html.papyrus3d .rv-core{flex:0 1 auto;min-height:0;}
+html.papyrus3d .rv-core > *{flex-shrink:0;}
+html.papyrus3d .rv-core > .rv-whylist{flex:0 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;}
+html.papyrus3d .rv-core--why .rv-thumb{display:none;}
+html.papyrus3d .rv-cta{flex:none;}
 @media (prefers-reduced-motion:reduce){
   html.papyrus3d .rv-why{opacity:1 !important;transform:none !important;}
   html.papyrus3d .rv-seal{animation:none;}
