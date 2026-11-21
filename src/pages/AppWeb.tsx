@@ -333,9 +333,8 @@ function LivePlanet({ v2 }: { v2?: { eye: string; cta: string; soon: string } })
         {near && <Suspense fallback={null}><GodsGridLab embedded paused={!vis} planetAnywhere /></Suspense>}
         {/* odkazy do obchodov sa presťahovali z bloku POTREBUJEME ŤA sem, vľavo dole (Matej 6. 11.) */}
         {v2 ? (<>
-          {/* CLAIM 2 (nákres, voľba „pocita“): niť „počíta sa“ hore, dole to isté CTA + odznaky ako v hero */}
-          <p className="eye planet-eye">{v2.eye}</p>
-          <div className="planet-go"><div className="goal-w"><a className="pk-cta" href={START}>{v2.cta}</a><Stores soon={v2.soon} /></div></div>
+          {/* CLAIM 2 (nákres, voľba „pocita“): štítok „počíta sa“ nad tým istým CTA + odznaky ako v hero */}
+          <div className="planet-go"><div className="goal-w"><p className="eye planet-eye">{v2.eye}</p><a className="pk-cta" href={START}>{v2.cta}</a><Stores soon={v2.soon} /></div></div>
         </>) : <div className="planet-stores"><Stores /></div>}
       </section>
     </div>
