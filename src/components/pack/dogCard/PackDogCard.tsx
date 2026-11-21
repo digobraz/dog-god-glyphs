@@ -9,6 +9,7 @@ import { readLatest, hasValue, type LatestValue } from '@/lib/dogEvents';
 import { FLOW_SCREENS } from '@/components/pack/dogid/flowData.generated';
 import { blobToDataUrl } from '@/lib/sheetPdf';
 import { cardDraftKey } from './cardDraft';
+import { bigGet, bigSet } from '@/lib/bigStore';
 import { fetchCardData, type DogRow } from './cardData';
 import { cardCacheKey, cardPhoto, storedUserId, withTimeout } from '@/components/pack/sos/sosLocal';
 import { useLang, useT } from '@/i18n/LanguageContext';
@@ -62,7 +63,8 @@ html.papyrus3d .ecp-link{color:${LAPIS.edge};text-decoration:underline;}
 `;
 
 // Do konceptu ide LEN to, čo človek zmenil: napísané políčka a (ak ju hýbal) poloha fotky. Vlastná fotka (`src`) len keď ju sám vybral.
-type Draft = { edited: Partial<CardData>; lang?: string; photo?: { x: number; y: number; zoom: number; src?: string } };
+// `photo.big` = vlastná fotka leží v IndexedDB pod `<kľúč>.src` (od 21. 11. 2026; data URL v localStorage zapĺňalo telefón).
+type Draft = { edited: Partial<CardData>; lang?: string; photo?: { x: number; y: number; zoom: number; src?: string; big?: boolean } };
 
 const EMPTY: CardData = { contacts: [{ name: '', phone: '' }], addr: '', note: '' };
 /** Koncept zo staršej verzie kartičky mal `contact`, `phone`, `needs`. Človek o napísané neprichádza. */
@@ -88,7 +90,13 @@ function readDraft(key: string): Draft | null {
 }
 /** `false` = úložisko je plné, koncept sa nezapísal. */
 function saveDraft(key: string, d: Draft): boolean {
-  try { localStorage.setItem(key, JSON.stringify(d)); return true; } catch { return false; }
+  let out = d;
+  if (d.photo?.src) {
+    const { src, ...rest } = d.photo;
+    void bigSet(`${key}.src`, src);
+    out = { ...d, photo: { ...rest, big: true } };
+  }
+  try { localStorage.setItem(key, JSON.stringify(out)); return true; } catch { return false; }
 }
 
 /** DOG ID má záložný kontakt v jednom texte („Janka 0900 000 000"): telefón z neho vyberie, zvyšok je meno. */
@@ -168,7 +176,7 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
         // Čo človek napísal, ostáva (aj prázdne, ak to zámerne zmazal). Zvyšok si doberá z DOG ID.
         edited.current = migrateEdited(draft?.edited as Record<string, unknown> | undefined, fresh);
         photoTouched.current = !!draft?.photo;
-        ownPhoto.current = !!draft?.photo?.src;
+        ownPhoto.current = !!(draft?.photo?.src || draft?.photo?.big);
         setDog(d);
         setHasDraft(!!draft);
         setCardLang(cardLangOf(draft?.lang ?? lang));
@@ -176,8 +184,18 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
         const keep = draft?.photo;
         setPhoto((cur) => (keep?.src ? { src: keep.src, x: keep.x, y: keep.y, zoom: keep.zoom }
           : { src: cur.src, x: keep?.x ?? 50, y: keep?.y ?? 50, zoom: keep?.zoom ?? 1 }));
+        if (keep?.big && !keep.src) {
+          const draftKey = keyRef.current;
+          void bigGet<string>(`${draftKey}.src`).then((src) => {
+            if (!alive) return;
+            if (src) { setPhoto((cur) => ({ ...cur, src })); return; }
+            // Vlastná fotka sa nenašla (súkromné okno): kartička dostane fotku psa zo servera.
+            ownPhoto.current = false;
+            void cardPhoto(uid, id, d.cloudinary_main_url).then((p) => { if (alive && p && !ownPhoto.current) setPhoto((cur) => ({ ...cur, src: p })); });
+          });
+        }
         setStatus('ok');
-        return { keepSrc: !!keep?.src };
+        return { keepSrc: !!(keep?.src || keep?.big) };
       };
       // 2) Lokálna kópia naposledy načítaných údajov sa ukáže HNEĎ (pomalá sieť nesmie držať kartičku na „Načítavam“ ani na chybe).
       let shownLocal = false;

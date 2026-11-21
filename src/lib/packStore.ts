@@ -38,7 +38,8 @@ import { trackPack } from './packAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadPackTripPhoto } from '@/services/cloudinaryService';
 import { takeUploadBlob } from '@/components/pack/addtrip/photoOptimize';
-import { track } from '@/lib/analytics';
+import { withStorageRoom } from './storageGuard';
+import { bigGet, bigSet, bigDel } from './bigStore';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 
 // ── úložisko ────────────────────────────────────────────────────────────────
@@ -99,50 +100,12 @@ export function readJson<T>(key: string, fallback: T): T {
 }
 export function writeJson(key: string, val: unknown): boolean {
   const raw = JSON.stringify(val);
-  return withStorageRoom(() => { packStorage.setItem(key, raw); });
+  return withStorageRoom(() => { packStorage.setItem(key, raw); }, packStorage);
 }
 
-/**
- * ── PLNÁ SCHRÁNKA SA UPRACE SAMA (Matej 21. 11. 2026: „nepodarilo sa uložiť, úložisko je plné…
- * čo to má znamenať?") ─ localStorage v iPhone má ~5 MB a appka doň okrem rozpracovanej práce
- * odkladá aj KÓPIE zo servera (zvitky, feed, kartičky psov s fotkou). Keď sa zaplní, padne zápis
- * výletu aj jeho úprava. Pri páde sa preto zahodia kópie, ktoré si appka vie stiahnuť znova —
- * v poradí od najmenej potrebnej — a zápis sa zopakuje. Rozpracované veci, fronta synchronizácie
- * ani prihlásenie sa NEMAŽÚ. Zároveň sa zapíše, čo bolo najväčšie (`trp-storage-report`).
- */
-const REFETCHABLE: ((k: string) => boolean)[] = [
-  (k) => k === 'vault-list-v1',
-  (k) => k === 'feed-posts-v1' || k === 'feed-nearby-v1',
-  (k) => k.startsWith('dogypt.ecard.cache.'),
-  (k) => k.startsWith('dogypt.ecard.photo.'),
-];
-export const STORAGE_REPORT_KEY = 'trp-storage-report';
-function reportStorage(): void {
-  try {
-    const rows: [string, number][] = [];
-    for (let i = 0; i < packStorage.length; i++) {
-      const k = packStorage.key(i);
-      if (k) rows.push([k, (packStorage.getItem(k) ?? '').length]);
-    }
-    rows.sort((a, b) => b[1] - a[1]);
-    const total = rows.reduce((n, r) => n + r[1], 0);
-    const top = rows.slice(0, 10).map(([k, n]) => `${k}:${Math.round(n / 1024)}k`);
-    packStorage.setItem(STORAGE_REPORT_KEY, JSON.stringify({ at: new Date().toISOString(), totalK: Math.round(total / 1024), top }));
-    track('storage_full', { totalK: Math.round(total / 1024), top: top.join(' ') });
-  } catch { /* hlásenie je len pomôcka */ }
-}
-export function withStorageRoom(write: () => void): boolean {
-  try { write(); return true; } catch { /* plné — skúsime upratať */ }
-  reportStorage();
-  for (const drop of REFETCHABLE) {
-    const keys: string[] = [];
-    for (let i = 0; i < packStorage.length; i++) { const k = packStorage.key(i); if (k && drop(k)) keys.push(k); }
-    if (!keys.length) continue;
-    keys.forEach((k) => { try { packStorage.removeItem(k); } catch { /* */ } });
-    try { write(); return true; } catch { /* ešte stále plné */ }
-  }
-  return false;
-}
+// Plná schránka sa uprace sama — `withStorageRoom` a celé odôvodnenie žije v `storageGuard.ts`
+// (od 21. 11. 2026 stráži KAŽDÝ zápis do localStorage v appke, nielen tento modul).
+export { withStorageRoom, STORAGE_REPORT_KEY } from './storageGuard';
 /** Stav členmi nahodeného výletu v moderácii (`pack_trips.status`) + či je môj. */
 export interface LocalTrailMeta { status: 'pending' | 'approved' | 'rejected' | string; mine: boolean }
 
@@ -721,7 +684,14 @@ if (typeof window !== 'undefined' && Object.keys(readTrailOverrides()).length) v
  *  `false` = kvóta úložiska (rovnaký kontrakt ako `updateLocalTrail`). */
 export function saveTrailOverride(id: string, patch: Partial<HeroTrail>): boolean {
   const all = readTrailOverrides();
-  if (!writeJson(PACK_KEYS.trailOverrides, { ...all, [id]: { ...(all[id] ?? {}), ...patch } })) return false;
+  if (!writeJson(PACK_KEYS.trailOverrides, { ...all, [id]: { ...(all[id] ?? {}), ...patch } })) {
+    // Plné aj po upratani: úprava sa uloží bez nových base64 fotiek, tie počkajú v IndexedDB
+    // a fronta ich nahrá (ten istý postup ako `updateLocalTrail`, 21. 11. 2026).
+    if (!patch.photos?.some((u) => u.startsWith('data:'))) return false;
+    const light = { ...patch, photos: patch.photos.filter((u) => !u.startsWith('data:')) };
+    if (!writeJson(PACK_KEYS.trailOverrides, { ...all, [id]: { ...(all[id] ?? {}), ...light } })) return false;
+    stashTripPhotos(OVR_SLUG_PREFIX + id, patch.photos);
+  }
   void applyToDataset();
   writeOvrPending([...readOvrPending(), id]);
   void processOverrideQueue();
@@ -810,11 +780,19 @@ async function processOverrideQueue(): Promise<void> {
       const ov = readTrailOverrides()[id];
       if (ov) {
         try {
-          const photos = [...(ov.photos ?? [])];
+          const sk = OVR_SLUG_PREFIX + id;
+          const stashed = tripPhotoStash.get(sk) ?? (await bigGet<string[]>(stashKey(sk))) ?? undefined;
+          const photos = [...(stashed ?? ov.photos ?? [])];
           for (let i = 0; i < photos.length; i++) {
             if (!photos[i].startsWith('data:')) continue;
-            const { secureUrl } = await uploadPackTripPhoto(takeUploadBlob(photos[i]) ?? dataUrlToBlob(photos[i]), OVR_SLUG_PREFIX + id, i);
+            const { secureUrl } = await uploadPackTripPhoto(takeUploadBlob(photos[i]) ?? dataUrlToBlob(photos[i]), sk, i);
             photos[i] = secureUrl;
+            const cur = readTrailOverrides();
+            writeJson(PACK_KEYS.trailOverrides, { ...cur, [id]: { ...cur[id], photos } });
+            if (stashed) stashTripPhotos(sk, photos);
+          }
+          if (stashed) {
+            tripPhotoStash.delete(sk); void bigDel(stashKey(sk));
             const cur = readTrailOverrides();
             writeJson(PACK_KEYS.trailOverrides, { ...cur, [id]: { ...cur[id], photos } });
           }
@@ -849,18 +827,22 @@ async function processOverrideQueue(): Promise<void> {
  * v telefóne → poistka v PackMap uložila výlet bez fotiek (trasa je práca, fotky doplnok) — lenže
  * fotky tým zanikli úplne, hoci ešte ležali v pamäti. Teraz ich poistka odloží SEM a nahrávanie
  * ich zoberie odtiaľto; na server aj do úložiska potom idú už len krátke Cloudinary URL.
- * ⚠️ Len v pamäti: kto appku zabije pred nahraním, o fotky príde (hláška to povie).
+ * Od 21. 11. 2026 ležia aj v IndexedDB (`bigStore`), takže prežijú aj zabitie appky: fronta
+ * nahrávania ich pri ďalšom štarte nájde a nahrá.
  */
 const tripPhotoStash = new Map<string, string[]>();
+const stashKey = (slug: string) => `trip-photos.${slug}`;
 export function stashTripPhotos(slug: string, photos: string[]): void {
-  if (photos.length) tripPhotoStash.set(slug, photos);
+  if (!photos.length) return;
+  tripPhotoStash.set(slug, photos);
+  void bigSet(stashKey(slug), photos);
 }
 
 /** Nahradí base64 fotky trasy `slug` Cloudinary URL-kami. Zapisuje priebežne (po každej fotke)
  *  do `trp-local-trails`, aby retry po výpadku siete neopakoval už hotové uploady. */
 async function uploadTrailPhotos(slug: string): Promise<string[]> {
   const trail = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).find((t) => t.id === slug);
-  const stashed = tripPhotoStash.get(slug);
+  const stashed = tripPhotoStash.get(slug) ?? (await bigGet<string[]>(stashKey(slug))) ?? undefined;
   const photos = [...(stashed ?? trail?.photos ?? [])];
   for (let i = 0; i < photos.length; i++) {
     if (!photos[i].startsWith('data:')) continue; // už URL (predchádzajúci beh / plánovaný trip bez fotky)
@@ -869,9 +851,9 @@ async function uploadTrailPhotos(slug: string): Promise<string[]> {
     photos[i] = secureUrl;
     const all = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []);
     writeJson(PACK_KEYS.localTrails, all.map((t) => (t.id === slug ? { ...t, photos } : t)));
-    if (stashed) tripPhotoStash.set(slug, photos);
+    if (stashed) stashTripPhotos(slug, photos);
   }
-  if (stashed) tripPhotoStash.delete(slug);
+  if (stashed) { tripPhotoStash.delete(slug); void bigDel(stashKey(slug)); }
   return photos;
 }
 

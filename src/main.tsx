@@ -1,3 +1,5 @@
+// Stráž plného localStorage — PRVÝ import, nech stojí pred zápisom ktoréhokoľvek modulu (21. 11. 2026).
+import './lib/storageGuardInstall';
 import { zapniPapyrus3d } from './lib/papyrus3d';
 import { APP_NEW } from './lib/packFlags';
 import { createRoot } from "react-dom/client";

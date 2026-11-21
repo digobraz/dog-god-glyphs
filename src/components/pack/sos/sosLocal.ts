@@ -4,13 +4,15 @@
 import { SUPABASE_URL } from '@/lib/env';
 import { clearCardDrafts } from '@/components/pack/dogCard/cardDraft';
 import type { SosDog } from '@/lib/sos';
+import { bigGet, bigSet } from '@/lib/bigStore';
 
 const P = 'dogypt.ecard.';
 export const dogsKey = (uid: string) => `${P}sos.dogs.${uid}`;
 export const phoneKey = (uid: string) => `${P}sos.phone.${uid}`;
 export const lastDogKey = (uid: string) => `${P}last.${uid}`;
 export const cardCacheKey = (uid: string, dogId: string) => `${P}cache.${uid}.${dogId}`;
-/** Fotka psa na kartičku ako data URL, `{ url, src }` (url = zdroj na Cloudinary; pri zmene fotky sa stiahne znova). Bez nej offline kartička ostala bez fotky. */
+/** Fotka psa na kartičku ako data URL, `{ url, src }` (url = zdroj na Cloudinary; pri zmene fotky sa stiahne znova). Bez nej offline kartička ostala bez fotky.
+ *  🔴 Leží v IndexedDB (`bigStore`), NIE v localStorage — tri fotky po 900 px zaplnili iPhonu 5 MB a padol zápis výletu (21. 11. 2026). */
 export const cardPhotoKey = (uid: string, dogId: string) => `${P}photo.${uid}.${dogId}`;
 export const CARD_PHOTO_W = 900;
 export type CardPhoto = { url: string; src: string };
@@ -18,13 +20,13 @@ export type CardPhoto = { url: string; src: string };
 /** Data URL fotky z lokálnej kópie, ak sedí na zdroj; inak ju stiahne a uloží. Bez siete vráti uloženú (aj staršiu). */
 export async function cardPhoto(uid: string, dogId: string, url: string | null | undefined): Promise<string | null> {
   const key = cardPhotoKey(uid, dogId);
-  const c = localGet<CardPhoto>(key);
+  const c = await bigGet<CardPhoto>(key);
   if (!url) return c?.src ?? null;
   if (c?.url === url && c.src) return c.src;
   const { toDataUrl } = await import('@/lib/sheetPdf');
   const { sizedUrl } = await import('@/services/cloudinaryService');
   const src = await toDataUrl(sizedUrl(url, CARD_PHOTO_W));
-  if (src) { localSet(key, { url, src }); return src; }
+  if (src) { void bigSet(key, { url, src }); return src; }
   return c?.src ?? null;
 }
 
