@@ -18,6 +18,7 @@ import { APP_NEW } from '@/lib/packFlags';
 import { changeDogMainPhoto } from '@/components/pack/profile/mePosts';
 import { SosCard, isAuthError, loginPath, sosErrCode, sosPath, useBack, useSosAuth, useSosT } from './sosShared';
 import { SosAvatarNone } from './sosNoPhoto';
+import { dogsKey, localGet, localSet, phoneKey, storedUserId } from './sosLocal';
 import { SosTaskShell } from './SosTaskShell';
 import type { SosKey } from './sosTexts';
 
@@ -34,7 +35,6 @@ const DRAFT_KEY = 'dogypt.sos.new.v1';
 // Miesto a čas patria PSOVI (rozpísané pre A sa nesmie preniesť k B); telefón je spoločný.
 type PerDog = { pt?: [number, number] | null; place?: string; placeTouched?: boolean; date?: string; time?: string; country?: string | null; offPlace?: boolean };
 type Draft = { dogId?: string | null; phone?: string; skipPhoto?: string[]; byDog?: Record<string, PerDog> } & PerDog;
-const DOGS_CACHE = 'dogypt.sos.dogs.v1';   // posledný zoznam psov: bez signálu sa formulár aspoň otvorí
 function readDraft(): Draft {
   try { const r = sessionStorage.getItem(DRAFT_KEY); return r ? (JSON.parse(r) as Draft) : {}; } catch { return {}; }
 }
@@ -155,7 +155,7 @@ export default function PackSosNew() {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
   const [offPlace, setOffPlace] = useState(!!first0.offPlace);   // geokódovanie nevrátilo obec ani krajinu (more)
   useEffect(() => {
-    const on = () => setOnline(true); const off = () => setOnline(false);
+    const on = () => { setOnline(true); setTick((n) => n + 1); }; const off = () => setOnline(false);   // návrat siete = nový pokus o načítanie psov
     window.addEventListener('online', on); window.addEventListener('offline', off);
     return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
   }, []);
@@ -212,7 +212,7 @@ export default function PackSosNew() {
     setDogsErr('');
     sosMyDogs().then((d) => {
       if (!alive) return;
-      try { sessionStorage.setItem(DOGS_CACHE, JSON.stringify(d)); } catch { /* bez cache */ }
+      { const u = storedUserId(); if (u) localSet(dogsKey(u), d); }   // lokálna kópia pre prvé otvorenie bez signálu
       setDogs(d);
       setDogId((cur) => (cur && d.some((x) => x.id === cur) ? cur : (d.find((x) => !x.active_slug) ?? d[0])?.id ?? null));
     }).catch((e: unknown) => {
@@ -221,15 +221,18 @@ export default function PackSosNew() {
       const net = (typeof navigator !== 'undefined' && navigator.onLine === false) || /fetch|network|load failed/i.test(msg);
       // Bez signálu sa formulár otvorí z posledného zoznamu psov (odoslať pôjde, až bude signál)
       if (net && !isAuthError(e)) {
-        try {
-          const c = JSON.parse(sessionStorage.getItem(DOGS_CACHE) ?? 'null') as SosDog[] | null;
-          if (c?.length) { setDogs(c); setDogId((cur) => (cur && c.some((x) => x.id === cur) ? cur : (c.find((x) => !x.active_slug) ?? c[0])?.id ?? null)); return; }
-        } catch { /* nič */ }
+        const u = storedUserId();
+        const c = u ? localGet<SosDog[]>(dogsKey(u)) : null;
+        if (c?.length) {
+          setDogs(c); setDogId((cur) => (cur && c.some((x) => x.id === cur) ? cur : (c.find((x) => !x.active_slug) ?? c[0])?.id ?? null));
+          const ph = u ? localGet<string>(phoneKey(u)) : null; if (ph) setPhone((cur) => cur || ph);
+          return;
+        }
       }
       setDogs([]);
       setDogsErr(isAuthError(e) ? 'auth' : (typeof navigator !== 'undefined' && navigator.onLine === false) || /fetch|network|load failed/i.test(msg) ? 'net' : 'other');
     });
-    sosLastPhone().then((p) => { if (alive && p) setPhone((cur) => cur || p); }).catch(() => {});
+    sosLastPhone().then((p) => { if (alive && p) { setPhone((cur) => cur || p); const u = storedUserId(); if (u) localSet(phoneKey(u), p); } }).catch(() => {});
     // GPS len ak je už povolená — povolenie sa tu nevypytuje samo (tlačidlo MOJA POLOHA to robí vedome)
     (async () => {
       try {
@@ -347,7 +350,7 @@ export default function PackSosNew() {
       <style>{MAP_ATTR_CSS}</style>
       <SosCard flat={APP_NEW}>
         <h1 className="sos-h2">{s('pack.sos.new.title')}</h1>
-        {!online && <p className="sosn-warn" role="status">{s('pack.sos.new.offlineSend')}</p>}
+        {!online && dogs && dogs.length > 0 && <p className="sosn-warn" role="status">{s('pack.sos.new.offlineSend')}</p>}
         {auth === 'out' || dogsErr === 'auth' ? (
           // Bez prihlásenia: 401 nie je „Bez pripojenia“. Prvá pomoc a pohotovosť ostávajú dostupné bez účtu.
           <>
@@ -357,7 +360,7 @@ export default function PackSosNew() {
           </>
         ) : dogs === null || auth === 'loading' ? <p className="sos-p">{s('pack.sos.loading')}</p> : dogsErr ? (
           <>
-            <p className="sos-p">{dogsErr === 'net' ? s('pack.sos.offline') : s('pack.sos.error')}</p>
+            <p className="sos-p">{dogsErr === 'net' ? s(online ? 'pack.sos.offline' : 'pack.sos.new.offlineNoData') : s('pack.sos.error')}</p>
             <button type="button" className="sos-cta" onClick={() => setTick((n) => n + 1)}>{s('pack.sos.retry')}</button>
           </>
         ) : dogs.length === 0 ? (

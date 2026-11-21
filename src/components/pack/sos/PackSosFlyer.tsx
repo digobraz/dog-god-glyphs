@@ -68,7 +68,7 @@ export default function PackSosFlyer() {
     const own = (k: TextKey, max: number): string | null => {
       const v = fl[k];
       // stará predvolená „ODMENA“ (v ktoromkoľvek jazyku) = nevyplnená odmena
-      return typeof v === 'string' && !isDefaultText(k, v) ? v.slice(0, max) : null;   // aj prázdny reťazec = vedome prázdne
+      return typeof v === 'string' && !isDefaultText(k, v) && !(k === 'headline' && v.trim() === '') ? v.slice(0, max) : null;   // aj prázdny reťazec = vedome prázdne
     };
     setF({
       headline: own('headline', 28), about: own('about', 120), reward: own('reward', 40), thanks: own('thanks', 120),
@@ -122,7 +122,7 @@ export default function PackSosFlyer() {
     try {
       await sosUpdate(mine.id, { phone: f.phone.trim(), place: f.place.trim() });   // server číslo overí; nezaplatená chyba = žiadne nahratie
       const flyer: FlyerFields = { direction_deg: f.deg };
-      TEXT_KEYS.forEach((k) => { if (f[k] !== null) flyer[k] = f[k]!; });
+      TEXT_KEYS.forEach((k) => { if (f[k] !== null && !(k === 'headline' && f[k]!.trim() === '')) flyer[k] = f[k]!; });
       // ten istý obsah už raz nahratý (zlyhalo až uloženie do DB): použi existujúci súbor
       const key = JSON.stringify([look, f, mine.slug]);
       let url = uploaded.current?.key === key ? uploaded.current.url : null;

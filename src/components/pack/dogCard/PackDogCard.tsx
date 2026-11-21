@@ -9,6 +9,8 @@ import { readLatest, hasValue, type LatestValue } from '@/lib/dogEvents';
 import { FLOW_SCREENS } from '@/components/pack/dogid/flowData.generated';
 import { blobToDataUrl, toDataUrl } from '@/lib/sheetPdf';
 import { cardDraftKey } from './cardDraft';
+import { fetchCardData, type DogRow } from './cardData';
+import { cardCacheKey, storedUserId, withTimeout } from '@/components/pack/sos/sosLocal';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { STEP_BY_FIELD } from '@/components/pack/dogQuiz';
@@ -60,10 +62,6 @@ html.papyrus3d .ecp-link{color:${LAPIS.edge};text-decoration:underline;}
 .ecp-link{all:unset;cursor:pointer;align-self:center;padding:${PACK_SPACE.sm}px;font:500 ${PACK_TEXT.label}px/1.4 ${FONT_UI};color:${T.inkWarm};text-decoration:underline;text-underline-offset:4px;}
 `;
 
-type DogRow = {
-  dog_name: string | null; cloudinary_main_url: string | null; patron_svg: string | null; life_status: string | null;
-  selections: Record<string, string> | null; owner_name: string | null;
-};
 // Do konceptu ide LEN to, čo človek zmenil: napísané políčka a (ak ju hýbal) poloha fotky. Vlastná fotka (`src`) len keď ju sám vybral.
 type Draft = { edited: Partial<CardData>; lang?: string; photo?: { x: number; y: number; zoom: number; src?: string } };
 
@@ -138,10 +136,13 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
     setStatus('load');
     (async () => {
       // 1) Relácia je lokálna (rýchla). Bez nej niet čo načítať.
-      const { data: sess } = await supabase.auth.getSession();
-      const uid = sess.session?.user.id;
+      // Najprv synchrónne z uloženej relácie; supabase-js na pomalej sieti čaká na zámok a obnovu tokenu (preto strop 8 s, nie nekonečno).
+      let uid = storedUserId();
+      if (!uid) {
+        try { uid = (await withTimeout(supabase.auth.getSession(), 8000)).data.session?.user.id ?? null; } catch { uid = null; }
+      }
       if (!uid) { if (alive) setStatus('error'); return; }
-      const cacheKey = `dogypt.ecard.cache.${uid}.${id}`;
+      const cacheKey = cardCacheKey(uid, id);
       // Hodnoty v DOG ID sú kódy („none", „ib"): na kartičku ide to, čo vidí človek.
       // „Žiadne“ a „nie je isté“ (príznak `none` v definícii kvízu) sa na kartičku nepíšu.
       const tr = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
@@ -187,14 +188,11 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
       } catch { /* poškodená kópia: ide sa na sieť */ }
       try {
         // 3) Údaje psa a DOG ID súbežne (predtým jedno za druhým + fotka navyše).
-        const [dogRes, latest] = await Promise.all([
-          supabase.from('dogs').select('dog_name, cloudinary_main_url, patron_svg, life_status, selections, owner_name').eq('id', id).maybeSingle(),
-          readLatest(id, { strict: true }),
-        ]);
+        // Časový strop: po 20 s lokálna kópia (ostáva na obrazovke) alebo chyba so SKÚSIŤ ZNOVA, nikdy večné „Načítavam“.
+        const { dog: d0, latest } = await withTimeout(fetchCardData(id), 20000);
         if (!alive) return;
-        if (dogRes.error) throw dogRes.error;
-        if (!dogRes.data) { setDog(null); setStatus('missing'); return; }
-        const d = dogRes.data as DogRow;
+        if (!d0) { setDog(null); setStatus('missing'); return; }
+        const d = d0;
         // Zosnulý pes kartičku „doma sám“ nepotrebuje: späť na jeho stránku.
         if (d.life_status === 'deceased') { nav(`/pack/dogs/${id}`, { replace: true }); return; }
         try { localStorage.setItem(cacheKey, JSON.stringify({ dog: d, latest })); } catch { /* plné úložisko: bez kópie */ }
@@ -211,6 +209,13 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, reload]);
+
+  // Po návrate siete sa kartička zotaví sama (bez ťuku na SKÚSIŤ ZNOVA).
+  useEffect(() => {
+    const back = () => setReload((n) => n + 1);
+    window.addEventListener('online', back);
+    return () => window.removeEventListener('online', back);
+  }, []);
 
   // Zápis až po ručnej zmene (`dirty` > 0), oneskorený, aby sa nepísalo pri každom pohybe prsta.
   useEffect(() => {

@@ -185,7 +185,7 @@ export function SosFlyer({ data, look = 'papyrus', onReady }: { data: FlyerData;
   const onMapSettled = useCallback(() => setMapSettled(true), []);
   const def = flyerDefaults(s);
   const f = data.flyer;
-  const headline = f.headline ?? def.headline;
+  const headline = f.headline || def.headline;   // prázdny nadpis = predvolený (nikdy červený pás bez nadpisu)
   const about = f.about ?? def.about;
   const reward = f.reward ?? '';   // odmena sa ukáže LEN keď ju majiteľ vyplnil (žiadny predvolený „ODMENA“ bez sumy)
   const thanks = f.thanks ?? def.thanks;

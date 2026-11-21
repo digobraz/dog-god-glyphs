@@ -49,7 +49,9 @@ async function run(): Promise<void> {
   if (APP_NEW) code.push(import('@/components/pack/dogCard/PackSosCard'));
   if (SOS_ON) code.push(import('./PackSosNew'));
   if (DANGER_ON) code.push(import('./danger/PackDangerHub'));
-  const codeDone = Promise.allSettled(code);   // kód a obrázky idú súbežne, aby pomalý chunk nezdržal najnaliehavejšie karty
+  const codeDone = Promise.allSettled(code);
+  // Malé JSON pre prvé otvorenie offline (zoznam psov, telefón, údaje kartičky); len pre prihláseného, maže sa pri odhlásení.
+  void import('./sosLocal').then((m) => m.warmSosLocal()).catch(() => {});   // kód a obrázky idú súbežne, aby pomalý chunk nezdržal najnaliehavejšie karty
   if (!AID_ON || slowLink()) return;
   const { aidContent, AID_ICON, AID_ICON_DEFAULT } = await import('./aid/aidData');
   // malé ikonky dlaždíc (rozcestník prvej pomoci + SOS rozcestník), potom veľké kresby

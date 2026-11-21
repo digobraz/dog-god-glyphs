@@ -73,6 +73,7 @@ export const SOS_TEXTS = {
   'pack.sos.new.mapFail': T('The map could not be loaded, but your tap is saved. Write the place by hand below.', 'Mapa sa nenačítala, tvoj ťuk sa však uložil. Lokalitu napíš ručne nižšie.', 'Mapa se nenačetla, tvé klepnutí se však uložilo. Lokalitu napiš ručně níže.'),
   'pack.sos.new.offPlace': T('This point looks like it is outside any town. Check it, and write the place by hand.', 'Tento bod vyzerá mimo obce, skontroluj ho. Lokalitu napíš ručne.', 'Tento bod vypadá mimo obec, zkontroluj ho. Lokalitu napiš ručně.'),
   'pack.sos.new.offlineSend': T('You can fill this in now. It will be sent once you have signal.', 'Odoslať pôjde, až budeš mať signál. Rozpísané sa uloží.', 'Odeslat půjde, až budeš mít signál. Rozepsané se uloží.'),
+  'pack.sos.new.offlineNoData': T('Without signal this form cannot be opened. Call 112; first aid and the emergency vet work offline.', 'Bez signálu sa formulár nedá otvoriť. Volaj 112, prvá pomoc a pohotovosť fungujú aj offline.', 'Bez signálu se formulář nedá otevřít. Volej 112, první pomoc a pohotovost fungují i offline.'),
   'pack.sos.new.placeManual': T('Write the place by hand: a town, a street or a landmark.', 'Napíš lokalitu ručne: obec, ulicu alebo orientačný bod.', 'Napiš lokalitu ručně: obec, ulici nebo orientační bod.'),
   // bez prihlásenia
   'pack.sos.login.title': T('Sign in to continue', 'Prihlás sa a pokračuj', 'Přihlas se a pokračuj'),
@@ -126,6 +127,7 @@ export const SOS_TEXTS = {
   'pack.sos.det.endedText': T('The alert is no longer on the map and in the feed. The link and the flyer keep working.', 'Výstraha už nie je na mape ani vo feede. Odkaz a leták fungujú ďalej.', 'Výstraha už není na mapě ani ve feedu. Odkaz a leták fungují dál.'),
   'pack.sos.det.endedPublic': T('The search has ended', 'Pátranie je ukončené', 'Pátrání je ukončeno'),
   'pack.sos.det.foundMistake': T('Marked by mistake?', 'Označené omylom?', 'Označeno omylem?'),
+  'pack.sos.det.resumeGone': T('This search can no longer be resumed. Start a new one.', 'Toto pátranie sa už nedá obnoviť. Nové pátranie vyhlás znova.', 'Toto pátrání už nejde obnovit. Nové pátrání vyhlas znovu.'),
   'pack.sos.det.resume': T('KEEP SEARCHING', 'HĽADÁM ĎALEJ', 'HLEDÁM DÁL'),
   'pack.sos.det.foundBtn': T('FOUND HIM', 'NAŠIEL SA', 'NAŠEL SE'),
   'pack.sos.det.foundTitle': T('{name} is home?', '{name} je doma?', '{name} je doma?'),

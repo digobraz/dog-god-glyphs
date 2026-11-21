@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { PACK_BOX, PACK_R, PACK_SPACE as S, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { SosTaskShell } from '../SosTaskShell';
-import { useBack, useSosT } from '../sosShared';
+import { useBack, useSosHome, useSosT } from '../sosShared';
 import type { SosKey } from '../sosTexts';
 
 const DOORS: { to: string; icon: string; t: SosKey; sub: SosKey; red?: boolean }[] = [
@@ -24,7 +24,7 @@ const CSS = `
 export default function PackDangerHub() {
   const s = useSosT();
   const navigate = useNavigate();
-  const back = useBack('/pack');
+  const back = useBack(useSosHome());   // odhlásený sa vracia do SOS rozcestníka, nie na prihlásenie
   return (
     <SosTaskShell onBack={back} backLabel={s('pack.sos.back')}>
       <style>{CSS}</style>

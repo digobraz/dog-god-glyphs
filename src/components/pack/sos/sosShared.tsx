@@ -27,6 +27,9 @@ import { SOS_P3D_CSS } from './sosP3d';
 export const SOS_PAPER = /^\/pack\/sos(\/|$)/;
 if (!PAPER_ROUTES_EXTRA.some((r) => r.source === SOS_PAPER.source)) PAPER_ROUTES_EXTRA.push(SOS_PAPER);
 
+/** Mirror `sos_phone_keep_days()` v DB: ako dlho po konci straty sa dá pátranie obnoviť (potom sa maže telefón aj leták). */
+export const PHONE_KEEP_DAYS = 30;
+
 export const sosPath = {
   new: '/pack/sos/new',
   page: (slug: string) => `/pack/sos/${slug}`,
@@ -202,8 +205,13 @@ export const SOS_CSS = `
 .sos-col > .pk-toprow{margin-bottom:${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h - PACK_SPACE.lg}px;}
 .sos-root{min-height:100dvh;display:flex;flex-direction:column;}
 /* TEXT OD ČLOVEKA (lokalita, popis, poznámka, meno, odmena, kontakty) sa zalomí aj bez medzier: vložený odkaz alebo 100× W nesmie roztiahnuť stránku. */
-.sos-col,.sos-stack,.sos-card,.sos-band,.sos-fact,.sos-row,.sos-diaryrow,.sos-two > *{min-width:0;overflow-wrap:anywhere;}
-.sos-fact > span,.sos-row .grow,.sos-diaryrow .grow,.sos-band b,.sos-band small,.sos-dogname,.sos-dogsub,.sos-p,.sos-small{min-width:0;overflow-wrap:anywhere;}
+.sos-col,.sos-stack,.sos-card,.sos-band,.sos-fact,.sos-row,.sos-diaryrow,.sos-two > *{min-width:0;}
+.sos-stack,.sos-card,.sos-band small,.sos-fact > span,.sos-row .grow,.sos-diaryrow .grow,.sos-dogname,.sos-dogsub,.sos-p,.sos-small{overflow-wrap:anywhere;}
+/* ŠTÍTKY A TLAČIDLÁ sa lámu po slovách, nie v slove (anywhere im nepatrí) */
+.sos-cta,.sos-opt,.sos-pill,.sos-eyebrow,.sos-h2,.sos-band b,.sos-field > span,.sos-num small,.sos-fact small,button{overflow-wrap:normal;word-break:normal;}
+@media (max-width:359px){.sos-two .sos-cta{padding:0 ${PACK_SPACE.sm}px;}}
+/* PC: fotka nesmie vyplniť celé okno, hlavné tlačidlo (NAŠIEL SA) musí byť vidno bez rolovania. Zmenšuje sa obsah, nie rezerva (PAGE_AIR). */
+@media (min-width:768px){.sos-photo{max-height:min(480px,calc(100dvh - 400px));min-height:160px;}}
 .sos-stack{display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;font-family:${FONT_UI};color:${T.inkStrong};}
 .sos-card{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sos-eyebrow{margin:0;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}

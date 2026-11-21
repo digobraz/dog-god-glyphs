@@ -25,7 +25,7 @@ import { AskPopup, CallPopup, SeenPopup, copyLostLink } from './sosActions';
 import { ClosePopup, GonePopup, SosNumbers, type GoneStep } from './sosClose';
 import { readSosMilestone, writeSosMilestone } from './sosDiary';
 import { SosPhotoNone } from './sosNoPhoto';
-import { SosCard, SosStyles, colorWord, useBreedLabel, sosErrCode, sosPath, useBack, useSosCount, useSosLost, useSosT, useWhen, type SosT } from './sosShared';
+import { SosCard, SosStyles, PHONE_KEEP_DAYS, colorWord, useBreedLabel, sosErrCode, sosPath, useBack, useSosCount, useSosLost, useSosT, useWhen, type SosT } from './sosShared';
 
 const TL: Record<string, string> = { green: 'Mastered', amber: 'Depends', red: 'Still learning' };
 
@@ -132,6 +132,17 @@ export default function PackSosDetail() {
   };
   const openPop = (p: 'call' | 'seen' | 'close' | 'ask' | null) => { setRunErr(''); setPop(p); };
 
+  // HĽADÁM ĎALEJ len v lehote (`sos_phone_keep_days` = 30 dní od konca; po nej server telefón zmaže a obnovu odmietne).
+  const canResume = !!mine && mine.phone !== '' && !(Date.parse(mine.found_at ?? mine.ended_at ?? '') < Date.now() - PHONE_KEEP_DAYS * 86_400_000);
+  const resumeEl = canResume ? (
+    <button type="button" className="sos-cta sos-cta--ghost" disabled={busy} onClick={() => run(async () => { await sosResume(mine!.id); sosInvalidate(); })}>{s('pack.sos.det.resume')}</button>
+  ) : (
+    <>
+      <p className="sos-small">{s('pack.sos.det.resumeGone')}</p>
+      <button type="button" className="sos-cta" onClick={() => navigate(sosPath.new)}>{s('pack.sos.new.submit')}</button>
+    </>
+  );
+
   const FoundCta = own && mine ? (
     <button type="button" className="sos-cta sos-cta--green" onClick={() => openPop('close')}>{s('pack.sos.det.foundBtn')}</button>
   ) : null;
@@ -205,7 +216,7 @@ export default function PackSosDetail() {
           <SosCard>
             <h2 className="sos-h2">{s('pack.sos.det.endedTitle')}</h2>
             <p className="sos-p">{s('pack.sos.det.endedText')}</p>
-            <button type="button" className="sos-cta" disabled={busy} onClick={() => run(async () => { await sosResume(mine.id); sosInvalidate(); })}>{s('pack.sos.det.resume')}</button>
+            {resumeEl}
             {runErr && pop === null && <p className="sos-err">{runErr}</p>}
             {FoundCta}
           </SosCard>
@@ -232,9 +243,9 @@ export default function PackSosDetail() {
             <button type="button" className="sos-cta sos-cta--ghost" onClick={() => void shareLostDog({ slug: pub.slug, name: pub.dog_name, flyerUrl: null, text: s('pack.sos.alive.shareText', { name: pub.dog_name }), copiedText: s('pack.sos.det.copied') })}>{s('pack.sos.alive.shareOut')}</button>
             {mine && (
               <>
-                <p className="sos-small">{s('pack.sos.det.foundMistake')}</p>
+                {canResume && <p className="sos-small">{s('pack.sos.det.foundMistake')}</p>}
                 {runErr && pop === null && <p className="sos-err">{runErr}</p>}
-                <button type="button" className="sos-cta sos-cta--ghost" disabled={busy} onClick={() => run(async () => { await sosResume(mine.id); sosInvalidate(); })}>{s('pack.sos.det.resume')}</button>
+                {resumeEl}
               </>
             )}
           </SosCard>
@@ -247,9 +258,9 @@ export default function PackSosDetail() {
             )}
             {mine.phone !== '' && (
               <>
-                <p className="sos-small">{s('pack.sos.det.foundMistake')}</p>
+                {canResume && <p className="sos-small">{s('pack.sos.det.foundMistake')}</p>}
                 {runErr && pop === null && <p className="sos-err">{runErr}</p>}
-                <button type="button" className="sos-cta sos-cta--ghost" disabled={busy} onClick={() => run(async () => { await sosResume(mine.id); sosInvalidate(); })}>{s('pack.sos.det.resume')}</button>
+                {resumeEl}
               </>
             )}
           </SosCard>
