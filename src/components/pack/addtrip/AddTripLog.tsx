@@ -41,6 +41,7 @@ import { useKeyboardLift } from '@/components/pack/diary/useKeyboardLift';
 import { sizedUrl, heroPx } from '@/services/cloudinaryService';
 import { searchTripCompanions, INVITE_KEY_PREFIX, type TripCompanionHit } from '@/lib/packHumans';
 import { PhotoSortGrid } from './PhotoSortGrid';
+import { HandPlus, HandTrash } from '@/components/pack/HandIcons';
 import { BackIcon, BackLinkIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW, PLATE_TILE_R, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useIsPaleChrome } from '@/components/pack/usePaleChrome';
@@ -2280,13 +2281,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                         aria-label={`${t(`pack.mapNotes.kind.${n.kind}`)} — ${t('pack.addTrip.step.noteRemove')}`}
                         onClick={(e) => { e.stopPropagation(); if (n.id) onRemoveNote?.(n.id); }}>
                         {/* Pri upozornení nesie chip DRUH (kliešte, had…), pri parkovisku a tipe len „na mape“ — názov je už v riadku. */}
-                        {g === 'warning' ? t(`pack.mapNotes.kind.${n.kind}`) : t('pack.addTrip.step.noteOnMap')}<i aria-hidden="true">×</i>
+                        {g === 'warning' ? t(`pack.mapNotes.kind.${n.kind}`) : t('pack.addTrip.step.noteOnMap')}<HandTrash size={12} />
                       </button>
                     ))}
                   </span>
                 )}
               </span>
-              <span className="atl-nrow-add" aria-hidden="true">+</span>
+              <span className="atl-nrow-add" aria-hidden="true"><HandPlus size={16} /></span>
             </div>
           );
         })}
@@ -4429,7 +4430,6 @@ const STEP_CSS = `
 .atl-nrow-name{font-size:14px;font-weight:600;line-height:1.2;}
 .atl-nrow-have{display:flex;flex-wrap:wrap;gap:4px;}
 .atl-nrow-x{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 8px;border-radius:999px;border:1px solid currentColor;background:none;color:inherit;font:inherit;font-size:12px;font-weight:500;line-height:1;cursor:pointer;}
-.atl-nrow-x i{font-style:normal;font-size:14px;}
 .atl-nrow-add{flex:none;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;border:1px solid currentColor;font-size:20px;line-height:1;}
 /* ⚠️ FOCUS RING IDE DOVNÚTRA (Matej 2026-08-28) — lišta s overflow ho zvonka orezáva. */
 .atl-nrow:focus-visible{outline:2px solid ${LAPIS.edge};outline-offset:-2px;}
