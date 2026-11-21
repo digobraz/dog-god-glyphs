@@ -564,12 +564,12 @@ export default function StoryWeb() {
                   <span>{t('ft_new')}<small>{fmt(liveDogs ?? dogs)} {t('now_dogs')}</small></span>
                 </div>
                 {lastDog && (
-                  <a className="sx-lastdog" href="/wall">
+                  <a className="sx-lastdog" href="/hall">
                     <img src={lastDog.img} alt={lastDog.name} loading="lazy" />
                     <span><small>{t('ft_last')}</small><b>{lastDog.name}</b><em>#{lastDog.n}</em></span>
                   </a>
                 )}
-                <a className="sx-all" href="/wall">{t('ft_all')} <img src="/icons/sys/sipka.webp" alt="" /></a>
+                <a className="sx-all" href="/hall">{t('ft_all')} <img src="/icons/sys/sipka.webp" alt="" /></a>
               </div>
               <div className="sx-nc">
                 <h4>{t('ft_build')}</h4>

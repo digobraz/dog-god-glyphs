@@ -394,7 +394,7 @@ function MobileMenuOverlay({
         {NAV_ITEMS.map(({ key, to }) => {
           const isActive =
             to === '/'
-              ? pathname === '/' || pathname === '/grid' || pathname === '/gods' || pathname === '/wall'
+              ? pathname === '/' || pathname === '/grid' || pathname === '/gods' || pathname === '/wall' || pathname === '/hall'
               : pathname === to;
           return (
             <Link

@@ -355,9 +355,16 @@ export function DogPlanetLab({
   anywhere = false,
   onClose,
   pick,
+  enter,
 }: {
   dogs: PlanetDog[];
   open: boolean;
+  /**
+   * Jednotný vstup (Matej 21. 11. 2026, CLAIM 2): „začína sa fotkou… ustáľme to na jednotný vstup
+   * aký je všade na CTA“. Jadro gule potom nesie text hlavného CTA a vedie rovno do heroflowu,
+   * nie na výber fotky. Bez neho guľa po starom (Pridaj foto svojho boha).
+   */
+  enter?: { label: string; href: string };
   /**
    * Gula je na obrazovke, ale uz ju nikto nevidi (film /onepage ju ma prilepenu
    * na cely scroll). Zastavi rAF slucku — nie kvoli batérii, ale kvoli SCROLLU:
@@ -492,7 +499,10 @@ export function DogPlanetLab({
   // Portál sa stavia RAZ (a znova len keď sa vymení sada tvárí). Prestavba pri
   // každom vykreslení by zahodila plátno aj s vyrovnávacou pamäťou iskier.
   const facesKey = cycPhotos.join('|');
-  const addLabel = t('wall.hero.addPhoto');
+  // jadro gule má ~118 px → CTA na dva riadky, posledné slovo (DOGYPTU) samo, ako „Pridaj foto<br>svojho boha“
+  const addLabel = enter ? enter.label.replace(/ (\S+)$/, '<br>$1') : t('wall.hero.addPhoto');
+  const enterRef = useRef(enter);
+  enterRef.current = enter;
   useEffect(() => {
     const host = portalMountRef.current;
     if (!host) return;
@@ -502,11 +512,12 @@ export function DogPlanetLab({
       // malého textu)"*. Dva riadky, lebo na guli má portál ~118 px.
       // Matej 6. 10. 2026: *„add photo of your GOD nie dog — všade"* (ako stena).
       label: addLabel,
+      ...(enter ? { ariaLabel: enter.label } : {}),
       labelPicked: t('wall.photo.change'),
       note: '',
       // ⚠️ Cez REF, nie cez `photo` zo stavu — portál sa stavia raz (deps
       // `facesKey`) a uzáver by navždy držal prvú hodnotu, teda `null`.
-      onPick: () => (photoRef.current ? showConfirm(photoRef.current) : openFirstPicker()),
+      onPick: () => (enterRef.current ? navigate(enterRef.current.href) : photoRef.current ? showConfirm(photoRef.current) : openFirstPicker()),
     });
     // Dlhší preklad popisku než EN = menšie písmo, inak ho jadro oreže (heroLineEm.ts).
     const lf = addLabelFactor(lang);

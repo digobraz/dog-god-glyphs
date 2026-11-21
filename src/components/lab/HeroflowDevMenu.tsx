@@ -90,7 +90,7 @@ const DONE_COUNT = ENTRY.filter((r) => r.kind !== 'todo' && r.done).length;
 /** Kde menu beží: film + celý vstup + doplatková časť. */
 function showsOn(pathname: string): boolean {
   return (
-    pathname === '/' || pathname === '/wall' ||
+    pathname === '/' || pathname === '/wall' || pathname === '/hall' ||
     pathname.startsWith('/heroglyph') ||
     pathname === '/checkout' ||
     pathname === '/payment' ||

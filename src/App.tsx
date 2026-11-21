@@ -222,6 +222,9 @@ const DogIdQuizRoute = lazyPack(() => import("./pages/PackDogIdFlow.tsx").then((
 const MagnetZanikol = () => { const { pathname, search } = useLocation(); const v = pathname.match(/^\/magnet\/vylety(\/.*)?$/); return <Navigate to={v ? `/map${v[1] || ''}${search}` : '/'} replace />; };
 // /app → / (FLIP 17. 11. 2026): nový web je hlavná stránka. Dotaz a kotva idú ďalej —
 // návrat zo Stripe (`?vstupne=cs_…`), portál a odkazy `/app#badges` z mailov a zo /story.
+/* Sieň psov (Matej 21. 11. 2026: „nie /wall ale hall mi príde lepšie — presmeruj to“): staré adresy steny
+   (/wall, /grid, odkazy v rozoslaných mailoch) idú na /hall aj s `?dog=` / `?focus=` / `?reveal=`. */
+const NaHall = () => { const { search, hash } = useLocation(); return <Navigate to={`/hall${search}${hash}`} replace />; };
 const AppNaKoren = () => { const { search, hash } = useLocation(); return <Navigate to={`/${search}${hash}`} replace />; };
 const NatureRoute = () => { const [q] = useSearchParams(); return q.get('view') === 'result' ? <PackNatureQuiz /> : <PackDogIdFlow mode="nature" />; };
 const PackNatureQuiz = lazyPack(() => import("./pages/PackNatureQuiz.tsx")); // osobnostný kvíz element+úloha (zadanie-osobnostny-kviz-2026-08-06)
@@ -425,8 +428,10 @@ const App = () => (
               {/* /wall = ten istý film, otvorený rovno na BLEDEJ stene (Matej 7. 10.:
                   „tmavá aktuálna stena zaniká… pracujeme len s tým novým bledým dizajnom"). */}
               {/* Od FLIPu 17. 11. je stena sekcia `#join` nového webu (Matej: „wall zostáva, je to databáza fotiek psov“). */}
-              <Route path="/wall" element={<Navigate to="/#join" replace />} />
-              <Route path="/grid" element={<Navigate to="/wall" replace />} />
+              {/* 21. 11. 2026: stena = Sieň psov na /hall (tá istá stránka, otvorená na stene); /wall a /grid presmerované. */}
+              <Route path="/hall" element={<AppWeb />} />
+              <Route path="/wall" element={<NaHall />} />
+              <Route path="/grid" element={<NaHall />} />
               <Route path="/spiral" element={<Navigate to="/" replace />} />
               <Route path="/vision" element={<Navigate to="/" replace />} />
               <Route path="/religion" element={<Navigate to="/" replace />} />

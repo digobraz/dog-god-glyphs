@@ -508,9 +508,15 @@ interface GodsGridLabProps {
   onWallChange?: (wallOpen: boolean) => void;
   /** Guľa nie je na vrchu stránky (/app) — pozri `anywhere` v DogPlanetLab. */
   planetAnywhere?: boolean;
+  /**
+   * CLAIM 2 (Matej 21. 11. 2026): jadro gule aj steny = jednotný vstup („Vstúp do DOGYPTU“ →
+   * heroflow, nie výber fotky) a spodná lišta = dve pilulky „Vyhľadaj svojho psa“ · „Sieň psov“
+   * namiesto ikoniek. Stena má adresu `/hall` (predtým `/wall`). Bez neho po starom.
+   */
+  v2?: { enter: string; href: string; find: string; hall: string };
 }
 
-export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHref = '/heroglyph/name', portalDock = false, dockHostId, paused = false, onWallChange, planetAnywhere = false }: GodsGridLabProps = {}) {
+export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHref = '/heroglyph/name', portalDock = false, dockHostId, paused = false, onWallChange, planetAnywhere = false, v2 }: GodsGridLabProps = {}) {
   const [dockHost, setDockHost] = useState<HTMLElement | null>(null);
   useLayoutEffect(() => {
     // Bez hostiteľa (mobil vo filme) ide lišta späť do <body> — nesmie ostať
@@ -540,7 +546,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   const [planetOpen, setPlanetOpen] = useState(() => {
     if (!embedded) return false;
     // /wall = film otvorený rovno na stene (FLIP 7. 10. 2026).
-    if (window.location.pathname === '/wall') return false;
+    if (window.location.pathname === '/wall' || window.location.pathname === '/hall') return false;
     const q = new URLSearchParams(window.location.search);
     // Zápis psa po platbe (`?reveal`) patrí na STENU — pod guľou ho nebolo vidno (16. 10. 2026).
     return !q.get('dog') && !q.get('focus') && !q.get('reveal');
@@ -642,6 +648,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   const { lang } = useLang();
   const langRef = useRef(lang);
   useEffect(() => { langRef.current = lang; }, [lang]);
+  const v2Ref = useRef(v2);
+  v2Ref.current = v2;
 
   const revealData = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -844,10 +852,11 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   useEffect(() => {
     if (!embedded) return;
     const p = window.location.pathname;
-    if (p !== '/' && p !== '/wall') return;
-    const want = planetOpen ? '/' : '/wall';
+    const wallPath = v2 ? '/hall' : '/wall';
+    if (p !== '/' && p !== '/wall' && p !== '/hall') return;
+    const want = planetOpen ? '/' : wallPath;
     if (p !== want) window.history.replaceState(window.history.state, '', want + window.location.search);
-  }, [planetOpen, embedded]);
+  }, [planetOpen, embedded, v2]);
 
   // Pes z hľadania podľa mena (3. 10. 2026). Člen = ten istý cieľ ako číslo;
   // hosť nemá číslo ⇒ prelet na jeho bunku. Na guli hosť nie je (guľa nesie len
@@ -1517,11 +1526,11 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
 
       const portal = buildPortal({
         faces,
-        onPick: () => (pickedUrl ? showConfirm(pickedUrl) : openFirstPicker()),
+        onPick: () => (v2Ref.current ? navigate(v2Ref.current.href) : pickedUrl ? showConfirm(pickedUrl) : openFirstPicker()),
         // Matej 5. 10. 2026: *„do CTA treba dať add photo of your GOD a zátvorku preč"*
         // — vzor gule (DogPlanetLab: „Add photo of your dog"), poznámka „(you can change
         // the photo later)" zanikla.
-        label: tRef.current('wall.hero.addPhoto'),
+        label: v2Ref.current?.enter ?? tRef.current('wall.hero.addPhoto'),
         labelPicked: tRef.current('wall.photo.change'),
         note: '',
         subnote: `<span class="ph-nopill">${esc(tRef.current('wall.photo.yoursWillBe'))} <b>#${nextPackNo()}</b></span>`,
@@ -4046,7 +4055,13 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
               </div>,
               dockHost ?? document.body
             )
-          : (
+          : v2 ? (
+            /* CLAIM 2: dve pilulky namiesto ikoniek (Matej 21. 11. 2026) — hľadanie psa a prepínač guľa ⇄ sieň */
+            <div className="gods-bottom-bar gbb-pills">
+              <button type="button" className={`gbb-pill${filterOpen ? ' on' : ''}`} onClick={() => setFilterOpen(f => !f)}>{v2.find}</button>
+              <button type="button" className={`gbb-pill${planetOpen ? '' : ' on'}`} aria-pressed={!planetOpen} onClick={() => setPlanetOpen(o => !o)}>{v2.hall}</button>
+            </div>
+          ) : (
             <div className={`gods-bottom-bar${ctaMode ? ' has-cta' : ''}`}>
               <button
                 className={`filter-btn${filterOpen ? ' active' : ''}`}
@@ -4106,7 +4121,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
             </div>
             )}
 
-        <DogPlanetLab dogs={planetDogs} open={planetOpen} paused={paused} anywhere={planetAnywhere} onClose={() => setPlanetOpen(false)} pick={planetPick} />
+        <DogPlanetLab dogs={planetDogs} open={planetOpen} paused={paused} anywhere={planetAnywhere} onClose={() => setPlanetOpen(false)} pick={planetPick} enter={v2 ? { label: v2.enter, href: v2.href } : undefined} />
 
         {/* KARTA PSA NA STENE — portál do <body>: stena si na `app` chytá ťah
             myšou aj prstom a karta nesmie byť jeho súčasťou (ťuk do karty by

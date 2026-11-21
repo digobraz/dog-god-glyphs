@@ -348,7 +348,7 @@ export function FlowWelcomeScreen() {
     const [first, ...rest] = dogs;
     if (!first) return navigate('/');
     // Hosť bez čísla: stena nemá čo zapečatiť, ukáže jeho kartu podľa id (ako ďakovačka hosťa, `/?dog=`).
-    if (free && first.n == null) return navigate(guestIds[first.id] ? `/wall?dog=${guestIds[first.id]}` : '/wall');
+    if (free && first.n == null) return navigate(guestIds[first.id] ? `/hall?dog=${guestIds[first.id]}` : '/hall');
     const q = new URLSearchParams({ reveal: 'true', dogName: first.name, packNumber: String(first.n ?? 0) });
     if (first.photo) q.set('photoUrl', first.photo);
     // V dielni (bez platby) heroglyf nevznikne a stena by spálila len logo —
@@ -361,7 +361,7 @@ export function FlowWelcomeScreen() {
     if (rest.length) q.set('queue', JSON.stringify(rest.map((d) => ({ n: d.n ?? 0, name: d.name, photo: d.photo, glyph: glyphs[d.id] || d.glyph }))));
     // Na STENU (`/wall`), nie na `/` — od FLIPu 7. 10. je `/` film otvorený guľou
     // a zápis psa bežal pod ňou (DEV nákup 15. 10.: kupec videl návštevnícky pútač).
-    navigate(`/wall?${q.toString()}`);
+    navigate(`/hall?${q.toString()}`);
   };
 
   // CTA HNEĎ PO ZARADENÍ (Matej 27. 9., audit 26. 9.: finále trvalo 12–14 s do

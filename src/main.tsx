@@ -90,7 +90,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // Adresy, na ktorých sa (aj po presmerovaní) vykreslí film.
-const FILM_PATHS = ["/", "/wall", "/onepage", "/vision", "/religion", "/about", "/spiral", "/grid", "/betavision"];
+const FILM_PATHS = ["/", "/wall", "/hall", "/onepage", "/vision", "/religion", "/about", "/spiral", "/grid", "/betavision"];
 if (FILM_PATHS.includes(location.pathname)) startEarlyGridDogs(); // film = homepage (FLIP 7. 10. 2026)
 
 // Písma z Google Fonts sa zapínajú až teraz — viď komentár pri <link data-late-fonts> v index.html.

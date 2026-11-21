@@ -319,7 +319,7 @@ function DogTrail({ goal }: { goal: string }) {
 const START = '/heroglyph/name';
 
 /** Živá planétka z `/` — montuje sa až pri obrazovke a mimo nej stojí. */
-function LivePlanet() {
+function LivePlanet({ v2 }: { v2?: { enter: string; href: string; find: string; hall: string } }) {
   const [mountRef, near] = useNear<HTMLDivElement>('1500px');
   const [visRef, vis] = useNear<HTMLElement>('0px', false);
   return (
@@ -330,7 +330,7 @@ function LivePlanet() {
         {/* iPhone Safari radí 3D dlaždice gule podľa hĺbky a z-index ignoruje → karta sa cez guľu prerezala (Matej 7. 11., snímka WENSDY #103).
             Karta preto ide v 3D dopredu (translate Z, bez perspektívy = bez zmeny veľkosti) v spoločnom 3D priestore s guľou. */}
         <style>{`.aw .planet-live .planet-root.pop{display:flex;position:fixed;inset:0;z-index:80;padding:0;animation:none;align-items:center;justify-content:center}.aw .planet-live .planet-root.pop{transform-style:preserve-3d}.aw .planet-live .planet-root.pop .pp-panel{z-index:20;translate:0 0 2000px}.aw .planet-live .planet-root .planet-stage{z-index:1}`}</style>
-        {near && <Suspense fallback={null}><GodsGridLab embedded paused={!vis} planetAnywhere /></Suspense>}
+        {near && <Suspense fallback={null}><GodsGridLab embedded paused={!vis} planetAnywhere v2={v2} /></Suspense>}
         {/* odkazy do obchodov sa presťahovali z bloku POTREBUJEME ŤA sem, vľavo dole (Matej 6. 11.) */}
         <div className="planet-stores"><Stores /></div>
       </section>
@@ -442,8 +442,9 @@ export default function AppWeb() {
   const [rankNow, setRankNow] = useState<string | null>(null);
   const [thanks, setThanks] = useState<string | null>(null);
   // Kotva z inej stránky (`/wall` → `/#join`, odkazy zo /story) — SPA ju sama neodroluje.
+  // `/hall` (Sieň psov, 21. 11. 2026) = tá istá stránka otvorená na stene, preto ide rovno na `#join`.
   useEffect(() => {
-    const id = window.location.hash.slice(1);
+    const id = window.location.pathname === '/hall' ? 'join' : window.location.hash.slice(1);
     if (!id || qs.get('vstupne')) return;
     const t = setTimeout(() => document.getElementById(id)?.scrollIntoView(), 400);
     return () => clearTimeout(t);
@@ -965,7 +966,7 @@ export default function AppWeb() {
       </section>
 
       {/* 11 · ŽIVÁ PLANÉTKA — finále */}
-      <LivePlanet />
+      <LivePlanet v2={V2 ? { enter: c('start'), href: START, find: c('pl_find'), hall: c('pl_hall') } : undefined} />
 
 
       {nakres && (

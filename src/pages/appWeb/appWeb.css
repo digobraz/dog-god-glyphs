@@ -1796,3 +1796,14 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .mmenu .stores.off .store{height:48px}
 .aw .mm-login.v2{display:flex;align-items:center;justify-content:center;gap:var(--s-sm);margin-top:var(--s-xs)}
 .aw .mm-login.v2 img{width:24px;height:24px}
+/* planétka CLAIM 2 — spodná lišta = dve pilulky (Matej 21. 11.): bez zlatého odliatku, pilulky v šate odznakov obchodov
+   (papyrus so zlatým rámom); poloha „kde som“ (otvorená sieň, otvorené hľadanie) = brandová zlatá, nie lapis */
+.aw .theme-light .gods-bottom-bar.gbb-pills{background:none;border:0;box-shadow:none;padding:0;gap:var(--s-sm)}
+.aw .theme-light .gods-bottom-bar.gbb-pills::before,.aw .theme-light .gods-bottom-bar.gbb-pills::after{display:none}
+.aw .gbb-pill{height:44px;padding:0 var(--s-lg);border-radius:999px;border:1px solid #C99A3F;background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);
+  color:var(--ink-strong);font:600 var(--t-label)/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;cursor:pointer;
+  box-shadow:0 6px 18px rgba(74,46,12,.18);transition:transform .2s}
+.aw .gbb-pill:hover{transform:translateY(-1px)}
+.aw .gbb-pill.on{background:linear-gradient(135deg,#C99A3F 0%,#A3782B 100%);border-color:#8C6014}
+/* mobil: AINUBIS sedí vpravo dole → lišta sa prisunie doľava a pilulky zhustia, aby ho neprekryli */
+@media(max-width:600px){.aw .gods-bottom-bar.gbb-pills{left:var(--s-md);right:auto;margin:0}.aw .gbb-pill{padding:0 var(--s-md);letter-spacing:.04em}}

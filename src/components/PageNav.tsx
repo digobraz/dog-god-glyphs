@@ -10,7 +10,7 @@ import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 // (`label` prebije `t(key)`).
 const NAV_ITEMS: { key: string; to: string; label?: string }[] = [
   { key: 'nav.dogypt', to: '/', label: 'DOGYPT' },
-  { key: 'nav.wall', to: '/wall' },
+  { key: 'nav.wall', to: '/hall' },
 ];
 
 // POZOR: kódy MUSIA matchovať LanguagePicker `label` + DICTS kľúče v LanguageContext
