@@ -10,7 +10,7 @@
 // ⚠️ Chyba sa nezdieľa dopredu — zlyhaný sľub sa z pamäte hneď zahodí, aby ďalší
 //    pokus nedostal tú istú chybu.
 import { supabase } from '@/integrations/supabase/client';
-import { EDGE_BASE } from '@/lib/env';
+import { EDGE_BASE, LIVE_EDGE_BASE } from '@/lib/env';
 
 const TTL_MS = 5_000;
 const cache = new Map<string, { at: number; p: Promise<unknown> }>();
@@ -31,13 +31,24 @@ export function shared<T>(key: string, run: () => Promise<T>, ttl = TTL_MS): Pro
 const STATS_TTL_MS = 120_000;
 const AFFILIATE_TTL_MS = 60_000;
 
+// Bezpečnostná previerka 21. 11. 2026: Supabase pred sebou Cloudflare nemá a `get-pack-stats` robí
+// 9 dotazov na volanie. Ostrá prevádzka preto číta kópiu z okraja (`/api/stats`, worker.js, 60 s);
+// priamo ide len DEV projekt a záloha, keď Worker neodpovie (aj kým nová verzia Workera nie je vonku).
+const STATS_VIA_WORKER = !import.meta.env.DEV && EDGE_BASE === LIVE_EDGE_BASE;
+const statsDirect = <T,>() =>
+  fetch(`${EDGE_BASE}/get-pack-stats`).then((r) => {
+    if (!r.ok) throw new Error(`get-pack-stats ${r.status}`);
+    return r.json() as Promise<T>;
+  });
+
 /** `get-pack-stats` — verejné čísla svorky (počty, top krajiny a plemená). */
 export function getPackStats<T = unknown>(): Promise<T> {
   return shared('pack-stats', () =>
-    fetch(`${EDGE_BASE}/get-pack-stats`).then((r) => {
-      if (!r.ok) throw new Error(`get-pack-stats ${r.status}`);
-      return r.json() as Promise<T>;
-    }),
+    STATS_VIA_WORKER
+      ? fetch('https://dogypt.com/api/stats')
+          .then((r) => (r.ok ? (r.json() as Promise<T>) : Promise.reject(r.status)))
+          .catch(() => statsDirect<T>())
+      : statsDirect<T>(),
     STATS_TTL_MS,
   );
 }

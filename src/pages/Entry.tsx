@@ -5,7 +5,7 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { useT } from '@/i18n/LanguageContext';
 import { track } from '@/lib/analytics';
 import { Seo } from '@/components/Seo';
-import { EDGE_BASE } from '@/lib/env';
+import { getPackStats } from '@/lib/sharedFetch';
 
 // ─────────────────────────────────────────────────────────────────────────
 //  /entry — VEREJNÁ conviction-gate stránka PRED heroglyph flow.
@@ -108,8 +108,7 @@ export default function Entry() {
   const [members, setMembers] = useState<number | null>(null);
   useEffect(() => {
     let alive = true;
-    fetch(`${EDGE_BASE}/get-pack-stats`)
-      .then((r) => r.json())
+    getPackStats<{ total?: number }>()
       .then((j) => { if (alive && typeof j?.total === 'number') setMembers(j.total); })
       .catch(() => { /* ticho — signed riadok ostane bez čísla */ });
     return () => { alive = false; };

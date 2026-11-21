@@ -244,7 +244,7 @@ export default function StoryWeb() {
     getPackStats<{ dogs?: number; total?: number }>().then((s) => { const n = s.dogs ?? s.total; if (n) setDogs(n); }).catch(() => {});
     /* Pätička ukazuje SKUTOČNÚ stenu aj v deve (Matej 13. 11.: „daj tu reálnu databázu, je ich 135“) — verejné,
        read-only endpointy, tie isté ako `/` a `/wall`; v produkcii je LIVE_EDGE_BASE totožný s EDGE_BASE. */
-    fetch(`${LIVE_EDGE_BASE}/get-pack-stats`).then((r) => r.json()).then((s: { dogs?: number; last30d?: number }) => { if (s.dogs) setLiveDogs(s.dogs); if (s.last30d != null) setNew30(s.last30d); }).catch(() => {});
+    (import.meta.env.DEV ? fetch(`${LIVE_EDGE_BASE}/get-pack-stats`).then((r) => r.json()) : getPackStats()).then((s: { dogs?: number; last30d?: number }) => { if (s.dogs) setLiveDogs(s.dogs); if (s.last30d != null) setNew30(s.last30d); }).catch(() => {});
     fetch(`${LIVE_EDGE_BASE}/get-grid-dogs?tiers=all`).then((r) => r.json()).then((list: { pack_number: number | null; dog_name: string; cloudinary_main_url: string | null }[]) => {
       const last = list.filter((x) => x.pack_number && x.cloudinary_main_url).sort((a, b) => (b.pack_number ?? 0) - (a.pack_number ?? 0))[0];
       if (last) setLastDog({ n: last.pack_number!, name: last.dog_name, img: last.cloudinary_main_url!.replace(/\/upload\/(?:[a-z]_[^/]+\/)?/, '/upload/c_fill,g_auto,w_320,h_320,f_auto,q_auto/') });

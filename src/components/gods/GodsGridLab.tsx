@@ -1334,8 +1334,9 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       el.className = 'dog-card reveal-card';
       el.style.left = (REVEAL_COL * GX) + 'px';
       el.style.top  = (REVEAL_ROW * GY) + 'px';
-      const safeName = (revealData.dogName || 'DOGYPTIAN')
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      // 🔴 `dogName` ide z adresy (`?dogName=`) aj do atribútu `alt="…"` — musí escapovať aj úvodzovky,
+      // inak `x" onload="…` spustí cudzí skript (bezpečnostná previerka 21. 11. 2026).
+      const safeName = esc(revealData.dogName || 'DOGYPTIAN');
       const packNumInt = parseInt(revealData.packNumber, 10);
       let cc = '';
       let revealOwnerMessage = '';
