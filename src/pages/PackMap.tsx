@@ -544,15 +544,18 @@ const USER_POS_ICON = L.divIcon({
 // a pulzom; bez fotky ostáva bodka `USER_POS_ICON`. Veľkosť rastie s priblížením (21. 11.: „čim vačší zoom
 // tým vačšia foto“): 36 px pri zoome ≤ 10, 68 px od zoomu 17.
 const userPosSize = (zoom: number) => Math.round(Math.min(68, Math.max(36, 36 + (zoom - 10) * 4.6)) / 2) * 2;
-const userPosAvatarIcon = (url: string, s: number) => L.divIcon({
+// Rám = ZLATÝ ODLIATOK + PES (Matej 21. 11.: „odliatok a pes dajme“, nákres plany/nakresy/mapa-moja-poloha-2026-11-21/ B):
+// zlatý 3D rám ako tlačidlá Papyrus 3D a prvý žijúci pes vpravo dole, ako v hlavičke VON.
+const userPosAvatarIcon = (url: string, s: number, dogUrl: string | null) => L.divIcon({
   className: 'trp-me-wrap',
   iconSize: [s, s],
   iconAnchor: [s / 2, s / 2],
-  html: `<span class="trp-me trp-me--av" style="--me:${s}px"><i></i><img src="${url.replace(/"/g, '%22')}" alt="" /></span>`,
+  html: `<span class="trp-me trp-me--av" style="--me:${s}px"><i></i><span class="trp-me-ring"><img src="${url.replace(/"/g, '%22')}" alt="" /></span>${
+    dogUrl ? `<img class="trp-me-dog" src="${dogUrl.replace(/"/g, '%22')}" alt="" />` : ''}</span>`,
 });
 // Moja poloha ide NAD všetko na mape (21. 11.: „avatar musí byť nad tým všetkým“) — vlastná vrstva nad
 // značkami (600) aj popiskami (650), pod bublinami (700). zIndexOffset nestačil: pilulky výletov majú 1000+.
-function UserPosMarker({ pos, avatarUrl }: { pos: [number, number]; avatarUrl: string | null }) {
+function UserPosMarker({ pos, avatarUrl, dogUrl }: { pos: [number, number]; avatarUrl: string | null; dogUrl: string | null }) {
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
   useMapEvent('zoomend', () => setZoom(map.getZoom()));
@@ -562,8 +565,8 @@ function UserPosMarker({ pos, avatarUrl }: { pos: [number, number]; avatarUrl: s
     p.style.pointerEvents = 'none';
   }
   const icon = useMemo(
-    () => (avatarUrl ? userPosAvatarIcon(avatarUrl, userPosSize(zoom)) : USER_POS_ICON),
-    [avatarUrl, zoom],
+    () => (avatarUrl ? userPosAvatarIcon(avatarUrl, userPosSize(zoom), dogUrl) : USER_POS_ICON),
+    [avatarUrl, dogUrl, zoom],
   );
   return <Marker position={pos} icon={icon} pane="trp-me" interactive={false} keyboard={false} />;
 }
@@ -2795,8 +2798,10 @@ const APP_NEW_CSS = `
 .trp-me-wrap{background:none;border:0;pointer-events:none;}
 .trp-me{position:relative;display:block;width:32px;height:32px;}
 .trp-me--av{width:var(--me,36px);height:var(--me,36px);}
-.trp-me--av img{position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;border-radius:${PACK_R.pill}px;object-fit:cover;border:3px solid ${T.cardEdge};outline:2px solid ${T.card};filter:drop-shadow(0 3px 6px rgba(0,0,0,.55));}
 .trp-me--av i{inset:-25%;}
+.trp-me-ring{position:absolute;inset:0;box-sizing:border-box;border-radius:${PACK_R.pill}px;padding:calc(var(--me,36px) * .09);background:linear-gradient(180deg,color-mix(in srgb,#EFD79A 72%,white),var(--p3d-gold));border:2.5px solid var(--p3d-ink);box-shadow:inset 0 2px 0 rgba(255,255,255,.6),inset 0 -3px 0 rgba(0,0,0,.18),0 calc(var(--me,36px) * .07) 0 var(--p3d-gold-ink),0 calc(var(--me,36px) * .13) calc(var(--me,36px) * .18) rgba(0,0,0,.45);}
+.trp-me-ring img{display:block;width:100%;height:100%;box-sizing:border-box;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid var(--p3d-ink);}
+.trp-me-dog{position:absolute;right:-10%;bottom:-8%;width:42%;height:42%;box-sizing:border-box;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid var(--p3d-ink);outline:2px solid var(--p3d-gold);box-shadow:0 2px 4px rgba(0,0,0,.4);}
 .trp-me i{position:absolute;inset:0;border-radius:50%;background:rgba(10,26,74,.28);animation:trp-me-pulse 2.2s ease-out infinite;}
 .trp-me b{position:absolute;left:8px;top:8px;width:16px;height:16px;box-sizing:border-box;border-radius:50%;background:${LAPIS.grad};border:3px solid ${T.card};outline:2px solid ${T.cardEdge};filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));}
 @keyframes trp-me-pulse{0%{transform:scale(.5);opacity:.9;}100%{transform:scale(1.25);opacity:0;}}
@@ -8177,7 +8182,11 @@ export default function PackMap() {
               {/* SOS pátrania — fotka psa v červenom obruči + kruhy 500 m / 10 km (SosMapLayer.tsx). Len TEST_BUILD. */}
               {SOS_ON && !isCleanMode && <SosMapLayer interactive={!mg && !mapDrawing && !wishFlow} />}
               {wishDraft && <Marker position={[wishDraft.lat, wishDraft.lon]} icon={WISH_DRAFT_ICON} interactive={false} />}
-              {APP_NEW && userPos && <UserPosMarker pos={userPos} avatarUrl={id.avatarUrl ? sizedUrl(id.avatarUrl, 160) : null} />}
+              {APP_NEW && userPos && <UserPosMarker
+                pos={userPos}
+                avatarUrl={id.avatarUrl ? sizedUrl(id.avatarUrl, 160) : null}
+                dogUrl={(() => { const d = id.dogs.find((x) => (x.life_status ?? 'alive') !== 'deceased' && x.cloudinary_main_url); return d ? sizedUrl(d.cloudinary_main_url as string, 80) : null; })()}
+              />}
               {noteDraft && (
                 <AddMapNotePin
                   lat={noteDraft.lat}
