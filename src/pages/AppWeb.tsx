@@ -319,7 +319,7 @@ function DogTrail({ goal }: { goal: string }) {
 const START = '/heroglyph/name';
 
 /** Živá planétka z `/` — montuje sa až pri obrazovke a mimo nej stojí. */
-function LivePlanet({ v2 }: { v2?: { enter: string; href: string; find: string; hall: string } }) {
+function LivePlanet({ v2 }: { v2?: { enter: string; href: string; find: string; hall: string; back: string } }) {
   const [mountRef, near] = useNear<HTMLDivElement>('1500px');
   const [visRef, vis] = useNear<HTMLElement>('0px', false);
   return (
@@ -966,7 +966,7 @@ export default function AppWeb() {
       </section>
 
       {/* 11 · ŽIVÁ PLANÉTKA — finále */}
-      <LivePlanet v2={V2 ? { enter: c('start'), href: START, find: c('pl_find'), hall: c('pl_hall') } : undefined} />
+      <LivePlanet v2={V2 ? { enter: c('start'), href: START, find: c('pl_find'), hall: c('pl_hall'), back: c('pl_back') } : undefined} />
 
 
       {nakres && (

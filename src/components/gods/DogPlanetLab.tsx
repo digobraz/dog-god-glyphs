@@ -512,7 +512,7 @@ export function DogPlanetLab({
       // malého textu)"*. Dva riadky, lebo na guli má portál ~118 px.
       // Matej 6. 10. 2026: *„add photo of your GOD nie dog — všade"* (ako stena).
       label: addLabel,
-      ...(enter ? { ariaLabel: enter.label } : {}),
+      ...(enter ? { ariaLabel: enter.label, noPlus: true } : {}),
       labelPicked: t('wall.photo.change'),
       note: '',
       // ⚠️ Cez REF, nie cez `photo` zo stavu — portál sa stavia raz (deps

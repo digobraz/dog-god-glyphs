@@ -513,7 +513,7 @@ interface GodsGridLabProps {
    * heroflow, nie výber fotky) a spodná lišta = dve pilulky „Vyhľadaj svojho psa“ · „Sieň psov“
    * namiesto ikoniek. Stena má adresu `/hall` (predtým `/wall`). Bez neho po starom.
    */
-  v2?: { enter: string; href: string; find: string; hall: string };
+  v2?: { enter: string; href: string; find: string; hall: string; back: string };
 }
 
 export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHref = '/heroglyph/name', portalDock = false, dockHostId, paused = false, onWallChange, planetAnywhere = false, v2 }: GodsGridLabProps = {}) {
@@ -1531,6 +1531,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         // — vzor gule (DogPlanetLab: „Add photo of your dog"), poznámka „(you can change
         // the photo later)" zanikla.
         label: v2Ref.current?.enter ?? tRef.current('wall.hero.addPhoto'),
+        noPlus: !!v2Ref.current,
         labelPicked: tRef.current('wall.photo.change'),
         note: '',
         subnote: `<span class="ph-nopill">${esc(tRef.current('wall.photo.yoursWillBe'))} <b>#${nextPackNo()}</b></span>`,
@@ -4059,7 +4060,11 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
             /* CLAIM 2: dve pilulky namiesto ikoniek (Matej 21. 11. 2026) — hľadanie psa a prepínač guľa ⇄ sieň */
             <div className="gods-bottom-bar gbb-pills">
               <button type="button" className={`gbb-pill${filterOpen ? ' on' : ''}`} onClick={() => setFilterOpen(f => !f)}>{v2.find}</button>
-              <button type="button" className={`gbb-pill${planetOpen ? '' : ' on'}`} aria-pressed={!planetOpen} onClick={() => setPlanetOpen(o => !o)}>{v2.hall}</button>
+              {/* Zo siene sa NEPREPÍNA späť na guľu — guľa sa vykreslila cez sieň a rozbila ju (Matej 21. 11.: „malo by tam byť späť na main stránku“).
+                  „Späť“ preto načíta hlavnú stránku nanovo (s tým istým `?…`), guľa štartuje čistá. */}
+              {planetOpen
+                ? <button type="button" className="gbb-pill" onClick={() => setPlanetOpen(false)}>{v2.hall}</button>
+                : <button type="button" className="gbb-pill" onClick={() => window.location.assign('/' + window.location.search)}>{v2.back}</button>}
             </div>
           ) : (
             <div className={`gods-bottom-bar${ctaMode ? ' has-cta' : ''}`}>

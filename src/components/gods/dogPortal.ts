@@ -238,6 +238,8 @@ export interface PortalOptions {
    */
   subnote?: string;
   ariaLabel?: string;
+  /** Bez „+“ nad popisom — jadro je vstup (CTA „Vstúp do DOGYPTU“), nie pridanie fotky (Matej 21. 11. 2026). */
+  noPlus?: boolean;
   /** Klik na jadro. */
   onPick?: () => void;
 }
@@ -265,7 +267,7 @@ export function buildPortal(opts: PortalOptions = {}): PortalHandle {
   const {
     faces = [], label = 'Add photo', labelPicked = 'Change photo',
     note = '', subnote = '',
-    ariaLabel = 'Add a photo of your god', onPick,
+    ariaLabel = 'Add a photo of your god', onPick, noPlus = false,
   } = opts;
 
   const el = document.createElement('span');
@@ -306,7 +308,7 @@ export function buildPortal(opts: PortalOptions = {}): PortalHandle {
       + '<span class="ph-add-veil" aria-hidden="true"></span>'
       + (photo ? `<img class="ph-shot" src="${photo}" alt="">` : '')
       + '<span class="ph-mark">'
-      +   `<span class="ph-ico" aria-hidden="true">${PLUS_SVG}</span>`
+      +   (noPlus ? '' : `<span class="ph-ico" aria-hidden="true">${PLUS_SVG}</span>`)
       +   `<span class="ph-lbl">${photo ? labelPicked : label}</span>`
       +   (note ? `<span class="ph-note">${note}</span>` : '')
       +   (subnote ? `<span class="ph-sub">${subnote}</span>` : '')
