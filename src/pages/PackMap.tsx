@@ -50,6 +50,7 @@
 import { ThinArrow } from '@/components/pack/ThinArrow';
 import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { sizedUrl } from '@/services/cloudinaryService';
+import { MyLocIcon } from '@/components/pack/MyLocIcon';
 import { usePublishPilgrimLevel } from '@/components/pack/usePilgrimStats';
 import { trackPack } from '@/lib/packAnalytics';
 import { Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -2788,6 +2789,9 @@ ${pcCSS(`(min-width:${PALE_PC_MIN}px)`, `
    Pridané ZA PALE_* a len pod APP_NEW (blok sa nevykreslí, keď je flag vypnutý). Stupnice z packTheme. */
 const APP_NEW_CSS = `
 .trp-root img.trp-sysico{width:22px!important;height:22px!important;object-fit:contain;filter:none!important;opacity:1!important;}
+/* Moja poloha = avatar (MyLocIcon, 21. 11. 2026): fotka sa nefarbí na bielo ako kresby v tlačidlách */
+.trp-root .trp-locatebtn .pk-medallion img{width:100%!important;height:100%!important;filter:none!important;opacity:1!important;}
+.trp-root .trp-locatebtn.loading .pk-medallion{opacity:.5;}
 .trp-root .trp-mfilterbtn img.trp-sysico{width:20px!important;height:20px!important;}
 .trp-root .trp-zoomgroup button img.trp-sysico{width:22px!important;height:22px!important;}
 .trp-avs{display:flex;align-items:flex-end;flex:none;}
@@ -8418,7 +8422,7 @@ export default function PackMap() {
                 aria-label={t('pack.map.myLocation')}
                 title={t('pack.map.myLocation')}
               >
-                <img src={APP_NEW ? '/icons/sys/poloha.webp' : ICON('locate')} alt="" className={APP_NEW ? 'trp-sysico' : undefined} />
+                {APP_NEW ? <MyLocIcon size={30} url={id.avatarUrl} /> : <img src={ICON('locate')} alt="" />}
               </button>
             </div>
 

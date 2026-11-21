@@ -40,7 +40,14 @@ export const DANGER_REPORT_TEXTS = {
   'pack.sos.danger.abuse.ombudsman': T('Animal ombudsman 0948 022 121', 'Zvierací ombudsman 0948 022 121', 'Zvierací ombudsman 0948 022 121'),
   'pack.sos.danger.report.ownWords': T('In your own words', 'Vlastnými slovami', 'Vlastními slovy'),
   'pack.sos.danger.report.ownWordsPh': T('What happened? Since when? What animal?', 'Čo sa dialo? Odkedy? Aké zviera?', 'Co se dělo? Od kdy? Jaké zvíře?'),
-  'pack.sos.danger.report.ownWordsHint': T('Tell us in your own words what happened. DOGYPT will write a professional official report from it and follow up on the reply.', 'Napíš nám vlastnými slovami, čo sa dialo. DOGYPT z toho napíše profesionálnu úradnú správu a bude kontrolovať odpoveď.', 'Napiš nám vlastními slovy, co se dělo. DOGYPT z toho napíše profesionální úřední zprávu a bude kontrolovat odpověď.'),
+  'pack.sos.danger.report.ownWordsHint': T('Write in your own words what you witnessed. DOGYPT can turn your report into an official statement and will follow how the authorities respond.', 'Napíš vlastnými slovami, čoho si bol svedkom. DOGYPT tvoje hlásenie môže upraviť do úradnej správy a bude sledovať reakciu príslušných úradov.', 'Napiš vlastními slovy, čeho jsi byl svědkem. DOGYPT může tvé hlášení upravit do úřední zprávy a bude sledovat reakci příslušných úřadů.'),
+  // 21. 11. 2026 Matej: voľba prepisu, väčšie písanie, posledný blok Kontakt
+  'pack.sos.danger.report.verDogypt': T('DOGYPT rewrites the report in official form and cites the relevant laws', 'DOGYPT hlásenie prepíše do úradnej podoby a uvedie príslušné zákony', 'DOGYPT hlášení přepíše do úřední podoby a uvede příslušné zákony'),
+  'pack.sos.danger.report.verOwn': T('I want to send my own version', 'Chcem poslať moju verziu', 'Chci poslat svou verzi'),
+  'pack.sos.danger.report.writeFull': T('Write on the full screen', 'Písať na celú obrazovku', 'Psát na celou obrazovku'),
+  'pack.sos.danger.report.writeDone': T('Done', 'Hotovo', 'Hotovo'),
+  'pack.sos.danger.report.contact': T('Contact', 'Kontakt', 'Kontakt'),
+  'pack.sos.danger.report.contactLead': T('We need your contact in case we need to know more, or so the authority can reach you for details. Thank you.', 'Tvoj kontakt potrebujeme v prípade, ak by sme potrebovali vedieť viac, alebo aby sa ti mohol ozvať úrad pre viac detailov. Ďakujeme.', 'Tvůj kontakt potřebujeme pro případ, že bychom potřebovali vědět víc, nebo aby se ti mohl ozvat úřad kvůli podrobnostem. Děkujeme.'),
   'pack.sos.danger.report.err.ownWords': T('Write at least a few words about what happened.', 'Napíš aspoň pár slov o tom, čo sa dialo.', 'Napiš alespoň pár slov o tom, co se dělo.'),
   'pack.sos.danger.report.complaintAlways': T('We always send a firm complaint to the authority', 'Dôrazný podnet úradu pošleme vždy', 'Důrazný podnět úřadu pošleme vždy'),
   'pack.sos.danger.report.complaintWho': T('We choose the authority by the place.', 'Úrad určíme podľa miesta.', 'Úřad určíme podle místa.'),
@@ -147,8 +154,8 @@ export const DANGER_REPORT_TEXTS = {
 
   // ── príroda (obrazovka 12) ───────────────────────────────────────────────
   'pack.sos.danger.nature.title': T('Other hazards', 'Iné nástrahy', 'Jiné nástrahy'),
-  'pack.sos.danger.nature.lead': T('The same warnings you add on the map with the plus. One list, two doors.', 'Tie isté upozornenia, ktoré už dnes pridávaš na mape cez plus. Jeden zoznam, dvoje dvere.', 'Stejná upozornění, která už dnes přidáváš na mapě přes plus. Jeden seznam, dvoje dveře.'),
-  'pack.sos.danger.nature.bodyHint': T('What did you see…', 'Čo si videl…', 'Co jsi viděl…'),
+  'pack.sos.danger.nature.lead': T('The same warnings you add on the map with the paw. One list, two doors.', 'Tie isté upozornenia, ktoré pridávaš na mape cez labku. Jeden zoznam, dvoje dvere.', 'Stejná upozornění, která přidáváš na mapě přes tlapku. Jeden seznam, dvoje dveře.'),
+  'pack.sos.danger.nature.bodyHint': T('Describe the danger', 'Popíš nebezpečenstvo', 'Popiš nebezpečí'),
   'pack.sos.danger.nature.add': T('Add to the map', 'Pridať na mapu', 'Přidat na mapu'),
   'pack.sos.danger.nature.sending': T('Adding…', 'Pridávam…', 'Přidávám…'),
   'pack.sos.danger.nature.err.body': T('Write a few words about what you saw.', 'Napíš pár slov o tom, čo si videl.', 'Napiš pár slov o tom, co jsi viděl.'),

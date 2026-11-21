@@ -13,6 +13,7 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { sosDeclare, sosLastPhone, sosMyDogs, sosResume, type SosDog } from '@/lib/sos';
 import { sosInvalidate } from '@/components/pack/sosKit';
 import { MapAttribution, MAP_ATTR_CSS } from '@/components/pack/mapAttribution';
+import { MyLocIcon } from '@/components/pack/MyLocIcon';
 import { PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI } from '@/components/pack/packTheme';
 import { APP_NEW } from '@/lib/packFlags';
 import { changeDogMainPhoto } from '@/components/pack/profile/mePosts';
@@ -411,7 +412,7 @@ export default function PackSosNew() {
             <p className="sos-p">{s('pack.sos.new.mapHint')}</p>
             <div className="sosn-map">
               <PickMap center={center} zoom={zoom} pt={pt} onPick={pick} locateTick={locateTick} onTiles={(ok) => setMapFail(!ok)} />
-              <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm sosn-loc" style={{ width: 'auto', background: T.card }} onClick={locate}>{s('pack.sos.new.myLocation')}</button>
+              <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm sosn-loc" style={{ width: 'auto', background: T.card }} onClick={locate}><MyLocIcon size={24} />{s('pack.sos.new.myLocation')}</button>
               <MapAttribution />
             </div>
             {locErr && <p className="sos-err">{locErr}</p>}

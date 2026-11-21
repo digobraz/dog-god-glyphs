@@ -13,7 +13,8 @@ import { MAPY_API_KEY, MAPY_BASE, mapyTiles } from '@/lib/env';
 import { useLang } from '@/i18n/LanguageContext';
 import { countryISO3 } from '@/lib/countryGeo';
 import { MapAttribution, MAP_ATTR_CSS } from '@/components/pack/mapAttribution';
-import { PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT, FONT_UI } from '@/components/pack/packTheme';
+import { MyLocIcon } from '@/components/pack/MyLocIcon';
+import { PACK_THEME as T, PACK_R, PACK_SPACE as S, PACK_TEXT, FONT_UI, PAGE_AIR } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { uploadDangerPhoto } from '@/services/cloudinaryService';
@@ -245,6 +246,14 @@ export const DANGER_FORM_CSS = `
 .dgr-ai b span{color:${AINUBIS.cyan};}
 .dgr-tl{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:${S.md}px;font-size:${PACK_TEXT.body}px;line-height:1.45;}
 .dgr-links{display:flex;flex-wrap:wrap;gap:${S.sm}px;}
+.dgr-tawrap{position:relative;}
+.dgr-tawrap textarea.pf-field{padding-right:${S.xxxl}px;min-height:144px;overflow:hidden;}
+.dgr-big{position:absolute;right:${S.sm}px;top:${S.sm}px;display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:1px solid ${T.border};border-radius:${PACK_R.pill}px;background:${T.card};cursor:pointer;}
+.dgr-full{position:fixed;inset:0;z-index:3000;display:flex;flex-direction:column;gap:${S.md}px;padding:calc(env(safe-area-inset-top) + ${PAGE_AIR.min}px) ${PAGE_AIR.side}px calc(env(safe-area-inset-bottom) + ${PAGE_AIR.min}px);background:${T.card};box-sizing:border-box;}
+.dgr-full textarea.pf-field{flex:1;min-height:0;resize:none;padding:${S.md}px;line-height:1.5;font-size:${PACK_TEXT.lead}px;}
+.dgr-chk{display:flex;gap:${S.md}px;align-items:flex-start;cursor:pointer;font-size:${PACK_TEXT.body}px;line-height:1.4;color:${T.inkStrong};}
+.dgr-chk input{-webkit-appearance:none;appearance:none;width:20px;height:20px;margin:2px 0 0;flex:none;border-radius:${PACK_R.pill}px;border:2px solid ${T.border};background:${T.card};cursor:pointer;}
+.dgr-chk input:checked{border-color:${T.sosRed};background:${T.sosRed};box-shadow:inset 0 0 0 3px ${T.card};}
 .dgr-links button{all:unset;cursor:pointer;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;font-weight:600;color:${T.inkStrong};text-decoration:underline;text-underline-offset:2px;}
 `;
 
@@ -252,7 +261,7 @@ const ERRS = ['bad_coords', 'rate_limited', 'no_access', 'bad_text', 'not_authen
 const BODY_MAX = 1200;
 
 interface ReportDraft {
-  pt: [number, number] | null; geo: GeoPick; what: string[]; body: string; radius: number; photoCount: number;
+  pt: [number, number] | null; geo: GeoPick; what: string[]; body: string; radius: number; photoCount: number; ownVersion?: boolean;
 }
 
 export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' }) {
@@ -268,6 +277,18 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
   const [phone, setPhone] = useState('');
   const [complaint, setComplaint] = useState<'sent' | 'fail' | null>(null);
   const [body, setBody] = useState(draft?.body ?? '');
+  // Matej 21. 11. 2026: „DOGYPT prepíše hlásenie … alebo chcem poslať moju verziu“ — predvoľba = prepíše
+  const [ownVersion, setOwnVersion] = useState(!!draft?.ownVersion);
+  // písanie na celú obrazovku (dlhšie správy) + pole rastie s textom
+  const [bigWrite, setBigWrite] = useState(false);
+  const taRef = useRef<HTMLTextAreaElement | null>(null);
+  useEffect(() => { const el = taRef.current; if (!el) return; el.style.height = 'auto'; el.style.height = `${el.scrollHeight + 2}px`; }, [body, bigWrite]);
+  useEffect(() => {
+    if (!bigWrite) return;
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') setBigWrite(false); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [bigWrite]);
   const [radius, setRadius] = useState<number>(draft?.radius ?? DANGER_RADIUS.def);
   const [files, setFiles] = useState<File[]>([]);
   // koľko fotiek malo rozpísané pred obnovením (fotky sa obnoviť nedajú, veta to povie)
@@ -297,14 +318,14 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
   useEffect(() => { dangerLastPhone().then((p) => p && setPhone((x) => x || p)).catch(() => undefined); }, []);
 
   // rozpísané do sessionStorage (po odoslaní sa zmaže)
-  const snap = { pt, geo, what, body, radius, photoCount: files.length || lostPhotos } satisfies ReportDraft;
+  const snap = { pt, geo, what, body, radius, photoCount: files.length || lostPhotos, ownVersion } satisfies ReportDraft;
   const snapRef = useRef(snap);
   snapRef.current = snap;
   useEffect(() => {
     if (sent) return;
     saveDraft(draftKey, snap);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sent, draftKey, pt, geo, what, body, radius, files.length, lostPhotos]);
+  }, [sent, draftKey, pt, geo, what, body, radius, files.length, lostPhotos, ownVersion]);
   // aj pri zatvorení karty / obnovení: posledný stav (napr. písmeno napísané tesne pred reloadom)
   const sentRef = useRef(false);
   sentRef.current = !!sent;
@@ -374,7 +395,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
             await dangerComplaintCreate({
               case_id: r.id, country: (geo.country ?? 'SK') === 'CZE' ? 'CZ' : 'SK',
               place_label: geo.place.trim() || geo.municipality?.trim() || `${pt[0].toFixed(5)}, ${pt[1].toFixed(5)}`,
-              authority_code: 'AUTO', raw: body.trim(), phone: tel, sign_name: null, cc_linka: regionOf(geo.country) === 'SK', photos,
+              authority_code: 'AUTO', raw: body.trim(), phone: tel, sign_name: null, cc_linka: regionOf(geo.country) === 'SK', photos, own_version: ownVersion,
             });
             setComplaint('sent');
           } catch { setComplaint('fail'); }
@@ -452,7 +473,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
         <p className="sos-p">{s('pack.sos.danger.report.mapHint')}</p>
         <div className={`dgr-map${fe.bad === 'map' ? ' is-bad' : ''}`} ref={fe.reg('map')}>
           <DangerMap center={center} zoom={zoom} pt={pt} radius={mode === 'poison' ? radius : null} onPick={(p) => { fe.clear('map'); setErr(''); setErrLink(false); pick(p); }} locateTick={locateTick} onTiles={onTiles} />
-          <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm dgr-loc" onClick={locate}>{s('pack.sos.danger.report.myLocation')}</button>
+          <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm dgr-loc" onClick={locate}><MyLocIcon size={24} />{s('pack.sos.danger.report.myLocation')}</button>
           <MapAttribution />
         </div>
         {locText && <p className="sos-err">{locText}</p>}
@@ -473,7 +494,6 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
       <SosCard>
         <>
             <p className="sos-eyebrow">{s('pack.sos.danger.report.what')}</p>
-            {mode === 'abuse' && <p className="sos-small">{s('pack.sos.danger.report.whatHint')}</p>}
             <div className={`sos-chips${fe.bad === 'what' ? ' dgr-bad' : ''}`} ref={fe.reg('what')}>
               {chips.map((c) => (
                 <button key={c} type="button" className={`sos-pill sos-pick dgr-chip${what.includes(c) ? ' is-on' : ''}`} aria-pressed={what.includes(c)} onClick={() => toggle(c)}>
@@ -483,11 +503,29 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
             </div>
         </>
         <label className="sos-field"><span>{s(mode === 'abuse' ? 'pack.sos.danger.report.ownWords' : 'pack.sos.danger.report.body')}</span>
-          <textarea ref={fe.reg('body')} className={`pf-field dgr-ta${fe.bad === 'body' ? ' is-bad' : ''}`} rows={4} maxLength={BODY_MAX} value={body} onChange={(e) => { fe.clear('body'); setBody(e.target.value); }}
-            placeholder={s(mode === 'abuse' ? 'pack.sos.danger.report.ownWordsPh' : 'pack.sos.danger.report.bodyPoison')} />
+          <span className="dgr-tawrap">
+            <textarea ref={(el) => { fe.reg('body')(el); taRef.current = el; }} className={`pf-field dgr-ta${fe.bad === 'body' ? ' is-bad' : ''}`} rows={6} maxLength={BODY_MAX} value={body} onChange={(e) => { fe.clear('body'); setBody(e.target.value); }}
+              placeholder={s(mode === 'abuse' ? 'pack.sos.danger.report.ownWordsPh' : 'pack.sos.danger.report.bodyPoison')} />
+            <button type="button" className="dgr-big" aria-label={s('pack.sos.danger.report.writeFull')} title={s('pack.sos.danger.report.writeFull')} onClick={(e) => { e.preventDefault(); setBigWrite(true); }}><SysIcon name="ceruzka" size={20} /></button>
+          </span>
           <CharCount len={body.length} max={BODY_MAX} />
         </label>
         {mode === 'abuse' && <p className="sos-small">{s('pack.sos.danger.report.ownWordsHint')}</p>}
+        {mode === 'abuse' && (
+          <div role="radiogroup" style={{ display: 'flex', flexDirection: 'column', gap: S.md }}>
+            <label className="dgr-chk"><input type="radio" name="dgr-ver" checked={!ownVersion} onChange={() => setOwnVersion(false)} /><span>{s('pack.sos.danger.report.verDogypt')}</span></label>
+            <label className="dgr-chk"><input type="radio" name="dgr-ver" checked={ownVersion} onChange={() => setOwnVersion(true)} /><span>{s('pack.sos.danger.report.verOwn')}</span></label>
+          </div>
+        )}
+        {bigWrite && (
+          <div className="dgr-full" role="dialog" aria-modal="true" aria-label={s(mode === 'abuse' ? 'pack.sos.danger.report.ownWords' : 'pack.sos.danger.report.body')}>
+            <p className="sos-eyebrow">{s(mode === 'abuse' ? 'pack.sos.danger.report.ownWords' : 'pack.sos.danger.report.body')}</p>
+            <textarea className="pf-field" autoFocus maxLength={BODY_MAX} value={body} onChange={(e) => { fe.clear('body'); setBody(e.target.value); }}
+              placeholder={s(mode === 'abuse' ? 'pack.sos.danger.report.ownWordsPh' : 'pack.sos.danger.report.bodyPoison')} />
+            <CharCount len={body.length} max={BODY_MAX} />
+            <button type="button" className="sos-cta" onClick={() => setBigWrite(false)}>{s('pack.sos.danger.report.writeDone')}</button>
+          </div>
+        )}
         {mode === 'poison' && (
           <label className="sos-field"><span>{s('pack.sos.danger.report.radius', { n: radius })}</span>
             <input className="dgr-range" type="range" min={DANGER_RADIUS.min} max={DANGER_RADIUS.max} step={50} value={radius} onChange={(e) => setRadius(Number(e.target.value))} />
@@ -521,12 +559,12 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
 
       {showComplaint && (
         <SosCard>
-          <p className="sos-p"><b>{s('pack.sos.danger.report.complaintAlways')}</b></p>
-          <p className="sos-small">{s('pack.sos.danger.report.complaintWho')}{regionOf(geo.country ?? 'SVK') === 'SK' ? ` ${s('pack.sos.danger.report.complaintCopySK')}` : ''}</p>
+          {/* Matej 21. 11. 2026: posledný blok = Kontakt + prečo ho chceme */}
+          <p className="sos-eyebrow">{s('pack.sos.danger.report.contact')}</p>
+          <p className="sos-small">{s('pack.sos.danger.report.contactLead')}</p>
           <label className="sos-field"><span>{s('pack.sos.danger.complaint.phone')}</span>
             <input ref={fe.reg('phone')} className={`pf-field${fe.bad === 'phone' ? ' is-bad' : ''}`} type="tel" inputMode="tel" autoComplete="tel" maxLength={24} value={phone} onChange={(e) => { fe.clear('phone'); setPhone(e.target.value); }} />
           </label>
-          <p className="sos-small">{s('pack.sos.danger.report.phoneHint')}</p>
         </SosCard>
       )}
 

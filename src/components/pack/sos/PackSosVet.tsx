@@ -7,6 +7,7 @@ import { LAPIS } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { driveTimes, type DriveTime } from '@/components/pack/addtrip/mapProxyClient';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { MyLocIcon } from '@/components/pack/MyLocIcon';
 import { SosTaskShell } from './SosTaskShell';
 import { ClinicPawsLine, CLINIC_PAWS_CSS } from '@/components/geo/ClinicPawsLine';
 import { useClinicStats } from '@/components/geo/clinicPosts';
@@ -299,7 +300,7 @@ export default function PackSosVet() {
           {gps ? <option value="">{s('pack.sos.er.myLoc')}</option> : <option value="" disabled>{s('pack.sos.er.where')}</option>}
           {CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
         </select>
-        {!gps && gpsState !== 'denied' && <button type="button" className="sos-cta sos-cta--sm sos-cta--ghost" style={{ width: 'auto' }} onClick={locate} disabled={gpsState === 'wait'}>{s('pack.sos.er.gps')}</button>}
+        {!gps && gpsState !== 'denied' && <button type="button" className="sos-cta sos-cta--sm sos-cta--ghost" style={{ width: 'auto' }} onClick={locate} disabled={gpsState === 'wait'}><MyLocIcon size={24} />{s('pack.sos.er.gps')}</button>}
       </div>
       {!me && gpsState === 'wait' && <p className="vet-more">{s('pack.sos.er.locating')}</p>}
       {!me && gpsState === 'fail' && <p className="vet-more">{s('pack.sos.er.gpsFail')}</p>}

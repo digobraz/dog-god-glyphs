@@ -140,6 +140,8 @@ export interface DangerComplaintInput {
   sign_name: string | null; // null = „DOGYPT za mňa“
   cc_linka: boolean;
   photos: string[];
+  /** true = „chcem poslať moju verziu“ (AI neprepisuje, dispečer pošle vlastné slová) */
+  own_version?: boolean;
 }
 
 const KNOWN_ERRORS = [
@@ -243,6 +245,8 @@ export const dangerComplaintCreate = (p: DangerComplaintInput) => call<string>('
   p_case: p.case_id, p_country: p.country, p_place_label: p.place_label, p_authority: p.authority_code,
   p_raw: p.raw, p_official: '' /* server ho ignoruje: úradný text píšeme my */, p_phone: p.phone, p_sign_name: p.sign_name, p_cc_linka: p.cc_linka,
   p_photos: p.photos,
+  // len keď je zaškrtnuté: DB bez migrácie 20270107 by 11. parameter nepoznala a podnet by spadol
+  ...(p.own_version ? { p_own_version: true } : {}),
 });
 
 export const dangerOutcome = (complaintId: string, outcome: DangerOutcome) => call<void>('danger_outcome', { p_complaint: complaintId, p_outcome: outcome });
