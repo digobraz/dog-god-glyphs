@@ -4207,6 +4207,7 @@ export const en = {
   'pack.addTrip.step.ptsMany': "{n} points",
   'pack.addTrip.step.askHowTo': "Tap what you are marking, then show the spot on the map.",
   'pack.addTrip.step.notesQ': "What should the next one know?",
+  'pack.addTrip.step.noteOnMap': "on the map",
   'pack.addTrip.step.askParking': "Where did you park?",
   'pack.addTrip.step.askWarning': "Was there anything dangerous there?",
   'pack.addTrip.step.askTip': "A quiet spot, water, a view — anything worth knowing?",
