@@ -11,7 +11,7 @@ export const DANGER_REPORT_TEXTS = {
   'pack.sos.danger.hub.abuse.sub': T('Cruelty, dog fights, puppy mills and more', 'Týranie, zápasy psov, množiarne a ďalšie', 'Týrání, zápasy psů, množírny a další'),
   'pack.sos.danger.hub.poison': T('Poison and traps', 'Otrava a nástrahy', 'Otrava a nástrahy'),
   'pack.sos.danger.hub.poison.sub': T('Poison, bait, nails, glass, traps', 'Jed, návnady, klince, sklo, pasce', 'Jed, návnady, hřebíky, sklo, pasti'),
-  'pack.sos.danger.hub.nature': T('Nature', 'Príroda', 'Příroda'),
+  'pack.sos.danger.hub.nature': T('Other hazards', 'Iné nástrahy', 'Jiné nástrahy'),
   'pack.sos.danger.hub.nature.sub': T('Poison and traps, ticks, wildlife and other warnings in nature.', 'Otrava a nástrahy, kliešte, zver a ďalšie výstrahy v prírode.', 'Otrava a nástrahy, klíšťata, zvěř a další výstrahy v přírodě.'),
   'pack.sos.danger.hub.motto': T('We will not look away. Dogypt members nearby will see what you mark.', 'Nebudeme ľahostajní. Čo označíš, uvidia Dogypťania v okolí.', 'Nebudeme lhostejní. Co označíš, uvidí Dogypťané v okolí.'),
   'pack.sos.danger.hub.country': T('I am in another country', 'Som v inej krajine', 'Jsem v jiné zemi'),
@@ -146,7 +146,7 @@ export const DANGER_REPORT_TEXTS = {
   'pack.sos.danger.report.sent.open': T('Open the warning', 'Otvoriť varovanie', 'Otevřít varování'),
 
   // ── príroda (obrazovka 12) ───────────────────────────────────────────────
-  'pack.sos.danger.nature.title': T('Nature', 'Príroda', 'Příroda'),
+  'pack.sos.danger.nature.title': T('Other hazards', 'Iné nástrahy', 'Jiné nástrahy'),
   'pack.sos.danger.nature.lead': T('The same warnings you add on the map with the plus. One list, two doors.', 'Tie isté upozornenia, ktoré už dnes pridávaš na mape cez plus. Jeden zoznam, dvoje dvere.', 'Stejná upozornění, která už dnes přidáváš na mapě přes plus. Jeden seznam, dvoje dveře.'),
   'pack.sos.danger.nature.bodyHint': T('What did you see…', 'Čo si videl…', 'Co jsi viděl…'),
   'pack.sos.danger.nature.add': T('Add to the map', 'Pridať na mapu', 'Přidat na mapu'),
