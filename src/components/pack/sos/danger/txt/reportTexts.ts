@@ -70,6 +70,8 @@ export const DANGER_REPORT_TEXTS = {
   'pack.sos.danger.report.otherCountry': T('This place is outside Slovakia and Czechia. We can only send a general warning.', 'Toto miesto je mimo Slovenska a Česka. Môžeme poslať len všeobecné upozornenie.', 'Toto místo je mimo Slovenska a Česka. Můžeme poslat jen obecné upozornění.'),
   'pack.sos.danger.report.otherCountryLink': T('What to do in another country', 'Čo robiť v inej krajine', 'Co dělat v jiné zemi'),
   'pack.sos.danger.report.what': T('What do you see', 'Čo vidíš', 'Co vidíš'),
+  // 21. 11. 2026 Matej: človeku treba povedať, prečo vyberá (aj viac) — podľa toho píšeme správu úradu
+  'pack.sos.danger.report.whatHint': T('Pick everything you see, even more than one. We use it to write the report we send to the right authority for you.', 'Označ všetko, čo vidíš, aj viac. Podľa toho napíšeme správu, ktorú za teba pošleme na príslušný úrad.', 'Označ všechno, co vidíš, i víc. Podle toho napíšeme zprávu, kterou za tebe pošleme na příslušný úřad.'),
   'pack.sos.danger.report.often': T('How often', 'Ako často', 'Jak často'),
   'pack.sos.danger.report.body': T('Description', 'Popis', 'Popis'),
   'pack.sos.danger.report.bodyAbuse': T('Describe what you saw and when…', 'Popíš, čo si videl a kedy…', 'Popiš, co jsi viděl a kdy…'),

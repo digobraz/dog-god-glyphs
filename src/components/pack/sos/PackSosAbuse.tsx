@@ -97,7 +97,7 @@ export default function PackSosAbuse() {
       <SosCard>
         <p className="sos-p"><b>{s('pack.sos.danger.abuse.markLead')}</b></p>
         <button type="button" className="sos-cta sos-cta--red" onClick={() => navigate('/pack/sos/nebezpecenstvo/tyranie/miesto')}>
-          <SysIcon name="sos-signal" size={28} />{s('pack.sos.danger.abuse.mark')}
+          {s('pack.sos.danger.abuse.mark')}
         </button>
       </SosCard>
       {lang === 'sk' && (

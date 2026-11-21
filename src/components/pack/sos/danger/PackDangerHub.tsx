@@ -1,6 +1,6 @@
 // `/pack/sos/nebezpecenstvo` — NAHLÁSIŤ NEBEZPEČENSTVO: rozcestník (nákres scr 2). LEN DVOJE dvere: Týranie · Príroda (Matej 21. 11. 2026).
 // Otrava a nástrahy je prvá položka zoznamu v Prírode (toku `/otrava` sa to nedotklo). Kôš 3 (SosTaskShell). Ikonky len existujúce
-// samolepky (SysIcon): týranie `sos-tyranie`, príroda `zver` (náhrada, vlastná ikonka chýba).
+// samolepky (SysIcon): týranie `sos-tyranie`, príroda `sos-had` (had A zo súrodých výstrah, Matej 21. 11. 2026, červený okraj).
 import { useNavigate } from 'react-router-dom';
 import { PACK_BOX, PACK_R, PACK_SPACE as S, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
 import { SysIcon } from '@/components/pack/SysIcon';
@@ -10,7 +10,7 @@ import type { SosKey } from '../sosTexts';
 
 const DOORS: { to: string; icon: string; t: SosKey; sub: SosKey; red?: boolean }[] = [
   { to: '/pack/sos/nebezpecenstvo/tyranie', icon: 'sos-tyranie', t: 'pack.sos.danger.hub.abuse', sub: 'pack.sos.danger.hub.abuse.sub', red: true },
-  { to: '/pack/sos/nebezpecenstvo/priroda', icon: 'zver', t: 'pack.sos.danger.hub.nature', sub: 'pack.sos.danger.hub.nature.sub' },
+  { to: '/pack/sos/nebezpecenstvo/priroda', icon: 'sos-had', t: 'pack.sos.danger.hub.nature', sub: 'pack.sos.danger.hub.nature.sub', red: true },
 ];
 
 const CSS = `

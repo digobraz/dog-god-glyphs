@@ -8222,6 +8222,7 @@ export const cs: Partial<Dict> = {
   "pack.sos.danger.report.otherCountry": "Toto místo je mimo Slovenska a Česka. Můžeme poslat jen obecné upozornění.",
   "pack.sos.danger.report.otherCountryLink": "Co dělat v jiné zemi",
   "pack.sos.danger.report.what": "Co vidíš",
+  "pack.sos.danger.report.whatHint": "Označ všechno, co vidíš, i víc. Podle toho napíšeme zprávu, kterou za tebe pošleme na příslušný úřad.",
   "pack.sos.danger.report.often": "Jak často",
   "pack.sos.danger.report.body": "Popis",
   "pack.sos.danger.report.bodyAbuse": "Popiš, co jsi viděl a kdy…",

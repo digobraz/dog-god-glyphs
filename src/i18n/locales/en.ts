@@ -8565,6 +8565,7 @@ export const en = {
   "pack.sos.danger.report.otherCountry": "This place is outside Slovakia and Czechia. We can only send a general warning.",
   "pack.sos.danger.report.otherCountryLink": "What to do in another country",
   "pack.sos.danger.report.what": "What do you see",
+  "pack.sos.danger.report.whatHint": "Pick everything you see, even more than one. We use it to write the report we send to the right authority for you.",
   "pack.sos.danger.report.often": "How often",
   "pack.sos.danger.report.body": "Description",
   "pack.sos.danger.report.bodyAbuse": "Describe what you saw and when…",

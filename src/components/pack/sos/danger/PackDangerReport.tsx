@@ -473,6 +473,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
       <SosCard>
         <>
             <p className="sos-eyebrow">{s('pack.sos.danger.report.what')}</p>
+            {mode === 'abuse' && <p className="sos-small">{s('pack.sos.danger.report.whatHint')}</p>}
             <div className={`sos-chips${fe.bad === 'what' ? ' dgr-bad' : ''}`} ref={fe.reg('what')}>
               {chips.map((c) => (
                 <button key={c} type="button" className={`sos-pill sos-pick dgr-chip${what.includes(c) ? ' is-on' : ''}`} aria-pressed={what.includes(c)} onClick={() => toggle(c)}>

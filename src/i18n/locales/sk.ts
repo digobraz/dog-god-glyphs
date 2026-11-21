@@ -8258,6 +8258,7 @@ export const sk: Partial<Dict> = {
   "pack.sos.danger.report.otherCountry": "Toto miesto je mimo Slovenska a Česka. Môžeme poslať len všeobecné upozornenie.",
   "pack.sos.danger.report.otherCountryLink": "Čo robiť v inej krajine",
   "pack.sos.danger.report.what": "Čo vidíš",
+  "pack.sos.danger.report.whatHint": "Označ všetko, čo vidíš, aj viac. Podľa toho napíšeme správu, ktorú za teba pošleme na príslušný úrad.",
   "pack.sos.danger.report.often": "Ako často",
   "pack.sos.danger.report.body": "Popis",
   "pack.sos.danger.report.bodyAbuse": "Popíš, čo si videl a kedy…",
