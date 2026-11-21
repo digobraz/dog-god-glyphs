@@ -621,7 +621,7 @@ const BIG_MARK_PX = 36;
 // keď tak v appke doladíme"). Jedna krivka pre vlajku z7 → z14, ostatné sú jej násobky: zhluk +6, magistrála +8,
 // voda podľa troch stupňov z továrne. Web bez samolepiek ostáva na BIG_MARK_PX.
 const FLAG_PX = [28, 32, 36, 40, 44, 48, 52, 56];
-const flagPx = (z: number) => (MAP_STICKERS_ON ? FLAG_PX[Math.min(7, Math.max(0, Math.round(z) - 7))] : BIG_MARK_PX);
+const flagPx = (z: number) => (!MAP_STICKERS_ON ? BIG_MARK_PX : z < MAP_NEAR_ZOOM ? FAR_FLAG_PX : FLAG_PX[Math.min(7, Math.max(0, Math.round(z) - 7))]);
 const WATER_K: Record<WaterPlace['kind'], number> = { rybnik: 0.85, jazero: 1, priehrada: 1.25 };
 const lakePx = (p: MapPoint, z: number) => Math.round(flagPx(z) * (p.lake ? WATER_K[p.lake.kind] : 1));
 const JOURNEY_PLUS = 8;
@@ -632,6 +632,11 @@ const CLUSTER_PLUS = 6;
 // výlete je vtedy obyčajná vlajka. Od 9: jazerá, veterinári, vretenice, upozornenia, priania · od 13 ikonky
 // upozornení · od 15 body z OSM. Celé SK sa do okna zmestí práve pod z9 (viď `JOURNEY_KM_ZOOM`).
 const MAP_NEAR_ZOOM = 9;
+// V diaľke pár VEĽKÝCH vlajok, každá nesie veľký kus krajiny (Matej 21. 11. 2026: „v tom najväčšom zoom oute by
+// boli tie vlajky podstatne väčšie… kľudne len 3 na Slovensku, ale cez veľkú časť krajiny"). Zhluk sa preto v diaľke
+// ráta v KILOMETROCH, nie v pixeloch — SK má ~430 km, polomer 110 km z neho urobí zhruba tri vlajky na každom zoome.
+const FAR_FLAG_PX = 64;
+const FAR_CLUSTER_M = 110_000;
 const LAKE_NAME_MIN_ZOOM = MAP_NEAR_ZOOM;
 /** Zelená fajka na vlajke prejdeného výletu — vidno vždy, nie len pri vrstve Moje výlety (Matej 21. 11. 2026: „ok"). */
 const WALKED_MARK = '/icons/sys/fajka-zelena.webp';
@@ -1184,7 +1189,8 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
     // a pohltenie do bubliny s počtom by ich z mapy zmazalo. Mimo toho pásma (celá Európa) sú to
     // už len bodky a zhlukujú sa ako všetko ostatné — inak sa na seba nakopia.
     // V appke stojí magistrála ako vlajka samostatne na každom zoome (10. 11. 2026), bodka zanikla.
-    const standsAlone = (p: MapPoint) => pointIsPill(p, zoom) || (MAP_STICKERS_ON && p.journey);
+    const far = MAP_STICKERS_ON && zoom < MAP_NEAR_ZOOM;
+    const standsAlone = (p: MapPoint) => !far && (pointIsPill(p, zoom) || (MAP_STICKERS_ON && p.journey));
     const pillPts = vis.filter(standsAlone);
     const lakePts = vis.filter((p) => lakes.has(p.id));
     const rest = vis.filter((p) => !standsAlone(p) && !lakes.has(p.id));
@@ -1192,7 +1198,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
     // 1) hrubé zhluky — greedy podľa vzdialenosti v pixeloch (stabilné poradie zľava dole,
     //    nech ten istý výrez dá vždy ten istý výsledok a bubliny pri pane neposkakujú).
     type Cl = { x: number; y: number; pts: MapPoint[] };
-    const seedR = MAP_STICKERS_ON ? flagPx(zoom) * 0.9 : tier === 0 ? 34 : 28;
+    const seedR = far ? FAR_CLUSTER_M / metersPerPixel(map.getCenter().lat, zoom) : MAP_STICKERS_ON ? flagPx(zoom) * 0.9 : tier === 0 ? 34 : 28;
     const proj = rest
       .map((p) => { const pt = map.latLngToContainerPoint([p.lat, p.lon]); return { p, x: pt.x, y: pt.y }; })
       .sort((a, b) => a.x - b.x || a.y - b.y);
