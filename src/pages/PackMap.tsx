@@ -621,23 +621,25 @@ const BIG_MARK_PX = 36;
 // keď tak v appke doladíme"). Jedna krivka pre vlajku z7 → z14, ostatné sú jej násobky: zhluk +6, magistrála +8,
 // voda podľa troch stupňov z továrne. Web bez samolepiek ostáva na BIG_MARK_PX.
 const FLAG_PX = [28, 32, 36, 40, 44, 48, 52, 56];
-const flagPx = (z: number) => (!MAP_STICKERS_ON ? BIG_MARK_PX : z < MAP_NEAR_ZOOM ? FAR_FLAG_PX : FLAG_PX[Math.min(7, Math.max(0, Math.round(z) - 7))]);
+const flagPx = (z: number) => (!MAP_STICKERS_ON ? BIG_MARK_PX : z < MAP_NEAR_ZOOM ? farFlagPx(z) : FLAG_PX[Math.min(7, Math.max(0, Math.round(z) - 7))]);
 const WATER_K: Record<WaterPlace['kind'], number> = { rybnik: 0.85, jazero: 1, priehrada: 1.25 };
 const lakePx = (p: MapPoint, z: number) => Math.round(flagPx(z) * (p.lake ? WATER_K[p.lake.kind] : 1));
 const JOURNEY_PLUS = 8;
 const GHOST_MIN_ZOOM = 10;
 const CLUSTER_PLUS = 6;
-// DIAĽKA = celé krajiny (Matej 21. 11. 2026: „zdiaľky … len ikonky výletov, vlajky, prípadne SOS … pri približovaní
-// sa začnú vynárať"). Pod `MAP_NEAR_ZOOM` stoja na mape LEN hranice, vlajky výletov, SOS a moja poloha; jazero pri
-// výlete je vtedy obyčajná vlajka. Od 9: jazerá, veterinári, vretenice, upozornenia, priania · od 13 ikonky
-// upozornení · od 15 body z OSM. Celé SK sa do okna zmestí práve pod z9 (viď `JOURNEY_KM_ZOOM`).
-const MAP_NEAR_ZOOM = 9;
-// V diaľke pár VEĽKÝCH vlajok, každá nesie veľký kus krajiny (Matej 21. 11. 2026: „v tom najväčšom zoom oute by
-// boli tie vlajky podstatne väčšie… kľudne len 3 na Slovensku, ale cez veľkú časť krajiny"). Zhluk sa preto v diaľke
-// ráta v KILOMETROCH, nie v pixeloch — SK má ~430 km, polomer 110 km z neho urobí zhruba tri vlajky na každom zoome.
-const FAR_FLAG_PX = 64;
-const FAR_CLUSTER_M = 110_000;
-const LAKE_NAME_MIN_ZOOM = MAP_NEAR_ZOOM;
+// DIAĽKA → KRAJ → VŠETKO (Matej 21. 11. 2026 nad snímkami z mobilu: „1 zväčši tie vlajky, 2 pridaj aspoň 2 vlajky,
+// 3 ukáž všetky vlajky aj zhluky vreteníc, 4 už je vidno takmer všetko"). Štyri stupne:
+//   < 7   pár OBROVSKÝCH vlajok, zhluk 110 km (≈ 3 na SK)
+//   7–8   veľké vlajky, zhluk 30 km (výlety sú v 4 oblastiach — viac vlajok len za cenu menších)
+//   8–10  všetky vlajky výletov (bežné zhlukovanie) + zhluky vretenice
+//   ≥ 10  jazerá, veterinári, upozornenia, priania · od 13 ikonky upozornení · od 15 body z OSM
+// Pod `MAP_NEAR_ZOOM` sa zhluk ráta v KILOMETROCH, nie v pixeloch — počet vlajok tak nezávisí od šírky okna.
+const MAP_NEAR_ZOOM = 8;
+const MAP_LAYERS_ZOOM = 10;
+const FAR_STEP_ZOOM = 7;
+const farFlagPx = (z: number) => (z < FAR_STEP_ZOOM ? 88 : 56);
+const farClusterM = (z: number) => (z < FAR_STEP_ZOOM ? 110_000 : 30_000);
+const LAKE_NAME_MIN_ZOOM = MAP_LAYERS_ZOOM;
 /** Zelená fajka na vlajke prejdeného výletu — vidno vždy, nie len pri vrstve Moje výlety (Matej 21. 11. 2026: „ok"). */
 const WALKED_MARK = '/icons/sys/fajka-zelena.webp';
 const LAKE_CHAR_PX = 8.2;
@@ -1198,7 +1200,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
     // 1) hrubé zhluky — greedy podľa vzdialenosti v pixeloch (stabilné poradie zľava dole,
     //    nech ten istý výrez dá vždy ten istý výsledok a bubliny pri pane neposkakujú).
     type Cl = { x: number; y: number; pts: MapPoint[] };
-    const seedR = far ? FAR_CLUSTER_M / metersPerPixel(map.getCenter().lat, zoom) : MAP_STICKERS_ON ? flagPx(zoom) * 0.9 : tier === 0 ? 34 : 28;
+    const seedR = far ? farClusterM(zoom) / metersPerPixel(map.getCenter().lat, zoom) : MAP_STICKERS_ON ? flagPx(zoom) * 0.9 : tier === 0 ? 34 : 28;
     const proj = rest
       .map((p) => { const pt = map.latLngToContainerPoint([p.lat, p.lon]); return { p, x: pt.x, y: pt.y }; })
       .sort((a, b) => a.x - b.x || a.y - b.y);
@@ -4291,6 +4293,8 @@ export default function PackMap() {
   const [noteZoom, setNoteZoom] = useState(0);
   /** Diaľka (celé krajiny): len hranice, vlajky, SOS a poloha — viď `MAP_NEAR_ZOOM`. 0 = mapa ešte nehlásila zoom. */
   const mapFar = noteZoom > 0 && noteZoom < MAP_NEAR_ZOOM;
+  /** Pod `MAP_LAYERS_ZOOM` ešte len vlajky a vretenice — veterinári, upozornenia a priania prídu až potom. */
+  const mapNoLayers = noteZoom > 0 && noteZoom < MAP_LAYERS_ZOOM;
 
   // Priblíženie ako STATE, nech lišta „ukáž miesto" vie prepnúť text na „priblíž
   // si mapu" v tej chvíli, keď človek odzoomuje — nie až po kliknutí naprázdno.
@@ -8111,7 +8115,7 @@ export default function PackMap() {
               {!isCleanMode && overlayOn.sleep && <PoiLayer tiles minZoom={SLEEP_MIN_ZOOM} drawing={mapDrawing} />}
               {/* VETERINÁRI (17. 11. 2026) — vlastný súbor a pohotovosti zo SOS, nie dlaždice OSM; počas
                   kreslenia trasy mlčia, aby ťuk na ambulanciu nezobral kotvu trasy. Len appka (samolepky). */}
-              {!isCleanMode && !mapDrawing && !mapFar && overlayOn.vets && <VetLayer />}
+              {!isCleanMode && !mapDrawing && !mapNoLayers && overlayOn.vets && <VetLayer />}
               {/* trip markery (pilulky s km, bodky-piktogramy, zhlukové bubliny s počtom) —
                   DOGYPT čistý vizuál (2026-08-04, Matej: „iba hmla a svetelné meče... žiadne
                   písmo ani vysvetlivky") ich celé skrýva, nesú číslo/piktogram na každom bode. */}
@@ -8191,7 +8195,7 @@ export default function PackMap() {
               ))}
               {/* ZÁPISY DO MAPY — nad trip markermi (sú to konkrétne miesta, nie súhrn).
                   DOGYPT čistý vizuál ich skrýva rovnako ako ostatné značky s textom. */}
-              {!isCleanMode && (!mapFar || !!addFlow) && (
+              {!isCleanMode && (!mapNoLayers || !!addFlow) && (
                 <MapNotesLayer
                   notes={mapNotes.notes}
                   onVote={(id, v) => { if (mg) { mg.lock('action'); return; } void mapNotes.vote(id, v); }}
@@ -8228,7 +8232,7 @@ export default function PackMap() {
                 />
               )}
               {/* PRIANIA 🎯 — nad odkazmi, vidno na každom priblížení (WishLayer.tsx). */}
-              {!isCleanMode && !mapFar && overlayOn.wish && (
+              {!isCleanMode && !mapNoLayers && overlayOn.wish && (
                 <WishLayer wishes={wishes} onChanged={reloadWishes} interactive={!mg && !mapDrawing && !wishFlow} />
               )}
               {/* SOS pátrania — fotka psa v červenom obruči + kruhy 500 m / 10 km (SosMapLayer.tsx). Len TEST_BUILD. */}
