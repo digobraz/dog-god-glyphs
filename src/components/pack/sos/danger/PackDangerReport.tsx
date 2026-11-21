@@ -18,13 +18,13 @@ import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { uploadDangerPhoto } from '@/services/cloudinaryService';
 import {
-  DANGER_ABUSE_CHIPS, DANGER_POISON_CHIPS, DANGER_RADIUS, dangerErrorCode, dangerPrecheck, dangerReport,
+  DANGER_ABUSE_CHIPS, DANGER_POISON_CHIPS, DANGER_RADIUS, dangerErrorCode, dangerIsOffline, dangerPrecheck, dangerReport,
   type DangerGate, type DangerHowOften, type DangerKind,
 } from '@/lib/danger';
 import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
 import type { SosKey } from '../sosTexts';
-import { CharCount, addImageFiles, clearDraft, loadDraft, saveDraft } from './dangerForm';
+import { CharCount, addImageFiles, clearDraft, loadDraft, regionOf, saveDraft, useFieldErr, useSubmitLock } from './dangerForm';
 
 const SK_CENTER: [number, number] = [48.7, 19.7];
 const OFTEN: DangerHowOften[] = ['once', 'repeat', 'months'];
@@ -152,10 +152,11 @@ export function useGeoPick(init?: GeoInit | null) {
 }
 
 /** Veta pod mapou: ktorý bod je zvolený (súradnice), a čo robiť, keď mapa alebo adresa nefunguje. Funguje aj bez dlaždíc. */
-export function GeoStatus({ pt, geoState, tilesFail, municipality, onMunicipality }: {
+export function GeoStatus({ pt, geoState, tilesFail, municipality, onMunicipality, muniRef, muniBad }: {
   pt: [number, number] | null; geoState: 'idle' | 'loading' | 'ok' | 'fail'; tilesFail: boolean;
   /** `onMunicipality` bez hodnoty = obec sa nepýta (príroda ide cez `addMapNote` bez obce) */
   municipality?: string | null; onMunicipality?: (v: string) => void;
+  muniRef?: (el: HTMLElement | null) => void; muniBad?: boolean;
 }) {
   const s = useSosT();
   const needMuni = !!pt && geoState === 'fail' && !!onMunicipality;
@@ -167,7 +168,7 @@ export function GeoStatus({ pt, geoState, tilesFail, municipality, onMunicipalit
         <>
           <p className="dgr-note dgr-note--red">{s('pack.sos.danger.report.geoFail')}</p>
           <label className="sos-field"><span>{s('pack.sos.danger.report.muni')}</span>
-            <input className="pf-field" value={municipality ?? ''} maxLength={120} autoComplete="address-level2" placeholder={s('pack.sos.danger.report.muniHint')} onChange={(e) => onMunicipality?.(e.target.value)} />
+            <input ref={muniRef} className={`pf-field${muniBad ? ' is-bad' : ''}`} value={municipality ?? ''} maxLength={120} autoComplete="address-level2" placeholder={s('pack.sos.danger.report.muniHint')} onChange={(e) => onMunicipality?.(e.target.value)} />
           </label>
         </>
       )}
@@ -188,12 +189,18 @@ async function toWebp(file: File, maxSide = 1600): Promise<Blob> {
   } finally { URL.revokeObjectURL(url); }
 }
 
+// Už nahraté súbory sa pri opakovanom odoslaní (zamietnutie serverom) NEnahrávajú znova: inak by na Cloudinary ostali siroty.
+const UPLOADED = new WeakMap<File, string>();
+
 export async function uploadDangerFiles(files: File[]): Promise<string[]> {
   const stamp = Date.now().toString(36);
   const out: string[] = [];
   for (let i = 0; i < files.length; i++) {
+    const done = UPLOADED.get(files[i]);
+    if (done) { out.push(done); continue; }
     const blob = await toWebp(files[i]);
     const r = await uploadDangerPhoto(blob, `${stamp}-${i}-${Math.random().toString(36).slice(2, 8)}`);
+    UPLOADED.set(files[i], r.secureUrl);
     out.push(r.secureUrl);
   }
   return out;
@@ -201,6 +208,8 @@ export async function uploadDangerFiles(files: File[]): Promise<string[]> {
 
 export const DANGER_FORM_CSS = `
 .dgr-map{position:relative;width:100%;height:280px;border-radius:${PACK_R.tile}px;overflow:hidden;border:1px solid ${T.border};}
+.dgr-map.is-bad{border:2px solid ${T.sosRed};}
+.dgr-bad{outline:2px solid ${T.sosRed};outline-offset:${S.xs}px;border-radius:${PACK_R.tile}px;}
 .dgr-canvas{position:absolute;inset:0;cursor:crosshair;}
 .dgr-loc{position:absolute;left:${S.sm}px;top:${S.sm}px;z-index:800;width:auto;background:${T.card};}
 .dgr-chip{min-height:40px;padding:0 ${S.md}px;font-size:${PACK_TEXT.label}px;font-weight:500;}
@@ -223,7 +232,7 @@ const ERRS = ['bad_coords', 'rate_limited', 'no_access', 'bad_text', 'not_authen
 const BODY_MAX = 1200;
 
 interface ReportDraft {
-  pt: [number, number] | null; geo: GeoPick; what: string[]; often: DangerHowOften | null; body: string; radius: number; hadPhotos: boolean;
+  pt: [number, number] | null; geo: GeoPick; what: string[]; often: DangerHowOften | null; body: string; radius: number; photoCount: number;
 }
 
 export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' }) {
@@ -240,11 +249,15 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
   const [body, setBody] = useState(draft?.body ?? '');
   const [radius, setRadius] = useState<number>(draft?.radius ?? DANGER_RADIUS.def);
   const [files, setFiles] = useState<File[]>([]);
-  const [lostPhotos] = useState(!!draft?.hadPhotos);
+  // koľko fotiek malo rozpísané pred obnovením (fotky sa obnoviť nedajú, veta to povie)
+  const [lostPhotos] = useState(Math.max(0, Number(draft?.photoCount) || 0));
   const [photoMsg, setPhotoMsg] = useState('');
   const [busy, setBusy] = useState<'upload' | 'send' | null>(null);
   const [err, setErr] = useState('');
   const [gate, setGate] = useState<DangerGate>('ok');
+  const [errLink, setErrLink] = useState(false);
+  const lock = useSubmitLock();
+  const fe = useFieldErr();
   const [sent, setSent] = useState<{ id: string; slug: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -255,17 +268,30 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
   // predbežná kontrola hneď pri vstupe: nečlen alebo odhlásený sa to dozvie PRED vyplnením, nie po ňom
   useEffect(() => {
     let alive = true;
-    dangerPrecheck(kind).then((g) => { if (alive) setGate(g); });
+    dangerPrecheck(kind).then((g) => { if (alive && g !== 'offline') setGate(g); });
     return () => { alive = false; };
   }, []);
 
   // rozpísané do sessionStorage (po odoslaní sa zmaže)
+  const snap = { pt, geo, what, often, body, radius, photoCount: files.length || lostPhotos } satisfies ReportDraft;
+  const snapRef = useRef(snap);
+  snapRef.current = snap;
   useEffect(() => {
     if (sent) return;
-    saveDraft(draftKey, { pt, geo, what, often, body, radius, hadPhotos: files.length > 0 || lostPhotos } satisfies ReportDraft);
+    saveDraft(draftKey, snap);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sent, draftKey, pt, geo, what, often, body, radius, files.length, lostPhotos]);
+  // aj pri zatvorení karty / obnovení: posledný stav (napr. písmeno napísané tesne pred reloadom)
+  const sentRef = useRef(false);
+  sentRef.current = !!sent;
+  useEffect(() => {
+    const h = () => { if (!sentRef.current) saveDraft(draftKey, snapRef.current); };
+    window.addEventListener('pagehide', h);
+    return () => window.removeEventListener('pagehide', h);
+  }, [draftKey]);
 
-  const toggle = (c: string) => setWhat((w) => (w.includes(c) ? w.filter((x) => x !== c) : [...w, c]));
+  const toggle = (c: string) => { fe.clear('what'); toggleWhat(c); };
+  const toggleWhat = (c: string) => setWhat((w) => (w.includes(c) ? w.filter((x) => x !== c) : [...w, c]));
   const addFiles = (list: FileList | null) => {
     if (!list) return;
     // 🔴 `FileList` je ŽIVÝ: vyčistením `input.value` sa vyprázdni, preto ho skopíruj do poľa HNEĎ, pred čímkoľvek iným
@@ -276,37 +302,49 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
     setPhotoMsg(r.notImage ? s('pack.sos.danger.report.err.fileType') : r.tooMany ? s('pack.sos.danger.report.err.photoMax') : '');
   };
 
-  const submit = async () => {
+  const fail = (field: string | null, msg: string, link = false) => {
+    setErr(msg); setErrLink(link);
+    if (field) fe.flag(field);
+  };
+
+  const submit = () => lock(async () => {
     if (busy) return;
-    if (gate !== 'ok') return;
-    if (!pt) { setErr(s('pack.sos.danger.report.err.bad_coords')); return; }
-    if (!what.length) { setErr(s('pack.sos.danger.report.err.what')); return; }
-    if (geoState === 'fail' && !geo.municipality?.trim()) { setErr(s('pack.sos.danger.report.err.muni')); return; }
+    if (gate !== 'ok') { window.scrollTo?.({ top: 0, behavior: 'smooth' }); return; }
+    setErrLink(false); fe.clear();
+    if (!pt) { fail('map', s('pack.sos.danger.report.err.bad_coords')); return; }
+    if (!what.length) { fail('what', s('pack.sos.danger.report.err.what')); return; }
+    if (geoState === 'fail' && !geo.municipality?.trim()) { fail('muni', s('pack.sos.danger.report.err.muni')); return; }
     setErr('');
-    // pred nahrávaním fotiek: server odmietne nečlena a limit až po nahraní, a na Cloudinary by ostala sirota
-    const g = await dangerPrecheck(kind);
-    if (g !== 'ok') { setGate(g); window.scrollTo?.({ top: 0 }); return; }
-    let photos: string[] = [];
-    try {
-      if (files.length) { setBusy('upload'); photos = await uploadDangerFiles(files); }
-    } catch { setErr(s('pack.sos.danger.report.err.photo')); setBusy(null); return; }
     setBusy('send');
     try {
-      const r = await dangerReport({
-        kind, lat: pt[0], lng: pt[1], country: geo.country ?? 'SVK',
-        place_label: geo.place.trim() || null, municipality: geo.municipality?.trim() || null, district: geo.district,
-        radius_m: mode === 'poison' ? radius : null, what,
-        how_often: mode === 'abuse' ? often : null, body: body.trim() || null, photos,
-      });
-      clearDraft(draftKey);
-      setSent(r);
-      window.scrollTo?.({ top: 0 });
-    } catch (x) {
-      const code = dangerErrorCode(x);
-      setErr(ERRS.includes(code) ? s(`pack.sos.danger.report.err.${code}` as SosKey) : s('pack.sos.danger.report.err.error'));
-    }
-    setBusy(null);
-  };
+      // pred nahrávaním fotiek: server odmietne nečlena a limit až po nahraní, a na Cloudinary by ostala sirota
+      const g = await dangerPrecheck(kind);
+      if (g === 'offline') { setErr(s('pack.sos.offline')); return; }   // nenahrávaj, koncept ostáva
+      if (g !== 'ok') { setGate(g); window.scrollTo?.({ top: 0 }); return; }
+      let photos: string[] = [];
+      try {
+        if (files.length) { setBusy('upload'); photos = await uploadDangerFiles(files); }
+      } catch { setErr(s('pack.sos.danger.report.err.photo')); return; }
+      setBusy('send');
+      try {
+        const r = await dangerReport({
+          kind, lat: pt[0], lng: pt[1], country: geo.country ?? 'SVK',
+          place_label: geo.place.trim() || null, municipality: geo.municipality?.trim() || null, district: geo.district,
+          radius_m: mode === 'poison' ? radius : null, what,
+          how_often: mode === 'abuse' ? often : null, body: body.trim() || null, photos,
+        });
+        clearDraft(draftKey);
+        sentRef.current = true;
+        setSent(r);
+        window.scrollTo?.({ top: 0 });
+      } catch (x) {
+        const code = dangerErrorCode(x);
+        if (code === 'bad_coords') { fail('map', s('pack.sos.danger.report.err.place'), true); return; }   // bod je vybraný, server ho neprijal
+        setErr(dangerIsOffline(x) ? s('pack.sos.offline') : ERRS.includes(code) ? s(`pack.sos.danger.report.err.${code}` as SosKey) : s('pack.sos.danger.report.err.error'));
+        if (code === 'bad_text') fe.flag('body');
+      }
+    } finally { setBusy(null); }
+  });
 
   // ── PO ODOSLANÍ (scr 5): ostáva sa na tej istej stránke ────────────────────────────────────
   if (sent) {
@@ -351,13 +389,13 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
 
       <SosCard>
         <p className="sos-p">{s('pack.sos.danger.report.mapHint')}</p>
-        <div className="dgr-map">
-          <DangerMap center={center} zoom={zoom} pt={pt} radius={mode === 'poison' ? radius : null} onPick={pick} locateTick={locateTick} onTiles={onTiles} />
+        <div className={`dgr-map${fe.bad === 'map' ? ' is-bad' : ''}`} ref={fe.reg('map')}>
+          <DangerMap center={center} zoom={zoom} pt={pt} radius={mode === 'poison' ? radius : null} onPick={(p) => { fe.clear('map'); setErr(''); setErrLink(false); pick(p); }} locateTick={locateTick} onTiles={onTiles} />
           <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm dgr-loc" onClick={locate}>{s('pack.sos.danger.report.myLocation')}</button>
           <MapAttribution />
         </div>
         {locText && <p className="sos-err">{locText}</p>}
-        <GeoStatus pt={pt} geoState={geoState} tilesFail={tilesFail} municipality={geo.municipality} onMunicipality={setMunicipality} />
+        <GeoStatus pt={pt} geoState={geoState} tilesFail={tilesFail} municipality={geo.municipality} onMunicipality={(v) => { fe.clear('muni'); setMunicipality(v); }} muniRef={fe.reg('muni')} muniBad={fe.bad === 'muni'} />
         <label className="sos-field"><span>{s('pack.sos.danger.report.place')}</span>
           <input className="pf-field" value={geo.place} maxLength={200} placeholder={s('pack.sos.danger.report.placeHint')} onChange={(e) => setPlace(e.target.value)} />
         </label>
@@ -372,7 +410,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
 
       <SosCard>
         <p className="sos-eyebrow">{s('pack.sos.danger.report.what')}</p>
-        <div className="sos-chips">
+        <div className={`sos-chips${fe.bad === 'what' ? ' dgr-bad' : ''}`} ref={fe.reg('what')}>
           {chips.map((c) => (
             <button key={c} type="button" className={`sos-pill sos-pick dgr-chip${what.includes(c) ? ' is-on' : ''}`} aria-pressed={what.includes(c)} onClick={() => toggle(c)}>
               {s(`pack.sos.danger.report.chip.${c}` as SosKey)}
@@ -381,8 +419,9 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
         </div>
         {fights && (
           <>
-            <p className="dgr-note dgr-note--red">{s('pack.sos.danger.report.dogFights')}</p>
-            <a className="sos-cta sos-cta--red" href="tel:158" style={{ textDecoration: 'none' }}>{s('pack.sos.danger.report.callPolice')}</a>
+            {/* polícia 158 platí v SK aj CZ; inde je jediné číslo, ktoré sedí všade, 112 */}
+            <p className="dgr-note dgr-note--red">{s(regionOf(geo.country) === 'OTHER' ? 'pack.sos.danger.report.dogFights.other' : 'pack.sos.danger.report.dogFights')}</p>
+            <a className="sos-cta sos-cta--red" href={regionOf(geo.country) === 'OTHER' ? 'tel:112' : 'tel:158'} style={{ textDecoration: 'none' }}>{s(regionOf(geo.country) === 'OTHER' ? 'pack.sos.danger.report.call112' : 'pack.sos.danger.report.callPolice')}</a>
           </>
         )}
         {mode === 'abuse' && (
@@ -398,7 +437,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
           </>
         )}
         <label className="sos-field"><span>{s('pack.sos.danger.report.body')}</span>
-          <textarea className="pf-field dgr-ta" rows={4} maxLength={BODY_MAX} value={body} onChange={(e) => setBody(e.target.value)}
+          <textarea ref={fe.reg('body')} className={`pf-field dgr-ta${fe.bad === 'body' ? ' is-bad' : ''}`} rows={4} maxLength={BODY_MAX} value={body} onChange={(e) => { fe.clear('body'); setBody(e.target.value); }}
             placeholder={s(mode === 'abuse' ? 'pack.sos.danger.report.bodyAbuse' : 'pack.sos.danger.report.bodyPoison')} />
           <CharCount len={body.length} max={BODY_MAX} />
         </label>
@@ -429,7 +468,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
           </button>
         )}
         {photoMsg && <p className="sos-err" role="alert">{photoMsg}</p>}
-        {lostPhotos && files.length === 0 && <p className="sos-small">{s('pack.sos.danger.report.photosLost')}</p>}
+        {lostPhotos > 0 && files.length === 0 && <p className="sos-small" role="status">{s('pack.sos.danger.report.photosLost', { n: lostPhotos })}</p>}
         <p className="sos-small">{s(`pack.sos.danger.report.photoPrivacy.${mode}` as SosKey)}</p>
       </SosCard>
 
@@ -443,7 +482,8 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
         </SosCard>
       )}
 
-      {err && <p className="sos-err">{err}</p>}
+      {err && <p className="sos-err" role="alert">{err}</p>}
+      {errLink && <div className="dgr-links"><button type="button" onClick={() => navigate('/pack/sos/nebezpecenstvo/krajina')}>{s('pack.sos.danger.report.otherCountryLink')}</button></div>}
       <button type="button" className={`sos-cta${mode === 'poison' ? ' sos-cta--red' : ''}`} disabled={!!busy || gate !== 'ok'} onClick={submit}>{label}</button>
     </SosTaskShell>
   );

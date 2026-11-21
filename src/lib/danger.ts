@@ -13,8 +13,8 @@ import { supabase } from '@/integrations/supabase/client';
 const rpc = (name: string, args?: Record<string, unknown>) => (supabase as any).rpc(name, args);
 
 async function call<T>(name: string, args?: Record<string, unknown>): Promise<T> {
-  const { data, error } = await rpc(name, args);
-  if (error) throw error;
+  const { data, error, status } = await rpc(name, args);
+  if (error) throw Object.assign(error, { status });   // HTTP stav nesie rozdiel odhlásený / nečlen / sieť
   return data as T;
 }
 
@@ -163,10 +163,37 @@ export function dangerNotFound(e: unknown): boolean {
   return x?.code === '22P02' || /invalid input syntax|not_found/i.test(String(x?.message ?? ''));
 }
 
+// ── ČO JE ZA CHYBOU: sieť · odhlásený · nečlen · prípad neexistuje ───────────────────────────────
+/** Chyba bez odpovede servera (výpadok siete): supabase-js ju vráti bez `code` a so správou „Failed to fetch“. */
+export function dangerIsOffline(e: unknown): boolean {
+  const x = e as { code?: string; status?: number; message?: string } | null;
+  if (!x) return false;
+  if (x.code && String(x.code).length > 0) return false;
+  return !x.status || /failed to fetch|networkerror|load failed|network request failed/i.test(String(x.message ?? ''));
+}
+
+export type DangerAccess = 'login' | 'member';
+/** Server odmietol PRÍSTUP (nie dáta): odhlásený = výzva na prihlásenie, nečlen = „len členovia“. `null` = iná chyba. */
+export async function dangerAccessIssue(e: unknown): Promise<DangerAccess | null> {
+  const x = e as { code?: string; status?: number; message?: string } | null;
+  const code = dangerErrorCode(e);
+  const denied = code === 'not_authenticated' || code === 'no_access' || x?.status === 401 || x?.status === 403 || x?.code === '42501' || x?.code === 'PGRST301';
+  if (!denied) return null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    return data.session && code !== 'not_authenticated' && x?.status !== 401 ? 'member' : 'login';
+  } catch { return 'login'; }
+}
+
+export async function dangerHasSession(): Promise<boolean> {
+  try { return !!(await supabase.auth.getSession()).data.session; } catch { return false; }
+}
+
 // ── predbežná kontrola: ešte PRED nahrávaním fotiek ─────────────────────────────────────────────
 // Server odmietne nečlena a limit až pri zápise, no fotky by dovtedy už boli na Cloudinary (sirota). Preto sa pýtame vopred.
 // `danger_precheck(p_kind)` → `{ ok, reason, remaining }`, nikdy nevyhadzuje chybu (kontrakt 21. 11. 2026).
-export type DangerGate = 'ok' | 'not_authenticated' | 'no_access' | 'rate_limited';
+// `offline` = kontrola sa nedostala k serveru: volajúci NESMIE nahrávať (ukáže „Bez pripojenia“ a nechá koncept).
+export type DangerGate = 'ok' | 'not_authenticated' | 'no_access' | 'rate_limited' | 'offline';
 export type DangerPrecheckKind = DangerKind | 'tip' | 'complaint' | 'comment';
 export async function dangerPrecheck(kind: DangerPrecheckKind): Promise<DangerGate> {
   try {
@@ -174,13 +201,14 @@ export async function dangerPrecheck(kind: DangerPrecheckKind): Promise<DangerGa
     if (!sess.session) return 'not_authenticated';
     const { data, error } = await rpc('danger_precheck', { p_kind: kind });
     if (error) {
+      if (dangerIsOffline(error)) return 'offline';
       const c = dangerErrorCode(error);
       return c === 'no_access' || c === 'rate_limited' ? c : 'ok';
     }
     const r = (Array.isArray(data) ? data[0] : data) as { ok?: boolean; reason?: string | null } | null;
     if (!r || r.ok !== false) return 'ok';
     return r.reason === 'not_authenticated' || r.reason === 'no_access' || r.reason === 'rate_limited' ? r.reason : 'ok';
-  } catch { return 'ok'; }   // chyba siete nie je dôvod zablokovať formulár; zápis to rozhodne sám
+  } catch { return 'offline'; }
 }
 
 // ── člen ────────────────────────────────────────────────────────────────────

@@ -7,11 +7,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { dangerErrorCode, dangerPrecheck, dangerTip, type DangerGate } from '@/lib/danger';
+import { dangerErrorCode, dangerIsOffline, dangerPrecheck, dangerTip, type DangerGate } from '@/lib/danger';
 import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
 import type { SosKey } from '../sosTexts';
-import { CharCount, cleanContact, clearDraft, loadDraft, saveDraft } from './dangerForm';
+import { CharCount, cleanContact, clearDraft, loadDraft, saveDraft, useFieldErr, useSubmitLock } from './dangerForm';
 
 const CODES = ['PL', 'HU', 'AT', 'DE', 'UA', 'RO', 'HR', 'SI', 'IT', 'ES', 'FR', 'GB', 'NL', 'BE', 'PT', 'GR', 'BG', 'RS'];
 
@@ -40,6 +40,8 @@ export default function PackDangerCountry() {
   const [body, setBody] = useState(draft?.body ?? '');
   const [contact, setContact] = useState(draft?.contact ?? '');
   const [gate, setGate] = useState<DangerGate>('ok');
+  const lock = useSubmitLock();
+  const fe = useFieldErr();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [done, setDone] = useState(false);
@@ -51,7 +53,7 @@ export default function PackDangerCountry() {
   useEffect(() => {
     if (step !== 'form') return;
     let alive = true;
-    dangerPrecheck('tip').then((g) => { if (alive) setGate(g); });
+    dangerPrecheck('tip').then((g) => { if (alive && g !== 'offline') setGate(g); });
     return () => { alive = false; };
   }, [step]);
 
@@ -66,30 +68,34 @@ export default function PackDangerCountry() {
   const countrySelect = (
     <label className="sos-field">
       <span>{s('pack.sos.danger.country.pick')}</span>
-      <select className="pf-field" value={code} onChange={(e) => pickCountry(e.target.value)}>
+      <select ref={fe.reg('country')} className={`pf-field${fe.bad === 'country' ? ' is-bad' : ''}`} value={code} onChange={(e) => { fe.clear('country'); pickCountry(e.target.value); }}>
         <option value="">{s('pack.sos.danger.country.pickPh')}</option>
         {sorted.map((c) => <option key={c} value={c}>{country(c)}</option>)}
       </select>
     </label>
   );
 
-  const send = async () => {
+  const send = () => lock(async () => {
     if (busy) return;
     if (gate !== 'ok') return;
-    if (!code) { setErr(s('pack.sos.danger.country.err.country')); return; }
-    if (body.trim().length < 5) { setErr(s('pack.sos.danger.country.err.body')); return; }
+    fe.clear();
+    if (!code) { setErr(s('pack.sos.danger.country.err.country')); fe.flag('country'); return; }
+    if (body.trim().length < 5) { setErr(s('pack.sos.danger.country.err.body')); fe.flag('body'); return; }
     const kontakt = cleanContact(contact);
-    if (!kontakt) { setErr(s('pack.sos.danger.country.err.contact')); return; }
+    if (!kontakt) { setErr(s('pack.sos.danger.country.err.contact')); fe.flag('contact'); return; }
     setBusy(true); setErr('');
     try {
+      const g = await dangerPrecheck('tip');
+      if (g === 'offline') { setErr(s('pack.sos.offline')); return; }
+      if (g !== 'ok') { setGate(g); return; }
       await dangerTip(code, body.trim(), kontakt);
       clearDraft(DRAFT_KEY);
       setDone(true);
     } catch (e) {
       const k = dangerErrorCode(e);
-      setErr(k === 'rate_limited' || k === 'no_access' || k === 'not_authenticated' ? s(`pack.sos.danger.complaint.err.${k}` as SosKey) : s('pack.sos.danger.country.err.error'));
+      setErr(dangerIsOffline(e) ? s('pack.sos.offline') : k === 'rate_limited' || k === 'no_access' || k === 'not_authenticated' ? s(`pack.sos.danger.complaint.err.${k}` as SosKey) : s('pack.sos.danger.country.err.error'));
     } finally { setBusy(false); }
-  };
+  });
 
   return (
     <SosTaskShell onBack={step === 'form' && !done ? () => setStep('info') : back} backLabel={s('pack.sos.back')}>
@@ -120,12 +126,12 @@ export default function PackDangerCountry() {
               {gate !== 'ok' && <p className="sos-err" role="alert">{s(`pack.sos.danger.complaint.err.${gate}` as SosKey)}</p>}
               {countrySelect}
               <label className="sos-field">
-                <textarea className="pf-field" rows={8} maxLength={BODY_MAX} value={body} placeholder={s('pack.sos.danger.country.bodyPh')} onChange={(e) => setBody(e.target.value)} />
+                <textarea ref={fe.reg('body')} className={`pf-field${fe.bad === 'body' ? ' is-bad' : ''}`} rows={8} maxLength={BODY_MAX} value={body} placeholder={s('pack.sos.danger.country.bodyPh')} onChange={(e) => { fe.clear('body'); setBody(e.target.value); }} />
                 <CharCount len={body.length} max={BODY_MAX} />
               </label>
               <label className="sos-field">
                 <span>{s('pack.sos.danger.country.contact')}</span>
-                <input className="pf-field" maxLength={200} value={contact} autoComplete="email" inputMode="email" onChange={(e) => setContact(e.target.value)} />
+                <input ref={fe.reg('contact')} className={`pf-field${fe.bad === 'contact' ? ' is-bad' : ''}`} maxLength={200} value={contact} autoComplete="email" inputMode="email" onChange={(e) => { fe.clear('contact'); setContact(e.target.value); }} />
               </label>
               {err && <p className="sos-err" role="alert">{err}</p>}
               <button type="button" className="sos-cta" disabled={busy || gate !== 'ok'} onClick={() => void send()}>{s('pack.sos.danger.country.send')}</button>

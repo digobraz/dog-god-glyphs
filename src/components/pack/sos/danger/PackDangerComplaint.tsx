@@ -11,8 +11,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DANGER_TEST_NOTE } from '@/lib/env';
 import {
-  dangerCase, dangerComplaintCreate, dangerErrorCode, dangerLastPhone, dangerNotFound, dangerPrecheck, isDangerUuid,
-  type DangerCase, type DangerGate,
+  dangerAccessIssue, dangerCase, dangerComplaintCreate, dangerErrorCode, dangerHasSession, dangerIsOffline, dangerLastPhone, dangerNotFound,
+  dangerPrecheck, isDangerUuid,
+  type DangerAccess, type DangerCase, type DangerGate,
 } from '@/lib/danger';
 import { authorityByCode, rvpsForDistrict } from '@/data/dangerAuthorities';
 import { PACK_THEME as T, PACK_SPACE as S, PACK_TEXT } from '@/components/pack/packTheme';
@@ -20,7 +21,7 @@ import { SosCard, useBack, useSosT } from '../sosShared';
 import { SosTaskShell } from '../SosTaskShell';
 import type { SosKey } from '../sosTexts';
 import { AuthorityPick } from './AuthorityPick';
-import { CharCount, cleanPhone, clearDraft, loadDraft, saveDraft } from './dangerForm';
+import { AccessCard, CharCount, cleanPhone, clearDraft, loadDraft, regionOf, saveDraft, useFieldErr, useSubmitLock } from './dangerForm';
 
 const CSS = `
 .dpc-auth b{display:block;font-weight:600;font-size:${PACK_TEXT.lead}px;}
@@ -42,7 +43,7 @@ const CSS = `
 const COUNTRIES = ['SK', 'CZ'] as const;
 type Cc = (typeof COUNTRIES)[number];
 const RAW_MAX = 3000;
-const ERR_KEYS = ['authority', 'address', 'text', 'phone', 'sign', 'rate_limited', 'no_access', 'not_authenticated', 'duplicate_open'];
+const ERR_KEYS = ['offline', 'authority', 'address', 'text', 'phone', 'sign', 'rate_limited', 'no_access', 'not_authenticated', 'duplicate_open'];
 
 interface ComplaintDraft { country: Cc; picked: string; address: string; raw: string; phone: string; signed: boolean; name: string; linka: boolean }
 
@@ -72,22 +73,33 @@ export default function PackDangerComplaint() {
   const [err, setErr] = useState('');
   const [gate, setGate] = useState<DangerGate>('ok');
   const [sent, setSent] = useState(false);
+  const [access, setAccess] = useState<DangerAccess | null>(null);
+  const lock = useSubmitLock();
+  const fe = useFieldErr();
 
   useEffect(() => {
     if (!caseId || !isDangerUuid(caseId)) return;
     let alive = true;
-    setC(undefined); setLoadFailed(false);
+    setC(undefined); setLoadFailed(false); setAccess(null);
+    // odhlásený: výzva na prihlásenie hneď, bez volania, ktoré by skončilo „nepodarilo sa načítať“
+    void dangerHasSession().then((has) => { if (alive && !has) { setC(null); setAccess('login'); } });
     dangerCase(caseId).then((r) => {
       if (!alive) return;
       setC(r);
       if (r) { setAddress((a) => a || r.place_label || ''); setCountry(r.country === 'CZ' || r.country === 'CZE' ? 'CZ' : 'SK'); if (r.body) setRaw((x) => x || r.body || ''); }
-    }).catch((e) => { if (alive) { setC(null); setLoadFailed(!dangerNotFound(e)); } });
+    }).catch(async (e) => {
+      const acc = await dangerAccessIssue(e);
+      if (!alive) return;
+      setC(null);
+      if (acc) { setAccess(acc); return; }
+      setLoadFailed(!dangerNotFound(e));
+    });
     return () => { alive = false; };
   }, [caseId, tick]);
   useEffect(() => { dangerLastPhone().then((p) => p && setPhone((x) => x || p)).catch(() => undefined); }, []);
   useEffect(() => {
     let alive = true;
-    dangerPrecheck('complaint').then((g) => { if (alive) setGate(g); });
+    dangerPrecheck('complaint').then((g) => { if (alive && g !== 'offline') setGate(g); });
     return () => { alive = false; };
   }, []);
   useEffect(() => {
@@ -95,40 +107,48 @@ export default function PackDangerComplaint() {
     saveDraft(draftKey, { country, picked, address, raw, phone, signed, name, linka } satisfies ComplaintDraft);
   }, [sent, draftKey, country, picked, address, raw, phone, signed, name, linka]);
 
-  const auto = useMemo(() => (country === 'CZ' ? authorityByCode('CZ-SVS') : rvpsForDistrict(c?.district)), [country, c?.district]);
+  // 🔴 Texty a čísla riadi KRAJINA PRÍPADU, nie jazyk rozhrania: SK = RVPS/ŠVPS a 158, CZ = SVS a 158, inde neutrálne a len 112.
+  const region = c ? regionOf(c.country) : country;
+  const auto = useMemo(() => (region === 'CZ' ? authorityByCode('CZ-SVS') : region === 'SK' ? rvpsForDistrict(c?.district) : undefined), [region, c?.district]);
   const code = picked || auto?.code || '';
   const authority = authorityByCode(code);
   const fights = !!c?.what.includes('dog_fights');
   const photos = (c?.photos ?? []).slice(0, 5);
-  const missingCase = !!caseId && c === null && !loadFailed;
+  const missingCase = !!caseId && c === null && !loadFailed && !access;
 
   const errText = (k: string) => (ERR_KEYS.includes(k) ? s(`pack.sos.danger.complaint.err.${k}` as SosKey) : s('pack.sos.danger.complaint.err.error'));
 
-  const send = async () => {
-    if (busy || gate !== 'ok') return;
+  const send = () => lock(async () => {
+    if (busy) return;
+    if (gate !== 'ok') { window.scrollTo?.({ top: 0, behavior: 'smooth' }); return; }
     const text = raw.trim();
     const tel = cleanPhone(phone);
-    if (!address.trim()) { setErr(errText('address')); return; }
-    if (text.length < 5) { setErr(errText('text')); return; }
-    if (!tel) { setErr(errText('phone')); return; }
-    if (signed && !name.trim()) { setErr(errText('sign')); return; }
+    fe.clear();
+    if (!address.trim()) { setErr(errText('address')); fe.flag('address'); return; }
+    if (text.length < 5) { setErr(errText('text')); fe.flag('raw'); return; }
+    if (!tel) { setErr(errText('phone')); fe.flag('phone'); return; }
+    if (signed && !name.trim()) { setErr(errText('sign')); fe.flag('name'); return; }
     setBusy(true); setErr('');
     try {
       const g = await dangerPrecheck('complaint');
+      if (g === 'offline') { setErr(errText('offline')); return; }   // koncept ostáva
       if (g !== 'ok') { setGate(g); window.scrollTo?.({ top: 0 }); return; }
       await dangerComplaintCreate({
-        case_id: c?.id ?? null, country, place_label: address.trim(), authority_code: code || null,
+        case_id: c?.id ?? null, country: c ? (c.country || 'SK').toUpperCase() : country, place_label: address.trim(), authority_code: code || null,
         raw: text, phone: tel, sign_name: signed && name.trim() ? name.trim() : null,
-        cc_linka: country === 'SK' && linka, photos,
+        cc_linka: region === 'SK' && linka, photos,
       });
       clearDraft(draftKey);
       setSent(true);
       window.scrollTo?.({ top: 0 });
     } catch (e) {
       const k = dangerErrorCode(e);
-      setErr(errText(k === 'bad_phone' ? 'phone' : k === 'bad_text' ? 'text' : k));
+      if (dangerIsOffline(e)) { setErr(errText('offline')); return; }
+      const key = k === 'bad_phone' ? 'phone' : k === 'bad_text' ? 'text' : k;
+      setErr(errText(key));
+      if (key === 'phone') fe.flag('phone'); else if (key === 'text') fe.flag('raw');
     } finally { setBusy(false); }
-  };
+  });
 
   const timeline = (
     <SosCard>
@@ -136,7 +156,7 @@ export default function PackDangerComplaint() {
       <ul className="dpc-tl">
         <li>{authority ? s('pack.sos.danger.complaint.t0', { authority: authority.name }) : s('pack.sos.danger.complaint.t0auto')}</li>
         <li>{s('pack.sos.danger.complaint.t3')}</li>
-        <li>{s(country === 'CZ' ? 'pack.sos.danger.complaint.t7cz' : 'pack.sos.danger.complaint.t7')}</li>
+        <li>{s(region === 'CZ' ? 'pack.sos.danger.complaint.t7cz' : region === 'SK' ? 'pack.sos.danger.complaint.t7' : 'pack.sos.danger.complaint.t7other')}</li>
       </ul>
     </SosCard>
   );
@@ -153,8 +173,8 @@ export default function PackDangerComplaint() {
         {timeline}
         <section className="sos-card dpc-life">
           <p className="sos-p"><b>{s('pack.sos.danger.complaint.sentLife')}</b></p>
-          <div className="dpc-calls">
-            <a className="sos-cta sos-cta--red" href="tel:158">{s('pack.sos.danger.complaint.call158')}</a>
+          <div className={region === 'OTHER' ? undefined : 'dpc-calls'}>
+            {region !== 'OTHER' && <a className="sos-cta sos-cta--red" href="tel:158">{s('pack.sos.danger.complaint.call158')}</a>}
             <a className="sos-cta sos-cta--red" href="tel:112">{s('pack.sos.danger.complaint.call112')}</a>
           </div>
         </section>
@@ -177,6 +197,7 @@ export default function PackDangerComplaint() {
           <button type="button" className="sos-cta" onClick={() => setTick((n) => n + 1)}>{s('pack.sos.retry')}</button>
         </SosCard>
       )}
+      {access && <AccessCard access={access} />}
       {missingCase && (
         <SosCard>
           <p className="sos-p">{s('pack.sos.danger.complaint.caseMissing')}</p>
@@ -184,13 +205,13 @@ export default function PackDangerComplaint() {
         </SosCard>
       )}
 
-      {c !== undefined && !missingCase && !(c === null && loadFailed) && (
+      {c !== undefined && !missingCase && !access && !(c === null && loadFailed) && (
         <>
           {gate !== 'ok' && <p className="sos-err" role="alert">{errText(gate)}</p>}
           {fights && (
             <section className="sos-card dpc-fights">
-              <p className="sos-p"><b>{s('pack.sos.danger.complaint.fights')}</b></p>
-              <a className="sos-cta sos-cta--red" href="tel:158">{s('pack.sos.danger.complaint.call158')}</a>
+              <p className="sos-p"><b>{s(region === 'OTHER' ? 'pack.sos.danger.complaint.fights.other' : 'pack.sos.danger.complaint.fights')}</b></p>
+              <a className="sos-cta sos-cta--red" href={region === 'OTHER' ? 'tel:112' : 'tel:158'}>{s(region === 'OTHER' ? 'pack.sos.danger.complaint.call112' : 'pack.sos.danger.complaint.call158')}</a>
             </section>
           )}
 
@@ -219,8 +240,8 @@ export default function PackDangerComplaint() {
             ) : (
               <p className="sos-p">{s('pack.sos.danger.complaint.authorityAuto')}</p>
             )}
-            {chooseOwn ? (
-              <AuthorityPick country={country} value={picked} defaultLabel={auto?.name ?? s('pack.sos.danger.complaint.authorityDefault')} onChange={setPicked} />
+            {region === 'OTHER' ? null : chooseOwn ? (
+              <AuthorityPick country={region} value={picked} defaultLabel={auto?.name ?? s('pack.sos.danger.complaint.authorityDefault')} onChange={setPicked} />
             ) : (
               <button type="button" className="dpc-link" onClick={() => setChooseOwn(true)}>
                 {s(auto ? 'pack.sos.danger.complaint.authorityChange' : 'pack.sos.danger.complaint.authorityOwn')}
@@ -230,16 +251,16 @@ export default function PackDangerComplaint() {
 
           <label className="sos-field">
             <span>{s('pack.sos.danger.complaint.address')}</span>
-            <input className="pf-field" value={address} maxLength={200} autoComplete="street-address" placeholder={s('pack.sos.danger.complaint.addressPh')}
-              onChange={(e) => setAddress(e.target.value)} />
+            <input ref={fe.reg('address')} className={`pf-field${fe.bad === 'address' ? ' is-bad' : ''}`} value={address} maxLength={200} autoComplete="street-address" placeholder={s('pack.sos.danger.complaint.addressPh')}
+              onChange={(e) => { fe.clear('address'); setAddress(e.target.value); }} />
           </label>
 
           <SosCard>
             <p className="sos-p">{s('pack.sos.danger.complaint.lead')}</p>
             <label className="sos-field">
               <span>{s('pack.sos.danger.complaint.rawEyebrow')}</span>
-              <textarea className="pf-field" rows={6} maxLength={RAW_MAX} value={raw} placeholder={s('pack.sos.danger.complaint.rawPh')}
-                onChange={(e) => setRaw(e.target.value)} />
+              <textarea ref={fe.reg('raw')} className={`pf-field${fe.bad === 'raw' ? ' is-bad' : ''}`} rows={6} maxLength={RAW_MAX} value={raw} placeholder={s('pack.sos.danger.complaint.rawPh')}
+                onChange={(e) => { fe.clear('raw'); setRaw(e.target.value); }} />
               <CharCount len={raw.length} max={RAW_MAX} />
             </label>
             <div className="dpc-hints">
@@ -251,7 +272,7 @@ export default function PackDangerComplaint() {
 
           <label className="sos-field">
             <span>{s('pack.sos.danger.complaint.phone')}</span>
-            <input className="pf-field" type="tel" inputMode="tel" autoComplete="tel" maxLength={24} value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <input ref={fe.reg('phone')} className={`pf-field${fe.bad === 'phone' ? ' is-bad' : ''}`} type="tel" inputMode="tel" autoComplete="tel" maxLength={24} value={phone} onChange={(e) => { fe.clear('phone'); setPhone(e.target.value); }} />
           </label>
           <p className="sos-small">{s('pack.sos.danger.complaint.phoneHint')}</p>
 
@@ -261,13 +282,13 @@ export default function PackDangerComplaint() {
             <button type="button" className={`sos-pill sos-pick${signed ? ' is-on' : ''}`} aria-pressed={signed} onClick={() => setSigned(true)}>{s('pack.sos.danger.complaint.whoName')}</button>
           </div>
           {signed && (
-            <input className="pf-field" style={{ minHeight: 48, padding: `0 ${S.md}px` }} value={name} maxLength={80} autoComplete="name"
-              placeholder={s('pack.sos.danger.complaint.namePh')} onChange={(e) => setName(e.target.value)} />
+            <input ref={fe.reg('name')} className={`pf-field${fe.bad === 'name' ? ' is-bad' : ''}`} style={{ minHeight: 48, padding: `0 ${S.md}px` }} value={name} maxLength={80} autoComplete="name"
+              placeholder={s('pack.sos.danger.complaint.namePh')} onChange={(e) => { fe.clear('name'); setName(e.target.value); }} />
           )}
           <p className="sos-small">{s('pack.sos.danger.complaint.whoHint')}</p>
 
           {/* Linka proti krutosti je slovenská: pri CZ podnete sa neponúka. */}
-          {country === 'SK' && (
+          {region === 'SK' && (
             <label className="dpc-chk">
               <input type="checkbox" checked={linka} onChange={(e) => setLinka(e.target.checked)} />
               <span><b>{s('pack.sos.danger.complaint.linka')}</b><small>{s('pack.sos.danger.complaint.linkaHint')}</small></span>
@@ -280,7 +301,7 @@ export default function PackDangerComplaint() {
           </button>
 
           {timeline}
-          <section className="sos-card dpc-life"><p className="sos-p"><b>{s('pack.sos.danger.complaint.life')}</b></p></section>
+          <section className="sos-card dpc-life"><p className="sos-p"><b>{s(region === 'OTHER' ? 'pack.sos.danger.complaint.life.other' : 'pack.sos.danger.complaint.life')}</b></p></section>
           <button type="button" className="sos-cta sos-cta--ghost" onClick={() => nav('/pack/sos/nebezpecenstvo/krajina')}>{s('pack.sos.danger.complaint.otherCountry')}</button>
         </>
       )}

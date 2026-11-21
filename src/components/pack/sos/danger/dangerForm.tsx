@@ -1,7 +1,11 @@
 // SPOLOČNÉ POMôCKY formulárov „Nahlásiť nebezpečenstvo“ (21. 11. 2026, nálezy testu): rozpísaný text v `sessionStorage`
 // (späť → vpred a obnovenie stránky ho nestratia), validácia telefónu a kontaktu, bezpečné pridávanie fotiek, počítadlo znakov.
 // Žiadny backend: ten je len v `lib/danger.ts`.
+import { useCallback, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PACK_SPACE as S, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
+import type { DangerAccess } from '@/lib/danger';
+import { SosCard, loginPath, useSosT } from '../sosShared';
 
 // ── ROZPÍSANÉ V sessionStorage ──────────────────────────────────────────────────────────────────
 // Všetko v try/catch: súkromný režim a plné úložisko nesmú zhodiť formulár.
@@ -30,6 +34,9 @@ export function cleanPhone(raw: string): string | null {
   if (!t || !/^\+?[\d\s().\-/]+$/.test(t)) return null;
   const digits = t.replace(/\D/g, '');
   if (digits.length < 9 || digits.length > 15) return null;
+  // zjavné nezmysly: samé rovnaké číslice (111111111) a celé postupnosti (123456789, 987654321); nič prísnejšie
+  if (/^(\d)\1+$/.test(digits)) return null;
+  if ('01234567890123456789'.includes(digits) || '98765432109876543210'.includes(digits)) return null;
   return (t.startsWith('+') ? '+' : '') + digits;
 }
 
@@ -67,5 +74,57 @@ export function CharCount({ len, max }: { len: number; max: number }) {
     <small className="dgr-count" aria-live="polite" style={{ display: 'block', textAlign: 'right', marginTop: S.xs, fontSize: PACK_TEXT.label, color: full ? T.sosRed : T.inkWarm, fontWeight: full ? 600 : 400 }}>
       {len} / {max}
     </small>
+  );
+}
+
+// ── KRAJINA PRÍPADU → texty a čísla (nie jazyk rozhrania) ───────────────────────────────────────
+export type Region = 'SK' | 'CZ' | 'OTHER';
+/** `SK`/`SVK` a `CZ`/`CZE` majú vlastný postup; všetko ostatné je neutrálne (úrad vyberieme my, núdzové číslo len 112). Prázdne = SK (ako na serveri). */
+export function regionOf(country?: string | null): Region {
+  const c = (country ?? '').trim().toUpperCase();
+  if (!c || c === 'SK' || c === 'SVK') return 'SK';
+  if (c === 'CZ' || c === 'CZE') return 'CZ';
+  return 'OTHER';
+}
+
+// ── ODOSLANIE: zámok SYNCHRÓNNE na začiatku handlera ───────────────────────────────────────────
+// `busy` ako state sa nastaví až v ďalšom renderi, takže dvojklik alebo dva rýchle Enter prejdú oba. Ref sa zamyká hneď.
+export function useSubmitLock() {
+  const ref = useRef(false);
+  return useCallback(async (fn: () => Promise<void>) => {
+    if (ref.current) return;
+    ref.current = true;
+    try { await fn(); } finally { ref.current = false; }
+  }, []);
+}
+
+// ── CHYBA PRI POLI: zroluj k nemu a zvýrazni ho ────────────────────────────────────────────────
+export function useFieldErr() {
+  const refs = useRef<Record<string, HTMLElement | null>>({});
+  const [bad, setBad] = useState<string | null>(null);
+  const reg = useCallback((name: string) => (el: HTMLElement | null) => { refs.current[name] = el; }, []);
+  const flag = useCallback((name: string) => {
+    setBad(name);
+    const el = refs.current[name];
+    if (!el) return;
+    el.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+    const f = el.matches('input,textarea,select') ? el : el.querySelector<HTMLElement>('input,textarea,select');
+    f?.focus?.({ preventScroll: true });
+  }, []);
+  const clear = useCallback((name?: string) => setBad((b) => (name && b !== name ? b : null)), []);
+  return { bad, reg, flag, clear };
+}
+
+// ── PRÍSTUP: odhlásený / nečlen ─────────────────────────────────────────────────────────────────
+export function AccessCard({ access }: { access: DangerAccess }) {
+  const s = useSosT();
+  const nav = useNavigate();
+  return (
+    <SosCard>
+      <p className="sos-p">{s(access === 'login' ? 'pack.sos.danger.access.login' : 'pack.sos.danger.access.member')}</p>
+      {access === 'login' && (
+        <button type="button" className="sos-cta" onClick={() => nav(loginPath(window.location.pathname + window.location.search))}>{s('pack.sos.danger.access.loginBtn')}</button>
+      )}
+    </SosCard>
   );
 }

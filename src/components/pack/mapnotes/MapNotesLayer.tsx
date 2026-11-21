@@ -347,7 +347,7 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
         /* ŠÍRKA PODĽA DĹŽKY TEXTU (Matej 12. 10. 2026: „tipy sú zbytočne úzke na mape … urob
            z toho čitateľnú a peknú bublinku = rozšír to … a vždy prispôsob dĺžke"). Krátka
            poznámka ostáva úzka, dlhý tip dostane širší stĺpec a väčšie písmo. */
-        className={`mn-popup${bubbleSize(n.body)}`}
+        className={`mn-popup${bubbleSize(isDangerKind(n.kind) ? null : n.body)}`}
         closeButton={false}
         /* ⚠️ NIE `autoPanPadding={[24,24]}` — mapa je full-bleed POD plávajúcimi
            panelmi, takže „24 px od okraja kontajnera" znamená schovaný pod
@@ -387,7 +387,7 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
             {n.isStale && <span className="mn-bubble-stale">{t('pack.mapNotes.unconfirmed')}</span>}
           </div>
 
-          {!!n.body && <UgcText kind="note" id={n.id} text={n.body} mine={n.isMine || dataset}>{(s, tg) => <p className="mn-bubble-body">{bodyWithLinks(s)}{tg}</p>}</UgcText>}
+          {!!n.body && !isDangerKind(n.kind) && <UgcText kind="note" id={n.id} text={n.body} mine={n.isMine || dataset}>{(s, tg) => <p className="mn-bubble-body">{bodyWithLinks(s)}{tg}</p>}</UgcText>}
 
           {/* NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026): otrava a týranie majú detail s komentármi a svedkami. */}
           {isDangerKind(n.kind) && DANGER_ON && (

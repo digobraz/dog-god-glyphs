@@ -13,10 +13,11 @@ import { useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { sizedUrl } from '@/services/cloudinaryService';
 import {
-  dangerCase, dangerComments, dangerCommentAdd, dangerCommentDelete, dangerErrorCode, dangerNotFound, dangerOutcome, dangerWitness, isDangerUuid,
-  type DangerCase, type DangerComment, type DangerOutcome,
+  dangerAccessIssue, dangerCase, dangerComments, dangerCommentAdd, dangerCommentDelete, dangerErrorCode, dangerHasSession, dangerMine,
+  dangerNotFound, dangerOutcome, dangerWitness, isDangerUuid,
+  type DangerAccess, type DangerCase, type DangerComment, type DangerComplaintBrief, type DangerComplaintState, type DangerOutcome,
 } from '@/lib/danger';
-import { CharCount } from './dangerForm';
+import { AccessCard, CharCount, regionOf, useSubmitLock } from './dangerForm';
 import { authorityByCode } from '@/data/dangerAuthorities';
 import { SosCard, SosStyles, useBack, useSosT, type SosT } from '../sosShared';
 import type { SosKey } from '../sosTexts';
@@ -69,15 +70,16 @@ function Comments({ c, s }: { c: DangerCase; s: SosT }) {
   const [err, setErr] = useState('');
   const load = useCallback(() => { dangerComments(c.id).then(setRows).catch(() => setRows([])); }, [c.id]);
   useEffect(load, [load]);
-  const send = async () => {
+  const lock = useSubmitLock();
+  const send = () => lock(async () => {
     const body = text.trim();
     if (!body || busy) return;
     setBusy(true); setErr('');
     try { await dangerCommentAdd(c.id, body); setText(''); load(); }
     catch (e) { setErr(dangerErrorCode(e) === 'rate_limited' ? s(K('err.rate')) : s(K('err'))); }
     finally { setBusy(false); }
-  };
-  const del = async (id: string) => { try { await dangerCommentDelete(id); load(); } catch { setErr(s(K('err'))); } };
+  });
+  const del = (id: string) => lock(async () => { try { await dangerCommentDelete(id); load(); } catch { setErr(s(K('err'))); } });
   return (
     <SosCard>
       <h2 className="sos-eyebrow">{s(K('comments'))}</h2>
@@ -112,14 +114,27 @@ export default function PackDangerCase() {
   const navigate = useNavigate();
   const back = useBack('/pack/map');
   const [c, setC] = useState<DangerCase | null>(null);
-  const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
+  const [mine, setMine] = useState<DangerComplaintBrief[]>([]);   // moje podnety k prípadu vrátane zamietnutých (`danger_case` ich nevydá)
+  const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error' | DangerAccess>('loading');
+  const [confirmMore, setConfirmMore] = useState(false);
+  const lock = useSubmitLock();
   const [busy, setBusy] = useState(false);
   const [werr, setWerr] = useState('');
 
   const load = useCallback(() => {
     // neplatné ID (`/p/abc`) = „prípad neexistuje“, nie „bez pripojenia“; chyba siete je len to, čo nie je ani jedno
     if (!id || !isDangerUuid(id)) { setState('missing'); return; }
-    dangerCase(id).then((r) => { setC(r); setState(r ? 'ready' : 'missing'); }).catch((e) => setState(dangerNotFound(e) ? 'missing' : 'error'));
+    // odhlásený = výzva na prihlásenie, nečlen = „len členovia“; výpadok siete je až to, čo nie je nič z toho
+    void dangerHasSession().then((has) => {
+      if (!has) { setState('login'); return; }
+      dangerCase(id).then(async (r) => {
+        setC(r); setState(r ? 'ready' : 'missing');
+        if (r) dangerMine().then((rows) => setMine(rows.find((x) => x.id === r.id)?.complaints ?? [])).catch(() => setMine([]));
+      }).catch(async (e) => {
+        const acc = await dangerAccessIssue(e);
+        setState(acc ?? (dangerNotFound(e) ? 'missing' : 'error'));
+      });
+    });
   }, [id]);
   useEffect(load, [load]);
 
@@ -127,9 +142,11 @@ export default function PackDangerCase() {
     return (
       <PackLayout onBack={back} backLabel={s('pack.sos.back')}>
         <SosStyles />
-        <p className="sos-p" style={{ textAlign: 'center' }}>
-          {state === 'loading' ? s(K('loading')) : state === 'missing' ? s(K('missing')) : s('pack.sos.offline')}
-        </p>
+        {state === 'login' || state === 'member' ? <AccessCard access={state} /> : (
+          <p className="sos-p" style={{ textAlign: 'center' }}>
+            {state === 'loading' ? s(K('loading')) : state === 'missing' ? s(K('missing')) : s('pack.sos.offline')}
+          </p>
+        )}
         {state === 'error' && <button type="button" className="sos-cta" onClick={load}>{s('pack.sos.retry')}</button>}
       </PackLayout>
     );
@@ -139,25 +156,33 @@ export default function PackDangerCase() {
   const expired = !!c.expires_at && new Date(c.expires_at).getTime() < Date.now();
   const pending = c.review === 'pending';
   const rejected = c.review === 'rejected';
-  const sent = c.complaints.filter((x) => x.sent_at);
-  const toRate = c.is_mine ? sent.find((x) => !x.outcome) : undefined;
+  const cstate = (x: DangerComplaintBrief): DangerComplaintState => x.state ?? (x.sent_at ? 'sent' : 'submitted');
+  const mineIds = new Set(mine.map((x) => x.id));
+  const others = c.complaints.filter((x) => !mineIds.has(x.id));
+  // cudzie podnety vidí člen len súhrnne a len keď už odišli úradu; ich stav (kontrola, zlyhanie) mu nepatrí
+  const othersSent = others.some((x) => cstate(x) === 'sent');
+  const toRate = mine.find((x) => cstate(x) === 'sent' && !x.outcome);
   const rated = c.complaints.find((x) => x.outcome);
+  const hasOpen = mine.some((x) => ['submitted', 'approved_waiting', 'failed'].includes(cstate(x)));
+  const lastSent = [...mine].reverse().find((x) => cstate(x) === 'sent' && x.sent_at);
+  const emergency = regionOf(c.country) === 'OTHER' ? '112' : '158';
   // Obec sa pripíše len vtedy, keď ju adresa ešte nenesie („Hlavná 12, Trenčín, Trenčín“).
   const where = c.place_label && c.municipality && c.place_label.includes(c.municipality) ? c.place_label
     : [c.place_label, c.municipality].filter(Boolean).join(', ');
 
-  const witness = async () => {
+  const witness = () => lock(async () => {
     if (busy) return;
     setBusy(true);
     setWerr('');
     try { await dangerWitness(c.id, !c.i_witnessed); load(); }
     catch (e) { setWerr(s(K(dangerErrorCode(e) === 'expired' ? 'witness.expired' : 'err'))); }
     finally { setBusy(false); }
-  };
-  const rate = async (cid: string, o: DangerOutcome) => {
+  });
+  const rate = (cid: string, o: DangerOutcome) => lock(async () => {
     setBusy(true);
     try { await dangerOutcome(cid, o); load(); } finally { setBusy(false); }
-  };
+  });
+  const goComplaint = () => navigate(`/pack/sos/nebezpecenstvo/podnet?case=${c.id}`);
 
   return (
     <PackLayout onBack={back} backLabel={s('pack.sos.back')}>
@@ -189,7 +214,7 @@ export default function PackDangerCase() {
           )}
           {c.body && <p className="sos-p" style={{ color: T.inkStrong, whiteSpace: 'pre-wrap' }}>{c.body}</p>}
           {c.what.includes('dog_fights') && (
-            <a className="sos-cta sos-cta--red sos-cta--sm" href="tel:158">{s(K('call158'))}</a>
+            <a className="sos-cta sos-cta--red sos-cta--sm" href={`tel:${emergency}`}>{s(K(emergency === '112' ? 'call112' : 'call158'))}</a>
           )}
           {abuse && <p className="dgc-risk">{s(K('risk'))}</p>}
           {!abuse && (
@@ -223,12 +248,22 @@ export default function PackDangerCase() {
         {(c.review === 'approved' || c.is_mine) && (
           <SosCard>
             <h2 className="sos-eyebrow">{s(K('complaint.title'))}</h2>
-            {c.complaints.map((x) => (
-              <div key={x.id} className="sos-fact">
-                <small>{authorityByCode(x.authority_code)?.name ?? (x.authority_code === 'AUTO' ? s(K('complaint.auto')) : x.authority_code)}</small>
-                <span>{x.sent_at ? s(K('complaint.sent'), { date: date(x.sent_at) }) : s(K('complaint.waiting'))}</span>
-              </div>
-            ))}
+            {mine.map((x) => {
+              const st = cstate(x);
+              return (
+                <div key={x.id} className="sos-fact">
+                  <small>{authorityByCode(x.authority_code)?.name ?? (x.authority_code === 'AUTO' ? s(K('complaint.auto')) : x.authority_code)}</small>
+                  <span>{st === 'sent' && x.sent_at ? s(K('complaint.sent'), { date: date(x.sent_at) }) : s(K(`cstate.${st}`))}</span>
+                  {st === 'rejected' && (
+                    <>
+                      <p className="sos-small">{s(K('cstate.rejected.p'))}</p>
+                      <button type="button" className="sos-cta sos-cta--ghost sos-cta--sm" onClick={goComplaint}>{s(K('cstate.again'))}</button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+            {othersSent && <p className="sos-p">{s(K('complaint.others'))}</p>}
             {rated?.outcome && <p className="sos-p">{s(K('outcome.done'), { what: s(K(`outcome.${rated.outcome}`)) })}</p>}
             {toRate && (
               <>
@@ -240,8 +275,19 @@ export default function PackDangerCase() {
                 </div>
               </>
             )}
-            {!expired && <p className="sos-small">{s(K('complaint.add.p'))}</p>}
-            <button type="button" className="sos-cta sos-cta--tint" onClick={() => navigate(`/pack/sos/nebezpecenstvo/podnet?case=${c.id}`)}>{s(K('complaint.add'))}</button>
+            {!expired && !hasOpen && !confirmMore && !(mine.length > 0 && mine.every((x) => cstate(x) === 'rejected')) && (
+              <>
+                <p className="sos-small">{s(K('complaint.add.p'))}</p>
+                <button type="button" className="sos-cta sos-cta--tint" onClick={() => (lastSent?.sent_at ? setConfirmMore(true) : goComplaint())}>{s(K('complaint.add'))}</button>
+              </>
+            )}
+            {confirmMore && lastSent?.sent_at && (
+              <>
+                <p className="sos-p"><b>{s(K('complaint.more.confirm'), { date: date(lastSent.sent_at) })}</b></p>
+                <button type="button" className="sos-cta" onClick={goComplaint}>{s(K('complaint.more.yes'))}</button>
+                <button type="button" className="sos-cta sos-cta--ghost" onClick={() => setConfirmMore(false)}>{s(K('complaint.more.no'))}</button>
+              </>
+            )}
             {/* plagát má zmysel len pri schválenom prípade (čakajúci a zamietnutý nemá čo ukázať) */}
             {c.review === 'approved' && (
               <button type="button" className="sos-cta sos-cta--ghost" onClick={() => navigate(`/pack/sos/nebezpecenstvo/p/${c.id}/plagat`)}>{s(K('poster'))}</button>

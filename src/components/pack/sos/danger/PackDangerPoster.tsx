@@ -3,7 +3,8 @@
 // Export: `nodeToPng` → PNG presne 1080×1920 / 1080×1350 → `shareFiles` (web stiahne, appka otvorí systémový hárok).
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { dangerCase, dangerNotFound, dangerUrl, isDangerUuid, type DangerCase } from '@/lib/danger';
+import { dangerAccessIssue, dangerCase, dangerHasSession, dangerNotFound, dangerUrl, isDangerUuid, type DangerAccess, type DangerCase } from '@/lib/danger';
+import { AccessCard } from './dangerForm';
 import { shareFiles } from '@/lib/shareFile';
 import { toast } from '@/hooks/use-toast';
 import { nodeToPng } from '../sosFlyerExport';
@@ -25,6 +26,7 @@ export default function PackDangerPoster() {
   const back = useBack(`/pack/sos/nebezpecenstvo/p/${id}`);
   const [c, setC] = useState<DangerCase | null | undefined>(undefined);
   const [failed, setFailed] = useState(false);
+  const [access, setAccess] = useState<DangerAccess | null>(null);
   const [tick, setTick] = useState(0);
   const [fmt, setFmt] = useState<PosterFormat>('story');
   const [busy, setBusy] = useState(false);
@@ -33,10 +35,17 @@ export default function PackDangerPoster() {
 
   useEffect(() => {
     let alive = true;
-    setC(undefined); setFailed(false);
+    setC(undefined); setFailed(false); setAccess(null);
     // neplatné ID = „prípad neexistuje“, nie „bez pripojenia“
     if (!isDangerUuid(id)) { setC(null); return; }
-    dangerCase(id).then((r) => alive && setC(r)).catch((e) => { if (alive) { setC(null); setFailed(!dangerNotFound(e)); } });
+    void dangerHasSession().then((has) => {
+      if (!alive) return;
+      if (!has) { setC(null); setAccess('login'); return; }
+      dangerCase(id).then((r) => alive && setC(r)).catch(async (e) => {
+        const acc = await dangerAccessIssue(e);
+        if (alive) { setC(null); if (acc) setAccess(acc); else setFailed(!dangerNotFound(e)); }
+      });
+    });
     return () => { alive = false; };
   }, [id, tick]);
   useEffect(() => { setReady(false); }, [fmt, c?.id]);
@@ -62,7 +71,8 @@ export default function PackDangerPoster() {
       <style>{CSS}</style>
       <h1 className="sos-h2">{s('pack.sos.danger.poster.title')}</h1>
       {c === undefined && <p className="sos-p">{s('pack.sos.loading')}</p>}
-      {c === null && (
+      {c === null && access && <AccessCard access={access} />}
+      {c === null && !access && (
         <SosCard>
           <p className="sos-err">{failed ? s('pack.sos.offline') : s('pack.sos.danger.case.missing')}</p>
           {failed && <button type="button" className="sos-cta" onClick={() => setTick((n) => n + 1)}>{s('pack.sos.retry')}</button>}

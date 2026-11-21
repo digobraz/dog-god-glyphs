@@ -14,6 +14,7 @@ import { FLOW_PALE_CSS } from '@/components/screens/flowPaleSkin';
 import { SOS_CSS, useSosT } from '@/components/pack/sos/sosShared';
 import type { SosKey } from '@/components/pack/sos/sosTexts';
 import { DangerMap, posterView } from '@/components/pack/sos/danger/DangerPoster';
+import { regionOf } from '@/components/pack/sos/danger/dangerForm';
 
 /**
  * VEREJNÁ STRÁNKA NEBEZPEČENSTVA — `/danger/:slug` (20. 11. 2026). BEZ PRIHLÁSENIA, noindex. Vzor: `LostPublic.tsx`.
@@ -57,6 +58,8 @@ function DangerPublicInner({ slug }: { slug: string }) {
   if (row === null && !failed) return <NotFound lead={s('pack.sos.danger.public.notFound')} />;
 
   const poison = row?.kind === 'poison';
+  // číslo riadi krajina prípadu: polícia 158 platí v SK a CZ, inde jediné číslo, ktoré sedí všade, je 112
+  const emergency = regionOf(row?.country) === 'OTHER' ? '112' : '158';
   const view = row ? posterView({ slug: row.slug, kind: row.kind, place: row.municipality ?? '', lat: row.lat, lng: row.lng, radius_m: row.radius_m, what: row.what ?? [], photo: row.photo }) : null;
   const title = row ? s(poison ? 'pack.sos.danger.public.titlePoison' : 'pack.sos.danger.public.titleAbuse') : 'DOGYPT';
 
@@ -88,7 +91,7 @@ function DangerPublicInner({ slug }: { slug: string }) {
             <>
               <div className={`sos-band${row.active ? '' : ' sos-band--ended'}`}>
                 <b>{title}</b>
-                <small>{row.municipality ? s('pack.sos.danger.public.near', { place: row.municipality }) : s('pack.sos.danger.poster.place')}</small>
+                <small>{row.municipality ? s('pack.sos.danger.public.near', { place: row.municipality }) : s('pack.sos.danger.public.near', { place: s('pack.sos.danger.poster.place') })}</small>
               </div>
               <p className="sos-small" style={{ textAlign: 'center' }}>{row.active ? s('pack.sos.danger.public.active') : s('pack.sos.danger.public.expired')}</p>
               <div className="dp-map" role="img" aria-label={row.municipality ?? ''}>
@@ -99,8 +102,8 @@ function DangerPublicInner({ slug }: { slug: string }) {
                 <div className="sos-chips">{view.what.map((c) => <span key={c} className="sos-pill">{s(`pack.sos.danger.poster.chip.${c}` as SosKey)}</span>)}</div>
               )}
               {view.photo && <img className="sos-photo" src={sizedUrl(view.photo, 900)} alt="" />}
-              <p className="sos-p">{s(poison ? 'pack.sos.danger.public.advicePoison' : 'pack.sos.danger.public.adviceAbuse')}</p>
-              {!poison && <a className="sos-cta sos-cta--red dp-home" href="tel:158">{s('pack.sos.danger.public.call158')}</a>}
+              <p className="sos-p">{s(poison ? 'pack.sos.danger.public.advicePoison' : emergency === '112' ? 'pack.sos.danger.public.adviceAbuse.other' : 'pack.sos.danger.public.adviceAbuse')}</p>
+              {!poison && <a className="sos-cta sos-cta--red dp-home" href={`tel:${emergency}`}>{s(emergency === '112' ? 'pack.sos.danger.public.call112' : 'pack.sos.danger.public.call158')}</a>}
               <a className="sos-cta dp-home" href="/map">{s('pack.sos.danger.public.map')}</a>
               <button type="button" className="sos-cta sos-cta--ghost" onClick={() => void share()}>{s('pack.sos.danger.public.share')}</button>
               <div className="sos-card" style={{ textAlign: 'center' }}>

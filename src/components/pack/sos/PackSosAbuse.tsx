@@ -15,19 +15,21 @@ import type { SosKey } from './sosTexts';
 
 type Call = { tel: string; label: SosKey; red?: boolean };
 
-const CALLS: Record<'sk' | 'cs' | 'en', Call[]> = {
-  sk: [
+// Krajinu na tejto obrazovke nepoznáme (jazyk rozhrania nie je krajina), preto sa neháda: všetky tri sady čísel sú vedľa seba,
+// zreteľne označené krajinou. Poradie podľa jazyka (SK jazyk = Slovensko prvé), aby človek videl svoje číslo hneď.
+type Group = { id: 'SK' | 'CZ' | 'OTHER'; label: SosKey; calls: Call[] };
+const GROUPS: Record<'SK' | 'CZ' | 'OTHER', Group> = {
+  SK: { id: 'SK', label: 'pack.sos.danger.complaint.countrySK', calls: [
     { tel: '158', label: 'pack.sos.danger.abuse.police', red: true },
-    { tel: '112', label: 'pack.sos.danger.abuse.emergency', red: true },
     { tel: '159', label: 'pack.sos.danger.abuse.municipal' },
-  ],
-  cs: [
+  ] },
+  CZ: { id: 'CZ', label: 'pack.sos.danger.complaint.countryCZ', calls: [
     { tel: '158', label: 'pack.sos.danger.abuse.police', red: true },
-    { tel: '112', label: 'pack.sos.danger.abuse.emergency', red: true },
     { tel: '156', label: 'pack.sos.danger.abuse.municipal' },
-  ],
-  en: [{ tel: '112', label: 'pack.sos.danger.abuse.emergency', red: true }],
+  ] },
+  OTHER: { id: 'OTHER', label: 'pack.sos.danger.country.other', calls: [{ tel: '112', label: 'pack.sos.danger.abuse.emergency', red: true }] },
 };
+const ORDER: Record<'sk' | 'cs' | 'en', Array<'SK' | 'CZ' | 'OTHER'>> = { sk: ['SK', 'CZ', 'OTHER'], cs: ['CZ', 'SK', 'OTHER'], en: ['SK', 'CZ', 'OTHER'] };
 const VET_URL: Record<'sk' | 'cs', string> = {
   sk: 'https://svps.sk/rvps/',
   cs: 'https://svs.gov.cz/statni-veterinarni-sprava/organizacni-utvary-statni-veterinarni-spravy/',
@@ -45,6 +47,7 @@ const CSS = `
 .abu-steps li{display:grid;grid-template-columns:32px 1fr;gap:${S.md}px;align-items:start;font-size:${PACK_TEXT.body}px;line-height:1.45;color:${T.inkStrong};counter-increment:abu;}
 .abu-steps li::before{content:counter(abu);display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:${PACK_R.pill}px;border:2px solid ${T.inkStrong};font-weight:600;}
 .abu-never{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.45;font-weight:500;color:${T.sosRedDark};}
+.abu-group{display:flex;flex-direction:column;gap:${S.sm}px;}
 .abu-help{display:flex;flex-direction:column;gap:${S.sm}px;}
 .abu-help .sos-chips a{text-decoration:none;}
 `;
@@ -64,13 +67,18 @@ export default function PackSosAbuse() {
       </div>
       <p className="abu-lead">{s('pack.sos.danger.abuse.lead')}</p>
       <p className="sos-p">{s('pack.sos.danger.abuse.now')}</p>
-      <div className="abu-calls">
-        {CALLS[k].map((c) => (
-          <a key={c.tel} className={`sos-cta${c.red ? ' sos-cta--red' : ' sos-cta--ghost'}`} href={`tel:${c.tel}`}>
-            <b>{c.tel}</b><span>{s(c.label)}</span>
-          </a>
-        ))}
-      </div>
+      {ORDER[k].map((g) => (
+        <div key={g} className="abu-group">
+          <p className="sos-eyebrow">{s(GROUPS[g].label)}</p>
+          <div className="abu-calls">
+            {GROUPS[g].calls.map((c) => (
+              <a key={c.tel} className={`sos-cta${c.red ? ' sos-cta--red' : ' sos-cta--ghost'}`} href={`tel:${c.tel}`}>
+                <b>{c.tel}</b><span>{s(c.label)}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
       <button type="button" className="sos-cta" onClick={() => navigate('/pack/sos/nebezpecenstvo/tyranie/miesto')}>{s('pack.sos.danger.abuse.mark')}</button>
       <button type="button" className="sos-cta sos-cta--tint" onClick={() => navigate('/pack/sos/nebezpecenstvo/podnet')}>{s('pack.sos.danger.abuse.complaint')}</button>
       <ol className="abu-steps">
