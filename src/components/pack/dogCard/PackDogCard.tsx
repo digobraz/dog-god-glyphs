@@ -7,15 +7,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { readLatest, hasValue, type LatestValue } from '@/lib/dogEvents';
 import { FLOW_SCREENS } from '@/components/pack/dogid/flowData.generated';
-import { blobToDataUrl, toDataUrl } from '@/lib/sheetPdf';
+import { blobToDataUrl } from '@/lib/sheetPdf';
 import { cardDraftKey } from './cardDraft';
 import { fetchCardData, type DogRow } from './cardData';
-import { cardCacheKey, storedUserId, withTimeout } from '@/components/pack/sos/sosLocal';
+import { cardCacheKey, cardPhoto, storedUserId, withTimeout } from '@/components/pack/sos/sosLocal';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { STEP_BY_FIELD } from '@/components/pack/dogQuiz';
 import { passPlainValue } from '@/components/pack/DogPassport';
-import { sizedUrl } from '@/services/cloudinaryService';
 import { compressFile } from '@/lib/photoIntake';
 import { FONT_UI, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_THEME as T } from '@/components/pack/packTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
@@ -184,7 +183,11 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
       let shownLocal = false;
       try {
         const c = JSON.parse(localStorage.getItem(cacheKey) ?? 'null') as { dog: DogRow; latest: Record<string, LatestValue> } | null;
-        if (c?.dog && alive) { apply(c.dog, c.latest ?? {}); shownLocal = true; }
+        if (c?.dog && alive) {
+          const { keepSrc } = apply(c.dog, c.latest ?? {}); shownLocal = true;
+          // Fotka z lokálnej kópie hneď, bez siete (inak by offline kartička ostala bez fotky).
+          if (!keepSrc) void cardPhoto(uid, id, null).then((src) => { if (alive && src && !ownPhoto.current) setPhoto((cur) => (cur.src ? cur : { ...cur, src })); });
+        }
       } catch { /* poškodená kópia: ide sa na sieť */ }
       try {
         // 3) Údaje psa a DOG ID súbežne (predtým jedno za druhým + fotka navyše).
@@ -199,7 +202,7 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
         const { keepSrc } = apply(d, latest);
         // 4) Fotka až na pozadí: kartička je čitateľná hneď, export potrebuje data URL a ten príde po stiahnutí.
         if (!keepSrc && d.cloudinary_main_url) {
-          const src = await toDataUrl(sizedUrl(d.cloudinary_main_url, 900));
+          const src = await cardPhoto(uid, id, d.cloudinary_main_url);
           if (alive && src && !ownPhoto.current) setPhoto((cur) => ({ ...cur, src }));
         }
       } catch {

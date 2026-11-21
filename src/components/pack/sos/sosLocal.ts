@@ -1,5 +1,5 @@
 // SOS — lokálna kópia malých údajov pre prihláseného (zoznam psov, posledný telefón, údaje kartičky), aby sa kartička a formulár straty
-// otvorili aj pri PRVOM otvorení bez signálu. Ukladá sa v pokoji po načítaní appky (`warmSosLocal`, volá `sosPrefetch`).
+// otvorili aj pri PRVOM otvorení bez signálu (od 21. 11. aj s fotkou psa). Ukladá sa v pokoji po načítaní appky (`warmSosLocal`, volá `sosPrefetch`).
 // Všetky kľúče začínajú `dogypt.ecard.`, takže ich zmaže `clearCardDrafts()` pri odhlásení aj zmazaní účtu; navyše sa mažú pri `SIGNED_OUT`.
 import { SUPABASE_URL } from '@/lib/env';
 import { clearCardDrafts } from '@/components/pack/dogCard/cardDraft';
@@ -10,6 +10,23 @@ export const dogsKey = (uid: string) => `${P}sos.dogs.${uid}`;
 export const phoneKey = (uid: string) => `${P}sos.phone.${uid}`;
 export const lastDogKey = (uid: string) => `${P}last.${uid}`;
 export const cardCacheKey = (uid: string, dogId: string) => `${P}cache.${uid}.${dogId}`;
+/** Fotka psa na kartičku ako data URL, `{ url, src }` (url = zdroj na Cloudinary; pri zmene fotky sa stiahne znova). Bez nej offline kartička ostala bez fotky. */
+export const cardPhotoKey = (uid: string, dogId: string) => `${P}photo.${uid}.${dogId}`;
+export const CARD_PHOTO_W = 900;
+export type CardPhoto = { url: string; src: string };
+
+/** Data URL fotky z lokálnej kópie, ak sedí na zdroj; inak ju stiahne a uloží. Bez siete vráti uloženú (aj staršiu). */
+export async function cardPhoto(uid: string, dogId: string, url: string | null | undefined): Promise<string | null> {
+  const key = cardPhotoKey(uid, dogId);
+  const c = localGet<CardPhoto>(key);
+  if (!url) return c?.src ?? null;
+  if (c?.url === url && c.src) return c.src;
+  const { toDataUrl } = await import('@/lib/sheetPdf');
+  const { sizedUrl } = await import('@/services/cloudinaryService');
+  const src = await toDataUrl(sizedUrl(url, CARD_PHOTO_W));
+  if (src) { localSet(key, { url, src }); return src; }
+  return c?.src ?? null;
+}
 
 /** `user.id` z uloženej relácie, SYNCHRONNE (bez supabase-js, ktorý na pomalej sieti čaká na zámok a obnovu tokenu). */
 export function storedUserId(): string | null {
@@ -52,7 +69,7 @@ export async function warmSosLocal(): Promise<void> {
     void sosLastPhone().then((p) => { if (p) localSet(phoneKey(uid), p); }).catch(() => {});
     const { fetchCardData } = await import('@/components/pack/dogCard/cardData');
     for (const d of dogs.slice(0, 3)) {
-      try { const c = await fetchCardData(d.id); if (c.dog) localSet(cardCacheKey(uid, d.id), c); } catch { /* ďalší pokus pri ďalšom štarte */ }
+      try { const c = await fetchCardData(d.id); if (c.dog) { localSet(cardCacheKey(uid, d.id), c); await cardPhoto(uid, d.id, c.dog.cloudinary_main_url); } } catch { /* ďalší pokus pri ďalšom štarte */ }
     }
   } catch { warmed = false; }
 }
