@@ -6420,4 +6420,5 @@ export const rus: Partial<Dict> = {
   'pack.moment.continue': 'Далее',
   'pack.zd.prevDay': 'Предыдущий день',
   'pack.zd.nextDay': 'Следующий день',
+  'pack.map.locDenied': 'Геолокация для DOGYPT выключена. Включи её в Настройках телефона → DOGYPT → Геопозиция.',
 };

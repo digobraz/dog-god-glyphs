@@ -71,6 +71,8 @@ export const SOS_TEXTS = {
   // mapa bez dlaždíc: bod sa ukáže textom, lokalitu treba napísať ručne
   'pack.sos.new.picked': T('Selected point: {coords}', 'Zvolený bod: {coords}', 'Zvolený bod: {coords}'),
   'pack.sos.new.mapFail': T('The map could not be loaded, but your tap is saved. Write the place by hand below.', 'Mapa sa nenačítala, tvoj ťuk sa však uložil. Lokalitu napíš ručne nižšie.', 'Mapa se nenačetla, tvé klepnutí se však uložilo. Lokalitu napiš ručně níže.'),
+  'pack.sos.new.offPlace': T('This point looks like it is outside any town. Check it, and write the place by hand.', 'Tento bod vyzerá mimo obce, skontroluj ho. Lokalitu napíš ručne.', 'Tento bod vypadá mimo obec, zkontroluj ho. Lokalitu napiš ručně.'),
+  'pack.sos.new.offlineSend': T('You can fill this in now. It will be sent once you have signal.', 'Odoslať pôjde, až budeš mať signál. Rozpísané sa uloží.', 'Odeslat půjde, až budeš mít signál. Rozepsané se uloží.'),
   'pack.sos.new.placeManual': T('Write the place by hand: a town, a street or a landmark.', 'Napíš lokalitu ručne: obec, ulicu alebo orientačný bod.', 'Napiš lokalitu ručně: obec, ulici nebo orientační bod.'),
   // bez prihlásenia
   'pack.sos.login.title': T('Sign in to continue', 'Prihlás sa a pokračuj', 'Přihlas se a pokračuj'),
@@ -174,6 +176,7 @@ export const SOS_TEXTS = {
   'pack.sos.fl.searching': T('We are looking for', 'Hľadáme', 'Hledáme'),
   'pack.sos.fl.about2': T('About him', 'O ňom', 'O něm'),
   'pack.sos.fl.lastSeen': T('Last seen', 'Naposledy videný', 'Naposledy viděn'),
+  'pack.sos.fl.rewardPh': T('e.g. 100 €', 'napr. 100 €', 'např. 100 Kč'),
   'pack.sos.fl.unchanged': T('The flyer is already saved.', 'Leták je už uložený.', 'Leták je už uložen.'),
   'pack.sos.fl.mapAlt': T('Map of the place', 'Mapa miesta', 'Mapa místa'),
 
@@ -419,6 +422,7 @@ export const SOS_TEXTS = {
   'pack.sos.er.locating': T('Finding your location…', 'Zisťujem polohu…', 'Zjišťuji polohu…'),
   'pack.sos.er.gpsFail': T('Location not found. Try again or pick a city.', 'Polohu sa nepodarilo zistiť. Skús znova alebo vyber mesto.', 'Polohu se nepodařilo zjistit. Zkus znovu nebo vyber město.'),
   'pack.sos.er.outside': T('We have no list for this place.', 'Tu zoznam nemáme.', 'Tady seznam nemáme.'),
+  'pack.sos.er.farAir': T('The nearest open one is {km} km away as the crow flies. Call on the way.', 'Najbližšia otvorená je {km} km vzdušnou čiarou. Zavolaj cestou.', 'Nejbližší otevřená je {km} km vzdušnou čarou. Zavolej cestou.'),
   'pack.sos.er.noCover': T('We have no clinics near you yet.', 'V tvojom okolí zatiaľ kliniky nemáme.', 'V tvém okolí zatím kliniky nemáme.'),
   'pack.sos.er.noCoverAdvice': T('Search for “emergency vet” and your town, then call the local number. If a life is at risk, call 112.', 'Hľadaj „veterinárna pohotovosť“ a svoje mesto a volaj miestne číslo. Keď ide o život, volaj 112.', 'Hledej „veterinární pohotovost“ a své město a volej místní číslo. Když jde o život, volej 112.'),
   'pack.sos.er.mapSearch': T('SEARCH EMERGENCY VETS ON THE MAP', 'HĽADAŤ POHOTOVOSŤ NA MAPE', 'HLEDAT POHOTOVOST NA MAPĚ'),
@@ -514,6 +518,9 @@ export const SOS_TEXTS = {
   'pack.sos.alive.thanks': T('Thank you to everyone who shared and looked.', 'Ďakujeme všetkým, čo zdieľali a hľadali.', 'Děkujeme všem, kdo sdíleli a hledali.'),
   'pack.sos.alive.days': T('Days of search', 'Dni pátrania', 'Dny pátrání'),
   'pack.sos.alive.shares': T('Shares', 'Zdieľania', 'Sdílení'),
+  'pack.sos.alive.days.one': T('Day of search', 'Deň pátrania', 'Den pátrání'),
+  'pack.sos.alive.days.few': T('Days of search', 'Dni pátrania', 'Dny pátrání'),
+  'pack.sos.alive.days.many': T('Days of search', 'Dní pátrania', 'Dní pátrání'),
   'pack.sos.alive.calls': T('Number views', 'Zobrazení čísla', 'Zobrazení čísla'),
   'pack.sos.alive.seen': T('Sightings', 'Videnia', 'Vidění'),
   'pack.sos.alive.notified': T('Devices alerted', 'Upozornené zariadenia', 'Upozorněná zařízení'),

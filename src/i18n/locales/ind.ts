@@ -6276,4 +6276,5 @@ export const ind: Partial<Dict> = {
   'pack.moment.continue': 'Lanjut',
   'pack.zd.prevDay': 'पिछला दिन',
   'pack.zd.nextDay': 'अगला दिन',
+  'pack.map.locDenied': 'DOGYPT के लिए लोकेशन बंद है। फ़ोन की सेटिंग्स → DOGYPT → लोकेशन में इसे चालू करें।',
 };

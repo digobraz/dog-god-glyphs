@@ -73,6 +73,8 @@ export function useSosCount() {
     /** „po 3 dňoch“ (lokál): 1 → „1 dni“, inak „dňoch“. */
     daysAfter: (n: number) => s(`pack.sos.n.daysAfter.${n === 1 ? 'one' : 'other'}` as SosKey, { n }),
     shares: (n: number) => s(`pack.sos.n.shares.${cat(n)}` as SosKey, { n }),
+    /** Štítok nad číslom: DEŇ / DNI / DNÍ PÁTRANIA (číslo je zvlášť). */
+    daysLabel: (n: number) => s(`pack.sos.alive.days.${cat(n)}` as SosKey),
     /** Počet odkrytí čísla (ťuk na ZAVOLAŤ), nie hovorov: telefón sa môže odkryť bez toho, aby niekto zavolal. */
     views: (n: number) => s(`pack.sos.n.views.${cat(n)}` as SosKey, { n }),
     alerted: (n: number) => s('pack.sos.n.alerted', { n }),
@@ -198,6 +200,9 @@ export const SOS_CSS = `
 .sos-col--wide{max-width:${PACK_COL.wide}px;}
 .sos-col > .pk-toprow{margin-bottom:${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h - PACK_SPACE.lg}px;}
 .sos-root{min-height:100dvh;display:flex;flex-direction:column;}
+/* TEXT OD ČLOVEKA (lokalita, popis, poznámka, meno, odmena, kontakty) sa zalomí aj bez medzier: vložený odkaz alebo 100× W nesmie roztiahnuť stránku. */
+.sos-col,.sos-stack,.sos-card,.sos-band,.sos-fact,.sos-row,.sos-diaryrow,.sos-two > *{min-width:0;overflow-wrap:anywhere;}
+.sos-fact > span,.sos-row .grow,.sos-diaryrow .grow,.sos-band b,.sos-band small,.sos-dogname,.sos-dogsub,.sos-p,.sos-small{min-width:0;overflow-wrap:anywhere;}
 .sos-stack{display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;font-family:${FONT_UI};color:${T.inkStrong};}
 .sos-card{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sos-eyebrow{margin:0;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}

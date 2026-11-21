@@ -137,35 +137,26 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
     let alive = true;
     setStatus('load');
     (async () => {
-      try {
-        const { data: row, error } = await supabase.from('dogs')
-          .select('dog_name, cloudinary_main_url, patron_svg, life_status, selections, owner_name')
-          .eq('id', id).maybeSingle();
-        if (!alive) return;
-        if (error) throw error;
-        if (!row) { setDog(null); setStatus('missing'); return; }
-        const d = row as DogRow;
-        // Zosnulý pes kartičku „doma sám“ nepotrebuje: späť na jeho stránku.
-        if (d.life_status === 'deceased') { nav(`/pack/dogs/${id}`, { replace: true }); return; }
-        const { data: sess } = await supabase.auth.getSession();
-        const uid = sess.session?.user.id;
-        if (!uid) throw new Error('no_user');
-        const latest = await readLatest(id, { strict: true });
-        if (!alive) return;
-        setDog(d);
+      // 1) Relácia je lokálna (rýchla). Bez nej niet čo načítať.
+      const { data: sess } = await supabase.auth.getSession();
+      const uid = sess.session?.user.id;
+      if (!uid) { if (alive) setStatus('error'); return; }
+      const cacheKey = `dogypt.ecard.cache.${uid}.${id}`;
+      // Hodnoty v DOG ID sú kódy („none", „ib"): na kartičku ide to, čo vidí človek.
+      // „Žiadne“ a „nie je isté“ (príznak `none` v definícii kvízu) sa na kartičku nepíšu.
+      const tr = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
+      const shown = (f: string, v: LatestValue | undefined) => {
+        if (!hasValue(v) || !STEP_BY_FIELD[f]) return '';
+        const skip = NONE_VALUES(f);
+        const raw = Array.isArray(v!.value) ? v!.value.filter((x) => !skip.has(String(x))) : skip.has(String(v!.value)) ? '' : v!.value;
+        if (raw === '' || (Array.isArray(raw) && !raw.length)) return '';
+        return passPlainValue(STEP_BY_FIELD[f], raw, tr, intlLocale(lang));
+      };
+      // Zobrazí kartičku z daných údajov (server alebo posledná lokálna kópia). Fotka sa dotiahne zvlášť, na pozadí.
+      const apply = (d: DogRow, latest: Record<string, LatestValue>) => {
         keyRef.current = cardDraftKey(uid, id);
         try { localStorage.removeItem(`dogypt.ecard.${id}`); } catch { /* starý tvar kľúča bez user.id */ }
         const draft = readDraft(keyRef.current);
-        // Hodnoty v DOG ID sú kódy („none", „ib"): na kartičku ide to, čo vidí človek.
-        // „Žiadne“ a „nie je isté“ (príznak `none` v definícii kvízu) sa na kartičku nepíšu.
-        const tr = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
-        const shown = (f: string, v: LatestValue | undefined) => {
-          if (!hasValue(v) || !STEP_BY_FIELD[f]) return '';
-          const skip = NONE_VALUES(f);
-          const raw = Array.isArray(v!.value) ? v!.value.filter((x) => !skip.has(String(x))) : skip.has(String(v!.value)) ? '' : v!.value;
-          if (raw === '' || (Array.isArray(raw) && !raw.length)) return '';
-          return passPlainValue(STEP_BY_FIELD[f], raw, tr, intlLocale(lang));
-        };
         const { name, phone } = splitContact(shown('health.backupContact', latest['health.backupContact']));
         const allergies = shown('health.allergies', latest['health.allergies']);
         const needs = [
@@ -178,17 +169,43 @@ export default function PackDogCard({ dogId, quick, picker, onBack }: { dogId?: 
         edited.current = migrateEdited(draft?.edited as Record<string, unknown> | undefined, fresh);
         photoTouched.current = !!draft?.photo;
         ownPhoto.current = !!draft?.photo?.src;
+        setDog(d);
         setHasDraft(!!draft);
         setCardLang(cardLangOf(draft?.lang ?? lang));
         setData({ ...fresh, ...edited.current });
         const keep = draft?.photo;
-        if (keep?.src) { setPhoto({ src: keep.src, x: keep.x, y: keep.y, zoom: keep.zoom }); setStatus('ok'); return; }
-        const src = d.cloudinary_main_url ? await toDataUrl(sizedUrl(d.cloudinary_main_url, 900)) : null;
-        if (!alive) return;
-        setPhoto({ src, x: keep?.x ?? 50, y: keep?.y ?? 50, zoom: keep?.zoom ?? 1 });
+        setPhoto((cur) => (keep?.src ? { src: keep.src, x: keep.x, y: keep.y, zoom: keep.zoom }
+          : { src: cur.src, x: keep?.x ?? 50, y: keep?.y ?? 50, zoom: keep?.zoom ?? 1 }));
         setStatus('ok');
+        return { keepSrc: !!keep?.src };
+      };
+      // 2) Lokálna kópia naposledy načítaných údajov sa ukáže HNEĎ (pomalá sieť nesmie držať kartičku na „Načítavam“ ani na chybe).
+      let shownLocal = false;
+      try {
+        const c = JSON.parse(localStorage.getItem(cacheKey) ?? 'null') as { dog: DogRow; latest: Record<string, LatestValue> } | null;
+        if (c?.dog && alive) { apply(c.dog, c.latest ?? {}); shownLocal = true; }
+      } catch { /* poškodená kópia: ide sa na sieť */ }
+      try {
+        // 3) Údaje psa a DOG ID súbežne (predtým jedno za druhým + fotka navyše).
+        const [dogRes, latest] = await Promise.all([
+          supabase.from('dogs').select('dog_name, cloudinary_main_url, patron_svg, life_status, selections, owner_name').eq('id', id).maybeSingle(),
+          readLatest(id, { strict: true }),
+        ]);
+        if (!alive) return;
+        if (dogRes.error) throw dogRes.error;
+        if (!dogRes.data) { setDog(null); setStatus('missing'); return; }
+        const d = dogRes.data as DogRow;
+        // Zosnulý pes kartičku „doma sám“ nepotrebuje: späť na jeho stránku.
+        if (d.life_status === 'deceased') { nav(`/pack/dogs/${id}`, { replace: true }); return; }
+        try { localStorage.setItem(cacheKey, JSON.stringify({ dog: d, latest })); } catch { /* plné úložisko: bez kópie */ }
+        const { keepSrc } = apply(d, latest);
+        // 4) Fotka až na pozadí: kartička je čitateľná hneď, export potrebuje data URL a ten príde po stiahnutí.
+        if (!keepSrc && d.cloudinary_main_url) {
+          const src = await toDataUrl(sizedUrl(d.cloudinary_main_url, 900));
+          if (alive && src && !ownPhoto.current) setPhoto((cur) => ({ ...cur, src }));
+        }
       } catch {
-        if (alive) setStatus('error'); // žiadny prázdny koncept sa neukladá
+        if (alive && !shownLocal) setStatus('error'); // žiadny prázdny koncept sa neukladá; s lokálnou kópiou ostáva kartička na obrazovke
       }
     })();
     return () => { alive = false; };

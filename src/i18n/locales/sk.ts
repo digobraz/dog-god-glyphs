@@ -9043,4 +9043,5 @@ export const sk: Partial<Dict> = {
   'pack.moment.continue': 'Pokračovať',
   'pack.zd.prevDay': 'Predchádzajúci deň',
   'pack.zd.nextDay': 'Nasledujúci deň',
+  'pack.map.locDenied': 'Poloha je pre DOGYPT vypnutá. Zapni ju v Nastaveniach telefónu → DOGYPT → Poloha.',
 };

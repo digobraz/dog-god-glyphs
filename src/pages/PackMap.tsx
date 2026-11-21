@@ -540,14 +540,33 @@ const USER_POS_ICON = L.divIcon({
   iconAnchor: [16, 16],
   html: '<span class="trp-me"><i></i><b></b></span>',
 });
-// Tá istá značka s FOTKOU PROFILU (Matej 2026-11-19: „na mape bude vidno avatar“) — kruh 36 px so zlatým obrysom
-// a pulzom; bez fotky ostáva bodka `USER_POS_ICON`.
-const userPosAvatarIcon = (url: string) => L.divIcon({
+// Tá istá značka s FOTKOU PROFILU (Matej 2026-11-19: „na mape bude vidno avatar“) — kruh so zlatým obrysom
+// a pulzom; bez fotky ostáva bodka `USER_POS_ICON`. Veľkosť rastie s priblížením (21. 11.: „čim vačší zoom
+// tým vačšia foto“): 36 px pri zoome ≤ 10, 68 px od zoomu 17.
+const userPosSize = (zoom: number) => Math.round(Math.min(68, Math.max(36, 36 + (zoom - 10) * 4.6)) / 2) * 2;
+const userPosAvatarIcon = (url: string, s: number) => L.divIcon({
   className: 'trp-me-wrap',
-  iconSize: [36, 36],
-  iconAnchor: [18, 18],
-  html: `<span class="trp-me trp-me--av"><i></i><img src="${url.replace(/"/g, '%22')}" alt="" /></span>`,
+  iconSize: [s, s],
+  iconAnchor: [s / 2, s / 2],
+  html: `<span class="trp-me trp-me--av" style="--me:${s}px"><i></i><img src="${url.replace(/"/g, '%22')}" alt="" /></span>`,
 });
+// Moja poloha ide NAD všetko na mape (21. 11.: „avatar musí byť nad tým všetkým“) — vlastná vrstva nad
+// značkami (600) aj popiskami (650), pod bublinami (700). zIndexOffset nestačil: pilulky výletov majú 1000+.
+function UserPosMarker({ pos, avatarUrl }: { pos: [number, number]; avatarUrl: string | null }) {
+  const map = useMap();
+  const [zoom, setZoom] = useState(() => map.getZoom());
+  useMapEvent('zoomend', () => setZoom(map.getZoom()));
+  if (!map.getPane('trp-me')) {
+    const p = map.createPane('trp-me');
+    p.style.zIndex = '690';
+    p.style.pointerEvents = 'none';
+  }
+  const icon = useMemo(
+    () => (avatarUrl ? userPosAvatarIcon(avatarUrl, userPosSize(zoom)) : USER_POS_ICON),
+    [avatarUrl, zoom],
+  );
+  return <Marker position={pos} icon={icon} pane="trp-me" interactive={false} keyboard={false} />;
+}
 const WISH_DRAFT_ICON = L.divIcon({
   className: 'mk-wrap',
   html: stickerSrc('wish_target') ? stickerImg(stickerSrc('wish_target')!) : circleMarkHtml(WISH_EMOJI, WISH_RIM, ' mk-circle--hot'),
@@ -2775,8 +2794,9 @@ const APP_NEW_CSS = `
 .trp-mheader:has(.trp-mapsug),.trp-mheader:has(.trp-eventshint){z-index:${MAP_Z.host};}
 .trp-me-wrap{background:none;border:0;pointer-events:none;}
 .trp-me{position:relative;display:block;width:32px;height:32px;}
-.trp-me--av{width:36px;height:36px;}
-.trp-me--av img{position:absolute;inset:0;width:36px;height:36px;box-sizing:border-box;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.cardEdge};outline:2px solid ${T.card};filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));}
+.trp-me--av{width:var(--me,36px);height:var(--me,36px);}
+.trp-me--av img{position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;border-radius:${PACK_R.pill}px;object-fit:cover;border:3px solid ${T.cardEdge};outline:2px solid ${T.card};filter:drop-shadow(0 3px 6px rgba(0,0,0,.55));}
+.trp-me--av i{inset:-25%;}
 .trp-me i{position:absolute;inset:0;border-radius:50%;background:rgba(10,26,74,.28);animation:trp-me-pulse 2.2s ease-out infinite;}
 .trp-me b{position:absolute;left:8px;top:8px;width:16px;height:16px;box-sizing:border-box;border-radius:50%;background:${LAPIS.grad};border:3px solid ${T.card};outline:2px solid ${T.cardEdge};filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));}
 @keyframes trp-me-pulse{0%{transform:scale(.5);opacity:.9;}100%{transform:scale(1.25);opacity:0;}}
@@ -4855,7 +4875,11 @@ export default function PackMap() {
         if (APP_NEW) setUserPos([pos.coords.latitude, pos.coords.longitude]);
         setLocating(false);
       },
-      () => setLocating(false),
+      // Zakázaná poloha (Matej 21. 11. 2026: „klikol na terč … nič sa nedeje, apka je hluchá“) — povedz, kde ju zapnúť.
+      (err) => {
+        setLocating(false);
+        if (err.code === err.PERMISSION_DENIED) toast({ description: t('pack.map.locDenied') });
+      },
       { enableHighAccuracy: true, timeout: 8000 },
     );
   };
@@ -8153,7 +8177,7 @@ export default function PackMap() {
               {/* SOS pátrania — fotka psa v červenom obruči + kruhy 500 m / 10 km (SosMapLayer.tsx). Len TEST_BUILD. */}
               {SOS_ON && !isCleanMode && <SosMapLayer interactive={!mg && !mapDrawing && !wishFlow} />}
               {wishDraft && <Marker position={[wishDraft.lat, wishDraft.lon]} icon={WISH_DRAFT_ICON} interactive={false} />}
-              {APP_NEW && userPos && <Marker position={userPos} icon={id.avatarUrl ? userPosAvatarIcon(sizedUrl(id.avatarUrl, 120)) : USER_POS_ICON} interactive={false} keyboard={false} zIndexOffset={900} />}
+              {APP_NEW && userPos && <UserPosMarker pos={userPos} avatarUrl={id.avatarUrl ? sizedUrl(id.avatarUrl, 160) : null} />}
               {noteDraft && (
                 <AddMapNotePin
                   lat={noteDraft.lat}

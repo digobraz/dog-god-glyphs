@@ -28,7 +28,13 @@ export default function PackSosCard() {
 
   const back = () => nav(-1);
   const alive = dogs.filter((d) => d.life_status !== 'deceased');
-  const id = picked ?? alive[0]?.id ?? null;
+  // Pomalá sieť: kým sa načíta zoznam psov, kartička ide z naposledy použitého psa (lokálne), nie z „Načítavam“ ani „nemáš psa“.
+  const lastKey = `dogypt.sos.card.dog.${userId ?? ''}`;
+  const fresh = picked ?? alive[0]?.id ?? null;
+  let last: string | null = null;
+  try { last = userId ? localStorage.getItem(lastKey) : null; } catch { /* bez úložiska */ }
+  const id = fresh ?? (loading ? last : null);
+  if (fresh && userId && fresh !== last) { try { localStorage.setItem(lastKey, fresh); } catch { /* nič */ } }
   if (!id) {
     return (
       <SosTaskShell onBack={back} backLabel={s('pack.sos.back')}>

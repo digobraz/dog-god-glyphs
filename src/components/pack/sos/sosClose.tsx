@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { PackPopup } from '@/components/pack/PackPopup';
 import { PF_FIELD_CSS, PACK_BOX } from '@/components/pack/packTheme';
 import type { LostOutcome, SosMine } from '@/lib/sos';
-import { SOS_CSS, type SosT } from './sosShared';
+import { SOS_CSS, useSosCount, type SosT } from './sosShared';
 
 /** Otázka po ťuku NAŠIEL SA. Nič sa nezmení, kým si človek nevyberie. */
 export function ClosePopup({ name, s, mate, busy, err, onPick, onClose }: {
@@ -79,8 +79,9 @@ export function GonePopup({ name, s, owner, step, diaryText, diaryDone, diaryBus
 
 /** Čísla pátrania — len to, čo naozaj meriame (zdieľanie = ťuk na ZDIEĽAŤ, hovor = odkrytie telefónu, upozornenia = pushe pri vyhlásení). */
 export function SosNumbers({ mine, s }: { mine: SosMine; s: SosT }) {
+  const count = useSosCount();
   const cells: Array<[string, number]> = [
-    [s('pack.sos.alive.days'), mine.search_days],
+    [count.daysLabel(mine.search_days), mine.search_days],
     [s('pack.sos.alive.shares'), mine.shares],
     [s('pack.sos.alive.calls'), mine.phone_reveals],
     [s('pack.sos.alive.seen'), mine.sightings.length],

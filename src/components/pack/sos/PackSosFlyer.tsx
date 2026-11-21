@@ -67,6 +67,7 @@ export default function PackSosFlyer() {
     const fl = load.mine.flyer ?? {};
     const own = (k: TextKey, max: number): string | null => {
       const v = fl[k];
+      // stará predvolená „ODMENA“ (v ktoromkoľvek jazyku) = nevyplnená odmena
       return typeof v === 'string' && !isDefaultText(k, v) ? v.slice(0, max) : null;   // aj prázdny reťazec = vedome prázdne
     };
     setF({
@@ -80,7 +81,7 @@ export default function PackSosFlyer() {
     const m = load.mine;
     return {
       slug: m.slug, name: m.dog_name, dogGender: m.dog_gender, photo: m.photo, breed: m.breed, color: m.color, place: f.place, lastSeen: m.last_seen_at,
-      lat: m.lat, lng: m.lng, phone: f.phone,
+      lat: m.lat, lng: m.lng, phone: phoneOk(f.phone) ? f.phone : '',   // neplatné číslo sa na letáku nikdy nevykreslí
       // `undefined` = leták si vezme predvolený text v aktuálnom jazyku (`SosFlyer`)
       flyer: { headline: f.headline ?? undefined, about: f.about ?? undefined, reward: f.reward ?? undefined, thanks: f.thanks ?? undefined, direction_deg: f.deg },
     };
@@ -150,7 +151,8 @@ export default function PackSosFlyer() {
 
   const field = (k: 'headline' | 'place' | 'phone' | 'reward' | 'thanks', label: SosKey, extra?: { hint?: SosKey; type?: string }) => (
     <label className="sos-field"><span>{s(label)}</span>
-      <input className="pf-field" type={extra?.type ?? 'text'} value={k === 'place' || k === 'phone' ? f[k] : f[k] ?? def[k]} maxLength={k === 'phone' ? 20 : k === 'headline' ? 28 : k === 'reward' ? 40 : 120} onChange={(e) => set(k, e.target.value)} />
+      <input className="pf-field" type={extra?.type ?? 'text'} value={k === 'place' || k === 'phone' ? f[k] : f[k] ?? (k === 'reward' ? '' : def[k])} placeholder={k === 'reward' ? s('pack.sos.fl.rewardPh') : undefined} maxLength={k === 'phone' ? 20 : k === 'headline' ? 28 : k === 'reward' ? 40 : 120} onChange={(e) => set(k, e.target.value)} />
+      {k === 'phone' && f.phone.trim() !== '' && !phoneOk(f.phone) && <span className="sos-err" role="alert" style={{ textTransform: 'none', letterSpacing: 0 }}>{s('pack.sos.err.bad_phone')}</span>}
       {extra?.hint && <span className="sos-small" style={{ textTransform: 'none', letterSpacing: 0, marginTop: 4 }}>{s(extra.hint)}</span>}
     </label>
   );

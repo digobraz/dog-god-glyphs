@@ -6272,4 +6272,5 @@ export const chn: Partial<Dict> = {
   'pack.moment.continue': '继续',
   'pack.zd.prevDay': '前一天',
   'pack.zd.nextDay': '后一天',
+  'pack.map.locDenied': 'DOGYPT 的定位已关闭。请在手机设置 → DOGYPT → 位置 中打开。',
 };

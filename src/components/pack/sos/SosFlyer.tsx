@@ -187,7 +187,7 @@ export function SosFlyer({ data, look = 'papyrus', onReady }: { data: FlyerData;
   const f = data.flyer;
   const headline = f.headline ?? def.headline;
   const about = f.about ?? def.about;
-  const reward = f.reward ?? def.reward;
+  const reward = f.reward ?? '';   // odmena sa ukáže LEN keď ju majiteľ vyplnil (žiadny predvolený „ODMENA“ bez sumy)
   const thanks = f.thanks ?? def.thanks;
   const deg = typeof f.direction_deg === 'number' ? f.direction_deg : null;
   const ran = deg === null ? null : s('pack.sos.fl.ran', { dir: s(`pack.sos.fl.dir.${nearestDir(deg)}` as SosKey) });

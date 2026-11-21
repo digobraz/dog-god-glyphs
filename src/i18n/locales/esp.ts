@@ -6439,4 +6439,5 @@ export const esp: Partial<Dict> = {
   'pack.moment.continue': 'Continuar',
   'pack.zd.prevDay': 'Día anterior',
   'pack.zd.nextDay': 'Día siguiente',
+  'pack.map.locDenied': 'La ubicación está desactivada para DOGYPT. Actívala en Ajustes del teléfono → DOGYPT → Ubicación.',
 };

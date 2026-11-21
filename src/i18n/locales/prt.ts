@@ -6442,4 +6442,5 @@ export const prt: Partial<Dict> = {
   'pack.moment.continue': 'Continuar',
   'pack.zd.prevDay': 'Dia anterior',
   'pack.zd.nextDay': 'Dia seguinte',
+  'pack.map.locDenied': 'A localização está desligada para o DOGYPT. Liga-a nas Definições do telefone → DOGYPT → Localização.',
 };

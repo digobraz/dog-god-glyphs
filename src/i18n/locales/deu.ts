@@ -6439,4 +6439,5 @@ export const deu: Partial<Dict> = {
   'pack.moment.continue': 'Weiter',
   'pack.zd.prevDay': 'Vorheriger Tag',
   'pack.zd.nextDay': 'Nächster Tag',
+  'pack.map.locDenied': 'Standort ist für DOGYPT aus. Schalte ihn in den Einstellungen des Telefons ein → DOGYPT → Standort.',
 };

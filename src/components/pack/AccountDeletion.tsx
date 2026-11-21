@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { forgetPushToken } from '@/lib/appPush';
 import { clearCardDrafts } from '@/components/pack/dogCard/cardDraft';
@@ -156,6 +157,7 @@ export function DeleteAccountButton({ className }: { className?: string } = {}) 
 
 /** Kto sa prihlási počas 30-dňovej lehoty, uvidí dátum a môže zmazanie zrušiť. */
 export function AccountDeletionGate() {
+  const { pathname } = useLocation();
   const tx = useTx();
   const datum = useDatum();
   const [kedy, setKedy] = useState<string | null>(null);
@@ -182,7 +184,8 @@ export function AccountDeletionGate() {
     return () => { zrusene = true; sub.subscription.unsubscribe(); };
   }, []);
 
-  if (!kedy) return null;
+  // Núdza má prednosť (21. 11. 2026): prvá pomoc, pohotovosť a SOS rozcestník sa nezakrývajú ani počas 30-dňovej lehoty. Inde brána ostáva.
+  if (!kedy || /^\/pack\/sos(\/prva-pomoc(\/.*)?|\/pohotovost)?\/?$/.test(pathname)) return null;
 
   const zrus = async () => {
     setBusy(true);

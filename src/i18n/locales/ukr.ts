@@ -6438,4 +6438,5 @@ export const ukr: Partial<Dict> = {
   'pack.moment.continue': 'Далі',
   'pack.zd.prevDay': 'Попередній день',
   'pack.zd.nextDay': 'Наступний день',
+  'pack.map.locDenied': 'Геолокацію для DOGYPT вимкнено. Увімкни її в Налаштуваннях телефону → DOGYPT → Геолокація.',
 };

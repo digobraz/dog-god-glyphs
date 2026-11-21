@@ -853,7 +853,7 @@ export const VET_EMERGENCY: VetPlace[] = [
  {
   "id": "sonda-praha",
   "name": "Sonda.cz",
-  "place": "Praha a stredné Čechy",
+  "place": "Praha a střední Čechy",
   "address": "Pod Nuselskými schody 3, Praha 2",
   "tel": "+420 790 388 444",
   "at": [

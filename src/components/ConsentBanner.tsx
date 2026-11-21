@@ -24,7 +24,9 @@ import { getConsent, saveConsent, applyConsent, hasChoice } from '@/lib/consent'
 // Rozsah šatu Papyrus 3D pre lištu: appka/testovacia appka (APP_NEW) aj nový web /app (koreň .aw).
 const P3D = ':is(html.papyrus3d, body:has(.aw))';
 
-const RENDER_ROUTES = ['/cert-render', '/invoice-render', '/share-render', '/lost/'];
+// `/pack/sos` (21. 11. 2026): prvá pomoc a pohotovosť nesmú čakať na cookie lištu (rozmazala obsah a blokovala ťuk v núdzi). Bez voľby
+// ostáva súhlas nevyžiadaný = žiadne meranie (`applyConsent` sa tu nevolá, PostHog beží `persistence: 'memory'`).
+const RENDER_ROUTES = ['/cert-render', '/invoice-render', '/share-render', '/lost/', '/pack/sos'];
 
 export function ConsentBanner() {
   const t = useT();

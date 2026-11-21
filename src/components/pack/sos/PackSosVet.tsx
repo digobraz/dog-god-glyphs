@@ -312,7 +312,7 @@ export default function PackSosVet() {
           <a className="sos-cta sos-cta--red" href="tel:112">{s('pack.sos.hub.call112')}</a>
         </>
       )}
-      {!noCover && filter !== 'home' && on[0] && on[0].km !== null && on[0].km > FAR_KM && <p className="vet-warn">{s('pack.sos.er.far', { km: on[0].km })}</p>}
+      {!noCover && filter !== 'home' && on[0] && on[0].km !== null && on[0].km > FAR_KM && <p className="vet-warn">{drive[on[0].p.id] ? s('pack.sos.er.far', { km: Math.round(drive[on[0].p.id].lengthM / 1000) }) : s('pack.sos.er.farAir', { km: on[0].km })}</p>}
       {filter === 'home' && me && rows.length === 0 && <p className="vet-warn">{s('pack.sos.er.noHome')}</p>}
       <div ref={listRef} style={{ display: 'contents' }}>
         {on.length > 0 && <div className="vet-list">{on.map((r) => row(r))}</div>}

@@ -9007,4 +9007,5 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.welcomeState.failedTitle': 'Tvůj zápis se nepodařilo načíst',
   'heroglyph.flow.welcomeState.failedSub': 'Za chvíli obnov stránku. Odkaz na tvůj profil máš i v e-mailu.',
   'heroglyph.flow.welcomeState.retry': 'Zkusit znovu',
+  'pack.map.locDenied': 'Poloha je pro DOGYPT vypnutá. Zapni ji v Nastavení telefonu → DOGYPT → Poloha.',
 };

@@ -6272,4 +6272,5 @@ export const ara: Partial<Dict> = {
   'pack.moment.continue': 'متابعة',
   'pack.zd.prevDay': 'اليوم السابق',
   'pack.zd.nextDay': 'اليوم التالي',
+  'pack.map.locDenied': 'الموقع متوقف لتطبيق DOGYPT. فعّله من إعدادات الهاتف ← DOGYPT ← الموقع.',
 };

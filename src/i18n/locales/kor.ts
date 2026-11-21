@@ -6275,4 +6275,5 @@ export const kor: Partial<Dict> = {
   'pack.moment.continue': '계속',
   'pack.zd.prevDay': '이전 날',
   'pack.zd.nextDay': '다음 날',
+  'pack.map.locDenied': 'DOGYPT의 위치가 꺼져 있어요. 휴대폰 설정 → DOGYPT → 위치에서 켜 주세요.',
 };

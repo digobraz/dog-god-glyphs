@@ -6275,4 +6275,5 @@ export const tur: Partial<Dict> = {
   'pack.moment.continue': 'Devam',
   'pack.zd.prevDay': 'Önceki gün',
   'pack.zd.nextDay': 'Sonraki gün',
+  'pack.map.locDenied': 'DOGYPT için konum kapalı. Telefonun Ayarlar bölümünden aç → DOGYPT → Konum.',
 };

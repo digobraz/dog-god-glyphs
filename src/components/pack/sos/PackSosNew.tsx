@@ -31,7 +31,10 @@ const DAY_MS = 86_400_000;
 // ROZPÍSANÉ SA NESMIE STRATIŤ: obnovenie stránky v paniku (zhasnutý displej, systém zabil kartu) vráti formulár. Len sessionStorage (zmizne so zatvorením karty),
 // po odoslaní sa zmaže. Telefón sa nezapisuje trvale.
 const DRAFT_KEY = 'dogypt.sos.new.v1';
-type Draft = { dogId?: string | null; pt?: [number, number] | null; place?: string; placeTouched?: boolean; date?: string; time?: string; phone?: string; country?: string | null; skipPhoto?: string[] };
+// Miesto a čas patria PSOVI (rozpísané pre A sa nesmie preniesť k B); telefón je spoločný.
+type PerDog = { pt?: [number, number] | null; place?: string; placeTouched?: boolean; date?: string; time?: string; country?: string | null; offPlace?: boolean };
+type Draft = { dogId?: string | null; phone?: string; skipPhoto?: string[]; byDog?: Record<string, PerDog> } & PerDog;
+const DOGS_CACHE = 'dogypt.sos.dogs.v1';   // posledný zoznam psov: bez signálu sa formulár aspoň otvorí
 function readDraft(): Draft {
   try { const r = sessionStorage.getItem(DRAFT_KEY); return r ? (JSON.parse(r) as Draft) : {}; } catch { return {}; }
 }
@@ -141,26 +144,40 @@ export default function PackSosNew() {
   const back = useBack('/pack/map');
   const [dogs, setDogs] = useState<SosDog[] | null>(null);
   const auth = useSosAuth();
-  const draft0 = useMemo(readDraft, []);
+  const draft0 = useMemo(() => {
+    const d = readDraft();
+    // starší koncept bez `byDog` (ploché polia) patrí psovi `dogId`
+    const per: Record<string, PerDog> = d.byDog ?? (d.dogId ? { [d.dogId]: { pt: d.pt, place: d.place, placeTouched: d.placeTouched, date: d.date, time: d.time, country: d.country } } : {});
+    return { d, per };
+  }, []);
+  const byDog = useRef<Record<string, PerDog>>(draft0.per);
+  const first0: PerDog = (draft0.d.dogId && draft0.per[draft0.d.dogId]) || {};
+  const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
+  const [offPlace, setOffPlace] = useState(!!first0.offPlace);   // geokódovanie nevrátilo obec ani krajinu (more)
+  useEffect(() => {
+    const on = () => setOnline(true); const off = () => setOnline(false);
+    window.addEventListener('online', on); window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
   // chyba načítania ≠ „nemáš psa“; `auth` (chýba prihlásenie, 401) ≠ `net` (bez siete) ≠ `other` (server)
   const [dogsErr, setDogsErr] = useState<'' | 'auth' | 'net' | 'other'>('');
   const [tick, setTick] = useState(0);
   const [locErr, setLocErr] = useState('');
-  const [pickCountry, setPickCountry] = useState<string | null>(draft0.country ?? null);   // ISO3 z miesta straty (rgeocode)
+  const [pickCountry, setPickCountry] = useState<string | null>(first0.country ?? null);   // ISO3 z miesta straty (rgeocode)
   const pickSeq = useRef(0);
-  const [dogId, setDogId] = useState<string | null>(draft0.dogId ?? null);
-  const [pt, setPt] = useState<[number, number] | null>(draft0.pt ?? null);
+  const [dogId, setDogId] = useState<string | null>(draft0.d.dogId ?? null);
+  const [pt, setPt] = useState<[number, number] | null>(first0.pt ?? null);
   const [gps, setGps] = useState<[number, number] | null>(null);
   const [locateTick, setLocateTick] = useState(0);
-  const [place, setPlace] = useState(draft0.place ?? '');
-  const placeTouched = useRef(!!draft0.placeTouched);
-  const [date, setDate] = useState(draft0.date || todayStr());
-  const [time, setTime] = useState(draft0.time || timeStr());
-  const [phone, setPhone] = useState(draft0.phone ?? '');
+  const [place, setPlace] = useState(first0.place ?? '');
+  const placeTouched = useRef(!!first0.placeTouched);
+  const [date, setDate] = useState(first0.date || todayStr());
+  const [time, setTime] = useState(first0.time || timeStr());
+  const [phone, setPhone] = useState(draft0.d.phone ?? '');
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [mapFail, setMapFail] = useState(false);
-  const [skipPhoto, setSkipPhoto] = useState<string[]>(draft0.skipPhoto ?? []);   // psi, pri ktorých človek vedome pokračuje bez fotky
+  const [skipPhoto, setSkipPhoto] = useState<string[]>(draft0.d.skipPhoto ?? []);   // psi, pri ktorých človek vedome pokračuje bez fotky
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoErr, setPhotoErr] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -172,8 +189,20 @@ export default function PackSosNew() {
   // rozpísané do sessionStorage (viď DRAFT_KEY)
   useEffect(() => {
     if (sent.current) return;
-    writeDraft({ dogId, pt, place, placeTouched: placeTouched.current, date, time, phone, country: pickCountry, skipPhoto });
-  }, [dogId, pt, place, date, time, phone, pickCountry, skipPhoto]);
+    if (dogId) byDog.current[dogId] = { pt, place, placeTouched: placeTouched.current, date, time, country: pickCountry, offPlace };
+    writeDraft({ dogId, phone, skipPhoto, byDog: byDog.current });
+  }, [dogId, pt, place, date, time, phone, pickCountry, skipPhoto, offPlace]);
+
+  /** Výber iného psa: rozpísané miesto a čas sa uložia k pôvodnému a načíta sa to, čo je rozpísané pre nového (inak prázdny formulár). */
+  const selectDog = (id: string) => {
+    if (id === dogId) return;
+    if (dogId) byDog.current[dogId] = { pt, place, placeTouched: placeTouched.current, date, time, country: pickCountry, offPlace };
+    const n = byDog.current[id] ?? {};
+    pickSeq.current++;
+    setPt(n.pt ?? null); setPlace(n.place ?? ''); placeTouched.current = !!n.placeTouched;
+    setDate(n.date || todayStr()); setTime(n.time || timeStr()); setPickCountry(n.country ?? null); setOffPlace(!!n.offPlace);
+    setErrs({}); setDogId(id);
+  };
 
   useEffect(() => {
     if (auth === 'loading') return;
@@ -183,12 +212,21 @@ export default function PackSosNew() {
     setDogsErr('');
     sosMyDogs().then((d) => {
       if (!alive) return;
+      try { sessionStorage.setItem(DOGS_CACHE, JSON.stringify(d)); } catch { /* bez cache */ }
       setDogs(d);
       setDogId((cur) => (cur && d.some((x) => x.id === cur) ? cur : (d.find((x) => !x.active_slug) ?? d[0])?.id ?? null));
     }).catch((e: unknown) => {
       if (!alive) return;
-      setDogs([]);
       const msg = String((e as { message?: string } | null)?.message ?? '');
+      const net = (typeof navigator !== 'undefined' && navigator.onLine === false) || /fetch|network|load failed/i.test(msg);
+      // Bez signálu sa formulár otvorí z posledného zoznamu psov (odoslať pôjde, až bude signál)
+      if (net && !isAuthError(e)) {
+        try {
+          const c = JSON.parse(sessionStorage.getItem(DOGS_CACHE) ?? 'null') as SosDog[] | null;
+          if (c?.length) { setDogs(c); setDogId((cur) => (cur && c.some((x) => x.id === cur) ? cur : (c.find((x) => !x.active_slug) ?? c[0])?.id ?? null)); return; }
+        } catch { /* nič */ }
+      }
+      setDogs([]);
       setDogsErr(isAuthError(e) ? 'auth' : (typeof navigator !== 'undefined' && navigator.onLine === false) || /fetch|network|load failed/i.test(msg) ? 'net' : 'other');
     });
     sosLastPhone().then((p) => { if (alive && p) setPhone((cur) => cur || p); }).catch(() => {});
@@ -210,6 +248,7 @@ export default function PackSosNew() {
   const pick = useCallback((p: [number, number]) => {
     setPt(p);
     setPickCountry(null);
+    setOffPlace(false);
     setErrs((e) => { const { coords: _c, ...rest } = e; return rest; });
     const seq = ++pickSeq.current;
     fetch(`${MAPY_BASE}/v1/rgeocode?lat=${p[0]}&lon=${p[1]}&lang=${lang}&apikey=${MAPY_API_KEY}`)
@@ -217,6 +256,9 @@ export default function PackSosNew() {
       .then((d) => {
         if (seq !== pickSeq.current) return;   // novší klik medzitým
         const it = d?.items?.[0];
+        const rs = (it?.regionalStructure as Array<{ type?: string; isoCode?: string }> | undefined) ?? [];
+        // more a pustatina: žiadna obec ani krajina ⇒ lokalitu treba napísať ručne (nič sa neblokuje)
+        if (!it || (!rs.some((x) => x.type === 'regional.country') && !rs.some((x) => /municipality/.test(x.type ?? '')))) { setOffPlace(true); if (!placeTouched.current) setPlace(''); setPickCountry(null); return; }
         if (it && !placeTouched.current) setPlace(String(it.name || it.location || ''));
         const iso = (it?.regionalStructure as Array<{ type?: string; isoCode?: string }> | undefined)?.find((x) => x.type === 'regional.country')?.isoCode;
         setPickCountry(iso ? countryISO3(iso) : null);
@@ -258,7 +300,7 @@ export default function PackSosNew() {
     const e: Record<string, string> = {};
     if (!pt) e.coords = s('pack.sos.err.bad_coords');
     else if (!inEurope(pt)) e.coords = s('pack.sos.err.bad_region');
-    if (!place.trim()) e.place = s('pack.sos.err.place');
+    if (!place.trim() || (offPlace && !placeTouched.current)) e.place = s('pack.sos.err.place');
     const when = new Date(`${date}T${time || '00:00'}`);
     if (!date || Number.isNaN(when.getTime()) || when.getTime() > Date.now() + 5 * 60_000) e.when = s('pack.sos.err.bad_time');
     else if (when.getTime() < Date.now() - MAX_AGE_DAYS * DAY_MS) e.when = s('pack.sos.err.too_old');
@@ -271,7 +313,8 @@ export default function PackSosNew() {
     try {
       const r = await sosDeclare({ dogId: dog.id, lat: pt[0], lng: pt[1], lastSeen: when, place: place.trim(), phone: phone.trim(), country: pickCountry });
       sent.current = true;
-      clearDraft();
+      if (dog) delete byDog.current[dog.id];
+      if (Object.keys(byDog.current).length) writeDraft({ dogId: null, phone, skipPhoto, byDog: byDog.current }); else clearDraft();
       sosInvalidate();
       navigate(sosPath.page(r.slug), { replace: true });
     } catch (x) {
@@ -304,6 +347,7 @@ export default function PackSosNew() {
       <style>{MAP_ATTR_CSS}</style>
       <SosCard flat={APP_NEW}>
         <h1 className="sos-h2">{s('pack.sos.new.title')}</h1>
+        {!online && <p className="sosn-warn" role="status">{s('pack.sos.new.offlineSend')}</p>}
         {auth === 'out' || dogsErr === 'auth' ? (
           // Bez prihlásenia: 401 nie je „Bez pripojenia“. Prvá pomoc a pohotovosť ostávajú dostupné bez účtu.
           <>
@@ -322,7 +366,7 @@ export default function PackSosNew() {
           <>
             <div className="sosn-dogs">
               {dogs.map((d) => (
-                <button key={d.id} type="button" className={`sosn-dog sos-pick${d.id === dogId ? ' is-on' : ''}`} aria-pressed={d.id === dogId} onClick={() => setDogId(d.id)}>
+                <button key={d.id} type="button" className={`sosn-dog sos-pick${d.id === dogId ? ' is-on' : ''}`} aria-pressed={d.id === dogId} onClick={() => selectDog(d.id)}>
                   {d.photo ? <img className="sosn-av" src={sizedUrl(d.photo, 160)} alt="" /> : <SosAvatarNone breed={d.breed} cls="sosn-av" />}
                   <span>{d.dog_name}</span>
                 </button>
@@ -372,6 +416,7 @@ export default function PackSosNew() {
             {mapFail && <p className="sosn-warn" role="status">{s('pack.sos.new.mapFail')}</p>}
             <p className="sos-small"><i className="sosn-swatch" style={{ background: T.sosRed }} />{s('pack.sos.new.legend')}</p>
             {errs.coords && <p className="sos-err">{errs.coords}</p>}
+            {offPlace && <p className="sosn-warn" role="status">{s('pack.sos.new.offPlace')}</p>}
             {mapFail && !place.trim() && <p className="sosn-need">{s('pack.sos.new.placeManual')}</p>}
             <label className="sos-field"><span>{s('pack.sos.new.place')}</span>
               <input className={`pf-field${errs.place || (mapFail && !place.trim()) ? ' is-bad' : ''}`} value={place} maxLength={200} placeholder={s('pack.sos.new.placeHint')}

@@ -6272,4 +6272,5 @@ export const jpn: Partial<Dict> = {
   'pack.moment.continue': '続ける',
   'pack.zd.prevDay': '前の日',
   'pack.zd.nextDay': '次の日',
+  'pack.map.locDenied': 'DOGYPT の位置情報がオフです。スマホの設定 → DOGYPT → 位置情報 でオンにしてください。',
 };

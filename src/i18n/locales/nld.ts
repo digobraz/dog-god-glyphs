@@ -6275,4 +6275,5 @@ export const nld: Partial<Dict> = {
   'pack.moment.continue': 'Verder',
   'pack.zd.prevDay': 'Vorige dag',
   'pack.zd.nextDay': 'Volgende dag',
+  'pack.map.locDenied': 'Locatie staat uit voor DOGYPT. Zet het aan in de Instellingen van je telefoon → DOGYPT → Locatie.',
 };

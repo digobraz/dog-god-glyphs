@@ -6439,4 +6439,5 @@ export const fra: Partial<Dict> = {
   'pack.moment.continue': 'Continuer',
   'pack.zd.prevDay': 'Jour précédent',
   'pack.zd.nextDay': 'Jour suivant',
+  'pack.map.locDenied': 'La localisation est désactivée pour DOGYPT. Active-la dans les Réglages du téléphone → DOGYPT → Position.',
 };
