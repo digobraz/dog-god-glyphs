@@ -94,4 +94,10 @@ export const CLAIM: Record<string, Row> = {
  fl2b: { sk: '3 285 dní zbierania kôpok', en: '3,285 days of picking up poop', cs: '3 285 dní sbírání hromádek', deu: '3.285 Tage Häufchen sammeln', pol: '3 285 dni sprzątania kupek' },
  fl3a: { sk: 'Učeň level 4', en: 'Disciple level 4', cs: 'Učeň level 4', deu: 'Schüler Level 4', pol: 'Uczeń level 4' },
  fl3b: { sk: '10 % psieho rozumu prečítaných', en: '10 % of Dog Sense read', cs: '10 % psího rozumu přečteno', deu: '10 % Hundeverstand gelesen', pol: '10 % psiego rozumu przeczytane' },
+ /* SOS — riadky ako v SOS appky (SosButton.tsx); zbierky, útulky, týranie = čoskoro */
+ sos_lost: { sk: 'Stratený pes: leták a poplach v okolí', en: 'Lost dog: a flyer and an alert nearby', cs: 'Ztracený pes: leták a poplach v okolí', deu: 'Hund entlaufen: Flyer und Alarm in der Nähe', pol: 'Zaginiony pies: ulotka i alarm w okolicy' },
+ sos_danger: { sk: 'Nahlás nebezpečenstvo na mape', en: 'Report a danger on the map', cs: 'Nahlas nebezpečí na mapě', deu: 'Gefahr auf der Karte melden', pol: 'Zgłoś zagrożenie na mapie' },
+ sos_fund: { sk: 'Zbierky, útulky a adopcie', en: 'Fundraisers, shelters and adoption', cs: 'Sbírky, útulky a adopce', deu: 'Spenden, Tierheime und Adoption', pol: 'Zbiórki, schroniska i adopcje' },
+ sos_shelter: { sk: 'Útulky a adopcie', en: 'Shelters and adoption', cs: 'Útulky a adopce', deu: 'Tierheime und Adoption', pol: 'Schroniska i adopcje' },
+ sos_abuse: { sk: 'Nahlás týranie', en: 'Report abuse', cs: 'Nahlas týrání', deu: 'Tierquälerei melden', pol: 'Zgłoś znęcanie' },
 };

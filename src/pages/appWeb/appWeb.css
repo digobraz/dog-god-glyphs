@@ -1771,3 +1771,23 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 @media(min-width:1000px){.aw .top-login{display:inline-flex}}
 .aw .top-login img{width:30px;height:30px;transition:transform .15s}
 .aw .top-login:hover img{transform:rotate(-12deg) scale(1.06)}
+/* HLAVIČKA CLAIM 2 na PC (Matej 21. 11.: „menu / cta … jazyk úplne doprava a CTA hneď za menu“):
+   LOGO · menu · PRIDAJ SA · ···· · mapa · kľúč · jazyk. Tri skupiny: kam ísť → čo urobiť → pomôcky.
+   Poradie cez `order`, DOM sa nemení; mobil (<1000) ostáva logo · CTA · mapa · hamburger. */
+@media(min-width:1000px){
+  .aw .top.v2 nav{order:1;margin-left:auto}
+  .aw .top.v2 .pk-cta{order:2;margin-left:var(--s-sm)}
+  .aw .top.v2 .trips-btn{order:3;margin-left:var(--s-xl)}
+  .aw .top.v2 .top-login{order:4}
+  .aw .top.v2 .lang-wrap{order:5}
+  .aw .top.v2 .burger{order:6}
+}
+/* ikonky a CTA sa nesmú stlačiť (nemčina na 1024 px zjedla kľúč); miesto berie medzera v menu */
+@media(min-width:1000px){.aw .top.v2 .pk-cta,.aw .top.v2 .trips-btn,.aw .top.v2 .top-login,.aw .top.v2 .lang-wrap{flex:none}}
+@media(min-width:1000px) and (max-width:1199px){.aw .top.v2 nav{gap:var(--s-lg)}.aw .top.v2 .trips-btn{margin-left:var(--s-lg)}}
+@media(min-width:1000px) and (max-width:1279px){.aw .top.v2 nav{gap:var(--s-md)}.aw .top.v2 nav a{letter-spacing:.12em}.aw .top.v2 .trips-btn{margin-left:var(--s-sm)}.aw .top.v2 .pk-cta{padding:12px 16px}.aw .top.v2 .wrap{gap:var(--s-md)}}
+/* SOS na webe má 7 riadkov (ako SOS v appke) — hustejší zoznam, aby sa zmestil do karty */
+.aw .fmore.dense{padding:var(--s-lg) var(--s-md);gap:var(--s-xs)}
+.aw .fmore.dense li{font-size:var(--t-label)}
+/* mobil: 7 riadkov SOS sa do výšky karty nezmestí — panel vyrastie nad aj pod kartu, obsah ostane v strede */
+@media(max-width:767px){.aw .fmore.dense{top:-32px;bottom:auto;min-height:calc(100% + 64px);padding:var(--s-md)}}

@@ -91,6 +91,9 @@ const FEATS: { p: string; cls?: string; ic: string; li: B[] }[] = [
   { p: 'f7', ic: 'feed',
     li: [['fx_feed_1'], ['fx_feed_2'], ['fx_feed_3']] },
 ];
+/** CLAIM 2: SOS na webe = to isté, čo SOS v appke (`SosButton.tsx`), aj s pripravovaným. Prvá pomoc bez „čoskoro“ —
+ *  pri FLIPe je hotová (Matej 21. 11.); zbierky, útulky a týranie ostávajú „čoskoro“ ako v appke. */
+const SOS_LI_V2: [string, boolean?][] = [['fx_sos_4'], ['fx_sos_3'], ['sos_lost'], ['fx_sos_2'], ['sos_danger'], ['sos_fund', true], ['sos_abuse', true]];
 const SOON: { ic: string }[] = [
   { ic: 'merch' },
   { ic: 'gps' },
@@ -627,7 +630,7 @@ export default function AppWeb() {
                   <span className="fti"><img src={`${A}/ikony/${f.ic}.webp`} alt="" loading="lazy" /></span>
                   <h3>{c(`fx_${f.ic}_h`)}</h3><p>{c(f.p)}</p>
                 </button>
-                <ul className="fmore">{f.li.map(([tx, soon], k) => <li key={k} className={soon ? 'soon' : ''}>{c(tx)}{soon && <em>{c('soon')}</em>}</li>)}</ul>
+                <ul className={`fmore${V2 && f.ic === 'sos' ? ' dense' : ''}`}>{(V2 && f.ic === 'sos' ? SOS_LI_V2 : f.li).map(([tx, soon], k) => <li key={k} className={soon ? 'soon' : ''}>{c(tx)}{soon && <em>{c('soon')}</em>}</li>)}</ul>
               </Rv>
             ))}
           </div>
@@ -651,7 +654,7 @@ export default function AppWeb() {
       <style>{STAGE_CSS}</style>
       <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /><i className="pearl p1" /><i className="pearl p2" /></div>
 
-      <header className={`top${stuck ? ' stuck' : ''}${darkHead ? ' dark' : ''}${onPlanet ? ' away' : ''}`}>
+      <header className={`top${V2 ? ' v2' : ''}${stuck ? ' stuck' : ''}${darkHead ? ' dark' : ''}${onPlanet ? ' away' : ''}`}>
         <div className="wrap">
           <a className="logo" href="#" aria-label="DOGYPT"><img src="/web-app/logo-napis.webp" alt="DOGYPT" /></a>
           <nav>
