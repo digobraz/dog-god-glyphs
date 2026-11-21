@@ -514,7 +514,9 @@ function AinubisWidgetInner() {
   const { lang } = useLang();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const onPublicRoute = PUBLIC_ROUTES.includes(pathname);
+  /* homepage s CLAIM 2 (`?claim`, Matej 21. 11.: „AINUBIS chat ikonku daj napravo“) — vľavo ostáva len /wall,
+     kde vpravo dole sedia šípky filmu; pri prepnutí CLAIM 2 natrvalo vypadne z PUBLIC_ROUTES aj „/“ */
+  const onPublicRoute = PUBLIC_ROUTES.includes(pathname) && !(pathname === '/' && typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('claim'));
   // ŠUPLÍK SPRAVA v /pack (Matej 24. 10. 2026: „súhlasím so šuflíkom“, nákres
   // `plany/nakres-ainubis-labka-2026-10-24.html` O1): celá výška, vľavo pás so závojom, ťuk naň
   // zavrie. Šuplík má pevné miesto, takže sa v /pack nepresúva (`canMove` tam neplatí).

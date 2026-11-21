@@ -1743,12 +1743,8 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .stores.off .store svg{width:20px;height:20px}
 .aw .stores.off .store b{font-size:var(--t-body)}
 .aw .stores.off .store small{text-transform:uppercase;letter-spacing:.14em}
-/* FARBA ODZNAKOV — na výber v nákrese (?st=a…e), nie lapis: ten patrí len CTA */
-.aw [data-st=a] .stores.off .store,.aw [data-st=a] .stores.off .store:hover{background:var(--page-dark);color:var(--on-dark);border:0}
-.aw [data-st=b] .stores.off .store,.aw [data-st=b] .stores.off .store:hover{background:transparent;color:var(--ink-strong);border:1.5px solid var(--ink-strong)}
-.aw [data-st=c] .stores.off .store,.aw [data-st=c] .stores.off .store:hover{background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);color:var(--ink-strong);border:1px solid #C99A3F}
-.aw [data-st=d] .stores.off .store,.aw [data-st=d] .stores.off .store:hover{background:linear-gradient(180deg,#C99A3F,#A3782B);color:#2a1608;border:0}
-.aw [data-st=e] .stores.off .store,.aw [data-st=e] .stores.off .store:hover{background:rgba(42,22,8,.07);color:var(--ink-soft);border:1px solid var(--hairline)}
+/* FARBA ODZNAKOV = papyrus so zlatým rámom (Matej 21. 11.); nie lapis — ten patrí len CTA, inak zaniká */
+.aw .stores.off .store,.aw .stores.off .store:hover{background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);color:var(--ink-strong);border:1px solid #C99A3F}
 .aw .top-login{display:none;font:500 var(--t-body)/1 var(--font-ui);color:var(--ink-strong);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
 @media(min-width:1000px){.aw .top-login{display:inline}}
 .aw .top.dark .top-login{color:var(--on-dark)}
@@ -1758,3 +1754,15 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 @media(max-width:599px){.aw .top .cta-lg{display:none}.aw .top .cta-sm{display:inline}}
 /* nízke okno (1477×724): hero sa musí zmestiť celé aj s odznakmi obchodov — ustupuje NADPIS, nie vzduch (PAGE_AIR) */
 @media(min-width:900px){.aw .hero.v2 h1{font-size:clamp(40px,min(calc(100cqi / (.56 * var(--hc,9))),10.5vh),150px)}.aw .hero.v2 .hero-go.v2{gap:var(--s-lg);margin-top:var(--s-lg)}}
+/* nadpis: viac vzduchu medzi riadkami (zlatý riadok je naklonený a lepil sa na horný) · obsah hero VYCENTROVANÝ
+   zvislo voči telefónom, nie prichytený hore (Matej 21. 11.) */
+.aw .hero.v2 h1{line-height:1}
+.aw .hero.v2 h1 .l1+.l1{margin-top:.14em}
+@media(min-width:900px){.aw .hero.v2 .wrap{align-items:center}.aw .hero.v2 .wrap>:first-child{padding-top:0}}
+/* podnadpis tečie bez \n, na PC do 3 riadkov · obsah hero vycentrovaný v VIDITEĽNEJ časti okna (pod hlavičkou),
+   nie voči telefónom, ktoré presahujú dolný okraj (Matej 21. 11.: „obsah je zas viac k dolnému okraju“) */
+.aw .hero.v2 .lead{white-space:normal;max-width:480px}
+@media(min-width:900px){
+  .aw .hero.v2 .wrap{align-items:start}
+  .aw .hero.v2 .hero-txt{min-height:calc(100svh - 140px);display:flex;flex-direction:column;justify-content:center}
+}
