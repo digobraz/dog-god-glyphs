@@ -59,9 +59,13 @@ if (import.meta.env.PROD && CDN) {
   document.addEventListener('error', (e) => {
     const t = e.target;
     if (!(t instanceof HTMLImageElement) || t.dataset.cdnZaloha) return;
-    if (!t.src.includes('/cdn-cgi/image/') && !t.srcset.includes('/cdn-cgi/image/')) return;
+    // Aj fotka cez Worker `/cdn/` má zálohu (21. 11. 2026): pri záplave Worker nové (necachované) fotky
+    // odmieta 503, aby útok nepálil Cloudinary cez nás — návštevník ju vtedy dostane raz priamo.
+    const cezWorker = !!CDN && (t.src.startsWith(CDN) || t.srcset.includes(CDN));
+    if (!cezWorker && !t.src.includes('/cdn-cgi/image/') && !t.srcset.includes('/cdn-cgi/image/')) return;
     t.dataset.cdnZaloha = '1';
     bezPrepisu = true;
-    try { if (t.srcset) t.srcset = spat(t.srcset); t.src = spat(t.src); } finally { bezPrepisu = false; }
+    const priamo = (v: string) => (cezWorker ? spat(v).split(CDN).join(PRIAMO) : spat(v));
+    try { if (t.srcset) t.srcset = priamo(t.srcset); t.src = priamo(t.src); } finally { bezPrepisu = false; }
   }, true);
 }
