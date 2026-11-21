@@ -11,7 +11,7 @@
     "check:ikony": "node scripts/check-ikony.mjs",
     "check:appka": "node scripts/check-appka.mjs",
     "check:wizard": "node scripts/check-wizard.mjs",
-    "build": "node scripts/check-css-literals.mjs && node scripts/check-pack-scale.mjs && node scripts/check-ikony.mjs && vite build && node scripts/prerender.mjs && node scripts/app-manifest.mjs",
+    "build": "node scripts/check-css-literals.mjs && node scripts/check-pack-scale.mjs && node scripts/check-ikony.mjs && vite build && node scripts/prerender.mjs && node scripts/app-manifest.mjs && node scripts/csp-hashes.mjs --write",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
