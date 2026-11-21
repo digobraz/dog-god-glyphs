@@ -2053,6 +2053,7 @@ export const cs: Partial<Dict> = {
   'pack.buddy.title': "SNIFFER",
   'pack.buddy.back': "Zpět",
   'pack.buddy.settings': "Nastavení",
+  'pack.buddy.settingsLink': "Nastavení Snifferu",
   'pack.buddy.gateTitle': "Chybí {n} z {total}",
   'pack.buddy.intro': "Najdi parťáky, se kterými můžete čichat svět společně.",
   'pack.buddy.introCta': "Chci parťáky",

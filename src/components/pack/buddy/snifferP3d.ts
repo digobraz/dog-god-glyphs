@@ -33,7 +33,6 @@ html.papyrus3d .bd-cta:active:not(:disabled){transform:translateY(5px);}
 html.papyrus3d .bd-cta--small{min-height:48px;font-size:${PACK_TEXT.lead}px;}
 html.papyrus3d .bd-dock .bd-cta:disabled{background:var(--p3d-card);border-color:var(--p3d-ink);color:var(--p3d-ink);opacity:.6;box-shadow:var(--p3d-b3);}
 html.papyrus3d .bd-ghost,html.papyrus3d .sh-ghost,html.papyrus3d .sh-ghost--dark{border-color:var(--p3d-ink);background:var(--p3d-card);color:var(--p3d-ink);box-shadow:var(--p3d-b3);}
-html.papyrus3d .bd-gear{width:44px;height:44px;border:2.5px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:${PERA_SM};}
 /* pole */
 html.papyrus3d .bd-col .pf-field,html.papyrus3d .bd-field,html.papyrus3d .sh-area{${INSET}color:var(--p3d-ink);font-weight:500;}
 /* pilulky: papier, vybraná lapis */

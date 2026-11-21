@@ -18,7 +18,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/i18n/LanguageContext';
 import { usePackUser } from '@/hooks/usePackUser';
 import { PackTopRow } from '@/components/pack/PackTopRow';
-import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { countryISO2 } from '@/lib/countryGeo';
 import { SnifferLogo, SNIFFER_LOGO_END_MS } from '@/components/pack/buddy/SnifferLogo';
@@ -70,8 +69,7 @@ const CSS = `
 .bd-root.pk-paper::before{background-image:none;filter:none;
   background:radial-gradient(circle at 85% 8%, rgba(255,236,190,0.95) 0%, rgba(255,236,190,0) 38%);}
 .bd-root.pk-paper::after{background:linear-gradient(180deg, #F7EBD0 0%, #EED7A6 45%, #D9A95A 100%);}
-.bd-gear{justify-self:end;width:40px;height:40px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};
-  background:${T.cardSoft};display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.bd-setlink{display:block;margin:0 auto;font-size:${PACK_TEXT.body}px;}
 .bd-col{flex:1 1 auto;width:100%;max-width:640px;min-height:100dvh;margin:0 auto;padding:${PACK_TOPROW_PAD} ${PAGE_AIR.side}px ${PAGE_AIR.md}px;
   display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;}
 /* Spoločný rad hlavičky (27. 9. 2026): stĺpec už medzi deťmi dáva gap, rad si z vlastnej
@@ -494,11 +492,12 @@ export default function PackBuddy() {
     <Shell title={title} onBack={back} backLabel={tx('pack.buddy.back', 'Back')}
       // Pri logu hore len šípka späť, nastavenia nie (Matej 25. 9.). V úvode a v bráne tiež nie —
       // otvorili by to isté, čo človek práve vypĺňa (Matej 25. 9.: „otvorí to isté").
-      onGear={view === 'home' || view === 'done' ? () => setView('settings') : undefined}
+      // Nastavenia NIE SÚ v hlavičke (Matej 21. 11. 2026: lievik vyzeral ako filter — „filter tam byť nemôže ani nikde inde v sniffflow“).
+      // Vstup je odkaz pod obsahom domova a obrazovky „zapnutý“ (`SettingsLink`).
       // Šípka je v strede VŽDY (spoločný rad PackTopRow, 27. 9. 2026).
       // Úvod, vypĺňanie a nastavenia = ÚLOHA (kôš 3): hore bez správ a upozornení (Matej 30. 10. 2026).
       task={view === 'splash' || view === 'onb' || view === 'settings'}
-      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'onb' || view === 'settings'} fit={view === 'home' || view === 'done' || view === 'onb' || view === 'settings'}>
+      wide={view === 'onb' || view === 'settings'} fit={view === 'home' || view === 'done' || view === 'onb' || view === 'settings'}>
       {view === 'splash' && (
         <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
           <div className="bd-stage__body">
@@ -592,6 +591,7 @@ export default function PackBuddy() {
           <div className="bd-dock bd-dock--card">
             <button type="button" className="bd-cta" onClick={() => setView('home')}>{tx('pack.sniffer.goSniff', 'Let’s go sniffing')}</button>
           </div>
+          <button type="button" className="bd-link bd-setlink" onClick={() => setView('settings')}>{tx('pack.buddy.settingsLink', 'SNIFFER settings')}</button>
         </>
       )}
 
@@ -600,6 +600,7 @@ export default function PackBuddy() {
           {/* SNIFFUJ · HĽADAŤ · ZHODY (zadanie-sniffer-stavba §2.1). „Takto ťa vidia" sa
               presunulo do nastavení a za zapnutie (§2.3) — domov je balíček. */}
           <SnifferHome tx={tx} me={{ photo: human?.buddyPhoto ?? avatarUrl ?? null, name, dogName: dog?.dog_name ?? null }} />
+          <button type="button" className="bd-link bd-setlink" onClick={() => setView('settings')}>{tx('pack.buddy.settingsLink', 'SNIFFER settings')}</button>
         </>
       )}
 
@@ -656,9 +657,9 @@ export default function PackBuddy() {
 /** Heroglyf píše pohlavie majiteľa ako `man`/`woman` (starší zápis `male`/`female`). */
 const HERO_GENDER: Record<string, Gender> = { man: 'male', male: 'male', woman: 'female', female: 'female' };
 
-function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, task, children }: {
+function Shell({ title, onBack, backLabel, wide, fit, task, children }: {
   task?: boolean;
-  title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; wide?: boolean; fit?: boolean; children?: ReactNode;
+  title: string; onBack: () => void; backLabel: string; wide?: boolean; fit?: boolean; children?: ReactNode;
 }) {
   return (
     <div className="pk-paper bd-root">
@@ -680,11 +681,6 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, task, c
           onBack={onBack}
           backLabel={backLabel}
           task={task}
-          extra={onGear && (
-            <button type="button" className="bd-gear" onClick={onGear} aria-label={gearLabel}>
-              <BrandIcon name="sliders" size={PACK_SPACE.lg} tint="dark" />
-            </button>
-          )}
         />
         {children}
       </main>
