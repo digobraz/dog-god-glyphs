@@ -29,11 +29,11 @@ import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
 const GodsGridLab = lazy(() => import('@/components/gods/GodsGridLab').then((m) => ({ default: m.GodsGridLab })));
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
-import { flagUrl } from '@/lib/flagUrl';
 import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
-import { CLAIM } from './appWeb/claim';
-import { WEB_LANGS, loadLang } from './appWeb/langs';
+import { CLAIM, isClaim } from './appWeb/claim';
+import { WebTop } from './appWeb/WebTop';
+import { loadLang } from './appWeb/langs';
 import { intlLocale } from '@/i18n/bcp47';
 import { IgMock, IgIcon } from './appWeb/IgMock';
 import { AlbaCount, AlbaTrio, GlyphZones } from './appWeb/AlbaGlyph';
@@ -339,7 +339,7 @@ function LivePlanet({ v2 }: { v2?: { enter: string; href: string; find: string; 
 }
 
 export default function AppWeb() {
-  const { lang, setLang } = useLang();
+  const { lang } = useLang();
   const t = useT();
   const L: Lang2 = lang === 'sk' ? 'sk' : 'en';
   /* ostatných 16 jazykov: slovník sa stiahne až pri prepnutí; kým nepríde (a pri chýbajúcom kľúči), ide EN */
@@ -347,11 +347,9 @@ export default function AppWeb() {
   useEffect(() => { let on = true; setX(null); loadLang(lang).then((d) => { if (on) setX(d); }); return () => { on = false; }; }, [lang]);
   /* CLAIM 2 (Matej 21. 11.) — nový hlavný claim, texty a poradie slajdov. Zatiaľ LEN za `?claim`; na LIVE až po jeho „ok“
      (vtedy V2 = true a staré vetvy preč). Texty `appWeb/claim.ts` prebíjajú všetky jazyky. */
-  const V2 = useMemo(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('claim'), []);
+  const V2 = useMemo(isClaim, []);
   const c = (k: string) => (V2 && CLAIM[k] ? CLAIM[k][lang] ?? CLAIM[k].en : undefined) ?? X?.[k] ?? COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
   const loc = intlLocale(lang);
-  const [langOpen, setLangOpen] = useState(false);
-  useEffect(() => { if (!langOpen) return; const off = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest('.lang-wrap')) setLangOpen(false); }; document.addEventListener('pointerdown', off); return () => document.removeEventListener('pointerdown', off); }, [langOpen]);
   /* STENA (GodsGridLab na konci) a jej okná píšu Cinzelom priamo v kóde (vanilla DOM, ~100 miest) —
      na novom webe sa preto prekryje rodina: Cinzel → Museum Medium (nadpisy webu), Cinzel Decorative
      → Museum Black (meno psa = zlaté slovo). Len kým je táto stránka otvorená; po flipe ide s ňou (Matej 11. 11.). */
@@ -364,7 +362,6 @@ export default function AppWeb() {
     document.head.appendChild(el);
     return () => el.remove();
   }, []);
-  const curLang = WEB_LANGS.find((x) => x.code === lang) ?? WEB_LANGS[0];
   const qs = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), []);
   const nakres = qs.has('varianty');
   const Note = ({ k, flag }: { k: string; flag?: boolean }) => (nakres ? <span className={`note${flag ? ' flag' : ''}`}>{NOTES[k]}</span> : null);
@@ -499,8 +496,6 @@ export default function AppWeb() {
   const aiSecRef = useRef<HTMLElement>(null);
   const [darkHead, setDarkHead] = useState(false);
   const [onPlanet, setOnPlanet] = useState(false);
-  const [menu, setMenu] = useState(false);
-  const [mmLang, setMmLang] = useState(false);
   useEffect(() => {
     const planet = document.querySelector('.aw .planet-live');
     let raf = 0;
@@ -655,45 +650,7 @@ export default function AppWeb() {
       <style>{STAGE_CSS}</style>
       <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /><i className="pearl p1" /><i className="pearl p2" /></div>
 
-      <header className={`top${V2 ? ' v2' : ''}${stuck ? ' stuck' : ''}${darkHead ? ' dark' : ''}${onPlanet ? ' away' : ''}`}>
-        <div className="wrap">
-          <a className="logo" href="#" aria-label="DOGYPT"><img src="/web-app/logo-napis.webp" alt="DOGYPT" /></a>
-          <nav>
-            <a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/story">{c('nav5')}</a>
-          </nav>
-          <div className="lang-wrap">
-            <button className="lang" aria-expanded={langOpen} onClick={() => setLangOpen(!langOpen)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.code.slice(0, 2).toUpperCase()}</button>
-            {langOpen && (
-              <div className="lang-pop" onClick={() => setLangOpen(false)}>
-                {WEB_LANGS.map((x) => <button key={x.code} className={x.code === lang ? 'on' : ''} onClick={() => setLang(x.code)}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}
-              </div>
-            )}
-          </div>
-          {/* planétka (ikonka VON z appky) = verejná mapa výletov bez registrácie, nová karta; ZA tlačidlom, len veľká ikonka bez rámu, vzor MysteryHike (Matej 11. 11.) */}
-          {/* FLIP 17. 11. (Matej): najprv heroflow, až potom appka — jedno CTA všade. */}
-          {/* prihlásenie patrí do hlavičky, nie pod CTA v hero (Matej 21. 11.: „vadí mi to tam“); mobil ho má v menu */}
-          {/* prihlásenie = ikonka KĽÚČA (heroglyf je kľúč do appky), popis v title (Matej 21. 11.: „header je moc plný“) */}
-          {V2 && <a className="top-login" href="/login" aria-label={c('login')} title={c('login')}><img src="/icons/sys/kluc.webp" alt="" /></a>}
-          {/* úzka hlavička: krátky popis, inak dlhšie CTA vytlačí hamburger za okraj */}
-          <a className="pk-cta" href={START}>{V2 ? c('start_s') : c('start')}</a>
-          <a className="trips-btn" href="/map" target="_blank" rel="noopener" aria-label={c('nav_trips')} title={c('nav_trips')}><img src="/icons/sys/von.webp" alt="" /></a>
-          {/* mobil: hamburger — sekcie, jazyky, GET THE APP (Matej 6. 11., vzor MysteryHike) */}
-          <button className={`burger${menu ? ' on' : ''}`} aria-label={c('menu')} aria-expanded={menu} onClick={() => setMenu(!menu)}><i /><i /><i /></button>
-        </div>
-        {menu && (
-          <div className="mmenu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); }}>
-            <nav><a href="#features">{c('nav2')}</a><a href="#trips">{c('nav_trips')}</a><a href="#ainubis">AINUBIS</a><a href="#badges">{c('nav3')}</a><a href="/story">{c('nav5')}</a></nav>
-            {/* jazyk = JEDEN riadok s aktuálnym, zoznam až po ťuknutí (Matej 17. 11.) */}
-            <button className={`mm-cur${mmLang ? ' on' : ''}`} aria-expanded={mmLang} onClick={() => setMmLang(!mmLang)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.name}<i aria-hidden /></button>
-            {mmLang && <div className="mm-lang">{WEB_LANGS.filter((x) => x.code !== lang).map((x) => <button key={x.code} onClick={() => { setLang(x.code); setMmLang(false); setMenu(false); }}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}</div>}
-            <a className="pk-cta" href={START}>{c('start')}</a>
-            {/* CLAIM 2 (Matej 21. 11.: „v menu musí byť aj stiahnuť appku a prihlásenie na web“): odznaky obchodov
-                v šírke tlačidla + prihlásenie s kľúčom ako v hlavičke na PC */}
-            {V2 && <Stores soon={c('soon')} />}
-            <a className={`mm-login${V2 ? ' v2' : ''}`} href="/login">{V2 && <img src="/icons/sys/kluc.webp" alt="" />}{c('have_acc')} <b>{c('login')}</b></a>
-          </div>
-        )}
-      </header>
+      <WebTop c={c} v2={V2} cls={`${stuck ? 'stuck' : ''}${darkHead ? ' dark' : ''}${onPlanet ? ' away' : ''}`.trim()} />
 
       {/* 1 · HERO */}
       <section className={`hero${V2 ? ' v2' : ''}`}>

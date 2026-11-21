@@ -9,14 +9,14 @@ import { Seo } from '@/components/Seo';
 import { useLang } from '@/i18n/LanguageContext';
 import { getPackStats } from '@/lib/sharedFetch';
 import { LIVE_EDGE_BASE } from '@/lib/env';
-import { flagUrl } from '@/lib/flagUrl';
 import { intlLocale } from '@/i18n/bcp47';
 import { COPY, COPY3, type Lang2 } from './appWeb/copy';
-import { WEB_LANGS } from './appWeb/langs';
 import { STORY } from './appWeb/storyCopy';
 import PULSE from '@/data/onepagePulse.json';
 import AI_HEAD from '@/assets/ainubis-head.webp';
 import { Stores } from './appWeb/Stores';
+import { WebTop } from './appWeb/WebTop';
+import { CLAIM, isClaim } from './appWeb/claim';
 import FOTO from './appWeb/storyFoto.json';
 import './appWeb/appWeb.css';
 import './appWeb/story.css';
@@ -220,7 +220,7 @@ function Chapter({ n, year, small, rev, low, h, children, side, top0, below }: {
 }
 
 export default function StoryWeb() {
-  const { lang, setLang } = useLang();
+  const { lang } = useLang();
   const L: Lang2 = lang === 'sk' ? 'sk' : 'en';
   const t = (k: string) => STORY[k]?.[L] ?? '';
   const [F16, F17, F18, F19, F22, F23, F24] = [['2016'], ['2017'], ['2018'], ['2019', '2020', '2021'], ['2022'], ['2023'], ['2024', '2025']].map((r) => fotky(r, L));
@@ -231,10 +231,9 @@ export default function StoryWeb() {
   const fmt = (n: number) => n.toLocaleString(loc);
   // podiel psov sveta pri míľniku — odhad ~900 mil. psov (Matej 13. 11. 2026: „dajme %“)
   const share = (n: number) => `${(n / 9e6).toLocaleString(loc, { maximumSignificantDigits: 2 })} % ${t('fut_share')}`;
-  const curLang = WEB_LANGS.find((x) => x.code === lang) ?? WEB_LANGS[0];
-  const [langOpen, setLangOpen] = useState(false);
-  const [menu, setMenu] = useState(false);
-  useEffect(() => { if (!langOpen) return; const off = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest('.lang-wrap')) setLangOpen(false); }; document.addEventListener('pointerdown', off); return () => document.removeEventListener('pointerdown', off); }, [langOpen]);
+  /* hlavička = tá istá ako na homepage (`WebTop`); v režime CLAIM 2 aj s jej textami */
+  const V2 = useState(isClaim)[0];
+  const wc = (k: string) => (V2 && CLAIM[k] ? CLAIM[k][lang] ?? CLAIM[k].en : undefined) ?? w(k);
 
   /* živý počet psov (verejný = všetky psy s číslom) */
   const [dogs, setDogs] = useState(121);
@@ -325,11 +324,6 @@ export default function StoryWeb() {
   const hxLines = t('hx_h').split(' | ').map((ln) => ln.split(' ').map((x) => ({ x, i: hxN++ })));
   const qWords = t('c2_q').split(' ');
   const dogmaUrl = L === 'sk' ? 'https://dogma.dogypt.com/' : 'https://dogma.dogypt.com/en/';
-  const navLinks = (
-    <>
-      <a href="/app#features">{w('nav2')}</a><a href="/app#trips">{w('nav_trips')}</a><a href="/app#ainubis">AINUBIS</a><a href="/app#badges">{w('nav3')}</a><a className="sx-on" href="/story">{w('nav5')}</a>
-    </>
-  );
   const upd = PULSE.updated.replace(/^(\d+)-(\d+)-(\d+)$/, (_m, _y, mo, dd) => `${+dd}. ${+mo}.`);
   const pmax = Math.max(1, ...PULSE.days.map((x) => x.h));
   const ch = (i: string) => `${t('ch')} ${i}`;
@@ -350,29 +344,7 @@ export default function StoryWeb() {
       <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /><i className="pearl p1" /><i className="pearl p2" /></div>
       <div className="sx-prog" ref={progRef} />
 
-      <header className="top sx-onphoto" ref={topRef}>
-        <div className="wrap">
-          <a className="logo" href="/app" aria-label="DOGYPT"><img src="/web-app/logo-napis.webp" alt="DOGYPT" /></a>
-          <nav>{navLinks}</nav>
-          <div className="lang-wrap">
-            <button className="lang" aria-expanded={langOpen} onClick={() => setLangOpen(!langOpen)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.code.slice(0, 2).toUpperCase()}</button>
-            {langOpen && (
-              <div className="lang-pop" onClick={() => setLangOpen(false)}>
-                {WEB_LANGS.map((x) => <button key={x.code} className={x.code === lang ? 'on' : ''} onClick={() => setLang(x.code)}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}
-              </div>
-            )}
-          </div>
-          <a className="pk-cta" href="/heroglyph/name">{w('start')}</a>
-          <button className={`burger${menu ? ' on' : ''}`} aria-label={w('menu')} aria-expanded={menu} onClick={() => setMenu(!menu)}><i /><i /><i /></button>
-        </div>
-        {menu && (
-          <div className="mmenu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenu(false); }}>
-            <nav>{navLinks}</nav>
-            <p className="mm-h">{w('lang_h')}</p>
-            <div className="mm-lang">{WEB_LANGS.map((x) => <button key={x.code} className={x.code === lang ? 'on' : ''} onClick={() => { setLang(x.code); setMenu(false); }}><img src={flagUrl(x.flag, 40)} alt="" />{x.name}</button>)}</div>
-          </div>
-        )}
-      </header>
+      <WebTop ref={topRef} c={wc} v2={V2} base={V2 ? '/' : '/app'} cls="sx-onphoto" active="story" />
 
       <main>
         {/* 1 · HERO — ostrá fotka (Kie nano-banana-pro 4K); video = statický záber, dážď, blesk v pozadí */}

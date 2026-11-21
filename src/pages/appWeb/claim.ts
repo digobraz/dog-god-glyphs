@@ -6,6 +6,8 @@
  *  podnadpis Matejov · CTA „Vstúp do DOGYPTU“ · pod ním „Náš cieľ: N / 1 000 000 psov“. */
 type Row = Record<string, string>;
 export const CLAIM: Record<string, Row> = {
+ /* menu: odkaz na planétku so psami (Matej 21. 11.: „PSY“) */
+ nav_dogs: { sk: 'Psy', en: 'Dogs', cs: 'Psi', deu: 'Hunde', pol: 'Psy', ukr: 'Собаки', esp: 'Perros', fra: 'Chiens', ita: 'Cani', prt: 'Cães', nld: 'Honden', tur: 'Köpekler', rus: 'Собаки', ara: 'الكلاب', chn: '狗狗', jpn: '犬たち', kor: '강아지들', ind: 'कुत्ते' },
  e_life2: { sk: 'Appka pre život so psom', en: 'The app for life with a dog', cs: 'Appka pro život se psem', deu: 'Die App fürs Leben mit Hund', pol: 'Apka na życie z psem', ukr: 'Застосунок для життя з собакою', esp: 'La app para la vida con perro', fra: 'L’appli pour la vie avec un chien', ita: 'L’app per la vita con il cane', prt: 'A app para a vida com cão', nld: 'De app voor het leven met een hond', tur: 'Köpekle hayatın uygulaması', rus: 'Приложение для жизни с собакой', ara: 'تطبيق الحياة مع الكلب', chn: '与狗生活的应用', jpn: '犬との暮らしのアプリ', kor: '반려견과의 삶을 위한 앱', ind: 'कुत्ते के साथ जीवन का ऐप' },
  /* rozdelenie čo najrovnomernejšie (Matej 21. 11.: „sa daj do 2. riadku“): h1a = 1. riadok · h1b + zlaté h1c = 2. riadok */
  h1a: { sk: 'Každé hovno', en: 'Every sh*t', cs: 'Každé h*vno', deu: 'Jeder Sch*iß', pol: 'Każda k*pa', ukr: 'Кожне г*вно', esp: 'Cada caca', fra: 'Chaque crotte', ita: 'Ogni cacca', prt: 'Cada cocó', nld: 'Elke dr*l', tur: 'Her b*k', rus: 'Каждая к*чка', ara: 'كل خ*ء', chn: '每一坨屎', jpn: 'う〇こ1個も', kor: '똥 하나하나가', ind: 'हर पॉटी' },
@@ -108,3 +110,11 @@ export const CLAIM: Record<string, Row> = {
  /* prihlásenie v mobilnom menu — „Už hráš?“ sedelo k starému „Začni hrať“ */
  have_acc: { sk: 'Už máš účet?', en: 'Already have an account?', cs: 'Už máš účet?', deu: 'Schon ein Konto?', pol: 'Masz już konto?', ukr: 'Вже маєш акаунт?', esp: '¿Ya tienes cuenta?', fra: 'Déjà un compte ?', ita: 'Hai già un account?', prt: 'Já tens conta?', nld: 'Al een account?', tur: 'Hesabın var mı?', rus: 'Уже есть аккаунт?', ara: 'لديك حساب؟', chn: '已有账号？', jpn: 'アカウントをお持ちですか？', kor: '이미 계정이 있나요?', ind: 'पहले से खाता है?' },
 };
+
+/** Režim CLAIM 2 (do flipu len za `?claim`). Zapamätá sa na celú návštevu (sessionStorage), aby /story
+ *  a návrat na homepage z jej menu ostali v novej verzii aj bez `?claim` v adrese. */
+export function isClaim(): boolean {
+  if (typeof window === 'undefined') return false;
+  const on = new URLSearchParams(window.location.search).has('claim');
+  try { if (on) sessionStorage.setItem('dogypt_claim', '1'); return on || sessionStorage.getItem('dogypt_claim') === '1'; } catch { return on; }
+}
