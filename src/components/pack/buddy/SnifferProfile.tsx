@@ -89,11 +89,11 @@ export const SNIFFER_PROFILE_CSS = `
 .sp-pager--fit{flex:1 1 auto;min-height:0;}
 .sp-pager--fit > .sp-card{flex:1 1 auto;min-height:0;}
 .sp-pager--fit .sp-body{flex:1 1 auto;min-height:0;overflow-y:auto;}
-.sp-pager--fit .sp-slots > .sp-slot{height:clamp(${PACK_SPACE.xxxl + PACK_SPACE.lg}px, 20dvh, ${PACK_SPACE.xxxl * 4}px);}
 .sp-photorow{display:flex;flex-wrap:wrap;align-items:flex-end;gap:${PACK_SPACE.md}px;border-top:1px solid ${T.hairline};}
 .sp-photorow > .sp-kv{flex:1 1 auto;border-top:0;}
-.sp-slots{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
-.sp-slots > .sp-slot{height:${PACK_SPACE.xxxl * 3}px;width:auto;}
+/* TRI VEDĽA SEBA NA CELÚ ŠÍRKU (Matej 21. 11. 2026: „zmestia sa pod seba len 2 a je tam plac vedľa“) — výšku dáva pomer 3:4, nie pevné číslo. */
+.sp-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:${PACK_SPACE.sm}px;}
+.sp-slots > .sp-slot{width:100%;height:auto;}
 @media (min-width:768px){ .sp-rows2{display:grid;grid-template-columns:1fr 1fr;column-gap:${PACK_SPACE.xl}px;} }
 @media (max-height:800px){ .sp-kv > button,.sp-static{padding:${PACK_SPACE.xs}px 0;} }
 .sp-dots{display:flex;justify-content:center;gap:${PACK_SPACE.sm}px;}
@@ -213,7 +213,6 @@ export const SNIFFER_PROFILE_CSS = `
    (PAGE_AIR lock) — nadpis o stupeň, fotky, pilulky volieb a pás pawtnera; vzduch ostáva. */
 @media (max-height:700px){
   .sp-title{font-size:${PACK_TEXT.h2}px;}
-  .sp-pager--fit .sp-slots > .sp-slot{height:13dvh;}
   .sp-cols .bd-pills .pk-pill{padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;line-height:1.2;}
   .sp-pawtner{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;}
   .sp-body{gap:${PACK_SPACE.xs}px;}

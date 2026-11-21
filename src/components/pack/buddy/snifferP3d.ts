@@ -24,7 +24,8 @@ html.papyrus3d .bd-lead,html.papyrus3d .bd-note,html.papyrus3d .sp-sub,html.papy
 /* P1: logo + nápis */
 html.papyrus3d .bd-logo3d{display:flex;flex-direction:column;align-items:center;margin:0 auto;}
 html.papyrus3d .bd-logo3d img{width:150px;height:150px;margin-bottom:-${S.md}px;position:relative;z-index:1;}
-html.papyrus3d .bd-wm{display:block;font-family:'LT Museum',serif;font-weight:400;font-size:${WM_SIZE}px;line-height:1;letter-spacing:.02em;color:${LAPIS.ink};-webkit-text-stroke:7px var(--p3d-ink);paint-order:stroke fill;filter:drop-shadow(0 5px 0 var(--p3d-gold-ink));}
+/* Obrys 7 px a tieň 5 px trčia z boxu a .bd-grow > div ich orezal (overflow:hidden) — vzduch ich vráti dnu (Matej 21. 11.: „orezaný nadpis“). */
+html.papyrus3d .bd-wm{padding:${S.sm}px ${S.sm}px ${S.md}px;display:block;font-family:'LT Museum',serif;font-weight:400;font-size:${WM_SIZE}px;line-height:1;letter-spacing:.02em;color:${LAPIS.ink};-webkit-text-stroke:7px var(--p3d-ink);paint-order:stroke fill;filter:drop-shadow(0 5px 0 var(--p3d-gold-ink));}
 /* tlačidlá: lapis b3, ostatné paper b3 */
 html.papyrus3d .bd-cta,html.papyrus3d .bd-ghost,html.papyrus3d .sh-ghost{min-height:56px;display:inline-flex;align-items:center;justify-content:center;border:2.5px solid ${LAPIS.ink};border-radius:${PACK_R.card}px;background:${LAPIS_BG};color:${LAPIS.ink};box-shadow:${LAPIS_SH};font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;letter-spacing:0;text-transform:none;}
 html.papyrus3d .bd-cta:hover{background:${LAPIS_BG};}
