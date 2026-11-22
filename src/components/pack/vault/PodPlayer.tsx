@@ -16,7 +16,6 @@
 //    WebView Media Session nemá — tam treba natívny plugin. OTA kanál testovacej appky to nedoručí.
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
-import { toast } from 'sonner';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { AINUBIS as A } from '@/components/pack/ainubisSkin';
@@ -34,10 +33,12 @@ type S = {
   playing: boolean; t: number; dur: number; rate: number; shuffle: boolean; full: boolean;
   /** Jazýček stiahnutý dole — na nave ostane len kapsula postupu. */
   tucked: boolean;
+  /** Krátka hláška nad radom svetov (kocka zapnutá/vypnutá). */
+  hint: string;
   /** Zvitok, ktorého článok je práve otvorený — v ňom mini prehrávač nekreslíme (prehrávač je tam priamo). */
   inView: string | null;
 };
-let s: S = { z: null, lang: 'sk', appLang: 'sk', playing: false, t: 0, dur: 0, rate: 1, shuffle: false, full: false, tucked: false, inView: null };
+let s: S = { z: null, lang: 'sk', appLang: 'sk', playing: false, t: 0, dur: 0, rate: 1, shuffle: false, full: false, tucked: false, hint: '', inView: null };
 const subs = new Set<() => void>();
 const set = (p: Partial<S>) => { s = { ...s, ...p }; subs.forEach((f) => f()); };
 const sub = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; };
@@ -145,13 +146,17 @@ const SHUFFLE_MSG: Record<string, [string, string]> = {
   de: ['Zufallswiedergabe an', 'Zufallswiedergabe aus'],
   en: ['Shuffle on', 'Shuffle off'],
 };
+let hintT = 0;
 export function podShuffle() {
   const on = !s.shuffle;
   set({ shuffle: on });
   // „lepšie aplikovať náhodný výber“ (Matej 22. 11.): zapnutá kocka hneď pustí náhodný zvitok, nečaká na koniec
   if (on) podNext();
+  // hláška priamo nad kockou, nie hore na obrazovke (Matej: „nie je vidno je moc hore = daj to nižšie hneď pri tom“)
   const m = SHUFFLE_MSG[s.appLang] || SHUFFLE_MSG.en;
-  toast(on ? m[0] : m[1], { id: 'pod-shuffle', duration: 2000, position: 'top-center' });
+  set({ hint: on ? m[0] : m[1] });
+  window.clearTimeout(hintT);
+  hintT = window.setTimeout(() => set({ hint: '' }), 2200);
 }
 export function podFull(full: boolean) { set({ full }); }
 export function podTuck(tucked: boolean) { set({ tucked }); }
@@ -255,6 +260,8 @@ export function PodMini() {
   const show = p.inView !== p.z.id && !p.full && (p.playing || p.t > 0);
   return (
     <>
+      <PodDock on={show && !p.tucked} />
+    <>
       <ListFeed />
       <style>{POD_CSS}</style>
       {show && !p.tucked && <Jazycek />}
@@ -265,7 +272,21 @@ export function PodMini() {
       )}
       {p.full && <PodFull />}
     </>
+    </>
   );
+}
+
+/** JAZÝČEK JE SÚČASŤ DOKU (Matej 22. 11.: „dáme to nad?“ → „ano“): kým vykukuje, zverejní svoju výšku nad navom
+ *  ako `--pod-dock` a všetko, čo stojí nad navom (Zoznam, Mozog, AINUBIS, toasty, mierka mapy), ju pripočíta.
+ *  Obsah stránok dostane rovnakú rezervu (PackLayout). Stiahnutý alebo bez podcastu = 0, nič sa nehýbe. */
+const DOCK_PX = 84 - PACK_SPACE.lg + PACK_SPACE.sm; // výška jazýčka − časť pod navom + vzduch nad kapsulou
+function PodDock({ on }: { on: boolean }) {
+  useEffect(() => {
+    const r = document.documentElement;
+    if (on) r.style.setProperty('--pod-dock', `${DOCK_PX}px`); else r.style.removeProperty('--pod-dock');
+    return () => { r.style.removeProperty('--pod-dock'); };
+  }, [on]);
+  return null;
 }
 
 /** JAZÝČEK (Matej 22. 11. 2026, nákres plany/nakresy/prehravac-podcastov-2026-11-22/jazycek.html kolo 7): tmavý pás
@@ -357,6 +378,7 @@ function PodFull() {
         <button type="button" className="pp-ic" aria-label="+15 s" onClick={() => podSkip(15)}><Skip fwd /></button>
         <button type="button" className="pp-ic" aria-label="Next" onClick={podNext}><Svg d={NEXT} fill size={32} /></button>
       </div>
+      <div className={`pp-hint${p.hint ? ' is-on' : ''}`} role="status" aria-live="polite">{p.hint}</div>
       {/* ČO POČÚVAM: kocka (náhodne zo všetkých) alebo svet. Vybraný kus nesie aj meno, ostatné len ikonku. */}
       <div className="pp-scope" role="radiogroup">
         <button type="button" role="radio" aria-checked={p.shuffle} className={`pp-chip${p.shuffle ? ' is-on' : ''}`} onClick={podShuffle}
@@ -421,7 +443,10 @@ ${b3('.pp-chip.is-on', 'cy', `${PACK_R.pill}px`, 3)}
 .pp-dd{position:relative;}
 .pp-dd .pp-pill{gap:${PACK_SPACE.xs}px;display:inline-flex;}
 .pp-menu{position:absolute;right:0;top:calc(100% + ${PACK_SPACE.sm}px);z-index:2;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px;${M3.bub}}
-.pp-scope{display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;padding-top:${PACK_SPACE.lg}px;flex-wrap:nowrap;}
+.pp-hint{align-self:center;min-height:${PACK_SPACE.xl}px;margin-top:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;font-size:${PACK_TEXT.body}px;font-weight:600;color:${A.cyan};
+  border-radius:${PACK_R.pill}px;opacity:0;transform:translateY(${PACK_SPACE.xs}px);transition:opacity .2s,transform .2s;}
+.pp-hint.is-on{opacity:1;transform:none;background:${A.raised};box-shadow:0 0 0 1px ${A.edge};}
+.pp-scope{display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;padding-top:${PACK_SPACE.xs}px;flex-wrap:nowrap;}
 .pp-chip{height:44px;min-width:44px;padding:0 ${PACK_SPACE.sm}px;display:inline-flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;cursor:pointer;flex:none;}
 .pp-chip.is-on{padding:0 ${PACK_SPACE.md}px 0 ${PACK_SPACE.sm}px;flex:0 1 auto;min-width:0;}
 .pp-chip img{width:28px;height:28px;object-fit:contain;flex:none;}

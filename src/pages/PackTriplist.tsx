@@ -90,7 +90,7 @@ const CSS = `
    píše ju na zlé miesto.
    ⚠️ .tl-root už NEMÁ vlastné pozadie ani min-height — oboje nesie .pk-paper.
       Dve nepriehľadné plochy nad sebou by tapetu prekryli. */
-.tl-root{color:${P.ink};font-family:${FONT_UI};position:relative;padding-bottom:calc(${PACK_SPACE.xxxl}px + 62px);}
+.tl-root{color:${P.ink};font-family:${FONT_UI};position:relative;padding-bottom:calc(${PACK_SPACE.xxxl}px + 62px + var(--pod-dock, 0px));}
 /* Šírka aj vodorovný padding sú TIE ISTÉ ako v PackLayout (PACK_COL) — táto stránka
    PackLayout nemountuje, tak si ich musí vziať z konštanty. Do 13. 8. tu bolo 860px
    a preklik z profilu (1024px) stránku viditeľne zúžil. */

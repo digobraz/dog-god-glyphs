@@ -29,7 +29,7 @@ const GO_CSS = `${VEIL_CSS}
    podľa jazyka. Na LIVE nav neexistuje (DEV_FULL), premenná chýba a fallback 0 nechá
    panel dole. */
 .tgo-panel{width:100%;max-width:420px;max-height:${MODAL_MAX_H};overflow-y:auto;
-  padding:22px 20px calc(24px + var(--pack-nav-h, 0px) + var(--pack-nav-bottom, 0px) + env(safe-area-inset-bottom, 0px));
+  padding:22px 20px calc(24px + var(--pack-nav-h, 0px) + var(--pack-nav-bottom, 0px) + var(--pod-dock, 0px) + env(safe-area-inset-bottom, 0px));
   background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};box-shadow:${PACK_BOX.panel.boxShadow};
   border-radius:16px 16px 0 0;}
 /* Nad 600 px panel stojí v strede okna, nie na hrane — nav mu už do cesty nevstupuje. */

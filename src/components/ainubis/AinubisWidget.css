@@ -114,7 +114,7 @@
    ⚠️ Pravidlo sa NEMAŽE, len obracia: `has-pack-nav` teraz dvíha guľu NAD lištu
    namiesto toho, aby ju skrývalo. Nech je na jednom mieste vidieť oba stavy. */
 body.has-pack-nav {
-  --ainubis-dock-b: calc(var(--pack-dock-b) + var(--pack-nav-h, 64px) + 14px);
+  --ainubis-dock-b: calc(var(--pack-dock-b) + var(--pack-nav-h, 64px) + var(--pod-dock, 0px) + 14px);
 }
 
 .ainubis-launcher:hover,

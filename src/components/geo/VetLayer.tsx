@@ -247,7 +247,7 @@ export function VetLayer({ minZoom = VET_MIN_ZOOM }: { minZoom?: number } = {}) 
 const VET_CSS = `
 .vm-veil{position:fixed;inset:0;}
 .vm-stage{position:fixed;left:var(--pack-nav-cx,50vw);width:0;top:calc(env(safe-area-inset-top,0px) + ${S.md}px);
-  bottom:calc(var(--pack-nav-bottom,0px) + var(--pack-nav-h,84px) + ${S.md}px);display:flex;align-items:center;justify-content:center;pointer-events:none;}
+  bottom:calc(var(--pack-nav-bottom,0px) + var(--pack-nav-h,84px) + var(--pod-dock, 0px) + ${S.md}px);display:flex;align-items:center;justify-content:center;pointer-events:none;}
 .vm-card{pointer-events:auto;flex:none;width:min(340px,calc(100vw - ${S.xxl}px));max-height:100%;overflow-y:auto;overscroll-behavior:contain;
   background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.tile}px;box-shadow:${T.panelShadow};}
 .vm-save{position:absolute;right:${S.sm}px;top:${S.sm}px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;padding:0;

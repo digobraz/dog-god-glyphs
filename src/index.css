@@ -418,7 +418,7 @@ html.is-app { --pack-dock-b: max(12px, calc(env(safe-area-inset-bottom, 0px) - 4
    `top-0`, teda v appke pod hodinami a výrezom. Teraz obe rodiny (radix `toast.tsx` aj sonner)
    stoja tam, kde ich má Instagram: tesne nad spodnou lištou. Bez navu (`--pack-nav-h` chýba) nad
    spodným okrajom. Jedno číslo → žiadna hláška sa nemôže vrátiť pod výrez. */
-:root { --pk-toast-b: calc(var(--pack-dock-b) + var(--pack-nav-h, 0px) + 12px); }
+:root { --pk-toast-b: calc(var(--pack-dock-b) + var(--pack-nav-h, 0px) + var(--pod-dock, 0px) + 12px); }
 .pk-toast-viewport { bottom: var(--pk-toast-b); top: auto; }
 
 /* 🐾 KURZOR = PACKA (Matej 11. 11. 2026: „na webe zmeň kurzor myši na packu, tú čo máme pri hodnotení,

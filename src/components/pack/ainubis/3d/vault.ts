@@ -126,7 +126,7 @@ ${b3(`${R} .akv-mtoggle`, 'or', '16px')}
 ${R} .akv-mtoggle{height:44px;padding:0 12px;gap:4px;font-size:16px;}
 ${R} .akv-mtoggle img{width:24px !important;height:24px !important;}
 /* Matej 10. 11. 2026: menšie, vpravo nad lištou, počas rolovania preč. */
-${R} .akv-mactions{left:auto;right:16px;transform:none;bottom:calc(var(--pack-nav-bottom,16px) + var(--pack-nav-h,84px) + 8px);transition:opacity .15s ease;}
+${R} .akv-mactions{left:auto;right:16px;transform:none;bottom:calc(var(--pack-nav-bottom,16px) + var(--pack-nav-h,84px) + var(--pod-dock, 0px) + 8px);transition:opacity .15s ease;}
 ${R} .akv-mactions.is-scrolling{opacity:0;pointer-events:none;}
 ${b3(`${R} .akv-ctlbtn`, 'nt', '16px')}
 ${R} .akv-ctlbtn{width:52px;height:52px;}

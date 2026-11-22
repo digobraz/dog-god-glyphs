@@ -2933,7 +2933,7 @@ ${mobCSS(`(max-width:${PALE_PC_MIN - 1}px)`, `
   html.papyrus3d .trp-mlupa{flex:none;display:grid;place-items:center;width:44px;height:40px;margin:0 auto 0 8px;padding:0;border:0;background:none;cursor:pointer;}
   html.papyrus3d .trp-mfcount{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 4px;border-radius:999px;display:grid;place-items:center;background:${LAPIS.grad};color:${LAPIS.ink};font:600 12px/1 'Space Grotesk',sans-serif;}
   /* Zoznam a Mapa: stoja NAD dokom, plus vytŕča 20 px nad lištu (84 + 20) a tlačidlo ho nesmie prekryť */
-  html.papyrus3d .trp-mactions{left:auto;right:16px;transform:none;bottom:calc(var(--pack-nav-bottom,16px) + var(--pack-nav-h,84px) + 8px);transition:opacity .15s ease;}
+  html.papyrus3d .trp-mactions{left:auto;right:16px;transform:none;bottom:calc(var(--pack-nav-bottom,16px) + var(--pack-nav-h,84px) + var(--pod-dock, 0px) + 8px);transition:opacity .15s ease;}
   html.papyrus3d .trp-mactions.is-scrolling{opacity:0;pointer-events:none;}
   html.papyrus3d .trp-mtoggle.pk-b3{height:44px;padding:0 12px;gap:4px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:var(--m-pera);font:400 16px/1 'LT Museum',serif;text-transform:none;letter-spacing:0;}
   html.papyrus3d .trp-mtoggle img.trp-sysico{width:24px!important;height:24px!important;}

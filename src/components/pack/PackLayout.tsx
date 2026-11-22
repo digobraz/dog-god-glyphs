@@ -207,6 +207,8 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel, topLe
           </header>
         )}
         <main>{children}</main>
+        {/* rezerva pod obsahom, kým nad navom vykukuje jazýček prehrávača (`--pod-dock`, vault/PodPlayer.tsx) */}
+        <div aria-hidden style={{ height: 'var(--pod-dock, 0px)' }} />
       </div>
 
       {/* Floating pill nav — dolný (Home · Map · Avatar, D4 nav rework). LIVE: skryté

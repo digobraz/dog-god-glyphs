@@ -71,7 +71,7 @@ export const MAP_ATTR_CSS = `
 export const mapAttrLiftCSS = (maxWidth: number) => `
 @media (max-width:${maxWidth}px){
   .leaflet-control-scale{
-    bottom:calc(var(--pack-dock-b) + var(--pack-nav-h, 0px) + 10px);}
+    bottom:calc(var(--pack-dock-b) + var(--pack-nav-h, 0px) + var(--pod-dock, 0px) + 10px);}
   /* Mierka vedľa AINUBISA, nie pod ním (Matej 10. 11. 2026: „AINUBIS zavadzia pri mierke"). Guľa sedí vľavo dole
      v tej istej výške, ~80 px široká; 88 = jej šírka + vzduch, mierka ide hneď za ňu. */
   .leaflet-left .leaflet-control-scale{margin-left:88px!important;}

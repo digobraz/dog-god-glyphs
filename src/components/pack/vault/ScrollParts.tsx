@@ -211,12 +211,12 @@ ${STAGE_CSS}
 /* ŠÍRKA = článok výletu (Matej 4. 10.: „detail zvitku by mal byť takej istej šírky ako je trip blog") —
    ten istý stĺpec PACK_COL_FIT + packColCSS ako .pta-shell, nie vlastných 880. */
 /* APPKA 24. 10. 2026: vrch dosky pod hodinami (Matej: „pri zvitku nevidím šípku naspäť, je až za hranou obrazovky“). Web: safe-area 0. */
-.zv-wrap{position:relative;z-index:1;${PACK_COL_FIT}margin:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) auto calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.xl}px);
+.zv-wrap{position:relative;z-index:1;${PACK_COL_FIT}margin:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) auto calc(var(--pack-nav-h, 112px) + var(--pod-dock, 0px) + ${PACK_SPACE.xl}px);
   padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px ${PACK_SPACE.xl}px;box-shadow:${AINUBIS.panelShadow};
   --pk-stage:linear-gradient(180deg,rgba(${AINUBIS.cyanRGB},0.07) 0%,rgba(4,8,14,0.55) 22%,rgba(4,8,14,0.62) 100%);
   --pk-stage-edge:${AINUBIS.edge};}
 ${packColCSS('.zv-wrap')}
-@media (max-width:767px){.zv-wrap{margin-top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px);margin-bottom:calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.lg}px);padding:${PACK_SPACE.md}px;}}
+@media (max-width:767px){.zv-wrap{margin-top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px);margin-bottom:calc(var(--pack-nav-h, 112px) + var(--pod-dock, 0px) + ${PACK_SPACE.lg}px);padding:${PACK_SPACE.md}px;}}
 @media (min-width:768px){.zv-wrap{padding:${PACK_SPACE.xl}px;}}
 .zv-back{margin-bottom:${PACK_SPACE.md}px;}
 /* MOBIL = ZVITOK NA CELÚ ŠÍRKU + LEPIACA HLAVIČKA so šípkou a upozorneniami (Matej 1. 11. 2026: „dať obsah po celej šírke",
@@ -409,7 +409,7 @@ ${APP_NEW ? '' : `.zv-bar [data-mg="msgs"],.zv-bar [data-mg="notif"]{color:#fff 
   -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;}
 .zv-ic--sys{-webkit-mask:none;mask:none;background-color:transparent;background-size:contain;background-position:center;background-repeat:no-repeat;transform:scale(1.3);}
 .zv-chip svg{vertical-align:-2px;margin-right:${PACK_SPACE.xs}px;}
-.zv-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.md}px);z-index:41;
+.zv-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--pack-nav-h, 112px) + var(--pod-dock, 0px) + ${PACK_SPACE.md}px);z-index:41;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;background:${AINUBIS.surfaceBase};
   border:1px solid ${AINUBIS.edge};font-size:${PACK_TEXT.label}px;color:${AINUBIS.ink};}
 `;

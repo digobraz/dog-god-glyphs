@@ -657,7 +657,7 @@ ${GRAB_CSS}
   color:${T.tripPurple};background:#FFFDF7;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:.02em;}
 
 /* Pod horným pásom mapy aj radom hľadania — panel nesmie zakryť štatistiky ani filtre. */
-.plc-side{position:fixed;right:${S.lg}px;top:${S.xxxl * 3 + S.xl + S.lg}px;bottom:calc(var(--pack-nav-h,64px) + var(--pack-nav-bottom,16px) + ${S.md}px);
+.plc-side{position:fixed;right:${S.lg}px;top:${S.xxxl * 3 + S.xl + S.lg}px;bottom:calc(var(--pack-nav-h,64px) + var(--pack-nav-bottom,16px) + var(--pod-dock, 0px) + ${S.md}px);
   width:400px;z-index:65;display:flex;flex-direction:column;overflow:hidden;background:${T.cardGrad};color:${T.inkStrong};
   border:1.5px solid ${T.cardEdge};border-radius:${PACK_R.card}px;box-shadow:${T.panelShadow};font-family:${FONT_UI};
   --rp-fill:#A3782B;--rp-empty:#A3782B;--rp-empty-op:0.28;}

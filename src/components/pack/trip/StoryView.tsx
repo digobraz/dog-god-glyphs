@@ -60,7 +60,7 @@ export const STORY_VIEW_CSS = `
 body.psv-open .pta-acts.collapsed{ display:none; }
 /* Hore spoločný rad /pack (PackTopRow, 27. 9. 2026): AINUBIS vľavo, šípka v strede, obsah
    (fotka alebo karta) začína na PACK_TOPROW.content — dovtedy šípka vľavo na fotke. */
-.psv-wrap{ max-width:760px; margin:0 auto; padding:${PACK_TOPROW_PAD} 0 calc(${PACK_SPACE.xxxl}px + var(--pack-nav-h, 62px) + var(--pack-nav-bottom, 0px)); }
+.psv-wrap{ max-width:760px; margin:0 auto; padding:${PACK_TOPROW_PAD} 0 calc(${PACK_SPACE.xxxl}px + var(--pack-nav-h, 62px) + var(--pack-nav-bottom, 0px) + var(--pod-dock, 0px)); }
 .psv-hero{
   position:relative; width:100%; height:38vh; min-height:220px; max-height:380px;
   overflow:hidden; background:${T.tileBg};
