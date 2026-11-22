@@ -1837,3 +1837,30 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 /* zlaté slovo = text s background-clip: pri line-height 1 vyčnieva mäkčeň/dĺžeň („POČÍTA“) nad rámik a Safari ho orezáva —
    rezerva hore aj dole, poloha riadku sa nemení (Matej 22. 11.: „na slove počíta nie je zrezaný mäkčeň a dĺžeň?“) */
 .aw .hero.v2 h1 .deco{padding:.16em 0 .08em;margin:-.16em 0 -.08em}
+/* DAR BEZ REGISTRÁCIE — okno nad webom (GiftSheet.tsx). Papyrus = pk-stage, CTA lapis = .pk-cta, výber = .pk-pick (tint) */
+.aw .gift-veil{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:var(--s-lg);background:rgba(24,14,4,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overflow-y:auto}
+.aw .gift{position:relative;width:min(440px,100%);margin:auto;padding:var(--s-xl) var(--s-lg) var(--s-lg);border-radius:var(--r-card,16px);display:grid;gap:var(--s-md);text-align:center;background:var(--paper)}
+.aw .gift-ic{width:72px;height:72px;margin:-64px auto 0;filter:drop-shadow(0 8px 14px rgba(0,0,0,.3))}
+.aw .gift h3{margin:0;font:700 var(--t-h3,24px)/1.15 var(--font-title);color:var(--ink-strong)}
+.aw .gift-p{margin:0;font:400 var(--t-body)/1.45 var(--font-ui);color:var(--ink-body);white-space:pre-line}
+.aw .gift-x{position:absolute;top:12px;right:12px;width:36px;height:36px;border:0;background:none;cursor:pointer}
+.aw .gift-x i{position:absolute;left:8px;top:17px;width:20px;height:2px;border-radius:2px;background:var(--ink-soft)}
+.aw .gift-x i:first-child{transform:rotate(45deg)}.aw .gift-x i:last-child{transform:rotate(-45deg)}
+.aw .gift-tog{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-sm)}
+.aw .gift-tog button,.aw .gift-tiers button{padding:var(--s-sm) var(--s-md);border:1.5px solid rgba(179,130,45,.42);border-radius:var(--r-pill);background:linear-gradient(180deg,#FFFDF7 0%,#EFDDAE 100%);color:#5c4318;font:600 var(--t-body)/1.2 var(--font-ui);cursor:pointer}
+.aw .gift-tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s-sm)}
+.aw .gift-tiers button{display:grid;gap:4px;padding:var(--s-sm) 4px;border-radius:var(--r-tile)}
+.aw .gift-tiers button span{font:500 var(--t-micro)/1 var(--font-ui);letter-spacing:.02em;opacity:.8}
+.aw .gift-tog button.pk-pick,.aw .gift-tiers button.pk-pick{background:rgba(22,48,122,0.16);border-color:#16307A;color:#0A1A4A}
+.aw .gift-own{display:flex;align-items:center;justify-content:center;gap:var(--s-sm);font:500 var(--t-label)/1 var(--font-ui);color:var(--ink-soft)}
+.aw .gift-own input{width:88px;padding:var(--s-sm) var(--s-md);border:1.5px solid rgba(179,130,45,.42);border-radius:var(--r-tile);background:#FFFDF7;font:600 var(--t-body)/1 var(--font-ui);color:var(--ink-strong);text-align:right}
+.aw .gift-fee,.aw .gift-hint,.aw .gift-legal{margin:0;font:400 var(--t-label)/1.4 var(--font-ui);color:var(--ink-soft)}
+.aw .gift-legal{font-size:var(--t-micro)}
+.aw .gift .pk-cta{width:100%;justify-content:center}
+.aw .gift .pk-cta:disabled{opacity:.5;cursor:default}
+.aw .gift-err{margin:0;color:#B25640;font:600 var(--t-label)/1.3 var(--font-ui)}
+.aw .gift-kv{display:grid;grid-template-columns:1fr auto;gap:var(--s-sm) var(--s-lg);text-align:left;padding:var(--s-md);border-radius:var(--r-tile);background:rgba(179,130,45,.1);font:500 var(--t-body)/1.3 var(--font-ui);color:var(--ink-body)}
+.aw .gift-kv b{color:var(--ink-strong);text-align:right}
+.aw .gift-link{font:600 var(--t-label)/1 var(--font-ui);color:var(--lapis-edge)}
+/* odkazy v odpovedi FAQ (Napíš nám · TU) musia vyzerať ako odkaz */
+.aw .faq details p a{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;font-weight:600}

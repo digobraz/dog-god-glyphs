@@ -33,6 +33,7 @@ import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
 import { CLAIM, isClaim } from './appWeb/claim';
 import { CLAIM22 } from './appWeb/claim22';
+import { GiftSheet, useGiftReturn } from './appWeb/GiftSheet';
 import { WebTop, scrollToId } from './appWeb/WebTop';
 import { loadLang } from './appWeb/langs';
 import { intlLocale } from '@/i18n/bcp47';
@@ -72,8 +73,6 @@ const LEVELS: { ax: string; scene: string; start: number; n: number; img: (i: nu
 const CITIZEN_PRICES = ['€0', '€3,99', '€7,99', '€11,99', '€111+'];
 /** CTA pri Dogypťanovi vedie na víziu v `/story` (Matej 10. 11.). */
 const VISION_HREF = '/story#vision';
-/** Jednorazová podpora bez registrácie — odkaz čaká na Stripe (dovtedy „#“, ako malo tlačidlo zaniknutého bloku). */
-const SUPPORT_HREF = '#';
 
 /** Ikonky funkcií = kartuše z banky (`public/web-app/ikony/*.webp`, Matej 8. 11.: „funkcie na nete v kartuši“,
  *  zdroj plany/nakresy/banka-ikon-2026-11-08/rez/*-kartusa.webp). Odrážky `li` sa zatiaľ nekreslia — doladíme ich neskôr. */
@@ -411,6 +410,10 @@ export default function AppWeb() {
   /* vysvetlivka odznaku v hero: ťuk otvorí, druhý ťuk alebo ťuk mimo zavrie (Matej 7. 11.: „pils nejdú zavrieť“) */
   const [tipOn, setTipOn] = useState(0);
   const [vidOn, setVidOn] = useState(false);
+  /* dar bez registrácie: „TU“ vo FAQ otvorí okno, návrat zo Stripe (`?dakujeme` / `?zrusene`) ukáže poďakovanie */
+  const [giftOn, setGiftOn] = useState(false);
+  const gift = useGiftReturn();
+  useEffect(() => { if (V2 && location.hash === '#dar') setGiftOn(true); }, [V2]);
   useEffect(() => { if (!tipOn) return; const off = () => setTipOn(0); window.addEventListener('click', off); window.addEventListener('scroll', off, { passive: true }); return () => { window.removeEventListener('click', off); window.removeEventListener('scroll', off); }; }, [tipOn]);
   useEffect(() => {
     const f = () => { setStuck(window.scrollY > 24); };
@@ -927,7 +930,7 @@ export default function AppWeb() {
               <div className="faq-col" key={i}>
                 {col.map((k) => (
                   <Rv as="details" key={k} className="pk-stage"><summary>{c(`fq_${k}`)}</summary><p>{c(`fa_${k}`)}
-                    {V2 && k === 'fund' && <> <a href="mailto:woof@dogypt.com">{c('fund_mail')}</a> {c('fund_or')} <a href={SUPPORT_HREF}>{c('fund_here')}</a>{lang === 'chn' || lang === 'jpn' ? '。' : '.'}</>}</p></Rv>
+                    {V2 && k === 'fund' && <> <a href="mailto:woof@dogypt.com">{c('fund_mail')}</a> {c('fund_or')} <a href="#dar" onClick={(e) => { e.preventDefault(); setGiftOn(true); }}>{c('fund_here')}</a>{lang === 'chn' || lang === 'jpn' ? '。' : '.'}</>}</p></Rv>
                 ))}
                 {/* kontakt a odkazy z pätičky — pätička zanikla, posledná je planétka (Matej 6. 11.) */}
                 {i === 1 && <Rv as="details" className="pk-stage"><summary>{c('q_contact')}</summary>
@@ -942,6 +945,7 @@ export default function AppWeb() {
       </section>
 
       {/* 11 · ŽIVÁ PLANÉTKA — finále */}
+      {V2 && (giftOn || gift.thanks || gift.canceled) && <GiftSheet c={c} thanks={gift.thanks} canceled={gift.canceled} onClose={() => { setGiftOn(false); gift.close(); }} />}
       <LivePlanet v2={V2 ? { enter: c('start'), href: START, find: c('pl_find'), hall: c('pl_hall'), back: c('pl_back'), center: c('pl_center') } : undefined} />
       </main>
 
