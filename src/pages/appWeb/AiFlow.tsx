@@ -4,6 +4,10 @@ import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
 import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
 import { WORLD_TINT } from '@/components/pack/ainubisSkin';
 
+/* Mobil: plátno je vysoké ako celá sekcia (~2 200 bodov), celé sa maže a kreslí každý snímok.
+   22. 11.: pri CPU÷4 zhodilo rolovanie AINUBISA a odznakov na 20–30 fps → 1× rozlíšenie a 30 fps. */
+const LEAN = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse), (max-width: 767px)').matches;
+
 /** ZNALOSTNÝ LIEVIK v3 (Matej 6. 11. večer: „o mnoho krajšie, prémiovejšie, rýchlejší tok, rôzne farby a pri dotyku
  *  blokov je vidno, ako sa narážajú, vlnia a postupujú“). Poschodia 5 → 4 → 2 → 7 svetov → 46 · 547 → zvitky.
  *  Prúd kreslí CANVAS: svetelné častice so stopou po krivkách medzi kotvami `data-fa` (merajú sa po vykreslení —
@@ -75,7 +79,7 @@ export function AiFlow({ L, c, counter, learn, onWorld, published }: {
       }
       paths.current = out;
       const c2 = cv.current; if (c2) {
-        const dpr = Math.min(2, devicePixelRatio || 1);
+        const dpr = LEAN ? 1 : Math.min(2, devicePixelRatio || 1);
         c2.width = o.width * dpr; c2.height = o.height * dpr; c2.style.width = `${o.width}px`; c2.style.height = `${o.height}px`;
         c2.getContext('2d')!.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
@@ -94,6 +98,7 @@ export function AiFlow({ L, c, counter, learn, onWorld, published }: {
     let last = performance.now(), raf = 0;
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
+      if (LEAN && now - last < 30) return;
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
       if (!vis.current) return;
       const P = paths.current, W = ctx.canvas.width, H = ctx.canvas.height;

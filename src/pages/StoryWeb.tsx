@@ -349,9 +349,12 @@ export default function StoryWeb() {
       <main>
         {/* 1 · HERO — ostrá fotka (Kie nano-banana-pro 4K); video = statický záber, dážď, blesk v pozadí */}
         <section className="sx-hx" ref={hxRef} data-no-paw>
-          <img src={`${S}/hero.webp`} srcSet={`${S}/hero-1200.webp 1200w, ${S}/hero.webp 2400w`} sizes="100vw" alt="" {...({ fetchpriority: 'high' } as Record<string, string>)} />
+          <img src={`${S}/hero.webp`} srcSet={`${S}/hero-1200.webp 1200w, ${S}/hero.webp 2400w`} sizes="(orientation: portrait) 180vh, 100vw" alt="" {...({ fetchpriority: 'high' } as Record<string, string>)} />
           <video autoPlay muted loop playsInline preload="auto" poster={`${S}/hero.webp`} aria-hidden onError={(e) => e.currentTarget.remove()}>
             {/* mobil: 960 px (~0,8 MB) namiesto 1920 px (3,1 MB) — na 4G to bola polovica dát celej stránky */}
+            {/* telefón na výšku = zvislý výrez 608×1080 z originálu (22. 11.: 960×540 sa roztiahol ~4,7× = rozmazané) */}
+            <source src={`${S}/hero-loop-p.webm`} type="video/webm" media="(orientation: portrait)" />
+            <source src={`${S}/hero-loop-p.mp4`} type="video/mp4" media="(orientation: portrait)" />
             <source src={`${S}/hero-loop-960.webm`} type="video/webm" media="(max-width: 900px)" />
             <source src={`${S}/hero-loop-960.mp4`} type="video/mp4" media="(max-width: 900px)" />
             <source src={`${S}/hero-loop.webm`} type="video/webm" />

@@ -525,7 +525,10 @@ export function DogPlanetLab({
     host.appendChild(p.el);
     portalApi.current = p;
     portalRef.current = p.el;
-    sparksRef.current = createSparks(p.canvas);
+    /* Mobil = hustota ako na stene (0.42). 22. 11.: 620 iskier × 14 úsekov = až ~7 000 ťahov
+       na snímok zhodilo planétku na mobile na ~12 fps (Chrome, CPU÷4, záznam výkonu). */
+    const lean = window.matchMedia('(pointer: coarse), (max-width: 767px)').matches;
+    sparksRef.current = createSparks(p.canvas, { density: lean ? 0.42 : 1 });
     return () => {
       p.el.remove();
       portalApi.current = null;

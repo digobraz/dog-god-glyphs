@@ -216,6 +216,13 @@ export function mountBrain(o: BrainOptions): BrainHandle {
      ZMENE okruhu, inak by mozog pri každej karte poskočil. */
   let CUR: Node | null = null, CURO: Node | null = null;
   let raf = 0, alive = true;
+  /* Mimo obrazovky NEKRESLÍ (22. 11.: na homepage webu bežal každý rámec aj na vrchu stránky
+     a zhodil celú stránku na ~10 fps na mobile). Vráti sa, keď plátno znova uvidí. */
+  let seen = true;
+  const io = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([e]) => {
+    seen = e.isIntersecting;
+    if (seen && alive && !raf) raf = requestAnimationFrame(frame);
+  });
   const touches = new Map<number, { x: number; y: number }>();
   let pinch0 = 0, pinchK = 1;
 
@@ -299,6 +306,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
   let lastF = performance.now();
   function frame() {
     if (!alive) return;
+    if (!seen) { raf = 0; return; }
     /* Pohľad sa číta KAŽDÝ RÁMEC, nie pri montáži — prepnutie vrstvy sa tým
        prejaví okamžite a mozog si drží priblíženie aj polohu. */
     const layerNow: BrainLayer = o.layer ? o.layer() : 'worlds';
@@ -820,7 +828,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
   window.addEventListener('pointercancel', onUp);
   cv.addEventListener('wheel', onWheel, { passive: false });
 
-  size(); reset(); raf = requestAnimationFrame(frame);
+  size(); reset(); raf = requestAnimationFrame(frame); io?.observe(cv);
 
   /* VÝREZ PRE SNÍMKU (len DEV, Matej 5. 10. 2026: *„ainubis slide chcem zoomnúť, daj mi
      možnosť ukázať ako"*). Nástroj `plany/nakres-clenstvo-screeny-2026-10-05/vyrez.html`
@@ -852,7 +860,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     follow,
     refresh: () => { if (o.progress) for (const p of N) if (p.role === 'z') p.st = o.progress(p.zi, p.wi, p.oi, p.zo ?? 0); },
     destroy: () => {
-      alive = false; cancelAnimationFrame(raf);
+      alive = false; cancelAnimationFrame(raf); io?.disconnect();
       cv.removeEventListener('pointermove', onMove);
       cv.removeEventListener('pointerdown', onDown);
       cv.removeEventListener('pointerleave', onLeave);

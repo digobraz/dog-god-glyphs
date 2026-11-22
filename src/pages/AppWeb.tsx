@@ -652,6 +652,7 @@ export default function AppWeb() {
 
       <WebTop c={c} v2={V2} cls={`${stuck ? 'stuck' : ''}${darkHead ? ' dark' : ''}${onPlanet ? ' away' : ''}`.trim()} />
 
+      <main>
       {/* 1 · HERO */}
       <section className={`hero${V2 ? ' v2' : ''}`}>
         <div className="wrap">
@@ -748,11 +749,11 @@ export default function AppWeb() {
                 {['ai_t1', 'ai_t2', 'ai_t3'].map((k, i) => <button key={k} type="button" role="tab" aria-selected={aiTab === i} className={aiTab === i ? 'on' : ''} onClick={() => setAiTab(i)}>{c(k)}</button>)}
               </div>
               <div className="ai-card ai-paluba wide" hidden={aiTab !== 0}>
-                <Ic n="zvitky" cls="ai-cic" /><span className="k">{c('lr1k')}</span><h4>{c('lr1h')}</h4><p>{c('lr1p')}</p>
+                <Ic n="zvitky" cls="ai-cic" /><span className="k">{c('lr1k')}</span><h3 className="ai-ch">{c('lr1h')}</h3><p>{c('lr1p')}</p>
                 <AiScrolls L={L} c={c} />
               </div>
-              <div className="ai-card ai-paluba" hidden={aiTab !== 1}><Ic n="podcast" cls="ai-cic" /><span className="k">{c('lr2k')}</span><h4>{c('lr2h')}</h4><p>{c('lr2p')}</p><AiPods L={L} c={c} /><div className="ai-wave fill" aria-hidden>{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></div>
-              <div className="ai-card ai-paluba" hidden={aiTab !== 2}><Ic n="chat" cls="ai-cic" /><span className="k">{c('lr3k')}</span><h4>{c('lr3h')}</h4><p>{c('lr3p')}</p><AiChat L={L} c={c} head={AI_HEAD} /></div>
+              <div className="ai-card ai-paluba" hidden={aiTab !== 1}><Ic n="podcast" cls="ai-cic" /><span className="k">{c('lr2k')}</span><h3 className="ai-ch">{c('lr2h')}</h3><p>{c('lr2p')}</p><AiPods L={L} c={c} /><div className="ai-wave fill" aria-hidden>{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></div>
+              <div className="ai-card ai-paluba" hidden={aiTab !== 2}><Ic n="chat" cls="ai-cic" /><span className="k">{c('lr3k')}</span><h3 className="ai-ch">{c('lr3h')}</h3><p>{c('lr3p')}</p><AiChat L={L} c={c} head={AI_HEAD} /></div>
             </div>
           } />
           {/* PC: mozog vľavo veľký, vedľa text, veľké % a 2 rady po 5 odznakov (Matej 6. 11.: „aby to bolo vidno“) */}
@@ -772,7 +773,7 @@ export default function AppWeb() {
               </p>
               <p className="ai-ucscr"><b>{c('uc_scrolled')}: {Math.round((ucLive ?? (UCEN_PCT[ucOn] === '1.' ? 0 : parseFloat(UCEN_PCT[ucOn]) / 100)) * vScrolls).toLocaleString(loc)}</b> {c('uc_of')} {vScrolls.toLocaleString(loc)} {c('uc_scrolls')}</p>
               <div className="ai-ucrow">{UCEN_PCT.map((pc, i) => (
-              <button key={i} type="button" className={`${ucOn === i ? 'on' : ''}${ucLive != null && i > ucOn ? ' off' : ''}`} onPointerEnter={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onFocus={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onClick={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }}>
+              <button key={i} type="button" aria-label={`${c('ax3')} ${i + 1}`} className={`${ucOn === i ? 'on' : ''}${ucLive != null && i > ucOn ? ' off' : ''}`} onPointerEnter={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onFocus={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onClick={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }}>
                 <img loading="lazy" src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" />
               </button>
             ))}</div>
@@ -924,6 +925,7 @@ export default function AppWeb() {
 
       {/* 11 · ŽIVÁ PLANÉTKA — finále */}
       <LivePlanet v2={V2 ? { enter: c('start'), href: START, find: c('pl_find'), hall: c('pl_hall'), back: c('pl_back'), center: c('pl_center') } : undefined} />
+      </main>
 
 
       {nakres && (
