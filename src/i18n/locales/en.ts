@@ -7515,7 +7515,7 @@ export const en = {
   "carry.err": "Something went wrong. Try again in a moment.",
   "carry.canceled": "Payment cancelled. Nothing was charged.",
   "carry.thanks.h": "Thank you",
-  "carry.thanks.p": "From today you carry the pack.\nHekthor doesn't know, but he senses it.",
+  "carry.thanks.p": "Your gift goes to running DOGYPT and to dogs in need.\nHekthor doesn't know, but he senses it.",
   "carry.thanks.badge": "Supporter",
   "carry.thanks.next": "Next payment",
   "carry.thanks.receipt": "Confirmation",

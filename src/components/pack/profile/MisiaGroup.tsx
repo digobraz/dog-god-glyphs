@@ -642,7 +642,7 @@ function ThanksBody({ t: th, tx, loc }: { t: Thanks; tx: Tx; loc: string }) {
   const next = th.next ? new Date(th.next).toLocaleDateString(loc, { day: 'numeric', month: 'numeric', year: 'numeric' }) : '';
   return (
     <>
-      <p style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>{tx('carry.thanks.p', 'From today you carry the pack.')}</p>
+      <p style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>{tx('carry.thanks.p', 'Your gift goes to running DOGYPT and to dogs in need.')}</p>
       <div className="mi-kv">
         <span>{th.interval === 'month' ? tx('carry.monthly', 'Monthly') : tx('carry.once', 'Once')}</span><b>{th.amount} €</b>
         {next && <><span>{tx('carry.thanks.next', 'Next payment')}</span><b>{next}</b></>}

@@ -7208,7 +7208,7 @@ export const sk: Partial<Dict> = {
   "carry.err": "Niečo sa pokazilo. Skús to o chvíľu znova.",
   "carry.canceled": "Platba zrušená. Nič sa nestiahlo.",
   "carry.thanks.h": "Ďakujeme",
-  "carry.thanks.p": "Od dnes nesieš svorku.\nHekthor to nevie, ale tuší.",
+  "carry.thanks.p": "Tvoj dar ide na prevádzku DOGYPTU a psom v núdzi.\nHekthor to nevie, ale tuší.",
   "carry.thanks.badge": "Podporovateľ",
   "carry.thanks.next": "Ďalšia platba",
   "carry.thanks.receipt": "Potvrdenie",
