@@ -44,7 +44,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { scrollThumb,
   type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang, useFullScroll,
   markScroll, useScrollState, toggleSaved, useSaved, useTalk, useTalkCount, addTalk, deleteTalk, toggleLiked, useLiked,
-  toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, requestLang, useCounts, saveListen, useReads, logEvent,
+  toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, POD_LANGS, requestLang, useCounts, saveListen, useReads, logEvent,
 } from './vaultScrolls';
 import { VAULT_CIRCLES } from './circles';
 
@@ -635,11 +635,11 @@ const OPEN_MIN_MS = 6000;
 
 /** Jazyky na žiadosť — natívne mená (Matej 3. 10.: ďalší jazyk vznikne až na žiadosť člena). */
 const REQ_LANGS: [string, string][] = [
-  ['de', 'Deutsch'], ['es', 'Español'], ['fr', 'Français'], ['it', 'Italiano'], ['pl', 'Polski'], ['pt', 'Português'],
+  ['es', 'Español'], ['fr', 'Français'], ['it', 'Italiano'], ['pl', 'Polski'], ['pt', 'Português'],
   ['nl', 'Nederlands'], ['uk', 'Українська'], ['ru', 'Русский'], ['tr', 'Türkçe'], ['id', 'Bahasa Indonesia'],
   ['ja', '日本語'], ['ko', '한국어'], ['zh', '中文'], ['ar', 'العربية'],
 ];
-const POD_TAG: Record<string, string> = { sk: 'SK', en: 'EN', cs: 'CZ' };
+const POD_TAG: Record<string, string> = { sk: 'SK', en: 'EN', cs: 'CZ', de: 'DE' };
 
 /** PODCAST — prehrávač s výberom jazyka, prepisom a žiadosťou o nový jazyk (Matej 4. 10.). */
 function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd, lock }: {
@@ -703,7 +703,7 @@ function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd, lock }: {
               onClick={() => setMenu(!menu)}>{POD_TAG[pl]}</button>
             {menu && (
               <span className="zv-pmenu" role="listbox" aria-label={u.other}>
-                {['sk', 'en', 'cs'].filter((l) => z.pod[l]).map((l) => (
+                {POD_LANGS.filter((l) => z.pod[l]).map((l) => (
                   <button key={l} type="button" role="option" aria-selected={l === pl} className={l === pl ? 'is-on' : ''}
                     onClick={() => { setWant(l); setPlaying(false); setMenu(false); if (open === 'req') setOpen(''); }}>{POD_TAG[l]}</button>
                 ))}

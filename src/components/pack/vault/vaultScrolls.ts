@@ -58,9 +58,11 @@ export const scrollLang = (lang: string) => (lang === 'sk' || lang === 'cs' ? la
 export const pickText = (z: DemoScroll, lang: string): ScrollLang =>
   // Zvitok bez jediného jazyka (rozpracovaný v DB) nesmie zhodiť celú obrazovku — prázdny text namiesto `undefined.t`.
   z.lang?.[scrollLang(lang)] || z.lang?.en || z.lang?.sk || Object.values(z.lang || {})[0] || { t: '', v: '', vz: '', d: '', min: 0 };
-/** Jazyk podcastu: zvolený (ak existuje) → jazyk appky → EN → SK. */
+/** Jazyky PODCASTU (22. 11. 2026): o jeden viac než text — DE existuje len ako audio, text ostáva EN. */
+export const POD_LANGS = ['sk', 'en', 'cs', 'de'] as const;
+/** Jazyk podcastu: zvolený (ak existuje) → jazyk appky → jazyk textu → EN → SK. */
 export const podLang = (z: DemoScroll, lang: string, want?: string) =>
-  [want, scrollLang(lang), 'en', 'sk'].find((l) => l && z.pod[l]) || null;
+  [want, lang, scrollLang(lang), 'en', 'sk'].find((l) => l && z.pod[l]) || null;
 export const pickPod = (z: DemoScroll, lang: string, want?: string) => {
   const l = podLang(z, lang, want);
   return l ? z.pod[l] : null;
@@ -91,16 +93,16 @@ const LIST_LANGS = ['sk', 'en', 'cs'] as const;
 const LIST_COLS = ['id', 'code', 'okruh', 'n', 'total', 'world', 'circle', 'img', 'imgs', 'sd', 'rel', 'updated_at',
   ...LIST_LANGS.flatMap((l) => [
     `${l}_t:lang->${l}->>t`, `${l}_v:lang->${l}->>v`, `${l}_vz:lang->${l}->>vz`, `${l}_min:lang->${l}->min`,
-    `${l}_src:pod->${l}->>src`, `${l}_sec:pod->${l}->sec`,
-  ])].join(',');
+  ]),
+  ...POD_LANGS.flatMap((l) => [`${l}_src:pod->${l}->>src`, `${l}_sec:pod->${l}->sec`])].join(',');
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fromListRow = (r: any): DemoScroll => {
   const lang: DemoScroll['lang'] = {};
   const pod: DemoScroll['pod'] = {};
   for (const l of LIST_LANGS) {
     if (r[`${l}_t`]) lang[l] = { t: r[`${l}_t`], v: r[`${l}_v`] || '', vz: r[`${l}_vz`] || '', d: '', min: r[`${l}_min`] || 0 };
-    if (r[`${l}_src`]) pod[l] = { src: r[`${l}_src`], sec: r[`${l}_sec`] || 0 };
   }
+  for (const l of POD_LANGS) if (r[`${l}_src`]) pod[l] = { src: r[`${l}_src`], sec: r[`${l}_sec`] || 0 };
   return { ...fromRow({ ...r, lang, pod }), lite: true };
 };
 /** Stará DEV ukážka (id bez sveta) → id so svetom, aby sedeli kľúče postupu. */
