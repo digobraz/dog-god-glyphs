@@ -932,7 +932,7 @@ export default function AppWeb() {
               <div className="faq-col" key={i}>
                 {col.map((k) => (
                   <Rv as="details" key={k} className="pk-stage"><summary>{c(`fq_${k}`)}</summary><p>{c(`fa_${k}`)}
-                    {V2 && k === 'fund' && <> <a href="mailto:woof@dogypt.com">{c('fund_mail')}</a> {c('fund_or')} <a href={SUPPORT_HREF}>{c('fund_here')}</a>.</>}</p></Rv>
+                    {V2 && k === 'fund' && <> <a href="mailto:woof@dogypt.com">{c('fund_mail')}</a> {c('fund_or')} <a href={SUPPORT_HREF}>{c('fund_here')}</a>{lang === 'chn' || lang === 'jpn' ? '。' : '.'}</>}</p></Rv>
                 ))}
                 {/* kontakt a odkazy z pätičky — pätička zanikla, posledná je planétka (Matej 6. 11.) */}
                 {i === 1 && <Rv as="details" className="pk-stage"><summary>{c('q_contact')}</summary>
