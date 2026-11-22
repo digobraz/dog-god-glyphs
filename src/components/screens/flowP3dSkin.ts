@@ -202,6 +202,9 @@ ${ROOT} :is(.hf-dock, .vs-dock) { bottom: calc(max(24px, env(safe-area-inset-bot
    (html.kb-open, lib/keyboardInset.ts), medailón sa plynulo zmenší, aby sa otázka aj pole zmestili nad klávesnicu. */
 ${WALL} { transition: height .28s cubic-bezier(.2,.7,.2,1); }
 ${WALL} .fm { transition: width .28s cubic-bezier(.2,.7,.2,1), height .28s cubic-bezier(.2,.7,.2,1); }
+/* na telefóne ostane nad klávesnicou ~430 px (iPhone + spodná lišta Safari) — medailón a vedľajšie vety idú preč,
+   ostane otázka, výber, pole a tlačidlo (Matej 22. 11., snímka: Ďalej prekrylo pole) */
+html.kb-open[data-flow-p3d] :is(.dark-bg, .hf-pale) :is(.hf-medin, .nm-hint, .hf-legend) { display: none !important; }
 html.kb-open[data-flow-p3d] :is(.dark-bg, .hf-pale) .fm { width: 72px !important; height: 72px !important; }
 html.kb-open[data-flow-p3d] :is(.dark-bg, .hf-pale) .hf-stage { padding-top: 8px; }
 
