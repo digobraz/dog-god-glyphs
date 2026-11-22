@@ -363,7 +363,7 @@ function PodFull() {
       </div>
       {tr ? (
         <div className="pp-tr">
-          {lines.map((r, i) => <p key={i}>{r.s === 'A' ? <b className="is-ai"><span>AI</span>NUBIS</b> : <b>Matej</b>} {r.t}</p>)}
+          {lines.map((r, i) => <p key={i}>{r.s === 'A' ? <b className="is-ai"><span>AI</span>NUBIS</b> : <b>STACHOMAN</b>} {r.t}</p>)}
         </div>
       ) : (z.img ? <img className="pp-art" src={z.img} alt="" /> : <div className="pp-art" />)}
       <h2 className="pp-h">{x.t}</h2>

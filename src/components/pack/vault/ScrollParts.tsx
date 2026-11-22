@@ -759,7 +759,7 @@ function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd, lock }: {
         <div className="zv-tr">
           {pod.tr!.map((r, i) => (
             <p key={i}>
-              {r.s === 'A' ? <b className="is-ai"><span>AI</span>NUBIS</b> : <b>Matej</b>} {r.t}
+              {r.s === 'A' ? <b className="is-ai"><span>AI</span>NUBIS</b> : <b>STACHOMAN</b>} {r.t}
             </p>
           ))}
         </div>
