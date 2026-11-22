@@ -115,7 +115,9 @@ export const DIARY_KIND_BY_FIELD: Readonly<Record<string, LogKind>> =
   Object.fromEntries(DIARY_CHIPS.map((c) => [c.field, c.kind]));
 
 /** Tvar `value` textového zápisu. Číselné váženie je holé číslo, nie tento objekt. */
-export type DiaryValue = { text: string; photo?: string };
+/** `photos` = všetky fotky zápisu (od 22. 11. 2026 ich zápis dňa pridáva viac podľa hodnosti). `photo` je vždy PRVÁ z nich —
+ *  ostáva, lebo ju čítajú kalendár, feed aj staré zápisy; kto chce všetky, berie `photos`. */
+export type DiaryValue = { text: string; photo?: string; photos?: string[] };
 
 /**
  * Je `value` textový zápis denníka? Riadok z DB je `unknown` — a `health.weightKg`
@@ -125,7 +127,9 @@ export function asDiaryValue(v: unknown): DiaryValue | null {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
   const o = v as Record<string, unknown>;
   if (typeof o.text !== 'string') return null;
-  return { text: o.text, photo: typeof o.photo === 'string' ? o.photo : undefined };
+  const photo = typeof o.photo === 'string' ? o.photo : undefined;
+  const list = Array.isArray(o.photos) ? o.photos.filter((x): x is string => typeof x === 'string' && !!x) : [];
+  return { text: o.text, photo: photo ?? list[0], photos: list.length ? list : photo ? [photo] : undefined };
 }
 
 // ── DÁTUM ROZHODUJE ─────────────────────────────────────────────────────────
@@ -163,11 +167,14 @@ export function diaryEvent(
   dogId: string,
   chip: DiaryChip,
   dayKey: string,
-  body: { text: string; photo?: string; number?: number },
+  body: { text: string; photo?: string; photos?: string[]; number?: number },
 ): DogEventInput {
   const value: unknown = chip.input === 'number'
     ? (body.number ?? null)
-    : ({ text: body.text, ...(body.photo ? { photo: body.photo } : {}) } satisfies DiaryValue);
+    : (() => {
+      const list = body.photos?.length ? body.photos : body.photo ? [body.photo] : [];
+      return { text: body.text, ...(list[0] ? { photo: list[0] } : {}), ...(list.length > 1 ? { photos: list } : {}) } satisfies DiaryValue;
+    })();
   return {
     dogId,
     field: chip.field,

@@ -49,6 +49,8 @@ export type DiaryRow = {
   createdAt?: string;
   text: string;
   photo?: string;
+  /** Všetky fotky zápisu (prvá = `photo`). */
+  photos?: string[];
   /** Len váženie. */
   kg?: number;
   /** Surová hodnota — úprava ju posiela formuláru. */
@@ -85,7 +87,7 @@ export function useDiaryRows(dogIds: string[], opts: { weights?: boolean } = {})
           const v = asDiaryValue(ev.value);
           if (!v || (!v.text.trim() && !v.photo)) return;
           out.push({ key: ev.id ?? `${ev.dogId}-${ev.recordedAt}-${i}`, id: ev.id, dogId: ev.dogId, field: ev.field,
-            recordedAt: ev.recordedAt, createdAt: ev.createdAt, text: v.text, photo: v.photo, value: ev.value });
+            recordedAt: ev.recordedAt, createdAt: ev.createdAt, text: v.text, photo: v.photo, photos: v.photos, value: ev.value });
         });
         // Najnovší deň hore — kronika sa číta od včerajška dozadu.
         out.sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
@@ -143,7 +145,13 @@ export function DiaryItem({ row, dogName, tx, onEdit, inDay }: { row: DiaryRow; 
       )}
       {row.kg !== undefined && <p className="dl-text">{row.kg.toLocaleString(lang, { maximumFractionDigits: 1 })} kg</p>}
       {row.text.trim() && <p className="dl-text">{row.text}</p>}
-      {row.photo && (
+      {(row.photos?.length ?? 0) > 1 ? (
+        <div className="dl-photos">
+          {row.photos!.map((u) => (
+            <a key={u} className="pk-photo" href={u} target="_blank" rel="noreferrer"><img src={sizedUrl(u, 360)} alt="" loading="lazy" /></a>
+          ))}
+        </div>
+      ) : row.photo && (
         <a className="pk-photo dl-photo" href={row.photo} target="_blank" rel="noreferrer">
           <img src={sizedUrl(row.photo, 720)} alt="" loading="lazy" />
         </a>
@@ -187,6 +195,9 @@ export const DIARY_LIST_CSS = `
    v strede — Alenka: „ukazuje ich odrezané". Výška má strop, aby fotka na výšku
    nezabrala celé okno; obraz sa vtedy zúži, neoreže. */
 .dl-photo{margin-top:${PACK_SPACE.md}px;width:fit-content;max-width:min(100%, 560px)}
+.dl-photos{margin-top:${PACK_SPACE.md}px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:${PACK_SPACE.xs}px;max-width:560px}
+.dl-photos .pk-photo{aspect-ratio:1}
+.dl-photos .pk-photo > img{width:100%;height:100%;object-fit:cover}
 .pk-photo.dl-photo > img{width:auto;max-width:100%;height:auto;max-height:min(70vh, 560px);object-fit:contain}
 /* ── ŠAT PAPYRUS 3D (hárok N6, N8) — len pod html.papyrus3d ── */
 html.papyrus3d .dl-item:not(.dl-item--day){border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-b3);}

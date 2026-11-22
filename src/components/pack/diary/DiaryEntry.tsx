@@ -210,7 +210,9 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', edit, onClose, on
       let res: 'saved' | 'queued' = 'saved';
       if (edit) {
         await updateDiaryEvent(edit.id, {
-          value: { text: text.trim(), ...(photo?.url ? { photo: photo.url } : {}) },
+          // Ďalšie fotky zo zápisu dňa (photos) formulár neukazuje — pri nezmenenej prvej ich prenesie, inak by úprava textu zmazala fotky.
+          value: { text: text.trim(), ...(photo?.url ? { photo: photo.url } : {}),
+            ...(photo?.url && photo.url === editVal?.photo && (editVal?.photos?.length ?? 0) > 1 ? { photos: editVal!.photos } : {}) },
           recordedAt: dayToRecordedAt(dayKey),
         });
       } else {

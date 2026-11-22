@@ -32,7 +32,7 @@ import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, BRAND_GOLD_BTN, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { HandCheck } from '@/components/pack/HandIcons';
-import { CameraIc } from '@/components/app/sysSwap';
+import { CameraIc, TrashIc } from '@/components/app/sysSwap';
 import { ZapisGlyph } from '@/components/pack/SysIcon';
 import { BackIcon, backCircleCSS } from '@/components/pack/BackButton';
 import { ThinArrow } from '@/components/pack/ThinArrow';
@@ -51,6 +51,9 @@ import { APP_NEW } from '@/lib/packFlags';
 import { KIND_FAMILY, loadMyActivity, badgeCounts } from './badgeShelf';
 import { ZTILES, loadZapisDays, type ZTile } from './zapisDnaModel';
 import { moment, uder } from '@/lib/momenty';
+import { TEST_BUILD } from '@/lib/env';
+import { useMySeal } from './sealStore';
+import type { SealTier } from './dogSeal';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -156,7 +159,17 @@ html.papyrus3d .zd-dy{width:auto;min-width:56px;padding:0 ${S.xs}px;letter-spaci
 .zd-wr-ph{display:flex;align-items:center;gap:${S.md}px;}
 .zd-wr-slot{appearance:none;flex:none;display:grid;place-items:center;width:64px;height:64px;padding:0;border-radius:${PACK_R.tile}px;cursor:pointer;
   border:1.5px dashed ${T.cardEdge};background:${T.card};overflow:hidden;}
-.zd-wr-slot img{width:100%;height:100%;object-fit:cover;}
+.zd-wr-ph{flex-wrap:wrap;}
+.zd-wr-pic{position:relative;flex:none;width:64px;height:64px;border-radius:${PACK_R.tile}px;overflow:hidden;border:1px solid ${T.cardEdge};}
+.zd-wr-pic img{width:100%;height:100%;object-fit:cover;display:block;}
+.zd-wr-pic.busy img{opacity:.45;}
+.zd-wr-pic.off{border-color:#B25640;}
+.zd-wr-x{appearance:none;position:absolute;top:${S.xs}px;right:${S.xs}px;width:24px;height:24px;padding:0;border-radius:${PACK_R.pill}px;border:0;cursor:pointer;
+  display:grid;place-items:center;background:${T.card};color:${T.inkStrong};box-shadow:0 0 0 1px ${T.cardEdge};}
+.zd-wr-n{font-size:${TX.label}px;color:${T.inkWarm};}
+.zd-wfield{position:relative;}
+.zd-wcount{position:absolute;top:${S.xs}px;right:${S.xs}px;min-width:18px;height:18px;padding:0 ${S.xs}px;box-sizing:border-box;border-radius:${PACK_R.pill}px;
+  background:${LAPIS.grad};color:${LAPIS.ink};font:600 ${TX.micro}px/18px ${FONT_UI};text-align:center;}
 .zd-wr-ph p{margin:0;font-size:${TX.label}px;color:${T.inkWarm};}
 .zd-subs{display:flex;flex-wrap:wrap;align-items:center;gap:${S.sm}px;margin:${S.sm}px 0 0;}
 .zd-subs > b{font-family:${FONT_UI};font-weight:600;font-size:${TX.micro}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};}
@@ -290,7 +303,10 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const buzz = () => uder('tuk');
 const reduced = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-interface PhotoState { preview: string; url: string | null; busy: boolean; blob: Blob; forDog: string }
+interface PhotoState { key: number; preview: string; url: string | null; busy: boolean; blob: Blob; forDog: string }
+/** FOTKY V ZÁPISE PODĽA HODNOSTI (Matej 22. 11. 2026: „pôjde len veriacim, poslom 3, staviteľom 5, vezírom 10“ → „ok“).
+ *  Platí až s FLIPom, dovtedy len v testovacej appke; inde 1 fotka ako doteraz. Faraón je len Matej — 20 = prakticky bez stropu. */
+const PHOTOS_BY_SEAL: Record<SealTier, number> = { veriaci: 1, akolyta: 3, knaz: 5, vezir: 10, zakladatel: 10, farao: 20 };
 interface Row { fam: string; emoji: string; before: number; after: number; lo: number; nx: number; hit: boolean;
   /** Získaný odznak: obrázok medaily, nový stupeň a či ide o vyšší stupeň (už mal nižší). */
   img: string; up: boolean }
@@ -331,7 +347,9 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
   const [pastDone, setPastDone] = useState<Record<string, Record<string, number>> | null>(null);
   /** Dni s nejakým zápisom (✓ v páse). */
   const [doneDays, setDoneDays] = useState<Set<string>>(new Set());
-  const [photo, setPhoto] = useState<PhotoState | null>(null);
+  const [photos, setPhotos] = useState<PhotoState[]>([]);
+  const seal = useMySeal('veriaci');
+  const maxPhotos = TEST_BUILD ? PHOTOS_BY_SEAL[seal] : 1;
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
   const [plans, setPlans] = useState<Array<{ slug: string; name: string; href: string }> | null>(null);
   const [busy, setBusy] = useState(false);
@@ -430,37 +448,48 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
     buzz();
   };
 
-  // ── FOTKA — príloha zápisu do priečinka psa (ako DiaryEntry) ────────────────
+  // ── FOTKY — prílohy zápisu do priečinka psa (ako DiaryEntry); koľko, určuje hodnosť (PHOTOS_BY_SEAL) ──
+  const patch = (key: number, o: Partial<PhotoState>) => setPhotos((ps) => ps.map((x) => (x.key === key ? { ...x, ...o } : x)));
   async function uploadFor(blob: Blob, preview: string, forDog: string): Promise<void> {
-    const seq = ++photoSeq.current;
-    setPhoto({ preview, url: null, busy: true, blob, forDog });
+    const key = ++photoSeq.current;
+    setPhotos((ps) => [...ps, { key, preview, url: null, busy: true, blob, forDog }]);
     try {
-      const { secureUrl } = await uploadDogDiaryPhoto(blob, forDog, `${day}-${Date.now()}`);
-      if (seq === photoSeq.current) setPhoto({ preview, url: secureUrl, busy: false, blob, forDog });
+      const { secureUrl } = await uploadDogDiaryPhoto(blob, forDog, `${day}-${Date.now()}-${key}`);
+      patch(key, { url: secureUrl, busy: false });
     } catch {
-      if (seq !== photoSeq.current) return;
-      setPhoto({ preview, url: null, busy: false, blob, forDog });
+      patch(key, { busy: false });
       toast({ title: tx('pack.diary.photoFailed', 'The photo could not be uploaded. You can save the entry without it.'), variant: 'destructive' });
     }
   }
-  async function pickPhoto(file: File): Promise<void> {
+  async function pickPhotos(files: File[]): Promise<void> {
     if (!primary) return;
-    let c: { url: string; blob: Blob };
-    try { c = await compressFile(file); } catch {
-      toast({ title: tx('pack.diary.photoPrep', 'The photo could not be prepared. Try another one.'), variant: 'destructive' });
-      return;
+    for (const file of files.slice(0, Math.max(0, maxPhotos - photos.length))) {
+      let c: { url: string; blob: Blob };
+      try { c = await compressFile(file); } catch {
+        toast({ title: tx('pack.diary.photoPrep', 'The photo could not be prepared. Try another one.'), variant: 'destructive' });
+        continue;
+      }
+      void uploadFor(c.blob, c.url, primary.id);
     }
-    await uploadFor(c.blob, c.url, primary.id);
   }
-  useEffect(() => () => { if (photo?.preview.startsWith('blob:')) URL.revokeObjectURL(photo.preview); }, [photo?.preview]);
+  const dropPhoto = (key: number) => setPhotos((ps) => {
+    const x = ps.find((q) => q.key === key);
+    if (x?.preview.startsWith('blob:')) URL.revokeObjectURL(x.preview);
+    return ps.filter((q) => q.key !== key);
+  });
+  const photosRef = useRef(photos);
+  photosRef.current = photos;
+  useEffect(() => () => { for (const x of photosRef.current) if (x.preview.startsWith('blob:')) URL.revokeObjectURL(x.preview); }, []);
+  const photo = photos[0] ?? null;
+  const photoBusy = photos.some((x) => x.busy);
 
   // ── ČO SA ZAPISUJE ──────────────────────────────────────────────────────────
   const chosen = ZTILES.filter((x) => !x.special && eff(x) > 0);
   const hasMile = (sel.milestone ?? 0) > 0;
   const hasWeight = (sel.weight ?? 0) > 0 && kgOk;
-  const hasText = text.trim().length > 0 || !!photo;
+  const hasText = text.trim().length > 0 || photos.length > 0;
   const any = chosen.length > 0 || hasMile || hasWeight || hasText;
-  const ready = any && picked.length > 0 && !busy && !photo?.busy;
+  const ready = any && picked.length > 0 && !busy && !photoBusy;
 
   // ── ZAPÍSAŤ DEŇ ─────────────────────────────────────────────────────────────
   const save = async () => {
@@ -472,12 +501,16 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
       if (items.length) await grantDevotion({ kind: 'claim', dog_ids: ids, items, ...(isToday ? {} : { day }) });
       // 📖 text, míľnik a váha → `dog_events` (Kronika a kalendár). Zlyhanie nezhodí zápis dlaždíc — vlastná hláška.
       const events = [];
-      let url = photo?.url ?? null;
-      if (photo && primary && photo.forDog !== primary.id) {   // pes sa medzitým zmenil → fotka do priečinka toho správneho
-        try { url = (await uploadDogDiaryPhoto(photo.blob, primary.id, `${day}-${Date.now()}`)).secureUrl; } catch { url = null; }
+      const urls: string[] = [];
+      for (const x of photos) {
+        let url = x.url;
+        if (primary && x.forDog !== primary.id) {   // pes sa medzitým zmenil → fotka do priečinka toho správneho
+          try { url = (await uploadDogDiaryPhoto(x.blob, primary.id, `${day}-${Date.now()}-${x.key}`)).secureUrl; } catch { url = null; }
+        }
+        if (url) urls.push(url);
       }
-      const noteOn = !!(text.trim() || url);
-      if (noteOn) for (const id of ids) events.push(diaryEvent(id, chipOf('note'), day, { text: text.trim(), photo: url ?? undefined }));
+      const noteOn = !!(text.trim() || urls.length);
+      if (noteOn) for (const id of ids) events.push(diaryEvent(id, chipOf('note'), day, { text: text.trim(), photos: urls }));
       if (hasMile) for (const id of ids) events.push(diaryEvent(id, chipOf('milestone'), day, { text: miles.trim() }));
       if (hasWeight && primary) events.push(diaryEvent(primary.id, chipOf('weight'), day, { text: '', number: kgNum }));
       if (events.length) {
@@ -680,6 +713,7 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
             <button type="button" className="zd-wfield" style={{ marginTop: 0 }} onClick={() => setWriting(true)}>
               <span className={text.trim() ? '' : 'ph'}>{text.trim() || (isToday ? tx('pack.zd.write', 'What did you live today?') : tx('pack.zd.writePast', 'What did you live that day?'))}</span>
               {photo ? <img src={photo.preview} alt="" /> : <CameraIc size={22} />}
+              {photos.length > 1 && <span className="zd-wcount">{photos.length}</span>}
             </button>
           </>)}
         </div>
@@ -734,26 +768,29 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
               <textarea className="pf-field" autoFocus maxLength={500} value={text} onChange={(e) => setText(e.target.value)}
                 placeholder={(isToday ? tx('pack.zd.write', 'What did you live today?') : tx('pack.zd.writePast', 'What did you live that day?'))} />
               <div className="zd-wr-ph">
-                <button type="button" className="zd-wr-slot" disabled={!primary} aria-label={tx('pack.diary.photoAdd', 'Add a photo')} onClick={() => fileRef.current?.click()}>
-                  {photo ? <img src={photo.preview} alt="" /> : <CameraIc size={26} />}
-                </button>
-                {photo && (
-                  <div style={{ minWidth: 0 }}>
-                    <p>{photo.busy ? tx('pack.diary.photoBusy', 'Uploading…') : photo.url ? tx('pack.diary.photoReady', 'Photo attached.') : tx('pack.diary.photoOff', 'Not uploaded — the entry will be saved without it.')}</p>
-                    <button type="button" className="zd-link" onClick={() => { photoSeq.current++; setPhoto(null); }}>{tx('pack.diary.photoRemove', 'Remove')}</button>
-                  </div>
+                {photos.map((x) => (
+                  <span key={x.key} className={`zd-wr-pic${x.busy ? ' busy' : ''}${!x.busy && !x.url ? ' off' : ''}`}>
+                    <img src={x.preview} alt="" />
+                    <button type="button" className="zd-wr-x" aria-label={tx('pack.diary.photoRemove', 'Remove')} onClick={() => dropPhoto(x.key)}><TrashIc size={14} /></button>
+                  </span>
+                ))}
+                {photos.length < maxPhotos && (
+                  <button type="button" className="zd-wr-slot" disabled={!primary} aria-label={tx('pack.diary.photoAdd', 'Add a photo')} onClick={() => fileRef.current?.click()}>
+                    <CameraIc size={26} />
+                  </button>
                 )}
+                {maxPhotos > 1 && <span className="zd-wr-n">{photos.length}/{maxPhotos}</span>}
               </div>
               <button type="button" className="zd-save" onClick={() => setWriting(false)}>{tx('pack.zd.done', 'Done')}</button>
             </div>
           </div>
         )}
       </div>
-      <input ref={fileRef} type="file" accept="image/*" hidden data-testid="zd-file"
+      <input ref={fileRef} type="file" accept="image/*" hidden multiple={maxPhotos > 1} data-testid="zd-file"
         onChange={(e) => {
-          const f = Array.from(e.target.files ?? [])[0];   // FileList skopírovať PRED await — po vynulovaní inputu je prázdny
+          const fs = Array.from(e.target.files ?? []);   // FileList skopírovať PRED await — po vynulovaní inputu je prázdny
           e.target.value = '';
-          if (f) void pickPhoto(f);
+          if (fs.length) void pickPhotos(fs);
         }} />
     </PackPopup>
   );
