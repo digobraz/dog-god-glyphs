@@ -393,7 +393,8 @@ ${b3('.pp-chip.is-on', 'cy', `${PACK_R.pill}px`, 3)}
   ${M3.card}border-bottom:0;border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;color:${A.ink};font-family:${FONT_UI};transition:transform .24s ease;}
 .pp-tab-row{display:grid;grid-template-columns:32px minmax(0,1fr) 32px;align-items:center;gap:${PACK_SPACE.md}px;height:40px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.sm}px 0;}
 .pp-tab-row img{width:30px;height:30px;object-fit:contain;}
-.pp-tab-row b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;} /* písmo: nadpis */
+/* line-height 1.3: pri 1 orezal overflow:hidden spodnú paličku „p“, „y“, „j“ (Matej 22. 11.) */
+.pp-tab-row b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;} /* písmo: nadpis */
 .pp-play.pp-play--s{width:32px;height:32px;}
 .pp-tab-t{position:absolute;left:52px;bottom:${PACK_SPACE.xl}px;font-size:${PACK_TEXT.label}px;color:${A.inkFaint};font-variant-numeric:tabular-nums;}
 .pp-tab-t--r{left:auto;right:52px;}
