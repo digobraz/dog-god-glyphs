@@ -1958,7 +1958,7 @@ export function GeometryPicker({
                   }}
                 />
                 <button type="button" className="trp-dbar-btn" onClick={() => gpxInputRef.current?.click()}>
-                  {APP_NEW && <SysIcon name="dokument" size={26} />}
+                  {APP_NEW && <SysIcon name="gpx" size={26} />}
                   {APP_NEW ? t('pack.addTrip.geo.gpxBtn').replace(/^📂\s*/u, '') : t('pack.addTrip.geo.gpxBtn')}
                 </button>
                 {notice && <div className="trp-notice">{notice}</div>}

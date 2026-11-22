@@ -327,7 +327,7 @@ const TAG_OPTIONS: Array<{ id: string; label: string; emoji: string; sys?: strin
   // ktorému sa oplatí zísť z trasy. Rovnaký mechanizmus ako ostatné tagy (pole `tags`, hodnota
   // `label` ide do DB, text cez `pack.map.tagLabel.unique`, `fb` = EN pre jazyky bez kľúča).
   // `sys` = systémová samolepka v appke; zatiaľ `iskra`, vymení sa po dokreslení vlastnej.
-  { id: 'unique', label: 'Unique', emoji: '✨', sys: 'iskra', fb: 'Unique spot' },
+  { id: 'unique', label: 'Unique', emoji: '✨', sys: 'unikat', fb: 'Unique spot' },
 ];
 
 /**
@@ -2138,6 +2138,14 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    * tlačidlo „pokračovať" cez celý krok).
    */
   const placedCount = placedNotes?.length ?? 0;
+  // UNIKÁT NA MAPE = UNIKÁT V ŠTÍTKU (Matej 22. 11. 2026: „tip má nový druh… unikát — a zobrazí sa aj
+  // v tagu, chápeš?“). Značka `viewpoint` z kroku 2 zapne štítok Unique v kroku 4 raz; človek ho smie zrušiť.
+  const uniqueAutoRef = useRef(false);
+  useEffect(() => {
+    if (uniqueAutoRef.current || !(placedNotes ?? []).some((n) => n.kind === 'viewpoint')) return;
+    uniqueAutoRef.current = true;
+    setTags((prev) => (prev.has('Unique') ? prev : new Set([...prev, 'Unique'])));
+  }, [placedNotes]);
 
   /**
    * ── KROK SA OTVÁRAL V STAVE, KTORÝ SI SÁM ZAKAZOVAL (Matej 2026-08-27, oprava 28. 8.) ──

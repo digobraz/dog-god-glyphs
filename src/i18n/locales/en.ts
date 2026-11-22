@@ -5017,7 +5017,7 @@ export const en = {
   'pack.mapNotes.kind.abuse': "Animal abuse",
   'pack.mapNotes.kind.note': "Tip",
   'pack.mapNotes.kind.water': "Water",
-  'pack.mapNotes.kind.viewpoint': "Beautiful spot",
+  'pack.mapNotes.kind.viewpoint': "Unique spot",
   'pack.mapNotes.kind.wildlife': "Wildlife",
   'pack.mapNotes.kind.viper': "Viper",
   'pack.mapNotes.kind.bear': "Bear",
@@ -5212,7 +5212,7 @@ export const en = {
   'pack.mapNotes.add.placeholder.note': "What good thing will the next dog owner be glad to find here?",
   'pack.mapNotes.add.placeholder.cablecar': "Name of the cable car, price, tip — what should a dog owner know?",
   'pack.mapNotes.add.placeholder.water': "Drinking water, a stream, a place to cool off?",
-  'pack.mapNotes.add.placeholder.viewpoint': "What's special here? A view, a statue, a rock, a tree…",
+  'pack.mapNotes.add.placeholder.viewpoint': "What makes it unique? A view, a statue, a rock, a tree…",
   'pack.mapNotes.add.placeholder.wildlife': "What lives here and when to be careful?",
   'pack.mapNotes.add.cancel': "Cancel",
   // Návrat o krok pri označovaní značky — NIE „Zrušiť": výlet sa nikam nestráca.

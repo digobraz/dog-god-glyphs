@@ -77,7 +77,7 @@ export const GROUP_KINDS: Record<NoteGroup, NoteKind[]> = {
   // sú všetky veci, by bol zbytočný, netýka sa to 95 % výletov… ako je tip, tak by tam bol
   // chip lanovka"). Prvý je predvolený, takže TIP ostáva TIPom.
   // 🔴 Nový podtyp = migrácia CHECKu: `20261025_map_notes_cablecar.sql`.
-  // PEKNÉ MIESTEČKO (Matej 22. 11. 2026: „tip je všeobecný výraz pre hocičo a lanovka je moc konkrétna
+  // UNIKÁT (Matej 22. 11. 2026, najprv „pekné miestečko“, potom „nie pekné miestečko ale unikát“; „tip je všeobecný výraz pre hocičo a lanovka je moc konkrétna
   // — pekné miestečko je celkom fajn kompromis“) = existujúci druh `viewpoint`, CHECK ho pozná od 20. 8.
   comment: ['note', 'viewpoint', 'cablecar'],
 };
