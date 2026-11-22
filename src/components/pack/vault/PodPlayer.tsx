@@ -16,6 +16,8 @@
 //    WebView Media Session nemá — tam treba natívny plugin. OTA kanál testovacej appky to nedoručí.
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
+import { toast } from 'sonner';
+import { SysIcon } from '@/components/pack/SysIcon';
 import { PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
@@ -130,7 +132,19 @@ export function podLangTo(l: string) {
   set({ lang: l });
 }
 export function podRate() { const r = RATES[(RATES.indexOf(s.rate) + 1) % RATES.length]; el().playbackRate = r; set({ rate: r }); }
-export function podShuffle() { set({ shuffle: !s.shuffle }); }
+// Hláška po ťuknutí na kocku (Matej 22. 11.: „po kliknutí napíš že náhodné prehrávanie zapnuté“)
+const SHUFFLE_MSG: Record<string, [string, string]> = {
+  sk: ['Náhodné prehrávanie zapnuté', 'Náhodné prehrávanie vypnuté'],
+  cs: ['Náhodné přehrávání zapnuto', 'Náhodné přehrávání vypnuto'],
+  de: ['Zufallswiedergabe an', 'Zufallswiedergabe aus'],
+  en: ['Shuffle on', 'Shuffle off'],
+};
+export function podShuffle() {
+  const on = !s.shuffle;
+  set({ shuffle: on });
+  const m = SHUFFLE_MSG[s.appLang] || SHUFFLE_MSG.en;
+  toast(on ? m[0] : m[1], { id: 'pod-shuffle', duration: 2000, position: 'top-center' });
+}
 export function podFull(full: boolean) { set({ full }); }
 const langFor = (z: DemoScroll) => (z.pod[s.lang] ? s.lang : podLang(z, s.appLang));
 export function podNext() {
@@ -194,7 +208,7 @@ function position() {
   try { ms.setPositionState({ duration: a.duration, position: Math.min(a.currentTime, a.duration), playbackRate: a.playbackRate }); } catch { /* starý prehliadač */ }
 }
 
-// ── ikonky ovládania (funkčné chrome prehrávača; kocka v kite nie je — kreslená tu) ──
+// ── ikonky ovládania (funkčné chrome prehrávača); kocka = samolepka z továrne `kocka.webp` (plany/ikonky/gen-kocka.mjs) ──
 const Svg = ({ d, fill, size = 24 }: { d: string; fill?: boolean; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden fill={fill ? 'currentColor' : 'none'} stroke={fill ? 'none' : 'currentColor'}
     strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
@@ -209,13 +223,6 @@ const Skip = ({ fwd }: { fwd?: boolean }) => (
     <b>15</b>
   </span>
 );
-const Dice = () => (
-  <svg width={24} height={24} viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth={2} strokeLinejoin="round">
-    <rect x="4" y="4" width="16" height="16" rx="4" />
-    {[[9, 9], [15, 9], [12, 12], [9, 15], [15, 15]].map(([x, y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.3" fill="currentColor" stroke="none" />)}
-  </svg>
-);
-
 /** Zoznam pre ⏮ ⏭ a kocku — načíta sa až keď niečo hrá (prvá obrazovka appky ho netiahne). */
 function ListFeed() {
   const all = useDemoScrolls();
@@ -299,7 +306,7 @@ function PodFull() {
             <button key={l} type="button" className={`pp-pill${l === p.lang ? ' is-on' : ''}`} aria-pressed={l === p.lang} onClick={() => podLangTo(l)}>{POD_TAG[l]}</button>
           ))}
         </span>
-        <button type="button" className={`pp-pill pp-dice${p.shuffle ? ' is-on' : ''}`} aria-pressed={p.shuffle} aria-label="Shuffle" onClick={podShuffle}><Dice /></button>
+        <button type="button" className={`pp-pill pp-dice${p.shuffle ? ' is-on' : ''}`} aria-pressed={p.shuffle} aria-label="Shuffle" onClick={podShuffle}><SysIcon name="kocka" size={28} off={!p.shuffle} /></button>
       </div>
     </div>,
     document.body,
@@ -357,5 +364,5 @@ const POD_CSS = `${PROGRESS_CSS}
   border:1.5px solid var(--p3d-gold,#C99A3F);background:var(--p3d-paper-hi,#F9F2E3);font-size:${PACK_TEXT.label}px;font-weight:600;font-family:${FONT_UI};}
 .pp-pill.is-on{border-color:${LAPIS.edge};color:${LAPIS.edge};background:rgba(22,48,122,.14);}
 .pp-ghost{visibility:hidden;}
-.pp-dice{padding:0 ${PACK_SPACE.sm}px;}
+.pp-dice{padding:0 ${PACK_SPACE.xs}px;}
 `;
