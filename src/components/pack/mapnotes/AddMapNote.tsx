@@ -21,6 +21,10 @@
 // Rýchla cesta (dlhé podržanie) má poradie opačné a je to správne — tam začína
 // gesto na konkrétnom mieste, takže typ musí prísť po ňom.
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { saveDraft } from '@/components/pack/sos/danger/dangerForm';
+import { DANGER_RADIUS } from '@/lib/danger';
+import { SysIcon } from '@/components/pack/SysIcon';
 import L from 'leaflet';
 import { Circle, Marker } from 'react-leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
@@ -31,7 +35,7 @@ import { intlLocale } from '@/i18n/bcp47';
 import { GROUP_KINDS, NOTE_GROUPS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
 import { MAP_DOCK_CSS, DOCK_COL_W, DOCK_MOBILE_MAX, DOCK_VH } from '@/components/pack/mapDockShape';
 import { FONT_EMOJI, GROUP_EMOJI, threatEmoji } from './markEmoji';
-import { KindGrid, KIND_GRID_CSS } from './KindGrid';
+import { KindGrid } from './KindGrid';
 import { AinubisGuide } from '@/components/pack/addtrip/AinubisGuide';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { noteMarkHtml } from './MapNotesLayer';
@@ -194,7 +198,8 @@ export function MapNotePlacing({
   const t = useT();
   const touch = typeof window !== 'undefined' && window.matchMedia('(hover:none)').matches;
   const key = !ready ? 'pack.mapNotes.place.zoomIn' : touch ? 'pack.mapNotes.place.touch' : 'pack.mapNotes.place.mouse';
-  const what = kind ? t(`pack.mapNotes.kind.${kind}`) : t(`pack.mapNotes.group.${group}`);
+  // Skupina, nie predvolený podtyp: ťuk na UPOZORNENIE niesol `hazard` a AINUBIS hovoril „Iné nebezpečenstvo“.
+  const what = kind && GROUP_KINDS[group].length > 1 && kind !== GROUP_KINDS[group][GROUP_KINDS[group].length - 1] ? t(`pack.mapNotes.kind.${kind}`) : t(`pack.mapNotes.group.${group}`);
   /**
    * ⚠️ HOVORÍ TO AINUBIS A HORE, NIE VLASTNÁ LIŠTA (Matej 24. 8. 2026: „po kliknutí na označ
    * parkovisko je na obrazovke správa — potrebujeme aby ju povedal ainubis a bola hore ako
@@ -214,146 +219,23 @@ export function MapNotePlacing({
    *    je šípka. Na HOLEJ MAPE (bez `onPickType`, teda bez radu) ostáva v bubline, inak by
    *    označovanie nemalo ako skončiť.
    */
+  /*
+   * ⛔ LIŠTA TYPOV POD BUBLINOU ZRUŠENÁ 22. 11. 2026 (Matej: „pod jeho bublinou je panel s vybratým
+   * Parkoviskom a upozornením aj tipom v starom šate… asi to tam nemá byť vôbec… daj to preč“). Typ sa
+   * vybral o ťuk skôr v paneli kroku 2 a hrozbu jemnejšie doladí panel po ťuknutí do mapy. Návrat ostáva
+   * ako šípka v bubline (v sprievodcovi výletu = späť na panel kroku 2, nie odchod).
+   */
   return (
     <AinubisGuide
       text={`${what} ${t(key)}`}
-      onAbort={onPickType ? undefined : onCancel}
-      abortLabel={t('pack.mapNotes.add.cancel')}
+      onAbort={onCancel}
+      abortLabel={t(onPickType ? 'pack.mapNotes.add.back' : 'pack.mapNotes.add.cancel')}
+      abortBack={!!onPickType}
       edgeLeft={edgeLeft}
-      /* ⚠️ Lišta patrí POD bublinu, nie nad spodnú hranu: dole v tej chvíli nič nestojí
-         (panel ustúpil mape) a nová škatuľa pri palci by prekryla presne ten pás mapy,
-         kam sa najčastejšie ťuká. `below` je ten istý slot, v ktorom v kroku 1 visia
-         bodky 1–5, takže nad mapou nepribúda ďalšie poschodie. */
-      below={onPickType ? (
-        <div className="mnp-below">
-          <style>{NOTE_TYPE_STRIP_CSS}</style>
-          <button
-            type="button"
-            className="mnts mnts-back"
-            onClick={onCancel}
-            aria-label={t('pack.mapNotes.add.back')}
-            title={t('pack.mapNotes.add.back')}
-          >
-            <BackIcon />
-          </button>
-          <NoteTypeStrip group={group} kind={kind ?? null} onPick={onPickType} />
-        </div>
-      ) : undefined}
     />
   );
 }
 
-/**
- * ── LIŠTA TYPOV NAD MAPOU ────────────────────────────────────────────────────────────────
- *
- * Tri typy vedľa seba; ťuk prepne, čo sa práve zapichuje, a označovanie beží ďalej.
- *
- * ⚠️ UPOZORNENIE SA NEPREPNE ŤUKOM DO SVOJHO CHIPU — ten len vysunie rad hrozieb a skupina
- * sa zmení až vybranou hrozbou. Inak by kurzor niesol rozcestník ⚠️ a `placeNote` by pri
- * kliknutí položil PRVÝ druh skupiny (kliešte) človeku, ktorý ide označiť medveďa. Je to
- * to isté pravidlo, aké drží `MapNoteCursor.tsx`, a to isté poradie, aké má panel kroku 2.
- *
- * ⚠️ TVAR SI NEVYMÝŠĽA: podklad je recept bodiek 1–5 nad mapou (`.atl-steps--onmap`) —
- * plná tmavá výplň, rám, tieň, žiadny priesvit (feedback_priesvitna_plocha_nad_mapou);
- * pilulky sú `.mnk-tile` v rade z `KindGrid`, teda presne tie, ktoré človek pozná z panela.
- */
-function NoteTypeStrip({ group, kind, onPick }: { group: NoteGroup; kind: NoteKind | null; onPick: (g: NoteGroup, k: NoteKind | null) => void }) {
-  const t = useT();
-  const [openGroup, setOpenGroup] = useState<NoteGroup | null>(null);
-  // Po prepnutí skupiny sa rad zavrie — inak by nad mapou ostal visieť výber, ktorý už
-  // nepatrí k tomu, čo kurzor nesie.
-  useEffect(() => { setOpenGroup(null); }, [group, kind]);
-  const openKinds = openGroup ? GROUP_KINDS[openGroup] : null;
-  return (
-    <div className="mnts-wrap">
-      <style>{KIND_GRID_CSS}</style>
-      <style>{NOTE_TYPE_STRIP_CSS}</style>
-      <div className="mnts">
-        <div className="mnk-grid mnk-grid--row" role="group" aria-label={t('pack.mapNotes.place.switchType')}>
-          {NOTE_GROUPS.map((g) => {
-            const on = g === group;
-            const many = GROUP_KINDS[g].length > 1;
-            return (
-              <button
-                key={g}
-                type="button"
-                className={`mnk-tile${on ? ' on' : ''}${openGroup === g ? ' mnts-open' : ''}`}
-                aria-pressed={on}
-                aria-expanded={many ? openGroup === g : undefined}
-                style={on ? { background: tintRGBA(GROUP_TINT[g], 0.24), borderColor: GROUP_TINT[g] } : undefined}
-                onClick={() => {
-                  if (many) { setOpenGroup((v) => (v === g ? null : g)); return; }
-                  setOpenGroup(null);
-                  onPick(g, null);
-                }}
-              >
-                <i style={{ fontFamily: FONT_EMOJI }}>{GROUP_EMOJI[g]}</i>
-                <em>{t(`pack.mapNotes.group.${g}`)}</em>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-      {openKinds && (
-        <div className="mnts">
-          <KindGrid
-            row
-            kinds={openKinds}
-            selected={openGroup === group ? kind : null}
-            tint={GROUP_TINT[openGroup!]}
-            onPick={(k) => { const g = openGroup!; setOpenGroup(null); onPick(g, k); }}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-export const NOTE_TYPE_STRIP_CSS = `
-.mnts-wrap{display:flex;flex-direction:column;gap:7px;align-items:flex-start;max-width:100%;}
-/* NÁVRAT O KROK STOJÍ VEDĽA ODKAZOV, nie v bubline (Matej 1. 9. 2026) — dôvod pri
-   MapNotePlacing. Materiál je ten istý .mnts, takže sa číta ako súčasť toho istého radu.
-   align-items:flex-start drží šípku na prvom riadku aj vtedy, keď sa rad hrozieb zalomí. */
-.mnp-below{display:flex;align-items:flex-start;gap:7px;max-width:100%;}
-.mnts-back{flex:0 0 auto;display:flex;align-items:center;justify-content:center;min-height:34px;padding:4px 12px;color:${T.onDark};cursor:pointer;}
-.mnts-back svg{display:block;}
-/* Recept je 1:1 z .atl-steps--onmap (bodky 1–5 nad mapou) — jeden materiál pre všetko,
-   čo v krokoch 1–2 visí pod AInubisovou bublinou. */
-.mnts{max-width:100%;box-sizing:border-box;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};box-shadow:0 6px 20px rgba(0,0,0,0.55);padding:4px 8px;}
-/* Mriežka si odstup nesie pre panel, kde pod ňou stojí text; tu je podkladom pilulka. */
-.mnts .mnk-grid{margin-top:0;}
-/* ── RAD HROZIEB SA ZALAMUJE AJ TU (Matej 2026-08-28: „tu stále je jeden riadok… toto som
-   myslel, že je zle") ──────────────────────────────────────────────────────────────────
-   Zalomenie dostala 28. 8. ráno mriežka v paneli — lenže deväť hrozieb Matej videl v TEJTO
-   lište nad mapou, kde ich rovnaký KindGrid row roztiahol cez celé okno (wrap sa nemá kde
-   zalomiť, keď je k dispozícii 1200 px). Strop je preto tu, nie v mriežke: v paneli šírku
-   určuje stĺpec, nad mapou ju neurčuje nič.
-   560 px = dva riadky pri deviatich pilulkách; užšie by dalo tri, širšie jeden. */
-.mnts .mnk-grid--row{padding-bottom:0;max-width:560px;}
-/* OTVORENÝ ROZCESTNÍK NIE JE VÝBER. Upozornenie po ťuknutí len vysunulo rad hrozieb —
-   plná výplň by tvrdila, že sa už zapichuje ono. Preto samotný rám, a to prerušovaný:
-   je to jediný stav v lište, ktorý na niečo ČAKÁ. */
-.mnts .mnk-tile.mnts-open:not(.on){border-style:dashed;border-color:${GROUP_TINT.warning};}
-${MAP_SKIN !== 'pale' ? '' : `
-/* ── BLEDÝ SKIN PC ─────────────────────────────────────────────────────────────────────
-   ⚠️ PODKLAD MUSÍ BYŤ SVETLÝ, INAK JE VYBRANÁ PILULKA NEČITATEĽNÁ. Dlaždica .mnk-tile.on si
-   výplň nesie zvonku ako 24 % tint farby skupiny a inkoust má v bledom skine TMAVÝ
-   (PALE.ink) — recept počíta s papyrusom pod sebou. Na tmavej pilulke z toho vyšla
-   tmavomodrá výplň s tmavohnedým písmom, teda Parkovisko, ktoré nebolo vidieť. Overené
-   naživo 28. 8.
-   Hodnoty sú tie isté, aké má bledá verzia bodiek 1–5 nad mapou (.atl-steps--onmap
-   v PALE_LOG_CSS) — je to ten istý prvok na tom istom mieste, len s iným obsahom.
-   ⚠️ Media query zanikla 28. 8. 2026 spolu s tmavou mobilnou vetvou toku pridávania. */
-  .mnts{background:linear-gradient(180deg,#F6EAD0,#E9D9AE);border:1.5px solid ${PALE.edge};box-shadow:0 8px 24px rgba(70,45,10,0.35);backdrop-filter:none;-webkit-backdrop-filter:none;}
-  /* ⚠️ ŠÍPKA MÁ SVOJ VLASTNÝ INKOUST — pilulka sa prezliekla, obsah nie (Matej 1. 9. 2026:
-     „šípka dozadu pri ODKAZE… je biela, nie je vidno"). Kresba dedí farbu textu
-     (currentColor, HandIcons), takže na piesku ostala biela na bielom. To isté zistenie
-     ako pri .mnk-tile.on o pár riadkov vyššie: prevrátený povrch treba prevrátiť aj
-     v štítkoch (feedback_prevratena_doska_prevrati_aj_stitky). */
-  .mnts-back{color:${PALE.ink};}
-  .mnts-back:hover{color:${PALE.deep};}
-`}
-`;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RÝCHLA CESTA — paleta priamo pri bode, kam človek podržal prst.
@@ -489,9 +371,19 @@ export function AddMapNotePanel({
     else if (radiusM != null) onRadius(Math.min(Math.max(radiusM, r.min), r.max));
   };
 
+  const navigate = useNavigate();
+  // OTRAVA IDE CEZ HLÁSENIE SOS (22. 11. 2026). `add_map_note` ju odmieta (`danger_via_report`): otrava
+  // má kontrolu AINUBISom, verejnú stránku varovania a 14 dní platnosti. Panel jej preto nedá formulár,
+  // len odovzdá miesto do konceptu hlásenia (ten istý kľúč, z ktorého PackDangerReport číta) a prejde tam.
+  const isPoison = kind === 'poison';
+  const goPoison = () => {
+    saveDraft('report.poison', { pt: [lat, lon], radius: Math.min(Math.max(radiusM ?? DANGER_RADIUS.def, DANGER_RADIUS.min), DANGER_RADIUS.max) });
+    navigate('/pack/sos/nebezpecenstvo/otrava');
+  };
+
   const trimmed = body.trim();
   const needsBody = bodyRequired(kind);
-  const canSubmit = (!needsBody || trimmed.length > 0) && !busy;
+  const canSubmit = !isPoison && (!needsBody || trimmed.length > 0) && !busy;
 
   // Zápis NIE JE optimistický: čaká sa na odpoveď DB a až potom sa panel zavrie.
   // Ticho „uložené" pri parkovisku je horšie než chyba — človek by sa spoľahol
@@ -608,7 +500,9 @@ export function AddMapNotePanel({
         </div>
       )}
 
-      <textarea
+      {isPoison && <p className="mna-poison">{t('pack.mapNotes.poison.viaSos')}</p>}
+
+      {!isPoison && <textarea
         ref={areaRef}
         className="mna-body"
         value={body}
@@ -616,7 +510,7 @@ export function AddMapNotePanel({
         onChange={(e) => setBody(e.target.value)}
         placeholder={t(`pack.mapNotes.add.placeholder.${kind}`)}
         rows={2}
-      />
+      />}
 
       {kind === 'parking' && (
         <div className="mna-paid">
@@ -634,7 +528,7 @@ export function AddMapNotePanel({
           len ponúkal odpoveď na otázku, ktorú nikto nemá.
           Pri upozornení sa posuvník NEDÁ vypnúť, len posunúť od 500 m vyššie;
           pri komentári je okruh voľba (Matej: „správa môže byť bod alebo okruh"). */}
-      {rule.mode !== 'none' && (
+      {rule.mode !== 'none' && !isPoison && (
         <div className="mna-radius">
           <div className="mna-radius-head">
             <span className="mna-radius-label">{t('pack.mapNotes.radius.label')}</span>
@@ -699,16 +593,24 @@ export function AddMapNotePanel({
             klikne a nič sa nestane. Teraz sa riadok prepne na zelenú fajku
             v momente, keď je zápis odosielateľný. Text ostáva nápovedou dovtedy,
             takže riadok nepribudol — len zmenil obsah a výška panela sa nehla. */}
-        {canSubmit ? (
+        {isPoison ? (
+          <span className="mna-hint" />
+        ) : canSubmit ? (
           <span className="mna-hint mna-hint--ok">
             <i aria-hidden="true">✓</i>{t('pack.mapNotes.add.ready')}
           </span>
         ) : (
           <span className="mna-hint">{t('pack.mapNotes.add.dragHint')}</span>
         )}
-        <button type="button" className="btn-gold mna-submit" onClick={submit} disabled={!canSubmit}>
-          {busy ? t('pack.mapNotes.add.saving') : t('pack.mapNotes.add.submit')}
-        </button>
+        {isPoison ? (
+          <button type="button" className="btn-gold mna-submit" onClick={goPoison}>
+            {t('pack.mapNotes.poison.cta')}
+          </button>
+        ) : (
+          <button type="button" className="btn-gold mna-submit" onClick={submit} disabled={!canSubmit}>
+            {busy ? t('pack.mapNotes.add.saving') : t('pack.mapNotes.add.submit')}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -905,6 +807,7 @@ export const ADD_NOTE_CSS = `
 .mna-opt--sight.on{color:${TICK_ORANGE};border-color:${TICK_ORANGE};background:rgba(224,138,46,0.16);}
 .mna-opt--ill.on{color:${HAZARD_RED};border-color:${HAZARD_RED};background:rgba(206,75,60,0.16);}
 .mna-pinned{margin:8px 0 0;font-family:${FONT_UI};font-size:12px;color:${T.onDarkDim};}
+.mna-poison{margin:8px 0 0;font-family:${FONT_UI};font-size:14px;line-height:1.4;color:${T.onDark};}
 .mna-error{margin:8px 0 0;font-family:${FONT_UI};font-size:12px;color:#E0796D;}
 .mna-actions{display:flex;gap:10px;align-items:center;margin-top:10px;}
 .mna-hint{flex:1 1 auto;display:flex;align-items:center;gap:6px;font-family:${FONT_UI};font-size:10px;line-height:1.35;color:${T.onDarkDim};}
@@ -1046,6 +949,7 @@ ${MAP_SKIN !== 'pale' ? '' : `
   .mna-opt{color:${PALE.dim};background:${PALE.soft};border-color:${PALE.border};}
   .mna-opt.on{color:${PALE.ink};}
   .mna-pinned{color:${PALE.dim};}
+  .mna-poison{color:${PALE.ink};}
   .mna-hint{color:${PALE.dim};}
   .mnq-title{color:${PALE.ink};}
 `}
@@ -1101,6 +1005,7 @@ html.papyrus3d .mna-range::-webkit-slider-thumb{width:32px;height:32px;margin-to
 html.papyrus3d .mna-range::-moz-range-thumb{width:28px;height:28px;border:3px solid var(--p3d-ink);background:var(--mn-tint,var(--p3d-gold));box-shadow:var(--mna-sh-ink);}
 html.papyrus3d .mna-radius-note,html.papyrus3d .mna-sheet .mna-radius-note{margin:4px 0 0;font-size:12px;color:color-mix(in srgb,var(--p3d-ink) 62%,var(--p3d-paper));}
 html.papyrus3d .mna-pinned{color:color-mix(in srgb,var(--p3d-ink) 62%,var(--p3d-paper));}
+html.papyrus3d .mna-poison{color:var(--p3d-ink);}
 html.papyrus3d .mna-actions{gap:12px;margin-top:12px;}
 html.papyrus3d .mna-hint{font-size:12px;color:color-mix(in srgb,var(--p3d-ink) 62%,var(--p3d-paper));}
 html.papyrus3d .mna-hint--ok{color:${GROUP_TINT.comment};}

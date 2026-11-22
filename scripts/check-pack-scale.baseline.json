@@ -854,10 +854,10 @@
   "components/pack/mapnotes/AddMapNote.tsx": {
     "radius": 0,
     "font": 0,
-    "zavoj": 4,
+    "zavoj": 1,
     "progres": 0,
     "ram": 4,
-    "tien": 12,
+    "tien": 10,
     "pismenka": 0,
     "odsadenie": 0,
     "cinzel": 3,

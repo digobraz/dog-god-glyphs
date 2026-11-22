@@ -4334,6 +4334,29 @@ export default function PackMap() {
     if (!map) return;
     const pt = map.latLngToContainerPoint([lat, lon]);
     const safeY = map.getSize().y - notePanelH() - 40;
+    /* ── V SPRIEVODCOVI VÝLETU SA ZNAČKA CENTRUJE DO VÝSEKU MAPY (Matej 22. 11. 2026: „po kliku by sa
+       mal okruh nebezpečenstva centrovať v hornej časti obrazovky vo výseku pri mape, aktuálne ho
+       zakryje spodný panel… musíme robiť pohyby po mape, aby sme to vôbec videli“). Výsek = medzi
+       spodkom AINUBISovej bubliny a hornou hranou panela; keď sa okruh nezmestí, mapa oddiali. */
+    if (addFlow) {
+      const box = map.getContainer().getBoundingClientRect();
+      const guide = document.querySelector('.ang-wrap .ang-bar')?.getBoundingClientRect();
+      const top = Math.max(0, (guide ? guide.bottom - box.top : 0) + 8);
+      const bottom = Math.max(top + 80, map.getSize().y - notePanelH() - 8);
+      const r = defaultRadius(kind);
+      if (r) {
+        const fitPx = (bottom - top) / 2 - 16;
+        const edge = map.latLngToContainerPoint(L.latLng(lat, lon).toBounds(r * 2).getNorthEast());
+        const rPx = Math.abs(edge.y - pt.y);
+        if (rPx > fitPx && fitPx > 0) {
+          const z = map.getZoom() - Math.ceil(Math.log2(rPx / fitPx));
+          map.setZoom(Math.max(z, TRIP_HOLD_MIN_ZOOM), { animate: false });
+        }
+      }
+      const p2 = map.latLngToContainerPoint([lat, lon]);
+      map.panBy([p2.x - map.getSize().x / 2, p2.y - (top + bottom) / 2], { animate: true, duration: 0.35 });
+      return;
+    }
     if (pt.y > safeY) map.panBy([0, pt.y - safeY], { animate: true, duration: 0.35 });
   };
 

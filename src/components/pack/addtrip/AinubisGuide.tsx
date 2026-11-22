@@ -21,6 +21,8 @@ import { AINUBIS_FACE as ainubisFace } from '@/components/pack/ainubisSheet';
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { HandExit } from '@/components/pack/HandIcons';
+import { SysIcon } from '@/components/pack/SysIcon';
+import { ThinArrow } from '@/components/pack/ThinArrow';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT } from '@/i18n/LanguageContext';
 import { APP_NEW } from '@/lib/packFlags';
@@ -32,6 +34,7 @@ export function AinubisGuide({
   text,
   onAbort,
   abortLabel,
+  abortBack,
   below,
   edgeLeft,
   onFace,
@@ -42,6 +45,8 @@ export function AinubisGuide({
   text: string;
   onAbort?: () => void;
   abortLabel?: string;
+  /** východisko je NÁVRAT o krok (šípka), nie odchod z pridávania (dvere) — 22. 11. 2026 */
+  abortBack?: boolean;
   /**
    * TVÁR = VSTUP DO CHATU (Matej 15. 10. 2026, krok ZNÁMKA). Keď je podané, tvár je tlačidlo
    * a otvorí rozhovor s AINUBISom — sprievodca sám ostáva bez siete (viď hlavičku súboru).
@@ -140,7 +145,11 @@ export function AinubisGuide({
                takže sa nekreslí nič nové. Návrat O KROK sa v bubline NEZOBRAZUJE VÔBEC —
                býva pod ňou, vedľa odkazov (viď `MapNotePlacing`). */
             <button type="button" className="ang-x" onClick={onAbort} aria-label={abortLabel} title={abortLabel}>
-              <HandExit size={17} />
+              {/* APPKA = SYSTÉMOVÁ IKONKA (Matej 22. 11. 2026: „hore v ainubisovej bubline je stará ikonka!“).
+                  Web ostáva na kresbe z kitu. */}
+              {abortBack
+                ? (APP_NEW ? <ThinArrow dir="left" size={22} style={{ color: "#E6FAFF" }} /> : <HandExit size={17} />)
+                : (APP_NEW ? <SysIcon name="dvere-otvorene" size={24} /> : <HandExit size={17} />)}
             </button>
           )}
           <span aria-hidden="true">{shown}</span>

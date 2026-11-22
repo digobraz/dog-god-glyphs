@@ -51,7 +51,7 @@ export default function PackDangerNature() {
   const rule = isPoison ? { mode: 'required' as const, min: DANGER_RADIUS.min, max: DANGER_RADIUS.max, step: 50 } : radiusRule(kind as NoteKind);
   const withRadius = rule.mode !== 'none';
   const tx = (key: string, fb: string) => { const v = t(key); return v === key ? fb : v; };
-  const kinds = useMemo<NatureKind[]>(() => ['poison', ...GROUP_KINDS.warning], []);
+  const kinds = useMemo<NatureKind[]>(() => ['poison', ...GROUP_KINDS.warning.filter((k) => k !== 'poison')], []);
   const kindLabel = (k: NatureKind) => (k === 'poison' ? s('pack.sos.danger.report.title.poison') : tx(`pack.mapNotes.kind.${k}`, k));
 
   const choose = (k: NatureKind) => { setKind(k); setRadius(radiusOf(k)); setErr(''); fe.clear(); };

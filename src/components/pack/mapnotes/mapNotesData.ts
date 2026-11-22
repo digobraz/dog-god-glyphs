@@ -70,12 +70,16 @@ export type NoteGroup = (typeof NOTE_GROUPS)[number];
 /** Podtypy skupiny. Prvý je predvolený. */
 export const GROUP_KINDS: Record<NoteGroup, NoteKind[]> = {
   parking: ['parking'],
-  warning: ['ticks', 'wildlife', 'viper', 'bear', 'sheepdog', 'ladders', 'algae', 'noentry', 'hazard'],
+  // Otrava (22. 11. 2026, Matej: „chýba v ňom otrava ktorú sme pridali včera“) stojí v rade, ale
+  // zápis nejde cez add_map_note — panel ju pošle do hlásenia SOS (danger_report), viď AddMapNotePanel.
+  warning: ['ticks', 'wildlife', 'viper', 'bear', 'sheepdog', 'ladders', 'algae', 'noentry', 'poison', 'hazard'],
   // Lanovka je DRUHÝ podtyp TIPU, nie chip aktivity výletu (Matej 2026-10-12: „do chipu, kde
   // sú všetky veci, by bol zbytočný, netýka sa to 95 % výletov… ako je tip, tak by tam bol
   // chip lanovka"). Prvý je predvolený, takže TIP ostáva TIPom.
   // 🔴 Nový podtyp = migrácia CHECKu: `20261025_map_notes_cablecar.sql`.
-  comment: ['note', 'cablecar'],
+  // PEKNÉ MIESTEČKO (Matej 22. 11. 2026: „tip je všeobecný výraz pre hocičo a lanovka je moc konkrétna
+  // — pekné miestečko je celkom fajn kompromis“) = existujúci druh `viewpoint`, CHECK ho pozná od 20. 8.
+  comment: ['note', 'viewpoint', 'cablecar'],
 };
 
 /** NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026): otrava a týranie sú upozornenia, ale v palete „+“ NIE SÚ.
@@ -98,7 +102,10 @@ export function groupOf(kind: NoteKind): NoteGroup {
  * Pri parkovisku ikonka aj tak povie všetko podstatné a povinné pole je len
  * prekážka medzi človekom a zápisom.
  */
-export const bodyRequired = (kind: NoteKind): boolean => groupOf(kind) !== 'parking';
+// ⚠️ ZMENA 22. 11. 2026 (Matej: „je to mätúce, že treba aj niečo napísať a nedá sa ísť ďalej… nedal by
+// som to ako povinnosť“): povinný ostáva len holý TIP, kde bez slov značka nehovorí nič. Hrozba, pekné
+// miestečko aj lanovka sú zrozumiteľné z ikonky. DB pravidlo: 20261122_map_note_body_optional.sql.
+export const bodyRequired = (kind: NoteKind): boolean => kind === 'note';
 
 // ── POLOMER: PRAVIDLO JE VLASTNOSŤ SKUPINY, NIE NÁLADA FORMULÁRA ────────────
 // Matej 2026-08-21: „všetky [hrozby] budú mať polomer nastaviteľný najmenej vždy
