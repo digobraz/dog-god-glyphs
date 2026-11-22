@@ -333,6 +333,10 @@ export function NameScreen() {
           onKeyDown={(e) => { if (e.key === 'Enter') ctaAction(); }}
           placeholder={t('heroglyph.flow.name.placeholder')}
           maxLength={30}
+          /* Safari ignoruje autoComplete="off" a podľa slova „meno“ ponúkal vyplniť KONTAKT (meno človeka) — vlastné meno
+             a id poľa mu povedia, že ide o psa (Matej 22. 11.: „ponúka mi vyplnenie automatické, dá sa to vypnúť?“) */
+          name="dog-nickname"
+          id="dog-nickname"
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="characters"

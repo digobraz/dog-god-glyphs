@@ -26,6 +26,9 @@ const config: CapacitorConfig = {
     allowMixedContent: false,
   },
   plugins: {
+    // KLÁVESNICA (22. 11. 2026): okno sa pri klávesnici nezmenšuje — obrazovky sa dvíhajú samy (lib/keyboardInset.ts),
+    // lištu nad klávesnicou skryje lib/appKeyboard.ts.
+    Keyboard: { resize: 'none' },
     // AKTUALIZÁCIE BEZ OBCHODU (20. 10. 2026): appka si po každom `go-live` stiahne z dogypt.com
     // zmenené súbory webu (`lib/appUpdate.ts`, zoznam `dist/app-update.json`). Režim RUČNÝ —
     // o všetkom rozhoduje náš kód, žiadny server Capgo. Všetky ich adresy sú prázdne: appka

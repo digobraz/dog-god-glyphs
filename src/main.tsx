@@ -11,6 +11,7 @@ import { IS_APP } from "./lib/isApp";
 import { startEarlyGridDogs } from "./lib/earlyFetch";
 import { scrubSecrets } from "./lib/packAnalytics";
 import { startAppUpdate } from "./lib/appUpdate";
+import { startAppKeyboard } from "./lib/appKeyboard";
 import { startAppLinks } from "./lib/appLinks";
 import { restoreAppSession } from "./lib/appSession";
 import { startAppPush } from "./lib/appPush";
@@ -28,6 +29,7 @@ import "./lib/cdnFoto";
 
 // Appka si stiahne verziu, ktorá je práve na dogypt.com (lib/appUpdate.ts). Na webe nič.
 startAppUpdate();
+startAppKeyboard();
 
 // Odkazy mimo /pack (stena, DOGMA, externé URL) idú v appke do systémového prehliadača (lib/appLinks.ts). Na webe nič.
 startAppLinks();
