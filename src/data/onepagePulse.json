@@ -1,6 +1,6 @@
 {
  "hours": 285,
- "total": 2439,
+ "total": 2440,
  "since": "2026-08-14",
  "updated": "2026-11-22",
  "days": [
@@ -44,7 +44,7 @@
    "name": "vault",
    "count": {
     "scrolls": 345,
-    "podcasts": 1312,
+    "podcasts": 1380,
     "goal": 600
    }
   },
