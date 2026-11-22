@@ -47,11 +47,10 @@ import { toast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { BADGE_FAMILIES, badgeImg, badgeTier } from './badgeRegister';
-import { APP_NEW } from '@/lib/packFlags';
+import { APP_NEW, RANK_LIMITS_ON } from '@/lib/packFlags';
 import { KIND_FAMILY, loadMyActivity, badgeCounts } from './badgeShelf';
 import { ZTILES, loadZapisDays, type ZTile } from './zapisDnaModel';
 import { moment, uder } from '@/lib/momenty';
-import { TEST_BUILD } from '@/lib/env';
 import { useMySeal } from './sealStore';
 import type { SealTier } from './dogSeal';
 
@@ -305,7 +304,7 @@ const reduced = () => typeof window !== 'undefined' && !!window.matchMedia?.('(p
 
 interface PhotoState { key: number; preview: string; url: string | null; busy: boolean; blob: Blob; forDog: string }
 /** FOTKY V ZÁPISE PODĽA HODNOSTI (Matej 22. 11. 2026: „pôjde len veriacim, poslom 3, staviteľom 5, vezírom 10“ → „ok“).
- *  Platí až s FLIPom, dovtedy len v testovacej appke; inde 1 fotka ako doteraz. Faraón je len Matej — 20 = prakticky bez stropu. */
+ *  Vypínač RANK_LIMITS_ON (packFlags): do FLIPu len testovacia appka, inde 1 fotka ako doteraz. Faraón je len Matej — 20 = prakticky bez stropu. */
 const PHOTOS_BY_SEAL: Record<SealTier, number> = { veriaci: 1, akolyta: 3, knaz: 5, vezir: 10, zakladatel: 10, farao: 20 };
 interface Row { fam: string; emoji: string; before: number; after: number; lo: number; nx: number; hit: boolean;
   /** Získaný odznak: obrázok medaily, nový stupeň a či ide o vyšší stupeň (už mal nižší). */
@@ -349,7 +348,7 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
   const [doneDays, setDoneDays] = useState<Set<string>>(new Set());
   const [photos, setPhotos] = useState<PhotoState[]>([]);
   const seal = useMySeal('veriaci');
-  const maxPhotos = TEST_BUILD ? PHOTOS_BY_SEAL[seal] : 1;
+  const maxPhotos = RANK_LIMITS_ON ? PHOTOS_BY_SEAL[seal] : 1;
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
   const [plans, setPlans] = useState<Array<{ slug: string; name: string; href: string }> | null>(null);
   const [busy, setBusy] = useState(false);

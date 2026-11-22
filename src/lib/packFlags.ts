@@ -206,3 +206,8 @@ export const ALBUMS_ON = false;
 // „treba to upraviť do dnešnej podoby nového dizajnu apky“. Rozhoduje adresa pri NAČÍTANÍ karty, nie routa po nej.
 const PUBLIC_MAP_TAB = typeof window !== 'undefined' && /^\/map(\/|$)/.test(window.location.pathname);
 export const APP_NEW: boolean = TEST_BUILD || IS_APP || PUBLIC_MAP_TAB;
+
+// ── LIMITY PODĽA HODNOSTI (22. 11. 2026) ─────────────────────────────────────────
+// Matej: *„poslom 3, staviteľom 5, vezírom 10“* (fotky v zápise dňa). Hodnosti platia až s FLIPom — dovtedy limity
+// beží len testovacia appka a všetci inde majú to, čo doteraz (1 fotka). FLIP: prepni na `true`.
+export const RANK_LIMITS_ON: boolean = TEST_BUILD;
