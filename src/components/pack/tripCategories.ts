@@ -439,7 +439,7 @@ function withDataTagAliases(byUi: Record<string, string>): Record<string, string
 // návštevnosť „Rušno" prešla na 🚨.
 export const TAG_EMOJI: Record<string, string> = withDataTagAliases({
   Mountains: '🏔️', Forest: '🌲', 'Lake/Reservoir': '🔵', River: '🌀', View: '👁️', Meadow: '🌼', Sunset: '🌅',
-  Shade: '⛱️', 'No shade': '🌡️',
+  Shade: '⛱️', 'No shade': '🌡️', Unique: '✨',
   'Forest path': '👣', Asphalt: '🛣️', Rocky: '🪨',
 });
 
@@ -452,7 +452,7 @@ export const TAG_I18N: Record<string, string> = withDataTagAliases({
   Mountains: 'pack.map.tagLabel.mountains', Forest: 'pack.map.tagLabel.forest',
   'Lake/Reservoir': 'pack.map.tagLabel.lake', River: 'pack.map.tagLabel.river',
   View: 'pack.map.tagLabel.view', Meadow: 'pack.map.tagLabel.meadow', Sunset: 'pack.map.tagLabel.sunset',
-  Shade: 'pack.map.tagLabel.shade', 'No shade': 'pack.map.tagLabel.noshade',
+  Shade: 'pack.map.tagLabel.shade', 'No shade': 'pack.map.tagLabel.noshade', Unique: 'pack.map.tagLabel.unique',
   'Forest path': 'pack.map.surfaceLabel.forest', Asphalt: 'pack.map.surfaceLabel.asphalt',
   Rocky: 'pack.map.surfaceLabel.rocky',
 });

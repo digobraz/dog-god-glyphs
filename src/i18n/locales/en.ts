@@ -4004,6 +4004,7 @@ export const en = {
   'pack.map.tagLabel.sunset': "Sunset",
   'pack.map.tagLabel.shade': "Shade",
   'pack.map.tagLabel.noshade': "No shade",
+  'pack.map.tagLabel.unique': "Unique spot",
   // ── STRÁNKA VÝLETU (`/pack/map/:country/:slug`) A JEJ KOMENTÁRE ────────────────────────
   // Celá stránka bola do 23. 8. 2026 natvrdo po anglicky — na slovenskom telefóne stálo
   // „by Hekthor & Matej · DIFFICULTY · REVIEWS (0) · Be the first Dogyptian…". Je to povrch,

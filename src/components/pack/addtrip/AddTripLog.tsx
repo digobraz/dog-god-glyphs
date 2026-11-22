@@ -315,7 +315,7 @@ const TERRAIN_OPTIONS = [
 // ⚠️ `label` je HODNOTA UKLADANÁ DO DB (chip na mape sa podľa nej filtruje) — neprekladá sa.
 // Zobrazený text ide cez `id` a slovník; kľúč nesmie byť odvodený z labelu, lebo „Lake/Reservoir"
 // má v sebe lomku a medzery.
-const TAG_OPTIONS: Array<{ id: string; label: string; emoji: string }> = [
+const TAG_OPTIONS: Array<{ id: string; label: string; emoji: string; sys?: string; fb?: string }> = [
   { id: 'mountains', label: 'Mountains', emoji: '🏔️' }, { id: 'forest', label: 'Forest', emoji: '🌲' },
   { id: 'lake', label: 'Lake/Reservoir', emoji: '🔵' }, { id: 'river', label: 'River', emoji: '🌀' },
   { id: 'view', label: 'View', emoji: '👁️' }, { id: 'meadow', label: 'Meadow', emoji: '🌼' },
@@ -323,6 +323,11 @@ const TAG_OPTIONS: Array<{ id: string; label: string; emoji: string }> = [
   // TIEŇ (Matej 2026-08-24) — dve hodnoty, nie škála. Musí sedieť s `TAG_VOCAB`/`TAG_EMOJI`
   // v `PackMap.tsx`, inak sa tag zapíše a filter ho neponúkne.
   { id: 'shade', label: 'Shade', emoji: '⛱️' }, { id: 'noshade', label: 'No shade', emoji: '🌡️' },
+  // UNIKÁT (Matej 2026-11-22): „tag na unikát… unikátny výhľad, socha, skala…" — miesto, kvôli
+  // ktorému sa oplatí zísť z trasy. Rovnaký mechanizmus ako ostatné tagy (pole `tags`, hodnota
+  // `label` ide do DB, text cez `pack.map.tagLabel.unique`, `fb` = EN pre jazyky bez kľúča).
+  // `sys` = systémová samolepka v appke; zatiaľ `iskra`, vymení sa po dokreslení vlastnej.
+  { id: 'unique', label: 'Unique', emoji: '✨', sys: 'iskra', fb: 'Unique spot' },
 ];
 
 /**
@@ -1582,8 +1587,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
       className={`atl-chip${tags.has(tag.label) ? ' on' : ''}`}
       onClick={() => toggleSet(tags, setTags, tag.label)}
     >
-      <span className="atl-chip-emoji">{tag.emoji}</span>
-      <span className="atl-chip-label">{t(`pack.map.tagLabel.${tag.id}`)}</span>
+      {APP_NEW && tag.sys
+        ? <span className="atl-chip-emoji"><SysIcon name={tag.sys} size={20} /></span>
+        : <span className="atl-chip-emoji">{tag.emoji}</span>}
+      <span className="atl-chip-label">{(() => { const k = `pack.map.tagLabel.${tag.id}`; const v = t(k); return v === k && tag.fb ? tag.fb : v; })()}</span>
     </button>
   );
   /**
@@ -3656,7 +3663,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
 
             {/* ══ KROK 4 — O TRASE ════════════════════════════════════════════════════ */}
             {step === 4 && (
-              <>
+              <div className="atl-s4">
                 {/* Ruch, náročnosť, povrch, hodnotenie a fotky sú SPRÁVY Z CESTY — na výlete,
                     ktorý sa ešte nekonal, sa nedajú vyplniť pravdivo. Preto sa na pláne
                     nezobrazujú (a do draftu sa nedostanú, viď `isPlan` pri jeho stavbe). */}
@@ -3740,7 +3747,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                 {!isPlan && crowdField(4)}
 
                 {!isPlan && isHikeLike && (
-                  <div className={`atl-field${missClass(4, terrain.size > 0)}`}>
+                  <div className={`atl-field atl-field--terrain${missClass(4, terrain.size > 0)}`}>
                     <label>{t('pack.addTrip.step.terrain')}</label>
                     {/* Chipy, nie rozbaľovač — viacnásobný výber sa natívnym `<select multiple>`
                         na telefóne ovláda mizerne. Vzor je zhodný s tagmi o kus nižšie, aby
@@ -3763,7 +3770,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
 
                 <div className={`atl-field${missClass(4, tags.size > 0)}`}>
                   <label>{t('pack.addTrip.log.tags')}</label>
-                  <div className="atl-chips">{TAG_OPTIONS.map(tagBtn)}</div>
+                  <div className="atl-chips atl-chips--tags">{TAG_OPTIONS.map(tagBtn)}</div>
                 </div>
 
                 {/* ══ DVA RADY CHIPOV — „ČO SME TAM ROBILI" (Matej 2026-08-31) ═══════════
@@ -3827,7 +3834,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                     Chipy hazardov zanikli: tá istá informácia žila na dvoch miestach
                     (`trip_votes.hazards` + značky v mape) a prvá úprava jedného ich rozišla.
                     Chip bez polohy je navyše horší údaj — svorke nepovie kde. */}
-                <div className="atl-field">
+                <div className="atl-field atl-field--marked">
                   <label>{t('pack.addTrip.step.markedOnRoute')}</label>
                   <PlacedNotes notes={placedNotes} t={t} emptyKey="pack.addTrip.step.noNotesSummary" />
                   {/* Pri dopĺňaní konceptu odkaz nesvieti: krok 2 je zamknutý, lebo väzba
@@ -3840,7 +3847,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                   )}
                 </div>
 
-              </>
+              </div>
             )}
 
             {/* ══ KROK 5 — OSTATNÉ ════════════════════════════════════════════════════ */}
@@ -5204,6 +5211,31 @@ html.papyrus3d .atl-name-tip{font-size:14px;}
 html.papyrus3d .atl-name-sug,html.papyrus3d .atl-expand,html.papyrus3d .atl-journey-link,html.papyrus3d .atl-daymode-link{color:${LAPIS.edge};}
 html.papyrus3d .atl-field label .atl-field-hint{letter-spacing:0;font-weight:400;}
 html.papyrus3d .atl-log-body{gap:16px;}
+/* KROK 4 v appke = 100vh BEZ SCROLLU (Matej 22. 11. 2026: „pilsy zmenšil aby sa vošli do riadku aj ruch aj povrch,
+   značky skonsolidoval, označené na mape jeden riadok"). Zmenšujú sa PILULKY a medzery, nie vzduch od okraja
+   (PAGE_AIR). Náročnosť, ruch, povrch a označené = jeden riadok (nowrap); označené pri dlhšom zozname
+   presahuje vodorovne, padding-bottom nesie 3D tieň pilulky, ktorý by overflow inak odrezal. */
+html.papyrus3d .atl-s4{display:flex;flex-direction:column;gap:8px;}
+html.papyrus3d .atl-s4 .atl-field label{font-size:12px;margin-bottom:4px;}
+html.papyrus3d .atl-s4 .atl-chip,html.papyrus3d .atl-s4 .atl-diffbtn{min-height:28px;padding:0 8px;border-radius:8px;font-size:12px;}
+html.papyrus3d .atl-s4 .atl-chip-label,html.papyrus3d .atl-s4 .atl-diffbtn span{font-size:12px;white-space:nowrap;}
+html.papyrus3d .atl-s4 .atl-chip-emoji{font-size:14px;width:16px;flex:0 0 16px;margin-right:4px;}
+html.papyrus3d .atl-s4 .atl-chip-emoji img{width:16px;height:16px;display:block;}
+html.papyrus3d .atl-s4 .atl-chip-sticker{width:20px;height:20px;flex:0 0 20px;margin-right:4px;}
+html.papyrus3d .atl-s4 .atl-chips{gap:8px;}
+html.papyrus3d .atl-s4 .atl-diffrow{gap:8px;}
+html.papyrus3d .atl-s4 .atl-diffbtn{flex:1 1 auto;}
+html.papyrus3d .atl-s4 .atl-field--terrain .atl-chips,html.papyrus3d .atl-s4 .atl-chips[role="radiogroup"]{flex-wrap:nowrap;}
+html.papyrus3d .atl-s4 .atl-field--terrain .atl-chip,html.papyrus3d .atl-s4 .atl-chips[role="radiogroup"] .atl-chip{flex:0 1 auto;min-width:0;}
+html.papyrus3d .atl-s4 .atl-field--marked{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;align-items:baseline;}
+html.papyrus3d .atl-s4 .atl-field--marked label{grid-column:1;grid-row:1;}
+html.papyrus3d .atl-s4 .atl-field--marked .atl-journey-link{grid-column:2;grid-row:1;font-size:12px;margin:0 0 4px;}
+html.papyrus3d .atl-s4 .atl-field--marked .atl-chips,html.papyrus3d .atl-s4 .atl-field--marked .atl-field-hint{grid-column:1/-1;grid-row:2;}
+html.papyrus3d .atl-s4 .atl-field--marked .atl-chips{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding-bottom:24px;margin-bottom:-24px;scrollbar-width:none;}
+html.papyrus3d .atl-s4 .atl-field--marked .atl-chip{flex:0 0 auto;}
+html.papyrus3d .atl-s4 .atl-morebtn{padding:4px 12px;font-size:12px;}
+html.papyrus3d .atl-s4 .atl-more{margin-top:0;}
+html.papyrus3d .atl-s4 .atl-field-hint{font-size:12px;margin:0;}
 /* HODNOTENIE: nezvolené vyblednuté, farba až po ťuku (PawRating); riadok bez škatule, číslo vedľa */
 html.papyrus3d .atl-rate{border:0;background:none;padding:0;}
 html.papyrus3d .atl-rate-val{font-family:${FONT_UI};font-size:20px;color:color-mix(in srgb,var(--p3d-ink) 40%,var(--p3d-paper));}

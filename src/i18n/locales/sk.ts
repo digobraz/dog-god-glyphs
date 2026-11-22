@@ -3733,6 +3733,7 @@ export const sk: Partial<Dict> = {
   'pack.map.tagLabel.sunset': "Západ slnka",
   'pack.map.tagLabel.shade': "Tieň",
   'pack.map.tagLabel.noshade': "Bez tieňa",
+  'pack.map.tagLabel.unique': "Unikát",
   'pack.trip.backToTrips': "Späť na výlety",
   'pack.trip.followMarkers': "Choď za značkami",
   'pack.trip.by': "od {author}",

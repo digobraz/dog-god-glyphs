@@ -2544,6 +2544,7 @@ export const cs: Partial<Dict> = {
   'pack.map.tagLabel.meadow': 'Louka',
   'pack.map.tagLabel.mountains': 'Hory',
   'pack.map.tagLabel.noshade': 'Bez stínu',
+  'pack.map.tagLabel.unique': "Unikát",
   'pack.map.tagLabel.river': 'Řeka',
   'pack.map.tagLabel.shade': 'Stín',
   'pack.map.tagLabel.sunset': 'Západ slunce',

@@ -484,7 +484,7 @@ const ACT_DATA_ID: Record<string, string> = Object.fromEntries(TRIP_CATEGORIES.m
 // ⚠️ 78 existujúcich výletov tento tag NEMÁ a nedostane ho. Prázdno tu znamená „nikto to
 // nezapísal", nie „bez tieňa" — dopísať ho odhadom by z datasetu spravilo klamára.
 const TAG_VOCAB = [
-  'Mountains', 'Forest', 'Lake/Reservoir', 'River', 'View', 'Meadow', 'Sunset', 'Shade', 'No shade',
+  'Mountains', 'Forest', 'Lake/Reservoir', 'River', 'View', 'Meadow', 'Sunset', 'Shade', 'No shade', 'Unique',
   'Forest path', 'Asphalt', 'Rocky',
 ] as const;
 // POVRCH je podmnožina TAG_VOCAB, nie samostatné pole hodnôt (Matej 2026-08-28: „tagy povrchu
