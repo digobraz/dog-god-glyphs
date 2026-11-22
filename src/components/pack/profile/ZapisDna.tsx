@@ -29,7 +29,7 @@ import { PackPopup } from '@/components/pack/PackPopup';
 import { useBackClose } from '@/components/pack/diary/useBackClose';
 import { useKeyboardLift, kbLiftCSS } from '@/components/pack/diary/useKeyboardLift';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
-import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, BRAND_GOLD_BTN, MODAL_MAX_H, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, BRAND_GOLD_BTN, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { HandCheck } from '@/components/pack/HandIcons';
 import { CameraIc } from '@/components/app/sysSwap';
@@ -69,8 +69,14 @@ const GRID: ReadonlyArray<readonly [group: string, ids: readonly string[]]> = [
   ['g4', ['lazy', 'sunset', 'mischief', 'abroad', 'milestone', 'away']],
 ];
 
+/** Strop šuplíka zápisu: vyšší než MODAL_MAX_H z packTheme. Šuplík stojí na spodku a spodnú safe-area si drží `.zd-foot`, takže ju netreba
+ *  odpočítať druhýkrát; hore stačí 8 px pod hodinami (Matej 22. 11. 2026: na iPhone 402×874 panel o kúsok scrolloval). */
+const ZD_MAX_H = 'calc(100dvh - env(safe-area-inset-top, 0px) - 8px)';
+
 const CSS = `
 .ppu-sheet.zd-pop{overflow:hidden;}
+/* dve triedy = prebije .ppu-sheet z PackPopup aj .zd-pop z kbLiftCSS; klávesnicu odpočíta rovnako */
+@media (max-width:767px){.ppu-sheet.zd-pop{max-height:calc(${ZD_MAX_H} - var(--dia-kb,0px));}}
 /* Úchyt je celý vrch šuplíka (52 px), nie 4 px prúžok: v teste 9. 11. 2026 sa panel nedal stiahnuť, lebo prst trafil telo (bod 12). */
 .zd-pop .ppu-grab{margin:${S.lg}px auto;}
 .zd-pop .ppu-body{padding:0;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
@@ -119,10 +125,6 @@ html.papyrus3d .zd-dy{width:auto;min-width:56px;padding:0 ${S.xs}px;letter-spaci
 .zd-rut .zd-tile{height:88px;padding:${S.sm}px ${S.xs}px;}
 .zd-rut .zd-tile em{font-size:${TX.h1}px;}
 .zd-rut .zd-tile b{font-size:${TX.label}px;font-weight:600;}
-.zd-dots{display:flex;gap:${S.xs}px;justify-content:center;}
-.zd-dots u{width:6px;height:6px;border-radius:${PACK_R.pill}px;background:${T.hairline};}
-.zd-dots u.f{background:${LAPIS.edge};}
-.zd-dots u.d{background:${T.cardEdge};}
 .zd-tile .ok,.zd-pill .ok{position:absolute;top:-${S.xs}px;right:-${S.xs}px;min-width:20px;height:20px;padding:0 ${S.xs}px;box-sizing:border-box;border-radius:${PACK_R.pill}px;
   background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_UI};font-weight:600;font-size:${TX.micro}px;line-height:20px;text-align:center;box-shadow:0 0 0 2px ${T.card};display:inline-grid;place-items:center;}
 .zd-pills{display:flex;flex-wrap:wrap;align-items:center;gap:${S.sm}px;margin-top:${S.lg}px;}
@@ -148,7 +150,9 @@ html.papyrus3d .zd-dy{width:auto;min-width:56px;padding:0 ${S.xs}px;letter-spaci
 .zd-wr-head .zd-dog{width:44px;height:44px;opacity:1;border-color:${T.cardEdge};cursor:default;}
 .zd-wr-t{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};} /* písmo: nadpis */
 .zd-wr-s{margin:0;font-size:${TX.label}px;color:${T.inkWarm};}
-.zd-wr textarea{flex:1;min-height:96px;resize:none;padding:${S.md}px ${S.lg}px;font-size:${TX.lead}px;line-height:1.5;}
+/* Pole má pevnú výšku (~5 riadkov), nie flex:1 — Matej 22. 11. 2026: pole na celý šuplík ťahalo iOS pri klávesnici
+   nahor a hlavička aj písaný text ušli pod hodiny („nevidím ani čo píšem“). Krátke pole + Hotovo hneď pod ním sa vojdú nad klávesnicu. */
+.zd-wr textarea{flex:none;height:144px;resize:none;padding:${S.md}px ${S.lg}px;font-size:${TX.lead}px;line-height:1.5;}
 .zd-wr-ph{display:flex;align-items:center;gap:${S.md}px;}
 .zd-wr-slot{appearance:none;flex:none;display:grid;place-items:center;width:64px;height:64px;padding:0;border-radius:${PACK_R.tile}px;cursor:pointer;
   border:1.5px dashed ${T.cardEdge};background:${T.card};overflow:hidden;}
@@ -195,8 +199,6 @@ html.papyrus3d .zd-grid .zd-tile.on{background:linear-gradient(180deg,color-mix(
   box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),0 4px 0 color-mix(in srgb,${LAPIS.deep} 60%,black);}
 html.papyrus3d .zd-grid .zd-tile.got{opacity:.5;}
 html.papyrus3d .zd-grid .zd-tile .ok{top:-${S.sm}px;right:-${S.xs}px;}
-html.papyrus3d .zd-dots u{background:var(--p3d-ink);opacity:.25;}
-html.papyrus3d .zd-grid .zd-tile.on .zd-dots u{background:${LAPIS.ink};}
 html.papyrus3d .zd-save{height:56px;border:2.5px solid ${LAPIS.ink};border-radius:${PACK_R.card}px;font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;letter-spacing:0;text-transform:none;
   background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});color:${LAPIS.ink};
   box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),0 6px 0 color-mix(in srgb,${LAPIS.deep} 60%,black),0 11px 14px var(--p3d-sh);} /* písmo: cta */
@@ -571,21 +573,18 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
   const dayTitle = isToday ? tx('pack.zd.today', 'Today')
     : day === shiftDay(todayK, -1) ? tx('pack.zd.yesterday', 'Yesterday')
     : fmt(day, { weekday: 'short', day: 'numeric' }).replace(/\./g, '').toUpperCase();
-  /** Dlaždica mriežky. Bodky pri troch ťukoch (venčenie), ✓ pri jednom ťuku, číslo pri väčšom počítadle. */
+  /** Dlaždica mriežky. ✓ pri jednom ťuku, číslo pri väčšom počítadle. */
   const gTile = (tile: ZTile, group: string) => {
     const n = eff(tile);
     const selected = tile.special ? (sel[tile.id] ?? 0) > 0 : n > 0;
     const got = !tile.special && room(tile) <= 0;
-    // Bodky: zlaté = dnes už zapísané (u psa, ktorý má najmenej), lapis = práve vybrané.
-    const done = picked.length ? Math.min(...picked.map((g) => g.done[tile.id] ?? 0)) : 0;
-    const dots = !!tile.multi && tile.multi <= 3;
+    // Bodky pod venčením zrušené (Matej 22. 11. 2026: „pri venčení sú nejaké 3 bodky… daj to preč“) — počet nesie odznak v rohu.
     return (
       <button key={tile.id} type="button" className={`zd-tile zd-${group}${selected ? ' on' : ''}${got ? ' got' : ''}`}
         disabled={got || !picked.length} aria-pressed={selected} onClick={() => hit(tile)}>
-        {selected && !dots && <span className="ok">{n > 1 ? n : <HandCheck size={12} />}</span>}
+        {selected && <span className="ok">{n > 1 ? n : <HandCheck size={12} />}</span>}
         <em><ZapisGlyph mark={tile.emoji} size={32} /></em>
         <b>{tx(`pack.zd.t.${tile.id}`, tile.name)}</b>
-        {dots && <span className="zd-dots" aria-hidden>{Array.from({ length: tile.multi ?? 0 }, (_, i) => <u key={i} className={i < done ? 'd' : i < done + n ? 'f' : ''} />)}</span>}
       </button>
     );
   };
@@ -595,7 +594,7 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
 
   return (
     <PackPopup label={tx('pack.zd.title', 'Log today')} onClose={popClose} className="zd-pop">
-      <style>{PF_FIELD_CSS}{PHOTO_CSS}{PROGRESS_CSS}{CSS}{kbLiftCSS('zd-pop', MODAL_MAX_H)}</style>
+      <style>{PF_FIELD_CSS}{PHOTO_CSS}{PROGRESS_CSS}{CSS}{kbLiftCSS('zd-pop', ZD_MAX_H)}</style>
       <div className="zd-sheet" ref={sheetRef}>
         <div className="zd-body">
           <div className="zd-top">
