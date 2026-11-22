@@ -3464,10 +3464,10 @@ export const sk: Partial<Dict> = {
   // Vysvetlivka pod dlaždicou kategórie — hovorí, ČO sa pod ňu zmestí, lebo z jedného slova
   // to pri zlúčení siedmich aktivít do štyroch nie je zrejmé (Matej 2026-08-26: „až
   // v dropdowne bude text").
-  'pack.addTrip.log.activityNote.hike': "Túra v prírode. Označíš body — spoja sa do trasy.",
+  'pack.addTrip.log.activityNote.hike': "Túra po značených turistických chodníkoch. Klikaním vytváraš trasu.",
   'pack.addTrip.log.activityNote.chill': "Piknik, opekačka, nocľah — oddych na jednom mieste.",
   'pack.addTrip.log.activityNote.sport': "Korčule, paddleboard, kúpanie.",
-  'pack.addTrip.log.activityNote.activity': "Piknik, kemping, SUP, bicykel… Trasa alebo okruh — podľa toho, čo ste robili.",
+  'pack.addTrip.log.activityNote.activity': "Krátka prechádzka, piknik, SUP, beh či bicykel. Buď vytvoríš trasu, alebo klikom označíš oblasť.",
   'pack.addTrip.log.activityNote.hiking': "Nakresli si vašu spoločnú túru za 3 minúty.",
   'pack.addTrip.log.activityNote.journey': "Zvoľ, ak zapisuješ viacdňové putovanie.",
   'pack.addTrip.log.activityNote.picnic': "Označ bod na mape.",
@@ -3475,7 +3475,7 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.log.activityNote.skating': "Poznač miesto s asfaltovou cestou.",
   'pack.addTrip.log.activityNote.paddleboard': "Vyber vodnú plochu.",
   'pack.addTrip.log.activityNote.explore': "Iná aktivita — hrad, pamiatka, park…",
-  'pack.addTrip.log.activityNote.visit': "Miesto bez konkrétnej trasy — park, hrad, jazero. Označíš ho okruhom.",
+  'pack.addTrip.log.activityNote.visit': "Park, hrad, jazero alebo iné zaujímavé miesto, ktoré stojí za to. Jeden klik.",
   'pack.addTrip.log.chipsOwn': "Čo sme tam robili",
   'pack.addTrip.log.chipsMore': "Dalo sa tam ešte niečo?",
   'pack.addTrip.log.whereAsk': "Vieš, kde presne to bolo?",
@@ -3895,6 +3895,7 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.log.tileTag.city': "mesto",
   'pack.addTrip.log.tileTag.anyLen': "akákoľvek dĺžka",
   'pack.addTrip.log.tileTag.onePlace': "jedno miesto",
+  'pack.addTrip.log.tileTag.marked': "značené chodníky",
   'pack.addTrip.step.stillMissing': "Ešte chýba:",
   'pack.addTrip.step.skip': "Preskočiť",
   'pack.addTrip.geo.openRouteTitle': "Nešiel si naspäť?",

@@ -3716,10 +3716,10 @@ export const en = {
   // vysvetlivka"). Nie je to ozdoba — voľba aktivity rozhoduje o tom, ČO sa bude na mape
   // kresliť (trasa vs. jeden bod vs. vodná plocha), a to sa človek dovtedy dozvedel až
   // v kroku 1, keď už mapu videl.
-  'pack.addTrip.log.activityNote.hike': "A hike in nature. Mark points — they join into a route.",
+  'pack.addTrip.log.activityNote.hike': "A hike along marked trails. Tap to build your route.",
   'pack.addTrip.log.activityNote.chill': "Picnic, barbecue, a night out \u2014 staying in one place.",
   'pack.addTrip.log.activityNote.sport': "Skating, paddleboard, swimming.",
-  'pack.addTrip.log.activityNote.activity': "Picnic, camping, SUP, cycling… A route or an area — whatever fits what you did.",
+  'pack.addTrip.log.activityNote.activity': "A short walk, picnic, SUP, run or bike ride. Either build a route or tap to mark an area.",
   'pack.addTrip.log.activityNote.hiking': "Draw your walk together in 3 minutes.",
   'pack.addTrip.log.activityNote.journey': "Pick this if you are logging a trek over several days.",
   'pack.addTrip.log.activityNote.picnic': "Mark the spot on the map.",
@@ -3727,7 +3727,7 @@ export const en = {
   'pack.addTrip.log.activityNote.skating': "Mark a place with an asphalt path.",
   'pack.addTrip.log.activityNote.paddleboard': "Pick the body of water.",
   'pack.addTrip.log.activityNote.explore': "Anything else \u2014 a castle, a landmark, a park\u2026",
-  'pack.addTrip.log.activityNote.visit': "A place without a set route — a park, a castle, a lake. You mark it with a circle.",
+  'pack.addTrip.log.activityNote.visit': "A park, castle, lake or any other place worth a stop. One tap.",
   // Dva rady chipov v kroku 4. Prvý = vlastná kategória, druhý = ostatné, zbalený.
   'pack.addTrip.log.chipsOwn': "What we did there",
   'pack.addTrip.log.chipsMore': "Was there anything else to do?",
@@ -4180,6 +4180,7 @@ export const en = {
   'pack.addTrip.log.tileTag.city': "town",
   'pack.addTrip.log.tileTag.anyLen': "any length",
   'pack.addTrip.log.tileTag.onePlace': "one place",
+  'pack.addTrip.log.tileTag.marked': "marked trails",
   // ⚠️ KĽÚČ CHÝBAL ÚPLNE (nájdené 2026-08-26 pri prechode toku na PC). AInubis ho hlási po
   // NÁVRATE na nedokončený krok — teda presne vtedy, keď má človek niečo doplniť — a namiesto
   // vety mu ukazoval `pack.addTrip.step.stillMissing trasa na mape`. Volajúci je

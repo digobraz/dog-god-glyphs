@@ -36,7 +36,7 @@ import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAGE_AIR, PACK_HEAD } from '@/components/pack/packTheme';
+import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAGE_AIR, PACK_HEAD, PACK_SPACE } from '@/components/pack/packTheme';
 import { useKeyboardLift } from '@/components/pack/diary/useKeyboardLift';
 import { sizedUrl, heroPx } from '@/services/cloudinaryService';
 import { searchTripCompanions, INVITE_KEY_PREFIX, type TripCompanionHit } from '@/lib/packHumans';
@@ -363,7 +363,8 @@ const COUNTRY_OPTIONS = ['sk', 'cz', 'at', 'hu', 'pl', 'de', 'ch', 'it', 'si', '
 /** APP_NEW: ikonka dlaždice výberu typu zápisu z továrne (hárok B, Čo zapisuješ). Web ostáva na emoji z `tripCategories.ts`. */
 const TILE_SYS: Record<string, string> = { hike: 'typ-turistika', activity: 'typ-aktivita', visit: 'typ-navsteva' };
 const TILE_TAGS: Record<string, string[]> = {
-  hike: ['km', 'noCity'],
+  // APP_NEW: tretí štítok „značené chodníky“ (Matej 22. 11. 2026, nákres zapis-typ-animacia-v2); web ostáva na dvoch.
+  hike: APP_NEW ? ['km', 'noCity', 'marked'] : ['km', 'noCity'],
   activity: ['nature', 'city', 'anyLen'],
   visit: ['nature', 'city', 'onePlace'],
 };
@@ -402,6 +403,107 @@ const TILE_SKETCH: Record<string, JSX.Element> = {
     </svg>
   ),
 };
+
+/**
+ * ── APP_NEW: ANIMOVANÁ KRESBA NA DLAŽDICI VÝBERU TYPU (Matej 22. 11. 2026, variant A) ─────
+ * Nákres `plany/nakresy/zapis-typ-animacia-v2-2026-11-22/index.html`. Časová os je z nákresu
+ * (jedna slučka 5,8 s, po 4,9 s vyblednutie), ale beží v CSS keyframes, nie v rAF: kresba má
+ * pevný viewBox 120×100 a vyplní pravú voľnú plochu bloku (meet). Turistika = 7 ťukov a fajka ·
+ * Aktivita = trasa a okruh naraz a fajka · Návšteva = ťuk, prerušovaný okruh, fajka.
+ * Bez pohybu (`prefers-reduced-motion`) ostáva posledný snímok — základný štýl JE posledný snímok.
+ */
+const TA_LOOP = 5.8;
+const TA_HOLD = 4.9;
+const TA_FADE = 0.45;
+const TA_OUT = 'cubic-bezier(.33,1,.68,1)';
+const TA_BACK = 'cubic-bezier(.34,1.56,.64,1)';
+const TA_W = 120;
+const TA_Z = { x: 6, y: 6, w: 108, h: 88 };
+type TaStop = [number, string, string?];
+function buildTileAnim(): { svg: Record<string, JSX.Element>; css: string } {
+  const css: string[] = [];
+  const pct = (sec: number) => `${Math.min(100, (sec / TA_LOOP) * 100).toFixed(2)}%`;
+  const kf = (name: string, stops: TaStop[]) => {
+    const all: TaStop[] = [...stops];
+    if (all[0][0] > 0) all.unshift([0, all[0][1], all[0][2]]);
+    if (all[all.length - 1][0] < TA_LOOP) all.push([TA_LOOP, all[all.length - 1][1]]);
+    css.push(`@keyframes ${name}{${all.map(([sec, props, ease]) => `${pct(sec)}{${props}${ease ? `animation-timing-function:${ease};` : ''}}`).join('')}}`);
+  };
+  const names: string[] = [];
+  const mk = (kind: 'hike' | 'activity' | 'visit'): JSX.Element => {
+    let n = 0;
+    const cls = (stops: TaStop[]) => { const id = `ta-${kind}-${n++}`; kf(id, stops); names.push(id); return id; };
+    const P = (x: number, y: number): [number, number] => [TA_Z.x + x * TA_Z.w, TA_Z.y + y * TA_Z.h];
+    const segs: JSX.Element[] = [];
+    const rest: JSX.Element[] = [];
+    const tap = (p: [number, number], t0: number, first: boolean, key: string) => {
+      const rid = cls([[t0, 'opacity:0;transform:scale(1);'], [t0 + 0.01, 'opacity:.85;transform:scale(1);', TA_OUT], [t0 + 0.6, 'opacity:0;transform:scale(5);']]);
+      const did = cls([[t0 + 0.06, 'transform:scale(0);', TA_BACK], [t0 + 0.34, 'transform:scale(1);']]);
+      rest.push(<circle key={`${key}r`} className={`ta ta-rip ${rid}`} cx={p[0]} cy={p[1]} r={5} />);
+      rest.push(<circle key={`${key}d`} className={`ta ta-dot${first ? ' first' : ''} ${did}`} cx={p[0]} cy={p[1]} r={first ? 6 : 5} />);
+    };
+    const seg = (a: [number, number], b: [number, number], t0: number, k: number, key: string) => {
+      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, dx = b[0] - a[0], dy = b[1] - a[1];
+      const c = [mx - dy * 0.22 * k, my + dx * 0.22 * k];
+      const id = cls([[t0, 'stroke-dashoffset:1;', TA_OUT], [t0 + 0.32, 'stroke-dashoffset:0;']]);
+      segs.push(<path key={key} className={`ta-ln ${id}`} pathLength={1} d={`M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${c[0].toFixed(1)} ${c[1].toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`} />);
+    };
+    const area = (c: [number, number], R: number, t0: number, d: number) => {
+      const aid = cls([[t0, 'transform:scale(0);', TA_OUT], [t0 + d, 'transform:scale(1);']]);
+      const hid = cls([[t0, 'opacity:0;transform:translateX(0px);'], [t0 + 0.01, 'opacity:1;transform:translateX(0px);', TA_OUT], [t0 + d, `opacity:1;transform:translateX(${R.toFixed(1)}px);`], [t0 + d + 0.34, `opacity:1;transform:translateX(${R.toFixed(1)}px);`], [t0 + d + 0.35, `opacity:0;transform:translateX(${R.toFixed(1)}px);`]]);
+      rest.push(<circle key="ar" className={`ta ta-area ${aid}`} cx={c[0]} cy={c[1]} r={R} />);
+      rest.push(<circle key="hn" className={`ta ta-hnd ${hid}`} cx={c[0]} cy={c[1]} r={5} />);
+    };
+    const check = (p: [number, number], t0: number) => {
+      const id = cls([[t0, 'transform:scale(0);', TA_BACK], [t0 + 0.3, 'transform:scale(1);']]);
+      rest.push(
+        <g key="ck" transform={`translate(${p[0].toFixed(1)} ${p[1].toFixed(1)})`}>
+          <g className={`ta ta-chk ${id}`}><circle r={13} /><path d="M-6 0 l4.2 4.4 l7.6-8.6" /></g>
+        </g>,
+      );
+    };
+    if (kind === 'hike') {
+      const pts = ([[.04, .94], [.18, .60], [.34, .80], [.50, .40], [.66, .62], [.80, .24], [.95, .06]] as const).map(([x, y]) => P(x, y));
+      const T = (i: number) => 0.35 + i * 0.42;
+      for (let i = 1; i < pts.length; i++) seg(pts[i - 1], pts[i], T(i) + 0.05, i % 2 ? 1 : -1, `s${i}`);
+      pts.forEach((p, i) => tap(p, T(i), i === 0, `t${i}`));
+      const ck = P(.94, .86);
+      check([Math.min(ck[0], TA_W - 16), ck[1]], T(6) + 0.55);
+    } else if (kind === 'activity') {
+      const pts = ([[.04, .94], [.14, .46], [.27, .76], [.38, .22]] as const).map(([x, y]) => P(x, y));
+      const T = (i: number) => 0.35 + i * 0.5;
+      const c = P(.74, .52), R = Math.min(.5 * TA_Z.h, .27 * TA_Z.w);
+      for (let i = 1; i < pts.length; i++) seg(pts[i - 1], pts[i], T(i) + 0.05, i % 2 ? 1 : -1, `s${i}`);
+      area(c, R, T(0) + 0.3, T(3) - T(0));
+      pts.forEach((p, i) => tap(p, T(i), i === 0, `t${i}`));
+      tap(c, T(0), true, 'tc');
+      check([Math.min(c[0] + R * 0.72, TA_W - 18), Math.max(c[1] - R * 0.72, 18)], T(3) + 0.7);
+    } else {
+      const c = P(.5, .52), R = Math.min(.5 * TA_Z.h, .46 * TA_Z.w);
+      area(c, R, 0.65, 1.3);
+      tap(c, 0.35, true, 'tc');
+      check([Math.min(c[0] + R * 0.72, TA_W - 18), Math.max(c[1] - R * 0.72, 18)], 2.25);
+    }
+    return (
+      <svg viewBox={`0 0 ${TA_W} 100`} preserveAspectRatio="xMidYMid meet" focusable="false">
+        <g className="ta-root">{segs}{rest}</g>
+      </svg>
+    );
+  };
+  const svg = { hike: mk('hike'), activity: mk('activity'), visit: mk('visit') };
+  kf('ta-fade', [[TA_HOLD, 'opacity:1;'], [TA_HOLD + TA_FADE, 'opacity:0;']]);
+  return {
+    svg,
+    css: `${css.filter((x) => x.startsWith('@keyframes')).join('\n')}
+@media (prefers-reduced-motion:no-preference){
+.ta{animation-duration:${TA_LOOP}s;animation-iteration-count:infinite;animation-timing-function:linear;animation-fill-mode:both;}
+.ta-ln{animation-duration:${TA_LOOP}s;animation-iteration-count:infinite;animation-timing-function:linear;animation-fill-mode:both;}
+.ta-root{animation:ta-fade ${TA_LOOP}s linear infinite;}
+${names.map((id) => `.${id}{animation-name:${id};}`).join('')}
+}`,
+  };
+}
+const TILE_ANIM = APP_NEW ? buildTileAnim() : null;
 
 function emptyGeometryFor(activity: string, multiDay = false, chip?: string): TripGeometry {
   const kind = defaultKindFor(activity, 'log', multiDay, chip);
@@ -3056,7 +3158,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
           >
             <BackIcon />
           </button>
-          <div className="atl-log-title atl-log-title--big">{t('pack.addTrip.log.titleActivity')}</div>
+          {/* APP_NEW: bez nadpisu „Čo zapisuješ?“ (Matej 22. 11. 2026) — tri bloky nesú samy seba, ostáva len späť. */}
+          {!APP_NEW && <div className="atl-log-title atl-log-title--big">{t('pack.addTrip.log.titleActivity')}</div>}
           {/* ⚠️ VETA POD NADPISOM ZANIKLA (Matej 2026-08-28: „odstráň text pod (tie tri
               riadky) a posuň nadpis dolu"). Na telefóne to boli tri riadky, ktoré hovorili,
               čo sa dá zapísať — lenže presne to hovorí aj zoznam pod nimi, len konkrétnejšie.
@@ -3141,7 +3244,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                   aria-expanded={noFork ? undefined : open}
                   onClick={() => (noFork ? pickActivity(a.id, 'walked') : setPendingActivity(open ? null : a.id))}
                 >
-                  <span className="atl-tile-emoji">{APP_NEW && TILE_SYS[a.id] ? <SysIcon name={TILE_SYS[a.id]} size={128} /> : a.emoji}</span>
+                  <span className="atl-tile-emoji">{APP_NEW && TILE_SYS[a.id] ? <SysIcon name={TILE_SYS[a.id]} size={72} /> : a.emoji}</span>
                   {/* ⚠️ NÁZOV CEZ SLOVNÍK, NIE `a.label` — dataset nesie anglický názov ako kľúč a na
                       slovenskej obrazovke potom stálo „Hiking" pod nadpisom „Vyber aktivitu".
                       `pack.map.activityLabel.*` už existuje (používa ho filter na mape). */}
@@ -3166,7 +3269,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                   </span>
                   {/* Kresba tvaru, ktorý človek potom kreslí na mape — body s prerušovanou čiarou
                       (trasa) alebo okruh. Fialová = výlety (jediný odtieň, `tripPurple`). */}
-                  {TILE_SKETCH[a.id] && <span className="atl-tile-sketch" aria-hidden="true">{TILE_SKETCH[a.id]}</span>}
+                  {(TILE_ANIM?.svg[a.id] ?? TILE_SKETCH[a.id]) && <span className="atl-tile-sketch" aria-hidden="true">{TILE_ANIM?.svg[a.id] ?? TILE_SKETCH[a.id]}</span>}
                   {/* Šípka sľubuje rozbalenie — pri NÁVŠTEVE sa nič nerozbalí, tak tam nie je. */}
                   {!noFork && <span className="atl-tile-caret" aria-hidden="true">{open ? '⌃' : '⌄'}</span>}
                 </button>
@@ -5139,6 +5242,7 @@ html.papyrus3d .atl-log{${P3D_V.paper}}
 html.papyrus3d .atl-log-title,html.papyrus3d .atl-ask,html.papyrus3d .atl-tile-label,html.papyrus3d .atl-odyssey-txt b,html.papyrus3d .atl-journey-name{font-family:'LT Museum',serif;font-weight:400;text-transform:none;letter-spacing:0;color:var(--p3d-ink);}
 html.papyrus3d .atl-log-title--big{font-size:24px;}
 html.papyrus3d .atl-log-title--big::after{display:none;}
+html.papyrus3d .atl-log--intro .atl-log-head--intro{padding:0;min-height:0;}
 html.papyrus3d .atl-ask{font-size:24px;line-height:1.15;}
 html.papyrus3d .atl-ask-sub{font-size:14px;color:color-mix(in srgb,var(--p3d-ink) 58%,var(--p3d-paper));}
 html.papyrus3d .atl-log-back{${P3D_B3(0, 16)}--b3-r:50%;width:36px;height:36px;min-height:0;padding:0;border-radius:50%;box-shadow:var(--p3d-lift);}
@@ -5159,24 +5263,38 @@ html.papyrus3d .atl-tile:hover{border-color:var(--p3d-ink);box-shadow:var(--p3d-
 html.papyrus3d .atl-tile-label{font-size:20px;}
 html.papyrus3d .atl-tile-note{font-size:12px;line-height:1.3;color:color-mix(in srgb,var(--p3d-ink) 72%,var(--p3d-paper));}
 html.papyrus3d .atl-tile-tag{font-size:10px;padding:4px 8px;color:var(--p3d-ink);border:1.5px solid var(--p3d-gold);background:none;}
-html.papyrus3d .atl-tiles{gap:24px;}
-/* Dlaždica výberu typu zápisu: ikonka je veľký priesvitný podklad (nie stĺpec), pilulky v jednom riadku,
-   fialová kresba vpravo; všetko sa musí zmestiť bez scrollu aj na 375×667 (Matej 10. 11. 2026). */
-html.papyrus3d .atl-tile{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;row-gap:4px;}
+/* Dlaždica výberu typu zápisu (Matej 22. 11. 2026, variant A): tri totožné bloky cez celú výšku bez scrollu,
+   ikonka 72 px vedľa názvu, veta vľavo (58 %), animovaná kresba vpravo priamo na papyruse, tri pilulky
+   na spodnom okraji cez celú šírku. Na nízkom okne (375x667) zhustenie, nie scroll. */
+html.papyrus3d .atl-tiles{flex:1 1 0;grid-auto-rows:minmax(0,1fr);align-content:stretch;gap:${PACK_SPACE.lg}px;padding:${PAGE_AIR.min}px ${PAGE_AIR.side}px calc(${PAGE_AIR.min}px + env(safe-area-inset-bottom,0px));}
+html.papyrus3d .atl-tiles.has-open{grid-auto-rows:min-content;align-content:safe center;}
+html.papyrus3d .atl-tiles.has-open .atl-tile{min-height:176px;}
+html.papyrus3d .atl-tile{position:relative;overflow:hidden;min-height:0;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto 1fr auto;align-items:center;column-gap:${PACK_SPACE.md}px;row-gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;}
 html.papyrus3d .atl-tile-txt{display:contents;}
-html.papyrus3d .atl-tile-label{grid-column:1;grid-row:1;position:relative;z-index:1;}
-html.papyrus3d .atl-tile-note,html.papyrus3d .atl-tile-tags{grid-column:1/-1;position:relative;z-index:1;}
-html.papyrus3d .atl-tile-sketch{grid-column:2;grid-row:1;}
-html.papyrus3d .atl-tile-sketch svg{width:56px;height:39px;display:block;}
-html.papyrus3d .atl-tile-emoji{position:absolute;left:-16px;top:50%;transform:translateY(-50%);opacity:0.18;pointer-events:none;z-index:0;line-height:0;}
-html.papyrus3d .atl-tile-sketch{position:relative;z-index:1;}
-html.papyrus3d .atl-tile-sketch{margin-left:auto;}
-/* pripomienka 20: na nízkom okne (360×740) sa tretia dlaždica nezmestila — zhustenie, nie skrolovanie */
+html.papyrus3d .atl-tile-emoji{position:static;grid-column:1;grid-row:1;opacity:1;transform:none;pointer-events:none;z-index:1;line-height:0;}
+html.papyrus3d .atl-tile-label{grid-column:2;grid-row:1;position:relative;z-index:1;font-size:24px;line-height:1;}
+html.papyrus3d .atl-tile-note{grid-column:1/-1;grid-row:2;align-self:start;max-width:58%;position:relative;z-index:1;font-size:16px;line-height:1.3;}
+html.papyrus3d .atl-tile-tags{grid-column:1/-1;grid-row:3;align-self:end;margin-top:0;gap:${PACK_SPACE.sm}px;position:relative;z-index:1;}
+html.papyrus3d .atl-tile-tag{flex:1 1 auto;text-align:center;font-size:12px;font-weight:600;padding:4px 8px;background:var(--p3d-paper-hi);}
+html.papyrus3d .atl-tile-caret{grid-column:2;grid-row:1;justify-self:end;}
+html.papyrus3d .atl-tile-sketch{position:absolute;grid-column:1/3;grid-row:2/3;top:0;right:0;bottom:0;left:auto;width:calc(42% - ${PACK_SPACE.md}px);display:block;pointer-events:none;}
+html.papyrus3d .atl-tile-sketch svg{width:100%;height:100%;display:block;overflow:visible;}
+${TILE_ANIM ? `html.papyrus3d .atl-tile-sketch .ta{transform-box:fill-box;transform-origin:center;}
+html.papyrus3d .ta-rip{fill:none;stroke:${SK_P};stroke-width:2.5;opacity:0;}
+html.papyrus3d .ta-dot{fill:#fff;stroke:${SK_P};stroke-width:2.5;}
+html.papyrus3d .ta-dot.first{fill:${SK_P};}
+html.papyrus3d .ta-ln{fill:none;stroke:${SK_P};stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0;}
+html.papyrus3d .ta-area{fill:rgba(${T.tripPurpleRGB},.12);stroke:${SK_P};stroke-width:2.5;stroke-dasharray:6 5;}
+html.papyrus3d .ta-hnd{fill:#fff;stroke:${SK_P};stroke-width:2.5;opacity:0;}
+html.papyrus3d .ta-chk circle{fill:#3D7A4E;}
+html.papyrus3d .ta-chk path{fill:none;stroke:#fff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;}
+${TILE_ANIM.css}` : ''}
 @media (max-height:800px){
-  html.papyrus3d .atl-tiles{gap:12px;}
-  html.papyrus3d .atl-tile{padding:12px 16px;gap:12px;}
-  html.papyrus3d .atl-tile-label{font-size:20px;}
-  html.papyrus3d .atl-tile-txt{gap:2px;}
+  html.papyrus3d .atl-tiles{gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.md}px ${PAGE_AIR.side}px calc(${PAGE_AIR.min}px + env(safe-area-inset-bottom,0px));}
+  html.papyrus3d .atl-tile{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;column-gap:${PACK_SPACE.sm}px;row-gap:${PACK_SPACE.xs}px;}
+  html.papyrus3d .atl-tile-emoji img{width:56px !important;height:56px !important;}
+  html.papyrus3d .atl-tile-note{max-width:60%;font-size:14px;}
+  html.papyrus3d .atl-tile-sketch{width:calc(40% - ${PACK_SPACE.sm}px);}
 }
 html.papyrus3d .atl-tile-wrap.is-open{--p3d-open:0 6px 0 ${LAPIS.deep},0 11px 14px var(--p3d-sh);border:2.5px solid ${LAPIS.ink};border-radius:16px;box-shadow:var(--p3d-open);}
 /* VOĽBY (chip, náročnosť, doprava, prepínače): TLAČIDLO 3D, vybraná je lapis */
