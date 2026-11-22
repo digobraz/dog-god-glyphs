@@ -26,7 +26,8 @@ import { createPortal } from 'react-dom';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, AI_WORLD, BRAIN_STATE, aiWorld } from '@/components/pack/ainubisSkin';
 import { HandPlus, HandArrowLeft } from '@/components/pack/HandIcons';
-import { APP_NEW } from '@/lib/packFlags';
+import { APP_NEW, POD_PLAYER_ON } from '@/lib/packFlags';
+import { usePod, podStart, podToggle, podSeek, podLangTo, podInView, podEndHook } from './PodPlayer';
 import { SysIcon, ShareMark } from '@/components/pack/SysIcon';
 import { LikeIc, SaveIc, LockIc, CheckIc, PencilIc, AlertIc, CameraIc, TrashIc, BackIc, NextIc } from '@/components/app/sysSwap';
 
@@ -680,7 +681,22 @@ function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd, lock }: {
   flushRef.current = flushListen;
   useEffect(() => () => flushRef.current(), []);
   useEffect(() => { flushRef.current(); }, [pl]);
+  // JEDEN PREHRÁVAČ PRE CELÚ APPKU (22. 11. 2026, `PodPlayer.tsx`): zvitok len ovláda globálne `<audio>`, takže
+  // podcast hrá ďalej aj po odchode zo zvitku. Náhľad /magnet (`lock`) a ostrý build ostávajú na vlastnom `<audio>`.
+  const G = POD_PLAYER_ON && !lock;
+  const gp = usePod();
+  const mine = G && gp.z?.id === z.id;
+  useEffect(() => {
+    if (!G) return;
+    podInView(z.id);
+    podEndHook(z.id, onEnd || null);
+    if (autoPlay && pl) podStart(z, pl, lang, resumeAt);
+    return () => { podInView(null); podEndHook(z.id, null); };
+  }, [G, z.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!pod || !pl) return null;
+  const gPlaying = mine && gp.playing;
+  const gT = mine ? gp.t : (resumeAt > 5 ? resumeAt : 0);
+  const gLang = mine ? gp.lang : pl;
   // Kam došiel — do postupu najviac raz za 15 s (+ pri pauze a konci), nie pri každom ticku.
   const keep = (sec: number, force = false) => {
     if (lock) return;
@@ -694,18 +710,18 @@ function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd, lock }: {
     if (a.duration && a.currentTime / a.duration >= 0.9) onDone();
   };
   return (
-    <div className={`zv-pod${playing ? ' is-play' : ''}`} ref={boxRef}>
+    <div className={`zv-pod${(G ? gPlaying : playing) ? ' is-play' : ''}`} ref={boxRef}>
       <small>
         <span><Ic ic="play" />{u.pod} · {fmtSec(pod.sec)}</span>
         <span className="zv-ptools">
           <span className="zv-pdd">
             <button type="button" className="zv-plang" aria-haspopup="listbox" aria-expanded={menu}
-              onClick={() => setMenu(!menu)}>{POD_TAG[pl]}</button>
+              onClick={() => setMenu(!menu)}>{POD_TAG[G ? gLang : pl]}</button>
             {menu && (
               <span className="zv-pmenu" role="listbox" aria-label={u.other}>
                 {POD_LANGS.filter((l) => z.pod[l]).map((l) => (
                   <button key={l} type="button" role="option" aria-selected={l === pl} className={l === pl ? 'is-on' : ''}
-                    onClick={() => { setWant(l); setPlaying(false); setMenu(false); if (open === 'req') setOpen(''); }}>{POD_TAG[l]}</button>
+                    onClick={() => { setWant(l); if (mine) podLangTo(l); else setPlaying(false); setMenu(false); if (open === 'req') setOpen(''); }}>{POD_TAG[l]}</button>
                 ))}
                 <button type="button" className="zv-padd" onClick={() => { setOpen('req'); setMenu(false); }}>+ {u.other}</button>
               </span>
@@ -717,20 +733,27 @@ function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd, lock }: {
           )}
         </span>
       </small>
-      <audio key={pod.src} ref={audio} preload="metadata" src={pod.src}
+      {!G && <audio key={pod.src} ref={audio} preload="metadata" src={pod.src}
         onLoadedMetadata={(e) => { const a = e.currentTarget; if (resumeAt > 5 && resumeAt < a.duration * 0.9) { a.currentTime = resumeAt; setT(resumeAt); lastSave.current = resumeAt; } if (autoPlay) void a.play().catch(() => undefined); }}
         onTimeUpdate={(e) => { onTime(e); setT(e.currentTarget.currentTime); }}
         onPlay={() => { setPlaying(true); playedFrom.current = Date.now(); }} onPause={(e) => { setPlaying(false); flushListen(); keep(e.currentTarget.currentTime, true); }}
-        onEnded={(e) => { setPlaying(false); flushListen(); keep(e.currentTarget.currentTime, true); onDone(); onEnd?.(); }} />
+        onEnded={(e) => { setPlaying(false); flushListen(); keep(e.currentTarget.currentTime, true); onDone(); onEnd?.(); }} />}
       <div className="zv-player">
-        <button type="button" className="zv-pbtn" aria-label={playing ? 'Pause' : 'Play'}
-          onClick={() => { const a = audio.current; if (!a) return; if (a.paused) void a.play(); else a.pause(); }}>
-          {playing ? <span className="zv-pause" aria-hidden><i /><i /></span> : <Ic ic="play" />}
+        <button type="button" className="zv-pbtn" aria-label={(G ? gPlaying : playing) ? 'Pause' : 'Play'}
+          onClick={() => {
+            if (G) { if (mine) podToggle(); else podStart(z, pl, lang, resumeAt); return; }
+            const a = audio.current; if (!a) return; if (a.paused) void a.play(); else a.pause();
+          }}>
+          {(G ? gPlaying : playing) ? <span className="zv-pause" aria-hidden><i /><i /></span> : <Ic ic="play" />}
         </button>
-        <span className="zv-ptime">{fmtSec(Math.floor(t))} / {fmtSec(pod.sec)}</span>
-        <input type="range" className="zv-pbar" min={0} max={pod.sec} step={1} value={Math.floor(t)} aria-label={u.pod}
-          style={{ ['--p' as string]: `${pod.sec ? (t / pod.sec) * 100 : 0}%` }}
-          onChange={(e) => { const a = audio.current; const v = Number(e.target.value); if (a) a.currentTime = v; setT(v); }} />
+        <span className="zv-ptime">{fmtSec(Math.floor(G ? gT : t))} / {fmtSec(pod.sec)}</span>
+        <input type="range" className="zv-pbar" min={0} max={pod.sec} step={1} value={Math.floor(G ? gT : t)} aria-label={u.pod}
+          style={{ ['--p' as string]: `${pod.sec ? ((G ? gT : t) / pod.sec) * 100 : 0}%` }}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            if (G) { if (mine) podSeek(v); else podStart(z, pl, lang, v); return; }
+            const a = audio.current; if (a) a.currentTime = v; setT(v);
+          }} />
       </div>
       {open === 'tr' && (
         <div className="zv-tr">

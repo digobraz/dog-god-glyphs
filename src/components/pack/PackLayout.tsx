@@ -8,7 +8,8 @@ import { BonesCoin } from './BonesCoin';
 import { PACK_THEME, PACK_COL, PACK_COL_INNER, PACK_TOPROW_PAD, usePaperRoute, PAPER_PAGE_CSS, PAPER_ROUTES_EXTRA, FONT_UI } from './packTheme';
 import { PackTopRow } from './PackTopRow';
 import { devotionLevel } from '@/lib/devotion';
-import { DEV_FULL, APP_NEW } from '@/lib/packFlags';
+import { DEV_FULL, APP_NEW, POD_PLAYER_ON } from '@/lib/packFlags';
+import { PodMini } from '@/components/pack/vault/PodPlayer';
 import { PackLoader } from './PackLoader';
 import { sysSrc } from '@/components/pack/SysIcon';
 import { FeedSkeleton } from './feed/FeedSkeleton';
@@ -725,6 +726,8 @@ function PackBottomNavBar({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: stri
         <MeCompose mode={compose} onClose={() => setCompose(null)} />
       </Suspense>
     )}
+    {/* Prehrávač podcastov nad navom — hrá ďalej mimo zvitku (22. 11. 2026, `vault/PodPlayer.tsx`). */}
+    {POD_PLAYER_ON && <PodMini />}
     </>
   );
 }

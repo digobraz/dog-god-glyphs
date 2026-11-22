@@ -211,3 +211,8 @@ export const APP_NEW: boolean = TEST_BUILD || IS_APP || PUBLIC_MAP_TAB;
 // Matej: *„poslom 3, staviteľom 5, vezírom 10“* (fotky v zápise dňa). Hodnosti platia až s FLIPom — dovtedy limity
 // beží len testovacia appka a všetci inde majú to, čo doteraz (1 fotka). FLIP: prepni na `true`.
 export const RANK_LIMITS_ON: boolean = TEST_BUILD;
+
+// ── PREHRÁVAČ PODCASTOV (22. 11. 2026) ───────────────────────────────────────────────────────────
+// Jeden prehrávač pre celú appku (mini nad navom, celá obrazovka, zamknutá obrazovka) — `vault/PodPlayer.tsx`.
+// Dovtedy len testovacia appka; ostatní majú prehrávač v zvitku ako doteraz. Ostro: prepni na `true`.
+export const POD_PLAYER_ON: boolean = TEST_BUILD;
