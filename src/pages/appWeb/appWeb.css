@@ -1895,8 +1895,9 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
   /* v sieni na mobile: okraje len ikonky (kruh), text len pri hľadaní; lišta nad AINUBISOM (sedí vľavo dole) */
   .aw .planet-live.v2 .gbb-row .gbb-ic{width:48px;padding:0}
   .aw .planet-live.v2 .gbb-row .gbb-ic span{display:none}
-  .aw .planet-live.v2 .gods-bottom-bar.gbb-row{bottom:calc(88px + 100lvh - 100svh)}
+  /* pilulky dole (Matej 22. 11.: „v /hall sú moc vysoko“) — AINUBIS bublina sa v sieni na mobile schová, inak by ich prekryla */
 }
 .aw .planet-live.v2 .gbb-pill[hidden]{display:none}
 .aw .planet-live.v2 .ph-lbl{white-space:normal;font-size:calc(var(--ph-w) * .112);max-width:100%;text-align:center}
 @media(max-width:600px){.aw .planet-live.v2 .gbb-col .gbb-main{min-width:220px}}
+@media(max-width:600px){body:has(.planet-live.v2 .gbb-row) .ainubis-launcher{visibility:hidden}}
