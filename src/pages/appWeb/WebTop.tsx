@@ -2,7 +2,7 @@
  *  Dovtedy mal /story vlastnú kópiu so starým CTA „Začni hrať“, bez kľúča a mapy.
  *  `base` = '' na homepage (kotvy na tej istej stránke), '/' inde (kotva vedie na homepage).
  *  Stav pásu (stuck · dark · away · sx-onphoto) určuje stránka cez `cls`, alebo ho prepína cez `ref`. */
-import { forwardRef, useEffect, useState, type MouseEvent as RME } from 'react';
+import { forwardRef, useEffect, useRef, useState, type MouseEvent as RME } from 'react';
 import { useLang } from '@/i18n/LanguageContext';
 import { flagUrl } from '@/lib/flagUrl';
 import { WEB_LANGS } from './langs';
@@ -35,6 +35,11 @@ export const WebTop = forwardRef<HTMLElement, Props>(function WebTop({ c, v2, ba
   const [langOpen, setLangOpen] = useState(false);
   const [menu, setMenu] = useState(false);
   const [mmLang, setMmLang] = useState(false);
+  /* otvorené menu = trieda `mm-open` cez classList, NIE cez className — /story prepína `sx-onphoto`/`stuck` tiež cez classList
+     a prepis className pri otvorení menu by mu ich zmazal (Matej 22. 11.: „header zostane priesvitný… mal by sa aj on zafarbiť“) */
+  const hdr = useRef<HTMLElement | null>(null);
+  const setHdr = (el: HTMLElement | null) => { hdr.current = el; if (typeof ref === 'function') ref(el); else if (ref) ref.current = el; };
+  useEffect(() => { hdr.current?.classList.toggle('mm-open', menu); }, [menu]);
   useEffect(() => { if (!langOpen) return; const off = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest('.lang-wrap')) setLangOpen(false); }; document.addEventListener('pointerdown', off); return () => document.removeEventListener('pointerdown', off); }, [langOpen]);
 
   /* PSY = posledná planétka so psami (Matej 21. 11.: „v menu by mal byť aj odkaz na poslednú planétku so psami“) */
@@ -52,7 +57,7 @@ export const WebTop = forwardRef<HTMLElement, Props>(function WebTop({ c, v2, ba
   );
 
   return (
-    <header className={`top${v2 ? ' v2' : ''}${cls ? ` ${cls}` : ''}`} ref={ref}>
+    <header className={`top${v2 ? ' v2' : ''}${cls ? ` ${cls}` : ''}`} ref={setHdr}>
       <div className="wrap">
         <a className="logo" href={base || '#'} aria-label="DOGYPT"><img src="/web-app/logo-napis.webp" alt="DOGYPT" /></a>
         <nav onClick={onNav}>{links}</nav>

@@ -32,6 +32,7 @@ import { getPackStats } from '@/lib/sharedFetch';
 import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 import { COPY, COPY3, NOTES, type Lang2 } from './appWeb/copy';
 import { CLAIM, isClaim } from './appWeb/claim';
+import { CLAIM22 } from './appWeb/claim22';
 import { WebTop, scrollToId } from './appWeb/WebTop';
 import { loadLang } from './appWeb/langs';
 import { intlLocale } from '@/i18n/bcp47';
@@ -45,6 +46,9 @@ import './appWeb/appWeb.css';
 
 const A = '/web-app';
 /** Šírka nadpisu v „latinských znakoch“: znak CJK/kana/hangul je široký ako ~1,8 latinského (inak japonský nadpis vyjde o polovicu širší než okno). */
+/** `*slovo*` = tučne (podnadpis hero, Matej 22. 11.: „zadarmo daj bold“); `plain` = bez hviezdičiek pre SEO. */
+const rich = (s: string) => s.split(/\*([^*]+)\*/).map((x, i) => (i % 2 ? <b key={i}>{x}</b> : x));
+const plain = (s: string) => s.replace(/\*/g, '');
 const wlen = (s: string) => [...s].reduce((n, ch) => n + (/[\u2E80-\u9FFF\uAC00-\uD7AF\uFF00-\uFFEF]/.test(ch) ? 1.8 : 1), 0);
 
 const CAROUSEL: [string, string][] = [['map', '11-vretenica-mapa'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', 'ai-mozog'], ['feed', 'feed']];
@@ -68,6 +72,8 @@ const LEVELS: { ax: string; scene: string; start: number; n: number; img: (i: nu
 const CITIZEN_PRICES = ['€0', '€3,99', '€7,99', '€11,99', '€111+'];
 /** CTA pri Dogypťanovi vedie na víziu v `/story` (Matej 10. 11.). */
 const VISION_HREF = '/story#vision';
+/** Jednorazová podpora bez registrácie — odkaz čaká na Stripe (dovtedy „#“, ako malo tlačidlo zaniknutého bloku). */
+const SUPPORT_HREF = '#';
 
 /** Ikonky funkcií = kartuše z banky (`public/web-app/ikony/*.webp`, Matej 8. 11.: „funkcie na nete v kartuši“,
  *  zdroj plany/nakresy/banka-ikon-2026-11-08/rez/*-kartusa.webp). Odrážky `li` sa zatiaľ nekreslia — doladíme ich neskôr. */
@@ -93,7 +99,8 @@ const FEATS: { p: string; cls?: string; ic: string; li: B[] }[] = [
 ];
 /** CLAIM 2: SOS na webe = to isté, čo SOS v appke (`SosButton.tsx`), aj s pripravovaným. Prvá pomoc bez „čoskoro“ —
  *  pri FLIPe je hotová (Matej 21. 11.); zbierky, útulky a týranie ostávajú „čoskoro“ ako v appke. */
-const SOS_LI_V2: [string, boolean?][] = [['fx_sos_4'], ['fx_sos_3'], ['sos_lost'], ['fx_sos_2'], ['sos_danger'], ['sos_fund', true], ['sos_abuse', true]];
+/* 22. 11. (Matej): každý riadok na jeden riadok; nahlásenie týrania je hotové, „čoskoro“ ostáva len pri zbierkach a útulkoch */
+const SOS_LI_V2: [string, boolean?][] = [['fx_sos_4'], ['sos_vet'], ['sos_lost2'], ['fx_sos_2'], ['sos_danger2'], ['sos_abuse'], ['sos_fund2', true]];
 const SOON: { ic: string }[] = [
   { ic: 'merch' },
   { ic: 'gps' },
@@ -348,7 +355,9 @@ export default function AppWeb() {
   /* CLAIM 2 (Matej 21. 11.) — nový hlavný claim, texty a poradie slajdov. Zatiaľ LEN za `?claim`; na LIVE až po jeho „ok“
      (vtedy V2 = true a staré vetvy preč). Texty `appWeb/claim.ts` prebíjajú všetky jazyky. */
   const V2 = useMemo(isClaim, []);
-  const c = (k: string) => (V2 && CLAIM[k] ? CLAIM[k][lang] ?? CLAIM[k].en : undefined) ?? X?.[k] ?? COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
+  /* kolo textov 22. 11. (`claim22.ts`) prebíja CLAIM */
+  const cl = (k: string) => (V2 ? CLAIM22[k] ?? CLAIM[k] : undefined);
+  const c = (k: string) => (cl(k) ? cl(k)![lang] ?? cl(k)!.en : undefined) ?? X?.[k] ?? COPY3[k]?.[L] ?? COPY[k]?.[L] ?? '';
   const loc = intlLocale(lang);
   /* STENA (GodsGridLab na konci) a jej okná píšu Cinzelom priamo v kóde (vanilla DOM, ~100 miest) —
      na novom webe sa preto prekryje rodina: Cinzel → Museum Medium (nadpisy webu), Cinzel Decorative
@@ -401,6 +410,7 @@ export default function AppWeb() {
   const [stuck, setStuck] = useState(false);
   /* vysvetlivka odznaku v hero: ťuk otvorí, druhý ťuk alebo ťuk mimo zavrie (Matej 7. 11.: „pils nejdú zavrieť“) */
   const [tipOn, setTipOn] = useState(0);
+  const [vidOn, setVidOn] = useState(false);
   useEffect(() => { if (!tipOn) return; const off = () => setTipOn(0); window.addEventListener('click', off); window.addEventListener('scroll', off, { passive: true }); return () => { window.removeEventListener('click', off); window.removeEventListener('scroll', off); }; }, [tipOn]);
   useEffect(() => {
     const f = () => { setStuck(window.scrollY > 24); };
@@ -408,6 +418,14 @@ export default function AppWeb() {
     addEventListener('scroll', f, { passive: true });
     return () => removeEventListener('scroll', f);
   }, []);
+
+  /* odznaky pri telefónoch: CLAIM 2 ich ukáže až po prvom scrolle (Matej 22. 11.: „v úvodnom hero na mockupoch
+     nebudú odznaky, tie tam naskočia až scrollingom“); na pilulke len „Odznak: Pútnik“, level a popis v rozklike */
+  const [fltOn, setFltOn] = useState(false);
+  useEffect(() => { if (stuck) setFltOn(true); }, [stuck]);
+  const flt = (n: number) => (V2
+    ? <><span className="tx">{c(`fb${n}`)}</span><span className="tip"><b>{c(`fl${n}a`)}</b> · {c(`fl${n}b`)}</span></>
+    : <><span className="tx">{c(`fl${n}a`)}<small>{c(`fl${n}b`)}</small></span><span className="tip">{c(`fl${n}t`)}</span></>);
 
   /* karusel */
   const [ci, setCi] = useState(0);
@@ -555,13 +573,16 @@ export default function AppWeb() {
       </section>
   </>);
   const secIg = (<>
-      {/* 3 · PRE PSOV, S DUŠOU */}
-      <section>
+      {/* 3 · PRE PSOV, S DUŠOU — CLAIM 2: na mobile len jeden IG a jeden DOGYPT (Matej 22. 11.) */}
+      <section className={V2 ? 'ig-v2' : undefined}>
         <div className="wrap">
           <Rv className="sec-h">
             <Note k="n_ig" />
             <h2 className="soul-h">{c('h_soul1')} <span className="l2"><span className="deco">DOGYPT</span> {c('h_soul2')}</span></h2>
-            <p className="lead">{c('l_soul')}</p>
+            {V2
+              /* VID, nie VIP (Matej 22. 11.): bodkovane podčiarknuté, ťuk/hover ukáže „Very Important Dog“ */
+              ? <p className="lead">{c('soul_a')} <button type="button" className={`tr-dot vid${vidOn ? ' on' : ''}`} aria-expanded={vidOn} onClick={() => setVidOn(!vidOn)}>VID<span className="tip" role="note">{c('vid_t')}</span></button> {c('soul_b')}</p>
+              : <p className="lead">{c('l_soul')}</p>}
           </Rv>
           <div className="vs">
             <Rv className="vs-col">
@@ -646,7 +667,7 @@ export default function AppWeb() {
 
   return (
     <div className="aw" data-bg={bg} data-pz="0" ref={rootRef}>
-      <Seo path="/" title={`DOGYPT · ${c('seo_t')}`} description={c('sub')} />
+      <Seo path="/" title={`DOGYPT · ${c('seo_t')}`} description={plain(c('sub'))} />
       <style>{STAGE_CSS}</style>
       <div className="aw-bg" aria-hidden><i className="glyphs" /><i className="pearl" /><i className="pearl p1" /><i className="pearl p2" /></div>
 
@@ -671,7 +692,7 @@ export default function AppWeb() {
                 <span className="l1">{c('h1y') && <>{c('h1y')} </>}<span className="deco big">{c('h1c')}</span></span>
               </>)}
             </h1>
-            <p className="lead">{c('sub')}</p>
+            <p className="lead">{rich(c('sub'))}</p>
             {V2 ? (
               /* CTA + cieľ pod ním NA ŠÍRKU TLAČIDLA (Matej 21. 11.: „progresbar pod CTA a na šírku tlačidla, nech to vyzerá súmerne“);
                  odznaky obchodov sú neklikacie, kým appka nie je vonku */
@@ -697,7 +718,7 @@ export default function AppWeb() {
             </>)}
           </div>
           <div
-            className="car"
+            className={`car${V2 && !fltOn ? ' flt-wait' : ''}`}
             onMouseEnter={() => { hov.current = true; }}
             onMouseLeave={() => { hov.current = false; }}
             onTouchStart={(e) => { sx.current = e.touches[0].clientX; }}
@@ -711,9 +732,9 @@ export default function AppWeb() {
             {CAR.map(([set, src], i) => (
               <Tilt key={set} set={set} src={src} className={`ph ${pos(i)}`} onOpen={() => setCi(i)} />
             ))}
-            <span className={`flt f1${tipOn === 1 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 1 ? 0 : 1); }}><img className="xl" src={`${A}/odznaky/pilgrim-1.webp`} alt="" /><span className="tx">{c('fl1a')}<small>{c('fl1b')}</small></span><span className="tip">{c('fl1t')}</span></span>
-            <span className={`flt f2${tipOn === 2 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 2 ? 0 : 2); }}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" /><span className="tx">{c('fl2a')}<small>{c('fl2b')}</small></span><span className="tip">{c('fl2t')}</span></span>
-            <span className={`flt f3${tipOn === 3 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 3 ? 0 : 3); }}><img className="xl" src={`${A}/odznaky/${V2 ? 'ucen-4' : 'ucen-1'}.webp`} alt="" /><span className="tx">{c('fl3a')}<small>{c('fl3b')}</small></span><span className="tip">{c('fl3t')}</span></span>
+            <span className={`flt f1${tipOn === 1 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 1 ? 0 : 1); }}><img className="xl" src={`${A}/odznaky/pilgrim-1.webp`} alt="" />{flt(1)}</span>
+            <span className={`flt f2${tipOn === 2 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 2 ? 0 : 2); }}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" />{flt(2)}</span>
+            <span className={`flt f3${tipOn === 3 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 3 ? 0 : 3); }}><img className="xl" src={`${A}/odznaky/${V2 ? 'ucen-4' : 'ucen-1'}.webp`} alt="" />{flt(3)}</span>
           </div>
         </div>
       </section>
@@ -890,13 +911,14 @@ export default function AppWeb() {
             {nakres && <p style={{ margin: '16px 0 0' }}><Note k="n_good" flag /></p>}
           </Rv>
           {/* jednorazová podpora bez konta (Matej 11. 11.): kto nechce hrať, môže prispieť; odkaz čaká na Stripe */}
-          <Rv className="cit-sup pk-stage">
+          {/* CLAIM 2: blok zanikol (Matej 22. 11.) — podpora bez registrácie je jedna veta vo FAQ „Kto to financuje?“ */}
+          {!V2 && <Rv className="cit-sup pk-stage">
             <img loading="lazy" className="cit-sup-ic" src={`${A}/ikony/centra.webp`} alt="" />
             <h3>{c('sup_h')} <span className="deco">{c('sup_h2')}</span></h3>
             <p className="lead">{c('sup_p')}</p>
             <a className="pk-cta alt" href="#">{c('sup_cta')}</a>
             <p className="tr-sub">{c('sup_s')}</p>
-          </Rv>
+          </Rv>}
         </div>
       </section>
 
@@ -909,7 +931,8 @@ export default function AppWeb() {
             {[['free', 'fund', 'dog', 'off'], ['why', 'who', 'cult']].map((col, i) => (
               <div className="faq-col" key={i}>
                 {col.map((k) => (
-                  <Rv as="details" key={k} className="pk-stage"><summary>{c(`fq_${k}`)}</summary><p>{c(`fa_${k}`)}</p></Rv>
+                  <Rv as="details" key={k} className="pk-stage"><summary>{c(`fq_${k}`)}</summary><p>{c(`fa_${k}`)}
+                    {V2 && k === 'fund' && <> <a href="mailto:woof@dogypt.com">{c('fund_mail')}</a> {c('fund_or')} <a href={SUPPORT_HREF}>{c('fund_here')}</a>.</>}</p></Rv>
                 ))}
                 {/* kontakt a odkazy z pätičky — pätička zanikla, posledná je planétka (Matej 6. 11.) */}
                 {i === 1 && <Rv as="details" className="pk-stage"><summary>{c('q_contact')}</summary>

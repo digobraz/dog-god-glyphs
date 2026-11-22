@@ -288,3 +288,14 @@
 .sx-lastdog b{font:700 var(--t-lead)/1.2 var(--font-title);color:#E6FAFF}
 .sx-lastdog em{font:500 var(--t-label)/1 var(--font-ui);font-style:normal;color:#5BE0F0}
 .sx-contact .sx-links a{padding:var(--s-md) 0}
+
+/* Matej 22. 11.: na mobile nadpis hero väčší, kľudne na viac riadkov (vety sa smú lámať) */
+@media(max-width:767px){
+  .sx-hx h1:has(.sx-hl){font-size:clamp(40px,11.6vw,60px);line-height:1.06}
+  .sx-hx h1 .sx-hl{white-space:normal}
+}
+/* Matej 22. 11.: otvorené menu na fotke — hlavička sa zafarbí ako menu, odkazy tmavé (boli bledé = nevidno) */
+.aw .top.sx-onphoto.mm-open{background:var(--paper);border-bottom-color:var(--hairline)}
+.aw .top.sx-onphoto.mm-open .burger i{background:var(--ink-strong)}
+.aw .top.sx-onphoto .mmenu nav a{color:var(--ink-strong)}
+.aw .top .mmenu nav a.sx-on{color:var(--gold-ink)}

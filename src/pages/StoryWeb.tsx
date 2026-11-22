@@ -419,8 +419,9 @@ export default function StoryWeb() {
               <p className="sx-num sx-rv">{ch('V')}</p>
               <div className="sx-year sx-rv" style={d(0.1)}>2022</div>
               <h2 className="sx-rv" style={d(0.2)}><Mark s={t('c5_h')} /></h2>
-              <p className="lead sx-rv" style={d(0.3)}>{t('c5_p')}</p>
-              <p className="lead sx-rv" style={d(0.35)}>{t('c5_p2')}</p>
+              {/* Expo (2022) pred venčením cez Slovensko — poradie podľa Matejovho textu 22. 11. */}
+              <p className="lead sx-rv" style={d(0.3)}>{t('c5_p2')}</p>
+              <p className="lead sx-rv" style={d(0.35)}>{t('c5_p')}</p>
               <div className="sx-nums sx-rv" style={d(0.4)}>
                 <div><b data-n="42">0</b><span>{t('c5_days')}</span></div>
                 <div><b data-n="800">0</b><span>{t('c5_km')}</span></div>

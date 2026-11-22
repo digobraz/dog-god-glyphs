@@ -6,8 +6,8 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   seo_d: { sk: 'Jeden (ne)obyčajný čierny pes z útulku a hnutie, ktoré okolo neho vzniklo.', en: 'One (not so) ordinary black shelter dog and the movement that grew around him.' },
 
   hx_eye: { sk: 'Misia psa z útulku', en: 'A shelter dog’s mission' },
-  hx_h: { sk: 'Nikto ho nechcel. | Teraz zakladá *náboženstvo.*', en: 'Nobody wanted him. | Now he’s founding a *religion.*' },
-  hx_p: { sk: 'Príbeh podľa skutočnej udalosti, ktorý sa práve deje.', en: 'A story based on true events, and it’s happening right now.' },
+  hx_h: { sk: 'Nikto ho nechcel. | Teraz zakladá *hnutie.*', en: 'Nobody wanted him. | Now he’s founding a *movement.*' },
+  hx_p: { sk: 'Príbeh podľa skutočných udalostí, ktorý sa deje práve teraz.', en: 'A story based on true events, happening right now.' },
 
   ch: { sk: 'Kapitola', en: 'Chapter' },
 
@@ -20,7 +20,7 @@ export const STORY: Record<string, { sk: string; en: string }> = {
 
   c3_h: { sk: 'Zachránil mi *život.*', en: 'He saved *my life.*' },
   c3_p1: { sk: 'Hekthor ma previedol najťažším úsekom môjho života. Vytiahol ma von a ukázal mi svet z psej perspektívy.', en: 'Hekthor walked me through the hardest stretch of my life. He got me outside and showed me the world from a dog’s point of view.' },
-  c3_p2: { sk: 'Vtedy prišla vízia: spojiť ľudí, ktorí milujú psy, a spolu pomôcť každému psovi, ktorý to potrebuje. Lebo každý pes má v sebe silu urobiť niekomu život lepším.', en: 'That was when the vision came: bring together the people who love dogs and, together, help every dog in need. Because every dog has the power to make someone’s life better.' },
+  c3_p2: { sk: 'Vtedy prišla vízia: spojiť ľudí, ktorí milujú psov tak ako ja. Ak nás bude dosť, spoločne môžeme pomôcť miliónom psov v núdzi.', en: 'That was when the vision came: bring together people who love dogs the way I do. If there are enough of us, together we can help millions of dogs in need.' },
 
   c4_h: { sk: 'Les, náš druhý *domov.*', en: 'The forest, our second *home.*' },
   c4_p: { sk: 'Spolu sme objavovali celé Slovensko. Len my dvaja a príroda.', en: 'Together we explored all of Slovakia. Just the two of us and nature.' },
@@ -30,18 +30,18 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   c5_km: { sk: 'km', en: 'km' },
   c5_cap: { sk: 'Expo Dubai 2022', en: 'Expo Dubai 2022' },
   c6_cap: { sk: 'Kniha Cesta s Hrdinom', en: 'The book Journey with a Hero' },
-  c5_p: { sk: 'Našu bláznivú víziu sme začali zdieľať na internete. Prešli sme celé Slovensko, vyzbierali peniaze pre útulky a napísali o tom knihu.', en: 'We started sharing our crazy vision online. We walked across all of Slovakia, raised money for shelters and wrote a book about it.' },
-  c5_p2: { sk: 'Myšlienka, ktorá spája večný Egypt a lásku k psom, bola pre mnohých nepochopiteľná. Tak som dostal ďalší bláznivý nápad: predstaviť DOGYPT ako faraón priamo na Expe v Dubaji. Pre introverta obrovský krok mimo komfortu. Ale nemal som na výber.', en: 'An idea that joins eternal Egypt with our love for dogs made no sense to many people. So I had another crazy idea: present DOGYPT as a pharaoh, right at Expo in Dubai. For an introvert, a huge step out of my comfort zone. But I had no choice.' },
+  c5_p: { sk: 'Ďalším krokom bolo vytvoriť komunitu psíčkarov. Túto misiu sme odpálili 42-dňovým venčením cez celé Slovensko, pri ktorom sme zbierali peniaze pre útulky.', en: 'The next step was to build a community of dog people. We kicked off that mission with a 42-day walk across all of Slovakia, raising money for shelters along the way.' },
+  c5_p2: { sk: 'Myšlienka, ktorá spája večný Egypt a lásku k psom, bola bizarná a pre mnohých nepochopiteľná. Tak som dostal bláznivý nápad: predstaviť DOGYPT osobne ako faraón priamo na Expe v Dubaji. Pre introverta obrovský krok mimo komfortu. Ale nemal som na výber, začínal som od nuly.', en: 'An idea that joins eternal Egypt with the love of dogs was bizarre, and many people didn’t get it. So I had a crazy idea: present DOGYPT in person, as a pharaoh, right at Expo in Dubai. For an introvert, a huge step out of my comfort zone. But I had no choice, I was starting from zero.' },
 
   c6_h: { sk: 'Kniha a sen o *appke.*', en: 'A book and a dream *app.*' },
-  c6_p: { sk: 'Vydali sme knihu Cesta s Hrdinom. Peniaze z predaja a takmer všetky úspory som dal agentúre, ktorá nám mala postaviť vysnívanú aplikáciu.', en: 'We published the book Journey with a Hero. The money from sales and almost all my savings went to an agency that was supposed to build the app we dreamed of.' },
+  c6_p: { sk: 'O našom najväčšom dobrodružstve sme vydali knihu Cesta s Hrdinom. Tento počin nás dostal do televízie a médií. Pozornosť sme získali, a preto sme sa rozhodli dať všetky naše peniaze agentúre, ktorá nám mala vytvoriť aplikáciu na mieru…', en: 'We published a book about our biggest adventure, Journey with a Hero. It got us on TV and into the media. We had the attention, so we decided to give all our money to an agency that was supposed to build us a custom app…' },
 
   c7_h: { sk: 'Prišla *facka.*', en: 'The *slap.*' },
-  c7_p: { sk: 'Agentúra appku nedodala a peniaze sa nevrátili. Nápad išiel do šuflíka. Ponuku zarábať v zahraničí rozprávkové peniaze som odmietol, bez Hekthora by som nešiel. Namiesto toho sme prevádzkovali farmu a zachraňovali zvieratá. Krásna kapitola, len bez zárobku.', en: 'The agency never delivered the app and the money never came back. The idea went into a drawer. I turned down an offer to earn fairy-tale money abroad, because I wouldn’t go without Hekthor. Instead we ran a farm and rescued animals. A beautiful chapter, just without an income.' },
+  c7_p: { sk: 'Agentúra appku nedodala a peniaze sa nevrátili. Bola to rana pod pás. Nápad išiel bokom. Dostal som lukratívnu pracovnú ponuku, vďaka ktorej by som za 3 mesiace zarobil peniaze späť, no musel by som byť bez Hekthora… Namiesto toho sme spolu prevádzkovali farmu a zachraňovali zvieratá. Krásna skúsenosť, ale projekt nevyšiel podľa predstáv.', en: 'The agency never delivered the app and the money never came back. It was a low blow. The idea was put aside. I got a lucrative job offer that would have earned the money back in 3 months, but I would have had to be without Hekthor… Instead we ran a farm together and rescued animals. A beautiful experience, but the project didn’t turn out as planned.' },
   c7_ph: { sk: 'Fotka 2024–25', en: 'Photo 2024–25' },
 
   c8_h: { sk: 'AI *zachránila* deň.', en: 'AI *saved* the day.' },
-  c8_p: { sk: 'Jedného dňa som si povedal, že tú appku skúsim urobiť sám. V júni vznikol web, generátor heroglyfov a do DOGYPTU prišli prví psi. Aby som na tom mohol pracovať každý deň, odišiel som z práce a žijem z úspor. Stavil som všetko.', en: 'One day I told myself I’d try to build the app on my own. In June came the website, the heroglyph generator and the first dogs in DOGYPT. To work on it every day, I quit my job and live on savings. I bet everything on it.' },
+  c8_p: { sk: 'Na začiatku roka 2026 som si povedal, že tú appku musím urobiť sám. V júni vznikol web a do DOGYPTU prišli prví psi. Aby som na tom mohol pracovať každý deň, odišiel som z práce a žijem z úspor. Tejto myšlienke som obetoval úplne všetko.', en: 'At the start of 2026 I told myself I had to build the app myself. In June the website went live and the first dogs came to DOGYPT. To work on it every day, I quit my job and live on savings. I have given this idea absolutely everything.' },
   c8_hrs: { sk: 'hodín spolu', en: 'hours in total' },
   c8_avg: { sk: 'hodín denne', en: 'hours a day' },
   c8_since: { sk: 'dní od', en: 'days since' },
@@ -64,12 +64,12 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   r6_b: { sk: 'Prvé heroglyfy', en: 'The first heroglyphs' },
   r6_s: { sk: 'Prví psi na planéte DOGYPT.', en: 'The first dogs on planet DOGYPT.' },
   r7_y: { sk: 'Dnes', en: 'Today' },
-  r7_b: { sk: 'Hra so psom', en: 'A game with your dog' },
+  r7_b: { sk: 'Aplikácia 1.0', en: 'App 1.0' },
   r7_s: { sk: 'Appka zadarmo pre každého psa.', en: 'A free app for every dog.' },
   now_eye: { sk: 'Práve teraz', en: 'Right now' },
   now_dogs: { sk: 'psov v DOGYPTe', en: 'dogs in DOGYPT' },
   now_goal: { sk: 'Ďalší cieľ: 1 000 Zakladateľov', en: 'Next goal: 1,000 Founders' },
-  now_p: { sk: 'Každý nový pes nás posúva bližšie k prvej tisícke. Ty a tvoj pes môžete byť ďalší.', en: 'Every new dog brings us closer to the first thousand. You and your dog could be next.' },
+  now_p: { sk: 'Každý nový pes nás posúva o chlp bližšie k miliónu. Ty a tvoj pes môžete byť ďalší.', en: 'Every new dog brings us a hair closer to a million. You and your dog could be next.' },
   now_join: { sk: 'Pridaj sa', en: 'Join us' },
   now_app: { sk: 'Stiahni appku', en: 'Get the app' },
   fut_share: { sk: 'psov sveta', en: "of the world's dogs" },
@@ -92,7 +92,7 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   dg_p: { sk: 'Toto nie je obyčajný projekt, je to hnutie s jasným vnútorným kódexom. A aj keď máme radšej zvieratá než ľudí, vieme, že ak sa ako psíčkari spojíme, budeme mať väčšiu moc spoločne a s láskou pomáhať celej psej rase.', en: 'This is not an ordinary project, it is a movement with a clear inner code. And even though we like animals more than people, we know that if dog people unite, we will have more power to help the whole dog race, together and with love.' },
   dg_cta: { sk: 'Prečítaj si DOGMU', en: 'Read the DOGMA' },
 
-  ft_about: { sk: 'Psie náboženstvo. Najlepší život pre tvojho psa.', en: 'The dog religion. Your dog’s best life.' },
+  ft_about: { sk: 'Život so psom v jednej appke.', en: 'Life with a dog, in one app.' },
   ft_ask: { sk: 'Opýtaj sa nás', en: 'Ask us' },
   ai_on: { sk: 'online, odpovie hneď', en: 'online, replies right away' },
   ai_hi: { sk: 'Ahoj, som AINUBIS, strážca DOGYPTu. Opýtaj sa ma na príbeh, appku alebo na to, ako sa pridať.', en: 'Hi, I’m AINUBIS, the guardian of DOGYPT. Ask me about the story, the app or how to join.' },

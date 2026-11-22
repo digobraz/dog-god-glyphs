@@ -1814,3 +1814,32 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 /* CLAIM 2 — guľa → sieň bez animácie (Matej 21. 11.: „strašne seká ten prechod“): sieň sa postaví vopred pod guľou
    a prepne sa okamžite; 420/620 ms hasnutia a oddialenia sa skladali spolu s prvým vykreslením siene */
 .aw .planet-live.v2 .planet-root:not(.open),.aw .planet-live.v2 .planet-root:not(.open) .planet-stage{transition:none}
+
+/* ═══ CLAIM 2 · kolo textov 22. 11. 2026 (Matej) ═══ */
+/* mobil: CTA v hlavičke až po scrolle — v úvodnom zábere je CTA v hero (`.mm-open` = otvorené menu) */
+@media(max-width:999px){.aw .top.v2:not(.stuck):not(.mm-open) .wrap>.pk-cta{display:none}}
+/* odznaky pri telefónoch naskočia až pri scrolle */
+.aw .hero.v2 .flt{transition:opacity .6s ease,visibility .6s}
+.aw .car.flt-wait .flt{opacity:0;visibility:hidden}
+/* pilulka odznaku = jeden krátky riadok „Odznak: Pútnik“ */
+.aw .hero.v2 .flt .tx{white-space:nowrap}
+.aw .hero.v2 .flt .tip b{font-weight:600;color:var(--ink-strong)}
+/* REÁLNY MULTIPLAYER: nadpis bol menší než ostatné sekcie (33 vs 44 px na mobile) */
+.aw .life .split h2.v2{font-size:clamp(40px,11.4cqi,88px);line-height:1.02}
+/* INSTAGRAM: na mobile len jeden IG profil a jeden DOGYPT */
+@media(max-width:899px){
+  .aw .ig-v2 .igph2,.aw .ig-v2 .igph3{display:none}
+  .aw .ig-v2 .igrow{justify-content:center;overflow:visible}
+}
+/* VID = Very Important Dog: bodkovane podčiarknuté, vysvetlenie nad slovom */
+.aw .tr-dot.vid{position:relative}
+.aw .tr-dot.vid .tip{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translate(-50%,4px);white-space:nowrap;padding:8px 12px;border-radius:var(--r-tile);background:var(--paper);border:1px solid var(--hairline);box-shadow:0 12px 28px -14px rgba(26,18,6,.45);font:600 var(--t-label)/1.2 var(--font-ui);color:var(--ink-strong);text-decoration:none;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:5}
+.aw .tr-dot.vid.on .tip{opacity:1;transform:translate(-50%,0)}
+@media(hover:hover){.aw .tr-dot.vid:hover .tip{opacity:1;transform:translate(-50%,0)}}
+/* SOS: riadky sa držia v jednom riadku */
+.aw .fmore.dense li{white-space:nowrap}
+/* bez CTA ostáva mapa + hamburger vpravo, nie nalepené na logo */
+@media(max-width:999px){.aw .top.v2:not(.stuck):not(.mm-open) .wrap>.trips-btn{margin-left:auto}}
+/* zlaté slovo = text s background-clip: pri line-height 1 vyčnieva mäkčeň/dĺžeň („POČÍTA“) nad rámik a Safari ho orezáva —
+   rezerva hore aj dole, poloha riadku sa nemení (Matej 22. 11.: „na slove počíta nie je zrezaný mäkčeň a dĺžeň?“) */
+.aw .hero.v2 h1 .deco{padding:.16em 0 .08em;margin:-.16em 0 -.08em}
