@@ -419,13 +419,7 @@ export default function AppWeb() {
     return () => removeEventListener('scroll', f);
   }, []);
 
-  /* odznaky pri telefónoch: CLAIM 2 ich ukáže až po prvom scrolle (Matej 22. 11.: „v úvodnom hero na mockupoch
-     nebudú odznaky, tie tam naskočia až scrollingom“); na pilulke len „Odznak: Pútnik“, level a popis v rozklike */
-  const [fltOn, setFltOn] = useState(false);
-  useEffect(() => { if (stuck) setFltOn(true); }, [stuck]);
-  const flt = (n: number) => (V2
-    ? <><span className="tx">{c(`fb${n}`)}</span><span className="tip"><b>{c(`fl${n}a`)}</b> · {c(`fl${n}b`)}</span></>
-    : <><span className="tx">{c(`fl${n}a`)}<small>{c(`fl${n}b`)}</small></span><span className="tip">{c(`fl${n}t`)}</span></>);
+  const flt = (n: number) => <><span className="tx">{c(`fl${n}a`)}<small>{c(`fl${n}b`)}</small></span><span className="tip">{c(`fl${n}t`)}</span></>;
 
   /* karusel */
   const [ci, setCi] = useState(0);
@@ -718,7 +712,7 @@ export default function AppWeb() {
             </>)}
           </div>
           <div
-            className={`car${V2 && !fltOn ? ' flt-wait' : ''}`}
+            className="car"
             onMouseEnter={() => { hov.current = true; }}
             onMouseLeave={() => { hov.current = false; }}
             onTouchStart={(e) => { sx.current = e.touches[0].clientX; }}
@@ -732,9 +726,10 @@ export default function AppWeb() {
             {CAR.map(([set, src], i) => (
               <Tilt key={set} set={set} src={src} className={`ph ${pos(i)}`} onOpen={() => setCi(i)} />
             ))}
-            <span className={`flt f1${tipOn === 1 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 1 ? 0 : 1); }}><img className="xl" src={`${A}/odznaky/pilgrim-1.webp`} alt="" />{flt(1)}</span>
-            <span className={`flt f2${tipOn === 2 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 2 ? 0 : 2); }}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" />{flt(2)}</span>
-            <span className={`flt f3${tipOn === 3 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 3 ? 0 : 3); }}><img className="xl" src={`${A}/odznaky/${V2 ? 'ucen-4' : 'ucen-1'}.webp`} alt="" />{flt(3)}</span>
+            {!V2 && <span className={`flt f1${tipOn === 1 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 1 ? 0 : 1); }}><img className="xl" src={`${A}/odznaky/pilgrim-1.webp`} alt="" />{flt(1)}</span>}
+            {!V2 && <span className={`flt f2${tipOn === 2 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 2 ? 0 : 2); }}><img className="xl" src={`${A}/odznaky/servant-2.webp`} alt="" />{flt(2)}</span>}
+            {/* CLAIM 2: odznaky v hero zrušené úplne (Matej 22. 11.: „dajme preč úplne… aj mobil aj pc aj po scrolle“) */}
+            {!V2 && <span className={`flt f3${tipOn === 3 ? ' on' : ''}`} tabIndex={0} onClick={(e) => { e.stopPropagation(); setTipOn(tipOn === 3 ? 0 : 3); }}><img className="xl" src={`${A}/odznaky/${V2 ? 'ucen-4' : 'ucen-1'}.webp`} alt="" />{flt(3)}</span>}
           </div>
         </div>
       </section>

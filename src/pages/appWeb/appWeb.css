@@ -1818,12 +1818,6 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 /* ═══ CLAIM 2 · kolo textov 22. 11. 2026 (Matej) ═══ */
 /* mobil: CTA v hlavičke až po scrolle — v úvodnom zábere je CTA v hero (`.mm-open` = otvorené menu) */
 @media(max-width:999px){.aw .top.v2:not(.stuck):not(.mm-open) .wrap>.pk-cta{display:none}}
-/* odznaky pri telefónoch naskočia až pri scrolle */
-.aw .hero.v2 .flt{transition:opacity .6s ease,visibility .6s}
-.aw .car.flt-wait .flt{opacity:0;visibility:hidden}
-/* pilulka odznaku = jeden krátky riadok „Odznak: Pútnik“ */
-.aw .hero.v2 .flt .tx{white-space:nowrap}
-.aw .hero.v2 .flt .tip b{font-weight:600;color:var(--ink-strong)}
 /* REÁLNY MULTIPLAYER: nadpis bol menší než ostatné sekcie (33 vs 44 px na mobile) */
 .aw .life .split h2.v2{font-size:clamp(40px,11.4cqi,88px);line-height:1.02}
 /* INSTAGRAM: na mobile len jeden IG profil a jeden DOGYPT */

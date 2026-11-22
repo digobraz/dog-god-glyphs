@@ -1,7 +1,6 @@
 /** CLAIM 2 · kolo textov 22. 11. 2026 (Matej, posledné pred mockupmi a flipom). Prebíja `CLAIM` aj COPY pri rovnakom kľúči,
  *  len za `?claim`. Chýbajúci jazyk → EN. `*slovo*` = tučne (podnadpis hero).
- *  Hero: nadnadpis „Život so psom v jednej appke“, z podnadpisu preč „jednej“, ZADARMO tučne · odznaky pri telefónoch
- *  skrátené na „Odznak: Pútnik“, zvyšok v rozklike · Funkcie: AI mentor, SOS riadky na jeden riadok · VID prístup ·
+ *  Hero: nadnadpis „Život so psom v jednej appke“, z podnadpisu preč „jednej“, ZADARMO tučne · Funkcie: AI mentor, SOS riadky na jeden riadok · VID prístup · odznaky v hero zrušené ·
  *  levely nový texting · podpora bez konta zanikla → jedna veta vo FAQ „Kto to financuje?“. */
 type Row = Record<string, string>;
 export const CLAIM22: Record<string, Row> = {
@@ -26,10 +25,6 @@ export const CLAIM22: Record<string, Row> = {
     kor: '나들이, 수의사, AI 멘토, 반려인 만남, 응급처치, 배움, 일기. 반려인에게 필요한 모든 것을 즐거운 앱에. *무료.*',
     ind: 'सैर, पशु चिकित्सक, AI मेंटर, डॉग-दोस्त मुलाक़ात, प्राथमिक उपचार, सीख और डायरी। कुत्ते वाले को जो कुछ चाहिए, मज़ेदार ऐप में। *मुफ़्त।*',
   },
-  /* odznaky pri telefónoch: na pilulke len názov, level a popis až v rozklike */
-  fb1: { sk: 'Odznak: Pútnik', en: 'Badge: Pilgrim', cs: 'Odznak: Poutník', deu: 'Abzeichen: Pilger', pol: 'Odznaka: Pielgrzym', ukr: 'Значок: Паломник', esp: 'Insignia: Peregrino', fra: 'Badge : Pèlerin', ita: 'Badge: Pellegrino', prt: 'Insígnia: Peregrino', nld: 'Badge: Pelgrim', tur: 'Rozet: Hacı', rus: 'Значок: Пилигрим', ara: 'شارة: الرحّالة', chn: '徽章：朝圣者', jpn: 'バッジ：巡礼者', kor: '배지: 순례자', ind: 'बैज: तीर्थयात्री' },
-  fb2: { sk: 'Odznak: Služobník', en: 'Badge: Servant', cs: 'Odznak: Služebník', deu: 'Abzeichen: Diener', pol: 'Odznaka: Sługa', ukr: 'Значок: Слуга', esp: 'Insignia: Siervo', fra: 'Badge : Serviteur', ita: 'Badge: Servitore', prt: 'Insígnia: Servo', nld: 'Badge: Dienaar', tur: 'Rozet: Hizmetkâr', rus: 'Значок: Слуга', ara: 'شارة: خادم', chn: '徽章：侍者', jpn: 'バッジ：従者', kor: '배지: 시종', ind: 'बैज: सेवक' },
-  fb3: { sk: 'Odznak: Učeň', en: 'Badge: Disciple', cs: 'Odznak: Učeň', deu: 'Abzeichen: Schüler', pol: 'Odznaka: Uczeń', ukr: 'Значок: Учень', esp: 'Insignia: Discípulo', fra: 'Badge : Disciple', ita: 'Badge: Discepolo', prt: 'Insígnia: Discípulo', nld: 'Badge: Leerling', tur: 'Rozet: Çırak', rus: 'Значок: Ученик', ara: 'شارة: تلميذ', chn: '徽章：学徒', jpn: 'バッジ：弟子', kor: '배지: 제자', ind: 'बैज: शिष्य' },
   /* FUNKCIE */
   h_feat_a: { sk: 'Mapa, denník, AI mentor aj SOS.', en: 'Map, diary, AI mentor and SOS.', cs: 'Mapa, deník, AI mentor i SOS.', deu: 'Karte, Tagebuch, KI-Mentor und SOS.', pol: 'Mapa, dziennik, mentor AI i SOS.', ukr: 'Мапа, щоденник, ШІ-ментор і SOS.', esp: 'Mapa, diario, mentor IA y SOS.', fra: 'Carte, journal, mentor IA et SOS.', ita: 'Mappa, diario, mentore IA e SOS.', prt: 'Mapa, diário, mentor IA e SOS.', nld: 'Kaart, dagboek, AI-mentor en SOS.', tur: 'Harita, günlük, yapay zekâ mentoru ve SOS.', rus: 'Карта, дневник, ИИ-наставник и SOS.', ara: 'خريطة، يوميات، مرشد ذكي وSOS.', chn: '地图、日记、AI 导师和 SOS。', jpn: '地図、日記、AIメンター、SOS。', kor: '지도, 일기, AI 멘토, SOS까지.', ind: 'नक्शा, डायरी, AI मेंटर और SOS।' },
   /* SOS: každý riadok na jeden riadok; týranie už nie je „čoskoro“, len zbierky a útulky */
