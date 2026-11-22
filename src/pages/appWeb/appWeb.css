@@ -1901,3 +1901,8 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .planet-live.v2 .ph-lbl{white-space:normal;font-size:calc(var(--ph-w) * .112);max-width:100%;text-align:center}
 @media(max-width:600px){.aw .planet-live.v2 .gbb-col .gbb-main{min-width:220px}}
 @media(max-width:600px){body:has(.planet-live.v2 .gbb-row) .ainubis-launcher{visibility:hidden}}
+/* SIEŇ = nekonečná plocha (Matej 22. 11.: „po prepnutí na hall a slajde hore je web… má to byť infinity plocha“).
+   Stena počúva touchmove pasívne, takže ťah zároveň roloval stránku a spod steny vyliezlo FAQ. Kým je sieň otvorená
+   (`.gbb-row`), stránka stojí a prst patrí len stene; von sa ide šípkou Späť. */
+html:has(.aw .planet-live.v2 .gbb-row),body:has(.aw .planet-live.v2 .gbb-row){overflow:hidden!important;overscroll-behavior:none}
+.aw .planet-live.v2:has(.gbb-row){touch-action:none}
