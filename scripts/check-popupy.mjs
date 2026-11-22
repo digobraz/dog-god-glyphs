@@ -159,7 +159,13 @@ const IN_PAGE = (vynimky) => {
         if (e.closest('[aria-hidden="true"]') || vynimky.some(s => e.closest(s))) continue;
         if (!vis(e)) continue;
         const rg = document.createRange(); rg.selectNodeContents(t);
-        const rs = [...rg.getClientRects()].filter(x => x.width > 1 && x.height > 1);
+        let rs = [...rg.getClientRects()].filter(x => x.width > 1 && x.height > 1);
+        // pre-wrap nechá medzeru na konci riadku VISIEŤ za okrajom (bublina AINUBISA: +2,4 px, nič sa neorezalo) —
+        // v takom texte sa meria po slovách, nie po riadku s medzerou.
+        if (/^(pre|break-spaces)/.test(getComputedStyle(e).whiteSpace)) {
+          rs = [];
+          for (const m of t.textContent.matchAll(/\S+/g)) { const w = document.createRange(); w.setStart(t, m.index); w.setEnd(t, m.index + m[0].length); rs.push(...[...w.getClientRects()].filter(x => x.width > 1 && x.height > 1)); }
+        }
         if (!rs.length) continue;
         const L = Math.min(...rs.map(x => x.left)), R = Math.max(...rs.map(x => x.right));
         let cl = 0, cr = vw, box = null, col = null, scrollable = false;

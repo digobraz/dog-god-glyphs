@@ -372,6 +372,8 @@ async function novyKontext(browser, subor, w, h) {
     // Pri načítaní stránky funkcie len čítajú; atrapa iba po kliku, inak by sama zhodila obrazovku (listMyWills 9. 11.).
     if (u.pathname.startsWith('/functions/v1/')) { if (!ctx.klikam || /\/(get|list)-/.test(u.pathname) || /"action":"(list|get|hint)"/.test(q.postData() || '')) return route.continue(); atrapa(); return route.fulfill({ status: 200, json: {} }); }
     // RPC pri načítaní stránky len číta; zápis môže prísť až po kliku.
+    // Zápisy, ktoré nesmú prejsť nikdy (22. 11.: prechod založil na DEV skutočný podnet `otrava-6qyj`).
+    if (/\/rest\/v1\/rpc\/(danger_report|danger_complaint\w*|danger_tip\w*|danger_comment\w*|sos_declare)$/.test(u.pathname)) { atrapa(); return route.fulfill({ status: 200, json: [] }); }
     if (u.pathname.startsWith('/rest/v1/rpc/')) { if (!ctx.klikam || CITANIE_RPC.test(u.pathname.split('/').pop())) return route.continue(); atrapa(); return route.fulfill({ status: 200, json: [] }); }
     if ((u.pathname.startsWith('/rest/v1/') || u.pathname.startsWith('/storage/v1/')) && !['GET', 'HEAD'].includes(m)) { atrapa(); return route.fulfill({ status: 201, json: [] }); }
     return route.continue();
