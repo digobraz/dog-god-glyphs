@@ -149,6 +149,9 @@ const GROUPS: Group[] = [
       // 19. 11. 2026 večer — druhý test od nuly: dosky krokov 1–9 sa vysúvajú cez `top` (fixed dok CTA sa už nevezie =
       // záblesk), šat pred 1. snímkou, veta kroku 2 podľa chýbajúceho, Vitaj podľa nákresu + „Vložiť kód“ na členskom,
       // Stripe vracia rovno na Vitaj (web c4fd566c, fedeb0e5). Stavy krokov bez zmeny, 10–11 WIP do telefónu.
+      // 22. 11. 2026 — klávesnica na iPhone (Matej: „nevidím čo píšem“): výška sa meria proti 100dvh (lib/keyboardInset.ts),
+      // pri písaní zmizne medailón a vedľajšie vety, pole mena psa `dog-nickname` (Safari neponúkne kontakt). Web 9d8c5266,
+      // 756e67be, 6ac34f62. Krok 1 ostáva „done“ — čaká len na Matejov test v telefóne.
       { name: '10 · Dobrovoľné členské', path: '/heroglyph/vstupne', state: 'wip' },
       { name: '11 · Vitaj → Otvoriť appku', path: '/heroglyph/welcome?free=1', state: 'wip' },
     ],
