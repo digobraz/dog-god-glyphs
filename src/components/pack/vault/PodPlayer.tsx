@@ -26,6 +26,8 @@ import {
   type DemoScroll, podLang, pickText, fmtSec, scrollThumb, saveListen, markScroll, logEvent, useDemoScrolls, useFullScroll,
 } from './vaultScrolls';
 import { VAULT_CIRCLES } from './circles';
+import { VAULT_WORLDS } from './worlds';
+import { useT } from '@/i18n/LanguageContext';
 
 type S = {
   z: DemoScroll | null; lang: string; appLang: string;
@@ -48,6 +50,7 @@ const circleOf = (z: DemoScroll, lang: string) => {
   return c ? (lang === 'sk' || lang === 'cs' ? c.sk : c.en) : (typeof z.circle === 'string' ? z.circle : '');
 };
 const POD_TAG: Record<string, string> = { sk: 'SK', en: 'EN', cs: 'CZ', de: 'DE' };
+const POD_LANGS_ORDER = ['sk', 'cs', 'en', 'de'];
 
 // zoznam pre ⏮ ⏭ a kocku (ľahké riadky z `useDemoScrolls`, podcast v nich je)
 let list: DemoScroll[] = [];
@@ -145,12 +148,22 @@ const SHUFFLE_MSG: Record<string, [string, string]> = {
 export function podShuffle() {
   const on = !s.shuffle;
   set({ shuffle: on });
+  // „lepšie aplikovať náhodný výber“ (Matej 22. 11.): zapnutá kocka hneď pustí náhodný zvitok, nečaká na koniec
+  if (on) podNext();
   const m = SHUFFLE_MSG[s.appLang] || SHUFFLE_MSG.en;
   toast(on ? m[0] : m[1], { id: 'pod-shuffle', duration: 2000, position: 'top-center' });
 }
 export function podFull(full: boolean) { set({ full }); }
 export function podTuck(tucked: boolean) { set({ tucked }); }
 const langFor = (z: DemoScroll) => (z.pod[s.lang] ? s.lang : podLang(z, s.appLang));
+/** Výber sveta v prehrávači: vypne kocku a pustí prvý zvitok sveta (ďalej ide po poradí). */
+export function podWorld(world: string) {
+  if (s.shuffle) set({ shuffle: false });
+  if (s.z?.world === world) return;
+  const z = list.find((x) => x.world === world && hasPod(x));
+  const l = z && langFor(z);
+  if (z && l) load(z, l);
+}
 export function podNext() {
   const cur = s.z; if (!cur) return;
   const ok = list.filter(hasPod);
@@ -281,7 +294,10 @@ function Jazycek() {
   );
 }
 
-/** CELÁ obrazovka — šípka dole, Esc alebo stiahnutie za vrch. */
+const SHUFFLE_LABEL: Record<string, string> = { sk: 'Náhodne', cs: 'Náhodně', de: 'Zufällig', en: 'Shuffle' };
+/** CELÁ obrazovka — šípka dole, Esc alebo stiahnutie za vrch.
+ *  Matej 22. 11.: rad svetov (vybraný s názvom, ostatné len ikonka) + kocka „Náhodne“ v tom istom rade,
+ *  jazyk v roletke hore pri prepise, šípka späť výraznejšia. */
 function PodFull() {
   const p = usePod();
   const { z } = useFullScroll(p.z!); // prepis je len v celom článku
@@ -293,17 +309,36 @@ function PodFull() {
     window.addEventListener('keydown', on);
     return () => window.removeEventListener('keydown', on);
   }, []);
+  const t = useT();
+  const all = useDemoScrolls();
+  const [langMenu, setLangMenu] = useState(false);
   const x = pickText(z, p.appLang);
   const lines = z.pod[p.lang]?.tr || [];
   const pct = p.dur ? (p.t / p.dur) * 100 : 0;
+  const worlds = VAULT_WORLDS.filter((w) => all.some((a) => a.world === w.key && hasPod(a)));
+  const wName = (key: string) => { const k = `pack.ainubis.world.${key}`; const v = t(k); return v === k ? (VAULT_WORLDS.find((w) => w.key === key)?.en || key) : v; };
+  const langs = POD_LANGS_ORDER.filter((l) => z.pod[l]);
   return createPortal(
     <div className="pp-full" role="dialog" aria-modal="true" aria-label={x.t} style={sheetStyle}>
       <div className="pp-top" {...handle}>
-        <button type="button" className="pp-down" aria-label="Close" onClick={close}><Svg d="M6 9l6 6 6-6" /></button>
-        <span className="pp-eb">{circleOf(z, p.appLang)}</span>
-        {lines.length > 0
-          ? <button type="button" className={`pp-pill${tr ? ' is-on' : ''}`} aria-pressed={tr} onClick={() => setTr(!tr)}>Aa</button>
-          : <span className="pp-pill pp-ghost" aria-hidden />}
+        <button type="button" className="pp-down" aria-label="Close" onClick={close}><Svg d="M6 9l6 6 6-6" size={26} /></button>
+        <span className="pp-tools">
+          <button type="button" className="pp-pill" onClick={podRate}>{String(p.rate).replace('.', ',')}×</button>
+          <span className="pp-dd">
+            <button type="button" className="pp-pill" aria-haspopup="listbox" aria-expanded={langMenu} onClick={() => setLangMenu(!langMenu)}>
+              {POD_TAG[p.lang] || p.lang.toUpperCase()} <Svg d="M6 9l6 6 6-6" size={14} />
+            </button>
+            {langMenu && (
+              <span className="pp-menu" role="listbox">
+                {langs.map((l) => (
+                  <button key={l} type="button" role="option" aria-selected={l === p.lang} className={`pp-pill${l === p.lang ? ' is-on' : ''}`}
+                    onClick={() => { podLangTo(l); setLangMenu(false); }}>{POD_TAG[l]}</button>
+                ))}
+              </span>
+            )}
+          </span>
+          {lines.length > 0 && <button type="button" className={`pp-pill${tr ? ' is-on' : ''}`} aria-pressed={tr} onClick={() => setTr(!tr)}>Aa</button>}
+        </span>
       </div>
       {tr ? (
         <div className="pp-tr">
@@ -311,7 +346,7 @@ function PodFull() {
         </div>
       ) : (z.img ? <img className="pp-art" src={z.img} alt="" /> : <div className="pp-art" />)}
       <h2 className="pp-h">{x.t}</h2>
-      <span className="pp-sub">{z.n} / {z.total}</span>
+      <span className="pp-sub">{circleOf(z, p.appLang)} · {z.n} / {z.total}</span>
       <input type="range" className="pp-seek" min={0} max={Math.max(1, Math.floor(p.dur))} step={1} value={Math.floor(p.t)} aria-label={x.t}
         style={{ ['--p' as string]: `${pct}%` }} onChange={(e) => podSeek(Number(e.target.value))} />
       <div className="pp-times"><span>{fmtSec(Math.floor(p.t))}</span><span>−{fmtSec(Math.max(0, Math.floor(p.dur - p.t)))}</span></div>
@@ -322,14 +357,20 @@ function PodFull() {
         <button type="button" className="pp-ic" aria-label="+15 s" onClick={() => podSkip(15)}><Skip fwd /></button>
         <button type="button" className="pp-ic" aria-label="Next" onClick={podNext}><Svg d={NEXT} fill size={32} /></button>
       </div>
-      <div className="pp-row">
-        <button type="button" className="pp-pill" onClick={podRate}>{String(p.rate).replace('.', ',')}×</button>
-        <span className="pp-langs">
-          {['sk', 'cs', 'en', 'de'].filter((l) => z.pod[l]).map((l) => (
-            <button key={l} type="button" className={`pp-pill${l === p.lang ? ' is-on' : ''}`} aria-pressed={l === p.lang} onClick={() => podLangTo(l)}>{POD_TAG[l]}</button>
-          ))}
-        </span>
-        <button type="button" className={`pp-pill pp-dice${p.shuffle ? ' is-on' : ''}`} aria-pressed={p.shuffle} aria-label="Shuffle" onClick={podShuffle}><SysIcon name="kocka" size={28} off={!p.shuffle} /></button>
+      {/* ČO POČÚVAM: kocka (náhodne zo všetkých) alebo svet. Vybraný kus nesie aj meno, ostatné len ikonku. */}
+      <div className="pp-scope" role="radiogroup">
+        <button type="button" role="radio" aria-checked={p.shuffle} className={`pp-chip${p.shuffle ? ' is-on' : ''}`} onClick={podShuffle}
+          aria-label={SHUFFLE_LABEL[p.appLang] || SHUFFLE_LABEL.en}>
+          <SysIcon name="kocka" size={26} />{p.shuffle && <b>{SHUFFLE_LABEL[p.appLang] || SHUFFLE_LABEL.en}</b>}
+        </button>
+        {worlds.map((w) => {
+          const on = !p.shuffle && z.world === w.key;
+          return (
+            <button key={w.key} type="button" role="radio" aria-checked={on} className={`pp-chip${on ? ' is-on' : ''}`} onClick={() => podWorld(w.key)} aria-label={wName(w.key)}>
+              <img src={svetImg(w.key)} alt="" />{on && <b>{wName(w.key)}</b>}
+            </button>
+          );
+        })}
       </div>
     </div>,
     document.body,
@@ -344,6 +385,8 @@ ${b3('.pp-play', 'or', `${PACK_R.pill}px`, 4)}
 ${b3('.pp-pill', 'nt', `${PACK_R.pill}px`, 3)}
 ${b3('.pp-pill.is-on', 'cy', `${PACK_R.pill}px`, 3)}
 ${b3('.pp-down', 'nt', `${PACK_R.pill}px`, 3)}
+${b3('.pp-chip', 'nt', `${PACK_R.pill}px`, 3)}
+${b3('.pp-chip.is-on', 'cy', `${PACK_R.pill}px`, 3)}
 .pp-tab{position:fixed;z-index:39;left:var(--pack-nav-cx,50vw);transform:translateX(-50%);
   width:calc(var(--pack-nav-half,171px) * 2 - ${PACK_SPACE.xl}px);max-width:calc(100vw - ${PACK_SPACE.xxl + PACK_SPACE.xl}px);
   bottom:calc(var(--pack-nav-bottom,${PACK_SPACE.lg}px) + var(--pack-nav-h,64px) - ${PACK_SPACE.lg}px);height:84px;cursor:pointer;
@@ -369,8 +412,19 @@ ${b3('.pp-down', 'nt', `${PACK_R.pill}px`, 3)}
   background:${A.surface};color:${A.ink};font-family:${FONT_UI};animation:pp-up .24s ease;}
 @keyframes pp-up{from{transform:translateY(100%)}to{transform:none}}
 .pp-top{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;padding-bottom:${PACK_SPACE.sm}px;}
-.pp-down{width:40px;height:40px;flex:none;display:grid;place-items:center;cursor:pointer;padding:0;}
-.pp-eb{flex:1;min-width:0;text-align:center;${M3.lab}white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pp-down{width:44px;height:44px;flex:none;display:grid;place-items:center;cursor:pointer;padding:0;}
+/* šípka späť: Matej 22. 11. „je nejaké bledé“ — plný inkoust a cyan lem, nie tmavá na tmavom */
+.pp-full .pp-down{color:${A.ink};border-color:${A.cyan};box-shadow:0 0 0 2px ${A.bgDeep},0 0 16px -4px ${A.cyan};}
+.pp-down svg{stroke-width:3;}
+.pp-tools{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
+.pp-dd{position:relative;}
+.pp-dd .pp-pill{gap:${PACK_SPACE.xs}px;display:inline-flex;}
+.pp-menu{position:absolute;right:0;top:calc(100% + ${PACK_SPACE.sm}px);z-index:2;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px;${M3.bub}}
+.pp-scope{display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;padding-top:${PACK_SPACE.lg}px;flex-wrap:nowrap;}
+.pp-chip{height:44px;min-width:44px;padding:0 ${PACK_SPACE.sm}px;display:inline-flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;cursor:pointer;flex:none;}
+.pp-chip.is-on{padding:0 ${PACK_SPACE.md}px 0 ${PACK_SPACE.sm}px;flex:0 1 auto;min-width:0;}
+.pp-chip img{width:28px;height:28px;object-fit:contain;flex:none;}
+.pp-chip b{font-size:${PACK_TEXT.body}px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 .pp-art{flex:1 1 0;min-height:0;width:auto;max-width:100%;align-self:center;aspect-ratio:3/4;object-fit:cover;${M3.card}border-radius:${PACK_R.card}px;}
 .pp-tr{flex:1 1 0;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.lg}px;font-size:${PACK_TEXT.lead}px;line-height:1.45;color:${A.inkDim};${M3.box}}
 .pp-tr p{margin:0;}
@@ -387,9 +441,5 @@ ${b3('.pp-down', 'nt', `${PACK_R.pill}px`, 3)}
 .pp-ctrl{display:flex;align-items:center;justify-content:space-between;}
 .pp-ctrl .pp-ic{width:48px;height:48px;}
 .pp-big{width:72px;height:72px;}
-.pp-row{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;padding-top:${PACK_SPACE.md}px;}
-.pp-langs{display:flex;gap:${PACK_SPACE.xs}px;}
 .pp-pill{min-width:40px;height:32px;padding:0 ${PACK_SPACE.md}px;display:inline-grid;place-items:center;cursor:pointer;font-size:${PACK_TEXT.label}px;font-weight:600;font-family:${FONT_UI};}
-.pp-ghost{visibility:hidden;}
-.pp-dice{padding:0 ${PACK_SPACE.xs}px;}
 `;
