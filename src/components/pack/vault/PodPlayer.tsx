@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 import { SysIcon } from '@/components/pack/SysIcon';
 import { PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { AINUBIS as A } from '@/components/pack/ainubisSkin';
-import { M3, b3 } from '@/components/pack/ainubis/3d/zaklad';
+import { M3, b3, svetImg } from '@/components/pack/ainubis/3d/zaklad';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import {
   type DemoScroll, podLang, pickText, fmtSec, scrollThumb, saveListen, markScroll, logEvent, useDemoScrolls, useFullScroll,
@@ -30,10 +30,12 @@ import { VAULT_CIRCLES } from './circles';
 type S = {
   z: DemoScroll | null; lang: string; appLang: string;
   playing: boolean; t: number; dur: number; rate: number; shuffle: boolean; full: boolean;
+  /** Jazýček stiahnutý dole — na nave ostane len kapsula postupu. */
+  tucked: boolean;
   /** Zvitok, ktorého článok je práve otvorený — v ňom mini prehrávač nekreslíme (prehrávač je tam priamo). */
   inView: string | null;
 };
-let s: S = { z: null, lang: 'sk', appLang: 'sk', playing: false, t: 0, dur: 0, rate: 1, shuffle: false, full: false, inView: null };
+let s: S = { z: null, lang: 'sk', appLang: 'sk', playing: false, t: 0, dur: 0, rate: 1, shuffle: false, full: false, tucked: false, inView: null };
 const subs = new Set<() => void>();
 const set = (p: Partial<S>) => { s = { ...s, ...p }; subs.forEach((f) => f()); };
 const sub = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; };
@@ -147,6 +149,7 @@ export function podShuffle() {
   toast(on ? m[0] : m[1], { id: 'pod-shuffle', duration: 2000, position: 'top-center' });
 }
 export function podFull(full: boolean) { set({ full }); }
+export function podTuck(tucked: boolean) { set({ tucked }); }
 const langFor = (z: DemoScroll) => (z.pod[s.lang] ? s.lang : podLang(z, s.appLang));
 export function podNext() {
   const cur = s.z; if (!cur) return;
@@ -241,21 +244,40 @@ export function PodMini() {
     <>
       <ListFeed />
       <style>{POD_CSS}</style>
-      {show && (
-        <div className="pp-mini" role="region" aria-label={x.t} onClick={() => podFull(true)}>
-          {p.z.img && <img {...scrollThumb(p.z.img)} alt="" />}
-          <div className="pp-meta">
-            <b>{x.t}</b>
-            <small>{fmtSec(Math.floor(p.t))} / {fmtSec(Math.floor(p.dur))} · {POD_TAG[p.lang] || p.lang.toUpperCase()}</small>
-          </div>
-          <button type="button" className="pp-ic" aria-label="Previous" onClick={(e) => { e.stopPropagation(); podPrev(); }}><Svg d={PREV} fill /></button>
-          <button type="button" className="pp-play" aria-label={p.playing ? 'Pause' : 'Play'} onClick={(e) => { e.stopPropagation(); podToggle(); }}><Svg d={p.playing ? PAUSE : PLAY} fill /></button>
-          <button type="button" className="pp-ic" aria-label="Next" onClick={(e) => { e.stopPropagation(); podNext(); }}><Svg d={NEXT} fill /></button>
-          <div className="pk-progress pp-bar"><div className="pk-progress__fill" style={{ transform: `scaleX(${p.dur ? p.t / p.dur : 0})` }} /></div>
-        </div>
+      {show && !p.tucked && <Jazycek />}
+      {show && p.tucked && (
+        <button type="button" className="pp-cap pp-cap--tuck" aria-label={x.t} onClick={() => podTuck(false)}>
+          <i style={{ transform: `scaleX(${p.dur ? p.t / p.dur : 0})` }} />
+        </button>
       )}
       {p.full && <PodFull />}
     </>
+  );
+}
+
+/** JAZÝČEK (Matej 22. 11. 2026, nákres plany/nakresy/prehravac-podcastov-2026-11-22/jazycek.html kolo 7): tmavý pás
+ *  vykukuje spoza spodného navu, packa ho prekrýva. Hore oranžová kapsula postupu, vľavo ikonka sveta + celý názov,
+ *  vpravo play, pod nimi čas a zvyšok. Ťuk = celá obrazovka · stiahnuť dole = schová sa (ostane kapsula na nave).
+ *  Leží POD navom (z 39 < pás navu 40), takže menu JA aj panel `+` idú nad neho (Matej: „ten drop byť nad tým jazýčkom“). */
+function Jazycek() {
+  const p = usePod();
+  const z = p.z!;
+  const x = pickText(z, p.appLang);
+  const { handle, drag } = useSheetSwipe(() => podTuck(true));
+  return (
+    <div className="pp-tab" role="region" aria-label={x.t} {...handle} onClick={() => { if (!drag) podFull(true); }}
+      style={{ ...handle.style, ...(drag ? { transform: `translate(-50%, ${drag}px)`, transition: 'none' } : null) }}>
+      <span className="pp-cap"><i style={{ transform: `scaleX(${p.dur ? p.t / p.dur : 0})` }} /></span>
+      <div className="pp-tab-row">
+        <img src={svetImg(z.world)} alt="" />
+        <b>{x.t}</b>
+        <button type="button" className="pp-play pp-play--s" aria-label={p.playing ? 'Pause' : 'Play'} onClick={(e) => { e.stopPropagation(); podToggle(); }}>
+          <Svg d={p.playing ? PAUSE : PLAY} fill size={14} />
+        </button>
+      </div>
+      <span className="pp-tab-t">{fmtSec(Math.floor(p.t))}</span>
+      <span className="pp-tab-t pp-tab-t--r">−{fmtSec(Math.max(0, Math.floor(p.dur - p.t)))}</span>
+    </div>
   );
 }
 
@@ -322,17 +344,22 @@ ${b3('.pp-play', 'or', `${PACK_R.pill}px`, 4)}
 ${b3('.pp-pill', 'nt', `${PACK_R.pill}px`, 3)}
 ${b3('.pp-pill.is-on', 'cy', `${PACK_R.pill}px`, 3)}
 ${b3('.pp-down', 'nt', `${PACK_R.pill}px`, 3)}
-.pp-mini{position:fixed;z-index:40;left:var(--pack-nav-cx,50vw);transform:translateX(-50%);
-  width:calc(var(--pack-nav-half,171px) * 2);max-width:calc(100vw - ${PACK_SPACE.xxl}px);
-  bottom:calc(var(--pack-nav-bottom,${PACK_SPACE.lg}px) + var(--pack-nav-h,64px) + ${PACK_SPACE.xl}px);
-  height:64px;display:flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:0 ${PACK_SPACE.sm}px;overflow:hidden;cursor:pointer;
-  ${M3.card}border-radius:${PACK_R.frame}px;color:${A.ink};font-family:${FONT_UI};}
-.pp-mini img{width:44px;height:44px;flex:none;object-fit:cover;border-radius:${PACK_R.field}px;border:1.5px solid ${A.edgeStrong};}
-.pp-meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
-.pp-meta b{font-size:${PACK_TEXT.body}px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pp-meta small{font-size:${PACK_TEXT.label}px;color:${A.inkFaint};}
-.pp-bar{position:absolute;left:0;right:0;bottom:0;width:auto;height:4px;border-radius:0;background:${A.edge};}
-.pp-bar .pk-progress__fill{width:100%;border-radius:0;transform-origin:left;transition:none;background:${A.cyan};}
+.pp-tab{position:fixed;z-index:39;left:var(--pack-nav-cx,50vw);transform:translateX(-50%);
+  width:calc(var(--pack-nav-half,171px) * 2 - ${PACK_SPACE.xl}px);max-width:calc(100vw - ${PACK_SPACE.xxl + PACK_SPACE.xl}px);
+  bottom:calc(var(--pack-nav-bottom,${PACK_SPACE.lg}px) + var(--pack-nav-h,64px) - ${PACK_SPACE.lg}px);height:84px;cursor:pointer;
+  ${M3.card}border-bottom:0;border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;color:${A.ink};font-family:${FONT_UI};transition:transform .24s ease;}
+.pp-tab-row{display:grid;grid-template-columns:32px minmax(0,1fr) 32px;align-items:center;gap:${PACK_SPACE.md}px;height:40px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.sm}px 0;}
+.pp-tab-row img{width:30px;height:30px;object-fit:contain;}
+.pp-tab-row b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;} /* písmo: nadpis */
+.pp-play.pp-play--s{width:32px;height:32px;}
+.pp-tab-t{position:absolute;left:52px;bottom:${PACK_SPACE.xl}px;font-size:${PACK_TEXT.label}px;color:${A.inkFaint};font-variant-numeric:tabular-nums;}
+.pp-tab-t--r{left:auto;right:52px;}
+/* kapsula postupu: na hornej hrane jazýčka, výplň = AINUBISova CTA (Matej: „progres pole dajme oranžovou“) */
+.pp-cap{position:absolute;left:${PACK_SPACE.xl}px;right:${PACK_SPACE.xl}px;top:-8px;height:10px;display:block;overflow:hidden;padding:0;
+  border-radius:${PACK_R.pill}px;background:${A.bgDeep};border:2px solid ${A.edge};box-shadow:var(--ai-inset);}
+.pp-cap i{display:block;width:100%;height:100%;border-radius:${PACK_R.pill}px;transform-origin:left;background:${A.ctaGrad};box-shadow:${A.ctaShadow};}
+.pp-cap--tuck{position:fixed;z-index:39;top:auto;cursor:pointer;left:calc(var(--pack-nav-cx,50vw) - var(--pack-nav-half,171px) + ${PACK_SPACE.xxl}px);
+  right:auto;width:calc(var(--pack-nav-half,171px) * 2 - ${PACK_SPACE.xxl * 2}px);bottom:calc(var(--pack-nav-bottom,${PACK_SPACE.lg}px) + var(--pack-nav-h,64px) - 2px);}
 .pp-ic{flex:none;display:grid;place-items:center;width:40px;height:40px;border:0;padding:0;background:none;color:${A.ink};cursor:pointer;}
 .pp-play{flex:none;display:grid;place-items:center;width:44px;height:44px;padding:0;cursor:pointer;}
 .pp-skip{position:relative;display:grid;place-items:center;}
