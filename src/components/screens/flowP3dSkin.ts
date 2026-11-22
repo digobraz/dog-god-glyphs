@@ -198,6 +198,12 @@ ${WALL} .hf-stage:not(.wl-page) > :last-child { margin-bottom: auto; }
    useFlowKeyboardFix), o to sa obrazovka skráti a dolné CTA vystúpi nad ňu. Bez klávesnice je to 0. */
 ${WALL} { height: calc(100dvh - var(--flow-kb, 0px)) !important; }
 ${ROOT} :is(.hf-dock, .vs-dock) { bottom: calc(max(24px, env(safe-area-inset-bottom)) + var(--flow-kb, 0px) + var(--dock-up, 0px)) !important; }
+/* 22. 11. (Matej: „po kliknutí vidieť plynulé vysunutie a písanie bez problémov s dobrým výhľadom“): kým je klávesnica hore
+   (html.kb-open, lib/keyboardInset.ts), medailón sa plynulo zmenší, aby sa otázka aj pole zmestili nad klávesnicu. */
+${WALL} { transition: height .28s cubic-bezier(.2,.7,.2,1); }
+${WALL} .fm { transition: width .28s cubic-bezier(.2,.7,.2,1), height .28s cubic-bezier(.2,.7,.2,1); }
+html.kb-open[data-flow-p3d] :is(.dark-bg, .hf-pale) .fm { width: 72px !important; height: 72px !important; }
+html.kb-open[data-flow-p3d] :is(.dark-bg, .hf-pale) .hf-stage { padding-top: 8px; }
 
 /* ── E-MAIL: veľká fotka v strede, bublina pod ňou ─────────────────────────── */
 ${WALL} .hf-stage:has(:is(.hf-skip, .hf-dogfit)) .hf-speak:not(.st-speak) { flex-direction: column; align-items: center; gap: 16px; }

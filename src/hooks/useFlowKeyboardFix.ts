@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { acquireScrollLock } from './useBodyScrollLock';
+import { keyboardInset, markKeyboard } from '@/lib/keyboardInset';
 
 /**
  * iOS Safari leaves a 100dvh overflow-hidden flow screen scrolled ("stuck in
@@ -23,7 +24,7 @@ export function useFlowKeyboardFix() {
     // ⚠️ Návrat hore LEN keď klávesnica zmizne. Dovtedy sa volal pri KAŽDEJ zmene viewportu — aj počas písania,
     //    keď iOS sám posúva ku kurzoru — a obrazovka poskočila hore a späť (Matej 19. 11. 2026: „seká to… na
     //    mikrosekundu to vyzerá ako pokazené“). Tri ruky na jednom posune: iOS, toto a `seeField`.
-    const kbOpen = () => !!window.visualViewport && window.innerHeight - window.visualViewport.height > 80;
+    const kbOpen = () => keyboardInset() > 0;
     const resetScroll = () => { if (!kbOpen() && window.scrollY !== 0) window.scrollTo(0, 0); };
     const onFocusOut = () => window.setTimeout(resetScroll, 50);
     window.addEventListener('focusout', onFocusOut);
@@ -44,11 +45,13 @@ export function useFlowKeyboardFix() {
       if (!vv || kbFrame) return;
       kbFrame = window.requestAnimationFrame(() => {
         kbFrame = 0;
-        const kb = Math.max(0, window.innerHeight - vv.height);
-        const v = kb > 80 ? `${Math.round(kb)}px` : '0px';
+        // meranie proti 100dvh, nie proti innerHeight — novší iOS mení oba (lib/keyboardInset.ts)
+        const kb = keyboardInset();
+        const v = `${kb}px`;
         if (v === lastKb) return;
         lastKb = v;
         root.style.setProperty('--flow-kb', v);
+        markKeyboard(kb > 0);
       });
     };
     let seeTimer: number | undefined;
@@ -66,6 +69,7 @@ export function useFlowKeyboardFix() {
     };
     syncKb();
     vv?.addEventListener('resize', syncKb);
+    vv?.addEventListener('scroll', syncKb);
     window.addEventListener('focusin', seeField);
 
     return () => {
@@ -74,9 +78,11 @@ export function useFlowKeyboardFix() {
       window.cancelAnimationFrame(kbFrame);
       window.visualViewport?.removeEventListener('resize', resetScroll);
       vv?.removeEventListener('resize', syncKb);
+      vv?.removeEventListener('scroll', syncKb);
       window.removeEventListener('focusin', seeField);
       window.clearTimeout(seeTimer);
       root.style.removeProperty('--flow-kb');
+      markKeyboard(false);
     };
   }, []);
 }

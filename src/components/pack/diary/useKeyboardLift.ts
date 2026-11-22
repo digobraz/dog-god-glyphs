@@ -4,6 +4,7 @@
 // `--dia-kb` a CSS okna (`.dia-sheet`, `.dvt-pop`) ňou zdvihne spodok a skráti výšku.
 // Zdvihnutie robí rodič `.ppu-root` cez `:has()` — PackPopup (cudzí súbor) sa tým nemení.
 import { useEffect } from 'react';
+import { keyboardInset, markKeyboard } from '@/lib/keyboardInset';
 
 export function useKeyboardLift() {
   useEffect(() => {
@@ -14,11 +15,13 @@ export function useKeyboardLift() {
     // a každý zápis premennej preskladá obrazovku (Matej 19. 11. 2026: „pri písaní to seká“).
     let last = '';
     const sync = () => {
-      const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      const v = kb > 80 ? `${Math.round(kb)}px` : '0px';
+      // meranie proti 100dvh, nie proti innerHeight — novší iOS mení oba (lib/keyboardInset.ts, 22. 11. 2026)
+      const kb = keyboardInset();
+      const v = `${kb}px`;
       if (v === last) return;
       last = v;
       root.style.setProperty('--dia-kb', v);
+      markKeyboard(kb > 0);
     };
     sync();
     vv.addEventListener('resize', sync);
@@ -27,6 +30,7 @@ export function useKeyboardLift() {
       vv.removeEventListener('resize', sync);
       vv.removeEventListener('scroll', sync);
       root.style.removeProperty('--dia-kb');
+      markKeyboard(false);
     };
   }, []);
 }
