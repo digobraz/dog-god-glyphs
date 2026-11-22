@@ -1864,3 +1864,39 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 .aw .gift-link{font:600 var(--t-label)/1 var(--font-ui);color:var(--lapis-edge)}
 /* odkazy v odpovedi FAQ (Napíš nám · TU) musia vyzerať ako odkaz */
 .aw .faq details p a{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;font-weight:600}
+
+/* ═══ PLANÉTKA a SIEŇ · 22. 11. 2026 (Matej) ═══ */
+/* nadpis a veta nad bielou žiarou portálu (žiara patrí portálu, text nesmie zjesť) */
+.aw .planet-live.v2 .planet-hero>*{position:relative;z-index:2}
+.aw .planet-live.v2 .ph-portal{z-index:1}
+/* CTA v portáli čitateľnejšie: väčšie písmo, tmavšia clona pod textom, tieň okolo písmen */
+.aw .planet-live.v2 .ph-add-veil{background:radial-gradient(70% 60% at 50% 50%,rgba(8,18,52,.72),rgba(10,26,74,.5))}
+.aw .planet-live.v2 .ph-lbl{font-size:calc(var(--ph-w) * .13);letter-spacing:.06em;line-height:1.1;white-space:normal;color:#FFF6DA;
+  text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 14px rgba(0,0,0,.6)}
+/* LIŠTA: vždy navrchu (Safari radí 3D vrstvy podľa hĺbky → aj posun v Z) a nad spodnou lištou Safari:
+   sekcia má 100lvh, viditeľné je len 100svh, rozdiel sa pripočíta k odsadeniu */
+.aw .planet-live.v2 .gods-bottom-bar.gbb-pills{z-index:300;translate:0 0 2000px;left:0;right:0;margin-inline:auto;
+  bottom:16px;bottom:calc(16px + 100lvh - 100svh);display:flex;align-items:center;justify-content:center;gap:var(--s-sm)}
+.aw .planet-live.v2 .gods-bottom-bar.gbb-col{flex-direction:column}
+.aw .planet-live.v2 .gods-bottom-bar.gbb-row{flex-direction:row}
+/* pilulka: papyrus, hrubší zlatý rám, jemná zlatá žiara, ručne kreslená ikonka */
+.aw .planet-live.v2 .gbb-pill{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:52px;padding:0 22px;
+  border:2px solid #C99A3F;background:linear-gradient(180deg,#FFFDF7 0%,#F2E2BD 100%);color:var(--ink-strong);
+  font:600 var(--t-label)/1 var(--font-ui);letter-spacing:.14em;
+  box-shadow:0 0 0 4px rgba(201,154,63,.18),0 0 24px rgba(245,199,61,.35),0 10px 22px -8px rgba(74,46,12,.45),inset 0 1px 0 #fff}
+.aw .planet-live.v2 .gbb-pill img{width:24px;height:24px;flex:none}
+.aw .planet-live.v2 .gbb-pill:hover{transform:translateY(-2px);box-shadow:0 0 0 4px rgba(201,154,63,.3),0 0 30px rgba(245,199,61,.5),0 12px 24px -8px rgba(74,46,12,.5),inset 0 1px 0 #fff}
+.aw .planet-live.v2 .gbb-col .gbb-main{min-width:260px}
+.aw .planet-live.v2 .gbb-pill.on{background:linear-gradient(180deg,#E3BE6E 0%,#C99A3F 100%);border-color:#8C6014}
+@media(max-width:600px){
+  .aw .planet-live.v2 .gods-bottom-bar.gbb-pills{left:0;right:0;margin-inline:auto}
+  .aw .planet-live.v2 .gbb-pill{height:48px;padding:0 18px;font-size:var(--t-micro);letter-spacing:.08em}
+  .aw .planet-live.v2 .gbb-col .gbb-main{min-width:240px}
+  /* v sieni na mobile: okraje len ikonky (kruh), text len pri hľadaní; lišta nad AINUBISOM (sedí vľavo dole) */
+  .aw .planet-live.v2 .gbb-row .gbb-ic{width:48px;padding:0}
+  .aw .planet-live.v2 .gbb-row .gbb-ic span{display:none}
+  .aw .planet-live.v2 .gods-bottom-bar.gbb-row{bottom:calc(88px + 100lvh - 100svh)}
+}
+.aw .planet-live.v2 .gbb-pill[hidden]{display:none}
+.aw .planet-live.v2 .ph-lbl{white-space:normal;font-size:calc(var(--ph-w) * .112);max-width:100%;text-align:center}
+@media(max-width:600px){.aw .planet-live.v2 .gbb-col .gbb-main{min-width:220px}}

@@ -4067,16 +4067,18 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
             )
           : v2 ? (
             /* CLAIM 2: dve pilulky namiesto ikoniek (Matej 21. 11. 2026) — hľadanie psa a prepínač guľa ⇄ sieň */
-            <div className="gods-bottom-bar gbb-pills">
+            /* 22. 11. (Matej): na guli pod sebou v strede, v sieni vedľa seba v strede; ručne kreslené ikonky z kitu
+               (terč · lupa · štyri štvorce = sieň · šípka späť). Na mobile má v sieni text len hľadanie, okraje sú ikonky. */
+            <div className={`gods-bottom-bar gbb-pills ${planetOpen ? 'gbb-col' : 'gbb-row'}`}>
               {/* Zo siene sa NEPREPÍNA späť na guľu — guľa sa vykreslila cez sieň a rozbila ju (Matej 21. 11.: „malo by tam byť späť na main stránku“).
                   „Späť“ preto načíta hlavnú stránku nanovo (s tým istým `?…`), guľa štartuje čistá. */}
               {/* „Vycentrovať“ = bývalý terč (Matej 21. 11.: „z hall zmizla možnosť centrovať… pridaj na začiatok“).
                   Musí byť v DOM-e už pri stavbe steny (tá si naň pripína klik podľa id), preto len `hidden` na guli. */}
-              <button type="button" className="gbb-pill" id="gods-center-btn-mobile" hidden={planetOpen}>{v2.center}</button>
-              <button type="button" className={`gbb-pill${filterOpen ? ' on' : ''}`} onClick={() => setFilterOpen(f => !f)}>{v2.find}</button>
+              <button type="button" className="gbb-pill gbb-ic" id="gods-center-btn-mobile" hidden={planetOpen} aria-label={v2.center}><img src="/web-app/ikony/sien/terc.svg" alt="" /><span>{v2.center}</span></button>
+              <button type="button" className={`gbb-pill gbb-main${filterOpen ? ' on' : ''}`} onClick={() => setFilterOpen(f => !f)}><img src="/web-app/ikony/sien/lupa.svg" alt="" /><span>{v2.find}</span></button>
               {planetOpen
-                ? <button type="button" className="gbb-pill" onPointerEnter={() => setWallWanted(true)} onClick={goHall}>{v2.hall}</button>
-                : <button type="button" className="gbb-pill" onClick={() => window.location.assign('/' + window.location.search)}>{v2.back}</button>}
+                ? <button type="button" className="gbb-pill gbb-main" onPointerEnter={() => setWallWanted(true)} onClick={goHall}><img src="/web-app/ikony/sien/sien.svg" alt="" /><span>{v2.hall}</span></button>
+                : <button type="button" className="gbb-pill gbb-ic" aria-label={v2.back} onClick={() => window.location.assign('/' + window.location.search)}><img src="/web-app/ikony/sien/spat.svg" alt="" /><span>{v2.back}</span></button>}
             </div>
           ) : (
             <div className={`gods-bottom-bar${ctaMode ? ' has-cta' : ''}`}>
