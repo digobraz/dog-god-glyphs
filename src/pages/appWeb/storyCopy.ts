@@ -69,7 +69,7 @@ export const STORY: Record<string, { sk: string; en: string }> = {
   now_eye: { sk: 'Práve teraz', en: 'Right now' },
   now_dogs: { sk: 'psov v DOGYPTe', en: 'dogs in DOGYPT' },
   now_goal: { sk: 'Ďalší cieľ: 1 000 Zakladateľov', en: 'Next goal: 1,000 Founders' },
-  now_p: { sk: 'Každý nový pes nás posúva o chlp bližšie k miliónu. Ty a tvoj pes môžete byť ďalší.', en: 'Every new dog brings us a hair closer to a million. You and your dog could be next.' },
+  now_p: { sk: 'Každý nový pes nás posúva o chlp bližšie k miliónu. Ty a tvoj pes môžete byť ďalší.', en: 'Every new dog brings us a fur closer to a million. You and your dog could be next.' },
   now_join: { sk: 'Pridaj sa', en: 'Join us' },
   now_app: { sk: 'Stiahni appku', en: 'Get the app' },
   fut_share: { sk: 'psov sveta', en: "of the world's dogs" },
