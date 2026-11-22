@@ -97,7 +97,7 @@ const CSS = `
 .kl-g{display:inline-flex;align-items:center;gap:${S.xs}px;color:${T.inkStrong};text-decoration:underline;text-underline-offset:3px;}
 .kl-g img{display:block;width:16px;height:16px;}
 .kl-invite{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:${S.md}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;border:1.5px dashed ${T.cardEdge};}
-.kl-invite b{display:block;font-size:${PACK_TEXT.body}px;}
+.kl-invite b{display:block;font-size:${PACK_TEXT.body}px;font-weight:600;}
 .kl-invite small{font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
 .kl-acts{display:flex;flex-direction:column;gap:${S.md}px;}
 .kl-acts2{display:grid;grid-template-columns:1fr 1fr;gap:${S.md}px;}

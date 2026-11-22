@@ -56,7 +56,8 @@ export type DemoScroll = {
 /** Jazyk obsahu VAULTU: základ EN/SK/CZ (Matej 3. 10.), ostatné padajú na EN. */
 export const scrollLang = (lang: string) => (lang === 'sk' || lang === 'cs' ? lang : 'en');
 export const pickText = (z: DemoScroll, lang: string): ScrollLang =>
-  z.lang[scrollLang(lang)] || z.lang.en || z.lang.sk;
+  // Zvitok bez jediného jazyka (rozpracovaný v DB) nesmie zhodiť celú obrazovku — prázdny text namiesto `undefined.t`.
+  z.lang?.[scrollLang(lang)] || z.lang?.en || z.lang?.sk || Object.values(z.lang || {})[0] || { t: '', v: '', vz: '', d: '', min: 0 };
 /** Jazyk podcastu: zvolený (ak existuje) → jazyk appky → EN → SK. */
 export const podLang = (z: DemoScroll, lang: string, want?: string) =>
   [want, scrollLang(lang), 'en', 'sk'].find((l) => l && z.pod[l]) || null;

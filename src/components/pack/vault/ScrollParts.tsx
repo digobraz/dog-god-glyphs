@@ -150,6 +150,7 @@ ${STAGE_CSS}
 .zv-sd[data-g="B"]{--zv-g:rgb(${BRAIN_STATE.seen});--zv-gt:rgba(${BRAIN_STATE.seen},0.14);}
 .zv-sd[data-g="C"]{--zv-g:${AINUBIS.inkDim};--zv-gt:${AINUBIS.surface};}
 .zv-sd .zv-tip{top:36px;left:0;}
+.zv-tip b{font-weight:600;}
 .zv-sd--corner{position:absolute;top:0;right:0;z-index:3;width:44px;height:44px;font-size:${PACK_TEXT.h2}px;
   border-width:0 0 1px 1px;border-radius:0 ${PACK_R.card - 1}px 0 ${PACK_R.tile}px;}
 /* Známka je NEPRIEHĽADNÁ (Matej 5. 10.: „nesmie byť priesvitná") — tint leží na plnom podklade. */

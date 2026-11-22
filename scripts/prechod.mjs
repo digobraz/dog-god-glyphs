@@ -43,7 +43,7 @@ const OUT = arg('--out') || path.join(os.tmpdir(), 'dogypt-prechod');
 const LEN = arg('--len');
 const STROP_MS = +(arg('--minut') || 40) * 60_000;
 const OKNA = ARGS.includes('--plny') ? [[390, 844], [360, 640], [1477, 724]] : [[390, 844]];
-const PORT = 8080; // DEV magic link pustí redirect len na localhost:8080
+const PORT = +(arg('--port') || process.env.PORT || 8080); // DEV magic link pustí redirect len na localhost:8080 (iný port = presmerovanie v prihlas)
 const BASE = `http://localhost:${PORT}`;
 const PARALEL = 3;
 
@@ -319,6 +319,7 @@ function oknaVKode() {
 
 async function server() {
   const zije = await fetch(BASE).then(() => true).catch(() => false);
+  if (zije && process.env.PRECHOD_REUSE) return { kill() {} }; // server si spustil volajúci s rovnakým env (VITE_PACK_FULL, bez NOAUTH)
   if (zije) throw new Error(`port ${PORT} je obsadený — iný dev server môže bežať s NOAUTH atrapou. Zastav ho.`);
   const s = spawn('npx', ['vite', '--host', 'localhost', '--port', String(PORT), '--strictPort'], {
     cwd: WEB, stdio: 'ignore', env: { ...process.env, VITE_PACK_FULL: 'true', VITE_PAWMATE: 'true', VITE_SOS: '1', VITE_PACK_NOAUTH: '' },
@@ -334,8 +335,16 @@ async function prihlas(browser, subor) {
   const ctx = await browser.newContext();
   await ctx.addInitScript(() => { try { localStorage.setItem('dogypt_consent', JSON.stringify({ analytics: false, marketing: false })); localStorage.setItem('dogypt_wz', 'done'); localStorage.setItem('dogypt_wz_seen', '1'); localStorage.setItem('dogypt_lang', 'sk'); } catch {} });
   const p = await ctx.newPage();
-  await p.goto(link);
-  await p.waitForURL(/\/pack/, { timeout: 30_000 });
+  // Magic link vedie na :8080 (iná session tam môže držať vlastný server) — pri inom porte vezmeme token z #fragmentu a otvoríme ho na našom porte.
+  if (PORT !== 8080) await p.route('http://localhost:8080/**', (r) => r.abort()); // cudzí server na :8080 nesmie token spotrebovať
+  await p.goto(link, { waitUntil: 'commit', timeout: 60_000 }).catch(() => {});
+  if (PORT !== 8080) {
+    await p.waitForURL(/#access_token=/, { timeout: 60_000 });
+    const hash = new URL(p.url()).hash;
+    await p.goto(`${BASE}/pack${hash}`, { waitUntil: 'commit', timeout: 180_000 });
+  }
+  await p.waitForURL(/localhost:\d+\/pack/, { timeout: 240_000 });
+  await p.waitForFunction(() => Object.keys(localStorage).some(k => /auth-token/.test(k)), null, { timeout: 120_000 }).catch(() => {}); // pri záťaži stroja trvá spracovanie tokenu dlho
   await wait(3000);
   await ctx.storageState({ path: subor });
   await ctx.close();
@@ -371,7 +380,7 @@ async function novyKontext(browser, subor, w, h) {
 }
 
 async function nacitaj(p, url) {
-  await p.goto(url, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+  await p.goto(url, { waitUntil: 'domcontentloaded', timeout: 120_000 });
   await p.waitForFunction(() => document.querySelector('#root')?.children.length && !document.querySelector('.pk-skel'), null, { timeout: 12_000 }).catch(() => {});
   await wait(900);
   await p.evaluate(() => { window.__prechod.skryDev(); window.__prechod.oznac(); }).catch(() => {});

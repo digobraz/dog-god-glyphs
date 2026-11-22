@@ -253,7 +253,8 @@ export const dangerOutcome = (complaintId: string, outcome: DangerOutcome) => ca
 
 export const dangerTip = (country: string, body: string, contact: string) => call<string>('danger_tip_add', { p_country: country, p_body: body, p_contact: contact });
 
-export const dangerLastPhone = () => call<string | null>('danger_last_phone');
+// RPC smie vrátiť čokoľvek (atrapa, zmena tvaru) — telefón je vždy reťazec alebo null, inak `cleanPhone` spadne na `.trim`.
+export const dangerLastPhone = () => call<unknown>('danger_last_phone').then((v) => (typeof v === 'string' && v ? v : null));
 
 // ── anon ────────────────────────────────────────────────────────────────────
 export async function dangerPublic(slug: string): Promise<DangerPublic | null> {

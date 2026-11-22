@@ -221,6 +221,7 @@ export const SOS_CSS = `
 .sos-eyebrow{margin:0;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .sos-h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};} /* písmo: nadpis */
 .sos-p{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.45;color:${T.inkDim};}
+.sos-p b{font-weight:600;}
 .sos-small{font-size:${PACK_TEXT.label}px;color:${T.inkWarm};line-height:1.4;}
 .sos-err{margin:0;font-size:${PACK_TEXT.label}px;color:${T.sosRed};font-weight:500;}
 .sos-dogname{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;font-size:24px;text-align:center;color:${T.inkStrong};line-height:1.15;margin:0;} /* písmo: meno */

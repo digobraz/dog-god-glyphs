@@ -571,11 +571,11 @@ html.papyrus3d .tsh-pills.pk-p3d-sw{display:grid;flex-direction:initial;}
 html.papyrus3d .tsh-pill{border:0;background:transparent;border-radius:14px;min-width:0;min-height:50px;padding:4px;gap:4px;white-space:normal;overflow-wrap:anywhere;text-align:center;font:400 14px/1.1 'LT Museum',serif;color:var(--p3d-ink);}
 html.papyrus3d .tsh-pill.on{border:2.5px solid var(--on-l);background:var(--on-bg);color:var(--on-l);box-shadow:var(--on-sh);}
 html.papyrus3d .tsh-where{margin-bottom:12px;}
-html.papyrus3d .tsh-where .tsh-pill{white-space:nowrap;overflow-wrap:normal;}
+html.papyrus3d .tsh-where .tsh-pill{white-space:normal;overflow-wrap:anywhere;}
 html.papyrus3d .tsh-ph{border:2.5px solid var(--p3d-ink);border-radius:16px;opacity:.6;}
 html.papyrus3d .tsh-ph.on{border-color:#16307A;opacity:1;}
 html.papyrus3d .tsh-own{border:2.5px solid var(--p3d-ink);background:var(--p3d-paper-hi);opacity:1;color:var(--p3d-ink);font:500 12px/1.2 'Space Grotesk',sans-serif;}
-html.papyrus3d .tsh-cta.pk-b3,html.papyrus3d .tsh-link.pk-b3{width:100%;height:56px;padding:0 16px;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 20px/1 'LT Museum',serif;letter-spacing:0;text-transform:none;box-shadow:var(--p3d-b3);} /* písmo: cta */
+html.papyrus3d .tsh-cta.pk-b3,html.papyrus3d .tsh-link.pk-b3{width:100%;height:auto;min-height:56px;padding:8px 16px;white-space:normal;overflow-wrap:anywhere;border:2.5px solid var(--b3-l);border-radius:var(--b3-r);background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);font:400 20px/1.1 'LT Museum',serif;letter-spacing:0;text-transform:none;box-shadow:var(--p3d-b3);} /* písmo: cta */
 html.papyrus3d .tsh-link.pk-b3{margin-top:16px;}
 html.papyrus3d .tsh-link img{width:28px;height:28px;}
 html.papyrus3d .tsh-steps li{font-size:14px;}
