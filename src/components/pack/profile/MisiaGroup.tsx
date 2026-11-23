@@ -418,7 +418,7 @@ export function MisiaBody() {
       {/* JEDEN BLOK POMOCI (19. 11. 2026, Matej: „tie dva posledné bloky nemôžu byť … kvôli aplu … jedno tlačidlo že chcem pomôcť … my sa ozveme mailom“).
           Tlačidlo spustí mail s inštrukciami (`misia-labka`). Platiaci člen ho nevidí, vidí poďakovanie bez ceny. Na webe pribudne vedľa neho Darovať;
           v appke žiadna suma ani odkaz na platbu (Apple 3.1.1). */}
-      <div className="mi-paw">
+      {(!IS_APP || payingRank || founder) && <div className="mi-paw">
         {payingRank ? (
           <>
             <img className="mi-badge" src={`/web-app/odznaky/dogyptan-${{ akolyta: 1, knaz: 2, vezir: 3, farao: 4 }[seal as 'akolyta' | 'knaz' | 'vezir' | 'farao']}.webp`} alt="" />
@@ -436,20 +436,21 @@ export function MisiaBody() {
                 <DogSeal tier="zakladatel" size={96} label={sealLabel('zakladatel', tx)} style={{ marginLeft: 0, verticalAlign: 'baseline' }} />
                 <b>{tx('pack.misia.founder.lead', 'You are a Founder.')}</b>
                 <p>{tx('pack.misia.founder.p', 'You came among the first, when nobody knew DOGYPT yet. This badge stays with you and your dog forever, and it will come with benefits.')}</p>
-                {paw !== 'sent' && paw !== 'already' && <p className="mi-quiet">{IS_APP ? tx('pack.misia.founder.app', "If you want to keep carrying the pack, we'll e-mail you.") : tx('pack.misia.founder.web', 'You can also support the pack regularly.')}</p>}
+                {/* V appke bez výzvy na pomoc (Matej 24. 11.: „skry“ — mail s odkazom na dar = platba mimo appky, Apple 3.1.1). */}
+                {!IS_APP && paw !== 'sent' && paw !== 'already' && <p className="mi-quiet">{tx('pack.misia.founder.web', 'You can also support the pack regularly.')}</p>}
               </>
-            ) : <b>{tx('pack.misia.paw.lead', 'Lend a paw.')}</b>}
+            ) : !IS_APP && <b>{tx('pack.misia.paw.lead', 'Lend a paw.')}</b>}
             {/* Po ťuku sa zmení samo tlačidlo, nie veta pod ním (Matej 19. 11.: „po kliknutí by som na tlačidle napísal poslali sme ti mail“). */}
-            <div className="mi-paw-b">
+            {!IS_APP && <div className="mi-paw-b">
               <button type="button" className="mi-cta" disabled={paw === 'busy' || paw === 'sent' || paw === 'already'} onClick={lendPaw}>
                 {paw === 'sent' ? tx('pack.misia.paw.sent', 'Check your inbox ✓') : paw === 'already' ? tx('pack.misia.paw.already', 'The e-mail is already in your inbox ✓') : tx('pack.misia.paw.cta', 'I want to help')}
               </button>
-              {!IS_APP && paw !== 'sent' && paw !== 'already' && <button type="button" className="mi-cta" onClick={() => { setNotice(null); setSheet({ kind: 'gift' }); }}>{tx('pack.misia.give', 'Give')}</button>}
-            </div>
+              {paw !== 'sent' && paw !== 'already' && <button type="button" className="mi-cta" onClick={() => { setNotice(null); setSheet({ kind: 'gift' }); }}>{tx('pack.misia.give', 'Give')}</button>}
+            </div>}
             {paw === 'fail' && <p>{tx('pack.misia.paw.fail', 'It did not go through. Try again in a moment.')}</p>}
           </>
         )}
-      </div>
+      </div>}
       <div className="mi-links">
         <button type="button" className="mi-link" onClick={() => setSheet({ kind: 'vision' })}>{tx('pack.misia.vision', 'Our idea')}</button>
       </div>
