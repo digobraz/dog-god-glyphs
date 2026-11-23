@@ -693,12 +693,12 @@ export default function AppWeb() {
             <p className="eye">{c('e_life2')}</p>
             {/* DOMINANTA: tri riadky, čo najväčšie písmo — veľkosť z najdlhšieho riadka (Matej 6. 11.: „čo najväčší text
                 na dva riadky resp. aj na 3: play the · life with · your dog“). Zlaté slovo psa ostáva na krivo. */}
-            <h1 style={{ ['--hc' as string]: Math.max(wlen(c('h1a')) + (V2 ? 1.7 : 0), V2 ? 0 : wlen(c('h1b')), (V2 && c('h1b') ? wlen(c('h1b')) + 1 : 0) + (c('h1y') ? wlen(c('h1y')) + 1 : 0) + wlen(c('h1c')) * (V2 ? 1.18 : 1)) } as CSSProperties}>
+            <h1 style={{ ['--hc' as string]: Math.max(wlen(c('h1a')), V2 ? 0 : wlen(c('h1b')), (V2 && c('h1b') ? wlen(c('h1b')) + 1 : 0) + (c('h1y') ? wlen(c('h1y')) + 1 : 0) + wlen(c('h1c')) * (V2 ? 1.18 : 1) + (V2 ? 1.7 : 0)) } as CSSProperties}>
               {V2 ? (<>
                 {/* CLAIM 2 na DVA riadky (Matej 21. 11.: „claim do 2 riadkov, 3 sú už veľa“) */}
-                {/* ikonka zápisu „hovno +“ pri motte, levituje nahnutá (Matej 23. 11.); jej šírka je v --hc (+1.7) */}
-                <span className="l1">{c('h1a')}<img className="hpoop" src={`${A}/ikony/hovno-plus.webp`} alt="" /></span>
-                <span className="l1">{c('h1b') && <>{c('h1b')} </>}<span className="deco big">{c('h1c')}</span></span>
+                {/* ikonka zápisu „hovno +“ za zlatým slovom v 2. riadku, levituje nahnutá (Matej 23. 11.); jej šírka je v --hc (+1.7) */}
+                <span className="l1">{c('h1a')}</span>
+                <span className="l1">{c('h1b') && <>{c('h1b')} </>}<span className="deco big">{c('h1c')}</span><img className="hpoop" src={`${A}/ikony/hovno-plus.webp`} alt="" /></span>
               </>) : (<>
               <span className="l1">{c('h1a')}</span>
                 <span className="l1">{c('h1b')}</span>
