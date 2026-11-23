@@ -207,6 +207,18 @@ export const ALBUMS_ON = false;
 const PUBLIC_MAP_TAB = typeof window !== 'undefined' && /^\/map(\/|$)/.test(window.location.pathname);
 export const APP_NEW: boolean = TEST_BUILD || IS_APP || PUBLIC_MAP_TAB;
 
+// ── AINUBIS CHAT v2 (23. 11. 2026, nákres plany/nakresy/ainubis-chat-2026-11-23, Matej „ok urob") ──────────────
+// `AINUBIS_V2` = nový chat člena v `/pack` (veľký riadok, Pre koho, Kto odpovie, AI kredity, streaming, hodnotenie)
+//   namiesto starého `AinubisWidget` panela. Web a hosť ostávajú na starom. VRÁTENIE: jeden riadok → `false`.
+// `AINUBIS_FULL` = plávajúca ikona AINUBISA (guľa na obrazovkách) otvorí CELÝ chat (`/pack/ainubis?plane=chat`) namiesto
+//   šuplíka. Matej: „jedným prepínačom vrátiteľné". VRÁTENIE: jeden riadok → `false` (guľa zasa otvára šuplík).
+//   ⚠️ Slot AINUBIS v LIŠTE ostáva na VAULTE (lock architektura-pack §6, 21. 9.) — zmena čaká na Matejovo slovo.
+// 🔴 Server v2 (migrácia 20270109 + ainubis-chat v:2 + ainubis-hlas) je zatiaľ LEN na DEV Supabase. Testovacia appka
+//   aj web idú proti LIVE DB, kde by v2 nefungoval ⇒ dovtedy len lokálny dev (`npm run dev` = DEV DB).
+//   Po nasadení backendu na LIVE (Matejovo „ok“): `= APP_NEW`.
+export const AINUBIS_V2: boolean = APP_NEW && import.meta.env.DEV;
+export const AINUBIS_FULL: boolean = true;
+
 // ── LIMITY PODĽA HODNOSTI (22. 11. 2026) ─────────────────────────────────────────
 // Matej: *„poslom 3, staviteľom 5, vezírom 10“* (fotky v zápise dňa). Hodnosti platia až s FLIPom — dovtedy limity
 // beží len testovacia appka a všetci inde majú to, čo doteraz (1 fotka). FLIP: prepni na `true`.

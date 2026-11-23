@@ -17,7 +17,7 @@ const BLANK =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 /** Prvky, ktoré na snímku nepatria: samotný chat, jeho guľa a závoj terča. */
-const SKIP_CLASSES = ['ainubis-panel', 'ainubis-launcher', 'ainubis-target-veil'];
+const SKIP_CLASSES = ['ainubis-panel', 'ainubis-launcher', 'ainubis-target-veil', 'av2', 'av2-veil']; // av2 = chat v2
 
 export type TargetMark = { x: number; y: number } | null;
 

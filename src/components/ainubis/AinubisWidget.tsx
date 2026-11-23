@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { linkify } from './ainubisLinkify';
@@ -8,7 +8,8 @@ import { getUserShared, shared } from '@/lib/sharedFetch';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { getAinubisCopy } from './ainubisCopy';
 import { AINUBIS_OPEN_EVENT, setAinubisUnread, getAinubisPlaneHost, onAinubisPlaneHost, requestAinubisPlaneBack } from '@/lib/ainubisBus';
-import { APP_NEW } from '@/lib/packFlags';
+import { APP_NEW, AINUBIS_V2, AINUBIS_FULL } from '@/lib/packFlags';
+import { DEV_NOAUTH } from '@/lib/devMockDogs';
 import {
   ACCESS_KEYS, clearHistory, listHistory, readAccess, writeAccess,
   type Access, type AccessKey, type HistoryItem,
@@ -21,6 +22,9 @@ import './AinubisWidget.css';
 /** Logo AINUBISA: v appke (APP_NEW) pes s cyan očami, na webe pôvodný badge. */
 const ainubisFace = APP_NEW ? AI_LOGO : ainubisBadge;
 import { captureViewport, targetContext, type TargetMark } from './ainubisTarget';
+
+/** Chat v2 (`AINUBIS_V2`, 23. 11. 2026): nový chat člena v `/pack` namiesto panela nižšie. Lazy — web a hosť ho nenačítajú. */
+const AinubisChatV2 = lazy(() => import('./v2/AinubisChatV2').then((m) => ({ default: m.AinubisChatV2 })));
 
 /**
  * Dvere Podpora/Personalizácia, prepínač vetiev a návrhy tém. VYPNUTÉ od 26. 9. 2026
@@ -534,6 +538,14 @@ function AinubisWidgetInner() {
   const sheet = pathname.startsWith('/pack') && !plane;
   /** Plná appková verzia chatu: história, nový rozhovor, koliesko. Člen v `/pack` pod `APP_NEW`. */
   const mvp = APP_NEW && !!memberEmail && pathname.startsWith('/pack');
+  /** NOVÝ CHAT v2: člen v `/pack` (v deve bez prihlásenia aj `DEV_NOAUTH`, kde server odmieta a chat beží na mocku). */
+  const v2 = AINUBIS_V2 && APP_NEW && pathname.startsWith('/pack') && (!!memberEmail || DEV_NOAUTH);
+  /** Ikona AINUBISA otvára CELÝ chat (rovina CHAT), nie šuplík. `AINUBIS_FULL` = jeden riadok na vrátenie. */
+  const goFull = v2 && AINUBIS_FULL;
+  const goFullRef = useRef(false);
+  goFullRef.current = goFull && !plane;
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
   const openNowRef = useRef(false);
   const { names: dogNames, mode: dogIdMode } = useMemberDogNames(memberEmail, openNowRef);
   // Verejné uvítanie: o projekte, chybách a pomoci — nie technická podpora appky.
@@ -837,6 +849,7 @@ function AinubisWidgetInner() {
         setInput(prefill);
         focusComposerSoon();
       }
+      if (goFullRef.current) { navigateRef.current('/pack/ainubis?plane=chat'); return; }
       if (openRef.current) return;
       setOpen(true);
       setUnreadCount(0);
@@ -1073,6 +1086,7 @@ function AinubisWidgetInner() {
   // ── Poll ainubis-poll: len po odoslaní otázky (3s otvorené / 20s zavreté, max 5 min), inak jeden
   // tik pri otvorení panela a pri návrate na kartu. Zastavené keď je tab skrytý.
   useEffect(() => {
+    if (v2) return; // chat v2 si vlákno načíta a drží sám (v2/AinubisChatV2.tsx)
     if (!conversationId || !sessionToken) return;
     let cancelled = false;
     let timer: number | undefined;
@@ -1153,7 +1167,7 @@ function AinubisWidgetInner() {
     // reštartovať celý poll cyklus — malá cena je jeden extra full-fetch pri
     // prepnutí, zneškodnený dedup podľa id v applyPollResult).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId, sessionToken]);
+  }, [conversationId, sessionToken, v2]);
 
   async function sendToBackend(text: string, image: PendingImage | null, isRetry: boolean): Promise<void> {
     try {
@@ -1380,6 +1394,7 @@ function AinubisWidgetInner() {
 
   function handleToggleOpen() {
     if (plane) return; // v rovine panel nikto nezatvára — z roviny sa odchádza lištou
+    if (goFull) { navigate('/pack/ainubis?plane=chat'); return; } // ikona AINUBISA = celý chat (AINUBIS_FULL)
     setOpen((prev) => {
       const next = !prev;
       if (next) {
@@ -1497,6 +1512,25 @@ function AinubisWidgetInner() {
       }, 50);
     }
   }
+
+  /** Terč z chatu v2: v rovine CHAT nie je čo odfotiť (je tam len chat), preto sa vráť na obrazovku, z ktorej si prišiel,
+   *  ťukni na miesto s chybou a po snímke (alebo zrušení) sa vráť do chatu — rozpísaný text aj príloha žijú tu, vo widgete. */
+  const aimReturnRef = useRef<'' | 'wait' | 'active'>('');
+  function startAim() {
+    if (!plane) { setTarget('aim'); return; }
+    aimReturnRef.current = 'wait';
+    const canBack = (window.history.state?.idx ?? 0) > 0;
+    if (canBack) navigate(-1); else navigate('/pack');
+    window.setTimeout(() => setTarget('aim'), 400);
+  }
+  useEffect(() => {
+    if (target === 'aim' && aimReturnRef.current === 'wait') aimReturnRef.current = 'active';
+    if (target === 'off' && aimReturnRef.current === 'active') {
+      aimReturnRef.current = '';
+      navigate('/pack/ainubis?plane=chat');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
 
   useEffect(() => {
     if (target !== 'aim') return;
@@ -2122,6 +2156,24 @@ function AinubisWidgetInner() {
         </div>
   );
 
+  // Chat v2 sa tvári ako ten istý panel: rovina CHAT = portál do hostiteľa, šuplík = celá obrazovka / panel vpravo dole.
+  const chatEl = v2 ? (
+    <Suspense fallback={null}>
+      <AinubisChatV2
+        variant={plane ? 'plane' : 'sheet'}
+        away={target !== 'off'}
+        pathname={pathname}
+        input={input}
+        setInput={setInput}
+        image={pendingImage}
+        onClearImage={() => setPendingImage(null)}
+        onPickFile={(f) => void processImageFile(f)}
+        onAim={startAim}
+        onBack={plane ? requestAinubisPlaneBack : handleToggleOpen}
+      />
+    </Suspense>
+  ) : panelEl;
+
   return (
     <>
       <button
@@ -2141,10 +2193,10 @@ function AinubisWidgetInner() {
         )}
       </button>
 
-      {open && sheet && target === 'off' && (
+      {open && sheet && !v2 && target === 'off' && (
         <div className="ainubis-veil" aria-hidden onClick={handleToggleOpen} />
       )}
-      {open && (plane && planeHost ? createPortal(panelEl, planeHost) : panelEl)}
+      {open && (plane && planeHost ? createPortal(chatEl, planeHost) : chatEl)}
       {target === 'aim' && (
         <div
           className="ainubis-target-veil"
