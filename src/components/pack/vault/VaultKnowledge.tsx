@@ -31,7 +31,7 @@ import { VAULT_WORLDS } from './worlds';
 import { VAULT_CIRCLES } from './circles';
 import { VAULT_BADGES } from './vaultBadges';
 import { useLearner } from './useLearner';
-import { LearnerPanel, RANK_PANEL_CSS, RANK_BADGE_ON, L_MAX, learnerImg, learnerNeed } from '@/components/pack/profile/rankBadge';
+import { LearnerPanel, RANK_PANEL_CSS, RANK_BADGE_ON, L_MAX, learnerImg, learnerLvName, learnerNeed } from '@/components/pack/profile/rankBadge';
 import { scrollThumb, type DemoScroll, type ReadRow, pickText, scrollLang, fmtSec, useReads, useMyRequests, useEventSums, useEarnedBadges } from './vaultScrolls';
 
 type Lang = 'sk' | 'cs' | 'en';
@@ -343,7 +343,7 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, o
             <div className="vkw-hud">
               <button type="button" className="vkw-hudb" onClick={openLevel} aria-label={learnerName}>
                 {avatarUrl ? <img className="vkw-av" src={avatarUrl} alt="" /> : <span className="vkw-av">{avatarInitial}</span>}
-                <span className="vkw-who"><b>{ownerName}</b><small>{learnerName}</small></span>
+                <span className="vkw-who"><b>{ownerName}</b><small>{learner.level ? learnerLvName(tx, learner.level) : learnerName}</small></span>
               </button>
               <button type="button" className="vkw-lv" onClick={openLevel} aria-label={`${learnerName} ${learner.level}`}>
                 <img src={learnerImg(Math.max(1, learner.level))} alt="" style={learner.level ? undefined : { opacity: 0.5 }} />
@@ -380,7 +380,7 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, o
           {badgesBody}
         </div>
         {sheet === 'level' && (
-          <PackPopup title={`${learnerName} ${learner.level}`} onClose={() => setSheet(null)} className="vkw-sheet vk" over>
+          <PackPopup title={learner.level ? `${learnerLvName(tx, learner.level)} · ${learnerName} ${learner.level}` : learnerName} onClose={() => setSheet(null)} className="vkw-sheet vk" over>
             <style>{RANK_PANEL_CSS}</style>
             <div className="vk-ucen">
               <LearnerPanel read={learner.read} total={learner.total} floor={learner.floor} liked={s.liked.length} saved={s.saved.length} tx={tx} />

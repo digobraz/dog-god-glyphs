@@ -66,7 +66,7 @@ const UCEN_PCT = ['1.', '2 %', '5 %', '10 %', '20 %', '35 %', '55 %', '80 %', '1
 const LEVELS: { ax: string; scene: string; start: number; n: number; img: (i: number) => string; cap: (i: number, c: (k: string) => string) => string }[] = [
   { ax: 'ax1', scene: `${A}/vyjavy/sluzobnik.webp`, start: 2, n: SERVANT_YEARS.length, img: (i) => `servant-${i}.webp`, cap: (i, c) => `${SERVANT_YEARS[i]} ${c('cap_ax1')}` },
   { ax: 'ax2', scene: '/images/magnet/vylety.webp', start: 1, n: PILGRIM_LEVELS.length, img: (i) => `pilgrim-${i}.webp`, cap: (i, c) => `${c('cap_ax2a')} ${PILGRIM_LEVELS[i]} ${c('cap_ax2b')}` },  /* zelený: „prevláda modrá, musíme to oživiť“ (Matej 6. 11.) */
-  { ax: 'ax3', scene: `${A}/vyjavy/ucen.webp`, start: 0, n: UCEN_PCT.length, img: (i) => `ucen-${i + 1}.webp`, cap: (i, c) => (i === 0 ? c('uc_first') : `${UCEN_PCT[i]} ${c('uc_vault')}`) },
+  { ax: 'ax3', scene: `${A}/vyjavy/ucen.webp`, start: 0, n: UCEN_PCT.length, img: (i) => `ucen-${i + 1}.webp`, cap: (i, c) => `${c(`uc_n${i + 1}`)} · ${i === 0 ? c('uc_first') : `${UCEN_PCT[i]} ${c('uc_vault')}`}` },
 ];
 
 /** Vstupné pri Dogypťanovi: index = `dogyptan-N.webp` aj kľúč názvu `tN`. 2 = Apoštol (id knaz), perleť s ružovým rámom (Matej 7. 11.); 4 = Vezír (id farao); 5 = Člen tímu sa do rebríčka nedáva. */
@@ -788,11 +788,11 @@ export default function AppWeb() {
               <p className="ai-uctx"><b>{c('uc_a')}</b> {c('uc_b')}</p>
               <p className="ai-ucbig">
                 <b>{ucLive == null ? (UCEN_PCT[ucOn] === '1.' ? '1' : UCEN_PCT[ucOn]) : `${(ucLive * 100).toLocaleString(loc, { maximumFractionDigits: 1 })} %`}</b>
-                <span>{c('ax3')} {ucOn + 1} · {ucLive == null && UCEN_PCT[ucOn] === '1.' ? c('uc_first') : c('uc_vault')}</span>
+                <span>{c(`uc_n${ucOn + 1}`)} · {c('ax3')} {ucOn + 1} · {ucLive == null && UCEN_PCT[ucOn] === '1.' ? c('uc_first') : c('uc_vault')}</span>
               </p>
               <p className="ai-ucscr"><b>{c('uc_scrolled')}: {Math.round((ucLive ?? (UCEN_PCT[ucOn] === '1.' ? 0 : parseFloat(UCEN_PCT[ucOn]) / 100)) * vScrolls).toLocaleString(loc)}</b> {c('uc_of')} {vScrolls.toLocaleString(loc)} {c('uc_scrolls')}</p>
               <div className="ai-ucrow">{UCEN_PCT.map((pc, i) => (
-              <button key={i} type="button" aria-label={`${c('ax3')} ${i + 1}`} className={`${ucOn === i ? 'on' : ''}${ucLive != null && i > ucOn ? ' off' : ''}`} onPointerEnter={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onFocus={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onClick={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }}>
+              <button key={i} type="button" aria-label={`${c(`uc_n${i + 1}`)} · ${c('ax3')} ${i + 1}`} title={c(`uc_n${i + 1}`)} className={`${ucOn === i ? 'on' : ''}${ucLive != null && i > ucOn ? ' off' : ''}`} onPointerEnter={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onFocus={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }} onClick={() => { if (ucLive != null) return; ucTouched.current = true; setUcOn(i); }}>
                 <img loading="lazy" src={`${A}/odznaky/ucen-${i + 1}.webp`} alt="" />
               </button>
             ))}</div>

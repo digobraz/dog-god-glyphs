@@ -6426,4 +6426,13 @@ export const rus: Partial<Dict> = {
   'pack.zd.prevDay': 'Предыдущий день',
   'pack.zd.nextDay': 'Следующий день',
   'pack.map.locDenied': 'Геолокация для DOGYPT выключена. Включи её в Настройках телефона → DOGYPT → Геопозиция.',
+  'pack.rank.learnerLv1': "Новичок",
+  'pack.rank.learnerLv2': "Любопытный",
+  'pack.rank.learnerLv3': "Исследователь",
+  'pack.rank.learnerLv4': "Завоеватель",
+  'pack.rank.learnerLv5': "Капитан",
+  'pack.rank.learnerLv6': "Выпускник",
+  'pack.rank.learnerLv7': "Космонавт",
+  'pack.rank.learnerLv8': "Маг",
+  'pack.rank.learnerLv9': "Властелин",
 };

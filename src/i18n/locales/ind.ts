@@ -6282,4 +6282,13 @@ export const ind: Partial<Dict> = {
   'pack.zd.prevDay': 'पिछला दिन',
   'pack.zd.nextDay': 'अगला दिन',
   'pack.map.locDenied': 'DOGYPT के लिए लोकेशन बंद है। फ़ोन की सेटिंग्स → DOGYPT → लोकेशन में इसे चालू करें।',
+  'pack.rank.learnerLv1': "नौसिखिया",
+  'pack.rank.learnerLv2': "जिज्ञासु",
+  'pack.rank.learnerLv3': "खोजकर्ता",
+  'pack.rank.learnerLv4': "विजेता",
+  'pack.rank.learnerLv5': "कप्तान",
+  'pack.rank.learnerLv6': "स्नातक",
+  'pack.rank.learnerLv7': "अंतरिक्ष यात्री",
+  'pack.rank.learnerLv8': "जादूगर",
+  'pack.rank.learnerLv9': "सम्राट",
 };

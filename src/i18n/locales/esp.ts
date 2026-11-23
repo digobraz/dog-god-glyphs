@@ -6445,4 +6445,13 @@ export const esp: Partial<Dict> = {
   'pack.zd.prevDay': 'Día anterior',
   'pack.zd.nextDay': 'Día siguiente',
   'pack.map.locDenied': 'La ubicación está desactivada para DOGYPT. Actívala en Ajustes del teléfono → DOGYPT → Ubicación.',
+  'pack.rank.learnerLv1': "Novato",
+  'pack.rank.learnerLv2': "Curioso",
+  'pack.rank.learnerLv3': "Explorador",
+  'pack.rank.learnerLv4': "Conquistador",
+  'pack.rank.learnerLv5': "Capitán",
+  'pack.rank.learnerLv6': "Graduado",
+  'pack.rank.learnerLv7': "Cosmonauta",
+  'pack.rank.learnerLv8': "Mago",
+  'pack.rank.learnerLv9': "Soberano",
 };

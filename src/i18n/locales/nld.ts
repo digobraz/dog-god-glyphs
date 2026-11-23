@@ -6281,4 +6281,13 @@ export const nld: Partial<Dict> = {
   'pack.zd.prevDay': 'Vorige dag',
   'pack.zd.nextDay': 'Volgende dag',
   'pack.map.locDenied': 'Locatie staat uit voor DOGYPT. Zet het aan in de Instellingen van je telefoon → DOGYPT → Locatie.',
+  'pack.rank.learnerLv1': "Groentje",
+  'pack.rank.learnerLv2': "Snuffelaar",
+  'pack.rank.learnerLv3': "Ontdekker",
+  'pack.rank.learnerLv4': "Veroveraar",
+  'pack.rank.learnerLv5': "Kapitein",
+  'pack.rank.learnerLv6': "Afgestudeerde",
+  'pack.rank.learnerLv7': "Kosmonaut",
+  'pack.rank.learnerLv8': "Magiër",
+  'pack.rank.learnerLv9': "Heerser",
 };

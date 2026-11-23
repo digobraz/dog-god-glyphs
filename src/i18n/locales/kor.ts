@@ -6281,4 +6281,13 @@ export const kor: Partial<Dict> = {
   'pack.zd.prevDay': '이전 날',
   'pack.zd.nextDay': '다음 날',
   'pack.map.locDenied': 'DOGYPT의 위치가 꺼져 있어요. 휴대폰 설정 → DOGYPT → 위치에서 켜 주세요.',
+  'pack.rank.learnerLv1': "풋내기",
+  'pack.rank.learnerLv2': "호기심쟁이",
+  'pack.rank.learnerLv3': "탐험가",
+  'pack.rank.learnerLv4': "정복자",
+  'pack.rank.learnerLv5': "선장",
+  'pack.rank.learnerLv6': "졸업생",
+  'pack.rank.learnerLv7': "우주비행사",
+  'pack.rank.learnerLv8': "마법사",
+  'pack.rank.learnerLv9': "군주",
 };

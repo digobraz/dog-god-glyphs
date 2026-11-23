@@ -6278,4 +6278,13 @@ export const ara: Partial<Dict> = {
   'pack.zd.prevDay': 'اليوم السابق',
   'pack.zd.nextDay': 'اليوم التالي',
   'pack.map.locDenied': 'الموقع متوقف لتطبيق DOGYPT. فعّله من إعدادات الهاتف ← DOGYPT ← الموقع.',
+  'pack.rank.learnerLv1': "المبتدئ",
+  'pack.rank.learnerLv2': "الفضولي",
+  'pack.rank.learnerLv3': "المستكشف",
+  'pack.rank.learnerLv4': "الفاتح",
+  'pack.rank.learnerLv5': "القبطان",
+  'pack.rank.learnerLv6': "الخريج",
+  'pack.rank.learnerLv7': "رائد الفضاء",
+  'pack.rank.learnerLv8': "الساحر",
+  'pack.rank.learnerLv9': "الحاكم",
 };

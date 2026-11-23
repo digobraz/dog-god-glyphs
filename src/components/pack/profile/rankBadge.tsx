@@ -235,6 +235,9 @@ export const L_MAX = L_FROM.length;
 const L_K = 1.7;
 /** Kde začína kapsula — hroty a výboje top tieru by zakryli číslo. */
 const L_CP = [-.5, -.5, -.5, -.5, -.5, -.5, -.5, -.45, -.35];
+/** Meno stupňa UČŇA (Matej 23. 11. 2026: „dajme naše názvy ako ich máme a prelož ich“) — čiapka na odznaku. */
+const L_NAME = ['Greenhorn', 'Snoop', 'Explorer', 'Conqueror', 'Captain', 'Graduate', 'Cosmonaut', 'Mage', 'Sovereign'];
+export const learnerLvName = (tx: Tx, level: number) => { const l = Math.max(1, Math.min(L_MAX, level)); return tx(`pack.rank.learnerLv${l}`, L_NAME[l - 1]); };
 export const learnerImg = (level: number) => `/icons/pack/rank/learner-${Math.max(1, Math.min(L_MAX, level))}.webp`;
 /** `read` uzavretých z `total` → level (0 = ešte nič) a postup k ďalšiemu v %.
  *  `floor` = najvyšší dosiahnutý level z DB (`human.learner.level`) — level NIKDY NEKLESÁ, ani keď VAULT
@@ -283,7 +286,7 @@ export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx
     <>
       <div className="rkp-hd">
         <span className="im" style={{ ['--k' as string]: L_K }}><img src={learnerImg(level)} alt="" style={{ opacity: 1 }} /></span>
-        <div className="tx"><h3>{name} {level}</h3></div>
+        <div className="tx"><h3>{level ? learnerLvName(tx, level) : name}</h3>{level > 0 && <p>{name} {level}</p>}</div>
         {/* to isté zaokrúhlenie ako profil a AINUBIS: prvý zvitok nesmie ukázať 0 % */}
         <span className="ab">{read ? Math.max(1, Math.round(share)) : 0} %</span>
       </div>
@@ -296,7 +299,7 @@ export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx
           <span>{read} / {total}</span>
         </div>
         {/* ĎALŠÍ LEVEL ako pri PÚTNIKOVI (Matej 9. 11. 2026) */}
-        {level < L_MAX && <div className="rkp-nx"><img src={learnerImg(level + 1)} alt="" />{name} {level + 1}</div>}
+        {level < L_MAX && <div className="rkp-nx"><img src={learnerImg(level + 1)} alt="" />{learnerLvName(tx, level + 1)} · {name} {level + 1}</div>}
       </div>
       <div className="rkp-nums">
         <div><b>{read}</b><span>{tx('pack.rank.scrolls', 'scrolls')}</span></div>

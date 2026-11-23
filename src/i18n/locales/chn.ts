@@ -6278,4 +6278,13 @@ export const chn: Partial<Dict> = {
   'pack.zd.prevDay': '前一天',
   'pack.zd.nextDay': '后一天',
   'pack.map.locDenied': 'DOGYPT 的定位已关闭。请在手机设置 → DOGYPT → 位置 中打开。',
+  'pack.rank.learnerLv1': "菜鸟",
+  'pack.rank.learnerLv2': "好奇者",
+  'pack.rank.learnerLv3': "探险家",
+  'pack.rank.learnerLv4': "征服者",
+  'pack.rank.learnerLv5': "船长",
+  'pack.rank.learnerLv6': "毕业生",
+  'pack.rank.learnerLv7': "宇航员",
+  'pack.rank.learnerLv8': "魔法师",
+  'pack.rank.learnerLv9': "君王",
 };

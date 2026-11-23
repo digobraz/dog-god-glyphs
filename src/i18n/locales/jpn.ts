@@ -6278,4 +6278,13 @@ export const jpn: Partial<Dict> = {
   'pack.zd.prevDay': '前の日',
   'pack.zd.nextDay': '次の日',
   'pack.map.locDenied': 'DOGYPT の位置情報がオフです。スマホの設定 → DOGYPT → 位置情報 でオンにしてください。',
+  'pack.rank.learnerLv1': "新米",
+  'pack.rank.learnerLv2': "知りたがり",
+  'pack.rank.learnerLv3': "探検家",
+  'pack.rank.learnerLv4': "征服者",
+  'pack.rank.learnerLv5': "船長",
+  'pack.rank.learnerLv6': "卒業生",
+  'pack.rank.learnerLv7': "宇宙飛行士",
+  'pack.rank.learnerLv8': "魔法使い",
+  'pack.rank.learnerLv9': "君主",
 };

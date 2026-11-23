@@ -6444,4 +6444,13 @@ export const ita: Partial<Dict> = {
   'pack.zd.prevDay': 'Giorno precedente',
   'pack.zd.nextDay': 'Giorno successivo',
   'pack.map.locDenied': 'La posizione è disattivata per DOGYPT. Attivala in Impostazioni del telefono → DOGYPT → Posizione.',
+  'pack.rank.learnerLv1': "Pivello",
+  'pack.rank.learnerLv2': "Curioso",
+  'pack.rank.learnerLv3': "Esploratore",
+  'pack.rank.learnerLv4': "Conquistatore",
+  'pack.rank.learnerLv5': "Capitano",
+  'pack.rank.learnerLv6': "Laureato",
+  'pack.rank.learnerLv7': "Cosmonauta",
+  'pack.rank.learnerLv8': "Mago",
+  'pack.rank.learnerLv9': "Sovrano",
 };

@@ -730,7 +730,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  ring2b: { en: 'findings challenged', sk: 'nálezov preverených' }, ring2s: { en: '797 with strong evidence', sk: '797 so silným dôkazom' },
  scr_pod: { en: 'scrolls & podcasts', sk: 'zvitkov a podcastov' },
  pod_note: { en: 'Podcasts so far: 146 / 547 (working on it).', sk: 'Podcasty zatiaľ: 146 / 547 (pracujeme na tom).' },
- uc_first: { en: 'first scroll', sk: 'prvý zvitok' }, uc_vault: { en: 'of Dog Sense', sk: 'psieho rozumu' },
+ uc_first: { en: 'first scroll', sk: 'prvý zvitok' }, uc_n1: { en: "Greenhorn", sk: "Zelenáč" }, uc_n2: { en: "Snoop", sk: "Zvedavec" }, uc_n3: { en: "Explorer", sk: "Bádateľ" }, uc_n4: { en: "Conqueror", sk: "Dobyvateľ" }, uc_n5: { en: "Captain", sk: "Kapitán" }, uc_n6: { en: "Graduate", sk: "Absolvent" }, uc_n7: { en: "Cosmonaut", sk: "Kozmonaut" }, uc_n8: { en: "Mage", sk: "Mág" }, uc_n9: { en: "Sovereign", sk: "Panovník" }, uc_vault: { en: 'of Dog Sense', sk: 'psieho rozumu' },
  ai_worlds: { en: 'worlds', sk: 'svetov' }, ai_circles: { en: 'circles', sk: 'okruhov' }, ai_scrolls: { en: 'scrolls', sk: 'zvitkov' },
  ai_try: { en: 'Live app: scroll, tap, open a world', sk: 'Živá appka: scrolluj, ťukaj, otvor svet' },
  l_alba: { en: 'Every dog gets a symbol nobody else has. No fake accounts!', sk: 'Každý pes dostane symbol, ktorý nemá nikto iný. Žiadne fake kontá!' },
