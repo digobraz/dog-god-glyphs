@@ -161,11 +161,16 @@ function TripsSection({ c }: { c: (k: string) => string }) {
   useEffect(() => {
     if (!near) return;
     let alive = true;
-    import('@/data/heroTrails.generated').then(({ HERO_TRAILS }) => {
+    /* Kurátorské výlety + schválené výlety členov (Matej 23. 11.: „malo by byť viac km a viac výletov“). */
+    type Trips = { count: number; km: number; countries: string[] };
+    Promise.all([
+      import('@/data/heroTrails.generated'),
+      getPackStats<{ trips?: Trips }>().then((s) => s.trips ?? null).catch(() => null),
+    ]).then(([{ HERO_TRAILS }, member]) => {
       if (!alive) return;
-      const km = HERO_TRAILS.reduce((a, t) => a + (parseFloat(t.km) || 0), 0);
-      const lands = new Set(HERO_TRAILS.map((t) => t.country ?? 'sk')).size;
-      setNums([HERO_TRAILS.length, Math.round(km), lands]);
+      const km = HERO_TRAILS.reduce((a, t) => a + (parseFloat(t.km) || 0), 0) + (member?.km ?? 0);
+      const lands = new Set([...HERO_TRAILS.map((t) => t.country ?? 'sk'), ...(member?.countries ?? [])]).size;
+      setNums([HERO_TRAILS.length + (member?.count ?? 0), Math.round(km), lands]);
     }).catch(() => { /* čísla sú doplnok, kroky stoja aj bez nich */ });
     return () => { alive = false; };
   }, [near]);
