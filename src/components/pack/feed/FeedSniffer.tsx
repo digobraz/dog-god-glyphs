@@ -18,7 +18,7 @@ const T = PACK_THEME;
 const S = PACK_SPACE;
 const TX = PACK_TEXT;
 
-export const SNIFFER_ICON = '/icons/sys/pridaj-sniffer.webp';
+export const SNIFFER_ICON = '/icons/kruhy/sniffer.webp'; // srdce dolu hlavou s nosom (Matej 23. 11.: „sniffer A“)
 
 /** Údaje, ktoré karta príspevku potrebuje navyše, keď je to Sniffer. */
 export interface SnifferInfo { km: number | null; mine: boolean; expired: boolean; at: string; onRenew: () => void }
