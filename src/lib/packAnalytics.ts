@@ -75,10 +75,10 @@ export function maskPath(path: string): string {
 // a `$set_once`, kam PostHog odkladá `$initial_current_url`), nie vymenované kľúče — nový
 // automatický kľúč s URL by inak prešiel ticho.
 const JOIN_RE = /\/pack\/join\/[^/?#\s"]+/g;
-const SECRET_PARAM_RE = /([?&#])(access_token|refresh_token|provider_token|token_hash|token|code|session_id)=[^&#\s"]*/gi;
+const SECRET_PARAM_RE = /([?&#])(access_token|refresh_token|provider_token|token_hash|token|code|session_id|dakujeme)=[^&#\s"]*/gi;
 
 const scrubStr = (s: string) =>
-  s.includes('/pack/join/') || /token|code=|session_id=/i.test(s)
+  s.includes('/pack/join/') || /token|code=|session_id=|dakujeme=/i.test(s)
     ? s.replace(JOIN_RE, '/pack/join/:token').replace(SECRET_PARAM_RE, '$1$2=:redacted')
     : s;
 
