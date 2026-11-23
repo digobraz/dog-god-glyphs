@@ -8434,7 +8434,7 @@ export const sk: Partial<Dict> = {
   "pack.sos.danger.complaint.send": "ODOVZDAŤ PRÍPAD",
   "pack.sos.danger.complaint.sending": "Odovzdávam",
   "pack.sos.danger.complaint.nextEyebrow": "Čo sa stane potom",
-  "pack.sos.danger.complaint.testNote": "Testovací režim: úrad tento podnet zatiaľ nedostane. Zavolaj 158 alebo na úrad sám.",
+  "pack.sos.danger.complaint.testNote": "Úradu tento podnet od nás zatiaľ nepríde. Zavolaj 158 alebo ho pošli úradu sám.",
   "pack.sos.danger.complaint.t0": "Prepíšeme ho úradnou rečou, skontrolujeme a odošleme zo sos@dogypt.com. Úrad: {authority}.",
   "pack.sos.danger.complaint.t0auto": "Prepíšeme ho úradnou rečou, skontrolujeme a odošleme príslušnému úradu zo sos@dogypt.com.",
   "pack.sos.danger.complaint.t3": "O 3 dni: opýtame sa, či sa niečo zmenilo, a dáme ti číslo na úrad.",

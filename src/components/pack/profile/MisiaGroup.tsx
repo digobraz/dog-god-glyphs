@@ -41,7 +41,7 @@ const POSOL_EUR = 3.99;
  *  na live web"*). Kým je `false`, blok vidno len v `vite` deve a v testovacej appke (`TEST_BUILD`) — go-live inej session ho nevyvezie.
  *  Pred prepnutím: LIVE migrácia `20261103_prispevky.sql` + `deploy-edge.sh live prispevok prispevok-webhook` + `scripts/prispevok/setup.sh live`. */
 export const MISIA_LIVE = false;
-export const MISIA_ON = MISIA_LIVE || TEST_BUILD;
+export const MISIA_ON = MISIA_LIVE || TEST_BUILD || IS_APP; // 24. 11. 2026: v appke len verzia bez platby (IS_APP vetvy nižšie), `prispevok` volá iba web
 
 type Dash = { revenue_by_month?: PrijemMesiac[]; gifts_by_month?: Record<string, number>; treasuries?: { dev?: number; help?: number; hektor?: number }; givers?: number;
   dogs?: number; people?: number; supporters?: number; monthly_eur?: number; ranks_monthly_eur?: number };

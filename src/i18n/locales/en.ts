@@ -8741,7 +8741,7 @@ export const en = {
   "pack.sos.danger.complaint.send": "HAND OVER THE CASE",
   "pack.sos.danger.complaint.sending": "Handing over",
   "pack.sos.danger.complaint.nextEyebrow": "What happens next",
-  "pack.sos.danger.complaint.testNote": "Test mode: the authority does not receive this report yet. Call 158 or the authority yourself.",
+  "pack.sos.danger.complaint.testNote": "We do not forward this report to the authority yet. Call 158 or send it to them yourself.",
   "pack.sos.danger.complaint.t0": "We rewrite it in official language, check it and send it from sos@dogypt.com. Authority: {authority}.",
   "pack.sos.danger.complaint.t0auto": "We rewrite it in official language, check it and send it to the authority responsible for the place from sos@dogypt.com.",
   "pack.sos.danger.complaint.t3": "In 3 days: we ask whether anything changed and give you the authority phone number.",

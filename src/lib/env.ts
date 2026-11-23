@@ -58,18 +58,18 @@ export const SOS_PUBLIC_ON = true;
 export const VET_ER_ON = true; // FLIP 23. 11. 2026: aj web /pack
 // PRVÁ POMOC (17. 11. 2026): 22 kariet v balíku appky (`sos/aid/`), nečíta DB. Testovací kanál; do obchodnej
 // appky (`|| IS_APP`) až po kontrole obsahu veterinárom a Matejovom „ostro“.
-export const AID_ON = TEST_BUILD;
+export const AID_ON = TEST_BUILD || IS_APP; // 24. 11. 2026 Matej: „to čo máme v test appke má byť to, čo ide na posúdenie“ ⇒ aj obchodná appka
 // NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026): týranie · otrava · príroda · podnet úradu · plagát · verejná `/danger/:slug`.
 // Len testovací kanál; ostrá appka a dogypt.com nič nevidia, kým Matej nepovie „ostro“.
-export const DANGER_ON = TEST_BUILD;
+export const DANGER_ON = TEST_BUILD || IS_APP; // 24. 11. 2026: obchodná appka = testovacia (web bez zmeny)
 /** ČO STAVIAME (balík 4, 23. 11. 2026): plány ako príspevky AINUBISA + obrazovka `/pack/staviame`. LIVE až s FLIPom. */
 export const VIZIA_ON = true; // FLIP 23. 11. 2026: migrácia + seed na LIVE (K4b)
 // Podnet zatiaľ nejde skutočnému úradu (server: `DANGER_SEND_REAL`) ⇒ obrazovka podnetu to povie vetou.
 // Zhasni spolu s ostrým odosielaním, nie s `DANGER_ON`.
-export const DANGER_TEST_NOTE = TEST_BUILD;
+export const DANGER_TEST_NOTE = TEST_BUILD || IS_APP; // text bez slova „test“ (Apple 2.2), 24. 11. 2026
 // MOMENTY (15. 11. 2026, hárok Zážitok appky + prehliadka momentov): spoločný komponent odmeny `MomentHost`.
 // Rozostavané ⇒ len testovací kanál. Do obchodnej appky (`|| IS_APP`) až na Matejovo „ostro“.
-export const MOMENTY_ON = TEST_BUILD;
+export const MOMENTY_ON = TEST_BUILD || IS_APP; // 24. 11. 2026: obchodná appka = testovacia
 // SYSTÉM KOMNÁT (17. 11. 2026, Matej „ano“ + „skús to postaviť nech to vidím v test appke“): nová prehliadka
 // appky po komnatách s odznakmi a kľúčikom pri AINUBISovi. Len testovací kanál; register `wizSteps.ts` KOMNATY.
 // 17. 11. (Matej: „pripraviť na flip bez kompromisov“): beží aj v OBCHODNEJ appke (IS_APP = vždy APP_NEW),

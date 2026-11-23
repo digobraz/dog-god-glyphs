@@ -8398,7 +8398,7 @@ export const cs: Partial<Dict> = {
   "pack.sos.danger.complaint.send": "PŘEDAT PŘÍPAD",
   "pack.sos.danger.complaint.sending": "Předávám",
   "pack.sos.danger.complaint.nextEyebrow": "Co se stane potom",
-  "pack.sos.danger.complaint.testNote": "Testovací režim: úřad tento podnět zatím nedostane. Zavolej 158 nebo na úřad sám.",
+  "pack.sos.danger.complaint.testNote": "Úřadu tento podnět od nás zatím nepřijde. Zavolej 158 nebo ho pošli úřadu sám.",
   "pack.sos.danger.complaint.t0": "Přepíšeme ho úředním jazykem, zkontrolujeme a odešleme ze sos@dogypt.com. Úřad: {authority}.",
   "pack.sos.danger.complaint.t0auto": "Přepíšeme ho úředním jazykem, zkontrolujeme a odešleme příslušnému úřadu ze sos@dogypt.com.",
   "pack.sos.danger.complaint.t3": "Za 3 dny: zeptáme se, jestli se něco změnilo, a dáme ti číslo na úřad.",
