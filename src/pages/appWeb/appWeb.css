@@ -582,6 +582,8 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
 @media(min-width:1000px){.aw .top nav a{font-size:var(--t-body)}}
 .aw .top .pk-cta{padding:14px 22px;font-size:var(--t-lead)}
 @media(max-width:420px){.aw .top .pk-cta{padding:10px 14px;font-size:var(--t-body)}.aw .logo img{height:40px}}
+.aw .hero h1 .hpoop{display:inline-block;width:.86em;height:.86em;margin-left:.14em;vertical-align:-.08em;--r:12deg;transform:rotate(var(--r));filter:drop-shadow(0 6px 8px rgba(43,33,22,.22))}
+@media(prefers-reduced-motion:no-preference){.aw .hero h1 .hpoop{animation:aw-lev 5s ease-in-out infinite}}
 .aw .hero h1 .big{font-size:.9em;line-height:1;display:inline-block;margin-left:.12em;transform:rotate(-5deg) translateY(2px);transform-origin:left bottom}
 
 /* ODZNAK = dominanta: veľký vľavo, pilulka za ním užšia, text na dva riadky */
