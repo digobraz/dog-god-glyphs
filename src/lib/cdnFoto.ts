@@ -6,8 +6,8 @@
 //
 // Prepis je na JEDNOM mieste ako `devUsporneFoto.ts` (setAttribute, src/srcset, štýly, fetch),
 // lebo URL fotiek prichádzajú z DB v desiatkach polí a komponentov.
-// Mimo: DEV (tam šetrí devUsporneFoto), robot (`navigator.webdriver` — LIVE stráže idú priamo,
-// nech nemíňajú požiadavky Workera) a `localStorage.priamoFoto = '1'` (núdzový vypínač) — rozhoduje index.html.
+// Mimo: DEV (tam šetrí devUsporneFoto), robot (`navigator.webdriver` — LIVE stráže idú len cez `/cdn-cgi/image`,
+// bez Workera, nech nemíňajú jeho požiadavky) a `localStorage.priamoFoto = '1'` (núdzový vypínač) — rozhoduje index.html.
 
 const PRIAMO = 'https://res.cloudinary.com/dz8lolmod/';
 const VSETKY = /https:\/\/res\.cloudinary\.com\/dz8lolmod\/(image\/upload\/)?/g;
@@ -21,12 +21,12 @@ const CDN_I = typeof window !== 'undefined' ? ((window as Window & { __cdnI?: st
 const SPAT = /https:\/\/[^/\s"')]+\/cdn-cgi\/image\/format=auto\/(https:\/\/res\.cloudinary\.com\/dz8lolmod\/)/g;
 let bezPrepisu = false;
 
-if (import.meta.env.PROD && CDN) {
+if (import.meta.env.PROD && (CDN || CDN_I)) {
   const prepis = (v: unknown): unknown =>
     typeof v === 'string' && !bezPrepisu && v.includes(PRIAMO)
       ? v.replace(VSETKY, (m: string, img: string | undefined, off: number, str: string) => {
           if (str.slice(Math.max(0, off - 12), off) === 'format=auto/') return m;
-          return img && CDN_I ? CDN_I : CDN;
+          return (img && CDN_I ? CDN_I : CDN) || m;
         })
       : v;
   const obal = (proto: object, meno: string) => {
@@ -58,14 +58,17 @@ if (import.meta.env.PROD && CDN) {
   const spat = (v: string) => v.replace(SPAT, '$1');
   document.addEventListener('error', (e) => {
     const t = e.target;
-    if (!(t instanceof HTMLImageElement) || t.dataset.cdnZaloha) return;
+    if (!(t instanceof HTMLImageElement) || t.dataset.cdnZaloha === '2') return;
     // Aj fotka cez Worker `/cdn/` má zálohu (21. 11. 2026): pri záplave Worker nové (necachované) fotky
     // odmieta 503, aby útok nepálil Cloudinary cez nás — návštevník ju vtedy dostane raz priamo.
     const cezWorker = !!CDN && (t.src.startsWith(CDN) || t.srcset.includes(CDN));
     if (!cezWorker && !t.src.includes('/cdn-cgi/image/') && !t.srcset.includes('/cdn-cgi/image/')) return;
-    t.dataset.cdnZaloha = '1';
+    // Poradie (23. 11. 2026, šetrenie prenosu Cloudinary): 1. chyba `/cdn-cgi/image` → Worker `/cdn/`,
+    // 2. chyba (Worker alebo už zálohovaný) → priamo res.cloudinary.com. `cdnZaloha='2'` = koniec, žiadna slučka.
+    const nasledujuci = cezWorker || !CDN ? '2' : '1';
+    t.dataset.cdnZaloha = nasledujuci;
     bezPrepisu = true;
-    const priamo = (v: string) => (cezWorker ? spat(v).split(CDN).join(PRIAMO) : spat(v));
+    const priamo = (v: string) => (nasledujuci === '1' ? spat(v).split(PRIAMO).join(CDN) : cezWorker ? spat(v).split(CDN).join(PRIAMO) : spat(v));
     try { if (t.srcset) t.srcset = priamo(t.srcset); t.src = priamo(t.src); } finally { bezPrepisu = false; }
   }, true);
 }

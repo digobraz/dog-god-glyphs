@@ -52,6 +52,8 @@ export function useTripParty(tripSlug: string | null | undefined, organizerId?: 
   const load = useCallback(async () => {
     if (!tripSlug) { setParty(EMPTY); return; }
     setParty((p) => ({ ...p, loading: true }));
+    // bez session RPC vracia 401 — prázdna partia, žiadne volanie
+    if (!(await supabase.auth.getSession()).data.session) { setParty(EMPTY); return; }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any).rpc('get_trip_party', {
       p_trip_slug: tripSlug,
@@ -112,6 +114,7 @@ export function useTripParties(
     const list = key ? key.split(',') : [];
     if (!list.length) { setMap({}); return; }
     (async () => {
+      if (!(await supabase.auth.getSession()).data.session) { if (alive) setMap({}); return; }
       const entries = await Promise.all(list.map(async (k) => {
         const [slug, organizerId] = k.split('|');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

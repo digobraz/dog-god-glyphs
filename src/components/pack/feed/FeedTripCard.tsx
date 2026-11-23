@@ -13,7 +13,7 @@
 // 🔖 ULOŽENIE = TRIPLIST (lock §4.2 REVÍZIA 26. 10.): výlet už v DOGYPTe je ⇒ ikonka triplistu
 // (clipboard s ✓), nie hviezda. Zapisuje `trip_fav` cez `persistFav` — ten istý zoznam ako ★ v článku.
 import { MemberSeal, MySeal } from '@/components/pack/profile/dogSeal';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { useLang, useT } from '@/i18n/LanguageContext';
@@ -154,7 +154,8 @@ function MiniRoute({ path }: { path: HeroTrail['path'] }) {
     const oy = (box[2] + box[3]) / 2 - MINI_H / 2;
     const max = 2 ** z;
     const tiles: { key: string; src: string; x: number; y: number }[] = [];
-    const url = mapyTiles('outdoor').replace('/256/', '/256@2x/');
+    const hiDpi = typeof window !== 'undefined' && window.devicePixelRatio > 1.5;
+    const url = hiDpi ? mapyTiles('outdoor').replace('/256/', '/256@2x/') : mapyTiles('outdoor');
     for (let ty = Math.floor(oy / TILE); ty <= Math.floor((oy + MINI_H) / TILE); ty++) {
       if (ty < 0 || ty >= max) continue;
       for (let tx = Math.floor(ox / TILE); tx <= Math.floor((ox + MINI_W) / TILE); tx++) {
@@ -169,11 +170,23 @@ function MiniRoute({ path }: { path: HeroTrail['path'] }) {
     const d = px.map(([x, y], i) => `${i ? 'L' : 'M'}${(x - ox).toFixed(1)},${(y - oy).toFixed(1)}`).join('');
     return { tiles, d };
   }, [path]);
+  const hostRef = useRef<HTMLDivElement>(null);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = hostRef.current;
+    if (seen || !el) return;
+    if (typeof IntersectionObserver === 'undefined') { setSeen(true); return; }
+    const io = new IntersectionObserver((es) => {
+      if (es.some((e) => e.isIntersecting)) { setSeen(true); io.disconnect(); }
+    }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [seen, geo]);
   if (!geo) return null;
   const pct = (v: number, of: number) => `${(v / of) * 100}%`;
   return (
-    <div className="pft-mini" aria-hidden>
-      {geo.tiles.map((tl) => (
+    <div className="pft-mini" aria-hidden ref={hostRef}>
+      {seen && geo.tiles.map((tl) => (
         <img key={tl.key} src={tl.src} alt="" loading="lazy" decoding="async" draggable={false}
           style={{ left: pct(tl.x, MINI_W), top: pct(tl.y, MINI_H), width: pct(TILE, MINI_W), height: pct(TILE, MINI_H) }} />
       ))}

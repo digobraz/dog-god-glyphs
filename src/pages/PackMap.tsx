@@ -203,6 +203,7 @@ import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_T
 import { AvatarRing, AV_D, AV_D_HEAD, photoAt } from '@/components/pack/AvatarRing';
 import { PilgrimBadge, RANK_BADGE_CSS } from '@/components/pack/profile/rankBadge';
 import { firstNameFrom } from '@/lib/pilgrimName';
+import { IS_APP } from '@/lib/isApp';
 
 /* ── SŤAHUJE SA AŽ PO KLIKNUTÍ (audit /pack/map B7, 26. 9. 2026) ─────────────────────────
    Sprievodca výletu (AddTripLog + GeometryPicker ≈ 470 KB zdroja), podujatia, reveal po zápise,
@@ -3547,7 +3548,36 @@ function DogyptBaseLayer({ url, style }: { url: string; style: string }) {
     pane.style.pointerEvents = 'none';
     pane.style.filter = 'invert(1) hue-rotate(180deg) saturate(0.15) brightness(0.69) contrast(.95)';
 
-    const layer = L.tileLayer(url, { pane: 'fx', opacity: 0 }).addTo(map);
+    // Dlaždica fx sa stiahne AŽ po načítaní tej istej dlaždice základnej vrstvy — súbežné
+    // požiadavky na rovnakú URL cache mine (v appke nebeží sw-maptiles.js), takže inak ide
+    // každá dlaždica po sieti 2×. Po načítaní base ju fx berie z cache prehliadača.
+    const findBase = (): any => {
+      let base: any = null;
+      map.eachLayer((l: any) => { if (!base && l instanceof L.TileLayer && l.options.pane !== 'fx' && (l as any)._url === url) base = l; });
+      return base;
+    };
+    const FxLayer = L.TileLayer.extend({
+      createTile(this: any, coords: L.Coords, done: L.DoneCallback) {
+        const img = document.createElement('img');
+        img.alt = '';
+        img.setAttribute('role', 'presentation');
+        const finish = (err?: Error) => done(err, img);
+        img.onload = () => finish();
+        img.onerror = () => finish(new Error('tile'));
+        const real = this.getTileUrl(coords);
+        const base = findBase();
+        const bt: HTMLImageElement | undefined = base?._tiles?.[base._tileCoordsToKey(coords)]?.el;
+        if (bt && !bt.complete) {
+          const go = () => { img.src = real; };
+          bt.addEventListener('load', go, { once: true });
+          bt.addEventListener('error', go, { once: true });
+        } else {
+          img.src = real;
+        }
+        return img;
+      },
+    });
+    const layer = new (FxLayer as any)(url, { pane: 'fx', opacity: 0 }).addTo(map) as L.TileLayer;
     layer.on('tileerror', () => trackTileError(style, 'fx'));
     const applyFade = () => {
       const z = map.getZoom();
@@ -7942,7 +7972,7 @@ export default function PackMap() {
       {/* mapa — full-bleed, panel je nad ňou (position:absolute) */}
       <div className="trp-mapregion">
           <div className="trp-mapfull">
-            <MapContainer center={CENTER} zoom={9} zoomControl={false} attributionControl={false} style={{ width: '100%', height: '100%' }}>
+            <MapContainer center={CENTER} zoom={9} zoomControl={false} attributionControl={false} wheelPxPerZoomLevel={IS_APP ? 60 : 120} style={{ width: '100%', height: '100%' }}>
               {/* PODKLAD — DOGYPT vrstva používa TIE ISTÉ outdoor dlaždice ako spodnú (neupravenú)
                   vrstvu, presne ako v prototype (`setLayer`: „aerial"→aerial, inak vždy outdoor).
                   Invert sa nesie na DRUHEJ kópii (<DogyptBaseLayer/> nižšie), táto zostáva čistá. */}

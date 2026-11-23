@@ -714,7 +714,11 @@ export const readMyClaims = (): string[] => readJson<string[]>(MY_CLAIMS_KEY, []
 /** Hmla aj karty výletov sa pýtajú naraz: kým dotaz beží, druhý volajúci dostane ten istý. */
 let walkedRowsInFlight: Promise<{ data: { trip_slug: string }[] | null; error: { message: string } | null }> | null = null;
 export function packWalkedRows() {
-  return walkedRowsInFlight ??= Promise.resolve((supabase as any).rpc('get_pack_walked_slugs'))
+  // Bez session RPC vracia 401 (permission denied) — nevolaj ju, volajúci dostane „bez dát“.
+  return walkedRowsInFlight ??= Promise.resolve(supabase.auth.getSession())
+    .then(({ data: s }) => (s?.session
+      ? (supabase as any).rpc('get_pack_walked_slugs')
+      : { data: null, error: { message: 'no session' } }))
     .finally(() => { walkedRowsInFlight = null; }) as NonNullable<typeof walkedRowsInFlight>;
 }
 

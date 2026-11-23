@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- FOTKY CEZ CACHE CLOUDFLARE (14. 11. 2026): `res.cloudinary.com/dz8lolmod/…` → `/cdn/…` (Worker `cdn`).
          Jedno pravidlo pre skripty nižšie (predbežné sťahovanie dlaždíc) aj src/lib/cdnFoto.ts.
-         Vypnuté: localhost (DEV), robot (webdriver), `localStorage.priamoFoto = '1'`. Appka ide cez dogypt.com. -->
+         Vypnuté: localhost (DEV), robot (webdriver) má len `/cdn-cgi/image` bez Workera, `localStorage.priamoFoto = '1'`. Appka ide cez dogypt.com. -->
     <script>
       (function () {
         var h = location.hostname, C = '', O = '';
@@ -15,7 +15,7 @@
           var nas = location.protocol === 'https:' && (h === 'dogypt.com' || h === 'www.dogypt.com' || /\.workers\.dev$/.test(h));
           var app = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
           var vyp = false; try { vyp = localStorage.getItem('priamoFoto') === '1'; } catch (e) {}
-          if ((nas || app) && !navigator.webdriver && !vyp) { O = nas ? location.origin : 'https://dogypt.com'; C = O + '/cdn/'; }
+          if ((nas || app) && !vyp) { O = nas ? location.origin : 'https://dogypt.com'; C = navigator.webdriver ? '' : O + '/cdn/'; } // robot: /cdn-cgi/image áno, Worker `/cdn/` nie
         } catch (e) {}
         // 15. 11. 2026: FOTKY (`image/upload/`) idú cez Cloudflare Image Transformations `/cdn-cgi/image/format=auto/<cloudinary>`
         // (0 invokácií Workera); zvyšok (video) ostáva na Workeri `/cdn/`. Cloudinary transformácie (w_, c_ …) ostávajú v zdrojovej URL.
@@ -24,10 +24,10 @@
         window.__cdn = C;
         window.__cdnI = CI;
         window.__cdnU = function (u) {
-          if (!C || !u) return u;
+          if ((!C && !CI) || !u) return u;
           return String(u).replace(/https:\/\/res\.cloudinary\.com\/dz8lolmod\/(image\/upload\/)?/g, function (m, i, off, str) {
             if (str.slice(Math.max(0, off - 12), off) === 'format=auto/') return m;
-            return i ? CI : C;
+            return (i ? CI : C) || m;
           });
         };
       })();

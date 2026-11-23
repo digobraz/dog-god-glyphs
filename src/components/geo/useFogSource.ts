@@ -45,7 +45,7 @@ export function useFogSource(): UseFogSourceResult {
         const { data, error } = await packWalkedRows();
         if (!mounted) return;
         if (error || !data) {
-          console.warn('[fog] get_pack_walked_slugs:', error?.message ?? 'no data — RPC zatiaľ nemusí existovať');
+          if (error?.message !== 'no session') console.warn('[fog] get_pack_walked_slugs:', error?.message ?? 'no data — RPC zatiaľ nemusí existovať');
           setSlugs(Array.from(readWalkedIds()));
           setSource('dev-fallback');
           return;

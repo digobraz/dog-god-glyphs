@@ -48,6 +48,7 @@ export const initAnalytics = (scrub: (ev: any) => any) => {
       api_host: POSTHOG_HOST,
       persistence: 'memory',              // Tier 0: cookieless, bez person profilu (vlna B zapne consent)
       person_profiles: 'identified_only',
+      disable_surveys: true,              // ankety nepoužívame (0 volaní v kóde) — ušetrí surveys.js ~144 KB
       disable_session_recording: true,    // zapne sa vo vlne B po analytics consente
       autocapture: true,
       capture_exceptions: true,           // error tracking zadarmo
