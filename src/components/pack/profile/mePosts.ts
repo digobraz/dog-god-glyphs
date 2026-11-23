@@ -161,7 +161,7 @@ export async function publish(opts: {
   // Poloha Snifferu ide zvlášť (vedľajšia tabuľka, klient ju nikdy nečíta); zlyhanie príspevok nezhodí — bez polohy sa len radí podľa času.
   if (opts.sniffer && opts.mode === 'post') {
     const id = (made as Array<{ id: string }> | null)?.[0]?.id;
-    if (id) await db.rpc('set_post_sniffer', { p_post: id, p_lat: opts.sniffer.pos?.lat ?? null, p_lon: opts.sniffer.pos?.lon ?? null }).catch(() => {});
+    if (id) { try { await db.rpc('set_post_sniffer', { p_post: id, p_lat: opts.sniffer.pos?.lat ?? null, p_lon: opts.sniffer.pos?.lon ?? null }); } catch { /* bez polohy */ } }
   }
   emitPostsChanged();
 }
