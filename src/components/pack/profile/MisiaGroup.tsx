@@ -28,6 +28,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { pokladnica, type PrijemMesiac } from '@/lib/pokladnica';
 import { GIFT_TIERS, GIFT_DEFAULT, GIFT_MIN, GIFT_MAX, giftFee, prevadzkaMesacne } from '@/lib/prispevok';
 import { SysIcon } from '@/components/pack/SysIcon';
+import { VIZIA_ICON, VIZIA_IDS, VIZIA_PATH } from '@/components/pack/vizia/viziaCatalog';
+import { VIZIA_ON } from '@/lib/env';
+import { useNavigate } from 'react-router-dom';
 import { useMySeal } from '@/components/pack/profile/sealStore';
 import { DogSeal, sealLabel } from '@/components/pack/profile/dogSeal';
 
@@ -73,6 +76,12 @@ async function sessionToken(): Promise<string | undefined> {
 const CSS = `${VEIL_CSS}
 .mi-lead{margin:0 0 ${S.lg}px;text-align:center;font-family:${FONT_UI};font-size:${TX.body}px;line-height:1.5;color:${T.inkStrong};}
 .mi-lead b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${TX.lead}px;letter-spacing:.02em;}
+.mi-vizia{display:flex;flex-direction:column;align-items:center;gap:${S.sm}px;width:100%;max-width:832px;margin:${S.xl}px auto 0;padding:${S.md}px;border-radius:${PACK_R.card}px;border:1px solid ${T.cardEdge};background:${T.tileBg};box-shadow:${PACK_SHADOW.card};cursor:pointer;text-align:center;color:${T.inkStrong};font-family:${FONT_UI};transition:transform .15s ease, box-shadow .15s ease;}
+.mi-vizia:hover{transform:translateY(-2px);box-shadow:${PACK_SHADOW.lift};}
+.mi-vizia .ic{display:flex;justify-content:center;gap:${S.xs}px;}
+.mi-vizia .ic img{width:32px;height:32px;object-fit:contain;}
+.mi-vizia b{font-family:${FONT_UI};font-weight:600;font-size:${TX.h2}px;letter-spacing:.02em;}
+.mi-vizia small{font-size:${TX.label}px;line-height:1.4;color:${T.inkWarm};}
 .mi-fixed,.mi-mine{max-width:832px;margin-left:auto !important;margin-right:auto !important;}
 /* DVA KROKY (príjem · výdaj; pokladnica uprostred zrušená 19. 11. 2026) (Matej 24. 10.: *„na PC to bolo lepšie horizontálne … animácie sú chudobné, v DOGYPTLANDe to vyzerá
    lepšie … budú len 3, čokoľvek stlačíš, otvorí jeden popup, kde bude všetko“*). PC = rad, mobil = stĺpec.
@@ -235,6 +244,7 @@ html.papyrus3d .mi-tier span{color:var(--p3d-gold-ink);}
 export function MisiaBody() {
   const t = useT();
   const tx = (k: string, fb: string) => { const v = t(k); return v === k ? fb : v; };
+  const navigate = useNavigate();
   const { lang } = useLang();
   const gl = lang === 'sk' || lang === 'cs' ? lang : 'en';
   const loc = gl === 'sk' ? 'sk-SK' : gl === 'cs' ? 'cs-CZ' : 'en-IE';
@@ -377,6 +387,16 @@ export function MisiaBody() {
           <span className="mi-more">{tx('pack.misia.more.cta', 'more')} <ThinArrow dir="right" size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'currentColor' }} /></span>
         </button>
       </div>
+
+      {/* ČO STAVIAME (balík 4, 23. 11. 2026): vstup do prehľadu plánov (príspevky AINUBISA, `/pack/staviame`). */}
+      {VIZIA_ON && (
+        <button type="button" className="mi-vizia" onClick={() => navigate(VIZIA_PATH)}>
+          <span className="ic">{VIZIA_IDS.map((id) => <img key={id} src={VIZIA_ICON[id]} alt="" draggable={false} loading="lazy" />)}</span>
+          <b>{tx('pack.vizia.title', 'What we are building')}</b>
+          <small>{tx('pack.vizia.intro', 'Plans we dream of. Give a paw to the ones you want and leave us a comment.')}</small>
+          <span className="mi-more">{tx('pack.misia.more.cta', 'more')} <ThinArrow dir="right" size={16} style={{ display: 'inline-block', verticalAlign: 'middle', color: 'currentColor' }} /></span>
+        </button>
+      )}
 
       <div className="mi-fixed">
         <small>{tx('pack.misia.fixed', 'Current monthly costs')}</small>

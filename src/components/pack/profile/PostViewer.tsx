@@ -147,7 +147,7 @@ html.papyrus3d .pv-ls .sh{border-top:3px solid var(--p3d-gold);}
 html.papyrus3d .pv-ls .hd h2{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);} /* písmo: nadpis */
 `;
 
-export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, authorN = null, focusComment = null }: {
+export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, authorN = null, focusComment = null, lead, system = false }: {
   post: MePost;
   name: string;
   avatar: string | null;
@@ -159,6 +159,10 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
   authorN?: number | null;
   /** Id komentára z upozornenia (`?c=`): odroluje naň a krátko ho zvýrazní. */
   focusComment?: string | null;
+  /** Systémový príspevok AINUBISA (plán v „Čo staviame“): bez menu tri bodky, text sa neprekladá serverom (nesie ho i18n). */
+  system?: boolean;
+  /** Miesto fotiek (plán nemá fotku, má ikonku): ak je, médiá sa nevykreslia. */
+  lead?: React.ReactNode;
 }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
@@ -298,12 +302,14 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
           </span>
           {/* K4: pawmate z pawtnerovho profilu — kto to naozaj pridal */}
           <ActedBy id={post.actedBy} name={post.actedName} />
-          <PostMenu postId={post.id} authorN={authorN} authorName={name} mine={mine} onDelete={remove} />
+          {!system && <PostMenu postId={post.id} authorN={authorN} authorName={name} mine={mine} onDelete={remove} />}
         </div>
+        {lead ?? (
         <div className="pv-media" ref={media} onScroll={onScroll}>
           {post.photos.map((u) => <img key={u} src={sizedUrl(u, 1080)} alt="" draggable={false} />)}
           {pin && <MapSlide lat={pin.lat} lon={pin.lon} label={tx('pack.post.openMapy', 'Open in Mapy.cz')} onOpen={openMapy} />}
         </div>
+        )}
         {slides > 1 && (
           <div className="pv-dots" aria-hidden>{Array.from({ length: slides }, (_, k) => <i key={k} className={k === at ? 'on' : ''} />)}</div>
         )}
@@ -328,7 +334,7 @@ export function PostViewer({ post, name, avatar, dogs, mine, lang, onClose, auth
             </span>
           </button>
         )}
-        {post.body && <UgcText kind="post" id={post.id} text={post.body} mine={mine}>{(s, tg) => <p className="pv-body"><b>{name}</b>{linkify(s, openLink, 'pv-link')}{tg}</p>}</UgcText>}
+        {post.body && <UgcText kind="post" id={post.id} text={post.body} mine={mine || system}>{(s, tg) => <p className="pv-body"><b>{name}</b>{linkify(s, openLink, 'pv-link')}{tg}</p>}</UgcText>}
         {cms.length > 0 && (
           <ul className="pv-cm">
             {cms.map((c) => (

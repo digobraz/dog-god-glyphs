@@ -4,7 +4,7 @@ import { PHOTO_INVITE_NEEDED } from "@/lib/photoInvite";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import { APP_NEW, DEV_FULL, BUDDY_LIVE, hasStoredSessionOrAuthReturn } from "@/lib/packFlags";
-import { AID_ON, DANGER_ON, SOS_ON, VET_ER_ON } from "@/lib/env";
+import { AID_ON, DANGER_ON, SOS_ON, VET_ER_ON, VIZIA_ON } from "@/lib/env";
 // Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
 import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
 import { PackLoader } from "@/components/pack/PackLoader";
@@ -208,6 +208,7 @@ const PackDangerCase = lazyPack(() => import("@/components/pack/sos/danger/PackD
 const PackDangerPoster = lazyPack(() => import("@/components/pack/sos/danger/PackDangerPoster")); // kôš 3
 const PackKlinika = lazyPack(() => import("@/components/pack/klinika/PackKlinika")); // kôš 2 — profil kliniky
 const PackPlace = lazyPack(() => import("@/components/pack/miesto/PackPlace")); // kôš 2 — profil miesta (parkovisko, unikát), 23. 11. 2026
+const PackVizia = lazyPack(() => import("@/components/pack/vizia/PackVizia")); // kôš 2 — Čo staviame (plány ako príspevky AINUBISA), 23. 11. 2026
 const PackSosCard = lazyPack(() => import("@/components/pack/dogCard/PackSosCard")); // kôš 3
 const PackDogCard = lazyPack(() => import("@/components/pack/dogCard/PackDogCard")); // kôš 3
 const LostPublic = lazy(() => import("./pages/LostPublic.tsx")); // verejná, bez prihlásenia, noindex
@@ -694,6 +695,7 @@ const App = () => (
               {VET_ER_ON && <Route path="/pack/klinika/:cid" element={<PackKlinika />} />}
               {/* PROFIL MIESTA — parkovisko a unikát z mapy; kôš 2 POZERÁM SA, rovnaká kostra ako profil kliniky. */}
               {APP_NEW && <Route path="/pack/miesto/:id" element={<PackPlace />} />}
+              {VIZIA_ON && <Route path="/pack/staviame" element={<PackVizia />} />}
               {APP_NEW && <Route path="/pack/sos/karticka" element={<PackSosCard />} />}
               {DANGER_ON ? (
                 <>

@@ -62,6 +62,8 @@ export const AID_ON = TEST_BUILD;
 // NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026): týranie · otrava · príroda · podnet úradu · plagát · verejná `/danger/:slug`.
 // Len testovací kanál; ostrá appka a dogypt.com nič nevidia, kým Matej nepovie „ostro“.
 export const DANGER_ON = TEST_BUILD;
+/** ČO STAVIAME (balík 4, 23. 11. 2026): plány ako príspevky AINUBISA + obrazovka `/pack/staviame`. LIVE až s FLIPom. */
+export const VIZIA_ON = TEST_BUILD;
 // Podnet zatiaľ nejde skutočnému úradu (server: `DANGER_SEND_REAL`) ⇒ obrazovka podnetu to povie vetou.
 // Zhasni spolu s ostrým odosielaním, nie s `DANGER_ON`.
 export const DANGER_TEST_NOTE = TEST_BUILD;
