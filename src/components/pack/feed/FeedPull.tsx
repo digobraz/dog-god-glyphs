@@ -3,14 +3,16 @@
 // sa feed načíta znova (`refreshFeed()` spustí všetky zdroje naraz).
 //
 // ⚠️ Gesto je vlastné: `html { overscroll-behavior: none }` vypína pruženie iOS, takže prehliadač sám nič neurobí.
-// 👃 ZNAČKA = ČUCHAJÚCI NOS (Matej 23. 11.: *„ikonku by som si predstavoval skôr čuchanie nosom“*). Kresba je tá istá ako
-//    v logu SNIFFER (`/icons/sniffer/nose.svg`, maska). Ťah: nos rastie a dvíha sa · hranica: jedno čuchnutie s haptikou ·
-//    načítanie: dve rýchle čuchnutia a pauza, zospodu do nozdier stúpajú tri vonné prúžky.
+// 👃 ZNAČKA = ČUCHAJÚCI NOS (Matej 23. 11.: *„ikonku by som si predstavoval skôr čuchanie nosom“*). Z piatich verzií vybral
+//    ČIERNY NOS (samolepka `plany/ikonky/varianty/app-pridaj-sniffer/k31-a.webp`) s pokynom *„trochu ho zlepši nech je lepšie
+//    čitateľný a tie výpary daj ako pri prvom — nie nad nosom, ale pod nosom žlté vlnky“*. Úprava v `/icons/sniffer/nos-cierny.webp`:
+//    vlnky nad nosom odrezané, nozdry takmer čierne (pôvodne svetlejšie než telo), telo o stupeň svetlejšie, orez natesno.
+//    Ťah: nos rastie a dvíha sa · hranica: jedno čuchnutie s haptikou · načítanie: dve rýchle čuchnutia a pauza,
+//    zospodu do nozdier stúpajú tri žlté vlnky (farba a obrys z tej istej samolepky).
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { PACK_THEME, PACK_SPACE } from '@/components/pack/packTheme';
+import { PACK_SPACE } from '@/components/pack/packTheme';
 import { haptika } from '@/lib/momenty/haptika';
 
-const T = PACK_THEME;
 const S = PACK_SPACE;
 /** Ťah prstom sa tlmí na polovicu · hranica obnovy · strop · výška, v ktorej obsah počká na načítanie. */
 const DAMP = 0.5;
@@ -23,28 +25,30 @@ const MIN_MS = 600;
 export const FEED_PULL_CSS = `
 .pkf{position:relative;}
 .pkf-col.pull-anim{transition:transform .28s cubic-bezier(.2,.8,.2,1);}
-.pkf-pull{position:absolute;left:50%;top:0;width:${S.xxl}px;height:${S.xxl}px;margin-left:-${S.lg}px;pointer-events:none;opacity:0;}
+.pkf-pull{position:absolute;left:50%;top:0;width:${S.xxxl}px;height:${S.xxl}px;margin-left:-${S.xl}px;pointer-events:none;opacity:0;}
 .pkf-pull.pull-anim{transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s ease;}
-.pkf-nose{position:absolute;inset:0;background:${T.inkStrong};-webkit-mask:url(/icons/sniffer/nose.svg) center/contain no-repeat;
-  mask:url(/icons/sniffer/nose.svg) center/contain no-repeat;transform-origin:50% 70%;transition:transform .12s ease-out;}
+.pkf-nose{position:absolute;inset:0;background:url(/icons/sniffer/nos-cierny.webp) center/contain no-repeat;transform-origin:50% 70%;transition:transform .12s ease-out;}
 .pkf-pull.hit .pkf-nose{animation:pkf-sniff1 .32s ease-in-out;}
 .pkf-pull.busy .pkf-nose{animation:pkf-sniff 1.1s ease-in-out infinite;}
-.pkf-wisp{position:absolute;top:100%;left:50%;width:6px;height:12px;margin-left:-3px;opacity:0;color:${T.inkWarm};}
+.pkf-wisp{position:absolute;top:100%;left:50%;width:8px;height:14px;margin-left:-4px;opacity:0;}
 .pkf-wisp svg{display:block;width:100%;height:100%;}
 .pkf-pull.busy .pkf-wisp{animation:pkf-wisp 1.1s ease-in infinite;animation-delay:var(--d);}
 /* Čuchnutie = nos sa krátko stlačí a nadýchne (nozdry ťahajú vzduch), dvakrát rýchlo za sebou, potom pauza. */
 @keyframes pkf-sniff{0%,44%,100%{transform:none;}11%,33%{transform:scale(1.1,.9);}22%{transform:scale(.97,1.04);}}
 @keyframes pkf-sniff1{0%,100%{transform:none;}45%{transform:scale(1.12,.88);}}
 /* Vonný prúžok vystúpi spod nosa do nozdier a zmizne. */
-@keyframes pkf-wisp{0%{opacity:0;transform:translate(var(--x),10px) scale(1);}35%{opacity:.85;}
-  100%{opacity:0;transform:translate(calc(var(--x) * .3),-14px) scale(.6);}}
+@keyframes pkf-wisp{0%{opacity:0;transform:translate(var(--x),10px) scale(1);}35%{opacity:1;}
+  100%{opacity:0;transform:translate(calc(var(--x) * .6),-12px) scale(.6);}}
 @media (prefers-reduced-motion:reduce){
   .pkf-pull.busy .pkf-nose{animation-duration:2.4s;}
   .pkf-pull.busy .pkf-wisp{display:none;}
 }
 `;
 
-const WISPS = [{ x: -9, d: '0s' }, { x: 0, d: '.18s' }, { x: 9, d: '.36s' }];
+const WISPS = [{ x: -12, d: '0s' }, { x: 0, d: '.18s' }, { x: 12, d: '.36s' }];
+/** Žltá a obrys vlniek = farby zo samolepky čierneho nosa (vymerané z `k31-a.webp`). */
+const WISP_FILL = '#F8B810';
+const WISP_EDGE = '#0A0912';
 
 /** Čuchajúci nos. `progress` (0–1) = ako ďaleko je ťah k hranici: nos rastie a dvíha sa. */
 function PullMark({ progress, busy }: { progress: number; busy: boolean }) {
@@ -54,7 +58,10 @@ function PullMark({ progress, busy }: { progress: number; busy: boolean }) {
       <span className="pkf-nose" style={busy ? undefined : { transform: `translateY(${(1 - p) * 6}px) rotate(${(1 - p) * -12}deg) scale(${0.55 + 0.45 * p})` }} />
       {WISPS.map((w) => (
         <span key={w.x} className="pkf-wisp" style={{ ['--x' as string]: `${w.x}px`, ['--d' as string]: w.d }}>
-          <svg viewBox="0 0 6 12" aria-hidden><path d="M3 11.5c-2-2 2-3.5 0-5.5s2-3.5 0-5.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+          <svg viewBox="0 0 8 14" aria-hidden>
+            <path d="M4 12.5c-2.4-2.3 2.4-4 0-6.2s2.4-4 0-5.3" fill="none" stroke={WISP_EDGE} strokeWidth="3.4" strokeLinecap="round" />
+            <path d="M4 12.5c-2.4-2.3 2.4-4 0-6.2s2.4-4 0-5.3" fill="none" stroke={WISP_FILL} strokeWidth="1.7" strokeLinecap="round" />
+          </svg>
         </span>
       ))}
     </>
