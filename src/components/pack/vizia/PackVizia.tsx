@@ -71,6 +71,6 @@ export function ViziaDetail({ r, lang, onClose, focusComment }: { r: ViziaRow; l
   const x = useViziaText(r);
   return (
     <PostViewer post={viziaAsPost(r, x.text)} name="AINUBIS" avatar={AI_AVATAR} dogs={[]} mine={false} system
-      lead={<ViziaLead r={r} />} lang={lang} focusComment={focusComment} onClose={onClose} />
+      hero={<ViziaLead r={r} />} lang={lang} focusComment={focusComment} onClose={onClose} />
   );
 }

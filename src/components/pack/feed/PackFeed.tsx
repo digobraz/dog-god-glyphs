@@ -60,6 +60,10 @@ import { SnifferShelf, SnifferBanner, SnifferEmpty, FEED_SNIFFER_CSS, type Sniff
 import { FeedTopics, FEED_TOPICS_CSS } from './FeedTopics';
 import { useBlockedOwners } from '@/components/pack/profile/moderation';
 import { APP_NEW } from '@/lib/packFlags';
+import { VIZIA_ON } from '@/lib/env';
+import { useViziaPlans, useViziaNews, markViziaSeen, viziaAsPost, VIZIA_PATH, type ViziaRow } from '@/components/pack/vizia/viziaData';
+import { FeedViziaCard, FeedViziaNew, VIZIA_CSS } from '@/components/pack/vizia/ViziaParts';
+import { ViziaDetail } from '@/components/pack/vizia/PackVizia';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -93,6 +97,7 @@ ${FEED_TOP_CSS}
 ${FEED_MAP_CSS}
 ${FEED_TOPICS_CSS}
 ${FEED_SNIFFER_CSS}
+${VIZIA_CSS}
 /* MOBIL: PLOCHÝ papyrus bez tapety (Matej 24. 10.: „layout bez toho čierneho pozadia ako je aj na ig").
    PC (od 768): tapeta a príspevky v blokoch ostávajú (Matej 26. 10., kolo 5: „na pc by som vrátil ten štýl pozadie
    a obsah na bloku… len na jednom pozadí to nevyzerá dobre"). */
@@ -165,10 +170,11 @@ type Item =
   | { k: 'map'; a: MapAdd }
   | { k: 'story' }
   | { k: 'sniffer' }
+  | { k: 'vizia' }
   | { k: 'saved' };
 
 /** Príspevok vo feede: môj (bez `who`) alebo cudzí s tvárou autora zo servera. */
-type PostIt = { p: MePost; who?: FeedPost; sn?: SnifferInfo };
+type PostIt = { p: MePost; who?: FeedPost; sn?: SnifferInfo; vz?: ViziaRow };
 
 /** Kľúč v `feed_marks` pre položku feedu (príspevok má vlastné `post_marks`, zvitok svoje uloženie). */
 function keyTarget(it: Item, quoteId: number, trips: Array<{ trail: { id: string } }>): string {
@@ -245,6 +251,9 @@ export function PackFeed() {
   const nearbyTrips = useNearbyMapTrips(pos, memberIds);
   const feedTrips = useMemo(() => [...memberTrips, ...nearbyTrips], [memberTrips, nearbyTrips]);
   const sniffer = useSnifferPosts(!!APP_NEW, pos);
+  // ČO STAVIAME (balík 4): plány sú príspevky AINUBISA (`t:vizia`) — vo „Všetko“ medzi ostatnými, pripomienka hore, keď niečo pribudlo.
+  const vizia = useViziaPlans(VIZIA_ON);
+  const viziaNews = useViziaNews(vizia.rows);
   const mapAdds = useMapAdds(6);
   const scrolls = useDemoScrolls();
   const savedIds = useSaved();
@@ -318,7 +327,8 @@ export function PackFeed() {
   const publicPosts = useMemo<PostIt[]>(() => [
     ...myPosts.filter((p) => !isMoment(p) && !isAlbum(p) && !isTripStory(p) && (p.visibility === 'public' || !!p.hiddenAt)).map((p) => ({ p })),
     ...otherPosts.filter((w) => w.ownerN == null || !blocked.has(w.ownerN)).map((w) => ({ p: w.post, who: w })),
-  ].sort((a, b) => Date.parse(b.p.createdAt) - Date.parse(a.p.createdAt)), [myPosts, otherPosts, blocked]);
+    ...vizia.rows.map((r) => ({ p: viziaAsPost(r, r.body), vz: r })),
+  ].sort((a, b) => Date.parse(b.p.createdAt) - Date.parse(a.p.createdAt)), [myPosts, otherPosts, blocked, vizia.rows]);
 
   // SNIFFER: príspevky pre tému (aj moje, aj vypršané — na obnovu) a polička „Hľadajú parťáka“ (len cudzie, živé).
   const renewSn = async (id: string) => {
@@ -456,6 +466,7 @@ export function PackFeed() {
     const out: Item[] = [];
     if (savedScrolls.length && savedHidden !== savedSig) out.push({ k: 'saved' });
     out.push({ k: 'quote' });
+    if (viziaNews) out.push({ k: 'vizia' });
     if (sniffShelf.length) out.push({ k: 'sniffer' });
     const saved = new Set(savedAtOpen ?? []);
     return out.concat(weave({
@@ -465,7 +476,7 @@ export function PackFeed() {
       map: [...mapAdds],
     }, true, true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trips, publicPosts, allScrolls, savedScrolls.length, savedHidden, savedSig, savedAtOpen, mapAdds, topic, searching, query, lang, postDogs, ownName, dogs, scrollTexts, sniffPosts, sniffShelf]);
+  }, [trips, publicPosts, allScrolls, savedScrolls.length, savedHidden, savedSig, savedAtOpen, mapAdds, topic, searching, query, lang, postDogs, ownName, dogs, scrollTexts, sniffPosts, sniffShelf, viziaNews]);
 
   // DÁVKY: najprv PAGE kusov, ďalšie, keď sa strážca na konci zoznamu priblíži k oknu.
   const [shown, setShown] = useState(PAGE);
@@ -585,6 +596,7 @@ export function PackFeed() {
         return <ScrollCard z={it.z} lang={lang} worldName={worldName(it.z.world)} onOpen={openScroll} showShare onShare={shareScrollOut}
           head={<AiHead sub={scrollUI(lang).scroll} />} />;
       case 'post':
+        if (it.p.vz) { const vz = it.p; return <FeedViziaCard r={vz.vz as ViziaRow} onOpen={() => setReading(vz)} />; }
         return it.p.who
           ? <FeedPostCard post={it.p.p} name={it.p.who.name || tx('pack.feed.member', 'Member')} avatar={it.p.who.avatar}
               authorN={it.p.who.ownerN} mine={false} onOpen={() => setReading(it.p)} sniffer={it.p.sn} />
@@ -601,6 +613,8 @@ export function PackFeed() {
             likes={marks.get('story:hekthor').likes} saves={marks.get('story:hekthor').saves}
             onShare={() => shareOut({ text: `${t('heroglyph.flow.name.whoTitle')} ${t('heroglyph.flow.name.whoTitleName')}` }, tx)} />
         );
+      case 'vizia':
+        return viziaNews ? <FeedViziaNew r={viziaNews.row} changed={viziaNews.changed} onOpenAll={() => navigate(VIZIA_PATH)} onHide={() => markViziaSeen(vizia.rows)} /> : null;
       case 'sniffer':
         return <SnifferShelf rows={sniffShelf} onOpen={() => setTopic(SNIFFER_TAG)} />;
       case 'saved':
@@ -671,7 +685,9 @@ export function PackFeed() {
       {tripCmOpen && <QuoteComments tripId={tripCmOpen} onClose={() => setTripCmOpen(null)}
         onCount={(n) => setTripCm((m) => (m[tripCmOpen] === n ? m : { ...m, [tripCmOpen]: n }))} />}
 
-      {reading && (reading.who
+      {reading && (reading.vz
+        ? <ViziaDetail r={reading.vz} lang={lang} focusComment={focusC} onClose={() => { setReading(null); setFocusC(null); void vizia.reload(); }} />
+        : reading.who
         ? <PostViewer post={reading.p} name={reading.who.name || tx('pack.feed.member', 'Member')} avatar={reading.who.avatar}
             dogs={[]} mine={false} authorN={reading.who.ownerN} lang={lang} focusComment={focusC} onClose={() => { setReading(null); setFocusC(null); }} />
         : <PostViewer post={reading.p} name={ownName} avatar={youImg} dogs={dogs} mine lang={lang} focusComment={focusC} onClose={() => { setReading(null); setFocusC(null); }} />
