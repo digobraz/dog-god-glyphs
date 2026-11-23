@@ -57,6 +57,8 @@ type Stats = {
 };
 
 /** Ikonky tipov v šate Papyrus 3D (SysIcon, `public/icons/sys/`). */
+// Matej 23. 11.: *„zapni sniffer má byť nové logo snifferu a ainubis logo ainubisu“* — tieto dva tipy nesú logo, nie samolepku zo sys.
+const TIP_SRC: Record<string, string> = { sniffer: '/icons/kruhy/sniffer.webp', test: AI_LOGO };
 const TIP_ICON: Record<string, string> = { dogid: 'dog-id', sniffer: 'pridaj-sniffer', trip: 'pridaj-vylet', test: 'ainubis' };
 
 type Tip = { id: string; title: string; sub: string; cta: string; go: () => void };
@@ -370,18 +372,19 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
   ] : [];
   const pi = (src: string) => <img src={src} alt="" draggable={false} />;
   // FAREBNÉ PILULKY (23. 11. 2026): zlatá = psy a míľnik, lapis = krajiny, zelená = prírastok, cyan = oznam AINUBISA. Ťuk = zastaví / pustí točenie.
+  // Ikonky pilulky a tipov vybral Matej 23. 11. na `plany/nakresy/upozornenia-vizia-2026-11-23/ikonky.html` (voľby v `ikonky.json`).
   const pillsNew: React.ReactNode[] = stats ? [
-    <span key="dg" className="ntf-pill ntf-pill--gold">{pi('/icons/kruhy/all.webp')}<b>{fmt(dogs)}</b>{t('pack.notif.dogsWord')}</span>,
+    <span key="dg" className="ntf-pill ntf-pill--gold">{pi('/icons/sys/pridaj-odkaz.webp')}<b>{fmt(dogs)}</b>{t('pack.notif.dogsWord')}</span>,
     ...news.map((n) => (
       <span key={`n-${n.id}`} className="ntf-pill ntf-pill--news" onClick={() => { if (n.href) { onClose(); navigate(n.href); } }}>
-        {pi('/icons/sys/ainubis.webp')}{n.text[lk] ?? n.text.en}
+        {pi('/icons/sys/vlk.webp')}{n.text[lk] ?? n.text.en}
       </span>
     )),
-    <span key="m" className="ntf-pill ntf-pill--up">{pi('/icons/sys/fajka-zelena.webp')}<b>+{fmt(stats.last30d)}</b>{t('pack.notif.perMonth')}</span>,
-    <span key="c" className="ntf-pill ntf-pill--lapis">{pi('/icons/sys/poloha.webp')}<b>{fmt(stats.topCountries.length)}</b>{t('pack.notif.countries')}</span>,
-    ...(stats.last24h > 0 ? [<span key="d" className="ntf-pill ntf-pill--up">{pi('/icons/sys/fajka-zelena.webp')}<b>+{fmt(stats.last24h)}</b>{t('pack.notif.today')}</span>] : []),
+    <span key="m" className="ntf-pill ntf-pill--up">{pi('/icons/sys/misia-rozvoj.webp')}<b>+{fmt(stats.last30d)}</b>{t('pack.notif.perMonth')}</span>,
+    <span key="c" className="ntf-pill ntf-pill--lapis">{pi('/icons/sys/kviz-element.webp')}<b>{fmt(stats.topCountries.length)}</b>{t('pack.notif.countries')}</span>,
+    ...(stats.last24h > 0 ? [<span key="d" className="ntf-pill ntf-pill--up">{pi('/icons/sys/plus.webp')}<b>+{fmt(stats.last24h)}</b>{t('pack.notif.today')}</span>] : []),
     <span key="k" className="ntf-pill ntf-pill--gold">{pi('/icons/sys/trofej.webp')}<b>{(dogs / 10_000).toLocaleString(intlLocale(lang), { maximumFractionDigits: 2 })} %</b>{t('pack.notif.toMillion')}</span>,
-    ...(stats.topCountries[0] ? [<span key="t" className="ntf-pill ntf-pill--lapis">{pi('/icons/sys/poloha.webp')}<b>{fmt(stats.topCountries[0].count)}</b>{stats.topCountries[0].country}</span>] : []),
+    ...(stats.topCountries[0] ? [<span key="t" className="ntf-pill ntf-pill--lapis">{pi('/icons/sys/kviz-uloha.webp')}<b>{fmt(stats.topCountries[0].count)}</b>{stats.topCountries[0].country}</span>] : []),
   ] : [];
   const pills = APP_NEW ? pillsNew : pillsOld;
 
@@ -502,7 +505,9 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
               {/* Papyrus 3D (hárok K5): tip je papierová karta s ikonkou z továrne a akciou vpravo, nie riadok AINUBISA. */}
               {APP_NEW && tips.map((tip) => (
                 <div key={tip.id} className={`ntf-row ntf-row--tip ntf-tip-${tip.id}`}>
-                  <SysIcon name={TIP_ICON[tip.id] ?? 'ainubis'} size={46} />
+                  {TIP_SRC[tip.id]
+                    ? <img src={TIP_SRC[tip.id]} alt="" width={46} height={46} draggable={false} style={{ flexShrink: 0, objectFit: 'contain' }} />
+                    : <SysIcon name={TIP_ICON[tip.id] ?? 'ainubis'} size={46} />}
                   <span className="ntf-txt">{tip.title}<small>{tip.sub}</small></span>
                   <button type="button" className="ntf-act" onClick={tip.go}>{tip.cta}</button>
                 </div>
