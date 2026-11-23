@@ -10,6 +10,14 @@ const MOB = '@media (max-width:1023px)';
 const PC = '@media (min-width:1024px)';
 
 export const AI3D_VAULT_CSS = `
+/* ── POPUP TÉM UZLA MOZGU (ťuk na synapsu): šuplík AINUBISA, riadky ako 3D tlačidlá ── */
+html.papyrus3d .ppu-sheet.akv-syn{${M3.sheet}color:${A.ink};}
+html.papyrus3d .ppu-sheet.akv-syn .ppu-head h2{font:400 24px/1.12 'LT Museum',serif;letter-spacing:0;text-align:center;color:${A.ink};}
+html.papyrus3d .ppu-sheet.akv-syn .pk-grab{${M3.grab}}
+html.papyrus3d .akv-syn .akv-syn-h{${M3.lab}opacity:1;}
+${b3('html.papyrus3d .akv-syn .akv-syn-row', 'nt', '16px', 4)}
+html.papyrus3d .akv-syn .akv-syn-row{min-height:56px;padding:8px 14px;font:500 16px/1.3 'Space Grotesk',sans-serif;}
+html.papyrus3d .akv-syn .akv-syn-row svg{color:${A.cyan};}
 /* ── HLAVIČKA = hlavička mapy (hárok .hd, .me, .av, .dg, .lv) ───────────────────────────────────── */
 ${MOB}{
   ${R} .akv-top{left:0;right:0;top:0;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 16px;pointer-events:auto;${M3.head}}

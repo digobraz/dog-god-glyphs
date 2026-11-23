@@ -5225,6 +5225,8 @@ const { ink: P_INK, dim: P_DIM, edge: P_EDGE, deep: P_DEEP, border: P_BORDER, fi
 const P3D_V = {
   paper: '--b3-a:#fff;--b3-b:var(--p3d-paper);--b3-p:var(--p3d-gold-solid);--b3-l:var(--p3d-ink);--b3-i:var(--p3d-ink);',
   lapis: `--b3-a:color-mix(in srgb,${LAPIS.edge} 72%,white);--b3-b:${LAPIS.deep};--b3-p:color-mix(in srgb,${LAPIS.deep} 60%,black);--b3-l:${LAPIS.ink};--b3-i:${LAPIS.ink};`,
+  /* VÝBER = PRIESVITNÝ LAPIS TINT na 3D tlačidle (Matej 23. 11. 2026: „opäť dva lapisy“) — plný lapis ostáva jedinému CTA. */
+  tint: `--b3-a:color-mix(in srgb,${LAPIS.edge} 22%,#fff);--b3-b:color-mix(in srgb,${LAPIS.edge} 30%,var(--p3d-paper));--b3-p:var(--p3d-gold-solid);--b3-l:${LAPIS.edge};--b3-i:${PICK_INK.lapis};`,
   green: '--b3-a:color-mix(in srgb,#3D7A4E 66%,white);--b3-b:#3D7A4E;--b3-p:color-mix(in srgb,#3D7A4E 62%,black);--b3-l:var(--p3d-ink);--b3-i:#fff;',
 };
 /** Tvar tlačidla 3D bez triedy: výška, polomer, tieň a písmo z premenných. `fs` = veľkosť písma zo stupnice. */
@@ -5299,9 +5301,11 @@ ${TILE_ANIM.css}` : ''}
 html.papyrus3d .atl-tile-wrap.is-open{--p3d-open:0 6px 0 ${LAPIS.deep},0 11px 14px var(--p3d-sh);border:2.5px solid ${LAPIS.ink};border-radius:16px;box-shadow:var(--p3d-open);}
 /* VOĽBY (chip, náročnosť, doprava, prepínače): TLAČIDLO 3D, vybraná je lapis */
 html.papyrus3d .atl-chip,html.papyrus3d .atl-diffbtn,html.papyrus3d .atl-travel-btn,html.papyrus3d .atl-check,html.papyrus3d .atl-toggle-btn,html.papyrus3d .atl-journey-item{${P3D_V.paper}${P3D_B3(44, 16)}padding:0 16px;cursor:pointer;}
+/* Vedľajšie tlačidlo „Označ“ pri vybranom chipe je papier, nie druhý plný lapis. */
+html.papyrus3d .atl-where-btn{${P3D_V.paper}${P3D_B3(44, 14)}padding:0 12px;box-shadow:var(--b3-sh);}
 html.papyrus3d .atl-chip:hover,html.papyrus3d .atl-travel-btn:hover,html.papyrus3d .atl-seats button:hover,html.papyrus3d .atl-toggle-btn:hover{border-color:var(--b3-l);}
 html.papyrus3d .atl-chip:active,html.papyrus3d .atl-diffbtn:active,html.papyrus3d .atl-travel-btn:active,html.papyrus3d .atl-check:active,html.papyrus3d .atl-toggle-btn:active{${P3D_DOWN}}
-html.papyrus3d .atl-chip.on,html.papyrus3d .atl-diffbtn.on,html.papyrus3d .atl-travel-btn.on,html.papyrus3d .atl-check.on,html.papyrus3d .atl-toggle-btn.on,html.papyrus3d .atl-toggle-row > .atl-toggle-btn.on,html.papyrus3d .atl-journey-item.on{${P3D_V.lapis}background:linear-gradient(180deg,var(--b3-a),var(--b3-b));border-color:var(--b3-l);color:var(--b3-i);box-shadow:var(--b3-sh);}
+html.papyrus3d .atl-chip.on,html.papyrus3d .atl-diffbtn.on,html.papyrus3d .atl-travel-btn.on,html.papyrus3d .atl-check.on,html.papyrus3d .atl-toggle-btn.on,html.papyrus3d .atl-toggle-row > .atl-toggle-btn.on,html.papyrus3d .atl-journey-item.on{${P3D_V.tint}background:linear-gradient(180deg,var(--b3-a),var(--b3-b));border-color:var(--b3-l);color:var(--b3-i);box-shadow:var(--b3-sh);}
 /* Riadky kroku 2: papier 3D, žiadny lapis — lapis na obrazovke je len Pokračovať (Matej 21. 11. 2026). */
 html.papyrus3d .atl-nrow{${P3D_V.paper}${P3D_B3(56, 14)}padding:8px 12px;justify-content:flex-start;text-align:left;}
 html.papyrus3d .atl-nrow:active{${P3D_DOWN}}

@@ -2221,7 +2221,8 @@ html.papyrus3d .trp-dock .trp-dockpanel{background:radial-gradient(120% 80% at 5
 html.papyrus3d .trp-dkind{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;padding:8px;border-radius:16px;border:2.5px solid var(--p3d-ink);background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
 html.papyrus3d .trp-dkind-btn{height:48px;border:0;border-radius:12px;background:none;color:var(--p3d-ink);font-family:'LT Museum',serif;font-weight:400;font-size:20px;letter-spacing:0;text-transform:none;}
 html.papyrus3d .trp-dkind-btn:hover{background:none;color:var(--p3d-ink);}
-html.papyrus3d .trp-dkind-btn.on,html.papyrus3d .trp-dkind-btn.on:hover{background:linear-gradient(180deg,color-mix(in srgb,${LAPIS.edge} 72%,white),${LAPIS.deep});color:${LAPIS.ink};box-shadow:0 0 0 2px ${LAPIS.ink},0 3px 0 2px ${LAPIS.deep};font-weight:400;}
+/* VÝBER DŇA = PRIESVITNÝ TINT (Matej 23. 11. 2026: „v 1. kroku sú opäť dva lapisy“) — plný lapis ostáva jedinému CTA HOTOVO. */
+html.papyrus3d .trp-dkind-btn.on,html.papyrus3d .trp-dkind-btn.on:hover{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.22)}border:2px solid ${LAPIS.edge};font-weight:400;}
 html.papyrus3d .trp-dbar-btn{--b3-a:#fff;--b3-b:var(--p3d-paper);--b3-p:var(--p3d-gold-solid);--b3-l:var(--p3d-ink);--b3-i:var(--p3d-ink);box-sizing:border-box;min-height:56px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);
   --b3-sh:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -4px 0 rgba(0,0,0,.15),0 4px 0 var(--b3-p),0 8px 10px rgba(0,0,0,.28);box-shadow:var(--b3-sh);font-family:'LT Museum',serif;font-weight:400;font-size:16px;line-height:1.1;letter-spacing:0;text-transform:none;}
 html.papyrus3d .trp-dbar-btn:hover:not(:disabled){background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);border-color:var(--b3-l);}

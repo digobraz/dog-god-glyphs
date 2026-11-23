@@ -397,13 +397,11 @@ function Ranks({ cancelled }: { cancelled: boolean }) {
       {/* Matej 17. 11. 2026: „dolu pod CTA by mala byť info, že podporiť nás môžeš aj neskôr v appke“. */}
       <p className="vs-later">{t(`${K}later`)}</p>
 
-      {/* KAM IDÚ PENIAZE — popup „Financovanie" (texty z nákresu, bez čísel). */}
+      {/* 100% TRANSPARENTNOSŤ — Matej 23. 11. 2026: staré rozdelenie na tri diely (k0–k2) preč,
+          jeden odsek „hospodárenie DOGYPTU vidí každý člen…“. */}
       <FlowModal open={kam} label={t(`${K}kamTitle`)} onClose={() => setKam(false)} className="vs-kam">
         <h2 className="vs-kam-h">{t(`${K}kamTitle`)}</h2>
         <p className="vs-sub">{t(`${K}kamIntro`)}</p>
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="vs-kam-row"><b>{t(`${K}k${i}`)}</b><span>{t(`${K}k${i}n`)}</span></div>
-        ))}
         <button type="button" className="pk-b3 pk-b3--paper vs-kam-x" onClick={() => setKam(false)}>{t(`${K}close`)}</button>
       </FlowModal>
     </>

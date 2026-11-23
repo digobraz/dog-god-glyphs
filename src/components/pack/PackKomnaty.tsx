@@ -10,6 +10,8 @@ import { KOMNATY, ZNALEC, komnataFor, komnataHotova, novePolozky, type Komnata, 
 import { Spot, WIZ_CSS, ainubisFace, forgetShown, logWiz, pushSeenToAccount, readSeenLocal, writeSeenLocal, wizOffLocal, type WizAction } from './PackWizard';
 import { MAP_COACH_CSS } from './MapCoach';
 import { AINUBIS } from './ainubisSkin';
+import { readLocalTrails } from './tripShared';
+import { readLocalTrailMeta } from '@/lib/packStore';
 import { FONT_TITLE, FONT_UI, PACK_R, PACK_SPACE, PACK_TEXT, PROGRESS_CSS } from './packTheme';
 import type { PackDog } from './usePackIdentity';
 
@@ -70,6 +72,16 @@ const DVERE_ZAM = '/icons/sys/dvere-zamknute.webp';
 const K_DOGID = 'dogypt_k_dogid';
 /** Iné okno (pravidlá, moment, list) je otvorené → prehliadka počká, okná idú po jednom. */
 const cudzieOkno = () => [...document.querySelectorAll('[role="dialog"][aria-modal="true"]')].some((e) => !e.closest('.wzc, .wzc-welcome'));
+/** Odznak KARTOGRAF až po zápise prvého VLASTNÉHO výletu (Matej 23. 11.: „odznak sa dostane až keď človek vytvorí svoj prvý
+ *  výlet“). Signál = členské výlety v `trp-local-trails` (zápis výletu ich plní; cudzie majú `mine:false`, plán `plan-` nie je výlet). */
+const maVlastnyVylet = () => {
+  try {
+    const meta = readLocalTrailMeta();
+    return readLocalTrails().some((tr) => !tr.id.startsWith('plan-') && (meta[tr.id]?.mine ?? true));
+  } catch { return false; }
+};
+/** Odznak UČENEC až keď človek otvorí zvitok (Matej 23. 11.: „až po prečítanom zvitku, resp. kliknutie naň“). */
+const K_ZVITOK = 'dogypt_k_zvitok';
 const dogidPct = () => Number(ls.get(K_DOGID) ?? '0') || 0;
 
 const dnes = () => new Date().toISOString().slice(0, 10);
@@ -85,7 +97,7 @@ const ls = {
 const K_UID = 'dogypt_k_uid';
 function cudziStav(uid: string): boolean {
   if (ls.get(K_UID) === uid) return false;
-  ['dogypt_wz_seen', 'dogypt_wz', K_FIRST, K_AUTO, K_REM, K_POSTUPNE, K_DOGID].forEach((k) => ls.del(k));
+  ['dogypt_wz_seen', 'dogypt_wz', K_FIRST, K_AUTO, K_REM, K_POSTUPNE, K_DOGID, K_ZVITOK].forEach((k) => ls.del(k));
   [K_AKT, K_POS, K_REP, K_POLICA].forEach((k) => ss.set(k, null));
   ls.set(K_UID, uid);
   try { window.dispatchEvent(new Event('dogypt:wizard')); } catch { /* */ }
@@ -403,6 +415,28 @@ function PackKomnatyJadro({ dogs, avatarUrl, potrebujeHosta }: { dogs: PackDog[]
   const [ukazKluc, setUkazKluc] = useState(false);
   const [volno, setVolno] = useState(false);
   const [pct, setPct] = useState(dogidPct);
+  const [vylet, setVylet] = useState(maVlastnyVylet);
+  const [zvitok, setZvitok] = useState(() => ls.get(K_ZVITOK) === '1');
+  const aktRef = useRef<KomnataId | null>(null);
+  aktRef.current = akt;
+  // Zápis výletu nemá udalosť → kým odznak mapy čaká, pozeráme sa raz za pár sekúnd (a pri zmene obrazovky).
+  useEffect(() => {
+    if (vylet) return undefined;
+    setVylet(maVlastnyVylet());
+    const iv = setInterval(() => { if (maVlastnyVylet()) setVylet(true); }, 4000);
+    return () => clearInterval(iv);
+  }, [vylet, pathname]);
+  // Ťuk na zvitok (karta alebo „prečítané“) mimo prehliadky = otvoril zvitok.
+  useEffect(() => {
+    if (zvitok) return undefined;
+    const on = (e: MouseEvent) => {
+      if (aktRef.current || !(e.target as HTMLElement | null)?.closest?.('.akv-zv, .zv-read')) return;
+      ls.set(K_ZVITOK, '1');
+      setZvitok(true);
+    };
+    document.addEventListener('click', on, true);
+    return () => document.removeEventListener('click', on, true);
+  }, [zvitok]);
   // Okná po jednom: kým je otvorené iné (pravidlá, moment, list), prehliadka čaká.
   useEffect(() => {
     const iv = setInterval(() => setVolno(!cudzieOkno()), 500);
@@ -590,11 +624,12 @@ function PackKomnatyJadro({ dogs, avatarUrl, potrebujeHosta }: { dogs: PackDog[]
   useEffect(() => {
     if (akt || polica) return undefined;
     // STRÁŽCA PSA až pri 100 % DOG ID (Matej 17. 11.); dovtedy dvere ukazujú postup.
-    const dlh = KOMNATY.find((x) => done(x) && !seen.has(`odz:${x.id}`) && (x.id !== 'pes' || pct >= 100));
+    const dlh = KOMNATY.find((x) => done(x) && !seen.has(`odz:${x.id}`) && (x.id !== 'pes' || pct >= 100)
+      && (x.id !== 'mapa' || vylet) && (x.id !== 'ainubis' || zvitok));
     if (!dlh) return undefined;
     const t0 = window.setTimeout(() => void odmena(dlh, seen), 700);
     return () => window.clearTimeout(t0);
-  }, [akt, polica, done, seen, odmena, pct]);
+  }, [akt, polica, done, seen, odmena, pct, vylet, zvitok]);
 
   const klikni = (sel?: string) => { if (sel) (document.querySelector(sel) as HTMLElement | null)?.click(); };
 

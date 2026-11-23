@@ -380,8 +380,26 @@ export function Spot({ step, body, dots, onNext, onSkip, onShown, onMissing, okL
       if (el) {
         clearInterval(iv);
         const r = el.getBoundingClientRect();
-        const offscreen = r.top < 0 || r.bottom > window.innerHeight;
-        if (offscreen && !WIZ_ROUND.includes(anchor)) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        // „Mimo obrazovky“ = aj pod spodnou lištou / horným pásom (Matej 23. 11.: výrez ukazoval na spodný nav, lebo tlačidlo
+        // „Pozvi“ bolo pod ním a stránka sa neposunula). Pevné prvky (lišta, SOS) sa neposúvajú. Posun je OKAMŽITÝ,
+        // takže výrez sa kreslí až na už posunutú stránku.
+        const cs = getComputedStyle(document.documentElement);
+        const navH = (parseFloat(cs.getPropertyValue('--pack-nav-h')) || 0) + (parseFloat(cs.getPropertyValue('--pack-nav-bottom')) || 0);
+        const spodok = window.innerHeight - Math.max(navH, PACK_SPACE.xl * 2) - PACK_SPACE.sm;
+        const offscreen = r.top < 72 || r.bottom > spodok;
+        let pevny = false;
+        for (let n: HTMLElement | null = el; n && n !== document.body; n = n.parentElement) {
+          const pos = getComputedStyle(n).position;
+          if (pos === 'fixed' || pos === 'sticky') { pevny = true; break; }
+        }
+        // Cieľ do HORNEJ štvrtiny, nie na stred: karta AINUBISA leží v dolnej polovici a stred by ju prekryl
+        // (snímka Mateja 23. 11., krok „Pozvi“). scroll-margin funguje pre okno aj pre posuvný kontajner /pack.
+        if (offscreen && !pevny && !WIZ_ROUND.includes(anchor)) {
+          const pred = el.style.scrollMarginTop;
+          el.style.scrollMarginTop = '25vh';
+          el.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
+          el.style.scrollMarginTop = pred;
+        }
         shownRef.current();
         follow();
         if (naostro) document.addEventListener('click', tapNaostro, true);

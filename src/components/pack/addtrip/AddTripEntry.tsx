@@ -440,7 +440,6 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBl
         {/* `step === 'trip'` sa už nenastavuje — viď komentár pri kliku na dlaždicu VÝLET. */}
         {step === 'note' && (
           <div className="att-entry-note">
-            <p className="att-entry-lead">{t('pack.mapNotes.palette.lead')}</p>
             <NotePalette onPick={(group) => onPick({ kind: 'note', group })} blocked={noteBlocked} />
           </div>
         )}
@@ -534,9 +533,11 @@ body:has(.att-entry-backdrop) .ainubis-launcher{visibility:hidden;pointer-events
    sa na PC orezával (premerané 5. 10. 2026). Vysvetlivka ostáva len zhasnutej voľbe — tam je
    to DÔVOD („výlet už parkovisko má“), nie popis. */
 .att-entry-note .np-wrap--blocks{flex-direction:column;gap:8px;}
-.att-entry-note .np-wrap--blocks .np-item{flex:0 0 auto;flex-direction:row;align-items:center;flex-wrap:wrap;gap:4px 12px;padding:8px 12px;}
-.att-entry-note .np-wrap--blocks .np-item .np-text{display:none;}
-.att-entry-note .np-wrap--blocks .np-item--off .np-text{display:block;flex-basis:100%;}
+.att-entry-note .np-wrap--blocks .np-item{flex:0 0 auto;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:12px;row-gap:4px;padding:8px 12px;}
+/* Veta pod názvom (Matej 23. 11. 2026) — emoji cez oba riadky vľavo, názov a veta vedľa neho. */
+.att-entry-note .np-wrap--blocks .np-item .np-mark{grid-row:1 / span 2;}
+.att-entry-note .np-wrap--blocks .np-item .np-name{grid-column:2;white-space:normal;}
+.att-entry-note .np-wrap--blocks .np-item .np-text{display:block;grid-column:2;}
 .att-entry-lead{margin:0 0 12px;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.inkWarm};}
 
 /* ── MOBIL: ÚCHYT NAD ZOZNAMOM (Matej 21. 9. 2026) ────────────────────────────────────

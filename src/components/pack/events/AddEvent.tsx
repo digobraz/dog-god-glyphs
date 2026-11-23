@@ -300,7 +300,7 @@ export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, ma
         {APP_NEW && !initial && (
           <div className="aev-pills">
             {(['own', 'tip'] as const).map((o) => (
-              <button key={o} type="button" className={`aev-pill${origin === o ? ' on' : ''}${APP_NEW ? ' pk-b3 pk-b3--' + (origin === o ? 'lapis' : 'paper') : ''}`} onClick={() => setOriginPick(o)}>
+              <button key={o} type="button" className={`aev-pill${origin === o ? ' on' : ''}${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`} onClick={() => setOriginPick(o)}>
                 {t(o === 'own' ? 'pack.addEvent.originOwn' : 'pack.addEvent.originTip')}
               </button>
             ))}
@@ -345,7 +345,7 @@ export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, ma
               <button
                 key={k}
                 type="button"
-                className={`aev-pill${kind === k ? ' on' : ''}${APP_NEW ? ' pk-b3 pk-b3--' + (kind === k ? 'lapis' : 'paper') : ''}`}
+                className={`aev-pill${kind === k ? ' on' : ''}${APP_NEW ? ' pk-b3 pk-b3--paper' : ''}`}
                 onClick={() => setKind(k)}
               >{APP_NEW && <img className="aev-kindico" src={EVENT_KIND_ICON[k]} alt="" />}{t(EVENT_KIND_LABEL_KEYS[k])}</button>
             ))}
@@ -552,7 +552,12 @@ html.papyrus3d .aev-input::placeholder{color:color-mix(in srgb,var(--p3d-ink) 55
 html.papyrus3d .aev-filled{border-color:var(--p3d-gold-ink);}
 html.papyrus3d .aev-pills{gap:12px;}
 html.papyrus3d .aev-pill.pk-b3{height:44px;padding:0 12px;gap:8px;border:2.5px solid var(--b3-l);border-radius:12px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),0 6px 0 var(--b3-p),0 11px 14px var(--p3d-sh);font:400 16px/1 'LT Museum',serif;font-size:16px;letter-spacing:0;text-transform:none;}
-html.papyrus3d .aev-pill.pk-b3.on{font-weight:400;}
+/* Výber = PRIESVITNÝ LAPIS TINT, nie plný lapis (Matej 23. 11. 2026: „obrazovky kde je viac lapisov“) — plný lapis ostáva jedinému CTA dole. */
+html.papyrus3d .aev-pill.pk-b3.on{--b3-a:color-mix(in srgb,${LAPIS.edge} 22%,#fff);--b3-b:color-mix(in srgb,${LAPIS.edge} 30%,var(--p3d-paper));--b3-l:${LAPIS.edge};--b3-i:${PICK_INK.lapis};font-weight:400;}
+/* ŠAT PANELU = papyrus 3D ako .atl-log (Matej 23. 11.: „pozadie je staré“) a žiadny vodorovný posun pri swipe. */
+html.papyrus3d .trp-addhost:has(> .aev-root){background:radial-gradient(120% 80% at 50% 0%,var(--p3d-paper-hi),var(--p3d-paper));overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;}
+html.papyrus3d .aev-root{max-width:100%;overflow-x:hidden;touch-action:pan-y;}
+html.papyrus3d .aev-body{overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;}
 html.papyrus3d .aev-kindico{width:28px;height:28px;object-fit:contain;}
 html.papyrus3d .aev-foot{margin:0 16px 24px;}
 html.papyrus3d .aev-foot .btn-gold.pk-b3{height:56px;padding:0 24px;border:2.5px solid var(--b3-l);border-radius:16px;background:linear-gradient(180deg,var(--b3-a),var(--b3-b));color:var(--b3-i);box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),inset 0 -4px 0 color-mix(in srgb,black 15%,transparent),0 6px 0 var(--b3-p),0 11px 14px var(--p3d-sh);font:400 20px/1 'LT Museum',serif;font-size:20px;letter-spacing:0;text-transform:none;}

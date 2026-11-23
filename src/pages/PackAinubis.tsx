@@ -103,6 +103,14 @@ ${AI_BREATHE_CSS}
 .akv-syn-h{margin:0;font:500 ${PACK_TEXT.label}px ${FONT_UI};letter-spacing:.22em;text-transform:uppercase;opacity:.7;}
 .akv-syn-row{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;width:100%;min-height:48px;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;font:500 ${PACK_TEXT.body}px/1.35 ${FONT_UI};color:inherit;text-align:left;cursor:pointer;}
+/* Popup tém patrí AINUBISOVI ⇒ jeho tmavý šat, nie papyrus (Matej 23. 11. 2026: „oprav to na ainubis brand“). Vzor: prehrávač podcastov. */
+.ppu-root .ppu-sheet.akv-syn{background:linear-gradient(180deg,${AINUBIS.bg},${AINUBIS.bgDeep});color:${AINUBIS.ink};border-color:${AINUBIS.edgeStrong};}
+.ppu-root .ppu-sheet.akv-syn .ppu-head h2{color:${AINUBIS.ink};}
+.ppu-root .ppu-sheet.akv-syn .pk-grab{background:${AINUBIS.edgeStrong};}
+.akv-syn .akv-syn-h{color:${AINUBIS.cyan};opacity:1;}
+.akv-syn .akv-syn-row{border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.ink};}
+.akv-syn .akv-syn-row:hover{border-color:${AINUBIS.edgeStrong};background:rgba(${AINUBIS.cyanRGB},0.10);}
+.akv-syn .akv-syn-row svg{color:${AINUBIS.cyan};}
 ${STAGE_CSS}
 /* Som v AINUBISe ⇒ plávajúca guľa je duplikát a zavadzala filtrom (Matej 1. 11. 2026). */
 body:has(.akv-root) .ainubis-launcher{display:none;}
@@ -1588,7 +1596,7 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
               <div key={g.oi} className="akv-syn-grp">
                 {synPick.oi === undefined && <h3 className="akv-syn-h">{circleName(synPick.wi, g.oi)}</h3>}
                 {g.list.map((z) => (
-                  <button key={z.id} type="button" className="akv-syn-row" style={{ ...PACK_BOX.row }}
+                  <button key={z.id} type="button" className="akv-syn-row"
                     onClick={() => { setSynPick(null); openScroll(z.id); }}>
                     <span>{pickText(z, lang).t}</span>
                     {isRead(z) && <CheckIc size={16} />}

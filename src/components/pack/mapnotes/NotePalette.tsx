@@ -117,6 +117,18 @@ export type NotePaletteProps = {
 
 export function NotePalette({ onPick, variant = 'blocks', extras, onPickExtra, blocked }: NotePaletteProps) {
   const t = useT();
+  // Krátka veta pod názvom (Matej 23. 11. 2026: „dajme vetu pod nadpisy — Parkovisko: označ na mape miesto na parking/camping“).
+  // Nové kľúče `*.hint` s EN záložkou v kóde; staré `*.text` ostávajú pre ostatných volajúcich.
+  const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
+  const GROUP_HINT: Record<NoteGroup, string> = {
+    parking: 'Mark a parking or camping spot on the map',
+    warning: 'Mark a spot with a danger for dogs on the map',
+    comment: 'Mark a spot worth a tip on the map',
+  };
+  const EXTRA_HINT: Record<PaletteExtra, string> = {
+    trip: 'Draw a walk with your dog from this spot',
+    event: 'Mark where something happens on a set date',
+  };
   return (
     <div className={`np-wrap np-wrap--${variant}`}>
       {(extras ?? []).map((x) => (
@@ -125,7 +137,7 @@ export function NotePalette({ onPick, variant = 'blocks', extras, onPickExtra, b
             {EXTRA_EMOJI[x]}
           </span>
           <span className="np-name">{t(`pack.mapNotes.palette.extra.${x}`)}</span>
-          {variant === 'blocks' && <span className="np-text">{t(`pack.mapNotes.palette.extra.${x}.text`)}</span>}
+          {variant === 'blocks' && <span className="np-text">{tx(`pack.mapNotes.palette.extra.${x}.hint`, EXTRA_HINT[x])}</span>}
         </button>
       ))}
       {NOTE_GROUPS.map((g) => {
@@ -141,7 +153,7 @@ export function NotePalette({ onPick, variant = 'blocks', extras, onPickExtra, b
           >
             <GroupMark group={g} size={variant === 'blocks' ? 30 : 24} />
             <span className="np-name">{t(`pack.mapNotes.group.${g}`)}</span>
-            {variant === 'blocks' && <span className="np-text">{why ?? t(`pack.mapNotes.group.${g}.text`)}</span>}
+            {variant === 'blocks' && <span className="np-text">{why ?? tx(`pack.mapNotes.group.${g}.hint`, GROUP_HINT[g])}</span>}
           </button>
         );
       })}

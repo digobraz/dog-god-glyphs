@@ -22,7 +22,7 @@ ${H} .akv-zv::before{box-shadow:none;}
 ${H} .akv-zvimg img{border-radius:0;}
 ${H} .akv-zvimg .zv-acts{padding:14px 14px 0;}
 ${H} .akv-zvt{position:static;padding:14px;gap:10px;}
-${H} .akv-zvlbl{font:600 12px ${UI};letter-spacing:.14em;text-transform:uppercase;color:rgb(var(--ai-w,${CY}));padding-right:48px;}
+${H} .akv-zvlbl{font:600 12px ${UI};letter-spacing:.14em;text-transform:uppercase;color:rgb(var(--ai-w,${CY}));padding-right:0;}
 ${H} .akv-zvn{font:400 24px/1.14 ${MU};letter-spacing:0;text-transform:none;color:${A.ink};padding-right:0 !important;}
 ${H} .akv-zvv{font:500 16px/1.5 ${UI};color:${A.ink};}
 ${H} .zv-mid{gap:10px;}
@@ -40,6 +40,7 @@ ${H} .zv-take{${M3.box}border-left:3px solid ${CA};padding:14px;font:500 16px/1.
 /* známka: roh karty, plná plocha, zlatý rám */
 ${H} .zv-sd{background:#1A1305;color:${CA};border:2.5px solid ${CA};font:400 24px ${MU};}
 ${H} .zv-sd[data-g]{--zv-g:${CA};--zv-gt:transparent;}
+${H} .zv-sd--pill{width:auto;min-width:28px;height:24px;padding:0 8px;margin-left:8px;border-width:2px;border-radius:999px;font:400 14px/1 ${MU};letter-spacing:0;}
 ${H} .zv-sd--corner{top:0;right:0;width:48px;height:48px;border-width:0 0 2.5px 2.5px;border-radius:0 0 0 14px;}
 ${H} .akv-zv .akv-zvt > .zv-sd--corner{top:0;right:0;width:48px;height:48px;border-width:0 0 2.5px 2.5px;border-radius:0 0 0 14px;}
 
@@ -73,7 +74,7 @@ ${H} .zv-bar > button svg,${H} .zv-back svg,${H} .zv-gback svg,${H} .zv-gnav svg
 ${H} .zv-head{padding:16px 0 0;border-radius:0;background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;gap:16px;}
 ${H} .zv-head > .zv-grp + .zv-grp{padding-top:0;border-top:0;}
 ${H} .zv-grp{gap:12px;}
-${H} .zv-head .zv-meta{padding-right:56px;}
+${H} .zv-head .zv-meta{padding-right:0;}
 ${H} .zv-head .zv-h{padding-right:0;}
 ${H} .zv-meta{font:600 12px ${UI};letter-spacing:.14em;text-transform:uppercase;color:${A.cyan};}
 ${H} .zv-h{font:400 28px/1.12 ${MU};letter-spacing:0;text-transform:none;color:${A.ink};}

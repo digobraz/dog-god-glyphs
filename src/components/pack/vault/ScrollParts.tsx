@@ -161,6 +161,10 @@ ${STAGE_CSS}
 .akv-zvt > .zv-sd--corner{border-width:1px;border-radius:${PACK_R.field}px;}
 .zv-sd--corner .zv-tip{top:52px;left:auto;right:0;}
 .zv-sd:hover .zv-tip,.zv-sd:focus-visible .zv-tip{opacity:1;}
+/* Známka v riadku nadnadpisu (Matej 23. 11. 2026: „z rohu preč lebo zavadzia obrázku… do riadku kde je hlavička — svet, zvitok, minúty“): pilulka v tom istom rade. */
+.zv-sd--pill{display:inline-flex;vertical-align:middle;width:auto;min-width:${PACK_SPACE.lg + PACK_SPACE.sm}px;height:${PACK_SPACE.lg + PACK_SPACE.xs}px;padding:0 ${PACK_SPACE.sm}px;margin-left:${PACK_SPACE.sm}px;
+  border-radius:${PACK_R.pill}px;font-size:${PACK_TEXT.label}px;line-height:1;letter-spacing:0;}
+.zv-sd--pill .zv-tip{top:${PACK_SPACE.xl}px;left:0;}
 .zv-read{align-self:stretch;display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;cursor:pointer;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.field}px;background:${AINUBIS.surface};
   border:1px solid ${AINUBIS.edgeStrong};color:${AINUBIS.ink};font-family:${FONT_TITLE};font-weight:700;
@@ -239,7 +243,7 @@ ${APP_NEW ? '' : `.zv-bar [data-mg="msgs"],.zv-bar [data-mg="notif"]{color:#fff 
 .zv-head > .zv-grp + .zv-grp{padding-top:${PACK_SPACE.lg}px;border-top:1px solid ${AINUBIS.edge};}
 .zv-head > .zv-pod{margin-top:auto;}
 /* miesto pre známku v rohu: meta aj nadpis nesmú vbehnúť pod ňu */
-.zv-head .zv-meta,.zv-head .zv-h{padding-right:${PACK_SPACE.xxxl}px;}
+.zv-head .zv-meta,.zv-head .zv-h{padding-right:0;}
 .zv-grp{display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.md}px;}
 /* PC: úvod sa rozloží po výške obrazu — nadpis hore, veta s blokom v strede, podcast dole
    (Matej 3. 10.: „úvod sa mi na PC nepáči, vyzerá to natlačené na sebe"). */
@@ -341,6 +345,18 @@ ${APP_NEW ? '' : `.zv-bar [data-mg="msgs"],.zv-bar [data-mg="notif"]{color:#fff 
 .zv-box .zv-sec{margin-top:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.lead}px;color:var(--zv-bx, ${AINUBIS.cyan});
   background:linear-gradient(90deg, var(--zv-bx, ${AINUBIS.cyan}) 0%, transparent 60%) left bottom / 100% 1px no-repeat;}
 .zv-box--src{--zv-bx:${AINUBIS.ctaA};}
+/* TRIEDA DÔKAZU — tri riadky A·B·C, svieti trieda tohto zvitku (Matej 23. 11. 2026: „musíme to lepšie vysvetliť,
+   dáme do bloku 3 riadky A: B: C: a vysvietený ten tier, ktorý je zvitok“). Farby = tie isté ako známka. */
+.zv-box--sd{--zv-bx:${AINUBIS.cyan};}
+.zv-sdl{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;margin:0;padding:0;list-style:none;}
+.zv-sdl li{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.tile}px;
+  border:1px solid transparent;font-size:${PACK_TEXT.label}px;line-height:1.35;color:${AINUBIS.inkDim};}
+.zv-sdl li b{flex:0 0 auto;width:24px;text-align:center;font-weight:600;color:${AINUBIS.inkDim};}
+.zv-sdl li[data-g="A"]{--zv-g:rgb(${BRAIN_STATE.read});--zv-gt:rgba(${BRAIN_STATE.read},0.14);}
+.zv-sdl li[data-g="B"]{--zv-g:rgb(${BRAIN_STATE.seen});--zv-gt:rgba(${BRAIN_STATE.seen},0.14);}
+.zv-sdl li[data-g="C"]{--zv-g:${AINUBIS.ink};--zv-gt:${AINUBIS.surface};}
+.zv-sdl li.is-on{border-color:var(--zv-g);background:var(--zv-gt);color:${AINUBIS.ink};}
+.zv-sdl li.is-on b{color:var(--zv-g);}
 .zv-box--add{--zv-bx:${AINUBIS.aiInk};}
 .zv-box--you{--zv-bx:${AINUBIS.danger};filter:drop-shadow(0 0 10px ${AINUBIS.dangerEdge});}
 /* NAVRHNÚŤ ZMENU — červené podsvietenie (Matej 3. 10.), po kliku tri druhy návrhu + text. */
@@ -461,11 +477,11 @@ export const SCROLL_CARD_CSS = `
   box-shadow:${AI_WORLD.ring};}
 `;
 
-export function EvidenceBadge({ sd, lang, corner = false }: { sd: number; lang: string; corner?: boolean }) {
+export function EvidenceBadge({ sd, lang, corner = false, pill = false }: { sd: number; lang: string; corner?: boolean; pill?: boolean }) {
   const u = scrollUI(lang);
   if (!sd) return null;
   return (
-    <span className={`zv-sd${corner ? ' zv-sd--corner' : ''}`} data-g={GRADE[sd]} tabIndex={0} aria-label={`${u.sd} ${u.sdName[sd]}`}>
+    <span className={`zv-sd${corner ? ' zv-sd--corner' : ''}${pill ? ' zv-sd--pill' : ''}`} data-g={GRADE[sd]} tabIndex={0} aria-label={`${u.sd} ${u.sdName[sd]}`}>
       {GRADE[sd]}
       <span className="zv-tip" role="tooltip"><b>{u.sd} {u.sdName[sd]}</b><br />A · B · C — {u.sdName[3].slice(4)} → {u.sdName[1].slice(4)}</span>
     </span>
@@ -555,10 +571,9 @@ export function ScrollCard({ z, lang, worldName, onOpen, onShare, showShare, loc
             v tom rohu a priesvitná, mala by byť dolu, ako je nadpis, v hornom rohu vpravo"*).
             Na mobile je karta stĺpec, takže roh karty padol na obraz. Na PC je textový stĺpec
             vpravo a CSS ju posunie do rohu karty ako doteraz (Matej 3. 10.: „A daj úplne do rohu"). */}
-        <EvidenceBadge sd={z.sd} lang={lang} corner />
         <div className="zv-mid">
-          <span className="akv-zvlbl">{worldName && <><b className="akv-zvw" style={aiWorld(z.world)}>{worldName}</b> · </>}{u.scroll} {z.n} / {z.total} · {x.min} {u.min}</span>
-          <h3 className="akv-zvn" style={{ paddingRight: PACK_SPACE.xxl }}>{x.t}</h3>
+          <span className="akv-zvlbl">{worldName && <><b className="akv-zvw" style={aiWorld(z.world)}>{worldName}</b> · </>}{u.scroll} {z.n} / {z.total} · {x.min} {u.min}<EvidenceBadge sd={z.sd} lang={lang} pill /></span>
+          <h3 className="akv-zvn">{x.t}</h3>
           <span className="zv-rule" aria-hidden />
         </div>
         {/* Tri skupiny rovnomerne po výške obrazu (Matej 3. 10.: „blok vyzerá prázdny, rozlož obsah,
@@ -712,7 +727,7 @@ function PodcastBox({ z, lang, onDone, boxRef, autoPlay, onEnd, lock }: {
   return (
     <div className={`zv-pod${(G ? gPlaying : playing) ? ' is-play' : ''}`} ref={boxRef}>
       <small>
-        <span><Ic ic="play" />{u.pod} · {fmtSec(pod.sec)}</span>
+        <span>{u.pod} · {fmtSec(pod.sec)}</span>
         <span className="zv-ptools">
           <span className="zv-pdd">
             <button type="button" className="zv-plang" aria-haspopup="listbox" aria-expanded={menu}
@@ -905,9 +920,8 @@ export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse,
           </div>
           <div className="zv-head">
             {/* Známka v rohu bloku ako na karte (Matej 4. 10.: „v detaile dať známku na kraj ako pri náhľade“). */}
-            <EvidenceBadge sd={z.sd} lang={lang} corner />
             <div className="zv-grp">
-              <span className="zv-meta">{circleName(z, lang)} · {u.scroll} {z.n}/{z.total} · {x.min} {u.min}</span>
+              <span className="zv-meta">{circleName(z, lang)} · {u.scroll} {z.n}/{z.total} · {x.min} {u.min}<EvidenceBadge sd={z.sd} lang={lang} pill /></span>
               <h1 className="zv-h">{x.t}</h1>
               <span className="zv-rule" aria-hidden />
               {s === 2 && <span className="zv-badge"><CheckIc size={14} />{u.readDone}</span>}
@@ -932,6 +946,15 @@ export function ScrollView({ z: listZ, all, lang, focus, onClose, onOpen, onUse,
           {z.doplnene.length
             ? z.doplnene.map((a, i) => <div key={i} className="zv-add"><b>{a.date}</b> · {a.text}</div>)
             : <div className="zv-add">{u.addedNone}</div>}
+          </section>}
+
+          {z.sd > 0 && <section className="zv-box zv-box--sd">
+            <h3 className="zv-sec">{u.sd}</h3>
+            <ul className="zv-sdl">
+              {[3, 2, 1].map((g) => (
+                <li key={g} data-g={GRADE[g]} className={z.sd === g ? 'is-on' : undefined}><b>{GRADE[g]}</b><span>{u.sdName[g].slice(4)}</span></li>
+              ))}
+            </ul>
           </section>}
 
           {z.zdroje.length > 0 && <section className="zv-box zv-box--src">

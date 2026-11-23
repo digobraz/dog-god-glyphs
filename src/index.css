@@ -173,6 +173,22 @@ body {
 }
 
 /*
+ * LEN NA VÝŠKU aj v prehliadači (Matej 23. 11. 2026: „pretočenie mobilu pretočí aj obsah —
+ * nie, obsah je len na výšku"). Natívna appka má zámok v Info.plist / manifeste; web zámok
+ * nedostane (screen.orientation.lock v Safari nejde), preto telefón na šírku zakryje závoj
+ * s kresbou otočeného telefónu. Len dotyk + nízke okno ⇒ notebook (1477×724) sa netýka.
+ */
+@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+  html::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    background: #000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='%23C99A3F' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='22' y='8' width='20' height='36' rx='4'/%3E%3Cpath d='M29 38h6'/%3E%3Cpath d='M12 50c6 6 18 8 28 4'/%3E%3Cpath d='M40 50l2 4-4 1'/%3E%3C/svg%3E") center / 96px no-repeat;
+  }
+}
+
+/*
  * Compact-laptop fit (2026-06-26).
  * On short laptop viewports (e.g. 13.6" ~915×712) the heroglyph flow steps
  * overflow 100dvh and force scroll. The 13.6" vs 16" difference is HEIGHT,

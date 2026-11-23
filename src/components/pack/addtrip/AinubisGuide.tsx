@@ -149,7 +149,7 @@ export function AinubisGuide({
                   Web ostáva na kresbe z kitu. */}
               {abortBack
                 ? (APP_NEW ? <ThinArrow dir="left" size={22} style={{ color: "#E6FAFF" }} /> : <HandExit size={17} />)
-                : (APP_NEW ? <SysIcon name="dvere-otvorene" size={24} /> : <HandExit size={17} />)}
+                : (APP_NEW ? <SysIcon name="krizik" size={24} /> : <HandExit size={17} />)}
             </button>
           )}
           <span aria-hidden="true">{shown}</span>
