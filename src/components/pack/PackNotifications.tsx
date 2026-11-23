@@ -460,7 +460,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
         }}
       >
         {APP_NEW && capsule
-          ? <TopCircle key={wag} name="zvoncek" className={wag ? 'ntf-wag' : undefined} />
+          ? <TopCircle key={wag} name="vlk" className={wag ? 'ntf-wag' : undefined} /> /* zavýjajúci vlk namiesto zvončeka (Matej 23. 11.: „2a ale bez tých žltých vecí“) */
           : <HandTail key={wag} size={capsule ? 24 : 17} className={wag ? 'ntf-wag' : undefined} />}
         <style>{WAG_CSS}</style>
         {memberDot && capsule && (APP_NEW
