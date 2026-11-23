@@ -61,6 +61,8 @@ const CAROUSEL_V2: [string, string][] = [['map', '11-vretenica-mapa'], ['aid', '
 const SERVANT_YEARS = ['0–3', '4–8', '9–13', '14–18', '19–23', '24–29', '30–39', '40+'];
 const PILGRIM_LEVELS = ['1–3', '4–7', '8–12', '13–18', '19–25', '26–33', '34–42', '43–52', '53+'];
 /** Pásma UČŇA = % VAULTU (schválené 6. 11., `plany/nakresy/pecat-odznaky-2026-11-06`). */
+/** Jazyky, v ktorých podcasty naozaj hrajú (appka: `POD_LANGS_ORDER` v PodPlayer.tsx); ostatné vlajky sú vyblednuté. */
+const POD_LIVE = ['sk', 'cs', 'en', 'deu'];
 const UCEN_PCT = ['1.', '2 %', '5 %', '10 %', '20 %', '35 %', '55 %', '80 %', '100 %'];
 
 /** Tri levely pre vlastného psa — `start` = úroveň vzorového psíčkara, tá istá ako v levitujúcich odznakoch v hero. */
@@ -778,7 +780,8 @@ export default function AppWeb() {
                   <div className="ai-listen-ph"><Phone src="podcast-prehravac" /></div>
                   <div className="ai-listen-lg">
                     <p className="ai-listen-n"><b>18</b><span>{c('pod18')}</span></p>
-                    <div className="ai-listen-fl">{WEB_LANGS.map((x) => <img key={x.code} loading="lazy" src={flagUrl(x.flag, 40)} alt={x.name} title={x.name} />)}</div>
+                    <div className="ai-listen-fl">{WEB_LANGS.map((x) => <img key={x.code} className={POD_LIVE.includes(x.code) ? undefined : 'off'} loading="lazy" src={flagUrl(x.flag, 40)} alt={x.name} title={x.name} />)}</div>
+                    <p className="ai-listen-wip">{c('pod_wip')}</p>
                   </div>
                 </div>
               </div>
