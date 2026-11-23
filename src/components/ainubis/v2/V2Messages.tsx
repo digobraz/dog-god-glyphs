@@ -137,7 +137,9 @@ function Actions({ m, a }: { m: V2Msg; a: MsgActions }) {
   const on = a.play?.key === key;
   const rateable = !m.local && !!m.id && /^[0-9a-f-]{36}$/i.test(m.id);
   const cr = m.credits && m.credits > 0 ? Math.max(1, Math.ceil(m.credits)) : 0; // server vracia desatinné číslo
-  const who = m.tier && cr > 0 ? `${a.c(m.tier as V2Tier)} · ${cr} ${creditsWord(cr, a.lang, a.c)}` : '';
+  // credits === 0 pri uloženej odpovedi = model zadarmo pre hodnosť (zakladatelia: Rýchly).
+  const who = m.tier && cr > 0 ? `${a.c(m.tier as V2Tier)} · ${cr} ${creditsWord(cr, a.lang, a.c)}`
+    : m.tier && m.credits === 0 && !m.fallback ? `${a.c(m.tier as V2Tier)} · ${a.c('free')}` : '';
 
   if (on && a.play && !a.play.loading) {
     const pct = a.play.dur ? Math.min(100, (a.play.cur / a.play.dur) * 100) : 0;

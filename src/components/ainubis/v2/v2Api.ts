@@ -9,7 +9,8 @@ import { DEV_NOAUTH } from '@/lib/devMockDogs';
 
 export type V2Tier = 'rychly' | 'bystry' | 'hlboky';
 export type V2Pick = 'auto' | V2Tier;
-export type V2RankId = 'veriaci' | 'akolyta' | 'knaz' | 'vezir' | 'farao';
+/** `zakladatel` = €11 pred FLIPom: profil Kazateľa + Rýchly bez limitu (Matej 23. 11.). V rebríku nie je, nekupuje sa. */
+export type V2RankId = 'veriaci' | 'akolyta' | 'knaz' | 'vezir' | 'farao' | 'zakladatel';
 export type V2Effort = 'low' | 'medium' | 'high' | 'max';
 
 export const V2_TIERS: readonly V2Tier[] = ['rychly', 'bystry', 'hlboky'];
@@ -266,6 +267,7 @@ const MOCK_RANKS: V2Credits['ranks'] = {
   knaz: { top: 'hlboky', effort: 'medium', credits: 720 },
   vezir: { top: 'hlboky', effort: 'high', credits: 1080 },
   farao: { top: 'hlboky', effort: 'max', credits: 10400 },
+  zakladatel: { top: 'bystry', effort: 'medium', credits: 360 },
 };
 
 function mockCredits(): V2Credits {

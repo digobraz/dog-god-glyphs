@@ -19,7 +19,7 @@ export type V2Copy = ReturnType<typeof useV2Copy>;
 /** Meno hodnosti (`pack.seal.*`, to isté ako pečať) s EN zálohou. */
 export function useRankName() {
   const t = useT();
-  const EN: Record<V2RankId, string> = { veriaci: 'Believer', akolyta: 'Preacher', knaz: 'Apostle', vezir: 'Prophet', farao: 'Vizier' };
+  const EN: Record<V2RankId, string> = { veriaci: 'Believer', akolyta: 'Preacher', knaz: 'Apostle', vezir: 'Prophet', farao: 'Vizier', zakladatel: 'Founder' };
   return (r: V2RankId) => { const v = t(`pack.seal.${r}`); return v === `pack.seal.${r}` ? EN[r] : v; };
 }
 
@@ -27,13 +27,14 @@ export function useRankName() {
  *  🔴 V natívnej appke (IS_APP) žiadna cena ani cesta k platbe (Apple 3.1.1, stráž `check:appka`) —
  *  rebrík ukáže len model a kredity, CTA sa neukáže. */
 export const RANK_PRICE: Record<V2RankId, { eur: string; from?: boolean }> = IS_APP
-  ? { veriaci: { eur: '' }, akolyta: { eur: '' }, knaz: { eur: '' }, vezir: { eur: '' }, farao: { eur: '' } }
+  ? { veriaci: { eur: '' }, akolyta: { eur: '' }, knaz: { eur: '' }, vezir: { eur: '' }, farao: { eur: '' }, zakladatel: { eur: '' } }
   : {
     veriaci: { eur: '' },
     akolyta: { eur: '3,99 €' },
     knaz: { eur: '7,99 €' },
     vezir: { eur: '11,99 €' },
     farao: { eur: '111 €', from: true },
+    zakladatel: { eur: '' },
   };
 
 /** Obrazovka hodností / vstupného (heroflow „Vstupné"). V natívnej appke prázdne = CTA sa nevykreslí (IS_APP). */
