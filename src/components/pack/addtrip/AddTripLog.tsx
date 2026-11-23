@@ -2241,10 +2241,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    */
   const placedCount = placedNotes?.length ?? 0;
   // UNIKÁT NA MAPE = UNIKÁT V ŠTÍTKU (Matej 22. 11. 2026: „tip má nový druh… unikát — a zobrazí sa aj
-  // v tagu, chápeš?“). Značka `viewpoint` z kroku 2 zapne štítok Unique v kroku 4 raz; človek ho smie zrušiť.
+  // v tagu, chápeš?“). Značka `unique` z kroku 2 zapne štítok Unique v kroku 4 raz; človek ho smie zrušiť.
   const uniqueAutoRef = useRef(false);
   useEffect(() => {
-    if (uniqueAutoRef.current || !(placedNotes ?? []).some((n) => n.kind === 'viewpoint')) return;
+    if (uniqueAutoRef.current || !(placedNotes ?? []).some((n) => n.kind === 'unique')) return;
     uniqueAutoRef.current = true;
     setTags((prev) => (prev.has('Unique') ? prev : new Set([...prev, 'Unique'])));
   }, [placedNotes]);

@@ -32,7 +32,7 @@ import { DEV_NOAUTH, devAddNote, devLikeNote, devListNotes, devRemoveNote, devVo
 const db = supabase as any;
 
 /** Druhy zápisov — hodnoty stĺpca `kind`, teda aj CHECK v migrácii. */
-export const NOTE_KINDS = ['parking', 'hazard', 'note', 'water', 'viewpoint', 'wildlife', 'ticks', 'viper', 'bear', 'sheepdog', 'noentry', 'ladders', 'algae', 'cablecar', 'poison', 'abuse'] as const;
+export const NOTE_KINDS = ['parking', 'hazard', 'note', 'water', 'viewpoint', 'unique', 'wildlife', 'ticks', 'viper', 'bear', 'sheepdog', 'noentry', 'ladders', 'algae', 'cablecar', 'poison', 'abuse'] as const;
 export type NoteKind = (typeof NOTE_KINDS)[number];
 
 // ── PALETA: TRI SKUPINY, NIE SEDEM TLAČIDIEL (Matej 2026-08-20) ─────────────
@@ -77,9 +77,10 @@ export const GROUP_KINDS: Record<NoteGroup, NoteKind[]> = {
   // sú všetky veci, by bol zbytočný, netýka sa to 95 % výletov… ako je tip, tak by tam bol
   // chip lanovka"). Prvý je predvolený, takže TIP ostáva TIPom.
   // 🔴 Nový podtyp = migrácia CHECKu: `20261025_map_notes_cablecar.sql`.
-  // UNIKÁT (Matej 22. 11. 2026, najprv „pekné miestečko“, potom „nie pekné miestečko ale unikát“; „tip je všeobecný výraz pre hocičo a lanovka je moc konkrétna
-  // — pekné miestečko je celkom fajn kompromis“) = existujúci druh `viewpoint`, CHECK ho pozná od 20. 8.
-  comment: ['note', 'viewpoint', 'cablecar'],
+  // UNIKÁT (Matej 22. 11. 2026: „tip je všeobecný výraz pre hocičo a lanovka je moc konkrétna“; 23. 11.: „diamant bude
+  // vyslovene nejaký unikát, nie tip“) = vlastný druh `unique`. `viewpoint` (Pekné miestečko) ostáva pre datasetové
+  // body výhľadov a staré zápisy, v ponuke tipu nie je. 🔴 Migrácia CHECKu: `20270108_map_notes_unique.sql`.
+  comment: ['note', 'unique', 'cablecar'],
 };
 
 /** NAHLÁSIŤ NEBEZPEČENSTVO (20. 11. 2026): otrava a týranie sú upozornenia, ale v palete „+“ NIE SÚ.

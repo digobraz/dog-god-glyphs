@@ -17,6 +17,8 @@ import { MAP_SKIN, PALE } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import { NOTE_GROUPS, groupOf, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
 import { FONT_EMOJI, GROUP_EMOJI } from './markEmoji';
+import { MAP_STICKERS_ON } from './mapStickers';
+import { sysSrc } from '@/components/pack/SysIcon';
 
 const GOLD = T.cardEdge;
 const PARK_BLUE = T.brandBlueLite;
@@ -70,10 +72,25 @@ export function noteTint(kind: NoteKind, disease?: TickDisease | null): string {
 /**
  * Značka skupiny — rozcestník, nie výsledná značka (viď `GROUP_EMOJI` v markEmoji.ts).
  */
+// V appke (APP_NEW) nesie rozcestník samolepka z `public/map-marks/` (Matej 23. 11. 2026: „predsa máme ikonky: parkovisko,
+// upozornenie = červený krúžok s výkričníkom, tip = drevená ceduľa s packou“); web ostáva na emoji.
+const GROUP_STICKER: Record<NoteGroup, string> = {
+  parking: '/map-marks/parking.webp',
+  warning: '/map-marks/nebezpecenstvo.webp',
+  comment: '/map-marks/komentar.webp',
+};
+const EXTRA_STICKER: Record<'trip' | 'event', string> = {
+  trip: '/map-marks/vylet.webp',
+  event: sysSrc('pridaj-podujatie'),
+};
+const PaletteSticker = ({ src, size }: { src: string; size: number }) => (
+  <img src={src} alt="" aria-hidden draggable={false} style={{ width: size, height: size, objectFit: 'contain', display: 'block' }} />
+);
+
 export function GroupMark({ group, size = 26 }: { group: NoteGroup; size?: number }) {
   return (
     <span className="np-mark" style={{ width: size, height: size, fontSize: Math.round(size * 0.82) }}>
-      {GROUP_EMOJI[group]}
+      {MAP_STICKERS_ON ? <PaletteSticker src={GROUP_STICKER[group]} size={size} /> : GROUP_EMOJI[group]}
     </span>
   );
 }
@@ -134,7 +151,7 @@ export function NotePalette({ onPick, variant = 'blocks', extras, onPickExtra, b
       {(extras ?? []).map((x) => (
         <button key={x} type="button" className="np-item" onClick={() => onPickExtra?.(x)}>
           <span className="np-mark" style={{ width: variant === 'blocks' ? 30 : 24, height: variant === 'blocks' ? 30 : 24, fontSize: Math.round((variant === 'blocks' ? 30 : 24) * 0.82) }}>
-            {EXTRA_EMOJI[x]}
+            {MAP_STICKERS_ON ? <PaletteSticker src={EXTRA_STICKER[x]} size={variant === 'blocks' ? 30 : 24} /> : EXTRA_EMOJI[x]}
           </span>
           <span className="np-name">{t(`pack.mapNotes.palette.extra.${x}`)}</span>
           {variant === 'blocks' && <span className="np-text">{tx(`pack.mapNotes.palette.extra.${x}.hint`, EXTRA_HINT[x])}</span>}
@@ -204,4 +221,5 @@ html.papyrus3d .np-wrap{gap:16px;padding-bottom:8px;}
 html.papyrus3d .np-name{font-family:'LT Museum',serif;font-weight:400;font-size:20px;letter-spacing:0;text-transform:none;color:var(--p3d-ink);}
 html.papyrus3d .np-text{color:var(--p3d-ink);}
 html.papyrus3d .np-mark{width:36px !important;height:36px !important;font-size:24px !important;}
+html.papyrus3d .np-mark img{width:36px !important;height:36px !important;}
 `;

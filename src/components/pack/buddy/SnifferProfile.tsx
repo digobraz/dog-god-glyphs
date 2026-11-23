@@ -82,6 +82,11 @@ export const SNIFFER_PROFILE_CSS = `
   transition:transform .25s ease, opacity .25s ease;user-select:none;}
 .sp-card.is-drag{transition:none;}
 .sp-card textarea,.sp-card input{user-select:text;}
+/* iPhone Safari PRIBLÍŽI stránku pri fokuse poľa s písmom pod 16 px (Matej 23. 11. 2026: panel mimo okrajov, hlava AINUBISA orezaná,
+   CTA pod lištou — po zápise mena/veku). 16 px = PACK_TEXT.lead; stránka sa pri písaní nepohne. Plus poistka proti širšiemu obsahu. */
+.sp-card input,.sp-card textarea,.sp-card select{font-size:${PACK_TEXT.lead}px;}
+.sp-pager,.sp-card,.sp-body{min-width:0;max-width:100%;}
+.sp-body{overflow-x:hidden;}
 .sp-body{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .sp-foot{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;padding-top:${PACK_SPACE.xs}px;}
 /* ── BEZ SCROLLU (brána) — heroflow pravidlo: obsah sa zmestí do okna, zmenší sa OBSAH, nie
@@ -733,21 +738,32 @@ export function PhotoSlots({ uid, photos, together, tx, suggest = [], note = tru
           }}>{tx('pack.sniffer.profile.remove', 'Remove')}</button>
         </div>
       )}
-      <input ref={input} type="file" accept="image/*" hidden onChange={async (e) => {
-        const f = e.target.files?.[0];
-        if (!f || !uid) return;
+      {/* HROMADNÝ VÝBER (Matej 23. 11. 2026: „pri snifferi fotkách nejdu pridať hromadne ale len po jednej“) —
+          `multiple`, spracuje sa pole; do stropu MAX_PHOTOS sa vojde len toľko, koľko ešte chýba. Fotky idú na
+          Cloudinary, do profilu len URL (žiadny localStorage). */}
+      <input ref={input} type="file" accept="image/*" multiple hidden onChange={async (e) => {
+        const room = MAX_PHOTOS - photos.length;
+        const files = Array.from(e.target.files ?? []).slice(0, Math.max(0, room));
+        const inputEl = e.target;
+        if (!files.length || !uid) { inputEl.value = ''; return; }
         setBusy(true);
         setErr(null);
+        const done: string[] = [];
         try {
-          // Názov z času, nie z poradia: po odstránení fotky by poradie trafilo existujúci súbor.
-          const r = await uploadBuddyPhoto(f, uid, Date.now());
-          // Prvá fotka je predvolene tá „spolu" — brána ju chce a kto nahrá jednu, myslí ňou tú.
-          write([...photos, r.secureUrl], together ?? r.secureUrl);
+          const stamp = Date.now();
+          for (let i = 0; i < files.length; i++) {
+            // Názov z času + poradia vo výbere: po odstránení fotky by samotné poradie trafilo existujúci súbor.
+            const r = await uploadBuddyPhoto(files[i], uid, stamp + i);
+            done.push(r.secureUrl);
+          }
         } catch (x) {
           setErr(x instanceof Error ? x.message : String(x));
         } finally {
+          // Čo sa nahralo, to sa zapíše aj keď jedna z fotiek zlyhala.
+          // Prvá fotka je predvolene tá „spolu" — brána ju chce a kto nahrá jednu, myslí ňou tú.
+          if (done.length) write([...photos, ...done], together ?? done[0]);
           setBusy(false);
-          e.target.value = '';
+          inputEl.value = '';
         }
       }} />
       {err && <p className="bd-warn">{err}</p>}

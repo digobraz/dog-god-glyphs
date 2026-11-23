@@ -45,7 +45,8 @@ const STICKER_FILE: Record<string, string> = {
   note_parking: 'parking',
   note_cablecar: 'lanovka',
   note_water: 'pramen',
-  note_viewpoint: 'unikat',   // UNIKÁT v tipe (Matej 22. 11. 2026: „unikát daj ten diamant“)
+  note_viewpoint: 'vyhliadka',
+  note_unique: 'unikat',   // UNIKÁT = diamant (Matej 22. 11. 2026, 23. 11.: „diamant bude vyslovene nejaký unikát, nie tip“)
 };
 
 /** Cesta k samolepke typu bodu, alebo null, keď má ostať emoji. */

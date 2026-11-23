@@ -9,7 +9,7 @@
 //    Kto má profil plný, uvidí len svoju kartu a SNIFF ON.
 // 🔴 Brána (čo musí byť hotové) je stále `buddyGate.ts` + `buddy_gate_missing()` na serveri.
 //    Minimum 3 fotiek je pravidlo ONBOARDINGU (klient); server chce `buddyPhoto` ako doteraz.
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PACK_BOX, PACK_SPACE } from '@/components/pack/packTheme';
 import { useLang } from '@/i18n/LanguageContext';
@@ -17,7 +17,7 @@ import type { DogProfileAttrs, HumanProfile } from '@/components/pack/profile/pa
 import { emptyDogAttrs } from '@/components/pack/profile/packProfile';
 import type { BuddySettings, BuddyStepKey } from './buddyGate';
 import { SnifferPinEditor, SnifferCountryChip, defaultCountry } from './SnifferPin';
-import { SnifferMyCard, SNIFFER_CARD_CSS } from './SnifferCard';
+import { SnifferMyCard, SNIFFER_CARD_CSS, bgImg } from './SnifferCard';
 import { SNIFFER_PROFILE_CSS, PhotoSlots, KvRow, DogGateRows, type SnifferProfileDog } from './SnifferProfile';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
@@ -47,6 +47,13 @@ const CSS = `
 .so-cardwrap{flex:0 0 auto;width:min(100%, ${PACK_SPACE.xxxl * 6 + PACK_SPACE.xl}px);aspect-ratio:3/4;margin:0 auto;}
 .so-cardwrap .sn-stage{min-height:0;height:100%;max-width:none;}
 .so-from{margin:0;text-align:center;}
+/* KROK „TVOJA KARTA" — kto sa nezmestí, zmenší KARTU (PAGE_AIR lock), nie vzduch: výška z okna, šírku dá pomer 3:4.
+   Rozdiel proti nastaveniam (tie majú .so-cardwrap bez --onb) = karta nikdy nezje celé telo a riadky pod ňou ostanú vidno. */
+.so-cardwrap--onb{flex:0 0 auto;align-self:center;width:auto;max-width:100%;height:clamp(${PACK_SPACE.xxxl * 4}px, 34dvh, ${PACK_SPACE.xxxl * 6 + PACK_SPACE.xl + PACK_SPACE.xxxl * 2}px);}
+@media (max-height:700px){ .so-cardwrap--onb{height:${PACK_SPACE.xxxl * 4}px;} }
+.so-dog{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+.so-dog .sp-dogtabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:${PACK_SPACE.xs}px;}
+.so-dog .sp-dogtabs button{flex:0 0 auto;}
 `;
 
 export function SnifferOnboard({
@@ -85,7 +92,15 @@ export function SnifferOnboard({
   const whoOk = !missing.includes('intents') && !missing.includes('audience');
   const profileMissing = PROFILE_KEYS.filter((k) => missing.includes(k) && !(k === 'gender' && heroGender));
   const dogMissing = DOG_KEYS.some((k) => missing.includes(k));
-  const dog = dogs.find((d) => d.id === buddyDogId) ?? null;
+  // PES NA KARTE: povaha, kondícia a vzťah k psom patria PSOVI, nie človeku. Kto má psov viac, prepína pilulkami s menom —
+  // údaje idú do `dog_profiles.attrs` toho psa (`DogGateRows` → `saveDogAttrs`), nové miesto nevzniká.
+  const [dogSel, setDogSel] = useState<string | null>(buddyDogId);
+  useEffect(() => { if (!dogSel && buddyDogId) setDogSel(buddyDogId); }, [buddyDogId, dogSel]);
+  const dog = dogs.find((d) => d.id === (dogSel ?? buddyDogId)) ?? dogs.find((d) => d.id === buddyDogId) ?? null;
+  const dogDone = (id: string) => {
+    const x = dogAttrsOf(id);
+    return !!x && (x.tags.temperament ?? []).length > 0 && !!x.card.fitness && !!x.card.compat?.dogs_overall;
+  };
 
   const [iso, setIso] = useState(() => defaultCountry(human?.pin, human?.nationality, lang, homeCountry));
   const idx = STEPS.indexOf(step);
@@ -162,12 +177,28 @@ export function SnifferOnboard({
 
           {step === 'card' && (
             <>
-              <div className="so-cardwrap"><SnifferMyCard tx={tx} reloadKey={reloadKey} /></div>
+              <div className="so-cardwrap so-cardwrap--onb"><SnifferMyCard tx={tx} reloadKey={reloadKey} /></div>
               {PROFILE_KEYS.filter((k) => profileMissing.includes(k)).map((k) => (
                 <KvRow key={k} tx={tx} label={tx(`pack.buddy.step.${k}`, k)} value={summary(k)} todo>{editor(k)}</KvRow>
               ))}
-              {dog && dogMissing && (
-                <DogGateRows dog={dog} attrs={dogAttrsOf(dog.id) ?? emptyDogAttrs(dog.id)} tx={tx} onlyMissing />
+              {dog && (dogMissing || dogs.length > 1) && (
+                <div className="so-dog">
+                  {dogs.length > 1 && (
+                    <div className="sp-dogtabs" role="tablist">
+                      {dogs.map((d) => (
+                        <button key={d.id} type="button" role="tab" aria-selected={d.id === dog.id} className={d.id === dog.id ? 'is-on' : ''}
+                          onClick={() => setDogSel(d.id)}>
+                          {d.cloudinary_main_url && <img src={bgImg(d.cloudinary_main_url, 48, 48)} alt="" draggable={false} />}
+                          {d.dog_name}
+                          <i className={dogDone(d.id) ? '' : 'is-todo'} aria-hidden />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <span className="sp-sec">{tx('pack.sniffer.onb.dogOf', 'Dog: {name}', { name: dog.dog_name ?? '' })}</span>
+                  <DogGateRows dog={dog} attrs={dogAttrsOf(dog.id) ?? emptyDogAttrs(dog.id)} tx={tx}
+                    onlyMissing={dogs.length <= 1} />
+                </div>
               )}
               <p className="bd-note so-from">
                 {tx('pack.sniffer.onb.editHint', 'Everything else lives in your profile.')}{' '}

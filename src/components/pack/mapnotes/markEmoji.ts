@@ -62,6 +62,8 @@ export const MARK_EMOJI: Record<NoteKind, string> = {
   note: '🐶',
   // 2. podtyp TIPU (Matej 12. 10. 2026) — kruh so zeleným lemom ako TIP, len emoji lanovky.
   cablecar: '🚡',
+  // UNIKÁT (23. 11. 2026) — v appke ho kreslí samolepka diamantu, emoji len pre web.
+  unique: '💎',
   // datasetové body z `heroTrails.generated.ts` (customPoi) — v palete nie sú
   water: '💧',
   viewpoint: '👁️',
