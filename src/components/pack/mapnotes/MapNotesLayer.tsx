@@ -407,7 +407,7 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
           {/* PROFIL MIESTA (parkovisko, unikát): fotka, packy, postrehy, navigácia — `/pack/miesto/:id`. */}
           {(n.kind === 'parking' || n.kind === 'unique') && !dataset && !n.profileOff && (
             <button type="button" className="mn-bubble-open" onClick={() => nav(`/pack/miesto/${n.id}`)}>
-              {t('pack.place.open')}
+              {t('pack.placeProfile.open')}
             </button>
           )}
 

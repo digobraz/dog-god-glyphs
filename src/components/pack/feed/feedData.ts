@@ -22,6 +22,18 @@ import { readLocalTrails, visibleLocalTrails } from '@/components/pack/tripShare
 import { onPackStoreHydrated, readLocalTrailMeta } from '@/lib/packStore';
 import { intlLocale } from '@/i18n/bcp47';
 
+// ── OBNOVA FEEDU ŤAHOM NADOL (23. 11. 2026, Matej: *„potiahnutie smerom hore… ako je na ig“*) ─────────────
+// Každý zdroj feedu sa sem prihlási svojím načítaním; `refreshFeed()` ich spustí naraz a počká na všetky.
+type FeedRefresher = () => Promise<unknown> | void;
+const refreshers = new Set<FeedRefresher>();
+export function onFeedRefresh(fn: FeedRefresher): () => void {
+  refreshers.add(fn);
+  return () => { refreshers.delete(fn); };
+}
+export async function refreshFeed(): Promise<void> {
+  await Promise.allSettled([...refreshers].map(async (fn) => fn()));
+}
+
 export interface FeedTrip {
   trail: HeroTrail;
   /** Kedy bol výlet zapísaný (ms) — z `local-<ms>-…`; bez neho dátum jazdy, inak 0. */
@@ -159,6 +171,7 @@ export function useSnifferPosts(enabled: boolean, pos: FeedPos | null): { rows: 
   useEffect(() => { void load(); }, [load]);
   // Nový príspevok (aj Sniffer) z okna písania: zoznam sa načíta znova.
   useEffect(() => onPostsChanged(() => { void load(); }), [load]);
+  useEffect(() => onFeedRefresh(load), [load]);
   const reload = useCallback(() => { void load(); }, [load]);
   return { rows, reload, ready };
 }
@@ -413,7 +426,8 @@ export function useFeedPosts(enabled: boolean): { rows: FeedPost[]; loadMore: ()
     };
     document.addEventListener('visibilitychange', back);
     window.addEventListener('focus', back);
-    return () => { document.removeEventListener('visibilitychange', back); window.removeEventListener('focus', back); };
+    const offRefresh = onFeedRefresh(() => { lastRun.current = Date.now(); return page(null, true); });
+    return () => { document.removeEventListener('visibilitychange', back); window.removeEventListener('focus', back); offRefresh(); };
   }, [enabled, page]);
 
   const loadMore = useCallback(() => {

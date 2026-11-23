@@ -42,14 +42,15 @@ import { fetchMyPosts, onPostsChanged, isMoment, isAlbum, isTripStory, type MePo
 import { readFavIds, tripText } from '@/components/pack/tripShared';
 import { persistFav } from '@/lib/packStore';
 import { feedQuoteForDay, feedQuoteText } from '@/data/feedQuotes';
-import { firstWord, tripTitle, useFeedTrips, type FeedTrip, useFeedMarks, useFeedPosts, useFeedPostDogs, useTripAuthors, fetchFeedPost, type FeedPost, useFeedPos, useNearbyMapTrips, useSnifferPosts, renewSniffer } from './feedData';
+import { firstWord, tripTitle, useFeedTrips, type FeedTrip, useFeedMarks, useFeedPosts, useFeedPostDogs, useTripAuthors, fetchFeedPost, type FeedPost, useFeedPos, useNearbyMapTrips, useSnifferPosts, renewSniffer, onFeedRefresh, refreshFeed } from './feedData';
 import { FeedTripCard, FEED_TRIP_CSS } from './FeedTripCard';
 import { shareOut } from './feedShare';
 import { FeedPostCard, FEED_POST_CSS } from './FeedPostCard';
 import { AiHead, AiQuote, AiSaved, AiStory, FEED_AI_CSS } from './FeedAinubis';
 import { FeedSosBlock } from './FeedSosCard';
+import { FeedPull, FEED_PULL_CSS } from './FeedPull';
 import { SkelPost, SkelTrips } from './FeedSkeleton';
-import { useSosActive } from '../sosKit';
+import { useSosActive, sosInvalidate, loadSosActive } from '../sosKit';
 import { TripStrip, FEED_TOP_CSS } from './FeedTop';
 import { QuoteComments } from './QuoteComments';
 import { fetchQuoteComments } from '@/components/pack/trip/tripCommentsData';
@@ -253,6 +254,7 @@ export function PackFeed() {
   const scrollTexts = useScrollSearchText(searching && (params.get('hladaj') || '').trim().length >= 2, lang);
   const query = (params.get('hladaj') || '').trim();
   const searchRef = useRef<HTMLInputElement>(null);
+  const colRef = useRef<HTMLDivElement>(null);
   // KATALÓG VÝLETOV PRE HĽADANIE: `useFeedTrips` vracia len schválené členské výlety s fotkou (kurátorovaný
   // dataset — napr. „Súľovské skaly“ — v ňom nie je), preto sa pri hľadaní dotiahne celý katalóg (lazy chunk).
   // Doplnené karty nemajú autora ani čas ⇒ „Hekthor & Matej“ ako inde v appke (`authorOf`).
@@ -304,7 +306,8 @@ export function PackFeed() {
     const load = () => fetchMyPosts(uid).then((rows) => { if (alive) setMyPosts(rows); }).catch(() => { if (alive) setMyPosts([]); });
     void load();
     const off = onPostsChanged(load);
-    return () => { alive = false; off(); };
+    const offRefresh = onFeedRefresh(load);
+    return () => { alive = false; off(); offRefresh(); };
   }, [uid]);
   // CUDZIE verejné príspevky (server, 26. 10.) + moje; zablokovaných vynechá server, klient ešte skryje tých,
   // ktorých človek zablokoval práve teraz (zoznam z `useBlockedOwners` sa obnoví bez nového načítania feedu).
@@ -612,10 +615,15 @@ export function PackFeed() {
   // Prvé otvorenie na zariadení: v telefóne ešte nič nie je, miesto držia sivé bloky.
   const firstLoad = !searching && !topic && !trips.length && !scrolls.length && !otherPosts.length && !postsDone;
 
+  // ŤAH NADOL = obnova (FeedPull.tsx). SOS má vlastnú cache (TTL 60 s), preto sa najprv zneplatní.
+  const pullRefresh = () => { sosInvalidate(); return Promise.all([refreshFeed(), loadSosActive()]).then(() => {}); };
+  const pullOff = searching || !!reading || !!cmKey || !!tripCmOpen;
+
   return (
     <div className={`pkf${searching ? ' srch' : ''}`} onClick={closeOnOutside}>
-      <style>{SCROLL_CSS}{SCROLL_CARD_CSS}{CSS}</style>
-      <div className="pkf-col">
+      <style>{SCROLL_CSS}{SCROLL_CARD_CSS}{CSS}{FEED_PULL_CSS}</style>
+      <FeedPull colRef={colRef} off={pullOff} onRefresh={pullRefresh} />
+      <div ref={colRef} className="pkf-col">
         {/* SOS (4. 11. 2026): červený blok stratených psov NAD VŠETKÝM, mimo `weave()`. Len TEST_BUILD (hook inak nevolá nič). */}
         {!searching && <FeedSosBlock rows={sosRows} />}
         {searching ? (<>

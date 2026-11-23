@@ -207,6 +207,7 @@ const PackDangerCountry = lazyPack(() => import("@/components/pack/sos/danger/Pa
 const PackDangerCase = lazyPack(() => import("@/components/pack/sos/danger/PackDangerCase")); // kôš 2
 const PackDangerPoster = lazyPack(() => import("@/components/pack/sos/danger/PackDangerPoster")); // kôš 3
 const PackKlinika = lazyPack(() => import("@/components/pack/klinika/PackKlinika")); // kôš 2 — profil kliniky
+const PackPlace = lazyPack(() => import("@/components/pack/miesto/PackPlace")); // kôš 2 — profil miesta (parkovisko, unikát), 23. 11. 2026
 const PackSosCard = lazyPack(() => import("@/components/pack/dogCard/PackSosCard")); // kôš 3
 const PackDogCard = lazyPack(() => import("@/components/pack/dogCard/PackDogCard")); // kôš 3
 const LostPublic = lazy(() => import("./pages/LostPublic.tsx")); // verejná, bez prihlásenia, noindex
@@ -691,6 +692,8 @@ const App = () => (
               {AID_ON && <Route path="/pack/sos/prva-pomoc/:id" element={<PackSosAid />} />}
               {/* PROFIL KLINIKY — kôš 2 POZERÁM SA (lišta ustúpi), hodnotenie Dogypťanov + správca kliniky. */}
               {VET_ER_ON && <Route path="/pack/klinika/:cid" element={<PackKlinika />} />}
+              {/* PROFIL MIESTA — parkovisko a unikát z mapy; kôš 2 POZERÁM SA, rovnaká kostra ako profil kliniky. */}
+              {APP_NEW && <Route path="/pack/miesto/:id" element={<PackPlace />} />}
               {APP_NEW && <Route path="/pack/sos/karticka" element={<PackSosCard />} />}
               {DANGER_ON ? (
                 <>

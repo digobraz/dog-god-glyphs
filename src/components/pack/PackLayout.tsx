@@ -70,7 +70,7 @@ const T = PACK_THEME;
 // BEZ tapety chrámu a bez vonkajšej karty — *„asi je to takto lepšie než to mať v bloku nad tmavým
 // pozadím"* → *„aplikuj to na celý pack, myslím na profily, dogs a id"*. Papyrus bez ohľadu na prepínač šatu.
 // Cudzí profil `/pack/u/:id` (25. 10.) má tú istú hlavu ako môj, teda aj tú istú plochu.
-const PLAIN_ROUTES: readonly RegExp[] = [/^\/pack\/profile(\/|$)/, /^\/pack\/dogs(\/|$)/, /^\/pack\/u\/[^/]+$/, /^\/pack\/sos(\/|$)/, /^\/pack\/klinika\/[^/]+$/]; // + SOS stratený pes (4. 11. 2026) + profil kliniky (17. 11. 2026)
+const PLAIN_ROUTES: readonly RegExp[] = [/^\/pack\/profile(\/|$)/, /^\/pack\/dogs(\/|$)/, /^\/pack\/u\/[^/]+$/, /^\/pack\/sos(\/|$)/, /^\/pack\/klinika\/[^/]+$/, /^\/pack\/miesto\/[^/]+$/]; // + SOS stratený pes (4. 11. 2026) + profil kliniky (17. 11. 2026) + profil miesta (23. 11. 2026)
 // FEED 2 (26. 10. 2026): DOMOV `/pack` stojí na tej istej ploche — hlavička ostáva hore ako na profile
 // (Matej: *„potrebujem aby nejaká hlavička zostala“*). Len cesta presne `/pack`, nie celý strom.
 const PLAIN_HOME = /^\/pack\/?$/;

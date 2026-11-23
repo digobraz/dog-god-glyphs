@@ -116,6 +116,7 @@ export const WIZ_SCREENS: WizScreen[] = [
   { key: 'sosFlyer', routes: ['/pack/sos/:slug/letak'], basket: 3, status: 'nie', why: 'úloha — editor letáku', steps: [] },
   { key: 'sosVet', routes: ['/pack/sos/pohotovost'], basket: 2, status: 'nie', why: 'veterinárna pohotovosť — v núdzi sa nič nevysvetľuje, zoznam a volanie', steps: [] },
   { key: 'klinika', routes: ['/pack/klinika/:cid'], basket: 2, status: 'nie', why: 'profil kliniky — čítanie, volanie a postrehy; nič na vysvetlenie', steps: [] },
+  { key: 'miesto', routes: ['/pack/miesto/:id'], basket: 2, status: 'nie', why: 'profil miesta (parkovisko, unikát) — čítanie, navigácia a postrehy; nič na vysvetlenie', steps: [] },
   { key: 'sosPage', routes: ['/pack/sos/:slug'], basket: 2, status: 'nie', why: 'stratený pes — v núdzi sa nič nevysvetľuje, nepoužíva sa prvýkrát len na čítanie', steps: [] },
   { key: 'sosPlan', routes: ['/pack/sos/:slug/plan'], basket: 2, status: 'nie', why: 'SOS plán — zoznam kontaktov, nič na vysvetlenie', steps: [] },
   { key: 'dogCardPage', routes: ['/pack/dogs/:id/karticka'], basket: 2, status: 'nie', why: 'kartička psa — čítanie a tlač, nič na vysvetlenie', steps: [] },

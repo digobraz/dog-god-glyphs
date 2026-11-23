@@ -68,7 +68,7 @@ ${FOLLOW_CHIP_CSS}
 .pfp-snf img{width:16px;height:16px;object-fit:contain;}
 .pfp-sn{display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.md}px ${S.md}px;}
 .pfp-sn small{flex:1;min-width:0;font-size:${TX.label}px;line-height:1.3;color:${T.inkWarm};}
-.pfp-sn button{flex:none;min-height:44px;padding:0 ${S.lg}px;}
+.pfp-sn button{flex:none;margin-left:auto;min-height:44px;padding:0 ${S.lg}px;}
 .pfp-sn button:not(.pk-b3){border:1px solid ${LAPIS_DEEP};background:${LAPIS_GRAD};color:${LAPIS_INK};border-radius:${PACK_R.field}px;cursor:pointer;font:600 ${TX.body}px/1 ${FONT_UI};}
 html.papyrus3d .pfp-sn .pk-b3{font-size:${TX.lead}px;}
 /* ŠAT PAPYRUS 3D (hárok H3): lem avatara, meno v Museu, akcie ako papierové tlačidlá, nulové akcie vyblednuté. */

@@ -21,7 +21,7 @@ import { FONT_EMOJI, MARK_EMOJI, WISH_EMOJI, eventEmoji } from '@/components/pac
 import { noteStickerSrc } from '@/components/pack/mapnotes/mapStickers';
 import { EVENTS_LIVE, APP_NEW } from '@/lib/packFlags';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { agoLabel } from './feedData';
+import { agoLabel, onFeedRefresh } from './feedData';
 import { shareOut } from './feedShare';
 
 const T = PACK_THEME;
@@ -38,7 +38,7 @@ export function useMapAdds(limit = 6): MapAdd[] {
   const [adds, setAdds] = useState<MapAdd[]>([]);
   useEffect(() => {
     let on = true;
-    (async () => {
+    const load = async () => {
       // ZNAČKY (parkovisko, tip, voda…) a TRIPWISH do feedu NEJDÚ (Matej 26. 10. 2026, kolo 4: *„tripwish
       // parkovisko tip atď. by som do feedu nedával"*) — ostávajú na /map. Z pridaní na mapu ide len podujatie.
       const events = EVENTS_LIVE ? await fetchEvents(false).catch(() => [] as EventItem[]) : [];
@@ -46,8 +46,10 @@ export function useMapAdds(limit = 6): MapAdd[] {
         .map((e) => ({ k: 'event' as const, id: `e:${e.id}`, at: e.createdAt || 0, e }))
         .sort((a, b) => b.at - a.at).slice(0, limit);
       if (on) setAdds(out);
-    })();
-    return () => { on = false; };
+    };
+    void load();
+    const off = onFeedRefresh(load);
+    return () => { on = false; off(); };
   }, [limit]);
   return adds;
 }

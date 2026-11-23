@@ -528,24 +528,24 @@ export function AddMapNotePanel({
 
       {isParking && (
         <>
-          <div className="ppx-q">{t('pack.mapNotes.parking.question')} <span className="ppx-req">{t('pack.place.required')}</span></div>
+          <div className="ppx-q">{t('pack.placeProfile.paidQ')} <span className="ppx-req">{t('pack.placeProfile.required')}</span></div>
           <div className="mna-paid" style={{ marginTop: 0 }}>
             <button type="button" className={`mna-opt${paid === true ? ' on' : ''}`} onClick={() => setPaid(paid === true ? null : true)}>
-              {t('pack.place.yes')}
+              {t('pack.placeProfile.yes')}
             </button>
             <button type="button" className={`mna-opt${paid === false ? ' on' : ''}`} onClick={() => setPaid(paid === false ? null : false)}>
-              {t('pack.place.no')}
+              {t('pack.placeProfile.no')}
             </button>
           </div>
           <PlaceCheck on={overnight} onChange={setOvernight} label={t('pack.mapNotes.parking.overnightField')} />
-          {dock && <PlaceCheck on={worth} onChange={setWorth} label={t('pack.place.worth')} sub={t('pack.place.worthSub')} />}
+          {dock && <PlaceCheck on={worth} onChange={setWorth} label={t('pack.placeProfile.worth')} sub={t('pack.placeProfile.worthSub')} />}
         </>
       )}
 
       {showPhotos && (
         <div>
-          <div className="ppx-q">{t('pack.place.photo')} <span className="ppx-note" style={{ margin: 0 }}>{t('pack.place.optional')}</span></div>
-          <PlacePhotoSlots ph={ph} addLabel={t('pack.place.photoAdd')} removeLabel={t('pack.place.photoRemove')} />
+          <div className="ppx-q">{t('pack.placeProfile.photo')} <span className="ppx-note" style={{ margin: 0 }}>{t('pack.placeProfile.optional')}</span></div>
+          <PlacePhotoSlots ph={ph} addLabel={t('pack.placeProfile.photoAdd')} removeLabel={t('pack.placeProfile.photoRemove')} />
           {ph.error && <p className="mna-error">{t('pack.mapNotes.error')}</p>}
         </div>
       )}
