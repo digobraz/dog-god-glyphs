@@ -300,6 +300,7 @@ html.papyrus3d .pe-danger{border-color:#C8202F !important;color:#C8202F !importa
 html.papyrus3d .pe-set{margin-bottom:${S.md}px;padding:${S.md}px ${S.lg}px !important;border:2.5px solid var(--p3d-gold) !important;border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:0 0 0 2px var(--p3d-ink),var(--p3d-lift);}
 html.papyrus3d .pe-set > div:first-child{color:var(--p3d-ink) !important;}
 html.papyrus3d .pe-set > div:first-child span{color:var(--p3d-ink) !important;font-family:'LT Museum',serif !important;font-size:${PACK_TEXT.lead}px !important;letter-spacing:0 !important;text-transform:none !important;} /* písmo: nadpis */
+html.papyrus3d .pe-set > div:first-child span.pe-sub{font-family:${FONT_UI} !important;font-size:${PACK_TEXT.label}px !important;font-weight:400;line-height:1.3;color:var(--p3d-ink-soft,var(--p3d-ink)) !important;opacity:.75;}
 html.papyrus3d .pe-set > div:last-child span[style]{color:${LAPIS.edge};}
 html.papyrus3d .pe-set .pf-tap:not(.pk-b3),html.papyrus3d .pe-set a{border:2.5px solid var(--p3d-ink) !important;border-radius:${PACK_R.tile}px !important;background:var(--p3d-card) !important;color:var(--p3d-ink) !important;box-shadow:var(--p3d-lift);font-family:'LT Museum',serif !important;font-size:${PACK_TEXT.body}px !important;letter-spacing:0 !important;text-transform:none !important;} /* písmo: cta */
 html.papyrus3d .pe-set .pf-toggle{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}

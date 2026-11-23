@@ -206,6 +206,31 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
     }
   };
 
+  // Skupiny pushov (Matej 23. 11. 2026, nákres `plany/nakresy/push-vypinace-2026-11-23/`): jeden vypínač
+  // zapisuje DVA kanály `send-push` naraz — Ľudia = správy + SNIFFER zhoda, Výlety a podujatia = oba druhy z `notify-push`.
+  const PUSH_GROUPS = { people: ['notif_messages', 'notif_sniffer'], tripev: ['notif_trips', 'notif_events'] } as const;
+  const [grpOn, setGrpOn] = useState<Record<keyof typeof PUSH_GROUPS, boolean>>({ people: true, tripev: true });
+  useEffect(() => {
+    void readHuman().then(({ human }) => {
+      const off = notifOff(human);
+      setGrpOn({ people: !PUSH_GROUPS.people.some((k) => off.includes(k)), tripev: !PUSH_GROUPS.tripev.some((k) => off.includes(k)) });
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const ulozSkupinu = async (g: keyof typeof PUSH_GROUPS, on: boolean) => {
+    const predtym = grpOn;
+    setGrpOn({ ...grpOn, [g]: on });
+    try {
+      const { human } = await readHuman();
+      const keys: readonly string[] = PUSH_GROUPS[g];
+      const off = notifOff(human).filter((x) => !keys.includes(x));
+      await patchHuman({ notif_off: on ? off : [...off, ...keys] });
+    } catch {
+      setGrpOn(predtym);
+      toast({ title: tx('pack.settings.notifErr', 'Could not save'), description: tx('pack.settings.notifErrDesc', 'Try again in a moment.') });
+    }
+  };
+
   // Stratený pes v okolí (4. 11. 2026) — druh `notif_sos` v `human.notif_off`, rešpektuje ho `send-push` (`opt_out_key`
   // z `notify-sos`). Platí LEN pre push „stratený pes v okolí"; upozornenia majiteľovi na vlastného psa sa nevypínajú.
   const [sosOn, setSosOn] = useState(true);
@@ -343,6 +368,25 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
         <Toggle on={notifOn} onChange={(v) => void prepniNotifikacie(v)} disabled={notifSaving} label={t('pack.settings.notifications')}
           onLabel={tx('pack.settings.notifOn', 'On')} offLabel={tx('pack.settings.notifOff', 'Off')} />
       </Field>
+      {notifOn && (
+        <p style={{ margin: '8px 0 4px', fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.4, color: T.inkDim }}>
+          {tx('pack.settings.notifNight', 'Trips, events and messages wait overnight until 8:00.')}
+        </p>
+      )}
+      {notifOn && (
+        <Field icon={APP_NEW ? <SysIcon name="pridaj-chat" size={22} /> : <BrandIcon name="chat" size={16} tint="gold" />}
+          label={tx('pack.settings.notifPeople', 'People')} sub={tx('pack.settings.notifPeopleSub', 'Messages and SNIFFER matches')}>
+          <Toggle on={grpOn.people} onChange={(v) => void ulozSkupinu('people', v)} label={tx('pack.settings.notifPeople', 'People')}
+            onLabel={tx('pack.settings.notifOn', 'On')} offLabel={tx('pack.settings.notifOff', 'Off')} />
+        </Field>
+      )}
+      {notifOn && (
+        <Field icon={APP_NEW ? <SysIcon name="pridaj-vylet" size={22} /> : <BrandIcon name="map" size={16} tint="gold" />}
+          label={tx('pack.settings.notifTrips', 'Trips and events')} sub={tx('pack.settings.notifTripsSub', 'Invites, requests, changes, reminders')}>
+          <Toggle on={grpOn.tripev} onChange={(v) => void ulozSkupinu('tripev', v)} label={tx('pack.settings.notifTrips', 'Trips and events')}
+            onLabel={tx('pack.settings.notifOn', 'On')} offLabel={tx('pack.settings.notifOff', 'Off')} />
+        </Field>
+      )}
       {/* VEČERNÁ PRIPOMIENKA ODDANOSTI (23. 10. 2026) — prvý druh s vlastným prepínačom z registra
           `lib/notifRegister.ts`. Žije v `human.notif_off` + `human.devotion_times` (2× denne); ten istý
           prepínač je aj v paneli „Dnešok". Pod hlavným vypínačom: keď je pošta vypnutá, nechodí nič. */}
@@ -506,7 +550,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
   );
 }
 
-export function Field({ icon, label, children, last, kind }: { icon: React.ReactNode; label: string; children: React.ReactNode; last?: boolean; kind?: 'out' }) {
+export function Field({ icon, label, sub, children, last, kind }: { icon: React.ReactNode; label: string; sub?: string; children: React.ReactNode; last?: boolean; kind?: 'out' }) {
   return (
     <div
       className={`flex items-center justify-between gap-4 py-3.5 pe-set${kind === 'out' ? ' pe-set--out' : ''}`}
@@ -514,8 +558,11 @@ export function Field({ icon, label, children, last, kind }: { icon: React.React
     >
       <div className="flex items-center gap-3" style={{ color: T.inkDim }}>
         {icon}
-        <span style={{ fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase' }}>
-          {label}
+        <span>
+          <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase' }}>
+            {label}
+          </span>
+          {sub && <span className="pe-sub" style={{ display: 'block', marginTop: 4, fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.3 }}>{sub}</span>}
         </span>
       </div>
       <div>{children}</div>
