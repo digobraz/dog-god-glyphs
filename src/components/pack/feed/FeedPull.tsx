@@ -3,7 +3,9 @@
 // sa feed načíta znova (`refreshFeed()` spustí všetky zdroje naraz).
 //
 // ⚠️ Gesto je vlastné: `html { overscroll-behavior: none }` vypína pruženie iOS, takže prehliadač sám nič neurobí.
-// ⚠️ Značka je ZATIAĽ krúžok — Matej chce čuchajúci nos, animácia sa vyberie zvlášť (vymeň len `PullMark`).
+// 👃 ZNAČKA = ČUCHAJÚCI NOS (Matej 23. 11.: *„ikonku by som si predstavoval skôr čuchanie nosom“*). Kresba je tá istá ako
+//    v logu SNIFFER (`/icons/sniffer/nose.svg`, maska). Ťah: nos rastie a dvíha sa · hranica: jedno čuchnutie s haptikou ·
+//    načítanie: dve rýchle čuchnutia a pauza, zospodu do nozdier stúpajú tri vonné prúžky.
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { PACK_THEME, PACK_SPACE } from '@/components/pack/packTheme';
 import { haptika } from '@/lib/momenty/haptika';
@@ -23,21 +25,39 @@ export const FEED_PULL_CSS = `
 .pkf-col.pull-anim{transition:transform .28s cubic-bezier(.2,.8,.2,1);}
 .pkf-pull{position:absolute;left:50%;top:0;width:${S.xxl}px;height:${S.xxl}px;margin-left:-${S.lg}px;pointer-events:none;opacity:0;}
 .pkf-pull.pull-anim{transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s ease;}
-.pkf-pull svg{display:block;width:100%;height:100%;}
-.pkf-pull.busy svg{animation:pkf-pull-spin .9s linear infinite;}
-@keyframes pkf-pull-spin{to{transform:rotate(360deg);}}
-@media (prefers-reduced-motion:reduce){.pkf-pull.busy svg{animation-duration:2.4s;}}
+.pkf-nose{position:absolute;inset:0;background:${T.inkStrong};-webkit-mask:url(/icons/sniffer/nose.svg) center/contain no-repeat;
+  mask:url(/icons/sniffer/nose.svg) center/contain no-repeat;transform-origin:50% 70%;transition:transform .12s ease-out;}
+.pkf-pull.hit .pkf-nose{animation:pkf-sniff1 .32s ease-in-out;}
+.pkf-pull.busy .pkf-nose{animation:pkf-sniff 1.1s ease-in-out infinite;}
+.pkf-wisp{position:absolute;top:100%;left:50%;width:6px;height:12px;margin-left:-3px;opacity:0;color:${T.inkWarm};}
+.pkf-wisp svg{display:block;width:100%;height:100%;}
+.pkf-pull.busy .pkf-wisp{animation:pkf-wisp 1.1s ease-in infinite;animation-delay:var(--d);}
+/* Čuchnutie = nos sa krátko stlačí a nadýchne (nozdry ťahajú vzduch), dvakrát rýchlo za sebou, potom pauza. */
+@keyframes pkf-sniff{0%,44%,100%{transform:none;}11%,33%{transform:scale(1.1,.9);}22%{transform:scale(.97,1.04);}}
+@keyframes pkf-sniff1{0%,100%{transform:none;}45%{transform:scale(1.12,.88);}}
+/* Vonný prúžok vystúpi spod nosa do nozdier a zmizne. */
+@keyframes pkf-wisp{0%{opacity:0;transform:translate(var(--x),10px) scale(1);}35%{opacity:.85;}
+  100%{opacity:0;transform:translate(calc(var(--x) * .3),-14px) scale(.6);}}
+@media (prefers-reduced-motion:reduce){
+  .pkf-pull.busy .pkf-nose{animation-duration:2.4s;}
+  .pkf-pull.busy .pkf-wisp{display:none;}
+}
 `;
 
-/** Dočasná značka: krúžok sa pri ťahu dokresľuje, pri načítaní sa točí. */
-function PullMark({ progress }: { progress: number }) {
-  const C = 2 * Math.PI * 12;
+const WISPS = [{ x: -9, d: '0s' }, { x: 0, d: '.18s' }, { x: 9, d: '.36s' }];
+
+/** Čuchajúci nos. `progress` (0–1) = ako ďaleko je ťah k hranici: nos rastie a dvíha sa. */
+function PullMark({ progress, busy }: { progress: number; busy: boolean }) {
+  const p = busy ? 1 : Math.max(0, Math.min(1, progress));
   return (
-    <svg viewBox="0 0 32 32" aria-hidden>
-      <circle cx="16" cy="16" r="12" fill="none" stroke={T.hairline} strokeWidth="3" />
-      <circle cx="16" cy="16" r="12" fill="none" stroke={T.inkWarm} strokeWidth="3" strokeLinecap="round"
-        strokeDasharray={`${C * Math.max(0.08, Math.min(1, progress)) * 0.85} ${C}`} transform="rotate(-90 16 16)" />
-    </svg>
+    <>
+      <span className="pkf-nose" style={busy ? undefined : { transform: `translateY(${(1 - p) * 6}px) rotate(${(1 - p) * -12}deg) scale(${0.55 + 0.45 * p})` }} />
+      {WISPS.map((w) => (
+        <span key={w.x} className="pkf-wisp" style={{ ['--x' as string]: `${w.x}px`, ['--d' as string]: w.d }}>
+          <svg viewBox="0 0 6 12" aria-hidden><path d="M3 11.5c-2-2 2-3.5 0-5.5s2-3.5 0-5.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+        </span>
+      ))}
+    </>
   );
 }
 
@@ -49,6 +69,7 @@ export function FeedPull({ colRef, off, onRefresh }: { colRef: RefObject<HTMLDiv
   const markRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [hit, setHit] = useState(false);
   const busyRef = useRef(false);
   const offRef = useRef(off);
   offRef.current = off;
@@ -89,14 +110,15 @@ export function FeedPull({ colRef, off, onRefresh }: { colRef: RefObject<HTMLDiv
       if (e.cancelable) e.preventDefault();
       const dist = Math.min(MAX, Math.max(0, dy * DAMP));
       // Ťuk raz pri prekročení hranice; keď prst cúvne pod ňu a znova ju prejde, ťukne znova (ako IG).
-      if (!armed && dist >= TRIGGER) { armed = true; haptika('tuk'); }
-      else if (armed && dist < TRIGGER) armed = false;
+      if (!armed && dist >= TRIGGER) { armed = true; haptika('tuk'); setHit(true); }
+      else if (armed && dist < TRIGGER) { armed = false; setHit(false); }
       setProgress(dist / TRIGGER);
       paint(dist, false);
     };
     const onEnd = () => {
       if (state !== 'pull') { state = 'idle'; return; }
       state = 'idle';
+      setHit(false);
       if (!armed) { paint(0, true); setProgress(0); return; }
       busyRef.current = true; setBusy(true);
       paint(HOLD, true);
@@ -120,8 +142,8 @@ export function FeedPull({ colRef, off, onRefresh }: { colRef: RefObject<HTMLDiv
   }, [colRef]);
 
   return (
-    <div ref={markRef} className={`pkf-pull${busy ? ' busy' : ''}`} aria-hidden={!busy} role={busy ? 'status' : undefined}>
-      <PullMark progress={busy ? 1 : progress} />
+    <div ref={markRef} className={`pkf-pull${busy ? ' busy' : hit ? ' hit' : ''}`} aria-hidden={!busy} role={busy ? 'status' : undefined}>
+      <PullMark progress={progress} busy={busy} />
     </div>
   );
 }
