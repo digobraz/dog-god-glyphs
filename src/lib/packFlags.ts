@@ -216,7 +216,7 @@ export const APP_NEW: boolean = TEST_BUILD || IS_APP || PUBLIC_MAP_TAB;
 // 🔴 Server v2 (migrácia 20270109 + ainubis-chat v:2 + ainubis-hlas) je zatiaľ LEN na DEV Supabase. Testovacia appka
 //   aj web idú proti LIVE DB, kde by v2 nefungoval ⇒ dovtedy len lokálny dev (`npm run dev` = DEV DB).
 //   Po nasadení backendu na LIVE (Matejovo „ok“): `= APP_NEW`.
-export const AINUBIS_V2: boolean = APP_NEW && import.meta.env.DEV;
+export const AINUBIS_V2: boolean = APP_NEW; // FLIP 23. 11. 2026: server v2 na LIVE (K5b)
 export const AINUBIS_FULL: boolean = true;
 
 // ── LIMITY PODĽA HODNOSTI (22. 11. 2026) ─────────────────────────────────────────
