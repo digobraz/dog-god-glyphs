@@ -253,7 +253,9 @@ export function PackFeed() {
   const sniffer = useSnifferPosts(!!APP_NEW, pos);
   // ČO STAVIAME (balík 4): plány sú príspevky AINUBISA (`t:vizia`) — vo „Všetko“ medzi ostatnými, pripomienka hore, keď niečo pribudlo.
   const vizia = useViziaPlans(VIZIA_ON);
-  const viziaNews = useViziaNews(vizia.rows);
+  // Do feedu ide Vízia a Práve pracujeme; Hotovo len čerstvé (30 dní), 8 spätných položiek by feed zaplavilo.
+  const feedVizia = useMemo(() => vizia.rows.filter((r) => r.kind !== 'done' || (!!r.doneAt && Date.now() - Date.parse(r.doneAt) < 30 * 86_400_000)), [vizia.rows]);
+  const viziaNews = useViziaNews(feedVizia);
   const mapAdds = useMapAdds(6);
   const scrolls = useDemoScrolls();
   const savedIds = useSaved();
@@ -327,8 +329,8 @@ export function PackFeed() {
   const publicPosts = useMemo<PostIt[]>(() => [
     ...myPosts.filter((p) => !isMoment(p) && !isAlbum(p) && !isTripStory(p) && (p.visibility === 'public' || !!p.hiddenAt)).map((p) => ({ p })),
     ...otherPosts.filter((w) => w.ownerN == null || !blocked.has(w.ownerN)).map((w) => ({ p: w.post, who: w })),
-    ...vizia.rows.map((r) => ({ p: viziaAsPost(r, r.body), vz: r })),
-  ].sort((a, b) => Date.parse(b.p.createdAt) - Date.parse(a.p.createdAt)), [myPosts, otherPosts, blocked, vizia.rows]);
+    ...feedVizia.map((r) => ({ p: viziaAsPost(r, r.body), vz: r })),
+  ].sort((a, b) => Date.parse(b.p.createdAt) - Date.parse(a.p.createdAt)), [myPosts, otherPosts, blocked, feedVizia]);
 
   // SNIFFER: príspevky pre tému (aj moje, aj vypršané — na obnovu) a polička „Hľadajú parťáka“ (len cudzie, živé).
   const renewSn = async (id: string) => {

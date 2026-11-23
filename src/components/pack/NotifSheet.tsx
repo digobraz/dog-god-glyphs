@@ -40,6 +40,8 @@ import { flagUrl } from '@/lib/flagUrl';
 const StatsDetail = lazy(() => import('./StatsDetail').then((m) => ({ default: m.StatsDetail })));
 // Oznam AINUBISA (26. 10. 2026, TEST_BUILD) — lenivo, ťahá zvitky a výlety; viď `AinubisOznam.tsx`.
 const AinubisOznam = lazy(() => import('./AinubisOznam'));
+// Záložky Práve pracujeme · Vízia · Hotovo (23. 11. 2026) — lenivo, ťahajú detail príspevku.
+const NotifVizia = lazy(() => import('./vizia/NotifVizia'));
 
 const DOG_NAME_FONT = "'Cinzel Decorative','Cinzel',serif";
 
@@ -155,6 +157,49 @@ function useNewestDogs(): NewDog[] {
     return () => { cancelled = true; };
   }, []);
   return dogs;
+}
+
+// ── VITAJ NOVÉHO ČLENA (23. 11. 2026, APP_NEW) ───────────────────────────────────
+// Matej: karta s fotkou, #číslom, menom a tlačidlom Vitaj NAPRAVO; labka máva ako ruka. Ukáže sa najnovší pes, ktorý nie je môj
+// a ktorého som ešte neprivítal (z tých troch najnovších, nech sa karta nevlečie k starým členom). Ťuk = `welcome_dog(n)`:
+// človek, ktorému patrí pes, dostane upozornenie `dog_welcome`. Čo som privítal, drží server (`my_dog_welcomes`) a localStorage.
+const WELCOMED_KEY = 'dogypt_welcomed_dogs';
+const readWelcomedLocal = (): number[] => { try { return JSON.parse(localStorage.getItem(WELCOMED_KEY) || '[]') as number[]; } catch { return []; } };
+const SHOW_NEWEST = 3;
+
+function useWelcomeCandidate(newest: NewDog[]): { dog: NewDog | null; welcome: (n: number) => Promise<void>; hide: (n: number) => void } {
+  const [mine, setMine] = useState<number[]>([]);
+  const [welcomed, setWelcomed] = useState<number[]>(readWelcomedLocal);
+  useEffect(() => {
+    if (!APP_NEW) return;
+    let cancelled = false;
+    (async () => {
+      const { data: s } = await supabase.auth.getSession();
+      const uid = s.session?.user?.id;
+      if (!uid) return;
+      try {
+        const { data: own } = await supabase.from('dogs').select('pack_number').eq('user_id', uid);
+        if (!cancelled) setMine((own ?? []).map((d) => d.pack_number as number).filter(Boolean));
+      } catch { /* karta sa len neskryje pred vlastným psom */ }
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data } = await (supabase as any).rpc('my_dog_welcomes');
+        if (!cancelled && Array.isArray(data)) setWelcomed((w) => Array.from(new Set([...w, ...(data as number[])])));
+      } catch { /* zostane localStorage */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  const hide = (n: number) => setWelcomed((w) => {
+    const next = Array.from(new Set([...w, n]));
+    try { localStorage.setItem(WELCOMED_KEY, JSON.stringify(next.slice(-200))); } catch { /* plné úložisko */ }
+    return next;
+  });
+  const welcome = async (n: number) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    try { await (supabase as any).rpc('welcome_dog', { p_pack_number: n }); } catch { /* upozornenie sa nedoručí, človek to nevidí */ }
+  };
+  const dog = APP_NEW ? newest.filter((d) => !mine.includes(d.n)).slice(0, SHOW_NEWEST).find((d) => !welcomed.includes(d.n)) ?? null : null;
+  return { dog, welcome, hide };
 }
 
 const CSS = `${PROGRESS_CSS}
@@ -277,10 +322,13 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
   const tips = folded ? [] : allTips;
   const showOznam = !!oznam && oznam.grown > 0;
   const newest = useNewestDogs();
+  const wc = useWelcomeCandidate(newest);
+  const [tab, setTab] = useState<'alerts' | 'wip' | 'plan' | 'done'>('alerts');
+  const [paused, setPaused] = useState(false);
+  const [thx, setThx] = useState<number | null>(null);
+  const [gone, setGone] = useState<number | null>(null);
+  const tx = (k: string, fb: string) => { const v = t(k); return v === k ? fb : v; };
   const [di, setDi] = useState(0);
-  // Míľnik pod fotkou (Papyrus 3D): `MILESTONES` z GlobePulse sa ťahá lenivo, nech sa zemeguľa nenačíta so panelom.
-  const [ms, setMs] = useState<readonly { nameKey: string; target: number }[] | null>(null);
-  useEffect(() => { if (APP_NEW) void import('./GlobePulse').then((m) => setMs(m.MILESTONES)); }, []);
   const [touchX, setTouchX] = useState<number | null>(null);
   const cur = newest[di];
   const step = (d: number) => setDi((i) => Math.min(Math.max(i + d, 0), Math.max(newest.length - 1, 0)));
@@ -307,7 +355,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
   const today = new Date().toISOString().slice(0, 10);
   const news = FRESH_NEWS.filter((n) => !n.until || n.until >= today);
   const lk = (lang === 'sk' || lang === 'cs') ? lang : 'en';
-  const pills: React.ReactNode[] = stats ? [
+  const pillsOld: React.ReactNode[] = stats ? [
     ...news.map((n) => (
       <button key={`n-${n.id}`} type="button" className="ntf-pill ntf-pill--news"
         onClick={(e) => { e.stopPropagation(); if (n.href) { onClose(); navigate(n.href); } }}>
@@ -320,6 +368,22 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
     <span key="k" className="ntf-pill ntf-pill--gold"><b>{(dogs / 10_000).toLocaleString(intlLocale(lang), { maximumFractionDigits: 2 })} %</b>{t('pack.notif.toMillion')}</span>,
     ...(stats.topCountries[0] ? [<span key="t" className="ntf-pill ntf-pill--lapis"><b>{fmt(stats.topCountries[0].count)}</b>{stats.topCountries[0].country}</span>] : []),
   ] : [];
+  const pi = (src: string) => <img src={src} alt="" draggable={false} />;
+  // FAREBNÉ PILULKY (23. 11. 2026): zlatá = psy a míľnik, lapis = krajiny, zelená = prírastok, cyan = oznam AINUBISA. Ťuk = zastaví / pustí točenie.
+  const pillsNew: React.ReactNode[] = stats ? [
+    <span key="dg" className="ntf-pill ntf-pill--gold">{pi('/icons/kruhy/all.webp')}<b>{fmt(dogs)}</b>{t('pack.notif.dogsWord')}</span>,
+    ...news.map((n) => (
+      <span key={`n-${n.id}`} className="ntf-pill ntf-pill--news" onClick={() => { if (n.href) { onClose(); navigate(n.href); } }}>
+        {pi('/icons/sys/ainubis.webp')}{n.text[lk] ?? n.text.en}
+      </span>
+    )),
+    <span key="m" className="ntf-pill ntf-pill--up">{pi('/icons/sys/fajka-zelena.webp')}<b>+{fmt(stats.last30d)}</b>{t('pack.notif.perMonth')}</span>,
+    <span key="c" className="ntf-pill ntf-pill--lapis">{pi('/icons/sys/poloha.webp')}<b>{fmt(stats.topCountries.length)}</b>{t('pack.notif.countries')}</span>,
+    ...(stats.last24h > 0 ? [<span key="d" className="ntf-pill ntf-pill--up">{pi('/icons/sys/fajka-zelena.webp')}<b>+{fmt(stats.last24h)}</b>{t('pack.notif.today')}</span>] : []),
+    <span key="k" className="ntf-pill ntf-pill--gold">{pi('/icons/sys/trofej.webp')}<b>{(dogs / 10_000).toLocaleString(intlLocale(lang), { maximumFractionDigits: 2 })} %</b>{t('pack.notif.toMillion')}</span>,
+    ...(stats.topCountries[0] ? [<span key="t" className="ntf-pill ntf-pill--lapis">{pi('/icons/sys/poloha.webp')}<b>{fmt(stats.topCountries[0].count)}</b>{stats.topCountries[0].country}</span>] : []),
+  ] : [];
+  const pills = APP_NEW ? pillsNew : pillsOld;
 
   return (
     <div className="ntf-root" role="dialog" aria-modal="true" aria-label={t('pack.notif.sheetTitle')}>
@@ -346,7 +410,8 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
 
             {/* BEŽIACI PÁS NAD blokom (Matej 23. 10.: „tie rotujúce pills dáme nad tento blok hore"). */}
             {pills.length > 0 && (
-              <div className="ntf-tick" style={{ ['--ntf-tick-s' as string]: `${Math.max(16, pills.length * 5)}s` }}>
+              <div className={`ntf-tick${paused ? ' is-paused' : ''}`} style={{ ['--ntf-tick-s' as string]: `${Math.max(16, pills.length * 5)}s` }}
+                onClick={APP_NEW ? () => setPaused((p) => !p) : undefined}>
                 {/* Dve kópie za sebou — posun o -50 % je presne jedna kópia, takže slučka nemá švík. */}
                 <span className="ntf-tick-track">
                   {pills}
@@ -355,7 +420,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
               </div>
             )}
             {/* BLOK = dvere do všetkých štatistík. Max 1/4 výšky (Matej 21. 10.). */}
-            <div className="ntf-stats" role="button" tabIndex={0} aria-label={t('pack.notif.allStats')}
+            {!APP_NEW && <div className="ntf-stats" role="button" tabIndex={0} aria-label={t('pack.notif.allStats')}
               onClick={() => setView('stats')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setView('stats'); }}>
               {/* Ťuk na fotku = karta psa, ťuk na zvyšok bloku = všetky štatistiky. Švih = ďalší pes. */}
               {cur && (
@@ -396,23 +461,41 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                 <span className="ntf-num"><b>{stats ? fmt(dogs) : '—'}</b><span>{t('pack.notif.dogsWord')}</span></span>
                 <span className="ntf-num"><b>{stats ? fmt(stats.total) : '—'}</b><span>{t('pack.notif.peopleWord')}</span></span>
               </span>
-              {/* Míľnik: kam sa DOGYPT práve blíži (Papyrus 3D). Počíta sa z rovnakých psov ako číslo hore. */}
-              {APP_NEW && stats && ms && (() => {
-                const m = ms.find((x) => dogs < x.target) ?? ms[ms.length - 1];
-                const w = `${Math.min(100, Math.max(5, (dogs / m.target) * 100))}%`;
-                return (
-                  <span className="ntf-prog">
-                    <span className="ntf-prog-l">{t(m.nameKey)}</span>
-                    <span className="pk-progress ntf-prog-bar"><span className="pk-progress__fill" style={{ display: 'block', width: w }} /></span>
-                    <b>{fmt(dogs)} / {m.target >= 1_000_000 ? '1 M' : fmt(m.target)}</b>
-                    <SysIcon name="sipka" size={18} />
-                  </span>
-                );
-              })()}
-            </div>
-            {/* Papyrus 3D (hárok K5): odkaz pod blokom, rovnaká akcia ako ťuk na blok. */}
-            {APP_NEW && <button type="button" className="ntf-history ntf-allstats" onClick={() => setView('stats')}>{t('pack.notif.allStats')}</button>}
+            </div>}
+            {/* ZÁLOŽKY (23. 11. 2026): Upozornenia · Práve pracujeme · Vízia · Hotovo (bez čísla). */}
+            {APP_NEW && (
+              <div className="ntf-tabs" role="tablist">
+                {([['alerts', 'pack.notif.tab.alerts', 'Notifications'], ['wip', 'pack.notif.tab.wip', 'Working on now'], ['plan', 'pack.notif.tab.vision', 'Vision'], ['done', 'pack.notif.tab.done', 'Done']] as const).map(([k, key, fb]) => (
+                  <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{tx(key, fb)}</button>
+                ))}
+              </div>
+            )}
             <div className="ntf-list">
+              {APP_NEW && tab !== 'alerts' && <Suspense fallback={null}><NotifVizia kind={tab} /></Suspense>}
+              {APP_NEW && tab === 'alerts' && wc.dog && (
+                <div className={`ntf-wel${thx === wc.dog.n ? ' thx' : ''}${gone === -wc.dog.n ? ' done' : ''}`}>
+                  <button type="button" className="ntf-wel-ph" aria-label={`#${wc.dog.n} ${wc.dog.name}`}
+                    onClick={() => { onClose(); navigate(dogPagePath(wc.dog!.name, wc.dog!.n)); }}>
+                    <img src={sizedUrl(wc.dog.photo, 200)} alt="" /><b>#{wc.dog.n}</b>
+                  </button>
+                  <span className="ntf-wel-tx">
+                    <span className="ntf-wel-nm">{wc.dog.name}</span>
+                    <small>{tx('pack.notif.welcome.new', 'New in the pack')}</small>
+                    <span className="ntf-wel-ok">{tx('pack.notif.welcome.thx', 'Welcomed. Your paw is on its way.')}</span>
+                  </span>
+                  <button type="button" className="ntf-wel-btn" disabled={thx === wc.dog.n}
+                    onClick={() => {
+                      const n = wc.dog!.n;
+                      setThx(n);
+                      void wc.welcome(n);
+                      setTimeout(() => setGone(-n), 1300);
+                      setTimeout(() => { wc.hide(n); setThx(null); setGone(null); }, 2000);
+                    }}>
+                    <img src="/icons/sys/hodnotenie-packa.webp" alt="" draggable={false} />{tx('pack.notif.welcome.btn', 'Welcome')}
+                  </button>
+                </div>
+              )}
+              {APP_NEW && tab !== 'alerts' ? null : <>
               {showOznam && <Suspense fallback={null}><AinubisOznam grown={oznam.grown} onClose={onClose} /></Suspense>}
               {hasReal && <div className="ntf-real">{children}</div>}
               {tips.length > 0 && <div className="ntf-sec">{t('pack.notif.forYou')}</div>}
@@ -438,6 +521,8 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
                 <button type="button" className="ntf-history" onClick={history.onOpen}>{t('pack.alerts.history')}</button>
               )}
               {!hasReal && !showOznam && tips.length === 0 && !(folded && (history.has || allTips.length > 0)) && <div className="ntf-empty">{t('pack.notif.allClear')}</div>}
+              {APP_NEW && <button type="button" className="ntf-history ntf-allstats" onClick={() => setView('stats')}>{t('pack.notif.allStats')}</button>}
+              </>}
             </div>
           </>
         )}

@@ -36,6 +36,7 @@ import { iso2ToISO3 } from '@/lib/countryGeo';
 import { loadSosActive } from '@/components/pack/sosKit';
 import { sosMine } from '@/lib/sos';
 import { SOS_ON } from '@/lib/env';
+import { dogPagePath } from '@/lib/dogSlug';
 import { fetchMemberProfiles, memberAvatarUrl, memberDisplayName } from '@/components/pack/profile/memberProfile';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rovnaký dôvod ako v packStore.ts:
@@ -71,7 +72,8 @@ export type WishAlertKind = 'wish_me_too' | 'wish_ask' | 'wish_missed' | 'wish_n
 // `post_like` · `post_comment` · `trip_like` · `trip_comment` · `quote_reply` (28. 10. 2026): upozornenia AKO NA IG — niekto
 // lajkol / okomentoval môj príspevok či výlet, alebo odpovedal na môj komentár pod citátom. ČERVENÉ (od členov).
 // Zdroj `get_social_alerts()` zo `20261107_social_alerts.sql` (zoskupené: „Jana a 4 ďalší“).
-export type SocialAlertKind = 'post_like' | 'post_comment' | 'trip_like' | 'trip_comment' | 'quote_reply';
+export type SocialAlertKind = 'post_like' | 'post_comment' | 'trip_like' | 'trip_comment' | 'quote_reply' | 'dog_welcome';
+// `dog_welcome` (23. 11. 2026): niekto privítal môjho psa labkou (`target` = číslo psa, `preview` = meno psa, `photo` = jeho fotka).
 // `trip_published` · `trip_returned` (1. 11. 2026): môj výlet sme v chate zverejnili / vrátili na úpravu. Matej po
 // zverejnení Rosuchova: *„neprišlo mi upozornenie na chvostíku"* — správa išla len do AINUBIS rozhovoru. CYAN (systém).
 // Zdroj = vlastné `pack_trips` (RLS `pack_trips_read` pustí autora), žiadna RPC ani migrácia.
@@ -463,7 +465,8 @@ async function loadAlertsNow(): Promise<PackAlert[]> {
     const isTrip = r.kind === 'trip_like' || r.kind === 'trip_comment';
     const tripPhoto = isTrip ? trails.find((t) => t.id === currentTripId(r.target))?.photos?.[0] : undefined;
     const c = r.ref ? `&c=${encodeURIComponent(r.ref)}` : '';
-    const path = r.kind === 'quote_reply' ? `/pack?cm=${encodeURIComponent(r.target)}${c}`
+    const path = r.kind === 'dog_welcome' ? dogPagePath(r.preview, Number(r.target))
+      : r.kind === 'quote_reply' ? `/pack?cm=${encodeURIComponent(r.target)}${c}`
       : isTrip ? `${pathOf(r.target)}${r.kind === 'trip_comment' && r.ref ? `?c=${encodeURIComponent(r.ref)}` : ''}`
       : `/pack?post=${encodeURIComponent(r.target)}${r.kind === 'post_comment' ? c : ''}`;
     out.push({

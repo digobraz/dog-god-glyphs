@@ -9,7 +9,8 @@ import { SysIcon } from './SysIcon';
 import { NotifSheet } from './NotifSheet';
 import { PACK_THEME, PACK_AVATAR, PACK_TEXT, PACK_R, PACK_SPACE, FONT_UI } from './packTheme';
 import { pluralKey } from '@/lib/plural';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { agoLabel } from './feed/feedData';
 import { openAinubis, getAinubisUnread, onAinubisUnread } from '@/lib/ainubisBus';
 import { AINUBIS } from './ainubisSkin';
 import ainubisFace from '@/assets/ainubis-badge.webp';
@@ -41,11 +42,13 @@ import { KomnataKluc } from './PackKomnaty';
 /** SOS riadky chvosta (`sos_lost`, `sos_still`) — prioritné, mimo zoznamu „nové / skôr“. */
 const isSosAlert = (a: PackAlert) => a.kind === 'sos_lost' || a.kind === 'sos_still';
 /** Upozornenie od konkrétneho človeka = jeho tvár vľavo, nie chvost (Matej 5. 11.: „ak je to od človeka, má tam byť fotka"). */
+/** Systém a AINUBIS = cyan bublinka; od členov = červená (tá istá logika ako odznak na vlku, `memberFresh` nižšie). */
+const isSystemAlert = (a: PackAlert) => a.kind === 'ainubis_reply' || a.kind === 'trip_published' || a.kind === 'trip_returned';
 const isPersonAlert = (a: PackAlert) => !!SOCIAL_KEY[a.kind] || a.kind === 'follow_new' || a.kind === 'pawmate_joined' || a.kind === 'walk_invite' || a.kind === 'wish_me_too';
 
 /** Sociálne (IG) upozornenia → základ i18n kľúča `pack.alerts.soc.<základ>One|Many`. */
 const SOCIAL_KEY: Record<string, string> = {
-  post_like: 'postLike', post_comment: 'postComment', trip_like: 'tripLike', trip_comment: 'tripComment', quote_reply: 'quoteReply',
+  post_like: 'postLike', post_comment: 'postComment', trip_like: 'tripLike', trip_comment: 'tripComment', quote_reply: 'quoteReply', dog_welcome: 'dogWelcome',
 };
 
 const T = PACK_THEME;
@@ -175,6 +178,7 @@ interface PackNotificationsProps {
 export function PackNotifications({ last24h, last30d, total, dark = false, className, layout = 'overlay', capsule = false }: PackNotificationsProps) {
   const inline = layout === 'inline';
   const t = useT();
+  const { lang } = useLang();
   const tl = (k: string, fb: string, vars: Record<string, string | number>) => { const v = t(k, vars); return v === k ? fb.replace(/\{(\w+)\}/g, (_, n) => String(vars[n] ?? '')) : v; };
   const [open, setOpen] = useState(false);
   const closeSheet = useCallback(() => setOpen(false), []);
@@ -595,7 +599,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                     </span>
                   </li>
                 ) : (
-                  <li key={al.id} className={APP_NEW && newIds.has(al.id) ? 'ntf-new' : undefined}>
+                  <li key={al.id} className={APP_NEW && newIds.has(al.id) ? `ntf-new${isSystemAlert(al) ? ' ntf-cy' : ''}` : undefined}>
                     <button
                       type="button"
                       onClick={() => {
@@ -609,6 +613,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                       style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}
                     >
                       {/* Sociálne = ako Instagram (Matej 28. 10.): vľavo TVÁR človeka, vpravo náhľad príspevku. Chvost ostáva len systémovým. */}
+                      {APP_NEW && newIds.has(al.id) && <span className="ntf-bub" aria-hidden />}
                       {isPersonAlert(al)
                         ? <PersonFace al={al} />
                         : APP_NEW
@@ -631,7 +636,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                               : t('pack.alerts.' + ({ event_changed: 'eventChanged', event_cancelled: 'eventCancelled', event_reminder: 'eventReminder', event_held_ask: 'eventHeldAsk' } as Record<string, string>)[al.kind]))
                             : SOCIAL_KEY[al.kind]
                             // IG: „Tvoj príspevok sa páči: Jana a 4 ďalším“ — bez rodu, preto One/Many (nie podľa pohlavia).
-                            ? t('pack.alerts.soc.' + SOCIAL_KEY[al.kind] + (al.kind !== 'quote_reply' && al.count > 1 ? 'Many' : 'One'), { who: al.who || t('pack.triplist.fallbackDogyptian'), others: al.count - 1 })
+                            ? t('pack.alerts.soc.' + SOCIAL_KEY[al.kind] + (al.kind !== 'quote_reply' && al.count > 1 ? 'Many' : 'One'), { who: al.who || t('pack.triplist.fallbackDogyptian'), others: al.count - 1, dog: al.preview ?? '' })
                             : al.kind === 'follow_new'
                             ? t('pack.alerts.followNew', { who: al.who || t('pack.triplist.fallbackDogyptian') })
                             : al.kind === 'pawmate_joined'
@@ -648,7 +653,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                               ? t('pack.alerts.walked')
                               : t('pack.alerts.accepted')}
                         </span>
-                        {SOCIAL_KEY[al.kind] ? (al.preview && (
+                        {SOCIAL_KEY[al.kind] ? (al.preview && al.kind !== 'dog_welcome' && (
                           <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.35, color: T.inkDim, marginTop: 1 }}>
                             „{al.preview}“
                           </span>
@@ -664,6 +669,12 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                         </span>
                         )}
                       </span>
+                      {APP_NEW && (
+                        <span className="ntf-r">
+                          {newIds.has(al.id) && <span className="ntf-nw">{tl('pack.notif.newBadge', 'new', {})}</span>}
+                          {agoLabel(Date.parse(al.at), lang)}
+                        </span>
+                      )}
                       {al.photo && <img src={sizedUrl(al.photo, 96)} alt="" width={40} height={40} loading="lazy" style={{ flexShrink: 0, width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />}
                     </button>
                   </li>

@@ -12,7 +12,7 @@ import { intlLocale } from '@/i18n/bcp47';
 import ainubisHead from '@/assets/ainubis-head.webp';
 import { APP_NEW } from '@/lib/packFlags';
 import { AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
-import { VIZIA_ICON, type ViziaRow } from './viziaData';
+import { viziaIconOf, type ViziaRow } from './viziaData';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -59,7 +59,11 @@ export function useViziaText(r: ViziaRow) {
     name: tx(`pack.vizia.${r.id}.name`, r.id),
     text: tx(`pack.vizia.${r.id}.text`, r.body),
     dogma: tx(`pack.vizia.${r.id}.dogma`, ''),
-    stage: tx(`pack.vizia.stage.${r.stage}`, ['', 'Dreaming', 'Preparing', 'Building'][r.stage]),
+    // Práve pracujeme a Hotovo nesú štítok druhu, Vízia štítok fázy.
+    stage: r.kind === 'done' ? tx('pack.vizia.kind.done', 'Done')
+      : r.kind === 'wip' ? tx('pack.vizia.kind.wip', 'Working on now')
+      : tx(`pack.vizia.stage.${r.stage}`, ['', 'Dreaming', 'Preparing', 'Building'][r.stage]),
+    doneAt: r.doneAt ? tx('pack.vizia.doneAt', 'Done {date}').replace('{date}', new Date(r.doneAt).toLocaleDateString(intlLocale(lang))) : '',
     at: tx('pack.vizia.at', 'at {n} dogs').replace('{n}', r.milestone.toLocaleString(intlLocale(lang))),
     tx,
   };
@@ -83,7 +87,7 @@ export function ViziaLead({ r }: { r: ViziaRow }) {
   const x = useViziaText(r);
   return (
     <div className="vz-lead">
-      <img className="vz-ico lg" src={VIZIA_ICON[r.id]} alt="" draggable={false} />
+      <img className="vz-ico lg" src={viziaIconOf(r.id, r.icon)} alt="" draggable={false} />
       <h2>{x.name}</h2>
       <ViziaPills r={r} />
       {x.dogma && <p className="vz-dogma"><b>{x.tx('pack.vizia.dogma', 'DOGMA')}</b>{x.dogma}</p>}
@@ -96,7 +100,7 @@ export function ViziaRowButton({ r, onOpen }: { r: ViziaRow; onOpen: () => void 
   const x = useViziaText(r);
   return (
     <button type="button" className="vz-row" onClick={onOpen}>
-      <img className="vz-ico" src={VIZIA_ICON[r.id]} alt="" draggable={false} loading="lazy" />
+      <img className="vz-ico" src={viziaIconOf(r.id, r.icon)} alt="" draggable={false} loading="lazy" />
       <span className="nm"><b>{x.name}</b><span className="pk-pill vz-pill">{x.stage}</span></span>
       <span className="vz-cnt">
         <span><LikeMark on={r.liked} n={r.likes} />{r.likes}</span>
@@ -130,7 +134,7 @@ export function FeedViziaCard({ r, onOpen }: { r: ViziaRow; onOpen: () => void }
         </div>
       </div>
       <div className="vz-body" onClick={onOpen} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') onOpen(); }}>
-        <img className="vz-ico lg" src={VIZIA_ICON[r.id]} alt="" draggable={false} loading="lazy" />
+        <img className="vz-ico lg" src={viziaIconOf(r.id, r.icon)} alt="" draggable={false} loading="lazy" />
         <div className="tx">
           <h3>{x.name}</h3>
           <ViziaPills r={r} />
@@ -161,7 +165,7 @@ export function FeedViziaNew({ r, changed, onOpenAll, onHide }: { r: ViziaRow; c
       <AiHead sub={changed ? x.tx('pack.vizia.feed.changed', 'Plan updated') : x.tx('pack.vizia.feed.new', 'New plan')} />
       <div className="fai-b">
         <div className="vz-newrow">
-          <img className="vz-ico" src={VIZIA_ICON[r.id]} alt="" draggable={false} />
+          <img className="vz-ico" src={viziaIconOf(r.id, r.icon)} alt="" draggable={false} />
           <h3>{x.name}</h3>
         </div>
         <p className="cut">{x.text}</p>

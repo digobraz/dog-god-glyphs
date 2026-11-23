@@ -18,12 +18,20 @@ import type { MePost } from '@/components/pack/profile/mePosts';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
 
-export { VIZIA_TAG, VIZIA_PATH, VIZIA_ICON, VIZIA_IDS, isViziaId, type ViziaId, type ViziaStage } from './viziaCatalog';
-import { isViziaId, type ViziaId, type ViziaStage } from './viziaCatalog';
+export { VIZIA_TAG, VIZIA_PATH, VIZIA_ICON, VIZIA_IDS, isViziaId, viziaIconOf, type ViziaId, type ViziaStage, type ViziaKind } from './viziaCatalog';
+import { isViziaId, type ViziaId, type ViziaStage, type ViziaKind } from './viziaCatalog';
 import { VIZIA_TAG } from './viziaCatalog';
 
 export interface ViziaRow {
   id: ViziaId;
+  /** plan = Vízia · wip = Práve pracujeme · done = Hotovo (chýba = plan). */
+  kind: ViziaKind;
+  /** Dátum dokončenia `YYYY-MM-DD` (len Hotovo, voliteľné). */
+  doneAt: string | null;
+  /** Ikonka z DB (`/web-app/ikony/x.webp`), inak `VIZIA_ICON[id]`. */
+  icon: string | null;
+  /** Poradie v rámci Hotovo. */
+  order: number;
   /** `posts.id` — pod ním visia ❤️ a komentáre. */
   postId: string;
   stage: ViziaStage;
@@ -41,11 +49,14 @@ export interface ViziaRow {
 const num = (x: unknown, d = 0) => { const n = Number(x); return Number.isFinite(n) ? n : d; };
 
 function rowOf(r: Record<string, unknown>): ViziaRow | null {
-  const v = ((r.attach ?? {}) as { vizia?: { id?: unknown; stage?: unknown; milestone?: unknown } }).vizia;
+  const v = ((r.attach ?? {}) as { vizia?: { id?: unknown; kind?: unknown; stage?: unknown; milestone?: unknown; done_at?: unknown; icon?: unknown; order?: unknown } }).vizia;
   if (!v || !isViziaId(v.id)) return null;
   const stage = num(v.stage, 1);
   return {
-    id: v.id, postId: String(r.id), stage: (stage >= 3 ? 3 : stage <= 1 ? 1 : 2) as ViziaStage, milestone: num(v.milestone, 1000),
+    id: v.id, kind: (v.kind === 'wip' || v.kind === 'done' ? v.kind : 'plan') as ViziaKind,
+    doneAt: typeof v.done_at === 'string' && v.done_at ? v.done_at : null,
+    icon: typeof v.icon === 'string' && v.icon ? v.icon : null, order: num(v.order, 999),
+    postId: String(r.id), stage: (stage >= 3 ? 3 : stage <= 1 ? 1 : 2) as ViziaStage, milestone: num(v.milestone, 1000),
     body: String(r.body ?? ''), likes: num(r.likes), comments: num(r.comments), liked: r.liked === true,
     createdAt: String(r.created_at), updatedAt: String(r.updated_at ?? r.created_at),
   };

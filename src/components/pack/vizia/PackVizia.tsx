@@ -37,6 +37,7 @@ export default function PackVizia() {
   const groups = useMemo(() => {
     const out: Array<{ ms: number; list: ViziaRow[] }> = [];
     for (const r of rows) {
+      if (r.kind !== 'plan') continue; // prehľad plánov; Práve pracujeme a Hotovo žijú v paneli upozornení
       const g = out.find((x) => x.ms === r.milestone);
       if (g) g.list.push(r); else out.push({ ms: r.milestone, list: [r] });
     }
@@ -51,7 +52,7 @@ export default function PackVizia() {
         <h1 className="vzp-title">{tx('pack.vizia.title', 'What we are building')}</h1>
         <p className="vzp-intro">{tx('pack.vizia.intro', 'Plans we dream of. Give a paw to the ones you want and leave us a comment.')}</p>
         {!ready && <><div className="pk-skel vzp-sk" aria-hidden /><div className="pk-skel vzp-sk" aria-hidden /><div className="pk-skel vzp-sk" aria-hidden /></>}
-        {ready && !rows.length && <p className="vzp-empty">{tx('pack.vizia.empty', 'Plans are being prepared.')}</p>}
+        {ready && !groups.length && <p className="vzp-empty">{tx('pack.vizia.empty', 'Plans are being prepared.')}</p>}
         {groups.map((g) => (
           <Fragment key={g.ms}>
             <h2 className="vzp-ms">{tx('pack.vizia.at', 'at {n} dogs').replace('{n}', g.ms.toLocaleString(intlLocale(lang)))}</h2>
