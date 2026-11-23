@@ -1,7 +1,7 @@
 // AINUBIS CHAT v2 — komunikácia so serverom (`ainubis-chat` v:2, `ainubis-hlas`, `ainubis-poll`).
 // Kontrakt servera: `vystupy/supabase/functions/_shared/ainubis-v2.ts` + `ainubis-chat/index.ts` (runV2).
 // Odoslanie správy ide cez `fetch` so streamom (`supabase.functions.invoke` nestreamuje), malé akcie cez `invoke`.
-// URL a kľúč LEN z `@/lib/env` (pravidlo: `VITE_SUPABASE_*` smie čítať jediné env.ts).
+// URL a kľúč LEN z `@/lib/env` (pravidlo: premenné prostredia Supabase smie čítať jediné env.ts).
 // Pod `DEV_NOAUTH` (dev bez prihlásenia) server odmietne, preto sa tu volá MOCK, aby sa UI dalo preklikať.
 import { supabase } from '@/integrations/supabase/client';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/env';
