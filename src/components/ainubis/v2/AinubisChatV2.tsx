@@ -15,7 +15,7 @@ import {
   type V2Credits, type V2Done, type V2Msg, type V2Pick, type V2SendBody,
 } from './v2Api';
 import { AINUBIS_V2_CSS } from './v2Css';
-import { RANK_CTA_ROUTE, markNoVoice, useRankName, useV2Copy, useV2Lang } from './v2Meta';
+import { AI_LITE, RANK_CTA_ROUTE, markNoVoice, useRankName, useV2Copy, useV2Lang } from './v2Meta';
 import { AssistantBlock, Disclaimer, UserBubble, type MsgActions, type PlayState } from './V2Messages';
 import { ConsentSheet, RankSheet } from './V2Panels';
 import { V2Composer } from './V2Composer';
@@ -320,7 +320,7 @@ export function AinubisChatV2(props: AinubisChatV2Props) {
     setMsgs((l) => [...l, uMsg, aMsg]);
 
     const body: V2SendBody = {
-      v: 2, message: text, lang, page: pathname, pick: over?.pick ?? pick, for_dog: selectedDog,
+      v: 2, message: text, lang, page: pathname, pick: AI_LITE ? 'rychly' : over?.pick ?? pick, for_dog: AI_LITE ? null : selectedDog,
       ...(threadRef.current.id && threadRef.current.tok ? { conversation_id: threadRef.current.id, session_token: threadRef.current.tok } : {}),
       ...(img ? { image_b64: img.base64, image_mime: img.mime } : {}),
       ...(vc ? { voice: { path: vc.path, sec: vc.sec } } : {}),
@@ -392,7 +392,7 @@ export function AinubisChatV2(props: AinubisChatV2Props) {
     // Po `meta` je otázka u servera a ten odpoveď dopíše aj bez nás — znova ju NEPOSIELAME (duplikát),
     // len načítame vlákno. Pred `meta` sa text vracia do riadku sám (vetva vyššie).
     onRetry: () => { waitUntilRef.current = Date.now() + 5 * 60_000; void syncThread(); },
-    free: credits?.rank === 'veriaci', onRanks: () => setSheet('rank'), canRetry,
+    free: !AI_LITE && credits?.rank === 'veriaci', onRanks: () => setSheet('rank'), canRetry,
     // Ponuka Rýchleho: tá istá otázka ešte raz Bystrému (ten smie na web). Otázka = posledná správa človeka pred odpoveďou.
     onAskSharp: (m) => {
       const i = msgs.findIndex((x) => x.id === m.id);
@@ -502,7 +502,7 @@ export function AinubisChatV2(props: AinubisChatV2Props) {
           />
         </section>
 
-        {sheet === 'rank' && credits && (
+        {sheet === 'rank' && credits && !AI_LITE && (
           <RankSheet credits={credits} c={c} lang={lang} rankName={rankName} onClose={() => setSheet(null)}
             onCta={() => { setSheet(null); navigate(RANK_CTA_ROUTE); }} />
         )}

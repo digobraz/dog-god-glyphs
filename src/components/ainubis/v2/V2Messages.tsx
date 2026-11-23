@@ -8,7 +8,7 @@ import { aiWorld } from '@/components/pack/ainubisSkin';
 import { svetImg, AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 import { aidContent, AID_ICON, AID_ICON_DEFAULT } from '@/components/pack/sos/aid/aidData';
 import type { V2Msg, V2Tier } from './v2Api';
-import { creditsWord, fmtSec, noVoiceLang, type V2Copy } from './v2Meta';
+import { AI_LITE, creditsWord, fmtSec, noVoiceLang, type V2Copy } from './v2Meta';
 import { openExternal } from '@/lib/appLinks';
 
 export const CHAT_BACK = '/pack/ainubis?plane=chat';
@@ -154,7 +154,7 @@ function Actions({ m, a }: { m: V2Msg; a: MsgActions }) {
   const rateable = !m.local && !!m.id && /^[0-9a-f-]{36}$/i.test(m.id);
   const cr = m.credits && m.credits > 0 ? Math.max(1, Math.ceil(m.credits)) : 0; // server vracia desatinné číslo
   // credits === 0 pri uloženej odpovedi = model zadarmo pre hodnosť (zakladatelia: Rýchly).
-  const who = m.tier && cr > 0 ? `${a.c(m.tier as V2Tier)} · ${cr} ${creditsWord(cr, a.lang, a.c)}`
+  const who = AI_LITE ? '' : m.tier && cr > 0 ? `${a.c(m.tier as V2Tier)} · ${cr} ${creditsWord(cr, a.lang, a.c)}`
     : m.tier && m.credits === 0 && !m.fallback ? `${a.c(m.tier as V2Tier)} · ${a.c('free')}` : '';
 
   if (on && a.play && !a.play.loading) {
@@ -251,7 +251,7 @@ export function AssistantBlock({ m, a, last }: { m: V2Msg; a: MsgActions; last: 
         {!m.streaming && (
           <Fragment>
             <SourceCards m={m} a={a} />
-            {last && m.offer === 'bystry' && (
+            {last && !AI_LITE && m.offer === 'bystry' && (
               <button type="button" className="pk-b3 pk-b3--ai-nt av2-retry" onClick={() => a.onAskSharp(m)}>{a.c('askSharp')}</button>
             )}
             <Actions m={m} a={a} />

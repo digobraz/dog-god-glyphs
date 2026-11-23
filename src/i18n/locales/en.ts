@@ -9592,6 +9592,7 @@ export const en = {
   'ainubis.chat.v2.fromPerMonth': "from {p} / month",
   'ainubis.chat.v2.stripCredits': "credits",
   'ainubis.chat.v2.stripAria': "Show your rank and AI credits",
+  'ainubis.chat.v2.liteNote': "AINUBIS is answering in quick mode for now. Deeper answers are coming in December.",
   'ainubis.chat.v2.shotRemove': "Remove the attachment",
   'ainubis.chat.v2.voiceMsg': "Voice message",
   'ainubis.chat.v2.closeAria': "Close",

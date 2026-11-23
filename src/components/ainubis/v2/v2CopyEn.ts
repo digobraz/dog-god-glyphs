@@ -112,6 +112,7 @@ export const V2_EN = {
   fromPerMonth: "from {p} / month",
   stripCredits: "credits",
   stripAria: "Show your rank and AI credits",
+  liteNote: "AINUBIS is answering in quick mode for now. Deeper answers are coming in December.",
   shotRemove: "Remove the attachment",
   voiceMsg: "Voice message",
   closeAria: "Close",

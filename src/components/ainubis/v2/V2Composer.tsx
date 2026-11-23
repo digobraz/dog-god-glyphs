@@ -5,7 +5,7 @@ import { SysIcon } from '@/components/pack/SysIcon';
 import { recorderSupported } from './useRecorder';
 import type { V2Dog } from './useV2Dogs';
 import { V2_TIERS, type V2Credits, type V2Pick, type V2Tier } from './v2Api';
-import { TIER_IDX, creditsWord, fmtSec, micSrc, type V2Copy } from './v2Meta';
+import { AI_LITE, TIER_IDX, creditsWord, fmtSec, micSrc, type V2Copy } from './v2Meta';
 import { Seal } from './V2Panels';
 
 export interface V2Draft { image: { previewUrl: string } | null; voice: { sec: number } | null }
@@ -189,11 +189,11 @@ export function V2Composer(p: ComposerProps) {
           <button type="button" className="pk-b3 pk-b3--ai-nt av2-o44" aria-label={c('plusAria')} disabled={p.recActive} onClick={() => setPop(pop === 'plus' ? null : 'plus')}>
             <SysIcon name="plus" size={26} />
           </button>
-          <button type="button" className="pk-b3 pk-b3--ai-nt av2-mode" aria-label={c('forWho')} disabled={p.recActive} onClick={() => setPop(pop === 'dog' ? null : 'dog')}>
+          {!AI_LITE && <button type="button" className="pk-b3 pk-b3--ai-nt av2-mode" aria-label={c('forWho')} disabled={p.recActive} onClick={() => setPop(pop === 'dog' ? null : 'dog')}>
             {dog?.photo ? <img className="av" src={dog.photo} alt="" /> : <SysIcon name="dogscroll" size={30} />}
             <span>{dog ? <><i className="pre">{c('forPrefix')}</i>{dog.name}</> : c('forGeneral')}</span>
-          </button>
-          {TIER_IDX[top] > 0 && (
+          </button>}
+          {!AI_LITE && TIER_IDX[top] > 0 && (
             <button type="button" className="pk-b3 pk-b3--ai-nt av2-mode mdl" aria-label={c('who')} disabled={p.recActive} onClick={() => setPop(pop === 'mdl' ? null : 'mdl')}>
               <span>{modeLabel}</span>
             </button>
@@ -219,7 +219,7 @@ export function V2Composer(p: ComposerProps) {
         </div>
       </div>
       {p.error && <div className="av2-err" role="alert">{p.error}</div>}
-      {p.recActive ? <div className="av2-hint">{c('phVoice')}</div> : cr && (
+      {p.recActive ? <div className="av2-hint">{c('phVoice')}</div> : AI_LITE ? <div className="av2-hint">{c('liteNote')}</div> : cr && (
         <button type="button" className="av2-strip" aria-label={c('stripAria')} onClick={p.onStrip}>
           <Seal rank={cr.rank} size={22} />
           <span className="qm">{p.rankName(cr.rank)}</span>

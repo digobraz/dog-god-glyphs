@@ -16,6 +16,12 @@ export function useV2Copy() {
 }
 export type V2Copy = ReturnType<typeof useV2Copy>;
 
+/** 🔁 AINUBIS LITE v natívnej appke 1.0 (Matej 23. 11.: „dajme to bez a každý bude mať len haiku“): do obchodov ide appka
+ *  bez nákupov, takže hodnosť kúpená na webe v nej nesmie nič odomykať (Apple 3.1.3b). Každý = Rýchly, bez „Pre koho“,
+ *  bez panela hodnosti a ponuky Bystrého, jedna veta o rýchlom režime. Web ostáva podľa hodností.
+ *  NÁVRAT s 1.1 (IAP): `AI_LITE = false` · plná verzia = git tag `appka-ainubis-plny-2026-11-23`. */
+export const AI_LITE: boolean = IS_APP;
+
 /** Meno hodnosti (`pack.seal.*`, to isté ako pečať) s EN zálohou. */
 export function useRankName() {
   const t = useT();

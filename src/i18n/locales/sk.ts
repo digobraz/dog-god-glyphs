@@ -9285,6 +9285,7 @@ export const sk: Partial<Dict> = {
   'ainubis.chat.v2.fromPerMonth': "od {p} / mes",
   'ainubis.chat.v2.stripCredits': "kreditov",
   'ainubis.chat.v2.stripAria': "Ukázať hodnosť a AI kredity",
+  'ainubis.chat.v2.liteNote': "AINUBIS teraz odpovedá v rýchlom režime. Hlbšie odpovede pribudnú v decembri.",
   'ainubis.chat.v2.shotRemove': "Odobrať prílohu",
   'ainubis.chat.v2.voiceMsg': "Hlasová správa",
   'ainubis.chat.v2.closeAria': "Zavrieť",
