@@ -15,6 +15,7 @@ import { PackPopup } from '@/components/pack/PackPopup';
 import { PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PROGRESS_CSS, STAGE_CSS, PF_FIELD_CSS, PACK_SHADOW, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
+import { tripName } from '@/components/pack/tripShared';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
 import { flagUrl, countryName } from '@/lib/countryGeo';
@@ -379,7 +380,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
   };
   const openCat = (cat: CatKey, iso = 'all') => push({ kind: 'cat', cat, iso, water: 'all' });
 
-  const trailItem = (tr: HeroTrail, value: number): WallItem => ({ name: tr.name, iso: tr.country || 'sk', value, trails: [tr] });
+  const trailItem = (tr: HeroTrail, value: number): WallItem => ({ name: tripName(tr, lang), iso: tr.country || 'sk', value, trails: [tr] });
   const CATS: Record<CatKey, { title: string; ic: string; items: WallItem[]; units?: Record<string, string[]>; logos?: Record<string, string>; icon?: (x: WallItem) => string; meta: (x: WallItem) => string; sum?: boolean; unit?: string; direct?: boolean }> = {
     ranges: { title: t('pack.stats.geo.ranges'), ic: ICO('pohoria'), items: s.ranges, units: WALL_UNITS.ranges, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
     parks: { title: t('pack.stats.geo.parks'), ic: ICO('narodny-park'), items: s.parks, units: WALL_UNITS.parks, logos: NP_LOGO, meta: (x) => (x.trails.length > 1 ? `${x.trails.length}×` : '') },
@@ -439,7 +440,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
             <div className="tw-sub">
               {x.trails.map((tr) => (
                 <button key={tr.id} type="button" onClick={() => onOpenTrip(tr.id)}>
-                  <span>{tr.name}</span><i>{Number(tr.km) ? `${n(Number(tr.km))} km` : t('pack.wall.place')}</i>
+                  <span>{tripName(tr, lang)}</span><i>{Number(tr.km) ? `${n(Number(tr.km))} km` : t('pack.wall.place')}</i>
                 </button>
               ))}
             </div>
@@ -528,7 +529,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
             return (
               <div key={x.id}>
                 <button type="button" className={`tw-row${on ? ' on' : ''}`} aria-pressed={on} onClick={() => toggleKind(x, mark)}>
-                  <span className="nm">{x.name}</span>
+                  <span className="nm">{tripName(x, lang)}</span>
                   {k && !on && <img className="tw-oth" src={ICO(k === 'stay' ? 'stanovacky' : 'roadtrip')} alt="" />}
                   {Number(x.km) > 0 && <span className="mt">{n(Number(x.km))} km</span>}
                   <span className="tw-tick">{on && <Check />}</span>
@@ -667,8 +668,8 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
         <div className="tw-sec">{t('pack.wall.records')}</div>
         <div className="tw-grid">
           {s.peaks[0] && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('peaks')}><img src={ICO('najvyssi-lapis')} alt="" /><span><b>{n(s.peaks[0].value ?? 0)} m</b><small>{s.peaks[0].name}</small></span></button>}
-          {longest && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('km')}><img src={ICO('km-lapis')} alt="" /><span><b>{n(Number(longest.km))} km</b><small>{longest.name}</small></span></button>}
-          {steepest && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('ascent')}><img src={ICO('vrcholy-lapis')} alt="" /><span><b>{n(ascentOf(steepest))} m</b><small>{steepest.name}</small></span></button>}
+          {longest && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('km')}><img src={ICO('km-lapis')} alt="" /><span><b>{n(Number(longest.km))} km</b><small>{tripName(longest, lang)}</small></span></button>}
+          {steepest && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('ascent')}><img src={ICO('vrcholy-lapis')} alt="" /><span><b>{n(ascentOf(steepest))} m</b><small>{tripName(steepest, lang)}</small></span></button>}
           {topRange && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('ranges')}><img src={ICO('pohoria-lapis')} alt="" /><span><b>{topRange.trails.length}×</b><small>{topRange.name}</small></span></button>}
         </div>
       </>}
