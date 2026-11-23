@@ -113,8 +113,7 @@ export const CLAIM: Record<string, Row> = {
 
 /** Režim CLAIM 2 (do flipu len za `?claim`). Zapamätá sa na celú návštevu (sessionStorage), aby /story
  *  a návrat na homepage z jej menu ostali v novej verzii aj bez `?claim` v adrese. */
+// FLIP 23. 11. 2026 — Matej: „ty si dal zlú verziu na live, tam byť tá s claimom“ ⇒ V2 je predvolená všade.
 export function isClaim(): boolean {
-  if (typeof window === 'undefined') return false;
-  const on = new URLSearchParams(window.location.search).has('claim');
-  try { if (on) sessionStorage.setItem('dogypt_claim', '1'); return on || sessionStorage.getItem('dogypt_claim') === '1'; } catch { return on; }
+  return true;
 }
