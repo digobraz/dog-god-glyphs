@@ -348,7 +348,8 @@ ${APP_NEW ? '' : `.zv-bar [data-mg="msgs"],.zv-bar [data-mg="notif"]{color:#fff 
 /* TRIEDA DÔKAZU — tri riadky A·B·C, svieti trieda tohto zvitku (Matej 23. 11. 2026: „musíme to lepšie vysvetliť,
    dáme do bloku 3 riadky A: B: C: a vysvietený ten tier, ktorý je zvitok“). Farby = tie isté ako známka. */
 .zv-box--sd{--zv-bx:${AINUBIS.cyan};}
-.zv-sdl{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;margin:0;padding:0;list-style:none;}
+.zv-box--sd .zv-sdl{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;margin:0;padding:0;list-style:none;}
+.zv-box--sd .zv-sdl li{margin:0;}
 .zv-sdl li{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.tile}px;
   border:1px solid transparent;font-size:${PACK_TEXT.label}px;line-height:1.35;color:${AINUBIS.inkDim};}
 .zv-sdl li b{flex:0 0 auto;width:24px;text-align:center;font-weight:600;color:${AINUBIS.inkDim};}
