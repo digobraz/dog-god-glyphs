@@ -58,7 +58,7 @@ const CAROUSEL: [string, string][] = [['map', '11-vretenica-mapa'], ['profile', 
  *  Snímka z testovacej appky /pack/sos/prva-pomoc/nedycha (390×844 @ 900 px, SK + -en). */
 /* MOCKUPY 1:1 Z TELEFÓNU (Matej 23. 11.: „potrebujem aby boli 1:1 ako v telefóne“) — testovacia appka, iPhone 393×852 s okrajmi,
    nafotené `plany/nakresy/web-mockupy-2026-11-23/fot.mjs`, súbory `app-*`. Staré snímky ostávajú pre CAROUSEL (v1). */
-const CAROUSEL_V2: [string, string][] = [['map', 'app-mapa'], ['list', 'app-mapa-zoznam'], ['aid', 'app-prva-pomoc'], ['sos', 'app-sos-panel'], ['profile', 'app-profil'], ['dogid', 'app-svorka'], ['ainubis', 'app-ainubis-mozog'], ['scroll', 'app-zvitok'], ['feed', 'app-feed']];
+const CAROUSEL_V2: [string, string][] = [['ainubis', 'app-ainubis-mozog'], ['list', 'app-mapa-zoznam'], ['zapis', 'app-zapis'], ['aid', 'app-prva-pomoc'], ['map', 'app-mapa'], ['sos', 'app-sos-panel'], ['ucen', 'app-ucen']];  // poradie = Matejov nákres usporiadania 23. 11.
 
 const SERVANT_YEARS = ['0–3', '4–8', '9–13', '14–18', '19–23', '24–29', '30–39', '40+'];
 const PILGRIM_LEVELS = ['1–3', '4–7', '8–12', '13–18', '19–25', '26–33', '34–42', '43–52', '53+'];
@@ -597,11 +597,11 @@ export default function AppWeb() {
             <Rv d={2} className="vs-col">
               {V2
                 /* DOGYPT ako vejár troch telefónov, zrkadlo IG (Matej 23. 11.: zápis dňa a Učeň „skúsme to dať sem“):
-                   v strede profil s heroglyfom, po bokoch zápis dňa a otvorený Učeň; mobil = len profil ako pri IG */
+                   v strede profil s heroglyfom, po bokoch feed a moja svorka (nákres usporiadania 23. 11.); mobil = len profil ako pri IG */
                 ? <div className="dgrow">
-                    <Tilt set="zapis" src="app-zapis" className="dgph dgph1" />
+                    <Tilt set="feed" src="app-feed" className="dgph dgph1" />
                     <Tilt set="profile" src="app-profil-heroglyf" className="dgph dgph2" />
-                    <Tilt set="ucen" src="app-ucen" className="dgph dgph3" />
+                    <Tilt set="dogid" src="app-svorka" className="dgph dgph3" />
                   </div>
                 : <Tilt set="profile" src="profil-heroglyf" />}  {/* profil s HEROGLYFOM (Matej 11. 11., snímka z jeho telefónu) */}
               <div className="vs-tag dg"><img className="vs-ico" src="/web-app/app-icon.png" alt="DOGYPT" /><p>{c('cap2')}</p></div>
