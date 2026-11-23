@@ -85,7 +85,7 @@ export function MapNotesSection({ trail, notes, locale = 'en-US', onAdd }: MapNo
                   nemá žiadnu podložku, takže by ju nemal mať ani zoznam.
                   Kruh s lemom skladá `WarnMark` nad `threatEmoji()` — jeden zdroj pre oba povrchy. */}
               <span className="mns-icon" aria-hidden="true">
-                {noteStickerSrc(n.kind, n.disease) ? <img className="mns-sticker" src={noteStickerSrc(n.kind, n.disease)!} alt="" draggable={false} />
+                {noteStickerSrc(n.kind, n.disease, n.paid) ? <img className="mns-sticker" src={noteStickerSrc(n.kind, n.disease, n.paid)!} alt="" draggable={false} />
                   : groupOf(n.kind) === 'warning'
                   ? <WarnMark kind={n.kind} disease={n.disease} />
                   : groupOf(n.kind) === 'comment'

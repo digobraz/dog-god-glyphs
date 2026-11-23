@@ -100,7 +100,8 @@ export function loadPlacePosts(): Promise<PlacePost[]> {
       const { data, error } = await rpc('list_place_posts');
       if (error) throw error;
       // Hodnotenie kliniky (`place_kind='vet'`) sa páruje podľa ID, nie súradnice → `clinicPosts.ts`.
-      return ((data ?? []) as Row[]).filter((r) => r.place_kind !== 'vet').map(fromRow);
+      // 'note' = hodnotenie parkoviska/unikátu (`mapnotes/mapPlaceData.ts`), páruje sa podľa id značky.
+      return ((data ?? []) as Row[]).filter((r) => r.place_kind !== 'vet' && r.place_kind !== 'note').map(fromRow);
     })()
       .then((p) => { cache = p; listeners.forEach((fn) => fn(p)); return p; })
       .catch(() => [] as PlacePost[])

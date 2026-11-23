@@ -81,8 +81,8 @@ export const stickerImg = (src: string, extra = '', px?: number): string =>
 
 /** Bod zo sveta (prameň, útulňa…) podľa zoomu: hlavná mapa ich ukazuje od z15, článok výletu od z13. */
 /** Samolepka zápisu svorky pre zoznamy, bubliny a karty — tá istá ako na mape (kliešť s chorobou má vlastnú). */
-export const noteStickerSrc = (kind: string, disease?: unknown): string | null =>
-  stickerSrc(kind === 'ticks' && disease ? 'note_ticks_sick' : `note_${kind}`);
+export const noteStickerSrc = (kind: string, disease?: unknown, paid?: boolean | null): string | null =>
+  kind === 'parking' && paid ? parkingStickerSrc(true) : stickerSrc(kind === 'ticks' && disease ? 'note_ticks_sick' : `note_${kind}`);
 
 /** Zápis svorky na mape: o kus väčší než bod zo sveta, lebo za ním stojí človek. */
 export const NOTE_STICKER_PX = 40;

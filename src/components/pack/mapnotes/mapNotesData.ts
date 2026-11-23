@@ -212,6 +212,10 @@ export interface MapNote {
   pinnedSlug: string | null;
   /** len pri kind='parking': true = spoplatnené, false = zdarma, null = nevie sa */
   paid: boolean | null;
+  /** len pri kind='parking': „vhodné na kemping" (červený karavan cez P); false = len parkovanie. Príznak ide zvlášť (`fetchPlaceFlags`). */
+  overnight: boolean;
+  /** parkovisko zapísané v sprievodcovi výletu bez „Stojí za zmienku?" = súčasť výletu, bez profilu */
+  profileOff: boolean;
   createdAt: string;
   isMine: boolean;
   authorFirst: string | null;
@@ -268,6 +272,8 @@ function fromRow(r: NoteRow): MapNote {
     body: r.body,
     pinnedSlug: r.pinned_slug,
     paid: r.paid,
+    overnight: false,
+    profileOff: false,
     createdAt: r.created_at,
     isMine: r.is_mine,
     authorFirst: r.author_first,
@@ -306,9 +312,12 @@ export async function fetchMapNotes(box?: MapBox, onlyMine = false): Promise<Map
         ...(onlyMine ? { p_only_mine: true } : {}),
       }
     : undefined;
-  const { data, error } = await db.rpc('list_map_notes', args);
+  const [{ data, error }, flags] = await Promise.all([db.rpc('list_map_notes', args), fetchPlaceFlags()]);
   if (error) throw error;
-  const notes = ((data ?? []) as NoteRow[]).map(fromRow);
+  const notes = ((data ?? []) as NoteRow[]).map(fromRow).map((n) => {
+    const f = flags.get(n.id);
+    return f ? { ...n, overnight: f.overnight, profileOff: f.profileOff } : n;
+  });
   if (!box && !onlyMine) void writeDeviceCopy(NOTES_COPY, notes);
   return notes;
 }
@@ -317,6 +326,29 @@ export async function fetchMapNotes(box?: MapBox, onlyMine = false): Promise<Map
 const NOTES_COPY = 'map-notes-v1';
 export const writeStoredMapNotes = (notes: MapNote[]) => writeDeviceCopy(NOTES_COPY, notes);
 export const readStoredMapNotes = () => readDeviceCopy<MapNote[]>(NOTES_COPY);
+
+// ── PRÍZNAKY MIESTA (kemping, bez profilu) — migrácia `20270110_map_place_profil.sql` ──────────
+// `list_map_notes` sa nemení (DEV a LIVE sa v jeho tele rozchádzajú), príznaky vracia malé samostatné RPC
+// a pripájajú sa k značkám podľa id. Kým migrácia nie je na LIVE, RPC zlyhá ⇒ prázdna mapa príznakov (žiadny kemping).
+type PlaceFlags = Map<string, { overnight: boolean; profileOff: boolean }>;
+let flagsCache: { at: number; p: Promise<PlaceFlags> } | null = null;
+function fetchPlaceFlags(): Promise<PlaceFlags> {
+  if (flagsCache && Date.now() - flagsCache.at < 30_000) return flagsCache.p;
+  const p = (async (): Promise<PlaceFlags> => {
+    const out: PlaceFlags = new Map();
+    try {
+      const { data, error } = await db.rpc('list_map_place_flags');
+      if (error) return out;
+      for (const r of (data ?? []) as { note_id: string; overnight: boolean; profile_off: boolean }[]) {
+        out.set(r.note_id, { overnight: !!r.overnight, profileOff: !!r.profile_off });
+      }
+    } catch { /* bez príznakov mapa žije */ }
+    return out;
+  })();
+  flagsCache = { at: Date.now(), p };
+  return p;
+}
+export const invalidatePlaceFlags = () => { flagsCache = null; };
 
 export interface NewMapNote {
   kind: NoteKind;
@@ -327,6 +359,12 @@ export interface NewMapNote {
   body: string;
   radiusM?: number | null;
   paid?: boolean | null;
+  /** len parkovisko: „Parkovisko vhodné na kemping" (nezaškrtnuté = len parkovanie) */
+  overnight?: boolean;
+  /** parkovisko zo sprievodcu výletu bez „Stojí za zmienku?" — ostáva súčasťou výletu, bez profilu */
+  profileOff?: boolean;
+  /** fotky miesta (max 3, Cloudinary) — idú ako postreh zakladateľa a kontroluje ich AINUBIS */
+  photos?: string[];
   /** vyplní sa len pri zápise z otvoreného článku výletu */
   pinnedSlug?: string | null;
 }
@@ -345,10 +383,19 @@ export async function addMapNote(n: NewMapNote): Promise<string> {
     p_pinned_slug: n.pinnedSlug ?? null,
   });
   if (error) throw error;
+  const id = data as string;
+  // Príznaky a fotka až po vzniku značky. Zlyhanie ich zápisu značku NEZRUŠÍ: bod na mape je hlavná vec.
+  if (n.kind === 'parking' && (n.overnight || n.profileOff) || n.profileOff) {
+    await db.rpc('set_map_place', { p_note: id, p_overnight: !!n.overnight, p_profile_off: !!n.profileOff }).then(() => invalidatePlaceFlags(), () => undefined);
+  }
+  if (n.photos?.length) {
+    const { rateMapPlace } = await import('./mapPlaceData');
+    await rateMapPlace({ noteId: id, paws: null, body: '', photos: n.photos }).catch(() => undefined);
+  }
   // Meranie: druh značky je to zaujímavé číslo — po flipe povie, či svorka hlási kliešte,
   // vodu alebo voľne pustené psy. Telo zápisu do analytiky NEIDE, je to text od člena.
   trackPack('pack_note_add', { kind: n.kind });
-  return data as string;
+  return id;
 }
 
 /** `valid = null` hlas stiahne. Na vlastný zápis hlasovať nejde (DB to odmietne). */

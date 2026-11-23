@@ -57,6 +57,8 @@ export function devAddNote(n: NewMapNote): string {
     body: n.body,
     pinnedSlug: n.pinnedSlug ?? null,
     paid: n.paid ?? null,
+    overnight: !!n.overnight,
+    profileOff: !!n.profileOff,
     createdAt: new Date().toISOString(),
     // `isMine: true` zámerne — v deve je autorom ten, kto skúša, takže vidí aj mazanie
     // vlastného zápisu. Bez toho by sa krok 2 dal vyskúšať len jedným smerom.

@@ -236,6 +236,8 @@ export function datasetNotes(trails: HeroTrail[]): MapNote[] {
         body: t.parking.note ?? '',
         pinnedSlug: t.id,
         paid: null,
+        overnight: false,
+        profileOff: true,   // datasetový bod nemá profil (nemá autora ani id v DB)
         createdAt: '',
         isMine: false,
         authorFirst: null,
@@ -261,6 +263,8 @@ export function datasetNotes(trails: HeroTrail[]): MapNote[] {
         body: p.name ?? '',
         pinnedSlug: t.id,
         paid: null,
+        overnight: false,
+        profileOff: true,   // datasetový bod nemá profil (nemá autora ani id v DB)
         createdAt: '',
         isMine: false,
         authorFirst: null,

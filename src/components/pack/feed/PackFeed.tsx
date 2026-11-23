@@ -42,7 +42,7 @@ import { fetchMyPosts, onPostsChanged, isMoment, isAlbum, isTripStory, type MePo
 import { readFavIds, tripText } from '@/components/pack/tripShared';
 import { persistFav } from '@/lib/packStore';
 import { feedQuoteForDay, feedQuoteText } from '@/data/feedQuotes';
-import { firstWord, tripTitle, useFeedTrips, type FeedTrip, useFeedMarks, useFeedPosts, useFeedPostDogs, useTripAuthors, fetchFeedPost, type FeedPost } from './feedData';
+import { firstWord, tripTitle, useFeedTrips, type FeedTrip, useFeedMarks, useFeedPosts, useFeedPostDogs, useTripAuthors, fetchFeedPost, type FeedPost, useFeedPos, useNearbyMapTrips, useSnifferPosts, renewSniffer } from './feedData';
 import { FeedTripCard, FEED_TRIP_CSS } from './FeedTripCard';
 import { shareOut } from './feedShare';
 import { FeedPostCard, FEED_POST_CSS } from './FeedPostCard';
@@ -54,7 +54,8 @@ import { TripStrip, FEED_TOP_CSS } from './FeedTop';
 import { QuoteComments } from './QuoteComments';
 import { fetchQuoteComments } from '@/components/pack/trip/tripCommentsData';
 import { FeedMapCard, FEED_MAP_CSS, useMapAdds, type MapAdd } from './FeedMapCard';
-import { postTopics } from './postTags';
+import { postTopics, SNIFFER_TAG } from './postTags';
+import { SnifferShelf, SnifferBanner, SnifferEmpty, FEED_SNIFFER_CSS, type SnifferInfo } from './FeedSniffer';
 import { FeedTopics, FEED_TOPICS_CSS } from './FeedTopics';
 import { useBlockedOwners } from '@/components/pack/profile/moderation';
 import { APP_NEW } from '@/lib/packFlags';
@@ -90,6 +91,7 @@ ${FEED_AI_CSS}
 ${FEED_TOP_CSS}
 ${FEED_MAP_CSS}
 ${FEED_TOPICS_CSS}
+${FEED_SNIFFER_CSS}
 /* MOBIL: PLOCHÝ papyrus bez tapety (Matej 24. 10.: „layout bez toho čierneho pozadia ako je aj na ig").
    PC (od 768): tapeta a príspevky v blokoch ostávajú (Matej 26. 10., kolo 5: „na pc by som vrátil ten štýl pozadie
    a obsah na bloku… len na jednom pozadí to nevyzerá dobre"). */
@@ -161,10 +163,11 @@ type Item =
   | { k: 'post'; p: PostIt }
   | { k: 'map'; a: MapAdd }
   | { k: 'story' }
+  | { k: 'sniffer' }
   | { k: 'saved' };
 
 /** Príspevok vo feede: môj (bez `who`) alebo cudzí s tvárou autora zo servera. */
-type PostIt = { p: MePost; who?: FeedPost };
+type PostIt = { p: MePost; who?: FeedPost; sn?: SnifferInfo };
 
 /** Kľúč v `feed_marks` pre položku feedu (príspevok má vlastné `post_marks`, zvitok svoje uloženie). */
 function keyTarget(it: Item, quoteId: number, trips: Array<{ trail: { id: string } }>): string {
@@ -234,7 +237,13 @@ export function PackFeed() {
   const [reading, setReading] = useState<PostIt | null>(null);
   const [favs, setFavs] = useState<Set<string>>(() => readFavIds());
   const marks = useFeedMarks();
-  const feedTrips = useFeedTrips(999);
+  const memberTrips = useFeedTrips(999);
+  // SNIFFER + VÝLETY Z MAPY V OKOLÍ (23. 11. 2026): poloha sa nepýta sama, len ak je povolená alebo ju človek zapne v téme Sniffer.
+  const { pos, canAsk, ask } = useFeedPos();
+  const memberIds = useMemo(() => new Set(memberTrips.map((f) => f.trail.id)), [memberTrips]);
+  const nearbyTrips = useNearbyMapTrips(pos, memberIds);
+  const feedTrips = useMemo(() => [...memberTrips, ...nearbyTrips], [memberTrips, nearbyTrips]);
+  const sniffer = useSnifferPosts(!!APP_NEW, pos);
   const mapAdds = useMapAdds(6);
   const scrolls = useDemoScrolls();
   const savedIds = useSaved();
@@ -307,6 +316,19 @@ export function PackFeed() {
     ...myPosts.filter((p) => !isMoment(p) && !isAlbum(p) && !isTripStory(p) && (p.visibility === 'public' || !!p.hiddenAt)).map((p) => ({ p })),
     ...otherPosts.filter((w) => w.ownerN == null || !blocked.has(w.ownerN)).map((w) => ({ p: w.post, who: w })),
   ].sort((a, b) => Date.parse(b.p.createdAt) - Date.parse(a.p.createdAt)), [myPosts, otherPosts, blocked]);
+
+  // SNIFFER: príspevky pre tému (aj moje, aj vypršané — na obnovu) a polička „Hľadajú parťáka“ (len cudzie, živé).
+  const renewSn = async (id: string) => {
+    const ok = await renewSniffer(id);
+    toast({ title: ok ? tx('pack.feed.sniffer.renewed', 'Renewed for 30 days') : tx('pack.feed.sniffer.renewFailed', 'Could not renew. Try again.') });
+    if (ok) sniffer.reload();
+  };
+  const sniffPosts = useMemo<PostIt[]>(() => sniffer.rows
+    .filter((r) => r.mine || r.fp.ownerN == null || !blocked.has(r.fp.ownerN))
+    .map((r) => ({ p: r.fp.post, who: r.mine ? undefined : r.fp, sn: { km: r.km, mine: r.mine, expired: r.expired, at: r.at, onRenew: () => { void renewSn(r.fp.post.id); } } })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sniffer.rows, blocked]);
+  const sniffShelf = useMemo(() => sniffer.rows.filter((r) => !r.mine && !r.expired && (r.fp.ownerN == null || !blocked.has(r.fp.ownerN))).slice(0, 10), [sniffer.rows, blocked]);
 
   // Mená psov k cudzím príspevkom — len keď sa hľadá (jedno volanie na dávku).
   const postDogs = useFeedPostDogs(publicPosts.filter((x) => x.who).map((x) => x.p.id), searching && query.length >= 2);
@@ -416,6 +438,8 @@ export function PackFeed() {
         map: [],
       }, false);
     }
+    // TÉMA SNIFFER: len príspevky `t:sniffer` do 30 dní (server), bližšie prvé; bez polohy podľa času.
+    if (topic === SNIFFER_TAG) return sniffPosts.map((p) => ({ k: 'post' as const, p }));
     // TÉMA: príspevky so štítkom + výlety (Výlety a príroda) + zvitky svetov, ktoré k téme patria.
     if (topic) {
       const worlds = TOPIC_WORLDS[topic];
@@ -429,6 +453,7 @@ export function PackFeed() {
     const out: Item[] = [];
     if (savedScrolls.length && savedHidden !== savedSig) out.push({ k: 'saved' });
     out.push({ k: 'quote' });
+    if (sniffShelf.length) out.push({ k: 'sniffer' });
     const saved = new Set(savedAtOpen ?? []);
     return out.concat(weave({
       trip: tripIdx,
@@ -437,7 +462,7 @@ export function PackFeed() {
       map: [...mapAdds],
     }, true, true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trips, publicPosts, allScrolls, savedScrolls.length, savedHidden, savedSig, savedAtOpen, mapAdds, topic, searching, query, lang, postDogs, ownName, dogs, scrollTexts]);
+  }, [trips, publicPosts, allScrolls, savedScrolls.length, savedHidden, savedSig, savedAtOpen, mapAdds, topic, searching, query, lang, postDogs, ownName, dogs, scrollTexts, sniffPosts, sniffShelf]);
 
   // DÁVKY: najprv PAGE kusov, ďalšie, keď sa strážca na konci zoznamu priblíži k oknu.
   const [shown, setShown] = useState(PAGE);
@@ -559,8 +584,8 @@ export function PackFeed() {
       case 'post':
         return it.p.who
           ? <FeedPostCard post={it.p.p} name={it.p.who.name || tx('pack.feed.member', 'Member')} avatar={it.p.who.avatar}
-              authorN={it.p.who.ownerN} mine={false} onOpen={() => setReading(it.p)} />
-          : <FeedPostCard post={it.p.p} name={ownName} avatar={youImg} onOpen={() => setReading(it.p)} pending={!!it.p.p.hiddenAt} />;
+              authorN={it.p.who.ownerN} mine={false} onOpen={() => setReading(it.p)} sniffer={it.p.sn} />
+          : <FeedPostCard post={it.p.p} name={ownName} avatar={youImg} onOpen={() => setReading(it.p)} pending={!!it.p.p.hiddenAt} sniffer={it.p.sn} />;
       case 'map':
         return <FeedMapCard add={it.a} liked={marks.get(`map:${it.a.id}`).liked} likes={marks.get(`map:${it.a.id}`).likes} onLike={() => marks.toggle(`map:${it.a.id}`, 'like')} />;
       case 'story':
@@ -573,6 +598,8 @@ export function PackFeed() {
             likes={marks.get('story:hekthor').likes} saves={marks.get('story:hekthor').saves}
             onShare={() => shareOut({ text: `${t('heroglyph.flow.name.whoTitle')} ${t('heroglyph.flow.name.whoTitleName')}` }, tx)} />
         );
+      case 'sniffer':
+        return <SnifferShelf rows={sniffShelf} onOpen={() => setTopic(SNIFFER_TAG)} />;
       case 'saved':
         return <AiSaved list={savedScrolls} lang={lang} onOpen={(id) => openScroll(id)} onHide={APP_NEW ? hideSaved : undefined} />;
     }
@@ -607,6 +634,7 @@ export function PackFeed() {
           </div>
           {/* TÉMY — tie isté štítky ako pri pridávaní príspevku (`postTags.ts`), kruhy s príbehovým prstencom (kolo 6). */}
           <FeedTopics topic={topic} onTopic={setTopic} />
+          {topic === SNIFFER_TAG && <SnifferBanner canAsk={canAsk} onAsk={ask} />}
         </>)}
 
         <div className="pkf-list">
@@ -616,7 +644,8 @@ export function PackFeed() {
           {firstLoad && <SkelPost />}
         </div>
         {(shown < items.length || !postsDone) && <div ref={moreRef} className="pkf-more" aria-hidden />}
-        {!items.length && (searching ? query.length >= 2 : !!topic) && (
+        {!items.length && topic === SNIFFER_TAG && sniffer.ready && <SnifferEmpty />}
+        {!items.length && topic !== SNIFFER_TAG && (searching ? query.length >= 2 : !!topic) && (
           <p className="pkf-none">{searching ? tx('pack.feed.search.none', 'Nothing found. Try another word.') : tx('pack.feed.tag.empty', 'No posts with this topic yet.')}</p>
         )}
 

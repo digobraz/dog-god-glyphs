@@ -27,6 +27,8 @@ import { guardMessage } from '@/components/pack/contentGuardError';
 import { useT } from '@/i18n/LanguageContext';
 import { APP_NEW } from '@/lib/packFlags';
 import { POST_TAGS, POST_TAGS_BEZ_KRUHU, POST_TAG_MAX } from '@/components/pack/feed/postTags';
+import { useFeedPos } from '@/components/pack/feed/feedData';
+import { SNIFFER_ICON } from '@/components/pack/feed/FeedSniffer';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -72,6 +74,17 @@ const CSS = `
 .mc-tag{display:inline-flex;align-items:center;gap:${S.xs}px;padding:${S.xs}px ${S.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;border:1.5px solid ${T.border};background:${T.card};
   color:${T.inkStrong};font-family:${FONT_UI};font-weight:500;font-size:${TX.label}px;}
 .mc-tag.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
+.mc-snf{display:flex;align-items:center;gap:${S.md}px;width:100%;margin-top:${S.md}px;padding:${S.md}px;border-radius:${PACK_R.tile}px;cursor:pointer;text-align:left;
+  border:1.5px solid ${T.border};background:${T.card};color:${T.inkStrong};font-family:${FONT_UI};}
+.mc-snf.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
+.mc-snf img{flex:none;width:44px;height:44px;object-fit:contain;}
+.mc-snf .t{flex:1;min-width:0;display:block;}
+.mc-snf .t b{display:block;font-weight:600;font-size:${TX.body}px;}
+.mc-snf .t small{display:block;margin-top:${S.xs}px;font-size:${TX.label}px;line-height:1.3;color:${T.inkWarm};}
+.mc-snf .sw{flex:none;position:relative;width:48px;height:28px;border-radius:${PACK_R.pill}px;background:${T.hairline};transition:background .2s;}
+.mc-snf .sw::after{content:"";position:absolute;left:4px;top:4px;width:20px;height:20px;border-radius:${PACK_R.pill}px;background:${T.card};transition:left .2s;}
+.mc-snf.on .sw{background:${LAPIS.edge};}
+.mc-snf.on .sw::after{left:24px;}
 .mc-note{margin:${S.xs}px 0 0;font-size:${TX.label}px;color:${T.inkWarm};}
 /* ZAHODIŤ? — inline otázka namiesto browser confirm() */
 .mc-ask-discard{display:flex;align-items:center;gap:${S.md}px;flex-wrap:wrap;padding:${S.md}px ${S.lg}px;border-radius:${PACK_R.tile}px;border:1.5px solid ${T.cardEdge};background:${T.card};}
@@ -105,6 +118,8 @@ html.papyrus3d .mc-th.on{border-color:${LAPIS.edge};box-shadow:0 0 0 2px var(--p
 html.papyrus3d .mc-th.add{border:2.5px dashed var(--p3d-ink);}
 html.papyrus3d .mc-crop{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;box-shadow:var(--p3d-lift);}
 html.papyrus3d .mc-lbl{color:var(--p3d-gold-ink);}
+html.papyrus3d .mc-snf{border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:var(--p3d-card);box-shadow:var(--p3d-lift);}
+html.papyrus3d .mc-snf.on{border-color:${LAPIS.edge};}
 html.papyrus3d .mc-dog,html.papyrus3d .mc-vis button,html.papyrus3d .mc-tag{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);color:var(--p3d-ink);
   box-shadow:inset 0 2px 0 color-mix(in srgb,white 55%,transparent),var(--p3d-lift);}
 html.papyrus3d .mc-vis{padding:${S.xs}px;border:2.5px solid var(--p3d-ink);border-radius:${PACK_R.card}px;background:color-mix(in srgb,var(--p3d-gold) 34%,var(--p3d-paper));box-shadow:var(--p3d-inset);}
@@ -161,6 +176,9 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   // FEED 2 krok 5 (len APP_NEW): osem pilulok tém namiesto otázky — voliteľné, 1–2, bez predvoľby.
   const [topics, setTopics] = useState<string[]>([]);
   const pills = APP_NEW;
+  // SNIFFER (23. 11. 2026): vlastný prepínač POD témami, nezaberá 1 z 2 tém; v dátach štítok `t:sniffer`. Len pre verejný príspevok.
+  const [sniffer, setSniffer] = useState(false);
+  const geo = useFeedPos();
   const toggleTopic = (tag: string) => setTopics((c) => (c.includes(tag) ? c.filter((x) => x !== tag) : c.length >= POST_TAG_MAX ? [...c.slice(1), tag] : [...c, tag]));
   const [ratio, setRatio] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
@@ -180,10 +198,11 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   const drafted = useRef(false);
   useEffect(() => {
     try {
-      const d = JSON.parse(localStorage.getItem(draftKey) || 'null') as { body?: string; title?: string; topics?: string[] } | null;
+      const d = JSON.parse(localStorage.getItem(draftKey) || 'null') as { body?: string; title?: string; topics?: string[]; sniffer?: boolean } | null;
       if (d) {
         if (typeof d.body === 'string') setBody(d.body);
         if (typeof d.title === 'string') setTitle(d.title);
+        if (d.sniffer === true) setSniffer(true);
         if (Array.isArray(d.topics)) setTopics(d.topics.filter((x) => typeof x === 'string').slice(0, POST_TAG_MAX));
       }
     } catch { /* súkromné okno / poškodený zápis — bez konceptu */ }
@@ -193,6 +212,7 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
     if (fill) {
       if (fill.body) setBody(fill.body);
       if (fill.dogIds?.length) setDogIds(fill.dogIds);
+      if (fill.sniffer) setSniffer(true);
       if (fill.photoUrl) {
         fetch(fill.photoUrl).then((r) => r.blob()).then((b) => setFiles([new File([b], 'dogypt.jpg', { type: b.type || 'image/jpeg' })])).catch(() => {});
       }
@@ -201,10 +221,10 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
   useEffect(() => {
     if (!drafted.current || sending.current) return;
     try {
-      if (body.trim() || title.trim() || topics.length) localStorage.setItem(draftKey, JSON.stringify({ body, title, topics }));
+      if (body.trim() || title.trim() || topics.length || sniffer) localStorage.setItem(draftKey, JSON.stringify({ body, title, topics, sniffer }));
       else localStorage.removeItem(draftKey);
     } catch { /* kvóta */ }
-  }, [body, title, topics, draftKey]);
+  }, [body, title, topics, sniffer, draftKey]);
   const clearDraft = () => { try { localStorage.removeItem(draftKey); } catch { /* nič */ } };
 
   // Zatvorenie s rozpísaným obsahom = inline otázka „Zahodiť?" (nie confirm()).
@@ -235,6 +255,7 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
     setFiles((prev) => prev.filter((_, k) => k !== i));
     setCur((c) => Math.max(0, c >= i ? c - 1 : c));
   };
+  const toggleSniffer = () => { if (!sniffer && !geo.pos && geo.canAsk) geo.ask(); setSniffer(!sniffer); };
   const toggleDog = (id: string) => setDogIds((d) => (d.includes(id) ? d.filter((x) => x !== id) : [...d, id]));
 
   const heading = mode === 'moment' ? tx('pack.compose.newStory', 'New story')
@@ -247,7 +268,7 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
     sending.current = true;
     setBusy(true);
     try {
-      await publish({ uid, author, mode, files, body, title, dogIds, visibility: vis, place: mode === 'post' ? place : null, nature: mode === 'post' && !pills && nature === true, topics: mode === 'post' && pills ? topics : undefined, onProgress: (done, total) => setProgress({ done, total }) });
+      await publish({ uid, author, mode, files, body, title, dogIds, visibility: vis, place: mode === 'post' ? place : null, nature: mode === 'post' && !pills && nature === true, topics: mode === 'post' && pills ? topics : undefined, sniffer: mode === 'post' && pills && sniffer && vis === 'public' ? { pos: geo.pos } : undefined, onProgress: (done, total) => setProgress({ done, total }) });
       clearDraft();
       toast({ title: mode === 'moment' ? tx('pack.compose.storyDone', 'Your story is live for 24 hours') : tx('pack.compose.done', 'Shared') });
       onClose();
@@ -375,6 +396,13 @@ export function MeCompose({ mode, onClose }: { mode: ComposeMode; onClose: () =>
                   </button>
                 ))}
               </div>
+              <button type="button" role="switch" aria-checked={sniffer} className={`mc-snf${sniffer ? ' on' : ''}`} onClick={toggleSniffer}>
+                <img src={SNIFFER_ICON} alt="" draggable={false} />
+                <span className="t"><b>{tx('pack.feed.sniffer.toggle', 'Sniffer')}</b>
+                  <small>{tx('pack.feed.sniffer.toggleSub', 'I am open to meeting. The post also shows in the Sniffer topic for 30 days, with how far you are, never where.')}</small></span>
+                <span className="sw" aria-hidden />
+              </button>
+              {sniffer && vis === 'private' && <p className="mc-note">{tx('pack.feed.sniffer.needsPublic', 'Sniffer works only with Privacy set to Everyone.')}</p>}
             </div>
           )}
 

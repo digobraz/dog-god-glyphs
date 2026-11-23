@@ -36,7 +36,7 @@ import { GROUP_TINT, HAZARD_RED, noteTint } from './NotePalette';
 // Kruh (rozmery + staviteľ + CSS) je od 22. 8. spoločný s udalosťami v PackMap.tsx —
 // dôvod, prečo sa vysťahoval z tohto súboru, je v hlavičke `circleMark.ts`.
 import { circleMarkHtml, CIRCLE_MARK_CSS } from './circleMark';
-import { noteStickerSrc, stickerImg, NOTE_STICKER_PX } from './mapStickers';
+import { noteStickerSrc, stickerImg, parkingStickerHtml, NOTE_STICKER_PX } from './mapStickers';
 import { FONT_EMOJI, MARK_EMOJI, threatEmoji } from './markEmoji';
 
 // Pod týmto priblížením sa vrstva NEKRESLÍ. Zápis je bod na konkrétnom mieste;
@@ -109,7 +109,7 @@ function bubbleSize(body?: string | null): string {
   return n > 320 ? ' mn-popup--l' : n > 120 ? ' mn-popup--m' : '';
 }
 
-export function noteMarkHtml(kind: NoteKind, extra = '', dataset = false, disease: TickDisease | null = null): string {
+export function noteMarkHtml(kind: NoteKind, extra = '', dataset = false, disease: TickDisease | null = null, parking?: { paid: boolean | null; overnight: boolean }): string {
   // ── KRÚŽOK PATRÍ ĽUĎOM, NIE OSM (Matej 2026-08-22) ───────────────────────
   // „datasetové body ktore su načítané z OSM budu bez krúžku a s krúžkom budú
   // len tie od užívateľov."
@@ -119,6 +119,10 @@ export function noteMarkHtml(kind: NoteKind, extra = '', dataset = false, diseas
   // mapa by tvrdila, že za ním stojí člen.
   // Appka kreslí vlastné samolepky z továrne, emoji v kruhu ostáva webu (10. 11. 2026).
   // Kliešť s potvrdenou chorobou má vlastnú značku (Matej 10. 11. 2026: „kliešť urob nejakú značku s nakazeným").
+  // Parkoviská: modrý blok vždy, žlté P = platené, červený karavan = vhodné na kemping (Matej 23. 11. 2026).
+  if (kind === 'parking' && parkingStickerHtml(parking?.paid, false)) {
+    return parkingStickerHtml(parking?.paid, !!parking?.overnight, extra, dataset ? undefined : NOTE_STICKER_PX);
+  }
   const sticker = noteStickerSrc(kind, disease);
   if (sticker) return stickerImg(sticker, extra, dataset ? undefined : NOTE_STICKER_PX);
   if (dataset) {
@@ -147,7 +151,7 @@ export function noteMarkHtml(kind: NoteKind, extra = '', dataset = false, diseas
 function noteIcon(n: MapNote, stale: boolean): L.DivIcon {
   return L.divIcon({
     className: 'mn-wrap',
-    html: noteMarkHtml(n.kind, stale ? ' mn-mark--stale' : '', isDatasetNote(n), n.disease),
+    html: noteMarkHtml(n.kind, stale ? ' mn-mark--stale' : '', isDatasetNote(n), n.disease, { paid: n.paid, overnight: n.overnight }),
   });
 }
 
@@ -370,8 +374,8 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
                 V bubline je LEN konkrétna hrozba, bez ⚠️ (Matej 2026-08-21:
                 „stačí už len vretenica"): na mape ⚠️ nesie skupinu, lebo tam je
                 emoji jediný nosič významu — tu ju nesie vypísaný názov hneď vedľa. */}
-            {noteStickerSrc(n.kind, n.disease)
-              ? <img className="mn-bubble-sticker" src={noteStickerSrc(n.kind, n.disease)!} alt="" aria-hidden="true" draggable={false} />
+            {noteStickerSrc(n.kind, n.disease, n.paid)
+              ? <img className="mn-bubble-sticker" src={noteStickerSrc(n.kind, n.disease, n.paid)!} alt="" aria-hidden="true" draggable={false} />
               : (
                 <span className="mn-bubble-mark" style={{ borderColor: noteTint(n.kind, n.disease) }} aria-hidden="true">
                   <i className="mn-bubble-em">{MARK_EMOJI[n.kind] ?? ''}</i>
@@ -385,6 +389,9 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
                 {t(n.paid ? 'pack.mapNotes.parking.paid' : 'pack.mapNotes.parking.free')}
               </span>
             )}
+            {n.kind === 'parking' && n.overnight && (
+              <span className="mn-bubble-tag">{t('pack.mapNotes.parking.overnight')}</span>
+            )}
             {n.isStale && <span className="mn-bubble-stale">{t('pack.mapNotes.unconfirmed')}</span>}
           </div>
 
@@ -394,6 +401,13 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
           {isDangerKind(n.kind) && DANGER_ON && (
             <button type="button" className="mn-bubble-open" onClick={() => nav(`/pack/sos/nebezpecenstvo/p/${n.id}`)}>
               {tOpen}
+            </button>
+          )}
+
+          {/* PROFIL MIESTA (parkovisko, unikát): fotka, packy, postrehy, navigácia — `/pack/miesto/:id`. */}
+          {(n.kind === 'parking' || n.kind === 'unique') && !dataset && !n.profileOff && (
+            <button type="button" className="mn-bubble-open" onClick={() => nav(`/pack/miesto/${n.id}`)}>
+              {t('pack.place.open')}
             </button>
           )}
 
@@ -626,5 +640,8 @@ ${CIRCLE_MARK_CSS}
 .mn-vote b{font-weight:600;}
 .mn-bubble-del{margin-top:8px;width:100%;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${T.inkWarm};background:transparent;border:0;padding:4px;cursor:pointer;}
 .mn-bubble-del:hover{color:${HAZARD_RED};}
+.mk-park{position:relative;}
+.mk-park .mk-park-p{position:absolute;inset:0;width:100%;height:100%;display:block;}
+.mk-park .mk-park-van{position:absolute;right:-22%;bottom:-18%;width:68%;height:68%;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.45));}
 .mn-bubble-open{margin-top:8px;width:100%;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:${LAPIS.ink};background:${LAPIS.grad};border:1px solid ${LAPIS.edge};border-radius:8px;padding:8px 12px;cursor:pointer;}
 `;

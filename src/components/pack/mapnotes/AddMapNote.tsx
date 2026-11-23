@@ -40,6 +40,7 @@ import { AinubisGuide } from '@/components/pack/addtrip/AinubisGuide';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { noteMarkHtml } from './MapNotesLayer';
 import { GROUP_TINT, HAZARD_RED, TICK_ORANGE, NotePalette, NOTE_PALETTE_CSS, type PaletteExtra } from './NotePalette';
+import { PLACE_FORM_CSS, PlaceCheck, PlacePhotoSlots, usePlacePhotos } from './PlacePhotoSlots';
 
 const GOLD = T.cardEdge;
 const PARK_BLUE = T.brandBlueLite;
@@ -331,6 +332,11 @@ export function AddMapNotePanel({
   const rule = radiusRule(kind);
   const [body, setBody] = useState('');
   const [paid, setPaid] = useState<boolean | null>(null);
+  // Parkovisko (Matej 23. 11. 2026): „Platí sa?" Áno/Nie je povinné, pod ním JEDNO políčko „vhodné na kemping".
+  const [overnight, setOvernight] = useState(false);
+  // V sprievodcovi výletu vznikne profil miesta len pri „Stojí za zmienku?" (fotka); inak ostane súčasťou výletu.
+  const [worth, setWorth] = useState(false);
+  const ph = usePlacePhotos();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const areaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -383,7 +389,11 @@ export function AddMapNotePanel({
 
   const trimmed = body.trim();
   const needsBody = bodyRequired(kind);
-  const canSubmit = !isPoison && (!needsBody || trimmed.length > 0) && !busy;
+  const isParking = kind === 'parking';
+  const needsPaid = isParking && paid === null;
+  // Fotka miesta: rýchly odkaz ju ponúka vždy, sprievodca výletu až po „Stojí za zmienku?" (parkovisko); unikát vždy.
+  const showPhotos = (isParking && (!dock || worth)) || kind === 'unique';
+  const canSubmit = !isPoison && (!needsBody || trimmed.length > 0) && !needsPaid && !ph.busy && !busy;
 
   // Zápis NIE JE optimistický: čaká sa na odpoveď DB a až potom sa panel zavrie.
   // Ticho „uložené" pri parkovisku je horšie než chyba — človek by sa spoľahol
@@ -402,6 +412,9 @@ export function AddMapNotePanel({
         // (`add_map_note`), nie formulár. Viď migráciu 20260821_map_notes_kinds.sql.
         radiusM,
         paid: kind === 'parking' ? paid : null,
+        overnight: isParking && overnight,
+        profileOff: isParking && dock && !worth,
+        photos: showPhotos ? ph.urls : [],
         disease: kind === 'ticks' ? disease : null,
         pinnedSlug: pinnedSlug ?? null,
       });
@@ -419,6 +432,7 @@ export function AddMapNotePanel({
     <div className={`mna-sheet trp-dockpanel${dock ? ' mna-sheet--dock' : ''}`} role="dialog" aria-modal="false">
       <style>{MAP_DOCK_CSS}</style>
       <style>{ADD_NOTE_CSS}</style>
+      <style>{PLACE_FORM_CSS}</style>
       {/* Hlavička nesie SKUPINU a za ňou VYBRANÝ DRUH. Druh mal do 22. 8. vlastný
           riadok pod kruhmi — stál 24 px v paneli, ktorý sa nesmie scrollovať,
           a hovoril to isté, čo sa zmestí sem. Skupina ostáva, lebo farba panela
@@ -512,14 +526,27 @@ export function AddMapNotePanel({
         rows={2}
       />}
 
-      {kind === 'parking' && (
-        <div className="mna-paid">
-          <button type="button" className={`mna-opt${paid === false ? ' on' : ''}`} onClick={() => setPaid(paid === false ? null : false)}>
-            {t('pack.mapNotes.parking.free')}
-          </button>
-          <button type="button" className={`mna-opt${paid === true ? ' on' : ''}`} onClick={() => setPaid(paid === true ? null : true)}>
-            {t('pack.mapNotes.parking.paid')}
-          </button>
+      {isParking && (
+        <>
+          <div className="ppx-q">{t('pack.mapNotes.parking.question')} <span className="ppx-req">{t('pack.place.required')}</span></div>
+          <div className="mna-paid" style={{ marginTop: 0 }}>
+            <button type="button" className={`mna-opt${paid === true ? ' on' : ''}`} onClick={() => setPaid(paid === true ? null : true)}>
+              {t('pack.place.yes')}
+            </button>
+            <button type="button" className={`mna-opt${paid === false ? ' on' : ''}`} onClick={() => setPaid(paid === false ? null : false)}>
+              {t('pack.place.no')}
+            </button>
+          </div>
+          <PlaceCheck on={overnight} onChange={setOvernight} label={t('pack.mapNotes.parking.overnightField')} />
+          {dock && <PlaceCheck on={worth} onChange={setWorth} label={t('pack.place.worth')} sub={t('pack.place.worthSub')} />}
+        </>
+      )}
+
+      {showPhotos && (
+        <div>
+          <div className="ppx-q">{t('pack.place.photo')} <span className="ppx-note" style={{ margin: 0 }}>{t('pack.place.optional')}</span></div>
+          <PlacePhotoSlots ph={ph} addLabel={t('pack.place.photoAdd')} removeLabel={t('pack.place.photoRemove')} />
+          {ph.error && <p className="mna-error">{t('pack.mapNotes.error')}</p>}
         </div>
       )}
 
@@ -599,6 +626,8 @@ export function AddMapNotePanel({
           <span className="mna-hint mna-hint--ok">
             <i aria-hidden="true">✓</i>{t('pack.mapNotes.add.ready')}
           </span>
+        ) : needsPaid ? (
+          <span className="mna-hint">{t('pack.mapNotes.parking.needPaid')}</span>
         ) : (
           <span className="mna-hint">{t('pack.mapNotes.add.dragHint')}</span>
         )}

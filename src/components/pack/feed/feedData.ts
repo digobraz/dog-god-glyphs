@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { HeroTrail } from '@/data/heroTrails.generated';
-import type { MePost } from '@/components/pack/profile/mePosts';
+import { onPostsChanged, type MePost } from '@/components/pack/profile/mePosts';
 import { readLocalTrails, visibleLocalTrails } from '@/components/pack/tripShared';
 import { onPackStoreHydrated, readLocalTrailMeta } from '@/lib/packStore';
 import { intlLocale } from '@/i18n/bcp47';
@@ -157,7 +157,10 @@ export function useSnifferPosts(enabled: boolean, pos: FeedPos | null): { rows: 
     })));
   }, [enabled, lat, lon]);
   useEffect(() => { void load(); }, [load]);
-  return { rows, reload: () => { void load(); }, ready };
+  // Nový príspevok (aj Sniffer) z okna písania: zoznam sa načíta znova.
+  useEffect(() => onPostsChanged(() => { void load(); }), [load]);
+  const reload = useCallback(() => { void load(); }, [load]);
+  return { rows, reload, ready };
 }
 
 /** „Obnoviť“ = ďalších 30 dní v téme Sniffer. */
