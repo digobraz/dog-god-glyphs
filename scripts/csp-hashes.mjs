@@ -48,6 +48,7 @@ for (const f of subory) {
     const h = "'sha256-" + createHash('sha256').update(m[2]).digest('base64') + "'";
     const x = hasheInfo.get(h) || { n: 0, dlzka: m[2].length, subor: f.replace(WEB + '/', '') };
     x.n++;
+    if (f === join(WEB, 'dist/index.html')) x.home = true;
     hasheInfo.set(h, x);
   }
   // inline obsluhy udalostí (onload=… na <link>) hash nepokryje — treba ich vypísať, inak ich ostrá CSP zabije
@@ -56,7 +57,10 @@ for (const f of subory) {
 // Cloudflare `_headers`: riadok dlhší ako 2 000 znakov sa TICHO zahodí (wrangler dev ho nedoručí) — zmerané 21. 11. 2026,
 // 14 hashov dalo 2 025 znakov a hlavička zmizla celá. Preto rozpočet: najčastejšie a najkratšie skripty prvé, zvyšok sa vypíše.
 const LIMIT = 1990;
-const poradie = [...hasheInfo.entries()].sort((a, b) => b[1].n - a[1].n || a[1].dlzka - b[1].dlzka);
+// Skripty homepage (dist/index.html) majú prednosť — je to najnavštevovanejšia stránka a PageSpeed ju meria
+// (FLIP 23. 11. 2026: výberový skript prerenderu `/` vypadol z rozpočtu ⇒ Best practices 100 → 93).
+const naHome = (x) => (x.home ? 1 : 0);
+const poradie = [...hasheInfo.entries()].sort((a, b) => naHome(b[1]) - naHome(a[1]) || b[1].n - a[1].n || a[1].dlzka - b[1].dlzka);
 const vsetkyHashe = poradie.map(([h]) => h);
 const obsluhy = [...obslSet];
 

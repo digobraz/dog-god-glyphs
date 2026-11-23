@@ -275,7 +275,11 @@ async function render(browser, page, base, fontsCss) {
   const headLinks = page.onlyPath && linkTags
     ? `<script>if(location.pathname===${JSON.stringify(page.onlyPath)}){document.write(${JSON.stringify(linkTags)});try{${preImg}}catch(e){}}</script>`
     : '';
-  const html = base.replace('<head>', `<head><script>window.__preDefer=1</script><style>${fontsCss}</style>${headLinks}`).replace('<div id="root"></div>', inject);
+  // Za <meta charset>, nie hneď za <head> — charset musí byť v prvom 1 kB (PageSpeed Best practices, 23. 11. 2026).
+  const headAt = /<meta charset="[^"]*"\s*\/?>/i.exec(base);
+  const headInject = `<script>window.__preDefer=1</script><style>${fontsCss}</style>${headLinks}`;
+  const html = (headAt ? base.slice(0, headAt.index + headAt[0].length) + headInject + base.slice(headAt.index + headAt[0].length)
+    : base.replace('<head>', `<head>${headInject}`)).replace('<div id="root"></div>', inject);
   // Stráž: výberový skript je JS v šablóne — `\d` v nej ticho stratí lomítko (stalo sa 8. 10.:
   // heroglyf psa ostal rozbitý). Regex na značky musí prežiť do HTML doslova.
   if (data.some(Boolean) && !html.includes('replace(/__PRE_D([0-9]+)__/g')) throw new Error('výberový skript nevie dosadiť data: URI');
