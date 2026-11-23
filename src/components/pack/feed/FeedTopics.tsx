@@ -64,6 +64,15 @@ export const FEED_TOPICS_CSS = `
 @keyframes pkt-halo{0%{box-shadow:0 0 0 2px ${PAPER_BG},0 0 0 5px var(--pg),0 0 0 0 color-mix(in srgb,var(--pg) 80%,transparent);}
   50%{box-shadow:0 0 0 2px ${PAPER_BG},0 0 0 5px var(--pg),0 0 24px 8px color-mix(in srgb,var(--pg) 60%,transparent);}}
 @media (prefers-reduced-motion:reduce){.pkt-a.on .pkt-ring,.pkt-a.on .pkt-g.pig{animation:none;}}
+/* SNIFFER: žiara ružovo-modrá ako jeho srdce (Matej 23. 11.: „žiara pri téme sniffer vo feede daj ružovo modrú“). */
+.pkt-a--sn{--sn1:#FF5FC4;--sn2:#2FB4FF;}
+.pkt-a--sn.on .pkt-ring{background:linear-gradient(135deg,var(--sn1),var(--sn2));animation:pkt-halo-sn 1.1s ease-out;
+  box-shadow:0 0 0 2px ${PAPER_BG},-6px -4px 18px 6px color-mix(in srgb,var(--sn1) 60%,transparent),6px 4px 18px 6px color-mix(in srgb,var(--sn2) 60%,transparent);}
+.pkt-a--sn.on .pkt-ring i{border:3px solid transparent;background:linear-gradient(${PAPER_BG},${PAPER_BG}) padding-box,linear-gradient(135deg,var(--sn1),var(--sn2)) border-box;}
+.pkt-a--sn.on b{background:linear-gradient(90deg,#E0379F,#1E8FE0);-webkit-background-clip:text;background-clip:text;color:transparent;}
+@keyframes pkt-halo-sn{0%{box-shadow:0 0 0 2px ${PAPER_BG},0 0 0 0 transparent,0 0 0 0 transparent;}
+  50%{box-shadow:0 0 0 2px ${PAPER_BG},-8px -6px 26px 9px color-mix(in srgb,var(--sn1) 65%,transparent),8px 6px 26px 9px color-mix(in srgb,var(--sn2) 65%,transparent);}}
+@media (prefers-reduced-motion:reduce){.pkt-a--sn.on .pkt-ring{animation:none;}}
 /* ŠAT PAPYRUS 3D (hárok H1): kruh témy = papierové tlačidlo s tmavým lemom a perou. Vybraná téma si nechá žiaru (lock 26. 10.). */
 html.papyrus3d .pkt-a--k:not(.on) .pkt-ring i{border:2.5px solid var(--p3d-ink);background:var(--p3d-card);box-shadow:0 4px 0 var(--p3d-gold-solid),0 7px 9px var(--p3d-sh);}
 `;
@@ -84,7 +93,7 @@ export function FeedTopics({ topic, onTopic }: { topic: string | null; onTopic: 
       <h2 className="pkf-th">{aria}</h2>
       <div className="pkf-tags" role="group" aria-label={aria}>
         {[ALL, ...(APP_NEW ? [SNIFFER] : []), ...POST_TAGS].filter((d) => !APP_NEW || d.tag === SNIFFER_TAG || d.tag in KRUH).map((d) => (
-          <button key={d.icon + d.tag} type="button" className={`pkt-a${APP_NEW ? ' pkt-a--k' : ''}${isOn(d.tag) ? ' on' : ''}`} aria-pressed={isOn(d.tag)} onClick={() => pick(d.tag)}
+          <button key={d.icon + d.tag} type="button" className={`pkt-a${APP_NEW ? ' pkt-a--k' : ''}${d.tag === SNIFFER_TAG ? ' pkt-a--sn' : ''}${isOn(d.tag) ? ' on' : ''}`} aria-pressed={isOn(d.tag)} onClick={() => pick(d.tag)}
             style={{ '--ic': `url('/icons/pack/${d.icon}.svg')`, '--pg': d.color } as CSSProperties}>
             {APP_NEW
               ? <span className="pkt-ring"><i><img src={d.tag === SNIFFER_TAG ? SNIFFER_ICON : `/icons/kruhy/${KRUH[d.tag]}.webp`} alt="" draggable={false} /></i></span>
