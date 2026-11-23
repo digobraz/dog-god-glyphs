@@ -383,6 +383,17 @@ export function PackFeed() {
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postParam, uid]);
+  // `?vizia=<postId>` (panel upozornení, záložky Vízia · Práve pracujeme · Hotovo, 23. 11. 2026) otvorí plán ako príspevok nad feedom.
+  const viziaParam = params.get('vizia');
+  useEffect(() => {
+    if (!viziaParam) return;
+    const r = vizia.rows.find((x) => x.postId === viziaParam);
+    if (!r) return;
+    const next = new URLSearchParams(params); next.delete('vizia');
+    setParams(next, { replace: true });
+    setReading({ p: viziaAsPost(r, r.body), vz: r });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viziaParam, vizia.rows]);
   useEffect(() => {
     let on = true;
     fetchQuoteComments(quoteKey).then((r) => { if (on) setQuoteCm(r.length); }).catch(() => {});

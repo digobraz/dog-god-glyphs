@@ -40,7 +40,7 @@ html.papyrus3d .ntf-tabs button.on{background:${GOLD_HI};border-color:${GOLD_HI}
 /* panel v zozname: výška podľa obsahu, nie celá strana — hore štvrtina s prírastkom, pod ňou len to, čo je naozaj nové */
 html.papyrus3d .ntf-sheet.ntf-compact{height:auto;max-height:100%;align-self:flex-start;border-radius:0 0 ${PACK_R.card}px ${PACK_R.card}px;box-shadow:0 8px 0 color-mix(in srgb,black 45%,transparent);}
 html.papyrus3d .ntf-compact .ntf-top{padding-top:calc(env(safe-area-inset-top,0px) + ${S.sm}px);padding-bottom:0;}
-html.papyrus3d .ntf-compact .ntf-tick{margin-top:${S.xs}px;}
+html.papyrus3d .ntf-compact .ntf-tick{margin-top:${S.lg}px;} /* Matej 23. 11.: pilulky boli nalepené pod nadpisom a dotýkali sa šípky späť */
 html.papyrus3d .ntf-compact .ntf-history{padding:${S.xs}px ${S.md}px;}
 html.papyrus3d .ntf-compact .ntf-list{flex:0 1 auto;min-height:0;padding-top:${S.sm}px;padding-bottom:${S.sm}px;gap:${S.md}px;}
 @media (max-height:700px){html.papyrus3d .ntf-tick{display:none;}}
@@ -110,23 +110,23 @@ html.papyrus3d .ntf-empty{display:none;}
 /* PODSTRÁNKA „Všetky štatistiky" (StatsDetail): karty papierové s perou, pilulky tempa obrysom na lapise */
 html.papyrus3d .ntf-all .sd-sub{${CARD_DARK.replace(/;/g, ' !important;')}border-radius:${PACK_R.card}px !important;}
 /* NAJNOVŠÍ ČLEN: fotka s #číslom vľavo, meno, tlačidlo Vitaj NAPRAVO; labka máva ako ruka (kýve sa okolo spodku, ~2,6 s, potom pauza) */
-html.papyrus3d .ntf-wel{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:${S.md}px;align-items:center;padding:${S.md}px;border-radius:${PACK_R.card}px;position:relative;background:linear-gradient(135deg,#F7E9C6,#EBD3A0);color:var(--p3d-ink);border:2.5px solid ${GOLD_HI};
-  box-shadow:var(--p3d-lift),0 0 0 3px color-mix(in srgb,${GOLD_HI} 35%,transparent),0 10px 18px var(--p3d-sh);max-height:220px;overflow:hidden;transition:opacity .5s,transform .5s,max-height .5s .3s,margin .5s .3s,padding .5s .3s;}
-html.papyrus3d .ntf-wel-ph{position:relative;width:64px;height:64px;padding:0;border:0;background:none;cursor:pointer;}
-html.papyrus3d .ntf-wel-ph img{width:64px;height:64px;border-radius:${PACK_R.pill}px;object-fit:cover;border:3px solid var(--p3d-gold);display:block;}
+html.papyrus3d .ntf-wel{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:${S.md}px;align-items:center;padding:${S.md}px;margin-top:${S.md}px;border-radius:${PACK_R.card}px;position:relative;background:linear-gradient(135deg,#F7E9C6,#EBD3A0);color:var(--p3d-ink);border:2.5px solid ${GOLD_HI};
+  box-shadow:var(--p3d-lift),0 0 0 3px color-mix(in srgb,${GOLD_HI} 35%,transparent),0 10px 18px var(--p3d-sh);max-height:220px;overflow:visible;transition:opacity .5s,transform .5s,max-height .5s .3s,margin .5s .3s,padding .5s .3s;}
+html.papyrus3d .ntf-wel-ph{position:relative;width:96px;height:96px;margin:-${S.lg}px 0 -${S.sm}px -${S.lg}px;padding:0;border:0;background:none;cursor:pointer;transform:rotate(-3deg);} /* Matej 23. 11.: fotka hranatá, väčšia, trošku presahuje kartu */
+html.papyrus3d .ntf-wel-ph img{width:96px;height:96px;border-radius:${PACK_R.tile}px;object-fit:cover;border:3px solid var(--p3d-gold);display:block;box-shadow:0 6px 0 var(--p3d-gold),0 10px 16px var(--p3d-sh);}
 html.papyrus3d .ntf-wel-ph b{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);padding:0 ${S.sm}px;border-radius:${PACK_R.pill}px;background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;line-height:18px;white-space:nowrap;}
 html.papyrus3d .ntf-wel-tx{min-width:0;display:flex;flex-direction:column;gap:${S.xs}px;}
 html.papyrus3d .ntf-wel-nm{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.h2}px;line-height:1.1;overflow-wrap:anywhere;}
 html.papyrus3d .ntf-wel-tx small{font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
 html.papyrus3d .ntf-wel-ok{display:none;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;font-weight:600;color:${T.growGreen};}
-html.papyrus3d .ntf-wel-btn{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;padding:${S.sm}px ${S.md}px;border-radius:${PACK_R.tile}px;border:0;background:${LAPIS.grad};color:${LAPIS.ink};cursor:pointer;font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.body}px;line-height:1;box-shadow:var(--p3d-lift);}
-html.papyrus3d .ntf-wel-btn img{width:40px;height:40px;object-fit:contain;transform-origin:50% 90%;animation:ntf-mav 2.6s ease-in-out infinite;}
+html.papyrus3d .ntf-wel-btn{display:flex;flex-direction:column;align-items:center;gap:${S.xs}px;padding:${S.xs}px;border-radius:${PACK_R.tile}px;border:0;background:none;color:var(--p3d-ink);cursor:pointer;font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.body}px;line-height:1;} /* Matej 23. 11.: labka nie v modrom bloku, normálne na bledej ploche */
+html.papyrus3d .ntf-wel-btn img{width:48px;height:48px;filter:drop-shadow(0 3px 0 rgba(0,0,0,.18));object-fit:contain;transform-origin:50% 90%;animation:ntf-mav 2.6s ease-in-out infinite;}
 @keyframes ntf-mav{0%,55%,100%{transform:rotate(0);}8%{transform:rotate(18deg);}16%{transform:rotate(-10deg);}24%{transform:rotate(18deg);}32%{transform:rotate(-6deg);}40%{transform:rotate(10deg);}48%{transform:rotate(0);}}
 html.papyrus3d .ntf-wel-btn:active img{animation-duration:.6s;}
-html.papyrus3d .ntf-wel.thx{grid-template-columns:64px minmax(0,1fr);}
+html.papyrus3d .ntf-wel.thx{grid-template-columns:96px minmax(0,1fr);}
 html.papyrus3d .ntf-wel.thx .ntf-wel-btn{display:none;}
 html.papyrus3d .ntf-wel.thx .ntf-wel-ok{display:block;}
-html.papyrus3d .ntf-wel.done{opacity:0;transform:scale(.96);max-height:0;margin:-${S.sm}px 0;padding-top:0;padding-bottom:0;border-width:0;}
+html.papyrus3d .ntf-wel.done{opacity:0;transform:scale(.96);max-height:0;overflow:hidden;margin:-${S.sm}px 0;padding-top:0;padding-bottom:0;border-width:0;}
 @media (prefers-reduced-motion:reduce){html.papyrus3d .ntf-wel-btn img{animation:none;}html.papyrus3d .ntf-wel{transition:none;}}
 /* VÍZIA / PRÁVE PRACUJEME / HOTOVO: karta s bohatou ikonkou 52 px, nadpis, text max 3 riadky, vpravo počty alebo dátum */
 html.papyrus3d .ntf-vz-list{display:flex;flex-direction:column;gap:${S.md}px;}
@@ -134,9 +134,10 @@ html.papyrus3d .ntf-vz{display:grid;grid-template-columns:52px minmax(0,1fr) aut
 html.papyrus3d .ntf-vz-ico{width:52px;height:52px;object-fit:contain;display:block;}
 html.papyrus3d .ntf-vz-tx{min-width:0;display:flex;flex-direction:column;gap:${S.xs}px;}
 html.papyrus3d .ntf-vz-tx b{font-family:'LT Museum',serif;font-weight:400;font-size:${PACK_TEXT.lead}px;line-height:1.15;overflow-wrap:anywhere;}
-html.papyrus3d .ntf-vz-p{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.35;color:${T.inkWarm};display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+html.papyrus3d .ntf-vz-p{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.35;color:${T.inkWarm};display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;}
 html.papyrus3d .ntf-vz-r{display:flex;flex-direction:column;align-items:flex-end;gap:${S.xs}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;font-weight:600;color:${T.inkWarm};white-space:nowrap;}
 html.papyrus3d .ntf-vz-r span{display:inline-flex;align-items:center;gap:${S.xs}px;}
+html.papyrus3d .ntf-vz-more{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;font-weight:600;color:${LAPIS.edge};text-decoration:underline;text-underline-offset:2px;} /* Matej 23. 11.: len prvý riadok + Čítať viac, ťuk = príspevok vo FEEDe */
 html.papyrus3d .ntf-vz-ms{margin:${S.sm}px 0 0;}
 html.papyrus3d .ntf-vz-empty{margin:0;padding:${S.lg}px;text-align:center;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;line-height:1.4;color:${LAPIS.ink};}
 html.papyrus3d .ntf-vz-sk{height:72px;border-radius:${PACK_R.tile}px;}

@@ -471,7 +471,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
               </div>
             )}
             <div className="ntf-list">
-              {APP_NEW && tab !== 'alerts' && <Suspense fallback={null}><NotifVizia kind={tab} /></Suspense>}
+              {APP_NEW && tab !== 'alerts' && <Suspense fallback={null}><NotifVizia kind={tab} onLeave={onClose} /></Suspense>}
               {APP_NEW && tab === 'alerts' && wc.dog && (
                 <div className={`ntf-wel${thx === wc.dog.n ? ' thx' : ''}${gone === -wc.dog.n ? ' done' : ''}`}>
                   <button type="button" className="ntf-wel-ph" aria-label={`#${wc.dog.n} ${wc.dog.name}`}

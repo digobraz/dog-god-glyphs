@@ -1,0 +1,15 @@
+import { chromium } from 'playwright';
+import fs from 'node:fs';
+const fx = fs.readFileSync('/private/tmp/claude-501/-Users-stachoman-AI-DOGYPT/c88717a5-74cc-4555-92ba-84686728b463/scratchpad/vizia.json','utf8');
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+await p.route('**/rest/v1/rpc/list_vizia_posts*', r => r.fulfill({ status: 200, contentType: 'application/json', body: fx }));
+await p.goto('http://127.0.0.1:8177/pack'); await p.waitForTimeout(5000);
+await p.evaluate(() => document.querySelector('.wzc-welcome')?.remove());
+await p.$eval('[data-mg="notif"]', el => el.click()); await p.waitForTimeout(2500);
+await p.screenshot({ path: '/private/tmp/claude-501/-Users-stachoman-AI-DOGYPT/c88717a5-74cc-4555-92ba-84686728b463/scratchpad/n-upo.png' });
+await p.$$eval('.ntf-tabs button', els => els[2].click()); await p.waitForTimeout(2500);
+await p.screenshot({ path: '/private/tmp/claude-501/-Users-stachoman-AI-DOGYPT/c88717a5-74cc-4555-92ba-84686728b463/scratchpad/n-viz.png' });
+await p.$eval('.ntf-vz', el => el.click()); await p.waitForTimeout(3500);
+await p.screenshot({ path: '/private/tmp/claude-501/-Users-stachoman-AI-DOGYPT/c88717a5-74cc-4555-92ba-84686728b463/scratchpad/n-feed.png' }); console.log(p.url());
+await b.close();
