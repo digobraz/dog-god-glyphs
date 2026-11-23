@@ -221,6 +221,8 @@ async function newCtx(browser, lang, w, h) {
   await ctx.route('**/*', (route) => {
     const u = route.request().url(), m = route.request().method();
     if (/posthog|stripe\.com|resend\.com|api\.cloudinary\.com|\/functions\/v1\//.test(u)) return route.abort();
+    // 23. 11. 2026: popupy sú DOM — dlaždice mapy by pálili kredit Mapy.com (~60 k/mes, 3/4 spotreby).
+    if (/api\.mapy\.com\/v1\/maptiles|\/mapyapi\/v1\/maptiles/.test(u)) return route.abort();
     // 17. 10. 2026: stroj bez .env.development (Pro) pustí DEV vite na LIVE Supabase — mock ID tam robili chyby v DB.
     if (/lnzurwmdgvzlqhsbhrvi\.supabase\.co/.test(u)) return route.abort();
     if (m !== 'GET' && !/127\.0\.0\.1|localhost|supabase\.co\/(rest|auth)\//.test(u)) return route.abort();
