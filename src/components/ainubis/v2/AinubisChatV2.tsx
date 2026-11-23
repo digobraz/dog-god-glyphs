@@ -142,6 +142,8 @@ export function AinubisChatV2(props: AinubisChatV2Props) {
       credits: r.meta?.v2?.credits,
       scrolls: r.meta?.v2?.scrolls,
       sos: r.meta?.v2?.sos,
+      web: r.meta?.v2?.web,
+      offer: r.meta?.v2?.offer ?? null,
       local: r.role === 'matej',
     })).sort((a, b) => a.created_at.localeCompare(b.created_at)), []);
 
@@ -301,24 +303,27 @@ export function AinubisChatV2(props: AinubisChatV2Props) {
     void send(true);
   }
 
-  async function send(afterConsent = false, retried = false) {
-    const text = input.trim();
-    if ((!text && !image && !voice) || busy || transcribing) return;
+  // `over` = poslať hotovú otázku inou úrovňou (ponuka „Spýtať sa Bystrého“): bez konceptu v riadku, bez prílohy.
+  async function send(afterConsent = false, retried = false, over?: { text: string; pick: V2Pick }) {
+    const text = over ? over.text : input.trim();
+    const img = over ? null : image;
+    const vc = over ? null : voice;
+    if ((!text && !img && !vc) || busy || transcribing) return;
     if (!consentOk && !afterConsent) { setConsentFail(false); setConsentAsk(true); return; }
     stopAudio();
     setError(null); setCanRetry(false); setBusy(true);
     const ctl = new AbortController();
     abortRef.current = ctl;
     const now = new Date().toISOString();
-    const uMsg: V2Msg = { id: lid('u'), role: 'user', content: text, created_at: now, image: image?.previewUrl, voice: voice ? { sec: voice.sec, path: voice.path, url: voice.url } : undefined };
+    const uMsg: V2Msg = { id: lid('u'), role: 'user', content: text, created_at: now, image: img?.previewUrl, voice: vc ? { sec: vc.sec, path: vc.path, url: vc.url } : undefined };
     const aMsg: V2Msg = { id: lid('a'), role: 'assistant', content: '', created_at: now, streaming: true, status: 'thinking' };
     setMsgs((l) => [...l, uMsg, aMsg]);
 
     const body: V2SendBody = {
-      v: 2, message: text, lang, page: pathname, pick, for_dog: selectedDog,
+      v: 2, message: text, lang, page: pathname, pick: over?.pick ?? pick, for_dog: selectedDog,
       ...(threadRef.current.id && threadRef.current.tok ? { conversation_id: threadRef.current.id, session_token: threadRef.current.tok } : {}),
-      ...(image ? { image_b64: image.base64, image_mime: image.mime } : {}),
-      ...(voice ? { voice: { path: voice.path, sec: voice.sec } } : {}),
+      ...(img ? { image_b64: img.base64, image_mime: img.mime } : {}),
+      ...(vc ? { voice: { path: vc.path, sec: vc.sec } } : {}),
     };
     let gotMeta = false;
     let finished = false;
@@ -334,7 +339,7 @@ export function AinubisChatV2(props: AinubisChatV2Props) {
       }
       patchLast((m) => ({
         ...m, id: d.message_id ?? m.id, content: d.reply || m.content, streaming: false, status: null,
-        tier: d.tier, credits: d.credits, scrolls: d.scrolls ?? [], sos: d.sos ?? [], fallback: d.fallback ?? null,
+        tier: d.tier, credits: d.credits, scrolls: d.scrolls ?? [], sos: d.sos ?? [], web: d.web ?? [], offer: d.offer ?? null, fallback: d.fallback ?? null,
         local: !d.message_id,
       }));
     };
@@ -343,8 +348,8 @@ export function AinubisChatV2(props: AinubisChatV2Props) {
       onMeta: (m) => {
         gotMeta = true;
         setThread(m.conversation_id, m.session_token);
-        // správa je u servera, koncept sa už nemôže stratiť
-        setInput(''); onClearImage(); setVoice(null);
+        // správa je u servera, koncept sa už nemôže stratiť (pri `over` koncept v riadku nie je tá správa — ostáva)
+        if (!over) { setInput(''); onClearImage(); setVoice(null); }
       },
       onStatus: (s) => patchLast((m) => ({ ...m, status: s })),
       onDelta: (tkn) => patchLast((m) => ({ ...m, content: m.content + tkn, status: null })),
@@ -368,7 +373,7 @@ export function AinubisChatV2(props: AinubisChatV2Props) {
       // Vlákno už nie je naše: zahoď ho a pošli tú istú správu ako nový rozhovor (rovnako ako starý widget).
       setThread(null, null);
       setMsgs((l) => l.slice(0, -2));
-      void send(true, true);
+      void send(true, true, over);
       return;
     }
     const msg = res.kind === 'http' && res.status === 429 ? (res.body?.reply || c('errRate'))
@@ -388,6 +393,12 @@ export function AinubisChatV2(props: AinubisChatV2Props) {
     // len načítame vlákno. Pred `meta` sa text vracia do riadku sám (vetva vyššie).
     onRetry: () => { waitUntilRef.current = Date.now() + 5 * 60_000; void syncThread(); },
     free: credits?.rank === 'veriaci', onRanks: () => setSheet('rank'), canRetry,
+    // Ponuka Rýchleho: tá istá otázka ešte raz Bystrému (ten smie na web). Otázka = posledná správa človeka pred odpoveďou.
+    onAskSharp: (m) => {
+      const i = msgs.findIndex((x) => x.id === m.id);
+      const q = msgs.slice(0, i).reverse().find((x) => x.role === 'user' && x.content.trim());
+      if (q) void send(false, false, { text: q.content, pick: 'bystry' });
+    },
   };
 
   // ── Rozloženie ──

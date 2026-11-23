@@ -17,6 +17,9 @@ export const V2_TIERS: readonly V2Tier[] = ['rychly', 'bystry', 'hlboky'];
 export const V2_RANKS: readonly V2RankId[] = ['veriaci', 'akolyta', 'knaz', 'vezir', 'farao'];
 
 export interface V2Scroll { id: string; world: string; title: string; line?: string }
+/** Zdroj z webu (len Bystrý a Hlboký); server pustí len URL, ktoré naozaj vrátilo hľadanie. */
+export interface V2Web { url: string; title: string; host?: string }
+export type V2Status = 'thinking' | 'scrolls' | 'web';
 export interface V2Voice { path?: string; sec: number; /** blob: URL čerstvej nahrávky (kým nie je obnovená z histórie) */ url?: string }
 
 export interface V2Msg {
@@ -30,11 +33,14 @@ export interface V2Msg {
   credits?: number;
   scrolls?: V2Scroll[];
   sos?: string[];
+  web?: V2Web[];
+  /** Rýchly bez zvitku: ponuka položiť tú istú otázku Bystrému (s webom). */
+  offer?: V2Tier | null;
   rating?: 'up' | 'down' | null;
   reported?: boolean;
   fallback?: string | null;
   streaming?: boolean;
-  status?: 'thinking' | 'scrolls' | null;
+  status?: V2Status | null;
   /** Odpoveď je lokálna (chyba, vyčerpané kredity) a nemá serverové id, takže sa nedá hodnotiť ani prehrať. */
   local?: boolean;
 }
@@ -67,6 +73,8 @@ export interface V2Done {
   credits?: number;
   scrolls?: V2Scroll[];
   sos?: string[];
+  web?: V2Web[];
+  offer?: V2Tier | null;
   health?: boolean;
   fallback?: string | null;
   credits_state?: V2CreditsState | null;
@@ -77,7 +85,7 @@ export interface V2Done {
 
 export interface V2Handlers {
   onMeta?: (m: { conversation_id: string; session_token: string; user_message_id: string | null; branch: string | null }) => void;
-  onStatus?: (s: 'thinking' | 'scrolls', tier?: V2Tier) => void;
+  onStatus?: (s: V2Status, tier?: V2Tier) => void;
   onDelta?: (t: string) => void;
   onDone?: (d: V2Done) => void;
   onError?: (error: string) => void;
@@ -124,7 +132,7 @@ function parseBlock(block: string): { event: string; data: unknown } | null {
 function dispatch(ev: { event: string; data: unknown }, h: V2Handlers) {
   const d = ev.data as Record<string, unknown>;
   if (ev.event === 'meta') h.onMeta?.(d as never);
-  else if (ev.event === 'status') h.onStatus?.(d.s as 'thinking' | 'scrolls', d.tier as V2Tier | undefined);
+  else if (ev.event === 'status') h.onStatus?.(d.s as V2Status, d.tier as V2Tier | undefined);
   else if (ev.event === 'delta') h.onDelta?.(String(d.t ?? ''));
   else if (ev.event === 'done') h.onDone?.(d as unknown as V2Done);
   else if (ev.event === 'error') h.onError?.(String(d.error ?? 'error'));
@@ -205,7 +213,7 @@ export async function v2Rate(message_id: string, rating: 'up' | 'down' | null, r
   } catch { return false; }
 }
 
-export type V2Poll = { id: string; created_at: string; role: string; content: string; meta?: { v2?: { tier?: V2Tier; credits?: number; scrolls?: V2Scroll[]; sos?: string[] }; voice?: { path?: string; sec?: number } } | null }[];
+export type V2Poll = { id: string; created_at: string; role: string; content: string; meta?: { v2?: { tier?: V2Tier; credits?: number; scrolls?: V2Scroll[]; sos?: string[]; web?: V2Web[]; offer?: V2Tier | null }; voice?: { path?: string; sec?: number } } | null }[];
 
 /** Otvorenie vlákna z histórie (ten istý `ainubis-poll` ako starý widget). */
 export async function v2LoadThread(conversation_id: string, session_token: string): Promise<{ ok: boolean; status: number; messages: V2Poll }> {

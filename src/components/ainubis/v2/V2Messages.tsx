@@ -9,6 +9,7 @@ import { svetImg, AI_LOGO } from '@/components/pack/ainubis/3d/zaklad';
 import { aidContent, AID_ICON, AID_ICON_DEFAULT } from '@/components/pack/sos/aid/aidData';
 import type { V2Msg, V2Tier } from './v2Api';
 import { creditsWord, fmtSec, noVoiceLang, type V2Copy } from './v2Meta';
+import { openExternal } from '@/lib/appLinks';
 
 export const CHAT_BACK = '/pack/ainubis?plane=chat';
 /** Ikonky kariet Prvej pomoci: továreň má pre otravu vlastnú, ostatné berie rozcestník prvej pomoci. */
@@ -30,6 +31,7 @@ export interface MsgActions {
   free: boolean;
   onRanks: () => void;
   canRetry: boolean;
+  onAskSharp: (m: V2Msg) => void;
 }
 
 /** Bublina textu: odstavce, odkazy dogypt.com/pack idú cez router. */
@@ -80,6 +82,7 @@ function SourceCards({ m, a }: { m: V2Msg; a: MsgActions }) {
   const navigate = useNavigate();
   const sos = m.sos ?? [];
   const scrolls = m.scrolls ?? [];
+  const web = m.web ?? [];
   const aid = aidContent(a.lang).cards;
   return (
     <>
@@ -120,6 +123,19 @@ function SourceCards({ m, a }: { m: V2Msg; a: MsgActions }) {
               >
                 <img src={svetImg(s.world)} alt="" />
                 <span><b>{s.title}</b>{s.line && <small>{s.line}</small>}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {web.length > 0 && (
+        <>
+          <div className="av2-lab">{a.c('fromWeb')}</div>
+          <div className="av2-srcs">
+            {web.map((w) => (
+              <button key={w.url} type="button" className="av2-src web" onClick={() => openExternal(w.url)}>
+                <img src="/icons/sys/odkaz.webp" alt="" />
+                <span><b>{w.title}</b>{w.host && <small>{w.host}</small>}</span>
               </button>
             ))}
           </div>
@@ -227,14 +243,17 @@ export function AssistantBlock({ m, a, last }: { m: V2Msg; a: MsgActions; last: 
       <img src={AI_LOGO} alt="" />
       <div className="av2-ai">
         {waiting ? (
-          <div className="av2-typing" aria-live="polite">{(m.status === 'scrolls' ? a.c('sniffing') : a.c('thinking')).replace(/…$/, '')}</div>
+          <div className="av2-typing" aria-live="polite">{(m.status === 'scrolls' ? a.c('sniffing') : m.status === 'web' ? a.c('webSearching') : a.c('thinking')).replace(/…$/, '')}</div>
         ) : (
           <div className="av2-msg av2-bbai"><Paras text={m.content} streaming={m.streaming} /></div>
         )}
-        {m.streaming && m.content && m.status === 'scrolls' && <div className="av2-typing">{a.c('sniffing').replace(/…$/, '')}</div>}
+        {m.streaming && m.content && (m.status === 'scrolls' || m.status === 'web') && <div className="av2-typing">{a.c(m.status === 'web' ? 'webSearching' : 'sniffing').replace(/…$/, '')}</div>}
         {!m.streaming && (
           <Fragment>
             <SourceCards m={m} a={a} />
+            {last && m.offer === 'bystry' && (
+              <button type="button" className="pk-b3 pk-b3--ai-nt av2-retry" onClick={() => a.onAskSharp(m)}>{a.c('askSharp')}</button>
+            )}
             <Actions m={m} a={a} />
           </Fragment>
         )}

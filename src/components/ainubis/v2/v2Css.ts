@@ -89,7 +89,7 @@ ${P} .av2-lab{${M3.lab}}
 ${P} .av2-srcs{display:grid;grid-template-columns:1fr;gap:8px;}
 ${PC}{${P} .av2-srcs{grid-template-columns:1fr 1fr;}}
 ${P} .av2-src{display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer;text-align:left;color:${A.ink};border-radius:16px;min-width:0;font-family:${UI};}
-${P} .av2-src.scroll{${M3.card}}
+${P} .av2-src.scroll,${P} .av2-src.web{${M3.card}}
 ${P} .av2-src.sos{border-radius:16px;border:3px solid #FF6A5B;background:var(--ai-card);box-shadow:0 0 0 2px var(--ai-out),0 6px 0 2px #7A2418,0 0 30px -12px #FF6A5B;}
 ${P} .av2-src img{width:40px;height:40px;flex:none;}
 ${P} .av2-src span{min-width:0;}
